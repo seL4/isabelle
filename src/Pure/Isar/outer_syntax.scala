@@ -33,29 +33,22 @@ object Outer_Syntax
     result += '"'
     result.toString
   }
+
+  def init(): Outer_Syntax = new Outer_Syntax()
 }
 
-class Outer_Syntax
+class Outer_Syntax private(
+  keywords: Map[String, String] = Map((";" -> Keyword.DIAG)),
+  lexicon: Scan.Lexicon = Scan.Lexicon.empty,
+  val completion: Completion = Completion.init())
 {
-  protected val keywords: Map[String, String] = Map((";" -> Keyword.DIAG))
-  protected val lexicon: Scan.Lexicon = Scan.Lexicon.empty
-  lazy val completion: Completion = Completion.init()  // FIXME odd initialization
-
   def keyword_kind(name: String): Option[String] = keywords.get(name)
 
   def + (name: String, kind: String, replace: String): Outer_Syntax =
-  {
-    val new_keywords = keywords + (name -> kind)
-    val new_lexicon = lexicon + name
-    val new_completion =
-      if (Keyword.control(kind)) completion
-      else completion + (name, replace)
-    new Outer_Syntax {
-      override val lexicon = new_lexicon
-      override val keywords = new_keywords
-      override lazy val completion = new_completion
-    }
-  }
+    new Outer_Syntax(
+      keywords + (name -> kind),
+      lexicon + name,
+      if (Keyword.control(kind)) completion else completion + (name, replace))
 
   def + (name: String, kind: String): Outer_Syntax = this + (name, kind, name)
 

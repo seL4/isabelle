@@ -116,7 +116,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
 
   @volatile var verbose: Boolean = false
 
-  @volatile private var syntax = new Outer_Syntax
+  @volatile private var syntax = Outer_Syntax.init()
   def current_syntax(): Outer_Syntax = syntax
 
   @volatile private var reverse_syslog = List[XML.Elem]()
