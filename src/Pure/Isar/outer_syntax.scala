@@ -39,7 +39,7 @@ class Outer_Syntax
 {
   protected val keywords: Map[String, String] = Map((";" -> Keyword.DIAG))
   protected val lexicon: Scan.Lexicon = Scan.Lexicon.empty
-  lazy val completion: Completion = (new Completion).add_symbols // FIXME odd initialization
+  lazy val completion: Completion = Completion.init()  // FIXME odd initialization
 
   def keyword_kind(name: String): Option[String] = keywords.get(name)
 
