@@ -141,8 +141,8 @@ class Linear_Set[A]
   def contains(elem: A): Boolean =
     !isEmpty && (rep.end.get == elem || rep.nexts.isDefinedAt(elem))
 
-  private def make_iterator(start: Option[A], which: Map[A, A]): Iterator[A] = new Iterator[A] {
-    private var next_elem = start
+  private def make_iterator(from: Option[A], which: Map[A, A]): Iterator[A] = new Iterator[A] {
+    private var next_elem = from
     def hasNext(): Boolean = next_elem.isDefined
     def next(): A =
       next_elem match {
