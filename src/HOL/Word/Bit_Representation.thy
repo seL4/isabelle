@@ -223,12 +223,6 @@ lemma bin_last_simps [simp]:
 lemma Bit_div2 [simp]: "(w BIT b) div 2 = w"
   unfolding bin_rest_def [symmetric] by auto
 
-lemma Bit0_div2 [simp]: "(Int.Bit0 w) div 2 = w"
-  using Bit_div2 [where b="(0::bit)"] by (simp add: BIT_simps)
-
-lemma Bit1_div2 [simp]: "(Int.Bit1 w) div 2 = w"
-  using Bit_div2 [where b="(1::bit)"] by (simp add: BIT_simps)
-
 lemma bin_nth_lem [rule_format]:
   "ALL y. bin_nth x = bin_nth y --> x = y"
   apply (induct x rule: bin_induct)
