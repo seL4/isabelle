@@ -6,6 +6,9 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* January 2011: Florian Haftmann, TUM, et. al.
+  (Re-)Introduction of the "set" type constructor.
+
 
 Contributions to Isabelle2011-1
 -------------------------------
