@@ -403,11 +403,11 @@ lemma bintr_bin_set_ge:
    apply (auto simp: le_Bits)
   done
 
-lemma bin_sc_FP [simp]: "bin_sc n 0 Int.Pls = Int.Pls"
-  by (induct n) (auto simp: BIT_simps)
+lemma bin_sc_FP [simp]: "bin_sc n 0 0 = 0"
+  by (induct n) auto
 
-lemma bin_sc_TM [simp]: "bin_sc n 1 Int.Min = Int.Min"
-  by (induct n) (auto simp: BIT_simps)
+lemma bin_sc_TM [simp]: "bin_sc n 1 -1 = -1"
+  by (induct n) auto
   
 lemmas bin_sc_simps = bin_sc.Z bin_sc.Suc bin_sc_TM bin_sc_FP
 
