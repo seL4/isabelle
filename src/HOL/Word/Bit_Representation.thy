@@ -166,7 +166,7 @@ lemma bin_rl_simps [simp]:
 lemma bin_abs_lem:
   "bin = (w BIT b) ==> ~ bin = Int.Min --> ~ bin = Int.Pls -->
     nat (abs w) < nat (abs bin)"
-  apply (clarsimp simp add: bin_rl_char)
+  apply clarsimp
   apply (unfold Pls_def Min_def Bit_def)
   apply (cases b)
    apply (clarsimp, arith)
