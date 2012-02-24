@@ -5,7 +5,7 @@
 header {* Term evaluation using the generic code generator *}
 
 theory Code_Evaluation
-imports Plain Typerep Code_Numeral
+imports Plain Typerep Code_Numeral Predicate
 uses ("Tools/code_evaluation.ML")
 begin
 

@@ -30,7 +30,7 @@ fun mk_if cond = Const (@{const_name Predicate.if_pred},
   HOLogic.boolT --> mk_monadT HOLogic.unitT) $ cond;
 
 fun mk_iterate_upto T (f, from, to) =
-  list_comb (Const (@{const_name Code_Numeral.iterate_upto},
+  list_comb (Const (@{const_name Predicate.iterate_upto},
       [@{typ code_numeral} --> T, @{typ code_numeral}, @{typ code_numeral}] ---> mk_monadT T),
     [f, from, to])
 

@@ -1,15 +1,107 @@
 (*  Title:      HOL/Relation.thy
-    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1996  University of Cambridge
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory; Stefan Berghofer, TU Muenchen
 *)
 
-header {* Relations *}
+header {* Relations – as sets of pairs, and binary predicates *}
 
 theory Relation
 imports Datatype Finite_Set
 begin
 
-subsection {* Definitions *}
+notation
+  bot ("\<bottom>") and
+  top ("\<top>") and
+  inf (infixl "\<sqinter>" 70) and
+  sup (infixl "\<squnion>" 65) and
+  Inf ("\<Sqinter>_" [900] 900) and
+  Sup ("\<Squnion>_" [900] 900)
+
+syntax (xsymbols)
+  "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Sqinter>_./ _)" [0, 10] 10)
+  "_INF"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sqinter>_\<in>_./ _)" [0, 0, 10] 10)
+  "_SUP1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Squnion>_./ _)" [0, 10] 10)
+  "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Squnion>_\<in>_./ _)" [0, 0, 10] 10)
+
+
+subsection {* Classical rules for reasoning on predicates *}
+
+declare predicate1D [Pure.dest?, dest?]
+declare predicate2I [Pure.intro!, intro!]
+declare predicate2D [Pure.dest, dest]
+declare bot1E [elim!]
+declare bot2E [elim!]
+declare top1I [intro!]
+declare top2I [intro!]
+declare inf1I [intro!]
+declare inf2I [intro!]
+declare inf1E [elim!]
+declare inf2E [elim!]
+declare sup1I1 [intro?]
+declare sup2I1 [intro?]
+declare sup1I2 [intro?]
+declare sup2I2 [intro?]
+declare sup1E [elim!]
+declare sup2E [elim!]
+declare sup1CI [intro!]
+declare sup2CI [intro!]
+declare INF1_I [intro!]
+declare INF2_I [intro!]
+declare INF1_D [elim]
+declare INF2_D [elim]
+declare INF1_E [elim]
+declare INF2_E [elim]
+declare SUP1_I [intro]
+declare SUP2_I [intro]
+declare SUP1_E [elim!]
+declare SUP2_E [elim!]
+
+
+subsection {* Conversions between set and predicate relations *}
+
+lemma pred_equals_eq [pred_set_conv]: "((\<lambda>x. x \<in> R) = (\<lambda>x. x \<in> S)) \<longleftrightarrow> (R = S)"
+  by (simp add: set_eq_iff fun_eq_iff)
+
+lemma pred_equals_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) = (\<lambda>x y. (x, y) \<in> S)) \<longleftrightarrow> (R = S)"
+  by (simp add: set_eq_iff fun_eq_iff)
+
+lemma pred_subset_eq [pred_set_conv]: "((\<lambda>x. x \<in> R) \<le> (\<lambda>x. x \<in> S)) \<longleftrightarrow> (R \<subseteq> S)"
+  by (simp add: subset_iff le_fun_def)
+
+lemma pred_subset_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) \<le> (\<lambda>x y. (x, y) \<in> S)) \<longleftrightarrow> (R \<subseteq> S)"
+  by (simp add: subset_iff le_fun_def)
+
+lemma bot_empty_eq: "\<bottom> = (\<lambda>x. x \<in> {})"
+  by (auto simp add: fun_eq_iff)
+
+lemma bot_empty_eq2: "\<bottom> = (\<lambda>x y. (x, y) \<in> {})"
+  by (auto simp add: fun_eq_iff)
+
+lemma inf_Int_eq [pred_set_conv]: "(\<lambda>x. x \<in> R) \<sqinter> (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<inter> S)"
+  by (simp add: inf_fun_def)
+
+lemma inf_Int_eq2 [pred_set_conv]: "(\<lambda>x y. (x, y) \<in> R) \<sqinter> (\<lambda>x y. (x, y) \<in> S) = (\<lambda>x y. (x, y) \<in> R \<inter> S)"
+  by (simp add: inf_fun_def)
+
+lemma sup_Un_eq [pred_set_conv]: "(\<lambda>x. x \<in> R) \<squnion> (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<union> S)"
+  by (simp add: sup_fun_def)
+
+lemma sup_Un_eq2 [pred_set_conv]: "(\<lambda>x y. (x, y) \<in> R) \<squnion> (\<lambda>x y. (x, y) \<in> S) = (\<lambda>x y. (x, y) \<in> R \<union> S)"
+  by (simp add: sup_fun_def)
+
+lemma INF_INT_eq: "(\<Sqinter>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Inter>i. r i))"
+  by (simp add: INF_apply fun_eq_iff)
+
+lemma INF_INT_eq2: "(\<Sqinter>i. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Inter>i. r i))"
+  by (simp add: INF_apply fun_eq_iff)
+
+lemma SUP_UN_eq [pred_set_conv]: "(\<Squnion>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Union>i. r i))"
+  by (simp add: SUP_apply fun_eq_iff)
+
+lemma SUP_UN_eq2 [pred_set_conv]: "(\<Squnion>i. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Union>i. r i))"
+  by (simp add: SUP_apply fun_eq_iff)
+
+
+subsection {* Relations as sets of pairs *}
 
 type_synonym 'a rel = "('a * 'a) set"
 
@@ -90,7 +182,7 @@ definition
   "inv_image r f = {(x, y). (f x, f y) : r}"
 
 
-subsection {* The identity relation *}
+subsubsection {* The identity relation *}
 
 lemma IdI [intro]: "(a, a) : Id"
 by (simp add: Id_def)
@@ -115,7 +207,7 @@ lemma trans_Id: "trans Id"
 by (simp add: trans_def)
 
 
-subsection {* Diagonal: identity over a set *}
+subsubsection {* Diagonal: identity over a set *}
 
 lemma Id_on_empty [simp]: "Id_on {} = {}"
 by (simp add: Id_on_def) 
@@ -142,7 +234,7 @@ lemma Id_on_subset_Times: "Id_on A \<subseteq> A \<times> A"
 by blast
 
 
-subsection {* Composition of two relations *}
+subsubsection {* Composition of two relations *}
 
 lemma rel_compI [intro]:
   "(a, b) : r ==> (b, c) : s ==> (a, c) : r O s"
@@ -194,7 +286,7 @@ lemma rel_comp_UNION_distrib2: "UNION I r O s = UNION I (%i. r i O s)"
 by auto
 
 
-subsection {* Reflexivity *}
+subsubsection {* Reflexivity *}
 
 lemma refl_onI: "r \<subseteq> A \<times> A ==> (!!x. x : A ==> (x, x) : r) ==> refl_on A r"
 by (unfold refl_on_def) (iprover intro!: ballI)
@@ -232,7 +324,8 @@ lemma refl_on_def' [nitpick_unfold, code]:
   "refl_on A r = ((\<forall>(x, y) \<in> r. x : A \<and> y : A) \<and> (\<forall>x \<in> A. (x, x) : r))"
 by (auto intro: refl_onI dest: refl_onD refl_onD1 refl_onD2)
 
-subsection {* Antisymmetry *}
+
+subsubsection {* Antisymmetry *}
 
 lemma antisymI:
   "(!!x y. (x, y) : r ==> (y, x) : r ==> x=y) ==> antisym r"
@@ -251,7 +344,7 @@ lemma antisym_Id_on [simp]: "antisym (Id_on A)"
 by (unfold antisym_def) blast
 
 
-subsection {* Symmetry *}
+subsubsection {* Symmetry *}
 
 lemma symI: "(!!a b. (a, b) : r ==> (b, a) : r) ==> sym r"
 by (unfold sym_def) iprover
@@ -275,7 +368,7 @@ lemma sym_Id_on [simp]: "sym (Id_on A)"
 by (rule symI) clarify
 
 
-subsection {* Transitivity *}
+subsubsection {* Transitivity *}
 
 lemma trans_join [code]:
   "trans r \<longleftrightarrow> (\<forall>(x, y1) \<in> r. \<forall>(y2, z) \<in> r. y1 = y2 \<longrightarrow> (x, z) \<in> r)"
@@ -300,7 +393,8 @@ by (fast intro: transI elim: transD)
 lemma trans_diff_Id: " trans r \<Longrightarrow> antisym r \<Longrightarrow> trans (r-Id)"
 unfolding antisym_def trans_def by blast
 
-subsection {* Irreflexivity *}
+
+subsubsection {* Irreflexivity *}
 
 lemma irrefl_distinct [code]:
   "irrefl r \<longleftrightarrow> (\<forall>(x, y) \<in> r. x \<noteq> y)"
@@ -310,7 +404,7 @@ lemma irrefl_diff_Id[simp]: "irrefl(r-Id)"
 by(simp add:irrefl_def)
 
 
-subsection {* Totality *}
+subsubsection {* Totality *}
 
 lemma total_on_empty[simp]: "total_on {} r"
 by(simp add:total_on_def)
@@ -318,7 +412,8 @@ by(simp add:total_on_def)
 lemma total_on_diff_Id[simp]: "total_on A (r-Id) = total_on A r"
 by(simp add: total_on_def)
 
-subsection {* Converse *}
+
+subsubsection {* Converse *}
 
 lemma converse_iff [iff]: "((a,b): r^-1) = ((b,a) : r)"
 by (simp add: converse_def)
@@ -383,7 +478,7 @@ lemma total_on_converse[simp]: "total_on A (r^-1) = total_on A r"
 by (auto simp: total_on_def)
 
 
-subsection {* Domain *}
+subsubsection {* Domain *}
 
 declare Domain_def [no_atp]
 
@@ -444,7 +539,7 @@ lemma Domain_dsum [simp]: "Domain (dsum r s) = usum (Domain r) (Domain s)"
 by auto
 
 
-subsection {* Range *}
+subsubsection {* Range *}
 
 lemma Range_iff: "(a : Range r) = (EX y. (y, a) : r)"
 by (simp add: Domain_def Range_def)
@@ -493,7 +588,7 @@ lemma snd_eq_Range: "snd ` R = Range R"
   by force
 
 
-subsection {* Field *}
+subsubsection {* Field *}
 
 lemma mono_Field: "r \<subseteq> s \<Longrightarrow> Field r \<subseteq> Field s"
 by(auto simp:Field_def Domain_def Range_def)
@@ -514,7 +609,7 @@ lemma Field_converse[simp]: "Field(r^-1) = Field r"
 by(auto simp:Field_def)
 
 
-subsection {* Image of a set under a relation *}
+subsubsection {* Image of a set under a relation *}
 
 declare Image_def [no_atp]
 
@@ -588,7 +683,7 @@ lemma Image_subset_eq: "(r``A \<subseteq> B) = (A \<subseteq> - ((r^-1) `` (-B))
 by blast
 
 
-subsection {* Single valued relations *}
+subsubsection {* Single valued relations *}
 
 lemma single_valuedI:
   "ALL x y. (x,y):r --> (ALL z. (x,z):r --> y=z) ==> single_valued r"
@@ -613,7 +708,7 @@ lemma single_valued_Id_on [simp]: "single_valued (Id_on A)"
 by (unfold single_valued_def) blast
 
 
-subsection {* Graphs given by @{text Collect} *}
+subsubsection {* Graphs given by @{text Collect} *}
 
 lemma Domain_Collect_split [simp]: "Domain{(x,y). P x y} = {x. EX y. P x y}"
 by auto
@@ -625,7 +720,7 @@ lemma Image_Collect_split [simp]: "{(x,y). P x y} `` A = {y. EX x:A. P x y}"
 by auto
 
 
-subsection {* Inverse image *}
+subsubsection {* Inverse image *}
 
 lemma sym_inv_image: "sym r ==> sym (inv_image r f)"
 by (unfold sym_def inv_image_def) blast
@@ -643,7 +738,7 @@ lemma converse_inv_image[simp]: "(inv_image R f)^-1 = inv_image (R^-1) f"
 unfolding inv_image_def converse_def by auto
 
 
-subsection {* Finiteness *}
+subsubsection {* Finiteness *}
 
 lemma finite_converse [iff]: "finite (r^-1) = finite r"
   apply (subgoal_tac "r^-1 = (%(x,y). (y,x))`r")
@@ -671,7 +766,7 @@ lemma finite_Field: "finite r ==> finite (Field r)"
   done
 
 
-subsection {* Miscellaneous *}
+subsubsection {* Miscellaneous *}
 
 text {* Version of @{thm[source] lfp_induct} for binary relations *}
 
@@ -682,5 +777,172 @@ text {* Version of @{thm[source] subsetI} for binary relations *}
 
 lemma subrelI: "(\<And>x y. (x, y) \<in> r \<Longrightarrow> (x, y) \<in> s) \<Longrightarrow> r \<subseteq> s"
 by auto
+
+
+subsection {* Relations as binary predicates *}
+
+subsubsection {* Composition *}
+
+inductive pred_comp  :: "['a \<Rightarrow> 'b \<Rightarrow> bool, 'b \<Rightarrow> 'c \<Rightarrow> bool] \<Rightarrow> 'a \<Rightarrow> 'c \<Rightarrow> bool" (infixr "OO" 75)
+  for r :: "'a \<Rightarrow> 'b \<Rightarrow> bool" and s :: "'b \<Rightarrow> 'c \<Rightarrow> bool" where
+  pred_compI [intro]: "r a b \<Longrightarrow> s b c \<Longrightarrow> (r OO s) a c"
+
+inductive_cases pred_compE [elim!]: "(r OO s) a c"
+
+lemma pred_comp_rel_comp_eq [pred_set_conv]:
+  "((\<lambda>x y. (x, y) \<in> r) OO (\<lambda>x y. (x, y) \<in> s)) = (\<lambda>x y. (x, y) \<in> r O s)"
+  by (auto simp add: fun_eq_iff)
+
+
+subsubsection {* Converse *}
+
+inductive conversep :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> bool" ("(_^--1)" [1000] 1000)
+  for r :: "'a \<Rightarrow> 'b \<Rightarrow> bool" where
+  conversepI: "r a b \<Longrightarrow> r^--1 b a"
+
+notation (xsymbols)
+  conversep  ("(_\<inverse>\<inverse>)" [1000] 1000)
+
+lemma conversepD:
+  assumes ab: "r^--1 a b"
+  shows "r b a" using ab
+  by cases simp
+
+lemma conversep_iff [iff]: "r^--1 a b = r b a"
+  by (iprover intro: conversepI dest: conversepD)
+
+lemma conversep_converse_eq [pred_set_conv]:
+  "(\<lambda>x y. (x, y) \<in> r)^--1 = (\<lambda>x y. (x, y) \<in> r^-1)"
+  by (auto simp add: fun_eq_iff)
+
+lemma conversep_conversep [simp]: "(r^--1)^--1 = r"
+  by (iprover intro: order_antisym conversepI dest: conversepD)
+
+lemma converse_pred_comp: "(r OO s)^--1 = s^--1 OO r^--1"
+  by (iprover intro: order_antisym conversepI pred_compI
+    elim: pred_compE dest: conversepD)
+
+lemma converse_meet: "(r \<sqinter> s)^--1 = r^--1 \<sqinter> s^--1"
+  by (simp add: inf_fun_def) (iprover intro: conversepI ext dest: conversepD)
+
+lemma converse_join: "(r \<squnion> s)^--1 = r^--1 \<squnion> s^--1"
+  by (simp add: sup_fun_def) (iprover intro: conversepI ext dest: conversepD)
+
+lemma conversep_noteq [simp]: "(op \<noteq>)^--1 = op \<noteq>"
+  by (auto simp add: fun_eq_iff)
+
+lemma conversep_eq [simp]: "(op =)^--1 = op ="
+  by (auto simp add: fun_eq_iff)
+
+
+subsubsection {* Domain *}
+
+inductive DomainP :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool"
+  for r :: "'a \<Rightarrow> 'b \<Rightarrow> bool" where
+  DomainPI [intro]: "r a b \<Longrightarrow> DomainP r a"
+
+inductive_cases DomainPE [elim!]: "DomainP r a"
+
+lemma DomainP_Domain_eq [pred_set_conv]: "DomainP (\<lambda>x y. (x, y) \<in> r) = (\<lambda>x. x \<in> Domain r)"
+  by (blast intro!: Orderings.order_antisym predicate1I)
+
+
+subsubsection {* Range *}
+
+inductive RangeP :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'b \<Rightarrow> bool"
+  for r :: "'a \<Rightarrow> 'b \<Rightarrow> bool" where
+  RangePI [intro]: "r a b \<Longrightarrow> RangeP r b"
+
+inductive_cases RangePE [elim!]: "RangeP r b"
+
+lemma RangeP_Range_eq [pred_set_conv]: "RangeP (\<lambda>x y. (x, y) \<in> r) = (\<lambda>x. x \<in> Range r)"
+  by (blast intro!: Orderings.order_antisym predicate1I)
+
+
+subsubsection {* Inverse image *}
+
+definition inv_imagep :: "('b \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" where
+  "inv_imagep r f = (\<lambda>x y. r (f x) (f y))"
+
+lemma [pred_set_conv]: "inv_imagep (\<lambda>x y. (x, y) \<in> r) f = (\<lambda>x y. (x, y) \<in> inv_image r f)"
+  by (simp add: inv_image_def inv_imagep_def)
+
+lemma in_inv_imagep [simp]: "inv_imagep r f x y = r (f x) (f y)"
+  by (simp add: inv_imagep_def)
+
+
+subsubsection {* Powerset *}
+
+definition Powp :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool" where
+  "Powp A = (\<lambda>B. \<forall>x \<in> B. A x)"
+
+lemma Powp_Pow_eq [pred_set_conv]: "Powp (\<lambda>x. x \<in> A) = (\<lambda>x. x \<in> Pow A)"
+  by (auto simp add: Powp_def fun_eq_iff)
+
+lemmas Powp_mono [mono] = Pow_mono [to_pred]
+
+
+subsubsection {* Properties of predicate relations *}
+
+abbreviation antisymP :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "antisymP r \<equiv> antisym {(x, y). r x y}"
+
+abbreviation transP :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "transP r \<equiv> trans {(x, y). r x y}"
+
+abbreviation single_valuedP :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool" where
+  "single_valuedP r \<equiv> single_valued {(x, y). r x y}"
+
+(*FIXME inconsistencies: abbreviations vs. definitions, suffix `P` vs. suffix `p`*)
+
+definition reflp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "reflp r \<longleftrightarrow> refl {(x, y). r x y}"
+
+definition symp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "symp r \<longleftrightarrow> sym {(x, y). r x y}"
+
+definition transp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "transp r \<longleftrightarrow> trans {(x, y). r x y}"
+
+lemma reflpI:
+  "(\<And>x. r x x) \<Longrightarrow> reflp r"
+  by (auto intro: refl_onI simp add: reflp_def)
+
+lemma reflpE:
+  assumes "reflp r"
+  obtains "r x x"
+  using assms by (auto dest: refl_onD simp add: reflp_def)
+
+lemma sympI:
+  "(\<And>x y. r x y \<Longrightarrow> r y x) \<Longrightarrow> symp r"
+  by (auto intro: symI simp add: symp_def)
+
+lemma sympE:
+  assumes "symp r" and "r x y"
+  obtains "r y x"
+  using assms by (auto dest: symD simp add: symp_def)
+
+lemma transpI:
+  "(\<And>x y z. r x y \<Longrightarrow> r y z \<Longrightarrow> r x z) \<Longrightarrow> transp r"
+  by (auto intro: transI simp add: transp_def)
+  
+lemma transpE:
+  assumes "transp r" and "r x y" and "r y z"
+  obtains "r x z"
+  using assms by (auto dest: transD simp add: transp_def)
+
+no_notation
+  bot ("\<bottom>") and
+  top ("\<top>") and
+  inf (infixl "\<sqinter>" 70) and
+  sup (infixl "\<squnion>" 65) and
+  Inf ("\<Sqinter>_" [900] 900) and
+  Sup ("\<Squnion>_" [900] 900)
+
+no_syntax (xsymbols)
+  "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Sqinter>_./ _)" [0, 10] 10)
+  "_INF"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sqinter>_\<in>_./ _)" [0, 0, 10] 10)
+  "_SUP1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Squnion>_./ _)" [0, 10] 10)
+  "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Squnion>_\<in>_./ _)" [0, 0, 10] 10)
 
 end

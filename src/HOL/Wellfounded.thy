@@ -858,10 +858,4 @@ lemma nat_size [simp, code]: "size (n\<Colon>nat) = n"
 
 declare "prod.size" [no_atp]
 
-lemma [code]:
-  "size (P :: 'a Predicate.pred) = 0" by (cases P) simp
-
-lemma [code]:
-  "pred_size f P = 0" by (cases P) simp
-
 end

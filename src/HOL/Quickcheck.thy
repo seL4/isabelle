@@ -233,7 +233,7 @@ where
 
 definition iterate_upto :: "(code_numeral => 'a) => code_numeral => code_numeral => 'a randompred"
 where
-  "iterate_upto f n m = Pair (Code_Numeral.iterate_upto f n m)"
+  "iterate_upto f n m = Pair (Predicate.iterate_upto f n m)"
 
 definition not_randompred :: "unit randompred \<Rightarrow> unit randompred"
 where

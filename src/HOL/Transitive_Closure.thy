@@ -6,7 +6,7 @@
 header {* Reflexive and Transitive closure of a relation *}
 
 theory Transitive_Closure
-imports Predicate
+imports Relation
 uses "~~/src/Provers/trancl.ML"
 begin
 
