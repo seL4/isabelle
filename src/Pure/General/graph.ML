@@ -53,7 +53,6 @@ sig
   val join: (key -> 'a * 'a -> 'a) (*exception DUP/SAME*) ->
     'a T * 'a T -> 'a T                                               (*exception DUP*)
   val irreducible_paths: 'a T -> key * key -> key list list
-  val all_paths: 'a T -> key * key -> key list list
   exception CYCLES of key list list
   val add_edge_acyclic: key * key -> 'a T -> 'a T                     (*exception UNDEF | CYCLES*)
   val add_deps_acyclic: key * key list -> 'a T -> 'a T                (*exception UNDEF | CYCLES*)
@@ -268,19 +267,6 @@ fun irreducible_paths G (x, y) =
       if eq_key (x, z) then cons (z :: path)
       else fold (paths (z :: path)) (irreducible_preds G X path z);
   in if eq_key (x, y) andalso not (is_edge G (x, x)) then [[]] else paths [] y [] end;
-
-
-(* all paths *)
-
-fun all_paths G (x, y) =
-  let
-    val (_, X) = reachable (imm_succs G) [x];
-    fun paths path z =
-      if not (null path) andalso eq_key (x, z) then [z :: path]
-      else if Keys.member X z andalso not (member eq_key path z)
-      then maps (paths (z :: path)) (immediate_preds G z)
-      else [];
-  in paths [] y end;
 
 
 (* maintain acyclic graphs *)
