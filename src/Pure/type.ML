@@ -187,7 +187,7 @@ fun map_tsig f (TSig {classes, default, types, log_types = _}) =
 
 val empty_tsig =
   build_tsig ((Name_Space.empty Isabelle_Markup.classN, Sorts.empty_algebra), [],
-    Name_Space.empty_table Isabelle_Markup.typeN);
+    Name_Space.empty_table Isabelle_Markup.type_nameN);
 
 
 (* classes and sorts *)

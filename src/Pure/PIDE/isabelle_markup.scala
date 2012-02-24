@@ -78,7 +78,7 @@ object Isabelle_Markup
   /* logical entities */
 
   val CLASS = "class"
-  val TYPE = "type"
+  val TYPE_NAME = "type name"
   val FIXED = "fixed"
   val CONSTANT = "constant"
 
