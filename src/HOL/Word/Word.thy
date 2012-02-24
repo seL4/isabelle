@@ -1200,12 +1200,6 @@ lemmas uint_mod_alt = word_mod_def [THEN trans [OF uint_cong int_word_uint]]
 lemma word_pred_0_n1: "word_pred 0 = word_of_int -1"
   unfolding word_pred_def uint_eq_0 pred_def by simp
 
-lemma word_pred_0_Min: "word_pred 0 = word_of_int Int.Min"
-  by (simp add: word_pred_0_n1 number_of_eq)
-
-lemma word_m1_Min: "- 1 = word_of_int Int.Min"
-  unfolding Min_def by (simp only: word_of_int_hom_syms)
-
 lemma succ_pred_no [simp]:
   "word_succ (number_of bin) = number_of (Int.succ bin) & 
     word_pred (number_of bin) = number_of (Int.pred bin)"
