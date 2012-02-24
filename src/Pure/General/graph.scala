@@ -28,7 +28,7 @@ class Graph[Key, A] private(rep: Map[Key, (A, (Set[Key], Set[Key]))])
   type Keys = Set[Key]
   type Entry = (A, (Keys, Keys))
 
-  def iterator: Iterator[(Key, Entry)] = rep.iterator
+  override def iterator: Iterator[(Key, Entry)] = rep.iterator
 
   def is_empty: Boolean = rep.isEmpty
 
@@ -172,7 +172,7 @@ class Graph[Key, A] private(rep: Map[Key, (A, (Set[Key], Set[Key]))])
 
   /* irreducible paths -- Hasse diagram */
 
-  def irreducible_preds(x_set: Set[Key], path: List[Key], z: Key): List[Key] =
+  private def irreducible_preds(x_set: Set[Key], path: List[Key], z: Key): List[Key] =
   {
     def red(x: Key)(x1: Key) = is_edge(x, x1) && x1 != z
     @tailrec def irreds(xs0: List[Key], xs1: List[Key]): List[Key] =
