@@ -331,9 +331,8 @@ lemma bl_to_bin_ge2p_aux:
    apply clarsimp
   apply clarsimp
   apply safe
-   apply (drule meta_spec, erule preorder_class.order_trans [rotated],
-          simp add: numeral_simps algebra_simps BIT_simps
-          cong add: number_of_False_cong)+
+   apply (drule meta_spec, erule order_trans [rotated],
+          simp add: Bit_B0_2t Bit_B1_2t algebra_simps)+
   done
 
 lemma bl_to_bin_ge0: "bl_to_bin bs >= 0"
@@ -377,14 +376,14 @@ lemma trunc_bl2bin_aux:
   apply safe
    apply (case_tac "m - size bl")
     apply (simp add : diff_is_0_eq [THEN iffD1, THEN Suc_diff_le])
-   apply (simp add: BIT_simps)
-   apply (rule_tac f = "%nat. bl_to_bin_aux bl (Int.Bit1 (bintrunc nat w))" 
+   apply simp
+   apply (rule_tac f = "%nat. bl_to_bin_aux bl (bintrunc nat w BIT 1)" 
                    in arg_cong)
    apply simp
   apply (case_tac "m - size bl")
    apply (simp add: diff_is_0_eq [THEN iffD1, THEN Suc_diff_le])
-  apply (simp add: BIT_simps)
-  apply (rule_tac f = "%nat. bl_to_bin_aux bl (Int.Bit0 (bintrunc nat w))" 
+  apply simp
+  apply (rule_tac f = "%nat. bl_to_bin_aux bl (bintrunc nat w BIT 0)"
                   in arg_cong)
   apply simp
   done
