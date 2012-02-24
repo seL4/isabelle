@@ -12,7 +12,7 @@ declare [[map list = list_all2]]
 
 lemma map_id [id_simps]:
   "map id = id"
-  by (fact map.id)
+  by (fact List.map.id)
 
 lemma list_all2_eq [id_simps]:
   "list_all2 (op =) = (op =)"

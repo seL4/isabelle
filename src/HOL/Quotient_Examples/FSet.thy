@@ -125,7 +125,7 @@ lemma quotient_compose_list_g:
 proof (intro conjI allI)
   fix a r s
   show "abs_fset (map Abs (map Rep (rep_fset a))) = a"
-    by (simp add: abs_o_rep[OF q] Quotient_abs_rep[OF Quotient_fset] map.id)
+    by (simp add: abs_o_rep[OF q] Quotient_abs_rep[OF Quotient_fset] List.map.id)
   have b: "list_all2 R (map Rep (rep_fset a)) (map Rep (rep_fset a))"
     by (rule list_all2_refl'[OF e])
   have c: "(op \<approx> OO list_all2 R) (map Rep (rep_fset a)) (map Rep (rep_fset a))"
@@ -500,7 +500,7 @@ lemma append_prs2 [quot_preserve]:
   and     r: "Quotient R2 Abs2 Rep2"
   shows "((map Rep1 \<circ> Rep2) ---> (map Rep1 \<circ> Rep2) ---> (Abs2 \<circ> map Abs1)) op @ =
     (Rep2 ---> Rep2 ---> Abs2) op @"
-  by (simp add: fun_eq_iff abs_o_rep[OF q] map.id)
+  by (simp add: fun_eq_iff abs_o_rep[OF q] List.map.id)
 
 lemma list_all2_app_l:
   assumes a: "reflp R"
