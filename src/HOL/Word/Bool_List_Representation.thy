@@ -743,25 +743,42 @@ lemmas rbl_sizes [simp] =
 lemmas rbl_Nils =
   rbl_pred.Nil rbl_succ.Nil rbl_add.Nil rbl_mult.Nil
 
-lemma rbl_pred: 
-  "!!bin. rbl_pred (rev (bin_to_bl n bin)) = rev (bin_to_bl n (Int.pred bin))"
-  apply (induct n, simp)
+lemma pred_BIT_simps [simp]:
+  "x BIT 0 - 1 = (x - 1) BIT 1"
+  "x BIT 1 - 1 = x BIT 0"
+  by (simp_all add: Bit_B0_2t Bit_B1_2t)
+
+lemma rbl_pred:
+  "rbl_pred (rev (bin_to_bl n bin)) = rev (bin_to_bl n (bin - 1))"
+  apply (induct n arbitrary: bin, simp)
   apply (unfold bin_to_bl_def)
   apply clarsimp
   apply (case_tac bin rule: bin_exhaust)
   apply (case_tac b)
-   apply (clarsimp simp: bin_to_bl_aux_alt BIT_simps)+
+   apply (clarsimp simp: bin_to_bl_aux_alt)+
   done
 
+lemma succ_BIT_simps [simp]:
+  "x BIT 0 + 1 = x BIT 1"
+  "x BIT 1 + 1 = (x + 1) BIT 0"
+  by (simp_all add: Bit_B0_2t Bit_B1_2t)
+
 lemma rbl_succ: 
-  "!!bin. rbl_succ (rev (bin_to_bl n bin)) = rev (bin_to_bl n (Int.succ bin))"
-  apply (induct n, simp)
+  "rbl_succ (rev (bin_to_bl n bin)) = rev (bin_to_bl n (bin + 1))"
+  apply (induct n arbitrary: bin, simp)
   apply (unfold bin_to_bl_def)
   apply clarsimp
   apply (case_tac bin rule: bin_exhaust)
   apply (case_tac b)
-   apply (clarsimp simp: bin_to_bl_aux_alt BIT_simps)+
+   apply (clarsimp simp: bin_to_bl_aux_alt)+
   done
+
+lemma add_BIT_simps [simp]: (* FIXME: move *)
+  "x BIT 0 + y BIT 0 = (x + y) BIT 0"
+  "x BIT 0 + y BIT 1 = (x + y) BIT 1"
+  "x BIT 1 + y BIT 0 = (x + y) BIT 1"
+  "x BIT 1 + y BIT 1 = (x + y + 1) BIT 0"
+  by (simp_all add: Bit_B0_2t Bit_B1_2t)
 
 lemma rbl_add: 
   "!!bina binb. rbl_add (rev (bin_to_bl n bina)) (rev (bin_to_bl n binb)) = 
@@ -773,7 +790,7 @@ lemma rbl_add:
   apply (case_tac binb rule: bin_exhaust)
   apply (case_tac b)
    apply (case_tac [!] "ba")
-     apply (auto simp: rbl_succ succ_def bin_to_bl_aux_alt Let_def add_ac BIT_simps)
+     apply (auto simp: rbl_succ succ_def bin_to_bl_aux_alt Let_def add_ac)
   done
 
 lemma rbl_add_app2: 
@@ -847,7 +864,13 @@ lemma rbbl_Cons:
   apply simp
   apply (simp add: bin_to_bl_aux_alt)
   done
-  
+
+lemma mult_BIT_simps [simp]:
+  "x BIT 0 * y = (x * y) BIT 0"
+  "x * y BIT 0 = (x * y) BIT 0"
+  "x BIT 1 * y = (x * y) BIT 0 + y"
+  by (simp_all add: Bit_B0_2t Bit_B1_2t algebra_simps)
+
 lemma rbl_mult: "!!bina binb. 
     rbl_mult (rev (bin_to_bl n bina)) (rev (bin_to_bl n binb)) = 
     rev (bin_to_bl n (bina * binb))"
@@ -859,8 +882,8 @@ lemma rbl_mult: "!!bina binb.
   apply (case_tac binb rule: bin_exhaust)
   apply (case_tac b)
    apply (case_tac [!] "ba")
-     apply (auto simp: bin_to_bl_aux_alt Let_def BIT_simps)
-     apply (auto simp: rbbl_Cons rbl_mult_Suc rbl_add BIT_simps)
+     apply (auto simp: bin_to_bl_aux_alt Let_def)
+     apply (auto simp: rbbl_Cons rbl_mult_Suc rbl_add)
   done
 
 lemma rbl_add_split: 
