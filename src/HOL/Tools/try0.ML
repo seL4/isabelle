@@ -1,26 +1,26 @@
-(*  Title:      HOL/Tools/try_methods.ML
+(*  Title:      HOL/Tools/try0.ML
     Author:     Jasmin Blanchette, TU Muenchen
 
 Try a combination of proof methods.
 *)
 
-signature TRY_METHODS =
+signature TRY0 =
 sig
-  val try_methodsN : string
+  val try0N : string
   val noneN : string
   val auto : bool Unsynchronized.ref
-  val try_methods :
+  val try0 :
     Time.time option -> string list * string list * string list * string list
     -> Proof.state -> bool
   val setup : theory -> theory
 end;
 
-structure Try_Methods : TRY_METHODS =
+structure Try0 : TRY0 =
 struct
 
 datatype mode = Auto_Try | Try | Normal
 
-val try_methodsN = "try_methods"
+val try0N = "try0"
 
 val noneN = "none"
 
@@ -28,8 +28,7 @@ val auto = Unsynchronized.ref false
 
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing
-      (Preferences.bool_pref auto "auto-try-methods"
-                             "Try standard proof methods.")
+      (Preferences.bool_pref auto "auto-try0" "Try standard proof methods.")
 
 val default_timeout = seconds 5.0
 
@@ -111,7 +110,7 @@ val do_methods = map do_named_method named_methods
 
 fun time_string (s, ms) = s ^ ": " ^ string_of_int ms ^ " ms"
 
-fun do_try_methods mode timeout_opt quad st =
+fun do_try0 mode timeout_opt quad st =
   let
     val st = st |> Proof.map_context (Config.put Metis_Tactic.verbose false #>
       Config.put Lin_Arith.verbose false)
@@ -153,10 +152,10 @@ fun do_try_methods mode timeout_opt quad st =
       end
   end
 
-fun try_methods timeout_opt = fst oo do_try_methods Normal timeout_opt
+fun try0 timeout_opt = fst oo do_try0 Normal timeout_opt
 
-fun try_methods_trans quad =
-  Toplevel.keep (K () o do_try_methods Normal (SOME default_timeout) quad
+fun try0_trans quad =
+  Toplevel.keep (K () o do_try0 Normal (SOME default_timeout) quad
                  o Toplevel.proof_of)
 
 fun merge_attrs (s1, i1, e1, d1) (s2, i2, e2, d2) =
@@ -184,17 +183,17 @@ fun parse_attrs x =
   || Scan.repeat parse_attr
      >> (fn quad => fold merge_attrs quad ([], [], [], []))) x
 
-val parse_try_methods_command =
-  Scan.optional parse_attrs ([], [], [], []) #>> try_methods_trans
+val parse_try0_command =
+  Scan.optional parse_attrs ([], [], [], []) #>> try0_trans
 
 val _ =
-  Outer_Syntax.improper_command try_methodsN
+  Outer_Syntax.improper_command try0N
       "try a combination of proof methods" Keyword.diag
-      parse_try_methods_command
+      parse_try0_command
 
-fun try_try_methods auto =
-  do_try_methods (if auto then Auto_Try else Try) NONE ([], [], [], [])
+fun try_try0 auto =
+  do_try0 (if auto then Auto_Try else Try) NONE ([], [], [], [])
 
-val setup = Try.register_tool (try_methodsN, (30, auto, try_try_methods))
+val setup = Try.register_tool (try0N, (30, auto, try_try0))
 
 end;

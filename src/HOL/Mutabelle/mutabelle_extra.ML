@@ -24,7 +24,7 @@ type report = entry list
 val quickcheck_mtd : (Proof.context -> Proof.context) -> string -> mtd
 
 val solve_direct_mtd : mtd
-val try_methods_mtd : mtd
+val try0_mtd : mtd
 (*
 val sledgehammer_mtd : mtd
 *)
@@ -138,18 +138,18 @@ fun invoke_solve_direct thy t =
 
 val solve_direct_mtd = ("solve_direct", invoke_solve_direct) 
 
-(** try **)
+(** try0 **)
 
-fun invoke_try_methods thy t =
+fun invoke_try0 thy t =
   let
     val state = Proof.theorem NONE (K I) (map (single o rpair []) [t]) (Proof_Context.init_global thy)
   in
-    case Try_Methods.try_methods (SOME (seconds 5.0)) ([], [], [], []) state of
+    case Try0.try0 (SOME (seconds 5.0)) ([], [], [], []) state of
       true => (Solved, [])
     | false => (Unsolved, [])
   end
 
-val try_methods_mtd = ("try_methods", invoke_try_methods)
+val try0_mtd = ("try0", invoke_try0)
 
 (** sledgehammer **)
 (*

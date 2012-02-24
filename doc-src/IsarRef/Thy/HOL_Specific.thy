@@ -1571,7 +1571,7 @@ text {*
   \begin{matharray}{rcl}
     @{command_def (HOL) "solve_direct"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
     @{command_def (HOL) "try"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
-    @{command_def (HOL) "try_methods"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
+    @{command_def (HOL) "try0"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
     @{command_def (HOL) "sledgehammer"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
     @{command_def (HOL) "sledgehammer_params"} & : & @{text "theory \<rightarrow> theory"}
   \end{matharray}
@@ -1580,7 +1580,7 @@ text {*
     @@{command (HOL) try}
     ;
 
-    @@{command (HOL) try_methods} ( ( ( 'simp' | 'intro' | 'elim' | 'dest' ) ':' @{syntax thmrefs} ) + ) ?
+    @@{command (HOL) try0} ( ( ( 'simp' | 'intro' | 'elim' | 'dest' ) ':' @{syntax thmrefs} ) + ) ?
       @{syntax nat}?
     ;
 
@@ -1603,7 +1603,7 @@ text {*
   subgoals can be solved directly by an existing theorem. Duplicate
   lemmas can be detected in this way.
 
-  \item @{command (HOL) "try_methods"} attempts to prove a subgoal
+  \item @{command (HOL) "try0"} attempts to prove a subgoal
   using a combination of standard proof methods (@{method auto},
   @{method simp}, @{method blast}, etc.).  Additional facts supplied
   via @{text "simp:"}, @{text "intro:"}, @{text "elim:"}, and @{text
@@ -1612,7 +1612,7 @@ text {*
   \item @{command (HOL) "try"} attempts to prove or disprove a subgoal
   using a combination of provers and disprovers (@{command (HOL)
   "solve_direct"}, @{command (HOL) "quickcheck"}, @{command (HOL)
-  "try_methods"}, @{command (HOL) "sledgehammer"}, @{command (HOL)
+  "try0"}, @{command (HOL) "sledgehammer"}, @{command (HOL)
   "nitpick"}).
 
   \item @{command (HOL) "sledgehammer"} attempts to prove a subgoal

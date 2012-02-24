@@ -12,7 +12,7 @@ uses "~~/src/Tools/Metis/metis.ML"
      ("Tools/Metis/metis_generate.ML")
      ("Tools/Metis/metis_reconstruct.ML")
      ("Tools/Metis/metis_tactic.ML")
-     ("Tools/try_methods.ML")
+     ("Tools/try0.ML")
 begin
 
 subsection {* Literal selection and lambda-lifting helpers *}
@@ -52,10 +52,10 @@ hide_fact (open) fFalse_def fTrue_def fNot_def fconj_def fdisj_def fimplies_def
     select_FalseI lambda_def eq_lambdaI
 
 
-subsection {* Try Methods *}
+subsection {* Try0 *}
 
-use "Tools/try_methods.ML"
+use "Tools/try0.ML"
 
-setup {* Try_Methods.setup *}
+setup {* Try0.setup *}
 
 end

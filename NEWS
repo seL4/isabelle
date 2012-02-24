@@ -336,6 +336,9 @@ a list and a nat.
   - Added possibility to specify lambda translations scheme as a
     parenthesized argument (e.g., "by (metis (lifting) ...)").
 
+* Command 'try0':
+  - Renamed from 'try_methods'. INCOMPATIBILITY.
+
 
 *** FOL ***
 
