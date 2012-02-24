@@ -1071,9 +1071,6 @@ lemmas word_sle_no [simp] = word_sle_def [of "number_of a" "number_of b"] for a 
   (eg) sint (number_of bin) on sint 1, must do
   (simp add: word_1_no del: numeral_1_eq_1) 
   *)
-lemma word_0_wi_Pls: "0 = word_of_int Int.Pls"
-  by (simp only: Pls_def word_0_wi)
-
 lemma word_0_no: "(0::'a::len0 word) = Numeral0"
   by (simp add: word_number_of_alt)
 
@@ -1082,9 +1079,6 @@ lemma word_1_no: "(1::'a::len0 word) = Numeral1"
 
 lemma word_m1_wi: "-1 = word_of_int -1" 
   by (rule word_number_of_alt)
-
-lemma word_m1_wi_Min: "-1 = word_of_int Int.Min"
-  by (simp add: word_m1_wi number_of_eq)
 
 lemma word_0_bl [simp]: "of_bl [] = 0"
   unfolding of_bl_def by simp
@@ -2140,8 +2134,6 @@ lemma nth_0 [simp]: "~ (0::'a::len0 word) !! n"
 
 lemmas bwsimps = 
   wi_hom_add
-  word_0_wi_Pls
-  word_m1_wi_Min
   word_wi_log_defs
 
 lemma word_bw_assocs:
@@ -2231,7 +2223,7 @@ lemma word_add_not [simp]:
   fixes x :: "'a::len0 word"
   shows "x + NOT x = -1"
   using word_of_int_Ex [where x=x] 
-  by (auto simp: bwsimps bin_add_not)
+  by (auto simp: bwsimps bin_add_not [unfolded Min_def])
 
 lemma word_plus_and_or [simp]:
   fixes x :: "'a::len0 word"
