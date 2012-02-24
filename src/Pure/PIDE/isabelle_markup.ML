@@ -27,7 +27,7 @@ sig
   val fbreakN: string val fbreak: Markup.T
   val hiddenN: string val hidden: Markup.T
   val classN: string
-  val typeN: string
+  val type_nameN: string
   val constantN: string
   val fixedN: string val fixed: string -> Markup.T
   val dynamic_factN: string val dynamic_fact: string -> Markup.T
@@ -174,7 +174,7 @@ val (hiddenN, hidden) = markup_elem "hidden";
 (* logical entities *)
 
 val classN = "class";
-val typeN = "type";
+val type_nameN = "type name";
 val constantN = "constant";
 
 val (fixedN, fixed) = markup_string "fixed" Markup.nameN;
