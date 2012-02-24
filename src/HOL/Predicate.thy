@@ -1,11 +1,11 @@
 (*  Title:      HOL/Predicate.thy
-    Author:     Stefan Berghofer and Lukas Bulwahn and Florian Haftmann, TU Muenchen
+    Author:     Lukas Bulwahn and Florian Haftmann, TU Muenchen
 *)
 
-header {* Predicates as relations and enumerations *}
+header {* Predicates as enumerations *}
 
 theory Predicate
-imports Inductive Relation
+imports List
 begin
 
 notation
@@ -22,261 +22,7 @@ syntax (xsymbols)
   "_SUP1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Squnion>_./ _)" [0, 10] 10)
   "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Squnion>_\<in>_./ _)" [0, 0, 10] 10)
 
-
-subsection {* Classical rules for reasoning on predicates *}
-
-declare predicate1D [Pure.dest?, dest?]
-declare predicate2I [Pure.intro!, intro!]
-declare predicate2D [Pure.dest, dest]
-declare bot1E [elim!]
-declare bot2E [elim!]
-declare top1I [intro!]
-declare top2I [intro!]
-declare inf1I [intro!]
-declare inf2I [intro!]
-declare inf1E [elim!]
-declare inf2E [elim!]
-declare sup1I1 [intro?]
-declare sup2I1 [intro?]
-declare sup1I2 [intro?]
-declare sup2I2 [intro?]
-declare sup1E [elim!]
-declare sup2E [elim!]
-declare sup1CI [intro!]
-declare sup2CI [intro!]
-declare INF1_I [intro!]
-declare INF2_I [intro!]
-declare INF1_D [elim]
-declare INF2_D [elim]
-declare INF1_E [elim]
-declare INF2_E [elim]
-declare SUP1_I [intro]
-declare SUP2_I [intro]
-declare SUP1_E [elim!]
-declare SUP2_E [elim!]
-
-
-subsection {* Conversion between set and predicate relations *}
-
-subsubsection {* Equality *}
-
-lemma pred_equals_eq [pred_set_conv]: "((\<lambda>x. x \<in> R) = (\<lambda>x. x \<in> S)) \<longleftrightarrow> (R = S)"
-  by (simp add: set_eq_iff fun_eq_iff)
-
-lemma pred_equals_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) = (\<lambda>x y. (x, y) \<in> S)) \<longleftrightarrow> (R = S)"
-  by (simp add: set_eq_iff fun_eq_iff)
-
-
-subsubsection {* Order relation *}
-
-lemma pred_subset_eq [pred_set_conv]: "((\<lambda>x. x \<in> R) \<le> (\<lambda>x. x \<in> S)) \<longleftrightarrow> (R \<subseteq> S)"
-  by (simp add: subset_iff le_fun_def)
-
-lemma pred_subset_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) \<le> (\<lambda>x y. (x, y) \<in> S)) \<longleftrightarrow> (R \<subseteq> S)"
-  by (simp add: subset_iff le_fun_def)
-
-
-subsubsection {* Top and bottom elements *}
-
-lemma bot_empty_eq: "\<bottom> = (\<lambda>x. x \<in> {})"
-  by (auto simp add: fun_eq_iff)
-
-lemma bot_empty_eq2: "\<bottom> = (\<lambda>x y. (x, y) \<in> {})"
-  by (auto simp add: fun_eq_iff)
-
-
-subsubsection {* Binary intersection *}
-
-lemma inf_Int_eq [pred_set_conv]: "(\<lambda>x. x \<in> R) \<sqinter> (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<inter> S)"
-  by (simp add: inf_fun_def)
-
-lemma inf_Int_eq2 [pred_set_conv]: "(\<lambda>x y. (x, y) \<in> R) \<sqinter> (\<lambda>x y. (x, y) \<in> S) = (\<lambda>x y. (x, y) \<in> R \<inter> S)"
-  by (simp add: inf_fun_def)
-
-
-subsubsection {* Binary union *}
-
-lemma sup_Un_eq [pred_set_conv]: "(\<lambda>x. x \<in> R) \<squnion> (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<union> S)"
-  by (simp add: sup_fun_def)
-
-lemma sup_Un_eq2 [pred_set_conv]: "(\<lambda>x y. (x, y) \<in> R) \<squnion> (\<lambda>x y. (x, y) \<in> S) = (\<lambda>x y. (x, y) \<in> R \<union> S)"
-  by (simp add: sup_fun_def)
-
-
-subsubsection {* Intersections of families *}
-
-lemma INF_INT_eq: "(\<Sqinter>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Inter>i. r i))"
-  by (simp add: INF_apply fun_eq_iff)
-
-lemma INF_INT_eq2: "(\<Sqinter>i. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Inter>i. r i))"
-  by (simp add: INF_apply fun_eq_iff)
-
-
-subsubsection {* Unions of families *}
-
-lemma SUP_UN_eq [pred_set_conv]: "(\<Squnion>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Union>i. r i))"
-  by (simp add: SUP_apply fun_eq_iff)
-
-lemma SUP_UN_eq2 [pred_set_conv]: "(\<Squnion>i. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Union>i. r i))"
-  by (simp add: SUP_apply fun_eq_iff)
-
-
-subsection {* Predicates as relations *}
-
-subsubsection {* Composition  *}
-
-inductive pred_comp  :: "['a \<Rightarrow> 'b \<Rightarrow> bool, 'b \<Rightarrow> 'c \<Rightarrow> bool] \<Rightarrow> 'a \<Rightarrow> 'c \<Rightarrow> bool" (infixr "OO" 75)
-  for r :: "'a \<Rightarrow> 'b \<Rightarrow> bool" and s :: "'b \<Rightarrow> 'c \<Rightarrow> bool" where
-  pred_compI [intro]: "r a b \<Longrightarrow> s b c \<Longrightarrow> (r OO s) a c"
-
-inductive_cases pred_compE [elim!]: "(r OO s) a c"
-
-lemma pred_comp_rel_comp_eq [pred_set_conv]:
-  "((\<lambda>x y. (x, y) \<in> r) OO (\<lambda>x y. (x, y) \<in> s)) = (\<lambda>x y. (x, y) \<in> r O s)"
-  by (auto simp add: fun_eq_iff)
-
-
-subsubsection {* Converse *}
-
-inductive conversep :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> bool" ("(_^--1)" [1000] 1000)
-  for r :: "'a \<Rightarrow> 'b \<Rightarrow> bool" where
-  conversepI: "r a b \<Longrightarrow> r^--1 b a"
-
-notation (xsymbols)
-  conversep  ("(_\<inverse>\<inverse>)" [1000] 1000)
-
-lemma conversepD:
-  assumes ab: "r^--1 a b"
-  shows "r b a" using ab
-  by cases simp
-
-lemma conversep_iff [iff]: "r^--1 a b = r b a"
-  by (iprover intro: conversepI dest: conversepD)
-
-lemma conversep_converse_eq [pred_set_conv]:
-  "(\<lambda>x y. (x, y) \<in> r)^--1 = (\<lambda>x y. (x, y) \<in> r^-1)"
-  by (auto simp add: fun_eq_iff)
-
-lemma conversep_conversep [simp]: "(r^--1)^--1 = r"
-  by (iprover intro: order_antisym conversepI dest: conversepD)
-
-lemma converse_pred_comp: "(r OO s)^--1 = s^--1 OO r^--1"
-  by (iprover intro: order_antisym conversepI pred_compI
-    elim: pred_compE dest: conversepD)
-
-lemma converse_meet: "(r \<sqinter> s)^--1 = r^--1 \<sqinter> s^--1"
-  by (simp add: inf_fun_def) (iprover intro: conversepI ext dest: conversepD)
-
-lemma converse_join: "(r \<squnion> s)^--1 = r^--1 \<squnion> s^--1"
-  by (simp add: sup_fun_def) (iprover intro: conversepI ext dest: conversepD)
-
-lemma conversep_noteq [simp]: "(op \<noteq>)^--1 = op \<noteq>"
-  by (auto simp add: fun_eq_iff)
-
-lemma conversep_eq [simp]: "(op =)^--1 = op ="
-  by (auto simp add: fun_eq_iff)
-
-
-subsubsection {* Domain *}
-
-inductive DomainP :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool"
-  for r :: "'a \<Rightarrow> 'b \<Rightarrow> bool" where
-  DomainPI [intro]: "r a b \<Longrightarrow> DomainP r a"
-
-inductive_cases DomainPE [elim!]: "DomainP r a"
-
-lemma DomainP_Domain_eq [pred_set_conv]: "DomainP (\<lambda>x y. (x, y) \<in> r) = (\<lambda>x. x \<in> Domain r)"
-  by (blast intro!: Orderings.order_antisym predicate1I)
-
-
-subsubsection {* Range *}
-
-inductive RangeP :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'b \<Rightarrow> bool"
-  for r :: "'a \<Rightarrow> 'b \<Rightarrow> bool" where
-  RangePI [intro]: "r a b \<Longrightarrow> RangeP r b"
-
-inductive_cases RangePE [elim!]: "RangeP r b"
-
-lemma RangeP_Range_eq [pred_set_conv]: "RangeP (\<lambda>x y. (x, y) \<in> r) = (\<lambda>x. x \<in> Range r)"
-  by (blast intro!: Orderings.order_antisym predicate1I)
-
-
-subsubsection {* Inverse image *}
-
-definition inv_imagep :: "('b \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" where
-  "inv_imagep r f = (\<lambda>x y. r (f x) (f y))"
-
-lemma [pred_set_conv]: "inv_imagep (\<lambda>x y. (x, y) \<in> r) f = (\<lambda>x y. (x, y) \<in> inv_image r f)"
-  by (simp add: inv_image_def inv_imagep_def)
-
-lemma in_inv_imagep [simp]: "inv_imagep r f x y = r (f x) (f y)"
-  by (simp add: inv_imagep_def)
-
-
-subsubsection {* Powerset *}
-
-definition Powp :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool" where
-  "Powp A = (\<lambda>B. \<forall>x \<in> B. A x)"
-
-lemma Powp_Pow_eq [pred_set_conv]: "Powp (\<lambda>x. x \<in> A) = (\<lambda>x. x \<in> Pow A)"
-  by (auto simp add: Powp_def fun_eq_iff)
-
-lemmas Powp_mono [mono] = Pow_mono [to_pred]
-
-
-subsubsection {* Properties of relations *}
-
-abbreviation antisymP :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
-  "antisymP r \<equiv> antisym {(x, y). r x y}"
-
-abbreviation transP :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
-  "transP r \<equiv> trans {(x, y). r x y}"
-
-abbreviation single_valuedP :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool" where
-  "single_valuedP r \<equiv> single_valued {(x, y). r x y}"
-
-(*FIXME inconsistencies: abbreviations vs. definitions, suffix `P` vs. suffix `p`*)
-
-definition reflp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
-  "reflp r \<longleftrightarrow> refl {(x, y). r x y}"
-
-definition symp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
-  "symp r \<longleftrightarrow> sym {(x, y). r x y}"
-
-definition transp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
-  "transp r \<longleftrightarrow> trans {(x, y). r x y}"
-
-lemma reflpI:
-  "(\<And>x. r x x) \<Longrightarrow> reflp r"
-  by (auto intro: refl_onI simp add: reflp_def)
-
-lemma reflpE:
-  assumes "reflp r"
-  obtains "r x x"
-  using assms by (auto dest: refl_onD simp add: reflp_def)
-
-lemma sympI:
-  "(\<And>x y. r x y \<Longrightarrow> r y x) \<Longrightarrow> symp r"
-  by (auto intro: symI simp add: symp_def)
-
-lemma sympE:
-  assumes "symp r" and "r x y"
-  obtains "r y x"
-  using assms by (auto dest: symD simp add: symp_def)
-
-lemma transpI:
-  "(\<And>x y z. r x y \<Longrightarrow> r y z \<Longrightarrow> r x z) \<Longrightarrow> transp r"
-  by (auto intro: transI simp add: transp_def)
-  
-lemma transpE:
-  assumes "transp r" and "r x y" and "r y z"
-  obtains "r x z"
-  using assms by (auto dest: transD simp add: transp_def)
-
-
-subsection {* Predicates as enumerations *}
-
-subsubsection {* The type of predicate enumerations (a monad) *}
+subsection {* The type of predicate enumerations (a monad) *}
 
 datatype 'a pred = Pred "'a \<Rightarrow> bool"
 
@@ -465,7 +211,7 @@ lemma not_bot:
   using assms by (cases A) (auto simp add: bot_pred_def)
 
 
-subsubsection {* Emptiness check and definite choice *}
+subsection {* Emptiness check and definite choice *}
 
 definition is_empty :: "'a pred \<Rightarrow> bool" where
   "is_empty A \<longleftrightarrow> A = \<bottom>"
@@ -578,7 +324,7 @@ lemma singleton_sup:
 using singleton_sup_aux [of dfault A B] by (simp only: singleton_sup_single_single)
 
 
-subsubsection {* Derived operations *}
+subsection {* Derived operations *}
 
 definition if_pred :: "bool \<Rightarrow> unit pred" where
   if_pred_eq: "if_pred b = (if b then single () else \<bottom>)"
@@ -668,7 +414,7 @@ enriched_type map: map
   by (rule ext, rule pred_eqI, auto)+
 
 
-subsubsection {* Implementation *}
+subsection {* Implementation *}
 
 datatype 'a seq = Empty | Insert "'a" "'a pred" | Join "'a pred" "'a seq"
 
@@ -761,6 +507,12 @@ next
     unfolding Seq_def
     by (simp add: adjunct_sup sup_assoc sup_commute sup_left_commute)
 qed
+
+lemma [code]:
+  "size (P :: 'a Predicate.pred) = 0" by (cases P) simp
+
+lemma [code]:
+  "pred_size f P = 0" by (cases P) simp
 
 primrec contained :: "'a seq \<Rightarrow> 'a pred \<Rightarrow> bool" where
   "contained Empty Q \<longleftrightarrow> True"
@@ -937,6 +689,44 @@ lemma of_seq_code [code]:
   "set_of_seq (Predicate.Join P xq) = set_of_pred P \<union> set_of_seq xq"
   by auto
 
+text {* Lazy Evaluation of an indexed function *}
+
+function iterate_upto :: "(code_numeral \<Rightarrow> 'a) \<Rightarrow> code_numeral \<Rightarrow> code_numeral \<Rightarrow> 'a Predicate.pred"
+where
+  "iterate_upto f n m =
+    Predicate.Seq (%u. if n > m then Predicate.Empty
+     else Predicate.Insert (f n) (iterate_upto f (n + 1) m))"
+by pat_completeness auto
+
+termination by (relation "measure (%(f, n, m). Code_Numeral.nat_of (m + 1 - n))") auto
+
+text {* Misc *}
+
+declare Inf_set_foldr [where 'a = "'a Predicate.pred", code] Sup_set_foldr [where 'a = "'a Predicate.pred", code]
+
+(* FIXME: better implement conversion by bisection *)
+
+lemma pred_of_set_fold_sup:
+  assumes "finite A"
+  shows "pred_of_set A = Finite_Set.fold sup bot (Predicate.single ` A)" (is "?lhs = ?rhs")
+proof (rule sym)
+  interpret comp_fun_idem "sup :: 'a Predicate.pred \<Rightarrow> 'a Predicate.pred \<Rightarrow> 'a Predicate.pred"
+    by (fact comp_fun_idem_sup)
+  from `finite A` show "?rhs = ?lhs" by (induct A) (auto intro!: pred_eqI)
+qed
+
+lemma pred_of_set_set_fold_sup:
+  "pred_of_set (set xs) = fold sup (List.map Predicate.single xs) bot"
+proof -
+  interpret comp_fun_idem "sup :: 'a Predicate.pred \<Rightarrow> 'a Predicate.pred \<Rightarrow> 'a Predicate.pred"
+    by (fact comp_fun_idem_sup)
+  show ?thesis by (simp add: pred_of_set_fold_sup fold_set_fold [symmetric])
+qed
+
+lemma pred_of_set_set_foldr_sup [code]:
+  "pred_of_set (set xs) = foldr sup (List.map Predicate.single xs) bot"
+  by (simp add: pred_of_set_set_fold_sup ac_simps foldr_fold fun_eq_iff)
+
 no_notation
   bot ("\<bottom>") and
   top ("\<top>") and
@@ -955,5 +745,7 @@ no_syntax (xsymbols)
 hide_type (open) pred seq
 hide_const (open) Pred eval single bind is_empty singleton if_pred not_pred holds
   Empty Insert Join Seq member pred_of_seq "apply" adjunct null the_only eq map not_unique the
+  iterate_upto
 
 end
+
