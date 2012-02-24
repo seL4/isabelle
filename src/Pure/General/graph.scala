@@ -8,6 +8,7 @@ Directed graphs.
 package isabelle
 
 
+import scala.collection.immutable.{SortedMap, SortedSet}
 import scala.annotation.tailrec
 
 
@@ -17,22 +18,25 @@ object Graph
   class Undefined[Key](x: Key) extends Exception
   class Cycles[Key](cycles: List[List[Key]]) extends Exception
 
-  private val empty_val: Graph[Any, Nothing] = new Graph[Any, Nothing](Map.empty)
-  def empty[Key, A]: Graph[Key, A] = empty_val.asInstanceOf[Graph[Key, A]]
+  def empty[Key, A](implicit ord: Ordering[Key]): Graph[Key, A] =
+    new Graph[Key, A](SortedMap.empty(ord))
 }
 
 
-class Graph[Key, A] private(rep: Map[Key, (A, (Set[Key], Set[Key]))])
-  extends Iterable[(Key, (A, (Set[Key], Set[Key])))]
+class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], SortedSet[Key]))])
+  extends Iterable[(Key, (A, (SortedSet[Key], SortedSet[Key])))]
 {
-  type Keys = Set[Key]
+  type Keys = SortedSet[Key]
   type Entry = (A, (Keys, Keys))
+
+  def ordering: Ordering[Key] = rep.ordering
+  def empty_keys: Keys = SortedSet.empty[Key](ordering)
 
   override def iterator: Iterator[(Key, Entry)] = rep.iterator
 
   def is_empty: Boolean = rep.isEmpty
 
-  def keys: Set[Key] = rep.keySet.toSet
+  def keys: List[Key] = rep.keySet.toList
 
   def dest: List[(Key, List[Key])] =
     (for ((x, (_, (_, succs))) <- iterator) yield (x, succs.toList)).toList
@@ -57,9 +61,6 @@ class Graph[Key, A] private(rep: Map[Key, (A, (Set[Key], Set[Key]))])
   def map_node(x: Key, f: A => A): Graph[Key, A] =
     map_entry(x, { case (i, ps) => (f(i), ps) })
 
-  def map_nodes[B](f: A => B): Graph[Key, B] =
-    new Graph[Key, B](rep mapValues { case (i, ps) => (f(i), ps) })
-
 
   /* reachability */
 
@@ -81,7 +82,7 @@ class Graph[Key, A] private(rep: Map[Key, (A, (Set[Key], Set[Key]))])
       val (rs, r_set1) = reach((Nil, r_set), x)
       (rs :: rss, r_set1)
     }
-    ((List.empty[List[Key]], Set.empty[Key]) /: xs)(reachs)
+    ((List.empty[List[Key]], empty_keys) /: xs)(reachs)
   }
 
   /*immediate*/
@@ -95,7 +96,7 @@ class Graph[Key, A] private(rep: Map[Key, (A, (Set[Key], Set[Key]))])
   /*strongly connected components; see: David King and John Launchbury,
     "Structuring Depth First Search Algorithms in Haskell"*/
   def strong_conn: List[List[Key]] =
-    reachable(imm_preds, all_succs(keys.toList))._1.filterNot(_.isEmpty).reverse
+    reachable(imm_preds, all_succs(keys))._1.filterNot(_.isEmpty).reverse
 
 
   /* minimal and maximal elements */
@@ -117,7 +118,7 @@ class Graph[Key, A] private(rep: Map[Key, (A, (Set[Key], Set[Key]))])
   def new_node(x: Key, info: A): Graph[Key, A] =
   {
     if (rep.isDefinedAt(x)) throw new Graph.Duplicate(x)
-    else new Graph[Key, A](rep + (x -> (info, (Set.empty, Set.empty))))
+    else new Graph[Key, A](rep + (x -> (info, (empty_keys, empty_keys))))
   }
 
   def default_node(x: Key, info: A): Graph[Key, A] =
@@ -126,14 +127,8 @@ class Graph[Key, A] private(rep: Map[Key, (A, (Set[Key], Set[Key]))])
     else new_node(x, info)
   }
 
-  def del_nodes(xs: List[Key]): Graph[Key, A] =
-  {
-    xs.foreach(get_entry)
-    new Graph[Key, A](
-      (rep -- xs) mapValues { case (i, (preds, succs)) => (i, (preds -- xs, succs -- xs)) })
-  }
-
-  private def del_adjacent(fst: Boolean, x: Key)(map: Map[Key, Entry], y: Key): Map[Key, Entry] =
+  private def del_adjacent(fst: Boolean, x: Key)(map: SortedMap[Key, Entry], y: Key)
+      : SortedMap[Key, Entry] =
     map.get(y) match {
       case None => map
       case Some((i, (preds, succs))) =>
@@ -172,7 +167,7 @@ class Graph[Key, A] private(rep: Map[Key, (A, (Set[Key], Set[Key]))])
 
   /* irreducible paths -- Hasse diagram */
 
-  private def irreducible_preds(x_set: Set[Key], path: List[Key], z: Key): List[Key] =
+  private def irreducible_preds(x_set: Keys, path: List[Key], z: Key): List[Key] =
   {
     def red(x: Key)(x1: Key) = is_edge(x, x1) && x1 != z
     @tailrec def irreds(xs0: List[Key], xs1: List[Key]): List[Key] =
