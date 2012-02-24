@@ -52,6 +52,7 @@ ISABELLE_SESSIONS="
   HOL-Proofs-Extraction
   HOL-Proofs-Lambda
   HOL-Proofs-ex
+  HOL-Quickcheck_Examples
   HOL-Quotient_Examples
   HOL-SET_Protocol
   HOL-SPARK
