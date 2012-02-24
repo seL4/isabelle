@@ -186,7 +186,7 @@ fun map2_optional f (x :: xs) (y :: ys) = f x (SOME y) :: (map2_optional f xs ys
   | map2_optional f [] [] = []
 
 fun find_indices f xs =
-  map_filter (fn (i, true) => SOME i | (i, false) => NONE) (map_index (apsnd f) xs)
+  map_filter (fn (i, true) => SOME i | (_, false) => NONE) (map_index (apsnd f) xs)
 
 (* mode *)
 
@@ -253,7 +253,7 @@ fun all_modes_of_typ (T as Type ("fun", _)) =
         raise Fail "Invocation of all_modes_of_typ with a non-predicate type"
     end
   | all_modes_of_typ @{typ bool} = [Bool]
-  | all_modes_of_typ T =
+  | all_modes_of_typ _ =
     raise Fail "Invocation of all_modes_of_typ with a non-predicate type"
 
 fun all_smodes_of_typ (T as Type ("fun", _)) =
@@ -394,7 +394,7 @@ fun map_filter_prod f (Const (@{const_name Pair}, _) $ t1 $ t2) =
   
 fun split_modeT mode Ts =
   let
-    fun split_arg_mode (Fun _) T = ([], [])
+    fun split_arg_mode (Fun _) _ = ([], [])
       | split_arg_mode (Pair (m1, m2)) (Type (@{type_name Product_Type.prod}, [T1, T2])) =
         let
           val (i1, o1) = split_arg_mode m1 T1
@@ -481,8 +481,6 @@ fun is_intro_term constname t =
   
 fun is_intro constname t = is_intro_term constname (prop_of t)
 
-fun is_pred thy constname = (body_type (Sign.the_const_type thy constname) = HOLogic.boolT);
-
 fun is_predT (T as Type("fun", [_, _])) = (body_type T = @{typ bool})
   | is_predT _ = false
 
@@ -503,12 +501,6 @@ fun is_constrt thy =
           | _ => false)
       | _ => false)
   in check end;
-
-fun is_funtype (Type ("fun", [_, _])) = true
-  | is_funtype _ = false;
-
-fun is_Type (Type _) = true
-  | is_Type _ = false
 
 (* returns true if t is an application of an datatype constructor *)
 (* which then consequently would be splitted *)
@@ -565,7 +557,7 @@ fun map_atoms f intro =
 
 fun fold_atoms f intro s =
   let
-    val (literals, head) = Logic.strip_horn intro
+    val (literals, _) = Logic.strip_horn intro
     fun appl t s = (case t of
       (@{term Not} $ t') => f t' s
       | _ => f t s)
@@ -581,13 +573,6 @@ fun fold_map_atoms f intro s =
   in
     (Logic.list_implies (map HOLogic.mk_Trueprop literals', head), s')
   end;
-
-fun map_premises f intro =
-  let
-    val (premises, head) = Logic.strip_horn intro
-  in
-    Logic.list_implies (map f premises, head)
-  end
 
 fun map_filter_premises f intro =
   let
@@ -623,7 +608,7 @@ fun prepare_split_thm ctxt split_thm =
     |> Local_Defs.unfold ctxt [@{thm atomize_conjL[symmetric]},
       @{thm atomize_all[symmetric]}, @{thm atomize_imp[symmetric]}]
 
-fun find_split_thm thy (Const (name, T)) = Option.map #split (Datatype.info_of_case thy name)
+fun find_split_thm thy (Const (name, _)) = Option.map #split (Datatype.info_of_case thy name)
   | find_split_thm thy _ = NONE
 
 (* lifting term operations to theorems *)
@@ -826,7 +811,7 @@ fun print_step options s =
 fun rewrite_args [] (pats, intro_t, ctxt) = (pats, intro_t, ctxt)
   | rewrite_args (arg::args) (pats, intro_t, ctxt) = 
     (case HOLogic.strip_tupleT (fastype_of arg) of
-      (Ts as _ :: _ :: _) =>
+      (_ :: _ :: _) =>
       let
         fun rewrite_arg' (Const (@{const_name Pair}, _) $ _ $ t2, Type (@{type_name Product_Type.prod}, [_, T2]))
           (args, (pats, intro_t, ctxt)) = rewrite_arg' (t2, T2) (args, (pats, intro_t, ctxt))
@@ -868,7 +853,7 @@ fun split_conjuncts_in_assms ctxt th =
 
 fun dest_conjunct_prem th =
   case HOLogic.dest_Trueprop (prop_of th) of
-    (Const (@{const_name HOL.conj}, _) $ t $ t') =>
+    (Const (@{const_name HOL.conj}, _) $ _ $ _) =>
       dest_conjunct_prem (th RS @{thm conjunct1})
         @ dest_conjunct_prem (th RS @{thm conjunct2})
     | _ => [th]
@@ -879,10 +864,9 @@ fun expand_tuples thy intro =
     val (((T_insts, t_insts), [intro']), ctxt1) = Variable.import false [intro] ctxt
     val intro_t = prop_of intro'
     val concl = Logic.strip_imp_concl intro_t
-    val (p, args) = strip_comb (HOLogic.dest_Trueprop concl)
+    val (_, args) = strip_comb (HOLogic.dest_Trueprop concl)
     val (pats', intro_t', ctxt2) = rewrite_args args ([], intro_t, ctxt1)
-    val (pats', intro_t', ctxt3) = 
-      fold_atoms rewrite_prem intro_t' (pats', intro_t', ctxt2)
+    val (pats', _, ctxt3) = fold_atoms rewrite_prem intro_t' (pats', intro_t', ctxt2)
     fun rewrite_pat (ct1, ct2) =
       (ct1, cterm_of thy (Pattern.rewrite_term thy pats' [] (term_of ct2)))
     val t_insts' = map rewrite_pat t_insts
@@ -947,7 +931,6 @@ fun instantiated_case_rewrites thy Tcon =
       val f = (fst (strip_comb (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of th))))))
       val Type ("fun", [uninst_T, uninst_T']) = fastype_of f
       val ([tname, tname', uname, yname], ctxt') = Variable.add_fixes ["'t", "'t'", "'u", "y"] ctxt
-      val T = TFree (tname, HOLogic.typeS)
       val T' = TFree (tname', HOLogic.typeS)
       val U = TFree (uname, HOLogic.typeS)
       val y = Free (yname, U)
@@ -980,11 +963,6 @@ fun imp_prems_conv cv ct =
     Const ("==>", _) $ _ $ _ => Conv.combination_conv (Conv.arg_conv cv) (imp_prems_conv cv) ct
   | _ => Conv.all_conv ct
 
-fun all_params_conv cv ctxt ct =
-  if Logic.is_all (Thm.term_of ct)
-  then Conv.arg_conv (Conv.abs_conv (all_params_conv cv o #2) ctxt) ct
-  else cv ctxt ct;
-  
 (** eta contract higher-order arguments **)
 
 fun eta_contract_ho_arguments thy intro =
@@ -1062,7 +1040,7 @@ fun import_intros inp_pred [] ctxt =
     val ([outp_pred], ctxt') = Variable.import_terms true [inp_pred] ctxt
     val T = fastype_of outp_pred
     val paramTs = ho_argsT_of_typ (binder_types T)
-    val (param_names, ctxt'') = Variable.variant_fixes
+    val (param_names, _) = Variable.variant_fixes
       (map (fn i => "p" ^ (string_of_int i)) (1 upto (length paramTs))) ctxt'
     val params = map2 (curry Free) param_names paramTs
   in
@@ -1197,8 +1175,8 @@ fun preprocess_intro thy = expand_tuples thy #> preprocess_equality thy
 fun strip_imp_prems (Const(@{const_name HOL.implies}, _) $ A $ B) = A :: strip_imp_prems B
   | strip_imp_prems _ = [];
 
-fun strip_imp_concl (Const(@{const_name HOL.implies}, _) $ A $ B) = strip_imp_concl B
-  | strip_imp_concl A = A : term;
+fun strip_imp_concl (Const(@{const_name HOL.implies}, _) $ _ $ B) = strip_imp_concl B
+  | strip_imp_concl A = A;
 
 fun strip_horn A = (strip_imp_prems A, strip_imp_concl A);
 
