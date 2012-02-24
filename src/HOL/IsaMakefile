@@ -1826,12 +1826,14 @@ clean:
 		$(LOG)/HOL-Induct.gz $(LOG)/HOL-Isar_Examples.gz	\
 		$(LOG)/HOL-Lattice $(LOG)/HOL-Lattice.gz		\
 		$(LOG)/HOL-Lex.gz $(LOG)/HOL-Library.gz			\
+		$(LOG)/HOL-Library-Codegenerator_Test.gz		\
 		$(LOG)/HOL-Main.gz $(LOG)/HOL-Matrix			\
 		$(LOG)/HOL-Matrix.gz $(LOG)/HOL-Metis_Examples.gz	\
 		$(LOG)/HOL-MicroJava.gz $(LOG)/HOL-Mirabelle.gz		\
 		$(LOG)/HOL-Multivariate_Analysis.gz			\
-		$(LOG)/HOL-NSA-Examples.gz $(LOG)/HOL-NSA.gz		\
-		$(LOG)/HOL-NanoJava.gz $(LOG)/HOL-Nitpick_Examples.gz	\
+		$(LOG)/HOL-Mutabelle.gz $(LOG)/HOL-NSA-Examples.gz	\
+		$(LOG)/HOL-NSA.gz $(LOG)/HOL-NanoJava.gz		\
+		$(LOG)/HOL-Nitpick_Examples.gz				\
 		$(LOG)/HOL-Nominal-Examples.gz $(LOG)/HOL-Nominal.gz	\
 		$(LOG)/HOL-Number_Theory.gz				\
 		$(LOG)/HOL-Old_Number_Theory.gz $(LOG)/HOL-Plain.gz	\
@@ -1839,19 +1841,22 @@ clean:
 		$(LOG)/HOL-Probability.gz $(LOG)/HOL-Prolog.gz		\
 		$(LOG)/HOL-Proofs.gz $(LOG)/HOL-Proofs-ex.gz		\
 		$(LOG)/HOL-Proofs-Extraction.gz				\
-		$(LOG)/HOL-Proofs-Lambda.gz $(LOG)/HOL-SET_Protocol.gz	\
+		$(LOG)/HOL-Proofs-Lambda.gz				\
+		$(LOG)/HOL-Quickcheck_Examples.gz			\
+		$(LOG)/HOL-Quotient_Examples.gz				\
+		$(LOG)/HOL-SET_Protocol.gz				\
 		$(LOG)/HOL-Word-SMT_Examples.gz $(LOG)/HOL-SPARK.gz	\
 		$(LOG)/HOL-SPARK-Examples.gz				\
 		$(LOG)/HOL-SPARK-Manual.gz $(LOG)/HOL-Statespace.gz	\
-		$(LOG)/HOL-UNITY.gz $(LOG)/HOL-Unix.gz			\
-		$(LOG)/HOL-Word-Examples.gz $(LOG)/HOL-Word.gz		\
-		$(LOG)/HOL-ZF.gz $(LOG)/HOL-ex.gz $(LOG)/HOL.gz		\
-		$(LOG)/HOL4.gz $(LOG)/TLA-Buffer.gz $(LOG)/TLA-Inc.gz	\
-		$(LOG)/TLA-Memory.gz $(LOG)/TLA.gz $(OUT)/HOL		\
-		$(OUT)/HOL-Algebra $(OUT)/HOL-Base $(OUT)/HOL-Boogie	\
-		$(OUT)/HOL-IMP $(OUT)/HOL-Main				\
-		$(OUT)/HOL-Multivariate_Analysis $(OUT)/HOL-NSA		\
-		$(OUT)/HOL-Nominal $(OUT)/HOL-Plain			\
+		$(LOG)/HOL-TPTP.gz $(LOG)/HOL-UNITY.gz			\
+		$(LOG)/HOL-Unix.gz $(LOG)/HOL-Word-Examples.gz		\
+		$(LOG)/HOL-Word.gz $(LOG)/HOL-ZF.gz $(LOG)/HOL-ex.gz	\
+		$(LOG)/HOL.gz $(LOG)/HOL4.gz $(LOG)/TLA-Buffer.gz	\
+		$(LOG)/TLA-Inc.gz $(LOG)/TLA-Memory.gz $(LOG)/TLA.gz	\
+		$(OUT)/HOL $(OUT)/HOL-Algebra $(OUT)/HOL-Base		\
+		$(OUT)/HOL-Boogie $(OUT)/HOL-IMP $(OUT)/HOL-Library	\
+		$(OUT)/HOL-Main $(OUT)/HOL-Multivariate_Analysis	\
+		$(OUT)/HOL-NSA $(OUT)/HOL-Nominal $(OUT)/HOL-Plain	\
 		$(OUT)/HOL-Probability $(OUT)/HOL-Proofs		\
 		$(OUT)/HOL-SPARK $(OUT)/HOL-Word $(OUT)/HOL4		\
 		$(OUT)/TLA $(OUT)/HOLCF $(LOG)/HOLCF.gz			\
