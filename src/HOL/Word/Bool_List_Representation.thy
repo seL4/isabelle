@@ -790,7 +790,7 @@ lemma rbl_add:
   apply (case_tac binb rule: bin_exhaust)
   apply (case_tac b)
    apply (case_tac [!] "ba")
-     apply (auto simp: rbl_succ succ_def bin_to_bl_aux_alt Let_def add_ac)
+     apply (auto simp: rbl_succ bin_to_bl_aux_alt Let_def add_ac)
   done
 
 lemma rbl_add_app2: 
