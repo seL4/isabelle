@@ -15,8 +15,6 @@ import javax.swing.JOptionPane
 import scala.swing.ComboBox
 import scala.swing.event.SelectionChanged
 import scala.collection.mutable
-import scala.math.Ordering
-import scala.util.Sorting
 
 
 object Library
