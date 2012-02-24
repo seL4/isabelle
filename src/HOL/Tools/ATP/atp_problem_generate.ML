@@ -1464,6 +1464,16 @@ fun sym_table_for_facts ctxt type_enc app_op_level conjs facts =
                   | NONE =>
                     let
                       val pred_sym = top_level andalso not bool_vars
+                      val ary =
+                        case unprefix_and_unascii const_prefix s of
+                          SOME s =>
+                          if not (String.isSubstring uncurried_alias_sep s)
+                             andalso (s |> unmangled_const_name |> hd
+                                        |> invert_const) = @{const_name If} then
+                            Integer.min ary 3
+                          else
+                            ary
+                        | NONE => ary
                       val min_ary =
                         case app_op_level of
                           Incomplete_Apply => ary
@@ -1545,8 +1555,8 @@ fun firstorderize_fact thy monom_constrs format type_enc sym_tab
           if uncurried_aliases andalso String.isPrefix const_prefix s then
             let
               val ary = length args
-              val name = name |> ary > min_ary_of sym_tab s
-                                 ? aliased_uncurried ary
+              val name =
+                name |> ary > min_ary_of sym_tab s ? aliased_uncurried ary
             in list_app (IConst (name, T, T_args)) args end
           else
             args |> chop (min_ary_of sym_tab s)
