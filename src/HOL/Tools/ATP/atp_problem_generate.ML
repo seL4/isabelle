@@ -504,6 +504,12 @@ fun robust_const_type thy s =
     (* Old Skolems throw a "TYPE" exception here, which will be caught. *)
     s |> Sign.the_const_type thy
 
+val robust_const_ary =
+  let
+    fun ary (Type (@{type_name fun}, [_, T])) = 1 + ary T
+      | ary _ = 0
+  in ary oo robust_const_type end
+
 (* This function only makes sense if "T" is as general as possible. *)
 fun robust_const_typargs thy (s, T) =
   if s = app_op_name then
@@ -1399,6 +1405,7 @@ datatype app_op_level = Incomplete_Apply | Sufficient_Apply | Full_Apply
 
 fun sym_table_for_facts ctxt type_enc app_op_level conjs facts =
   let
+    val thy = Proof_Context.theory_of ctxt
     fun consider_var_ary const_T var_T max_ary =
       let
         fun iter ary T =
@@ -1467,12 +1474,13 @@ fun sym_table_for_facts ctxt type_enc app_op_level conjs facts =
                       val ary =
                         case unprefix_and_unascii const_prefix s of
                           SOME s =>
-                          if not (String.isSubstring uncurried_alias_sep s)
-                             andalso (s |> unmangled_const_name |> hd
-                                        |> invert_const) = @{const_name If} then
-                            Integer.min ary 3
-                          else
-                            ary
+                          (if String.isSubstring uncurried_alias_sep s then
+                             ary
+                           else case try (robust_const_ary thy
+                                          o invert_const o hd
+                                          o unmangled_const_name) s of
+                             SOME ary0 => Int.min (ary0, ary)
+                           | NONE => ary)
                         | NONE => ary
                       val min_ary =
                         case app_op_level of
