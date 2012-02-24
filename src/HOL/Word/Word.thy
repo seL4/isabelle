@@ -1086,19 +1086,17 @@ lemma word_m1_wi: "-1 = word_of_int -1"
 lemma word_m1_wi_Min: "-1 = word_of_int Int.Min"
   by (simp add: word_m1_wi number_of_eq)
 
-lemma word_0_bl [simp]: "of_bl [] = 0" 
-  unfolding of_bl_def by (simp add: Pls_def)
+lemma word_0_bl [simp]: "of_bl [] = 0"
+  unfolding of_bl_def by simp
 
 lemma word_1_bl: "of_bl [True] = 1" 
-  unfolding of_bl_def
-  by (simp add: bl_to_bin_def Bit_def Pls_def)
+  unfolding of_bl_def by (simp add: bl_to_bin_def)
 
-lemma uint_eq_0 [simp] : "(uint 0 = 0)" 
-  unfolding word_0_wi
-  by (simp add: word_ubin.eq_norm Pls_def [symmetric])
+lemma uint_eq_0 [simp]: "uint 0 = 0"
+  unfolding word_0_wi word_ubin.eq_norm by simp
 
 lemma of_bl_0 [simp]: "of_bl (replicate n False) = 0"
-  by (simp add: of_bl_def bl_to_bin_rep_False Pls_def)
+  by (simp add: of_bl_def bl_to_bin_rep_False)
 
 lemma to_bl_0 [simp]:
   "to_bl (0::'a::len0 word) = replicate (len_of TYPE('a)) False"
