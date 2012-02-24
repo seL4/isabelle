@@ -100,7 +100,7 @@ proof -
   have F2: "\<forall>x\<^isub>3 x\<^isub>1\<Colon>'a\<Colon>linordered_idom. 0 \<le> x\<^isub>1 \<longrightarrow> \<bar>x\<^isub>3 * x\<^isub>1\<bar> = \<bar>x\<^isub>3\<bar> * x\<^isub>1" by (metis abs_mult_pos)
   hence "\<forall>x\<^isub>1\<ge>0. \<bar>x\<^isub>1\<Colon>'a\<Colon>linordered_idom\<bar> = x\<^isub>1" by (metis F1 abs_one)
   hence "\<forall>x\<^isub>3. 0 \<le> \<bar>f x\<^isub>3\<bar> \<longrightarrow> c * \<bar>f x\<^isub>3\<bar> = \<bar>c\<bar> * \<bar>f x\<^isub>3\<bar>" by (metis F2 A1 abs_ge_zero order_trans)
-  thus "\<bar>h x\<bar> \<le> \<bar>c\<bar> * \<bar>f x\<bar>" by (metis A1 abs_mult abs_ge_zero)
+  thus "\<bar>h x\<bar> \<le> \<bar>c\<bar> * \<bar>f x\<bar>" by (metis A1 abs_ge_zero)
 qed
 
 sledgehammer_params [isar_proof, isar_shrink_factor = 4]
@@ -211,8 +211,9 @@ apply (subgoal_tac "0 <= f xa + g xa")
   defer 1
   apply (metis abs_triangle_ineq)
  apply (metis add_nonneg_nonneg)
-by (metis (no_types) add_mono le_maxI2 linorder_linear min_max.sup_absorb1
-          mult_right_mono xt1(6))
+apply (rule add_mono)
+ apply (metis le_maxI2 linorder_linear min_max.sup_absorb1 mult_right_mono xt1(6))
+by (metis le_maxI2 linorder_not_le mult_le_cancel_right order_trans)
 
 lemma bigo_bounded_alt: "\<forall>x. 0 <= f x \<Longrightarrow> \<forall>x. f x <= c * g x \<Longrightarrow> f : O(g)"
 apply (auto simp add: bigo_def)
@@ -383,7 +384,8 @@ by (metis bigo_plus_idemp set_plus_mono3)
 
 lemma bigo_plus_absorb_lemma2: "f : O(g) \<Longrightarrow> O(g) \<le> f +o O(g)"
 by (metis (no_types) bigo_minus bigo_plus_absorb_lemma1 right_minus
-          set_plus_mono_b set_plus_rearrange2 set_zero_plus subsetI)
+          set_plus_mono set_plus_rearrange2 set_zero_plus subsetD subset_refl
+          subset_trans)
 
 lemma bigo_plus_absorb [simp]: "f : O(g) \<Longrightarrow> f +o O(g) = O(g)"
 by (metis bigo_plus_absorb_lemma1 bigo_plus_absorb_lemma2 order_eq_iff)
@@ -669,31 +671,29 @@ lemma bigo_lesso2: "f =o g +o O(h) \<Longrightarrow>
 apply (erule thin_rl)
 (* sledgehammer *)
 apply (case_tac "0 <= k x - g x")
- apply (metis (hide_lams, no_types) abs_le_iff add_le_imp_le_right diff_minus le_less
-          le_max_iff_disj min_max.le_supE min_max.sup_absorb2
-          min_max.sup_commute)
+ apply (metis (lifting) abs_le_D1 linorder_linear min_diff_distrib_left
+          min_max.inf_absorb1 min_max.inf_absorb2 min_max.sup_absorb1)
 by (metis abs_ge_zero le_cases min_max.sup_absorb2)
 
 lemma bigo_lesso3: "f =o g +o O(h) \<Longrightarrow>
     \<forall>x. 0 <= k x \<Longrightarrow> \<forall>x. g x <= k x \<Longrightarrow>
       f <o k =o O(h)"
-  apply (unfold lesso_def)
-  apply (rule bigo_lesseq4)
+apply (unfold lesso_def)
+apply (rule bigo_lesseq4)
   apply (erule set_plus_imp_minus)
-  apply (rule allI)
-  apply (rule le_maxI2)
-  apply (rule allI)
-  apply (subst fun_diff_def)
-  apply (erule thin_rl)
-  (* sledgehammer *)
-  apply (case_tac "0 <= f x - k x")
-  apply simp
-  apply (subst abs_of_nonneg)
+ apply (rule allI)
+ apply (rule le_maxI2)
+apply (rule allI)
+apply (subst fun_diff_def)
+apply (erule thin_rl)
+(* sledgehammer *)
+apply (case_tac "0 <= f x - k x")
+ apply simp
+ apply (subst abs_of_nonneg)
   apply (drule_tac x = x in spec) back
   apply (metis diff_less_0_iff_less linorder_not_le not_leE xt1(12) xt1(6))
  apply (metis add_minus_cancel diff_le_eq le_diff_eq uminus_add_conv_diff)
-apply (metis abs_ge_zero linorder_linear min_max.sup_absorb1 min_max.sup_commute)
-done
+by (metis abs_ge_zero linorder_linear min_max.sup_absorb1 min_max.sup_commute)
 
 lemma bigo_lesso4:
   "f <o g =o O(k\<Colon>'a=>'b\<Colon>{linordered_field,number_ring}) \<Longrightarrow>
