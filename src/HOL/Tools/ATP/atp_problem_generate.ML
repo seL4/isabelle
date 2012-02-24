@@ -2653,10 +2653,10 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
        (aritiesN,
         map (formula_line_for_arity_clause format type_enc) arity_clauses),
        (helpersN, helper_lines),
+       (free_typesN, formula_lines_for_free_types type_enc (facts @ conjs)),
        (conjsN,
         map (formula_line_for_conjecture ctxt polym_constrs format mono
-                                         type_enc) conjs),
-       (free_typesN, formula_lines_for_free_types type_enc (facts @ conjs))]
+                                         type_enc) conjs)]
     val problem =
       problem
       |> (case format of

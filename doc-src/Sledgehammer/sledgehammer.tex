@@ -99,8 +99,9 @@ SPASS \cite{weidenbach-et-al-2009}, Vampire \cite{riazanov-voronkov-2002}, and
 Waldmeister \cite{waldmeister}. The ATPs are run either locally or remotely via
 the System\-On\-TPTP web service \cite{sutcliffe-2000}. In addition to the ATPs,
 the SMT solvers Z3 \cite{z3} is used by default, and you can tell Sledgehammer
-to try CVC3 \cite{cvc3} and Yices \cite{yices} as well; these are run either
-locally or on a server at the TU M\"unchen.
+to try Alt-Ergo \cite{alt-ergo}, CVC3 \cite{cvc3}, and Yices \cite{yices} as
+well; these are run either locally or (for CVC3 and Z3) on a server at the TU
+M\"unchen.
 
 The problem passed to the automatic provers consists of your current goal
 together with a heuristic selection of hundreds of facts (theorems) from the
@@ -152,10 +153,11 @@ Waldmeister, and Vampire are available remotely via System\-On\-TPTP
 \cite{sutcliffe-2000}. If you want better performance, you should at least
 install E and SPASS locally.
 
-Among the SMT solvers, CVC3, Yices, and Z3 can be run locally, and CVC3 and Z3
-can be run remotely on a TU M\"unchen server. If you want better performance and
-get the ability to replay proofs that rely on the \emph{smt} proof method
-without an Internet connection, you should at least install Z3 locally.
+Among the SMT solvers, Alt-Ergo, CVC3, Yices, and Z3 can be run locally, and
+CVC3 and Z3 can be run remotely on a TU M\"unchen server. If you want better
+performance and get the ability to replay proofs that rely on the \emph{smt}
+proof method without an Internet connection, you should at least install Z3
+locally.
 
 There are three main ways to install automatic provers on your machine:
 
@@ -204,14 +206,14 @@ also set \texttt{E\_VERSION}, \texttt{LEO2\_VERSION},
 \texttt{SATALLAX\_VERSION}, \texttt{SPASS\_VERSION}, or
 \texttt{VAMPIRE\_VERSION} to the prover's version number (e.g., ``1.4'').
 
-Similarly, if you want to build CVC3, or found a
+Similarly, if you want to build Alt-Ergo or CVC3, or found a
 Yices or Z3 executable somewhere (e.g.,
 \url{http://yices.csl.sri.com/download.shtml} or
 \url{http://research.microsoft.com/en-us/um/redmond/projects/z3/download.html}),
 set the environment variable \texttt{CVC3\_\allowbreak SOLVER},
 \texttt{YICES\_SOLVER}, or \texttt{Z3\_SOLVER} to the complete path of
 the executable, \emph{including the file name}. Sledgehammer has been tested
-with CVC3 2.2, Yices 1.0.28, and Z3 3.0 to 3.2.
+with Alt-Ergo 0.93, CVC3 2.2, Yices 1.0.28, and Z3 3.0 to 3.2.
 Since the SMT solvers' output formats are somewhat unstable, other
 versions of the solvers might not work well with Sledgehammer. Ideally,
 also set \texttt{CVC3\_VERSION}, \texttt{YICES\_VERSION}, or
@@ -311,7 +313,7 @@ This feature is experimental and is only available for ATPs.
 \label{hints}
 
 This section presents a few hints that should help you get the most out of
-Sledgehammer. Frequently (and infrequently) asked questions are answered in
+Sledgehammer. Frequently asked questions are answered in
 \S\ref{frequently-asked-questions}.
 
 %\newcommand\point[1]{\medskip\par{\sl\bfseries#1}\par\nopagebreak}
@@ -770,6 +772,14 @@ installation instructions.
 The following local provers are supported:
 
 \begin{enum}
+\item[\labelitemi] \textbf{\textit{alt\_ergo}:} Alt-Ergo is a polymorphic
+SMT solver developed by Bobot et al.\ \cite{alt-ergo}.
+It supports the TPTP polymorphic typed first-order format (TFF1) via Why3
+\cite{why3}. It is included for experimental purposes. To use Alt-Ergo, set the
+environment variable \texttt{WHY3\_HOME} to the directory that contains the
+\texttt{why3} executable. Sledgehammer has been tested with Alt-Ergo 0.93 and an
+unidentified development version of Why3.
+
 \item[\labelitemi] \textbf{\textit{cvc3}:} CVC3 is an SMT solver developed by
 Clark Barrett, Cesare Tinelli, and their colleagues \cite{cvc3}. To use CVC3,
 set the environment variable \texttt{CVC3\_SOLVER} to the complete path of the
@@ -812,7 +822,7 @@ prover developed by Andrei Voronkov and his colleagues
 \texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{vampire}
 executable and \texttt{VAMPIRE\_VERSION} to the version number (e.g., ``1.8'').
 Sledgehammer has been tested with versions 0.6, 1.0, and 1.8.
-%Vampire 1.8 supports the TPTP typed first-order format (TFF0).
+Versions above 1.8 support the TPTP typed first-order format (TFF0).
 
 \item[\labelitemi] \textbf{\textit{yices}:} Yices is an SMT solver developed at
 SRI \cite{yices}. To use Yices, set the environment variable
@@ -1057,13 +1067,17 @@ $\const{t}(\tau, t)$ becomes a unary function
 $\const{t\_}\tau(t)$.
 
 \item[\labelitemi] \textbf{\textit{mono\_native} (sound):} Exploits native
-first-order types if the prover supports the TFF0 or THF0 syntax; otherwise,
-falls back on \textit{mono\_guards}. The problem is monomorphized.
+first-order types if the prover supports the TFF0, TFF1, or THF0 syntax;
+otherwise, falls back on \textit{mono\_guards}. The problem is monomorphized.
 
 \item[\labelitemi] \textbf{\textit{mono\_native\_higher} (sound):} Exploits
 native higher-order types if the prover supports the THF0 syntax; otherwise,
 falls back on \textit{mono\_native} or \textit{mono\_guards}. The problem is
 monomorphized.
+
+\item[\labelitemi] \textbf{\textit{poly\_native} (sound):} Exploits native
+polymorphic first-order types if the prover supports the TFF1 syntax; otherwise,
+falls back on \textit{mono\_native}.
 
 \item[\labelitemi]
 \textbf{%

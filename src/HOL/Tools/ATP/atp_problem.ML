@@ -752,6 +752,9 @@ fun nice_name _ (full_name, _) NONE = (full_name, NONE)
           end
       in add 0 |> apsnd SOME end
 
+fun avoid_clash_with_alt_ergo_type_vars s =
+  if is_tptp_variable s then s else s ^ "_"
+
 fun avoid_clash_with_dfg_keywords s =
   let val n = String.size s in
     if n < 2 orelse (n = 2 andalso String.sub (s, 0) = String.sub (s, 1)) orelse
@@ -766,8 +769,12 @@ fun nice_atp_problem readable_names format problem =
   let
     val empty_pool =
       if readable_names then SOME (Symtab.empty, Symtab.empty) else NONE
-    val nice_name =
-      nice_name (case format of DFG _ => avoid_clash_with_dfg_keywords | _ => I)
+    val avoid_clash =
+      case format of
+        TFF (TPTP_Polymorphic, _) => avoid_clash_with_alt_ergo_type_vars
+      | DFG _ => avoid_clash_with_dfg_keywords
+      | _ => I
+    val nice_name = nice_name avoid_clash
     fun nice_type (AType (name, tys)) =
         nice_name name ##>> pool_map nice_type tys #>> AType
       | nice_type (AFun (ty1, ty2)) = nice_type ty1 ##>> nice_type ty2 #>> AFun

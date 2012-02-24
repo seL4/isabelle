@@ -37,14 +37,14 @@ sig
   val e_default_sym_offs_weight : real Config.T
   val e_sym_offs_weight_base : real Config.T
   val e_sym_offs_weight_span : real Config.T
+  val alt_ergoN : string
+  val dummy_thfN : string
   val eN : string
   val e_sineN : string
   val e_tofofN : string
   val iproverN : string
   val iprover_eqN : string
   val leo2N : string
-  val dummy_tff1N : string
-  val dummy_thfN : string
   val satallaxN : string
   val snarkN : string
   val spassN : string
@@ -127,14 +127,14 @@ val known_says_failures = known_szs_failures (prefix " says ")
 
 (* named ATPs *)
 
+val alt_ergoN = "alt_ergo"
+val dummy_thfN = "dummy_thf" (* experimental *)
 val eN = "e"
 val e_sineN = "e_sine"
 val e_tofofN = "e_tofof"
 val iproverN = "iprover"
 val iprover_eqN = "iprover_eq"
 val leo2N = "leo2"
-val dummy_tff1N = "dummy_tff1" (* experimental *)
-val dummy_thfN = "dummy_thf" (* experimental *)
 val satallaxN = "satallax"
 val snarkN = "snark"
 val spassN = "spass"
@@ -160,6 +160,31 @@ val sosN = "sos"
 val no_sosN = "no_sos"
 
 val force_sos = Attrib.setup_config_bool @{binding atp_force_sos} (K false)
+
+
+(* Alt-Ergo *)
+
+val alt_ergo_tff1 = TFF (TPTP_Polymorphic, TPTP_Explicit)
+
+val alt_ergo_config : atp_config =
+  {exec = ("WHY3_HOME", "why3"),
+   required_execs = [],
+   arguments =
+     fn _ => fn _ => fn _ => fn timeout => fn _ =>
+        "--format tff1 --prover alt-ergo --timelimit " ^
+        string_of_int (to_secs 1 timeout),
+   proof_delims = [],
+   known_failures =
+     [(ProofMissing, ": Valid"),
+      (TimedOut, ": Timeout"),
+      (GaveUp, ": Unknown")],
+   conj_sym_kind = Hypothesis,
+   prem_kind = Hypothesis,
+   best_slices = fn _ =>
+     (* FUDGE *)
+     [(1.0, (false, ((100, alt_ergo_tff1, "poly_native", liftingN, false), "")))]}
+
+val alt_ergo = (alt_ergoN, alt_ergo_config)
 
 
 (* E *)
@@ -340,8 +365,6 @@ val spass = (spassN, spass_config)
 
 val spass_new_H2 = "-Heuristic=2"
 val spass_new_H2SOS = "-Heuristic=2 -SOS"
-val spass_new_Red2 = "-RFRew=2 -RBRew=2 -RTaut=2"
-val spass_new_Sorts0 = "-Sorts=0"
 val spass_new_H2NuVS0 = "-Heuristic=2 -RNuV=1 -Sorts=0"
 val spass_new_H2NuVS0Red2 =
   "-Heuristic=2 -RNuV=1 -Sorts=0 -RFRew=2 -RBRew=2 -RTaut=2"
@@ -456,10 +479,6 @@ fun dummy_config format type_enc : atp_config =
      K [(1.0, (false, ((200, format, type_enc,
                         if is_format_higher_order format then keep_lamsN
                         else combsN, false), "")))]}
-
-val dummy_tff1_format = TFF (TPTP_Polymorphic, TPTP_Explicit)
-val dummy_tff1_config = dummy_config dummy_tff1_format "poly_native"
-val dummy_tff1 = (dummy_tff1N, dummy_tff1_config)
 
 val dummy_thf_format = THF (TPTP_Polymorphic, TPTP_Explicit, THF_With_Choice)
 val dummy_thf_config = dummy_config dummy_thf_format "poly_native_higher"
@@ -598,7 +617,7 @@ fun refresh_systems_on_tptp () =
   Synchronized.change systems (fn _ => get_systems ())
 
 val atps =
-  [e, leo2, dummy_tff1, dummy_thf, satallax, spass, spass_new, vampire, z3_tptp,
+  [alt_ergo, e, leo2, dummy_thf, satallax, spass, spass_new, vampire, z3_tptp,
    remote_e, remote_e_sine, remote_e_tofof, remote_iprover, remote_iprover_eq,
    remote_leo2, remote_satallax, remote_vampire, remote_z3_tptp, remote_snark,
    remote_waldmeister]
