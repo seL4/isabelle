@@ -3005,8 +3005,8 @@ lemma nth_mask [OF refl, simp]:
   apply (unfold mask_def test_bit_bl)
   apply (simp only: word_1_bl [symmetric] shiftl_of_bl)
   apply (clarsimp simp add: word_size)
-  apply (simp only: of_bl_no mask_lem number_of_succ add_diff_cancel2)
-  apply (fold of_bl_no)
+  apply (simp only: of_bl_def mask_lem word_of_int_hom_syms add_diff_cancel2)
+  apply (fold of_bl_def)
   apply (simp add: word_1_bl)
   apply (rule test_bit_of_bl [THEN trans, unfolded test_bit_bl word_size])
   apply auto

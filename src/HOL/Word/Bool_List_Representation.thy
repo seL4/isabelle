@@ -681,13 +681,13 @@ lemma bl_to_bin_app_cat_alt:
   by (simp add : bl_to_bin_app_cat)
 
 lemma mask_lem: "(bl_to_bin (True # replicate n False)) = 
-    Int.succ (bl_to_bin (replicate n True))"
+    (bl_to_bin (replicate n True)) + 1"
   apply (unfold bl_to_bin_def)
   apply (induct n)
-   apply (simp add: Int.succ_def)
+   apply simp
   apply (simp only: Suc_eq_plus1 replicate_add
                     append_Cons [symmetric] bl_to_bin_aux_append)
-  apply (simp add: BIT_simps)
+  apply (simp add: Bit_B0_2t Bit_B1_2t)
   done
 
 (* function bl_of_nth *)
