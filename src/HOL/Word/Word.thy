@@ -1598,7 +1598,7 @@ lemma word_succ_rbl:
   apply (unfold word_succ_def)
   apply clarify
   apply (simp add: to_bl_of_bin)
-  apply (simp add: to_bl_def rbl_succ Int.succ_def)
+  apply (simp add: to_bl_def rbl_succ)
   done
 
 lemma word_pred_rbl:
@@ -1606,7 +1606,7 @@ lemma word_pred_rbl:
   apply (unfold word_pred_def)
   apply clarify
   apply (simp add: to_bl_of_bin)
-  apply (simp add: to_bl_def rbl_pred Int.pred_def)
+  apply (simp add: to_bl_def rbl_pred)
   done
 
 lemma word_add_rbl:
