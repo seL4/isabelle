@@ -755,9 +755,6 @@ lemma of_bl_drop':
   apply (clarsimp simp add : trunc_bl2bin [symmetric])
   done
 
-lemma of_bl_no: "of_bl bl = number_of (bl_to_bin bl)"
-  by (fact of_bl_def [folded word_number_of_def])
-
 lemma test_bit_of_bl:  
   "(of_bl bl::'a::len0 word) !! n = (rev bl ! n \<and> n < len_of TYPE('a) \<and> n < length bl)"
   apply (unfold of_bl_def word_test_bit_def)
@@ -766,7 +763,7 @@ lemma test_bit_of_bl:
 
 lemma no_of_bl: 
   "(number_of bin ::'a::len0 word) = of_bl (bin_to_bl (len_of TYPE ('a)) bin)"
-  unfolding word_size of_bl_no by (simp add : word_number_of_def)
+  unfolding word_size of_bl_def by (simp add: word_number_of_def)
 
 lemma uint_bl: "to_bl w = bin_to_bl (size w) (uint w)"
   unfolding word_size to_bl_def by auto
@@ -1005,17 +1002,21 @@ lemma down_ucast_inj:
 lemma of_bl_append_same: "of_bl (X @ to_bl w) = w"
   by (rule word_bl.Rep_eqD) (simp add: word_rep_drop)
 
-lemma ucast_down_no [OF refl]:
-  "uc = ucast \<Longrightarrow> is_down uc \<Longrightarrow> uc (number_of bin) = number_of bin"
-  apply (unfold word_number_of_def is_down)
+lemma ucast_down_wi [OF refl]:
+  "uc = ucast \<Longrightarrow> is_down uc \<Longrightarrow> uc (word_of_int x) = word_of_int x"
+  apply (unfold is_down)
   apply (clarsimp simp add: ucast_def word_ubin.eq_norm)
   apply (rule word_ubin.norm_eq_iff [THEN iffD1])
   apply (erule bintrunc_bintrunc_ge)
   done
 
+lemma ucast_down_no [OF refl]:
+  "uc = ucast \<Longrightarrow> is_down uc \<Longrightarrow> uc (number_of bin) = number_of bin"
+  unfolding word_number_of_alt by clarify (rule ucast_down_wi)
+
 lemma ucast_down_bl [OF refl]:
   "uc = ucast \<Longrightarrow> is_down uc \<Longrightarrow> uc (of_bl bl) = of_bl bl"
-  unfolding of_bl_no by clarify (erule ucast_down_no)
+  unfolding of_bl_def by clarify (erule ucast_down_wi)
 
 lemmas slice_def' = slice_def [unfolded word_size]
 lemmas test_bit_def' = word_test_bit_def [THEN fun_cong]
@@ -2031,8 +2032,7 @@ lemma word_arith_power_alt:
 
 lemma of_bl_length_less: 
   "length x = k \<Longrightarrow> k < len_of TYPE('a) \<Longrightarrow> (of_bl x :: 'a :: len word) < 2 ^ k"
-  apply (unfold of_bl_no [unfolded word_number_of_def]
-                word_less_alt word_number_of_alt)
+  apply (unfold of_bl_def word_less_alt word_number_of_alt)
   apply safe
   apply (simp (no_asm) add: word_of_int_power_hom word_uint.eq_norm 
                        del: word_of_int_bin)
@@ -2042,7 +2042,7 @@ lemma of_bl_length_less:
    apply (rule order_less_trans)
     apply (rule bl_to_bin_lt2p)
    apply simp
-  apply (rule bl_to_bin_lt2p)    
+  apply (rule bl_to_bin_lt2p)
   done
 
 
