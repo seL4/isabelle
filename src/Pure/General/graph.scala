@@ -20,6 +20,10 @@ object Graph
 
   def empty[Key, A](implicit ord: Ordering[Key]): Graph[Key, A] =
     new Graph[Key, A](SortedMap.empty(ord))
+
+  def string[A]: Graph[String, A] = empty(Ordering.String)
+  def int[A]: Graph[Int, A] = empty(Ordering.Int)
+  def long[A]: Graph[Long, A] = empty(Ordering.Long)
 }
 
 

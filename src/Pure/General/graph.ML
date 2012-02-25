@@ -319,4 +319,5 @@ val fold = fold_graph;
 end;
 
 structure Graph = Graph(type key = string val ord = fast_string_ord);
+structure String_Graph = Graph(type key = string val ord = string_ord);
 structure Int_Graph = Graph(type key = int val ord = int_ord);
