@@ -2342,12 +2342,8 @@ lemma list_all2_refl [intro?]:
 by (simp add: list_all2_conv_all_nth)
 
 lemma list_all2_update_cong:
-  "\<lbrakk> i<size xs; list_all2 P xs ys; P x y \<rbrakk> \<Longrightarrow> list_all2 P (xs[i:=x]) (ys[i:=y])"
-by (simp add: list_all2_conv_all_nth nth_list_update)
-
-lemma list_all2_update_cong2:
-  "\<lbrakk>list_all2 P xs ys; P x y; i < length ys\<rbrakk> \<Longrightarrow> list_all2 P (xs[i:=x]) (ys[i:=y])"
-by (simp add: list_all2_lengthD list_all2_update_cong)
+  "\<lbrakk> list_all2 P xs ys; P x y \<rbrakk> \<Longrightarrow> list_all2 P (xs[i:=x]) (ys[i:=y])"
+by (cases "i < length ys") (auto simp add: list_all2_conv_all_nth nth_list_update)
 
 lemma list_all2_takeI [simp,intro?]:
   "list_all2 P xs ys \<Longrightarrow> list_all2 P (take n xs) (take n ys)"
