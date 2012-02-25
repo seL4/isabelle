@@ -415,10 +415,9 @@ lemma natfloor_add_number_of [simp]:
 lemma natfloor_add_one: "0 <= x ==> natfloor(x + 1) = natfloor x + 1"
   by (simp add: natfloor_add [symmetric] del: One_nat_def)
 
-lemma natfloor_subtract [simp]: "real a <= x ==>
-    natfloor(x - real a) = natfloor x - a"
-  unfolding natfloor_def
-  unfolding real_of_int_of_nat_eq [symmetric] floor_subtract
+lemma natfloor_subtract [simp]:
+    "natfloor(x - real a) = natfloor x - a"
+  unfolding natfloor_def real_of_int_of_nat_eq [symmetric] floor_subtract
   by simp
 
 lemma natfloor_div_nat:
@@ -441,10 +440,9 @@ proof (rule natfloor_eq)
 qed
 
 lemma le_mult_natfloor:
-  assumes "0 \<le> (a :: real)" and "0 \<le> b"
   shows "natfloor a * natfloor b \<le> natfloor (a * b)"
-  using assms
-  by (simp add: le_natfloor_eq mult_nonneg_nonneg mult_mono' real_natfloor_le)
+  by (cases "0 <= a & 0 <= b")
+    (auto simp add: le_natfloor_eq mult_nonneg_nonneg mult_mono' real_natfloor_le natfloor_neg)
 
 lemma natceiling_zero [simp]: "natceiling 0 = 0"
   by (unfold natceiling_def, simp)
@@ -505,10 +503,8 @@ lemma natceiling_add_number_of [simp]:
 lemma natceiling_add_one: "0 <= x ==> natceiling(x + 1) = natceiling x + 1"
   by (simp add: natceiling_add [symmetric] del: One_nat_def)
 
-lemma natceiling_subtract [simp]: "real a <= x ==>
-    natceiling(x - real a) = natceiling x - a"
-  unfolding natceiling_def
-  unfolding real_of_int_of_nat_eq [symmetric] ceiling_subtract
+lemma natceiling_subtract [simp]: "natceiling(x - real a) = natceiling x - a"
+  unfolding natceiling_def real_of_int_of_nat_eq [symmetric] ceiling_subtract
   by simp
 
 subsection {* Exponentiation with floor *}

@@ -366,7 +366,7 @@ proof -
         also have "\<dots> \<le> natfloor (real (u x) * 2 ^ i * 2)"
         proof cases
           assume "0 \<le> u x" then show ?thesis
-            by (intro le_mult_natfloor) (cases "u x", auto intro!: mult_nonneg_nonneg)
+            by (intro le_mult_natfloor) 
         next
           assume "\<not> 0 \<le> u x" then show ?thesis
             by (cases "u x") (auto simp: natfloor_neg mult_nonpos_nonneg)
