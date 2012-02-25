@@ -522,7 +522,7 @@ fun process_constraints ctxt err cs tye_idx =
         val T = Type_Infer.deref tye (hd nodes);
         val P = new_imm_preds G nodes;
         val S = new_imm_succs G nodes;
-        val G' = Typ_Graph.del_nodes (tl nodes) G;
+        val G' = fold Typ_Graph.del_node (tl nodes) G;
         fun check_and_gen super T' =
           let val U = Type_Infer.deref tye T';
           in

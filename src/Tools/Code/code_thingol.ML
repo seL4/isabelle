@@ -938,7 +938,7 @@ fun ensure_value thy algbr eqngr t =
         val Fun (_, ((vs_ty, [(([], t), _)]), _)) =
           Graph.get_node program1 Term.dummy_patternN;
         val deps = Graph.immediate_succs program1 Term.dummy_patternN;
-        val program2 = Graph.del_nodes [Term.dummy_patternN] program1;
+        val program2 = Graph.del_node Term.dummy_patternN program1;
         val deps_all = Graph.all_succs program2 deps;
         val program3 = Graph.restrict (member (op =) deps_all) program2;
       in (((naming, program3), ((vs_ty, t), deps)), (dep, (naming, program2))) end;

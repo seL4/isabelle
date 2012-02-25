@@ -43,7 +43,6 @@ sig
   val is_maximal: 'a T -> key -> bool
   val new_node: key * 'a -> 'a T -> 'a T                              (*exception DUP*)
   val default_node: key * 'a -> 'a T -> 'a T
-  val del_nodes: key list -> 'a T -> 'a T                             (*exception UNDEF*)
   val del_node: key -> 'a T -> 'a T                                   (*exception UNDEF*)
   val is_edge: 'a T -> key * key -> bool
   val add_edge: key * key -> 'a T -> 'a T                             (*exception UNDEF*)
@@ -182,12 +181,6 @@ fun new_node (x, info) (Graph tab) =
 
 fun default_node (x, info) (Graph tab) =
   Graph (Table.default (x, (info, (Keys.empty, Keys.empty))) tab);
-
-fun del_nodes xs (Graph tab) =
-  Graph (tab
-    |> fold Table.delete xs
-    |> Table.map (fn _ => fn (i, (preds, succs)) =>
-      (i, (fold Keys.remove xs preds, fold Keys.remove xs succs))));
 
 fun del_node x (G as Graph tab) =
   let
