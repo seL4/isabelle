@@ -670,7 +670,7 @@ proof -
   let ?l = "nat (int prec + bitlen y - bitlen x)" let ?X = "x * 2^?l"
   show ?thesis 
   proof (cases "?X mod y = 0")
-    case True hence "y \<noteq> 0" and "y dvd ?X" using `0 < y` by auto
+    case True hence "y dvd ?X" using `0 < y` by auto
     from real_of_int_div[OF this]
     have "real (?X div y) * inverse (2 ^ ?l) = real ?X / real y * inverse (2 ^ ?l)" by auto
     also have "\<dots> = real x / real y * (2^?l * inverse (2^?l))" by auto
@@ -702,7 +702,7 @@ proof -
   let ?l = "nat (int n + bitlen y - bitlen x)" let ?X = "x * 2^?l"
   show ?thesis
   proof (cases "?X mod y = 0")
-    case True hence "y \<noteq> 0" and "y dvd ?X" using `0 < y` by auto
+    case True hence "y dvd ?X" using `0 < y` by auto
     from real_of_int_div[OF this]
     have "real (?X div y) * inverse (2 ^ ?l) = real ?X / real y * inverse (2 ^ ?l)" by auto
     also have "\<dots> = real x / real y * (2^?l * inverse (2^?l))" by auto
@@ -757,7 +757,7 @@ next
   let ?l = "nat (int n + bitlen y - bitlen x)" let ?X = "x * 2^?l"
   show ?thesis
   proof (cases "?X mod y = 0")
-    case True hence "y \<noteq> 0" and "y dvd ?X" using `0 < y` by auto
+    case True hence "y dvd ?X" using `0 < y` by auto
     from real_of_int_div[OF this]
     have "real (?X div y) * inverse (2 ^ ?l) = real ?X / real y * inverse (2 ^ ?l)" by auto
     also have "\<dots> = real x / real y * (2^?l * inverse (2^?l))" by auto

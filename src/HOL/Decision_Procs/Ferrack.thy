@@ -461,13 +461,11 @@ lemma reducecoeffh:
 proof (induct t rule: reducecoeffh.induct) 
   case (1 i)
   hence gd: "g dvd i" by simp
-  from gp have gnz: "g \<noteq> 0" by simp
-  with assms show ?case by (simp add: real_of_int_div[OF gnz gd])
+  with assms show ?case by (simp add: real_of_int_div[OF gd])
 next
   case (2 n c t)
   hence gd: "g dvd c" by simp
-  from gp have gnz: "g \<noteq> 0" by simp
-  from assms 2 show ?case by (simp add: real_of_int_div[OF gnz gd] algebra_simps)
+  from assms 2 show ?case by (simp add: real_of_int_div[OF gd] algebra_simps)
 qed (auto simp add: numgcd_def gp)
 
 fun ismaxcoeff:: "num \<Rightarrow> int \<Rightarrow> bool" where
@@ -695,7 +693,7 @@ proof-
         from g1 g'1 have "?lhs = ?t / real (n div ?g')" by (simp add: simp_num_pair_def Let_def)
         also have "\<dots> = (real ?g' * ?t) / (real ?g' * (real (n div ?g')))" by simp
         also have "\<dots> = (Inum bs ?t' / real n)"
-          using real_of_int_div[OF gp0 gpdd] th2 gp0 by simp
+          using real_of_int_div[OF gpdd] th2 gp0 by simp
         finally have "?lhs = Inum bs t / real n" by simp
         then have ?thesis by (simp add: simp_num_pair_def) }
       ultimately have ?thesis by blast }

@@ -602,16 +602,13 @@ lemma reducecoeffh:
   using gt
 proof(induct t rule: reducecoeffh.induct) 
   case (1 i) hence gd: "g dvd i" by simp
-  from gp have gnz: "g \<noteq> 0" by simp
-  from assms 1 show ?case by (simp add: real_of_int_div[OF gnz gd])
+  from assms 1 show ?case by (simp add: real_of_int_div[OF gd])
 next
   case (2 n c t)  hence gd: "g dvd c" by simp
-  from gp have gnz: "g \<noteq> 0" by simp
-  from assms 2 show ?case by (simp add: real_of_int_div[OF gnz gd] algebra_simps)
+  from assms 2 show ?case by (simp add: real_of_int_div[OF gd] algebra_simps)
 next
   case (3 c s t)  hence gd: "g dvd c" by simp
-  from gp have gnz: "g \<noteq> 0" by simp
-  from assms 3 show ?case by (simp add: real_of_int_div[OF gnz gd] algebra_simps) 
+  from assms 3 show ?case by (simp add: real_of_int_div[OF gd] algebra_simps) 
 qed (auto simp add: numgcd_def gp)
 
 fun ismaxcoeff:: "num \<Rightarrow> int \<Rightarrow> bool" where
@@ -972,7 +969,7 @@ proof-
         from nnz g1 g'1 have "?lhs = ?t / real (n div ?g')" by (simp add: simp_num_pair_def Let_def)
         also have "\<dots> = (real ?g' * ?t) / (real ?g' * (real (n div ?g')))" by simp
         also have "\<dots> = (Inum bs ?t' / real n)"
-          using real_of_int_div[OF gp0 gpdd] th2 gp0 by simp
+          using real_of_int_div[OF gpdd] th2 gp0 by simp
         finally have "?lhs = Inum bs t / real n" by simp
         then have ?thesis using nnz g1 g'1 by (simp add: simp_num_pair_def) }
       ultimately have ?thesis by blast }
@@ -1105,7 +1102,7 @@ proof
 next
   assume d: "real (d div g) rdvd real (c div g) * t"
   from gp have gnz: "g \<noteq> 0" by simp
-  thus "real d rdvd real c * t" using d rdvd_mult[OF gnz, where n="d div g" and x="real (c div g) * t"] real_of_int_div[OF gnz gd] real_of_int_div[OF gnz gc] by simp
+  thus "real d rdvd real c * t" using d rdvd_mult[OF gnz, where n="d div g" and x="real (c div g) * t"] real_of_int_div[OF gd] real_of_int_div[OF gc] by simp
 qed
 
 definition simpdvd :: "int \<Rightarrow> num \<Rightarrow> (int \<times> num)" where
@@ -2842,25 +2839,24 @@ proof(induct p rule: \<sigma>\<rho>.induct)
   case (3 c e) 
   from 3 have cp: "c > 0" and nb: "numbound0 e" by auto
   { assume kdc: "k dvd c" 
-    from kpos have knz: "k\<noteq>0" by simp
     from tint have ti: "real (floor (?N (real x) t)) = ?N (real x) t" using isint_def by simp
-    from kdc have ?case using real_of_int_div[OF knz kdc] real_of_int_div[OF knz kdt]
+    from kdc have ?case using real_of_int_div[OF kdc] real_of_int_div[OF kdt]
       numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
       numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"] by (simp add: ti) } 
   moreover 
   { assume *: "\<not> k dvd c"
-    from kpos have knz: "k\<noteq>0" by simp hence knz': "real k \<noteq> 0" by simp
+    from kpos have knz': "real k \<noteq> 0" by simp
     from tint have ti: "real (floor (?N (real x) t)) = ?N (real x) t"
       using isint_def by simp
     from assms * have "?I (real x) (?s (Eq (CN 0 c e))) = ((real c * (?N (real x) t / real k) + ?N (real x) e)* real k = 0)"
-      using real_of_int_div[OF knz kdt]
+      using real_of_int_div[OF kdt]
         numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
         numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"]
       by (simp add: ti algebra_simps)
       also have "\<dots> = (?I ?tk (Eq (CN 0 c e)))"
         using nonzero_eq_divide_eq[OF knz',
             where a="real c * (?N (real x) t / real k) + ?N (real x) e" and b="0", symmetric]
-          real_of_int_div[OF knz kdt] numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
+          real_of_int_div[OF kdt] numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
           numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"]
         by (simp add: ti)
       finally have ?case . }
@@ -2869,24 +2865,23 @@ next
   case (4 c e)  
   then have cp: "c > 0" and nb: "numbound0 e" by auto
   { assume kdc: "k dvd c" 
-    from kpos have knz: "k\<noteq>0" by simp
     from tint have ti: "real (floor (?N (real x) t)) = ?N (real x) t" using isint_def by simp
-    from kdc have  ?case using real_of_int_div[OF knz kdc] real_of_int_div[OF knz kdt]
+    from kdc have  ?case using real_of_int_div[OF kdc] real_of_int_div[OF kdt]
       numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
       numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"] by (simp add: ti) } 
   moreover 
   { assume *: "\<not> k dvd c"
-    from kpos have knz: "k\<noteq>0" by simp hence knz': "real k \<noteq> 0" by simp
+    from kpos have knz': "real k \<noteq> 0" by simp
     from tint have ti: "real (floor (?N (real x) t)) = ?N (real x) t" using isint_def by simp
     from assms * have "?I (real x) (?s (NEq (CN 0 c e))) = ((real c * (?N (real x) t / real k) + ?N (real x) e)* real k \<noteq> 0)"
-      using real_of_int_div[OF knz kdt]
+      using real_of_int_div[OF kdt]
         numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
         numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"]
       by (simp add: ti algebra_simps)
     also have "\<dots> = (?I ?tk (NEq (CN 0 c e)))"
       using nonzero_eq_divide_eq[OF knz',
           where a="real c * (?N (real x) t / real k) + ?N (real x) e" and b="0", symmetric]
-        real_of_int_div[OF knz kdt] numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
+        real_of_int_div[OF kdt] numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
         numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"]
       by (simp add: ti)
     finally have ?case . }
@@ -2895,50 +2890,46 @@ next
   case (5 c e) 
   then have cp: "c > 0" and nb: "numbound0 e" by auto
   { assume kdc: "k dvd c" 
-    from kpos have knz: "k\<noteq>0" by simp
     from tint have ti: "real (floor (?N (real x) t)) = ?N (real x) t" using isint_def by simp
-    from kdc have  ?case using real_of_int_div[OF knz kdc] real_of_int_div[OF knz kdt]
+    from kdc have  ?case using real_of_int_div[OF kdc] real_of_int_div[OF kdt]
       numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
       numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"] by (simp add: ti) } 
   moreover 
   { assume *: "\<not> k dvd c"
-    from kpos have knz: "k\<noteq>0" by simp
     from tint have ti: "real (floor (?N (real x) t)) = ?N (real x) t" using isint_def by simp
     from assms * have "?I (real x) (?s (Lt (CN 0 c e))) = ((real c * (?N (real x) t / real k) + ?N (real x) e)* real k < 0)"
-      using real_of_int_div[OF knz kdt]
+      using real_of_int_div[OF kdt]
         numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
         numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"]
       by (simp add: ti algebra_simps)
     also have "\<dots> = (?I ?tk (Lt (CN 0 c e)))"
       using pos_less_divide_eq[OF kpos,
           where a="real c * (?N (real x) t / real k) + ?N (real x) e" and b="0", symmetric]
-        real_of_int_div[OF knz kdt] numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
+        real_of_int_div[OF kdt] numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
         numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"]
       by (simp add: ti)
     finally have ?case . }
   ultimately show ?case by blast 
 next
-  case (6 c e)  
+  case (6 c e)
   then have cp: "c > 0" and nb: "numbound0 e" by auto
   { assume kdc: "k dvd c" 
-    from kpos have knz: "k\<noteq>0" by simp
     from tint have ti: "real (floor (?N (real x) t)) = ?N (real x) t" using isint_def by simp
-    from kdc have  ?case using real_of_int_div[OF knz kdc] real_of_int_div[OF knz kdt]
+    from kdc have  ?case using real_of_int_div[OF kdc] real_of_int_div[OF kdt]
       numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
       numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"] by (simp add: ti) } 
   moreover 
   { assume *: "\<not> k dvd c"
-    from kpos have knz: "k\<noteq>0" by simp
     from tint have ti: "real (floor (?N (real x) t)) = ?N (real x) t" using isint_def by simp
     from assms * have "?I (real x) (?s (Le (CN 0 c e))) = ((real c * (?N (real x) t / real k) + ?N (real x) e)* real k \<le> 0)"
-      using real_of_int_div[OF knz kdt]
+      using real_of_int_div[OF kdt]
         numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
         numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"]
       by (simp add: ti algebra_simps)
     also have "\<dots> = (?I ?tk (Le (CN 0 c e)))"
       using pos_le_divide_eq[OF kpos,
           where a="real c * (?N (real x) t / real k) + ?N (real x) e" and b="0", symmetric]
-        real_of_int_div[OF knz kdt] numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
+        real_of_int_div[OF kdt] numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
         numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"]
       by (simp add: ti)
     finally have ?case . }
@@ -2947,24 +2938,22 @@ next
   case (7 c e) 
   then have cp: "c > 0" and nb: "numbound0 e" by auto
   { assume kdc: "k dvd c" 
-    from kpos have knz: "k\<noteq>0" by simp
     from tint have ti: "real (floor (?N (real x) t)) = ?N (real x) t" using isint_def by simp
-    from kdc have  ?case using real_of_int_div[OF knz kdc] real_of_int_div[OF knz kdt]
+    from kdc have  ?case using real_of_int_div[OF kdc] real_of_int_div[OF kdt]
       numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
       numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"] by (simp add: ti) } 
   moreover 
   { assume *: "\<not> k dvd c"
-    from kpos have knz: "k\<noteq>0" by simp
     from tint have ti: "real (floor (?N (real x) t)) = ?N (real x) t" using isint_def by simp
     from assms * have "?I (real x) (?s (Gt (CN 0 c e))) = ((real c * (?N (real x) t / real k) + ?N (real x) e)* real k > 0)"
-      using real_of_int_div[OF knz kdt]
+      using real_of_int_div[OF kdt]
         numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
         numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"]
       by (simp add: ti algebra_simps)
     also have "\<dots> = (?I ?tk (Gt (CN 0 c e)))"
       using pos_divide_less_eq[OF kpos,
           where a="real c * (?N (real x) t / real k) + ?N (real x) e" and b="0", symmetric]
-        real_of_int_div[OF knz kdt] numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
+        real_of_int_div[OF kdt] numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
         numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"]
       by (simp add: ti)
     finally have ?case . }
@@ -2973,24 +2962,22 @@ next
   case (8 c e)  
   then have cp: "c > 0" and nb: "numbound0 e" by auto
   { assume kdc: "k dvd c" 
-    from kpos have knz: "k\<noteq>0" by simp
     from tint have ti: "real (floor (?N (real x) t)) = ?N (real x) t" using isint_def by simp
-    from kdc have  ?case using real_of_int_div[OF knz kdc] real_of_int_div[OF knz kdt]
+    from kdc have  ?case using real_of_int_div[OF kdc] real_of_int_div[OF kdt]
       numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
       numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"] by (simp add: ti) } 
   moreover 
   { assume *: "\<not> k dvd c"
-    from kpos have knz: "k\<noteq>0" by simp
     from tint have ti: "real (floor (?N (real x) t)) = ?N (real x) t" using isint_def by simp
     from assms * have "?I (real x) (?s (Ge (CN 0 c e))) = ((real c * (?N (real x) t / real k) + ?N (real x) e)* real k \<ge> 0)"
-      using real_of_int_div[OF knz kdt]
+      using real_of_int_div[OF kdt]
         numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
         numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"]
       by (simp add: ti algebra_simps)
     also have "\<dots> = (?I ?tk (Ge (CN 0 c e)))"
       using pos_divide_le_eq[OF kpos,
           where a="real c * (?N (real x) t / real k) + ?N (real x) e" and b="0", symmetric]
-        real_of_int_div[OF knz kdt] numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
+        real_of_int_div[OF kdt] numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
         numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"]
       by (simp add: ti)
     finally have ?case . }
@@ -2999,9 +2986,8 @@ next
   case (9 i c e)
   then have cp: "c > 0" and nb: "numbound0 e" by auto
   { assume kdc: "k dvd c" 
-    from kpos have knz: "k\<noteq>0" by simp
     from tint have ti: "real (floor (?N (real x) t)) = ?N (real x) t" using isint_def by simp
-    from kdc have ?case using real_of_int_div[OF knz kdc] real_of_int_div[OF knz kdt]
+    from kdc have ?case using real_of_int_div[OF kdc] real_of_int_div[OF kdt]
       numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
       numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"] by (simp add: ti) } 
   moreover 
@@ -3009,13 +2995,13 @@ next
     from kpos have knz: "k\<noteq>0" by simp hence knz': "real k \<noteq> 0" by simp
     from tint have ti: "real (floor (?N (real x) t)) = ?N (real x) t" using isint_def by simp
     from assms * have "?I (real x) (?s (Dvd i (CN 0 c e))) = (real i * real k rdvd (real c * (?N (real x) t / real k) + ?N (real x) e)* real k)"
-      using real_of_int_div[OF knz kdt]
+      using real_of_int_div[OF kdt]
         numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
         numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"]
       by (simp add: ti algebra_simps)
     also have "\<dots> = (?I ?tk (Dvd i (CN 0 c e)))"
       using rdvd_mult[OF knz, where n="i"]
-        real_of_int_div[OF knz kdt] numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
+        real_of_int_div[OF kdt] numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
         numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"]
       by (simp add: ti)
     finally have ?case . }
@@ -3024,9 +3010,8 @@ next
   case (10 i c e)
   then have cp: "c > 0" and nb: "numbound0 e" by auto
   { assume kdc: "k dvd c" 
-    from kpos have knz: "k\<noteq>0" by simp
     from tint have ti: "real (floor (?N (real x) t)) = ?N (real x) t" using isint_def by simp
-    from kdc have  ?case using real_of_int_div[OF knz kdc] real_of_int_div[OF knz kdt]
+    from kdc have  ?case using real_of_int_div[OF kdc] real_of_int_div[OF kdt]
       numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
       numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"] by (simp add: ti) } 
   moreover 
@@ -3034,12 +3019,12 @@ next
     from kpos have knz: "k\<noteq>0" by simp hence knz': "real k \<noteq> 0" by simp
     from tint have ti: "real (floor (?N (real x) t)) = ?N (real x) t" using isint_def by simp
     from assms * have "?I (real x) (?s (NDvd i (CN 0 c e))) = (\<not> (real i * real k rdvd (real c * (?N (real x) t / real k) + ?N (real x) e)* real k))"
-      using real_of_int_div[OF knz kdt]
+      using real_of_int_div[OF kdt]
         numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
         numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"]
       by (simp add: ti algebra_simps)
     also have "\<dots> = (?I ?tk (NDvd i (CN 0 c e)))"
-      using rdvd_mult[OF knz, where n="i"] real_of_int_div[OF knz kdt]
+      using rdvd_mult[OF knz, where n="i"] real_of_int_div[OF kdt]
         numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
         numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"]
       by (simp add: ti)

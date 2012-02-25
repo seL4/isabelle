@@ -1184,10 +1184,9 @@ lemma int_le_real_less: "((n::int) <= m) = (real n < real m + 1)"
   apply simp
 done
 
-lemma real_of_int_div_aux: "d ~= 0 ==> (real (x::int)) / (real d) = 
+lemma real_of_int_div_aux: "(real (x::int)) / (real d) = 
     real (x div d) + (real (x mod d)) / (real d)"
 proof -
-  assume d: "d ~= 0"
   have "x = (x div d) * d + x mod d"
     by auto
   then have "real x = real (x div d) * real d + real(x mod d)"
@@ -1195,12 +1194,12 @@ proof -
   then have "real x / real d = ... / real d"
     by simp
   then show ?thesis
-    by (auto simp add: add_divide_distrib algebra_simps d)
+    by (auto simp add: add_divide_distrib algebra_simps)
 qed
 
-lemma real_of_int_div: "(d::int) ~= 0 ==> d dvd n ==>
+lemma real_of_int_div: "(d :: int) dvd n ==>
     real(n div d) = real n / real d"
-  apply (frule real_of_int_div_aux [of d n])
+  apply (subst real_of_int_div_aux)
   apply simp
   apply (simp add: dvd_eq_mod_eq_0)
 done
@@ -1213,12 +1212,10 @@ lemma real_of_int_div2:
   apply (simp add: algebra_simps)
   apply (subst real_of_int_div_aux)
   apply simp
-  apply simp
   apply (subst zero_le_divide_iff)
   apply auto
   apply (simp add: algebra_simps)
   apply (subst real_of_int_div_aux)
-  apply simp
   apply simp
   apply (subst zero_le_divide_iff)
   apply auto
@@ -1226,21 +1223,9 @@ done
 
 lemma real_of_int_div3:
   "real (n::int) / real (x) - real (n div x) <= 1"
-  apply(case_tac "x = 0")
-  apply simp
   apply (simp add: algebra_simps)
   apply (subst real_of_int_div_aux)
-  apply assumption
-  apply simp
-  apply (subst divide_le_eq)
-  apply clarsimp
-  apply (rule conjI)
-  apply (rule impI)
-  apply (rule order_less_imp_le)
-  apply simp
-  apply (rule impI)
-  apply (rule order_less_imp_le)
-  apply simp
+  apply (auto simp add: divide_le_eq intro: order_less_imp_le)
 done
 
 lemma real_of_int_div4: "real (n div x) <= real (n::int) / real x" 
@@ -1337,10 +1322,9 @@ lemma nat_le_real_less: "((n::nat) <= m) = (real n < real m + 1)"
   apply (simp add: real_of_nat_Suc)
 done
 
-lemma real_of_nat_div_aux: "0 < d ==> (real (x::nat)) / (real d) = 
+lemma real_of_nat_div_aux: "(real (x::nat)) / (real d) = 
     real (x div d) + (real (x mod d)) / (real d)"
 proof -
-  assume d: "0 < d"
   have "x = (x div d) * d + x mod d"
     by auto
   then have "real x = real (x div d) * real d + real(x mod d)"
@@ -1348,24 +1332,18 @@ proof -
   then have "real x / real d = \<dots> / real d"
     by simp
   then show ?thesis
-    by (auto simp add: add_divide_distrib algebra_simps d)
+    by (auto simp add: add_divide_distrib algebra_simps)
 qed
 
-lemma real_of_nat_div: "0 < (d::nat) ==> d dvd n ==>
+lemma real_of_nat_div: "(d :: nat) dvd n ==>
     real(n div d) = real n / real d"
-  apply (frule real_of_nat_div_aux [of d n])
-  apply simp
-  apply (subst dvd_eq_mod_eq_0 [THEN sym])
-  apply assumption
-done
+  by (subst real_of_nat_div_aux)
+    (auto simp add: dvd_eq_mod_eq_0 [symmetric])
 
 lemma real_of_nat_div2:
   "0 <= real (n::nat) / real (x) - real (n div x)"
-apply(case_tac "x = 0")
- apply (simp)
 apply (simp add: algebra_simps)
 apply (subst real_of_nat_div_aux)
- apply simp
 apply simp
 apply (subst zero_le_divide_iff)
 apply simp
@@ -1377,7 +1355,6 @@ apply(case_tac "x = 0")
 apply (simp)
 apply (simp add: algebra_simps)
 apply (subst real_of_nat_div_aux)
- apply simp
 apply simp
 done
 
