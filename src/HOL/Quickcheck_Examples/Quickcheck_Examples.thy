@@ -245,6 +245,15 @@ quickcheck[random]
 quickcheck[exhaustive, expect = counterexample]
 oops
 
+subsection {* Random Testing beats Exhaustive Testing *}
+
+lemma mult_inj_if_coprime_nat:
+  "inj_on f A \<Longrightarrow> inj_on g B
+   \<Longrightarrow> inj_on (%(a,b). f a * g b::nat) (A \<times> B)"
+quickcheck[exhaustive]
+quickcheck[random]
+oops
+
 subsection {* Examples with quantifiers *}
 
 text {*
