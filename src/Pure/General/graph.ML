@@ -43,7 +43,6 @@ sig
   val is_maximal: 'a T -> key -> bool
   val new_node: key * 'a -> 'a T -> 'a T                              (*exception DUP*)
   val default_node: key * 'a -> 'a T -> 'a T
-  val del_nodes: key list -> 'a T -> 'a T                             (*exception UNDEF*)
   val del_node: key -> 'a T -> 'a T                                   (*exception UNDEF*)
   val is_edge: 'a T -> key * key -> bool
   val add_edge: key * key -> 'a T -> 'a T                             (*exception UNDEF*)
@@ -175,19 +174,13 @@ fun is_minimal G x = Keys.is_empty (imm_preds G x);
 fun is_maximal G x = Keys.is_empty (imm_succs G x);
 
 
-(* nodes *)
+(* node operations *)
 
 fun new_node (x, info) (Graph tab) =
   Graph (Table.update_new (x, (info, (Keys.empty, Keys.empty))) tab);
 
 fun default_node (x, info) (Graph tab) =
   Graph (Table.default (x, (info, (Keys.empty, Keys.empty))) tab);
-
-fun del_nodes xs (Graph tab) =
-  Graph (tab
-    |> fold Table.delete xs
-    |> Table.map (fn _ => fn (i, (preds, succs)) =>
-      (i, (fold Keys.remove xs preds, fold Keys.remove xs succs))));
 
 fun del_node x (G as Graph tab) =
   let
@@ -205,7 +198,7 @@ fun restrict pred G =
   fold_graph (fn (x, _) => not (pred x) ? del_node x) G G;
 
 
-(* edges *)
+(* edge operations *)
 
 fun is_edge G (x, y) = Keys.member (imm_succs G x) y handle UNDEF _ => false;
 
@@ -326,4 +319,5 @@ val fold = fold_graph;
 end;
 
 structure Graph = Graph(type key = string val ord = fast_string_ord);
+structure String_Graph = Graph(type key = string val ord = string_ord);
 structure Int_Graph = Graph(type key = int val ord = int_ord);

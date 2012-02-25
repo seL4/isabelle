@@ -20,11 +20,14 @@ object Graph
 
   def empty[Key, A](implicit ord: Ordering[Key]): Graph[Key, A] =
     new Graph[Key, A](SortedMap.empty(ord))
+
+  def string[A]: Graph[String, A] = empty(Ordering.String)
+  def int[A]: Graph[Int, A] = empty(Ordering.Int)
+  def long[A]: Graph[Long, A] = empty(Ordering.Long)
 }
 
 
 class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], SortedSet[Key]))])
-  extends Iterable[(Key, (A, (SortedSet[Key], SortedSet[Key])))]
 {
   type Keys = SortedSet[Key]
   type Entry = (A, (Keys, Keys))
@@ -32,17 +35,20 @@ class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], SortedSet[K
   def ordering: Ordering[Key] = rep.ordering
   def empty_keys: Keys = SortedSet.empty[Key](ordering)
 
-  override def iterator: Iterator[(Key, Entry)] = rep.iterator
+
+  /* graphs */
 
   def is_empty: Boolean = rep.isEmpty
 
-  def keys: List[Key] = rep.keySet.toList
+  def entries: Iterator[(Key, Entry)] = rep.iterator
+  def keys: Iterator[Key] = entries.map(_._1)
 
   def dest: List[(Key, List[Key])] =
-    (for ((x, (_, (_, succs))) <- iterator) yield (x, succs.toList)).toList
+    (for ((x, (_, (_, succs))) <- entries) yield (x, succs.toList)).toList
 
-
-  /* entries */
+  override def toString: String =
+    dest.map(p => p._1.toString + " -> " + p._2.map(_.toString).mkString("{", ", ", "}"))
+      .mkString("Graph(", ", ", ")")
 
   private def get_entry(x: Key): Entry =
     rep.get(x) match {
@@ -96,7 +102,7 @@ class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], SortedSet[K
   /*strongly connected components; see: David King and John Launchbury,
     "Structuring Depth First Search Algorithms in Haskell"*/
   def strong_conn: List[List[Key]] =
-    reachable(imm_preds, all_succs(keys))._1.filterNot(_.isEmpty).reverse
+    reachable(imm_preds, all_succs(keys.toList))._1.filterNot(_.isEmpty).reverse
 
 
   /* minimal and maximal elements */
@@ -113,7 +119,7 @@ class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], SortedSet[K
   def is_maximal(x: Key): Boolean = imm_succs(x).isEmpty
 
 
-  /* nodes */
+  /* node operations */
 
   def new_node(x: Key, info: A): Graph[Key, A] =
   {
@@ -143,10 +149,10 @@ class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], SortedSet[K
   }
 
   def restrict(pred: Key => Boolean): Graph[Key, A] =
-    (this /: iterator){ case (graph, (x, _)) => if (!pred(x)) graph.del_node(x) else graph }
+    (this /: entries){ case (graph, (x, _)) => if (!pred(x)) graph.del_node(x) else graph }
 
 
-  /* edges */
+  /* edge operations */
 
   def is_edge(x: Key, y: Key): Boolean =
     try { imm_succs(x)(y) }

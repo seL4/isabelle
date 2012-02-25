@@ -146,7 +146,7 @@ fun remove_thy name = NAMED_CRITICAL "Thy_Info" (fn () =>
       val succs = thy_graph Graph.all_succs [name];
       val _ = Output.urgent_message (loader_msg "removing" succs);
       val _ = List.app (perform Remove) succs;
-      val _ = change_thys (Graph.del_nodes succs);
+      val _ = change_thys (fold Graph.del_node succs);
     in () end);
 
 fun kill_thy name = NAMED_CRITICAL "Thy_Info" (fn () =>

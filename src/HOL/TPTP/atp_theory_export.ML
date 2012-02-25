@@ -143,8 +143,6 @@ fun is_problem_line_tautology ctxt format (Formula (ident, _, phi, _, _)) =
                  [(factsN, [Formula (ident, Conjecture, phi, NONE, [])])])
   | is_problem_line_tautology _ _ _ = false
 
-structure String_Graph = Graph(type key = string val ord = string_ord);
-
 fun order_facts ord = sort (ord o pairself ident_of_problem_line)
 fun order_problem_facts _ [] = []
   | order_problem_facts ord ((heading, lines) :: problem) =
