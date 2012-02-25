@@ -187,11 +187,11 @@ fun test_term_with_cardinality (name, (size_matters_for, compile)) ctxt catch_co
       let
         val _ =
           Quickcheck.verbose_message ctxt ("[Quickcheck-" ^ name ^ "] Test " ^
-            (if size = 0 then "" else "data size: " ^ string_of_int (size - 1) ^ " and ") ^
+            (if size = 0 then "" else "data size: " ^ string_of_int size ^ " and ") ^
             "cardinality: " ^ string_of_int card)          
         val (ts, timing) =
           cpu_time ("size " ^ string_of_int size ^ " and card " ^ string_of_int card)
-            (fn () => fst (test_fun genuine_only [card, size - 1]))
+            (fn () => fst (test_fun genuine_only [card, size + 1]))
         val _ = Quickcheck.add_timing timing current_result
       in
         Option.map (pair (card, size)) ts
