@@ -119,7 +119,7 @@ class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], SortedSet[K
   def is_maximal(x: Key): Boolean = imm_succs(x).isEmpty
 
 
-  /* nodes */
+  /* node operations */
 
   def new_node(x: Key, info: A): Graph[Key, A] =
   {
@@ -152,7 +152,7 @@ class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], SortedSet[K
     (this /: entries){ case (graph, (x, _)) => if (!pred(x)) graph.del_node(x) else graph }
 
 
-  /* edges */
+  /* edge operations */
 
   def is_edge(x: Key, y: Key): Boolean =
     try { imm_succs(x)(y) }

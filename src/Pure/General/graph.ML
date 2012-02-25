@@ -174,7 +174,7 @@ fun is_minimal G x = Keys.is_empty (imm_preds G x);
 fun is_maximal G x = Keys.is_empty (imm_succs G x);
 
 
-(* nodes *)
+(* node operations *)
 
 fun new_node (x, info) (Graph tab) =
   Graph (Table.update_new (x, (info, (Keys.empty, Keys.empty))) tab);
@@ -198,7 +198,7 @@ fun restrict pred G =
   fold_graph (fn (x, _) => not (pred x) ? del_node x) G G;
 
 
-(* edges *)
+(* edge operations *)
 
 fun is_edge G (x, y) = Keys.member (imm_succs G x) y handle UNDEF _ => false;
 
