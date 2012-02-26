@@ -23,7 +23,7 @@ object Thy_Header extends Parse.Parser
   val USES = "uses"
   val BEGIN = "begin"
 
-  val lexicon = Scan.Lexicon("%", "(", ")", ";", BEGIN, HEADER, IMPORTS, THEORY, USES)
+  private val lexicon = Scan.Lexicon("%", "(", ")", ";", BEGIN, HEADER, IMPORTS, THEORY, USES)
 
 
   /* theory file name */
@@ -38,7 +38,6 @@ object Thy_Header extends Parse.Parser
     s match { case Thy_Name(name) => Some(name) case _ => None }
 
   def thy_path(path: Path): Path = path.ext("thy")
-  def thy_path(name: String): Path = Path.basic(name).ext("thy")
 
 
   /* header */
@@ -105,8 +104,8 @@ object Thy_Header extends Parse.Parser
   {
     val header = read(source)
     val name1 = header.name
-    if (name != name1) error("Bad file name " + thy_path(name) + " for theory " + quote(name1))
-    Path.explode(name)
+    val path = Path.explode(name)
+    if (name != name1) error("Bad file name " + thy_path(path) + " for theory " + quote(name1))
     header
   }
 }
