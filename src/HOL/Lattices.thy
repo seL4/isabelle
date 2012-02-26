@@ -649,14 +649,14 @@ begin
 definition
   "f \<sqinter> g = (\<lambda>x. f x \<sqinter> g x)"
 
-lemma inf_apply:
+lemma inf_apply (* CANDIDATE [simp, code] *):
   "(f \<sqinter> g) x = f x \<sqinter> g x"
   by (simp add: inf_fun_def)
 
 definition
   "f \<squnion> g = (\<lambda>x. f x \<squnion> g x)"
 
-lemma sup_apply:
+lemma sup_apply (* CANDIDATE [simp, code] *):
   "(f \<squnion> g) x = f x \<squnion> g x"
   by (simp add: sup_fun_def)
 
@@ -676,7 +676,7 @@ begin
 definition
   fun_Compl_def: "- A = (\<lambda>x. - A x)"
 
-lemma uminus_apply:
+lemma uminus_apply (* CANDIDATE [simp, code] *):
   "(- A) x = - (A x)"
   by (simp add: fun_Compl_def)
 
@@ -690,7 +690,7 @@ begin
 definition
   fun_diff_def: "A - B = (\<lambda>x. A x - B x)"
 
-lemma minus_apply:
+lemma minus_apply (* CANDIDATE [simp, code] *):
   "(A - B) x = A x - B x"
   by (simp add: fun_diff_def)
 

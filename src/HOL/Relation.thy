@@ -25,7 +25,9 @@ syntax (xsymbols)
 
 subsection {* Classical rules for reasoning on predicates *}
 
+(* CANDIDATE declare predicate1I [Pure.intro!, intro!] *)
 declare predicate1D [Pure.dest?, dest?]
+(* CANDIDATE declare predicate1D [Pure.dest, dest] *)
 declare predicate2I [Pure.intro!, intro!]
 declare predicate2D [Pure.dest, dest]
 declare bot1E [elim!]
@@ -70,11 +72,17 @@ lemma pred_subset_eq [pred_set_conv]: "((\<lambda>x. x \<in> R) \<le> (\<lambda>
 lemma pred_subset_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) \<le> (\<lambda>x y. (x, y) \<in> S)) \<longleftrightarrow> (R \<subseteq> S)"
   by (simp add: subset_iff le_fun_def)
 
-lemma bot_empty_eq: "\<bottom> = (\<lambda>x. x \<in> {})"
+lemma bot_empty_eq (* CANDIDATE [pred_set_conv] *): "\<bottom> = (\<lambda>x. x \<in> {})"
   by (auto simp add: fun_eq_iff)
 
-lemma bot_empty_eq2: "\<bottom> = (\<lambda>x y. (x, y) \<in> {})"
+lemma bot_empty_eq2 (* CANDIDATE [pred_set_conv] *): "\<bottom> = (\<lambda>x y. (x, y) \<in> {})"
   by (auto simp add: fun_eq_iff)
+
+(* CANDIDATE lemma top_empty_eq [pred_set_conv]: "\<top> = (\<lambda>x. x \<in> UNIV)"
+  by (auto simp add: fun_eq_iff) *)
+
+(* CANDIDATE lemma top_empty_eq2 [pred_set_conv]: "\<top> = (\<lambda>x y. (x, y) \<in> UNIV)"
+  by (auto simp add: fun_eq_iff) *)
 
 lemma inf_Int_eq [pred_set_conv]: "(\<lambda>x. x \<in> R) \<sqinter> (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<inter> S)"
   by (simp add: inf_fun_def)
@@ -88,10 +96,10 @@ lemma sup_Un_eq [pred_set_conv]: "(\<lambda>x. x \<in> R) \<squnion> (\<lambda>x
 lemma sup_Un_eq2 [pred_set_conv]: "(\<lambda>x y. (x, y) \<in> R) \<squnion> (\<lambda>x y. (x, y) \<in> S) = (\<lambda>x y. (x, y) \<in> R \<union> S)"
   by (simp add: sup_fun_def)
 
-lemma INF_INT_eq: "(\<Sqinter>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Inter>i. r i))"
+lemma INF_INT_eq (* CANDIDATE [pred_set_conv] *): "(\<Sqinter>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Inter>i. r i))"
   by (simp add: INF_apply fun_eq_iff)
 
-lemma INF_INT_eq2: "(\<Sqinter>i. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Inter>i. r i))"
+lemma INF_INT_eq2 (* CANDIDATE [pred_set_conv] *): "(\<Sqinter>i. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Inter>i. r i))"
   by (simp add: INF_apply fun_eq_iff)
 
 lemma SUP_UN_eq [pred_set_conv]: "(\<Squnion>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Union>i. r i))"
@@ -946,3 +954,4 @@ no_syntax (xsymbols)
   "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Squnion>_\<in>_./ _)" [0, 0, 10] 10)
 
 end
+
