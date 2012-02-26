@@ -4,7 +4,9 @@
 
 header {* CTL formulae *}
 
-theory CTL imports Main begin
+theory CTL
+imports Main
+begin
 
 text {*
   We formalize basic concepts of Computational Tree Logic (CTL)
@@ -127,19 +129,19 @@ lemma AG_gfp: "\<AG> p = gfp (\<lambda>s. p \<inter> \<AX> s)" by (simp add: lfp
 
 lemma EF_fp: "\<EF> p = p \<union> \<EX> \<EF> p"
 proof -
-  have "mono (\<lambda>s. p \<union> \<EX> s)" by rule (auto simp add: EX_def)
+  have "mono (\<lambda>s. p \<union> \<EX> s)" by rule auto
   then show ?thesis by (simp only: EF_def) (rule lfp_unfold)
 qed
 
 lemma AF_fp: "\<AF> p = p \<union> \<AX> \<AF> p"
 proof -
-  have "mono (\<lambda>s. p \<union> \<AX> s)" by rule (auto simp add: AX_def EX_def)
+  have "mono (\<lambda>s. p \<union> \<AX> s)" by rule auto
   then show ?thesis by (simp only: AF_lfp) (rule lfp_unfold)
 qed
 
 lemma EG_fp: "\<EG> p = p \<inter> \<EX> \<EG> p"
 proof -
-  have "mono (\<lambda>s. p \<inter> \<EX> s)" by rule (auto simp add: EX_def)
+  have "mono (\<lambda>s. p \<inter> \<EX> s)" by rule auto
   then show ?thesis by (simp only: EG_def) (rule gfp_unfold)
 qed
 
@@ -152,7 +154,7 @@ text {*
 
 lemma AG_fp: "\<AG> p = p \<inter> \<AX> \<AG> p"
 proof -
-  have "mono (\<lambda>s. p \<inter> \<AX> s)" by rule (auto simp add: AX_def EX_def)
+  have "mono (\<lambda>s. p \<inter> \<AX> s)" by rule auto
   then show ?thesis by (simp only: AG_gfp) (rule gfp_unfold)
 qed
 
