@@ -191,10 +191,13 @@ object Document
 
   object Change
   {
-    val init: Change = Change()
+    val init: Change = new Change()
+
+    def make(previous: Future[Version], edits: List[Edit_Text], version: Future[Version]): Change =
+      new Change(Some(previous), edits, version)
   }
 
-  sealed case class Change(
+  class Change private(
     val previous: Option[Future[Version]] = Some(Future.value(Version.init)),
     val edits: List[Edit_Text] = Nil,
     val version: Future[Version] = Future.value(Version.init))
@@ -203,7 +206,7 @@ object Document
       (previous match { case None => true case Some(future) => future.is_finished }) &&
       version.is_finished
 
-    def truncate: Change = copy(previous = None, edits = Nil)
+    def truncate: Change = new Change(None, Nil, version)
   }
 
 
@@ -391,7 +394,7 @@ object Document
         edits: List[Edit_Text],
         version: Future[Version]): (Change, State) =
     {
-      val change = Change(Some(previous), edits, version)
+      val change = Change.make(previous, edits, version)
       (change, copy(history = history + change))
     }
 
