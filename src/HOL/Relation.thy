@@ -512,8 +512,7 @@ lemma conversep_iff [iff]: "r^--1 a b = r b a"
 
 lemma conversep_converse_eq [pred_set_conv]:
   "(\<lambda>x y. (x, y) \<in> r)^--1 = (\<lambda>x y. (x, y) \<in> r^-1)"
-  apply (auto simp add: fun_eq_iff)
-  oops
+  by (auto simp add: fun_eq_iff)
 
 lemma conversep_conversep [simp]: "(r^--1)^--1 = r"
   by (iprover intro: order_antisym conversepI dest: conversepD)
