@@ -279,16 +279,16 @@ object Document
 
     object Assignment
     {
-      val init: Assignment = Assignment()
+      val init: Assignment = new Assignment()
     }
 
-    case class Assignment(
+    class Assignment private(
       val command_execs: Map[Command_ID, Exec_ID] = Map.empty,
       val last_execs: Map[String, Option[Command_ID]] = Map.empty,
       val is_finished: Boolean = false)
     {
       def check_finished: Assignment = { require(is_finished); this }
-      def unfinished: Assignment = copy(is_finished = false)
+      def unfinished: Assignment = new Assignment(command_execs, last_execs, false)
 
       def assign(add_command_execs: List[(Command_ID, Option[Exec_ID])],
         add_last_execs: List[(String, Option[Command_ID])]): Assignment =
@@ -299,7 +299,7 @@ object Document
             case (res, (command_id, None)) => res - command_id
             case (res, (command_id, Some(exec_id))) => res + (command_id -> exec_id)
           }
-        Assignment(command_execs1, last_execs ++ add_last_execs, true)
+        new Assignment(command_execs1, last_execs ++ add_last_execs, true)
       }
     }
 
