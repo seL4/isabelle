@@ -82,8 +82,7 @@ object Document
         case exn => exn
       }
 
-    val empty: Node =
-      Node(Exn.Exn(ERROR("Bad theory header")), Command.Perspective.empty, Map(), Linear_Set())
+    val empty: Node = Node()
 
     def command_starts(commands: Iterator[Command], offset: Text.Offset = 0)
       : Iterator[(Command, Text.Offset)] =
@@ -100,10 +99,10 @@ object Document
   private val block_size = 1024
 
   sealed case class Node(
-    val header: Node_Header,
-    val perspective: Command.Perspective,
-    val blobs: Map[String, Blob],
-    val commands: Linear_Set[Command])
+    val header: Node_Header = Exn.Exn(ERROR("Bad theory header")),
+    val perspective: Command.Perspective = Command.Perspective.empty,
+    val blobs: Map[String, Blob] = Map.empty,
+    val commands: Linear_Set[Command] = Linear_Set.empty)
   {
     def clear: Node = Node.empty.copy(header = header)
 
@@ -154,10 +153,7 @@ object Document
       }
 
     def command_start(cmd: Command): Option[Text.Offset] =
-      command_starts.find(_._1 == cmd).map(_._2)
-
-    def command_starts: Iterator[(Command, Text.Offset)] =
-      Node.command_starts(commands.iterator)
+      Node.command_starts(commands.iterator).find(_._1 == cmd).map(_._2)
   }
 
 
@@ -166,13 +162,16 @@ object Document
 
   /* particular document versions */
 
+  type Nodes = Map[Node.Name, Node]
+
   object Version
   {
-    val init: Version = Version(no_id, Map().withDefaultValue(Node.empty))
+    val init: Version = Version()
   }
 
-  type Nodes = Map[Node.Name, Node]
-  sealed case class Version(val id: Version_ID, val nodes: Nodes)
+  sealed case class Version(
+    val id: Version_ID = no_id,
+    val nodes: Nodes = Map.empty.withDefaultValue(Node.empty))
   {
     def topological_order: List[Node.Name] =
     {
@@ -192,13 +191,13 @@ object Document
 
   object Change
   {
-    val init: Change = Change(Some(Future.value(Version.init)), Nil, Future.value(Version.init))
+    val init: Change = Change()
   }
 
   sealed case class Change(
-    val previous: Option[Future[Version]],
-    val edits: List[Edit_Text],
-    val version: Future[Version])
+    val previous: Option[Future[Version]] = Some(Future.value(Version.init)),
+    val edits: List[Edit_Text] = Nil,
+    val version: Future[Version] = Future.value(Version.init))
   {
     def is_finished: Boolean =
       (previous match { case None => true case Some(future) => future.is_finished }) &&
@@ -212,11 +211,11 @@ object Document
 
   object History
   {
-    val init: History = History(List(Change.init))
+    val init: History = History()
   }
 
   // FIXME pruning, purging of state
-  sealed case class History(val undo_list: List[Change])
+  sealed case class History(val undo_list: List[Change] = List(Change.init))
   {
     require(!undo_list.isEmpty)
 
@@ -259,13 +258,13 @@ object Document
 
     object Assignment
     {
-      val init: Assignment = Assignment(Map.empty, Map.empty, false)
+      val init: Assignment = Assignment()
     }
 
     case class Assignment(
-      val command_execs: Map[Command_ID, Exec_ID],
-      val last_execs: Map[String, Option[Command_ID]],
-      val is_finished: Boolean)
+      val command_execs: Map[Command_ID, Exec_ID] = Map.empty,
+      val last_execs: Map[String, Option[Command_ID]] = Map.empty,
+      val is_finished: Boolean = false)
     {
       def check_finished: Assignment = { require(is_finished); this }
       def unfinished: Assignment = copy(is_finished = false)
@@ -285,10 +284,10 @@ object Document
   }
 
   sealed case class State(
-    val versions: Map[Version_ID, Version] = Map(),
-    val commands: Map[Command_ID, Command.State] = Map(),  // static markup from define_command
-    val execs: Map[Exec_ID, Command.State] = Map(),  // dynamic markup from execution
-    val assignments: Map[Version_ID, State.Assignment] = Map(),
+    val versions: Map[Version_ID, Version] = Map.empty,
+    val commands: Map[Command_ID, Command.State] = Map.empty,  // static markup from define_command
+    val execs: Map[Exec_ID, Command.State] = Map.empty,  // dynamic markup from execution
+    val assignments: Map[Version_ID, State.Assignment] = Map.empty,
     val history: History = History.init)
   {
     private def fail[A]: A = throw new State.Fail(this)
