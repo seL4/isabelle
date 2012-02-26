@@ -43,19 +43,20 @@ lemmas mult_left_idem = times.left_idem
 end
 
 
-subsection {* Concrete lattices *}
-
-notation
-  less_eq  (infix "\<sqsubseteq>" 50) and
-  less  (infix "\<sqsubset>" 50) and
-  bot ("\<bottom>") and
-  top ("\<top>")
+subsection {* Syntactic infimum and supremum operations *}
 
 class inf =
   fixes inf :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<sqinter>" 70)
 
 class sup = 
   fixes sup :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<squnion>" 65)
+
+
+subsection {* Concrete lattices *}
+
+notation
+  less_eq  (infix "\<sqsubseteq>" 50) and
+  less  (infix "\<sqsubset>" 50)
 
 class semilattice_inf =  order + inf +
   assumes inf_le1 [simp]: "x \<sqinter> y \<sqsubseteq> x"
@@ -759,12 +760,8 @@ lemma sup2CI: "(\<not> B x y \<Longrightarrow> A x y) \<Longrightarrow> (A \<squ
 
 
 no_notation
-  less_eq  (infix "\<sqsubseteq>" 50) and
-  less (infix "\<sqsubset>" 50) and
-  inf  (infixl "\<sqinter>" 70) and
-  sup  (infixl "\<squnion>" 65) and
-  top ("\<top>") and
-  bot ("\<bottom>")
+  less_eq (infix "\<sqsubseteq>" 50) and
+  less (infix "\<sqsubset>" 50)
 
 end
 

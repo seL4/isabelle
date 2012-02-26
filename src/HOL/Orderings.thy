@@ -1426,8 +1426,4 @@ lemmas linorder_antisym_conv1 = linorder_class.antisym_conv1
 lemmas linorder_antisym_conv2 = linorder_class.antisym_conv2
 lemmas linorder_antisym_conv3 = linorder_class.antisym_conv3
 
-no_notation
-  top ("\<top>") and
-  bot ("\<bottom>")
-
 end

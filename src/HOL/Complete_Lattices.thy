@@ -8,11 +8,7 @@ begin
 
 notation
   less_eq (infix "\<sqsubseteq>" 50) and
-  less (infix "\<sqsubset>" 50) and
-  inf (infixl "\<sqinter>" 70) and
-  sup (infixl "\<squnion>" 65) and
-  top ("\<top>") and
-  bot ("\<bottom>")
+  less (infix "\<sqsubset>" 50)
 
 
 subsection {* Syntactic infimum and supremum operations *}
@@ -22,6 +18,7 @@ class Inf =
 
 class Sup =
   fixes Sup :: "'a set \<Rightarrow> 'a" ("\<Squnion>_" [900] 900)
+
 
 subsection {* Abstract complete lattices *}
 
@@ -1214,14 +1211,8 @@ lemma INT_extend_simps:
 text {* Finally *}
 
 no_notation
-  less_eq  (infix "\<sqsubseteq>" 50) and
-  less (infix "\<sqsubset>" 50) and
-  bot ("\<bottom>") and
-  top ("\<top>") and
-  inf  (infixl "\<sqinter>" 70) and
-  sup  (infixl "\<squnion>" 65) and
-  Inf  ("\<Sqinter>_" [900] 900) and
-  Sup  ("\<Squnion>_" [900] 900)
+  less_eq (infix "\<sqsubseteq>" 50) and
+  less (infix "\<sqsubset>" 50)
 
 no_syntax (xsymbols)
   "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Sqinter>_./ _)" [0, 10] 10)
