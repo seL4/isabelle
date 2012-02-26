@@ -262,12 +262,12 @@ class Session(thy_load: Thy_Load = new Thy_Load)
       val text_edits: List[Document.Edit_Text] =
         List((name, Document.Node.Perspective(text_perspective)))
       val change =
-        global_state.change_yield(
-          _.continue_history(Future.value(previous), text_edits, Future.value(version)))
+        global_state >>>
+          (_.continue_history(Future.value(previous), text_edits, Future.value(version)))
 
       val assignment = global_state().the_assignment(previous).check_finished
-      global_state.change(_.define_version(version, assignment))
-      global_state.change_yield(_.assign(version.id, Document.no_assign))
+      global_state >> (_.define_version(version, assignment))
+      global_state >>> (_.assign(version.id))
 
       prover.get.update_perspective(previous.id, version.id, name, perspective)
     }
@@ -286,7 +286,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
 
       val text_edits = header_edit(name, header) :: edits.map(edit => (name, edit))
       val version = Future.promise[Document.Version]
-      val change = global_state.change_yield(_.continue_history(previous, text_edits, version))
+      val change = global_state >>> (_.continue_history(previous, text_edits, version))
 
       change_parser ! Text_Edits(syntax, name, previous, text_edits, version)
     }
@@ -298,7 +298,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
     def handle_assign(id: Document.Version_ID, assign: Document.Assign)
     //{{{
     {
-      val cmds = global_state.change_yield(_.assign(id, assign))
+      val cmds = global_state >>> (_.assign(id, assign))
       for (cmd <- cmds) delay_commands_changed.invoke(cmd)
     }
     //}}}
@@ -309,7 +309,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
     def handle_removed(removed: List[Document.Version_ID])
     //{{{
     {
-      global_state.change(_.removed_versions(removed))
+      global_state >> (_.removed_versions(removed))
     }
     //}}}
 
@@ -327,7 +327,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
       def id_command(command: Command)
       {
         if (!global_state().defined_command(command.id)) {
-          global_state.change(_.define_command(command))
+          global_state >> (_.define_command(command))
           prover.get.define_command(command)
         }
       }
@@ -337,7 +337,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
       }
 
       val assignment = global_state().the_assignment(previous).check_finished
-      global_state.change(_.define_version(version, assignment))
+      global_state >> (_.define_version(version, assignment))
       prover.get.update(previous.id, version.id, doc_edits)
     }
     //}}}
@@ -358,7 +358,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
 
         case Position.Id(state_id) if !result.is_raw =>
           try {
-            val st = global_state.change_yield(_.accumulate(state_id, result.message))
+            val st = global_state >>> (_.accumulate(state_id, result.message))
             delay_commands_changed.invoke(st.command)
           }
           catch {
@@ -374,7 +374,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
           }
           // FIXME separate timeout event/message!?
           if (prover.isDefined && System.currentTimeMillis() > prune_next) {
-            val old_versions = global_state.change_yield(_.prune_history(prune_size))
+            val old_versions = global_state >>> (_.prune_history(prune_size))
             if (!old_versions.isEmpty) prover.get.remove_versions(old_versions)
             prune_next = System.currentTimeMillis() + prune_delay.ms
           }
@@ -441,7 +441,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
 
         case Stop =>
           if (phase == Session.Ready) {
-            global_state.change(_ => Document.State.init)  // FIXME event bus!?
+            global_state >> (_ => Document.State.init)  // FIXME event bus!?
             phase = Session.Shutdown
             prover.get.terminate
             prover = None
