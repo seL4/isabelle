@@ -358,7 +358,7 @@ fun dfs_reachable eq_comp g u =
       let
    val _ = visited := u :: !visited
    val descendents =
-       List.foldr (fn ((v,l),ds) => if been_visited v then ds
+       List.foldr (fn ((v,_),ds) => if been_visited v then ds
             else v :: dfs_visit g v @ ds)
         [] (adjacent eq_comp g u)
    in  descendents end
@@ -510,7 +510,6 @@ fun findRtranclProof g tranclEdges subgoal =
           )
           else processTranclEdges es;
    in processTranclEdges tranclEdges end )
-| _ => raise Cannot
 
 
 fun solveTrancl (asms, concl) =
@@ -537,7 +536,7 @@ fun trancl_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
   val thy = Proof_Context.theory_of ctxt;
   val Hs = Logic.strip_assums_hyp A;
   val C = Logic.strip_assums_concl A;
-  val (rel, subgoals, prf) = mkconcl_trancl C;
+  val (rel, _, prf) = mkconcl_trancl C;
 
   val prems = flat (map_index (mkasm_trancl rel o swap) Hs);
   val prfs = solveTrancl (prems, C);
@@ -556,7 +555,7 @@ fun rtrancl_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
   val thy = Proof_Context.theory_of ctxt;
   val Hs = Logic.strip_assums_hyp A;
   val C = Logic.strip_assums_concl A;
-  val (rel, subgoals, prf) = mkconcl_rtrancl C;
+  val (rel, _, prf) = mkconcl_rtrancl C;
 
   val prems = flat (map_index (mkasm_rtrancl rel o swap) Hs);
   val prfs = solveRtrancl (prems, C);
