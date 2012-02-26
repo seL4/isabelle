@@ -307,7 +307,7 @@ object Document
       State().define_version(Version.init, Assignment.init).assign(Version.init.id)._2
   }
 
-  sealed case class State(
+  sealed case class State private(
     val versions: Map[Version_ID, Version] = Map.empty,
     val commands: Map[Command_ID, Command.State] = Map.empty,  // static markup from define_command
     val execs: Map[Exec_ID, Command.State] = Map.empty,  // dynamic markup from execution
