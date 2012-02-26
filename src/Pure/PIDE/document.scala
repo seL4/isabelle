@@ -178,10 +178,12 @@ object Document
 
   object Version
   {
-    val init: Version = Version()
+    val init: Version = new Version()
+
+    def make(nodes: Nodes): Version = new Version(new_id(), nodes)
   }
 
-  sealed case class Version(
+  class Version private(
     val id: Version_ID = no_id,
     val nodes: Nodes = Map.empty.withDefaultValue(Node.empty))
   {
@@ -336,7 +338,8 @@ object Document
         case None => None
         case Some(st) =>
           val command = st.command
-          version.nodes.get(command.node_name).map((_, command))
+          val node = version.nodes(command.node_name)
+          Some((node, command))
       }
 
     def the_version(id: Version_ID): Version = versions.getOrElse(id, fail)
