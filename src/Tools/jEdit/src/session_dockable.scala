@@ -116,6 +116,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
             (n, color) <- List(
               (st.unprocessed, Isabelle_Rendering.unprocessed1_color),
               (st.running, Isabelle_Rendering.running_color),
+              (st.warned, Isabelle_Rendering.warning_color),
               (st.failed, Isabelle_Rendering.error_color)) }
           {
             gfx.setColor(color)

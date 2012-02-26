@@ -80,9 +80,10 @@ object Protocol
 
   /* node status */
 
-  sealed case class Node_Status(unprocessed: Int, running: Int, finished: Int, failed: Int)
+  sealed case class Node_Status(
+    unprocessed: Int, running: Int, finished: Int, warned: Int, failed: Int)
   {
-    def total: Int = unprocessed + running + finished + failed
+    def total: Int = unprocessed + running + finished + warned + failed
   }
 
   def node_status(
@@ -91,16 +92,21 @@ object Protocol
     var unprocessed = 0
     var running = 0
     var finished = 0
+    var warned = 0
     var failed = 0
     node.commands.foreach(command =>
       {
-        val status = command_status(state.command_state(version, command).status)
+        val st = state.command_state(version, command)
+        val status = command_status(st.status)
         if (status.is_running) running += 1
-        else if (status.is_finished) finished += 1
+        else if (status.is_finished) {
+          if (st.results.exists(p => is_warning(p._2))) warned += 1
+          else finished += 1
+        }
         else if (status.is_failed) failed += 1
         else unprocessed += 1
       })
-    Node_Status(unprocessed, running, finished, failed)
+    Node_Status(unprocessed, running, finished, warned, failed)
   }
 
 
