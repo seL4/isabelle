@@ -8,21 +8,6 @@ theory Relation
 imports Datatype Finite_Set
 begin
 
-notation
-  bot ("\<bottom>") and
-  top ("\<top>") and
-  inf (infixl "\<sqinter>" 70) and
-  sup (infixl "\<squnion>" 65) and
-  Inf ("\<Sqinter>_" [900] 900) and
-  Sup ("\<Squnion>_" [900] 900)
-
-syntax (xsymbols)
-  "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Sqinter>_./ _)" [0, 10] 10)
-  "_INF"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sqinter>_\<in>_./ _)" [0, 0, 10] 10)
-  "_SUP1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Squnion>_./ _)" [0, 10] 10)
-  "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Squnion>_\<in>_./ _)" [0, 0, 10] 10)
-
-
 subsection {* Classical rules for reasoning on predicates *}
 
 (* CANDIDATE declare predicate1I [Pure.intro!, intro!] *)
@@ -113,43 +98,17 @@ subsection {* Relations as sets of pairs *}
 
 type_synonym 'a rel = "('a * 'a) set"
 
-definition
-  converse :: "('a * 'b) set => ('b * 'a) set"
-    ("(_^-1)" [1000] 999) where
-  "r^-1 = {(y, x). (x, y) : r}"
+lemma subrelI: -- {* Version of @{thm [source] subsetI} for binary relations *}
+  "(\<And>x y. (x, y) \<in> r \<Longrightarrow> (x, y) \<in> s) \<Longrightarrow> r \<subseteq> s"
+  by auto
 
-notation (xsymbols)
-  converse  ("(_\<inverse>)" [1000] 999)
+lemma lfp_induct2: -- {* Version of @{thm [source] lfp_induct} for binary relations *}
+  "(a, b) \<in> lfp f \<Longrightarrow> mono f \<Longrightarrow>
+    (\<And>a b. (a, b) \<in> f (lfp f \<inter> {(x, y). P x y}) \<Longrightarrow> P a b) \<Longrightarrow> P a b"
+  using lfp_induct_set [of "(a, b)" f "prod_case P"] by auto
 
-definition
-  rel_comp  :: "[('a * 'b) set, ('b * 'c) set] => ('a * 'c) set"
-    (infixr "O" 75) where
-  "r O s = {(x,z). EX y. (x, y) : r & (y, z) : s}"
 
-definition
-  Image :: "[('a * 'b) set, 'a set] => 'b set"
-    (infixl "``" 90) where
-  "r `` s = {y. EX x:s. (x,y):r}"
-
-definition
-  Id :: "('a * 'a) set" where -- {* the identity relation *}
-  "Id = {p. EX x. p = (x,x)}"
-
-definition
-  Id_on  :: "'a set => ('a * 'a) set" where -- {* diagonal: identity over a set *}
-  "Id_on A = (\<Union>x\<in>A. {(x,x)})"
-
-definition
-  Domain :: "('a * 'b) set => 'a set" where
-  "Domain r = {x. EX y. (x,y):r}"
-
-definition
-  Range  :: "('a * 'b) set => 'b set" where
-  "Range r = Domain(r^-1)"
-
-definition
-  Field :: "('a * 'a) set => 'a set" where
-  "Field r = Domain r \<union> Range r"
+subsubsection {* Reflexivity *}
 
 definition
   refl_on :: "['a set, ('a * 'a) set] => bool" where -- {* reflexivity over a set *}
@@ -159,21 +118,121 @@ abbreviation
   refl :: "('a * 'a) set => bool" where -- {* reflexivity over a type *}
   "refl \<equiv> refl_on UNIV"
 
-definition
-  sym :: "('a * 'a) set => bool" where -- {* symmetry predicate *}
-  "sym r \<longleftrightarrow> (ALL x y. (x,y): r --> (y,x): r)"
+lemma refl_onI: "r \<subseteq> A \<times> A ==> (!!x. x : A ==> (x, x) : r) ==> refl_on A r"
+by (unfold refl_on_def) (iprover intro!: ballI)
+
+lemma refl_onD: "refl_on A r ==> a : A ==> (a, a) : r"
+by (unfold refl_on_def) blast
+
+lemma refl_onD1: "refl_on A r ==> (x, y) : r ==> x : A"
+by (unfold refl_on_def) blast
+
+lemma refl_onD2: "refl_on A r ==> (x, y) : r ==> y : A"
+by (unfold refl_on_def) blast
+
+lemma refl_on_Int: "refl_on A r ==> refl_on B s ==> refl_on (A \<inter> B) (r \<inter> s)"
+by (unfold refl_on_def) blast
+
+lemma refl_on_Un: "refl_on A r ==> refl_on B s ==> refl_on (A \<union> B) (r \<union> s)"
+by (unfold refl_on_def) blast
+
+lemma refl_on_INTER:
+  "ALL x:S. refl_on (A x) (r x) ==> refl_on (INTER S A) (INTER S r)"
+by (unfold refl_on_def) fast
+
+lemma refl_on_UNION:
+  "ALL x:S. refl_on (A x) (r x) \<Longrightarrow> refl_on (UNION S A) (UNION S r)"
+by (unfold refl_on_def) blast
+
+lemma refl_on_empty[simp]: "refl_on {} {}"
+by(simp add:refl_on_def)
+
+lemma refl_on_def' [nitpick_unfold, code]:
+  "refl_on A r = ((\<forall>(x, y) \<in> r. x : A \<and> y : A) \<and> (\<forall>x \<in> A. (x, x) : r))"
+by (auto intro: refl_onI dest: refl_onD refl_onD1 refl_onD2)
+
+
+subsubsection {* Antisymmetry *}
 
 definition
   antisym :: "('a * 'a) set => bool" where -- {* antisymmetry predicate *}
   "antisym r \<longleftrightarrow> (ALL x y. (x,y):r --> (y,x):r --> x=y)"
 
+lemma antisymI:
+  "(!!x y. (x, y) : r ==> (y, x) : r ==> x=y) ==> antisym r"
+by (unfold antisym_def) iprover
+
+lemma antisymD: "antisym r ==> (a, b) : r ==> (b, a) : r ==> a = b"
+by (unfold antisym_def) iprover
+
+lemma antisym_subset: "r \<subseteq> s ==> antisym s ==> antisym r"
+by (unfold antisym_def) blast
+
+lemma antisym_empty [simp]: "antisym {}"
+by (unfold antisym_def) blast
+
+
+subsubsection {* Symmetry *}
+
+definition
+  sym :: "('a * 'a) set => bool" where -- {* symmetry predicate *}
+  "sym r \<longleftrightarrow> (ALL x y. (x,y): r --> (y,x): r)"
+
+lemma symI: "(!!a b. (a, b) : r ==> (b, a) : r) ==> sym r"
+by (unfold sym_def) iprover
+
+lemma symD: "sym r ==> (a, b) : r ==> (b, a) : r"
+by (unfold sym_def, blast)
+
+lemma sym_Int: "sym r ==> sym s ==> sym (r \<inter> s)"
+by (fast intro: symI dest: symD)
+
+lemma sym_Un: "sym r ==> sym s ==> sym (r \<union> s)"
+by (fast intro: symI dest: symD)
+
+lemma sym_INTER: "ALL x:S. sym (r x) ==> sym (INTER S r)"
+by (fast intro: symI dest: symD)
+
+lemma sym_UNION: "ALL x:S. sym (r x) ==> sym (UNION S r)"
+by (fast intro: symI dest: symD)
+
+
+subsubsection {* Transitivity *}
+
 definition
   trans :: "('a * 'a) set => bool" where -- {* transitivity predicate *}
   "trans r \<longleftrightarrow> (ALL x y z. (x,y):r --> (y,z):r --> (x,z):r)"
 
+lemma trans_join [code]:
+  "trans r \<longleftrightarrow> (\<forall>(x, y1) \<in> r. \<forall>(y2, z) \<in> r. y1 = y2 \<longrightarrow> (x, z) \<in> r)"
+  by (auto simp add: trans_def)
+
+lemma transI:
+  "(!!x y z. (x, y) : r ==> (y, z) : r ==> (x, z) : r) ==> trans r"
+by (unfold trans_def) iprover
+
+lemma transD: "trans r ==> (a, b) : r ==> (b, c) : r ==> (a, c) : r"
+by (unfold trans_def) iprover
+
+lemma trans_Int: "trans r ==> trans s ==> trans (r \<inter> s)"
+by (fast intro: transI elim: transD)
+
+lemma trans_INTER: "ALL x:S. trans (r x) ==> trans (INTER S r)"
+by (fast intro: transI elim: transD)
+
+
+subsubsection {* Irreflexivity *}
+
 definition
   irrefl :: "('a * 'a) set => bool" where
   "irrefl r \<longleftrightarrow> (\<forall>x. (x,x) \<notin> r)"
+
+lemma irrefl_distinct [code]:
+  "irrefl r \<longleftrightarrow> (\<forall>(x, y) \<in> r. x \<noteq> y)"
+  by (auto simp add: irrefl_def)
+
+
+subsubsection {* Totality *}
 
 definition
   total_on :: "'a set => ('a * 'a) set => bool" where
@@ -181,16 +240,34 @@ definition
 
 abbreviation "total \<equiv> total_on UNIV"
 
+lemma total_on_empty[simp]: "total_on {} r"
+by(simp add:total_on_def)
+
+
+subsubsection {* Single valued relations *}
+
 definition
   single_valued :: "('a * 'b) set => bool" where
   "single_valued r \<longleftrightarrow> (ALL x y. (x,y):r --> (ALL z. (x,z):r --> y=z))"
 
-definition
-  inv_image :: "('b * 'b) set => ('a => 'b) => ('a * 'a) set" where
-  "inv_image r f = {(x, y). (f x, f y) : r}"
+lemma single_valuedI:
+  "ALL x y. (x,y):r --> (ALL z. (x,z):r --> y=z) ==> single_valued r"
+by (unfold single_valued_def)
+
+lemma single_valuedD:
+  "single_valued r ==> (x, y) : r ==> (x, z) : r ==> y = z"
+by (simp add: single_valued_def)
+
+lemma single_valued_subset:
+  "r \<subseteq> s ==> single_valued s ==> single_valued r"
+by (unfold single_valued_def) blast
 
 
 subsubsection {* The identity relation *}
+
+definition
+  Id :: "('a * 'a) set" where -- {* the identity relation *}
+  "Id = {p. EX x. p = (x,x)}"
 
 lemma IdI [intro]: "(a, a) : Id"
 by (simp add: Id_def)
@@ -214,8 +291,24 @@ by (simp add: sym_def)
 lemma trans_Id: "trans Id"
 by (simp add: trans_def)
 
+lemma single_valued_Id [simp]: "single_valued Id"
+  by (unfold single_valued_def) blast
+
+lemma irrefl_diff_Id [simp]: "irrefl (r - Id)"
+  by (simp add:irrefl_def)
+
+lemma trans_diff_Id: "trans r \<Longrightarrow> antisym r \<Longrightarrow> trans (r - Id)"
+  unfolding antisym_def trans_def by blast
+
+lemma total_on_diff_Id [simp]: "total_on A (r - Id) = total_on A r"
+  by (simp add: total_on_def)
+
 
 subsubsection {* Diagonal: identity over a set *}
+
+definition
+  Id_on  :: "'a set => ('a * 'a) set" where -- {* diagonal: identity over a set *}
+  "Id_on A = (\<Union>x\<in>A. {(x,x)})"
 
 lemma Id_on_empty [simp]: "Id_on {} = {}"
 by (simp add: Id_on_def) 
@@ -241,8 +334,28 @@ by auto
 lemma Id_on_subset_Times: "Id_on A \<subseteq> A \<times> A"
 by blast
 
+lemma refl_on_Id_on: "refl_on A (Id_on A)"
+by (rule refl_onI [OF Id_on_subset_Times Id_onI])
+
+lemma antisym_Id_on [simp]: "antisym (Id_on A)"
+by (unfold antisym_def) blast
+
+lemma sym_Id_on [simp]: "sym (Id_on A)"
+by (rule symI) clarify
+
+lemma trans_Id_on [simp]: "trans (Id_on A)"
+by (fast intro: transI elim: transD)
+
+lemma single_valued_Id_on [simp]: "single_valued (Id_on A)"
+  by (unfold single_valued_def) blast
+
 
 subsubsection {* Composition of two relations *}
+
+definition
+  rel_comp  :: "[('a * 'b) set, ('b * 'c) set] => ('a * 'c) set"
+    (infixr "O" 75) where
+  "r O s = {(x,z). EX y. (x, y) : r & (y, z) : s}"
 
 lemma rel_compI [intro]:
   "(a, b) : r ==> (b, c) : s ==> (a, c) : r O s"
@@ -293,135 +406,20 @@ by auto
 lemma rel_comp_UNION_distrib2: "UNION I r O s = UNION I (%i. r i O s)"
 by auto
 
-
-subsubsection {* Reflexivity *}
-
-lemma refl_onI: "r \<subseteq> A \<times> A ==> (!!x. x : A ==> (x, x) : r) ==> refl_on A r"
-by (unfold refl_on_def) (iprover intro!: ballI)
-
-lemma refl_onD: "refl_on A r ==> a : A ==> (a, a) : r"
-by (unfold refl_on_def) blast
-
-lemma refl_onD1: "refl_on A r ==> (x, y) : r ==> x : A"
-by (unfold refl_on_def) blast
-
-lemma refl_onD2: "refl_on A r ==> (x, y) : r ==> y : A"
-by (unfold refl_on_def) blast
-
-lemma refl_on_Int: "refl_on A r ==> refl_on B s ==> refl_on (A \<inter> B) (r \<inter> s)"
-by (unfold refl_on_def) blast
-
-lemma refl_on_Un: "refl_on A r ==> refl_on B s ==> refl_on (A \<union> B) (r \<union> s)"
-by (unfold refl_on_def) blast
-
-lemma refl_on_INTER:
-  "ALL x:S. refl_on (A x) (r x) ==> refl_on (INTER S A) (INTER S r)"
-by (unfold refl_on_def) fast
-
-lemma refl_on_UNION:
-  "ALL x:S. refl_on (A x) (r x) \<Longrightarrow> refl_on (UNION S A) (UNION S r)"
-by (unfold refl_on_def) blast
-
-lemma refl_on_empty[simp]: "refl_on {} {}"
-by(simp add:refl_on_def)
-
-lemma refl_on_Id_on: "refl_on A (Id_on A)"
-by (rule refl_onI [OF Id_on_subset_Times Id_onI])
-
-lemma refl_on_def' [nitpick_unfold, code]:
-  "refl_on A r = ((\<forall>(x, y) \<in> r. x : A \<and> y : A) \<and> (\<forall>x \<in> A. (x, x) : r))"
-by (auto intro: refl_onI dest: refl_onD refl_onD1 refl_onD2)
-
-
-subsubsection {* Antisymmetry *}
-
-lemma antisymI:
-  "(!!x y. (x, y) : r ==> (y, x) : r ==> x=y) ==> antisym r"
-by (unfold antisym_def) iprover
-
-lemma antisymD: "antisym r ==> (a, b) : r ==> (b, a) : r ==> a = b"
-by (unfold antisym_def) iprover
-
-lemma antisym_subset: "r \<subseteq> s ==> antisym s ==> antisym r"
-by (unfold antisym_def) blast
-
-lemma antisym_empty [simp]: "antisym {}"
-by (unfold antisym_def) blast
-
-lemma antisym_Id_on [simp]: "antisym (Id_on A)"
-by (unfold antisym_def) blast
-
-
-subsubsection {* Symmetry *}
-
-lemma symI: "(!!a b. (a, b) : r ==> (b, a) : r) ==> sym r"
-by (unfold sym_def) iprover
-
-lemma symD: "sym r ==> (a, b) : r ==> (b, a) : r"
-by (unfold sym_def, blast)
-
-lemma sym_Int: "sym r ==> sym s ==> sym (r \<inter> s)"
-by (fast intro: symI dest: symD)
-
-lemma sym_Un: "sym r ==> sym s ==> sym (r \<union> s)"
-by (fast intro: symI dest: symD)
-
-lemma sym_INTER: "ALL x:S. sym (r x) ==> sym (INTER S r)"
-by (fast intro: symI dest: symD)
-
-lemma sym_UNION: "ALL x:S. sym (r x) ==> sym (UNION S r)"
-by (fast intro: symI dest: symD)
-
-lemma sym_Id_on [simp]: "sym (Id_on A)"
-by (rule symI) clarify
-
-
-subsubsection {* Transitivity *}
-
-lemma trans_join [code]:
-  "trans r \<longleftrightarrow> (\<forall>(x, y1) \<in> r. \<forall>(y2, z) \<in> r. y1 = y2 \<longrightarrow> (x, z) \<in> r)"
-  by (auto simp add: trans_def)
-
-lemma transI:
-  "(!!x y z. (x, y) : r ==> (y, z) : r ==> (x, z) : r) ==> trans r"
-by (unfold trans_def) iprover
-
-lemma transD: "trans r ==> (a, b) : r ==> (b, c) : r ==> (a, c) : r"
-by (unfold trans_def) iprover
-
-lemma trans_Int: "trans r ==> trans s ==> trans (r \<inter> s)"
-by (fast intro: transI elim: transD)
-
-lemma trans_INTER: "ALL x:S. trans (r x) ==> trans (INTER S r)"
-by (fast intro: transI elim: transD)
-
-lemma trans_Id_on [simp]: "trans (Id_on A)"
-by (fast intro: transI elim: transD)
-
-lemma trans_diff_Id: " trans r \<Longrightarrow> antisym r \<Longrightarrow> trans (r-Id)"
-unfolding antisym_def trans_def by blast
-
-
-subsubsection {* Irreflexivity *}
-
-lemma irrefl_distinct [code]:
-  "irrefl r \<longleftrightarrow> (\<forall>(x, y) \<in> r. x \<noteq> y)"
-  by (auto simp add: irrefl_def)
-
-lemma irrefl_diff_Id[simp]: "irrefl(r-Id)"
-by(simp add:irrefl_def)
-
-
-subsubsection {* Totality *}
-
-lemma total_on_empty[simp]: "total_on {} r"
-by(simp add:total_on_def)
-
-lemma total_on_diff_Id[simp]: "total_on A (r-Id) = total_on A r"
-by(simp add: total_on_def)
+lemma single_valued_rel_comp:
+  "single_valued r ==> single_valued s ==> single_valued (r O s)"
+by (unfold single_valued_def) blast
 
 
 subsubsection {* Converse *}
+
+definition
+  converse :: "('a * 'b) set => ('b * 'a) set"
+    ("(_^-1)" [1000] 999) where
+  "r^-1 = {(y, x). (x, y) : r}"
+
+notation (xsymbols)
+  converse  ("(_\<inverse>)" [1000] 999)
 
 lemma converse_iff [iff]: "((a,b): r^-1) = ((b,a) : r)"
 by (simp add: converse_def)
@@ -485,8 +483,33 @@ by (unfold sym_def) blast
 lemma total_on_converse[simp]: "total_on A (r^-1) = total_on A r"
 by (auto simp: total_on_def)
 
+lemma finite_converse [iff]: "finite (r^-1) = finite r"
+  apply (subgoal_tac "r^-1 = (%(x,y). (y,x))`r")
+   apply simp
+   apply (rule iffI)
+    apply (erule finite_imageD [unfolded inj_on_def])
+    apply (simp split add: split_split)
+   apply (erule finite_imageI)
+  apply (simp add: converse_def image_def, auto)
+  apply (rule bexI)
+   prefer 2 apply assumption
+  apply simp
+  done
 
-subsubsection {* Domain *}
+
+subsubsection {* Domain, range and field *}
+
+definition
+  Domain :: "('a * 'b) set => 'a set" where
+  "Domain r = {x. EX y. (x,y):r}"
+
+definition
+  Range  :: "('a * 'b) set => 'b set" where
+  "Range r = Domain(r^-1)"
+
+definition
+  Field :: "('a * 'a) set => 'a set" where
+  "Field r = Domain r \<union> Range r"
 
 declare Domain_def [no_atp]
 
@@ -546,8 +569,11 @@ by auto
 lemma Domain_dsum [simp]: "Domain (dsum r s) = usum (Domain r) (Domain s)"
 by auto
 
+lemma Domain_Collect_split [simp]: "Domain {(x, y). P x y} = {x. EX y. P x y}"
+by auto
 
-subsubsection {* Range *}
+lemma finite_Domain: "finite r ==> finite (Domain r)"
+  by (induct set: finite) (auto simp add: Domain_insert)
 
 lemma Range_iff: "(a : Range r) = (EX y. (y, a) : r)"
 by (simp add: Domain_def Range_def)
@@ -595,8 +621,11 @@ by blast
 lemma snd_eq_Range: "snd ` R = Range R"
   by force
 
+lemma Range_Collect_split [simp]: "Range {(x, y). P x y} = {y. EX x. P x y}"
+by auto
 
-subsubsection {* Field *}
+lemma finite_Range: "finite r ==> finite (Range r)"
+  by (induct set: finite) (auto simp add: Range_insert)
 
 lemma mono_Field: "r \<subseteq> s \<Longrightarrow> Field r \<subseteq> Field s"
 by(auto simp:Field_def Domain_def Range_def)
@@ -616,8 +645,19 @@ by(auto simp:Field_def)
 lemma Field_converse[simp]: "Field(r^-1) = Field r"
 by(auto simp:Field_def)
 
+lemma finite_Field: "finite r ==> finite (Field r)"
+  -- {* A finite relation has a finite field (@{text "= domain \<union> range"}. *}
+  apply (induct set: finite)
+   apply (auto simp add: Field_def Domain_insert Range_insert)
+  done
+
 
 subsubsection {* Image of a set under a relation *}
+
+definition
+  Image :: "[('a * 'b) set, 'a set] => 'b set"
+    (infixl "``" 90) where
+  "r `` s = {y. EX x:s. (x,y):r}"
 
 declare Image_def [no_atp]
 
@@ -690,45 +730,15 @@ done
 lemma Image_subset_eq: "(r``A \<subseteq> B) = (A \<subseteq> - ((r^-1) `` (-B)))"
 by blast
 
-
-subsubsection {* Single valued relations *}
-
-lemma single_valuedI:
-  "ALL x y. (x,y):r --> (ALL z. (x,z):r --> y=z) ==> single_valued r"
-by (unfold single_valued_def)
-
-lemma single_valuedD:
-  "single_valued r ==> (x, y) : r ==> (x, z) : r ==> y = z"
-by (simp add: single_valued_def)
-
-lemma single_valued_rel_comp:
-  "single_valued r ==> single_valued s ==> single_valued (r O s)"
-by (unfold single_valued_def) blast
-
-lemma single_valued_subset:
-  "r \<subseteq> s ==> single_valued s ==> single_valued r"
-by (unfold single_valued_def) blast
-
-lemma single_valued_Id [simp]: "single_valued Id"
-by (unfold single_valued_def) blast
-
-lemma single_valued_Id_on [simp]: "single_valued (Id_on A)"
-by (unfold single_valued_def) blast
-
-
-subsubsection {* Graphs given by @{text Collect} *}
-
-lemma Domain_Collect_split [simp]: "Domain{(x,y). P x y} = {x. EX y. P x y}"
-by auto
-
-lemma Range_Collect_split [simp]: "Range{(x,y). P x y} = {y. EX x. P x y}"
-by auto
-
-lemma Image_Collect_split [simp]: "{(x,y). P x y} `` A = {y. EX x:A. P x y}"
+lemma Image_Collect_split [simp]: "{(x, y). P x y} `` A = {y. EX x:A. P x y}"
 by auto
 
 
 subsubsection {* Inverse image *}
+
+definition
+  inv_image :: "('b * 'b) set => ('a => 'b) => ('a * 'a) set" where
+  "inv_image r f = {(x, y). (f x, f y) : r}"
 
 lemma sym_inv_image: "sym r ==> sym (inv_image r f)"
 by (unfold sym_def inv_image_def) blast
@@ -744,47 +754,6 @@ lemma in_inv_image[simp]: "((x,y) : inv_image r f) = ((f x, f y) : r)"
 
 lemma converse_inv_image[simp]: "(inv_image R f)^-1 = inv_image (R^-1) f"
 unfolding inv_image_def converse_def by auto
-
-
-subsubsection {* Finiteness *}
-
-lemma finite_converse [iff]: "finite (r^-1) = finite r"
-  apply (subgoal_tac "r^-1 = (%(x,y). (y,x))`r")
-   apply simp
-   apply (rule iffI)
-    apply (erule finite_imageD [unfolded inj_on_def])
-    apply (simp split add: split_split)
-   apply (erule finite_imageI)
-  apply (simp add: converse_def image_def, auto)
-  apply (rule bexI)
-   prefer 2 apply assumption
-  apply simp
-  done
-
-lemma finite_Domain: "finite r ==> finite (Domain r)"
-  by (induct set: finite) (auto simp add: Domain_insert)
-
-lemma finite_Range: "finite r ==> finite (Range r)"
-  by (induct set: finite) (auto simp add: Range_insert)
-
-lemma finite_Field: "finite r ==> finite (Field r)"
-  -- {* A finite relation has a finite field (@{text "= domain \<union> range"}. *}
-  apply (induct set: finite)
-   apply (auto simp add: Field_def Domain_insert Range_insert)
-  done
-
-
-subsubsection {* Miscellaneous *}
-
-text {* Version of @{thm[source] lfp_induct} for binary relations *}
-
-lemmas lfp_induct2 = 
-  lfp_induct_set [of "(a, b)", split_format (complete)]
-
-text {* Version of @{thm[source] subsetI} for binary relations *}
-
-lemma subrelI: "(\<And>x y. (x, y) \<in> r \<Longrightarrow> (x, y) \<in> s) \<Longrightarrow> r \<subseteq> s"
-by auto
 
 
 subsection {* Relations as binary predicates *}
