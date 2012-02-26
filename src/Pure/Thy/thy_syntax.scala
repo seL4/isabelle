@@ -135,7 +135,7 @@ object Thy_Syntax
     val perspective = command_perspective(node, text_perspective)
     val new_nodes =
       if (node.perspective same perspective) None
-      else Some(nodes + (name -> node.copy(perspective = perspective)))
+      else Some(nodes + (name -> node.update_perspective(perspective)))
     (perspective, new_nodes)
   }
 
@@ -252,7 +252,7 @@ object Thy_Syntax
             inserted_commands.map(cmd => (commands2.prev(cmd), Some(cmd)))
 
           doc_edits += (name -> Document.Node.Edits(cmd_edits))
-          nodes += (name -> node.copy(commands = commands2))
+          nodes += (name -> node.update_commands(commands2))
 
         case (name, Document.Node.Header(header)) =>
           val node = nodes(name)
@@ -263,7 +263,7 @@ object Thy_Syntax
             }
           if (update_header) {
             doc_edits += (name -> Document.Node.Header(header))
-            nodes += (name -> node.copy(header = header))
+            nodes += (name -> node.update_header(header))
           }
 
         case (name, Document.Node.Perspective(text_perspective)) =>

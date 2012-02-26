@@ -82,8 +82,6 @@ object Document
         case exn => exn
       }
 
-    val empty: Node = Node()
-
     def command_starts(commands: Iterator[Command], offset: Text.Offset = 0)
       : Iterator[(Command, Text.Offset)] =
     {
@@ -94,17 +92,31 @@ object Document
         (command, start)
       }
     }
+
+    private val block_size = 1024
+
+    val empty: Node = new Node()
   }
 
-  private val block_size = 1024
-
-  sealed case class Node(
+  class Node private(
     val header: Node_Header = Exn.Exn(ERROR("Bad theory header")),
     val perspective: Command.Perspective = Command.Perspective.empty,
     val blobs: Map[String, Blob] = Map.empty,
     val commands: Linear_Set[Command] = Linear_Set.empty)
   {
-    def clear: Node = Node.empty.copy(header = header)
+    def clear: Node = new Node(header = header)
+
+    def update_header(new_header: Node_Header): Node =
+      new Node(new_header, perspective, blobs, commands)
+
+    def update_perspective(new_perspective: Command.Perspective): Node =
+      new Node(header, new_perspective, blobs, commands)
+
+    def update_blobs(new_blobs: Map[String, Blob]): Node =
+      new Node(header, perspective, new_blobs, commands)
+
+    def update_commands(new_commands: Linear_Set[Command]): Node =
+      new Node(header, perspective, blobs, new_commands)
 
 
     /* commands */
@@ -118,7 +130,7 @@ object Document
         last_stop = start + command.length
         while (last_stop + 1 > next_block) {
           blocks += (command -> start)
-          next_block += block_size
+          next_block += Node.block_size
         }
       }
       (blocks.toArray, Text.Range(0, last_stop))
@@ -129,7 +141,7 @@ object Document
     def command_range(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] =
     {
       if (!commands.isEmpty && full_range.contains(i)) {
-        val (cmd0, start0) = full_index._1(i / block_size)
+        val (cmd0, start0) = full_index._1(i / Node.block_size)
         Node.command_starts(commands.iterator(cmd0), start0) dropWhile {
           case (cmd, start) => start + cmd.length <= i }
       }
