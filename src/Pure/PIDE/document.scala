@@ -214,16 +214,25 @@ object Document
 
   object History
   {
-    val init: History = History()
+    val init: History = new History()
   }
 
-  // FIXME pruning, purging of state
-  sealed case class History(val undo_list: List[Change] = List(Change.init))
+  class History private(
+    val undo_list: List[Change] = List(Change.init))  // non-empty list
   {
-    require(!undo_list.isEmpty)
-
     def tip: Change = undo_list.head
-    def +(change: Change): History = copy(undo_list = change :: undo_list)
+    def + (change: Change): History = new History(change :: undo_list)
+
+    def prune(check: Change => Boolean, retain: Int): Option[(List[Change], History)] =
+    {
+      val n = undo_list.iterator.zipWithIndex.find(p => check(p._1)).get._2 + 1
+      val (retained, dropped) = undo_list.splitAt(n max retain)
+
+      retained.splitAt(retained.length - 1) match {
+        case (prefix, List(last)) => Some(dropped, new History(prefix ::: List(last.truncate)))
+        case _ => None
+      }
+    }
   }
 
 
@@ -400,16 +409,12 @@ object Document
 
     def prune_history(retain: Int = 0): (List[Version], State) =
     {
-      val undo_list = history.undo_list
-      val n = undo_list.iterator.zipWithIndex.find(p => is_stable(p._1)).get._2 + 1
-      val (retained, dropped) = undo_list.splitAt(n max retain)
-
-      retained.splitAt(retained.length - 1) match {
-        case (prefix, List(last)) =>
+      history.prune(is_stable, retain) match {
+        case Some((dropped, history1)) =>
           val dropped_versions = dropped.map(change => change.version.get_finished)
-          val state1 = copy(history = History(prefix ::: List(last.truncate)))
+          val state1 = copy(history = history1)
           (dropped_versions, state1)
-        case _ => fail
+        case None => fail
       }
     }
 
