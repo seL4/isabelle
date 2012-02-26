@@ -273,14 +273,9 @@ object Document
    (List[(Document.Command_ID, Option[Document.Exec_ID])],  // exec state assignment
     List[(String, Option[Document.Command_ID])])  // last exec
 
-  val no_assign: Assign = (Nil, Nil)
-
   object State
   {
     class Fail(state: State) extends Exception
-
-    val init: State =
-      State().define_version(Version.init, Assignment.init).assign(Version.init.id, no_assign)._2
 
     object Assignment
     {
@@ -307,6 +302,9 @@ object Document
         Assignment(command_execs1, last_execs ++ add_last_execs, true)
       }
     }
+
+    val init: State =
+      State().define_version(Version.init, Assignment.init).assign(Version.init.id)._2
   }
 
   sealed case class State(
@@ -362,7 +360,7 @@ object Document
           }
       }
 
-    def assign(id: Version_ID, arg: Assign): (List[Command], State) =
+    def assign(id: Version_ID, arg: Assign = (Nil, Nil)): (List[Command], State) =
     {
       val version = the_version(id)
       val (command_execs, last_execs) = arg

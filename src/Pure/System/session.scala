@@ -267,7 +267,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
 
       val assignment = global_state().the_assignment(previous).check_finished
       global_state.change(_.define_version(version, assignment))
-      global_state.change_yield(_.assign(version.id, Document.no_assign))
+      global_state.change_yield(_.assign(version.id))
 
       prover.get.update_perspective(previous.id, version.id, name, perspective)
     }
