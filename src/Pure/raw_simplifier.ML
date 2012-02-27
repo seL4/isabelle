@@ -1309,9 +1309,7 @@ fun rewrite_goal_tac rews =
       (global_context (Thm.theory_of_thm st) ss) i st
   end;
 
-(*Prunes all redundant parameters from the proof state by rewriting.
-  DOES NOT rewrite main goal, where quantification over an unused bound
-    variable is sometimes done to avoid the need for cut_facts_tac.*)
+(*Prunes all redundant parameters from the proof state by rewriting.*)
 val prune_params_tac = rewrite_goals_tac [Drule.triv_forall_equality];
 
 
