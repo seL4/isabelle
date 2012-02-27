@@ -31,7 +31,7 @@ sig
   val flexflex_tac: tactic
   val distinct_subgoal_tac: int -> tactic
   val distinct_subgoals_tac: tactic
-  val metacut_tac: thm -> int -> tactic
+  val cut_tac: thm -> int -> tactic
   val cut_rules_tac: thm list -> int -> tactic
   val cut_facts_tac: thm list -> int -> tactic
   val filter_thms: (term * term -> bool) -> int * term * thm list -> thm list
@@ -181,11 +181,11 @@ fun distinct_subgoals_tac state =
 
 (*The conclusion of the rule gets assumed in subgoal i,
   while subgoal i+1,... are the premises of the rule.*)
-fun metacut_tac rule i = resolve_tac [cut_rl] i  THEN  biresolve_tac [(false, rule)] (i+1);
+fun cut_tac rule i = rtac cut_rl i THEN rtac rule (i + 1);
 
 (*"Cut" a list of rules into the goal.  Their premises will become new
   subgoals.*)
-fun cut_rules_tac ths i = EVERY (map (fn th => metacut_tac th i) ths);
+fun cut_rules_tac ths i = EVERY (map (fn th => cut_tac th i) ths);
 
 (*As above, but inserts only facts (unconditional theorems);
   generates no additional subgoals. *)
