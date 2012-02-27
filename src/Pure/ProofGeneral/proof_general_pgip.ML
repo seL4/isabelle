@@ -642,7 +642,7 @@ fun showid (Showid vs) =
         fun splitthy id =
             let val comps = Long_Name.explode id
             in case comps of
-                   (thy::(rest as _::_)) => (Thy_Info.get_theory thy, space_implode "." rest)
+                   (thy::(rest as _::_)) => (Thy_Info.get_theory thy, Long_Name.implode rest)
                  | [plainid] => (topthy(),plainid)
                  | _ => raise Toplevel.UNDEF (* assert false *)
             end

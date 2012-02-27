@@ -102,7 +102,7 @@ fun nat_subscript n =
 
 val unyxml = XML.content_of o YXML.parse_body
 
-val is_long_identifier = forall Lexicon.is_identifier o space_explode "."
+val is_long_identifier = forall Lexicon.is_identifier o Long_Name.explode
 fun maybe_quote y =
   let val s = unyxml y in
     y |> ((not (is_long_identifier (perhaps (try (unprefix "'")) s)) andalso

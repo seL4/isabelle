@@ -154,9 +154,9 @@ fun all_unconcealed_theorems_of thy =
   end
 
 fun is_forbidden_theorem name =
-  length (space_explode "." name) <> 2 orelse
-  String.isPrefix "type_definition" (List.last (space_explode "." name)) orelse
-  String.isPrefix "arity_" (List.last (space_explode "." name)) orelse
+  length (Long_Name.explode name) <> 2 orelse
+  String.isPrefix "type_definition" (List.last (Long_Name.explode name)) orelse
+  String.isPrefix "arity_" (List.last (Long_Name.explode name)) orelse
   String.isSuffix "_def" name orelse
   String.isSuffix "_raw" name
 

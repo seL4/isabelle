@@ -360,7 +360,7 @@ fun repair_variable_name f s =
    constant name. *)
 fun num_type_args thy s =
   if String.isPrefix skolem_const_prefix s then
-    s |> space_explode Long_Name.separator |> List.last |> Int.fromString |> the
+    s |> Long_Name.explode |> List.last |> Int.fromString |> the
   else if String.isPrefix lam_lifted_prefix s then
     if String.isPrefix lam_lifted_poly_prefix s then 2 else 0
   else

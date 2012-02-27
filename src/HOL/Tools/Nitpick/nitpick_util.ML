@@ -94,7 +94,7 @@ exception TOO_LARGE of string * string
 exception NOT_SUPPORTED of string
 exception SAME of unit
 
-val nitpick_prefix = "Nitpick."
+val nitpick_prefix = "Nitpick" ^ Long_Name.separator
 
 fun curry3 f = fn x => fn y => fn z => f (x, y, z)
 

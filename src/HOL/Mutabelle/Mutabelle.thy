@@ -1,3 +1,5 @@
+(* FIXME dead code!?!? *)
+
 theory Mutabelle
 imports Main
 uses "mutabelle.ML"
@@ -26,7 +28,7 @@ val forbidden_consts =
  [@{const_name nibble_pair_of_char}];
 
 fun is_forbidden s th =
- exists (fn s' => s' mem space_explode "." s) forbidden_thms orelse
+ exists (fn s' => s' mem Long_Name.explode s) forbidden_thms orelse
  exists (fn s' => s' mem (Term.add_const_names (prop_of th) [])) forbidden_consts;
 
 fun test j = List.app (fn i =>

@@ -493,7 +493,7 @@ val a_itself_atype = AType (itself_name, [tvar_a_atype])
 
 fun new_skolem_const_name s num_T_args =
   [new_skolem_const_prefix, s, string_of_int num_T_args]
-  |> space_implode Long_Name.separator
+  |> Long_Name.implode
 
 fun robust_const_type thy s =
   if s = app_op_name then
