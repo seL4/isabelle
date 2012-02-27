@@ -901,7 +901,7 @@ end;
 val setup =
   init_arith_data #>
   Simplifier.map_ss (fn ss => ss
-    addSolver (mk_solver "lin_arith" (add_arith_facts #> Fast_Arith.cut_lin_arith_tac)));
+    addSolver (mk_solver "lin_arith" (add_arith_facts #> Fast_Arith.prems_lin_arith_tac)));
 
 val global_setup =
   Attrib.setup @{binding arith_split} (Scan.succeed (Thm.declaration_attribute add_split))

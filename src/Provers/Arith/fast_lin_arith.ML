@@ -1,9 +1,7 @@
 (*  Title:      Provers/Arith/fast_lin_arith.ML
     Author:     Tobias Nipkow and Tjark Weber and Sascha Boehme
 
-A generic linear arithmetic package.  It provides two tactics
-(cut_lin_arith_tac, lin_arith_tac) and a simplification procedure
-(lin_arith_simproc).
+A generic linear arithmetic package.
 
 Only take premises and conclusions into account that are already
 (negated) (in)equations. lin_arith_simproc tries to prove or disprove
@@ -88,7 +86,7 @@ ss must reduce contradictory <= to False.
 
 signature FAST_LIN_ARITH =
 sig
-  val cut_lin_arith_tac: simpset -> int -> tactic
+  val prems_lin_arith_tac: simpset -> int -> tactic
   val lin_arith_tac: Proof.context -> bool -> int -> tactic
   val lin_arith_simproc: simpset -> term -> thm option
   val map_data:
@@ -846,8 +844,8 @@ fun simpset_lin_arith_tac ss show_ex = SUBGOAL (fn (A, i) =>
                                refute_tac ss (i, split_neq, js))
   end);
 
-fun cut_lin_arith_tac ss =
-  cut_facts_tac (Simplifier.prems_of ss) THEN'
+fun prems_lin_arith_tac ss =
+  Method.insert_tac (Simplifier.prems_of ss) THEN'
   simpset_lin_arith_tac ss false;
 
 fun lin_arith_tac ctxt =
