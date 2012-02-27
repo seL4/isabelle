@@ -61,7 +61,6 @@ test: \
   HOL-Nitpick_Examples \
   HOL-Number_Theory \
   HOL-Old_Number_Theory \
-  HOL-Quickcheck_Examples \
   HOL-Quotient_Examples \
   HOL-Predicate_Compile_Examples \
   HOL-Prolog \
@@ -96,7 +95,7 @@ test-no-smlnj: \
   HOL-Nominal-Examples
 
 all: test-no-smlnj test images-no-smlnj images
-full: all benchmark
+full: all benchmark HOL-Quickcheck_Examples
 smlnj: test images
 
 
