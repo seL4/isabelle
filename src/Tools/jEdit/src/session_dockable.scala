@@ -147,18 +147,20 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   {
     Swing_Thread.now {
       val snapshot = Isabelle.session.snapshot()
-      val names = restriction getOrElse snapshot.version.nodes.keySet
 
+      val iterator =
+        restriction match {
+          case Some(names) => names.iterator.map(name => (name, snapshot.version.nodes(name)))
+          case None => snapshot.version.nodes.entries
+        }
       val nodes_status1 =
-        (nodes_status /: names)((status, name) => {
-          val node = snapshot.version.nodes(name)
-          status + (name -> Protocol.node_status(snapshot.state, snapshot.version, node))
-        })
+        (nodes_status /: iterator)({ case (status, (name, node)) =>
+            status + (name -> Protocol.node_status(snapshot.state, snapshot.version, node)) })
 
       if (nodes_status != nodes_status1) {
         nodes_status = nodes_status1
         status.listData =
-          snapshot.version.topological_order.filter(
+          snapshot.version.nodes.topological_order.filter(
             (name: Document.Node.Name) => nodes_status.isDefinedAt(name))
       }
     }

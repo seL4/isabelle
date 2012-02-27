@@ -128,26 +128,6 @@ object Library
   }
 
 
-  /* graph traversal */
-
-  def topological_order[A](next: A => Iterable[A], starts: Iterable[A]): List[A] =
-  {
-    type Reached = (List[A], Set[A])
-    def reach(reached: Reached, x: A): Reached =
-    {
-      val (rs, r_set) = reached
-      if (r_set(x)) reached
-      else {
-        val (rs1, r_set1) = reachs((rs, r_set + x), next(x))
-        (x :: rs1, r_set1)
-      }
-    }
-    def reachs(reached: Reached, xs: Iterable[A]): Reached = (reached /: xs)(reach)
-
-    reachs((Nil, Set.empty), starts)._1.reverse
-  }
-
-
   /* simple dialogs */
 
   private def simple_dialog(kind: Int, default_title: String)
