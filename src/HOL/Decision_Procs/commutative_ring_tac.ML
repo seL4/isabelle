@@ -93,7 +93,7 @@ fun tac ctxt = SUBGOAL (fn (g, i) =>
     val norm_eq_th =
       simplify cring_ss (instantiate' [SOME ca] [SOME clhs, SOME crhs, SOME cvs] @{thm norm_eq})
   in
-    cut_rules_tac [norm_eq_th] i
+    cut_tac norm_eq_th i
     THEN (simp_tac cring_ss i)
     THEN (simp_tac cring_ss i)
   end);

@@ -732,7 +732,7 @@ fun gen_domain_isomorphism
         val tac =
             EVERY
             [rtac @{thm trans} 1, rtac map_ID_thm 2,
-             cut_facts_tac [lub_take_lemma] 1,
+             cut_tac lub_take_lemma 1,
              REPEAT (etac @{thm Pair_inject} 1), atac 1]
         val lub_take_thm = Goal.prove_global thy [] [] goal (K tac)
       in

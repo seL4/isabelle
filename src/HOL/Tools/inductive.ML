@@ -432,7 +432,7 @@ fun prove_elims quiet_mode cs params intr_ts intr_names unfold rec_preds_defs ct
       in
         (Skip_Proof.prove ctxt'' [] prems P
           (fn {prems, ...} => EVERY
-            [cut_facts_tac [hd prems] 1,
+            [cut_tac (hd prems) 1,
              rewrite_goals_tac rec_preds_defs,
              dtac (unfold RS iffD1) 1,
              REPEAT (FIRSTGOAL (eresolve_tac rules1)),

@@ -1623,7 +1623,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
       let val (assm, concl) = induct_prop in
         Skip_Proof.prove_global defs_thy [] [assm] concl
           (fn {prems, ...} =>
-            cut_rules_tac [split_meta RS Drule.equal_elim_rule2] 1 THEN
+            cut_tac (split_meta RS Drule.equal_elim_rule2) 1 THEN
             resolve_tac prems 2 THEN
             asm_simp_tac HOL_ss 1)
       end);

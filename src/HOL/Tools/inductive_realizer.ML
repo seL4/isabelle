@@ -456,7 +456,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
         val rews = map mk_meta_eq case_thms;
         val thm = Goal.prove_global thy []
           (Logic.strip_imp_prems rlz') (Logic.strip_imp_concl rlz') (fn {prems, ...} => EVERY
-          [cut_facts_tac [hd prems] 1,
+          [cut_tac (hd prems) 1,
            etac elimR 1,
            ALLGOALS (asm_simp_tac HOL_basic_ss),
            rewrite_goals_tac rews,

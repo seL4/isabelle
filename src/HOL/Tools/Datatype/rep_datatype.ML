@@ -433,7 +433,7 @@ fun prove_case_congs new_type_names case_names descr nchotomys case_thms thy =
             let val simplify = asm_simp_tac (HOL_ss addsimps (prems @ case_rewrites)) in
               EVERY [
                 simp_tac (HOL_ss addsimps [hd prems]) 1,
-                cut_facts_tac [nchotomy''] 1,
+                cut_tac nchotomy'' 1,
                 REPEAT (etac disjE 1 THEN REPEAT (etac exE 1) THEN simplify 1),
                 REPEAT (etac exE 1) THEN simplify 1 (* Get last disjunct *)]
             end)

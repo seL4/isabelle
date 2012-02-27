@@ -437,7 +437,7 @@ fun resynchronize ctxt fol_th th =
         val prems = prems0 |> map normalize_literal
                            |> distinct Term.aconv_untyped
         val goal = Logic.list_implies (prems, concl)
-        val tac = cut_rules_tac [th] 1
+        val tac = cut_tac th 1
                   THEN rewrite_goals_tac @{thms not_not [THEN eq_reflection]}
                   THEN ALLGOALS assume_tac
       in
@@ -730,7 +730,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
                        cat_lines (map string_for_subst_info substs))
 *)
       fun cut_and_ex_tac axiom =
-        cut_rules_tac [axiom] 1
+        cut_tac axiom 1
         THEN TRY (REPEAT_ALL_NEW (etac @{thm exE}) 1)
       fun rotation_for_subgoal i =
         find_index (fn (_, (subgoal_no, _)) => subgoal_no = i) substs
