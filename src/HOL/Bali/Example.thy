@@ -975,7 +975,6 @@ apply simp
 done
 
 declare mhead_resTy_simp [simp add]
-declare member_is_static_simp [simp add]
 
 lemma wf_BaseC: "wf_cdecl tprg (Base,BaseCl)"
 apply (unfold wf_cdecl_def BaseCl_def arr_viewed_from_def)

@@ -546,7 +546,7 @@ proof -
     then show ?thesis by blast
   next 
     case False then show ?thesis 
-      by (auto simp add: invmode_def split: split_if_asm)
+      by (auto simp add: invmode_def)
   qed
 qed
 

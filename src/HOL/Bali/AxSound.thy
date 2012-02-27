@@ -78,8 +78,7 @@ apply (fast intro: evaln_nonstrict_Suc)
 done
 
 lemma Methd_triple_valid2_0: "G\<Turnstile>0\<Colon>{Normal P} Methd C sig-\<succ> {Q}"
-apply (clarsimp elim!: evaln_elim_cases simp add: triple_valid2_def2)
-done
+by (auto elim!: evaln_elim_cases simp add: triple_valid2_def2)
 
 lemma Methd_triple_valid2_SucI: 
 "\<lbrakk>G\<Turnstile>n\<Colon>{Normal P} body G C sig-\<succ>{Q}\<rbrakk> 
@@ -992,7 +991,7 @@ next
       from da obtain V where 
         da_var: "\<lparr>prg=G,cls=accC,lcl=L\<rparr> \<turnstile> dom (locals (store s0)) \<guillemotright>\<langle>var\<rangle>\<^sub>v\<guillemotright> V"
         by (cases "\<exists> n. var=LVar n") (insert da.LVar,auto elim!: da_elim_cases)
-      from eval obtain w upd where
+      from eval obtain upd where
         eval_var: "G\<turnstile>s0 \<midarrow>var=\<succ>(v, upd)\<midarrow>n\<rightarrow> s1"
         using normal_s0 by (fastforce elim: evaln_elim_cases)
       from valid_var P valid_A conf_s0 eval_var wt_var da_var
@@ -1408,7 +1407,7 @@ next
           by (rule evaln_type_sound [elim_format]) (insert normal_s1,simp)
         with normal_s1 normal_s2 eval_args 
         have conf_a_s2: "G, store s2\<turnstile>a\<Colon>\<preceq>RefT statT"
-          by (auto dest: eval_gext intro: conf_gext)
+          by (auto dest: eval_gext)
         from evaln_args wt_args da_args' conf_s1 wf
         have conf_args: "list_all2 (conf G (store s2)) vs pTs"
           by (rule evaln_type_sound [elim_format]) (insert normal_s2,simp)
@@ -1491,7 +1490,7 @@ next
             apply (rule dynM')
             apply (force dest: ty_expr_is_type)
             apply (rule invC_widen)
-            apply (force intro: conf_gext dest: eval_gext)
+            apply (force dest: eval_gext)
             apply simp
             apply simp
             apply (simp add: invC)

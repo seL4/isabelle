@@ -233,7 +233,6 @@ inductive_cases evaln_elim_cases:
         "G\<turnstile>Norm s \<midarrow>In2  (e1.[e2])                 \<succ>\<midarrow>n\<rightarrow> (v, s')"
         "G\<turnstile>Norm s \<midarrow>In1l ({accC,statT,mode}e\<cdot>mn({pT}p)) \<succ>\<midarrow>n\<rightarrow> (v, s')"
         "G\<turnstile>Norm s \<midarrow>In1r (Init C)                  \<succ>\<midarrow>n\<rightarrow> (x, s')"
-        "G\<turnstile>Norm s \<midarrow>In1r (Init C)                  \<succ>\<midarrow>n\<rightarrow> (x, s')"
 
 declare split_if     [split] split_if_asm     [split] 
         option.split [split] option.split_asm [split]
@@ -575,7 +574,6 @@ next
     apply -
     apply (rule evaln.Loop)
     apply   (iprover intro: evaln_nonstrict intro: le_maxI1)
-
     apply   (auto intro: evaln_nonstrict intro: le_maxI2)
     done
   then show ?case ..

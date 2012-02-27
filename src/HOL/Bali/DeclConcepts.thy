@@ -2241,7 +2241,7 @@ lemma accfield_fields:
   \<Longrightarrow> table_of (fields G C) (fn, declclass f) = Some (fld f)"
 apply (simp only: accfield_def Let_def)
 apply (rule table_of_remap_SomeD)
-apply (auto dest: filter_tab_SomeD)
+apply auto
 done
 
 

@@ -28,7 +28,7 @@ proof -
   next
     case New
     then show ?case
-      by (auto split: split_if_asm)
+      by auto
   qed
   with eqs 
   show ?thesis
@@ -68,19 +68,18 @@ lemma error_free_check_method_access_eq:
  \<Longrightarrow> (check_method_access G accC statT mode sig a' s) = s"
 apply (cases s)
 apply (auto simp add: check_method_access_def Let_def error_free_def 
-                      abrupt_if_def 
-            split: split_if_asm)
+                      abrupt_if_def)
 done
 
 lemma error_free_FVar_lemma: 
      "error_free s 
        \<Longrightarrow> error_free (abupd (if stat then id else np a) s)"
-  by (case_tac s) (auto split: split_if) 
+  by (case_tac s) auto
 
 lemma error_free_init_lvars [simp,intro]:
 "error_free s \<Longrightarrow> 
   error_free (init_lvars G C sig mode a pvs s)"
-by (cases s) (auto simp add: init_lvars_def Let_def split: split_if)
+by (cases s) (auto simp add: init_lvars_def Let_def)
 
 lemma error_free_LVar_lemma:   
 "error_free s \<Longrightarrow> error_free (assign (\<lambda>v. supd lupd(vn\<mapsto>v)) w s)"
@@ -362,12 +361,12 @@ proof (unfold DynT_prop_def)
       case CInst
       with modeIntVir obj_props
       show ?thesis 
-        by (auto dest!: widen_Array2 split add: split_if)
+        by (auto dest!: widen_Array2)
     next
       case Arr
-      from Arr obtain T where "obj_ty obj = T.[]" by (blast dest: obj_ty_Arr1)
+      from Arr obtain T where "obj_ty obj = T.[]" by blast
       moreover from Arr have "obj_class obj = Object" 
-        by (blast dest: obj_class_Arr1)
+        by blast
       moreover note modeIntVir obj_props wf 
       ultimately show ?thesis by (auto dest!: widen_Array )
     qed
@@ -411,8 +410,7 @@ proof -
                            dynimethd_def dynmethd_C_C 
                     intro: dynmethd_declclass
                     dest!: wf_imethdsD
-                     dest: table_of_map_SomeI
-                    split: split_if_asm)
+                     dest: table_of_map_SomeI)
     next        
       case SuperM
       with not_SuperM show ?thesis ..
@@ -421,8 +419,7 @@ proof -
       with wf dynlookup IfaceT invC_prop show ?thesis 
         by (auto simp add: invocation_declclass_def dynlookup_def dynimethd_def
                            DynT_prop_def
-                    intro: methd_declclass dynmethd_declclass
-                    split: split_if_asm)
+                    intro: methd_declclass dynmethd_declclass)
     qed
   next
     case ClassT
@@ -1851,7 +1848,7 @@ proof -
       (*
                 wt_c1: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile>c1\<Colon>\<surd>" and
                 wt_c2: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile>c2\<Colon>\<surd>"*)
-      by (rule wt_elim_cases) (auto split add: split_if)
+      by (rule wt_elim_cases) auto
     from If.prems obtain E C where
       da_e: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> dom (locals (store ((Norm s0)::state))) 
                                        \<guillemotright>In1l e\<guillemotright> E" and
@@ -3978,7 +3975,7 @@ proof -
     obtain 
               wt_e: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile>e\<Colon>-PrimT Boolean" and
       wt_then_else: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile>(if the_Bool b then c1 else c2)\<Colon>\<surd>"
-      by (elim wt_elim_cases) (auto split add: split_if)
+      by (elim wt_elim_cases) auto
     from If.prems obtain E C where
       da_e: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> dom (locals (store ((Norm s0)::state))) 
                                        \<guillemotright>\<langle>e\<rangle>\<^sub>e\<guillemotright> E" and

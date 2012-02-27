@@ -1299,7 +1299,7 @@ proof (induct rule: full_nat_induct)
         apply -
         apply (rule MGFn_NormalI)
         apply (rule ax_derivs.Jmp [THEN conseq1])
-        apply (auto intro: eval.Jmp simp add: abupd_def2)
+        apply (auto intro: eval.Jmp)
         done
     next
       case (Throw e)
