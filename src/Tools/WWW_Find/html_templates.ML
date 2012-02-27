@@ -93,14 +93,14 @@ val find_theorems_table =
 
 fun show_criterion (b, c) =
   let
-    fun prfx s = let
+    fun prfx s =
+      let
         val (c, v) = if b then ("criterion", s) else ("ncriterion", "-" ^ s);
       in span (class c, v) end;
   in
     (case c of
       Find_Theorems.Name name => prfx ("name: " ^ quote name)
     | Find_Theorems.Intro => prfx "intro"
-    | Find_Theorems.IntroIff => prfx "introiff"
     | Find_Theorems.Elim => prfx "elim"
     | Find_Theorems.Dest => prfx "dest"
     | Find_Theorems.Solves => prfx "solves"
@@ -133,7 +133,7 @@ fun find_theorems_summary (othmslen, thmslen, args) =
       [ tr [ th' noid (found @ [text (displayed ^ ":")]) ] ]
   end
 
-(*FIXME!?!*)
+(* FIXME!?! *)
 fun is_sorry thm =
   Thm.proof_of thm
   |> Proofterm.approximate_proof_body
