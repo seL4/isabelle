@@ -329,11 +329,11 @@ text {*
   \cite{isabelle-implementation}).
 
   \item @{method cut_tac} inserts facts into the proof state as
-  assumption of a subgoal, see also @{ML Tactic.cut_facts_tac} in
-  \cite{isabelle-implementation}.  Note that the scope of schematic
-  variables is spread over the main goal statement.  Instantiations
-  may be given as well, see also ML tactic @{ML cut_inst_tac} in
-  \cite{isabelle-implementation}.
+  assumption of a subgoal; instantiations may be given as well.  Note
+  that the scope of schematic variables is spread over the main goal
+  statement and rule premises are turned into new subgoals.  This is
+  in contrast to the regular method @{method insert} which inserts
+  closed rule statements.
 
   \item @{method thin_tac}~@{text \<phi>} deletes the specified premise
   from a subgoal.  Note that @{text \<phi>} may contain schematic

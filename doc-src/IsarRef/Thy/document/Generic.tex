@@ -531,11 +531,11 @@ The following improper proof methods emulate traditional tactics.
   \cite{isabelle-implementation}).
 
   \item \hyperlink{method.cut-tac}{\mbox{\isa{cut{\isaliteral{5F}{\isacharunderscore}}tac}}} inserts facts into the proof state as
-  assumption of a subgoal, see also \verb|Tactic.cut_facts_tac| in
-  \cite{isabelle-implementation}.  Note that the scope of schematic
-  variables is spread over the main goal statement.  Instantiations
-  may be given as well, see also ML tactic \verb|cut_inst_tac| in
-  \cite{isabelle-implementation}.
+  assumption of a subgoal; instantiations may be given as well.  Note
+  that the scope of schematic variables is spread over the main goal
+  statement and rule premises are turned into new subgoals.  This is
+  in contrast to the regular method \hyperlink{method.insert}{\mbox{\isa{insert}}} which inserts
+  closed rule statements.
 
   \item \hyperlink{method.thin-tac}{\mbox{\isa{thin{\isaliteral{5F}{\isacharunderscore}}tac}}}~\isa{{\isaliteral{5C3C7068693E}{\isasymphi}}} deletes the specified premise
   from a subgoal.  Note that \isa{{\isaliteral{5C3C7068693E}{\isasymphi}}} may contain schematic
