@@ -1,5 +1,6 @@
 (*  Title:      Pure/Tools/find_theorems.ML
     Author:     Rafal Kolanski and Gerwin Klein, NICTA
+    Author:     Lars Noschinski and Alexander Krauss, TU Muenchen
 
 Retrieve theorems from proof context.
 *)
@@ -108,7 +109,7 @@ type 'term query = {
 };
 
 fun map_criteria f {goal, limit, rem_dups, criteria} =
-  {goal=goal, limit=limit, rem_dups=rem_dups, criteria=f criteria};
+  {goal = goal, limit = limit, rem_dups = rem_dups, criteria = f criteria};
 
 fun xml_of_criterion (Name name) = XML.Elem (("Name", [("val", name)]), [])
   | xml_of_criterion Intro = XML.Elem (("Intro", []) , [])
@@ -127,7 +128,7 @@ fun criterion_of_xml (XML.Elem (("Name", [("val", name)]), [])) = Name name
   | criterion_of_xml (XML.Elem (("Pattern", []) , [tree])) = Pattern (XML_Syntax.term_of_xml tree)
   | criterion_of_xml tree = raise XML_Syntax.XML ("criterion_of_xml: bad tree", tree);
 
-fun xml_of_query {goal=NONE, limit, rem_dups, criteria} =
+fun xml_of_query {goal = NONE, limit, rem_dups, criteria} =
       let
         val properties = []
           |> (if rem_dups then cons ("rem_dups", "") else I)
@@ -146,7 +147,7 @@ fun query_of_xml (XML.Elem (("Query", properties), body)) =
           XML.Decode.list (XML.Decode.pair XML.Decode.bool
             (criterion_of_xml o the_single)) body;
       in
-        {goal=NONE, limit=limit, rem_dups=rem_dups, criteria=criteria}
+        {goal = NONE, limit = limit, rem_dups = rem_dups, criteria = criteria}
       end
   | query_of_xml tree = raise XML_Syntax.XML ("query_of_xml: bad tree", tree);
 
@@ -172,8 +173,9 @@ fun theorem_of_xml (XML.Elem (("External", properties), [tree])) =
       let
         val name = the (Properties.get properties "name");
         val pos = Position.of_properties properties;
-        val intvs_opt = Option.map (single o Facts.Single o Markup.parse_int)
-          (Properties.get properties "index");
+        val intvs_opt =
+          Option.map (single o Facts.Single o Markup.parse_int)
+            (Properties.get properties "index");
       in
         External (Facts.Named ((name, pos), intvs_opt), XML_Syntax.term_of_xml tree)
       end
@@ -310,7 +312,7 @@ fun filter_elim ctxt goal theorem =
         andalso not (null successful)
       then SOME (nprems_of theorem - 1, foldl1 Int.min successful) else NONE
     end
-  else NONE
+  else NONE;
 
 val tac_limit = Unsynchronized.ref 5;
 
@@ -423,7 +425,6 @@ fun sorted_filter filters theorems =
 fun lazy_filter filters =
   let
     fun lazy_match thms = Seq.make (fn () => first_match thms)
-
     and first_match [] = NONE
       | first_match (thm :: thms) =
           (case app_filters thm (SOME (0, 0), NONE, filters) of
@@ -464,7 +465,7 @@ in
 
 fun nicer_shortest ctxt =
   let
-    (* FIXME global name space!? *)
+    (* FIXME Why global name space!?? *)
     val space = Facts.space_of (Global_Theory.facts_of (Proof_Context.theory_of ctxt));
 
     val shorten =
@@ -507,7 +508,7 @@ val limit = Unsynchronized.ref 40;
 
 fun filter_theorems ctxt theorems query =
   let
-    val {goal=opt_goal, limit=opt_limit, rem_dups, criteria} = query
+    val {goal = opt_goal, limit = opt_limit, rem_dups, criteria} = query;
     val filters = map (filter_criterion ctxt opt_goal) criteria;
 
     fun find_all theorems =
@@ -530,8 +531,8 @@ fun filter_theorems ctxt theorems query =
 
   in find theorems end;
 
-fun filter_theorems_cmd ctxt theorems raw_query = 
-  filter_theorems ctxt theorems (map_criteria 
+fun filter_theorems_cmd ctxt theorems raw_query =
+  filter_theorems ctxt theorems (map_criteria
     (map (apsnd (read_criterion ctxt))) raw_query);
 
 fun gen_find_theorems filter ctxt opt_goal opt_limit rem_dups raw_criteria =
@@ -542,8 +543,8 @@ fun gen_find_theorems filter ctxt opt_goal opt_limit rem_dups raw_criteria =
     val add_prems = Seq.hd o TRY (Method.insert_tac assms 1);
     val opt_goal' = Option.map add_prems opt_goal;
   in
-    filter ctxt (map Internal (all_facts_of ctxt)) 
-      {goal=opt_goal', limit=opt_limit, rem_dups=rem_dups, criteria=raw_criteria}
+    filter ctxt (map Internal (all_facts_of ctxt))
+      {goal = opt_goal', limit = opt_limit, rem_dups = rem_dups, criteria = raw_criteria}
     |> apsnd (map (fn Internal f => f))
   end;
 
@@ -563,7 +564,7 @@ fun gen_print_theorems find ctxt opt_goal opt_limit rem_dups raw_criteria =
   let
     val criteria = map (apsnd (read_criterion ctxt)) raw_criteria;
     val (foundo, theorems) = find
-      {goal=opt_goal, limit=opt_limit, rem_dups=rem_dups, criteria=criteria};
+      {goal = opt_goal, limit = opt_limit, rem_dups = rem_dups, criteria = criteria};
     val returned = length theorems;
 
     val tally_msg =
@@ -585,6 +586,7 @@ fun gen_print_theorems find ctxt opt_goal opt_limit rem_dups raw_criteria =
 
 fun print_theorems ctxt =
   gen_print_theorems (filter_theorems ctxt (map Internal (all_facts_of ctxt))) ctxt;
+
 
 
 (** command syntax **)
