@@ -84,7 +84,6 @@ fun pretty_thm (s, SOME set_of_indexes) =
 
 fun print_unused_assms ctxt opt_thy_name =
   let
-    val start = Timing.start ()
     val thy_name = the_default (Context.theory_name (Proof_Context.theory_of ctxt)) opt_thy_name
     val results = find_unused_assms ctxt thy_name
     val total = length results
@@ -97,7 +96,6 @@ fun print_unused_assms ctxt opt_thy_name =
     val end_msg = "Checked " ^ string_of_int with_assumptions ^ " theorem(s) with assumptions"
       ^ " in the theory " ^ quote thy_name
       ^ " with a total of " ^ string_of_int total ^ " theorem(s)"  
-      ^ " in " ^ Timing.message (Timing.result start);
   in
     ([Pretty.str (msg ^ ":"), Pretty.str ""] @
         map pretty_thm with_superfluous_assumptions

@@ -586,8 +586,6 @@ fun pretty_thm ctxt (thmref, thm) = pretty_theorem ctxt (Internal (thmref, thm))
 
 fun gen_print_theorems find ctxt opt_goal opt_limit rem_dups raw_criteria =
   let
-    val start = Timing.start ();
-
     val criteria = map (apsnd (read_criterion ctxt)) raw_criteria;
     val (foundo, theorems) = find
       {goal=opt_goal, limit=opt_limit, rem_dups=rem_dups, criteria=criteria};
@@ -601,14 +599,12 @@ fun gen_print_theorems find ctxt opt_goal opt_limit rem_dups raw_criteria =
             (if returned < found
              then " (" ^ string_of_int returned ^ " displayed)"
              else ""));
-
-    val end_msg = " in " ^ Timing.message (Timing.result start);
   in
     Pretty.big_list "searched for:" (map (pretty_criterion ctxt) criteria) ::
     Pretty.str "" ::
-    (if null theorems then [Pretty.str ("nothing found" ^ end_msg)]
+    (if null theorems then [Pretty.str "nothing found"]
      else
-      [Pretty.str (tally_msg ^ end_msg ^ ":"), Pretty.str ""] @
+      [Pretty.str (tally_msg ^ ":"), Pretty.str ""] @
         map (pretty_theorem ctxt) theorems)
   end |> Pretty.chunks |> Pretty.writeln;
 

@@ -69,8 +69,6 @@ fun pretty_const ctxt (nm, ty) =
 
 fun find_consts ctxt raw_criteria =
   let
-    val start = Timing.start ();
-
     val thy = Proof_Context.theory_of ctxt;
     val low_ranking = 10000;
 
@@ -113,15 +111,13 @@ fun find_consts ctxt raw_criteria =
       |> map_filter I
       |> sort (rev_order o int_ord o pairself snd)
       |> map (apsnd fst o fst);
-
-    val end_msg = " in " ^ Timing.message (Timing.result start);
   in
     Pretty.big_list "searched for:" (map pretty_criterion raw_criteria) ::
     Pretty.str "" ::
     Pretty.str
      (if null matches
-      then "nothing found" ^ end_msg
-      else "found " ^ string_of_int (length matches) ^ " constant(s)" ^ end_msg ^ ":") ::
+      then "nothing found"
+      else "found " ^ string_of_int (length matches) ^ " constant(s):") ::
     Pretty.str "" ::
     map (pretty_const ctxt) matches
   end |> Pretty.chunks |> Pretty.writeln;
