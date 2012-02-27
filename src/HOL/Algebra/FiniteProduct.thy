@@ -190,7 +190,7 @@ lemma (in LCD) foldD_insert:
 lemma (in LCD) foldD_closed [simp]:
   "[| finite A; e \<in> D; A \<subseteq> B |] ==> foldD D f e A \<in> D"
 proof (induct set: finite)
-  case empty then show ?case by (simp add: foldD_empty)
+  case empty then show ?case by simp
 next
   case insert then show ?case by (simp add: foldD_insert)
 qed
@@ -328,7 +328,7 @@ lemma finprod_insert [simp]:
            apply fast
           apply fast
          apply assumption
-        apply (fastforce intro: m_closed)
+        apply fastforce
        apply simp+
    apply fast
   apply (auto simp add: finprod_def)
@@ -372,14 +372,13 @@ lemma finprod_Un_Int:
      finprod G g A \<otimes> finprod G g B"
 -- {* The reversed orientation looks more natural, but LOOPS as a simprule! *}
 proof (induct set: finite)
-  case empty then show ?case by (simp add: finprod_closed)
+  case empty then show ?case by simp
 next
   case (insert a A)
   then have a: "g a \<in> carrier G" by fast
   from insert have A: "g \<in> A -> carrier G" by fast
   from insert A a show ?case
-    by (simp add: m_ac Int_insert_left insert_absorb finprod_closed
-          Int_mono2) 
+    by (simp add: m_ac Int_insert_left insert_absorb Int_mono2) 
 qed
 
 lemma finprod_Un_disjoint:
@@ -387,7 +386,7 @@ lemma finprod_Un_disjoint:
       g \<in> A -> carrier G; g \<in> B -> carrier G |]
    ==> finprod G g (A Un B) = finprod G g A \<otimes> finprod G g B"
   apply (subst finprod_Un_Int [symmetric])
-      apply (auto simp add: finprod_closed)
+      apply auto
   done
 
 lemma finprod_multf:
@@ -498,9 +497,8 @@ lemma finprod_reindex:
   assumes fin: "finite A"
     shows "f : (h ` A) \<rightarrow> carrier G \<Longrightarrow> 
         inj_on h A ==> finprod G f (h ` A) = finprod G (%x. f (h x)) A"
-  using fin apply induct
-  apply (auto simp add: finprod_insert Pi_def)
-done
+  using fin
+  by induct (auto simp add: Pi_def)
 
 lemma finprod_const:
   assumes fin [simp]: "finite A"
@@ -512,7 +510,7 @@ lemma finprod_const:
   apply auto
   apply (subst m_comm)
   apply auto
-done
+  done
 
 (* The following lemma was contributed by Jesus Aransay. *)
 

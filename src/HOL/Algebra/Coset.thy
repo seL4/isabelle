@@ -232,7 +232,7 @@ proof -
   also from carr
       have "\<dots> = x' \<otimes> ((inv x) \<otimes> x)" by (simp add: m_assoc)
   also from carr
-      have "\<dots> = x' \<otimes> \<one>" by (simp add: l_inv)
+      have "\<dots> = x' \<otimes> \<one>" by simp
   also from carr
       have "\<dots> = x'" by simp
   finally
@@ -520,8 +520,7 @@ lemma (in group) subgroup_mult_id: "subgroup H G \<Longrightarrow> H <#> H = H"
 apply (auto simp add: subgroup.m_closed set_mult_def Sigma_def image_def)
 apply (rule_tac x = x in bexI)
 apply (rule bexI [of _ "\<one>"])
-apply (auto simp add: subgroup.m_closed subgroup.one_closed
-                      r_one subgroup.subset [THEN subsetD])
+apply (auto simp add: subgroup.one_closed subgroup.subset [THEN subsetD])
 done
 
 
@@ -612,7 +611,7 @@ proof -
       fix x y
       assume [simp]: "x \<in> carrier G" "y \<in> carrier G" 
          and "inv x \<otimes> y \<in> H"
-      hence "inv (inv x \<otimes> y) \<in> H" by (simp add: m_inv_closed) 
+      hence "inv (inv x \<otimes> y) \<in> H" by simp
       thus "inv y \<otimes> x \<in> H" by (simp add: inv_mult_group)
     qed
   next
@@ -722,7 +721,7 @@ next
   assume abrcong: "(a, b) \<in> rcong H"
     and ccarr: "c \<in> carrier G"
 
-  from ccarr have "c \<in> Units G" by (simp add: Units_eq)
+  from ccarr have "c \<in> Units G" by simp
   hence cinvc_one: "inv c \<otimes> c = \<one>" by (rule Units_l_inv)
 
   from abrcong

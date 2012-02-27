@@ -259,16 +259,12 @@ lemma ringI:
 
 context ring begin
 
-lemma is_abelian_group:
-  "abelian_group R"
-  ..
+lemma is_abelian_group: "abelian_group R" ..
 
-lemma is_monoid:
-  "monoid R"
+lemma is_monoid: "monoid R"
   by (auto intro!: monoidI m_assoc)
 
-lemma is_ring:
-  "ring R"
+lemma is_ring: "ring R"
   by (rule ring_axioms)
 
 end
@@ -444,12 +440,13 @@ proof -
       show "\<one> = \<zero>" by simp
 qed
 
-lemma carrier_one_zero:
-  shows "(carrier R = {\<zero>}) = (\<one> = \<zero>)"
-  by (rule, erule one_zeroI, erule one_zeroD)
+lemma carrier_one_zero: "(carrier R = {\<zero>}) = (\<one> = \<zero>)"
+  apply rule
+   apply (erule one_zeroI)
+  apply (erule one_zeroD)
+  done
 
-lemma carrier_one_not_zero:
-  shows "(carrier R \<noteq> {\<zero>}) = (\<one> \<noteq> \<zero>)"
+lemma carrier_one_not_zero: "(carrier R \<noteq> {\<zero>}) = (\<one> \<noteq> \<zero>)"
   by (simp add: carrier_one_zero)
 
 end
@@ -571,7 +568,7 @@ next
     from bcarr
     have "b = \<one> \<otimes> b" by algebra
     also from aUnit acarr
-    have "... = (inv a \<otimes> a) \<otimes> b" by (simp add: Units_l_inv)
+    have "... = (inv a \<otimes> a) \<otimes> b" by simp
     also from acarr bcarr aUnit[THEN Units_inv_closed]
     have "... = (inv a) \<otimes> (a \<otimes> b)" by algebra
     also from ab and acarr bcarr aUnit
