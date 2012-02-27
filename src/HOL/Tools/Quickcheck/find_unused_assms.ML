@@ -97,7 +97,7 @@ fun print_unused_assms ctxt opt_thy_name =
     val end_msg = "Checked " ^ string_of_int with_assumptions ^ " theorem(s) with assumptions"
       ^ " in the theory " ^ quote thy_name
       ^ " with a total of " ^ string_of_int total ^ " theorem(s)"  
-      ^ " in " ^ Time.toString (#cpu (Timing.result start)) ^ " secs";
+      ^ " in " ^ Timing.message (Timing.result start);
   in
     ([Pretty.str (msg ^ ":"), Pretty.str ""] @
         map pretty_thm with_superfluous_assumptions

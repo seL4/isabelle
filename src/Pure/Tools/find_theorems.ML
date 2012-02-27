@@ -602,7 +602,7 @@ fun gen_print_theorems find ctxt opt_goal opt_limit rem_dups raw_criteria =
              then " (" ^ string_of_int returned ^ " displayed)"
              else ""));
 
-    val end_msg = " in " ^ Time.toString (#cpu (Timing.result start)) ^ " secs";
+    val end_msg = " in " ^ Timing.message (Timing.result start);
   in
     Pretty.big_list "searched for:" (map (pretty_criterion ctxt) criteria) ::
     Pretty.str "" ::
