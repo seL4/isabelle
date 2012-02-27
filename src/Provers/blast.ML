@@ -1251,7 +1251,7 @@ fun raw_blast start ctxt lim st =
               NONE => (writeln ("PROOF FAILED for depth " ^
                                 string_of_int lim);
                        backtrack trace choices)
-            | cell => (if (trace orelse stats)
+            | cell => (if trace orelse stats
                        then writeln (Timing.message (Timing.result start) ^ " for reconstruction")
                        else ();
                        Seq.make(fn()=> cell))
