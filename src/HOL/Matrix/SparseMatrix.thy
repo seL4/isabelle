@@ -97,7 +97,7 @@ lemma sorted_sparse_row_matrix_zero[rule_format]: "m <= n \<Longrightarrow> sort
   apply (auto)
   apply (frule sorted_spvec_cons2, simp)
   apply (frule sorted_spvec_cons3, simp)
-  apply (simp add: sparse_row_matrix_cons neg_def)
+  apply (simp add: sparse_row_matrix_cons)
   done
 
 primrec minus_spvec :: "('a::ab_group_add) spvec \<Rightarrow> 'a spvec"
@@ -273,7 +273,6 @@ proof -
     apply (simp add: algebra_simps sparse_row_matrix_cons)
     apply (simplesubst Rep_matrix_zero_imp_mult_zero) 
     apply (simp)
-    apply (intro strip)
     apply (rule disjI2)
     apply (intro strip)
     apply (subst nrows)
@@ -284,7 +283,6 @@ proof -
     apply (case_tac "k <= j")
     apply (rule_tac m1 = k and n1 = i and a1 = a in ssubst[OF sorted_sparse_row_vector_zero])
     apply (simp_all)
-    apply (rule impI)
     apply (rule disjI2)
     apply (rule nrows)
     apply (rule order_trans[of _ 1])
@@ -297,7 +295,7 @@ proof -
     apply (simp)
     apply (rule disjI2)
     apply (intro strip)
-    apply (simp add: sparse_row_matrix_cons neg_def)
+    apply (simp add: sparse_row_matrix_cons)
     apply (case_tac "i <= j")  
     apply (erule sorted_sparse_row_matrix_zero)  
     apply (simp_all)
@@ -315,7 +313,6 @@ proof -
     apply (auto)
     apply (rule_tac m=k and n = j and a = a and arr=arr in sorted_sparse_row_vector_zero)
     apply (simp_all)
-    apply (simp add: neg_def)
     apply (drule nrows_notzero)
     apply (drule nrows_helper)
     apply (arith)
@@ -647,7 +644,7 @@ lemma disj_singleton_matrices[simp]: "disj_matrices (singleton_matrix j i x) (si
 
 lemma disj_move_sparse_vec_mat[simplified disj_matrices_commute]: 
   "j <= a \<Longrightarrow> sorted_spvec((a,c)#as) \<Longrightarrow> disj_matrices (move_matrix (sparse_row_vector b) (int j) i) (sparse_row_matrix as)"
-  apply (auto simp add: neg_def disj_matrices_def)
+  apply (auto simp add: disj_matrices_def)
   apply (drule nrows_notzero)
   apply (drule less_le_trans[OF _ nrows_spvec])
   apply (subgoal_tac "ja = j")
@@ -664,7 +661,7 @@ lemma disj_move_sparse_vec_mat[simplified disj_matrices_commute]:
 
 lemma disj_move_sparse_row_vector_twice:
   "j \<noteq> u \<Longrightarrow> disj_matrices (move_matrix (sparse_row_vector a) j i) (move_matrix (sparse_row_vector b) u v)"
-  apply (auto simp add: neg_def disj_matrices_def)
+  apply (auto simp add: disj_matrices_def)
   apply (rule nrows, rule order_trans[of _ 1], simp, drule nrows_notzero, drule less_le_trans[OF _ nrows_spvec], arith)+
   done
 
@@ -783,7 +780,7 @@ lemma sparse_row_matrix_abs:
   apply (simplesubst sorted_sparse_row_matrix_zero)
   apply auto
   apply (simplesubst Rep_sparse_row_vector_zero)
-  apply (simp_all add: neg_def)
+  apply simp_all
   done
 
 lemma sorted_spvec_minus_spmat: "sorted_spvec A \<Longrightarrow> sorted_spvec (minus_spmat A)"

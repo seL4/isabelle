@@ -849,7 +849,7 @@ definition singleton_matrix :: "nat \<Rightarrow> nat \<Rightarrow> ('a::zero) \
   "singleton_matrix j i a == Abs_matrix(% m n. if j = m & i = n then a else 0)"
 
 definition move_matrix :: "('a::zero) matrix \<Rightarrow> int \<Rightarrow> int \<Rightarrow> 'a matrix" where
-  "move_matrix A y x == Abs_matrix(% j i. if (neg ((int j)-y)) | (neg ((int i)-x)) then 0 else Rep_matrix A (nat ((int j)-y)) (nat ((int i)-x)))"
+  "move_matrix A y x == Abs_matrix(% j i. if (((int j)-y) < 0) | (((int i)-x) < 0) then 0 else Rep_matrix A (nat ((int j)-y)) (nat ((int i)-x)))"
 
 definition take_rows :: "('a::zero) matrix \<Rightarrow> nat \<Rightarrow> 'a matrix" where
   "take_rows A r == Abs_matrix(% j i. if (j < r) then (Rep_matrix A j i) else 0)"
@@ -930,7 +930,7 @@ done
 
 lemma Rep_move_matrix[simp]:
   "Rep_matrix (move_matrix A y x) j i =
-  (if (neg ((int j)-y)) | (neg ((int i)-x)) then 0 else Rep_matrix A (nat((int j)-y)) (nat((int i)-x)))"
+  (if (((int j)-y) < 0) | (((int i)-x) < 0) then 0 else Rep_matrix A (nat((int j)-y)) (nat((int i)-x)))"
 apply (simp add: move_matrix_def)
 apply (auto)
 by (subst RepAbs_matrix,
@@ -959,8 +959,8 @@ lemma move_matrix_singleton[simp]: "move_matrix (singleton_matrix u v x) j i =
   apply (case_tac "j + int u < 0")
   apply (simp, arith)
   apply (case_tac "i + int v < 0")
-  apply (simp add: neg_def, arith)
-  apply (simp add: neg_def)
+  apply (simp, arith)
+  apply simp
   apply arith
   done
 
@@ -1016,7 +1016,6 @@ lemma mult_matrix_singleton_right[simp]:
   apply (subst foldseq_almostzero[of _ j])
   apply (simp add: assms)+
   apply (auto)
-  apply (metis add_0 le_antisym le_diff_eq not_neg_nat zero_le_imp_of_nat zle_int)
   done
 
 lemma mult_matrix_ext:
@@ -1440,19 +1439,19 @@ lemma singleton_ge_zero[simp]: "(0 <= singleton_matrix j i x) = ((0::'a::{order,
   done
 
 lemma move_matrix_le_zero[simp]: "0 <= j \<Longrightarrow> 0 <= i \<Longrightarrow> (move_matrix A j i <= 0) = (A <= (0::('a::{order,zero}) matrix))"
-  apply (auto simp add: le_matrix_def neg_def)
+  apply (auto simp add: le_matrix_def)
   apply (drule_tac j="ja+(nat j)" and i="ia+(nat i)" in spec2)
   apply (auto)
   done
 
 lemma move_matrix_zero_le[simp]: "0 <= j \<Longrightarrow> 0 <= i \<Longrightarrow> (0 <= move_matrix A j i) = ((0::('a::{order,zero}) matrix) <= A)"
-  apply (auto simp add: le_matrix_def neg_def)
+  apply (auto simp add: le_matrix_def)
   apply (drule_tac j="ja+(nat j)" and i="ia+(nat i)" in spec2)
   apply (auto)
   done
 
 lemma move_matrix_le_move_matrix_iff[simp]: "0 <= j \<Longrightarrow> 0 <= i \<Longrightarrow> (move_matrix A j i <= move_matrix B j i) = (A <= (B::('a::{order,zero}) matrix))"
-  apply (auto simp add: le_matrix_def neg_def)
+  apply (auto simp add: le_matrix_def)
   apply (drule_tac j="ja+(nat j)" and i="ia+(nat i)" in spec2)
   apply (auto)
   done  
