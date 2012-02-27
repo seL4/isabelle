@@ -960,6 +960,8 @@ by(rule rev_cases[of xs]) auto
 
 subsubsection {* @{text set} *}
 
+declare set.simps [code_post]  --"pretty output"
+
 lemma finite_set [iff]: "finite (set xs)"
 by (induct xs) auto
 
