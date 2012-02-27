@@ -217,10 +217,10 @@ proof -
   { 
     fix x 
     assume "length x = Suc 0"
-    hence "\<exists> l. x = [l]"  by - (cases x, auto)
+    hence "\<exists> l. x = [l]"  by (cases x) auto
   } note 0 = this
 
-  have "length a = Suc (Suc 0) \<Longrightarrow> \<exists>l l'. a = [l,l']" by (cases a, auto dest: 0)
+  have "length a = Suc (Suc 0) \<Longrightarrow> \<exists>l l'. a = [l,l']" by (cases a) (auto dest: 0)
   with * show ?thesis by (auto dest: 0)
 qed
 

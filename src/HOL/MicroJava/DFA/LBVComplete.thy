@@ -169,7 +169,7 @@ qed
 
 lemma (in lbv) top_le_conv [simp]:
   "\<top> <=_r x = (x = \<top>)"
-  by (insert semilat) (simp add: top top_le_conv) 
+  using semilat by (simp add: top) 
 
 lemma (in lbv) neq_top [simp, elim]:
   "\<lbrakk> x <=_r y; y \<noteq> \<top> \<rbrakk> \<Longrightarrow> x \<noteq> \<top>"
