@@ -523,6 +523,25 @@ next
   case insert thus ?case by (auto simp: add_strict_mono)
 qed
 
+lemma setsum_strict_mono_ex1:
+fixes f :: "'a \<Rightarrow> 'b::{comm_monoid_add, ordered_cancel_ab_semigroup_add}"
+assumes "finite A" and "ALL x:A. f x \<le> g x" and "EX a:A. f a < g a"
+shows "setsum f A < setsum g A"
+proof-
+  from assms(3) obtain a where a: "a:A" "f a < g a" by blast
+  have "setsum f A = setsum f ((A-{a}) \<union> {a})"
+    by(simp add:insert_absorb[OF `a:A`])
+  also have "\<dots> = setsum f (A-{a}) + setsum f {a}"
+    using `finite A` by(subst setsum_Un_disjoint) auto
+  also have "setsum f (A-{a}) \<le> setsum g (A-{a})"
+    by(rule setsum_mono)(simp add: assms(2))
+  also have "setsum f {a} < setsum g {a}" using a by simp
+  also have "setsum g (A - {a}) + setsum g {a} = setsum g((A-{a}) \<union> {a})"
+    using `finite A` by(subst setsum_Un_disjoint[symmetric]) auto
+  also have "\<dots> = setsum g A" by(simp add:insert_absorb[OF `a:A`])
+  finally show ?thesis by (metis add_right_mono add_strict_left_mono)
+qed
+
 lemma setsum_negf:
   "setsum (%x. - (f x)::'a::ab_group_add) A = - setsum f A"
 proof (cases "finite A")
