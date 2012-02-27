@@ -37,7 +37,7 @@ object Outer_Syntax
   def init(): Outer_Syntax = new Outer_Syntax()
 }
 
-class Outer_Syntax private(
+final class Outer_Syntax private(
   keywords: Map[String, String] = Map((";" -> Keyword.DIAG)),
   lexicon: Scan.Lexicon = Scan.Lexicon.empty,
   val completion: Completion = Completion.init())

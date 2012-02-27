@@ -45,7 +45,7 @@ object Markup_Tree
 }
 
 
-class Markup_Tree private(branches: Markup_Tree.Branches.T)
+final class Markup_Tree private(branches: Markup_Tree.Branches.T)
 {
   private def this(branches: Markup_Tree.Branches.T, entry: Markup_Tree.Entry) =
     this(branches + (entry.range -> entry))

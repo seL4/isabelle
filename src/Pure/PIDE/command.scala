@@ -121,7 +121,7 @@ object Command
 }
 
 
-class Command private(
+final class Command private(
     val id: Document.Command_ID,
     val node_name: Document.Node.Name,
     val span: List[Token],

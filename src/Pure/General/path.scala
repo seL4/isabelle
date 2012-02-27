@@ -98,7 +98,7 @@ object Path
 }
 
 
-class Path private(private val elems: List[Path.Elem]) // reversed elements
+final class Path private(private val elems: List[Path.Elem]) // reversed elements
 {
   def is_current: Boolean = elems.isEmpty
   def is_absolute: Boolean = !elems.isEmpty && elems.last.isInstanceOf[Path.Root]

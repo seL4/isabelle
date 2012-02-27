@@ -26,7 +26,7 @@ object Linear_Set extends ImmutableSetFactory[Linear_Set]
 }
 
 
-class Linear_Set[A] private(
+final class Linear_Set[A] private(
     start: Option[A], end: Option[A], val nexts: Map[A, A], prevs: Map[A, A])
   extends scala.collection.immutable.Set[A]
   with GenericSetTemplate[A, Linear_Set]

@@ -14,7 +14,7 @@ object Volatile
 }
 
 
-class Volatile[A] private(init: A)
+final class Volatile[A] private(init: A)
 {
   @volatile private var state: A = init
   def apply(): A = state

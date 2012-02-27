@@ -16,7 +16,7 @@ object Counter
   def apply(): Counter = new Counter
 }
 
-class Counter private
+final class Counter private
 {
   private var count: Counter.ID = 0
 

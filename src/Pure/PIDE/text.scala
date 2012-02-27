@@ -98,7 +98,8 @@ object Text
     }
   }
 
-  class Perspective private(val ranges: List[Range]) // visible text partitioning in canonical order
+  final class Perspective private(
+    val ranges: List[Range]) // visible text partitioning in canonical order
   {
     def is_empty: Boolean = ranges.isEmpty
     def range: Range =
@@ -134,7 +135,7 @@ object Text
     def remove(start: Offset, text: String): Edit = new Edit(false, start, text)
   }
 
-  class Edit private(val is_insert: Boolean, val start: Offset, val text: String)
+  final class Edit private(val is_insert: Boolean, val start: Offset, val text: String)
   {
     override def toString =
       (if (is_insert) "Insert(" else "Remove(") + (start, text).toString + ")"

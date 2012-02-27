@@ -40,7 +40,7 @@ object Completion
   }
 }
 
-class Completion private(
+final class Completion private(
   words_lex: Scan.Lexicon = Scan.Lexicon.empty,
   words_map: Map[String, String] = Map.empty,
   abbrevs_lex: Scan.Lexicon = Scan.Lexicon.empty,

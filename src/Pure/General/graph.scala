@@ -27,7 +27,7 @@ object Graph
 }
 
 
-class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], SortedSet[Key]))])
+final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], SortedSet[Key]))])
 {
   type Keys = SortedSet[Key]
   type Entry = (A, (Keys, Keys))

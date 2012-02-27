@@ -40,7 +40,7 @@ object Scan
     def apply(elems: String*): Lexicon = empty ++ elems
   }
 
-  class Lexicon private(main_tree: Lexicon.Tree) extends RegexParsers
+  final class Lexicon private(main_tree: Lexicon.Tree) extends RegexParsers
   {
     import Lexicon.Tree
 
