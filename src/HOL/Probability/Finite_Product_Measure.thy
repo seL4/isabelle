@@ -627,7 +627,7 @@ next
     by (intro P.measure_space_vimage[OF I']) (auto simp add: measure_preserving_def)
   show ?case
   proof (intro exI[of _ ?\<nu>] conjI ballI)
-    let "?m A" = "measure (Pi\<^isub>M I M\<lparr>measure := \<nu>\<rparr> \<Otimes>\<^isub>M M i) (?h -` A \<inter> space P.P)"
+    let ?m = "\<lambda>A. measure (Pi\<^isub>M I M\<lparr>measure := \<nu>\<rparr> \<Otimes>\<^isub>M M i) (?h -` A \<inter> space P.P)"
     { fix A assume A: "A \<in> (\<Pi> i\<in>insert i I. sets (M i))"
       then have *: "?h -` Pi\<^isub>E (insert i I) A \<inter> space P.P = Pi\<^isub>E I A \<times> A i"
         using `i \<notin> I` M.sets_into_space by (auto simp: space_pair_measure space_product_algebra) blast
@@ -648,7 +648,7 @@ next
         "(\<Union>k. \<Pi>\<^isub>E j \<in> insert i I. F j k) = space I'.G"
         "\<And>k. \<And>j. j \<in> insert i I \<Longrightarrow> \<mu> j (F j k) \<noteq> \<infinity>"
         by blast+
-      let "?F k" = "\<Pi>\<^isub>E j \<in> insert i I. F j k"
+      let ?F = "\<lambda>k. \<Pi>\<^isub>E j \<in> insert i I. F j k"
       show "\<exists>F::nat \<Rightarrow> ('i \<Rightarrow> 'a) set. range F \<subseteq> sets I'.P \<and>
           (\<Union>i. F i) = (\<Pi>\<^isub>E i\<in>insert i I. space (M i)) \<and> (\<forall>i. ?m (F i) \<noteq> \<infinity>)"
       proof (intro exI[of _ ?F] conjI allI)
@@ -727,7 +727,7 @@ proof -
   interpret IJ: finite_product_sigma_finite M "I \<union> J" by default fact
   interpret P: pair_sigma_finite I.P J.P by default
   let ?g = "\<lambda>(x,y). merge I x J y"
-  let "?X S" = "?g -` S \<inter> space P.P"
+  let ?X = "\<lambda>S. ?g -` S \<inter> space P.P"
   from IJ.sigma_finite_pairs obtain F where
     F: "\<And>i. i\<in> I \<union> J \<Longrightarrow> range (F i) \<subseteq> sets (M i)"
        "incseq (\<lambda>k. \<Pi>\<^isub>E i\<in>I \<union> J. F i k)"
@@ -839,7 +839,7 @@ proof -
     unfolding product_positive_integral_fold[OF IJ, unfolded insert, simplified, OF f]
   proof (rule I.positive_integral_cong, subst product_positive_integral_singleton)
     fix x assume x: "x \<in> space I.P"
-    let "?f y" = "f (restrict (x(i := y)) (insert i I))"
+    let ?f = "\<lambda>y. f (restrict (x(i := y)) (insert i I))"
     have f'_eq: "\<And>y. ?f y = f (x(i := y))"
       using x by (auto intro!: arg_cong[where f=f] simp: fun_eq_iff extensional_def)
     show "?f \<in> borel_measurable (M i)" unfolding f'_eq
@@ -930,7 +930,7 @@ proof -
     unfolding product_integral_fold[OF IJ, simplified, OF f]
   proof (rule I.integral_cong, subst product_integral_singleton)
     fix x assume x: "x \<in> space I.P"
-    let "?f y" = "f (restrict (x(i := y)) (insert i I))"
+    let ?f = "\<lambda>y. f (restrict (x(i := y)) (insert i I))"
     have f'_eq: "\<And>y. ?f y = f (x(i := y))"
       using x by (auto intro!: arg_cong[where f=f] simp: fun_eq_iff extensional_def)
     have f: "f \<in> borel_measurable I'.P" using f unfolding integrable_def by auto

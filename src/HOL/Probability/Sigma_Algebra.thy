@@ -214,7 +214,7 @@ proof
   then have "(\<Union>i. A i) = (\<Union>s\<in>sets M \<inter> range A. s)"
     by auto
   also have "(\<Union>s\<in>sets M \<inter> range A. s) \<in> sets M"
-    using `finite (sets M)` by (auto intro: finite_UN)
+    using `finite (sets M)` by auto
   finally show "(\<Union>i. A i) \<in> sets M" .
 qed
 
@@ -243,7 +243,7 @@ lemma (in sigma_algebra) countable_UN[intro]:
   assumes "A`X \<subseteq> sets M"
   shows  "(\<Union>x\<in>X. A x) \<in> sets M"
 proof -
-  let "?A i" = "if i \<in> X then A i else {}"
+  let ?A = "\<lambda>i. if i \<in> X then A i else {}"
   from assms have "range ?A \<subseteq> sets M" by auto
   with countable_nat_UN[of "?A \<circ> from_nat"] countable_UN_eq[of ?A M]
   have "(\<Union>x. ?A x) \<in> sets M" by auto
@@ -1563,7 +1563,7 @@ proof -
     unfolding sigma_algebra_eq_Int_stable Int_stable_def
   proof (intro ballI)
     fix A B assume "A \<in> sets (dynkin M)" "B \<in> sets (dynkin M)"
-    let "?D E" = "\<lparr> space = space M,
+    let ?D = "\<lambda>E. \<lparr> space = space M,
                     sets = {Q. Q \<subseteq> space M \<and> Q \<inter> E \<in> sets (dynkin M)} \<rparr>"
     have "sets M \<subseteq> sets (?D B)"
     proof
@@ -1637,7 +1637,7 @@ proof safe
 next
   fix S assume "S \<subseteq> space (image_space X)"
   then obtain S' where "S = X`S'" "S'\<in>sets M"
-    by (auto simp: subset_image_iff sets_eq_Pow image_space_def)
+    by (auto simp: subset_image_iff image_space_def)
   then show "S \<in> sets (image_space X)"
     by (auto simp: image_space_def)
 qed

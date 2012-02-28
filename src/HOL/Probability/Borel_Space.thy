@@ -521,7 +521,8 @@ proof -
     finally show "{x. x$$i \<le> a} \<in> sets ?SIGMA"
       apply (simp only:)
       apply (safe intro!: countable_UN Diff)
-      by (auto simp: sets_sigma intro!: sigma_sets.Basic)
+      apply (auto simp: sets_sigma intro!: sigma_sets.Basic)
+      done
   next
     fix a i assume "\<not> i < DIM('a)"
     then show "{x. x$$i \<le> a} \<in> sets ?SIGMA"
@@ -556,7 +557,8 @@ proof -
     finally show "{x. a \<le> x$$i} \<in> sets ?SIGMA"
       apply (simp only:)
       apply (safe intro!: countable_UN Diff)
-      by (auto simp: sets_sigma intro!: sigma_sets.Basic)
+      apply (auto simp: sets_sigma intro!: sigma_sets.Basic)
+      done
   next
     fix a i assume "\<not> i < DIM('a)"
     then show "{x. a \<le> x$$i} \<in> sets ?SIGMA"
@@ -653,7 +655,8 @@ proof (intro algebra.equality antisym)
       have "M \<in> sets ?SIGMA"
         apply (subst open_UNION[OF `open M`])
         apply (safe intro!: countable_UN)
-        by (auto simp add: sigma_def intro!: sigma_sets.Basic) }
+        apply (auto simp add: sigma_def intro!: sigma_sets.Basic)
+        done }
     then show ?thesis
       unfolding borel_def by (intro sets_sigma_subset) auto
   qed
@@ -1156,7 +1159,7 @@ proof safe
   assume *: "(\<lambda>x. real (f x)) \<in> borel_measurable M" "f -` {\<infinity>} \<inter> space M \<in> sets M" "f -` {-\<infinity>} \<inter> space M \<in> sets M"
   have "f -` {\<infinity>} \<inter> space M = {x\<in>space M. f x = \<infinity>}" "f -` {-\<infinity>} \<inter> space M = {x\<in>space M. f x = -\<infinity>}" by auto
   with * have **: "{x\<in>space M. f x = \<infinity>} \<in> sets M" "{x\<in>space M. f x = -\<infinity>} \<in> sets M" by simp_all
-  let "?f x" = "if f x = \<infinity> then \<infinity> else if f x = -\<infinity> then -\<infinity> else ereal (real (f x))"
+  let ?f = "\<lambda>x. if f x = \<infinity> then \<infinity> else if f x = -\<infinity> then -\<infinity> else ereal (real (f x))"
   have "?f \<in> borel_measurable M" using * ** by (intro measurable_If) auto
   also have "?f = f" by (auto simp: fun_eq_iff ereal_real)
   finally show "f \<in> borel_measurable M" .
@@ -1469,7 +1472,7 @@ lemma (in sigma_algebra) borel_measurable_LIMSEQ:
   shows "u' \<in> borel_measurable M"
 proof -
   have "\<And>x. x \<in> space M \<Longrightarrow> liminf (\<lambda>n. ereal (u n x)) = ereal (u' x)"
-    using u' by (simp add: lim_imp_Liminf trivial_limit_sequentially lim_ereal)
+    using u' by (simp add: lim_imp_Liminf)
   moreover from u have "(\<lambda>x. liminf (\<lambda>n. ereal (u n x))) \<in> borel_measurable M"
     by auto
   ultimately show ?thesis by (simp cong: measurable_cong add: borel_measurable_ereal_iff)

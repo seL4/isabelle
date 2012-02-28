@@ -333,7 +333,7 @@ proof -
       using `K k \<noteq> 0` by auto }
   note t_eq_imp = this
 
-  let "?S obs" = "t -`{t obs} \<inter> OB`msgs"
+  let ?S = "\<lambda>obs. t -`{t obs} \<inter> OB`msgs"
   { fix k obs assume "k \<in> keys" "K k \<noteq> 0" and obs: "obs \<in> OB`msgs"
     have *: "((\<lambda>x. (t (OB x), fst x)) -` {(t obs, k)} \<inter> msgs) =
       (\<Union>obs'\<in>?S obs. ((\<lambda>x. (OB x, fst x)) -` {(obs', k)} \<inter> msgs))" by auto
@@ -378,8 +378,8 @@ proof -
     finally have "\<P>(fst | t\<circ>OB) {(k, t obs)} = \<P>(fst | OB) {(k, obs)}" . }
   note CP_T_eq_CP_O = this
 
-  let "?H obs" = "(\<Sum>k\<in>keys. \<P>(fst|OB) {(k, obs)} * log b (\<P>(fst|OB) {(k, obs)})) :: real"
-  let "?Ht obs" = "(\<Sum>k\<in>keys. \<P>(fst|t\<circ>OB) {(k, obs)} * log b (\<P>(fst|t\<circ>OB) {(k, obs)})) :: real"
+  let ?H = "\<lambda>obs. (\<Sum>k\<in>keys. \<P>(fst|OB) {(k, obs)} * log b (\<P>(fst|OB) {(k, obs)})) :: real"
+  let ?Ht = "\<lambda>obs. (\<Sum>k\<in>keys. \<P>(fst|t\<circ>OB) {(k, obs)} * log b (\<P>(fst|t\<circ>OB) {(k, obs)})) :: real"
 
   { fix obs assume obs: "obs \<in> OB`msgs"
     have "?H obs = (\<Sum>k\<in>keys. \<P>(fst|t\<circ>OB) {(k, t obs)} * log b (\<P>(fst|t\<circ>OB) {(k, t obs)}))"

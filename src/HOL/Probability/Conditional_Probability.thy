@@ -25,8 +25,8 @@ proof -
   interpret P: prob_space N
     using prob_space_subalgebra[OF N] .
 
-  let "?f A" = "\<lambda>x. X x * indicator A x"
-  let "?Q A" = "integral\<^isup>P M (?f A)"
+  let ?f = "\<lambda>A x. X x * indicator A x"
+  let ?Q = "\<lambda>A. integral\<^isup>P M (?f A)"
 
   from measure_space_density[OF borel]
   have Q: "measure_space (N\<lparr> measure := ?Q \<rparr>)"
@@ -146,7 +146,7 @@ proof safe
     by auto
   from factorize_measurable_function_pos[OF assms(1,2) this] guess n .. note n = this
   from factorize_measurable_function_pos[OF assms Z] guess p .. note p = this
-  let "?g x" = "p x - n x"
+  let ?g = "\<lambda>x. p x - n x"
   show "\<exists>g\<in>borel_measurable M'. \<forall>x\<in>space M. Z x = g (Y x)"
   proof (intro bexI ballI)
     show "?g \<in> borel_measurable M'" using p n by auto

@@ -142,7 +142,7 @@ proof (subst indep_sets_finite_index_sets, intro allI impI ballI)
   with indep have "indep_sets F J"
     by (subst (asm) indep_sets_finite_index_sets) auto
   { fix J K assume "indep_sets F K"
-    let "?G S i" = "if i \<in> S then ?F i else F i"
+    let ?G = "\<lambda>S i. if i \<in> S then ?F i else F i"
     assume "finite J" "J \<subseteq> K"
     then have "indep_sets (?G J) K"
     proof induct
@@ -384,7 +384,7 @@ lemma (in prob_space) indep_sets_collect_sigma:
   assumes disjoint: "disjoint_family_on I J"
   shows "indep_sets (\<lambda>j. sigma_sets (space M) (\<Union>i\<in>I j. E i)) J"
 proof -
-  let "?E j" = "{\<Inter>k\<in>K. E' k| E' K. finite K \<and> K \<noteq> {} \<and> K \<subseteq> I j \<and> (\<forall>k\<in>K. E' k \<in> E k) }"
+  let ?E = "\<lambda>j. {\<Inter>k\<in>K. E' k| E' K. finite K \<and> K \<noteq> {} \<and> K \<subseteq> I j \<and> (\<forall>k\<in>K. E' k \<in> E k) }"
 
   from indep have E: "\<And>j i. j \<in> J \<Longrightarrow> i \<in> I j \<Longrightarrow> E i \<subseteq> events"
     unfolding indep_sets_def by auto
@@ -447,7 +447,7 @@ proof -
           with * L_inj show "k = j" by auto
         qed (insert *, simp) }
       note k_simp[simp] = this
-      let "?E' l" = "E' (k l) l"
+      let ?E' = "\<lambda>l. E' (k l) l"
       have "prob (\<Inter>j\<in>K. A j) = prob (\<Inter>l\<in>(\<Union>k\<in>K. L k). ?E' l)"
         by (auto simp: A intro!: arg_cong[where f=prob])
       also have "\<dots> = (\<Prod>l\<in>(\<Union>k\<in>K. L k). prob (?E' l))"
@@ -658,7 +658,7 @@ proof (rule kolmogorov_0_1_law[of "\<lambda>i. sigma_sets (space M) { F i }"])
     fix i show "Int_stable \<lparr>space = space M, sets = {F i}\<rparr>"
       unfolding Int_stable_def by simp
   qed
-  let "?Q n" = "\<Union>i\<in>{n..}. F i"
+  let ?Q = "\<lambda>n. \<Union>i\<in>{n..}. F i"
   show "(\<Inter>n. \<Union>m\<in>{n..}. F m) \<in> terminal_events (\<lambda>i. sigma_sets (space M) {F i})"
     unfolding terminal_events_def
   proof
@@ -691,7 +691,7 @@ next
   proof (rule indep_setsI[OF F(1)])
     fix A J assume J: "J \<noteq> {}" "J \<subseteq> I" "finite J"
     assume A: "\<forall>j\<in>J. A j \<in> F j"
-    let "?A j" = "if j \<in> J then A j else space M"
+    let ?A = "\<lambda>j. if j \<in> J then A j else space M"
     have "prob (\<Inter>j\<in>I. ?A j) = prob (\<Inter>j\<in>J. A j)"
       using subset_trans[OF F(1) space_closed] J A
       by (auto intro!: arg_cong[where f=prob] split: split_if_asm) blast

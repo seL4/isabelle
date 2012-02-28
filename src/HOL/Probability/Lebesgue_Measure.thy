@@ -133,8 +133,8 @@ next
     fix A :: "nat \<Rightarrow> 'b set" assume rA: "range A \<subseteq> sets lebesgue" "disjoint_family A"
     then have A[simp, intro]: "\<And>i n. (indicator (A i) :: _ \<Rightarrow> real) integrable_on cube n"
       by (auto dest: lebesgueD)
-    let "?m n i" = "integral (cube n) (indicator (A i) :: _\<Rightarrow>real)"
-    let "?M n I" = "integral (cube n) (indicator (\<Union>i\<in>I. A i) :: _\<Rightarrow>real)"
+    let ?m = "\<lambda>n i. integral (cube n) (indicator (A i) :: _\<Rightarrow>real)"
+    let ?M = "\<lambda>n I. integral (cube n) (indicator (\<Union>i\<in>I. A i) :: _\<Rightarrow>real)"
     have nn[simp, intro]: "\<And>i n. 0 \<le> ?m n i" by (auto intro!: integral_nonneg)
     assume "(\<Union>i. A i) \<in> sets lebesgue"
     then have UN_A[simp, intro]: "\<And>i n. (indicator (\<Union>i. A i) :: _ \<Rightarrow> real) integrable_on cube n"
@@ -560,8 +560,8 @@ lemma simple_function_has_integral:
   shows "((\<lambda>x. real (f x)) has_integral (real (integral\<^isup>S lebesgue f))) UNIV"
   unfolding simple_integral_def space_lebesgue
 proof (subst lebesgue_simple_function_indicator)
-  let "?M x" = "lebesgue.\<mu> (f -` {x} \<inter> UNIV)"
-  let "?F x" = "indicator (f -` {x})"
+  let ?M = "\<lambda>x. lebesgue.\<mu> (f -` {x} \<inter> UNIV)"
+  let ?F = "\<lambda>x. indicator (f -` {x})"
   { fix x y assume "y \<in> range f"
     from subsetD[OF f' this] have "y * ?F y x = ereal (real y * ?F y x)"
       by (cases rule: ereal2_cases[of y "?F y x"])
@@ -637,7 +637,7 @@ proof -
   guess u . note u = this
   have SUP_eq: "\<And>x. (SUP i. u i x) = f x"
     using u(4) f(2)[THEN subsetD] by (auto split: split_max)
-  let "?u i x" = "real (u i x)"
+  let ?u = "\<lambda>i x. real (u i x)"
   note u_eq = lebesgue.positive_integral_eq_simple_integral[OF u(1,5), symmetric]
   { fix i
     note u_eq
@@ -986,7 +986,7 @@ lemma lebesgue_real_affine:
     (is "_ = ?\<nu> X")
 proof -
   let ?E = "\<lparr>space = UNIV, sets = range (\<lambda>(a,b). {a::real .. b})\<rparr> :: real algebra"
-  let "?M \<nu>" = "\<lparr>space = space ?E, sets = sets (sigma ?E), measure = \<nu>\<rparr> :: real measure_space"
+  let ?M = "\<lambda>\<nu>. \<lparr>space = space ?E, sets = sets (sigma ?E), measure = \<nu>\<rparr> :: real measure_space"
   have *: "?M (measure lebesgue) = lborel"
     unfolding borel_eq_atLeastAtMost[symmetric]
     by (simp add: lborel_def lebesgue_def)
