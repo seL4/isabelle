@@ -103,7 +103,7 @@ by (simp add: poly_minus_def)
 lemma pmult_singleton: "[h1] *** p1 = h1 %* p1" by simp
 end
 
-lemma (in semiring_1) poly_ident_mult[simp]: "1 %* t = t" by (induct "t", auto)
+lemma (in semiring_1) poly_ident_mult[simp]: "1 %* t = t" by (induct t) auto
 
 lemma (in semiring_0) poly_simple_add_Cons[simp]: "[a] +++ ((0)#t) = (a#t)"
 by simp
