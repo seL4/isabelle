@@ -29,10 +29,13 @@ open ATP_Systems
 val fact_name_of = prefix fact_prefix o ascii_of
 
 fun facts_of thy =
-  Sledgehammer_Filter.all_facts (Proof_Context.init_global thy) false
-                                Symtab.empty true [] []
-  |> filter (curry (op =) @{typ bool} o fastype_of
-             o Object_Logic.atomize_term thy o prop_of o snd)
+  let val ctxt = Proof_Context.init_global thy in
+    Sledgehammer_Filter.all_facts ctxt false
+        Symtab.empty true [] []
+        (Sledgehammer_Filter.clasimpset_rule_table_of ctxt)
+    |> filter (curry (op =) @{typ bool} o fastype_of
+               o Object_Logic.atomize_term thy o prop_of o snd)
+  end
 
 (* FIXME: Similar yet different code in "mirabelle.ML". The code here has a few
    fixes that seem to be missing over there; or maybe the two code portions are

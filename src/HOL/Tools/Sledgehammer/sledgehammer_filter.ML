@@ -48,8 +48,8 @@ sig
     Proof.context -> unit Symtab.table -> thm list -> status Termtab.table
     -> Facts.ref * Attrib.src list -> ((string * stature) * thm) list
   val all_facts :
-    Proof.context -> bool -> 'a Symtab.table -> bool -> thm list -> thm list
-    -> (((unit -> string) * stature) * thm) list
+    Proof.context -> bool -> 'a Symtab.table -> bool -> thm list
+    -> thm list -> status Termtab.table -> (((unit -> string) * stature) * thm) list
   val nearly_all_facts :
     Proof.context -> bool -> relevance_override -> thm list -> term list -> term
     -> (((unit -> string) * stature) * thm) list
@@ -111,10 +111,6 @@ val abs_name = sledgehammer_prefix ^ "abs"
 val skolem_prefix = sledgehammer_prefix ^ "sko"
 val theory_const_suffix = Long_Name.separator ^ " 1"
 
-val crude_zero_vars =
-  map_aterms (fn Var ((s, _), T) => Var ((s, 0), T) | t => t)
-  #> map_types (map_type_tvar (fn ((s, _), S) => TVar ((s, 0), S)))
-
 (* unfolding these can yield really huge terms *)
 val risky_spec_eqs = @{thms Bit0_def Bit1_def}
 
@@ -122,14 +118,28 @@ fun clasimpset_rule_table_of ctxt =
   let
     val thy = Proof_Context.theory_of ctxt
     val atomize = HOLogic.mk_Trueprop o Object_Logic.atomize_term thy
-    fun add stature g f =
-      fold (Termtab.update o rpair stature o g o crude_zero_vars o prop_of o f)
+    fun add stature normalizers get_th =
+      fold (fn rule =>
+               let
+                 val th = rule |> get_th
+                 val t =
+                   th |> Thm.maxidx_of th > 0 ? zero_var_indexes |> prop_of
+               in
+                 fold (fn normalize => Termtab.update (normalize t, stature))
+                      (I :: normalizers)
+               end)
+(*
+    TODO: "intro" and "elim" rules are not exploited yet by SPASS (or any other
+    prover). Reintroduce this code when it becomes useful. It costs about 50 ms
+    per Sledgehammer invocation.
+
     val {safeIs, safeEs, hazIs, hazEs, ...} =
       ctxt |> claset_of |> Classical.rep_cs
     val intros = Item_Net.content safeIs @ Item_Net.content hazIs
     val elims =
       Item_Net.content safeEs @ Item_Net.content hazEs
       |> map Classical.classical_rule
+*)
     val simps = ctxt |> simpset_of |> dest_ss |> #simps
     val spec_eqs =
       ctxt |> Spec_Rules.get
@@ -137,11 +147,12 @@ fun clasimpset_rule_table_of ctxt =
            |> maps (snd o snd)
            |> filter_out (member Thm.eq_thm_prop risky_spec_eqs)
   in
-    Termtab.empty |> add Simp I snd simps
-                  |> add Simp atomize snd simps
-                  |> add Spec_Eq I I spec_eqs
-                  |> add Elim I I elims
-                  |> add Intro I I intros
+    Termtab.empty |> add Simp [atomize] snd simps
+                  |> add Spec_Eq [] I spec_eqs
+(*
+                  |> add Elim [] I elims
+                  |> add Intro [] I intros
+*)
   end
 
 fun needs_quoting reserved s =
@@ -833,14 +844,13 @@ fun is_theorem_bad_for_atps ho_atp exporter thm =
      is_that_fact thm
    end)
 
-fun all_facts ctxt ho_atp reserved exporter add_ths chained_ths =
+fun all_facts ctxt ho_atp reserved exporter add_ths chained_ths css_table =
   let
     val thy = Proof_Context.theory_of ctxt
     val global_facts = Global_Theory.facts_of thy
     val local_facts = Proof_Context.facts_of ctxt
     val named_locals = local_facts |> Facts.dest_static []
     val assms = Assumption.all_assms_of ctxt
-    val css_table = clasimpset_rule_table_of ctxt
     fun is_good_unnamed_local th =
       not (Thm.has_name_hint th) andalso
       forall (fn (_, ths) => not (member Thm.eq_thm_prop ths th)) named_locals
@@ -911,27 +921,30 @@ fun external_frees t =
 
 fun nearly_all_facts ctxt ho_atp ({add, only, ...} : relevance_override)
                      chained_ths hyp_ts concl_t =
-  let
-    val thy = Proof_Context.theory_of ctxt
-    val reserved = reserved_isar_keyword_table ()
-    val add_ths = Attrib.eval_thms ctxt add
-    val ind_stmt =
-      Logic.list_implies (hyp_ts |> filter_out (null o external_frees), concl_t)
-      |> Object_Logic.atomize_term thy
-    val ind_stmt_xs = external_frees ind_stmt
-    val css_table = clasimpset_rule_table_of ctxt
-  in
-    (if only then
-       maps (map (fn ((name, stature), th) => ((K name, stature), th))
-             o fact_from_ref ctxt reserved chained_ths css_table) add
-     else
-       all_facts ctxt ho_atp reserved false add_ths chained_ths)
-    |> Config.get ctxt instantiate_inducts
-       ? maps (instantiate_if_induct_rule ctxt ind_stmt ind_stmt_xs)
-    |> (not (Config.get ctxt ignore_no_atp) andalso not only)
-       ? filter_out (No_ATPs.member ctxt o snd)
-    |> uniquify
-  end
+  if only andalso null add then
+    []
+  else
+    let
+      val thy = Proof_Context.theory_of ctxt
+      val reserved = reserved_isar_keyword_table ()
+      val add_ths = Attrib.eval_thms ctxt add
+      val ind_stmt =
+        (hyp_ts |> filter_out (null o external_frees), concl_t)
+        |> Logic.list_implies |> Object_Logic.atomize_term thy
+      val ind_stmt_xs = external_frees ind_stmt
+      val css_table = clasimpset_rule_table_of ctxt
+    in
+      (if only then
+         maps (map (fn ((name, stature), th) => ((K name, stature), th))
+               o fact_from_ref ctxt reserved chained_ths css_table) add
+       else
+         all_facts ctxt ho_atp reserved false add_ths chained_ths css_table)
+      |> Config.get ctxt instantiate_inducts
+         ? maps (instantiate_if_induct_rule ctxt ind_stmt ind_stmt_xs)
+      |> (not (Config.get ctxt ignore_no_atp) andalso not only)
+         ? filter_out (No_ATPs.member ctxt o snd)
+      |> uniquify
+    end
 
 fun relevant_facts ctxt (threshold0, threshold1) max_relevant is_built_in_const
                    fudge (override as {only, ...}) chained_ths hyp_ts concl_t
