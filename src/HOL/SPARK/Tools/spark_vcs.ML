@@ -12,7 +12,7 @@ sig
   val add_proof_fun: (typ option -> 'a -> term) ->
     string * ((string list * string) option * 'a) ->
     theory -> theory
-  val add_type: string * typ -> theory -> theory
+  val add_type: string * (typ * (string * string) list) -> theory -> theory
   val lookup_vc: theory -> string -> (Element.context_i list *
     (string * thm list option * Element.context_i * Element.statement_i)) option
   val get_vcs: theory ->
@@ -44,7 +44,7 @@ structure VCs = Theory_Data
 (
   type T =
     {pfuns: ((string list * string) option * term) Symtab.table,
-     type_map: typ Symtab.table,
+     type_map: (typ * (string * string) list) Symtab.table,
      env:
        {ctxt: Element.context_i list,
         defs: (binding * thm) list,
@@ -86,6 +86,11 @@ fun strip_prfx s =
       | strip ys (x :: xs) = strip (x :: ys) xs
   in strip [] (rev (raw_explode s)) end;
 
+fun unprefix_pfun "" s = s
+  | unprefix_pfun prfx s =
+      let val (prfx', s') = strip_prfx s
+      in if prfx = prfx' then s' else s end;
+
 fun mk_unop s t =
   let val T = fastype_of t
   in Const (s, T --> T) $ t end;
@@ -104,14 +109,17 @@ fun get_type thy prfx ty =
   let val {type_map, ...} = VCs.get thy
   in lookup_prfx prfx type_map ty end;
 
-fun mk_type _ _ "integer" = HOLogic.intT
-  | mk_type _ _ "boolean" = HOLogic.boolT
-  | mk_type thy prfx ty =
+fun mk_type' _ _ "integer" = (HOLogic.intT, [])
+  | mk_type' _ _ "boolean" = (HOLogic.boolT, [])
+  | mk_type' thy prfx ty =
       (case get_type thy prfx ty of
          NONE =>
-           Syntax.check_typ (Proof_Context.init_global thy)
-             (Type (Sign.full_name thy (Binding.name ty), []))
-       | SOME T => T);
+           (Syntax.check_typ (Proof_Context.init_global thy)
+              (Type (Sign.full_name thy (Binding.name ty), [])),
+            [])
+       | SOME p => p);
+
+fun mk_type thy prfx ty = fst (mk_type' thy prfx ty);
 
 val booleanN = "boolean";
 val integerN = "integer";
@@ -146,7 +154,12 @@ fun get_record_info thy T = (case Record.dest_recTs T of
       Record.get_info thy (Long_Name.qualifier tyname)
   | _ => NONE);
 
-fun find_field fname = find_first (curry lcase_eq fname o fst);
+fun find_field [] fname fields =
+      find_first (curry lcase_eq fname o fst) fields
+  | find_field cmap fname fields =
+      (case AList.lookup (op =) cmap fname of
+         NONE => NONE
+       | SOME fname' => SOME (fname', the (AList.lookup (op =) fields fname')));
 
 fun find_field' fname = get_first (fn (flds, fldty) =>
   if member (op =) flds fname then SOME fldty else NONE);
@@ -291,6 +304,10 @@ fun check_enum [] [] = NONE
       else SOME ("either has no element " ^ el ^
         " or it is at the wrong position");
 
+fun invert_map [] = I
+  | invert_map cmap =
+      map (apfst (the o AList.lookup (op =) (map swap cmap)));
+ 
 fun add_type_def prfx (s, Basic_Type ty) (ids, thy) =
       (check_no_assoc thy prfx s;
        (ids,
@@ -307,26 +324,23 @@ fun add_type_def prfx (s, Basic_Type ty) (ids, thy) =
               in
                 (thy |>
                  Datatype.add_datatype {strict = true, quiet = true}
-                   [((tyb, [], NoSyn), map (fn s => (Binding.name s, [], NoSyn)) els)] |> snd |>
+                   [((tyb, [], NoSyn),
+                     map (fn s => (Binding.name s, [], NoSyn)) els)] |> snd |>
                  add_enum_type s tyname,
                  tyname)
               end
-          | SOME (T as Type (tyname, [])) =>
+          | SOME (T as Type (tyname, []), cmap) =>
               (case Datatype.get_constrs thy tyname of
                  NONE => assoc_ty_err thy T s "is not a datatype"
                | SOME cs =>
-                   let
-                     val (prfx', _) = strip_prfx s;
-                     val els' =
-                       if prfx' = "" then els
-                       else map (unprefix (prfx' ^ "__")) els
-                         handle Fail _ => error ("Bad enumeration type " ^ s)
+                   let val (prfx', _) = strip_prfx s
                    in
-                     case check_enum els' cs of
+                     case check_enum (map (unprefix_pfun prfx') els)
+                         (invert_map cmap cs) of
                        NONE => (thy, tyname)
                      | SOME msg => assoc_ty_err thy T s msg
                    end)
-          | SOME T => assoc_ty_err thy T s "is not a datatype");
+          | SOME (T, _) => assoc_ty_err thy T s "is not a datatype");
         val cs = map Const (the (Datatype.get_constrs thy' tyname));
       in
         ((fold (Symtab.update_new o apsnd (rpair s)) (els ~~ cs) tab,
@@ -349,24 +363,27 @@ fun add_type_def prfx (s, Basic_Type ty) (ids, thy) =
            NONE =>
              Record.add_record ([], Binding.name s) NONE
                (map (fn (fld, T) => (Binding.name fld, T, NoSyn)) fldTs) thy
-         | SOME rT =>
+         | SOME (rT, cmap) =>
              (case get_record_info thy rT of
                 NONE => assoc_ty_err thy rT s "is not a record type"
               | SOME {fields, ...} =>
-                  (case subtract (lcase_eq o pairself fst) fldTs fields of
-                     [] => ()
-                   | flds => assoc_ty_err thy rT s ("has extra field(s) " ^
-                       commas (map (Long_Name.base_name o fst) flds));
-                   map (fn (fld, T) =>
-                     case AList.lookup lcase_eq fields fld of
-                       NONE => assoc_ty_err thy rT s ("has no field " ^ fld)
-                     | SOME U => T = U orelse assoc_ty_err thy rT s
-                         ("has field " ^
-                          fld ^ " whose type\n" ^
-                          Syntax.string_of_typ_global thy U ^
-                          "\ndoes not match declared type\n" ^
-                          Syntax.string_of_typ_global thy T)) fldTs;
-                   thy))
+                  let val fields' = invert_map cmap fields
+                  in
+                    (case subtract (lcase_eq o pairself fst) fldTs fields' of
+                       [] => ()
+                     | flds => assoc_ty_err thy rT s ("has extra field(s) " ^
+                         commas (map (Long_Name.base_name o fst) flds));
+                     map (fn (fld, T) =>
+                       case AList.lookup lcase_eq fields' fld of
+                         NONE => assoc_ty_err thy rT s ("has no field " ^ fld)
+                       | SOME U => T = U orelse assoc_ty_err thy rT s
+                           ("has field " ^
+                            fld ^ " whose type\n" ^
+                            Syntax.string_of_typ_global thy U ^
+                            "\ndoes not match declared type\n" ^
+                            Syntax.string_of_typ_global thy T)) fldTs;
+                     thy)
+                  end)
        end)
 
   | add_type_def prfx (s, Pending_Type) (ids, thy) =
@@ -467,10 +484,10 @@ fun term_of_expr thy prfx types pfuns =
                [e] =>
                  let
                    val (t, rcdty) = tm_of vs e;
-                   val rT = mk_type thy prfx rcdty
+                   val (rT, cmap) = mk_type' thy prfx rcdty
                  in case (get_record_info thy rT, lookup types rcdty) of
                      (SOME {fields, ...}, SOME (Record_Type fldtys)) =>
-                       (case (find_field fname fields,
+                       (case (find_field cmap fname fields,
                             find_field' fname fldtys) of
                           (SOME (fname', fT), SOME fldty) =>
                             (Const (fname', rT --> fT) $ t, fldty)
@@ -487,12 +504,12 @@ fun term_of_expr thy prfx types pfuns =
                [e, e'] =>
                  let
                    val (t, rcdty) = tm_of vs e;
-                   val rT = mk_type thy prfx rcdty;
+                   val (rT, cmap) = mk_type' thy prfx rcdty;
                    val (u, fldty) = tm_of vs e';
                    val fT = mk_type thy prfx fldty
                  in case get_record_info thy rT of
                      SOME {fields, ...} =>
-                       (case find_field fname fields of
+                       (case find_field cmap fname fields of
                           SOME (fname', fU) =>
                             if fT = fU then
                               (Const (fname' ^ "_update",
@@ -576,13 +593,14 @@ fun term_of_expr thy prfx types pfuns =
 
       | tm_of vs (Record (s, flds)) =
           let
-            val T = mk_type thy prfx s;
+            val (T, cmap) = mk_type' thy prfx s;
             val {extension = (ext_name, _), fields, ...} =
               (case get_record_info thy T of
                  NONE => error (s ^ " is not a record type")
                | SOME info => info);
             val flds' = map (apsnd (tm_of vs)) flds;
-            val fnames = map (Long_Name.base_name o fst) fields;
+            val fnames = fields |> invert_map cmap |>
+              map (Long_Name.base_name o fst);
             val fnames' = map fst flds;
             val (fvals, ftys) = split_list (map (fn s' =>
               case AList.lookup lcase_eq flds' s' of
@@ -727,11 +745,6 @@ fun check_pfun_type thy prfx s t optty1 optty2 =
 
 fun upd_option x y = if is_some x then x else y;
 
-fun unprefix_pfun "" s = s
-  | unprefix_pfun prfx s =
-      let val (prfx', s') = strip_prfx s
-      in if prfx = prfx' then s' else s end;
-
 fun check_pfuns_types thy prfx funs =
   Symtab.map (fn s => fn (optty, t) =>
    let val optty' = lookup funs (unprefix_pfun prfx s)
@@ -834,29 +847,54 @@ fun add_proof_fun prep (s, (optty, raw_t)) thy =
        else error ("Undeclared proof function " ^ s))
     end) thy;
 
-fun add_type (s, T as Type (tyname, Ts)) thy =
-      thy |>
-      VCs.map (fn
-          {env = SOME _, ...} => err_unfinished ()
-        | {pfuns, type_map, env} =>
-            {pfuns = pfuns,
-             type_map = Symtab.update_new (s, T) type_map,
-             env = env}
-              handle Symtab.DUP _ => error ("SPARK type " ^ s ^
-                " already associated with type")) |>
-      (fn thy' =>
-         case Datatype.get_constrs thy' tyname of
-           NONE => thy'
-         | SOME cs =>
-             if null Ts then
-               (map
-                  (fn (_, Type (_, [])) => ()
-                    | (cname, _) => assoc_ty_err thy T s
-                        ("has illegal constructor " ^
-                         Long_Name.base_name cname)) cs;
-                add_enum_type s tyname thy')
-             else assoc_ty_err thy T s "is illegal")
-  | add_type (s, T) thy = assoc_ty_err thy T s "is illegal";
+fun check_mapping _ _ [] _ = ()
+  | check_mapping err s cmap cs =
+      (case duplicates (op = o pairself fst) cmap of
+         [] => (case duplicates (op = o pairself snd) cmap of
+             [] => (case subtract (op = o apsnd snd) cs cmap of
+                 [] => (case subtract (op = o apfst snd) cmap cs of
+                     [] => ()
+                   | zs => err ("has extra " ^ s ^ "(s) " ^ commas zs))
+               | zs => err ("does not have " ^ s ^ "(s) " ^
+                   commas (map snd zs)))
+           | zs => error ("Several SPARK names are mapped to " ^
+               commas (map snd zs)))
+       | zs => error ("The SPARK names " ^ commas (map fst zs) ^
+           " are mapped to more than one name"));
+
+fun add_type (s, (T as Type (tyname, Ts), cmap)) thy =
+      let val cmap' = map (apsnd (Sign.intern_const thy)) cmap
+      in
+        thy |>
+        VCs.map (fn
+            {env = SOME _, ...} => err_unfinished ()
+          | {pfuns, type_map, env} =>
+              {pfuns = pfuns,
+               type_map = Symtab.update_new (s, (T, cmap')) type_map,
+               env = env}
+                handle Symtab.DUP _ => error ("SPARK type " ^ s ^
+                  " already associated with type")) |>
+        (fn thy' =>
+           case Datatype.get_constrs thy' tyname of
+             NONE => (case get_record_info thy' T of
+               NONE => thy'
+             | SOME {fields, ...} =>
+                 (check_mapping (assoc_ty_err thy' T s) "field"
+                    cmap' (map fst fields);
+                  thy'))
+           | SOME cs =>
+               if null Ts then
+                 (map
+                    (fn (_, Type (_, [])) => ()
+                      | (cname, _) => assoc_ty_err thy' T s
+                          ("has illegal constructor " ^
+                           Long_Name.base_name cname)) cs;
+                  check_mapping (assoc_ty_err thy' T s) "constructor"
+                    cmap' (map fst cs);
+                  add_enum_type s tyname thy')
+               else assoc_ty_err thy' T s "is illegal")
+      end
+  | add_type (s, (T, _)) thy = assoc_ty_err thy T s "is illegal";
 
 val is_closed = is_none o #env o VCs.get;
 
