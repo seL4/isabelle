@@ -300,7 +300,7 @@ fun gen_theorems prep_fact prep_att prep_vars
       |> Attrib.partial_evaluation ctxt'
       |> Element.transform_facts (Proof_Context.export_morphism ctxt' lthy);
     val (res, lthy') = lthy |> Local_Theory.notes_kind kind facts';
-    val _ = Proof_Display.print_results int lthy' ((kind, ""), res);
+    val _ = Proof_Display.print_results Markup.empty int lthy' ((kind, ""), res);
   in (res, lthy') end;
 
 in
@@ -399,12 +399,12 @@ fun gen_theorem schematic prep_att prep_stmt
               (map2 (fn (b, _) => fn ths => (b, [(ths, [])])) stmt results') lthy;
         val lthy'' =
           if Attrib.is_empty_binding (name, atts) then
-            (Proof_Display.print_results int lthy' ((kind, ""), res); lthy')
+            (Proof_Display.print_results Markup.empty int lthy' ((kind, ""), res); lthy')
           else
             let
               val ([(res_name, _)], lthy'') =
                 Local_Theory.notes_kind kind [((name, atts), [(maps #2 res, [])])] lthy';
-              val _ = Proof_Display.print_results int lthy' ((kind, res_name), res);
+              val _ = Proof_Display.print_results Markup.empty int lthy' ((kind, res_name), res);
             in lthy'' end;
       in after_qed results' lthy'' end;
   in

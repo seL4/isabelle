@@ -299,7 +299,7 @@ fun gen_guess prep_vars raw_vars int state =
 
     val goal = Var (("guess", 0), propT);
     fun print_result ctxt' (k, [(s, [_, th])]) =
-      Proof_Display.print_results int ctxt' (k, [(s, [th])]);
+      Proof_Display.print_results Isabelle_Markup.state int ctxt' (k, [(s, [th])]);
     val before_qed = SOME (Method.primitive_text (Goal.conclude #> Raw_Simplifier.norm_hhf #>
         (fn th => Goal.protect (Conjunction.intr (Drule.mk_term (Thm.cprop_of th)) th))));
     fun after_qed [[_, res]] =
