@@ -34,6 +34,10 @@ Checklist for official releases
     etc/components
     lib/html/library_index_content.template
 
+- test contrib components:
+    x86_64-linux without 32bit C/C++ libraries
+    Mac OS X Leopard
+
 
 Packaging
 =========
