@@ -14,7 +14,8 @@ begin
 
 declare [[metis_new_skolemizer]]
 
-sledgehammer_params [prover = e, blocking, timeout = 10, preplay_timeout = 0]
+sledgehammer_params [prover = spass, blocking, timeout = 30,
+                     preplay_timeout = 0, dont_minimize]
 
 text {* Setup for testing Metis exhaustively *}
 
