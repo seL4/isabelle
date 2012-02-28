@@ -40,8 +40,8 @@ fun add_proof_fun_cmd pf thy =
        Syntax.check_term ctxt) pf thy
   end;
 
-fun add_spark_type_cmd (s, raw_typ) thy =
-  SPARK_VCs.add_type (s, Syntax.read_typ_global thy raw_typ) thy;
+fun add_spark_type_cmd (s, (raw_typ, cmap)) thy =
+  SPARK_VCs.add_type (s, (Syntax.read_typ_global thy raw_typ, cmap)) thy;
 
 fun get_vc thy vc_name =
   (case SPARK_VCs.lookup_vc thy vc_name of
@@ -124,7 +124,9 @@ val _ =
   Outer_Syntax.command "spark_types"
     "associate SPARK types with types"
     Keyword.thy_decl
-    (Scan.repeat1 (Parse.name --| Args.$$$ "=" -- Parse.typ) >>
+    (Scan.repeat1 (Parse.name -- Parse.!!! (Args.$$$ "=" |-- Parse.typ --
+       Scan.optional (Args.parens (Parse.list1
+         (Parse.name -- Parse.!!! (Args.$$$ "=" |-- Parse.xname)))) [])) >>
        (Toplevel.theory o fold add_spark_type_cmd));
 
 val _ =

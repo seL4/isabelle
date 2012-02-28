@@ -43,11 +43,14 @@ variant is useful for introducing proof functions that are shared by several pro
 or packages, whereas the former allows the given term to refer to the types generated
 by \isa{\isacommand{spark\_open}} for record or enumeration types specified in the
 \texttt{*.fdl} file.
-@{rail "@'spark_types' ((name '=' type)+)"}
+@{rail "@'spark_types' ((name '=' type (mapping?))+);
+mapping: '('((name '=' nameref)+',')')'"}
 Associates a \SPARK{} type with the given name with an Isabelle type. This command can
 only be used outside a verification environment. The given type must be either a record
-or a datatype, where the field names and constructors must match those of the corresponding
-\SPARK{} types (modulo casing). This command is useful when having to define
+or a datatype, where the names of fields or constructors must either match those of the
+corresponding \SPARK{} types (modulo casing), or a mapping from \SPARK{} to Isabelle
+names has to be provided.
+This command is useful when having to define
 proof functions referring to record or enumeration types that are shared by several
 procedures or packages. First, the types required by the proof functions can be introduced
 using Isabelle's commands for defining records or datatypes. Having introduced the
