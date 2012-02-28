@@ -17,7 +17,7 @@ proof -
     measure: "\<And>i. \<mu> (A i) \<noteq> \<infinity>" and
     disjoint: "disjoint_family A"
     using disjoint_sigma_finite by auto
-  let "?B i" = "2^Suc i * \<mu> (A i)"
+  let ?B = "\<lambda>i. 2^Suc i * \<mu> (A i)"
   have "\<forall>i. \<exists>x. 0 < x \<and> x < inverse (?B i)"
   proof
     fix i have Ai: "A i \<in> sets M" using range by auto
@@ -28,7 +28,7 @@ proof -
   from choice[OF this] obtain n where n: "\<And>i. 0 < n i"
     "\<And>i. n i < inverse (2^Suc i * \<mu> (A i))" by auto
   { fix i have "0 \<le> n i" using n(1)[of i] by auto } note pos = this
-  let "?h x" = "\<Sum>i. n i * indicator (A i) x"
+  let ?h = "\<lambda>x. \<Sum>i. n i * indicator (A i) x"
   show ?thesis
   proof (safe intro!: bexI[of _ ?h] del: notI)
     have "\<And>i. A i \<in> sets M"
@@ -132,8 +132,8 @@ lemma (in finite_measure) Radon_Nikodym_aux_epsilon:
                     (\<forall>B\<in>sets M. B \<subseteq> A \<longrightarrow> - e < \<mu>' B - finite_measure.\<mu>' (M\<lparr>measure := \<nu>\<rparr>) B)"
 proof -
   interpret M': finite_measure "M\<lparr>measure := \<nu>\<rparr>" by fact
-  let "?d A" = "\<mu>' A - M'.\<mu>' A"
-  let "?A A" = "if (\<forall>B\<in>sets M. B \<subseteq> space M - A \<longrightarrow> -e < ?d B)
+  let ?d = "\<lambda>A. \<mu>' A - M'.\<mu>' A"
+  let ?A = "\<lambda>A. if (\<forall>B\<in>sets M. B \<subseteq> space M - A \<longrightarrow> -e < ?d B)
     then {}
     else (SOME B. B \<in> sets M \<and> B \<subseteq> space M - A \<and> ?d B \<le> -e)"
   def A \<equiv> "\<lambda>n. ((\<lambda>B. B \<union> ?A B) ^^ n) {}"
@@ -247,9 +247,9 @@ lemma (in finite_measure) Radon_Nikodym_aux:
 proof -
   interpret M': finite_measure ?M' where
     "space ?M' = space M" and "sets ?M' = sets M" and "measure ?M' = \<nu>" by fact auto
-  let "?d A" = "\<mu>' A - M'.\<mu>' A"
-  let "?P A B n" = "A \<in> sets M \<and> A \<subseteq> B \<and> ?d B \<le> ?d A \<and> (\<forall>C\<in>sets M. C \<subseteq> A \<longrightarrow> - 1 / real (Suc n) < ?d C)"
-  let "?r S" = "restricted_space S"
+  let ?d = "\<lambda>A. \<mu>' A - M'.\<mu>' A"
+  let ?P = "\<lambda>A B n. A \<in> sets M \<and> A \<subseteq> B \<and> ?d B \<le> ?d A \<and> (\<forall>C\<in>sets M. C \<subseteq> A \<longrightarrow> - 1 / real (Suc n) < ?d C)"
+  let ?r = "\<lambda>S. restricted_space S"
   { fix S n assume S: "S \<in> sets M"
     note r = M'.restricted_finite_measure[of S] restricted_finite_measure[OF S] S
     then have "finite_measure (?r S)" "0 < 1 / real (Suc n)"
@@ -342,7 +342,7 @@ proof -
         (\<integral>\<^isup>+x. g x * indicator (?A \<inter> A) x \<partial>M) +
         (\<integral>\<^isup>+x. f x * indicator ((space M - ?A) \<inter> A) x \<partial>M)"
         using f g sets unfolding G_def
-        by (auto cong: positive_integral_cong intro!: positive_integral_add borel_measurable_indicator)
+        by (auto cong: positive_integral_cong intro!: positive_integral_add)
       also have "\<dots> \<le> \<nu> (?A \<inter> A) + \<nu> ((space M - ?A) \<inter> A)"
         using f g sets unfolding G_def by (auto intro!: add_mono)
       also have "\<dots> = \<nu> A"
@@ -388,9 +388,9 @@ proof -
   qed
   from choice[OF this] obtain gs where "\<And>i. gs i \<in> G" "\<And>n. integral\<^isup>P M (gs n) = ys n" by auto
   hence y_eq: "?y = (SUP i. integral\<^isup>P M (gs i))" using ys by auto
-  let "?g i x" = "Max ((\<lambda>n. gs n x) ` {..i})"
+  let ?g = "\<lambda>i x. Max ((\<lambda>n. gs n x) ` {..i})"
   def f \<equiv> "\<lambda>x. SUP i. ?g i x"
-  let "?F A x" = "f x * indicator A x"
+  let ?F = "\<lambda>A x. f x * indicator A x"
   have gs_not_empty: "\<And>i x. (\<lambda>n. gs n x) ` {..i} \<noteq> {}" by auto
   { fix i have "?g i \<in> G"
     proof (induct i)
@@ -420,7 +420,7 @@ proof -
   have "\<And>x. 0 \<le> f x"
     unfolding f_def using `\<And>i. gs i \<in> G`
     by (auto intro!: SUP_upper2 Max_ge_iff[THEN iffD2] simp: G_def)
-  let "?t A" = "\<nu> A - (\<integral>\<^isup>+x. ?F A x \<partial>M)"
+  let ?t = "\<lambda>A. \<nu> A - (\<integral>\<^isup>+x. ?F A x \<partial>M)"
   let ?M = "M\<lparr> measure := ?t\<rparr>"
   interpret M: sigma_algebra ?M
     by (intro sigma_algebra_cong) auto
@@ -522,7 +522,7 @@ proof -
         using M'.finite_measure b finite_measure M.positive_measure[OF B(1)]
         by (cases rule: ereal2_cases[of "?t B" "b * \<mu> B"]) auto }
     note bM_le_t = this
-    let "?f0 x" = "f x + b * indicator A0 x"
+    let ?f0 = "\<lambda>x. f x + b * indicator A0 x"
     { fix A assume A: "A \<in> sets M"
       hence "A \<inter> A0 \<in> sets M" using `A0 \<in> sets M` by auto
       have "(\<integral>\<^isup>+x. ?f0 x  * indicator A x \<partial>M) =
@@ -550,8 +550,7 @@ proof -
         by (cases "\<integral>\<^isup>+x. ?F A x \<partial>M", cases "\<nu> A") auto
       finally have "(\<integral>\<^isup>+x. ?f0 x * indicator A x \<partial>M) \<le> \<nu> A" . }
     hence "?f0 \<in> G" using `A0 \<in> sets M` b `f \<in> G` unfolding G_def
-      by (auto intro!: borel_measurable_indicator borel_measurable_ereal_add
-                       borel_measurable_ereal_times ereal_add_nonneg_nonneg)
+      by (auto intro!: ereal_add_nonneg_nonneg)
     have real: "?t (space M) \<noteq> \<infinity>" "?t A0 \<noteq> \<infinity>"
       "b * \<mu> (space M) \<noteq> \<infinity>" "b * \<mu> A0 \<noteq> \<infinity>"
       using `A0 \<in> sets M` b
@@ -633,7 +632,7 @@ proof -
   have "{} \<in> ?Q" using v.empty_measure by auto
   then have Q_not_empty: "?Q \<noteq> {}" by blast
   have "?a \<le> \<mu> (space M)" using sets_into_space
-    by (auto intro!: SUP_least measure_mono top)
+    by (auto intro!: SUP_least measure_mono)
   then have "?a \<noteq> \<infinity>" using finite_measure_of_space
     by auto
   from SUPR_countable_SUPR[OF Q_not_empty, of \<mu>]
@@ -643,7 +642,7 @@ proof -
   from choice[OF this] obtain Q' where Q': "\<And>i. Q'' i = \<mu> (Q' i)" "\<And>i. Q' i \<in> ?Q"
     by auto
   then have a_Lim: "?a = (SUP i::nat. \<mu> (Q' i))" using a by simp
-  let "?O n" = "\<Union>i\<le>n. Q' i"
+  let ?O = "\<lambda>n. \<Union>i\<le>n. Q' i"
   have Union: "(SUP i. \<mu> (?O i)) = \<mu> (\<Union>i. ?O i)"
   proof (rule continuity_from_below[of ?O])
     show "range ?O \<subseteq> sets M" using Q' by (auto intro!: finite_UN)
@@ -675,7 +674,7 @@ proof -
         using O_in_G[of i] by (auto intro!: exI[of _ "?O i"])
     qed
   qed
-  let "?O_0" = "(\<Union>i. ?O i)"
+  let ?O_0 = "(\<Union>i. ?O i)"
   have "?O_0 \<in> sets M" using Q' by auto
   def Q \<equiv> "\<lambda>i. case i of 0 \<Rightarrow> Q' 0 | Suc n \<Rightarrow> ?O (Suc n) - ?O n"
   { fix i have "Q i \<in> sets M" unfolding Q_def using Q'[of 0] by (cases i) (auto intro: O_sets) }
@@ -710,10 +709,9 @@ proof -
             fix i have "?O i \<union> A \<in> ?Q"
             proof (safe del: notI)
               show "?O i \<union> A \<in> sets M" using O_sets A by auto
-              from O_in_G[of i]
-              moreover have "\<nu> (?O i \<union> A) \<le> \<nu> (?O i) + \<nu> A"
+              from O_in_G[of i] have "\<nu> (?O i \<union> A) \<le> \<nu> (?O i) + \<nu> A"
                 using v.measure_subadditive[of "?O i" A] A O_sets by auto
-              ultimately show "\<nu> (?O i \<union> A) \<noteq> \<infinity>"
+              with O_in_G[of i] show "\<nu> (?O i \<union> A) \<noteq> \<infinity>"
                 using `\<nu> A \<noteq> \<infinity>` by auto
             qed
             then show "\<mu> (?O i \<union> A) \<le> ?a" by (rule SUP_upper)
@@ -800,7 +798,7 @@ proof -
     and f: "\<And>A i. A \<in> sets M \<Longrightarrow>
       \<nu> (Q i \<inter> A) = (\<integral>\<^isup>+x. f i x * indicator (Q i \<inter> A) x \<partial>M)"
     by auto
-  let "?f x" = "(\<Sum>i. f i x * indicator (Q i) x) + \<infinity> * indicator Q0 x"
+  let ?f = "\<lambda>x. (\<Sum>i. f i x * indicator (Q i) x) + \<infinity> * indicator Q0 x"
   show ?thesis
   proof (safe intro!: bexI[of _ ?f])
     show "?f \<in> borel_measurable M" using Q0 borel Q_sets
@@ -850,7 +848,7 @@ proof -
     nn: "\<And>x. 0 \<le> h x" and
     pos: "\<And>x. x \<in> space M \<Longrightarrow> 0 < h x" and
     "\<And>x. x \<in> space M \<Longrightarrow> h x < \<infinity>" by auto
-  let "?T A" = "(\<integral>\<^isup>+x. h x * indicator A x \<partial>M)"
+  let ?T = "\<lambda>A. (\<integral>\<^isup>+x. h x * indicator A x \<partial>M)"
   let ?MT = "M\<lparr> measure := ?T \<rparr>"
   interpret T: finite_measure ?MT
     where "space ?MT = space M" and "sets ?MT = sets M" and "measure ?MT = ?T"
@@ -872,7 +870,7 @@ proof -
   show ?thesis
   proof (safe intro!: bexI[of _ "\<lambda>x. h x * f x"])
     show "(\<lambda>x. h x * f x) \<in> borel_measurable M"
-      using borel f_borel by (auto intro: borel_measurable_ereal_times)
+      using borel f_borel by auto
     show "\<And>x. 0 \<le> h x * f x" using nn f_borel by auto
     fix A assume "A \<in> sets M"
     then show "\<nu> A = (\<integral>\<^isup>+x. h x * f x * indicator A x \<partial>M)"
@@ -933,8 +931,8 @@ lemma (in finite_measure) density_unique_finite_measure:
     (is "\<And>A. A \<in> sets M \<Longrightarrow> ?P f A = ?P f' A")
   shows "AE x. f x = f' x"
 proof -
-  let "?\<nu> A" = "?P f A" and "?\<nu>' A" = "?P f' A"
-  let "?f A x" = "f x * indicator A x" and "?f' A x" = "f' x * indicator A x"
+  let ?\<nu> = "\<lambda>A. ?P f A" and ?\<nu>' = "\<lambda>A. ?P f' A"
+  let ?f = "\<lambda>A x. f x * indicator A x" and ?f' = "\<lambda>A x. f' x * indicator A x"
   interpret M: measure_space "M\<lparr> measure := ?\<nu>\<rparr>"
     using borel(1) pos(1) by (rule measure_space_density) simp
   have ac: "absolutely_continuous ?\<nu>"
@@ -957,7 +955,7 @@ proof -
   proof (rule AE_I')
     { fix f :: "'a \<Rightarrow> ereal" assume borel: "f \<in> borel_measurable M"
         and eq: "\<And>A. A \<in> sets M \<Longrightarrow> ?\<nu> A = (\<integral>\<^isup>+x. f x * indicator A x \<partial>M)"
-      let "?A i" = "Q0 \<inter> {x \<in> space M. f x < (i::nat)}"
+      let ?A = "\<lambda>i. Q0 \<inter> {x \<in> space M. f x < (i::nat)}"
       have "(\<Union>i. ?A i) \<in> null_sets"
       proof (rule null_sets_UN)
         fix i ::nat have "?A i \<in> sets M"
@@ -1079,7 +1077,7 @@ next
     apply (rule_tac Int)
     by (cases i) (auto intro: measurable_sets[OF f(1)]) }
   note A_in_sets = this
-  let "?A n" = "case prod_decode n of (i,j) \<Rightarrow> A i \<inter> Q j"
+  let ?A = "\<lambda>n. case prod_decode n of (i,j) \<Rightarrow> A i \<inter> Q j"
   show "sigma_finite_measure ?N"
   proof (default, intro exI conjI subsetI allI)
     fix x assume "x \<in> range ?A"

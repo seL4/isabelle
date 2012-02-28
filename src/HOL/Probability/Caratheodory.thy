@@ -223,7 +223,7 @@ proof -
     by (metis Diff_Un Un compl_sets lambda_system_sets xl yl)
   moreover
   have "x \<union> y = space M - ((space M - x) \<inter> (space M - y))"
-    by auto  (metis subsetD lambda_system_sets sets_into_space xl yl)+
+    by auto (metis subsetD lambda_system_sets sets_into_space xl yl)+
   ultimately show ?thesis
     by (metis lambda_system_Compl lambda_system_Int xl yl)
 qed
@@ -666,7 +666,7 @@ lemma (in ring_of_sets) inf_measure_countably_subadditive:
                   (\<lambda>x. Inf (measure_set M f x))"
 proof (simp add: countably_subadditive_def, safe)
   fix A :: "nat \<Rightarrow> 'a set"
-  let "?outer B" = "Inf (measure_set M f B)"
+  let ?outer = "\<lambda>B. Inf (measure_set M f B)"
   assume A: "range A \<subseteq> Pow (space M)"
      and disj: "disjoint_family A"
      and sb: "(\<Union>i. A i) \<subseteq> space M"

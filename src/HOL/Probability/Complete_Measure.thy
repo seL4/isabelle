@@ -203,7 +203,7 @@ lemma (in completeable_measure_space) completion_ex_simple_function:
   assumes f: "simple_function completion f"
   shows "\<exists>f'. simple_function M f' \<and> (AE x. f x = f' x)"
 proof -
-  let "?F x" = "f -` {x} \<inter> space M"
+  let ?F = "\<lambda>x. f -` {x} \<inter> space M"
   have F: "\<And>x. ?F x \<in> sets completion" and fin: "finite (f`space M)"
     using completion.simple_functionD[OF f]
       completion.simple_functionD[OF f] by simp_all
@@ -211,7 +211,8 @@ proof -
     using F null_part by auto
   from choice[OF this] obtain N where
     N: "\<And>x. null_part (?F x) \<subseteq> N x" "\<And>x. N x \<in> null_sets" by auto
-  let ?N = "\<Union>x\<in>f`space M. N x" let "?f' x" = "if x \<in> ?N then undefined else f x"
+  let ?N = "\<Union>x\<in>f`space M. N x"
+  let ?f' = "\<lambda>x. if x \<in> ?N then undefined else f x"
   have sets: "?N \<in> null_sets" using N fin by (intro nullsets.finite_UN) auto
   show ?thesis unfolding simple_function_def
   proof (safe intro!: exI[of _ ?f'])

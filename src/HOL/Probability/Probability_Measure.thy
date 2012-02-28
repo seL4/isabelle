@@ -380,7 +380,7 @@ lemma (in prob_space) jensens_inequality:
   assumes q: "integrable M (\<lambda>x. q (X x))" "convex_on I q"
   shows "q (expectation X) \<le> expectation (\<lambda>x. q (X x))"
 proof -
-  let "?F x" = "Inf ((\<lambda>t. (q x - q t) / (x - t)) ` ({x<..} \<inter> I))"
+  let ?F = "\<lambda>x. Inf ((\<lambda>t. (q x - q t) / (x - t)) ` ({x<..} \<inter> I))"
   from not_empty X(2) have "I \<noteq> {}" by auto
 
   from I have "open I" by auto
@@ -741,7 +741,7 @@ lemma (in prob_space) setsum_joint_distribution:
 proof (subst finite_measure_finite_Union[symmetric])
   interpret MX: finite_sigma_algebra MX using X by auto
   show "finite (space MX)" using MX.finite_space .
-  let "?d i" = "(\<lambda>x. (X x, Y x)) -` ({i} \<times> B) \<inter> space M"
+  let ?d = "\<lambda>i. (\<lambda>x. (X x, Y x)) -` ({i} \<times> B) \<inter> space M"
   { fix i assume "i \<in> space MX"
     moreover have "?d i = (X -` {i} \<inter> space M) \<inter> (Y -` B \<inter> space M)" by auto
     ultimately show "?d i \<in> events"

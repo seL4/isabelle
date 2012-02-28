@@ -170,7 +170,7 @@ lemma (in pair_sigma_algebra) sets_pair_sigma_algebra_swap:
   assumes Q: "Q \<in> sets P"
   shows "(\<lambda>(x,y). (y, x)) -` Q \<in> sets (M2 \<Otimes>\<^isub>M M1)" (is "_ \<in> sets ?Q")
 proof -
-  let "?f Q" = "(\<lambda>(x,y). (y, x)) -` Q \<inter> space M2 \<times> space M1"
+  let ?f = "\<lambda>Q. (\<lambda>(x,y). (y, x)) -` Q \<inter> space M2 \<times> space M1"
   have *: "(\<lambda>(x,y). (y, x)) -` Q = ?f Q"
     using sets_into_space[OF Q] by (auto simp: space_pair_measure)
   have "sets (M2 \<Otimes>\<^isub>M M1) = sets (sigma (pair_measure_generator M2 M1))"
@@ -325,7 +325,7 @@ proof -
   have M1: "sigma_finite_measure M1" by default
   from M2.disjoint_sigma_finite guess F .. note F = this
   then have F_sets: "\<And>i. F i \<in> sets M2" by auto
-  let "?C x i" = "F i \<inter> Pair x -` Q"
+  let ?C = "\<lambda>x i. F i \<inter> Pair x -` Q"
   { fix i
     let ?R = "M2.restricted_space (F i)"
     have [simp]: "space M1 \<times> F i \<inter> space M1 \<times> space M2 = space M1 \<times> F i"
@@ -607,8 +607,8 @@ lemma (in pair_sigma_finite) simple_function_cut:
 proof -
   have f_borel: "f \<in> borel_measurable P"
     using f(1) by (rule borel_measurable_simple_function)
-  let "?F z" = "f -` {z} \<inter> space P"
-  let "?F' x z" = "Pair x -` ?F z"
+  let ?F = "\<lambda>z. f -` {z} \<inter> space P"
+  let ?F' = "\<lambda>x z. Pair x -` ?F z"
   { fix x assume "x \<in> space M1"
     have [simp]: "\<And>z y. indicator (?F z) (x, y) = indicator (?F' x z) y"
       by (auto simp: indicator_def)
@@ -819,7 +819,7 @@ lemma (in pair_sigma_finite) integrable_fst_measurable:
   shows "M1.almost_everywhere (\<lambda>x. integrable M2 (\<lambda> y. f (x, y)))" (is "?AE")
     and "(\<integral>x. (\<integral>y. f (x, y) \<partial>M2) \<partial>M1) = integral\<^isup>L P f" (is "?INT")
 proof -
-  let "?pf x" = "ereal (f x)" and "?nf x" = "ereal (- f x)"
+  let ?pf = "\<lambda>x. ereal (f x)" and ?nf = "\<lambda>x. ereal (- f x)"
   have
     borel: "?nf \<in> borel_measurable P""?pf \<in> borel_measurable P" and
     int: "integral\<^isup>P P ?nf \<noteq> \<infinity>" "integral\<^isup>P P ?pf \<noteq> \<infinity>"

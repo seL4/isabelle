@@ -748,8 +748,8 @@ lemma (in information_space) entropy_generic_eq:
 proof -
   interpret MX: finite_prob_space "MX\<lparr>measure := ereal\<circ>distribution X\<rparr>"
     using MX by (rule distribution_finite_prob_space)
-  let "?X x" = "distribution X {x}"
-  let "?XX x y" = "joint_distribution X X {(x, y)}"
+  let ?X = "\<lambda>x. distribution X {x}"
+  let ?XX = "\<lambda>x y. joint_distribution X X {(x, y)}"
 
   { fix x y :: 'c
     { assume "x \<noteq> y"
@@ -803,7 +803,7 @@ lemma (in information_space) entropy_le_card_not_0:
   assumes X: "simple_function M X"
   shows "\<H>(X) \<le> log b (card (X ` space M \<inter> {x. distribution X {x} \<noteq> 0}))"
 proof -
-  let "?p x" = "distribution X {x}"
+  let ?p = "\<lambda>x. distribution X {x}"
   have "\<H>(X) = (\<Sum>x\<in>X`space M. ?p x * log b (1 / ?p x))"
     unfolding entropy_eq[OF X] setsum_negf[symmetric]
     by (auto intro!: setsum_cong simp: log_simps)
@@ -1117,10 +1117,10 @@ lemma (in information_space) conditional_entropy_generic_eq:
 proof -
   interpret MX: finite_sigma_algebra MX using MX by simp
   interpret MZ: finite_sigma_algebra MZ using MZ by simp
-  let "?XXZ x y z" = "joint_distribution X (\<lambda>x. (X x, Z x)) {(x, y, z)}"
-  let "?XZ x z" = "joint_distribution X Z {(x, z)}"
-  let "?Z z" = "distribution Z {z}"
-  let "?f x y z" = "log b (?XXZ x y z * ?Z z / (?XZ x z * ?XZ y z))"
+  let ?XXZ = "\<lambda>x y z. joint_distribution X (\<lambda>x. (X x, Z x)) {(x, y, z)}"
+  let ?XZ = "\<lambda>x z. joint_distribution X Z {(x, z)}"
+  let ?Z = "\<lambda>z. distribution Z {z}"
+  let ?f = "\<lambda>x y z. log b (?XXZ x y z * ?Z z / (?XZ x z * ?XZ y z))"
   { fix x z have "?XXZ x x z = ?XZ x z"
       unfolding distribution_def by (auto intro!: arg_cong[where f=\<mu>']) }
   note this[simp]
@@ -1183,9 +1183,9 @@ lemma (in information_space) mutual_information_eq_entropy_conditional_entropy:
   assumes X: "simple_function M X" and Z: "simple_function M Z"
   shows  "\<I>(X ; Z) = \<H>(X) - \<H>(X | Z)"
 proof -
-  let "?XZ x z" = "joint_distribution X Z {(x, z)}"
-  let "?Z z" = "distribution Z {z}"
-  let "?X x" = "distribution X {x}"
+  let ?XZ = "\<lambda>x z. joint_distribution X Z {(x, z)}"
+  let ?Z = "\<lambda>z. distribution Z {z}"
+  let ?X = "\<lambda>x. distribution X {x}"
   note fX = X[THEN simple_function_imp_finite_random_variable]
   note fZ = Z[THEN simple_function_imp_finite_random_variable]
   note finite_distribution_order[OF fX fZ, simp]
@@ -1214,9 +1214,9 @@ lemma (in information_space) entropy_chain_rule:
   assumes X: "simple_function M X" and Y: "simple_function M Y"
   shows  "\<H>(\<lambda>x. (X x, Y x)) = \<H>(X) + \<H>(Y|X)"
 proof -
-  let "?XY x y" = "joint_distribution X Y {(x, y)}"
-  let "?Y y" = "distribution Y {y}"
-  let "?X x" = "distribution X {x}"
+  let ?XY = "\<lambda>x y. joint_distribution X Y {(x, y)}"
+  let ?Y = "\<lambda>y. distribution Y {y}"
+  let ?X = "\<lambda>x. distribution X {x}"
   note fX = X[THEN simple_function_imp_finite_random_variable]
   note fY = Y[THEN simple_function_imp_finite_random_variable]
   note finite_distribution_order[OF fX fY, simp]
@@ -1352,9 +1352,9 @@ lemma (in information_space) entropy_partition:
   assumes svi: "subvimage (space M) X P"
   shows "\<H>(X) = \<H>(P) + \<H>(X|P)"
 proof -
-  let "?XP x p" = "joint_distribution X P {(x, p)}"
-  let "?X x" = "distribution X {x}"
-  let "?P p" = "distribution P {p}"
+  let ?XP = "\<lambda>x p. joint_distribution X P {(x, p)}"
+  let ?X = "\<lambda>x. distribution X {x}"
+  let ?P = "\<lambda>p. distribution P {p}"
   note fX = sf(1)[THEN simple_function_imp_finite_random_variable]
   note fP = sf(2)[THEN simple_function_imp_finite_random_variable]
   note finite_distribution_order[OF fX fP, simp]

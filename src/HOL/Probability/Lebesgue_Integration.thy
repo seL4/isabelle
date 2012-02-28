@@ -331,7 +331,7 @@ proof -
     "\<And>i x. real (f x i) = (if real i \<le> u x then i * 2 ^ i else real (natfloor (real (u x) * 2 ^ i)))"
     unfolding f_def by auto
 
-  let "?g j x" = "real (f x j) / 2^j :: ereal"
+  let ?g = "\<lambda>j x. real (f x j) / 2^j :: ereal"
   show ?thesis
   proof (intro exI[of _ ?g] conjI allI ballI)
     fix i
@@ -567,7 +567,7 @@ lemma (in measure_space) simple_function_partition:
   shows "integral\<^isup>S M f = (\<Sum>A\<in>(\<lambda>x. f -` {f x} \<inter> g -` {g x} \<inter> space M) ` space M. the_elem (f`A) * \<mu> A)"
     (is "_ = setsum _ (?p ` space M)")
 proof-
-  let "?sub x" = "?p ` (f -` {x} \<inter> space M)"
+  let ?sub = "\<lambda>x. ?p ` (f -` {x} \<inter> space M)"
   let ?SIGMA = "Sigma (f`space M) ?sub"
 
   have [intro]:
@@ -659,7 +659,7 @@ lemma (in measure_space) simple_integral_mono_AE:
   and mono: "AE x. f x \<le> g x"
   shows "integral\<^isup>S M f \<le> integral\<^isup>S M g"
 proof -
-  let "?S x" = "(g -` {g x} \<inter> space M) \<inter> (f -` {f x} \<inter> space M)"
+  let ?S = "\<lambda>x. (g -` {g x} \<inter> space M) \<inter> (f -` {f x} \<inter> space M)"
   have *: "\<And>x. g -` {g x} \<inter> f -` {f x} \<inter> space M = ?S x"
     "\<And>x. f -` {f x} \<inter> g -` {g x} \<inter> space M = ?S x" by auto
   show ?thesis
@@ -899,7 +899,7 @@ proof (safe intro!: antisym SUP_least)
   let ?G = "{x \<in> space M. \<not> g x \<noteq> \<infinity>}"
   note gM = g(1)[THEN borel_measurable_simple_function]
   have \<mu>G_pos: "0 \<le> \<mu> ?G" using gM by auto
-  let "?g y x" = "if g x = \<infinity> then y else max 0 (g x)"
+  let ?g = "\<lambda>y x. if g x = \<infinity> then y else max 0 (g x)"
   from g gM have g_in_A: "\<And>y. 0 \<le> y \<Longrightarrow> y \<noteq> \<infinity> \<Longrightarrow> ?g y \<in> ?A"
     apply (safe intro!: simple_function_max simple_function_If)
     apply (force simp: max_def le_fun_def split: split_if_asm)+
@@ -941,7 +941,7 @@ proof (safe intro!: SUP_mono)
   fix n assume n: "simple_function M n" "n \<le> max 0 \<circ> u"
   from ae[THEN AE_E] guess N . note N = this
   then have ae_N: "AE x. x \<notin> N" by (auto intro: AE_not_in)
-  let "?n x" = "n x * indicator (space M - N) x"
+  let ?n = "\<lambda>x. n x * indicator (space M - N) x"
   have "AE x. n x \<le> ?n x" "simple_function M ?n"
     using n N ae_N by auto
   moreover
@@ -974,7 +974,7 @@ lemma (in measure_space) positive_integral_cong:
 lemma (in measure_space) positive_integral_eq_simple_integral:
   assumes f: "simple_function M f" "\<And>x. 0 \<le> f x" shows "integral\<^isup>P M f = integral\<^isup>S M f"
 proof -
-  let "?f x" = "f x * indicator (space M) x"
+  let ?f = "\<lambda>x. f x * indicator (space M) x"
   have f': "simple_function M ?f" using f by auto
   with f(2) have [simp]: "max 0 \<circ> ?f = ?f"
     by (auto simp: fun_eq_iff max_def split: split_indicator)
@@ -1010,11 +1010,11 @@ proof (rule ereal_le_mult_one_interval)
     using u(3) by auto
   fix a :: ereal assume "0 < a" "a < 1"
   hence "a \<noteq> 0" by auto
-  let "?B i" = "{x \<in> space M. a * u x \<le> f i x}"
+  let ?B = "\<lambda>i. {x \<in> space M. a * u x \<le> f i x}"
   have B: "\<And>i. ?B i \<in> sets M"
     using f `simple_function M u` by (auto simp: borel_measurable_simple_function)
 
-  let "?uB i x" = "u x * indicator (?B i) x"
+  let ?uB = "\<lambda>i x. u x * indicator (?B i) x"
 
   { fix i have "?B i \<subseteq> ?B (Suc i)"
     proof safe
@@ -1027,7 +1027,7 @@ proof (rule ereal_le_mult_one_interval)
 
   note B_u = Int[OF u(1)[THEN simple_functionD(2)] B]
 
-  let "?B' i n" = "(u -` {i} \<inter> space M) \<inter> ?B n"
+  let ?B' = "\<lambda>i n. (u -` {i} \<inter> space M) \<inter> ?B n"
   have measure_conv: "\<And>i. \<mu> (u -` {i} \<inter> space M) = (SUP n. \<mu> (?B' i n))"
   proof -
     fix i
@@ -1126,7 +1126,7 @@ proof -
   from f have "AE x. \<forall>i. f i x \<le> f (Suc i) x \<and> 0 \<le> f i x"
     by (simp add: AE_all_countable)
   from this[THEN AE_E] guess N . note N = this
-  let "?f i x" = "if x \<in> space M - N then f i x else 0"
+  let ?f = "\<lambda>i x. if x \<in> space M - N then f i x else 0"
   have f_eq: "AE x. \<forall>i. ?f i x = f i x" using N by (auto intro!: AE_I[of _ N])
   then have "(\<integral>\<^isup>+ x. (SUP i. f i x) \<partial>M) = (\<integral>\<^isup>+ x. (SUP i. ?f i x) \<partial>M)"
     by (auto intro!: positive_integral_cong_AE)
@@ -1202,7 +1202,7 @@ proof -
   interpret T: measure_space M' by (rule measure_space_vimage[OF T])
   from T.borel_measurable_implies_simple_function_sequence'[OF f]
   guess f' . note f' = this
-  let "?f i x" = "f' i (T x)"
+  let ?f = "\<lambda>i x. f' i (T x)"
   have inc: "incseq ?f" using f' by (force simp: le_fun_def incseq_def)
   have sup: "\<And>x. (SUP i. ?f i x) = max 0 (f (T x))"
     using f'(4) .
@@ -1225,7 +1225,7 @@ proof -
   note u = positive_integral_monotone_convergence_simple[OF this(2,5,1)] this
   from borel_measurable_implies_simple_function_sequence'[OF g(1)] guess v .
   note v = positive_integral_monotone_convergence_simple[OF this(2,5,1)] this
-  let "?L' i x" = "a * u i x + v i x"
+  let ?L' = "\<lambda>i x. a * u i x + v i x"
 
   have "?L \<in> borel_measurable M" using assms by auto
   from borel_measurable_implies_simple_function_sequence'[OF this] guess l .
@@ -1494,7 +1494,7 @@ proof -
   from G(4) g(2) have G_M': "AE x in M'. (SUP i. G i x) = g x"
     by (auto intro!: ac split: split_max)
   { fix i
-    let "?I y x" = "indicator (G i -` {y} \<inter> space M) x"
+    let ?I = "\<lambda>y x. indicator (G i -` {y} \<inter> space M) x"
     { fix x assume *: "x \<in> space M" "0 \<le> f x" "0 \<le> g x"
       then have [simp]: "G i ` space M \<inter> {y. G i x = y \<and> x \<in> space M} = {G i x}" by auto
       from * G' G have "(\<Sum>y\<in>G i`space M. y * (f x * ?I y x)) = f x * (\<Sum>y\<in>G i`space M. (y * ?I y x))"
@@ -1546,7 +1546,7 @@ proof -
       then have "0 \<le> r" by (auto simp add: ereal_zero_less_0_iff) }
     note gt_1 = this
     assume *: "integral\<^isup>P M u = 0"
-    let "?M n" = "{x \<in> space M. 1 \<le> real (n::nat) * u x}"
+    let ?M = "\<lambda>n. {x \<in> space M. 1 \<le> real (n::nat) * u x}"
     have "0 = (SUP n. \<mu> (?M n \<inter> ?A))"
     proof -
       { fix n :: nat
@@ -1618,7 +1618,7 @@ lemma (in measure_space) positive_integral_restricted:
 proof -
   interpret R: measure_space ?R
     by (rule restricted_measure_space) fact
-  let "?I g x" = "g x * indicator A x :: ereal"
+  let ?I = "\<lambda>g x. g x * indicator A x :: ereal"
   show ?thesis
     unfolding positive_integral_def
     unfolding simple_function_restricted[OF A]
@@ -1846,10 +1846,10 @@ lemma (in measure_space) integral_of_positive_diff:
   and f_def: "\<And>x. f x = u x - v x" and pos: "\<And>x. 0 \<le> u x" "\<And>x. 0 \<le> v x"
   shows "integrable M f" and "integral\<^isup>L M f = integral\<^isup>L M u - integral\<^isup>L M v"
 proof -
-  let "?f x" = "max 0 (ereal (f x))"
-  let "?mf x" = "max 0 (ereal (- f x))"
-  let "?u x" = "max 0 (ereal (u x))"
-  let "?v x" = "max 0 (ereal (v x))"
+  let ?f = "\<lambda>x. max 0 (ereal (f x))"
+  let ?mf = "\<lambda>x. max 0 (ereal (- f x))"
+  let ?u = "\<lambda>x. max 0 (ereal (u x))"
+  let ?v = "\<lambda>x. max 0 (ereal (v x))"
 
   from borel_measurable_diff[of u v] integrable
   have f_borel: "?f \<in> borel_measurable M" and
@@ -1886,12 +1886,12 @@ lemma (in measure_space) integral_linear:
   shows "integrable M (\<lambda>t. a * f t + g t)"
   and "(\<integral> t. a * f t + g t \<partial>M) = a * integral\<^isup>L M f + integral\<^isup>L M g" (is ?EQ)
 proof -
-  let "?f x" = "max 0 (ereal (f x))"
-  let "?g x" = "max 0 (ereal (g x))"
-  let "?mf x" = "max 0 (ereal (- f x))"
-  let "?mg x" = "max 0 (ereal (- g x))"
-  let "?p t" = "max 0 (a * f t) + max 0 (g t)"
-  let "?n t" = "max 0 (- (a * f t)) + max 0 (- g t)"
+  let ?f = "\<lambda>x. max 0 (ereal (f x))"
+  let ?g = "\<lambda>x. max 0 (ereal (g x))"
+  let ?mf = "\<lambda>x. max 0 (ereal (- f x))"
+  let ?mg = "\<lambda>x. max 0 (ereal (- g x))"
+  let ?p = "\<lambda>t. max 0 (a * f t) + max 0 (g t)"
+  let ?n = "\<lambda>t. max 0 (- (a * f t)) + max 0 (- g t)"
 
   from assms have linear:
     "(\<integral>\<^isup>+ x. ereal a * ?f x + ?g x \<partial>M) = ereal a * integral\<^isup>P M ?f + integral\<^isup>P M ?g"
@@ -2353,7 +2353,7 @@ proof -
     show "\<bar>u' x\<bar> \<le> w x" using u'_bound[OF x] .
   qed
 
-  let "?diff n x" = "2 * w x - \<bar>u n x - u' x\<bar>"
+  let ?diff = "\<lambda>n x. 2 * w x - \<bar>u n x - u' x\<bar>"
   have diff: "\<And>n. integrable M (\<lambda>x. \<bar>u n x - u' x\<bar>)"
     using w u `integrable M u'`
     by (auto intro!: integral_add integral_diff integral_cmult integrable_abs)
@@ -2468,7 +2468,7 @@ proof -
   from bchoice[OF this]
   obtain w where w: "\<And>x. x \<in> space M \<Longrightarrow> (\<lambda>i. \<bar>f i x\<bar>) sums w x" by auto
 
-  let "?w y" = "if y \<in> space M then w y else 0"
+  let ?w = "\<lambda>y. if y \<in> space M then w y else 0"
 
   obtain x where abs_sum: "(\<lambda>i. (\<integral>x. \<bar>f i x\<bar> \<partial>M)) sums x"
     using sums unfolding summable_def ..
@@ -2484,8 +2484,8 @@ proof -
 
   have 3: "integrable M ?w"
   proof (rule integral_monotone_convergence(1))
-    let "?F n y" = "(\<Sum>i = 0..<n. \<bar>f i y\<bar>)"
-    let "?w' n y" = "if y \<in> space M then ?F n y else 0"
+    let ?F = "\<lambda>n y. (\<Sum>i = 0..<n. \<bar>f i y\<bar>)"
+    let ?w' = "\<lambda>n y. if y \<in> space M then ?F n y else 0"
     have "\<And>n. integrable M (?F n)"
       using borel by (auto intro!: integral_setsum integrable_abs)
     thus "\<And>n. integrable M (?w' n)" by (simp cong: integrable_cong)
@@ -2522,8 +2522,8 @@ lemma (in measure_space) integral_on_countable:
   shows "integrable M f"
   and "(\<lambda>r. enum r * real (\<mu> (f -` {enum r} \<inter> space M))) sums integral\<^isup>L M f" (is ?sums)
 proof -
-  let "?A r" = "f -` {enum r} \<inter> space M"
-  let "?F r x" = "enum r * indicator (?A r) x"
+  let ?A = "\<lambda>r. f -` {enum r} \<inter> space M"
+  let ?F = "\<lambda>r x. enum r * indicator (?A r) x"
   have enum_eq: "\<And>r. enum r * real (\<mu> (?A r)) = integral\<^isup>L M (?F r)"
     using f fin by (simp add: borel_measurable_vimage integral_cmul_indicator)
 
@@ -2579,8 +2579,8 @@ lemma (in measure_space) integral_on_finite:
   and "(\<integral>x. f x \<partial>M) =
     (\<Sum> r \<in> f`space M. r * real (\<mu> (f -` {r} \<inter> space M)))" (is "?integral")
 proof -
-  let "?A r" = "f -` {r} \<inter> space M"
-  let "?S x" = "\<Sum>r\<in>f`space M. r * indicator (?A r) x"
+  let ?A = "\<lambda>r. f -` {r} \<inter> space M"
+  let ?S = "\<lambda>x. \<Sum>r\<in>f`space M. r * indicator (?A r) x"
 
   { fix x assume "x \<in> space M"
     have "f x = (\<Sum>r\<in>f`space M. if x \<in> ?A r then r else 0)"

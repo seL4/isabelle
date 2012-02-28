@@ -439,7 +439,7 @@ lemma (in measure_space) measure_finitely_subadditive:
   shows "\<mu> (\<Union>i\<in>I. A i) \<le> (\<Sum>i\<in>I. \<mu> (A i))"
 using assms proof induct
   case (insert i I)
-  then have "(\<Union>i\<in>I. A i) \<in> sets M" by (auto intro: finite_UN)
+  then have "(\<Union>i\<in>I. A i) \<in> sets M" by auto
   then have "\<mu> (\<Union>i\<in>insert i I. A i) \<le> \<mu> (A i) + \<mu> (\<Union>i\<in>I. A i)"
     using insert by (simp add: measure_subadditive)
   also have "\<dots> \<le> (\<Sum>i\<in>insert i I. \<mu> (A i))"
@@ -458,7 +458,7 @@ proof -
     by (simp add:  disjoint_family_disjointed comp_def)
   also have "\<dots> \<le> (\<Sum>i. \<mu> (f i))"
     using range_disjointed_sets[OF assms] assms
-    by (auto intro!: suminf_le_pos measure_mono positive_measure disjointed_subset)
+    by (auto intro!: suminf_le_pos measure_mono disjointed_subset)
   finally show ?thesis .
 qed
 
@@ -509,7 +509,7 @@ lemma measure_unique_Int_stable:
   assumes "X \<in> sets (sigma E)"
   shows "\<mu> X = \<nu> X"
 proof -
-  let "?D F" = "{D. D \<in> sets (sigma E) \<and> \<mu> (F \<inter> D) = \<nu> (F \<inter> D)}"
+  let ?D = "\<lambda>F. {D. D \<in> sets (sigma E) \<and> \<mu> (F \<inter> D) = \<nu> (F \<inter> D)}"
   interpret M: measure_space ?M
     where "space ?M = space E" and "sets ?M = sets (sigma E)" and "measure ?M = \<mu>" by (simp_all add: M)
   interpret N: measure_space ?N
@@ -559,7 +559,7 @@ proof -
     have "\<And>D. D \<in> sets (sigma E) \<Longrightarrow> \<mu> (F \<inter> D) = \<nu> (F \<inter> D)"
       by (subst (asm) *) auto }
   note * = this
-  let "?A i" = "A i \<inter> X"
+  let ?A = "\<lambda>i. A i \<inter> X"
   have A': "range ?A \<subseteq> sets (sigma E)" "incseq ?A"
     using A(1,2) `X \<in> sets (sigma E)` by (auto simp: incseq_def)
   { fix i have "\<mu> (?A i) = \<nu> (?A i)"
@@ -1015,7 +1015,7 @@ lemma measure_unique_Int_stable_vimage:
 proof (rule measure_unique_Int_stable[OF E A(1,2,3) _ _ eq _ X])
   interpret M: measure_space M by fact
   interpret N: measure_space N by fact
-  let "?T X" = "T -` X \<inter> space N"
+  let ?T = "\<lambda>X. T -` X \<inter> space N"
   show "measure_space \<lparr>space = space E, sets = sets (sigma E), measure = measure M\<rparr>"
     by (rule M.measure_space_cong) (auto simp: M)
   show "measure_space \<lparr>space = space E, sets = sets (sigma E), measure = \<lambda>X. measure N (?T X)\<rparr>" (is "measure_space ?E")
@@ -1397,7 +1397,7 @@ qed
 
 lemma (in finite_measure_space) sum_over_space: "(\<Sum>x\<in>space M. \<mu> {x}) = \<mu> (space M)"
   using measure_setsum[of "space M" "\<lambda>i. {i}"]
-  by (simp add: sets_eq_Pow disjoint_family_on_def finite_space)
+  by (simp add: disjoint_family_on_def finite_space)
 
 lemma (in finite_measure_space) finite_measure_singleton:
   assumes A: "A \<subseteq> space M" shows "\<mu>' A = (\<Sum>x\<in>A. \<mu>' {x})"

@@ -17,7 +17,8 @@ sig
   val pretty_full_theory: bool -> theory -> Pretty.T
   val print_theory: theory -> unit
   val string_of_rule: Proof.context -> string -> thm -> string
-  val print_results: bool -> Proof.context -> ((string * string) * (string * thm list) list) -> unit
+  val print_results: Markup.T -> bool -> Proof.context ->
+    ((string * string) * (string * thm list) list) -> unit
   val print_consts: bool -> Proof.context -> (string * typ -> bool) -> (string * typ) list -> unit
 end
 
@@ -100,16 +101,18 @@ fun pretty_facts ctxt =
 
 in
 
-fun print_results do_print ctxt ((kind, name), facts) =
+fun print_results markup do_print ctxt ((kind, name), facts) =
   if not do_print orelse kind = "" then ()
   else if name = "" then
-    Pretty.writeln (Pretty.block (Pretty.command kind :: Pretty.brk 1 :: pretty_facts ctxt facts))
-  else Pretty.writeln
-    (case facts of
-      [fact] => Pretty.blk (1, [pretty_fact_name (kind, name), Pretty.fbrk,
-        Proof_Context.pretty_fact_aux ctxt false fact])
-    | _ => Pretty.blk (1, [pretty_fact_name (kind, name), Pretty.fbrk,
-        Pretty.blk (1, Pretty.str "(" :: pretty_facts ctxt facts @ [Pretty.str ")"])]));
+    (Pretty.writeln o Pretty.mark markup)
+      (Pretty.block (Pretty.command kind :: Pretty.brk 1 :: pretty_facts ctxt facts))
+  else
+    (Pretty.writeln o Pretty.mark markup)
+      (case facts of
+        [fact] => Pretty.blk (1, [pretty_fact_name (kind, name), Pretty.fbrk,
+          Proof_Context.pretty_fact_aux ctxt false fact])
+      | _ => Pretty.blk (1, [pretty_fact_name (kind, name), Pretty.fbrk,
+          Pretty.blk (1, Pretty.str "(" :: pretty_facts ctxt facts @ [Pretty.str ")"])]));
 
 end;
 

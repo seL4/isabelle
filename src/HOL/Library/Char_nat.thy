@@ -159,7 +159,7 @@ proof -
   show ?thesis
     by (simp add: nat_of_char.simps char_of_nat_def nibble_of_pair
       nat_of_nibble_of_nat mod_mult_distrib
-      n aux3 mod_mult_self3 l_256 aux4 mod_add_eq [of "256 * k"] l_div_256)
+      n aux3 l_256 aux4 mod_add_eq [of "256 * k"] l_div_256)
 qed
 
 lemma nibble_pair_of_nat_char:

@@ -287,8 +287,8 @@ fun gen_witness_proof proof after_qed wit_propss eq_props =
 
 fun proof_local cmd goal_ctxt int after_qed' propss =
   Proof.map_context (K goal_ctxt) #>
-  Proof.local_goal (Proof_Display.print_results int) (K I) Proof_Context.bind_propp_i
-    cmd NONE after_qed' (map (pair Thm.empty_binding) propss);
+  Proof.local_goal (Proof_Display.print_results Isabelle_Markup.state int) (K I)
+    Proof_Context.bind_propp_i cmd NONE after_qed' (map (pair Thm.empty_binding) propss);
 
 in
 

@@ -52,7 +52,7 @@ proof -
   from J.sigma_finite_pairs guess F .. note F = this
   then have [simp,intro]: "\<And>k i. k \<in> J \<Longrightarrow> F k i \<in> sets (M k)"
     by auto
-  let "?F i" = "\<Pi>\<^isub>E k\<in>J. F k i"
+  let ?F = "\<lambda>i. \<Pi>\<^isub>E k\<in>J. F k i"
   let ?J = "product_algebra_generator J M \<lparr> measure := measure (Pi\<^isub>M J M) \<rparr>"
   have "?R \<in> measure_preserving (\<Pi>\<^isub>M i\<in>K. M i) (sigma ?J)"
   proof (rule K.measure_preserving_Int_stable)
@@ -448,7 +448,7 @@ next
       "K - J \<noteq> {}" "K - J \<subseteq> I" "\<mu>G Z = measure (Pi\<^isub>M K M) X"
       by (auto simp: subset_insertI)
 
-    let "?M y" = "merge J y (K - J) -` emb (J \<union> K) K X \<inter> space (Pi\<^isub>M (K - J) M)"
+    let ?M = "\<lambda>y. merge J y (K - J) -` emb (J \<union> K) K X \<inter> space (Pi\<^isub>M (K - J) M)"
     { fix y assume y: "y \<in> space (Pi\<^isub>M J M)"
       note * = merge_emb[OF `K \<subseteq> I` `J \<subseteq> I` y, of X]
       moreover
@@ -487,7 +487,7 @@ next
         by (intro KmJ.measure_le_1 merge_in_G(2)[OF x]) }
     note le_1 = this
 
-    let "?q y" = "\<mu>G (merge J y (I - J) -` Z \<inter> space (Pi\<^isub>M I M))"
+    let ?q = "\<lambda>y. \<mu>G (merge J y (I - J) -` Z \<inter> space (Pi\<^isub>M I M))"
     have "?q \<in> borel_measurable (Pi\<^isub>M J M)"
       unfolding `Z = emb I K X` using J K merge_in_G(3)
       by (simp add: merge_in_G  \<mu>G_eq measure_fold_measurable
@@ -536,15 +536,15 @@ next
         using \<mu>G_spec[of "J 0" "A 0" "X 0"] J A_eq
         by (auto intro!: INF_lower2[of 0] J.measure_le_1)
 
-      let "?M K Z y" = "merge K y (I - K) -` Z \<inter> space (Pi\<^isub>M I M)"
+      let ?M = "\<lambda>K Z y. merge K y (I - K) -` Z \<inter> space (Pi\<^isub>M I M)"
 
       { fix Z k assume Z: "range Z \<subseteq> sets ?G" "decseq Z" "\<forall>n. ?a / 2^k \<le> \<mu>G (Z n)"
         then have Z_sets: "\<And>n. Z n \<in> sets ?G" by auto
         fix J' assume J': "J' \<noteq> {}" "finite J'" "J' \<subseteq> I"
         interpret J': finite_product_prob_space M J' by default fact+
 
-        let "?q n y" = "\<mu>G (?M J' (Z n) y)"
-        let "?Q n" = "?q n -` {?a / 2^(k+1) ..} \<inter> space (Pi\<^isub>M J' M)"
+        let ?q = "\<lambda>n y. \<mu>G (?M J' (Z n) y)"
+        let ?Q = "\<lambda>n. ?q n -` {?a / 2^(k+1) ..} \<inter> space (Pi\<^isub>M J' M)"
         { fix n
           have "?q n \<in> borel_measurable (Pi\<^isub>M J' M)"
             using Z J' by (intro fold(1)) auto
@@ -599,13 +599,14 @@ next
         then have "\<exists>w\<in>space (Pi\<^isub>M J' M). \<forall>n. ?a / 2 ^ (k + 1) \<le> ?q n w" by auto }
       note Ex_w = this
 
-      let "?q k n y" = "\<mu>G (?M (J k) (A n) y)"
+      let ?q = "\<lambda>k n y. \<mu>G (?M (J k) (A n) y)"
 
       have "\<forall>n. ?a / 2 ^ 0 \<le> \<mu>G (A n)" by (auto intro: INF_lower)
       from Ex_w[OF A(1,2) this J(1-3), of 0] guess w0 .. note w0 = this
 
-      let "?P k wk w" =
-        "w \<in> space (Pi\<^isub>M (J (Suc k)) M) \<and> restrict w (J k) = wk \<and> (\<forall>n. ?a / 2 ^ (Suc k + 1) \<le> ?q (Suc k) n w)"
+      let ?P =
+        "\<lambda>k wk w. w \<in> space (Pi\<^isub>M (J (Suc k)) M) \<and> restrict w (J k) = wk \<and>
+          (\<forall>n. ?a / 2 ^ (Suc k + 1) \<le> ?q (Suc k) n w)"
       def w \<equiv> "nat_rec w0 (\<lambda>k wk. Eps (?P k wk))"
 
       { fix k have w: "w k \<in> space (Pi\<^isub>M (J k) M) \<and>
@@ -1015,7 +1016,7 @@ lemma (in sequence_space) measure_infprod:
   fixes E :: "nat \<Rightarrow> 'a set" assumes E: "\<And>i. E i \<in> sets (M i)"
   shows "(\<lambda>n. \<Prod>i\<le>n. M.\<mu>' i (E i)) ----> \<mu>' (Pi UNIV E)"
 proof -
-  let "?E n" = "emb UNIV {..n} (Pi\<^isub>E {.. n} E)"
+  let ?E = "\<lambda>n. emb UNIV {..n} (Pi\<^isub>E {.. n} E)"
   { fix n :: nat
     interpret n: finite_product_prob_space M "{..n}" by default auto
     have "(\<Prod>i\<le>n. M.\<mu>' i (E i)) = n.\<mu>' (Pi\<^isub>E {.. n} E)"

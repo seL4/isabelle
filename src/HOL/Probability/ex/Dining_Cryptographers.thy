@@ -82,7 +82,7 @@ theorem correctness:
   assumes "dc \<in> dining_cryptographers"
   shows "result dc \<longleftrightarrow> (payer dc \<noteq> None)"
 proof -
-  let "?XOR f l" = "foldl (op \<noteq>) False (map f [0..<l])"
+  let ?XOR = "\<lambda>f l. foldl (op \<noteq>) False (map f [0..<l])"
 
   have foldl_coin:
     "\<not> ?XOR (\<lambda>c. coin dc c \<noteq> coin dc (c + 1)) n"
@@ -306,8 +306,8 @@ lemma card_inversion:
   assumes "xs \<in> inversion ` dc_crypto"
   shows "card {dc \<in> dc_crypto. inversion dc = xs} = 2 * n"
 proof -
-  let "?set i" = "{dc \<in> dc_crypto. payer dc = Some i \<and> inversion dc = xs}"
-  let "?sets" = "{?set i | i. i < n}"
+  let ?set = "\<lambda>i. {dc \<in> dc_crypto. payer dc = Some i \<and> inversion dc = xs}"
+  let ?sets = "{?set i | i. i < n}"
 
   have [simp]: "length xs = n" using assms
     by (auto simp: dc_crypto inversion_def_raw)

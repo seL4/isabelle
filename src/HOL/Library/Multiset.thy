@@ -208,11 +208,12 @@ lemma union_single_eq_member:
   by auto
 
 lemma union_is_single:
-  "M + N = {#a#} \<longleftrightarrow> M = {#a#} \<and> N={#} \<or> M = {#} \<and> N = {#a#}" (is "?lhs = ?rhs")proof
+  "M + N = {#a#} \<longleftrightarrow> M = {#a#} \<and> N={#} \<or> M = {#} \<and> N = {#a#}" (is "?lhs = ?rhs")
+proof
   assume ?rhs then show ?lhs by auto
 next
-  assume ?lhs thus ?rhs
-    by(simp add: multiset_eq_iff split:if_splits) (metis add_is_1)
+  assume ?lhs then show ?rhs
+    by (simp add: multiset_eq_iff split:if_splits) (metis add_is_1)
 qed
 
 lemma single_is_union:
@@ -392,7 +393,7 @@ lemma multiset_inter_count [simp]:
   by (simp add: multiset_inter_def multiset_typedef)
 
 lemma multiset_inter_single: "a \<noteq> b \<Longrightarrow> {#a#} #\<inter> {#b#} = {#}"
-  by (rule multiset_eqI) (auto simp add: multiset_inter_count)
+  by (rule multiset_eqI) auto
 
 lemma multiset_union_diff_commute:
   assumes "B #\<inter> C = {#}"
@@ -400,7 +401,7 @@ lemma multiset_union_diff_commute:
 proof (rule multiset_eqI)
   fix x
   from assms have "min (count B x) (count C x) = 0"
-    by (auto simp add: multiset_inter_count multiset_eq_iff)
+    by (auto simp add: multiset_eq_iff)
   then have "count B x = 0 \<or> count C x = 0"
     by auto
   then show "count (A + B - C) x = count (A - C + B) x"
@@ -948,15 +949,17 @@ next
   note *** = this [of "op <"] this [of "op >"] this [of "op ="]
   show "[x \<leftarrow> ?rhs. f l = f x] = [x \<leftarrow> ?lhs. f l = f x]"
   proof (cases "f l" ?pivot rule: linorder_cases)
-    case less then moreover have "f l \<noteq> ?pivot" and "\<not> f l > ?pivot" by auto
-    ultimately show ?thesis
+    case less
+    then have "f l \<noteq> ?pivot" and "\<not> f l > ?pivot" by auto
+    with less show ?thesis
       by (simp add: filter_sort [symmetric] ** ***)
   next
     case equal then show ?thesis
       by (simp add: * less_le)
   next
-    case greater then moreover have "f l \<noteq> ?pivot" and "\<not> f l < ?pivot" by auto
-    ultimately show ?thesis
+    case greater
+    then have "f l \<noteq> ?pivot" and "\<not> f l < ?pivot" by auto
+    with greater show ?thesis
       by (simp add: filter_sort [symmetric] ** ***)
   qed
 qed
@@ -1200,7 +1203,7 @@ lemma mset_less_eq_Bag [code]:
     (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   assume ?lhs then show ?rhs
-    by (auto simp add: mset_le_def count_Bag)
+    by (auto simp add: mset_le_def)
 next
   assume ?rhs
   show ?lhs
@@ -1209,7 +1212,7 @@ next
     from `?rhs` have "count_of (DAList.impl_of xs) x \<le> count A x"
       by (cases "x \<in> fst ` set (DAList.impl_of xs)") (auto simp add: count_of_empty)
     then show "count (Bag xs) x \<le> count A x"
-      by (simp add: mset_le_def count_Bag)
+      by (simp add: mset_le_def)
   qed
 qed
 
@@ -1511,15 +1514,13 @@ proof -
   qed (auto simp add: le_multiset_def irrefl dest: trans)
 qed
 
-lemma mult_less_irrefl [elim!]:
-  "M \<subset># (M::'a::order multiset) ==> R"
-  by (simp add: multiset_order.less_irrefl)
+lemma mult_less_irrefl [elim!]: "M \<subset># (M::'a::order multiset) ==> R"
+  by simp
 
 
 subsubsection {* Monotonicity of multiset union *}
 
-lemma mult1_union:
-  "(B, D) \<in> mult1 r ==> (C + B, C + D) \<in> mult1 r"
+lemma mult1_union: "(B, D) \<in> mult1 r ==> (C + B, C + D) \<in> mult1 r"
 apply (unfold mult1_def)
 apply auto
 apply (rule_tac x = a in exI)
@@ -1625,9 +1626,9 @@ proof (induct arbitrary: x y z rule: full_multiset_induct)
       from MBb have BsubM: "B < M" by simp
       show ?case
       proof cases
-        assume "b=c"
-        then moreover have "B = C" using MBb MCc by auto
-        ultimately show ?thesis using Bu Cv x\<^isub>1 x\<^isub>2 CsubM IH by auto
+        assume *: "b = c"
+        then have "B = C" using MBb MCc by auto
+        with * show ?thesis using Bu Cv x\<^isub>1 x\<^isub>2 CsubM IH by auto
       next
         assume diff: "b \<noteq> c"
         let ?D = "B - {#c#}"
@@ -1780,7 +1781,8 @@ text {*
   @{term "{#x+x|x:#M. x<c#}"}.
 *}
 
-enriched_type image_mset: image_mset proof -
+enriched_type image_mset: image_mset
+proof -
   fix f g 
   show "image_mset f \<circ> image_mset g = image_mset (f \<circ> g)"
   proof
