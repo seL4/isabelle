@@ -45,18 +45,8 @@ fun typedef_make (vs, qty_name, mx, rel, rty) equiv_thm lthy =
     val typedef_tac =
       EVERY1 (map rtac [@{thm part_equivp_typedef}, equiv_thm])
   in
-  (* FIXME: purely local typedef causes at the moment
-     problems with type variables
-
-    Typedef.add_typedef false NONE (qty_name, vs, mx)
+    Typedef.add_typedef false NONE (qty_name, map (rpair dummyS) vs, mx)
       (typedef_term rel rty lthy) NONE typedef_tac lthy
-  *)
-  (* FIXME should really use local typedef here *)
-    Local_Theory.background_theory_result
-     (Typedef.add_typedef_global false NONE
-       (qty_name, map (rpair dummyS) vs, mx)
-         (typedef_term rel rty lthy)
-           NONE typedef_tac) lthy
   end
 
 
@@ -257,19 +247,19 @@ fun quotient_type_cmd specs lthy =
     fun parse_spec (((((vs, qty_name), mx), rty_str), (partial, rel_str)), opt_morphs) lthy =
       let
         val rty = Syntax.read_typ lthy rty_str
-        val lthy1 = Variable.declare_typ rty lthy
+        val tmp_lthy1 = Variable.declare_typ rty lthy
         val rel =
-          Syntax.parse_term lthy1 rel_str
+          Syntax.parse_term tmp_lthy1 rel_str
           |> Type.constraint (rty --> rty --> @{typ bool})
-          |> Syntax.check_term lthy1
-        val lthy2 = Variable.declare_term rel lthy1
+          |> Syntax.check_term tmp_lthy1
+        val tmp_lthy2 = Variable.declare_term rel tmp_lthy1
       in
-        (((vs, qty_name, mx), (rty, rel, partial), opt_morphs), lthy2)
+        (((vs, qty_name, mx), (rty, rel, partial), opt_morphs), tmp_lthy2)
       end
 
-    val (spec', lthy') = fold_map parse_spec specs lthy
+    val (spec', _) = fold_map parse_spec specs lthy
   in
-    quotient_type spec' lthy'
+    quotient_type spec' lthy
   end
 
 val partial = Scan.optional (Parse.reserved "partial" -- Parse.$$$ ":" >> K true) false
