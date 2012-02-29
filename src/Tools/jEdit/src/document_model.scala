@@ -63,8 +63,9 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
   def node_header(): Document.Node_Header =
   {
     Swing_Thread.require()
-    // FIXME assert(Isabelle.jedit_buffer(name.node) == Some(buffer))
-    Exn.capture { session.thy_load.check_thy(name) }
+    if (Isabelle.jedit_buffer(name.node) == Some(buffer))
+      Exn.capture { session.thy_load.check_thy(name) }
+    else Exn.Exn(ERROR("Bad theory header"))  // FIXME odd race condition!?
   }
 
 
