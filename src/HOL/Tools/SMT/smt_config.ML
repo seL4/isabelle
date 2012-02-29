@@ -14,6 +14,7 @@ sig
     options: Proof.context -> string list }
   val add_solver: solver_info -> Context.generic -> Context.generic
   val set_solver_options: string * string -> Context.generic -> Context.generic
+  val is_available: Proof.context -> string -> bool
   val available_solvers_of: Proof.context -> string list
   val select_solver: string -> Context.generic -> Context.generic
   val solver_of: Proof.context -> string

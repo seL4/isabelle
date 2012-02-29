@@ -237,10 +237,13 @@ fun gen_preprocess ctxt iwthms = SMT_Normalize.normalize iwthms ctxt
 fun gen_apply (ithms, ctxt) =
   let val (name, {command, reconstruct, ...}) = name_and_info_of ctxt
   in
-    (ithms, ctxt)
-    |-> invoke name command
-    |> reconstruct ctxt
-    |>> distinct (op =)
+    if not (SMT_Config.is_available ctxt name) then
+      error ("The SMT solver " ^ quote name ^ " is not installed.")
+    else
+      (ithms, ctxt)
+      |-> invoke name command
+      |> reconstruct ctxt
+      |>> distinct (op =)
   end
 
 fun apply_solver ctxt = gen_apply o gen_preprocess ctxt
