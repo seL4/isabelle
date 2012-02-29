@@ -258,7 +258,7 @@ object Thy_Syntax
           val node = nodes(name)
           val update_header =
             (node.header, header) match {
-              case (Exn.Res(thy_header0), Exn.Res(thy_header)) => thy_header0 != thy_header
+              case (Exn.Res(deps0), Exn.Res(deps)) => deps != deps
               case _ => true
             }
           if (update_header) {

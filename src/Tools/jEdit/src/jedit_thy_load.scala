@@ -52,7 +52,7 @@ class JEdit_Thy_Load extends Thy_Load
     }
   }
 
-  override def check_thy(name: Document.Node.Name): Thy_Header =
+  override def read_header(name: Document.Node.Name): Thy_Header =
   {
     Swing_Thread.now {
       Isabelle.jedit_buffer(name.node) match {

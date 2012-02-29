@@ -10,6 +10,7 @@ sig
   val imports_of: theory -> string list
   val provide: Path.T * (Path.T * SHA1.digest) -> theory -> theory
   val check_file: Path.T -> Path.T -> Path.T
+  val thy_path: Path.T -> Path.T
   val check_thy: Path.T -> string ->
     {master: Path.T * SHA1.digest, text: string, imports: string list, uses: (Path.T * bool) list}
   val load_file: theory -> Path.T -> (Path.T * SHA1.digest) * string
@@ -75,14 +76,18 @@ fun provide (src_path, path_id) =
 
 fun check_file dir file = File.check_file (File.full_path dir file);
 
+val thy_path = Path.ext "thy";
+
 fun check_thy dir name =
   let
-    val master_file = check_file dir (Thy_Header.thy_path name);
+    val path = thy_path (Path.basic name);
+    val master_file = check_file dir path;
     val text = File.read master_file;
     val (name', imports, uses) =
       if name = Context.PureN then (Context.PureN, [], [])
       else Thy_Header.read (Path.position master_file) text;
-    val _ = Thy_Header.consistent_name name name';
+    val _ = name <> name' andalso
+      error ("Bad file name " ^ Path.print path ^ " for theory " ^ quote name');
   in {master = (master_file, SHA1.digest text), text = text, imports = imports, uses = uses} end;
 
 

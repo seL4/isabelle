@@ -60,10 +60,11 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
 {
   /* header */
 
-  def node_header(): Exn.Result[Thy_Header] =
+  def node_header(): Document.Node_Header =
   {
     Swing_Thread.require()
-    Exn.capture { Thy_Header.check(name.theory, buffer.getSegment(0, buffer.getLength)) }
+    // FIXME assert(Isabelle.jedit_buffer(name.node) == Some(buffer))
+    Exn.capture { session.thy_load.check_thy(name) }
   }
 
 
