@@ -188,15 +188,15 @@ object Document
     def + (entry: (Node.Name, Node)): Nodes =
     {
       val (name, node) = entry
-      val parents =
+      val imports =
         node.header match {
-          case Exn.Res(deps) => deps.imports.filter(_.dir != "")  // FIXME more specific filter
+          case Exn.Res(deps) => deps.imports
           case _ => Nil
         }
       val graph1 =
-        (graph.default_node(name, Node.empty) /: parents)((g, p) => g.default_node(p, Node.empty))
+        (graph.default_node(name, Node.empty) /: imports)((g, p) => g.default_node(p, Node.empty))
       val graph2 = (graph1 /: graph1.imm_preds(name))((g, dep) => g.del_edge(dep, name))
-      val graph3 = (graph2 /: parents)((g, dep) => g.add_edge(dep, name))
+      val graph3 = (graph2 /: imports)((g, dep) => g.add_edge(dep, name))
       new Nodes(graph3.map_node(name, _ => node))
     }
 

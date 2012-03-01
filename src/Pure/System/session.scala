@@ -35,7 +35,7 @@ object Session
 }
 
 
-class Session(val thy_load: Thy_Load = new Thy_Load)
+class Session(thy_load: Thy_Load = new Thy_Load)
 {
   /* real time parameters */  // FIXME properties or settings (!?)
 
