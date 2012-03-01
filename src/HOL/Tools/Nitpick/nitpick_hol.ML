@@ -767,7 +767,8 @@ fun rep_type_for_quot_type ctxt (T as Type (s, _)) =
     raise TYPE ("Nitpick_HOL.rep_type_for_quot_type", [T], [])
 fun equiv_relation_for_quot_type thy (Type (s, Ts)) =
     let
-      val {qtyp, equiv_rel, equiv_thm, ...} = the (Quotient_Info.lookup_quotients thy s)
+      val {qtyp, equiv_rel, equiv_thm, ...} =
+        the (Quotient_Info.lookup_quotients thy s)
       val partial =
         case prop_of equiv_thm of
           @{const Trueprop} $ (Const (@{const_name equivp}, _) $ _) => false
@@ -1785,12 +1786,14 @@ fun unfold_defs_in_term
                   else if is_quot_type ctxt (domain_type T) then
                     let
                       val abs_T = domain_type T
-                      val rep_T = domain_type (range_type T)
+                      val rep_T = elem_type (range_type T)
                       val (rep_fun, _) = quot_rep_of depth Ts abs_T rep_T []
                       val (equiv_rel, _) =
                         equiv_relation_for_quot_type ctxt abs_T
                     in
-                      (Abs (Name.uu, abs_T, equiv_rel $ (rep_fun $ Bound 0)),
+                      (Abs (Name.uu, abs_T,
+                            HOLogic.Collect_const rep_T
+                            $ (equiv_rel $ (rep_fun $ Bound 0))),
                        ts)
                     end
                   else
