@@ -653,15 +653,5 @@ subsection{*Cantor's Theorem: There is no surjection from a set to its powerset.
 lemma cantor: "\<exists>S \<in> Pow(A). \<forall>x\<in>A. b(x) ~= S"
 by (best elim!: equalityCE del: ReplaceI RepFun_eqI)
 
-(*Functions for ML scripts*)
-ML
-{*
-(*Converts A<=B to x\<in>A ==> x\<in>B*)
-fun impOfSubs th = th RSN (2, @{thm rev_subsetD});
-
-(*Takes assumptions \<forall>x\<in>A.P(x) and a\<in>A; creates assumption P(a)*)
-val ball_tac = dtac @{thm bspec} THEN' assume_tac
-*}
-
 end
 

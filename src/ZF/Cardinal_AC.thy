@@ -191,10 +191,4 @@ apply (rule lt_subset_trans [OF inj_UN_subset cardinal_UN_Ord_lt_csucc], assumpt
 apply (blast intro!: Ord_UN elim: ltE)
 done
 
-ML
-{*
-val cardinal_0_iff_0 = @{thm cardinal_0_iff_0};
-val cardinal_lt_iff_lesspoll = @{thm cardinal_lt_iff_lesspoll};
-*}
-
 end

@@ -170,46 +170,4 @@ by (simp add: bool_of_o_def)
 lemma [simp]: "(bool_of_o(P) = 0) <-> ~P"
 by (simp add: bool_of_o_def)
 
-ML
-{*
-val bool_def = @{thm bool_def};
-val bool_defs = @{thms bool_defs};
-val singleton_0 = @{thm singleton_0};
-val bool_1I = @{thm bool_1I};
-val bool_0I = @{thm bool_0I};
-val one_not_0 = @{thm one_not_0};
-val one_neq_0 = @{thm one_neq_0};
-val boolE = @{thm boolE};
-val cond_1 = @{thm cond_1};
-val cond_0 = @{thm cond_0};
-val cond_type = @{thm cond_type};
-val cond_simple_type = @{thm cond_simple_type};
-val def_cond_1 = @{thm def_cond_1};
-val def_cond_0 = @{thm def_cond_0};
-val not_1 = @{thm not_1};
-val not_0 = @{thm not_0};
-val and_1 = @{thm and_1};
-val and_0 = @{thm and_0};
-val or_1 = @{thm or_1};
-val or_0 = @{thm or_0};
-val xor_1 = @{thm xor_1};
-val xor_0 = @{thm xor_0};
-val not_type = @{thm not_type};
-val and_type = @{thm and_type};
-val or_type = @{thm or_type};
-val xor_type = @{thm xor_type};
-val bool_typechecks = @{thms bool_typechecks};
-val not_not = @{thm not_not};
-val not_and = @{thm not_and};
-val not_or = @{thm not_or};
-val and_absorb = @{thm and_absorb};
-val and_commute = @{thm and_commute};
-val and_assoc = @{thm and_assoc};
-val and_or_distrib = @{thm and_or_distrib};
-val or_absorb = @{thm or_absorb};
-val or_commute = @{thm or_commute};
-val or_assoc = @{thm or_assoc};
-val or_and_distrib = @{thm or_and_distrib};
-*}
-
 end
