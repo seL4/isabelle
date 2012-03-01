@@ -65,7 +65,9 @@ fun trace_and ctxt msg f x =
 fun run ctxt name mk_cmd input =
   (case SMT_Config.certificates_of ctxt of
     NONE =>
-      if Config.get ctxt SMT_Config.debug_files = "" then
+      if not (SMT_Config.is_available ctxt name) then
+        error ("The SMT solver " ^ quote name ^ " is not installed.")
+      else if Config.get ctxt SMT_Config.debug_files = "" then
         trace_and ctxt ("Invoking SMT solver " ^ quote name ^ " ...")
           (Cache_IO.run mk_cmd) input
       else
@@ -237,13 +239,10 @@ fun gen_preprocess ctxt iwthms = SMT_Normalize.normalize iwthms ctxt
 fun gen_apply (ithms, ctxt) =
   let val (name, {command, reconstruct, ...}) = name_and_info_of ctxt
   in
-    if not (SMT_Config.is_available ctxt name) then
-      error ("The SMT solver " ^ quote name ^ " is not installed.")
-    else
-      (ithms, ctxt)
-      |-> invoke name command
-      |> reconstruct ctxt
-      |>> distinct (op =)
+    (ithms, ctxt)
+    |-> invoke name command
+    |> reconstruct ctxt
+    |>> distinct (op =)
   end
 
 fun apply_solver ctxt = gen_apply o gen_preprocess ctxt
