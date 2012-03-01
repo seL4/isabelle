@@ -24,15 +24,6 @@ class Thy_Info(thy_load: Thy_Load)
 
   /* dependencies */
 
-  def import_name(dir: String, str: String): Document.Node.Name =
-  {
-    val path = Path.explode(str)
-    val node = thy_load.append(dir, Thy_Header.thy_path(path))
-    val dir1 = thy_load.append(dir, path.dir)
-    val theory = path.base.implode
-    Document.Node.Name(node, dir1, theory)
-  }
-
   type Dep = (Document.Node.Name, Document.Node_Header)
   private type Required = (List[Dep], Set[Document.Node.Name])
 
@@ -49,16 +40,16 @@ class Thy_Info(thy_load: Thy_Load)
     else {
       try {
         if (initiators.contains(name)) error(cycle_msg(initiators))
-        val header =
+        val node_deps =
           try { thy_load.check_thy(name) }
           catch {
             case ERROR(msg) =>
               cat_error(msg, "The error(s) above occurred while examining theory " +
                 quote(name.theory) + required_by(initiators))
           }
-        val imports = header.imports.map(import_name(name.dir, _))
-        val (deps1, seen1) = require_thys(name :: initiators, (deps, seen + name), imports)
-        ((name, Exn.Res(header)) :: deps1, seen1)
+        val (deps1, seen1) =
+          require_thys(name :: initiators, (deps, seen + name), node_deps.imports)
+        ((name, Exn.Res(node_deps)) :: deps1, seen1)
       }
       catch { case e: Throwable => (((name, Exn.Exn(e)): Dep) :: deps, seen + name) }
     }

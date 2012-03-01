@@ -143,20 +143,11 @@ class Session(thy_load: Thy_Load = new Thy_Load)
 
   def header_edit(name: Document.Node.Name, header: Document.Node_Header): Document.Edit_Text =
   {
-    def norm_import(s: String): String =
-    {
-      val thy_name = Thy_Header.base_name(s)
-      if (thy_load.is_loaded(thy_name)) thy_name
-      else thy_load.append(name.dir, Thy_Header.thy_path(Path.explode(s)))
-    }
-    def norm_use(s: String): String = thy_load.append(name.dir, Path.explode(s))
-
     val header1: Document.Node_Header =
       header match {
-        case Exn.Res(Thy_Header(thy_name, _, _))
-        if (thy_load.is_loaded(thy_name)) =>
-          Exn.Exn(ERROR("Attempt to update loaded theory " + quote(thy_name)))
-        case _ => Document.Node.norm_header(norm_import, norm_use, header)
+        case Exn.Res(_) if (thy_load.is_loaded(name.theory)) =>
+          Exn.Exn(ERROR("Attempt to update loaded theory " + quote(name.theory)))
+        case _ => header
       }
     (name, Document.Node.Header(header1))
   }

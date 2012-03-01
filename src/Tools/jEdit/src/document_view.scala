@@ -343,11 +343,13 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     update_snapshot().node.proper_command_at(text_area.getCaretPosition)
   }
 
-  private val caret_listener = new CaretListener {
-    private val delay = Swing_Thread.delay_last(session.input_delay) {
+  private val delay_caret_update =
+    Swing_Thread.delay_last(session.input_delay) {
       session.caret_focus.event(Session.Caret_Focus)
     }
-    override def caretUpdate(e: CaretEvent) { delay() }
+
+  private val caret_listener = new CaretListener {
+    override def caretUpdate(e: CaretEvent) { delay_caret_update(true) }
   }
 
 
@@ -373,7 +375,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
             if (updated ||
                 (changed.nodes.contains(model.name) &&
                  changed.commands.exists(snapshot.node.commands.contains)))
-              overview.delay_repaint()
+              overview.delay_repaint(true)
 
             visible_range() match {
               case None =>
@@ -430,8 +432,8 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     text_area.removeFocusListener(focus_listener)
     text_area.getView.removeWindowListener(window_listener)
     painter.removeMouseMotionListener(mouse_motion_listener)
-    text_area.removeCaretListener(caret_listener)
-    text_area.removeLeftOfScrollBar(overview)
+    text_area.removeCaretListener(caret_listener); delay_caret_update(false)
+    text_area.removeLeftOfScrollBar(overview); overview.delay_repaint(false)
     text_area.getGutter.removeExtension(gutter_painter)
     text_area_painter.deactivate()
     painter.removeExtension(tooltip_painter)

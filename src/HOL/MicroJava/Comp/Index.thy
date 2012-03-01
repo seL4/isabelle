@@ -127,7 +127,7 @@ done
 lemma wf_java_mdecl_disjoint_varnames: 
   "wf_java_mdecl G C (S,rT,(pns,lvars,blk,res)) 
   \<Longrightarrow> disjoint_varnames pns lvars"
-apply (case_tac S)
+apply (cases S)
 apply (simp add: wf_java_mdecl_def disjoint_varnames_def  map_of_in_set)
 done
 

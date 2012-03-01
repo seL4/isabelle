@@ -45,7 +45,7 @@ object Swing_Thread
 
   /* delayed actions */
 
-  private def delayed_action(first: Boolean)(time: Time)(action: => Unit): () => Unit =
+  private def delayed_action(first: Boolean)(time: Time)(action: => Unit): Boolean => Unit =
   {
     val listener = new ActionListener {
       override def actionPerformed(e: ActionEvent) { Swing_Thread.assert(); action }
@@ -54,7 +54,9 @@ object Swing_Thread
     timer.setRepeats(false)
 
     def invoke() { later { if (first) timer.start() else timer.restart() } }
-    invoke _
+    def revoke() { timer.stop() }
+
+    (active: Boolean) => if (active) invoke() else revoke()
   }
 
   // delayed action after first invocation

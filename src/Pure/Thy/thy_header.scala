@@ -37,8 +37,6 @@ object Thy_Header extends Parse.Parser
   def thy_name(s: String): Option[String] =
     s match { case Thy_Name(name) => Some(name) case _ => None }
 
-  def thy_path(path: Path): Path = path.ext("thy")
-
 
   /* header */
 
@@ -96,18 +94,6 @@ object Thy_Header extends Parse.Parser
     try { read(reader).map(Standard_System.decode_permissive_utf8) }
     finally { reader.close }
   }
-
-
-  /* check */
-
-  def check(name: String, source: CharSequence): Thy_Header =
-  {
-    val header = read(source)
-    val name1 = header.name
-    val path = Path.explode(name)
-    if (name != name1) error("Bad file name " + thy_path(path) + " for theory " + quote(name1))
-    header
-  }
 }
 
 
@@ -116,10 +102,5 @@ sealed case class Thy_Header(
 {
   def map(f: String => String): Thy_Header =
     Thy_Header(f(name), imports.map(f), uses.map(p => (f(p._1), p._2)))
-
-  def norm_deps(f: String => String, g: String => String): Thy_Header =
-    copy(imports = imports.map(name => f(name)))
-    // FIXME
-    // copy(imports = imports.map(name => f(name)), uses = uses.map(p => (g(p._1), p._2)))
 }
 

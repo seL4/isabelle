@@ -35,10 +35,12 @@ object Document
   type Edit_Text = Edit[Text.Edit, Text.Perspective]
   type Edit_Command = Edit[(Option[Command], Option[Command]), Command.Perspective]
 
-  type Node_Header = Exn.Result[Thy_Header]
+  type Node_Header = Exn.Result[Node.Deps]
 
   object Node
   {
+    sealed case class Deps(imports: List[Name], uses: List[(String, Boolean)])
+
     object Name
     {
       val empty = Name("", "", "")
@@ -80,12 +82,6 @@ object Document
     case class Edits[A, B](edits: List[A]) extends Edit[A, B]
     case class Header[A, B](header: Node_Header) extends Edit[A, B]
     case class Perspective[A, B](perspective: B) extends Edit[A, B]
-
-    def norm_header(f: String => String, g: String => String, header: Node_Header): Node_Header =
-      header match {
-        case Exn.Res(h) => Exn.capture { h.norm_deps(f, g) }
-        case exn => exn
-      }
 
     def command_starts(commands: Iterator[Command], offset: Text.Offset = 0)
       : Iterator[(Command, Text.Offset)] =
@@ -192,17 +188,15 @@ object Document
     def + (entry: (Node.Name, Node)): Nodes =
     {
       val (name, node) = entry
-      val parents =
+      val imports =
         node.header match {
-          case Exn.Res(header) =>
-            // FIXME official names of yet unknown nodes!?
-            for (imp <- header.imports; imp_name <- get_name(imp)) yield imp_name
+          case Exn.Res(deps) => deps.imports
           case _ => Nil
         }
       val graph1 =
-        (graph.default_node(name, Node.empty) /: parents)((g, p) => g.default_node(p, Node.empty))
+        (graph.default_node(name, Node.empty) /: imports)((g, p) => g.default_node(p, Node.empty))
       val graph2 = (graph1 /: graph1.imm_preds(name))((g, dep) => g.del_edge(dep, name))
-      val graph3 = (graph2 /: parents)((g, dep) => g.add_edge(dep, name))
+      val graph3 = (graph2 /: imports)((g, dep) => g.add_edge(dep, name))
       new Nodes(graph3.map_node(name, _ => node))
     }
 

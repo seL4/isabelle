@@ -212,15 +212,15 @@ fun edit_nodes (name, node_edit) (Version nodes) =
         |> touch_node name
     | Header header =>
         let
-          val parents = (case header of Exn.Res (_, parents, _) => parents | _ => []);
+          val imports = (case header of Exn.Res (_, imports, _) => imports | _ => []);
           val nodes1 = nodes
             |> default_node name
-            |> fold default_node parents;
+            |> fold default_node imports;
           val nodes2 = nodes1
             |> Graph.Keys.fold
                 (fn dep => Graph.del_edge (dep, name)) (Graph.imm_preds nodes1 name);
           val (header', nodes3) =
-            (header, Graph.add_deps_acyclic (name, parents) nodes2)
+            (header, Graph.add_deps_acyclic (name, imports) nodes2)
               handle Graph.CYCLES cs => (Exn.Exn (ERROR (cat_lines (map cycle_msg cs))), nodes2);
         in Graph.map_node name (set_header header') nodes3 end
         |> touch_node name

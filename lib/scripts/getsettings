@@ -55,8 +55,8 @@ function choosefrom ()
 
 #JVM path wrapper
 if [ "$OSTYPE" = cygwin ]; then
-  CLASSPATH="$(cygpath -u -p "$CLASSPATH")"
-  function jvmpath() { cygpath -C UTF8 -w -p "$@"; }
+  CLASSPATH="$(cygpath -i -u -p "$CLASSPATH")"
+  function jvmpath() { cygpath -i -C UTF8 -w -p "$@"; }
   THIS_CYGWIN="$(jvmpath "/")"
 else
   function jvmpath() { echo "$@"; }

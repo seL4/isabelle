@@ -29,11 +29,39 @@ class Thy_Load
   def append(dir: String, source_path: Path): String =
     (Path.explode(dir) + source_path).implode
 
-  def check_thy(name: Document.Node.Name): Thy_Header =
+  def read_header(name: Document.Node.Name): Thy_Header =
   {
     val file = new File(name.node)
     if (!file.exists || !file.isFile) error("No such file: " + quote(file.toString))
     Thy_Header.read(file)
+  }
+
+
+  /* theory files */
+
+  def thy_path(path: Path): Path = path.ext("thy")
+
+  private def import_name(dir: String, s: String): Document.Node.Name =
+  {
+    val theory = Thy_Header.base_name(s)
+    if (is_loaded(theory)) Document.Node.Name(theory, "", theory)
+    else {
+      val path = Path.explode(s)
+      val node = append(dir, thy_path(path))
+      val dir1 = append(dir, path.dir)
+      Document.Node.Name(node, dir1, theory)
+    }
+  }
+
+  def check_thy(name: Document.Node.Name): Document.Node.Deps =
+  {
+    val header = read_header(name)
+    val name1 = header.name
+    val imports = header.imports.map(import_name(name.dir, _))
+    val uses = header.uses.map(p => (append(name.dir, Path.explode(p._1)), p._2))
+    if (name.theory != name1)
+      error("Bad file name " + thy_path(Path.basic(name.theory)) + " for theory " + quote(name1))
+    Document.Node.Deps(imports, uses)
   }
 }
 

@@ -143,7 +143,7 @@ fun inform_file_processed file =
       Thy_Info.register_thy (Toplevel.end_theory Position.none (Isar.state ()))
         handle ERROR msg =>
           (warning (cat_lines ["Failed to register theory: " ^ quote name, msg]);
-            tell_file_retracted (Thy_Header.thy_path name))
+            tell_file_retracted (Thy_Load.thy_path (Path.basic name)))
     val _ = Isar.init ();
   in () end;
 
