@@ -390,9 +390,12 @@ class Plugin extends EBPlugin
 
             case Session.Ready =>
               Isabelle.jedit_buffers.foreach(Isabelle.init_model)
-              delay_load()
+              delay_load(true)
 
-            case Session.Shutdown => Isabelle.jedit_buffers.foreach(Isabelle.exit_model)
+            case Session.Shutdown =>
+              Isabelle.jedit_buffers.foreach(Isabelle.exit_model)
+              delay_load(false)
+
             case _ =>
           }
         case bad => System.err.println("session_manager: ignoring bad message " + bad)
@@ -416,7 +419,7 @@ class Plugin extends EBPlugin
         if (Isabelle.session.is_ready) {
           val buffer = msg.getBuffer
           if (buffer != null) Isabelle.init_model(buffer)
-          delay_load()
+          delay_load(true)
         }
 
       case msg: EditPaneUpdate

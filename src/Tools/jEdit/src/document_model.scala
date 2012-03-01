@@ -111,12 +111,6 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
       }
     }
 
-    def init()
-    {
-      flush()
-      session.init_node(name, node_header(), perspective(), Isabelle.buffer_text(buffer))
-    }
-
     private val delay_flush =
       Swing_Thread.delay_last(session.input_delay) { flush() }
 
@@ -124,13 +118,25 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
     {
       Swing_Thread.require()
       pending += edit
-      delay_flush()
+      delay_flush(true)
     }
 
     def update_perspective()
     {
       pending_perspective = true
-      delay_flush()
+      delay_flush(true)
+    }
+
+    def init()
+    {
+      flush()
+      session.init_node(name, node_header(), perspective(), Isabelle.buffer_text(buffer))
+    }
+
+    def exit()
+    {
+      delay_flush(false)
+      flush()
     }
   }
 
@@ -192,7 +198,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
 
   private def deactivate()
   {
-    pending_edits.flush()
+    pending_edits.exit()
     buffer.removeBufferListener(buffer_listener)
     Token_Markup.refresh_buffer(buffer)
   }
