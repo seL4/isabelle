@@ -453,7 +453,7 @@ proof-
     proof
       assume "m={}"
       moreover have "Well_order {(x,x)}"
-        by(simp add:order_on_defs refl_on_def trans_def antisym_def total_on_def Field_def Domain_def Range_def)
+        by(simp add:order_on_defs refl_on_def trans_def antisym_def total_on_def Field_def Domain_unfold Domain_converse [symmetric])
       ultimately show False using max
         by (auto simp:I_def init_seg_of_def simp del:Field_insert)
     qed
@@ -470,14 +470,14 @@ proof-
 --{*We show that the extension is a well-order*}
     have "Refl ?m" using `Refl m` Fm by(auto simp:refl_on_def)
     moreover have "trans ?m" using `trans m` `x \<notin> Field m`
-      unfolding trans_def Field_def Domain_def Range_def by blast
+      unfolding trans_def Field_def Domain_unfold Domain_converse [symmetric] by blast
     moreover have "antisym ?m" using `antisym m` `x \<notin> Field m`
-      unfolding antisym_def Field_def Domain_def Range_def by blast
+      unfolding antisym_def Field_def Domain_unfold Domain_converse [symmetric] by blast
     moreover have "Total ?m" using `Total m` Fm by(auto simp: total_on_def)
     moreover have "wf(?m-Id)"
     proof-
       have "wf ?s" using `x \<notin> Field m`
-        by(auto simp add:wf_eq_minimal Field_def Domain_def Range_def) metis
+        by(auto simp add:wf_eq_minimal Field_def Domain_unfold Domain_converse [symmetric]) metis
       thus ?thesis using `wf(m-Id)` `x \<notin> Field m`
         wf_subset[OF `wf ?s` Diff_subset]
         by (fastforce intro!: wf_Un simp add: Un_Diff Field_def)
@@ -485,7 +485,7 @@ proof-
     ultimately have "Well_order ?m" by(simp add:order_on_defs)
 --{*We show that the extension is above m*}
     moreover hence "(m,?m) : I" using `Well_order m` `x \<notin> Field m`
-      by(fastforce simp:I_def init_seg_of_def Field_def Domain_def Range_def)
+      by(fastforce simp:I_def init_seg_of_def Field_def Domain_unfold Domain_converse [symmetric])
     ultimately
 --{*This contradicts maximality of m:*}
     have False using max `x \<notin> Field m` unfolding Field_def by blast
@@ -501,7 +501,7 @@ proof -
     using well_ordering[where 'a = "'a"] by blast
   let ?r = "{(x,y). x:A & y:A & (x,y):r}"
   have 1: "Field ?r = A" using wo univ
-    by(fastforce simp: Field_def Domain_def Range_def order_on_defs refl_on_def)
+    by(fastforce simp: Field_def Domain_unfold Domain_converse [symmetric] order_on_defs refl_on_def)
   have "Refl r" "trans r" "antisym r" "Total r" "wf(r-Id)"
     using `Well_order r` by(simp_all add:order_on_defs)
   have "Refl ?r" using `Refl r` by(auto simp:refl_on_def 1 univ)

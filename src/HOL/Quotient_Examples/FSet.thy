@@ -534,7 +534,7 @@ lemma compositional_rsp3:
   assumes "(R1 ===> R2 ===> R3) C C" and "(R4 ===> R5 ===> R6) C C"
   shows "(R1 OOO R4 ===> R2 OOO R5 ===> R3 OOO R6) C C"
   by (auto intro!: fun_relI)
-     (metis (full_types) assms fun_relE pred_comp.intros)
+     (metis (full_types) assms fun_relE pred_compI)
 
 lemma append_rsp2 [quot_respect]:
   "(list_all2 op \<approx> OOO op \<approx> ===> list_all2 op \<approx> OOO op \<approx> ===> list_all2 op \<approx> OOO op \<approx>) append append"
@@ -560,7 +560,7 @@ proof (auto intro!: fun_relI)
     by (induct y ya rule: list_induct2')
        (simp_all, metis apply_rsp' list_eq_def)
   show "(list_all2 op \<approx> OOO op \<approx>) (map f xa) (map f' ya)"
-    by (metis a b c list_eq_def pred_comp.intros)
+    by (metis a b c list_eq_def pred_compI)
 qed
 
 lemma map_prs2 [quot_preserve]:

@@ -628,10 +628,10 @@ lemma in_rtrancl_UnI: "x \<in> R^* \<or> x \<in> S^* ==> x \<in> (R \<union> S)^
   by (blast intro: subsetD [OF rtrancl_Un_subset])
 
 lemma trancl_domain [simp]: "Domain (r^+) = Domain r"
-  by (unfold Domain_def) (blast dest: tranclD)
+  by (unfold Domain_unfold) (blast dest: tranclD)
 
 lemma trancl_range [simp]: "Range (r^+) = Range r"
-unfolding Range_def by(simp add: trancl_converse [symmetric])
+  unfolding Domain_converse [symmetric] by (simp add: trancl_converse [symmetric])
 
 lemma Not_Domain_rtrancl:
     "x ~: Domain R ==> ((x, y) : R^*) = (x = y)"
@@ -839,7 +839,7 @@ lemma trancl_power:
    apply (drule tranclD2)
    apply (clarsimp simp: rtrancl_is_UN_relpow)
    apply (rule_tac x="Suc n" in exI)
-   apply (clarsimp simp: rel_comp_def)
+   apply (clarsimp simp: rel_comp_unfold)
    apply fastforce
   apply clarsimp
   apply (case_tac n, simp)
@@ -860,7 +860,7 @@ proof (induct n arbitrary: b)
 next
   case (Suc n)
   show ?case
-  proof (simp add: rel_comp_def Suc)
+  proof (simp add: rel_comp_unfold Suc)
     show "(\<exists>y. (\<exists>f. f 0 = a \<and> f n = y \<and> (\<forall>i<n. (f i,f(Suc i)) \<in> R)) \<and> (y,b) \<in> R)
      = (\<exists>f. f 0 = a \<and> f(Suc n) = b \<and> (\<forall>i<Suc n. (f i, f (Suc i)) \<in> R))"
     (is "?l = ?r")
@@ -1175,3 +1175,4 @@ method_setup rtranclp =
   {* simple transitivity reasoner (predicate version) *}
 
 end
+

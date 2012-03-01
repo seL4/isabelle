@@ -189,10 +189,10 @@ lemma isGlb_glb: "(\<exists>G. isGlb S cl G) = isGlb S cl (glb S cl)"
 by (simp add: glb_def greatest_def isGlb_def some_eq_ex [symmetric])
 
 lemma isGlb_dual_isLub: "isGlb S cl = isLub S (dual cl)"
-by (simp add: isLub_def isGlb_def dual_def converse_def)
+by (simp add: isLub_def isGlb_def dual_def converse_unfold)
 
 lemma isLub_dual_isGlb: "isLub S cl = isGlb S (dual cl)"
-by (simp add: isLub_def isGlb_def dual_def converse_def)
+by (simp add: isLub_def isGlb_def dual_def converse_unfold)
 
 lemma (in PO) dualPO: "dual cl \<in> PartialOrder"
 apply (insert cl_po)
@@ -212,10 +212,10 @@ apply (simp add: isLub_def, blast)
 done
 
 lemma lub_dual_glb: "lub S cl = glb S (dual cl)"
-by (simp add: lub_def glb_def least_def greatest_def dual_def converse_def)
+by (simp add: lub_def glb_def least_def greatest_def dual_def converse_unfold)
 
 lemma glb_dual_lub: "glb S cl = lub S (dual cl)"
-by (simp add: lub_def glb_def least_def greatest_def dual_def converse_def)
+by (simp add: lub_def glb_def least_def greatest_def dual_def converse_unfold)
 
 lemma CL_subset_PO: "CompleteLattice \<subseteq> PartialOrder"
 by (simp add: PartialOrder_def CompleteLattice_def, fast)

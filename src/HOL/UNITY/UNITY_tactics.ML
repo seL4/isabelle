@@ -46,7 +46,7 @@ fun ensures_tac ctxt sact =
       ORELSE res_inst_tac ctxt
         [(("act", 0), sact)] @{thm transientI} 2,
          (*simplify the command's domain*)
-      simp_tac (simpset_of ctxt addsimps @{thms Domain_def}) 3,
+      simp_tac (simpset_of ctxt addsimps @{thms Domain_unfold}) 3,
       constrains_tac ctxt 1,
       ALLGOALS (clarify_tac ctxt),
       ALLGOALS (asm_lr_simp_tac (simpset_of ctxt))]);

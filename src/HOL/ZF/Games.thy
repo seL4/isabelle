@@ -330,7 +330,7 @@ proof -
     by (simp add: option_to_is_option_of) 
   show ?thesis
     apply (simp add: option_of)
-    apply (auto intro: wf_inv_image wf_is_option_of)
+    apply (auto intro: wf_is_option_of)
     done
 qed
   
@@ -359,7 +359,7 @@ termination by (relation "option_of") auto
 lemma "neg_game (neg_game g) = g"
   apply (induct g rule: neg_game.induct)
   apply (subst neg_game.simps)+
-  apply (simp add: right_options left_options comp_zimage_eq)
+  apply (simp add: comp_zimage_eq)
   apply (subgoal_tac "zimage (neg_game o neg_game) (left_options g) = left_options g")
   apply (subgoal_tac "zimage (neg_game o neg_game) (right_options g) = right_options g")
   apply (auto simp add: game_split[symmetric])
@@ -552,7 +552,7 @@ proof -
         apply (simp only: plus_game.simps[where G=G and H=H])
         apply (simp add: game_ext_eq goal1)
         apply (auto simp add: 
-          zimage_cong[where f = "\<lambda> g. plus_game g zero_game" and g = "id"] 
+          zimage_cong [where f = "\<lambda> g. plus_game g zero_game" and g = "id"] 
           induct_hyp)
         done
     qed
@@ -974,3 +974,4 @@ proof
 qed
 
 end
+

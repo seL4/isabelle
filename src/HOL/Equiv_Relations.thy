@@ -31,7 +31,7 @@ text {*
 
 lemma sym_trans_comp_subset:
     "sym r ==> trans r ==> r\<inverse> O r \<subseteq> r"
-  by (unfold trans_def sym_def converse_def) blast
+  by (unfold trans_def sym_def converse_unfold) blast
 
 lemma refl_on_comp_subset: "refl_on A r ==> r \<subseteq> r\<inverse> O r"
   by (unfold refl_on_def) blast
@@ -426,7 +426,7 @@ lemma equivp_implies_part_equivp:
 
 lemma equivp_equiv:
   "equiv UNIV A \<longleftrightarrow> equivp (\<lambda>x y. (x, y) \<in> A)"
-  by (auto intro: equivpI elim: equivpE simp add: equiv_def reflp_def symp_def transp_def)
+  by (auto intro!: equivI equivpI [to_set] elim!: equivE equivpE [to_set])
 
 lemma equivp_reflp_symp_transp:
   shows "equivp R \<longleftrightarrow> reflp R \<and> symp R \<and> transp R"
@@ -449,3 +449,4 @@ lemma equivp_transp:
   by (erule equivpE, erule transpE)
 
 end
+

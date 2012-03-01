@@ -1043,14 +1043,14 @@ code_pred (expected_modes:
   (i => bool) => o * i => bool,
   (i => bool) => i => bool) [inductify] Id_on .
 thm Id_on.equation
-thm Domain_def
+thm Domain_unfold
 code_pred (modes:
   (o * o => bool) => o => bool,
   (o * o => bool) => i => bool,
   (i * o => bool) => i => bool) [inductify] Domain .
 thm Domain.equation
 
-thm Range_def
+thm Domain_converse [symmetric]
 code_pred (modes:
   (o * o => bool) => o => bool,
   (o * o => bool) => i => bool,

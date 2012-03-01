@@ -90,6 +90,18 @@ Isabelle2011-1 before jumping right into the current release.
 
 * New type synonym 'a rel = ('a * 'a) set
 
+* More default pred/set conversions on a couple of relation operations
+and predicates.  Consolidation of some relation theorems:
+
+  converse_def ~> converse_unfold
+  rel_comp_def ~> rel_comp_unfold
+  symp_def ~> (dropped, use symp_def and sym_def instead)
+  transp_def ~> transp_trans
+  Domain_def ~> Domain_unfold
+  Range_def ~> Domain_converse [symmetric]
+
+INCOMPATIBILITY.
+
 * Consolidated various theorem names relating to Finite_Set.fold
 combinator:
 
@@ -99,7 +111,7 @@ combinator:
   SUPR_fold_sup ~> SUP_fold_sup
   union_set ~> union_set_fold
   minus_set ~> minus_set_fold
-  
+
 INCOMPATIBILITY.
 
 * Consolidated theorem names concerning fold combinators:

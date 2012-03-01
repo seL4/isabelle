@@ -660,7 +660,7 @@ definition Ext :: "('a * 'b) set \<Rightarrow> 'b \<Rightarrow> 'a set" where
   "Ext R y \<equiv> { x . (x, y) \<in> R }" 
 
 lemma Ext_Elem: "Ext is_Elem_of = explode"
-  by (auto intro: ext simp add: Ext_def is_Elem_of_def explode_def)
+  by (auto simp add: Ext_def is_Elem_of_def explode_def)
 
 lemma "Ext SpecialR Empty \<noteq> explode z"
 proof 
@@ -892,3 +892,4 @@ lemma wfzf_subset: "wfzf S \<Longrightarrow> R \<subseteq> S \<Longrightarrow> w
   by (auto intro: set_like_subset wf_subset simp add: wf_eq_wfzf[symmetric])  
 
 end
+

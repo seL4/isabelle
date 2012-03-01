@@ -128,7 +128,7 @@ proof -
   let ?n = "card A"
   have "finite A" using `card A \<ge> 2` by(auto intro:ccontr)
   have 0: "R `` A <= A" using `sym R` `Domain R <= A`
-    unfolding Domain_def sym_def by blast
+    unfolding Domain_unfold sym_def by blast
   have h: "ALL a:A. R `` {a} <= A" using 0 by blast
   hence 1: "ALL a:A. finite(R `` {a})" using `finite A`
     by(blast intro: finite_subset)

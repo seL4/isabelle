@@ -138,7 +138,7 @@ lemma transient_lemma:
      "Client \<in> transient {s. rel s = k & k<h & h \<le> giv s & h pfixGe ask s}"
 apply (simp add: Client_def mk_total_program_def)
 apply (rule_tac act = rel_act in totalize_transientI)
-  apply (auto simp add: Domain_def Client_def)
+  apply (auto simp add: Domain_unfold Client_def)
  apply (blast intro: less_le_trans prefix_length_le strict_prefix_length_less)
 apply (auto simp add: prefix_def genPrefix_iff_nth Ge_def)
 apply (blast intro: strict_prefix_length_less)
