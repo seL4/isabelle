@@ -1060,7 +1060,7 @@ fun kodkod_formula_from_nut ofs
       | Op1 (Finite, _, Opt (Atom _), _) => KK.None
       | Op1 (Converse, T, R, u1) =>
         let
-          val (b_T, a_T) = HOLogic.dest_prodT (elem_type T)
+          val (b_T, a_T) = HOLogic.dest_prodT (pseudo_domain_type T)
           val (b_R, a_R) =
             case R of
               Func (Struct [R1, R2], _) => (R1, R2)
@@ -1191,8 +1191,8 @@ fun kodkod_formula_from_nut ofs
         end
       | Op2 (Composition, _, R, u1, u2) =>
         let
-          val (a_T, b_T) = HOLogic.dest_prodT (elem_type (type_of u1))
-          val (_, c_T) = HOLogic.dest_prodT (elem_type (type_of u2))
+          val (a_T, b_T) = HOLogic.dest_prodT (pseudo_domain_type (type_of u1))
+          val (_, c_T) = HOLogic.dest_prodT (pseudo_domain_type (type_of u2))
           val ab_k = card_of_domain_from_rep 2 (rep_of u1)
           val bc_k = card_of_domain_from_rep 2 (rep_of u2)
           val ac_k = card_of_domain_from_rep 2 R
