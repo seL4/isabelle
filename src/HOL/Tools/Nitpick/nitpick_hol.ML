@@ -744,10 +744,11 @@ fun is_quot_abs_fun ctxt (x as (_, Type (@{type_name fun},
     try (Quotient_Term.absrep_const_chk ctxt Quotient_Term.AbsF) s'
     = SOME (Const x) andalso not (is_codatatype ctxt abs_T)
   | is_quot_abs_fun _ _ = false
-fun is_quot_rep_fun ctxt (x as (_, Type (@{type_name fun},
-                                         [abs_T as Type (s', _), _]))) =
-    try (Quotient_Term.absrep_const_chk ctxt Quotient_Term.RepF) s'
-    = SOME (Const x) andalso not (is_codatatype ctxt abs_T)
+fun is_quot_rep_fun ctxt (x as (s, Type (@{type_name fun},
+                                         [abs_T as Type (abs_s, _), _]))) =
+    (case try (Quotient_Term.absrep_const_chk ctxt Quotient_Term.RepF) abs_s of
+       SOME (Const (s', _)) => s = s' andalso not (is_codatatype ctxt abs_T)
+     | NONE => false)
   | is_quot_rep_fun _ _ = false
 
 fun mate_of_rep_fun ctxt (x as (_, Type (@{type_name fun},
