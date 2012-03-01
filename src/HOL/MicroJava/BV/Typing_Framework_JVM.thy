@@ -28,8 +28,8 @@ definition list_all' :: "('a \<Rightarrow> nat \<Rightarrow> bool) \<Rightarrow>
   "list_all' P xs \<equiv> list_all'_rec P 0 xs"
 
 lemma list_all'_rec:
-  "\<And>n. list_all'_rec P n xs = (\<forall>p < size xs. P (xs!p) (p+n))"
-  apply (induct xs)
+  "list_all'_rec P n xs = (\<forall>p < size xs. P (xs!p) (p+n))"
+  apply (induct xs arbitrary: n)
   apply auto
   apply (case_tac p)
   apply auto
