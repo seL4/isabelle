@@ -53,9 +53,8 @@ class Thy_Load
     }
   }
 
-  def check_thy(name: Document.Node.Name): Document.Node.Deps =
+  def check_header(name: Document.Node.Name, header: Thy_Header): Document.Node.Deps =
   {
-    val header = read_header(name)
     val name1 = header.name
     val imports = header.imports.map(import_name(name.dir, _))
     val uses = header.uses.map(p => (append(name.dir, Path.explode(p._1)), p._2))
@@ -63,5 +62,8 @@ class Thy_Load
       error("Bad file name " + thy_path(Path.basic(name.theory)) + " for theory " + quote(name1))
     Document.Node.Deps(imports, uses)
   }
+
+  def check_thy(name: Document.Node.Name): Document.Node.Deps =
+    check_header(name, read_header(name))
 }
 
