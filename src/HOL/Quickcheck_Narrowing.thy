@@ -202,13 +202,13 @@ code_abort of_int
 
 subsubsection {* Narrowing's deep representation of types and terms *}
 
-datatype narrowing_type = SumOfProd "narrowing_type list list"
-datatype narrowing_term = Var "code_int list" narrowing_type | Ctr code_int "narrowing_term list"
-datatype 'a cons = C narrowing_type "(narrowing_term list => 'a) list"
+datatype narrowing_type = Narrowing_sum_of_products "narrowing_type list list"
+datatype narrowing_term = Narrowing_variable "code_int list" narrowing_type | Narrowing_constructor code_int "narrowing_term list"
+datatype 'a narrowing_cons = Narrowing_cons narrowing_type "(narrowing_term list => 'a) list"
 
-primrec map_cons :: "('a => 'b) => 'a cons => 'b cons"
+primrec map_cons :: "('a => 'b) => 'a narrowing_cons => 'b narrowing_cons"
 where
-  "map_cons f (C ty cs) = C ty (map (%c. f o c) cs)"
+  "map_cons f (Narrowing_cons ty cs) = Narrowing_cons ty (map (%c. f o c) cs)"
 
 subsubsection {* From narrowing's deep representation of terms to @{theory Code_Evaluation}'s terms *}
 
@@ -238,46 +238,46 @@ code_const marker (Haskell_Quickcheck "''\\0'")
 
 subsubsection {* Narrowing's basic operations *}
 
-type_synonym 'a narrowing = "code_int => 'a cons"
+type_synonym 'a narrowing = "code_int => 'a narrowing_cons"
 
 definition empty :: "'a narrowing"
 where
-  "empty d = C (SumOfProd []) []"
+  "empty d = Narrowing_cons (Narrowing_sum_of_products []) []"
   
 definition cons :: "'a => 'a narrowing"
 where
-  "cons a d = (C (SumOfProd [[]]) [(%_. a)])"
+  "cons a d = (Narrowing_cons (Narrowing_sum_of_products [[]]) [(%_. a)])"
 
 fun conv :: "(narrowing_term list => 'a) list => narrowing_term => 'a"
 where
-  "conv cs (Var p _) = error (marker # map toEnum p)"
-| "conv cs (Ctr i xs) = (nth cs i) xs"
+  "conv cs (Narrowing_variable p _) = error (marker # map toEnum p)"
+| "conv cs (Narrowing_constructor i xs) = (nth cs i) xs"
 
-fun nonEmpty :: "narrowing_type => bool"
+fun non_empty :: "narrowing_type => bool"
 where
-  "nonEmpty (SumOfProd ps) = (\<not> (List.null ps))"
+  "non_empty (Narrowing_sum_of_products ps) = (\<not> (List.null ps))"
 
 definition "apply" :: "('a => 'b) narrowing => 'a narrowing => 'b narrowing"
 where
   "apply f a d =
-     (case f d of C (SumOfProd ps) cfs =>
-       case a (d - 1) of C ta cas =>
+     (case f d of Narrowing_cons (Narrowing_sum_of_products ps) cfs =>
+       case a (d - 1) of Narrowing_cons ta cas =>
        let
-         shallow = (d > 0 \<and> nonEmpty ta);
+         shallow = (d > 0 \<and> non_empty ta);
          cs = [(%xs'. (case xs' of [] => undefined | x # xs => cf xs (conv cas x))). shallow, cf <- cfs]
-       in C (SumOfProd [ta # p. shallow, p <- ps]) cs)"
+       in Narrowing_cons (Narrowing_sum_of_products [ta # p. shallow, p <- ps]) cs)"
 
 definition sum :: "'a narrowing => 'a narrowing => 'a narrowing"
 where
   "sum a b d =
-    (case a d of C (SumOfProd ssa) ca => 
-      case b d of C (SumOfProd ssb) cb =>
-      C (SumOfProd (ssa @ ssb)) (ca @ cb))"
+    (case a d of Narrowing_cons (Narrowing_sum_of_products ssa) ca => 
+      case b d of Narrowing_cons (Narrowing_sum_of_products ssb) cb =>
+      Narrowing_cons (Narrowing_sum_of_products (ssa @ ssb)) (ca @ cb))"
 
 lemma [fundef_cong]:
   assumes "a d = a' d" "b d = b' d" "d = d'"
   shows "sum a b d = sum a' b' d'"
-using assms unfolding sum_def by (auto split: cons.split narrowing_type.split)
+using assms unfolding sum_def by (auto split: narrowing_cons.split narrowing_type.split)
 
 lemma [fundef_cong]:
   assumes "f d = f' d" "(\<And>d'. 0 <= d' & d' < d ==> a d' = a' d')"
@@ -291,24 +291,24 @@ proof -
   have "int_of (of_int (int_of d' - int_of (of_int 1))) < int_of d'"
     by (simp add: of_int_inverse)
   ultimately show ?thesis
-    unfolding apply_def by (auto split: cons.split narrowing_type.split simp add: Let_def)
+    unfolding apply_def by (auto split: narrowing_cons.split narrowing_type.split simp add: Let_def)
 qed
 
 subsubsection {* Narrowing generator type class *}
 
 class narrowing =
-  fixes narrowing :: "code_int => 'a cons"
+  fixes narrowing :: "code_int => 'a narrowing_cons"
 
 datatype property = Universal narrowing_type "(narrowing_term => property)" "narrowing_term => Code_Evaluation.term" | Existential narrowing_type "(narrowing_term => property)" "narrowing_term => Code_Evaluation.term" | Property bool
 
 (* FIXME: hard-wired maximal depth of 100 here *)
 definition exists :: "('a :: {narrowing, partial_term_of} => property) => property"
 where
-  "exists f = (case narrowing (100 :: code_int) of C ty cs => Existential ty (\<lambda> t. f (conv cs t)) (partial_term_of (TYPE('a))))"
+  "exists f = (case narrowing (100 :: code_int) of Narrowing_cons ty cs => Existential ty (\<lambda> t. f (conv cs t)) (partial_term_of (TYPE('a))))"
 
 definition "all" :: "('a :: {narrowing, partial_term_of} => property) => property"
 where
-  "all f = (case narrowing (100 :: code_int) of C ty cs => Universal ty (\<lambda>t. f (conv cs t)) (partial_term_of (TYPE('a))))"
+  "all f = (case narrowing (100 :: code_int) of Narrowing_cons ty cs => Universal ty (\<lambda>t. f (conv cs t)) (partial_term_of (TYPE('a))))"
 
 subsubsection {* class @{text is_testable} *}
 
@@ -356,14 +356,14 @@ definition narrowing_dummy_partial_term_of :: "('a :: partial_term_of) itself =>
 where
   "narrowing_dummy_partial_term_of = partial_term_of"
 
-definition narrowing_dummy_narrowing :: "code_int => ('a :: narrowing) cons"
+definition narrowing_dummy_narrowing :: "code_int => ('a :: narrowing) narrowing_cons"
 where
   "narrowing_dummy_narrowing = narrowing"
 
 lemma [code]:
   "ensure_testable f =
     (let
-      x = narrowing_dummy_narrowing :: code_int => bool cons;
+      x = narrowing_dummy_narrowing :: code_int => bool narrowing_cons;
       y = narrowing_dummy_partial_term_of :: bool itself => narrowing_term => term;
       z = (conv :: _ => _ => unit)  in f)"
 unfolding Let_def ensure_testable_def ..
@@ -382,8 +382,8 @@ end
 subsection {* Narrowing for integers *}
 
 
-definition drawn_from :: "'a list => 'a cons"
-where "drawn_from xs = C (SumOfProd (map (%_. []) xs)) (map (%x y. x) xs)"
+definition drawn_from :: "'a list => 'a narrowing_cons"
+where "drawn_from xs = Narrowing_cons (Narrowing_sum_of_products (map (%_. []) xs)) (map (%x y. x) xs)"
 
 function around_zero :: "int => int list"
 where
@@ -419,8 +419,8 @@ lemma [code, code del]: "partial_term_of (ty :: int itself) t == undefined"
 by (rule partial_term_of_anything)+
 
 lemma [code]:
-  "partial_term_of (ty :: int itself) (Var p t) == Code_Evaluation.Free (STR ''_'') (Typerep.Typerep (STR ''Int.int'') [])"
-  "partial_term_of (ty :: int itself) (Ctr i []) == (if i mod 2 = 0 then
+  "partial_term_of (ty :: int itself) (Narrowing_variable p t) == Code_Evaluation.Free (STR ''_'') (Typerep.Typerep (STR ''Int.int'') [])"
+  "partial_term_of (ty :: int itself) (Narrowing_constructor i []) == (if i mod 2 = 0 then
      Code_Evaluation.term_of (- (int_of i) div 2) else Code_Evaluation.term_of ((int_of i + 1) div 2))"
 by (rule partial_term_of_anything)+
 
@@ -459,9 +459,9 @@ use "Tools/Quickcheck/find_unused_assms.ML"
 
 subsection {* Closing up *}
 
-hide_type code_int narrowing_type narrowing_term cons property
-hide_const int_of of_int nat_of map_cons nth error toEnum marker empty C conv nonEmpty ensure_testable all exists drawn_from around_zero
-hide_const (open) Var Ctr "apply" sum cons
-hide_fact empty_def cons_def conv.simps nonEmpty.simps apply_def sum_def ensure_testable_def all_def exists_def
+hide_type code_int narrowing_type narrowing_term narrowing_cons property
+hide_const int_of of_int nat_of map_cons nth error toEnum marker empty Narrowing_cons conv non_empty ensure_testable all exists drawn_from around_zero
+hide_const (open) Narrowing_variable Narrowing_constructor "apply" sum cons
+hide_fact empty_def cons_def conv.simps non_empty.simps apply_def sum_def ensure_testable_def all_def exists_def
 
 end

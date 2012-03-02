@@ -27,8 +27,8 @@ tailPosEdge (VN pos ty) = VN (tail pos) ty
 tailPosEdge (CtrB pos ts) = CtrB (tail pos) ts
 
 termOf :: Pos -> Path -> Generated_Code.Narrowing_term
-termOf pos (CtrB [] i : es) = Generated_Code.Ctr i (termListOf pos es)
-termOf pos [VN [] ty] = Generated_Code.Var pos ty
+termOf pos (CtrB [] i : es) = Generated_Code.Narrowing_constructor i (termListOf pos es)
+termOf pos [VN [] ty] = Generated_Code.Narrowing_variable pos ty
 
 termListOf :: Pos -> Path -> [Generated_Code.Narrowing_term]
 termListOf pos es = termListOf' 0 es
@@ -149,7 +149,7 @@ refineTree :: [Edge] -> Pos -> QuantTree -> QuantTree
 refineTree es p t = updateTree refine (pathPrefix p es) t
   where
     pathPrefix p es = takeWhile (\e -> posOf e /= p) es  
-    refine (VarNode q r p (Generated_Code.SumOfProd ps) t) =
+    refine (VarNode q r p (Generated_Code.Narrowing_sum_of_products ps) t) =
       CtrBranch q r p [ foldr (\(i,ty) t -> VarNode q r (p++[i]) ty t) t (zip [0..] ts) | ts <- ps ]
 
 -- refute
@@ -230,7 +230,7 @@ term_of p' (CtrBranch q _ p ts) =
 termlist_of :: Pos -> ([Generated_Code.Narrowing_term], QuantTree) -> ([Generated_Code.Narrowing_term], QuantTree)
 termlist_of p' (terms, Node b) = (terms, Node b) 
 termlist_of p' (terms, VarNode q r p ty t) = if p' == take (length p') p then
-    termlist_of p' (terms ++ [Generated_Code.Var p ty], t)
+    termlist_of p' (terms ++ [Generated_Code.Narrowing_variable p ty], t)
   else
     (terms, VarNode q r p ty t)
 termlist_of p' (terms, CtrBranch q r p ts) = if p' == take (length p') p then
@@ -238,7 +238,7 @@ termlist_of p' (terms, CtrBranch q r p ts) = if p' == take (length p') p then
       Just i = findIndex (\t -> evalOf t == Eval False) ts
       (subterms, t') = fixp (\j -> termlist_of (p ++ [j])) 0 ([], ts !! i)
     in
-      (terms ++ [Generated_Code.Ctr i subterms], t')
+      (terms ++ [Generated_Code.Narrowing_constructor i subterms], t')
   else
     (terms, CtrBranch q r p ts)
   where
@@ -248,7 +248,7 @@ termlist_of p' (terms, CtrBranch q r p ts) = if p' == take (length p') p then
 alltermlist_of :: Pos -> ([Generated_Code.Narrowing_term], QuantTree) -> [([Generated_Code.Narrowing_term], QuantTree)]
 alltermlist_of p' (terms, Node b) = [(terms, Node b)] 
 alltermlist_of p' (terms, VarNode q r p ty t) = if p' == take (length p') p then
-    alltermlist_of p' (terms ++ [Generated_Code.Var p ty], t)
+    alltermlist_of p' (terms ++ [Generated_Code.Narrowing_variable p ty], t)
   else
     [(terms, VarNode q r p ty t)]
 alltermlist_of p' (terms, CtrBranch q r p ts) =
@@ -257,7 +257,7 @@ alltermlist_of p' (terms, CtrBranch q r p ts) =
       its = filter (\(i, t) -> evalOf t == Eval False) (zip [0..] ts)
     in
       concatMap
-        (\(i, t) -> map (\(subterms, t') -> (terms ++ [Generated_Code.Ctr i subterms], t'))
+        (\(i, t) -> map (\(subterms, t') -> (terms ++ [Generated_Code.Narrowing_constructor i subterms], t'))
            (fixp (\j -> alltermlist_of (p ++ [j])) 0 ([], t))) its
   else
     [(terms, CtrBranch q r p ts)]

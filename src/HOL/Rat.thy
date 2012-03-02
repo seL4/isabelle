@@ -1184,8 +1184,8 @@ instance ..
 end
 
 lemma [code]:
-  "partial_term_of (ty :: rat itself) (Quickcheck_Narrowing.Var p tt) == Code_Evaluation.Free (STR ''_'') (Typerep.Typerep (STR ''Rat.rat'') [])"
-  "partial_term_of (ty :: rat itself) (Quickcheck_Narrowing.Ctr 0 [l, k]) ==
+  "partial_term_of (ty :: rat itself) (Quickcheck_Narrowing.Narrowing_variable p tt) == Code_Evaluation.Free (STR ''_'') (Typerep.Typerep (STR ''Rat.rat'') [])"
+  "partial_term_of (ty :: rat itself) (Quickcheck_Narrowing.Narrowing_constructor 0 [l, k]) ==
      Code_Evaluation.App (Code_Evaluation.Const (STR ''Rat.Frct'')
      (Typerep.Typerep (STR ''fun'') [Typerep.Typerep (STR ''Product_Type.prod'') [Typerep.Typerep (STR ''Int.int'') [], Typerep.Typerep (STR ''Int.int'') []],
         Typerep.Typerep (STR ''Rat.rat'') []])) (Code_Evaluation.App (Code_Evaluation.App (Code_Evaluation.Const (STR ''Product_Type.Pair'') (Typerep.Typerep (STR ''fun'') [Typerep.Typerep (STR ''Int.int'') [], Typerep.Typerep (STR ''fun'') [Typerep.Typerep (STR ''Int.int'') [], Typerep.Typerep (STR ''Product_Type.prod'') [Typerep.Typerep (STR ''Int.int'') [], Typerep.Typerep (STR ''Int.int'') []]]])) (partial_term_of (TYPE(int)) l)) (partial_term_of (TYPE(int)) k))"

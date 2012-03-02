@@ -68,7 +68,7 @@ fun ensure_partial_term_of (tyco, (raw_vs, _)) thy =
 fun mk_partial_term_of_eq thy ty (i, (c, (_, tys))) =
   let
     val frees = map Free (Name.invent_names Name.context "a" (map (K @{typ narrowing_term}) tys))
-    val narrowing_term = @{term "Quickcheck_Narrowing.Ctr"} $ HOLogic.mk_number @{typ code_int} i
+    val narrowing_term = @{term "Quickcheck_Narrowing.Narrowing_constructor"} $ HOLogic.mk_number @{typ code_int} i
       $ (HOLogic.mk_list @{typ narrowing_term} (rev frees))
     val rhs = fold (fn u => fn t => @{term "Code_Evaluation.App"} $ t $ u)
         (map mk_partial_term_of (frees ~~ tys))
@@ -94,7 +94,7 @@ fun add_partial_term_of_code tyco raw_vs raw_cs thy =
     val const = AxClass.param_of_inst thy (@{const_name partial_term_of}, tyco);
     val var_insts =
       map (SOME o Thm.cterm_of thy o Logic.unvarify_types_global o Logic.varify_global)
-        [Free ("ty", Term.itselfT ty), @{term "Quickcheck_Narrowing.Var p tt"},
+        [Free ("ty", Term.itselfT ty), @{term "Quickcheck_Narrowing.Narrowing_variable p tt"},
           @{term "Code_Evaluation.Free (STR ''_'')"} $ HOLogic.mk_typerep ty];
     val var_eq =
       @{thm partial_term_of_anything}
@@ -122,7 +122,7 @@ exception FUNCTION_TYPE;
 val narrowingN = "narrowing";
 
 fun narrowingT T =
-  @{typ Quickcheck_Narrowing.code_int} --> Type (@{type_name Quickcheck_Narrowing.cons}, [T])
+  @{typ Quickcheck_Narrowing.code_int} --> Type (@{type_name Quickcheck_Narrowing.narrowing_cons}, [T])
 
 fun mk_empty T = Const (@{const_name Quickcheck_Narrowing.empty}, narrowingT T)
 

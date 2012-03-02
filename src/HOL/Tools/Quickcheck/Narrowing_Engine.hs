@@ -11,12 +11,12 @@ type Pos = [Int];
 -- Term refinement
 
 new :: Pos -> [[Generated_Code.Narrowing_type]] -> [Generated_Code.Narrowing_term];
-new p ps = [ Generated_Code.Ctr c (zipWith (\i t -> Generated_Code.Var (p++[i]) t) [0..] ts)
+new p ps = [ Generated_Code.Narrowing_constructor c (zipWith (\i t -> Generated_Code.Narrowing_variable (p++[i]) t) [0..] ts)
            | (c, ts) <- zip [0..] ps ];
 
 refine :: Generated_Code.Narrowing_term -> Pos -> [Generated_Code.Narrowing_term];
-refine (Generated_Code.Var p (Generated_Code.SumOfProd ss)) [] = new p ss;
-refine (Generated_Code.Ctr c xs) p = map (Generated_Code.Ctr c) (refineList xs p);
+refine (Generated_Code.Narrowing_variable p (Generated_Code.Narrowing_sum_of_products ss)) [] = new p ss;
+refine (Generated_Code.Narrowing_constructor c xs) p = map (Generated_Code.Narrowing_constructor c) (refineList xs p);
 
 refineList :: [Generated_Code.Narrowing_term] -> Pos -> [[Generated_Code.Narrowing_term]];
 refineList xs (i:is) = let (ls, x:rs) = splitAt i xs in [ls ++ y:rs | y <- refine x is];
@@ -24,8 +24,8 @@ refineList xs (i:is) = let (ls, x:rs) = splitAt i xs in [ls ++ y:rs | y <- refin
 -- Find total instantiations of a partial value
 
 total :: Generated_Code.Narrowing_term -> [Generated_Code.Narrowing_term];
-total (Generated_Code.Ctr c xs) = [Generated_Code.Ctr c ys | ys <- mapM total xs];
-total (Generated_Code.Var p (Generated_Code.SumOfProd ss)) = [y | x <- new p ss, y <- total x];
+total (Generated_Code.Narrowing_constructor c xs) = [Generated_Code.Narrowing_constructor c ys | ys <- mapM total xs];
+total (Generated_Code.Narrowing_variable p (Generated_Code.Narrowing_sum_of_products ss)) = [y | x <- new p ss, y <- total x];
 
 -- Answers
 
@@ -99,10 +99,10 @@ instance Testable Bool where {
 
 instance (Generated_Code.Partial_term_of a, Generated_Code.Narrowing a, Testable b) => Testable (a -> b) where {
   property f = P $ \n d ->
-    let Generated_Code.C t c = Generated_Code.narrowing d
+    let Generated_Code.Narrowing_cons t c = Generated_Code.narrowing d
         c' = Generated_Code.conv c
         r = run (\(x:xs) -> f xs (c' x)) (n+1) d
-    in  r { args = Generated_Code.Var [n] t : args r,
+    in  r { args = Generated_Code.Narrowing_variable [n] t : args r,
       showArgs = (show . Generated_Code.partial_term_of (Generated_Code.Type :: Generated_Code.Itself a)) : showArgs r };
 };
 
