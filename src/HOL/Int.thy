@@ -2179,6 +2179,36 @@ proof -
 qed
 
 
+subsection {* Finiteness of intervals *}
+
+lemma finite_interval_int1 [iff]: "finite {i :: int. a <= i & i <= b}"
+proof (cases "a <= b")
+  case True
+  from this show ?thesis
+  proof (induct b rule: int_ge_induct)
+    case base
+    have "{i. a <= i & i <= a} = {a}" by auto
+    from this show ?case by simp
+  next
+    case (step b)
+    from this have "{i. a <= i & i <= b + 1} = {i. a <= i & i <= b} \<union> {b + 1}" by auto
+    from this step show ?case by simp
+  qed
+next
+  case False from this show ?thesis
+    by (metis (lifting, no_types) Collect_empty_eq finite.emptyI order_trans)
+qed
+
+lemma finite_interval_int2 [iff]: "finite {i :: int. a <= i & i < b}"
+by (rule rev_finite_subset[OF finite_interval_int1[of "a" "b"]]) auto
+
+lemma finite_interval_int3 [iff]: "finite {i :: int. a < i & i <= b}"
+by (rule rev_finite_subset[OF finite_interval_int1[of "a" "b"]]) auto
+
+lemma finite_interval_int4 [iff]: "finite {i :: int. a < i & i < b}"
+by (rule rev_finite_subset[OF finite_interval_int1[of "a" "b"]]) auto
+
+
 subsection {* Configuration of the code generator *}
 
 code_datatype Pls Min Bit0 Bit1 "number_of \<Colon> int \<Rightarrow> int"

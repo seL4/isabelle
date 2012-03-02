@@ -476,6 +476,8 @@ by (auto simp add: set_of_def)
 lemma finite_set_of [iff]: "finite (set_of M)"
   using count [of M] by (simp add: multiset_def set_of_def)
 
+lemma finite_Collect_mem [iff]: "finite {x. x :# M}"
+  unfolding set_of_def[symmetric] by simp
 
 subsubsection {* Size *}
 

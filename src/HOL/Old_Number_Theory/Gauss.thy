@@ -67,10 +67,7 @@ lemma p_eq2: "p = (2 * ((p - 1) div 2)) + 1"
 subsection {* Basic Properties of the Gauss Sets *}
 
 lemma finite_A: "finite (A)"
-  apply (auto simp add: A_def)
-  apply (subgoal_tac "{x. 0 < x & x \<le> (p - 1) div 2} \<subseteq> {x. 0 \<le> x & x < 1 + (p - 1) div 2}")
-  apply (auto simp add: bdd_int_set_l_finite finite_subset)
-  done
+by (auto simp add: A_def)
 
 lemma finite_B: "finite (B)"
 by (auto simp add: B_def finite_A)
