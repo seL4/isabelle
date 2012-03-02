@@ -344,32 +344,36 @@ class Plugin extends EBPlugin
       val view = jEdit.getActiveView()
 
       val buffers = Isabelle.jedit_buffers().toList
-      def loaded_buffer(name: String): Boolean =
-        buffers.exists(buffer => Isabelle.buffer_name(buffer) == name)
+      if (buffers.forall(_.isLoaded)) {
+        def loaded_buffer(name: String): Boolean =
+          buffers.exists(buffer => Isabelle.buffer_name(buffer) == name)
 
-      val thys =
-        for (buffer <- buffers; model <- Isabelle.document_model(buffer))
-          yield model.name
-      val files = Isabelle.thy_info.dependencies(thys).map(_._1.node).
-        filter(file => !loaded_buffer(file) && Isabelle.thy_load.check_file(view, file))
+        val thys =
+          for (buffer <- buffers; model <- Isabelle.document_model(buffer))
+            yield model.name
 
-      if (!files.isEmpty) {
-        val files_list = new ListView(files.sorted)
-        for (i <- 0 until files.length)
-          files_list.selection.indices += i
+        // FIXME avoid I/O in Swing thread!?!
+        val files = Isabelle.thy_info.dependencies(thys).map(_._1.node).
+          filter(file => !loaded_buffer(file) && Isabelle.thy_load.check_file(view, file))
 
-        val answer =
-          Library.confirm_dialog(view,
-            "Auto loading of required files",
-            JOptionPane.YES_NO_OPTION,
-            "The following files are required to resolve theory imports.",
-            "Reload selected files now?",
-            new ScrollPane(files_list))
-        if (answer == 0)
-          for {
-            file <- files
-            if files_list.selection.items.contains(file)
-          } jEdit.openFile(null: View, file)
+        if (!files.isEmpty) {
+          val files_list = new ListView(files.sorted)
+          for (i <- 0 until files.length)
+            files_list.selection.indices += i
+
+          val answer =
+            Library.confirm_dialog(view,
+              "Auto loading of required files",
+              JOptionPane.YES_NO_OPTION,
+              "The following files are required to resolve theory imports.",
+              "Reload selected files now?",
+              new ScrollPane(files_list))
+          if (answer == 0) {
+            files.foreach(file =>
+              if (files_list.selection.items.contains(file))
+                jEdit.openFile(null: View, file))
+          }
+        }
       }
     }
 

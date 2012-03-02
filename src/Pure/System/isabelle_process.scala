@@ -234,7 +234,9 @@ class Isabelle_Process(
           }
           //}}}
         }
-        catch { case e: IOException => system_result(name + ": " + e.getMessage) }
+        catch {
+          case e: IOException => finished = true; system_result(name + ": " + e.getMessage)
+        }
       }
       system_result(name + " terminated")
     }
@@ -273,7 +275,9 @@ class Isabelle_Process(
           }
           //}}}
         }
-        catch { case e: IOException => system_result(name + ": " + e.getMessage) }
+        catch {
+          case e: IOException => finished; system_result(name + ": " + e.getMessage)
+        }
       }
       system_result(name + " terminated")
     }
@@ -304,7 +308,9 @@ class Isabelle_Process(
           }
           //}}}
         }
-        catch { case e: IOException => system_result(name + ": " + e.getMessage) }
+        catch {
+          case e: IOException => finished; system_result(name + ": " + e.getMessage)
+        }
       }
       system_result(name + " terminated")
     }
@@ -371,8 +377,8 @@ class Isabelle_Process(
           }
         }
         catch {
-          case e: IOException => system_result("Cannot read message:\n" + e.getMessage)
-          case e: Protocol_Error => system_result("Malformed message:\n" + e.getMessage)
+          case e: IOException => c = -1; system_result("Cannot read message:\n" + e.getMessage)
+          case e: Protocol_Error => c = -1; system_result("Malformed message:\n" + e.getMessage)
           case _: EOF =>
         }
       } while (c != -1)
