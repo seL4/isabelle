@@ -6,12 +6,12 @@ header {* Generic reflection and reification *}
 
 theory Reflection
 imports Main
-uses "reify_data.ML" ("reflection.ML")
+uses
+  "~~/src/HOL/Library/reify_data.ML"
+  "~~/src/HOL/Library/reflection.ML"
 begin
 
 setup {* Reify_Data.setup *}
-
-use "reflection.ML"
 
 method_setup reify = {*
   Attrib.thms --
@@ -41,3 +41,4 @@ end
 *}
 
 end
+
