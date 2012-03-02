@@ -445,11 +445,9 @@ lemma real_max_Sup:
   fixes x :: real
   shows "max x y = Sup {x,y}"
 proof-
-  have f: "finite {x, y}" "{x,y} \<noteq> {}"  by simp_all
-  from Sup_finite_le_iff[OF f, of "max x y"] have "Sup {x,y} \<le> max x y" by simp
+  have "Sup {x,y} \<le> max x y" by (simp add: Sup_finite_le_iff)
   moreover
-  have "max x y \<le> Sup {x,y}" using Sup_finite_ge_iff[OF f, of "max x y"]
-    by (simp add: linorder_linear)
+  have "max x y \<le> Sup {x,y}" by (simp add: linorder_linear Sup_finite_ge_iff)
   ultimately show ?thesis by arith
 qed
 
@@ -457,12 +455,9 @@ lemma real_min_Inf:
   fixes x :: real
   shows "min x y = Inf {x,y}"
 proof-
-  have f: "finite {x, y}" "{x,y} \<noteq> {}"  by simp_all
-  from Inf_finite_le_iff[OF f, of "min x y"] have "Inf {x,y} \<le> min x y"
-    by (simp add: linorder_linear)
+  have "Inf {x,y} \<le> min x y" by (simp add: linorder_linear Inf_finite_le_iff)
   moreover
-  have "min x y \<le> Inf {x,y}" using Inf_finite_ge_iff[OF f, of "min x y"]
-    by simp
+  have "min x y \<le> Inf {x,y}" by (simp add:  Inf_finite_ge_iff)
   ultimately show ?thesis by arith
 qed
 

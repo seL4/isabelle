@@ -203,16 +203,14 @@ lemma pochhammer_Suc_setprod: "pochhammer a (Suc n) = setprod (\<lambda>n. a + o
 
 lemma setprod_nat_ivl_Suc: "setprod f {0 .. Suc n} = setprod f {0..n} * f (Suc n)"
 proof-
-  have th: "finite {0..n}" "finite {Suc n}" "{0..n} \<inter> {Suc n} = {}" by auto
   have eq: "{0..Suc n} = {0..n} \<union> {Suc n}" by auto
-  show ?thesis unfolding eq setprod_Un_disjoint[OF th] by simp
+  show ?thesis unfolding eq by (simp add: field_simps)
 qed
 
 lemma setprod_nat_ivl_1_Suc: "setprod f {0 .. Suc n} = f 0 * setprod f {1.. Suc n}"
 proof-
-  have th: "finite {0}" "finite {1..Suc n}" "{0} \<inter> {1.. Suc n} = {}" by auto
   have eq: "{0..Suc n} = {0} \<union> {1 .. Suc n}" by auto
-  show ?thesis unfolding eq setprod_Un_disjoint[OF th] by simp
+  show ?thesis unfolding eq by simp
 qed
 
 
@@ -221,7 +219,7 @@ proof-
   {assume "n=0" then have ?thesis by simp}
   moreover
   {fix m assume m: "n = Suc m"
-    have ?thesis  unfolding m pochhammer_Suc_setprod setprod_nat_ivl_Suc ..}
+    have ?thesis unfolding m pochhammer_Suc_setprod setprod_nat_ivl_Suc ..}
   ultimately show ?thesis by (cases n, auto)
 qed 
 

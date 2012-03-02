@@ -420,10 +420,9 @@ definition "X = Abs_fps (\<lambda>n. if n = 1 then 1 else 0)"
 lemma X_mult_nth[simp]: "(X * (f :: ('a::semiring_1) fps)) $n = (if n = 0 then 0 else f $ (n - 1))"
 proof-
   {assume n: "n \<noteq> 0"
-    have fN: "finite {0 .. n}" by simp
     have "(X * f) $n = (\<Sum>i = 0..n. X $ i * f $ (n - i))" by (simp add: fps_mult_nth)
     also have "\<dots> = f $ (n - 1)"
-      using n by (simp add: X_def mult_delta_left setsum_delta [OF fN])
+      using n by (simp add: X_def mult_delta_left setsum_delta)
   finally have ?thesis using n by simp }
   moreover
   {assume n: "n=0" hence ?thesis by (simp add: fps_mult_nth X_def)}
@@ -686,7 +685,6 @@ proof-
   {fix n::nat assume np: "n >0 "
     from np have eq: "{0..n} = {0} \<union> {1 .. n}" by auto
     have d: "{0} \<inter> {1 .. n} = {}" by auto
-    have f: "finite {0::nat}" "finite {1..n}" by auto
     from f0 np have th0: "- (inverse f$n) =
       (setsum (\<lambda>i. f$i * natfun_inverse f (n - i)) {1..n}) / (f$0)"
       by (cases n, simp, simp add: divide_inverse fps_inverse_def)
@@ -698,8 +696,7 @@ proof-
       unfolding fps_mult_nth ifn ..
     also have "\<dots> = f$0 * natfun_inverse f n
       + (\<Sum>i = 1..n. f$i * natfun_inverse f (n-i))"
-      unfolding setsum_Un_disjoint[OF f d, unfolded eq[symmetric]]
-      by simp
+      by (simp add: eq)
     also have "\<dots> = 0" unfolding th1 ifn by simp
     finally have "(inverse f * f)$n = 0" unfolding c . }
   with th0 show ?thesis by (simp add: fps_eq_iff)
@@ -1449,8 +1446,7 @@ lemma fps_power_nth_Suc:
   fixes m :: nat and a :: "('a::comm_ring_1) fps"
   shows "(a ^ Suc m)$n = setsum (\<lambda>v. setprod (\<lambda>j. a $ (v!j)) {0..m}) (natpermute n (m+1))"
 proof-
-  have f: "finite {0 ..m}" by simp
-  have th0: "a^Suc m = setprod (\<lambda>i. a) {0..m}" unfolding setprod_constant[OF f, of a] by simp
+  have th0: "a^Suc m = setprod (\<lambda>i. a) {0..m}" by (simp add: setprod_constant)
   show ?thesis unfolding th0 fps_setprod_nth ..
 qed
 lemma fps_power_nth:
@@ -1565,7 +1561,6 @@ proof-
   {assume "k=0" hence ?thesis by simp }
   moreover
   {fix h assume h: "k = Suc h"
-    have fh: "finite {0..h}" by simp
     have eq1: "fps_radical r k a ^ k $ 0 = (\<Prod>j\<in>{0..h}. fps_radical r k a $ (replicate k 0) ! j)"
       unfolding fps_power_nth h by simp
     also have "\<dots> = (\<Prod>j\<in>{0..h}. r k (a$0))"
@@ -1575,7 +1570,7 @@ proof-
       apply (subgoal_tac "replicate k (0::nat) ! x = 0")
       by (auto intro: nth_replicate simp del: replicate.simps)
     also have "\<dots> = a$0"
-      unfolding setprod_constant[OF fh] using r by (simp add: h)
+      using r by (simp add: h setprod_constant)
     finally have ?thesis using h by simp}
   ultimately show ?thesis by (cases k, auto)
 qed
@@ -1618,7 +1613,6 @@ proof-
             using fps_radical_power_nth[of r "Suc k" a, OF r0] by simp}
         moreover
         {fix n1 assume n1: "n = Suc n1"
-          have fK: "finite {0..k}" by simp
           have nz: "n \<noteq> 0" using n1 by arith
           let ?Pnk = "natpermute n (k + 1)"
           let ?Pnkn = "{xs \<in> ?Pnk. n \<in> set xs}"
@@ -1639,7 +1633,7 @@ proof-
             apply (rule setprod_cong, simp)
             using i r0 by (simp del: replicate.simps)
           also have "\<dots> = (fps_radical r (Suc k) a $ n) * r (Suc k) (a$0) ^ k"
-            unfolding setprod_gen_delta[OF fK] using i r0 by simp
+            using i r0 by (simp add: setprod_gen_delta)
           finally show ?ths .
         qed
         then have "setsum ?f ?Pnkn = of_nat (k+1) * ?r $ n * r (Suc k) (a $ 0) ^ k"
@@ -1737,7 +1731,6 @@ proof-
   moreover
   {assume H: "a^Suc k = b"
     have ceq: "card {0..k} = Suc k" by simp
-    have fk: "finite {0..k}" by simp
     from a0 have a0r0: "a$0 = ?r$0" by simp
     {fix n have "a $ n = ?r $ n"
       proof(induct n rule: nat_less_induct)
@@ -1767,7 +1760,7 @@ proof-
             apply (rule setprod_cong, simp)
             using i a0 by (simp del: replicate.simps)
           also have "\<dots> = a $ n * (?r $ 0)^k"
-            unfolding  setprod_gen_delta[OF fK] using i by simp
+            using i by (simp add: setprod_gen_delta)
           finally show ?ths .
         qed
         then have th0: "setsum ?g ?Pnkn = of_nat (k+1) * a $ n * (?r $ 0)^k"
