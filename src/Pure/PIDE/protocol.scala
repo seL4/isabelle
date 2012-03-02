@@ -211,19 +211,20 @@ trait Protocol extends Isabelle_Process
     val edits_yxml =
     { import XML.Encode._
       def id: T[Command] = (cmd => long(cmd.id))
+      def encode_string: T[String] = (s => string(Symbol.encode(s)))
       def encode_edit(name: Document.Node.Name)
           : T[Document.Node.Edit[(Option[Command], Option[Command]), Command.Perspective]] =
         variant(List(
           { case Document.Node.Clear() => (Nil, Nil) },
           { case Document.Node.Edits(a) => (Nil, list(pair(option(id), option(id)))(a)) },
           { case Document.Node.Header(Exn.Res(deps)) =>
-              val dir = Isabelle_System.posix_path(name.dir)
+              val dir = Symbol.encode(Isabelle_System.posix_path(name.dir))
               val imports = deps.imports.map(_.node)
-              val uses = deps.uses.map(p => (Isabelle_System.posix_path(p._1), p._2))
+              val uses = deps.uses.map(p => (Symbol.encode(Isabelle_System.posix_path(p._1)), p._2))
               (Nil,
-                triple(pair(string, string), list(string), list(pair(string, bool)))(
+                triple(pair(string, encode_string), list(encode_string), list(pair(string, bool)))(
                   (dir, name.theory), imports, uses)) },
-          { case Document.Node.Header(Exn.Exn(e)) => (List(Exn.message(e)), Nil) },
+          { case Document.Node.Header(Exn.Exn(e)) => (List(Symbol.encode(Exn.message(e))), Nil) },
           { case Document.Node.Perspective(a) => (a.commands.map(c => long_atom(c.id)), Nil) }))
       def encode: T[List[Document.Edit_Command]] = list((node_edit: Document.Edit_Command) =>
       {
