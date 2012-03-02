@@ -15,7 +15,7 @@ declare predicate1D [Pure.dest?, dest?]
 (* CANDIDATE declare predicate1D [Pure.dest, dest] *)
 declare predicate2I [Pure.intro!, intro!]
 declare predicate2D [Pure.dest, dest]
-declare bot1E [elim!]
+declare bot1E [elim!] 
 declare bot2E [elim!]
 declare top1I [intro!]
 declare top2I [intro!]
@@ -729,181 +729,162 @@ lemma converse_unfold:
 
 subsubsection {* Domain, range and field *}
 
-definition Domain :: "('a \<times> 'b) set \<Rightarrow> 'a set"
+inductive_set Domain :: "('a \<times> 'b) set \<Rightarrow> 'a set"
+  for r :: "('a \<times> 'b) set"
 where
-  "Domain r = {x. \<exists>y. (x, y) \<in> r}"
+  DomainI [intro]: "(a, b) \<in> r \<Longrightarrow> a \<in> Domain r"
 
-definition Range  :: "('a \<times> 'b) set \<Rightarrow> 'b set"
+abbreviation (input) "DomainP \<equiv> Domainp"
+
+lemmas DomainPI = Domainp.DomainI
+
+inductive_cases DomainE [elim!]: "a \<in> Domain r"
+inductive_cases DomainpE [elim!]: "Domainp r a"
+
+inductive_set Range :: "('a \<times> 'b) set \<Rightarrow> 'b set"
+  for r :: "('a \<times> 'b) set"
 where
-  "Range r = Domain (r\<inverse>)"
+  RangeI [intro]: "(a, b) \<in> r \<Longrightarrow> b \<in> Range r"
+
+abbreviation (input) "RangeP \<equiv> Rangep"
+
+lemmas RangePI = Rangep.RangeI
+
+inductive_cases RangeE [elim!]: "b \<in> Range r"
+inductive_cases RangepE [elim!]: "Rangep r b"
 
 definition Field :: "'a rel \<Rightarrow> 'a set"
 where
   "Field r = Domain r \<union> Range r"
 
-declare Domain_def [no_atp]
-
-lemma Domain_iff: "(a : Domain r) = (EX y. (a, y) : r)"
-  by (unfold Domain_def) blast
-
-lemma DomainI [intro]: "(a, b) : r ==> a : Domain r"
-  by (iprover intro!: iffD2 [OF Domain_iff])
-
-lemma DomainE [elim!]:
-  "a : Domain r ==> (!!y. (a, y) : r ==> P) ==> P"
-  by (iprover dest!: iffD1 [OF Domain_iff])
-
-lemma Range_iff: "(a : Range r) = (EX y. (y, a) : r)"
-  by (simp add: Domain_def Range_def)
-
-lemma RangeI [intro]: "(a, b) : r ==> b : Range r"
-  by (unfold Range_def) (iprover intro!: converseI DomainI)
-
-lemma RangeE [elim!]: "b : Range r ==> (!!x. (x, b) : r ==> P) ==> P"
-  by (unfold Range_def) (iprover elim!: DomainE dest!: converseD)
-
-inductive DomainP :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool"
-  for r :: "'a \<Rightarrow> 'b \<Rightarrow> bool"
-where
-  DomainPI [intro]: "r a b \<Longrightarrow> DomainP r a"
-
-inductive_cases DomainPE [elim!]: "DomainP r a"
-
-lemma DomainP_Domain_eq [pred_set_conv]: "DomainP (\<lambda>x y. (x, y) \<in> r) = (\<lambda>x. x \<in> Domain r)"
-  by (blast intro!: Orderings.order_antisym predicate1I)
-
-inductive RangeP :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'b \<Rightarrow> bool"
-  for r :: "'a \<Rightarrow> 'b \<Rightarrow> bool"
-where
-  RangePI [intro]: "r a b \<Longrightarrow> RangeP r b"
-
-inductive_cases RangePE [elim!]: "RangeP r b"
-
-lemma RangeP_Range_eq [pred_set_conv]: "RangeP (\<lambda>x y. (x, y) \<in> r) = (\<lambda>x. x \<in> Range r)"
-  by (auto intro!: Orderings.order_antisym predicate1I)
-
 lemma Domain_fst [code]:
   "Domain r = fst ` r"
-  by (auto simp add: image_def Bex_def)
+  by force
+
+lemma Range_snd [code]:
+  "Range r = snd ` r"
+  by force
+
+lemma fst_eq_Domain: "fst ` R = Domain R"
+  by force
+
+lemma snd_eq_Range: "snd ` R = Range R"
+  by force
 
 lemma Domain_empty [simp]: "Domain {} = {}"
-  by blast
+  by auto
+
+lemma Range_empty [simp]: "Range {} = {}"
+  by auto
+
+lemma Field_empty [simp]: "Field {} = {}"
+  by (simp add: Field_def)
 
 lemma Domain_empty_iff: "Domain r = {} \<longleftrightarrow> r = {}"
   by auto
 
-lemma Domain_insert: "Domain (insert (a, b) r) = insert a (Domain r)"
+lemma Range_empty_iff: "Range r = {} \<longleftrightarrow> r = {}"
+  by auto
+
+lemma Domain_insert (* CANDIDATE [simp] *): "Domain (insert (a, b) r) = insert a (Domain r)"
+  by blast
+
+lemma Range_insert (* CANDIDATE [simp] *): "Range (insert (a, b) r) = insert b (Range r)"
+  by blast
+
+lemma Field_insert [simp]: "Field (insert (a, b) r) = {a, b} \<union> Field r"
+  by (auto simp add: Field_def Domain_insert Range_insert)
+
+lemma Domain_iff: "a \<in> Domain r \<longleftrightarrow> (\<exists>y. (a, y) \<in> r)"
+  by blast
+
+lemma Range_iff: "a \<in> Range r \<longleftrightarrow> (\<exists>y. (y, a) \<in> r)"
   by blast
 
 lemma Domain_Id [simp]: "Domain Id = UNIV"
   by blast
 
+lemma Range_Id [simp]: "Range Id = UNIV"
+  by blast
+
 lemma Domain_Id_on [simp]: "Domain (Id_on A) = A"
   by blast
 
-lemma Domain_Un_eq: "Domain(A \<union> B) = Domain(A) \<union> Domain(B)"
+lemma Range_Id_on [simp]: "Range (Id_on A) = A"
   by blast
 
-lemma Domain_Int_subset: "Domain(A \<inter> B) \<subseteq> Domain(A) \<inter> Domain(B)"
+lemma Domain_Un_eq: "Domain (A \<union> B) = Domain A \<union> Domain B"
   by blast
 
-lemma Domain_Diff_subset: "Domain(A) - Domain(B) \<subseteq> Domain(A - B)"
+lemma Range_Un_eq: "Range (A \<union> B) = Range A \<union> Range B"
   by blast
 
-lemma Domain_Union: "Domain (Union S) = (\<Union>A\<in>S. Domain A)"
+lemma Field_Un [simp]: "Field (r \<union> s) = Field r \<union> Field s"
+  by (auto simp: Field_def)
+
+lemma Domain_Int_subset: "Domain (A \<inter> B) \<subseteq> Domain A \<inter> Domain B"
   by blast
+
+lemma Range_Int_subset: "Range (A \<inter> B) \<subseteq> Range A \<inter> Range B"
+  by blast
+
+lemma Domain_Diff_subset: "Domain A - Domain B \<subseteq> Domain (A - B)"
+  by blast
+
+lemma Range_Diff_subset: "Range A - Range B \<subseteq> Range (A - B)"
+  by blast
+
+lemma Domain_Union: "Domain (\<Union>S) = (\<Union>A\<in>S. Domain A)"
+  by blast
+
+lemma Range_Union: "Range (\<Union>S) = (\<Union>A\<in>S. Range A)"
+  by blast
+
+lemma Field_Union [simp]: "Field (\<Union>R) = \<Union>(Field ` R)"
+  by (auto simp: Field_def)
 
 lemma Domain_converse [simp]: "Domain (r\<inverse>) = Range r"
   by auto
 
-lemma Domain_mono: "r \<subseteq> s ==> Domain r \<subseteq> Domain s"
+lemma Range_converse [simp]: "Range (r\<inverse>) = Domain r"
   by blast
 
-lemma fst_eq_Domain: "fst ` R = Domain R"
-  by force
+lemma Field_converse [simp]: "Field (r\<inverse>) = Field r"
+  by (auto simp: Field_def)
+
+lemma Domain_Collect_split [simp]: "Domain {(x, y). P x y} = {x. EX y. P x y}"
+  by auto
+
+lemma Range_Collect_split [simp]: "Range {(x, y). P x y} = {y. EX x. P x y}"
+  by auto
+
+lemma finite_Domain: "finite r \<Longrightarrow> finite (Domain r)"
+  by (induct set: finite) (auto simp add: Domain_insert)
+
+lemma finite_Range: "finite r \<Longrightarrow> finite (Range r)"
+  by (induct set: finite) (auto simp add: Range_insert)
+
+lemma finite_Field: "finite r \<Longrightarrow> finite (Field r)"
+  by (simp add: Field_def finite_Domain finite_Range)
+
+lemma Domain_mono: "r \<subseteq> s \<Longrightarrow> Domain r \<subseteq> Domain s"
+  by blast
+
+lemma Range_mono: "r \<subseteq> s \<Longrightarrow> Range r \<subseteq> Range s"
+  by blast
+
+lemma mono_Field: "r \<subseteq> s \<Longrightarrow> Field r \<subseteq> Field s"
+  by (auto simp: Field_def Domain_def Range_def)
+
+lemma Domain_unfold:
+  "Domain r = {x. \<exists>y. (x, y) \<in> r}"
+  by blast
 
 lemma Domain_dprod [simp]: "Domain (dprod r s) = uprod (Domain r) (Domain s)"
   by auto
 
 lemma Domain_dsum [simp]: "Domain (dsum r s) = usum (Domain r) (Domain s)"
   by auto
-
-lemma Domain_Collect_split [simp]: "Domain {(x, y). P x y} = {x. EX y. P x y}"
-  by auto
-
-lemma finite_Domain: "finite r ==> finite (Domain r)"
-  by (induct set: finite) (auto simp add: Domain_insert)
-
-lemma Range_snd [code]:
-  "Range r = snd ` r"
-  by (auto simp add: image_def Bex_def)
-
-lemma Range_empty [simp]: "Range {} = {}"
-  by blast
-
-lemma Range_empty_iff: "Range r = {} \<longleftrightarrow> r = {}"
-  by auto
-
-lemma Range_insert: "Range (insert (a, b) r) = insert b (Range r)"
-  by blast
-
-lemma Range_Id [simp]: "Range Id = UNIV"
-  by blast
-
-lemma Range_Id_on [simp]: "Range (Id_on A) = A"
-  by auto
-
-lemma Range_Un_eq: "Range(A \<union> B) = Range(A) \<union> Range(B)"
-  by blast
-
-lemma Range_Int_subset: "Range(A \<inter> B) \<subseteq> Range(A) \<inter> Range(B)"
-  by blast
-
-lemma Range_Diff_subset: "Range(A) - Range(B) \<subseteq> Range(A - B)"
-  by blast
-
-lemma Range_Union: "Range (Union S) = (\<Union>A\<in>S. Range A)"
-  by blast
-
-lemma Range_converse [simp]: "Range (r\<inverse>) = Domain r"
-  by blast
-
-lemma snd_eq_Range: "snd ` R = Range R"
-  by force
-
-lemma Range_Collect_split [simp]: "Range {(x, y). P x y} = {y. EX x. P x y}"
-  by auto
-
-lemma finite_Range: "finite r ==> finite (Range r)"
-  by (induct set: finite) (auto simp add: Range_insert)
-
-lemma mono_Field: "r \<subseteq> s \<Longrightarrow> Field r \<subseteq> Field s"
-  by (auto simp: Field_def Domain_def Range_def)
-
-lemma Field_empty[simp]: "Field {} = {}"
-  by (auto simp: Field_def)
-
-lemma Field_insert [simp]: "Field (insert (a, b) r) = {a, b} \<union> Field r"
-  by (auto simp: Field_def)
-
-lemma Field_Un [simp]: "Field (r \<union> s) = Field r \<union> Field s"
-  by (auto simp: Field_def)
-
-lemma Field_Union [simp]: "Field (\<Union>R) = \<Union>(Field ` R)"
-  by (auto simp: Field_def)
-
-lemma Field_converse [simp]: "Field(r^-1) = Field r"
-  by (auto simp: Field_def)
-
-lemma finite_Field: "finite r ==> finite (Field r)"
-  -- {* A finite relation has a finite field (@{text "= domain \<union> range"}. *}
-  apply (induct set: finite)
-   apply (auto simp add: Field_def Domain_insert Range_insert)
-  done
-
-lemma Domain_unfold:
-  "Domain r = {x. \<exists>y. (x, y) \<in> r}"
-  by (fact Domain_def)
 
 
 subsubsection {* Image of a set under a relation *}
@@ -947,8 +928,8 @@ lemma Image_Int_subset: "R `` (A \<inter> B) \<subseteq> R `` A \<inter> R `` B"
   by blast
 
 lemma Image_Int_eq:
-     "single_valued (converse R) ==> R `` (A \<inter> B) = R `` A \<inter> R `` B"
-     by (simp add: single_valued_def, blast) 
+  "single_valued (converse R) ==> R `` (A \<inter> B) = R `` A \<inter> R `` B"
+  by (simp add: single_valued_def, blast) 
 
 lemma Image_Un: "R `` (A \<union> B) = R `` A \<union> R `` B"
   by blast
