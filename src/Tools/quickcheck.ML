@@ -314,7 +314,27 @@ fun test_terms ctxt (limit_time, is_interactive) insts goals =
       tester ctxt (length testers > 1) insts goals |>
       (fn result => if exists found_counterexample result then SOME result else NONE)) testers)
       (fn () => (message ctxt "Quickcheck ran out of time"; NONE)) ();
-      
+
+fun all_axioms_of ctxt t =
+  let
+    val intros = Locale.get_intros ctxt
+    val unfolds = Locale.get_unfolds ctxt
+    fun retrieve_prems thms t = 
+       case filter (fn th => Term.could_unify (Thm.concl_of th, t)) thms of
+         [] => NONE 
+       | [th] =>
+         let
+           val (tyenv, tenv) =
+             Pattern.match (Proof_Context.theory_of ctxt) (Thm.concl_of th, t) (Vartab.empty, Vartab.empty)
+         in SOME (map (Envir.subst_term (tyenv, tenv)) (Thm.prems_of th)) end
+    fun all t =
+      case retrieve_prems intros t of
+        NONE => retrieve_prems unfolds t
+      | SOME ts => SOME (maps (fn t => the_default [t] (all t)) ts)
+  in
+    all t
+  end
+
 fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
   let
     val lthy = Proof.context_of state;
@@ -332,21 +352,17 @@ fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
      of NONE => Assumption.all_assms_of lthy
       | SOME locale => Assumption.local_assms_of lthy (Locale.init locale thy);
     val proto_goal = Logic.list_implies (map Thm.term_of assms, subst_bounds (frees, strip gi));
-    fun assms_of locale = case fst (Locale.intros_of thy locale) of NONE => []
-      | SOME th =>
-          let
-            val t = the_single (Assumption.all_assms_of (Locale.init locale thy))
-            val (tyenv, tenv) =
-              Pattern.match thy (concl_of th, term_of t) (Vartab.empty, Vartab.empty)
-          in
-            map (Envir.subst_term (tyenv, tenv)) (prems_of th)
-          end
+    fun axioms_of locale = case fst (Locale.specification_of thy locale) of
+        NONE => []
+      | SOME t => the_default [] (all_axioms_of lthy t)
     val goals = case some_locale
      of NONE => [(proto_goal, eval_terms)]
       | SOME locale =>
-          (Logic.list_implies (assms_of locale, proto_goal), eval_terms) ::
+          (Logic.list_implies (axioms_of locale, proto_goal), eval_terms) ::
           map (fn (_, phi) => (Morphism.term phi proto_goal, map (Morphism.term phi) eval_terms))
           (Locale.registrations_of (Context.Theory thy) (*FIXME*) locale);
+    val _ = verbose_message lthy (Pretty.string_of
+      (Pretty.big_list ("Checking goals: ") (map (Syntax.pretty_term lthy o fst) goals)))
   in
     test_terms lthy (time_limit, is_interactive) insts goals
   end
