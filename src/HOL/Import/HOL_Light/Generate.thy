@@ -1,5 +1,5 @@
 theory Generate
-imports Compatibility
+imports "Template/GenHOLLight"
 begin
 
 end

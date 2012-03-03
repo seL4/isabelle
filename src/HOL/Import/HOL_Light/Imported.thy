@@ -1,5 +1,6 @@
 theory Imported
-imports Compatibility
+imports "Generated/HOLLight"
 begin
 
 end
+
