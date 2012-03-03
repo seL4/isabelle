@@ -2,7 +2,7 @@
 
 theory HOL4Vec imports HOL4Base begin
 
-setup_theory "~~/src/HOL/Import/HOL" res_quan
+setup_theory "~~/src/HOL/Import/HOL4/Generated" res_quan
 
 lemma RES_FORALL_CONJ_DIST: "RES_FORALL P (%i. Q i & R i) = (RES_FORALL P Q & RES_FORALL P R)"
   by (import res_quan RES_FORALL_CONJ_DIST)
@@ -89,7 +89,7 @@ lemma RES_ABSTRACT_EQUAL_EQ: "(RES_ABSTRACT p m1 = RES_ABSTRACT p m2) = (ALL x. 
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" word_base
+setup_theory "~~/src/HOL/Import/HOL4/Generated" word_base
 
 typedef (open) ('a) word = "{x. ALL word.
        (ALL a0. (EX a. a0 = CONSTR 0 a (%n. BOTTOM)) --> word a0) -->
@@ -137,7 +137,7 @@ specification (word_case_primdef: word_case) word_case_def: "ALL f a. word_base.
 consts
   word_size :: "('a => nat) => 'a word => nat" 
 
-specification (word_size_primdef: word_size) word_size_def: "ALL f a. word_base.word_size f (WORD a) = 1 + HOL4Compat.list_size f a"
+specification (word_size_primdef: word_size) word_size_def: "ALL f a. word_base.word_size f (WORD a) = 1 + Compatibility.list_size f a"
   by (import word_base word_size_def)
 
 lemma word_11: "(WORD a = WORD a') = (a = a')"
@@ -403,7 +403,7 @@ lemma BIT_EQ_IMP_WORD_EQ: "RES_FORALL (PWORDLEN n)
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" word_num
+setup_theory "~~/src/HOL/Import/HOL4/Generated" word_num
 
 definition
   LVAL :: "('a => nat) => nat => 'a list => nat"  where
@@ -479,7 +479,7 @@ lemma NWORD_PWORDLEN: "IN (NWORD x xa xb xc) (PWORDLEN x)"
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" word_bitop
+setup_theory "~~/src/HOL/Import/HOL4/Generated" word_bitop
 
 consts
   PBITOP :: "('a word => 'b word) => bool" 
@@ -766,7 +766,7 @@ lemma WSEG_SHL_0: "RES_FORALL (PWORDLEN (Suc n))
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" bword_num
+setup_theory "~~/src/HOL/Import/HOL4/Generated" bword_num
 
 definition
   BV :: "bool => nat"  where
@@ -919,7 +919,7 @@ lemma ADD_BNVAL_SPLIT: "RES_FORALL (PWORDLEN (n1 + n2))
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" bword_arith
+setup_theory "~~/src/HOL/Import/HOL4/Generated" bword_arith
 
 consts
   ACARRY :: "nat => bool word => bool word => bool => bool" 
@@ -1053,7 +1053,7 @@ lemma ACARRY_ACARRY_WSEG: "RES_FORALL (PWORDLEN n)
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" bword_bitop
+setup_theory "~~/src/HOL/Import/HOL4/Generated" bword_bitop
 
 consts
   WNOT :: "bool word => bool word" 

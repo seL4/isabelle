@@ -3,15 +3,20 @@
     Author:     Cezary Kaliszyk
 *)
 
-theory GenHOLLight imports "../HOLLightCompat" "../HOL4Syntax" begin
+theory GenHOLLight
+imports "../../HOL4Syntax" "../Compatibility"
+begin
 
-;import_segment "hollight"
+import_segment "hollight"
 
-;setup_dump "../HOLLight" "HOLLight";
+setup_dump "../Generated" "HOLLight"
 
-;append_dump {*theory HOLLight imports "../HOLLightCompat" "../HOL4Syntax" begin *}
+append_dump {*theory HOL4Base
+imports "../../HOL4Syntax" "../Compatibility"
+begin
+*}
 
-import_theory "~~/src/HOL/Import/HOLLight" hollight
+import_theory "~~/src/HOL/Import/HOL_Light/Generated" hollight
 
 ;ignore_thms
   (* Unit type *)

@@ -1,1 +1,0 @@
-use_thy "GenHOLLight";

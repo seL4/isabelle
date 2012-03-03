@@ -1,8 +1,10 @@
 (* AUTOMATICALLY GENERATED, DO NOT EDIT! *)
 
-theory HOL4Base imports "../HOL4Compat" "../HOL4Syntax" begin
+theory HOL4Base
+imports "../../HOL4Syntax" "../Compatibility"
+begin
 
-setup_theory "~~/src/HOL/Import/HOL" bool
+setup_theory "~~/src/HOL/Import/HOL4/Generated" bool
 
 definition
   ARB :: "'a"  where
@@ -205,7 +207,7 @@ lemma BOOL_FUN_INDUCT: "P (%b. True) & P (%b. False) & P (%b. b) & P Not ==> P x
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" combin
+setup_theory "~~/src/HOL/Import/HOL4/Generated" combin
 
 definition
   K :: "'a => 'b => 'a"  where
@@ -260,7 +262,7 @@ lemma I_o_ID: "I o f = f & f o I = f"
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" sum
+setup_theory "~~/src/HOL/Import/HOL4/Generated" sum
 
 lemma ISL_OR_ISR: "ISL x | ISR x"
   sorry
@@ -279,11 +281,11 @@ lemma sum_case_cong: "(M::'b + 'c) = (M'::'b + 'c) &
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" one
+setup_theory "~~/src/HOL/Import/HOL4/Generated" one
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" option
+setup_theory "~~/src/HOL/Import/HOL4/Generated" option
 
 lemma option_CLAUSES: "(op &::bool => bool => bool)
  ((All::('a::type => bool) => bool)
@@ -477,7 +479,7 @@ lemma option_case_cong: "M = M' & (M' = None --> u = u') & (ALL x. M' = Some x -
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" marker
+setup_theory "~~/src/HOL/Import/HOL4/Generated" marker
 
 consts
   stmarker :: "'a => 'a" 
@@ -510,7 +512,7 @@ lemma move_right_disj: "(stmarker xb | x) = (x | stmarker xb) &
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" relation
+setup_theory "~~/src/HOL/Import/HOL4/Generated" relation
 
 definition
   TC :: "('a => 'a => bool) => 'a => 'a => bool"  where
@@ -758,7 +760,7 @@ lemma WF_RECURSION_THM: "WF R ==> EX! f. ALL x. f x = M (RESTRICT f R x) x"
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" pair
+setup_theory "~~/src/HOL/Import/HOL4/Generated" pair
 
 lemma CURRY_ONE_ONE_THM: "(curry f = curry g) = (f = g)"
   sorry
@@ -821,11 +823,11 @@ lemma WF_RPROD: "WF R & WF Q ==> WF (RPROD R Q)"
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" num
+setup_theory "~~/src/HOL/Import/HOL4/Generated" num
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" prim_rec
+setup_theory "~~/src/HOL/Import/HOL4/Generated" prim_rec
 
 lemma LESS_0_0: "0 < Suc 0"
   sorry
@@ -953,7 +955,7 @@ lemma measure_thm: "prim_rec.measure x xa xb = (x xa < x xb)"
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" arithmetic
+setup_theory "~~/src/HOL/Import/HOL4/Generated" arithmetic
 
 definition
   nat_elim__magic :: "nat => nat"  where
@@ -1347,7 +1349,7 @@ lemma EXISTS_GREATEST: "(Ex (P::nat => bool) & (EX x::nat. ALL y>x. ~ P y)) =
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" hrat
+setup_theory "~~/src/HOL/Import/HOL4/Generated" hrat
 
 definition
   trat_1 :: "nat * nat"  where
@@ -1558,7 +1560,7 @@ lemma HRAT_SUCINT: "hrat_sucint 0 = hrat_1 &
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" hreal
+setup_theory "~~/src/HOL/Import/HOL4/Generated" hreal
 
 definition
   hrat_lt :: "hrat => hrat => bool"  where
@@ -1842,7 +1844,7 @@ lemma HREAL_SUP: "Ex P & (EX Y. ALL X. P X --> hreal_lt X Y)
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" numeral
+setup_theory "~~/src/HOL/Import/HOL4/Generated" numeral
 
 lemma numeral_suc: "Suc ALT_ZERO = NUMERAL_BIT1 ALT_ZERO &
 (ALL x. Suc (NUMERAL_BIT1 x) = NUMERAL_BIT2 x) &
@@ -2069,7 +2071,7 @@ lemma numeral_funpow: "(f ^^ n) x = (if n = 0 then x else (f ^^ (n - 1)) (f x))"
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" ind_type
+setup_theory "~~/src/HOL/Import/HOL4/Generated" ind_type
 
 lemma INJ_INVERSE2: "(!!(x1::'A) (y1::'B) (x2::'A) y2::'B.
     ((P::'A => 'B => 'C) x1 y1 = P x2 y2) = (x1 = x2 & y1 = y2))
@@ -2304,7 +2306,7 @@ lemma ISO_USAGE: "ISO f g
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" divides
+setup_theory "~~/src/HOL/Import/HOL4/Generated" divides
 
 lemma DIVIDES_FACT: "0 < b ==> b dvd FACT b"
   sorry
@@ -2314,7 +2316,7 @@ lemma DIVIDES_MULT_LEFT: "((x::nat) * (xa::nat) dvd xa) = (xa = (0::nat) | x = (
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" prime
+setup_theory "~~/src/HOL/Import/HOL4/Generated" prime
 
 consts
   prime :: "nat => bool" 
@@ -2333,7 +2335,7 @@ lemma NOT_PRIME_1: "~ prime.prime 1"
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" list
+setup_theory "~~/src/HOL/Import/HOL4/Generated" list
 
 consts
   EL :: "nat => 'a list => 'a" 
@@ -2427,7 +2429,7 @@ lemma WF_LIST_PRED: "WF (%L1 L2. EX h. L2 = h # L1)"
   sorry
 
 lemma list_size_cong: "M = N & (ALL x. List.member N x --> f x = f' x)
-==> HOL4Compat.list_size f M = HOL4Compat.list_size f' N"
+==> Compatibility.list_size f M = Compatibility.list_size f' N"
   sorry
 
 lemma FOLDR_CONG: "l = l' & b = b' & (ALL x a. List.member l' x --> f x a = f' x a)
@@ -2495,7 +2497,7 @@ lemma FRONT_CONS: "(ALL x::'a. butlast [x] = []) &
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" pred_set
+setup_theory "~~/src/HOL/Import/HOL4/Generated" pred_set
 
 lemma EXTENSION: "(s = t) = (ALL x. IN x s = IN x t)"
   sorry
@@ -3437,7 +3439,7 @@ lemma ITSET_EMPTY: "ITSET (x::'a => 'b => 'b) EMPTY (xa::'b) = xa"
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" operator
+setup_theory "~~/src/HOL/Import/HOL4/Generated" operator
 
 definition
   ASSOC :: "('a => 'a => 'a) => bool"  where
@@ -3498,7 +3500,7 @@ lemma MONOID_DISJ_F: "MONOID op | False"
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" rich_list
+setup_theory "~~/src/HOL/Import/HOL4/Generated" rich_list
 
 consts
   SNOC :: "'a => 'a list => 'a list" 
@@ -3798,7 +3800,7 @@ lemma FLAT_SNOC: "concat (SNOC x l) = concat l @ x"
 lemma FLAT_FOLDR: "concat l = foldr op @ l []"
   sorry
 
-lemma LENGTH_FLAT: "length (concat l) = HOL4Compat.sum (map length l)"
+lemma LENGTH_FLAT: "length (concat l) = Compatibility.sum (map length l)"
   sorry
 
 lemma REVERSE_FOLDR: "rev l = foldr SNOC l []"
@@ -3817,10 +3819,10 @@ lemma SOME_EL_SNOC: "list_ex P (SNOC x l) = (P x | list_ex P l)"
 lemma IS_EL_SNOC: "List.member (SNOC x l) y = (y = x | List.member l y)"
   sorry
 
-lemma SUM_SNOC: "HOL4Compat.sum (SNOC x l) = HOL4Compat.sum l + x"
+lemma SUM_SNOC: "Compatibility.sum (SNOC x l) = Compatibility.sum l + x"
   sorry
 
-lemma SUM_FOLDL: "HOL4Compat.sum l = foldl op + 0 l"
+lemma SUM_FOLDL: "Compatibility.sum l = foldl op + 0 l"
   sorry
 
 lemma IS_PREFIX_APPEND: "IS_PREFIX l1 l2 = (EX l. l1 = l2 @ l)"
@@ -4308,13 +4310,13 @@ lemma LENGTH_UNZIP_FST: "length (UNZIP_FST x) = length x"
 lemma LENGTH_UNZIP_SND: "length (UNZIP_SND (x::('a * 'b) list)) = length x"
   sorry
 
-lemma SUM_APPEND: "HOL4Compat.sum (l1 @ l2) = HOL4Compat.sum l1 + HOL4Compat.sum l2"
+lemma SUM_APPEND: "Compatibility.sum (l1 @ l2) = Compatibility.sum l1 + Compatibility.sum l2"
   sorry
 
-lemma SUM_REVERSE: "HOL4Compat.sum (rev l) = HOL4Compat.sum l"
+lemma SUM_REVERSE: "Compatibility.sum (rev l) = Compatibility.sum l"
   sorry
 
-lemma SUM_FLAT: "HOL4Compat.sum (concat l) = HOL4Compat.sum (map HOL4Compat.sum l)"
+lemma SUM_FLAT: "Compatibility.sum (concat l) = Compatibility.sum (map Compatibility.sum l)"
   sorry
 
 lemma EL_APPEND1: "n < length l1 ==> EL n (l1 @ l2) = EL n l1"
@@ -4412,7 +4414,7 @@ lemma OR_EL_FOLDR: "OR_EL l = foldr op | l False"
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" state_transformer
+setup_theory "~~/src/HOL/Import/HOL4/Generated" state_transformer
 
 definition
   UNIT :: "'b => 'a => 'b * 'a"  where

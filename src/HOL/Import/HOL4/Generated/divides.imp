@@ -6,7 +6,7 @@ const_maps
   "divides" > "Rings.dvd_class.dvd" :: "nat => nat => bool"
 
 thm_maps
-  "divides_def" > "HOL4Compat.divides_def"
+  "divides_def" > "Compatibility.divides_def"
   "ONE_DIVIDES_ALL" > "GCD.gcd_lcm_complete_lattice_nat.bot_least"
   "NOT_LT_DIV" > "Nat.nat_dvd_not_less"
   "DIVIDES_TRANS" > "Nat.dvd.order_trans"

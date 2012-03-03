@@ -1,7 +1,6 @@
-(*  Title:      HOL/Import/HOL/README
-    ID:         $Id$
-    Author:     Sebastian Skalberg (TU Muenchen)
-*)
+
+ATTENTION!  This is largely outdated.  The hint to PROOF_DIRS might be
+everything which is still relevant.
 
 All the files in this directory (except this README, HOL4.thy, and
 ROOT.ML) are automatically generated.  Edit the files in

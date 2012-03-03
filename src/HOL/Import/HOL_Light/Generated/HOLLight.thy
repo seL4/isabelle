@@ -1,8 +1,10 @@
 (* AUTOMATICALLY GENERATED, DO NOT EDIT! *)
 
-theory HOLLight imports "../HOLLightCompat" "../HOL4Syntax" begin 
+theory HOLLight
+imports "../../HOL4Syntax" "../Compatibility"
+begin 
 
-setup_theory "~~/src/HOL/Import/HOLLight" hollight
+setup_theory "~~/src/HOL/Import/HOL_Light/Generated" hollight
 
 consts
   "_FALSITY_" :: "bool" ("'_FALSITY'_")

@@ -2,7 +2,7 @@
 
 theory HOL4Word32 imports HOL4Base begin
 
-setup_theory "~~/src/HOL/Import/HOL" bits
+setup_theory "~~/src/HOL/Import/HOL4/Generated" bits
 
 consts
   DIV2 :: "nat => nat" 
@@ -285,7 +285,7 @@ lemma MOD_ADD_1: "[| (0::nat) < (n::nat); ((x::nat) + (1::nat)) mod n ~= (0::nat
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" word32
+setup_theory "~~/src/HOL/Import/HOL4/Generated" word32
 
 consts
   HB :: "nat" 

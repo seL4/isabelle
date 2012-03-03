@@ -2,15 +2,20 @@
     Author:     Sebastian Skalberg, TU Muenchen
 *)
 
-theory GenHOL4Base imports "../HOL4Compat" "../HOL4Syntax" begin;
+theory GenHOL4Base
+imports "../../HOL4Syntax" "../Compatibility"
+begin
 
-import_segment "hol4";
+import_segment "hol4"
 
-setup_dump "../HOL" "HOL4Base";
+setup_dump "../Generated" "HOL4Base"
 
-append_dump {*theory HOL4Base imports "../HOL4Compat" "../HOL4Syntax" begin*};
+append_dump {*theory HOL4Base
+imports "../../HOL4Syntax" "../Compatibility"
+begin
+*}
 
-import_theory "~~/src/HOL/Import/HOL" bool;
+import_theory "~~/src/HOL/Import/HOL4/Generated" bool;
 
 type_maps
   bool            > HOL.bool;
@@ -29,7 +34,7 @@ const_maps
   ONE_ONE         > HOL4Setup.ONE_ONE
   ONTO            > Fun.surj
   TYPE_DEFINITION > HOL4Setup.TYPE_DEFINITION
-  LET             > HOL4Compat.LET;
+  LET             > Compatibility.LET;
 
 ignore_thms
   BOUNDED_DEF
@@ -39,14 +44,14 @@ ignore_thms
 
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" combin;
+import_theory "~~/src/HOL/Import/HOL4/Generated" combin;
 
 const_maps
   o > Fun.comp;
 
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" sum;
+import_theory "~~/src/HOL/Import/HOL4/Generated" sum;
 
 type_maps
   sum > Sum_Type.sum;
@@ -54,10 +59,10 @@ type_maps
 const_maps
   INL      > Sum_Type.Inl
   INR      > Sum_Type.Inr
-  ISL      > HOL4Compat.ISL
-  ISR      > HOL4Compat.ISR
-  OUTL     > HOL4Compat.OUTL
-  OUTR     > HOL4Compat.OUTR
+  ISL      > Compatibility.ISL
+  ISR      > Compatibility.ISR
+  OUTL     > Compatibility.OUTL
+  OUTR     > Compatibility.OUTR
   sum_case > Sum_Type.sum.sum_case;
 
 ignore_thms
@@ -70,7 +75,7 @@ ignore_thms
 
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" one;
+import_theory "~~/src/HOL/Import/HOL4/Generated" one;
 
 type_maps
   one > Product_Type.unit;
@@ -86,7 +91,7 @@ ignore_thms
 
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" option;
+import_theory "~~/src/HOL/Import/HOL4/Generated" option;
 
 type_maps
     option > Option.option;
@@ -97,9 +102,9 @@ const_maps
     option_case > Option.option.option_case
     OPTION_MAP  > Option.map
     THE         > Option.the
-    IS_SOME     > HOL4Compat.IS_SOME
-    IS_NONE     > HOL4Compat.IS_NONE
-    OPTION_JOIN > HOL4Compat.OPTION_JOIN;
+    IS_SOME     > Compatibility.IS_SOME
+    IS_NONE     > Compatibility.IS_NONE
+    OPTION_JOIN > Compatibility.OPTION_JOIN;
 
 ignore_thms
     option_axiom
@@ -111,17 +116,17 @@ ignore_thms
 
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" marker;
+import_theory "~~/src/HOL/Import/HOL4/Generated" marker;
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" relation;
+import_theory "~~/src/HOL/Import/HOL4/Generated" relation;
 
 const_renames
   reflexive > pred_reflexive;
 
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" pair;
+import_theory "~~/src/HOL/Import/HOL4/Generated" pair;
 
 type_maps
     prod > Product_Type.prod;
@@ -144,7 +149,7 @@ ignore_thms
 
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" num;
+import_theory "~~/src/HOL/Import/HOL4/Generated" num;
 
 type_maps
   num > Nat.nat;
@@ -164,24 +169,24 @@ ignore_thms
 
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" prim_rec;
+import_theory "~~/src/HOL/Import/HOL4/Generated" prim_rec;
 
 const_maps
     "<" > Orderings.ord_class.less :: "nat \<Rightarrow> nat \<Rightarrow> bool";
 
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" arithmetic;
+import_theory "~~/src/HOL/Import/HOL4/Generated" arithmetic;
 
 const_maps
-  ALT_ZERO     > HOL4Compat.ALT_ZERO
-  NUMERAL_BIT1 > HOL4Compat.NUMERAL_BIT1
-  NUMERAL_BIT2 > HOL4Compat.NUMERAL_BIT2
-  NUMERAL      > HOL4Compat.NUMERAL
+  ALT_ZERO     > Compatibility.ALT_ZERO
+  NUMERAL_BIT1 > Compatibility.NUMERAL_BIT1
+  NUMERAL_BIT2 > Compatibility.NUMERAL_BIT2
+  NUMERAL      > Compatibility.NUMERAL
   num_case     > Nat.nat.nat_case
-  ">"          > HOL4Compat.nat_gt
-  ">="         > HOL4Compat.nat_ge
-  FUNPOW       > HOL4Compat.FUNPOW
+  ">"          > Compatibility.nat_gt
+  ">="         > Compatibility.nat_ge
+  FUNPOW       > Compatibility.FUNPOW
   "<="         > Orderings.ord_class.less_eq :: "nat \<Rightarrow> nat \<Rightarrow> bool"
   "+"          > Groups.plus_class.plus :: "nat \<Rightarrow> nat \<Rightarrow> nat"
   "*"          > Groups.times_class.times :: "nat \<Rightarrow> nat \<Rightarrow> nat"
@@ -194,29 +199,29 @@ const_maps
 
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" hrat;
+import_theory "~~/src/HOL/Import/HOL4/Generated" hrat;
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" hreal;
+import_theory "~~/src/HOL/Import/HOL4/Generated" hreal;
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" numeral;
+import_theory "~~/src/HOL/Import/HOL4/Generated" numeral;
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" ind_type;
+import_theory "~~/src/HOL/Import/HOL4/Generated" ind_type;
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" divides;
+import_theory "~~/src/HOL/Import/HOL4/Generated" divides;
 
 const_maps
   divides > Rings.dvd_class.dvd :: "nat \<Rightarrow> nat \<Rightarrow> bool";
 
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" prime;
+import_theory "~~/src/HOL/Import/HOL4/Generated" prime;
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" list;
+import_theory "~~/src/HOL/Import/HOL4/Generated" list;
 
 type_maps
     list > List.list;
@@ -229,7 +234,7 @@ const_maps
   HD        > List.hd
   TL        > List.tl
   MAP       > List.map
-  MEM       > HOL4Compat.list_mem
+  MEM       > Compatibility.list_mem
   FILTER    > List.filter
   FOLDL     > List.foldl
   EVERY     > List.list_all
@@ -240,13 +245,13 @@ const_maps
   FLAT      > List.concat
   LENGTH    > Nat.size_class.size
   REPLICATE > List.replicate
-  list_size > HOL4Compat.list_size
-  SUM       > HOL4Compat.sum
-  FOLDR     > HOL4Compat.FOLDR
+  list_size > Compatibility.list_size
+  SUM       > Compatibility.sum
+  FOLDR     > Compatibility.FOLDR
   EXISTS    > List.list_ex
-  MAP2      > HOL4Compat.map2
-  ZIP       > HOL4Compat.ZIP
-  UNZIP     > HOL4Compat.unzip;
+  MAP2      > Compatibility.map2
+  ZIP       > Compatibility.ZIP
+  UNZIP     > Compatibility.unzip;
 
 ignore_thms
   list_TY_DEF
@@ -258,16 +263,16 @@ ignore_thms
 
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" pred_set;
+import_theory "~~/src/HOL/Import/HOL4/Generated" pred_set;
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" operator;
+import_theory "~~/src/HOL/Import/HOL4/Generated" operator;
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" rich_list;
+import_theory "~~/src/HOL/Import/HOL4/Generated" rich_list;
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" state_transformer;
+import_theory "~~/src/HOL/Import/HOL4/Generated" state_transformer;
 end_import;
 
 append_dump "end";

@@ -62,7 +62,7 @@ thm_maps
   "LESS_MONO" > "Nat.Suc_mono"
   "LESS_LEMMA2" > "HOL4Base.prim_rec.LESS_LEMMA2"
   "LESS_LEMMA1" > "HOL4Base.prim_rec.LESS_LEMMA1"
-  "LESS_DEF" > "HOL4Compat.LESS_DEF"
+  "LESS_DEF" > "Compatibility.LESS_DEF"
   "LESS_0_0" > "HOL4Base.prim_rec.LESS_0_0"
   "LESS_0" > "Nat.zero_less_Suc"
   "INV_SUC_EQ" > "Nat.nat.inject"

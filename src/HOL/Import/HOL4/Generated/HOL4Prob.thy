@@ -2,7 +2,7 @@
 
 theory HOL4Prob imports HOL4Real begin
 
-setup_theory "~~/src/HOL/Import/HOL" prob_extra
+setup_theory "~~/src/HOL/Import/HOL4/Generated" prob_extra
 
 lemma BOOL_BOOL_CASES_THM: "f = (%b. False) | f = (%b. True) | f = (%b. b) | f = Not"
   by (import prob_extra BOOL_BOOL_CASES_THM)
@@ -213,7 +213,7 @@ lemma GSPEC_DEF_ALT: "GSPEC (f::'a => 'b * bool) = (%v::'b. EX x::'a. (v, True) 
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" prob_canon
+setup_theory "~~/src/HOL/Import/HOL4/Generated" prob_canon
 
 consts
   alg_twin :: "bool list => bool list => bool" 
@@ -725,7 +725,7 @@ alg_sorted l & alg_sorted l' & alg_prefixfree l & alg_prefixfree l'
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" boolean_sequence
+setup_theory "~~/src/HOL/Import/HOL4/Generated" boolean_sequence
 
 consts
   SHD :: "(nat => bool) => bool" 
@@ -802,7 +802,7 @@ lemma STL_SCONST: "STL (SCONST b) = SCONST b"
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" prob_algebra
+setup_theory "~~/src/HOL/Import/HOL4/Generated" prob_algebra
 
 consts
   alg_embed :: "bool list => (nat => bool) => bool" 
@@ -948,7 +948,7 @@ lemma MEASURABLE_INTER_SHD: "measurable (pred_set.INTER (%x. SHD x = b) (p o STL
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" prob
+setup_theory "~~/src/HOL/Import/HOL4/Generated" prob
 
 consts
   alg_measure :: "bool list list => real" 
@@ -1121,7 +1121,7 @@ lemma PROB_COMPL_LE1: "measurable p ==> (prob (COMPL p) <= r) = (1 - r <= prob p
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" prob_pseudo
+setup_theory "~~/src/HOL/Import/HOL4/Generated" prob_pseudo
 
 consts
   pseudo_linear_hd :: "nat => bool" 
@@ -1203,7 +1203,7 @@ lemma pseudo_def: "pseudo = pseudo_linear1"
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" prob_indep
+setup_theory "~~/src/HOL/Import/HOL4/Generated" prob_indep
 
 consts
   indep_set :: "((nat => bool) => bool) => ((nat => bool) => bool) => bool" 
@@ -1388,7 +1388,7 @@ lemma PROB_INDEP_BOUND: "indep f
 
 ;end_setup
 
-setup_theory "~~/src/HOL/Import/HOL" prob_uniform
+setup_theory "~~/src/HOL/Import/HOL4/Generated" prob_uniform
 
 consts
   unif_bound :: "nat => nat" 

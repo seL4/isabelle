@@ -2,15 +2,20 @@
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
-theory GenHOL4Real imports GenHOL4Base begin
+theory GenHOL4Real
+imports GenHOL4Base
+begin
 
-import_segment "hol4";
+import_segment "hol4"
 
-setup_dump "../HOL" "HOL4Real";
+setup_dump "../Generated" "HOL4Real"
 
-append_dump "theory HOL4Real imports HOL4Base begin";
+append_dump {*theory HOL4Real
+imports HOL4Base
+begin
+*}
 
-import_theory "~~/src/HOL/Import/HOL" realax;
+import_theory "~~/src/HOL/Import/HOL4/Generated" realax;
 
 type_maps
   real > RealDef.real;
@@ -49,11 +54,11 @@ ignore_thms
 
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" real;
+import_theory "~~/src/HOL/Import/HOL4/Generated" real;
 
 const_maps
-  real_gt     > HOL4Compat.real_gt
-  real_ge     > HOL4Compat.real_ge
+  real_gt     > Compatibility.real_gt
+  real_ge     > Compatibility.real_ge
   real_lte    > Orderings.ord_class.less_eq :: "real \<Rightarrow> real \<Rightarrow> bool"
   real_sub    > Groups.minus_class.minus :: "real \<Rightarrow> real \<Rightarrow> real"
   "/"         > Fields.inverse_class.divide :: "real \<Rightarrow> real \<Rightarrow> real"
@@ -63,28 +68,28 @@ const_maps
 
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" topology;
+import_theory "~~/src/HOL/Import/HOL4/Generated" topology;
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" nets;
+import_theory "~~/src/HOL/Import/HOL4/Generated" nets;
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" seq;
+import_theory "~~/src/HOL/Import/HOL4/Generated" seq;
 const_renames
 "-->" > "hol4-->";
 
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" lim;
+import_theory "~~/src/HOL/Import/HOL4/Generated" lim;
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" powser;
+import_theory "~~/src/HOL/Import/HOL4/Generated" powser;
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" transc;
+import_theory "~~/src/HOL/Import/HOL4/Generated" transc;
 end_import;
 
-import_theory "~~/src/HOL/Import/HOL" poly;
+import_theory "~~/src/HOL/Import/HOL4/Generated" poly;
 end_import;
 
 append_dump "end";
