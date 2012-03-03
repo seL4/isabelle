@@ -559,7 +559,12 @@ $(LOG)/HOL-IMPP.gz: $(OUT)/HOL IMPP/ROOT.ML IMPP/Com.thy		\
 
 Import-HOL4: $(OUT)/Import-HOL4
 
-BASIC_IMPORTER_DEPENDENCIES = Import/Importer.thy
+BASIC_IMPORTER_DEPENDENCIES = Import/Importer.thy \
+  Import/shuffler.ML \
+  Import/import_rews.ML \
+  Import/proof_kernel.ML \
+  Import/replay.ML \
+  Import/import.ML
 
 $(OUT)/Import-HOL4: $(OUT)/HOL \
   $(BASIC_IMPORTER_DEPENDENCIES) \
