@@ -229,7 +229,7 @@ object Isabelle_Markup
   val TRACING = "tracing"
   val WARNING = "warning"
   val ERROR = "error"
-  val RAW = "raw"
+  val PROTOCOL = "protocol"
   val SYSTEM = "system"
   val STDOUT = "stdout"
   val STDERR = "stderr"
@@ -242,7 +242,7 @@ object Isabelle_Markup
   val BAD = "bad"
 
 
-  /* raw message functions */
+  /* protocol message functions */
 
   val FUNCTION = "function"
   val Function = new Properties.String(FUNCTION)

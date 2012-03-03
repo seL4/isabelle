@@ -30,7 +30,7 @@ object Isabelle_Process
       ('E' : Int) -> Isabelle_Markup.TRACING,
       ('F' : Int) -> Isabelle_Markup.WARNING,
       ('G' : Int) -> Isabelle_Markup.ERROR,
-      ('H' : Int) -> Isabelle_Markup.RAW)
+      ('H' : Int) -> Isabelle_Markup.PROTOCOL)
   }
 
   sealed abstract class Message
@@ -57,14 +57,14 @@ object Isabelle_Process
     def is_system = kind == Isabelle_Markup.SYSTEM
     def is_status = kind == Isabelle_Markup.STATUS
     def is_report = kind == Isabelle_Markup.REPORT
-    def is_raw = kind == Isabelle_Markup.RAW
+    def is_protocol = kind == Isabelle_Markup.PROTOCOL
     def is_syslog = is_init || is_exit || is_system || is_stderr
 
     override def toString: String =
     {
       val res =
         if (is_status || is_report) message.body.map(_.toString).mkString
-        else if (is_raw) "..."
+        else if (is_protocol) "..."
         else Pretty.string_of(message.body)
       if (properties.isEmpty)
         kind.toString + " [[" + res + "]]"
@@ -96,7 +96,7 @@ class Isabelle_Process(
   private def output_message(kind: String, props: Properties.T, body: XML.Body)
   {
     if (kind == Isabelle_Markup.INIT) system_channel.accepted()
-    if (kind == Isabelle_Markup.RAW)
+    if (kind == Isabelle_Markup.PROTOCOL)
       receiver(new Output(XML.Elem(Markup(kind, props), body)))
     else {
       val msg = XML.Elem(Markup(kind, props), Protocol.clean_message(body))
@@ -364,7 +364,7 @@ class Isabelle_Process(
               case List(XML.Elem(Markup(name, props), Nil))
                   if name.size == 1 && Kind.message_markup.isDefinedAt(name(0)) =>
                 val kind = Kind.message_markup(name(0))
-                val body = read_chunk(kind != Isabelle_Markup.RAW)
+                val body = read_chunk(kind != Isabelle_Markup.PROTOCOL)
                 output_message(kind, props, body)
               case _ =>
                 read_chunk(false)

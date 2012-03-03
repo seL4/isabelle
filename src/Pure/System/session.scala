@@ -58,7 +58,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
   val phase_changed = new Event_Bus[Session.Phase]
   val syslog_messages = new Event_Bus[Isabelle_Process.Output]
   val raw_output_messages = new Event_Bus[Isabelle_Process.Output]
-  val protocol_messages = new Event_Bus[Isabelle_Process.Message]  // potential bottle-neck
+  val all_messages = new Event_Bus[Isabelle_Process.Message]  // potential bottle-neck
 
 
 
@@ -200,7 +200,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
                   val queue1 = queue.enqueue(output.message)
                   if (queue1.length > syslog_limit) queue1.dequeue._2 else queue1
                 })
-            if (output.is_raw) flush()
+            if (output.is_protocol) flush()
           case _ =>
         }
       }
@@ -356,7 +356,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
 
       output.properties match {
 
-        case Position.Id(state_id) if !output.is_raw =>
+        case Position.Id(state_id) if !output.is_protocol =>
           try {
             val st = global_state >>> (_.accumulate(state_id, output.message))
             delay_commands_changed.invoke(st.command)
@@ -365,7 +365,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
             case _: Document.State.Fail => bad_output(output)
           }
 
-        case Isabelle_Markup.Assign_Execs if output.is_raw =>
+        case Isabelle_Markup.Assign_Execs if output.is_protocol =>
           XML.content(output.body).mkString match {
             case Protocol.Assign(id, assign) =>
               try { handle_assign(id, assign) }
@@ -379,7 +379,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
             prune_next = System.currentTimeMillis() + prune_delay.ms
           }
 
-        case Isabelle_Markup.Removed_Versions if output.is_raw =>
+        case Isabelle_Markup.Removed_Versions if output.is_protocol =>
           XML.content(output.body).mkString match {
             case Protocol.Removed(removed) =>
               try { handle_removed(removed) }
@@ -387,29 +387,29 @@ class Session(thy_load: Thy_Load = new Thy_Load)
             case _ => bad_output(output)
           }
 
-        case Isabelle_Markup.Invoke_Scala(name, id) if output.is_raw =>
+        case Isabelle_Markup.Invoke_Scala(name, id) if output.is_protocol =>
           Future.fork {
             val arg = XML.content(output.body).mkString
             val (tag, res) = Invoke_Scala.method(name, arg)
             prover.get.invoke_scala(id, tag, res)
           }
 
-        case Isabelle_Markup.Cancel_Scala(id) if output.is_raw =>
+        case Isabelle_Markup.Cancel_Scala(id) if output.is_protocol =>
           System.err.println("cancel_scala " + id)  // FIXME actually cancel JVM task
 
-        case Isabelle_Markup.Ready if output.is_raw =>
+        case Isabelle_Markup.Ready if output.is_protocol =>
             // FIXME move to ML side (!?)
             syntax += ("hence", Keyword.PRF_ASM_GOAL, "then have")
             syntax += ("thus", Keyword.PRF_ASM_GOAL, "then show")
             phase = Session.Ready
 
-        case Isabelle_Markup.Loaded_Theory(name) if output.is_raw =>
+        case Isabelle_Markup.Loaded_Theory(name) if output.is_protocol =>
           thy_load.register_thy(name)
 
-        case Isabelle_Markup.Command_Decl(name, kind) if output.is_raw =>
+        case Isabelle_Markup.Command_Decl(name, kind) if output.is_protocol =>
           syntax += (name, kind)
 
-        case Isabelle_Markup.Keyword_Decl(name) if output.is_raw =>
+        case Isabelle_Markup.Keyword_Decl(name) if output.is_protocol =>
           syntax += name
 
         case _ =>
@@ -471,13 +471,13 @@ class Session(thy_load: Thy_Load = new Thy_Load)
         case Messages(msgs) =>
           msgs foreach {
             case input: Isabelle_Process.Input =>
-              protocol_messages.event(input)
+              all_messages.event(input)
 
             case output: Isabelle_Process.Output =>
               handle_output(output)
               if (output.is_syslog) syslog_messages.event(output)
               if (output.is_stdout || output.is_stderr) raw_output_messages.event(output)
-              protocol_messages.event(output)
+              all_messages.event(output)
           }
 
         case change: Change_Node
