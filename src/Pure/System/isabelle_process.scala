@@ -219,9 +219,9 @@ class Isabelle_Process(
   {
     val name = "standard_input"
     Simple_Thread.actor(name) {
-      var finished = false
-      while (!finished) {
-        try {
+      try {
+        var finished = false
+        while (!finished) {
           //{{{
           receive {
             case Input_Text(text) =>
@@ -234,10 +234,8 @@ class Isabelle_Process(
           }
           //}}}
         }
-        catch {
-          case e: IOException => finished = true; system_result(name + ": " + e.getMessage)
-        }
       }
+      catch { case e: IOException => system_result(name + ": " + e.getMessage) }
       system_result(name + " terminated")
     }
   }
@@ -252,11 +250,10 @@ class Isabelle_Process(
       else ("standard_output", process.stdout, Isabelle_Markup.STDOUT)
 
     Simple_Thread.actor(name) {
-      var result = new StringBuilder(100)
-
-      var finished = false
-      while (!finished) {
-        try {
+      try {
+        var result = new StringBuilder(100)
+        var finished = false
+        while (!finished) {
           //{{{
           var c = -1
           var done = false
@@ -275,10 +272,8 @@ class Isabelle_Process(
           }
           //}}}
         }
-        catch {
-          case e: IOException => finished; system_result(name + ": " + e.getMessage)
-        }
       }
+      catch { case e: IOException => system_result(name + ": " + e.getMessage) }
       system_result(name + " terminated")
     }
   }
@@ -290,10 +285,10 @@ class Isabelle_Process(
   {
     val name = "command_input"
     Simple_Thread.actor(name) {
-      val stream = new BufferedOutputStream(raw_stream)
-      var finished = false
-      while (!finished) {
-        try {
+      try {
+        val stream = new BufferedOutputStream(raw_stream)
+        var finished = false
+        while (!finished) {
           //{{{
           receive {
             case Input_Chunks(chunks) =>
@@ -308,10 +303,8 @@ class Isabelle_Process(
           }
           //}}}
         }
-        catch {
-          case e: IOException => finished; system_result(name + ": " + e.getMessage)
-        }
       }
+      catch { case e: IOException => system_result(name + ": " + e.getMessage) }
       system_result(name + " terminated")
     }
   }
@@ -362,26 +355,30 @@ class Isabelle_Process(
         //}}}
       }
 
-      do {
-        try {
-          val header = read_chunk(true)
-          header match {
-            case List(XML.Elem(Markup(name, props), Nil))
-                if name.size == 1 && Kind.message_markup.isDefinedAt(name(0)) =>
-              val kind = Kind.message_markup(name(0))
-              val body = read_chunk(kind != Isabelle_Markup.RAW)
-              put_result(kind, props, body)
-            case _ =>
-              read_chunk(false)
-              throw new Protocol_Error("bad header: " + header.toString)
+      try {
+        do {
+          try {
+            //{{{
+            val header = read_chunk(true)
+            header match {
+              case List(XML.Elem(Markup(name, props), Nil))
+                  if name.size == 1 && Kind.message_markup.isDefinedAt(name(0)) =>
+                val kind = Kind.message_markup(name(0))
+                val body = read_chunk(kind != Isabelle_Markup.RAW)
+                put_result(kind, props, body)
+              case _ =>
+                read_chunk(false)
+                throw new Protocol_Error("bad header: " + header.toString)
+            }
+            //}}}
           }
-        }
-        catch {
-          case e: IOException => c = -1; system_result("Cannot read message:\n" + e.getMessage)
-          case e: Protocol_Error => c = -1; system_result("Malformed message:\n" + e.getMessage)
-          case _: EOF =>
-        }
-      } while (c != -1)
+          catch { case _: EOF => }
+        } while (c != -1)
+      }
+      catch {
+        case e: IOException => system_result("Cannot read message:\n" + e.getMessage)
+        case e: Protocol_Error => system_result("Malformed message:\n" + e.getMessage)
+      }
       stream.close
 
       system_result(name + " terminated")
