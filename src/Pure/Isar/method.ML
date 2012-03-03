@@ -377,13 +377,12 @@ type modifier = (Proof.context -> Proof.context) * attribute;
 local
 
 fun thms ss = Scan.repeat (Scan.unless (Scan.lift (Scan.first ss)) Attrib.multi_thm) >> flat;
-fun app (f, att) (context, ths) =
-  Library.foldl_map (Thm.apply_attribute att) (Context.map_proof f context, ths);
+fun app (f, att) ths context = fold_map (Thm.apply_attribute att) ths (Context.map_proof f context);
 
 in
 
 fun section ss = Scan.depend (fn context => (Scan.first ss -- Scan.pass context (thms ss)) :|--
-  (fn (m, ths) => Scan.succeed (app m (context, ths))));
+  (fn (m, ths) => Scan.succeed (swap (app m ths context))));
 
 fun sections ss = Scan.repeat (section ss);
 

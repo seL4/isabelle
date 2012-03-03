@@ -80,7 +80,7 @@ fun hide_fact fully name = Data.map (apfst (Facts.hide fully name));
 
 (* forked proofs *)
 
-fun register_proofs (thy, thms) = (Data.map (apsnd (pairself (add_proofs thms))) thy, thms);
+fun register_proofs thms thy = (thms, Data.map (apsnd (pairself (add_proofs thms))) thy);
 
 val begin_recent_proofs = Data.map (apsnd (apfst (K empty_proofs)));
 val join_recent_proofs = force_proofs o #1 o #2 o Data.get;
@@ -153,13 +153,12 @@ fun name_thmss official name fact =
 
 fun enter_thms pre_name post_name app_att (b, thms) thy =
   if Binding.is_empty b
-  then swap (register_proofs (app_att (thy, thms)))
+  then app_att thms thy |-> register_proofs
   else
     let
       val naming = Sign.naming_of thy;
       val name = Name_Space.full_name naming b;
-      val (thy', thms') =
-        register_proofs (apsnd (post_name name) (app_att (thy, pre_name name thms)));
+      val (thms', thy') = app_att (pre_name name thms) thy |>> post_name name |-> register_proofs;
       val thms'' = map (Thm.transfer thy') thms';
       val thy'' = thy'
         |> (Data.map o apfst)
@@ -170,19 +169,18 @@ fun enter_thms pre_name post_name app_att (b, thms) thy =
 (* store_thm(s) *)
 
 fun store_thms (b, thms) =
-  enter_thms (name_thms true true) (name_thms false true) I (b, thms);
+  enter_thms (name_thms true true) (name_thms false true) pair (b, thms);
 
 fun store_thm (b, th) = store_thms (b, [th]) #>> the_single;
 
 fun store_thm_open (b, th) =
-  enter_thms (name_thms true false) (name_thms false false) I (b, [th]) #>> the_single;
+  enter_thms (name_thms true false) (name_thms false false) pair (b, [th]) #>> the_single;
 
 
 (* add_thms(s) *)
 
 fun add_thms_atts pre_name ((b, thms), atts) =
-  enter_thms pre_name (name_thms false true)
-    (Library.foldl_map (Thm.theory_attributes atts)) (b, thms);
+  enter_thms pre_name (name_thms false true) (fold_map (Thm.theory_attributes atts)) (b, thms);
 
 fun gen_add_thmss pre_name =
   fold_map (add_thms_atts pre_name);
@@ -204,13 +202,14 @@ fun add_thms_dynamic (b, f) thy = thy
 
 (* note_thmss *)
 
-fun note_thmss kind = fold_map (fn ((b, more_atts), ths_atts) => fn thy =>
+fun note_thmss kind = fold_map (fn ((b, more_atts), facts) => fn thy =>
   let
     val name = Sign.full_name thy b;
-    fun app (x, (ths, atts)) = Library.foldl_map (Thm.theory_attributes atts) (x, ths);
-    val (thms, thy') = thy |> enter_thms
-      (name_thmss true) (name_thms false true) (apsnd flat o Library.foldl_map app)
-      (b, map (fn (ths, atts) => (ths, surround (Thm.kind kind) (atts @ more_atts))) ths_atts);
+    fun app (ths, atts) =
+      fold_map (Thm.theory_attributes (surround (Thm.kind kind) (atts @ more_atts))) ths;
+    val (thms, thy') =
+      enter_thms (name_thmss true) (name_thms false true) (apfst flat oo fold_map app)
+        (b, facts) thy;
   in ((name, thms), thy') end);
 
 

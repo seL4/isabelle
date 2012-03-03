@@ -185,20 +185,21 @@ fun process_spec axiomatic cos alt_props thy =
                         fun undo_imps thm =
                             Thm.equal_elim (Thm.symmetric rew_imp) thm
 
-                        fun add_final (arg as (thy, thm)) =
+                        fun add_final (thm, thy) =
                             if name = ""
-                            then arg |> Library.swap
+                            then (thm, thy)
                             else (writeln ("  " ^ name ^ ": " ^ Display.string_of_thm_global thy thm);
                                   Global_Theory.store_thm (Binding.name name, thm) thy)
                     in
-                        args |> apsnd (remove_alls frees)
-                             |> apsnd undo_imps
-                             |> apsnd Drule.export_without_context
-                             |> Thm.theory_attributes
+                        swap args
+                             |> apfst (remove_alls frees)
+                             |> apfst undo_imps
+                             |> apfst Drule.export_without_context
+                             |-> Thm.theory_attributes
                                 (map (Attrib.attribute thy)
                                   (@{attributes [nitpick_choice_spec]} @ atts))
                              |> add_final
-                             |> Library.swap
+                             |> swap
                     end
 
                 fun process_all [proc_arg] args =

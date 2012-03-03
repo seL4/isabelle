@@ -191,8 +191,7 @@ fun gen_thm pick = Scan.depend (fn context =>
     Parse.$$$ "[" |-- Args.attribs (intern thy) --| Parse.$$$ "]" >> (fn srcs =>
       let
         val atts = map (attribute_i thy) srcs;
-        val (context', th') =
-          Library.apply (map Thm.apply_attribute atts) (context, Drule.dummy_thm);
+        val (th', context') = fold (uncurry o Thm.apply_attribute) atts (Drule.dummy_thm, context);
       in (context', pick "" [th']) end)
     ||
     (Scan.ahead Args.alt_name -- Args.named_fact get_fact
@@ -204,8 +203,8 @@ fun gen_thm pick = Scan.depend (fn context =>
       let
         val ths = Facts.select thmref fact;
         val atts = map (attribute_i thy) srcs;
-        val (context', ths') =
-          Library.foldl_map (Library.apply (map Thm.apply_attribute atts)) (context, ths);
+        val (ths', context') =
+          fold_map (curry (fold (uncurry o Thm.apply_attribute) atts)) ths context;
       in (context', pick name ths') end)
   end);
 
