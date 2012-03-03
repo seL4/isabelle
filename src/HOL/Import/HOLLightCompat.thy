@@ -192,8 +192,8 @@ lemma DEF_INTER:
   by auto
 
 lemma DEF_INSERT:
-  "insert = (%u ua y. y \<in> ua | y = u)"
-  unfolding mem_def fun_eq_iff insert_code by blast
+  "insert = (\<lambda>u ua. {y. y \<in> ua | y = u})"
+  by auto
 
 lemma DEF_IMAGE:
   "op ` = (\<lambda>u ua. {ub. \<exists>y. (\<exists>x. x \<in> ua \<and> y = u x) \<and> ub = y})"
@@ -331,8 +331,8 @@ lemma DEF_PLUS: "op + = (SOME add. (\<forall>n. add 0 n = n) & (\<forall>m n. ad
 
 lemmas [hol4rew] = id_apply
 
-lemma DEF_CHOICE: "Eps = (%u. SOME x. x \<in> u)"
-  by (simp add: mem_def)
+lemma DEF_CHOICE: "Eps = (%u. SOME x. u x)"
+  by simp
 
 definition dotdot :: "nat => nat => nat set"
   where "dotdot u ua = {ub. EX x. (u <= x & x <= ua) & ub = x}"
@@ -347,3 +347,4 @@ lemma DEF_INFINITE: "INFINITE = (\<lambda>u. \<not>finite u)"
   by (simp add: INFINITE_def_raw)
 
 end
+
