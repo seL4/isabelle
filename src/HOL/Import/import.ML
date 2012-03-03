@@ -17,7 +17,7 @@ structure ImportData = Theory_Data
   fun merge _ = NONE
 )
 
-structure Import :> IMPORT =
+structure Import : IMPORT =
 struct
 
 val debug = Unsynchronized.ref false

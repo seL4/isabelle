@@ -27,7 +27,7 @@ sig
     val setup      : theory -> theory
 end
 
-structure Shuffler :> Shuffler =
+structure Shuffler : Shuffler =
 struct
 
 val debug = Unsynchronized.ref false
@@ -57,7 +57,6 @@ val weaken =
         val PQ = Logic.mk_implies(P,Q)
         val PPQ = Logic.mk_implies(P,PQ)
         val cP = cert P
-        val cQ = cert Q
         val cPQ = cert PQ
         val cPPQ = cert PPQ
         val th1 = Thm.assume cPQ |> implies_intr_list [cPQ,cP]
@@ -150,7 +149,7 @@ fun swap_bound n (Bound i) = if i = n then Bound (n+1)
   | swap_bound n (Abs(x,xT,t)) = Abs(x,xT,swap_bound (n+1) t)
   | swap_bound n t = t
 
-fun rew_th thy (xv as (x,xT)) (yv as (y,yT)) t =
+fun rew_th thy xv yv t =
     let
         val lhs = Logic.list_all ([xv,yv],t)
         val rhs = Logic.list_all ([yv,xv],swap_bound 0 t)
@@ -306,7 +305,7 @@ fun eta_expand thy _ origt =
             Const("==",T) $ P $ Q =>
             if is_Abs P orelse is_Abs Q
             then (case domain_type T of
-                      Type("fun",[aT,bT]) =>
+                      Type("fun",[aT,_]) =>
                       let
                           val cert = cterm_of thy
                           val vname = singleton (Name.variant_list (Term.add_free_names t [])) "v"
@@ -345,8 +344,6 @@ val y = Free ("y", yT)
 val P  = mk_free "P" (xT-->yT-->propT)
 val Q  = mk_free "Q" (xT-->yT)
 val R  = mk_free "R" (xT-->yT)
-val S  = mk_free "S" xT
-val S'  = mk_free "S'" xT
 in
 
 fun quant_simproc thy = Simplifier.simproc_global_i
@@ -379,7 +376,7 @@ fun disamb_bound thy t =
             in
                 (t' $ u',idx'')
             end
-          | F (Abs(x,xT,t),idx) =
+          | F (Abs(_,xT,t),idx) =
             let
                 val x' = "x" ^ string_of_int idx
                 val (t',idx') = F (t,idx+1)
@@ -458,7 +455,7 @@ fun make_equal thy t u =
     in
         SOME th
     end
-    handle e as THM _ => (message "make_equal: NONE";NONE)
+    handle THM _ => (message "make_equal: NONE";NONE)
 
 fun match_consts ignore t (* th *) =
     let
@@ -471,7 +468,7 @@ fun match_consts ignore t (* th *) =
           | add_consts (_, cs) = cs
         val t_consts = add_consts(t,[])
     in
-     fn (name,th) =>
+     fn (_,th) =>
         let
             val th_consts = add_consts(prop_of th,[])
         in
@@ -521,11 +518,11 @@ fun set_prop thy t =
                     end
                   | NONE => process thms
             end
-            handle e as THM _ => process thms
+            handle THM _ => process thms
     in
         fn thms =>
            case process thms of
-               res as SOME (name,th) => if (prop_of th) aconv t
+               res as SOME (_,th) => if (prop_of th) aconv t
                                         then res
                                         else error "Internal error in set_prop"
              | NONE => NONE

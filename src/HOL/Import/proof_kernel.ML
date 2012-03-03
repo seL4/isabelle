@@ -116,7 +116,7 @@ sig
     val replay_add_dump : string -> theory -> theory
 end
 
-structure ProofKernel :> ProofKernel =
+structure ProofKernel : ProofKernel =
 struct
 type hol_type = Term.typ
 type term = Term.term
@@ -243,7 +243,7 @@ fun prth th = writeln (Print_Mode.setmp [] Display.string_of_thm_without_context
 val topctxt = ML_Context.the_local_context ();
 fun prin t = writeln (Print_Mode.setmp []
   (fn () => Syntax.string_of_term topctxt t) ());
-fun pth (HOLThm(ren,thm)) =
+fun pth (HOLThm(_,thm)) =
     let
         (*val _ = writeln "Renaming:"
         val _ = app (fn(v,w) => (prin v; writeln " -->"; prin w)) ren*)
@@ -349,7 +349,7 @@ val mk_var = Free
 fun mk_thy_const thy Thy Nam Ty = Const(intern_const_name Thy Nam thy,Ty)
 
 local
-  fun get_const sg thyname name =
+  fun get_const sg _ name =
     (case Sign.const_type sg name of
       SOME ty => Const (name, ty)
     | NONE => raise ERR "get_type" (name ^ ": No such constant"))
@@ -430,7 +430,7 @@ fun replacestr x y s =
 let
   val xl = raw_explode x
   val yl = raw_explode y
-  fun isprefix [] ys = true
+  fun isprefix [] _ = true
     | isprefix (x::xs) (y::ys) = if x = y then isprefix xs ys else false
     | isprefix _ _ = false
   fun isp s = isprefix xl s
@@ -497,7 +497,7 @@ and get_type_from_xml thy thyname types =
         gtfx
     end
 
-fun input_types thyname (Elem("tylist",[("i",i)],xtys)) =
+fun input_types _ (Elem("tylist",[("i",i)],xtys)) =
     let
         val types = Array.array(the (Int.fromString i),XMLty (Elem("",[],[])))
         fun IT _ [] = ()
@@ -528,10 +528,6 @@ fun get_term_from_index thy thyname types terms is =
       | NONE => raise ERR "get_term_from_index" "Bad index"
 and get_term_from_xml thy thyname types terms =
     let
-        fun get_type [] = NONE
-          | get_type [ty] = SOME (TypeNet.get_type_from_xml thy thyname types ty)
-          | get_type _ = raise ERR "get_term" "Bad type"
-
         fun gtfx (Elem("tmv",[("n",name),("t",tyi)],[])) =
             mk_var(protect_varname name,TypeNet.get_type_from_index thy thyname types tyi)
           | gtfx (Elem("tmc",atts,[])) =
@@ -564,7 +560,7 @@ and get_term_from_xml thy thyname types terms =
         gtfx
     end
 
-fun input_terms thyname types (Elem("tmlist",[("i",i)],xtms)) =
+fun input_terms _ _ (Elem("tmlist",[("i",i)],xtms)) =
     let
         val terms = Array.array(the (Int.fromString i), XMLtm (Elem("",[],[])))
 
@@ -684,10 +680,10 @@ fun xml_to_proof thyname types terms prf thy =
             end
           | x2p (Elem("ptydef",[("s",seg),("n",name)],[p])) =
             mk_proof (PTyDef(seg,protect_tyname name,x2p p))
-          | x2p (xml as Elem("poracle",[],chldr)) =
+          | x2p (Elem("poracle",[],chldr)) =
             let
                 val (oracles,terms) = List.partition (fn (Elem("oracle",_,_)) => true | _ => false) chldr
-                val ors = map (fn (Elem("oracle",[("n",name)],[])) => name | xml => raise ERR "x2p" "bad oracle") oracles
+                val ors = map (fn (Elem("oracle",[("n",name)],[])) => name | _ => raise ERR "x2p" "bad oracle") oracles
                 val (c,asl) = case terms of
                                   [] => raise ERR "x2p" "Bad oracle description"
                                 | (hd::tl) => (hd,tl)
@@ -846,7 +842,7 @@ fun xml_to_proof thyname types terms prf thy =
             in
                 mk_proof (PContr (p,t))
             end
-          | x2p xml = raise ERR "x2p" "Bad proof"
+          | x2p _ = raise ERR "x2p" "Bad proof"
     in
         x2p prf
     end
@@ -858,7 +854,7 @@ fun import_proof_concl thyname thmname thy =
         val _ = TextIO.closeIn is
     in
         case proof_xml of
-            Elem("proof",[],xtypes::xterms::prf::rest) =>
+            Elem("proof",[],xtypes::xterms::_::rest) =>
             let
                 val types = TypeNet.input_types thyname xtypes
                 val terms = TermNet.input_terms thyname types xterms
@@ -971,9 +967,9 @@ fun mk_GEN v th sg =
         val c = prop_of th3
         val vname = fst(dest_Free v)
         val (cold,cnew) = case c of
-                              tpc $ (Const(@{const_name All},allT) $ Abs(oldname,ty,body)) =>
+                              tpc $ (Const(@{const_name All},_) $ Abs(oldname,_,_)) =>
                               (Abs(oldname,dummyT,Bound 0),Abs(vname,dummyT,Bound 0))
-                            | tpc $ (Const(@{const_name All},allT) $ rest) => (tpc,tpc)
+                            | tpc $ (Const(@{const_name All},_) $ _) => (tpc,tpc)
                             | _ => raise ERR "mk_GEN" "Unknown conclusion"
         val th4 = Thm.rename_boundvars cold cnew th3
         val res = implies_intr_hyps th4
@@ -1004,7 +1000,7 @@ fun mk_INST dom rng th =
 
 val disamb_info_empty = {vars=[],rens=[]}
 
-fun rens_of {vars,rens} = rens
+fun rens_of { vars = _, rens = rens } = rens
 
 fun disamb_term_from info tm = (info, tm)
 
@@ -1020,7 +1016,7 @@ fun disamb_term tm   = disamb_term_from disamb_info_empty tm
 fun disamb_thm thm   = disamb_thm_from disamb_info_empty thm
 fun disamb_thms thms = disamb_thms_from disamb_info_empty thms
 
-fun norm_hthm thy (hth as HOLThm _) = hth
+fun norm_hthm _ (hth as HOLThm _) = hth
 
 (* End of disambiguating code *)
 
@@ -1043,7 +1039,7 @@ fun disambiguate_frees thm =
               n'
           end
       val new_name = new_name' "a"
-      fun replace_name n' (Free (n, t)) = Free (n', t)
+      fun replace_name n' (Free (_, t)) = Free (n', t)
         | replace_name _ _ = ERR "replace_name"
       (* map: old or fresh name -> old free,
          invmap: old free which has fresh name assigned to it -> fresh name *)
@@ -1187,7 +1183,7 @@ fun get_isabelle_thm_and_warn thyname thmname importerconc thy =
     val (a, b) = get_isabelle_thm thyname thmname importerconc thy
     fun warn () =
         let
-            val (info,importerconc') = disamb_term importerconc
+            val (_,importerconc') = disamb_term importerconc
             val i2h_conc = Thm.symmetric (rewrite_importer_term (HOLogic.mk_Trueprop importerconc') thy)
         in
             case concl_of i2h_conc of
@@ -1211,8 +1207,8 @@ fun get_thm thyname thmname thy =
       | NONE => ((case import_proof_concl thyname thmname thy of
                       SOME f => get_isabelle_thm_and_warn thyname thmname (f thy) thy
                     | NONE => (message "No conclusion"; (thy,NONE)))
-                 handle e as IO.Io _ => (message "IO exception"; (thy,NONE))
-                      | e as PK _ => (message "PK exception"; (thy,NONE)))
+                 handle IO.Io _ => (message "IO exception"; (thy,NONE))
+                      | PK _ => (message "PK exception"; (thy,NONE)))
 
 fun rename_const thyname thy name =
     case get_importer_const_renaming thyname name thy of
@@ -1284,7 +1280,7 @@ fun ASSUME tm thy =
         (thy,res)
     end
 
-fun INST_TYPE lambda (hth as HOLThm(rens,th)) thy =
+fun INST_TYPE lambda (hth as HOLThm(_,th)) thy =
     let
         val _ = message "INST_TYPE:"
         val _ = if_debug pth hth
@@ -1699,7 +1695,7 @@ fun GEN_ABS copt vlist hth thy =
         val (info',vlist') = disamb_terms_from info vlist
         val th1 =
             case copt of
-                SOME (c as Const(cname,cty)) =>
+                SOME (Const(cname,cty)) =>
                 let
                     fun inst_type ty1 ty2 (TVar _) = raise ERR "GEN_ABS" "Type variable found!"
                       | inst_type ty1 ty2 (ty as TFree _) = if ty1 = ty
@@ -1788,7 +1784,7 @@ fun new_definition thyname constname rhs thy =
         val redeclared = is_some (Sign.const_type thy (Sign.intern_const thy constname));
         val _ = warning ("Introducing constant " ^ constname)
         val (thmname,thy) = get_defname thyname constname thy
-        val (info,rhs') = disamb_term rhs
+        val (_,rhs') = disamb_term rhs
         val ctype = type_of rhs'
         val csyn = mk_syn thy constname
         val thy1 = case Importer_DefThy.get thy of
@@ -1859,14 +1855,14 @@ fun new_specification thyname thmname names hth thy =
                                fun dest_eta_abs (Abs(x,xT,body)) = (x,xT,body)
                                  | dest_eta_abs body =
                                    let
-                                       val (dT,rT) = Term.dest_funT (type_of body)
+                                       val (dT,_) = Term.dest_funT (type_of body)
                                    in
                                        ("x",dT,body $ Bound 0)
                                    end
                                    handle TYPE _ => raise ERR "new_specification" "not an abstraction type"
                                fun dest_exists (Const(@{const_name Ex},_) $ abody) =
                                    dest_eta_abs abody
-                                 | dest_exists tm =
+                                 | dest_exists _ =
                                    raise ERR "new_specification" "Bad existential formula"
 
                                val (consts,_) = Library.foldl (fn ((cs,ex),cname) =>
@@ -1920,7 +1916,7 @@ fun new_specification thyname thmname names hth thy =
             intern_store_thm false thyname thmname hth thy''
         end
 
-fun new_axiom name tm thy = raise ERR "new_axiom" ("Oh, no you don't! (" ^ name ^ ")")
+fun new_axiom name _ _ = raise ERR "new_axiom" ("Oh, no you don't! (" ^ name ^ ")")
 
 fun to_isa_thm (hth as HOLThm(_,th)) =
     let

@@ -22,7 +22,7 @@ sig
     val setup        : unit -> unit
 end
 
-structure Importer_Import_Syntax :> IMPORTER_IMPORT_SYNTAX =
+structure Importer_Import_Syntax : IMPORTER_IMPORT_SYNTAX =
 struct
 
 (* Parsers *)
