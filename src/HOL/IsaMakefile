@@ -5,7 +5,6 @@
 ## targets
 
 default: HOL
-generate: HOL-Generate-HOL HOL-Generate-HOLLight
 
 images: \
   HOL \
@@ -19,8 +18,11 @@ images: \
   HOL-Proofs \
   HOL-SPARK \
   HOL-Word \
-  HOL4 \
   HOLCF \
+  Import-HOL4 \
+  Import-HOL_Light \
+  Import-HOL4-Imported \
+  Import-HOL_Light-Imported \
   IOA \
   TLA \
   HOL-Base \
@@ -47,7 +49,6 @@ test: \
       IOA-Storage \
       IOA-ex \
   HOL-Imperative_HOL \
-  HOL-Import \
   HOL-Induct \
   HOL-Isar_Examples \
   HOL-Lattice \
@@ -80,6 +81,10 @@ test: \
   HOL-Word-Examples \
   HOL-ZF
     # ^ this is the sort position
+
+generate: \
+  Import-HOL4-Generate \
+  Import-HOL_Light-Generate
 
 benchmark: \
   HOL-Datatype_Benchmark \
@@ -550,73 +555,49 @@ $(LOG)/HOL-IMPP.gz: $(OUT)/HOL IMPP/ROOT.ML IMPP/Com.thy		\
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL IMPP
 
 
-## HOL-Import
+## Import sessions
 
-IMPORTER_FILES = \
-  Import/HOL4Compat.thy \
-  Import/HOLLightCompat.thy Import/HOL4Setup.thy Import/HOL4Syntax.thy \
-  Import/MakeEqual.thy Import/ROOT.ML Import/hol4rews.ML \
-  Import/import.ML Import/import_syntax.ML \
-  Import/proof_kernel.ML Import/replay.ML Import/shuffler.ML \
-  Library/ContNotDenum.thy Old_Number_Theory/Primes.thy
+Import-HOL4: $(OUT)/Import-HOL4
 
-HOL-Import: HOL $(LOG)/HOL-Import.gz
+$(OUT)/Import-HOL4: $(OUT)/HOL \
+  Import/HOL4/ROOT.ML \
+  Import/HOL4/Compatibility.thy
+	@cd Import/HOL4; $(ISABELLE_TOOL) usedir -b $(OUT)/HOL Import-HOL4
 
-$(LOG)/HOL-Import.gz: $(OUT)/HOL $(IMPORTER_FILES)
-	@$(ISABELLE_TOOL) usedir -p 0 $(OUT)/HOL Import
+Import-HOL_Light: $(OUT)/Import-HOL_Light
 
+$(OUT)/Import-HOL_Light: $(OUT)/HOL \
+  Import/HOL_Light/ROOT.ML \
+  Import/HOL_Light/Compatibility.thy
+	@cd Import/HOL_Light; $(ISABELLE_TOOL) usedir -b $(OUT)/HOL Import-HOL_Light
 
-## HOL-Generate-HOL
+Import-HOL4-Imported: $(OUT)/Import-HOL4-Imported
 
-HOL-Generate-HOL: HOL $(LOG)/HOL-Generate-HOL.gz
+$(OUT)/Import-HOL4-Imported: $(OUT)/Import-HOL4 \
+  Import/HOL4/imported.ML \
+  Import/HOL4/Imported.thy
+	@cd Import/HOL4; $(ISABELLE_TOOL) usedir -b -f imported.ML -p 0 $(OUT)/Import-HOL4 Import-HOL4-Imported
 
-$(LOG)/HOL-Generate-HOL.gz: $(OUT)/HOL			\
-  $(IMPORTER_FILES) Import/Generate-HOL/GenHOL4Base.thy			\
-  Import/Generate-HOL/GenHOL4Prob.thy					\
-  Import/Generate-HOL/GenHOL4Real.thy					\
-  Import/Generate-HOL/GenHOL4Vec.thy					\
-  Import/Generate-HOL/GenHOL4Word32.thy Import/Generate-HOL/ROOT.ML
-	@cd Import; $(ISABELLE_TOOL) usedir $(OUT)/HOL Generate-HOL
+Import-HOL_Light-Imported: $(OUT)/Import-HOL_Light-Imported
 
+$(OUT)/Import-HOL_Light-Imported: $(OUT)/Import-HOL_Light \
+  Import/HOL_Light/imported.ML \
+  Import/HOL_Light/Imported.thy
+	@cd Import/HOL_Light; $(ISABELLE_TOOL) usedir -b -f imported.ML -p 0 $(OUT)/Import-HOL_Light Import-HOL_Light-Imported
 
-## HOL-Generate-HOLLight
+Import-HOL4-Generate: $(LOG)/Import-HOL4-Generate.gz
 
-HOL-Generate-HOLLight: HOL $(LOG)/HOL-Generate-HOLLight.gz
+$(LOG)/Import-HOL4-Generate.gz: $(OUT)/Import-HOL4 \
+  Import/HOL4/generate.ML \
+  Import/HOL4/Generate.thy
+	@cd Import; $(ISABELLE_TOOL) usedir -f generate.ML -s Generate -p 0 $(OUT)/Import-HOL4 HOL4
 
-$(LOG)/HOL-Generate-HOLLight.gz: $(OUT)/HOL				\
-  $(IMPORTER_FILES) Import/Generate-HOLLight/GenHOLLight.thy	\
-  Import/Generate-HOLLight/ROOT.ML
-	@cd Import; $(ISABELLE_TOOL) usedir $(OUT)/HOL Generate-HOLLight
+Import-HOL_Light-Generate: $(LOG)/Import-HOL_Light-Generate.gz
 
-
-## HOL-Import-HOL
-
-HOL4: HOL $(LOG)/HOL4.gz
-
-HOL_IMPORT_FILES = arithmetic.imp bits.imp boolean_sequence.imp bool.imp \
-  bword_arith.imp bword_bitop.imp bword_num.imp combin.imp divides.imp \
-  hrat.imp hreal.imp ind_type.imp lim.imp list.imp marker.imp nets.imp \
-  numeral.imp num.imp one.imp operator.imp option.imp pair.imp poly.imp \
-  powser.imp pred_set.imp prime.imp prim_rec.imp prob_algebra.imp \
-  prob_canon.imp prob_extra.imp prob.imp prob_indep.imp prob_pseudo.imp \
-  prob_uniform.imp realax.imp real.imp relation.imp res_quan.imp \
-  rich_list.imp \
-  seq.imp state_transformer.imp sum.imp topology.imp transc.imp word32.imp \
-  word_base.imp word_bitop.imp word_num.imp
-
-$(LOG)/HOL4.gz: $(OUT)/HOL $(IMPORTER_FILES)				\
-  $(HOL_IMPORT_FILES:%=Import/HOL/%) Import/HOL/HOL4Base.thy		\
-  Import/HOL/HOL4Prob.thy Import/HOL/HOL4Real.thy			\
-  Import/HOL/HOL4Vec.thy Import/HOL/HOL4Word32.thy Import/HOL/HOL4.thy	\
-  Import/HOL/ROOT.ML
-	@cd Import/HOL; $(ISABELLE_TOOL) usedir -b $(OUT)/HOL HOL4
-
-HOLLight: HOL $(LOG)/HOLLight.gz
-
-$(LOG)/HOLLight.gz: $(OUT)/HOL $(IMPORTER_FILES)		\
-  Import/HOLLight/hollight.imp Import/HOLLight/HOLLight.thy		\
-  Import/HOLLight/ROOT.ML
-	@cd Import/HOLLight; $(ISABELLE_TOOL) usedir -b $(OUT)/HOL HOLLight
+$(LOG)/Import-HOL_Light-Generate.gz: $(OUT)/Import-HOL_Light \
+  Import/HOL_Light/generate.ML \
+  Import/HOL_Light/Generate.thy
+	@cd Import; $(ISABELLE_TOOL) usedir -f generate.ML -s Generate -p 0 $(OUT)/Import-HOL_Light HOL_Light
 
 
 ## HOL-Number_Theory
