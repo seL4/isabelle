@@ -64,7 +64,7 @@ fun import_tac ctxt (thyname, thmname) =
 val setup = Method.setup @{binding import}
   (Scan.lift (Args.name -- Args.name) >>
     (fn arg => fn ctxt => SIMPLE_METHOD (import_tac ctxt arg)))
-  "import HOL4 theorem"
+  "import external theorem"
 
 end
 

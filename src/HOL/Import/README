@@ -11,9 +11,9 @@ To build the logic in this directory, simply do a "isabelle make
 HOL-Import-HOL" in ~~/src/HOL.
 
 Note that the quick_and_dirty flag is on as default for this
-directory, which means that the original HOL4 proofs are not consulted
-at all.  If a real replay of the HOL4 proofs is desired, get and
-unpack the HOL4 proof objects to somewhere on your harddisk, and set
+directory, which means that the original external proofs are not consulted
+at all.  If a real replay of the external proofs is desired, get and
+unpack the external proof objects to somewhere on your harddisk, and set
 the variable PROOF_DIRS to the directory where the directory "hol4"
 is.  Now edit the ROOT.ML file to unset the quick_and_dirty flag and
 do "isabelle make HOL-Import-HOL" in ~~/src/HOL.

@@ -158,7 +158,7 @@ fun message s = if !hol4_debug then writeln s else ()
 
 fun add_hol4_rewrite (Context.Theory thy, th) =
     let
-        val _ = message "Adding HOL4 rewrite"
+        val _ = message "Adding external rewrite"
         val th1 = th RS @{thm eq_reflection}
                   handle THM _ => th
         val current_rews = HOL4Rewrites.get thy
@@ -359,7 +359,7 @@ fun get_hol4_theorem thyname thmname thy =
 
 fun add_hol4_theorem thyname thmname hth =
   let
-    val _ = message ("Adding HOL4 theorem " ^ thyname ^ "." ^ thmname)
+    val _ = message ("Adding external theorem " ^ thyname ^ "." ^ thmname)
   in
     HOL4Thms.map (StringPair.update_new ((thyname, thmname), hth))
   end;
@@ -634,6 +634,6 @@ in
 val hol4_setup =
   initial_maps #>
   Attrib.setup @{binding import_rew}
-    (Scan.succeed (Thm.mixed_attribute add_hol4_rewrite)) "HOL4 rewrite rule"
+    (Scan.succeed (Thm.mixed_attribute add_hol4_rewrite)) "external rewrite rule"
 
 end

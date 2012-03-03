@@ -202,16 +202,16 @@ fun setup () =
                        "Set import segment name"
                        Keyword.thy_decl (import_segment >> Toplevel.theory);
    Outer_Syntax.command "import_theory"
-                       "Set default HOL4 theory name"
+                       "Set default external theory name"
                        Keyword.thy_decl (import_theory >> Toplevel.theory);
    Outer_Syntax.command "end_import"
-                       "End HOL4 import"
+                       "End external import"
                        Keyword.thy_decl (end_import >> Toplevel.theory);
    Outer_Syntax.command "setup_theory"
-                       "Setup HOL4 theory replaying"
+                       "Setup external theory replaying"
                        Keyword.thy_decl (setup_theory >> Toplevel.theory);
    Outer_Syntax.command "end_setup"
-                       "End HOL4 setup"
+                       "End external setup"
                        Keyword.thy_decl (end_setup >> Toplevel.theory);
    Outer_Syntax.command "setup_dump"
                        "Setup the dump file name"
@@ -223,25 +223,25 @@ fun setup () =
                        "Write the dump to file"
                        Keyword.thy_decl (fl_dump >> Toplevel.theory);
    Outer_Syntax.command "ignore_thms"
-                       "Theorems to ignore in next HOL4 theory import"
+                       "Theorems to ignore in next external theory import"
                        Keyword.thy_decl (ignore_thms >> Toplevel.theory);
    Outer_Syntax.command "type_maps"
-                       "Map HOL4 type names to existing Isabelle/HOL type names"
+                       "Map external type names to existing Isabelle/HOL type names"
                        Keyword.thy_decl (type_maps >> Toplevel.theory);
    Outer_Syntax.command "def_maps"
-                       "Map HOL4 constant names to their primitive definitions"
+                       "Map external constant names to their primitive definitions"
                        Keyword.thy_decl (def_maps >> Toplevel.theory);
    Outer_Syntax.command "thm_maps"
-                       "Map HOL4 theorem names to existing Isabelle/HOL theorem names"
+                       "Map external theorem names to existing Isabelle/HOL theorem names"
                        Keyword.thy_decl (thm_maps >> Toplevel.theory);
    Outer_Syntax.command "const_renames"
-                       "Rename HOL4 const names"
+                       "Rename external const names"
                        Keyword.thy_decl (const_renames >> Toplevel.theory);
    Outer_Syntax.command "const_moves"
-                       "Rename HOL4 const names to other HOL4 constants"
+                       "Rename external const names to other external constants"
                        Keyword.thy_decl (const_moves >> Toplevel.theory);
    Outer_Syntax.command "const_maps"
-                       "Map HOL4 const names to existing Isabelle/HOL const names"
+                       "Map external const names to existing Isabelle/HOL const names"
                        Keyword.thy_decl (const_maps >> Toplevel.theory));
 
 end
