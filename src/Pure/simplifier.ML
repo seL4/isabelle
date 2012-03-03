@@ -315,7 +315,7 @@ val simproc_att =
   (Args.context -- Scan.lift add_del) :|-- (fn (ctxt, decl) =>
     Scan.repeat1 (Scan.lift (Args.named_attribute (decl o the_simproc ctxt o check_simproc ctxt))))
   >> (fn atts => Thm.declaration_attribute (fn th =>
-        Library.apply (map (fn att => Thm.attribute_declaration (Morphism.form att) th) atts)));
+        fold (fn att => Thm.attribute_declaration (Morphism.form att) th) atts));
 
 end;
 

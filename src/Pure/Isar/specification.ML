@@ -415,7 +415,7 @@ fun gen_theorem schematic prep_att prep_stmt
     |> (case facts of NONE => I | SOME ths => Proof.refine_insert ths)
     |> tap (fn state => not schematic andalso Proof.schematic_goal state andalso
         error "Illegal schematic goal statement")
-    |> Library.apply (map (fn (f, _) => f int) (rev (Theorem_Hook.get (Context.Proof goal_ctxt))))
+    |> fold_rev (fn (f, _) => f int) (Theorem_Hook.get (Context.Proof goal_ctxt))
   end;
 
 in
