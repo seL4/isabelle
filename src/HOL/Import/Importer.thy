@@ -4,10 +4,12 @@
 
 theory Importer
 imports Main
-uses "shuffler.ML" ("import_rews.ML") ("proof_kernel.ML") ("replay.ML") ("import.ML") ("import_syntax.ML")
+uses "shuffler.ML" "import_rews.ML" ("proof_kernel.ML") ("replay.ML") ("import.ML")
 begin
 
-setup Shuffler.setup
+setup {* Shuffler.setup #> importer_setup *}
+
+parse_ast_translation smarter_trueprop_parsing
 
 lemma conj_norm [shuffle_rule]: "(A & B ==> PROP C) == ([| A ; B |] ==> PROP C)"
 proof
@@ -220,20 +222,11 @@ lemma termspec_help: "[| Ex P ; c == Eps P |] ==> P c"
 lemma typedef_helper: "EX x. P x \<Longrightarrow> EX x. x \<in> (Collect P)"
   by simp
 
-use "import_rews.ML"
-
-setup importer_setup
-parse_ast_translation smarter_trueprop_parsing
-
 use "proof_kernel.ML"
 use "replay.ML"
 use "import.ML"
 
 setup Import.setup
-
-use "import_syntax.ML"
-
-ML {* Importer_Import_Syntax.setup() *}
 
 end
 

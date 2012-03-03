@@ -622,18 +622,12 @@ in
 val smarter_trueprop_parsing = [(@{const_syntax Trueprop},handle_meta)]
 end
 
-local
-    fun initial_maps thy =
-        thy |> add_importer_type_mapping "min" "bool" false @{type_name bool}
-            |> add_importer_type_mapping "min" "fun" false "fun"
-            |> add_importer_type_mapping "min" "ind" false @{type_name ind}
-            |> add_importer_const_mapping "min" "=" false @{const_name HOL.eq}
-            |> add_importer_const_mapping "min" "==>" false @{const_name HOL.implies}
-            |> add_importer_const_mapping "min" "@" false @{const_name "Eps"}
-in
 val importer_setup =
-  initial_maps #>
-  Attrib.setup @{binding import_rew}
-    (Scan.succeed (Thm.mixed_attribute add_importer_rewrite)) "external rewrite rule"
-
-end
+  add_importer_type_mapping "min" "bool" false @{type_name bool}
+  #> add_importer_type_mapping "min" "fun" false "fun"
+  #> add_importer_type_mapping "min" "ind" false @{type_name ind}
+  #> add_importer_const_mapping "min" "=" false @{const_name HOL.eq}
+  #> add_importer_const_mapping "min" "==>" false @{const_name HOL.implies}
+  #> add_importer_const_mapping "min" "@" false @{const_name "Eps"}
+  #> Attrib.setup @{binding import_rew}
+    (Scan.succeed (Thm.mixed_attribute add_importer_rewrite)) "external rewrite rule";
