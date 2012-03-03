@@ -182,8 +182,8 @@ class Isabelle_Process(
       val (command_stream, message_stream) = system_channel.rendezvous()
 
       standard_input = stdin_actor()
-      val stdout = raw_output_actor(false)
-      val stderr = raw_output_actor(true)
+      val stdout = physical_output_actor(false)
+      val stderr = physical_output_actor(true)
       command_input = input_actor(command_stream)
       val message = message_actor(message_stream)
 
@@ -213,7 +213,7 @@ class Isabelle_Process(
 
   /** stream actors **/
 
-  /* raw stdin */
+  /* physical stdin */
 
   private def stdin_actor(): (Thread, Actor) =
   {
@@ -241,9 +241,9 @@ class Isabelle_Process(
   }
 
 
-  /* raw output */
+  /* physical output */
 
-  private def raw_output_actor(err: Boolean): (Thread, Actor) =
+  private def physical_output_actor(err: Boolean): (Thread, Actor) =
   {
     val (name, reader, markup) =
       if (err) ("standard_error", process.stderr, Isabelle_Markup.STDERR)
