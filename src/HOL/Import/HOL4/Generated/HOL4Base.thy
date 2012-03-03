@@ -1,7 +1,7 @@
 (* AUTOMATICALLY GENERATED, DO NOT EDIT! *)
 
 theory HOL4Base
-imports "../../HOL4Syntax" "../Compatibility"
+imports "../../Importer" "../Compatibility"
 begin
 
 setup_theory "~~/src/HOL/Import/HOL4/Generated" bool

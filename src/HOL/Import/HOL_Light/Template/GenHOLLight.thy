@@ -4,7 +4,7 @@
 *)
 
 theory GenHOLLight
-imports "../../HOL4Syntax" "../Compatibility"
+imports "../../Importer" "../Compatibility"
 begin
 
 import_segment "hollight"
@@ -12,7 +12,7 @@ import_segment "hollight"
 setup_dump "../Generated" "HOLLight"
 
 append_dump {*theory HOL4Base
-imports "../../HOL4Syntax" "../Compatibility"
+imports "../../Importer" "../Compatibility"
 begin
 *}
 

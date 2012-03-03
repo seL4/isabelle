@@ -3,7 +3,7 @@
 *)
 
 theory GenHOL4Base
-imports "../../HOL4Syntax" "../Compatibility"
+imports "../../Importer" "../Compatibility"
 begin
 
 import_segment "hol4"
@@ -11,7 +11,7 @@ import_segment "hol4"
 setup_dump "../Generated" "HOL4Base"
 
 append_dump {*theory HOL4Base
-imports "../../HOL4Syntax" "../Compatibility"
+imports "../../Importer" "../Compatibility"
 begin
 *}
 
@@ -31,9 +31,9 @@ const_maps
   "~"             > HOL.Not
   COND            > HOL.If
   bool_case       > Product_Type.bool.bool_case
-  ONE_ONE         > HOL4Setup.ONE_ONE
+  ONE_ONE         > Importer.ONE_ONE
   ONTO            > Fun.surj
-  TYPE_DEFINITION > HOL4Setup.TYPE_DEFINITION
+  TYPE_DEFINITION > Importer.TYPE_DEFINITION
   LET             > Compatibility.LET;
 
 ignore_thms

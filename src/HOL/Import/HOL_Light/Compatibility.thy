@@ -5,7 +5,7 @@
 
 theory Compatibility
 imports Main Fact Parity "~~/src/HOL/Library/Infinite_Set"
-  HOLLightList HOLLightReal HOLLightInt "~~/src/HOL/Import/HOL4Syntax"
+  HOLLightList HOLLightReal HOLLightInt "~~/src/HOL/Import/Importer"
 begin
 
 (* list *)

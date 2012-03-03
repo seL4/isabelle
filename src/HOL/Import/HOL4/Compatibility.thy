@@ -7,7 +7,7 @@ imports
   Complex_Main
   "~~/src/HOL/Old_Number_Theory/Primes"
   "~~/src/HOL/Library/ContNotDenum"
-  "~~/src/HOL/Import/HOL4Syntax"
+  "~~/src/HOL/Import/Importer"
 begin
 
 abbreviation (input) mem (infixl "mem" 55) where "x mem xs \<equiv> List.member xs x"

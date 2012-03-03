@@ -1,7 +1,7 @@
 (* AUTOMATICALLY GENERATED, DO NOT EDIT! *)
 
 theory HOLLight
-imports "../../HOL4Syntax" "../Compatibility"
+imports "../../Importer" "../Compatibility"
 begin 
 
 setup_theory "~~/src/HOL/Import/HOL_Light/Generated" hollight

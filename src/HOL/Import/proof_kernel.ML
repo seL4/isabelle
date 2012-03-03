@@ -936,7 +936,7 @@ val abs_thm = @{thm ext}
 val trans_thm = @{thm trans}
 val symmetry_thm = @{thm sym}
 val eqmp_thm = @{thm iffD1}
-val eqimp_thm = @{thm HOL4Setup.eq_imp}
+val eqimp_thm = @{thm Importer.eq_imp}
 val comb_thm = @{thm cong}
 
 (* Beta-eta normalizes a theorem (only the conclusion, not the *
