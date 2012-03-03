@@ -10,7 +10,7 @@ setup_dump "../HOL" "HOL4Base";
 
 append_dump {*theory HOL4Base imports "../HOL4Compat" "../HOL4Syntax" begin*};
 
-import_theory bool;
+import_theory "~~/src/HOL/Import/HOL" bool;
 
 type_maps
   bool            > HOL.bool;
@@ -39,14 +39,14 @@ ignore_thms
 
 end_import;
 
-import_theory combin;
+import_theory "~~/src/HOL/Import/HOL" combin;
 
 const_maps
   o > Fun.comp;
 
 end_import;
 
-import_theory sum;
+import_theory "~~/src/HOL/Import/HOL" sum;
 
 type_maps
   sum > Sum_Type.sum;
@@ -70,7 +70,7 @@ ignore_thms
 
 end_import;
 
-import_theory one;
+import_theory "~~/src/HOL/Import/HOL" one;
 
 type_maps
   one > Product_Type.unit;
@@ -86,7 +86,7 @@ ignore_thms
 
 end_import;
 
-import_theory option;
+import_theory "~~/src/HOL/Import/HOL" option;
 
 type_maps
     option > Option.option;
@@ -111,17 +111,17 @@ ignore_thms
 
 end_import;
 
-import_theory marker;
+import_theory "~~/src/HOL/Import/HOL" marker;
 end_import;
 
-import_theory relation;
+import_theory "~~/src/HOL/Import/HOL" relation;
 
 const_renames
   reflexive > pred_reflexive;
 
 end_import;
 
-import_theory pair;
+import_theory "~~/src/HOL/Import/HOL" pair;
 
 type_maps
     prod > Product_Type.prod;
@@ -144,7 +144,7 @@ ignore_thms
 
 end_import;
 
-import_theory num;
+import_theory "~~/src/HOL/Import/HOL" num;
 
 type_maps
   num > Nat.nat;
@@ -164,14 +164,14 @@ ignore_thms
 
 end_import;
 
-import_theory prim_rec;
+import_theory "~~/src/HOL/Import/HOL" prim_rec;
 
 const_maps
     "<" > Orderings.ord_class.less :: "nat \<Rightarrow> nat \<Rightarrow> bool";
 
 end_import;
 
-import_theory arithmetic;
+import_theory "~~/src/HOL/Import/HOL" arithmetic;
 
 const_maps
   ALT_ZERO     > HOL4Compat.ALT_ZERO
@@ -194,29 +194,29 @@ const_maps
 
 end_import;
 
-import_theory hrat;
+import_theory "~~/src/HOL/Import/HOL" hrat;
 end_import;
 
-import_theory hreal;
+import_theory "~~/src/HOL/Import/HOL" hreal;
 end_import;
 
-import_theory numeral;
+import_theory "~~/src/HOL/Import/HOL" numeral;
 end_import;
 
-import_theory ind_type;
+import_theory "~~/src/HOL/Import/HOL" ind_type;
 end_import;
 
-import_theory divides;
+import_theory "~~/src/HOL/Import/HOL" divides;
 
 const_maps
   divides > Rings.dvd_class.dvd :: "nat \<Rightarrow> nat \<Rightarrow> bool";
 
 end_import;
 
-import_theory prime;
+import_theory "~~/src/HOL/Import/HOL" prime;
 end_import;
 
-import_theory list;
+import_theory "~~/src/HOL/Import/HOL" list;
 
 type_maps
     list > List.list;
@@ -258,16 +258,16 @@ ignore_thms
 
 end_import;
 
-import_theory pred_set;
+import_theory "~~/src/HOL/Import/HOL" pred_set;
 end_import;
 
-import_theory operator;
+import_theory "~~/src/HOL/Import/HOL" operator;
 end_import;
 
-import_theory rich_list;
+import_theory "~~/src/HOL/Import/HOL" rich_list;
 end_import;
 
-import_theory state_transformer;
+import_theory "~~/src/HOL/Import/HOL" state_transformer;
 end_import;
 
 append_dump "end";

@@ -30,11 +30,11 @@ struct
 val import_segment = Parse.name >> set_import_segment
 
 
-val import_theory = Parse.name >> (fn thyname =>
+val import_theory = (Parse.name -- Parse.name) >> (fn (location, thyname) =>
                                fn thy =>
                                   thy |> set_generating_thy thyname
                                       |> Sign.add_path thyname
-                                      |> add_dump (";setup_theory " ^ thyname))
+                                      |> add_dump ("setup_theory " ^ quote location ^ " " ^ thyname))
 
 fun end_import toks =
     Scan.succeed
@@ -122,9 +122,10 @@ val const_moves = Scan.repeat1 (Parse.name --| Parse.$$$ ">" -- Parse.xname -- S
                                                   | (thy,((hol,isa),SOME ty)) => add_hol4_const_wt_mapping thyname hol true isa (Syntax.read_typ_global thy ty) thy) (thy,constmaps)
                                       end)
 
-fun import_thy s =
+fun import_thy location s =
     let
-        val is = TextIO.openIn(s ^ ".imp")
+        val src_location = Path.append (Path.explode location) (Path.basic (s ^ ".imp"))
+        val is = TextIO.openIn (File.platform_path src_location)
         val inp = TextIO.inputAll is
         val _ = TextIO.closeIn is
         val orig_source = Source.of_string inp
@@ -148,7 +149,7 @@ fun import_thy s =
         fun apply [] thy = thy
           | apply (f::fs) thy = apply fs (f thy)
     in
-        apply (set_replaying_thy s::Sign.add_path s::(fst (importP token_list)))
+        apply (set_replaying_thy s :: Sign.add_path s :: fst (importP token_list))
     end
 
 fun create_int_thms thyname thy =
@@ -167,15 +168,15 @@ fun clear_int_thms thy =
             NONE => error "Import data already cleared - forgotten a setup_theory?"
           | SOME _ => ImportData.put NONE thy
 
-val setup_theory = Parse.name
+val setup_theory = (Parse.name -- Parse.name)
                        >>
-                       (fn thyname =>
+                       (fn (location, thyname) =>
                         fn thy =>
                            (case HOL4DefThy.get thy of
                                 NoImport => thy
                               | Generating _ => error "Currently generating a theory!"
                               | Replaying _ => thy |> clear_import_thy)
-                               |> import_thy thyname
+                               |> import_thy location thyname
                                |> create_int_thms thyname)
 
 fun end_setup toks =

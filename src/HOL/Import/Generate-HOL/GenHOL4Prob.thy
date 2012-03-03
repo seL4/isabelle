@@ -10,32 +10,32 @@ setup_dump "../HOL" "HOL4Prob";
 
 append_dump "theory HOL4Prob imports HOL4Real begin";
 
-import_theory prob_extra;
+import_theory "~~/src/HOL/Import/HOL" prob_extra;
 
 const_moves
   COMPL > GenHOL4Base.pred_set.COMPL;
 
 end_import;
 
-import_theory prob_canon;
+import_theory "~~/src/HOL/Import/HOL" prob_canon;
 end_import;
 
-import_theory boolean_sequence;
+import_theory "~~/src/HOL/Import/HOL" boolean_sequence;
 end_import;
 
-import_theory prob_algebra;
+import_theory "~~/src/HOL/Import/HOL" prob_algebra;
 end_import;
 
-import_theory prob;
+import_theory "~~/src/HOL/Import/HOL" prob;
 end_import;
 
-import_theory prob_pseudo;
+import_theory "~~/src/HOL/Import/HOL" prob_pseudo;
 end_import;
 
-import_theory prob_indep;
+import_theory "~~/src/HOL/Import/HOL" prob_indep;
 end_import;
 
-import_theory prob_uniform;
+import_theory "~~/src/HOL/Import/HOL" prob_uniform;
 end_import;
 
 append_dump "end";

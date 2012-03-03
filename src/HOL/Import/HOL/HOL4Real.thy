@@ -2,7 +2,7 @@
 
 theory HOL4Real imports HOL4Base begin
 
-;setup_theory realax
+setup_theory "~~/src/HOL/Import/HOL" realax
 
 lemma HREAL_RDISTRIB: "hreal_mul (hreal_add x y) z = hreal_add (hreal_mul x z) (hreal_mul y z)"
   by (import realax HREAL_RDISTRIB)
@@ -223,7 +223,7 @@ lemma TREAL_INV_WELLDEF: "treal_eq x1 x2 ==> treal_eq (treal_inv x1) (treal_inv 
 
 ;end_setup
 
-;setup_theory real
+setup_theory "~~/src/HOL/Import/HOL" real
 
 lemma REAL_0: "(0::real) = (0::real)"
   by (import real REAL_0)
@@ -621,7 +621,7 @@ lemma REAL_EQ_LDIV_EQ: "(0::real) < (xb::real) ==> ((x::real) / xb = (xa::real))
 
 ;end_setup
 
-;setup_theory topology
+setup_theory "~~/src/HOL/Import/HOL" topology
 
 definition
   re_Union :: "(('a => bool) => bool) => 'a => bool"  where
@@ -895,7 +895,7 @@ lemma MR1_LIMPT: "limpt (mtop mr1) x re_universe"
 
 ;end_setup
 
-;setup_theory nets
+setup_theory "~~/src/HOL/Import/HOL" nets
 
 definition
   dorder :: "('a => 'a => bool) => bool"  where
@@ -1057,7 +1057,7 @@ lemma NET_LE: "[| dorder g;
 
 ;end_setup
 
-;setup_theory seq
+setup_theory "~~/src/HOL/Import/HOL" seq
 
 consts
   "hol4-->" :: "(nat => real) => real => bool" ("hol4-->")
@@ -1338,7 +1338,7 @@ lemma SER_RATIO: "c < 1 & (ALL n>=N. abs (f (Suc n)) <= c * abs (f n)) ==> seq.s
 
 ;end_setup
 
-;setup_theory lim
+setup_theory "~~/src/HOL/Import/HOL" lim
 
 definition
   tends_real_real :: "(real => real) => real => real => bool"  where
@@ -1626,7 +1626,7 @@ x < b &
 
 ;end_setup
 
-;setup_theory powser
+setup_theory "~~/src/HOL/Import/HOL" powser
 
 lemma POWDIFF_LEMMA: "real.sum (0, Suc n) (%p. x ^ p * y ^ (Suc n - p)) =
 y * real.sum (0, Suc n) (%p. x ^ p * y ^ (n - p))"
@@ -1711,7 +1711,7 @@ seq.summable (%n. powser.diffs (powser.diffs c) n * k' ^ n) & abs x < abs k'
 
 ;end_setup
 
-;setup_theory transc
+setup_theory "~~/src/HOL/Import/HOL" transc
 
 consts
   exp :: "real => real" 
@@ -2553,7 +2553,7 @@ lemma DIFF_LN_COMPOSITE: "diffl g m x & 0 < g x ==> diffl (%x. transc.ln (g x)) 
 
 ;end_setup
 
-;setup_theory poly
+setup_theory "~~/src/HOL/Import/HOL" poly
 
 consts
   poly :: "real list => real => real" 

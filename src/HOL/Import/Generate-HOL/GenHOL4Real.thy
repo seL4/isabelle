@@ -10,7 +10,7 @@ setup_dump "../HOL" "HOL4Real";
 
 append_dump "theory HOL4Real imports HOL4Base begin";
 
-import_theory realax;
+import_theory "~~/src/HOL/Import/HOL" realax;
 
 type_maps
   real > RealDef.real;
@@ -49,7 +49,7 @@ ignore_thms
 
 end_import;
 
-import_theory real;
+import_theory "~~/src/HOL/Import/HOL" real;
 
 const_maps
   real_gt     > HOL4Compat.real_gt
@@ -63,28 +63,28 @@ const_maps
 
 end_import;
 
-import_theory topology;
+import_theory "~~/src/HOL/Import/HOL" topology;
 end_import;
 
-import_theory nets;
+import_theory "~~/src/HOL/Import/HOL" nets;
 end_import;
 
-import_theory seq;
+import_theory "~~/src/HOL/Import/HOL" seq;
 const_renames
 "-->" > "hol4-->";
 
 end_import;
 
-import_theory lim;
+import_theory "~~/src/HOL/Import/HOL" lim;
 end_import;
 
-import_theory powser;
+import_theory "~~/src/HOL/Import/HOL" powser;
 end_import;
 
-import_theory transc;
+import_theory "~~/src/HOL/Import/HOL" transc;
 end_import;
 
-import_theory poly;
+import_theory "~~/src/HOL/Import/HOL" poly;
 end_import;
 
 append_dump "end";

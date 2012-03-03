@@ -11,7 +11,7 @@ theory GenHOLLight imports "../HOLLightCompat" "../HOL4Syntax" begin
 
 ;append_dump {*theory HOLLight imports "../HOLLightCompat" "../HOL4Syntax" begin *}
 
-;import_theory hollight
+import_theory "~~/src/HOL/Import/HOLLight" hollight
 
 ;ignore_thms
   (* Unit type *)

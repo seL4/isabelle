@@ -10,14 +10,14 @@ setup_dump "../HOL" "HOL4Word32";
 
 append_dump "theory HOL4Word32 imports HOL4Base begin";
 
-import_theory bits;
+import_theory "~~/src/HOL/Import/HOL" bits;
 
 const_renames
   BIT > bit
 
 end_import;
 
-import_theory word32;
+import_theory "~~/src/HOL/Import/HOL" word32;
 
 const_renames
   "==" > EQUIV;
