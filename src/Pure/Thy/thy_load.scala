@@ -57,7 +57,8 @@ class Thy_Load
   {
     val name1 = header.name
     val imports = header.imports.map(import_name(name.dir, _))
-    val uses = header.uses.map(p => (append(name.dir, Path.explode(p._1)), p._2))
+    // FIXME val uses = header.uses.map(p => (append(name.dir, Path.explode(p._1)), p._2))
+    val uses = header.uses
     if (name.theory != name1)
       error("Bad file name " + thy_path(Path.basic(name.theory)) + " for theory " + quote(name1))
     Document.Node.Deps(imports, uses)
