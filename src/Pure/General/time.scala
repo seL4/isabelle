@@ -21,8 +21,11 @@ final class Time private(val ms: Long)
   def min(t: Time): Time = if (ms < t.ms) this else t
   def max(t: Time): Time = if (ms > t.ms) this else t
 
+  def is_relevant: Boolean = ms >= 1
+
   override def toString =
     String.format(java.util.Locale.ROOT, "%.3f", seconds.asInstanceOf[AnyRef])
+
   def message: String = toString + "s"
 }
 
