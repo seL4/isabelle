@@ -270,7 +270,7 @@ fun fix_vars_upto_idx ix th =
 
 (* make free vars into schematic vars with index zero *)
  fun unfix_frees frees = 
-     apply (map (K (Thm.forall_elim_var 0)) frees) 
+     fold (K (Thm.forall_elim_var 0)) frees
      o Drule.forall_intr_list frees;
 
 (* fix term and type variables *)
