@@ -23,10 +23,10 @@ lemma COND_DEF:"(If b t f) = (@x. ((b = True) --> (x = t)) & ((b = False) --> (x
 definition LET :: "['a \<Rightarrow> 'b,'a] \<Rightarrow> 'b" where
   "LET f s == f s"
 
-lemma [hol4rew]: "LET f s = Let s f"
+lemma [import_rew]: "LET f s = Let s f"
   by (simp add: LET_def Let_def)
 
-lemmas [hol4rew] = ONE_ONE_rew
+lemmas [import_rew] = ONE_ONE_rew
 
 lemma bool_case_DEF: "(bool_case x y b) = (if b then x else y)"
   by simp
@@ -122,10 +122,10 @@ definition nat_gt :: "nat => nat => bool" where
 definition nat_ge :: "nat => nat => bool" where
   "nat_ge == %m n. nat_gt m n | m = n"
 
-lemma [hol4rew]: "nat_gt m n = (n < m)"
+lemma [import_rew]: "nat_gt m n = (n < m)"
   by (simp add: nat_gt_def)
 
-lemma [hol4rew]: "nat_ge m n = (n <= m)"
+lemma [import_rew]: "nat_ge m n = (n <= m)"
   by (auto simp add: nat_ge_def nat_gt_def)
 
 lemma GREATER_DEF: "ALL m n. (n < m) = (n < m)"
@@ -204,7 +204,7 @@ lemma FUNPOW: "(ALL f x. (f ^^ 0) x = x) &
   (ALL f n x. (f ^^ Suc n) x = (f ^^ n) (f x))"
   by (simp add: funpow_swap1)
 
-lemma [hol4rew]: "FUNPOW f n = f ^^ n"
+lemma [import_rew]: "FUNPOW f n = f ^^ n"
   by (simp add: FUNPOW_def)
 
 lemma ADD: "(!n. (0::nat) + n = n) & (!m n. Suc m + n = Suc (m + n))"
@@ -237,13 +237,13 @@ definition NUMERAL_BIT2 :: "nat \<Rightarrow> nat" where
 definition NUMERAL :: "nat \<Rightarrow> nat" where 
   "NUMERAL x == x"
 
-lemma [hol4rew]: "NUMERAL ALT_ZERO = 0"
+lemma [import_rew]: "NUMERAL ALT_ZERO = 0"
   by (simp add: ALT_ZERO_def NUMERAL_def)
 
-lemma [hol4rew]: "NUMERAL (NUMERAL_BIT1 ALT_ZERO) = 1"
+lemma [import_rew]: "NUMERAL (NUMERAL_BIT1 ALT_ZERO) = 1"
   by (simp add: ALT_ZERO_def NUMERAL_BIT1_def NUMERAL_def)
 
-lemma [hol4rew]: "NUMERAL (NUMERAL_BIT2 ALT_ZERO) = 2"
+lemma [import_rew]: "NUMERAL (NUMERAL_BIT2 ALT_ZERO) = 2"
   by (simp add: ALT_ZERO_def NUMERAL_BIT2_def NUMERAL_def)
 
 lemma EXP: "(!m. m ^ 0 = (1::nat)) & (!m n. m ^ Suc n = m * (m::nat) ^ n)"
@@ -356,7 +356,7 @@ lemma REPLICATE: "(ALL x. replicate 0 x = []) &
 definition FOLDR :: "[['a,'b]\<Rightarrow>'b,'b,'a list] \<Rightarrow> 'b" where
   "FOLDR f e l == foldr f l e"
 
-lemma [hol4rew]: "FOLDR f e l = foldr f l e"
+lemma [import_rew]: "FOLDR f e l = foldr f l e"
   by (simp add: FOLDR_def)
 
 lemma FOLDR: "(!f e. foldr f [] e = e) & (!f e x l. foldr f (x#l) e = f x (foldr f l e))"
@@ -407,7 +407,7 @@ lemma ZIP: "(zip [] [] = []) &
   (!x1 l1 x2 l2. zip (x1#l1) (x2#l2) = (x1,x2)#zip l1 l2)"
   by simp
 
-lemma [hol4rew]: "ZIP (a,b) = zip a b"
+lemma [import_rew]: "ZIP (a,b) = zip a b"
   by (simp add: ZIP_def)
 
 primrec unzip :: "('a * 'b) list \<Rightarrow> 'a list * 'b list" where
@@ -460,13 +460,13 @@ lemma REAL_MUL_LINV: "x ~= (0::real) ==> inverse x * x = 1"
 lemma REAL_LT_TOTAL: "((x::real) = y) | x < y | y < x"
   by auto
 
-lemma [hol4rew]: "real (0::nat) = 0"
+lemma [import_rew]: "real (0::nat) = 0"
   by simp
 
-lemma [hol4rew]: "real (1::nat) = 1"
+lemma [import_rew]: "real (1::nat) = 1"
   by simp
 
-lemma [hol4rew]: "real (2::nat) = 2"
+lemma [import_rew]: "real (2::nat) = 2"
   by simp
 
 lemma real_lte: "((x::real) <= y) = (~(y < x))"
@@ -484,7 +484,7 @@ lemma pow: "(!x::real. x ^ 0 = 1) & (!x::real. ALL n. x ^ (Suc n) = x * x ^ n)"
 definition real_gt :: "real => real => bool" where 
   "real_gt == %x y. y < x"
 
-lemma [hol4rew]: "real_gt x y = (y < x)"
+lemma [import_rew]: "real_gt x y = (y < x)"
   by (simp add: real_gt_def)
 
 lemma real_gt: "ALL x (y::real). (y < x) = (y < x)"
@@ -493,12 +493,12 @@ lemma real_gt: "ALL x (y::real). (y < x) = (y < x)"
 definition real_ge :: "real => real => bool" where
   "real_ge x y == y <= x"
 
-lemma [hol4rew]: "real_ge x y = (y <= x)"
+lemma [import_rew]: "real_ge x y = (y <= x)"
   by (simp add: real_ge_def)
 
 lemma real_ge: "ALL x y. (y <= x) = (y <= x)"
   by simp
 
-definition [hol4rew]: "list_mem x xs = List.member xs x"
+definition [import_rew]: "list_mem x xs = List.member xs x"
 
 end

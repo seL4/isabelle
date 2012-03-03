@@ -1,4 +1,4 @@
-(*  Title:      HOL/Import/hol4rews.ML
+(*  Title:      HOL/Import/import_rews.ML
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
@@ -484,7 +484,7 @@ fun dump_import_thy thyname thy =
                 in
                     case i of
                         [seg,con] => output_thy ^ "." ^ seg ^ "." ^ con
-                      | _ => error "hol4rews.dump internal error"
+                      | _ => error "import_rews.dump internal error"
                 end
             else
                 isa
@@ -569,7 +569,7 @@ fun set_used_names names thy =
     in
         case unames of
             [] => HOL4UNames.put names thy
-          | _ => error "hol4rews.set_used_names called on initialized data!"
+          | _ => error "import_rews.set_used_names called on initialized data!"
     end
 
 val clear_used_names = HOL4UNames.put [];
@@ -617,7 +617,7 @@ local
       | handle_meta [x as Ast.Appl [Ast.Appl [Ast.Constant "_constrain", Ast.Constant @{const_syntax all}, _],_]] = x
       | handle_meta [x as Ast.Appl [Ast.Appl [Ast.Constant "_constrain", Ast.Constant @{const_syntax "==>"}, _],_,_]] = x
       | handle_meta [x] = Ast.Appl [Ast.Constant @{const_syntax Trueprop}, x]
-      | handle_meta _ = error "hol4rews error: Trueprop not applied to single argument"
+      | handle_meta _ = error "import_rews error: Trueprop not applied to single argument"
 in
 val smarter_trueprop_parsing = [(@{const_syntax Trueprop},handle_meta)]
 end
@@ -633,7 +633,7 @@ local
 in
 val hol4_setup =
   initial_maps #>
-  Attrib.setup @{binding hol4rew}
+  Attrib.setup @{binding import_rew}
     (Scan.succeed (Thm.mixed_attribute add_hol4_rewrite)) "HOL4 rewrite rule"
 
 end

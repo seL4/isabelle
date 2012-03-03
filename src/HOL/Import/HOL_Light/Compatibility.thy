@@ -9,11 +9,11 @@ imports Main Fact Parity "~~/src/HOL/Library/Infinite_Set"
 begin
 
 (* list *)
-lemmas [hol4rew] = list_el_def member_def list_mem_def
+lemmas [import_rew] = list_el_def member_def list_mem_def
 (* int *)
-lemmas [hol4rew] = int_coprime.simps int_gcd.simps hl_mod_def hl_div_def int_mod_def eqeq_def
+lemmas [import_rew] = int_coprime.simps int_gcd.simps hl_mod_def hl_div_def int_mod_def eqeq_def
 (* real *)
-lemma [hol4rew]:
+lemma [import_rew]:
   "real (0::nat) = 0" "real (1::nat) = 1" "real (2::nat) = 2"
   by simp_all
 
@@ -124,12 +124,12 @@ lemma DEF_SND:
   unfolding fun_eq_iff
   by (rule someI2) (auto intro: snd_conv[symmetric] someI2)
 
-definition [simp, hol4rew]: "SETSPEC x P y \<longleftrightarrow> P & x = y"
+definition [simp, import_rew]: "SETSPEC x P y \<longleftrightarrow> P & x = y"
 
 lemma DEF_PSUBSET: "op \<subset> = (\<lambda>u ua. u \<subseteq> ua & u \<noteq> ua)"
   by (metis psubset_eq)
 
-definition [hol4rew]: "Pred n = n - (Suc 0)"
+definition [import_rew]: "Pred n = n - (Suc 0)"
 
 lemma DEF_PRE: "Pred = (SOME PRE. PRE 0 = 0 & (\<forall>n. PRE (Suc n) = n))"
   apply (rule some_equality[symmetric])
@@ -143,7 +143,7 @@ lemma DEF_ONE_ONE:
   "inj = (\<lambda>u. \<forall>x1 x2. u x1 = u x2 \<longrightarrow> x1 = x2)"
   by (simp add: inj_on_def)
 
-definition ODD'[hol4rew]: "(ODD :: nat \<Rightarrow> bool) = odd"
+definition ODD'[import_rew]: "(ODD :: nat \<Rightarrow> bool) = odd"
 
 lemma DEF_ODD:
   "odd = (SOME ODD. ODD 0 = False \<and> (\<forall>n. ODD (Suc n) = (\<not> ODD n)))"
@@ -155,7 +155,7 @@ lemma DEF_ODD:
   apply simp_all
   done
 
-definition [hol4rew, simp]: "NUMERAL (x :: nat) = x"
+definition [import_rew, simp]: "NUMERAL (x :: nat) = x"
 
 lemma DEF_MOD:
   "op mod = (SOME r. \<forall>m n. if n = (0 :: nat) then m div n = 0 \<and>
@@ -171,7 +171,7 @@ lemma DEF_MOD:
 
 definition "MEASURE = (%u x y. (u x :: nat) < u y)"
 
-lemma [hol4rew]:
+lemma [import_rew]:
   "MEASURE u = (%a b. (a, b) \<in> measure u)"
   unfolding MEASURE_def measure_def
   by simp
@@ -179,7 +179,7 @@ lemma [hol4rew]:
 definition
   "LET f s = f s"
 
-lemma [hol4rew]:
+lemma [import_rew]:
   "LET f s = Let s f"
   by (simp add: LET_def Let_def)
 
@@ -268,7 +268,7 @@ lemma DEF_DIV:
   by (metis div_mult_self2 gr_implies_not0 mod_div_trivial mod_less
       nat_add_commute nat_mult_commute plus_nat.add_0)
 
-definition [hol4rew]: "DISJOINT a b \<longleftrightarrow> a \<inter> b = {}"
+definition [import_rew]: "DISJOINT a b \<longleftrightarrow> a \<inter> b = {}"
 
 lemma DEF_DISJOINT:
   "DISJOINT = (%u ua. u \<inter> ua = {})"
@@ -278,7 +278,7 @@ lemma DEF_DIFF:
   "op - = (\<lambda>u ua. {ub. \<exists>x. (x \<in> u \<and> x \<notin> ua) \<and> ub = x})"
   by (metis set_diff_eq)
 
-definition [hol4rew]: "DELETE s e = s - {e}"
+definition [import_rew]: "DELETE s e = s - {e}"
 
 lemma DEF_DELETE:
   "DELETE = (\<lambda>u ua. {ub. \<exists>y. (y \<in> u \<and> y \<noteq> ua) \<and> ub = y})"
@@ -305,7 +305,7 @@ lemma BIT0_DEF:
   apply auto
   done
 
-lemma [hol4rew]:
+lemma [import_rew]:
   "NUMERAL_BIT0 n = 2 * n"
   "NUMERAL_BIT1 n = 2 * n + 1"
   "2 * 0 = (0 :: nat)"
@@ -329,7 +329,7 @@ lemma DEF_PLUS: "op + = (SOME add. (\<forall>n. add 0 n = n) & (\<forall>m n. ad
   apply auto
   done
 
-lemmas [hol4rew] = id_apply
+lemmas [import_rew] = id_apply
 
 lemma DEF_CHOICE: "Eps = (%u. SOME x. u x)"
   by simp
@@ -337,11 +337,11 @@ lemma DEF_CHOICE: "Eps = (%u. SOME x. u x)"
 definition dotdot :: "nat => nat => nat set"
   where "dotdot u ua = {ub. EX x. (u <= x & x <= ua) & ub = x}"
 
-lemma [hol4rew]: "dotdot a b = {a..b}"
+lemma [import_rew]: "dotdot a b = {a..b}"
   unfolding fun_eq_iff atLeastAtMost_def atLeast_def atMost_def dotdot_def
   by (simp add: Collect_conj_eq)
 
-definition [hol4rew,simp]: "INFINITE S \<longleftrightarrow> \<not> finite S"
+definition [import_rew,simp]: "INFINITE S \<longleftrightarrow> \<not> finite S"
 
 lemma DEF_INFINITE: "INFINITE = (\<lambda>u. \<not>finite u)"
   by (simp add: INFINITE_def_raw)
