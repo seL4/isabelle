@@ -34,7 +34,7 @@ sig
     val prompt_fn: (output -> unit) Unsynchronized.ref
     val status_fn: (output -> unit) Unsynchronized.ref
     val report_fn: (output -> unit) Unsynchronized.ref
-    val raw_message_fn: (Properties.T -> output -> unit) Unsynchronized.ref
+    val protocol_message_fn: (Properties.T -> output -> unit) Unsynchronized.ref
   end
   val urgent_message: string -> unit
   val error_msg': serial * string -> unit
@@ -42,7 +42,7 @@ sig
   val prompt: string -> unit
   val status: string -> unit
   val report: string -> unit
-  val raw_message: Properties.T -> string -> unit
+  val protocol_message: Properties.T -> string -> unit
 end;
 
 structure Output: OUTPUT =
@@ -97,8 +97,8 @@ struct
   val prompt_fn = Unsynchronized.ref physical_stdout;
   val status_fn = Unsynchronized.ref (fn _: output => ());
   val report_fn = Unsynchronized.ref (fn _: output => ());
-  val raw_message_fn: (Properties.T -> output -> unit) Unsynchronized.ref =
-    Unsynchronized.ref (fn _ => fn _ => raise Fail "Output.raw_message undefined in TTY mode");
+  val protocol_message_fn: (Properties.T -> output -> unit) Unsynchronized.ref =
+    Unsynchronized.ref (fn _ => fn _ => raise Fail "Output.protocol_message undefined in TTY mode");
 end;
 
 fun writeln s = ! Private_Hooks.writeln_fn (output s);
@@ -110,7 +110,7 @@ fun error_msg s = error_msg' (serial (), s);
 fun prompt s = ! Private_Hooks.prompt_fn (output s);
 fun status s = ! Private_Hooks.status_fn (output s);
 fun report s = ! Private_Hooks.report_fn (output s);
-fun raw_message props s = ! Private_Hooks.raw_message_fn props (output s);
+fun protocol_message props s = ! Private_Hooks.protocol_message_fn props (output s);
 
 end;
 

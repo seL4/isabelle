@@ -109,7 +109,7 @@ fun setup_channels channel =
     Output.Private_Hooks.tracing_fn := (fn s => standard_message mbox (SOME (serial ())) "E" s);
     Output.Private_Hooks.warning_fn := (fn s => standard_message mbox (SOME (serial ())) "F" s);
     Output.Private_Hooks.error_fn := (fn (i, s) => standard_message mbox (SOME i) "G" s);
-    Output.Private_Hooks.raw_message_fn := message true mbox "H";
+    Output.Private_Hooks.protocol_message_fn := message true mbox "H";
     Output.Private_Hooks.urgent_message_fn := ! Output.Private_Hooks.writeln_fn;
     Output.Private_Hooks.prompt_fn := ignore;
     message true mbox "A" [] (Session.welcome ())
@@ -185,7 +185,7 @@ fun init rendezvous = ignore (Simple_Thread.fork false (fn () =>
 
     val _ = Keyword.status ();
     val _ = Thy_Info.status ();
-    val _ = Output.raw_message Isabelle_Markup.ready "";
+    val _ = Output.protocol_message Isabelle_Markup.ready "";
   in loop channel end));
 
 fun init_fifos fifo1 fifo2 = init (fn () => System_Channel.fifo_rendezvous fifo1 fifo2);

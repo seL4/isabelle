@@ -387,7 +387,7 @@ class Plugin extends EBPlugin
           phase match {
             case Session.Failed =>
               Swing_Thread.now {
-                val text = new scala.swing.TextArea(Isabelle.session.syslog())
+                val text = new scala.swing.TextArea(Isabelle.session.current_syslog())
                 text.editable = false
                 Library.error_dialog(jEdit.getActiveView, "Failed to start Isabelle process", text)
               }

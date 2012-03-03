@@ -29,9 +29,9 @@ class Raw_Output_Dockable(view: View, position: String)
   private val main_actor = actor {
     loop {
       react {
-        case result: Isabelle_Process.Result =>
-          if (result.is_stdout || result.is_stderr)
-            Swing_Thread.now { text_area.append(XML.content(result.message).mkString) }
+        case output: Isabelle_Process.Output =>
+          if (output.is_stdout || output.is_stderr)
+            Swing_Thread.now { text_area.append(XML.content(output.message).mkString) }
 
         case bad => System.err.println("Raw_Output_Dockable: ignoring bad message " + bad)
       }

@@ -73,10 +73,10 @@ sig
   val rule_attribute: (Context.generic -> thm -> thm) -> attribute
   val declaration_attribute: (thm -> Context.generic -> Context.generic) -> attribute
   val mixed_attribute: (Context.generic * thm -> Context.generic * thm) -> attribute
-  val apply_attribute: attribute -> Context.generic * thm -> Context.generic * thm
+  val apply_attribute: attribute -> thm -> Context.generic -> thm * Context.generic
   val attribute_declaration: attribute -> thm -> Context.generic -> Context.generic
-  val theory_attributes: attribute list -> theory * thm -> theory * thm
-  val proof_attributes: attribute list -> Proof.context * thm -> Proof.context * thm
+  val theory_attributes: attribute list -> thm -> theory -> thm * theory
+  val proof_attributes: attribute list -> thm -> Proof.context -> thm * Proof.context
   val no_attributes: 'a -> 'a * 'b list
   val simple_fact: 'a -> ('a * 'b list) list
   val tag_rule: Properties.entry -> thm -> thm
@@ -403,16 +403,16 @@ fun rule_attribute f (x, th) = (NONE, SOME (f x th));
 fun declaration_attribute f (x, th) = (SOME (f th x), NONE);
 fun mixed_attribute f (x, th) = let val (x', th') = f (x, th) in (SOME x', SOME th') end;
 
-fun apply_attribute (att: attribute) (x, th) =
+fun apply_attribute (att: attribute) th x =
   let val (x', th') = att (x, th)
-  in (the_default x x', the_default th th') end;
+  in (the_default th th', the_default x x') end;
 
-fun attribute_declaration att th x = #1 (apply_attribute att (x, th));
+fun attribute_declaration att th x = #2 (apply_attribute att th x);
 
 fun apply_attributes mk dest =
   let
-    fun app [] = I
-      | app (att :: atts) = fn (x, th) => apply_attribute att (mk x, th) |>> dest |> app atts;
+    fun app [] th x = (th, x)
+      | app (att :: atts) th x = apply_attribute att th (mk x) ||> dest |-> app atts;
   in app end;
 
 val theory_attributes = apply_attributes Context.Theory Context.the_theory;

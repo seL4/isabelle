@@ -31,14 +31,14 @@ class Protocol_Dockable(view: View, position: String) extends Dockable(view, pos
         case input: Isabelle_Process.Input =>
           Swing_Thread.now { text_area.append(input.toString + "\n") }
 
-        case result: Isabelle_Process.Result =>
-          Swing_Thread.now { text_area.append(result.message.toString + "\n") }
+        case output: Isabelle_Process.Output =>
+          Swing_Thread.now { text_area.append(output.message.toString + "\n") }
 
         case bad => System.err.println("Protocol_Dockable: ignoring bad message " + bad)
       }
     }
   }
 
-  override def init() { Isabelle.session.protocol_messages += main_actor }
-  override def exit() { Isabelle.session.protocol_messages -= main_actor }
+  override def init() { Isabelle.session.all_messages += main_actor }
+  override def exit() { Isabelle.session.all_messages -= main_actor }
 }

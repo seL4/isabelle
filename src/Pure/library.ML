@@ -62,7 +62,6 @@ sig
   val the_single: 'a list -> 'a
   val singleton: ('a list -> 'b list) -> 'a -> 'b
   val yield_singleton: ('a list -> 'c -> 'b list * 'c) -> 'a -> 'c -> 'b * 'c
-  val apply: ('a -> 'a) list -> 'a -> 'a
   val perhaps_apply: ('a -> 'a option) list -> 'a -> 'a option
   val perhaps_loop: ('a -> 'a option) -> 'a -> 'a option
   val foldl1: ('a * 'a -> 'a) -> 'a list -> 'a
@@ -229,7 +228,6 @@ sig
   include BASIC_LIBRARY
   val foldl: ('a * 'b -> 'a) -> 'a * 'b list -> 'a
   val foldr: ('a * 'b -> 'b) -> 'a list * 'b -> 'b
-  val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
 end;
 
 structure Library: LIBRARY =
@@ -334,9 +332,6 @@ fun singleton f x = the_single (f [x]);
 
 fun yield_singleton f x = f [x] #>> the_single;
 
-fun apply [] x = x
-  | apply (f :: fs) x = apply fs (f x);
-
 fun perhaps_apply funs arg =
   let
     fun app [] res = res
@@ -385,16 +380,6 @@ fun foldr1 f [] = raise Empty
       let fun itr [x] = x
             | itr (x::l) = f(x, itr l)
       in  itr l  end;
-
-fun foldl_map f =
-  let
-    fun fold_aux (x, []) = (x, [])
-      | fold_aux (x, y :: ys) =
-          let
-            val (x', y') = f (x, y);
-            val (x'', ys') = fold_aux (x', ys);
-          in (x'', y' :: ys') end;
-  in fold_aux end;
 
 
 (* basic list functions *)

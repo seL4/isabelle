@@ -894,13 +894,12 @@ fun update_thms _ (b, NONE) ctxt = ctxt |> map_facts (Facts.del (full_name ctxt 
 
 in
 
-fun note_thmss kind = fold_map (fn ((b, more_attrs), raw_facts) => fn ctxt =>
+fun note_thmss kind = fold_map (fn ((b, more_atts), raw_facts) => fn ctxt =>
   let
     val name = full_name ctxt b;
     val facts = Global_Theory.name_thmss false name raw_facts;
-    fun app (th, attrs) x =
-      swap (Library.foldl_map
-        (Thm.proof_attributes (surround (Thm.kind kind) (attrs @ more_attrs))) (x, th));
+    fun app (ths, atts) =
+      fold_map (Thm.proof_attributes (surround (Thm.kind kind) (atts @ more_atts))) ths;
     val (res, ctxt') = fold_map app facts ctxt;
     val thms = Global_Theory.name_thms false false name (flat res);
     val Mode {stmt, ...} = get_mode ctxt;

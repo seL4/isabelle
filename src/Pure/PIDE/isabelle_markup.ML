@@ -302,7 +302,7 @@ val (no_reportN, no_report) = markup_elem "no_report";
 val (badN, bad) = markup_elem "bad";
 
 
-(* raw message functions *)
+(* protocol message functions *)
 
 val functionN = "function"
 

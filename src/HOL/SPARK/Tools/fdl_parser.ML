@@ -325,7 +325,7 @@ fun fun_decl x = ($$$ "function" |-- !!! (identifier --
 fun declarations x =
  ($$$ "title" |-- subprogram_kind -- identifier --| $$$ ";" --
   (Scan.repeat ((type_decl || const_decl || var_decl || fun_decl) --|
-     !!! ($$$ ";")) >> (fn ds => apply ds empty_decls)) --|
+     !!! ($$$ ";")) >> (fn ds => fold I ds empty_decls)) --|
   $$$ "end" --| $$$ ";") x;
 
 fun parse_declarations pos s =
@@ -371,7 +371,7 @@ val rule_family =
 
 val rules =
   parse_all (rule >> (apfst o cons) || rule_family >> (apsnd o cons)) >>
-  (fn rls => apply (rev rls) ([], []));
+  (fn rls => fold_rev I rls ([], []));
 
 fun parse_rules pos s =
   s |>

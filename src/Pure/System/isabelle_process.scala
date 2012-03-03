@@ -18,7 +18,7 @@ import Actor._
 
 object Isabelle_Process
 {
-  /* results */
+  /* messages */
 
   object Kind
   {
@@ -30,7 +30,7 @@ object Isabelle_Process
       ('E' : Int) -> Isabelle_Markup.TRACING,
       ('F' : Int) -> Isabelle_Markup.WARNING,
       ('G' : Int) -> Isabelle_Markup.ERROR,
-      ('H' : Int) -> Isabelle_Markup.RAW)
+      ('H' : Int) -> Isabelle_Markup.PROTOCOL)
   }
 
   sealed abstract class Message
@@ -44,7 +44,7 @@ object Isabelle_Process
             XML.elem(Isabelle_Markup.PROVER_ARG, YXML.parse_body(s)))).flatten).toString
   }
 
-  class Result(val message: XML.Elem) extends Message
+  class Output(val message: XML.Elem) extends Message
   {
     def kind: String = message.markup.name
     def properties: Properties.T = message.markup.properties
@@ -57,14 +57,14 @@ object Isabelle_Process
     def is_system = kind == Isabelle_Markup.SYSTEM
     def is_status = kind == Isabelle_Markup.STATUS
     def is_report = kind == Isabelle_Markup.REPORT
-    def is_raw = kind == Isabelle_Markup.RAW
+    def is_protocol = kind == Isabelle_Markup.PROTOCOL
     def is_syslog = is_init || is_exit || is_system || is_stderr
 
     override def toString: String =
     {
       val res =
         if (is_status || is_report) message.body.map(_.toString).mkString
-        else if (is_raw) "..."
+        else if (is_protocol) "..."
         else Pretty.string_of(message.body)
       if (properties.isEmpty)
         kind.toString + " [[" + res + "]]"
@@ -84,29 +84,29 @@ class Isabelle_Process(
   import Isabelle_Process._
 
 
-  /* results */
+  /* output */
 
-  private def system_result(text: String)
+  private def system_output(text: String)
   {
-    receiver(new Result(XML.Elem(Markup(Isabelle_Markup.SYSTEM, Nil), List(XML.Text(text)))))
+    receiver(new Output(XML.Elem(Markup(Isabelle_Markup.SYSTEM, Nil), List(XML.Text(text)))))
   }
 
   private val xml_cache = new XML.Cache()
 
-  private def put_result(kind: String, props: Properties.T, body: XML.Body)
+  private def output_message(kind: String, props: Properties.T, body: XML.Body)
   {
     if (kind == Isabelle_Markup.INIT) system_channel.accepted()
-    if (kind == Isabelle_Markup.RAW)
-      receiver(new Result(XML.Elem(Markup(kind, props), body)))
+    if (kind == Isabelle_Markup.PROTOCOL)
+      receiver(new Output(XML.Elem(Markup(kind, props), body)))
     else {
       val msg = XML.Elem(Markup(kind, props), Protocol.clean_message(body))
-      receiver(new Result(xml_cache.cache_tree(msg).asInstanceOf[XML.Elem]))
+      receiver(new Output(xml_cache.cache_tree(msg).asInstanceOf[XML.Elem]))
     }
   }
 
-  private def put_result(kind: String, text: String)
+  private def output_message(kind: String, text: String)
   {
-    put_result(kind, Nil, List(XML.Text(Symbol.decode(text))))
+    output_message(kind, Nil, List(XML.Text(Symbol.decode(text))))
   }
 
 
@@ -147,7 +147,7 @@ class Isabelle_Process(
   private def terminate_process()
   {
     try { process.terminate }
-    catch { case e: IOException => system_result("Failed to terminate Isabelle: " + e.getMessage) }
+    catch { case e: IOException => system_output("Failed to terminate Isabelle: " + e.getMessage) }
   }
 
   private val process_manager = Simple_Thread.fork("process_manager")
@@ -169,10 +169,10 @@ class Isabelle_Process(
       }
       (finished.isEmpty || !finished.get, result.toString.trim)
     }
-    if (startup_errors != "") system_result(startup_errors)
+    if (startup_errors != "") system_output(startup_errors)
 
     if (startup_failed) {
-      put_result(Isabelle_Markup.EXIT, "Return code: 127")
+      output_message(Isabelle_Markup.EXIT, "Return code: 127")
       process.stdin.close
       Thread.sleep(300)
       terminate_process()
@@ -182,17 +182,17 @@ class Isabelle_Process(
       val (command_stream, message_stream) = system_channel.rendezvous()
 
       standard_input = stdin_actor()
-      val stdout = raw_output_actor(false)
-      val stderr = raw_output_actor(true)
+      val stdout = physical_output_actor(false)
+      val stderr = physical_output_actor(true)
       command_input = input_actor(command_stream)
       val message = message_actor(message_stream)
 
       val rc = process_result.join
-      system_result("process terminated")
+      system_output("process terminated")
       for ((thread, _) <- List(standard_input, stdout, stderr, command_input, message))
         thread.join
-      system_result("process_manager terminated")
-      put_result(Isabelle_Markup.EXIT, "Return code: " + rc.toString)
+      system_output("process_manager terminated")
+      output_message(Isabelle_Markup.EXIT, "Return code: " + rc.toString)
     }
     system_channel.accepted()
   }
@@ -205,7 +205,7 @@ class Isabelle_Process(
   def terminate()
   {
     close()
-    system_result("Terminating Isabelle process")
+    system_output("Terminating Isabelle process")
     terminate_process()
   }
 
@@ -213,7 +213,7 @@ class Isabelle_Process(
 
   /** stream actors **/
 
-  /* raw stdin */
+  /* physical stdin */
 
   private def stdin_actor(): (Thread, Actor) =
   {
@@ -235,15 +235,15 @@ class Isabelle_Process(
           //}}}
         }
       }
-      catch { case e: IOException => system_result(name + ": " + e.getMessage) }
-      system_result(name + " terminated")
+      catch { case e: IOException => system_output(name + ": " + e.getMessage) }
+      system_output(name + " terminated")
     }
   }
 
 
-  /* raw output */
+  /* physical output */
 
-  private def raw_output_actor(err: Boolean): (Thread, Actor) =
+  private def physical_output_actor(err: Boolean): (Thread, Actor) =
   {
     val (name, reader, markup) =
       if (err) ("standard_error", process.stderr, Isabelle_Markup.STDERR)
@@ -263,7 +263,7 @@ class Isabelle_Process(
             else done = true
           }
           if (result.length > 0) {
-            put_result(markup, result.toString)
+            output_message(markup, result.toString)
             result.length = 0
           }
           else {
@@ -273,8 +273,8 @@ class Isabelle_Process(
           //}}}
         }
       }
-      catch { case e: IOException => system_result(name + ": " + e.getMessage) }
-      system_result(name + " terminated")
+      catch { case e: IOException => system_output(name + ": " + e.getMessage) }
+      system_output(name + " terminated")
     }
   }
 
@@ -304,8 +304,8 @@ class Isabelle_Process(
           //}}}
         }
       }
-      catch { case e: IOException => system_result(name + ": " + e.getMessage) }
-      system_result(name + " terminated")
+      catch { case e: IOException => system_output(name + ": " + e.getMessage) }
+      system_output(name + " terminated")
     }
   }
 
@@ -364,8 +364,8 @@ class Isabelle_Process(
               case List(XML.Elem(Markup(name, props), Nil))
                   if name.size == 1 && Kind.message_markup.isDefinedAt(name(0)) =>
                 val kind = Kind.message_markup(name(0))
-                val body = read_chunk(kind != Isabelle_Markup.RAW)
-                put_result(kind, props, body)
+                val body = read_chunk(kind != Isabelle_Markup.PROTOCOL)
+                output_message(kind, props, body)
               case _ =>
                 read_chunk(false)
                 throw new Protocol_Error("bad header: " + header.toString)
@@ -376,12 +376,12 @@ class Isabelle_Process(
         } while (c != -1)
       }
       catch {
-        case e: IOException => system_result("Cannot read message:\n" + e.getMessage)
-        case e: Protocol_Error => system_result("Malformed message:\n" + e.getMessage)
+        case e: IOException => system_output("Cannot read message:\n" + e.getMessage)
+        case e: Protocol_Error => system_output("Malformed message:\n" + e.getMessage)
       }
       stream.close
 
-      system_result(name + " terminated")
+      system_output(name + " terminated")
     }
   }
 
