@@ -12,6 +12,7 @@ import java.lang.System
 import java.util.{Timer, TimerTask}
 
 import scala.collection.mutable
+import scala.collection.immutable.Queue
 import scala.actors.TIMEOUT
 import scala.actors.Actor._
 
@@ -37,7 +38,7 @@ object Session
 
 class Session(thy_load: Thy_Load = new Thy_Load)
 {
-  /* real time parameters */  // FIXME properties or settings (!?)
+  /* tuning parameters */  // FIXME properties or settings (!?)
 
   val message_delay = Time.seconds(0.01)  // prover messages
   val input_delay = Time.seconds(0.3)  // user input (e.g. text edits, cursor movement)
@@ -46,6 +47,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
   val load_delay = Time.seconds(0.5)  // file load operations (new buffers etc.)
   val prune_delay = Time.seconds(60.0)  // prune history -- delete old versions
   val prune_size = 0  // size of retained history
+  val syslog_limit = 100
 
 
   /* pervasive event buses */
@@ -119,8 +121,8 @@ class Session(thy_load: Thy_Load = new Thy_Load)
   @volatile private var syntax = Outer_Syntax.init()
   def current_syntax(): Outer_Syntax = syntax
 
-  @volatile private var reverse_syslog = List[XML.Elem]()
-  def syslog(): String = cat_lines(reverse_syslog.reverse.map(msg => XML.content(msg).mkString))
+  private val syslog = Volatile(Queue.empty[XML.Elem])
+  def current_syslog(): String = cat_lines(syslog().iterator.map(msg => XML.content(msg).mkString))
 
   @volatile private var _phase: Session.Phase = Session.Inactive
   private def phase_=(new_phase: Session.Phase)
@@ -191,7 +193,14 @@ class Session(thy_load: Thy_Load = new Thy_Load)
       def invoke(msg: Isabelle_Process.Message): Unit = synchronized {
         buffer += msg
         msg match {
-          case result: Isabelle_Process.Result if result.is_raw => flush()
+          case result: Isabelle_Process.Result =>
+            if (result.is_syslog)
+              syslog >> (queue =>
+                {
+                  val queue1 = queue.enqueue(result.message)
+                  if (queue1.length > syslog_limit) queue1.dequeue._2 else queue1
+                })
+            if (result.is_raw) flush()
           case _ =>
         }
       }
@@ -404,11 +413,8 @@ class Session(thy_load: Thy_Load = new Thy_Load)
           syntax += name
 
         case _ =>
-          if (result.is_syslog) {
-            reverse_syslog ::= result.message
-            if (result.is_exit && phase == Session.Startup) phase = Session.Failed
-            else if (result.is_exit) phase = Session.Inactive
-          }
+          if (result.is_exit && phase == Session.Startup) phase = Session.Failed
+          else if (result.is_exit) phase = Session.Inactive
           else if (result.is_stdout) { }
           else bad_result(result)
       }

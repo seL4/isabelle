@@ -43,7 +43,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   status.peer.setLayoutOrientation(JList.VERTICAL_WRAP)
   status.selection.intervalMode = ListView.IntervalMode.Single
 
-  private val syslog = new TextArea(Isabelle.session.syslog())
+  private val syslog = new TextArea(Isabelle.session.current_syslog())
 
   private val tabs = new TabbedPane {
     pages += new TabbedPane.Page("README", Component.wrap(readme))
@@ -176,10 +176,8 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
         case result: Isabelle_Process.Result =>
           if (result.is_syslog)
             Swing_Thread.now {
-              val text = Isabelle.session.syslog()
-              if (text != syslog.text) {
-                syslog.text = text
-              }
+              val text = Isabelle.session.current_syslog()
+              if (text != syslog.text) syslog.text = text
             }
 
         case phase: Session.Phase =>
