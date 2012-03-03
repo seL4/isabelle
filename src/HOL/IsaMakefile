@@ -22,7 +22,7 @@ images: \
   Import-HOL4 \
   Import-HOL_Light \
   Import-HOL4-Imported \
-  Import-HOL_Light-Imported \
+#  Import-HOL_Light-Imported \  FIXME not operative at the moment \
   IOA \
   TLA \
   HOL-Base \
