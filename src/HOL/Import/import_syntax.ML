@@ -4,22 +4,6 @@
 
 signature IMPORTER_IMPORT_SYNTAX =
 sig
-    val import_segment: (theory -> theory) parser
-    val import_theory : (theory -> theory) parser
-    val end_import    : (theory -> theory) parser
-                        
-    val setup_theory  : (theory -> theory) parser
-    val end_setup     : (theory -> theory) parser
-                        
-    val thm_maps      : (theory -> theory) parser
-    val ignore_thms   : (theory -> theory) parser
-    val type_maps     : (theory -> theory) parser
-    val def_maps      : (theory -> theory) parser
-    val const_maps    : (theory -> theory) parser
-    val const_moves   : (theory -> theory) parser
-    val const_renames : (theory -> theory) parser
-
-    val setup        : unit -> unit
 end
 
 structure Importer_Import_Syntax : IMPORTER_IMPORT_SYNTAX =
@@ -196,7 +180,7 @@ val set_dump  = Parse.string -- Parse.string   >> setup_dump
 fun fl_dump toks  = Scan.succeed flush_dump toks
 val append_dump = (Parse.verbatim || Parse.string) >> add_dump
 
-fun setup () =
+val _ =
   (Keyword.keyword ">";
    Outer_Syntax.command "import_segment"
                        "Set import segment name"
