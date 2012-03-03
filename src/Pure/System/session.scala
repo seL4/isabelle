@@ -56,8 +56,8 @@ class Session(thy_load: Thy_Load = new Thy_Load)
   val caret_focus = new Event_Bus[Session.Caret_Focus.type]
   val commands_changed = new Event_Bus[Session.Commands_Changed]
   val phase_changed = new Event_Bus[Session.Phase]
-  val syslog_messages = new Event_Bus[Isabelle_Process.Result]
-  val raw_output_messages = new Event_Bus[Isabelle_Process.Result]
+  val syslog_messages = new Event_Bus[Isabelle_Process.Output]
+  val raw_output_messages = new Event_Bus[Isabelle_Process.Output]
   val protocol_messages = new Event_Bus[Isabelle_Process.Message]  // potential bottle-neck
 
 
@@ -193,14 +193,14 @@ class Session(thy_load: Thy_Load = new Thy_Load)
       def invoke(msg: Isabelle_Process.Message): Unit = synchronized {
         buffer += msg
         msg match {
-          case result: Isabelle_Process.Result =>
-            if (result.is_syslog)
+          case output: Isabelle_Process.Output =>
+            if (output.is_syslog)
               syslog >> (queue =>
                 {
-                  val queue1 = queue.enqueue(result.message)
+                  val queue1 = queue.enqueue(output.message)
                   if (queue1.length > syslog_limit) queue1.dequeue._2 else queue1
                 })
-            if (result.is_raw) flush()
+            if (output.is_raw) flush()
           case _ =>
         }
       }
@@ -343,34 +343,34 @@ class Session(thy_load: Thy_Load = new Thy_Load)
     //}}}
 
 
-    /* prover results */
+    /* prover output */
 
-    def handle_result(result: Isabelle_Process.Result)
+    def handle_output(output: Isabelle_Process.Output)
     //{{{
     {
-      def bad_result(result: Isabelle_Process.Result)
+      def bad_output(output: Isabelle_Process.Output)
       {
         if (verbose)
-          System.err.println("Ignoring prover result: " + result.message.toString)
+          System.err.println("Ignoring prover output: " + output.message.toString)
       }
 
-      result.properties match {
+      output.properties match {
 
-        case Position.Id(state_id) if !result.is_raw =>
+        case Position.Id(state_id) if !output.is_raw =>
           try {
-            val st = global_state >>> (_.accumulate(state_id, result.message))
+            val st = global_state >>> (_.accumulate(state_id, output.message))
             delay_commands_changed.invoke(st.command)
           }
           catch {
-            case _: Document.State.Fail => bad_result(result)
+            case _: Document.State.Fail => bad_output(output)
           }
 
-        case Isabelle_Markup.Assign_Execs if result.is_raw =>
-          XML.content(result.body).mkString match {
+        case Isabelle_Markup.Assign_Execs if output.is_raw =>
+          XML.content(output.body).mkString match {
             case Protocol.Assign(id, assign) =>
               try { handle_assign(id, assign) }
-              catch { case _: Document.State.Fail => bad_result(result) }
-            case _ => bad_result(result)
+              catch { case _: Document.State.Fail => bad_output(output) }
+            case _ => bad_output(output)
           }
           // FIXME separate timeout event/message!?
           if (prover.isDefined && System.currentTimeMillis() > prune_next) {
@@ -379,44 +379,44 @@ class Session(thy_load: Thy_Load = new Thy_Load)
             prune_next = System.currentTimeMillis() + prune_delay.ms
           }
 
-        case Isabelle_Markup.Removed_Versions if result.is_raw =>
-          XML.content(result.body).mkString match {
+        case Isabelle_Markup.Removed_Versions if output.is_raw =>
+          XML.content(output.body).mkString match {
             case Protocol.Removed(removed) =>
               try { handle_removed(removed) }
-              catch { case _: Document.State.Fail => bad_result(result) }
-            case _ => bad_result(result)
+              catch { case _: Document.State.Fail => bad_output(output) }
+            case _ => bad_output(output)
           }
 
-        case Isabelle_Markup.Invoke_Scala(name, id) if result.is_raw =>
+        case Isabelle_Markup.Invoke_Scala(name, id) if output.is_raw =>
           Future.fork {
-            val arg = XML.content(result.body).mkString
+            val arg = XML.content(output.body).mkString
             val (tag, res) = Invoke_Scala.method(name, arg)
             prover.get.invoke_scala(id, tag, res)
           }
 
-        case Isabelle_Markup.Cancel_Scala(id) if result.is_raw =>
+        case Isabelle_Markup.Cancel_Scala(id) if output.is_raw =>
           System.err.println("cancel_scala " + id)  // FIXME actually cancel JVM task
 
-        case Isabelle_Markup.Ready if result.is_raw =>
+        case Isabelle_Markup.Ready if output.is_raw =>
             // FIXME move to ML side (!?)
             syntax += ("hence", Keyword.PRF_ASM_GOAL, "then have")
             syntax += ("thus", Keyword.PRF_ASM_GOAL, "then show")
             phase = Session.Ready
 
-        case Isabelle_Markup.Loaded_Theory(name) if result.is_raw =>
+        case Isabelle_Markup.Loaded_Theory(name) if output.is_raw =>
           thy_load.register_thy(name)
 
-        case Isabelle_Markup.Command_Decl(name, kind) if result.is_raw =>
+        case Isabelle_Markup.Command_Decl(name, kind) if output.is_raw =>
           syntax += (name, kind)
 
-        case Isabelle_Markup.Keyword_Decl(name) if result.is_raw =>
+        case Isabelle_Markup.Keyword_Decl(name) if output.is_raw =>
           syntax += name
 
         case _ =>
-          if (result.is_exit && phase == Session.Startup) phase = Session.Failed
-          else if (result.is_exit) phase = Session.Inactive
-          else if (result.is_stdout) { }
-          else bad_result(result)
+          if (output.is_exit && phase == Session.Startup) phase = Session.Failed
+          else if (output.is_exit) phase = Session.Inactive
+          else if (output.is_stdout) { }
+          else bad_output(output)
       }
     }
     //}}}
@@ -473,11 +473,11 @@ class Session(thy_load: Thy_Load = new Thy_Load)
             case input: Isabelle_Process.Input =>
               protocol_messages.event(input)
 
-            case result: Isabelle_Process.Result =>
-              handle_result(result)
-              if (result.is_syslog) syslog_messages.event(result)
-              if (result.is_stdout || result.is_stderr) raw_output_messages.event(result)
-              protocol_messages.event(result)
+            case output: Isabelle_Process.Output =>
+              handle_output(output)
+              if (output.is_syslog) syslog_messages.event(output)
+              if (output.is_stdout || output.is_stderr) raw_output_messages.event(output)
+              protocol_messages.event(output)
           }
 
         case change: Change_Node

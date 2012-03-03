@@ -173,8 +173,8 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   private val main_actor = actor {
     loop {
       react {
-        case result: Isabelle_Process.Result =>
-          if (result.is_syslog)
+        case output: Isabelle_Process.Output =>
+          if (output.is_syslog)
             Swing_Thread.now {
               val text = Isabelle.session.current_syslog()
               if (text != syslog.text) syslog.text = text
