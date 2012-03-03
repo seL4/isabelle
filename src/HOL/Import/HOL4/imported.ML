@@ -1,2 +1,2 @@
 
-use_thy "Imported";
+Unsynchronized.setmp quick_and_dirty true use_thy "Imported";
