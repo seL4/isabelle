@@ -11,7 +11,7 @@ datatype ImportStatus =
        | Generating of string
        | Replaying of string
 
-structure HOL4DefThy = Theory_Data
+structure Importer_DefThy = Theory_Data
 (
   type T = ImportStatus
   val empty = NoImport
@@ -36,7 +36,7 @@ structure ImportSegment = Theory_Data
 val get_import_segment = ImportSegment.get
 val set_import_segment = ImportSegment.put
 
-structure HOL4UNames = Theory_Data
+structure Importer_UNames = Theory_Data
 (
   type T = string list
   val empty = []
@@ -45,7 +45,7 @@ structure HOL4UNames = Theory_Data
     | merge _ = error "Used names not empty during merge"
 )
 
-structure HOL4Dump = Theory_Data
+structure Importer_Dump = Theory_Data
 (
   type T = string * string * string list
   val empty = ("","",[])
@@ -54,7 +54,7 @@ structure HOL4Dump = Theory_Data
     | merge _ = error "Dump data not empty during merge"
 )
 
-structure HOL4Moves = Theory_Data
+structure Importer_Moves = Theory_Data
 (
   type T = string Symtab.table
   val empty = Symtab.empty
@@ -62,7 +62,7 @@ structure HOL4Moves = Theory_Data
   fun merge data = Symtab.merge (K true) data
 )
 
-structure HOL4Imports = Theory_Data
+structure Importer_Imports = Theory_Data
 (
   type T = string Symtab.table
   val empty = Symtab.empty
@@ -71,17 +71,17 @@ structure HOL4Imports = Theory_Data
 )
 
 fun get_segment2 thyname thy =
-  Symtab.lookup (HOL4Imports.get thy) thyname
+  Symtab.lookup (Importer_Imports.get thy) thyname
 
 fun set_segment thyname segname thy =
     let
-        val imps = HOL4Imports.get thy
+        val imps = Importer_Imports.get thy
         val imps' = Symtab.update_new (thyname,segname) imps
     in
-        HOL4Imports.put imps' thy
+        Importer_Imports.put imps' thy
     end
 
-structure HOL4CMoves = Theory_Data
+structure Importer_CMoves = Theory_Data
 (
   type T = string Symtab.table
   val empty = Symtab.empty
@@ -89,7 +89,7 @@ structure HOL4CMoves = Theory_Data
   fun merge data = Symtab.merge (K true) data
 )
 
-structure HOL4Maps = Theory_Data
+structure Importer_Maps = Theory_Data
 (
   type T = string option StringPair.table
   val empty = StringPair.empty
@@ -97,7 +97,7 @@ structure HOL4Maps = Theory_Data
   fun merge data = StringPair.merge (K true) data
 )
 
-structure HOL4Thms = Theory_Data
+structure Importer_Thms = Theory_Data
 (
   type T = holthm StringPair.table
   val empty = StringPair.empty
@@ -105,7 +105,7 @@ structure HOL4Thms = Theory_Data
   fun merge data = StringPair.merge (K true) data
 )
 
-structure HOL4ConstMaps = Theory_Data
+structure Importer_ConstMaps = Theory_Data
 (
   type T = (bool * string * typ option) StringPair.table
   val empty = StringPair.empty
@@ -113,7 +113,7 @@ structure HOL4ConstMaps = Theory_Data
   fun merge data = StringPair.merge (K true) data
 )
 
-structure HOL4Rename = Theory_Data
+structure Importer_Rename = Theory_Data
 (
   type T = string StringPair.table
   val empty = StringPair.empty
@@ -121,7 +121,7 @@ structure HOL4Rename = Theory_Data
   fun merge data = StringPair.merge (K true) data
 )
 
-structure HOL4DefMaps = Theory_Data
+structure Importer_DefMaps = Theory_Data
 (
   type T = string StringPair.table
   val empty = StringPair.empty
@@ -129,7 +129,7 @@ structure HOL4DefMaps = Theory_Data
   fun merge data = StringPair.merge (K true) data
 )
 
-structure HOL4TypeMaps = Theory_Data
+structure Importer_TypeMaps = Theory_Data
 (
   type T = (bool * string) StringPair.table
   val empty = StringPair.empty
@@ -137,7 +137,7 @@ structure HOL4TypeMaps = Theory_Data
   fun merge data = StringPair.merge (K true) data
 )
 
-structure HOL4Pending = Theory_Data
+structure Importer_Pending = Theory_Data
 (
   type T = ((term * term) list * thm) StringPair.table
   val empty = StringPair.empty
@@ -145,7 +145,7 @@ structure HOL4Pending = Theory_Data
   fun merge data = StringPair.merge (K true) data
 )
 
-structure HOL4Rewrites = Theory_Data
+structure Importer_Rewrites = Theory_Data
 (
   type T = thm list
   val empty = []
@@ -153,57 +153,57 @@ structure HOL4Rewrites = Theory_Data
   val merge = Thm.merge_thms
 )
 
-val hol4_debug = Unsynchronized.ref false
-fun message s = if !hol4_debug then writeln s else ()
+val importer_debug = Unsynchronized.ref false
+fun message s = if !importer_debug then writeln s else ()
 
-fun add_hol4_rewrite (Context.Theory thy, th) =
+fun add_importer_rewrite (Context.Theory thy, th) =
     let
         val _ = message "Adding external rewrite"
         val th1 = th RS @{thm eq_reflection}
                   handle THM _ => th
-        val current_rews = HOL4Rewrites.get thy
+        val current_rews = Importer_Rewrites.get thy
         val new_rews = insert Thm.eq_thm th1 current_rews
-        val updated_thy  = HOL4Rewrites.put new_rews thy
+        val updated_thy  = Importer_Rewrites.put new_rews thy
     in
         (Context.Theory updated_thy,th1)
     end
-  | add_hol4_rewrite (context, th) = (context,
+  | add_importer_rewrite (context, th) = (context,
       (th RS @{thm eq_reflection} handle THM _ => th)
     );
 
-fun ignore_hol4 bthy bthm thy =
+fun ignore_importer bthy bthm thy =
     let
         val _ = message ("Ignoring " ^ bthy ^ "." ^ bthm)
-        val curmaps = HOL4Maps.get thy
+        val curmaps = Importer_Maps.get thy
         val newmaps = StringPair.update_new ((bthy,bthm),NONE) curmaps
-        val upd_thy = HOL4Maps.put newmaps thy
+        val upd_thy = Importer_Maps.put newmaps thy
     in
         upd_thy
     end
 
-val opt_get_output_thy = #2 o HOL4Dump.get
+val opt_get_output_thy = #2 o Importer_Dump.get
 
 fun get_output_thy thy =
-    case #2 (HOL4Dump.get thy) of
+    case #2 (Importer_Dump.get thy) of
         "" => error "No theory file being output"
       | thyname => thyname
 
-val get_output_dir = #1 o HOL4Dump.get
+val get_output_dir = #1 o Importer_Dump.get
 
-fun add_hol4_move bef aft thy =
+fun add_importer_move bef aft thy =
     let
-        val curmoves = HOL4Moves.get thy
+        val curmoves = Importer_Moves.get thy
         val newmoves = Symtab.update_new (bef, aft) curmoves
     in
-        HOL4Moves.put newmoves thy
+        Importer_Moves.put newmoves thy
     end
 
-fun get_hol4_move bef thy =
-  Symtab.lookup (HOL4Moves.get thy) bef
+fun get_importer_move bef thy =
+  Symtab.lookup (Importer_Moves.get thy) bef
 
 fun follow_name thmname thy =
     let
-        val moves = HOL4Moves.get thy
+        val moves = Importer_Moves.get thy
         fun F thmname =
             case Symtab.lookup moves thmname of
                 SOME name => F name
@@ -212,20 +212,20 @@ fun follow_name thmname thy =
         F thmname
     end
 
-fun add_hol4_cmove bef aft thy =
+fun add_importer_cmove bef aft thy =
     let
-        val curmoves = HOL4CMoves.get thy
+        val curmoves = Importer_CMoves.get thy
         val newmoves = Symtab.update_new (bef, aft) curmoves
     in
-        HOL4CMoves.put newmoves thy
+        Importer_CMoves.put newmoves thy
     end
 
-fun get_hol4_cmove bef thy =
-  Symtab.lookup (HOL4CMoves.get thy) bef
+fun get_importer_cmove bef thy =
+  Symtab.lookup (Importer_CMoves.get thy) bef
 
 fun follow_cname thmname thy =
     let
-        val moves = HOL4CMoves.get thy
+        val moves = Importer_CMoves.get thy
         fun F thmname =
             case Symtab.lookup moves thmname of
                 SOME name => F name
@@ -234,140 +234,140 @@ fun follow_cname thmname thy =
         F thmname
     end
 
-fun add_hol4_mapping bthy bthm isathm thy =
+fun add_importer_mapping bthy bthm isathm thy =
     let 
        (* val _ = writeln ("Before follow_name: "^isathm)  *)
       val isathm = follow_name isathm thy
        (* val _ = writeln ("Adding theorem map: " ^ bthy ^ "." ^ bthm ^ " --> " ^ isathm)*)
-        val curmaps = HOL4Maps.get thy
+        val curmaps = Importer_Maps.get thy
         val newmaps = StringPair.update_new ((bthy,bthm),SOME isathm) curmaps
-        val upd_thy = HOL4Maps.put newmaps thy
+        val upd_thy = Importer_Maps.put newmaps thy
     in
         upd_thy
     end;
 
-fun get_hol4_type_mapping bthy tycon thy =
+fun get_importer_type_mapping bthy tycon thy =
     let
-        val maps = HOL4TypeMaps.get thy
+        val maps = Importer_TypeMaps.get thy
     in
         StringPair.lookup maps (bthy,tycon)
     end
 
-fun get_hol4_mapping bthy bthm thy =
+fun get_importer_mapping bthy bthm thy =
     let
-        val curmaps = HOL4Maps.get thy
+        val curmaps = Importer_Maps.get thy
     in
         StringPair.lookup curmaps (bthy,bthm)
     end;
 
-fun add_hol4_const_mapping bthy bconst internal isaconst thy =
+fun add_importer_const_mapping bthy bconst internal isaconst thy =
     let
         val thy = case opt_get_output_thy thy of
                       "" => thy
                     | output_thy => if internal
-                                    then add_hol4_cmove (Sign.full_bname thy bconst) (output_thy ^ "." ^ bthy ^ "." ^ bconst) thy
+                                    then add_importer_cmove (Sign.full_bname thy bconst) (output_thy ^ "." ^ bthy ^ "." ^ bconst) thy
                                     else thy
         val _ = message ("Adding cmap " ^ bthy ^ "." ^ bconst ^ " -> " ^ isaconst ^ (if internal then " (*)" else ""))
-        val curmaps = HOL4ConstMaps.get thy
+        val curmaps = Importer_ConstMaps.get thy
         val newmaps = StringPair.update_new ((bthy,bconst),(internal,isaconst,NONE)) curmaps
-        val upd_thy = HOL4ConstMaps.put newmaps thy
+        val upd_thy = Importer_ConstMaps.put newmaps thy
     in
         upd_thy
     end;
 
-fun add_hol4_const_renaming bthy bconst newname thy =
+fun add_importer_const_renaming bthy bconst newname thy =
     let
-        val currens = HOL4Rename.get thy
+        val currens = Importer_Rename.get thy
         val _ = message ("Adding renaming " ^ bthy ^ "." ^ bconst ^ " -> " ^ newname)
         val newrens = StringPair.update_new ((bthy,bconst),newname) currens
-        val upd_thy = HOL4Rename.put newrens thy
+        val upd_thy = Importer_Rename.put newrens thy
     in
         upd_thy
     end;
 
-fun get_hol4_const_renaming bthy bconst thy =
+fun get_importer_const_renaming bthy bconst thy =
     let
-        val currens = HOL4Rename.get thy
+        val currens = Importer_Rename.get thy
     in
         StringPair.lookup currens (bthy,bconst)
     end;
 
-fun get_hol4_const_mapping bthy bconst thy =
+fun get_importer_const_mapping bthy bconst thy =
     let
-        val bconst = case get_hol4_const_renaming bthy bconst thy of
+        val bconst = case get_importer_const_renaming bthy bconst thy of
                          SOME name => name
                        | NONE => bconst
-        val maps = HOL4ConstMaps.get thy
+        val maps = Importer_ConstMaps.get thy
     in
         StringPair.lookup maps (bthy,bconst)
     end
 
-fun add_hol4_const_wt_mapping bthy bconst internal isaconst typ thy =
+fun add_importer_const_wt_mapping bthy bconst internal isaconst typ thy =
     let
         val thy = case opt_get_output_thy thy of
                       "" => thy
                     | output_thy => if internal
-                                    then add_hol4_cmove (Sign.full_bname thy bconst) (output_thy ^ "." ^ bthy ^ "." ^ bconst) thy
+                                    then add_importer_cmove (Sign.full_bname thy bconst) (output_thy ^ "." ^ bthy ^ "." ^ bconst) thy
                                     else thy
         val _ = message ("Adding cmap " ^ bthy ^ "." ^ bconst ^ " -> " ^ isaconst ^ (if internal then " (*)" else ""))
-        val curmaps = HOL4ConstMaps.get thy
+        val curmaps = Importer_ConstMaps.get thy
         val newmaps = StringPair.update_new ((bthy,bconst),(internal,isaconst,SOME typ)) curmaps
-        val upd_thy = HOL4ConstMaps.put newmaps thy
+        val upd_thy = Importer_ConstMaps.put newmaps thy
     in
         upd_thy
     end;
 
-fun add_hol4_type_mapping bthy bconst internal isaconst thy =
+fun add_importer_type_mapping bthy bconst internal isaconst thy =
     let
-        val curmaps = HOL4TypeMaps.get thy
+        val curmaps = Importer_TypeMaps.get thy
         val _ = writeln ("Adding tmap " ^ bthy ^ "." ^ bconst ^ " -> " ^ isaconst ^ (if internal then " (*)" else ""))
         val newmaps = StringPair.update_new ((bthy,bconst),(internal,isaconst)) curmaps
                (* FIXME avoid handle x *)
                handle x => let val (_, isaconst') = the (StringPair.lookup curmaps (bthy, bconst)) in
                       warning ("couldn't map type "^bthy^"."^bconst^" to "^isaconst^": already mapped to "^isaconst'); raise x end
-        val upd_thy = HOL4TypeMaps.put newmaps thy
+        val upd_thy = Importer_TypeMaps.put newmaps thy
     in
         upd_thy
     end;
 
-fun add_hol4_pending bthy bthm hth thy =
+fun add_importer_pending bthy bthm hth thy =
     let
         val thmname = Sign.full_bname thy bthm
         val _ = message ("Add pending " ^ bthy ^ "." ^ bthm)
-        val curpend = HOL4Pending.get thy
+        val curpend = Importer_Pending.get thy
         val newpend = StringPair.update_new ((bthy,bthm),hth) curpend
-        val upd_thy = HOL4Pending.put newpend thy
+        val upd_thy = Importer_Pending.put newpend thy
         val thy' = case opt_get_output_thy upd_thy of
-                       "" => add_hol4_mapping bthy bthm thmname upd_thy
+                       "" => add_importer_mapping bthy bthm thmname upd_thy
                      | output_thy =>
                        let
                            val new_thmname = output_thy ^ "." ^ bthy ^ "." ^ bthm
                        in
-                           upd_thy |> add_hol4_move thmname new_thmname
-                                   |> add_hol4_mapping bthy bthm new_thmname
+                           upd_thy |> add_importer_move thmname new_thmname
+                                   |> add_importer_mapping bthy bthm new_thmname
                        end
     in
         thy'
     end;
 
-fun get_hol4_theorem thyname thmname thy =
+fun get_importer_theorem thyname thmname thy =
   let
-    val isathms = HOL4Thms.get thy
+    val isathms = Importer_Thms.get thy
   in
     StringPair.lookup isathms (thyname,thmname)
   end;
 
-fun add_hol4_theorem thyname thmname hth =
+fun add_importer_theorem thyname thmname hth =
   let
     val _ = message ("Adding external theorem " ^ thyname ^ "." ^ thmname)
   in
-    HOL4Thms.map (StringPair.update_new ((thyname, thmname), hth))
+    Importer_Thms.map (StringPair.update_new ((thyname, thmname), hth))
   end;
 
-fun export_hol4_pending thy =
+fun export_importer_pending thy =
   let
-    val rews = HOL4Rewrites.get thy;
-    val pending = HOL4Pending.get thy;
+    val rews = Importer_Rewrites.get thy;
+    val pending = Importer_Pending.get thy;
     fun process ((bthy,bthm), hth as (_,thm)) thy =
       let
         val thm1 = rewrite_rule (map (Thm.transfer thy) rews) (Thm.transfer thy thm);
@@ -376,68 +376,68 @@ fun export_hol4_pending thy =
         thy
         |> Global_Theory.store_thm (Binding.name bthm, thm2)
         |> snd
-        |> add_hol4_theorem bthy bthm hth
+        |> add_importer_theorem bthy bthm hth
       end;
   in
     thy
     |> StringPair.fold process pending
-    |> HOL4Pending.put StringPair.empty
+    |> Importer_Pending.put StringPair.empty
   end;
 
 fun setup_dump (dir,thyname) thy =
-    HOL4Dump.put (dir,thyname,["(* AUTOMATICALLY GENERATED, DO NOT EDIT! *)"]) thy
+    Importer_Dump.put (dir,thyname,["(* AUTOMATICALLY GENERATED, DO NOT EDIT! *)"]) thy
 
 fun add_dump str thy =
     let
-        val (dir,thyname,curdump) = HOL4Dump.get thy
+        val (dir,thyname,curdump) = Importer_Dump.get thy
     in
-        HOL4Dump.put (dir,thyname,str::curdump) thy
+        Importer_Dump.put (dir,thyname,str::curdump) thy
     end
 
 fun flush_dump thy =
     let
-        val (dir,thyname,dumpdata) = HOL4Dump.get thy
+        val (dir,thyname,dumpdata) = Importer_Dump.get thy
         val os = TextIO.openOut (OS.Path.joinDirFile {dir=dir,
                                                       file=thyname ^ ".thy"})
         val _  = app (fn s => TextIO.output(os,s ^ "\n\n")) (rev dumpdata)
         val  _ = TextIO.closeOut os
     in
-        HOL4Dump.put ("","",[]) thy
+        Importer_Dump.put ("","",[]) thy
     end
 
 fun set_generating_thy thyname thy =
-    case HOL4DefThy.get thy of
-        NoImport => HOL4DefThy.put (Generating thyname) thy
+    case Importer_DefThy.get thy of
+        NoImport => Importer_DefThy.put (Generating thyname) thy
       | _ => error "Import already in progess"
 
 fun set_replaying_thy thyname thy =
-    case HOL4DefThy.get thy of
-        NoImport => HOL4DefThy.put (Replaying thyname) thy
+    case Importer_DefThy.get thy of
+        NoImport => Importer_DefThy.put (Replaying thyname) thy
       | _ => error "Import already in progess"
 
 fun clear_import_thy thy =
-    case HOL4DefThy.get thy of
+    case Importer_DefThy.get thy of
         NoImport => error "No import in progress"
-      | _ => HOL4DefThy.put NoImport thy
+      | _ => Importer_DefThy.put NoImport thy
 
 fun get_generating_thy thy =
-    case HOL4DefThy.get thy of
+    case Importer_DefThy.get thy of
         Generating thyname => thyname
       | _ => error "No theory being generated"
 
 fun get_replaying_thy thy =
-    case HOL4DefThy.get thy of
+    case Importer_DefThy.get thy of
         Replaying thyname => thyname
       | _ => error "No theory being replayed"
 
 fun get_import_thy thy =
-    case HOL4DefThy.get thy of
+    case Importer_DefThy.get thy of
         Replaying thyname => thyname
       | Generating thyname => thyname
       | _ => error "No theory being imported"
 
 fun should_ignore thyname thy thmname =
-    case get_hol4_mapping thyname thmname thy of
+    case get_importer_mapping thyname thmname thy of
         SOME NONE => true 
       | _ => false
 
@@ -468,13 +468,13 @@ fun dump_import_thy thyname thy =
         then case v
          of NONE => (bthm :: ign, map)
           | SOME w => (ign, (bthm, w) :: map)
-        else (ign, map)) (HOL4Maps.get thy) ([],[]);
+        else (ign, map)) (Importer_Maps.get thy) ([],[]);
     fun mk init = StringPair.fold
       (fn ((bthy, bthm), v) => if bthy = thyname then cons (bthm, v) else I) init [];
-    val constmaps = mk (HOL4ConstMaps.get thy);
-    val constrenames = mk (HOL4Rename.get thy);
-    val typemaps = mk (HOL4TypeMaps.get thy);
-    val defmaps = mk (HOL4DefMaps.get thy);
+    val constmaps = mk (Importer_ConstMaps.get thy);
+    val constrenames = mk (Importer_Rename.get thy);
+    val typemaps = mk (Importer_TypeMaps.get thy);
+    val defmaps = mk (Importer_DefMaps.get thy);
         fun new_name internal isa =
             if internal
             then
@@ -565,18 +565,18 @@ fun dump_import_thy thyname thy =
 
 fun set_used_names names thy =
     let
-        val unames = HOL4UNames.get thy
+        val unames = Importer_UNames.get thy
     in
         case unames of
-            [] => HOL4UNames.put names thy
+            [] => Importer_UNames.put names thy
           | _ => error "import_rews.set_used_names called on initialized data!"
     end
 
-val clear_used_names = HOL4UNames.put [];
+val clear_used_names = Importer_UNames.put [];
 
 fun get_defmap thyname const thy =
     let
-        val maps = HOL4DefMaps.get thy
+        val maps = Importer_DefMaps.get thy
     in
         StringPair.lookup maps (thyname,const)
     end
@@ -584,23 +584,23 @@ fun get_defmap thyname const thy =
 fun add_defmap thyname const defname thy =
     let
         val _ = message ("Adding defmap " ^ thyname ^ "." ^ const ^ " --> " ^ defname)
-        val maps = HOL4DefMaps.get thy
+        val maps = Importer_DefMaps.get thy
         val maps' = StringPair.update_new ((thyname,const),defname) maps
-        val thy' = HOL4DefMaps.put maps' thy
+        val thy' = Importer_DefMaps.put maps' thy
     in
         thy'
     end
 
 fun get_defname thyname name thy =
     let
-        val maps = HOL4DefMaps.get thy
+        val maps = Importer_DefMaps.get thy
         fun F dname = (dname,add_defmap thyname name dname thy)
     in
         case StringPair.lookup maps (thyname,name) of
             SOME thmname => (thmname,thy)
           | NONE =>
             let
-                val used = HOL4UNames.get thy
+                val used = Importer_UNames.get thy
                 val defname = Thm.def_name name
                 val pdefname = name ^ "_primdef"
             in
@@ -624,16 +624,16 @@ end
 
 local
     fun initial_maps thy =
-        thy |> add_hol4_type_mapping "min" "bool" false @{type_name bool}
-            |> add_hol4_type_mapping "min" "fun" false "fun"
-            |> add_hol4_type_mapping "min" "ind" false @{type_name ind}
-            |> add_hol4_const_mapping "min" "=" false @{const_name HOL.eq}
-            |> add_hol4_const_mapping "min" "==>" false @{const_name HOL.implies}
-            |> add_hol4_const_mapping "min" "@" false @{const_name "Eps"}
+        thy |> add_importer_type_mapping "min" "bool" false @{type_name bool}
+            |> add_importer_type_mapping "min" "fun" false "fun"
+            |> add_importer_type_mapping "min" "ind" false @{type_name ind}
+            |> add_importer_const_mapping "min" "=" false @{const_name HOL.eq}
+            |> add_importer_const_mapping "min" "==>" false @{const_name HOL.implies}
+            |> add_importer_const_mapping "min" "@" false @{const_name "Eps"}
 in
-val hol4_setup =
+val importer_setup =
   initial_maps #>
   Attrib.setup @{binding import_rew}
-    (Scan.succeed (Thm.mixed_attribute add_hol4_rewrite)) "external rewrite rule"
+    (Scan.succeed (Thm.mixed_attribute add_importer_rewrite)) "external rewrite rule"
 
 end

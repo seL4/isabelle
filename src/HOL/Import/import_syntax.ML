@@ -2,7 +2,7 @@
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
-signature HOL4_IMPORT_SYNTAX =
+signature IMPORTER_IMPORT_SYNTAX =
 sig
     val import_segment: (theory -> theory) parser
     val import_theory : (theory -> theory) parser
@@ -22,7 +22,7 @@ sig
     val setup        : unit -> unit
 end
 
-structure HOL4ImportSyntax :> HOL4_IMPORT_SYNTAX =
+structure Importer_Import_Syntax :> IMPORTER_IMPORT_SYNTAX =
 struct
 
 (* Parsers *)
@@ -51,7 +51,7 @@ fun end_import toks =
                     |> set_used_names facts
                     |> replay 
                     |> clear_used_names
-                    |> export_hol4_pending
+                    |> export_importer_pending
                     |> Sign.parent_path
                     |> dump_import_thy thyname
                     |> add_dump ";end_setup"
@@ -63,7 +63,7 @@ val ignore_thms = Scan.repeat1 Parse.name
                                       let
                                           val thyname = get_import_thy thy
                                       in
-                                          Library.foldl (fn (thy,thmname) => ignore_hol4 thyname thmname thy) (thy,ignored)
+                                          Library.foldl (fn (thy,thmname) => ignore_importer thyname thmname thy) (thy,ignored)
                                       end)
 
 val thm_maps = Scan.repeat1 (Parse.name --| Parse.$$$ ">" -- Parse.xname)
@@ -72,7 +72,7 @@ val thm_maps = Scan.repeat1 (Parse.name --| Parse.$$$ ">" -- Parse.xname)
                                    let
                                        val thyname = get_import_thy thy
                                    in
-                                       Library.foldl (fn (thy,(hol,isa)) => add_hol4_mapping thyname hol isa thy) (thy,thmmaps)
+                                       Library.foldl (fn (thy,(hol,isa)) => add_importer_mapping thyname hol isa thy) (thy,thmmaps)
                                    end)
 
 val type_maps = Scan.repeat1 (Parse.name --| Parse.$$$ ">" -- Parse.xname)
@@ -81,7 +81,7 @@ val type_maps = Scan.repeat1 (Parse.name --| Parse.$$$ ">" -- Parse.xname)
                                     let
                                         val thyname = get_import_thy thy
                                     in
-                                        Library.foldl (fn (thy,(hol,isa)) => add_hol4_type_mapping thyname hol false isa thy) (thy,typmaps)
+                                        Library.foldl (fn (thy,(hol,isa)) => add_importer_type_mapping thyname hol false isa thy) (thy,typmaps)
                                     end)
 
 val def_maps = Scan.repeat1 (Parse.name --| Parse.$$$ ">" -- Parse.xname)
@@ -99,7 +99,7 @@ val const_renames = Scan.repeat1 (Parse.name --| Parse.$$$ ">" -- Parse.name)
                                         let
                                             val thyname = get_import_thy thy
                                         in
-                                            Library.foldl (fn (thy,(hol,isa)) => add_hol4_const_renaming thyname hol isa thy) (thy,renames)
+                                            Library.foldl (fn (thy,(hol,isa)) => add_importer_const_renaming thyname hol isa thy) (thy,renames)
                                         end)
                                                                                                                                       
 val const_maps = Scan.repeat1 (Parse.name --| Parse.$$$ ">" -- Parse.xname -- Scan.option (Parse.$$$ "::" |-- Parse.typ))
@@ -108,8 +108,8 @@ val const_maps = Scan.repeat1 (Parse.name --| Parse.$$$ ">" -- Parse.xname -- Sc
                                      let
                                          val thyname = get_import_thy thy
                                      in
-                                         Library.foldl (fn (thy,((hol,isa),NONE)) => add_hol4_const_mapping thyname hol false isa thy
-                                                 | (thy,((hol,isa),SOME ty)) => add_hol4_const_wt_mapping thyname hol false isa (Syntax.read_typ_global thy ty) thy) (thy,constmaps)
+                                         Library.foldl (fn (thy,((hol,isa),NONE)) => add_importer_const_mapping thyname hol false isa thy
+                                                 | (thy,((hol,isa),SOME ty)) => add_importer_const_wt_mapping thyname hol false isa (Syntax.read_typ_global thy ty) thy) (thy,constmaps)
                                      end)
 
 val const_moves = Scan.repeat1 (Parse.name --| Parse.$$$ ">" -- Parse.xname -- Scan.option (Parse.$$$ "::" |-- Parse.typ))
@@ -118,8 +118,8 @@ val const_moves = Scan.repeat1 (Parse.name --| Parse.$$$ ">" -- Parse.xname -- S
                                       let
                                           val thyname = get_import_thy thy
                                       in
-                                          Library.foldl (fn (thy,((hol,isa),NONE)) => add_hol4_const_mapping thyname hol true isa thy
-                                                  | (thy,((hol,isa),SOME ty)) => add_hol4_const_wt_mapping thyname hol true isa (Syntax.read_typ_global thy ty) thy) (thy,constmaps)
+                                          Library.foldl (fn (thy,((hol,isa),NONE)) => add_importer_const_mapping thyname hol true isa thy
+                                                  | (thy,((hol,isa),SOME ty)) => add_importer_const_wt_mapping thyname hol true isa (Syntax.read_typ_global thy ty) thy) (thy,constmaps)
                                       end)
 
 fun import_thy location s =
@@ -172,7 +172,7 @@ val setup_theory = (Parse.name -- Parse.name)
                        >>
                        (fn (location, thyname) =>
                         fn thy =>
-                           (case HOL4DefThy.get thy of
+                           (case Importer_DefThy.get thy of
                                 NoImport => thy
                               | Generating _ => error "Currently generating a theory!"
                               | Replaying _ => thy |> clear_import_thy)

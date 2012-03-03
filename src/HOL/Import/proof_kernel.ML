@@ -60,7 +60,7 @@ sig
     val content_of : proof -> proof_content
     val import_proof : string -> string -> theory -> (theory -> term) option * (theory -> proof)
 
-    val rewrite_hol4_term: Term.term -> theory -> Thm.thm
+    val rewrite_importer_term: Term.term -> theory -> Thm.thm
 
     val type_of : term -> hol_type
 
@@ -330,14 +330,14 @@ fun mk_teq name rhs thy =
     end
 
 fun intern_const_name thyname const thy =
-    case get_hol4_const_mapping thyname const thy of
+    case get_importer_const_mapping thyname const thy of
         SOME (_,cname,_) => cname
-      | NONE => (case get_hol4_const_renaming thyname const thy of
+      | NONE => (case get_importer_const_renaming thyname const thy of
                      SOME cname => Sign.intern_const thy (thyname ^ "." ^ cname)
                    | NONE => Sign.intern_const thy (thyname ^ "." ^ const))
 
 fun intern_type_name thyname const thy =
-    case get_hol4_type_mapping thyname const thy of
+    case get_importer_type_mapping thyname const thy of
         SOME (_,cname) => cname
       | NONE => Sign.intern_const thy (thyname ^ "." ^ const)
 
@@ -357,7 +357,7 @@ in
 fun prim_mk_const thy Thy Nam =
     let
       val name = intern_const_name Thy Nam thy
-      val cmaps = HOL4ConstMaps.get thy
+      val cmaps = Importer_ConstMaps.get thy
     in
       case StringPair.lookup cmaps (Thy,Nam) of
         SOME(_,_,SOME ty) => Const(name,ty)
@@ -585,7 +585,7 @@ fun get_proof_dir (thyname:string) thy =
             case get_segment2 thyname thy of
                 SOME seg => seg
               | NONE => get_import_segment thy
-        val path = space_explode ":" (getenv "HOL4_PROOFS")
+        val path = space_explode ":" (getenv "IMPORTER_PROOFS")
         fun find [] = NONE
           | find (p::ps) =
             (let
@@ -1081,12 +1081,12 @@ val debug = Unsynchronized.ref false
 fun if_debug f x = if !debug then f x else ()
 val message = if_debug writeln
 
-fun get_hol4_thm thyname thmname thy =
-    case get_hol4_theorem thyname thmname thy of
+fun get_importer_thm thyname thmname thy =
+    case get_importer_theorem thyname thmname thy of
         SOME hth => SOME (HOLThm hth)
       | NONE =>
         let
-            val pending = HOL4Pending.get thy
+            val pending = Importer_Pending.get thy
         in
             case StringPair.lookup pending (thyname,thmname) of
                 SOME hth => SOME (HOLThm hth)
@@ -1112,30 +1112,30 @@ fun split_name str =
     end
     handle _ => NONE  (* FIXME avoid handle _ *)
 
-fun rewrite_hol4_term t thy =
+fun rewrite_importer_term t thy =
     let
-        val import_rews1 = map (Thm.transfer thy) (HOL4Rewrites.get thy)
-        val hol4ss = Simplifier.global_context thy empty_ss addsimps import_rews1
+        val import_rews1 = map (Thm.transfer thy) (Importer_Rewrites.get thy)
+        val importerss = Simplifier.global_context thy empty_ss addsimps import_rews1
     in
-        Thm.transfer thy (Simplifier.full_rewrite hol4ss (cterm_of thy t))
+        Thm.transfer thy (Simplifier.full_rewrite importerss (cterm_of thy t))
     end
 
-fun get_isabelle_thm thyname thmname hol4conc thy =
+fun get_isabelle_thm thyname thmname importerconc thy =
     let
-        val (info,hol4conc') = disamb_term hol4conc
-        val i2h_conc = Thm.symmetric (rewrite_hol4_term (HOLogic.mk_Trueprop hol4conc') thy)
+        val (info,importerconc') = disamb_term importerconc
+        val i2h_conc = Thm.symmetric (rewrite_importer_term (HOLogic.mk_Trueprop importerconc') thy)
         val isaconc =
             case concl_of i2h_conc of
                 Const("==",_) $ lhs $ _ => lhs
               | _ => error "get_isabelle_thm" "Bad rewrite rule"
         val _ = (message "Original conclusion:";
-                 if_debug prin hol4conc';
+                 if_debug prin importerconc';
                  message "Modified conclusion:";
                  if_debug prin isaconc)
 
         fun mk_res th = HOLThm (rens_of info, Thm.equal_elim i2h_conc th)
     in
-        case get_hol4_mapping thyname thmname thy of
+        case get_importer_mapping thyname thmname thy of
             SOME (SOME thmname) =>
             let
                 val th1 = (SOME (Global_Theory.get_thm thy thmname)
@@ -1167,8 +1167,8 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
                     SOME (isaname,th) =>
                     let
                         val hth as HOLThm args = mk_res th
-                        val thy' =  thy |> add_hol4_theorem thyname thmname args
-                                        |> add_hol4_mapping thyname thmname isaname
+                        val thy' =  thy |> add_importer_theorem thyname thmname args
+                                        |> add_importer_mapping thyname thmname isaname
                     in
                         (thy',SOME hth)
                     end
@@ -1182,19 +1182,19 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
             writeln ("Exception in get_isabelle_thm:\n" ^ ML_Compiler.exn_message e)) ();
           (thy,NONE))
 
-fun get_isabelle_thm_and_warn thyname thmname hol4conc thy =
+fun get_isabelle_thm_and_warn thyname thmname importerconc thy =
   let
-    val (a, b) = get_isabelle_thm thyname thmname hol4conc thy
+    val (a, b) = get_isabelle_thm thyname thmname importerconc thy
     fun warn () =
         let
-            val (info,hol4conc') = disamb_term hol4conc
-            val i2h_conc = Thm.symmetric (rewrite_hol4_term (HOLogic.mk_Trueprop hol4conc') thy)
+            val (info,importerconc') = disamb_term importerconc
+            val i2h_conc = Thm.symmetric (rewrite_importer_term (HOLogic.mk_Trueprop importerconc') thy)
         in
             case concl_of i2h_conc of
                 Const("==",_) $ lhs $ _ =>
                 (warning ("Failed lookup of theorem '"^thmname^"':");
                  writeln "Original conclusion:";
-                 prin hol4conc';
+                 prin importerconc';
                  writeln "Modified conclusion:";
                  prin lhs)
               | _ => ()
@@ -1206,7 +1206,7 @@ fun get_isabelle_thm_and_warn thyname thmname hol4conc thy =
   end
 
 fun get_thm thyname thmname thy =
-    case get_hol4_thm thyname thmname thy of
+    case get_importer_thm thyname thmname thy of
         SOME hth => (thy,SOME hth)
       | NONE => ((case import_proof_concl thyname thmname thy of
                       SOME f => get_isabelle_thm_and_warn thyname thmname (f thy) thy
@@ -1215,7 +1215,7 @@ fun get_thm thyname thmname thy =
                       | e as PK _ => (message "PK exception"; (thy,NONE)))
 
 fun rename_const thyname thy name =
-    case get_hol4_const_renaming thyname name thy of
+    case get_importer_const_renaming thyname name thy of
         SOME cname => cname
       | NONE => name
 
@@ -1236,9 +1236,9 @@ fun get_axiom thyname axname thy =
 fun intern_store_thm gen_output thyname thmname hth thy =
     let
         val (hth' as HOLThm (args as (_,th))) = norm_hthm thy hth
-        val rew = rewrite_hol4_term (concl_of th) thy
+        val rew = rewrite_importer_term (concl_of th) thy
         val th  = Thm.equal_elim rew th
-        val thy' = add_hol4_pending thyname thmname args thy
+        val thy' = add_importer_pending thyname thmname args thy
         val th = disambiguate_frees th
         val th = Object_Logic.rulify th
         val thy2 =
@@ -1791,7 +1791,7 @@ fun new_definition thyname constname rhs thy =
         val (info,rhs') = disamb_term rhs
         val ctype = type_of rhs'
         val csyn = mk_syn thy constname
-        val thy1 = case HOL4DefThy.get thy of
+        val thy1 = case Importer_DefThy.get thy of
                        Replaying _ => thy
                      | _ => Sign.add_consts_i [(Binding.name constname,ctype,csyn)] thy
         val eq = mk_defeq constname rhs' thy1
@@ -1800,9 +1800,9 @@ fun new_definition thyname constname rhs thy =
         val thm' = def_thm RS meta_eq_to_obj_eq_thm
         val (thy',th) = (thy2, thm')
         val fullcname = Sign.intern_const thy' constname
-        val thy'' = add_hol4_const_mapping thyname constname true fullcname thy'
+        val thy'' = add_importer_const_mapping thyname constname true fullcname thy'
         val (linfo,tm24) = disamb_term (mk_teq constname rhs' thy'')
-        val rew = rewrite_hol4_term eq thy''
+        val rew = rewrite_importer_term eq thy''
         val crhs = cterm_of thy'' (#2 (Logic.dest_equals (prop_of rew)))
         val thy22 =
           if Thm.def_name constname = thmname andalso not redeclared andalso csyn = NoSyn
@@ -1828,13 +1828,13 @@ fun new_definition thyname constname rhs thy =
                     | NONE => raise ERR "new_definition" "Bad conclusion"
         val fullname = Sign.full_bname thy22 thmname
         val thy22' = case opt_get_output_thy thy22 of
-                         "" => add_hol4_mapping thyname thmname fullname thy22
+                         "" => add_importer_mapping thyname thmname fullname thy22
                        | output_thy =>
                          let
                              val moved_thmname = output_thy ^ "." ^ thyname ^ "." ^ thmname
                          in
-                             thy22 |> add_hol4_move fullname moved_thmname
-                                   |> add_hol4_mapping thyname thmname moved_thmname
+                             thy22 |> add_importer_move fullname moved_thmname
+                                   |> add_importer_mapping thyname thmname moved_thmname
                          end
         val _ = message "new_definition:"
         val _ = if_debug pth hth
@@ -1843,7 +1843,7 @@ fun new_definition thyname constname rhs thy =
     end
 
 fun new_specification thyname thmname names hth thy =
-    case HOL4DefThy.get thy of
+    case Importer_DefThy.get thy of
         Replaying _ => (thy,hth)
       | _ =>
         let
@@ -1852,7 +1852,7 @@ fun new_specification thyname thmname names hth thy =
             val names = map (rename_const thyname thy) names
             val _ = warning ("Introducing constants " ^ commas names)
             val (HOLThm(rens,th)) = norm_hthm thy hth
-            val thy1 = case HOL4DefThy.get thy of
+            val thy1 = case Importer_DefThy.get thy of
                            Replaying _ => thy
                          | _ =>
                            let
@@ -1892,7 +1892,7 @@ fun new_specification thyname thmname names hth thy =
                                  (thy1,th)
             val res' = Thm.unvarify_global res
             val hth = HOLThm(rens,res')
-            val rew = rewrite_hol4_term (concl_of res') thy'
+            val rew = rewrite_importer_term (concl_of res') thy'
             val th  = Thm.equal_elim rew res'
             fun handle_const (name,thy) =
                 let
@@ -1938,7 +1938,7 @@ local
     val typedef_hol2hollight = @{thm typedef_hol2hollight}
 in
 fun new_type_definition thyname thmname tycname hth thy =
-    case HOL4DefThy.get thy of
+    case Importer_DefThy.get thy of
         Replaying _ => (thy,hth)
       | _ =>
         let
@@ -1960,14 +1960,14 @@ fun new_type_definition thyname thmname tycname hth thy =
             val th3 = (#type_definition (#2 typedef_info)) RS typedef_hol2hol4
 
             val fulltyname = Sign.intern_type thy' tycname
-            val thy'' = add_hol4_type_mapping thyname tycname true fulltyname thy'
+            val thy'' = add_importer_type_mapping thyname tycname true fulltyname thy'
 
             val (hth' as HOLThm args) = norm_hthm thy'' (HOLThm(rens,th3))
             val _ = if has_ren hth' then warning ("Theorem " ^ thmname ^ " needs variable-disambiguating")
                     else ()
-            val thy4 = add_hol4_pending thyname thmname args thy''
+            val thy4 = add_importer_pending thyname thmname args thy''
 
-            val rew = rewrite_hol4_term (concl_of td_th) thy4
+            val rew = rewrite_importer_term (concl_of td_th) thy4
             val th  = Thm.equal_elim rew (Thm.transfer thy4 td_th)
             val c   = case HOLogic.dest_Trueprop (prop_of th) of
                           Const(@{const_name Ex},exT) $ P =>
@@ -1987,7 +1987,7 @@ fun new_type_definition thyname thmname tycname hth thy =
             val thy5 = add_dump ("typedef (open) " ^ tnames_string ^ (quotename tycname) ^ " = " ^ (proc_prop (cterm_of thy4 c)) ^ " "
                                  ^ (string_of_mixfix tsyn) ^ "\n  by (rule typedef_helper,import " ^ thyname ^ " " ^ thmname ^ ")") thy4
 
-            val thy6 = add_dump ("lemmas " ^ thmname ^ " = typedef_hol2hol4 [OF type_definition_" ^ tycname ^ "]") thy5
+            val thy6 = add_dump ("lemmas " ^ thmname ^ " = typedef_hol2importer [OF type_definition_" ^ tycname ^ "]") thy5
 
             val _ = message "RESULT:"
             val _ = if_debug pth hth'
@@ -2004,7 +2004,7 @@ fun add_dump_syntax thy name =
     end
 
 fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
-    case HOL4DefThy.get thy of
+    case Importer_DefThy.get thy of
         Replaying _ => (thy,
           HOLThm([], Global_Theory.get_thm thy (thmname^"_@intern")) handle ERROR _ => hth)
       | _ =>
@@ -2042,12 +2042,12 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
             val _ = null (Thm.fold_terms Term.add_vars th4 []) orelse
               raise ERR "type_introduction" "no term variables expected any more"
             val _ = message ("step 3: thyname="^thyname^", tycname="^tycname^", fulltyname="^fulltyname)
-            val thy'' = add_hol4_type_mapping thyname tycname true fulltyname thy'
+            val thy'' = add_importer_type_mapping thyname tycname true fulltyname thy'
             val _ = message "step 4"
             val (hth' as HOLThm args) = norm_hthm thy'' (HOLThm(rens,th4))
-            val thy4 = add_hol4_pending thyname thmname args thy''
+            val thy4 = add_importer_pending thyname thmname args thy''
 
-            val P' = P (* why !? #2 (Logic.dest_equals (concl_of (rewrite_hol4_term P thy4))) *)
+            val P' = P (* why !? #2 (Logic.dest_equals (concl_of (rewrite_importer_term P thy4))) *)
             val c   =
                 let
                     val PT = type_of P'
