@@ -2,7 +2,7 @@
 
 theory HOLLight imports "../HOLLightCompat" "../HOL4Syntax" begin 
 
-;setup_theory hollight
+setup_theory "~~/src/HOL/Import/HOLLight" hollight
 
 consts
   "_FALSITY_" :: "bool" ("'_FALSITY'_")
@@ -1155,8 +1155,9 @@ lemma DEF_ZRECSPACE: "ZRECSPACE =
        ZRECSPACE' a)"
   by (import hollight DEF_ZRECSPACE)
 
-typedef (open) ('A) recspace = "Collect ZRECSPACE"  morphisms "_dest_rec" "_mk_rec"
-  apply (rule light_ex_imp_nonempty[where t="ZBOT"])
+typedef (open) 'a recspace = "Collect ZRECSPACE :: (nat \<Rightarrow> 'a \<Rightarrow> bool) set" 
+  morphisms "_dest_rec" "_mk_rec"
+  apply (rule light_ex_imp_nonempty [where t="ZBOT"])
   by (import hollight TYDEF_recspace)
 
 syntax
@@ -1266,11 +1267,12 @@ typedef (open) char = "{a. ALL char'.
        (ALL a.
            (EX a0 a1 a2 a3 a4 a5 a6 a7.
                a =
-               CONSTR (NUMERAL 0) (a0, a1, a2, a3, a4, a5, a6, a7)
+               CONSTR (NUMERAL 0) (a0 :: bool, a1 :: bool, a2 :: bool, a3 :: bool, a4 :: bool, a5 :: bool, a6 :: bool, a7:: bool)
                 (%n. BOTTOM)) -->
            char' a) -->
-       char' a}"  morphisms "_dest_char" "_mk_char"
-  apply (rule light_ex_imp_nonempty[where t="CONSTR (NUMERAL 0) (a0, a1, a2, a3, a4, a5, a6, a7) (%n. BOTTOM)"])
+       char' a}"
+  morphisms "_dest_char" "_mk_char"
+  apply (rule light_ex_imp_nonempty [where t="CONSTR (NUMERAL 0) (a0, a1, a2, a3, a4, a5, a6, a7) (%n. BOTTOM)"])
   by (import hollight TYDEF_char)
 
 syntax
@@ -3752,21 +3754,21 @@ lemma IN_ELIM_THM: "(ALL (P::(bool => 'q_43295 => bool) => bool) x::'q_43295.
 (ALL (p::'q_43326 => bool) x::'q_43326.
     (x : {v::'q_43326. EX y::'q_43326. p y & v = y}) = p x) &
 (ALL (P::(bool => 'q_43354 => bool) => bool) x::'q_43354.
-    {v::'q_43354. P (SETSPEC v)} x =
+    x \<in> {v::'q_43354. P (SETSPEC v)} =
     P (%(p::bool) t::'q_43354. p & x = t)) &
 (ALL (p::'q_43383 => bool) x::'q_43383.
-    {v::'q_43383. EX y::'q_43383. p y & v = y} x = p x) &
-(ALL (p::'q_43400 => bool) x::'q_43400. (x : p) = p x)"
+    x \<in> {v::'q_43383. EX y::'q_43383. p y & v = y} = p x) &
+(ALL (p::'q_43400 => bool) x::'q_43400. p x \<longleftrightarrow> p x)"
   by (import hollight IN_ELIM_THM)
 
-lemma INSERT: "insert (x::'A) (s::'A => bool) = {u::'A. EX y::'A. (y : s | y = x) & u = y}"
+lemma INSERT: "insert (x::'A) (s::'A set) = {u::'A. EX y::'A. (y : s | y = x) & u = y}"
   by (import hollight INSERT)
 
 definition
-  SING :: "('A => bool) => bool"  where
-  "SING == %u::'A => bool. EX x::'A. u = {x}"
+  SING :: "('A set) => bool"  where
+  "SING == %u::'A set. EX x::'A. u = {x}"
 
-lemma DEF_SING: "SING = (%u::'A => bool. EX x::'A. u = {x})"
+lemma DEF_SING: "SING = (%u::'A set. EX x::'A. u = {x})"
   by (import hollight DEF_SING)
 
 definition
