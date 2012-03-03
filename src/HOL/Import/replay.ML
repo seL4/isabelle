@@ -59,7 +59,7 @@ fun replay_proof int_thms thyname thmname prf thy =
                  if seg = thyname
                  then ProofKernel.new_definition seg name rhs thy'
                  else raise ERR "replay_proof" ("Too late for term definition: "^seg^" != "^thyname))
-          | rp (POracle(tg,asl,c)) thy = (*ProofKernel.mk_oracle_thm tg (map be_contract asl,c)*) NY "ORACLE"
+          | rp (POracle _) thy = NY "ORACLE"
           | rp (PSpec(prf,tm)) thy =
             let
                 val (thy',th) = rp' prf thy

@@ -323,7 +323,7 @@ fun add_hol4_type_mapping bthy bconst internal isaconst thy =
         val _ = writeln ("Adding tmap " ^ bthy ^ "." ^ bconst ^ " -> " ^ isaconst ^ (if internal then " (*)" else ""))
         val newmaps = StringPair.update_new ((bthy,bconst),(internal,isaconst)) curmaps
                (* FIXME avoid handle x *)
-               handle x => let val (internal, isaconst') = the (StringPair.lookup curmaps (bthy, bconst)) in
+               handle x => let val (_, isaconst') = the (StringPair.lookup curmaps (bthy, bconst)) in
                       warning ("couldn't map type "^bthy^"."^bconst^" to "^isaconst^": already mapped to "^isaconst'); raise x end
         val upd_thy = HOL4TypeMaps.put newmaps thy
     in
@@ -513,7 +513,7 @@ fun dump_import_thy thyname thy =
         val _ = if null constmaps
                 then ()
                 else out "const_maps"
-        val _ = app (fn (hol,(internal,isa,opt_ty)) =>
+        val _ = app (fn (hol,(_,isa,opt_ty)) =>
                         (out ("\n  " ^ (trans_string hol) ^ " > " ^ (trans_string (follow_cname isa thy)));
                          case opt_ty of
                              SOME ty => out (" :: \"" ^ Syntax.string_of_typ_global thy ty ^ "\"")
