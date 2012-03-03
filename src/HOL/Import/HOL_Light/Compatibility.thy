@@ -347,3 +347,4 @@ lemma DEF_INFINITE: "INFINITE = (\<lambda>u. \<not>finite u)"
   by (simp add: INFINITE_def_raw)
 
 end
+
