@@ -92,7 +92,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
   /* visible text range */
 
-  // FIXME remove!?
+  // NB: TextArea.getScreenLineEndOffset of last line is beyond Buffer.getLength
   def proper_line_range(start: Text.Offset, end: Text.Offset): Text.Range =
     Text.Range(start, end min model.buffer.getLength)
 
