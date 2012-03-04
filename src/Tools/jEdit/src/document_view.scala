@@ -92,13 +92,9 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
   /* visible text range */
 
-  // simplify slightly odd result of TextArea.getScreenLineEndOffset etc.
-  // NB: jEdit already normalizes \r\n and \r to \n
+  // FIXME remove!?
   def proper_line_range(start: Text.Offset, end: Text.Offset): Text.Range =
-  {
-    val stop = if (start < end) end - 1 else end min model.buffer.getLength
-    Text.Range(start, stop)
-  }
+    Text.Range(start, end min model.buffer.getLength)
 
   def visible_range(): Option[Text.Range] =
   {
