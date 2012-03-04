@@ -34,7 +34,7 @@ object Command
           (this /: msgs)((state, msg) =>
             msg match {
               case elem @ XML.Elem(markup, Nil) =>
-                state.add_status(markup).add_markup(Text.Info(command.range, elem))
+                state.add_status(markup).add_markup(Text.Info(command.range, elem))  // FIXME proper_range??
 
               case _ => System.err.println("Ignored status message: " + msg); state
             })
@@ -142,14 +142,17 @@ final class Command private(
 
   /* source text */
 
-  def source(range: Text.Range): String = source.substring(range.start, range.stop)
   def length: Int = source.length
+  val range: Text.Range = Text.Range(0, length)
+
+  val proper_range: Text.Range =
+    Text.Range(0, (length /: span.reverse.iterator.takeWhile(_.is_ignored))(_ - _.source.length))
+
+  def source(range: Text.Range): String = source.substring(range.start, range.stop)
 
   val newlines =
     (0 /: Symbol.iterator(source)) {
       case (n, s) => if (Symbol.is_physical_newline(s)) n + 1 else n }
-
-  val range: Text.Range = Text.Range(0, length)
 
   lazy val symbol_index = new Symbol.Index(source)
   def decode(i: Text.Offset): Text.Offset = symbol_index.decode(i)
