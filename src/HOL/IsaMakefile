@@ -11,10 +11,6 @@ images: \
   HOL-Library \
   HOL-Algebra \
   HOL-Boogie \
-  HOL-HOL4 \
-  HOL-HOL_Light \
-  HOL-HOL4-Imported \
-#  HOL-HOL_Light-Imported \  FIXME not operative at the moment \
   HOL-IMP \
   HOL-Multivariate_Analysis \
   HOL-NSA \
@@ -42,6 +38,10 @@ test: \
       HOLCF-Library \
       HOLCF-Tutorial \
       HOLCF-ex \
+  HOL-HOL4 \
+  HOL-HOL4-Imported \
+  HOL-HOL_Light \
+#  HOL-HOL_Light-Imported \  FIXME not operative at the moment \
   HOL-IMPP \
   HOL-IOA \
       IOA-ABP \
