@@ -135,7 +135,7 @@ val identity_ss = Simplifier.add_simp (Simpdata.mk_eq @{thm id_def}) HOL_basic_s
 
 fun make_id_prop ctxt variances (tyco, mapper) =
   let
-    val (vs, ctxt') = Variable.invent_types (map fst variances) ctxt;
+    val (vs, _) = Variable.invent_types (map fst variances) ctxt;
     val Ts = map TFree vs;
     fun bool_num b = if b then 1 else 0;
     fun mk_argT (T, (_, (co, contra))) =
@@ -164,7 +164,7 @@ fun split_mapper_typ "fun" T =
         val (Ts'', T'') = split_last Ts';
         val (Ts''', T''') = split_last Ts'';
       in (Ts''', T''', T'' --> T') end
-  | split_mapper_typ tyco T =
+  | split_mapper_typ _ T =
       let
         val (Ts', T') = strip_type T;
         val (Ts'', T'') = split_last Ts';
@@ -182,7 +182,7 @@ fun analyze_variances ctxt tyco T =
       handle TYPE _ => bad_typ ();
     val _ = if has_duplicates (eq_fst (op =)) (vs1 @ vs2)
       then bad_typ () else ();
-    fun check_variance_pair (var1 as (v1, sort1), var2 as (v2, sort2)) =
+    fun check_variance_pair (var1 as (_, sort1), var2 as (_, sort2)) =
       let
         val coT = TFree var1 --> TFree var2;
         val contraT = TFree var2 --> TFree var1;
