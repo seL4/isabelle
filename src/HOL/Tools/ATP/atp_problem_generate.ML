@@ -693,6 +693,79 @@ fun adjust_type_enc (THF (TPTP_Monomorphic, _, _))
     (if is_type_enc_fairly_sound type_enc then Tags else Guards) stuff
   | adjust_type_enc _ type_enc = type_enc
 
+fun is_fol_term t =
+  case t of
+    @{const Not} $ t1 => is_fol_term t1
+  | Const (@{const_name All}, _) $ Abs (_, _, t') => is_fol_term t'
+  | Const (@{const_name All}, _) $ t1 => is_fol_term t1
+  | Const (@{const_name Ex}, _) $ Abs (_, _, t') => is_fol_term t'
+  | Const (@{const_name Ex}, _) $ t1 => is_fol_term t1
+  | @{const HOL.conj} $ t1 $ t2 => is_fol_term t1 andalso is_fol_term t2
+  | @{const HOL.disj} $ t1 $ t2 => is_fol_term t1 andalso is_fol_term t2
+  | @{const HOL.implies} $ t1 $ t2 => is_fol_term t1 andalso is_fol_term t2
+  | Const (@{const_name HOL.eq}, Type (_, [@{typ bool}, _])) $ t1 $ t2 =>
+    is_fol_term t1 andalso is_fol_term t2
+  | _ => not (exists_subterm (fn Abs _ => true | _ => false) t)
+
+fun simple_translate_lambdas do_lambdas ctxt t =
+  if is_fol_term t then
+    t
+  else
+    let
+      fun trans Ts t =
+        case t of
+          @{const Not} $ t1 => @{const Not} $ trans Ts t1
+        | (t0 as Const (@{const_name All}, _)) $ Abs (s, T, t') =>
+          t0 $ Abs (s, T, trans (T :: Ts) t')
+        | (t0 as Const (@{const_name All}, _)) $ t1 =>
+          trans Ts (t0 $ eta_expand Ts t1 1)
+        | (t0 as Const (@{const_name Ex}, _)) $ Abs (s, T, t') =>
+          t0 $ Abs (s, T, trans (T :: Ts) t')
+        | (t0 as Const (@{const_name Ex}, _)) $ t1 =>
+          trans Ts (t0 $ eta_expand Ts t1 1)
+        | (t0 as @{const HOL.conj}) $ t1 $ t2 =>
+          t0 $ trans Ts t1 $ trans Ts t2
+        | (t0 as @{const HOL.disj}) $ t1 $ t2 =>
+          t0 $ trans Ts t1 $ trans Ts t2
+        | (t0 as @{const HOL.implies}) $ t1 $ t2 =>
+          t0 $ trans Ts t1 $ trans Ts t2
+        | (t0 as Const (@{const_name HOL.eq}, Type (_, [@{typ bool}, _])))
+            $ t1 $ t2 =>
+          t0 $ trans Ts t1 $ trans Ts t2
+        | _ =>
+          if not (exists_subterm (fn Abs _ => true | _ => false) t) then t
+          else t |> Envir.eta_contract |> do_lambdas ctxt Ts
+      val (t, ctxt') = Variable.import_terms true [t] ctxt |>> the_single
+    in t |> trans [] |> singleton (Variable.export_terms ctxt' ctxt) end
+
+fun do_cheaply_conceal_lambdas Ts (t1 $ t2) =
+    do_cheaply_conceal_lambdas Ts t1
+    $ do_cheaply_conceal_lambdas Ts t2
+  | do_cheaply_conceal_lambdas Ts (Abs (_, T, t)) =
+    Const (lam_lifted_poly_prefix ^ serial_string (),
+           T --> fastype_of1 (T :: Ts, t))
+  | do_cheaply_conceal_lambdas _ t = t
+
+fun concealed_bound_name j = atp_weak_prefix ^ string_of_int j
+fun conceal_bounds Ts t =
+  subst_bounds (map (Free o apfst concealed_bound_name)
+                    (0 upto length Ts - 1 ~~ Ts), t)
+fun reveal_bounds Ts =
+  subst_atomic (map (fn (j, T) => (Free (concealed_bound_name j, T), Bound j))
+                    (0 upto length Ts - 1 ~~ Ts))
+
+fun do_introduce_combinators ctxt Ts t =
+  let val thy = Proof_Context.theory_of ctxt in
+    t |> conceal_bounds Ts
+      |> cterm_of thy
+      |> Meson_Clausify.introduce_combinators_in_cterm
+      |> prop_of |> Logic.dest_equals |> snd
+      |> reveal_bounds Ts
+  end
+  (* A type variable of sort "{}" will make abstraction fail. *)
+  handle THM _ => t |> do_cheaply_conceal_lambdas Ts
+val introduce_combinators = simple_translate_lambdas do_introduce_combinators
+
 fun constify_lifted (t $ u) = constify_lifted t $ constify_lifted u
   | constify_lifted (Abs (s, T, t)) = Abs (s, T, constify_lifted t)
   | constify_lifted (Free (x as (s, _))) =
@@ -720,10 +793,17 @@ fun lift_lams_part_1 ctxt type_enc =
                     lam_lifted_mono_prefix) ^ "_a"))
           Lambda_Lifting.is_quantifier
   #> fst
-fun lift_lams_part_2 (facts, lifted) =
-  (map (open_form (unprefix close_form_prefix) o constify_lifted) facts,
-   map (open_form I o constify_lifted) lifted)
-val lift_lams = lift_lams_part_2 ooo lift_lams_part_1
+
+fun lift_lams_part_2 ctxt (facts, lifted) =
+  (facts, lifted)
+  (* Lambda-lifting sometimes leaves some lambdas around; we need some way to get rid
+     of them *)
+  |> pairself (map (introduce_combinators ctxt))
+  |> pairself (map constify_lifted)
+  |>> map (open_form (unprefix close_form_prefix))
+  ||> map (open_form I)
+
+fun lift_lams ctxt = lift_lams_part_2 ctxt oo lift_lams_part_1 ctxt
 
 fun intentionalize_def (Const (@{const_name All}, _) $ Abs (_, _, t)) =
     intentionalize_def t
@@ -1133,14 +1213,6 @@ fun presimplify_term ctxt t =
           #> Meson.presimplify
           #> prop_of)
 
-fun concealed_bound_name j = atp_weak_prefix ^ string_of_int j
-fun conceal_bounds Ts t =
-  subst_bounds (map (Free o apfst concealed_bound_name)
-                    (0 upto length Ts - 1 ~~ Ts), t)
-fun reveal_bounds Ts =
-  subst_atomic (map (fn (j, T) => (Free (concealed_bound_name j, T), Bound j))
-                    (0 upto length Ts - 1 ~~ Ts))
-
 fun is_fun_equality (@{const_name HOL.eq},
                      Type (_, [Type (@{type_name fun}, _), _])) = true
   | is_fun_equality _ = false
@@ -1153,59 +1225,6 @@ fun extensionalize_term ctxt t =
     end
   else
     t
-
-fun simple_translate_lambdas do_lambdas ctxt t =
-  let val thy = Proof_Context.theory_of ctxt in
-    if Meson.is_fol_term thy t then
-      t
-    else
-      let
-        fun trans Ts t =
-          case t of
-            @{const Not} $ t1 => @{const Not} $ trans Ts t1
-          | (t0 as Const (@{const_name All}, _)) $ Abs (s, T, t') =>
-            t0 $ Abs (s, T, trans (T :: Ts) t')
-          | (t0 as Const (@{const_name All}, _)) $ t1 =>
-            trans Ts (t0 $ eta_expand Ts t1 1)
-          | (t0 as Const (@{const_name Ex}, _)) $ Abs (s, T, t') =>
-            t0 $ Abs (s, T, trans (T :: Ts) t')
-          | (t0 as Const (@{const_name Ex}, _)) $ t1 =>
-            trans Ts (t0 $ eta_expand Ts t1 1)
-          | (t0 as @{const HOL.conj}) $ t1 $ t2 =>
-            t0 $ trans Ts t1 $ trans Ts t2
-          | (t0 as @{const HOL.disj}) $ t1 $ t2 =>
-            t0 $ trans Ts t1 $ trans Ts t2
-          | (t0 as @{const HOL.implies}) $ t1 $ t2 =>
-            t0 $ trans Ts t1 $ trans Ts t2
-          | (t0 as Const (@{const_name HOL.eq}, Type (_, [@{typ bool}, _])))
-              $ t1 $ t2 =>
-            t0 $ trans Ts t1 $ trans Ts t2
-          | _ =>
-            if not (exists_subterm (fn Abs _ => true | _ => false) t) then t
-            else t |> Envir.eta_contract |> do_lambdas ctxt Ts
-        val (t, ctxt') = Variable.import_terms true [t] ctxt |>> the_single
-      in t |> trans [] |> singleton (Variable.export_terms ctxt' ctxt) end
-  end
-
-fun do_cheaply_conceal_lambdas Ts (t1 $ t2) =
-    do_cheaply_conceal_lambdas Ts t1
-    $ do_cheaply_conceal_lambdas Ts t2
-  | do_cheaply_conceal_lambdas Ts (Abs (_, T, t)) =
-    Const (lam_lifted_poly_prefix ^ serial_string (),
-           T --> fastype_of1 (T :: Ts, t))
-  | do_cheaply_conceal_lambdas _ t = t
-
-fun do_introduce_combinators ctxt Ts t =
-  let val thy = Proof_Context.theory_of ctxt in
-    t |> conceal_bounds Ts
-      |> cterm_of thy
-      |> Meson_Clausify.introduce_combinators_in_cterm
-      |> prop_of |> Logic.dest_equals |> snd
-      |> reveal_bounds Ts
-  end
-  (* A type variable of sort "{}" will make abstraction fail. *)
-  handle THM _ => t |> do_cheaply_conceal_lambdas Ts
-val introduce_combinators = simple_translate_lambdas do_introduce_combinators
 
 fun preprocess_abstractions_in_terms trans_lams facts =
   let
@@ -1230,6 +1249,8 @@ fun freeze_term t =
       | freeze t = t
   in t |> exists_subterm is_Var t ? freeze end
 
+fun default_formula role = if role = Conjecture then @{term False} else @{term True}
+
 fun presimp_prop ctxt role t =
   (let
      val thy = Proof_Context.theory_of ctxt
@@ -1243,7 +1264,7 @@ fun presimp_prop ctxt role t =
        |> presimplify_term ctxt
        |> HOLogic.dest_Trueprop
    end
-   handle TERM _ => if role = Conjecture then @{term False} else @{term True})
+   handle TERM _ => default_formula role)
   |> pair role
 
 fun make_formula ctxt format type_enc eq_as_iff name stature kind t =
@@ -1765,13 +1786,13 @@ fun trans_lams_from_string ctxt type_enc lam_trans =
   else if lam_trans = combs_and_liftingN then
     lift_lams_part_1 ctxt type_enc
     ##> maps (fn t => [t, introduce_combinators ctxt (intentionalize_def t)])
-    #> lift_lams_part_2
+    #> lift_lams_part_2 ctxt
   else if lam_trans = combs_or_liftingN then
     lift_lams_part_1 ctxt type_enc
     ##> map (fn t => case head_of (strip_qnt_body @{const_name All} t) of
                        @{term "op =::bool => bool => bool"} => t
                      | _ => introduce_combinators ctxt (intentionalize_def t))
-    #> lift_lams_part_2
+    #> lift_lams_part_2 ctxt
   else if lam_trans = keep_lamsN then
     map (Envir.eta_contract) #> rpair []
   else
@@ -1867,8 +1888,8 @@ fun should_guard_var_in_formula thy polym_constrs level pos phi (SOME true)
      | Positively_Naked_Vars =>
        formula_fold pos (is_var_positively_naked_in_term name) phi false
      | Ghost_Type_Arg_Vars =>
-       formula_fold pos (is_var_ghost_type_arg_in_term thy polym_constrs name)
-                    phi false)
+       formula_fold pos (is_var_ghost_type_arg_in_term thy polym_constrs name) phi
+                    false)
   | should_guard_var_in_formula _ _ _ _ _ _ _ = true
 
 fun always_guard_var_in_formula _ _ _ _ _ _ _ = true
@@ -1908,16 +1929,20 @@ and ho_term_from_iterm ctxt format mono type_enc =
         val t =
           case head of
             IConst (name as (s, _), _, T_args) =>
-            let
-              val arg_site = if is_tptp_equal s then Eq_Arg pos else Elsewhere
-            in
+            let val arg_site = if is_tptp_equal s then Eq_Arg pos else Elsewhere in
               map (term arg_site) args |> mk_aterm format type_enc name T_args
             end
           | IVar (name, _) =>
             map (term Elsewhere) args |> mk_aterm format type_enc name []
           | IAbs ((name, T), tm) =>
-            AAbs ((name, ho_type_from_typ format type_enc true 0 T),
-                  term Elsewhere tm)
+            if is_type_enc_higher_order type_enc then
+              AAbs ((name, ho_type_from_typ format type_enc true 0 T),
+                    term Elsewhere tm)
+            else
+              ATerm (("LAMBDA", "LAMBDA"), []) (*###*)
+(*###
+              raise Fail "unexpected lambda-abstraction"
+*)
           | IApp _ => raise Fail "impossible \"IApp\""
         val T = ityp_of u
       in

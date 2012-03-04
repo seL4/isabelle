@@ -26,7 +26,6 @@ sig
   val skolemize : Proof.context -> thm -> thm
   val extensionalize_conv : Proof.context -> conv
   val extensionalize_theorem : Proof.context -> thm -> thm
-  val is_fol_term: theory -> term -> bool
   val make_clauses_unsorted: Proof.context -> thm list -> thm list
   val make_clauses: Proof.context -> thm list -> thm list
   val make_horns: thm list -> thm list
@@ -456,17 +455,6 @@ fun higher_inst_const thy (c,T) =
   case binder_types T of
       [] => false (*not a function type, OK*)
     | Ts => length (binder_types (Sign.the_const_type thy c)) <> length Ts;
-
-(* Returns false if any Vars in the theorem mention type bool.
-   Also rejects functions whose arguments are Booleans or other functions. *)
-fun is_fol_term thy t =
-    Term.is_first_order [@{const_name all}, @{const_name All},
-                         @{const_name Ex}] t andalso
-    not (exists_subterm (fn Var (_, T) => has_bool T orelse has_fun T
-                          | _ => false) t orelse
-         has_bool_arg_const t orelse
-         exists_Const (higher_inst_const thy) t orelse
-         has_meta_conn t);
 
 fun rigid t = not (is_Var (head_of t));
 
