@@ -182,11 +182,12 @@ class Text_Area_Painter(doc_view: Document_View)
 
     var result = Map[Text.Offset, Chunk]()
     for (line <- physical_lines) {
+      val line_start = buffer.getLineStartOffset(line)
+
       out.clear
-      handler.init(painter.getStyles, font_context, painter, out, margin)
+      handler.init(painter.getStyles, font_context, painter, out, margin) // jedit-4.5.0: line_start
       buffer.markTokens(line, handler)
 
-      val line_start = buffer.getLineStartOffset(line)
       for (i <- 0 until out.size) {
         val chunk = out.get(i)
         result += (line_start + chunk.offset -> chunk)

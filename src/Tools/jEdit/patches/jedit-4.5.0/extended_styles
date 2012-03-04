@@ -1,0 +1,78 @@
+diff -ru 4.5.0/jEdit/org/gjt/sp/jedit/gui/StyleEditor.java 4.5.0/jEdit-patched/org/gjt/sp/jedit/gui/StyleEditor.java
+--- 4.5.0/jEdit/org/gjt/sp/jedit/gui/StyleEditor.java	2012-01-30 23:29:35.000000000 +0100
++++ 4.5.0/jEdit-patched/org/gjt/sp/jedit/gui/StyleEditor.java	2012-03-04 22:14:51.000000000 +0100
+@@ -78,7 +78,7 @@
+ 			start = next;
+ 			token = token.next;
+ 		}
+-		if (token.id == Token.END || token.id == Token.NULL)
++		if (token.id == Token.END || (token.id % Token.ID_COUNT) == Token.NULL)
+ 		{
+ 			JOptionPane.showMessageDialog(textArea.getView(),
+ 				jEdit.getProperty("syntax-style-no-token.message"),
+diff -ru 4.5.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java 4.5.0/jEdit-patched/org/gjt/sp/jedit/syntax/Chunk.java
+--- 4.5.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java	2012-01-30 23:29:42.000000000 +0100
++++ 4.5.0/jEdit-patched/org/gjt/sp/jedit/syntax/Chunk.java	2012-03-04 22:12:25.000000000 +0100
+@@ -380,7 +380,7 @@
+ 	// this is either style.getBackgroundColor() or
+ 	// styles[defaultID].getBackgroundColor()
+ 	private Color background;
+-	private String str;
++	public String str;
+ 	//private GlyphVector gv;
+ 	private List<GlyphVector> glyphs;
+ 	private boolean visible;
+diff -ru 4.5.0/jEdit/org/gjt/sp/jedit/syntax/Token.java 4.5.0/jEdit-patched/org/gjt/sp/jedit/syntax/Token.java
+--- 4.5.0/jEdit/org/gjt/sp/jedit/syntax/Token.java	2012-01-30 23:29:42.000000000 +0100
++++ 4.5.0/jEdit-patched/org/gjt/sp/jedit/syntax/Token.java	2012-03-04 22:15:41.000000000 +0100
+@@ -57,7 +57,7 @@
+ 	 */
+ 	public static String tokenToString(byte token)
+ 	{
+-		return (token == Token.END) ? "END" : TOKEN_TYPES[token];
++		return (token == Token.END) ? "END" : TOKEN_TYPES[token % ID_COUNT];
+ 	} //}}}
+ 
+ 	//{{{ Token types
+diff -ru 4.5.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java 4.5.0/jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java
+--- 4.5.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java	2012-01-30 23:29:44.000000000 +0100
++++ 4.5.0/jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java	2012-03-04 22:27:19.000000000 +0100
+@@ -194,7 +194,24 @@
+ 	{
+ 		return loadStyles(family,size,true);
+ 	}
+-	
++
++	/**
++	 * Extended styles derived from the user-specified style array.
++	 */
++
++	public static class StyleExtender
++	{
++		public SyntaxStyle[] extendStyles(SyntaxStyle[] styles)
++		{
++			return styles;
++		}
++	}
++	volatile private static StyleExtender _styleExtender = new StyleExtender();
++	public static void setStyleExtender(StyleExtender ext)
++	{
++		_styleExtender = ext;
++	}
++
+ 	/**
+ 	 * Loads the syntax styles from the properties, giving them the specified
+ 	 * base font family and size.
+@@ -224,9 +241,9 @@
+ 				Log.log(Log.ERROR,StandardUtilities.class,e);
+ 			}
+ 		}
+-
+-		return styles;
++		styles[0] = new SyntaxStyle(Color.black, null, new Font(family, 0, size));
++		return _styleExtender.extendStyles(styles);
+ 	} //}}}
+-	
++
+ 	private SyntaxUtilities(){}
+ }
