@@ -158,13 +158,6 @@ object Document
       if (range.hasNext) Some(range.next) else None
     }
 
-    def proper_command_at(i: Text.Offset): Option[Command] =
-      command_at(i) match {
-        case Some((command, _)) =>
-          commands.reverse_iterator(command).find(cmd => !cmd.is_ignored)
-        case None => None
-      }
-
     def command_start(cmd: Command): Option[Text.Offset] =
       Node.command_starts(commands.iterator).find(_._1 == cmd).map(_._2)
   }

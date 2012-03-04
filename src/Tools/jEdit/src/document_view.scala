@@ -336,7 +336,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   def selected_command(): Option[Command] =
   {
     Swing_Thread.require()
-    update_snapshot().node.proper_command_at(text_area.getCaretPosition)
+    update_snapshot().node.command_at(text_area.getCaretPosition).map(_._1)
   }
 
   private val delay_caret_update =
