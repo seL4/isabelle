@@ -744,8 +744,8 @@ fun is_quot_abs_fun ctxt (x as (_, Type (@{type_name fun},
     try (Quotient_Term.absrep_const_chk ctxt Quotient_Term.AbsF) s'
     = SOME (Const x) andalso not (is_codatatype ctxt abs_T)
   | is_quot_abs_fun _ _ = false
-fun is_quot_rep_fun ctxt (x as (s, Type (@{type_name fun},
-                                         [abs_T as Type (abs_s, _), _]))) =
+fun is_quot_rep_fun ctxt (s, Type (@{type_name fun},
+                                   [abs_T as Type (abs_s, _), _])) =
     (case try (Quotient_Term.absrep_const_chk ctxt Quotient_Term.RepF) abs_s of
        SOME (Const (s', _)) => s = s' andalso not (is_codatatype ctxt abs_T)
      | NONE => false)
@@ -1767,16 +1767,21 @@ fun unfold_defs_in_term
                       is_quot_type ctxt (range_type T) then
                 let
                   val abs_T = range_type T
-                  val rep_T = domain_type (domain_type T)
+                  val rep_T = elem_type (domain_type T)
                   val eps_fun = Const (@{const_name Eps},
                                        (rep_T --> bool_T) --> rep_T)
                   val normal_fun =
                     Const (quot_normal_name_for_type ctxt abs_T,
                            rep_T --> rep_T)
                   val abs_fun = Const (@{const_name Quot}, rep_T --> abs_T)
+                  val pred =
+                    Abs (Name.uu, rep_T,
+                         Const (@{const_name Set.member},
+                                rep_T --> domain_type T --> bool_T)
+                         $ Bound 0 $ Bound 1)
                 in
-                  (Abs (Name.uu, rep_T --> bool_T,
-                        abs_fun $ (normal_fun $ (eps_fun $ Bound 0)))
+                  (Abs (Name.uu, HOLogic.mk_setT rep_T,
+                        abs_fun $ (normal_fun $ (eps_fun $ pred)))
                    |> do_term (depth + 1) Ts, ts)
                 end
               else if is_rep_fun ctxt x then
