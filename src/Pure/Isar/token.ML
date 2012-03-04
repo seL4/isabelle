@@ -28,6 +28,7 @@ sig
   val is_kind: kind -> T -> bool
   val keyword_with: (string -> bool) -> T -> bool
   val ident_with: (string -> bool) -> T -> bool
+  val is_command: T -> bool
   val is_proper: T -> bool
   val is_semicolon: T -> bool
   val is_comment: T -> bool
@@ -152,6 +153,8 @@ val stopper =
 
 fun kind_of (Token (_, (k, _), _)) = k;
 fun is_kind k (Token (_, (k', _), _)) = k = k';
+
+val is_command = is_kind Command;
 
 fun keyword_with pred (Token (_, (Keyword, x), _)) = pred x
   | keyword_with _ _ = false;

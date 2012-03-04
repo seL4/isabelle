@@ -33,7 +33,7 @@ sig
   val eval_antiq: Scan.lexicon -> Toplevel.state -> Symbol_Pos.T list * Position.range -> string
   val eval_antiquote: Scan.lexicon -> Toplevel.state -> Symbol_Pos.text * Position.T -> string
   val present_thy: Scan.lexicon -> (string -> string list) -> (markup -> string -> bool) ->
-    (Toplevel.transition * Toplevel.state) list -> (Token.T, 'a) Source.source -> Buffer.T
+    (Toplevel.transition * Toplevel.state) list -> Token.T list -> Buffer.T
   val pretty_text: Proof.context -> string -> Pretty.T
   val pretty_term: Proof.context -> term -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
@@ -366,7 +366,7 @@ val locale =
 
 in
 
-fun present_thy lex default_tags is_markup command_results src =
+fun present_thy lex default_tags is_markup command_results toks =
   let
     (* tokens *)
 
@@ -375,8 +375,7 @@ fun present_thy lex default_tags is_markup command_results src =
 
     fun markup mark mk flag = Scan.peek (fn d =>
       improper |--
-        Parse.position
-          (Scan.one (Token.is_kind Token.Command andf is_markup mark o Token.content_of)) --
+        Parse.position (Scan.one (Token.is_command andf is_markup mark o Token.content_of)) --
       Scan.repeat tag --
       Parse.!!!! ((improper -- locale -- improper) |-- Parse.doc_source --| improper_end)
       >> (fn (((tok, pos), tags), txt) =>
@@ -384,7 +383,7 @@ fun present_thy lex default_tags is_markup command_results src =
         in (SOME (name, pos, tags), (mk (name, txt), (flag, d))) end));
 
     val command = Scan.peek (fn d =>
-      Parse.position (Scan.one (Token.is_kind Token.Command)) --
+      Parse.position (Scan.one (Token.is_command)) --
       Scan.repeat tag
       >> (fn ((tok, pos), tags) =>
         let val name = Token.content_of tok
@@ -429,8 +428,7 @@ fun present_thy lex default_tags is_markup command_results src =
           make_span (the cmd) (toks1 @ (tok2 :: (toks3 @ the_default [] tok4))));
 
     val spans =
-      src
-      |> Source.filter (not o Token.is_semicolon)
+      Source.of_list (filter_out Token.is_semicolon toks)
       |> Source.source' 0 Token.stopper (Scan.error (Scan.bulk token)) NONE
       |> Source.source stopper (Scan.error (Scan.bulk span)) NONE
       |> Source.exhaust;

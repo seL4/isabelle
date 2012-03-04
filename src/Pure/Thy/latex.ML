@@ -130,7 +130,7 @@ val invisible_token = Token.keyword_with (fn s => s = ";") orf Token.is_kind Tok
 fun output_basic tok =
   let val s = Token.content_of tok in
     if invisible_token tok then ""
-    else if Token.is_kind Token.Command tok then
+    else if Token.is_command tok then
       "\\isacommand{" ^ output_syms s ^ "}"
     else if Token.is_kind Token.Keyword tok andalso Lexicon.is_ascii_identifier s then
       "\\isakeyword{" ^ output_syms s ^ "}"

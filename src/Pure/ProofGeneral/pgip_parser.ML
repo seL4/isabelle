@@ -103,6 +103,8 @@ fun parse_span span =
 
 
 fun pgip_parser pos str =
-  maps parse_span (Thy_Syntax.parse_spans (Keyword.get_lexicons ()) pos str);
+  Thy_Syntax.parse_tokens (Keyword.get_lexicons ()) pos str
+  |> Thy_Syntax.parse_spans
+  |> maps parse_span;
 
 end;

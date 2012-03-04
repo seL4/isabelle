@@ -27,8 +27,7 @@ object Thy_Syntax
       def length: Int = command.length
     }
 
-    def parse(syntax: Outer_Syntax, node_name: Document.Node.Name, text: CharSequence)
-      : Entry =
+    def parse(syntax: Outer_Syntax, node_name: Document.Node.Name, text: CharSequence): Entry =
     {
       /* stack operations */
 
@@ -82,18 +81,10 @@ object Thy_Syntax
   {
     val result = new mutable.ListBuffer[List[Token]]
     val span = new mutable.ListBuffer[Token]
-    val whitespace = new mutable.ListBuffer[Token]
 
-    def flush(buffer: mutable.ListBuffer[Token])
-    {
-      if (!buffer.isEmpty) { result += buffer.toList; buffer.clear }
-    }
-    for (tok <- toks) {
-      if (tok.is_command) { flush(span); flush(whitespace); span += tok }
-      else if (tok.is_ignored) whitespace += tok
-      else { span ++= whitespace; whitespace.clear; span += tok }
-    }
-    flush(span); flush(whitespace)
+    def flush() { if (!span.isEmpty) { result += span.toList; span.clear } }
+    for (tok <- toks) { if (tok.is_command) flush(); span += tok }
+    flush()
     result.toList
   }
 

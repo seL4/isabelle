@@ -6,9 +6,6 @@ Superficial theory syntax: tokens and spans.
 
 signature THY_SYNTAX =
 sig
-  val token_source: Scan.lexicon * Scan.lexicon -> Position.T -> (string, 'a) Source.source ->
-    (Token.T, (Symbol_Pos.T, Position.T * (Symbol.symbol, (string, 'a)
-      Source.source) Source.source) Source.source) Source.source
   val parse_tokens: Scan.lexicon * Scan.lexicon -> Position.T -> string -> Token.T list
   val present_token: Token.T -> Output.output
   val reports_of_token: Token.T -> Position.report list
@@ -16,12 +13,10 @@ sig
   type span
   val span_kind: span -> span_kind
   val span_content: span -> Token.T list
-  val span_source: (Token.T, 'a) Source.source -> (span, (Token.T, 'a) Source.source) Source.source
-  val parse_spans: Scan.lexicon * Scan.lexicon -> Position.T -> string -> span list
+  val parse_spans: Token.T list -> span list
   val present_span: span -> Output.output
   type element = {head: span, proof: span list, proper_proof: bool}
-  val element_source: (span, 'a) Source.source ->
-    (element, (span, 'a) Source.source) Source.source
+  val parse_elements: span list -> element list
 end;
 
 structure Thy_Syntax: THY_SYNTAX =
@@ -31,11 +26,11 @@ struct
 
 (* parse *)
 
-fun token_source lexs pos =
-  Symbol.source #> Token.source {do_recover = SOME false} (K lexs) pos;
-
 fun parse_tokens lexs pos =
-  Source.of_string #> token_source lexs pos #> Source.exhaust;
+  Source.of_string #>
+  Symbol.source #>
+  Token.source {do_recover = SOME false} (K lexs) pos #>
+  Source.exhaust;
 
 
 (* present *)
@@ -105,28 +100,22 @@ fun span_content (Span (_, toks)) = toks;
 
 local
 
-val whitespace = Scan.many (not o Token.is_proper);
-val whitespace1 = Scan.many1 (not o Token.is_proper);
+fun make_span toks =
+  if not (null toks) andalso Token.is_command (hd toks) then
+    Span (Command (Token.content_of (hd toks)), toks)
+  else if forall (not o Token.is_proper) toks then Span (Ignored, toks)
+  else Span (Malformed, toks);
 
-val body = Scan.unless (whitespace -- Scan.ahead (Parse.command || Parse.eof)) Parse.not_eof;
-
-val span =
-  Scan.ahead Parse.command -- Parse.not_eof -- Scan.repeat body
-    >> (fn ((name, c), bs) => Span (Command name, c :: bs)) ||
-  whitespace1 >> (fn toks => Span (Ignored, toks)) ||
-  Scan.repeat1 body >> (fn toks => Span (Malformed, toks));
+fun flush (result, span) = if null span then (result, span) else (rev span :: result, []);
 
 in
 
-fun span_source src = Source.source Token.stopper (Scan.bulk span) NONE src;
+fun parse_spans toks =
+  fold (fn tok => Token.is_command tok ? flush #> apsnd (cons tok)) toks ([], [])
+  |> flush
+  |> #1 |> rev |> map make_span;
 
 end;
-
-fun parse_spans lexs pos str =
-  Source.of_string str
-  |> token_source lexs pos
-  |> span_source
-  |> Source.exhaust;
 
 
 (* present *)
@@ -166,7 +155,7 @@ val not_eof = not o is_eof;
 val stopper = Scan.stopper (K eof) is_eof;
 
 
-(* element_source *)
+(* parse *)
 
 local
 
@@ -187,7 +176,10 @@ val element =
 
 in
 
-fun element_source src = Source.source stopper (Scan.bulk element) NONE src;
+val parse_elements =
+  Source.of_list #>
+  Source.source stopper (Scan.bulk element) NONE #>
+  Source.exhaust;
 
 end;
 
