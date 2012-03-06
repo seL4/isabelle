@@ -136,7 +136,7 @@ done
 (*** Inequality lemmas involving $#succ(m) ***)
 
 lemma zless_add_succ_iff:
-     "(w $< z $+ $# succ(m)) <-> (w $< z $+ $#m | intify(w) = z $+ $#m)"
+     "(w $< z $+ $# succ(m)) \<longleftrightarrow> (w $< z $+ $#m | intify(w) = z $+ $#m)"
 apply (auto simp add: zless_iff_succ_zadd zadd_assoc int_of_add [symmetric])
 apply (rule_tac [3] x = "0" in bexI)
 apply (cut_tac m = "m" in int_succ_int_1)
@@ -149,32 +149,32 @@ apply auto
 done
 
 lemma zadd_succ_lemma:
-     "z \<in> int ==> (w $+ $# succ(m) $<= z) <-> (w $+ $#m $< z)"
+     "z \<in> int ==> (w $+ $# succ(m) $<= z) \<longleftrightarrow> (w $+ $#m $< z)"
 apply (simp only: not_zless_iff_zle [THEN iff_sym] zless_add_succ_iff)
 apply (auto intro: zle_anti_sym elim: zless_asym
             simp add: zless_imp_zle not_zless_iff_zle)
 done
 
-lemma zadd_succ_zle_iff: "(w $+ $# succ(m) $<= z) <-> (w $+ $#m $< z)"
+lemma zadd_succ_zle_iff: "(w $+ $# succ(m) $<= z) \<longleftrightarrow> (w $+ $#m $< z)"
 apply (cut_tac z = "intify (z)" in zadd_succ_lemma)
 apply auto
 done
 
 (** Inequality reasoning **)
 
-lemma zless_add1_iff_zle: "(w $< z $+ #1) <-> (w$<=z)"
+lemma zless_add1_iff_zle: "(w $< z $+ #1) \<longleftrightarrow> (w$<=z)"
 apply (subgoal_tac "#1 = $# 1")
 apply (simp only: zless_add_succ_iff zle_def)
 apply auto
 done
 
-lemma add1_zle_iff: "(w $+ #1 $<= z) <-> (w $< z)"
+lemma add1_zle_iff: "(w $+ #1 $<= z) \<longleftrightarrow> (w $< z)"
 apply (subgoal_tac "#1 = $# 1")
 apply (simp only: zadd_succ_zle_iff)
 apply auto
 done
 
-lemma add1_left_zle_iff: "(#1 $+ w $<= z) <-> (w $< z)"
+lemma add1_left_zle_iff: "(#1 $+ w $<= z) \<longleftrightarrow> (w $< z)"
 apply (subst zadd_commute)
 apply (rule add1_zle_iff)
 done
@@ -280,13 +280,13 @@ done
 (** Products of zeroes **)
 
 lemma zmult_eq_lemma:
-     "[| m \<in> int; n \<in> int |] ==> (m = #0 | n = #0) <-> (m$*n = #0)"
+     "[| m \<in> int; n \<in> int |] ==> (m = #0 | n = #0) \<longleftrightarrow> (m$*n = #0)"
 apply (case_tac "m $< #0")
 apply (auto simp add: not_zless_iff_zle zle_def neq_iff_zless)
 apply (force dest: zmult_zless_mono1_neg zmult_zless_mono1)+
 done
 
-lemma zmult_eq_0_iff [iff]: "(m$*n = #0) <-> (intify(m) = #0 | intify(n) = #0)"
+lemma zmult_eq_0_iff [iff]: "(m$*n = #0) \<longleftrightarrow> (intify(m) = #0 | intify(n) = #0)"
 apply (simp add: zmult_eq_lemma)
 done
 
@@ -296,7 +296,7 @@ done
 
 lemma zmult_zless_lemma:
      "[| k \<in> int; m \<in> int; n \<in> int |]
-      ==> (m$*k $< n$*k) <-> ((#0 $< k & m$<n) | (k $< #0 & n$<m))"
+      ==> (m$*k $< n$*k) \<longleftrightarrow> ((#0 $< k & m$<n) | (k $< #0 & n$<m))"
 apply (case_tac "k = #0")
 apply (auto simp add: neq_iff_zless zmult_zless_mono1 zmult_zless_mono1_neg)
 apply (auto simp add: not_zless_iff_zle
@@ -307,43 +307,43 @@ apply (auto elim: notE
 done
 
 lemma zmult_zless_cancel2:
-     "(m$*k $< n$*k) <-> ((#0 $< k & m$<n) | (k $< #0 & n$<m))"
+     "(m$*k $< n$*k) \<longleftrightarrow> ((#0 $< k & m$<n) | (k $< #0 & n$<m))"
 apply (cut_tac k = "intify (k)" and m = "intify (m)" and n = "intify (n)"
        in zmult_zless_lemma)
 apply auto
 done
 
 lemma zmult_zless_cancel1:
-     "(k$*m $< k$*n) <-> ((#0 $< k & m$<n) | (k $< #0 & n$<m))"
+     "(k$*m $< k$*n) \<longleftrightarrow> ((#0 $< k & m$<n) | (k $< #0 & n$<m))"
 by (simp add: zmult_commute [of k] zmult_zless_cancel2)
 
 lemma zmult_zle_cancel2:
-     "(m$*k $<= n$*k) <-> ((#0 $< k \<longrightarrow> m$<=n) & (k $< #0 \<longrightarrow> n$<=m))"
+     "(m$*k $<= n$*k) \<longleftrightarrow> ((#0 $< k \<longrightarrow> m$<=n) & (k $< #0 \<longrightarrow> n$<=m))"
 by (auto simp add: not_zless_iff_zle [THEN iff_sym] zmult_zless_cancel2)
 
 lemma zmult_zle_cancel1:
-     "(k$*m $<= k$*n) <-> ((#0 $< k \<longrightarrow> m$<=n) & (k $< #0 \<longrightarrow> n$<=m))"
+     "(k$*m $<= k$*n) \<longleftrightarrow> ((#0 $< k \<longrightarrow> m$<=n) & (k $< #0 \<longrightarrow> n$<=m))"
 by (auto simp add: not_zless_iff_zle [THEN iff_sym] zmult_zless_cancel1)
 
-lemma int_eq_iff_zle: "[| m \<in> int; n \<in> int |] ==> m=n <-> (m $<= n & n $<= m)"
+lemma int_eq_iff_zle: "[| m \<in> int; n \<in> int |] ==> m=n \<longleftrightarrow> (m $<= n & n $<= m)"
 apply (blast intro: zle_refl zle_anti_sym)
 done
 
 lemma zmult_cancel2_lemma:
-     "[| k \<in> int; m \<in> int; n \<in> int |] ==> (m$*k = n$*k) <-> (k=#0 | m=n)"
+     "[| k \<in> int; m \<in> int; n \<in> int |] ==> (m$*k = n$*k) \<longleftrightarrow> (k=#0 | m=n)"
 apply (simp add: int_eq_iff_zle [of "m$*k"] int_eq_iff_zle [of m])
 apply (auto simp add: zmult_zle_cancel2 neq_iff_zless)
 done
 
 lemma zmult_cancel2 [simp]:
-     "(m$*k = n$*k) <-> (intify(k) = #0 | intify(m) = intify(n))"
+     "(m$*k = n$*k) \<longleftrightarrow> (intify(k) = #0 | intify(m) = intify(n))"
 apply (rule iff_trans)
 apply (rule_tac [2] zmult_cancel2_lemma)
 apply auto
 done
 
 lemma zmult_cancel1 [simp]:
-     "(k$*m = k$*n) <-> (intify(k) = #0 | intify(m) = intify(n))"
+     "(k$*m = k$*n) \<longleftrightarrow> (intify(k) = #0 | intify(m) = intify(n))"
 by (simp add: zmult_commute [of k] zmult_cancel2)
 
 
@@ -458,7 +458,7 @@ done
 
 (*FIXME: use intify in integ_of so that we always have @{term"integ_of w \<in> int"}.
     then this rewrite can work for all constants!!*)
-lemma intify_eq_0_iff_zle: "intify(m) = #0 <-> (m $<= #0 & #0 $<= m)"
+lemma intify_eq_0_iff_zle: "intify(m) = #0 \<longleftrightarrow> (m $<= #0 & #0 $<= m)"
 apply (simp (no_asm) add: int_eq_iff_zle)
 done
 
@@ -484,7 +484,7 @@ done
 
 lemma int_0_less_lemma:
      "[| x \<in> int; y \<in> int |]
-      ==> (#0 $< x $* y) <-> (#0 $< x & #0 $< y | x $< #0 & y $< #0)"
+      ==> (#0 $< x $* y) \<longleftrightarrow> (#0 $< x & #0 $< y | x $< #0 & y $< #0)"
 apply (auto simp add: zle_def not_zless_iff_zle zmult_pos zmult_neg)
 apply (rule ccontr)
 apply (rule_tac [2] ccontr)
@@ -498,30 +498,30 @@ apply (auto dest: zless_not_sym simp add: zmult_commute)
 done
 
 lemma int_0_less_mult_iff:
-     "(#0 $< x $* y) <-> (#0 $< x & #0 $< y | x $< #0 & y $< #0)"
+     "(#0 $< x $* y) \<longleftrightarrow> (#0 $< x & #0 $< y | x $< #0 & y $< #0)"
 apply (cut_tac x = "intify (x)" and y = "intify (y)" in int_0_less_lemma)
 apply auto
 done
 
 lemma int_0_le_lemma:
      "[| x \<in> int; y \<in> int |]
-      ==> (#0 $<= x $* y) <-> (#0 $<= x & #0 $<= y | x $<= #0 & y $<= #0)"
+      ==> (#0 $<= x $* y) \<longleftrightarrow> (#0 $<= x & #0 $<= y | x $<= #0 & y $<= #0)"
 by (auto simp add: zle_def not_zless_iff_zle int_0_less_mult_iff)
 
 lemma int_0_le_mult_iff:
-     "(#0 $<= x $* y) <-> ((#0 $<= x & #0 $<= y) | (x $<= #0 & y $<= #0))"
+     "(#0 $<= x $* y) \<longleftrightarrow> ((#0 $<= x & #0 $<= y) | (x $<= #0 & y $<= #0))"
 apply (cut_tac x = "intify (x)" and y = "intify (y)" in int_0_le_lemma)
 apply auto
 done
 
 lemma zmult_less_0_iff:
-     "(x $* y $< #0) <-> (#0 $< x & y $< #0 | x $< #0 & #0 $< y)"
+     "(x $* y $< #0) \<longleftrightarrow> (#0 $< x & y $< #0 | x $< #0 & #0 $< y)"
 apply (auto simp add: int_0_le_mult_iff not_zle_iff_zless [THEN iff_sym])
 apply (auto dest: zless_not_sym simp add: not_zle_iff_zless)
 done
 
 lemma zmult_le_0_iff:
-     "(x $* y $<= #0) <-> (#0 $<= x & y $<= #0 | x $<= #0 & #0 $<= y)"
+     "(x $* y $<= #0) \<longleftrightarrow> (#0 $<= x & y $<= #0 | x $<= #0 & #0 $<= y)"
 by (auto dest: zless_not_sym
          simp add: int_0_less_mult_iff not_zless_iff_zle [THEN iff_sym])
 
@@ -1656,7 +1656,7 @@ apply (drule zdiv_mono1_neg)
 apply auto
 done
 
-lemma pos_imp_zdiv_nonneg_iff: "#0 $< b ==> (#0 $<= a zdiv b) <-> (#0 $<= a)"
+lemma pos_imp_zdiv_nonneg_iff: "#0 $< b ==> (#0 $<= a zdiv b) \<longleftrightarrow> (#0 $<= a)"
 apply auto
 apply (drule_tac [2] zdiv_mono1)
 apply (auto simp add: neq_iff_zless)
@@ -1664,7 +1664,7 @@ apply (simp (no_asm_use) add: not_zless_iff_zle [THEN iff_sym])
 apply (blast intro: zdiv_neg_pos_less0)
 done
 
-lemma neg_imp_zdiv_nonneg_iff: "b $< #0 ==> (#0 $<= a zdiv b) <-> (a $<= #0)"
+lemma neg_imp_zdiv_nonneg_iff: "b $< #0 ==> (#0 $<= a zdiv b) \<longleftrightarrow> (a $<= #0)"
 apply (subst zdiv_zminus_zminus [symmetric])
 apply (rule iff_trans)
 apply (rule pos_imp_zdiv_nonneg_iff)
@@ -1672,13 +1672,13 @@ apply auto
 done
 
 (*But not (a zdiv b $<= 0 iff a$<=0); consider a=1, b=2 when a zdiv b = 0.*)
-lemma pos_imp_zdiv_neg_iff: "#0 $< b ==> (a zdiv b $< #0) <-> (a $< #0)"
+lemma pos_imp_zdiv_neg_iff: "#0 $< b ==> (a zdiv b $< #0) \<longleftrightarrow> (a $< #0)"
 apply (simp (no_asm_simp) add: not_zle_iff_zless [THEN iff_sym])
 apply (erule pos_imp_zdiv_nonneg_iff)
 done
 
 (*Again the law fails for $<=: consider a = -1, b = -2 when a zdiv b = 0*)
-lemma neg_imp_zdiv_neg_iff: "b $< #0 ==> (a zdiv b $< #0) <-> (#0 $< a)"
+lemma neg_imp_zdiv_neg_iff: "b $< #0 ==> (a zdiv b $< #0) \<longleftrightarrow> (#0 $< a)"
 apply (simp (no_asm_simp) add: not_zle_iff_zless [THEN iff_sym])
 apply (erule neg_imp_zdiv_nonneg_iff)
 done
@@ -1710,8 +1710,8 @@ done
  done
 
 
- lemma neg_zdiv_mult_2: "a $<= #0 ==> (#1 $+ #2$*b) zdiv (#2$*a) <-> (b$+#1) zdiv a"
- apply (subgoal_tac " (#1 $+ #2$* ($-b-#1)) zdiv (#2 $* ($-a)) <-> ($-b-#1) zdiv ($-a)")
+ lemma neg_zdiv_mult_2: "a $<= #0 ==> (#1 $+ #2$*b) zdiv (#2$*a) \<longleftrightarrow> (b$+#1) zdiv a"
+ apply (subgoal_tac " (#1 $+ #2$* ($-b-#1)) zdiv (#2 $* ($-a)) \<longleftrightarrow> ($-b-#1) zdiv ($-a)")
  apply (rule_tac [2] pos_zdiv_mult_2)
  apply (auto simp add: zmult_zminus_right)
  apply (subgoal_tac " (#-1 - (#2 $* b)) = - (#1 $+ (#2 $* b))")

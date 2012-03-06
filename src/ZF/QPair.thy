@@ -77,7 +77,7 @@ subsection{*Quine ordered pairing*}
 lemma QPair_empty [simp]: "<0;0> = 0"
 by (simp add: QPair_def)
 
-lemma QPair_iff [simp]: "<a;b> = <c;d> <-> a=c & b=d"
+lemma QPair_iff [simp]: "<a;b> = <c;d> \<longleftrightarrow> a=c & b=d"
 apply (simp add: QPair_def)
 apply (rule sum_equal_iff)
 done
@@ -160,7 +160,7 @@ lemma qsplit_type [elim!]:
 by auto 
 
 lemma expand_qsplit: 
- "u: A<*>B ==> R(qsplit(c,u)) <-> (\<forall>x\<in>A. \<forall>y\<in>B. u = <x;y> \<longrightarrow> R(c(x,y)))"
+ "u: A<*>B ==> R(qsplit(c,u)) \<longleftrightarrow> (\<forall>x\<in>A. \<forall>y\<in>B. u = <x;y> \<longrightarrow> R(c(x,y)))"
 apply (simp add: qsplit_def, auto)
 done
 
@@ -232,16 +232,16 @@ by (simp add: qsum_defs, blast)
 
 (** Injection and freeness equivalences, for rewriting **)
 
-lemma QInl_iff [iff]: "QInl(a)=QInl(b) <-> a=b"
+lemma QInl_iff [iff]: "QInl(a)=QInl(b) \<longleftrightarrow> a=b"
 by (simp add: qsum_defs )
 
-lemma QInr_iff [iff]: "QInr(a)=QInr(b) <-> a=b"
+lemma QInr_iff [iff]: "QInr(a)=QInr(b) \<longleftrightarrow> a=b"
 by (simp add: qsum_defs )
 
-lemma QInl_QInr_iff [simp]: "QInl(a)=QInr(b) <-> False"
+lemma QInl_QInr_iff [simp]: "QInl(a)=QInr(b) \<longleftrightarrow> False"
 by (simp add: qsum_defs )
 
-lemma QInr_QInl_iff [simp]: "QInr(b)=QInl(a) <-> False"
+lemma QInr_QInl_iff [simp]: "QInr(b)=QInl(a) \<longleftrightarrow> False"
 by (simp add: qsum_defs )
 
 lemma qsum_empty [simp]: "0<+>0 = 0"
@@ -263,13 +263,13 @@ by blast
 (** <+> is itself injective... who cares?? **)
 
 lemma qsum_iff:
-     "u: A <+> B <-> (\<exists>x. x:A & u=QInl(x)) | (\<exists>y. y:B & u=QInr(y))"
+     "u: A <+> B \<longleftrightarrow> (\<exists>x. x:A & u=QInl(x)) | (\<exists>y. y:B & u=QInr(y))"
 by blast
 
-lemma qsum_subset_iff: "A <+> B \<subseteq> C <+> D <-> A<=C & B<=D"
+lemma qsum_subset_iff: "A <+> B \<subseteq> C <+> D \<longleftrightarrow> A<=C & B<=D"
 by blast
 
-lemma qsum_equal_iff: "A <+> B = C <+> D <-> A=C & B=D"
+lemma qsum_equal_iff: "A <+> B = C <+> D \<longleftrightarrow> A=C & B=D"
 apply (simp (no_asm) add: extension qsum_subset_iff)
 apply blast
 done

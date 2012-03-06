@@ -130,7 +130,7 @@ done
 
 lemmas quniv_QPair_E = quniv_QPair_D [THEN conjE]
 
-lemma quniv_QPair_iff: "<a;b> \<in> quniv(A) <-> a: quniv(A) & b: quniv(A)"
+lemma quniv_QPair_iff: "<a;b> \<in> quniv(A) \<longleftrightarrow> a: quniv(A) & b: quniv(A)"
 by (blast intro: QPair_in_quniv dest: quniv_QPair_D)
 
 

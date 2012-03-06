@@ -34,13 +34,13 @@ simproc_setup defined_Ball ("\<forall>x\<in>A. P(x) \<longrightarrow> Q(x)") = {
 
 (** Lemmas for showing that <a,b> uniquely determines a and b **)
 
-lemma singleton_eq_iff [iff]: "{a} = {b} <-> a=b"
+lemma singleton_eq_iff [iff]: "{a} = {b} \<longleftrightarrow> a=b"
 by (rule extension [THEN iff_trans], blast)
 
-lemma doubleton_eq_iff: "{a,b} = {c,d} <-> (a=c & b=d) | (a=d & b=c)"
+lemma doubleton_eq_iff: "{a,b} = {c,d} \<longleftrightarrow> (a=c & b=d) | (a=d & b=c)"
 by (rule extension [THEN iff_trans], blast)
 
-lemma Pair_iff [simp]: "<a,b> = <c,d> <-> a=c & b=d"
+lemma Pair_iff [simp]: "<a,b> = <c,d> \<longleftrightarrow> a=c & b=d"
 by (simp add: Pair_def doubleton_eq_iff, blast)
 
 lemmas Pair_inject = Pair_iff [THEN iffD1, THEN conjE, elim!]
@@ -76,7 +76,7 @@ subsection{*Sigma: Disjoint Union of a Family of Sets*}
 
 text{*Generalizes Cartesian product*}
 
-lemma Sigma_iff [simp]: "<a,b>: Sigma(A,B) <-> a:A & b:B(a)"
+lemma Sigma_iff [simp]: "<a,b>: Sigma(A,B) \<longleftrightarrow> a:A & b:B(a)"
 by (simp add: Sigma_def)
 
 lemma SigmaI [TC,intro!]: "[| a:A;  b:B(a) |] ==> <a,b> \<in> Sigma(A,B)"
@@ -113,7 +113,7 @@ by blast
 lemma Sigma_empty2 [simp]: "A*0 = 0"
 by blast
 
-lemma Sigma_empty_iff: "A*B=0 <-> A=0 | B=0"
+lemma Sigma_empty_iff: "A*B=0 \<longleftrightarrow> A=0 | B=0"
 by blast
 
 
@@ -150,7 +150,7 @@ done
 
 lemma expand_split: 
   "u: A*B ==>    
-        R(split(c,u)) <-> (\<forall>x\<in>A. \<forall>y\<in>B. u = <x,y> \<longrightarrow> R(c(x,y)))"
+        R(split(c,u)) \<longleftrightarrow> (\<forall>x\<in>A. \<forall>y\<in>B. u = <x,y> \<longrightarrow> R(c(x,y)))"
 apply (simp add: split_def)
 apply auto
 done
@@ -177,11 +177,11 @@ text {*
 *}
 
 lemma split_paired_Bex_Sigma [simp]:
-     "(\<exists>z \<in> Sigma(A,B). P(z)) <-> (\<exists>x \<in> A. \<exists>y \<in> B(x). P(<x,y>))"
+     "(\<exists>z \<in> Sigma(A,B). P(z)) \<longleftrightarrow> (\<exists>x \<in> A. \<exists>y \<in> B(x). P(<x,y>))"
 by blast
 
 lemma split_paired_Ball_Sigma [simp]:
-     "(\<forall>z \<in> Sigma(A,B). P(z)) <-> (\<forall>x \<in> A. \<forall>y \<in> B(x). P(<x,y>))"
+     "(\<forall>z \<in> Sigma(A,B). P(z)) \<longleftrightarrow> (\<forall>x \<in> A. \<forall>y \<in> B(x). P(<x,y>))"
 by blast
 
 end

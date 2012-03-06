@@ -138,7 +138,7 @@ lemma eqpollE:
     "[| X \<approx> Y; [| X \<lesssim> Y; Y \<lesssim> X |] ==> P |] ==> P"
 by (blast intro: eqpoll_imp_lepoll eqpoll_sym)
 
-lemma eqpoll_iff: "X \<approx> Y <-> X \<lesssim> Y & Y \<lesssim> X"
+lemma eqpoll_iff: "X \<approx> Y \<longleftrightarrow> X \<lesssim> Y & Y \<lesssim> X"
 by (blast intro: eqpollI elim!: eqpollE)
 
 lemma lepoll_0_is_0: "A \<lesssim> 0 ==> A = 0"
@@ -149,7 +149,7 @@ done
 (*@{term"0 \<lesssim> Y"}*)
 lemmas empty_lepollI = empty_subsetI [THEN subset_imp_lepoll]
 
-lemma lepoll_0_iff: "A \<lesssim> 0 <-> A=0"
+lemma lepoll_0_iff: "A \<lesssim> 0 \<longleftrightarrow> A=0"
 by (blast intro: lepoll_0_is_0 lepoll_refl)
 
 lemma Un_lepoll_Un:
@@ -161,7 +161,7 @@ done
 (*A eqpoll 0 ==> A=0*)
 lemmas eqpoll_0_is_0 = eqpoll_imp_lepoll [THEN lepoll_0_is_0]
 
-lemma eqpoll_0_iff: "A \<approx> 0 <-> A=0"
+lemma eqpoll_0_iff: "A \<approx> 0 \<longleftrightarrow> A=0"
 by (blast intro: eqpoll_0_is_0 eqpoll_refl)
 
 lemma eqpoll_disjoint_Un:
@@ -188,7 +188,7 @@ apply (unfold lepoll_def)
 apply (blast intro: well_ord_rvimage)
 done
 
-lemma lepoll_iff_leqpoll: "A \<lesssim> B <-> A \<prec> B | A \<approx> B"
+lemma lepoll_iff_leqpoll: "A \<lesssim> B \<longleftrightarrow> A \<prec> B | A \<approx> B"
 apply (unfold lesspoll_def)
 apply (blast intro!: eqpollI elim!: eqpollE)
 done
@@ -288,7 +288,7 @@ done
 
 (*Not needed for simplification, but helpful below*)
 lemma Least_cong:
-     "(!!y. P(y) <-> Q(y)) ==> (LEAST x. P(x)) = (LEAST x. Q(x))"
+     "(!!y. P(y) \<longleftrightarrow> Q(y)) ==> (LEAST x. P(x)) = (LEAST x. Q(x))"
 by simp
 
 (*Need AC to get @{term"X \<lesssim> Y ==> |X| \<le> |Y|"};  see well_ord_lepoll_imp_Card_le
@@ -319,7 +319,7 @@ apply (simp (no_asm_simp) add: well_ord_cardinal_eqpoll)
 done
 
 lemma well_ord_cardinal_eqpoll_iff:
-     "[| well_ord(X,r);  well_ord(Y,s) |] ==> |X| = |Y| <-> X \<approx> Y"
+     "[| well_ord(X,r);  well_ord(Y,s) |] ==> |X| = |Y| \<longleftrightarrow> X \<approx> Y"
 by (blast intro: cardinal_cong well_ord_cardinal_eqE)
 
 
@@ -358,7 +358,7 @@ apply (rule Ord_Least)
 done
 
 (*The cardinals are the initial ordinals*)
-lemma Card_iff_initial: "Card(K) <-> Ord(K) & (\<forall>j. j<K \<longrightarrow> ~ j \<approx> K)"
+lemma Card_iff_initial: "Card(K) \<longleftrightarrow> Ord(K) & (\<forall>j. j<K \<longrightarrow> ~ j \<approx> K)"
 apply (safe intro!: CardI Card_is_Ord)
  prefer 2 apply blast
 apply (unfold Card_def cardinal_def)
@@ -430,10 +430,10 @@ lemma Card_lt_imp_lt: "[| |i| < K;  Ord(i);  Card(K) |] ==> i < K"
 apply (simp (no_asm_simp) add: cardinal_lt_imp_lt Card_is_Ord Card_cardinal_eq)
 done
 
-lemma Card_lt_iff: "[| Ord(i);  Card(K) |] ==> (|i| < K) <-> (i < K)"
+lemma Card_lt_iff: "[| Ord(i);  Card(K) |] ==> (|i| < K) \<longleftrightarrow> (i < K)"
 by (blast intro: Card_lt_imp_lt Ord_cardinal_le [THEN lt_trans1])
 
-lemma Card_le_iff: "[| Ord(i);  Card(K) |] ==> (K \<le> |i|) <-> (K \<le> i)"
+lemma Card_le_iff: "[| Ord(i);  Card(K) |] ==> (K \<le> |i|) \<longleftrightarrow> (K \<le> i)"
 by (simp add: Card_lt_iff Card_is_Ord Ord_cardinal not_lt_iff_le [THEN iff_sym])
 
 (*Can use AC or finiteness to discharge first premise*)
@@ -510,7 +510,7 @@ apply (simp (no_asm_simp) add: lepoll_def inj_def)
 apply (blast intro!: succ_leI dest!: succ_lepoll_succD)
 done
 
-lemma nat_eqpoll_iff: "[| m:nat; n: nat |] ==> m \<approx> n <-> m = n"
+lemma nat_eqpoll_iff: "[| m:nat; n: nat |] ==> m \<approx> n \<longleftrightarrow> m = n"
 apply (rule iffI)
 apply (blast intro: nat_lepoll_imp_le le_anti_sym elim!: eqpollE)
 apply (simp add: eqpoll_refl)
@@ -573,7 +573,7 @@ apply (unfold lesspoll_def lepoll_def eqpoll_def bij_def, clarify)
 apply (blast intro!: inj_not_surj_succ)
 done
 
-lemma lesspoll_succ_iff: "m:nat ==> A \<prec> succ(m) <-> A \<lesssim> m"
+lemma lesspoll_succ_iff: "m:nat ==> A \<prec> succ(m) \<longleftrightarrow> A \<lesssim> m"
 by (blast intro!: lepoll_imp_lesspoll_succ lesspoll_succ_imp_lepoll)
 
 lemma lepoll_succ_disj: "[| A \<lesssim> succ(m);  m:nat |] ==> A \<lesssim> m | A \<approx> succ(m)"
@@ -602,7 +602,7 @@ apply (erule ltE)
 apply (rule Ord_succ_subsetI [THEN subset_imp_lepoll], assumption+)
 done
 
-lemma Ord_nat_eqpoll_iff: "[| Ord(i);  n:nat |] ==> i \<approx> n <-> i=n"
+lemma Ord_nat_eqpoll_iff: "[| Ord(i);  n:nat |] ==> i \<approx> n \<longleftrightarrow> i=n"
 apply (rule iffI)
  prefer 2 apply (simp add: eqpoll_refl)
 apply (rule Ord_linear_lt [of i n])
@@ -647,11 +647,11 @@ lemma cons_eqpoll_cong:
 by (simp add: eqpoll_iff cons_lepoll_cong)
 
 lemma cons_lepoll_cons_iff:
-     "[| a \<notin> A;  b \<notin> B |] ==> cons(a,A) \<lesssim> cons(b,B)  <->  A \<lesssim> B"
+     "[| a \<notin> A;  b \<notin> B |] ==> cons(a,A) \<lesssim> cons(b,B)  \<longleftrightarrow>  A \<lesssim> B"
 by (blast intro: cons_lepoll_cong cons_lepoll_consD)
 
 lemma cons_eqpoll_cons_iff:
-     "[| a \<notin> A;  b \<notin> B |] ==> cons(a,A) \<approx> cons(b,B)  <->  A \<approx> B"
+     "[| a \<notin> A;  b \<notin> B |] ==> cons(a,A) \<approx> cons(b,B)  \<longleftrightarrow>  A \<approx> B"
 by (blast intro: cons_eqpoll_cong cons_eqpoll_consD)
 
 lemma singleton_eqpoll_1: "{a} \<approx> 1"
@@ -813,10 +813,10 @@ apply (unfold succ_def)
 apply (erule Finite_cons)
 done
 
-lemma Finite_cons_iff [iff]: "Finite(cons(y,x)) <-> Finite(x)"
+lemma Finite_cons_iff [iff]: "Finite(cons(y,x)) \<longleftrightarrow> Finite(x)"
 by (blast intro: Finite_cons subset_Finite)
 
-lemma Finite_succ_iff [iff]: "Finite(succ(x)) <-> Finite(x)"
+lemma Finite_succ_iff [iff]: "Finite(succ(x)) \<longleftrightarrow> Finite(x)"
 by (simp add: succ_def)
 
 lemma nat_le_infinite_Ord:
@@ -859,7 +859,7 @@ done
 lemma Finite_Fin: "[| Finite(A); A \<subseteq> X |] ==> A \<in> Fin(X)"
 by (unfold Finite_def, blast intro: Finite_Fin_lemma)
 
-lemma eqpoll_imp_Finite_iff: "A \<approx> B ==> Finite(A) <-> Finite(B)"
+lemma eqpoll_imp_Finite_iff: "A \<approx> B ==> Finite(A) \<longleftrightarrow> Finite(B)"
 apply (unfold Finite_def)
 apply (blast intro: eqpoll_trans eqpoll_sym)
 done
@@ -888,7 +888,7 @@ done
 lemma Fin_into_Finite: "A \<in> Fin(U) ==> Finite(A)"
 by (fast intro!: Finite_0 Finite_cons elim: Fin_induct)
 
-lemma Finite_Fin_iff: "Finite(A) <-> A \<in> Fin(A)"
+lemma Finite_Fin_iff: "Finite(A) \<longleftrightarrow> A \<in> Fin(A)"
 by (blast intro: Finite_into_Fin Fin_into_Finite)
 
 lemma Finite_Un: "[| Finite(A); Finite(B) |] ==> Finite(A \<union> B)"
@@ -897,7 +897,7 @@ by (blast intro!: Fin_into_Finite Fin_UnI
           intro: Un_upper1 [THEN Fin_mono, THEN subsetD]
                  Un_upper2 [THEN Fin_mono, THEN subsetD])
 
-lemma Finite_Un_iff [simp]: "Finite(A \<union> B) <-> (Finite(A) & Finite(B))"
+lemma Finite_Un_iff [simp]: "Finite(A \<union> B) \<longleftrightarrow> (Finite(A) & Finite(B))"
 by (blast intro: subset_Finite Finite_Un)
 
 text{*The converse must hold too.*}
@@ -961,7 +961,7 @@ done
 text{*I don't know why, but if the premise is expressed using meta-connectives
 then  the simplifier cannot prove it automatically in conditional rewriting.*}
 lemma Finite_RepFun_iff:
-     "(\<forall>x y. f(x)=f(y) \<longrightarrow> x=y) ==> Finite(RepFun(A,f)) <-> Finite(A)"
+     "(\<forall>x y. f(x)=f(y) \<longrightarrow> x=y) ==> Finite(RepFun(A,f)) \<longleftrightarrow> Finite(A)"
 by (blast intro: Finite_RepFun Finite_RepFun_iff_lemma [of _ f])
 
 lemma Finite_Pow: "Finite(A) ==> Finite(Pow(A))"
@@ -975,7 +975,7 @@ apply (subgoal_tac "Finite({{x} . x \<in> A})")
 apply (blast intro: subset_Finite)
 done
 
-lemma Finite_Pow_iff [iff]: "Finite(Pow(A)) <-> Finite(A)"
+lemma Finite_Pow_iff [iff]: "Finite(Pow(A)) \<longleftrightarrow> Finite(A)"
 by (blast intro: Finite_Pow Finite_Pow_imp_Finite)
 
 

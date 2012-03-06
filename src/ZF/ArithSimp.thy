@@ -43,7 +43,7 @@ apply (simp_all (no_asm_simp))
 done
 
 lemma zero_less_diff [simp]:
-     "[| m: nat; n: nat |] ==> 0 < (n #- m)   <->   m<n"
+     "[| m: nat; n: nat |] ==> 0 < (n #- m)   \<longleftrightarrow>   m<n"
 apply (rule_tac m = m and n = n in diff_induct)
 apply (simp_all (no_asm_simp))
 done
@@ -301,37 +301,37 @@ lemma mult_lt_mono1: "[| i<j; 0<k; j:nat; k:nat |] ==> i#*k < j#*k"
 apply (simp (no_asm_simp) add: mult_lt_mono2 mult_commute [of _ k])
 done
 
-lemma add_eq_0_iff [iff]: "m#+n = 0 <-> natify(m)=0 & natify(n)=0"
-apply (subgoal_tac "natify (m) #+ natify (n) = 0 <-> natify (m) =0 & natify (n) =0")
+lemma add_eq_0_iff [iff]: "m#+n = 0 \<longleftrightarrow> natify(m)=0 & natify(n)=0"
+apply (subgoal_tac "natify (m) #+ natify (n) = 0 \<longleftrightarrow> natify (m) =0 & natify (n) =0")
 apply (rule_tac [2] n = "natify (m) " in natE)
  apply (rule_tac [4] n = "natify (n) " in natE)
 apply auto
 done
 
-lemma zero_lt_mult_iff [iff]: "0 < m#*n <-> 0 < natify(m) & 0 < natify(n)"
-apply (subgoal_tac "0 < natify (m) #*natify (n) <-> 0 < natify (m) & 0 < natify (n) ")
+lemma zero_lt_mult_iff [iff]: "0 < m#*n \<longleftrightarrow> 0 < natify(m) & 0 < natify(n)"
+apply (subgoal_tac "0 < natify (m) #*natify (n) \<longleftrightarrow> 0 < natify (m) & 0 < natify (n) ")
 apply (rule_tac [2] n = "natify (m) " in natE)
  apply (rule_tac [4] n = "natify (n) " in natE)
   apply (rule_tac [3] n = "natify (n) " in natE)
 apply auto
 done
 
-lemma mult_eq_1_iff [iff]: "m#*n = 1 <-> natify(m)=1 & natify(n)=1"
-apply (subgoal_tac "natify (m) #* natify (n) = 1 <-> natify (m) =1 & natify (n) =1")
+lemma mult_eq_1_iff [iff]: "m#*n = 1 \<longleftrightarrow> natify(m)=1 & natify(n)=1"
+apply (subgoal_tac "natify (m) #* natify (n) = 1 \<longleftrightarrow> natify (m) =1 & natify (n) =1")
 apply (rule_tac [2] n = "natify (m) " in natE)
  apply (rule_tac [4] n = "natify (n) " in natE)
 apply auto
 done
 
 
-lemma mult_is_zero: "[|m: nat; n: nat|] ==> (m #* n = 0) <-> (m = 0 | n = 0)"
+lemma mult_is_zero: "[|m: nat; n: nat|] ==> (m #* n = 0) \<longleftrightarrow> (m = 0 | n = 0)"
 apply auto
 apply (erule natE)
 apply (erule_tac [2] natE, auto)
 done
 
 lemma mult_is_zero_natify [iff]:
-     "(m #* n = 0) <-> (natify(m) = 0 | natify(n) = 0)"
+     "(m #* n = 0) \<longleftrightarrow> (natify(m) = 0 | natify(n) = 0)"
 apply (cut_tac m = "natify (m) " and n = "natify (n) " in mult_is_zero)
 apply auto
 done
@@ -340,7 +340,7 @@ done
 subsection{*Cancellation Laws for Common Factors in Comparisons*}
 
 lemma mult_less_cancel_lemma:
-     "[| k: nat; m: nat; n: nat |] ==> (m#*k < n#*k) <-> (0<k & m<n)"
+     "[| k: nat; m: nat; n: nat |] ==> (m#*k < n#*k) \<longleftrightarrow> (0<k & m<n)"
 apply (safe intro!: mult_lt_mono1)
 apply (erule natE, auto)
 apply (rule not_le_iff_lt [THEN iffD1])
@@ -349,22 +349,22 @@ prefer 5 apply (blast intro: mult_le_mono1, auto)
 done
 
 lemma mult_less_cancel2 [simp]:
-     "(m#*k < n#*k) <-> (0 < natify(k) & natify(m) < natify(n))"
+     "(m#*k < n#*k) \<longleftrightarrow> (0 < natify(k) & natify(m) < natify(n))"
 apply (rule iff_trans)
 apply (rule_tac [2] mult_less_cancel_lemma, auto)
 done
 
 lemma mult_less_cancel1 [simp]:
-     "(k#*m < k#*n) <-> (0 < natify(k) & natify(m) < natify(n))"
+     "(k#*m < k#*n) \<longleftrightarrow> (0 < natify(k) & natify(m) < natify(n))"
 apply (simp (no_asm) add: mult_less_cancel2 mult_commute [of k])
 done
 
-lemma mult_le_cancel2 [simp]: "(m#*k \<le> n#*k) <-> (0 < natify(k) \<longrightarrow> natify(m) \<le> natify(n))"
+lemma mult_le_cancel2 [simp]: "(m#*k \<le> n#*k) \<longleftrightarrow> (0 < natify(k) \<longrightarrow> natify(m) \<le> natify(n))"
 apply (simp (no_asm_simp) add: not_lt_iff_le [THEN iff_sym])
 apply auto
 done
 
-lemma mult_le_cancel1 [simp]: "(k#*m \<le> k#*n) <-> (0 < natify(k) \<longrightarrow> natify(m) \<le> natify(n))"
+lemma mult_le_cancel1 [simp]: "(k#*m \<le> k#*n) \<longleftrightarrow> (0 < natify(k) \<longrightarrow> natify(m) \<le> natify(n))"
 apply (simp (no_asm_simp) add: not_lt_iff_le [THEN iff_sym])
 apply auto
 done
@@ -372,23 +372,23 @@ done
 lemma mult_le_cancel_le1: "k \<in> nat ==> k #* m \<le> k \<longleftrightarrow> (0 < k \<longrightarrow> natify(m) \<le> 1)"
 by (cut_tac k = k and m = m and n = 1 in mult_le_cancel1, auto)
 
-lemma Ord_eq_iff_le: "[| Ord(m); Ord(n) |] ==> m=n <-> (m \<le> n & n \<le> m)"
+lemma Ord_eq_iff_le: "[| Ord(m); Ord(n) |] ==> m=n \<longleftrightarrow> (m \<le> n & n \<le> m)"
 by (blast intro: le_anti_sym)
 
 lemma mult_cancel2_lemma:
-     "[| k: nat; m: nat; n: nat |] ==> (m#*k = n#*k) <-> (m=n | k=0)"
+     "[| k: nat; m: nat; n: nat |] ==> (m#*k = n#*k) \<longleftrightarrow> (m=n | k=0)"
 apply (simp (no_asm_simp) add: Ord_eq_iff_le [of "m#*k"] Ord_eq_iff_le [of m])
 apply (auto simp add: Ord_0_lt_iff)
 done
 
 lemma mult_cancel2 [simp]:
-     "(m#*k = n#*k) <-> (natify(m) = natify(n) | natify(k) = 0)"
+     "(m#*k = n#*k) \<longleftrightarrow> (natify(m) = natify(n) | natify(k) = 0)"
 apply (rule iff_trans)
 apply (rule_tac [2] mult_cancel2_lemma, auto)
 done
 
 lemma mult_cancel1 [simp]:
-     "(k#*m = k#*n) <-> (natify(m) = natify(n) | natify(k) = 0)"
+     "(k#*m = k#*n) \<longleftrightarrow> (natify(m) = natify(n) | natify(k) = 0)"
 apply (simp (no_asm) add: mult_cancel2 mult_commute [of k])
 done
 
@@ -493,7 +493,7 @@ apply (blast elim!: leE intro!: add_0_right [symmetric] add_succ_right [symmetri
 done
 
 lemma less_iff_succ_add:
-     "[| m: nat; n: nat |] ==> (m<n) <-> (\<exists>k\<in>nat. n = succ(m#+k))"
+     "[| m: nat; n: nat |] ==> (m<n) \<longleftrightarrow> (\<exists>k\<in>nat. n = succ(m#+k))"
 by (auto intro: less_imp_succ_add)
 
 lemma add_lt_elim2:
@@ -508,11 +508,11 @@ by (drule less_imp_succ_add, auto)
 subsubsection{*More Lemmas About Difference*}
 
 lemma diff_is_0_lemma:
-     "[| m: nat; n: nat |] ==> m #- n = 0 <-> m \<le> n"
+     "[| m: nat; n: nat |] ==> m #- n = 0 \<longleftrightarrow> m \<le> n"
 apply (rule_tac m = m and n = n in diff_induct, simp_all)
 done
 
-lemma diff_is_0_iff: "m #- n = 0 <-> natify(m) \<le> natify(n)"
+lemma diff_is_0_iff: "m #- n = 0 \<longleftrightarrow> natify(m) \<le> natify(n)"
 by (simp add: diff_is_0_lemma [symmetric])
 
 lemma nat_lt_imp_diff_eq_0:
@@ -521,7 +521,7 @@ by (simp add: diff_is_0_iff le_iff)
 
 lemma raw_nat_diff_split:
      "[| a:nat; b:nat |] ==>
-      (P(a #- b)) <-> ((a < b \<longrightarrow>P(0)) & (\<forall>d\<in>nat. a = b #+ d \<longrightarrow> P(d)))"
+      (P(a #- b)) \<longleftrightarrow> ((a < b \<longrightarrow>P(0)) & (\<forall>d\<in>nat. a = b #+ d \<longrightarrow> P(d)))"
 apply (case_tac "a < b")
  apply (force simp add: nat_lt_imp_diff_eq_0)
 apply (rule iffI, force, simp)
@@ -530,7 +530,7 @@ apply (simp_all add: Ordinal.not_lt_iff_le add_diff_inverse)
 done
 
 lemma nat_diff_split:
-   "(P(a #- b)) <->
+   "(P(a #- b)) \<longleftrightarrow>
     (natify(a) < natify(b) \<longrightarrow>P(0)) & (\<forall>d\<in>nat. natify(a) = b #+ d \<longrightarrow> P(d))"
 apply (cut_tac P=P and a="natify(a)" and b="natify(b)" in raw_nat_diff_split)
 apply simp_all
@@ -559,7 +559,7 @@ apply (blast intro: add_lt_le_mono)
 done
 
 
-lemma diff_lt_iff_lt: "[|i\<le>k; j\<in>nat; k\<in>nat|] ==> (k#-i) < (k#-j) <-> j<i"
+lemma diff_lt_iff_lt: "[|i\<le>k; j\<in>nat; k\<in>nat|] ==> (k#-i) < (k#-j) \<longleftrightarrow> j<i"
 apply (frule le_in_nat, assumption)
 apply (blast intro: lt_imp_diff_lt diff_lt_imp_lt)
 done

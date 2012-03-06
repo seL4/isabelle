@@ -92,11 +92,11 @@ lemma equiv_type: "equiv(A,r) ==> r \<subseteq> A*A"
 by (unfold equiv_def, blast)
 
 lemma equiv_class_eq_iff:
-     "equiv(A,r) ==> <x,y>: r <-> r``{x} = r``{y} & x:A & y:A"
+     "equiv(A,r) ==> <x,y>: r \<longleftrightarrow> r``{x} = r``{y} & x:A & y:A"
 by (blast intro: eq_equiv_class equiv_class_eq dest: equiv_type)
 
 lemma eq_equiv_class_iff:
-     "[| equiv(A,r);  x: A;  y: A |] ==> r``{x} = r``{y} <-> <x,y>: r"
+     "[| equiv(A,r);  x: A;  y: A |] ==> r``{x} = r``{y} \<longleftrightarrow> <x,y>: r"
 by (blast intro: eq_equiv_class equiv_class_eq dest: equiv_type)
 
 (*** Quotients ***)

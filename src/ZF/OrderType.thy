@@ -533,7 +533,7 @@ apply (simp_all add: raw_oadd_eq_oadd)
 apply (blast dest: oadd_lt_mono2 elim: lt_irrefl lt_asym)+
 done
 
-lemma oadd_lt_iff2: "Ord(j) ==> i++j < i++k <-> j<k"
+lemma oadd_lt_iff2: "Ord(j) ==> i++j < i++k \<longleftrightarrow> j<k"
 by (blast intro!: oadd_lt_mono2 dest!: oadd_lt_cancel2)
 
 lemma oadd_inject: "[| i++j = i++k;  Ord(j); Ord(k) |] ==> j=k"
@@ -607,13 +607,13 @@ apply (simp add: Limit_is_Ord [THEN Ord_in_Ord] oadd_UN [symmetric]
                  Union_eq_UN [symmetric] Limit_Union_eq)
 done
 
-lemma oadd_eq_0_iff: "[| Ord(i); Ord(j) |] ==> (i ++ j) = 0 <-> i=0 & j=0"
+lemma oadd_eq_0_iff: "[| Ord(i); Ord(j) |] ==> (i ++ j) = 0 \<longleftrightarrow> i=0 & j=0"
 apply (erule trans_induct3 [of j])
 apply (simp_all add: oadd_Limit)
 apply (simp add: Union_empty_iff Limit_def lt_def, blast)
 done
 
-lemma oadd_eq_lt_iff: "[| Ord(i); Ord(j) |] ==> 0 < (i ++ j) <-> 0<i | 0<j"
+lemma oadd_eq_lt_iff: "[| Ord(i); Ord(j) |] ==> 0 < (i ++ j) \<longleftrightarrow> 0<i | 0<j"
 by (simp add: Ord_0_lt_iff [symmetric] oadd_eq_0_iff)
 
 lemma oadd_LimitI: "[| Ord(i); Limit(j) |] ==> Limit(i ++ j)"
@@ -661,7 +661,7 @@ by (blast intro: lt_trans1 oadd_le_mono1 oadd_lt_mono2 Ord_succD elim: ltE)
 lemma oadd_le_mono: "[| i' \<le> i;  j' \<le> j |] ==> i'++j' \<le> i++j"
 by (simp del: oadd_succ add: oadd_succ [symmetric] le_Ord2 oadd_lt_mono)
 
-lemma oadd_le_iff2: "[| Ord(j); Ord(k) |] ==> i++j \<le> i++k <-> j \<le> k"
+lemma oadd_le_iff2: "[| Ord(j); Ord(k) |] ==> i++j \<le> i++k \<longleftrightarrow> j \<le> k"
 by (simp del: oadd_succ add: oadd_lt_iff2 oadd_succ [symmetric] Ord_succ)
 
 lemma oadd_lt_self: "[| Ord(i);  0<j |] ==> i < i++j"

@@ -123,7 +123,7 @@ by (induct a rule: nat_induct, auto)
 lemma succ_natD: "succ(i): nat ==> i: nat"
 by (rule Ord_trans [OF succI1], auto)
 
-lemma nat_succ_iff [iff]: "succ(n): nat <-> n: nat"
+lemma nat_succ_iff [iff]: "succ(n): nat \<longleftrightarrow> n: nat"
 by (blast dest!: succ_natD)
 
 lemma nat_le_Limit: "Limit(i) ==> nat \<le> i"
@@ -246,7 +246,7 @@ lemma nat_case_type [TC]:
 by (erule nat_induct, auto)
 
 lemma split_nat_case:
-  "P(nat_case(a,b,k)) <->
+  "P(nat_case(a,b,k)) \<longleftrightarrow>
    ((k=0 \<longrightarrow> P(a)) & (\<forall>x. k=succ(x) \<longrightarrow> P(b(x))) & (~ quasinat(k) \<longrightarrow> P(0)))"
 apply (rule nat_cases [of k])
 apply (auto simp add: non_nat_case)
@@ -294,7 +294,7 @@ apply (auto simp add: Ord_mem_iff_lt)
 apply (blast intro: lt_trans)
 done
 
-lemma Le_iff [iff]: "<x,y> \<in> Le <-> x \<le> y & x \<in> nat & y \<in> nat"
+lemma Le_iff [iff]: "<x,y> \<in> Le \<longleftrightarrow> x \<le> y & x \<in> nat & y \<in> nat"
 by (force simp add: Le_def)
 
 end

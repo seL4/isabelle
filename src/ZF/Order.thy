@@ -51,7 +51,7 @@ definition
 definition
   ord_iso  :: "[i,i,i,i]=>i"            (*Order isomorphisms*)  where
    "ord_iso(A,r,B,s) ==
-              {f: bij(A,B). \<forall>x\<in>A. \<forall>y\<in>A. <x,y>:r <-> <f`x,f`y>:s}"
+              {f: bij(A,B). \<forall>x\<in>A. \<forall>y\<in>A. <x,y>:r \<longleftrightarrow> <f`x,f`y>:s}"
 
 definition
   pred     :: "[i,i,i]=>i"              (*Set of predecessors*)  where
@@ -107,7 +107,7 @@ by (unfold well_ord_def tot_ord_def, blast)
 
 (** Derived rules for pred(A,x,r) **)
 
-lemma pred_iff: "y \<in> pred(A,x,r) <-> <y,x>:r & y:A"
+lemma pred_iff: "y \<in> pred(A,x,r) \<longleftrightarrow> <y,x>:r & y:A"
 by (unfold pred_def, blast)
 
 lemmas predI = conjI [THEN pred_iff [THEN iffD2]]
@@ -160,30 +160,30 @@ done
 
 (** Relations restricted to a smaller domain, by Krzysztof Grabczewski **)
 
-lemma irrefl_Int_iff: "irrefl(A,r \<inter> A*A) <-> irrefl(A,r)"
+lemma irrefl_Int_iff: "irrefl(A,r \<inter> A*A) \<longleftrightarrow> irrefl(A,r)"
 by (unfold irrefl_def, blast)
 
-lemma trans_on_Int_iff: "trans[A](r \<inter> A*A) <-> trans[A](r)"
+lemma trans_on_Int_iff: "trans[A](r \<inter> A*A) \<longleftrightarrow> trans[A](r)"
 by (unfold trans_on_def, blast)
 
-lemma part_ord_Int_iff: "part_ord(A,r \<inter> A*A) <-> part_ord(A,r)"
+lemma part_ord_Int_iff: "part_ord(A,r \<inter> A*A) \<longleftrightarrow> part_ord(A,r)"
 apply (unfold part_ord_def)
 apply (simp add: irrefl_Int_iff trans_on_Int_iff)
 done
 
-lemma linear_Int_iff: "linear(A,r \<inter> A*A) <-> linear(A,r)"
+lemma linear_Int_iff: "linear(A,r \<inter> A*A) \<longleftrightarrow> linear(A,r)"
 by (unfold linear_def, blast)
 
-lemma tot_ord_Int_iff: "tot_ord(A,r \<inter> A*A) <-> tot_ord(A,r)"
+lemma tot_ord_Int_iff: "tot_ord(A,r \<inter> A*A) \<longleftrightarrow> tot_ord(A,r)"
 apply (unfold tot_ord_def)
 apply (simp add: part_ord_Int_iff linear_Int_iff)
 done
 
-lemma wf_on_Int_iff: "wf[A](r \<inter> A*A) <-> wf[A](r)"
+lemma wf_on_Int_iff: "wf[A](r \<inter> A*A) \<longleftrightarrow> wf[A](r)"
 apply (unfold wf_on_def wf_def, fast) (*10 times faster than blast!*)
 done
 
-lemma well_ord_Int_iff: "well_ord(A,r \<inter> A*A) <-> well_ord(A,r)"
+lemma well_ord_Int_iff: "well_ord(A,r \<inter> A*A) \<longleftrightarrow> well_ord(A,r)"
 apply (unfold well_ord_def)
 apply (simp add: tot_ord_Int_iff wf_on_Int_iff)
 done
@@ -256,7 +256,7 @@ done
 
 lemma ord_isoI:
     "[| f: bij(A, B);
-        !!x y. [| x:A; y:A |] ==> <x, y> \<in> r <-> <f`x, f`y> \<in> s |]
+        !!x y. [| x:A; y:A |] ==> <x, y> \<in> r \<longleftrightarrow> <f`x, f`y> \<in> s |]
      ==> f: ord_iso(A,r,B,s)"
 by (simp add: ord_iso_def)
 
@@ -666,7 +666,7 @@ subsection {* Lemmas for the Reflexive Orders *}
 
 lemma subset_vimage_vimage_iff:
   "[| Preorder(r); A \<subseteq> field(r); B \<subseteq> field(r) |] ==>
-  r -`` A \<subseteq> r -`` B <-> (\<forall>a\<in>A. \<exists>b\<in>B. <a, b> \<in> r)"
+  r -`` A \<subseteq> r -`` B \<longleftrightarrow> (\<forall>a\<in>A. \<exists>b\<in>B. <a, b> \<in> r)"
   apply (auto simp: subset_def preorder_on_def refl_def vimage_def image_def)
    apply blast
   unfolding trans_on_def
@@ -679,12 +679,12 @@ lemma subset_vimage_vimage_iff:
 
 lemma subset_vimage1_vimage1_iff:
   "[| Preorder(r); a \<in> field(r); b \<in> field(r) |] ==>
-  r -`` {a} \<subseteq> r -`` {b} <-> <a, b> \<in> r"
+  r -`` {a} \<subseteq> r -`` {b} \<longleftrightarrow> <a, b> \<in> r"
   by (simp add: subset_vimage_vimage_iff)
 
 lemma Refl_antisym_eq_Image1_Image1_iff:
   "[| refl(field(r), r); antisym(r); a \<in> field(r); b \<in> field(r) |] ==>
-  r `` {a} = r `` {b} <-> a = b"
+  r `` {a} = r `` {b} \<longleftrightarrow> a = b"
   apply rule
    apply (frule equality_iffD)
    apply (drule equality_iffD)
@@ -695,13 +695,13 @@ lemma Refl_antisym_eq_Image1_Image1_iff:
 
 lemma Partial_order_eq_Image1_Image1_iff:
   "[| Partial_order(r); a \<in> field(r); b \<in> field(r) |] ==>
-  r `` {a} = r `` {b} <-> a = b"
+  r `` {a} = r `` {b} \<longleftrightarrow> a = b"
   by (simp add: partial_order_on_def preorder_on_def
     Refl_antisym_eq_Image1_Image1_iff)
 
 lemma Refl_antisym_eq_vimage1_vimage1_iff:
   "[| refl(field(r), r); antisym(r); a \<in> field(r); b \<in> field(r) |] ==>
-  r -`` {a} = r -`` {b} <-> a = b"
+  r -`` {a} = r -`` {b} \<longleftrightarrow> a = b"
   apply rule
    apply (frule equality_iffD)
    apply (drule equality_iffD)
@@ -712,7 +712,7 @@ lemma Refl_antisym_eq_vimage1_vimage1_iff:
 
 lemma Partial_order_eq_vimage1_vimage1_iff:
   "[| Partial_order(r); a \<in> field(r); b \<in> field(r) |] ==>
-  r -`` {a} = r -`` {b} <-> a = b"
+  r -`` {a} = r -`` {b} \<longleftrightarrow> a = b"
   by (simp add: partial_order_on_def preorder_on_def
     Refl_antisym_eq_vimage1_vimage1_iff)
 

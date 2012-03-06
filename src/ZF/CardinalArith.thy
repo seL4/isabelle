@@ -39,11 +39,11 @@ definition
         of @{term K}*}
     "csucc(K) == LEAST L. Card(L) & K<L"
 
-notation (xsymbols output)
+notation (xsymbols)
   cadd  (infixl "\<oplus>" 65) and
   cmult  (infixl "\<otimes>" 70)
 
-notation (HTML output)
+notation (HTML)
   cadd  (infixl "\<oplus>" 65) and
   cmult  (infixl "\<otimes>" 70)
 
@@ -109,7 +109,7 @@ apply (rule_tac c = "case(Inr,Inl)" and d = "case(Inr,Inl)" in lam_bijective)
 apply auto
 done
 
-lemma cadd_commute: "i |+| j = j |+| i"
+lemma cadd_commute: "i \<oplus> j = j \<oplus> i"
 apply (unfold cadd_def)
 apply (rule sum_commute_eqpoll [THEN cardinal_cong])
 done
@@ -125,7 +125,7 @@ done
 (*Unconditional version requires AC*)
 lemma well_ord_cadd_assoc:
     "[| well_ord(i,ri); well_ord(j,rj); well_ord(k,rk) |]
-     ==> (i |+| j) |+| k = i |+| (j |+| k)"
+     ==> (i \<oplus> j) \<oplus> k = i \<oplus> (j \<oplus> k)"
 apply (unfold cadd_def)
 apply (rule cardinal_cong)
 apply (rule eqpoll_trans)
@@ -145,7 +145,7 @@ apply (rule exI)
 apply (rule bij_0_sum)
 done
 
-lemma cadd_0 [simp]: "Card(K) ==> 0 |+| K = K"
+lemma cadd_0 [simp]: "Card(K) ==> 0 \<oplus> K = K"
 apply (unfold cadd_def)
 apply (simp add: sum_0_eqpoll [THEN cardinal_cong] Card_cardinal_eq)
 done
@@ -161,7 +161,7 @@ done
 (*Could probably weaken the premises to well_ord(K,r), or removing using AC*)
 
 lemma cadd_le_self:
-    "[| Card(K);  Ord(L) |] ==> K \<le> (K |+| L)"
+    "[| Card(K);  Ord(L) |] ==> K \<le> (K \<oplus> L)"
 apply (unfold cadd_def)
 apply (rule le_trans [OF Card_cardinal_le well_ord_lepoll_imp_Card_le],
        assumption)
@@ -182,7 +182,7 @@ apply (typecheck add: inj_is_fun, auto)
 done
 
 lemma cadd_le_mono:
-    "[| K' \<le> K;  L' \<le> L |] ==> (K' |+| L') \<le> (K |+| L)"
+    "[| K' \<le> K;  L' \<le> L |] ==> (K' \<oplus> L') \<le> (K \<oplus> L)"
 apply (unfold cadd_def)
 apply (safe dest!: le_subset_iff [THEN iffD1])
 apply (rule well_ord_lepoll_imp_Card_le)
@@ -204,7 +204,7 @@ done
 (*Pulling the  succ(...)  outside the |...| requires m, n: nat  *)
 (*Unconditional version requires AC*)
 lemma cadd_succ_lemma:
-    "[| Ord(m);  Ord(n) |] ==> succ(m) |+| n = |succ(m |+| n)|"
+    "[| Ord(m);  Ord(n) |] ==> succ(m) \<oplus> n = |succ(m \<oplus> n)|"
 apply (unfold cadd_def)
 apply (rule sum_succ_eqpoll [THEN cardinal_cong, THEN trans])
 apply (rule succ_eqpoll_cong [THEN cardinal_cong])
@@ -212,7 +212,7 @@ apply (rule well_ord_cardinal_eqpoll [THEN eqpoll_sym])
 apply (blast intro: well_ord_radd well_ord_Memrel)
 done
 
-lemma nat_cadd_eq_add: "[| m: nat;  n: nat |] ==> m |+| n = m#+n"
+lemma nat_cadd_eq_add: "[| m: nat;  n: nat |] ==> m \<oplus> n = m#+n"
 apply (induct_tac m)
 apply (simp add: nat_into_Card [THEN cadd_0])
 apply (simp add: cadd_succ_lemma nat_into_Card [THEN Card_cardinal_eq])
@@ -231,7 +231,7 @@ apply (rule_tac c = "%<x,y>.<y,x>" and d = "%<x,y>.<y,x>" in lam_bijective,
        auto)
 done
 
-lemma cmult_commute: "i |*| j = j |*| i"
+lemma cmult_commute: "i \<otimes> j = j \<otimes> i"
 apply (unfold cmult_def)
 apply (rule prod_commute_eqpoll [THEN cardinal_cong])
 done
@@ -247,7 +247,7 @@ done
 (*Unconditional version requires AC*)
 lemma well_ord_cmult_assoc:
     "[| well_ord(i,ri); well_ord(j,rj); well_ord(k,rk) |]
-     ==> (i |*| j) |*| k = i |*| (j |*| k)"
+     ==> (i \<otimes> j) \<otimes> k = i \<otimes> (j \<otimes> k)"
 apply (unfold cmult_def)
 apply (rule cardinal_cong)
 apply (rule eqpoll_trans)
@@ -269,7 +269,7 @@ done
 
 lemma well_ord_cadd_cmult_distrib:
     "[| well_ord(i,ri); well_ord(j,rj); well_ord(k,rk) |]
-     ==> (i |+| j) |*| k = (i |*| k) |+| (j |*| k)"
+     ==> (i \<oplus> j) \<otimes> k = (i \<otimes> k) \<oplus> (j \<otimes> k)"
 apply (unfold cadd_def cmult_def)
 apply (rule cardinal_cong)
 apply (rule eqpoll_trans)
@@ -290,7 +290,7 @@ apply (rule exI)
 apply (rule lam_bijective, safe)
 done
 
-lemma cmult_0 [simp]: "0 |*| i = 0"
+lemma cmult_0 [simp]: "0 \<otimes> i = 0"
 by (simp add: cmult_def prod_0_eqpoll [THEN cardinal_cong])
 
 subsubsection{*1 is the identity for multiplication*}
@@ -301,7 +301,7 @@ apply (rule exI)
 apply (rule singleton_prod_bij [THEN bij_converse_bij])
 done
 
-lemma cmult_1 [simp]: "Card(K) ==> 1 |*| K = K"
+lemma cmult_1 [simp]: "Card(K) ==> 1 \<otimes> K = K"
 apply (unfold cmult_def succ_def)
 apply (simp add: prod_singleton_eqpoll [THEN cardinal_cong] Card_cardinal_eq)
 done
@@ -314,7 +314,7 @@ apply (rule_tac x = "\<lambda>x\<in>A. <x,x>" in exI, simp)
 done
 
 (*Could probably weaken the premise to well_ord(K,r), or remove using AC*)
-lemma cmult_square_le: "Card(K) ==> K \<le> K |*| K"
+lemma cmult_square_le: "Card(K) ==> K \<le> K \<otimes> K"
 apply (unfold cmult_def)
 apply (rule le_trans)
 apply (rule_tac [2] well_ord_lepoll_imp_Card_le)
@@ -332,7 +332,7 @@ done
 
 (*Could probably weaken the premises to well_ord(K,r), or removing using AC*)
 lemma cmult_le_self:
-    "[| Card(K);  Ord(L);  0<L |] ==> K \<le> (K |*| L)"
+    "[| Card(K);  Ord(L);  0<L |] ==> K \<le> (K \<otimes> L)"
 apply (unfold cmult_def)
 apply (rule le_trans [OF Card_cardinal_le well_ord_lepoll_imp_Card_le])
   apply assumption
@@ -353,7 +353,7 @@ apply (typecheck add: inj_is_fun, auto)
 done
 
 lemma cmult_le_mono:
-    "[| K' \<le> K;  L' \<le> L |] ==> (K' |*| L') \<le> (K |*| L)"
+    "[| K' \<le> K;  L' \<le> L |] ==> (K' \<otimes> L') \<le> (K \<otimes> L)"
 apply (unfold cmult_def)
 apply (safe dest!: le_subset_iff [THEN iffD1])
 apply (rule well_ord_lepoll_imp_Card_le)
@@ -374,7 +374,7 @@ done
 
 (*Unconditional version requires AC*)
 lemma cmult_succ_lemma:
-    "[| Ord(m);  Ord(n) |] ==> succ(m) |*| n = n |+| (m |*| n)"
+    "[| Ord(m);  Ord(n) |] ==> succ(m) \<otimes> n = n \<oplus> (m \<otimes> n)"
 apply (unfold cmult_def cadd_def)
 apply (rule prod_succ_eqpoll [THEN cardinal_cong, THEN trans])
 apply (rule cardinal_cong [symmetric])
@@ -382,12 +382,12 @@ apply (rule sum_eqpoll_cong [OF eqpoll_refl well_ord_cardinal_eqpoll])
 apply (blast intro: well_ord_rmult well_ord_Memrel)
 done
 
-lemma nat_cmult_eq_mult: "[| m: nat;  n: nat |] ==> m |*| n = m#*n"
+lemma nat_cmult_eq_mult: "[| m: nat;  n: nat |] ==> m \<otimes> n = m#*n"
 apply (induct_tac m)
 apply (simp_all add: cmult_succ_lemma nat_cadd_eq_add)
 done
 
-lemma cmult_2: "Card(n) ==> 2 |*| n = n |+| n"
+lemma cmult_2: "Card(n) ==> 2 \<otimes> n = n \<oplus> n"
 by (simp add: cmult_succ_lemma Card_is_Ord cadd_commute [of _ 0])
 
 lemma sum_lepoll_prod: "2 \<lesssim> C ==> B+B \<lesssim> C*B"
@@ -555,7 +555,7 @@ done
 (*Kunen: "each <x,y>: K*K has no more than z*z predecessors..." (page 29) *)
 lemma ordermap_csquare_le:
   "[| Limit(K);  x<K;  y<K;  z=succ(x \<union> y) |]
-   ==> | ordermap(K*K, csquare_rel(K)) ` <x,y> | \<le> |succ(z)| |*| |succ(z)|"
+   ==> | ordermap(K*K, csquare_rel(K)) ` <x,y> | \<le> |succ(z)| \<otimes> |succ(z)|"
 apply (unfold cmult_def)
 apply (rule well_ord_rmult [THEN well_ord_lepoll_imp_Card_le])
 apply (rule Ord_cardinal [THEN well_ord_Memrel])+
@@ -575,7 +575,7 @@ done
 
 (*Kunen: "... so the order type is @{text"\<le>"} K" *)
 lemma ordertype_csquare_le:
-     "[| InfCard(K);  \<forall>y\<in>K. InfCard(y) \<longrightarrow> y |*| y = y |]
+     "[| InfCard(K);  \<forall>y\<in>K. InfCard(y) \<longrightarrow> y \<otimes> y = y |]
       ==> ordertype(K*K, csquare_rel(K)) \<le> K"
 apply (frule InfCard_is_Card [THEN Card_is_Ord])
 apply (rule all_lt_imp_le, assumption)
@@ -604,7 +604,7 @@ apply (simp add: InfCard_def)
 done
 
 (*Main result: Kunen's Theorem 10.12*)
-lemma InfCard_csquare_eq: "InfCard(K) ==> K |*| K = K"
+lemma InfCard_csquare_eq: "InfCard(K) ==> K \<otimes> K = K"
 apply (frule InfCard_is_Card [THEN Card_is_Ord])
 apply (erule rev_mp)
 apply (erule_tac i=K in trans_induct)
@@ -639,7 +639,7 @@ by (simp add: InfCard_def Card_is_Ord [THEN nat_le_infinite_Ord])
 
 subsubsection{*Toward's Kunen's Corollary 10.13 (1)*}
 
-lemma InfCard_le_cmult_eq: "[| InfCard(K);  L \<le> K;  0<L |] ==> K |*| L = K"
+lemma InfCard_le_cmult_eq: "[| InfCard(K);  L \<le> K;  0<L |] ==> K \<otimes> L = K"
 apply (rule le_anti_sym)
  prefer 2
  apply (erule ltE, blast intro: cmult_le_self InfCard_is_Card)
@@ -649,7 +649,7 @@ apply (simp add: InfCard_csquare_eq)
 done
 
 (*Corollary 10.13 (1), for cardinal multiplication*)
-lemma InfCard_cmult_eq: "[| InfCard(K);  InfCard(L) |] ==> K |*| L = K \<union> L"
+lemma InfCard_cmult_eq: "[| InfCard(K);  InfCard(L) |] ==> K \<otimes> L = K \<union> L"
 apply (rule_tac i = K and j = L in Ord_linear_le)
 apply (typecheck add: InfCard_is_Card Card_is_Ord)
 apply (rule cmult_commute [THEN ssubst])
@@ -658,13 +658,13 @@ apply (simp_all add: InfCard_is_Limit [THEN Limit_has_0] InfCard_le_cmult_eq
                      subset_Un_iff2 [THEN iffD1] le_imp_subset)
 done
 
-lemma InfCard_cdouble_eq: "InfCard(K) ==> K |+| K = K"
+lemma InfCard_cdouble_eq: "InfCard(K) ==> K \<oplus> K = K"
 apply (simp add: cmult_2 [symmetric] InfCard_is_Card cmult_commute)
 apply (simp add: InfCard_le_cmult_eq InfCard_is_Limit Limit_has_0 Limit_has_succ)
 done
 
 (*Corollary 10.13 (1), for cardinal addition*)
-lemma InfCard_le_cadd_eq: "[| InfCard(K);  L \<le> K |] ==> K |+| L = K"
+lemma InfCard_le_cadd_eq: "[| InfCard(K);  L \<le> K |] ==> K \<oplus> L = K"
 apply (rule le_anti_sym)
  prefer 2
  apply (erule ltE, blast intro: cadd_le_self InfCard_is_Card)
@@ -673,7 +673,7 @@ apply (rule cadd_le_mono [THEN le_trans], assumption+)
 apply (simp add: InfCard_cdouble_eq)
 done
 
-lemma InfCard_cadd_eq: "[| InfCard(K);  InfCard(L) |] ==> K |+| L = K \<union> L"
+lemma InfCard_cadd_eq: "[| InfCard(K);  InfCard(L) |] ==> K \<oplus> L = K \<union> L"
 apply (rule_tac i = K and j = L in Ord_linear_le)
 apply (typecheck add: InfCard_is_Card Card_is_Ord)
 apply (rule cadd_commute [THEN ssubst])
@@ -704,7 +704,7 @@ done
 
 (*Allows selective unfolding.  Less work than deriving intro/elim rules*)
 lemma jump_cardinal_iff:
-     "i \<in> jump_cardinal(K) <->
+     "i \<in> jump_cardinal(K) \<longleftrightarrow>
       (\<exists>r X. r \<subseteq> K*K & X \<subseteq> K & well_ord(X,r) & i = ordertype(X,r))"
 apply (unfold jump_cardinal_def)
 apply (blast del: subsetI)
@@ -766,7 +766,7 @@ apply (rule Least_le)
 apply (blast intro: Card_is_Ord)+
 done
 
-lemma lt_csucc_iff: "[| Ord(i); Card(K) |] ==> i < csucc(K) <-> |i| \<le> K"
+lemma lt_csucc_iff: "[| Ord(i); Card(K) |] ==> i < csucc(K) \<longleftrightarrow> |i| \<le> K"
 apply (rule iffI)
 apply (rule_tac [2] Card_lt_imp_lt)
 apply (erule_tac [2] lt_trans1)
@@ -778,7 +778,7 @@ apply (simp_all add: Ord_cardinal Card_is_Ord)
 done
 
 lemma Card_lt_csucc_iff:
-     "[| Card(K'); Card(K) |] ==> K' < csucc(K) <-> K' \<le> K"
+     "[| Card(K'); Card(K) |] ==> K' < csucc(K) \<longleftrightarrow> K' \<le> K"
 by (simp add: lt_csucc_iff Card_cardinal_eq Card_is_Ord)
 
 lemma InfCard_csucc: "InfCard(K) ==> InfCard(csucc(K))"

@@ -433,10 +433,10 @@ lemma VsetI: "rank(x)<i ==> x \<in> Vset(i)"
 by (blast intro: VsetI_lemma elim: ltE)
 
 text{*Merely a lemma for the next result*}
-lemma Vset_Ord_rank_iff: "Ord(i) ==> b \<in> Vset(i) <-> rank(b) < i"
+lemma Vset_Ord_rank_iff: "Ord(i) ==> b \<in> Vset(i) \<longleftrightarrow> rank(b) < i"
 by (blast intro: VsetD VsetI)
 
-lemma Vset_rank_iff [simp]: "b \<in> Vset(a) <-> rank(b) < rank(a)"
+lemma Vset_rank_iff [simp]: "b \<in> Vset(a) \<longleftrightarrow> rank(b) < rank(a)"
 apply (rule Vfrom_rank_eq [THEN subst])
 apply (rule Ord_rank [THEN Vset_Ord_rank_iff])
 done
@@ -766,10 +766,10 @@ by (drule Transset_Vfrom_succ [THEN equalityD1, THEN subsetD, THEN PowD],
 text{*This weaker version says a, b exist at the same level*}
 lemmas Vfrom_doubleton_D = Transset_Vfrom [THEN Transset_doubleton_D]
 
-(** Using only the weaker theorem would prove <a,b> : Vfrom(X,i)
-      implies a, b : Vfrom(X,i), which is useless for induction.
-    Using only the stronger theorem would prove <a,b> : Vfrom(X,succ(succ(i)))
-      implies a, b : Vfrom(X,i), leaving the succ(i) case untreated.
+(** Using only the weaker theorem would prove <a,b> \<in> Vfrom(X,i)
+      implies a, b \<in> Vfrom(X,i), which is useless for induction.
+    Using only the stronger theorem would prove <a,b> \<in> Vfrom(X,succ(succ(i)))
+      implies a, b \<in> Vfrom(X,i), leaving the succ(i) case untreated.
     The combination gives a reduction by precisely one level, which is
       most convenient for proofs.
 **)

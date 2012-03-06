@@ -31,13 +31,13 @@ lemmas [simp] =
 
 (** Combining of literal coefficients in sums of products **)
 
-lemma zless_iff_zdiff_zless_0: "(x $< y) <-> (x$-y $< #0)"
+lemma zless_iff_zdiff_zless_0: "(x $< y) \<longleftrightarrow> (x$-y $< #0)"
   by (simp add: zcompare_rls)
 
-lemma eq_iff_zdiff_eq_0: "[| x: int; y: int |] ==> (x = y) <-> (x$-y = #0)"
+lemma eq_iff_zdiff_eq_0: "[| x: int; y: int |] ==> (x = y) \<longleftrightarrow> (x$-y = #0)"
   by (simp add: zcompare_rls)
 
-lemma zle_iff_zdiff_zle_0: "(x $<= y) <-> (x$-y $<= #0)"
+lemma zle_iff_zdiff_zle_0: "(x $<= y) \<longleftrightarrow> (x$-y $<= #0)"
   by (simp add: zcompare_rls)
 
 
@@ -58,33 +58,33 @@ lemmas rel_iff_rel_0_rls =
   zle_iff_zdiff_zle_0 [where y = n]
   for u v (* FIXME n (!?) *)
 
-lemma eq_add_iff1: "(i$*u $+ m = j$*u $+ n) <-> ((i$-j)$*u $+ m = intify(n))"
+lemma eq_add_iff1: "(i$*u $+ m = j$*u $+ n) \<longleftrightarrow> ((i$-j)$*u $+ m = intify(n))"
   apply (simp add: zdiff_def zadd_zmult_distrib)
   apply (simp add: zcompare_rls)
   apply (simp add: zadd_ac)
   done
 
-lemma eq_add_iff2: "(i$*u $+ m = j$*u $+ n) <-> (intify(m) = (j$-i)$*u $+ n)"
+lemma eq_add_iff2: "(i$*u $+ m = j$*u $+ n) \<longleftrightarrow> (intify(m) = (j$-i)$*u $+ n)"
   apply (simp add: zdiff_def zadd_zmult_distrib)
   apply (simp add: zcompare_rls)
   apply (simp add: zadd_ac)
   done
 
-lemma less_add_iff1: "(i$*u $+ m $< j$*u $+ n) <-> ((i$-j)$*u $+ m $< n)"
+lemma less_add_iff1: "(i$*u $+ m $< j$*u $+ n) \<longleftrightarrow> ((i$-j)$*u $+ m $< n)"
   apply (simp add: zdiff_def zadd_zmult_distrib zadd_ac rel_iff_rel_0_rls)
   done
 
-lemma less_add_iff2: "(i$*u $+ m $< j$*u $+ n) <-> (m $< (j$-i)$*u $+ n)"
+lemma less_add_iff2: "(i$*u $+ m $< j$*u $+ n) \<longleftrightarrow> (m $< (j$-i)$*u $+ n)"
   apply (simp add: zdiff_def zadd_zmult_distrib zadd_ac rel_iff_rel_0_rls)
   done
 
-lemma le_add_iff1: "(i$*u $+ m $<= j$*u $+ n) <-> ((i$-j)$*u $+ m $<= n)"
+lemma le_add_iff1: "(i$*u $+ m $<= j$*u $+ n) \<longleftrightarrow> ((i$-j)$*u $+ m $<= n)"
   apply (simp add: zdiff_def zadd_zmult_distrib)
   apply (simp add: zcompare_rls)
   apply (simp add: zadd_ac)
   done
 
-lemma le_add_iff2: "(i$*u $+ m $<= j$*u $+ n) <-> (m $<= (j$-i)$*u $+ n)"
+lemma le_add_iff2: "(i$*u $+ m $<= j$*u $+ n) \<longleftrightarrow> (m $<= (j$-i)$*u $+ n)"
   apply (simp add: zdiff_def zadd_zmult_distrib)
   apply (simp add: zcompare_rls)
   apply (simp add: zadd_ac)

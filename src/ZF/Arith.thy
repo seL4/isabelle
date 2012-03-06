@@ -311,7 +311,7 @@ done
 lemma add_lt_elim1: "[| k#+m < k#+n; m \<in> nat; n \<in> nat |] ==> m < n"
 by (drule add_lt_elim1_natify, auto)
 
-lemma zero_less_add: "[| n \<in> nat; m \<in> nat |] ==> 0 < m #+ n <-> (0<m | 0<n)"
+lemma zero_less_add: "[| n \<in> nat; m \<in> nat |] ==> 0 < m #+ n \<longleftrightarrow> (0<m | 0<n)"
 by (induct_tac "n", auto)
 
 
@@ -441,13 +441,13 @@ by (rule_tac m="natify(i)" and n="natify(j)" in diff_induct, auto)
 
 (** Lemmas for the CancelNumerals simproc **)
 
-lemma eq_add_iff: "(u #+ m = u #+ n) <-> (0 #+ m = natify(n))"
+lemma eq_add_iff: "(u #+ m = u #+ n) \<longleftrightarrow> (0 #+ m = natify(n))"
 apply auto
 apply (blast dest: add_left_cancel_natify)
 apply (simp add: add_def)
 done
 
-lemma less_add_iff: "(u #+ m < u #+ n) <-> (0 #+ m < natify(n))"
+lemma less_add_iff: "(u #+ m < u #+ n) \<longleftrightarrow> (0 #+ m < natify(n))"
 apply (auto simp add: add_lt_elim1_natify)
 apply (drule add_lt_mono1)
 apply (auto simp add: add_commute [of u])
@@ -460,7 +460,7 @@ by (simp add: diff_cancel)
 lemma eq_cong2: "u = u' ==> (t==u) == (t==u')"
 by auto
 
-lemma iff_cong2: "u <-> u' ==> (t==u) == (t==u')"
+lemma iff_cong2: "u \<longleftrightarrow> u' ==> (t==u) == (t==u')"
 by auto
 
 
@@ -543,11 +543,11 @@ lemmas mult_ac = mult_assoc mult_commute mult_left_commute
 
 lemma lt_succ_eq_0_disj:
      "[| m\<in>nat; n\<in>nat |]
-      ==> (m < succ(n)) <-> (m = 0 | (\<exists>j\<in>nat. m = succ(j) & j < n))"
+      ==> (m < succ(n)) \<longleftrightarrow> (m = 0 | (\<exists>j\<in>nat. m = succ(j) & j < n))"
 by (induct_tac "m", auto)
 
 lemma less_diff_conv [rule_format]:
-     "[| j\<in>nat; k\<in>nat |] ==> \<forall>i\<in>nat. (i < j #- k) <-> (i #+ k < j)"
+     "[| j\<in>nat; k\<in>nat |] ==> \<forall>i\<in>nat. (i < j #- k) \<longleftrightarrow> (i #+ k < j)"
 by (erule_tac m = k in diff_induct, auto)
 
 lemmas nat_typechecks = rec_type nat_0I nat_1I nat_succI Ord_nat

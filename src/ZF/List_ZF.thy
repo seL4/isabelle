@@ -136,11 +136,11 @@ declare list.intros [simp,TC]
 (*An elimination rule, for type-checking*)
 inductive_cases ConsE: "Cons(a,l) \<in> list(A)"
 
-lemma Cons_type_iff [simp]: "Cons(a,l) \<in> list(A) <-> a \<in> A & l \<in> list(A)"
+lemma Cons_type_iff [simp]: "Cons(a,l) \<in> list(A) \<longleftrightarrow> a \<in> A & l \<in> list(A)"
 by (blast elim: ConsE)
 
 (*Proving freeness results*)
-lemma Cons_iff: "Cons(a,l)=Cons(a',l') <-> a=a' & l=l'"
+lemma Cons_iff: "Cons(a,l)=Cons(a',l') \<longleftrightarrow> a=a' & l=l'"
 by auto
 
 lemma Nil_Cons_iff: "~ Nil=Cons(a,l)"
@@ -480,7 +480,7 @@ apply (unfold min_def)
 apply (auto dest: not_lt_imp_le)
 done
 
-lemma lt_min_iff: "[| i:nat; j:nat; k:nat |] ==> i<min(j,k) <-> i<j & i<k"
+lemma lt_min_iff: "[| i:nat; j:nat; k:nat |] ==> i<min(j,k) \<longleftrightarrow> i<j & i<k"
 apply (unfold min_def)
 apply (auto dest!: not_lt_imp_le intro: lt_trans2 lt_trans)
 done
@@ -518,43 +518,43 @@ by (induct_tac "xs", auto)
 
 (** length **)
 
-lemma length_is_0_iff [simp]: "xs:list(A) ==> length(xs)=0 <-> xs=Nil"
+lemma length_is_0_iff [simp]: "xs:list(A) ==> length(xs)=0 \<longleftrightarrow> xs=Nil"
 by (erule list.induct, auto)
 
-lemma length_is_0_iff2 [simp]: "xs:list(A) ==> 0 = length(xs) <-> xs=Nil"
+lemma length_is_0_iff2 [simp]: "xs:list(A) ==> 0 = length(xs) \<longleftrightarrow> xs=Nil"
 by (erule list.induct, auto)
 
 lemma length_tl [simp]: "xs:list(A) ==> length(tl(xs)) = length(xs) #- 1"
 by (erule list.induct, auto)
 
-lemma length_greater_0_iff: "xs:list(A) ==> 0<length(xs) <-> xs \<noteq> Nil"
+lemma length_greater_0_iff: "xs:list(A) ==> 0<length(xs) \<longleftrightarrow> xs \<noteq> Nil"
 by (erule list.induct, auto)
 
-lemma length_succ_iff: "xs:list(A) ==> length(xs)=succ(n) <-> (\<exists>y ys. xs=Cons(y, ys) & length(ys)=n)"
+lemma length_succ_iff: "xs:list(A) ==> length(xs)=succ(n) \<longleftrightarrow> (\<exists>y ys. xs=Cons(y, ys) & length(ys)=n)"
 by (erule list.induct, auto)
 
 (** more theorems about append **)
 
 lemma append_is_Nil_iff [simp]:
-     "xs:list(A) ==> (xs@ys = Nil) <-> (xs=Nil & ys = Nil)"
+     "xs:list(A) ==> (xs@ys = Nil) \<longleftrightarrow> (xs=Nil & ys = Nil)"
 by (erule list.induct, auto)
 
 lemma append_is_Nil_iff2 [simp]:
-     "xs:list(A) ==> (Nil = xs@ys) <-> (xs=Nil & ys = Nil)"
+     "xs:list(A) ==> (Nil = xs@ys) \<longleftrightarrow> (xs=Nil & ys = Nil)"
 by (erule list.induct, auto)
 
 lemma append_left_is_self_iff [simp]:
-     "xs:list(A) ==> (xs@ys = xs) <-> (ys = Nil)"
+     "xs:list(A) ==> (xs@ys = xs) \<longleftrightarrow> (ys = Nil)"
 by (erule list.induct, auto)
 
 lemma append_left_is_self_iff2 [simp]:
-     "xs:list(A) ==> (xs = xs@ys) <-> (ys = Nil)"
+     "xs:list(A) ==> (xs = xs@ys) \<longleftrightarrow> (ys = Nil)"
 by (erule list.induct, auto)
 
 (*TOO SLOW as a default simprule!*)
 lemma append_left_is_Nil_iff [rule_format]:
      "[| xs:list(A); ys:list(A); zs:list(A) |] ==>
-   length(ys)=length(zs) \<longrightarrow> (xs@ys=zs <-> (xs=Nil & ys=zs))"
+   length(ys)=length(zs) \<longrightarrow> (xs@ys=zs \<longleftrightarrow> (xs=Nil & ys=zs))"
 apply (erule list.induct)
 apply (auto simp add: length_app)
 done
@@ -562,14 +562,14 @@ done
 (*TOO SLOW as a default simprule!*)
 lemma append_left_is_Nil_iff2 [rule_format]:
      "[| xs:list(A); ys:list(A); zs:list(A) |] ==>
-   length(ys)=length(zs) \<longrightarrow> (zs=ys@xs <-> (xs=Nil & ys=zs))"
+   length(ys)=length(zs) \<longrightarrow> (zs=ys@xs \<longleftrightarrow> (xs=Nil & ys=zs))"
 apply (erule list.induct)
 apply (auto simp add: length_app)
 done
 
 lemma append_eq_append_iff [rule_format,simp]:
      "xs:list(A) ==> \<forall>ys \<in> list(A).
-      length(xs)=length(ys) \<longrightarrow> (xs@us = ys@vs) <-> (xs=ys & us=vs)"
+      length(xs)=length(ys) \<longrightarrow> (xs@us = ys@vs) \<longleftrightarrow> (xs=ys & us=vs)"
 apply (erule list.induct)
 apply (simp (no_asm_simp))
 apply clarify
@@ -589,23 +589,23 @@ done
 
 lemma append_eq_append_iff2 [simp]:
  "[| xs:list(A); ys:list(A); us:list(A); vs:list(A); length(us)=length(vs) |]
-  ==>  xs@us = ys@vs <-> (xs=ys & us=vs)"
+  ==>  xs@us = ys@vs \<longleftrightarrow> (xs=ys & us=vs)"
 apply (rule iffI)
 apply (rule append_eq_append, auto)
 done
 
 lemma append_self_iff [simp]:
-     "[| xs:list(A); ys:list(A); zs:list(A) |] ==> xs@ys=xs@zs <-> ys=zs"
+     "[| xs:list(A); ys:list(A); zs:list(A) |] ==> xs@ys=xs@zs \<longleftrightarrow> ys=zs"
 by simp
 
 lemma append_self_iff2 [simp]:
-     "[| xs:list(A); ys:list(A); zs:list(A) |] ==> ys@xs=zs@xs <-> ys=zs"
+     "[| xs:list(A); ys:list(A); zs:list(A) |] ==> ys@xs=zs@xs \<longleftrightarrow> ys=zs"
 by simp
 
 (* Can also be proved from append_eq_append_iff2,
 but the proof requires two more hypotheses: x:A and y:A *)
 lemma append1_eq_iff [rule_format,simp]:
-     "xs:list(A) ==> \<forall>ys \<in> list(A). xs@[x] = ys@[y] <-> (xs = ys & x=y)"
+     "xs:list(A) ==> \<forall>ys \<in> list(A). xs@[x] = ys@[y] \<longleftrightarrow> (xs = ys & x=y)"
 apply (erule list.induct)
  apply clarify
  apply (erule list.cases)
@@ -617,11 +617,11 @@ done
 
 
 lemma append_right_is_self_iff [simp]:
-     "[| xs:list(A); ys:list(A) |] ==> (xs@ys = ys) <-> (xs=Nil)"
+     "[| xs:list(A); ys:list(A) |] ==> (xs@ys = ys) \<longleftrightarrow> (xs=Nil)"
 by (simp (no_asm_simp) add: append_left_is_Nil_iff)
 
 lemma append_right_is_self_iff2 [simp]:
-     "[| xs:list(A); ys:list(A) |] ==> (ys = xs@ys) <-> (xs=Nil)"
+     "[| xs:list(A); ys:list(A) |] ==> (ys = xs@ys) \<longleftrightarrow> (xs=Nil)"
 apply (rule iffI)
 apply (drule sym, auto)
 done
@@ -635,14 +635,14 @@ lemma tl_append [rule_format,simp]:
 by (induct_tac "xs", auto)
 
 (** rev **)
-lemma rev_is_Nil_iff [simp]: "xs:list(A) ==> (rev(xs) = Nil <-> xs = Nil)"
+lemma rev_is_Nil_iff [simp]: "xs:list(A) ==> (rev(xs) = Nil \<longleftrightarrow> xs = Nil)"
 by (erule list.induct, auto)
 
-lemma Nil_is_rev_iff [simp]: "xs:list(A) ==> (Nil = rev(xs) <-> xs = Nil)"
+lemma Nil_is_rev_iff [simp]: "xs:list(A) ==> (Nil = rev(xs) \<longleftrightarrow> xs = Nil)"
 by (erule list.induct, auto)
 
 lemma rev_is_rev_iff [rule_format,simp]:
-     "xs:list(A) ==> \<forall>ys \<in> list(A). rev(xs)=rev(ys) <-> xs=ys"
+     "xs:list(A) ==> \<forall>ys \<in> list(A). rev(xs)=rev(ys) \<longleftrightarrow> xs=ys"
 apply (erule list.induct, force, clarify)
 apply (erule_tac a = ys in list.cases, auto)
 done
@@ -1027,7 +1027,7 @@ done
 lemma list_update_same_conv [rule_format]:
      "xs:list(A) ==>
       \<forall>i \<in> nat. i < length(xs) \<longrightarrow>
-                 (list_update(xs, i, x) = xs) <-> (nth(i, xs) = x)"
+                 (list_update(xs, i, x) = xs) \<longleftrightarrow> (nth(i, xs) = x)"
 apply (induct_tac "xs")
  apply (simp (no_asm))
 apply clarify

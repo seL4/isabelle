@@ -6,6 +6,10 @@ header {* Rings *}
 
 theory Ring imports Group begin
 
+no_notation
+  cadd  (infixl "\<oplus>" 65) and
+  cmult  (infixl "\<otimes>" 70)
+
 (*First, we must simulate a record declaration:
 record ring = monoid +
   add :: "[i, i] => i" (infixl "\<oplus>\<index>" 65)
@@ -46,7 +50,7 @@ definition
   "\<lbrakk>x \<in> carrier(R); y \<in> carrier(R)\<rbrakk> \<Longrightarrow> x \<ominus>\<^bsub>R\<^esub> y = x \<oplus>\<^bsub>R\<^esub> (\<ominus>\<^bsub>R\<^esub> y)"
 
 locale abelian_monoid = fixes G (structure)
-  assumes a_comm_monoid: 
+  assumes a_comm_monoid:
     "comm_monoid (<carrier(G), add_field(G), zero(G), 0>)"
 
 text {*
@@ -54,7 +58,7 @@ text {*
 *}
 
 locale abelian_group = abelian_monoid +
-  assumes a_comm_group: 
+  assumes a_comm_group:
     "comm_group (<carrier(G), add_field(G), zero(G), 0>)"
 
 locale ring = abelian_group R + monoid R for R (structure) +
@@ -75,21 +79,21 @@ subsection {* Basic Properties *}
 
 lemma (in abelian_monoid) a_monoid:
      "monoid (<carrier(G), add_field(G), zero(G), 0>)"
-apply (insert a_comm_monoid) 
-apply (simp add: comm_monoid_def) 
+apply (insert a_comm_monoid)
+apply (simp add: comm_monoid_def)
 done
 
 lemma (in abelian_group) a_group:
      "group (<carrier(G), add_field(G), zero(G), 0>)"
-apply (insert a_comm_group) 
-apply (simp add: comm_group_def group_def) 
+apply (insert a_comm_group)
+apply (simp add: comm_group_def group_def)
 done
 
 
 lemma (in abelian_monoid) l_zero [simp]:
      "x \<in> carrier(G) \<Longrightarrow> \<zero> \<oplus> x = x"
 apply (insert monoid.l_one [OF a_monoid])
-apply (simp add: ring_add_def) 
+apply (simp add: ring_add_def)
 done
 
 lemma (in abelian_monoid) zero_closed [intro, simp]:
@@ -102,7 +106,7 @@ by (simp add: a_inv_def  group.inv_closed [OF a_group, simplified])
 
 lemma (in abelian_monoid) a_closed [intro, simp]:
      "[| x \<in> carrier(G); y \<in> carrier(G) |] ==> x \<oplus> y \<in> carrier(G)"
-by (rule monoid.m_closed [OF a_monoid, 
+by (rule monoid.m_closed [OF a_monoid,
                   simplified, simplified ring_add_def [symmetric]])
 
 lemma (in abelian_group) minus_closed [intro, simp]:
@@ -110,18 +114,18 @@ lemma (in abelian_group) minus_closed [intro, simp]:
 by (simp add: minus_def)
 
 lemma (in abelian_group) a_l_cancel [simp]:
-     "\<lbrakk>x \<in> carrier(G); y \<in> carrier(G); z \<in> carrier(G)\<rbrakk> 
+     "\<lbrakk>x \<in> carrier(G); y \<in> carrier(G); z \<in> carrier(G)\<rbrakk>
       \<Longrightarrow> (x \<oplus> y = x \<oplus> z) <-> (y = z)"
-by (rule group.l_cancel [OF a_group, 
+by (rule group.l_cancel [OF a_group,
              simplified, simplified ring_add_def [symmetric]])
 
 lemma (in abelian_group) a_r_cancel [simp]:
-     "\<lbrakk>x \<in> carrier(G); y \<in> carrier(G); z \<in> carrier(G)\<rbrakk> 
+     "\<lbrakk>x \<in> carrier(G); y \<in> carrier(G); z \<in> carrier(G)\<rbrakk>
       \<Longrightarrow> (y \<oplus> x = z \<oplus> x) <-> (y = z)"
 by (rule group.r_cancel [OF a_group, simplified, simplified ring_add_def [symmetric]])
 
 lemma (in abelian_monoid) a_assoc:
-  "\<lbrakk>x \<in> carrier(G); y \<in> carrier(G); z \<in> carrier(G)\<rbrakk> 
+  "\<lbrakk>x \<in> carrier(G); y \<in> carrier(G); z \<in> carrier(G)\<rbrakk>
    \<Longrightarrow> (x \<oplus> y) \<oplus> z = x \<oplus> (y \<oplus> z)"
 by (rule monoid.m_assoc [OF a_monoid, simplified, simplified ring_add_def [symmetric]])
 
@@ -136,7 +140,7 @@ by (rule comm_monoid.m_comm [OF a_comm_monoid,
     simplified, simplified ring_add_def [symmetric]])
 
 lemma (in abelian_monoid) a_lcomm:
-     "\<lbrakk>x \<in> carrier(G); y \<in> carrier(G); z \<in> carrier(G)\<rbrakk> 
+     "\<lbrakk>x \<in> carrier(G); y \<in> carrier(G); z \<in> carrier(G)\<rbrakk>
       \<Longrightarrow> x \<oplus> (y \<oplus> z) = y \<oplus> (x \<oplus> z)"
 by (rule comm_monoid.m_lcomm [OF a_comm_monoid,
     simplified, simplified ring_add_def [symmetric]])
@@ -168,7 +172,7 @@ lemma (in abelian_group) minus_add:
 
 lemmas (in abelian_monoid) a_ac = a_assoc a_comm a_lcomm
 
-text {* 
+text {*
   The following proofs are from Jacobson, Basic Algebra I, pp.~88--89
 *}
 
@@ -179,7 +183,7 @@ lemma l_null [simp]: "x \<in> carrier(R) \<Longrightarrow> \<zero> \<cdot> x = \
 proof -
   assume R: "x \<in> carrier(R)"
   then have "\<zero> \<cdot> x \<oplus> \<zero> \<cdot> x = (\<zero> \<oplus> \<zero>) \<cdot> x"
-    by (blast intro: l_distr [THEN sym]) 
+    by (blast intro: l_distr [THEN sym])
   also from R have "... = \<zero> \<cdot> x \<oplus> \<zero>" by simp
   finally have "\<zero> \<cdot> x \<oplus> \<zero> \<cdot> x = \<zero> \<cdot> x \<oplus> \<zero>" .
   with R show ?thesis by (simp del: r_zero)
@@ -250,12 +254,12 @@ lemma ring_hom_closed:
 by (auto simp add: ring_hom_def)
 
 lemma ring_hom_mult:
-     "\<lbrakk>h \<in> ring_hom(R,S); x \<in> carrier(R); y \<in> carrier(R)\<rbrakk> 
+     "\<lbrakk>h \<in> ring_hom(R,S); x \<in> carrier(R); y \<in> carrier(R)\<rbrakk>
       \<Longrightarrow> h ` (x \<cdot>\<^bsub>R\<^esub> y) = (h ` x) \<cdot>\<^bsub>S\<^esub> (h ` y)"
 by (simp add: ring_hom_def)
 
 lemma ring_hom_add:
-     "\<lbrakk>h \<in> ring_hom(R,S); x \<in> carrier(R); y \<in> carrier(R)\<rbrakk> 
+     "\<lbrakk>h \<in> ring_hom(R,S); x \<in> carrier(R); y \<in> carrier(R)\<rbrakk>
       \<Longrightarrow> h ` (x \<oplus>\<^bsub>R\<^esub> y) = (h ` x) \<oplus>\<^bsub>S\<^esub> (h ` y)"
 by (simp add: ring_hom_def)
 
@@ -288,8 +292,8 @@ proof -
 qed
 
 lemma (in ring) id_ring_hom [simp]: "id(carrier(R)) \<in> ring_hom(R,R)"
-apply (rule ring_hom_memI)  
-apply (auto simp add: id_type) 
+apply (rule ring_hom_memI)
+apply (auto simp add: id_type)
 done
 
 end

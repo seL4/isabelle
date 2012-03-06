@@ -25,7 +25,7 @@ apply (rule AC_well_ord [THEN exE])
 apply (rule well_ord_cardinal_eqE, assumption+)
 done
 
-lemma cardinal_eqpoll_iff: "|X| = |Y| <-> X eqpoll Y"
+lemma cardinal_eqpoll_iff: "|X| = |Y| \<longleftrightarrow> X eqpoll Y"
 by (blast intro: cardinal_cong cardinal_eqE)
 
 lemma cardinal_disjoint_Un:
@@ -38,21 +38,21 @@ apply (rule AC_well_ord [THEN exE])
 apply (erule well_ord_lepoll_imp_Card_le, assumption)
 done
 
-lemma cadd_assoc: "(i |+| j) |+| k = i |+| (j |+| k)"
+lemma cadd_assoc: "(i \<oplus> j) \<oplus> k = i \<oplus> (j \<oplus> k)"
 apply (rule AC_well_ord [THEN exE])
 apply (rule AC_well_ord [THEN exE])
 apply (rule AC_well_ord [THEN exE])
 apply (rule well_ord_cadd_assoc, assumption+)
 done
 
-lemma cmult_assoc: "(i |*| j) |*| k = i |*| (j |*| k)"
+lemma cmult_assoc: "(i \<otimes> j) \<otimes> k = i \<otimes> (j \<otimes> k)"
 apply (rule AC_well_ord [THEN exE])
 apply (rule AC_well_ord [THEN exE])
 apply (rule AC_well_ord [THEN exE])
 apply (rule well_ord_cmult_assoc, assumption+)
 done
 
-lemma cadd_cmult_distrib: "(i |+| j) |*| k = (i |*| k) |+| (j |*| k)"
+lemma cadd_cmult_distrib: "(i \<oplus> j) \<otimes> k = (i \<otimes> k) \<oplus> (j \<otimes> k)"
 apply (rule AC_well_ord [THEN exE])
 apply (rule AC_well_ord [THEN exE])
 apply (rule AC_well_ord [THEN exE])
@@ -74,19 +74,19 @@ apply (erule le_imp_subset [THEN subset_imp_lepoll, THEN lepoll_trans])
 apply (rule cardinal_eqpoll [THEN eqpoll_imp_lepoll])
 done
 
-lemma le_Card_iff: "Card(K) ==> |A| \<le> K <-> A lepoll K"
+lemma le_Card_iff: "Card(K) ==> |A| \<le> K \<longleftrightarrow> A lepoll K"
 apply (erule Card_cardinal_eq [THEN subst], rule iffI,
        erule Card_le_imp_lepoll)
 apply (erule lepoll_imp_Card_le)
 done
 
-lemma cardinal_0_iff_0 [simp]: "|A| = 0 <-> A = 0";
+lemma cardinal_0_iff_0 [simp]: "|A| = 0 \<longleftrightarrow> A = 0";
 apply auto
 apply (drule cardinal_0 [THEN ssubst])
 apply (blast intro: eqpoll_0_iff [THEN iffD1] cardinal_eqpoll_iff [THEN iffD1])
 done
 
-lemma cardinal_lt_iff_lesspoll: "Ord(i) ==> i < |A| <-> i lesspoll A"
+lemma cardinal_lt_iff_lesspoll: "Ord(i) ==> i < |A| \<longleftrightarrow> i lesspoll A"
 apply (cut_tac A = "A" in cardinal_eqpoll)
 apply (auto simp add: eqpoll_iff)
 apply (blast intro: lesspoll_trans2 lt_Card_imp_lesspoll Card_cardinal)

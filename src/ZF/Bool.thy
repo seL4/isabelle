@@ -164,10 +164,10 @@ by (simp add: bool_of_o_def)
 lemma [simp,TC]: "bool_of_o(P) \<in> bool"
 by (simp add: bool_of_o_def)
 
-lemma [simp]: "(bool_of_o(P) = 1) <-> P"
+lemma [simp]: "(bool_of_o(P) = 1) \<longleftrightarrow> P"
 by (simp add: bool_of_o_def)
 
-lemma [simp]: "(bool_of_o(P) = 0) <-> ~P"
+lemma [simp]: "(bool_of_o(P) = 0) \<longleftrightarrow> ~P"
 by (simp add: bool_of_o_def)
 
 end

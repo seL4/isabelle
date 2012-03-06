@@ -107,7 +107,7 @@ subsection{*Proving that @{term intrel} is an equivalence relation*}
 (** Natural deduction for intrel **)
 
 lemma intrel_iff [simp]: 
-    "<<x1,y1>,<x2,y2>>: intrel <->  
+    "<<x1,y1>,<x2,y2>>: intrel \<longleftrightarrow>  
      x1\<in>nat & y1\<in>nat & x2\<in>nat & y2\<in>nat & x1#+y2 = x2#+y1"
 by (simp add: intrel_def)
 
@@ -148,7 +148,7 @@ lemmas eq_intrelD = eq_equiv_class [OF _ equiv_intrel]
 lemma int_of_type [simp,TC]: "$#m \<in> int"
 by (simp add: int_def quotient_def int_of_def, auto)
 
-lemma int_of_eq [iff]: "($# m = $# n) <-> natify(m)=natify(n)"
+lemma int_of_eq [iff]: "($# m = $# n) \<longleftrightarrow> natify(m)=natify(n)"
 by (simp add: int_of_def)
 
 lemma int_of_inject: "[| $#m = $#n;  m\<in>nat;  n\<in>nat |] ==> m=n"
@@ -202,16 +202,16 @@ by (simp add: zmult_def)
 
 (** Orderings **)
 
-lemma zless_intify1 [simp]:"intify(x) $< y <-> x $< y"
+lemma zless_intify1 [simp]:"intify(x) $< y \<longleftrightarrow> x $< y"
 by (simp add: zless_def)
 
-lemma zless_intify2 [simp]:"x $< intify(y) <-> x $< y"
+lemma zless_intify2 [simp]:"x $< intify(y) \<longleftrightarrow> x $< y"
 by (simp add: zless_def)
 
-lemma zle_intify1 [simp]:"intify(x) $<= y <-> x $<= y"
+lemma zle_intify1 [simp]:"intify(x) $<= y \<longleftrightarrow> x $<= y"
 by (simp add: zle_def)
 
-lemma zle_intify2 [simp]:"x $<= intify(y) <-> x $<= y"
+lemma zle_intify2 [simp]:"x $<= intify(y) \<longleftrightarrow> x $<= y"
 by (simp add: zle_def)
 
 
@@ -268,7 +268,7 @@ by simp
 
 subsection{*@{term znegative}: the test for negative integers*}
 
-lemma znegative: "[| x\<in>nat; y\<in>nat |] ==> znegative(intrel``{<x,y>}) <-> x<y"
+lemma znegative: "[| x\<in>nat; y\<in>nat |] ==> znegative(intrel``{<x,y>}) \<longleftrightarrow> x<y"
 apply (cases "x<y") 
 apply (auto simp add: znegative_def not_lt_iff_le)
 apply (subgoal_tac "y #+ x2 < x #+ y2", force) 
@@ -644,7 +644,7 @@ done
 lemma zless_not_refl [iff]: "~ (z$<z)"
 by (auto simp add: zless_def znegative_def int_of_def zdiff_def)
 
-lemma neq_iff_zless: "[| x: int; y: int |] ==> (x \<noteq> y) <-> (x $< y | y $< x)"
+lemma neq_iff_zless: "[| x: int; y: int |] ==> (x \<noteq> y) \<longleftrightarrow> (x $< y | y $< x)"
 by (cut_tac z = x and w = y in zless_linear, auto)
 
 lemma zless_imp_intify_neq: "w $< z ==> intify(w) \<noteq> intify(z)"
@@ -682,14 +682,14 @@ lemma zless_succ_zadd: "w $< w $+ $# succ(n)"
 by (cut_tac intify_in_int [THEN zless_succ_zadd_lemma], auto)
 
 lemma zless_iff_succ_zadd:
-     "w $< z <-> (\<exists>n\<in>nat. w $+ $#(succ(n)) = intify(z))"
+     "w $< z \<longleftrightarrow> (\<exists>n\<in>nat. w $+ $#(succ(n)) = intify(z))"
 apply (rule iffI)
 apply (erule zless_imp_succ_zadd, auto)
 apply (rename_tac "n")
 apply (cut_tac w = w and n = n in zless_succ_zadd, auto)
 done
 
-lemma zless_int_of [simp]: "[| m\<in>nat; n\<in>nat |] ==> ($#m $< $#n) <-> (m<n)"
+lemma zless_int_of [simp]: "[| m\<in>nat; n\<in>nat |] ==> ($#m $< $#n) \<longleftrightarrow> (m<n)"
 apply (simp add: less_iff_succ_add zless_iff_succ_zadd int_of_add [symmetric])
 apply (blast intro: sym)
 done
@@ -768,13 +768,13 @@ apply (blast intro: zless_trans)
 apply (simp add: zless_def zdiff_def zminus_def)
 done
 
-lemma not_zless_iff_zle: "~ (z $< w) <-> (w $<= z)"
+lemma not_zless_iff_zle: "~ (z $< w) \<longleftrightarrow> (w $<= z)"
 apply (cut_tac z = z and w = w in zless_linear)
 apply (auto dest: zless_trans simp add: zle_def)
 apply (auto dest!: zless_imp_intify_neq)
 done
 
-lemma not_zle_iff_zless: "~ (z $<= w) <-> (w $< z)"
+lemma not_zle_iff_zless: "~ (z $<= w) \<longleftrightarrow> (w $< z)"
 by (simp add: not_zless_iff_zle [THEN iff_sym])
 
 
@@ -786,32 +786,32 @@ by (simp add: zdiff_def zadd_ac)
 lemma zdiff_zdiff_eq2: "x $- (y $- z) = (x $+ z) $- y"
 by (simp add: zdiff_def zadd_ac)
 
-lemma zdiff_zless_iff: "(x$-y $< z) <-> (x $< z $+ y)"
+lemma zdiff_zless_iff: "(x$-y $< z) \<longleftrightarrow> (x $< z $+ y)"
 by (simp add: zless_def zdiff_def zadd_ac)
 
-lemma zless_zdiff_iff: "(x $< z$-y) <-> (x $+ y $< z)"
+lemma zless_zdiff_iff: "(x $< z$-y) \<longleftrightarrow> (x $+ y $< z)"
 by (simp add: zless_def zdiff_def zadd_ac)
 
-lemma zdiff_eq_iff: "[| x: int; z: int |] ==> (x$-y = z) <-> (x = z $+ y)"
+lemma zdiff_eq_iff: "[| x: int; z: int |] ==> (x$-y = z) \<longleftrightarrow> (x = z $+ y)"
 by (auto simp add: zdiff_def zadd_assoc)
 
-lemma eq_zdiff_iff: "[| x: int; z: int |] ==> (x = z$-y) <-> (x $+ y = z)"
+lemma eq_zdiff_iff: "[| x: int; z: int |] ==> (x = z$-y) \<longleftrightarrow> (x $+ y = z)"
 by (auto simp add: zdiff_def zadd_assoc)
 
 lemma zdiff_zle_iff_lemma:
-     "[| x: int; z: int |] ==> (x$-y $<= z) <-> (x $<= z $+ y)"
+     "[| x: int; z: int |] ==> (x$-y $<= z) \<longleftrightarrow> (x $<= z $+ y)"
 by (auto simp add: zle_def zdiff_eq_iff zdiff_zless_iff)
 
-lemma zdiff_zle_iff: "(x$-y $<= z) <-> (x $<= z $+ y)"
+lemma zdiff_zle_iff: "(x$-y $<= z) \<longleftrightarrow> (x $<= z $+ y)"
 by (cut_tac zdiff_zle_iff_lemma [OF intify_in_int intify_in_int], simp)
 
 lemma zle_zdiff_iff_lemma:
-     "[| x: int; z: int |] ==>(x $<= z$-y) <-> (x $+ y $<= z)"
+     "[| x: int; z: int |] ==>(x $<= z$-y) \<longleftrightarrow> (x $+ y $<= z)"
 apply (auto simp add: zle_def zdiff_eq_iff zless_zdiff_iff)
 apply (auto simp add: zdiff_def zadd_assoc)
 done
 
-lemma zle_zdiff_iff: "(x $<= z$-y) <-> (x $+ y $<= z)"
+lemma zle_zdiff_iff: "(x $<= z$-y) \<longleftrightarrow> (x $+ y $<= z)"
 by (cut_tac zle_zdiff_iff_lemma [ OF intify_in_int intify_in_int], simp)
 
 text{*This list of rewrites simplifies (in)equalities by bringing subtractions
@@ -828,41 +828,41 @@ subsection{*Monotonicity and Cancellation Results for Instantiation
      of the CancelNumerals Simprocs*}
 
 lemma zadd_left_cancel:
-     "[| w: int; w': int |] ==> (z $+ w' = z $+ w) <-> (w' = w)"
+     "[| w: int; w': int |] ==> (z $+ w' = z $+ w) \<longleftrightarrow> (w' = w)"
 apply safe
 apply (drule_tac t = "%x. x $+ ($-z) " in subst_context)
 apply (simp add: zadd_ac)
 done
 
 lemma zadd_left_cancel_intify [simp]:
-     "(z $+ w' = z $+ w) <-> intify(w') = intify(w)"
+     "(z $+ w' = z $+ w) \<longleftrightarrow> intify(w') = intify(w)"
 apply (rule iff_trans)
 apply (rule_tac [2] zadd_left_cancel, auto)
 done
 
 lemma zadd_right_cancel:
-     "[| w: int; w': int |] ==> (w' $+ z = w $+ z) <-> (w' = w)"
+     "[| w: int; w': int |] ==> (w' $+ z = w $+ z) \<longleftrightarrow> (w' = w)"
 apply safe
 apply (drule_tac t = "%x. x $+ ($-z) " in subst_context)
 apply (simp add: zadd_ac)
 done
 
 lemma zadd_right_cancel_intify [simp]:
-     "(w' $+ z = w $+ z) <-> intify(w') = intify(w)"
+     "(w' $+ z = w $+ z) \<longleftrightarrow> intify(w') = intify(w)"
 apply (rule iff_trans)
 apply (rule_tac [2] zadd_right_cancel, auto)
 done
 
-lemma zadd_right_cancel_zless [simp]: "(w' $+ z $< w $+ z) <-> (w' $< w)"
+lemma zadd_right_cancel_zless [simp]: "(w' $+ z $< w $+ z) \<longleftrightarrow> (w' $< w)"
 by (simp add: zdiff_zless_iff [THEN iff_sym] zdiff_def zadd_assoc)
 
-lemma zadd_left_cancel_zless [simp]: "(z $+ w' $< z $+ w) <-> (w' $< w)"
+lemma zadd_left_cancel_zless [simp]: "(z $+ w' $< z $+ w) \<longleftrightarrow> (w' $< w)"
 by (simp add: zadd_commute [of z] zadd_right_cancel_zless)
 
-lemma zadd_right_cancel_zle [simp]: "(w' $+ z $<= w $+ z) <-> w' $<= w"
+lemma zadd_right_cancel_zle [simp]: "(w' $+ z $<= w $+ z) \<longleftrightarrow> w' $<= w"
 by (simp add: zle_def)
 
-lemma zadd_left_cancel_zle [simp]: "(z $+ w' $<= z $+ w) <->  w' $<= w"
+lemma zadd_left_cancel_zle [simp]: "(z $+ w' $<= z $+ w) \<longleftrightarrow>  w' $<= w"
 by (simp add: zadd_commute [of z]  zadd_right_cancel_zle)
 
 
@@ -887,26 +887,26 @@ by (erule zadd_zless_mono1 [THEN zless_zle_trans], simp)
 
 subsection{*Comparison laws*}
 
-lemma zminus_zless_zminus [simp]: "($- x $< $- y) <-> (y $< x)"
+lemma zminus_zless_zminus [simp]: "($- x $< $- y) \<longleftrightarrow> (y $< x)"
 by (simp add: zless_def zdiff_def zadd_ac)
 
-lemma zminus_zle_zminus [simp]: "($- x $<= $- y) <-> (y $<= x)"
+lemma zminus_zle_zminus [simp]: "($- x $<= $- y) \<longleftrightarrow> (y $<= x)"
 by (simp add: not_zless_iff_zle [THEN iff_sym])
 
 subsubsection{*More inequality lemmas*}
 
-lemma equation_zminus: "[| x: int;  y: int |] ==> (x = $- y) <-> (y = $- x)"
+lemma equation_zminus: "[| x: int;  y: int |] ==> (x = $- y) \<longleftrightarrow> (y = $- x)"
 by auto
 
-lemma zminus_equation: "[| x: int;  y: int |] ==> ($- x = y) <-> ($- y = x)"
+lemma zminus_equation: "[| x: int;  y: int |] ==> ($- x = y) \<longleftrightarrow> ($- y = x)"
 by auto
 
-lemma equation_zminus_intify: "(intify(x) = $- y) <-> (intify(y) = $- x)"
+lemma equation_zminus_intify: "(intify(x) = $- y) \<longleftrightarrow> (intify(y) = $- x)"
 apply (cut_tac x = "intify (x) " and y = "intify (y) " in equation_zminus)
 apply auto
 done
 
-lemma zminus_equation_intify: "($- x = intify(y)) <-> ($- y = intify(x))"
+lemma zminus_equation_intify: "($- x = intify(y)) \<longleftrightarrow> ($- y = intify(x))"
 apply (cut_tac x = "intify (x) " and y = "intify (y) " in zminus_equation)
 apply auto
 done
@@ -914,16 +914,16 @@ done
 
 subsubsection{*The next several equations are permutative: watch out!*}
 
-lemma zless_zminus: "(x $< $- y) <-> (y $< $- x)"
+lemma zless_zminus: "(x $< $- y) \<longleftrightarrow> (y $< $- x)"
 by (simp add: zless_def zdiff_def zadd_ac)
 
-lemma zminus_zless: "($- x $< y) <-> ($- y $< x)"
+lemma zminus_zless: "($- x $< y) \<longleftrightarrow> ($- y $< x)"
 by (simp add: zless_def zdiff_def zadd_ac)
 
-lemma zle_zminus: "(x $<= $- y) <-> (y $<= $- x)"
+lemma zle_zminus: "(x $<= $- y) \<longleftrightarrow> (y $<= $- x)"
 by (simp add: not_zless_iff_zle [THEN iff_sym] zminus_zless)
 
-lemma zminus_zle: "($- x $<= y) <-> ($- y $<= x)"
+lemma zminus_zle: "($- x $<= y) \<longleftrightarrow> ($- y $<= x)"
 by (simp add: not_zless_iff_zle [THEN iff_sym] zless_zminus)
 
 end

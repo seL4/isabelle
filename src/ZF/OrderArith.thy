@@ -39,19 +39,19 @@ subsection{*Addition of Relations -- Disjoint Sum*}
 subsubsection{*Rewrite rules.  Can be used to obtain introduction rules*}
 
 lemma radd_Inl_Inr_iff [iff]: 
-    "<Inl(a), Inr(b)> \<in> radd(A,r,B,s)  <->  a:A & b:B"
+    "<Inl(a), Inr(b)> \<in> radd(A,r,B,s)  \<longleftrightarrow>  a:A & b:B"
 by (unfold radd_def, blast)
 
 lemma radd_Inl_iff [iff]: 
-    "<Inl(a'), Inl(a)> \<in> radd(A,r,B,s)  <->  a':A & a:A & <a',a>:r"
+    "<Inl(a'), Inl(a)> \<in> radd(A,r,B,s)  \<longleftrightarrow>  a':A & a:A & <a',a>:r"
 by (unfold radd_def, blast)
 
 lemma radd_Inr_iff [iff]: 
-    "<Inr(b'), Inr(b)> \<in> radd(A,r,B,s) <->  b':B & b:B & <b',b>:s"
+    "<Inr(b'), Inr(b)> \<in> radd(A,r,B,s) \<longleftrightarrow>  b':B & b:B & <b',b>:s"
 by (unfold radd_def, blast)
 
 lemma radd_Inr_Inl_iff [simp]: 
-    "<Inr(b), Inl(a)> \<in> radd(A,r,B,s) <-> False"
+    "<Inr(b), Inl(a)> \<in> radd(A,r,B,s) \<longleftrightarrow> False"
 by (unfold radd_def, blast)
 
 declare radd_Inr_Inl_iff [THEN iffD1, dest!] 
@@ -163,7 +163,7 @@ subsection{*Multiplication of Relations -- Lexicographic Product*}
 subsubsection{*Rewrite rule.  Can be used to obtain introduction rules*}
 
 lemma  rmult_iff [iff]: 
-    "<<a',b'>, <a,b>> \<in> rmult(A,r,B,s) <->        
+    "<<a',b'>, <a,b>> \<in> rmult(A,r,B,s) \<longleftrightarrow>        
             (<a',a>: r  & a':A & a:A & b': B & b: B) |   
             (<b',b>: s  & a'=a & a:A & b': B & b: B)"
 
@@ -307,7 +307,7 @@ subsection{*Inverse Image of a Relation*}
 
 subsubsection{*Rewrite rule*}
 
-lemma rvimage_iff: "<a,b> \<in> rvimage(A,f,r)  <->  <f`a,f`b>: r & a:A & b:A"
+lemma rvimage_iff: "<a,b> \<in> rvimage(A,f,r)  \<longleftrightarrow>  <f`a,f`b>: r & a:A & b:A"
 by (unfold rvimage_def, blast)
 
 subsubsection{*Type checking*}
@@ -450,7 +450,7 @@ apply (blast intro: wftypeI)
 done
 
 theorem wf_iff_subset_rvimage:
-  "relation(r) ==> wf(r) <-> (\<exists>i f A. Ord(i) & r \<subseteq> rvimage(A, f, Memrel(i)))"
+  "relation(r) ==> wf(r) \<longleftrightarrow> (\<exists>i f A. Ord(i) & r \<subseteq> rvimage(A, f, Memrel(i)))"
 by (blast dest!: relation_field_times_field wf_imp_subset_rvimage
           intro: wf_rvimage_Ord [THEN wf_subset])
 
@@ -496,7 +496,7 @@ done
 lemma wf_measure [iff]: "wf(measure(A,f))"
 by (simp (no_asm) add: measure_eq_rvimage_Memrel wf_Memrel wf_rvimage)
 
-lemma measure_iff [iff]: "<x,y> \<in> measure(A,f) <-> x:A & y:A & f(x)<f(y)"
+lemma measure_iff [iff]: "<x,y> \<in> measure(A,f) \<longleftrightarrow> x:A & y:A & f(x)<f(y)"
 by (simp (no_asm) add: measure_def)
 
 lemma linear_measure: 

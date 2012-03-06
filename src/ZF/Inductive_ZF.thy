@@ -22,7 +22,7 @@ uses
   ("Tools/primrec_package.ML")
 begin
 
-lemma def_swap_iff: "a == b ==> a = c <-> c = b"
+lemma def_swap_iff: "a == b ==> a = c \<longleftrightarrow> c = b"
   by blast
 
 lemma def_trans: "f == g ==> g(a) = b ==> f(a) = b"

@@ -346,7 +346,7 @@ text{*Thanks to Norbert Voelker*}
 
 lemma eq_integ_of_eq:
      "[| v: bin;  w: bin |]
-      ==> ((integ_of(v)) = integ_of(w)) <->
+      ==> ((integ_of(v)) = integ_of(w)) \<longleftrightarrow>
           iszero (integ_of (bin_add (v, bin_minus(w))))"
 apply (unfold iszero_def)
 apply (simp add: zcompare_rls integ_of_add integ_of_minus)
@@ -363,7 +363,7 @@ done
 
 lemma iszero_integ_of_BIT:
      "[| w: bin; x: bool |]
-      ==> iszero (integ_of (w BIT x)) <-> (x=0 & iszero (integ_of(w)))"
+      ==> iszero (integ_of (w BIT x)) \<longleftrightarrow> (x=0 & iszero (integ_of(w)))"
 apply (unfold iszero_def, simp)
 apply (subgoal_tac "integ_of (w) \<in> int")
 apply typecheck
@@ -374,7 +374,7 @@ apply (simp_all (asm_lr) add: zcompare_rls zminus_zadd_distrib [symmetric]
 done
 
 lemma iszero_integ_of_0:
-     "w: bin ==> iszero (integ_of (w BIT 0)) <-> iszero (integ_of(w))"
+     "w: bin ==> iszero (integ_of (w BIT 0)) \<longleftrightarrow> iszero (integ_of(w))"
 by (simp only: iszero_integ_of_BIT, blast)
 
 lemma iszero_integ_of_1: "w: bin ==> ~ iszero (integ_of (w BIT 1))"
@@ -387,7 +387,7 @@ by (simp only: iszero_integ_of_BIT, blast)
 lemma less_integ_of_eq_neg:
      "[| v: bin;  w: bin |]
       ==> integ_of(v) $< integ_of(w)
-          <-> znegative (integ_of (bin_add (v, bin_minus(w))))"
+          \<longleftrightarrow> znegative (integ_of (bin_add (v, bin_minus(w))))"
 apply (unfold zless_def zdiff_def)
 apply (simp add: integ_of_minus integ_of_add)
 done
@@ -400,7 +400,7 @@ by simp
 
 lemma neg_integ_of_BIT:
      "[| w: bin; x: bool |]
-      ==> znegative (integ_of (w BIT x)) <-> znegative (integ_of(w))"
+      ==> znegative (integ_of (w BIT x)) \<longleftrightarrow> znegative (integ_of(w))"
 apply simp
 apply (subgoal_tac "integ_of (w) \<in> int")
 apply typecheck
@@ -416,7 +416,7 @@ done
 (** Less-than-or-equals (<=) **)
 
 lemma le_integ_of_eq_not_less:
-     "(integ_of(x) $<= (integ_of(w))) <-> ~ (integ_of(w) $< (integ_of(x)))"
+     "(integ_of(x) $<= (integ_of(w))) \<longleftrightarrow> ~ (integ_of(w) $< (integ_of(x)))"
 by (simp add: not_zless_iff_zle [THEN iff_sym])
 
 
@@ -509,7 +509,7 @@ by (simp add: zdiff_def)
 lemma zdiff_self [simp]: "x $- x = #0"
 by (simp add: zdiff_def)
 
-lemma znegative_iff_zless_0: "k: int ==> znegative(k) <-> k $< #0"
+lemma znegative_iff_zless_0: "k: int ==> znegative(k) \<longleftrightarrow> k $< #0"
 by (simp add: zless_def)
 
 lemma zero_zless_imp_znegative_zminus: "[|#0 $< k; k: int|] ==> znegative($-k)"
@@ -545,7 +545,7 @@ declare int_of_nat_of [simp] nat_of_zminus_int_of [simp]
 lemma int_of_nat_of_if: "$# nat_of(z) = (if #0 $<= z then intify(z) else #0)"
 by (simp add: int_of_nat_of znegative_iff_zless_0 not_zle_iff_zless)
 
-lemma zless_nat_iff_int_zless: "[| m: nat; z: int |] ==> (m < nat_of(z)) <-> ($#m $< z)"
+lemma zless_nat_iff_int_zless: "[| m: nat; z: int |] ==> (m < nat_of(z)) \<longleftrightarrow> ($#m $< z)"
 apply (case_tac "znegative (z) ")
 apply (erule_tac [2] not_zneg_nat_of [THEN subst])
 apply (auto dest: zless_trans dest!: zero_zle_int_of [THEN zle_zless_trans]
@@ -556,7 +556,7 @@ done
 (** nat_of and zless **)
 
 (*An alternative condition is  @{term"$#0 \<subseteq> w"}  *)
-lemma zless_nat_conj_lemma: "$#0 $< z ==> (nat_of(w) < nat_of(z)) <-> (w $< z)"
+lemma zless_nat_conj_lemma: "$#0 $< z ==> (nat_of(w) < nat_of(z)) \<longleftrightarrow> (w $< z)"
 apply (rule iff_trans)
 apply (rule zless_int_of [THEN iff_sym])
 apply (auto simp add: int_of_nat_of_if simp del: zless_int_of)
@@ -564,7 +564,7 @@ apply (auto elim: zless_asym simp add: not_zle_iff_zless)
 apply (blast intro: zless_zle_trans)
 done
 
-lemma zless_nat_conj: "(nat_of(w) < nat_of(z)) <-> ($#0 $< z & w $< z)"
+lemma zless_nat_conj: "(nat_of(w) < nat_of(z)) \<longleftrightarrow> ($#0 $< z & w $< z)"
 apply (case_tac "$#0 $< z")
 apply (auto simp add: zless_nat_conj_lemma nat_le_int0 not_zless_iff_zle)
 done
@@ -575,24 +575,24 @@ done
     Conditional rewrite rules are tried after unconditional ones, so a rule
     like eq_nat_number_of will be tried first to eliminate #mm=#nn.]
   lemma integ_of_reorient [simp]:
-       "True ==> (integ_of(w) = x) <-> (x = integ_of(w))"
+       "True ==> (integ_of(w) = x) \<longleftrightarrow> (x = integ_of(w))"
   by auto
 *)
 
 lemma integ_of_minus_reorient [simp]:
-     "(integ_of(w) = $- x) <-> ($- x = integ_of(w))"
+     "(integ_of(w) = $- x) \<longleftrightarrow> ($- x = integ_of(w))"
 by auto
 
 lemma integ_of_add_reorient [simp]:
-     "(integ_of(w) = x $+ y) <-> (x $+ y = integ_of(w))"
+     "(integ_of(w) = x $+ y) \<longleftrightarrow> (x $+ y = integ_of(w))"
 by auto
 
 lemma integ_of_diff_reorient [simp]:
-     "(integ_of(w) = x $- y) <-> (x $- y = integ_of(w))"
+     "(integ_of(w) = x $- y) \<longleftrightarrow> (x $- y = integ_of(w))"
 by auto
 
 lemma integ_of_mult_reorient [simp]:
-     "(integ_of(w) = x $* y) <-> (x $* y = integ_of(w))"
+     "(integ_of(w) = x $* y) \<longleftrightarrow> (x $* y = integ_of(w))"
 by auto
 
 end

@@ -63,7 +63,7 @@ by (simp add: wf_on_def subset_Int_iff)
 lemma wf_on_field_imp_wf: "wf[field(r)](r) ==> wf(r)"
 by (unfold wf_def wf_on_def, fast)
 
-lemma wf_iff_wf_on_field: "wf(r) <-> wf[field(r)](r)"
+lemma wf_iff_wf_on_field: "wf(r) \<longleftrightarrow> wf[field(r)](r)"
 by (blast intro: wf_imp_wf_on wf_on_field_imp_wf)
 
 lemma wf_on_subset_A: "[| wf[A](r);  B<=A |] ==> wf[B](r)"
@@ -245,7 +245,7 @@ apply (intro impI)
 apply (elim ssubst)
 apply (simp (no_asm_simp) add: vimage_singleton_iff restrict_def)
 apply (rule_tac t = "%z. H (?x,z) " in subst_context)
-apply (subgoal_tac "\<forall>y\<in>r-``{x}. \<forall>z. <y,z>:f <-> <y,z>:g")
+apply (subgoal_tac "\<forall>y\<in>r-``{x}. \<forall>z. <y,z>:f \<longleftrightarrow> <y,z>:g")
  apply (blast dest: transD)
 apply (simp add: apply_iff)
 apply (blast dest: transD intro: sym)
@@ -364,7 +364,7 @@ done
 
 text{*Minimal-element characterization of well-foundedness*}
 lemma wf_eq_minimal:
-     "wf(r) <-> (\<forall>Q x. x:Q \<longrightarrow> (\<exists>z\<in>Q. \<forall>y. <y,z>:r \<longrightarrow> y\<notin>Q))"
+     "wf(r) \<longleftrightarrow> (\<forall>Q x. x:Q \<longrightarrow> (\<exists>z\<in>Q. \<forall>y. <y,z>:r \<longrightarrow> y\<notin>Q))"
 by (unfold wf_def, blast)
 
 end

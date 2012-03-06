@@ -183,7 +183,7 @@ by (blast intro: fun_FiniteFunI lam_funtype)
 
 lemma FiniteFun_Collect_iff:
      "f \<in> FiniteFun(A, {y:B. P(y)})
-      <-> f \<in> FiniteFun(A,B) & (\<forall>x\<in>domain(f). P(f`x))"
+      \<longleftrightarrow> f \<in> FiniteFun(A,B) & (\<forall>x\<in>domain(f). P(f`x))"
 apply auto
 apply (blast intro: FiniteFun_mono [THEN [2] rev_subsetD])
 apply (blast dest: Pair_mem_PiD FiniteFun_is_fun)

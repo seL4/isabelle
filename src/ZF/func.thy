@@ -20,12 +20,12 @@ lemma relation_restrict [simp]:  "relation(restrict(r,A))"
 by (simp add: restrict_def relation_def, blast) 
 
 lemma Pi_iff:
-    "f: Pi(A,B) <-> function(f) & f<=Sigma(A,B) & A<=domain(f)"
+    "f: Pi(A,B) \<longleftrightarrow> function(f) & f<=Sigma(A,B) & A<=domain(f)"
 by (unfold Pi_def, blast)
 
 (*For upward compatibility with the former definition*)
 lemma Pi_iff_old:
-    "f: Pi(A,B) <-> f<=Sigma(A,B) & (\<forall>x\<in>A. EX! y. <x,y>: f)"
+    "f: Pi(A,B) \<longleftrightarrow> f<=Sigma(A,B) & (\<forall>x\<in>A. EX! y. <x,y>: f)"
 by (unfold Pi_def function_def, blast)
 
 lemma fun_is_function: "f: Pi(A,B) ==> function(f)"
@@ -96,7 +96,7 @@ by (blast intro: apply_Pair dest: fun_is_rel)
 lemma apply_funtype: "[| f: A->B;  a:A |] ==> f`a \<in> B"
 by (blast dest: apply_type)
 
-lemma apply_iff: "f: Pi(A,B) ==> <a,b>: f <-> a:A & f`a = b"
+lemma apply_iff: "f: Pi(A,B) ==> <a,b>: f \<longleftrightarrow> a:A & f`a = b"
 apply (frule fun_is_rel)
 apply (blast intro!: apply_Pair apply_equality)
 done
@@ -110,7 +110,7 @@ done
 (*Such functions arise in non-standard datatypes, ZF/ex/Ntree for instance*)
 lemma Pi_Collect_iff:
      "(f \<in> Pi(A, %x. {y:B(x). P(x,y)}))
-      <->  f \<in> Pi(A,B) & (\<forall>x\<in>A. P(x, f`x))"
+      \<longleftrightarrow>  f \<in> Pi(A,B) & (\<forall>x\<in>A. P(x, f`x))"
 by (blast intro: Pi_type dest: apply_type)
 
 lemma Pi_weaken_type:
@@ -222,11 +222,11 @@ apply (auto simp add: lam_type apply_type beta)
 done
 
 lemma fun_extension_iff:
-     "[| f:Pi(A,B); g:Pi(A,C) |] ==> (\<forall>a\<in>A. f`a = g`a) <-> f=g"
+     "[| f:Pi(A,B); g:Pi(A,C) |] ==> (\<forall>a\<in>A. f`a = g`a) \<longleftrightarrow> f=g"
 by (blast intro: fun_extension)
 
 (*thm by Mark Staples, proof by lcp*)
-lemma fun_subset_eq: "[| f:Pi(A,B); g:Pi(A,C) |] ==> f \<subseteq> g <-> (f = g)"
+lemma fun_subset_eq: "[| f:Pi(A,B); g:Pi(A,C) |] ==> f \<subseteq> g \<longleftrightarrow> (f = g)"
 by (blast dest: apply_Pair
           intro: fun_extension apply_equality [symmetric])
 
@@ -592,7 +592,7 @@ lemmas basic_monos = subset_refl imp_refl disj_mono conj_mono ex_mono
 (* Useful with simp; contributed by Clemens Ballarin. *)
 
 lemma bex_image_simp:
-  "[| f \<in> Pi(X, Y); A \<subseteq> X |]  ==> (\<exists>x\<in>f``A. P(x)) <-> (\<exists>x\<in>A. P(f`x))"
+  "[| f \<in> Pi(X, Y); A \<subseteq> X |]  ==> (\<exists>x\<in>f``A. P(x)) \<longleftrightarrow> (\<exists>x\<in>A. P(f`x))"
   apply safe
    apply rule
     prefer 2 apply assumption
@@ -601,7 +601,7 @@ lemma bex_image_simp:
   done
 
 lemma ball_image_simp:
-  "[| f \<in> Pi(X, Y); A \<subseteq> X |]  ==> (\<forall>x\<in>f``A. P(x)) <-> (\<forall>x\<in>A. P(f`x))"
+  "[| f \<in> Pi(X, Y); A \<subseteq> X |]  ==> (\<forall>x\<in>f``A. P(x)) \<longleftrightarrow> (\<forall>x\<in>A. P(f`x))"
   apply safe
    apply (blast intro: apply_Pair)
   apply (drule bspec) apply assumption

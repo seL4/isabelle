@@ -28,7 +28,7 @@ definition Part :: "[i,i=>i] => i" where
 subsection{*Rules for the @{term Part} Primitive*}
 
 lemma Part_iff: 
-    "a \<in> Part(A,h) <-> a:A & (\<exists>y. a=h(y))"
+    "a \<in> Part(A,h) \<longleftrightarrow> a:A & (\<exists>y. a=h(y))"
 apply (unfold Part_def)
 apply (rule separation)
 done
@@ -77,16 +77,16 @@ by (unfold sum_defs, blast)
 
 (** Injection and freeness equivalences, for rewriting **)
 
-lemma Inl_iff [iff]: "Inl(a)=Inl(b) <-> a=b"
+lemma Inl_iff [iff]: "Inl(a)=Inl(b) \<longleftrightarrow> a=b"
 by (simp add: sum_defs)
 
-lemma Inr_iff [iff]: "Inr(a)=Inr(b) <-> a=b"
+lemma Inr_iff [iff]: "Inr(a)=Inr(b) \<longleftrightarrow> a=b"
 by (simp add: sum_defs)
 
-lemma Inl_Inr_iff [simp]: "Inl(a)=Inr(b) <-> False"
+lemma Inl_Inr_iff [simp]: "Inl(a)=Inr(b) \<longleftrightarrow> False"
 by (simp add: sum_defs)
 
-lemma Inr_Inl_iff [simp]: "Inr(b)=Inl(a) <-> False"
+lemma Inr_Inl_iff [simp]: "Inr(b)=Inl(a) \<longleftrightarrow> False"
 by (simp add: sum_defs)
 
 lemma sum_empty [simp]: "0+0 = 0"
@@ -106,19 +106,19 @@ by blast
 lemma InrD: "Inr(b): A+B ==> b: B"
 by blast
 
-lemma sum_iff: "u: A+B <-> (\<exists>x. x:A & u=Inl(x)) | (\<exists>y. y:B & u=Inr(y))"
+lemma sum_iff: "u: A+B \<longleftrightarrow> (\<exists>x. x:A & u=Inl(x)) | (\<exists>y. y:B & u=Inr(y))"
 by blast
 
-lemma Inl_in_sum_iff [simp]: "(Inl(x) \<in> A+B) <-> (x \<in> A)";
+lemma Inl_in_sum_iff [simp]: "(Inl(x) \<in> A+B) \<longleftrightarrow> (x \<in> A)";
 by auto
 
-lemma Inr_in_sum_iff [simp]: "(Inr(y) \<in> A+B) <-> (y \<in> B)";
+lemma Inr_in_sum_iff [simp]: "(Inr(y) \<in> A+B) \<longleftrightarrow> (y \<in> B)";
 by auto
 
-lemma sum_subset_iff: "A+B \<subseteq> C+D <-> A<=C & B<=D"
+lemma sum_subset_iff: "A+B \<subseteq> C+D \<longleftrightarrow> A<=C & B<=D"
 by blast
 
-lemma sum_equal_iff: "A+B = C+D <-> A=C & B=D"
+lemma sum_equal_iff: "A+B = C+D \<longleftrightarrow> A=C & B=D"
 by (simp add: extension sum_subset_iff, blast)
 
 lemma sum_eq_2_times: "A+A = 2*A"
@@ -141,7 +141,7 @@ lemma case_type [TC]:
 by auto
 
 lemma expand_case: "u: A+B ==>    
-        R(case(c,d,u)) <->  
+        R(case(c,d,u)) \<longleftrightarrow>  
         ((\<forall>x\<in>A. u = Inl(x) \<longrightarrow> R(c(x))) &  
         (\<forall>y\<in>B. u = Inr(y) \<longrightarrow> R(d(y))))"
 by auto
