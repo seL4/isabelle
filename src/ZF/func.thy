@@ -9,7 +9,7 @@ theory func imports equalities Sum begin
 
 subsection{*The Pi Operator: Dependent Function Space*}
 
-lemma subset_Sigma_imp_relation: "r <= Sigma(A,B) ==> relation(r)"
+lemma subset_Sigma_imp_relation: "r \<subseteq> Sigma(A,B) ==> relation(r)"
 by (simp add: relation_def, blast)
 
 lemma relation_converse_converse [simp]:
@@ -25,7 +25,7 @@ by (unfold Pi_def, blast)
 
 (*For upward compatibility with the former definition*)
 lemma Pi_iff_old:
-    "f: Pi(A,B) <-> f<=Sigma(A,B) & (ALL x:A. EX! y. <x,y>: f)"
+    "f: Pi(A,B) <-> f<=Sigma(A,B) & (\<forall>x\<in>A. EX! y. <x,y>: f)"
 by (unfold Pi_def function_def, blast)
 
 lemma fun_is_function: "f: Pi(A,B) ==> function(f)"
@@ -40,7 +40,7 @@ lemma functionI:
 by (simp add: function_def, blast) 
 
 (*Functions are relations*)
-lemma fun_is_rel: "f: Pi(A,B) ==> f <= Sigma(A,B)"
+lemma fun_is_rel: "f: Pi(A,B) ==> f \<subseteq> Sigma(A,B)"
 by (unfold Pi_def, blast)
 
 lemma Pi_cong:
@@ -69,15 +69,15 @@ apply (blast intro: function_apply_equality)
 done
 
 (*Applying a function outside its domain yields 0*)
-lemma apply_0: "a ~: domain(f) ==> f`a = 0"
+lemma apply_0: "a \<notin> domain(f) ==> f`a = 0"
 by (unfold apply_def, blast)
 
-lemma Pi_memberD: "[| f: Pi(A,B);  c: f |] ==> EX x:A.  c = <x,f`x>"
+lemma Pi_memberD: "[| f: Pi(A,B);  c: f |] ==> \<exists>x\<in>A.  c = <x,f`x>"
 apply (frule fun_is_rel)
 apply (blast dest: apply_equality)
 done
 
-lemma function_apply_Pair: "[| function(f);  a : domain(f)|] ==> <a,f`a>: f"
+lemma function_apply_Pair: "[| function(f);  a \<in> domain(f)|] ==> <a,f`a>: f"
 apply (simp add: function_def, clarify) 
 apply (subgoal_tac "f`a = y", blast) 
 apply (simp add: apply_def, blast) 
@@ -89,11 +89,11 @@ apply (blast intro: function_apply_Pair)
 done
 
 (*Conclusion is flexible -- use rule_tac or else apply_funtype below!*)
-lemma apply_type [TC]: "[| f: Pi(A,B);  a:A |] ==> f`a : B(a)"
+lemma apply_type [TC]: "[| f: Pi(A,B);  a:A |] ==> f`a \<in> B(a)"
 by (blast intro: apply_Pair dest: fun_is_rel)
 
 (*This version is acceptable to the simplifier*)
-lemma apply_funtype: "[| f: A->B;  a:A |] ==> f`a : B"
+lemma apply_funtype: "[| f: A->B;  a:A |] ==> f`a \<in> B"
 by (blast dest: apply_type)
 
 lemma apply_iff: "f: Pi(A,B) ==> <a,b>: f <-> a:A & f`a = b"
@@ -102,28 +102,28 @@ apply (blast intro!: apply_Pair apply_equality)
 done
 
 (*Refining one Pi type to another*)
-lemma Pi_type: "[| f: Pi(A,C);  !!x. x:A ==> f`x : B(x) |] ==> f : Pi(A,B)"
+lemma Pi_type: "[| f: Pi(A,C);  !!x. x:A ==> f`x \<in> B(x) |] ==> f \<in> Pi(A,B)"
 apply (simp only: Pi_iff)
 apply (blast dest: function_apply_equality)
 done
 
 (*Such functions arise in non-standard datatypes, ZF/ex/Ntree for instance*)
 lemma Pi_Collect_iff:
-     "(f : Pi(A, %x. {y:B(x). P(x,y)}))
-      <->  f : Pi(A,B) & (ALL x: A. P(x, f`x))"
+     "(f \<in> Pi(A, %x. {y:B(x). P(x,y)}))
+      <->  f \<in> Pi(A,B) & (\<forall>x\<in>A. P(x, f`x))"
 by (blast intro: Pi_type dest: apply_type)
 
 lemma Pi_weaken_type:
-        "[| f : Pi(A,B);  !!x. x:A ==> B(x)<=C(x) |] ==> f : Pi(A,C)"
+        "[| f \<in> Pi(A,B);  !!x. x:A ==> B(x)<=C(x) |] ==> f \<in> Pi(A,C)"
 by (blast intro: Pi_type dest: apply_type)
 
 
 (** Elimination of membership in a function **)
 
-lemma domain_type: "[| <a,b> : f;  f: Pi(A,B) |] ==> a : A"
+lemma domain_type: "[| <a,b> \<in> f;  f: Pi(A,B) |] ==> a \<in> A"
 by (blast dest: fun_is_rel)
 
-lemma range_type: "[| <a,b> : f;  f: Pi(A,B) |] ==> b : B(a)"
+lemma range_type: "[| <a,b> \<in> f;  f: Pi(A,B) |] ==> b \<in> B(a)"
 by (blast dest: fun_is_rel)
 
 lemma Pair_mem_PiD: "[| <a,b>: f;  f: Pi(A,B) |] ==> a:A & b:B(a) & f`a = b"
@@ -131,39 +131,39 @@ by (blast intro: domain_type range_type apply_equality)
 
 subsection{*Lambda Abstraction*}
 
-lemma lamI: "a:A ==> <a,b(a)> : (lam x:A. b(x))"
+lemma lamI: "a:A ==> <a,b(a)> \<in> (\<lambda>x\<in>A. b(x))"
 apply (unfold lam_def)
 apply (erule RepFunI)
 done
 
 lemma lamE:
-    "[| p: (lam x:A. b(x));  !!x.[| x:A; p=<x,b(x)> |] ==> P
+    "[| p: (\<lambda>x\<in>A. b(x));  !!x.[| x:A; p=<x,b(x)> |] ==> P
      |] ==>  P"
 by (simp add: lam_def, blast)
 
-lemma lamD: "[| <a,c>: (lam x:A. b(x)) |] ==> c = b(a)"
+lemma lamD: "[| <a,c>: (\<lambda>x\<in>A. b(x)) |] ==> c = b(a)"
 by (simp add: lam_def)
 
 lemma lam_type [TC]:
-    "[| !!x. x:A ==> b(x): B(x) |] ==> (lam x:A. b(x)) : Pi(A,B)"
+    "[| !!x. x:A ==> b(x): B(x) |] ==> (\<lambda>x\<in>A. b(x)) \<in> Pi(A,B)"
 by (simp add: lam_def Pi_def function_def, blast)
 
-lemma lam_funtype: "(lam x:A. b(x)) : A -> {b(x). x:A}"
+lemma lam_funtype: "(\<lambda>x\<in>A. b(x)) \<in> A -> {b(x). x:A}"
 by (blast intro: lam_type)
 
-lemma function_lam: "function (lam x:A. b(x))"
+lemma function_lam: "function (\<lambda>x\<in>A. b(x))"
 by (simp add: function_def lam_def) 
 
-lemma relation_lam: "relation (lam x:A. b(x))"  
+lemma relation_lam: "relation (\<lambda>x\<in>A. b(x))"  
 by (simp add: relation_def lam_def) 
 
-lemma beta_if [simp]: "(lam x:A. b(x)) ` a = (if a : A then b(a) else 0)"
+lemma beta_if [simp]: "(\<lambda>x\<in>A. b(x)) ` a = (if a \<in> A then b(a) else 0)"
 by (simp add: apply_def lam_def, blast)
 
-lemma beta: "a : A ==> (lam x:A. b(x)) ` a = b(a)"
+lemma beta: "a \<in> A ==> (\<lambda>x\<in>A. b(x)) ` a = b(a)"
 by (simp add: apply_def lam_def, blast)
 
-lemma lam_empty [simp]: "(lam x:0. b(x)) = 0"
+lemma lam_empty [simp]: "(\<lambda>x\<in>0. b(x)) = 0"
 by (simp add: lam_def)
 
 lemma domain_lam [simp]: "domain(Lambda(A,b)) = A"
@@ -175,13 +175,13 @@ lemma lam_cong [cong]:
 by (simp only: lam_def cong add: RepFun_cong)
 
 lemma lam_theI:
-    "(!!x. x:A ==> EX! y. Q(x,y)) ==> EX f. ALL x:A. Q(x, f`x)"
-apply (rule_tac x = "lam x: A. THE y. Q (x,y)" in exI)
+    "(!!x. x:A ==> EX! y. Q(x,y)) ==> \<exists>f. \<forall>x\<in>A. Q(x, f`x)"
+apply (rule_tac x = "\<lambda>x\<in>A. THE y. Q (x,y)" in exI)
 apply simp 
 apply (blast intro: theI)
 done
 
-lemma lam_eqE: "[| (lam x:A. f(x)) = (lam x:A. g(x));  a:A |] ==> f(a)=g(a)"
+lemma lam_eqE: "[| (\<lambda>x\<in>A. f(x)) = (\<lambda>x\<in>A. g(x));  a:A |] ==> f(a)=g(a)"
 by (fast intro!: lamI elim: equalityE lamE)
 
 
@@ -190,7 +190,7 @@ lemma Pi_empty1 [simp]: "Pi(0,A) = {0}"
 by (unfold Pi_def function_def, blast)
 
 (*The singleton function*)
-lemma singleton_fun [simp]: "{<a,b>} : {a} -> {b}"
+lemma singleton_fun [simp]: "{<a,b>} \<in> {a} -> {b}"
 by (unfold Pi_def function_def, blast)
 
 lemma Pi_empty2 [simp]: "(A->0) = (if A=0 then {0} else 0)"
@@ -207,26 +207,26 @@ subsection{*Extensionality*}
 (*Semi-extensionality!*)
 
 lemma fun_subset:
-    "[| f : Pi(A,B);  g: Pi(C,D);  A<=C;
+    "[| f \<in> Pi(A,B);  g: Pi(C,D);  A<=C;
         !!x. x:A ==> f`x = g`x       |] ==> f<=g"
 by (force dest: Pi_memberD intro: apply_Pair)
 
 lemma fun_extension:
-    "[| f : Pi(A,B);  g: Pi(A,D);
+    "[| f \<in> Pi(A,B);  g: Pi(A,D);
         !!x. x:A ==> f`x = g`x       |] ==> f=g"
 by (blast del: subsetI intro: subset_refl sym fun_subset)
 
-lemma eta [simp]: "f : Pi(A,B) ==> (lam x:A. f`x) = f"
+lemma eta [simp]: "f \<in> Pi(A,B) ==> (\<lambda>x\<in>A. f`x) = f"
 apply (rule fun_extension)
 apply (auto simp add: lam_type apply_type beta)
 done
 
 lemma fun_extension_iff:
-     "[| f:Pi(A,B); g:Pi(A,C) |] ==> (ALL a:A. f`a = g`a) <-> f=g"
+     "[| f:Pi(A,B); g:Pi(A,C) |] ==> (\<forall>a\<in>A. f`a = g`a) <-> f=g"
 by (blast intro: fun_extension)
 
 (*thm by Mark Staples, proof by lcp*)
-lemma fun_subset_eq: "[| f:Pi(A,B); g:Pi(A,C) |] ==> f <= g <-> (f = g)"
+lemma fun_subset_eq: "[| f:Pi(A,B); g:Pi(A,C) |] ==> f \<subseteq> g <-> (f = g)"
 by (blast dest: apply_Pair
           intro: fun_extension apply_equality [symmetric])
 
@@ -234,7 +234,7 @@ by (blast dest: apply_Pair
 (*Every element of Pi(A,B) may be expressed as a lambda abstraction!*)
 lemma Pi_lamE:
   assumes major: "f: Pi(A,B)"
-      and minor: "!!b. [| ALL x:A. b(x):B(x);  f = (lam x:A. b(x)) |] ==> P"
+      and minor: "!!b. [| \<forall>x\<in>A. b(x):B(x);  f = (\<lambda>x\<in>A. b(x)) |] ==> P"
   shows "P"
 apply (rule minor)
 apply (rule_tac [2] eta [symmetric])
@@ -244,12 +244,12 @@ done
 
 subsection{*Images of Functions*}
 
-lemma image_lam: "C <= A ==> (lam x:A. b(x)) `` C = {b(x). x:C}"
+lemma image_lam: "C \<subseteq> A ==> (\<lambda>x\<in>A. b(x)) `` C = {b(x). x:C}"
 by (unfold lam_def, blast)
 
 lemma Repfun_function_if:
      "function(f) 
-      ==> {f`x. x:C} = (if C <= domain(f) then f``C else cons(0,f``C))";
+      ==> {f`x. x:C} = (if C \<subseteq> domain(f) then f``C else cons(0,f``C))";
 apply simp
 apply (intro conjI impI)  
  apply (blast dest: function_apply_equality intro: function_apply_Pair) 
@@ -261,10 +261,10 @@ done
 (*For this lemma and the next, the right-hand side could equivalently 
   be written \<Union>x\<in>C. {f`x} *)
 lemma image_function:
-     "[| function(f);  C <= domain(f) |] ==> f``C = {f`x. x:C}";
+     "[| function(f);  C \<subseteq> domain(f) |] ==> f``C = {f`x. x:C}";
 by (simp add: Repfun_function_if) 
 
-lemma image_fun: "[| f : Pi(A,B);  C <= A |] ==> f``C = {f`x. x:C}"
+lemma image_fun: "[| f \<in> Pi(A,B);  C \<subseteq> A |] ==> f``C = {f`x. x:C}"
 apply (simp add: Pi_iff) 
 apply (blast intro: image_function) 
 done
@@ -280,17 +280,17 @@ by (blast dest: apply_equality apply_Pair)
 
 subsection{*Properties of @{term "restrict(f,A)"}*}
 
-lemma restrict_subset: "restrict(f,A) <= f"
+lemma restrict_subset: "restrict(f,A) \<subseteq> f"
 by (unfold restrict_def, blast)
 
 lemma function_restrictI:
     "function(f) ==> function(restrict(f,A))"
 by (unfold restrict_def function_def, blast)
 
-lemma restrict_type2: "[| f: Pi(C,B);  A<=C |] ==> restrict(f,A) : Pi(A,B)"
+lemma restrict_type2: "[| f: Pi(C,B);  A<=C |] ==> restrict(f,A) \<in> Pi(A,B)"
 by (simp add: Pi_iff function_def restrict_def, blast)
 
-lemma restrict: "restrict(f,A) ` a = (if a : A then f`a else 0)"
+lemma restrict: "restrict(f,A) ` a = (if a \<in> A then f`a else 0)"
 by (simp add: apply_def restrict_def, blast)
 
 lemma restrict_empty [simp]: "restrict(f,0) = 0"
@@ -300,38 +300,38 @@ lemma restrict_iff: "z \<in> restrict(r,A) \<longleftrightarrow> z \<in> r & (\<
 by (simp add: restrict_def) 
 
 lemma restrict_restrict [simp]:
-     "restrict(restrict(r,A),B) = restrict(r, A Int B)"
+     "restrict(restrict(r,A),B) = restrict(r, A \<inter> B)"
 by (unfold restrict_def, blast)
 
-lemma domain_restrict [simp]: "domain(restrict(f,C)) = domain(f) Int C"
+lemma domain_restrict [simp]: "domain(restrict(f,C)) = domain(f) \<inter> C"
 apply (unfold restrict_def)
 apply (auto simp add: domain_def)
 done
 
-lemma restrict_idem: "f <= Sigma(A,B) ==> restrict(f,A) = f"
+lemma restrict_idem: "f \<subseteq> Sigma(A,B) ==> restrict(f,A) = f"
 by (simp add: restrict_def, blast)
 
 
 (*converse probably holds too*)
 lemma domain_restrict_idem:
-     "[| domain(r) <= A; relation(r) |] ==> restrict(r,A) = r"
+     "[| domain(r) \<subseteq> A; relation(r) |] ==> restrict(r,A) = r"
 by (simp add: restrict_def relation_def, blast)
 
-lemma domain_restrict_lam [simp]: "domain(restrict(Lambda(A,f),C)) = A Int C"
+lemma domain_restrict_lam [simp]: "domain(restrict(Lambda(A,f),C)) = A \<inter> C"
 apply (unfold restrict_def lam_def)
 apply (rule equalityI)
 apply (auto simp add: domain_iff)
 done
 
-lemma restrict_if [simp]: "restrict(f,A) ` a = (if a : A then f`a else 0)"
+lemma restrict_if [simp]: "restrict(f,A) ` a = (if a \<in> A then f`a else 0)"
 by (simp add: restrict apply_0)
 
 lemma restrict_lam_eq:
-    "A<=C ==> restrict(lam x:C. b(x), A) = (lam x:A. b(x))"
+    "A<=C ==> restrict(\<lambda>x\<in>C. b(x), A) = (\<lambda>x\<in>A. b(x))"
 by (unfold restrict_def lam_def, auto)
 
 lemma fun_cons_restrict_eq:
-     "f : cons(a, b) -> B ==> f = cons(<a, f ` a>, restrict(f, b))"
+     "f \<in> cons(a, b) -> B ==> f = cons(<a, f ` a>, restrict(f, b))"
 apply (rule equalityI)
  prefer 2 apply (blast intro: apply_Pair restrict_subset [THEN subsetD])
 apply (auto dest!: Pi_memberD simp add: restrict_def lam_def)
@@ -343,21 +343,21 @@ subsection{*Unions of Functions*}
 (** The Union of a set of COMPATIBLE functions is a function **)
 
 lemma function_Union:
-    "[| ALL x:S. function(x);
-        ALL x:S. ALL y:S. x<=y | y<=x  |]
-     ==> function(Union(S))"
+    "[| \<forall>x\<in>S. function(x);
+        \<forall>x\<in>S. \<forall>y\<in>S. x<=y | y<=x  |]
+     ==> function(\<Union>(S))"
 by (unfold function_def, blast) 
 
 lemma fun_Union:
-    "[| ALL f:S. EX C D. f:C->D;
-             ALL f:S. ALL y:S. f<=y | y<=f  |] ==>
-          Union(S) : domain(Union(S)) -> range(Union(S))"
+    "[| \<forall>f\<in>S. \<exists>C D. f:C->D;
+             \<forall>f\<in>S. \<forall>y\<in>S. f<=y | y<=f  |] ==>
+          \<Union>(S) \<in> domain(\<Union>(S)) -> range(\<Union>(S))"
 apply (unfold Pi_def)
 apply (blast intro!: rel_Union function_Union)
 done
 
 lemma gen_relation_Union [rule_format]:
-     "\<forall>f\<in>F. relation(f) \<Longrightarrow> relation(Union(F))"
+     "\<forall>f\<in>F. relation(f) \<Longrightarrow> relation(\<Union>(F))"
 by (simp add: relation_def) 
 
 
@@ -368,48 +368,48 @@ lemmas Un_rls = Un_subset_iff SUM_Un_distrib1 prod_Un_distrib2
                 subset_trans [OF _ Un_upper2]
 
 lemma fun_disjoint_Un:
-     "[| f: A->B;  g: C->D;  A Int C = 0  |]
-      ==> (f Un g) : (A Un C) -> (B Un D)"
+     "[| f: A->B;  g: C->D;  A \<inter> C = 0  |]
+      ==> (f \<union> g) \<in> (A \<union> C) -> (B \<union> D)"
 (*Prove the product and domain subgoals using distributive laws*)
 apply (simp add: Pi_iff extension Un_rls)
 apply (unfold function_def, blast)
 done
 
-lemma fun_disjoint_apply1: "a \<notin> domain(g) ==> (f Un g)`a = f`a"
+lemma fun_disjoint_apply1: "a \<notin> domain(g) ==> (f \<union> g)`a = f`a"
 by (simp add: apply_def, blast) 
 
-lemma fun_disjoint_apply2: "c \<notin> domain(f) ==> (f Un g)`c = g`c"
+lemma fun_disjoint_apply2: "c \<notin> domain(f) ==> (f \<union> g)`c = g`c"
 by (simp add: apply_def, blast) 
 
 subsection{*Domain and Range of a Function or Relation*}
 
-lemma domain_of_fun: "f : Pi(A,B) ==> domain(f)=A"
+lemma domain_of_fun: "f \<in> Pi(A,B) ==> domain(f)=A"
 by (unfold Pi_def, blast)
 
-lemma apply_rangeI: "[| f : Pi(A,B);  a: A |] ==> f`a : range(f)"
+lemma apply_rangeI: "[| f \<in> Pi(A,B);  a: A |] ==> f`a \<in> range(f)"
 by (erule apply_Pair [THEN rangeI], assumption)
 
-lemma range_of_fun: "f : Pi(A,B) ==> f : A->range(f)"
+lemma range_of_fun: "f \<in> Pi(A,B) ==> f \<in> A->range(f)"
 by (blast intro: Pi_type apply_rangeI)
 
 subsection{*Extensions of Functions*}
 
 lemma fun_extend:
-     "[| f: A->B;  c~:A |] ==> cons(<c,b>,f) : cons(c,A) -> cons(b,B)"
+     "[| f: A->B;  c\<notin>A |] ==> cons(<c,b>,f) \<in> cons(c,A) -> cons(b,B)"
 apply (frule singleton_fun [THEN fun_disjoint_Un], blast)
 apply (simp add: cons_eq) 
 done
 
 lemma fun_extend3:
-     "[| f: A->B;  c~:A;  b: B |] ==> cons(<c,b>,f) : cons(c,A) -> B"
+     "[| f: A->B;  c\<notin>A;  b: B |] ==> cons(<c,b>,f) \<in> cons(c,A) -> B"
 by (blast intro: fun_extend [THEN fun_weaken_type])
 
 lemma extend_apply:
-     "c ~: domain(f) ==> cons(<c,b>,f)`a = (if a=c then b else f`a)"
+     "c \<notin> domain(f) ==> cons(<c,b>,f)`a = (if a=c then b else f`a)"
 by (auto simp add: apply_def) 
 
 lemma fun_extend_apply [simp]:
-     "[| f: A->B;  c~:A |] ==> cons(<c,b>,f)`a = (if a=c then b else f`a)" 
+     "[| f: A->B;  c\<notin>A |] ==> cons(<c,b>,f)`a = (if a=c then b else f`a)" 
 apply (rule extend_apply) 
 apply (simp add: Pi_def, blast) 
 done
@@ -418,11 +418,11 @@ lemmas singleton_apply = apply_equality [OF singletonI singleton_fun, simp]
 
 (*For Finite.ML.  Inclusion of right into left is easy*)
 lemma cons_fun_eq:
-     "c ~: A ==> cons(c,A) -> B = (\<Union>f \<in> A->B. \<Union>b\<in>B. {cons(<c,b>, f)})"
+     "c \<notin> A ==> cons(c,A) -> B = (\<Union>f \<in> A->B. \<Union>b\<in>B. {cons(<c,b>, f)})"
 apply (rule equalityI)
 apply (safe elim!: fun_extend3)
 (*Inclusion of left into right*)
-apply (subgoal_tac "restrict (x, A) : A -> B")
+apply (subgoal_tac "restrict (x, A) \<in> A -> B")
  prefer 2 apply (blast intro: restrict_type2)
 apply (rule UN_I, assumption)
 apply (rule apply_funtype [THEN UN_I]) 
@@ -443,7 +443,7 @@ subsection{*Function Updates*}
 
 definition
   update  :: "[i,i,i] => i"  where
-   "update(f,a,b) == lam x: cons(a, domain(f)). if(x=a, b, f`x)"
+   "update(f,a,b) == \<lambda>x\<in>cons(a, domain(f)). if(x=a, b, f`x)"
 
 nonterminal updbinds and updbind
 
@@ -481,7 +481,7 @@ declare refl [THEN update_idem, simp]
 lemma domain_update [simp]: "domain(f(x:=y)) = cons(x, domain(f))"
 by (unfold update_def, simp)
 
-lemma update_type: "[| f:Pi(A,B);  x : A;  y: B(x) |] ==> f(x:=y) : Pi(A, B)"
+lemma update_type: "[| f:Pi(A,B);  x \<in> A;  y: B(x) |] ==> f(x:=y) \<in> Pi(A, B)"
 apply (unfold update_def)
 apply (simp add: domain_of_fun cons_absorb apply_funtype lam_type)
 done
@@ -493,59 +493,59 @@ subsubsection{*Replacement in its Various Forms*}
 
 (*Not easy to express monotonicity in P, since any "bigger" predicate
   would have to be single-valued*)
-lemma Replace_mono: "A<=B ==> Replace(A,P) <= Replace(B,P)"
+lemma Replace_mono: "A<=B ==> Replace(A,P) \<subseteq> Replace(B,P)"
 by (blast elim!: ReplaceE)
 
-lemma RepFun_mono: "A<=B ==> {f(x). x:A} <= {f(x). x:B}"
+lemma RepFun_mono: "A<=B ==> {f(x). x:A} \<subseteq> {f(x). x:B}"
 by blast
 
-lemma Pow_mono: "A<=B ==> Pow(A) <= Pow(B)"
+lemma Pow_mono: "A<=B ==> Pow(A) \<subseteq> Pow(B)"
 by blast
 
-lemma Union_mono: "A<=B ==> Union(A) <= Union(B)"
+lemma Union_mono: "A<=B ==> \<Union>(A) \<subseteq> \<Union>(B)"
 by blast
 
 lemma UN_mono:
-    "[| A<=C;  !!x. x:A ==> B(x)<=D(x) |] ==> (\<Union>x\<in>A. B(x)) <= (\<Union>x\<in>C. D(x))"
+    "[| A<=C;  !!x. x:A ==> B(x)<=D(x) |] ==> (\<Union>x\<in>A. B(x)) \<subseteq> (\<Union>x\<in>C. D(x))"
 by blast  
 
 (*Intersection is ANTI-monotonic.  There are TWO premises! *)
-lemma Inter_anti_mono: "[| A<=B;  A\<noteq>0 |] ==> Inter(B) <= Inter(A)"
+lemma Inter_anti_mono: "[| A<=B;  A\<noteq>0 |] ==> \<Inter>(B) \<subseteq> \<Inter>(A)"
 by blast
 
-lemma cons_mono: "C<=D ==> cons(a,C) <= cons(a,D)"
+lemma cons_mono: "C<=D ==> cons(a,C) \<subseteq> cons(a,D)"
 by blast
 
-lemma Un_mono: "[| A<=C;  B<=D |] ==> A Un B <= C Un D"
+lemma Un_mono: "[| A<=C;  B<=D |] ==> A \<union> B \<subseteq> C \<union> D"
 by blast
 
-lemma Int_mono: "[| A<=C;  B<=D |] ==> A Int B <= C Int D"
+lemma Int_mono: "[| A<=C;  B<=D |] ==> A \<inter> B \<subseteq> C \<inter> D"
 by blast
 
-lemma Diff_mono: "[| A<=C;  D<=B |] ==> A-B <= C-D"
+lemma Diff_mono: "[| A<=C;  D<=B |] ==> A-B \<subseteq> C-D"
 by blast
 
 subsubsection{*Standard Products, Sums and Function Spaces *}
 
 lemma Sigma_mono [rule_format]:
-     "[| A<=C;  !!x. x:A --> B(x) <= D(x) |] ==> Sigma(A,B) <= Sigma(C,D)"
+     "[| A<=C;  !!x. x:A \<longrightarrow> B(x) \<subseteq> D(x) |] ==> Sigma(A,B) \<subseteq> Sigma(C,D)"
 by blast
 
-lemma sum_mono: "[| A<=C;  B<=D |] ==> A+B <= C+D"
+lemma sum_mono: "[| A<=C;  B<=D |] ==> A+B \<subseteq> C+D"
 by (unfold sum_def, blast)
 
 (*Note that B->A and C->A are typically disjoint!*)
-lemma Pi_mono: "B<=C ==> A->B <= A->C"
+lemma Pi_mono: "B<=C ==> A->B \<subseteq> A->C"
 by (blast intro: lam_type elim: Pi_lamE)
 
-lemma lam_mono: "A<=B ==> Lambda(A,c) <= Lambda(B,c)"
+lemma lam_mono: "A<=B ==> Lambda(A,c) \<subseteq> Lambda(B,c)"
 apply (unfold lam_def)
 apply (erule RepFun_mono)
 done
 
 subsubsection{*Converse, Domain, Range, Field*}
 
-lemma converse_mono: "r<=s ==> converse(r) <= converse(s)"
+lemma converse_mono: "r<=s ==> converse(r) \<subseteq> converse(s)"
 by blast
 
 lemma domain_mono: "r<=s ==> domain(r)<=domain(s)"
@@ -561,28 +561,28 @@ lemmas range_rel_subset = subset_trans [OF range_mono range_subset]
 lemma field_mono: "r<=s ==> field(r)<=field(s)"
 by blast
 
-lemma field_rel_subset: "r <= A*A ==> field(r) <= A"
+lemma field_rel_subset: "r \<subseteq> A*A ==> field(r) \<subseteq> A"
 by (erule field_mono [THEN subset_trans], blast)
 
 
 subsubsection{*Images*}
 
 lemma image_pair_mono:
-    "[| !! x y. <x,y>:r ==> <x,y>:s;  A<=B |] ==> r``A <= s``B"
+    "[| !! x y. <x,y>:r ==> <x,y>:s;  A<=B |] ==> r``A \<subseteq> s``B"
 by blast 
 
 lemma vimage_pair_mono:
-    "[| !! x y. <x,y>:r ==> <x,y>:s;  A<=B |] ==> r-``A <= s-``B"
+    "[| !! x y. <x,y>:r ==> <x,y>:s;  A<=B |] ==> r-``A \<subseteq> s-``B"
 by blast 
 
-lemma image_mono: "[| r<=s;  A<=B |] ==> r``A <= s``B"
+lemma image_mono: "[| r<=s;  A<=B |] ==> r``A \<subseteq> s``B"
 by blast
 
-lemma vimage_mono: "[| r<=s;  A<=B |] ==> r-``A <= s-``B"
+lemma vimage_mono: "[| r<=s;  A<=B |] ==> r-``A \<subseteq> s-``B"
 by blast
 
 lemma Collect_mono:
-    "[| A<=B;  !!x. x:A ==> P(x) --> Q(x) |] ==> Collect(A,P) <= Collect(B,Q)"
+    "[| A<=B;  !!x. x:A ==> P(x) \<longrightarrow> Q(x) |] ==> Collect(A,P) \<subseteq> Collect(B,Q)"
 by blast
 
 (*Used in intr_elim.ML and in individual datatype definitions*)
@@ -592,7 +592,7 @@ lemmas basic_monos = subset_refl imp_refl disj_mono conj_mono ex_mono
 (* Useful with simp; contributed by Clemens Ballarin. *)
 
 lemma bex_image_simp:
-  "[| f : Pi(X, Y); A \<subseteq> X |]  ==> (EX x : f``A. P(x)) <-> (EX x:A. P(f`x))"
+  "[| f \<in> Pi(X, Y); A \<subseteq> X |]  ==> (\<exists>x\<in>f``A. P(x)) <-> (\<exists>x\<in>A. P(f`x))"
   apply safe
    apply rule
     prefer 2 apply assumption
@@ -601,7 +601,7 @@ lemma bex_image_simp:
   done
 
 lemma ball_image_simp:
-  "[| f : Pi(X, Y); A \<subseteq> X |]  ==> (ALL x : f``A. P(x)) <-> (ALL x:A. P(f`x))"
+  "[| f \<in> Pi(X, Y); A \<subseteq> X |]  ==> (\<forall>x\<in>f``A. P(x)) <-> (\<forall>x\<in>A. P(f`x))"
   apply safe
    apply (blast intro: apply_Pair)
   apply (drule bspec) apply assumption

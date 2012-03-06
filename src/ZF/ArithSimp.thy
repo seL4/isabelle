@@ -5,7 +5,7 @@
 
 header{*Arithmetic with simplification*}
 
-theory ArithSimp 
+theory ArithSimp
 imports Arith
 uses "~~/src/Provers/Arith/cancel_numerals.ML"
       "~~/src/Provers/Arith/combine_numerals.ML"
@@ -22,20 +22,20 @@ done
 (**Addition is the inverse of subtraction**)
 
 (*We need m:nat even if we replace the RHS by natify(m), for consider e.g.
-  n=2, m=omega; then n + (m-n) = 2 + (0-2) = 2 ~= 0 = natify(m).*)
-lemma add_diff_inverse: "[| n le m;  m:nat |] ==> n #+ (m#-n) = m"
+  n=2, m=omega; then n + (m-n) = 2 + (0-2) = 2 \<noteq> 0 = natify(m).*)
+lemma add_diff_inverse: "[| n \<le> m;  m:nat |] ==> n #+ (m#-n) = m"
 apply (frule lt_nat_in_nat, erule nat_succI)
 apply (erule rev_mp)
 apply (rule_tac m = m and n = n in diff_induct, auto)
 done
 
-lemma add_diff_inverse2: "[| n le m;  m:nat |] ==> (m#-n) #+ n = m"
+lemma add_diff_inverse2: "[| n \<le> m;  m:nat |] ==> (m#-n) #+ n = m"
 apply (frule lt_nat_in_nat, erule nat_succI)
 apply (simp (no_asm_simp) add: add_commute add_diff_inverse)
 done
 
 (*Proof is IDENTICAL to that of add_diff_inverse*)
-lemma diff_succ: "[| n le m;  m:nat |] ==> succ(m) #- n = succ(m#-n)"
+lemma diff_succ: "[| n \<le> m;  m:nat |] ==> succ(m) #- n = succ(m#-n)"
 apply (frule lt_nat_in_nat, erule nat_succI)
 apply (erule rev_mp)
 apply (rule_tac m = m and n = n in diff_induct)
@@ -65,7 +65,7 @@ done
 subsection{*Remainder*}
 
 (*We need m:nat even with natify*)
-lemma div_termination: "[| 0<n;  n le m;  m:nat |] ==> m #- n < m"
+lemma div_termination: "[| 0<n;  n \<le> m;  m:nat |] ==> m #- n < m"
 apply (frule lt_nat_in_nat, erule nat_succI)
 apply (erule rev_mp)
 apply (erule rev_mp)
@@ -74,25 +74,25 @@ apply (simp_all (no_asm_simp) add: diff_le_self)
 done
 
 (*for mod and div*)
-lemmas div_rls = 
-    nat_typechecks Ord_transrec_type apply_funtype 
+lemmas div_rls =
+    nat_typechecks Ord_transrec_type apply_funtype
     div_termination [THEN ltD]
     nat_into_Ord not_lt_iff_le [THEN iffD1]
 
-lemma raw_mod_type: "[| m:nat;  n:nat |] ==> raw_mod (m, n) : nat"
+lemma raw_mod_type: "[| m:nat;  n:nat |] ==> raw_mod (m, n) \<in> nat"
 apply (unfold raw_mod_def)
 apply (rule Ord_transrec_type)
 apply (auto simp add: nat_into_Ord [THEN Ord_0_lt_iff])
-apply (blast intro: div_rls) 
+apply (blast intro: div_rls)
 done
 
-lemma mod_type [TC,iff]: "m mod n : nat"
+lemma mod_type [TC,iff]: "m mod n \<in> nat"
 apply (unfold mod_def)
 apply (simp (no_asm) add: mod_def raw_mod_type)
 done
 
 
-(** Aribtrary definitions for division by zero.  Useful to simplify 
+(** Aribtrary definitions for division by zero.  Useful to simplify
     certain equations **)
 
 lemma DIVISION_BY_ZERO_DIV: "a div 0 = 0"
@@ -112,20 +112,20 @@ apply (rule raw_mod_def [THEN def_transrec, THEN trans])
 apply (simp (no_asm_simp) add: div_termination [THEN ltD])
 done
 
-lemma mod_less [simp]: "[| m<n; n : nat |] ==> m mod n = m"
+lemma mod_less [simp]: "[| m<n; n \<in> nat |] ==> m mod n = m"
 apply (frule lt_nat_in_nat, assumption)
 apply (simp (no_asm_simp) add: mod_def raw_mod_less)
 done
 
 lemma raw_mod_geq:
-     "[| 0<n; n le m;  m:nat |] ==> raw_mod (m, n) = raw_mod (m#-n, n)"
+     "[| 0<n; n \<le> m;  m:nat |] ==> raw_mod (m, n) = raw_mod (m#-n, n)"
 apply (frule lt_nat_in_nat, erule nat_succI)
 apply (rule raw_mod_def [THEN def_transrec, THEN trans])
 apply (simp (no_asm_simp) add: div_termination [THEN ltD] not_lt_iff_le [THEN iffD2], blast)
 done
 
 
-lemma mod_geq: "[| n le m;  m:nat |] ==> m mod n = (m#-n) mod n"
+lemma mod_geq: "[| n \<le> m;  m:nat |] ==> m mod n = (m#-n) mod n"
 apply (frule lt_nat_in_nat, erule nat_succI)
 apply (case_tac "n=0")
  apply (simp add: DIVISION_BY_ZERO_MOD)
@@ -135,14 +135,14 @@ done
 
 subsection{*Division*}
 
-lemma raw_div_type: "[| m:nat;  n:nat |] ==> raw_div (m, n) : nat"
+lemma raw_div_type: "[| m:nat;  n:nat |] ==> raw_div (m, n) \<in> nat"
 apply (unfold raw_div_def)
 apply (rule Ord_transrec_type)
 apply (auto simp add: nat_into_Ord [THEN Ord_0_lt_iff])
-apply (blast intro: div_rls) 
+apply (blast intro: div_rls)
 done
 
-lemma div_type [TC,iff]: "m div n : nat"
+lemma div_type [TC,iff]: "m div n \<in> nat"
 apply (unfold div_def)
 apply (simp (no_asm) add: div_def raw_div_type)
 done
@@ -152,21 +152,21 @@ apply (rule raw_div_def [THEN def_transrec, THEN trans])
 apply (simp (no_asm_simp) add: div_termination [THEN ltD])
 done
 
-lemma div_less [simp]: "[| m<n; n : nat |] ==> m div n = 0"
+lemma div_less [simp]: "[| m<n; n \<in> nat |] ==> m div n = 0"
 apply (frule lt_nat_in_nat, assumption)
 apply (simp (no_asm_simp) add: div_def raw_div_less)
 done
 
-lemma raw_div_geq: "[| 0<n;  n le m;  m:nat |] ==> raw_div(m,n) = succ(raw_div(m#-n, n))"
-apply (subgoal_tac "n ~= 0")
+lemma raw_div_geq: "[| 0<n;  n \<le> m;  m:nat |] ==> raw_div(m,n) = succ(raw_div(m#-n, n))"
+apply (subgoal_tac "n \<noteq> 0")
 prefer 2 apply blast
 apply (frule lt_nat_in_nat, erule nat_succI)
 apply (rule raw_div_def [THEN def_transrec, THEN trans])
-apply (simp (no_asm_simp) add: div_termination [THEN ltD] not_lt_iff_le [THEN iffD2] ) 
+apply (simp (no_asm_simp) add: div_termination [THEN ltD] not_lt_iff_le [THEN iffD2] )
 done
 
 lemma div_geq [simp]:
-     "[| 0<n;  n le m;  m:nat |] ==> m div n = succ ((m#-n) div n)"
+     "[| 0<n;  n \<le> m;  m:nat |] ==> m div n = succ ((m#-n) div n)"
 apply (frule lt_nat_in_nat, erule nat_succI)
 apply (simp (no_asm_simp) add: div_def raw_div_geq)
 done
@@ -183,13 +183,13 @@ apply (erule complete_induct)
 apply (case_tac "x<n")
 txt{*case x<n*}
 apply (simp (no_asm_simp))
-txt{*case n le x*}
+txt{*case @{term"n \<le> x"}*}
 apply (simp add: not_lt_iff_le add_assoc mod_geq div_termination [THEN ltD] add_diff_inverse)
 done
 
 lemma mod_div_equality_natify: "(m div n)#*n #+ m mod n = natify(m)"
 apply (subgoal_tac " (natify (m) div natify (n))#*natify (n) #+ natify (m) mod natify (n) = natify (m) ")
-apply force 
+apply force
 apply (subst mod_div_lemma, auto)
 done
 
@@ -203,14 +203,14 @@ subsection{*Further Facts about Remainder*}
 text{*(mainly for mutilated chess board)*}
 
 lemma mod_succ_lemma:
-     "[| 0<n;  m:nat;  n:nat |]  
+     "[| 0<n;  m:nat;  n:nat |]
       ==> succ(m) mod n = (if succ(m mod n) = n then 0 else succ(m mod n))"
 apply (erule complete_induct)
 apply (case_tac "succ (x) <n")
 txt{* case succ(x) < n *}
  apply (simp (no_asm_simp) add: nat_le_refl [THEN lt_trans] succ_neq_self)
  apply (simp add: ltD [THEN mem_imp_not_eq])
-txt{* case n le succ(x) *}
+txt{* case @{term"n \<le> succ(x)"} *}
 apply (simp add: mod_geq not_lt_iff_le)
 apply (erule leE)
  apply (simp (no_asm_simp) add: mod_geq div_termination [THEN ltD] diff_succ)
@@ -232,8 +232,8 @@ done
 lemma mod_less_divisor: "[| 0<n;  n:nat |] ==> m mod n < n"
 apply (subgoal_tac "natify (m) mod n < n")
 apply (rule_tac [2] i = "natify (m) " in complete_induct)
-apply (case_tac [3] "x<n", auto) 
-txt{* case n le x*}
+apply (case_tac [3] "x<n", auto)
+txt{* case @{term"n \<le> x"}*}
 apply (simp add: mod_geq not_lt_iff_le div_termination [THEN ltD])
 done
 
@@ -264,25 +264,25 @@ by (cut_tac n = 0 in mod2_add_more, auto)
 
 subsection{*Additional theorems about @{text "\<le>"}*}
 
-lemma add_le_self: "m:nat ==> m le (m #+ n)"
+lemma add_le_self: "m:nat ==> m \<le> (m #+ n)"
 apply (simp (no_asm_simp))
 done
 
-lemma add_le_self2: "m:nat ==> m le (n #+ m)"
+lemma add_le_self2: "m:nat ==> m \<le> (n #+ m)"
 apply (simp (no_asm_simp))
 done
 
 (*** Monotonicity of Multiplication ***)
 
-lemma mult_le_mono1: "[| i le j; j:nat |] ==> (i#*k) le (j#*k)"
-apply (subgoal_tac "natify (i) #*natify (k) le j#*natify (k) ")
+lemma mult_le_mono1: "[| i \<le> j; j:nat |] ==> (i#*k) \<le> (j#*k)"
+apply (subgoal_tac "natify (i) #*natify (k) \<le> j#*natify (k) ")
 apply (frule_tac [2] lt_nat_in_nat)
 apply (rule_tac [3] n = "natify (k) " in nat_induct)
 apply (simp_all add: add_le_mono)
 done
 
-(* le monotonicity, BOTH arguments*)
-lemma mult_le_mono: "[| i le j; k le l; j:nat; l:nat |] ==> i#*k le j#*l"
+(* @{text"\<le>"} monotonicity, BOTH arguments*)
+lemma mult_le_mono: "[| i \<le> j; k \<le> l; j:nat; l:nat |] ==> i#*k \<le> j#*l"
 apply (rule mult_le_mono1 [THEN le_trans], assumption+)
 apply (subst mult_commute, subst mult_commute, rule mult_le_mono1, assumption+)
 done
@@ -359,20 +359,20 @@ lemma mult_less_cancel1 [simp]:
 apply (simp (no_asm) add: mult_less_cancel2 mult_commute [of k])
 done
 
-lemma mult_le_cancel2 [simp]: "(m#*k le n#*k) <-> (0 < natify(k) --> natify(m) le natify(n))"
+lemma mult_le_cancel2 [simp]: "(m#*k \<le> n#*k) <-> (0 < natify(k) \<longrightarrow> natify(m) \<le> natify(n))"
 apply (simp (no_asm_simp) add: not_lt_iff_le [THEN iff_sym])
 apply auto
 done
 
-lemma mult_le_cancel1 [simp]: "(k#*m le k#*n) <-> (0 < natify(k) --> natify(m) le natify(n))"
+lemma mult_le_cancel1 [simp]: "(k#*m \<le> k#*n) <-> (0 < natify(k) \<longrightarrow> natify(m) \<le> natify(n))"
 apply (simp (no_asm_simp) add: not_lt_iff_le [THEN iff_sym])
 apply auto
 done
 
-lemma mult_le_cancel_le1: "k : nat ==> k #* m le k \<longleftrightarrow> (0 < k \<longrightarrow> natify(m) le 1)"
+lemma mult_le_cancel_le1: "k \<in> nat ==> k #* m \<le> k \<longleftrightarrow> (0 < k \<longrightarrow> natify(m) \<le> 1)"
 by (cut_tac k = k and m = m and n = 1 in mult_le_cancel1, auto)
 
-lemma Ord_eq_iff_le: "[| Ord(m); Ord(n) |] ==> m=n <-> (m le n & n le m)"
+lemma Ord_eq_iff_le: "[| Ord(m); Ord(n) |] ==> m=n <-> (m \<le> n & n \<le> m)"
 by (blast intro: le_anti_sym)
 
 lemma mult_cancel2_lemma:
@@ -406,7 +406,7 @@ done
 
 lemma div_cancel:
      "[| 0 < natify(n);  0 < natify(k) |] ==> (k#*m) div (k#*n) = m div n"
-apply (cut_tac k = "natify (k) " and m = "natify (m)" and n = "natify (n)" 
+apply (cut_tac k = "natify (k) " and m = "natify (m)" and n = "natify (n)"
        in div_cancel_raw)
 apply auto
 done
@@ -424,12 +424,12 @@ apply (simp add: nat_into_Ord [THEN Ord_0_lt_iff])
 apply (erule_tac i = m in complete_induct)
 apply (case_tac "x<n")
  apply (simp (no_asm_simp) add: mod_less zero_lt_mult_iff mult_lt_mono2)
-apply (simp add: not_lt_iff_le zero_lt_mult_iff le_refl [THEN mult_le_mono] 
+apply (simp add: not_lt_iff_le zero_lt_mult_iff le_refl [THEN mult_le_mono]
          mod_geq diff_mult_distrib2 [symmetric] div_termination [THEN ltD])
 done
 
 lemma mod_mult_distrib2: "k #* (m mod n) = (k#*m) mod (k#*n)"
-apply (cut_tac k = "natify (k) " and m = "natify (m)" and n = "natify (n)" 
+apply (cut_tac k = "natify (k) " and m = "natify (m)" and n = "natify (n)"
        in mult_mod_distrib_raw)
 apply auto
 done
@@ -440,8 +440,8 @@ done
 
 lemma mod_add_self2_raw: "n \<in> nat ==> (m #+ n) mod n = m mod n"
 apply (subgoal_tac " (n #+ m) mod n = (n #+ m #- n) mod n")
-apply (simp add: add_commute) 
-apply (subst mod_geq [symmetric], auto) 
+apply (simp add: add_commute)
+apply (subst mod_geq [symmetric], auto)
 done
 
 lemma mod_add_self2 [simp]: "(m #+ n) mod n = m mod n"
@@ -470,21 +470,21 @@ done
 (*Lemma for gcd*)
 lemma mult_eq_self_implies_10: "m = m#*n ==> natify(n)=1 | m=0"
 apply (subgoal_tac "m: nat")
- prefer 2 
+ prefer 2
  apply (erule ssubst)
- apply simp  
+ apply simp
 apply (rule disjCI)
 apply (drule sym)
 apply (rule Ord_linear_lt [of "natify(n)" 1])
-apply simp_all  
- apply (subgoal_tac "m #* n = 0", simp) 
+apply simp_all
+ apply (subgoal_tac "m #* n = 0", simp)
  apply (subst mult_natify2 [symmetric])
  apply (simp del: mult_natify2)
 apply (drule nat_into_Ord [THEN Ord_0_lt, THEN [2] mult_lt_mono2], auto)
 done
 
 lemma less_imp_succ_add [rule_format]:
-     "[| m<n; n: nat |] ==> EX k: nat. n = succ(m#+k)"
+     "[| m<n; n: nat |] ==> \<exists>k\<in>nat. n = succ(m#+k)"
 apply (frule lt_nat_in_nat, assumption)
 apply (erule rev_mp)
 apply (induct_tac "n")
@@ -493,45 +493,45 @@ apply (blast elim!: leE intro!: add_0_right [symmetric] add_succ_right [symmetri
 done
 
 lemma less_iff_succ_add:
-     "[| m: nat; n: nat |] ==> (m<n) <-> (EX k: nat. n = succ(m#+k))"
+     "[| m: nat; n: nat |] ==> (m<n) <-> (\<exists>k\<in>nat. n = succ(m#+k))"
 by (auto intro: less_imp_succ_add)
 
 lemma add_lt_elim2:
      "\<lbrakk>a #+ d = b #+ c; a < b; b \<in> nat; c \<in> nat; d \<in> nat\<rbrakk> \<Longrightarrow> c < d"
-by (drule less_imp_succ_add, auto) 
+by (drule less_imp_succ_add, auto)
 
 lemma add_le_elim2:
-     "\<lbrakk>a #+ d = b #+ c; a le b; b \<in> nat; c \<in> nat; d \<in> nat\<rbrakk> \<Longrightarrow> c le d"
-by (drule less_imp_succ_add, auto) 
+     "\<lbrakk>a #+ d = b #+ c; a \<le> b; b \<in> nat; c \<in> nat; d \<in> nat\<rbrakk> \<Longrightarrow> c \<le> d"
+by (drule less_imp_succ_add, auto)
 
 
 subsubsection{*More Lemmas About Difference*}
 
 lemma diff_is_0_lemma:
-     "[| m: nat; n: nat |] ==> m #- n = 0 <-> m le n"
+     "[| m: nat; n: nat |] ==> m #- n = 0 <-> m \<le> n"
 apply (rule_tac m = m and n = n in diff_induct, simp_all)
 done
 
-lemma diff_is_0_iff: "m #- n = 0 <-> natify(m) le natify(n)"
+lemma diff_is_0_iff: "m #- n = 0 <-> natify(m) \<le> natify(n)"
 by (simp add: diff_is_0_lemma [symmetric])
 
 lemma nat_lt_imp_diff_eq_0:
      "[| a:nat; b:nat; a<b |] ==> a #- b = 0"
-by (simp add: diff_is_0_iff le_iff) 
+by (simp add: diff_is_0_iff le_iff)
 
 lemma raw_nat_diff_split:
-     "[| a:nat; b:nat |] ==>  
-      (P(a #- b)) <-> ((a < b -->P(0)) & (ALL d:nat. a = b #+ d --> P(d)))"
+     "[| a:nat; b:nat |] ==>
+      (P(a #- b)) <-> ((a < b \<longrightarrow>P(0)) & (\<forall>d\<in>nat. a = b #+ d \<longrightarrow> P(d)))"
 apply (case_tac "a < b")
  apply (force simp add: nat_lt_imp_diff_eq_0)
-apply (rule iffI, force, simp) 
+apply (rule iffI, force, simp)
 apply (drule_tac x="a#-b" in bspec)
-apply (simp_all add: Ordinal.not_lt_iff_le add_diff_inverse) 
+apply (simp_all add: Ordinal.not_lt_iff_le add_diff_inverse)
 done
 
 lemma nat_diff_split:
-   "(P(a #- b)) <-> 
-    (natify(a) < natify(b) -->P(0)) & (ALL d:nat. natify(a) = b #+ d --> P(d))"
+   "(P(a #- b)) <->
+    (natify(a) < natify(b) \<longrightarrow>P(0)) & (\<forall>d\<in>nat. natify(a) = b #+ d \<longrightarrow> P(d))"
 apply (cut_tac P=P and a="natify(a)" and b="natify(b)" in raw_nat_diff_split)
 apply simp_all
 done
@@ -544,10 +544,10 @@ apply (simp split add: nat_diff_split, auto)
  apply (blast intro: add_le_self lt_trans1)
 apply (rule not_le_iff_lt [THEN iffD1], auto)
 apply (subgoal_tac "i #+ da < j #+ d", force)
-apply (blast intro: add_le_lt_mono) 
+apply (blast intro: add_le_lt_mono)
 done
 
-lemma lt_imp_diff_lt: "[|j<i; i\<le>k; k\<in>nat|] ==> (k#-i) < (k#-j)" 
+lemma lt_imp_diff_lt: "[|j<i; i\<le>k; k\<in>nat|] ==> (k#-i) < (k#-j)"
 apply (frule le_in_nat, assumption)
 apply (frule lt_nat_in_nat, assumption)
 apply (simp split add: nat_diff_split, auto)
@@ -555,13 +555,13 @@ apply (simp split add: nat_diff_split, auto)
  apply (blast intro: lt_irrefl lt_trans2)
 apply (rule not_le_iff_lt [THEN iffD1], auto)
 apply (subgoal_tac "j #+ d < i #+ da", force)
-apply (blast intro: add_lt_le_mono) 
+apply (blast intro: add_lt_le_mono)
 done
 
 
 lemma diff_lt_iff_lt: "[|i\<le>k; j\<in>nat; k\<in>nat|] ==> (k#-i) < (k#-j) <-> j<i"
 apply (frule le_in_nat, assumption)
-apply (blast intro: lt_imp_diff_lt diff_lt_imp_lt) 
+apply (blast intro: lt_imp_diff_lt diff_lt_imp_lt)
 done
 
 end

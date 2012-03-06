@@ -15,28 +15,28 @@ theory Perm imports func begin
 definition
   (*composition of relations and functions; NOT Suppes's relative product*)
   comp     :: "[i,i]=>i"      (infixr "O" 60)  where
-    "r O s == {xz : domain(s)*range(r) . 
-               EX x y z. xz=<x,z> & <x,y>:s & <y,z>:r}"
+    "r O s == {xz \<in> domain(s)*range(r) . 
+               \<exists>x y z. xz=<x,z> & <x,y>:s & <y,z>:r}"
 
 definition
   (*the identity function for A*)
   id    :: "i=>i"  where
-    "id(A) == (lam x:A. x)"
+    "id(A) == (\<lambda>x\<in>A. x)"
 
 definition
   (*one-to-one functions from A to B*)
   inj   :: "[i,i]=>i"  where
-    "inj(A,B) == { f: A->B. ALL w:A. ALL x:A. f`w=f`x --> w=x}"
+    "inj(A,B) == { f: A->B. \<forall>w\<in>A. \<forall>x\<in>A. f`w=f`x \<longrightarrow> w=x}"
 
 definition
   (*onto functions from A to B*)
   surj  :: "[i,i]=>i"  where
-    "surj(A,B) == { f: A->B . ALL y:B. EX x:A. f`x=y}"
+    "surj(A,B) == { f: A->B . \<forall>y\<in>B. \<exists>x\<in>A. f`x=y}"
 
 definition
   (*one-to-one and onto functions*)
   bij   :: "[i,i]=>i"  where
-    "bij(A,B) == inj(A,B) Int surj(A,B)"
+    "bij(A,B) == inj(A,B) \<inter> surj(A,B)"
 
 
 subsection{*Surjective Function Space*}
@@ -46,7 +46,7 @@ apply (unfold surj_def)
 apply (erule CollectD1)
 done
 
-lemma fun_is_surj: "f : Pi(A,B) ==> f: surj(A,range(f))"
+lemma fun_is_surj: "f \<in> Pi(A,B) ==> f: surj(A,range(f))"
 apply (unfold surj_def)
 apply (blast intro: apply_equality range_of_fun domain_type)
 done
@@ -67,13 +67,13 @@ lemma lam_surjective:
     "[| !!x. x:A ==> c(x): B;            
         !!y. y:B ==> d(y): A;            
         !!y. y:B ==> c(d(y)) = y         
-     |] ==> (lam x:A. c(x)) : surj(A,B)"
+     |] ==> (\<lambda>x\<in>A. c(x)) \<in> surj(A,B)"
 apply (rule_tac d = d in f_imp_surjective) 
 apply (simp_all add: lam_type)
 done
 
 text{*Cantor's theorem revisited*}
-lemma cantor_surj: "f ~: surj(A,Pow(A))"
+lemma cantor_surj: "f \<notin> surj(A,Pow(A))"
 apply (unfold surj_def, safe)
 apply (cut_tac cantor)
 apply (best del: subsetI) 
@@ -99,7 +99,7 @@ by (unfold inj_def, blast)
 
 text{* A function with a left inverse is an injection *}
 
-lemma f_imp_injective: "[| f: A->B;  ALL x:A. d(f`x)=x |] ==> f: inj(A,B)"
+lemma f_imp_injective: "[| f: A->B;  \<forall>x\<in>A. d(f`x)=x |] ==> f: inj(A,B)"
 apply (simp (no_asm_simp) add: inj_def)
 apply (blast intro: subst_context [THEN box_equals])
 done
@@ -107,7 +107,7 @@ done
 lemma lam_injective: 
     "[| !!x. x:A ==> c(x): B;            
         !!x. x:A ==> d(c(x)) = x |]
-     ==> (lam x:A. c(x)) : inj(A,B)"
+     ==> (\<lambda>x\<in>A. c(x)) \<in> inj(A,B)"
 apply (rule_tac d = d in f_imp_injective)
 apply (simp_all add: lam_type)
 done
@@ -132,13 +132,13 @@ lemma lam_bijective:
         !!y. y:B ==> d(y): A;            
         !!x. x:A ==> d(c(x)) = x;        
         !!y. y:B ==> c(d(y)) = y         
-     |] ==> (lam x:A. c(x)) : bij(A,B)"
+     |] ==> (\<lambda>x\<in>A. c(x)) \<in> bij(A,B)"
 apply (unfold bij_def)
 apply (blast intro!: lam_injective lam_surjective)
 done
 
-lemma RepFun_bijective: "(ALL y : x. EX! y'. f(y') = f(y))   
-      ==> (lam z:{f(y). y:x}. THE y. f(y) = z) : bij({f(y). y:x}, x)"
+lemma RepFun_bijective: "(\<forall>y\<in>x. EX! y'. f(y') = f(y))   
+      ==> (\<lambda>z\<in>{f(y). y:x}. THE y. f(y) = z) \<in> bij({f(y). y:x}, x)"
 apply (rule_tac d = f in lam_bijective)
 apply (auto simp add: the_equality2)
 done
@@ -146,7 +146,7 @@ done
 
 subsection{*Identity Function*}
 
-lemma idI [intro!]: "a:A ==> <a,a> : id(A)"
+lemma idI [intro!]: "a:A ==> <a,a> \<in> id(A)"
 apply (unfold id_def)
 apply (erule lamI)
 done
@@ -154,7 +154,7 @@ done
 lemma idE [elim!]: "[| p: id(A);  !!x.[| x:A; p=<x,x> |] ==> P |] ==>  P"
 by (simp add: id_def lam_def, blast)
 
-lemma id_type: "id(A) : A->A"
+lemma id_type: "id(A) \<in> A->A"
 apply (unfold id_def)
 apply (rule lam_type, assumption)
 done
@@ -164,7 +164,7 @@ apply (unfold id_def)
 apply (simp (no_asm_simp))
 done
 
-lemma id_mono: "A<=B ==> id(A) <= id(B)"
+lemma id_mono: "A<=B ==> id(A) \<subseteq> id(B)"
 apply (unfold id_def)
 apply (erule lam_mono)
 done
@@ -186,7 +186,7 @@ apply (unfold bij_def)
 apply (blast intro: id_inj id_surj)
 done
 
-lemma subset_iff_id: "A <= B <-> id(A) : A->B"
+lemma subset_iff_id: "A \<subseteq> B <-> id(A) \<in> A->B"
 apply (unfold id_def)
 apply (force intro!: lam_type dest: apply_type)
 done
@@ -198,7 +198,7 @@ by auto
 
 subsection{*Converse of a Function*}
 
-lemma inj_converse_fun: "f: inj(A,B) ==> converse(f) : range(f)->A"
+lemma inj_converse_fun: "f: inj(A,B) ==> converse(f) \<in> range(f)->A"
 apply (unfold inj_def)
 apply (simp (no_asm_simp) add: Pi_iff function_def)
 apply (erule CollectE)
@@ -259,19 +259,19 @@ done
 
 subsection{*Composition of Two Relations*}
 
-text{*The inductive definition package could derive these theorems for @term{r O s}*}
+text{*The inductive definition package could derive these theorems for @{term"r O s"}*}
 
-lemma compI [intro]: "[| <a,b>:s; <b,c>:r |] ==> <a,c> : r O s"
+lemma compI [intro]: "[| <a,b>:s; <b,c>:r |] ==> <a,c> \<in> r O s"
 by (unfold comp_def, blast)
 
 lemma compE [elim!]: 
-    "[| xz : r O s;   
+    "[| xz \<in> r O s;   
         !!x y z. [| xz=<x,z>;  <x,y>:s;  <y,z>:r |] ==> P |]
      ==> P"
 by (unfold comp_def, blast)
 
 lemma compEpair: 
-    "[| <a,c> : r O s;   
+    "[| <a,c> \<in> r O s;   
         !!y. [| <a,y>:s;  <y,c>:r |] ==> P |]
      ==> P"
 by (erule compE, simp)  
@@ -283,35 +283,35 @@ by blast
 subsection{*Domain and Range -- see Suppes, Section 3.1*}
 
 text{*Boyer et al., Set Theory in First-Order Logic, JAR 2 (1986), 287-327*}
-lemma range_comp: "range(r O s) <= range(r)"
+lemma range_comp: "range(r O s) \<subseteq> range(r)"
 by blast
 
-lemma range_comp_eq: "domain(r) <= range(s) ==> range(r O s) = range(r)"
+lemma range_comp_eq: "domain(r) \<subseteq> range(s) ==> range(r O s) = range(r)"
 by (rule range_comp [THEN equalityI], blast)
 
-lemma domain_comp: "domain(r O s) <= domain(s)"
+lemma domain_comp: "domain(r O s) \<subseteq> domain(s)"
 by blast
 
-lemma domain_comp_eq: "range(s) <= domain(r) ==> domain(r O s) = domain(s)"
+lemma domain_comp_eq: "range(s) \<subseteq> domain(r) ==> domain(r O s) = domain(s)"
 by (rule domain_comp [THEN equalityI], blast)
 
 lemma image_comp: "(r O s)``A = r``(s``A)"
 by blast
 
-lemma inj_inj_range: "f: inj(A,B) ==> f : inj(A,range(f))"
+lemma inj_inj_range: "f: inj(A,B) ==> f \<in> inj(A,range(f))"
   by (auto simp add: inj_def Pi_iff function_def)
 
-lemma inj_bij_range: "f: inj(A,B) ==> f : bij(A,range(f))"
+lemma inj_bij_range: "f: inj(A,B) ==> f \<in> bij(A,range(f))"
   by (auto simp add: bij_def intro: inj_inj_range inj_is_fun fun_is_surj) 
 
 
 subsection{*Other Results*}
 
-lemma comp_mono: "[| r'<=r; s'<=s |] ==> (r' O s') <= (r O s)"
+lemma comp_mono: "[| r'<=r; s'<=s |] ==> (r' O s') \<subseteq> (r O s)"
 by blast
 
 text{*composition preserves relations*}
-lemma comp_rel: "[| s<=A*B;  r<=B*C |] ==> (r O s) <= A*C"
+lemma comp_rel: "[| s<=A*B;  r<=B*C |] ==> (r O s) \<subseteq> A*C"
 by blast
 
 text{*associative law for composition*}
@@ -319,14 +319,14 @@ lemma comp_assoc: "(r O s) O t = r O (s O t)"
 by blast
 
 (*left identity of composition; provable inclusions are
-        id(A) O r <= r       
-  and   [| r<=A*B; B<=C |] ==> r <= id(C) O r *)
+        id(A) O r \<subseteq> r       
+  and   [| r<=A*B; B<=C |] ==> r \<subseteq> id(C) O r *)
 lemma left_comp_id: "r<=A*B ==> id(B) O r = r"
 by blast
 
 (*right identity of composition; provable inclusions are
-        r O id(A) <= r
-  and   [| r<=A*B; A<=C |] ==> r <= r O id(C) *)
+        r O id(A) \<subseteq> r
+  and   [| r<=A*B; A<=C |] ==> r \<subseteq> r O id(C) *)
 lemma right_comp_id: "r<=A*B ==> r O id(A) = r"
 by blast
 
@@ -337,7 +337,7 @@ lemma comp_function: "[| function(g);  function(f) |] ==> function(f O g)"
 by (unfold function_def, blast)
 
 text{*Don't think the premises can be weakened much*}
-lemma comp_fun: "[| g: A->B;  f: B->C |] ==> (f O g) : A->C"
+lemma comp_fun: "[| g: A->B;  f: B->C |] ==> (f O g) \<in> A->C"
 apply (auto simp add: Pi_def comp_function Pow_iff comp_rel)
 apply (subst range_rel_subset [THEN domain_comp_eq], auto) 
 done
@@ -353,8 +353,8 @@ done
 text{*Simplifies compositions of lambda-abstractions*}
 lemma comp_lam: 
     "[| !!x. x:A ==> b(x): B |]
-     ==> (lam y:B. c(y)) O (lam x:A. b(x)) = (lam x:A. c(b(x)))"
-apply (subgoal_tac "(lam x:A. b(x)) : A -> B") 
+     ==> (\<lambda>y\<in>B. c(y)) O (\<lambda>x\<in>A. b(x)) = (\<lambda>x\<in>A. c(b(x)))"
+apply (subgoal_tac "(\<lambda>x\<in>A. b(x)) \<in> A -> B") 
  apply (rule fun_extension)
    apply (blast intro: comp_fun lam_funtype)
   apply (rule lam_funtype)
@@ -363,7 +363,7 @@ apply (simp add: lam_type)
 done
 
 lemma comp_inj:
-     "[| g: inj(A,B);  f: inj(B,C) |] ==> (f O g) : inj(A,C)"
+     "[| g: inj(A,B);  f: inj(B,C) |] ==> (f O g) \<in> inj(A,C)"
 apply (frule inj_is_fun [of g]) 
 apply (frule inj_is_fun [of f]) 
 apply (rule_tac d = "%y. converse (g) ` (converse (f) ` y)" in f_imp_injective)
@@ -371,13 +371,13 @@ apply (rule_tac d = "%y. converse (g) ` (converse (f) ` y)" in f_imp_injective)
 done
 
 lemma comp_surj: 
-    "[| g: surj(A,B);  f: surj(B,C) |] ==> (f O g) : surj(A,C)"
+    "[| g: surj(A,B);  f: surj(B,C) |] ==> (f O g) \<in> surj(A,C)"
 apply (unfold surj_def)
 apply (blast intro!: comp_fun comp_fun_apply)
 done
 
 lemma comp_bij: 
-    "[| g: bij(A,B);  f: bij(B,C) |] ==> (f O g) : bij(A,C)"
+    "[| g: bij(A,B);  f: bij(B,C) |] ==> (f O g) \<in> bij(A,C)"
 apply (unfold bij_def)
 apply (blast intro: comp_inj comp_surj)
 done
@@ -420,7 +420,7 @@ done
 subsubsection{*Inverses of Composition*}
 
 text{*left inverse of composition; one inclusion is
-        @term{f: A->B ==> id(A) <= converse(f) O f} *}
+        @{term "f: A->B ==> id(A) \<subseteq> converse(f) O f"} *}
 lemma left_comp_inverse: "f: inj(A,B) ==> converse(f) O f = id(A)"
 apply (unfold inj_def, clarify) 
 apply (rule equalityI) 
@@ -428,7 +428,7 @@ apply (rule equalityI)
 done
 
 text{*right inverse of composition; one inclusion is
-                @term{f: A->B ==> f O converse(f) <= id(B)} *}
+                @{term "f: A->B ==> f O converse(f) \<subseteq> id(B)"} *}
 lemma right_comp_inverse: 
     "f: surj(A,B) ==> f O converse(f) = id(B)"
 apply (simp add: surj_def, clarify) 
@@ -441,7 +441,7 @@ done
 subsubsection{*Proving that a Function is a Bijection*}
 
 lemma comp_eq_id_iff: 
-    "[| f: A->B;  g: B->A |] ==> f O g = id(B) <-> (ALL y:B. f`(g`y)=y)"
+    "[| f: A->B;  g: B->A |] ==> f O g = id(B) <-> (\<forall>y\<in>B. f`(g`y)=y)"
 apply (unfold id_def, safe)
  apply (drule_tac t = "%h. h`y " in subst_context)
  apply simp
@@ -451,17 +451,17 @@ apply (rule fun_extension)
 done
 
 lemma fg_imp_bijective: 
-    "[| f: A->B;  g: B->A;  f O g = id(B);  g O f = id(A) |] ==> f : bij(A,B)"
+    "[| f: A->B;  g: B->A;  f O g = id(B);  g O f = id(A) |] ==> f \<in> bij(A,B)"
 apply (unfold bij_def)
 apply (simp add: comp_eq_id_iff)
 apply (blast intro: f_imp_injective f_imp_surjective apply_funtype)
 done
 
-lemma nilpotent_imp_bijective: "[| f: A->A;  f O f = id(A) |] ==> f : bij(A,A)"
+lemma nilpotent_imp_bijective: "[| f: A->A;  f O f = id(A) |] ==> f \<in> bij(A,A)"
 by (blast intro: fg_imp_bijective)
 
 lemma invertible_imp_bijective:
-     "[| converse(f): B->A;  f: A->B |] ==> f : bij(A,B)"
+     "[| converse(f): B->A;  f: A->B |] ==> f \<in> bij(A,B)"
 by (simp add: fg_imp_bijective comp_eq_id_iff 
               left_inverse_lemma right_inverse_lemma)
 
@@ -471,16 +471,16 @@ text{*See similar theorems in func.thy*}
 
 text{*Theorem by KG, proof by LCP*}
 lemma inj_disjoint_Un:
-     "[| f: inj(A,B);  g: inj(C,D);  B Int D = 0 |]  
-      ==> (lam a: A Un C. if a:A then f`a else g`a) : inj(A Un C, B Un D)"
+     "[| f: inj(A,B);  g: inj(C,D);  B \<inter> D = 0 |]  
+      ==> (\<lambda>a\<in>A \<union> C. if a:A then f`a else g`a) \<in> inj(A \<union> C, B \<union> D)"
 apply (rule_tac d = "%z. if z:B then converse (f) `z else converse (g) `z" 
        in lam_injective)
 apply (auto simp add: inj_is_fun [THEN apply_type])
 done
 
 lemma surj_disjoint_Un: 
-    "[| f: surj(A,B);  g: surj(C,D);  A Int C = 0 |]   
-     ==> (f Un g) : surj(A Un C, B Un D)"
+    "[| f: surj(A,B);  g: surj(C,D);  A \<inter> C = 0 |]   
+     ==> (f \<union> g) \<in> surj(A \<union> C, B \<union> D)"
 apply (simp add: surj_def fun_disjoint_Un) 
 apply (blast dest!: domain_of_fun 
              intro!: fun_disjoint_apply1 fun_disjoint_apply2)
@@ -489,8 +489,8 @@ done
 text{*A simple, high-level proof; the version for injections follows from it,
   using  @term{f:inj(A,B) <-> f:bij(A,range(f))}  *}
 lemma bij_disjoint_Un:
-     "[| f: bij(A,B);  g: bij(C,D);  A Int C = 0;  B Int D = 0 |]  
-      ==> (f Un g) : bij(A Un C, B Un D)"
+     "[| f: bij(A,B);  g: bij(C,D);  A \<inter> C = 0;  B \<inter> D = 0 |]  
+      ==> (f \<union> g) \<in> bij(A \<union> C, B \<union> D)"
 apply (rule invertible_imp_bijective)
 apply (subst converse_Un)
 apply (auto intro: fun_disjoint_Un bij_is_fun bij_converse_bij)
@@ -505,7 +505,7 @@ apply (simp add: surj_def)
 apply (blast intro: apply_equality apply_Pair Pi_type) 
 done
 
-lemma restrict_image [simp]: "restrict(f,A) `` B = f `` (A Int B)"
+lemma restrict_image [simp]: "restrict(f,A) `` B = f `` (A \<inter> B)"
 by (auto simp add: restrict_def)
 
 lemma restrict_inj: 
@@ -534,7 +534,7 @@ apply (blast intro: fun_weaken_type)
 done
 
 lemma inj_succ_restrict:
-     "[| f: inj(succ(m), A) |] ==> restrict(f,m) : inj(m, A-{f`m})"
+     "[| f: inj(succ(m), A) |] ==> restrict(f,m) \<in> inj(m, A-{f`m})"
 apply (rule restrict_bij [THEN bij_is_inj, THEN inj_weaken_type], assumption, blast)
 apply (unfold inj_def)
 apply (fast elim: range_type mem_irrefl dest: apply_equality)
@@ -542,8 +542,8 @@ done
 
 
 lemma inj_extend: 
-    "[| f: inj(A,B);  a~:A;  b~:B |]  
-     ==> cons(<a,b>,f) : inj(cons(a,A), cons(b,B))"
+    "[| f: inj(A,B);  a\<notin>A;  b\<notin>B |]  
+     ==> cons(<a,b>,f) \<in> inj(cons(a,A), cons(b,B))"
 apply (unfold inj_def)
 apply (force intro: apply_type  simp add: fun_extend)
 done

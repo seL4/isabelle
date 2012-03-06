@@ -17,14 +17,14 @@ setup {*
 
 ML {* val ZF_ss = @{simpset} *}
 
-simproc_setup defined_Bex ("EX x:A. P(x) & Q(x)") = {*
+simproc_setup defined_Bex ("\<exists>x\<in>A. P(x) & Q(x)") = {*
   let
     val unfold_bex_tac = unfold_tac @{thms Bex_def};
     fun prove_bex_tac ss = unfold_bex_tac ss THEN Quantifier1.prove_one_point_ex_tac;
   in fn _ => fn ss => Quantifier1.rearrange_bex (prove_bex_tac ss) ss end
 *}
 
-simproc_setup defined_Ball ("ALL x:A. P(x) --> Q(x)") = {*
+simproc_setup defined_Ball ("\<forall>x\<in>A. P(x) \<longrightarrow> Q(x)") = {*
   let
     val unfold_ball_tac = unfold_tac @{thms Ball_def};
     fun prove_ball_tac ss = unfold_ball_tac ss THEN Quantifier1.prove_one_point_all_tac;
@@ -48,7 +48,7 @@ lemmas Pair_inject = Pair_iff [THEN iffD1, THEN conjE, elim!]
 lemmas Pair_inject1 = Pair_iff [THEN iffD1, THEN conjunct1]
 lemmas Pair_inject2 = Pair_iff [THEN iffD1, THEN conjunct2]
 
-lemma Pair_not_0: "<a,b> ~= 0"
+lemma Pair_not_0: "<a,b> \<noteq> 0"
 apply (unfold Pair_def)
 apply (blast elim: equalityE)
 done
@@ -79,7 +79,7 @@ text{*Generalizes Cartesian product*}
 lemma Sigma_iff [simp]: "<a,b>: Sigma(A,B) <-> a:A & b:B(a)"
 by (simp add: Sigma_def)
 
-lemma SigmaI [TC,intro!]: "[| a:A;  b:B(a) |] ==> <a,b> : Sigma(A,B)"
+lemma SigmaI [TC,intro!]: "[| a:A;  b:B(a) |] ==> <a,b> \<in> Sigma(A,B)"
 by simp
 
 lemmas SigmaD1 = Sigma_iff [THEN iffD1, THEN conjunct1]
@@ -93,7 +93,7 @@ lemma SigmaE [elim!]:
 by (unfold Sigma_def, blast) 
 
 lemma SigmaE2 [elim!]:
-    "[| <a,b> : Sigma(A,B);     
+    "[| <a,b> \<in> Sigma(A,B);     
         [| a:A;  b:B(a) |] ==> P    
      |] ==> P"
 by (unfold Sigma_def, blast) 
@@ -125,10 +125,10 @@ by (simp add: fst_def)
 lemma snd_conv [simp]: "snd(<a,b>) = b"
 by (simp add: snd_def)
 
-lemma fst_type [TC]: "p:Sigma(A,B) ==> fst(p) : A"
+lemma fst_type [TC]: "p:Sigma(A,B) ==> fst(p) \<in> A"
 by auto
 
-lemma snd_type [TC]: "p:Sigma(A,B) ==> snd(p) : B(fst(p))"
+lemma snd_type [TC]: "p:Sigma(A,B) ==> snd(p) \<in> B(fst(p))"
 by auto
 
 lemma Pair_fst_snd_eq: "a: Sigma(A,B) ==> <fst(a),snd(a)> = a"
@@ -144,13 +144,13 @@ by (simp add: split_def)
 lemma split_type [TC]:
     "[|  p:Sigma(A,B);    
          !!x y.[| x:A; y:B(x) |] ==> c(x,y):C(<x,y>)  
-     |] ==> split(%x y. c(x,y), p) : C(p)"
+     |] ==> split(%x y. c(x,y), p) \<in> C(p)"
 apply (erule SigmaE, auto) 
 done
 
 lemma expand_split: 
   "u: A*B ==>    
-        R(split(c,u)) <-> (ALL x:A. ALL y:B. u = <x,y> --> R(c(x,y)))"
+        R(split(c,u)) <-> (\<forall>x\<in>A. \<forall>y\<in>B. u = <x,y> \<longrightarrow> R(c(x,y)))"
 apply (simp add: split_def)
 apply auto
 done

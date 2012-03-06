@@ -6,10 +6,10 @@
 (*"Difference" is subtraction of natural numbers.
   There are no negative numbers; we have
      m #- n = 0  iff  m<=n   and     m #- n = succ(k) iff m>n.
-  Also, rec(m, 0, %z w.z) is pred(m).   
+  Also, rec(m, 0, %z w.z) is pred(m).
 *)
 
-header{*Arithmetic Operators and Their Definitions*} 
+header{*Arithmetic Operators and Their Definitions*}
 
 theory Arith imports Univ begin
 
@@ -87,7 +87,7 @@ apply (erule rev_mp)
 apply (induct_tac "k", auto)
 done
 
-(* [| 0 < k; k \<in> nat; !!j. [| j \<in> nat; k = succ(j) |] ==> Q |] ==> Q *)
+(* @{term"[| 0 < k; k \<in> nat; !!j. [| j \<in> nat; k = succ(j) |] ==> Q |] ==> Q"} *)
 lemmas zero_lt_natE = zero_lt_lemma [THEN bexE]
 
 
@@ -102,7 +102,7 @@ by (rule natify_def [THEN def_Vrecursor, THEN trans], auto)
 lemma natify_0 [simp]: "natify(0) = 0"
 by (rule natify_def [THEN def_Vrecursor, THEN trans], auto)
 
-lemma natify_non_succ: "\<forall>z. x ~= succ(z) ==> natify(x) = 0"
+lemma natify_non_succ: "\<forall>z. x \<noteq> succ(z) ==> natify(x) = 0"
 by (rule natify_def [THEN def_Vrecursor, THEN trans], auto)
 
 lemma natify_in_nat [iff,TC]: "natify(x) \<in> nat"
@@ -214,8 +214,8 @@ declare raw_diff_succ [simp del]
 lemma diff_0 [simp]: "m #- 0 = natify(m)"
 by (simp add: diff_def)
 
-lemma diff_le_self: "m\<in>nat ==> (m #- n) le m"
-apply (subgoal_tac " (m #- natify (n)) le m")
+lemma diff_le_self: "m\<in>nat ==> (m #- n) \<le> m"
+apply (subgoal_tac " (m #- natify (n)) \<le> m")
 apply (rule_tac [2] m = m and n = "natify (n) " in diff_induct)
 apply (erule_tac [6] leE)
 apply (simp_all add: le_iff)
@@ -293,13 +293,13 @@ lemma add_left_cancel:
 by (force dest!: add_left_cancel_natify)
 
 (*Thanks to Sten Agerholm*)
-lemma add_le_elim1_natify: "k#+m le k#+n ==> natify(m) le natify(n)"
-apply (rule_tac P = "natify(k) #+m le natify(k) #+n" in rev_mp)
+lemma add_le_elim1_natify: "k#+m \<le> k#+n ==> natify(m) \<le> natify(n)"
+apply (rule_tac P = "natify(k) #+m \<le> natify(k) #+n" in rev_mp)
 apply (rule_tac [2] n = "natify(k) " in nat_induct)
 apply auto
 done
 
-lemma add_le_elim1: "[| k#+m le k#+n; m \<in> nat; n \<in> nat |] ==> m le n"
+lemma add_le_elim1: "[| k#+m \<le> k#+n; m \<in> nat; n \<in> nat |] ==> m \<le> n"
 by (drule add_le_elim1_natify, auto)
 
 lemma add_lt_elim1_natify: "k#+m < k#+n ==> natify(m) < natify(n)"
@@ -334,21 +334,21 @@ text{*A [clumsy] way of lifting < monotonicity to @{text "\<le>"} monotonicity*}
 lemma Ord_lt_mono_imp_le_mono:
   assumes lt_mono: "!!i j. [| i<j; j:k |] ==> f(i) < f(j)"
       and ford:    "!!i. i:k ==> Ord(f(i))"
-      and leij:    "i le j"
+      and leij:    "i \<le> j"
       and jink:    "j:k"
-  shows "f(i) le f(j)"
-apply (insert leij jink) 
+  shows "f(i) \<le> f(j)"
+apply (insert leij jink)
 apply (blast intro!: leCI lt_mono ford elim!: leE)
 done
 
 text{*@{text "\<le>"} monotonicity, 1st argument*}
-lemma add_le_mono1: "[| i le j; j\<in>nat |] ==> i#+k le j#+k"
-apply (rule_tac f = "%j. j#+k" in Ord_lt_mono_imp_le_mono, typecheck) 
+lemma add_le_mono1: "[| i \<le> j; j\<in>nat |] ==> i#+k \<le> j#+k"
+apply (rule_tac f = "%j. j#+k" in Ord_lt_mono_imp_le_mono, typecheck)
 apply (blast intro: add_lt_mono1 add_type [THEN nat_into_Ord])+
 done
 
 text{*@{text "\<le>"} monotonicity, both arguments*}
-lemma add_le_mono: "[| i le j; k le l; j\<in>nat; l\<in>nat |] ==> i#+k le j#+l"
+lemma add_le_mono: "[| i \<le> j; k \<le> l; j\<in>nat; l\<in>nat |] ==> i#+k \<le> j#+l"
 apply (rule add_le_mono1 [THEN le_trans], assumption+)
 apply (subst add_commute, subst add_commute, rule add_le_mono1, assumption+)
 done
@@ -365,8 +365,8 @@ by (subst add_commute, subst add_commute, erule add_lt_le_mono, assumption+)
 
 text{*Less-than: in other words, strict in both arguments*}
 lemma add_lt_mono: "[| i<j; k<l; j\<in>nat; l\<in>nat |] ==> i#+k < j#+l"
-apply (rule add_lt_le_mono) 
-apply (auto intro: leI) 
+apply (rule add_lt_le_mono)
+apply (auto intro: leI)
 done
 
 (** Subtraction is the inverse of addition. **)
@@ -400,12 +400,12 @@ lemma pred_0 [simp]: "pred(0) = 0"
 by (simp add: pred_def)
 
 lemma eq_succ_imp_eq_m1: "[|i = succ(j); i\<in>nat|] ==> j = i #- 1 & j \<in>nat"
-by simp 
+by simp
 
 lemma pred_Un_distrib:
-    "[|i\<in>nat; j\<in>nat|] ==> pred(i Un j) = pred(i) Un pred(j)"
-apply (erule_tac n=i in natE, simp) 
-apply (erule_tac n=j in natE, simp) 
+    "[|i\<in>nat; j\<in>nat|] ==> pred(i \<union> j) = pred(i) \<union> pred(j)"
+apply (erule_tac n=i in natE, simp)
+apply (erule_tac n=j in natE, simp)
 apply (simp add:  succ_Un_distrib [symmetric])
 done
 
@@ -414,23 +414,23 @@ lemma pred_type [TC,simp]:
 by (simp add: pred_def split: split_nat_case)
 
 lemma nat_diff_pred: "[|i\<in>nat; j\<in>nat|] ==> i #- succ(j) = pred(i #- j)";
-apply (rule_tac m=i and n=j in diff_induct) 
+apply (rule_tac m=i and n=j in diff_induct)
 apply (auto simp add: pred_def nat_imp_quasinat split: split_nat_case)
 done
 
 lemma diff_succ_eq_pred: "i #- succ(j) = pred(i #- j)";
 apply (insert nat_diff_pred [of "natify(i)" "natify(j)"])
-apply (simp add: natify_succ [symmetric]) 
+apply (simp add: natify_succ [symmetric])
 done
 
 lemma nat_diff_Un_distrib:
-    "[|i\<in>nat; j\<in>nat; k\<in>nat|] ==> (i Un j) #- k = (i#-k) Un (j#-k)"
-apply (rule_tac n=k in nat_induct) 
-apply (simp_all add: diff_succ_eq_pred pred_Un_distrib) 
+    "[|i\<in>nat; j\<in>nat; k\<in>nat|] ==> (i \<union> j) #- k = (i#-k) \<union> (j#-k)"
+apply (rule_tac n=k in nat_induct)
+apply (simp_all add: diff_succ_eq_pred pred_Un_distrib)
 done
 
 lemma diff_Un_distrib:
-    "[|i\<in>nat; j\<in>nat|] ==> (i Un j) #- k = (i#-k) Un (j#-k)"
+    "[|i\<in>nat; j\<in>nat|] ==> (i \<union> j) #- k = (i#-k) \<union> (j#-k)"
 by (insert nat_diff_Un_distrib [of i j "natify(k)"], simp)
 
 text{*We actually prove @{term "i #- j #- k = i #- (j #+ k)"}*}

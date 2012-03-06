@@ -26,11 +26,11 @@ definition
 
 definition
   qfst :: "i => i"  where
-    "qfst(p) == THE a. EX b. p=<a;b>"
+    "qfst(p) == THE a. \<exists>b. p=<a;b>"
 
 definition
   qsnd :: "i => i"  where
-    "qsnd(p) == THE b. EX a. p=<a;b>"
+    "qsnd(p) == THE b. \<exists>a. p=<a;b>"
 
 definition
   qsplit    :: "[[i, i] => 'a, i] => 'a::{}"  (*for pattern-matching*)  where
@@ -38,7 +38,7 @@ definition
 
 definition
   qconverse :: "i => i"  where
-    "qconverse(r) == {z. w:r, EX x y. w=<x;y> & z=<y;x>}"
+    "qconverse(r) == {z. w:r, \<exists>x y. w=<x;y> & z=<y;x>}"
 
 definition
   QSigma    :: "[i, i => i] => i"  where
@@ -55,7 +55,7 @@ abbreviation
 
 definition
   qsum    :: "[i,i]=>i"                         (infixr "<+>" 65)  where
-    "A <+> B      == ({0} <*> A) Un ({1} <*> B)"
+    "A <+> B      == ({0} <*> A) \<union> ({1} <*> B)"
 
 definition
   QInl :: "i=>i"  where
@@ -94,7 +94,7 @@ by blast
 subsubsection{*QSigma: Disjoint union of a family of sets
      Generalizes Cartesian product*}
 
-lemma QSigmaI [intro!]: "[| a:A;  b:B(a) |] ==> <a;b> : QSigma(A,B)"
+lemma QSigmaI [intro!]: "[| a:A;  b:B(a) |] ==> <a;b> \<in> QSigma(A,B)"
 by (simp add: QSigma_def)
 
 
@@ -110,10 +110,10 @@ lemma QSigmaE2 [elim!]:
     "[| <a;b>: QSigma(A,B); [| a:A;  b:B(a) |] ==> P |] ==> P"
 by (simp add: QSigma_def) 
 
-lemma QSigmaD1: "<a;b> : QSigma(A,B) ==> a : A"
+lemma QSigmaD1: "<a;b> \<in> QSigma(A,B) ==> a \<in> A"
 by blast
 
-lemma QSigmaD2: "<a;b> : QSigma(A,B) ==> b : B(a)"
+lemma QSigmaD2: "<a;b> \<in> QSigma(A,B) ==> b \<in> B(a)"
 by blast
 
 lemma QSigma_cong:
@@ -136,10 +136,10 @@ by (simp add: qfst_def)
 lemma qsnd_conv [simp]: "qsnd(<a;b>) = b"
 by (simp add: qsnd_def)
 
-lemma qfst_type [TC]: "p:QSigma(A,B) ==> qfst(p) : A"
+lemma qfst_type [TC]: "p:QSigma(A,B) ==> qfst(p) \<in> A"
 by auto
 
-lemma qsnd_type [TC]: "p:QSigma(A,B) ==> qsnd(p) : B(qfst(p))"
+lemma qsnd_type [TC]: "p:QSigma(A,B) ==> qsnd(p) \<in> B(qfst(p))"
 by auto
 
 lemma QPair_qfst_qsnd_eq: "a: QSigma(A,B) ==> <qfst(a); qsnd(a)> = a"
@@ -156,11 +156,11 @@ by (simp add: qsplit_def)
 lemma qsplit_type [elim!]:
     "[|  p:QSigma(A,B);    
          !!x y.[| x:A; y:B(x) |] ==> c(x,y):C(<x;y>)  
-     |] ==> qsplit(%x y. c(x,y), p) : C(p)"
+     |] ==> qsplit(%x y. c(x,y), p) \<in> C(p)"
 by auto 
 
 lemma expand_qsplit: 
- "u: A<*>B ==> R(qsplit(c,u)) <-> (ALL x:A. ALL y:B. u = <x;y> --> R(c(x,y)))"
+ "u: A<*>B ==> R(qsplit(c,u)) <-> (\<forall>x\<in>A. \<forall>y\<in>B. u = <x;y> \<longrightarrow> R(c(x,y)))"
 apply (simp add: qsplit_def, auto)
 done
 
@@ -186,11 +186,11 @@ subsubsection{*qconverse*}
 lemma qconverseI [intro!]: "<a;b>:r ==> <b;a>:qconverse(r)"
 by (simp add: qconverse_def, blast)
 
-lemma qconverseD [elim!]: "<a;b> : qconverse(r) ==> <b;a> : r"
+lemma qconverseD [elim!]: "<a;b> \<in> qconverse(r) ==> <b;a> \<in> r"
 by (simp add: qconverse_def, blast)
 
 lemma qconverseE [elim!]:
-    "[| yx : qconverse(r);   
+    "[| yx \<in> qconverse(r);   
         !!x y. [| yx=<y;x>;  <x;y>:r |] ==> P  
      |] ==> P"
 by (simp add: qconverse_def, blast) 
@@ -198,7 +198,7 @@ by (simp add: qconverse_def, blast)
 lemma qconverse_qconverse: "r<=QSigma(A,B) ==> qconverse(qconverse(r)) = r"
 by blast
 
-lemma qconverse_type: "r <= A <*> B ==> qconverse(r) <= B <*> A"
+lemma qconverse_type: "r \<subseteq> A <*> B ==> qconverse(r) \<subseteq> B <*> A"
 by blast
 
 lemma qconverse_prod: "qconverse(A <*> B) = B <*> A"
@@ -214,10 +214,10 @@ lemmas qsum_defs = qsum_def QInl_def QInr_def qcase_def
 
 (** Introduction rules for the injections **)
 
-lemma QInlI [intro!]: "a : A ==> QInl(a) : A <+> B"
+lemma QInlI [intro!]: "a \<in> A ==> QInl(a) \<in> A <+> B"
 by (simp add: qsum_defs, blast)
 
-lemma QInrI [intro!]: "b : B ==> QInr(b) : A <+> B"
+lemma QInrI [intro!]: "b \<in> B ==> QInr(b) \<in> A <+> B"
 by (simp add: qsum_defs, blast)
 
 (** Elimination rules **)
@@ -263,10 +263,10 @@ by blast
 (** <+> is itself injective... who cares?? **)
 
 lemma qsum_iff:
-     "u: A <+> B <-> (EX x. x:A & u=QInl(x)) | (EX y. y:B & u=QInr(y))"
+     "u: A <+> B <-> (\<exists>x. x:A & u=QInl(x)) | (\<exists>y. y:B & u=QInr(y))"
 by blast
 
-lemma qsum_subset_iff: "A <+> B <= C <+> D <-> A<=C & B<=D"
+lemma qsum_subset_iff: "A <+> B \<subseteq> C <+> D <-> A<=C & B<=D"
 by blast
 
 lemma qsum_equal_iff: "A <+> B = C <+> D <-> A=C & B=D"
@@ -287,7 +287,7 @@ lemma qcase_type:
     "[| u: A <+> B;  
         !!x. x: A ==> c(x): C(QInl(x));    
         !!y. y: B ==> d(y): C(QInr(y))  
-     |] ==> qcase(c,d,u) : C(u)"
+     |] ==> qcase(c,d,u) \<in> C(u)"
 by (simp add: qsum_defs, auto) 
 
 (** Rules for the Part primitive **)
@@ -301,26 +301,26 @@ by blast
 lemma Part_QInr2: "Part(A <+> B, %x. QInr(h(x))) = {QInr(y). y: Part(B,h)}"
 by blast
 
-lemma Part_qsum_equality: "C <= A <+> B ==> Part(C,QInl) Un Part(C,QInr) = C"
+lemma Part_qsum_equality: "C \<subseteq> A <+> B ==> Part(C,QInl) \<union> Part(C,QInr) = C"
 by blast
 
 
 subsubsection{*Monotonicity*}
 
-lemma QPair_mono: "[| a<=c;  b<=d |] ==> <a;b> <= <c;d>"
+lemma QPair_mono: "[| a<=c;  b<=d |] ==> <a;b> \<subseteq> <c;d>"
 by (simp add: QPair_def sum_mono)
 
 lemma QSigma_mono [rule_format]:
-     "[| A<=C;  ALL x:A. B(x) <= D(x) |] ==> QSigma(A,B) <= QSigma(C,D)"
+     "[| A<=C;  \<forall>x\<in>A. B(x) \<subseteq> D(x) |] ==> QSigma(A,B) \<subseteq> QSigma(C,D)"
 by blast
 
-lemma QInl_mono: "a<=b ==> QInl(a) <= QInl(b)"
+lemma QInl_mono: "a<=b ==> QInl(a) \<subseteq> QInl(b)"
 by (simp add: QInl_def subset_refl [THEN QPair_mono])
 
-lemma QInr_mono: "a<=b ==> QInr(a) <= QInr(b)"
+lemma QInr_mono: "a<=b ==> QInr(a) \<subseteq> QInr(b)"
 by (simp add: QInr_def subset_refl [THEN QPair_mono])
 
-lemma qsum_mono: "[| A<=C;  B<=D |] ==> A <+> B <= C <+> D"
+lemma qsum_mono: "[| A<=C;  B<=D |] ==> A <+> B \<subseteq> C <+> D"
 by blast
 
 end

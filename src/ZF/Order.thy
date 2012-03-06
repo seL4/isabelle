@@ -21,7 +21,7 @@ definition
 
 definition
   linear   :: "[i,i]=>o"                (*Strict total ordering*)  where
-   "linear(A,r) == (ALL x:A. ALL y:A. <x,y>:r | x=y | <y,x>:r)"
+   "linear(A,r) == (\<forall>x\<in>A. \<forall>y\<in>A. <x,y>:r | x=y | <y,x>:r)"
 
 definition
   tot_ord  :: "[i,i]=>o"                (*Strict total ordering*)  where
@@ -46,12 +46,12 @@ definition
 definition
   mono_map :: "[i,i,i,i]=>i"            (*Order-preserving maps*)  where
    "mono_map(A,r,B,s) ==
-              {f: A->B. ALL x:A. ALL y:A. <x,y>:r --> <f`x,f`y>:s}"
+              {f: A->B. \<forall>x\<in>A. \<forall>y\<in>A. <x,y>:r \<longrightarrow> <f`x,f`y>:s}"
 
 definition
   ord_iso  :: "[i,i,i,i]=>i"            (*Order isomorphisms*)  where
    "ord_iso(A,r,B,s) ==
-              {f: bij(A,B). ALL x:A. ALL y:A. <x,y>:r <-> <f`x,f`y>:s}"
+              {f: bij(A,B). \<forall>x\<in>A. \<forall>y\<in>A. <x,y>:r <-> <f`x,f`y>:s}"
 
 definition
   pred     :: "[i,i,i]=>i"              (*Set of predecessors*)  where
@@ -64,7 +64,7 @@ definition
 
 definition
   first :: "[i, i, i] => o"  where
-    "first(u, X, R) == u:X & (ALL v:X. v~=u --> <u,v> : R)"
+    "first(u, X, R) == u:X & (\<forall>v\<in>X. v\<noteq>u \<longrightarrow> <u,v> \<in> R)"
 
 
 notation (xsymbols)
@@ -74,7 +74,7 @@ notation (xsymbols)
 subsection{*Immediate Consequences of the Definitions*}
 
 lemma part_ord_Imp_asym:
-    "part_ord(A,r) ==> asym(r Int A*A)"
+    "part_ord(A,r) ==> asym(r \<inter> A*A)"
 by (unfold part_ord_def irrefl_def trans_on_def asym_def, blast)
 
 lemma linearE:
@@ -107,7 +107,7 @@ by (unfold well_ord_def tot_ord_def, blast)
 
 (** Derived rules for pred(A,x,r) **)
 
-lemma pred_iff: "y : pred(A,x,r) <-> <y,x>:r & y:A"
+lemma pred_iff: "y \<in> pred(A,x,r) <-> <y,x>:r & y:A"
 by (unfold pred_def, blast)
 
 lemmas predI = conjI [THEN pred_iff [THEN iffD2]]
@@ -115,14 +115,14 @@ lemmas predI = conjI [THEN pred_iff [THEN iffD2]]
 lemma predE: "[| y: pred(A,x,r);  [| y:A; <y,x>:r |] ==> P |] ==> P"
 by (simp add: pred_def)
 
-lemma pred_subset_under: "pred(A,x,r) <= r -`` {x}"
+lemma pred_subset_under: "pred(A,x,r) \<subseteq> r -`` {x}"
 by (simp add: pred_def, blast)
 
-lemma pred_subset: "pred(A,x,r) <= A"
+lemma pred_subset: "pred(A,x,r) \<subseteq> A"
 by (simp add: pred_def, blast)
 
 lemma pred_pred_eq:
-    "pred(pred(A,x,r), y, r) = pred(A,x,r) Int pred(A,y,r)"
+    "pred(pred(A,x,r), y, r) = pred(A,x,r) \<inter> pred(A,y,r)"
 by (simp add: pred_def, blast)
 
 lemma trans_pred_pred_eq:
@@ -160,30 +160,30 @@ done
 
 (** Relations restricted to a smaller domain, by Krzysztof Grabczewski **)
 
-lemma irrefl_Int_iff: "irrefl(A,r Int A*A) <-> irrefl(A,r)"
+lemma irrefl_Int_iff: "irrefl(A,r \<inter> A*A) <-> irrefl(A,r)"
 by (unfold irrefl_def, blast)
 
-lemma trans_on_Int_iff: "trans[A](r Int A*A) <-> trans[A](r)"
+lemma trans_on_Int_iff: "trans[A](r \<inter> A*A) <-> trans[A](r)"
 by (unfold trans_on_def, blast)
 
-lemma part_ord_Int_iff: "part_ord(A,r Int A*A) <-> part_ord(A,r)"
+lemma part_ord_Int_iff: "part_ord(A,r \<inter> A*A) <-> part_ord(A,r)"
 apply (unfold part_ord_def)
 apply (simp add: irrefl_Int_iff trans_on_Int_iff)
 done
 
-lemma linear_Int_iff: "linear(A,r Int A*A) <-> linear(A,r)"
+lemma linear_Int_iff: "linear(A,r \<inter> A*A) <-> linear(A,r)"
 by (unfold linear_def, blast)
 
-lemma tot_ord_Int_iff: "tot_ord(A,r Int A*A) <-> tot_ord(A,r)"
+lemma tot_ord_Int_iff: "tot_ord(A,r \<inter> A*A) <-> tot_ord(A,r)"
 apply (unfold tot_ord_def)
 apply (simp add: part_ord_Int_iff linear_Int_iff)
 done
 
-lemma wf_on_Int_iff: "wf[A](r Int A*A) <-> wf[A](r)"
+lemma wf_on_Int_iff: "wf[A](r \<inter> A*A) <-> wf[A](r)"
 apply (unfold wf_on_def wf_def, fast) (*10 times faster than blast!*)
 done
 
-lemma well_ord_Int_iff: "well_ord(A,r Int A*A) <-> well_ord(A,r)"
+lemma well_ord_Int_iff: "well_ord(A,r \<inter> A*A) <-> well_ord(A,r)"
 apply (unfold well_ord_def)
 apply (simp add: tot_ord_Int_iff wf_on_Int_iff)
 done
@@ -256,7 +256,7 @@ done
 
 lemma ord_isoI:
     "[| f: bij(A, B);
-        !!x y. [| x:A; y:A |] ==> <x, y> : r <-> <f`x, f`y> : s |]
+        !!x y. [| x:A; y:A |] ==> <x, y> \<in> r <-> <f`x, f`y> \<in> s |]
      ==> f: ord_iso(A,r,B,s)"
 by (simp add: ord_iso_def)
 
@@ -272,12 +272,12 @@ by (simp add: ord_iso_def)
 
 (*Needed?  But ord_iso_converse is!*)
 lemma ord_iso_apply:
-    "[| f: ord_iso(A,r,B,s);  <x,y>: r;  x:A;  y:A |] ==> <f`x, f`y> : s"
+    "[| f: ord_iso(A,r,B,s);  <x,y>: r;  x:A;  y:A |] ==> <f`x, f`y> \<in> s"
 by (simp add: ord_iso_def)
 
 lemma ord_iso_converse:
     "[| f: ord_iso(A,r,B,s);  <x,y>: s;  x:B;  y:B |]
-     ==> <converse(f) ` x, converse(f) ` y> : r"
+     ==> <converse(f) ` x, converse(f) ` y> \<in> r"
 apply (simp add: ord_iso_def, clarify)
 apply (erule bspec [THEN bspec, THEN iffD2])
 apply (erule asm_rl bij_converse_bij [THEN bij_is_fun, THEN apply_type])+
@@ -323,7 +323,7 @@ lemma mono_ord_isoI:
         f O g = id(B);  g O f = id(A) |] ==> f: ord_iso(A,r,B,s)"
 apply (simp add: ord_iso_def mono_map_def, safe)
 apply (intro fg_imp_bijective, auto)
-apply (subgoal_tac "<g` (f`x), g` (f`y) > : r")
+apply (subgoal_tac "<g` (f`x), g` (f`y) > \<in> r")
 apply (simp add: comp_eq_id_iff [THEN iffD1])
 apply (blast intro: apply_funtype)
 done
@@ -360,7 +360,7 @@ done
 lemma wf_on_ord_iso:
     "[| wf[B](s);  f: ord_iso(A,r,B,s) |] ==> wf[A](r)"
 apply (simp add: wf_on_def wf_def ord_iso_def, safe)
-apply (drule_tac x = "{f`z. z:Z Int A}" in spec)
+apply (drule_tac x = "{f`z. z:Z \<inter> A}" in spec)
 apply (safe intro!: equalityI)
 apply (blast dest!: equalityD1 intro: bij_is_fun [THEN apply_type])+
 done
@@ -388,18 +388,18 @@ done
 (*Kunen's Lemma 6.1: there's no order-isomorphism to an initial segment
                      of a well-ordering*)
 lemma well_ord_iso_predE:
-     "[| well_ord(A,r);  f : ord_iso(A, r, pred(A,x,r), r);  x:A |] ==> P"
+     "[| well_ord(A,r);  f \<in> ord_iso(A, r, pred(A,x,r), r);  x:A |] ==> P"
 apply (insert well_ord_iso_subset_lemma [of A r f "pred(A,x,r)" x])
 apply (simp add: pred_subset)
 (*Now we know  f`x < x *)
 apply (drule ord_iso_is_bij [THEN bij_is_fun, THEN apply_type], assumption)
-(*Now we also know f`x : pred(A,x,r);  contradiction! *)
+(*Now we also know @{term"f`x \<in> pred(A,x,r)"}: contradiction! *)
 apply (simp add: well_ord_def pred_def)
 done
 
 (*Simple consequence of Lemma 6.1*)
 lemma well_ord_iso_pred_eq:
-     "[| well_ord(A,r);  f : ord_iso(pred(A,a,r), r, pred(A,c,r), r);
+     "[| well_ord(A,r);  f \<in> ord_iso(pred(A,a,r), r, pred(A,c,r), r);
          a:A;  c:A |] ==> a=c"
 apply (frule well_ord_is_trans_on)
 apply (frule well_ord_is_linear)
@@ -413,7 +413,7 @@ done
 
 (*Does not assume r is a wellordering!*)
 lemma ord_iso_image_pred:
-     "[|f : ord_iso(A,r,B,s);  a:A|] ==> f `` pred(A,a,r) = pred(B, f`a, s)"
+     "[|f \<in> ord_iso(A,r,B,s);  a:A|] ==> f `` pred(A,a,r) = pred(B, f`a, s)"
 apply (unfold ord_iso_def pred_def)
 apply (erule CollectE)
 apply (simp (no_asm_simp) add: image_fun [OF bij_is_fun Collect_subset])
@@ -425,26 +425,26 @@ apply (auto simp add: right_inverse_bij  bij_is_fun [THEN apply_funtype])
 done
 
 lemma ord_iso_restrict_image:
-     "[| f : ord_iso(A,r,B,s);  C<=A |] 
-      ==> restrict(f,C) : ord_iso(C, r, f``C, s)"
-apply (simp add: ord_iso_def) 
-apply (blast intro: bij_is_inj restrict_bij) 
+     "[| f \<in> ord_iso(A,r,B,s);  C<=A |]
+      ==> restrict(f,C) \<in> ord_iso(C, r, f``C, s)"
+apply (simp add: ord_iso_def)
+apply (blast intro: bij_is_inj restrict_bij)
 done
 
 (*But in use, A and B may themselves be initial segments.  Then use
   trans_pred_pred_eq to simplify the pred(pred...) terms.  See just below.*)
 lemma ord_iso_restrict_pred:
-   "[| f : ord_iso(A,r,B,s);   a:A |]
-    ==> restrict(f, pred(A,a,r)) : ord_iso(pred(A,a,r), r, pred(B, f`a, s), s)"
-apply (simp add: ord_iso_image_pred [symmetric]) 
-apply (blast intro: ord_iso_restrict_image elim: predE) 
+   "[| f \<in> ord_iso(A,r,B,s);   a:A |]
+    ==> restrict(f, pred(A,a,r)) \<in> ord_iso(pred(A,a,r), r, pred(B, f`a, s), s)"
+apply (simp add: ord_iso_image_pred [symmetric])
+apply (blast intro: ord_iso_restrict_image elim: predE)
 done
 
 (*Tricky; a lot of forward proof!*)
 lemma well_ord_iso_preserving:
      "[| well_ord(A,r);  well_ord(B,s);  <a,c>: r;
-         f : ord_iso(pred(A,a,r), r, pred(B,b,s), s);
-         g : ord_iso(pred(A,c,r), r, pred(B,d,s), s);
+         f \<in> ord_iso(pred(A,a,r), r, pred(B,b,s), s);
+         g \<in> ord_iso(pred(A,c,r), r, pred(B,d,s), s);
          a:A;  c:A;  b:B;  d:B |] ==> <b,d>: s"
 apply (frule ord_iso_is_bij [THEN bij_is_fun, THEN apply_type], (erule asm_rl predI predE)+)
 apply (subgoal_tac "b = g`a")
@@ -459,7 +459,7 @@ done
 lemma well_ord_iso_unique_lemma:
      "[| well_ord(A,r);
          f: ord_iso(A,r, B,s);  g: ord_iso(A,r, B,s);  y: A |]
-      ==> ~ <g`y, f`y> : s"
+      ==> ~ <g`y, f`y> \<in> s"
 apply (frule well_ord_iso_subset_lemma)
 apply (rule_tac f = "converse (f) " and g = g in ord_iso_trans)
 apply auto
@@ -479,7 +479,7 @@ lemma well_ord_iso_unique: "[| well_ord(A,r);
          f: ord_iso(A,r, B,s);  g: ord_iso(A,r, B,s) |] ==> f = g"
 apply (rule fun_extension)
 apply (erule ord_iso_is_bij [THEN bij_is_fun])+
-apply (subgoal_tac "f`x : B & g`x : B & linear(B,s)")
+apply (subgoal_tac "f`x \<in> B & g`x \<in> B & linear(B,s)")
  apply (simp add: linear_def)
  apply (blast dest: well_ord_iso_unique_lemma)
 apply (blast intro: ord_iso_is_bij bij_is_fun apply_funtype
@@ -488,13 +488,13 @@ done
 
 subsection{*Towards Kunen's Theorem 6.3: Linearity of the Similarity Relation*}
 
-lemma ord_iso_map_subset: "ord_iso_map(A,r,B,s) <= A*B"
+lemma ord_iso_map_subset: "ord_iso_map(A,r,B,s) \<subseteq> A*B"
 by (unfold ord_iso_map_def, blast)
 
-lemma domain_ord_iso_map: "domain(ord_iso_map(A,r,B,s)) <= A"
+lemma domain_ord_iso_map: "domain(ord_iso_map(A,r,B,s)) \<subseteq> A"
 by (unfold ord_iso_map_def, blast)
 
-lemma range_ord_iso_map: "range(ord_iso_map(A,r,B,s)) <= B"
+lemma range_ord_iso_map: "range(ord_iso_map(A,r,B,s)) \<subseteq> B"
 by (unfold ord_iso_map_def, blast)
 
 lemma converse_ord_iso_map:
@@ -510,14 +510,14 @@ apply (blast intro: well_ord_iso_pred_eq ord_iso_sym ord_iso_trans)
 done
 
 lemma ord_iso_map_fun: "well_ord(B,s) ==> ord_iso_map(A,r,B,s)
-           : domain(ord_iso_map(A,r,B,s)) -> range(ord_iso_map(A,r,B,s))"
+           \<in> domain(ord_iso_map(A,r,B,s)) -> range(ord_iso_map(A,r,B,s))"
 by (simp add: Pi_iff function_ord_iso_map
                  ord_iso_map_subset [THEN domain_times_range])
 
 lemma ord_iso_map_mono_map:
     "[| well_ord(A,r);  well_ord(B,s) |]
      ==> ord_iso_map(A,r,B,s)
-           : mono_map(domain(ord_iso_map(A,r,B,s)), r,
+           \<in> mono_map(domain(ord_iso_map(A,r,B,s)), r,
                       range(ord_iso_map(A,r,B,s)), s)"
 apply (unfold mono_map_def)
 apply (simp (no_asm_simp) add: ord_iso_map_fun)
@@ -530,7 +530,7 @@ done
 
 lemma ord_iso_map_ord_iso:
     "[| well_ord(A,r);  well_ord(B,s) |] ==> ord_iso_map(A,r,B,s)
-           : ord_iso(domain(ord_iso_map(A,r,B,s)), r,
+           \<in> ord_iso(domain(ord_iso_map(A,r,B,s)), r,
                       range(ord_iso_map(A,r,B,s)), s)"
 apply (rule well_ord_mono_ord_isoI)
    prefer 4
@@ -545,8 +545,8 @@ done
 (*One way of saying that domain(ord_iso_map(A,r,B,s)) is downwards-closed*)
 lemma domain_ord_iso_map_subset:
      "[| well_ord(A,r);  well_ord(B,s);
-         a: A;  a ~: domain(ord_iso_map(A,r,B,s)) |]
-      ==>  domain(ord_iso_map(A,r,B,s)) <= pred(A, a, r)"
+         a: A;  a \<notin> domain(ord_iso_map(A,r,B,s)) |]
+      ==>  domain(ord_iso_map(A,r,B,s)) \<subseteq> pred(A, a, r)"
 apply (unfold ord_iso_map_def)
 apply (safe intro!: predI)
 (*Case analysis on  xa vs a in r *)
@@ -570,7 +570,7 @@ done
 lemma domain_ord_iso_map_cases:
      "[| well_ord(A,r);  well_ord(B,s) |]
       ==> domain(ord_iso_map(A,r,B,s)) = A |
-          (EX x:A. domain(ord_iso_map(A,r,B,s)) = pred(A,x,r))"
+          (\<exists>x\<in>A. domain(ord_iso_map(A,r,B,s)) = pred(A,x,r))"
 apply (frule well_ord_is_wf)
 apply (unfold wf_on_def wf_def)
 apply (drule_tac x = "A-domain (ord_iso_map (A,r,B,s))" in spec)
@@ -589,7 +589,7 @@ done
 lemma range_ord_iso_map_cases:
     "[| well_ord(A,r);  well_ord(B,s) |]
      ==> range(ord_iso_map(A,r,B,s)) = B |
-         (EX y:B. range(ord_iso_map(A,r,B,s)) = pred(B,y,s))"
+         (\<exists>y\<in>B. range(ord_iso_map(A,r,B,s)) = pred(B,y,s))"
 apply (rule converse_ord_iso_map [THEN subst])
 apply (simp add: domain_ord_iso_map_cases)
 done
@@ -597,9 +597,9 @@ done
 text{*Kunen's Theorem 6.3: Fundamental Theorem for Well-Ordered Sets*}
 theorem well_ord_trichotomy:
    "[| well_ord(A,r);  well_ord(B,s) |]
-    ==> ord_iso_map(A,r,B,s) : ord_iso(A, r, B, s) |
-        (EX x:A. ord_iso_map(A,r,B,s) : ord_iso(pred(A,x,r), r, B, s)) |
-        (EX y:B. ord_iso_map(A,r,B,s) : ord_iso(A, r, pred(B,y,s), s))"
+    ==> ord_iso_map(A,r,B,s) \<in> ord_iso(A, r, B, s) |
+        (\<exists>x\<in>A. ord_iso_map(A,r,B,s) \<in> ord_iso(pred(A,x,r), r, B, s)) |
+        (\<exists>y\<in>B. ord_iso_map(A,r,B,s) \<in> ord_iso(A, r, pred(B,y,s), s))"
 apply (frule_tac B = B in domain_ord_iso_map_cases, assumption)
 apply (frule_tac B = B in range_ord_iso_map_cases, assumption)
 apply (drule ord_iso_map_ord_iso, assumption)
@@ -646,7 +646,7 @@ lemma first_is_elem: "first(b,B,r) ==> b:B"
 by (unfold first_def, blast)
 
 lemma well_ord_imp_ex1_first:
-        "[| well_ord(A,r); B<=A; B~=0 |] ==> (EX! b. first(b,B,r))"
+        "[| well_ord(A,r); B<=A; B\<noteq>0 |] ==> (EX! b. first(b,B,r))"
 apply (unfold well_ord_def wf_on_def wf_def first_def)
 apply (elim conjE allE disjE, blast)
 apply (erule bexE)
@@ -655,7 +655,7 @@ apply (unfold tot_ord_def linear_def, blast)
 done
 
 lemma the_first_in:
-     "[| well_ord(A,r); B<=A; B~=0 |] ==> (THE b. first(b,B,r)) : B"
+     "[| well_ord(A,r); B<=A; B\<noteq>0 |] ==> (THE b. first(b,B,r)) \<in> B"
 apply (drule well_ord_imp_ex1_first, assumption+)
 apply (rule first_is_elem)
 apply (erule theI)
@@ -666,7 +666,7 @@ subsection {* Lemmas for the Reflexive Orders *}
 
 lemma subset_vimage_vimage_iff:
   "[| Preorder(r); A \<subseteq> field(r); B \<subseteq> field(r) |] ==>
-  r -`` A \<subseteq> r -`` B <-> (ALL a:A. EX b:B. <a, b> : r)"
+  r -`` A \<subseteq> r -`` B <-> (\<forall>a\<in>A. \<exists>b\<in>B. <a, b> \<in> r)"
   apply (auto simp: subset_def preorder_on_def refl_def vimage_def image_def)
    apply blast
   unfolding trans_on_def
@@ -678,12 +678,12 @@ lemma subset_vimage_vimage_iff:
   done
 
 lemma subset_vimage1_vimage1_iff:
-  "[| Preorder(r); a : field(r); b : field(r) |] ==>
-  r -`` {a} \<subseteq> r -`` {b} <-> <a, b> : r"
+  "[| Preorder(r); a \<in> field(r); b \<in> field(r) |] ==>
+  r -`` {a} \<subseteq> r -`` {b} <-> <a, b> \<in> r"
   by (simp add: subset_vimage_vimage_iff)
 
 lemma Refl_antisym_eq_Image1_Image1_iff:
-  "[| refl(field(r), r); antisym(r); a : field(r); b : field(r) |] ==>
+  "[| refl(field(r), r); antisym(r); a \<in> field(r); b \<in> field(r) |] ==>
   r `` {a} = r `` {b} <-> a = b"
   apply rule
    apply (frule equality_iffD)
@@ -694,13 +694,13 @@ lemma Refl_antisym_eq_Image1_Image1_iff:
   done
 
 lemma Partial_order_eq_Image1_Image1_iff:
-  "[| Partial_order(r); a : field(r); b : field(r) |] ==>
+  "[| Partial_order(r); a \<in> field(r); b \<in> field(r) |] ==>
   r `` {a} = r `` {b} <-> a = b"
   by (simp add: partial_order_on_def preorder_on_def
     Refl_antisym_eq_Image1_Image1_iff)
 
 lemma Refl_antisym_eq_vimage1_vimage1_iff:
-  "[| refl(field(r), r); antisym(r); a : field(r); b : field(r) |] ==>
+  "[| refl(field(r), r); antisym(r); a \<in> field(r); b \<in> field(r) |] ==>
   r -`` {a} = r -`` {b} <-> a = b"
   apply rule
    apply (frule equality_iffD)
@@ -711,7 +711,7 @@ lemma Refl_antisym_eq_vimage1_vimage1_iff:
   done
 
 lemma Partial_order_eq_vimage1_vimage1_iff:
-  "[| Partial_order(r); a : field(r); b : field(r) |] ==>
+  "[| Partial_order(r); a \<in> field(r); b \<in> field(r) |] ==>
   r -`` {a} = r -`` {b} <-> a = b"
   by (simp add: partial_order_on_def preorder_on_def
     Refl_antisym_eq_vimage1_vimage1_iff)

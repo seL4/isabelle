@@ -10,7 +10,7 @@ theory Sum imports Bool equalities begin
 text{*And the "Part" primitive for simultaneous recursive type definitions*}
 
 definition sum :: "[i,i]=>i" (infixr "+" 65) where
-     "A+B == {0}*A Un {1}*B"
+     "A+B == {0}*A \<union> {1}*B"
 
 definition Inl :: "i=>i" where
      "Inl(a) == <0,a>"
@@ -23,29 +23,29 @@ definition "case" :: "[i=>i, i=>i, i]=>i" where
 
   (*operator for selecting out the various summands*)
 definition Part :: "[i,i=>i] => i" where
-     "Part(A,h) == {x: A. EX z. x = h(z)}"
+     "Part(A,h) == {x: A. \<exists>z. x = h(z)}"
 
 subsection{*Rules for the @{term Part} Primitive*}
 
 lemma Part_iff: 
-    "a : Part(A,h) <-> a:A & (EX y. a=h(y))"
+    "a \<in> Part(A,h) <-> a:A & (\<exists>y. a=h(y))"
 apply (unfold Part_def)
 apply (rule separation)
 done
 
 lemma Part_eqI [intro]: 
-    "[| a : A;  a=h(b) |] ==> a : Part(A,h)"
+    "[| a \<in> A;  a=h(b) |] ==> a \<in> Part(A,h)"
 by (unfold Part_def, blast)
 
 lemmas PartI = refl [THEN [2] Part_eqI]
 
 lemma PartE [elim!]: 
-    "[| a : Part(A,h);  !!z. [| a : A;  a=h(z) |] ==> P   
+    "[| a \<in> Part(A,h);  !!z. [| a \<in> A;  a=h(z) |] ==> P   
      |] ==> P"
 apply (unfold Part_def, blast)
 done
 
-lemma Part_subset: "Part(A,h) <= A"
+lemma Part_subset: "Part(A,h) \<subseteq> A"
 apply (unfold Part_def)
 apply (rule Collect_subset)
 done
@@ -60,10 +60,10 @@ by (unfold bool_def sum_def, blast)
 
 (** Introduction rules for the injections **)
 
-lemma InlI [intro!,simp,TC]: "a : A ==> Inl(a) : A+B"
+lemma InlI [intro!,simp,TC]: "a \<in> A ==> Inl(a) \<in> A+B"
 by (unfold sum_defs, blast)
 
-lemma InrI [intro!,simp,TC]: "b : B ==> Inr(b) : A+B"
+lemma InrI [intro!,simp,TC]: "b \<in> B ==> Inr(b) \<in> A+B"
 by (unfold sum_defs, blast)
 
 (** Elimination rules **)
@@ -106,7 +106,7 @@ by blast
 lemma InrD: "Inr(b): A+B ==> b: B"
 by blast
 
-lemma sum_iff: "u: A+B <-> (EX x. x:A & u=Inl(x)) | (EX y. y:B & u=Inr(y))"
+lemma sum_iff: "u: A+B <-> (\<exists>x. x:A & u=Inl(x)) | (\<exists>y. y:B & u=Inr(y))"
 by blast
 
 lemma Inl_in_sum_iff [simp]: "(Inl(x) \<in> A+B) <-> (x \<in> A)";
@@ -115,7 +115,7 @@ by auto
 lemma Inr_in_sum_iff [simp]: "(Inr(y) \<in> A+B) <-> (y \<in> B)";
 by auto
 
-lemma sum_subset_iff: "A+B <= C+D <-> A<=C & B<=D"
+lemma sum_subset_iff: "A+B \<subseteq> C+D <-> A<=C & B<=D"
 by blast
 
 lemma sum_equal_iff: "A+B = C+D <-> A=C & B=D"
@@ -137,13 +137,13 @@ lemma case_type [TC]:
     "[| u: A+B;  
         !!x. x: A ==> c(x): C(Inl(x));    
         !!y. y: B ==> d(y): C(Inr(y))  
-     |] ==> case(c,d,u) : C(u)"
+     |] ==> case(c,d,u) \<in> C(u)"
 by auto
 
 lemma expand_case: "u: A+B ==>    
         R(case(c,d,u)) <->  
-        ((ALL x:A. u = Inl(x) --> R(c(x))) &  
-        (ALL y:B. u = Inr(y) --> R(d(y))))"
+        ((\<forall>x\<in>A. u = Inl(x) \<longrightarrow> R(c(x))) &  
+        (\<forall>y\<in>B. u = Inr(y) \<longrightarrow> R(d(y))))"
 by auto
 
 lemma case_cong:
@@ -176,7 +176,7 @@ by blast
 lemma Part_Inr: "Part(A+B,Inr) = {Inr(y). y: B}"
 by blast
 
-lemma PartD1: "a : Part(A,h) ==> a : A"
+lemma PartD1: "a \<in> Part(A,h) ==> a \<in> A"
 by (simp add: Part_def)
 
 lemma Part_id: "Part(A,%x. x) = A"
@@ -185,7 +185,7 @@ by blast
 lemma Part_Inr2: "Part(A+B, %x. Inr(h(x))) = {Inr(y). y: Part(B,h)}"
 by blast
 
-lemma Part_sum_equality: "C <= A+B ==> Part(C,Inl) Un Part(C,Inr) = C"
+lemma Part_sum_equality: "C \<subseteq> A+B ==> Part(C,Inl) \<union> Part(C,Inr) = C"
 by blast
 
 end

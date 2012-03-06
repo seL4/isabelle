@@ -43,13 +43,13 @@ by (simp add: succ_def)
 
 (* Introduction rules *)
 
-lemma bool_1I [simp,TC]: "1 : bool"
+lemma bool_1I [simp,TC]: "1 \<in> bool"
 by (simp add: bool_defs )
 
-lemma bool_0I [simp,TC]: "0 : bool"
+lemma bool_0I [simp,TC]: "0 \<in> bool"
 by (simp add: bool_defs)
 
-lemma one_not_0: "1~=0"
+lemma one_not_0: "1\<noteq>0"
 by (simp add: bool_defs )
 
 (** 1=0 ==> R **)
@@ -94,16 +94,16 @@ lemmas or_0 = or_def [THEN def_cond_0, simp]
 lemmas xor_1 = xor_def [THEN def_cond_1, simp]
 lemmas xor_0 = xor_def [THEN def_cond_0, simp]
 
-lemma not_type [TC]: "a:bool ==> not(a) : bool"
+lemma not_type [TC]: "a:bool ==> not(a) \<in> bool"
 by (simp add: not_def)
 
-lemma and_type [TC]: "[| a:bool;  b:bool |] ==> a and b : bool"
+lemma and_type [TC]: "[| a:bool;  b:bool |] ==> a and b \<in> bool"
 by (simp add: and_def)
 
-lemma or_type [TC]: "[| a:bool;  b:bool |] ==> a or b : bool"
+lemma or_type [TC]: "[| a:bool;  b:bool |] ==> a or b \<in> bool"
 by (simp add: or_def)
 
-lemma xor_type [TC]: "[| a:bool;  b:bool |] ==> a xor b : bool"
+lemma xor_type [TC]: "[| a:bool;  b:bool |] ==> a xor b \<in> bool"
 by (simp add: xor_def)
 
 lemmas bool_typechecks = bool_1I bool_0I cond_type not_type and_type

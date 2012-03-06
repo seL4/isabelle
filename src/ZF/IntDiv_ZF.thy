@@ -18,11 +18,11 @@ Here is the division algorithm in ML:
 
     fun negateSnd (q,r:int) = (q,~r);
 
-    fun divAlg (a,b) = if 0<=a then 
-                          if b>0 then posDivAlg (a,b) 
+    fun divAlg (a,b) = if 0<=a then
+                          if b>0 then posDivAlg (a,b)
                            else if a=0 then (0,0)
                                 else negateSnd (negDivAlg (~a,~b))
-                       else 
+                       else
                           if 0<b then negDivAlg (a,b)
                           else        negateSnd (posDivAlg (~a,~b));
 *)
@@ -66,7 +66,7 @@ definition
              %<a,b> f. if (#0 $<= a$+b | b$<=#0) then <#-1,a$+b>
                        else adjust(b, f ` <a,#2$*b>))"
 
-(*for the general case b\<noteq>0*)
+(*for the general case @{term"b\<noteq>0"}*)
 
 definition
   negateSnd :: "i => i"  where
@@ -81,7 +81,7 @@ definition
                   if #0 $<= b then posDivAlg (<a,b>)
                   else if a=#0 then <#0,#0>
                        else negateSnd (negDivAlg (<$-a,$-b>))
-               else 
+               else
                   if #0$<b then negDivAlg (<a,b>)
                   else         negateSnd (posDivAlg (<$-a,$-b>))"
 
@@ -226,7 +226,7 @@ done
 (** strict, in 1st argument; proof is by induction on k>0 **)
 
 lemma zmult_zless_mono2_lemma [rule_format]:
-     "[| i$<j; k \<in> nat |] ==> 0<k --> $#k $* i $< $#k $* j"
+     "[| i$<j; k \<in> nat |] ==> 0<k \<longrightarrow> $#k $* i $< $#k $* j"
 apply (induct_tac "k")
  prefer 2
  apply (subst int_succ_int_1)
@@ -266,13 +266,13 @@ done
 
 lemma zmult_zless_mono1_neg: "[| i $< j;  k $< #0 |] ==> j$*k $< i$*k"
 apply (rule zminus_zless_zminus [THEN iffD1])
-apply (simp del: zmult_zminus_right 
+apply (simp del: zmult_zminus_right
             add: zmult_zminus_right [symmetric] zmult_zless_mono1 zless_zminus)
 done
 
 lemma zmult_zless_mono2_neg: "[| i $< j;  k $< #0 |] ==> k$*j $< k$*i"
 apply (rule zminus_zless_zminus [THEN iffD1])
-apply (simp del: zmult_zminus 
+apply (simp del: zmult_zminus
             add: zmult_zminus [symmetric] zmult_zless_mono2 zless_zminus)
 done
 
@@ -291,16 +291,16 @@ apply (simp add: zmult_eq_lemma)
 done
 
 
-(** Cancellation laws for k*m < k*n and m*k < n*k, also for <= and =,
+(** Cancellation laws for k*m < k*n and m*k < n*k, also for @{text"\<le>"} and =,
     but not (yet?) for k*m < n*k. **)
 
 lemma zmult_zless_lemma:
-     "[| k \<in> int; m \<in> int; n \<in> int |]  
+     "[| k \<in> int; m \<in> int; n \<in> int |]
       ==> (m$*k $< n$*k) <-> ((#0 $< k & m$<n) | (k $< #0 & n$<m))"
 apply (case_tac "k = #0")
 apply (auto simp add: neq_iff_zless zmult_zless_mono1 zmult_zless_mono1_neg)
-apply (auto simp add: not_zless_iff_zle 
-                      not_zle_iff_zless [THEN iff_sym, of "m$*k"] 
+apply (auto simp add: not_zless_iff_zle
+                      not_zle_iff_zless [THEN iff_sym, of "m$*k"]
                       not_zle_iff_zless [THEN iff_sym, of m])
 apply (auto elim: notE
             simp add: zless_imp_zle zmult_zle_mono1 zmult_zle_mono1_neg)
@@ -308,7 +308,7 @@ done
 
 lemma zmult_zless_cancel2:
      "(m$*k $< n$*k) <-> ((#0 $< k & m$<n) | (k $< #0 & n$<m))"
-apply (cut_tac k = "intify (k)" and m = "intify (m)" and n = "intify (n)" 
+apply (cut_tac k = "intify (k)" and m = "intify (m)" and n = "intify (n)"
        in zmult_zless_lemma)
 apply auto
 done
@@ -318,11 +318,11 @@ lemma zmult_zless_cancel1:
 by (simp add: zmult_commute [of k] zmult_zless_cancel2)
 
 lemma zmult_zle_cancel2:
-     "(m$*k $<= n$*k) <-> ((#0 $< k --> m$<=n) & (k $< #0 --> n$<=m))"
+     "(m$*k $<= n$*k) <-> ((#0 $< k \<longrightarrow> m$<=n) & (k $< #0 \<longrightarrow> n$<=m))"
 by (auto simp add: not_zless_iff_zle [THEN iff_sym] zmult_zless_cancel2)
 
 lemma zmult_zle_cancel1:
-     "(k$*m $<= k$*n) <-> ((#0 $< k --> m$<=n) & (k $< #0 --> n$<=m))"
+     "(k$*m $<= k$*n) <-> ((#0 $< k \<longrightarrow> m$<=n) & (k $< #0 \<longrightarrow> n$<=m))"
 by (auto simp add: not_zless_iff_zle [THEN iff_sym] zmult_zless_cancel1)
 
 lemma int_eq_iff_zle: "[| m \<in> int; n \<in> int |] ==> m=n <-> (m $<= n & n $<= m)"
@@ -350,7 +350,7 @@ by (simp add: zmult_commute [of k] zmult_cancel2)
 subsection{* Uniqueness and monotonicity of quotients and remainders *}
 
 lemma unique_quotient_lemma:
-     "[| b$*q' $+ r' $<= b$*q $+ r;  #0 $<= r';  #0 $< b;  r $< b |]  
+     "[| b$*q' $+ r' $<= b$*q $+ r;  #0 $<= r';  #0 $< b;  r $< b |]
       ==> q' $<= q"
 apply (subgoal_tac "r' $+ b $* (q'$-q) $<= r")
  prefer 2 apply (simp add: zdiff_zmult_distrib2 zadd_ac zcompare_rls)
@@ -359,18 +359,18 @@ apply (subgoal_tac "#0 $< b $* (#1 $+ q $- q') ")
  apply (erule zle_zless_trans)
  apply (simp add: zdiff_zmult_distrib2 zadd_zmult_distrib2 zadd_ac zcompare_rls)
  apply (erule zle_zless_trans)
- apply (simp add: ); 
+ apply (simp add: );
 apply (subgoal_tac "b $* q' $< b $* (#1 $+ q)")
- prefer 2 
+ prefer 2
  apply (simp add: zdiff_zmult_distrib2 zadd_zmult_distrib2 zadd_ac zcompare_rls)
 apply (auto elim: zless_asym
         simp add: zmult_zless_cancel1 zless_add1_iff_zle zadd_ac zcompare_rls)
 done
 
 lemma unique_quotient_lemma_neg:
-     "[| b$*q' $+ r' $<= b$*q $+ r;  r $<= #0;  b $< #0;  b $< r' |]  
+     "[| b$*q' $+ r' $<= b$*q $+ r;  r $<= #0;  b $< #0;  b $< r' |]
       ==> q $<= q'"
-apply (rule_tac b = "$-b" and r = "$-r'" and r' = "$-r" 
+apply (rule_tac b = "$-b" and r = "$-r'" and r' = "$-r"
        in unique_quotient_lemma)
 apply (auto simp del: zminus_zadd_distrib
             simp add: zminus_zadd_distrib [symmetric] zle_zminus zless_zminus)
@@ -378,19 +378,19 @@ done
 
 
 lemma unique_quotient:
-     "[| quorem (<a,b>, <q,r>);  quorem (<a,b>, <q',r'>);  b \<in> int; b ~= #0;  
+     "[| quorem (<a,b>, <q,r>);  quorem (<a,b>, <q',r'>);  b \<in> int; b \<noteq> #0;
          q \<in> int; q' \<in> int |] ==> q = q'"
 apply (simp add: split_ifs quorem_def neq_iff_zless)
 apply safe
 apply simp_all
 apply (blast intro: zle_anti_sym
-             dest: zle_eq_refl [THEN unique_quotient_lemma] 
+             dest: zle_eq_refl [THEN unique_quotient_lemma]
                    zle_eq_refl [THEN unique_quotient_lemma_neg] sym)+
 done
 
 lemma unique_remainder:
-     "[| quorem (<a,b>, <q,r>);  quorem (<a,b>, <q',r'>);  b \<in> int; b ~= #0;  
-         q \<in> int; q' \<in> int;  
+     "[| quorem (<a,b>, <q,r>);  quorem (<a,b>, <q',r'>);  b \<in> int; b \<noteq> #0;
+         q \<in> int; q' \<in> int;
          r \<in> int; r' \<in> int |] ==> r = r'"
 apply (subgoal_tac "q = q'")
  prefer 2 apply (blast intro: unique_quotient)
@@ -398,18 +398,18 @@ apply (simp add: quorem_def)
 done
 
 
-subsection{*Correctness of posDivAlg, 
+subsection{*Correctness of posDivAlg,
            the Division Algorithm for @{text "a\<ge>0"} and @{text "b>0"} *}
 
 lemma adjust_eq [simp]:
-     "adjust(b, <q,r>) = (let diff = r$-b in  
-                          if #0 $<= diff then <#2$*q $+ #1,diff>   
+     "adjust(b, <q,r>) = (let diff = r$-b in
+                          if #0 $<= diff then <#2$*q $+ #1,diff>
                                          else <#2$*q,r>)"
 by (simp add: Let_def adjust_def)
 
 
 lemma posDivAlg_termination:
-     "[| #0 $< b; ~ a $< b |]    
+     "[| #0 $< b; ~ a $< b |]
       ==> nat_of(a $- #2 $\<times> b $+ #1) < nat_of(a $- b $+ #1)"
 apply (simp (no_asm) add: zless_nat_conj)
 apply (simp add: not_zless_iff_zle zless_add1_iff_zle zcompare_rls)
@@ -418,8 +418,8 @@ done
 lemmas posDivAlg_unfold = def_wfrec [OF posDivAlg_def wf_measure]
 
 lemma posDivAlg_eqn:
-     "[| #0 $< b; a \<in> int; b \<in> int |] ==>  
-      posDivAlg(<a,b>) =       
+     "[| #0 $< b; a \<in> int; b \<in> int |] ==>
+      posDivAlg(<a,b>) =
        (if a$<b then <#0,a> else adjust(b, posDivAlg (<a, #2$*b>)))"
 apply (rule posDivAlg_unfold [THEN trans])
 apply (simp add: vimage_iff not_zless_iff_zle [THEN iff_sym])
@@ -428,11 +428,11 @@ done
 
 lemma posDivAlg_induct_lemma [rule_format]:
   assumes prem:
-        "!!a b. [| a \<in> int; b \<in> int;  
-                   ~ (a $< b | b $<= #0) --> P(<a, #2 $* b>) |] ==> P(<a,b>)"
-  shows "<u,v> \<in> int*int --> P(<u,v>)"
+        "!!a b. [| a \<in> int; b \<in> int;
+                   ~ (a $< b | b $<= #0) \<longrightarrow> P(<a, #2 $* b>) |] ==> P(<a,b>)"
+  shows "<u,v> \<in> int*int \<longrightarrow> P(<u,v>)"
 apply (rule_tac a = "<u,v>" in wf_induct)
-apply (rule_tac A = "int*int" and f = "%<a,b>.nat_of (a $- b $+ #1)" 
+apply (rule_tac A = "int*int" and f = "%<a,b>.nat_of (a $- b $+ #1)"
        in wf_measure)
 apply clarify
 apply (rule prem)
@@ -446,7 +446,7 @@ lemma posDivAlg_induct [consumes 2]:
   assumes u_int: "u \<in> int"
       and v_int: "v \<in> int"
       and ih: "!!a b. [| a \<in> int; b \<in> int;
-                     ~ (a $< b | b $<= #0) --> P(a, #2 $* b) |] ==> P(a,b)"
+                     ~ (a $< b | b $<= #0) \<longrightarrow> P(a, #2 $* b) |] ==> P(a,b)"
   shows "P(u,v)"
 apply (subgoal_tac "(%<x,y>. P (x,y)) (<u,v>)")
 apply simp
@@ -456,8 +456,8 @@ apply (rule ih)
 apply (auto simp add: u_int v_int)
 done
 
-(*FIXME: use intify in integ_of so that we always have integ_of w \<in> int.
-    then this rewrite can work for ALL constants!!*)
+(*FIXME: use intify in integ_of so that we always have @{term"integ_of w \<in> int"}.
+    then this rewrite can work for all constants!!*)
 lemma intify_eq_0_iff_zle: "intify(m) = #0 <-> (m $<= #0 & #0 $<= m)"
 apply (simp (no_asm) add: int_eq_iff_zle)
 done
@@ -483,17 +483,17 @@ done
 (** Inequality reasoning **)
 
 lemma int_0_less_lemma:
-     "[| x \<in> int; y \<in> int |]  
+     "[| x \<in> int; y \<in> int |]
       ==> (#0 $< x $* y) <-> (#0 $< x & #0 $< y | x $< #0 & y $< #0)"
 apply (auto simp add: zle_def not_zless_iff_zle zmult_pos zmult_neg)
-apply (rule ccontr) 
-apply (rule_tac [2] ccontr) 
+apply (rule ccontr)
+apply (rule_tac [2] ccontr)
 apply (auto simp add: zle_def not_zless_iff_zle)
 apply (erule_tac P = "#0$< x$* y" in rev_mp)
 apply (erule_tac [2] P = "#0$< x$* y" in rev_mp)
-apply (drule zmult_pos_neg, assumption) 
+apply (drule zmult_pos_neg, assumption)
  prefer 2
- apply (drule zmult_pos_neg, assumption) 
+ apply (drule zmult_pos_neg, assumption)
 apply (auto dest: zless_not_sym simp add: zmult_commute)
 done
 
@@ -504,7 +504,7 @@ apply auto
 done
 
 lemma int_0_le_lemma:
-     "[| x \<in> int; y \<in> int |]  
+     "[| x \<in> int; y \<in> int |]
       ==> (#0 $<= x $* y) <-> (#0 $<= x & #0 $<= y | x $<= #0 & y $<= #0)"
 by (auto simp add: zle_def not_zless_iff_zle int_0_less_mult_iff)
 
@@ -532,7 +532,7 @@ lemma posDivAlg_type [rule_format]:
 apply (rule_tac u = "a" and v = "b" in posDivAlg_induct)
 apply assumption+
 apply (case_tac "#0 $< ba")
- apply (simp add: posDivAlg_eqn adjust_def integ_of_type 
+ apply (simp add: posDivAlg_eqn adjust_def integ_of_type
              split add: split_if_asm)
  apply clarify
  apply (simp add: int_0_less_mult_iff not_zle_iff_zless)
@@ -543,8 +543,8 @@ done
 
 (*Correctness of posDivAlg: it computes quotients correctly*)
 lemma posDivAlg_correct [rule_format]:
-     "[| a \<in> int; b \<in> int |]  
-      ==> #0 $<= a --> #0 $< b --> quorem (<a,b>, posDivAlg(<a,b>))"
+     "[| a \<in> int; b \<in> int |]
+      ==> #0 $<= a \<longrightarrow> #0 $< b \<longrightarrow> quorem (<a,b>, posDivAlg(<a,b>))"
 apply (rule_tac u = "a" and v = "b" in posDivAlg_induct)
 apply auto
    apply (simp_all add: quorem_def)
@@ -567,7 +567,7 @@ done
 subsection{*Correctness of negDivAlg, the division algorithm for a<0 and b>0*}
 
 lemma negDivAlg_termination:
-     "[| #0 $< b; a $+ b $< #0 |] 
+     "[| #0 $< b; a $+ b $< #0 |]
       ==> nat_of($- a $- #2 $* b) < nat_of($- a $- b)"
 apply (simp (no_asm) add: zless_nat_conj)
 apply (simp add: zcompare_rls not_zle_iff_zless zless_zdiff_iff [THEN iff_sym]
@@ -577,9 +577,9 @@ done
 lemmas negDivAlg_unfold = def_wfrec [OF negDivAlg_def wf_measure]
 
 lemma negDivAlg_eqn:
-     "[| #0 $< b; a : int; b : int |] ==>  
-      negDivAlg(<a,b>) =       
-       (if #0 $<= a$+b then <#-1,a$+b>  
+     "[| #0 $< b; a \<in> int; b \<in> int |] ==>
+      negDivAlg(<a,b>) =
+       (if #0 $<= a$+b then <#-1,a$+b>
                        else adjust(b, negDivAlg (<a, #2$*b>)))"
 apply (rule negDivAlg_unfold [THEN trans])
 apply (simp (no_asm_simp) add: vimage_iff not_zless_iff_zle [THEN iff_sym])
@@ -588,12 +588,12 @@ done
 
 lemma negDivAlg_induct_lemma [rule_format]:
   assumes prem:
-        "!!a b. [| a \<in> int; b \<in> int;  
-                   ~ (#0 $<= a $+ b | b $<= #0) --> P(<a, #2 $* b>) |]  
+        "!!a b. [| a \<in> int; b \<in> int;
+                   ~ (#0 $<= a $+ b | b $<= #0) \<longrightarrow> P(<a, #2 $* b>) |]
                 ==> P(<a,b>)"
-  shows "<u,v> \<in> int*int --> P(<u,v>)"
+  shows "<u,v> \<in> int*int \<longrightarrow> P(<u,v>)"
 apply (rule_tac a = "<u,v>" in wf_induct)
-apply (rule_tac A = "int*int" and f = "%<a,b>.nat_of ($- a $- b)" 
+apply (rule_tac A = "int*int" and f = "%<a,b>.nat_of ($- a $- b)"
        in wf_measure)
 apply clarify
 apply (rule prem)
@@ -605,8 +605,8 @@ done
 lemma negDivAlg_induct [consumes 2]:
   assumes u_int: "u \<in> int"
       and v_int: "v \<in> int"
-      and ih: "!!a b. [| a \<in> int; b \<in> int;  
-                         ~ (#0 $<= a $+ b | b $<= #0) --> P(a, #2 $* b) |]  
+      and ih: "!!a b. [| a \<in> int; b \<in> int;
+                         ~ (#0 $<= a $+ b | b $<= #0) \<longrightarrow> P(a, #2 $* b) |]
                       ==> P(a,b)"
   shows "P(u,v)"
 apply (subgoal_tac " (%<x,y>. P (x,y)) (<u,v>)")
@@ -624,7 +624,7 @@ lemma negDivAlg_type:
 apply (rule_tac u = "a" and v = "b" in negDivAlg_induct)
 apply assumption+
 apply (case_tac "#0 $< ba")
- apply (simp add: negDivAlg_eqn adjust_def integ_of_type 
+ apply (simp add: negDivAlg_eqn adjust_def integ_of_type
              split add: split_if_asm)
  apply clarify
  apply (simp add: int_0_less_mult_iff not_zle_iff_zless)
@@ -637,8 +637,8 @@ done
 (*Correctness of negDivAlg: it computes quotients correctly
   It doesn't work if a=0 because the 0/b=0 rather than -1*)
 lemma negDivAlg_correct [rule_format]:
-     "[| a \<in> int; b \<in> int |]  
-      ==> a $< #0 --> #0 $< b --> quorem (<a,b>, negDivAlg(<a,b>))"
+     "[| a \<in> int; b \<in> int |]
+      ==> a $< #0 \<longrightarrow> #0 $< b \<longrightarrow> quorem (<a,b>, negDivAlg(<a,b>))"
 apply (rule_tac u = "a" and v = "b" in negDivAlg_induct)
   apply auto
    apply (simp_all add: quorem_def)
@@ -698,7 +698,7 @@ apply auto
 done
 
 lemma quorem_neg:
-     "[|quorem (<$-a,$-b>, qr);  a \<in> int;  b \<in> int;  qr \<in> int * int|]   
+     "[|quorem (<$-a,$-b>, qr);  a \<in> int;  b \<in> int;  qr \<in> int * int|]
       ==> quorem (<a,b>, negateSnd(qr))"
 apply clarify
 apply (auto elim: zless_asym simp add: quorem_def zless_zminus)
@@ -714,7 +714,7 @@ lemma divAlg_correct:
      "[|b \<noteq> #0;  a \<in> int;  b \<in> int|] ==> quorem (<a,b>, divAlg(<a,b>))"
 apply (auto simp add: quorem_0 divAlg_def)
 apply (safe intro!: quorem_neg posDivAlg_correct negDivAlg_correct
-                    posDivAlg_type negDivAlg_type) 
+                    posDivAlg_type negDivAlg_type)
 apply (auto simp add: quorem_def neq_iff_zless)
 txt{*linear arithmetic from here on*}
 apply (auto simp add: zle_def)
@@ -756,7 +756,7 @@ apply (blast intro: divAlg_type)
 done
 
 
-(** Arbitrary definitions for division by zero.  Useful to simplify 
+(** Arbitrary definitions for division by zero.  Useful to simplify
     certain equations **)
 
 lemma DIVISION_BY_ZERO_ZDIV: "a zdiv #0 = #0"
@@ -774,7 +774,7 @@ done  (*NOT for adding to default simpset*)
 lemma raw_zmod_zdiv_equality:
      "[| a \<in> int; b \<in> int |] ==> a = b $* (a zdiv b) $+ (a zmod b)"
 apply (case_tac "b = #0")
- apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD) 
+ apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD)
 apply (cut_tac a = "a" and b = "b" in divAlg_correct)
 apply (auto simp add: quorem_def zdiv_def zmod_def split_def)
 done
@@ -808,21 +808,21 @@ lemmas neg_mod_sign = neg_mod [THEN conjunct1]
 (** proving general properties of zdiv and zmod **)
 
 lemma quorem_div_mod:
-     "[|b \<noteq> #0;  a \<in> int;  b \<in> int |]  
+     "[|b \<noteq> #0;  a \<in> int;  b \<in> int |]
       ==> quorem (<a,b>, <a zdiv b, a zmod b>)"
 apply (cut_tac a = "a" and b = "b" in zmod_zdiv_equality)
-apply (auto simp add: quorem_def neq_iff_zless pos_mod_sign pos_mod_bound 
+apply (auto simp add: quorem_def neq_iff_zless pos_mod_sign pos_mod_bound
                       neg_mod_sign neg_mod_bound)
 done
 
-(*Surely quorem(<a,b>,<q,r>) implies a \<in> int, but it doesn't matter*)
+(*Surely quorem(<a,b>,<q,r>) implies @{term"a \<in> int"}, but it doesn't matter*)
 lemma quorem_div:
-     "[| quorem(<a,b>,<q,r>);  b \<noteq> #0;  a \<in> int;  b \<in> int;  q \<in> int |]  
+     "[| quorem(<a,b>,<q,r>);  b \<noteq> #0;  a \<in> int;  b \<in> int;  q \<in> int |]
       ==> a zdiv b = q"
 by (blast intro: quorem_div_mod [THEN unique_quotient])
 
 lemma quorem_mod:
-     "[| quorem(<a,b>,<q,r>); b \<noteq> #0; a \<in> int; b \<in> int; q \<in> int; r \<in> int |] 
+     "[| quorem(<a,b>,<q,r>); b \<noteq> #0; a \<in> int; b \<in> int; q \<in> int; r \<in> int |]
       ==> a zmod b = r"
 by (blast intro: quorem_div_mod [THEN unique_remainder])
 
@@ -835,7 +835,7 @@ apply (blast dest: zle_zless_trans)+
 done
 
 lemma zdiv_pos_pos_trivial: "[| #0 $<= a;  a $< b |] ==> a zdiv b = #0"
-apply (cut_tac a = "intify (a)" and b = "intify (b)" 
+apply (cut_tac a = "intify (a)" and b = "intify (b)"
        in zdiv_pos_pos_trivial_raw)
 apply auto
 done
@@ -849,7 +849,7 @@ apply (blast dest: zle_zless_trans zless_trans)+
 done
 
 lemma zdiv_neg_neg_trivial: "[| a $<= #0;  b $< a |] ==> a zdiv b = #0"
-apply (cut_tac a = "intify (a)" and b = "intify (b)" 
+apply (cut_tac a = "intify (a)" and b = "intify (b)"
        in zdiv_neg_neg_trivial_raw)
 apply auto
 done
@@ -869,7 +869,7 @@ apply (blast dest: zadd_le_0_lemma zle_zless_trans)+
 done
 
 lemma zdiv_pos_neg_trivial: "[| #0 $< a;  a$+b $<= #0 |] ==> a zdiv b = #-1"
-apply (cut_tac a = "intify (a)" and b = "intify (b)" 
+apply (cut_tac a = "intify (a)" and b = "intify (b)"
        in zdiv_pos_neg_trivial_raw)
 apply auto
 done
@@ -886,7 +886,7 @@ apply (blast dest: zle_zless_trans)+
 done
 
 lemma zmod_pos_pos_trivial: "[| #0 $<= a;  a $< b |] ==> a zmod b = intify(a)"
-apply (cut_tac a = "intify (a)" and b = "intify (b)" 
+apply (cut_tac a = "intify (a)" and b = "intify (b)"
        in zmod_pos_pos_trivial_raw)
 apply auto
 done
@@ -900,7 +900,7 @@ apply (blast dest: zle_zless_trans zless_trans)+
 done
 
 lemma zmod_neg_neg_trivial: "[| a $<= #0;  b $< a |] ==> a zmod b = intify(a)"
-apply (cut_tac a = "intify (a)" and b = "intify (b)" 
+apply (cut_tac a = "intify (a)" and b = "intify (b)"
        in zmod_neg_neg_trivial_raw)
 apply auto
 done
@@ -914,7 +914,7 @@ apply (blast dest: zadd_le_0_lemma zle_zless_trans)+
 done
 
 lemma zmod_pos_neg_trivial: "[| #0 $< a;  a$+b $<= #0 |] ==> a zmod b = a$+b"
-apply (cut_tac a = "intify (a)" and b = "intify (b)" 
+apply (cut_tac a = "intify (a)" and b = "intify (b)"
        in zmod_pos_neg_trivial_raw)
 apply auto
 done
@@ -927,7 +927,7 @@ done
 lemma zdiv_zminus_zminus_raw:
      "[|a \<in> int;  b \<in> int|] ==> ($-a) zdiv ($-b) = a zdiv b"
 apply (case_tac "b = #0")
- apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD) 
+ apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD)
 apply (subst quorem_div_mod [THEN quorem_neg, simplified, THEN quorem_div])
 apply auto
 done
@@ -941,7 +941,7 @@ done
 lemma zmod_zminus_zminus_raw:
      "[|a \<in> int;  b \<in> int|] ==> ($-a) zmod ($-b) = $- (a zmod b)"
 apply (case_tac "b = #0")
- apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD) 
+ apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD)
 apply (subst quorem_div_mod [THEN quorem_neg, simplified, THEN quorem_mod])
 apply auto
 done
@@ -1008,7 +1008,7 @@ done
 (*Here we have 0 zmod 0 = 0, also assumed by Knuth (who puts m zmod 0 = 0) *)
 lemma zmod_self_raw: "a \<in> int ==> a zmod a = #0"
 apply (case_tac "a = #0")
- apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD) 
+ apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD)
 apply (blast intro: quorem_div_mod [THEN self_remainder])
 done
 
@@ -1042,14 +1042,14 @@ done
 
 (** a positive, b positive **)
 
-lemma zdiv_pos_pos: "[| #0 $< a;  #0 $<= b |]  
+lemma zdiv_pos_pos: "[| #0 $< a;  #0 $<= b |]
       ==> a zdiv b = fst (posDivAlg(<intify(a), intify(b)>))"
 apply (simp (no_asm_simp) add: zdiv_def divAlg_def)
 apply (auto simp add: zle_def)
 done
 
 lemma zmod_pos_pos:
-     "[| #0 $< a;  #0 $<= b |]  
+     "[| #0 $< a;  #0 $<= b |]
       ==> a zmod b = snd (posDivAlg(<intify(a), intify(b)>))"
 apply (simp (no_asm_simp) add: zmod_def divAlg_def)
 apply (auto simp add: zle_def)
@@ -1058,14 +1058,14 @@ done
 (** a negative, b positive **)
 
 lemma zdiv_neg_pos:
-     "[| a $< #0;  #0 $< b |]  
+     "[| a $< #0;  #0 $< b |]
       ==> a zdiv b = fst (negDivAlg(<intify(a), intify(b)>))"
 apply (simp (no_asm_simp) add: zdiv_def divAlg_def)
 apply (blast dest: zle_zless_trans)
 done
 
 lemma zmod_neg_pos:
-     "[| a $< #0;  #0 $< b |]  
+     "[| a $< #0;  #0 $< b |]
       ==> a zmod b = snd (negDivAlg(<intify(a), intify(b)>))"
 apply (simp (no_asm_simp) add: zmod_def divAlg_def)
 apply (blast dest: zle_zless_trans)
@@ -1074,7 +1074,7 @@ done
 (** a positive, b negative **)
 
 lemma zdiv_pos_neg:
-     "[| #0 $< a;  b $< #0 |]  
+     "[| #0 $< a;  b $< #0 |]
       ==> a zdiv b = fst (negateSnd(negDivAlg (<$-a, $-b>)))"
 apply (simp (no_asm_simp) add: zdiv_def divAlg_def intify_eq_0_iff_zle)
 apply auto
@@ -1084,7 +1084,7 @@ apply (blast intro: zless_imp_zle)
 done
 
 lemma zmod_pos_neg:
-     "[| #0 $< a;  b $< #0 |]  
+     "[| #0 $< a;  b $< #0 |]
       ==> a zmod b = snd (negateSnd(negDivAlg (<$-a, $-b>)))"
 apply (simp (no_asm_simp) add: zmod_def divAlg_def intify_eq_0_iff_zle)
 apply auto
@@ -1096,7 +1096,7 @@ done
 (** a negative, b negative **)
 
 lemma zdiv_neg_neg:
-     "[| a $< #0;  b $<= #0 |]  
+     "[| a $< #0;  b $<= #0 |]
       ==> a zdiv b = fst (negateSnd(posDivAlg(<$-a, $-b>)))"
 apply (simp (no_asm_simp) add: zdiv_def divAlg_def)
 apply auto
@@ -1104,7 +1104,7 @@ apply (blast dest!: zle_zless_trans)+
 done
 
 lemma zmod_neg_neg:
-     "[| a $< #0;  b $<= #0 |]  
+     "[| a $< #0;  b $<= #0 |]
       ==> a zmod b = snd (negateSnd(posDivAlg(<$-a, $-b>)))"
 apply (simp (no_asm_simp) add: zmod_def divAlg_def)
 apply auto
@@ -1198,10 +1198,10 @@ apply (erule zadd_zless_mono2)
 done
 
 lemma zdiv_mono2_lemma:
-     "[| b$*q $+ r = b'$*q' $+ r';  #0 $<= b'$*q' $+ r';   
-         r' $< b';  #0 $<= r;  #0 $< b';  b' $<= b |]   
+     "[| b$*q $+ r = b'$*q' $+ r';  #0 $<= b'$*q' $+ r';
+         r' $< b';  #0 $<= r;  #0 $< b';  b' $<= b |]
       ==> q $<= q'"
-apply (frule q_pos_lemma, assumption+) 
+apply (frule q_pos_lemma, assumption+)
 apply (subgoal_tac "b$*q $< b$* (q' $+ #1)")
  apply (simp add: zmult_zless_cancel1)
  apply (force dest: zless_add1_iff_zle [THEN iffD1] zless_trans zless_zle_trans)
@@ -1219,7 +1219,7 @@ done
 
 
 lemma zdiv_mono2_raw:
-     "[| #0 $<= a;  #0 $< b';  b' $<= b;  a \<in> int |]   
+     "[| #0 $<= a;  #0 $< b';  b' $<= b;  a \<in> int |]
       ==> a zdiv b $<= a zdiv b'"
 apply (subgoal_tac "#0 $< b")
  prefer 2 apply (blast dest: zless_zle_trans)
@@ -1232,7 +1232,7 @@ apply (simp_all add: pos_mod_sign pos_mod_bound)
 done
 
 lemma zdiv_mono2:
-     "[| #0 $<= a;  #0 $< b';  b' $<= b |]   
+     "[| #0 $<= a;  #0 $< b';  b' $<= b |]
       ==> a zdiv b $<= a zdiv b'"
 apply (cut_tac a = "intify (a)" in zdiv_mono2_raw)
 apply auto
@@ -1249,12 +1249,12 @@ done
 
 
 lemma zdiv_mono2_neg_lemma:
-     "[| b$*q $+ r = b'$*q' $+ r';  b'$*q' $+ r' $< #0;   
-         r $< b;  #0 $<= r';  #0 $< b';  b' $<= b |]   
+     "[| b$*q $+ r = b'$*q' $+ r';  b'$*q' $+ r' $< #0;
+         r $< b;  #0 $<= r';  #0 $< b';  b' $<= b |]
       ==> q' $<= q"
 apply (subgoal_tac "#0 $< b")
  prefer 2 apply (blast dest: zless_zle_trans)
-apply (frule q_neg_lemma, assumption+) 
+apply (frule q_neg_lemma, assumption+)
 apply (subgoal_tac "b$*q' $< b$* (q $+ #1)")
  apply (simp add: zmult_zless_cancel1)
  apply (blast dest: zless_trans zless_add1_iff_zle [THEN iffD1])
@@ -1278,7 +1278,7 @@ apply (blast dest: zless_trans)
 done
 
 lemma zdiv_mono2_neg_raw:
-     "[| a $< #0;  #0 $< b';  b' $<= b;  a \<in> int |]   
+     "[| a $< #0;  #0 $< b';  b' $<= b;  a \<in> int |]
       ==> a zdiv b' $<= a zdiv b"
 apply (subgoal_tac "#0 $< b")
  prefer 2 apply (blast dest: zless_zle_trans)
@@ -1290,7 +1290,7 @@ apply (erule subst)
 apply (simp_all add: pos_mod_sign pos_mod_bound)
 done
 
-lemma zdiv_mono2_neg: "[| a $< #0;  #0 $< b';  b' $<= b |]   
+lemma zdiv_mono2_neg: "[| a $< #0;  #0 $< b';  b' $<= b |]
       ==> a zdiv b' $<= a zdiv b"
 apply (cut_tac a = "intify (a)" in zdiv_mono2_neg_raw)
 apply auto
@@ -1303,18 +1303,18 @@ subsection{* More algebraic laws for zdiv and zmod *}
 (** proving (a*b) zdiv c = a $* (b zdiv c) $+ a * (b zmod c) **)
 
 lemma zmult1_lemma:
-     "[| quorem(<b,c>, <q,r>);  c \<in> int;  c \<noteq> #0 |]  
+     "[| quorem(<b,c>, <q,r>);  c \<in> int;  c \<noteq> #0 |]
       ==> quorem (<a$*b, c>, <a$*q $+ (a$*r) zdiv c, (a$*r) zmod c>)"
 apply (auto simp add: split_ifs quorem_def neq_iff_zless zadd_zmult_distrib2
                       pos_mod_sign pos_mod_bound neg_mod_sign neg_mod_bound)
-apply (auto intro: raw_zmod_zdiv_equality) 
+apply (auto intro: raw_zmod_zdiv_equality)
 done
 
 lemma zdiv_zmult1_eq_raw:
-     "[|b \<in> int;  c \<in> int|]  
+     "[|b \<in> int;  c \<in> int|]
       ==> (a$*b) zdiv c = a$*(b zdiv c) $+ a$*(b zmod c) zdiv c"
 apply (case_tac "c = #0")
- apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD) 
+ apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD)
 apply (rule quorem_div_mod [THEN zmult1_lemma, THEN quorem_div])
 apply auto
 done
@@ -1327,7 +1327,7 @@ done
 lemma zmod_zmult1_eq_raw:
      "[|b \<in> int;  c \<in> int|] ==> (a$*b) zmod c = a$*(b zmod c) zmod c"
 apply (case_tac "c = #0")
- apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD) 
+ apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD)
 apply (rule quorem_div_mod [THEN zmult1_lemma, THEN quorem_mod])
 apply auto
 done
@@ -1366,12 +1366,12 @@ apply (simp (no_asm) add: zmult_commute zmod_zmult1_eq)
 done
 
 
-(** proving (a$+b) zdiv c = 
+(** proving (a$+b) zdiv c =
             a zdiv c $+ b zdiv c $+ ((a zmod c $+ b zmod c) zdiv c) **)
 
 lemma zadd1_lemma:
-     "[| quorem(<a,c>, <aq,ar>);  quorem(<b,c>, <bq,br>);   
-         c \<in> int;  c \<noteq> #0 |]  
+     "[| quorem(<a,c>, <aq,ar>);  quorem(<b,c>, <bq,br>);
+         c \<in> int;  c \<noteq> #0 |]
       ==> quorem (<a$+b, c>, <aq $+ bq $+ (ar$+br) zdiv c, (ar$+br) zmod c>)"
 apply (auto simp add: split_ifs quorem_def neq_iff_zless zadd_zmult_distrib2
                       pos_mod_sign pos_mod_bound neg_mod_sign neg_mod_bound)
@@ -1380,32 +1380,32 @@ done
 
 (*NOT suitable for rewriting: the RHS has an instance of the LHS*)
 lemma zdiv_zadd1_eq_raw:
-     "[|a \<in> int; b \<in> int; c \<in> int|] ==>  
+     "[|a \<in> int; b \<in> int; c \<in> int|] ==>
       (a$+b) zdiv c = a zdiv c $+ b zdiv c $+ ((a zmod c $+ b zmod c) zdiv c)"
 apply (case_tac "c = #0")
- apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD) 
+ apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD)
 apply (blast intro: zadd1_lemma [OF quorem_div_mod quorem_div_mod,
                                  THEN quorem_div])
 done
 
 lemma zdiv_zadd1_eq:
      "(a$+b) zdiv c = a zdiv c $+ b zdiv c $+ ((a zmod c $+ b zmod c) zdiv c)"
-apply (cut_tac a = "intify (a)" and b = "intify (b)" and c = "intify (c)" 
+apply (cut_tac a = "intify (a)" and b = "intify (b)" and c = "intify (c)"
        in zdiv_zadd1_eq_raw)
 apply auto
 done
 
 lemma zmod_zadd1_eq_raw:
-     "[|a \<in> int; b \<in> int; c \<in> int|]   
+     "[|a \<in> int; b \<in> int; c \<in> int|]
       ==> (a$+b) zmod c = (a zmod c $+ b zmod c) zmod c"
 apply (case_tac "c = #0")
- apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD) 
-apply (blast intro: zadd1_lemma [OF quorem_div_mod quorem_div_mod, 
+ apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD)
+apply (blast intro: zadd1_lemma [OF quorem_div_mod quorem_div_mod,
                                  THEN quorem_mod])
 done
 
 lemma zmod_zadd1_eq: "(a$+b) zmod c = (a zmod c $+ b zmod c) zmod c"
-apply (cut_tac a = "intify (a)" and b = "intify (b)" and c = "intify (c)" 
+apply (cut_tac a = "intify (a)" and b = "intify (b)" and c = "intify (c)"
        in zmod_zadd1_eq_raw)
 apply auto
 done
@@ -1413,7 +1413,7 @@ done
 lemma zmod_div_trivial_raw:
      "[|a \<in> int; b \<in> int|] ==> (a zmod b) zdiv b = #0"
 apply (case_tac "b = #0")
- apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD) 
+ apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD)
 apply (auto simp add: neq_iff_zless pos_mod_sign pos_mod_bound
          zdiv_pos_pos_trivial neg_mod_sign neg_mod_bound zdiv_neg_neg_trivial)
 done
@@ -1426,8 +1426,8 @@ done
 lemma zmod_mod_trivial_raw:
      "[|a \<in> int; b \<in> int|] ==> (a zmod b) zmod b = a zmod b"
 apply (case_tac "b = #0")
- apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD) 
-apply (auto simp add: neq_iff_zless pos_mod_sign pos_mod_bound 
+ apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD)
+apply (auto simp add: neq_iff_zless pos_mod_sign pos_mod_bound
        zmod_pos_pos_trivial neg_mod_sign neg_mod_bound zmod_neg_neg_trivial)
 done
 
@@ -1461,13 +1461,13 @@ by (simp (no_asm_simp) add: zdiv_zadd1_eq)
 
 lemma zmod_zadd_self1 [simp]: "(a$+b) zmod a = b zmod a"
 apply (case_tac "a = #0")
- apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD) 
+ apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD)
 apply (simp (no_asm_simp) add: zmod_zadd1_eq)
 done
 
 lemma zmod_zadd_self2 [simp]: "(b$+a) zmod a = b zmod a"
 apply (case_tac "a = #0")
- apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD) 
+ apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD)
 apply (simp (no_asm_simp) add: zmod_zadd1_eq)
 done
 
@@ -1495,7 +1495,7 @@ lemma zdiv_zmult2_aux2:
      "[| #0 $< c;   b $< r;  r $<= #0 |] ==> b $* (q zmod c) $+ r $<= #0"
 apply (subgoal_tac "b $* (q zmod c) $<= #0")
  prefer 2
- apply (simp add: zmult_le_0_iff pos_mod_sign) 
+ apply (simp add: zmult_le_0_iff pos_mod_sign)
  apply (blast intro: zless_imp_zle dest: zless_zle_trans)
 (*arithmetic*)
 apply (drule zadd_zle_mono)
@@ -1507,7 +1507,7 @@ lemma zdiv_zmult2_aux3:
      "[| #0 $< c;  #0 $<= r;  r $< b |] ==> #0 $<= b $* (q zmod c) $+ r"
 apply (subgoal_tac "#0 $<= b $* (q zmod c)")
  prefer 2
- apply (simp add: int_0_le_mult_iff pos_mod_sign) 
+ apply (simp add: int_0_le_mult_iff pos_mod_sign)
  apply (blast intro: zless_imp_zle dest: zle_zless_trans)
 (*arithmetic*)
 apply (drule zadd_zle_mono)
@@ -1527,10 +1527,10 @@ apply (blast intro: zless_imp_zle dest: zle_zless_trans)
 done
 
 lemma zdiv_zmult2_lemma:
-     "[| quorem (<a,b>, <q,r>);  a \<in> int;  b \<in> int;  b \<noteq> #0;  #0 $< c |]  
+     "[| quorem (<a,b>, <q,r>);  a \<in> int;  b \<in> int;  b \<noteq> #0;  #0 $< c |]
       ==> quorem (<a,b$*c>, <q zdiv c, b$*(q zmod c) $+ r>)"
 apply (auto simp add: zmult_ac zmod_zdiv_equality [symmetric] quorem_def
-               neq_iff_zless int_0_less_mult_iff 
+               neq_iff_zless int_0_less_mult_iff
                zadd_zmult_distrib2 [symmetric] zdiv_zmult2_aux1 zdiv_zmult2_aux2
                zdiv_zmult2_aux3 zdiv_zmult2_aux4)
 apply (blast dest: zless_trans)+
@@ -1539,7 +1539,7 @@ done
 lemma zdiv_zmult2_eq_raw:
      "[|#0 $< c;  a \<in> int;  b \<in> int|] ==> a zdiv (b$*c) = (a zdiv b) zdiv c"
 apply (case_tac "b = #0")
- apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD) 
+ apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD)
 apply (rule quorem_div_mod [THEN zdiv_zmult2_lemma, THEN quorem_div])
 apply (auto simp add: intify_eq_0_iff_zle)
 apply (blast dest: zle_zless_trans)
@@ -1551,10 +1551,10 @@ apply auto
 done
 
 lemma zmod_zmult2_eq_raw:
-     "[|#0 $< c;  a \<in> int;  b \<in> int|]  
+     "[|#0 $< c;  a \<in> int;  b \<in> int|]
       ==> a zmod (b$*c) = b$*(a zdiv b zmod c) $+ a zmod b"
 apply (case_tac "b = #0")
- apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD) 
+ apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD)
 apply (rule quorem_div_mod [THEN zdiv_zmult2_lemma, THEN quorem_mod])
 apply (auto simp add: intify_eq_0_iff_zle)
 apply (blast dest: zle_zless_trans)
@@ -1584,7 +1584,7 @@ done
 lemma zdiv_zmult_zmult1_raw:
      "[|intify(c) \<noteq> #0; b \<in> int|] ==> (c$*a) zdiv (c$*b) = a zdiv b"
 apply (case_tac "b = #0")
- apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD) 
+ apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD)
 apply (auto simp add: neq_iff_zless [of b]
   zdiv_zmult_zmult1_aux1 zdiv_zmult_zmult1_aux2)
 done
@@ -1603,14 +1603,14 @@ done
 subsection{* Distribution of factors over "zmod" *}
 
 lemma zmod_zmult_zmult1_aux1:
-     "[| #0 $< b;  intify(c) \<noteq> #0 |]  
+     "[| #0 $< b;  intify(c) \<noteq> #0 |]
       ==> (c$*a) zmod (c$*b) = c $* (a zmod b)"
 apply (subst zmod_zmult2_eq)
 apply auto
 done
 
 lemma zmod_zmult_zmult1_aux2:
-     "[| b $< #0;  intify(c) \<noteq> #0 |]  
+     "[| b $< #0;  intify(c) \<noteq> #0 |]
       ==> (c$*a) zmod (c$*b) = c $* (a zmod b)"
 apply (subgoal_tac " (c $* ($-a)) zmod (c $* ($-b)) = c $* (($-a) zmod ($-b))")
 apply (rule_tac [2] zmod_zmult_zmult1_aux1)
@@ -1620,9 +1620,9 @@ done
 lemma zmod_zmult_zmult1_raw:
      "[|b \<in> int; c \<in> int|] ==> (c$*a) zmod (c$*b) = c $* (a zmod b)"
 apply (case_tac "b = #0")
- apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD) 
+ apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD)
 apply (case_tac "c = #0")
- apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD) 
+ apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD)
 apply (auto simp add: neq_iff_zless [of b]
   zmod_zmult_zmult1_aux1 zmod_zmult_zmult1_aux2)
 done
@@ -1726,9 +1726,9 @@ done
  apply auto
  done
 
- lemma zdiv_integ_of_BIT: "integ_of (v BIT b) zdiv integ_of (w BIT False) =  
-           (if ~b | #0 $<= integ_of w                    
-            then integ_of v zdiv (integ_of w)     
+ lemma zdiv_integ_of_BIT: "integ_of (v BIT b) zdiv integ_of (w BIT False) =
+           (if ~b | #0 $<= integ_of w
+            then integ_of v zdiv (integ_of w)
             else (integ_of v $+ #1) zdiv (integ_of w))"
  apply (simp_tac (global_simpset_of Int.thy add: zadd_assoc integ_of_BIT)
  apply (simp (no_asm_simp) del: bin_arith_extra_simps@bin_rel_simps add: zdiv_zmult_zmult1 pos_zdiv_mult_2 lemma neg_zdiv_mult_2)
@@ -1770,11 +1770,11 @@ done
  apply auto
  done
 
- lemma zmod_integ_of_BIT: "integ_of (v BIT b) zmod integ_of (w BIT False) =  
-           (if b then  
-                 if #0 $<= integ_of w  
-                 then #2 $* (integ_of v zmod integ_of w) $+ #1     
-                 else #2 $* ((integ_of v $+ #1) zmod integ_of w) - #1   
+ lemma zmod_integ_of_BIT: "integ_of (v BIT b) zmod integ_of (w BIT False) =
+           (if b then
+                 if #0 $<= integ_of w
+                 then #2 $* (integ_of v zmod integ_of w) $+ #1
+                 else #2 $* ((integ_of v $+ #1) zmod integ_of w) - #1
             else #2 $* (integ_of v zmod integ_of w))"
  apply (simp_tac (global_simpset_of Int.thy add: zadd_assoc integ_of_BIT)
  apply (simp (no_asm_simp) del: bin_arith_extra_simps@bin_rel_simps add: zmod_zmult_zmult1 pos_zmod_mult_2 lemma neg_zmod_mult_2)

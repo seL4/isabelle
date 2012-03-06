@@ -412,7 +412,7 @@ proof -
 qed
 
 text{*Basis for homomorphism proofs: we assume two groups @{term G} and
-  @term{H}, with a homomorphism @{term h} between them*}
+  @{term H}, with a homomorphism @{term h} between them*}
 locale group_hom = G: group G + H: group H
   for G (structure) and H (structure) and h +
   assumes homh: "h \<in> hom(G,H)"

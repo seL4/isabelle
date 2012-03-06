@@ -27,8 +27,8 @@ lemma iterates_triv:
 by (induct n rule: nat_induct, simp_all)
 
 lemma iterates_type [TC]:
-     "[| n:nat;  a: A; !!x. x:A ==> F(x) : A |] 
-      ==> F^n (a) : A"  
+     "[| n:nat;  a: A; !!x. x:A ==> F(x) \<in> A |] 
+      ==> F^n (a) \<in> A"  
 by (induct n rule: nat_induct, simp_all)
 
 lemma iterates_omega_triv:
