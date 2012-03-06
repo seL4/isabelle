@@ -42,11 +42,11 @@ lemma cons_times_nat_not_Finite:
      "0\<notin>A ==> \<forall>B \<in> {cons(0,x*nat). x \<in> A}. ~Finite(B)"
 apply clarify 
 apply (rule nat_not_Finite [THEN notE] )
-apply (subgoal_tac "x ~= 0")
+apply (subgoal_tac "x \<noteq> 0")
  apply (blast intro: lepoll_Sigma [THEN lepoll_Finite])+
 done
 
-lemma lemma1: "[| Union(C)=A; a \<in> A |] ==> \<exists>B \<in> C. a \<in> B & B \<subseteq> A"
+lemma lemma1: "[| \<Union>(C)=A; a \<in> A |] ==> \<exists>B \<in> C. a \<in> B & B \<subseteq> A"
 by fast
 
 lemma lemma2: 
@@ -55,7 +55,7 @@ by (unfold pairwise_disjoint_def, blast)
 
 lemma lemma3: 
      "\<forall>B \<in> {cons(0, x*nat). x \<in> A}. pairwise_disjoint(f`B) &   
-             sets_of_size_between(f`B, 2, n) & Union(f`B)=B   
+             sets_of_size_between(f`B, 2, n) & \<Union>(f`B)=B   
      ==> \<forall>B \<in> A. \<exists>! u. u \<in> f`cons(0, B*nat) & u \<subseteq> cons(0, B*nat) &   
              0 \<in> u & 2 \<lesssim> u & u \<lesssim> n"
 apply (unfold sets_of_size_between_def)
@@ -104,7 +104,7 @@ done
 lemma ex_fun_AC13_AC15:
      "[| \<forall>B \<in> {cons(0, x*nat). x \<in> A}.   
                 pairwise_disjoint(f`B) &   
-                sets_of_size_between(f`B, 2, succ(n)) & Union(f`B)=B; 
+                sets_of_size_between(f`B, 2, succ(n)) & \<Union>(f`B)=B; 
          n \<in> nat |]   
       ==> \<exists>f. \<forall>B \<in> A. f`B \<noteq> 0 & f`B \<subseteq> B & f`B \<lesssim> n"
 by (fast del: subsetI notI

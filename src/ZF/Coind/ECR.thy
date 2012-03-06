@@ -10,7 +10,7 @@ theory ECR imports Static Dynamic begin
 consts
   HasTyRel :: i
 coinductive
-  domains "HasTyRel" <= "Val * Ty"
+  domains "HasTyRel" \<subseteq> "Val * Ty"
   intros
     htr_constI [intro!]:
       "[| c \<in> Const; t \<in> Ty; isof(c,t) |] ==> <v_const(c),t> \<in> HasTyRel"
@@ -37,7 +37,7 @@ lemma htr_closCI [intro]:
      "[| x \<in> ExVar; e \<in> Exp; t \<in> Ty; ve \<in> ValEnv; te \<in> TyEnv;   
          <te, e_fn(x, e), t> \<in> ElabRel; ve_dom(ve) = te_dom(te);  
          {<ve_app(ve,y),te_app(te,y)>.y \<in> ve_dom(ve)} \<in>
-           Pow({<v_clos(x,e,ve),t>} Un HasTyRel) |]     
+           Pow({<v_clos(x,e,ve),t>} \<union> HasTyRel) |]     
       ==> <v_clos(x, e, ve),t> \<in> HasTyRel"
 apply (rule singletonI [THEN HasTyRel.coinduct], auto)
 done
@@ -113,10 +113,10 @@ lemma consistency_app1:
  "[| ve \<in> ValEnv; e1 \<in> Exp; e2 \<in> Exp; c1 \<in> Const; c2 \<in> Const;    
      <ve,e1,v_const(c1)> \<in> EvalRel;                       
      \<forall>t te.                                          
-       hastyenv(ve,te) --> <te,e1,t> \<in> ElabRel --> <v_const(c1),t> \<in> HasTyRel;
+       hastyenv(ve,te) \<longrightarrow> <te,e1,t> \<in> ElabRel \<longrightarrow> <v_const(c1),t> \<in> HasTyRel;
      <ve, e2, v_const(c2)> \<in> EvalRel;                   
      \<forall>t te.                                          
-       hastyenv(ve,te) --> <te,e2,t> \<in> ElabRel --> <v_const(c2),t> \<in> HasTyRel;
+       hastyenv(ve,te) \<longrightarrow> <te,e2,t> \<in> ElabRel \<longrightarrow> <v_const(c2),t> \<in> HasTyRel;
      hastyenv(ve, te);                                  
      <te,e_app(e1,e2),t> \<in> ElabRel |] 
   ==> <v_const(c_app(c1, c2)),t> \<in> HasTyRel"
@@ -126,13 +126,13 @@ lemma consistency_app2:
  "[| ve \<in> ValEnv; vem \<in> ValEnv; e1 \<in> Exp; e2 \<in> Exp; em \<in> Exp; xm \<in> ExVar; 
      v \<in> Val;   
      <ve,e1,v_clos(xm,em,vem)> \<in> EvalRel;        
-     \<forall>t te. hastyenv(ve,te) -->                     
-            <te,e1,t> \<in> ElabRel --> <v_clos(xm,em,vem),t> \<in> HasTyRel;         
+     \<forall>t te. hastyenv(ve,te) \<longrightarrow>                     
+            <te,e1,t> \<in> ElabRel \<longrightarrow> <v_clos(xm,em,vem),t> \<in> HasTyRel;         
      <ve,e2,v2> \<in> EvalRel;                       
-     \<forall>t te. hastyenv(ve,te) --> <te,e2,t> \<in> ElabRel --> <v2,t> \<in> HasTyRel;
+     \<forall>t te. hastyenv(ve,te) \<longrightarrow> <te,e2,t> \<in> ElabRel \<longrightarrow> <v2,t> \<in> HasTyRel;
      <ve_owr(vem,xm,v2),em,v> \<in> EvalRel;         
-     \<forall>t te. hastyenv(ve_owr(vem,xm,v2),te) -->      
-            <te,em,t> \<in> ElabRel --> <v,t> \<in> HasTyRel;
+     \<forall>t te. hastyenv(ve_owr(vem,xm,v2),te) \<longrightarrow>      
+            <te,em,t> \<in> ElabRel \<longrightarrow> <v,t> \<in> HasTyRel;
      hastyenv(ve,te); <te,e_app(e1,e2),t> \<in> ElabRel |] 
    ==> <v,t> \<in> HasTyRel"
 apply (erule elab_appE)
@@ -150,7 +150,7 @@ done
 
 lemma consistency [rule_format]:
    "<ve,e,v> \<in> EvalRel 
-    ==> (\<forall>t te. hastyenv(ve,te) --> <te,e,t> \<in> ElabRel --> <v,t> \<in> HasTyRel)"
+    ==> (\<forall>t te. hastyenv(ve,te) \<longrightarrow> <te,e,t> \<in> ElabRel \<longrightarrow> <v,t> \<in> HasTyRel)"
 apply (erule EvalRel.induct)
 apply (simp_all add: consistency_const consistency_var consistency_fn 
                      consistency_fix consistency_app1)

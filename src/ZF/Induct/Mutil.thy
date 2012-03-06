@@ -24,10 +24,10 @@ inductive
   type_intros empty_subsetI cons_subsetI PowI SigmaI nat_succI
 
 inductive
-  domains "tiling(A)" \<subseteq> "Pow(Union(A))"
+  domains "tiling(A)" \<subseteq> "Pow(\<Union>(A))"
   intros
     empty: "0 \<in> tiling(A)"
-    Un: "[| a \<in> A;  t \<in> tiling(A);  a Int t = 0 |] ==> a Un t \<in> tiling(A)"
+    Un: "[| a \<in> A;  t \<in> tiling(A);  a \<inter> t = 0 |] ==> a \<union> t \<in> tiling(A)"
   type_intros empty_subsetI Union_upper Un_least PowI
   type_elims PowD [elim_format]
 
@@ -38,7 +38,7 @@ definition
 
 subsection {* Basic properties of evnodd *}
 
-lemma evnodd_iff: "<i,j>: evnodd(A,b) <-> <i,j>: A & (i#+j) mod 2 = b"
+lemma evnodd_iff: "<i,j>: evnodd(A,b) \<longleftrightarrow> <i,j>: A & (i#+j) mod 2 = b"
   by (unfold evnodd_def) blast
 
 lemma evnodd_subset: "evnodd(A, b) \<subseteq> A"
@@ -47,7 +47,7 @@ lemma evnodd_subset: "evnodd(A, b) \<subseteq> A"
 lemma Finite_evnodd: "Finite(X) ==> Finite(evnodd(X,b))"
   by (rule lepoll_Finite, rule subset_imp_lepoll, rule evnodd_subset)
 
-lemma evnodd_Un: "evnodd(A Un B, b) = evnodd(A,b) Un evnodd(B,b)"
+lemma evnodd_Un: "evnodd(A \<union> B, b) = evnodd(A,b) \<union> evnodd(B,b)"
   by (simp add: evnodd_def Collect_Un)
 
 lemma evnodd_Diff: "evnodd(A - B, b) = evnodd(A,b) - evnodd(B,b)"
@@ -83,7 +83,7 @@ subsection {* Tilings *}
 text {* The union of two disjoint tilings is a tiling *}
 
 lemma tiling_UnI:
-    "t \<in> tiling(A) ==> u \<in> tiling(A) ==> t Int u = 0 ==> t Un u \<in> tiling(A)"
+    "t \<in> tiling(A) ==> u \<in> tiling(A) ==> t \<inter> u = 0 ==> t \<union> u \<in> tiling(A)"
   apply (induct set: tiling)
    apply (simp add: tiling.intros)
   apply (simp add: Un_assoc subset_empty_iff [THEN iff_sym])
@@ -108,7 +108,7 @@ lemma tiling_domino_0_1: "t \<in> tiling(domino) ==> |evnodd(t,0)| = |evnodd(t,1
     apply simp
    apply assumption
   apply safe
-  apply (subgoal_tac "\<forall>p b. p \<in> evnodd (a,b) --> p\<notin>evnodd (t,b)")
+  apply (subgoal_tac "\<forall>p b. p \<in> evnodd (a,b) \<longrightarrow> p\<notin>evnodd (t,b)")
    apply (simp add: evnodd_Un Un_cons tiling_domino_Finite
      evnodd_subset [THEN subset_Finite] Finite_imp_cardinal_cons)
   apply (blast dest!: evnodd_subset [THEN subsetD] elim: equalityE)
@@ -123,7 +123,7 @@ lemma dominoes_tile_row:
     prefer 2 apply assumption
    apply (rename_tac n')
    apply (subgoal_tac (*seems the easiest way of turning one to the other*)
-     "{i}*{succ (n'#+n') } Un {i}*{n'#+n'} =
+     "{i}*{succ (n'#+n') } \<union> {i}*{n'#+n'} =
        {<i,n'#+n'>, <i,succ (n'#+n') >}")
     prefer 2 apply blast
   apply (simp add: domino.horiz)

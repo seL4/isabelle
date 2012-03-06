@@ -80,7 +80,7 @@ by (erule ValE, auto)
 (* Equalities for value environments *)
 
 lemma ve_dom_owr [simp]:
-     "[| ve \<in> ValEnv; v \<noteq>0 |] ==> ve_dom(ve_owr(ve,x,v)) = ve_dom(ve) Un {x}"
+     "[| ve \<in> ValEnv; v \<noteq>0 |] ==> ve_dom(ve_owr(ve,x,v)) = ve_dom(ve) \<union> {x}"
 apply (erule ValEnvE)
 apply (auto simp add: map_domain_owr)
 done

@@ -15,13 +15,13 @@ begin
 (*  - Sigma_fun_space_eqpoll                                              *)
 (* ********************************************************************** *)
 
-lemma Sigma_fun_space_not0: "[| 0\<notin>A; B \<in> A |] ==> (nat->Union(A)) * B \<noteq> 0"
+lemma Sigma_fun_space_not0: "[| 0\<notin>A; B \<in> A |] ==> (nat->\<Union>(A)) * B \<noteq> 0"
 by (blast dest!: Sigma_empty_iff [THEN iffD1] Union_empty_iff [THEN iffD1])
 
 lemma inj_lemma: 
-        "C \<in> A ==> (\<lambda>g \<in> (nat->Union(A))*C.   
+        "C \<in> A ==> (\<lambda>g \<in> (nat->\<Union>(A))*C.   
                 (\<lambda>n \<in> nat. if(n=0, snd(g), fst(g)`(n #- 1))))   
-                \<in> inj((nat->Union(A))*C, (nat->Union(A)) ) "
+                \<in> inj((nat->\<Union>(A))*C, (nat->\<Union>(A)) ) "
 apply (unfold inj_def)
 apply (rule CollectI)
 apply (fast intro!: lam_type if_type apply_type fst_type snd_type, auto) 
@@ -31,7 +31,7 @@ apply (drule lam_eqE [OF _ nat_0I], simp)
 done
 
 lemma Sigma_fun_space_eqpoll:
-     "[| C \<in> A; 0\<notin>A |] ==> (nat->Union(A)) * C \<approx> (nat->Union(A))"
+     "[| C \<in> A; 0\<notin>A |] ==> (nat->\<Union>(A)) * C \<approx> (nat->\<Union>(A))"
 apply (rule eqpollI)
 apply (simp add: lepoll_def)
 apply (fast intro!: inj_lemma)
@@ -62,10 +62,10 @@ apply (fast intro!: lam_type apply_type)
 done
 
 lemma AC7_AC6_lemma1:
-     "(\<Pi> B \<in> {(nat->Union(A))*C. C \<in> A}. B) \<noteq> 0 ==> (\<Pi> B \<in> A. B) \<noteq> 0"
+     "(\<Pi> B \<in> {(nat->\<Union>(A))*C. C \<in> A}. B) \<noteq> 0 ==> (\<Pi> B \<in> A. B) \<noteq> 0"
 by (fast intro!: equals0I lemma1_1 lemma1_2)
 
-lemma AC7_AC6_lemma2: "0 \<notin> A ==> 0 \<notin> {(nat -> Union(A)) * C. C \<in> A}"
+lemma AC7_AC6_lemma2: "0 \<notin> A ==> 0 \<notin> {(nat -> \<Union>(A)) * C. C \<in> A}"
 by (blast dest: Sigma_fun_space_not0)
 
 lemma AC7_AC6: "AC7 ==> AC6"
@@ -125,8 +125,8 @@ done
 (* AC9 ==> AC1                                                            *)
 (* The idea of this proof comes from "Equivalents of the Axiom of Choice" *)
 (* by Rubin & Rubin. But (x * y) is not necessarily equipollent to        *)
-(* (x * y) Un {0} when y is a set of total functions acting from nat to   *)
-(* Union(A) -- therefore we have used the set (y * nat) instead of y.     *)
+(* (x * y) \<union> {0} when y is a set of total functions acting from nat to   *)
+(* \<Union>(A) -- therefore we have used the set (y * nat) instead of y.     *)
 (* ********************************************************************** *)
 
 lemma snd_lepoll_SigmaI: "b \<in> B \<Longrightarrow> X \<lesssim> B \<times> X"
@@ -134,13 +134,13 @@ by (blast intro: lepoll_trans prod_lepoll_self eqpoll_imp_lepoll
                  prod_commute_eqpoll) 
 
 lemma nat_lepoll_lemma:
-     "[|0 \<notin> A; B \<in> A|] ==> nat \<lesssim> ((nat \<rightarrow> Union(A)) \<times> B) \<times> nat"
+     "[|0 \<notin> A; B \<in> A|] ==> nat \<lesssim> ((nat \<rightarrow> \<Union>(A)) \<times> B) \<times> nat"
 by (blast dest: Sigma_fun_space_not0 intro: snd_lepoll_SigmaI)
 
 lemma AC9_AC1_lemma1:
      "[| 0\<notin>A;  A\<noteq>0;   
-         C = {((nat->Union(A))*B)*nat. B \<in> A}  Un  
-             {cons(0,((nat->Union(A))*B)*nat). B \<in> A};  
+         C = {((nat->\<Union>(A))*B)*nat. B \<in> A}  \<union>  
+             {cons(0,((nat->\<Union>(A))*B)*nat). B \<in> A};  
          B1 \<in> C;  B2 \<in> C |]   
       ==> B1 \<approx> B2"
 by (blast intro!: nat_lepoll_lemma Sigma_fun_space_eqpoll
@@ -149,8 +149,8 @@ by (blast intro!: nat_lepoll_lemma Sigma_fun_space_eqpoll
              intro: eqpoll_trans eqpoll_sym )
 
 lemma AC9_AC1_lemma2:
-     "\<forall>B1 \<in> {(F*B)*N. B \<in> A} Un {cons(0,(F*B)*N). B \<in> A}.   
-      \<forall>B2 \<in> {(F*B)*N. B \<in> A} Un {cons(0,(F*B)*N). B \<in> A}.   
+     "\<forall>B1 \<in> {(F*B)*N. B \<in> A} \<union> {cons(0,(F*B)*N). B \<in> A}.   
+      \<forall>B2 \<in> {(F*B)*N. B \<in> A} \<union> {cons(0,(F*B)*N). B \<in> A}.   
         f`<B1,B2> \<in> bij(B1, B2)   
       ==> (\<lambda>B \<in> A. snd(fst((f`<cons(0,(F*B)*N),(F*B)*N>)`0))) \<in> (\<Pi> X \<in> A. X)"
 apply (intro lam_type snd_type fst_type)
@@ -162,7 +162,7 @@ lemma AC9_AC1: "AC9 ==> AC1"
 apply (unfold AC1_def AC9_def)
 apply (intro allI impI)
 apply (erule allE)
-apply (case_tac "A~=0")
+apply (case_tac "A\<noteq>0")
 apply (blast dest: AC9_AC1_lemma1 AC9_AC1_lemma2, force) 
 done
 

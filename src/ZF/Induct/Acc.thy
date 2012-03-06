@@ -36,7 +36,7 @@ lemma acc_downward: "[| b \<in> acc(r);  <a,b>: r |] ==> a \<in> acc(r)"
 
 lemma acc_induct [consumes 1, case_names vimage, induct set: acc]:
     "[| a \<in> acc(r);
-        !!x. [| x \<in> acc(r);  \<forall>y. <y,x>:r --> P(y) |] ==> P(x)
+        !!x. [| x \<in> acc(r);  \<forall>y. <y,x>:r \<longrightarrow> P(y) |] ==> P(x)
      |] ==> P(a)"
   by (erule acc.induct) (blast intro: acc.intros)
 
@@ -55,7 +55,7 @@ lemma acc_wfD: "wf(r) ==> field(r) \<subseteq> acc(r)"
    apply (blast intro: accI)+
   done
 
-lemma wf_acc_iff: "wf(r) <-> field(r) \<subseteq> acc(r)"
+lemma wf_acc_iff: "wf(r) \<longleftrightarrow> field(r) \<subseteq> acc(r)"
   by (rule iffI, erule acc_wfD, erule acc_wfI)
 
 end

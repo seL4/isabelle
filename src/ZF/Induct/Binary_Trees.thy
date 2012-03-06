@@ -20,7 +20,7 @@ declare bt.intros [simp]
 lemma Br_neq_left: "l \<in> bt(A) ==> Br(x, l, r) \<noteq> l"
   by (induct arbitrary: x r set: bt) auto
 
-lemma Br_iff: "Br(a, l, r) = Br(a', l', r') <-> a = a' & l = l' & r = r'"
+lemma Br_iff: "Br(a, l, r) = Br(a', l', r') \<longleftrightarrow> a = a' & l = l' & r = r'"
   -- "Proving a freeness theorem."
   by (fast elim!: bt.free_elims)
 

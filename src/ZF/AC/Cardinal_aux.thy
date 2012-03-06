@@ -20,13 +20,13 @@ done
 
 (* j=|A| *)
 lemma lepoll_imp_ex_le_eqpoll:
-     "[| A \<lesssim> i; Ord(i) |] ==> \<exists>j. j le i & A \<approx> j"
-by (blast intro!: lepoll_cardinal_le well_ord_Memrel 
+     "[| A \<lesssim> i; Ord(i) |] ==> \<exists>j. j \<le> i & A \<approx> j"
+by (blast intro!: lepoll_cardinal_le well_ord_Memrel
                   well_ord_cardinal_eqpoll [THEN eqpoll_sym]
           dest: lepoll_well_ord)
 
 (* j=|A| *)
-lemma lesspoll_imp_ex_lt_eqpoll: 
+lemma lesspoll_imp_ex_lt_eqpoll:
      "[| A \<prec> i; Ord(i) |] ==> \<exists>j. j<i & A \<approx> j"
 by (unfold lesspoll_def, blast dest!: lepoll_imp_ex_le_eqpoll elim!: leE)
 
@@ -34,41 +34,41 @@ lemma Inf_Ord_imp_InfCard_cardinal: "[| ~Finite(i); Ord(i) |] ==> InfCard(|i|)"
 apply (unfold InfCard_def)
 apply (rule conjI)
 apply (rule Card_cardinal)
-apply (rule Card_nat 
+apply (rule Card_nat
             [THEN Card_def [THEN def_imp_iff, THEN iffD1, THEN ssubst]])
   -- "rewriting would loop!"
-apply (rule well_ord_Memrel [THEN well_ord_lepoll_imp_Card_le], assumption) 
+apply (rule well_ord_Memrel [THEN well_ord_lepoll_imp_Card_le], assumption)
 apply (rule nat_le_infinite_Ord [THEN le_imp_lepoll], assumption+)
 done
 
 text{*An alternative and more general proof goes like this: A and B are both
-well-ordered (because they are injected into an ordinal), either A lepoll B
-or B lepoll A.  Also both are equipollent to their cardinalities, so
-(if A and B are infinite) then A Un B lepoll |A|+|B| = max(|A|,|B|) lepoll i.
+well-ordered (because they are injected into an ordinal), either @{term"A \<lesssim> B"}
+or @{term"B \<lesssim> A"}.  Also both are equipollent to their cardinalities, so
+(if A and B are infinite) then @{term"A \<union> B \<lesssim> |A\<oplus>B| \<longleftrightarrow> max(|A|,|B|) \<lesssim> i"}.
 In fact, the correctly strengthened version of this theorem appears below.*}
 lemma Un_lepoll_Inf_Ord_weak:
      "[|A \<approx> i; B \<approx> i; \<not> Finite(i); Ord(i)|] ==> A \<union> B \<lesssim> i"
 apply (rule Un_lepoll_sum [THEN lepoll_trans])
 apply (rule lepoll_imp_sum_lepoll_prod [THEN lepoll_trans])
-apply (erule eqpoll_trans [THEN eqpoll_imp_lepoll]) 
-apply (erule eqpoll_sym) 
-apply (rule subset_imp_lepoll [THEN lepoll_trans, THEN lepoll_trans]) 
-apply (rule nat_2I [THEN OrdmemD], rule Ord_nat) 
-apply (rule nat_le_infinite_Ord [THEN le_imp_lepoll], assumption+) 
-apply (erule eqpoll_sym [THEN eqpoll_imp_lepoll]) 
+apply (erule eqpoll_trans [THEN eqpoll_imp_lepoll])
+apply (erule eqpoll_sym)
+apply (rule subset_imp_lepoll [THEN lepoll_trans, THEN lepoll_trans])
+apply (rule nat_2I [THEN OrdmemD], rule Ord_nat)
+apply (rule nat_le_infinite_Ord [THEN le_imp_lepoll], assumption+)
+apply (erule eqpoll_sym [THEN eqpoll_imp_lepoll])
 apply (erule prod_eqpoll_cong [THEN eqpoll_imp_lepoll, THEN lepoll_trans],
        assumption)
-apply (rule eqpoll_imp_lepoll) 
-apply (rule well_ord_Memrel [THEN well_ord_InfCard_square_eq], assumption) 
-apply (rule Inf_Ord_imp_InfCard_cardinal, assumption+) 
+apply (rule eqpoll_imp_lepoll)
+apply (rule well_ord_Memrel [THEN well_ord_InfCard_square_eq], assumption)
+apply (rule Inf_Ord_imp_InfCard_cardinal, assumption+)
 done
 
 lemma Un_eqpoll_Inf_Ord:
-     "[| A \<approx> i; B \<approx> i; ~Finite(i); Ord(i) |] ==> A Un B \<approx> i"
+     "[| A \<approx> i; B \<approx> i; ~Finite(i); Ord(i) |] ==> A \<union> B \<approx> i"
 apply (rule eqpollI)
-apply (blast intro: Un_lepoll_Inf_Ord_weak) 
-apply (erule eqpoll_sym [THEN eqpoll_imp_lepoll, THEN lepoll_trans]) 
-apply (rule Un_upper1 [THEN subset_imp_lepoll]) 
+apply (blast intro: Un_lepoll_Inf_Ord_weak)
+apply (erule eqpoll_sym [THEN eqpoll_imp_lepoll, THEN lepoll_trans])
+apply (rule Un_upper1 [THEN subset_imp_lepoll])
 done
 
 schematic_lemma paired_bij: "?f \<in> bij({{y,z}. y \<in> x}, x)"
@@ -79,19 +79,19 @@ done
 lemma paired_eqpoll: "{{y,z}. y \<in> x} \<approx> x"
 by (unfold eqpoll_def, fast intro!: paired_bij)
 
-lemma ex_eqpoll_disjoint: "\<exists>B. B \<approx> A & B Int C = 0"
+lemma ex_eqpoll_disjoint: "\<exists>B. B \<approx> A & B \<inter> C = 0"
 by (fast intro!: paired_eqpoll equals0I elim: mem_asym)
 
 (*Finally we reach this result.  Surely there's a simpler proof, as sketched
   above?*)
 lemma Un_lepoll_Inf_Ord:
-     "[| A \<lesssim> i; B \<lesssim> i; ~Finite(i); Ord(i) |] ==> A Un B \<lesssim> i"
+     "[| A \<lesssim> i; B \<lesssim> i; ~Finite(i); Ord(i) |] ==> A \<union> B \<lesssim> i"
 apply (rule_tac A1 = i and C1 = i in ex_eqpoll_disjoint [THEN exE])
 apply (erule conjE)
-apply (drule lepoll_trans) 
+apply (drule lepoll_trans)
 apply (erule eqpoll_sym [THEN eqpoll_imp_lepoll])
 apply (rule Un_lepoll_Un [THEN lepoll_trans], (assumption+))
-apply (blast intro: eqpoll_refl Un_eqpoll_Inf_Ord eqpoll_imp_lepoll) 
+apply (blast intro: eqpoll_refl Un_eqpoll_Inf_Ord eqpoll_imp_lepoll)
 done
 
 lemma Least_in_Ord: "[| P(i); i \<in> j; Ord(j) |] ==> (LEAST i. P(i)) \<in> j"
@@ -103,14 +103,14 @@ apply (erule subst_elem, assumption)
 done
 
 lemma Diff_first_lepoll:
-     "[| well_ord(x,r); y \<subseteq> x; y \<lesssim> succ(n); n \<in> nat |] 
+     "[| well_ord(x,r); y \<subseteq> x; y \<lesssim> succ(n); n \<in> nat |]
       ==> y - {THE b. first(b,y,r)} \<lesssim> n"
-apply (case_tac "y=0", simp add: empty_lepollI) 
+apply (case_tac "y=0", simp add: empty_lepollI)
 apply (fast intro!: Diff_sing_lepoll the_first_in)
 done
 
 lemma UN_subset_split:
-     "(\<Union>x \<in> X. P(x)) \<subseteq> (\<Union>x \<in> X. P(x)-Q(x)) Un (\<Union>x \<in> X. Q(x))"
+     "(\<Union>x \<in> X. P(x)) \<subseteq> (\<Union>x \<in> X. P(x)-Q(x)) \<union> (\<Union>x \<in> X. Q(x))"
 by blast
 
 lemma UN_sing_lepoll: "Ord(a) ==> (\<Union>x \<in> a. {P(x)}) \<lesssim> a"
@@ -122,14 +122,14 @@ apply (fast intro: LeastI elim!: Ord_in_Ord)
 done
 
 lemma UN_fun_lepoll_lemma [rule_format]:
-     "[| well_ord(T, R); ~Finite(a); Ord(a); n \<in> nat |] 
-      ==> \<forall>f. (\<forall>b \<in> a. f`b \<lesssim> n & f`b \<subseteq> T) --> (\<Union>b \<in> a. f`b) \<lesssim> a"
+     "[| well_ord(T, R); ~Finite(a); Ord(a); n \<in> nat |]
+      ==> \<forall>f. (\<forall>b \<in> a. f`b \<lesssim> n & f`b \<subseteq> T) \<longrightarrow> (\<Union>b \<in> a. f`b) \<lesssim> a"
 apply (induct_tac "n")
 apply (rule allI)
 apply (rule impI)
 apply (rule_tac b = "\<Union>b \<in> a. f`b" in subst)
 apply (rule_tac [2] empty_lepollI)
-apply (rule equals0I [symmetric], clarify) 
+apply (rule equals0I [symmetric], clarify)
 apply (fast dest: lepoll_0_is_0 [THEN subst])
 apply (rule allI)
 apply (rule impI)
@@ -137,19 +137,19 @@ apply (erule_tac x = "\<lambda>x \<in> a. f`x - {THE b. first (b,f`x,R) }" in al
 apply (erule impE, simp)
 apply (fast intro!: Diff_first_lepoll, simp)
 apply (rule UN_subset_split [THEN subset_imp_lepoll, THEN lepoll_trans])
-apply (fast intro: Un_lepoll_Inf_Ord UN_sing_lepoll) 
+apply (fast intro: Un_lepoll_Inf_Ord UN_sing_lepoll)
 done
 
 lemma UN_fun_lepoll:
-     "[| \<forall>b \<in> a. f`b \<lesssim> n & f`b \<subseteq> T; well_ord(T, R);   
+     "[| \<forall>b \<in> a. f`b \<lesssim> n & f`b \<subseteq> T; well_ord(T, R);
          ~Finite(a); Ord(a); n \<in> nat |] ==> (\<Union>b \<in> a. f`b) \<lesssim> a"
-by (blast intro: UN_fun_lepoll_lemma) 
+by (blast intro: UN_fun_lepoll_lemma)
 
 lemma UN_lepoll:
-     "[| \<forall>b \<in> a. F(b) \<lesssim> n & F(b) \<subseteq> T; well_ord(T, R);   
-         ~Finite(a); Ord(a); n \<in> nat |] 
+     "[| \<forall>b \<in> a. F(b) \<lesssim> n & F(b) \<subseteq> T; well_ord(T, R);
+         ~Finite(a); Ord(a); n \<in> nat |]
       ==> (\<Union>b \<in> a. F(b)) \<lesssim> a"
-apply (rule rev_mp) 
+apply (rule rev_mp)
 apply (rule_tac f="\<lambda>b \<in> a. F (b)" in UN_fun_lepoll)
 apply auto
 done
@@ -167,11 +167,11 @@ apply (erule_tac P = "%z. x \<in> F (z) " and i = c in less_LeastE)
 apply (blast intro: Ord_Least ltI)
 done
 
-lemma lepoll_imp_eqpoll_subset: 
+lemma lepoll_imp_eqpoll_subset:
      "a \<lesssim> X ==> \<exists>Y. Y \<subseteq> X & a \<approx> Y"
-apply (unfold lepoll_def eqpoll_def, clarify) 
+apply (unfold lepoll_def eqpoll_def, clarify)
 apply (blast intro: restrict_bij
-             dest: inj_is_fun [THEN fun_is_rel, THEN image_subset]) 
+             dest: inj_is_fun [THEN fun_is_rel, THEN image_subset])
 done
 
 (* ********************************************************************** *)
@@ -184,27 +184,27 @@ apply (elim lesspoll_imp_ex_lt_eqpoll [THEN exE] Card_is_Ord conjE)
 apply (frule_tac j=xa in Un_upper1_le [OF lt_Ord lt_Ord], assumption)
 apply (frule_tac j=xa in Un_upper2_le [OF lt_Ord lt_Ord], assumption)
 apply (drule Un_least_lt, assumption)
-apply (drule eqpoll_imp_lepoll [THEN lepoll_trans], 
+apply (drule eqpoll_imp_lepoll [THEN lepoll_trans],
        rule le_imp_lepoll, assumption)+
-apply (case_tac "Finite(x Un xa)")
+apply (case_tac "Finite(x \<union> xa)")
 txt{*finite case*}
- apply (drule Finite_Un [OF lepoll_Finite lepoll_Finite], assumption+) 
+ apply (drule Finite_Un [OF lepoll_Finite lepoll_Finite], assumption+)
  apply (drule subset_Un_Diff [THEN subset_imp_lepoll, THEN lepoll_Finite])
  apply (fast dest: eqpoll_sym [THEN eqpoll_imp_lepoll, THEN lepoll_Finite])
 txt{*infinite case*}
 apply (drule Un_lepoll_Inf_Ord, (assumption+))
-apply (blast intro: le_Ord2) 
-apply (drule lesspoll_trans1 
-             [OF subset_Un_Diff [THEN subset_imp_lepoll, THEN lepoll_trans] 
+apply (blast intro: le_Ord2)
+apply (drule lesspoll_trans1
+             [OF subset_Un_Diff [THEN subset_imp_lepoll, THEN lepoll_trans]
                  lt_Card_imp_lesspoll], assumption+)
-apply (simp add: lesspoll_def) 
+apply (simp add: lesspoll_def)
 done
 
 lemma Diff_lesspoll_eqpoll_Card:
      "[| A \<approx> a; ~Finite(a); Card(a); B \<prec> a |] ==> A - B \<approx> a"
 apply (rule ccontr)
 apply (rule Diff_lesspoll_eqpoll_Card_lemma, (assumption+))
-apply (blast intro: lesspoll_def [THEN def_imp_iff, THEN iffD2] 
+apply (blast intro: lesspoll_def [THEN def_imp_iff, THEN iffD2]
                     subset_imp_lepoll eqpoll_imp_lepoll lepoll_trans)
 done
 

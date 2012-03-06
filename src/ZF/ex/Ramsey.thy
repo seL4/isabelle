@@ -28,7 +28,7 @@ theory Ramsey imports Main begin
 
 definition
   Symmetric :: "i=>o" where
-    "Symmetric(E) == (\<forall>x y. <x,y>:E --> <y,x>:E)"
+    "Symmetric(E) == (\<forall>x y. <x,y>:E \<longrightarrow> <y,x>:E)"
 
 definition
   Atleast :: "[i,i]=>o" where -- "not really necessary: ZF defines cardinality"
@@ -36,15 +36,15 @@ definition
 
 definition
   Clique  :: "[i,i,i]=>o" where
-    "Clique(C,V,E) == (C \<subseteq> V) & (\<forall>x \<in> C. \<forall>y \<in> C. x\<noteq>y --> <x,y> \<in> E)"
+    "Clique(C,V,E) == (C \<subseteq> V) & (\<forall>x \<in> C. \<forall>y \<in> C. x\<noteq>y \<longrightarrow> <x,y> \<in> E)"
 
 definition
   Indept  :: "[i,i,i]=>o" where
-    "Indept(I,V,E) == (I \<subseteq> V) & (\<forall>x \<in> I. \<forall>y \<in> I. x\<noteq>y --> <x,y> \<notin> E)"
+    "Indept(I,V,E) == (I \<subseteq> V) & (\<forall>x \<in> I. \<forall>y \<in> I. x\<noteq>y \<longrightarrow> <x,y> \<notin> E)"
   
 definition
   Ramsey  :: "[i,i,i]=>o" where
-    "Ramsey(n,i,j) == \<forall>V E. Symmetric(E) & Atleast(n,V) -->  
+    "Ramsey(n,i,j) == \<forall>V E. Symmetric(E) & Atleast(n,V) \<longrightarrow>  
          (\<exists>C. Clique(C,V,E) & Atleast(i,C)) |       
          (\<exists>I. Indept(I,V,E) & Atleast(j,I))"
 
@@ -93,7 +93,7 @@ by (blast intro: Atleast_succI [THEN Atleast_superset])
   the same proof could be used!!*)
 lemma pigeon2 [rule_format]:
      "m \<in> nat ==>  
-          \<forall>n \<in> nat. \<forall>A B. Atleast((m#+n) #- succ(0), A Un B) -->    
+          \<forall>n \<in> nat. \<forall>A B. Atleast((m#+n) #- succ(0), A \<union> B) \<longrightarrow>    
                            Atleast(m,A) | Atleast(n,B)"
 apply (induct_tac "m")
 apply (blast intro!: Atleast0, simp)

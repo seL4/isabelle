@@ -9,7 +9,7 @@ theory Map imports Main begin
 
 definition
   TMap :: "[i,i] => i"  where
-   "TMap(A,B) == {m \<in> Pow(A*Union(B)).\<forall>a \<in> A. m``{a} \<in> B}"
+   "TMap(A,B) == {m \<in> Pow(A*\<Union>(B)).\<forall>a \<in> A. m``{a} \<in> B}"
 
 definition
   PMap :: "[i,i] => i"  where
@@ -23,24 +23,24 @@ definition
 
 definition
   map_owr :: "[i,i,i]=>i"  where
-   "map_owr(m,a,b) == \<Sigma> x \<in> {a} Un domain(m). if x=a then b else m``{x}"
+   "map_owr(m,a,b) == \<Sigma> x \<in> {a} \<union> domain(m). if x=a then b else m``{x}"
 
 definition
   map_app :: "[i,i]=>i"  where
    "map_app(m,a) == m``{a}"
   
-lemma "{0,1} \<subseteq> {1} Un TMap(I, {0,1})"
+lemma "{0,1} \<subseteq> {1} \<union> TMap(I, {0,1})"
 by (unfold TMap_def, blast)
 
-lemma "{0} Un TMap(I,1) \<subseteq> {1} Un TMap(I, {0} Un TMap(I,1))"
+lemma "{0} \<union> TMap(I,1) \<subseteq> {1} \<union> TMap(I, {0} \<union> TMap(I,1))"
 by (unfold TMap_def, blast)
 
-lemma "{0,1} Un TMap(I,2) \<subseteq> {1} Un TMap(I, {0,1} Un TMap(I,2))"
+lemma "{0,1} \<union> TMap(I,2) \<subseteq> {1} \<union> TMap(I, {0,1} \<union> TMap(I,2))"
 by (unfold TMap_def, blast)
 
 (*A bit too slow.
-lemma "{0,1} Un TMap(I,TMap(I,2)) Un TMap(I,2) \<subseteq>  
-       {1} Un TMap(I, {0,1} Un TMap(I,TMap(I,2)) Un TMap(I,2))"
+lemma "{0,1} \<union> TMap(I,TMap(I,2)) \<union> TMap(I,2) \<subseteq>  
+       {1} \<union> TMap(I, {0,1} \<union> TMap(I,TMap(I,2)) \<union> TMap(I,2))"
 by (unfold TMap_def, blast)
 *)
 
@@ -68,7 +68,7 @@ by fast
 (* Lemmas *)
 
 lemma MapQU_lemma: 
-    "A \<subseteq> univ(X) ==> Pow(A * Union(quniv(X))) \<subseteq> quniv(X)"
+    "A \<subseteq> univ(X) ==> Pow(A * \<Union>(quniv(X))) \<subseteq> quniv(X)"
 apply (unfold quniv_def)
 apply (rule Pow_mono)
 apply (rule subset_trans [OF Sigma_mono product_univ])
@@ -164,7 +164,7 @@ lemma map_domain_emp: "domain(map_emp) = 0"
 by (unfold map_emp_def, blast)
 
 lemma map_domain_owr: 
-  "b \<noteq> 0 ==> domain(map_owr(f,a,b)) = {a} Un domain(f)"
+  "b \<noteq> 0 ==> domain(map_owr(f,a,b)) = {a} \<union> domain(f)"
 apply (unfold map_owr_def)
 apply (auto simp add: domain_Sigma)
 done

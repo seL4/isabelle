@@ -30,7 +30,7 @@ consts
 
 primrec (*domain of the type environment*)
   "te_dom (te_emp) = 0"
-  "te_dom (te_owr(te,x,v)) = te_dom(te) Un {x}"
+  "te_dom (te_owr(te,x,v)) = te_dom(te) \<union> {x}"
 
 primrec (*lookup up identifiers in the type environment*)
   "te_app (te_emp,x) = 0"

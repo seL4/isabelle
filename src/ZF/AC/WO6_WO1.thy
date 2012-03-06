@@ -22,7 +22,7 @@ definition
   
 definition
   uu  :: "[i, i, i, i] => i"  where
-    "uu(f, beta, gamma, delta) == (f`beta * f`gamma) Int f`delta"
+    "uu(f, beta, gamma, delta) == (f`beta * f`gamma) \<inter> f`delta"
 
 
 (** Definitions for case 1 **)
@@ -171,9 +171,9 @@ by (blast intro: uu_subset2 [THEN subset_imp_lepoll] lepoll_trans)
 (* ********************************************************************** *)
 lemma cases: 
      "\<forall>b<a. \<forall>g<a. \<forall>d<a. u(f,b,g,d) \<lesssim> m   
-      ==> (\<forall>b<a. f`b \<noteq> 0 -->  
+      ==> (\<forall>b<a. f`b \<noteq> 0 \<longrightarrow>  
                   (\<exists>g<a. \<exists>d<a. u(f,b,g,d) \<noteq> 0 & u(f,b,g,d) \<prec> m))  
-        | (\<exists>b<a. f`b \<noteq> 0 & (\<forall>g<a. \<forall>d<a. u(f,b,g,d) \<noteq> 0 -->   
+        | (\<exists>b<a. f`b \<noteq> 0 & (\<forall>g<a. \<forall>d<a. u(f,b,g,d) \<noteq> 0 \<longrightarrow>   
                                         u(f,b,g,d) \<approx> m))"
 apply (unfold lesspoll_def)
 apply (blast del: equalityI)
@@ -182,7 +182,7 @@ done
 (* ********************************************************************** *)
 (* Lemmas used in both cases                                              *)
 (* ********************************************************************** *)
-lemma UN_oadd: "Ord(a) ==> (\<Union>b<a++a. C(b)) = (\<Union>b<a. C(b) Un C(a++b))"
+lemma UN_oadd: "Ord(a) ==> (\<Union>b<a++a. C(b)) = (\<Union>b<a. C(b) \<union> C(a++b))"
 by (blast intro: ltI lt_oadd1 oadd_lt_mono2 dest!: lt_oadd_disj)
 
 
@@ -223,7 +223,7 @@ lemmas nested_Least_instance =
 
 lemma gg1_lepoll_m: 
      "[| Ord(a);  m \<in> nat;   
-         \<forall>b<a. f`b \<noteq>0 -->                                        
+         \<forall>b<a. f`b \<noteq>0 \<longrightarrow>                                        
              (\<exists>g<a. \<exists>d<a. domain(uu(f,b,g,d)) \<noteq> 0  &                
                           domain(uu(f,b,g,d)) \<lesssim> m);             
          \<forall>b<a. f`b \<lesssim> succ(m);  b<a++a |] 
@@ -293,7 +293,7 @@ apply (rule succ_lepoll_natE)
 done
 
 lemma uu_Least_is_fun:
-     "[| \<forall>g<a. \<forall>d<a. domain(uu(f, b, g, d))\<noteq>0 -->                
+     "[| \<forall>g<a. \<forall>d<a. domain(uu(f, b, g, d))\<noteq>0 \<longrightarrow>                
           domain(uu(f, b, g, d)) \<approx> succ(m);                         
           \<forall>b<a. f`b \<lesssim> succ(m);  y*y \<subseteq> y;                        
           (\<Union>b<a. f`b)=y;  b<a;  g<a;  d<a;                             
@@ -312,7 +312,7 @@ apply (fast intro!: domain_uu_subset)+
 done
 
 lemma vv2_subset: 
-     "[| \<forall>g<a. \<forall>d<a. domain(uu(f, b, g, d))\<noteq>0 -->             
+     "[| \<forall>g<a. \<forall>d<a. domain(uu(f, b, g, d))\<noteq>0 \<longrightarrow>             
                        domain(uu(f, b, g, d)) \<approx> succ(m);
          \<forall>b<a. f`b \<lesssim> succ(m); y*y \<subseteq> y;
          (\<Union>b<a. f`b)=y;  b<a;  g<a;  m \<in> nat;  s \<in> f`b |] 
@@ -325,7 +325,7 @@ done
 (* Case 2: Union of images is the whole "y"                              *)
 (* ********************************************************************** *)
 lemma UN_gg2_eq: 
-     "[| \<forall>g<a. \<forall>d<a. domain(uu(f,b,g,d)) \<noteq> 0 -->              
+     "[| \<forall>g<a. \<forall>d<a. domain(uu(f,b,g,d)) \<noteq> 0 \<longrightarrow>              
                domain(uu(f,b,g,d)) \<approx> succ(m);                         
          \<forall>b<a. f`b \<lesssim> succ(m); y*y \<subseteq> y;                        
          (\<Union>b<a. f`b)=y;  Ord(a);  m \<in> nat;  s \<in> f`b;  b<a |] 
@@ -366,7 +366,7 @@ apply (simp add: vv2_def not_emptyI)
 done
 
 lemma gg2_lepoll_m: 
-     "[| \<forall>g<a. \<forall>d<a. domain(uu(f,b,g,d)) \<noteq> 0 -->              
+     "[| \<forall>g<a. \<forall>d<a. domain(uu(f,b,g,d)) \<noteq> 0 \<longrightarrow>              
                       domain(uu(f,b,g,d)) \<approx> succ(m);                         
          \<forall>b<a. f`b \<lesssim> succ(m);  y*y \<subseteq> y;                     
          (\<Union>b<a. f`b)=y;  b<a;  s \<in> f`b;  m \<in> nat;  m\<noteq> 0;  g<a++a |] 
@@ -401,7 +401,7 @@ done
 
 (* ********************************************************************** *)
 (* lemma iv - p. 4:                                                       *)
-(* For every set x there is a set y such that   x Un (y * y) \<subseteq> y         *)
+(* For every set x there is a set y such that   x \<union> (y * y) \<subseteq> y         *)
 (* ********************************************************************** *)
 
 
@@ -409,29 +409,29 @@ done
    (used only in the following two lemmas)                          *)
 
 lemma z_n_subset_z_succ_n:
-     "\<forall>n \<in> nat. rec(n, x, %k r. r Un r*r) \<subseteq> rec(succ(n), x, %k r. r Un r*r)"
+     "\<forall>n \<in> nat. rec(n, x, %k r. r \<union> r*r) \<subseteq> rec(succ(n), x, %k r. r \<union> r*r)"
 by (fast intro: rec_succ [THEN ssubst])
 
 lemma le_subsets:
      "[| \<forall>n \<in> nat. f(n)<=f(succ(n)); n\<le>m; n \<in> nat; m \<in> nat |]   
       ==> f(n)<=f(m)"
 apply (erule_tac P = "n\<le>m" in rev_mp)
-apply (rule_tac P = "%z. n\<le>z --> f (n) \<subseteq> f (z) " in nat_induct) 
+apply (rule_tac P = "%z. n\<le>z \<longrightarrow> f (n) \<subseteq> f (z) " in nat_induct) 
 apply (auto simp add: le_iff) 
 done
 
 lemma le_imp_rec_subset:
      "[| n\<le>m; m \<in> nat |] 
-      ==> rec(n, x, %k r. r Un r*r) \<subseteq> rec(m, x, %k r. r Un r*r)"
+      ==> rec(n, x, %k r. r \<union> r*r) \<subseteq> rec(m, x, %k r. r \<union> r*r)"
 apply (rule z_n_subset_z_succ_n [THEN le_subsets])
 apply (blast intro: lt_nat_in_nat)+
 done
 
-lemma lemma_iv: "\<exists>y. x Un y*y \<subseteq> y"
-apply (rule_tac x = "\<Union>n \<in> nat. rec (n, x, %k r. r Un r*r) " in exI)
+lemma lemma_iv: "\<exists>y. x \<union> y*y \<subseteq> y"
+apply (rule_tac x = "\<Union>n \<in> nat. rec (n, x, %k r. r \<union> r*r) " in exI)
 apply safe
 apply (rule nat_0I [THEN UN_I], simp)
-apply (rule_tac a = "succ (n Un na) " in UN_I)
+apply (rule_tac a = "succ (n \<union> na) " in UN_I)
 apply (erule Un_nat_type [THEN nat_succI], assumption)
 apply (auto intro: le_imp_rec_subset [THEN subsetD] 
             intro!: Un_upper1_le Un_upper2_le Un_nat_type 
@@ -494,7 +494,7 @@ done
 
 lemma rev_induct_lemma [rule_format]: 
      "[| n \<in> nat; !!m. [| m \<in> nat; m\<noteq>0; P(succ(m)) |] ==> P(m) |]   
-      ==> n\<noteq>0 --> P(n) --> P(1)"
+      ==> n\<noteq>0 \<longrightarrow> P(n) \<longrightarrow> P(1)"
 by (erule nat_induct, blast+)
 
 lemma rev_induct:

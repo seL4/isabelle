@@ -68,13 +68,13 @@ definition
   "is_true(p,t) == is_true_fun(p,t) = 1"
   -- {* this definition is required since predicates can't be recursive *}
 
-lemma is_true_Fls [simp]: "is_true(Fls,t) <-> False"
+lemma is_true_Fls [simp]: "is_true(Fls,t) \<longleftrightarrow> False"
   by (simp add: is_true_def)
 
-lemma is_true_Var [simp]: "is_true(#v,t) <-> v \<in> t"
+lemma is_true_Var [simp]: "is_true(#v,t) \<longleftrightarrow> v \<in> t"
   by (simp add: is_true_def)
 
-lemma is_true_Imp [simp]: "is_true(p=>q,t) <-> (is_true(p,t)-->is_true(q,t))"
+lemma is_true_Imp [simp]: "is_true(p=>q,t) \<longleftrightarrow> (is_true(p,t)\<longrightarrow>is_true(q,t))"
   by (simp add: is_true_def)
 
 
@@ -87,7 +87,7 @@ text {*
 
 definition
   logcon :: "[i,i] => o"    (infixl "|=" 50)  where
-  "H |= p == \<forall>t. (\<forall>q \<in> H. is_true(q,t)) --> is_true(p,t)"
+  "H |= p == \<forall>t. (\<forall>q \<in> H. is_true(q,t)) \<longrightarrow> is_true(p,t)"
 
 
 text {*
@@ -335,7 +335,7 @@ lemma completeness:
   apply (blast intro: propn_Is)
   done
 
-theorem thms_iff: "H \<in> Fin(propn) ==> H |- p <-> H |= p \<and> p \<in> propn"
+theorem thms_iff: "H \<in> Fin(propn) ==> H |- p \<longleftrightarrow> H |= p \<and> p \<in> propn"
   by (blast intro: soundness completeness thms_in_pl)
 
 end

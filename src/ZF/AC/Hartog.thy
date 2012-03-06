@@ -12,7 +12,7 @@ definition
   Hartog :: "i => i"  where
    "Hartog(X) == LEAST i. ~ i \<lesssim> X"
 
-lemma Ords_in_set: "\<forall>a. Ord(a) --> a \<in> X ==> P"
+lemma Ords_in_set: "\<forall>a. Ord(a) \<longrightarrow> a \<in> X ==> P"
 apply (rule_tac X = "{y \<in> X. Ord (y) }" in ON_class [elim_format])
 apply fast
 done
@@ -43,15 +43,15 @@ apply (erule_tac [3] ordertype_Int, auto)
 done
 
 lemma Ords_lepoll_set_lemma:
-     "(\<forall>a. Ord(a) --> a \<lesssim> X) ==>   
-       \<forall>a. Ord(a) -->   
+     "(\<forall>a. Ord(a) \<longrightarrow> a \<lesssim> X) ==>   
+       \<forall>a. Ord(a) \<longrightarrow>   
         a \<in> {b. Z \<in> Pow(X)*Pow(X*X), \<exists>Y R. Z=<Y,R> & ordertype(Y,R)=b}"
 apply (intro allI impI)
 apply (elim allE impE, assumption)
 apply (blast dest!: Ord_lepoll_imp_eq_ordertype intro: sym) 
 done
 
-lemma Ords_lepoll_set: "\<forall>a. Ord(a) --> a \<lesssim> X ==> P"
+lemma Ords_lepoll_set: "\<forall>a. Ord(a) \<longrightarrow> a \<lesssim> X ==> P"
 by (erule Ords_lepoll_set_lemma [THEN Ords_in_set])
 
 lemma ex_Ord_not_lepoll: "\<exists>a. Ord(a) & ~a \<lesssim> X"

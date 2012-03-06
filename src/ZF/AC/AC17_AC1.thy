@@ -75,7 +75,7 @@ apply (unfold AC1_def)
 apply (erule swap)
 apply (rule allI)
 apply (erule swap)
-apply (rule_tac x = "Union (A)" in exI)
+apply (rule_tac x = "\<Union>(A)" in exI)
 apply (blast intro: lam_type)
 done
 
@@ -136,7 +136,7 @@ done
     AC1 ==> AC2 ==> AC1
     AC1 ==> AC4 ==> AC3 ==> AC1
     AC4 ==> AC5 ==> AC4
-    AC1 <-> AC6
+    AC1 \<longleftrightarrow> AC6
 ************************************************************************* *)
 
 (* ********************************************************************** *)
@@ -144,7 +144,7 @@ done
 (* ********************************************************************** *)
 
 lemma AC1_AC2_aux1:
-     "[| f:(\<Pi> X \<in> A. X);  B \<in> A;  0\<notin>A |] ==> {f`B} \<subseteq> B Int {f`C. C \<in> A}"
+     "[| f:(\<Pi> X \<in> A. X);  B \<in> A;  0\<notin>A |] ==> {f`B} \<subseteq> B \<inter> {f`C. C \<in> A}"
 by (fast elim!: apply_type)
 
 lemma AC1_AC2_aux2: 
@@ -169,16 +169,16 @@ done
 lemma AC2_AC1_aux1: "0\<notin>A ==> 0 \<notin> {B*{B}. B \<in> A}"
 by (fast dest!: sym [THEN Sigma_empty_iff [THEN iffD1]])
 
-lemma AC2_AC1_aux2: "[| X*{X} Int C = {y}; X \<in> A |]   
-               ==> (THE y. X*{X} Int C = {y}): X*A"
+lemma AC2_AC1_aux2: "[| X*{X} \<inter> C = {y}; X \<in> A |]   
+               ==> (THE y. X*{X} \<inter> C = {y}): X*A"
 apply (rule subst_elem [of y])
 apply (blast elim!: equalityE)
 apply (auto simp add: singleton_eq_iff) 
 done
 
 lemma AC2_AC1_aux3:
-     "\<forall>D \<in> {E*{E}. E \<in> A}. \<exists>y. D Int C = {y}   
-      ==> (\<lambda>x \<in> A. fst(THE z. (x*{x} Int C = {z}))) \<in> (\<Pi> X \<in> A. X)"
+     "\<forall>D \<in> {E*{E}. E \<in> A}. \<exists>y. D \<inter> C = {y}   
+      ==> (\<lambda>x \<in> A. fst(THE z. (x*{x} \<inter> C = {z}))) \<in> (\<Pi> X \<in> A. X)"
 apply (rule lam_type)
 apply (drule bspec, blast)
 apply (blast intro: AC2_AC1_aux2 fst_type)
@@ -212,7 +212,7 @@ done
 (* AC4 ==> AC3                                                            *)
 (* ********************************************************************** *)
 
-lemma AC4_AC3_aux1: "f \<in> A->B ==> (\<Union>z \<in> A. {z}*f`z) \<subseteq> A*Union(B)"
+lemma AC4_AC3_aux1: "f \<in> A->B ==> (\<Union>z \<in> A. {z}*f`z) \<subseteq> A*\<Union>(B)"
 by (fast dest!: apply_type)
 
 lemma AC4_AC3_aux2: "domain(\<Union>z \<in> A. {z}*f(z)) = {a \<in> A. f(a)\<noteq>0}"
@@ -292,10 +292,10 @@ done
 
 
 (* ********************************************************************** *)
-(* AC1 <-> AC6                                                            *)
+(* AC1 \<longleftrightarrow> AC6                                                            *)
 (* ********************************************************************** *)
 
-lemma AC1_iff_AC6: "AC1 <-> AC6"
+lemma AC1_iff_AC6: "AC1 \<longleftrightarrow> AC6"
 by (unfold AC1_def AC6_def, blast)
 
 end

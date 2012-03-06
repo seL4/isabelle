@@ -24,7 +24,7 @@ inductive
 lemma list_into_listn: "l \<in> list(A) ==> <length(l),l> \<in> listn(A)"
   by (induct set: list) (simp_all add: listn.intros)
 
-lemma listn_iff: "<n,l> \<in> listn(A) <-> l \<in> list(A) & length(l)=n"
+lemma listn_iff: "<n,l> \<in> listn(A) \<longleftrightarrow> l \<in> list(A) & length(l)=n"
   apply (rule iffI)
    apply (erule listn.induct)
     apply auto

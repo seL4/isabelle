@@ -11,7 +11,7 @@ by Lawrence C. Paulson which is the following:
 Assume WO1.  Let s be a set of infinite sets.
  
 Suppose x \<in> s.  Then x is equipollent to |x| (by WO1), an infinite cardinal
-call it K.  Since K = K |+| K = |K+K| (by InfCard_cdouble_eq) there is an 
+call it K.  Since K = K \<oplus> K = |K+K| (by InfCard_cdouble_eq) there is an 
 isomorphism h \<in> bij(K+K, x).  (Here + means disjoint sum.)
  
 So there is a partition of x into 2-element sets, namely
@@ -41,7 +41,7 @@ by (unfold AC1_def WO1_def, fast elim!: ex_choice_fun)
 
 lemma lemma1: "[| WO1; \<forall>B \<in> A. \<exists>C \<in> D(B). P(C,B) |] ==> \<exists>f. \<forall>B \<in> A. P(f`B,B)"
 apply (unfold WO1_def)
-apply (erule_tac x = "Union ({{C \<in> D (B) . P (C,B) }. B \<in> A}) " in allE)
+apply (erule_tac x = "\<Union>({{C \<in> D (B) . P (C,B) }. B \<in> A}) " in allE)
 apply (erule exE, drule ex_choice_fun, fast)
 apply (erule exE)
 apply (rule_tac x = "\<lambda>x \<in> A. f`{C \<in> D (x) . P (C,x) }" in exI)
@@ -82,7 +82,7 @@ apply (blast intro!: cons_lepoll_cong
 done
 
 lemma lemma2_5: 
-     "f \<in> bij(D+D, B) ==> Union({{f`Inl(i), f`Inr(i)}. i \<in> D})=B"
+     "f \<in> bij(D+D, B) ==> \<Union>({{f`Inl(i), f`Inr(i)}. i \<in> D})=B"
 apply (unfold bij_def surj_def)
 apply (fast elim!: inj_is_fun [THEN apply_type])
 done
@@ -91,7 +91,7 @@ lemma lemma2:
      "[| WO1; ~Finite(B); 1\<le>n  |]   
       ==> \<exists>C \<in> Pow(Pow(B)). pairwise_disjoint(C) &   
                 sets_of_size_between(C, 2, succ(n)) &   
-                Union(C)=B"
+                \<Union>(C)=B"
 apply (drule lemma2_1 [THEN eqpoll_def [THEN def_imp_iff, THEN iffD1]], 
        assumption)
 apply (blast intro!: lemma2_2 lemma2_3 lemma2_4 lemma2_5)

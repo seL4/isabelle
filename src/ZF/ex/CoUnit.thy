@@ -27,7 +27,7 @@ codatatype
 inductive_cases ConE: "Con(x) \<in> counit"
   -- {* USELESS because folding on @{term "Con(xa) == xa"} fails. *}
 
-lemma Con_iff: "Con(x) = Con(y) <-> x = y"
+lemma Con_iff: "Con(x) = Con(y) \<longleftrightarrow> x = y"
   -- {* Proving freeness results. *}
   by (auto elim!: counit.free_elims)
 
@@ -55,7 +55,7 @@ codatatype
 
 inductive_cases Con2E: "Con2(x, y) \<in> counit2"
 
-lemma Con2_iff: "Con2(x, y) = Con2(x', y') <-> x = x' & y = y'"
+lemma Con2_iff: "Con2(x, y) = Con2(x', y') \<longleftrightarrow> x = x' & y = y'"
   -- {* Proving freeness results. *}
   by (fast elim!: counit2.free_elims)
 
@@ -73,7 +73,7 @@ lemma lfp_Con2_in_counit2: "lfp(univ(0), %x. Con2(x,x)) \<in> counit2"
   done
 
 lemma counit2_Int_Vset_subset [rule_format]:
-  "Ord(i) ==> \<forall>x y. x \<in> counit2 --> y \<in> counit2 --> x Int Vset(i) \<subseteq> y"
+  "Ord(i) ==> \<forall>x y. x \<in> counit2 \<longrightarrow> y \<in> counit2 \<longrightarrow> x \<inter> Vset(i) \<subseteq> y"
   -- {* Lemma for proving finality. *}
   apply (erule trans_induct)
   apply (tactic "safe_tac (put_claset subset_cs @{context})")

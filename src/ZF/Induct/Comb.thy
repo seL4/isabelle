@@ -28,7 +28,7 @@ notation (xsymbols)
 
 text {*
   Inductive definition of contractions, @{text "-1->"} and
-  (multi-step) reductions, @{text "--->"}.
+  (multi-step) reductions, @{text "-\<longrightarrow>"}.
 *}
 
 consts
@@ -39,8 +39,8 @@ abbreviation
   where "p -1-> q == <p,q> \<in> contract"
 
 abbreviation
-  contract_multi :: "[i,i] => o"    (infixl "--->" 50)
-  where "p ---> q == <p,q> \<in> contract^*"
+  contract_multi :: "[i,i] => o"    (infixl "-\<longrightarrow>" 50)
+  where "p -\<longrightarrow> q == <p,q> \<in> contract^*"
 
 inductive
   domains "contract" \<subseteq> "comb \<times> comb"
@@ -87,14 +87,14 @@ definition
 definition
   diamond :: "i => o"  where
   "diamond(r) ==
-    \<forall>x y. <x,y>\<in>r --> (\<forall>y'. <x,y'>\<in>r --> (\<exists>z. <y,z>\<in>r & <y',z> \<in> r))"
+    \<forall>x y. <x,y>\<in>r \<longrightarrow> (\<forall>y'. <x,y'>\<in>r \<longrightarrow> (\<exists>z. <y,z>\<in>r & <y',z> \<in> r))"
 
 
 subsection {* Transitive closure preserves the Church-Rosser property *}
 
 lemma diamond_strip_lemmaD [rule_format]:
   "[| diamond(r);  <x,y>:r^+ |] ==>
-    \<forall>y'. <x,y'>:r --> (\<exists>z. <y',z>: r^+ & <y,z>: r)"
+    \<forall>y'. <x,y'>:r \<longrightarrow> (\<exists>z. <y',z>: r^+ & <y,z>: r)"
   apply (unfold diamond_def)
   apply (erule trancl_induct)
    apply (blast intro: r_into_trancl)
@@ -145,7 +145,7 @@ lemmas reduction_rls =
   contract.Ap1 [THEN rtrancl_into_rtrancl2]
   contract.Ap2 [THEN rtrancl_into_rtrancl2]
 
-lemma "p \<in> comb ==> I\<bullet>p ---> p"
+lemma "p \<in> comb ==> I\<bullet>p -\<longrightarrow> p"
   -- {* Example only: not used *}
   by (unfold I_def) (blast intro: reduction_rls)
 
@@ -168,7 +168,7 @@ lemma I_contract_E: "I -1-> r ==> P"
 lemma K1_contractD: "K\<bullet>p -1-> r ==> (\<exists>q. r = K\<bullet>q & p -1-> q)"
   by auto
 
-lemma Ap_reduce1: "[| p ---> q;  r \<in> comb |] ==> p\<bullet>r ---> q\<bullet>r"
+lemma Ap_reduce1: "[| p -\<longrightarrow> q;  r \<in> comb |] ==> p\<bullet>r -\<longrightarrow> q\<bullet>r"
   apply (frule rtrancl_type [THEN subsetD, THEN SigmaD1])
   apply (drule field_contract_eq [THEN equalityD1, THEN subsetD])
   apply (erule rtrancl_induct)
@@ -177,7 +177,7 @@ lemma Ap_reduce1: "[| p ---> q;  r \<in> comb |] ==> p\<bullet>r ---> q\<bullet>
   apply (blast intro: contract_combD2 reduction_rls)
   done
 
-lemma Ap_reduce2: "[| p ---> q;  r \<in> comb |] ==> r\<bullet>p ---> r\<bullet>q"
+lemma Ap_reduce2: "[| p -\<longrightarrow> q;  r \<in> comb |] ==> r\<bullet>p -\<longrightarrow> r\<bullet>q"
   apply (frule rtrancl_type [THEN subsetD, THEN SigmaD1])
   apply (drule field_contract_eq [THEN equalityD1, THEN subsetD])
   apply (erule rtrancl_induct)
@@ -247,13 +247,13 @@ lemma diamond_parcontract: "diamond(parcontract)"
   done
 
 text {*
-  \medskip Equivalence of @{prop "p ---> q"} and @{prop "p ===> q"}.
+  \medskip Equivalence of @{prop "p -\<longrightarrow> q"} and @{prop "p ===> q"}.
 *}
 
 lemma contract_imp_parcontract: "p-1->q ==> p=1=>q"
   by (induct set: contract) auto
 
-lemma reduce_imp_parreduce: "p--->q ==> p===>q"
+lemma reduce_imp_parreduce: "p-\<longrightarrow>q ==> p===>q"
   apply (frule rtrancl_type [THEN subsetD, THEN SigmaD1])
   apply (drule field_contract_eq [THEN equalityD1, THEN subsetD])
   apply (erule rtrancl_induct)
@@ -262,7 +262,7 @@ lemma reduce_imp_parreduce: "p--->q ==> p===>q"
     trans_trancl [THEN transD])
   done
 
-lemma parcontract_imp_reduce: "p=1=>q ==> p--->q"
+lemma parcontract_imp_reduce: "p=1=>q ==> p-\<longrightarrow>q"
   apply (induct set: parcontract)
      apply (blast intro: reduction_rls)
     apply (blast intro: reduction_rls)
@@ -271,7 +271,7 @@ lemma parcontract_imp_reduce: "p=1=>q ==> p--->q"
     Ap_reduce1 Ap_reduce2 parcontract_combD1 parcontract_combD2)
   done
 
-lemma parreduce_imp_reduce: "p===>q ==> p--->q"
+lemma parreduce_imp_reduce: "p===>q ==> p-\<longrightarrow>q"
   apply (frule trancl_type [THEN subsetD, THEN SigmaD1])
   apply (drule field_parcontract_eq [THEN equalityD1, THEN subsetD])
   apply (erule trancl_induct, erule parcontract_imp_reduce)
@@ -279,7 +279,7 @@ lemma parreduce_imp_reduce: "p===>q ==> p--->q"
   apply (erule parcontract_imp_reduce)
   done
 
-lemma parreduce_iff_reduce: "p===>q <-> p--->q"
+lemma parreduce_iff_reduce: "p===>q \<longleftrightarrow> p-\<longrightarrow>q"
   by (blast intro: parreduce_imp_reduce reduce_imp_parreduce)
 
 end

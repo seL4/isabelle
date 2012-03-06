@@ -30,7 +30,7 @@ consts
   standard pairs work just as well.  To use variant pairs, must change prefix
   a q/Q to the Sigma, Pair and converse rules.*)
 coinductive
-  domains "lleq(A)" <= "llist(A) * llist(A)"
+  domains "lleq(A)" \<subseteq> "llist(A) * llist(A)"
   intros
     LNil:  "<LNil, LNil> \<in> lleq(A)"
     LCons: "[| a \<in> A; <l,l'> \<in> lleq(A) |] 
@@ -74,7 +74,7 @@ declare subset_refl [intro!]
 inductive_cases LConsE: "LCons(a,l) \<in> llist(A)"
 
 (*Proving freeness results*)
-lemma LCons_iff: "LCons(a,l)=LCons(a',l') <-> a=a' & l=l'"
+lemma LCons_iff: "LCons(a,l)=LCons(a',l') \<longleftrightarrow> a=a' & l=l'"
 by auto
 
 lemma LNil_LCons_iff: "~ LNil=LCons(a,l)"
@@ -107,7 +107,7 @@ declare qunivD [dest!]
 declare Ord_in_Ord [elim!]
 
 lemma llist_quniv_lemma [rule_format]:
-     "Ord(i) ==> \<forall>l \<in> llist(quniv(A)). l Int Vset(i) \<subseteq> univ(eclose(A))"
+     "Ord(i) ==> \<forall>l \<in> llist(quniv(A)). l \<inter> Vset(i) \<subseteq> univ(eclose(A))"
 apply (erule trans_induct)
 apply (rule ballI)
 apply (erule llist.cases)
@@ -135,7 +135,7 @@ declare Ord_in_Ord [elim!]
 
 (*Lemma for proving finality.  Unfold the lazy list; use induction hypothesis*)
 lemma lleq_Int_Vset_subset [rule_format]:
-     "Ord(i) ==> \<forall>l l'. <l,l'> \<in> lleq(A) --> l Int Vset(i) \<subseteq> l'"
+     "Ord(i) ==> \<forall>l l'. <l,l'> \<in> lleq(A) \<longrightarrow> l \<inter> Vset(i) \<subseteq> l'"
 apply (erule trans_induct)
 apply (intro allI impI)
 apply (erule lleq.cases)
@@ -200,7 +200,7 @@ declare flip_LNil [simp]
         flip_LCons [simp] 
         not_type [simp]
 
-lemma bool_Int_subset_univ: "b \<in> bool ==> b Int X \<subseteq> univ(eclose(A))"
+lemma bool_Int_subset_univ: "b \<in> bool ==> b \<inter> X \<subseteq> univ(eclose(A))"
 by (fast intro: Int_lower1 [THEN subset_trans] elim!: boolE)
 
 declare not_type [intro!]
@@ -209,7 +209,7 @@ declare bool_Int_subset_univ [intro]
 (*Reasoning borrowed from lleq.ML; a similar proof works for all
   "productive" functions -- cf Coquand's "Infinite Objects in Type Theory".*)
 lemma flip_llist_quniv_lemma [rule_format]:
-     "Ord(i) ==> \<forall>l \<in> llist(bool). flip(l) Int Vset(i) \<subseteq> univ(eclose(bool))"
+     "Ord(i) ==> \<forall>l \<in> llist(bool). flip(l) \<inter> Vset(i) \<subseteq> univ(eclose(bool))"
 apply (erule trans_induct)
 apply (rule ballI)
 apply (erule llist.cases, simp_all)

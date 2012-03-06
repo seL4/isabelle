@@ -8,7 +8,7 @@ theory Dynamic imports Values begin
 consts
   EvalRel :: i
 inductive
-  domains "EvalRel" <= "ValEnv * Exp * Val"
+  domains "EvalRel" \<subseteq> "ValEnv * Exp * Val"
   intros
     eval_constI:
       " [| ve \<in> ValEnv; c \<in> Const |] ==>   

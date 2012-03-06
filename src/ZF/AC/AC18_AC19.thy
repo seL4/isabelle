@@ -10,7 +10,7 @@ begin
 
 definition
   uu    :: "i => i" where
-    "uu(a) == {c Un {0}. c \<in> a}"
+    "uu(a) == {c \<union> {0}. c \<in> a}"
 
 
 (* ********************************************************************** *)
@@ -23,7 +23,7 @@ lemma PROD_subsets:
 by (rule lam_type, drule apply_type, auto)
 
 lemma lemma_AC18:
-     "[| \<forall>A. 0 \<notin> A --> (\<exists>f. f \<in> (\<Pi> X \<in> A. X)); A \<noteq> 0 |] 
+     "[| \<forall>A. 0 \<notin> A \<longrightarrow> (\<exists>f. f \<in> (\<Pi> X \<in> A. X)); A \<noteq> 0 |] 
       ==> (\<Inter>a \<in> A. \<Union>b \<in> B(a). X(a, b)) \<subseteq> 
           (\<Union>f \<in> \<Pi> a \<in> A. B(a). \<Inter>a \<in> A. X(a, f`a))"
 apply (rule subsetI)
@@ -61,7 +61,7 @@ apply (unfold uu_def, auto)
 apply (blast dest!: sym [THEN RepFun_eq_0_iff [THEN iffD1]])
 done
 
-lemma lemma1_1: "[|c \<in> a; x = c Un {0}; x \<notin> a |] ==> x - {0} \<in> a"
+lemma lemma1_1: "[|c \<in> a; x = c \<union> {0}; x \<notin> a |] ==> x - {0} \<in> a"
 apply clarify 
 apply (rule subst_elem, assumption)
 apply (fast elim: notE subst_elem)

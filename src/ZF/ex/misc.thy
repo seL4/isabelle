@@ -31,16 +31,16 @@ lemma "\<exists>!x. f (g(x)) = x \<Longrightarrow> \<exists>!y. g (f(y)) = y"
 
 
 text{*A weird property of ordered pairs.*}
-lemma "b\<noteq>c ==> <a,b> Int <a,c> = <a,a>"
+lemma "b\<noteq>c ==> <a,b> \<inter> <a,c> = <a,a>"
 by (simp add: Pair_def Int_cons_left Int_cons_right doubleton_eq_iff, blast)
 
 text{*These two are cited in Benzmueller and Kohlhase's system description of
  LEO, CADE-15, 1998 (page 139-143) as theorems LEO could not prove.*}
-lemma "(X = Y Un Z) <-> (Y \<subseteq> X & Z \<subseteq> X & (\<forall>V. Y \<subseteq> V & Z \<subseteq> V --> X \<subseteq> V))"
+lemma "(X = Y \<union> Z) \<longleftrightarrow> (Y \<subseteq> X & Z \<subseteq> X & (\<forall>V. Y \<subseteq> V & Z \<subseteq> V \<longrightarrow> X \<subseteq> V))"
 by (blast intro!: equalityI)
 
 text{*the dual of the previous one*}
-lemma "(X = Y Int Z) <-> (X \<subseteq> Y & X \<subseteq> Z & (\<forall>V. V \<subseteq> Y & V \<subseteq> Z --> V \<subseteq> X))"
+lemma "(X = Y \<inter> Z) \<longleftrightarrow> (X \<subseteq> Y & X \<subseteq> Z & (\<forall>V. V \<subseteq> Y & V \<subseteq> Z \<longrightarrow> V \<subseteq> X))"
 by (blast intro!: equalityI)
 
 text{*trivial example of term synthesis: apparently hard for some provers!*}
@@ -52,18 +52,18 @@ lemma "\<forall>x \<in> S. \<forall>y \<in> S. x \<subseteq> y ==> \<exists>z. S
 by blast
 
 text{*variant of the benchmark above*}
-lemma "\<forall>x \<in> S. Union(S) \<subseteq> x ==> \<exists>z. S \<subseteq> {z}"
+lemma "\<forall>x \<in> S. \<Union>(S) \<subseteq> x ==> \<exists>z. S \<subseteq> {z}"
 by blast
 
 (*Example 12 (credited to Peter Andrews) from
  W. Bledsoe.  A Maximal Method for Set Variables in Automatic Theorem-proving.
  In: J. Hayes and D. Michie and L. Mikulich, eds.  Machine Intelligence 9.
  Ellis Horwood, 53-100 (1979). *)
-lemma "(\<forall>F. {x} \<in> F --> {y} \<in> F) --> (\<forall>A. x \<in> A --> y \<in> A)"
+lemma "(\<forall>F. {x} \<in> F \<longrightarrow> {y} \<in> F) \<longrightarrow> (\<forall>A. x \<in> A \<longrightarrow> y \<in> A)"
 by best
 
 text{*A characterization of functions suggested by Tobias Nipkow*}
-lemma "r \<in> domain(r)->B  <->  r \<subseteq> domain(r)*B & (\<forall>X. r `` (r -`` X) \<subseteq> X)"
+lemma "r \<in> domain(r)->B  \<longleftrightarrow>  r \<subseteq> domain(r)*B & (\<forall>X. r `` (r -`` X) \<subseteq> X)"
 by (unfold Pi_def function_def, best)
 
 
@@ -81,8 +81,8 @@ declare comp_fun [simp] SigmaI [simp] apply_funtype [simp]
   rewriting does not instantiate Vars.*)
 lemma "(\<forall>A f B g. hom(A,f,B,g) =  
            {H \<in> A->B. f \<in> A*A->A & g \<in> B*B->B &  
-                     (\<forall>x \<in> A. \<forall>y \<in> A. H`(f`<x,y>) = g`<H`x,H`y>)}) -->  
-       J \<in> hom(A,f,B,g) & K \<in> hom(B,g,C,h) -->   
+                     (\<forall>x \<in> A. \<forall>y \<in> A. H`(f`<x,y>) = g`<H`x,H`y>)}) \<longrightarrow>  
+       J \<in> hom(A,f,B,g) & K \<in> hom(B,g,C,h) \<longrightarrow>   
        (K O J) \<in> hom(A,f,C,h)"
 by force
 
@@ -90,7 +90,7 @@ text{*Another version, with meta-level rewriting*}
 lemma "(!! A f B g. hom(A,f,B,g) ==  
            {H \<in> A->B. f \<in> A*A->A & g \<in> B*B->B &  
                      (\<forall>x \<in> A. \<forall>y \<in> A. H`(f`<x,y>) = g`<H`x,H`y>)}) 
-       ==> J \<in> hom(A,f,B,g) & K \<in> hom(B,g,C,h) --> (K O J) \<in> hom(A,f,C,h)"
+       ==> J \<in> hom(A,f,B,g) & K \<in> hom(B,g,C,h) \<longrightarrow> (K O J) \<in> hom(A,f,C,h)"
 by force
 
 

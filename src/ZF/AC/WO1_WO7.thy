@@ -2,10 +2,10 @@
     Author:     Lawrence C Paulson, CU Computer Laboratory
     Copyright   1998  University of Cambridge
 
-WO7 <-> LEMMA <-> WO1 (Rubin & Rubin p. 5)
+WO7 \<longleftrightarrow> LEMMA \<longleftrightarrow> WO1 (Rubin & Rubin p. 5)
 LEMMA is the sentence denoted by (**)
 
-Also, WO1 <-> WO8
+Also, WO1 \<longleftrightarrow> WO8
 *)
 
 theory WO1_WO7
@@ -14,13 +14,13 @@ begin
 
 definition
     "LEMMA ==
-     \<forall>X. ~Finite(X) --> (\<exists>R. well_ord(X,R) & ~well_ord(X,converse(R)))"
+     \<forall>X. ~Finite(X) \<longrightarrow> (\<exists>R. well_ord(X,R) & ~well_ord(X,converse(R)))"
 
 (* ********************************************************************** *)
 (* It is easy to see that WO7 is equivalent to (**)                       *)
 (* ********************************************************************** *)
 
-lemma WO7_iff_LEMMA: "WO7 <-> LEMMA"
+lemma WO7_iff_LEMMA: "WO7 \<longleftrightarrow> LEMMA"
 apply (unfold WO7_def LEMMA_def)
 apply (blast intro: Finite_well_ord_converse)
 done
@@ -85,7 +85,7 @@ apply (blast dest: well_ord_converse_Memrel
                     lepoll_def [THEN def_imp_iff, THEN iffD2] )
 done
 
-lemma WO1_iff_WO7: "WO1 <-> WO7"
+lemma WO1_iff_WO7: "WO1 \<longleftrightarrow> WO7"
 apply (simp add: WO7_iff_LEMMA)
 apply (blast intro: LEMMA_imp_WO1 WO1_imp_LEMMA)
 done
@@ -93,7 +93,7 @@ done
 
 
 (* ********************************************************************** *)
-(*            The proof of WO8 <-> WO1 (Rubin & Rubin p. 6)               *)
+(*            The proof of WO8 \<longleftrightarrow> WO1 (Rubin & Rubin p. 6)               *)
 (* ********************************************************************** *)
 
 lemma WO1_WO8: "WO1 ==> WO8"

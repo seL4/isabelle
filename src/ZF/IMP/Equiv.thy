@@ -8,7 +8,7 @@ theory Equiv imports Denotation Com begin
 
 lemma aexp_iff [rule_format]:
   "[| a \<in> aexp; sigma: loc -> nat |] 
-    ==> ALL n. <a,sigma> -a-> n <-> A(a,sigma) = n"
+    ==> \<forall>n. <a,sigma> -a-> n \<longleftrightarrow> A(a,sigma) = n"
   apply (erule aexp.induct)
      apply (force intro!: evala.intros)+
   done
@@ -27,7 +27,7 @@ inductive_cases [elim!]:
 
 lemma bexp_iff [rule_format]:
   "[| b \<in> bexp; sigma: loc -> nat |] 
-    ==> ALL w. <b,sigma> -b-> w <-> B(b,sigma) = w"
+    ==> \<forall>w. <b,sigma> -b-> w \<longleftrightarrow> B(b,sigma) = w"
   apply (erule bexp.induct) 
   apply (auto intro!: evalb.intros)
   done

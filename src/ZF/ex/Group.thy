@@ -105,7 +105,7 @@ theorem groupI:
 proof -
   have l_cancel [simp]:
     "\<And>x y z. \<lbrakk>x \<in> carrier(G); y \<in> carrier(G); z \<in> carrier(G)\<rbrakk> \<Longrightarrow>
-    (x \<cdot> y = x \<cdot> z) <-> (y = z)"
+    (x \<cdot> y = x \<cdot> z) \<longleftrightarrow> (y = z)"
   proof
     fix x y z
     assume G: "x \<in> carrier(G)"  "y \<in> carrier(G)"  "z \<in> carrier(G)"
@@ -178,7 +178,7 @@ subsection {* Cancellation Laws and Basic Properties *}
 
 lemma (in group) l_cancel [simp]:
   assumes "x \<in> carrier(G)" "y \<in> carrier(G)" "z \<in> carrier(G)"
-  shows "(x \<cdot> y = x \<cdot> z) <-> (y = z)"
+  shows "(x \<cdot> y = x \<cdot> z) \<longleftrightarrow> (y = z)"
 proof
   assume eq: "x \<cdot> y = x \<cdot> z"
   hence  "(inv x \<cdot> x) \<cdot> y = (inv x \<cdot> x) \<cdot> z"
@@ -191,7 +191,7 @@ qed
 
 lemma (in group) r_cancel [simp]:
   assumes "x \<in> carrier(G)" "y \<in> carrier(G)" "z \<in> carrier(G)"
-  shows "(y \<cdot> x = z \<cdot> x) <-> (y = z)"
+  shows "(y \<cdot> x = z \<cdot> x) \<longleftrightarrow> (y = z)"
 proof
   assume eq: "y \<cdot> x = z \<cdot> x"
   then have "y \<cdot> (x \<cdot> inv x) = z \<cdot> (x \<cdot> inv x)"
@@ -679,9 +679,9 @@ done
 
 text{*Alternative characterization of normal subgroups*}
 lemma (in group) normal_inv_iff:
-     "(N \<lhd> G) <->
+     "(N \<lhd> G) \<longleftrightarrow>
       (subgroup(N,G) & (\<forall>x \<in> carrier(G). \<forall>h \<in> N. x \<cdot> h \<cdot> (inv x) \<in> N))"
-      (is "_ <-> ?rhs")
+      (is "_ \<longleftrightarrow> ?rhs")
 proof
   assume N: "N \<lhd> G"
   show ?rhs

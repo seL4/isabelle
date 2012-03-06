@@ -14,7 +14,7 @@ definition
 definition
   is_gcd  :: "[i,i,i]=>o"     --{*definition of great common divisor*}  where
     "is_gcd(p,m,n) == ((p dvd m) & (p dvd n))   &
-                       (\<forall>d\<in>nat. (d dvd m) & (d dvd n) --> d dvd p)"
+                       (\<forall>d\<in>nat. (d dvd m) & (d dvd n) \<longrightarrow> d dvd p)"
 
 definition
   gcd     :: "[i,i]=>i"       --{*Euclid's algorithm for the gcd*}  where
@@ -28,7 +28,7 @@ definition
   
 definition
   prime   :: i                --{*the set of prime numbers*}  where
-   "prime == {p \<in> nat. 1<p & (\<forall>m \<in> nat. m dvd p --> m=1 | m=p)}"
+   "prime == {p \<in> nat. 1<p & (\<forall>m \<in> nat. m dvd p \<longrightarrow> m=1 | m=p)}"
 
 
 subsection{*The Divides Relation*}
@@ -143,7 +143,7 @@ done
 (*Imitating TFL*)
 lemma gcd_induct_lemma [rule_format (no_asm)]: "[| n \<in> nat;  
          \<forall>m \<in> nat. P(m,0);  
-         \<forall>m \<in> nat. \<forall>n \<in> nat. 0<n --> P(n, m mod n) --> P(m,n) |]  
+         \<forall>m \<in> nat. \<forall>n \<in> nat. 0<n \<longrightarrow> P(n, m mod n) \<longrightarrow> P(m,n) |]  
       ==> \<forall>m \<in> nat. P (m,n)"
 apply (erule_tac i = n in complete_induct)
 apply (case_tac "x=0")
@@ -206,7 +206,7 @@ text{* Property 2: for all a,b,f naturals,
 
 lemma gcd_greatest_raw [rule_format]:
      "[| m \<in> nat; n \<in> nat; f \<in> nat |]    
-      ==> (f dvd m) --> (f dvd n) --> f dvd gcd(m,n)"
+      ==> (f dvd m) \<longrightarrow> (f dvd n) \<longrightarrow> f dvd gcd(m,n)"
 apply (rule_tac m = m and n = n in gcd_induct)
 apply (simp_all add: gcd_non_0 dvd_mod)
 done
@@ -217,7 +217,7 @@ apply (auto simp add: divides_def)
 done
 
 lemma gcd_greatest_iff [simp]: "[| k \<in> nat; m \<in> nat; n \<in> nat |]  
-      ==> (k dvd gcd (m, n)) <-> (k dvd m & k dvd n)"
+      ==> (k dvd gcd (m, n)) \<longleftrightarrow> (k dvd m & k dvd n)"
 by (blast intro!: gcd_greatest gcd_dvd1 gcd_dvd2 intro: dvd_trans)
 
 
@@ -235,7 +235,7 @@ apply (simp add: is_gcd_def)
 apply (blast intro: dvd_anti_sym)
 done
 
-lemma is_gcd_commute: "is_gcd(k,m,n) <-> is_gcd(k,n,m)"
+lemma is_gcd_commute: "is_gcd(k,m,n) \<longleftrightarrow> is_gcd(k,n,m)"
 by (simp add: is_gcd_def, blast)
 
 lemma gcd_commute_raw: "[| m \<in> nat; n \<in> nat |] ==> gcd(m,n) = gcd(n,m)"
@@ -331,7 +331,7 @@ apply (simp add: dvd_imp_nat1)
 done
 
 lemma relprime_dvd_mult_iff:
-     "[| gcd (k,n) = 1;  m \<in> nat |] ==> k dvd (m #* n) <-> k dvd m"
+     "[| gcd (k,n) = 1;  m \<in> nat |] ==> k dvd (m #* n) \<longleftrightarrow> k dvd m"
 by (blast intro: dvdI2 relprime_dvd_mult dvd_trans)
 
 lemma prime_imp_relprime: 

@@ -82,13 +82,13 @@ by (fast elim!: not_emptyE)
 definition
   DC  :: "i => o"  where
     "DC(a) == \<forall>X R. R \<subseteq> Pow(X)*X  &
-                    (\<forall>Y \<in> Pow(X). Y \<prec> a --> (\<exists>x \<in> X. <Y,x> \<in> R)) 
-                    --> (\<exists>f \<in> a->X. \<forall>b<a. <f``b,f`b> \<in> R)"
+                    (\<forall>Y \<in> Pow(X). Y \<prec> a \<longrightarrow> (\<exists>x \<in> X. <Y,x> \<in> R)) 
+                    \<longrightarrow> (\<exists>f \<in> a->X. \<forall>b<a. <f``b,f`b> \<in> R)"
 
 definition
   DC0 :: o  where
     "DC0 == \<forall>A B R. R \<subseteq> A*B & R\<noteq>0 & range(R) \<subseteq> domain(R) 
-                    --> (\<exists>f \<in> nat->domain(R). \<forall>n \<in> nat. <f`n,f`succ(n)>:R)"
+                    \<longrightarrow> (\<exists>f \<in> nat->domain(R). \<forall>n \<in> nat. <f`n,f`succ(n)>:R)"
 
 definition
   ff  :: "[i, i, i, i] => i"  where
@@ -99,7 +99,7 @@ definition
 locale DC0_imp =
   fixes XX and RR and X and R
 
-  assumes all_ex: "\<forall>Y \<in> Pow(X). Y \<prec> nat --> (\<exists>x \<in> X. <Y, x> \<in> R)"
+  assumes all_ex: "\<forall>Y \<in> Pow(X). Y \<prec> nat \<longrightarrow> (\<exists>x \<in> X. <Y, x> \<in> R)"
 
   defines XX_def: "XX == (\<Union>n \<in> nat. {f \<in> n->X. \<forall>k \<in> n. <f``k, f`k> \<in> R})"
      and RR_def:  "RR == {<z1,z2>:XX*XX. domain(z2)=succ(domain(z1))  
@@ -314,7 +314,7 @@ locale imp_DC0 =
 lemma (in imp_DC0) lemma4:
      "[| range(R) \<subseteq> domain(R);  x \<in> domain(R) |]   
       ==> RR \<subseteq> Pow(XX)*XX &   
-             (\<forall>Y \<in> Pow(XX). Y \<prec> nat --> (\<exists>x \<in> XX. <Y,x>:RR))"
+             (\<forall>Y \<in> Pow(XX). Y \<prec> nat \<longrightarrow> (\<exists>x \<in> XX. <Y,x>:RR))"
 apply (rule conjI)
 apply (force dest!: FinD [THEN PowI] simp add: RR_def)
 apply (rule impI [THEN ballI])
@@ -331,7 +331,7 @@ done
 
 lemma (in imp_DC0) UN_image_succ_eq:
      "[| f \<in> nat->X; n \<in> nat |] 
-      ==> (\<Union>x \<in> f``succ(n). P(x)) =  P(f`n) Un (\<Union>x \<in> f``n. P(x))"
+      ==> (\<Union>x \<in> f``succ(n). P(x)) =  P(f`n) \<union> (\<Union>x \<in> f``n. P(x))"
 by (simp add: image_fun OrdmemD) 
 
 lemma (in imp_DC0) UN_image_succ_eq_succ:
@@ -475,7 +475,7 @@ apply (drule imp_DC0.lemma3, auto)
 done
 
 (* ********************************************************************** *)
-(* \<forall>K. Card(K) --> DC(K) ==> WO3                                       *)
+(* \<forall>K. Card(K) \<longrightarrow> DC(K) ==> WO3                                       *)
 (* ********************************************************************** *)
 
 lemma fun_Ord_inj:
@@ -492,7 +492,7 @@ done
 lemma value_in_image: "[| f \<in> X->Y; A \<subseteq> X; a \<in> A |] ==> f`a \<in> f``A"
 by (fast elim!: image_fun [THEN ssubst])
 
-theorem DC_WO3: "(\<forall>K. Card(K) --> DC(K)) ==> WO3"
+theorem DC_WO3: "(\<forall>K. Card(K) \<longrightarrow> DC(K)) ==> WO3"
 apply (unfold DC_def WO3_def)
 apply (rule allI)
 apply (case_tac "A \<prec> Hartog (A)")
@@ -516,7 +516,7 @@ apply (blast intro: ltI Ord_Hartog, force)
 done
 
 (* ********************************************************************** *)
-(* WO1 ==> \<forall>K. Card(K) --> DC(K)                                       *)
+(* WO1 ==> \<forall>K. Card(K) \<longrightarrow> DC(K)                                       *)
 (* ********************************************************************** *)
 
 lemma images_eq:
@@ -538,7 +538,7 @@ lemma lam_type_RepFun: "(\<lambda>b \<in> a. h(b)) \<in> a -> {h(b). b \<in> a}"
 by (fast intro!: lam_type RepFunI)
 
 lemma lemmaX:
-     "[| \<forall>Y \<in> Pow(X). Y \<prec> K --> (\<exists>x \<in> X. <Y, x> \<in> R);   
+     "[| \<forall>Y \<in> Pow(X). Y \<prec> K \<longrightarrow> (\<exists>x \<in> X. <Y, x> \<in> R);   
          b \<in> K; Z \<in> Pow(X); Z \<prec> K |]   
       ==> {x \<in> X. <Z,x> \<in> R} \<noteq> 0"
 by blast
@@ -546,7 +546,7 @@ by blast
 
 lemma WO1_DC_lemma:
      "[| Card(K); well_ord(X,Q);   
-         \<forall>Y \<in> Pow(X). Y \<prec> K --> (\<exists>x \<in> X. <Y, x> \<in> R); b \<in> K |]   
+         \<forall>Y \<in> Pow(X). Y \<prec> K \<longrightarrow> (\<exists>x \<in> X. <Y, x> \<in> R); b \<in> K |]   
       ==> ff(b, X, Q, R) \<in> {x \<in> X. <(\<lambda>c \<in> b. ff(c, X, Q, R))``b, x> \<in> R}"
 apply (rule_tac P = "b \<in> K" in impE, (erule_tac [2] asm_rl)+)
 apply (rule_tac i=b in Card_is_Ord [THEN Ord_in_Ord, THEN trans_induct], 
@@ -560,7 +560,7 @@ apply (erule lemmaX, assumption)
 apply (blast intro: lesspoll_trans1 in_Card_imp_lesspoll RepFun_lepoll)
 done
 
-theorem WO1_DC_Card: "WO1 ==> \<forall>K. Card(K) --> DC(K)"
+theorem WO1_DC_Card: "WO1 ==> \<forall>K. Card(K) \<longrightarrow> DC(K)"
 apply (unfold DC_def WO1_def)
 apply (rule allI impI)+
 apply (erule allE exE conjE)+

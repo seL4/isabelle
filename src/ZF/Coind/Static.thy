@@ -27,7 +27,7 @@ definition
 consts  ElabRel :: i
 
 inductive
-  domains "ElabRel" <= "TyEnv * Exp * Ty"
+  domains "ElabRel" \<subseteq> "TyEnv * Exp * Ty"
   intros
     constI [intro!]:
       "[| te \<in> TyEnv; c \<in> Const; t \<in> Ty; isof(c,t) |] ==>   

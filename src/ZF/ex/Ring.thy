@@ -115,13 +115,13 @@ by (simp add: minus_def)
 
 lemma (in abelian_group) a_l_cancel [simp]:
      "\<lbrakk>x \<in> carrier(G); y \<in> carrier(G); z \<in> carrier(G)\<rbrakk>
-      \<Longrightarrow> (x \<oplus> y = x \<oplus> z) <-> (y = z)"
+      \<Longrightarrow> (x \<oplus> y = x \<oplus> z) \<longleftrightarrow> (y = z)"
 by (rule group.l_cancel [OF a_group,
              simplified, simplified ring_add_def [symmetric]])
 
 lemma (in abelian_group) a_r_cancel [simp]:
      "\<lbrakk>x \<in> carrier(G); y \<in> carrier(G); z \<in> carrier(G)\<rbrakk>
-      \<Longrightarrow> (y \<oplus> x = z \<oplus> x) <-> (y = z)"
+      \<Longrightarrow> (y \<oplus> x = z \<oplus> x) \<longleftrightarrow> (y = z)"
 by (rule group.r_cancel [OF a_group, simplified, simplified ring_add_def [symmetric]])
 
 lemma (in abelian_monoid) a_assoc:
@@ -234,7 +234,7 @@ definition
   ring_hom :: "[i,i] => i" where
   "ring_hom(R,S) ==
     {h \<in> carrier(R) -> carrier(S).
-      (\<forall>x y. x \<in> carrier(R) & y \<in> carrier(R) -->
+      (\<forall>x y. x \<in> carrier(R) & y \<in> carrier(R) \<longrightarrow>
         h ` (x \<cdot>\<^bsub>R\<^esub> y) = (h ` x) \<cdot>\<^bsub>S\<^esub> (h ` y) &
         h ` (x \<oplus>\<^bsub>R\<^esub> y) = (h ` x) \<oplus>\<^bsub>S\<^esub> (h ` y)) &
       h ` \<one>\<^bsub>R\<^esub> = \<one>\<^bsub>S\<^esub>}"

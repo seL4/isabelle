@@ -11,7 +11,7 @@ begin
 lemma cons_Diff_eq: "a\<notin>A ==> cons(a,A)-{a}=A"
 by fast
 
-lemma nat_1_lepoll_iff: "1\<lesssim>X <-> (\<exists>x. x \<in> X)"
+lemma nat_1_lepoll_iff: "1\<lesssim>X \<longleftrightarrow> (\<exists>x. x \<in> X)"
 apply (unfold lepoll_def)
 apply (rule iffI)
 apply (fast intro: inj_is_fun [THEN apply_type])
@@ -20,7 +20,7 @@ apply (rule_tac x = "\<lambda>a \<in> 1. x" in exI)
 apply (fast intro!: lam_injective)
 done
 
-lemma eqpoll_1_iff_singleton: "X\<approx>1 <-> (\<exists>x. X={x})"
+lemma eqpoll_1_iff_singleton: "X\<approx>1 \<longleftrightarrow> (\<exists>x. X={x})"
 apply (rule iffI)
 apply (erule eqpollE)
 apply (drule nat_1_lepoll_iff [THEN iffD1])
@@ -79,7 +79,7 @@ apply (rule_tac d = "%z. cons (fst(z), snd(z))" in lam_injective)
 apply (simp, blast intro: InfCard_Least_in)
 done
 
-lemma set_of_Ord_succ_Union: "(\<forall>y \<in> z. Ord(y)) ==> z \<subseteq> succ(Union(z))"
+lemma set_of_Ord_succ_Union: "(\<forall>y \<in> z. Ord(y)) ==> z \<subseteq> succ(\<Union>(z))"
 apply (rule subsetI)
 apply (case_tac "\<forall>y \<in> z. y \<subseteq> x", blast )
 apply (simp, erule bexE) 
@@ -91,22 +91,22 @@ lemma subset_not_mem: "j \<subseteq> i ==> i \<notin> j"
 by (fast elim!: mem_irrefl)
 
 lemma succ_Union_not_mem:
-     "(!!y. y \<in> z ==> Ord(y)) ==> succ(Union(z)) \<notin> z"
+     "(!!y. y \<in> z ==> Ord(y)) ==> succ(\<Union>(z)) \<notin> z"
 apply (rule set_of_Ord_succ_Union [THEN subset_not_mem], blast)
 done
 
 lemma Union_cons_eq_succ_Union:
-     "Union(cons(succ(Union(z)),z)) = succ(Union(z))"
+     "\<Union>(cons(succ(\<Union>(z)),z)) = succ(\<Union>(z))"
 by fast
 
-lemma Un_Ord_disj: "[| Ord(i); Ord(j) |] ==> i Un j = i | i Un j = j"
+lemma Un_Ord_disj: "[| Ord(i); Ord(j) |] ==> i \<union> j = i | i \<union> j = j"
 by (fast dest!: le_imp_subset elim: Ord_linear_le)
 
-lemma Union_eq_Un: "x \<in> X ==> Union(X) = x Un Union(X-{x})"
+lemma Union_eq_Un: "x \<in> X ==> \<Union>(X) = x \<union> \<Union>(X-{x})"
 by fast
 
 lemma Union_in_lemma [rule_format]:
-     "n \<in> nat ==> \<forall>z. (\<forall>y \<in> z. Ord(y)) & z\<approx>n & z\<noteq>0 --> Union(z) \<in> z"
+     "n \<in> nat ==> \<forall>z. (\<forall>y \<in> z. Ord(y)) & z\<approx>n & z\<noteq>0 \<longrightarrow> \<Union>(z) \<in> z"
 apply (induct_tac "n")
 apply (fast dest!: eqpoll_imp_lepoll [THEN lepoll_0_is_0])
 apply (intro allI impI)
@@ -126,11 +126,11 @@ apply (erule Diff_subset [THEN subsetD])
 apply (drule Un_Ord_disj, assumption, auto) 
 done
 
-lemma Union_in: "[| \<forall>x \<in> z. Ord(x); z\<approx>n; z\<noteq>0; n \<in> nat |] ==> Union(z) \<in> z"
+lemma Union_in: "[| \<forall>x \<in> z. Ord(x); z\<approx>n; z\<noteq>0; n \<in> nat |] ==> \<Union>(z) \<in> z"
 by (blast intro: Union_in_lemma)
 
 lemma succ_Union_in_x:
-     "[| InfCard(x); z \<in> Pow(x); z\<approx>n; n \<in> nat |] ==> succ(Union(z)) \<in> x"
+     "[| InfCard(x); z \<in> Pow(x); z\<approx>n; n \<in> nat |] ==> succ(\<Union>(z)) \<in> x"
 apply (rule Limit_has_succ [THEN ltE])
 prefer 3 apply assumption
 apply (erule InfCard_is_Limit)
@@ -145,9 +145,9 @@ lemma succ_lepoll_succ_succ:
      "[| InfCard(x); n \<in> nat |] 
       ==> {y \<in> Pow(x). y\<approx>succ(n)} \<lesssim> {y \<in> Pow(x). y\<approx>succ(succ(n))}"
 apply (unfold lepoll_def)
-apply (rule_tac x = "\<lambda>z \<in> {y\<in>Pow(x). y\<approx>succ(n)}. cons(succ(Union(z)), z)" 
+apply (rule_tac x = "\<lambda>z \<in> {y\<in>Pow(x). y\<approx>succ(n)}. cons(succ(\<Union>(z)), z)" 
        in exI)
-apply (rule_tac d = "%z. z-{Union (z) }" in lam_injective)
+apply (rule_tac d = "%z. z-{\<Union>(z) }" in lam_injective)
 apply (blast intro!: succ_Union_in_x succ_Union_not_mem
              intro: cons_eqpoll_succ Ord_in_Ord
              dest!: InfCard_is_Card [THEN Card_is_Ord])

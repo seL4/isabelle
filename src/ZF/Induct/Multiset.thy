@@ -34,8 +34,8 @@ definition
 
 definition
   munion    :: "[i, i] => i" (infixl "+#" 65)  where
-  "M +# N == \<lambda>x \<in> mset_of(M) Un mset_of(N).
-     if x \<in> mset_of(M) Int mset_of(N) then  (M`x) #+ (N`x)
+  "M +# N == \<lambda>x \<in> mset_of(M) \<union> mset_of(N).
+     if x \<in> mset_of(M) \<inter> mset_of(N) then  (M`x) #+ (N`x)
      else (if x \<in> mset_of(M) then M`x else N`x)"
 
 definition
@@ -74,7 +74,7 @@ abbreviation
   "a :# M == a \<in> mset_of(M)"
 
 syntax
-  "_MColl" :: "[pttrn, i, o] => i" ("(1{# _ : _./ _#})")
+  "_MColl" :: "[pttrn, i, o] => i" ("(1{# _ \<in> _./ _#})")
 syntax (xsymbols)
   "_MColl" :: "[pttrn, i, o] => i" ("(1{# _ \<in> _./ _#})")
 translations
@@ -144,7 +144,7 @@ declare domainE [rule del]
 
 text{* A useful simplification rule *}
 lemma multiset_fun_iff:
-     "(f \<in> A -> nat-{0}) <-> f \<in> A->nat&(\<forall>a \<in> A. f`a \<in> nat & 0 < f`a)"
+     "(f \<in> A -> nat-{0}) \<longleftrightarrow> f \<in> A->nat&(\<forall>a \<in> A. f`a \<in> nat & 0 < f`a)"
 apply safe
 apply (rule_tac [4] B1 = "range (f) " in Pi_mono [THEN subsetD])
 apply (auto intro!: Ord_0_lt
@@ -170,10 +170,10 @@ apply (rule_tac x = "domain (M) " in exI)
 apply (blast intro: Fin_into_Finite)
 done
 
-lemma Mult_iff_multiset: "M \<in> Mult(A) <-> multiset(M) & mset_of(M)\<subseteq>A"
+lemma Mult_iff_multiset: "M \<in> Mult(A) \<longleftrightarrow> multiset(M) & mset_of(M)\<subseteq>A"
 by (blast dest: Mult_into_multiset intro: multiset_into_Mult)
 
-lemma multiset_iff_Mult_mset_of: "multiset(M) <-> M \<in> Mult(mset_of(M))"
+lemma multiset_iff_Mult_mset_of: "multiset(M) \<longleftrightarrow> M \<in> Mult(mset_of(M))"
 by (auto simp add: Mult_iff_multiset)
 
 
@@ -193,13 +193,13 @@ by (simp add: multiset_def mset_of_def, auto)
 lemma mset_of_0 [iff]: "mset_of(0) = 0"
 by (simp add: mset_of_def)
 
-lemma mset_is_0_iff: "multiset(M) ==> mset_of(M)=0 <-> M=0"
+lemma mset_is_0_iff: "multiset(M) ==> mset_of(M)=0 \<longleftrightarrow> M=0"
 by (auto simp add: multiset_def mset_of_def)
 
 lemma mset_of_single [iff]: "mset_of({#a#}) = {a}"
 by (simp add: msingle_def mset_of_def)
 
-lemma mset_of_union [iff]: "mset_of(M +# N) = mset_of(M) Un mset_of(N)"
+lemma mset_of_union [iff]: "mset_of(M +# N) = mset_of(M) \<union> mset_of(N)"
 by (simp add: mset_of_def munion_def)
 
 lemma mset_of_diff [simp]: "mset_of(M)\<subseteq>A ==> mset_of(M -# N) \<subseteq> A"
@@ -210,7 +210,7 @@ by (auto simp add: mdiff_def multiset_def normalize_def mset_of_def)
 lemma msingle_not_0 [iff]: "{#a#} \<noteq> 0 & 0 \<noteq> {#a#}"
 by (simp add: msingle_def)
 
-lemma msingle_eq_iff [iff]: "({#a#} = {#b#}) <->  (a = b)"
+lemma msingle_eq_iff [iff]: "({#a#} = {#b#}) \<longleftrightarrow>  (a = b)"
 by (simp add: msingle_def)
 
 lemma msingle_multiset [iff,TC]: "multiset({#a#})"
@@ -248,7 +248,7 @@ done
 
 lemma munion_multiset [simp]: "[| multiset(M); multiset(N) |] ==> multiset(M +# N)"
 apply (unfold multiset_def munion_def mset_of_def, auto)
-apply (rule_tac x = "A Un Aa" in exI)
+apply (rule_tac x = "A \<union> Aa" in exI)
 apply (auto intro!: lam_type intro: Finite_Un simp add: multiset_fun_iff zero_less_add)
 done
 
@@ -298,7 +298,7 @@ apply (auto cong add: if_cong simp add: ltD multiset_fun_iff funrestrict_def sub
 prefer 2 apply (force intro!: lam_type)
 apply (subgoal_tac [2] "{x \<in> A \<union> {a} . x \<noteq> a \<and> x \<in> A} = A")
 apply (rule fun_extension, auto)
-apply (drule_tac x = "A Un {a}" in spec)
+apply (drule_tac x = "A \<union> {a}" in spec)
 apply (simp add: Finite_Un)
 apply (force intro!: lam_type)
 done
@@ -361,7 +361,7 @@ apply (auto simp add: mset_of_def mcount_def multiset_fun_iff)
 apply (blast dest!: fun_is_rel)
 done
 
-lemma msize_eq_0_iff: "multiset(M) ==> msize(M)=#0 <-> M=0"
+lemma msize_eq_0_iff: "multiset(M) ==> msize(M)=#0 \<longleftrightarrow> M=0"
 apply (simp add: msize_def, auto)
 apply (rule_tac P = "setsum (?u,?v) \<noteq> #0" in swap)
 apply blast
@@ -378,11 +378,11 @@ apply (auto simp del: int_of_0 simp add: int_of_add [symmetric] int_of_0 [symmet
 done
 
 lemma setsum_mcount_Int:
-     "Finite(A) ==> setsum(%a. $# mcount(N, a), A Int mset_of(N))
+     "Finite(A) ==> setsum(%a. $# mcount(N, a), A \<inter> mset_of(N))
                   = setsum(%a. $# mcount(N, a), A)"
 apply (induct rule: Finite_induct)
  apply auto
-apply (subgoal_tac "Finite (B Int mset_of (N))")
+apply (subgoal_tac "Finite (B \<inter> mset_of (N))")
 prefer 2 apply (blast intro: subset_Finite)
 apply (auto simp add: mcount_def Int_cons_left)
 done
@@ -412,7 +412,7 @@ apply (case_tac [2] "x \<in> Aa", case_tac "x \<in> A", auto)
 done
 
 lemma multiset_equality:
-  "[| multiset(M); multiset(N) |]==> M=N<->(\<forall>a. mcount(M, a)=mcount(N, a))"
+  "[| multiset(M); multiset(N) |]==> M=N\<longleftrightarrow>(\<forall>a. mcount(M, a)=mcount(N, a))"
 apply auto
 apply (subgoal_tac "mset_of (M) = mset_of (N) ")
 prefer 2 apply (blast intro: equality_lemma)
@@ -426,28 +426,28 @@ done
 
 (** More algebraic properties of multisets **)
 
-lemma munion_eq_0_iff [simp]: "[|multiset(M); multiset(N)|]==>(M +# N =0) <-> (M=0 & N=0)"
+lemma munion_eq_0_iff [simp]: "[|multiset(M); multiset(N)|]==>(M +# N =0) \<longleftrightarrow> (M=0 & N=0)"
 by (auto simp add: multiset_equality)
 
-lemma empty_eq_munion_iff [simp]: "[|multiset(M); multiset(N)|]==>(0=M +# N) <-> (M=0 & N=0)"
+lemma empty_eq_munion_iff [simp]: "[|multiset(M); multiset(N)|]==>(0=M +# N) \<longleftrightarrow> (M=0 & N=0)"
 apply (rule iffI, drule sym)
 apply (simp_all add: multiset_equality)
 done
 
 lemma munion_right_cancel [simp]:
-     "[| multiset(M); multiset(N); multiset(K) |]==>(M +# K = N +# K)<->(M=N)"
+     "[| multiset(M); multiset(N); multiset(K) |]==>(M +# K = N +# K)\<longleftrightarrow>(M=N)"
 by (auto simp add: multiset_equality)
 
 lemma munion_left_cancel [simp]:
-  "[|multiset(K); multiset(M); multiset(N)|] ==>(K +# M = K +# N) <-> (M = N)"
+  "[|multiset(K); multiset(M); multiset(N)|] ==>(K +# M = K +# N) \<longleftrightarrow> (M = N)"
 by (auto simp add: multiset_equality)
 
-lemma nat_add_eq_1_cases: "[| m \<in> nat; n \<in> nat |] ==> (m #+ n = 1) <-> (m=1 & n=0) | (m=0 & n=1)"
+lemma nat_add_eq_1_cases: "[| m \<in> nat; n \<in> nat |] ==> (m #+ n = 1) \<longleftrightarrow> (m=1 & n=0) | (m=0 & n=1)"
 by (induct_tac n) auto
 
 lemma munion_is_single:
      "[|multiset(M); multiset(N)|] 
-      ==> (M +# N = {#a#}) <->  (M={#a#} & N=0) | (M = 0 & N = {#a#})"
+      ==> (M +# N = {#a#}) \<longleftrightarrow>  (M={#a#} & N=0) | (M = 0 & N = {#a#})"
 apply (simp (no_asm_simp) add: multiset_equality)
 apply safe
 apply simp_all
@@ -467,8 +467,8 @@ apply (simp_all add: nat_add_eq_1_cases)
 done
 
 lemma msingle_is_union: "[| multiset(M); multiset(N) |]
-  ==> ({#a#} = M +# N) <-> ({#a#} = M  & N=0 | M = 0 & {#a#} = N)"
-apply (subgoal_tac " ({#a#} = M +# N) <-> (M +# N = {#a#}) ")
+  ==> ({#a#} = M +# N) \<longleftrightarrow> ({#a#} = M  & N=0 | M = 0 & {#a#} = N)"
+apply (subgoal_tac " ({#a#} = M +# N) \<longleftrightarrow> (M +# N = {#a#}) ")
 apply (simp (no_asm_simp) add: munion_is_single)
 apply blast
 apply (blast dest: sym)
@@ -478,7 +478,7 @@ done
 
 lemma setsum_decr:
 "Finite(A)
-  ==>  (\<forall>M. multiset(M) -->
+  ==>  (\<forall>M. multiset(M) \<longrightarrow>
   (\<forall>a \<in> mset_of(M). setsum(%z. $# mcount(M(a:=M`a #- 1), z), A) =
   (if a \<in> A then setsum(%z. $# mcount(M, z), A) $- #1
            else setsum(%z. $# mcount(M, z), A))))"
@@ -494,7 +494,7 @@ done
 
 lemma setsum_decr2:
      "Finite(A)
-      ==> \<forall>M. multiset(M) --> (\<forall>a \<in> mset_of(M).
+      ==> \<forall>M. multiset(M) \<longrightarrow> (\<forall>a \<in> mset_of(M).
            setsum(%x. $# mcount(funrestrict(M, mset_of(M)-{a}), x), A) =
            (if a \<in> A then setsum(%x. $# mcount(M, x), A) $- $# M`a
             else setsum(%x. $# mcount(M, x), A)))"
@@ -514,11 +514,11 @@ apply (rule sym, drule setsum_decr2, auto)
 apply (simp add: mcount_def mset_of_def)
 done
 
-lemma nat_le_1_cases: "n \<in> nat ==> n le 1 <-> (n=0 | n=1)"
+lemma nat_le_1_cases: "n \<in> nat ==> n \<le> 1 \<longleftrightarrow> (n=0 | n=1)"
 by (auto elim: natE)
 
 lemma succ_pred_eq_self: "[| 0<n; n \<in> nat |] ==> succ(n #- 1) = n"
-apply (subgoal_tac "1 le n")
+apply (subgoal_tac "1 \<le> n")
 apply (drule add_diff_inverse2, auto)
 done
 
@@ -536,8 +536,8 @@ lemma multiset_induct_aux:
       and prem2: "!!M b. [| multiset(M); b \<in> mset_of(M); P(M) |] ==> P(M(b:= M`b #+ 1))"
   shows
   "[| n \<in> nat; P(0) |]
-     ==> (\<forall>M. multiset(M)-->
-  (setsum(%x. $# mcount(M, x), {x \<in> mset_of(M). 0 < M`x}) = $# n) --> P(M))"
+     ==> (\<forall>M. multiset(M)\<longrightarrow>
+  (setsum(%x. $# mcount(M, x), {x \<in> mset_of(M). 0 < M`x}) = $# n) \<longrightarrow> P(M))"
 apply (erule nat_induct, clarify)
 apply (frule msize_eq_0_iff)
 apply (auto simp add: mset_of_def multiset_def multiset_fun_iff msize_def)
@@ -562,9 +562,9 @@ apply (drule_tac x = "M (a := M ` a #- 1) " in spec)
 apply (drule mp, drule_tac [2] mp, simp_all)
 apply (rule_tac x = A in exI)
 apply (auto intro: update_type)
-apply (subgoal_tac "Finite ({x \<in> cons (a, A) . x\<noteq>a-->0<M`x}) ")
+apply (subgoal_tac "Finite ({x \<in> cons (a, A) . x\<noteq>a\<longrightarrow>0<M`x}) ")
 prefer 2 apply (blast intro: Collect_subset [THEN subset_Finite] Finite_cons)
-apply (drule_tac A = "{x \<in> cons (a, A) . x\<noteq>a-->0<M`x}" in setsum_decr)
+apply (drule_tac A = "{x \<in> cons (a, A) . x\<noteq>a\<longrightarrow>0<M`x}" in setsum_decr)
 apply (drule_tac x = M in spec)
 apply (subgoal_tac "multiset (M) ")
  prefer 2
@@ -631,7 +631,7 @@ lemma munion_single_case2:
 apply (simp add: multiset_def)
 apply (auto simp add: munion_def multiset_fun_iff msingle_def)
 apply (unfold mset_of_def, simp)
-apply (subgoal_tac "A Un {a} = A")
+apply (subgoal_tac "A \<union> {a} = A")
 apply (rule fun_extension)
 apply (auto dest: domain_type intro: lam_type update_type)
 done
@@ -665,7 +665,7 @@ lemma mset_of_MCollect [simp]:
 by (auto simp add: mset_of_def MCollect_def multiset_def funrestrict_def)
 
 lemma MCollect_mem_iff [iff]:
-     "x \<in> mset_of({#x \<in> M. P(x)#}) <->  x \<in> mset_of(M) & P(x)"
+     "x \<in> mset_of({#x \<in> M. P(x)#}) \<longleftrightarrow>  x \<in> mset_of(M) & P(x)"
 by (simp add: MCollect_def mset_of_def)
 
 lemma mcount_MCollect [simp]:
@@ -682,7 +682,7 @@ by (auto simp add: multiset_def mset_of_def multiset_fun_iff)
 (* and more algebraic laws on multisets *)
 
 lemma munion_eq_conv_diff: "[| multiset(M); multiset(N) |]
-  ==>  (M +# {#a#} = N +# {#b#}) <->  (M = N & a = b |
+  ==>  (M +# {#a#} = N +# {#b#}) \<longleftrightarrow>  (M = N & a = b |
        M = N -# {#a#} +# {#b#} & N = M -# {#b#} +# {#a#})"
 apply (simp del: mcount_single add: multiset_equality)
 apply (rule iffI, erule_tac [2] disjE, erule_tac [3] conjE)
@@ -697,7 +697,7 @@ done
 
 lemma melem_diff_single:
 "multiset(M) ==>
-  k \<in> mset_of(M -# {#a#}) <-> (k=a & 1 < mcount(M,a)) | (k\<noteq> a & k \<in> mset_of(M))"
+  k \<in> mset_of(M -# {#a#}) \<longleftrightarrow> (k=a & 1 < mcount(M,a)) | (k\<noteq> a & k \<in> mset_of(M))"
 apply (simp add: multiset_def)
 apply (simp add: normalize_def mset_of_def msingle_def mdiff_def mcount_def)
 apply (auto dest: domain_type intro: zero_less_diff [THEN iffD1]
@@ -709,7 +709,7 @@ done
 
 lemma munion_eq_conv_exist:
 "[| M \<in> Mult(A); N \<in> Mult(A) |]
-  ==> (M +# {#a#} = N +# {#b#}) <->
+  ==> (M +# {#a#} = N +# {#b#}) \<longleftrightarrow>
       (M=N & a=b | (\<exists>K \<in> Mult(A). M= K +# {#b#} & N=K +# {#a#}))"
 by (auto simp add: Mult_iff_multiset melem_diff_single munion_eq_conv_diff)
 
@@ -728,7 +728,7 @@ lemma multirel1_0 [simp]: "multirel1(0, r) =0"
 by (auto simp add: multirel1_def)
 
 lemma multirel1_iff:
-" <N, M> \<in> multirel1(A, r) <->
+" <N, M> \<in> multirel1(A, r) \<longleftrightarrow>
   (\<exists>a. a \<in> A &
   (\<exists>M0. M0 \<in> Mult(A) & (\<exists>K. K \<in> Mult(A) &
    M=M0 +# {#a#} & N=M0 +# K & (\<forall>b \<in> mset_of(K). <b,a> \<in> r))))"
@@ -789,10 +789,10 @@ done
 lemma acc_0: "acc(0)=0"
 by (auto intro!: equalityI dest: acc.dom_subset [THEN subsetD])
 
-lemma lemma1: "[| \<forall>b \<in> A. <b,a> \<in> r -->
+lemma lemma1: "[| \<forall>b \<in> A. <b,a> \<in> r \<longrightarrow>
     (\<forall>M \<in> acc(multirel1(A, r)). M +# {#b#}:acc(multirel1(A, r)));
     M0 \<in> acc(multirel1(A, r)); a \<in> A;
-    \<forall>M. <M,M0> \<in> multirel1(A, r) --> M +# {#a#} \<in> acc(multirel1(A, r)) |]
+    \<forall>M. <M,M0> \<in> multirel1(A, r) \<longrightarrow> M +# {#a#} \<in> acc(multirel1(A, r)) |]
   ==> M0 +# {#a#} \<in> acc(multirel1(A, r))"
 apply (subgoal_tac "M0 \<in> Mult(A) ")
  prefer 2
@@ -822,7 +822,7 @@ apply (auto intro!: multirel1_base [THEN fieldI2] simp add: Mult_iff_multiset)
 done
 
 lemma lemma2: "[| \<forall>b \<in> A. <b,a> \<in> r
-   --> (\<forall>M \<in> acc(multirel1(A, r)). M +# {#b#} :acc(multirel1(A, r)));
+   \<longrightarrow> (\<forall>M \<in> acc(multirel1(A, r)). M +# {#b#} :acc(multirel1(A, r)));
         M \<in> acc(multirel1(A, r)); a \<in> A|] ==> M +# {#a#} \<in> acc(multirel1(A, r))"
 apply (erule acc_induct)
 apply (blast intro: lemma1)
@@ -834,8 +834,8 @@ apply (erule_tac a = a in wf_on_induct, blast)
 apply (blast intro: lemma2)
 done
 
-lemma lemma4: "multiset(M) ==> mset_of(M)\<subseteq>A -->
-   wf[A](r) --> M \<in> field(multirel1(A, r)) --> M \<in> acc(multirel1(A, r))"
+lemma lemma4: "multiset(M) ==> mset_of(M)\<subseteq>A \<longrightarrow>
+   wf[A](r) \<longrightarrow> M \<in> field(multirel1(A, r)) \<longrightarrow> M \<in> acc(multirel1(A, r))"
 apply (erule multiset_induct)
 (* proving the base case *)
 apply clarify
@@ -899,7 +899,7 @@ done
 
 (* Equivalence of multirel with the usual (closure-free) def *)
 
-lemma add_diff_eq: "k \<in> nat ==> 0 < k --> n #+ k #- 1 = n #+ (k #- 1)"
+lemma add_diff_eq: "k \<in> nat ==> 0 < k \<longrightarrow> n #+ k #- 1 = n #+ (k #- 1)"
 by (erule nat_induct, auto)
 
 lemma mdiff_union_single_conv: "[|a \<in> mset_of(J); multiset(I); multiset(J) |]
@@ -910,14 +910,14 @@ apply (auto simp add: mcount_def mset_of_def multiset_def multiset_fun_iff)
 apply (auto dest: domain_type simp add: add_diff_eq)
 done
 
-lemma diff_add_commute: "[| n le m;  m \<in> nat; n \<in> nat; k \<in> nat |] ==> m #- n #+ k = m #+ k #- n"
+lemma diff_add_commute: "[| n \<le> m;  m \<in> nat; n \<in> nat; k \<in> nat |] ==> m #- n #+ k = m #+ k #- n"
 by (auto simp add: le_iff less_iff_succ_add)
 
 (* One direction *)
 
 lemma multirel_implies_one_step:
 "<M,N> \<in> multirel(A, r) ==>
-     trans[A](r) -->
+     trans[A](r) \<longrightarrow>
      (\<exists>I J K.
          I \<in> Mult(A) & J \<in> Mult(A) &  K \<in> Mult(A) &
          N = I +# J & M = I +# K & J \<noteq> 0 &
@@ -986,7 +986,7 @@ lemma one_step_implies_multirel_lemma [rule_format (no_asm)]:
    (\<forall>I J K.
     I \<in> Mult(A) & J \<in> Mult(A) & K \<in> Mult(A) &
    (msize(J) = $# n & J \<noteq>0 &  (\<forall>k \<in> mset_of(K).  \<exists>j \<in> mset_of(J). <k, j> \<in> r))
-    --> <I +# K, I +# J> \<in> multirel(A, r))"
+    \<longrightarrow> <I +# K, I +# J> \<in> multirel(A, r))"
 apply (simp add: Mult_iff_multiset)
 apply (erule nat_induct, clarify)
 apply (drule_tac M = J in msize_eq_0_iff, auto)
@@ -1039,7 +1039,7 @@ done
 (*irreflexivity*)
 
 lemma multirel_irrefl_lemma:
-     "Finite(A) ==> part_ord(A, r) --> (\<forall>x \<in> A. \<exists>y \<in> A. <x,y> \<in> r) -->A=0"
+     "Finite(A) ==> part_ord(A, r) \<longrightarrow> (\<forall>x \<in> A. \<exists>y \<in> A. <x,y> \<in> r) \<longrightarrow>A=0"
 apply (erule Finite_induct)
 apply (auto dest: subset_consI [THEN [2] part_ord_subset])
 apply (auto simp add: part_ord_def irrefl_def)
@@ -1152,7 +1152,7 @@ done
 
 lemma munion_omultiset [simp]: "[| omultiset(M); omultiset(N) |] ==> omultiset(M +# N)"
 apply (simp add: omultiset_def, clarify)
-apply (rule_tac x = "i Un ia" in exI)
+apply (rule_tac x = "i \<union> ia" in exI)
 apply (simp add: Mult_iff_multiset Ord_Un Un_subset_iff)
 apply (blast intro: field_Memrel_mono)
 done
@@ -1173,7 +1173,7 @@ prefer 2 apply (blast intro: Ord_in_Ord)
 apply (drule_tac i = x in ltI [THEN lt_irrefl], auto)
 done
 
-lemma trans_iff_trans_on: "trans(r) <-> trans[field(r)](r)"
+lemma trans_iff_trans_on: "trans(r) \<longleftrightarrow> trans[field(r)](r)"
 by (simp add: trans_on_def trans_def, auto)
 
 lemma part_ord_Memrel: "Ord(i) ==>part_ord(field(Memrel(i)), Memrel(i))"
@@ -1204,7 +1204,7 @@ lemmas mless_irrefl = mless_not_refl [THEN notE, elim!]
 (*transitivity*)
 lemma mless_trans: "[| K <# M; M <# N |] ==> K <# N"
 apply (simp add: mless_def, clarify)
-apply (rule_tac x = "i Un ia" in exI)
+apply (rule_tac x = "i \<union> ia" in exI)
 apply (blast dest: multirel_Memrel_mono [OF Un_upper1 Un_upper1, THEN subsetD]
                    multirel_Memrel_mono [OF Un_upper2 Un_upper2, THEN subsetD]
         intro: multirel_trans Ord_Un)
@@ -1236,14 +1236,14 @@ apply (simp add: mle_def)
 apply (blast intro: mless_trans)
 done
 
-lemma mless_le_iff: "M <# N <-> (M <#= N & M \<noteq> N)"
+lemma mless_le_iff: "M <# N \<longleftrightarrow> (M <#= N & M \<noteq> N)"
 by (simp add: mle_def, auto)
 
 (** Monotonicity of mless **)
 
 lemma munion_less_mono2: "[| M <# N; omultiset(K) |] ==> K +# M <# K +# N"
 apply (simp add: mless_def omultiset_def, clarify)
-apply (rule_tac x = "i Un ia" in exI)
+apply (rule_tac x = "i \<union> ia" in exI)
 apply (simp add: Mult_iff_multiset Ord_Un Un_subset_iff)
 apply (rule munion_multirel_mono2)
  apply (blast intro: multirel_Memrel_mono [THEN subsetD])

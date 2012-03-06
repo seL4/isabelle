@@ -10,7 +10,7 @@ theory Commutation imports Main begin
 definition
   square  :: "[i, i, i, i] => o" where
   "square(r,s,t,u) ==
-    (\<forall>a b. <a,b> \<in> r --> (\<forall>c. <a, c> \<in> s --> (\<exists>x. <b,x> \<in> t & <c,x> \<in> u)))"
+    (\<forall>a b. <a,b> \<in> r \<longrightarrow> (\<forall>c. <a, c> \<in> s \<longrightarrow> (\<exists>x. <b,x> \<in> t & <c,x> \<in> u)))"
 
 definition
   commute :: "[i, i] => o" where
@@ -26,7 +26,7 @@ definition
 
 definition
   Church_Rosser :: "i => o" where
-  "Church_Rosser(r) == (\<forall>x y. <x,y> \<in>  (r Un converse(r))^* -->
+  "Church_Rosser(r) == (\<forall>x y. <x,y> \<in>  (r \<union> converse(r))^* \<longrightarrow>
                         (\<exists>z. <x,z> \<in> r^* & <y,z> \<in> r^*))"
 
 definition
@@ -79,11 +79,11 @@ apply (drule commute_rtrancl)
 apply (simp_all add: rtrancl_field)
 done
 
-lemma commute_Un: "[| commute(r,t); commute(s,t) |] ==> commute(r Un s, t)"
+lemma commute_Un: "[| commute(r,t); commute(s,t) |] ==> commute(r \<union> s, t)"
   unfolding commute_def square_def by blast
 
 lemma diamond_Un:
-     "[| diamond(r); diamond(s); commute(r, s) |] ==> diamond(r Un s)"
+     "[| diamond(r); diamond(s); commute(r, s) |] ==> diamond(r \<union> s)"
   unfolding diamond_def by (blast intro: commute_Un commute_sym)
 
 lemma diamond_confluent:
@@ -94,7 +94,7 @@ done
 
 lemma confluent_Un:
  "[| confluent(r); confluent(s); commute(r^*, s^*);
-     relation(r); relation(s) |] ==> confluent(r Un s)"
+     relation(r); relation(s) |] ==> confluent(r \<union> s)"
 apply (unfold confluent_def)
 apply (rule rtrancl_Un_rtrancl [THEN subst], auto)
 apply (blast dest: diamond_Un intro: diamond_confluent [THEN confluentD])
@@ -136,7 +136,7 @@ apply (blast del: rtrancl_refl intro: r_into_rtrancl rtrancl_trans)+
 done
 
 
-lemma Church_Rosser: "Church_Rosser(r) <-> confluent(r)"
+lemma Church_Rosser: "Church_Rosser(r) \<longleftrightarrow> confluent(r)"
   by (blast intro: Church_Rosser1 Church_Rosser2)
 
 end
