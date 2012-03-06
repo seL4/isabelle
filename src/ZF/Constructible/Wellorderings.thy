@@ -17,29 +17,29 @@ subsection{*Wellorderings*}
 
 definition
   irreflexive :: "[i=>o,i,i]=>o" where
-    "irreflexive(M,A,r) == \<forall>x[M]. x\<in>A --> <x,x> \<notin> r"
+    "irreflexive(M,A,r) == \<forall>x[M]. x\<in>A \<longrightarrow> <x,x> \<notin> r"
   
 definition
   transitive_rel :: "[i=>o,i,i]=>o" where
     "transitive_rel(M,A,r) == 
-        \<forall>x[M]. x\<in>A --> (\<forall>y[M]. y\<in>A --> (\<forall>z[M]. z\<in>A --> 
-                          <x,y>\<in>r --> <y,z>\<in>r --> <x,z>\<in>r))"
+        \<forall>x[M]. x\<in>A \<longrightarrow> (\<forall>y[M]. y\<in>A \<longrightarrow> (\<forall>z[M]. z\<in>A \<longrightarrow> 
+                          <x,y>\<in>r \<longrightarrow> <y,z>\<in>r \<longrightarrow> <x,z>\<in>r))"
 
 definition
   linear_rel :: "[i=>o,i,i]=>o" where
     "linear_rel(M,A,r) == 
-        \<forall>x[M]. x\<in>A --> (\<forall>y[M]. y\<in>A --> <x,y>\<in>r | x=y | <y,x>\<in>r)"
+        \<forall>x[M]. x\<in>A \<longrightarrow> (\<forall>y[M]. y\<in>A \<longrightarrow> <x,y>\<in>r | x=y | <y,x>\<in>r)"
 
 definition
   wellfounded :: "[i=>o,i]=>o" where
     --{*EVERY non-empty set has an @{text r}-minimal element*}
     "wellfounded(M,r) == 
-        \<forall>x[M]. x\<noteq>0 --> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & <z,y> \<in> r))"
+        \<forall>x[M]. x\<noteq>0 \<longrightarrow> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & <z,y> \<in> r))"
 definition
   wellfounded_on :: "[i=>o,i,i]=>o" where
     --{*every non-empty SUBSET OF @{text A} has an @{text r}-minimal element*}
     "wellfounded_on(M,A,r) == 
-        \<forall>x[M]. x\<noteq>0 --> x\<subseteq>A --> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & <z,y> \<in> r))"
+        \<forall>x[M]. x\<noteq>0 \<longrightarrow> x\<subseteq>A \<longrightarrow> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & <z,y> \<in> r))"
 
 definition
   wellordered :: "[i=>o,i,i]=>o" where
@@ -51,15 +51,15 @@ definition
 subsubsection {*Trivial absoluteness proofs*}
 
 lemma (in M_basic) irreflexive_abs [simp]: 
-     "M(A) ==> irreflexive(M,A,r) <-> irrefl(A,r)"
+     "M(A) ==> irreflexive(M,A,r) \<longleftrightarrow> irrefl(A,r)"
 by (simp add: irreflexive_def irrefl_def)
 
 lemma (in M_basic) transitive_rel_abs [simp]: 
-     "M(A) ==> transitive_rel(M,A,r) <-> trans[A](r)"
+     "M(A) ==> transitive_rel(M,A,r) \<longleftrightarrow> trans[A](r)"
 by (simp add: transitive_rel_def trans_on_def)
 
 lemma (in M_basic) linear_rel_abs [simp]: 
-     "M(A) ==> linear_rel(M,A,r) <-> linear(A,r)"
+     "M(A) ==> linear_rel(M,A,r) \<longleftrightarrow> linear(A,r)"
 by (simp add: linear_rel_def linear_def)
 
 lemma (in M_basic) wellordered_is_trans_on: 
@@ -86,7 +86,7 @@ by (simp add: wellfounded_on_def, blast)
 subsubsection {*Well-founded relations*}
 
 lemma  (in M_basic) wellfounded_on_iff_wellfounded:
-     "wellfounded_on(M,A,r) <-> wellfounded(M, r \<inter> A*A)"
+     "wellfounded_on(M,A,r) \<longleftrightarrow> wellfounded(M, r \<inter> A*A)"
 apply (simp add: wellfounded_on_def wellfounded_def, safe)
  apply force
 apply (drule_tac x=x in rspec, assumption, blast) 
@@ -101,14 +101,14 @@ lemma (in M_basic) wellfounded_on_field_imp_wellfounded:
 by (simp add: wellfounded_def wellfounded_on_iff_wellfounded, fast)
 
 lemma (in M_basic) wellfounded_iff_wellfounded_on_field:
-     "M(r) ==> wellfounded(M,r) <-> wellfounded_on(M, field(r), r)"
+     "M(r) ==> wellfounded(M,r) \<longleftrightarrow> wellfounded_on(M, field(r), r)"
 by (blast intro: wellfounded_imp_wellfounded_on
                  wellfounded_on_field_imp_wellfounded)
 
 (*Consider the least z in domain(r) such that P(z) does not hold...*)
 lemma (in M_basic) wellfounded_induct: 
      "[| wellfounded(M,r); M(a); M(r); separation(M, \<lambda>x. ~P(x));  
-         \<forall>x. M(x) & (\<forall>y. <y,x> \<in> r --> P(y)) --> P(x) |]
+         \<forall>x. M(x) & (\<forall>y. <y,x> \<in> r \<longrightarrow> P(y)) \<longrightarrow> P(x) |]
       ==> P(a)";
 apply (simp (no_asm_use) add: wellfounded_def)
 apply (drule_tac x="{z \<in> domain(r). ~P(z)}" in rspec)
@@ -117,11 +117,11 @@ done
 
 lemma (in M_basic) wellfounded_on_induct: 
      "[| a\<in>A;  wellfounded_on(M,A,r);  M(A);  
-       separation(M, \<lambda>x. x\<in>A --> ~P(x));  
-       \<forall>x\<in>A. M(x) & (\<forall>y\<in>A. <y,x> \<in> r --> P(y)) --> P(x) |]
+       separation(M, \<lambda>x. x\<in>A \<longrightarrow> ~P(x));  
+       \<forall>x\<in>A. M(x) & (\<forall>y\<in>A. <y,x> \<in> r \<longrightarrow> P(y)) \<longrightarrow> P(x) |]
       ==> P(a)";
 apply (simp (no_asm_use) add: wellfounded_on_def)
-apply (drule_tac x="{z\<in>A. z\<in>A --> ~P(z)}" in rspec)
+apply (drule_tac x="{z\<in>A. z\<in>A \<longrightarrow> ~P(z)}" in rspec)
 apply (blast intro: transM)+
 done
 
@@ -158,11 +158,11 @@ subsection{* Relativized versions of order-isomorphisms and order types *}
 
 lemma (in M_basic) order_isomorphism_abs [simp]: 
      "[| M(A); M(B); M(f) |] 
-      ==> order_isomorphism(M,A,r,B,s,f) <-> f \<in> ord_iso(A,r,B,s)"
+      ==> order_isomorphism(M,A,r,B,s,f) \<longleftrightarrow> f \<in> ord_iso(A,r,B,s)"
 by (simp add: apply_closed order_isomorphism_def ord_iso_def)
 
 lemma (in M_basic) pred_set_abs [simp]: 
-     "[| M(r); M(B) |] ==> pred_set(M,A,x,r,B) <-> B = Order.pred(A,x,r)"
+     "[| M(r); M(B) |] ==> pred_set(M,A,x,r,B) \<longleftrightarrow> B = Order.pred(A,x,r)"
 apply (simp add: pred_set_def Order.pred_def)
 apply (blast dest: transM) 
 done
@@ -174,7 +174,7 @@ apply (insert pred_separation [of r x], simp)
 done
 
 lemma (in M_basic) membership_abs [simp]: 
-     "[| M(r); M(A) |] ==> membership(M,A,r) <-> r = Memrel(A)"
+     "[| M(r); M(A) |] ==> membership(M,A,r) \<longleftrightarrow> r = Memrel(A)"
 apply (simp add: membership_def Memrel_def, safe)
   apply (rule equalityI) 
    apply clarify 

@@ -40,13 +40,13 @@ lemma sats_formula_rec_fm:
   assumes MH_iff_sats: 
       "!!a0 a1 a2 a3 a4 a5 a6 a7 a8 a9 a10. 
         [|a0\<in>A; a1\<in>A; a2\<in>A; a3\<in>A; a4\<in>A; a5\<in>A; a6\<in>A; a7\<in>A; a8\<in>A; a9\<in>A; a10\<in>A|]
-        ==> MH(a2, a1, a0) <-> 
+        ==> MH(a2, a1, a0) \<longleftrightarrow> 
             sats(A, p, Cons(a0,Cons(a1,Cons(a2,Cons(a3,
                           Cons(a4,Cons(a5,Cons(a6,Cons(a7,
                                   Cons(a8,Cons(a9,Cons(a10,env))))))))))))"
   shows 
       "[|x \<in> nat; z \<in> nat; env \<in> list(A)|]
-       ==> sats(A, formula_rec_fm(p,x,z), env) <-> 
+       ==> sats(A, formula_rec_fm(p,x,z), env) \<longleftrightarrow> 
            is_formula_rec(##A, MH, nth(x,env), nth(z,env))"
 by (simp add: formula_rec_fm_def sats_is_transrec_fm is_formula_rec_def 
               MH_iff_sats [THEN iff_sym])
@@ -55,14 +55,14 @@ lemma formula_rec_iff_sats:
   assumes MH_iff_sats: 
       "!!a0 a1 a2 a3 a4 a5 a6 a7 a8 a9 a10. 
         [|a0\<in>A; a1\<in>A; a2\<in>A; a3\<in>A; a4\<in>A; a5\<in>A; a6\<in>A; a7\<in>A; a8\<in>A; a9\<in>A; a10\<in>A|]
-        ==> MH(a2, a1, a0) <-> 
+        ==> MH(a2, a1, a0) \<longleftrightarrow> 
             sats(A, p, Cons(a0,Cons(a1,Cons(a2,Cons(a3,
                           Cons(a4,Cons(a5,Cons(a6,Cons(a7,
                                   Cons(a8,Cons(a9,Cons(a10,env))))))))))))"
   shows
   "[|nth(i,env) = x; nth(k,env) = z; 
       i \<in> nat; k \<in> nat; env \<in> list(A)|]
-   ==> is_formula_rec(##A, MH, x, z) <-> sats(A, formula_rec_fm(p,i,k), env)" 
+   ==> is_formula_rec(##A, MH, x, z) \<longleftrightarrow> sats(A, formula_rec_fm(p,i,k), env)" 
 by (simp add: sats_formula_rec_fm [OF MH_iff_sats])
 
 theorem formula_rec_reflection:
@@ -90,7 +90,7 @@ by (simp add: satisfies_fm_def)
 
 lemma sats_satisfies_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, satisfies_fm(x,y,z), env) <->
+    ==> sats(A, satisfies_fm(x,y,z), env) \<longleftrightarrow>
         is_satisfies(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: satisfies_fm_def is_satisfies_def sats_satisfies_MH_fm
               sats_formula_rec_fm)
@@ -98,7 +98,7 @@ by (simp add: satisfies_fm_def is_satisfies_def sats_satisfies_MH_fm
 lemma satisfies_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> is_satisfies(##A, x, y, z) <-> sats(A, satisfies_fm(i,j,k), env)"
+       ==> is_satisfies(##A, x, y, z) \<longleftrightarrow> sats(A, satisfies_fm(i,j,k), env)"
 by (simp add: sats_satisfies_fm)
 
 theorem satisfies_reflection:
@@ -124,12 +124,12 @@ definition
   is_DPow_sats :: "[i=>o,i,i,i,i] => o" where
    "is_DPow_sats(M,A,env,p,x) ==
       \<forall>n1[M]. \<forall>e[M]. \<forall>sp[M]. 
-             is_satisfies(M,A,p,sp) --> is_Cons(M,x,env,e) --> 
-             fun_apply(M, sp, e, n1) --> number1(M, n1)"
+             is_satisfies(M,A,p,sp) \<longrightarrow> is_Cons(M,x,env,e) \<longrightarrow> 
+             fun_apply(M, sp, e, n1) \<longrightarrow> number1(M, n1)"
 
 lemma (in M_satisfies) DPow_sats_abs:
     "[| M(A); env \<in> list(A); p \<in> formula; M(x) |]
-    ==> is_DPow_sats(M,A,env,p,x) <-> sats(A, p, Cons(x,env))"
+    ==> is_DPow_sats(M,A,env,p,x) \<longleftrightarrow> sats(A, p, Cons(x,env))"
 apply (subgoal_tac "M(env)") 
  apply (simp add: is_DPow_sats_def satisfies_closed satisfies_abs) 
 apply (blast dest: transM) 
@@ -146,8 +146,8 @@ subsubsection{*The Operator @{term is_DPow_sats}, Internalized*}
 
 (* is_DPow_sats(M,A,env,p,x) ==
       \<forall>n1[M]. \<forall>e[M]. \<forall>sp[M]. 
-             is_satisfies(M,A,p,sp) --> is_Cons(M,x,env,e) --> 
-             fun_apply(M, sp, e, n1) --> number1(M, n1) *)
+             is_satisfies(M,A,p,sp) \<longrightarrow> is_Cons(M,x,env,e) \<longrightarrow> 
+             fun_apply(M, sp, e, n1) \<longrightarrow> number1(M, n1) *)
 
 definition
   DPow_sats_fm :: "[i,i,i,i]=>i" where
@@ -164,14 +164,14 @@ by (simp add: DPow_sats_fm_def)
 
 lemma sats_DPow_sats_fm [simp]:
    "[| u \<in> nat; x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, DPow_sats_fm(u,x,y,z), env) <->
+    ==> sats(A, DPow_sats_fm(u,x,y,z), env) \<longleftrightarrow>
         is_DPow_sats(##A, nth(u,env), nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: DPow_sats_fm_def is_DPow_sats_def)
 
 lemma DPow_sats_iff_sats:
   "[| nth(u,env) = nu; nth(x,env) = nx; nth(y,env) = ny; nth(z,env) = nz;
       u \<in> nat; x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-   ==> is_DPow_sats(##A,nu,nx,ny,nz) <->
+   ==> is_DPow_sats(##A,nu,nx,ny,nz) \<longleftrightarrow>
        sats(A, DPow_sats_fm(u,x,y,z), env)"
 by simp
 
@@ -223,13 +223,13 @@ text{*Relativization of the Operator @{term DPow'}*}
 definition 
   is_DPow' :: "[i=>o,i,i] => o" where
     "is_DPow'(M,A,Z) == 
-       \<forall>X[M]. X \<in> Z <-> 
+       \<forall>X[M]. X \<in> Z \<longleftrightarrow> 
          subset(M,X,A) & 
            (\<exists>env[M]. \<exists>p[M]. mem_formula(M,p) & mem_list(M,A,env) &
                     is_Collect(M, A, is_DPow_sats(M,A,env,p), X))"
 
 lemma (in M_DPow) DPow'_abs:
-    "[|M(A); M(Z)|] ==> is_DPow'(M,A,Z) <-> Z = DPow'(A)"
+    "[|M(A); M(Z)|] ==> is_DPow'(M,A,Z) \<longleftrightarrow> Z = DPow'(A)"
 apply (rule iffI)
  prefer 2 apply (simp add: is_DPow'_def DPow'_def Collect_DPow_sats_abs) 
 apply (rule M_equalityI) 
@@ -310,7 +310,7 @@ text{*The formula @{term is_P} has one free variable, 0, and it is
 enclosed within a single quantifier.*}
 
 (* is_Collect :: "[i=>o,i,i=>o,i] => o"
-    "is_Collect(M,A,P,z) == \<forall>x[M]. x \<in> z <-> x \<in> A & P(x)" *)
+    "is_Collect(M,A,P,z) == \<forall>x[M]. x \<in> z \<longleftrightarrow> x \<in> A & P(x)" *)
 
 definition
   Collect_fm :: "[i, i, i]=>i" where
@@ -325,20 +325,20 @@ by (simp add: Collect_fm_def)
 
 lemma sats_Collect_fm:
   assumes is_P_iff_sats: 
-      "!!a. a \<in> A ==> is_P(a) <-> sats(A, p, Cons(a, env))"
+      "!!a. a \<in> A ==> is_P(a) \<longleftrightarrow> sats(A, p, Cons(a, env))"
   shows 
       "[|x \<in> nat; y \<in> nat; env \<in> list(A)|]
-       ==> sats(A, Collect_fm(x,p,y), env) <->
+       ==> sats(A, Collect_fm(x,p,y), env) \<longleftrightarrow>
            is_Collect(##A, nth(x,env), is_P, nth(y,env))"
 by (simp add: Collect_fm_def is_Collect_def is_P_iff_sats [THEN iff_sym])
 
 lemma Collect_iff_sats:
   assumes is_P_iff_sats: 
-      "!!a. a \<in> A ==> is_P(a) <-> sats(A, p, Cons(a, env))"
+      "!!a. a \<in> A ==> is_P(a) \<longleftrightarrow> sats(A, p, Cons(a, env))"
   shows 
   "[| nth(i,env) = x; nth(j,env) = y;
       i \<in> nat; j \<in> nat; env \<in> list(A)|]
-   ==> is_Collect(##A, x, is_P, y) <-> sats(A, Collect_fm(i,p,j), env)"
+   ==> is_Collect(##A, x, is_P, y) \<longleftrightarrow> sats(A, Collect_fm(i,p,j), env)"
 by (simp add: sats_Collect_fm [OF is_P_iff_sats])
 
 
@@ -361,7 +361,7 @@ text{*BEWARE!  The formula @{term is_P} has free variables 0, 1
  and not the usual 1, 0!  It is enclosed within two quantifiers.*}
 
 (*  is_Replace :: "[i=>o,i,[i,i]=>o,i] => o"
-    "is_Replace(M,A,P,z) == \<forall>u[M]. u \<in> z <-> (\<exists>x[M]. x\<in>A & P(x,u))" *)
+    "is_Replace(M,A,P,z) == \<forall>u[M]. u \<in> z \<longleftrightarrow> (\<exists>x[M]. x\<in>A & P(x,u))" *)
 
 definition
   Replace_fm :: "[i, i, i]=>i" where
@@ -377,21 +377,21 @@ by (simp add: Replace_fm_def)
 lemma sats_Replace_fm:
   assumes is_P_iff_sats: 
       "!!a b. [|a \<in> A; b \<in> A|] 
-              ==> is_P(a,b) <-> sats(A, p, Cons(a,Cons(b,env)))"
+              ==> is_P(a,b) \<longleftrightarrow> sats(A, p, Cons(a,Cons(b,env)))"
   shows 
       "[|x \<in> nat; y \<in> nat; env \<in> list(A)|]
-       ==> sats(A, Replace_fm(x,p,y), env) <->
+       ==> sats(A, Replace_fm(x,p,y), env) \<longleftrightarrow>
            is_Replace(##A, nth(x,env), is_P, nth(y,env))"
 by (simp add: Replace_fm_def is_Replace_def is_P_iff_sats [THEN iff_sym])
 
 lemma Replace_iff_sats:
   assumes is_P_iff_sats: 
       "!!a b. [|a \<in> A; b \<in> A|] 
-              ==> is_P(a,b) <-> sats(A, p, Cons(a,Cons(b,env)))"
+              ==> is_P(a,b) \<longleftrightarrow> sats(A, p, Cons(a,Cons(b,env)))"
   shows 
   "[| nth(i,env) = x; nth(j,env) = y;
       i \<in> nat; j \<in> nat; env \<in> list(A)|]
-   ==> is_Replace(##A, x, is_P, y) <-> sats(A, Replace_fm(i,p,j), env)"
+   ==> is_Replace(##A, x, is_P, y) \<longleftrightarrow> sats(A, Replace_fm(i,p,j), env)"
 by (simp add: sats_Replace_fm [OF is_P_iff_sats])
 
 
@@ -412,7 +412,7 @@ done
 subsubsection{*The Operator @{term is_DPow'}, Internalized*}
 
 (*  "is_DPow'(M,A,Z) == 
-       \<forall>X[M]. X \<in> Z <-> 
+       \<forall>X[M]. X \<in> Z \<longleftrightarrow> 
          subset(M,X,A) & 
            (\<exists>env[M]. \<exists>p[M]. mem_formula(M,p) & mem_list(M,A,env) &
                     is_Collect(M, A, is_DPow_sats(M,A,env,p), X))" *)
@@ -435,14 +435,14 @@ by (simp add: DPow'_fm_def)
 
 lemma sats_DPow'_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
-    ==> sats(A, DPow'_fm(x,y), env) <->
+    ==> sats(A, DPow'_fm(x,y), env) \<longleftrightarrow>
         is_DPow'(##A, nth(x,env), nth(y,env))"
 by (simp add: DPow'_fm_def is_DPow'_def sats_subset_fm' sats_Collect_fm)
 
 lemma DPow'_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; 
           i \<in> nat; j \<in> nat; env \<in> list(A)|]
-       ==> is_DPow'(##A, x, y) <-> sats(A, DPow'_fm(i,j), env)"
+       ==> is_DPow'(##A, x, y) \<longleftrightarrow> sats(A, DPow'_fm(i,j), env)"
 by (simp add: sats_DPow'_fm)
 
 theorem DPow'_reflection:
@@ -463,7 +463,7 @@ definition
 
 lemma (in M_DPow) transrec_body_abs:
      "[|M(x); M(g); M(z)|]
-    ==> transrec_body(M,g,x,y,z) <-> y \<in> x & z = DPow'(g`y)"
+    ==> transrec_body(M,g,x,y,z) \<longleftrightarrow> y \<in> x & z = DPow'(g`y)"
 by (simp add: transrec_body_def DPow'_abs transM [of _ x])
 
 locale M_Lset = M_DPow +
@@ -490,7 +490,7 @@ by (blast intro: DPow_apply_closed RepFun_closed2 strong_rep')
 
 lemma (in M_Lset) RepFun_DPow_abs:
      "[|M(x); M(f); M(r) |]
-      ==> is_Replace(M, x, \<lambda>y z. transrec_body(M,f,x,y,z), r) <->
+      ==> is_Replace(M, x, \<lambda>y z. transrec_body(M,f,x,y,z), r) \<longleftrightarrow>
           r =  {DPow'(f`y). y\<in>x}"
 apply (simp add: transrec_body_abs RepFun_def) 
 apply (rule iff_trans) 
@@ -517,7 +517,7 @@ definition
 
 lemma (in M_Lset) Lset_abs:
   "[|Ord(i);  M(i);  M(z)|] 
-   ==> is_Lset(M,i,z) <-> z = Lset(i)"
+   ==> is_Lset(M,i,z) \<longleftrightarrow> z = Lset(i)"
 apply (simp add: is_Lset_def Lset_eq_transrec_DPow') 
 apply (rule transrec_abs)  
 apply (simp_all add: transrec_rep' relation2_def RepFun_DPow_apply_closed)

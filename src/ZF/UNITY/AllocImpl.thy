@@ -29,7 +29,7 @@ definition
         \<exists>k. k = length(s`giv) &
             t = s(giv := s`giv @ [nth(k, s`ask)],
                   available_tok := s`available_tok #- nth(k, s`ask)) &
-            k < length(s`ask) & nth(k, s`ask) le s`available_tok}"
+            k < length(s`ask) & nth(k, s`ask) \<le> s`available_tok}"
 
 definition
   "alloc_rel_act ==
@@ -73,7 +73,7 @@ declare  alloc_rel_act_def [THEN def_act_simp, simp]
 
 
 lemma alloc_prog_ok_iff:
-"\<forall>G \<in> program. (alloc_prog ok G) <->
+"\<forall>G \<in> program. (alloc_prog ok G) \<longleftrightarrow>
      (G \<in> preserves(lift(giv)) & G \<in> preserves(lift(available_tok)) &
        G \<in> preserves(lift(NbR)) &  alloc_prog \<in> Allowed(G))"
 by (auto simp add: ok_iff_Allowed alloc_prog_def [THEN def_prg_Allowed])
@@ -167,7 +167,7 @@ apply (auto dest: ActsD simp add: Stable_def Constrains_def constrains_def)
 apply (drule_tac f = "lift (rel) " in preserves_imp_eq)
 apply assumption+
 apply (force dest: ActsD)
-apply (erule_tac V = "\<forall>x \<in> Acts (alloc_prog) Un Acts (G). ?P(x)" in thin_rl)
+apply (erule_tac V = "\<forall>x \<in> Acts (alloc_prog) \<union> Acts (G). ?P(x)" in thin_rl)
 apply (erule_tac V = "alloc_prog \<in> stable (?u)" in thin_rl)
 apply (drule_tac a = "xc`rel" and f = "lift (rel)" in Increasing_imp_Stable)
 apply (auto simp add: Stable_def Constrains_def constrains_def)
@@ -327,7 +327,7 @@ lemma alloc_prog_giv_Ensures_lemma:
   alloc_prog \<squnion> G \<in>
   {s\<in>state. nth(length(s`giv), s`ask) \<le> s`available_tok} \<inter>
   {s\<in>state.  k < length(s`ask)} \<inter> {s\<in>state. length(s`giv)=k}
-  Ensures {s\<in>state. ~ k <length(s`ask)} Un {s\<in>state. length(s`giv) \<noteq> k}"
+  Ensures {s\<in>state. ~ k <length(s`ask)} \<union> {s\<in>state. length(s`giv) \<noteq> k}"
 apply (rule EnsuresI, auto)
 apply (erule_tac [2] V = "G\<notin>?u" in thin_rl)
 apply (rule_tac [2] act = alloc_giv_act in transientI)
@@ -339,7 +339,7 @@ apply (erule_tac [2] swap)
 apply (rule_tac [2] ReplaceI)
 apply (rule_tac [2] x = "x (giv := x ` giv @ [nth (length(x`giv), x ` ask) ], available_tok := x ` available_tok #- nth (length(x`giv), x ` ask))" in exI)
 apply (auto intro!: state_update_type simp add: app_type)
-apply (rule_tac A = "{s\<in>state . nth (length(s ` giv), s ` ask) \<le> s ` available_tok} \<inter> {s\<in>state . k < length(s ` ask) } \<inter> {s\<in>state. length(s`giv) =k}" and A' = "{s\<in>state . nth (length(s ` giv), s ` ask) \<le> s ` available_tok} Un {s\<in>state. ~ k < length(s`ask) } Un {s\<in>state . length(s ` giv) \<noteq> k}" in Constrains_weaken)
+apply (rule_tac A = "{s\<in>state . nth (length(s ` giv), s ` ask) \<le> s ` available_tok} \<inter> {s\<in>state . k < length(s ` ask) } \<inter> {s\<in>state. length(s`giv) =k}" and A' = "{s\<in>state . nth (length(s ` giv), s ` ask) \<le> s ` available_tok} \<union> {s\<in>state. ~ k < length(s`ask) } \<union> {s\<in>state . length(s ` giv) \<noteq> k}" in Constrains_weaken)
 apply (auto dest: ActsD simp add: Constrains_def constrains_def alloc_prog_def [THEN def_prg_Acts] alloc_prog_ok_iff)
 apply (subgoal_tac "length(xa ` giv @ [nth (length(xa ` giv), xa ` ask) ]) = length(xa ` giv) #+ 1")
 apply (rule_tac [2] trans)
@@ -377,7 +377,7 @@ lemma alloc_prog_giv_LeadsTo_lemma:
         {s\<in>state.  k < length(s`ask)} \<inter>
         {s\<in>state. length(s`giv) = k}
         LeadsTo {s\<in>state. k < length(s`giv)}"
-apply (subgoal_tac "alloc_prog \<squnion> G \<in> {s\<in>state. nth (length(s`giv), s`ask) \<le> s`available_tok} \<inter> {s\<in>state. k < length(s`ask) } \<inter> {s\<in>state. length(s`giv) = k} LeadsTo {s\<in>state. ~ k <length(s`ask) } Un {s\<in>state. length(s`giv) \<noteq> k}")
+apply (subgoal_tac "alloc_prog \<squnion> G \<in> {s\<in>state. nth (length(s`giv), s`ask) \<le> s`available_tok} \<inter> {s\<in>state. k < length(s`ask) } \<inter> {s\<in>state. length(s`giv) = k} LeadsTo {s\<in>state. ~ k <length(s`ask) } \<union> {s\<in>state. length(s`giv) \<noteq> k}")
 prefer 2 apply (blast intro: alloc_prog_giv_Ensures_lemma [THEN LeadsTo_Basis])
 apply (subgoal_tac "alloc_prog \<squnion> G \<in> Stable ({s\<in>state. k < length(s`ask) }) ")
 apply (drule PSP_Stable, assumption)
@@ -401,7 +401,7 @@ lemma alloc_prog_Always_lemma:
     alloc_prog \<squnion> G \<in> Incr(lift(ask));
     alloc_prog \<squnion> G \<in> Incr(lift(rel)) |]
   ==> alloc_prog \<squnion> G \<in>
-        Always({s\<in>state. tokens(s`giv) \<le> tokens(take(s`NbR, s`rel)) -->
+        Always({s\<in>state. tokens(s`giv) \<le> tokens(take(s`NbR, s`rel)) \<longrightarrow>
                 NbT \<le> s`available_tok})"
 apply (subgoal_tac
        "alloc_prog \<squnion> G
@@ -429,8 +429,8 @@ by (blast intro: LeadsTo_weaken LeadsTo_Un_Un)
 
 lemma PSP_StableI:
 "[| F \<in> Stable(C); F \<in> A - C LeadsTo B;
-   F \<in> A \<inter> C LeadsTo B Un (state - C) |] ==> F \<in> A LeadsTo  B"
-apply (rule_tac A = " (A-C) Un (A \<inter> C)" in LeadsTo_weaken_L)
+   F \<in> A \<inter> C LeadsTo B \<union> (state - C) |] ==> F \<in> A LeadsTo  B"
+apply (rule_tac A = " (A-C) \<union> (A \<inter> C)" in LeadsTo_weaken_L)
  prefer 2 apply blast
 apply (rule LeadsTo_Un, assumption)
 apply (blast intro: LeadsTo_weaken dest: PSP_Stable)

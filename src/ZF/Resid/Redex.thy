@@ -53,7 +53,7 @@ notation (xsymbols)
 
 
 inductive
-  domains       "Ssub" <= "redexes*redexes"
+  domains       "Ssub" \<subseteq> "redexes*redexes"
   intros
     Sub_Var:     "n \<in> nat ==> Var(n)<== Var(n)"
     Sub_Fun:     "[|u<== v|]==> Fun(u)<== Fun(v)"
@@ -63,7 +63,7 @@ inductive
   type_intros    redexes.intros bool_typechecks
 
 inductive
-  domains       "Scomp" <= "redexes*redexes"
+  domains       "Scomp" \<subseteq> "redexes*redexes"
   intros
     Comp_Var:    "n \<in> nat ==> Var(n) ~ Var(n)"
     Comp_Fun:    "[|u ~ v|]==> Fun(u) ~ Fun(v)"
@@ -72,7 +72,7 @@ inductive
   type_intros    redexes.intros bool_typechecks
 
 inductive
-  domains       "Sreg" <= redexes
+  domains       "Sreg" \<subseteq> redexes
   intros
     Reg_Var:     "n \<in> nat ==> regular(Var(n))"
     Reg_Fun:     "[|regular(u)|]==> regular(Fun(u))"
@@ -146,10 +146,10 @@ by (erule redexes.induct, blast+)
 lemma comp_sym: "u ~ v ==> v ~ u"
 by (erule Scomp.induct, blast+)
 
-lemma comp_sym_iff: "u ~ v <-> v ~ u"
+lemma comp_sym_iff: "u ~ v \<longleftrightarrow> v ~ u"
 by (blast intro: comp_sym)
 
-lemma comp_trans [rule_format]: "u ~ v ==> \<forall>w. v ~ w-->u ~ w"
+lemma comp_trans [rule_format]: "u ~ v ==> \<forall>w. v ~ w\<longrightarrow>u ~ w"
 by (erule Scomp.induct, blast+)
 
 (* ------------------------------------------------------------------------- *)
@@ -174,7 +174,7 @@ by (erule Scomp.induct, simp_all add: or_commute)
 (* ------------------------------------------------------------------------- *)
 
 lemma union_preserve_regular [rule_format]:
-     "u ~ v ==> regular(u)-->regular(v)-->regular(u un v)"
+     "u ~ v ==> regular(u)\<longrightarrow>regular(v)\<longrightarrow>regular(u un v)"
   by (erule Scomp.induct, auto)
 
 end

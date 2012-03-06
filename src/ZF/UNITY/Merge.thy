@@ -107,14 +107,14 @@ apply (auto dest: guarantees_type [THEN subsetD]
 done
 
 lemma (in merge) merge_Allowed: 
-     "Allowed(M) = (preserves(lift(Out)) Int preserves(lift(iOut)))"
+     "Allowed(M) = (preserves(lift(Out)) \<inter> preserves(lift(iOut)))"
 apply (insert merge_spec preserves_type [of "lift (Out)"])
 apply (auto simp add: merge_spec_def merge_allowed_acts_def Allowed_def safety_prop_Acts_iff)
 done
 
 lemma (in merge) M_ok_iff: 
      "G \<in> program ==>  
-       M ok G <-> (G \<in> preserves(lift(Out)) &   
+       M ok G \<longleftrightarrow> (G \<in> preserves(lift(Out)) &   
                    G \<in> preserves(lift(iOut)) & M \<in> Allowed(G))"
 apply (cut_tac merge_spec)
 apply (auto simp add: merge_Allowed ok_iff_Allowed)
@@ -166,7 +166,7 @@ apply (subgoal_tac "length (x ` iOut) \<in> nat")
 apply (subgoal_tac "xa \<in> nat")
 apply (simp_all add: Ord_mem_iff_lt)
 prefer 2 apply (blast intro: lt_trans)
-apply (drule_tac x = "nth (xa, x`iOut)" and P = "%elt. ?X (elt) --> elt<Nclients" in bspec)
+apply (drule_tac x = "nth (xa, x`iOut)" and P = "%elt. ?X (elt) \<longrightarrow> elt<Nclients" in bspec)
 apply (simp add: ltI nat_into_Ord)
 apply (blast dest: ltD)
 done

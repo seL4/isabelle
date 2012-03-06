@@ -29,7 +29,7 @@ abbreviation (input)
 
 (** increasing **)
 
-lemma increasing_type: "increasing[A](r, f) <= program"
+lemma increasing_type: "increasing[A](r, f) \<subseteq> program"
 by (unfold increasing_def, blast)
 
 lemma increasing_into_program: "F \<in> increasing[A](r, f) ==> F \<in> program"
@@ -47,7 +47,7 @@ apply (auto dest: stable_type [THEN subsetD] intro: st0_in_state)
 done
 
 lemma increasing_constant [simp]: 
- "F \<in> increasing[A](r, %s. c) <-> F \<in> program & c \<in> A"
+ "F \<in> increasing[A](r, %s. c) \<longleftrightarrow> F \<in> program & c \<in> A"
 apply (unfold increasing_def stable_def)
 apply (subgoal_tac "\<exists>x. x \<in> state")
 apply (auto dest: stable_type [THEN subsetD] intro: st0_in_state)
@@ -55,7 +55,7 @@ done
 
 lemma subset_increasing_comp: 
 "[| mono1(A, r, B, s, g); refl(A, r); trans[B](s)  |] ==>  
-   increasing[A](r, f) <= increasing[B](s, g comp f)"
+   increasing[A](r, f) \<subseteq> increasing[B](s, g comp f)"
 apply (unfold increasing_def stable_def part_order_def 
        constrains_def mono1_def metacomp_def, clarify, simp)
 apply clarify
@@ -79,11 +79,11 @@ lemma imp_increasing_comp:
 by (rule subset_increasing_comp [THEN subsetD], auto)
 
 lemma strict_increasing: 
-   "increasing[nat](Le, f) <= increasing[nat](Lt, f)"
+   "increasing[nat](Le, f) \<subseteq> increasing[nat](Lt, f)"
 by (unfold increasing_def Lt_def, auto)
 
 lemma strict_gt_increasing: 
-   "increasing[nat](Ge, f) <= increasing[nat](Gt, f)"
+   "increasing[nat](Ge, f) \<subseteq> increasing[nat](Gt, f)"
 apply (unfold increasing_def Gt_def Ge_def, auto)
 apply (erule natE)
 apply (auto simp add: stable_def)
@@ -98,7 +98,7 @@ apply (unfold increasing_def Increasing_def)
 apply (auto intro: stable_imp_Stable)
 done
 
-lemma Increasing_type: "Increasing[A](r, f) <= program"
+lemma Increasing_type: "Increasing[A](r, f) \<subseteq> program"
 by (unfold Increasing_def, auto)
 
 lemma Increasing_into_program: "F \<in> Increasing[A](r, f) ==> F \<in> program"
@@ -116,14 +116,14 @@ apply (auto intro: st0_in_state)
 done
 
 lemma Increasing_constant [simp]: 
-     "F \<in> Increasing[A](r, %s. c) <-> F \<in> program & (c \<in> A)"
+     "F \<in> Increasing[A](r, %s. c) \<longleftrightarrow> F \<in> program & (c \<in> A)"
 apply (subgoal_tac "\<exists>x. x \<in> state")
 apply (auto dest!: IncreasingD intro: st0_in_state increasing_imp_Increasing)
 done
 
 lemma subset_Increasing_comp: 
 "[| mono1(A, r, B, s, g); refl(A, r); trans[B](s) |] ==>  
-   Increasing[A](r, f) <= Increasing[B](s, g comp f)"
+   Increasing[A](r, f) \<subseteq> Increasing[B](s, g comp f)"
 apply (unfold Increasing_def Stable_def Constrains_def part_order_def 
        constrains_def mono1_def metacomp_def, safe)
 apply (simp_all add: ActsD)
@@ -149,7 +149,7 @@ lemma imp_Increasing_comp:
 apply (rule subset_Increasing_comp [THEN subsetD], auto)
 done
   
-lemma strict_Increasing: "Increasing[nat](Le, f) <= Increasing[nat](Lt, f)"
+lemma strict_Increasing: "Increasing[nat](Le, f) \<subseteq> Increasing[nat](Lt, f)"
 by (unfold Increasing_def Lt_def, auto)
 
 lemma strict_gt_Increasing: "Increasing[nat](Ge, f)<= Increasing[nat](Gt, f)"

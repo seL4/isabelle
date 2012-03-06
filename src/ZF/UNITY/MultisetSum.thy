@@ -89,16 +89,16 @@ by (erule Fin_induct, auto)
 (*The reversed orientation looks more natural, but LOOPS as a simprule!*)
 lemma msetsum_Un_Int: 
      "[| C \<in> Fin(A); D \<in> Fin(A); \<forall>x \<in> A. multiset(g(x)) & mset_of(g(x))\<subseteq>B |]
-      ==> msetsum(g, C Un D, B) +# msetsum(g, C Int D, B)  
+      ==> msetsum(g, C \<union> D, B) +# msetsum(g, C \<inter> D, B)  
         = msetsum(g, C, B) +# msetsum(g, D, B)"
 apply (erule Fin_induct)
-apply (subgoal_tac [2] "cons (x, y) Un D = cons (x, y Un D) ")
+apply (subgoal_tac [2] "cons (x, y) \<union> D = cons (x, y \<union> D) ")
 apply (auto simp add: msetsum_multiset)
-apply (subgoal_tac "y Un D \<in> Fin (A) & y Int D \<in> Fin (A) ")
+apply (subgoal_tac "y \<union> D \<in> Fin (A) & y \<inter> D \<in> Fin (A) ")
 apply clarify
 apply (case_tac "x \<in> D")
-apply (subgoal_tac [2] "cons (x, y) Int D = y Int D")
-apply (subgoal_tac "cons (x, y) Int D = cons (x, y Int D) ")
+apply (subgoal_tac [2] "cons (x, y) \<inter> D = y \<inter> D")
+apply (subgoal_tac "cons (x, y) \<inter> D = cons (x, y \<inter> D) ")
 apply (simp_all (no_asm_simp) add: cons_absorb munion_assoc msetsum_multiset)
 apply (simp (no_asm_simp) add: munion_lcommute msetsum_multiset)
 apply auto
@@ -106,26 +106,26 @@ done
 
 
 lemma msetsum_Un_disjoint:
-     "[| C \<in> Fin(A); D \<in> Fin(A); C Int D = 0;  
+     "[| C \<in> Fin(A); D \<in> Fin(A); C \<inter> D = 0;  
          \<forall>x \<in> A. multiset(g(x)) & mset_of(g(x))\<subseteq>B |]  
-      ==> msetsum(g, C Un D, B) = msetsum(g, C, B) +# msetsum(g,D, B)"
+      ==> msetsum(g, C \<union> D, B) = msetsum(g, C, B) +# msetsum(g,D, B)"
 apply (subst msetsum_Un_Int [symmetric])
 apply (auto simp add: msetsum_multiset)
 done
 
 lemma UN_Fin_lemma [rule_format (no_asm)]:
-     "I \<in> Fin(A) ==> (\<forall>i \<in> I. C(i) \<in> Fin(B)) --> (\<Union>i \<in> I. C(i)):Fin(B)"
+     "I \<in> Fin(A) ==> (\<forall>i \<in> I. C(i) \<in> Fin(B)) \<longrightarrow> (\<Union>i \<in> I. C(i)):Fin(B)"
 by (erule Fin_induct, auto)
  
 lemma msetsum_UN_disjoint [rule_format (no_asm)]:
      "[| I \<in> Fin(K); \<forall>i \<in> K. C(i) \<in> Fin(A) |] ==>  
-      (\<forall>x \<in> A. multiset(f(x)) & mset_of(f(x))\<subseteq>B) -->   
-      (\<forall>i \<in> I. \<forall>j \<in> I. i\<noteq>j --> C(i) Int C(j) = 0) -->  
+      (\<forall>x \<in> A. multiset(f(x)) & mset_of(f(x))\<subseteq>B) \<longrightarrow>   
+      (\<forall>i \<in> I. \<forall>j \<in> I. i\<noteq>j \<longrightarrow> C(i) \<inter> C(j) = 0) \<longrightarrow>  
         msetsum(f, \<Union>i \<in> I. C(i), B) = msetsum (%i. msetsum(f, C(i),B), I, B)"
 apply (erule Fin_induct, auto)
 apply (subgoal_tac "\<forall>i \<in> y. x \<noteq> i")
  prefer 2 apply blast
-apply (subgoal_tac "C(x) Int (\<Union>i \<in> y. C (i)) = 0")
+apply (subgoal_tac "C(x) \<inter> (\<Union>i \<in> y. C (i)) = 0")
  prefer 2 apply blast
 apply (subgoal_tac " (\<Union>i \<in> y. C (i)):Fin (A) & C(x) :Fin (A) ")
 prefer 2 apply (blast intro: UN_Fin_lemma dest: FinD, clarify)
@@ -157,9 +157,9 @@ by (simp add: multiset_equality)
 
 lemma msetsum_Un: "[| C \<in> Fin(A); D \<in> Fin(A);  
   \<forall>x \<in> A. multiset(f(x)) & mset_of(f(x)) \<subseteq> B  |]  
-   ==> msetsum(f, C Un D, B) =  
-          msetsum(f, C, B) +# msetsum(f, D, B) -# msetsum(f, C Int D, B)"
-apply (subgoal_tac "C Un D \<in> Fin (A) & C Int D \<in> Fin (A) ")
+   ==> msetsum(f, C \<union> D, B) =  
+          msetsum(f, C, B) +# msetsum(f, D, B) -# msetsum(f, C \<inter> D, B)"
+apply (subgoal_tac "C \<union> D \<in> Fin (A) & C \<inter> D \<in> Fin (A) ")
 apply clarify
 apply (subst msetsum_Un_Int [symmetric])
 apply (simp_all (no_asm_simp) add: msetsum_multiset multiset_union_diff)

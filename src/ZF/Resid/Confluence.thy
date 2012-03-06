@@ -8,12 +8,12 @@ theory Confluence imports Reduction begin
 definition
   confluence    :: "i=>o"  where
     "confluence(R) ==   
-       \<forall>x y. <x,y> \<in> R --> (\<forall>z.<x,z> \<in> R --> (\<exists>u.<y,u> \<in> R & <z,u> \<in> R))"
+       \<forall>x y. <x,y> \<in> R \<longrightarrow> (\<forall>z.<x,z> \<in> R \<longrightarrow> (\<exists>u.<y,u> \<in> R & <z,u> \<in> R))"
 
 definition
   strip         :: "o"  where
-    "strip == \<forall>x y. (x ===> y) --> 
-                    (\<forall>z.(x =1=> z) --> (\<exists>u.(y =1=> u) & (z===>u)))" 
+    "strip == \<forall>x y. (x ===> y) \<longrightarrow> 
+                    (\<forall>z.(x =1=> z) \<longrightarrow> (\<exists>u.(y =1=> u) & (z===>u)))" 
 
 
 (* ------------------------------------------------------------------------- *)
@@ -72,11 +72,11 @@ abbreviation
   "a<-1->b == <a,b> \<in> Sconv1"
 
 abbreviation
-  Sconv_rel (infixl "<--->" 50) where
-  "a<--->b == <a,b> \<in> Sconv"
+  Sconv_rel (infixl "<-\<longrightarrow>" 50) where
+  "a<-\<longrightarrow>b == <a,b> \<in> Sconv"
   
 inductive
-  domains       "Sconv1" <= "lambda*lambda"
+  domains       "Sconv1" \<subseteq> "lambda*lambda"
   intros
     red1:        "m -1-> n ==> m<-1->n"
     expl:        "n -1-> m ==> m<-1->n"
@@ -85,16 +85,16 @@ inductive
 declare Sconv1.intros [intro]
 
 inductive
-  domains       "Sconv" <= "lambda*lambda"
+  domains       "Sconv" \<subseteq> "lambda*lambda"
   intros
-    one_step:    "m<-1->n  ==> m<--->n"
-    refl:        "m \<in> lambda ==> m<--->m"
-    trans:       "[|m<--->n; n<--->p|] ==> m<--->p"
+    one_step:    "m<-1->n  ==> m<-\<longrightarrow>n"
+    refl:        "m \<in> lambda ==> m<-\<longrightarrow>m"
+    trans:       "[|m<-\<longrightarrow>n; n<-\<longrightarrow>p|] ==> m<-\<longrightarrow>p"
   type_intros    Sconv1.dom_subset [THEN subsetD] lambda.intros bool_typechecks
 
 declare Sconv.intros [intro]
 
-lemma conv_sym: "m<--->n ==> n<--->m"
+lemma conv_sym: "m<-\<longrightarrow>n ==> n<-\<longrightarrow>m"
 apply (erule Sconv.induct)
 apply (erule Sconv1.induct, blast+)
 done
@@ -103,7 +103,7 @@ done
 (*      Church_Rosser Theorem                                                *)
 (* ------------------------------------------------------------------------- *)
 
-lemma Church_Rosser: "m<--->n ==> \<exists>p.(m --->p) & (n ---> p)"
+lemma Church_Rosser: "m<-\<longrightarrow>n ==> \<exists>p.(m -\<longrightarrow>p) & (n -\<longrightarrow> p)"
 apply (erule Sconv.induct)
 apply (erule Sconv1.induct)
 apply (blast intro: red1D1 redD2)

@@ -121,7 +121,7 @@ apply auto
 apply (force simp add: part_order_def refl_def)
 apply (force simp add: part_order_def refl_def)
 apply (drule_tac x = "f1 (x) " and x1 = "f (sa) " and P2 = "%x y. \<forall>u\<in>B. ?P (x,y,u) " in bspec [THEN bspec])
-apply (drule_tac [3] x = "g (x) " and x1 = "g (sa) " and P2 = "%x y. ?P (x,y) --> ?d (x,y) \<in> t" in bspec [THEN bspec])
+apply (drule_tac [3] x = "g (x) " and x1 = "g (sa) " and P2 = "%x y. ?P (x,y) \<longrightarrow> ?d (x,y) \<in> t" in bspec [THEN bspec])
 apply auto
 apply (rule_tac b = "h (f (sa), g (sa))" and A = C in trans_onD)
 apply (auto simp add: part_order_def)
@@ -144,7 +144,7 @@ apply auto
 apply (force simp add: part_order_def refl_def)
 apply (force simp add: part_order_def refl_def)
 apply (drule_tac x = "f (x) " and x1 = "f (sa) " in bspec [THEN bspec])
-apply (drule_tac [3] x = "g1 (x) " and x1 = "g (sa) " and P2 = "%x y. ?P (x,y) --> ?d (x,y) \<in> t" in bspec [THEN bspec])
+apply (drule_tac [3] x = "g1 (x) " and x1 = "g (sa) " and P2 = "%x y. ?P (x,y) \<longrightarrow> ?d (x,y) \<in> t" in bspec [THEN bspec])
 apply auto
 apply (rule_tac b = "h (f (sa), g (sa))" and A = C in trans_onD)
 apply (auto simp add: part_order_def)
@@ -152,7 +152,7 @@ done
 
 (**  This general result is used to prove Follows Un, munion, etc. **)
 lemma imp_LeadsTo_comp2:
-"[| F \<in> Increasing(A, r, f1) Int  Increasing(B, s, g);
+"[| F \<in> Increasing(A, r, f1) \<inter>  Increasing(B, s, g);
   \<forall>j \<in> A. F: {s \<in> state. <j, f(s)> \<in> r} LeadsTo {s \<in> state. <j,f1(s)> \<in> r};
   \<forall>j \<in> B. F: {x \<in> state. <j, g(x)> \<in> s} LeadsTo {x \<in> state. <j,g1(x)> \<in> s};
   mono2(A, r, B, s, C, t, h); refl(A,r); refl(B, s); trans[C](t);
@@ -187,7 +187,7 @@ done
 
 lemma subset_Follows_comp:
 "[| mono1(A, r, B, s, h); refl(A, r); trans[B](s) |]
-   ==> Follows(A, r, f, g) <= Follows(B, s,  h comp f, h comp g)"
+   ==> Follows(A, r, f, g) \<subseteq> Follows(B, s,  h comp f, h comp g)"
 apply (unfold Follows_def, clarify)
 apply (frule_tac f = g in IncreasingD)
 apply (frule_tac f = f in IncreasingD)
@@ -324,25 +324,25 @@ by (unfold part_order_def, auto)
 lemma increasing_Un:
      "[| F \<in> Increasing.increasing(Pow(A), SetLe(A), f);
          F \<in> Increasing.increasing(Pow(A), SetLe(A), g) |]
-     ==> F \<in> Increasing.increasing(Pow(A), SetLe(A), %x. f(x) Un g(x))"
+     ==> F \<in> Increasing.increasing(Pow(A), SetLe(A), %x. f(x) \<union> g(x))"
 by (rule_tac h = "op Un" in imp_increasing_comp2, auto)
 
 lemma Increasing_Un:
      "[| F \<in> Increasing(Pow(A), SetLe(A), f);
          F \<in> Increasing(Pow(A), SetLe(A), g) |]
-     ==> F \<in> Increasing(Pow(A), SetLe(A), %x. f(x) Un g(x))"
+     ==> F \<in> Increasing(Pow(A), SetLe(A), %x. f(x) \<union> g(x))"
 by (rule_tac h = "op Un" in imp_Increasing_comp2, auto)
 
 lemma Always_Un:
-     "[| F \<in> Always({s \<in> state. f1(s) <= f(s)});
-     F \<in> Always({s \<in> state. g1(s) <= g(s)}) |]
-      ==> F \<in> Always({s \<in> state. f1(s) Un g1(s) <= f(s) Un g(s)})"
+     "[| F \<in> Always({s \<in> state. f1(s) \<subseteq> f(s)});
+     F \<in> Always({s \<in> state. g1(s) \<subseteq> g(s)}) |]
+      ==> F \<in> Always({s \<in> state. f1(s) \<union> g1(s) \<subseteq> f(s) \<union> g(s)})"
 by (simp add: Always_eq_includes_reachable, blast)
 
 lemma Follows_Un:
 "[| F \<in> Follows(Pow(A), SetLe(A), f1, f);
      F \<in> Follows(Pow(A), SetLe(A), g1, g) |]
-     ==> F \<in> Follows(Pow(A), SetLe(A), %s. f1(s) Un g1(s), %s. f(s) Un g(s))"
+     ==> F \<in> Follows(Pow(A), SetLe(A), %s. f1(s) \<union> g1(s), %s. f(s) \<union> g(s))"
 by (rule_tac h = "op Un" in imp_Follows_comp2, auto)
 
 (** Multiset union properties (with the MultLe ordering) **)

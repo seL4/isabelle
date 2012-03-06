@@ -19,25 +19,25 @@ theory Comp imports Union Increasing begin
 
 definition
   component :: "[i,i]=>o"  (infixl "component" 65)  where
-  "F component H == (EX G. F Join G = H)"
+  "F component H == (\<exists>G. F Join G = H)"
 
 definition
   strict_component :: "[i,i]=>o" (infixl "strict'_component" 65)  where
-  "F strict_component H == F component H & F~=H"
+  "F strict_component H == F component H & F\<noteq>H"
 
 definition
   (* A stronger form of the component relation *)
   component_of :: "[i,i]=>o"   (infixl "component'_of" 65)  where
-  "F component_of H  == (EX G. F ok G & F Join G = H)"
+  "F component_of H  == (\<exists>G. F ok G & F Join G = H)"
   
 definition
   strict_component_of :: "[i,i]=>o" (infixl "strict'_component'_of" 65)  where
-  "F strict_component_of H  == F component_of H  & F~=H"
+  "F strict_component_of H  == F component_of H  & F\<noteq>H"
 
 definition
   (* Preserves a state function f, in particular a variable *)
   preserves :: "(i=>i)=>i"  where
-  "preserves(f) == {F:program. ALL z. F: stable({s:state. f(s) = z})}"
+  "preserves(f) == {F:program. \<forall>z. F: stable({s:state. f(s) = z})}"
 
 definition
   fun_pair :: "[i=>i, i =>i] =>(i=>i)"  where
@@ -46,7 +46,7 @@ definition
 definition
   localize  :: "[i=>i, i] => i"  where
   "localize(f,F) == mk_program(Init(F), Acts(F),
-                       AllowedActs(F) Int (UN G:preserves(f). Acts(G)))"
+                       AllowedActs(F) \<inter> (\<Union>G\<in>preserves(f). Acts(G)))"
 
   
 (*** component and strict_component relations ***)
@@ -60,8 +60,8 @@ apply (auto simp add: Join_ac)
 done
 
 lemma component_eq_subset: 
-     "G \<in> program ==> (F component G) <->  
-   (Init(G) <= Init(F) & Acts(F) <= Acts(G) & AllowedActs(G) <= AllowedActs(F))"
+     "G \<in> program ==> (F component G) \<longleftrightarrow>  
+   (Init(G) \<subseteq> Init(F) & Acts(F) \<subseteq> Acts(G) & AllowedActs(G) \<subseteq> AllowedActs(F))"
 apply (unfold component_def, auto)
 apply (rule exI)
 apply (rule program_equalityI, auto)
@@ -100,7 +100,7 @@ lemma Join_absorb2: "G component F ==> F Join G = F"
 by (auto simp add: Join_ac component_def)
 
 lemma JN_component_iff:
-     "H \<in> program==>(JOIN(I,F) component H) <-> (\<forall>i \<in> I. F(i) component H)"
+     "H \<in> program==>(JOIN(I,F) component H) \<longleftrightarrow> (\<forall>i \<in> I. F(i) component H)"
 apply (case_tac "I=0", force)
 apply (simp (no_asm_simp) add: component_eq_subset)
 apply auto
@@ -121,7 +121,7 @@ apply (blast intro: Join_assoc [symmetric])
 done
 
 lemma component_antisym:
-     "[| F \<in> program; G \<in> program |] ==>(F component G & G  component F) --> F = G"
+     "[| F \<in> program; G \<in> program |] ==>(F component G & G  component F) \<longrightarrow> F = G"
 apply (simp (no_asm_simp) add: component_eq_subset)
 apply clarify
 apply (rule program_equalityI, auto)
@@ -129,7 +129,7 @@ done
 
 lemma Join_component_iff:
      "H \<in> program ==> 
-      ((F Join G) component H) <-> (F component H & G component H)"
+      ((F Join G) component H) \<longleftrightarrow> (F component H & G component H)"
 apply (simp (no_asm_simp) add: component_eq_subset)
 apply blast
 done
@@ -163,12 +163,12 @@ apply (subgoal_tac "s \<in> state & t \<in> state")
 done
 
 lemma Join_preserves [iff]: 
-"(F Join G \<in> preserves(v)) <->   
+"(F Join G \<in> preserves(v)) \<longleftrightarrow>   
       (programify(F) \<in> preserves(v) & programify(G) \<in> preserves(v))"
 by (auto simp add: preserves_def INT_iff)
  
 lemma JN_preserves [iff]:
-     "(JOIN(I,F): preserves(v)) <-> (\<forall>i \<in> I. programify(F(i)):preserves(v))"
+     "(JOIN(I,F): preserves(v)) \<longleftrightarrow> (\<forall>i \<in> I. programify(F(i)):preserves(v))"
 by (auto simp add: JN_stable preserves_def INT_iff)
 
 lemma SKIP_preserves [iff]: "SKIP \<in> preserves(v)"
@@ -180,13 +180,13 @@ apply (simp (no_asm))
 done
 
 lemma preserves_fun_pair:
-     "preserves(fun_pair(v,w)) = preserves(v) Int preserves(w)"
+     "preserves(fun_pair(v,w)) = preserves(v) \<inter> preserves(w)"
 apply (rule equalityI)
 apply (auto simp add: preserves_def stable_def constrains_def, blast+)
 done
 
 lemma preserves_fun_pair_iff [iff]:
-     "F \<in> preserves(fun_pair(v, w))  <-> F \<in> preserves(v) Int preserves(w)"
+     "F \<in> preserves(fun_pair(v, w))  \<longleftrightarrow> F \<in> preserves(v) \<inter> preserves(w)"
 by (simp add: preserves_fun_pair)
 
 lemma fun_pair_comp_distrib:
@@ -202,7 +202,7 @@ by (unfold preserves_def, auto)
 lemma preserves_into_program [TC]: "F \<in> preserves(f) ==> F \<in> program"
 by (blast intro: preserves_type [THEN subsetD])
 
-lemma subset_preserves_comp: "preserves(f) <= preserves(g comp f)"
+lemma subset_preserves_comp: "preserves(f) \<subseteq> preserves(g comp f)"
 apply (auto simp add: preserves_def stable_def constrains_def)
 apply (drule_tac x = "f (xb)" in spec)
 apply (drule_tac x = act in bspec, auto)
@@ -211,7 +211,7 @@ done
 lemma imp_preserves_comp: "F \<in> preserves(f) ==> F \<in> preserves(g comp f)"
 by (blast intro: subset_preserves_comp [THEN subsetD])
 
-lemma preserves_subset_stable: "preserves(f) <= stable({s \<in> state. P(f(s))})"
+lemma preserves_subset_stable: "preserves(f) \<subseteq> stable({s \<in> state. P(f(s))})"
 apply (auto simp add: preserves_def stable_def constrains_def)
 apply (rename_tac s' s)
 apply (subgoal_tac "f (s) = f (s') ")
@@ -230,7 +230,7 @@ apply (rule_tac P = "%x. <k, x>:r" in preserves_imp_stable, auto)
 done
 
 lemma preserves_id_subset_stable: 
- "st_set(A) ==> preserves(%x. x) <= stable(A)"
+ "st_set(A) ==> preserves(%x. x) \<subseteq> stable(A)"
 apply (unfold preserves_def stable_def constrains_def, auto)
 apply (drule_tac x = xb in spec)
 apply (drule_tac x = act in bspec)
@@ -275,7 +275,7 @@ lemma localize_Acts_eq [simp]: "Acts(localize(v,F)) = Acts(F)"
 by (unfold localize_def, simp)
 
 lemma localize_AllowedActs_eq [simp]: 
- "AllowedActs(localize(v,F)) = AllowedActs(F) Int (\<Union>G \<in> preserves(v). Acts(G))"
+ "AllowedActs(localize(v,F)) = AllowedActs(F) \<inter> (\<Union>G \<in> preserves(v). Acts(G))"
 apply (unfold localize_def)
 apply (rule equalityI)
 apply (auto dest: Acts_type [THEN subsetD])
@@ -325,10 +325,10 @@ lemma stable_Join_Stable:
      G \<in> preserves(f); \<forall>s \<in> state. f(s):A|]
   ==> F Join G \<in> Stable({s \<in> state. P(f(s), g(s))})"
 apply (unfold stable_def Stable_def preserves_def)
-apply (rule_tac A = "(\<Union>k \<in> A. {s \<in> state. f(s)=k} Int {s \<in> state. P (f (s), g (s))})" in Constrains_weaken_L)
+apply (rule_tac A = "(\<Union>k \<in> A. {s \<in> state. f(s)=k} \<inter> {s \<in> state. P (f (s), g (s))})" in Constrains_weaken_L)
 prefer 2 apply blast
 apply (rule Constrains_UN_left, auto)
-apply (rule_tac A = "{s \<in> state. f(s)=k} Int {s \<in> state. P (f (s), g (s))} Int {s \<in> state. P (k, g (s))}" and A' = "({s \<in> state. f(s)=k} Un {s \<in> state. P (f (s), g (s))}) Int {s \<in> state. P (k, g (s))}" in Constrains_weaken)
+apply (rule_tac A = "{s \<in> state. f(s)=k} \<inter> {s \<in> state. P (f (s), g (s))} \<inter> {s \<in> state. P (k, g (s))}" and A' = "({s \<in> state. f(s)=k} \<union> {s \<in> state. P (f (s), g (s))}) \<inter> {s \<in> state. P (k, g (s))}" in Constrains_weaken)
  prefer 2 apply blast 
  prefer 2 apply blast 
 apply (rule Constrains_Int)

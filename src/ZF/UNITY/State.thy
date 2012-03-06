@@ -51,19 +51,19 @@ by (simp add: st_set_def)
 
 (* Union *)
 
-lemma st_set_Un_iff [iff]: "st_set(A Un B) <-> st_set(A) & st_set(B)"
+lemma st_set_Un_iff [iff]: "st_set(A \<union> B) \<longleftrightarrow> st_set(A) & st_set(B)"
 by (simp add: st_set_def, auto)
 
-lemma st_set_Union_iff [iff]: "st_set(Union(S)) <-> (\<forall>A \<in> S. st_set(A))"
+lemma st_set_Union_iff [iff]: "st_set(\<Union>(S)) \<longleftrightarrow> (\<forall>A \<in> S. st_set(A))"
 by (simp add: st_set_def, auto)
 
 (* Intersection *)
 
-lemma st_set_Int [intro!]: "st_set(A) | st_set(B) ==> st_set(A Int B)"
+lemma st_set_Int [intro!]: "st_set(A) | st_set(B) ==> st_set(A \<inter> B)"
 by (simp add: st_set_def, auto)
 
 lemma st_set_Inter [intro!]: 
-   "(S=0) | (\<exists>A \<in> S. st_set(A)) ==> st_set(Inter(S))"
+   "(S=0) | (\<exists>A \<in> S. st_set(A)) ==> st_set(\<Inter>(S))"
 apply (simp add: st_set_def Inter_def, auto)
 done
 
@@ -71,16 +71,16 @@ done
 lemma st_set_DiffI [intro!]: "st_set(A) ==> st_set(A - B)"
 by (simp add: st_set_def, auto)
 
-lemma Collect_Int_state [simp]: "Collect(state,P) Int state = Collect(state,P)"
+lemma Collect_Int_state [simp]: "Collect(state,P) \<inter> state = Collect(state,P)"
 by auto
 
-lemma state_Int_Collect [simp]: "state Int Collect(state,P) = Collect(state,P)"
+lemma state_Int_Collect [simp]: "state \<inter> Collect(state,P) = Collect(state,P)"
 by auto
 
 
 (* Introduction and destruction rules for st_set *)
 
-lemma st_setI: "A <= state ==> st_set(A)"
+lemma st_setI: "A \<subseteq> state ==> st_set(A)"
 by (simp add: st_set_def)
 
 lemma st_setD: "st_set(A) ==> A<=state"
@@ -99,7 +99,7 @@ done
 lemma st_set_compl [simp]: "st_set(st_compl(A))"
 by (simp add: st_compl_def, auto)
 
-lemma st_compl_iff [simp]: "x \<in> st_compl(A) <-> x \<in> state & x \<notin> A"
+lemma st_compl_iff [simp]: "x \<in> st_compl(A) \<longleftrightarrow> x \<in> state & x \<notin> A"
 by (simp add: st_compl_def)
 
 lemma st_compl_Collect [simp]:

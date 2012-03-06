@@ -16,7 +16,7 @@ abbreviation
   "Apl(n,m) == App(0,n,m)"
   
 inductive
-  domains       "lambda" <= redexes
+  domains       "lambda" \<subseteq> redexes
   intros
     Lambda_Var:  "               n \<in> nat ==>     Var(n) \<in> lambda"
     Lambda_Fun:  "            u \<in> lambda ==>     Fun(u) \<in> lambda"
@@ -78,8 +78,8 @@ abbreviation
   "a -1-> b == <a,b> \<in> Sred1"
 
 abbreviation
-  Sred_rel (infixl "--->" 50) where
-  "a ---> b == <a,b> \<in> Sred"
+  Sred_rel (infixl "-\<longrightarrow>" 50) where
+  "a -\<longrightarrow> b == <a,b> \<in> Sred"
 
 abbreviation
   Spar_red1_rel (infixl "=1=>" 50) where
@@ -91,7 +91,7 @@ abbreviation
   
   
 inductive
-  domains       "Sred1" <= "lambda*lambda"
+  domains       "Sred1" \<subseteq> "lambda*lambda"
   intros
     beta:       "[|m \<in> lambda; n \<in> lambda|] ==> Apl(Fun(m),n) -1-> n/m"
     rfun:       "[|m -1-> n|] ==> Fun(m) -1-> Fun(n)"
@@ -102,18 +102,18 @@ inductive
 declare Sred1.intros [intro, simp]
 
 inductive
-  domains       "Sred" <= "lambda*lambda"
+  domains       "Sred" \<subseteq> "lambda*lambda"
   intros
-    one_step:   "m-1->n ==> m--->n"
-    refl:       "m \<in> lambda==>m --->m"
-    trans:      "[|m--->n; n--->p|] ==>m--->p"
+    one_step:   "m-1->n ==> m-\<longrightarrow>n"
+    refl:       "m \<in> lambda==>m -\<longrightarrow>m"
+    trans:      "[|m-\<longrightarrow>n; n-\<longrightarrow>p|] ==>m-\<longrightarrow>p"
   type_intros    Sred1.dom_subset [THEN subsetD] red_typechecks
 
 declare Sred.one_step [intro, simp]
 declare Sred.refl     [intro, simp]
 
 inductive
-  domains       "Spar_red1" <= "lambda*lambda"
+  domains       "Spar_red1" \<subseteq> "lambda*lambda"
   intros
     beta:       "[|m =1=> m'; n =1=> n'|] ==> Apl(Fun(m),n) =1=> n'/m'"
     rvar:       "n \<in> nat ==> Var(n) =1=> Var(n)"
@@ -124,7 +124,7 @@ inductive
 declare Spar_red1.intros [intro, simp]
 
 inductive
-  domains "Spar_red" <= "lambda*lambda"
+  domains "Spar_red" \<subseteq> "lambda*lambda"
   intros
     one_step:   "m =1=> n ==> m ===> n"
     trans:      "[|m===>n; n===>p|] ==> m===>p"
@@ -158,28 +158,28 @@ inductive_cases  [elim!]: "Fun(t) =1=> Fun(u)"
 (*     Lemmas for reduction                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-lemma red_Fun: "m--->n ==> Fun(m) ---> Fun(n)"
+lemma red_Fun: "m-\<longrightarrow>n ==> Fun(m) -\<longrightarrow> Fun(n)"
 apply (erule Sred.induct)
 apply (rule_tac [3] Sred.trans, simp_all)
 done
 
-lemma red_Apll: "[|n \<in> lambda; m ---> m'|] ==> Apl(m,n)--->Apl(m',n)"
+lemma red_Apll: "[|n \<in> lambda; m -\<longrightarrow> m'|] ==> Apl(m,n)-\<longrightarrow>Apl(m',n)"
 apply (erule Sred.induct)
 apply (rule_tac [3] Sred.trans, simp_all)
 done
 
-lemma red_Aplr: "[|n \<in> lambda; m ---> m'|] ==> Apl(n,m)--->Apl(n,m')"
+lemma red_Aplr: "[|n \<in> lambda; m -\<longrightarrow> m'|] ==> Apl(n,m)-\<longrightarrow>Apl(n,m')"
 apply (erule Sred.induct)
 apply (rule_tac [3] Sred.trans, simp_all)
 done
 
-lemma red_Apl: "[|m ---> m'; n--->n'|] ==> Apl(m,n)--->Apl(m',n')"
+lemma red_Apl: "[|m -\<longrightarrow> m'; n-\<longrightarrow>n'|] ==> Apl(m,n)-\<longrightarrow>Apl(m',n')"
 apply (rule_tac n = "Apl (m',n) " in Sred.trans)
 apply (simp_all add: red_Apll red_Aplr)
 done
 
-lemma red_beta: "[|m \<in> lambda; m':lambda; n \<in> lambda; n':lambda; m ---> m'; n--->n'|] ==>  
-               Apl(Fun(m),n)---> n'/m'"
+lemma red_beta: "[|m \<in> lambda; m':lambda; n \<in> lambda; n':lambda; m -\<longrightarrow> m'; n-\<longrightarrow>n'|] ==>  
+               Apl(Fun(m),n)-\<longrightarrow> n'/m'"
 apply (rule_tac n = "Apl (Fun (m'),n') " in Sred.trans)
 apply (simp_all add: red_Apl red_Fun)
 done
@@ -196,13 +196,13 @@ by (erule lambda.induct, simp_all)
 lemma red1_par_red1: "m-1->n ==> m=1=>n"
 by (erule Sred1.induct, simp_all add: refl_par_red1)
 
-lemma red_par_red: "m--->n ==> m===>n"
+lemma red_par_red: "m-\<longrightarrow>n ==> m===>n"
 apply (erule Sred.induct)
 apply (rule_tac [3] Spar_red.trans)
 apply (simp_all add: refl_par_red1 red1_par_red1)
 done
 
-lemma par_red_red: "m===>n ==> m--->n"
+lemma par_red_red: "m===>n ==> m-\<longrightarrow>n"
 apply (erule Spar_red.induct)
 apply (erule Spar_red1.induct)
 apply (rule_tac [5] Sred.trans)
@@ -237,7 +237,7 @@ by (erule redexes.induct, simp_all add: unmmark_lift_rec subst_Var)
 (* ------------------------------------------------------------------------- *)
 
 lemma completeness_l [rule_format]:
-     "u~v ==> regular(v) --> unmark(u) =1=> unmark(u|>v)"
+     "u~v ==> regular(v) \<longrightarrow> unmark(u) =1=> unmark(u|>v)"
 apply (erule Scomp.induct)
 apply (auto simp add: unmmark_subst_rec)
 done

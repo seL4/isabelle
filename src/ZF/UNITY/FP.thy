@@ -13,7 +13,7 @@ theory FP imports UNITY begin
 
 definition   
   FP_Orig :: "i=>i"  where
-    "FP_Orig(F) == Union({A \<in> Pow(state). \<forall>B. F \<in> stable(A Int B)})"
+    "FP_Orig(F) == \<Union>({A \<in> Pow(state). \<forall>B. F \<in> stable(A \<inter> B)})"
 
 definition
   FP :: "i=>i"  where
@@ -36,19 +36,19 @@ apply (unfold st_set_def)
 apply (rule FP_type)
 done
 
-lemma stable_FP_Orig_Int: "F \<in> program ==> F \<in> stable(FP_Orig(F) Int B)"
+lemma stable_FP_Orig_Int: "F \<in> program ==> F \<in> stable(FP_Orig(F) \<inter> B)"
 apply (simp only: FP_Orig_def stable_def Int_Union2)
 apply (blast intro: constrains_UN)
 done
 
 lemma FP_Orig_weakest2: 
-    "[| \<forall>B. F \<in> stable (A Int B); st_set(A) |]  ==> A \<subseteq> FP_Orig(F)"
+    "[| \<forall>B. F \<in> stable (A \<inter> B); st_set(A) |]  ==> A \<subseteq> FP_Orig(F)"
 by (unfold FP_Orig_def stable_def st_set_def, blast)
 
 lemmas FP_Orig_weakest = allI [THEN FP_Orig_weakest2]
 
-lemma stable_FP_Int: "F \<in> program ==> F \<in> stable (FP(F) Int B)"
-apply (subgoal_tac "FP (F) Int B = (\<Union>x\<in>B. FP (F) Int {x}) ")
+lemma stable_FP_Int: "F \<in> program ==> F \<in> stable (FP(F) \<inter> B)"
+apply (subgoal_tac "FP (F) \<inter> B = (\<Union>x\<in>B. FP (F) \<inter> {x}) ")
  prefer 2 apply blast
 apply (simp (no_asm_simp) add: Int_cons_right)
 apply (unfold FP_def stable_def)
@@ -71,7 +71,7 @@ lemma FP_equivalence: "F \<in> program ==> FP(F) = FP_Orig(F)"
 by (blast intro!: FP_Orig_subset_FP FP_subset_FP_Orig)
 
 lemma FP_weakest [rule_format]:
-     "[| \<forall>B. F \<in> stable(A Int B); F \<in> program; st_set(A) |] ==> A \<subseteq> FP(F)"
+     "[| \<forall>B. F \<in> stable(A \<inter> B); F \<in> program; st_set(A) |] ==> A \<subseteq> FP(F)"
 by (simp add: FP_equivalence FP_Orig_weakest)
 
 

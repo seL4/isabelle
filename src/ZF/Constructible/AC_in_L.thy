@@ -86,7 +86,7 @@ apply (erule_tac a=y in list.cases, clarify)
  apply (simp (no_asm_use))
 apply clarify
 apply (simp (no_asm_use))
-apply (subgoal_tac "\<forall>l2 \<in> list(A). length(l2) = x --> Cons(a,l2) \<in> B", blast)
+apply (subgoal_tac "\<forall>l2 \<in> list(A). length(l2) = x \<longrightarrow> Cons(a,l2) \<in> B", blast)
 apply (erule_tac a=a in wf_on_induct, assumption)
 apply (rule ballI)
 apply (rule impI)
@@ -163,7 +163,7 @@ by (blast intro: inj_is_fun [OF fn_inj] apply_funtype)
 
 lemma (in Nat_Times_Nat) fn_iff:
     "[|x \<in> nat; y \<in> nat; u \<in> nat; v \<in> nat|]
-     ==> (fn`<x,y> = fn`<u,v>) <-> (x=u & y=v)"
+     ==> (fn`<x,y> = fn`<u,v>) \<longleftrightarrow> (x=u & y=v)"
 by (blast dest: inj_apply_equality [OF fn_inj])
 
 lemma (in Nat_Times_Nat) enum_type [TC,simp]:
@@ -171,7 +171,7 @@ lemma (in Nat_Times_Nat) enum_type [TC,simp]:
 by (induct_tac p, simp_all)
 
 lemma (in Nat_Times_Nat) enum_inject [rule_format]:
-    "p \<in> formula ==> \<forall>q\<in>formula. enum(fn,p) = enum(fn,q) --> p=q"
+    "p \<in> formula ==> \<forall>q\<in>formula. enum(fn,p) = enum(fn,q) \<longrightarrow> p=q"
 apply (induct_tac p, simp_all)
    apply (rule ballI)
    apply (erule formula.cases)
@@ -382,7 +382,7 @@ apply (simp add: linear_def rlimit_def Ball_def lt_Ord Lset_iff_lrank_lt)
 apply (simp add: ltI, clarify)
 apply (rename_tac u v)
 apply (rule_tac i="lrank(u)" and j="lrank(v)" in Ord_linear_lt, simp_all) 
-apply (drule_tac x="succ(lrank(u) Un lrank(v))" in ospec)
+apply (drule_tac x="succ(lrank(u) \<union> lrank(v))" in ospec)
  apply (simp add: ltI)
 apply (drule_tac x=u in spec, simp)
 apply (drule_tac x=v in spec, simp)

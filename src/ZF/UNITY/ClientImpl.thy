@@ -91,7 +91,7 @@ declare  client_tok_act_def [THEN def_act_simp, simp]
 declare  client_ask_act_def [THEN def_act_simp, simp]
 
 lemma client_prog_ok_iff:
-  "\<forall>G \<in> program. (client_prog ok G) <->  
+  "\<forall>G \<in> program. (client_prog ok G) \<longleftrightarrow>  
    (G \<in> preserves(lift(rel)) & G \<in> preserves(lift(ask)) &  
     G \<in> preserves(lift(tok)) &  client_prog \<in> Allowed(G))"
 by (auto simp add: ok_iff_Allowed client_prog_def [THEN def_prg_Allowed])
@@ -117,7 +117,7 @@ by (erule preserves_lift_imp_stable)
 
 (*Safety property 1: ask, rel are increasing: (24) *)
 lemma client_prog_Increasing_ask_rel: 
-"client_prog: program guarantees Incr(lift(ask)) Int Incr(lift(rel))"
+"client_prog: program guarantees Incr(lift(ask)) \<inter> Incr(lift(rel))"
 apply (unfold guar_def)
 apply (auto intro!: increasing_imp_Increasing 
             simp add: client_prog_ok_iff Increasing.increasing_def preserves_imp_prefix)
@@ -137,7 +137,7 @@ With no Substitution Axiom, we must prove the two invariants simultaneously. *)
 lemma ask_Bounded_lemma: 
 "[| client_prog ok G; G \<in> program |] 
       ==> client_prog \<squnion> G \<in>    
-              Always({s \<in> state. s`tok \<le> NbT}  Int   
+              Always({s \<in> state. s`tok \<le> NbT}  \<inter>   
                       {s \<in> state. \<forall>elt \<in> set_of_list(s`ask). elt \<le> NbT})"
 apply (rotate_tac -1)
 apply (auto simp add: client_prog_ok_iff)
@@ -209,7 +209,7 @@ apply (auto simp add: id_def lam_def)
 done
 
 lemma strict_prefix_is_prefix: 
-    "<xs, ys> \<in> strict_prefix(A) <->  <xs, ys> \<in> prefix(A) & xs\<noteq>ys"
+    "<xs, ys> \<in> strict_prefix(A) \<longleftrightarrow>  <xs, ys> \<in> prefix(A) & xs\<noteq>ys"
 apply (unfold strict_prefix_def id_def lam_def)
 apply (auto dest: prefix_type [THEN subsetD])
 done
@@ -298,7 +298,7 @@ done
 
 lemma client_prog_Allowed:
      "Allowed(client_prog) =  
-      preserves(lift(rel)) Int preserves(lift(ask)) Int preserves(lift(tok))"
+      preserves(lift(rel)) \<inter> preserves(lift(ask)) \<inter> preserves(lift(tok))"
 apply (cut_tac v = "lift (ask)" in preserves_type)
 apply (auto simp add: Allowed_def client_prog_def [THEN def_prg_Allowed] 
                       cons_Int_distrib safety_prop_Acts_iff)

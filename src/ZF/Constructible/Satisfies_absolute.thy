@@ -31,7 +31,7 @@ by (simp add: depth_fm_def)
 
 lemma sats_depth_fm [simp]:
    "[| x \<in> nat; y < length(env); env \<in> list(A)|]
-    ==> sats(A, depth_fm(x,y), env) <->
+    ==> sats(A, depth_fm(x,y), env) \<longleftrightarrow>
         is_depth(##A, nth(x,env), nth(y,env))"
 apply (frule_tac x=y in lt_length_in_nat, assumption)  
 apply (simp add: depth_fm_def is_depth_def) 
@@ -40,7 +40,7 @@ done
 lemma depth_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; 
           i \<in> nat; j < length(env); env \<in> list(A)|]
-       ==> is_depth(##A, x, y) <-> sats(A, depth_fm(i,j), env)"
+       ==> is_depth(##A, x, y) \<longleftrightarrow> sats(A, depth_fm(i,j), env)"
 by (simp add: sats_depth_fm)
 
 theorem depth_reflection:
@@ -60,11 +60,11 @@ text{*The arguments of @{term is_a} are always 2, 1, 0, and the formula
 (* is_formula_case :: 
     "[i=>o, [i,i,i]=>o, [i,i,i]=>o, [i,i,i]=>o, [i,i]=>o, i, i] => o"
   "is_formula_case(M, is_a, is_b, is_c, is_d, v, z) == 
-      (\<forall>x[M]. \<forall>y[M]. x\<in>nat --> y\<in>nat --> is_Member(M,x,y,v) --> is_a(x,y,z)) &
-      (\<forall>x[M]. \<forall>y[M]. x\<in>nat --> y\<in>nat --> is_Equal(M,x,y,v) --> is_b(x,y,z)) &
-      (\<forall>x[M]. \<forall>y[M]. x\<in>formula --> y\<in>formula --> 
-                     is_Nand(M,x,y,v) --> is_c(x,y,z)) &
-      (\<forall>x[M]. x\<in>formula --> is_Forall(M,x,v) --> is_d(x,z))" *)
+      (\<forall>x[M]. \<forall>y[M]. x\<in>nat \<longrightarrow> y\<in>nat \<longrightarrow> is_Member(M,x,y,v) \<longrightarrow> is_a(x,y,z)) &
+      (\<forall>x[M]. \<forall>y[M]. x\<in>nat \<longrightarrow> y\<in>nat \<longrightarrow> is_Equal(M,x,y,v) \<longrightarrow> is_b(x,y,z)) &
+      (\<forall>x[M]. \<forall>y[M]. x\<in>formula \<longrightarrow> y\<in>formula \<longrightarrow> 
+                     is_Nand(M,x,y,v) \<longrightarrow> is_c(x,y,z)) &
+      (\<forall>x[M]. x\<in>formula \<longrightarrow> is_Forall(M,x,v) \<longrightarrow> is_d(x,z))" *)
 
 definition
   formula_case_fm :: "[i, i, i, i, i, i]=>i" where
@@ -96,22 +96,22 @@ lemma sats_formula_case_fm:
   assumes is_a_iff_sats: 
       "!!a0 a1 a2. 
         [|a0\<in>A; a1\<in>A; a2\<in>A|]  
-        ==> ISA(a2, a1, a0) <-> sats(A, is_a, Cons(a0,Cons(a1,Cons(a2,env))))"
+        ==> ISA(a2, a1, a0) \<longleftrightarrow> sats(A, is_a, Cons(a0,Cons(a1,Cons(a2,env))))"
   and is_b_iff_sats: 
       "!!a0 a1 a2. 
         [|a0\<in>A; a1\<in>A; a2\<in>A|]  
-        ==> ISB(a2, a1, a0) <-> sats(A, is_b, Cons(a0,Cons(a1,Cons(a2,env))))"
+        ==> ISB(a2, a1, a0) \<longleftrightarrow> sats(A, is_b, Cons(a0,Cons(a1,Cons(a2,env))))"
   and is_c_iff_sats: 
       "!!a0 a1 a2. 
         [|a0\<in>A; a1\<in>A; a2\<in>A|]  
-        ==> ISC(a2, a1, a0) <-> sats(A, is_c, Cons(a0,Cons(a1,Cons(a2,env))))"
+        ==> ISC(a2, a1, a0) \<longleftrightarrow> sats(A, is_c, Cons(a0,Cons(a1,Cons(a2,env))))"
   and is_d_iff_sats: 
       "!!a0 a1. 
         [|a0\<in>A; a1\<in>A|]  
-        ==> ISD(a1, a0) <-> sats(A, is_d, Cons(a0,Cons(a1,env)))"
+        ==> ISD(a1, a0) \<longleftrightarrow> sats(A, is_d, Cons(a0,Cons(a1,env)))"
   shows 
       "[|x \<in> nat; y < length(env); env \<in> list(A)|]
-       ==> sats(A, formula_case_fm(is_a,is_b,is_c,is_d,x,y), env) <->
+       ==> sats(A, formula_case_fm(is_a,is_b,is_c,is_d,x,y), env) \<longleftrightarrow>
            is_formula_case(##A, ISA, ISB, ISC, ISD, nth(x,env), nth(y,env))"
 apply (frule_tac x=y in lt_length_in_nat, assumption)  
 apply (simp add: formula_case_fm_def is_formula_case_def 
@@ -123,23 +123,23 @@ lemma formula_case_iff_sats:
   assumes is_a_iff_sats: 
       "!!a0 a1 a2. 
         [|a0\<in>A; a1\<in>A; a2\<in>A|]  
-        ==> ISA(a2, a1, a0) <-> sats(A, is_a, Cons(a0,Cons(a1,Cons(a2,env))))"
+        ==> ISA(a2, a1, a0) \<longleftrightarrow> sats(A, is_a, Cons(a0,Cons(a1,Cons(a2,env))))"
   and is_b_iff_sats: 
       "!!a0 a1 a2. 
         [|a0\<in>A; a1\<in>A; a2\<in>A|]  
-        ==> ISB(a2, a1, a0) <-> sats(A, is_b, Cons(a0,Cons(a1,Cons(a2,env))))"
+        ==> ISB(a2, a1, a0) \<longleftrightarrow> sats(A, is_b, Cons(a0,Cons(a1,Cons(a2,env))))"
   and is_c_iff_sats: 
       "!!a0 a1 a2. 
         [|a0\<in>A; a1\<in>A; a2\<in>A|]  
-        ==> ISC(a2, a1, a0) <-> sats(A, is_c, Cons(a0,Cons(a1,Cons(a2,env))))"
+        ==> ISC(a2, a1, a0) \<longleftrightarrow> sats(A, is_c, Cons(a0,Cons(a1,Cons(a2,env))))"
   and is_d_iff_sats: 
       "!!a0 a1. 
         [|a0\<in>A; a1\<in>A|]  
-        ==> ISD(a1, a0) <-> sats(A, is_d, Cons(a0,Cons(a1,env)))"
+        ==> ISD(a1, a0) \<longleftrightarrow> sats(A, is_d, Cons(a0,Cons(a1,env)))"
   shows 
       "[|nth(i,env) = x; nth(j,env) = y; 
       i \<in> nat; j < length(env); env \<in> list(A)|]
-       ==> is_formula_case(##A, ISA, ISB, ISC, ISD, x, y) <->
+       ==> is_formula_case(##A, ISA, ISB, ISC, ISD, x, y) \<longleftrightarrow>
            sats(A, formula_case_fm(is_a,is_b,is_c,is_d,i,j), env)"
 by (simp add: sats_formula_case_fm [OF is_a_iff_sats is_b_iff_sats 
                                        is_c_iff_sats is_d_iff_sats])
@@ -184,7 +184,7 @@ definition
 
 lemma (in M_datatypes) is_depth_apply_abs [simp]:
      "[|M(h); p \<in> formula; M(z)|] 
-      ==> is_depth_apply(M,h,p,z) <-> z = h ` succ(depth(p)) ` p"
+      ==> is_depth_apply(M,h,p,z) \<longleftrightarrow> z = h ` succ(depth(p)) ` p"
 by (simp add: is_depth_apply_def formula_into_M depth_type eq_commute)
 
 
@@ -202,7 +202,7 @@ definition
 definition
   satisfies_is_a :: "[i=>o,i,i,i,i]=>o" where
    "satisfies_is_a(M,A) == 
-    \<lambda>x y zz. \<forall>lA[M]. is_list(M,A,lA) -->
+    \<lambda>x y zz. \<forall>lA[M]. is_list(M,A,lA) \<longrightarrow>
              is_lambda(M, lA, 
                 \<lambda>env z. is_bool_of_o(M, 
                       \<exists>nx[M]. \<exists>ny[M]. 
@@ -219,7 +219,7 @@ definition
    --{*We simplify the formula to have just @{term nx} rather than 
        introducing @{term ny} with  @{term "nx=ny"} *}
   "satisfies_is_b(M,A) == 
-    \<lambda>x y zz. \<forall>lA[M]. is_list(M,A,lA) -->
+    \<lambda>x y zz. \<forall>lA[M]. is_list(M,A,lA) \<longrightarrow>
              is_lambda(M, lA, 
                 \<lambda>env z. is_bool_of_o(M, 
                       \<exists>nx[M]. is_nth(M,x,env,nx) & is_nth(M,y,env,nx), z),
@@ -232,7 +232,7 @@ definition
 definition
   satisfies_is_c :: "[i=>o,i,i,i,i,i]=>o" where
    "satisfies_is_c(M,A,h) == 
-    \<lambda>p q zz. \<forall>lA[M]. is_list(M,A,lA) -->
+    \<lambda>p q zz. \<forall>lA[M]. is_list(M,A,lA) \<longrightarrow>
              is_lambda(M, lA, \<lambda>env z. \<exists>hp[M]. \<exists>hq[M]. 
                  (\<exists>rp[M]. is_depth_apply(M,h,p,rp) & fun_apply(M,rp,env,hp)) & 
                  (\<exists>rq[M]. is_depth_apply(M,h,q,rq) & fun_apply(M,rq,env,hq)) & 
@@ -247,13 +247,13 @@ definition
 definition
   satisfies_is_d :: "[i=>o,i,i,i,i]=>o" where
    "satisfies_is_d(M,A,h) == 
-    \<lambda>p zz. \<forall>lA[M]. is_list(M,A,lA) -->
+    \<lambda>p zz. \<forall>lA[M]. is_list(M,A,lA) \<longrightarrow>
              is_lambda(M, lA, 
                 \<lambda>env z. \<exists>rp[M]. is_depth_apply(M,h,p,rp) & 
                     is_bool_of_o(M, 
                            \<forall>x[M]. \<forall>xenv[M]. \<forall>hp[M]. 
-                              x\<in>A --> is_Cons(M,x,env,xenv) --> 
-                              fun_apply(M,rp,xenv,hp) --> number1(M,hp),
+                              x\<in>A \<longrightarrow> is_Cons(M,x,env,xenv) \<longrightarrow> 
+                              fun_apply(M,rp,xenv,hp) \<longrightarrow> number1(M,hp),
                   z),
                zz)"
 
@@ -263,7 +263,7 @@ definition
         the correct arity.*}
   "satisfies_MH == 
     \<lambda>M A u f z. 
-         \<forall>fml[M]. is_formula(M,fml) -->
+         \<forall>fml[M]. is_formula(M,fml) \<longrightarrow>
              is_lambda (M, fml, 
                is_formula_case (M, satisfies_is_a(M,A), 
                                 satisfies_is_b(M,A), 
@@ -321,8 +321,8 @@ locale M_satisfies = M_eclose +
               env \<in> list(A) & 
               is_bool_of_o (M, 
                             \<forall>a[M]. \<forall>co[M]. \<forall>rpco[M]. 
-                               a\<in>A --> is_Cons(M,a,env,co) -->
-                               fun_apply(M,rp,co,rpco) --> number1(M, rpco), 
+                               a\<in>A \<longrightarrow> is_Cons(M,a,env,co) \<longrightarrow>
+                               fun_apply(M,rp,co,rpco) \<longrightarrow> number1(M, rpco), 
                             bo) &
               pair(M,env,bo,z))"
  and
@@ -500,7 +500,7 @@ by (simp add: Formula_Rec.formula_rec_closed [OF Formula_Rec_M]
 
 lemma (in M_satisfies) satisfies_abs:
   "[|M(A); M(z); p \<in> formula|] 
-   ==> is_satisfies(M,A,p,z) <-> z = satisfies(A,p)"
+   ==> is_satisfies(M,A,p,z) \<longleftrightarrow> z = satisfies(A,p)"
 by (simp only: Formula_Rec.formula_rec_abs [OF Formula_Rec_M]  
                satisfies_eq is_satisfies_def satisfies_MH_def)
 
@@ -529,14 +529,14 @@ by (simp add: depth_apply_fm_def)
 
 lemma sats_depth_apply_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, depth_apply_fm(x,y,z), env) <->
+    ==> sats(A, depth_apply_fm(x,y,z), env) \<longleftrightarrow>
         is_depth_apply(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: depth_apply_fm_def is_depth_apply_def)
 
 lemma depth_apply_iff_sats:
     "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
         i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-     ==> is_depth_apply(##A, x, y, z) <-> sats(A, depth_apply_fm(i,j,k), env)"
+     ==> is_depth_apply(##A, x, y, z) \<longleftrightarrow> sats(A, depth_apply_fm(i,j,k), env)"
 by simp
 
 lemma depth_apply_reflection:
@@ -551,7 +551,7 @@ done
 subsubsection{*The Operator @{term satisfies_is_a}, Internalized*}
 
 (* satisfies_is_a(M,A) == 
-    \<lambda>x y zz. \<forall>lA[M]. is_list(M,A,lA) -->
+    \<lambda>x y zz. \<forall>lA[M]. is_list(M,A,lA) \<longrightarrow>
              is_lambda(M, lA, 
                 \<lambda>env z. is_bool_of_o(M, 
                       \<exists>nx[M]. \<exists>ny[M]. 
@@ -577,7 +577,7 @@ by (simp add: satisfies_is_a_fm_def)
 
 lemma sats_satisfies_is_a_fm [simp]:
    "[| u \<in> nat; x < length(env); y < length(env); z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, satisfies_is_a_fm(u,x,y,z), env) <->
+    ==> sats(A, satisfies_is_a_fm(u,x,y,z), env) \<longleftrightarrow>
         satisfies_is_a(##A, nth(u,env), nth(x,env), nth(y,env), nth(z,env))"
 apply (frule_tac x=x in lt_length_in_nat, assumption)  
 apply (frule_tac x=y in lt_length_in_nat, assumption)  
@@ -588,7 +588,7 @@ done
 lemma satisfies_is_a_iff_sats:
   "[| nth(u,env) = nu; nth(x,env) = nx; nth(y,env) = ny; nth(z,env) = nz;
       u \<in> nat; x < length(env); y < length(env); z \<in> nat; env \<in> list(A)|]
-   ==> satisfies_is_a(##A,nu,nx,ny,nz) <->
+   ==> satisfies_is_a(##A,nu,nx,ny,nz) \<longleftrightarrow>
        sats(A, satisfies_is_a_fm(u,x,y,z), env)"
 by simp
 
@@ -604,7 +604,7 @@ done
 subsubsection{*The Operator @{term satisfies_is_b}, Internalized*}
 
 (* satisfies_is_b(M,A) == 
-    \<lambda>x y zz. \<forall>lA[M]. is_list(M,A,lA) -->
+    \<lambda>x y zz. \<forall>lA[M]. is_list(M,A,lA) \<longrightarrow>
              is_lambda(M, lA, 
                 \<lambda>env z. is_bool_of_o(M, 
                       \<exists>nx[M]. is_nth(M,x,env,nx) & is_nth(M,y,env,nx), z),
@@ -626,7 +626,7 @@ by (simp add: satisfies_is_b_fm_def)
 
 lemma sats_satisfies_is_b_fm [simp]:
    "[| u \<in> nat; x < length(env); y < length(env); z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, satisfies_is_b_fm(u,x,y,z), env) <->
+    ==> sats(A, satisfies_is_b_fm(u,x,y,z), env) \<longleftrightarrow>
         satisfies_is_b(##A, nth(u,env), nth(x,env), nth(y,env), nth(z,env))"
 apply (frule_tac x=x in lt_length_in_nat, assumption)  
 apply (frule_tac x=y in lt_length_in_nat, assumption)  
@@ -637,7 +637,7 @@ done
 lemma satisfies_is_b_iff_sats:
   "[| nth(u,env) = nu; nth(x,env) = nx; nth(y,env) = ny; nth(z,env) = nz;
       u \<in> nat; x < length(env); y < length(env); z \<in> nat; env \<in> list(A)|]
-   ==> satisfies_is_b(##A,nu,nx,ny,nz) <->
+   ==> satisfies_is_b(##A,nu,nx,ny,nz) \<longleftrightarrow>
        sats(A, satisfies_is_b_fm(u,x,y,z), env)"
 by simp
 
@@ -653,7 +653,7 @@ done
 subsubsection{*The Operator @{term satisfies_is_c}, Internalized*}
 
 (* satisfies_is_c(M,A,h) == 
-    \<lambda>p q zz. \<forall>lA[M]. is_list(M,A,lA) -->
+    \<lambda>p q zz. \<forall>lA[M]. is_list(M,A,lA) \<longrightarrow>
              is_lambda(M, lA, \<lambda>env z. \<exists>hp[M]. \<exists>hq[M]. 
                  (\<exists>rp[M]. is_depth_apply(M,h,p,rp) & fun_apply(M,rp,env,hp)) & 
                  (\<exists>rq[M]. is_depth_apply(M,h,q,rq) & fun_apply(M,rq,env,hq)) & 
@@ -679,7 +679,7 @@ by (simp add: satisfies_is_c_fm_def)
 
 lemma sats_satisfies_is_c_fm [simp]:
    "[| u \<in> nat; v \<in> nat; x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, satisfies_is_c_fm(u,v,x,y,z), env) <->
+    ==> sats(A, satisfies_is_c_fm(u,v,x,y,z), env) \<longleftrightarrow>
         satisfies_is_c(##A, nth(u,env), nth(v,env), nth(x,env), 
                             nth(y,env), nth(z,env))"  
 by (simp add: satisfies_is_c_fm_def satisfies_is_c_def sats_lambda_fm)
@@ -688,7 +688,7 @@ lemma satisfies_is_c_iff_sats:
   "[| nth(u,env) = nu; nth(v,env) = nv; nth(x,env) = nx; nth(y,env) = ny; 
       nth(z,env) = nz;
       u \<in> nat; v \<in> nat; x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-   ==> satisfies_is_c(##A,nu,nv,nx,ny,nz) <->
+   ==> satisfies_is_c(##A,nu,nv,nx,ny,nz) \<longleftrightarrow>
        sats(A, satisfies_is_c_fm(u,v,x,y,z), env)"
 by simp
 
@@ -704,13 +704,13 @@ done
 subsubsection{*The Operator @{term satisfies_is_d}, Internalized*}
 
 (* satisfies_is_d(M,A,h) == 
-    \<lambda>p zz. \<forall>lA[M]. is_list(M,A,lA) -->
+    \<lambda>p zz. \<forall>lA[M]. is_list(M,A,lA) \<longrightarrow>
              is_lambda(M, lA, 
                 \<lambda>env z. \<exists>rp[M]. is_depth_apply(M,h,p,rp) & 
                     is_bool_of_o(M, 
                            \<forall>x[M]. \<forall>xenv[M]. \<forall>hp[M]. 
-                              x\<in>A --> is_Cons(M,x,env,xenv) --> 
-                              fun_apply(M,rp,xenv,hp) --> number1(M,hp),
+                              x\<in>A \<longrightarrow> is_Cons(M,x,env,xenv) \<longrightarrow> 
+                              fun_apply(M,rp,xenv,hp) \<longrightarrow> number1(M,hp),
                   z),
                zz) *)
 
@@ -736,7 +736,7 @@ by (simp add: satisfies_is_d_fm_def)
 
 lemma sats_satisfies_is_d_fm [simp]:
    "[| u \<in> nat; x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, satisfies_is_d_fm(u,x,y,z), env) <->
+    ==> sats(A, satisfies_is_d_fm(u,x,y,z), env) \<longleftrightarrow>
         satisfies_is_d(##A, nth(u,env), nth(x,env), nth(y,env), nth(z,env))"  
 by (simp add: satisfies_is_d_fm_def satisfies_is_d_def sats_lambda_fm
               sats_bool_of_o_fm)
@@ -744,7 +744,7 @@ by (simp add: satisfies_is_d_fm_def satisfies_is_d_def sats_lambda_fm
 lemma satisfies_is_d_iff_sats:
   "[| nth(u,env) = nu; nth(x,env) = nx; nth(y,env) = ny; nth(z,env) = nz;
       u \<in> nat; x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-   ==> satisfies_is_d(##A,nu,nx,ny,nz) <->
+   ==> satisfies_is_d(##A,nu,nx,ny,nz) \<longleftrightarrow>
        sats(A, satisfies_is_d_fm(u,x,y,z), env)"
 by simp
 
@@ -762,7 +762,7 @@ subsubsection{*The Operator @{term satisfies_MH}, Internalized*}
 
 (* satisfies_MH == 
     \<lambda>M A u f zz. 
-         \<forall>fml[M]. is_formula(M,fml) -->
+         \<forall>fml[M]. is_formula(M,fml) \<longrightarrow>
              is_lambda (M, fml, 
                is_formula_case (M, satisfies_is_a(M,A), 
                                 satisfies_is_b(M,A), 
@@ -789,7 +789,7 @@ by (simp add: satisfies_MH_fm_def)
 
 lemma sats_satisfies_MH_fm [simp]:
    "[| u \<in> nat; x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, satisfies_MH_fm(u,x,y,z), env) <->
+    ==> sats(A, satisfies_MH_fm(u,x,y,z), env) \<longleftrightarrow>
         satisfies_MH(##A, nth(u,env), nth(x,env), nth(y,env), nth(z,env))"  
 by (simp add: satisfies_MH_fm_def satisfies_MH_def sats_lambda_fm
               sats_formula_case_fm)
@@ -797,7 +797,7 @@ by (simp add: satisfies_MH_fm_def satisfies_MH_def sats_lambda_fm
 lemma satisfies_MH_iff_sats:
   "[| nth(u,env) = nu; nth(x,env) = nx; nth(y,env) = ny; nth(z,env) = nz;
       u \<in> nat; x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-   ==> satisfies_MH(##A,nu,nx,ny,nz) <->
+   ==> satisfies_MH(##A,nu,nx,ny,nz) \<longleftrightarrow>
        sats(A, satisfies_MH_fm(u,x,y,z), env)"
 by simp 
 
@@ -936,8 +936,8 @@ lemma Forall_replacement:
               env \<in> list(A) & 
               is_bool_of_o (L, 
                             \<forall>a[L]. \<forall>co[L]. \<forall>rpco[L]. 
-                               a\<in>A --> is_Cons(L,a,env,co) -->
-                               fun_apply(L,rp,co,rpco) --> number1(L, rpco), 
+                               a\<in>A \<longrightarrow> is_Cons(L,a,env,co) \<longrightarrow>
+                               fun_apply(L,rp,co,rpco) \<longrightarrow> number1(L, rpco), 
                             bo) &
               pair(L,env,bo,z))"
 apply (rule strong_replacementI)

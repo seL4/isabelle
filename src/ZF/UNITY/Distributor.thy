@@ -79,7 +79,7 @@ done
 
 lemma (in distr) D_ok_iff:
      "G \<in> program ==>
-        D ok G <-> ((\<forall>n \<in> nat. G \<in> preserves(lift(Out(n)))) & D \<in> Allowed(G))"
+        D ok G \<longleftrightarrow> ((\<forall>n \<in> nat. G \<in> preserves(lift(Out(n)))) & D \<in> Allowed(G))"
 apply (cut_tac distr_spec)
 apply (auto simp add: INT_iff distr_spec_def distr_allowed_acts_def
                       Allowed_def ok_iff_Allowed)
@@ -131,7 +131,7 @@ apply (rename_tac m)
 apply (subgoal_tac "length (s ` iIn) \<in> nat")
 apply typecheck
 apply (subgoal_tac "m \<in> nat")
-apply (drule_tac x = "nth(m, s`iIn) " and P = "%elt. ?X (elt) --> elt<Nclients" in bspec)
+apply (drule_tac x = "nth(m, s`iIn) " and P = "%elt. ?X (elt) \<longrightarrow> elt<Nclients" in bspec)
 apply (simp add: ltI)
 apply (simp_all add: Ord_mem_iff_lt)
 apply (blast dest: ltD)

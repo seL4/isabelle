@@ -26,7 +26,7 @@ done
 
 theorem Union_ax: "Union_ax(L)"
 apply (simp add: Union_ax_def big_union_def, clarify)
-apply (rule_tac x="Union(x)" in rexI)
+apply (rule_tac x="\<Union>(x)" in rexI)
 apply (simp_all add: Union_in_L, auto)
 apply (blast intro: transL)
 done
@@ -116,7 +116,7 @@ text{*instances of locale constants*}
 
 definition
   L_F0 :: "[i=>o,i] => i" where
-    "L_F0(P,y) == \<mu> b. (\<exists>z. L(z) \<and> P(<y,z>)) --> (\<exists>z\<in>Lset(b). P(<y,z>))"
+    "L_F0(P,y) == \<mu> b. (\<exists>z. L(z) \<and> P(<y,z>)) \<longrightarrow> (\<exists>z\<in>Lset(b). P(<y,z>))"
 
 definition
   L_FF :: "[i=>o,i] => i" where
@@ -132,7 +132,7 @@ text{*We must use the meta-existential quantifier; otherwise the reflection
 definition
   L_Reflects :: "[i=>o,[i,i]=>o] => prop"  ("(3REFLECTS/ [_,/ _])") where
     "REFLECTS[P,Q] == (??Cl. Closed_Unbounded(Cl) &
-                           (\<forall>a. Cl(a) --> (\<forall>x \<in> Lset(a). P(x) <-> Q(a,x))))"
+                           (\<forall>a. Cl(a) \<longrightarrow> (\<forall>x \<in> Lset(a). P(x) \<longleftrightarrow> Q(a,x))))"
 
 
 theorem Triv_reflection:
@@ -169,7 +169,7 @@ done
 
 theorem Imp_reflection:
      "[| REFLECTS[P,Q]; REFLECTS[P',Q'] |]
-      ==> REFLECTS[\<lambda>x. P(x) --> P'(x), \<lambda>a x. Q(a,x) --> Q'(a,x)]"
+      ==> REFLECTS[\<lambda>x. P(x) \<longrightarrow> P'(x), \<lambda>a x. Q(a,x) \<longrightarrow> Q'(a,x)]"
 apply (unfold L_Reflects_def)
 apply (elim meta_exE)
 apply (rule_tac x="\<lambda>a. Cl(a) \<and> Cla(a)" in meta_exI)
@@ -178,7 +178,7 @@ done
 
 theorem Iff_reflection:
      "[| REFLECTS[P,Q]; REFLECTS[P',Q'] |]
-      ==> REFLECTS[\<lambda>x. P(x) <-> P'(x), \<lambda>a x. Q(a,x) <-> Q'(a,x)]"
+      ==> REFLECTS[\<lambda>x. P(x) \<longleftrightarrow> P'(x), \<lambda>a x. Q(a,x) \<longleftrightarrow> Q'(a,x)]"
 apply (unfold L_Reflects_def)
 apply (elim meta_exE)
 apply (rule_tac x="\<lambda>a. Cl(a) \<and> Cla(a)" in meta_exI)
@@ -202,7 +202,7 @@ done
 
 theorem All_reflection:
      "REFLECTS[\<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x))]
-      ==> REFLECTS[\<lambda>x. \<forall>z. L(z) --> P(x,z), \<lambda>a x. \<forall>z\<in>Lset(a). Q(a,x,z)]"
+      ==> REFLECTS[\<lambda>x. \<forall>z. L(z) \<longrightarrow> P(x,z), \<lambda>a x. \<forall>z\<in>Lset(a). Q(a,x,z)]"
 apply (unfold L_Reflects_def L_ClEx_def L_FF_def L_F0_def L_def)
 apply (elim meta_exE)
 apply (rule meta_exI)
@@ -247,7 +247,7 @@ lemmas FOL_reflections =
 
 lemma ReflectsD:
      "[|REFLECTS[P,Q]; Ord(i)|]
-      ==> \<exists>j. i<j & (\<forall>x \<in> Lset(j). P(x) <-> Q(j,x))"
+      ==> \<exists>j. i<j & (\<forall>x \<in> Lset(j). P(x) \<longleftrightarrow> Q(j,x))"
 apply (unfold L_Reflects_def Closed_Unbounded_def)
 apply (elim meta_exE, clarify)
 apply (blast dest!: UnboundedD)
@@ -255,7 +255,7 @@ done
 
 lemma ReflectsE:
      "[| REFLECTS[P,Q]; Ord(i);
-         !!j. [|i<j;  \<forall>x \<in> Lset(j). P(x) <-> Q(j,x)|] ==> R |]
+         !!j. [|i<j;  \<forall>x \<in> Lset(j). P(x) \<longleftrightarrow> Q(j,x)|] ==> R |]
       ==> R"
 by (drule ReflectsD, assumption, blast)
 
@@ -301,13 +301,13 @@ by (simp add: empty_fm_def)
 
 lemma sats_empty_fm [simp]:
    "[| x \<in> nat; env \<in> list(A)|]
-    ==> sats(A, empty_fm(x), env) <-> empty(##A, nth(x,env))"
+    ==> sats(A, empty_fm(x), env) \<longleftrightarrow> empty(##A, nth(x,env))"
 by (simp add: empty_fm_def empty_def)
 
 lemma empty_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y;
           i \<in> nat; env \<in> list(A)|]
-       ==> empty(##A, x) <-> sats(A, empty_fm(i), env)"
+       ==> empty(##A, x) \<longleftrightarrow> sats(A, empty_fm(i), env)"
 by simp
 
 theorem empty_reflection:
@@ -320,7 +320,7 @@ done
 text{*Not used.  But maybe useful?*}
 lemma Transset_sats_empty_fm_eq_0:
    "[| n \<in> nat; env \<in> list(A); Transset(A)|]
-    ==> sats(A, empty_fm(n), env) <-> nth(n,env) = 0"
+    ==> sats(A, empty_fm(n), env) \<longleftrightarrow> nth(n,env) = 0"
 apply (simp add: empty_fm_def empty_def Transset_def, auto)
 apply (case_tac "n < length(env)")
 apply (frule nth_type, assumption+, blast)
@@ -344,20 +344,20 @@ by (simp add: upair_fm_def)
 
 lemma sats_upair_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, upair_fm(x,y,z), env) <->
+    ==> sats(A, upair_fm(x,y,z), env) \<longleftrightarrow>
             upair(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: upair_fm_def upair_def)
 
 lemma upair_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> upair(##A, x, y, z) <-> sats(A, upair_fm(i,j,k), env)"
+       ==> upair(##A, x, y, z) \<longleftrightarrow> sats(A, upair_fm(i,j,k), env)"
 by (simp add: sats_upair_fm)
 
 text{*Useful? At least it refers to "real" unordered pairs*}
 lemma sats_upair_fm2 [simp]:
    "[| x \<in> nat; y \<in> nat; z < length(env); env \<in> list(A); Transset(A)|]
-    ==> sats(A, upair_fm(x,y,z), env) <->
+    ==> sats(A, upair_fm(x,y,z), env) \<longleftrightarrow>
         nth(z,env) = {nth(x,env), nth(y,env)}"
 apply (frule lt_length_in_nat, assumption)
 apply (simp add: upair_fm_def Transset_def, auto)
@@ -386,14 +386,14 @@ by (simp add: pair_fm_def)
 
 lemma sats_pair_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, pair_fm(x,y,z), env) <->
+    ==> sats(A, pair_fm(x,y,z), env) \<longleftrightarrow>
         pair(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: pair_fm_def pair_def)
 
 lemma pair_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> pair(##A, x, y, z) <-> sats(A, pair_fm(i,j,k), env)"
+       ==> pair(##A, x, y, z) \<longleftrightarrow> sats(A, pair_fm(i,j,k), env)"
 by (simp add: sats_pair_fm)
 
 theorem pair_reflection:
@@ -418,14 +418,14 @@ by (simp add: union_fm_def)
 
 lemma sats_union_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, union_fm(x,y,z), env) <->
+    ==> sats(A, union_fm(x,y,z), env) \<longleftrightarrow>
         union(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: union_fm_def union_def)
 
 lemma union_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> union(##A, x, y, z) <-> sats(A, union_fm(i,j,k), env)"
+       ==> union(##A, x, y, z) \<longleftrightarrow> sats(A, union_fm(i,j,k), env)"
 by (simp add: sats_union_fm)
 
 theorem union_reflection:
@@ -451,14 +451,14 @@ by (simp add: cons_fm_def)
 
 lemma sats_cons_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, cons_fm(x,y,z), env) <->
+    ==> sats(A, cons_fm(x,y,z), env) \<longleftrightarrow>
         is_cons(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: cons_fm_def is_cons_def)
 
 lemma cons_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> is_cons(##A, x, y, z) <-> sats(A, cons_fm(i,j,k), env)"
+       ==> is_cons(##A, x, y, z) \<longleftrightarrow> sats(A, cons_fm(i,j,k), env)"
 by simp
 
 theorem cons_reflection:
@@ -481,14 +481,14 @@ by (simp add: succ_fm_def)
 
 lemma sats_succ_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
-    ==> sats(A, succ_fm(x,y), env) <->
+    ==> sats(A, succ_fm(x,y), env) \<longleftrightarrow>
         successor(##A, nth(x,env), nth(y,env))"
 by (simp add: succ_fm_def successor_def)
 
 lemma successor_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y;
           i \<in> nat; j \<in> nat; env \<in> list(A)|]
-       ==> successor(##A, x, y) <-> sats(A, succ_fm(i,j), env)"
+       ==> successor(##A, x, y) \<longleftrightarrow> sats(A, succ_fm(i,j), env)"
 by simp
 
 theorem successor_reflection:
@@ -512,13 +512,13 @@ by (simp add: number1_fm_def)
 
 lemma sats_number1_fm [simp]:
    "[| x \<in> nat; env \<in> list(A)|]
-    ==> sats(A, number1_fm(x), env) <-> number1(##A, nth(x,env))"
+    ==> sats(A, number1_fm(x), env) \<longleftrightarrow> number1(##A, nth(x,env))"
 by (simp add: number1_fm_def number1_def)
 
 lemma number1_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y;
           i \<in> nat; env \<in> list(A)|]
-       ==> number1(##A, x) <-> sats(A, number1_fm(i), env)"
+       ==> number1(##A, x) \<longleftrightarrow> sats(A, number1_fm(i), env)"
 by simp
 
 theorem number1_reflection:
@@ -531,7 +531,7 @@ done
 
 subsubsection{*Big Union, Internalized*}
 
-(*  "big_union(M,A,z) == \<forall>x[M]. x \<in> z <-> (\<exists>y[M]. y\<in>A & x \<in> y)" *)
+(*  "big_union(M,A,z) == \<forall>x[M]. x \<in> z \<longleftrightarrow> (\<exists>y[M]. y\<in>A & x \<in> y)" *)
 definition
   big_union_fm :: "[i,i]=>i" where
     "big_union_fm(A,z) ==
@@ -544,14 +544,14 @@ by (simp add: big_union_fm_def)
 
 lemma sats_big_union_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
-    ==> sats(A, big_union_fm(x,y), env) <->
+    ==> sats(A, big_union_fm(x,y), env) \<longleftrightarrow>
         big_union(##A, nth(x,env), nth(y,env))"
 by (simp add: big_union_fm_def big_union_def)
 
 lemma big_union_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y;
           i \<in> nat; j \<in> nat; env \<in> list(A)|]
-       ==> big_union(##A, x, y) <-> sats(A, big_union_fm(i,j), env)"
+       ==> big_union(##A, x, y) \<longleftrightarrow> sats(A, big_union_fm(i,j), env)"
 by simp
 
 theorem big_union_reflection:
@@ -572,7 +572,7 @@ real concepts such as @{term Ord}.  Now that we have instantiated the locale
 
 lemma sats_subset_fm':
    "[|x \<in> nat; y \<in> nat; env \<in> list(A)|]
-    ==> sats(A, subset_fm(x,y), env) <-> subset(##A, nth(x,env), nth(y,env))"
+    ==> sats(A, subset_fm(x,y), env) \<longleftrightarrow> subset(##A, nth(x,env), nth(y,env))"
 by (simp add: subset_fm_def Relative.subset_def)
 
 theorem subset_reflection:
@@ -584,7 +584,7 @@ done
 
 lemma sats_transset_fm':
    "[|x \<in> nat; env \<in> list(A)|]
-    ==> sats(A, transset_fm(x), env) <-> transitive_set(##A, nth(x,env))"
+    ==> sats(A, transset_fm(x), env) \<longleftrightarrow> transitive_set(##A, nth(x,env))"
 by (simp add: sats_subset_fm' transset_fm_def transitive_set_def)
 
 theorem transitive_set_reflection:
@@ -596,12 +596,12 @@ done
 
 lemma sats_ordinal_fm':
    "[|x \<in> nat; env \<in> list(A)|]
-    ==> sats(A, ordinal_fm(x), env) <-> ordinal(##A,nth(x,env))"
+    ==> sats(A, ordinal_fm(x), env) \<longleftrightarrow> ordinal(##A,nth(x,env))"
 by (simp add: sats_transset_fm' ordinal_fm_def ordinal_def)
 
 lemma ordinal_iff_sats:
       "[| nth(i,env) = x;  i \<in> nat; env \<in> list(A)|]
-       ==> ordinal(##A, x) <-> sats(A, ordinal_fm(i), env)"
+       ==> ordinal(##A, x) \<longleftrightarrow> sats(A, ordinal_fm(i), env)"
 by (simp add: sats_ordinal_fm')
 
 theorem ordinal_reflection:
@@ -628,14 +628,14 @@ by (simp add: Memrel_fm_def)
 
 lemma sats_Memrel_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
-    ==> sats(A, Memrel_fm(x,y), env) <->
+    ==> sats(A, Memrel_fm(x,y), env) \<longleftrightarrow>
         membership(##A, nth(x,env), nth(y,env))"
 by (simp add: Memrel_fm_def membership_def)
 
 lemma Memrel_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y;
           i \<in> nat; j \<in> nat; env \<in> list(A)|]
-       ==> membership(##A, x, y) <-> sats(A, Memrel_fm(i,j), env)"
+       ==> membership(##A, x, y) \<longleftrightarrow> sats(A, Memrel_fm(i,j), env)"
 by simp
 
 theorem membership_reflection:
@@ -663,14 +663,14 @@ by (simp add: pred_set_fm_def)
 
 lemma sats_pred_set_fm [simp]:
    "[| U \<in> nat; x \<in> nat; r \<in> nat; B \<in> nat; env \<in> list(A)|]
-    ==> sats(A, pred_set_fm(U,x,r,B), env) <->
+    ==> sats(A, pred_set_fm(U,x,r,B), env) \<longleftrightarrow>
         pred_set(##A, nth(U,env), nth(x,env), nth(r,env), nth(B,env))"
 by (simp add: pred_set_fm_def pred_set_def)
 
 lemma pred_set_iff_sats:
       "[| nth(i,env) = U; nth(j,env) = x; nth(k,env) = r; nth(l,env) = B;
           i \<in> nat; j \<in> nat; k \<in> nat; l \<in> nat; env \<in> list(A)|]
-       ==> pred_set(##A,U,x,r,B) <-> sats(A, pred_set_fm(i,j,k,l), env)"
+       ==> pred_set(##A,U,x,r,B) \<longleftrightarrow> sats(A, pred_set_fm(i,j,k,l), env)"
 by (simp add: sats_pred_set_fm)
 
 theorem pred_set_reflection:
@@ -685,7 +685,7 @@ done
 subsubsection{*Domain of a Relation, Internalized*}
 
 (* "is_domain(M,r,z) ==
-        \<forall>x[M]. (x \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>y[M]. pair(M,x,y,w))))" *)
+        \<forall>x[M]. (x \<in> z \<longleftrightarrow> (\<exists>w[M]. w\<in>r & (\<exists>y[M]. pair(M,x,y,w))))" *)
 definition
   domain_fm :: "[i,i]=>i" where
     "domain_fm(r,z) ==
@@ -699,14 +699,14 @@ by (simp add: domain_fm_def)
 
 lemma sats_domain_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
-    ==> sats(A, domain_fm(x,y), env) <->
+    ==> sats(A, domain_fm(x,y), env) \<longleftrightarrow>
         is_domain(##A, nth(x,env), nth(y,env))"
 by (simp add: domain_fm_def is_domain_def)
 
 lemma domain_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y;
           i \<in> nat; j \<in> nat; env \<in> list(A)|]
-       ==> is_domain(##A, x, y) <-> sats(A, domain_fm(i,j), env)"
+       ==> is_domain(##A, x, y) \<longleftrightarrow> sats(A, domain_fm(i,j), env)"
 by simp
 
 theorem domain_reflection:
@@ -720,7 +720,7 @@ done
 subsubsection{*Range of a Relation, Internalized*}
 
 (* "is_range(M,r,z) ==
-        \<forall>y[M]. (y \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>x[M]. pair(M,x,y,w))))" *)
+        \<forall>y[M]. (y \<in> z \<longleftrightarrow> (\<exists>w[M]. w\<in>r & (\<exists>x[M]. pair(M,x,y,w))))" *)
 definition
   range_fm :: "[i,i]=>i" where
     "range_fm(r,z) ==
@@ -734,14 +734,14 @@ by (simp add: range_fm_def)
 
 lemma sats_range_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
-    ==> sats(A, range_fm(x,y), env) <->
+    ==> sats(A, range_fm(x,y), env) \<longleftrightarrow>
         is_range(##A, nth(x,env), nth(y,env))"
 by (simp add: range_fm_def is_range_def)
 
 lemma range_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y;
           i \<in> nat; j \<in> nat; env \<in> list(A)|]
-       ==> is_range(##A, x, y) <-> sats(A, range_fm(i,j), env)"
+       ==> is_range(##A, x, y) \<longleftrightarrow> sats(A, range_fm(i,j), env)"
 by simp
 
 theorem range_reflection:
@@ -770,14 +770,14 @@ by (simp add: field_fm_def)
 
 lemma sats_field_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
-    ==> sats(A, field_fm(x,y), env) <->
+    ==> sats(A, field_fm(x,y), env) \<longleftrightarrow>
         is_field(##A, nth(x,env), nth(y,env))"
 by (simp add: field_fm_def is_field_def)
 
 lemma field_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y;
           i \<in> nat; j \<in> nat; env \<in> list(A)|]
-       ==> is_field(##A, x, y) <-> sats(A, field_fm(i,j), env)"
+       ==> is_field(##A, x, y) \<longleftrightarrow> sats(A, field_fm(i,j), env)"
 by simp
 
 theorem field_reflection:
@@ -792,7 +792,7 @@ done
 subsubsection{*Image under a Relation, Internalized*}
 
 (* "image(M,r,A,z) ==
-        \<forall>y[M]. (y \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>x[M]. x\<in>A & pair(M,x,y,w))))" *)
+        \<forall>y[M]. (y \<in> z \<longleftrightarrow> (\<exists>w[M]. w\<in>r & (\<exists>x[M]. x\<in>A & pair(M,x,y,w))))" *)
 definition
   image_fm :: "[i,i,i]=>i" where
     "image_fm(r,A,z) ==
@@ -807,14 +807,14 @@ by (simp add: image_fm_def)
 
 lemma sats_image_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, image_fm(x,y,z), env) <->
+    ==> sats(A, image_fm(x,y,z), env) \<longleftrightarrow>
         image(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: image_fm_def Relative.image_def)
 
 lemma image_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> image(##A, x, y, z) <-> sats(A, image_fm(i,j,k), env)"
+       ==> image(##A, x, y, z) \<longleftrightarrow> sats(A, image_fm(i,j,k), env)"
 by (simp add: sats_image_fm)
 
 theorem image_reflection:
@@ -828,7 +828,7 @@ done
 subsubsection{*Pre-Image under a Relation, Internalized*}
 
 (* "pre_image(M,r,A,z) ==
-        \<forall>x[M]. x \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>y[M]. y\<in>A & pair(M,x,y,w)))" *)
+        \<forall>x[M]. x \<in> z \<longleftrightarrow> (\<exists>w[M]. w\<in>r & (\<exists>y[M]. y\<in>A & pair(M,x,y,w)))" *)
 definition
   pre_image_fm :: "[i,i,i]=>i" where
     "pre_image_fm(r,A,z) ==
@@ -843,14 +843,14 @@ by (simp add: pre_image_fm_def)
 
 lemma sats_pre_image_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, pre_image_fm(x,y,z), env) <->
+    ==> sats(A, pre_image_fm(x,y,z), env) \<longleftrightarrow>
         pre_image(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: pre_image_fm_def Relative.pre_image_def)
 
 lemma pre_image_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> pre_image(##A, x, y, z) <-> sats(A, pre_image_fm(i,j,k), env)"
+       ==> pre_image(##A, x, y, z) \<longleftrightarrow> sats(A, pre_image_fm(i,j,k), env)"
 by (simp add: sats_pre_image_fm)
 
 theorem pre_image_reflection:
@@ -879,14 +879,14 @@ by (simp add: fun_apply_fm_def)
 
 lemma sats_fun_apply_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, fun_apply_fm(x,y,z), env) <->
+    ==> sats(A, fun_apply_fm(x,y,z), env) \<longleftrightarrow>
         fun_apply(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: fun_apply_fm_def fun_apply_def)
 
 lemma fun_apply_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> fun_apply(##A, x, y, z) <-> sats(A, fun_apply_fm(i,j,k), env)"
+       ==> fun_apply(##A, x, y, z) \<longleftrightarrow> sats(A, fun_apply_fm(i,j,k), env)"
 by simp
 
 theorem fun_apply_reflection:
@@ -901,7 +901,7 @@ done
 subsubsection{*The Concept of Relation, Internalized*}
 
 (* "is_relation(M,r) ==
-        (\<forall>z[M]. z\<in>r --> (\<exists>x[M]. \<exists>y[M]. pair(M,x,y,z)))" *)
+        (\<forall>z[M]. z\<in>r \<longrightarrow> (\<exists>x[M]. \<exists>y[M]. pair(M,x,y,z)))" *)
 definition
   relation_fm :: "i=>i" where
     "relation_fm(r) ==
@@ -913,13 +913,13 @@ by (simp add: relation_fm_def)
 
 lemma sats_relation_fm [simp]:
    "[| x \<in> nat; env \<in> list(A)|]
-    ==> sats(A, relation_fm(x), env) <-> is_relation(##A, nth(x,env))"
+    ==> sats(A, relation_fm(x), env) \<longleftrightarrow> is_relation(##A, nth(x,env))"
 by (simp add: relation_fm_def is_relation_def)
 
 lemma relation_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y;
           i \<in> nat; env \<in> list(A)|]
-       ==> is_relation(##A, x) <-> sats(A, relation_fm(i), env)"
+       ==> is_relation(##A, x) \<longleftrightarrow> sats(A, relation_fm(i), env)"
 by simp
 
 theorem is_relation_reflection:
@@ -934,7 +934,7 @@ subsubsection{*The Concept of Function, Internalized*}
 
 (* "is_function(M,r) ==
         \<forall>x[M]. \<forall>y[M]. \<forall>y'[M]. \<forall>p[M]. \<forall>p'[M].
-           pair(M,x,y,p) --> pair(M,x,y',p') --> p\<in>r --> p'\<in>r --> y=y'" *)
+           pair(M,x,y,p) \<longrightarrow> pair(M,x,y',p') \<longrightarrow> p\<in>r \<longrightarrow> p'\<in>r \<longrightarrow> y=y'" *)
 definition
   function_fm :: "i=>i" where
     "function_fm(r) ==
@@ -950,13 +950,13 @@ by (simp add: function_fm_def)
 
 lemma sats_function_fm [simp]:
    "[| x \<in> nat; env \<in> list(A)|]
-    ==> sats(A, function_fm(x), env) <-> is_function(##A, nth(x,env))"
+    ==> sats(A, function_fm(x), env) \<longleftrightarrow> is_function(##A, nth(x,env))"
 by (simp add: function_fm_def is_function_def)
 
 lemma is_function_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y;
           i \<in> nat; env \<in> list(A)|]
-       ==> is_function(##A, x) <-> sats(A, function_fm(i), env)"
+       ==> is_function(##A, x) \<longleftrightarrow> sats(A, function_fm(i), env)"
 by simp
 
 theorem is_function_reflection:
@@ -971,7 +971,7 @@ subsubsection{*Typed Functions, Internalized*}
 
 (* "typed_function(M,A,B,r) ==
         is_function(M,r) & is_relation(M,r) & is_domain(M,r,A) &
-        (\<forall>u[M]. u\<in>r --> (\<forall>x[M]. \<forall>y[M]. pair(M,x,y,u) --> y\<in>B))" *)
+        (\<forall>u[M]. u\<in>r \<longrightarrow> (\<forall>x[M]. \<forall>y[M]. pair(M,x,y,u) \<longrightarrow> y\<in>B))" *)
 
 definition
   typed_function_fm :: "[i,i,i]=>i" where
@@ -988,14 +988,14 @@ by (simp add: typed_function_fm_def)
 
 lemma sats_typed_function_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, typed_function_fm(x,y,z), env) <->
+    ==> sats(A, typed_function_fm(x,y,z), env) \<longleftrightarrow>
         typed_function(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: typed_function_fm_def typed_function_def)
 
 lemma typed_function_iff_sats:
   "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
       i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-   ==> typed_function(##A, x, y, z) <-> sats(A, typed_function_fm(i,j,k), env)"
+   ==> typed_function(##A, x, y, z) \<longleftrightarrow> sats(A, typed_function_fm(i,j,k), env)"
 by simp
 
 lemmas function_reflections =
@@ -1029,7 +1029,7 @@ done
 subsubsection{*Composition of Relations, Internalized*}
 
 (* "composition(M,r,s,t) ==
-        \<forall>p[M]. p \<in> t <->
+        \<forall>p[M]. p \<in> t \<longleftrightarrow>
                (\<exists>x[M]. \<exists>y[M]. \<exists>z[M]. \<exists>xy[M]. \<exists>yz[M].
                 pair(M,x,z,p) & pair(M,x,y,xy) & pair(M,y,z,yz) &
                 xy \<in> s & yz \<in> r)" *)
@@ -1049,14 +1049,14 @@ by (simp add: composition_fm_def)
 
 lemma sats_composition_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, composition_fm(x,y,z), env) <->
+    ==> sats(A, composition_fm(x,y,z), env) \<longleftrightarrow>
         composition(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: composition_fm_def composition_def)
 
 lemma composition_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> composition(##A, x, y, z) <-> sats(A, composition_fm(i,j,k), env)"
+       ==> composition(##A, x, y, z) \<longleftrightarrow> sats(A, composition_fm(i,j,k), env)"
 by simp
 
 theorem composition_reflection:
@@ -1072,7 +1072,7 @@ subsubsection{*Injections, Internalized*}
 (* "injection(M,A,B,f) ==
         typed_function(M,A,B,f) &
         (\<forall>x[M]. \<forall>x'[M]. \<forall>y[M]. \<forall>p[M]. \<forall>p'[M].
-          pair(M,x,y,p) --> pair(M,x',y,p') --> p\<in>f --> p'\<in>f --> x=x')" *)
+          pair(M,x,y,p) \<longrightarrow> pair(M,x',y,p') \<longrightarrow> p\<in>f \<longrightarrow> p'\<in>f \<longrightarrow> x=x')" *)
 definition
   injection_fm :: "[i,i,i]=>i" where
   "injection_fm(A,B,f) ==
@@ -1090,14 +1090,14 @@ by (simp add: injection_fm_def)
 
 lemma sats_injection_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, injection_fm(x,y,z), env) <->
+    ==> sats(A, injection_fm(x,y,z), env) \<longleftrightarrow>
         injection(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: injection_fm_def injection_def)
 
 lemma injection_iff_sats:
   "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
       i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-   ==> injection(##A, x, y, z) <-> sats(A, injection_fm(i,j,k), env)"
+   ==> injection(##A, x, y, z) \<longleftrightarrow> sats(A, injection_fm(i,j,k), env)"
 by simp
 
 theorem injection_reflection:
@@ -1113,7 +1113,7 @@ subsubsection{*Surjections, Internalized*}
 (*  surjection :: "[i=>o,i,i,i] => o"
     "surjection(M,A,B,f) ==
         typed_function(M,A,B,f) &
-        (\<forall>y[M]. y\<in>B --> (\<exists>x[M]. x\<in>A & fun_apply(M,f,x,y)))" *)
+        (\<forall>y[M]. y\<in>B \<longrightarrow> (\<exists>x[M]. x\<in>A & fun_apply(M,f,x,y)))" *)
 definition
   surjection_fm :: "[i,i,i]=>i" where
   "surjection_fm(A,B,f) ==
@@ -1128,14 +1128,14 @@ by (simp add: surjection_fm_def)
 
 lemma sats_surjection_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, surjection_fm(x,y,z), env) <->
+    ==> sats(A, surjection_fm(x,y,z), env) \<longleftrightarrow>
         surjection(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: surjection_fm_def surjection_def)
 
 lemma surjection_iff_sats:
   "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
       i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-   ==> surjection(##A, x, y, z) <-> sats(A, surjection_fm(i,j,k), env)"
+   ==> surjection(##A, x, y, z) \<longleftrightarrow> sats(A, surjection_fm(i,j,k), env)"
 by simp
 
 theorem surjection_reflection:
@@ -1161,14 +1161,14 @@ by (simp add: bijection_fm_def)
 
 lemma sats_bijection_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, bijection_fm(x,y,z), env) <->
+    ==> sats(A, bijection_fm(x,y,z), env) \<longleftrightarrow>
         bijection(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: bijection_fm_def bijection_def)
 
 lemma bijection_iff_sats:
   "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
       i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-   ==> bijection(##A, x, y, z) <-> sats(A, bijection_fm(i,j,k), env)"
+   ==> bijection(##A, x, y, z) \<longleftrightarrow> sats(A, bijection_fm(i,j,k), env)"
 by simp
 
 theorem bijection_reflection:
@@ -1183,7 +1183,7 @@ subsubsection{*Restriction of a Relation, Internalized*}
 
 
 (* "restriction(M,r,A,z) ==
-        \<forall>x[M]. x \<in> z <-> (x \<in> r & (\<exists>u[M]. u\<in>A & (\<exists>v[M]. pair(M,u,v,x))))" *)
+        \<forall>x[M]. x \<in> z \<longleftrightarrow> (x \<in> r & (\<exists>u[M]. u\<in>A & (\<exists>v[M]. pair(M,u,v,x))))" *)
 definition
   restriction_fm :: "[i,i,i]=>i" where
     "restriction_fm(r,A,z) ==
@@ -1198,14 +1198,14 @@ by (simp add: restriction_fm_def)
 
 lemma sats_restriction_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, restriction_fm(x,y,z), env) <->
+    ==> sats(A, restriction_fm(x,y,z), env) \<longleftrightarrow>
         restriction(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: restriction_fm_def restriction_def)
 
 lemma restriction_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> restriction(##A, x, y, z) <-> sats(A, restriction_fm(i,j,k), env)"
+       ==> restriction(##A, x, y, z) \<longleftrightarrow> sats(A, restriction_fm(i,j,k), env)"
 by simp
 
 theorem restriction_reflection:
@@ -1220,10 +1220,10 @@ subsubsection{*Order-Isomorphisms, Internalized*}
 (*  order_isomorphism :: "[i=>o,i,i,i,i,i] => o"
    "order_isomorphism(M,A,r,B,s,f) ==
         bijection(M,A,B,f) &
-        (\<forall>x[M]. x\<in>A --> (\<forall>y[M]. y\<in>A -->
+        (\<forall>x[M]. x\<in>A \<longrightarrow> (\<forall>y[M]. y\<in>A \<longrightarrow>
           (\<forall>p[M]. \<forall>fx[M]. \<forall>fy[M]. \<forall>q[M].
-            pair(M,x,y,p) --> fun_apply(M,f,x,fx) --> fun_apply(M,f,y,fy) -->
-            pair(M,fx,fy,q) --> (p\<in>r <-> q\<in>s))))"
+            pair(M,x,y,p) \<longrightarrow> fun_apply(M,f,x,fx) \<longrightarrow> fun_apply(M,f,y,fy) \<longrightarrow>
+            pair(M,fx,fy,q) \<longrightarrow> (p\<in>r \<longleftrightarrow> q\<in>s))))"
   *)
 
 definition
@@ -1246,7 +1246,7 @@ by (simp add: order_isomorphism_fm_def)
 
 lemma sats_order_isomorphism_fm [simp]:
    "[| U \<in> nat; r \<in> nat; B \<in> nat; s \<in> nat; f \<in> nat; env \<in> list(A)|]
-    ==> sats(A, order_isomorphism_fm(U,r,B,s,f), env) <->
+    ==> sats(A, order_isomorphism_fm(U,r,B,s,f), env) \<longleftrightarrow>
         order_isomorphism(##A, nth(U,env), nth(r,env), nth(B,env),
                                nth(s,env), nth(f,env))"
 by (simp add: order_isomorphism_fm_def order_isomorphism_def)
@@ -1255,7 +1255,7 @@ lemma order_isomorphism_iff_sats:
   "[| nth(i,env) = U; nth(j,env) = r; nth(k,env) = B; nth(j',env) = s;
       nth(k',env) = f;
       i \<in> nat; j \<in> nat; k \<in> nat; j' \<in> nat; k' \<in> nat; env \<in> list(A)|]
-   ==> order_isomorphism(##A,U,r,B,s,f) <->
+   ==> order_isomorphism(##A,U,r,B,s,f) \<longleftrightarrow>
        sats(A, order_isomorphism_fm(i,j,k,j',k'), env)"
 by simp
 
@@ -1272,7 +1272,7 @@ text{*A limit ordinal is a non-empty, successor-closed ordinal*}
 
 (* "limit_ordinal(M,a) ==
         ordinal(M,a) & ~ empty(M,a) &
-        (\<forall>x[M]. x\<in>a --> (\<exists>y[M]. y\<in>a & successor(M,x,y)))" *)
+        (\<forall>x[M]. x\<in>a \<longrightarrow> (\<exists>y[M]. y\<in>a & successor(M,x,y)))" *)
 
 definition
   limit_ordinal_fm :: "i=>i" where
@@ -1289,13 +1289,13 @@ by (simp add: limit_ordinal_fm_def)
 
 lemma sats_limit_ordinal_fm [simp]:
    "[| x \<in> nat; env \<in> list(A)|]
-    ==> sats(A, limit_ordinal_fm(x), env) <-> limit_ordinal(##A, nth(x,env))"
+    ==> sats(A, limit_ordinal_fm(x), env) \<longleftrightarrow> limit_ordinal(##A, nth(x,env))"
 by (simp add: limit_ordinal_fm_def limit_ordinal_def sats_ordinal_fm')
 
 lemma limit_ordinal_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y;
           i \<in> nat; env \<in> list(A)|]
-       ==> limit_ordinal(##A, x) <-> sats(A, limit_ordinal_fm(i), env)"
+       ==> limit_ordinal(##A, x) \<longleftrightarrow> sats(A, limit_ordinal_fm(i), env)"
 by simp
 
 theorem limit_ordinal_reflection:
@@ -1310,7 +1310,7 @@ subsubsection{*Finite Ordinals: The Predicate ``Is A Natural Number''*}
 
 (*     "finite_ordinal(M,a) == 
         ordinal(M,a) & ~ limit_ordinal(M,a) & 
-        (\<forall>x[M]. x\<in>a --> ~ limit_ordinal(M,x))" *)
+        (\<forall>x[M]. x\<in>a \<longrightarrow> ~ limit_ordinal(M,x))" *)
 definition
   finite_ordinal_fm :: "i=>i" where
     "finite_ordinal_fm(x) ==
@@ -1325,13 +1325,13 @@ by (simp add: finite_ordinal_fm_def)
 
 lemma sats_finite_ordinal_fm [simp]:
    "[| x \<in> nat; env \<in> list(A)|]
-    ==> sats(A, finite_ordinal_fm(x), env) <-> finite_ordinal(##A, nth(x,env))"
+    ==> sats(A, finite_ordinal_fm(x), env) \<longleftrightarrow> finite_ordinal(##A, nth(x,env))"
 by (simp add: finite_ordinal_fm_def sats_ordinal_fm' finite_ordinal_def)
 
 lemma finite_ordinal_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y;
           i \<in> nat; env \<in> list(A)|]
-       ==> finite_ordinal(##A, x) <-> sats(A, finite_ordinal_fm(i), env)"
+       ==> finite_ordinal(##A, x) \<longleftrightarrow> sats(A, finite_ordinal_fm(i), env)"
 by simp
 
 theorem finite_ordinal_reflection:
@@ -1344,7 +1344,7 @@ done
 
 subsubsection{*Omega: The Set of Natural Numbers*}
 
-(* omega(M,a) == limit_ordinal(M,a) & (\<forall>x[M]. x\<in>a --> ~ limit_ordinal(M,x)) *)
+(* omega(M,a) == limit_ordinal(M,a) & (\<forall>x[M]. x\<in>a \<longrightarrow> ~ limit_ordinal(M,x)) *)
 definition
   omega_fm :: "i=>i" where
     "omega_fm(x) ==
@@ -1358,13 +1358,13 @@ by (simp add: omega_fm_def)
 
 lemma sats_omega_fm [simp]:
    "[| x \<in> nat; env \<in> list(A)|]
-    ==> sats(A, omega_fm(x), env) <-> omega(##A, nth(x,env))"
+    ==> sats(A, omega_fm(x), env) \<longleftrightarrow> omega(##A, nth(x,env))"
 by (simp add: omega_fm_def omega_def)
 
 lemma omega_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y;
           i \<in> nat; env \<in> list(A)|]
-       ==> omega(##A, x) <-> sats(A, omega_fm(i), env)"
+       ==> omega(##A, x) \<longleftrightarrow> sats(A, omega_fm(i), env)"
 by simp
 
 theorem omega_reflection:

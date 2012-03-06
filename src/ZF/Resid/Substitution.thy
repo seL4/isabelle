@@ -54,7 +54,7 @@ abbreviation
 lemma gt_not_eq: "p < n ==> n\<noteq>p"
 by blast
 
-lemma succ_pred [rule_format, simp]: "j \<in> nat ==> i < j --> succ(j #- 1) = j"
+lemma succ_pred [rule_format, simp]: "j \<in> nat ==> i < j \<longrightarrow> succ(j #- 1) = j"
 by (induct_tac "j", auto)
 
 lemma lt_pred: "[|succ(x)<n; n \<in> nat|] ==> x < n #- 1 "
@@ -148,7 +148,7 @@ done
 (*The i\<in>nat is redundant*)
 lemma lift_lift_rec [rule_format]:
      "u \<in> redexes
-      ==> \<forall>n \<in> nat. \<forall>i \<in> nat. i\<le>n -->
+      ==> \<forall>n \<in> nat. \<forall>i \<in> nat. i\<le>n \<longrightarrow>
            (lift_rec(lift_rec(u,i),succ(n)) = lift_rec(lift_rec(u,n),i))"
 apply (erule redexes.induct, auto)
 apply (case_tac "n < i")
@@ -166,7 +166,7 @@ by (erule natE, auto)
 
 lemma lift_rec_subst_rec [rule_format]:
      "v \<in> redexes ==>
-       \<forall>n \<in> nat. \<forall>m \<in> nat. \<forall>u \<in> redexes. n\<le>m-->
+       \<forall>n \<in> nat. \<forall>m \<in> nat. \<forall>u \<in> redexes. n\<le>m\<longrightarrow>
           lift_rec(subst_rec(u,v,n),m) =
                subst_rec(lift_rec(u,m),lift_rec(v,succ(m)),n)"
 apply (erule redexes.induct, simp_all (no_asm_simp) add: lift_lift)
@@ -188,7 +188,7 @@ by (simp add: lift_rec_subst_rec)
 
 lemma lift_rec_subst_rec_lt [rule_format]:
      "v \<in> redexes ==>
-       \<forall>n \<in> nat. \<forall>m \<in> nat. \<forall>u \<in> redexes. m\<le>n-->
+       \<forall>n \<in> nat. \<forall>m \<in> nat. \<forall>u \<in> redexes. m\<le>n\<longrightarrow>
           lift_rec(subst_rec(u,v,n),m) =
                subst_rec(lift_rec(u,m),lift_rec(v,m),succ(n))"
 apply (erule redexes.induct, simp_all (no_asm_simp) add: lift_lift)
@@ -212,7 +212,7 @@ done
 
 lemma subst_rec_subst_rec [rule_format]:
      "v \<in> redexes ==>
-        \<forall>m \<in> nat. \<forall>n \<in> nat. \<forall>u \<in> redexes. \<forall>w \<in> redexes. m\<le>n -->
+        \<forall>m \<in> nat. \<forall>n \<in> nat. \<forall>u \<in> redexes. \<forall>w \<in> redexes. m\<le>n \<longrightarrow>
           subst_rec(subst_rec(w,u,n),subst_rec(lift_rec(w,m),v,succ(n)),m) =
           subst_rec(w,subst_rec(u,v,m),n)"
 apply (erule redexes.induct)
@@ -254,7 +254,7 @@ by (erule Scomp.induct, simp_all add: comp_refl)
 
 lemma subst_rec_preserve_comp [rule_format, simp]:
      "u2 ~ v2 ==> \<forall>m \<in> nat. \<forall>u1 \<in> redexes. \<forall>v1 \<in> redexes.
-                  u1 ~ v1--> subst_rec(u1,u2,m) ~ subst_rec(v1,v2,m)"
+                  u1 ~ v1\<longrightarrow> subst_rec(u1,u2,m) ~ subst_rec(v1,v2,m)"
 by (erule Scomp.induct,
     simp_all add: subst_Var lift_rec_preserve_comp comp_refl)
 
@@ -264,7 +264,7 @@ by (erule Sreg.induct, simp_all add: lift_rec_Var)
 
 lemma subst_rec_preserve_reg [simp]:
      "regular(v) ==>
-        \<forall>m \<in> nat. \<forall>u \<in> redexes. regular(u)-->regular(subst_rec(u,v,m))"
+        \<forall>m \<in> nat. \<forall>u \<in> redexes. regular(u)\<longrightarrow>regular(subst_rec(u,v,m))"
 by (erule Sreg.induct, simp_all add: subst_Var lift_rec_preserve_reg)
 
 end

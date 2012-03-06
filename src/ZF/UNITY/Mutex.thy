@@ -75,18 +75,18 @@ definition
   (** The correct invariants **)
 
 definition
-  "IU == {s:state. (s`u = 1<->(#1 $<= s`m & s`m $<= #3))
-                     & (s`m = #3 --> s`p=0)}"
+  "IU == {s:state. (s`u = 1\<longleftrightarrow>(#1 $<= s`m & s`m $<= #3))
+                     & (s`m = #3 \<longrightarrow> s`p=0)}"
 
 definition
-  "IV == {s:state. (s`v = 1 <-> (#1 $<= s`n & s`n $<= #3))
-                      & (s`n = #3 --> s`p=1)}"
+  "IV == {s:state. (s`v = 1 \<longleftrightarrow> (#1 $<= s`n & s`n $<= #3))
+                      & (s`n = #3 \<longrightarrow> s`p=1)}"
 
   (** The faulty invariant (for U alone) **)
 
 definition
-  "bad_IU == {s:state. (s`u = 1 <-> (#1 $<= s`m & s`m  $<= #3))&
-                   (#3 $<= s`m & s`m $<= #4 --> s`p=0)}"
+  "bad_IU == {s:state. (s`u = 1 \<longleftrightarrow> (#1 $<= s`m & s`m  $<= #3))&
+                   (#3 $<= s`m & s`m $<= #4 \<longrightarrow> s`p=0)}"
 
 
 (** Variables' types **)
@@ -232,7 +232,7 @@ done
 lemma U_lemma1: "Mutex \<in> {s \<in> state. s`m = #1} LeadsTo {s \<in> state. s`p =1}"
 by (rule LeadsTo_Trans [OF U_F1 [THEN LeadsTo_weaken_R] U_lemma2], blast)
 
-lemma eq_123: "i \<in> int ==> (#1 $<= i & i $<= #3) <-> (i=#1 | i=#2 | i=#3)"
+lemma eq_123: "i \<in> int ==> (#1 $<= i & i $<= #3) \<longleftrightarrow> (i=#1 | i=#2 | i=#3)"
 apply auto
 apply (auto simp add: neq_iff_zless)
 apply (drule_tac [4] j = "#3" and i = i in zle_zless_trans)

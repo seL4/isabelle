@@ -38,7 +38,7 @@ done
 
 text{*Reduces the original comprehension to the reflected one*}
 lemma reflection_imp_L_separation:
-      "[| \<forall>x\<in>Lset(j). P(x) <-> Q(x);
+      "[| \<forall>x\<in>Lset(j). P(x) \<longleftrightarrow> Q(x);
           {x \<in> Lset(j) . Q(x)} \<in> DPow(Lset(j));
           Ord(j);  z \<in> Lset(j)|] ==> L({x \<in> z . P(x)})"
 apply (rule_tac i = "succ(j)" in L_I)
@@ -85,12 +85,12 @@ done
 subsection{*Separation for Intersection*}
 
 lemma Inter_Reflects:
-     "REFLECTS[\<lambda>x. \<forall>y[L]. y\<in>A --> x \<in> y,
-               \<lambda>i x. \<forall>y\<in>Lset(i). y\<in>A --> x \<in> y]"
+     "REFLECTS[\<lambda>x. \<forall>y[L]. y\<in>A \<longrightarrow> x \<in> y,
+               \<lambda>i x. \<forall>y\<in>Lset(i). y\<in>A \<longrightarrow> x \<in> y]"
 by (intro FOL_reflections)
 
 lemma Inter_separation:
-     "L(A) ==> separation(L, \<lambda>x. \<forall>y[L]. y\<in>A --> x\<in>y)"
+     "L(A) ==> separation(L, \<lambda>x. \<forall>y[L]. y\<in>A \<longrightarrow> x\<in>y)"
 apply (rule gen_separation [OF Inter_Reflects], simp)
 apply (rule DPow_LsetI)
  txt{*I leave this one example of a manual proof.  The tedium of manually

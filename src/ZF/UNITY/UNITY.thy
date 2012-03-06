@@ -78,7 +78,7 @@ definition
 
 definition
   strongest_rhs :: "[i, i] => i"  where
-  "strongest_rhs(F, A) == Inter({B \<in> Pow(state). F \<in> A co B})"
+  "strongest_rhs(F, A) == \<Inter>({B \<in> Pow(state). F \<in> A co B})"
 
 definition
   invariant :: "i => i"  where
@@ -99,7 +99,7 @@ defs
     --{* the condition @{term "st_set(A)"} makes the definition slightly
          stronger than the HOL one *}
 
-  unless_def:    "A unless B == (A - B) co (A Un B)"
+  unless_def:    "A unless B == (A - B) co (A \<union> B)"
 
 
 text{*SKIP*}
@@ -193,15 +193,15 @@ subsection{*Simplification rules involving @{term state}, @{term Init},
 
 text{*But are they really needed?*}
 
-lemma state_subset_is_Init_iff [iff]: "state \<subseteq> Init(F) <-> Init(F)=state"
+lemma state_subset_is_Init_iff [iff]: "state \<subseteq> Init(F) \<longleftrightarrow> Init(F)=state"
 by (cut_tac F = F in Init_type, auto)
 
 lemma Pow_state_times_state_is_subset_Acts_iff [iff]:
-     "Pow(state*state) \<subseteq> Acts(F) <-> Acts(F)=Pow(state*state)"
+     "Pow(state*state) \<subseteq> Acts(F) \<longleftrightarrow> Acts(F)=Pow(state*state)"
 by (cut_tac F = F in Acts_type, auto)
 
 lemma Pow_state_times_state_is_subset_AllowedActs_iff [iff]:
-     "Pow(state*state) \<subseteq> AllowedActs(F) <-> AllowedActs(F)=Pow(state*state)"
+     "Pow(state*state) \<subseteq> AllowedActs(F) \<longleftrightarrow> AllowedActs(F)=Pow(state*state)"
 by (cut_tac F = F in AllowedActs_type, auto)
 
 subsubsection{*Eliminating @{text "\<inter> state"} from expressions*}
@@ -311,7 +311,7 @@ by force
 
 
 lemma program_equality_iff:
-    "[| F \<in> program; G \<in> program |] ==>(F=G)  <->
+    "[| F \<in> program; G \<in> program |] ==>(F=G)  \<longleftrightarrow>
      (Init(F) = Init(G) & Acts(F) = Acts(G) & AllowedActs(F) = AllowedActs(G))"
 by (blast intro: program_equalityI program_equalityE)
 
@@ -342,11 +342,11 @@ by auto
 text{*An action is expanded only if a pair of states is being tested against it*}
 lemma def_act_simp:
      "[| act == {<s,s'> \<in> A*B. P(s, s')} |]
-      ==> (<s,s'> \<in> act) <-> (<s,s'> \<in> A*B & P(s, s'))"
+      ==> (<s,s'> \<in> act) \<longleftrightarrow> (<s,s'> \<in> A*B & P(s, s'))"
 by auto
 
 text{*A set is expanded only if an element is being tested against it*}
-lemma def_set_simp: "A == B ==> (x \<in> A) <-> (x \<in> B)"
+lemma def_set_simp: "A == B ==> (x \<in> A) \<longleftrightarrow> (x \<in> B)"
 by auto
 
 
@@ -367,18 +367,18 @@ by (force simp add: constrains_def)
 lemma constrainsD2: "F \<in> A co B ==> F \<in> program & st_set(A)"
 by (force simp add: constrains_def)
 
-lemma constrains_empty [iff]: "F \<in> 0 co B <-> F \<in> program"
+lemma constrains_empty [iff]: "F \<in> 0 co B \<longleftrightarrow> F \<in> program"
 by (force simp add: constrains_def st_set_def)
 
-lemma constrains_empty2 [iff]: "(F \<in> A co 0) <-> (A=0 & F \<in> program)"
+lemma constrains_empty2 [iff]: "(F \<in> A co 0) \<longleftrightarrow> (A=0 & F \<in> program)"
 by (force simp add: constrains_def st_set_def)
 
-lemma constrains_state [iff]: "(F \<in> state co B) <-> (state\<subseteq>B & F \<in> program)"
+lemma constrains_state [iff]: "(F \<in> state co B) \<longleftrightarrow> (state\<subseteq>B & F \<in> program)"
 apply (cut_tac F = F in Acts_type)
 apply (force simp add: constrains_def st_set_def)
 done
 
-lemma constrains_state2 [iff]: "F \<in> A co state <-> (F \<in> program & st_set(A))"
+lemma constrains_state2 [iff]: "F \<in> A co state \<longleftrightarrow> (F \<in> program & st_set(A))"
 apply (cut_tac F = F in Acts_type)
 apply (force simp add: constrains_def st_set_def)
 done
@@ -405,7 +405,7 @@ done
 subsection{*Constrains and Union*}
 
 lemma constrains_Un:
-    "[| F \<in> A co A'; F \<in> B co B' |] ==> F \<in> (A Un B) co (A' Un B')"
+    "[| F \<in> A co A'; F \<in> B co B' |] ==> F \<in> (A \<union> B) co (A' \<union> B')"
 by (auto simp add: constrains_def st_set_def, force)
 
 lemma constrains_UN:
@@ -414,7 +414,7 @@ lemma constrains_UN:
 by (force simp add: constrains_def st_set_def) 
 
 lemma constrains_Un_distrib:
-     "(A Un B) co C = (A co C) \<inter> (B co C)"
+     "(A \<union> B) co C = (A co C) \<inter> (B co C)"
 by (force simp add: constrains_def st_set_def)
 
 lemma constrains_UN_distrib:
@@ -462,7 +462,7 @@ lemma constrains_trans: "[| F \<in> A co B; F \<in> B co C |] ==> F \<in> A co C
 by (unfold constrains_def st_set_def, auto, blast)
 
 lemma constrains_cancel:
-"[| F \<in> A co (A' Un B); F \<in> B co B' |] ==> F \<in> A co (A' Un B')"
+"[| F \<in> A co (A' \<union> B); F \<in> B co B' |] ==> F \<in> A co (A' \<union> B')"
 apply (drule_tac A = B in constrains_imp_subset)
 apply (blast intro: constrains_weaken_R)
 done
@@ -473,12 +473,12 @@ subsection{*The Unless Operator*}
 lemma unless_type: "A unless B \<subseteq> program"
 by (force simp add: unless_def constrains_def) 
 
-lemma unlessI: "[| F \<in> (A-B) co (A Un B) |] ==> F \<in> A unless B"
+lemma unlessI: "[| F \<in> (A-B) co (A \<union> B) |] ==> F \<in> A unless B"
 apply (unfold unless_def)
 apply (blast dest: constrainsD2)
 done
 
-lemma unlessD: "F :A unless B ==> F \<in> (A-B) co (A Un B)"
+lemma unlessD: "F :A unless B ==> F \<in> (A-B) co (A \<union> B)"
 by (unfold unless_def, auto)
 
 
@@ -519,7 +519,7 @@ by (auto simp add: unless_def stable_def)
 subsection{*Union and Intersection with @{term stable}*}
 
 lemma stable_Un:
-    "[| F \<in> stable(A); F \<in> stable(A') |] ==> F \<in> stable(A Un A')"
+    "[| F \<in> stable(A); F \<in> stable(A') |] ==> F \<in> stable(A \<union> A')"
 apply (unfold stable_def)
 apply (blast intro: constrains_Un)
 done
@@ -552,7 +552,7 @@ apply (rule constrains_All, auto)
 done
 
 lemma stable_constrains_Un:
-     "[| F \<in> stable(C); F \<in> A co (C Un A') |] ==> F \<in> (C Un A) co (C Un A')"
+     "[| F \<in> stable(C); F \<in> A co (C \<union> A') |] ==> F \<in> (C \<union> A) co (C \<union> A')"
 apply (unfold stable_def constrains_def st_set_def, auto)
 apply (blast dest!: bspec)
 done

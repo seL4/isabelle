@@ -25,7 +25,7 @@ text{*First, The Defining Formula*}
        (\<exists>f[M]. typed_function(M,n',A,f) &
         (\<exists>x[M]. \<exists>y[M]. \<exists>zero[M]. pair(M,x,y,p) & empty(M,zero) &
           fun_apply(M,f,zero,x) & fun_apply(M,f,n,y)) &
-        (\<forall>j[M]. j\<in>n -->
+        (\<forall>j[M]. j\<in>n \<longrightarrow>
           (\<exists>fj[M]. \<exists>sj[M]. \<exists>fsj[M]. \<exists>ffp[M].
             fun_apply(M,f,j,fj) & successor(M,j,sj) &
             fun_apply(M,f,sj,fsj) & pair(M,fj,fsj,ffp) & ffp \<in> r)))"*)
@@ -55,14 +55,14 @@ by (simp add: rtran_closure_mem_fm_def)
 
 lemma sats_rtran_closure_mem_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, rtran_closure_mem_fm(x,y,z), env) <->
+    ==> sats(A, rtran_closure_mem_fm(x,y,z), env) \<longleftrightarrow>
         rtran_closure_mem(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: rtran_closure_mem_fm_def rtran_closure_mem_def)
 
 lemma rtran_closure_mem_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> rtran_closure_mem(##A, x, y, z) <-> sats(A, rtran_closure_mem_fm(i,j,k), env)"
+       ==> rtran_closure_mem(##A, x, y, z) \<longleftrightarrow> sats(A, rtran_closure_mem_fm(i,j,k), env)"
 by (simp add: sats_rtran_closure_mem_fm)
 
 lemma rtran_closure_mem_reflection:
@@ -85,8 +85,8 @@ done
 subsubsection{*Reflexive/Transitive Closure, Internalized*}
 
 (*  "rtran_closure(M,r,s) ==
-        \<forall>A[M]. is_field(M,r,A) -->
-         (\<forall>p[M]. p \<in> s <-> rtran_closure_mem(M,A,r,p))" *)
+        \<forall>A[M]. is_field(M,r,A) \<longrightarrow>
+         (\<forall>p[M]. p \<in> s \<longleftrightarrow> rtran_closure_mem(M,A,r,p))" *)
 definition
   rtran_closure_fm :: "[i,i]=>i" where
   "rtran_closure_fm(r,s) ==
@@ -100,14 +100,14 @@ by (simp add: rtran_closure_fm_def)
 
 lemma sats_rtran_closure_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
-    ==> sats(A, rtran_closure_fm(x,y), env) <->
+    ==> sats(A, rtran_closure_fm(x,y), env) \<longleftrightarrow>
         rtran_closure(##A, nth(x,env), nth(y,env))"
 by (simp add: rtran_closure_fm_def rtran_closure_def)
 
 lemma rtran_closure_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y;
           i \<in> nat; j \<in> nat; env \<in> list(A)|]
-       ==> rtran_closure(##A, x, y) <-> sats(A, rtran_closure_fm(i,j), env)"
+       ==> rtran_closure(##A, x, y) \<longleftrightarrow> sats(A, rtran_closure_fm(i,j), env)"
 by simp
 
 theorem rtran_closure_reflection:
@@ -133,14 +133,14 @@ by (simp add: tran_closure_fm_def)
 
 lemma sats_tran_closure_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
-    ==> sats(A, tran_closure_fm(x,y), env) <->
+    ==> sats(A, tran_closure_fm(x,y), env) \<longleftrightarrow>
         tran_closure(##A, nth(x,env), nth(y,env))"
 by (simp add: tran_closure_fm_def tran_closure_def)
 
 lemma tran_closure_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y;
           i \<in> nat; j \<in> nat; env \<in> list(A)|]
-       ==> tran_closure(##A, x, y) <-> sats(A, tran_closure_fm(i,j), env)"
+       ==> tran_closure(##A, x, y) \<longleftrightarrow> sats(A, tran_closure_fm(i,j), env)"
 by simp
 
 theorem tran_closure_reflection:
@@ -307,7 +307,7 @@ by (simp add: nth_fm_def)
 
 lemma sats_nth_fm [simp]:
    "[| x < length(env); y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, nth_fm(x,y,z), env) <->
+    ==> sats(A, nth_fm(x,y,z), env) \<longleftrightarrow>
         is_nth(##A, nth(x,env), nth(y,env), nth(z,env))"
 apply (frule lt_length_in_nat, assumption)  
 apply (simp add: nth_fm_def is_nth_def sats_is_iterates_fm) 
@@ -316,7 +316,7 @@ done
 lemma nth_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i < length(env); j \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> is_nth(##A, x, y, z) <-> sats(A, nth_fm(i,j,k), env)"
+       ==> is_nth(##A, x, y, z) \<longleftrightarrow> sats(A, nth_fm(i,j,k), env)"
 by (simp add: sats_nth_fm)
 
 theorem nth_reflection:

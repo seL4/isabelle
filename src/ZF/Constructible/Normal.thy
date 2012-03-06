@@ -19,11 +19,11 @@ subsection {*Closed and Unbounded (c.u.) Classes of Ordinals*}
 
 definition
   Closed :: "(i=>o) => o" where
-    "Closed(P) == \<forall>I. I \<noteq> 0 --> (\<forall>i\<in>I. Ord(i) \<and> P(i)) --> P(\<Union>(I))"
+    "Closed(P) == \<forall>I. I \<noteq> 0 \<longrightarrow> (\<forall>i\<in>I. Ord(i) \<and> P(i)) \<longrightarrow> P(\<Union>(I))"
 
 definition
   Unbounded :: "(i=>o) => o" where
-    "Unbounded(P) == \<forall>i. Ord(i) --> (\<exists>j. i<j \<and> P(j))"
+    "Unbounded(P) == \<forall>i. Ord(i) \<longrightarrow> (\<exists>j. i<j \<and> P(j))"
 
 definition
   Closed_Unbounded :: "(i=>o) => o" where
@@ -188,7 +188,7 @@ apply (simp_all add: Closed_Unbounded_def)
 done
 
 lemma Int_iff_INT2:
-     "P(x) \<and> Q(x)  <->  (\<forall>i\<in>2. (i=0 --> P(x)) \<and> (i=1 --> Q(x)))"
+     "P(x) \<and> Q(x)  \<longleftrightarrow>  (\<forall>i\<in>2. (i=0 \<longrightarrow> P(x)) \<and> (i=1 \<longrightarrow> Q(x)))"
 by auto
 
 theorem Closed_Unbounded_Int:
@@ -203,15 +203,15 @@ subsection {*Normal Functions*}
 
 definition
   mono_le_subset :: "(i=>i) => o" where
-    "mono_le_subset(M) == \<forall>i j. i\<le>j --> M(i) \<subseteq> M(j)"
+    "mono_le_subset(M) == \<forall>i j. i\<le>j \<longrightarrow> M(i) \<subseteq> M(j)"
 
 definition
   mono_Ord :: "(i=>i) => o" where
-    "mono_Ord(F) == \<forall>i j. i<j --> F(i) < F(j)"
+    "mono_Ord(F) == \<forall>i j. i<j \<longrightarrow> F(i) < F(j)"
 
 definition
   cont_Ord :: "(i=>i) => o" where
-    "cont_Ord(F) == \<forall>l. Limit(l) --> F(l) = (\<Union>i<l. F(i))"
+    "cont_Ord(F) == \<forall>l. Limit(l) \<longrightarrow> F(l) = (\<Union>i<l. F(i))"
 
 definition
   Normal :: "(i=>i) => o" where
@@ -267,11 +267,11 @@ done
 
 text{*The following equation is taken for granted in any set theory text.*}
 lemma cont_Ord_Union:
-     "[| cont_Ord(F); mono_le_subset(F); X=0 --> F(0)=0; \<forall>x\<in>X. Ord(x) |] 
-      ==> F(Union(X)) = (\<Union>y\<in>X. F(y))"
+     "[| cont_Ord(F); mono_le_subset(F); X=0 \<longrightarrow> F(0)=0; \<forall>x\<in>X. Ord(x) |] 
+      ==> F(\<Union>(X)) = (\<Union>y\<in>X. F(y))"
 apply (frule Ord_set_cases)
 apply (erule disjE, force) 
-apply (thin_tac "X=0 --> ?Q", auto)
+apply (thin_tac "X=0 \<longrightarrow> ?Q", auto)
  txt{*The trival case of @{term "\<Union>X \<in> X"}*}
  apply (rule equalityI, blast intro: Ord_Union_eq_succD) 
  apply (simp add: mono_le_subset_def UN_subset_iff le_subset_iff) 
@@ -293,7 +293,7 @@ apply (erule leE, drule ltD, elim UnionE)
 done
 
 lemma Normal_Union:
-     "[| X\<noteq>0; \<forall>x\<in>X. Ord(x); Normal(F) |] ==> F(Union(X)) = (\<Union>y\<in>X. F(y))"
+     "[| X\<noteq>0; \<forall>x\<in>X. Ord(x); Normal(F) |] ==> F(\<Union>(X)) = (\<Union>y\<in>X. F(y))"
 apply (simp add: Normal_def) 
 apply (blast intro: mono_Ord_imp_le_subset cont_Ord_Union) 
 done
@@ -378,7 +378,7 @@ text{*Function @{text normalize} maps a function @{text F} to a
 *}
 definition
   normalize :: "[i=>i, i] => i" where
-    "normalize(F,a) == transrec2(a, F(0), \<lambda>x r. F(succ(x)) Un succ(r))"
+    "normalize(F,a) == transrec2(a, F(0), \<lambda>x r. F(succ(x)) \<union> succ(r))"
 
 
 lemma Ord_normalize [simp, intro]:
@@ -389,7 +389,7 @@ done
 
 lemma normalize_lemma [rule_format]:
      "[| Ord(b); !!x. Ord(x) ==> Ord(F(x)) |] 
-      ==> \<forall>a. a < b --> normalize(F, a) < normalize(F, b)"
+      ==> \<forall>a. a < b \<longrightarrow> normalize(F, a) < normalize(F, b)"
 apply (erule trans_induct3)
   apply (simp_all add: le_iff def_transrec2 [OF normalize_def])
  apply clarify
@@ -443,7 +443,7 @@ apply (simp_all add: Card_csucc Card_nat Card_is_Ord
 done
 
 lemma Aleph_lemma [rule_format]:
-     "Ord(b) ==> \<forall>a. a < b --> Aleph(a) < Aleph(b)"
+     "Ord(b) ==> \<forall>a. a < b \<longrightarrow> Aleph(a) < Aleph(b)"
 apply (erule trans_induct3) 
 apply (simp_all add: le_iff def_transrec2 [OF Aleph_def])  
 apply (blast intro: lt_trans lt_csucc Card_is_Ord, clarify)

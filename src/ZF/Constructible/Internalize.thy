@@ -19,13 +19,13 @@ by (simp add: Inl_fm_def)
 
 lemma sats_Inl_fm [simp]:
    "[| x \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, Inl_fm(x,z), env) <-> is_Inl(##A, nth(x,env), nth(z,env))"
+    ==> sats(A, Inl_fm(x,z), env) \<longleftrightarrow> is_Inl(##A, nth(x,env), nth(z,env))"
 by (simp add: Inl_fm_def is_Inl_def)
 
 lemma Inl_iff_sats:
       "[| nth(i,env) = x; nth(k,env) = z;
           i \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> is_Inl(##A, x, z) <-> sats(A, Inl_fm(i,k), env)"
+       ==> is_Inl(##A, x, z) \<longleftrightarrow> sats(A, Inl_fm(i,k), env)"
 by simp
 
 theorem Inl_reflection:
@@ -49,13 +49,13 @@ by (simp add: Inr_fm_def)
 
 lemma sats_Inr_fm [simp]:
    "[| x \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, Inr_fm(x,z), env) <-> is_Inr(##A, nth(x,env), nth(z,env))"
+    ==> sats(A, Inr_fm(x,z), env) \<longleftrightarrow> is_Inr(##A, nth(x,env), nth(z,env))"
 by (simp add: Inr_fm_def is_Inr_def)
 
 lemma Inr_iff_sats:
       "[| nth(i,env) = x; nth(k,env) = z;
           i \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> is_Inr(##A, x, z) <-> sats(A, Inr_fm(i,k), env)"
+       ==> is_Inr(##A, x, z) \<longleftrightarrow> sats(A, Inr_fm(i,k), env)"
 by simp
 
 theorem Inr_reflection:
@@ -79,12 +79,12 @@ by (simp add: Nil_fm_def)
 
 lemma sats_Nil_fm [simp]:
    "[| x \<in> nat; env \<in> list(A)|]
-    ==> sats(A, Nil_fm(x), env) <-> is_Nil(##A, nth(x,env))"
+    ==> sats(A, Nil_fm(x), env) \<longleftrightarrow> is_Nil(##A, nth(x,env))"
 by (simp add: Nil_fm_def is_Nil_def)
 
 lemma Nil_iff_sats:
       "[| nth(i,env) = x; i \<in> nat; env \<in> list(A)|]
-       ==> is_Nil(##A, x) <-> sats(A, Nil_fm(i), env)"
+       ==> is_Nil(##A, x) \<longleftrightarrow> sats(A, Nil_fm(i), env)"
 by simp
 
 theorem Nil_reflection:
@@ -110,14 +110,14 @@ by (simp add: Cons_fm_def)
 
 lemma sats_Cons_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, Cons_fm(x,y,z), env) <->
+    ==> sats(A, Cons_fm(x,y,z), env) \<longleftrightarrow>
        is_Cons(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: Cons_fm_def is_Cons_def)
 
 lemma Cons_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==>is_Cons(##A, x, y, z) <-> sats(A, Cons_fm(i,j,k), env)"
+       ==>is_Cons(##A, x, y, z) \<longleftrightarrow> sats(A, Cons_fm(i,j,k), env)"
 by simp
 
 theorem Cons_reflection:
@@ -141,12 +141,12 @@ by (simp add: quasilist_fm_def)
 
 lemma sats_quasilist_fm [simp]:
    "[| x \<in> nat; env \<in> list(A)|]
-    ==> sats(A, quasilist_fm(x), env) <-> is_quasilist(##A, nth(x,env))"
+    ==> sats(A, quasilist_fm(x), env) \<longleftrightarrow> is_quasilist(##A, nth(x,env))"
 by (simp add: quasilist_fm_def is_quasilist_def)
 
 lemma quasilist_iff_sats:
       "[| nth(i,env) = x; i \<in> nat; env \<in> list(A)|]
-       ==> is_quasilist(##A, x) <-> sats(A, quasilist_fm(i), env)"
+       ==> is_quasilist(##A, x) \<longleftrightarrow> sats(A, quasilist_fm(i), env)"
 by simp
 
 theorem quasilist_reflection:
@@ -163,7 +163,7 @@ subsection{*Absoluteness for the Function @{term nth}*}
 subsubsection{*The Formula @{term is_hd}, Internalized*}
 
 (*   "is_hd(M,xs,H) == 
-       (is_Nil(M,xs) --> empty(M,H)) &
+       (is_Nil(M,xs) \<longrightarrow> empty(M,H)) &
        (\<forall>x[M]. \<forall>l[M]. ~ is_Cons(M,x,l,xs) | H=x) &
        (is_quasilist(M,xs) | empty(M,H))" *)
 definition
@@ -179,13 +179,13 @@ by (simp add: hd_fm_def)
 
 lemma sats_hd_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
-    ==> sats(A, hd_fm(x,y), env) <-> is_hd(##A, nth(x,env), nth(y,env))"
+    ==> sats(A, hd_fm(x,y), env) \<longleftrightarrow> is_hd(##A, nth(x,env), nth(y,env))"
 by (simp add: hd_fm_def is_hd_def)
 
 lemma hd_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y;
           i \<in> nat; j \<in> nat; env \<in> list(A)|]
-       ==> is_hd(##A, x, y) <-> sats(A, hd_fm(i,j), env)"
+       ==> is_hd(##A, x, y) \<longleftrightarrow> sats(A, hd_fm(i,j), env)"
 by simp
 
 theorem hd_reflection:
@@ -200,7 +200,7 @@ done
 subsubsection{*The Formula @{term is_tl}, Internalized*}
 
 (*     "is_tl(M,xs,T) ==
-       (is_Nil(M,xs) --> T=xs) &
+       (is_Nil(M,xs) \<longrightarrow> T=xs) &
        (\<forall>x[M]. \<forall>l[M]. ~ is_Cons(M,x,l,xs) | T=l) &
        (is_quasilist(M,xs) | empty(M,T))" *)
 definition
@@ -216,13 +216,13 @@ by (simp add: tl_fm_def)
 
 lemma sats_tl_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
-    ==> sats(A, tl_fm(x,y), env) <-> is_tl(##A, nth(x,env), nth(y,env))"
+    ==> sats(A, tl_fm(x,y), env) \<longleftrightarrow> is_tl(##A, nth(x,env), nth(y,env))"
 by (simp add: tl_fm_def is_tl_def)
 
 lemma tl_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y;
           i \<in> nat; j \<in> nat; env \<in> list(A)|]
-       ==> is_tl(##A, x, y) <-> sats(A, tl_fm(i,j), env)"
+       ==> is_tl(##A, x, y) \<longleftrightarrow> sats(A, tl_fm(i,j), env)"
 by simp
 
 theorem tl_reflection:
@@ -251,16 +251,16 @@ lemma is_bool_of_o_type [TC]:
 by (simp add: bool_of_o_fm_def)
 
 lemma sats_bool_of_o_fm:
-  assumes p_iff_sats: "P <-> sats(A, p, env)"
+  assumes p_iff_sats: "P \<longleftrightarrow> sats(A, p, env)"
   shows 
       "[|z \<in> nat; env \<in> list(A)|]
-       ==> sats(A, bool_of_o_fm(p,z), env) <->
+       ==> sats(A, bool_of_o_fm(p,z), env) \<longleftrightarrow>
            is_bool_of_o(##A, P, nth(z,env))"
 by (simp add: bool_of_o_fm_def is_bool_of_o_def p_iff_sats [THEN iff_sym])
 
 lemma is_bool_of_o_iff_sats:
-  "[| P <-> sats(A, p, env); nth(k,env) = z; k \<in> nat; env \<in> list(A)|]
-   ==> is_bool_of_o(##A, P, z) <-> sats(A, bool_of_o_fm(p,k), env)"
+  "[| P \<longleftrightarrow> sats(A, p, env); nth(k,env) = z; k \<in> nat; env \<in> list(A)|]
+   ==> is_bool_of_o(##A, P, z) \<longleftrightarrow> sats(A, bool_of_o_fm(p,k), env)"
 by (simp add: sats_bool_of_o_fm)
 
 theorem bool_of_o_reflection:
@@ -281,7 +281,7 @@ text{*The two arguments of @{term p} are always 1, 0. Remember that
 
 (* is_lambda :: "[i=>o, i, [i,i]=>o, i] => o"
     "is_lambda(M, A, is_b, z) == 
-       \<forall>p[M]. p \<in> z <->
+       \<forall>p[M]. p \<in> z \<longleftrightarrow>
         (\<exists>u[M]. \<exists>v[M]. u\<in>A & pair(M,u,v,p) & is_b(u,v))" *)
 definition
   lambda_fm :: "[i, i, i]=>i" where
@@ -302,10 +302,10 @@ lemma sats_lambda_fm:
   assumes is_b_iff_sats: 
       "!!a0 a1 a2. 
         [|a0\<in>A; a1\<in>A; a2\<in>A|] 
-        ==> is_b(a1, a0) <-> sats(A, p, Cons(a0,Cons(a1,Cons(a2,env))))"
+        ==> is_b(a1, a0) \<longleftrightarrow> sats(A, p, Cons(a0,Cons(a1,Cons(a2,env))))"
   shows 
       "[|x \<in> nat; y \<in> nat; env \<in> list(A)|]
-       ==> sats(A, lambda_fm(p,x,y), env) <-> 
+       ==> sats(A, lambda_fm(p,x,y), env) \<longleftrightarrow> 
            is_lambda(##A, nth(x,env), is_b, nth(y,env))"
 by (simp add: lambda_fm_def is_lambda_def is_b_iff_sats [THEN iff_sym]) 
 
@@ -335,14 +335,14 @@ by (simp add: Member_fm_def)
 
 lemma sats_Member_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, Member_fm(x,y,z), env) <->
+    ==> sats(A, Member_fm(x,y,z), env) \<longleftrightarrow>
         is_Member(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: Member_fm_def is_Member_def)
 
 lemma Member_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> is_Member(##A, x, y, z) <-> sats(A, Member_fm(i,j,k), env)"
+       ==> is_Member(##A, x, y, z) \<longleftrightarrow> sats(A, Member_fm(i,j,k), env)"
 by (simp add: sats_Member_fm)
 
 theorem Member_reflection:
@@ -368,14 +368,14 @@ by (simp add: Equal_fm_def)
 
 lemma sats_Equal_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, Equal_fm(x,y,z), env) <->
+    ==> sats(A, Equal_fm(x,y,z), env) \<longleftrightarrow>
         is_Equal(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: Equal_fm_def is_Equal_def)
 
 lemma Equal_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> is_Equal(##A, x, y, z) <-> sats(A, Equal_fm(i,j,k), env)"
+       ==> is_Equal(##A, x, y, z) \<longleftrightarrow> sats(A, Equal_fm(i,j,k), env)"
 by (simp add: sats_Equal_fm)
 
 theorem Equal_reflection:
@@ -401,14 +401,14 @@ by (simp add: Nand_fm_def)
 
 lemma sats_Nand_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, Nand_fm(x,y,z), env) <->
+    ==> sats(A, Nand_fm(x,y,z), env) \<longleftrightarrow>
         is_Nand(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: Nand_fm_def is_Nand_def)
 
 lemma Nand_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> is_Nand(##A, x, y, z) <-> sats(A, Nand_fm(i,j,k), env)"
+       ==> is_Nand(##A, x, y, z) \<longleftrightarrow> sats(A, Nand_fm(i,j,k), env)"
 by (simp add: sats_Nand_fm)
 
 theorem Nand_reflection:
@@ -432,14 +432,14 @@ by (simp add: Forall_fm_def)
 
 lemma sats_Forall_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
-    ==> sats(A, Forall_fm(x,y), env) <->
+    ==> sats(A, Forall_fm(x,y), env) \<longleftrightarrow>
         is_Forall(##A, nth(x,env), nth(y,env))"
 by (simp add: Forall_fm_def is_Forall_def)
 
 lemma Forall_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; 
           i \<in> nat; j \<in> nat; env \<in> list(A)|]
-       ==> is_Forall(##A, x, y) <-> sats(A, Forall_fm(i,j), env)"
+       ==> is_Forall(##A, x, y) \<longleftrightarrow> sats(A, Forall_fm(i,j), env)"
 by (simp add: sats_Forall_fm)
 
 theorem Forall_reflection:
@@ -466,14 +466,14 @@ by (simp add: and_fm_def)
 
 lemma sats_and_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, and_fm(x,y,z), env) <->
+    ==> sats(A, and_fm(x,y,z), env) \<longleftrightarrow>
         is_and(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: and_fm_def is_and_def)
 
 lemma is_and_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> is_and(##A, x, y, z) <-> sats(A, and_fm(i,j,k), env)"
+       ==> is_and(##A, x, y, z) \<longleftrightarrow> sats(A, and_fm(i,j,k), env)"
 by simp
 
 theorem is_and_reflection:
@@ -501,14 +501,14 @@ by (simp add: or_fm_def)
 
 lemma sats_or_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, or_fm(x,y,z), env) <->
+    ==> sats(A, or_fm(x,y,z), env) \<longleftrightarrow>
         is_or(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: or_fm_def is_or_def)
 
 lemma is_or_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> is_or(##A, x, y, z) <-> sats(A, or_fm(i,j,k), env)"
+       ==> is_or(##A, x, y, z) \<longleftrightarrow> sats(A, or_fm(i,j,k), env)"
 by simp
 
 theorem is_or_reflection:
@@ -536,13 +536,13 @@ by (simp add: not_fm_def)
 
 lemma sats_is_not_fm [simp]:
    "[| x \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, not_fm(x,z), env) <-> is_not(##A, nth(x,env), nth(z,env))"
+    ==> sats(A, not_fm(x,z), env) \<longleftrightarrow> is_not(##A, nth(x,env), nth(z,env))"
 by (simp add: not_fm_def is_not_def)
 
 lemma is_not_iff_sats:
       "[| nth(i,env) = x; nth(k,env) = z;
           i \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> is_not(##A, x, z) <-> sats(A, not_fm(i,k), env)"
+       ==> is_not(##A, x, z) \<longleftrightarrow> sats(A, not_fm(i,k), env)"
 by simp
 
 theorem is_not_reflection:
@@ -565,8 +565,8 @@ subsubsection{*The Operator @{term M_is_recfun}*}
 
 text{*Alternative definition, minimizing nesting of quantifiers around MH*}
 lemma M_is_recfun_iff:
-   "M_is_recfun(M,MH,r,a,f) <->
-    (\<forall>z[M]. z \<in> f <-> 
+   "M_is_recfun(M,MH,r,a,f) \<longleftrightarrow>
+    (\<forall>z[M]. z \<in> f \<longleftrightarrow> 
      (\<exists>x[M]. \<exists>f_r_sx[M]. \<exists>y[M]. 
              MH(x, f_r_sx, y) & pair(M,x,y,z) &
              (\<exists>xa[M]. \<exists>sx[M]. \<exists>r_sx[M]. 
@@ -580,7 +580,7 @@ done
 
 (* M_is_recfun :: "[i=>o, [i,i,i]=>o, i, i, i] => o"
    "M_is_recfun(M,MH,r,a,f) ==
-     \<forall>z[M]. z \<in> f <->
+     \<forall>z[M]. z \<in> f \<longleftrightarrow>
                2      1           0
 new def     (\<exists>x[M]. \<exists>f_r_sx[M]. \<exists>y[M]. 
              MH(x, f_r_sx, y) & pair(M,x,y,z) &
@@ -614,10 +614,10 @@ lemma sats_is_recfun_fm:
   assumes MH_iff_sats: 
       "!!a0 a1 a2 a3. 
         [|a0\<in>A; a1\<in>A; a2\<in>A; a3\<in>A|] 
-        ==> MH(a2, a1, a0) <-> sats(A, p, Cons(a0,Cons(a1,Cons(a2,Cons(a3,env)))))"
+        ==> MH(a2, a1, a0) \<longleftrightarrow> sats(A, p, Cons(a0,Cons(a1,Cons(a2,Cons(a3,env)))))"
   shows 
       "[|x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-       ==> sats(A, is_recfun_fm(p,x,y,z), env) <->
+       ==> sats(A, is_recfun_fm(p,x,y,z), env) \<longleftrightarrow>
            M_is_recfun(##A, MH, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: is_recfun_fm_def M_is_recfun_iff MH_iff_sats [THEN iff_sym])
 
@@ -625,11 +625,11 @@ lemma is_recfun_iff_sats:
   assumes MH_iff_sats: 
       "!!a0 a1 a2 a3. 
         [|a0\<in>A; a1\<in>A; a2\<in>A; a3\<in>A|] 
-        ==> MH(a2, a1, a0) <-> sats(A, p, Cons(a0,Cons(a1,Cons(a2,Cons(a3,env)))))"
+        ==> MH(a2, a1, a0) \<longleftrightarrow> sats(A, p, Cons(a0,Cons(a1,Cons(a2,Cons(a3,env)))))"
   shows
   "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
       i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-   ==> M_is_recfun(##A, MH, x, y, z) <-> sats(A, is_recfun_fm(p,i,j,k), env)"
+   ==> M_is_recfun(##A, MH, x, y, z) \<longleftrightarrow> sats(A, is_recfun_fm(p,i,j,k), env)"
 by (simp add: sats_is_recfun_fm [OF MH_iff_sats]) 
 
 text{*The additional variable in the premise, namely @{term f'}, is essential.
@@ -676,10 +676,10 @@ lemma sats_is_wfrec_fm:
   assumes MH_iff_sats: 
       "!!a0 a1 a2 a3 a4. 
         [|a0\<in>A; a1\<in>A; a2\<in>A; a3\<in>A; a4\<in>A|] 
-        ==> MH(a2, a1, a0) <-> sats(A, p, Cons(a0,Cons(a1,Cons(a2,Cons(a3,Cons(a4,env))))))"
+        ==> MH(a2, a1, a0) \<longleftrightarrow> sats(A, p, Cons(a0,Cons(a1,Cons(a2,Cons(a3,Cons(a4,env))))))"
   shows 
       "[|x \<in> nat; y < length(env); z < length(env); env \<in> list(A)|]
-       ==> sats(A, is_wfrec_fm(p,x,y,z), env) <-> 
+       ==> sats(A, is_wfrec_fm(p,x,y,z), env) \<longleftrightarrow> 
            is_wfrec(##A, MH, nth(x,env), nth(y,env), nth(z,env))"
 apply (frule_tac x=z in lt_length_in_nat, assumption)  
 apply (frule lt_length_in_nat, assumption)  
@@ -691,11 +691,11 @@ lemma is_wfrec_iff_sats:
   assumes MH_iff_sats: 
       "!!a0 a1 a2 a3 a4. 
         [|a0\<in>A; a1\<in>A; a2\<in>A; a3\<in>A; a4\<in>A|] 
-        ==> MH(a2, a1, a0) <-> sats(A, p, Cons(a0,Cons(a1,Cons(a2,Cons(a3,Cons(a4,env))))))"
+        ==> MH(a2, a1, a0) \<longleftrightarrow> sats(A, p, Cons(a0,Cons(a1,Cons(a2,Cons(a3,Cons(a4,env))))))"
   shows
   "[|nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
       i \<in> nat; j < length(env); k < length(env); env \<in> list(A)|]
-   ==> is_wfrec(##A, MH, x, y, z) <-> sats(A, is_wfrec_fm(p,i,j,k), env)" 
+   ==> is_wfrec(##A, MH, x, y, z) \<longleftrightarrow> sats(A, is_wfrec_fm(p,i,j,k), env)" 
 by (simp add: sats_is_wfrec_fm [OF MH_iff_sats])
 
 theorem is_wfrec_reflection:
@@ -716,7 +716,7 @@ subsubsection{*Binary Products, Internalized*}
 definition
   cartprod_fm :: "[i,i,i]=>i" where
 (* "cartprod(M,A,B,z) ==
-        \<forall>u[M]. u \<in> z <-> (\<exists>x[M]. x\<in>A & (\<exists>y[M]. y\<in>B & pair(M,x,y,u)))" *)
+        \<forall>u[M]. u \<in> z \<longleftrightarrow> (\<exists>x[M]. x\<in>A & (\<exists>y[M]. y\<in>B & pair(M,x,y,u)))" *)
     "cartprod_fm(A,B,z) ==
        Forall(Iff(Member(0,succ(z)),
                   Exists(And(Member(0,succ(succ(A))),
@@ -729,14 +729,14 @@ by (simp add: cartprod_fm_def)
 
 lemma sats_cartprod_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, cartprod_fm(x,y,z), env) <->
+    ==> sats(A, cartprod_fm(x,y,z), env) \<longleftrightarrow>
         cartprod(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: cartprod_fm_def cartprod_def)
 
 lemma cartprod_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> cartprod(##A, x, y, z) <-> sats(A, cartprod_fm(i,j,k), env)"
+       ==> cartprod(##A, x, y, z) \<longleftrightarrow> sats(A, cartprod_fm(i,j,k), env)"
 by (simp add: sats_cartprod_fm)
 
 theorem cartprod_reflection:
@@ -769,14 +769,14 @@ by (simp add: sum_fm_def)
 
 lemma sats_sum_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, sum_fm(x,y,z), env) <->
+    ==> sats(A, sum_fm(x,y,z), env) \<longleftrightarrow>
         is_sum(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: sum_fm_def is_sum_def)
 
 lemma sum_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> is_sum(##A, x, y, z) <-> sats(A, sum_fm(i,j,k), env)"
+       ==> is_sum(##A, x, y, z) \<longleftrightarrow> sats(A, sum_fm(i,j,k), env)"
 by simp
 
 theorem sum_reflection:
@@ -800,13 +800,13 @@ by (simp add: quasinat_fm_def)
 
 lemma sats_quasinat_fm [simp]:
    "[| x \<in> nat; env \<in> list(A)|]
-    ==> sats(A, quasinat_fm(x), env) <-> is_quasinat(##A, nth(x,env))"
+    ==> sats(A, quasinat_fm(x), env) \<longleftrightarrow> is_quasinat(##A, nth(x,env))"
 by (simp add: quasinat_fm_def is_quasinat_def)
 
 lemma quasinat_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y;
           i \<in> nat; env \<in> list(A)|]
-       ==> is_quasinat(##A, x) <-> sats(A, quasinat_fm(i), env)"
+       ==> is_quasinat(##A, x) \<longleftrightarrow> sats(A, quasinat_fm(i), env)"
 by simp
 
 theorem quasinat_reflection:
@@ -824,8 +824,8 @@ text{*I could not get it to work with the more natural assumption that
 
 (* is_nat_case :: "[i=>o, i, [i,i]=>o, i, i] => o"
     "is_nat_case(M, a, is_b, k, z) ==
-       (empty(M,k) --> z=a) &
-       (\<forall>m[M]. successor(M,m,k) --> is_b(m,z)) &
+       (empty(M,k) \<longrightarrow> z=a) &
+       (\<forall>m[M]. successor(M,m,k) \<longrightarrow> is_b(m,z)) &
        (is_quasinat(M,k) | empty(M,z))" *)
 text{*The formula @{term is_b} has free variables 1 and 0.*}
 definition
@@ -844,22 +844,22 @@ by (simp add: is_nat_case_fm_def)
 
 lemma sats_is_nat_case_fm:
   assumes is_b_iff_sats: 
-      "!!a. a \<in> A ==> is_b(a,nth(z, env)) <-> 
+      "!!a. a \<in> A ==> is_b(a,nth(z, env)) \<longleftrightarrow> 
                       sats(A, p, Cons(nth(z,env), Cons(a, env)))"
   shows 
       "[|x \<in> nat; y \<in> nat; z < length(env); env \<in> list(A)|]
-       ==> sats(A, is_nat_case_fm(x,p,y,z), env) <->
+       ==> sats(A, is_nat_case_fm(x,p,y,z), env) \<longleftrightarrow>
            is_nat_case(##A, nth(x,env), is_b, nth(y,env), nth(z,env))"
 apply (frule lt_length_in_nat, assumption)
 apply (simp add: is_nat_case_fm_def is_nat_case_def is_b_iff_sats [THEN iff_sym])
 done
 
 lemma is_nat_case_iff_sats:
-  "[| (!!a. a \<in> A ==> is_b(a,z) <->
+  "[| (!!a. a \<in> A ==> is_b(a,z) \<longleftrightarrow>
                       sats(A, p, Cons(z, Cons(a,env))));
       nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
       i \<in> nat; j \<in> nat; k < length(env); env \<in> list(A)|]
-   ==> is_nat_case(##A, x, is_b, y, z) <-> sats(A, is_nat_case_fm(i,p,j,k), env)"
+   ==> is_nat_case(##A, x, is_b, y, z) \<longleftrightarrow> sats(A, is_nat_case_fm(i,p,j,k), env)"
 by (simp add: sats_is_nat_case_fm [of A is_b])
 
 
@@ -901,11 +901,11 @@ by (simp add: iterates_MH_fm_def)
 lemma sats_iterates_MH_fm:
   assumes is_F_iff_sats:
       "!!a b c d. [| a \<in> A; b \<in> A; c \<in> A; d \<in> A|]
-              ==> is_F(a,b) <->
+              ==> is_F(a,b) \<longleftrightarrow>
                   sats(A, p, Cons(b, Cons(a, Cons(c, Cons(d,env)))))"
   shows 
       "[|v \<in> nat; x \<in> nat; y \<in> nat; z < length(env); env \<in> list(A)|]
-       ==> sats(A, iterates_MH_fm(p,v,x,y,z), env) <->
+       ==> sats(A, iterates_MH_fm(p,v,x,y,z), env) \<longleftrightarrow>
            iterates_MH(##A, is_F, nth(v,env), nth(x,env), nth(y,env), nth(z,env))"
 apply (frule lt_length_in_nat, assumption)  
 apply (simp add: iterates_MH_fm_def iterates_MH_def sats_is_nat_case_fm 
@@ -917,12 +917,12 @@ done
 lemma iterates_MH_iff_sats:
   assumes is_F_iff_sats:
       "!!a b c d. [| a \<in> A; b \<in> A; c \<in> A; d \<in> A|]
-              ==> is_F(a,b) <->
+              ==> is_F(a,b) \<longleftrightarrow>
                   sats(A, p, Cons(b, Cons(a, Cons(c, Cons(d,env)))))"
   shows 
   "[| nth(i',env) = v; nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
       i' \<in> nat; i \<in> nat; j \<in> nat; k < length(env); env \<in> list(A)|]
-   ==> iterates_MH(##A, is_F, v, x, y, z) <->
+   ==> iterates_MH(##A, is_F, v, x, y, z) \<longleftrightarrow>
        sats(A, iterates_MH_fm(p,i',i,j,k), env)"
 by (simp add: sats_iterates_MH_fm [OF is_F_iff_sats]) 
 
@@ -973,12 +973,12 @@ lemma sats_is_iterates_fm:
       "!!a b c d e f g h i j k. 
               [| a \<in> A; b \<in> A; c \<in> A; d \<in> A; e \<in> A; f \<in> A; 
                  g \<in> A; h \<in> A; i \<in> A; j \<in> A; k \<in> A|]
-              ==> is_F(a,b) <->
+              ==> is_F(a,b) \<longleftrightarrow>
                   sats(A, p, Cons(b, Cons(a, Cons(c, Cons(d, Cons(e, Cons(f, 
                       Cons(g, Cons(h, Cons(i, Cons(j, Cons(k, env))))))))))))"
   shows 
       "[|x \<in> nat; y < length(env); z < length(env); env \<in> list(A)|]
-       ==> sats(A, is_iterates_fm(p,x,y,z), env) <->
+       ==> sats(A, is_iterates_fm(p,x,y,z), env) \<longleftrightarrow>
            is_iterates(##A, is_F, nth(x,env), nth(y,env), nth(z,env))"
 apply (frule_tac x=z in lt_length_in_nat, assumption)  
 apply (frule lt_length_in_nat, assumption)  
@@ -992,13 +992,13 @@ lemma is_iterates_iff_sats:
       "!!a b c d e f g h i j k. 
               [| a \<in> A; b \<in> A; c \<in> A; d \<in> A; e \<in> A; f \<in> A; 
                  g \<in> A; h \<in> A; i \<in> A; j \<in> A; k \<in> A|]
-              ==> is_F(a,b) <->
+              ==> is_F(a,b) \<longleftrightarrow>
                   sats(A, p, Cons(b, Cons(a, Cons(c, Cons(d, Cons(e, Cons(f, 
                       Cons(g, Cons(h, Cons(i, Cons(j, Cons(k, env))))))))))))"
   shows 
   "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
       i \<in> nat; j < length(env); k < length(env); env \<in> list(A)|]
-   ==> is_iterates(##A, is_F, x, y, z) <->
+   ==> is_iterates(##A, is_F, x, y, z) \<longleftrightarrow>
        sats(A, is_iterates_fm(p,i,j,k), env)"
 by (simp add: sats_is_iterates_fm [OF is_F_iff_sats]) 
 
@@ -1031,7 +1031,7 @@ by (simp add: eclose_n_fm_def)
 
 lemma sats_eclose_n_fm [simp]:
    "[| x \<in> nat; y < length(env); z < length(env); env \<in> list(A)|]
-    ==> sats(A, eclose_n_fm(x,y,z), env) <->
+    ==> sats(A, eclose_n_fm(x,y,z), env) \<longleftrightarrow>
         is_eclose_n(##A, nth(x,env), nth(y,env), nth(z,env))"
 apply (frule_tac x=z in lt_length_in_nat, assumption)  
 apply (frule_tac x=y in lt_length_in_nat, assumption)  
@@ -1042,7 +1042,7 @@ done
 lemma eclose_n_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j < length(env); k < length(env); env \<in> list(A)|]
-       ==> is_eclose_n(##A, x, y, z) <-> sats(A, eclose_n_fm(i,j,k), env)"
+       ==> is_eclose_n(##A, x, y, z) \<longleftrightarrow> sats(A, eclose_n_fm(i,j,k), env)"
 by (simp add: sats_eclose_n_fm)
 
 theorem eclose_n_reflection:
@@ -1071,13 +1071,13 @@ by (simp add: mem_eclose_fm_def)
 
 lemma sats_mem_eclose_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
-    ==> sats(A, mem_eclose_fm(x,y), env) <-> mem_eclose(##A, nth(x,env), nth(y,env))"
+    ==> sats(A, mem_eclose_fm(x,y), env) \<longleftrightarrow> mem_eclose(##A, nth(x,env), nth(y,env))"
 by (simp add: mem_eclose_fm_def mem_eclose_def)
 
 lemma mem_eclose_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y;
           i \<in> nat; j \<in> nat; env \<in> list(A)|]
-       ==> mem_eclose(##A, x, y) <-> sats(A, mem_eclose_fm(i,j), env)"
+       ==> mem_eclose(##A, x, y) \<longleftrightarrow> sats(A, mem_eclose_fm(i,j), env)"
 by simp
 
 theorem mem_eclose_reflection:
@@ -1090,7 +1090,7 @@ done
 
 subsubsection{*The Predicate ``Is @{term "eclose(A)"}''*}
 
-(* is_eclose(M,A,Z) == \<forall>l[M]. l \<in> Z <-> mem_eclose(M,A,l) *)
+(* is_eclose(M,A,Z) == \<forall>l[M]. l \<in> Z \<longleftrightarrow> mem_eclose(M,A,l) *)
 definition
   is_eclose_fm :: "[i,i]=>i" where
     "is_eclose_fm(A,Z) ==
@@ -1102,13 +1102,13 @@ by (simp add: is_eclose_fm_def)
 
 lemma sats_is_eclose_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
-    ==> sats(A, is_eclose_fm(x,y), env) <-> is_eclose(##A, nth(x,env), nth(y,env))"
+    ==> sats(A, is_eclose_fm(x,y), env) \<longleftrightarrow> is_eclose(##A, nth(x,env), nth(y,env))"
 by (simp add: is_eclose_fm_def is_eclose_def)
 
 lemma is_eclose_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y;
           i \<in> nat; j \<in> nat; env \<in> list(A)|]
-       ==> is_eclose(##A, x, y) <-> sats(A, is_eclose_fm(i,j), env)"
+       ==> is_eclose(##A, x, y) \<longleftrightarrow> sats(A, is_eclose_fm(i,j), env)"
 by simp
 
 theorem is_eclose_reflection:
@@ -1137,14 +1137,14 @@ by (simp add: list_functor_fm_def)
 
 lemma sats_list_functor_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, list_functor_fm(x,y,z), env) <->
+    ==> sats(A, list_functor_fm(x,y,z), env) \<longleftrightarrow>
         is_list_functor(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: list_functor_fm_def is_list_functor_def)
 
 lemma list_functor_iff_sats:
   "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
       i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-   ==> is_list_functor(##A, x, y, z) <-> sats(A, list_functor_fm(i,j,k), env)"
+   ==> is_list_functor(##A, x, y, z) \<longleftrightarrow> sats(A, list_functor_fm(i,j,k), env)"
 by simp
 
 theorem list_functor_reflection:
@@ -1175,7 +1175,7 @@ by (simp add: list_N_fm_def)
 
 lemma sats_list_N_fm [simp]:
    "[| x \<in> nat; y < length(env); z < length(env); env \<in> list(A)|]
-    ==> sats(A, list_N_fm(x,y,z), env) <->
+    ==> sats(A, list_N_fm(x,y,z), env) \<longleftrightarrow>
         is_list_N(##A, nth(x,env), nth(y,env), nth(z,env))"
 apply (frule_tac x=z in lt_length_in_nat, assumption)  
 apply (frule_tac x=y in lt_length_in_nat, assumption)  
@@ -1185,7 +1185,7 @@ done
 lemma list_N_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j < length(env); k < length(env); env \<in> list(A)|]
-       ==> is_list_N(##A, x, y, z) <-> sats(A, list_N_fm(i,j,k), env)"
+       ==> is_list_N(##A, x, y, z) \<longleftrightarrow> sats(A, list_N_fm(i,j,k), env)"
 by (simp add: sats_list_N_fm)
 
 theorem list_N_reflection:
@@ -1216,13 +1216,13 @@ by (simp add: mem_list_fm_def)
 
 lemma sats_mem_list_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
-    ==> sats(A, mem_list_fm(x,y), env) <-> mem_list(##A, nth(x,env), nth(y,env))"
+    ==> sats(A, mem_list_fm(x,y), env) \<longleftrightarrow> mem_list(##A, nth(x,env), nth(y,env))"
 by (simp add: mem_list_fm_def mem_list_def)
 
 lemma mem_list_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y;
           i \<in> nat; j \<in> nat; env \<in> list(A)|]
-       ==> mem_list(##A, x, y) <-> sats(A, mem_list_fm(i,j), env)"
+       ==> mem_list(##A, x, y) \<longleftrightarrow> sats(A, mem_list_fm(i,j), env)"
 by simp
 
 theorem mem_list_reflection:
@@ -1235,7 +1235,7 @@ done
 
 subsubsection{*The Predicate ``Is @{term "list(A)"}''*}
 
-(* is_list(M,A,Z) == \<forall>l[M]. l \<in> Z <-> mem_list(M,A,l) *)
+(* is_list(M,A,Z) == \<forall>l[M]. l \<in> Z \<longleftrightarrow> mem_list(M,A,l) *)
 definition
   is_list_fm :: "[i,i]=>i" where
     "is_list_fm(A,Z) ==
@@ -1247,13 +1247,13 @@ by (simp add: is_list_fm_def)
 
 lemma sats_is_list_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
-    ==> sats(A, is_list_fm(x,y), env) <-> is_list(##A, nth(x,env), nth(y,env))"
+    ==> sats(A, is_list_fm(x,y), env) \<longleftrightarrow> is_list(##A, nth(x,env), nth(y,env))"
 by (simp add: is_list_fm_def is_list_def)
 
 lemma is_list_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y;
           i \<in> nat; j \<in> nat; env \<in> list(A)|]
-       ==> is_list(##A, x, y) <-> sats(A, is_list_fm(i,j), env)"
+       ==> is_list(##A, x, y) \<longleftrightarrow> sats(A, is_list_fm(i,j), env)"
 by simp
 
 theorem is_list_reflection:
@@ -1288,14 +1288,14 @@ by (simp add: formula_functor_fm_def)
 
 lemma sats_formula_functor_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
-    ==> sats(A, formula_functor_fm(x,y), env) <->
+    ==> sats(A, formula_functor_fm(x,y), env) \<longleftrightarrow>
         is_formula_functor(##A, nth(x,env), nth(y,env))"
 by (simp add: formula_functor_fm_def is_formula_functor_def)
 
 lemma formula_functor_iff_sats:
   "[| nth(i,env) = x; nth(j,env) = y;
       i \<in> nat; j \<in> nat; env \<in> list(A)|]
-   ==> is_formula_functor(##A, x, y) <-> sats(A, formula_functor_fm(i,j), env)"
+   ==> is_formula_functor(##A, x, y) \<longleftrightarrow> sats(A, formula_functor_fm(i,j), env)"
 by simp
 
 theorem formula_functor_reflection:
@@ -1325,7 +1325,7 @@ by (simp add: formula_N_fm_def)
 
 lemma sats_formula_N_fm [simp]:
    "[| x < length(env); y < length(env); env \<in> list(A)|]
-    ==> sats(A, formula_N_fm(x,y), env) <->
+    ==> sats(A, formula_N_fm(x,y), env) \<longleftrightarrow>
         is_formula_N(##A, nth(x,env), nth(y,env))"
 apply (frule_tac x=y in lt_length_in_nat, assumption)  
 apply (frule lt_length_in_nat, assumption)  
@@ -1335,7 +1335,7 @@ done
 lemma formula_N_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; 
           i < length(env); j < length(env); env \<in> list(A)|]
-       ==> is_formula_N(##A, x, y) <-> sats(A, formula_N_fm(i,j), env)"
+       ==> is_formula_N(##A, x, y) \<longleftrightarrow> sats(A, formula_N_fm(i,j), env)"
 by (simp add: sats_formula_N_fm)
 
 theorem formula_N_reflection:
@@ -1366,12 +1366,12 @@ by (simp add: mem_formula_fm_def)
 
 lemma sats_mem_formula_fm [simp]:
    "[| x \<in> nat; env \<in> list(A)|]
-    ==> sats(A, mem_formula_fm(x), env) <-> mem_formula(##A, nth(x,env))"
+    ==> sats(A, mem_formula_fm(x), env) \<longleftrightarrow> mem_formula(##A, nth(x,env))"
 by (simp add: mem_formula_fm_def mem_formula_def)
 
 lemma mem_formula_iff_sats:
       "[| nth(i,env) = x; i \<in> nat; env \<in> list(A)|]
-       ==> mem_formula(##A, x) <-> sats(A, mem_formula_fm(i), env)"
+       ==> mem_formula(##A, x) \<longleftrightarrow> sats(A, mem_formula_fm(i), env)"
 by simp
 
 theorem mem_formula_reflection:
@@ -1385,7 +1385,7 @@ done
 
 subsubsection{*The Predicate ``Is @{term "formula"}''*}
 
-(* is_formula(M,Z) == \<forall>p[M]. p \<in> Z <-> mem_formula(M,p) *)
+(* is_formula(M,Z) == \<forall>p[M]. p \<in> Z \<longleftrightarrow> mem_formula(M,p) *)
 definition
   is_formula_fm :: "i=>i" where
     "is_formula_fm(Z) == Forall(Iff(Member(0,succ(Z)), mem_formula_fm(0)))"
@@ -1396,12 +1396,12 @@ by (simp add: is_formula_fm_def)
 
 lemma sats_is_formula_fm [simp]:
    "[| x \<in> nat; env \<in> list(A)|]
-    ==> sats(A, is_formula_fm(x), env) <-> is_formula(##A, nth(x,env))"
+    ==> sats(A, is_formula_fm(x), env) \<longleftrightarrow> is_formula(##A, nth(x,env))"
 by (simp add: is_formula_fm_def is_formula_def)
 
 lemma is_formula_iff_sats:
       "[| nth(i,env) = x; i \<in> nat; env \<in> list(A)|]
-       ==> is_formula(##A, x) <-> sats(A, is_formula_fm(i), env)"
+       ==> is_formula(##A, x) \<longleftrightarrow> sats(A, is_formula_fm(i), env)"
 by simp
 
 theorem is_formula_reflection:
@@ -1443,12 +1443,12 @@ lemma sats_is_transrec_fm:
   assumes MH_iff_sats: 
       "!!a0 a1 a2 a3 a4 a5 a6 a7. 
         [|a0\<in>A; a1\<in>A; a2\<in>A; a3\<in>A; a4\<in>A; a5\<in>A; a6\<in>A; a7\<in>A|] 
-        ==> MH(a2, a1, a0) <-> 
+        ==> MH(a2, a1, a0) \<longleftrightarrow> 
             sats(A, p, Cons(a0,Cons(a1,Cons(a2,Cons(a3,
                           Cons(a4,Cons(a5,Cons(a6,Cons(a7,env)))))))))"
   shows 
       "[|x < length(env); z < length(env); env \<in> list(A)|]
-       ==> sats(A, is_transrec_fm(p,x,z), env) <-> 
+       ==> sats(A, is_transrec_fm(p,x,z), env) \<longleftrightarrow> 
            is_transrec(##A, MH, nth(x,env), nth(z,env))"
 apply (frule_tac x=z in lt_length_in_nat, assumption)  
 apply (frule_tac x=x in lt_length_in_nat, assumption)  
@@ -1460,13 +1460,13 @@ lemma is_transrec_iff_sats:
   assumes MH_iff_sats: 
       "!!a0 a1 a2 a3 a4 a5 a6 a7. 
         [|a0\<in>A; a1\<in>A; a2\<in>A; a3\<in>A; a4\<in>A; a5\<in>A; a6\<in>A; a7\<in>A|] 
-        ==> MH(a2, a1, a0) <-> 
+        ==> MH(a2, a1, a0) \<longleftrightarrow> 
             sats(A, p, Cons(a0,Cons(a1,Cons(a2,Cons(a3,
                           Cons(a4,Cons(a5,Cons(a6,Cons(a7,env)))))))))"
   shows
   "[|nth(i,env) = x; nth(k,env) = z; 
       i < length(env); k < length(env); env \<in> list(A)|]
-   ==> is_transrec(##A, MH, x, z) <-> sats(A, is_transrec_fm(p,i,k), env)" 
+   ==> is_transrec(##A, MH, x, z) \<longleftrightarrow> sats(A, is_transrec_fm(p,i,k), env)" 
 by (simp add: sats_is_transrec_fm [OF MH_iff_sats])
 
 theorem is_transrec_reflection:

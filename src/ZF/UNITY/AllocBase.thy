@@ -86,18 +86,18 @@ lemma NbT_type [simp,TC]: "NbT\<in>nat"
 by (cut_tac Nclients_pos NbT_pos, auto)
 
 lemma INT_Nclient_iff [iff]:
-     "b\<in>Inter(RepFun(Nclients, B)) <-> (\<forall>x\<in>Nclients. b\<in>B(x))"
+     "b\<in>\<Inter>(RepFun(Nclients, B)) \<longleftrightarrow> (\<forall>x\<in>Nclients. b\<in>B(x))"
 by (force simp add: INT_iff)
 
 lemma setsum_fun_mono [rule_format]:
      "n\<in>nat ==>  
-      (\<forall>i\<in>nat. i<n --> f(i) $<= g(i)) -->  
+      (\<forall>i\<in>nat. i<n \<longrightarrow> f(i) $<= g(i)) \<longrightarrow>  
       setsum(f, n) $<= setsum(g,n)"
 apply (induct_tac "n", simp_all)
 apply (subgoal_tac "Finite(x) & x\<notin>x")
  prefer 2 apply (simp add: nat_into_Finite mem_not_refl, clarify)
 apply (simp (no_asm_simp) add: succ_def)
-apply (subgoal_tac "\<forall>i\<in>nat. i<x--> f(i) $<= g(i) ")
+apply (subgoal_tac "\<forall>i\<in>nat. i<x\<longrightarrow> f(i) $<= g(i) ")
  prefer 2 apply (force dest: leI) 
 apply (rule zadd_zle_mono, simp_all)
 done
@@ -107,7 +107,7 @@ by (erule list.induct, auto)
 
 lemma tokens_mono_aux [rule_format]:
      "xs\<in>list(A) ==> \<forall>ys\<in>list(A). <xs, ys>\<in>prefix(A)  
-   --> tokens(xs) \<le> tokens(ys)"
+   \<longrightarrow> tokens(xs) \<le> tokens(ys)"
 apply (induct_tac "xs")
 apply (auto dest: gen_prefix.dom_subset [THEN subsetD] simp add: prefix_def)
 done
@@ -148,7 +148,7 @@ done
 
 lemma bag_of_mono_aux [rule_format]:
      "xs\<in>list(A) ==> \<forall>ys\<in>list(A). <xs, ys>\<in>prefix(A)  
-      --> <bag_of(xs), bag_of(ys)>\<in>MultLe(A, r)"
+      \<longrightarrow> <bag_of(xs), bag_of(ys)>\<in>MultLe(A, r)"
 apply (induct_tac "xs", simp_all, clarify) 
 apply (frule_tac l = ys in bag_of_multiset)
 apply (auto intro: empty_le_MultLe simp add: prefix_def)
@@ -172,7 +172,7 @@ subsection{*The function @{term msetsum}*}
 
 lemmas nat_into_Fin = eqpoll_refl [THEN [2] Fin_lemma]
 
-lemma list_Int_length_Fin: "l \<in> list(A) ==> C Int length(l) \<in> Fin(length(l))"
+lemma list_Int_length_Fin: "l \<in> list(A) ==> C \<inter> length(l) \<in> Fin(length(l))"
 apply (drule length_type)
 apply (rule Fin_subset)
 apply (rule Int_lower2)
@@ -186,7 +186,7 @@ lemma mem_Int_imp_lt_length:
 by (simp add: ltI)
 
 lemma Int_succ_right:
-     "A Int succ(k) = (if k : A then cons(k, A Int k) else A Int k)"
+     "A \<inter> succ(k) = (if k \<in> A then cons(k, A \<inter> k) else A \<inter> k)"
 by auto
 
 
@@ -210,9 +210,9 @@ done
 
 lemma bag_of_sublist_lemma2:
      "l\<in>list(A) ==>  
-  C <= nat ==>  
+  C \<subseteq> nat ==>  
   bag_of(sublist(l, C)) =  
-      msetsum(%i. {#nth(i, l)#}, C Int length(l), A)"
+      msetsum(%i. {#nth(i, l)#}, C \<inter> length(l), A)"
 apply (erule list_append_induct)
 apply (simp (no_asm))
 apply (simp (no_asm_simp) add: sublist_append nth_append bag_of_sublist_lemma munion_commute bag_of_sublist_lemma msetsum_multiset munion_0)
@@ -227,17 +227,17 @@ done
 (*eliminating the assumption C<=nat*)
 lemma bag_of_sublist:
      "l\<in>list(A) ==>  
-  bag_of(sublist(l, C)) = msetsum(%i. {#nth(i, l)#}, C Int length(l), A)"
-apply (subgoal_tac " bag_of (sublist (l, C Int nat)) = msetsum (%i. {#nth (i, l) #}, C Int length (l), A) ")
+  bag_of(sublist(l, C)) = msetsum(%i. {#nth(i, l)#}, C \<inter> length(l), A)"
+apply (subgoal_tac " bag_of (sublist (l, C \<inter> nat)) = msetsum (%i. {#nth (i, l) #}, C \<inter> length (l), A) ")
 apply (simp add: sublist_Int_eq)
 apply (simp add: bag_of_sublist_lemma2 Int_lower2 Int_assoc nat_Int_length_eq)
 done
 
 lemma bag_of_sublist_Un_Int: 
 "l\<in>list(A) ==>  
-  bag_of(sublist(l, B Un C)) +# bag_of(sublist(l, B Int C)) =  
+  bag_of(sublist(l, B \<union> C)) +# bag_of(sublist(l, B \<inter> C)) =  
       bag_of(sublist(l, B)) +# bag_of(sublist(l, C))"
-apply (subgoal_tac "B Int C Int length (l) = (B Int length (l)) Int (C Int length (l))")
+apply (subgoal_tac "B \<inter> C \<inter> length (l) = (B \<inter> length (l)) \<inter> (C \<inter> length (l))")
 prefer 2 apply blast
 apply (simp (no_asm_simp) add: bag_of_sublist Int_Un_distrib2 msetsum_Un_Int)
 apply (rule msetsum_Un_Int)
@@ -247,14 +247,14 @@ done
 
 
 lemma bag_of_sublist_Un_disjoint:
-     "[| l\<in>list(A); B Int C = 0  |] 
-      ==> bag_of(sublist(l, B Un C)) =  
+     "[| l\<in>list(A); B \<inter> C = 0  |] 
+      ==> bag_of(sublist(l, B \<union> C)) =  
           bag_of(sublist(l, B)) +# bag_of(sublist(l, C))"
 by (simp add: bag_of_sublist_Un_Int [symmetric] bag_of_multiset)
 
 
 lemma bag_of_sublist_UN_disjoint [rule_format]:
-     "[|Finite(I); \<forall>i\<in>I. \<forall>j\<in>I. i\<noteq>j --> A(i) \<inter> A(j) = 0;  
+     "[|Finite(I); \<forall>i\<in>I. \<forall>j\<in>I. i\<noteq>j \<longrightarrow> A(i) \<inter> A(j) = 0;  
         l\<in>list(B) |]  
       ==> bag_of(sublist(l, \<Union>i\<in>I. A(i))) =   
           (msetsum(%i. bag_of(sublist(l, A(i))), I, B)) "
@@ -278,8 +278,8 @@ lemma all_distinct_Nil [simp]: "all_distinct(Nil)"
 by (unfold all_distinct_def, auto)
 
 lemma all_distinct_Cons [simp]: 
-    "all_distinct(Cons(a,l)) <->  
-      (a\<in>set_of_list(l) --> False) & (a \<notin> set_of_list(l) --> all_distinct(l))"
+    "all_distinct(Cons(a,l)) \<longleftrightarrow>  
+      (a\<in>set_of_list(l) \<longrightarrow> False) & (a \<notin> set_of_list(l) \<longrightarrow> all_distinct(l))"
 apply (unfold all_distinct_def)
 apply (auto elim: list.cases)
 done
@@ -359,7 +359,7 @@ apply (auto simp add: Finite_0)
 done
 
 lemma Inter_Diff_var_iff:
-     "Finite(A) ==> b\<in>(Inter(RepFun(var-A, B))) <-> (\<forall>x\<in>var-A. b\<in>B(x))"
+     "Finite(A) ==> b\<in>(\<Inter>(RepFun(var-A, B))) \<longleftrightarrow> (\<forall>x\<in>var-A. b\<in>B(x))"
 apply (subgoal_tac "\<exists>x. x\<in>var-A", auto)
 apply (subgoal_tac "~Finite (var-A) ")
 apply (drule not_Finite_imp_exist, auto)
@@ -369,16 +369,16 @@ apply (rule_tac B = A in Diff_Finite, auto)
 done
 
 lemma Inter_var_DiffD:
-     "[| b\<in>Inter(RepFun(var-A, B)); Finite(A); x\<in>var-A |] ==> b\<in>B(x)"
+     "[| b\<in>\<Inter>(RepFun(var-A, B)); Finite(A); x\<in>var-A |] ==> b\<in>B(x)"
 by (simp add: Inter_Diff_var_iff)
 
-(* [| Finite(A); (\<forall>x\<in>var-A. b\<in>B(x)) |] ==> b\<in>Inter(RepFun(var-A, B)) *)
+(* [| Finite(A); (\<forall>x\<in>var-A. b\<in>B(x)) |] ==> b\<in>\<Inter>(RepFun(var-A, B)) *)
 lemmas Inter_var_DiffI = Inter_Diff_var_iff [THEN iffD2]
 
 declare Inter_var_DiffI [intro!]
 
 lemma Acts_subset_Int_Pow_simp [simp]:
-     "Acts(F)<= A \<inter> Pow(state*state)  <-> Acts(F)<=A"
+     "Acts(F)<= A \<inter> Pow(state*state)  \<longleftrightarrow> Acts(F)<=A"
 by (insert Acts_type [of F], auto)
 
 lemma setsum_nsetsum_eq: 

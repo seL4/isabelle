@@ -12,7 +12,7 @@ subsection {*Order Types: A Direct Construction by Replacement*}
 locale M_ordertype = M_basic +
 assumes well_ord_iso_separation:
      "[| M(A); M(f); M(r) |]
-      ==> separation (M, \<lambda>x. x\<in>A --> (\<exists>y[M]. (\<exists>p[M].
+      ==> separation (M, \<lambda>x. x\<in>A \<longrightarrow> (\<exists>y[M]. (\<exists>p[M].
                      fun_apply(M,f,x,y) & pair(M,y,x,p) & p \<in> r)))"
   and obase_separation:
      --{*part of the order type formalization*}
@@ -22,7 +22,7 @@ assumes well_ord_iso_separation:
              order_isomorphism(M,par,r,x,mx,g))"
   and obase_equals_separation:
      "[| M(A); M(r) |]
-      ==> separation (M, \<lambda>x. x\<in>A --> ~(\<exists>y[M]. \<exists>g[M].
+      ==> separation (M, \<lambda>x. x\<in>A \<longrightarrow> ~(\<exists>y[M]. \<exists>g[M].
                               ordinal(M,y) & (\<exists>my[M]. \<exists>pxr[M].
                               membership(M,y,my) & pred_set(M,A,x,r,pxr) &
                               order_isomorphism(M,pxr,r,y,my,g))))"
@@ -146,7 +146,7 @@ definition
     --{*the function that maps wosets to order types*}
    "omap(M,A,r,f) == 
         \<forall>z[M].
-         z \<in> f <-> (\<exists>a\<in>A. \<exists>x[M]. \<exists>g[M]. z = <a,x> & Ord(x) & 
+         z \<in> f \<longleftrightarrow> (\<exists>a\<in>A. \<exists>x[M]. \<exists>g[M]. z = <a,x> & Ord(x) & 
                         g \<in> ord_iso(Order.pred(A,a,r),r,x,Memrel(x)))"
 
 definition
@@ -159,7 +159,7 @@ text{*Can also be proved with the premise @{term "M(z)"} instead of
       is also more useful than the definition, @{text omap_def}.*}
 lemma (in M_ordertype) omap_iff:
      "[| omap(M,A,r,f); M(A); M(f) |] 
-      ==> z \<in> f <->
+      ==> z \<in> f \<longleftrightarrow>
           (\<exists>a\<in>A. \<exists>x[M]. \<exists>g[M]. z = <a,x> & Ord(x) & 
                                 g \<in> ord_iso(Order.pred(A,a,r),r,x,Memrel(x)))"
 apply (simp add: omap_def Memrel_closed pred_closed) 
@@ -181,7 +181,7 @@ lemma (in M_ordertype) omap_yields_Ord:
 
 lemma (in M_ordertype) otype_iff:
      "[| otype(M,A,r,i); M(A); M(r); M(i) |] 
-      ==> x \<in> i <-> 
+      ==> x \<in> i \<longleftrightarrow> 
           (M(x) & Ord(x) & 
            (\<exists>a\<in>A. \<exists>g[M]. g \<in> ord_iso(Order.pred(A,a,r),r,x,Memrel(x))))"
 apply (auto simp add: omap_iff otype_def)
@@ -324,7 +324,7 @@ apply (erule wellfounded_on_induct, assumption+)
  apply (frule obase_equals_separation [of A r], assumption) 
  apply (simp, clarify) 
 apply (rename_tac b) 
-apply (subgoal_tac "Order.pred(A,b,r) <= obase(M,A,r)") 
+apply (subgoal_tac "Order.pred(A,b,r) \<subseteq> obase(M,A,r)") 
  apply (blast intro!: restrict_omap_ord_iso Ord_omap_image_pred)
 apply (force simp add: pred_iff obase_def)  
 done
@@ -394,7 +394,7 @@ subsection {*Kunen's theorem 5.4, page 127*}
 
 text{*(a) The notion of Wellordering is absolute*}
 theorem (in M_ordertype) well_ord_abs [simp]: 
-     "[| M(A); M(r) |] ==> wellordered(M,A,r) <-> well_ord(A,r)" 
+     "[| M(A); M(r) |] ==> wellordered(M,A,r) \<longleftrightarrow> well_ord(A,r)" 
 by (blast intro: well_ord_imp_relativized relativized_imp_well_ord)  
 
 
@@ -420,8 +420,8 @@ subsubsection{*Ordinal Addition*}
 definition
   is_oadd_fun :: "[i=>o,i,i,i,i] => o" where
     "is_oadd_fun(M,i,j,x,f) == 
-       (\<forall>sj msj. M(sj) --> M(msj) --> 
-                 successor(M,j,sj) --> membership(M,sj,msj) --> 
+       (\<forall>sj msj. M(sj) \<longrightarrow> M(msj) \<longrightarrow> 
+                 successor(M,j,sj) \<longrightarrow> membership(M,sj,msj) \<longrightarrow> 
                  M_is_recfun(M, 
                      %x g y. \<exists>gx[M]. image(M,g,x,gx) & union(M,i,gx,y),
                      msj, x, f))"
@@ -442,9 +442,9 @@ definition
   omult_eqns :: "[i,i,i,i] => o" where
     "omult_eqns(i,x,g,z) ==
             Ord(x) & 
-            (x=0 --> z=0) &
-            (\<forall>j. x = succ(j) --> z = g`j ++ i) &
-            (Limit(x) --> z = \<Union>(g``x))"
+            (x=0 \<longrightarrow> z=0) &
+            (\<forall>j. x = succ(j) \<longrightarrow> z = g`j ++ i) &
+            (Limit(x) \<longrightarrow> z = \<Union>(g``x))"
 
 definition
   is_omult_fun :: "[i=>o,i,i,i] => o" where
@@ -467,7 +467,7 @@ locale M_ord_arith = M_ordertype +
     strong_replacement(M, 
          \<lambda>x z. \<exists>y[M]. pair(M,x,y,z) & 
                   (\<exists>f[M]. \<exists>fx[M]. is_oadd_fun(M,i,j,x,f) & 
-                           image(M,f,x,fx) & y = i Un fx))"
+                           image(M,f,x,fx) & y = i \<union> fx))"
 
  and omult_strong_replacement':
    "[| M(i); M(j) |] ==>
@@ -481,11 +481,11 @@ locale M_ord_arith = M_ordertype +
 text{*@{text is_oadd_fun}: Relating the pure "language of set theory" to Isabelle/ZF*}
 lemma (in M_ord_arith) is_oadd_fun_iff:
    "[| a\<le>j; M(i); M(j); M(a); M(f) |] 
-    ==> is_oadd_fun(M,i,j,a,f) <->
-        f \<in> a \<rightarrow> range(f) & (\<forall>x. M(x) --> x < a --> f`x = i Un f``x)"
+    ==> is_oadd_fun(M,i,j,a,f) \<longleftrightarrow>
+        f \<in> a \<rightarrow> range(f) & (\<forall>x. M(x) \<longrightarrow> x < a \<longrightarrow> f`x = i \<union> f``x)"
 apply (frule lt_Ord) 
 apply (simp add: is_oadd_fun_def Memrel_closed Un_closed 
-             relation2_def is_recfun_abs [of "%x g. i Un g``x"]
+             relation2_def is_recfun_abs [of "%x g. i \<union> g``x"]
              image_closed is_recfun_iff_equation  
              Ball_def lt_trans [OF ltI, of _ a] lt_Memrel)
 apply (simp add: lt_def) 
@@ -497,17 +497,17 @@ lemma (in M_ord_arith) oadd_strong_replacement':
     "[| M(i); M(j) |] ==>
      strong_replacement(M, 
             \<lambda>x z. \<exists>y[M]. z = <x,y> &
-                  (\<exists>g[M]. is_recfun(Memrel(succ(j)),x,%x g. i Un g``x,g) & 
-                  y = i Un g``x))" 
+                  (\<exists>g[M]. is_recfun(Memrel(succ(j)),x,%x g. i \<union> g``x,g) & 
+                  y = i \<union> g``x))" 
 apply (insert oadd_strong_replacement [of i j]) 
 apply (simp add: is_oadd_fun_def relation2_def
-                 is_recfun_abs [of "%x g. i Un g``x"])  
+                 is_recfun_abs [of "%x g. i \<union> g``x"])  
 done
 
 
 lemma (in M_ord_arith) exists_oadd:
     "[| Ord(j);  M(i);  M(j) |]
-     ==> \<exists>f[M]. is_recfun(Memrel(succ(j)), j, %x g. i Un g``x, f)"
+     ==> \<exists>f[M]. is_recfun(Memrel(succ(j)), j, %x g. i \<union> g``x, f)"
 apply (rule wf_exists_is_recfun [OF wf_Memrel trans_Memrel])
     apply (simp_all add: Memrel_type oadd_strong_replacement') 
 done 
@@ -525,7 +525,7 @@ done
 
 lemma (in M_ord_arith) is_oadd_fun_apply:
     "[| x < j; M(i); M(j); M(f); is_oadd_fun(M,i,j,j,f) |] 
-     ==> f`x = i Un (\<Union>k\<in>x. {f ` k})"
+     ==> f`x = i \<union> (\<Union>k\<in>x. {f ` k})"
 apply (simp add: is_oadd_fun_iff lt_Ord2, clarify) 
 apply (frule lt_closed, simp)
 apply (frule leI [THEN le_imp_subset])  
@@ -534,7 +534,7 @@ done
 
 lemma (in M_ord_arith) is_oadd_fun_iff_oadd [rule_format]:
     "[| is_oadd_fun(M,i,J,J,f); M(i); M(J); M(f); Ord(i); Ord(j) |] 
-     ==> j<J --> f`j = i++j"
+     ==> j<J \<longrightarrow> f`j = i++j"
 apply (erule_tac i=j in trans_induct, clarify) 
 apply (subgoal_tac "\<forall>k\<in>x. k<J")
  apply (simp (no_asm_simp) add: is_oadd_def oadd_unfold is_oadd_fun_apply)
@@ -542,13 +542,13 @@ apply (blast intro: lt_trans ltI lt_Ord)
 done
 
 lemma (in M_ord_arith) Ord_oadd_abs:
-    "[| M(i); M(j); M(k); Ord(i); Ord(j) |] ==> is_oadd(M,i,j,k) <-> k = i++j"
+    "[| M(i); M(j); M(k); Ord(i); Ord(j) |] ==> is_oadd(M,i,j,k) \<longleftrightarrow> k = i++j"
 apply (simp add: is_oadd_def is_oadd_fun_iff_oadd)
 apply (frule exists_oadd_fun [of j i], blast+)
 done
 
 lemma (in M_ord_arith) oadd_abs:
-    "[| M(i); M(j); M(k) |] ==> is_oadd(M,i,j,k) <-> k = i++j"
+    "[| M(i); M(j); M(k) |] ==> is_oadd(M,i,j,k) \<longleftrightarrow> k = i++j"
 apply (case_tac "Ord(i) & Ord(j)")
  apply (simp add: Ord_oadd_abs)
 apply (auto simp add: is_oadd_def oadd_eq_if_raw_oadd)
@@ -571,13 +571,13 @@ apply (simp add: omult_eqns_def, clarify)
 apply (erule Ord_cases, simp_all) 
 done
 
-lemma omult_eqns_0: "omult_eqns(i,0,g,z) <-> z=0"
+lemma omult_eqns_0: "omult_eqns(i,0,g,z) \<longleftrightarrow> z=0"
 by (simp add: omult_eqns_def)
 
 lemma the_omult_eqns_0: "(THE z. omult_eqns(i,0,g,z)) = 0"
 by (simp add: omult_eqns_0)
 
-lemma omult_eqns_succ: "omult_eqns(i,succ(j),g,z) <-> Ord(j) & z = g`j ++ i"
+lemma omult_eqns_succ: "omult_eqns(i,succ(j),g,z) \<longleftrightarrow> Ord(j) & z = g`j ++ i"
 by (simp add: omult_eqns_def)
 
 lemma the_omult_eqns_succ:
@@ -585,7 +585,7 @@ lemma the_omult_eqns_succ:
 by (simp add: omult_eqns_succ) 
 
 lemma omult_eqns_Limit:
-     "Limit(x) ==> omult_eqns(i,x,g,z) <-> z = \<Union>(g``x)"
+     "Limit(x) ==> omult_eqns(i,x,g,z) \<longleftrightarrow> z = \<Union>(g``x)"
 apply (simp add: omult_eqns_def) 
 apply (blast intro: Limit_is_Ord) 
 done
@@ -649,7 +649,7 @@ done
 
 lemma (in M_ord_arith) is_omult_fun_eq_omult:
     "[| is_omult_fun(M,i,J,f); M(J); M(f); Ord(i); Ord(j) |] 
-     ==> j<J --> f`j = i**j"
+     ==> j<J \<longrightarrow> f`j = i**j"
 apply (erule_tac i=j in trans_induct3)
 apply (safe del: impCE)
   apply (simp add: is_omult_fun_apply_0) 
@@ -662,7 +662,7 @@ apply (blast intro: lt_trans ltI lt_Ord)
 done
 
 lemma (in M_ord_arith) omult_abs:
-    "[| M(i); M(j); M(k); Ord(i); Ord(j) |] ==> is_omult(M,i,j,k) <-> k = i**j"
+    "[| M(i); M(j); M(k); Ord(i); Ord(j) |] ==> is_omult(M,i,j,k) \<longleftrightarrow> k = i**j"
 apply (simp add: is_omult_def is_omult_fun_eq_omult)
 apply (frule exists_omult_fun [of j i], blast+)
 done
@@ -679,22 +679,22 @@ locale M_wfrank = M_trancl +
   assumes wfrank_separation:
      "M(r) ==>
       separation (M, \<lambda>x. 
-         \<forall>rplus[M]. tran_closure(M,r,rplus) -->
+         \<forall>rplus[M]. tran_closure(M,r,rplus) \<longrightarrow>
          ~ (\<exists>f[M]. M_is_recfun(M, %x f y. is_range(M,f,y), rplus, x, f)))"
  and wfrank_strong_replacement:
      "M(r) ==>
       strong_replacement(M, \<lambda>x z. 
-         \<forall>rplus[M]. tran_closure(M,r,rplus) -->
+         \<forall>rplus[M]. tran_closure(M,r,rplus) \<longrightarrow>
          (\<exists>y[M]. \<exists>f[M]. pair(M,x,y,z)  & 
                         M_is_recfun(M, %x f y. is_range(M,f,y), rplus, x, f) &
                         is_range(M,f,y)))"
  and Ord_wfrank_separation:
      "M(r) ==>
       separation (M, \<lambda>x.
-         \<forall>rplus[M]. tran_closure(M,r,rplus) --> 
+         \<forall>rplus[M]. tran_closure(M,r,rplus) \<longrightarrow> 
           ~ (\<forall>f[M]. \<forall>rangef[M]. 
-             is_range(M,f,rangef) -->
-             M_is_recfun(M, \<lambda>x f y. is_range(M,f,y), rplus, x, f) -->
+             is_range(M,f,rangef) \<longrightarrow>
+             M_is_recfun(M, \<lambda>x f y. is_range(M,f,y), rplus, x, f) \<longrightarrow>
              ordinal(M,rangef)))" 
 
 
@@ -721,7 +721,7 @@ done
 lemma (in M_wfrank) Ord_wfrank_separation':
      "M(r) ==>
       separation (M, \<lambda>x. 
-         ~ (\<forall>f[M]. is_recfun(r^+, x, \<lambda>x. range, f) --> Ord(range(f))))" 
+         ~ (\<forall>f[M]. is_recfun(r^+, x, \<lambda>x. range, f) \<longrightarrow> Ord(range(f))))" 
 apply (insert Ord_wfrank_separation [of r])
 apply (simp add: relation2_def is_recfun_abs [of "%x. range"])
 done
@@ -761,7 +761,7 @@ done
 
 lemma (in M_wfrank) Ord_wfrank_range [rule_format]:
     "[| wellfounded(M,r); a\<in>A; M(r); M(A) |]
-     ==> \<forall>f[M]. is_recfun(r^+, a, %x f. range(f), f) --> Ord(range(f))"
+     ==> \<forall>f[M]. is_recfun(r^+, a, %x f. range(f), f) \<longrightarrow> Ord(range(f))"
 apply (drule wellfounded_trancl, assumption)
 apply (rule wellfounded_induct, assumption, erule (1) transM)
   apply simp
@@ -911,7 +911,7 @@ done
 
 lemma (in M_wfrank) wellfounded_imp_subset_rvimage:
      "[|wellfounded(M,r); r \<subseteq> A*A; M(r); M(A)|]
-      ==> \<exists>i f. Ord(i) & r <= rvimage(A, f, Memrel(i))"
+      ==> \<exists>i f. Ord(i) & r \<subseteq> rvimage(A, f, Memrel(i))"
 apply (rule_tac x="range(wellfoundedrank(M,r,A))" in exI)
 apply (rule_tac x="wellfoundedrank(M,r,A)" in exI)
 apply (simp add: Ord_range_wellfoundedrank, clarify)
@@ -934,11 +934,11 @@ done
 
 
 theorem (in M_wfrank) wf_abs:
-     "[|relation(r); M(r)|] ==> wellfounded(M,r) <-> wf(r)"
+     "[|relation(r); M(r)|] ==> wellfounded(M,r) \<longleftrightarrow> wf(r)"
 by (blast intro: wellfounded_imp_wf wf_imp_relativized)
 
 theorem (in M_wfrank) wf_on_abs:
-     "[|relation(r); M(r); M(A)|] ==> wellfounded_on(M,A,r) <-> wf[A](r)"
+     "[|relation(r); M(r); M(A)|] ==> wellfounded_on(M,A,r) \<longleftrightarrow> wf[A](r)"
 by (blast intro: wellfounded_on_imp_wf_on wf_on_imp_relativized)
 
 end

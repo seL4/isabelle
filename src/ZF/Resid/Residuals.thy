@@ -12,7 +12,7 @@ abbreviation
   "residuals(u,v,w) == <u,v,w> \<in> Sres"
 
 inductive
-  domains       "Sres" <= "redexes*redexes*redexes"
+  domains       "Sres" \<subseteq> "redexes*redexes*redexes"
   intros
     Res_Var:    "n \<in> nat ==> residuals(Var(n),Var(n),Var(n))"
     Res_Fun:    "[|residuals(u,v,w)|]==>   
@@ -64,11 +64,11 @@ declare Sres.intros [simp]
 subsection{*residuals is a  partial function*}
 
 lemma residuals_function [rule_format]:
-     "residuals(u,v,w) ==> \<forall>w1. residuals(u,v,w1) --> w1 = w"
+     "residuals(u,v,w) ==> \<forall>w1. residuals(u,v,w1) \<longrightarrow> w1 = w"
 by (erule Sres.induct, force+)
 
 lemma residuals_intro [rule_format]:
-     "u~v ==> regular(v) --> (\<exists>w. residuals(u,v,w))"
+     "u~v ==> regular(v) \<longrightarrow> (\<exists>w. residuals(u,v,w))"
 by (erule Scomp.induct, force+)
 
 lemma comp_resfuncD:
@@ -105,7 +105,7 @@ apply (blast elim!: redexes.free_elims dest!: comp_resfuncD
 done
 
 lemma resfunc_type [simp]:
-     "[|s~t; regular(t)|]==> regular(t) --> s |> t \<in> redexes"
+     "[|s~t; regular(t)|]==> regular(t) \<longrightarrow> s |> t \<in> redexes"
   by (erule Scomp.induct, auto)
 
 subsection{*Commutation theorem*}
@@ -114,17 +114,17 @@ lemma sub_comp [simp]: "u<==v ==> u~v"
 by (erule Ssub.induct, simp_all)
 
 lemma sub_preserve_reg [rule_format, simp]:
-     "u<==v  ==> regular(v) --> regular(u)"
+     "u<==v  ==> regular(v) \<longrightarrow> regular(u)"
 by (erule Ssub.induct, auto)
 
-lemma residuals_lift_rec: "[|u~v; k \<in> nat|]==> regular(v)--> (\<forall>n \<in> nat.   
+lemma residuals_lift_rec: "[|u~v; k \<in> nat|]==> regular(v)\<longrightarrow> (\<forall>n \<in> nat.   
          lift_rec(u,n) |> lift_rec(v,n) = lift_rec(u |> v,n))"
 apply (erule Scomp.induct, safe)
 apply (simp_all add: lift_rec_Var subst_Var lift_subst)
 done
 
 lemma residuals_subst_rec:
-     "u1~u2 ==>  \<forall>v1 v2. v1~v2 --> regular(v2) --> regular(u2) --> 
+     "u1~u2 ==>  \<forall>v1 v2. v1~v2 \<longrightarrow> regular(v2) \<longrightarrow> regular(u2) \<longrightarrow> 
                   (\<forall>n \<in> nat. subst_rec(v1,u1,n) |> subst_rec(v2,u2,n) =  
                     subst_rec(v1 |> v2, u1 |> u2,n))"
 apply (erule Scomp.induct, safe)
@@ -143,11 +143,11 @@ by (simp add: residuals_subst_rec)
 subsection{*Residuals are comp and regular*}
 
 lemma residuals_preserve_comp [rule_format, simp]:
-     "u~v ==> \<forall>w. u~w --> v~w --> regular(w) --> (u|>w) ~ (v|>w)"
+     "u~v ==> \<forall>w. u~w \<longrightarrow> v~w \<longrightarrow> regular(w) \<longrightarrow> (u|>w) ~ (v|>w)"
 by (erule Scomp.induct, force+)
 
 lemma residuals_preserve_reg [rule_format, simp]:
-     "u~v ==> regular(u) --> regular(v) --> regular(u|>v)"
+     "u~v ==> regular(u) \<longrightarrow> regular(v) \<longrightarrow> regular(u|>v)"
 apply (erule Scomp.induct, auto)
 done
 
@@ -157,7 +157,7 @@ lemma union_preserve_comp: "u~v ==> v ~ (u un v)"
 by (erule Scomp.induct, simp_all)
 
 lemma preservation [rule_format]:
-     "u ~ v ==> regular(v) --> u|>v = (u un v)|>v"
+     "u ~ v ==> regular(v) \<longrightarrow> u|>v = (u un v)|>v"
 apply (erule Scomp.induct, safe)
 apply (drule_tac [3] psi = "Fun (?u) |> ?v = ?w" in asm_rl)
 apply (auto simp add: union_preserve_comp comp_sym_iff)
@@ -171,7 +171,7 @@ subsection{*Prism theorem*}
 (* Having more assumptions than needed -- removed below  *)
 lemma prism_l [rule_format]:
      "v<==u ==>  
-       regular(u) --> (\<forall>w. w~v --> w~u -->   
+       regular(u) \<longrightarrow> (\<forall>w. w~v \<longrightarrow> w~u \<longrightarrow>   
                             w |> u = (w|>v) |> (u|>v))"
 by (erule Ssub.induct, force+)
 
