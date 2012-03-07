@@ -21,7 +21,6 @@ sig
   val embed_controls: string -> string
   val detect: string -> bool
   val output_markup: Markup.T -> string * string
-  val element: string -> XML.attributes -> string list -> string
   val string_of_body: XML.body -> string
   val string_of: XML.tree -> string
   val parse_body: string -> XML.body
@@ -62,15 +61,9 @@ fun output_markup (markup as (name, atts)) =
   if Markup.is_empty markup then Markup.no_output
   else (XY ^ name ^ implode (map (fn (a, x) => Y ^ a ^ "=" ^ x) atts) ^ X, XYX);
 
-fun element name atts body =
-  let val (pre, post) = output_markup (name, atts)
-  in pre ^ implode body ^ post end;
-
 fun string_of_body body =
   let
-    fun attrib (a, x) =
-      Buffer.add Y #>
-      Buffer.add a #> Buffer.add "=" #> Buffer.add x;
+    fun attrib (a, x) = Buffer.add Y #> Buffer.add a #> Buffer.add "=" #> Buffer.add x;
     fun tree (XML.Elem ((name, atts), ts)) =
           Buffer.add XY #> Buffer.add name #> fold attrib atts #> Buffer.add X #>
           trees ts #>
@@ -99,7 +92,7 @@ val split_string =
 
 (* structural errors *)
 
-fun err msg = raise Fail ("Malformed YXML encoding: " ^ msg);
+fun err msg = raise Fail ("Malformed YXML: " ^ msg);
 fun err_attribute () = err "bad attribute";
 fun err_element () = err "bad element";
 fun err_unbalanced "" = err "unbalanced element"

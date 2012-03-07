@@ -104,6 +104,9 @@ val token_markups =
  [Isabelle_Markup.tfreeN, Isabelle_Markup.tvarN, Isabelle_Markup.freeN,
   Isabelle_Markup.boundN, Isabelle_Markup.varN, Isabelle_Markup.skolemN];
 
+fun get_int props name =
+  (case Properties.get props name of NONE => NONE | SOME s => Int.fromString s);
+
 in
 
 fun pgml_terms (XML.Elem ((name, atts), body)) =
@@ -114,9 +117,9 @@ fun pgml_terms (XML.Elem ((name, atts), body)) =
         let val content = maps pgml_terms body in
           if name = Isabelle_Markup.blockN then
             [Pgml.Box {orient = NONE,
-              indent = Properties.get_int atts Isabelle_Markup.indentN, content = content}]
+              indent = get_int atts Isabelle_Markup.indentN, content = content}]
           else if name = Isabelle_Markup.breakN then
-            [Pgml.Break {mandatory = NONE, indent = Properties.get_int atts Isabelle_Markup.widthN}]
+            [Pgml.Break {mandatory = NONE, indent = get_int atts Isabelle_Markup.widthN}]
           else content
         end
   | pgml_terms (XML.Text text) = map (Pgml.Raw o Pgml.atom_to_xml) (pgml_syms text);
