@@ -227,12 +227,16 @@ fun infer_arities thy arities (optf, t) fs = case strip_comb t of
 fun mk_to_pred_inst thy fs =
   map (fn (x, ps) =>
     let
-      val U = HOLogic.dest_setT (fastype_of x);
-      val x' = map_type (K (HOLogic.strip_ptupleT ps U ---> HOLogic.boolT)) x;
+      val (Ts, T) = strip_type (fastype_of x);
+      val U = HOLogic.dest_setT T;
+      val x' = map_type
+        (K (Ts @ HOLogic.strip_ptupleT ps U ---> HOLogic.boolT)) x;
     in
       (cterm_of thy x,
-       cterm_of thy (HOLogic.Collect_const U $
-         HOLogic.mk_psplits ps U HOLogic.boolT x'))
+       cterm_of thy (fold_rev (Term.abs o pair "x") Ts
+         (HOLogic.Collect_const U $
+            HOLogic.mk_psplits ps U HOLogic.boolT
+              (list_comb (x', map Bound (length Ts - 1 downto 0))))))
     end) fs;
 
 fun mk_to_pred_eq p fs optfs' T thm =
@@ -366,12 +370,16 @@ fun to_set thms ctxt thm =
     val insts = map (fn (x, ps) =>
       let
         val Ts = binder_types (fastype_of x);
-        val T = HOLogic.mk_ptupleT ps Ts;
-        val x' = map_type (K (HOLogic.mk_setT T)) x
+        val l = length Ts;
+        val k = length ps;
+        val (Rs, Us) = chop (l - k - 1) Ts;
+        val T = HOLogic.mk_ptupleT ps Us;
+        val x' = map_type (K (Rs ---> HOLogic.mk_setT T)) x
       in
         (cterm_of thy x,
          cterm_of thy (fold_rev (Term.abs o pair "x") Ts
-          (HOLogic.mk_mem (HOLogic.mk_ptuple ps T (map Bound (length ps downto 0)), x'))))
+          (HOLogic.mk_mem (HOLogic.mk_ptuple ps T (map Bound (k downto 0)),
+             list_comb (x', map Bound (l - 1 downto k + 1))))))
       end) fs;
   in
     thm |>
