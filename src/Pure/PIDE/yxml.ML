@@ -92,7 +92,7 @@ val split_string =
 
 (* structural errors *)
 
-fun err msg = raise Fail ("Malformed YXML encoding: " ^ msg);
+fun err msg = raise Fail ("Malformed YXML: " ^ msg);
 fun err_attribute () = err "bad attribute";
 fun err_element () = err "bad element";
 fun err_unbalanced "" = err "unbalanced element"
