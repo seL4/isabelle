@@ -60,16 +60,16 @@ lemma lfp_induct2: -- {* Version of @{thm [source] lfp_induct} for binary relati
 
 subsubsection {* Conversions between set and predicate relations *}
 
-lemma pred_equals_eq [pred_set_conv]: "((\<lambda>x. x \<in> R) = (\<lambda>x. x \<in> S)) \<longleftrightarrow> (R = S)"
+lemma pred_equals_eq [pred_set_conv]: "(\<lambda>x. x \<in> R) = (\<lambda>x. x \<in> S) \<longleftrightarrow> R = S"
   by (simp add: set_eq_iff fun_eq_iff)
 
-lemma pred_equals_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) = (\<lambda>x y. (x, y) \<in> S)) \<longleftrightarrow> (R = S)"
+lemma pred_equals_eq2 [pred_set_conv]: "(\<lambda>x y. (x, y) \<in> R) = (\<lambda>x y. (x, y) \<in> S) \<longleftrightarrow> R = S"
   by (simp add: set_eq_iff fun_eq_iff)
 
-lemma pred_subset_eq [pred_set_conv]: "((\<lambda>x. x \<in> R) \<le> (\<lambda>x. x \<in> S)) \<longleftrightarrow> (R \<subseteq> S)"
+lemma pred_subset_eq [pred_set_conv]: "(\<lambda>x. x \<in> R) \<le> (\<lambda>x. x \<in> S) \<longleftrightarrow> R \<subseteq> S"
   by (simp add: subset_iff le_fun_def)
 
-lemma pred_subset_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) \<le> (\<lambda>x y. (x, y) \<in> S)) \<longleftrightarrow> (R \<subseteq> S)"
+lemma pred_subset_eq2 [pred_set_conv]: "(\<lambda>x y. (x, y) \<in> R) \<le> (\<lambda>x y. (x, y) \<in> S) \<longleftrightarrow> R \<subseteq> S"
   by (simp add: subset_iff le_fun_def)
 
 lemma bot_empty_eq (* CANDIDATE [pred_set_conv] *): "\<bottom> = (\<lambda>x. x \<in> {})"
@@ -96,11 +96,53 @@ lemma sup_Un_eq [pred_set_conv]: "(\<lambda>x. x \<in> R) \<squnion> (\<lambda>x
 lemma sup_Un_eq2 [pred_set_conv]: "(\<lambda>x y. (x, y) \<in> R) \<squnion> (\<lambda>x y. (x, y) \<in> S) = (\<lambda>x y. (x, y) \<in> R \<union> S)"
   by (simp add: sup_fun_def)
 
+lemma Inf_INT_eq [pred_set_conv]: "\<Sqinter>S = (\<lambda>x. x \<in> INTER S Collect)"
+  by (simp add: fun_eq_iff Inf_apply)
+
+(* CANDIDATE
+lemma INF_Int_eq [pred_set_conv]: "(\<Sqinter>i\<in>S. (\<lambda>x. x \<in> i)) = (\<lambda>x. x \<in> \<Inter>S)"
+  by (simp add: fun_eq_iff INF_apply)
+
+lemma Inf_INT_eq2 [pred_set_conv]: "\<Sqinter>S = (\<lambda>x y. (x, y) \<in> INTER (prod_case ` S) Collect)"
+  by (simp add: fun_eq_iff Inf_apply INF_apply)
+
+lemma INF_Int_eq2 [pred_set_conv]: "(\<Sqinter>i\<in>S. (\<lambda>x y. (x, y) \<in> i)) = (\<lambda>x y. (x, y) \<in> \<Inter>S)"
+  by (simp add: fun_eq_iff INF_apply)
+
+lemma Sup_SUP_eq [pred_set_conv]: "\<Squnion>S = (\<lambda>x. x \<in> UNION S Collect)"
+  by (simp add: fun_eq_iff Sup_apply)
+
+lemma SUP_Sup_eq [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x. x \<in> i)) = (\<lambda>x. x \<in> \<Union>S)"
+  by (simp add: fun_eq_iff SUP_apply)
+
+lemma Sup_SUP_eq2 [pred_set_conv]: "\<Squnion>S = (\<lambda>x y. (x, y) \<in> UNION (prod_case ` S) Collect)"
+  by (simp add: fun_eq_iff Sup_apply SUP_apply)
+
+lemma SUP_Sup_eq2 [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x y. (x, y) \<in> i)) = (\<lambda>x y. (x, y) \<in> \<Union>S)"
+  by (simp add: fun_eq_iff SUP_apply)
+*)
+
+(* CANDIDATE prefer those generalized versions:
+lemma INF_INT_eq [pred_set_conv]: "(\<Sqinter>i\<in>S. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Inter>i\<in>S. r i))"
+  by (simp add: INF_apply fun_eq_iff)
+
+lemma INF_INT_eq2 [pred_set_conv]: "(\<Sqinter>i\<in>S. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Inter>i\<in>S. r i))"
+  by (simp add: INF_apply fun_eq_iff)
+*)
+
 lemma INF_INT_eq (* CANDIDATE [pred_set_conv] *): "(\<Sqinter>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Inter>i. r i))"
   by (simp add: INF_apply fun_eq_iff)
 
 lemma INF_INT_eq2 (* CANDIDATE [pred_set_conv] *): "(\<Sqinter>i. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Inter>i. r i))"
   by (simp add: INF_apply fun_eq_iff)
+
+(* CANDIDATE prefer those generalized versions:
+lemma SUP_UN_eq [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Union>i\<in>S. r i))"
+  by (simp add: SUP_apply fun_eq_iff)
+
+lemma SUP_UN_eq2 [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Union>i\<in>S. r i))"
+  by (simp add: SUP_apply fun_eq_iff)
+*)
 
 lemma SUP_UN_eq [pred_set_conv]: "(\<Squnion>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Union>i. r i))"
   by (simp add: SUP_apply fun_eq_iff)
