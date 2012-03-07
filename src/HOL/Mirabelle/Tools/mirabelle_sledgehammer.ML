@@ -17,12 +17,12 @@ val e_weight_methodK = "e_weight_method"
 val force_sosK = "force_sos"
 val max_relevantK = "max_relevant"
 val max_callsK = "max_calls"
-val minimizeK = "minimize"
+val minimizeK = "minimize" (*refers to minimization attempted by Mirabelle*)
 val minimize_timeoutK = "minimize_timeout"
 val metis_ftK = "metis_ft"
 val reconstructorK = "reconstructor"
-
-val preplay_timeout = "4"
+val preplay_timeoutK = "preplay_timeout"
+val sh_minimizeK = "sh_minimize" (*refers to minimizer run within Sledgehammer*)
 
 fun sh_tag id = "#" ^ string_of_int id ^ " sledgehammer: "
 fun minimize_tag id = "#" ^ string_of_int id ^ " minimize (sledgehammer): "
@@ -31,6 +31,7 @@ fun reconstructor_tag reconstructor id =
 
 val separator = "-----"
 
+val preplay_timeout_default = "4"
 
 datatype sh_data = ShData of {
   calls: int,
@@ -363,8 +364,8 @@ datatype sh_result =
   SH_ERROR
 
 fun run_sh prover_name prover type_enc strict max_relevant slice lam_trans
-        uncurried_aliases e_weight_method force_sos hard_timeout timeout dir pos
-        st =
+        uncurried_aliases e_weight_method force_sos hard_timeout timeout
+        preplay_timeout sh_minimize dir pos st =
   let
     val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
     val i = 1
@@ -393,6 +394,7 @@ fun run_sh prover_name prover type_enc strict max_relevant slice lam_trans
            ("max_relevant", max_relevant),
            ("slice", slice),
            ("timeout", string_of_int timeout),
+           ("minimize", sh_minimize), (*don't confuse the two minimization flags*)
            ("preplay_timeout", preplay_timeout)]
     val default_max_relevant =
       Sledgehammer_Provers.default_max_relevant_for_prover ctxt slice
@@ -481,11 +483,14 @@ fun run_sledgehammer trivial args reconstructor named_thms id
     val timeout = Mirabelle.get_int_setting args (prover_timeoutK, 30)
     (* always use a hard timeout, but give some slack so that the automatic
        minimizer has a chance to do its magic *)
+    val preplay_timeout = AList.lookup (op =) args preplay_timeoutK
+      |> the_default preplay_timeout_default
+    val sh_minimize = AList.lookup (op =) args sh_minimizeK |> the_default "smart"
     val hard_timeout = SOME (2 * timeout)
     val (msg, result) =
       run_sh prover_name prover type_enc strict max_relevant slice lam_trans
-        uncurried_aliases e_weight_method force_sos hard_timeout timeout dir pos
-        st
+        uncurried_aliases e_weight_method force_sos hard_timeout timeout
+        preplay_timeout sh_minimize dir pos st
   in
     case result of
       SH_OK (time_isa, time_prover, names) =>
@@ -526,13 +531,17 @@ fun run_minimize args reconstructor named_thms id
       AList.lookup (op =) args minimize_timeoutK
       |> Option.map (fst o read_int o raw_explode)  (* FIXME Symbol.explode (?) *)
       |> the_default 5
+    val preplay_timeout = AList.lookup (op =) args preplay_timeoutK
+      |> the_default preplay_timeout_default
+    val sh_minimize = AList.lookup (op =) args sh_minimizeK |> the_default "smart"
     val params = Sledgehammer_Isar.default_params ctxt
       [("provers", prover_name),
        ("verbose", "true"),
        ("type_enc", type_enc),
        ("strict", strict),
        ("timeout", string_of_int timeout),
-       ("preplay_timeout", preplay_timeout)]
+       ("preplay_timeout", preplay_timeout),
+       ("minimize", sh_minimize)] (*don't confuse the two minimization flags*)
     val minimize =
       Sledgehammer_Minimize.minimize_facts prover_name params
           true 1 (Sledgehammer_Util.subgoal_count st)
