@@ -28,9 +28,9 @@ end;
 
 signature XML =
 sig
-  type attributes = Properties.T
+  type attributes = (string * string) list
   datatype tree =
-      Elem of Markup.T * tree list
+      Elem of (string * attributes) * tree list
     | Text of string
   type body = tree list
   val add_content: tree -> Buffer.T -> Buffer.T
@@ -59,10 +59,10 @@ struct
 
 (** XML trees **)
 
-type attributes = Properties.T;
+type attributes = (string * string) list;
 
 datatype tree =
-    Elem of Markup.T * tree list
+    Elem of (string * attributes) * tree list
   | Text of string;
 
 type body = tree list;
