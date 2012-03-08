@@ -26,7 +26,7 @@ function usage() {
   echo "    -T THEORY    parent theory to use (default $MIRABELLE_THEORY)"
   echo "    -O DIR       output directory for test data (default $out)"
   echo "    -t TIMEOUT   timeout for each action in seconds (default $timeout)"
-  echo "    -q           be quiet (suppress output of Isabelle process)" 
+  echo "    -q           be quiet (suppress output of Isabelle process)"
   echo
   echo "  Apply the given actions (i.e., automated proof tools)"
   echo "  at all proof steps in the given theory files."

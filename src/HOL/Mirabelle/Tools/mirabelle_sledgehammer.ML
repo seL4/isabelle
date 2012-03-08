@@ -17,12 +17,14 @@ val e_weight_methodK = "e_weight_method"
 val force_sosK = "force_sos"
 val max_relevantK = "max_relevant"
 val max_callsK = "max_calls"
-val minimizeK = "minimize"
+val minimizeK = "minimize" (*refers to minimization attempted by Mirabelle*)
 val minimize_timeoutK = "minimize_timeout"
 val metis_ftK = "metis_ft"
 val reconstructorK = "reconstructor"
-
-val preplay_timeout = "4"
+val preplay_timeoutK = "preplay_timeout"
+val sh_minimizeK = "sh_minimize" (*refers to minimizer run within Sledgehammer*)
+val max_new_mono_instancesK = "max_new_mono_instances"
+val max_mono_itersK = "max_mono_iters"
 
 fun sh_tag id = "#" ^ string_of_int id ^ " sledgehammer: "
 fun minimize_tag id = "#" ^ string_of_int id ^ " minimize (sledgehammer): "
@@ -30,6 +32,17 @@ fun reconstructor_tag reconstructor id =
   "#" ^ string_of_int id ^ " " ^ (!reconstructor) ^ " (sledgehammer): "
 
 val separator = "-----"
+
+val preplay_timeout_default = "4"
+(*FIXME sensible to have Mirabelle-level Sledgehammer defaults?*)
+
+(*If a key is present in args then augment a list with its pair*)
+(*This is used to avoid fixing default values at the Mirabelle level, and
+  instead use the default values of the tool (Sledgehammer in this case).*)
+fun available_parameter args key label list =
+  let
+    val value = AList.lookup (op =) args key
+  in if is_some value then (label, the value) :: list else list end
 
 
 datatype sh_data = ShData of {
@@ -363,8 +376,9 @@ datatype sh_result =
   SH_ERROR
 
 fun run_sh prover_name prover type_enc strict max_relevant slice lam_trans
-        uncurried_aliases e_weight_method force_sos hard_timeout timeout dir pos
-        st =
+        uncurried_aliases e_weight_method force_sos hard_timeout timeout
+        preplay_timeout sh_minimizeLST max_new_mono_instancesLST max_mono_itersLST
+        dir pos st =
   let
     val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
     val i = 1
@@ -385,7 +399,7 @@ fun run_sh prover_name prover type_enc strict max_relevant slice lam_trans
                        force_sos |> the_default I))
     val params as {relevance_thresholds, max_relevant, slice, ...} =
       Sledgehammer_Isar.default_params ctxt
-          [("verbose", "true"),
+         ([("verbose", "true"),
            ("type_enc", type_enc),
            ("strict", strict),
            ("lam_trans", lam_trans |> the_default "smart"),
@@ -394,6 +408,9 @@ fun run_sh prover_name prover type_enc strict max_relevant slice lam_trans
            ("slice", slice),
            ("timeout", string_of_int timeout),
            ("preplay_timeout", preplay_timeout)]
+          |> sh_minimizeLST (*don't confuse the two minimization flags*)
+          |> max_new_mono_instancesLST
+          |> max_mono_itersLST)
     val default_max_relevant =
       Sledgehammer_Provers.default_max_relevant_for_prover ctxt slice
         prover_name
@@ -481,11 +498,18 @@ fun run_sledgehammer trivial args reconstructor named_thms id
     val timeout = Mirabelle.get_int_setting args (prover_timeoutK, 30)
     (* always use a hard timeout, but give some slack so that the automatic
        minimizer has a chance to do its magic *)
+    val preplay_timeout = AList.lookup (op =) args preplay_timeoutK
+      |> the_default preplay_timeout_default
+    val sh_minimizeLST = available_parameter args sh_minimizeK "minimize"
+    val max_new_mono_instancesLST =
+      available_parameter args max_new_mono_instancesK max_new_mono_instancesK
+    val max_mono_itersLST = available_parameter args max_mono_itersK max_mono_itersK
     val hard_timeout = SOME (2 * timeout)
     val (msg, result) =
       run_sh prover_name prover type_enc strict max_relevant slice lam_trans
-        uncurried_aliases e_weight_method force_sos hard_timeout timeout dir pos
-        st
+        uncurried_aliases e_weight_method force_sos hard_timeout timeout
+        preplay_timeout sh_minimizeLST max_new_mono_instancesLST max_mono_itersLST
+        dir pos st
   in
     case result of
       SH_OK (time_isa, time_prover, names) =>
@@ -526,13 +550,22 @@ fun run_minimize args reconstructor named_thms id
       AList.lookup (op =) args minimize_timeoutK
       |> Option.map (fst o read_int o raw_explode)  (* FIXME Symbol.explode (?) *)
       |> the_default 5
+    val preplay_timeout = AList.lookup (op =) args preplay_timeoutK
+      |> the_default preplay_timeout_default
+    val sh_minimizeLST = available_parameter args sh_minimizeK "minimize"
+    val max_new_mono_instancesLST =
+      available_parameter args max_new_mono_instancesK max_new_mono_instancesK
+    val max_mono_itersLST = available_parameter args max_mono_itersK max_mono_itersK
     val params = Sledgehammer_Isar.default_params ctxt
-      [("provers", prover_name),
+     ([("provers", prover_name),
        ("verbose", "true"),
        ("type_enc", type_enc),
        ("strict", strict),
        ("timeout", string_of_int timeout),
        ("preplay_timeout", preplay_timeout)]
+      |> sh_minimizeLST (*don't confuse the two minimization flags*)
+      |> max_new_mono_instancesLST
+      |> max_mono_itersLST)
     val minimize =
       Sledgehammer_Minimize.minimize_facts prover_name params
           true 1 (Sledgehammer_Util.subgoal_count st)

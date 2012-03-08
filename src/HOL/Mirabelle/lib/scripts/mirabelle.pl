@@ -67,7 +67,7 @@ imports "$mirabelle_thy" "$mirabelle_theory"
 $tools
 begin
 
-setup {* 
+setup {*
   Config.put_global Mirabelle.logfile "$log_file" #>
   Config.put_global Mirabelle.timeout $timeout #>
   Config.put_global Mirabelle.start_line $start_line #>
@@ -76,7 +76,9 @@ setup {*
 
 END
 
-foreach (reverse(split(/:/, $actions))) {
+@action_list = split(/:/, $actions);
+
+foreach (reverse(@action_list)) {
   if (m/([^[]*)(?:\[(.*)\])?/) {
     my ($name, $settings_str) = ($1, $2 || "");
     $name =~ s/^([a-z])/\U$1/;
@@ -88,8 +90,8 @@ foreach (reverse(split(/:/, $actions))) {
         $sep = ", ";
       }
       elsif (m/\s*(.*)\s*/) {
-	print SETUP_FILE "$sep(\"$1\", \"\")";
-	$sep = ", ";
+        print SETUP_FILE "$sep(\"$1\", \"\")";
+        $sep = ", ";
       }
     }
     print SETUP_FILE "] *}\n";
@@ -121,8 +123,8 @@ close(NEW_FILE);
 
 open(LOG_FILE, ">$log_file");
 print LOG_FILE "Run of $new_thy_file with:\n";
-foreach $name (@action_names) {
-  print LOG_FILE "  $name\n";
+foreach $action  (@action_list) {
+  print LOG_FILE "  $action\n";
 }
 close(LOG_FILE);
 
