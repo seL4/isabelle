@@ -101,7 +101,7 @@ apply (unfold eqpoll_def)
 apply (blast intro: bij_converse_bij)
 done
 
-lemma eqpoll_trans:
+lemma eqpoll_trans [trans]:
     "[| X \<approx> Y;  Y \<approx> Z |] ==> X \<approx> Z"
 apply (unfold eqpoll_def)
 apply (blast intro: comp_bij)
@@ -122,10 +122,16 @@ lemmas le_imp_lepoll = le_imp_subset [THEN subset_imp_lepoll]
 lemma eqpoll_imp_lepoll: "X \<approx> Y ==> X \<lesssim> Y"
 by (unfold eqpoll_def bij_def lepoll_def, blast)
 
-lemma lepoll_trans: "[| X \<lesssim> Y;  Y \<lesssim> Z |] ==> X \<lesssim> Z"
+lemma lepoll_trans [trans]: "[| X \<lesssim> Y;  Y \<lesssim> Z |] ==> X \<lesssim> Z"
 apply (unfold lepoll_def)
 apply (blast intro: comp_inj)
 done
+
+lemma eq_lepoll_trans [trans]: "[| X \<approx> Y;  Y \<lesssim> Z |] ==> X \<lesssim> Z"
+ by (blast intro: eqpoll_imp_lepoll lepoll_trans) 
+
+lemma lepoll_eq_trans [trans]: "[| X \<lesssim> Y;  Y \<approx> Z |] ==> X \<lesssim> Z"
+ by (blast intro: eqpoll_imp_lepoll lepoll_trans) 
 
 (*Asymmetry law*)
 lemma eqpollI: "[| X \<lesssim> Y;  Y \<lesssim> X |] ==> X \<approx> Y"
@@ -194,7 +200,7 @@ apply (blast intro!: eqpollI elim!: eqpollE)
 done
 
 lemma inj_not_surj_succ:
-  "[| f \<in> inj(A, succ(m)); f \<notin> surj(A, succ(m)) |] ==> \<exists>f. f:inj(A,m)"
+  "[| f \<in> inj(A, succ(m)); f \<notin> surj(A, succ(m)) |] ==> \<exists>f. f \<in> inj(A,m)"
 apply (unfold inj_def surj_def)
 apply (safe del: succE)
 apply (erule swap, rule exI)
@@ -208,23 +214,31 @@ done
 
 (** Variations on transitivity **)
 
-lemma lesspoll_trans:
+lemma lesspoll_trans [trans]:
       "[| X \<prec> Y; Y \<prec> Z |] ==> X \<prec> Z"
 apply (unfold lesspoll_def)
 apply (blast elim!: eqpollE intro: eqpollI lepoll_trans)
 done
 
-lemma lesspoll_trans1:
+lemma lesspoll_trans1 [trans]:
       "[| X \<lesssim> Y; Y \<prec> Z |] ==> X \<prec> Z"
 apply (unfold lesspoll_def)
 apply (blast elim!: eqpollE intro: eqpollI lepoll_trans)
 done
 
-lemma lesspoll_trans2:
+lemma lesspoll_trans2 [trans]:
       "[| X \<prec> Y; Y \<lesssim> Z |] ==> X \<prec> Z"
 apply (unfold lesspoll_def)
 apply (blast elim!: eqpollE intro: eqpollI lepoll_trans)
 done
+
+lemma eq_lesspoll_trans [trans]:
+      "[| X \<approx> Y; Y \<prec> Z |] ==> X \<prec> Z"
+  by (blast intro: eqpoll_imp_lepoll lesspoll_trans1) 
+
+lemma lesspoll_eq_trans [trans]:
+      "[| X \<prec> Y; Y \<approx> Z |] ==> X \<prec> Z"
+  by (blast intro: eqpoll_imp_lepoll lesspoll_trans2) 
 
 
 (** LEAST -- the least number operator [from HOL/Univ.ML] **)
@@ -311,6 +325,9 @@ done
 (* @{term"Ord(A) ==> |A| \<approx> A"} *)
 lemmas Ord_cardinal_eqpoll = well_ord_Memrel [THEN well_ord_cardinal_eqpoll]
 
+lemma Ord_cardinal_idem: "Ord(A) \<Longrightarrow> ||A|| = |A|"
+ by (rule Ord_cardinal_eqpoll [THEN cardinal_cong])
+
 lemma well_ord_cardinal_eqE:
      "[| well_ord(X,r);  well_ord(Y,s);  |X| = |Y| |] ==> X \<approx> Y"
 apply (rule eqpoll_sym [THEN eqpoll_trans])
@@ -335,7 +352,7 @@ apply (unfold Card_def)
 apply (erule sym)
 done
 
-(* Could replace the  @{term"~(j \<approx> i)"}  by  @{term"~(i \<lesssim> j)"}. *)
+(* Could replace the  @{term"~(j \<approx> i)"}  by  @{term"~(i \<preceq> j)"}. *)
 lemma CardI: "[| Ord(i);  !!j. j<i ==> ~(j \<approx> i) |] ==> Card(i)"
 apply (unfold Card_def cardinal_def)
 apply (subst Least_equality)
@@ -399,15 +416,18 @@ apply (best intro: LeastI )
 done
 
 (*Kunen's Lemma 10.5*)
-lemma cardinal_eq_lemma: "[| |i| \<le> j;  j \<le> i |] ==> |j| = |i|"
-apply (rule eqpollI [THEN cardinal_cong])
-apply (erule le_imp_lepoll)
-apply (rule lepoll_trans)
-apply (erule_tac [2] le_imp_lepoll)
-apply (rule eqpoll_sym [THEN eqpoll_imp_lepoll])
-apply (rule Ord_cardinal_eqpoll)
-apply (elim ltE Ord_succD)
-done
+lemma cardinal_eq_lemma: 
+  assumes i:"|i| \<le> j" and j: "j \<le> i" shows "|j| = |i|"
+proof (rule eqpollI [THEN cardinal_cong])
+  show "j \<lesssim> i" by (rule le_imp_lepoll [OF j])
+next
+  have Oi: "Ord(i)" using j by (rule le_Ord2)
+  hence "i \<approx> |i|" 
+    by (blast intro: Ord_cardinal_eqpoll eqpoll_sym) 
+  also have "... \<lesssim> j" 
+    by (blast intro: le_imp_lepoll i) 
+  finally show "i \<lesssim> j" .
+qed
 
 lemma cardinal_mono: "i \<le> j ==> |i| \<le> |j|"
 apply (rule_tac i = "|i|" and j = "|j|" in Ord_linear_le)
@@ -438,19 +458,20 @@ by (simp add: Card_lt_iff Card_is_Ord Ord_cardinal not_lt_iff_le [THEN iff_sym])
 
 (*Can use AC or finiteness to discharge first premise*)
 lemma well_ord_lepoll_imp_Card_le:
-     "[| well_ord(B,r);  A \<lesssim> B |] ==> |A| \<le> |B|"
-apply (rule_tac i = "|A|" and j = "|B|" in Ord_linear_le)
-apply (safe intro!: Ord_cardinal le_eqI)
-apply (rule eqpollI [THEN cardinal_cong], assumption)
-apply (rule lepoll_trans)
-apply (rule well_ord_cardinal_eqpoll [THEN eqpoll_sym, THEN eqpoll_imp_lepoll], assumption)
-apply (erule le_imp_lepoll [THEN lepoll_trans])
-apply (rule eqpoll_imp_lepoll)
-apply (unfold lepoll_def)
-apply (erule exE)
-apply (rule well_ord_cardinal_eqpoll)
-apply (erule well_ord_rvimage, assumption)
-done
+  assumes wB: "well_ord(B,r)" and AB: "A \<lesssim> B"
+  shows "|A| \<le> |B|"
+proof (rule Ord_linear_le [of "|A|" "|B|", OF Ord_cardinal Ord_cardinal], assumption)
+  assume BA: "|B| \<le> |A|"
+  from lepoll_well_ord [OF AB wB]
+  obtain s where s: "well_ord(A, s)" by blast
+  have "B  \<approx> |B|" by (blast intro: wB eqpoll_sym well_ord_cardinal_eqpoll) 
+  also have "... \<lesssim> |A|" by (rule le_imp_lepoll [OF BA])
+  also have "... \<approx> A" by (rule well_ord_cardinal_eqpoll [OF s])
+  finally have "B \<lesssim> A" .
+  hence "A \<approx> B" by (blast intro: eqpollI AB) 
+  hence "|A| = |B|" by (rule cardinal_cong)
+  thus ?thesis by simp
+qed
 
 lemma lepoll_cardinal_le: "[| A \<lesssim> i; Ord(i) |] ==> |A| \<le> i"
 apply (rule le_trans)
@@ -535,14 +556,6 @@ lemmas cardinal_1 = nat_1I [THEN nat_into_Card, THEN Card_cardinal_eq, iff]
 lemma succ_lepoll_natE: "[| succ(n) \<lesssim> n;  n:nat |] ==> P"
 by (rule nat_lepoll_imp_le [THEN lt_irrefl], auto)
 
-lemma n_lesspoll_nat: "n \<in> nat ==> n \<prec> nat"
-apply (unfold lesspoll_def)
-apply (fast elim!: Ord_nat [THEN [2] ltI [THEN leI, THEN le_imp_lepoll]]
-                   eqpoll_sym [THEN eqpoll_imp_lepoll]
-    intro: Ord_nat [THEN [2] nat_succI [THEN ltI], THEN leI,
-                 THEN le_imp_lepoll, THEN lepoll_trans, THEN succ_lepoll_natE])
-done
-
 lemma nat_lepoll_imp_ex_eqpoll_n:
      "[| n \<in> nat;  nat \<lesssim> X |] ==> \<exists>Y. Y \<subseteq> X & n \<approx> Y"
 apply (unfold lepoll_def eqpoll_def)
@@ -626,6 +639,9 @@ lemma nat_le_cardinal: "nat \<le> i ==> nat \<le> |i|"
 apply (rule Card_nat [THEN Card_cardinal_eq, THEN subst])
 apply (erule cardinal_mono)
 done
+
+lemma n_lesspoll_nat: "n \<in> nat ==> n \<prec> nat"
+  by (blast intro: Ord_nat Card_nat ltI lt_Card_imp_lesspoll)
 
 
 subsection{*Towards Cardinal Arithmetic *}

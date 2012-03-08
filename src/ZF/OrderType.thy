@@ -74,8 +74,7 @@ lemmas well_ord_Memrel = le_refl [THEN le_well_ord_Memrel]
   The smaller ordinal is an initial segment of the larger *)
 lemma lt_pred_Memrel:
     "j<i ==> pred(i, j, Memrel(i)) = j"
-apply (unfold pred_def lt_def)
-apply (simp (no_asm_simp))
+apply (simp add: pred_def lt_def)
 apply (blast intro: Ord_trans)
 done
 

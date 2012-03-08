@@ -707,7 +707,7 @@ apply (erule add_left_cancel)+
 apply auto
 done
 
-lemma zless_trans: "[| x $< y; y $< z |] ==> x $< z"
+lemma zless_trans [trans]: "[| x $< y; y $< z |] ==> x $< z"
 apply (subgoal_tac "intify (x) $< intify (z) ")
 apply (rule_tac [2] y = "intify (y) " in zless_trans_lemma)
 apply auto
@@ -750,19 +750,19 @@ apply (simp add: zle_def, auto)
 apply (blast intro: zless_trans)
 done
 
-lemma zle_trans: "[| x $<= y; y $<= z |] ==> x $<= z"
+lemma zle_trans [trans]: "[| x $<= y; y $<= z |] ==> x $<= z"
 apply (subgoal_tac "intify (x) $<= intify (z) ")
 apply (rule_tac [2] y = "intify (y) " in zle_trans_lemma)
 apply auto
 done
 
-lemma zle_zless_trans: "[| i $<= j; j $< k |] ==> i $< k"
+lemma zle_zless_trans [trans]: "[| i $<= j; j $< k |] ==> i $< k"
 apply (auto simp add: zle_def)
 apply (blast intro: zless_trans)
 apply (simp add: zless_def zdiff_def zadd_def)
 done
 
-lemma zless_zle_trans: "[| i $< j; j $<= k |] ==> i $< k"
+lemma zless_zle_trans [trans]: "[| i $< j; j $<= k |] ==> i $< k"
 apply (auto simp add: zle_def)
 apply (blast intro: zless_trans)
 apply (simp add: zless_def zdiff_def zminus_def)

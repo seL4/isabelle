@@ -58,18 +58,22 @@ lemmas Pair_neq_0 = Pair_not_0 [THEN notE, elim!]
 declare sym [THEN Pair_neq_0, elim!]
 
 lemma Pair_neq_fst: "<a,b>=a ==> P"
-apply (unfold Pair_def)
-apply (rule consI1 [THEN mem_asym, THEN FalseE])
-apply (erule subst)
-apply (rule consI1)
-done
+proof (unfold Pair_def)
+  assume eq: "{{a, a}, {a, b}} = a"
+  have  "{a, a} \<in> {{a, a}, {a, b}}" by (rule consI1)
+  hence "{a, a} \<in> a" by (simp add: eq)
+  moreover have "a \<in> {a, a}" by (rule consI1)
+  ultimately show "P" by (rule mem_asym) 
+qed
 
 lemma Pair_neq_snd: "<a,b>=b ==> P"
-apply (unfold Pair_def)
-apply (rule consI1 [THEN consI2, THEN mem_asym, THEN FalseE])
-apply (erule subst)
-apply (rule consI1 [THEN consI2])
-done
+proof (unfold Pair_def)
+  assume eq: "{{a, a}, {a, b}} = b"
+  have  "{a, b} \<in> {{a, a}, {a, b}}" by blast
+  hence "{a, b} \<in> b" by (simp add: eq)
+  moreover have "b \<in> {a, b}" by blast
+  ultimately show "P" by (rule mem_asym) 
+qed
 
 
 subsection{*Sigma: Disjoint Union of a Family of Sets*}
@@ -145,15 +149,12 @@ lemma split_type [TC]:
     "[|  p:Sigma(A,B);    
          !!x y.[| x:A; y:B(x) |] ==> c(x,y):C(<x,y>)  
      |] ==> split(%x y. c(x,y), p) \<in> C(p)"
-apply (erule SigmaE, auto) 
-done
+by (erule SigmaE, auto) 
 
 lemma expand_split: 
   "u: A*B ==>    
         R(split(c,u)) \<longleftrightarrow> (\<forall>x\<in>A. \<forall>y\<in>B. u = <x,y> \<longrightarrow> R(c(x,y)))"
-apply (simp add: split_def)
-apply auto
-done
+by (auto simp add: split_def)
 
 
 subsection{*A version of @{term split} for Formulae: Result Type @{typ o}*}
@@ -165,9 +166,7 @@ lemma splitE:
     "[| split(R,z);  z:Sigma(A,B);                       
         !!x y. [| z = <x,y>;  R(x,y) |] ==> P            
      |] ==> P"
-apply (simp add: split_def)
-apply (erule SigmaE, force) 
-done
+by (auto simp add: split_def)
 
 lemma splitD: "split(R,<a,b>) ==> R(a,b)"
 by (simp add: split_def)

@@ -48,36 +48,38 @@ notation (HTML)
   cmult  (infixl "\<otimes>" 70)
 
 
-lemma Card_Union [simp,intro,TC]: "(\<forall>x\<in>A. Card(x)) ==> Card(\<Union>(A))"
-apply (rule CardI)
- apply (simp add: Card_is_Ord)
-apply (clarify dest!: ltD)
-apply (drule bspec, assumption)
-apply (frule lt_Card_imp_lesspoll, blast intro: ltI Card_is_Ord)
-apply (drule eqpoll_sym [THEN eqpoll_imp_lepoll])
-apply (drule lesspoll_trans1, assumption)
-apply (subgoal_tac "B \<lesssim> \<Union>A")
- apply (drule lesspoll_trans1, assumption, blast)
-apply (blast intro: subset_imp_lepoll)
-done
+lemma Card_Union [simp,intro,TC]: 
+  assumes A: "\<And>x. x\<in>A \<Longrightarrow> Card(x)" shows "Card(\<Union>(A))"
+proof (rule CardI)
+  show "Ord(\<Union>A)" using A 
+    by (simp add: Card_is_Ord)
+next
+  fix j
+  assume j: "j < \<Union>A"
+  hence "\<exists>c\<in>A. j < c & Card(c)" using A
+    by (auto simp add: lt_def intro: Card_is_Ord)
+  then obtain c where c: "c\<in>A" "j < c" "Card(c)"
+    by blast
+  hence jls: "j \<prec> c" 
+    by (simp add: lt_Card_imp_lesspoll) 
+  { assume eqp: "j \<approx> \<Union>A"
+    hence Uls: "\<Union>A \<prec> c" using jls
+      by (blast intro: eqpoll_sym eqpoll_imp_lepoll lesspoll_trans1)
+    moreover have  "c \<lesssim> \<Union>A" using c
+      by (blast intro: subset_imp_lepoll)
+    ultimately have "c \<prec> c"
+      by (blast intro: lesspoll_trans1) 
+    hence False 
+      by auto
+  } thus "\<not> j \<approx> \<Union>A" by blast
+qed
 
 lemma Card_UN: "(!!x. x:A ==> Card(K(x))) ==> Card(\<Union>x\<in>A. K(x))"
-by (blast intro: Card_Union)
+  by blast
 
 lemma Card_OUN [simp,intro,TC]:
      "(!!x. x:A ==> Card(K(x))) ==> Card(\<Union>x<A. K(x))"
-by (simp add: OUnion_def Card_0)
-
-lemma n_lesspoll_nat: "n \<in> nat ==> n \<prec> nat"
-apply (unfold lesspoll_def)
-apply (rule conjI)
-apply (erule OrdmemD [THEN subset_imp_lepoll], rule Ord_nat)
-apply (rule notI)
-apply (erule eqpollE)
-apply (rule succ_lepoll_natE)
-apply (blast intro: nat_succI [THEN OrdmemD, THEN subset_imp_lepoll]
-                    lepoll_trans, assumption)
-done
+  by (auto simp add: OUnion_def Card_0)
 
 lemma in_Card_imp_lesspoll: "[| Card(K); b \<in> K |] ==> b \<prec> K"
 apply (unfold lesspoll_def)
@@ -103,11 +105,10 @@ coincide with union (maximum).  Either way we get most laws for free.*}
 subsubsection{*Cardinal addition is commutative*}
 
 lemma sum_commute_eqpoll: "A+B \<approx> B+A"
-apply (unfold eqpoll_def)
-apply (rule exI)
-apply (rule_tac c = "case(Inr,Inl)" and d = "case(Inr,Inl)" in lam_bijective)
-apply auto
-done
+proof (unfold eqpoll_def, rule exI)
+  show "(\<lambda>z\<in>A+B. case(Inr,Inl,z)) \<in> bij(A+B, B+A)"
+    by (auto intro: lam_bijective [where d = "case(Inr,Inl)"]) 
+qed
 
 lemma cadd_commute: "i \<oplus> j = j \<oplus> i"
 apply (unfold cadd_def)
@@ -153,10 +154,10 @@ done
 subsubsection{*Addition by another cardinal*}
 
 lemma sum_lepoll_self: "A \<lesssim> A+B"
-apply (unfold lepoll_def inj_def)
-apply (rule_tac x = "\<lambda>x\<in>A. Inl (x) " in exI)
-apply simp
-done
+proof (unfold lepoll_def, rule exI)
+  show "(\<lambda>x\<in>A. Inl (x)) \<in> inj(A, A + B)"
+    by (simp add: inj_def) 
+qed
 
 (*Could probably weaken the premises to well_ord(K,r), or removing using AC*)
 

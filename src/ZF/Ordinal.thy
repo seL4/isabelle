@@ -9,7 +9,7 @@ theory Ordinal imports WF Bool equalities begin
 
 definition
   Memrel        :: "i=>i"  where
-    "Memrel(A)   == {z: A*A . \<exists>x y. z=<x,y> & x:y }"
+    "Memrel(A)   == {z\<in>A*A . \<exists>x y. z=<x,y> & x\<in>y }"
 
 definition
   Transset  :: "i=>o"  where
@@ -21,7 +21,7 @@ definition
 
 definition
   lt        :: "[i,i] => o"  (infixl "<" 50)   (*less-than on ordinals*)  where
-    "i<j         == i:j & Ord(j)"
+    "i<j         == i\<in>j & Ord(j)"
 
 definition
   Limit         :: "i=>o"  where
@@ -56,11 +56,11 @@ by (unfold Transset_def, blast)
 subsubsection{*Consequences of Downwards Closure*}
 
 lemma Transset_doubleton_D:
-    "[| Transset(C); {a,b}: C |] ==> a:C & b: C"
+    "[| Transset(C); {a,b}: C |] ==> a\<in>C & b\<in>C"
 by (unfold Transset_def, blast)
 
 lemma Transset_Pair_D:
-    "[| Transset(C); <a,b>: C |] ==> a:C & b: C"
+    "[| Transset(C); <a,b>\<in>C |] ==> a\<in>C & b\<in>C"
 apply (simp add: Pair_def)
 apply (blast dest: Transset_doubleton_D)
 done
@@ -96,11 +96,11 @@ lemma Transset_Union: "Transset(A) ==> Transset(\<Union>(A))"
 by (unfold Transset_def, blast)
 
 lemma Transset_Union_family:
-    "[| !!i. i:A ==> Transset(i) |] ==> Transset(\<Union>(A))"
+    "[| !!i. i\<in>A ==> Transset(i) |] ==> Transset(\<Union>(A))"
 by (unfold Transset_def, blast)
 
 lemma Transset_Inter_family:
-    "[| !!i. i:A ==> Transset(i) |] ==> Transset(\<Inter>(A))"
+    "[| !!i. i\<in>A ==> Transset(i) |] ==> Transset(\<Inter>(A))"
 by (unfold Inter_def Transset_def, blast)
 
 lemma Transset_UN:
@@ -115,22 +115,22 @@ by (rule Transset_Inter_family, auto)
 subsection{*Lemmas for Ordinals*}
 
 lemma OrdI:
-    "[| Transset(i);  !!x. x:i ==> Transset(x) |]  ==>  Ord(i)"
+    "[| Transset(i);  !!x. x\<in>i ==> Transset(x) |]  ==>  Ord(i)"
 by (simp add: Ord_def)
 
 lemma Ord_is_Transset: "Ord(i) ==> Transset(i)"
 by (simp add: Ord_def)
 
 lemma Ord_contains_Transset:
-    "[| Ord(i);  j:i |] ==> Transset(j) "
+    "[| Ord(i);  j\<in>i |] ==> Transset(j) "
 by (unfold Ord_def, blast)
 
 
-lemma Ord_in_Ord: "[| Ord(i);  j:i |] ==> Ord(j)"
+lemma Ord_in_Ord: "[| Ord(i);  j\<in>i |] ==> Ord(j)"
 by (unfold Ord_def Transset_def, blast)
 
 (*suitable for rewriting PROVIDED i has been fixed*)
-lemma Ord_in_Ord': "[| j:i; Ord(i) |] ==> Ord(j)"
+lemma Ord_in_Ord': "[| j\<in>i; Ord(i) |] ==> Ord(j)"
 by (blast intro: Ord_in_Ord)
 
 (* Ord(succ(j)) ==> Ord(j) *)
@@ -139,13 +139,13 @@ lemmas Ord_succD = Ord_in_Ord [OF _ succI1]
 lemma Ord_subset_Ord: "[| Ord(i);  Transset(j);  j<=i |] ==> Ord(j)"
 by (simp add: Ord_def Transset_def, blast)
 
-lemma OrdmemD: "[| j:i;  Ord(i) |] ==> j<=i"
+lemma OrdmemD: "[| j\<in>i;  Ord(i) |] ==> j<=i"
 by (unfold Ord_def Transset_def, blast)
 
-lemma Ord_trans: "[| i:j;  j:k;  Ord(k) |] ==> i:k"
+lemma Ord_trans: "[| i\<in>j;  j\<in>k;  Ord(k) |] ==> i\<in>k"
 by (blast dest: OrdmemD)
 
-lemma Ord_succ_subsetI: "[| i:j;  Ord(j) |] ==> succ(i) \<subseteq> j"
+lemma Ord_succ_subsetI: "[| i\<in>j;  Ord(j) |] ==> succ(i) \<subseteq> j"
 by (blast dest: OrdmemD)
 
 
@@ -172,28 +172,33 @@ apply (unfold Ord_def)
 apply (blast intro!: Transset_Int)
 done
 
-(*There is no set of all ordinals, for then it would contain itself*)
-lemma ON_class: "~ (\<forall>i. i:X <-> Ord(i))"
-apply (rule notI)
-apply (frule_tac x = X in spec)
-apply (safe elim!: mem_irrefl)
-apply (erule swap, rule OrdI [OF _ Ord_is_Transset])
-apply (simp add: Transset_def)
-apply (blast intro: Ord_in_Ord)+
-done
+text{*There is no set of all ordinals, for then it would contain itself*}
+lemma ON_class: "~ (\<forall>i. i\<in>X <-> Ord(i))"
+proof (rule notI)
+  assume X: "\<forall>i. i \<in> X \<longleftrightarrow> Ord(i)"
+  have "\<forall>x y. x\<in>X \<longrightarrow> y\<in>x \<longrightarrow> y\<in>X"
+    by (simp add: X, blast intro: Ord_in_Ord)
+  hence "Transset(X)"
+     by (auto simp add: Transset_def)
+  moreover have "\<And>x. x \<in> X \<Longrightarrow> Transset(x)"
+     by (simp add: X Ord_def)
+  ultimately have "Ord(X)" by (rule OrdI)
+  hence "X \<in> X" by (simp add: X)
+  thus "False" by (rule mem_irrefl)
+qed
 
 subsection{*< is 'less Than' for Ordinals*}
 
-lemma ltI: "[| i:j;  Ord(j) |] ==> i<j"
+lemma ltI: "[| i\<in>j;  Ord(j) |] ==> i<j"
 by (unfold lt_def, blast)
 
 lemma ltE:
-    "[| i<j;  [| i:j;  Ord(i);  Ord(j) |] ==> P |] ==> P"
+    "[| i<j;  [| i\<in>j;  Ord(i);  Ord(j) |] ==> P |] ==> P"
 apply (unfold lt_def)
 apply (blast intro: Ord_in_Ord)
 done
 
-lemma ltD: "i<j ==> i:j"
+lemma ltD: "i<j ==> i\<in>j"
 by (erule ltE, assumption)
 
 lemma not_lt0 [simp]: "~ i<0"
@@ -211,7 +216,7 @@ lemmas le_Ord2 = lt_Ord2 [THEN Ord_succD]
 (* i<0 ==> R *)
 lemmas lt0E = not_lt0 [THEN notE, elim!]
 
-lemma lt_trans: "[| i<j;  j<k |] ==> i<k"
+lemma lt_trans [trans]: "[| i<j;  j<k |] ==> i<k"
 by (blast intro!: ltI elim!: ltE intro: Ord_trans)
 
 lemma lt_not_sym: "i<j ==> ~ (j<i)"
@@ -238,10 +243,10 @@ by (unfold lt_def, blast)
 
 (*Equivalently, i<j ==> i < succ(j)*)
 lemma leI: "i<j ==> i \<le> j"
-by (simp (no_asm_simp) add: le_iff)
+by (simp add: le_iff)
 
 lemma le_eqI: "[| i=j;  Ord(j) |] ==> i \<le> j"
-by (simp (no_asm_simp) add: le_iff)
+by (simp add: le_iff)
 
 lemmas le_refl = refl [THEN le_eqI]
 
@@ -268,7 +273,7 @@ lemmas le0D = le0_iff [THEN iffD1, dest!]
 subsection{*Natural Deduction Rules for Memrel*}
 
 (*The lemmas MemrelI/E give better speed than [iff] here*)
-lemma Memrel_iff [simp]: "<a,b> \<in> Memrel(A) <-> a:b & a:A & b:A"
+lemma Memrel_iff [simp]: "<a,b> \<in> Memrel(A) <-> a\<in>b & a\<in>A & b\<in>A"
 by (unfold Memrel_def, blast)
 
 lemma MemrelI [intro!]: "[| a: b;  a: A;  b: A |] ==> <a,b> \<in> Memrel(A)"
@@ -276,7 +281,7 @@ by auto
 
 lemma MemrelE [elim!]:
     "[| <a,b> \<in> Memrel(A);
-        [| a: A;  b: A;  a:b |]  ==> P |]
+        [| a: A;  b: A;  a\<in>b |]  ==> P |]
      ==> P"
 by auto
 
@@ -314,7 +319,7 @@ by (unfold Transset_def trans_def, blast)
 
 (*If Transset(A) then Memrel(A) internalizes the membership relation below A*)
 lemma Transset_Memrel_iff:
-    "Transset(A) ==> <a,b> \<in> Memrel(A) <-> a:b & b:A"
+    "Transset(A) ==> <a,b> \<in> Memrel(A) <-> a\<in>b & b\<in>A"
 by (unfold Transset_def, blast)
 
 
@@ -352,7 +357,7 @@ lemmas trans_induct_rule = trans_induct [rule_format, consumes 1]
 subsubsection{*Proving That < is a Linear Ordering on the Ordinals*}
 
 lemma Ord_linear [rule_format]:
-     "Ord(i) ==> (\<forall>j. Ord(j) \<longrightarrow> i:j | i=j | j:i)"
+     "Ord(i) ==> (\<forall>j. Ord(j) \<longrightarrow> i\<in>j | i=j | j\<in>i)"
 apply (erule trans_induct)
 apply (rule impI [THEN allI])
 apply (erule_tac i=j in trans_induct)
@@ -386,7 +391,7 @@ by (rule_tac i = i and j = j in Ord_linear2, auto)
 
 subsubsection{*Some Rewrite Rules for <, le*}
 
-lemma Ord_mem_iff_lt: "Ord(j) ==> i:j <-> i<j"
+lemma Ord_mem_iff_lt: "Ord(j) ==> i\<in>j <-> i<j"
 by (unfold lt_def, blast)
 
 lemma not_lt_iff_le: "[| Ord(i);  Ord(j) |] ==> ~ i<j <-> j \<le> i"
@@ -508,7 +513,7 @@ apply (rule Un_upper1_le [THEN lt_trans1], auto)
 done
 
 lemma Un_least_mem_iff:
-    "[| Ord(i); Ord(j); Ord(k) |] ==> i \<union> j \<in> k  <->  i:k & j:k"
+    "[| Ord(i); Ord(j); Ord(k) |] ==> i \<union> j \<in> k  <->  i\<in>k & j\<in>k"
 apply (insert Un_least_lt_iff [of i j k])
 apply (simp add: lt_def)
 done
@@ -529,13 +534,13 @@ lemma succ_Un_distrib:
 by (simp add: Ord_Un_if lt_Ord le_Ord2)
 
 lemma lt_Un_iff:
-     "[| Ord(i); Ord(j) |] ==> k < i \<union> j <-> k < i | k < j";
+     "[| Ord(i); Ord(j) |] ==> k < i \<union> j <-> k < i | k < j"
 apply (simp add: Ord_Un_if not_lt_iff_le)
 apply (blast intro: leI lt_trans2)+
 done
 
 lemma le_Un_iff:
-     "[| Ord(i); Ord(j) |] ==> k \<le> i \<union> j <-> k \<le> i | k \<le> j";
+     "[| Ord(i); Ord(j) |] ==> k \<le> i \<union> j <-> k \<le> i | k \<le> j"
 by (simp add: succ_Un_distrib lt_Un_iff [symmetric])
 
 lemma Un_upper1_lt: "[|k < i; Ord(j)|] ==> k < i \<union> j"
@@ -551,17 +556,17 @@ by (blast intro: Ord_trans)
 
 subsection{*Results about Limits*}
 
-lemma Ord_Union [intro,simp,TC]: "[| !!i. i:A ==> Ord(i) |] ==> Ord(\<Union>(A))"
+lemma Ord_Union [intro,simp,TC]: "[| !!i. i\<in>A ==> Ord(i) |] ==> Ord(\<Union>(A))"
 apply (rule Ord_is_Transset [THEN Transset_Union_family, THEN OrdI])
 apply (blast intro: Ord_contains_Transset)+
 done
 
 lemma Ord_UN [intro,simp,TC]:
-     "[| !!x. x:A ==> Ord(B(x)) |] ==> Ord(\<Union>x\<in>A. B(x))"
+     "[| !!x. x\<in>A ==> Ord(B(x)) |] ==> Ord(\<Union>x\<in>A. B(x))"
 by (rule Ord_Union, blast)
 
 lemma Ord_Inter [intro,simp,TC]:
-    "[| !!i. i:A ==> Ord(i) |] ==> Ord(\<Inter>(A))"
+    "[| !!i. i\<in>A ==> Ord(i) |] ==> Ord(\<Inter>(A))"
 apply (rule Transset_Inter_family [THEN OrdI])
 apply (blast intro: Ord_is_Transset)
 apply (simp add: Inter_def)
@@ -569,19 +574,19 @@ apply (blast intro: Ord_contains_Transset)
 done
 
 lemma Ord_INT [intro,simp,TC]:
-    "[| !!x. x:A ==> Ord(B(x)) |] ==> Ord(\<Inter>x\<in>A. B(x))"
+    "[| !!x. x\<in>A ==> Ord(B(x)) |] ==> Ord(\<Inter>x\<in>A. B(x))"
 by (rule Ord_Inter, blast)
 
 
 (* No < version of this theorem: consider that @{term"(\<Union>i\<in>nat.i)=nat"}! *)
 lemma UN_least_le:
-    "[| Ord(i);  !!x. x:A ==> b(x) \<le> i |] ==> (\<Union>x\<in>A. b(x)) \<le> i"
+    "[| Ord(i);  !!x. x\<in>A ==> b(x) \<le> i |] ==> (\<Union>x\<in>A. b(x)) \<le> i"
 apply (rule le_imp_subset [THEN UN_least, THEN subset_imp_le])
 apply (blast intro: Ord_UN elim: ltE)+
 done
 
 lemma UN_succ_least_lt:
-    "[| j<i;  !!x. x:A ==> b(x)<j |] ==> (\<Union>x\<in>A. succ(b(x))) < i"
+    "[| j<i;  !!x. x\<in>A ==> b(x)<j |] ==> (\<Union>x\<in>A. succ(b(x))) < i"
 apply (rule ltE, assumption)
 apply (rule UN_least_le [THEN lt_trans2])
 apply (blast intro: succ_leI)+
@@ -608,7 +613,7 @@ apply (rule UN_upper_le, auto)
 done
 
 lemma le_implies_UN_le_UN:
-    "[| !!x. x:A ==> c(x) \<le> d(x) |] ==> (\<Union>x\<in>A. c(x)) \<le> (\<Union>x\<in>A. d(x))"
+    "[| !!x. x\<in>A ==> c(x) \<le> d(x) |] ==> (\<Union>x\<in>A. c(x)) \<le> (\<Union>x\<in>A. d(x))"
 apply (rule UN_least_le)
 apply (rule_tac [2] UN_upper_le)
 apply (blast intro: Ord_UN le_Ord2)+
@@ -664,13 +669,18 @@ apply (blast intro: lt_trans1 [OF _ ltI] lt_Ord2)
 done
 
 lemma non_succ_LimitI:
-    "[| 0<i;  \<forall>y. succ(y) \<noteq> i |] ==> Limit(i)"
-apply (unfold Limit_def)
-apply (safe del: subsetI)
-apply (rule_tac [2] not_le_iff_lt [THEN iffD1])
-apply (simp_all add: lt_Ord lt_Ord2)
-apply (blast elim: leE lt_asym)
-done
+  assumes i: "0<i" and nsucc: "\<And>y. succ(y) \<noteq> i"
+  shows "Limit(i)"
+proof -
+  have Oi: "Ord(i)" using i by (simp add: lt_def)
+  { fix y
+    assume yi: "y<i"
+    hence Osy: "Ord(succ(y))" by (simp add: lt_Ord Ord_succ)
+    have "~ i \<le> y" using yi by (blast dest: le_imp_not_lt) 
+    hence "succ(y) < i" using nsucc [of y] 
+      by (blast intro: Ord_linear_lt [OF Osy Oi]) }
+  thus ?thesis using i Oi by (auto simp add: Limit_def) 
+qed
 
 lemma succ_LimitE [elim!]: "Limit(succ(i)) ==> P"
 apply (rule lt_irrefl)
@@ -712,25 +722,41 @@ lemmas trans_induct3_rule = trans_induct3 [rule_format, case_names 0 succ limit,
 
 text{*A set of ordinals is either empty, contains its own union, or its
 union is a limit ordinal.*}
-lemma Ord_set_cases:
-   "\<forall>i\<in>I. Ord(i) ==> I=0 \<or> \<Union>(I) \<in> I \<or> (\<Union>(I) \<notin> I \<and> Limit(\<Union>(I)))"
-apply (clarify elim!: not_emptyE)
-apply (cases "\<Union>(I)" rule: Ord_cases)
-   apply (blast intro: Ord_Union)
-  apply (blast intro: subst_elem)
- apply auto
-apply (clarify elim!: equalityE succ_subsetE)
-apply (simp add: Union_subset_iff)
-apply (subgoal_tac "B = succ(j)", blast)
-apply (rule le_anti_sym)
- apply (simp add: le_subset_iff)
-apply (simp add: ltI)
-done
 
-text{*If the union of a set of ordinals is a successor, then it is
-an element of that set.*}
+lemma Union_le: "[| !!x. x\<in>I ==> x\<le>j; Ord(j) |] ==> \<Union>(I) \<le> j"
+  by (auto simp add: le_subset_iff Union_least) 
+
+lemma Ord_set_cases:
+  assumes I: "\<forall>i\<in>I. Ord(i)"
+  shows "I=0 \<or> \<Union>(I) \<in> I \<or> (\<Union>(I) \<notin> I \<and> Limit(\<Union>(I)))"
+proof (cases "\<Union>(I)" rule: Ord_cases)
+  show "Ord(\<Union>I)" using I by (blast intro: Ord_Union)
+next
+  assume "\<Union>I = 0" thus ?thesis by (simp, blast intro: subst_elem)
+next
+  fix j
+  assume j: "Ord(j)" and UIj:"\<Union>(I) = succ(j)"
+  { assume "\<forall>i\<in>I. i\<le>j" 
+    hence "\<Union>(I) \<le> j" 
+      by (simp add: Union_le j) 
+    hence False 
+      by (simp add: UIj lt_not_refl) }
+  then obtain i where i: "i \<in> I" "succ(j) \<le> i" using I j
+    by (atomize, auto simp add: not_le_iff_lt) 
+  have "\<Union>(I) \<le> succ(j)" using UIj j by auto
+  hence "i \<le> succ(j)" using i
+    by (simp add: le_subset_iff Union_subset_iff) 
+  hence "succ(j) = i" using i 
+    by (blast intro: le_anti_sym) 
+  hence "succ(j) \<in> I" by (simp add: i)
+  thus ?thesis by (simp add: UIj) 
+next
+  assume "Limit(\<Union>I)" thus ?thesis by auto
+qed
+
+text{*If the union of a set of ordinals is a successor, then it is an element of that set.*}
 lemma Ord_Union_eq_succD: "[|\<forall>x\<in>X. Ord(x);  \<Union>X = succ(j)|] ==> succ(j) \<in> X"
-by (drule Ord_set_cases, auto)
+  by (drule Ord_set_cases, auto)
 
 lemma Limit_Union [rule_format]: "[| I \<noteq> 0;  \<forall>i\<in>I. Limit(i) |] ==> Limit(\<Union>I)"
 apply (simp add: Limit_def lt_def)
