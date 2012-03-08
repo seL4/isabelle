@@ -3,7 +3,7 @@
     Author:     Stefan Berghofer
     Author:     Makarius
 
-Untyped XML trees and basic data representation.
+Untyped XML trees and representation of ML values.
 *)
 
 signature XML_DATA_OPS =
@@ -28,9 +28,9 @@ end;
 
 signature XML =
 sig
-  type attributes = Properties.T
+  type attributes = (string * string) list
   datatype tree =
-      Elem of Markup.T * tree list
+      Elem of (string * attributes) * tree list
     | Text of string
   type body = tree list
   val add_content: tree -> Buffer.T -> Buffer.T
@@ -59,10 +59,10 @@ struct
 
 (** XML trees **)
 
-type attributes = Properties.T;
+type attributes = (string * string) list;
 
 datatype tree =
-    Elem of Markup.T * tree list
+    Elem of (string * attributes) * tree list
   | Text of string;
 
 type body = tree list;
@@ -360,8 +360,7 @@ fun node (Elem ((":", []), ts)) = ts
   | node t = raise XML_BODY [t];
 
 fun vector atts =
-  #1 (fold_map (fn (a, x) =>
-        fn i => if int_atom a = i then (x, i + 1) else raise XML_ATOM a) atts 0);
+  map_index (fn (i, (a, x)) => if int_atom a = i then x else raise XML_ATOM a) atts;
 
 fun tagged (Elem ((name, atts), ts)) = (int_atom name, (vector atts, ts))
   | tagged t = raise XML_BODY [t];

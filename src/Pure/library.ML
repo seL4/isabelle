@@ -470,9 +470,9 @@ fun get_index f =
   let
     fun get (_: int) [] = NONE
       | get i (x :: xs) =
-          case f x
-           of NONE => get (i + 1) xs
-            | SOME y => SOME (i, y)
+          (case f x of
+            NONE => get (i + 1) xs
+          | SOME y => SOME (i, y))
   in get 0 end;
 
 val flat = List.concat;

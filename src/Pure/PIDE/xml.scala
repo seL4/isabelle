@@ -215,7 +215,7 @@ object XML
     private def node(ts: XML.Body): XML.Tree = XML.Elem(Markup(":", Nil), ts)
 
     private def vector(xs: List[String]): XML.Attributes =
-      xs.zipWithIndex.map(p => (int_atom(p._2), p._1))
+      xs.zipWithIndex.map({ case (x, i) => (int_atom(i), x) })
 
     private def tagged(tag: Int, data: (List[String], XML.Body)): XML.Tree =
       XML.Elem(Markup(int_atom(tag), vector(data._1)), data._2)
@@ -293,15 +293,8 @@ object XML
       }
 
     private def vector(atts: XML.Attributes): List[String] =
-    {
-      val xs = new mutable.ListBuffer[String]
-      var i = 0
-      for ((a, x) <- atts) {
-        if (int_atom(a) == i) { xs += x; i = i + 1 }
-        else throw new XML_Atom(a)
-      }
-      xs.toList
-    }
+      atts.iterator.zipWithIndex.map(
+        { case ((a, x), i) => if (int_atom(a) == i) x else throw new XML_Atom(a) }).toList
 
     private def tagged(t: XML.Tree): (Int, (List[String], XML.Body)) =
       t match {
