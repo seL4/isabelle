@@ -18,12 +18,12 @@ struct
 
 (* case analysis *)
 
-fun check_type ctxt t =
+fun check_type ctxt (t, pos) =
   let
     val u = singleton (Variable.polymorphic ctxt) t;
     val U = Term.fastype_of u;
     val _ = Term.is_TVar U andalso
-      error ("Cannot determine type of " ^ Syntax.string_of_term ctxt u);
+      error ("Cannot determine type of " ^ Syntax.string_of_term ctxt u ^ Position.str_of pos);
   in (u, U) end;
 
 fun gen_case_tac ctxt0 s opt_rule i st =
@@ -34,7 +34,8 @@ fun gen_case_tac ctxt0 s opt_rule i st =
         SOME rule => rule
       | NONE =>
           (case Induct.find_casesT ctxt
-              (#2 (check_type ctxt (Proof_Context.read_term_schematic ctxt s))) of
+              (#2 (check_type ctxt (Proof_Context.read_term_schematic ctxt s,
+                #2 (Syntax.read_token s)))) of
             rule :: _ => rule
           | [] => @{thm case_split}));
     val _ = Method.trace ctxt [rule];
@@ -71,17 +72,22 @@ fun gen_induct_tac ctxt0 varss opt_rules i st =
     fun induct_var name =
       let
         val t = Syntax.read_term ctxt name;
+        val (_, pos) = Syntax.read_token name;
         val (x, _) = Term.dest_Free t handle TERM _ =>
-          error ("Induction argument not a variable: " ^ Syntax.string_of_term ctxt t);
+          error ("Induction argument not a variable: " ^
+            Syntax.string_of_term ctxt t ^ Position.str_of pos);
         val eq_x = fn Free (y, _) => x = y | _ => false;
         val _ =
           if Term.exists_subterm eq_x concl then ()
-          else error ("No such variable in subgoal: " ^ Syntax.string_of_term ctxt t);
+          else
+            error ("No such variable in subgoal: " ^
+              Syntax.string_of_term ctxt t ^ Position.str_of pos);
         val _ =
           if (exists o Term.exists_subterm) eq_x prems then
-            warning ("Induction variable occurs also among premises: " ^ Syntax.string_of_term ctxt t)
+            warning ("Induction variable occurs also among premises: " ^
+              Syntax.string_of_term ctxt t ^ Position.str_of pos)
           else ();
-      in #1 (check_type ctxt t) end;
+      in #1 (check_type ctxt (t, pos)) end;
 
     val argss = map (map (Option.map induct_var)) varss;
     val rule =
