@@ -3,7 +3,7 @@
     Author:     Stefan Berghofer
     Author:     Makarius
 
-Untyped XML trees and basic data representation.
+Untyped XML trees and representation of ML values.
 *)
 
 signature XML_DATA_OPS =
