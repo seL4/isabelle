@@ -130,10 +130,11 @@ fun print_scala_stmt labelled_name tyco_syntax const_syntax reserved
                 val (p_pat, vars') = print_bind tyvars some_thm NOBR pat vars;
                 val p_body = print_term tyvars false some_thm vars' NOBR body
               in concat [str "case", p_pat, str "=>", p_body] end;
-          in brackify_block fxy
-            (concat [print_term tyvars false some_thm vars NOBR t, str "match", str "{"])
-            (map print_select clauses)
-            (str "}")
+          in
+            map print_select clauses
+            |> Pretty.block_enclose (concat [print_term tyvars false some_thm vars NOBR t, str "match", str "{"], str "}")
+            |> single
+            |> enclose "(" ")"
           end
       | print_case tyvars some_thm vars fxy ((_, []), _) =
           (brackify fxy o Pretty.breaks o map str) ["error(\"empty case\")"];
