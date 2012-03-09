@@ -201,9 +201,13 @@ fun gen_enriched_type prep_term some_prfx raw_mapper lthy =
     val input_mapper = prep_term lthy raw_mapper;
     val T = fastype_of input_mapper;
     val _ = Type.no_tvars T;
+    val _ = case subtract (op =) (Term.add_tfreesT T []) (Term.add_tfrees input_mapper [])
+     of [] => ()
+      | vs => error ("Illegal additional type variable(s) in term: "
+          ^ commas (map (Syntax.string_of_typ lthy o TFree) vs));
     val mapper = singleton (Variable.polymorphic lthy) input_mapper;
     val _ = if null (Term.add_tfreesT (fastype_of mapper) []) then ()
-      else error ("Illegal locally fixed variables in type: " ^ Syntax.string_of_typ lthy T);
+      else error ("Illegal locally fixed type variable(s) in type: " ^ Syntax.string_of_typ lthy T);
     fun add_tycos (Type (tyco, Ts)) = insert (op =) tyco #> fold add_tycos Ts
       | add_tycos _ = I;
     val tycos = add_tycos T [];
