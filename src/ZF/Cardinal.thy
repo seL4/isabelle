@@ -26,7 +26,7 @@ definition
 
 definition
   cardinal :: "i=>i"           ("|_|")  where
-    "|A| == LEAST i. i eqpoll A"
+    "|A| == (LEAST i. i eqpoll A)"
 
 definition
   Finite   :: "i=>o"  where
@@ -42,7 +42,7 @@ notation (xsymbols)
   lesspoll  (infixl "\<prec>" 50) and
   Least     (binder "\<mu>" 10)
 
-notation (HTML output)
+notation (HTML)
   eqpoll    (infixl "\<approx>" 50) and
   Least     (binder "\<mu>" 10)
 
@@ -244,14 +244,14 @@ lemma lesspoll_eq_trans [trans]:
 (** LEAST -- the least number operator [from HOL/Univ.ML] **)
 
 lemma Least_equality:
-    "[| P(i);  Ord(i);  !!x. x<i ==> ~P(x) |] ==> (LEAST x. P(x)) = i"
+    "[| P(i);  Ord(i);  !!x. x<i ==> ~P(x) |] ==> (\<mu> x. P(x)) = i"
 apply (unfold Least_def)
 apply (rule the_equality, blast)
 apply (elim conjE)
 apply (erule Ord_linear_lt, assumption, blast+)
 done
 
-lemma LeastI: "[| P(i);  Ord(i) |] ==> P(LEAST x. P(x))"
+lemma LeastI: "[| P(i);  Ord(i) |] ==> P(\<mu> x. P(x))"
 apply (erule rev_mp)
 apply (erule_tac i=i in trans_induct)
 apply (rule impI)
@@ -260,7 +260,7 @@ apply (blast intro: Least_equality [THEN ssubst]  elim!: ltE)
 done
 
 (*Proof is almost identical to the one above!*)
-lemma Least_le: "[| P(i);  Ord(i) |] ==> (LEAST x. P(x)) \<le> i"
+lemma Least_le: "[| P(i);  Ord(i) |] ==> (\<mu> x. P(x)) \<le> i"
 apply (erule rev_mp)
 apply (erule_tac i=i in trans_induct)
 apply (rule impI)
@@ -271,24 +271,24 @@ apply (blast elim: ltE intro: leI ltI lt_trans1)
 done
 
 (*LEAST really is the smallest*)
-lemma less_LeastE: "[| P(i);  i < (LEAST x. P(x)) |] ==> Q"
+lemma less_LeastE: "[| P(i);  i < (\<mu> x. P(x)) |] ==> Q"
 apply (rule Least_le [THEN [2] lt_trans2, THEN lt_irrefl], assumption+)
 apply (simp add: lt_Ord)
 done
 
 (*Easier to apply than LeastI: conclusion has only one occurrence of P*)
 lemma LeastI2:
-    "[| P(i);  Ord(i);  !!j. P(j) ==> Q(j) |] ==> Q(LEAST j. P(j))"
+    "[| P(i);  Ord(i);  !!j. P(j) ==> Q(j) |] ==> Q(\<mu> j. P(j))"
 by (blast intro: LeastI )
 
 (*If there is no such P then LEAST is vacuously 0*)
 lemma Least_0:
-    "[| ~ (\<exists>i. Ord(i) & P(i)) |] ==> (LEAST x. P(x)) = 0"
+    "[| ~ (\<exists>i. Ord(i) & P(i)) |] ==> (\<mu> x. P(x)) = 0"
 apply (unfold Least_def)
 apply (rule the_0, blast)
 done
 
-lemma Ord_Least [intro,simp,TC]: "Ord(LEAST x. P(x))"
+lemma Ord_Least [intro,simp,TC]: "Ord(\<mu> x. P(x))"
 apply (case_tac "\<exists>i. Ord(i) & P(i)")
 apply safe
 apply (rule Least_le [THEN ltE])
@@ -301,8 +301,7 @@ done
 (** Basic properties of cardinals **)
 
 (*Not needed for simplification, but helpful below*)
-lemma Least_cong:
-     "(!!y. P(y) \<longleftrightarrow> Q(y)) ==> (LEAST x. P(x)) = (LEAST x. Q(x))"
+lemma Least_cong: "(!!y. P(y) \<longleftrightarrow> Q(y)) ==> (\<mu> x. P(x)) = (\<mu> x. Q(x))"
 by simp
 
 (*Need AC to get @{term"X \<lesssim> Y ==> |X| \<le> |Y|"};  see well_ord_lepoll_imp_Card_le
@@ -329,11 +328,14 @@ lemma Ord_cardinal_idem: "Ord(A) \<Longrightarrow> ||A|| = |A|"
  by (rule Ord_cardinal_eqpoll [THEN cardinal_cong])
 
 lemma well_ord_cardinal_eqE:
-     "[| well_ord(X,r);  well_ord(Y,s);  |X| = |Y| |] ==> X \<approx> Y"
-apply (rule eqpoll_sym [THEN eqpoll_trans])
-apply (erule well_ord_cardinal_eqpoll)
-apply (simp (no_asm_simp) add: well_ord_cardinal_eqpoll)
-done
+  assumes woX: "well_ord(X,r)" and woY: "well_ord(Y,s)" and eq: "|X| = |Y|" 
+shows "X \<approx> Y"
+proof -
+  have "X \<approx> |X|" by (blast intro: well_ord_cardinal_eqpoll [OF woX] eqpoll_sym) 
+  also have "... = |Y|" by (rule eq)
+  also have "... \<approx> Y" by (rule well_ord_cardinal_eqpoll [OF woY]) 
+  finally show ?thesis .
+qed
 
 lemma well_ord_cardinal_eqpoll_iff:
      "[| well_ord(X,r);  well_ord(Y,s) |] ==> |X| = |Y| \<longleftrightarrow> X \<approx> Y"
@@ -403,17 +405,26 @@ done
 (*Infinite unions of cardinals?  See Devlin, Lemma 6.7, page 98*)
 
 lemma Card_cardinal: "Card(|A|)"
-apply (unfold cardinal_def)
-apply (case_tac "\<exists>i. Ord (i) & i \<approx> A")
- txt{*degenerate case*}
- prefer 2 apply (erule Least_0 [THEN ssubst], rule Card_0)
-txt{*real case: A is isomorphic to some ordinal*}
-apply (rule Ord_Least [THEN CardI], safe)
-apply (rule less_LeastE)
-prefer 2 apply assumption
-apply (erule eqpoll_trans)
-apply (best intro: LeastI )
-done
+proof (unfold cardinal_def)
+  show "Card(\<mu> i. i \<approx> A)"
+    proof (cases "\<exists>i. Ord (i) & i \<approx> A")
+      case False thus ?thesis           --{*degenerate case*}
+        by (simp add: Least_0 Card_0)
+    next
+      case True                         --{*real case: @{term A} is isomorphic to some ordinal*}
+      then obtain i where i: "Ord(i)" "i \<approx> A" by blast
+      show ?thesis 
+        proof (rule CardI [OF Ord_Least], rule notI)
+          fix j
+          assume j: "j < (\<mu> i. i \<approx> A)" 
+          assume "j \<approx> (\<mu> i. i \<approx> A)"
+          also have "... \<approx> A" using i by (auto intro: LeastI)
+          finally have "j \<approx> A" .
+          thus False 
+            by (rule less_LeastE [OF _ j])
+        qed
+    qed
+qed
 
 (*Kunen's Lemma 10.5*)
 lemma cardinal_eq_lemma: 
