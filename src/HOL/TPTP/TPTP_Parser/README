@@ -1,0 +1,32 @@
+The TPTP parser is generated using ML-Yacc and relies on the ML-Yacc
+library to function. The ML-Yacc library is an external piece of
+software that needs a small modification for use in Isabelle. The
+relationship between Isabelle and ML-Yacc is similar to that with
+Metis (see src/Tools/Metis).
+
+The file "make_tptp_parser" generates the TPTP parser and patches it
+to conform to Isabelle's naming conventions.
+
+In order to generate the parser from its lex/yacc definition you need
+to have the ML-Yacc binaries. The sources can be downloaded via SVN as
+follows:
+
+ svn co --username anonsvn \
+ https://smlnj-gforge.cs.uchicago.edu/svn/smlnj/ml-yacc/trunk ml-yacc
+
+ML-Yacc is usually distributed with Standard ML of New Jersey, and its
+binaries can also be obtained as packages for some distributions of
+Linux. The script "make_tptp_parser" will produce a file called
+tptp_lexyacc.ML -- this is a compilation of the SML files (generated
+by ML-Yacc) making up the TPTP parser.
+
+The generated parser needs ML-Yacc's library. This is distributed with
+ML-Yacc's source code, in the lib/ directory. The ML-Yacc library
+cannot be used directly and must be patched. The script
+"make_mlyacclib" takes the ML-Yacc library (for instance, as
+downloaded from the ML-Yacc repo) and produces the file ml_yacc_lib.ML
+-- this is a compilation of slightly modified files making up
+ML-Yacc's library.
+
+Nik Sultana
+9th March 2012
