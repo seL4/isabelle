@@ -97,28 +97,28 @@ instantiation set :: (type) boolean_algebra
 begin
 
 definition less_eq_set where
-  "less_eq_set A B = less_eq (\<lambda>x. member x A) (\<lambda>x. member x B)"
+  "A \<le> B \<longleftrightarrow> (\<lambda>x. member x A) \<le> (\<lambda>x. member x B)"
 
 definition less_set where
-  "less_set A B = less (\<lambda>x. member x A) (\<lambda>x. member x B)"
+  "A < B \<longleftrightarrow> (\<lambda>x. member x A) < (\<lambda>x. member x B)"
 
 definition inf_set where
-  "inf_set A B = Collect (inf (\<lambda>x. member x A) (\<lambda>x. member x B))"
+  "A \<sqinter> B = Collect ((\<lambda>x. member x A) \<sqinter> (\<lambda>x. member x B))"
 
 definition sup_set where
-  "sup_set A B = Collect (sup (\<lambda>x. member x A) (\<lambda>x. member x B))"
+  "A \<squnion> B = Collect ((\<lambda>x. member x A) \<squnion> (\<lambda>x. member x B))"
 
 definition bot_set where
-  "bot = Collect bot"
+  "\<bottom> = Collect \<bottom>"
 
 definition top_set where
-  "top = Collect top"
+  "\<top> = Collect \<top>"
 
 definition uminus_set where
-  "uminus A = Collect (uminus (\<lambda>x. member x A))"
+  "- A = Collect (- (\<lambda>x. member x A))"
 
 definition minus_set where
-  "minus_set A B = Collect (minus (\<lambda>x. member x A) (\<lambda>x. member x B))"
+  "A - B = Collect ((\<lambda>x. member x A) - (\<lambda>x. member x B))"
 
 instance proof
 qed (simp_all add: less_eq_set_def less_set_def inf_set_def sup_set_def
@@ -1907,3 +1907,4 @@ val vimage_Un = @{thm vimage_Un}
 *}
 
 end
+
