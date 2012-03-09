@@ -15,6 +15,7 @@ sig
   val ambiguity_limit_raw: Config.raw
   val ambiguity_limit: int Config.T
   val read_token: string -> Symbol_Pos.T list * Position.T
+  val read_token_pos: string -> Position.T
   val parse_token: Proof.context -> (XML.tree list -> 'a) ->
     Markup.T -> (Symbol_Pos.T list * Position.T -> 'a) -> string -> 'a
   val parse_sort: Proof.context -> string -> sort
@@ -164,18 +165,19 @@ val ambiguity_limit = Config.int ambiguity_limit_raw;
 
 (* outer syntax token -- with optional YXML content *)
 
+fun token_position (XML.Elem ((name, props), _)) =
+      if name = Isabelle_Markup.tokenN then Position.of_properties props
+      else Position.none
+  | token_position (XML.Text _) = Position.none;
+
 fun explode_token tree =
   let
     val text = XML.content_of [tree];
-    val pos =
-      (case tree of
-        XML.Elem ((name, props), _) =>
-          if name = Isabelle_Markup.tokenN then Position.of_properties props
-          else Position.none
-      | XML.Text _ => Position.none);
+    val pos = token_position tree;
   in (Symbol_Pos.explode (text, pos), pos) end;
 
 fun read_token str = explode_token (YXML.parse str handle Fail msg => error msg);
+fun read_token_pos str = token_position (YXML.parse str handle Fail msg => error msg);
 
 fun parse_token ctxt decode markup parse str =
   let

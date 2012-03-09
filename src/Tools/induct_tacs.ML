@@ -35,7 +35,7 @@ fun gen_case_tac ctxt0 s opt_rule i st =
       | NONE =>
           (case Induct.find_casesT ctxt
               (#2 (check_type ctxt (Proof_Context.read_term_schematic ctxt s,
-                #2 (Syntax.read_token s)))) of
+                Syntax.read_token_pos s))) of
             rule :: _ => rule
           | [] => @{thm case_split}));
     val _ = Method.trace ctxt [rule];
@@ -72,7 +72,7 @@ fun gen_induct_tac ctxt0 varss opt_rules i st =
     fun induct_var name =
       let
         val t = Syntax.read_term ctxt name;
-        val (_, pos) = Syntax.read_token name;
+        val pos = Syntax.read_token_pos name;
         val (x, _) = Term.dest_Free t handle TERM _ =>
           error ("Induction argument not a variable: " ^
             Syntax.string_of_term ctxt t ^ Position.str_of pos);
