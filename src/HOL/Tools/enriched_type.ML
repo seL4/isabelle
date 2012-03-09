@@ -170,6 +170,33 @@ fun split_mapper_typ "fun" T =
         val (Ts'', T'') = split_last Ts';
       in (Ts'', T'', T') end;
 
+fun analyze_mapper ctxt input_mapper =
+  let
+    val T = fastype_of input_mapper;
+    val _ = Type.no_tvars T;
+    val _ =
+      if null (subtract (op =) (Term.add_tfreesT T []) (Term.add_tfrees input_mapper []))
+      then ()
+      else error ("Illegal additional type variable(s) in term: " ^ Syntax.string_of_term ctxt input_mapper);
+    val _ =
+      if null (Term.add_vars (singleton
+        (Variable.export_terms (Variable.auto_fixes input_mapper ctxt) ctxt) input_mapper) [])
+      then ()
+      else error ("Illegal locally free variable(s) in term: "
+        ^ Syntax.string_of_term ctxt input_mapper);;
+    val mapper = singleton (Variable.polymorphic ctxt) input_mapper;
+    val _ =
+      if null (Term.add_tfreesT (fastype_of mapper) []) then ()
+      else error ("Illegal locally fixed type variable(s) in type: " ^ Syntax.string_of_typ ctxt T);
+    fun add_tycos (Type (tyco, Ts)) = insert (op =) tyco #> fold add_tycos Ts
+      | add_tycos _ = I;
+    val tycos = add_tycos T [];
+    val tyco = if tycos = ["fun"] then "fun"
+      else case remove (op =) "fun" tycos
+       of [tyco] => tyco
+        | _ => error ("Bad number of type constructors: " ^ Syntax.string_of_typ ctxt T);
+  in (mapper, T, tyco) end;
+
 fun analyze_variances ctxt tyco T =
   let
     fun bad_typ () = error ("Bad mapper type: " ^ Syntax.string_of_typ ctxt T);
@@ -198,23 +225,7 @@ fun analyze_variances ctxt tyco T =
 
 fun gen_enriched_type prep_term some_prfx raw_mapper lthy =
   let
-    val input_mapper = prep_term lthy raw_mapper;
-    val T = fastype_of input_mapper;
-    val _ = Type.no_tvars T;
-    val _ = case subtract (op =) (Term.add_tfreesT T []) (Term.add_tfrees input_mapper [])
-     of [] => ()
-      | vs => error ("Illegal additional type variable(s) in term: "
-          ^ commas (map (Syntax.string_of_typ lthy o TFree) vs));
-    val mapper = singleton (Variable.polymorphic lthy) input_mapper;
-    val _ = if null (Term.add_tfreesT (fastype_of mapper) []) then ()
-      else error ("Illegal locally fixed type variable(s) in type: " ^ Syntax.string_of_typ lthy T);
-    fun add_tycos (Type (tyco, Ts)) = insert (op =) tyco #> fold add_tycos Ts
-      | add_tycos _ = I;
-    val tycos = add_tycos T [];
-    val tyco = if tycos = ["fun"] then "fun"
-      else case remove (op =) "fun" tycos
-       of [tyco] => tyco
-        | _ => error ("Bad number of type constructors: " ^ Syntax.string_of_typ lthy T);
+    val (mapper, T, tyco) = analyze_mapper lthy (prep_term lthy raw_mapper);
     val prfx = the_default (Long_Name.base_name tyco) some_prfx;
     val variances = analyze_variances lthy tyco T;
     val (comp_prop, prove_compositionality) = make_comp_prop lthy variances (tyco, mapper);
@@ -225,8 +236,9 @@ fun gen_enriched_type prep_term some_prfx raw_mapper lthy =
         val typ_instance = Sign.typ_instance (Context.theory_of context);
         val mapper' = Morphism.term phi mapper;
         val T_T' = pairself fastype_of (mapper, mapper');
+        val vars = Term.add_vars mapper' [];
       in
-        if typ_instance T_T' andalso typ_instance (swap T_T')
+        if null vars andalso typ_instance T_T' andalso typ_instance (swap T_T')
         then (Data.map o Symtab.cons_list) (tyco,
           { mapper = mapper', variances = variances,
             comp = Morphism.thm phi comp_thm, id = Morphism.thm phi id_thm }) context
