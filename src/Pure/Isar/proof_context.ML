@@ -839,7 +839,7 @@ local
 
 fun retrieve_thms pick ctxt (Facts.Fact s) =
       let
-        val (_, pos) = Syntax.read_token s;
+        val pos = Syntax.read_token_pos s;
         val prop =
           Syntax.read_prop (ctxt |> set_mode mode_default |> allow_dummies) s
           |> singleton (Variable.polymorphic ctxt);
