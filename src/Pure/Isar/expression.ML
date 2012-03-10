@@ -899,8 +899,7 @@ fun note_eqns_dependency target deps witss attrss eqns export export' ctxt =
     |> Proof_Context.background_theory (fold (fn ((dep, morph), wits) =>
       fn thy =>
         Locale.add_dependency target
-          (dep, morph $> Element.satisfy_morphism
-            (map (Element.transform_witness export') wits))
+          (dep, morph $> Element.satisfy_morphism (map (Element.transform_witness export') wits))
           (Element.eq_morphism thy eqns' |> Option.map (rpair true))
           export thy) (deps ~~ witss))
   end;

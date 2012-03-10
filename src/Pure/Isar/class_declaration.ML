@@ -74,13 +74,12 @@ fun calculate thy class sups base_sort param_map assm_axiom =
         val ((_, [thm']), _) = Variable.import true [thm] empty_ctxt;
         val const_eq_morph =
           (case eq_morph of
-             SOME eq_morph => const_morph $> eq_morph
+            SOME eq_morph => const_morph $> eq_morph
           | NONE => const_morph);
         val thm'' = Morphism.thm const_eq_morph thm';
         val tac = ALLGOALS (Proof_Context.fact_tac [thm'']);
       in Skip_Proof.prove_global thy [] [] (Thm.prop_of thm'') (K tac) end;
-    val assm_intro = Option.map prove_assm_intro
-      (fst (Locale.intros_of thy class));
+    val assm_intro = Option.map prove_assm_intro (fst (Locale.intros_of thy class));
 
     (* of_class *)
     val of_class_prop_concl = Logic.mk_of_class (aT, class);
