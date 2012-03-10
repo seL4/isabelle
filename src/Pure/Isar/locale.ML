@@ -244,12 +244,6 @@ fun pretty_reg ctxt (name, morph) =
 fun ident_le thy ((n: string, ts), (m, ss)) = (m = n) andalso Pattern.matchess thy (ss, ts);
   (* smaller term is more general *)
 
-(* total order *)
-fun ident_ord ((n: string, ts), (m, ss)) =
-  (case fast_string_ord (m, n) of
-    EQUAL => list_ord Term_Ord.fast_term_ord (ts, ss)
-  | ord => ord);
-
 local
 
 datatype 'a delayed = Ready of 'a | ToDo of 'a delayed * 'a delayed;
@@ -332,7 +326,9 @@ end;
 
 (*** Registrations: interpretations in theories or proof contexts ***)
 
-structure Idtab = Table(type key = string * term list val ord = ident_ord);
+val total_ident_ord = prod_ord fast_string_ord (list_ord Term_Ord.fast_term_ord);
+
+structure Idtab = Table(type key = string * term list val ord = total_ident_ord);
 
 structure Registrations = Generic_Data
 (
@@ -525,7 +521,7 @@ fun amend_dependency loc (name, morph) mixin export thy =
     val deps = dependencies_of thy loc;
   in
     case AList.lookup (fn ((name, morph), ((name', (morph', _)), _)) =>
-      ident_ord ((name, instance_of thy name morph), (name', instance_of thy name' morph')) = EQUAL) deps (name, morph) of
+      total_ident_ord ((name, instance_of thy name morph), (name', instance_of thy name' morph')) = EQUAL) deps (name, morph) of
         NONE => error ("Locale " ^
           quote (extern thy name) ^ " with\parameter instantiation " ^
           space_implode " " (map (quote o Syntax.string_of_term_global thy) morph) ^
