@@ -99,12 +99,11 @@ type mixins = (((morphism * bool) * serial) list) Inttab.table;
      lists indexed by registration/dependency serial,
      entries for empty lists may be omitted *)
 
-fun lookup_mixins serial' mixins = the_default [] (Inttab.lookup mixins serial');
+fun lookup_mixins serial' mixins = Inttab.lookup_list mixins serial';
 
-fun merge_mixins (mix1, mix2) = Inttab.join (K (Library.merge (eq_snd op =))) (mix1, mix2);
+fun merge_mixins mixs : mixins = Inttab.merge_list (eq_snd op =) mixs;
 
-fun insert_mixin serial' mixin =
-  Inttab.map_default (serial', []) (cons (mixin, serial ()));
+fun insert_mixin serial' mixin = Inttab.cons_list (serial', (mixin, serial ()));
 
 fun rename_mixin (old, new) mix =
   (case Inttab.lookup mix old of
@@ -465,8 +464,7 @@ fun activate_facts export dep context =
     val activate =
       activate_notes Element.init (Element.transfer_morphism o Context.theory_of) context export;
   in
-    roundup thy activate (case export of NONE => Morphism.identity | SOME export => export)
-      dep (get_idents context, context)
+    roundup thy activate (the_default Morphism.identity export) dep (get_idents context, context)
     |-> put_idents
   end;
 
@@ -546,7 +544,7 @@ fun add_dependency loc (name, morph) mixin export thy =
     val context' = Context.Theory thy';
     val (_, regs) =
       fold_rev (roundup thy' cons export)
-        (registrations_of context' loc) (get_idents (context'), []);
+        (registrations_of context' loc) (get_idents context', []);
   in
     thy'
     |> fold_rev (fn dep => Context.theory_map (add_registration dep NONE export)) regs
@@ -660,7 +658,7 @@ fun print_registrations ctxt raw_name =
     val _ = the_locale thy name;  (* error if locale unknown *)
   in
     (case registrations_of (Context.Proof ctxt) (* FIXME *) name of
-      [] => Pretty.str ("no interpretations")
+      [] => Pretty.str "no interpretations"
     | regs => Pretty.big_list "interpretations:" (map (pretty_reg ctxt) (rev regs)))
   end |> Pretty.writeln;
 
@@ -670,7 +668,7 @@ fun print_dependencies ctxt clean export insts =
     val idents = if clean then [] else get_idents (Context.Proof ctxt);
   in
     (case fold (roundup thy cons export) insts (idents, []) |> snd of
-      [] => Pretty.str ("no dependencies")
+      [] => Pretty.str "no dependencies"
     | deps => Pretty.big_list "dependencies:" (map (pretty_reg ctxt) (rev deps)))
   end |> Pretty.writeln;
 
