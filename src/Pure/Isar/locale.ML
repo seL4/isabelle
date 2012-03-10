@@ -240,36 +240,22 @@ fun pretty_reg ctxt (name, morph) =
 
 (*** Identifiers: activated locales in theory or proof context ***)
 
-(* subsumption *)
-fun ident_le thy ((n: string, ts), (m, ss)) = (m = n) andalso Pattern.matchess thy (ss, ts);
-  (* smaller term is more general *)
+type idents = term list list Symtab.table;  (* name ~> instance (grouped by name) *)
 
-local
+val empty_idents : idents = Symtab.empty;
+val insert_idents = Symtab.insert_list (eq_list (op aconv));
+val merge_idents = Symtab.merge_list (eq_list (op aconv));
 
-datatype 'a delayed = Ready of 'a | ToDo of 'a delayed * 'a delayed;
+fun redundant_ident thy idents (name, instance) =
+  exists (fn pat => Pattern.matchess thy (pat, instance)) (Symtab.lookup_list idents name);
 
-structure Identifiers = Generic_Data
+structure Idents = Generic_Data
 (
-  type T = (string * term list) list delayed;
-  val empty = Ready [];
+  type T = idents;
+  val empty = empty_idents;
   val extend = I;
-  val merge = ToDo;
+  val merge = merge_idents;
 );
-
-fun finish thy (ToDo (i1, i2)) = merge (ident_le thy) (finish thy i1, finish thy i2)
-  | finish _ (Ready ids) = ids;
-
-val _ = Context.>> (Context.map_theory (Theory.at_begin (fn thy =>
-  (case Identifiers.get (Context.Theory thy) of
-    Ready _ => NONE
-  | ids => SOME (Context.theory_map (Identifiers.put (Ready (finish thy ids))) thy)))));
-
-in
-
-val get_idents = (fn Ready ids => ids) o Identifiers.get;
-val put_idents = Identifiers.put o Ready;
-
-end;
 
 
 (** Resolve locale dependencies in a depth-first fashion **)
@@ -285,8 +271,7 @@ fun add thy depth stem export (name, morph, mixins) (deps, marked) =
     let
       val instance = instance_of thy name (morph $> stem $> export);
     in
-      if member (ident_le thy) marked (name, instance)
-      then (deps, marked)
+      if redundant_ident thy marked (name, instance) then (deps, marked)
       else
         let
           val full_morph = morph $> compose_mixins mixins $> stem;
@@ -294,7 +279,7 @@ fun add thy depth stem export (name, morph, mixins) (deps, marked) =
           val dependencies = dependencies_of thy name |>
             map (fn ((name', (morph', export')), serial') =>
               (name', morph' $> export', mixins_of thy name serial'));
-          val marked' = (name, instance) :: marked;
+          val marked' = insert_idents (name, instance) marked;
           val (deps', marked'') =
             fold_rev (add thy (depth + 1) full_morph export) dependencies
               ([], marked');
@@ -313,12 +298,12 @@ fun roundup thy activate_dep export (name, morph) (marked, input) =
     (* Find all dependencies including new ones (which are dependencies enriching
       existing registrations). *)
     val (dependencies, marked') =
-      add thy 0 Morphism.identity export (name, morph, []) ([], []);
+      add thy 0 Morphism.identity export (name, morph, []) ([], empty_idents);
     (* Filter out fragments from marked; these won't be activated. *)
     val dependencies' = filter_out (fn (name, morph) =>
-      member (ident_le thy) marked (name, instance_of thy name (morph $> export))) dependencies;
+      redundant_ident thy marked (name, instance_of thy name (morph $> export))) dependencies;
   in
-    (merge (ident_le thy) (marked, marked'), input |> fold_rev activate_dep dependencies')
+    (merge_idents (marked, marked'), input |> fold_rev activate_dep dependencies')
   end;
 
 end;
@@ -380,7 +365,8 @@ fun collect_mixins context (name, morph) =
     val thy = Context.theory_of context;
   in
     roundup thy (fn dep => fn mixins => merge (eq_snd op =) (mixins, get_mixins context dep))
-      Morphism.identity (name, morph) ([(name, instance_of thy name morph)], [])
+      Morphism.identity (name, morph)
+      (insert_idents (name, instance_of thy name morph) empty_idents, [])
     |> snd |> filter (snd o fst)  (* only inheritable mixins *)
     |> (fn x => merge (eq_snd op =) (x, get_mixins context (name, morph)))
     |> compose_mixins
@@ -450,8 +436,8 @@ fun activate_declarations dep = Context.proof_map (fn context =>
   let
     val thy = Context.theory_of context;
   in
-    roundup thy activate_syntax_decls Morphism.identity dep (get_idents context, context)
-    |-> put_idents
+    roundup thy activate_syntax_decls Morphism.identity dep (Idents.get context, context)
+    |-> Idents.put
   end);
 
 fun activate_facts export dep context =
@@ -460,13 +446,14 @@ fun activate_facts export dep context =
     val activate =
       activate_notes Element.init (Element.transfer_morphism o Context.theory_of) context export;
   in
-    roundup thy activate (the_default Morphism.identity export) dep (get_idents context, context)
-    |-> put_idents
+    roundup thy activate (the_default Morphism.identity export) dep (Idents.get context, context)
+    |-> Idents.put
   end;
 
 fun init name thy =
   activate_all name thy Element.init (Element.transfer_morphism o Context.theory_of)
-    ([], Context.Proof (Proof_Context.init_global thy)) |-> put_idents |> Context.proof_of;
+    (empty_idents, Context.Proof (Proof_Context.init_global thy))
+  |-> Idents.put |> Context.proof_of;
 
 
 (*** Add and extend registrations ***)
@@ -496,10 +483,10 @@ fun add_registration (name, base_morph) mixin export context =
     val morph = base_morph $> mix;
     val inst = instance_of thy name morph;
   in
-    if member (ident_le thy) (get_idents context) (name, inst)
+    if redundant_ident thy (Idents.get context) (name, inst)
     then context  (* FIXME amend mixins? *)
     else
-      (get_idents context, context)
+      (Idents.get context, context)
       (* add new registrations with inherited mixins *)
       |> roundup thy (add_reg thy export) export (name, morph)
       |> snd
@@ -540,7 +527,7 @@ fun add_dependency loc (name, morph) mixin export thy =
     val context' = Context.Theory thy';
     val (_, regs) =
       fold_rev (roundup thy' cons export)
-        (registrations_of context' loc) (get_idents context', []);
+        (registrations_of context' loc) (Idents.get context', []);
   in
     thy'
     |> fold_rev (fn dep => Context.theory_map (add_registration dep NONE export)) regs
@@ -640,7 +627,7 @@ fun print_locale thy show_facts raw_name =
     fun cons_elem (elem as Notes _) = show_facts ? cons elem
       | cons_elem elem = cons elem;
     val elems =
-      activate_all name thy cons_elem (K (Element.transfer_morphism thy)) ([], [])
+      activate_all name thy cons_elem (K (Element.transfer_morphism thy)) (empty_idents, [])
       |> snd |> rev;
   in
     Pretty.big_list "locale elements:" (map (Pretty.chunks o Element.pretty_ctxt ctxt) elems)
@@ -661,7 +648,7 @@ fun print_registrations ctxt raw_name =
 fun print_dependencies ctxt clean export insts =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val idents = if clean then [] else get_idents (Context.Proof ctxt);
+    val idents = if clean then empty_idents else Idents.get (Context.Proof ctxt);
   in
     (case fold (roundup thy cons export) insts (idents, []) |> snd of
       [] => Pretty.str "no dependencies"
