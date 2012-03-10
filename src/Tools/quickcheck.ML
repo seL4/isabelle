@@ -29,6 +29,7 @@ sig
   val allow_function_inversion : bool Config.T
   val finite_types : bool Config.T
   val finite_type_size : int Config.T
+  val tag : string Config.T
   val set_active_testers: string list -> Context.generic -> Context.generic
   datatype expectation = No_Expectation | No_Counterexample | Counterexample;
   datatype test_params = Test_Params of {default_type: typ list, expect : expectation};
@@ -185,6 +186,7 @@ val abort_potential = Attrib.setup_config_bool @{binding quickcheck_abort_potent
 
 val quiet = Attrib.setup_config_bool @{binding quickcheck_quiet} (K false)
 val verbose = Attrib.setup_config_bool @{binding quickcheck_verbose} (K false)
+val tag = Attrib.setup_config_string @{binding quickcheck_tag} (K "")
 
 val use_subtype = Attrib.setup_config_bool @{binding quickcheck_use_subtype} (K false)
 
@@ -371,10 +373,13 @@ fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
 
 fun tool_name auto = (if auto then "Auto " else "") ^ "Quickcheck"
 
-fun pretty_counterex ctxt auto NONE = Pretty.str (tool_name auto ^ " found no counterexample.")
+fun pretty_counterex ctxt auto NONE =
+    Pretty.str (tool_name auto ^ " found no counterexample." ^ Config.get ctxt tag)
   | pretty_counterex ctxt auto (SOME ((genuine, cex), eval_terms)) =
       Pretty.chunks ((Pretty.str (tool_name auto ^ " found a " ^
-        (if genuine then "counterexample:" else  "potentially spurious counterexample due to underspecified functions:") ^ "\n") ::
+        (if genuine then "counterexample:"
+          else "potentially spurious counterexample due to underspecified functions:")
+          ^ Config.get ctxt tag ^ "\n") ::
         map (fn (s, t) =>
           Pretty.block [Pretty.str (s ^ " ="), Pretty.brk 1, Syntax.pretty_term ctxt t]) (rev cex))
         @ (if null eval_terms then []
@@ -460,6 +465,7 @@ fun parse_test_param ("tester", args) = fold parse_tester args
   | parse_test_param ("abort_potential", [arg]) = apsnd (Config.put_generic abort_potential (read_bool arg))
   | parse_test_param ("quiet", [arg]) = apsnd (Config.put_generic quiet (read_bool arg))
   | parse_test_param ("verbose", [arg]) = apsnd (Config.put_generic verbose (read_bool arg))
+  | parse_test_param ("tag", [arg]) = apsnd (Config.put_generic tag arg)
   | parse_test_param ("use_subtype", [arg]) = apsnd (Config.put_generic use_subtype (read_bool arg))  
   | parse_test_param ("timeout", [arg]) = apsnd (Config.put_generic timeout (read_real arg))
   | parse_test_param ("finite_types", [arg]) = apsnd (Config.put_generic finite_types (read_bool arg))
@@ -503,16 +509,16 @@ fun gen_quickcheck args i state =
     apsnd (fn (testers, ctxt) => Context.proof_map (set_active_testers testers) ctxt)
       (fold parse_test_param_inst args (([], []), ([], ctxt))))
   |> (fn ((insts, eval_terms), state') => test_goal (true, true) (insts, eval_terms) i state'
-  |> tap (check_expectation state'))
+  |> tap (check_expectation state') |> rpair state')
 
 fun quickcheck args i state =
-  Option.map (the o get_first counterexample_of) (gen_quickcheck args i state)
+  Option.map (the o get_first counterexample_of) (fst (gen_quickcheck args i state))
 
 fun quickcheck_cmd args i state =
   gen_quickcheck args i (Toplevel.proof_of state)
-  |> Option.map (the o get_first response_of)
-  |> Output.urgent_message o Pretty.string_of
-     o pretty_counterex (Toplevel.context_of state) false;
+  |> apfst (Option.map (the o get_first response_of))
+  |> (fn (r, state) => Output.urgent_message (Pretty.string_of
+       (pretty_counterex (Proof.context_of state) false r)));
 
 val parse_arg =
   Parse.name --
