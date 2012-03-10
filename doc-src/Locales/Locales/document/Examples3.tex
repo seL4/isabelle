@@ -34,8 +34,8 @@ In the above example, the fact that \isa{op\ {\isaliteral{5C3C6C653E}{\isasymle}
   discharge the premise in the definition of \isa{op\ {\isaliteral{5C3C73717375627365743E}{\isasymsqsubset}}}.  In
   general, proofs of the equations not only may involve definitions
   from the interpreted locale but arbitrarily complex arguments in the
-  context of the locale.  Therefore is would be convenient to have the
-  interpreted locale conclusions temporary available in the proof.
+  context of the locale.  Therefore it would be convenient to have the
+  interpreted locale conclusions temporarily available in the proof.
   This can be achieved by a locale interpretation in the proof body.
   The command for local interpretations is \isakeyword{interpret}.  We
   repeat the example from the previous section to illustrate this.%
@@ -439,7 +439,8 @@ The parameter instantiation in the first instance of \isa{lattice} is omitted.  
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \isacommand{context}\isamarkupfalse%
-\ lattice{\isaliteral{5F}{\isacharunderscore}}hom\ \isakeyword{begin}\isanewline
+\ lattice{\isaliteral{5F}{\isacharunderscore}}hom\isanewline
+\ \ \isakeyword{begin}\isanewline
 \ \ \isacommand{abbreviation}\isamarkupfalse%
 \ meet{\isaliteral{27}{\isacharprime}}\ {\isaliteral{28}{\isacharparenleft}}\isakeyword{infixl}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}{\isaliteral{27}{\isacharprime}}{\isaliteral{27}{\isacharprime}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isadigit{5}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\ \isakeyword{where}\ {\isaliteral{22}{\isachardoublequoteopen}}meet{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ le{\isaliteral{27}{\isacharprime}}{\isaliteral{2E}{\isachardot}}meet{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{abbreviation}\isamarkupfalse%
@@ -513,9 +514,10 @@ It can be shown easily that a lattice homomorphism is order
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \isacommand{sublocale}\isamarkupfalse%
-\ lattice{\isaliteral{5F}{\isacharunderscore}}hom\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ order{\isaliteral{5F}{\isacharunderscore}}preserving%
+\ lattice{\isaliteral{5F}{\isacharunderscore}}hom\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ order{\isaliteral{5F}{\isacharunderscore}}preserving\isanewline
+%
 \isadelimproof
-\ %
+\ \ %
 \endisadelimproof
 %
 \isatagproof
@@ -738,7 +740,7 @@ It is quite common in abstract algebra that such a construction
 \ fun{\isaliteral{5F}{\isacharunderscore}}lattice\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ f{\isaliteral{3A}{\isacharcolon}}\ lattice\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}f\ g{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ f\ x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ g\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
-\ \ \ \ %
+\ \ %
 \endisadelimproof
 %
 \isatagproof

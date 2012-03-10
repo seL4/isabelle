@@ -17,20 +17,19 @@ end;
 structure Interpretation_With_Defs : INTERPRETATION_WITH_DEFS =
 struct
 
-fun note_eqns_register deps witss def_eqns attrss eqns export export' context =
+fun note_eqns_register deps witss def_eqns attrss eqns export export' =
   let
     fun meta_rewrite context =
       map (Local_Defs.meta_rewrite_rule (Context.proof_of context) #> Drule.abs_def) o
         maps snd;
   in
-    context
-    |> Element.generic_note_thmss Thm.lemmaK
+    Element.generic_note_thmss Thm.lemmaK
       (attrss ~~ map (fn eqn => [([Morphism.thm (export' $> export) eqn], [])]) eqns)
-    |-> (fn facts => `(fn context => meta_rewrite context facts))
-    |-> (fn eqns => fold (fn ((dep, morph), wits) =>
+    #-> (fn facts => `(fn context => meta_rewrite context facts))
+    #-> (fn eqns => fold (fn ((dep, morph), wits) =>
       fn context =>
-        Locale.add_registration (dep, morph $> Element.satisfy_morphism
-            (map (Element.transform_witness export') wits))
+        Locale.add_registration
+          (dep, morph $> Element.satisfy_morphism (map (Element.transform_witness export') wits))
           (Element.eq_morphism (Context.theory_of context) (def_eqns @ eqns) |>
             Option.map (rpair true))
           export context) (deps ~~ witss))

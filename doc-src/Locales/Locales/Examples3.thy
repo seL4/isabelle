@@ -10,8 +10,8 @@ text {* In the above example, the fact that @{term "op \<le>"} is a partial
   discharge the premise in the definition of @{text "op \<sqsubset>"}.  In
   general, proofs of the equations not only may involve definitions
   from the interpreted locale but arbitrarily complex arguments in the
-  context of the locale.  Therefore is would be convenient to have the
-  interpreted locale conclusions temporary available in the proof.
+  context of the locale.  Therefore it would be convenient to have the
+  interpreted locale conclusions temporarily available in the proof.
   This can be achieved by a locale interpretation in the proof body.
   The command for local interpretations is \isakeyword{interpret}.  We
   repeat the example from the previous section to illustrate this. *}
@@ -304,7 +304,8 @@ text {* The parameter instantiation in the first instance of @{term
   second lattice.
 *}
 
-  context lattice_hom begin
+  context lattice_hom
+  begin
   abbreviation meet' (infixl "\<sqinter>''" 50) where "meet' \<equiv> le'.meet"
   abbreviation join' (infixl "\<squnion>''" 50) where "join' \<equiv> le'.join"
   end
@@ -369,7 +370,8 @@ text {* It can be shown easily that a lattice homomorphism is order
   preserving.  As the final example of this section, a locale
   interpretation is used to assert this: *}
 
-  sublocale lattice_hom \<subseteq> order_preserving proof unfold_locales
+  sublocale lattice_hom \<subseteq> order_preserving
+  proof unfold_locales
     fix x y
     assume "x \<sqsubseteq> y"
     then have "y = (x \<squnion> y)" by (simp add: le.join_connection)
@@ -481,7 +483,7 @@ text {* It is quite common in abstract algebra that such a construction
   locale fun_lattice = fun_partial_order + lattice
 
   sublocale fun_lattice \<subseteq> f: lattice "\<lambda>f g. \<forall>x. f x \<sqsubseteq> g x"
-    proof unfold_locales
+  proof unfold_locales
     fix f g
     have "partial_order.is_inf (\<lambda>f g. \<forall>x. f x \<sqsubseteq> g x) f g (\<lambda>x. f x \<sqinter> g x)"
       apply (rule is_infI) apply rule+ apply (drule spec, assumption)+ done

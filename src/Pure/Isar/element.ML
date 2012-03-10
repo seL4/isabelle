@@ -461,11 +461,13 @@ val satisfy_morphism = Morphism.thm_morphism o satisfy_thm;
 
 (* rewriting with equalities *)
 
-fun eq_morphism thy thms = if null thms then NONE else SOME (Morphism.morphism
- {binding = [],
-  typ = [],
-  term = [Raw_Simplifier.rewrite_term thy thms []],
-  fact = [map (Raw_Simplifier.rewrite_rule thms)]});
+fun eq_morphism _ [] = NONE
+  | eq_morphism thy thms =
+      SOME (Morphism.morphism
+       {binding = [],
+        typ = [],
+        term = [Raw_Simplifier.rewrite_term thy thms []],
+        fact = [map (Raw_Simplifier.rewrite_rule thms)]});
 
 
 (* transfer to theory using closure *)
