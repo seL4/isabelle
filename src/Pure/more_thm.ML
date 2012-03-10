@@ -37,7 +37,6 @@ sig
   val thm_cache: (thm -> 'a) -> thm -> 'a
   val is_reflexive: thm -> bool
   val eq_thm: thm * thm -> bool
-  val eq_thms: thm list * thm list -> bool
   val eq_thm_thy: thm * thm -> bool
   val eq_thm_prop: thm * thm -> bool
   val equiv_thm: thm * thm -> bool
@@ -187,8 +186,6 @@ fun is_reflexive th = op aconv (Logic.dest_equals (Thm.prop_of th))
 fun eq_thm ths =
   Context.joinable (pairself Thm.theory_of_thm ths) andalso
   is_equal (thm_ord ths);
-
-val eq_thms = eq_list eq_thm;
 
 val eq_thm_thy = Theory.eq_thy o pairself Thm.theory_of_thm;
 val eq_thm_prop = op aconv o pairself Thm.full_prop_of;
