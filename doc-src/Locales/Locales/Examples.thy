@@ -193,7 +193,8 @@ text {* When working with locales, sequences of commands with the same
   notions of infimum and supremum for partial orders are introduced,
   together with theorems about their uniqueness.  *}
 
-  context partial_order begin
+  context partial_order
+  begin
 
   definition
     is_inf where "is_inf x y i =
