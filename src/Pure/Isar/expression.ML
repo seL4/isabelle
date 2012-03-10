@@ -814,17 +814,15 @@ fun meta_rewrite ctxt = map (Local_Defs.meta_rewrite_rule ctxt #> Drule.abs_def)
 
 local
 
-fun note_eqns_register deps witss attrss eqns export export' context =
-  context
-  |> Element.generic_note_thmss Thm.lemmaK
+fun note_eqns_register deps witss attrss eqns export export' =
+  Element.generic_note_thmss Thm.lemmaK
     (attrss ~~ map (fn eqn => [([Morphism.thm (export' $> export) eqn], [])]) eqns)
-  |-> (fn facts => `(fn context => meta_rewrite (Context.proof_of context) (maps snd facts)))
-  |-> (fn eqns => fold (fn ((dep, morph), wits) =>
+  #-> (fn facts => `(fn context => meta_rewrite (Context.proof_of context) (maps snd facts)))
+  #-> (fn eqns => fold (fn ((dep, morph), wits) =>
     fn context =>
-      Locale.add_registration (dep, morph $> Element.satisfy_morphism
-          (map (Element.transform_witness export') wits))
-        (Element.eq_morphism (Context.theory_of context) eqns |>
-          Option.map (rpair true))
+      Locale.add_registration
+        (dep, morph $> Element.satisfy_morphism (map (Element.transform_witness export') wits))
+        (Element.eq_morphism (Context.theory_of context) eqns |> Option.map (rpair true))
         export context) (deps ~~ witss));
 
 fun gen_interpretation prep_expr parse_prop prep_attr

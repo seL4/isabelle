@@ -107,9 +107,9 @@ fun insert_mixin serial' mixin =
   Inttab.map_default (serial', []) (cons (mixin, serial ()));
 
 fun rename_mixin (old, new) mix =
-  case Inttab.lookup mix old of
-    NONE => mix |
-    SOME mxs => Inttab.delete old mix |> Inttab.update_new (new, mxs);
+  (case Inttab.lookup mix old of
+    NONE => mix
+  | SOME mxs => Inttab.delete old mix |> Inttab.update_new (new, mxs));
 
 fun compose_mixins mixins =
   fold_rev Morphism.compose (map (fst o fst) mixins) Morphism.identity;
@@ -391,7 +391,8 @@ fun collect_mixins context (name, morph) =
     |> compose_mixins
   end;
 
-fun get_registrations context select = Registrations.get context
+fun get_registrations context select =
+  Registrations.get context
   |>> Idtab.dest |>> select
   (* with inherited mixins *)
   |-> (fn regs => fn _ => map (fn ((name, _), ((base, export) ,_)) =>
@@ -543,8 +544,9 @@ fun add_dependency loc (name, morph) mixin export thy =
         (apfst (cons ((name, (morph, export)), serial')) #>
           apsnd (case mixin of NONE => I | SOME mixin => insert_mixin serial' mixin));
     val context' = Context.Theory thy';
-    val (_, regs) = fold_rev (roundup thy' cons export)
-      (registrations_of context' loc) (get_idents (context'), []);
+    val (_, regs) =
+      fold_rev (roundup thy' cons export)
+        (registrations_of context' loc) (get_idents (context'), []);
   in
     thy'
     |> fold_rev (fn dep => Context.theory_map (add_registration dep NONE export)) regs
@@ -674,7 +676,7 @@ fun print_dependencies ctxt clean export insts =
 
 fun locale_deps thy =
   let
-    val names = all_locales thy
+    val names = all_locales thy;
     fun add_locale_node name =
       let
         val params = params_of thy name;
@@ -690,7 +692,8 @@ fun locale_deps thy =
         val dependencies =
           map (apsnd (instance_of thy name o op $>) o fst) (dependencies_of thy name);
       in
-        fold (fn (super, ts) => fn (gr, deps) => (gr |> Graph.add_edge (super, name),
+        fold (fn (super, ts) => fn (gr, deps) =>
+         (gr |> Graph.add_edge (super, name),
           deps |> Symtab.map_default (super, Symtab.empty) (Symtab.cons_list (name, ts))))
             dependencies
       end;
