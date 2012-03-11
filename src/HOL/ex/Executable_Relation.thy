@@ -2,18 +2,64 @@ theory Executable_Relation
 imports Main
 begin
 
-text {*
- Current problem: rtrancl is not executable on an infinite type. 
-*}
+subsection {* Preliminaries on the raw type of relations *}
 
-lemma
-  "(x, (y :: nat)) : rtrancl (R Un S) \<Longrightarrow> (x, y) : (rtrancl R) Un (rtrancl S)"
-(* quickcheck[exhaustive] fails ! *)
-oops
+definition rel_raw :: "'a set => ('a * 'a) set => ('a * 'a) set"
+where
+  "rel_raw X R = Id_on X Un R"
 
-code_thms rtrancl
+lemma member_raw:
+  "(x, y) : (rel_raw X R) = ((x = y \<and> x : X) \<or> (x, y) : R)"
+unfolding rel_raw_def by auto
 
-hide_const (open) rtrancl trancl
+lemma Id_raw:
+  "Id = rel_raw UNIV {}"
+unfolding rel_raw_def by auto
+
+lemma converse_raw:
+  "converse (rel_raw X R) = rel_raw X (converse R)"
+unfolding rel_raw_def by auto
+
+lemma union_raw:
+  "(rel_raw X R) Un (rel_raw Y S) = rel_raw (X Un Y) (R Un S)"
+unfolding rel_raw_def by auto
+
+lemma comp_Id_on:
+  "Id_on X O R = Set.project (%(x, y). x : X) R"
+by (auto intro!: rel_compI)
+
+lemma comp_Id_on':
+  "R O Id_on X = Set.project (%(x, y). y : X) R"
+by auto
+
+lemma project_Id_on:
+  "Set.project (%(x, y). x : X) (Id_on Y) = Id_on (X Int Y)"
+by auto
+
+lemma rel_comp_raw:
+  "(rel_raw X R) O (rel_raw Y S) = rel_raw (X Int Y) (Set.project (%(x, y). y : Y) R Un (Set.project (%(x, y). x : X) S Un R O S))"
+unfolding rel_raw_def
+apply simp
+apply (simp add: comp_Id_on)
+apply (simp add: project_Id_on)
+apply (simp add: comp_Id_on')
+apply auto
+done
+
+lemma rtrancl_raw:
+  "(rel_raw X R)^* = rel_raw UNIV (R^+)"
+unfolding rel_raw_def
+apply auto
+apply (metis Id_on_iff Un_commute iso_tuple_UNIV_I rtrancl_Un_separatorE rtrancl_eq_or_trancl)
+by (metis in_rtrancl_UnI trancl_into_rtrancl)
+
+lemma Image_raw:
+  "(rel_raw X R) `` S = (X Int S) Un (R `` S)"
+unfolding rel_raw_def by auto
+
+subsection {* A dedicated type for relations *}
+
+subsubsection {* Definition of the dedicated type for relations *}
 
 quotient_type 'a rel = "('a * 'a) set" / "(op =)"
 morphisms set_of_rel rel_of_set by (metis identity_equivp)
@@ -26,54 +72,78 @@ lemma [simp]:
   "set_of_rel (rel_of_set R) = R"
 by (rule Quotient_rep_abs[OF Quotient_rel]) (rule refl)
 
-no_notation
-   Set.member ("(_/ : _)" [50, 51] 50)
+lemmas rel_raw_of_set_eqI[intro!] = arg_cong[where f="rel_of_set"]
+
+definition rel :: "'a set => ('a * 'a) set => 'a rel"
+where
+  "rel X R = rel_of_set (rel_raw X R)"
+
+subsubsection {* Constant definitions on relations *}
+
+hide_const (open) converse rel_comp rtrancl Image
 
 quotient_definition member :: "'a * 'a => 'a rel => bool" where
   "member" is "Set.member :: 'a * 'a => ('a * 'a) set => bool"
 
-notation
-   member  ("(_/ : _)" [50, 51] 50)
+quotient_definition converse :: "'a rel => 'a rel"
+where
+  "converse" is "Relation.converse :: ('a * 'a) set => ('a * 'a) set"
 
-quotient_definition union :: "'a rel => 'a rel => 'a rel" where
+quotient_definition union :: "'a rel => 'a rel => 'a rel"
+where
   "union" is "Set.union :: ('a * 'a) set => ('a * 'a) set => ('a * 'a) set"
 
-quotient_definition rtrancl :: "'a rel => 'a rel" where
-  "rtrancl" is "Transitive_Closure.rtrancl :: ('a * 'a) set => ('a * 'a) set" 
+quotient_definition rel_comp :: "'a rel => 'a rel => 'a rel"
+where
+  "rel_comp" is "Relation.rel_comp :: ('a * 'a) set => ('a * 'a) set => ('a * 'a) set"
 
-definition reflcl_raw 
-where "reflcl_raw R = R \<union> Id"
+quotient_definition rtrancl :: "'a rel => 'a rel"
+where
+  "rtrancl" is "Transitive_Closure.rtrancl :: ('a * 'a) set => ('a * 'a) set"
 
-quotient_definition reflcl :: "('a * 'a) set => 'a rel" where
-  "reflcl" is "reflcl_raw :: ('a * 'a) set => ('a * 'a) set"
+quotient_definition Image :: "'a rel => 'a set => 'a set"
+where
+  "Image" is "Relation.Image :: ('a * 'a) set => 'a set => 'a set"
 
-code_datatype reflcl rel_of_set
+subsubsection {* Code generation *}
 
-lemma member_code[code]:
-  "(x, y) : rel_of_set R = Set.member (x, y) R"
-  "(x, y) : reflcl R = ((x = y) \<or> Set.member (x, y) R)"
-unfolding member_def reflcl_def reflcl_raw_def map_fun_def_raw o_def id_def
-by auto
+code_datatype rel
 
-lemma union_code[code]:
-  "union (rel_of_set R) (rel_of_set S) = rel_of_set (Set.union R S)"
-  "union (reflcl R) (rel_of_set S) = reflcl (Set.union R S)"
-  "union (reflcl R) (reflcl S) = reflcl (Set.union R S)"
-  "union (rel_of_set R) (reflcl S) = reflcl (Set.union R S)"
-unfolding union_def reflcl_def reflcl_raw_def map_fun_def_raw o_def id_def
-by (auto intro: arg_cong[where f=rel_of_set])
+lemma [code]:
+  "member (x, y) (rel X R) = ((x = y \<and> x : X) \<or> (x, y) : R)"
+unfolding rel_def member_def
+by (simp add: member_raw)
 
-lemma rtrancl_code[code]:
-  "rtrancl (rel_of_set R) = reflcl (Transitive_Closure.trancl R)"
-  "rtrancl (reflcl R) = reflcl (Transitive_Closure.trancl R)"
-unfolding rtrancl_def reflcl_def reflcl_raw_def map_fun_def_raw o_def id_def
-by (auto intro: arg_cong[where f=rel_of_set])
+lemma [code]:
+  "converse (rel X R) = rel X (R^-1)"
+unfolding rel_def converse_def
+by (simp add: converse_raw)
 
-quickcheck_generator rel constructors: rel_of_set
+lemma [code]:
+  "union (rel X R) (rel Y S) = rel (X Un Y) (R Un S)"
+unfolding rel_def union_def
+by (simp add: union_raw)
+
+lemma [code]:
+   "rel_comp (rel X R) (rel Y S) = rel (X Int Y) (Set.project (%(x, y). y : Y) R Un (Set.project (%(x, y). x : X) S Un R O S))"
+unfolding rel_def rel_comp_def
+by (simp add: rel_comp_raw)
+
+lemma [code]:
+  "rtrancl (rel X R) = rel UNIV (R^+)"
+unfolding rel_def rtrancl_def
+by (simp add: rtrancl_raw)
+
+lemma [code]:
+  "Image (rel X R) S = (X Int S) Un (R `` S)"
+unfolding rel_def Image_def
+by (simp add: Image_raw)
+
+quickcheck_generator rel constructors: rel
 
 lemma
-  "(x, (y :: nat)) : rtrancl (union R S) \<Longrightarrow> (x, y) : (union (rtrancl R) (rtrancl S))"
-quickcheck[exhaustive]
+  "member (x, (y :: nat)) (rtrancl (union R S)) \<Longrightarrow> member (x, y) (union (rtrancl R) (rtrancl S))"
+quickcheck[exhaustive, expect = counterexample]
 oops
 
 end
