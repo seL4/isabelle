@@ -14,6 +14,7 @@ sig
   type T
   val empty: string -> T
   val kind_of: T -> string
+  val defined_entry: T -> string -> bool
   val the_entry: T -> string ->
     {concealed: bool, group: serial option, theory_name: string, pos: Position.T, id: serial}
   val entry_ord: T -> string * string -> order
@@ -116,6 +117,8 @@ fun map_internals f xname = map_name_space (fn (kind, internals, entries) =>
 fun empty kind = make_name_space (kind, Symtab.empty, Symtab.empty);
 
 fun kind_of (Name_Space {kind, ...}) = kind;
+
+fun defined_entry (Name_Space {entries, ...}) = Symtab.defined entries;
 
 fun the_entry (Name_Space {kind, entries, ...}) name =
   (case Symtab.lookup entries name of

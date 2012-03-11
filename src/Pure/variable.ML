@@ -292,8 +292,8 @@ val declare_const = map_consts o Symtab.update;
 
 (* specialized name space *)
 
-fun is_fixed ctxt x = can (Name_Space.the_entry (fixes_space ctxt)) x;
-fun newly_fixed inner outer x = is_fixed inner x andalso not (is_fixed outer x);
+val is_fixed = Name_Space.defined_entry o fixes_space;
+fun newly_fixed inner outer = is_fixed inner andf (not o is_fixed outer);
 
 val fixed_ord = Name_Space.entry_ord o fixes_space;
 val intern_fixed = Name_Space.intern o fixes_space;
@@ -406,7 +406,7 @@ fun invent_types Ss ctxt =
 fun export_inst inner outer =
   let
     val declared_outer = is_declared outer;
-    fun still_fixed x = is_fixed outer x orelse not (is_fixed inner x);
+    val still_fixed = not o newly_fixed inner outer;
 
     val gen_fixes =
       Symtab.fold (fn (y, _) => not (is_fixed outer y) ? cons y)
