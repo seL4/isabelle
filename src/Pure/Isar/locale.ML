@@ -291,7 +291,7 @@ fun add thy depth stem export (name, morph, mixins) (deps, marked) =
 in
 
 (* Note that while identifiers always have the external (exported) view, activate_dep
-  is presented with the internal view. *)
+   is presented with the internal view. *)
 
 fun roundup thy activate_dep export (name, morph) (marked, input) =
   let
@@ -488,13 +488,9 @@ fun add_registration (name, base_morph) mixin export context =
     else
       (Idents.get context, context)
       (* add new registrations with inherited mixins *)
-      |> roundup thy (add_reg thy export) export (name, morph)
-      |> snd
+      |> (snd o roundup thy (add_reg thy export) export (name, morph))
       (* add mixin *)
-      |>
-        (case mixin of
-          NONE => I
-        | SOME mixin => amend_registration (name, morph) mixin export)
+      |> (case mixin of NONE => I | SOME mixin => amend_registration (name, morph) mixin export)
       (* activate import hierarchy as far as not already active *)
       |> activate_facts (SOME export) (name, morph)
   end;
