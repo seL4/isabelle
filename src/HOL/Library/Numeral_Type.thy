@@ -135,8 +135,8 @@ done
 
 end
 
-locale mod_ring = mod_type +
-  constrains n :: int
+locale mod_ring = mod_type n Rep Abs
+  for n :: int
   and Rep :: "'a::{number_ring} \<Rightarrow> int"
   and Abs :: "int \<Rightarrow> 'a::{number_ring}"
 begin
