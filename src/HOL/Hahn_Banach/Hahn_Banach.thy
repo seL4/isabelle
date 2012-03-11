@@ -356,9 +356,9 @@ theorem norm_Hahn_Banach:
   fixes fn_norm ("\<parallel>_\<parallel>\<hyphen>_" [0, 1000] 999)
   defines "\<And>V f. \<parallel>f\<parallel>\<hyphen>V \<equiv> \<Squnion>(B V f)"
   assumes E_norm: "normed_vectorspace E norm" and FE: "subspace F E"
-    and linearform: "linearform F f" and "continuous F norm f"
+    and linearform: "linearform F f" and "continuous F f norm"
   shows "\<exists>g. linearform E g
-     \<and> continuous E norm g
+     \<and> continuous E g norm
      \<and> (\<forall>x \<in> F. g x = f x)
      \<and> \<parallel>g\<parallel>\<hyphen>E = \<parallel>f\<parallel>\<hyphen>F"
 proof -
@@ -367,7 +367,7 @@ proof -
     by (auto simp: B_def fn_norm_def) intro_locales
   interpret subspace F E by fact
   interpret linearform F f by fact
-  interpret continuous F norm f by fact
+  interpret continuous F f norm by fact
   have E: "vectorspace E" by intro_locales
   have F: "vectorspace F" by rule intro_locales
   have F_norm: "normed_vectorspace F norm"
@@ -375,7 +375,7 @@ proof -
   have ge_zero: "0 \<le> \<parallel>f\<parallel>\<hyphen>F"
     by (rule normed_vectorspace_with_fn_norm.fn_norm_ge_zero
       [OF normed_vectorspace_with_fn_norm.intro,
-       OF F_norm `continuous F norm f` , folded B_def fn_norm_def])
+       OF F_norm `continuous F f norm` , folded B_def fn_norm_def])
   txt {* We define a function @{text p} on @{text E} as follows:
     @{text "p x = \<parallel>f\<parallel> \<cdot> \<parallel>x\<parallel>"} *}
   def p \<equiv> "\<lambda>x. \<parallel>f\<parallel>\<hyphen>F * \<parallel>x\<parallel>"
@@ -422,7 +422,7 @@ proof -
   have "\<forall>x \<in> F. \<bar>f x\<bar> \<le> p x"
   proof
     fix x assume "x \<in> F"
-    with `continuous F norm f` and linearform
+    with `continuous F f norm` and linearform
     show "\<bar>f x\<bar> \<le> p x"
       unfolding p_def by (rule normed_vectorspace_with_fn_norm.fn_norm_le_cong
         [OF normed_vectorspace_with_fn_norm.intro,
@@ -442,7 +442,7 @@ proof -
 
   txt {* We furthermore have to show that @{text g} is also continuous: *}
 
-  have g_cont: "continuous E norm g" using linearformE
+  have g_cont: "continuous E g norm" using linearformE
   proof
     fix x assume "x \<in> E"
     with b show "\<bar>g x\<bar> \<le> \<parallel>f\<parallel>\<hyphen>F * \<parallel>x\<parallel>"
@@ -500,7 +500,7 @@ proof -
       show "0 \<le> \<parallel>g\<parallel>\<hyphen>E"
         using g_cont
         by (rule fn_norm_ge_zero [of g, folded B_def fn_norm_def])
-      show "continuous F norm f" by fact
+      show "continuous F f norm" by fact
     qed
   qed
   with linearformE a g_cont show ?thesis by blast

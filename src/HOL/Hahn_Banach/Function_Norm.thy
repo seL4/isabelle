@@ -21,7 +21,8 @@ text {*
   linear forms:
 *}
 
-locale continuous = var_V + norm_syntax + linearform +
+locale continuous = linearform +
+  fixes norm :: "_ \<Rightarrow> real"    ("\<parallel>_\<parallel>")
   assumes bounded: "\<exists>c. \<forall>x \<in> V. \<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>"
 
 declare continuous.intro [intro?] continuous_axioms.intro [intro?]
@@ -30,11 +31,11 @@ lemma continuousI [intro]:
   fixes norm :: "_ \<Rightarrow> real"  ("\<parallel>_\<parallel>")
   assumes "linearform V f"
   assumes r: "\<And>x. x \<in> V \<Longrightarrow> \<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>"
-  shows "continuous V norm f"
+  shows "continuous V f norm"
 proof
   show "linearform V f" by fact
   from r have "\<exists>c. \<forall>x\<in>V. \<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>" by blast
-  then show "continuous_axioms V norm f" ..
+  then show "continuous_axioms V f norm" ..
 qed
 
 
@@ -71,7 +72,8 @@ text {*
   supremum exists (otherwise it is undefined).
 *}
 
-locale fn_norm = norm_syntax +
+locale fn_norm =
+  fixes norm :: "_ \<Rightarrow> real"    ("\<parallel>_\<parallel>")
   fixes B defines "B V f \<equiv> {0} \<union> {\<bar>f x\<bar> / \<parallel>x\<parallel> | x. x \<noteq> 0 \<and> x \<in> V}"
   fixes fn_norm ("\<parallel>_\<parallel>\<hyphen>_" [0, 1000] 999)
   defines "\<parallel>f\<parallel>\<hyphen>V \<equiv> \<Squnion>(B V f)"
@@ -87,10 +89,10 @@ text {*
 *}
 
 lemma (in normed_vectorspace_with_fn_norm) fn_norm_works:
-  assumes "continuous V norm f"
+  assumes "continuous V f norm"
   shows "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
 proof -
-  interpret continuous V norm f by fact
+  interpret continuous V f norm by fact
   txt {* The existence of the supremum is shown using the
     completeness of the reals. Completeness means, that every
     non-empty bounded set of reals has a supremum. *}
@@ -154,39 +156,39 @@ proof -
 qed
 
 lemma (in normed_vectorspace_with_fn_norm) fn_norm_ub [iff?]:
-  assumes "continuous V norm f"
+  assumes "continuous V f norm"
   assumes b: "b \<in> B V f"
   shows "b \<le> \<parallel>f\<parallel>\<hyphen>V"
 proof -
-  interpret continuous V norm f by fact
+  interpret continuous V f norm by fact
   have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
-    using `continuous V norm f` by (rule fn_norm_works)
+    using `continuous V f norm` by (rule fn_norm_works)
   from this and b show ?thesis ..
 qed
 
 lemma (in normed_vectorspace_with_fn_norm) fn_norm_leastB:
-  assumes "continuous V norm f"
+  assumes "continuous V f norm"
   assumes b: "\<And>b. b \<in> B V f \<Longrightarrow> b \<le> y"
   shows "\<parallel>f\<parallel>\<hyphen>V \<le> y"
 proof -
-  interpret continuous V norm f by fact
+  interpret continuous V f norm by fact
   have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
-    using `continuous V norm f` by (rule fn_norm_works)
+    using `continuous V f norm` by (rule fn_norm_works)
   from this and b show ?thesis ..
 qed
 
 text {* The norm of a continuous function is always @{text "\<ge> 0"}. *}
 
 lemma (in normed_vectorspace_with_fn_norm) fn_norm_ge_zero [iff]:
-  assumes "continuous V norm f"
+  assumes "continuous V f norm"
   shows "0 \<le> \<parallel>f\<parallel>\<hyphen>V"
 proof -
-  interpret continuous V norm f by fact
+  interpret continuous V f norm by fact
   txt {* The function norm is defined as the supremum of @{text B}.
     So it is @{text "\<ge> 0"} if all elements in @{text B} are @{text "\<ge>
     0"}, provided the supremum exists and @{text B} is not empty. *}
   have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
-    using `continuous V norm f` by (rule fn_norm_works)
+    using `continuous V f norm` by (rule fn_norm_works)
   moreover have "0 \<in> B V f" ..
   ultimately show ?thesis ..
 qed
@@ -199,11 +201,11 @@ text {*
 *}
 
 lemma (in normed_vectorspace_with_fn_norm) fn_norm_le_cong:
-  assumes "continuous V norm f" "linearform V f"
+  assumes "continuous V f norm" "linearform V f"
   assumes x: "x \<in> V"
   shows "\<bar>f x\<bar> \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>"
 proof -
-  interpret continuous V norm f by fact
+  interpret continuous V f norm by fact
   interpret linearform V f by fact
   show ?thesis
   proof cases
@@ -212,7 +214,7 @@ proof -
     also have "f 0 = 0" by rule unfold_locales
     also have "\<bar>\<dots>\<bar> = 0" by simp
     also have a: "0 \<le> \<parallel>f\<parallel>\<hyphen>V"
-      using `continuous V norm f` by (rule fn_norm_ge_zero)
+      using `continuous V f norm` by (rule fn_norm_ge_zero)
     from x have "0 \<le> norm x" ..
     with a have "0 \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>" by (simp add: zero_le_mult_iff)
     finally show "\<bar>f x\<bar> \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>" .
@@ -225,7 +227,7 @@ proof -
       from x show "0 \<le> \<parallel>x\<parallel>" ..
       from x and neq have "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<in> B V f"
         by (auto simp add: B_def divide_inverse)
-      with `continuous V norm f` show "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<le> \<parallel>f\<parallel>\<hyphen>V"
+      with `continuous V f norm` show "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<le> \<parallel>f\<parallel>\<hyphen>V"
         by (rule fn_norm_ub)
     qed
     finally show ?thesis .
@@ -241,11 +243,11 @@ text {*
 *}
 
 lemma (in normed_vectorspace_with_fn_norm) fn_norm_least [intro?]:
-  assumes "continuous V norm f"
+  assumes "continuous V f norm"
   assumes ineq: "\<forall>x \<in> V. \<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>" and ge: "0 \<le> c"
   shows "\<parallel>f\<parallel>\<hyphen>V \<le> c"
 proof -
-  interpret continuous V norm f by fact
+  interpret continuous V f norm by fact
   show ?thesis
   proof (rule fn_norm_leastB [folded B_def fn_norm_def])
     fix b assume b: "b \<in> B V f"
@@ -272,7 +274,7 @@ proof -
       qed
       finally show ?thesis .
     qed
-  qed (insert `continuous V norm f`, simp_all add: continuous_def)
+  qed (insert `continuous V f norm`, simp_all add: continuous_def)
 qed
 
 end
