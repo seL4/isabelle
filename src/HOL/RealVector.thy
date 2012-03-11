@@ -954,8 +954,7 @@ unfolding real_sgn_eq by simp
 
 subsection {* Bounded Linear and Bilinear Operators *}
 
-locale bounded_linear = additive +
-  constrains f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+locale bounded_linear = additive f for f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector" +
   assumes scaleR: "f (scaleR r x) = scaleR r (f x)"
   assumes bounded: "\<exists>K. \<forall>x. norm (f x) \<le> norm x * K"
 begin

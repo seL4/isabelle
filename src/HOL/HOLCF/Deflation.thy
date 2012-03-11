@@ -379,9 +379,9 @@ proof
     by simp
 qed
 
-locale pcpo_ep_pair = ep_pair +
-  constrains e :: "'a::pcpo \<rightarrow> 'b::pcpo"
-  constrains p :: "'b::pcpo \<rightarrow> 'a::pcpo"
+locale pcpo_ep_pair = ep_pair e p
+  for e :: "'a::pcpo \<rightarrow> 'b::pcpo"
+  and p :: "'b::pcpo \<rightarrow> 'a::pcpo"
 begin
 
 lemma e_strict [simp]: "e\<cdot>\<bottom> = \<bottom>"

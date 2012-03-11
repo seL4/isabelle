@@ -291,8 +291,8 @@ subsection {* Universality of \emph{udom} *}
 text {* We use a locale to parameterize the construction over a chain
 of approx functions on the type to be embedded. *}
 
-locale bifinite_approx_chain = approx_chain +
-  constrains approx :: "nat \<Rightarrow> 'a::bifinite \<rightarrow> 'a"
+locale bifinite_approx_chain =
+  approx_chain approx for approx :: "nat \<Rightarrow> 'a::bifinite \<rightarrow> 'a"
 begin
 
 subsubsection {* Choosing a maximal element from a finite set *}
