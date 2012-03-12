@@ -449,14 +449,12 @@ proof (cases)
     then have "eventually (\<lambda>x. norm (f x) < r / K) F"
       using ZfunD [OF f] by fast
     with g show "eventually (\<lambda>x. norm (g x) < r) F"
-    proof (rule eventually_elim2)
-      fix x
-      assume *: "norm (g x) \<le> norm (f x) * K"
-      assume "norm (f x) < r / K"
+    proof eventually_elim
+      case (elim x)
       hence "norm (f x) * K < r"
         by (simp add: pos_less_divide_eq K)
-      thus "norm (g x) < r"
-        by (simp add: order_le_less_trans [OF *])
+      thus ?case
+        by (simp add: order_le_less_trans [OF elim(1)])
     qed
   qed
 next
@@ -467,12 +465,11 @@ next
     fix r :: real
     assume "0 < r"
     from g show "eventually (\<lambda>x. norm (g x) < r) F"
-    proof (rule eventually_elim1)
-      fix x
-      assume "norm (g x) \<le> norm (f x) * K"
-      also have "\<dots> \<le> norm (f x) * 0"
+    proof eventually_elim
+      case (elim x)
+      also have "norm (f x) * K \<le> norm (f x) * 0"
         using K norm_ge_zero by (rule mult_left_mono)
-      finally show "norm (g x) < r"
+      finally show ?case
         using `0 < r` by simp
     qed
   qed
@@ -494,14 +491,13 @@ proof (rule ZfunI)
     using g r by (rule ZfunD)
   ultimately
   show "eventually (\<lambda>x. norm (f x + g x) < r) F"
-  proof (rule eventually_elim2)
-    fix x
-    assume *: "norm (f x) < r/2" "norm (g x) < r/2"
+  proof eventually_elim
+    case (elim x)
     have "norm (f x + g x) \<le> norm (f x) + norm (g x)"
       by (rule norm_triangle_ineq)
     also have "\<dots> < r/2 + r/2"
-      using * by (rule add_strict_mono)
-    finally show "norm (f x + g x) < r"
+      using elim by (rule add_strict_mono)
+    finally show ?case
       by simp
   qed
 qed
@@ -542,16 +538,15 @@ proof (rule ZfunI)
     using g K' by (rule ZfunD)
   ultimately
   show "eventually (\<lambda>x. norm (f x ** g x) < r) F"
-  proof (rule eventually_elim2)
-    fix x
-    assume *: "norm (f x) < r" "norm (g x) < inverse K"
+  proof eventually_elim
+    case (elim x)
     have "norm (f x ** g x) \<le> norm (f x) * norm (g x) * K"
       by (rule norm_le)
     also have "norm (f x) * norm (g x) * K < r * inverse K * K"
-      by (intro mult_strict_right_mono mult_strict_mono' norm_ge_zero * K)
+      by (intro mult_strict_right_mono mult_strict_mono' norm_ge_zero elim K)
     also from K have "r * inverse K * K = r"
       by simp
-    finally show "norm (f x ** g x) < r" .
+    finally show ?case .
   qed
 qed
 
@@ -655,11 +650,10 @@ proof (rule ccontr)
     using `(f ---> b) F` `open V` `b \<in> V` by (rule topological_tendstoD)
   ultimately
   have "eventually (\<lambda>x. False) F"
-  proof (rule eventually_elim2)
-    fix x
-    assume "f x \<in> U" "f x \<in> V"
+  proof eventually_elim
+    case (elim x)
     hence "f x \<in> U \<inter> V" by simp
-    with `U \<inter> V = {}` show "False" by simp
+    with `U \<inter> V = {}` show ?case by simp
   qed
   with `\<not> trivial_limit F` show "False"
     by (simp add: trivial_limit_def)
@@ -732,8 +726,8 @@ proof (rule tendstoI)
   hence e2: "0 < e/2" by simp
   from tendstoD [OF f e2] tendstoD [OF g e2]
   show "eventually (\<lambda>x. dist (dist (f x) (g x)) (dist l m) < e) F"
-  proof (rule eventually_elim2)
-    fix x assume "dist (f x) l < e/2" "dist (g x) m < e/2"
+  proof (eventually_elim)
+    case (elim x)
     then show "dist (dist (f x) (g x)) (dist l m) < e"
       unfolding dist_real_def
       using dist_triangle2 [of "f x" "g x" "l"]
@@ -912,14 +906,13 @@ proof -
     and norm_g: "eventually (\<lambda>x. norm (g x) \<le> B) F"
     using g by (rule BfunE)
   have "eventually (\<lambda>x. norm (f x ** g x) \<le> norm (f x) * (B * K)) F"
-  using norm_g proof (rule eventually_elim1)
-    fix x
-    assume *: "norm (g x) \<le> B"
+  using norm_g proof eventually_elim
+    case (elim x)
     have "norm (f x ** g x) \<le> norm (f x) * norm (g x) * K"
       by (rule norm_le)
     also have "\<dots> \<le> norm (f x) * B * K"
       by (intro mult_mono' order_refl norm_g norm_ge_zero
-                mult_nonneg_nonneg K *)
+                mult_nonneg_nonneg K elim)
     also have "\<dots> = norm (f x) * (B * K)"
       by (rule mult_assoc)
     finally show "norm (f x ** g x) \<le> norm (f x) * (B * K)" .
@@ -963,9 +956,8 @@ proof -
   have "eventually (\<lambda>x. dist (f x) a < r) F"
     using tendstoD [OF f r1] by fast
   hence "eventually (\<lambda>x. norm (inverse (f x)) \<le> inverse (norm a - r)) F"
-  proof (rule eventually_elim1)
-    fix x
-    assume "dist (f x) a < r"
+  proof eventually_elim
+    case (elim x)
     hence 1: "norm (f x - a) < r"
       by (simp add: dist_norm)
     hence 2: "f x \<noteq> 0" using r2 by auto

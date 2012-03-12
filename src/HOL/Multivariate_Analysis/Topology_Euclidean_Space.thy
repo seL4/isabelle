@@ -3175,8 +3175,8 @@ proof
     have "eventually (\<lambda>n. dist (x n) a < d) sequentially"
       using x(2) `d>0` by simp
     hence "eventually (\<lambda>n. (f \<circ> x) n \<in> T) sequentially"
-    proof (rule eventually_elim1)
-      fix n assume "dist (x n) a < d" thus "(f \<circ> x) n \<in> T"
+    proof eventually_elim
+      case (elim n) thus ?case
         using d x(1) `f a \<in> T` unfolding dist_nz[THEN sym] by auto
     qed
   }
