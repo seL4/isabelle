@@ -118,18 +118,14 @@ fun prepare_term ctxt tm (vparams, params, idx) =
 
 fun prepare_positions ctxt tms =
   let
-    val visible = Context_Position.is_visible ctxt;
-
     fun prepareT (Type (a, Ts)) ps_idx =
           let val (Ts', ps_idx') = fold_map prepareT Ts ps_idx
           in (Type (a, Ts'), ps_idx') end
       | prepareT T (ps, idx) =
           (case Term_Position.decode_positionT T of
             SOME pos =>
-              if visible then
-                let val U = Type_Infer.mk_param idx []
-                in (U, ((pos, U) :: ps, idx + 1)) end
-              else (dummyT, (ps, idx))
+              let val U = Type_Infer.mk_param idx []
+              in (U, ((pos, U) :: ps, idx + 1)) end
           | NONE => (T, (ps, idx)));
 
     fun prepare (Const ("_type_constraint_", T)) ps_idx =

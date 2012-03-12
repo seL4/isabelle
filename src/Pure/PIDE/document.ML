@@ -240,7 +240,7 @@ end;
 
 abstype state = State of
  {versions: version Inttab.table,  (*version_id -> document content*)
-  commands: (string * Toplevel.transition future) Inttab.table,  (*command_id -> name * transition*)
+  commands: (string * Token.T list future) Inttab.table,  (*command_id -> name * span*)
   execution: version_id * Future.group}  (*current execution process*)
 with
 
@@ -273,17 +273,18 @@ fun delete_version (id: version_id) versions = Inttab.delete id versions
 
 (* commands *)
 
+fun tokenize_command id text =
+  Position.setmp_thread_data (Position.id_only id)
+    (fn () => Thy_Syntax.parse_tokens (#1 (Outer_Syntax.get_syntax ())) (Position.id id) text) ();
+
 fun define_command (id: command_id) name text =
   map_state (fn (versions, commands, execution) =>
     let
-      val id_string = print_id id;
       val future =
         (singleton o Future.forks)
           {name = "Document.define_command", group = SOME (Future.new_group NONE),
             deps = [], pri = ~1, interrupts = false}
-          (fn () =>
-            Position.setmp_thread_data (Position.id_only id_string)
-              (fn () => Outer_Syntax.read_command (Position.id id_string) text) ());
+          (fn () => tokenize_command (print_id id) text);
       val commands' =
         Inttab.update_new (id, (name, future)) commands
           handle Inttab.DUP dup => err_dup "command" dup;
@@ -408,16 +409,20 @@ fun new_exec state bad_init command_id' (execs, command_exec, init) =
   if bad_init andalso is_none init then NONE
   else
     let
-      val (name, tr0) = the_command state command_id' ||> Future.join;
+      val (name, span) = the_command state command_id' ||> Future.join;
       val (modify_init, init') =
         if Keyword.is_theory_begin name then
           (Toplevel.modify_init (the_default illegal_init init), NONE)
         else (I, init);
       val exec_id' = new_id ();
-      val tr = tr0
-        |> modify_init
-        |> Toplevel.put_id (print_id exec_id');
-      val exec' = snd (snd command_exec) |> Lazy.map (fn (st, _) => run_command tr st);
+      val exec_id'_string = print_id exec_id';
+      val tr =
+        Position.setmp_thread_data (Position.id_only exec_id'_string)
+          (fn () =>
+            #1 (Outer_Syntax.read_span (#2 (Outer_Syntax.get_syntax ())) span)
+            |> modify_init
+            |> Toplevel.put_id exec_id'_string);
+      val exec' = snd (snd command_exec) |> Lazy.map (fn (st, _) => run_command (tr ()) st);
       val command_exec' = (command_id', (exec_id', exec'));
     in SOME (command_exec' :: execs, command_exec', init') end;
 

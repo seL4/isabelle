@@ -51,14 +51,14 @@ case "$TARGET" in
     OPTIONS=()
     ;;
   x86-darwin)
-    OPTIONS=(--build=i686-darwin CFLAGS='-arch i686 -O3'
-      CXXFLAGS='-arch i686 -O3' CCASFLAGS='-arch i686 -O3'
+    OPTIONS=(--build=i686-darwin CFLAGS='-arch i686 -O3 -I../libffi/include'
+      CXXFLAGS='-arch i686 -O3 -I../libffi/include' CCASFLAGS='-arch i686 -O3'
       LDFLAGS='-segprot POLY rwx rwx')
     ;;
   x86_64-darwin)
-    OPTIONS=(--build=x86_64-darwin CFLAGS='-arch x86_64 -O3'
-      CXXFLAGS='-arch x86_64 -O3' CCASFLAGS='-arch x86_64'
-      LDFLAGS='-segprot POLY rwx rwx')
+   OPTIONS=(--build=x86_64-darwin CFLAGS='-arch x86_64 -O3 -I../libffi/include'
+     CXXFLAGS='-arch x86_64 -O3 -I../libffi/include' CCASFLAGS='-arch x86_64'
+     LDFLAGS='-segprot POLY rwx rwx')
     ;;
   x86-cygwin)
     OPTIONS=()
