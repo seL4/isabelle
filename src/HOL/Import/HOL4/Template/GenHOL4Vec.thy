@@ -1,4 +1,4 @@
-(*  Title:      HOL/Import/Generate-HOL/GenHOL4Vec.thy
+(*  Title:      HOL/Import/HOL4/Template/GenHOL4Vec.thy
     Author:     Sebastian Skalberg, TU Muenchen
 *)
 

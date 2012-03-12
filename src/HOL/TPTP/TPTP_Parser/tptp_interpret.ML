@@ -1,4 +1,4 @@
-(*  Title:      HOL/TPTP/?/tptp_interpret.ML
+(*  Title:      HOL/TPTP/TPTP_Parser/tptp_interpret.ML
     Author:     Nik Sultana, Cambridge University Computer Laboratory
 
 Interprets TPTP problems in Isabelle/HOL.

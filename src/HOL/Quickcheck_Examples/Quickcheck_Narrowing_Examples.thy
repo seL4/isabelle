@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/Quickcheck_Narrowing_Examples.thy
+(*  Title:      HOL/Quickcheck_Examples/Quickcheck_Narrowing_Examples.thy
     Author:     Lukas Bulwahn
     Copyright   2011 TU Muenchen
 *)

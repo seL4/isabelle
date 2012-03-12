@@ -1,4 +1,4 @@
-(*  Title:      HOL/Import/HOLLightReal.thy
+(*  Title:      HOL/Import/HOL_Light/HOLLightReal.thy
     Author:     Cezary Kaliszyk
 *)
 

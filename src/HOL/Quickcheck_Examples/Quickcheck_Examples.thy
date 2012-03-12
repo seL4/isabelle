@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/Quickcheck_Examples.thy
+(*  Title:      HOL/Quickcheck_Examples/Quickcheck_Examples.thy
     Author:     Stefan Berghofer, Lukas Bulwahn
     Copyright   2004 - 2010 TU Muenchen
 *)

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Import/Generate-HOLLight/GenHOLLight.thy
+(*  Title:      HOL/Import/HOL_Light/Template/GenHOLLight.thy
     Author:     Steven Obua, TU Muenchen
     Author:     Cezary Kaliszyk
 *)
