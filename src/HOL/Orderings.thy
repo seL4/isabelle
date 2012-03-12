@@ -1304,7 +1304,7 @@ lemma bot_apply [simp] (* CANDIDATE [code] *):
   by (simp add: bot_fun_def)
 
 instance proof
-qed (simp add: le_fun_def bot_apply)
+qed (simp add: le_fun_def)
 
 end
 
@@ -1320,7 +1320,7 @@ lemma top_apply [simp] (* CANDIDATE [code] *):
   by (simp add: top_fun_def)
 
 instance proof
-qed (simp add: le_fun_def top_apply)
+qed (simp add: le_fun_def)
 
 end
 

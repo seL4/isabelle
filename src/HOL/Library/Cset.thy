@@ -175,10 +175,10 @@ definition bind :: "'a Cset.set \<Rightarrow> ('a \<Rightarrow> 'b Cset.set) \<R
 subsection {* Simplified simprules *}
 
 lemma empty_simp [simp]: "member Cset.empty = bot"
-  by (simp add: fun_eq_iff bot_apply)
+  by (simp add: fun_eq_iff)
 
 lemma UNIV_simp [simp]: "member Cset.UNIV = top"
-  by (simp add: fun_eq_iff top_apply)
+  by (simp add: fun_eq_iff)
 
 lemma is_empty_simp [simp]:
   "is_empty A \<longleftrightarrow> set_of A = {}"
@@ -222,7 +222,7 @@ by(simp_all add: Cset.set_def)
 
 lemma member_SUP [simp]:
   "member (SUPR A f) = SUPR A (member \<circ> f)"
-  by (auto simp add: fun_eq_iff SUP_apply member_def, unfold SUP_def, auto)
+  by (auto simp add: fun_eq_iff member_def, unfold SUP_def, auto)
 
 lemma member_bind [simp]:
   "member (P \<guillemotright>= f) = SUPR (set_of P) (member \<circ> f)"
@@ -247,14 +247,14 @@ lemma bind_bind:
  
 lemma bind_single [simp]:
   "A \<guillemotright>= single = A"
-  by (simp add: Cset.set_eq_iff SUP_apply fun_eq_iff single_def member_def)
+  by (simp add: Cset.set_eq_iff fun_eq_iff single_def member_def)
 
 lemma bind_const: "A \<guillemotright>= (\<lambda>_. B) = (if Cset.is_empty A then Cset.empty else B)"
   by (auto simp add: Cset.set_eq_iff fun_eq_iff)
 
 lemma empty_bind [simp]:
   "Cset.empty \<guillemotright>= f = Cset.empty"
-  by (simp add: Cset.set_eq_iff fun_eq_iff bot_apply)
+  by (simp add: Cset.set_eq_iff fun_eq_iff )
 
 lemma member_of_pred [simp]:
   "member (of_pred P) = (\<lambda>x. x \<in> {x. Predicate.eval P x})"
@@ -360,7 +360,7 @@ lemma of_pred_code [code]:
      Predicate.Empty \<Rightarrow> Cset.empty
    | Predicate.Insert x P \<Rightarrow> Cset.insert x (of_pred P)
    | Predicate.Join P xq \<Rightarrow> sup (of_pred P) (of_seq xq))"
-  by (auto split: seq.split simp add: Predicate.Seq_def of_pred_def Cset.set_eq_iff sup_apply eval_member [symmetric] member_def [symmetric])
+  by (auto split: seq.split simp add: Predicate.Seq_def of_pred_def Cset.set_eq_iff eval_member [symmetric] member_def [symmetric])
 
 lemma of_seq_code [code]:
   "of_seq Predicate.Empty = Cset.empty"

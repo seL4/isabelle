@@ -591,20 +591,20 @@ lemma Sup_apply [simp, code]:
   by (simp add: Sup_fun_def)
 
 instance proof
-qed (auto simp add: le_fun_def Inf_apply Sup_apply intro: INF_lower INF_greatest SUP_upper SUP_least)
+qed (auto simp add: le_fun_def intro: INF_lower INF_greatest SUP_upper SUP_least)
 
 end
 
 lemma INF_apply [simp]:
   "(\<Sqinter>y\<in>A. f y) x = (\<Sqinter>y\<in>A. f y x)"
-  by (auto intro: arg_cong [of _ _ Inf] simp add: INF_def Inf_apply)
+  by (auto intro: arg_cong [of _ _ Inf] simp add: INF_def)
 
 lemma SUP_apply [simp]:
   "(\<Squnion>y\<in>A. f y) x = (\<Squnion>y\<in>A. f y x)"
-  by (auto intro: arg_cong [of _ _ Sup] simp add: SUP_def Sup_apply)
+  by (auto intro: arg_cong [of _ _ Sup] simp add: SUP_def)
 
 instance "fun" :: (type, complete_distrib_lattice) complete_distrib_lattice proof
-qed (auto simp add: inf_apply sup_apply Inf_apply Sup_apply INF_def SUP_def inf_Sup sup_Inf image_image)
+qed (auto simp add: INF_def SUP_def inf_Sup sup_Inf image_image)
 
 instance "fun" :: (type, complete_boolean_algebra) complete_boolean_algebra ..
 
@@ -612,46 +612,46 @@ instance "fun" :: (type, complete_boolean_algebra) complete_boolean_algebra ..
 subsection {* Complete lattice on unary and binary predicates *}
 
 lemma INF1_iff: "(\<Sqinter>x\<in>A. B x) b = (\<forall>x\<in>A. B x b)"
-  by (simp add: INF_apply)
+  by simp
 
 lemma INF2_iff: "(\<Sqinter>x\<in>A. B x) b c = (\<forall>x\<in>A. B x b c)"
-  by (simp add: INF_apply)
+  by simp
 
 lemma INF1_I: "(\<And>x. x \<in> A \<Longrightarrow> B x b) \<Longrightarrow> (\<Sqinter>x\<in>A. B x) b"
-  by (auto simp add: INF_apply)
+  by auto
 
 lemma INF2_I: "(\<And>x. x \<in> A \<Longrightarrow> B x b c) \<Longrightarrow> (\<Sqinter>x\<in>A. B x) b c"
-  by (auto simp add: INF_apply)
+  by auto
 
 lemma INF1_D: "(\<Sqinter>x\<in>A. B x) b \<Longrightarrow> a \<in> A \<Longrightarrow> B a b"
-  by (auto simp add: INF_apply)
+  by auto
 
 lemma INF2_D: "(\<Sqinter>x\<in>A. B x) b c \<Longrightarrow> a \<in> A \<Longrightarrow> B a b c"
-  by (auto simp add: INF_apply)
+  by auto
 
 lemma INF1_E: "(\<Sqinter>x\<in>A. B x) b \<Longrightarrow> (B a b \<Longrightarrow> R) \<Longrightarrow> (a \<notin> A \<Longrightarrow> R) \<Longrightarrow> R"
-  by (auto simp add: INF_apply)
+  by auto
 
 lemma INF2_E: "(\<Sqinter>x\<in>A. B x) b c \<Longrightarrow> (B a b c \<Longrightarrow> R) \<Longrightarrow> (a \<notin> A \<Longrightarrow> R) \<Longrightarrow> R"
-  by (auto simp add: INF_apply)
+  by auto
 
 lemma SUP1_iff: "(\<Squnion>x\<in>A. B x) b = (\<exists>x\<in>A. B x b)"
-  by (simp add: SUP_apply)
+  by simp
 
 lemma SUP2_iff: "(\<Squnion>x\<in>A. B x) b c = (\<exists>x\<in>A. B x b c)"
-  by (simp add: SUP_apply)
+  by simp
 
 lemma SUP1_I: "a \<in> A \<Longrightarrow> B a b \<Longrightarrow> (\<Squnion>x\<in>A. B x) b"
-  by (auto simp add: SUP_apply)
+  by auto
 
 lemma SUP2_I: "a \<in> A \<Longrightarrow> B a b c \<Longrightarrow> (\<Squnion>x\<in>A. B x) b c"
-  by (auto simp add: SUP_apply)
+  by auto
 
 lemma SUP1_E: "(\<Squnion>x\<in>A. B x) b \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> B x b \<Longrightarrow> R) \<Longrightarrow> R"
-  by (auto simp add: SUP_apply)
+  by auto
 
 lemma SUP2_E: "(\<Squnion>x\<in>A. B x) b c \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> B x b c \<Longrightarrow> R) \<Longrightarrow> R"
-  by (auto simp add: SUP_apply)
+  by auto
 
 
 subsection {* Complete lattice on @{typ "_ set"} *}

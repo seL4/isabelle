@@ -41,7 +41,7 @@ declare eq_reflection[OF UNION_eq, code_pred_inline]
 
 lemma Diff[code_pred_inline]:
   "(A - B) = (%x. A x \<and> \<not> B x)"
-  by (simp add: fun_eq_iff minus_apply)
+  by (simp add: fun_eq_iff)
 
 lemma subset_eq[code_pred_inline]:
   "(P :: 'a => bool) < (Q :: 'a => bool) == ((\<exists>x. Q x \<and> (\<not> P x)) \<and> (\<forall> x. P x --> Q x))"

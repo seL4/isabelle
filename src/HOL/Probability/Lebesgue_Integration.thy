@@ -1044,7 +1044,7 @@ proof (rule ereal_le_mult_one_interval)
         with `a < 1` u_range[OF `x \<in> space M`]
         have "a * u x < 1 * u x"
           by (intro ereal_mult_strict_right_mono) (auto simp: image_iff)
-        also have "\<dots> \<le> (SUP i. f i x)" using u(2) by (auto simp: le_fun_def SUP_apply)
+        also have "\<dots> \<le> (SUP i. f i x)" using u(2) by (auto simp: le_fun_def)
         finally obtain i where "a * u x < f i x" unfolding SUP_def
           by (auto simp add: less_Sup_iff)
         hence "a * u x \<le> f i x" by auto
@@ -1115,7 +1115,7 @@ next
       using f by (auto intro!: SUP_upper2)
     ultimately show "integral\<^isup>S M g \<le> (SUP j. integral\<^isup>P M (f j))"
       by (intro  positive_integral_SUP_approx[OF f g _ g'])
-         (auto simp: le_fun_def max_def SUP_apply)
+         (auto simp: le_fun_def max_def)
   qed
 qed
 

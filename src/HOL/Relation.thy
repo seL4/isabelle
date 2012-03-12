@@ -96,40 +96,40 @@ lemma sup_Un_eq2 [pred_set_conv]: "(\<lambda>x y. (x, y) \<in> R) \<squnion> (\<
   by (simp add: sup_fun_def)
 
 lemma Inf_INT_eq [pred_set_conv]: "\<Sqinter>S = (\<lambda>x. x \<in> INTER S Collect)"
-  by (simp add: fun_eq_iff Inf_apply)
+  by (simp add: fun_eq_iff)
 
 lemma INF_Int_eq [pred_set_conv]: "(\<Sqinter>i\<in>S. (\<lambda>x. x \<in> i)) = (\<lambda>x. x \<in> \<Inter>S)"
-  by (simp add: fun_eq_iff INF_apply)
+  by (simp add: fun_eq_iff)
 
 lemma Inf_INT_eq2 [pred_set_conv]: "\<Sqinter>S = (\<lambda>x y. (x, y) \<in> INTER (prod_case ` S) Collect)"
-  by (simp add: fun_eq_iff Inf_apply INF_apply)
+  by (simp add: fun_eq_iff)
 
 lemma INF_Int_eq2 [pred_set_conv]: "(\<Sqinter>i\<in>S. (\<lambda>x y. (x, y) \<in> i)) = (\<lambda>x y. (x, y) \<in> \<Inter>S)"
-  by (simp add: fun_eq_iff INF_apply)
+  by (simp add: fun_eq_iff)
 
 lemma Sup_SUP_eq [pred_set_conv]: "\<Squnion>S = (\<lambda>x. x \<in> UNION S Collect)"
-  by (simp add: fun_eq_iff Sup_apply)
+  by (simp add: fun_eq_iff)
 
 lemma SUP_Sup_eq [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x. x \<in> i)) = (\<lambda>x. x \<in> \<Union>S)"
-  by (simp add: fun_eq_iff SUP_apply)
+  by (simp add: fun_eq_iff)
 
 lemma Sup_SUP_eq2 [pred_set_conv]: "\<Squnion>S = (\<lambda>x y. (x, y) \<in> UNION (prod_case ` S) Collect)"
-  by (simp add: fun_eq_iff Sup_apply SUP_apply)
+  by (simp add: fun_eq_iff)
 
 lemma SUP_Sup_eq2 [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x y. (x, y) \<in> i)) = (\<lambda>x y. (x, y) \<in> \<Union>S)"
-  by (simp add: fun_eq_iff SUP_apply)
+  by (simp add: fun_eq_iff)
 
 lemma INF_INT_eq [pred_set_conv]: "(\<Sqinter>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Inter>i. r i))"
-  by (simp add: INF_apply fun_eq_iff)
+  by (simp add: fun_eq_iff)
 
 lemma INF_INT_eq2 [pred_set_conv]: "(\<Sqinter>i\<in>S. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Inter>i\<in>S. r i))"
-  by (simp add: INF_apply fun_eq_iff)
+  by (simp add: fun_eq_iff)
 
 lemma SUP_UN_eq [pred_set_conv]: "(\<Squnion>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Union>i. r i))"
-  by (simp add: SUP_apply fun_eq_iff)
+  by (simp add: fun_eq_iff)
 
 lemma SUP_UN_eq2 [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Union>i\<in>S. r i))"
-  by (simp add: SUP_apply fun_eq_iff)
+  by (simp add: fun_eq_iff)
 
 
 
@@ -818,7 +818,7 @@ lemma Range_insert [simp]: "Range (insert (a, b) r) = insert b (Range r)"
   by blast
 
 lemma Field_insert [simp]: "Field (insert (a, b) r) = {a, b} \<union> Field r"
-  by (auto simp add: Field_def Domain_insert Range_insert)
+  by (auto simp add: Field_def)
 
 lemma Domain_iff: "a \<in> Domain r \<longleftrightarrow> (\<exists>y. (a, y) \<in> r)"
   by blast
@@ -884,10 +884,10 @@ lemma Range_Collect_split [simp]: "Range {(x, y). P x y} = {y. EX x. P x y}"
   by auto
 
 lemma finite_Domain: "finite r \<Longrightarrow> finite (Domain r)"
-  by (induct set: finite) (auto simp add: Domain_insert)
+  by (induct set: finite) auto
 
 lemma finite_Range: "finite r \<Longrightarrow> finite (Range r)"
-  by (induct set: finite) (auto simp add: Range_insert)
+  by (induct set: finite) auto
 
 lemma finite_Field: "finite r \<Longrightarrow> finite (Field r)"
   by (simp add: Field_def finite_Domain finite_Range)

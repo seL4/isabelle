@@ -662,12 +662,12 @@ lemma sup_apply [simp] (* CANDIDATE [code] *):
   by (simp add: sup_fun_def)
 
 instance proof
-qed (simp_all add: le_fun_def inf_apply sup_apply)
+qed (simp_all add: le_fun_def)
 
 end
 
 instance "fun" :: (type, distrib_lattice) distrib_lattice proof
-qed (rule ext, simp add: sup_inf_distrib1 inf_apply sup_apply)
+qed (rule ext, simp add: sup_inf_distrib1)
 
 instance "fun" :: (type, bounded_lattice) bounded_lattice ..
 
@@ -700,7 +700,7 @@ instance ..
 end
 
 instance "fun" :: (type, boolean_algebra) boolean_algebra proof
-qed (rule ext, simp_all add: inf_apply sup_apply bot_apply top_apply uminus_apply minus_apply inf_compl_bot sup_compl_top diff_eq)+
+qed (rule ext, simp_all add: inf_compl_bot sup_compl_top diff_eq)+
 
 
 subsection {* Lattice on unary and binary predicates *}

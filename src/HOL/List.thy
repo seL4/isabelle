@@ -4533,7 +4533,7 @@ inductive_simps listsp_simps[code]:
   "listsp A (x # xs)"
 
 lemma listsp_mono [mono]: "A \<le> B ==> listsp A \<le> listsp B"
-by (rule predicate1I, erule listsp.induct, (blast dest: predicate1D)+)
+by (rule predicate1I, erule listsp.induct, blast+)
 
 lemmas lists_mono = listsp_mono [to_set]
 
