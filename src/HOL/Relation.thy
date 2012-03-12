@@ -10,9 +10,8 @@ begin
 
 text {* A preliminary: classical rules for reasoning on predicates *}
 
-(* CANDIDATE declare predicate1I [Pure.intro!, intro!] *)
-declare predicate1D [Pure.dest?, dest?]
-(* CANDIDATE declare predicate1D [Pure.dest, dest] *)
+declare predicate1I [Pure.intro!, intro!]
+declare predicate1D [Pure.dest, dest]
 declare predicate2I [Pure.intro!, intro!]
 declare predicate2D [Pure.dest, dest]
 declare bot1E [elim!] 
@@ -602,7 +601,7 @@ lemma rel_comp_distrib [simp]:
   "R O (S \<union> T) = (R O S) \<union> (R O T)" 
   by auto
 
-lemma pred_comp_distrib (* CANDIDATE [simp] *):
+lemma pred_comp_distrib [simp]:
   "R OO (S \<squnion> T) = R OO S \<squnion> R OO T"
   by (fact rel_comp_distrib [to_pred])
 
@@ -610,7 +609,7 @@ lemma rel_comp_distrib2 [simp]:
   "(S \<union> T) O R = (S O R) \<union> (T O R)"
   by auto
 
-lemma pred_comp_distrib2 (* CANDIDATE [simp] *):
+lemma pred_comp_distrib2 [simp]:
   "(S \<squnion> T) OO R = S OO R \<squnion> T OO R"
   by (fact rel_comp_distrib2 [to_pred])
 
@@ -672,7 +671,7 @@ lemma converseE [elim!]:
   "yx \<in> r\<inverse> \<Longrightarrow> (\<And>x y. yx = (y, x) \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> P) \<Longrightarrow> P"
   by (cases yx) (simp, erule converse.cases, iprover)
 
-lemmas conversepE (* CANDIDATE [elim!] *) = conversep.cases
+lemmas conversepE [elim!] = conversep.cases
 
 lemma converse_iff [iff]:
   "(a, b) \<in> r\<inverse> \<longleftrightarrow> (b, a) \<in> r"
@@ -828,10 +827,10 @@ lemma Domain_empty_iff: "Domain r = {} \<longleftrightarrow> r = {}"
 lemma Range_empty_iff: "Range r = {} \<longleftrightarrow> r = {}"
   by auto
 
-lemma Domain_insert (* CANDIDATE [simp] *): "Domain (insert (a, b) r) = insert a (Domain r)"
+lemma Domain_insert [simp]: "Domain (insert (a, b) r) = insert a (Domain r)"
   by blast
 
-lemma Range_insert (* CANDIDATE [simp] *): "Range (insert (a, b) r) = insert b (Range r)"
+lemma Range_insert [simp]: "Range (insert (a, b) r) = insert b (Range r)"
   by blast
 
 lemma Field_insert [simp]: "Field (insert (a, b) r) = {a, b} \<union> Field r"

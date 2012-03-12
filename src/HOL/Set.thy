@@ -124,7 +124,8 @@ instance proof
 qed (simp_all add: less_eq_set_def less_set_def inf_set_def sup_set_def
   bot_set_def top_set_def uminus_set_def minus_set_def
   less_le_not_le inf_compl_bot sup_compl_top sup_inf_distrib1 diff_eq
-  set_eqI fun_eq_iff)
+  set_eqI fun_eq_iff
+  del: inf_apply sup_apply bot_apply top_apply minus_apply uminus_apply)
 
 end
 

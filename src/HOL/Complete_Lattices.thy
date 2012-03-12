@@ -579,14 +579,14 @@ begin
 definition
   "\<Sqinter>A = (\<lambda>x. \<Sqinter>f\<in>A. f x)"
 
-lemma Inf_apply (* CANDIDATE [simp] *) [code]:
+lemma Inf_apply [simp, code]:
   "(\<Sqinter>A) x = (\<Sqinter>f\<in>A. f x)"
   by (simp add: Inf_fun_def)
 
 definition
   "\<Squnion>A = (\<lambda>x. \<Squnion>f\<in>A. f x)"
 
-lemma Sup_apply (* CANDIDATE [simp] *) [code]:
+lemma Sup_apply [simp, code]:
   "(\<Squnion>A) x = (\<Squnion>f\<in>A. f x)"
   by (simp add: Sup_fun_def)
 
@@ -595,11 +595,11 @@ qed (auto simp add: le_fun_def Inf_apply Sup_apply intro: INF_lower INF_greatest
 
 end
 
-lemma INF_apply (* CANDIDATE [simp] *):
+lemma INF_apply [simp]:
   "(\<Sqinter>y\<in>A. f y) x = (\<Sqinter>y\<in>A. f y x)"
   by (auto intro: arg_cong [of _ _ Inf] simp add: INF_def Inf_apply)
 
-lemma SUP_apply (* CANDIDATE [simp] *):
+lemma SUP_apply [simp]:
   "(\<Squnion>y\<in>A. f y) x = (\<Squnion>y\<in>A. f y x)"
   by (auto intro: arg_cong [of _ _ Sup] simp add: SUP_def Sup_apply)
 
