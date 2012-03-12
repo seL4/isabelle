@@ -66,12 +66,7 @@ sig
   val perhaps_loop: ('a -> 'a option) -> 'a -> 'a option
   val foldl1: ('a * 'a -> 'a) -> 'a list -> 'a
   val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
-  val flat: 'a list list -> 'a list
-  val unflat: 'a list list -> 'b list -> 'b list list
-  val burrow: ('a list -> 'b list) -> 'a list list -> 'b list list
-  val burrow_options: ('a list -> 'b list) -> 'a option list -> 'b option list
-  val burrow_fst: ('a list -> 'b list) -> ('a * 'c) list -> ('b * 'c) list
-  val fold_burrow: ('a list -> 'c -> 'b list * 'd) -> 'a list list -> 'c -> 'b list list * 'd
+  val eq_list: ('a * 'a -> bool) -> 'a list * 'a list -> bool
   val maps: ('a -> 'b list) -> 'a list -> 'b list
   val filter: ('a -> bool) -> 'a list -> 'a list
   val filter_out: ('a -> bool) -> 'a list -> 'a list
@@ -80,33 +75,40 @@ sig
   val drop: int -> 'a list -> 'a list
   val chop: int -> 'a list -> 'a list * 'a list
   val chop_while: ('a -> bool) -> 'a list -> 'a list * 'a list
+  val chop_groups: int -> 'a list -> 'a list list
   val nth: 'a list -> int -> 'a
+  val nth_list: 'a list list -> int -> 'a list
   val nth_map: int -> ('a -> 'a) -> 'a list -> 'a list
   val nth_drop: int -> 'a list -> 'a list
-  val nth_list: 'a list list -> int -> 'a list
   val map_index: (int * 'a -> 'b) -> 'a list -> 'b list
   val fold_index: (int * 'a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val map_range: (int -> 'a) -> int -> 'a list
   val split_last: 'a list -> 'a list * 'a
-  val find_index: ('a -> bool) -> 'a list -> int
   val find_first: ('a -> bool) -> 'a list -> 'a option
-  val get_index: ('a -> 'b option) -> 'a list -> (int * 'b) option
+  val find_index: ('a -> bool) -> 'a list -> int
   val get_first: ('a -> 'b option) -> 'a list -> 'b option
-  val eq_list: ('a * 'a -> bool) -> 'a list * 'a list -> bool
+  val get_index: ('a -> 'b option) -> 'a list -> (int * 'b) option
+  val flat: 'a list list -> 'a list
+  val unflat: 'a list list -> 'b list -> 'b list list
+  val grouped: int -> (('a list -> 'b list) -> 'c list list -> 'd list list) ->
+    ('a -> 'b) -> 'c list -> 'd list
+  val burrow: ('a list -> 'b list) -> 'a list list -> 'b list list
+  val burrow_options: ('a list -> 'b list) -> 'a option list -> 'b option list
+  val fold_burrow: ('a list -> 'c -> 'b list * 'd) -> 'a list list -> 'c -> 'b list list * 'd
+  val separate: 'a -> 'a list -> 'a list
+  val surround: 'a -> 'a list -> 'a list
+  val replicate: int -> 'a -> 'a list
+  val map_product: ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
+  val fold_product: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
   val map2: ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
   val fold2: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
   val fold_rev2: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
   val forall2: ('a -> 'b -> bool) -> 'a list -> 'b list -> bool
+  val map_split: ('a -> 'b * 'c) -> 'a list -> 'b list * 'c list
   val zip_options: 'a list -> 'b option list -> ('a * 'b) list
   val ~~ : 'a list * 'b list -> ('a * 'b) list
-  val map_split: ('a -> 'b * 'c) -> 'a list -> 'b list * 'c list
   val split_list: ('a * 'b) list -> 'a list * 'b list
-  val map_product: ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
-  val fold_product: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
-  val map_transpose: ('a list -> 'b) -> 'a list list -> 'b list
-  val separate: 'a -> 'a list -> 'a list
-  val surround: 'a -> 'a list -> 'a list
-  val replicate: int -> 'a -> 'a list
+  val burrow_fst: ('a list -> 'b list) -> ('a * 'c) list -> ('b * 'c) list
   val is_prefix: ('a * 'a -> bool) -> 'a list -> 'a list -> bool
   val take_prefix: ('a -> bool) -> 'a list -> 'a list * 'a list
   val chop_prefix: ('a * 'b -> bool) -> 'a list * 'b list -> 'a list * ('a list * 'b list)
@@ -171,6 +173,7 @@ sig
   val distinct: ('a * 'a -> bool) -> 'a list -> 'a list
   val duplicates: ('a * 'a -> bool) -> 'a list -> 'a list
   val has_duplicates: ('a * 'a -> bool) -> 'a list -> bool
+  val map_transpose: ('a list -> 'b) -> 'a list list -> 'b list
 
   (*lists as multisets*)
   val remove1: ('b * 'a -> bool) -> 'b -> 'a list -> 'a list
@@ -414,6 +417,12 @@ fun chop_while P [] = ([], [])
   | chop_while P (ys as x :: xs) =
       if P x then chop_while P xs |>> cons x else ([], ys);
 
+fun chop_groups n list =
+  (case chop (Int.max (n, 1)) list of
+    ([], _) => []
+  | (g, rest) => g :: chop_groups n rest);
+
+
 (*return nth element of a list, where 0 designates the first element;
   raise Subscript if list too short*)
 fun nth xs i = List.nth (xs, i);
@@ -450,14 +459,14 @@ fun split_last [] = raise Empty
   | split_last [x] = ([], x)
   | split_last (x :: xs) = apfst (cons x) (split_last xs);
 
+(*find first element satisfying predicate*)
+val find_first = List.find;
+
 (*find position of first element satisfying a predicate*)
 fun find_index pred =
   let fun find (_: int) [] = ~1
         | find n (x :: xs) = if pred x then n else find (n + 1) xs;
   in find 0 end;
-
-(*find first element satisfying predicate*)
-val find_first = List.find;
 
 (*get first element by lookup function*)
 fun get_first _ [] = NONE
@@ -482,6 +491,8 @@ fun unflat (xs :: xss) ys =
       in ps :: unflat xss qs end
   | unflat [] [] = []
   | unflat _ _ = raise ListPair.UnequalLengths;
+
+fun grouped n comb f = chop_groups n #> comb (map f) #> flat;
 
 fun burrow f xss = unflat xss (f (flat xss));
 
