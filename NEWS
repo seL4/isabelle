@@ -355,6 +355,9 @@ a list and a nat.
 * Command 'try0':
   - Renamed from 'try_methods'. INCOMPATIBILITY.
 
+* New "eventually_elim" method as a generalized variant of the
+  eventually_elim* rules. Supports structured proofs.
+
 
 *** FOL ***
 
