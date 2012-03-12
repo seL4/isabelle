@@ -111,6 +111,26 @@ proof -
   then show ?thesis by (auto elim: eventually_elim2)
 qed
 
+ML {*
+  fun ev_elim_tac ctxt thms thm = let
+      val thy = Proof_Context.theory_of ctxt
+      val mp_thms = thms RL [@{thm eventually_rev_mp}]
+      val raw_elim_thm =
+        (@{thm allI} RS @{thm always_eventually})
+        |> fold (fn thm1 => fn thm2 => thm2 RS thm1) mp_thms
+        |> fold (fn _ => fn thm => @{thm impI} RS thm) thms
+      val cases_prop = prop_of (raw_elim_thm RS thm)
+      val cases = (Rule_Cases.make_common (thy, cases_prop) [(("elim", []), [])])
+    in
+      CASES cases (rtac raw_elim_thm 1) thm
+    end
+
+  fun eventually_elim_setup name =
+    Method.setup name (Scan.succeed (fn ctxt => METHOD_CASES (ev_elim_tac ctxt)))
+      "elimination of eventually quantifiers"
+*}
+
+setup {* eventually_elim_setup @{binding "eventually_elim"} *}
 
 
 subsection {* Finer-than relation *}
