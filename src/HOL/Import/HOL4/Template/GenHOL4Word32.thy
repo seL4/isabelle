@@ -1,4 +1,4 @@
-(*  Title:      HOL/Import/Generate-HOL/GenHOL4Word32.thy
+(*  Title:      HOL/Import/HOL4/Template/GenHOL4Word32.thy
     Author:     Sebastian Skalberg, TU Muenchen
 *)
 

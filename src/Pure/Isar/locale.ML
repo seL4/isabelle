@@ -72,6 +72,7 @@ sig
   val amend_registration: string * morphism -> morphism * bool ->
     morphism -> Context.generic -> Context.generic
   val registrations_of: Context.generic -> string -> (string * morphism) list
+  val all_registrations_of: Context.generic -> (string * morphism) list
   val add_dependency: string -> string * morphism -> (morphism * bool) option ->
     morphism -> theory -> theory
 
@@ -205,12 +206,10 @@ fun dependencies_of thy name = the_locale thy name |>
 fun mixins_of thy name serial = the_locale thy name |>
   #mixins |> lookup_mixins serial;
 
-(* unused *)
+(* FIXME unused *)
 fun identity_on thy name morph =
   let val mk_instance = instance_of thy name
-  in
-    forall2 (curry Term.aconv_untyped) (mk_instance Morphism.identity) (mk_instance morph)
-  end;
+  in ListPair.all Term.aconv_untyped (mk_instance Morphism.identity, mk_instance morph) end;
 
 (* Print instance and qualifiers *)
 
@@ -382,7 +381,7 @@ fun get_registrations context select =
 fun registrations_of context name =
   get_registrations context (filter (curry (op =) name o fst o fst));
 
-fun all_registrations context = get_registrations context I;
+fun all_registrations_of context = get_registrations context I;
 
 
 (*** Activate context elements of locale ***)
@@ -401,17 +400,16 @@ fun activate_syntax_decls (name, morph) context =
 fun activate_notes activ_elem transfer context export' (name, morph) input =
   let
     val thy = Context.theory_of context;
-    val {notes, ...} = the_locale thy name;
-    fun activate ((kind, facts), _) input =
-      let
-        val mixin =
-          (case export' of
-            NONE => Morphism.identity
-          | SOME export => collect_mixins context (name, morph $> export) $> export);
-        val facts' = facts |> Element.transform_facts (transfer input $> morph $> mixin);
-      in activ_elem (Notes (kind, facts')) input end;
+    val mixin =
+      (case export' of
+        NONE => Morphism.identity
+      | SOME export => collect_mixins context (name, morph $> export) $> export);
+    val morph' = transfer input $> morph $> mixin;
+    val notes' =
+      Par_List.map (Element.transform_ctxt morph' o Notes o #1) (#notes (the_locale thy name));
   in
-    fold_rev activate notes input
+    fold_rev (fn elem => fn res => activ_elem (Element.transform_ctxt (transfer res) elem) res)
+      notes' input
   end;
 
 fun activate_all name thy activ_elem transfer (marked, input) =

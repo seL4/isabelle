@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/Quickcheck_Lattice_Examples.thy
+(*  Title:      HOL/Quickcheck_Examples/Quickcheck_Lattice_Examples.thy
     Author:     Lukas Bulwahn
     Copyright   2010 TU Muenchen
 *)

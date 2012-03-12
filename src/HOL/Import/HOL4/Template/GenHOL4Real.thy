@@ -1,4 +1,4 @@
-(*  Title:      HOL/Import/Generate-HOL/GenHOL4Real.thy
+(*  Title:      HOL/Import/HOL4/Template/GenHOL4Real.thy
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 

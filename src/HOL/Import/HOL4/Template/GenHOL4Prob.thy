@@ -1,4 +1,4 @@
-(*  Title:      HOL/Import/Generate-HOL/GenHOL4Prob.thy
+(*  Title:      HOL/Import/HOL4/Template/GenHOL4Prob.thy
     Author:     Sebastian Skalberg, TU Muenchen
 *)
 

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Import/Generate-HOL/GenHOL4Base.thy
+(*  Title:      HOL/Import/HOL4/Template/GenHOL4Base.thy
     Author:     Sebastian Skalberg, TU Muenchen
 *)
 
