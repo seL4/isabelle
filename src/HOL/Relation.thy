@@ -71,17 +71,17 @@ lemma pred_subset_eq [pred_set_conv]: "(\<lambda>x. x \<in> R) \<le> (\<lambda>x
 lemma pred_subset_eq2 [pred_set_conv]: "(\<lambda>x y. (x, y) \<in> R) \<le> (\<lambda>x y. (x, y) \<in> S) \<longleftrightarrow> R \<subseteq> S"
   by (simp add: subset_iff le_fun_def)
 
-lemma bot_empty_eq (* CANDIDATE [pred_set_conv] *): "\<bottom> = (\<lambda>x. x \<in> {})"
+lemma bot_empty_eq [pred_set_conv]: "\<bottom> = (\<lambda>x. x \<in> {})"
   by (auto simp add: fun_eq_iff)
 
-lemma bot_empty_eq2 (* CANDIDATE [pred_set_conv] *): "\<bottom> = (\<lambda>x y. (x, y) \<in> {})"
+lemma bot_empty_eq2 [pred_set_conv]: "\<bottom> = (\<lambda>x y. (x, y) \<in> {})"
   by (auto simp add: fun_eq_iff)
 
-(* CANDIDATE lemma top_empty_eq [pred_set_conv]: "\<top> = (\<lambda>x. x \<in> UNIV)"
-  by (auto simp add: fun_eq_iff) *)
+lemma top_empty_eq [pred_set_conv]: "\<top> = (\<lambda>x. x \<in> UNIV)"
+  by (auto simp add: fun_eq_iff)
 
-(* CANDIDATE lemma top_empty_eq2 [pred_set_conv]: "\<top> = (\<lambda>x y. (x, y) \<in> UNIV)"
-  by (auto simp add: fun_eq_iff) *)
+lemma top_empty_eq2 [pred_set_conv]: "\<top> = (\<lambda>x y. (x, y) \<in> UNIV)"
+  by (auto simp add: fun_eq_iff)
 
 lemma inf_Int_eq [pred_set_conv]: "(\<lambda>x. x \<in> R) \<sqinter> (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<inter> S)"
   by (simp add: inf_fun_def)
@@ -98,7 +98,6 @@ lemma sup_Un_eq2 [pred_set_conv]: "(\<lambda>x y. (x, y) \<in> R) \<squnion> (\<
 lemma Inf_INT_eq [pred_set_conv]: "\<Sqinter>S = (\<lambda>x. x \<in> INTER S Collect)"
   by (simp add: fun_eq_iff Inf_apply)
 
-(* CANDIDATE
 lemma INF_Int_eq [pred_set_conv]: "(\<Sqinter>i\<in>S. (\<lambda>x. x \<in> i)) = (\<lambda>x. x \<in> \<Inter>S)"
   by (simp add: fun_eq_iff INF_apply)
 
@@ -119,35 +118,19 @@ lemma Sup_SUP_eq2 [pred_set_conv]: "\<Squnion>S = (\<lambda>x y. (x, y) \<in> UN
 
 lemma SUP_Sup_eq2 [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x y. (x, y) \<in> i)) = (\<lambda>x y. (x, y) \<in> \<Union>S)"
   by (simp add: fun_eq_iff SUP_apply)
-*)
 
-(* CANDIDATE prefer those generalized versions:
-lemma INF_INT_eq [pred_set_conv]: "(\<Sqinter>i\<in>S. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Inter>i\<in>S. r i))"
+lemma INF_INT_eq [pred_set_conv]: "(\<Sqinter>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Inter>i. r i))"
   by (simp add: INF_apply fun_eq_iff)
 
 lemma INF_INT_eq2 [pred_set_conv]: "(\<Sqinter>i\<in>S. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Inter>i\<in>S. r i))"
   by (simp add: INF_apply fun_eq_iff)
-*)
-
-lemma INF_INT_eq (* CANDIDATE [pred_set_conv] *): "(\<Sqinter>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Inter>i. r i))"
-  by (simp add: INF_apply fun_eq_iff)
-
-lemma INF_INT_eq2 (* CANDIDATE [pred_set_conv] *): "(\<Sqinter>i. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Inter>i. r i))"
-  by (simp add: INF_apply fun_eq_iff)
-
-(* CANDIDATE prefer those generalized versions:
-lemma SUP_UN_eq [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Union>i\<in>S. r i))"
-  by (simp add: SUP_apply fun_eq_iff)
-
-lemma SUP_UN_eq2 [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Union>i\<in>S. r i))"
-  by (simp add: SUP_apply fun_eq_iff)
-*)
 
 lemma SUP_UN_eq [pred_set_conv]: "(\<Squnion>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Union>i. r i))"
   by (simp add: SUP_apply fun_eq_iff)
 
-lemma SUP_UN_eq2 [pred_set_conv]: "(\<Squnion>i. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Union>i. r i))"
+lemma SUP_UN_eq2 [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Union>i\<in>S. r i))"
   by (simp add: SUP_apply fun_eq_iff)
+
 
 
 subsection {* Properties of relations *}
@@ -557,21 +540,22 @@ lemma rel_comp_empty1 [simp]:
   "{} O R = {}"
   by blast
 
-(* CANDIDATE lemma pred_comp_bot1 [simp]:
-  ""
-  by (fact rel_comp_empty1 [to_pred]) *)
+lemma prod_comp_bot1 [simp]:
+  "\<bottom> OO R = \<bottom>"
+  by (fact rel_comp_empty1 [to_pred])
 
 lemma rel_comp_empty2 [simp]:
   "R O {} = {}"
   by blast
 
-(* CANDIDATE lemma pred_comp_bot2 [simp]:
-  ""
-  by (fact rel_comp_empty2 [to_pred]) *)
+lemma pred_comp_bot2 [simp]:
+  "R OO \<bottom> = \<bottom>"
+  by (fact rel_comp_empty2 [to_pred])
 
 lemma O_assoc:
   "(R O S) O T = R O (S O T)"
   by blast
+
 
 lemma pred_comp_assoc:
   "(r OO s) OO t = r OO (s OO t)"
