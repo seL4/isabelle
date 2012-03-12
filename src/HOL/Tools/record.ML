@@ -2076,7 +2076,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
 
     val (sel_convs, upd_convs) =
       timeit_msg ctxt "record sel_convs/upd_convs proof:" (fn () =>
-        Par_List.map (fn prop =>
+        grouped 10 Par_List.map (fn prop =>
           Skip_Proof.prove_global defs_thy [] [] prop
             (K (ALLGOALS (asm_full_simp_tac sel_upd_ss)))) (sel_conv_props @ upd_conv_props))
       |> chop (length sel_conv_props);

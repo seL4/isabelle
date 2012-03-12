@@ -406,7 +406,8 @@ fun activate_notes activ_elem transfer context export' (name, morph) input =
       | SOME export => collect_mixins context (name, morph $> export) $> export);
     val morph' = transfer input $> morph $> mixin;
     val notes' =
-      Par_List.map (Element.transform_ctxt morph' o Notes o #1) (#notes (the_locale thy name));
+      grouped 50 Par_List.map
+        (Element.transform_ctxt morph' o Notes o #1) (#notes (the_locale thy name));
   in
     fold_rev (fn elem => fn res => activ_elem (Element.transform_ctxt (transfer res) elem) res)
       notes' input
