@@ -440,15 +440,23 @@ next
   finally show "i \<lesssim> j" .
 qed
 
-lemma cardinal_mono: "i \<le> j ==> |i| \<le> |j|"
-apply (rule_tac i = "|i|" and j = "|j|" in Ord_linear_le)
-apply (safe intro!: Ord_cardinal le_eqI)
-apply (rule cardinal_eq_lemma)
-prefer 2 apply assumption
-apply (erule le_trans)
-apply (erule ltE)
-apply (erule Ord_cardinal_le)
-done
+lemma cardinal_mono: 
+  assumes ij: "i \<le> j" shows "|i| \<le> |j|"
+proof (cases rule: Ord_linear_le [OF Ord_cardinal Ord_cardinal])
+  assume "|i| \<le> |j|" thus ?thesis .
+next
+  assume cj: "|j| \<le> |i|"
+  have i: "Ord(i)" using ij
+    by (simp add: lt_Ord) 
+  have ci: "|i| \<le> j"  
+    by (blast intro: Ord_cardinal_le ij le_trans i) 
+  have "|i| = ||i||" 
+    by (auto simp add: Ord_cardinal_idem i) 
+  also have "... = |j|"
+    by (rule cardinal_eq_lemma [OF cj ci])
+  finally have "|i| = |j|" .
+  thus ?thesis by simp
+qed
 
 (*Since we have @{term"|succ(nat)| \<le> |nat|"}, the converse of cardinal_mono fails!*)
 lemma cardinal_lt_imp_lt: "[| |i| < |j|;  Ord(i);  Ord(j) |] ==> i < j"
@@ -458,8 +466,7 @@ apply (erule cardinal_mono)
 done
 
 lemma Card_lt_imp_lt: "[| |i| < K;  Ord(i);  Card(K) |] ==> i < K"
-apply (simp (no_asm_simp) add: cardinal_lt_imp_lt Card_is_Ord Card_cardinal_eq)
-done
+  by (simp (no_asm_simp) add: cardinal_lt_imp_lt Card_is_Ord Card_cardinal_eq)
 
 lemma Card_lt_iff: "[| Ord(i);  Card(K) |] ==> (|i| < K) \<longleftrightarrow> (i < K)"
 by (blast intro: Card_lt_imp_lt Ord_cardinal_le [THEN lt_trans1])
@@ -532,8 +539,9 @@ apply (erule cons_lepoll_consD)
 apply (rule mem_not_refl)+
 done
 
+
 lemma nat_lepoll_imp_le [rule_format]:
-     "m:nat ==> \<forall>n\<in>nat. m \<lesssim> n \<longrightarrow> m \<le> n"
+     "m \<in> nat ==> \<forall>n\<in>nat. m \<lesssim> n \<longrightarrow> m \<le> n"
 apply (induct_tac m)
 apply (blast intro!: nat_0_le)
 apply (rule ballI)
@@ -542,7 +550,7 @@ apply (simp (no_asm_simp) add: lepoll_def inj_def)
 apply (blast intro!: succ_leI dest!: succ_lepoll_succD)
 done
 
-lemma nat_eqpoll_iff: "[| m:nat; n: nat |] ==> m \<approx> n \<longleftrightarrow> m = n"
+lemma nat_eqpoll_iff: "[| m \<in> nat; n: nat |] ==> m \<approx> n \<longleftrightarrow> m = n"
 apply (rule iffI)
 apply (blast intro: nat_lepoll_imp_le le_anti_sym elim!: eqpollE)
 apply (simp add: eqpoll_refl)
@@ -564,7 +572,7 @@ lemmas cardinal_1 = nat_1I [THEN nat_into_Card, THEN Card_cardinal_eq, iff]
 
 
 (*Part of Kunen's Lemma 10.6*)
-lemma succ_lepoll_natE: "[| succ(n) \<lesssim> n;  n:nat |] ==> P"
+lemma succ_lepoll_natE: "[| succ(n) \<lesssim> n;  n \<in> nat |] ==> P"
 by (rule nat_lepoll_imp_le [THEN lt_irrefl], auto)
 
 lemma nat_lepoll_imp_ex_eqpoll_n:
@@ -580,27 +588,32 @@ done
 
 (** lepoll, \<prec> and natural numbers **)
 
+lemma lepoll_succ: "i \<lesssim> succ(i)"
+  by (blast intro: subset_imp_lepoll)
+
 lemma lepoll_imp_lesspoll_succ:
-     "[| A \<lesssim> m; m:nat |] ==> A \<prec> succ(m)"
-apply (unfold lesspoll_def)
-apply (rule conjI)
-apply (blast intro: subset_imp_lepoll [THEN [2] lepoll_trans])
-apply (rule notI)
-apply (drule eqpoll_sym [THEN eqpoll_imp_lepoll])
-apply (drule lepoll_trans, assumption)
-apply (erule succ_lepoll_natE, assumption)
-done
+  assumes A: "A \<lesssim> m" and m: "m \<in> nat"
+  shows "A \<prec> succ(m)"
+proof -
+  { assume "A \<approx> succ(m)" 
+    hence "succ(m) \<approx> A" by (rule eqpoll_sym)
+    also have "... \<lesssim> m" by (rule A)
+    finally have "succ(m) \<lesssim> m" .
+    hence False by (rule succ_lepoll_natE) (rule m) }
+  moreover have "A \<lesssim> succ(m)" by (blast intro: lepoll_trans A lepoll_succ)
+  ultimately show ?thesis by (auto simp add: lesspoll_def) 
+qed
 
 lemma lesspoll_succ_imp_lepoll:
-     "[| A \<prec> succ(m); m:nat |] ==> A \<lesssim> m"
-apply (unfold lesspoll_def lepoll_def eqpoll_def bij_def, clarify)
-apply (blast intro!: inj_not_surj_succ)
+     "[| A \<prec> succ(m); m \<in> nat |] ==> A \<lesssim> m"
+apply (unfold lesspoll_def lepoll_def eqpoll_def bij_def)
+apply (auto dest: inj_not_surj_succ)
 done
 
-lemma lesspoll_succ_iff: "m:nat ==> A \<prec> succ(m) \<longleftrightarrow> A \<lesssim> m"
+lemma lesspoll_succ_iff: "m \<in> nat ==> A \<prec> succ(m) \<longleftrightarrow> A \<lesssim> m"
 by (blast intro!: lepoll_imp_lesspoll_succ lesspoll_succ_imp_lepoll)
 
-lemma lepoll_succ_disj: "[| A \<lesssim> succ(m);  m:nat |] ==> A \<lesssim> m | A \<approx> succ(m)"
+lemma lepoll_succ_disj: "[| A \<lesssim> succ(m);  m \<in> nat |] ==> A \<lesssim> m | A \<approx> succ(m)"
 apply (rule disjCI)
 apply (rule lesspoll_succ_imp_lepoll)
 prefer 2 apply assumption
@@ -618,32 +631,51 @@ done
 subsection{*The first infinite cardinal: Omega, or nat *}
 
 (*This implies Kunen's Lemma 10.6*)
-lemma lt_not_lepoll: "[| n<i;  n:nat |] ==> ~ i \<lesssim> n"
-apply (rule notI)
-apply (rule succ_lepoll_natE [of n])
-apply (rule lepoll_trans [of _ i])
-apply (erule ltE)
-apply (rule Ord_succ_subsetI [THEN subset_imp_lepoll], assumption+)
-done
+lemma lt_not_lepoll:
+  assumes n: "n<i" "n \<in> nat" shows "~ i \<lesssim> n"
+proof -
+  { assume i: "i \<lesssim> n"
+    have "succ(n) \<lesssim> i" using n
+      by (elim ltE, blast intro: Ord_succ_subsetI [THEN subset_imp_lepoll]) 
+    also have "... \<lesssim> n" by (rule i)
+    finally have "succ(n) \<lesssim> n" .
+    hence False  by (rule succ_lepoll_natE) (rule n) }
+  thus ?thesis by auto
+qed
 
-lemma Ord_nat_eqpoll_iff: "[| Ord(i);  n:nat |] ==> i \<approx> n \<longleftrightarrow> i=n"
-apply (rule iffI)
- prefer 2 apply (simp add: eqpoll_refl)
-apply (rule Ord_linear_lt [of i n])
-apply (simp_all add: nat_into_Ord)
-apply (erule lt_nat_in_nat [THEN nat_eqpoll_iff, THEN iffD1], assumption+)
-apply (rule lt_not_lepoll [THEN notE], assumption+)
-apply (erule eqpoll_imp_lepoll)
-done
+text{*A slightly weaker version of @{text nat_eqpoll_iff}*}
+lemma Ord_nat_eqpoll_iff:
+  assumes i: "Ord(i)" and n: "n \<in> nat" shows "i \<approx> n \<longleftrightarrow> i=n"
+proof (cases rule: Ord_linear_lt [OF i])
+  show "Ord(n)" using n by auto
+next
+  assume "i < n"
+  hence  "i \<in> nat" by (rule lt_nat_in_nat) (rule n)
+  thus ?thesis by (simp add: nat_eqpoll_iff n) 
+next
+  assume "i = n"
+  thus ?thesis by (simp add: eqpoll_refl) 
+next
+  assume "n < i"
+  hence  "~ i \<lesssim> n" using n  by (rule lt_not_lepoll) 
+  hence  "~ i \<approx> n" using n  by (blast intro: eqpoll_imp_lepoll)
+  moreover have "i \<noteq> n" using `n<i` by auto
+  ultimately show ?thesis by blast
+qed
 
 lemma Card_nat: "Card(nat)"
-apply (unfold Card_def cardinal_def)
-apply (subst Least_equality)
-apply (rule eqpoll_refl)
-apply (rule Ord_nat)
-apply (erule ltE)
-apply (simp_all add: eqpoll_iff lt_not_lepoll ltI)
-done
+proof -
+  { fix i
+    assume i: "i < nat" "i \<approx> nat" 
+    hence "~ nat \<lesssim> i" 
+      by (simp add: lt_def lt_not_lepoll) 
+    hence False using i 
+      by (simp add: eqpoll_iff)
+  }
+  hence "(\<mu> i. i \<approx> nat) = nat" by (blast intro: Least_equality eqpoll_refl) 
+  thus ?thesis
+    by (auto simp add: Card_def cardinal_def) 
+qed
 
 (*Allows showing that |i| is a limit cardinal*)
 lemma nat_le_cardinal: "nat \<le> i ==> nat \<le> |i|"
@@ -736,31 +768,35 @@ subsection{*Lemmas by Krzysztof Grabczewski*}
 
 (*New proofs using cons_lepoll_cons. Could generalise from succ to cons.*)
 
-(*If A has at most n+1 elements and a:A then A-{a} has at most n.*)
+text{*If @{term A} has at most @{term"n+1"} elements and @{term"a \<in> A"} 
+      then @{term"A-{a}"} has at most @{term n}.*}
 lemma Diff_sing_lepoll:
-      "[| a:A;  A \<lesssim> succ(n) |] ==> A - {a} \<lesssim> n"
+      "[| a \<in> A;  A \<lesssim> succ(n) |] ==> A - {a} \<lesssim> n"
 apply (unfold succ_def)
 apply (rule cons_lepoll_consD)
 apply (rule_tac [3] mem_not_refl)
 apply (erule cons_Diff [THEN ssubst], safe)
 done
 
-(*If A has at least n+1 elements then A-{a} has at least n.*)
+text{*If @{term A} has at least @{term"n+1"} elements then @{term"A-{a}"} has at least @{term n}.*}
 lemma lepoll_Diff_sing:
-      "[| succ(n) \<lesssim> A |] ==> n \<lesssim> A - {a}"
-apply (unfold succ_def)
-apply (rule cons_lepoll_consD)
-apply (rule_tac [2] mem_not_refl)
-prefer 2 apply blast
-apply (blast intro: subset_imp_lepoll [THEN [2] lepoll_trans])
-done
+  assumes A: "succ(n) \<lesssim> A" shows "n \<lesssim> A - {a}"
+proof -
+  have "cons(n,n) \<lesssim> A" using A
+    by (unfold succ_def)
+  also have "... \<lesssim> cons(a, A-{a})" 
+    by (blast intro: subset_imp_lepoll)
+  finally have "cons(n,n) \<lesssim> cons(a, A-{a})" .
+  thus ?thesis
+    by (blast intro: cons_lepoll_consD mem_irrefl) 
+qed
 
-lemma Diff_sing_eqpoll: "[| a:A; A \<approx> succ(n) |] ==> A - {a} \<approx> n"
+lemma Diff_sing_eqpoll: "[| a \<in> A; A \<approx> succ(n) |] ==> A - {a} \<approx> n"
 by (blast intro!: eqpollI
           elim!: eqpollE
           intro: Diff_sing_lepoll lepoll_Diff_sing)
 
-lemma lepoll_1_is_sing: "[| A \<lesssim> 1; a:A |] ==> A = {a}"
+lemma lepoll_1_is_sing: "[| A \<lesssim> 1; a \<in> A |] ==> A = {a}"
 apply (frule Diff_sing_lepoll, assumption)
 apply (drule lepoll_0_is_0)
 apply (blast elim: equalityE)
@@ -768,8 +804,8 @@ done
 
 lemma Un_lepoll_sum: "A \<union> B \<lesssim> A+B"
 apply (unfold lepoll_def)
-apply (rule_tac x = "\<lambda>x\<in>A \<union> B. if x:A then Inl (x) else Inr (x) " in exI)
-apply (rule_tac d = "%z. snd (z) " in lam_injective)
+apply (rule_tac x = "\<lambda>x\<in>A \<union> B. if x\<in>A then Inl (x) else Inr (x)" in exI)
+apply (rule_tac d = "%z. snd (z)" in lam_injective)
 apply force
 apply (simp add: Inl_def Inr_def)
 done
@@ -782,8 +818,8 @@ by (erule well_ord_radd [THEN Un_lepoll_sum [THEN lepoll_well_ord]],
 (*Krzysztof Grabczewski*)
 lemma disj_Un_eqpoll_sum: "A \<inter> B = 0 ==> A \<union> B \<approx> A + B"
 apply (unfold eqpoll_def)
-apply (rule_tac x = "\<lambda>a\<in>A \<union> B. if a:A then Inl (a) else Inr (a) " in exI)
-apply (rule_tac d = "%z. case (%x. x, %x. x, z) " in lam_bijective)
+apply (rule_tac x = "\<lambda>a\<in>A \<union> B. if a \<in> A then Inl (a) else Inr (a)" in exI)
+apply (rule_tac d = "%z. case (%x. x, %x. x, z)" in lam_bijective)
 apply auto
 done
 
@@ -795,7 +831,7 @@ apply (unfold Finite_def)
 apply (blast intro!: eqpoll_refl nat_0I)
 done
 
-lemma lepoll_nat_imp_Finite: "[| A \<lesssim> n;  n:nat |] ==> Finite(A)"
+lemma lepoll_nat_imp_Finite: "[| A \<lesssim> n;  n \<in> nat |] ==> Finite(A)"
 apply (unfold Finite_def)
 apply (erule rev_mp)
 apply (erule nat_induct)
@@ -811,12 +847,15 @@ apply (blast dest: ltD lesspoll_cardinal_lt
 done
 
 lemma lepoll_Finite:
-     "[| Y \<lesssim> X;  Finite(X) |] ==> Finite(Y)"
-apply (unfold Finite_def)
-apply (blast elim!: eqpollE
-             intro: lepoll_trans [THEN lepoll_nat_imp_Finite
-                                       [unfolded Finite_def]])
-done
+  assumes Y: "Y \<lesssim> X" and X: "Finite(X)" shows "Finite(Y)"
+proof -
+  obtain n where n: "n \<in> nat" "X \<approx> n" using X 
+    by (auto simp add: Finite_def) 
+  have "Y \<lesssim> X"         by (rule Y)
+  also have "... \<approx> n"  by (rule n)
+  finally have "Y \<lesssim> n" .
+  thus ?thesis using n by (simp add: lepoll_nat_imp_Finite)
+qed
 
 lemmas subset_Finite = subset_imp_lepoll [THEN lepoll_Finite]
 
@@ -947,7 +986,7 @@ done
 (*Sidi Ehmety.  The contrapositive says ~Finite(A) ==> ~Finite(A-{a}) *)
 lemma Diff_sing_Finite: "Finite(A - {a}) ==> Finite(A)"
 apply (unfold Finite_def)
-apply (case_tac "a:A")
+apply (case_tac "a \<in> A")
 apply (subgoal_tac [2] "A-{a}=A", auto)
 apply (rule_tac x = "succ (n) " in bexI)
 apply (subgoal_tac "cons (a, A - {a}) = A & cons (n, n) = succ (n) ")
@@ -1010,7 +1049,7 @@ by (blast intro: Finite_Pow Finite_Pow_imp_Finite)
 (*Krzysztof Grabczewski's proof that the converse of a finite, well-ordered
   set is well-ordered.  Proofs simplified by lcp. *)
 
-lemma nat_wf_on_converse_Memrel: "n:nat ==> wf[n](converse(Memrel(n)))"
+lemma nat_wf_on_converse_Memrel: "n \<in> nat ==> wf[n](converse(Memrel(n)))"
 apply (erule nat_induct)
 apply (blast intro: wf_onI)
 apply (rule wf_onI)
@@ -1023,7 +1062,7 @@ txt{*other case*}
 apply (drule_tac x = Z in spec, blast)
 done
 
-lemma nat_well_ord_converse_Memrel: "n:nat ==> well_ord(n,converse(Memrel(n)))"
+lemma nat_well_ord_converse_Memrel: "n \<in> nat ==> well_ord(n,converse(Memrel(n)))"
 apply (frule Ord_nat [THEN Ord_in_Ord, THEN well_ord_Memrel])
 apply (unfold well_ord_def)
 apply (blast intro!: tot_ord_converse nat_wf_on_converse_Memrel)
@@ -1040,13 +1079,16 @@ apply (simp add: rvimage_converse converse_Int converse_prod
 done
 
 lemma ordertype_eq_n:
-     "[| well_ord(A,r);  A \<approx> n;  n:nat |] ==> ordertype(A,r)=n"
-apply (rule Ord_ordertype [THEN Ord_nat_eqpoll_iff, THEN iffD1], assumption+)
-apply (rule eqpoll_trans)
- prefer 2 apply assumption
-apply (unfold eqpoll_def)
-apply (blast intro!: ordermap_bij [THEN bij_converse_bij])
-done
+  assumes r: "well_ord(A,r)" and A: "A \<approx> n" and n: "n \<in> nat" 
+  shows "ordertype(A,r) = n"
+proof -
+  have "ordertype(A,r) \<approx> A" 
+    by (blast intro: bij_imp_eqpoll bij_converse_bij ordermap_bij r) 
+  also have "... \<approx> n" by (rule A)
+  finally have "ordertype(A,r) \<approx> n" .
+  thus ?thesis
+    by (simp add: Ord_nat_eqpoll_iff Ord_ordertype n r) 
+qed
 
 lemma Finite_well_ord_converse:
     "[| Finite(A);  well_ord(A,r) |] ==> well_ord(A,converse(r))"
@@ -1055,18 +1097,24 @@ apply (rule well_ord_converse, assumption)
 apply (blast dest: ordertype_eq_n intro!: nat_well_ord_converse_Memrel)
 done
 
-lemma nat_into_Finite: "n:nat ==> Finite(n)"
+lemma nat_into_Finite: "n \<in> nat ==> Finite(n)"
 apply (unfold Finite_def)
 apply (fast intro!: eqpoll_refl)
 done
 
-lemma nat_not_Finite: "~Finite(nat)"
-apply (unfold Finite_def, clarify)
-apply (drule eqpoll_imp_lepoll [THEN lepoll_cardinal_le], simp)
-apply (insert Card_nat)
-apply (simp add: Card_def)
-apply (drule le_imp_subset)
-apply (blast elim: mem_irrefl)
-done
+lemma nat_not_Finite: "~ Finite(nat)"
+proof -
+  { fix n
+    assume n: "n \<in> nat" "nat \<approx> n"
+    have "n \<in> nat"    by (rule n) 
+    also have "... = n" using n
+      by (simp add: Ord_nat_eqpoll_iff Ord_nat) 
+    finally have "n \<in> n" .
+    hence False 
+      by (blast elim: mem_irrefl) 
+  }
+  thus ?thesis
+    by (auto simp add: Finite_def) 
+qed
 
 end

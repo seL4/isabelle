@@ -123,7 +123,7 @@ lemma eval_minus [simp]:
   by (simp add: minus_pred_def)
 
 instance proof
-qed (auto intro!: pred_eqI simp add: uminus_apply minus_apply INF_apply SUP_apply)
+qed (auto intro!: pred_eqI)
 
 end
 
@@ -143,7 +143,7 @@ lemma eval_bind [simp]:
 
 lemma bind_bind:
   "(P \<guillemotright>= Q) \<guillemotright>= R = P \<guillemotright>= (\<lambda>x. Q x \<guillemotright>= R)"
-  by (rule pred_eqI) (auto simp add: SUP_apply)
+  by (rule pred_eqI) auto
 
 lemma bind_single:
   "P \<guillemotright>= single = P"
@@ -163,7 +163,7 @@ lemma sup_bind:
 
 lemma Sup_bind:
   "(\<Squnion>A \<guillemotright>= f) = \<Squnion>((\<lambda>x. x \<guillemotright>= f) ` A)"
-  by (rule pred_eqI) (auto simp add: SUP_apply)
+  by (rule pred_eqI) auto
 
 lemma pred_iffI:
   assumes "\<And>x. eval A x \<Longrightarrow> eval B x"

@@ -298,9 +298,8 @@ done
 
 lemma wfP_SUP:
   "\<forall>i. wfP (r i) \<Longrightarrow> \<forall>i j. r i \<noteq> r j \<longrightarrow> inf (DomainP (r i)) (RangeP (r j)) = bot \<Longrightarrow> wfP (SUPR UNIV r)"
-  apply (rule wf_UN [where I=UNIV and r="\<lambda>i. {(x, y). r i x y}", to_pred])
-  apply (simp_all add: inf_set_def)
-  apply auto
+  apply (rule wf_UN[to_pred])
+  apply simp_all
   done
 
 lemma wf_Union: 

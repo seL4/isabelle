@@ -10,9 +10,8 @@ begin
 
 text {* A preliminary: classical rules for reasoning on predicates *}
 
-(* CANDIDATE declare predicate1I [Pure.intro!, intro!] *)
-declare predicate1D [Pure.dest?, dest?]
-(* CANDIDATE declare predicate1D [Pure.dest, dest] *)
+declare predicate1I [Pure.intro!, intro!]
+declare predicate1D [Pure.dest, dest]
 declare predicate2I [Pure.intro!, intro!]
 declare predicate2D [Pure.dest, dest]
 declare bot1E [elim!] 
@@ -72,17 +71,17 @@ lemma pred_subset_eq [pred_set_conv]: "(\<lambda>x. x \<in> R) \<le> (\<lambda>x
 lemma pred_subset_eq2 [pred_set_conv]: "(\<lambda>x y. (x, y) \<in> R) \<le> (\<lambda>x y. (x, y) \<in> S) \<longleftrightarrow> R \<subseteq> S"
   by (simp add: subset_iff le_fun_def)
 
-lemma bot_empty_eq (* CANDIDATE [pred_set_conv] *): "\<bottom> = (\<lambda>x. x \<in> {})"
+lemma bot_empty_eq [pred_set_conv]: "\<bottom> = (\<lambda>x. x \<in> {})"
   by (auto simp add: fun_eq_iff)
 
-lemma bot_empty_eq2 (* CANDIDATE [pred_set_conv] *): "\<bottom> = (\<lambda>x y. (x, y) \<in> {})"
+lemma bot_empty_eq2 [pred_set_conv]: "\<bottom> = (\<lambda>x y. (x, y) \<in> {})"
   by (auto simp add: fun_eq_iff)
 
-(* CANDIDATE lemma top_empty_eq [pred_set_conv]: "\<top> = (\<lambda>x. x \<in> UNIV)"
-  by (auto simp add: fun_eq_iff) *)
+lemma top_empty_eq [pred_set_conv]: "\<top> = (\<lambda>x. x \<in> UNIV)"
+  by (auto simp add: fun_eq_iff)
 
-(* CANDIDATE lemma top_empty_eq2 [pred_set_conv]: "\<top> = (\<lambda>x y. (x, y) \<in> UNIV)"
-  by (auto simp add: fun_eq_iff) *)
+lemma top_empty_eq2 [pred_set_conv]: "\<top> = (\<lambda>x y. (x, y) \<in> UNIV)"
+  by (auto simp add: fun_eq_iff)
 
 lemma inf_Int_eq [pred_set_conv]: "(\<lambda>x. x \<in> R) \<sqinter> (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<inter> S)"
   by (simp add: inf_fun_def)
@@ -97,58 +96,41 @@ lemma sup_Un_eq2 [pred_set_conv]: "(\<lambda>x y. (x, y) \<in> R) \<squnion> (\<
   by (simp add: sup_fun_def)
 
 lemma Inf_INT_eq [pred_set_conv]: "\<Sqinter>S = (\<lambda>x. x \<in> INTER S Collect)"
-  by (simp add: fun_eq_iff Inf_apply)
+  by (simp add: fun_eq_iff)
 
-(* CANDIDATE
 lemma INF_Int_eq [pred_set_conv]: "(\<Sqinter>i\<in>S. (\<lambda>x. x \<in> i)) = (\<lambda>x. x \<in> \<Inter>S)"
-  by (simp add: fun_eq_iff INF_apply)
+  by (simp add: fun_eq_iff)
 
 lemma Inf_INT_eq2 [pred_set_conv]: "\<Sqinter>S = (\<lambda>x y. (x, y) \<in> INTER (prod_case ` S) Collect)"
-  by (simp add: fun_eq_iff Inf_apply INF_apply)
+  by (simp add: fun_eq_iff)
 
 lemma INF_Int_eq2 [pred_set_conv]: "(\<Sqinter>i\<in>S. (\<lambda>x y. (x, y) \<in> i)) = (\<lambda>x y. (x, y) \<in> \<Inter>S)"
-  by (simp add: fun_eq_iff INF_apply)
+  by (simp add: fun_eq_iff)
 
 lemma Sup_SUP_eq [pred_set_conv]: "\<Squnion>S = (\<lambda>x. x \<in> UNION S Collect)"
-  by (simp add: fun_eq_iff Sup_apply)
+  by (simp add: fun_eq_iff)
 
 lemma SUP_Sup_eq [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x. x \<in> i)) = (\<lambda>x. x \<in> \<Union>S)"
-  by (simp add: fun_eq_iff SUP_apply)
+  by (simp add: fun_eq_iff)
 
 lemma Sup_SUP_eq2 [pred_set_conv]: "\<Squnion>S = (\<lambda>x y. (x, y) \<in> UNION (prod_case ` S) Collect)"
-  by (simp add: fun_eq_iff Sup_apply SUP_apply)
+  by (simp add: fun_eq_iff)
 
 lemma SUP_Sup_eq2 [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x y. (x, y) \<in> i)) = (\<lambda>x y. (x, y) \<in> \<Union>S)"
-  by (simp add: fun_eq_iff SUP_apply)
-*)
+  by (simp add: fun_eq_iff)
 
-(* CANDIDATE prefer those generalized versions:
-lemma INF_INT_eq [pred_set_conv]: "(\<Sqinter>i\<in>S. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Inter>i\<in>S. r i))"
-  by (simp add: INF_apply fun_eq_iff)
+lemma INF_INT_eq [pred_set_conv]: "(\<Sqinter>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Inter>i. r i))"
+  by (simp add: fun_eq_iff)
 
 lemma INF_INT_eq2 [pred_set_conv]: "(\<Sqinter>i\<in>S. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Inter>i\<in>S. r i))"
-  by (simp add: INF_apply fun_eq_iff)
-*)
-
-lemma INF_INT_eq (* CANDIDATE [pred_set_conv] *): "(\<Sqinter>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Inter>i. r i))"
-  by (simp add: INF_apply fun_eq_iff)
-
-lemma INF_INT_eq2 (* CANDIDATE [pred_set_conv] *): "(\<Sqinter>i. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Inter>i. r i))"
-  by (simp add: INF_apply fun_eq_iff)
-
-(* CANDIDATE prefer those generalized versions:
-lemma SUP_UN_eq [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Union>i\<in>S. r i))"
-  by (simp add: SUP_apply fun_eq_iff)
-
-lemma SUP_UN_eq2 [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Union>i\<in>S. r i))"
-  by (simp add: SUP_apply fun_eq_iff)
-*)
+  by (simp add: fun_eq_iff)
 
 lemma SUP_UN_eq [pred_set_conv]: "(\<Squnion>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Union>i. r i))"
-  by (simp add: SUP_apply fun_eq_iff)
+  by (simp add: fun_eq_iff)
 
-lemma SUP_UN_eq2 [pred_set_conv]: "(\<Squnion>i. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Union>i. r i))"
-  by (simp add: SUP_apply fun_eq_iff)
+lemma SUP_UN_eq2 [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Union>i\<in>S. r i))"
+  by (simp add: fun_eq_iff)
+
 
 
 subsection {* Properties of relations *}
@@ -558,21 +540,22 @@ lemma rel_comp_empty1 [simp]:
   "{} O R = {}"
   by blast
 
-(* CANDIDATE lemma pred_comp_bot1 [simp]:
-  ""
-  by (fact rel_comp_empty1 [to_pred]) *)
+lemma prod_comp_bot1 [simp]:
+  "\<bottom> OO R = \<bottom>"
+  by (fact rel_comp_empty1 [to_pred])
 
 lemma rel_comp_empty2 [simp]:
   "R O {} = {}"
   by blast
 
-(* CANDIDATE lemma pred_comp_bot2 [simp]:
-  ""
-  by (fact rel_comp_empty2 [to_pred]) *)
+lemma pred_comp_bot2 [simp]:
+  "R OO \<bottom> = \<bottom>"
+  by (fact rel_comp_empty2 [to_pred])
 
 lemma O_assoc:
   "(R O S) O T = R O (S O T)"
   by blast
+
 
 lemma pred_comp_assoc:
   "(r OO s) OO t = r OO (s OO t)"
@@ -602,7 +585,7 @@ lemma rel_comp_distrib [simp]:
   "R O (S \<union> T) = (R O S) \<union> (R O T)" 
   by auto
 
-lemma pred_comp_distrib (* CANDIDATE [simp] *):
+lemma pred_comp_distrib [simp]:
   "R OO (S \<squnion> T) = R OO S \<squnion> R OO T"
   by (fact rel_comp_distrib [to_pred])
 
@@ -610,7 +593,7 @@ lemma rel_comp_distrib2 [simp]:
   "(S \<union> T) O R = (S O R) \<union> (T O R)"
   by auto
 
-lemma pred_comp_distrib2 (* CANDIDATE [simp] *):
+lemma pred_comp_distrib2 [simp]:
   "(S \<squnion> T) OO R = S OO R \<squnion> T OO R"
   by (fact rel_comp_distrib2 [to_pred])
 
@@ -672,7 +655,7 @@ lemma converseE [elim!]:
   "yx \<in> r\<inverse> \<Longrightarrow> (\<And>x y. yx = (y, x) \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> P) \<Longrightarrow> P"
   by (cases yx) (simp, erule converse.cases, iprover)
 
-lemmas conversepE (* CANDIDATE [elim!] *) = conversep.cases
+lemmas conversepE [elim!] = conversep.cases
 
 lemma converse_iff [iff]:
   "(a, b) \<in> r\<inverse> \<longleftrightarrow> (b, a) \<in> r"
@@ -828,14 +811,14 @@ lemma Domain_empty_iff: "Domain r = {} \<longleftrightarrow> r = {}"
 lemma Range_empty_iff: "Range r = {} \<longleftrightarrow> r = {}"
   by auto
 
-lemma Domain_insert (* CANDIDATE [simp] *): "Domain (insert (a, b) r) = insert a (Domain r)"
+lemma Domain_insert [simp]: "Domain (insert (a, b) r) = insert a (Domain r)"
   by blast
 
-lemma Range_insert (* CANDIDATE [simp] *): "Range (insert (a, b) r) = insert b (Range r)"
+lemma Range_insert [simp]: "Range (insert (a, b) r) = insert b (Range r)"
   by blast
 
 lemma Field_insert [simp]: "Field (insert (a, b) r) = {a, b} \<union> Field r"
-  by (auto simp add: Field_def Domain_insert Range_insert)
+  by (auto simp add: Field_def)
 
 lemma Domain_iff: "a \<in> Domain r \<longleftrightarrow> (\<exists>y. (a, y) \<in> r)"
   by blast
@@ -901,10 +884,10 @@ lemma Range_Collect_split [simp]: "Range {(x, y). P x y} = {y. EX x. P x y}"
   by auto
 
 lemma finite_Domain: "finite r \<Longrightarrow> finite (Domain r)"
-  by (induct set: finite) (auto simp add: Domain_insert)
+  by (induct set: finite) auto
 
 lemma finite_Range: "finite r \<Longrightarrow> finite (Range r)"
-  by (induct set: finite) (auto simp add: Range_insert)
+  by (induct set: finite) auto
 
 lemma finite_Field: "finite r \<Longrightarrow> finite (Field r)"
   by (simp add: Field_def finite_Domain finite_Range)
