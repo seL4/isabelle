@@ -268,12 +268,6 @@ fun class_of_smt_solver ctxt name =
   ctxt |> select_smt_solver name
        |> SMT_Config.solver_class_of |> SMT_Utils.string_of_class
 
-(* Makes backtraces more transparent and might well be more efficient as
-   well. *)
-fun smart_par_list_map _ [] = []
-  | smart_par_list_map f [x] = [f x]
-  | smart_par_list_map f xs = Par_List.map f xs
-
 fun dest_SMT_Weighted_Fact (SMT_Weighted_Fact p) = p
   | dest_SMT_Weighted_Fact _ = raise Fail "dest_SMT_Weighted_Fact"
 
@@ -330,7 +324,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
                     provers
           else
             provers
-            |> (if blocking then smart_par_list_map else map)
+            |> (if blocking then Par_List.map else map)
                    (launch problem #> fst)
             |> max_outcome_code |> rpair state
         end
@@ -407,7 +401,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
         launch_atps "Unit equational provers" (SOME is_unit_equality) ueq_atps
       fun launch_atps_and_smt_solvers () =
         [launch_full_atps, launch_smts, launch_ueq_atps]
-        |> smart_par_list_map (fn f => ignore (f (unknownN, state)))
+        |> Par_List.map (fn f => ignore (f (unknownN, state)))
         handle ERROR msg => (print ("Error: " ^ msg); error msg)
       fun maybe f (accum as (outcome_code, _)) =
         accum |> (mode = Normal orelse outcome_code <> someN) ? f
