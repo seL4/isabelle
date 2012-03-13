@@ -4,7 +4,9 @@
 
 header {* Arithmetic and boolean expressions *}
 
-theory ABexp imports Main begin
+theory ABexp
+imports Main
+begin
 
 datatype 'a aexp =
     IF "'a bexp"  "'a aexp"  "'a aexp"
@@ -21,7 +23,8 @@ and 'a bexp =
 text {* \medskip Evaluation of arithmetic and boolean expressions *}
 
 primrec evala :: "('a => nat) => 'a aexp => nat"
-  and evalb :: "('a => nat) => 'a bexp => bool" where
+  and evalb :: "('a => nat) => 'a bexp => bool"
+where
   "evala env (IF b a1 a2) = (if evalb env b then evala env a1 else evala env a2)"
 | "evala env (Sum a1 a2) = evala env a1 + evala env a2"
 | "evala env (Diff a1 a2) = evala env a1 - evala env a2"
@@ -36,7 +39,8 @@ primrec evala :: "('a => nat) => 'a aexp => nat"
 text {* \medskip Substitution on arithmetic and boolean expressions *}
 
 primrec substa :: "('a => 'b aexp) => 'a aexp => 'b aexp"
-  and substb :: "('a => 'b aexp) => 'a bexp => 'b bexp" where
+  and substb :: "('a => 'b aexp) => 'a bexp => 'b bexp"
+where
   "substa f (IF b a1 a2) = IF (substb f b) (substa f a1) (substa f a2)"
 | "substa f (Sum a1 a2) = Sum (substa f a1) (substa f a2)"
 | "substa f (Diff a1 a2) = Diff (substa f a1) (substa f a2)"

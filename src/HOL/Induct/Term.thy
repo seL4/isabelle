@@ -4,7 +4,9 @@
 
 header {* Terms over a given alphabet *}
 
-theory Term imports Main begin
+theory Term
+imports Main
+begin
 
 datatype ('a, 'b) "term" =
     Var 'a
@@ -14,7 +16,8 @@ datatype ('a, 'b) "term" =
 text {* \medskip Substitution function on terms *}
 
 primrec subst_term :: "('a => ('a, 'b) term) => ('a, 'b) term => ('a, 'b) term"
-  and subst_term_list :: "('a => ('a, 'b) term) => ('a, 'b) term list => ('a, 'b) term list" where
+  and subst_term_list :: "('a => ('a, 'b) term) => ('a, 'b) term list => ('a, 'b) term list"
+where
   "subst_term f (Var a) = f a"
 | "subst_term f (App b ts) = App b (subst_term_list f ts)"
 | "subst_term_list f [] = []"

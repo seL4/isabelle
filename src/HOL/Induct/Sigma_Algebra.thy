@@ -4,7 +4,9 @@
 
 header {* Sigma algebras *}
 
-theory Sigma_Algebra imports Main begin
+theory Sigma_Algebra
+imports Main
+begin
 
 text {*
   This is just a tiny example demonstrating the use of inductive
@@ -12,14 +14,12 @@ text {*
   \<sigma>}-algebra over a given set of sets.
 *}
 
-inductive_set
-  \<sigma>_algebra :: "'a set set => 'a set set"
-  for A :: "'a set set"
-  where
-    basic: "a \<in> A ==> a \<in> \<sigma>_algebra A"
-  | UNIV: "UNIV \<in> \<sigma>_algebra A"
-  | complement: "a \<in> \<sigma>_algebra A ==> -a \<in> \<sigma>_algebra A"
-  | Union: "(!!i::nat. a i \<in> \<sigma>_algebra A) ==> (\<Union>i. a i) \<in> \<sigma>_algebra A"
+inductive_set \<sigma>_algebra :: "'a set set => 'a set set" for A :: "'a set set"
+where
+  basic: "a \<in> A ==> a \<in> \<sigma>_algebra A"
+| UNIV: "UNIV \<in> \<sigma>_algebra A"
+| complement: "a \<in> \<sigma>_algebra A ==> -a \<in> \<sigma>_algebra A"
+| Union: "(!!i::nat. a i \<in> \<sigma>_algebra A) ==> (\<Union>i. a i) \<in> \<sigma>_algebra A"
 
 text {*
   The following basic facts are consequences of the closure properties
@@ -30,7 +30,7 @@ text {*
 theorem sigma_algebra_empty: "{} \<in> \<sigma>_algebra A"
 proof -
   have "UNIV \<in> \<sigma>_algebra A" by (rule \<sigma>_algebra.UNIV)
-  hence "-UNIV \<in> \<sigma>_algebra A" by (rule \<sigma>_algebra.complement)
+  then have "-UNIV \<in> \<sigma>_algebra A" by (rule \<sigma>_algebra.complement)
   also have "-UNIV = {}" by simp
   finally show ?thesis .
 qed
@@ -39,9 +39,9 @@ theorem sigma_algebra_Inter:
   "(!!i::nat. a i \<in> \<sigma>_algebra A) ==> (\<Inter>i. a i) \<in> \<sigma>_algebra A"
 proof -
   assume "!!i::nat. a i \<in> \<sigma>_algebra A"
-  hence "!!i::nat. -(a i) \<in> \<sigma>_algebra A" by (rule \<sigma>_algebra.complement)
-  hence "(\<Union>i. -(a i)) \<in> \<sigma>_algebra A" by (rule \<sigma>_algebra.Union)
-  hence "-(\<Union>i. -(a i)) \<in> \<sigma>_algebra A" by (rule \<sigma>_algebra.complement)
+  then have "!!i::nat. -(a i) \<in> \<sigma>_algebra A" by (rule \<sigma>_algebra.complement)
+  then have "(\<Union>i. -(a i)) \<in> \<sigma>_algebra A" by (rule \<sigma>_algebra.Union)
+  then have "-(\<Union>i. -(a i)) \<in> \<sigma>_algebra A" by (rule \<sigma>_algebra.complement)
   also have "-(\<Union>i. -(a i)) = (\<Inter>i. a i)" by simp
   finally show ?thesis .
 qed
