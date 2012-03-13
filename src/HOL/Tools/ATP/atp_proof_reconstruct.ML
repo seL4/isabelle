@@ -476,11 +476,11 @@ fun term_from_atom ctxt textual sym_tab pos (u as ATerm (s, _)) =
     pair (term_from_atp ctxt textual sym_tab (SOME @{typ bool}) u)
 
 val combinator_table =
-  [(@{const_name Meson.COMBI}, @{thm Meson.COMBI_def_raw}),
-   (@{const_name Meson.COMBK}, @{thm Meson.COMBK_def_raw}),
-   (@{const_name Meson.COMBB}, @{thm Meson.COMBB_def_raw}),
-   (@{const_name Meson.COMBC}, @{thm Meson.COMBC_def_raw}),
-   (@{const_name Meson.COMBS}, @{thm Meson.COMBS_def_raw})]
+  [(@{const_name Meson.COMBI}, @{thm Meson.COMBI_def [abs_def]}),
+   (@{const_name Meson.COMBK}, @{thm Meson.COMBK_def [abs_def]}),
+   (@{const_name Meson.COMBB}, @{thm Meson.COMBB_def [abs_def]}),
+   (@{const_name Meson.COMBC}, @{thm Meson.COMBC_def [abs_def]}),
+   (@{const_name Meson.COMBS}, @{thm Meson.COMBS_def [abs_def]})]
 
 fun uncombine_term thy =
   let
