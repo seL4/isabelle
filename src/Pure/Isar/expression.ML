@@ -858,7 +858,8 @@ fun gen_interpret prep_expr parse_prop prep_attr
 
     fun after_qed witss eqns =
       (Proof.map_context o Context.proof_map)
-        (note_eqns_register deps witss attrss eqns export export');
+        (note_eqns_register deps witss attrss eqns export export')
+      #> Proof.put_facts NONE;
   in
     state
     |> Element.witness_local_proof_eqs after_qed "interpret" propss eqns goal_ctxt int

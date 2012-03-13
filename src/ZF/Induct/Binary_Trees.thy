@@ -123,10 +123,10 @@ text {*
 *}
 
 lemma n_leaves_reflect: "t \<in> bt(A) ==> n_leaves(bt_reflect(t)) = n_leaves(t)"
-  by (induct set: bt) (simp_all add: add_commute n_leaves_type)
+  by (induct set: bt) (simp_all add: add_commute)
 
 lemma n_leaves_nodes: "t \<in> bt(A) ==> n_leaves(t) = succ(n_nodes(t))"
-  by (induct set: bt) (simp_all add: add_succ_right)
+  by (induct set: bt) simp_all
 
 text {*
   Theorems about @{term bt_reflect}.

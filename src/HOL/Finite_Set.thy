@@ -22,7 +22,8 @@ lemma finite_induct [case_names empty insert, induct set: finite]:
   assumes "P {}"
     and insert: "\<And>x F. finite F \<Longrightarrow> x \<notin> F \<Longrightarrow> P F \<Longrightarrow> P (insert x F)"
   shows "P F"
-using `finite F` proof induct
+using `finite F`
+proof induct
   show "P {}" by fact
   fix x F assume F: "finite F" and P: "P F"
   show "P (insert x F)"
@@ -68,7 +69,8 @@ subsubsection {* Finite sets are the images of initial segments of natural numbe
 lemma finite_imp_nat_seg_image_inj_on:
   assumes "finite A" 
   shows "\<exists>(n::nat) f. A = f ` {i. i < n} \<and> inj_on f {i. i < n}"
-using assms proof induct
+using assms
+proof induct
   case empty
   show ?case
   proof
@@ -248,7 +250,8 @@ lemma finite_image_set [simp]:
 lemma finite_imageD:
   assumes "finite (f ` A)" and "inj_on f A"
   shows "finite A"
-using assms proof (induct "f ` A" arbitrary: A)
+using assms
+proof (induct "f ` A" arbitrary: A)
   case empty then show ?case by simp
 next
   case (insert x B)
@@ -272,7 +275,8 @@ lemma finite_range_imageI:
 lemma finite_subset_image:
   assumes "finite B"
   shows "B \<subseteq> f ` A \<Longrightarrow> \<exists>C\<subseteq>A. finite C \<and> B = f ` C"
-using assms proof induct
+using assms
+proof induct
   case empty then show ?case by simp
 next
   case insert then show ?case
@@ -413,7 +417,8 @@ lemma finite_ne_induct [case_names singleton insert, consumes 2]:
   assumes "\<And>x. P {x}"
     and "\<And>x F. finite F \<Longrightarrow> F \<noteq> {} \<Longrightarrow> x \<notin> F \<Longrightarrow> P F  \<Longrightarrow> P (insert x F)"
   shows "P F"
-using assms proof induct
+using assms
+proof induct
   case empty then show ?case by simp
 next
   case (insert x F) then show ?case by cases auto
@@ -424,7 +429,8 @@ lemma finite_subset_induct [consumes 2, case_names empty insert]:
   assumes empty: "P {}"
     and insert: "\<And>a F. finite F \<Longrightarrow> a \<in> A \<Longrightarrow> a \<notin> F \<Longrightarrow> P F \<Longrightarrow> P (insert a F)"
   shows "P F"
-using `finite F` `F \<subseteq> A` proof induct
+using `finite F` `F \<subseteq> A`
+proof induct
   show "P {}" by fact
 next
   fix x F
@@ -486,8 +492,8 @@ lemma finite_code [code]: "finite (A \<Colon> 'a set) \<longleftrightarrow> True
 
 end
 
-instance prod :: (finite, finite) finite proof
-qed (simp only: UNIV_Times_UNIV [symmetric] finite_cartesian_product finite)
+instance prod :: (finite, finite) finite
+  by default (simp only: UNIV_Times_UNIV [symmetric] finite_cartesian_product finite)
 
 lemma inj_graph: "inj (%f. {(x, y). y = f x})"
   by (rule inj_onI, auto simp add: set_eq_iff fun_eq_iff)
@@ -506,24 +512,24 @@ proof
   qed
 qed
 
-instance bool :: finite proof
-qed (simp add: UNIV_bool)
+instance bool :: finite
+  by default (simp add: UNIV_bool)
 
 instance set :: (finite) finite
   by default (simp only: Pow_UNIV [symmetric] finite_Pow_iff finite)
 
-instance unit :: finite proof
-qed (simp add: UNIV_unit)
+instance unit :: finite
+  by default (simp add: UNIV_unit)
 
-instance sum :: (finite, finite) finite proof
-qed (simp only: UNIV_Plus_UNIV [symmetric] finite_Plus finite)
+instance sum :: (finite, finite) finite
+  by default (simp only: UNIV_Plus_UNIV [symmetric] finite_Plus finite)
 
 lemma finite_option_UNIV [simp]:
   "finite (UNIV :: 'a option set) = finite (UNIV :: 'a set)"
   by (auto simp add: UNIV_option_conv elim: finite_imageD intro: inj_Some)
 
-instance option :: (finite) finite proof
-qed (simp add: UNIV_option_conv)
+instance option :: (finite) finite
+  by default (simp add: UNIV_option_conv)
 
 
 subsection {* A basic fold functional for finite sets *}
@@ -830,9 +836,9 @@ lemma fold_image_insert[simp]:
   assumes "finite A" and "a \<notin> A"
   shows "fold_image times g z (insert a A) = g a * (fold_image times g z A)"
 proof -
-  interpret comp_fun_commute "%x y. (g x) * y" proof
-  qed (simp add: fun_eq_iff mult_ac)
-  show ?thesis using assms by (simp add: fold_image_def)
+  interpret comp_fun_commute "%x y. (g x) * y"
+    by default (simp add: fun_eq_iff mult_ac)
+  from assms show ?thesis by (simp add: fold_image_def)
 qed
 
 lemma fold_image_reindex:
@@ -1018,8 +1024,8 @@ text{*First, some lemmas about @{const fold_graph}.*}
 context ab_semigroup_mult
 begin
 
-lemma comp_fun_commute: "comp_fun_commute (op *)" proof
-qed (simp add: fun_eq_iff mult_ac)
+lemma comp_fun_commute: "comp_fun_commute (op *)"
+  by default (simp add: fun_eq_iff mult_ac)
 
 lemma fold_graph_insert_swap:
 assumes fold: "fold_graph times (b::'a) A y" and "b \<notin> A"
@@ -1104,8 +1110,8 @@ end
 context ab_semigroup_idem_mult
 begin
 
-lemma comp_fun_idem: "comp_fun_idem (op *)" proof
-qed (simp_all add: fun_eq_iff mult_left_commute)
+lemma comp_fun_idem: "comp_fun_idem (op *)"
+  by default (simp_all add: fun_eq_iff mult_left_commute)
 
 lemma fold1_insert_idem [simp]:
   assumes nonempty: "A \<noteq> {}" and A: "finite A" 
@@ -1137,7 +1143,8 @@ qed
 lemma hom_fold1_commute:
 assumes hom: "!!x y. h (x * y) = h x * h y"
 and N: "finite N" "N \<noteq> {}" shows "h (fold1 times N) = fold1 times (h ` N)"
-using N proof (induct rule: finite_ne_induct)
+using N
+proof (induct rule: finite_ne_induct)
   case singleton thus ?case by simp
 next
   case (insert n N)
@@ -1293,8 +1300,8 @@ lemma insert [simp]:
   assumes "finite A" and "x \<notin> A"
   shows "F (insert x A) = F A \<circ> f x"
 proof -
-  interpret comp_fun_commute f proof
-  qed (insert comp_fun_commute, simp add: fun_eq_iff)
+  interpret comp_fun_commute f
+    by default (insert comp_fun_commute, simp add: fun_eq_iff)
   from fold_insert2 assms
   have "\<And>s. fold f s (insert x A) = fold f (f x s) A" .
   with `finite A` show ?thesis by (simp add: eq_fold fun_eq_iff)
@@ -1426,9 +1433,9 @@ lemma insert [simp]:
   assumes "finite A" and "x \<notin> A"
   shows "F (insert x A) = g x * F A"
 proof -
-  interpret comp_fun_commute "%x y. (g x) * y" proof
-  qed (simp add: ac_simps fun_eq_iff)
-  with assms have "fold_image (op *) g 1 (insert x A) = g x * fold_image (op *) g 1 A"
+  interpret comp_fun_commute "%x y. (g x) * y"
+    by default (simp add: ac_simps fun_eq_iff)
+  from assms have "fold_image (op *) g 1 (insert x A) = g x * fold_image (op *) g 1 A"
     by (simp add: fold_image_def)
   with `finite A` show ?thesis by (simp add: eq_fold_g)
 qed
@@ -1650,8 +1657,8 @@ lemma eq_fold':
   assumes "finite A" and "x \<notin> A"
   shows "F (insert x A) = fold (op *) x A"
 proof -
-  interpret ab_semigroup_mult "op *" proof qed (simp_all add: ac_simps)
-  with assms show ?thesis by (simp add: eq_fold fold1_eq_fold)
+  interpret ab_semigroup_mult "op *" by default (simp_all add: ac_simps)
+  from assms show ?thesis by (simp add: eq_fold fold1_eq_fold)
 qed
 
 lemma insert [simp]:
@@ -1756,8 +1763,8 @@ lemma eq_fold_idem':
   assumes "finite A"
   shows "F (insert a A) = fold (op *) a A"
 proof -
-  interpret ab_semigroup_idem_mult "op *" proof qed (simp_all add: ac_simps)
-  with assms show ?thesis by (simp add: eq_fold fold1_eq_fold_idem)
+  interpret ab_semigroup_idem_mult "op *" by default (simp_all add: ac_simps)
+  from assms show ?thesis by (simp add: eq_fold fold1_eq_fold_idem)
 qed
 
 lemma insert_idem [simp]:

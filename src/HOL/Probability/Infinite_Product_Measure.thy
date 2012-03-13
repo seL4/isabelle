@@ -502,7 +502,7 @@ next
     fix A assume "A \<in> sets ?G"
     with generatorE guess J X . note JX = this
     interpret JK: finite_product_prob_space M J by default fact+
-    with JX show "\<mu>G A \<noteq> \<infinity>" by simp
+    from JX show "\<mu>G A \<noteq> \<infinity>" by simp
   next
     fix A assume A: "range A \<subseteq> sets ?G" "decseq A" "(\<Inter>i. A i) = {}"
     then have "decseq (\<lambda>i. \<mu>G (A i))"
