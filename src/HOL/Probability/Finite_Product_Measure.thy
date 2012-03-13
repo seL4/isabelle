@@ -858,7 +858,7 @@ lemma (in product_sigma_finite) product_positive_integral_setprod:
 using assms proof induct
   case empty
   interpret finite_product_sigma_finite M "{}" by default auto
-  then show ?case by simp
+  show ?case by simp
 next
   case (insert i I)
   note `finite I`[intro, simp]

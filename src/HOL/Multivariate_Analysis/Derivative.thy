@@ -1689,7 +1689,7 @@ lemma vector_derivative_works:
 proof
   assume ?l guess f' using `?l`[unfolded differentiable_def] .. note f' = this
   then interpret bounded_linear f' by auto
-  thus ?r unfolding vector_derivative_def has_vector_derivative_def
+  show ?r unfolding vector_derivative_def has_vector_derivative_def
     apply-apply(rule someI_ex,rule_tac x="f' 1" in exI)
     using f' unfolding scaleR[THEN sym] by auto
 next

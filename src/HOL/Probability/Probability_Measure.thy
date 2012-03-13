@@ -622,7 +622,7 @@ lemma (in prob_space) finite_random_variableD:
   assumes "finite_random_variable M' X" shows "random_variable M' X"
 proof -
   interpret M': finite_sigma_algebra M' using assms by simp
-  then show "random_variable M' X" using assms by simp default
+  show "random_variable M' X" using assms by simp default
 qed
 
 lemma (in prob_space) distribution_finite_prob_space:

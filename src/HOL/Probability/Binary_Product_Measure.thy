@@ -197,7 +197,7 @@ proof (intro CollectI conjI Pi_I ballI)
 next
   fix A assume "A \<in> sets (M2 \<Otimes>\<^isub>M M1)"
   interpret Q: pair_sigma_algebra M2 M1 by default
-  with Q.sets_pair_sigma_algebra_swap[OF `A \<in> sets (M2 \<Otimes>\<^isub>M M1)`]
+  from Q.sets_pair_sigma_algebra_swap[OF `A \<in> sets (M2 \<Otimes>\<^isub>M M1)`]
   show "?f -` A \<inter> space ?P \<in> sets ?P" by simp
 qed
 
@@ -221,7 +221,7 @@ lemma (in pair_sigma_algebra) measurable_cut_snd:
   assumes Q: "Q \<in> sets P" shows "(\<lambda>x. (x, y)) -` Q \<in> sets M1" (is "?cut Q \<in> sets M1")
 proof -
   interpret Q: pair_sigma_algebra M2 M1 by default
-  with Q.measurable_cut_fst[OF sets_pair_sigma_algebra_swap[OF Q], of y]
+  from Q.measurable_cut_fst[OF sets_pair_sigma_algebra_swap[OF Q], of y]
   show ?thesis by (simp add: vimage_compose[symmetric] comp_def)
 qed
 

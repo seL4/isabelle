@@ -4483,7 +4483,8 @@ lemma sorted_list_of_set_insert [simp]:
   shows "sorted_list_of_set (insert x A) = insort x (sorted_list_of_set (A - {x}))"
 proof -
   interpret comp_fun_commute insort by (fact comp_fun_commute_insort)
-  with assms show ?thesis by (simp add: sorted_list_of_set_def fold_insert_remove)
+  from assms show ?thesis
+    by (simp add: sorted_list_of_set_def fold_insert_remove)
 qed
 
 lemma sorted_list_of_set [simp]:
