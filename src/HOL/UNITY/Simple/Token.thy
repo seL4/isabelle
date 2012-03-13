@@ -59,7 +59,10 @@ apply (simp add: H_def E_def T_def)
 apply (cases "proc s i", auto)
 done
 
-lemma (in Token) token_stable: "F \<in> stable (-(E i) \<union> (HasTok i))"
+context Token
+begin
+
+lemma token_stable: "F \<in> stable (-(E i) \<union> (HasTok i))"
 apply (unfold stable_def)
 apply (rule constrains_weaken)
 apply (rule constrains_Un [OF constrains_Un [OF TR2 TR4] TR5])
@@ -70,12 +73,12 @@ done
 
 subsection{*Progress under Weak Fairness*}
 
-lemma (in Token) wf_nodeOrder: "wf(nodeOrder j)"
+lemma wf_nodeOrder: "wf(nodeOrder j)"
 apply (unfold nodeOrder_def)
 apply (rule wf_measure [THEN wf_subset], blast)
 done
 
-lemma (in Token) nodeOrder_eq: 
+lemma nodeOrder_eq: 
      "[| i<N; j<N |] ==> ((next i, i) \<in> nodeOrder j) = (i \<noteq> j)"
 apply (unfold nodeOrder_def next_def)
 apply (auto simp add: mod_Suc mod_geq)
@@ -84,7 +87,7 @@ done
 
 text{*From "A Logic for Concurrent Programming", but not used in Chapter 4.
   Note the use of @{text cases}.  Reasoning about leadsTo takes practice!*}
-lemma (in Token) TR7_nodeOrder:
+lemma TR7_nodeOrder:
      "[| i<N; j<N |] ==>    
       F \<in> (HasTok i) leadsTo ({s. (token s, i) \<in> nodeOrder j} \<union> HasTok j)"
 apply (cases "i=j")
@@ -95,19 +98,19 @@ done
 
 
 text{*Chapter 4 variant, the one actually used below.*}
-lemma (in Token) TR7_aux: "[| i<N; j<N; i\<noteq>j |]     
+lemma TR7_aux: "[| i<N; j<N; i\<noteq>j |]     
       ==> F \<in> (HasTok i) leadsTo {s. (token s, i) \<in> nodeOrder j}"
 apply (rule TR7 [THEN leadsTo_weaken_R])
 apply (auto simp add: HasTok_def nodeOrder_eq)
 done
 
-lemma (in Token) token_lemma:
+lemma token_lemma:
      "({s. token s < N} \<inter> token -` {m}) = (if m<N then token -` {m} else {})"
 by auto
 
 
 text{*Misra's TR9: the token reaches an arbitrary node*}
-lemma  (in Token) leadsTo_j: "j<N ==> F \<in> {s. token s < N} leadsTo (HasTok j)"
+lemma leadsTo_j: "j<N ==> F \<in> {s. token s < N} leadsTo (HasTok j)"
 apply (rule leadsTo_weaken_R)
 apply (rule_tac I = "-{j}" and f = token and B = "{}" 
        in wf_nodeOrder [THEN bounded_induct])
@@ -119,12 +122,13 @@ apply (auto simp add: HasTok_def nodeOrder_def)
 done
 
 text{*Misra's TR8: a hungry process eventually eats*}
-lemma (in Token) token_progress:
+lemma token_progress:
      "j<N ==> F \<in> ({s. token s < N} \<inter> H j) leadsTo (E j)"
 apply (rule leadsTo_cancel1 [THEN leadsTo_Un_duplicate])
 apply (rule_tac [2] TR6)
 apply (rule psp [OF leadsTo_j TR3, THEN leadsTo_weaken], blast+)
 done
 
+end
 
 end

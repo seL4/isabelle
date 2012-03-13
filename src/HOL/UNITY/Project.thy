@@ -26,7 +26,10 @@ definition subset_closed :: "'a set set => bool" where
     "subset_closed U == \<forall>A \<in> U. Pow A \<subseteq> U"  
 
 
-lemma (in Extend) project_extend_constrains_I:
+context Extend
+begin
+
+lemma project_extend_constrains_I:
      "F \<in> A co B ==> project h C (extend h F) \<in> A co B"
 apply (auto simp add: extend_act_def project_act_def constrains_def)
 done
@@ -35,7 +38,7 @@ done
 subsection{*Safety*}
 
 (*used below to prove Join_project_ensures*)
-lemma (in Extend) project_unless:
+lemma project_unless:
      "[| G \<in> stable C;  project h C G \<in> A unless B |]  
       ==> G \<in> (C \<inter> extend_set h A) unless (extend_set h B)"
 apply (simp add: unless_def project_constrains)
@@ -44,7 +47,7 @@ done
 
 (*Generalizes project_constrains to the program F\<squnion>project h C G
   useful with guarantees reasoning*)
-lemma (in Extend) Join_project_constrains:
+lemma Join_project_constrains:
      "(F\<squnion>project h C G \<in> A co B)  =   
         (extend h F\<squnion>G \<in> (C \<inter> extend_set h A) co (extend_set h B) &   
          F \<in> A co B)"
@@ -55,7 +58,7 @@ done
 
 (*The condition is required to prove the left-to-right direction
   could weaken it to G \<in> (C \<inter> extend_set h A) co C*)
-lemma (in Extend) Join_project_stable: 
+lemma Join_project_stable: 
      "extend h F\<squnion>G \<in> stable C  
       ==> (F\<squnion>project h C G \<in> stable A)  =   
           (extend h F\<squnion>G \<in> stable (C \<inter> extend_set h A) &   
@@ -66,14 +69,14 @@ apply (blast intro: constrains_weaken dest: constrains_Int)
 done
 
 (*For using project_guarantees in particular cases*)
-lemma (in Extend) project_constrains_I:
+lemma project_constrains_I:
      "extend h F\<squnion>G \<in> extend_set h A co extend_set h B  
       ==> F\<squnion>project h C G \<in> A co B"
 apply (simp add: project_constrains extend_constrains)
 apply (blast intro: constrains_weaken dest: constrains_imp_subset)
 done
 
-lemma (in Extend) project_increasing_I: 
+lemma project_increasing_I: 
      "extend h F\<squnion>G \<in> increasing (func o f)  
       ==> F\<squnion>project h C G \<in> increasing func"
 apply (unfold increasing_def stable_def)
@@ -81,7 +84,7 @@ apply (simp del: Join_constrains
             add: project_constrains_I extend_set_eq_Collect)
 done
 
-lemma (in Extend) Join_project_increasing:
+lemma Join_project_increasing:
      "(F\<squnion>project h UNIV G \<in> increasing func)  =   
       (extend h F\<squnion>G \<in> increasing (func o f))"
 apply (rule iffI)
@@ -92,10 +95,12 @@ apply (auto simp add: extend_set_eq_Collect extend_stable [THEN iffD1])
 done
 
 (*The UNIV argument is essential*)
-lemma (in Extend) project_constrains_D:
+lemma project_constrains_D:
      "F\<squnion>project h UNIV G \<in> A co B  
       ==> extend h F\<squnion>G \<in> extend_set h A co extend_set h B"
 by (simp add: project_constrains extend_constrains)
+
+end
 
 
 subsection{*"projecting" and union/intersection (no converses)*}
@@ -159,41 +164,44 @@ by (unfold extending_def, auto)
 lemma projecting_UNIV: "projecting C h F X' UNIV"
 by (simp add: projecting_def)
 
-lemma (in Extend) projecting_constrains: 
+context Extend
+begin
+
+lemma projecting_constrains: 
      "projecting C h F (extend_set h A co extend_set h B) (A co B)"
 apply (unfold projecting_def)
 apply (blast intro: project_constrains_I)
 done
 
-lemma (in Extend) projecting_stable: 
+lemma projecting_stable: 
      "projecting C h F (stable (extend_set h A)) (stable A)"
 apply (unfold stable_def)
 apply (rule projecting_constrains)
 done
 
-lemma (in Extend) projecting_increasing: 
+lemma projecting_increasing: 
      "projecting C h F (increasing (func o f)) (increasing func)"
 apply (unfold projecting_def)
 apply (blast intro: project_increasing_I)
 done
 
-lemma (in Extend) extending_UNIV: "extending C h F UNIV Y"
+lemma extending_UNIV: "extending C h F UNIV Y"
 apply (simp (no_asm) add: extending_def)
 done
 
-lemma (in Extend) extending_constrains: 
+lemma extending_constrains: 
      "extending (%G. UNIV) h F (extend_set h A co extend_set h B) (A co B)"
 apply (unfold extending_def)
 apply (blast intro: project_constrains_D)
 done
 
-lemma (in Extend) extending_stable: 
+lemma extending_stable: 
      "extending (%G. UNIV) h F (stable (extend_set h A)) (stable A)"
 apply (unfold stable_def)
 apply (rule extending_constrains)
 done
 
-lemma (in Extend) extending_increasing: 
+lemma extending_increasing: 
      "extending (%G. UNIV) h F (increasing (func o f)) (increasing func)"
 by (force simp only: extending_def Join_project_increasing)
 
@@ -201,7 +209,7 @@ by (force simp only: extending_def Join_project_increasing)
 subsection{*Reachability and project*}
 
 (*In practice, C = reachable(...): the inclusion is equality*)
-lemma (in Extend) reachable_imp_reachable_project:
+lemma reachable_imp_reachable_project:
      "[| reachable (extend h F\<squnion>G) \<subseteq> C;   
          z \<in> reachable (extend h F\<squnion>G) |]  
       ==> f z \<in> reachable (F\<squnion>project h C G)"
@@ -214,7 +222,7 @@ apply (rule_tac act1 = "Restrict C act"
        in project_act_I [THEN [3] reachable.Acts], auto) 
 done
 
-lemma (in Extend) project_Constrains_D: 
+lemma project_Constrains_D: 
      "F\<squnion>project h (reachable (extend h F\<squnion>G)) G \<in> A Co B   
       ==> extend h F\<squnion>G \<in> (extend_set h A) Co (extend_set h B)"
 apply (unfold Constrains_def)
@@ -224,21 +232,21 @@ apply (erule constrains_weaken)
 apply (auto intro: reachable_imp_reachable_project)
 done
 
-lemma (in Extend) project_Stable_D: 
+lemma project_Stable_D: 
      "F\<squnion>project h (reachable (extend h F\<squnion>G)) G \<in> Stable A   
       ==> extend h F\<squnion>G \<in> Stable (extend_set h A)"
 apply (unfold Stable_def)
 apply (simp (no_asm_simp) add: project_Constrains_D)
 done
 
-lemma (in Extend) project_Always_D: 
+lemma project_Always_D: 
      "F\<squnion>project h (reachable (extend h F\<squnion>G)) G \<in> Always A   
       ==> extend h F\<squnion>G \<in> Always (extend_set h A)"
 apply (unfold Always_def)
 apply (force intro: reachable.Init simp add: project_Stable_D split_extended_all)
 done
 
-lemma (in Extend) project_Increasing_D: 
+lemma project_Increasing_D: 
      "F\<squnion>project h (reachable (extend h F\<squnion>G)) G \<in> Increasing func   
       ==> extend h F\<squnion>G \<in> Increasing (func o f)"
 apply (unfold Increasing_def, auto)
@@ -250,7 +258,7 @@ done
 subsection{*Converse results for weak safety: benefits of the argument C *}
 
 (*In practice, C = reachable(...): the inclusion is equality*)
-lemma (in Extend) reachable_project_imp_reachable:
+lemma reachable_project_imp_reachable:
      "[| C \<subseteq> reachable(extend h F\<squnion>G);    
          x \<in> reachable (F\<squnion>project h C G) |]  
       ==> \<exists>y. h(x,y) \<in> reachable (extend h F\<squnion>G)"
@@ -260,21 +268,21 @@ apply (auto simp add: project_act_def)
 apply (force del: Id_in_Acts intro: reachable.Acts extend_act_D)+
 done
 
-lemma (in Extend) project_set_reachable_extend_eq:
+lemma project_set_reachable_extend_eq:
      "project_set h (reachable (extend h F\<squnion>G)) =  
       reachable (F\<squnion>project h (reachable (extend h F\<squnion>G)) G)"
 by (auto dest: subset_refl [THEN reachable_imp_reachable_project] 
                subset_refl [THEN reachable_project_imp_reachable])
 
 (*UNUSED*)
-lemma (in Extend) reachable_extend_Join_subset:
+lemma reachable_extend_Join_subset:
      "reachable (extend h F\<squnion>G) \<subseteq> C   
       ==> reachable (extend h F\<squnion>G) \<subseteq>  
           extend_set h (reachable (F\<squnion>project h C G))"
 apply (auto dest: reachable_imp_reachable_project)
 done
 
-lemma (in Extend) project_Constrains_I: 
+lemma project_Constrains_I: 
      "extend h F\<squnion>G \<in> (extend_set h A) Co (extend_set h B)   
       ==> F\<squnion>project h (reachable (extend h F\<squnion>G)) G \<in> A Co B"
 apply (unfold Constrains_def)
@@ -288,14 +296,14 @@ apply (rule conjI)
 apply (blast intro: constrains_weaken_L)
 done
 
-lemma (in Extend) project_Stable_I: 
+lemma project_Stable_I: 
      "extend h F\<squnion>G \<in> Stable (extend_set h A)   
       ==> F\<squnion>project h (reachable (extend h F\<squnion>G)) G \<in> Stable A"
 apply (unfold Stable_def)
 apply (simp (no_asm_simp) add: project_Constrains_I)
 done
 
-lemma (in Extend) project_Always_I: 
+lemma project_Always_I: 
      "extend h F\<squnion>G \<in> Always (extend_set h A)   
       ==> F\<squnion>project h (reachable (extend h F\<squnion>G)) G \<in> Always A"
 apply (unfold Always_def)
@@ -303,27 +311,27 @@ apply (auto simp add: project_Stable_I)
 apply (unfold extend_set_def, blast)
 done
 
-lemma (in Extend) project_Increasing_I: 
+lemma project_Increasing_I: 
     "extend h F\<squnion>G \<in> Increasing (func o f)   
      ==> F\<squnion>project h (reachable (extend h F\<squnion>G)) G \<in> Increasing func"
 apply (unfold Increasing_def, auto)
 apply (simp (no_asm_simp) add: extend_set_eq_Collect project_Stable_I)
 done
 
-lemma (in Extend) project_Constrains:
+lemma project_Constrains:
      "(F\<squnion>project h (reachable (extend h F\<squnion>G)) G \<in> A Co B)  =   
       (extend h F\<squnion>G \<in> (extend_set h A) Co (extend_set h B))"
 apply (blast intro: project_Constrains_I project_Constrains_D)
 done
 
-lemma (in Extend) project_Stable: 
+lemma project_Stable: 
      "(F\<squnion>project h (reachable (extend h F\<squnion>G)) G \<in> Stable A)  =   
       (extend h F\<squnion>G \<in> Stable (extend_set h A))"
 apply (unfold Stable_def)
 apply (rule project_Constrains)
 done
 
-lemma (in Extend) project_Increasing: 
+lemma project_Increasing: 
    "(F\<squnion>project h (reachable (extend h F\<squnion>G)) G \<in> Increasing func)  =  
     (extend h F\<squnion>G \<in> Increasing (func o f))"
 apply (simp (no_asm_simp) add: Increasing_def project_Stable extend_set_eq_Collect)
@@ -332,7 +340,7 @@ done
 subsection{*A lot of redundant theorems: all are proved to facilitate reasoning
     about guarantees.*}
 
-lemma (in Extend) projecting_Constrains: 
+lemma projecting_Constrains: 
      "projecting (%G. reachable (extend h F\<squnion>G)) h F  
                  (extend_set h A Co extend_set h B) (A Co B)"
 
@@ -340,49 +348,49 @@ apply (unfold projecting_def)
 apply (blast intro: project_Constrains_I)
 done
 
-lemma (in Extend) projecting_Stable: 
+lemma projecting_Stable: 
      "projecting (%G. reachable (extend h F\<squnion>G)) h F  
                  (Stable (extend_set h A)) (Stable A)"
 apply (unfold Stable_def)
 apply (rule projecting_Constrains)
 done
 
-lemma (in Extend) projecting_Always: 
+lemma projecting_Always: 
      "projecting (%G. reachable (extend h F\<squnion>G)) h F  
                  (Always (extend_set h A)) (Always A)"
 apply (unfold projecting_def)
 apply (blast intro: project_Always_I)
 done
 
-lemma (in Extend) projecting_Increasing: 
+lemma projecting_Increasing: 
      "projecting (%G. reachable (extend h F\<squnion>G)) h F  
                  (Increasing (func o f)) (Increasing func)"
 apply (unfold projecting_def)
 apply (blast intro: project_Increasing_I)
 done
 
-lemma (in Extend) extending_Constrains: 
+lemma extending_Constrains: 
      "extending (%G. reachable (extend h F\<squnion>G)) h F  
                   (extend_set h A Co extend_set h B) (A Co B)"
 apply (unfold extending_def)
 apply (blast intro: project_Constrains_D)
 done
 
-lemma (in Extend) extending_Stable: 
+lemma extending_Stable: 
      "extending (%G. reachable (extend h F\<squnion>G)) h F  
                   (Stable (extend_set h A)) (Stable A)"
 apply (unfold extending_def)
 apply (blast intro: project_Stable_D)
 done
 
-lemma (in Extend) extending_Always: 
+lemma extending_Always: 
      "extending (%G. reachable (extend h F\<squnion>G)) h F  
                   (Always (extend_set h A)) (Always A)"
 apply (unfold extending_def)
 apply (blast intro: project_Always_D)
 done
 
-lemma (in Extend) extending_Increasing: 
+lemma extending_Increasing: 
      "extending (%G. reachable (extend h F\<squnion>G)) h F  
                   (Increasing (func o f)) (Increasing func)"
 apply (unfold extending_def)
@@ -394,7 +402,7 @@ subsection{*leadsETo in the precondition (??)*}
 
 subsubsection{*transient*}
 
-lemma (in Extend) transient_extend_set_imp_project_transient: 
+lemma transient_extend_set_imp_project_transient: 
      "[| G \<in> transient (C \<inter> extend_set h A);  G \<in> stable C |]   
       ==> project h C G \<in> transient (project_set h C \<inter> A)"
 apply (auto simp add: transient_def Domain_project_act)
@@ -408,7 +416,7 @@ apply (simp add: extend_set_def project_act_def, blast)
 done
 
 (*converse might hold too?*)
-lemma (in Extend) project_extend_transient_D: 
+lemma project_extend_transient_D: 
      "project h C (extend h F) \<in> transient (project_set h C \<inter> D)  
       ==> F \<in> transient (project_set h C \<inter> D)"
 apply (simp add: transient_def Domain_project_act, safe)
@@ -419,12 +427,12 @@ done
 subsubsection{*ensures -- a primitive combining progress with safety*}
 
 (*Used to prove project_leadsETo_I*)
-lemma (in Extend) ensures_extend_set_imp_project_ensures:
+lemma ensures_extend_set_imp_project_ensures:
      "[| extend h F \<in> stable C;  G \<in> stable C;   
          extend h F\<squnion>G \<in> A ensures B;  A-B = C \<inter> extend_set h D |]   
       ==> F\<squnion>project h C G   
             \<in> (project_set h C \<inter> project_set h A) ensures (project_set h B)"
-apply (simp add: ensures_def project_constrains Join_transient extend_transient,
+apply (simp add: ensures_def project_constrains extend_transient,
        clarify)
 apply (intro conjI) 
 (*first subgoal*)
@@ -451,7 +459,7 @@ apply (force dest!: equalityD1
 done
 
 text{*Transferring a transient property upwards*}
-lemma (in Extend) project_transient_extend_set:
+lemma project_transient_extend_set:
      "project h C G \<in> transient (project_set h C \<inter> A - B)
       ==> G \<in> transient (C \<inter> extend_set h A - extend_set h B)"
 apply (simp add: transient_def project_set_def extend_set_def project_act_def)
@@ -460,7 +468,7 @@ apply (elim disjE bexE)
   apply (blast intro!: rev_bexI )+
 done
 
-lemma (in Extend) project_unless2:
+lemma project_unless2:
      "[| G \<in> stable C;  project h C G \<in> (project_set h C \<inter> A) unless B |]  
       ==> G \<in> (C \<inter> extend_set h A) unless (extend_set h B)"
 by (auto dest: stable_constrains_Int intro: constrains_weaken
@@ -468,7 +476,7 @@ by (auto dest: stable_constrains_Int intro: constrains_weaken
                    Int_extend_set_lemma)
 
 
-lemma (in Extend) extend_unless:
+lemma extend_unless:
    "[|extend h F \<in> stable C; F \<in> A unless B|]
     ==> extend h F \<in> C \<inter> extend_set h A unless extend_set h B"
 apply (simp add: unless_def stable_def)
@@ -479,7 +487,7 @@ apply blast
 done
 
 (*Used to prove project_leadsETo_D*)
-lemma (in Extend) Join_project_ensures:
+lemma Join_project_ensures:
      "[| extend h F\<squnion>G \<in> stable C;   
          F\<squnion>project h C G \<in> A ensures B |]  
       ==> extend h F\<squnion>G \<in> (C \<inter> extend_set h A) ensures (extend_set h B)"
@@ -493,18 +501,18 @@ text{*Lemma useful for both STRONG and WEAK progress, but the transient
 
 (*The strange induction formula allows induction over the leadsTo
   assumption's non-atomic precondition*)
-lemma (in Extend) PLD_lemma:
+lemma PLD_lemma:
      "[| extend h F\<squnion>G \<in> stable C;   
          F\<squnion>project h C G \<in> (project_set h C \<inter> A) leadsTo B |]  
       ==> extend h F\<squnion>G \<in>  
           C \<inter> extend_set h (project_set h C \<inter> A) leadsTo (extend_set h B)"
 apply (erule leadsTo_induct)
-  apply (blast intro: leadsTo_Basis Join_project_ensures)
+  apply (blast intro: Join_project_ensures)
  apply (blast intro: psp_stable2 [THEN leadsTo_weaken_L] leadsTo_Trans)
 apply (simp del: UN_simps add: Int_UN_distrib leadsTo_UN extend_set_Union)
 done
 
-lemma (in Extend) project_leadsTo_D_lemma:
+lemma project_leadsTo_D_lemma:
      "[| extend h F\<squnion>G \<in> stable C;   
          F\<squnion>project h C G \<in> (project_set h C \<inter> A) leadsTo B |]  
       ==> extend h F\<squnion>G \<in> (C \<inter> extend_set h A) leadsTo (extend_set h B)"
@@ -512,7 +520,7 @@ apply (rule PLD_lemma [THEN leadsTo_weaken])
 apply (auto simp add: split_extended_all)
 done
 
-lemma (in Extend) Join_project_LeadsTo:
+lemma Join_project_LeadsTo:
      "[| C = (reachable (extend h F\<squnion>G));  
          F\<squnion>project h C G \<in> A LeadsTo B |]  
       ==> extend h F\<squnion>G \<in> (extend_set h A) LeadsTo (extend_set h B)"
@@ -522,7 +530,7 @@ by (simp del: Join_stable    add: LeadsTo_def project_leadsTo_D_lemma
 
 subsection{*Towards the theorem @{text project_Ensures_D}*}
 
-lemma (in Extend) project_ensures_D_lemma:
+lemma project_ensures_D_lemma:
      "[| G \<in> stable ((C \<inter> extend_set h A) - (extend_set h B));   
          F\<squnion>project h C G \<in> (project_set h C \<inter> A) ensures B;   
          extend h F\<squnion>G \<in> stable C |]  
@@ -540,14 +548,14 @@ apply (force elim!: extend_transient [THEN iffD2, THEN transient_strengthen]
              simp add: split_extended_all)
 done
 
-lemma (in Extend) project_ensures_D:
+lemma project_ensures_D:
      "[| F\<squnion>project h UNIV G \<in> A ensures B;   
          G \<in> stable (extend_set h A - extend_set h B) |]  
       ==> extend h F\<squnion>G \<in> (extend_set h A) ensures (extend_set h B)"
 apply (rule project_ensures_D_lemma [of _ UNIV, elim_format], auto)
 done
 
-lemma (in Extend) project_Ensures_D: 
+lemma project_Ensures_D: 
      "[| F\<squnion>project h (reachable (extend h F\<squnion>G)) G \<in> A Ensures B;   
          G \<in> stable (reachable (extend h F\<squnion>G) \<inter> extend_set h A -  
                      extend_set h B) |]  
@@ -560,13 +568,13 @@ done
 
 subsection{*Guarantees*}
 
-lemma (in Extend) project_act_Restrict_subset_project_act:
+lemma project_act_Restrict_subset_project_act:
      "project_act h (Restrict C act) \<subseteq> project_act h act"
 apply (auto simp add: project_act_def)
 done
                                            
                                                            
-lemma (in Extend) subset_closed_ok_extend_imp_ok_project:
+lemma subset_closed_ok_extend_imp_ok_project:
      "[| extend h F ok G; subset_closed (AllowedActs F) |]  
       ==> F ok project h C G"
 apply (auto simp add: ok_def)
@@ -584,7 +592,7 @@ done
 
 (*The raw version; 3rd premise could be weakened by adding the
   precondition extend h F\<squnion>G \<in> X' *)
-lemma (in Extend) project_guarantees_raw:
+lemma project_guarantees_raw:
  assumes xguary:  "F \<in> X guarantees Y"
      and closed:  "subset_closed (AllowedActs F)"
      and project: "!!G. extend h F\<squnion>G \<in> X' 
@@ -597,7 +605,7 @@ apply (blast intro: closed subset_closed_ok_extend_imp_ok_project)
 apply (erule project)
 done
 
-lemma (in Extend) project_guarantees:
+lemma project_guarantees:
      "[| F \<in> X guarantees Y;  subset_closed (AllowedActs F);  
          projecting C h F X' X;  extending C h F Y' Y |]  
       ==> extend h F \<in> X' guarantees Y'"
@@ -614,7 +622,7 @@ subsection{*guarantees corollaries*}
 
 subsubsection{*Some could be deleted: the required versions are easy to prove*}
 
-lemma (in Extend) extend_guar_increasing:
+lemma extend_guar_increasing:
      "[| F \<in> UNIV guarantees increasing func;   
          subset_closed (AllowedActs F) |]  
       ==> extend h F \<in> X' guarantees increasing (func o f)"
@@ -623,7 +631,7 @@ apply (rule_tac [3] extending_increasing)
 apply (rule_tac [2] projecting_UNIV, auto)
 done
 
-lemma (in Extend) extend_guar_Increasing:
+lemma extend_guar_Increasing:
      "[| F \<in> UNIV guarantees Increasing func;   
          subset_closed (AllowedActs F) |]  
       ==> extend h F \<in> X' guarantees Increasing (func o f)"
@@ -632,7 +640,7 @@ apply (rule_tac [3] extending_Increasing)
 apply (rule_tac [2] projecting_UNIV, auto)
 done
 
-lemma (in Extend) extend_guar_Always:
+lemma extend_guar_Always:
      "[| F \<in> Always A guarantees Always B;   
          subset_closed (AllowedActs F) |]  
       ==> extend h F                    
@@ -645,30 +653,32 @@ done
 
 subsubsection{*Guarantees with a leadsTo postcondition*}
 
-lemma (in Extend) project_leadsTo_D:
+lemma project_leadsTo_D:
      "F\<squnion>project h UNIV G \<in> A leadsTo B
       ==> extend h F\<squnion>G \<in> (extend_set h A) leadsTo (extend_set h B)"
 apply (rule_tac C1 = UNIV in project_leadsTo_D_lemma [THEN leadsTo_weaken], auto)
 done
 
-lemma (in Extend) project_LeadsTo_D:
+lemma project_LeadsTo_D:
      "F\<squnion>project h (reachable (extend h F\<squnion>G)) G \<in> A LeadsTo B   
        ==> extend h F\<squnion>G \<in> (extend_set h A) LeadsTo (extend_set h B)"
 apply (rule refl [THEN Join_project_LeadsTo], auto)
 done
 
-lemma (in Extend) extending_leadsTo: 
+lemma extending_leadsTo: 
      "extending (%G. UNIV) h F  
                 (extend_set h A leadsTo extend_set h B) (A leadsTo B)"
 apply (unfold extending_def)
 apply (blast intro: project_leadsTo_D)
 done
 
-lemma (in Extend) extending_LeadsTo: 
+lemma extending_LeadsTo: 
      "extending (%G. reachable (extend h F\<squnion>G)) h F  
                 (extend_set h A LeadsTo extend_set h B) (A LeadsTo B)"
 apply (unfold extending_def)
 apply (blast intro: project_LeadsTo_D)
 done
+
+end
 
 end

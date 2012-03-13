@@ -17,31 +17,29 @@ begin
 instantiation program :: (type) ord
 begin
 
-definition
-  component_def: "F \<le> H <-> (\<exists>G. F\<squnion>G = H)"
+definition component_def: "F \<le> H <-> (\<exists>G. F\<squnion>G = H)"
 
-definition
-  strict_component_def: "F < (H::'a program) <-> (F \<le> H & F \<noteq> H)"
+definition strict_component_def: "F < (H::'a program) <-> (F \<le> H & F \<noteq> H)"
 
 instance ..
 
 end
 
-definition component_of :: "'a program =>'a program=> bool" (infixl "component'_of" 50) where
-  "F component_of H == \<exists>G. F ok G & F\<squnion>G = H"
+definition component_of :: "'a program =>'a program=> bool" (infixl "component'_of" 50)
+  where "F component_of H == \<exists>G. F ok G & F\<squnion>G = H"
 
-definition strict_component_of :: "'a program\<Rightarrow>'a program=> bool" (infixl "strict'_component'_of" 50)  where
-  "F strict_component_of H == F component_of H & F\<noteq>H"
+definition strict_component_of :: "'a program\<Rightarrow>'a program=> bool" (infixl "strict'_component'_of" 50)
+  where "F strict_component_of H == F component_of H & F\<noteq>H"
 
-definition preserves :: "('a=>'b) => 'a program set" where
-    "preserves v == \<Inter>z. stable {s. v s = z}"
+definition preserves :: "('a=>'b) => 'a program set"
+  where "preserves v == \<Inter>z. stable {s. v s = z}"
 
 definition localize :: "('a=>'b) => 'a program => 'a program" where
   "localize v F == mk_program(Init F, Acts F,
                               AllowedActs F \<inter> (\<Union>G \<in> preserves v. Acts G))"
 
-definition funPair :: "['a => 'b, 'a => 'c, 'a] => 'b * 'c" where
-  "funPair f g == %x. (f x, g x)"
+definition funPair :: "['a => 'b, 'a => 'c, 'a] => 'b * 'c"
+  where "funPair f g == %x. (f x, g x)"
 
 
 subsection{*The component relation*}

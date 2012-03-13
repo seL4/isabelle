@@ -132,23 +132,26 @@ by (metis UNIV_I f_inv_into_f pair_collapse prem surj_h)
 
 subsection{*Trivial properties of f, g, h*}
 
-lemma (in Extend) f_h_eq [simp]: "f(h(x,y)) = x" 
+context Extend
+begin
+
+lemma f_h_eq [simp]: "f(h(x,y)) = x" 
 by (simp add: f_def good_h [unfolded good_map_def, THEN conjunct2])
 
-lemma (in Extend) h_inject1 [dest]: "h(x,y) = h(x',y') ==> x=x'"
+lemma h_inject1 [dest]: "h(x,y) = h(x',y') ==> x=x'"
 apply (drule_tac f = f in arg_cong)
 apply (simp add: f_def good_h [unfolded good_map_def, THEN conjunct2])
 done
 
-lemma (in Extend) h_f_g_equiv: "h(f z, g z) == z"
+lemma h_f_g_equiv: "h(f z, g z) == z"
 by (simp add: f_def g_def 
             good_h [unfolded good_map_def, THEN conjunct1, THEN surj_f_inv_f])
 
-lemma (in Extend) h_f_g_eq: "h(f z, g z) = z"
+lemma h_f_g_eq: "h(f z, g z) = z"
 by (simp add: h_f_g_equiv)
 
 
-lemma (in Extend) split_extended_all:
+lemma split_extended_all:
      "(!!z. PROP P z) == (!!u y. PROP P (h (u, y)))"
 proof 
    assume allP: "\<And>z. PROP P z"
@@ -161,6 +164,7 @@ proof
    show "PROP P z" by (rule Phfgz [unfolded h_f_g_equiv])
 qed 
 
+end
 
 
 subsection{*@{term extend_set}: basic properties*}
@@ -172,40 +176,41 @@ by (simp add: project_set_def)
 lemma extend_set_mono: "A \<subseteq> B ==> extend_set h A \<subseteq> extend_set h B"
 by (unfold extend_set_def, blast)
 
-lemma (in Extend) mem_extend_set_iff [iff]: "z \<in> extend_set h A = (f z \<in> A)"
+context Extend
+begin
+
+lemma mem_extend_set_iff [iff]: "z \<in> extend_set h A = (f z \<in> A)"
 apply (unfold extend_set_def)
 apply (force intro: h_f_g_eq [symmetric])
 done
 
-lemma (in Extend) extend_set_strict_mono [iff]:
+lemma extend_set_strict_mono [iff]:
      "(extend_set h A \<subseteq> extend_set h B) = (A \<subseteq> B)"
 by (unfold extend_set_def, force)
 
-lemma extend_set_empty [simp]: "extend_set h {} = {}"
+lemma (in -) extend_set_empty [simp]: "extend_set h {} = {}"
 by (unfold extend_set_def, auto)
 
-lemma (in Extend) extend_set_eq_Collect: "extend_set h {s. P s} = {s. P(f s)}"
+lemma extend_set_eq_Collect: "extend_set h {s. P s} = {s. P(f s)}"
 by auto
 
-lemma (in Extend) extend_set_sing: "extend_set h {x} = {s. f s = x}"
+lemma extend_set_sing: "extend_set h {x} = {s. f s = x}"
 by auto
 
-lemma (in Extend) extend_set_inverse [simp]:
-     "project_set h (extend_set h C) = C"
+lemma extend_set_inverse [simp]: "project_set h (extend_set h C) = C"
 by (unfold extend_set_def, auto)
 
-lemma (in Extend) extend_set_project_set:
-     "C \<subseteq> extend_set h (project_set h C)"
+lemma extend_set_project_set: "C \<subseteq> extend_set h (project_set h C)"
 apply (unfold extend_set_def)
 apply (auto simp add: split_extended_all, blast)
 done
 
-lemma (in Extend) inj_extend_set: "inj (extend_set h)"
+lemma inj_extend_set: "inj (extend_set h)"
 apply (rule inj_on_inverseI)
 apply (rule extend_set_inverse)
 done
 
-lemma (in Extend) extend_set_UNIV_eq [simp]: "extend_set h UNIV = UNIV"
+lemma extend_set_UNIV_eq [simp]: "extend_set h UNIV = UNIV"
 apply (unfold extend_set_def)
 apply (auto simp add: split_extended_all)
 done
@@ -213,11 +218,11 @@ done
 subsection{*@{term project_set}: basic properties*}
 
 (*project_set is simply image!*)
-lemma (in Extend) project_set_eq: "project_set h C = f ` C"
+lemma project_set_eq: "project_set h C = f ` C"
 by (auto intro: f_h_eq [symmetric] simp add: split_extended_all)
 
 (*Converse appears to fail*)
-lemma (in Extend) project_set_I: "!!z. z \<in> C ==> f z \<in> project_set h C"
+lemma project_set_I: "!!z. z \<in> C ==> f z \<in> project_set h C"
 by (auto simp add: split_extended_all)
 
 
@@ -227,42 +232,34 @@ subsection{*More laws*}
    cannot generalize to 
       project_set h (A \<inter> B) = project_set h A \<inter> project_set h B
 *)
-lemma (in Extend) project_set_extend_set_Int:
-     "project_set h ((extend_set h A) \<inter> B) = A \<inter> (project_set h B)"
-by auto
+lemma project_set_extend_set_Int: "project_set h ((extend_set h A) \<inter> B) = A \<inter> (project_set h B)"
+  by auto
 
 (*Unused, but interesting?*)
-lemma (in Extend) project_set_extend_set_Un:
-     "project_set h ((extend_set h A) \<union> B) = A \<union> (project_set h B)"
-by auto
+lemma project_set_extend_set_Un: "project_set h ((extend_set h A) \<union> B) = A \<union> (project_set h B)"
+  by auto
 
-lemma project_set_Int_subset:
-     "project_set h (A \<inter> B) \<subseteq> (project_set h A) \<inter> (project_set h B)"
-by auto
+lemma (in -) project_set_Int_subset:
+    "project_set h (A \<inter> B) \<subseteq> (project_set h A) \<inter> (project_set h B)"
+  by auto
 
-lemma (in Extend) extend_set_Un_distrib:
-     "extend_set h (A \<union> B) = extend_set h A \<union> extend_set h B"
-by auto
+lemma extend_set_Un_distrib: "extend_set h (A \<union> B) = extend_set h A \<union> extend_set h B"
+  by auto
 
-lemma (in Extend) extend_set_Int_distrib:
-     "extend_set h (A \<inter> B) = extend_set h A \<inter> extend_set h B"
-by auto
+lemma extend_set_Int_distrib: "extend_set h (A \<inter> B) = extend_set h A \<inter> extend_set h B"
+  by auto
 
-lemma (in Extend) extend_set_INT_distrib:
-     "extend_set h (INTER A B) = (\<Inter>x \<in> A. extend_set h (B x))"
-by auto
+lemma extend_set_INT_distrib: "extend_set h (INTER A B) = (\<Inter>x \<in> A. extend_set h (B x))"
+  by auto
 
-lemma (in Extend) extend_set_Diff_distrib:
-     "extend_set h (A - B) = extend_set h A - extend_set h B"
-by auto
+lemma extend_set_Diff_distrib: "extend_set h (A - B) = extend_set h A - extend_set h B"
+  by auto
 
-lemma (in Extend) extend_set_Union:
-     "extend_set h (Union A) = (\<Union>X \<in> A. extend_set h X)"
-by blast
+lemma extend_set_Union: "extend_set h (Union A) = (\<Union>X \<in> A. extend_set h X)"
+  by blast
 
-lemma (in Extend) extend_set_subset_Compl_eq:
-     "(extend_set h A \<subseteq> - extend_set h B) = (A \<subseteq> - B)"
-by (unfold extend_set_def, auto)
+lemma extend_set_subset_Compl_eq: "(extend_set h A \<subseteq> - extend_set h B) = (A \<subseteq> - B)"
+  by (auto simp: extend_set_def)
 
 
 subsection{*@{term extend_act}*}
@@ -270,96 +267,81 @@ subsection{*@{term extend_act}*}
 (*Can't strengthen it to
   ((h(s,y), h(s',y')) \<in> extend_act h act) = ((s, s') \<in> act & y=y')
   because h doesn't have to be injective in the 2nd argument*)
-lemma (in Extend) mem_extend_act_iff [iff]: 
-     "((h(s,y), h(s',y)) \<in> extend_act h act) = ((s, s') \<in> act)"
-by (unfold extend_act_def, auto)
+lemma mem_extend_act_iff [iff]: "((h(s,y), h(s',y)) \<in> extend_act h act) = ((s, s') \<in> act)"
+  by (auto simp: extend_act_def)
 
 (*Converse fails: (z,z') would include actions that changed the g-part*)
-lemma (in Extend) extend_act_D: 
-     "(z, z') \<in> extend_act h act ==> (f z, f z') \<in> act"
-by (unfold extend_act_def, auto)
+lemma extend_act_D: "(z, z') \<in> extend_act h act ==> (f z, f z') \<in> act"
+  by (auto simp: extend_act_def)
 
-lemma (in Extend) extend_act_inverse [simp]: 
-     "project_act h (extend_act h act) = act"
-by (unfold extend_act_def project_act_def, blast)
+lemma extend_act_inverse [simp]: "project_act h (extend_act h act) = act"
+  unfolding extend_act_def project_act_def by blast
 
-lemma (in Extend) project_act_extend_act_restrict [simp]: 
+lemma project_act_extend_act_restrict [simp]:
      "project_act h (Restrict C (extend_act h act)) =  
       Restrict (project_set h C) act"
-by (unfold extend_act_def project_act_def, blast)
+  unfolding extend_act_def project_act_def by blast
 
-lemma (in Extend) subset_extend_act_D: 
-     "act' \<subseteq> extend_act h act ==> project_act h act' \<subseteq> act"
-by (unfold extend_act_def project_act_def, force)
+lemma subset_extend_act_D: "act' \<subseteq> extend_act h act ==> project_act h act' \<subseteq> act"
+  unfolding extend_act_def project_act_def by force
 
-lemma (in Extend) inj_extend_act: "inj (extend_act h)"
+lemma inj_extend_act: "inj (extend_act h)"
 apply (rule inj_on_inverseI)
 apply (rule extend_act_inverse)
 done
 
-lemma (in Extend) extend_act_Image [simp]: 
+lemma extend_act_Image [simp]:
      "extend_act h act `` (extend_set h A) = extend_set h (act `` A)"
-by (unfold extend_set_def extend_act_def, force)
+  unfolding extend_set_def extend_act_def by force
 
-lemma (in Extend) extend_act_strict_mono [iff]:
+lemma extend_act_strict_mono [iff]:
      "(extend_act h act' \<subseteq> extend_act h act) = (act'<=act)"
-by (unfold extend_act_def, auto)
+  by (auto simp: extend_act_def)
 
-declare (in Extend) inj_extend_act [THEN inj_eq, iff]
-(*This theorem is  (extend_act h act' = extend_act h act) = (act'=act) *)
+lemma [iff]: "(extend_act h act = extend_act h act') = (act = act')"
+  by (rule inj_extend_act [THEN inj_eq])
 
-lemma Domain_extend_act: 
+lemma (in -) Domain_extend_act:
     "Domain (extend_act h act) = extend_set h (Domain act)"
-by (unfold extend_set_def extend_act_def, force)
+  unfolding extend_set_def extend_act_def by force
 
-lemma (in Extend) extend_act_Id [simp]: 
-    "extend_act h Id = Id"
-apply (unfold extend_act_def)
-apply (force intro: h_f_g_eq [symmetric])
-done
+lemma extend_act_Id [simp]: "extend_act h Id = Id"
+  unfolding extend_act_def by (force intro: h_f_g_eq [symmetric])
 
-lemma (in Extend) project_act_I: 
-     "!!z z'. (z, z') \<in> act ==> (f z, f z') \<in> project_act h act"
-apply (unfold project_act_def)
-apply (force simp add: split_extended_all)
-done
+lemma project_act_I:  "!!z z'. (z, z') \<in> act ==> (f z, f z') \<in> project_act h act"
+  unfolding project_act_def by (force simp add: split_extended_all)
 
-lemma (in Extend) project_act_Id [simp]: "project_act h Id = Id"
-by (unfold project_act_def, force)
+lemma project_act_Id [simp]: "project_act h Id = Id"
+  unfolding project_act_def by force
 
-lemma (in Extend) Domain_project_act: 
-  "Domain (project_act h act) = project_set h (Domain act)"
-apply (unfold project_act_def)
-apply (force simp add: split_extended_all)
-done
-
+lemma Domain_project_act: "Domain (project_act h act) = project_set h (Domain act)"
+  unfolding project_act_def by (force simp add: split_extended_all)
 
 
 subsection{*extend*}
 
 text{*Basic properties*}
 
-lemma Init_extend [simp]:
+lemma (in -) Init_extend [simp]:
      "Init (extend h F) = extend_set h (Init F)"
-by (unfold extend_def, auto)
+  by (auto simp: extend_def)
 
-lemma Init_project [simp]:
+lemma (in -) Init_project [simp]:
      "Init (project h C F) = project_set h (Init F)"
-by (unfold project_def, auto)
+  by (auto simp: project_def)
 
-lemma (in Extend) Acts_extend [simp]:
-     "Acts (extend h F) = (extend_act h ` Acts F)"
-by (simp add: extend_def insert_Id_image_Acts)
+lemma Acts_extend [simp]: "Acts (extend h F) = (extend_act h ` Acts F)"
+  by (simp add: extend_def insert_Id_image_Acts)
 
-lemma (in Extend) AllowedActs_extend [simp]:
+lemma AllowedActs_extend [simp]:
      "AllowedActs (extend h F) = project_act h -` AllowedActs F"
-by (simp add: extend_def insert_absorb)
+  by (simp add: extend_def insert_absorb)
 
-lemma Acts_project [simp]:
+lemma (in -) Acts_project [simp]:
      "Acts(project h C F) = insert Id (project_act h ` Restrict C ` Acts F)"
-by (auto simp add: project_def image_iff)
+  by (auto simp add: project_def image_iff)
 
-lemma (in Extend) AllowedActs_project [simp]:
+lemma AllowedActs_project [simp]:
      "AllowedActs(project h C F) =  
         {act. Restrict (project_set h C) act  
                \<in> project_act h ` Restrict C ` AllowedActs F}"
@@ -368,35 +350,31 @@ apply (subst insert_absorb)
 apply (auto intro!: bexI [of _ Id] simp add: project_act_def)
 done
 
-lemma (in Extend) Allowed_extend:
-     "Allowed (extend h F) = project h UNIV -` Allowed F"
-by (auto simp add: Allowed_def)
+lemma Allowed_extend: "Allowed (extend h F) = project h UNIV -` Allowed F"
+  by (auto simp add: Allowed_def)
 
-lemma (in Extend) extend_SKIP [simp]: "extend h SKIP = SKIP"
+lemma extend_SKIP [simp]: "extend h SKIP = SKIP"
 apply (unfold SKIP_def)
 apply (rule program_equalityI, auto)
 done
 
-lemma project_set_UNIV [simp]: "project_set h UNIV = UNIV"
-by auto
+lemma (in -) project_set_UNIV [simp]: "project_set h UNIV = UNIV"
+  by auto
 
-lemma project_set_Union:
-     "project_set h (Union A) = (\<Union>X \<in> A. project_set h X)"
-by blast
+lemma (in -) project_set_Union: "project_set h (Union A) = (\<Union>X \<in> A. project_set h X)"
+  by blast
 
 
 (*Converse FAILS: the extended state contributing to project_set h C
   may not coincide with the one contributing to project_act h act*)
-lemma (in Extend) project_act_Restrict_subset:
-     "project_act h (Restrict C act) \<subseteq>  
-      Restrict (project_set h C) (project_act h act)"
-by (auto simp add: project_act_def)
+lemma (in -) project_act_Restrict_subset:
+     "project_act h (Restrict C act) \<subseteq> Restrict (project_set h C) (project_act h act)"
+  by (auto simp add: project_act_def)
 
-lemma (in Extend) project_act_Restrict_Id_eq:
-     "project_act h (Restrict C Id) = Restrict (project_set h C) Id"
-by (auto simp add: project_act_def)
+lemma project_act_Restrict_Id_eq: "project_act h (Restrict C Id) = Restrict (project_set h C) Id"
+  by (auto simp add: project_act_def)
 
-lemma (in Extend) project_extend_eq:
+lemma project_extend_eq:
      "project h C (extend h F) =  
       mk_program (Init F, Restrict (project_set h C) ` Acts F,  
                   {act. Restrict (project_set h C) act 
@@ -408,7 +386,7 @@ apply (rule program_equalityI)
 apply (simp add: project_def)
 done
 
-lemma (in Extend) extend_inverse [simp]:
+lemma extend_inverse [simp]:
      "project h UNIV (extend h F) = F"
 apply (simp (no_asm_simp) add: project_extend_eq image_eq_UN
           subset_UNIV [THEN subset_trans, THEN Restrict_triv])
@@ -421,20 +399,18 @@ apply (rename_tac "act")
 apply (rule_tac x = "extend_act h act" in bexI, auto)
 done
 
-lemma (in Extend) inj_extend: "inj (extend h)"
+lemma inj_extend: "inj (extend h)"
 apply (rule inj_on_inverseI)
 apply (rule extend_inverse)
 done
 
-lemma (in Extend) extend_Join [simp]:
-     "extend h (F\<squnion>G) = extend h F\<squnion>extend h G"
+lemma extend_Join [simp]: "extend h (F\<squnion>G) = extend h F\<squnion>extend h G"
 apply (rule program_equalityI)
 apply (simp (no_asm) add: extend_set_Int_distrib)
 apply (simp add: image_Un, auto)
 done
 
-lemma (in Extend) extend_JN [simp]:
-     "extend h (JOIN I F) = (\<Squnion>i \<in> I. extend h (F i))"
+lemma extend_JN [simp]: "extend h (JOIN I F) = (\<Squnion>i \<in> I. extend h (F i))"
 apply (rule program_equalityI)
   apply (simp (no_asm) add: extend_set_INT_distrib)
  apply (simp add: image_UN, auto)
@@ -442,55 +418,50 @@ done
 
 (** These monotonicity results look natural but are UNUSED **)
 
-lemma (in Extend) extend_mono: "F \<le> G ==> extend h F \<le> extend h G"
-by (force simp add: component_eq_subset)
+lemma extend_mono: "F \<le> G ==> extend h F \<le> extend h G"
+  by (force simp add: component_eq_subset)
 
-lemma (in Extend) project_mono: "F \<le> G ==> project h C F \<le> project h C G"
-by (simp add: component_eq_subset, blast)
+lemma project_mono: "F \<le> G ==> project h C F \<le> project h C G"
+  by (simp add: component_eq_subset, blast)
 
-lemma (in Extend) all_total_extend: "all_total F ==> all_total (extend h F)"
-by (simp add: all_total_def Domain_extend_act)
+lemma all_total_extend: "all_total F ==> all_total (extend h F)"
+  by (simp add: all_total_def Domain_extend_act)
 
 subsection{*Safety: co, stable*}
 
-lemma (in Extend) extend_constrains:
+lemma extend_constrains:
      "(extend h F \<in> (extend_set h A) co (extend_set h B)) =  
       (F \<in> A co B)"
-by (simp add: constrains_def)
+  by (simp add: constrains_def)
 
-lemma (in Extend) extend_stable:
+lemma extend_stable:
      "(extend h F \<in> stable (extend_set h A)) = (F \<in> stable A)"
-by (simp add: stable_def extend_constrains)
+  by (simp add: stable_def extend_constrains)
 
-lemma (in Extend) extend_invariant:
+lemma extend_invariant:
      "(extend h F \<in> invariant (extend_set h A)) = (F \<in> invariant A)"
-by (simp add: invariant_def extend_stable)
+  by (simp add: invariant_def extend_stable)
 
 (*Projects the state predicates in the property satisfied by  extend h F.
   Converse fails: A and B may differ in their extra variables*)
-lemma (in Extend) extend_constrains_project_set:
+lemma extend_constrains_project_set:
      "extend h F \<in> A co B ==> F \<in> (project_set h A) co (project_set h B)"
-by (auto simp add: constrains_def, force)
+  by (auto simp add: constrains_def, force)
 
-lemma (in Extend) extend_stable_project_set:
+lemma extend_stable_project_set:
      "extend h F \<in> stable A ==> F \<in> stable (project_set h A)"
-by (simp add: stable_def extend_constrains_project_set)
+  by (simp add: stable_def extend_constrains_project_set)
 
 
 subsection{*Weak safety primitives: Co, Stable*}
 
-lemma (in Extend) reachable_extend_f:
-     "p \<in> reachable (extend h F) ==> f p \<in> reachable F"
-apply (erule reachable.induct)
-apply (auto intro: reachable.intros simp add: extend_act_def image_iff)
-done
+lemma reachable_extend_f: "p \<in> reachable (extend h F) ==> f p \<in> reachable F"
+  by (induct set: reachable) (auto intro: reachable.intros simp add: extend_act_def image_iff)
 
-lemma (in Extend) h_reachable_extend:
-     "h(s,y) \<in> reachable (extend h F) ==> s \<in> reachable F"
-by (force dest!: reachable_extend_f)
+lemma h_reachable_extend: "h(s,y) \<in> reachable (extend h F) ==> s \<in> reachable F"
+  by (force dest!: reachable_extend_f)
 
-lemma (in Extend) reachable_extend_eq: 
-     "reachable (extend h F) = extend_set h (reachable F)"
+lemma reachable_extend_eq: "reachable (extend h F) = extend_set h (reachable F)"
 apply (unfold extend_set_def)
 apply (rule equalityI)
 apply (force intro: h_f_g_eq [symmetric] dest!: reachable_extend_f, clarify)
@@ -498,42 +469,40 @@ apply (erule reachable.induct)
 apply (force intro: reachable.intros)+
 done
 
-lemma (in Extend) extend_Constrains:
+lemma extend_Constrains:
      "(extend h F \<in> (extend_set h A) Co (extend_set h B)) =   
       (F \<in> A Co B)"
-by (simp add: Constrains_def reachable_extend_eq extend_constrains 
+  by (simp add: Constrains_def reachable_extend_eq extend_constrains 
               extend_set_Int_distrib [symmetric])
 
-lemma (in Extend) extend_Stable:
-     "(extend h F \<in> Stable (extend_set h A)) = (F \<in> Stable A)"
-by (simp add: Stable_def extend_Constrains)
+lemma extend_Stable: "(extend h F \<in> Stable (extend_set h A)) = (F \<in> Stable A)"
+  by (simp add: Stable_def extend_Constrains)
 
-lemma (in Extend) extend_Always:
-     "(extend h F \<in> Always (extend_set h A)) = (F \<in> Always A)"
-by (simp (no_asm_simp) add: Always_def extend_Stable)
+lemma extend_Always: "(extend h F \<in> Always (extend_set h A)) = (F \<in> Always A)"
+  by (simp add: Always_def extend_Stable)
 
 
 (** Safety and "project" **)
 
 (** projection: monotonicity for safety **)
 
-lemma project_act_mono:
+lemma (in -) project_act_mono:
      "D \<subseteq> C ==>  
       project_act h (Restrict D act) \<subseteq> project_act h (Restrict C act)"
-by (auto simp add: project_act_def)
+  by (auto simp add: project_act_def)
 
-lemma (in Extend) project_constrains_mono:
+lemma project_constrains_mono:
      "[| D \<subseteq> C; project h C F \<in> A co B |] ==> project h D F \<in> A co B"
 apply (auto simp add: constrains_def)
 apply (drule project_act_mono, blast)
 done
 
-lemma (in Extend) project_stable_mono:
+lemma project_stable_mono:
      "[| D \<subseteq> C;  project h C F \<in> stable A |] ==> project h D F \<in> stable A"
-by (simp add: stable_def project_constrains_mono)
+  by (simp add: stable_def project_constrains_mono)
 
 (*Key lemma used in several proofs about project and co*)
-lemma (in Extend) project_constrains: 
+lemma project_constrains: 
      "(project h C F \<in> A co B)  =   
       (F \<in> (C \<inter> extend_set h A) co (extend_set h B) & A \<subseteq> B)"
 apply (unfold constrains_def)
@@ -544,45 +513,41 @@ apply (unfold project_act_def)
 apply (force dest!: subsetD)
 done
 
-lemma (in Extend) project_stable: 
-     "(project h UNIV F \<in> stable A) = (F \<in> stable (extend_set h A))"
-apply (unfold stable_def)
-apply (simp (no_asm) add: project_constrains)
-done
+lemma project_stable: "(project h UNIV F \<in> stable A) = (F \<in> stable (extend_set h A))"
+  by (simp add: stable_def project_constrains)
 
-lemma (in Extend) project_stable_I:
-     "F \<in> stable (extend_set h A) ==> project h C F \<in> stable A"
+lemma project_stable_I: "F \<in> stable (extend_set h A) ==> project h C F \<in> stable A"
 apply (drule project_stable [THEN iffD2])
 apply (blast intro: project_stable_mono)
 done
 
-lemma (in Extend) Int_extend_set_lemma:
+lemma Int_extend_set_lemma:
      "A \<inter> extend_set h ((project_set h A) \<inter> B) = A \<inter> extend_set h B"
-by (auto simp add: split_extended_all)
+  by (auto simp add: split_extended_all)
 
 (*Strange (look at occurrences of C) but used in leadsETo proofs*)
 lemma project_constrains_project_set:
      "G \<in> C co B ==> project h C G \<in> project_set h C co project_set h B"
-by (simp add: constrains_def project_def project_act_def, blast)
+  by (simp add: constrains_def project_def project_act_def, blast)
 
 lemma project_stable_project_set:
      "G \<in> stable C ==> project h C G \<in> stable (project_set h C)"
-by (simp add: stable_def project_constrains_project_set)
+  by (simp add: stable_def project_constrains_project_set)
 
 
 subsection{*Progress: transient, ensures*}
 
-lemma (in Extend) extend_transient:
+lemma extend_transient:
      "(extend h F \<in> transient (extend_set h A)) = (F \<in> transient A)"
-by (auto simp add: transient_def extend_set_subset_Compl_eq Domain_extend_act)
+  by (auto simp add: transient_def extend_set_subset_Compl_eq Domain_extend_act)
 
-lemma (in Extend) extend_ensures:
+lemma extend_ensures:
      "(extend h F \<in> (extend_set h A) ensures (extend_set h B)) =  
       (F \<in> A ensures B)"
-by (simp add: ensures_def extend_constrains extend_transient 
+  by (simp add: ensures_def extend_constrains extend_transient 
         extend_set_Un_distrib [symmetric] extend_set_Diff_distrib [symmetric])
 
-lemma (in Extend) leadsTo_imp_extend_leadsTo:
+lemma leadsTo_imp_extend_leadsTo:
      "F \<in> A leadsTo B  
       ==> extend h F \<in> (extend_set h A) leadsTo (extend_set h B)"
 apply (erule leadsTo_induct)
@@ -593,42 +558,41 @@ done
 
 subsection{*Proving the converse takes some doing!*}
 
-lemma (in Extend) slice_iff [iff]: "(x \<in> slice C y) = (h(x,y) \<in> C)"
-by (simp (no_asm) add: slice_def)
+lemma slice_iff [iff]: "(x \<in> slice C y) = (h(x,y) \<in> C)"
+  by (simp add: slice_def)
 
-lemma (in Extend) slice_Union: "slice (Union S) y = (\<Union>x \<in> S. slice x y)"
-by auto
+lemma slice_Union: "slice (Union S) y = (\<Union>x \<in> S. slice x y)"
+  by auto
 
-lemma (in Extend) slice_extend_set: "slice (extend_set h A) y = A"
-by auto
+lemma slice_extend_set: "slice (extend_set h A) y = A"
+  by auto
 
-lemma (in Extend) project_set_is_UN_slice:
-     "project_set h A = (\<Union>y. slice A y)"
-by auto
+lemma project_set_is_UN_slice: "project_set h A = (\<Union>y. slice A y)"
+  by auto
 
-lemma (in Extend) extend_transient_slice:
+lemma extend_transient_slice:
      "extend h F \<in> transient A ==> F \<in> transient (slice A y)"
-by (unfold transient_def, auto)
+  by (auto simp: transient_def)
 
 (*Converse?*)
-lemma (in Extend) extend_constrains_slice:
+lemma extend_constrains_slice:
      "extend h F \<in> A co B ==> F \<in> (slice A y) co (slice B y)"
-by (auto simp add: constrains_def)
+  by (auto simp add: constrains_def)
 
-lemma (in Extend) extend_ensures_slice:
+lemma extend_ensures_slice:
      "extend h F \<in> A ensures B ==> F \<in> (slice A y) ensures (project_set h B)"
 apply (auto simp add: ensures_def extend_constrains extend_transient)
 apply (erule_tac [2] extend_transient_slice [THEN transient_strengthen])
 apply (erule extend_constrains_slice [THEN constrains_weaken], auto)
 done
 
-lemma (in Extend) leadsTo_slice_project_set:
+lemma leadsTo_slice_project_set:
      "\<forall>y. F \<in> (slice B y) leadsTo CU ==> F \<in> (project_set h B) leadsTo CU"
-apply (simp (no_asm) add: project_set_is_UN_slice)
+apply (simp add: project_set_is_UN_slice)
 apply (blast intro: leadsTo_UN)
 done
 
-lemma (in Extend) extend_leadsTo_slice [rule_format]:
+lemma extend_leadsTo_slice [rule_format]:
      "extend h F \<in> AU leadsTo BU  
       ==> \<forall>y. F \<in> (slice AU y) leadsTo (project_set h BU)"
 apply (erule leadsTo_induct)
@@ -637,7 +601,7 @@ apply (erule leadsTo_induct)
 apply (simp add: leadsTo_UN slice_Union)
 done
 
-lemma (in Extend) extend_leadsTo:
+lemma extend_leadsTo:
      "(extend h F \<in> (extend_set h A) leadsTo (extend_set h B)) =  
       (F \<in> A leadsTo B)"
 apply safe
@@ -646,44 +610,43 @@ apply (drule extend_leadsTo_slice)
 apply (simp add: slice_extend_set)
 done
 
-lemma (in Extend) extend_LeadsTo:
+lemma extend_LeadsTo:
      "(extend h F \<in> (extend_set h A) LeadsTo (extend_set h B)) =   
       (F \<in> A LeadsTo B)"
-by (simp add: LeadsTo_def reachable_extend_eq extend_leadsTo
+  by (simp add: LeadsTo_def reachable_extend_eq extend_leadsTo
               extend_set_Int_distrib [symmetric])
 
 
 subsection{*preserves*}
 
-lemma (in Extend) project_preserves_I:
+lemma project_preserves_I:
      "G \<in> preserves (v o f) ==> project h C G \<in> preserves v"
-by (auto simp add: preserves_def project_stable_I extend_set_eq_Collect)
+  by (auto simp add: preserves_def project_stable_I extend_set_eq_Collect)
 
 (*to preserve f is to preserve the whole original state*)
-lemma (in Extend) project_preserves_id_I:
+lemma project_preserves_id_I:
      "G \<in> preserves f ==> project h C G \<in> preserves id"
-by (simp add: project_preserves_I)
+  by (simp add: project_preserves_I)
 
-lemma (in Extend) extend_preserves:
+lemma extend_preserves:
      "(extend h G \<in> preserves (v o f)) = (G \<in> preserves v)"
-by (auto simp add: preserves_def extend_stable [symmetric] 
+  by (auto simp add: preserves_def extend_stable [symmetric] 
                    extend_set_eq_Collect)
 
-lemma (in Extend) inj_extend_preserves: "inj h ==> (extend h G \<in> preserves g)"
-by (auto simp add: preserves_def extend_def extend_act_def stable_def 
+lemma inj_extend_preserves: "inj h ==> (extend h G \<in> preserves g)"
+  by (auto simp add: preserves_def extend_def extend_act_def stable_def 
                    constrains_def g_def)
 
 
 subsection{*Guarantees*}
 
-lemma (in Extend) project_extend_Join:
-     "project h UNIV ((extend h F)\<squnion>G) = F\<squnion>(project h UNIV G)"
+lemma project_extend_Join: "project h UNIV ((extend h F)\<squnion>G) = F\<squnion>(project h UNIV G)"
 apply (rule program_equalityI)
   apply (simp add: project_set_extend_set_Int)
  apply (auto simp add: image_eq_UN)
 done
 
-lemma (in Extend) extend_Join_eq_extend_D:
+lemma extend_Join_eq_extend_D:
      "(extend h F)\<squnion>G = extend h H ==> H = F\<squnion>(project h UNIV G)"
 apply (drule_tac f = "project h UNIV" in arg_cong)
 apply (simp add: project_extend_Join)
@@ -693,26 +656,25 @@ done
     the old and new state sets are in bijection **)
 
 
-lemma (in Extend) ok_extend_imp_ok_project:
-     "extend h F ok G ==> F ok project h UNIV G"
+lemma ok_extend_imp_ok_project: "extend h F ok G ==> F ok project h UNIV G"
 apply (auto simp add: ok_def)
 apply (drule subsetD)
 apply (auto intro!: rev_image_eqI)
 done
 
-lemma (in Extend) ok_extend_iff: "(extend h F ok extend h G) = (F ok G)"
+lemma ok_extend_iff: "(extend h F ok extend h G) = (F ok G)"
 apply (simp add: ok_def, safe)
-apply (force+)
+apply force+
 done
 
-lemma (in Extend) OK_extend_iff: "OK I (%i. extend h (F i)) = (OK I F)"
+lemma OK_extend_iff: "OK I (%i. extend h (F i)) = (OK I F)"
 apply (unfold OK_def, safe)
 apply (drule_tac x = i in bspec)
 apply (drule_tac [2] x = j in bspec)
-apply (force+)
+apply force+
 done
 
-lemma (in Extend) guarantees_imp_extend_guarantees:
+lemma guarantees_imp_extend_guarantees:
      "F \<in> X guarantees Y ==>  
       extend h F \<in> (extend h ` X) guarantees (extend h ` Y)"
 apply (rule guaranteesI, clarify)
@@ -720,7 +682,7 @@ apply (blast dest: ok_extend_imp_ok_project extend_Join_eq_extend_D
                    guaranteesD)
 done
 
-lemma (in Extend) extend_guarantees_imp_guarantees:
+lemma extend_guarantees_imp_guarantees:
      "extend h F \<in> (extend h ` X) guarantees (extend h ` Y)  
       ==> F \<in> X guarantees Y"
 apply (auto simp add: guar_def)
@@ -730,10 +692,12 @@ apply (simp del: extend_Join
                  inj_extend [THEN inj_image_mem_iff])
 done
 
-lemma (in Extend) extend_guarantees_eq:
+lemma extend_guarantees_eq:
      "(extend h F \<in> (extend h ` X) guarantees (extend h ` Y)) =  
       (F \<in> X guarantees Y)"
-by (blast intro: guarantees_imp_extend_guarantees 
+  by (blast intro: guarantees_imp_extend_guarantees 
                  extend_guarantees_imp_guarantees)
+
+end
 
 end

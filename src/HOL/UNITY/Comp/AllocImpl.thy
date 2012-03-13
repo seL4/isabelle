@@ -240,34 +240,37 @@ declare o_apply [simp del]
 
 subsection{*Theorems for Merge*}
 
-lemma (in Merge) Merge_Allowed:
+context Merge
+begin
+
+lemma Merge_Allowed:
      "Allowed M = (preserves merge.Out) Int (preserves merge.iOut)"
 apply (cut_tac Merge_spec)
 apply (auto simp add: merge_spec_def merge_allowed_acts_def Allowed_def
                       safety_prop_Acts_iff)
 done
 
-lemma (in Merge) M_ok_iff [iff]:
+lemma M_ok_iff [iff]:
      "M ok G = (G \<in> preserves merge.Out & G \<in> preserves merge.iOut &
                      M \<in> Allowed G)"
 by (auto simp add: Merge_Allowed ok_iff_Allowed)
 
 
-lemma (in Merge) Merge_Always_Out_eq_iOut:
+lemma Merge_Always_Out_eq_iOut:
      "[| G \<in> preserves merge.Out; G \<in> preserves merge.iOut; M \<in> Allowed G |]
       ==> M Join G \<in> Always {s. length (merge.Out s) = length (merge.iOut s)}"
 apply (cut_tac Merge_spec)
 apply (force dest: guaranteesD simp add: merge_spec_def merge_eqOut_def)
 done
 
-lemma (in Merge) Merge_Bounded:
+lemma Merge_Bounded:
      "[| G \<in> preserves merge.iOut; G \<in> preserves merge.Out; M \<in> Allowed G |]
       ==> M Join G \<in> Always {s. \<forall>elt \<in> set (merge.iOut s). elt < Nclients}"
 apply (cut_tac Merge_spec)
 apply (force dest: guaranteesD simp add: merge_spec_def merge_bounded_def)
 done
 
-lemma (in Merge) Merge_Bag_Follows_lemma:
+lemma Merge_Bag_Follows_lemma:
      "[| G \<in> preserves merge.iOut; G \<in> preserves merge.Out; M \<in> Allowed G |]
   ==> M Join G \<in> Always
           {s. (\<Sum>i \<in> lessThan Nclients. bag_of (sublist (merge.Out s)
@@ -287,7 +290,7 @@ apply (subgoal_tac
 apply blast
 done
 
-lemma (in Merge) Merge_Bag_Follows:
+lemma Merge_Bag_Follows:
      "M \<in> (\<Inter>i \<in> lessThan Nclients. Increasing (sub i o merge.In))
           guarantees
              (bag_of o merge.Out) Fols
@@ -301,10 +304,15 @@ apply (drule guaranteesD)
   apply (best intro: mono_bag_of [THEN mono_Follows_apply, THEN subsetD], auto)
 done
 
+end
+
 
 subsection{*Theorems for Distributor*}
 
-lemma (in Distrib) Distr_Increasing_Out:
+context Distrib
+begin
+
+lemma Distr_Increasing_Out:
      "D \<in> Increasing distr.In Int Increasing distr.iIn Int
           Always {s. \<forall>elt \<in> set (distr.iIn s). elt < Nclients}
           guarantees
@@ -315,7 +323,7 @@ apply clarify
 apply (blast intro: guaranteesI Follows_Increasing1 dest: guaranteesD)
 done
 
-lemma (in Distrib) Distr_Bag_Follows_lemma:
+lemma Distr_Bag_Follows_lemma:
      "[| G \<in> preserves distr.Out;
          D Join G \<in> Always {s. \<forall>elt \<in> set (distr.iIn s). elt < Nclients} |]
   ==> D Join G \<in> Always
@@ -335,14 +343,14 @@ apply (subgoal_tac
 apply blast
 done
 
-lemma (in Distrib) D_ok_iff [iff]:
+lemma D_ok_iff [iff]:
      "D ok G = (G \<in> preserves distr.Out & D \<in> Allowed G)"
 apply (cut_tac Distrib_spec)
 apply (auto simp add: distr_spec_def distr_allowed_acts_def Allowed_def
                       safety_prop_Acts_iff ok_iff_Allowed)
 done
 
-lemma (in Distrib) Distr_Bag_Follows:
+lemma Distr_Bag_Follows:
  "D \<in> Increasing distr.In Int Increasing distr.iIn Int
       Always {s. \<forall>elt \<in> set (distr.iIn s). elt < Nclients}
       guarantees
@@ -359,6 +367,8 @@ apply (drule guaranteesD)
   prefer 3
   apply (best intro: mono_bag_of [THEN mono_Follows_apply, THEN subsetD], auto)
 done
+
+end
 
 
 subsection{*Theorems for Allocator*}

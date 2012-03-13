@@ -471,22 +471,25 @@ done
 
 (**** EXTEND/PROJECT PROPERTIES ****)
 
-lemma (in Extend) givenBy_o_eq_extend_set:
+context Extend
+begin
+
+lemma givenBy_o_eq_extend_set:
      "givenBy (v o f) = extend_set h ` (givenBy v)"
 apply (simp add: givenBy_eq_Collect)
 apply (rule equalityI, best)
 apply blast 
 done
 
-lemma (in Extend) givenBy_eq_extend_set: "givenBy f = range (extend_set h)"
+lemma givenBy_eq_extend_set: "givenBy f = range (extend_set h)"
 by (simp add: givenBy_eq_Collect, best)
 
-lemma (in Extend) extend_set_givenBy_I:
+lemma extend_set_givenBy_I:
      "D : givenBy v ==> extend_set h D : givenBy (v o f)"
 apply (simp (no_asm_use) add: givenBy_eq_all, blast)
 done
 
-lemma (in Extend) leadsETo_imp_extend_leadsETo:
+lemma leadsETo_imp_extend_leadsETo:
      "F : A leadsTo[CC] B  
       ==> extend h F : (extend_set h A) leadsTo[extend_set h ` CC]  
                        (extend_set h B)"
@@ -500,7 +503,7 @@ done
 
 (*This version's stronger in the "ensures" precondition
   BUT there's no ensures_weaken_L*)
-lemma (in Extend) Join_project_ensures_strong:
+lemma Join_project_ensures_strong:
      "[| project h C G ~: transient (project_set h C Int (A-B)) |  
            project_set h C Int (A - B) = {};   
          extend h F\<squnion>G : stable C;   
@@ -512,7 +515,7 @@ apply (auto simp add: Int_Diff)
 done
 
 (*NOT WORKING.  MODIFY AS IN Project.thy
-lemma (in Extend) pld_lemma:
+lemma pld_lemma:
      "[| extend h F\<squnion>G : stable C;   
          F\<squnion>project h C G : (project_set h C Int A) leadsTo[(%D. project_set h C Int D)`givenBy v] B;   
          G : preserves (v o f) |]  
@@ -535,7 +538,7 @@ apply (auto intro: project_stable_project_set simp add: Int_left_absorb)
 apply (simp (no_asm_simp) add: stable_ensures_Int [THEN ensures_weaken_R] Int_lower2 project_stable_project_set extend_stable_project_set)
 done
 
-lemma (in Extend) project_leadsETo_D_lemma:
+lemma project_leadsETo_D_lemma:
      "[| extend h F\<squnion>G : stable C;   
          F\<squnion>project h C G :  
              (project_set h C Int A)  
@@ -547,7 +550,7 @@ apply (rule pld_lemma [THEN leadsETo_weaken])
 apply (auto simp add: split_extended_all)
 done
 
-lemma (in Extend) project_leadsETo_D:
+lemma project_leadsETo_D:
      "[| F\<squnion>project h UNIV G : A leadsTo[givenBy v] B;   
          G : preserves (v o f) |]   
       ==> extend h F\<squnion>G : (extend_set h A)  
@@ -557,7 +560,7 @@ apply (erule leadsETo_givenBy)
 apply (rule givenBy_o_eq_extend_set [THEN equalityD2])
 done
 
-lemma (in Extend) project_LeadsETo_D:
+lemma project_LeadsETo_D:
      "[| F\<squnion>project h (reachable (extend h F\<squnion>G)) G  
              : A LeadsTo[givenBy v] B;   
          G : preserves (v o f) |]  
@@ -570,7 +573,7 @@ apply (auto simp add: LeadsETo_def)
 apply (simp add: project_set_reachable_extend_eq [symmetric])
 done
 
-lemma (in Extend) extending_leadsETo: 
+lemma extending_leadsETo: 
      "(ALL G. extend h F ok G --> G : preserves (v o f))  
       ==> extending (%G. UNIV) h F  
                 (extend_set h A leadsTo[givenBy (v o f)] extend_set h B)  
@@ -579,7 +582,7 @@ apply (unfold extending_def)
 apply (auto simp add: project_leadsETo_D)
 done
 
-lemma (in Extend) extending_LeadsETo: 
+lemma extending_LeadsETo: 
      "(ALL G. extend h F ok G --> G : preserves (v o f))  
       ==> extending (%G. reachable (extend h F\<squnion>G)) h F  
                 (extend_set h A LeadsTo[givenBy (v o f)] extend_set h B)  
@@ -593,7 +596,7 @@ done
 (*** leadsETo in the precondition ***)
 
 (*Lemma for the Trans case*)
-lemma (in Extend) pli_lemma:
+lemma pli_lemma:
      "[| extend h F\<squnion>G : stable C;     
          F\<squnion>project h C G     
            : project_set h C Int project_set h A leadsTo project_set h B |]  
@@ -604,7 +607,7 @@ apply (rule psp_stable2 [THEN leadsTo_weaken_L])
 apply (auto simp add: project_stable_project_set extend_stable_project_set)
 done
 
-lemma (in Extend) project_leadsETo_I_lemma:
+lemma project_leadsETo_I_lemma:
      "[| extend h F\<squnion>G : stable C;   
          extend h F\<squnion>G :  
            (C Int A) leadsTo[(%D. C Int D)`givenBy f]  B |]   
@@ -620,13 +623,13 @@ apply (rule leadsTo_Basis)
 apply (blast intro: ensures_extend_set_imp_project_ensures)
 done
 
-lemma (in Extend) project_leadsETo_I:
+lemma project_leadsETo_I:
      "extend h F\<squnion>G : (extend_set h A) leadsTo[givenBy f] (extend_set h B)
       ==> F\<squnion>project h UNIV G : A leadsTo B"
 apply (rule project_leadsETo_I_lemma [THEN leadsTo_weaken], auto)
 done
 
-lemma (in Extend) project_LeadsETo_I:
+lemma project_LeadsETo_I:
      "extend h F\<squnion>G : (extend_set h A) LeadsTo[givenBy f] (extend_set h B) 
       ==> F\<squnion>project h (reachable (extend h F\<squnion>G)) G   
            : A LeadsTo B"
@@ -635,7 +638,7 @@ apply (rule project_leadsETo_I_lemma [THEN leadsTo_weaken])
 apply (auto simp add: project_set_reachable_extend_eq [symmetric])
 done
 
-lemma (in Extend) projecting_leadsTo: 
+lemma projecting_leadsTo: 
      "projecting (%G. UNIV) h F  
                  (extend_set h A leadsTo[givenBy f] extend_set h B)  
                  (A leadsTo B)"
@@ -643,12 +646,14 @@ apply (unfold projecting_def)
 apply (force dest: project_leadsETo_I)
 done
 
-lemma (in Extend) projecting_LeadsTo: 
+lemma projecting_LeadsTo: 
      "projecting (%G. reachable (extend h F\<squnion>G)) h F  
                  (extend_set h A LeadsTo[givenBy f] extend_set h B)  
                  (A LeadsTo B)"
 apply (unfold projecting_def)
 apply (force dest: project_LeadsETo_I)
 done
+
+end
 
 end

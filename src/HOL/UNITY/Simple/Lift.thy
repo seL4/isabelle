@@ -303,26 +303,29 @@ done  (*lem_lift_1_7*)
 
 lemmas linorder_leI = linorder_not_less [THEN iffD1]
 
-lemmas (in Floor) le_MinD = Min_le_n [THEN order_antisym]
-              and Max_leD = n_le_Max [THEN [2] order_antisym]
+context Floor
+begin
 
-declare (in Floor) le_MinD [dest!]
-               and linorder_leI [THEN le_MinD, dest!]
-               and Max_leD [dest!]
-               and linorder_leI [THEN Max_leD, dest!]
+lemmas le_MinD = Min_le_n [THEN order_antisym]
+  and Max_leD = n_le_Max [THEN [2] order_antisym]
+
+declare le_MinD [dest!]
+  and linorder_leI [THEN le_MinD, dest!]
+  and Max_leD [dest!]
+  and linorder_leI [THEN Max_leD, dest!]
 
 
 (*lem_lift_2_0 
   NOT an ensures_tac property, but a mere inclusion
   don't know why script lift_2.uni says ENSURES*)
-lemma (in Floor) E_thm05c: 
+lemma E_thm05c: 
     "Lift \<in> (Req n \<inter> closed - (atFloor n - queueing))    
              LeadsTo ((closed \<inter> goingup \<inter> Req n)  \<union> 
                       (closed \<inter> goingdown \<inter> Req n))"
 by (auto intro!: subset_imp_LeadsTo simp add: linorder_neq_iff)
 
 (*lift_2*)
-lemma (in Floor) lift_2: "Lift \<in> (Req n \<inter> closed - (atFloor n - queueing))    
+lemma lift_2: "Lift \<in> (Req n \<inter> closed - (atFloor n - queueing))    
              LeadsTo (moving \<inter> Req n)"
 apply (rule LeadsTo_Trans [OF E_thm05c LeadsTo_Un])
 apply (unfold Lift_def) 
@@ -337,7 +340,7 @@ declare split_if_asm [split]
 
 
 (*lem_lift_4_1 *)
-lemma (in Floor) E_thm12a:
+lemma E_thm12a:
      "0 < N ==>  
       Lift \<in> (moving \<inter> Req n \<inter> {s. metric n s = N} \<inter> 
               {s. floor s \<notin> req s} \<inter> {s. up s})    
@@ -352,7 +355,7 @@ done
 
 
 (*lem_lift_4_3 *)
-lemma (in Floor) E_thm12b: "0 < N ==>  
+lemma E_thm12b: "0 < N ==>  
       Lift \<in> (moving \<inter> Req n \<inter> {s. metric n s = N} \<inter> 
               {s. floor s \<notin> req s} - {s. up s})    
              LeadsTo (moving \<inter> Req n \<inter> {s. metric n s < N})"
@@ -364,7 +367,7 @@ apply (auto simp add: metric_def)
 done
 
 (*lift_4*)
-lemma (in Floor) lift_4:
+lemma lift_4:
      "0<N ==> Lift \<in> (moving \<inter> Req n \<inter> {s. metric n s = N} \<inter> 
                             {s. floor s \<notin> req s}) LeadsTo      
                            (moving \<inter> Req n \<inter> {s. metric n s < N})"
@@ -376,7 +379,7 @@ done
 (** towards lift_5 **)
 
 (*lem_lift_5_3*)
-lemma (in Floor) E_thm16a: "0<N    
+lemma E_thm16a: "0<N    
   ==> Lift \<in> (closed \<inter> Req n \<inter> {s. metric n s = N} \<inter> goingup) LeadsTo  
              (moving \<inter> Req n \<inter> {s. metric n s < N})"
 apply (cut_tac bounded)
@@ -386,7 +389,7 @@ done
 
 
 (*lem_lift_5_1 has ~goingup instead of goingdown*)
-lemma (in Floor) E_thm16b: "0<N ==>    
+lemma E_thm16b: "0<N ==>    
       Lift \<in> (closed \<inter> Req n \<inter> {s. metric n s = N} \<inter> goingdown) LeadsTo  
                    (moving \<inter> Req n \<inter> {s. metric n s < N})"
 apply (cut_tac bounded)
@@ -397,13 +400,13 @@ done
 
 (*lem_lift_5_0 proves an intersection involving ~goingup and goingup,
   i.e. the trivial disjunction, leading to an asymmetrical proof.*)
-lemma (in Floor) E_thm16c:
+lemma E_thm16c:
      "0<N ==> Req n \<inter> {s. metric n s = N} \<subseteq> goingup \<union> goingdown"
 by (force simp add: metric_def)
 
 
 (*lift_5*)
-lemma (in Floor) lift_5:
+lemma lift_5:
      "0<N ==> Lift \<in> (closed \<inter> Req n \<inter> {s. metric n s = N}) LeadsTo    
                      (moving \<inter> Req n \<inter> {s. metric n s < N})"
 apply (rule LeadsTo_Trans [OF subset_imp_LeadsTo
@@ -415,20 +418,20 @@ done
 (** towards lift_3 **)
 
 (*lemma used to prove lem_lift_3_1*)
-lemma (in Floor) metric_eq_0D [dest]:
+lemma metric_eq_0D [dest]:
      "[| metric n s = 0;  Min \<le> floor s;  floor s \<le> Max |] ==> floor s = n"
 by (force simp add: metric_def)
 
 
 (*lem_lift_3_1*)
-lemma (in Floor) E_thm11: "Lift \<in> (moving \<inter> Req n \<inter> {s. metric n s = 0}) LeadsTo    
+lemma E_thm11: "Lift \<in> (moving \<inter> Req n \<inter> {s. metric n s = 0}) LeadsTo    
                        (stopped \<inter> atFloor n)"
 apply (cut_tac bounded)
 apply (unfold Lift_def, ensures_tac "request_act", auto)
 done
 
 (*lem_lift_3_5*)
-lemma (in Floor) E_thm13: 
+lemma E_thm13: 
   "Lift \<in> (moving \<inter> Req n \<inter> {s. metric n s = N} \<inter> {s. floor s \<in> req s})  
   LeadsTo (stopped \<inter> Req n \<inter> {s. metric n s = N} \<inter> {s. floor s \<in> req s})"
 apply (unfold Lift_def, ensures_tac "request_act")
@@ -436,7 +439,7 @@ apply (auto simp add: metric_def)
 done
 
 (*lem_lift_3_6*)
-lemma (in Floor) E_thm14: "0 < N ==>  
+lemma E_thm14: "0 < N ==>  
       Lift \<in>  
         (stopped \<inter> Req n \<inter> {s. metric n s = N} \<inter> {s. floor s \<in> req s})  
         LeadsTo (opened \<inter> Req n \<inter> {s. metric n s = N})"
@@ -445,7 +448,7 @@ apply (auto simp add: metric_def)
 done
 
 (*lem_lift_3_7*)
-lemma (in Floor) E_thm15: "Lift \<in> (opened \<inter> Req n \<inter> {s. metric n s = N})   
+lemma E_thm15: "Lift \<in> (opened \<inter> Req n \<inter> {s. metric n s = N})   
              LeadsTo (closed \<inter> Req n \<inter> {s. metric n s = N})"
 apply (unfold Lift_def, ensures_tac "close_act")
 apply (auto simp add: metric_def)
@@ -454,7 +457,7 @@ done
 
 (** the final steps **)
 
-lemma (in Floor) lift_3_Req: "0 < N ==>  
+lemma lift_3_Req: "0 < N ==>  
       Lift \<in>  
         (moving \<inter> Req n \<inter> {s. metric n s = N} \<inter> {s. floor s \<in> req s})    
         LeadsTo (moving \<inter> Req n \<inter> {s. metric n s < N})"
@@ -463,15 +466,14 @@ done
 
 
 (*Now we observe that our integer metric is really a natural number*)
-lemma (in Floor) Always_nonneg: "Lift \<in> Always {s. 0 \<le> metric n s}"
+lemma Always_nonneg: "Lift \<in> Always {s. 0 \<le> metric n s}"
 apply (rule bounded [THEN Always_weaken])
 apply (auto simp add: metric_def)
 done
 
-lemmas (in Floor) R_thm11 = Always_LeadsTo_weaken [OF Always_nonneg E_thm11]
+lemmas R_thm11 = Always_LeadsTo_weaken [OF Always_nonneg E_thm11]
 
-lemma (in Floor) lift_3:
-     "Lift \<in> (moving \<inter> Req n) LeadsTo (stopped \<inter> atFloor n)"
+lemma lift_3: "Lift \<in> (moving \<inter> Req n) LeadsTo (stopped \<inter> atFloor n)"
 apply (rule Always_nonneg [THEN integ_0_le_induct])
 apply (case_tac "0 < z")
 (*If z \<le> 0 then actually z = 0*)
@@ -482,7 +484,7 @@ apply (rule LeadsTo_Trans [OF subset_imp_LeadsTo
 done
 
 
-lemma (in Floor) lift_1: "Lift \<in> (Req n) LeadsTo (opened \<inter> atFloor n)"
+lemma lift_1: "Lift \<in> (Req n) LeadsTo (opened \<inter> atFloor n)"
 apply (rule LeadsTo_Trans)
  prefer 2
  apply (rule LeadsTo_Un [OF E_thm04 LeadsTo_Un_post])
@@ -496,5 +498,6 @@ apply (rule Always_LeadsToI [OF open_stop subset_imp_LeadsTo], clarify)
 apply (case_tac "open x", auto)
 done
 
+end
 
 end
