@@ -114,8 +114,6 @@ lemma diamond_trancl: "diamond(r) ==> diamond(r^+)"
 
 inductive_cases Ap_E [elim!]: "p\<bullet>q \<in> comb"
 
-declare comb.intros [intro!]
-
 
 subsection {* Results about Contraction *}
 
@@ -189,13 +187,13 @@ lemma Ap_reduce2: "[| p -\<longrightarrow> q;  r \<in> comb |] ==> r\<bullet>p -
 text {* Counterexample to the diamond property for @{text "-1->"}. *}
 
 lemma KIII_contract1: "K\<bullet>I\<bullet>(I\<bullet>I) -1-> I"
-  by (blast intro: comb.intros contract.K comb_I)
+  by (blast intro: comb_I)
 
 lemma KIII_contract2: "K\<bullet>I\<bullet>(I\<bullet>I) -1-> K\<bullet>I\<bullet>((K\<bullet>I)\<bullet>(K\<bullet>I))"
-  by (unfold I_def) (blast intro: comb.intros contract.intros)
+  by (unfold I_def) (blast intro: contract.intros)
 
 lemma KIII_contract3: "K\<bullet>I\<bullet>((K\<bullet>I)\<bullet>(K\<bullet>I)) -1-> I"
-  by (blast intro: comb.intros contract.K comb_I)
+  by (blast intro: comb_I)
 
 lemma not_diamond_contract: "\<not> diamond(contract)"
   apply (unfold diamond_def)

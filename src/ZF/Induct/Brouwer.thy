@@ -71,7 +71,7 @@ lemma Well_bool_unfold: "Well(bool, \<lambda>x. x) = 1 + (1 -> Well(bool, \<lamb
   -- {* In fact it's isomorphic to @{text nat}, but we need a recursion operator *}
   -- {* for @{text Well} to prove this. *}
   apply (rule Well_unfold [THEN trans])
-  apply (simp add: Sigma_bool Pi_empty1 succ_def)
+  apply (simp add: Sigma_bool succ_def)
   done
 
 end

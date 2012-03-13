@@ -138,8 +138,7 @@ lemma term_rec_type:
   apply (subst term_rec)
    apply (assumption | rule a)+
   apply (erule list.induct)
-   apply (simp add: term_rec)
-  apply (auto simp add: term_rec)
+   apply auto
   done
 
 lemma def_term_rec:
