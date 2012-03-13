@@ -90,7 +90,7 @@ definition "int_mod (u :: int) ua ub = (u dvd (ua - ub))"
 
 lemma int_mod_def':
   "int_mod = (\<lambda>u ua ub. (u dvd (ua - ub)))"
-  by (simp add: int_mod_def_raw)
+  by (simp add: int_mod_def [abs_def])
 
 lemma int_congruent:
   "\<forall>x xa xb. int_mod xb x xa = (\<exists>d. x - xa = xb * d)"

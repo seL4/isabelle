@@ -260,7 +260,7 @@ lemma (in prob_space) distribution_prob_space:
 proof (rule prob_space_vimage)
   show "X \<in> measure_preserving M ?S"
     using X
-    unfolding measure_preserving_def distribution_def_raw
+    unfolding measure_preserving_def distribution_def [abs_def]
     by (auto simp: finite_measure_eq measurable_sets)
   show "sigma_algebra ?S" using X by simp
 qed

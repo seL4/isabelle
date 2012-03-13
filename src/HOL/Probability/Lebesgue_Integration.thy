@@ -247,7 +247,7 @@ proof -
   hence "finite ?S" by (rule finite_subset) simp
   moreover have "- A \<inter> space M = space M - A" by auto
   ultimately show ?thesis unfolding simple_function_def
-    using assms by (auto simp: indicator_def_raw)
+    using assms by (auto simp: indicator_def [abs_def])
 qed
 
 lemma (in sigma_algebra) simple_function_Pair[intro, simp]:
@@ -821,7 +821,7 @@ qed
 lemma (in measure_space) simple_integral_subalgebra:
   assumes N: "measure_space N" and [simp]: "space N = space M" "measure N = measure M"
   shows "integral\<^isup>S N = integral\<^isup>S M"
-  unfolding simple_integral_def_raw by simp
+  unfolding simple_integral_def [abs_def] by simp
 
 lemma (in measure_space) simple_integral_vimage:
   assumes T: "sigma_algebra M'" "T \<in> measure_preserving M M'"
@@ -1482,7 +1482,7 @@ proof -
   have borel[simp]:
     "borel_measurable M' = borel_measurable M"
     "simple_function M' = simple_function M"
-    unfolding measurable_def simple_function_def_raw by (auto simp: M')
+    unfolding measurable_def simple_function_def [abs_def] by (auto simp: M')
   from borel_measurable_implies_simple_function_sequence'[OF g(1)] guess G . note G = this
   note G' = borel_measurable_simple_function[OF this(1)] simple_functionD[OF G(1)]
   note G'(2)[simp]

@@ -2762,12 +2762,24 @@ lemma negligible_unions[intro]: assumes "finite s" "\<forall>t\<in>s. negligible
 
 lemma negligible:  "negligible s \<longleftrightarrow> (\<forall>t::('a::ordered_euclidean_space) set. ((indicator s::'a\<Rightarrow>real) has_integral 0) t)"
   apply safe defer apply(subst negligible_def)
-proof- fix t::"'a set" assume as:"negligible s"
-  have *:"(\<lambda>x. if x \<in> s \<inter> t then 1 else 0) = (\<lambda>x. if x\<in>t then if x\<in>s then 1 else 0 else 0)" by(rule ext,auto)  
-  show "((indicator s::'a\<Rightarrow>real) has_integral 0) t" apply(subst has_integral_alt)
-    apply(cases,subst if_P,assumption) unfolding if_not_P apply(safe,rule as[unfolded negligible_def,rule_format])
-    apply(rule_tac x=1 in exI) apply(safe,rule zero_less_one) apply(rule_tac x=0 in exI)
-    using negligible_subset[OF as,of "s \<inter> t"] unfolding negligible_def indicator_def_raw unfolding * by auto qed auto
+proof -
+  fix t::"'a set" assume as:"negligible s"
+  have *:"(\<lambda>x. if x \<in> s \<inter> t then 1 else 0) = (\<lambda>x. if x\<in>t then if x\<in>s then 1 else 0 else 0)"
+    by auto
+  show "((indicator s::'a\<Rightarrow>real) has_integral 0) t"
+    apply(subst has_integral_alt)
+    apply(cases,subst if_P,assumption)
+    unfolding if_not_P
+    apply(safe,rule as[unfolded negligible_def,rule_format])
+    apply(rule_tac x=1 in exI)
+    apply(safe,rule zero_less_one)
+    apply(rule_tac x=0 in exI)
+    using negligible_subset[OF as,of "s \<inter> t"]
+    unfolding negligible_def indicator_def [abs_def]
+    unfolding *
+    apply auto
+    done
+qed auto
 
 subsection {* Finite case of the spike theorem is quite commonly needed. *}
 

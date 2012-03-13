@@ -706,7 +706,7 @@ proof -
   have "\<And>A. measure (Pi\<^isub>M {} M) (Pi\<^isub>E {} A) = 1"
     using assms by (subst measure_times) auto
   then show ?thesis
-    unfolding positive_integral_def simple_function_def simple_integral_def_raw
+    unfolding positive_integral_def simple_function_def simple_integral_def [abs_def]
   proof (simp add: P_empty, intro antisym)
     show "f (\<lambda>k. undefined) \<le> (SUP f:{g. g \<le> max 0 \<circ> f}. f (\<lambda>k. undefined))"
       by (intro SUP_upper) (auto simp: le_fun_def split: split_max)

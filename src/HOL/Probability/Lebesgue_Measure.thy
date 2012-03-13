@@ -48,7 +48,7 @@ proof- from reals_Archimedean2[of "norm x"] guess n ..
 qed
 
 lemma cube_subset_Suc[intro]: "cube n \<subseteq> cube (Suc n)"
-  unfolding cube_def_raw subset_eq apply safe unfolding mem_interval by auto
+  unfolding cube_def subset_eq apply safe unfolding mem_interval apply auto done
 
 subsection {* Lebesgue measure *} 
 
@@ -95,7 +95,7 @@ proof (intro sigma_algebra_iff2[THEN iffD2] conjI allI ballI impI lebesgueI)
     using A by (auto intro!: integrable_sub dest: lebesgueD simp: cube_def)
 next
   fix n show "(indicator {} :: _\<Rightarrow>real) integrable_on cube n"
-    by (auto simp: cube_def indicator_def_raw)
+    by (auto simp: cube_def indicator_def [abs_def])
 next
   fix A :: "nat \<Rightarrow> 'a set" and n ::nat assume "range A \<subseteq> sets lebesgue"
   then have A: "\<And>i. (indicator (A i) :: _ \<Rightarrow> real) integrable_on cube n"
@@ -193,7 +193,7 @@ proof -
   have "(?I has_integral content ?R) (cube n) \<longleftrightarrow> (indicator ?R has_integral content ?R) UNIV"
     unfolding has_integral_restrict_univ[where s="cube n", symmetric] by simp
   also have "\<dots> \<longleftrightarrow> ((\<lambda>x. 1) has_integral content ?R) ?R"
-    unfolding indicator_def_raw has_integral_restrict_univ ..
+    unfolding indicator_def [abs_def] has_integral_restrict_univ ..
   finally show ?thesis
     using has_integral_const[of "1::real" "?N" "?P"] by simp
 qed
@@ -437,9 +437,9 @@ lemma
   shows lmeasure_atLeastAtMost[simp]: "lebesgue.\<mu> {a..b} = ereal (content {a..b})"
 proof -
   have "(indicator (UNIV \<inter> {a..b})::_\<Rightarrow>real) integrable_on UNIV"
-    unfolding integrable_indicator_UNIV by (simp add: integrable_const indicator_def_raw)
+    unfolding integrable_indicator_UNIV by (simp add: integrable_const indicator_def [abs_def])
   from lmeasure_eq_integral[OF this] show ?thesis unfolding integral_indicator_UNIV
-    by (simp add: indicator_def_raw)
+    by (simp add: indicator_def [abs_def])
 qed
 
 lemma atLeastAtMost_singleton_euclidean[simp]:
@@ -504,7 +504,7 @@ lemma
   and sets_lborel[simp]: "sets lborel = sets borel"
   and measure_lborel[simp]: "measure lborel = lebesgue.\<mu>"
   and measurable_lborel[simp]: "measurable lborel = measurable borel"
-  by (simp_all add: measurable_def_raw lborel_def)
+  by (simp_all add: measurable_def [abs_def] lborel_def)
 
 interpretation lborel: measure_space "lborel :: ('a::ordered_euclidean_space) measure_space"
   where "space lborel = UNIV"
@@ -871,7 +871,7 @@ proof (rule measure_unique_Int_stable_vimage)
 
   let ?E = "\<lparr> space = UNIV :: 'a set, sets = range (\<lambda>(a,b). {a..b}) \<rparr>"
   show "Int_stable ?E" using Int_stable_cuboids .
-  show "range cube \<subseteq> sets ?E" unfolding cube_def_raw by auto
+  show "range cube \<subseteq> sets ?E" unfolding cube_def [abs_def] by auto
   show "incseq cube" using cube_subset_Suc by (auto intro!: incseq_SucI)
   { fix x have "\<exists>n. x \<in> cube n" using mem_big_cube[of x] by fastforce }
   then show "(\<Union>i. cube i) = space ?E" by auto
@@ -1001,7 +1001,7 @@ proof -
     then show "(\<Union>i. cube i) = space ?E" by auto
     show "incseq cube" by (intro incseq_SucI cube_subset_Suc)
     show "range cube \<subseteq> sets ?E"
-      unfolding cube_def_raw by auto
+      unfolding cube_def [abs_def] by auto
     show "\<And>i. measure lebesgue (cube i) \<noteq> \<infinity>"
       by (simp add: cube_def)
     show "measure_space lborel" by default

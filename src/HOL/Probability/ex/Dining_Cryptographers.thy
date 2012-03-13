@@ -132,7 +132,7 @@ proof -
   have *: "{xs. length xs = n} \<noteq> {}"
     by (auto intro!: exI[of _ "replicate n undefined"])
   show ?thesis
-    unfolding payer_def_raw dc_crypto fst_image_times if_not_P[OF *] ..
+    unfolding payer_def [abs_def] dc_crypto fst_image_times if_not_P[OF *] ..
 qed
 
 lemma card_payer_and_inversion:
@@ -310,7 +310,7 @@ proof -
   let ?sets = "{?set i | i. i < n}"
 
   have [simp]: "length xs = n" using assms
-    by (auto simp: dc_crypto inversion_def_raw)
+    by (auto simp: dc_crypto inversion_def [abs_def])
 
   have "{dc \<in> dc_crypto. inversion dc = xs} = (\<Union> i < n. ?set i)"
     unfolding dc_crypto payer_def by auto
@@ -462,7 +462,7 @@ proof -
           {dc \<in> dc_crypto. payer dc = Some (the z) \<and> inversion dc = x}"
         by (auto simp add: payer_def)
       moreover from x z obtain i where "z = Some i" and "i < n" by auto
-      moreover from x have "length x = n" by (auto simp: inversion_def_raw dc_crypto)
+      moreover from x have "length x = n" by (auto simp: inversion_def [abs_def] dc_crypto)
       ultimately
       have "?dIP {(x, z)} = 2 / (real n * 2^n)" using x
         by (auto simp add: card_dc_crypto card_payer_and_inversion distribution_def)
@@ -490,7 +490,7 @@ proof -
       unfolding neg_equal_iff_equal
     proof (rule setsum_cong[OF refl])
       fix x assume x_inv: "x \<in> inversion ` dc_crypto"
-      hence "length x = n" by (auto simp: inversion_def_raw dc_crypto)
+      hence "length x = n" by (auto simp: inversion_def [abs_def] dc_crypto)
       moreover have "inversion -` {x} \<inter> dc_crypto = {dc \<in> dc_crypto. inversion dc = x}" by auto
       ultimately have "?dI {x} = 2 / 2^n" using `0 < n`
         by (auto simp: card_inversion[OF x_inv] card_dc_crypto distribution_def)

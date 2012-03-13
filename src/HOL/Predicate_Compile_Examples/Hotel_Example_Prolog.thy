@@ -32,7 +32,7 @@ where
 lemma [code_pred_def]:
   "cardsp [] g k = False"
   "cardsp (e # s) g k = (let C = cardsp s g in case e of Check_in g' r c => if g' = g then k = c \<or> C k else C k | _ => C k)"
-unfolding cardsp_def_raw cards.simps by (auto simp add: Let_def split: event.split)
+unfolding cardsp_def [abs_def] cards.simps by (auto simp add: Let_def split: event.split)
 
 definition
   "isinp evs r g = (g \<in> isin evs r)"
@@ -44,7 +44,7 @@ lemma [code_pred_def]:
    in case e of Check_in g' r c => G g
     | Enter g' r' c => if r' = r then g = g' \<or> G g else G g
     | Exit g' r' => if r' = r then ((g \<noteq> g') \<and> G g) else G g)"
-unfolding isinp_def_raw isin.simps by (auto simp add: Let_def split: event.split)
+unfolding isinp_def [abs_def] isin.simps by (auto simp add: Let_def split: event.split)
 
 declare hotel.simps(1)[code_pred_def]
 lemma [code_pred_def]:

@@ -272,7 +272,7 @@ definition [import_rew]: "DISJOINT a b \<longleftrightarrow> a \<inter> b = {}"
 
 lemma DEF_DISJOINT:
   "DISJOINT = (%u ua. u \<inter> ua = {})"
-  by (auto simp add: DISJOINT_def_raw)
+  by (auto simp add: DISJOINT_def [abs_def])
 
 lemma DEF_DIFF:
   "op - = (\<lambda>u ua. {ub. \<exists>x. (x \<in> u \<and> x \<notin> ua) \<and> ub = x})"
@@ -282,7 +282,7 @@ definition [import_rew]: "DELETE s e = s - {e}"
 
 lemma DEF_DELETE:
   "DELETE = (\<lambda>u ua. {ub. \<exists>y. (y \<in> u \<and> y \<noteq> ua) \<and> ub = y})"
-  by (auto simp add: DELETE_def_raw)
+  by (auto simp add: DELETE_def [abs_def])
 
 lemma COND_DEF:
   "(if b then t else f) = (SOME x. (b = True \<longrightarrow> x = t) \<and> (b = False \<longrightarrow> x = f))"
@@ -344,7 +344,7 @@ lemma [import_rew]: "dotdot a b = {a..b}"
 definition [import_rew,simp]: "INFINITE S \<longleftrightarrow> \<not> finite S"
 
 lemma DEF_INFINITE: "INFINITE = (\<lambda>u. \<not>finite u)"
-  by (simp add: INFINITE_def_raw)
+  by (simp add: INFINITE_def [abs_def])
 
 end
 

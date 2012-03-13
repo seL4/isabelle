@@ -823,7 +823,7 @@ proof -
   interpret S: prob_space "S\<lparr> measure := ereal\<circ>distribution X \<rparr>"
     using distribution_prob_space[OF X] .
   from A show "S.\<mu>' A = distribution X A"
-    unfolding S.\<mu>'_def by (simp add: distribution_def_raw \<mu>'_def)
+    unfolding S.\<mu>'_def by (simp add: distribution_def [abs_def] \<mu>'_def)
 qed
 
 lemma (in information_space) entropy_uniform_max:
