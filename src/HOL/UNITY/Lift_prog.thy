@@ -301,7 +301,7 @@ lemma constrains_imp_lift_constrains:
     "[| F i \<in> (A <*> UNIV) co (B <*> UNIV);   
         F j \<in> preserves snd |]   
      ==> lift j (F j) \<in> (lift_set i (A <*> UNIV)) co (lift_set i (B <*> UNIV))"
-apply (case_tac "i=j")
+apply (cases "i=j")
 apply (simp add: lift_def lift_set_def rename_constrains)
 apply (erule preserves_snd_lift_stable[THEN stableD, THEN constrains_weaken_R],
        assumption)

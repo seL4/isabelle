@@ -41,40 +41,30 @@ declare Component_def [THEN def_prg_Init, simp]
 declare a_def [THEN def_act_simp, simp]
 
 (* Theorems about sum and sumj *)
-lemma sum_upd_gt [rule_format]: "\<forall>n. I<n --> sum I (s(c n := x)) = sum I s"
-by (induct_tac "I", auto)
+lemma sum_upd_gt: "I<n ==> sum I (s(c n := x)) = sum I s"
+  by (induct I) auto
 
 
 lemma sum_upd_eq: "sum I (s(c I := x)) = sum I s"
-apply (induct_tac "I")
-apply (auto simp add: sum_upd_gt [unfolded fun_upd_def])
-done
+  by (induct I) (auto simp add: sum_upd_gt [unfolded fun_upd_def])
 
 lemma sum_upd_C: "sum I (s(C := x)) = sum I s"
-by (induct_tac "I", auto)
+  by (induct I) auto
 
 lemma sumj_upd_ci: "sumj I i (s(c i := x)) = sumj I i s"
-apply (induct_tac "I")
-apply (auto simp add: sum_upd_eq [unfolded fun_upd_def])
-done
+  by (induct I) (auto simp add: sum_upd_eq [unfolded fun_upd_def])
 
 lemma sumj_upd_C: "sumj I i (s(C := x)) = sumj I i s"
-apply (induct_tac "I")
-apply (auto simp add: sum_upd_C [unfolded fun_upd_def])
-done
+  by (induct I) (auto simp add: sum_upd_C [unfolded fun_upd_def])
 
-lemma sumj_sum_gt [rule_format]: "\<forall>i. I<i--> (sumj I i s = sum I s)"
-by (induct_tac "I", auto)
+lemma sumj_sum_gt: "I<i ==> sumj I i s = sum I s"
+  by (induct I) auto
 
 lemma sumj_sum_eq: "(sumj I I s = sum I s)"
-apply (induct_tac "I", auto)
-apply (simp (no_asm) add: sumj_sum_gt)
-done
+  by (induct I) (auto simp add: sumj_sum_gt)
 
-lemma sum_sumj [rule_format]: "\<forall>i. i<I-->(sum I s = s (c i) +  sumj I i s)"
-apply (induct_tac "I")
-apply (auto simp add: linorder_neq_iff sumj_sum_eq)
-done
+lemma sum_sumj: "i<I ==> sum I s = s (c i) +  sumj I i s"
+  by (induct I) (auto simp add: linorder_neq_iff sumj_sum_eq)
 
 (* Correctness proofs for Components *)
 (* p2 and p3 proofs *)
@@ -103,8 +93,8 @@ by (auto intro!: p2_p3_lemma2 simp add: p2_p3_lemma1 [symmetric])
 
 (* Compositional Proof *)
 
-lemma sum_0' [rule_format]: "(\<forall>i. i < I --> s (c i) = 0) --> sum I s = 0"
-by (induct_tac "I", auto)
+lemma sum_0': "(\<And>i. i < I ==> s (c i) = 0) ==> sum I s = 0"
+  by (induct I) auto
 
 (* I cannot be empty *)
 lemma safety:

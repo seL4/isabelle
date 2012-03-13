@@ -749,7 +749,7 @@ lemma preserves_sub_fst_lift_map: "[| F : preserves w; i ~= j |]
 
 lemma client_preserves_giv_oo_client_map: "[| i < Nclients; j < Nclients |]
       ==> Client : preserves (giv o sub i o fst o lift_map j o client_map)"
-  apply (case_tac "i=j")
+  apply (cases "i=j")
   apply (simp, simp add: o_def non_dummy_def)
   apply (drule Client_preserves_dummy [THEN preserves_sub_fst_lift_map])
   apply (drule_tac [!] subset_preserves_o [THEN [2] rev_subsetD])

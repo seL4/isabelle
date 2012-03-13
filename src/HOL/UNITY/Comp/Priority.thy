@@ -143,16 +143,12 @@ done
 
 
 text{* p15: universal property: all Components well behave  *}
-lemma system_well_behaves [rule_format]:
-     "\<forall>i. system \<in> Highest i co Highest i Un Lowest i"
-apply clarify
-apply (simp add: system_def Component_def mk_total_program_def totalize_JN, 
-       safety, auto)
-done
+lemma system_well_behaves: "system \<in> Highest i co Highest i Un Lowest i"
+  by (simp add: system_def Component_def mk_total_program_def totalize_JN, safety, auto)
 
 
 lemma Acyclic_eq: "Acyclic = (\<Inter>i. {s. i\<notin>above i s})"
-by (auto simp add: Acyclic_def acyclic_def trancl_converse)
+  by (auto simp add: Acyclic_def acyclic_def trancl_converse)
 
 
 lemmas system_co =

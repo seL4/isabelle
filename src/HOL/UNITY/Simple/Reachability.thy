@@ -319,7 +319,7 @@ apply (rule Finite_stable_completion)
 done
 
 lemma LeadsTo_final: "F \<in> UNIV LeadsTo final"
-apply (case_tac "E={}")
+apply (cases "E={}")
  apply (rule_tac [2] LeadsTo_final_E_NOT_empty)
 apply (rule LeadsTo_final_E_empty, auto)
 done
@@ -361,7 +361,7 @@ apply blast+
 done
 
 lemma Stable_final: "F \<in> Stable final"
-apply (case_tac "E={}")
+apply (cases "E={}")
  prefer 2 apply (blast intro: Stable_final_E_NOT_empty)
 apply (blast intro: Stable_final_E_empty)
 done

@@ -56,7 +56,7 @@ by (unfold HasTok_def, auto)
 
 lemma not_E_eq: "(s \<notin> E i) = (s \<in> H i | s \<in> T i)"
 apply (simp add: H_def E_def T_def)
-apply (case_tac "proc s i", auto)
+apply (cases "proc s i", auto)
 done
 
 lemma (in Token) token_stable: "F \<in> stable (-(E i) \<union> (HasTok i))"
@@ -83,11 +83,11 @@ apply (auto split add: nat_diff_split simp add: linorder_neq_iff mod_geq)
 done
 
 text{*From "A Logic for Concurrent Programming", but not used in Chapter 4.
-  Note the use of @{text case_tac}.  Reasoning about leadsTo takes practice!*}
+  Note the use of @{text cases}.  Reasoning about leadsTo takes practice!*}
 lemma (in Token) TR7_nodeOrder:
      "[| i<N; j<N |] ==>    
       F \<in> (HasTok i) leadsTo ({s. (token s, i) \<in> nodeOrder j} \<union> HasTok j)"
-apply (case_tac "i=j")
+apply (cases "i=j")
 apply (blast intro: subset_imp_leadsTo)
 apply (rule TR7 [THEN leadsTo_weaken_R])
 apply (auto simp add: HasTok_def nodeOrder_eq)

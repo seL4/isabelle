@@ -27,11 +27,8 @@ apply (induct_tac "n")
 apply (auto simp add: lessThan_Suc)
 done
 
-lemma tokens_mono_prefix [rule_format]:
-     "ALL xs. xs <= ys --> tokens xs <= tokens ys"
-apply (induct_tac "ys")
-apply (auto simp add: prefix_Cons)
-done
+lemma tokens_mono_prefix: "xs <= ys ==> tokens xs <= tokens ys"
+  by (induct ys arbitrary: xs) (auto simp add: prefix_Cons)
 
 lemma mono_tokens: "mono tokens"
 apply (unfold mono_def)
@@ -42,9 +39,7 @@ done
 (** bag_of **)
 
 lemma bag_of_append [simp]: "bag_of (l@l') = bag_of l + bag_of l'"
-apply (induct_tac "l", simp)
- apply (simp add: add_ac)
-done
+  by (induct l) (simp_all add: add_ac)
 
 lemma mono_bag_of: "mono (bag_of :: 'a list => ('a::order) multiset)"
 apply (rule monoI)

@@ -207,7 +207,7 @@ lemma leadsETo_weaken_R:
      "[| F : A leadsTo[CC] A';  A'<=B' |] ==> F : A leadsTo[CC] B'"
 by (blast intro: subset_imp_leadsETo leadsETo_Trans)
 
-lemma leadsETo_weaken_L [rule_format]:
+lemma leadsETo_weaken_L:
      "[| F : A leadsTo[CC] A'; B<=A |] ==> F : B leadsTo[CC] A'"
 by (blast intro: leadsETo_Trans subset_imp_leadsETo)
 
@@ -420,15 +420,15 @@ done
 
 lemmas empty_LeadsETo = empty_subsetI [THEN subset_imp_LeadsETo]
 
-lemma LeadsETo_weaken_R [rule_format]:
+lemma LeadsETo_weaken_R:
      "[| F : A LeadsTo[CC] A';  A' <= B' |] ==> F : A LeadsTo[CC] B'"
-apply (simp (no_asm_use) add: LeadsETo_def)
+apply (simp add: LeadsETo_def)
 apply (blast intro: leadsETo_weaken_R)
 done
 
-lemma LeadsETo_weaken_L [rule_format]:
+lemma LeadsETo_weaken_L:
      "[| F : A LeadsTo[CC] A';  B <= A |] ==> F : B LeadsTo[CC] A'"
-apply (simp (no_asm_use) add: LeadsETo_def)
+apply (simp add: LeadsETo_def)
 apply (blast intro: leadsETo_weaken_L)
 done
 

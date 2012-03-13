@@ -46,27 +46,20 @@ declare Component_def [THEN def_prg_AllowedActs, simp]
 declare a_def [THEN def_act_simp, simp]
 
 (* Theorems about sum and sumj *)
-lemma sum_sumj_eq1 [rule_format]: "\<forall>i. I<i--> (sum I s = sumj I i s)"
-by (induct_tac "I", auto)
+lemma sum_sumj_eq1: "I<i ==> sum I s = sumj I i s"
+  by (induct I) auto
 
-lemma sum_sumj_eq2 [rule_format]: "i<I --> sum I s  = c s i + sumj I i s"
-apply (induct_tac "I")
-apply (auto simp add: linorder_neq_iff sum_sumj_eq1)
-done
+lemma sum_sumj_eq2: "i<I ==> sum I s  = c s i + sumj I i s"
+  by (induct I) (auto simp add: linorder_neq_iff sum_sumj_eq1)
 
-lemma sum_ext [rule_format]:
-     "(\<forall>i. i<I --> c s' i = c s i) --> (sum I s' = sum I s)"
-by (induct_tac "I", auto)
+lemma sum_ext: "(\<And>i. i<I \<Longrightarrow> c s' i = c s i) ==> sum I s' = sum I s"
+  by (induct I) auto
 
-lemma sumj_ext [rule_format]:
-     "(\<forall>j. j<I & j\<noteq>i --> c s' j =  c s j) --> (sumj I i s' = sumj I i s)"
-apply (induct_tac "I", safe)
-apply (auto intro!: sum_ext)
-done
+lemma sumj_ext: "(\<And>j. j<I ==> j\<noteq>i ==> c s' j =  c s j) ==> sumj I i s' = sumj I i s"
+  by (induct I) (auto intro!: sum_ext)
 
-
-lemma sum0 [rule_format]: "(\<forall>i. i<I --> c s i = 0) -->  sum I s = 0"
-by (induct_tac "I", auto)
+lemma sum0: "(\<And>i. i<I ==> c s i = 0) ==> sum I s = 0"
+  by (induct I) auto
 
 
 (* Safety properties for Components *)

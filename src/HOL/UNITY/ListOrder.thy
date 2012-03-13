@@ -179,22 +179,16 @@ lemma antisym_genPrefix: "antisym r ==> antisym (genPrefix r)"
 subsection{*recursion equations*}
 
 lemma genPrefix_Nil [simp]: "((xs, []) : genPrefix r) = (xs = [])"
-apply (induct_tac "xs")
-prefer 2 apply blast
-apply simp
-done
+  by (induct xs) auto
 
 lemma same_genPrefix_genPrefix [simp]: 
     "refl r ==> ((xs@ys, xs@zs) : genPrefix r) = ((ys,zs) : genPrefix r)"
-apply (unfold refl_on_def)
-apply (induct_tac "xs")
-apply (simp_all (no_asm_simp))
-done
+  by (induct xs) (simp_all add: refl_on_def)
 
 lemma genPrefix_Cons:
      "((xs, y#ys) : genPrefix r) =  
       (xs=[] | (EX z zs. xs=z#zs & (z,y) : r & (zs,ys) : genPrefix r))"
-by (case_tac "xs", auto)
+  by (cases xs) auto
 
 lemma genPrefix_take_append:
      "[| refl r;  (xs,ys) : genPrefix r |]  

@@ -422,7 +422,7 @@ lemma Union_eq_wens_single:
         W \<subseteq> insert (wens_single act B)
             (range (wens_single_finite act B))\<rbrakk>
        \<Longrightarrow> \<Union>W = wens_single act B"
-apply (case_tac "wens_single act B \<in> W")
+apply (cases "wens_single act B \<in> W")
  apply (blast dest: wens_single_finite_subset_wens_single [THEN subsetD]) 
 apply (simp add: wens_single_eq_Union) 
 apply (rule equalityI, blast) 

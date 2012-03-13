@@ -126,9 +126,7 @@ lemma metric_less [intro!]: "~ s x ==> metric (s(x:=True)) < metric s"
 by (erule Suc_metric [THEN subst], blast)
 
 lemma metric_le: "metric (s(y:=s x | s y)) \<le> metric s"
-apply (case_tac "s x --> s y")
-apply (auto intro: less_imp_le simp add: fun_upd_idem)
-done
+  by (cases "s x --> s y") (auto intro: less_imp_le simp add: fun_upd_idem)
 
 lemma LeadsTo_Diff_fixedpoint:
      "Rprg \<in> ((metric-`{m}) - fixedpoint) LeadsTo (metric-`(lessThan m))"
