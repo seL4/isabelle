@@ -63,12 +63,11 @@ next
   hence jls: "j \<prec> c" 
     by (simp add: lt_Card_imp_lesspoll) 
   { assume eqp: "j \<approx> \<Union>A"
-    hence Uls: "\<Union>A \<prec> c" using jls
-      by (blast intro: eqpoll_sym eqpoll_imp_lepoll lesspoll_trans1)
-    moreover have  "c \<lesssim> \<Union>A" using c
+    have  "c \<lesssim> \<Union>A" using c
       by (blast intro: subset_imp_lepoll)
-    ultimately have "c \<prec> c"
-      by (blast intro: lesspoll_trans1) 
+    also have "... \<approx> j"  by (rule eqpoll_sym [OF eqp])
+    also have "... \<prec> c"  by (rule jls)
+    finally have "c \<prec> c" .
     hence False 
       by auto
   } thus "\<not> j \<approx> \<Union>A" by blast
@@ -85,13 +84,6 @@ lemma in_Card_imp_lesspoll: "[| Card(K); b \<in> K |] ==> b \<prec> K"
 apply (unfold lesspoll_def)
 apply (simp add: Card_iff_initial)
 apply (fast intro!: le_imp_lepoll ltI leI)
-done
-
-lemma lesspoll_lemma: "[| ~ A \<prec> B; C \<prec> B |] ==> A - C \<noteq> 0"
-apply (unfold lesspoll_def)
-apply (fast dest!: Diff_eq_0_iff [THEN iffD1, THEN subset_imp_lepoll]
-            intro!: eqpollI elim: notE
-            elim!: eqpollE lepoll_trans)
 done
 
 
@@ -123,20 +115,20 @@ apply (rule exI)
 apply (rule sum_assoc_bij)
 done
 
-(*Unconditional version requires AC*)
+text{*Unconditional version requires AC*}
 lemma well_ord_cadd_assoc:
-    "[| well_ord(i,ri); well_ord(j,rj); well_ord(k,rk) |]
-     ==> (i \<oplus> j) \<oplus> k = i \<oplus> (j \<oplus> k)"
-apply (unfold cadd_def)
-apply (rule cardinal_cong)
-apply (rule eqpoll_trans)
- apply (rule sum_eqpoll_cong [OF well_ord_cardinal_eqpoll eqpoll_refl])
- apply (blast intro: well_ord_radd )
-apply (rule sum_assoc_eqpoll [THEN eqpoll_trans])
-apply (rule eqpoll_sym)
-apply (rule sum_eqpoll_cong [OF eqpoll_refl well_ord_cardinal_eqpoll])
-apply (blast intro: well_ord_radd )
-done
+  assumes i: "well_ord(i,ri)" and j: "well_ord(j,rj)" and k: "well_ord(k,rk)"
+  shows "(i \<oplus> j) \<oplus> k = i \<oplus> (j \<oplus> k)"
+proof (unfold cadd_def, rule cardinal_cong)
+  have "|i + j| + k \<approx> (i + j) + k"
+    by (blast intro: sum_eqpoll_cong well_ord_cardinal_eqpoll eqpoll_refl well_ord_radd i j) 
+  also have "...  \<approx> i + (j + k)"
+    by (rule sum_assoc_eqpoll) 
+  also have "...  \<approx> i + |j + k|"
+    by (blast intro: sum_eqpoll_cong well_ord_cardinal_eqpoll eqpoll_refl well_ord_radd j k eqpoll_sym) 
+  finally show "|i + j| + k \<approx> i + |j + k|" .
+qed
+
 
 subsubsection{*0 is the identity for addition*}
 
@@ -224,7 +216,6 @@ subsection{*Cardinal multiplication*}
 
 subsubsection{*Cardinal multiplication is commutative*}
 
-(*Easier to prove the two directions separately*)
 lemma prod_commute_eqpoll: "A*B \<approx> B*A"
 apply (unfold eqpoll_def)
 apply (rule exI)
@@ -245,20 +236,19 @@ apply (rule exI)
 apply (rule prod_assoc_bij)
 done
 
-(*Unconditional version requires AC*)
+text{*Unconditional version requires AC*}
 lemma well_ord_cmult_assoc:
-    "[| well_ord(i,ri); well_ord(j,rj); well_ord(k,rk) |]
-     ==> (i \<otimes> j) \<otimes> k = i \<otimes> (j \<otimes> k)"
-apply (unfold cmult_def)
-apply (rule cardinal_cong)
-apply (rule eqpoll_trans)
- apply (rule prod_eqpoll_cong [OF well_ord_cardinal_eqpoll eqpoll_refl])
- apply (blast intro: well_ord_rmult)
-apply (rule prod_assoc_eqpoll [THEN eqpoll_trans])
-apply (rule eqpoll_sym)
-apply (rule prod_eqpoll_cong [OF eqpoll_refl well_ord_cardinal_eqpoll])
-apply (blast intro: well_ord_rmult)
-done
+  assumes i: "well_ord(i,ri)" and j: "well_ord(j,rj)" and k: "well_ord(k,rk)"
+  shows "(i \<otimes> j) \<otimes> k = i \<otimes> (j \<otimes> k)"
+proof (unfold cmult_def, rule cardinal_cong)
+  have "|i * j| * k \<approx> (i * j) * k"
+    by (blast intro: prod_eqpoll_cong well_ord_cardinal_eqpoll eqpoll_refl well_ord_rmult i j) 
+  also have "...  \<approx> i * (j * k)"
+    by (rule prod_assoc_eqpoll) 
+  also have "...  \<approx> i * |j * k|"
+    by (blast intro: prod_eqpoll_cong well_ord_cardinal_eqpoll eqpoll_refl well_ord_rmult j k eqpoll_sym) 
+  finally show "|i * j| * k \<approx> i * |j * k|" .
+qed
 
 subsubsection{*Cardinal multiplication distributes over addition*}
 
@@ -269,19 +259,17 @@ apply (rule sum_prod_distrib_bij)
 done
 
 lemma well_ord_cadd_cmult_distrib:
-    "[| well_ord(i,ri); well_ord(j,rj); well_ord(k,rk) |]
-     ==> (i \<oplus> j) \<otimes> k = (i \<otimes> k) \<oplus> (j \<otimes> k)"
-apply (unfold cadd_def cmult_def)
-apply (rule cardinal_cong)
-apply (rule eqpoll_trans)
- apply (rule prod_eqpoll_cong [OF well_ord_cardinal_eqpoll eqpoll_refl])
-apply (blast intro: well_ord_radd)
-apply (rule sum_prod_distrib_eqpoll [THEN eqpoll_trans])
-apply (rule eqpoll_sym)
-apply (rule sum_eqpoll_cong [OF well_ord_cardinal_eqpoll
-                                well_ord_cardinal_eqpoll])
-apply (blast intro: well_ord_rmult)+
-done
+  assumes i: "well_ord(i,ri)" and j: "well_ord(j,rj)" and k: "well_ord(k,rk)"
+  shows "(i \<oplus> j) \<otimes> k = (i \<otimes> k) \<oplus> (j \<otimes> k)"
+proof (unfold cadd_def cmult_def, rule cardinal_cong)
+  have "|i + j| * k \<approx> (i + j) * k"
+    by (blast intro: prod_eqpoll_cong well_ord_cardinal_eqpoll eqpoll_refl well_ord_radd i j) 
+  also have "...  \<approx> i * k + j * k"
+    by (rule sum_prod_distrib_eqpoll) 
+  also have "...  \<approx> |i * k| + |j * k|"
+    by (blast intro: sum_eqpoll_cong well_ord_cardinal_eqpoll well_ord_rmult i j k eqpoll_sym) 
+  finally show "|i + j| * k \<approx> |i * k| + |j * k|" .
+qed
 
 subsubsection{*Multiplication by 0 yields 0*}
 
@@ -391,12 +379,15 @@ done
 lemma cmult_2: "Card(n) ==> 2 \<otimes> n = n \<oplus> n"
 by (simp add: cmult_succ_lemma Card_is_Ord cadd_commute [of _ 0])
 
-lemma sum_lepoll_prod: "2 \<lesssim> C ==> B+B \<lesssim> C*B"
-apply (rule lepoll_trans)
-apply (rule sum_eq_2_times [THEN equalityD1, THEN subset_imp_lepoll])
-apply (erule prod_lepoll_mono)
-apply (rule lepoll_refl)
-done
+lemma sum_lepoll_prod: 
+  assumes C: "2 \<lesssim> C" shows "B+B \<lesssim> C*B"
+proof -
+  have "B+B \<lesssim> 2*B"
+    by (simp add: sum_eq_2_times) 
+  also have "... \<lesssim> C*B"
+    by (blast intro: prod_lepoll_mono lepoll_refl C) 
+  finally show "B+B \<lesssim> C*B" .
+qed
 
 lemma lepoll_imp_sum_lepoll_prod: "[| A \<lesssim> B; 2 \<lesssim> A |] ==> A+B \<lesssim> A*B"
 by (blast intro: sum_lepoll_mono sum_lepoll_prod lepoll_trans lepoll_refl)
@@ -485,17 +476,15 @@ done
 
 subsubsection{*Establishing the well-ordering*}
 
-lemma csquare_lam_inj:
-     "Ord(K) ==> (lam <x,y>:K*K. <x \<union> y, x, y>) \<in> inj(K*K, K*K*K)"
-apply (unfold inj_def)
-apply (force intro: lam_type Un_least_lt [THEN ltD] ltI)
-done
-
-lemma well_ord_csquare: "Ord(K) ==> well_ord(K*K, csquare_rel(K))"
-apply (unfold csquare_rel_def)
-apply (rule csquare_lam_inj [THEN well_ord_rvimage], assumption)
-apply (blast intro: well_ord_rmult well_ord_Memrel)
-done
+lemma well_ord_csquare: 
+  assumes K: "Ord(K)" shows "well_ord(K*K, csquare_rel(K))"
+proof (unfold csquare_rel_def, rule well_ord_rvimage)
+  show "(\<lambda>\<langle>x,y\<rangle>\<in>K \<times> K. \<langle>x \<union> y, x, y\<rangle>) \<in> inj(K \<times> K, K \<times> K \<times> K)" using K
+    by (force simp add: inj_def intro: lam_type Un_least_lt [THEN ltD] ltI)
+next
+  show "well_ord(K \<times> K \<times> K, rmult(K, Memrel(K), K \<times> K, rmult(K, Memrel(K), K, Memrel(K))))"
+    using K by (blast intro: well_ord_rmult well_ord_Memrel)
+qed
 
 subsubsection{*Characterising initial segments of the well-ordering*}
 
@@ -512,8 +501,7 @@ done
 lemma pred_csquare_subset:
     "z<K ==> Order.pred(K*K, <z,z>, csquare_rel(K)) \<subseteq> succ(z)*succ(z)"
 apply (unfold Order.pred_def)
-apply (safe del: SigmaI succCI)
-apply (erule csquareD [THEN conjE])
+apply (safe del: SigmaI dest!: csquareD)
 apply (unfold lt_def, auto)
 done
 
@@ -553,28 +541,36 @@ apply (erule_tac [4] well_ord_is_wf)
 apply (blast intro!: Un_upper1_le Un_upper2_le Ord_ordermap elim!: ltE)+
 done
 
-(*Kunen: "each <x,y>: K*K has no more than z*z predecessors..." (page 29) *)
+text{*Kunen: "each @{term"\<langle>x,y\<rangle> \<in> K \<times> K"} has no more than @{term"z \<times> z"} predecessors..." (page 29) *}
 lemma ordermap_csquare_le:
-  "[| Limit(K);  x<K;  y<K;  z=succ(x \<union> y) |]
-   ==> | ordermap(K*K, csquare_rel(K)) ` <x,y> | \<le> |succ(z)| \<otimes> |succ(z)|"
-apply (unfold cmult_def)
-apply (rule well_ord_rmult [THEN well_ord_lepoll_imp_Card_le])
-apply (rule Ord_cardinal [THEN well_ord_Memrel])+
-apply (subgoal_tac "z<K")
- prefer 2 apply (blast intro!: Un_least_lt Limit_has_succ)
-apply (rule ordermap_z_lt [THEN leI, THEN le_imp_lepoll, THEN lepoll_trans],
-       assumption+)
-apply (rule ordermap_eqpoll_pred [THEN eqpoll_imp_lepoll, THEN lepoll_trans])
-apply (erule Limit_is_Ord [THEN well_ord_csquare])
-apply (blast intro: ltD)
-apply (rule pred_csquare_subset [THEN subset_imp_lepoll, THEN lepoll_trans],
-            assumption)
-apply (elim ltE)
-apply (rule prod_eqpoll_cong [THEN eqpoll_sym, THEN eqpoll_imp_lepoll])
-apply (erule Ord_succ [THEN Ord_cardinal_eqpoll])+
-done
+  assumes K: "Limit(K)" and x: "x<K" and y: " y<K" and z: "z=succ(x \<union> y)"
+  shows "|ordermap(K \<times> K, csquare_rel(K)) ` \<langle>x,y\<rangle>| \<le> |succ(z)| \<otimes> |succ(z)|"
+proof (unfold cmult_def, rule well_ord_lepoll_imp_Card_le)
+  show "well_ord(|succ(z)| \<times> |succ(z)|, 
+                 rmult(|succ(z)|, Memrel(|succ(z)|), |succ(z)|, Memrel(|succ(z)|)))"
+    by (blast intro: Ord_cardinal well_ord_Memrel well_ord_rmult) 
+next
+  have zK: "z<K" using x y z K 
+    by (blast intro: Un_least_lt Limit_has_succ)
+  hence oz: "Ord(z)" by (elim ltE) 
+  have "ordermap(K \<times> K, csquare_rel(K)) ` \<langle>x,y\<rangle> \<lesssim> ordermap(K \<times> K, csquare_rel(K)) ` \<langle>z,z\<rangle>"
+    by (blast intro: ordermap_z_lt leI le_imp_lepoll K x y z) 
+  also have "... \<approx>  Order.pred(K \<times> K, \<langle>z,z\<rangle>, csquare_rel(K))"
+    proof (rule ordermap_eqpoll_pred)
+      show "well_ord(K \<times> K, csquare_rel(K))" using K 
+        by (rule Limit_is_Ord [THEN well_ord_csquare])
+    next
+      show "\<langle>z, z\<rangle> \<in> K \<times> K" using zK
+        by (blast intro: ltD)
+    qed
+  also have "...  \<lesssim> succ(z) \<times> succ(z)" using zK
+    by (rule pred_csquare_subset [THEN subset_imp_lepoll])
+  also have "... \<approx> |succ(z)| \<times> |succ(z)|" using oz
+    by (blast intro: prod_eqpoll_cong Ord_succ Ord_cardinal_eqpoll eqpoll_sym) 
+  finally show "ordermap(K \<times> K, csquare_rel(K)) ` \<langle>x,y\<rangle> \<lesssim> |succ(z)| \<times> |succ(z)|" .
+qed
 
-(*Kunen: "... so the order type is @{text"\<le>"} K" *)
+text{*Kunen: "... so the order type is @{text"\<le>"} K" *}
 lemma ordertype_csquare_le:
      "[| InfCard(K);  \<forall>y\<in>K. InfCard(y) \<longrightarrow> y \<otimes> y = y |]
       ==> ordertype(K*K, csquare_rel(K)) \<le> K"

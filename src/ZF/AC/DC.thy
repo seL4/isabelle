@@ -492,6 +492,13 @@ done
 lemma value_in_image: "[| f \<in> X->Y; A \<subseteq> X; a \<in> A |] ==> f`a \<in> f``A"
 by (fast elim!: image_fun [THEN ssubst])
 
+lemma lesspoll_lemma: "[| ~ A \<prec> B; C \<prec> B |] ==> A - C \<noteq> 0"
+apply (unfold lesspoll_def)
+apply (fast dest!: Diff_eq_0_iff [THEN iffD1, THEN subset_imp_lepoll]
+            intro!: eqpollI elim: notE
+            elim!: eqpollE lepoll_trans)
+done
+
 theorem DC_WO3: "(\<forall>K. Card(K) \<longrightarrow> DC(K)) ==> WO3"
 apply (unfold DC_def WO3_def)
 apply (rule allI)
