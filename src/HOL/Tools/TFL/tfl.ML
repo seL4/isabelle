@@ -371,7 +371,7 @@ local val f_eq_wfrec_R_M =
       val (wfrec,_) = USyntax.strip_comb rhs
 in
 fun wfrec_definition0 thy fid R (functional as Abs(x, Ty, _)) =
- let val def_name = Long_Name.base_name fid ^ "_def"
+ let val def_name = Thm.def_name (Long_Name.base_name fid)
      val wfrec_R_M =  map_types poly_tvars
                           (wfrec $ map_types poly_tvars R)
                       $ functional
@@ -537,7 +537,7 @@ fun lazyR_def thy fid tflCongs eqns =
      val ([def0], theory) =
        thy
        |> Global_Theory.add_defs false
-            [Thm.no_attributes (Binding.name (fid ^ "_def"), defn)]
+            [Thm.no_attributes (Binding.name (Thm.def_name fid), defn)]
      val def = Thm.unvarify_global def0;
      val dummy =
        if !trace then writeln ("DEF = " ^ Display.string_of_thm_global theory def)

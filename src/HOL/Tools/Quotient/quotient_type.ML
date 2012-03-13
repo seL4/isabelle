@@ -109,9 +109,9 @@ fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial), opt_morphs), eq
       | SOME morphs => morphs)
 
     val ((abs_t, (_, abs_def)), lthy2) = lthy1
-      |> Local_Theory.define ((abs_name, NoSyn), (Attrib.empty_binding, abs_trm))
+      |> Local_Theory.define ((abs_name, NoSyn), ((Thm.def_binding abs_name, []), abs_trm))
     val ((rep_t, (_, rep_def)), lthy3) = lthy2
-      |> Local_Theory.define ((rep_name, NoSyn), (Attrib.empty_binding, rep_trm))
+      |> Local_Theory.define ((rep_name, NoSyn), ((Thm.def_binding rep_name, []), rep_trm))
 
     (* quot_type theorem *)
     val quot_thm = typedef_quot_type_thm (rel, Abs_const, Rep_const, part_equiv, typedef_info) lthy3

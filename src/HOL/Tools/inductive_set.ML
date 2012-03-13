@@ -498,7 +498,7 @@ fun add_ind_set_def
     val (defs, lthy2) = lthy1
       |> Local_Theory.conceal  (* FIXME ?? *)
       |> fold_map Local_Theory.define
-        (map (fn ((c_syn, (fs, U, _)), p) => (c_syn, (Attrib.empty_binding,
+        (map (fn (((c, syn), (fs, U, _)), p) => ((c, syn), ((Thm.def_binding c, []),
            fold_rev lambda params (HOLogic.Collect_const U $
              HOLogic.mk_psplits fs U HOLogic.boolT (list_comb (p, params3))))))
            (cnames_syn ~~ cs_info ~~ preds))

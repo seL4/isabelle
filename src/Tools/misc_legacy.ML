@@ -96,7 +96,7 @@ fun term_frees t = add_term_frees(t,[]);
 fun mk_defpair (lhs, rhs) =
   (case Term.head_of lhs of
     Const (name, _) =>
-      (Long_Name.base_name name ^ "_def", Logic.mk_equals (lhs, rhs))
+      (Thm.def_name (Long_Name.base_name name), Logic.mk_equals (lhs, rhs))
   | _ => raise TERM ("Malformed definition: head of lhs not a constant", [lhs, rhs]));
 
 

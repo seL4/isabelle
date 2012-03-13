@@ -134,7 +134,7 @@ fun gen_add_domaindef
         Abs ("t", Term.itselfT newT,
           mk_capply (@{const liftdefl_of}, defl_const newT $ Logic.mk_type newT)))
 
-    val name_def = Binding.suffix_name "_def" name
+    val name_def = Thm.def_binding name
     val emb_bind = (Binding.prefix_name "emb_" name_def, [])
     val prj_bind = (Binding.prefix_name "prj_" name_def, [])
     val defl_bind = (Binding.prefix_name "defl_" name_def, [])

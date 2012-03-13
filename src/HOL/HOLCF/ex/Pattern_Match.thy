@@ -394,7 +394,7 @@ fun define_consts
     fun mk_const (b, T, mx) = Const (Sign.full_name thy b, T);
     val consts = map mk_const decls;
     fun mk_def c (b, t, mx) =
-      (Binding.suffix_name "_def" b, Logic.mk_equals (c, t));
+      (Thm.def_binding b, Logic.mk_equals (c, t));
     val defs = map2 mk_def consts specs;
     val (def_thms, thy) =
       Global_Theory.add_defs false (map Thm.no_attributes defs) thy;

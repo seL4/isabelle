@@ -151,7 +151,7 @@ fun add_fixdefs
     (* register constant definitions *)
     val (fixdef_thms, thy) =
       (Global_Theory.add_defs false o map Thm.no_attributes)
-        (map (Binding.suffix_name "_def") binds ~~ eqns) thy
+        (map Thm.def_binding binds ~~ eqns) thy
 
     (* prove applied version of definitions *)
     fun prove_proj (lhs, rhs) =
@@ -232,7 +232,7 @@ fun define_const
     val typ = Term.fastype_of rhs
     val (const, thy) = Sign.declare_const_global ((bind, typ), NoSyn) thy
     val eqn = Logic.mk_equals (const, rhs)
-    val def = Thm.no_attributes (Binding.suffix_name "_def" bind, eqn)
+    val def = Thm.no_attributes (Thm.def_binding bind, eqn)
     val (def_thm, thy) = yield_singleton (Global_Theory.add_defs false) def thy
   in
     ((const, def_thm), thy)

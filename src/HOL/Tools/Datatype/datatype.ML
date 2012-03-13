@@ -235,7 +235,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
         val lhs = list_comb (Const (cname, constrT), l_args);
         val rhs = mk_univ_inj r_args n i;
         val def = Logic.mk_equals (lhs, Const (Abs_name, Univ_elT --> T) $ rhs);
-        val def_name = Long_Name.base_name cname ^ "_def";
+        val def_name = Thm.def_name (Long_Name.base_name cname);
         val eqn =
           HOLogic.mk_Trueprop (HOLogic.mk_eq (Const (Rep_name, T --> Univ_elT) $ lhs, rhs));
         val ([def_thm], thy') =
@@ -345,7 +345,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
         val fTs = map fastype_of fs;
         val defs =
           map (fn (rec_name, (T, iso_name)) =>
-            (Binding.name (Long_Name.base_name iso_name ^ "_def"),
+            (Binding.name (Thm.def_name (Long_Name.base_name iso_name)),
               Logic.mk_equals (Const (iso_name, T --> Univ_elT),
                 list_comb (Const (rec_name, fTs @ [T] ---> Univ_elT), fs)))) (rec_names ~~ isos);
         val (def_thms, thy') =

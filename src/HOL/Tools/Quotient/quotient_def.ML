@@ -45,7 +45,7 @@ fun error_msg bind str =
       quote str ^ " differs from declaration " ^ name ^ pos)
   end
 
-fun gen_quotient_def prep_vars prep_term (raw_var, (attr, (lhs_raw, rhs_raw))) lthy =
+fun gen_quotient_def prep_vars prep_term (raw_var, ((name, atts), (lhs_raw, rhs_raw))) lthy =
   let
     val (vars, ctxt) = prep_vars (the_list raw_var) lthy
     val T_opt = (case vars of [(_, SOME T, _)] => SOME T | _ => NONE)
@@ -69,7 +69,8 @@ fun gen_quotient_def prep_vars prep_term (raw_var, (attr, (lhs_raw, rhs_raw))) l
     val (_, prop') = Local_Defs.cert_def lthy prop
     val (_, newrhs) = Local_Defs.abs_def prop'
 
-    val ((trm, (_ , thm)), lthy') = Local_Theory.define (var, (attr, newrhs)) lthy
+    val ((trm, (_ , thm)), lthy') =
+      Local_Theory.define (var, ((Thm.def_binding_optional (#1 var) name, atts), newrhs)) lthy
 
     (* data storage *)
     val qconst_data = {qconst = trm, rconst = rhs, def = thm}

@@ -1152,7 +1152,7 @@ fun create_definitions options preds (name, modes) thy =
         val def = Logic.mk_equals (lhs, predterm)
         val ([definition], thy') = thy |>
           Sign.add_consts_i [(Binding.name mode_cbasename, funT, NoSyn)] |>
-          Global_Theory.add_defs false [((Binding.name (mode_cbasename ^ "_def"), def), [])]
+          Global_Theory.add_defs false [((Binding.name (Thm.def_name mode_cbasename), def), [])]
         val ctxt' = Proof_Context.init_global thy'
         val rules as ((intro, elim), _) =
           create_intro_elim_rule ctxt' mode definition mode_cname funT (Const (name, T))

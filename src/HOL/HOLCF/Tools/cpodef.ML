@@ -195,7 +195,7 @@ fun add_podef def opt_name typ set opt_morphs tac thy =
     val ((_, (_, below_ldef)), lthy) = thy
       |> Class.instantiation ([full_tname], lhs_tfrees, @{sort po})
       |> Specification.definition (NONE,
-          ((Binding.prefix_name "below_" (Binding.suffix_name "_def" name), []), below_eqn))
+          ((Binding.prefix_name "below_" (Thm.def_binding name), []), below_eqn))
     val ctxt_thy = Proof_Context.init_global (Proof_Context.theory_of lthy)
     val below_def = singleton (Proof_Context.export lthy ctxt_thy) below_ldef
     val thy = lthy

@@ -45,8 +45,8 @@ fun gen_interpretation prep_expr prep_decl parse_term parse_prop prep_attr
 
     val rhss = map (parse_term defs_ctxt o snd o snd) raw_defs
       |> Syntax.check_terms defs_ctxt;
-    val defs = map2 (fn (binding_thm, (binding_syn, _)) => fn rhs =>
-      (binding_syn, (binding_thm, rhs))) raw_defs rhss;
+    val defs = map2 (fn ((name, atts), ((b, mx), _)) => fn rhs =>
+      ((b, mx), ((Thm.def_binding_optional b name, atts), rhs))) raw_defs rhss;
 
     val (def_eqns, theory') = theory
       |> Named_Target.theory_init

@@ -141,7 +141,7 @@ fun add_fixdefs
 
     fun one_def (Free(n,_)) r =
           let val b = Long_Name.base_name n
-          in ((Binding.name (b^"_def"), []), r) end
+          in ((Binding.name (Thm.def_name b), []), r) end
       | one_def _ _ = fixrec_err "fixdefs: lhs not of correct form"
     fun defs [] _ = []
       | defs (l::[]) r = [one_def l r]

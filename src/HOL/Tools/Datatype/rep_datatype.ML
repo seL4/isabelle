@@ -233,7 +233,7 @@ fun prove_primrec_thms (config : Datatype_Aux.config) new_type_names descr
       |> (Global_Theory.add_defs false o map Thm.no_attributes)
           (map
             (fn ((((name, comb), set), T), T') =>
-              (Binding.name (Long_Name.base_name name ^ "_def"),
+              (Binding.name (Thm.def_name (Long_Name.base_name name)),
                 Logic.mk_equals (comb, fold_rev lambda rec_fns (absfree ("x", T)
                  (Const (@{const_name The}, (T' --> HOLogic.boolT) --> T') $ absfree ("y", T')
                    (set $ Free ("x", T) $ Free ("y", T')))))))
@@ -314,7 +314,7 @@ fun prove_case_thms (config : Datatype_Aux.config)
             val reccomb = Const (recname, (map fastype_of fns) @ [T] ---> T');
             val decl = ((Binding.name (Long_Name.base_name name), caseT), NoSyn);
             val def =
-              (Binding.name (Long_Name.base_name name ^ "_def"),
+              (Binding.name (Thm.def_name (Long_Name.base_name name)),
                 Logic.mk_equals (Const (name, caseT),
                   fold_rev lambda fns1
                     (list_comb (reccomb,

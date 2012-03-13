@@ -728,7 +728,7 @@ fun extract thms thy =
                        (chtype [propT] Proofterm.symmetric_axm %> rhs %> lhs %%
                          (chtype [T, propT] Proofterm.combination_axm %> f %> f %> c %> t' %%
                            (chtype [T --> propT] Proofterm.reflexive_axm %> f) %%
-                           PAxm (cname ^ "_def", eqn,
+                           PAxm (Thm.def_name cname, eqn,
                              SOME (map TVar (Term.add_tvars eqn [] |> rev))))) %% corr_prf);
                     val corr_prop = Reconstruct.prop_of corr_prf';
                     val corr_prf'' =
@@ -792,7 +792,8 @@ fun extract thms thy =
              val (def_thms, thy') = if t = nullt then ([], thy) else
                thy
                |> Sign.add_consts_i [(Binding.qualified_name (extr_name s vs), fastype_of ft, NoSyn)]
-               |> Global_Theory.add_defs false [((Binding.qualified_name (extr_name s vs ^ "_def"),
+               |> Global_Theory.add_defs false
+                  [((Binding.qualified_name (Thm.def_name (extr_name s vs)),
                     Logic.mk_equals (head_of (strip_abs_body fu), ft)), [])]
            in
              thy'
