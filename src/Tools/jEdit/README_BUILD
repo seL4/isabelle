@@ -6,12 +6,11 @@ Requirements for instantaneous build from sources
 
   (experimental support for JDK/OpenJDK 1.7)
 
-* Scala 2.8.2.final http://www.scala-lang.org
-
-  (experimental support for 2.9.1.final)
+* Scala 2.8.2.final or 2.9.1-1
+  http://www.scala-lang.org
 
 * Auxiliary jedit_build component
-  http://www4.in.tum.de/~wenzelm/test/jedit_build-20111217.tar.gz
+  http://www4.in.tum.de/~wenzelm/test/jedit_build-20120313.tar.gz
 
 
 Important settings within Isabelle environment

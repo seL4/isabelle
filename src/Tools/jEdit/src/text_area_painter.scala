@@ -185,7 +185,7 @@ class Text_Area_Painter(doc_view: Document_View)
       val line_start = buffer.getLineStartOffset(line)
 
       out.clear
-      handler.init(painter.getStyles, font_context, painter, out, margin) // jedit-4.5.0: line_start
+      handler.init(painter.getStyles, font_context, painter, out, margin, line_start)
       buffer.markTokens(line, handler)
 
       for (i <- 0 until out.size) {
