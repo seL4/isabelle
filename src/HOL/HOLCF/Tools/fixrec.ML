@@ -253,7 +253,9 @@ fun compile_lhs match_name pat rhs vs taken =
                     ^ ML_Syntax.print_term pat)
 
 fun strip_alls t =
-  if Logic.is_all t then strip_alls (snd (Logic.dest_all t)) else t
+  (case try Logic.dest_all t of
+    SOME (_, u) => strip_alls u
+  | NONE => t)
 
 fun compile_eq match_name eq =
   let
@@ -293,9 +295,7 @@ fun fixrec_simp_tac ctxt =
   let
     val tab = FixrecUnfoldData.get (Context.Proof ctxt)
     val ss = Simplifier.simpset_of ctxt
-    fun concl t =
-      if Logic.is_all t then concl (snd (Logic.dest_all t))
-      else HOLogic.dest_Trueprop (Logic.strip_imp_concl t)
+    val concl = HOLogic.dest_Trueprop o Logic.strip_imp_concl o strip_alls
     fun tac (t, i) =
       let
         val (c, _) =
