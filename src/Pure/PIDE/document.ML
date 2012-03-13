@@ -273,9 +273,13 @@ fun delete_version (id: version_id) versions = Inttab.delete id versions
 
 (* commands *)
 
-fun tokenize_command id text =
+fun parse_command id text =
   Position.setmp_thread_data (Position.id_only id)
-    (fn () => Thy_Syntax.parse_tokens (#1 (Outer_Syntax.get_syntax ())) (Position.id id) text) ();
+    (fn () =>
+      let
+        val toks = Thy_Syntax.parse_tokens (#1 (Outer_Syntax.get_syntax ())) (Position.id id) text;
+        val _ = Output.status (Markup.markup_only Isabelle_Markup.parsed);
+      in toks end) ();
 
 fun define_command (id: command_id) name text =
   map_state (fn (versions, commands, execution) =>
@@ -284,7 +288,7 @@ fun define_command (id: command_id) name text =
         (singleton o Future.forks)
           {name = "Document.define_command", group = SOME (Future.new_group NONE),
             deps = [], pri = ~1, interrupts = false}
-          (fn () => tokenize_command (print_id id) text);
+          (fn () => parse_command (print_id id) text);
       val commands' =
         Inttab.update_new (id, (name, future)) commands
           handle Inttab.DUP dup => err_dup "command" dup;

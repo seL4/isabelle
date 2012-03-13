@@ -49,24 +49,27 @@ object Protocol
   }
 
   sealed case class Status(
+    private val parsed: Boolean = false,
     private val finished: Boolean = false,
     private val failed: Boolean = false,
     forks: Int = 0)
   {
-    def is_unprocessed: Boolean = !finished && !failed && forks == 0
+    def is_unprocessed: Boolean = parsed && !finished && !failed && forks == 0
     def is_running: Boolean = forks != 0
     def is_finished: Boolean = finished && forks == 0
     def is_failed: Boolean = failed && forks == 0
     def + (that: Status): Status =
-      Status(finished || that.finished, failed || that.failed, forks + that.forks)
+      Status(parsed || that.parsed, finished || that.finished,
+        failed || that.failed, forks + that.forks)
   }
 
   val command_status_markup: Set[String] =
-    Set(Isabelle_Markup.FINISHED, Isabelle_Markup.FAILED,
+    Set(Isabelle_Markup.PARSED, Isabelle_Markup.FINISHED, Isabelle_Markup.FAILED,
       Isabelle_Markup.FORKED, Isabelle_Markup.JOINED)
 
   def command_status(status: Status, markup: Markup): Status =
     markup match {
+      case Markup(Isabelle_Markup.PARSED, _) => status.copy(parsed = true)
       case Markup(Isabelle_Markup.FINISHED, _) => status.copy(finished = true)
       case Markup(Isabelle_Markup.FAILED, _) => status.copy(failed = true)
       case Markup(Isabelle_Markup.FORKED, _) => status.copy(forks = status.forks + 1)

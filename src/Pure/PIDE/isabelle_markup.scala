@@ -198,6 +198,7 @@ object Isabelle_Markup
 
   val TASK = "task"
 
+  val PARSED = "parsed"
   val FORKED = "forked"
   val JOINED = "joined"
   val FAILED = "failed"
