@@ -283,7 +283,8 @@ fun partial_evaluation ctxt facts =
           else if null decls' then [((b, []), fact')]
           else [(empty_binding, decls'), ((b, []), fact')];
       in (facts', context') end)
-  |> fst |> flat |> map (apsnd (map (apfst single)));
+  |> fst |> flat |> map (apsnd (map (apfst single)))
+  |> filter_out (fn (b, fact) => is_empty_binding b andalso forall (null o #2) fact);
 
 end;
 

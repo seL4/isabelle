@@ -533,21 +533,22 @@ fun add_dependency loc (name, morph) mixin export thy =
 
 (* Theorems *)
 
-fun add_thmss loc kind facts ctxt =
-  ctxt
-  |> Proof_Context.note_thmss kind
-    (Attrib.map_facts (map (Attrib.attribute_i (Proof_Context.theory_of ctxt))) facts)
-  |> snd
-  |> Proof_Context.background_theory
-    ((change_locale loc o apfst o apsnd) (cons ((kind, facts), serial ())) #>
-      (* Registrations *)
-      (fn thy => fold_rev (fn (_, morph) =>
-            let
-              val facts' = facts
-                |> Element.transform_facts morph
-                |> Attrib.map_facts (map (Attrib.attribute_i thy));
-            in snd o Global_Theory.note_thmss kind facts' end)
-        (registrations_of (Context.Theory thy) loc) thy));
+fun add_thmss _ _ [] ctxt = ctxt
+  | add_thmss loc kind facts ctxt =
+      ctxt
+      |> Proof_Context.note_thmss kind
+        (Attrib.map_facts (map (Attrib.attribute_i (Proof_Context.theory_of ctxt))) facts)
+      |> snd
+      |> Proof_Context.background_theory
+        ((change_locale loc o apfst o apsnd) (cons ((kind, facts), serial ())) #>
+          (* Registrations *)
+          (fn thy => fold_rev (fn (_, morph) =>
+                let
+                  val facts' = facts
+                    |> Element.transform_facts morph
+                    |> Attrib.map_facts (map (Attrib.attribute_i thy));
+                in snd o Global_Theory.note_thmss kind facts' end)
+            (registrations_of (Context.Theory thy) loc) thy));
 
 
 (* Declarations *)
