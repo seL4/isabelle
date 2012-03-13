@@ -149,7 +149,7 @@ by (rule Rep_sum_inverse)
 
 lemma "0::nat \<equiv> Abs_Nat Zero_Rep"
 nitpick [expect = none]
-by (rule Zero_nat_def_raw)
+by (rule Zero_nat_def [abs_def])
 
 lemma "Suc n = Abs_Nat (Suc_Rep (Rep_Nat n))"
 nitpick [expect = none]

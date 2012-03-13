@@ -78,7 +78,10 @@ local
   val modes = Synchronized.var "Pretty.modes" (Symtab.make [("", default)]);
 in
   fun add_mode name indent =
-    Synchronized.change modes (Symtab.update_new (name, {indent = indent}));
+    Synchronized.change modes (fn tab =>
+      (if not (Symtab.defined tab name) then ()
+       else warning ("Redefining pretty mode " ^ quote name);
+       Symtab.update (name, {indent = indent}) tab));
   fun get_mode () =
     the_default default
       (Library.get_first (Symtab.lookup (Synchronized.value modes)) (print_mode_value ()));

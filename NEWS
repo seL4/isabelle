@@ -43,6 +43,11 @@ manual.  Minor INCOMPATIBILITY.
 
 *** Pure ***
 
+* Attribute "abs_def" turns an equation of the form "f x y == t" into
+"f == %x y. t", which ensures that "simp" or "unfold" steps always
+expand it.  This also works for object-logic equality.  (Formerly
+undocumented feature.)
+
 * Discontinued old "prems" fact, which used to refer to the accidental
 collection of foundational premises in the context (marked as legacy
 since Isabelle2011).

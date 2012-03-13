@@ -283,7 +283,8 @@ fun partial_evaluation ctxt facts =
           else if null decls' then [((b, []), fact')]
           else [(empty_binding, decls'), ((b, []), fact')];
       in (facts', context') end)
-  |> fst |> flat |> map (apsnd (map (apfst single)));
+  |> fst |> flat |> map (apsnd (map (apfst single)))
+  |> filter_out (fn (b, fact) => is_empty_binding b andalso forall (null o #2) fact);
 
 end;
 
@@ -399,8 +400,10 @@ val _ = Context.>> (Context.map_theory
   setup (Binding.name "rotated") (Scan.lift rotated) "rotated theorem premises" #>
   setup (Binding.name "defn") (add_del Local_Defs.defn_add Local_Defs.defn_del)
     "declaration of definitional transformations" #>
-  setup (Binding.name "abs_def") (Scan.succeed (Thm.rule_attribute (K Drule.abs_def)))
-    "abstract over free variables of a definition"));
+  setup (Binding.name "abs_def")
+    (Scan.succeed (Thm.rule_attribute (fn context =>
+      Local_Defs.meta_rewrite_rule (Context.proof_of context) #> Drule.abs_def)))
+    "abstract over free variables of definitionial theorem"));
 
 
 

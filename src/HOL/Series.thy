@@ -87,10 +87,13 @@ lemma sums_summable: "f sums l ==> summable f"
   by (simp add: sums_def summable_def, blast)
 
 lemma summable_sums:
-  fixes f :: "nat \<Rightarrow> 'a::{t2_space, comm_monoid_add}" assumes "summable f" shows "f sums (suminf f)"
+  fixes f :: "nat \<Rightarrow> 'a::{t2_space, comm_monoid_add}"
+  assumes "summable f"
+  shows "f sums (suminf f)"
 proof -
-  from assms guess s unfolding summable_def sums_def_raw .. note s = this
-  then show ?thesis unfolding sums_def_raw suminf_def
+  from assms obtain s where s: "(\<lambda>n. setsum f {0..<n}) ----> s"
+    unfolding summable_def sums_def [abs_def] ..
+  then show ?thesis unfolding sums_def [abs_def] suminf_def
     by (rule theI, auto intro!: tendsto_unique[OF trivial_limit_sequentially])
 qed
 

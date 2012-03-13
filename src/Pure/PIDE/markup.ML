@@ -74,7 +74,10 @@ local
   val modes = Synchronized.var "Markup.modes" (Symtab.make [("", default)]);
 in
   fun add_mode name output =
-    Synchronized.change modes (Symtab.update_new (name, {output = output}));
+    Synchronized.change modes (fn tab =>
+      (if not (Symtab.defined tab name) then ()
+       else warning ("Redefining markup mode " ^ quote name);
+       Symtab.update (name, {output = output}) tab));
   fun get_mode () =
     the_default default
       (Library.get_first (Symtab.lookup (Synchronized.value modes)) (print_mode_value ()));

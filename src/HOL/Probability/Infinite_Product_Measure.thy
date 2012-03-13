@@ -502,7 +502,7 @@ next
     fix A assume "A \<in> sets ?G"
     with generatorE guess J X . note JX = this
     interpret JK: finite_product_prob_space M J by default fact+
-    with JX show "\<mu>G A \<noteq> \<infinity>" by simp
+    from JX show "\<mu>G A \<noteq> \<infinity>" by simp
   next
     fix A assume A: "range A \<subseteq> sets ?G" "decseq A" "(\<Inter>i. A i) = {}"
     then have "decseq (\<lambda>i. \<mu>G (A i))"
@@ -874,7 +874,7 @@ proof (rule measure_space.equality)
       by (simp add: sets_sigma product_algebra_generator_def product_algebra_def)
     also have "\<dots> = sigma_sets (space (Pi\<^isub>M I M)) (emb I J ` Pi\<^isub>E J ` (\<Pi> i \<in> J. sets (M i)))"
       using J M.sets_into_space
-      by (auto simp: emb_def_raw intro!: sigma_sets_vimage[symmetric]) blast
+      by (auto simp: emb_def [abs_def] intro!: sigma_sets_vimage[symmetric]) blast
     also have "\<dots> \<subseteq> sigma_sets (space (Pi\<^isub>M I M)) ?M"
       using J by (intro sigma_sets_mono') auto
     finally show "emb I J ` sets (Pi\<^isub>M J M) \<subseteq> sigma_sets ?O ?M"

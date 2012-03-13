@@ -115,7 +115,7 @@ lemma rat_mem_preal: "0 < q ==> {r::rat. 0 < r & r < q} \<in> preal"
 by (simp add: preal_def cut_of_rat)
 
 lemma preal_nonempty: "A \<in> preal ==> \<exists>x\<in>A. 0 < x"
-  unfolding preal_def cut_def_raw by blast
+  unfolding preal_def cut_def [abs_def] by blast
 
 lemma preal_Ex_mem: "A \<in> preal \<Longrightarrow> \<exists>x. x \<in> A"
   apply (drule preal_nonempty)
@@ -131,10 +131,10 @@ lemma preal_exists_bound: "A \<in> preal ==> \<exists>x. 0 < x & x \<notin> A"
   done
 
 lemma preal_exists_greater: "[| A \<in> preal; y \<in> A |] ==> \<exists>u \<in> A. y < u"
-  unfolding preal_def cut_def_raw by blast
+  unfolding preal_def cut_def [abs_def] by blast
 
 lemma preal_downwards_closed: "[| A \<in> preal; y \<in> A; 0 < z; z < y |] ==> z \<in> A"
-  unfolding preal_def cut_def_raw by blast
+  unfolding preal_def cut_def [abs_def] by blast
 
 text{*Relaxing the final premise*}
 lemma preal_downwards_closed':
@@ -966,7 +966,7 @@ done
 
 lemma mem_diff_set:
      "R < S ==> diff_set (Rep_preal S) (Rep_preal R) \<in> preal"
-apply (unfold preal_def cut_def_raw)
+apply (unfold preal_def cut_def [abs_def])
 apply (blast intro!: diff_set_not_empty diff_set_not_rat_set
                      diff_set_lemma3 diff_set_lemma4)
 done
@@ -1135,7 +1135,7 @@ by (blast dest: Rep_preal [THEN preal_exists_greater])
 
 lemma preal_sup:
      "[|P \<noteq> {}; \<forall>X \<in> P. X \<le> Y|] ==> (\<Union>X \<in> P. Rep_preal(X)) \<in> preal"
-apply (unfold preal_def cut_def_raw)
+apply (unfold preal_def cut_def [abs_def])
 apply (blast intro!: preal_sup_set_not_empty preal_sup_set_not_rat_set
                      preal_sup_set_lemma3 preal_sup_set_lemma4)
 done

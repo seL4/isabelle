@@ -560,7 +560,7 @@ val nnf_simps =
 val nnf_extra_simps = @{thms split_ifs ex_simps all_simps simp_thms}
 
 (* FIXME: "let_simp" is probably redundant now that we also rewrite with
-  "Let_def_raw". *)
+  "Let_def [abs_def]". *)
 val nnf_ss =
   HOL_basic_ss addsimps nnf_extra_simps
     addsimprocs [@{simproc defined_All}, @{simproc defined_Ex}, @{simproc neq},
@@ -574,7 +574,7 @@ val presimplified_consts =
 val presimplify =
   rewrite_rule (map safe_mk_meta_eq nnf_simps)
   #> simplify nnf_ss
-  #> Raw_Simplifier.rewrite_rule @{thms Let_def_raw}
+  #> Raw_Simplifier.rewrite_rule @{thms Let_def [abs_def]}
 
 fun make_nnf ctxt th = case prems_of th of
     [] => th |> presimplify |> make_nnf1 ctxt

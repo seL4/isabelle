@@ -188,8 +188,6 @@ fun c_variant_abs_multi (ct0, vars) =
       in  c_variant_abs_multi (ct, cv::vars)  end
       handle CTERM _ => (ct0, rev vars);
 
-val skolem_def_raw = @{thms skolem_def_raw}
-
 (* Given the definition of a Skolem function, return a theorem to replace
    an existential formula by a use of that function.
    Example: "EX x. x : A & x ~: B ==> sko A B : A & sko A B ~: B"  [.] *)
@@ -210,8 +208,8 @@ fun old_skolem_theorem_from_def thy rhs0 =
       Drule.list_comb (rhs, frees)
       |> Drule.beta_conv cabs |> Thm.apply cTrueprop
     fun tacf [prem] =
-      rewrite_goals_tac skolem_def_raw
-      THEN rtac ((prem |> rewrite_rule skolem_def_raw)
+      rewrite_goals_tac @{thms skolem_def [abs_def]}
+      THEN rtac ((prem |> rewrite_rule @{thms skolem_def [abs_def]})
                  RS Global_Theory.get_thm thy "Hilbert_Choice.someI_ex") 1
   in
     Goal.prove_internal [ex_tm] conc tacf

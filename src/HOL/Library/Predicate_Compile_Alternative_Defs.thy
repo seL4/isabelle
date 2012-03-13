@@ -7,9 +7,9 @@ section {* Common constants *}
 declare HOL.if_bool_eq_disj[code_pred_inline]
 
 declare bool_diff_def[code_pred_inline]
-declare inf_bool_def_raw[code_pred_inline]
-declare less_bool_def_raw[code_pred_inline]
-declare le_bool_def_raw[code_pred_inline]
+declare inf_bool_def[abs_def, code_pred_inline]
+declare less_bool_def[abs_def, code_pred_inline]
+declare le_bool_def[abs_def, code_pred_inline]
 
 lemma min_bool_eq [code_pred_inline]: "(min :: bool => bool => bool) == (op &)"
 by (rule eq_reflection) (auto simp add: fun_eq_iff min_def)

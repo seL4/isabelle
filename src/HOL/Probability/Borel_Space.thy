@@ -90,7 +90,7 @@ lemma (in sigma_algebra) borel_measurable_const[simp, intro]:
 lemma (in sigma_algebra) borel_measurable_indicator[simp, intro!]:
   assumes A: "A \<in> sets M"
   shows "indicator A \<in> borel_measurable M"
-  unfolding indicator_def_raw using A
+  unfolding indicator_def [abs_def] using A
   by (auto intro!: measurable_If_set borel_measurable_const)
 
 lemma (in sigma_algebra) borel_measurable_indicator_iff:
@@ -101,7 +101,7 @@ proof
   then have "?I -` {1} \<inter> space M \<in> sets M"
     unfolding measurable_def by auto
   also have "?I -` {1} \<inter> space M = A \<inter> space M"
-    unfolding indicator_def_raw by auto
+    unfolding indicator_def [abs_def] by auto
   finally show "A \<inter> space M \<in> sets M" .
 next
   assume "A \<inter> space M \<in> sets M"

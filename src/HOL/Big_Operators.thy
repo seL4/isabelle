@@ -1537,11 +1537,11 @@ lemma max_lattice:
 
 lemma dual_max:
   "ord.max (op \<ge>) = min"
-  by (auto simp add: ord.max_def_raw min_def fun_eq_iff)
+  by (auto simp add: ord.max_def min_def fun_eq_iff)
 
 lemma dual_min:
   "ord.min (op \<ge>) = max"
-  by (auto simp add: ord.min_def_raw max_def fun_eq_iff)
+  by (auto simp add: ord.min_def max_def fun_eq_iff)
 
 lemma strict_below_fold1_iff:
   assumes "finite A" and "A \<noteq> {}"
