@@ -278,8 +278,9 @@ val refine_witness =
 
 fun gen_witness_proof proof after_qed wit_propss eq_props =
   let
-    val propss = (map o map) (fn prop => (mark_witness prop, [])) wit_propss
-      @ [map (rpair []) eq_props];
+    val propss =
+      (map o map) (fn prop => (mark_witness prop, [])) wit_propss @
+        [map (rpair []) eq_props];
     fun after_qed' thmss =
       let val (wits, eqs) = split_last ((map o map) Thm.close_derivation thmss);
       in after_qed ((map2 o map2) (curry Witness) wit_propss wits) eqs end;
