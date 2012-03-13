@@ -406,6 +406,9 @@ apply (unfold subset_def Ball_def)
 apply (rule iff_refl)
 done
 
+text{*For calculations*}
+declare subsetD [trans] rev_subsetD [trans] subset_trans [trans]
+
 
 subsection{*Rules for equality*}
 
