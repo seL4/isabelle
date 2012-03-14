@@ -257,6 +257,21 @@ def HOL(*args):
     """HOL image"""
     return build_isabelle_image('HOL', 'Pure', 'HOL', *args)
 
+@configuration(repos = [Isabelle], deps = [(HOL, [0])])
+def HOL_Library(*args):
+    """HOL-Library image"""
+    return build_isabelle_image('HOL', 'HOL', 'HOL-Library', *args)
+
+@configuration(repos = [Isabelle], deps = [(Pure, [0])])
+def ZF(*args):
+    """ZF image"""
+    return build_isabelle_image('ZF', 'Pure', 'ZF', *args)
+
+@configuration(repos = [Isabelle], deps = [(HOL, [0])])
+def HOL_HOLCF(*args):
+    """HOLCF image"""
+    return build_isabelle_image('HOL/HOLCF', 'HOL', 'HOLCF', *args)
+
 @configuration(repos = [Isabelle], deps = [(Pure_64, [0])])
 def HOL_64(*args):
     """HOL image (64 bit)"""
@@ -293,18 +308,38 @@ def Isabelle_makeall(*args):
     return isabelle_makeall(*args)
 
 
-# Document and Distribution Build
+# distribution and documentation Build
 
 @configuration(repos = [Isabelle], deps = [])
 def Distribution(env, case, paths, dep_paths, playground):
-    """Document and Distribution Build"""
+    """Build of distribution"""
     ## FIXME This is rudimentary; study Admin/CHECKLIST to complete this configuration accordingly
     isabelle_home = paths[0]
-    makedist = path.join(isabelle_home, 'Admin', 'makedist')
-    (return_code, log) = env.run_process(makedist,
+    (return_code, log) = env.run_process(path.join(isabelle_home, 'Admin', 'makedist'),
       REPOS = repositories.get(Isabelle).local_path, DISTPREFIX = os.getcwd())
     return (return_code == 0, '', ## FIXME might add summary here
       {}, {'log': log}, None) ## FIXME might add proper result here
+
+@configuration(repos = [Isabelle], deps = [
+    (HOL, [0]),
+    (HOL_HOLCF, [0]),
+    (ZF, [0]),
+    (HOL_Library, [0])
+  ])
+def Documentation_images(*args):
+    """Isabelle images needed to build the documentation"""
+    return isabelle_dependency_only(*args)
+
+@configuration(repos = [Isabelle], deps = [(Documentation_images, [0])])
+def Documentation(env, case, paths, dep_paths, playground):
+    """Build of documentation"""
+    isabelle_home = paths[0]
+    dep_path = dep_paths[0]
+    prepare_isabelle_repository(isabelle_home, env.settings.contrib, dep_path,
+      usedir_options = default_usedir_options)
+    (return_code, log) = env.run_process(path.join(isabelle_home, 'Admin', 'build', 'doc-src'))
+    return (return_code == 0, extract_isabelle_run_summary(log),
+      extract_report_data(isabelle_home, log), {'log': log}, None)
 
 
 # Mutabelle configurations
