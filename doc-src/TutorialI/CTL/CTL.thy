@@ -370,11 +370,11 @@ definition eufix :: "state set \<Rightarrow> state set \<Rightarrow> state set \
 
 lemma "lfp(eufix A B) \<subseteq> eusem A B"
 apply(rule lfp_lowerbound)
-apply(auto simp add: eusem_def eufix_def);
- apply(rule_tac x = "[]" in exI);
+apply(auto simp add: eusem_def eufix_def)
+ apply(rule_tac x = "[]" in exI)
  apply simp
-apply(rule_tac x = "y#xc" in exI);
-apply simp;
+apply(rule_tac x = "xa#xb" in exI)
+apply simp
 done
 
 lemma mono_eufix: "mono(eufix A B)";
