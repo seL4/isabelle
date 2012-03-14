@@ -233,13 +233,15 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
   private val mouse_motion_listener = new MouseMotionAdapter {
     override def mouseMoved(e: MouseEvent) {
+      Swing_Thread.assert()
+
       control = if (OperatingSystem.isMacOS()) e.isMetaDown else e.isControlDown
       val x = e.getX()
       val y = e.getY()
 
       if (!model.buffer.isLoaded) exit_control()
       else
-        Isabelle.swing_buffer_lock(model.buffer) {
+        Isabelle.buffer_lock(model.buffer) {
           val snapshot = update_snapshot()
 
           if (control) init_popup(snapshot, x, y)
@@ -284,13 +286,15 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
       robust_body(()) {
+        Swing_Thread.assert()
+
         val gutter = text_area.getGutter
         val width = GutterOptionPane.getSelectionAreaWidth
         val border_width = jEdit.getIntegerProperty("view.gutter.borderWidth", 3)
         val FOLD_MARKER_SIZE = 12
 
         if (gutter.isSelectionAreaEnabled && !gutter.isExpanded && width >= 12 && line_height >= 12) {
-          Isabelle.swing_buffer_lock(model.buffer) {
+          Isabelle.buffer_lock(model.buffer) {
             val snapshot = update_snapshot()
             for (i <- 0 until physical_lines.length) {
               if (physical_lines(i) != -1) {
