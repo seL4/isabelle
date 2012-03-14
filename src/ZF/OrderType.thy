@@ -631,16 +631,19 @@ done
 text{*Order/monotonicity properties of ordinal addition *}
 
 lemma oadd_le_self2: "Ord(i) ==> i \<le> j++i"
-apply (erule_tac i = i in trans_induct3)
-apply (simp (no_asm_simp) add: Ord_0_le)
-apply (simp (no_asm_simp) add: oadd_succ succ_leI)
-apply (simp (no_asm_simp) add: oadd_Limit)
-apply (rule le_trans)
-apply (rule_tac [2] le_implies_UN_le_UN)
-apply (erule_tac [2] bspec)
- prefer 2 apply assumption
-apply (simp add: Union_eq_UN [symmetric] Limit_Union_eq le_refl Limit_is_Ord)
-done
+proof (induct i rule: trans_induct3)
+  case 0 thus ?case by (simp add: Ord_0_le) 
+next
+  case (succ i) thus ?case by (simp add: oadd_succ succ_leI) 
+next
+  case (limit l)
+  hence "l = (\<Union>x\<in>l. x)" 
+    by (simp add: Union_eq_UN [symmetric] Limit_Union_eq)
+  also have "... \<le> (\<Union>x\<in>l. j++x)" 
+    by (rule le_implies_UN_le_UN) (rule limit.hyps) 
+  finally have "l \<le> (\<Union>x\<in>l. j++x)" .
+  thus ?case using limit.hyps by (simp add: oadd_Limit)
+qed
 
 lemma oadd_le_mono1: "k \<le> j ==> k++i \<le> j++i"
 apply (frule lt_Ord)
@@ -925,15 +928,23 @@ done
 lemma omult_le_self: "[| Ord(i);  0<j |] ==> i \<le> i**j"
 by (blast intro: all_lt_imp_le Ord_omult lt_omult1 lt_Ord2)
 
-lemma omult_le_mono1: "[| k \<le> j;  Ord(i) |] ==> k**i \<le> j**i"
-apply (frule lt_Ord)
-apply (frule le_Ord2)
-apply (erule trans_induct3)
-apply (simp (no_asm_simp) add: le_refl Ord_0)
-apply (simp (no_asm_simp) add: omult_succ oadd_le_mono)
-apply (simp (no_asm_simp) add: omult_Limit)
-apply (rule le_implies_UN_le_UN, blast)
-done
+lemma omult_le_mono1:
+  assumes kj: "k \<le> j" and i: "Ord(i)" shows "k**i \<le> j**i"
+proof -
+  have o: "Ord(k)" "Ord(j)" by (rule lt_Ord [OF kj] le_Ord2 [OF kj])+
+  show ?thesis using i
+  proof (induct i rule: trans_induct3)
+    case 0 thus ?case 
+      by simp
+  next
+    case (succ i) thus ?case 
+      by (simp add: o kj omult_succ oadd_le_mono) 
+  next
+    case (limit l)
+    thus ?case 
+      by (auto simp add: o kj omult_Limit le_implies_UN_le_UN) 
+  qed
+qed    
 
 lemma omult_lt_mono2: "[| k<j;  0<i |] ==> i**k < i**j"
 apply (rule ltI)
@@ -955,20 +966,30 @@ by (blast intro: le_trans omult_le_mono1 omult_le_mono2 Ord_succD elim: ltE)
 lemma omult_lt_mono: "[| i' \<le> i;  j'<j;  0<i |] ==> i'**j' < i**j"
 by (blast intro: lt_trans1 omult_le_mono1 omult_lt_mono2 Ord_succD elim: ltE)
 
-lemma omult_le_self2: "[| Ord(i);  0<j |] ==> i \<le> j**i"
-apply (frule lt_Ord2)
-apply (erule_tac i = i in trans_induct3)
-apply (simp (no_asm_simp))
-apply (simp (no_asm_simp) add: omult_succ)
-apply (erule lt_trans1)
-apply (rule_tac b = "j**x" in oadd_0 [THEN subst], rule_tac [2] oadd_lt_mono2)
-apply (blast intro: Ord_omult, assumption)
-apply (simp (no_asm_simp) add: omult_Limit)
-apply (rule le_trans)
-apply (rule_tac [2] le_implies_UN_le_UN)
-prefer 2 apply blast
-apply (simp (no_asm_simp) add: Union_eq_UN [symmetric] Limit_Union_eq Limit_is_Ord)
-done
+lemma omult_le_self2: 
+  assumes i: "Ord(i)" and j: "0<j" shows "i \<le> j**i"
+proof -
+  have oj: "Ord(j)" by (rule lt_Ord2 [OF j])
+  show ?thesis using i
+  proof (induct i rule: trans_induct3)
+    case 0 thus ?case 
+      by simp
+  next
+    case (succ i) 
+    have "j \<times>\<times> i ++ 0 < j \<times>\<times> i ++ j" 
+      by (rule oadd_lt_mono2 [OF j]) 
+    with succ.hyps show ?case 
+      by (simp add: oj j omult_succ ) (rule lt_trans1)
+  next
+    case (limit l)
+    hence "l = (\<Union>x\<in>l. x)" 
+      by (simp add: Union_eq_UN [symmetric] Limit_Union_eq)
+    also have "... \<le> (\<Union>x\<in>l. j**x)" 
+      by (rule le_implies_UN_le_UN) (rule limit.hyps) 
+    finally have "l \<le> (\<Union>x\<in>l. j**x)" .
+    thus ?case using limit.hyps by (simp add: oj omult_Limit)
+  qed
+qed    
 
 
 text{*Further properties of ordinal multiplication *}
