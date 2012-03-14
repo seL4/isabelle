@@ -499,7 +499,7 @@ fun pretty lthy =
       Pretty.block (Pretty.breaks
         [Pretty.str v, Pretty.str "==", Pretty.str (Proof_Context.extern_const lthy c),
           Pretty.str "::", Syntax.pretty_typ lthy ty]);
-  in Pretty.str "instantiation" :: map pr_arity tycos @ map pr_param params end;
+  in Pretty.command "instantiation" :: map pr_arity tycos @ map pr_param params end;
 
 fun conclude lthy =
   let
