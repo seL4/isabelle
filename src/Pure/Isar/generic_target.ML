@@ -48,12 +48,10 @@ fun check_mixfix ctxt (b, extra_tfrees) mx =
 
 (* define *)
 
-fun define foundation ((b, mx), ((proto_b_def, atts), rhs)) lthy =
+fun define foundation ((b, mx), ((b_def, atts), rhs)) lthy =
   let
     val thy = Proof_Context.theory_of lthy;
     val thy_ctxt = Proof_Context.init_global thy;
-
-    val b_def = Thm.def_binding_optional b proto_b_def;
 
     (*term and type parameters*)
     val crhs = Thm.cterm_of thy rhs;
@@ -202,7 +200,8 @@ fun theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lt
     val lhs = list_comb (const, type_params @ term_params);
     val ((_, def), lthy3) = lthy2
       |> Local_Theory.background_theory_result
-        (Thm.add_def lthy2 false false (b_def, Logic.mk_equals (lhs, rhs)));
+        (Thm.add_def lthy2 false false
+          (Thm.def_binding_optional b b_def, Logic.mk_equals (lhs, rhs)));
   in ((lhs, def), lthy3) end;
 
 fun theory_notes kind global_facts lthy =
