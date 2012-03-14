@@ -17,6 +17,7 @@ from mira.case import Case
 from mira.tools import tool
 from mira import schedule, misc
 from mira.environment import scheduler
+from mira import repositories
 
 # build and evaluation tools
 
@@ -290,6 +291,20 @@ def AFP_images(*args):
 def Isabelle_makeall(*args):
     """Isabelle makeall"""
     return isabelle_makeall(*args)
+
+
+# Document and Distribution Build
+
+@configuration(repos = [Isabelle], deps = [])
+def Distribution(env, case, paths, dep_paths, playground):
+    """Document and Distribution Build"""
+    ## FIXME This is rudimentary; study Admin/CHECKLIST to complete this configuration accordingly
+    isabelle_home = paths[0]
+    makedist = path.join(isabelle_home, 'Admin', 'makedist')
+    (return_code, log) = env.run_process(makedist,
+      REPOS = repositories.get(Isabelle).local_path, DISTPREFIX = os.getcwd())
+    return (return_code == 0, '', ## FIXME might add summary here
+      {}, {'log': log}, None) ## FIXME might add proper result here
 
 
 # Mutabelle configurations
