@@ -424,14 +424,14 @@ by (simp cong: rlimit_cong add: transrec3_Limit L_r_def ltD)
 
 lemma (in Nat_Times_Nat) L_r_type:
     "Ord(i) ==> L_r(fn,i) \<subseteq> Lset(i) * Lset(i)"
-apply (induct i rule: trans_induct3_rule)
+apply (induct i rule: trans_induct3)
   apply (simp_all add: Lset_succ DPow_r_type well_ord_DPow_r rlimit_def
                        Transset_subset_DPow [OF Transset_Lset], blast)
 done
 
 lemma (in Nat_Times_Nat) well_ord_L_r:
     "Ord(i) ==> well_ord(Lset(i), L_r(fn,i))"
-apply (induct i rule: trans_induct3_rule)
+apply (induct i rule: trans_induct3)
 apply (simp_all add: well_ord0 Lset_succ L_r_type well_ord_DPow_r
                      well_ord_rlimit ltD)
 done

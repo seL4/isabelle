@@ -708,7 +708,7 @@ lemma Ord_cases:
      |] ==> P"
 by (drule Ord_cases_disj, blast)
 
-lemma trans_induct3 [case_names 0 succ limit, consumes 1]:
+lemma trans_induct3_raw:
      "[| Ord(i);
          P(0);
          !!x. [| Ord(x);  P(x) |] ==> P(succ(x));
@@ -718,7 +718,7 @@ apply (erule trans_induct)
 apply (erule Ord_cases, blast+)
 done
 
-lemmas trans_induct3_rule = trans_induct3 [rule_format, case_names 0 succ limit, consumes 1]
+lemmas trans_induct3 = trans_induct3_raw [rule_format, case_names 0 succ limit, consumes 1]
 
 text{*A set of ordinals is either empty, contains its own union, or its
 union is a limit ordinal.*}

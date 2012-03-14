@@ -243,7 +243,7 @@ lemma Normal_imp_mono: "[| i<j; Normal(F) |] ==> F(i) < F(j)"
 by (simp add: Normal_def mono_Ord_def)
 
 lemma Normal_increasing: "[| Ord(i); Normal(F) |] ==> i\<le>F(i)"
-apply (induct i rule: trans_induct3_rule)
+apply (induct i rule: trans_induct3)
   apply (simp add: subset_imp_le)
  apply (subgoal_tac "F(x) < F(succ(x))")
   apply (force intro: lt_trans1)
@@ -383,7 +383,7 @@ definition
 
 lemma Ord_normalize [simp, intro]:
      "[| Ord(a); !!x. Ord(x) ==> Ord(F(x)) |] ==> Ord(normalize(F, a))"
-apply (induct a rule: trans_induct3_rule)
+apply (induct a rule: trans_induct3)
 apply (simp_all add: ltD def_transrec2 [OF normalize_def])
 done
 
