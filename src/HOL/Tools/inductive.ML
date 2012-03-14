@@ -562,9 +562,12 @@ end;
 fun gen_inductive_cases prep_att prep_prop args lthy =
   let
     val thy = Proof_Context.theory_of lthy;
-    val facts = args |> grouped 10 Par_List.map (fn ((a, atts), props) =>
-      ((a, map (prep_att thy) atts),
-        map (Thm.no_attributes o single o mk_cases lthy o prep_prop lthy) props));
+    val thmss =
+      map snd args
+      |> burrow (grouped 10 Par_List.map (mk_cases lthy o prep_prop lthy));
+    val facts =
+      map2 (fn ((a, atts), _) => fn thms => ((a, map (prep_att thy) atts), [(thms, [])]))
+        args thmss;
   in lthy |> Local_Theory.notes facts |>> map snd end;
 
 val inductive_cases = gen_inductive_cases Attrib.intern_src Syntax.read_prop;
@@ -809,7 +812,7 @@ fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind
       |> Local_Theory.conceal
       |> Local_Theory.define
         ((rec_name, case cnames_syn of [(_, syn)] => syn | _ => NoSyn),
-         ((Binding.empty, @{attributes [nitpick_unfold]}),
+         ((Thm.def_binding rec_name, @{attributes [nitpick_unfold]}),
            fold_rev lambda params
              (Const (fp_name, (predT --> predT) --> predT) $ fp_fun)))
       ||> Local_Theory.restore_naming lthy;
