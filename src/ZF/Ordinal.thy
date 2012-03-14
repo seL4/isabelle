@@ -236,7 +236,7 @@ apply (erule lt_irrefl)
 done
 
 
-(** Recall that  @{term"i \<le> j"}  abbreviates  @{term"i<succ(j)"} !! **)
+text{* Recall that  @{term"i \<le> j"}  abbreviates  @{term"i<succ(j)"} !! *}
 
 lemma le_iff: "i \<le> j <-> i<j | (i=j & Ord(j))"
 by (unfold lt_def, blast)
@@ -335,12 +335,11 @@ apply (erule wf_Memrel [THEN wf_induct2], blast+)
 done
 
 (*Induction over an ordinal*)
-lemmas Ord_induct [consumes 2] = Transset_induct [OF _ Ord_is_Transset]
-lemmas Ord_induct_rule = Ord_induct [rule_format, consumes 2]
+lemmas Ord_induct [consumes 2] = Transset_induct [rule_format, OF _ Ord_is_Transset]
 
 (*Induction over the class of ordinals -- a useful corollary of Ord_induct*)
 
-lemma trans_induct [consumes 1]:
+lemma trans_induct [rule_format, consumes 1, case_names step]:
     "[| Ord(i);
         !!x.[| Ord(x);  \<forall>y\<in>x. P(y) |] ==> P(x) |]
      ==>  P(i)"
@@ -348,10 +347,8 @@ apply (rule Ord_succ [THEN succI1 [THEN Ord_induct]], assumption)
 apply (blast intro: Ord_succ [THEN Ord_in_Ord])
 done
 
-lemmas trans_induct_rule = trans_induct [rule_format, consumes 1]
 
-
-(*** Fundamental properties of the epsilon ordering (< on ordinals) ***)
+section{*Fundamental properties of the epsilon ordering (< on ordinals)*}
 
 
 subsubsection{*Proving That < is a Linear Ordering on the Ordinals*}
@@ -364,23 +361,27 @@ apply (erule_tac i=j in trans_induct)
 apply (blast dest: Ord_trans)
 done
 
-(*The trichotomy law for ordinals!*)
+text{*The trichotomy law for ordinals*}
 lemma Ord_linear_lt:
-    "[| Ord(i);  Ord(j);  i<j ==> P;  i=j ==> P;  j<i ==> P |] ==> P"
+ assumes o: "Ord(i)" "Ord(j)"
+ obtains (lt) "i<j" | (eq) "i=j" | (gt) "j<i" 
 apply (simp add: lt_def)
-apply (rule_tac i1=i and j1=j in Ord_linear [THEN disjE], blast+)
+apply (rule_tac i1=i and j1=j in Ord_linear [THEN disjE])
+apply (blast intro: o)+
 done
 
 lemma Ord_linear2:
-    "[| Ord(i);  Ord(j);  i<j ==> P;  j \<le> i ==> P |]  ==> P"
+ assumes o: "Ord(i)" "Ord(j)"
+ obtains (lt) "i<j" | (ge) "j \<le> i" 
 apply (rule_tac i = i and j = j in Ord_linear_lt)
-apply (blast intro: leI le_eqI sym ) +
+apply (blast intro: leI le_eqI sym o) +
 done
 
 lemma Ord_linear_le:
-    "[| Ord(i);  Ord(j);  i \<le> j ==> P;  j \<le> i ==> P |]  ==> P"
+ assumes o: "Ord(i)" "Ord(j)"
+ obtains (le) "i \<le> j" | (ge) "j \<le> i" 
 apply (rule_tac i = i and j = j in Ord_linear_lt)
-apply (blast intro: leI le_eqI ) +
+apply (blast intro: leI le_eqI o) +
 done
 
 lemma le_imp_not_lt: "j \<le> i ==> ~ i<j"
@@ -701,12 +702,9 @@ lemma Ord_cases_disj: "Ord(i) ==> i=0 | (\<exists>j. Ord(j) & i=succ(j)) | Limit
 by (blast intro!: non_succ_LimitI Ord_0_lt)
 
 lemma Ord_cases:
-    "[| Ord(i);
-        i=0                          ==> P;
-        !!j. [| Ord(j); i=succ(j) |] ==> P;
-        Limit(i)                     ==> P
-     |] ==> P"
-by (drule Ord_cases_disj, blast)
+ assumes i: "Ord(i)"
+ obtains (0) "i=0" | (succ) j where "Ord(j)" "i=succ(j)" | (limit) "Limit(i)" 
+by (insert Ord_cases_disj [OF i], auto)
 
 lemma trans_induct3_raw:
      "[| Ord(i);

@@ -87,14 +87,16 @@ subsection{*Injectivity Properties and Induction*}
 
 (*Mathematical induction*)
 lemma nat_induct [case_names 0 succ, induct set: nat]:
-    "[| n: nat;  P(0);  !!x. [| x: nat;  P(x) |] ==> P(succ(x)) |] ==> P(n)"
+    "[| n \<in> nat;  P(0);  !!x. [| x: nat;  P(x) |] ==> P(succ(x)) |] ==> P(n)"
 by (erule def_induct [OF nat_def nat_bnd_mono], blast)
 
 lemma natE:
-    "[| n: nat;  n=0 ==> P;  !!x. [| x: nat; n=succ(x) |] ==> P |] ==> P"
-by (erule nat_unfold [THEN equalityD1, THEN subsetD, THEN UnE], auto)
+ assumes "n \<in> nat"
+ obtains (0) "n=0" | (succ) x where "x \<in> nat" "n=succ(x)" 
+using assms
+by (rule nat_unfold [THEN equalityD1, THEN subsetD, THEN UnE]) auto
 
-lemma nat_into_Ord [simp]: "n: nat ==> Ord(n)"
+lemma nat_into_Ord [simp]: "n \<in> nat ==> Ord(n)"
 by (erule nat_induct, auto)
 
 (* @{term"i: nat ==> 0 \<le> i"}; same thing as @{term"0<succ(i)"}  *)
@@ -123,7 +125,7 @@ by (induct a rule: nat_induct, auto)
 lemma succ_natD: "succ(i): nat ==> i: nat"
 by (rule Ord_trans [OF succI1], auto)
 
-lemma nat_succ_iff [iff]: "succ(n): nat \<longleftrightarrow> n: nat"
+lemma nat_succ_iff [iff]: "succ(n): nat \<longleftrightarrow> n \<in> nat"
 by (blast dest!: succ_natD)
 
 lemma nat_le_Limit: "Limit(i) ==> nat \<le> i"
@@ -138,7 +140,7 @@ done
 (* [| succ(i): k;  k: nat |] ==> i: k *)
 lemmas succ_in_naturalD = Ord_trans [OF succI1 _ nat_into_Ord]
 
-lemma lt_nat_in_nat: "[| m<n;  n: nat |] ==> m: nat"
+lemma lt_nat_in_nat: "[| m<n;  n \<in> nat |] ==> m: nat"
 apply (erule ltE)
 apply (erule Ord_trans, assumption, simp)
 done
@@ -158,7 +160,7 @@ lemmas complete_induct_rule =
 
 
 lemma nat_induct_from_lemma [rule_format]:
-    "[| n: nat;  m: nat;
+    "[| n \<in> nat;  m: nat;
         !!x. [| x: nat;  m \<le> x;  P(x) |] ==> P(succ(x)) |]
      ==> m \<le> n \<longrightarrow> P(m) \<longrightarrow> P(n)"
 apply (erule nat_induct)
@@ -167,7 +169,7 @@ done
 
 (*Induction starting from m rather than 0*)
 lemma nat_induct_from:
-    "[| m \<le> n;  m: nat;  n: nat;
+    "[| m \<le> n;  m: nat;  n \<in> nat;
         P(m);
         !!x. [| x: nat;  m \<le> x;  P(x) |] ==> P(succ(x)) |]
      ==> P(n)"
@@ -176,7 +178,7 @@ done
 
 (*Induction suitable for subtraction and less-than*)
 lemma diff_induct [case_names 0 0_succ succ_succ, consumes 2]:
-    "[| m: nat;  n: nat;
+    "[| m: nat;  n \<in> nat;
         !!x. x: nat ==> P(x,0);
         !!y. y: nat ==> P(0,succ(y));
         !!x y. [| x: nat;  y: nat;  P(x,y) |] ==> P(succ(x),succ(y)) |]
@@ -201,7 +203,7 @@ apply (auto simp add: le_iff)
 done
 
 lemma succ_lt_induct:
-    "[| m<n;  n: nat;
+    "[| m<n;  n \<in> nat;
         P(m,succ(m));
         !!x. [| x: nat;  P(m,x) |] ==> P(m,succ(x)) |]
      ==> P(m,n)"
@@ -241,7 +243,7 @@ lemma nat_case_succ [simp]: "nat_case(a,b,succ(n)) = b(n)"
 by (simp add: nat_case_def)
 
 lemma nat_case_type [TC]:
-    "[| n: nat;  a: C(0);  !!m. m: nat ==> b(m): C(succ(m)) |]
+    "[| n \<in> nat;  a: C(0);  !!m. m: nat ==> b(m): C(succ(m)) |]
      ==> nat_case(a,b,n) \<in> C(n)";
 by (erule nat_induct, auto)
 

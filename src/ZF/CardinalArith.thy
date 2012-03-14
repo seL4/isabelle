@@ -628,28 +628,25 @@ lemma InfCard_csquare_eq:
   assumes IK: "InfCard(K)" shows "InfCard(K) ==> K \<otimes> K = K"
 proof -
   have  OK: "Ord(K)" using IK by (simp add: Card_is_Ord InfCard_is_Card) 
-  have "InfCard(K) \<longrightarrow> K \<otimes> K = K"
-    proof (rule trans_induct [OF OK], rule impI)
-      fix i
-      assume i: "Ord(i)" "InfCard(i)"
-         and ih: " \<forall>y\<in>i. InfCard(y) \<longrightarrow> y \<otimes> y = y"
-      show "i \<otimes> i = i"
-        proof (rule le_anti_sym)
-          have "|i \<times> i| = |ordertype(i \<times> i, csquare_rel(i))|" 
-            by (rule cardinal_cong, 
-                simp add: i well_ord_csquare [THEN ordermap_bij, THEN bij_imp_eqpoll])
-          hence "i \<otimes> i \<le> ordertype(i \<times> i, csquare_rel(i))" using i
-            by (simp add: cmult_def Ord_cardinal_le well_ord_csquare [THEN Ord_ordertype])
-          moreover
-          have "ordertype(i \<times> i, csquare_rel(i)) \<le> i" using ih i
-            by (simp add: ordertype_csquare_le) 
-          ultimately show "i \<otimes> i \<le> i" by (rule le_trans)
-        next
-          show "i \<le> i \<otimes> i" using i
-            by (blast intro: cmult_square_le InfCard_is_Card) 
-        qed
+  show "InfCard(K) ==> K \<otimes> K = K" using OK
+  proof (induct rule: trans_induct)
+    case (step i)
+    show "i \<otimes> i = i"
+    proof (rule le_anti_sym)
+      have "|i \<times> i| = |ordertype(i \<times> i, csquare_rel(i))|" 
+        by (rule cardinal_cong, 
+          simp add: step.hyps well_ord_csquare [THEN ordermap_bij, THEN bij_imp_eqpoll])
+      hence "i \<otimes> i \<le> ordertype(i \<times> i, csquare_rel(i))" 
+        by (simp add: step.hyps cmult_def Ord_cardinal_le well_ord_csquare [THEN Ord_ordertype])
+      moreover
+      have "ordertype(i \<times> i, csquare_rel(i)) \<le> i" using step
+        by (simp add: ordertype_csquare_le) 
+      ultimately show "i \<otimes> i \<le> i" by (rule le_trans)
+    next
+      show "i \<le> i \<otimes> i" using step
+        by (blast intro: cmult_square_le InfCard_is_Card) 
     qed
-  thus ?thesis using IK ..
+  qed
 qed
 
 (*Corollary for arbitrary well-ordered sets (all sets, assuming AC)*)
@@ -910,10 +907,15 @@ proof -
   finally show ?thesis .
 qed
 
-lemma Ord_subset_natD [rule_format]: "Ord(i) ==> i \<subseteq> nat \<longrightarrow> i \<in> nat | i=nat"
-apply (erule trans_induct3, auto)
-apply (blast dest!: nat_le_Limit [THEN le_imp_subset])
-done
+lemma Ord_subset_natD [rule_format]: "Ord(i) ==> i \<subseteq> nat \<Longrightarrow> i \<in> nat | i=nat"
+proof (induct i rule: trans_induct3)
+  case 0 thus ?case by auto
+next
+  case (succ i) thus ?case by auto
+next
+  case (limit l) thus ?case
+    by (blast dest: nat_le_Limit le_imp_subset)
+qed
 
 lemma Ord_nat_subset_into_Card: "[| Ord(i); i \<subseteq> nat |] ==> Card(i)"
 by (blast dest: Ord_subset_natD intro: Card_nat nat_into_Card)
