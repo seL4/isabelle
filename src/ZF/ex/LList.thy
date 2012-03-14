@@ -106,15 +106,22 @@ declare QPair_Int_Vset_subset_UN [THEN subset_trans, intro!]
 declare qunivD [dest!]
 declare Ord_in_Ord [elim!]
 
-lemma llist_quniv_lemma [rule_format]:
-     "Ord(i) ==> \<forall>l \<in> llist(quniv(A)). l \<inter> Vset(i) \<subseteq> univ(eclose(A))"
-apply (erule trans_induct)
-apply (rule ballI)
-apply (erule llist.cases)
-apply (simp_all add: QInl_def QInr_def llist.con_defs)
-(*LCons case: I simply can't get rid of the deepen_tac*)
-apply (deepen 2 intro: Ord_trans Int_lower1 [THEN subset_trans])
-done
+lemma llist_quniv_lemma:
+     "Ord(i) ==> l \<in> llist(quniv(A)) \<Longrightarrow> l \<inter> Vset(i) \<subseteq> univ(eclose(A))"
+proof (induct i arbitrary: l rule: trans_induct)
+  case (step i l)
+  show ?case using `l \<in> llist(quniv(A))`
+  proof (cases l rule: llist.cases)
+    case LNil thus ?thesis
+      by (simp add: QInl_def QInr_def llist.con_defs)
+  next
+    case (LCons a l) thus ?thesis using step.hyps
+    proof (simp add: QInl_def QInr_def llist.con_defs)
+      show "<1; <a; l>> \<inter> Vset(i) \<subseteq> univ(eclose(A))" using LCons `Ord(i)`
+        by (fast intro: step Ord_trans Int_lower1 [THEN subset_trans])
+    qed
+  qed
+qed
 
 lemma llist_quniv: "llist(quniv(A)) \<subseteq> quniv(A)"
 apply (rule qunivI [THEN subsetI])
@@ -134,14 +141,19 @@ declare QPair_Int_Vset_subset_UN [THEN subset_trans, intro!]
 declare Ord_in_Ord [elim!] 
 
 (*Lemma for proving finality.  Unfold the lazy list; use induction hypothesis*)
-lemma lleq_Int_Vset_subset [rule_format]:
-     "Ord(i) ==> \<forall>l l'. <l,l'> \<in> lleq(A) \<longrightarrow> l \<inter> Vset(i) \<subseteq> l'"
-apply (erule trans_induct)
-apply (intro allI impI)
-apply (erule lleq.cases)
-apply (unfold QInr_def llist.con_defs, safe)
-apply (fast elim!: Ord_trans bspec [elim_format])
-done
+lemma lleq_Int_Vset_subset:
+     "Ord(i) ==> <l,l'> \<in> lleq(A) \<Longrightarrow> l \<inter> Vset(i) \<subseteq> l'"
+proof (induct i arbitrary: l l' rule: trans_induct)
+  case (step i l l')
+  show ?case using `\<langle>l, l'\<rangle> \<in> lleq(A)`
+  proof (cases rule: lleq.cases)
+    case LNil thus ?thesis
+      by (auto simp add: QInr_def llist.con_defs)
+  next
+    case (LCons a l l') thus ?thesis using step.hyps
+      by (auto simp add: QInr_def llist.con_defs intro: Ord_trans)
+  qed
+qed
 
 (*lleq(A) is a symmetric relation because qconverse(lleq(A)) is a fixedpoint*)
 lemma lleq_symmetric: "<l,l'> \<in> lleq(A) ==> <l',l> \<in> lleq(A)"
@@ -208,15 +220,22 @@ declare bool_Int_subset_univ [intro]
 
 (*Reasoning borrowed from lleq.ML; a similar proof works for all
   "productive" functions -- cf Coquand's "Infinite Objects in Type Theory".*)
-lemma flip_llist_quniv_lemma [rule_format]:
-     "Ord(i) ==> \<forall>l \<in> llist(bool). flip(l) \<inter> Vset(i) \<subseteq> univ(eclose(bool))"
-apply (erule trans_induct)
-apply (rule ballI)
-apply (erule llist.cases, simp_all)
-apply (simp_all add: QInl_def QInr_def llist.con_defs)
-(*LCons case: I simply can't get rid of the deepen_tac*)
-apply (deepen 2 intro: Ord_trans Int_lower1 [THEN subset_trans])
-done
+lemma flip_llist_quniv_lemma:
+     "Ord(i) ==> l \<in> llist(bool) \<Longrightarrow> flip(l) \<inter> Vset(i) \<subseteq> univ(eclose(bool))"
+proof (induct i arbitrary: l rule: trans_induct)
+  case (step i l)
+  show ?case using `l \<in> llist(bool)`
+  proof (cases l rule: llist.cases)
+    case LNil thus ?thesis
+      by (simp, simp add: QInl_def QInr_def llist.con_defs)
+  next
+    case (LCons a l) thus ?thesis using step.hyps
+    proof (simp, simp add: QInl_def QInr_def llist.con_defs)
+      show "<1; <not(a); flip(l)>> \<inter> Vset(i) \<subseteq> univ(eclose(bool))" using LCons step.hyps
+        by (auto intro: Ord_trans) 
+    qed
+  qed
+qed
 
 lemma flip_in_quniv: "l \<in> llist(bool) ==> flip(l) \<in> quniv(bool)"
 by (rule flip_llist_quniv_lemma [THEN Int_Vset_subset, THEN qunivI], assumption+)

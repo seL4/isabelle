@@ -540,15 +540,21 @@ apply (rule mem_not_refl)+
 done
 
 
-lemma nat_lepoll_imp_le [rule_format]:
-     "m \<in> nat ==> \<forall>n\<in>nat. m \<lesssim> n \<longrightarrow> m \<le> n"
-apply (induct_tac m)
-apply (blast intro!: nat_0_le)
-apply (rule ballI)
-apply (erule_tac n = n in natE)
-apply (simp (no_asm_simp) add: lepoll_def inj_def)
-apply (blast intro!: succ_leI dest!: succ_lepoll_succD)
-done
+lemma nat_lepoll_imp_le:
+     "m \<in> nat ==> n \<in> nat \<Longrightarrow> m \<lesssim> n \<Longrightarrow> m \<le> n"
+proof (induct m arbitrary: n rule: nat_induct)
+  case 0 thus ?case by (blast intro!: nat_0_le)
+next
+  case (succ m)
+  show ?case  using `n \<in> nat`
+    proof (cases rule: natE)
+      case 0 thus ?thesis using succ
+        by (simp add: lepoll_def inj_def)
+    next
+      case (succ n') thus ?thesis using succ.hyps ` succ(m) \<lesssim> n`
+        by (blast intro!: succ_leI dest!: succ_lepoll_succD)
+    qed
+qed
 
 lemma nat_eqpoll_iff: "[| m \<in> nat; n: nat |] ==> m \<approx> n \<longleftrightarrow> m = n"
 apply (rule iffI)
