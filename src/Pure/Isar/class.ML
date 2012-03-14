@@ -37,7 +37,6 @@ sig
     -> (Proof.context -> 'b -> tactic) -> 'a -> local_theory -> 'b * theory
   val read_multi_arity: theory -> xstring list * xstring list * xstring
     -> string list * (string * sort) list * sort
-  val type_name: string -> string
   val instantiation_cmd: xstring list * xstring list * xstring -> theory -> local_theory
   val instance_arity_cmd: xstring list * xstring list * xstring -> theory -> Proof.state
 
@@ -467,23 +466,6 @@ fun resort_terms ctxt algebra consts constraints ts =
 
 (* target *)
 
-val sanitize_name = (*necessary as long as "dirty" type identifiers are permitted*)
-  let
-    fun is_valid s = Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s
-      orelse s = "'" orelse s = "_";
-    val is_junk = not o is_valid andf Symbol.is_regular;
-    val junk = Scan.many is_junk;
-    val scan_valids = Symbol.scanner "Malformed input"
-      ((junk |--
-        (Scan.optional (Scan.one Symbol.is_ascii_letter) "x" ^^ (Scan.many is_valid >> implode)
-        --| junk))
-      ::: Scan.repeat ((Scan.many1 is_valid >> implode) --| junk));
-  in
-    raw_explode #> scan_valids #> implode
-  end;
-
-val type_name = sanitize_name o Long_Name.base_name;
-
 fun define_overloaded (c, U) v (b_def, rhs) = Local_Theory.background_theory_result
     (AxClass.declare_overloaded (c, U) ##>> AxClass.define_overloaded b_def (c, rhs))
   ##> (map_instantiation o apsnd) (filter_out (fn (_, (v', _)) => v' = v))
@@ -524,7 +506,7 @@ fun instantiation (tycos, vs, sort) thy =
     fun get_param tyco (param, (_, (c, ty))) =
       if can (AxClass.param_of_inst thy) (c, tyco)
       then NONE else SOME ((c, tyco),
-        (param ^ "_" ^ type_name tyco, map_atyps (K (Type (tyco, map TFree vs))) ty));
+        (param ^ "_" ^ Long_Name.base_name tyco, map_atyps (K (Type (tyco, map TFree vs))) ty));
     val params = map_product get_param tycos class_params |> map_filter I;
     val primary_constraints = map (apsnd
       (map_atyps (K (TVar ((Name.aT, 0), [])))) o snd o snd) class_params;
