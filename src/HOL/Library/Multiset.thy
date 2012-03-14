@@ -118,8 +118,8 @@ subsubsection {* Union *}
 lemma count_union [simp]: "count (M + N) a = count M a + count N a"
   by (simp add: union_def in_multiset multiset_typedef)
 
-instance multiset :: (type) cancel_comm_monoid_add proof
-qed (simp_all add: multiset_eq_iff)
+instance multiset :: (type) cancel_comm_monoid_add
+  by default (simp_all add: multiset_eq_iff)
 
 
 subsubsection {* Difference *}
@@ -270,8 +270,8 @@ definition less_eq_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarr
 definition less_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" where
   mset_less_def: "(A::'a multiset) < B \<longleftrightarrow> A \<le> B \<and> A \<noteq> B"
 
-instance proof
-qed (auto simp add: mset_le_def mset_less_def multiset_eq_iff intro: order_trans antisym)
+instance
+  by default (auto simp add: mset_le_def mset_less_def multiset_eq_iff intro: order_trans antisym)
 
 end
 
@@ -377,10 +377,11 @@ begin
 definition inf_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset" where
   multiset_inter_def: "inf_multiset A B = A - (A - B)"
 
-instance proof -
+instance
+proof -
   have aux: "\<And>m n q :: nat. m \<le> n \<Longrightarrow> m \<le> q \<Longrightarrow> m \<le> n - (n - q)" by arith
-  show "OFCLASS('a multiset, semilattice_inf_class)" proof
-  qed (auto simp add: multiset_inter_def mset_le_def aux)
+  show "OFCLASS('a multiset, semilattice_inf_class)"
+    by default (auto simp add: multiset_inter_def mset_le_def aux)
 qed
 
 end
@@ -822,7 +823,8 @@ by (induct xs) (auto simp add: multiset_eq_iff)
 lemma multiset_of_eq_length:
   assumes "multiset_of xs = multiset_of ys"
   shows "length xs = length ys"
-using assms proof (induct xs arbitrary: ys)
+using assms
+proof (induct xs arbitrary: ys)
   case Nil then show ?case by simp
 next
   case (Cons x xs)
@@ -845,7 +847,8 @@ proof (cases "z \<in># multiset_of xs")
 next
   case True
   moreover have "z \<in># multiset_of ys" using assms True by simp
-  show ?thesis using assms proof (induct xs arbitrary: ys)
+  show ?thesis using assms
+  proof (induct xs arbitrary: ys)
     case Nil then show ?case by simp
   next
     case (Cons x xs)
@@ -864,7 +867,8 @@ lemma fold_multiset_equiv:
   assumes f: "\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> f x \<circ> f y = f y \<circ> f x"
     and equiv: "multiset_of xs = multiset_of ys"
   shows "fold f xs = fold f ys"
-using f equiv [symmetric] proof (induct xs arbitrary: ys)
+using f equiv [symmetric]
+proof (induct xs arbitrary: ys)
   case Nil then show ?case by simp
 next
   case (Cons x xs)
@@ -898,7 +902,8 @@ lemma properties_for_sort_key:
   and "\<And>k. k \<in> set ys \<Longrightarrow> filter (\<lambda>x. f k = f x) ys = filter (\<lambda>x. f k = f x) xs"
   and "sorted (map f ys)"
   shows "sort_key f xs = ys"
-using assms proof (induct xs arbitrary: ys)
+using assms
+proof (induct xs arbitrary: ys)
   case Nil then show ?case by simp
 next
   case (Cons x xs)
@@ -994,10 +999,12 @@ lemma sort_key_by_quicksort_code [code]:
 proof (cases xs)
   case Nil then show ?thesis by simp
 next
-  case (Cons _ ys) note hyps = Cons show ?thesis proof (cases ys)
+  case (Cons _ ys) note hyps = Cons show ?thesis
+  proof (cases ys)
     case Nil with hyps show ?thesis by simp
   next
-    case (Cons _ zs) note hyps = hyps Cons show ?thesis proof (cases zs)
+    case (Cons _ zs) note hyps = hyps Cons show ?thesis
+    proof (cases zs)
       case Nil with hyps show ?thesis by auto
     next
       case Cons 
@@ -1224,8 +1231,8 @@ begin
 definition
   [code]: "HOL.equal A B \<longleftrightarrow> (A::'a multiset) \<le> B \<and> B \<le> A"
 
-instance proof
-qed (simp add: equal_multiset_def eq_iff)
+instance
+  by default (simp add: equal_multiset_def eq_iff)
 
 end
 
@@ -1512,8 +1519,8 @@ proof -
   qed
   have trans: "\<And>K M N :: 'a multiset. K \<subset># M \<Longrightarrow> M \<subset># N \<Longrightarrow> K \<subset># N"
     unfolding less_multiset_def mult_def by (blast intro: trancl_trans)
-  show "class.order (le_multiset :: 'a multiset \<Rightarrow> _) less_multiset" proof
-  qed (auto simp add: le_multiset_def irrefl dest: trans)
+  show "class.order (le_multiset :: 'a multiset \<Rightarrow> _) less_multiset"
+    by default (auto simp add: le_multiset_def irrefl dest: trans)
 qed
 
 lemma mult_less_irrefl [elim!]: "M \<subset># (M::'a::order multiset) ==> R"
@@ -1785,14 +1792,12 @@ text {*
 
 enriched_type image_mset: image_mset
 proof -
-  fix f g 
-  show "image_mset f \<circ> image_mset g = image_mset (f \<circ> g)"
+  fix f g show "image_mset f \<circ> image_mset g = image_mset (f \<circ> g)"
   proof
     fix A
     show "(image_mset f \<circ> image_mset g) A = image_mset (f \<circ> g) A"
       by (induct A) simp_all
   qed
-next
   show "image_mset id = id"
   proof
     fix A
