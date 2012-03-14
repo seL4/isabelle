@@ -21,7 +21,7 @@ fun badcmd text = [D.Badcmd {text = text}];
 fun thy_begin text =
   (case try (Thy_Header.read Position.none) text of
     NONE => D.Opentheory {thyname = NONE, parentnames = [], text = text}
-  | SOME (name, imports, _) =>
+  | SOME {name, imports, ...} =>
        D.Opentheory {thyname = SOME name, parentnames = imports, text = text})
   :: [D.Openblock {metavarid = NONE, name = NONE, objtype = SOME I.ObjTheoryBody}];
 

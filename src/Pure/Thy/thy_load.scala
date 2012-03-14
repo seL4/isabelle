@@ -61,7 +61,7 @@ class Thy_Load
     val uses = header.uses
     if (name.theory != name1)
       error("Bad file name " + thy_path(Path.basic(name.theory)) + " for theory " + quote(name1))
-    Document.Node.Deps(imports, uses)
+    Document.Node.Deps(imports, header.keywords, uses)
   }
 
   def check_thy(name: Document.Node.Name): Document.Node.Deps =

@@ -37,6 +37,7 @@ sig
   val tag_theory: T -> T
   val tag_proof: T -> T
   val tag_ml: T -> T
+  val make: string * string list -> T
   val get_lexicons: unit -> Scan.lexicon * Scan.lexicon
   val is_keyword: string -> bool
   val dest_keywords: unit -> string list
@@ -113,6 +114,39 @@ fun tags_of (Keyword (_, ts)) = ts;
 val tag_theory = tag "theory";
 val tag_proof = tag "proof";
 val tag_ml = tag "ML";
+
+
+(* external names *)
+
+val name_table = Symtab.make
+  [("control",            control),
+   ("diag",               diag),
+   ("thy_begin",          thy_begin),
+   ("thy_switch",         thy_switch),
+   ("thy_end",            thy_end),
+   ("thy_heading",        thy_heading),
+   ("thy_decl",           thy_decl),
+   ("thy_script",         thy_script),
+   ("thy_goal",           thy_goal),
+   ("thy_schematic_goal", thy_schematic_goal),
+   ("qed",                qed),
+   ("qed_block",          qed_block),
+   ("qed_global",         qed_global),
+   ("prf_heading",        prf_heading),
+   ("prf_goal",           prf_goal),
+   ("prf_block",          prf_block),
+   ("prf_open",           prf_open),
+   ("prf_close",          prf_close),
+   ("prf_chain",          prf_chain),
+   ("prf_decl",           prf_decl),
+   ("prf_asm",            prf_asm),
+   ("prf_asm_goal",       prf_asm_goal),
+   ("prf_script",         prf_script)];
+
+fun make (kind, tags) =
+  (case Symtab.lookup name_table kind of
+    SOME k => k |> fold tag tags
+  | NONE => error ("Unknown outer syntax keyword kind " ^ quote kind));
 
 
 

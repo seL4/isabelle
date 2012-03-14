@@ -6,40 +6,97 @@ Theory headers -- independent of outer syntax.
 
 signature THY_HEADER =
 sig
-  val args: Token.T list -> (string * string list * (string * bool) list) * Token.T list
-  val read: Position.T -> string -> string * string list * (Path.T * bool) list
+  type header =
+   {name: string, imports: string list,
+    keywords: (string * (string * string list) option) list,
+    uses: (Path.T * bool) list}
+  val make: string -> string list -> (string * (string * string list) option) list ->
+    (Path.T * bool) list -> header
+  val declare_keyword: string * (string * string list) option -> theory -> theory
+  val the_keyword: theory -> string -> Keyword.T option
+  val args: header parser
+  val read: Position.T -> string -> header
 end;
 
 structure Thy_Header: THY_HEADER =
 struct
 
-(* keywords *)
+type header =
+ {name: string, imports: string list,
+  keywords: (string * (string * string list) option) list,
+  uses: (Path.T * bool) list};
+
+fun make name imports keywords uses : header =
+  {name = name, imports = imports, keywords = keywords, uses = uses};
+
+
+
+(** keyword declarations **)
+
+fun err_dup name = error ("Inconsistent declaration of outer syntax keyword " ^ quote name);
+
+structure Data = Theory_Data
+(
+  type T = Keyword.T option Symtab.table;
+  val empty = Symtab.empty;
+  val extend = I;
+  fun merge data : T = Symtab.merge (op =) data handle Symtab.DUP name => err_dup name;
+);
+
+fun declare_keyword (name, kind) =
+  Data.map (fn data =>
+    Symtab.update_new (name, Option.map Keyword.make kind) data
+      handle Symtab.DUP name => err_dup name);
+
+fun the_keyword thy name =
+  (case Symtab.lookup (Data.get thy) name of
+    SOME decl => decl
+  | NONE => error ("Unknown outer syntax keyword " ^ quote name));
+
+
+
+(** concrete syntax **)
+
+(* header keywords *)
 
 val headerN = "header";
 val theoryN = "theory";
 val importsN = "imports";
+val keywordsN = "keywords";
 val usesN = "uses";
 val beginN = "begin";
 
-val header_lexicon = Scan.make_lexicon
-  (map Symbol.explode ["%", "(", ")", ";", beginN, headerN, importsN, theoryN, usesN]);
+val header_lexicon =
+  Scan.make_lexicon
+    (map Symbol.explode
+      ["%", "(", ")", "::", ";", "and", beginN, headerN, importsN, keywordsN, theoryN, usesN]);
 
 
 (* header args *)
 
-val file_name = Parse.group (fn () => "file name") Parse.name;
+local
+
+val file_name = Parse.group (fn () => "file name") Parse.path;
 val theory_name = Parse.group (fn () => "theory name") Parse.name;
+
+val keyword_kind = Parse.group (fn () => "outer syntax keyword kind") (Parse.name -- Parse.tags);
+val keyword_decl = Parse.name -- Scan.option (Parse.$$$ "::" |-- Parse.!!! keyword_kind);
 
 val file =
   Parse.$$$ "(" |-- Parse.!!! (file_name --| Parse.$$$ ")") >> rpair false ||
   file_name >> rpair true;
 
-val uses = Scan.optional (Parse.$$$ usesN |-- Parse.!!! (Scan.repeat1 file)) [];
+in
 
 val args =
-  theory_name -- (Parse.$$$ importsN |--
-    Parse.!!! (Scan.repeat1 theory_name -- uses --| Parse.$$$ beginN))
-  >> Parse.triple2;
+  theory_name --
+  (Parse.$$$ importsN |-- Parse.!!! (Scan.repeat1 theory_name)) --
+  Scan.optional (Parse.$$$ keywordsN |-- Parse.!!! (Parse.and_list1 keyword_decl)) [] --
+  Scan.optional (Parse.$$$ usesN |-- Parse.!!! (Scan.repeat1 file)) [] --|
+  Parse.$$$ beginN >>
+  (fn (((name, imports), keywords), uses) => make name imports keywords uses);
+
+end;
 
 
 (* read header *)
@@ -61,7 +118,7 @@ fun read pos str =
     |> Source.get_single;
   in
     (case res of
-      SOME ((name, imports, uses), _) => (name, imports, map (apfst Path.explode) uses)
+      SOME (h, _) => h
     | NONE => error ("Unexpected end of input" ^ Position.str_of pos))
   end;
 

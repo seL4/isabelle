@@ -19,10 +19,9 @@ sig
   val all_current: theory -> bool
   val use_ml: Path.T -> unit
   val exec_ml: Path.T -> generic_theory -> generic_theory
-  val begin_theory: Path.T -> string -> string list -> (Path.T * bool) list ->
-    theory list -> theory
-  val load_thy: int -> Path.T -> string -> string list -> (Path.T * bool) list ->
-    Position.T -> string -> theory list -> theory * unit future
+  val begin_theory: Path.T -> Thy_Header.header -> theory list -> theory
+  val load_thy: int -> Path.T -> Thy_Header.header -> Position.T -> string ->
+    theory list -> theory * unit future
   val set_master_path: Path.T -> unit
   val get_master_path: unit -> Path.T
 end;
@@ -85,7 +84,9 @@ fun check_thy dir name =
     val text = File.read master_file;
     val (name', imports, uses) =
       if name = Context.PureN then (Context.PureN, [], [])
-      else Thy_Header.read (Path.position master_file) text;
+      else
+        let val {name, imports, uses, ...} = Thy_Header.read (Path.position master_file) text
+        in (name, imports, uses) end;
     val _ = name <> name' andalso
       error ("Bad file name " ^ Path.print path ^ " for theory " ^ quote name');
   in {master = (master_file, SHA1.digest text), text = text, imports = imports, uses = uses} end;
@@ -159,21 +160,23 @@ fun exec_ml src_path = ML_Context.exec (fn () => use_ml src_path);
 
 (* load_thy *)
 
-fun begin_theory dir name imports uses parents =
+fun begin_theory dir {name, imports, keywords, uses} parents =
   Theory.begin_theory name parents
   |> put_deps dir imports
+  |> fold Thy_Header.declare_keyword keywords
   |> fold (require o fst) uses
   |> fold (fn (path, true) => Context.theory_map (exec_ml path) o Theory.checkpoint | _ => I) uses
   |> Theory.checkpoint;
 
-fun load_thy update_time dir name imports uses pos text parents =
+fun load_thy update_time dir header pos text parents =
   let
     val (lexs, outer_syntax) = Outer_Syntax.get_syntax ();
     val time = ! Toplevel.timing;
 
+    val {name, imports, uses, ...} = header;
     val _ = Present.init_theory name;
     fun init () =
-      begin_theory dir name imports uses parents
+      begin_theory dir header parents
       |> Present.begin_theory update_time dir uses;
 
     val toks = Thy_Syntax.parse_tokens lexs pos text;

@@ -305,6 +305,7 @@
     "infixl"
     "infixr"
     "is"
+    "keywords"
     "lazy"
     "module_name"
     "monos"

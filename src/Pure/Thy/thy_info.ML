@@ -21,7 +21,7 @@ sig
   val use_thys_wrt: Path.T -> string list -> unit
   val use_thys: string list -> unit
   val use_thy: string -> unit
-  val toplevel_begin_theory: Path.T -> string -> string list -> (Path.T * bool) list -> theory
+  val toplevel_begin_theory: Path.T -> Thy_Header.header -> theory
   val register_thy: theory -> unit
   val finish: unit -> unit
 end;
@@ -233,9 +233,10 @@ fun load_thy initiators update_time deps text name parents =
     val {master = (thy_path, _), imports} = deps;
     val dir = Path.dir thy_path;
     val pos = Path.position thy_path;
-    val (_, _, uses) = Thy_Header.read pos text;
+    val {uses, keywords, ...} = Thy_Header.read pos text;
+    val header = Thy_Header.make name imports keywords uses;
 
-    val (theory, present) = Thy_Load.load_thy update_time dir name imports uses pos text parents;
+    val (theory, present) = Thy_Load.load_thy update_time dir header pos text parents;
     fun commit () = update_thy deps theory;
   in (theory, present, commit) end;
 
@@ -308,12 +309,13 @@ val use_thy = use_thys o single;
 
 (* toplevel begin theory -- without maintaining database *)
 
-fun toplevel_begin_theory dir name imports uses =
+fun toplevel_begin_theory dir (header: Thy_Header.header) =
   let
+    val {name, imports, ...} = header;
     val _ = kill_thy name;
     val _ = use_thys_wrt dir imports;
     val parents = map (get_theory o base_name) imports;
-  in Thy_Load.begin_theory dir name imports uses parents end;
+  in Thy_Load.begin_theory dir header parents end;
 
 
 (* register theory *)

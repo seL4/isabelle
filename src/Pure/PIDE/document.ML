@@ -15,7 +15,7 @@ sig
   val new_id: unit -> id
   val parse_id: string -> id
   val print_id: id -> string
-  type node_header = ((string * string) * string list * (string * bool) list) Exn.result
+  type node_header = (string * Thy_Header.header) Exn.result
   datatype node_edit =
     Clear |
     Edits of (command_id option * command_id option) list |
@@ -58,7 +58,7 @@ fun err_undef kind id = error ("Undefined " ^ kind ^ ": " ^ print_id id);
 
 (** document structure **)
 
-type node_header = ((string * string) * string list * (string * bool) list) Exn.result;
+type node_header = (string * Thy_Header.header) Exn.result;
 type perspective = (command_id -> bool) * command_id option; (*visible commands, last*)
 structure Entries = Linear_Set(type key = command_id val ord = int_ord);
 
@@ -212,7 +212,7 @@ fun edit_nodes (name, node_edit) (Version nodes) =
         |> touch_node name
     | Header header =>
         let
-          val imports = (case header of Exn.Res (_, imports, _) => imports | _ => []);
+          val imports = (case header of Exn.Res (_, {imports, ...}) => imports | _ => []);
           val nodes1 = nodes
             |> default_node name
             |> fold default_node imports;
@@ -305,7 +305,6 @@ fun the_command (State {commands, ...}) (id: command_id) =
 fun cancel_execution (State {execution, ...}) = Future.cancel_group (#2 execution);
 
 end;
-
 
 
 (* toplevel transactions *)
@@ -447,16 +446,15 @@ fun check_theory nodes name =
 fun init_theory deps node =
   let
     (* FIXME provide files via Scala layer, not master_dir *)
-    val ((master_dir, thy_name), imports, uses) = Exn.release (get_header node);
-    val files = map (apfst Path.explode) uses;
+    val (master_dir, header) = Exn.release (get_header node);
     val parents =
-      imports |> map (fn import =>
+      #imports header |> map (fn import =>
         (case Thy_Info.lookup_theory import of  (* FIXME more robust!? *)
           SOME thy => thy
         | NONE =>
             get_theory (Position.file_only import)
               (snd (Future.join (the (AList.lookup (op =) deps import))))));
-  in Thy_Load.begin_theory (Path.explode master_dir) thy_name imports files parents end;
+  in Thy_Load.begin_theory (Path.explode master_dir) header parents end;
 
 in
 

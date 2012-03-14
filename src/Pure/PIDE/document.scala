@@ -39,7 +39,10 @@ object Document
 
   object Node
   {
-    sealed case class Deps(imports: List[Name], uses: List[(String, Boolean)])
+    sealed case class Deps(
+      imports: List[Name],
+      keywords: List[(String, Option[(String, List[String])])],
+      uses: List[(String, Boolean)])
 
     object Name
     {

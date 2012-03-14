@@ -20,10 +20,13 @@ object Thy_Header extends Parse.Parser
   val HEADER = "header"
   val THEORY = "theory"
   val IMPORTS = "imports"
+  val KEYWORDS = "keywords"
+  val AND = "and"
   val USES = "uses"
   val BEGIN = "begin"
 
-  private val lexicon = Scan.Lexicon("%", "(", ")", ";", BEGIN, HEADER, IMPORTS, THEORY, USES)
+  private val lexicon =
+    Scan.Lexicon("%", "(", ")", "::", ";", AND, BEGIN, HEADER, IMPORTS, KEYWORDS, THEORY, USES)
 
 
   /* theory file name */
@@ -45,15 +48,26 @@ object Thy_Header extends Parse.Parser
     val file_name = atom("file name", _.is_name)
     val theory_name = atom("theory name", _.is_name)
 
+    val keyword_kind =
+      atom("outer syntax keyword kind", _.is_name) ~ tags ^^ { case x ~ y => (x, y) }
+    val keyword_decl =
+      name ~ opt(keyword("::") ~! keyword_kind ^^ { case _ ~ x => x }) ^^
+      { case x ~ y => (x, y) }
+    val keywords =
+      keyword_decl ~ rep(keyword(AND) ~! keyword_decl ^^ { case _ ~ x => x }) ^^
+      { case x ~ ys => x :: ys }
+
     val file =
       keyword("(") ~! (file_name ~ keyword(")")) ^^ { case _ ~ (x ~ _) => (x, false) } |
       file_name ^^ (x => (x, true))
 
-    val uses = opt(keyword(USES) ~! (rep1(file))) ^^ { case None => Nil case Some(_ ~ xs) => xs }
-
     val args =
-      theory_name ~ (keyword(IMPORTS) ~! (rep1(theory_name) ~ uses ~ keyword(BEGIN))) ^^
-        { case x ~ (_ ~ (ys ~ zs ~ _)) => Thy_Header(x, ys, zs) }
+      theory_name ~
+      (keyword(IMPORTS) ~! (rep1(theory_name)) ^^ { case _ ~ xs => xs }) ~
+      (opt(keyword(KEYWORDS) ~! keywords) ^^ { case None => Nil case Some(_ ~ xs) => xs }) ~
+      (opt(keyword(USES) ~! (rep1(file))) ^^ { case None => Nil case Some(_ ~ xs) => xs }) ~
+      keyword(BEGIN) ^^
+      { case x ~ ys ~ zs ~ ws ~ _ => Thy_Header(x, ys, zs, ws) }
 
     (keyword(HEADER) ~ tags) ~!
       ((doc_source ~ rep(keyword(";")) ~ keyword(THEORY) ~ tags) ~> args) ^^ { case _ ~ x => x } |
@@ -98,9 +112,11 @@ object Thy_Header extends Parse.Parser
 
 
 sealed case class Thy_Header(
-  val name: String, val imports: List[String], val uses: List[(String, Boolean)])
+  name: String, imports: List[String],
+  keywords: List[(String, Option[(String, List[String])])],
+  uses: List[(String, Boolean)])
 {
   def map(f: String => String): Thy_Header =
-    Thy_Header(f(name), imports.map(f), uses.map(p => (f(p._1), p._2)))
+    Thy_Header(f(name), imports.map(f), keywords, uses.map(p => (f(p._1), p._2)))
 }
 
