@@ -4,10 +4,9 @@
 
 ## global settings
 
-REPOS_NAME="isabelle"
-REPOS="http://isabelle.in.tum.de/repos/${REPOS_NAME}"
-
-DISTPREFIX=${DISTPREFIX:-~/tmp/isadist}
+REPOS_NAME="${REPOS_NAME:-isabelle}"
+REPOS="${REPOS:-http://isabelle.in.tum.de/repos/${REPOS_NAME}"
+DISTPREFIX="${DISTPREFIX:-~/tmp/isadist}"
 
 umask 022
 
