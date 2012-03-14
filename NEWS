@@ -371,6 +371,12 @@ a list and a nat.
 
 *** ML ***
 
+* Local_Theory.define no longer hard-wires default theorem name
+"foo_def": definitional packages need to make this explicit, and may
+choose to omit theorem bindings for definitions by using
+Binding.empty/Attrib.empty_binding.  Potential INCOMPATIBILITY for
+derived definitional packages.
+
 * Renamed Thm.capply to Thm.apply, and Thm.cabs to Thm.lambda in
 conformance with similar operations in structure Term and Logic.
 

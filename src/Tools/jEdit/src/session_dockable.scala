@@ -175,13 +175,13 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
       react {
         case output: Isabelle_Process.Output =>
           if (output.is_syslog)
-            Swing_Thread.now {
+            Swing_Thread.later {
               val text = Isabelle.session.current_syslog()
               if (text != syslog.text) syslog.text = text
             }
 
         case phase: Session.Phase =>
-          Swing_Thread.now { session_phase.text = " " + phase.toString + " " }
+          Swing_Thread.later { session_phase.text = " " + phase.toString + " " }
 
         case changed: Session.Commands_Changed => handle_update(Some(changed.nodes))
 

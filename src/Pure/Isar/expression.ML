@@ -8,9 +8,9 @@ signature EXPRESSION =
 sig
   (* Locale expressions *)
   datatype 'term map = Positional of 'term option list | Named of (string * 'term) list
-  type 'term expr = (string * ((string * bool) * 'term map)) list
-  type expression_i = term expr * (binding * typ option * mixfix) list
-  type expression = string expr * (binding * string option * mixfix) list
+  type ('name, 'term) expr = ('name * ((string * bool) * 'term map)) list
+  type expression_i = (string, term) expr * (binding * typ option * mixfix) list
+  type expression = (xstring * Position.T, string) expr * (binding * string option * mixfix) list
 
   (* Processing of context statements *)
   val cert_statement: Element.context_i list -> (term * term list) list list ->
@@ -41,7 +41,7 @@ sig
     (term list list * (string * morphism) list * morphism) * Proof.context
   val sublocale: (local_theory -> local_theory) -> string -> expression_i ->
     (Attrib.binding * term) list -> theory -> Proof.state
-  val sublocale_cmd: (local_theory -> local_theory) -> string -> expression ->
+  val sublocale_cmd: (local_theory -> local_theory) -> xstring * Position.T -> expression ->
     (Attrib.binding * string) list -> theory -> Proof.state
   val interpretation: expression_i -> (Attrib.binding * term) list ->
     theory -> Proof.state
@@ -68,15 +68,15 @@ datatype 'term map =
   Positional of 'term option list |
   Named of (string * 'term) list;
 
-type 'term expr = (string * ((string * bool) * 'term map)) list;
+type ('name, 'term) expr = ('name * ((string * bool) * 'term map)) list;
 
-type expression = string expr * (binding * string option * mixfix) list;
-type expression_i = term expr * (binding * typ option * mixfix) list;
+type expression_i = (string, term) expr * (binding * typ option * mixfix) list;
+type expression = (xstring * Position.T, string) expr * (binding * string option * mixfix) list;
 
 
 (** Internalise locale names in expr **)
 
-fun intern thy instances =  map (apfst (Locale.intern thy)) instances;
+fun check_expr thy instances = map (apfst (Locale.check thy)) instances;
 
 
 (** Parameters of expression **)
@@ -343,7 +343,8 @@ fun finish ctxt parms do_close insts elems =
 
 local
 
-fun prep_full_context_statement parse_typ parse_prop prep_vars_elem prep_inst prep_vars_inst prep_expr
+fun prep_full_context_statement
+    parse_typ parse_prop prep_vars_elem prep_inst prep_vars_inst prep_expr
     {strict, do_close, fixed_frees} raw_import init_body raw_elems raw_concl ctxt1 =
   let
     val thy = Proof_Context.theory_of ctxt1;
@@ -417,7 +418,7 @@ fun cert_read_full_context_statement x =
 
 fun read_full_context_statement x =
   prep_full_context_statement Syntax.parse_typ Syntax.parse_prop Proof_Context.read_vars
-  parse_inst Proof_Context.read_vars intern x;
+  parse_inst Proof_Context.read_vars check_expr x;
 
 end;
 
@@ -903,10 +904,10 @@ fun note_eqns_dependency target deps witss attrss eqns export export' ctxt =
           export thy) (deps ~~ witss))
   end;
 
-fun gen_sublocale prep_expr intern parse_prop prep_attr
+fun gen_sublocale prep_expr prep_loc parse_prop prep_attr
     before_exit raw_target expression equations thy =
   let
-    val target = intern thy raw_target;
+    val target = prep_loc thy raw_target;
     val target_ctxt = Named_Target.init before_exit target thy;
     val ((propss, deps, export), expr_ctxt) = prep_expr expression target_ctxt;
     val eqns = read_with_extended_syntax parse_prop deps expr_ctxt equations;
@@ -923,7 +924,7 @@ in
 
 fun sublocale x = gen_sublocale cert_goal_expression (K I) (K I) (K I) x;
 fun sublocale_cmd x =
-  gen_sublocale read_goal_expression Locale.intern Syntax.parse_prop Attrib.intern_src x;
+  gen_sublocale read_goal_expression Locale.check Syntax.parse_prop Attrib.intern_src x;
 
 end;
 

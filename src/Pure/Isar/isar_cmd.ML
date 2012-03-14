@@ -50,8 +50,8 @@ sig
   val print_configs: Toplevel.transition -> Toplevel.transition
   val print_theorems: bool -> Toplevel.transition -> Toplevel.transition
   val print_locales: Toplevel.transition -> Toplevel.transition
-  val print_locale: bool * xstring -> Toplevel.transition -> Toplevel.transition
-  val print_registrations: string -> Toplevel.transition -> Toplevel.transition
+  val print_locale: bool * (xstring * Position.T) -> Toplevel.transition -> Toplevel.transition
+  val print_registrations: xstring * Position.T -> Toplevel.transition -> Toplevel.transition
   val print_dependencies: bool * Expression.expression -> Toplevel.transition
     -> Toplevel.transition
   val print_attributes: Toplevel.transition -> Toplevel.transition

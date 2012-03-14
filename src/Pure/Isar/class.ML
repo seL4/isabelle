@@ -37,7 +37,6 @@ sig
     -> (Proof.context -> 'b -> tactic) -> 'a -> local_theory -> 'b * theory
   val read_multi_arity: theory -> xstring list * xstring list * xstring
     -> string list * (string * sort) list * sort
-  val type_name: string -> string
   val instantiation_cmd: xstring list * xstring list * xstring -> theory -> local_theory
   val instance_arity_cmd: xstring list * xstring list * xstring -> theory -> Proof.state
 
@@ -57,7 +56,7 @@ struct
 
 (** class data **)
 
-datatype class_data = ClassData of {
+datatype class_data = Class_Data of {
 
   (* static part *)
   consts: (string * string) list
@@ -78,23 +77,23 @@ datatype class_data = ClassData of {
 
 fun make_class_data ((consts, base_sort, base_morph, export_morph, assm_intro, of_class, axiom),
     (defs, operations)) =
-  ClassData { consts = consts, base_sort = base_sort,
+  Class_Data {consts = consts, base_sort = base_sort,
     base_morph = base_morph, export_morph = export_morph, assm_intro = assm_intro,
-    of_class = of_class, axiom = axiom, defs = defs, operations = operations };
-fun map_class_data f (ClassData { consts, base_sort, base_morph, export_morph, assm_intro,
-    of_class, axiom, defs, operations }) =
+    of_class = of_class, axiom = axiom, defs = defs, operations = operations};
+fun map_class_data f (Class_Data {consts, base_sort, base_morph, export_morph, assm_intro,
+    of_class, axiom, defs, operations}) =
   make_class_data (f ((consts, base_sort, base_morph, export_morph, assm_intro, of_class, axiom),
     (defs, operations)));
-fun merge_class_data _ (ClassData { consts = consts,
+fun merge_class_data _ (Class_Data {consts = consts,
     base_sort = base_sort, base_morph = base_morph, export_morph = export_morph, assm_intro = assm_intro,
-    of_class = of_class, axiom = axiom, defs = defs1, operations = operations1 },
-  ClassData { consts = _, base_sort = _, base_morph = _, export_morph = _, assm_intro = _,
-    of_class = _, axiom = _, defs = defs2, operations = operations2 }) =
+    of_class = of_class, axiom = axiom, defs = defs1, operations = operations1},
+  Class_Data {consts = _, base_sort = _, base_morph = _, export_morph = _, assm_intro = _,
+    of_class = _, axiom = _, defs = defs2, operations = operations2}) =
   make_class_data ((consts, base_sort, base_morph, export_morph, assm_intro, of_class, axiom),
     (Thm.merge_thms (defs1, defs2),
       AList.merge (op =) (K true) (operations1, operations2)));
 
-structure ClassData = Theory_Data
+structure Class_Data = Theory_Data
 (
   type T = class_data Graph.T
   val empty = Graph.empty;
@@ -105,18 +104,20 @@ structure ClassData = Theory_Data
 
 (* queries *)
 
-fun lookup_class_data thy class = case try (Graph.get_node (ClassData.get thy)) class
- of SOME (ClassData data) => SOME data
-  | NONE => NONE;
+fun lookup_class_data thy class =
+  (case try (Graph.get_node (Class_Data.get thy)) class of
+    SOME (Class_Data data) => SOME data
+  | NONE => NONE);
 
-fun the_class_data thy class = case lookup_class_data thy class
- of NONE => error ("Undeclared class " ^ quote class)
-  | SOME data => data;
+fun the_class_data thy class =
+  (case lookup_class_data thy class of
+    NONE => error ("Undeclared class " ^ quote class)
+  | SOME data => data);
 
 val is_class = is_some oo lookup_class_data;
 
-val ancestry = Graph.all_succs o ClassData.get;
-val heritage = Graph.all_preds o ClassData.get;
+val ancestry = Graph.all_succs o Class_Data.get;
+val heritage = Graph.all_preds o Class_Data.get;
 
 fun these_params thy =
   let
@@ -133,20 +134,21 @@ fun these_params thy =
 val base_sort = #base_sort oo the_class_data;
 
 fun rules thy class =
-  let val { axiom, of_class, ... } = the_class_data thy class
+  let val {axiom, of_class, ...} = the_class_data thy class
   in (axiom, of_class) end;
 
 fun all_assm_intros thy =
-  Graph.fold (fn (_, (ClassData { assm_intro, ... }, _)) => fold (insert Thm.eq_thm)
-    (the_list assm_intro)) (ClassData.get thy) [];
+  Graph.fold (fn (_, (Class_Data {assm_intro, ...}, _)) => fold (insert Thm.eq_thm)
+    (the_list assm_intro)) (Class_Data.get thy) [];
 
 fun these_defs thy = maps (#defs o the_class_data thy) o ancestry thy;
 fun these_operations thy = maps (#operations o the_class_data thy) o ancestry thy;
 
 val base_morphism = #base_morph oo the_class_data;
-fun morphism thy class = case Element.eq_morphism thy (these_defs thy [class])
- of SOME eq_morph => base_morphism thy class $> eq_morph
-  | NONE => base_morphism thy class;
+fun morphism thy class =
+  (case Element.eq_morphism thy (these_defs thy [class]) of
+    SOME eq_morph => base_morphism thy class $> eq_morph
+  | NONE => base_morphism thy class);
 val export_morphism = #export_morph oo the_class_data;
 
 fun print_classes ctxt =
@@ -195,13 +197,14 @@ fun register class sups params base_sort base_morph export_morph
         make_class_data (((map o pairself) fst params, base_sort,
           base_morph, export_morph, assm_intro, of_class, axiom), ([], operations)))
       #> fold (curry Graph.add_edge class) sups;
-  in ClassData.map add_class thy end;
+  in Class_Data.map add_class thy end;
 
-fun activate_defs class thms thy = case Element.eq_morphism thy thms
- of SOME eq_morph => fold (fn cls => fn thy =>
+fun activate_defs class thms thy =
+  (case Element.eq_morphism thy thms of
+    SOME eq_morph => fold (fn cls => fn thy =>
       Context.theory_map (Locale.amend_registration (cls, base_morphism thy cls)
         (eq_morph, true) (export_morphism thy cls)) thy) (heritage thy [class]) thy
-  | NONE => thy;
+  | NONE => thy);
 
 fun register_operation class (c, (t, some_def)) thy =
   let
@@ -213,7 +216,7 @@ fun register_operation class (c, (t, some_def)) thy =
     val ty' = Term.fastype_of t';
   in
     thy
-    |> (ClassData.map o Graph.map_node class o map_class_data o apsnd)
+    |> (Class_Data.map o Graph.map_node class o map_class_data o apsnd)
       (fn (defs, operations) =>
         (fold cons (the_list some_def) defs,
           (c, (class, (ty', t'))) :: operations))
@@ -231,14 +234,15 @@ fun register_subclass (sub, sup) some_dep_morph some_wit export thy =
     val diff_sort = Sign.complete_sort thy [sup]
       |> subtract (op =) (Sign.complete_sort thy [sub])
       |> filter (is_class thy);
-    val add_dependency = case some_dep_morph
-     of SOME dep_morph => Locale.add_dependency sub
+    val add_dependency =
+      (case some_dep_morph of
+        SOME dep_morph => Locale.add_dependency sub
           (sup, dep_morph $> Element.satisfy_morphism (the_list some_wit)) NONE export
-      | NONE => I
+      | NONE => I);
   in
     thy
     |> AxClass.add_classrel classrel
-    |> ClassData.map (Graph.add_edge (sub, sup))
+    |> Class_Data.map (Graph.add_edge (sub, sup))
     |> activate_defs sub (these_defs thy diff_sort)
     |> add_dependency
   end;
@@ -265,17 +269,19 @@ fun synchronize_class_syntax sort base_sort ctxt =
       (map o apsnd) (subst_class_typ base_sort o fst o snd) operations;
     val secondary_constraints =
       (map o apsnd) (fn (class, (ty, _)) => subst_class_typ [class] ty) operations;
-    fun improve (c, ty) = (case AList.lookup (op =) primary_constraints c
-     of SOME ty' => (case try (Type.raw_match (ty', ty)) Vartab.empty
-         of SOME tyenv => (case Vartab.lookup tyenv (Name.aT, 0)
-             of SOME (_, ty' as TVar (vi, sort)) =>
-                  if Type_Infer.is_param vi
-                    andalso Sorts.sort_le algebra (base_sort, sort)
-                      then SOME (ty', TFree (Name.aT, base_sort))
-                      else NONE
+    fun improve (c, ty) =
+      (case AList.lookup (op =) primary_constraints c of
+        SOME ty' =>
+          (case try (Type.raw_match (ty', ty)) Vartab.empty of
+            SOME tyenv =>
+              (case Vartab.lookup tyenv (Name.aT, 0) of
+                SOME (_, ty' as TVar (vi, sort)) =>
+                  if Type_Infer.is_param vi andalso Sorts.sort_le algebra (base_sort, sort)
+                  then SOME (ty', TFree (Name.aT, base_sort))
+                  else NONE
               | _ => NONE)
           | NONE => NONE)
-      | NONE => NONE)
+      | NONE => NONE);
     fun subst (c, ty) = Option.map snd (AList.lookup (op =) operations c);
     val unchecks = these_unchecks thy sort;
   in
@@ -398,20 +404,24 @@ datatype instantiation = Instantiation of {
 
 structure Instantiation = Proof_Data
 (
-  type T = instantiation
-  fun init _ = Instantiation { arities = ([], [], []), params = [] };
+  type T = instantiation;
+  fun init _ = Instantiation {arities = ([], [], []), params = []};
 );
 
 fun mk_instantiation (arities, params) =
-  Instantiation { arities = arities, params = params };
-fun get_instantiation lthy = case Instantiation.get (Local_Theory.target_of lthy)
- of Instantiation data => data;
-fun map_instantiation f = (Local_Theory.target o Instantiation.map)
-  (fn Instantiation { arities, params } => mk_instantiation (f (arities, params)));
+  Instantiation {arities = arities, params = params};
 
-fun the_instantiation lthy = case get_instantiation lthy
- of { arities = ([], [], []), ... } => error "No instantiation target"
-  | data => data;
+val get_instantiation =
+  (fn Instantiation data => data) o Instantiation.get o Local_Theory.target_of;
+
+fun map_instantiation f =
+  (Local_Theory.target o Instantiation.map)
+    (fn Instantiation {arities, params} => mk_instantiation (f (arities, params)));
+
+fun the_instantiation lthy =
+  (case get_instantiation lthy of
+    {arities = ([], [], []), ...} => error "No instantiation target"
+  | data => data);
 
 val instantiation_params = #params o get_instantiation;
 
@@ -434,20 +444,21 @@ fun read_multi_arity thy (raw_tycos, raw_sorts, raw_sort) =
 
 fun synchronize_inst_syntax ctxt =
   let
-    val Instantiation { params, ... } = Instantiation.get ctxt;
+    val Instantiation {params, ...} = Instantiation.get ctxt;
 
     val lookup_inst_param = AxClass.lookup_inst_param
       (Sign.consts_of (Proof_Context.theory_of ctxt)) params;
-    fun subst (c, ty) = case lookup_inst_param (c, ty)
-     of SOME (v_ty as (_, ty)) => SOME (ty, Free v_ty)
-      | NONE => NONE;
+    fun subst (c, ty) =
+      (case lookup_inst_param (c, ty) of
+        SOME (v_ty as (_, ty)) => SOME (ty, Free v_ty)
+      | NONE => NONE);
     val unchecks =
       map (fn ((c, _), v_ty as (_, ty)) => (Free v_ty, Const (c, ty))) params;
   in
     ctxt
     |> Overloading.map_improvable_syntax
-         (fn (((primary_constraints, _), (((improve, _), _), _)), _) =>
-            (((primary_constraints, []), (((improve, subst), false), unchecks)), false))
+      (fn (((primary_constraints, _), (((improve, _), _), _)), _) =>
+          (((primary_constraints, []), (((improve, subst), false), unchecks)), false))
   end;
 
 fun resort_terms ctxt algebra consts constraints ts =
@@ -467,53 +478,35 @@ fun resort_terms ctxt algebra consts constraints ts =
 
 (* target *)
 
-val sanitize_name = (*necessary as long as "dirty" type identifiers are permitted*)
-  let
-    fun is_valid s = Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s
-      orelse s = "'" orelse s = "_";
-    val is_junk = not o is_valid andf Symbol.is_regular;
-    val junk = Scan.many is_junk;
-    val scan_valids = Symbol.scanner "Malformed input"
-      ((junk |--
-        (Scan.optional (Scan.one Symbol.is_ascii_letter) "x" ^^ (Scan.many is_valid >> implode)
-        --| junk))
-      ::: Scan.repeat ((Scan.many1 is_valid >> implode) --| junk));
-  in
-    raw_explode #> scan_valids #> implode
-  end;
-
-val type_name = sanitize_name o Long_Name.base_name;
-
 fun define_overloaded (c, U) v (b_def, rhs) = Local_Theory.background_theory_result
     (AxClass.declare_overloaded (c, U) ##>> AxClass.define_overloaded b_def (c, rhs))
   ##> (map_instantiation o apsnd) (filter_out (fn (_, (v', _)) => v' = v))
   ##> Local_Theory.target synchronize_inst_syntax;
 
 fun foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
-  case instantiation_param lthy b
-   of SOME c => if mx <> NoSyn then error ("Illegal mixfix syntax for overloaded constant " ^ quote c)
-        else lthy |> define_overloaded (c, U) (Binding.name_of b) (b_def, rhs)
-    | NONE => lthy |>
-        Generic_Target.theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params);
+  (case instantiation_param lthy b of
+    SOME c =>
+      if mx <> NoSyn then error ("Illegal mixfix syntax for overloaded constant " ^ quote c)
+      else lthy |> define_overloaded (c, U) (Binding.name_of b) (b_def, rhs)
+  | NONE => lthy |>
+      Generic_Target.theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params));
 
 fun pretty lthy =
   let
-    val { arities = (tycos, vs, sort), params } = the_instantiation lthy;
+    val {arities = (tycos, vs, sort), params} = the_instantiation lthy;
     fun pr_arity tyco = Syntax.pretty_arity lthy (tyco, map snd vs, sort);
     fun pr_param ((c, _), (v, ty)) =
       Pretty.block (Pretty.breaks
         [Pretty.str v, Pretty.str "==", Pretty.str (Proof_Context.extern_const lthy c),
           Pretty.str "::", Syntax.pretty_typ lthy ty]);
-  in Pretty.str "instantiation" :: map pr_arity tycos @ map pr_param params end;
+  in Pretty.command "instantiation" :: map pr_arity tycos @ map pr_param params end;
 
 fun conclude lthy =
   let
     val (tycos, vs, sort) = #arities (the_instantiation lthy);
     val thy = Proof_Context.theory_of lthy;
     val _ = tycos |> List.app (fn tyco =>
-      if Sign.of_sort thy
-        (Type (tyco, map TFree vs), sort)
-      then ()
+      if Sign.of_sort thy (Type (tyco, map TFree vs), sort) then ()
       else error ("Missing instance proof for type " ^ quote (Proof_Context.extern_type lthy tyco)));
   in lthy end;
 
@@ -524,7 +517,7 @@ fun instantiation (tycos, vs, sort) thy =
     fun get_param tyco (param, (_, (c, ty))) =
       if can (AxClass.param_of_inst thy) (c, tyco)
       then NONE else SOME ((c, tyco),
-        (param ^ "_" ^ type_name tyco, map_atyps (K (Type (tyco, map TFree vs))) ty));
+        (param ^ "_" ^ Long_Name.base_name tyco, map_atyps (K (Type (tyco, map TFree vs))) ty));
     val params = map_product get_param tycos class_params |> map_filter I;
     val primary_constraints = map (apsnd
       (map_atyps (K (TVar ((Name.aT, 0), [])))) o snd o snd) class_params;

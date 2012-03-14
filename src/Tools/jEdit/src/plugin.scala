@@ -386,7 +386,7 @@ class Plugin extends EBPlugin
         case phase: Session.Phase =>
           phase match {
             case Session.Failed =>
-              Swing_Thread.now {
+              Swing_Thread.later {
                 val text = new scala.swing.TextArea(Isabelle.session.current_syslog())
                 text.editable = false
                 Library.error_dialog(jEdit.getActiveView, "Failed to start Isabelle process", text)
@@ -445,7 +445,7 @@ class Plugin extends EBPlugin
         }
 
       case msg: PropertiesChanged =>
-        Swing_Thread.now { Isabelle.setup_tooltips() }
+        Isabelle.setup_tooltips()
         Isabelle.session.global_settings.event(Session.Global_Settings)
 
       case _ =>

@@ -198,10 +198,11 @@ val read_class_elems = prep_class_elems Expression.cert_read_declaration;
 
 fun prep_class_spec prep_class prep_class_elems thy raw_supclasses raw_elems =
   let
+    val thy_ctxt = Proof_Context.init_global thy;
 
     (* prepare import *)
     val inter_sort = curry (Sorts.inter_sort (Sign.classes_of thy));
-    val sups = Sign.minimize_sort thy (map (prep_class thy) raw_supclasses);
+    val sups = Sign.minimize_sort thy (map (prep_class thy_ctxt) raw_supclasses);
     val _ =
       (case filter_out (Class.is_class thy) sups of
         [] => ()
@@ -219,7 +220,7 @@ fun prep_class_spec prep_class prep_class_elems thy raw_supclasses raw_elems =
     val sup_sort = inter_sort base_sort sups;
 
     (* process elements as class specification *)
-    val class_ctxt = Class.begin sups base_sort (Proof_Context.init_global thy);
+    val class_ctxt = Class.begin sups base_sort thy_ctxt;
     val ((_, _, syntax_elems), _) = class_ctxt
       |> Expression.cert_declaration supexpr I inferred_elems;
     fun check_vars e vs =
@@ -243,7 +244,7 @@ fun prep_class_spec prep_class prep_class_elems thy raw_supclasses raw_elems =
   in (((sups, supparam_names), (sup_sort, base_sort, supexpr)), (elems, global_syntax)) end;
 
 val cert_class_spec = prep_class_spec (K I) cert_class_elems;
-val read_class_spec = prep_class_spec Sign.intern_class read_class_elems;
+val read_class_spec = prep_class_spec Proof_Context.read_class read_class_elems;
 
 
 (* class establishment *)

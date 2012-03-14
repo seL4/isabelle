@@ -69,7 +69,9 @@ sig
   val liberal_name: xstring parser
   val parname: string parser
   val parbinding: binding parser
+  val class: string parser
   val sort: string parser
+  val type_const: string parser
   val arity: (string * string list * string) parser
   val multi_arity: (string list * string list * string) parser
   val type_args: string list parser
@@ -93,7 +95,6 @@ sig
   val prop_group: string parser
   val term: string parser
   val prop: string parser
-  val type_const: string parser
   val const: string parser
   val literal_fact: string parser
   val propp: (string * string list) parser
@@ -257,14 +258,18 @@ val parname = Scan.optional ($$$ "(" |-- name --| $$$ ")") "";
 val parbinding = Scan.optional ($$$ "(" |-- binding --| $$$ ")") Binding.empty;
 
 
-(* sorts and arities *)
+(* type classes *)
+
+val class = group (fn () => "type class") (inner_syntax xname);
 
 val sort = group (fn () => "sort") (inner_syntax xname);
 
-val arity = xname -- ($$$ "::" |-- !!!
+val type_const = inner_syntax (group (fn () => "type constructor") xname);
+
+val arity = type_const -- ($$$ "::" |-- !!!
   (Scan.optional ($$$ "(" |-- !!! (list1 sort --| $$$ ")")) [] -- sort)) >> triple2;
 
-val multi_arity = and_list1 xname -- ($$$ "::" |-- !!!
+val multi_arity = and_list1 type_const -- ($$$ "::" |-- !!!
   (Scan.optional ($$$ "(" |-- !!! (list1 sort --| $$$ ")")) [] -- sort)) >> triple2;
 
 
@@ -343,7 +348,6 @@ val prop_group = group (fn () => "proposition") tm;
 val term = inner_syntax term_group;
 val prop = inner_syntax prop_group;
 
-val type_const = inner_syntax (group (fn () => "type constructor") xname);
 val const = inner_syntax (group (fn () => "constant") xname);
 
 val literal_fact = inner_syntax (group (fn () => "literal fact") alt_string);

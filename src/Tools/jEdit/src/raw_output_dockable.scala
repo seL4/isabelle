@@ -31,7 +31,7 @@ class Raw_Output_Dockable(view: View, position: String)
       react {
         case output: Isabelle_Process.Output =>
           if (output.is_stdout || output.is_stderr)
-            Swing_Thread.now { text_area.append(XML.content(output.message).mkString) }
+            Swing_Thread.later { text_area.append(XML.content(output.message).mkString) }
 
         case bad => System.err.println("Raw_Output_Dockable: ignoring bad message " + bad)
       }

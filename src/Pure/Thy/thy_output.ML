@@ -291,7 +291,7 @@ fun present_span lex default_tags span state state'
     val Span ((cmd_name, cmd_pos, cmd_tags), srcs, span_newline) = span;
 
     val (tag, tags) = tag_stack;
-    val tag' = try hd (fold Keyword.update_tags cmd_tags (the_list tag));
+    val tag' = try hd (fold (update (op =)) cmd_tags (the_list tag));
 
     val active_tag' =
       if is_some tag' then tag'
@@ -586,7 +586,7 @@ val _ =
     basic_entity (Binding.name "const") (Args.const_proper false) pretty_const #>
     basic_entity (Binding.name "abbrev") (Scan.lift Args.name_source) pretty_abbrev #>
     basic_entity (Binding.name "typ") Args.typ_abbrev Syntax.pretty_typ #>
-    basic_entity (Binding.name "class") (Scan.lift Args.name) pretty_class #>
+    basic_entity (Binding.name "class") (Scan.lift Args.name_source) pretty_class #>
     basic_entity (Binding.name "type") (Scan.lift Args.name) pretty_type #>
     basic_entity (Binding.name "text") (Scan.lift Args.name) pretty_text #>
     basic_entities (Binding.name "prf") Attrib.thms (pretty_prf false) #>

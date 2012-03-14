@@ -61,12 +61,15 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
   /* header */
 
   def node_header(): Document.Node_Header =
-    Isabelle.swing_buffer_lock(buffer) {
+  {
+    Swing_Thread.require()
+    Isabelle.buffer_lock(buffer) {
       Exn.capture {
         Isabelle.thy_load.check_header(name,
           Thy_Header.read(buffer.getSegment(0, buffer.getLength)))
       }
     }
+  }
 
 
   /* perspective */

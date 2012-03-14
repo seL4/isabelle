@@ -32,7 +32,6 @@ sig
   val prf_asm_goal: T
   val prf_script: T
   val kinds: string list
-  val update_tags: string -> string list -> string list
   val tag: string -> T -> T
   val tags_of: T -> string list
   val tag_theory: T -> T
@@ -108,9 +107,7 @@ val kinds =
 
 (* tags *)
 
-fun update_tags t ts = t :: remove (op = : string * string -> bool) t ts;
-
-fun tag t (Keyword (s, ts)) = Keyword (s, update_tags t ts);
+fun tag t (Keyword (s, ts)) = Keyword (s, update (op =) t ts);
 fun tags_of (Keyword (_, ts)) = ts;
 
 val tag_theory = tag "theory";

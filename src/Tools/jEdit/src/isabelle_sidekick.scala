@@ -81,8 +81,10 @@ abstract class Isabelle_Sidekick(name: String) extends SideKickParser(name)
 
   override def complete(pane: EditPane, caret: Text.Offset): SideKickCompletion =
   {
+    Swing_Thread.assert()
+
     val buffer = pane.getBuffer
-    Isabelle.swing_buffer_lock(buffer) {
+    Isabelle.buffer_lock(buffer) {
       Document_Model(buffer) match {
         case None => null
         case Some(model) =>

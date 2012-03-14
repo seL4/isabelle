@@ -233,13 +233,15 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
   private val mouse_motion_listener = new MouseMotionAdapter {
     override def mouseMoved(e: MouseEvent) {
+      Swing_Thread.assert()
+
       control = if (OperatingSystem.isMacOS()) e.isMetaDown else e.isControlDown
       val x = e.getX()
       val y = e.getY()
 
       if (!model.buffer.isLoaded) exit_control()
       else
-        Isabelle.swing_buffer_lock(model.buffer) {
+        Isabelle.buffer_lock(model.buffer) {
           val snapshot = update_snapshot()
 
           if (control) init_popup(snapshot, x, y)
@@ -284,13 +286,15 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
       robust_body(()) {
+        Swing_Thread.assert()
+
         val gutter = text_area.getGutter
         val width = GutterOptionPane.getSelectionAreaWidth
         val border_width = jEdit.getIntegerProperty("view.gutter.borderWidth", 3)
         val FOLD_MARKER_SIZE = 12
 
         if (gutter.isSelectionAreaEnabled && !gutter.isExpanded && width >= 12 && line_height >= 12) {
-          Isabelle.swing_buffer_lock(model.buffer) {
+          Isabelle.buffer_lock(model.buffer) {
             val snapshot = update_snapshot()
             for (i <- 0 until physical_lines.length) {
               if (physical_lines(i) != -1) {
@@ -365,32 +369,36 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
       react {
         case changed: Session.Commands_Changed =>
           val buffer = model.buffer
-          Isabelle.swing_buffer_lock(buffer) {
-            val (updated, snapshot) = flush_snapshot()
+          Swing_Thread.later {
+            Isabelle.buffer_lock(buffer) {
+              if (model.buffer == text_area.getBuffer) {
+                val (updated, snapshot) = flush_snapshot()
 
-            if (updated ||
-                (changed.nodes.contains(model.name) &&
-                 changed.commands.exists(snapshot.node.commands.contains)))
-              overview.delay_repaint(true)
+                if (updated ||
+                    (changed.nodes.contains(model.name) &&
+                     changed.commands.exists(snapshot.node.commands.contains)))
+                  overview.delay_repaint(true)
 
-            visible_range() match {
-              case None =>
-              case Some(visible) =>
-                if (updated) invalidate_range(visible)
-                else {
-                  val visible_cmds =
-                    snapshot.node.command_range(snapshot.revert(visible)).map(_._1)
-                  if (visible_cmds.exists(changed.commands)) {
-                    for {
-                      line <- 0 until text_area.getVisibleLines
-                      val start = text_area.getScreenLineStartOffset(line) if start >= 0
-                      val end = text_area.getScreenLineEndOffset(line) if end >= 0
-                      val range = proper_line_range(start, end)
-                      val line_cmds = snapshot.node.command_range(snapshot.revert(range)).map(_._1)
-                      if line_cmds.exists(changed.commands)
-                    } text_area.invalidateScreenLineRange(line, line)
-                  }
+                visible_range() match {
+                  case Some(visible) =>
+                    if (updated) invalidate_range(visible)
+                    else {
+                      val visible_cmds =
+                        snapshot.node.command_range(snapshot.revert(visible)).map(_._1)
+                      if (visible_cmds.exists(changed.commands)) {
+                        for {
+                          line <- 0 until text_area.getVisibleLines
+                          val start = text_area.getScreenLineStartOffset(line) if start >= 0
+                          val end = text_area.getScreenLineEndOffset(line) if end >= 0
+                          val range = proper_line_range(start, end)
+                          val line_cmds = snapshot.node.command_range(snapshot.revert(range)).map(_._1)
+                          if line_cmds.exists(changed.commands)
+                        } text_area.invalidateScreenLineRange(line, line)
+                      }
+                    }
+                  case None =>
                 }
+              }
             }
           }
 
