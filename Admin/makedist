@@ -5,7 +5,7 @@
 ## global settings
 
 REPOS_NAME="${REPOS_NAME:-isabelle}"
-REPOS="${REPOS:-http://isabelle.in.tum.de/repos/${REPOS_NAME}"
+REPOS="${REPOS:-http://isabelle.in.tum.de/repos/${REPOS_NAME}}"
 DISTPREFIX="${DISTPREFIX:-~/tmp/isadist}"
 
 umask 022
