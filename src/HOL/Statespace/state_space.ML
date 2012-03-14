@@ -15,7 +15,7 @@ sig
   val namespace_definition :
      bstring ->
      typ ->
-     Expression.expression ->
+     (xstring, string) Expression.expr * (binding * string option * mixfix) list ->
      string list -> string list -> theory -> theory
 
   val define_statespace :
@@ -139,9 +139,12 @@ fun set_silent silent ctxt =
 
 val get_silent = #silent o NameSpaceData.get;
 
+fun expression_no_pos (expr, fixes) : Expression.expression =
+  (map (fn (name, inst) => ((name, Position.none), inst)) expr, fixes);
+
 fun prove_interpretation_in ctxt_tac (name, expr) thy =
    thy
-   |> Expression.sublocale_cmd I name expr []
+   |> Expression.sublocale_cmd I (name, Position.none) (expression_no_pos expr) []
    |> Proof.global_terminal_proof
          (Method.Basic (fn ctxt => SIMPLE_METHOD (ctxt_tac ctxt)), NONE)
    |> Proof_Context.theory_of
@@ -154,7 +157,7 @@ fun add_locale name expr elems thy =
 
 fun add_locale_cmd name expr elems thy =
   thy
-  |> Expression.add_locale_cmd I (Binding.name name) Binding.empty expr elems
+  |> Expression.add_locale_cmd I (Binding.name name) Binding.empty (expression_no_pos expr) elems
   |> snd
   |> Local_Theory.exit;
 
