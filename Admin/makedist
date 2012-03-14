@@ -4,7 +4,7 @@
 
 ## global settings
 
-REPOS_NAME="${REPOS_NAME:-isabelle}"
+REPOS_NAME="isabelle"
 REPOS="${REPOS:-http://isabelle.in.tum.de/repos/${REPOS_NAME}}"
 DISTPREFIX="${DISTPREFIX:-~/tmp/isadist}"
 
@@ -94,8 +94,14 @@ echo "###"
 echo "### Retrieving Mercurial repository $VERSION"
 echo "###"
 
-{ wget -q "$REPOS/archive/${VERSION}.tar.gz" -O- | tar -xzf -; } || \
-  fail "Failed to retrieve $VERSION"
+if expr match "$REPOS" "https\?://" > /dev/null
+then
+  { wget -q "$REPOS/archive/${VERSION}.tar.gz" -O- | tar -xzf -; } || \
+    fail "Failed to retrieve $VERSION"
+else
+  { hg --repository "$REPOS" archive --type tgz - | tar -xzf -; } || \
+    fail "Failed to retrieve $VERSION"
+fi
 
 IDENT=$(echo * | sed "s/${REPOS_NAME}-//")
 
@@ -223,6 +229,5 @@ rm -f Isabelle && ln -sf "$DISTNAME" Isabelle
 chgrp -R isabelle "$DISTNAME"
 
 rm -rf "${DISTNAME}-old"
-
 
 echo "DONE"
