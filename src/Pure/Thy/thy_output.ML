@@ -586,7 +586,7 @@ val _ =
     basic_entity (Binding.name "const") (Args.const_proper false) pretty_const #>
     basic_entity (Binding.name "abbrev") (Scan.lift Args.name_source) pretty_abbrev #>
     basic_entity (Binding.name "typ") Args.typ_abbrev Syntax.pretty_typ #>
-    basic_entity (Binding.name "class") (Scan.lift Args.name) pretty_class #>
+    basic_entity (Binding.name "class") (Scan.lift Args.name_source) pretty_class #>
     basic_entity (Binding.name "type") (Scan.lift Args.name) pretty_type #>
     basic_entity (Binding.name "text") (Scan.lift Args.name) pretty_text #>
     basic_entities (Binding.name "prf") Attrib.thms (pretty_prf false) #>

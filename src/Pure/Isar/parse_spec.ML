@@ -22,7 +22,7 @@ sig
   val locale_mixfix: mixfix parser
   val locale_fixes: (binding * string option * mixfix) list parser
   val locale_insts: (string option list * (Attrib.binding * string) list) parser
-  val class_expr: string list parser
+  val class_expression: string list parser
   val locale_expression: bool -> Expression.expression parser
   val locale_keyword: string parser
   val context_element: Element.context parser
@@ -125,11 +125,11 @@ val locale_keyword =
   Parse.$$$ "fixes" || Parse.$$$ "constrains" || Parse.$$$ "assumes" ||
   Parse.$$$ "defines" || Parse.$$$ "notes";
 
-val class_expr = plus1_unless locale_keyword Parse.xname;
+val class_expression = plus1_unless locale_keyword Parse.class;
 
 fun locale_expression mandatory =
   let
-    val expr2 = Parse.xname;
+    val expr2 = Parse.position Parse.xname;
     val expr1 = Scan.optional (prefix mandatory) ("", false) -- expr2 --
       Scan.optional instance (Expression.Named []) >> (fn ((p, l), i) => (l, (p, i)));
     val expr0 = plus1_unless locale_keyword expr1;

@@ -79,8 +79,8 @@ sig
   (* Diagnostic *)
   val all_locales: theory -> string list
   val print_locales: theory -> unit
-  val print_locale: theory -> bool -> xstring -> unit
-  val print_registrations: Proof.context -> string -> unit
+  val print_locale: theory -> bool -> xstring * Position.T -> unit
+  val print_registrations: Proof.context -> xstring * Position.T -> unit
   val print_dependencies: Proof.context -> bool -> morphism -> (string * morphism) list -> unit
   val locale_deps: theory ->
     {params: ((string * typ) * mixfix) list, axioms: term list, registrations: term list list} Graph.T
@@ -618,7 +618,7 @@ fun print_locales thy =
 
 fun print_locale thy show_facts raw_name =
   let
-    val name = intern thy raw_name;
+    val name = check thy raw_name;
     val ctxt = init name thy;
     fun cons_elem (elem as Notes _) = show_facts ? cons elem
       | cons_elem elem = cons elem;
@@ -633,8 +633,7 @@ fun print_locale thy show_facts raw_name =
 fun print_registrations ctxt raw_name =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val name = intern thy raw_name;
-    val _ = the_locale thy name;  (* error if locale unknown *)
+    val name = check thy raw_name;
   in
     (case registrations_of (Context.Proof ctxt) (* FIXME *) name of
       [] => Pretty.str "no interpretations"

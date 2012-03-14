@@ -91,13 +91,13 @@ val _ = Outer_Syntax.markup_command Thy_Output.Verbatim "txt_raw"
 val _ =
   Outer_Syntax.command "classes" "declare type classes" Keyword.thy_decl
     (Scan.repeat1 (Parse.binding -- Scan.optional ((Parse.$$$ "\\<subseteq>" || Parse.$$$ "<") |--
-        Parse.!!! (Parse.list1 Parse.xname)) [])
+        Parse.!!! (Parse.list1 Parse.class)) [])
       >> (Toplevel.theory o fold AxClass.axiomatize_class_cmd));
 
 val _ =
   Outer_Syntax.command "classrel" "state inclusion of type classes (axiomatic!)" Keyword.thy_decl
-    (Parse.and_list1 (Parse.xname -- ((Parse.$$$ "\\<subseteq>" || Parse.$$$ "<")
-        |-- Parse.!!! Parse.xname))
+    (Parse.and_list1 (Parse.class -- ((Parse.$$$ "\\<subseteq>" || Parse.$$$ "<")
+        |-- Parse.!!! Parse.class))
     >> (Toplevel.theory o AxClass.axiomatize_classrel_cmd));
 
 val _ =
@@ -421,7 +421,7 @@ fun parse_interpretation_arguments mandatory =
 val _ =
   Outer_Syntax.command "sublocale"
     "prove sublocale relation between a locale and a locale expression" Keyword.thy_goal
-    (Parse.xname --| (Parse.$$$ "\\<subseteq>" || Parse.$$$ "<") --
+    (Parse.position Parse.xname --| (Parse.$$$ "\\<subseteq>" || Parse.$$$ "<") --
       parse_interpretation_arguments false
       >> (fn (loc, (expr, equations)) =>
           Toplevel.print o Toplevel.theory_to_proof (Expression.sublocale_cmd I loc expr equations)));
@@ -445,7 +445,7 @@ val _ =
 (* classes *)
 
 val class_val =
-  Parse_Spec.class_expr --
+  Parse_Spec.class_expression --
     Scan.optional (Parse.$$$ "+" |-- Parse.!!! (Scan.repeat1 Parse_Spec.context_element)) [] ||
   Scan.repeat1 Parse_Spec.context_element >> pair [];
 
@@ -458,7 +458,7 @@ val _ =
 
 val _ =
   Outer_Syntax.local_theory_to_proof "subclass" "prove a subclass relation" Keyword.thy_goal
-    (Parse.xname >> Class_Declaration.subclass_cmd I);
+    (Parse.class >> Class_Declaration.subclass_cmd I);
 
 val _ =
   Outer_Syntax.command "instantiation" "instantiate and prove type arity" Keyword.thy_decl
@@ -468,8 +468,8 @@ val _ =
 
 val _ =
   Outer_Syntax.command "instance" "prove type arity or subclass relation" Keyword.thy_goal
-  ((Parse.xname -- ((Parse.$$$ "\\<subseteq>" || Parse.$$$ "<") |-- Parse.!!! Parse.xname)
-        >> Class.classrel_cmd ||
+  ((Parse.class --
+    ((Parse.$$$ "\\<subseteq>" || Parse.$$$ "<") |-- Parse.!!! Parse.class) >> Class.classrel_cmd ||
     Parse.multi_arity >> Class.instance_arity_cmd)
     >> (Toplevel.print oo Toplevel.theory_to_proof) ||
     Scan.succeed
@@ -831,12 +831,12 @@ val _ =
 
 val _ =
   Outer_Syntax.improper_command "print_locale" "print locale of this theory" Keyword.diag
-    (opt_bang -- Parse.xname >> (Toplevel.no_timing oo Isar_Cmd.print_locale));
+    (opt_bang -- Parse.position Parse.xname >> (Toplevel.no_timing oo Isar_Cmd.print_locale));
 
 val _ =
   Outer_Syntax.improper_command "print_interps"
     "print interpretations of locale for this theory or proof context" Keyword.diag
-    (Parse.xname >> (Toplevel.no_timing oo Isar_Cmd.print_registrations));
+    (Parse.position Parse.xname >> (Toplevel.no_timing oo Isar_Cmd.print_registrations));
 
 val _ =
   Outer_Syntax.improper_command "print_dependencies"

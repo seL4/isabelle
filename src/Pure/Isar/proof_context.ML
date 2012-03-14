@@ -55,8 +55,6 @@ sig
   val pretty_fact_aux: Proof.context -> bool -> string * thm list -> Pretty.T
   val pretty_fact: Proof.context -> string * thm list -> Pretty.T
   val read_class: Proof.context -> xstring -> class
-  val read_arity: Proof.context -> xstring * string list * string -> arity
-  val cert_arity: Proof.context -> arity -> arity
   val read_typ: Proof.context -> string -> typ
   val read_typ_syntax: Proof.context -> string -> typ
   val read_typ_abbrev: Proof.context -> string -> typ
@@ -70,6 +68,8 @@ sig
   val read_type_name_proper: Proof.context -> bool -> string -> typ
   val read_const_proper: Proof.context -> bool -> string -> term
   val read_const: Proof.context -> bool -> typ -> string -> term
+  val read_arity: Proof.context -> xstring * string list * string -> arity
+  val cert_arity: Proof.context -> arity -> arity
   val allow_dummies: Proof.context -> Proof.context
   val prepare_sorts: Proof.context -> typ list -> typ list
   val check_tfree: Proof.context -> string * sort -> string * sort
@@ -367,22 +367,6 @@ fun read_class ctxt text =
   in c end;
 
 
-(* type arities *)
-
-local
-
-fun prep_arity prep_tycon prep_sort ctxt (t, Ss, S) =
-  let val arity = (prep_tycon ctxt t, map (prep_sort ctxt) Ss, prep_sort ctxt S)
-  in Type.add_arity ctxt arity (tsig_of ctxt); arity end;
-
-in
-
-val read_arity = prep_arity intern_type Syntax.read_sort;
-val cert_arity = prep_arity (K I) (Type.cert_sort o tsig_of);
-
-end;
-
-
 (* types *)
 
 fun read_typ_mode mode ctxt s =
@@ -500,6 +484,23 @@ fun read_const ctxt strict ty text =
           Free (x, infer_type ctxt (x, ty)))
     | _ => prep_const_proper ctxt strict (c, pos))
   end;
+
+end;
+
+
+(* type arities *)
+
+local
+
+fun prep_arity prep_tycon prep_sort ctxt (t, Ss, S) =
+  let val arity = (prep_tycon ctxt t, map (prep_sort ctxt) Ss, prep_sort ctxt S)
+  in Type.add_arity ctxt arity (tsig_of ctxt); arity end;
+
+in
+
+val read_arity =
+  prep_arity (fn ctxt => #1 o dest_Type o read_type_name_proper ctxt true) Syntax.read_sort;
+val cert_arity = prep_arity (K I) (Type.cert_sort o tsig_of);
 
 end;
 
