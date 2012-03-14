@@ -29,10 +29,10 @@ class Protocol_Dockable(view: View, position: String) extends Dockable(view, pos
     loop {
       react {
         case input: Isabelle_Process.Input =>
-          Swing_Thread.now { text_area.append(input.toString + "\n") }
+          Swing_Thread.later { text_area.append(input.toString + "\n") }
 
         case output: Isabelle_Process.Output =>
-          Swing_Thread.now { text_area.append(output.message.toString + "\n") }
+          Swing_Thread.later { text_area.append(output.message.toString + "\n") }
 
         case bad => System.err.println("Protocol_Dockable: ignoring bad message " + bad)
       }
