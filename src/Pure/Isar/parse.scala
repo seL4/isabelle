@@ -53,6 +53,7 @@ object Parse
       atom(Token.Kind.KEYWORD.toString + " " + quote(name),
         tok => tok.kind == Token.Kind.KEYWORD && tok.content == name)
 
+    def string: Parser[String] = atom("string", _.is_string)
     def name: Parser[String] = atom("name declaration", _.is_name)
     def xname: Parser[String] = atom("name reference", _.is_xname)
     def text: Parser[String] = atom("text", _.is_text)

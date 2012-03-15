@@ -51,7 +51,7 @@ object Thy_Header extends Parse.Parser
     val keyword_kind =
       atom("outer syntax keyword kind", _.is_name) ~ tags ^^ { case x ~ y => (x, y) }
     val keyword_decl =
-      rep1(name) ~ opt(keyword("::") ~! keyword_kind ^^ { case _ ~ x => x }) ^^
+      rep1(string) ~ opt(keyword("::") ~! keyword_kind ^^ { case _ ~ x => x }) ^^
       { case xs ~ y => xs.map((_, y)) }
     val keyword_decls =
       keyword_decl ~ rep(keyword(AND) ~! keyword_decl ^^ { case _ ~ x => x }) ^^

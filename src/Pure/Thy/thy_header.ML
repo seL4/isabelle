@@ -81,7 +81,7 @@ val theory_name = Parse.group (fn () => "theory name") Parse.name;
 
 val keyword_kind = Parse.group (fn () => "outer syntax keyword kind") (Parse.name -- Parse.tags);
 val keyword_decl =
-  Scan.repeat1 Parse.name -- Scan.option (Parse.$$$ "::" |-- Parse.!!! keyword_kind) >>
+  Scan.repeat1 Parse.string -- Scan.option (Parse.$$$ "::" |-- Parse.!!! keyword_kind) >>
   (fn (names, kind) => map (rpair kind) names);
 val keyword_decls = Parse.and_list1 keyword_decl >> flat;
 
