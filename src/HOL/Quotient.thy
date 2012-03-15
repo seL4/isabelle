@@ -6,6 +6,7 @@ header {* Definition of Quotient Types *}
 
 theory Quotient
 imports Plain Hilbert_Choice Equiv_Relations
+keywords "/"
 uses
   ("Tools/Quotient/quotient_info.ML")
   ("Tools/Quotient/quotient_type.ML")

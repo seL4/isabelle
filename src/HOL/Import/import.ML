@@ -238,8 +238,7 @@ fun fl_dump toks  = Scan.succeed flush_dump toks
 val append_dump = (Parse.verbatim || Parse.string) >> add_dump
 
 val _ =
-  (Keyword.keyword ">";
-   Outer_Syntax.command "import_segment"
+  (Outer_Syntax.command "import_segment"
                        "Set import segment name"
                        Keyword.thy_decl (import_segment >> Toplevel.theory);
    Outer_Syntax.command "import_theory"

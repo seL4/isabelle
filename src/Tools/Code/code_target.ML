@@ -681,8 +681,6 @@ val code_exprP =
        -- Scan.optional (Parse.$$$ fileK |-- Parse.name) ""
        -- code_expr_argsP) >> (fn seris => export_code_cmd raw_cs seris)));
 
-val _ = List.app Keyword.keyword [inK, module_nameK, fileK, checkingK];
-
 val _ =
   Outer_Syntax.command "code_class" "define code syntax for class" Keyword.thy_decl (
     process_multi_syntax Parse.xname (Scan.option Parse.string)

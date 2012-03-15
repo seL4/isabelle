@@ -1134,8 +1134,6 @@ val setup =
 
 (* outer syntax *)
 
-val _ = Keyword.keyword "monos";
-
 fun gen_ind_decl mk_def coind =
   Parse.fixes -- Parse.for_fixes --
   Scan.optional Parse_Spec.where_alt_specs [] --

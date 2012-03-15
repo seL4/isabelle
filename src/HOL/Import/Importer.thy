@@ -4,6 +4,7 @@
 
 theory Importer
 imports Main
+keywords ">"
 uses "shuffler.ML" "import_rews.ML" ("proof_kernel.ML") ("replay.ML") ("import.ML")
 begin
 

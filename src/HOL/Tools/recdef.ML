@@ -290,8 +290,6 @@ val setup =
 
 (* outer syntax *)
 
-val _ = List.app Keyword.keyword ["permissive", "congs", "hints"];
-
 val hints =
   Parse.$$$ "(" |--
     Parse.!!! (Parse.position (Parse.$$$ "hints" -- Args.parse) --| Parse.$$$ ")") >> Args.src;

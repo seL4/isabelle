@@ -272,8 +272,6 @@ val quotspec_parser =
         (Parse.$$$ "/" |-- (partial -- Parse.term))  --
         Scan.option (Parse.$$$ "morphisms" |-- Parse.!!! (Parse.binding -- Parse.binding)))
 
-val _ = Keyword.keyword "/"
-
 val _ =
   Outer_Syntax.local_theory_to_proof "quotient_type"
     "quotient type definitions (require equivalence proofs)"

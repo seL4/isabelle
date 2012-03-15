@@ -576,9 +576,6 @@ fun add_inductive (srec_tms, sdom_sum) intr_srcs
 
 (* outer syntax *)
 
-val _ = List.app Keyword.keyword
-  ["domains", "intros", "monos", "con_defs", "type_intros", "type_elims"];
-
 fun mk_ind (((((doms, intrs), monos), con_defs), type_intrs), type_elims) =
   #1 o add_inductive doms (map Parse.triple_swap intrs) (monos, con_defs, type_intrs, type_elims);
 

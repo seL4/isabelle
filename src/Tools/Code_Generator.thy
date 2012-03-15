@@ -6,6 +6,7 @@ header {* Loading the code generator and related modules *}
 
 theory Code_Generator
 imports Pure
+keywords "datatypes" "functions" "module_name" "file" "checking"
 uses
   "~~/src/Tools/misc_legacy.ML"
   "~~/src/Tools/cache_io.ML"

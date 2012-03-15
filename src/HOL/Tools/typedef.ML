@@ -299,8 +299,6 @@ end;
 
 (** outer syntax **)
 
-val _ = Keyword.keyword "morphisms";
-
 val _ =
   Outer_Syntax.local_theory_to_proof "typedef" "HOL type definition (requires non-emptiness proof)"
     Keyword.thy_goal

@@ -188,8 +188,6 @@ val setup =
 
 (* outer syntax *)
 
-val _ = List.app Keyword.keyword ["elimination", "induction", "case_eqns", "recursor_eqns"];
-
 val rep_datatype_decl =
   (Parse.$$$ "elimination" |-- Parse.!!! Parse_Spec.xthm) --
   (Parse.$$$ "induction" |-- Parse.!!! Parse_Spec.xthm) --

@@ -12,15 +12,16 @@ struct
 (*keep keywords consistent with the parsers, otherwise be prepared for
   unexpected errors*)
 
-val _ = List.app Keyword.keyword
- ["!!", "!", "%", "(", ")", "+", ",", "--", ":", "::", ";", "<", "<=",
-  "=", "==", "=>", "?", "[", "\\<equiv>", "\\<leftharpoondown>",
-  "\\<rightharpoonup>", "\\<rightleftharpoons>", "\\<subseteq>", "]",
-  "advanced", "and", "assumes", "attach", "begin", "binder",
-  "constrains", "defines", "fixes", "for", "identifier", "if",
-  "imports", "in", "infix", "infixl", "infixr", "is", "keywords",
-  "notes", "obtains", "open", "output", "overloaded", "pervasive",
-  "shows", "structure", "unchecked", "uses", "where", "|"];
+val _ = Context.>> (Context.map_theory
+  (fold (fn name => Thy_Header.declare_keyword (name, NONE))
+   ["!!", "!", "%", "(", ")", "+", ",", "--", ":", "::", ";", "<", "<=",
+    "=", "==", "=>", "?", "[", "\\<equiv>", "\\<leftharpoondown>",
+    "\\<rightharpoonup>", "\\<rightleftharpoons>", "\\<subseteq>", "]",
+    "advanced", "and", "assumes", "attach", "begin", "binder",
+    "constrains", "defines", "fixes", "for", "identifier", "if",
+    "imports", "in", "infix", "infixl", "infixr", "is", "keywords",
+    "notes", "obtains", "open", "output", "overloaded", "pervasive",
+    "shows", "structure", "unchecked", "uses", "where", "|", "by"]));
 
 
 

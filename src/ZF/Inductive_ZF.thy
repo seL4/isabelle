@@ -13,6 +13,9 @@ header{*Inductive and Coinductive Definitions*}
 
 theory Inductive_ZF
 imports Fixedpt QPair Nat_ZF
+keywords
+  "elimination" "induction" "case_eqns" "recursor_eqns"
+  "domains" "intros" "monos" "con_defs" "type_intros" "type_elims"
 uses
   ("ind_syntax.ML")
   ("Tools/cartprod.ML")

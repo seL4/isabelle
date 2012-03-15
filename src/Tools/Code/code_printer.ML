@@ -405,8 +405,6 @@ fun parse_syntax mk_plain mk_complex prep_arg =
         >> (fn ((x, i), s) => mk_complex (parse_infix prep_arg (x, i) s))
       || Parse.string >> (fn s => (parse_mixfix mk_plain mk_complex prep_arg s)));
 
-val _ = List.app Keyword.keyword [infixK, infixlK, infixrK];
-
 fun parse_tyco_syntax x = parse_syntax (fn s => (0, (K o K o K o str) s)) I I x;
 
 val parse_const_syntax = parse_syntax plain_const_syntax simple_const_syntax fst;

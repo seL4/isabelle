@@ -349,8 +349,6 @@ val functionsK = "functions";
 val fileK = "file";
 val andK = "and"
 
-val _ = List.app Keyword.keyword [datatypesK, functionsK];
-
 val parse_datatype =
   Parse.name --| Parse.$$$ "=" --
     (((Parse.sym_ident || Parse.string) >> (fn "_" => NONE | _ => Scan.fail ()))

@@ -6,6 +6,7 @@ header {* Knaster-Tarski Fixpoint Theorem and inductive definitions *}
 
 theory Inductive 
 imports Complete_Lattices
+keywords "monos"
 uses
   "Tools/dseq.ML"
   ("Tools/inductive.ML")

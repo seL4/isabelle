@@ -669,8 +669,6 @@ fun prove_eqvt s xatoms ctxt =
 
 (* outer syntax *)
 
-val _ = Keyword.keyword "avoids";
-
 val _ =
   Outer_Syntax.local_theory_to_proof "nominal_inductive"
     "prove equivariance and strong induction theorem for inductive predicate involving nominal datatypes"

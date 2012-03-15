@@ -6,6 +6,7 @@ header {* Domain package *}
 
 theory Domain
 imports Representable Domain_Aux
+keywords "lazy" "unsafe"
 uses
   ("Tools/domaindef.ML")
   ("Tools/Domain/domain_isomorphism.ML")

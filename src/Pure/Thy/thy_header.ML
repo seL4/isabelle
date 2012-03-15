@@ -45,8 +45,9 @@ structure Data = Theory_Data
 
 fun declare_keyword (name, kind) =
   Data.map (fn data =>
+   (if is_none kind then Keyword.keyword name else ();
     Symtab.update_new (name, Option.map Keyword.make kind) data
-      handle Symtab.DUP name => err_dup name);
+      handle Symtab.DUP name => err_dup name));
 
 fun the_keyword thy name =
   (case Symtab.lookup (Data.get thy) name of

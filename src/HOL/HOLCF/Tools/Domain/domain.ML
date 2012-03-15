@@ -228,9 +228,6 @@ val add_new_domain_cmd =
 
 (** outer syntax **)
 
-val _ = Keyword.keyword "lazy"
-val _ = Keyword.keyword "unsafe"
-
 val dest_decl : (bool * binding option * string) parser =
   Parse.$$$ "(" |-- Scan.optional (Parse.$$$ "lazy" >> K true) false --
     (Parse.binding >> SOME) -- (Parse.$$$ "::" |-- Parse.typ)  --| Parse.$$$ ")" >> Parse.triple1
