@@ -213,16 +213,20 @@ fun edit_nodes (name, node_edit) (Version nodes) =
     | Header header =>
         let
           val imports = (case header of Exn.Res (_, {imports, ...}) => imports | _ => []);
+          val keywords = (case header of Exn.Res (_, {keywords, ...}) => keywords | _ => []);
+          val header' =
+            (List.app Keyword.declare keywords; header)
+              handle exn as ERROR _ => Exn.Exn exn;
           val nodes1 = nodes
             |> default_node name
             |> fold default_node imports;
           val nodes2 = nodes1
             |> Graph.Keys.fold
                 (fn dep => Graph.del_edge (dep, name)) (Graph.imm_preds nodes1 name);
-          val (header', nodes3) =
-            (header, Graph.add_deps_acyclic (name, imports) nodes2)
+          val (header'', nodes3) =
+            (header', Graph.add_deps_acyclic (name, imports) nodes2)
               handle Graph.CYCLES cs => (Exn.Exn (ERROR (cat_lines (map cycle_msg cs))), nodes2);
-        in Graph.map_node name (set_header header') nodes3 end
+        in Graph.map_node name (set_header header'') nodes3 end
         |> touch_node name
     | Perspective perspective =>
         update_node name (set_perspective perspective) nodes);
@@ -240,7 +244,7 @@ end;
 
 abstype state = State of
  {versions: version Inttab.table,  (*version_id -> document content*)
-  commands: (string * Token.T list future) Inttab.table,  (*command_id -> name * span*)
+  commands: (string * Token.T list lazy) Inttab.table,  (*command_id -> name * span*)
   execution: version_id * Future.group}  (*current execution process*)
 with
 
@@ -284,13 +288,9 @@ fun parse_command id text =
 fun define_command (id: command_id) name text =
   map_state (fn (versions, commands, execution) =>
     let
-      val future =
-        (singleton o Future.forks)
-          {name = "Document.define_command", group = SOME (Future.new_group NONE),
-            deps = [], pri = ~1, interrupts = false}
-          (fn () => parse_command (print_id id) text);
+      val span = Lazy.lazy (fn () => parse_command (print_id id) text);
       val commands' =
-        Inttab.update_new (id, (name, future)) commands
+        Inttab.update_new (id, (name, span)) commands
           handle Inttab.DUP dup => err_dup "command" dup;
     in (versions, commands', execution) end);
 
@@ -412,7 +412,7 @@ fun new_exec state bad_init command_id' (execs, command_exec, init) =
   if bad_init andalso is_none init then NONE
   else
     let
-      val (name, span) = the_command state command_id' ||> Future.join;
+      val (name, span) = the_command state command_id' ||> Lazy.force;
       val (modify_init, init') =
         if Keyword.is_theory_begin name then
           (Toplevel.modify_init (the_default illegal_init init), NONE)

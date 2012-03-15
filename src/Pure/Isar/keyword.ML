@@ -48,6 +48,7 @@ sig
   val status: unit -> unit
   val keyword: string -> unit
   val command: string -> T -> unit
+  val declare: string * (string * string list) option -> unit
   val is_diag: string -> bool
   val is_control: string -> bool
   val is_regular: string -> bool
@@ -213,6 +214,9 @@ fun command name kind =
  (change_lexicons (apsnd (Scan.extend_lexicon (Symbol.explode name)));
   change_commands (Symtab.update (name, kind));
   command_status (name, kind));
+
+fun declare (name, NONE) = keyword name
+  | declare (name, SOME kind) = command name (make kind);
 
 
 (* command categories *)
