@@ -142,7 +142,135 @@ object Thy_Syntax
 
 
 
+  /** header edits: structure and outer syntax **/
+
+  private def header_edits(
+    base_syntax: Outer_Syntax,
+    previous: Document.Version,
+    edits: List[Document.Edit_Text])
+    : (Outer_Syntax, List[Document.Node.Name], Document.Nodes, List[Document.Edit_Command]) =
+  {
+    var rebuild_syntax = previous.is_init
+    var nodes = previous.nodes
+    val doc_edits = new mutable.ListBuffer[Document.Edit_Command]
+
+    edits foreach {
+      case (name, Document.Node.Header(header)) =>
+        val node = nodes(name)
+        val update_header =
+          (node.header, header) match {
+            case (Exn.Res(deps0), Exn.Res(deps)) => deps0 != deps
+            case _ => true
+          }
+        if (update_header) {
+          val node1 = node.update_header(header)
+          rebuild_syntax = rebuild_syntax || (node.keywords != node1.keywords)
+          nodes += (name -> node1)
+          doc_edits += (name -> Document.Node.Header(header))
+        }
+      case _ =>
+    }
+
+    val syntax =
+      if (rebuild_syntax)
+        (base_syntax /: nodes.entries)({ case (syn, (_, node)) => (syn /: node.keywords)(_ + _) })
+      else previous.syntax
+
+    val reparse =
+      if (rebuild_syntax) nodes.descendants(doc_edits.iterator.map(_._1).toList)
+      else Nil
+
+    (syntax, reparse, nodes, doc_edits.toList)
+  }
+
+
+
   /** text edits **/
+
+  /* phase 1: edit individual command source */
+
+  @tailrec private def edit_text(eds: List[Text.Edit], commands: Linear_Set[Command])
+      : Linear_Set[Command] =
+  {
+    eds match {
+      case e :: es =>
+        Document.Node.command_starts(commands.iterator).find {
+          case (cmd, cmd_start) =>
+            e.can_edit(cmd.source, cmd_start) ||
+              e.is_insert && e.start == cmd_start + cmd.length
+        } match {
+          case Some((cmd, cmd_start)) if e.can_edit(cmd.source, cmd_start) =>
+            val (rest, text) = e.edit(cmd.source, cmd_start)
+            val new_commands = commands.insert_after(Some(cmd), Command.unparsed(text)) - cmd
+            edit_text(rest.toList ::: es, new_commands)
+
+          case Some((cmd, cmd_start)) =>
+            edit_text(es, commands.insert_after(Some(cmd), Command.unparsed(e.text)))
+
+          case None =>
+            require(e.is_insert && e.start == 0)
+            edit_text(es, commands.insert_after(None, Command.unparsed(e.text)))
+        }
+      case Nil => commands
+    }
+  }
+
+
+  /* phase 2: recover command spans */
+
+  @tailrec private def recover_spans(
+    syntax: Outer_Syntax,
+    node_name: Document.Node.Name,
+    commands: Linear_Set[Command]): Linear_Set[Command] =
+  {
+    commands.iterator.find(cmd => !cmd.is_defined) match {
+      case Some(first_unparsed) =>
+        val first =
+          commands.reverse_iterator(first_unparsed).
+            dropWhile(_.newlines == 0).find(_.is_command) getOrElse commands.head
+        val last =
+          commands.iterator(first_unparsed).
+            dropWhile(_.newlines == 0).find(_.is_command) getOrElse commands.last
+        val range =
+          commands.iterator(first).takeWhile(_ != last).toList ::: List(last)
+
+        val spans0 = parse_spans(syntax.scan(range.map(_.source).mkString))
+
+        val (before_edit, spans1) =
+          if (!spans0.isEmpty && first.is_command && first.span == spans0.head)
+            (Some(first), spans0.tail)
+          else (commands.prev(first), spans0)
+
+        val (after_edit, spans2) =
+          if (!spans1.isEmpty && last.is_command && last.span == spans1.last)
+            (Some(last), spans1.take(spans1.length - 1))
+          else (commands.next(last), spans1)
+
+        val inserted = spans2.map(span => Command(Document.new_id(), node_name, span))
+        val new_commands =
+          commands.delete_between(before_edit, after_edit).append_after(before_edit, inserted)
+        recover_spans(syntax, node_name, new_commands)
+
+      case None => commands
+    }
+  }
+
+
+  /* phase 3: full reparsing after syntax change */
+
+  private def reparse_spans(
+    syntax: Outer_Syntax,
+    node_name: Document.Node.Name,
+    commands: Linear_Set[Command]): Linear_Set[Command] =
+  {
+    val cmds = commands.toList
+    val spans1 = parse_spans(syntax.scan(cmds.map(_.source).mkString))
+    if (cmds.map(_.span) == spans1) commands
+    else Linear_Set(spans1.map(span => Command(Document.new_id(), node_name, span)): _*)
+  }
+
+
+  /* main phase */
 
   def text_edits(
       base_syntax: Outer_Syntax,
@@ -150,140 +278,46 @@ object Thy_Syntax
       edits: List[Document.Edit_Text])
     : (List[Document.Edit_Command], Document.Version) =
   {
-    /* phase 1: edit individual command source */
+    val (syntax, reparse, nodes0, doc_edits0) = header_edits(base_syntax, previous, edits)
+    val reparse_set = reparse.toSet
 
-    @tailrec def edit_text(eds: List[Text.Edit], commands: Linear_Set[Command])
-        : Linear_Set[Command] =
-    {
-      eds match {
-        case e :: es =>
-          Document.Node.command_starts(commands.iterator).find {
-            case (cmd, cmd_start) =>
-              e.can_edit(cmd.source, cmd_start) ||
-                e.is_insert && e.start == cmd_start + cmd.length
-          } match {
-            case Some((cmd, cmd_start)) if e.can_edit(cmd.source, cmd_start) =>
-              val (rest, text) = e.edit(cmd.source, cmd_start)
-              val new_commands = commands.insert_after(Some(cmd), Command.unparsed(text)) - cmd
-              edit_text(rest.toList ::: es, new_commands)
+    var nodes = nodes0
+    val doc_edits = new mutable.ListBuffer[Document.Edit_Command]; doc_edits ++= doc_edits0
 
-            case Some((cmd, cmd_start)) =>
-              edit_text(es, commands.insert_after(Some(cmd), Command.unparsed(e.text)))
+    (edits ::: reparse.map((_, Document.Node.Edits(Nil)))) foreach {
+      case (name, Document.Node.Clear()) =>
+        doc_edits += (name -> Document.Node.Clear())
+        nodes += (name -> nodes(name).clear)
 
-            case None =>
-              require(e.is_insert && e.start == 0)
-              edit_text(es, commands.insert_after(None, Command.unparsed(e.text)))
-          }
-        case Nil => commands
-      }
+      case (name, Document.Node.Edits(text_edits)) =>
+        val node = nodes(name)
+        val commands0 = node.commands
+        val commands1 = edit_text(text_edits, commands0)
+        val commands2 = recover_spans(syntax, name, commands1)   // FIXME somewhat slow
+        val commands3 =
+          if (reparse_set.contains(name)) reparse_spans(syntax, name, commands2)  // slow
+          else commands2
+
+        val removed_commands = commands0.iterator.filter(!commands3.contains(_)).toList
+        val inserted_commands = commands3.iterator.filter(!commands0.contains(_)).toList
+
+        val cmd_edits =
+          removed_commands.reverse.map(cmd => (commands0.prev(cmd), None)) :::
+          inserted_commands.map(cmd => (commands3.prev(cmd), Some(cmd)))
+
+        doc_edits += (name -> Document.Node.Edits(cmd_edits))
+        nodes += (name -> node.update_commands(commands3))
+
+      case (name, Document.Node.Header(_)) =>
+
+      case (name, Document.Node.Perspective(text_perspective)) =>
+        update_perspective(nodes, name, text_perspective) match {
+          case (_, None) =>
+          case (perspective, Some(nodes1)) =>
+            doc_edits += (name -> Document.Node.Perspective(perspective))
+            nodes = nodes1
+        }
     }
-
-
-    /* phase 2: recover command spans */
-
-    @tailrec def recover_spans(
-      syntax: Outer_Syntax,
-      node_name: Document.Node.Name,
-      commands: Linear_Set[Command]): Linear_Set[Command] =
-    {
-      commands.iterator.find(cmd => !cmd.is_defined) match {
-        case Some(first_unparsed) =>
-          val first =
-            commands.reverse_iterator(first_unparsed).
-              dropWhile(_.newlines == 0).find(_.is_command) getOrElse commands.head
-          val last =
-            commands.iterator(first_unparsed).
-              dropWhile(_.newlines == 0).find(_.is_command) getOrElse commands.last
-          val range =
-            commands.iterator(first).takeWhile(_ != last).toList ::: List(last)
-
-          val sources = range.flatMap(_.span.map(_.source))
-          val spans0 = parse_spans(syntax.scan(sources.mkString))
-
-          val (before_edit, spans1) =
-            if (!spans0.isEmpty && first.is_command && first.span == spans0.head)
-              (Some(first), spans0.tail)
-            else (commands.prev(first), spans0)
-
-          val (after_edit, spans2) =
-            if (!spans1.isEmpty && last.is_command && last.span == spans1.last)
-              (Some(last), spans1.take(spans1.length - 1))
-            else (commands.next(last), spans1)
-
-          val inserted = spans2.map(span => Command(Document.new_id(), node_name, span))
-          val new_commands =
-            commands.delete_between(before_edit, after_edit).append_after(before_edit, inserted)
-          recover_spans(syntax, node_name, new_commands)
-
-        case None => commands
-      }
-    }
-
-
-    /* resulting document edits */
-
-    {
-      val doc_edits = new mutable.ListBuffer[Document.Edit_Command]
-      var nodes = previous.nodes
-      var rebuild_syntax = previous.is_init
-
-      // structure and syntax
-      edits foreach {
-        case (name, Document.Node.Header(header)) =>
-          val node = nodes(name)
-          val update_header =
-            (node.header, header) match {
-              case (Exn.Res(deps0), Exn.Res(deps)) => deps0 != deps
-              case _ => true
-            }
-          if (update_header) {
-            doc_edits += (name -> Document.Node.Header(header))
-            val node1 = node.update_header(header)
-            nodes += (name -> node1)
-            rebuild_syntax = rebuild_syntax || (node.keywords != node1.keywords)
-          }
-
-        case _ =>
-      }
-
-      val syntax =
-        if (rebuild_syntax)
-          (base_syntax /: nodes.entries)({ case (syn, (_, node)) => (syn /: node.keywords)(_ + _) })
-        else previous.syntax
-
-      // node content
-      edits foreach {  // FIXME observe rebuild_syntax!?
-        case (name, Document.Node.Clear()) =>
-          doc_edits += (name -> Document.Node.Clear())
-          nodes += (name -> nodes(name).clear)
-
-        case (name, Document.Node.Edits(text_edits)) =>
-          val node = nodes(name)
-          val commands0 = node.commands
-          val commands1 = edit_text(text_edits, commands0)
-          val commands2 = recover_spans(syntax, name, commands1)   // FIXME somewhat slow
-
-          val removed_commands = commands0.iterator.filter(!commands2.contains(_)).toList
-          val inserted_commands = commands2.iterator.filter(!commands0.contains(_)).toList
-
-          val cmd_edits =
-            removed_commands.reverse.map(cmd => (commands0.prev(cmd), None)) :::
-            inserted_commands.map(cmd => (commands2.prev(cmd), Some(cmd)))
-
-          doc_edits += (name -> Document.Node.Edits(cmd_edits))
-          nodes += (name -> node.update_commands(commands2))
-
-        case (name, Document.Node.Header(_)) =>
-
-        case (name, Document.Node.Perspective(text_perspective)) =>
-          update_perspective(nodes, name, text_perspective) match {
-            case (_, None) =>
-            case (perspective, Some(nodes1)) =>
-              doc_edits += (name -> Document.Node.Perspective(perspective))
-              nodes = nodes1
-          }
-      }
-      (doc_edits.toList, Document.Version.make(syntax, nodes))
-    }
+    (doc_edits.toList, Document.Version.make(syntax, nodes))
   }
 }
