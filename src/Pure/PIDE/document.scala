@@ -122,6 +122,12 @@ object Document
     def update_commands(new_commands: Linear_Set[Command]): Node =
       new Node(header, perspective, blobs, new_commands)
 
+    def imports: List[Node.Name] =
+      header match { case Exn.Res(deps) => deps.imports case _ => Nil }
+
+    def keywords: List[Outer_Syntax.Decl] =
+      header match { case Exn.Res(deps) => deps.keywords case _ => Nil }
+
 
     /* commands */
 
@@ -184,11 +190,7 @@ object Document
     def + (entry: (Node.Name, Node)): Nodes =
     {
       val (name, node) = entry
-      val imports =
-        node.header match {
-          case Exn.Res(deps) => deps.imports
-          case _ => Nil
-        }
+      val imports = node.imports
       val graph1 =
         (graph.default_node(name, Node.empty) /: imports)((g, p) => g.default_node(p, Node.empty))
       val graph2 = (graph1 /: graph1.imm_preds(name))((g, dep) => g.del_edge(dep, name))
@@ -199,6 +201,7 @@ object Document
     def entries: Iterator[(Node.Name, Node)] =
       graph.entries.map({ case (name, (node, _)) => (name, node) })
 
+    def descendants(names: List[Node.Name]): List[Node.Name] = graph.all_succs(names)
     def topological_order: List[Node.Name] = graph.topological_order
   }
 

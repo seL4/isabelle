@@ -100,8 +100,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
 
         case Text_Edits(name, previous, text_edits, version_result) =>
           val prev = previous.get_finished
-          val syntax = if (prev.is_init) prover_syntax else prev.syntax
-          val (doc_edits, version) = Thy_Syntax.text_edits(syntax, prev, text_edits)
+          val (doc_edits, version) = Thy_Syntax.text_edits(prover_syntax, prev, text_edits)
           version_result.fulfill(version)
           sender ! Change_Node(name, doc_edits, prev, version)
 

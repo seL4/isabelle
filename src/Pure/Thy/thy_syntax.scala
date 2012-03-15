@@ -145,7 +145,7 @@ object Thy_Syntax
   /** text edits **/
 
   def text_edits(
-      syntax: Outer_Syntax,
+      base_syntax: Outer_Syntax,
       previous: Document.Version,
       edits: List[Document.Edit_Text])
     : (List[Document.Edit_Command], Document.Version) =
@@ -181,8 +181,10 @@ object Thy_Syntax
 
     /* phase 2: recover command spans */
 
-    @tailrec def recover_spans(node_name: Document.Node.Name, commands: Linear_Set[Command])
-      : Linear_Set[Command] =
+    @tailrec def recover_spans(
+      syntax: Outer_Syntax,
+      node_name: Document.Node.Name,
+      commands: Linear_Set[Command]): Linear_Set[Command] =
     {
       commands.iterator.find(cmd => !cmd.is_defined) match {
         case Some(first_unparsed) =>
@@ -211,7 +213,7 @@ object Thy_Syntax
           val inserted = spans2.map(span => Command(Document.new_id(), node_name, span))
           val new_commands =
             commands.delete_between(before_edit, after_edit).append_after(before_edit, inserted)
-          recover_spans(node_name, new_commands)
+          recover_spans(syntax, node_name, new_commands)
 
         case None => commands
       }
@@ -223,8 +225,34 @@ object Thy_Syntax
     {
       val doc_edits = new mutable.ListBuffer[Document.Edit_Command]
       var nodes = previous.nodes
+      var rebuild_syntax = previous.is_init
 
+      // structure and syntax
       edits foreach {
+        case (name, Document.Node.Header(header)) =>
+          val node = nodes(name)
+          val update_header =
+            (node.header, header) match {
+              case (Exn.Res(deps0), Exn.Res(deps)) => deps0 != deps
+              case _ => true
+            }
+          if (update_header) {
+            doc_edits += (name -> Document.Node.Header(header))
+            val node1 = node.update_header(header)
+            nodes += (name -> node1)
+            rebuild_syntax = rebuild_syntax || (node.keywords != node1.keywords)
+          }
+
+        case _ =>
+      }
+
+      val syntax =
+        if (rebuild_syntax)
+          (base_syntax /: nodes.entries)({ case (syn, (_, node)) => (syn /: node.keywords)(_ + _) })
+        else previous.syntax
+
+      // node content
+      edits foreach {  // FIXME observe rebuild_syntax!?
         case (name, Document.Node.Clear()) =>
           doc_edits += (name -> Document.Node.Clear())
           nodes += (name -> nodes(name).clear)
@@ -233,7 +261,7 @@ object Thy_Syntax
           val node = nodes(name)
           val commands0 = node.commands
           val commands1 = edit_text(text_edits, commands0)
-          val commands2 = recover_spans(name, commands1)   // FIXME somewhat slow
+          val commands2 = recover_spans(syntax, name, commands1)   // FIXME somewhat slow
 
           val removed_commands = commands0.iterator.filter(!commands2.contains(_)).toList
           val inserted_commands = commands2.iterator.filter(!commands0.contains(_)).toList
@@ -245,17 +273,7 @@ object Thy_Syntax
           doc_edits += (name -> Document.Node.Edits(cmd_edits))
           nodes += (name -> node.update_commands(commands2))
 
-        case (name, Document.Node.Header(header)) =>
-          val node = nodes(name)
-          val update_header =
-            (node.header, header) match {
-              case (Exn.Res(deps0), Exn.Res(deps)) => deps0 != deps
-              case _ => true
-            }
-          if (update_header) {
-            doc_edits += (name -> Document.Node.Header(header))
-            nodes += (name -> node.update_header(header))
-          }
+        case (name, Document.Node.Header(_)) =>
 
         case (name, Document.Node.Perspective(text_perspective)) =>
           update_perspective(nodes, name, text_perspective) match {

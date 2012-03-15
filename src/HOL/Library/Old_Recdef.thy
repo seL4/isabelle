@@ -6,6 +6,7 @@ header {* TFL: recursive function definitions *}
 
 theory Old_Recdef
 imports Wfrec
+keywords "recdef" :: thy_decl
 uses
   ("~~/src/HOL/Tools/TFL/casesplit.ML")
   ("~~/src/HOL/Tools/TFL/utils.ML")
