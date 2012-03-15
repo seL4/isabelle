@@ -1,7 +1,7 @@
 (*  Title:      Pure/Thy/thy_header.ML
-    Author:     Markus Wenzel, TU Muenchen
+    Author:     Makarius
 
-Theory headers -- independent of outer syntax.
+Static theory header information.
 *)
 
 signature THY_HEADER =
@@ -80,7 +80,10 @@ val file_name = Parse.group (fn () => "file name") Parse.path;
 val theory_name = Parse.group (fn () => "theory name") Parse.name;
 
 val keyword_kind = Parse.group (fn () => "outer syntax keyword kind") (Parse.name -- Parse.tags);
-val keyword_decl = Parse.name -- Scan.option (Parse.$$$ "::" |-- Parse.!!! keyword_kind);
+val keyword_decl =
+  Scan.repeat1 Parse.name -- Scan.option (Parse.$$$ "::" |-- Parse.!!! keyword_kind) >>
+  (fn (names, kind) => map (rpair kind) names);
+val keyword_decls = Parse.and_list1 keyword_decl >> flat;
 
 val file =
   Parse.$$$ "(" |-- Parse.!!! (file_name --| Parse.$$$ ")") >> rpair false ||
@@ -91,7 +94,7 @@ in
 val args =
   theory_name --
   (Parse.$$$ importsN |-- Parse.!!! (Scan.repeat1 theory_name)) --
-  Scan.optional (Parse.$$$ keywordsN |-- Parse.!!! (Parse.and_list1 keyword_decl)) [] --
+  Scan.optional (Parse.$$$ keywordsN |-- Parse.!!! keyword_decls) [] --
   Scan.optional (Parse.$$$ usesN |-- Parse.!!! (Scan.repeat1 file)) [] --|
   Parse.$$$ beginN >>
   (fn (((name, imports), keywords), uses) => make name imports keywords uses);

@@ -1,7 +1,7 @@
 /*  Title:      Pure/Thy/thy_header.scala
     Author:     Makarius
 
-Theory headers -- independent of outer syntax.
+Static theory header information.
 */
 
 package isabelle
@@ -51,11 +51,11 @@ object Thy_Header extends Parse.Parser
     val keyword_kind =
       atom("outer syntax keyword kind", _.is_name) ~ tags ^^ { case x ~ y => (x, y) }
     val keyword_decl =
-      name ~ opt(keyword("::") ~! keyword_kind ^^ { case _ ~ x => x }) ^^
-      { case x ~ y => (x, y) }
-    val keywords =
+      rep1(name) ~ opt(keyword("::") ~! keyword_kind ^^ { case _ ~ x => x }) ^^
+      { case xs ~ y => xs.map((_, y)) }
+    val keyword_decls =
       keyword_decl ~ rep(keyword(AND) ~! keyword_decl ^^ { case _ ~ x => x }) ^^
-      { case x ~ ys => x :: ys }
+      { case xs ~ yss => (xs :: yss).flatten }
 
     val file =
       keyword("(") ~! (file_name ~ keyword(")")) ^^ { case _ ~ (x ~ _) => (x, false) } |
@@ -64,7 +64,7 @@ object Thy_Header extends Parse.Parser
     val args =
       theory_name ~
       (keyword(IMPORTS) ~! (rep1(theory_name)) ^^ { case _ ~ xs => xs }) ~
-      (opt(keyword(KEYWORDS) ~! keywords) ^^ { case None => Nil case Some(_ ~ xs) => xs }) ~
+      (opt(keyword(KEYWORDS) ~! keyword_decls) ^^ { case None => Nil case Some(_ ~ xs) => xs }) ~
       (opt(keyword(USES) ~! (rep1(file))) ^^ { case None => Nil case Some(_ ~ xs) => xs }) ~
       keyword(BEGIN) ^^
       { case x ~ ys ~ zs ~ ws ~ _ => Thy_Header(x, ys, zs, ws) }
