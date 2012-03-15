@@ -10,6 +10,7 @@ New in this Isabelle version
 
   - markup for bound variables
   - markup for types of term variables (e.g. displayed as tooltips)
+  - support for user-defined Isar commands within the running session
 
 * Updated and extended reference manuals ("isar-ref" and
 "implementation"); reduced remaining material in old "ref" manual.
@@ -370,6 +371,9 @@ a list and a nat.
 
 
 *** ML ***
+
+* Outer syntax keywords for user-defined Isar commands need to be
+defined explicitly in the theory header.  Minor INCOMPATIBILITY.
 
 * Antiquotation @{keyword "name"} produces a parser for outer syntax
 from a minor keyword introduced via theory header declaration.
