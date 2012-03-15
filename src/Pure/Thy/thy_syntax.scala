@@ -136,7 +136,7 @@ object Thy_Syntax
   {
     val nodes = previous.nodes
     val (perspective, new_nodes) = update_perspective(nodes, name, text_perspective)
-    val version = Document.Version.make(new_nodes getOrElse nodes)
+    val version = Document.Version.make(previous.syntax, new_nodes getOrElse nodes)
     (perspective, version)
   }
 
@@ -265,7 +265,7 @@ object Thy_Syntax
               nodes = nodes1
           }
       }
-      (doc_edits.toList, Document.Version.make(nodes))
+      (doc_edits.toList, Document.Version.make(syntax, nodes))
     }
   }
 }

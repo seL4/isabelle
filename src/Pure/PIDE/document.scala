@@ -212,12 +212,17 @@ object Document
   {
     val init: Version = new Version()
 
-    def make(nodes: Nodes): Version = new Version(new_id(), nodes)
+    def make(syntax: Outer_Syntax, nodes: Nodes): Version =
+      new Version(new_id(), syntax, nodes)
   }
 
   final class Version private(
     val id: Version_ID = no_id,
+    val syntax: Outer_Syntax = Outer_Syntax.empty,
     val nodes: Nodes = Nodes.empty)
+  {
+    def is_init: Boolean = id == no_id
+  }
 
 
   /* changes of plain text, eventually resulting in document edits */

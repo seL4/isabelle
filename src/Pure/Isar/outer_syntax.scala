@@ -35,13 +35,15 @@ object Outer_Syntax
   }
 
   type Decl = (String, Option[(String, List[String])])
-  def init(): Outer_Syntax = new Outer_Syntax()
+
+  val empty: Outer_Syntax = new Outer_Syntax()
+  def init(): Outer_Syntax = new Outer_Syntax(completion = Completion.init())
 }
 
 final class Outer_Syntax private(
   keywords: Map[String, String] = Map((";" -> Keyword.DIAG)),
   lexicon: Scan.Lexicon = Scan.Lexicon.empty,
-  val completion: Completion = Completion.init())
+  val completion: Completion = Completion.empty)
 {
   def keyword_kind(name: String): Option[String] = keywords.get(name)
 
