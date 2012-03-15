@@ -6,6 +6,7 @@ header "Package for defining recursive functions in HOLCF"
 
 theory Fixrec
 imports Plain_HOLCF
+keywords "fixrec" :: thy_decl
 uses
   ("Tools/holcf_library.ML")
   ("Tools/fixrec.ML")

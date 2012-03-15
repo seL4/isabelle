@@ -9,6 +9,7 @@ header {* Nitpick: Yet Another Counterexample Generator for Isabelle/HOL *}
 
 theory Nitpick
 imports Map Quotient SAT Record
+keywords "nitpick" :: diag and "nitpick_params" :: thy_decl
 uses ("Tools/Nitpick/kodkod.ML")
      ("Tools/Nitpick/kodkod_sat.ML")
      ("Tools/Nitpick/nitpick_util.ML")

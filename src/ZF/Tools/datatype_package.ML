@@ -427,15 +427,15 @@ fun mk_datatype ((((dom, dts), monos), type_intrs), type_elims) =
   #1 o add_datatype (dom, map fst dts) (map snd dts) (monos, type_intrs, type_elims);
 
 val con_decl =
-  Parse.name -- Scan.optional (Parse.$$$ "(" |-- Parse.list1 Parse.term --| Parse.$$$ ")") [] --
+  Parse.name -- Scan.optional (@{keyword "("} |-- Parse.list1 Parse.term --| @{keyword ")"}) [] --
     Parse.opt_mixfix >> Parse.triple1;
 
 val datatype_decl =
-  (Scan.optional ((Parse.$$$ "\<subseteq>" || Parse.$$$ "<=") |-- Parse.!!! Parse.term) "") --
-  Parse.and_list1 (Parse.term -- (Parse.$$$ "=" |-- Parse.enum1 "|" con_decl)) --
-  Scan.optional (Parse.$$$ "monos" |-- Parse.!!! Parse_Spec.xthms1) [] --
-  Scan.optional (Parse.$$$ "type_intros" |-- Parse.!!! Parse_Spec.xthms1) [] --
-  Scan.optional (Parse.$$$ "type_elims" |-- Parse.!!! Parse_Spec.xthms1) []
+  (Scan.optional ((@{keyword "\<subseteq>"} || @{keyword "<="}) |-- Parse.!!! Parse.term) "") --
+  Parse.and_list1 (Parse.term -- (@{keyword "="} |-- Parse.enum1 "|" con_decl)) --
+  Scan.optional (@{keyword "monos"} |-- Parse.!!! Parse_Spec.xthms1) [] --
+  Scan.optional (@{keyword "type_intros"} |-- Parse.!!! Parse_Spec.xthms1) [] --
+  Scan.optional (@{keyword "type_elims"} |-- Parse.!!! Parse_Spec.xthms1) []
   >> (Toplevel.theory o mk_datatype);
 
 val coind_prefix = if coind then "co" else "";

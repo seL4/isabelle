@@ -6,6 +6,7 @@ header {* Bindings to Satisfiability Modulo Theories (SMT) solvers *}
 
 theory SMT
 imports Record
+keywords "smt_status" :: diag
 uses
   "Tools/SMT/smt_utils.ML"
   "Tools/SMT/smt_failure.ML"

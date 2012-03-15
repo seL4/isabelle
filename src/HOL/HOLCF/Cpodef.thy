@@ -6,6 +6,7 @@ header {* Subtypes of pcpos *}
 
 theory Cpodef
 imports Adm
+keywords "pcpodef" "cpodef" :: thy_goal
 uses ("Tools/cpodef.ML")
 begin
 

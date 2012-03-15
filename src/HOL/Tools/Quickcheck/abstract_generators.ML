@@ -66,8 +66,8 @@ val quickcheck_generator_cmd = gen_quickcheck_generator
   
 val _ = Outer_Syntax.command "quickcheck_generator" "define quickcheck generators for abstract types"
     Keyword.thy_decl ((Parse.type_const --
-      Scan.option (Args.$$$ "predicate" |-- Parse.$$$ ":" |-- Parse.term)) --
-      (Args.$$$ "constructors" |-- Parse.$$$ ":" |-- Parse.list1 Parse.term)
+      Scan.option (Args.$$$ "predicate" |-- @{keyword ":"} |-- Parse.term)) --
+      (Args.$$$ "constructors" |-- @{keyword ":"} |-- Parse.list1 Parse.term)
       >> (fn ((tyco, opt_pred), constrs) =>
         Toplevel.theory (quickcheck_generator_cmd tyco opt_pred constrs)))
 

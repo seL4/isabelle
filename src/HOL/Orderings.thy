@@ -6,6 +6,7 @@ header {* Abstract orderings *}
 
 theory Orderings
 imports HOL
+keywords "print_orders" :: diag
 uses
   "~~/src/Provers/order.ML"
   "~~/src/Provers/quasi.ML"  (* FIXME unused? *)

@@ -92,7 +92,7 @@ abstract class Isabelle_Sidekick(name: String) extends SideKickParser(name)
           val start = buffer.getLineStartOffset(line)
           val text = buffer.getSegment(start, caret - start)
 
-          val completion = model.session.current_syntax().completion
+          val completion = model.session.recent_syntax().completion
           completion.complete(text) match {
             case None => null
             case Some((word, cs)) =>
@@ -116,7 +116,7 @@ class Isabelle_Sidekick_Default extends Isabelle_Sidekick("isabelle")
 
   def parser(data: SideKickParsedData, model: Document_Model)
   {
-    val syntax = model.session.current_syntax()
+    val syntax = model.session.recent_syntax()
 
     def make_tree(offset: Text.Offset, entry: Structure.Entry): List[DefaultMutableTreeNode] =
       entry match {

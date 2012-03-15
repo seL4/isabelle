@@ -317,11 +317,11 @@ val parse_value =
   Scan.repeat1 (Parse.minus >> single
                 || Scan.repeat1 (Scan.unless Parse.minus
                                              (Parse.name || Parse.float_number))
-                || Parse.$$$ "," |-- Parse.number >> prefix "," >> single)
+                || @{keyword ","} |-- Parse.number >> prefix "," >> single)
   >> flat
-val parse_param = parse_key -- Scan.optional (Parse.$$$ "=" |-- parse_value) []
+val parse_param = parse_key -- Scan.optional (@{keyword "="} |-- parse_value) []
 val parse_params =
-  Scan.optional (Parse.$$$ "[" |-- Parse.list parse_param --| Parse.$$$ "]") []
+  Scan.optional (@{keyword "["} |-- Parse.list parse_param --| @{keyword "]"}) []
 
 fun handle_exceptions ctxt f x =
   f x

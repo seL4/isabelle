@@ -182,5 +182,16 @@ val _ = Context.>> (Context.map_theory
           val const = Const (c, Consts.instance (Proof_Context.consts_of ctxt) (c, Ts));
         in ML_Syntax.atomic (ML_Syntax.print_term const) end))));
 
+
+(* outer syntax *)
+
+val _ = Context.>> (Context.map_theory
+  (value (Binding.name "keyword")
+    (Args.theory -- Scan.lift (Parse.position Parse.string) >> (fn (thy, (name, pos)) =>
+      (if is_none (Thy_Header.the_keyword thy name) then
+        ML_Syntax.atomic ("Parse.$$$ " ^ ML_Syntax.print_string name)
+       else error ("Unknown minor keyword " ^ quote name))
+      handle ERROR msg => error (msg ^ Position.str_of pos)))));
+
 end;
 

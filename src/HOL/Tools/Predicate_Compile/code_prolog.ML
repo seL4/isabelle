@@ -1002,7 +1002,7 @@ fun values_cmd print_modes soln raw_t state =
 (* renewing the values command for Prolog queries *)
 
 val opt_print_modes =
-  Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Scan.repeat1 Parse.xname --| Parse.$$$ ")")) [];
+  Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.xname --| @{keyword ")"})) [];
 
 val _ = Outer_Syntax.improper_command "values" "enumerate and print comprehensions" Keyword.diag
   (opt_print_modes -- Scan.optional (Parse.nat >> SOME) NONE -- Parse.term

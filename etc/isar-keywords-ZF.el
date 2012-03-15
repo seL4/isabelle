@@ -229,6 +229,7 @@
     "infixr"
     "intros"
     "is"
+    "keywords"
     "monos"
     "notes"
     "obtains"

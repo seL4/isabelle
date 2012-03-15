@@ -2313,7 +2313,7 @@ val setup =
 val _ =
   Outer_Syntax.command "record" "define extensible record" Keyword.thy_decl
     (Parse.type_args_constrained -- Parse.binding --
-      (Parse.$$$ "=" |-- Scan.option (Parse.typ --| Parse.$$$ "+") --
+      (@{keyword "="} |-- Scan.option (Parse.typ --| @{keyword "+"}) --
         Scan.repeat1 Parse.const_binding)
     >> (fn (x, (y, z)) => Toplevel.theory (add_record_cmd x y z)));
 

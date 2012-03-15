@@ -12,15 +12,16 @@ struct
 (*keep keywords consistent with the parsers, otherwise be prepared for
   unexpected errors*)
 
-val _ = List.app Keyword.keyword
- ["!!", "!", "%", "(", ")", "+", ",", "--", ":", "::", ";", "<", "<=",
-  "=", "==", "=>", "?", "[", "\\<equiv>", "\\<leftharpoondown>",
-  "\\<rightharpoonup>", "\\<rightleftharpoons>", "\\<subseteq>", "]",
-  "advanced", "and", "assumes", "attach", "begin", "binder",
-  "constrains", "defines", "fixes", "for", "identifier", "if",
-  "imports", "in", "infix", "infixl", "infixr", "is",
-  "notes", "obtains", "open", "output", "overloaded", "pervasive",
-  "shows", "structure", "unchecked", "uses", "where", "|"];
+val _ = Context.>> (Context.map_theory
+  (fold (fn name => Thy_Header.declare_keyword (name, NONE))
+   ["!!", "!", "%", "(", ")", "+", ",", "--", ":", "::", ";", "<", "<=",
+    "=", "==", "=>", "?", "[", "\\<equiv>", "\\<leftharpoondown>",
+    "\\<rightharpoonup>", "\\<rightleftharpoons>", "\\<subseteq>", "]",
+    "advanced", "and", "assumes", "attach", "begin", "binder",
+    "constrains", "defines", "fixes", "for", "identifier", "if",
+    "imports", "in", "infix", "infixl", "infixr", "is", "keywords",
+    "notes", "obtains", "open", "output", "overloaded", "pervasive",
+    "shows", "structure", "unchecked", "uses", "where", "|"]));
 
 
 
@@ -28,12 +29,10 @@ val _ = List.app Keyword.keyword
 
 val _ =
   Outer_Syntax.command "theory" "begin theory" (Keyword.tag_theory Keyword.thy_begin)
-    (Thy_Header.args >> (fn (name, imports, uses) =>
+    (Thy_Header.args >> (fn header =>
       Toplevel.print o
         Toplevel.init_theory
-          (fn () =>
-            Thy_Info.toplevel_begin_theory (Thy_Load.get_master_path ())
-              name imports (map (apfst Path.explode) uses))));
+          (fn () => Thy_Info.toplevel_begin_theory (Thy_Load.get_master_path ()) header)));
 
 val _ =
   Outer_Syntax.command "end" "end (local) theory" (Keyword.tag_theory Keyword.thy_end)

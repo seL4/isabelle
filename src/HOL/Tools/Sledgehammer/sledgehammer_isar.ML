@@ -396,12 +396,12 @@ fun sledgehammer_params_trans params =
                                        |> sort_strings |> cat_lines))
                   end))
 
-val parse_query_bang = Parse.$$$ "?" || Parse.$$$ "!" || Parse.$$$ "!!"
+val parse_query_bang = @{keyword "?"} || @{keyword "!"} || @{keyword "!!"}
 val parse_key =
   Scan.repeat1 (Parse.typ_group || parse_query_bang) >> implode_param
 val parse_value =
   Scan.repeat1 (Parse.xname || Parse.float_number || parse_query_bang)
-val parse_param = parse_key -- Scan.optional (Parse.$$$ "=" |-- parse_value) []
+val parse_param = parse_key -- Scan.optional (@{keyword "="} |-- parse_value) []
 val parse_params = Scan.optional (Args.bracks (Parse.list parse_param)) []
 val parse_fact_refs =
   Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) Parse_Spec.xthm)

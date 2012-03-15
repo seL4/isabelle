@@ -638,8 +638,8 @@ fun zip_list (x::xs) f g =
 
 fun process_multi_syntax parse_thing parse_syntax change =
   (Parse.and_list1 parse_thing
-  :|-- (fn things => Scan.repeat1 (Parse.$$$ "(" |-- Parse.name --
-        (zip_list things parse_syntax (Parse.$$$ "and")) --| Parse.$$$ ")")))
+  :|-- (fn things => Scan.repeat1 (@{keyword "("} |-- Parse.name --
+        (zip_list things parse_syntax (@{keyword "and"})) --| @{keyword ")"})))
   >> (Toplevel.theory oo fold)
     (fn (target, syns) => fold (fn (raw_x, syn) => change target raw_x syn) syns);
 
@@ -667,21 +667,17 @@ fun parse_args f args =
 
 (** Isar setup **)
 
-val (inK, module_nameK, fileK, checkingK) = ("in", "module_name", "file", "checking");
-
-val code_expr_argsP = Scan.optional (Parse.$$$ "(" |-- Args.parse --| Parse.$$$ ")") [];
+val code_expr_argsP = Scan.optional (@{keyword "("} |-- Args.parse --| @{keyword ")"}) [];
 
 val code_exprP =
   Scan.repeat1 Parse.term_group :|-- (fn raw_cs =>
-    ((Parse.$$$ checkingK |-- Scan.repeat (Parse.name
-      -- ((Parse.$$$ "?" |-- Scan.succeed false) || Scan.succeed true) -- code_expr_argsP))
+    ((@{keyword "checking"} |-- Scan.repeat (Parse.name
+      -- ((@{keyword "?"} |-- Scan.succeed false) || Scan.succeed true) -- code_expr_argsP))
       >> (fn seris => check_code_cmd raw_cs seris)
-    || Scan.repeat (Parse.$$$ inK |-- Parse.name
-       -- Scan.optional (Parse.$$$ module_nameK |-- Parse.name) ""
-       -- Scan.optional (Parse.$$$ fileK |-- Parse.name) ""
+    || Scan.repeat (@{keyword "in"} |-- Parse.name
+       -- Scan.optional (@{keyword "module_name"} |-- Parse.name) ""
+       -- Scan.optional (@{keyword "file"} |-- Parse.name) ""
        -- code_expr_argsP) >> (fn seris => export_code_cmd raw_cs seris)));
-
-val _ = List.app Keyword.keyword [inK, module_nameK, fileK, checkingK];
 
 val _ =
   Outer_Syntax.command "code_class" "define code syntax for class" Keyword.thy_decl (
@@ -690,7 +686,7 @@ val _ =
 
 val _ =
   Outer_Syntax.command "code_instance" "define code syntax for instance" Keyword.thy_decl (
-    process_multi_syntax (Parse.xname --| Parse.$$$ "::" -- Parse.xname)
+    process_multi_syntax (Parse.xname --| @{keyword "::"} -- Parse.xname)
       (Scan.option (Parse.minus >> K ()))
     add_instance_syntax_cmd);
 
@@ -715,7 +711,7 @@ val _ =
   Outer_Syntax.command "code_include" "declare piece of code to be included in generated code"
     Keyword.thy_decl (
     Parse.name -- Parse.name -- (Parse.text :|-- (fn "-" => Scan.succeed NONE
-      | s => Scan.optional (Parse.$$$ "attach" |-- Scan.repeat1 Parse.term) [] >> pair s >> SOME))
+      | s => Scan.optional (@{keyword "attach"} |-- Scan.repeat1 Parse.term) [] >> pair s >> SOME))
     >> (fn ((target, name), content_consts) =>
         (Toplevel.theory o add_include_cmd target) (name, content_consts))
   );

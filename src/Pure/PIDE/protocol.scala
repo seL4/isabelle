@@ -225,8 +225,10 @@ trait Protocol extends Isabelle_Process
               // FIXME val uses = deps.uses.map(p => (Isabelle_System.posix_path(p._1), p._2))
               val uses = deps.uses
               (Nil,
-                triple(pair(symbol_string, symbol_string), list(symbol_string),
-                    list(pair(symbol_string, bool)))((dir, name.theory), imports, uses)) },
+                pair(pair(pair(pair(symbol_string, symbol_string), list(symbol_string)),
+                  list(pair(symbol_string, option(pair(symbol_string, list(symbol_string)))))),
+                    list(pair(symbol_string, bool)))(
+                (((dir, name.theory), imports), deps.keywords), uses)) },
           { case Document.Node.Header(Exn.Exn(e)) => (List(Symbol.encode(Exn.message(e))), Nil) },
           { case Document.Node.Perspective(a) => (a.commands.map(c => long_atom(c.id)), Nil) }))
       def encode: T[List[Document.Edit_Command]] = list((node_edit: Document.Edit_Command) =>

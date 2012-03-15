@@ -5,6 +5,7 @@
 header {* Setup for State Space Locales \label{sec:StateSpaceLocale}*}
 
 theory StateSpaceLocale imports StateFun 
+keywords "statespace" :: thy_decl
 uses "state_space.ML" "state_fun.ML"
 begin
 

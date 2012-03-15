@@ -6,6 +6,8 @@ header {* Integration of the Boogie program verifier *}
 
 theory Boogie
 imports Word
+keywords
+  "boogie_open" "boogie_end" :: thy_decl and "boogie_vc" :: thy_goal and "boogie_status" :: diag
 uses
   ("Tools/boogie_vcs.ML")
   ("Tools/boogie_loader.ML")

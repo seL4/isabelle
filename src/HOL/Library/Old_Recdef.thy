@@ -6,6 +6,10 @@ header {* TFL: recursive function definitions *}
 
 theory Old_Recdef
 imports Wfrec
+keywords
+  "recdef" "defer_recdef" :: thy_decl and
+  "recdef_tc" :: thy_goal and
+  "permissive" "congs" "hints"
 uses
   ("~~/src/HOL/Tools/TFL/casesplit.ML")
   ("~~/src/HOL/Tools/TFL/utils.ML")
@@ -41,7 +45,7 @@ done
 lemma tfl_eq_True: "(x = True) --> x"
   by blast
 
-lemma tfl_rev_eq_mp: "(x = y) --> y --> x";
+lemma tfl_rev_eq_mp: "(x = y) --> y --> x"
   by blast
 
 lemma tfl_simp_thm: "(x --> y) --> (x = x') --> (x' --> y)"

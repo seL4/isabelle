@@ -279,7 +279,7 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
 val add_partial_function = gen_add_partial_function Specification.check_spec;
 val add_partial_function_cmd = gen_add_partial_function Specification.read_spec;
 
-val mode = Parse.$$$ "(" |-- Parse.xname --| Parse.$$$ ")";
+val mode = @{keyword "("} |-- Parse.xname --| @{keyword ")"};
 
 val _ = Outer_Syntax.local_theory
   "partial_function" "define partial function" Keyword.thy_decl

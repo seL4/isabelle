@@ -70,6 +70,7 @@ sealed case class Token(val kind: Token.Kind.Value, val source: String)
     kind == Token.Kind.ALT_STRING ||
     kind == Token.Kind.VERBATIM ||
     kind == Token.Kind.COMMENT
+  def is_string: Boolean = kind == Token.Kind.STRING
   def is_name: Boolean =
     kind == Token.Kind.IDENT ||
     kind == Token.Kind.SYM_IDENT ||

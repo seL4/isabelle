@@ -488,9 +488,9 @@ val _ =
     "prove strong induction theorem for inductive predicate involving nominal datatypes"
     Keyword.thy_goal
     (Parse.xname -- 
-     Scan.option (Parse.$$$ "(" |-- Parse.!!! (Parse.name --| Parse.$$$ ")")) --
-     (Scan.optional (Parse.$$$ "avoids" |-- Parse.enum1 "|" (Parse.name --
-      (Parse.$$$ ":" |-- Parse.and_list1 Parse.term))) []) >> (fn ((name, rule_name), avoids) =>
+     Scan.option (@{keyword "("} |-- Parse.!!! (Parse.name --| @{keyword ")"})) --
+     (Scan.optional (@{keyword "avoids"} |-- Parse.enum1 "|" (Parse.name --
+      (@{keyword ":"} |-- Parse.and_list1 Parse.term))) []) >> (fn ((name, rule_name), avoids) =>
         prove_strong_ind name rule_name avoids));
 
 end

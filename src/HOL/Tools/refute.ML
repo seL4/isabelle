@@ -3202,8 +3202,8 @@ val setup =
 
 (*optional list of arguments of the form [name1=value1, name2=value2, ...]*)
 
-val scan_parm = Parse.name -- (Scan.optional (Parse.$$$ "=" |-- Parse.name) "true")
-val scan_parms = Scan.optional (Parse.$$$ "[" |-- Parse.list scan_parm --| Parse.$$$ "]") [];
+val scan_parm = Parse.name -- (Scan.optional (@{keyword "="} |-- Parse.name) "true")
+val scan_parms = Scan.optional (@{keyword "["} |-- Parse.list scan_parm --| @{keyword "]"}) [];
 
 
 (* 'refute' command *)

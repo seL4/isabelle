@@ -290,15 +290,13 @@ val setup =
 
 (* outer syntax *)
 
-val _ = List.app Keyword.keyword ["permissive", "congs", "hints"];
-
 val hints =
-  Parse.$$$ "(" |--
-    Parse.!!! (Parse.position (Parse.$$$ "hints" -- Args.parse) --| Parse.$$$ ")") >> Args.src;
+  @{keyword "("} |--
+    Parse.!!! (Parse.position (@{keyword "hints"} -- Args.parse) --| @{keyword ")"}) >> Args.src;
 
 val recdef_decl =
   Scan.optional
-    (Parse.$$$ "(" -- Parse.!!! (Parse.$$$ "permissive" -- Parse.$$$ ")") >> K false) true --
+    (@{keyword "("} -- Parse.!!! (@{keyword "permissive"} -- @{keyword ")"}) >> K false) true --
   Parse.name -- Parse.term -- Scan.repeat1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)
     -- Scan.option hints
   >> (fn ((((p, f), R), eqs), src) => #1 o add_recdef p f R (map Parse.triple_swap eqs) src);
@@ -311,7 +309,7 @@ val _ =
 val defer_recdef_decl =
   Parse.name -- Scan.repeat1 Parse.prop --
   Scan.optional
-    (Parse.$$$ "(" |-- Parse.$$$ "congs" |-- Parse.!!! (Parse_Spec.xthms1 --| Parse.$$$ ")")) []
+    (@{keyword "("} |-- @{keyword "congs"} |-- Parse.!!! (Parse_Spec.xthms1 --| @{keyword ")"})) []
   >> (fn ((f, eqs), congs) => #1 o defer_recdef f eqs congs);
 
 val _ =
@@ -322,7 +320,7 @@ val _ =
   Outer_Syntax.local_theory_to_proof' "recdef_tc" "recommence proof of termination condition (TFL)"
     Keyword.thy_goal
     ((Parse_Spec.opt_thm_name ":" >> apfst Binding.name_of) -- Parse.xname --
-        Scan.option (Parse.$$$ "(" |-- Parse.nat --| Parse.$$$ ")")
+        Scan.option (@{keyword "("} |-- Parse.nat --| @{keyword ")"})
       >> (fn ((thm_name, name), i) => recdef_tc thm_name name i));
 
 end;

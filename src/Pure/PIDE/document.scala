@@ -39,7 +39,10 @@ object Document
 
   object Node
   {
-    sealed case class Deps(imports: List[Name], uses: List[(String, Boolean)])
+    sealed case class Deps(
+      imports: List[Name],
+      keywords: List[Outer_Syntax.Decl],
+      uses: List[(String, Boolean)])
 
     object Name
     {
@@ -119,6 +122,12 @@ object Document
     def update_commands(new_commands: Linear_Set[Command]): Node =
       new Node(header, perspective, blobs, new_commands)
 
+    def imports: List[Node.Name] =
+      header match { case Exn.Res(deps) => deps.imports case _ => Nil }
+
+    def keywords: List[Outer_Syntax.Decl] =
+      header match { case Exn.Res(deps) => deps.keywords case _ => Nil }
+
 
     /* commands */
 
@@ -181,11 +190,7 @@ object Document
     def + (entry: (Node.Name, Node)): Nodes =
     {
       val (name, node) = entry
-      val imports =
-        node.header match {
-          case Exn.Res(deps) => deps.imports
-          case _ => Nil
-        }
+      val imports = node.imports
       val graph1 =
         (graph.default_node(name, Node.empty) /: imports)((g, p) => g.default_node(p, Node.empty))
       val graph2 = (graph1 /: graph1.imm_preds(name))((g, dep) => g.del_edge(dep, name))
@@ -196,6 +201,7 @@ object Document
     def entries: Iterator[(Node.Name, Node)] =
       graph.entries.map({ case (name, (node, _)) => (name, node) })
 
+    def descendants(names: List[Node.Name]): List[Node.Name] = graph.all_succs(names)
     def topological_order: List[Node.Name] = graph.topological_order
   }
 
@@ -209,12 +215,17 @@ object Document
   {
     val init: Version = new Version()
 
-    def make(nodes: Nodes): Version = new Version(new_id(), nodes)
+    def make(syntax: Outer_Syntax, nodes: Nodes): Version =
+      new Version(new_id(), syntax, nodes)
   }
 
   final class Version private(
     val id: Version_ID = no_id,
+    val syntax: Outer_Syntax = Outer_Syntax.empty,
     val nodes: Nodes = Nodes.empty)
+  {
+    def is_init: Boolean = id == no_id
+  }
 
 
   /* changes of plain text, eventually resulting in document edits */
@@ -408,6 +419,7 @@ object Document
     def is_stable(change: Change): Boolean =
       change.is_finished && is_assigned(change.version.get_finished)
 
+    def recent_finished: Change = history.undo_list.find(_.is_finished) getOrElse fail
     def recent_stable: Change = history.undo_list.find(is_stable) getOrElse fail
     def tip_stable: Boolean = is_stable(history.tip)
     def tip_version: Version = history.tip.version.get_finished

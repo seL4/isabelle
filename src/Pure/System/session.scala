@@ -86,7 +86,6 @@ class Session(thy_load: Thy_Load = new Thy_Load)
 
   //{{{
   private case class Text_Edits(
-    syntax: Outer_Syntax,
     name: Document.Node.Name,
     previous: Future[Document.Version],
     text_edits: List[Document.Edit_Text],
@@ -99,9 +98,9 @@ class Session(thy_load: Thy_Load = new Thy_Load)
       receive {
         case Stop => finished = true; reply(())
 
-        case Text_Edits(syntax, name, previous, text_edits, version_result) =>
+        case Text_Edits(name, previous, text_edits, version_result) =>
           val prev = previous.get_finished
-          val (doc_edits, version) = Thy_Syntax.text_edits(syntax, prev, text_edits)
+          val (doc_edits, version) = Thy_Syntax.text_edits(prover_syntax, prev, text_edits)
           version_result.fulfill(version)
           sender ! Change_Node(name, doc_edits, prev, version)
 
@@ -118,8 +117,11 @@ class Session(thy_load: Thy_Load = new Thy_Load)
 
   @volatile var verbose: Boolean = false
 
-  @volatile private var syntax = Outer_Syntax.init()
-  def current_syntax(): Outer_Syntax = syntax
+  @volatile private var prover_syntax =
+    Outer_Syntax.init() +
+      // FIXME avoid hardwired stuff!?
+      ("hence", Keyword.PRF_ASM_GOAL, "then have") +
+      ("thus", Keyword.PRF_ASM_GOAL, "then show")
 
   private val syslog = Volatile(Queue.empty[XML.Elem])
   def current_syslog(): String = cat_lines(syslog().iterator.map(msg => XML.content(msg).mkString))
@@ -135,6 +137,13 @@ class Session(thy_load: Thy_Load = new Thy_Load)
 
   private val global_state = Volatile(Document.State.init)
   def current_state(): Document.State = global_state()
+
+  def recent_syntax(): Outer_Syntax =
+  {
+    val version = current_state().recent_finished.version.get_finished
+    if (version.is_init) prover_syntax
+    else version.syntax
+  }
 
   def snapshot(name: Document.Node.Name = Document.Node.Name.empty,
       pending_edits: List[Text.Edit] = Nil): Document.Snapshot =
@@ -279,7 +288,6 @@ class Session(thy_load: Thy_Load = new Thy_Load)
         header: Document.Node_Header, edits: List[Document.Node.Edit[Text.Edit, Text.Perspective]])
     //{{{
     {
-      val syntax = current_syntax()
       val previous = global_state().history.tip.version
 
       prover.get.cancel_execution()
@@ -288,7 +296,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
       val version = Future.promise[Document.Version]
       val change = global_state >>> (_.continue_history(previous, text_edits, version))
 
-      change_parser ! Text_Edits(syntax, name, previous, text_edits, version)
+      change_parser ! Text_Edits(name, previous, text_edits, version)
     }
     //}}}
 
@@ -398,19 +406,16 @@ class Session(thy_load: Thy_Load = new Thy_Load)
           System.err.println("cancel_scala " + id)  // FIXME actually cancel JVM task
 
         case Isabelle_Markup.Ready if output.is_protocol =>
-            // FIXME move to ML side (!?)
-            syntax += ("hence", Keyword.PRF_ASM_GOAL, "then have")
-            syntax += ("thus", Keyword.PRF_ASM_GOAL, "then show")
             phase = Session.Ready
 
         case Isabelle_Markup.Loaded_Theory(name) if output.is_protocol =>
           thy_load.register_thy(name)
 
         case Isabelle_Markup.Command_Decl(name, kind) if output.is_protocol =>
-          syntax += (name, kind)
+          prover_syntax += (name, kind)
 
         case Isabelle_Markup.Keyword_Decl(name) if output.is_protocol =>
-          syntax += name
+          prover_syntax += name
 
         case _ =>
           if (output.is_exit && phase == Session.Startup) phase = Session.Failed

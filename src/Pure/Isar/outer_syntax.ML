@@ -123,11 +123,23 @@ local
 val global_outer_syntax = Unsynchronized.ref empty_outer_syntax;
 
 fun add_command name kind cmd = CRITICAL (fn () =>
- (Keyword.command name kind;
-  Unsynchronized.change global_outer_syntax (map_commands (fn commands =>
-   (if not (Symtab.defined commands name) then ()
-    else warning ("Redefining outer syntax command " ^ quote name);
-    Symtab.update (name, cmd) commands)))));
+  let
+    val thy = ML_Context.the_global_context ();
+    val _ =
+      (case try (Thy_Header.the_keyword thy) name of
+        SOME k =>
+          if k = SOME kind then ()
+          else error ("Inconsistent outer syntax keyword declaration " ^ quote name)
+      | NONE =>
+          (Keyword.command name kind;
+           if Context.theory_name thy = Context.PureN then ()
+           else error ("Undeclared outer syntax command " ^ quote name)));
+  in
+    Unsynchronized.change global_outer_syntax (map_commands (fn commands =>
+     (if not (Symtab.defined commands name) then ()
+      else warning ("Redefining outer syntax command " ^ quote name);
+      Symtab.update (name, cmd) commands)))
+  end);
 
 in
 

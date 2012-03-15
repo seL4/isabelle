@@ -522,12 +522,12 @@ fun quickcheck_cmd args i state =
 
 val parse_arg =
   Parse.name --
-    (Scan.optional (Parse.$$$ "=" |--
+    (Scan.optional (@{keyword "="} |--
       (((Parse.name || Parse.float_number) >> single) ||
-        (Parse.$$$ "[" |-- Parse.list1 Parse.name --| Parse.$$$ "]"))) ["true"]);
+        (@{keyword "["} |-- Parse.list1 Parse.name --| @{keyword "]"}))) ["true"]);
 
 val parse_args =
-  Parse.$$$ "[" |-- Parse.list1 parse_arg --| Parse.$$$ "]" || Scan.succeed [];
+  @{keyword "["} |-- Parse.list1 parse_arg --| @{keyword "]"} || Scan.succeed [];
 
 val _ =
   Outer_Syntax.command quickcheck_paramsN "set parameters for random testing" Keyword.thy_decl

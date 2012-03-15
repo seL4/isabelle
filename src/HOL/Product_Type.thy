@@ -7,6 +7,7 @@ header {* Cartesian products *}
 
 theory Product_Type
 imports Typedef Inductive Fun
+keywords "inductive_set" "coinductive_set" :: thy_decl
 uses
   ("Tools/split_rule.ML")
   ("Tools/inductive_set.ML")

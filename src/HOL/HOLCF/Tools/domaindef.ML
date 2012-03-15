@@ -212,13 +212,13 @@ fun domaindef_cmd ((def, name), (b, raw_args, mx), A, morphs) thy =
 (** outer syntax **)
 
 val domaindef_decl =
-  Scan.optional (Parse.$$$ "(" |--
-      ((Parse.$$$ "open" >> K false) -- Scan.option Parse.binding ||
+  Scan.optional (@{keyword "("} |--
+      ((@{keyword "open"} >> K false) -- Scan.option Parse.binding ||
         Parse.binding >> (fn s => (true, SOME s)))
-        --| Parse.$$$ ")") (true, NONE) --
+        --| @{keyword ")"}) (true, NONE) --
     (Parse.type_args_constrained -- Parse.binding) --
-    Parse.opt_mixfix -- (Parse.$$$ "=" |-- Parse.term) --
-    Scan.option (Parse.$$$ "morphisms" |-- Parse.!!! (Parse.binding -- Parse.binding))
+    Parse.opt_mixfix -- (@{keyword "="} |-- Parse.term) --
+    Scan.option (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding))
 
 fun mk_domaindef ((((((def, opt_name), (args, t)), mx), A), morphs)) =
   domaindef_cmd ((def, the_default t opt_name), (t, args, mx), A, morphs)

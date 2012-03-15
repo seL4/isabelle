@@ -371,6 +371,9 @@ a list and a nat.
 
 *** ML ***
 
+* Antiquotation @{keyword "name"} produces a parser for outer syntax
+from a minor keyword introduced via theory header declaration.
+
 * Local_Theory.define no longer hard-wires default theorem name
 "foo_def": definitional packages need to make this explicit, and may
 choose to omit theorem bindings for definitions by using

@@ -15,7 +15,7 @@ sig
   val new_id: unit -> id
   val parse_id: string -> id
   val print_id: id -> string
-  type node_header = ((string * string) * string list * (string * bool) list) Exn.result
+  type node_header = (string * Thy_Header.header) Exn.result
   datatype node_edit =
     Clear |
     Edits of (command_id option * command_id option) list |
@@ -58,7 +58,7 @@ fun err_undef kind id = error ("Undefined " ^ kind ^ ": " ^ print_id id);
 
 (** document structure **)
 
-type node_header = ((string * string) * string list * (string * bool) list) Exn.result;
+type node_header = (string * Thy_Header.header) Exn.result;
 type perspective = (command_id -> bool) * command_id option; (*visible commands, last*)
 structure Entries = Linear_Set(type key = command_id val ord = int_ord);
 
@@ -212,17 +212,22 @@ fun edit_nodes (name, node_edit) (Version nodes) =
         |> touch_node name
     | Header header =>
         let
-          val imports = (case header of Exn.Res (_, imports, _) => imports | _ => []);
+          val imports = (case header of Exn.Res (_, {imports, ...}) => imports | _ => []);
+          val keywords = (case header of Exn.Res (_, {keywords, ...}) => keywords | _ => []);
+          val header' =
+            (List.app (fn (name, decl) =>
+                Keyword.declare name (Option.map Keyword.make decl)) keywords; header)
+              handle exn as ERROR _ => Exn.Exn exn;
           val nodes1 = nodes
             |> default_node name
             |> fold default_node imports;
           val nodes2 = nodes1
             |> Graph.Keys.fold
                 (fn dep => Graph.del_edge (dep, name)) (Graph.imm_preds nodes1 name);
-          val (header', nodes3) =
-            (header, Graph.add_deps_acyclic (name, imports) nodes2)
+          val (header'', nodes3) =
+            (header', Graph.add_deps_acyclic (name, imports) nodes2)
               handle Graph.CYCLES cs => (Exn.Exn (ERROR (cat_lines (map cycle_msg cs))), nodes2);
-        in Graph.map_node name (set_header header') nodes3 end
+        in Graph.map_node name (set_header header'') nodes3 end
         |> touch_node name
     | Perspective perspective =>
         update_node name (set_perspective perspective) nodes);
@@ -240,7 +245,7 @@ end;
 
 abstype state = State of
  {versions: version Inttab.table,  (*version_id -> document content*)
-  commands: (string * Token.T list future) Inttab.table,  (*command_id -> name * span*)
+  commands: (string * Token.T list lazy) Inttab.table,  (*command_id -> name * span*)
   execution: version_id * Future.group}  (*current execution process*)
 with
 
@@ -284,13 +289,9 @@ fun parse_command id text =
 fun define_command (id: command_id) name text =
   map_state (fn (versions, commands, execution) =>
     let
-      val future =
-        (singleton o Future.forks)
-          {name = "Document.define_command", group = SOME (Future.new_group NONE),
-            deps = [], pri = ~1, interrupts = false}
-          (fn () => parse_command (print_id id) text);
+      val span = Lazy.lazy (fn () => parse_command (print_id id) text);
       val commands' =
-        Inttab.update_new (id, (name, future)) commands
+        Inttab.update_new (id, (name, span)) commands
           handle Inttab.DUP dup => err_dup "command" dup;
     in (versions, commands', execution) end);
 
@@ -305,7 +306,6 @@ fun the_command (State {commands, ...}) (id: command_id) =
 fun cancel_execution (State {execution, ...}) = Future.cancel_group (#2 execution);
 
 end;
-
 
 
 (* toplevel transactions *)
@@ -413,7 +413,7 @@ fun new_exec state bad_init command_id' (execs, command_exec, init) =
   if bad_init andalso is_none init then NONE
   else
     let
-      val (name, span) = the_command state command_id' ||> Future.join;
+      val (name, span) = the_command state command_id' ||> Lazy.force;
       val (modify_init, init') =
         if Keyword.is_theory_begin name then
           (Toplevel.modify_init (the_default illegal_init init), NONE)
@@ -447,16 +447,15 @@ fun check_theory nodes name =
 fun init_theory deps node =
   let
     (* FIXME provide files via Scala layer, not master_dir *)
-    val ((master_dir, thy_name), imports, uses) = Exn.release (get_header node);
-    val files = map (apfst Path.explode) uses;
+    val (master_dir, header) = Exn.release (get_header node);
     val parents =
-      imports |> map (fn import =>
+      #imports header |> map (fn import =>
         (case Thy_Info.lookup_theory import of  (* FIXME more robust!? *)
           SOME thy => thy
         | NONE =>
             get_theory (Position.file_only import)
               (snd (Future.join (the (AList.lookup (op =) deps import))))));
-  in Thy_Load.begin_theory (Path.explode master_dir) thy_name imports files parents end;
+  in Thy_Load.begin_theory (Path.explode master_dir) header parents end;
 
 in
 

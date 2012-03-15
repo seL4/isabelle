@@ -6,6 +6,8 @@ header {* The basis of Higher-Order Logic *}
 
 theory HOL
 imports Pure "~~/src/Tools/Code_Generator"
+keywords
+  "print_coercions" "print_coercion_maps" "print_claset" "print_induct_rules" :: diag
 uses
   ("Tools/hologic.ML")
   "~~/src/Tools/IsaPlanner/zipper.ML"

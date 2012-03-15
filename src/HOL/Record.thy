@@ -10,6 +10,7 @@ header {* Extensible records with structural subtyping *}
 
 theory Record
 imports Plain Quickcheck_Narrowing
+keywords "record" :: thy_decl
 uses ("Tools/record.ML")
 begin
 

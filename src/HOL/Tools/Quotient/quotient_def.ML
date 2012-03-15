@@ -109,7 +109,7 @@ fun lift_raw_const qtys (qconst_name, rconst, mx) ctxt =
 (* parser and command *)
 val quotdef_parser =
   Scan.option Parse_Spec.constdecl --
-    Parse.!!! (Parse_Spec.opt_thm_name ":" -- (Parse.term --| Parse.$$$ "is" -- Parse.term))
+    Parse.!!! (Parse_Spec.opt_thm_name ":" -- (Parse.term --| @{keyword "is"} -- Parse.term))
 
 val _ =
   Outer_Syntax.local_theory "quotient_definition"

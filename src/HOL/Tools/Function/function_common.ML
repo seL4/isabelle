@@ -345,7 +345,7 @@ local
      || (Parse.reserved "no_partials" >> K No_Partials))
 
   fun config_parser default =
-    (Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Parse.list1 option_parser) --| Parse.$$$ ")") [])
+    (Scan.optional (@{keyword "("} |-- Parse.!!! (Parse.list1 option_parser) --| @{keyword ")"}) [])
      >> (fn opts => fold apply_opt opts default)
 in
   fun function_parser default_cfg =

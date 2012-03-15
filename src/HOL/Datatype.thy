@@ -7,6 +7,7 @@ header {* Datatype package: constructing datatypes from Cartesian Products and D
 
 theory Datatype
 imports Product_Type Sum_Type Nat
+keywords "datatype" :: thy_decl
 uses
   ("Tools/Datatype/datatype.ML")
   ("Tools/inductive_realizer.ML")

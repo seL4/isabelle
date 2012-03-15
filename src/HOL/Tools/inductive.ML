@@ -1134,12 +1134,10 @@ val setup =
 
 (* outer syntax *)
 
-val _ = Keyword.keyword "monos";
-
 fun gen_ind_decl mk_def coind =
   Parse.fixes -- Parse.for_fixes --
   Scan.optional Parse_Spec.where_alt_specs [] --
-  Scan.optional (Parse.$$$ "monos" |-- Parse.!!! Parse_Spec.xthms1) []
+  Scan.optional (@{keyword "monos"} |-- Parse.!!! Parse_Spec.xthms1) []
   >> (fn (((preds, params), specs), monos) =>
       (snd oo gen_add_inductive mk_def true coind preds params specs monos));
 

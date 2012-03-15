@@ -9,6 +9,7 @@ Importing TPTP files into Isabelle/HOL:
 
 theory TPTP_Parser
 imports Main
+keywords "import_tptp" :: thy_decl 
 uses
   "TPTP_Parser/ml_yacc_lib.ML" (*generated from ML-Yacc's lib*)
 

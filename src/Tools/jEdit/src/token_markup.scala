@@ -178,7 +178,7 @@ object Token_Markup
       {
         val (styled_tokens, context1) =
           if (line_ctxt.isDefined && Isabelle.session.is_ready) {
-            val syntax = Isabelle.session.current_syntax()
+            val syntax = Isabelle.session.recent_syntax()
             val (tokens, ctxt1) = syntax.scan_context(line, line_ctxt.get)
             val styled_tokens =
               tokens.map(tok => (Isabelle_Rendering.token_markup(syntax, tok), tok))

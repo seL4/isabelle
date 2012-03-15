@@ -6,6 +6,9 @@ header {* Domain package *}
 
 theory Domain
 imports Representable Domain_Aux
+keywords
+  "domaindef" :: thy_decl and "lazy" "unsafe" and
+  "domain_isomorphism" "domain" :: thy_decl
 uses
   ("Tools/domaindef.ML")
   ("Tools/Domain/domain_isomorphism.ML")

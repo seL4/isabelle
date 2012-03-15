@@ -8,6 +8,7 @@ header {* Sledgehammer: Isabelle--ATP Linkup *}
 
 theory Sledgehammer
 imports ATP SMT
+keywords "sledgehammer" :: diag and "sledgehammer_params" :: thy_decl
 uses "Tools/Sledgehammer/async_manager.ML"
      "Tools/Sledgehammer/sledgehammer_util.ML"
      "Tools/Sledgehammer/sledgehammer_filter.ML"

@@ -7,6 +7,7 @@ header {* Notions about functions *}
 
 theory Fun
 imports Complete_Lattices
+keywords "enriched_type" :: thy_goal
 uses ("Tools/enriched_type.ML")
 begin
 
