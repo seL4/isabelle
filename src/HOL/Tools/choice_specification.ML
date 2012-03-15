@@ -234,11 +234,11 @@ fun process_spec axiomatic cos alt_props thy =
 
 (* outer syntax *)
 
-val opt_name = Scan.optional (Parse.name --| Parse.$$$ ":") ""
+val opt_name = Scan.optional (Parse.name --| @{keyword ":"}) ""
 val opt_overloaded = Parse.opt_keyword "overloaded"
 
 val specification_decl =
-  Parse.$$$ "(" |-- Scan.repeat1 (opt_name -- Parse.term -- opt_overloaded) --| Parse.$$$ ")" --
+  @{keyword "("} |-- Scan.repeat1 (opt_name -- Parse.term -- opt_overloaded) --| @{keyword ")"} --
           Scan.repeat1 ((Parse_Spec.opt_thm_name ":" >> apfst Binding.name_of) -- Parse.prop)
 
 val _ =
@@ -249,7 +249,7 @@ val _ =
 
 val ax_specification_decl =
     Parse.name --
-    (Parse.$$$ "(" |-- Scan.repeat1 (opt_name -- Parse.term -- opt_overloaded) --| Parse.$$$ ")" --
+    (@{keyword "("} |-- Scan.repeat1 (opt_name -- Parse.term -- opt_overloaded) --| @{keyword ")"} --
            Scan.repeat1 ((Parse_Spec.opt_thm_name ":" >> apfst Binding.name_of) -- Parse.prop))
 
 val _ =

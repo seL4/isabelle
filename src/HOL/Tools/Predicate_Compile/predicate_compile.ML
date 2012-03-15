@@ -221,15 +221,15 @@ val mode_and_opt_proposal = parse_mode_expr --
 
 
 val opt_modes =
-  Scan.optional (Parse.$$$ "(" |-- Args.$$$ "modes" |-- Parse.$$$ ":" |--
-    (((Parse.enum1 "and" (Parse.xname --| Parse.$$$ ":" --
+  Scan.optional (@{keyword "("} |-- Args.$$$ "modes" |-- @{keyword ":"} |--
+    (((Parse.enum1 "and" (Parse.xname --| @{keyword ":"} --
         (Parse.enum "," mode_and_opt_proposal))) >> Multiple_Preds)
       || ((Parse.enum "," mode_and_opt_proposal) >> Single_Pred))
-    --| Parse.$$$ ")") (Multiple_Preds [])
+    --| @{keyword ")"}) (Multiple_Preds [])
 
 val opt_expected_modes =
-  Scan.optional (Parse.$$$ "(" |-- Args.$$$ "expected_modes" |-- Parse.$$$ ":" |--
-    Parse.enum "," parse_mode_expr --| Parse.$$$ ")" >> SOME) NONE
+  Scan.optional (@{keyword "("} |-- Args.$$$ "expected_modes" |-- @{keyword ":"} |--
+    Parse.enum "," parse_mode_expr --| @{keyword ")"} >> SOME) NONE
 
 (* Parser for options *)
 
@@ -238,18 +238,18 @@ val scan_options =
     val scan_bool_option = foldl1 (op ||) (map Args.$$$ bool_options)
     val scan_compilation = foldl1 (op ||) (map (fn (s, c) => Args.$$$ s >> K c) compilation_names)
   in
-    Scan.optional (Parse.$$$ "[" |-- Scan.optional scan_compilation Pred
-      -- Parse.enum "," scan_bool_option --| Parse.$$$ "]")
+    Scan.optional (@{keyword "["} |-- Scan.optional scan_compilation Pred
+      -- Parse.enum "," scan_bool_option --| @{keyword "]"})
       (Pred, [])
   end
 
 val opt_print_modes =
-  Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Scan.repeat1 Parse.xname --| Parse.$$$ ")")) [];
+  Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.xname --| @{keyword ")"})) [];
 
-val opt_mode = (Parse.$$$ "_" >> K NONE) || (parse_mode_expr >> SOME)
+val opt_mode = (Args.$$$ "_" >> K NONE) || (parse_mode_expr >> SOME)
 
-val opt_param_modes = Scan.optional (Parse.$$$ "[" |-- Args.$$$ "mode" |-- Parse.$$$ ":" |--
-  Parse.enum ", " opt_mode --| Parse.$$$ "]" >> SOME) NONE
+val opt_param_modes = Scan.optional (@{keyword "["} |-- Args.$$$ "mode" |-- @{keyword ":"} |--
+  Parse.enum ", " opt_mode --| @{keyword "]"} >> SOME) NONE
 
 val stats = Scan.optional (Args.$$$ "stats" >> K true) false
 
@@ -264,7 +264,7 @@ val value_options =
         (Pred, [])
   in
     Scan.optional
-      (Parse.$$$ "[" |-- (expected_values -- stats) -- scan_compilation --| Parse.$$$ "]")
+      (@{keyword "["} |-- (expected_values -- stats) -- scan_compilation --| @{keyword "]"})
       ((NONE, false), (Pred, []))
   end
 

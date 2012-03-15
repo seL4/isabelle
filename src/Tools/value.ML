@@ -57,10 +57,10 @@ fun value_cmd some_name modes raw_t state =
   in Pretty.writeln p end;
 
 val opt_modes =
-  Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Scan.repeat1 Parse.xname --| Parse.$$$ ")")) [];
+  Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.xname --| @{keyword ")"})) [];
 
 val opt_evaluator =
-  Scan.option (Parse.$$$ "[" |-- Parse.xname --| Parse.$$$ "]")
+  Scan.option (@{keyword "["} |-- Parse.xname --| @{keyword "]"})
   
 val _ =
   Outer_Syntax.improper_command "value" "evaluate and print term" Keyword.diag

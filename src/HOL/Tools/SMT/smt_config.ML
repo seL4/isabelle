@@ -86,7 +86,7 @@ fun add_solver (info as {name, ...} : solver_info) context =
     context
     |> Solvers.map (apfst (Symtab.update (name, (info, []))))
     |> Context.map_theory (Attrib.setup (Binding.name (name ^ "_options"))
-        (Scan.lift (Parse.$$$ "=" |-- Args.name) >>
+        (Scan.lift (@{keyword "="} |-- Args.name) >>
           (Thm.declaration_attribute o K o set_solver_options o pair name))
         ("Additional command line options for SMT solver " ^ quote name))
 
@@ -142,7 +142,7 @@ fun solver_options_of ctxt =
 
 val setup_solver =
   Attrib.setup @{binding smt_solver}
-    (Scan.lift (Parse.$$$ "=" |-- Args.name) >>
+    (Scan.lift (@{keyword "="} |-- Args.name) >>
       (Thm.declaration_attribute o K o select_solver))
     "SMT solver configuration"
 
@@ -207,7 +207,7 @@ val certificates_of = Certificates.get o Context.Proof
 
 val setup_certificates =
   Attrib.setup @{binding smt_certificates}
-    (Scan.lift (Parse.$$$ "=" |-- Args.name) >>
+    (Scan.lift (@{keyword "="} |-- Args.name) >>
       (Thm.declaration_attribute o K o select_certificates))
     "SMT certificates configuration"
 

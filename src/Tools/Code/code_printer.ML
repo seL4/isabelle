@@ -394,13 +394,11 @@ fun parse_mixfix mk_plain mk_complex prep_arg s =
     | _ => Scan.!! (err s) Scan.fail ()
   end;
 
-val (infixK, infixlK, infixrK) = ("infix", "infixl", "infixr");
-
 fun parse_syntax mk_plain mk_complex prep_arg =
   Scan.option (
-      ((Parse.$$$ infixK >> K X)
-        || (Parse.$$$ infixlK >> K L)
-        || (Parse.$$$ infixrK >> K R))
+      ((@{keyword "infix"} >> K X)
+        || (@{keyword "infixl"} >> K L)
+        || (@{keyword "infixr"} >> K R))
         -- Parse.nat -- Parse.string
         >> (fn ((x, i), s) => mk_complex (parse_infix prep_arg (x, i) s))
       || Parse.string >> (fn s => (parse_mixfix mk_plain mk_complex prep_arg s)));

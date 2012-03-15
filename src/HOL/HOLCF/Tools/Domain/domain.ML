@@ -229,21 +229,21 @@ val add_new_domain_cmd =
 (** outer syntax **)
 
 val dest_decl : (bool * binding option * string) parser =
-  Parse.$$$ "(" |-- Scan.optional (Parse.$$$ "lazy" >> K true) false --
-    (Parse.binding >> SOME) -- (Parse.$$$ "::" |-- Parse.typ)  --| Parse.$$$ ")" >> Parse.triple1
-    || Parse.$$$ "(" |-- Parse.$$$ "lazy" |-- Parse.typ --| Parse.$$$ ")"
-    >> (fn t => (true,NONE,t))
-    || Parse.typ >> (fn t => (false,NONE,t))
+  @{keyword "("} |-- Scan.optional (@{keyword "lazy"} >> K true) false --
+    (Parse.binding >> SOME) -- (@{keyword "::"} |-- Parse.typ)  --| @{keyword ")"} >> Parse.triple1
+    || @{keyword "("} |-- @{keyword "lazy"} |-- Parse.typ --| @{keyword ")"}
+    >> (fn t => (true, NONE, t))
+    || Parse.typ >> (fn t => (false, NONE, t))
 
 val cons_decl =
   Parse.binding -- Scan.repeat dest_decl -- Parse.opt_mixfix
 
 val domain_decl =
   (Parse.type_args_constrained -- Parse.binding -- Parse.opt_mixfix) --
-    (Parse.$$$ "=" |-- Parse.enum1 "|" cons_decl)
+    (@{keyword "="} |-- Parse.enum1 "|" cons_decl)
 
 val domains_decl =
-  Scan.optional (Parse.$$$ "(" |-- (Parse.$$$ "unsafe" >> K true) --| Parse.$$$ ")") false --
+  Scan.optional (@{keyword "("} |-- (@{keyword "unsafe"} >> K true) --| @{keyword ")"}) false --
     Parse.and_list1 domain_decl
 
 fun mk_domain

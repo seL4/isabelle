@@ -302,12 +302,12 @@ end;
 val _ =
   Outer_Syntax.local_theory_to_proof "typedef" "HOL type definition (requires non-emptiness proof)"
     Keyword.thy_goal
-    (Scan.optional (Parse.$$$ "(" |--
-        ((Parse.$$$ "open" >> K false) -- Scan.option Parse.binding ||
-          Parse.binding >> (fn s => (true, SOME s))) --| Parse.$$$ ")") (true, NONE) --
+    (Scan.optional (@{keyword "("} |--
+        ((@{keyword "open"} >> K false) -- Scan.option Parse.binding ||
+          Parse.binding >> (fn s => (true, SOME s))) --| @{keyword ")"}) (true, NONE) --
       (Parse.type_args_constrained -- Parse.binding) --
-        Parse.opt_mixfix -- (Parse.$$$ "=" |-- Parse.term) --
-        Scan.option (Parse.$$$ "morphisms" |-- Parse.!!! (Parse.binding -- Parse.binding))
+        Parse.opt_mixfix -- (@{keyword "="} |-- Parse.term) --
+        Scan.option (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding))
     >> (fn ((((((def, opt_name), (args, t)), mx), A), morphs)) =>
         typedef_cmd ((def, the_default t opt_name), (t, args, mx), A, morphs)));
 

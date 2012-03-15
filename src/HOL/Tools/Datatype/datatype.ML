@@ -788,7 +788,7 @@ val add_datatype_cmd = gen_add_datatype read_specs;
 
 val spec_cmd =
   Parse.type_args_constrained -- Parse.binding -- Parse.opt_mixfix --
-  (Parse.$$$ "=" |-- Parse.enum1 "|" (Parse.binding -- Scan.repeat Parse.typ -- Parse.opt_mixfix))
+  (@{keyword "="} |-- Parse.enum1 "|" (Parse.binding -- Scan.repeat Parse.typ -- Parse.opt_mixfix))
   >> (fn (((vs, t), mx), cons) => ((t, vs, mx), map Parse.triple1 cons));
 
 val _ =

@@ -189,10 +189,10 @@ val setup =
 (* outer syntax *)
 
 val rep_datatype_decl =
-  (Parse.$$$ "elimination" |-- Parse.!!! Parse_Spec.xthm) --
-  (Parse.$$$ "induction" |-- Parse.!!! Parse_Spec.xthm) --
-  (Parse.$$$ "case_eqns" |-- Parse.!!! Parse_Spec.xthms1) --
-  Scan.optional (Parse.$$$ "recursor_eqns" |-- Parse.!!! Parse_Spec.xthms1) []
+  (@{keyword "elimination"} |-- Parse.!!! Parse_Spec.xthm) --
+  (@{keyword "induction"} |-- Parse.!!! Parse_Spec.xthm) --
+  (@{keyword "case_eqns"} |-- Parse.!!! Parse_Spec.xthms1) --
+  Scan.optional (@{keyword "recursor_eqns"} |-- Parse.!!! Parse_Spec.xthms1) []
   >> (fn (((x, y), z), w) => rep_datatype x y z w);
 
 val _ =

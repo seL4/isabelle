@@ -580,14 +580,14 @@ fun mk_ind (((((doms, intrs), monos), con_defs), type_intrs), type_elims) =
   #1 o add_inductive doms (map Parse.triple_swap intrs) (monos, con_defs, type_intrs, type_elims);
 
 val ind_decl =
-  (Parse.$$$ "domains" |-- Parse.!!! (Parse.enum1 "+" Parse.term --
-      ((Parse.$$$ "\<subseteq>" || Parse.$$$ "<=") |-- Parse.term))) --
-  (Parse.$$$ "intros" |--
+  (@{keyword "domains"} |-- Parse.!!! (Parse.enum1 "+" Parse.term --
+      ((@{keyword "\<subseteq>"} || @{keyword "<="}) |-- Parse.term))) --
+  (@{keyword "intros"} |--
     Parse.!!! (Scan.repeat1 (Parse_Spec.opt_thm_name ":" -- Parse.prop))) --
-  Scan.optional (Parse.$$$ "monos" |-- Parse.!!! Parse_Spec.xthms1) [] --
-  Scan.optional (Parse.$$$ "con_defs" |-- Parse.!!! Parse_Spec.xthms1) [] --
-  Scan.optional (Parse.$$$ "type_intros" |-- Parse.!!! Parse_Spec.xthms1) [] --
-  Scan.optional (Parse.$$$ "type_elims" |-- Parse.!!! Parse_Spec.xthms1) []
+  Scan.optional (@{keyword "monos"} |-- Parse.!!! Parse_Spec.xthms1) [] --
+  Scan.optional (@{keyword "con_defs"} |-- Parse.!!! Parse_Spec.xthms1) [] --
+  Scan.optional (@{keyword "type_intros"} |-- Parse.!!! Parse_Spec.xthms1) [] --
+  Scan.optional (@{keyword "type_elims"} |-- Parse.!!! Parse_Spec.xthms1) []
   >> (Toplevel.theory o mk_ind);
 
 val _ =

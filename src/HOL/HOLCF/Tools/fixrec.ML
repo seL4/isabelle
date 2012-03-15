@@ -391,15 +391,15 @@ end (* local *)
 (*************************************************************************)
 
 val opt_thm_name' : (bool * Attrib.binding) parser =
-  Parse.$$$ "(" -- Parse.$$$ "unchecked" -- Parse.$$$ ")" >> K (true, Attrib.empty_binding)
+  @{keyword "("} -- @{keyword "unchecked"} -- @{keyword ")"} >> K (true, Attrib.empty_binding)
     || Parse_Spec.opt_thm_name ":" >> pair false
 
 val spec' : (bool * (Attrib.binding * string)) parser =
   opt_thm_name' -- Parse.prop >> (fn ((a, b), c) => (a, (b, c)))
 
 val alt_specs' : (bool * (Attrib.binding * string)) list parser =
-  let val unexpected = Scan.ahead (Parse.name || Parse.$$$ "[" || Parse.$$$ "(")
-  in Parse.enum1 "|" (spec' --| Scan.option (unexpected -- Parse.!!! (Parse.$$$ "|"))) end
+  let val unexpected = Scan.ahead (Parse.name || @{keyword "["} || @{keyword "("})
+  in Parse.enum1 "|" (spec' --| Scan.option (unexpected -- Parse.!!! (@{keyword "|"}))) end
 
 val _ =
   Outer_Syntax.local_theory "fixrec" "define recursive functions (HOLCF)" Keyword.thy_decl

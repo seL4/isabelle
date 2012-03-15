@@ -262,15 +262,15 @@ fun quotient_type_cmd specs lthy =
     quotient_type spec' lthy
   end
 
-val partial = Scan.optional (Parse.reserved "partial" -- Parse.$$$ ":" >> K true) false
+val partial = Scan.optional (Parse.reserved "partial" -- @{keyword ":"} >> K true) false
 
 val quotspec_parser =
   Parse.and_list1
     ((Parse.type_args -- Parse.binding) --
       (* FIXME Parse.type_args_constrained and standard treatment of sort constraints *)
-      Parse.opt_mixfix -- (Parse.$$$ "=" |-- Parse.typ) --
-        (Parse.$$$ "/" |-- (partial -- Parse.term))  --
-        Scan.option (Parse.$$$ "morphisms" |-- Parse.!!! (Parse.binding -- Parse.binding)))
+      Parse.opt_mixfix -- (@{keyword "="} |-- Parse.typ) --
+        (@{keyword "/"} |-- (partial -- Parse.term))  --
+        Scan.option (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding)))
 
 val _ =
   Outer_Syntax.local_theory_to_proof "quotient_type"

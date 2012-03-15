@@ -344,24 +344,19 @@ val _ =
 
 local
 
-val datatypesK = "datatypes";
-val functionsK = "functions";
-val fileK = "file";
-val andK = "and"
-
 val parse_datatype =
-  Parse.name --| Parse.$$$ "=" --
+  Parse.name --| @{keyword "="} --
     (((Parse.sym_ident || Parse.string) >> (fn "_" => NONE | _ => Scan.fail ()))
-    || ((Parse.term ::: (Scan.repeat (Parse.$$$ "|" |-- Parse.term))) >> SOME));
+    || ((Parse.term ::: (Scan.repeat (@{keyword "|"} |-- Parse.term))) >> SOME));
 
 in
 
 val _ =
   Outer_Syntax.command "code_reflect" "enrich runtime environment with generated code"
-    Keyword.thy_decl (Parse.name -- Scan.optional (Parse.$$$ datatypesK |-- (parse_datatype
-      ::: Scan.repeat (Parse.$$$ andK |-- parse_datatype))) []
-    -- Scan.optional (Parse.$$$ functionsK |-- Scan.repeat1 Parse.name) []
-    -- Scan.option (Parse.$$$ fileK |-- Parse.name)
+    Keyword.thy_decl (Parse.name -- Scan.optional (@{keyword "datatypes"} |-- (parse_datatype
+      ::: Scan.repeat (@{keyword "and"} |-- parse_datatype))) []
+    -- Scan.optional (@{keyword "functions"} |-- Scan.repeat1 Parse.name) []
+    -- Scan.option (@{keyword "file"} |-- Parse.name)
   >> (fn (((module_name, raw_datatypes), raw_functions), some_file) => Toplevel.theory
     (code_reflect_cmd raw_datatypes raw_functions module_name some_file)));
 

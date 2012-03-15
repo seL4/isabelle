@@ -71,7 +71,7 @@ val lookup_quotmaps_global = Symtab.lookup o Quotmaps.get o Context.Theory
 
 val quotmaps_attribute_setup =
   Attrib.setup @{binding map}
-    ((Args.type_name false --| Scan.lift (Parse.$$$ "=")) --  (* FIXME Args.type_name true (requires "set" type) *)
+    ((Args.type_name false --| Scan.lift (@{keyword "="})) --  (* FIXME Args.type_name true (requires "set" type) *)
       Args.const_proper true >>
       (fn (tyname, relname) =>
         let val minfo = {relmap = relname}

@@ -762,8 +762,8 @@ local
 val parse_domain_iso :
     (string list * binding * mixfix * string * (binding * binding) option)
       parser =
-  (Parse.type_args -- Parse.binding -- Parse.opt_mixfix -- (Parse.$$$ "=" |-- Parse.typ) --
-    Scan.option (Parse.$$$ "morphisms" |-- Parse.!!! (Parse.binding -- Parse.binding)))
+  (Parse.type_args -- Parse.binding -- Parse.opt_mixfix -- (@{keyword "="} |-- Parse.typ) --
+    Scan.option (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding)))
     >> (fn ((((vs, t), mx), rhs), morphs) => (vs, t, mx, rhs, morphs))
 
 val parse_domain_isos = Parse.and_list1 parse_domain_iso

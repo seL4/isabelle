@@ -344,13 +344,13 @@ end
 (** outer syntax **)
 
 val typedef_proof_decl =
-  Scan.optional (Parse.$$$ "(" |--
-      ((Parse.$$$ "open" >> K false) -- Scan.option Parse.binding ||
+  Scan.optional (@{keyword "("} |--
+      ((@{keyword "open"} >> K false) -- Scan.option Parse.binding ||
         Parse.binding >> (fn s => (true, SOME s)))
-        --| Parse.$$$ ")") (true, NONE) --
+        --| @{keyword ")"}) (true, NONE) --
     (Parse.type_args_constrained -- Parse.binding) -- Parse.opt_mixfix --
-    (Parse.$$$ "=" |-- Parse.term) --
-    Scan.option (Parse.$$$ "morphisms" |-- Parse.!!! (Parse.binding -- Parse.binding))
+    (@{keyword "="} |-- Parse.term) --
+    Scan.option (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding))
 
 fun mk_pcpodef_proof pcpo ((((((def, opt_name), (args, t)), mx), A), morphs)) =
   (if pcpo then pcpodef_proof_cmd else cpodef_proof_cmd)

@@ -392,14 +392,14 @@ end;
 val freshness_context = Parse.reserved "freshness_context";
 val invariant = Parse.reserved "invariant";
 
-fun unless_flag scan = Scan.unless ((freshness_context || invariant) -- Parse.$$$ ":") scan;
+fun unless_flag scan = Scan.unless ((freshness_context || invariant) -- @{keyword ":"}) scan;
 
-val parser1 = (freshness_context -- Parse.$$$ ":") |-- unless_flag Parse.term >> SOME;
-val parser2 = (invariant -- Parse.$$$ ":") |--
+val parser1 = (freshness_context -- @{keyword ":"}) |-- unless_flag Parse.term >> SOME;
+val parser2 = (invariant -- @{keyword ":"}) |--
     (Scan.repeat1 (unless_flag Parse.term) >> SOME) -- Scan.optional parser1 NONE ||
   (parser1 >> pair NONE);
 val options =
-  Scan.optional (Parse.$$$ "(" |-- Parse.!!! (parser2 --| Parse.$$$ ")")) (NONE, NONE);
+  Scan.optional (@{keyword "("} |-- Parse.!!! (parser2 --| @{keyword ")"})) (NONE, NONE);
 
 val _ =
   Outer_Syntax.local_theory_to_proof "nominal_primrec"
