@@ -43,15 +43,15 @@ structure Data = Theory_Data
   fun merge data : T = Symtab.merge (op =) data handle Symtab.DUP name => err_dup name;
 );
 
-fun declare_keyword (name, kind) =
-  Data.map (fn data =>
-   (if is_none kind then Keyword.keyword name else ();
-    Symtab.update_new (name, Option.map Keyword.make kind) data
-      handle Symtab.DUP name => err_dup name));
+fun declare_keyword (name, decl) = Data.map (fn data =>
+  let
+    val kind = Option.map Keyword.make decl;
+    val _ = Keyword.declare name kind;
+  in Symtab.update_new (name, kind) data handle Symtab.DUP name => err_dup name end);
 
 fun the_keyword thy name =
   (case Symtab.lookup (Data.get thy) name of
-    SOME decl => decl
+    SOME kind => kind
   | NONE => error ("Unknown outer syntax keyword " ^ quote name));
 
 

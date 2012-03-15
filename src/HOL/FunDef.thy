@@ -6,6 +6,7 @@ header {* Function Definitions and Termination Proofs *}
 
 theory FunDef
 imports Partial_Function Wellfounded
+keywords "function" "termination" :: thy_goal and "fun" :: thy_decl
 uses
   "Tools/prop_logic.ML"
   "Tools/sat_solver.ML"

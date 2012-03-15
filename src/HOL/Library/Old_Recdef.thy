@@ -6,7 +6,10 @@ header {* TFL: recursive function definitions *}
 
 theory Old_Recdef
 imports Wfrec
-keywords "recdef" :: thy_decl and "permissive" "congs" "hints"
+keywords
+  "recdef" "defer_recdef" :: thy_decl and
+  "recdef_tc" :: thy_goal and
+  "permissive" "congs" "hints"
 uses
   ("~~/src/HOL/Tools/TFL/casesplit.ML")
   ("~~/src/HOL/Tools/TFL/utils.ML")

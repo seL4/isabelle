@@ -1,6 +1,9 @@
 theory Nominal 
 imports Main "~~/src/HOL/Library/Infinite_Set"
-keywords "avoids"
+keywords
+  "atom_decl" "nominal_datatype" "equivariance" :: thy_decl and
+  "nominal_primrec" "nominal_inductive" "nominal_inductive2" :: thy_goal and
+  "avoids"
 uses
   ("nominal_thmdecls.ML")
   ("nominal_atoms.ML")

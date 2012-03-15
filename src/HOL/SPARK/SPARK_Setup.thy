@@ -7,6 +7,9 @@ Setup for SPARK/Ada verification environment.
 
 theory SPARK_Setup
 imports Word
+keywords
+  "spark_open" "spark_proof_functions" "spark_types" "spark_end" :: thy_decl and
+  "spark_vc" :: thy_goal and "spark_status" :: diag
 uses
   "Tools/fdl_lexer.ML"
   "Tools/fdl_parser.ML"

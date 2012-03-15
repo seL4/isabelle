@@ -6,7 +6,11 @@ header {* Knaster-Tarski Fixpoint Theorem and inductive definitions *}
 
 theory Inductive 
 imports Complete_Lattices
-keywords "monos"
+keywords
+  "inductive" "coinductive" :: thy_decl and
+  "inductive_cases" "inductive_simps" :: thy_script and "monos" and
+  "rep_datatype" :: thy_goal and
+  "primrec" :: thy_decl
 uses
   "Tools/dseq.ML"
   ("Tools/inductive.ML")

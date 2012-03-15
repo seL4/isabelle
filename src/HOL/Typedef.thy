@@ -6,7 +6,7 @@ header {* HOL type definitions *}
 
 theory Typedef
 imports Set
-keywords "morphisms"
+keywords "typedef" :: thy_goal and "morphisms"
 uses ("Tools/typedef.ML")
 begin
 

@@ -4,6 +4,7 @@ header {* A simple counterexample generator performing exhaustive testing *}
 
 theory Quickcheck_Exhaustive
 imports Quickcheck
+keywords "quickcheck_generator" :: thy_decl
 uses
   ("Tools/Quickcheck/exhaustive_generators.ML")
   ("Tools/Quickcheck/abstract_generators.ML")

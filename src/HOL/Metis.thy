@@ -8,6 +8,7 @@ header {* Metis Proof Method *}
 
 theory Metis
 imports ATP
+keywords "try0" :: diag
 uses "~~/src/Tools/Metis/metis.ML"
      ("Tools/Metis/metis_generate.ML")
      ("Tools/Metis/metis_reconstruct.ML")

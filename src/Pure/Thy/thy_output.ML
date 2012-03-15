@@ -626,6 +626,8 @@ end;
 
 (* embedded lemma *)
 
+val _ = Keyword.keyword "by";
+
 val _ =
   Context.>> (Context.map_theory
    (antiquotation (Binding.name "lemma")

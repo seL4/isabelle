@@ -14,8 +14,10 @@ header{*Inductive and Coinductive Definitions*}
 theory Inductive_ZF
 imports Fixedpt QPair Nat_ZF
 keywords
-  "elimination" "induction" "case_eqns" "recursor_eqns"
+  "inductive" "coinductive" "rep_datatype" "primrec" :: thy_decl and
+  "inductive_cases" :: thy_script and
   "domains" "intros" "monos" "con_defs" "type_intros" "type_elims"
+  "elimination" "induction" "case_eqns" "recursor_eqns"
 uses
   ("ind_syntax.ML")
   ("Tools/cartprod.ML")

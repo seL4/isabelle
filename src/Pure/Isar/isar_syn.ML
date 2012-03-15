@@ -21,7 +21,7 @@ val _ = Context.>> (Context.map_theory
     "constrains", "defines", "fixes", "for", "identifier", "if",
     "imports", "in", "infix", "infixl", "infixr", "is", "keywords",
     "notes", "obtains", "open", "output", "overloaded", "pervasive",
-    "shows", "structure", "unchecked", "uses", "where", "|", "by"]));
+    "shows", "structure", "unchecked", "uses", "where", "|"]));
 
 
 

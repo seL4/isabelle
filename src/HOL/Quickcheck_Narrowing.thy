@@ -4,6 +4,7 @@ header {* Counterexample generator performing narrowing-based testing *}
 
 theory Quickcheck_Narrowing
 imports Quickcheck_Exhaustive
+keywords "find_unused_assms" :: diag
 uses
   ("Tools/Quickcheck/PNF_Narrowing_Engine.hs")
   ("Tools/Quickcheck/Narrowing_Engine.hs")

@@ -6,7 +6,13 @@ header {* Loading the code generator and related modules *}
 
 theory Code_Generator
 imports Pure
-keywords "datatypes" "functions" "module_name" "file" "checking"
+keywords
+  "try" "solve_direct" "quickcheck" "value" "print_codeproc"
+    "code_thms" "code_deps" "export_code" :: diag and
+  "quickcheck_params" "code_class" "code_instance" "code_type"
+    "code_const" "code_reserved" "code_include" "code_modulename"
+    "code_abort" "code_monad" "code_reflect" :: thy_decl and
+  "datatypes" "functions" "module_name" "file" "checking"
 uses
   "~~/src/Tools/misc_legacy.ML"
   "~~/src/Tools/cache_io.ML"

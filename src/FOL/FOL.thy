@@ -6,6 +6,7 @@ header {* Classical first-order logic *}
 
 theory FOL
 imports IFOL
+keywords "print_claset" "print_induct_rules" :: diag
 uses
   "~~/src/Provers/classical.ML"
   "~~/src/Provers/blast.ML"

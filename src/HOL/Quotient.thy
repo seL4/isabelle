@@ -6,7 +6,10 @@ header {* Definition of Quotient Types *}
 
 theory Quotient
 imports Plain Hilbert_Choice Equiv_Relations
-keywords "/"
+keywords
+  "print_quotmaps" "print_quotients" "print_quotconsts" :: diag and
+  "quotient_type" :: thy_goal and "/" and
+  "quotient_definition" :: thy_decl
 uses
   ("Tools/Quotient/quotient_info.ML")
   ("Tools/Quotient/quotient_type.ML")

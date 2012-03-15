@@ -4,7 +4,10 @@
 
 theory Importer
 imports Main
-keywords ">"
+keywords
+  "import_segment" "import_theory" "end_import" "setup_theory" "end_setup"
+  "setup_dump" "append_dump" "flush_dump" "ignore_thms" "type_maps"
+  "def_maps" "thm_maps" "const_renames" "const_moves" "const_maps" :: thy_decl and ">"
 uses "shuffler.ML" "import_rews.ML" ("proof_kernel.ML") ("replay.ML") ("import.ML")
 begin
 
