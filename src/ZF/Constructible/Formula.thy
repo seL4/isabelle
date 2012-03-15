@@ -13,10 +13,10 @@ text{*De Bruijn representation.
 
 consts   formula :: i
 datatype
-  "formula" = Member ("x: nat", "y: nat")
-            | Equal  ("x: nat", "y: nat")
-            | Nand ("p: formula", "q: formula")
-            | Forall ("p: formula")
+  "formula" = Member ("x \<in> nat", "y \<in> nat")
+            | Equal  ("x \<in> nat", "y \<in> nat")
+            | Nand ("p \<in> formula", "q \<in> formula")
+            | Forall ("p \<in> formula")
 
 declare formula.intros [TC]
 
@@ -488,7 +488,7 @@ Then @{term "A<=B"} and obviously @{term "A \<in> DPow(A)"} but @{term "A \<noti
 DPow(B)"}.*}
 
 (*This may be true but the proof looks difficult, requiring relativization
-lemma DPow_insert: "DPow (cons(a,A)) = DPow(A) \<union> {cons(a,X) . X: DPow(A)}"
+lemma DPow_insert: "DPow (cons(a,A)) = DPow(A) \<union> {cons(a,X) . X \<in> DPow(A)}"
 apply (rule equalityI, safe)
 oops
 *)
@@ -656,7 +656,7 @@ qed
 
 text{*This version lets us remove the premise @{term "Ord(i)"} sometimes.*}
 lemma Lset_mono_mem [rule_format]:
-     "\<forall>j. i:j \<longrightarrow> Lset(i) \<subseteq> Lset(j)"
+     "\<forall>j. i \<in> j \<longrightarrow> Lset(i) \<subseteq> Lset(j)"
 proof (induct i rule: eps_induct, intro allI impI)
   fix x j
   assume "\<forall>y\<in>x. \<forall>j. y \<in> j \<longrightarrow> Lset(y) \<subseteq> Lset(j)"
@@ -712,12 +712,12 @@ lemma Limit_Lset_eq:
     "Limit(i) ==> Lset(i) = (\<Union>y\<in>i. Lset(y))"
 by (simp add: Lset_Union [symmetric] Limit_Union_eq)
 
-lemma lt_LsetI: "[| a: Lset(j);  j<i |] ==> a \<in> Lset(i)"
+lemma lt_LsetI: "[| a \<in> Lset(j);  j<i |] ==> a \<in> Lset(i)"
 by (blast dest: Lset_mono [OF le_imp_subset [OF leI]])
 
 lemma Limit_LsetE:
-    "[| a: Lset(i);  ~R ==> Limit(i);
-        !!x. [| x<i;  a: Lset(x) |] ==> R
+    "[| a \<in> Lset(i);  ~R ==> Limit(i);
+        !!x. [| x<i;  a \<in> Lset(x) |] ==> R
      |] ==> R"
 apply (rule classical)
 apply (rule Limit_Lset_eq [THEN equalityD1, THEN subsetD, THEN UN_E])
@@ -728,7 +728,7 @@ done
 
 subsubsection{* Basic closure properties *}
 
-lemma zero_in_Lset: "y:x ==> 0 \<in> Lset(x)"
+lemma zero_in_Lset: "y \<in> x ==> 0 \<in> Lset(x)"
 by (subst Lset, blast intro: empty_in_DPow)
 
 lemma notin_Lset: "x \<notin> Lset(x)"
@@ -792,15 +792,15 @@ by (simp add: L_def, blast dest: Union_in_Lset)
 
 subsubsection{* Finite sets and ordered pairs *}
 
-lemma singleton_in_Lset: "a: Lset(i) ==> {a} \<in> Lset(succ(i))"
+lemma singleton_in_Lset: "a \<in> Lset(i) ==> {a} \<in> Lset(succ(i))"
 by (simp add: Lset_succ singleton_in_DPow)
 
 lemma doubleton_in_Lset:
-     "[| a: Lset(i);  b: Lset(i) |] ==> {a,b} \<in> Lset(succ(i))"
+     "[| a \<in> Lset(i);  b \<in> Lset(i) |] ==> {a,b} \<in> Lset(succ(i))"
 by (simp add: Lset_succ empty_in_DPow cons_in_DPow)
 
 lemma Pair_in_Lset:
-    "[| a: Lset(i);  b: Lset(i); Ord(i) |] ==> <a,b> \<in> Lset(succ(succ(i)))"
+    "[| a \<in> Lset(i);  b \<in> Lset(i); Ord(i) |] ==> <a,b> \<in> Lset(succ(succ(i)))"
 apply (unfold Pair_def)
 apply (blast intro: doubleton_in_Lset)
 done
@@ -808,9 +808,9 @@ done
 lemmas Lset_UnI1 = Un_upper1 [THEN Lset_mono [THEN subsetD]]
 lemmas Lset_UnI2 = Un_upper2 [THEN Lset_mono [THEN subsetD]]
 
-text{*Hard work is finding a single j:i such that {a,b}<=Lset(j)*}
+text{*Hard work is finding a single @{term"j \<in> i"} such that @{term"{a,b} \<subseteq> Lset(j)"}*}
 lemma doubleton_in_LLimit:
-    "[| a: Lset(i);  b: Lset(i);  Limit(i) |] ==> {a,b} \<in> Lset(i)"
+    "[| a \<in> Lset(i);  b \<in> Lset(i);  Limit(i) |] ==> {a,b} \<in> Lset(i)"
 apply (erule Limit_LsetE, assumption)
 apply (erule Limit_LsetE, assumption)
 apply (blast intro: lt_LsetI [OF doubleton_in_Lset]
@@ -824,7 +824,7 @@ apply (blast intro: lt_LsetI doubleton_in_LLimit Limit_is_Ord)
 done
 
 lemma Pair_in_LLimit:
-    "[| a: Lset(i);  b: Lset(i);  Limit(i) |] ==> <a,b> \<in> Lset(i)"
+    "[| a \<in> Lset(i);  b \<in> Lset(i);  Limit(i) |] ==> <a,b> \<in> Lset(i)"
 txt{*Infer that a, b occur at ordinals x,xa < i.*}
 apply (erule Limit_LsetE, assumption)
 apply (erule Limit_LsetE, assumption)

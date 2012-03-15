@@ -11,7 +11,7 @@ consts
   list       :: "i=>i"
 
 datatype
-  "list(A)" = Nil | Cons ("a:A", "l: list(A)")
+  "list(A)" = Nil | Cons ("a \<in> A", "l \<in> list(A)")
 
 
 syntax
@@ -171,13 +171,13 @@ done
 (*These two theorems justify datatypes involving list(nat), list(A), ...*)
 lemmas list_subset_univ = subset_trans [OF list_mono list_univ]
 
-lemma list_into_univ: "[| l: list(A);  A \<subseteq> univ(B) |] ==> l: univ(B)"
+lemma list_into_univ: "[| l \<in> list(A);  A \<subseteq> univ(B) |] ==> l \<in> univ(B)"
 by (blast intro: list_subset_univ [THEN subsetD])
 
 lemma list_case_type:
-    "[| l: list(A);
-        c: C(Nil);
-        !!x y. [| x: A;  y: list(A) |] ==> h(x,y): C(Cons(x,y))
+    "[| l \<in> list(A);
+        c \<in> C(Nil);
+        !!x y. [| x \<in> A;  y \<in> list(A) |] ==> h(x,y): C(Cons(x,y))
      |] ==> list_case(c,h,l) \<in> C(l)"
 by (erule list.induct, auto)
 
@@ -189,26 +189,26 @@ done
 
 (*** List functions ***)
 
-lemma tl_type: "l: list(A) ==> tl(l) \<in> list(A)"
+lemma tl_type: "l \<in> list(A) ==> tl(l) \<in> list(A)"
 apply (induct_tac "l")
 apply (simp_all (no_asm_simp) add: list.intros)
 done
 
 (** drop **)
 
-lemma drop_Nil [simp]: "i:nat ==> drop(i, Nil) = Nil"
+lemma drop_Nil [simp]: "i \<in> nat ==> drop(i, Nil) = Nil"
 apply (induct_tac "i")
 apply (simp_all (no_asm_simp))
 done
 
-lemma drop_succ_Cons [simp]: "i:nat ==> drop(succ(i), Cons(a,l)) = drop(i,l)"
+lemma drop_succ_Cons [simp]: "i \<in> nat ==> drop(succ(i), Cons(a,l)) = drop(i,l)"
 apply (rule sym)
 apply (induct_tac "i")
 apply (simp (no_asm))
 apply (simp (no_asm_simp))
 done
 
-lemma drop_type [simp,TC]: "[| i:nat; l: list(A) |] ==> drop(i,l) \<in> list(A)"
+lemma drop_type [simp,TC]: "[| i \<in> nat; l \<in> list(A) |] ==> drop(i,l) \<in> list(A)"
 apply (induct_tac "i")
 apply (simp_all (no_asm_simp) add: tl_type)
 done
@@ -219,28 +219,28 @@ declare drop_succ [simp del]
 (** Type checking -- proved by induction, as usual **)
 
 lemma list_rec_type [TC]:
-    "[| l: list(A);
-        c: C(Nil);
-        !!x y r. [| x:A;  y: list(A);  r: C(y) |] ==> h(x,y,r): C(Cons(x,y))
+    "[| l \<in> list(A);
+        c \<in> C(Nil);
+        !!x y r. [| x \<in> A;  y \<in> list(A);  r \<in> C(y) |] ==> h(x,y,r): C(Cons(x,y))
      |] ==> list_rec(c,h,l) \<in> C(l)"
 by (induct_tac "l", auto)
 
 (** map **)
 
 lemma map_type [TC]:
-    "[| l: list(A);  !!x. x: A ==> h(x): B |] ==> map(h,l) \<in> list(B)"
+    "[| l \<in> list(A);  !!x. x \<in> A ==> h(x): B |] ==> map(h,l) \<in> list(B)"
 apply (simp add: map_list_def)
 apply (typecheck add: list.intros list_rec_type, blast)
 done
 
-lemma map_type2 [TC]: "l: list(A) ==> map(h,l) \<in> list({h(u). u:A})"
+lemma map_type2 [TC]: "l \<in> list(A) ==> map(h,l) \<in> list({h(u). u \<in> A})"
 apply (erule map_type)
 apply (erule RepFunI)
 done
 
 (** length **)
 
-lemma length_type [TC]: "l: list(A) ==> length(l) \<in> nat"
+lemma length_type [TC]: "l \<in> list(A) ==> length(l) \<in> nat"
 by (simp add: length_list_def)
 
 lemma lt_length_in_nat:
@@ -266,7 +266,7 @@ by (simp add: flat_list_def)
 
 (** set_of_list **)
 
-lemma set_of_list_type [TC]: "l: list(A) ==> set_of_list(l) \<in> Pow(A)"
+lemma set_of_list_type [TC]: "l \<in> list(A) ==> set_of_list(l) \<in> Pow(A)"
 apply (unfold set_of_list_list_def)
 apply (erule list_rec_type, auto)
 done
@@ -286,12 +286,12 @@ by (simp add: list_add_list_def)
 
 (*** theorems about map ***)
 
-lemma map_ident [simp]: "l: list(A) ==> map(%u. u, l) = l"
+lemma map_ident [simp]: "l \<in> list(A) ==> map(%u. u, l) = l"
 apply (induct_tac "l")
 apply (simp_all (no_asm_simp))
 done
 
-lemma map_compose: "l: list(A) ==> map(h, map(j,l)) = map(%u. h(j(u)), l)"
+lemma map_compose: "l \<in> list(A) ==> map(h, map(j,l)) = map(%u. h(j(u)), l)"
 apply (induct_tac "l")
 apply (simp_all (no_asm_simp))
 done
@@ -307,7 +307,7 @@ apply (simp_all (no_asm_simp) add: map_app_distrib)
 done
 
 lemma list_rec_map:
-     "l: list(A) ==>
+     "l \<in> list(A) ==>
       list_rec(c, d, map(h,l)) =
       list_rec(c, %x xs r. d(h(x), map(h,xs), r), l)"
 apply (induct_tac "l")
@@ -319,7 +319,7 @@ done
 (* @{term"c \<in> list(Collect(B,P)) ==> c \<in> list"} *)
 lemmas list_CollectD = Collect_subset [THEN list_mono, THEN subsetD]
 
-lemma map_list_Collect: "l: list({x:A. h(x)=j(x)}) ==> map(h,l) = map(j,l)"
+lemma map_list_Collect: "l \<in> list({x \<in> A. h(x)=j(x)}) ==> map(h,l) = map(j,l)"
 apply (induct_tac "l")
 apply (simp_all (no_asm_simp))
 done
@@ -354,7 +354,7 @@ lemma drop_length_Cons [rule_format]:
 by (erule list.induct, simp_all)
 
 lemma drop_length [rule_format]:
-     "l: list(A) ==> \<forall>i \<in> length(l). (\<exists>z zs. drop(i,l) = Cons(z,zs))"
+     "l \<in> list(A) ==> \<forall>i \<in> length(l). (\<exists>z zs. drop(i,l) = Cons(z,zs))"
 apply (erule list.induct, simp_all, safe)
 apply (erule drop_length_Cons)
 apply (rule natE)
@@ -378,7 +378,7 @@ done
 
 (*** theorems about rev ***)
 
-lemma rev_map_distrib: "l: list(A) ==> rev(map(h,l)) = map(h,rev(l))"
+lemma rev_map_distrib: "l \<in> list(A) ==> rev(map(h,l)) = map(h,rev(l))"
 apply (induct_tac "l")
 apply (simp_all (no_asm_simp) add: map_app_distrib)
 done
@@ -393,7 +393,7 @@ apply (erule list.induct)
 apply (simp_all add: app_assoc)
 done
 
-lemma rev_rev_ident [simp]: "l: list(A) ==> rev(rev(l))=l"
+lemma rev_rev_ident [simp]: "l \<in> list(A) ==> rev(rev(l))=l"
 apply (induct_tac "l")
 apply (simp_all (no_asm_simp) add: rev_app_distrib)
 done
@@ -412,7 +412,7 @@ lemma list_add_app:
 apply (induct_tac "xs", simp_all)
 done
 
-lemma list_add_rev: "l: list(nat) ==> list_add(rev(l)) = list_add(l)"
+lemma list_add_rev: "l \<in> list(nat) ==> list_add(rev(l)) = list_add(l)"
 apply (induct_tac "l")
 apply (simp_all (no_asm_simp) add: list_add_app)
 done
@@ -426,9 +426,9 @@ done
 (** New induction rules **)
 
 lemma list_append_induct [case_names Nil snoc, consumes 1]:
-    "[| l: list(A);
+    "[| l \<in> list(A);
         P(Nil);
-        !!x y. [| x: A;  y: list(A);  P(y) |] ==> P(y @ [x])
+        !!x y. [| x \<in> A;  y \<in> list(A);  P(y) |] ==> P(y @ [x])
      |] ==> P(l)"
 apply (subgoal_tac "P(rev(rev(l)))", simp)
 apply (erule rev_type [THEN list.induct], simp_all)
@@ -462,31 +462,31 @@ done
 
 (** min FIXME: replace by Int! **)
 (* Min theorems are also true for i, j ordinals *)
-lemma min_sym: "[| i:nat; j:nat |] ==> min(i,j)=min(j,i)"
+lemma min_sym: "[| i \<in> nat; j \<in> nat |] ==> min(i,j)=min(j,i)"
 apply (unfold min_def)
 apply (auto dest!: not_lt_imp_le dest: lt_not_sym intro: le_anti_sym)
 done
 
-lemma min_type [simp,TC]: "[| i:nat; j:nat |] ==> min(i,j):nat"
+lemma min_type [simp,TC]: "[| i \<in> nat; j \<in> nat |] ==> min(i,j):nat"
 by (unfold min_def, auto)
 
-lemma min_0 [simp]: "i:nat ==> min(0,i) = 0"
+lemma min_0 [simp]: "i \<in> nat ==> min(0,i) = 0"
 apply (unfold min_def)
 apply (auto dest: not_lt_imp_le)
 done
 
-lemma min_02 [simp]: "i:nat ==> min(i, 0) = 0"
+lemma min_02 [simp]: "i \<in> nat ==> min(i, 0) = 0"
 apply (unfold min_def)
 apply (auto dest: not_lt_imp_le)
 done
 
-lemma lt_min_iff: "[| i:nat; j:nat; k:nat |] ==> i<min(j,k) \<longleftrightarrow> i<j & i<k"
+lemma lt_min_iff: "[| i \<in> nat; j \<in> nat; k \<in> nat |] ==> i<min(j,k) \<longleftrightarrow> i<j & i<k"
 apply (unfold min_def)
 apply (auto dest!: not_lt_imp_le intro: lt_trans2 lt_trans)
 done
 
 lemma min_succ_succ [simp]:
-     "[| i:nat; j:nat |] ==>  min(succ(i), succ(j))= succ(min(i, j))"
+     "[| i \<in> nat; j \<in> nat |] ==>  min(succ(i), succ(j))= succ(min(i, j))"
 apply (unfold min_def, auto)
 done
 
@@ -603,7 +603,7 @@ lemma append_self_iff2 [simp]:
 by simp
 
 (* Can also be proved from append_eq_append_iff2,
-but the proof requires two more hypotheses: x:A and y:A *)
+but the proof requires two more hypotheses: x \<in> A and y \<in> A *)
 lemma append1_eq_iff [rule_format,simp]:
      "xs:list(A) ==> \<forall>ys \<in> list(A). xs@[x] = ys@[y] \<longleftrightarrow> (xs = ys & x=y)"
 apply (erule list.induct)
@@ -656,26 +656,26 @@ by (erule list_append_induct, auto)
 (** more theorems about drop **)
 
 lemma length_drop [rule_format,simp]:
-     "n:nat ==> \<forall>xs \<in> list(A). length(drop(n, xs)) = length(xs) #- n"
+     "n \<in> nat ==> \<forall>xs \<in> list(A). length(drop(n, xs)) = length(xs) #- n"
 apply (erule nat_induct)
 apply (auto elim: list.cases)
 done
 
 lemma drop_all [rule_format,simp]:
-     "n:nat ==> \<forall>xs \<in> list(A). length(xs) \<le> n \<longrightarrow> drop(n, xs)=Nil"
+     "n \<in> nat ==> \<forall>xs \<in> list(A). length(xs) \<le> n \<longrightarrow> drop(n, xs)=Nil"
 apply (erule nat_induct)
 apply (auto elim: list.cases)
 done
 
 lemma drop_append [rule_format]:
-     "n:nat ==>
+     "n \<in> nat ==>
       \<forall>xs \<in> list(A). drop(n, xs@ys) = drop(n,xs) @ drop(n #- length(xs), ys)"
 apply (induct_tac "n")
 apply (auto elim: list.cases)
 done
 
 lemma drop_drop:
-    "m:nat ==> \<forall>xs \<in> list(A). \<forall>n \<in> nat. drop(n, drop(m, xs))=drop(n #+ m, xs)"
+    "m \<in> nat ==> \<forall>xs \<in> list(A). \<forall>n \<in> nat. drop(n, drop(m, xs))=drop(n #+ m, xs)"
 apply (induct_tac "m")
 apply (auto elim: list.cases)
 done
@@ -688,15 +688,15 @@ apply (erule list.induct, auto)
 done
 
 lemma take_succ_Cons [simp]:
-    "n:nat ==> take(succ(n), Cons(a, xs)) = Cons(a, take(n, xs))"
+    "n \<in> nat ==> take(succ(n), Cons(a, xs)) = Cons(a, take(n, xs))"
 by (simp add: take_def)
 
 (* Needed for proving take_all *)
-lemma take_Nil [simp]: "n:nat ==> take(n, Nil) = Nil"
+lemma take_Nil [simp]: "n \<in> nat ==> take(n, Nil) = Nil"
 by (unfold take_def, auto)
 
 lemma take_all [rule_format,simp]:
-     "n:nat ==> \<forall>xs \<in> list(A). length(xs) \<le> n  \<longrightarrow> take(n, xs) = xs"
+     "n \<in> nat ==> \<forall>xs \<in> list(A). length(xs) \<le> n  \<longrightarrow> take(n, xs) = xs"
 apply (erule nat_induct)
 apply (auto elim: list.cases)
 done
@@ -730,7 +730,7 @@ done
 lemma nth_0 [simp]: "nth(0, Cons(a, l)) = a"
 by (simp add: nth_def)
 
-lemma nth_Cons [simp]: "n:nat ==> nth(succ(n), Cons(a,l)) = nth(n,l)"
+lemma nth_Cons [simp]: "n \<in> nat ==> nth(succ(n), Cons(a,l)) = nth(n,l)"
 by (simp add: nth_def)
 
 lemma nth_empty [simp]: "nth(n, Nil) = 0"
@@ -759,7 +759,7 @@ done
 
 lemma set_of_list_conv_nth:
     "xs:list(A)
-     ==> set_of_list(xs) = {x:A. \<exists>i\<in>nat. i<length(xs) & x = nth(i,xs)}"
+     ==> set_of_list(xs) = {x \<in> A. \<exists>i\<in>nat. i<length(xs) & x = nth(i,xs)}"
 apply (induct_tac "xs", simp_all)
 apply (rule equalityI, auto)
 apply (rule_tac x = 0 in bexI, auto)
@@ -769,7 +769,7 @@ done
 (* Other theorems about lists *)
 
 lemma nth_take_lemma [rule_format]:
- "k:nat ==>
+ "k \<in> nat ==>
   \<forall>xs \<in> list(A). (\<forall>ys \<in> list(A). k \<le> length(xs) \<longrightarrow> k \<le> length(ys) \<longrightarrow>
       (\<forall>i \<in> nat. i<k \<longrightarrow> nth(i,xs) = nth(i,ys))\<longrightarrow> take(k,xs) = take(k,ys))"
 apply (induct_tac "k")
@@ -811,7 +811,7 @@ apply (simp_all add: take_all)
 done
 
 lemma nth_drop [rule_format]:
-  "n:nat ==> \<forall>i \<in> nat. \<forall>xs \<in> list(A). nth(i, drop(n, xs)) = nth(n #+ i, xs)"
+  "n \<in> nat ==> \<forall>i \<in> nat. \<forall>xs \<in> list(A). nth(i, drop(n, xs)) = nth(n #+ i, xs)"
 apply (induct_tac "n", simp_all, clarify)
 apply (erule list.cases, auto)
 done
@@ -886,7 +886,7 @@ apply (blast intro: list_mono [THEN subsetD])
 done
 
 lemma zip_Cons_Cons [simp]:
-     "[| xs:list(A); ys:list(B); x:A; y:B |] ==>
+     "[| xs:list(A); ys:list(B); x \<in> A; y \<in> B |] ==>
       zip(Cons(x,xs), Cons(y, ys)) = Cons(<x,y>, zip(xs, ys))"
 apply (simp add: zip_def, auto)
 apply (rule zip_aux_unique, auto)
@@ -951,7 +951,7 @@ apply (auto elim: natE)
 done
 
 lemma set_of_list_zip [rule_format]:
-     "[| xs:list(A); ys:list(B); i:nat |]
+     "[| xs:list(A); ys:list(B); i \<in> nat |]
       ==> set_of_list(zip(xs, ys)) =
           {<x, y>:A*B. \<exists>i\<in>nat. i < min(length(xs), length(ys))
           & x = nth(i, xs) & y = nth(i, ys)}"
@@ -959,20 +959,20 @@ by (force intro!: Collect_cong simp add: lt_min_iff set_of_list_conv_nth)
 
 (** list_update **)
 
-lemma list_update_Nil [simp]: "i:nat ==>list_update(Nil, i, v) = Nil"
+lemma list_update_Nil [simp]: "i \<in> nat ==>list_update(Nil, i, v) = Nil"
 by (unfold list_update_def, auto)
 
 lemma list_update_Cons_0 [simp]: "list_update(Cons(x, xs), 0, v)= Cons(v, xs)"
 by (unfold list_update_def, auto)
 
 lemma list_update_Cons_succ [simp]:
-  "n:nat ==>
+  "n \<in> nat ==>
     list_update(Cons(x, xs), succ(n), v)= Cons(x, list_update(xs, n, v))"
 apply (unfold list_update_def, auto)
 done
 
 lemma list_update_type [rule_format,simp,TC]:
-     "[| xs:list(A); v:A |] ==> \<forall>n \<in> nat. list_update(xs, n, v):list(A)"
+     "[| xs:list(A); v \<in> A |] ==> \<forall>n \<in> nat. list_update(xs, n, v):list(A)"
 apply (induct_tac "xs")
 apply (simp (no_asm))
 apply clarify
@@ -1056,7 +1056,7 @@ apply (erule natE, simp_all, auto)
 done
 
 lemma set_of_list_update_subsetI:
-     "[| set_of_list(xs) \<subseteq> A; xs:list(A); x:A; i:nat|]
+     "[| set_of_list(xs) \<subseteq> A; xs:list(A); x \<in> A; i \<in> nat|]
    ==> set_of_list(list_update(xs, i,x)) \<subseteq> A"
 apply (rule subset_trans)
 apply (rule set_update_subset_cons, auto)
@@ -1065,13 +1065,13 @@ done
 (** upt **)
 
 lemma upt_rec:
-     "j:nat ==> upt(i,j) = (if i<j then Cons(i, upt(succ(i), j)) else Nil)"
+     "j \<in> nat ==> upt(i,j) = (if i<j then Cons(i, upt(succ(i), j)) else Nil)"
 apply (induct_tac "j", auto)
 apply (drule not_lt_imp_le)
 apply (auto simp: lt_Ord intro: le_anti_sym)
 done
 
-lemma upt_conv_Nil [simp]: "[| j \<le> i; j:nat |] ==> upt(i,j) = Nil"
+lemma upt_conv_Nil [simp]: "[| j \<le> i; j \<in> nat |] ==> upt(i,j) = Nil"
 apply (subst upt_rec, auto)
 apply (auto simp add: le_iff)
 apply (drule lt_asym [THEN notE], auto)
@@ -1079,34 +1079,34 @@ done
 
 (*Only needed if upt_Suc is deleted from the simpset*)
 lemma upt_succ_append:
-     "[| i \<le> j; j:nat |] ==> upt(i,succ(j)) = upt(i, j)@[j]"
+     "[| i \<le> j; j \<in> nat |] ==> upt(i,succ(j)) = upt(i, j)@[j]"
 by simp
 
 lemma upt_conv_Cons:
-     "[| i<j; j:nat |]  ==> upt(i,j) = Cons(i,upt(succ(i),j))"
+     "[| i<j; j \<in> nat |]  ==> upt(i,j) = Cons(i,upt(succ(i),j))"
 apply (rule trans)
 apply (rule upt_rec, auto)
 done
 
-lemma upt_type [simp,TC]: "j:nat ==> upt(i,j):list(nat)"
+lemma upt_type [simp,TC]: "j \<in> nat ==> upt(i,j):list(nat)"
 by (induct_tac "j", auto)
 
 (*LOOPS as a simprule, since j<=j*)
 lemma upt_add_eq_append:
-     "[| i \<le> j; j:nat; k:nat |] ==> upt(i, j #+k) = upt(i,j)@upt(j,j#+k)"
+     "[| i \<le> j; j \<in> nat; k \<in> nat |] ==> upt(i, j #+k) = upt(i,j)@upt(j,j#+k)"
 apply (induct_tac "k")
 apply (auto simp add: app_assoc app_type)
 apply (rule_tac j = j in le_trans, auto)
 done
 
-lemma length_upt [simp]: "[| i:nat; j:nat |] ==>length(upt(i,j)) = j #- i"
+lemma length_upt [simp]: "[| i \<in> nat; j \<in> nat |] ==>length(upt(i,j)) = j #- i"
 apply (induct_tac "j")
 apply (rule_tac [2] sym)
 apply (auto dest!: not_lt_imp_le simp add: diff_succ diff_is_0_iff)
 done
 
 lemma nth_upt [rule_format,simp]:
-     "[| i:nat; j:nat; k:nat |] ==> i #+ k < j \<longrightarrow> nth(k, upt(i,j)) = i #+ k"
+     "[| i \<in> nat; j \<in> nat; k \<in> nat |] ==> i #+ k < j \<longrightarrow> nth(k, upt(i,j)) = i #+ k"
 apply (induct_tac "j", simp)
 apply (simp add: nth_append le_iff)
 apply (auto dest!: not_lt_imp_le
@@ -1114,7 +1114,7 @@ apply (auto dest!: not_lt_imp_le
 done
 
 lemma take_upt [rule_format,simp]:
-     "[| m:nat; n:nat |] ==>
+     "[| m \<in> nat; n \<in> nat |] ==>
          \<forall>i \<in> nat. i #+ m \<le> n \<longrightarrow> take(m, upt(i,n)) = upt(i,i#+m)"
 apply (induct_tac "m")
 apply (simp (no_asm_simp) add: take_0)
@@ -1128,7 +1128,7 @@ apply auto
 done
 
 lemma map_succ_upt:
-     "[| m:nat; n:nat |] ==> map(succ, upt(m,n))= upt(succ(m), succ(n))"
+     "[| m \<in> nat; n \<in> nat |] ==> map(succ, upt(m,n))= upt(succ(m), succ(n))"
 apply (induct_tac "n")
 apply (auto simp add: map_app_distrib)
 done
@@ -1142,7 +1142,7 @@ apply (induct_tac "n", auto)
 done
 
 lemma nth_map_upt [rule_format]:
-     "[| m:nat; n:nat |] ==>
+     "[| m \<in> nat; n \<in> nat |] ==>
       \<forall>i \<in> nat. i < n #- m \<longrightarrow> nth(i, map(f, upt(m,n))) = f(m #+ i)"
 apply (rule_tac n = m and m = n in diff_induct, typecheck, simp, simp)
 apply (subst map_succ_upt [symmetric], simp_all, clarify)
@@ -1170,9 +1170,9 @@ lemma sublist_Nil [simp]: "sublist(Nil, A) = Nil"
 by (unfold sublist_def, auto)
 
 lemma sublist_shift_lemma:
- "[| xs:list(B); i:nat |] ==>
+ "[| xs:list(B); i \<in> nat |] ==>
   map(fst, filter(%p. snd(p):A, zip(xs, upt(i,i #+ length(xs))))) =
-  map(fst, filter(%p. snd(p):nat & snd(p) #+ i:A, zip(xs,upt(0,length(xs)))))"
+  map(fst, filter(%p. snd(p):nat & snd(p) #+ i \<in> A, zip(xs,upt(0,length(xs)))))"
 apply (erule list_append_induct)
 apply (simp (no_asm_simp))
 apply (auto simp add: add_commute length_app filter_append map_app_distrib)
@@ -1186,12 +1186,12 @@ apply (auto simp add: filter_append map_app_distrib)
 done
 
 lemma upt_add_eq_append2:
-     "[| i:nat; j:nat |] ==> upt(0, i #+ j) = upt(0, i) @ upt(i, i #+ j)"
+     "[| i \<in> nat; j \<in> nat |] ==> upt(0, i #+ j) = upt(0, i) @ upt(i, i #+ j)"
 by (simp add: upt_add_eq_append [of 0] nat_0_le)
 
 lemma sublist_append:
  "[| xs:list(B); ys:list(B)  |] ==>
-  sublist(xs@ys, A) = sublist(xs, A) @ sublist(ys, {j:nat. j #+ length(xs): A})"
+  sublist(xs@ys, A) = sublist(xs, A) @ sublist(ys, {j \<in> nat. j #+ length(xs): A})"
 apply (unfold sublist_def)
 apply (erule_tac l = ys in list_append_induct, simp)
 apply (simp (no_asm_simp) add: upt_add_eq_append2 app_assoc [symmetric])
@@ -1201,9 +1201,9 @@ done
 
 
 lemma sublist_Cons:
-     "[| xs:list(B); x:B |] ==>
+     "[| xs:list(B); x \<in> B |] ==>
       sublist(Cons(x, xs), A) =
-      (if 0:A then [x] else []) @ sublist(xs, {j:nat. succ(j) \<in> A})"
+      (if 0 \<in> A then [x] else []) @ sublist(xs, {j \<in> nat. succ(j) \<in> A})"
 apply (erule_tac l = xs in list_append_induct)
 apply (simp (no_asm_simp) add: sublist_def)
 apply (simp del: app_Cons add: app_Cons [symmetric] sublist_append, simp)

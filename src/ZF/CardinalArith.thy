@@ -31,7 +31,7 @@ definition
     --{*This def is more complex than Kunen's but it more easily proved to
         be a cardinal*}
     "jump_cardinal(K) ==
-         \<Union>X\<in>Pow(K). {z. r: Pow(K*K), well_ord(X,r) & z = ordertype(X,r)}"
+         \<Union>X\<in>Pow(K). {z. r \<in> Pow(K*K), well_ord(X,r) & z = ordertype(X,r)}"
 
 definition
   csucc         :: "i=>i"  where
@@ -48,10 +48,10 @@ notation (HTML)
   cmult  (infixl "\<otimes>" 70)
 
 
-lemma Card_Union [simp,intro,TC]: 
+lemma Card_Union [simp,intro,TC]:
   assumes A: "\<And>x. x\<in>A \<Longrightarrow> Card(x)" shows "Card(\<Union>(A))"
 proof (rule CardI)
-  show "Ord(\<Union>A)" using A 
+  show "Ord(\<Union>A)" using A
     by (simp add: Card_is_Ord)
 next
   fix j
@@ -60,24 +60,24 @@ next
     by (auto simp add: lt_def intro: Card_is_Ord)
   then obtain c where c: "c\<in>A" "j < c" "Card(c)"
     by blast
-  hence jls: "j \<prec> c" 
-    by (simp add: lt_Card_imp_lesspoll) 
+  hence jls: "j \<prec> c"
+    by (simp add: lt_Card_imp_lesspoll)
   { assume eqp: "j \<approx> \<Union>A"
     have  "c \<lesssim> \<Union>A" using c
       by (blast intro: subset_imp_lepoll)
     also have "... \<approx> j"  by (rule eqpoll_sym [OF eqp])
     also have "... \<prec> c"  by (rule jls)
     finally have "c \<prec> c" .
-    hence False 
+    hence False
       by auto
   } thus "\<not> j \<approx> \<Union>A" by blast
 qed
 
-lemma Card_UN: "(!!x. x:A ==> Card(K(x))) ==> Card(\<Union>x\<in>A. K(x))"
+lemma Card_UN: "(!!x. x \<in> A ==> Card(K(x))) ==> Card(\<Union>x\<in>A. K(x))"
   by blast
 
 lemma Card_OUN [simp,intro,TC]:
-     "(!!x. x:A ==> Card(K(x))) ==> Card(\<Union>x<A. K(x))"
+     "(!!x. x \<in> A ==> Card(K(x))) ==> Card(\<Union>x<A. K(x))"
   by (auto simp add: OUnion_def Card_0)
 
 lemma in_Card_imp_lesspoll: "[| Card(K); b \<in> K |] ==> b \<prec> K"
@@ -99,7 +99,7 @@ subsubsection{*Cardinal addition is commutative*}
 lemma sum_commute_eqpoll: "A+B \<approx> B+A"
 proof (unfold eqpoll_def, rule exI)
   show "(\<lambda>z\<in>A+B. case(Inr,Inl,z)) \<in> bij(A+B, B+A)"
-    by (auto intro: lam_bijective [where d = "case(Inr,Inl)"]) 
+    by (auto intro: lam_bijective [where d = "case(Inr,Inl)"])
 qed
 
 lemma cadd_commute: "i \<oplus> j = j \<oplus> i"
@@ -121,11 +121,11 @@ lemma well_ord_cadd_assoc:
   shows "(i \<oplus> j) \<oplus> k = i \<oplus> (j \<oplus> k)"
 proof (unfold cadd_def, rule cardinal_cong)
   have "|i + j| + k \<approx> (i + j) + k"
-    by (blast intro: sum_eqpoll_cong well_ord_cardinal_eqpoll eqpoll_refl well_ord_radd i j) 
+    by (blast intro: sum_eqpoll_cong well_ord_cardinal_eqpoll eqpoll_refl well_ord_radd i j)
   also have "...  \<approx> i + (j + k)"
-    by (rule sum_assoc_eqpoll) 
+    by (rule sum_assoc_eqpoll)
   also have "...  \<approx> i + |j + k|"
-    by (blast intro: sum_eqpoll_cong well_ord_cardinal_eqpoll eqpoll_refl well_ord_radd j k eqpoll_sym) 
+    by (blast intro: sum_eqpoll_cong well_ord_cardinal_eqpoll eqpoll_refl well_ord_radd j k eqpoll_sym)
   finally show "|i + j| + k \<approx> i + |j + k|" .
 qed
 
@@ -148,7 +148,7 @@ subsubsection{*Addition by another cardinal*}
 lemma sum_lepoll_self: "A \<lesssim> A+B"
 proof (unfold lepoll_def, rule exI)
   show "(\<lambda>x\<in>A. Inl (x)) \<in> inj(A, A + B)"
-    by (simp add: inj_def) 
+    by (simp add: inj_def)
 qed
 
 (*Could probably weaken the premises to well_ord(K,r), or removing using AC*)
@@ -157,12 +157,12 @@ lemma cadd_le_self:
   assumes K: "Card(K)" and L: "Ord(L)" shows "K \<le> (K \<oplus> L)"
 proof (unfold cadd_def)
   have "K \<le> |K|"
-    by (rule Card_cardinal_le [OF K]) 
+    by (rule Card_cardinal_le [OF K])
   moreover have "|K| \<le> |K + L|" using K L
     by (blast intro: well_ord_lepoll_imp_Card_le sum_lepoll_self
-                     well_ord_radd well_ord_Memrel Card_is_Ord) 
-  ultimately show "K \<le> |K + L|" 
-    by (blast intro: le_trans) 
+                     well_ord_radd well_ord_Memrel Card_is_Ord)
+  ultimately show "K \<le> |K + L|"
+    by (blast intro: le_trans)
 qed
 
 subsubsection{*Monotonicity of addition*}
@@ -197,7 +197,7 @@ apply (rule_tac c = "%z. if z=Inl (A) then A+B else z"
 apply (blast dest: sym [THEN eq_imp_not_mem] elim: mem_irrefl)+
 done
 
-(*Pulling the  succ(...)  outside the |...| requires m, n: nat  *)
+(*Pulling the  succ(...)  outside the |...| requires m, n \<in> nat  *)
 (*Unconditional version requires AC*)
 lemma cadd_succ_lemma:
   assumes "Ord(m)" "Ord(n)" shows "succ(m) \<oplus> n = |succ(m \<oplus> n)|"
@@ -206,14 +206,14 @@ proof (unfold cadd_def)
     by (blast intro: eqpoll_sym well_ord_cardinal_eqpoll well_ord_radd well_ord_Memrel)
 
   have "|succ(m) + n| = |succ(m + n)|"
-    by (rule sum_succ_eqpoll [THEN cardinal_cong]) 
-  also have "... = |succ(|m + n|)|" 
+    by (rule sum_succ_eqpoll [THEN cardinal_cong])
+  also have "... = |succ(|m + n|)|"
     by (blast intro: succ_eqpoll_cong cardinal_cong)
   finally show "|succ(m) + n| = |succ(|m + n|)|" .
 qed
 
 lemma nat_cadd_eq_add:
-  assumes m: "m: nat" and [simp]: "n: nat" shows"m \<oplus> n = m #+ n"
+  assumes m: "m \<in> nat" and [simp]: "n \<in> nat" shows"m \<oplus> n = m #+ n"
 using m
 proof (induct m)
   case 0 thus ?case by (simp add: nat_into_Card cadd_0)
@@ -252,11 +252,11 @@ lemma well_ord_cmult_assoc:
   shows "(i \<otimes> j) \<otimes> k = i \<otimes> (j \<otimes> k)"
 proof (unfold cmult_def, rule cardinal_cong)
   have "|i * j| * k \<approx> (i * j) * k"
-    by (blast intro: prod_eqpoll_cong well_ord_cardinal_eqpoll eqpoll_refl well_ord_rmult i j) 
+    by (blast intro: prod_eqpoll_cong well_ord_cardinal_eqpoll eqpoll_refl well_ord_rmult i j)
   also have "...  \<approx> i * (j * k)"
-    by (rule prod_assoc_eqpoll) 
+    by (rule prod_assoc_eqpoll)
   also have "...  \<approx> i * |j * k|"
-    by (blast intro: prod_eqpoll_cong well_ord_cardinal_eqpoll eqpoll_refl well_ord_rmult j k eqpoll_sym) 
+    by (blast intro: prod_eqpoll_cong well_ord_cardinal_eqpoll eqpoll_refl well_ord_rmult j k eqpoll_sym)
   finally show "|i * j| * k \<approx> i * |j * k|" .
 qed
 
@@ -273,11 +273,11 @@ lemma well_ord_cadd_cmult_distrib:
   shows "(i \<oplus> j) \<otimes> k = (i \<otimes> k) \<oplus> (j \<otimes> k)"
 proof (unfold cadd_def cmult_def, rule cardinal_cong)
   have "|i + j| * k \<approx> (i + j) * k"
-    by (blast intro: prod_eqpoll_cong well_ord_cardinal_eqpoll eqpoll_refl well_ord_radd i j) 
+    by (blast intro: prod_eqpoll_cong well_ord_cardinal_eqpoll eqpoll_refl well_ord_radd i j)
   also have "...  \<approx> i * k + j * k"
-    by (rule sum_prod_distrib_eqpoll) 
+    by (rule sum_prod_distrib_eqpoll)
   also have "...  \<approx> |i * k| + |j * k|"
-    by (blast intro: sum_eqpoll_cong well_ord_cardinal_eqpoll well_ord_rmult i j k eqpoll_sym) 
+    by (blast intro: sum_eqpoll_cong well_ord_cardinal_eqpoll well_ord_rmult i j k eqpoll_sym)
   finally show "|i + j| * k \<approx> |i * k| + |j * k|" .
 qed
 
@@ -324,7 +324,7 @@ done
 
 subsubsection{*Multiplication by a non-zero cardinal*}
 
-lemma prod_lepoll_self: "b: B ==> A \<lesssim> A*B"
+lemma prod_lepoll_self: "b \<in> B ==> A \<lesssim> A*B"
 apply (unfold lepoll_def inj_def)
 apply (rule_tac x = "\<lambda>x\<in>A. <x,b>" in exI, simp)
 done
@@ -381,7 +381,7 @@ apply (rule sum_eqpoll_cong [OF eqpoll_refl well_ord_cardinal_eqpoll])
 apply (blast intro: well_ord_rmult well_ord_Memrel)
 done
 
-lemma nat_cmult_eq_mult: "[| m: nat;  n: nat |] ==> m \<otimes> n = m#*n"
+lemma nat_cmult_eq_mult: "[| m \<in> nat;  n \<in> nat |] ==> m \<otimes> n = m#*n"
 apply (induct_tac m)
 apply (simp_all add: cmult_succ_lemma nat_cadd_eq_add)
 done
@@ -389,13 +389,13 @@ done
 lemma cmult_2: "Card(n) ==> 2 \<otimes> n = n \<oplus> n"
 by (simp add: cmult_succ_lemma Card_is_Ord cadd_commute [of _ 0])
 
-lemma sum_lepoll_prod: 
+lemma sum_lepoll_prod:
   assumes C: "2 \<lesssim> C" shows "B+B \<lesssim> C*B"
 proof -
   have "B+B \<lesssim> 2*B"
-    by (simp add: sum_eq_2_times) 
+    by (simp add: sum_eq_2_times)
   also have "... \<lesssim> C*B"
-    by (blast intro: prod_lepoll_mono lepoll_refl C) 
+    by (blast intro: prod_lepoll_mono lepoll_refl C)
   finally show "B+B \<lesssim> C*B" .
 qed
 
@@ -407,18 +407,18 @@ subsection{*Infinite Cardinals are Limit Ordinals*}
 
 (*This proof is modelled upon one assuming nat<=A, with injection
   \<lambda>z\<in>cons(u,A). if z=u then 0 else if z \<in> nat then succ(z) else z
-  and inverse %y. if y:nat then nat_case(u, %z. z, y) else y.  \
-  If f: inj(nat,A) then range(f) behaves like the natural numbers.*)
+  and inverse %y. if y \<in> nat then nat_case(u, %z. z, y) else y.  \
+  If f \<in> inj(nat,A) then range(f) behaves like the natural numbers.*)
 lemma nat_cons_lepoll: "nat \<lesssim> A ==> cons(u,A) \<lesssim> A"
 apply (unfold lepoll_def)
 apply (erule exE)
 apply (rule_tac x =
           "\<lambda>z\<in>cons (u,A).
              if z=u then f`0
-             else if z: range (f) then f`succ (converse (f) `z) else z"
+             else if z \<in> range (f) then f`succ (converse (f) `z) else z"
        in exI)
 apply (rule_tac d =
-          "%y. if y: range(f) then nat_case (u, %z. f`z, converse(f) `y)
+          "%y. if y \<in> range(f) then nat_case (u, %z. f`z, converse(f) `y)
                               else y"
        in lam_injective)
 apply (fast intro!: if_type apply_type intro: inj_is_fun inj_converse_fun)
@@ -475,7 +475,7 @@ done
 
 (*A general fact about ordermap*)
 lemma ordermap_eqpoll_pred:
-    "[| well_ord(A,r);  x:A |] ==> ordermap(A,r)`x \<approx> Order.pred(A,x,r)"
+    "[| well_ord(A,r);  x \<in> A |] ==> ordermap(A,r)`x \<approx> Order.pred(A,x,r)"
 apply (unfold eqpoll_def)
 apply (rule exI)
 apply (simp add: ordermap_eq_image well_ord_is_wf)
@@ -486,7 +486,7 @@ done
 
 subsubsection{*Establishing the well-ordering*}
 
-lemma well_ord_csquare: 
+lemma well_ord_csquare:
   assumes K: "Ord(K)" shows "well_ord(K*K, csquare_rel(K))"
 proof (unfold csquare_rel_def, rule well_ord_rvimage)
   show "(\<lambda>\<langle>x,y\<rangle>\<in>K \<times> K. \<langle>x \<union> y, x, y\<rangle>) \<in> inj(K \<times> K, K \<times> K \<times> K)" using K
@@ -553,23 +553,23 @@ done
 
 text{*Kunen: "each @{term"\<langle>x,y\<rangle> \<in> K \<times> K"} has no more than @{term"z \<times> z"} predecessors..." (page 29) *}
 lemma ordermap_csquare_le:
-  assumes K: "Limit(K)" and x: "x<K" and y: " y<K" 
+  assumes K: "Limit(K)" and x: "x<K" and y: " y<K"
   defines "z \<equiv> succ(x \<union> y)"
   shows "|ordermap(K \<times> K, csquare_rel(K)) ` \<langle>x,y\<rangle>| \<le> |succ(z)| \<otimes> |succ(z)|"
 proof (unfold cmult_def, rule well_ord_lepoll_imp_Card_le)
-  show "well_ord(|succ(z)| \<times> |succ(z)|, 
+  show "well_ord(|succ(z)| \<times> |succ(z)|,
                  rmult(|succ(z)|, Memrel(|succ(z)|), |succ(z)|, Memrel(|succ(z)|)))"
-    by (blast intro: Ord_cardinal well_ord_Memrel well_ord_rmult) 
+    by (blast intro: Ord_cardinal well_ord_Memrel well_ord_rmult)
 next
   have zK: "z<K" using x y K z_def
     by (blast intro: Un_least_lt Limit_has_succ)
-  hence oz: "Ord(z)" by (elim ltE) 
+  hence oz: "Ord(z)" by (elim ltE)
   have "ordermap(K \<times> K, csquare_rel(K)) ` \<langle>x,y\<rangle> \<lesssim> ordermap(K \<times> K, csquare_rel(K)) ` \<langle>z,z\<rangle>"
     using z_def
-    by (blast intro: ordermap_z_lt leI le_imp_lepoll K x y) 
+    by (blast intro: ordermap_z_lt leI le_imp_lepoll K x y)
   also have "... \<approx>  Order.pred(K \<times> K, \<langle>z,z\<rangle>, csquare_rel(K))"
     proof (rule ordermap_eqpoll_pred)
-      show "well_ord(K \<times> K, csquare_rel(K))" using K 
+      show "well_ord(K \<times> K, csquare_rel(K))" using K
         by (rule Limit_is_Ord [THEN well_ord_csquare])
     next
       show "\<langle>z, z\<rangle> \<in> K \<times> K" using zK
@@ -578,7 +578,7 @@ next
   also have "...  \<lesssim> succ(z) \<times> succ(z)" using zK
     by (rule pred_csquare_subset [THEN subset_imp_lepoll])
   also have "... \<approx> |succ(z)| \<times> |succ(z)|" using oz
-    by (blast intro: prod_eqpoll_cong Ord_succ Ord_cardinal_eqpoll eqpoll_sym) 
+    by (blast intro: prod_eqpoll_cong Ord_succ Ord_cardinal_eqpoll eqpoll_sym)
   finally show "ordermap(K \<times> K, csquare_rel(K)) ` \<langle>x,y\<rangle> \<lesssim> |succ(z)| \<times> |succ(z)|" .
 qed
 
@@ -587,8 +587,8 @@ lemma ordertype_csquare_le:
   assumes IK: "InfCard(K)" and eq: "\<And>y. y\<in>K \<Longrightarrow> InfCard(y) \<Longrightarrow> y \<otimes> y = y"
   shows "ordertype(K*K, csquare_rel(K)) \<le> K"
 proof -
-  have  CK: "Card(K)" using IK by (rule InfCard_is_Card) 
-  hence OK: "Ord(K)"  by (rule Card_is_Ord) 
+  have  CK: "Card(K)" using IK by (rule InfCard_is_Card)
+  hence OK: "Ord(K)"  by (rule Card_is_Ord)
   moreover have "Ord(ordertype(K \<times> K, csquare_rel(K)))" using OK
     by (rule well_ord_csquare [THEN Ord_ordertype])
   ultimately show ?thesis
@@ -596,18 +596,18 @@ proof -
     fix i
     assume i: "i < ordertype(K \<times> K, csquare_rel(K))"
     hence Oi: "Ord(i)" by (elim ltE)
-    obtain x y where x: "x \<in> K" and y: "y \<in> K" 
+    obtain x y where x: "x \<in> K" and y: "y \<in> K"
                  and ieq: "i = ordermap(K \<times> K, csquare_rel(K)) ` \<langle>x,y\<rangle>"
       using i by (auto simp add: ordertype_unfold elim: ltE)
-    hence xy: "Ord(x)" "Ord(y)" "x < K" "y < K" using OK 
+    hence xy: "Ord(x)" "Ord(y)" "x < K" "y < K" using OK
       by (blast intro: Ord_in_Ord ltI)+
     hence ou: "Ord(x \<union> y)"
-      by (simp add: Ord_Un) 
+      by (simp add: Ord_Un)
     show "i < K"
       proof (rule Card_lt_imp_lt [OF _ Oi CK])
         have "|i| \<le> |succ(succ(x \<union> y))| \<otimes> |succ(succ(x \<union> y))|" using IK xy
           by (auto simp add: ieq intro: InfCard_is_Limit [THEN ordermap_csquare_le])
-        moreover have "|succ(succ(x \<union> y))| \<otimes> |succ(succ(x \<union> y))| < K" 
+        moreover have "|succ(succ(x \<union> y))| \<otimes> |succ(succ(x \<union> y))| < K"
           proof (cases rule: Ord_linear2 [OF ou Ord_nat])
             assume "x \<union> y < nat"
             hence "|succ(succ(x \<union> y))| \<otimes> |succ(succ(x \<union> y))| \<in> nat"
@@ -615,46 +615,46 @@ proof -
                          nat_into_Card [THEN Card_cardinal_eq]  Ord_nat)
             also have "... \<subseteq> K" using IK
               by (simp add: InfCard_def le_imp_subset)
-            finally show "|succ(succ(x \<union> y))| \<otimes> |succ(succ(x \<union> y))| < K" 
-              by (simp add: ltI OK) 
+            finally show "|succ(succ(x \<union> y))| \<otimes> |succ(succ(x \<union> y))| < K"
+              by (simp add: ltI OK)
           next
             assume natxy: "nat \<le> x \<union> y"
-            hence seq: "|succ(succ(x \<union> y))| = |x \<union> y|" using xy 
+            hence seq: "|succ(succ(x \<union> y))| = |x \<union> y|" using xy
               by (simp add: le_imp_subset nat_succ_eqpoll [THEN cardinal_cong] le_succ_iff)
-            also have "... < K" using xy  
+            also have "... < K" using xy
               by (simp add: Un_least_lt Ord_cardinal_le [THEN lt_trans1])
             finally have "|succ(succ(x \<union> y))| < K" .
             moreover have "InfCard(|succ(succ(x \<union> y))|)" using xy natxy
               by (simp add: seq InfCard_def Card_cardinal nat_le_cardinal)
-            ultimately show ?thesis  by (simp add: eq ltD) 
+            ultimately show ?thesis  by (simp add: eq ltD)
           qed
-        ultimately show "|i| < K" by (blast intro: lt_trans1) 
+        ultimately show "|i| < K" by (blast intro: lt_trans1)
     qed
   qed
 qed
 
 (*Main result: Kunen's Theorem 10.12*)
-lemma InfCard_csquare_eq: 
+lemma InfCard_csquare_eq:
   assumes IK: "InfCard(K)" shows "InfCard(K) ==> K \<otimes> K = K"
 proof -
-  have  OK: "Ord(K)" using IK by (simp add: Card_is_Ord InfCard_is_Card) 
+  have  OK: "Ord(K)" using IK by (simp add: Card_is_Ord InfCard_is_Card)
   show "InfCard(K) ==> K \<otimes> K = K" using OK
   proof (induct rule: trans_induct)
     case (step i)
     show "i \<otimes> i = i"
     proof (rule le_anti_sym)
-      have "|i \<times> i| = |ordertype(i \<times> i, csquare_rel(i))|" 
-        by (rule cardinal_cong, 
+      have "|i \<times> i| = |ordertype(i \<times> i, csquare_rel(i))|"
+        by (rule cardinal_cong,
           simp add: step.hyps well_ord_csquare [THEN ordermap_bij, THEN bij_imp_eqpoll])
-      hence "i \<otimes> i \<le> ordertype(i \<times> i, csquare_rel(i))" 
+      hence "i \<otimes> i \<le> ordertype(i \<times> i, csquare_rel(i))"
         by (simp add: step.hyps cmult_def Ord_cardinal_le well_ord_csquare [THEN Ord_ordertype])
       moreover
       have "ordertype(i \<times> i, csquare_rel(i)) \<le> i" using step
-        by (simp add: ordertype_csquare_le) 
+        by (simp add: ordertype_csquare_le)
       ultimately show "i \<otimes> i \<le> i" by (rule le_trans)
     next
       show "i \<le> i \<otimes> i" using step
-        by (blast intro: cmult_square_le InfCard_is_Card) 
+        by (blast intro: cmult_square_le InfCard_is_Card)
     qed
   qed
 qed
@@ -664,7 +664,7 @@ lemma well_ord_InfCard_square_eq:
   assumes r: "well_ord(A,r)" and I: "InfCard(|A|)" shows "A \<times> A \<approx> A"
 proof -
   have "A \<times> A \<approx> |A| \<times> |A|"
-    by (blast intro: prod_eqpoll_cong well_ord_cardinal_eqpoll eqpoll_sym r) 
+    by (blast intro: prod_eqpoll_cong well_ord_cardinal_eqpoll eqpoll_sym r)
   also have "... \<approx> A"
     proof (rule well_ord_cardinal_eqE [OF _ r])
       show "well_ord(|A| \<times> |A|, rmult(|A|, Memrel(|A|), |A|, Memrel(|A|)))"
@@ -672,7 +672,7 @@ proof -
     next
       show "||A| \<times> |A|| = |A|" using InfCard_csquare_eq I
         by (simp add: cmult_def)
-    qed    
+    qed
   finally show ?thesis .
 qed
 
@@ -842,21 +842,21 @@ proof -
   { fix X
     have "Finite(X) ==> a \<notin> X \<Longrightarrow> cons(a,X) \<lesssim> X \<Longrightarrow> False"
       proof (induct X rule: Finite_induct)
-        case 0 thus False  by (simp add: lepoll_0_iff) 
+        case 0 thus False  by (simp add: lepoll_0_iff)
       next
-        case (cons x Y) 
-        hence "cons(x, cons(a, Y)) \<lesssim> cons(x, Y)" by (simp add: cons_commute) 
+        case (cons x Y)
+        hence "cons(x, cons(a, Y)) \<lesssim> cons(x, Y)" by (simp add: cons_commute)
         hence "cons(a, Y) \<lesssim> Y" using cons        by (blast dest: cons_lepoll_consD)
         thus False using cons by auto
       qed
-  } 
+  }
   hence [simp]: "~ cons(a,A) \<lesssim> A" using a FA by auto
   have [simp]: "|A| \<approx> A" using Finite_imp_well_ord [OF FA]
     by (blast intro: well_ord_cardinal_eqpoll)
-  have "(\<mu> i. i \<approx> cons(a, A)) = succ(|A|)" 
+  have "(\<mu> i. i \<approx> cons(a, A)) = succ(|A|)"
     proof (rule Least_equality [OF _ _ notI])
-      show "succ(|A|) \<approx> cons(a, A)" 
-        by (simp add: succ_def cons_eqpoll_cong mem_not_refl a) 
+      show "succ(|A|) \<approx> cons(a, A)"
+        by (simp add: succ_def cons_eqpoll_cong mem_not_refl a)
     next
       show "Ord(succ(|A|))" by simp
     next
@@ -868,17 +868,17 @@ proof -
       finally have "cons(a, A) \<lesssim> A" .
       thus False by simp
     qed
-  thus ?thesis by (simp add: cardinal_def) 
+  thus ?thesis by (simp add: cardinal_def)
 qed
 
 lemma Finite_imp_succ_cardinal_Diff:
-     "[| Finite(A);  a:A |] ==> succ(|A-{a}|) = |A|"
+     "[| Finite(A);  a \<in> A |] ==> succ(|A-{a}|) = |A|"
 apply (rule_tac b = A in cons_Diff [THEN subst], assumption)
 apply (simp add: Finite_imp_cardinal_cons Diff_subset [THEN subset_Finite])
 apply (simp add: cons_Diff)
 done
 
-lemma Finite_imp_cardinal_Diff: "[| Finite(A);  a:A |] ==> |A-{a}| < |A|"
+lemma Finite_imp_cardinal_Diff: "[| Finite(A);  a \<in> A |] ==> |A-{a}| < |A|"
 apply (rule succ_leE)
 apply (simp add: Finite_imp_succ_cardinal_Diff)
 done
@@ -922,11 +922,11 @@ subsubsection{*Theorems by Krzysztof Grabczewski, proofs by lcp*}
 
 lemmas nat_implies_well_ord = nat_into_Ord [THEN well_ord_Memrel]
 
-lemma nat_sum_eqpoll_sum: 
+lemma nat_sum_eqpoll_sum:
   assumes m: "m \<in> nat" and n: "n \<in> nat" shows "m + n \<approx> m #+ n"
 proof -
   have "m + n \<approx> |m+n|" using m n
-    by (blast intro: nat_implies_well_ord well_ord_radd well_ord_cardinal_eqpoll eqpoll_sym) 
+    by (blast intro: nat_implies_well_ord well_ord_radd well_ord_cardinal_eqpoll eqpoll_sym)
   also have "... = m #+ n" using m n
     by (simp add: nat_cadd_eq_add [symmetric] cadd_def)
   finally show ?thesis .

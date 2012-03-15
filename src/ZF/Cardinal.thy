@@ -14,11 +14,11 @@ definition
 
 definition
   eqpoll   :: "[i,i] => o"     (infixl "eqpoll" 50)  where
-    "A eqpoll B == \<exists>f. f: bij(A,B)"
+    "A eqpoll B == \<exists>f. f \<in> bij(A,B)"
 
 definition
   lepoll   :: "[i,i] => o"     (infixl "lepoll" 50)  where
-    "A lepoll B == \<exists>f. f: inj(A,B)"
+    "A lepoll B == \<exists>f. f \<in> inj(A,B)"
 
 definition
   lesspoll :: "[i,i] => o"     (infixl "lesspoll" 50)  where
@@ -56,7 +56,7 @@ lemma decomp_bnd_mono: "bnd_mono(X, %W. X - g``(Y - f``W))"
 by (rule bnd_monoI, blast+)
 
 lemma Banach_last_equation:
-    "g: Y->X
+    "g \<in> Y->X
      ==> g``(Y - f`` lfp(X, %W. X - g``(Y - f``W))) =
          X - lfp(X, %W. X - g``(Y - f``W))"
 apply (rule_tac P = "%u. ?v = X-u"
@@ -65,7 +65,7 @@ apply (simp add: double_complement  fun_is_rel [THEN image_subset])
 done
 
 lemma decomposition:
-     "[| f: X->Y;  g: Y->X |] ==>
+     "[| f \<in> X->Y;  g \<in> Y->X |] ==>
       \<exists>XA XB YA YB. (XA \<inter> XB = 0) & (XA \<union> XB = X) &
                       (YA \<inter> YB = 0) & (YA \<union> YB = Y) &
                       f``XA=YA & g``YB=XB"
@@ -77,7 +77,7 @@ apply (assumption |
 done
 
 lemma schroeder_bernstein:
-    "[| f: inj(X,Y);  g: inj(Y,X) |] ==> \<exists>h. h: bij(X,Y)"
+    "[| f \<in> inj(X,Y);  g \<in> inj(Y,X) |] ==> \<exists>h. h \<in> bij(X,Y)"
 apply (insert decomposition [of f X Y g])
 apply (simp add: inj_is_fun)
 apply (blast intro!: restrict_bij bij_disjoint_Un intro: bij_converse_bij)
@@ -88,7 +88,7 @@ done
 
 (** Equipollence is an equivalence relation **)
 
-lemma bij_imp_eqpoll: "f: bij(A,B) ==> A \<approx> B"
+lemma bij_imp_eqpoll: "f \<in> bij(A,B) ==> A \<approx> B"
 apply (unfold eqpoll_def)
 apply (erule exI)
 done
@@ -128,10 +128,10 @@ apply (blast intro: comp_inj)
 done
 
 lemma eq_lepoll_trans [trans]: "[| X \<approx> Y;  Y \<lesssim> Z |] ==> X \<lesssim> Z"
- by (blast intro: eqpoll_imp_lepoll lepoll_trans) 
+ by (blast intro: eqpoll_imp_lepoll lepoll_trans)
 
 lemma lepoll_eq_trans [trans]: "[| X \<lesssim> Y;  Y \<approx> Z |] ==> X \<lesssim> Z"
- by (blast intro: eqpoll_imp_lepoll lepoll_trans) 
+ by (blast intro: eqpoll_imp_lepoll lepoll_trans)
 
 (*Asymmetry law*)
 lemma eqpollI: "[| X \<lesssim> Y;  Y \<lesssim> X |] ==> X \<approx> Y"
@@ -234,11 +234,11 @@ done
 
 lemma eq_lesspoll_trans [trans]:
       "[| X \<approx> Y; Y \<prec> Z |] ==> X \<prec> Z"
-  by (blast intro: eqpoll_imp_lepoll lesspoll_trans1) 
+  by (blast intro: eqpoll_imp_lepoll lesspoll_trans1)
 
 lemma lesspoll_eq_trans [trans]:
       "[| X \<prec> Y; Y \<approx> Z |] ==> X \<prec> Z"
-  by (blast intro: eqpoll_imp_lepoll lesspoll_trans2) 
+  by (blast intro: eqpoll_imp_lepoll lesspoll_trans2)
 
 
 (** LEAST -- the least number operator [from HOL/Univ.ML] **)
@@ -328,12 +328,12 @@ lemma Ord_cardinal_idem: "Ord(A) \<Longrightarrow> ||A|| = |A|"
  by (rule Ord_cardinal_eqpoll [THEN cardinal_cong])
 
 lemma well_ord_cardinal_eqE:
-  assumes woX: "well_ord(X,r)" and woY: "well_ord(Y,s)" and eq: "|X| = |Y|" 
+  assumes woX: "well_ord(X,r)" and woY: "well_ord(Y,s)" and eq: "|X| = |Y|"
 shows "X \<approx> Y"
 proof -
-  have "X \<approx> |X|" by (blast intro: well_ord_cardinal_eqpoll [OF woX] eqpoll_sym) 
+  have "X \<approx> |X|" by (blast intro: well_ord_cardinal_eqpoll [OF woX] eqpoll_sym)
   also have "... = |Y|" by (rule eq)
-  also have "... \<approx> Y" by (rule well_ord_cardinal_eqpoll [OF woY]) 
+  also have "... \<approx> Y" by (rule well_ord_cardinal_eqpoll [OF woY])
   finally show ?thesis .
 qed
 
@@ -413,45 +413,45 @@ proof (unfold cardinal_def)
     next
       case True                         --{*real case: @{term A} is isomorphic to some ordinal*}
       then obtain i where i: "Ord(i)" "i \<approx> A" by blast
-      show ?thesis 
+      show ?thesis
         proof (rule CardI [OF Ord_Least], rule notI)
           fix j
-          assume j: "j < (\<mu> i. i \<approx> A)" 
+          assume j: "j < (\<mu> i. i \<approx> A)"
           assume "j \<approx> (\<mu> i. i \<approx> A)"
           also have "... \<approx> A" using i by (auto intro: LeastI)
           finally have "j \<approx> A" .
-          thus False 
+          thus False
             by (rule less_LeastE [OF _ j])
         qed
     qed
 qed
 
 (*Kunen's Lemma 10.5*)
-lemma cardinal_eq_lemma: 
+lemma cardinal_eq_lemma:
   assumes i:"|i| \<le> j" and j: "j \<le> i" shows "|j| = |i|"
 proof (rule eqpollI [THEN cardinal_cong])
   show "j \<lesssim> i" by (rule le_imp_lepoll [OF j])
 next
   have Oi: "Ord(i)" using j by (rule le_Ord2)
-  hence "i \<approx> |i|" 
-    by (blast intro: Ord_cardinal_eqpoll eqpoll_sym) 
-  also have "... \<lesssim> j" 
-    by (blast intro: le_imp_lepoll i) 
+  hence "i \<approx> |i|"
+    by (blast intro: Ord_cardinal_eqpoll eqpoll_sym)
+  also have "... \<lesssim> j"
+    by (blast intro: le_imp_lepoll i)
   finally show "i \<lesssim> j" .
 qed
 
-lemma cardinal_mono: 
+lemma cardinal_mono:
   assumes ij: "i \<le> j" shows "|i| \<le> |j|"
 proof (cases rule: Ord_linear_le [OF Ord_cardinal Ord_cardinal])
   assume "|i| \<le> |j|" thus ?thesis .
 next
   assume cj: "|j| \<le> |i|"
   have i: "Ord(i)" using ij
-    by (simp add: lt_Ord) 
-  have ci: "|i| \<le> j"  
-    by (blast intro: Ord_cardinal_le ij le_trans i) 
-  have "|i| = ||i||" 
-    by (auto simp add: Ord_cardinal_idem i) 
+    by (simp add: lt_Ord)
+  have ci: "|i| \<le> j"
+    by (blast intro: Ord_cardinal_le ij le_trans i)
+  have "|i| = ||i||"
+    by (auto simp add: Ord_cardinal_idem i)
   also have "... = |j|"
     by (rule cardinal_eq_lemma [OF cj ci])
   finally have "|i| = |j|" .
@@ -482,11 +482,11 @@ proof (rule Ord_linear_le [of "|A|" "|B|", OF Ord_cardinal Ord_cardinal], assump
   assume BA: "|B| \<le> |A|"
   from lepoll_well_ord [OF AB wB]
   obtain s where s: "well_ord(A, s)" by blast
-  have "B  \<approx> |B|" by (blast intro: wB eqpoll_sym well_ord_cardinal_eqpoll) 
+  have "B  \<approx> |B|" by (blast intro: wB eqpoll_sym well_ord_cardinal_eqpoll)
   also have "... \<lesssim> |A|" by (rule le_imp_lepoll [OF BA])
   also have "... \<approx> A" by (rule well_ord_cardinal_eqpoll [OF s])
   finally have "B \<lesssim> A" .
-  hence "A \<approx> B" by (blast intro: eqpollI AB) 
+  hence "A \<approx> B" by (blast intro: eqpollI AB)
   hence "|A| = |B|" by (rule cardinal_cong)
   thus ?thesis by simp
 qed
@@ -556,7 +556,7 @@ next
     qed
 qed
 
-lemma nat_eqpoll_iff: "[| m \<in> nat; n: nat |] ==> m \<approx> n \<longleftrightarrow> m = n"
+lemma nat_eqpoll_iff: "[| m \<in> nat; n \<in> nat |] ==> m \<approx> n \<longleftrightarrow> m = n"
 apply (rule iffI)
 apply (blast intro: nat_lepoll_imp_le le_anti_sym elim!: eqpollE)
 apply (simp add: eqpoll_refl)
@@ -564,7 +564,7 @@ done
 
 (*The object of all this work: every natural number is a (finite) cardinal*)
 lemma nat_into_Card:
-    "n: nat ==> Card(n)"
+    "n \<in> nat ==> Card(n)"
 apply (unfold Card_def cardinal_def)
 apply (subst Least_equality)
 apply (rule eqpoll_refl)
@@ -601,13 +601,13 @@ lemma lepoll_imp_lesspoll_succ:
   assumes A: "A \<lesssim> m" and m: "m \<in> nat"
   shows "A \<prec> succ(m)"
 proof -
-  { assume "A \<approx> succ(m)" 
+  { assume "A \<approx> succ(m)"
     hence "succ(m) \<approx> A" by (rule eqpoll_sym)
     also have "... \<lesssim> m" by (rule A)
     finally have "succ(m) \<lesssim> m" .
     hence False by (rule succ_lepoll_natE) (rule m) }
   moreover have "A \<lesssim> succ(m)" by (blast intro: lepoll_trans A lepoll_succ)
-  ultimately show ?thesis by (auto simp add: lesspoll_def) 
+  ultimately show ?thesis by (auto simp add: lesspoll_def)
 qed
 
 lemma lesspoll_succ_imp_lepoll:
@@ -642,7 +642,7 @@ lemma lt_not_lepoll:
 proof -
   { assume i: "i \<lesssim> n"
     have "succ(n) \<lesssim> i" using n
-      by (elim ltE, blast intro: Ord_succ_subsetI [THEN subset_imp_lepoll]) 
+      by (elim ltE, blast intro: Ord_succ_subsetI [THEN subset_imp_lepoll])
     also have "... \<lesssim> n" by (rule i)
     finally have "succ(n) \<lesssim> n" .
     hence False  by (rule succ_lepoll_natE) (rule n) }
@@ -657,13 +657,13 @@ proof (cases rule: Ord_linear_lt [OF i])
 next
   assume "i < n"
   hence  "i \<in> nat" by (rule lt_nat_in_nat) (rule n)
-  thus ?thesis by (simp add: nat_eqpoll_iff n) 
+  thus ?thesis by (simp add: nat_eqpoll_iff n)
 next
   assume "i = n"
-  thus ?thesis by (simp add: eqpoll_refl) 
+  thus ?thesis by (simp add: eqpoll_refl)
 next
   assume "n < i"
-  hence  "~ i \<lesssim> n" using n  by (rule lt_not_lepoll) 
+  hence  "~ i \<lesssim> n" using n  by (rule lt_not_lepoll)
   hence  "~ i \<approx> n" using n  by (blast intro: eqpoll_imp_lepoll)
   moreover have "i \<noteq> n" using `n<i` by auto
   ultimately show ?thesis by blast
@@ -672,15 +672,15 @@ qed
 lemma Card_nat: "Card(nat)"
 proof -
   { fix i
-    assume i: "i < nat" "i \<approx> nat" 
-    hence "~ nat \<lesssim> i" 
-      by (simp add: lt_def lt_not_lepoll) 
-    hence False using i 
+    assume i: "i < nat" "i \<approx> nat"
+    hence "~ nat \<lesssim> i"
+      by (simp add: lt_def lt_not_lepoll)
+    hence False using i
       by (simp add: eqpoll_iff)
   }
-  hence "(\<mu> i. i \<approx> nat) = nat" by (blast intro: Least_equality eqpoll_refl) 
+  hence "(\<mu> i. i \<approx> nat) = nat" by (blast intro: Least_equality eqpoll_refl)
   thus ?thesis
-    by (auto simp add: Card_def cardinal_def) 
+    by (auto simp add: Card_def cardinal_def)
 qed
 
 (*Allows showing that |i| is a limit cardinal*)
@@ -701,7 +701,7 @@ lemma cons_lepoll_cong:
     "[| A \<lesssim> B;  b \<notin> B |] ==> cons(a,A) \<lesssim> cons(b,B)"
 apply (unfold lepoll_def, safe)
 apply (rule_tac x = "\<lambda>y\<in>cons (a,A) . if y=a then b else f`y" in exI)
-apply (rule_tac d = "%z. if z:B then converse (f) `z else a" in lam_injective)
+apply (rule_tac d = "%z. if z \<in> B then converse (f) `z else a" in lam_injective)
 apply (safe elim!: consE')
    apply simp_all
 apply (blast intro: inj_is_fun [THEN apply_type])+
@@ -756,11 +756,11 @@ apply (blast intro!: prod_bij)
 done
 
 lemma inj_disjoint_eqpoll:
-    "[| f: inj(A,B);  A \<inter> B = 0 |] ==> A \<union> (B - range(f)) \<approx> B"
+    "[| f \<in> inj(A,B);  A \<inter> B = 0 |] ==> A \<union> (B - range(f)) \<approx> B"
 apply (unfold eqpoll_def)
 apply (rule exI)
-apply (rule_tac c = "%x. if x:A then f`x else x"
-            and d = "%y. if y: range (f) then converse (f) `y else y"
+apply (rule_tac c = "%x. if x \<in> A then f`x else x"
+            and d = "%y. if y \<in> range (f) then converse (f) `y else y"
        in lam_bijective)
 apply (blast intro!: if_type inj_is_fun [THEN apply_type])
 apply (simp (no_asm_simp) add: inj_converse_fun [THEN apply_funtype])
@@ -774,7 +774,7 @@ subsection{*Lemmas by Krzysztof Grabczewski*}
 
 (*New proofs using cons_lepoll_cons. Could generalise from succ to cons.*)
 
-text{*If @{term A} has at most @{term"n+1"} elements and @{term"a \<in> A"} 
+text{*If @{term A} has at most @{term"n+1"} elements and @{term"a \<in> A"}
       then @{term"A-{a}"} has at most @{term n}.*}
 lemma Diff_sing_lepoll:
       "[| a \<in> A;  A \<lesssim> succ(n) |] ==> A - {a} \<lesssim> n"
@@ -790,11 +790,11 @@ lemma lepoll_Diff_sing:
 proof -
   have "cons(n,n) \<lesssim> A" using A
     by (unfold succ_def)
-  also have "... \<lesssim> cons(a, A-{a})" 
+  also have "... \<lesssim> cons(a, A-{a})"
     by (blast intro: subset_imp_lepoll)
   finally have "cons(n,n) \<lesssim> cons(a, A-{a})" .
   thus ?thesis
-    by (blast intro: cons_lepoll_consD mem_irrefl) 
+    by (blast intro: cons_lepoll_consD mem_irrefl)
 qed
 
 lemma Diff_sing_eqpoll: "[| a \<in> A; A \<approx> succ(n) |] ==> A - {a} \<approx> n"
@@ -855,8 +855,8 @@ done
 lemma lepoll_Finite:
   assumes Y: "Y \<lesssim> X" and X: "Finite(X)" shows "Finite(Y)"
 proof -
-  obtain n where n: "n \<in> nat" "X \<approx> n" using X 
-    by (auto simp add: Finite_def) 
+  obtain n where n: "n \<in> nat" "X \<approx> n" using X
+    by (auto simp add: Finite_def)
   have "Y \<lesssim> X"         by (rule Y)
   also have "... \<approx> n"  by (rule n)
   finally have "Y \<lesssim> n" .
@@ -872,7 +872,7 @@ lemmas Finite_Diff = Diff_subset [THEN subset_Finite]
 
 lemma Finite_cons: "Finite(x) ==> Finite(cons(y,x))"
 apply (unfold Finite_def)
-apply (case_tac "y:x")
+apply (case_tac "y \<in> x")
 apply (simp add: cons_absorb)
 apply (erule bexE)
 apply (rule bexI)
@@ -936,10 +936,10 @@ apply (unfold Finite_def)
 apply (blast intro: eqpoll_trans eqpoll_sym)
 done
 
-lemma Fin_lemma [rule_format]: "n: nat ==> \<forall>A. A \<approx> n \<longrightarrow> A \<in> Fin(A)"
+lemma Fin_lemma [rule_format]: "n \<in> nat ==> \<forall>A. A \<approx> n \<longrightarrow> A \<in> Fin(A)"
 apply (induct_tac n)
 apply (simp add: eqpoll_0_iff, clarify)
-apply (subgoal_tac "\<exists>u. u:A")
+apply (subgoal_tac "\<exists>u. u \<in> A")
 apply (erule exE)
 apply (rule Diff_sing_eqpoll [elim_format])
 prefer 2 apply assumption
@@ -1004,7 +1004,7 @@ done
    [| ~Finite(A); Finite(B) |] ==> ~Finite(A-B) *)
 lemma Diff_Finite [rule_format]: "Finite(B) ==> Finite(A-B) \<longrightarrow> Finite(A)"
 apply (erule Finite_induct, auto)
-apply (case_tac "x:A")
+apply (case_tac "x \<in> A")
  apply (subgoal_tac [2] "A-cons (x, B) = A - B")
 apply (subgoal_tac "A - cons (x, B) = (A - B) - {x}", simp)
 apply (drule Diff_sing_Finite, auto)
@@ -1060,8 +1060,8 @@ apply (erule nat_induct)
 apply (blast intro: wf_onI)
 apply (rule wf_onI)
 apply (simp add: wf_on_def wf_def)
-apply (case_tac "x:Z")
- txt{*x:Z case*}
+apply (case_tac "x \<in> Z")
+ txt{*true case*}
  apply (drule_tac x = x in bspec, assumption)
  apply (blast elim: mem_irrefl mem_asym)
 txt{*other case*}
@@ -1085,15 +1085,15 @@ apply (simp add: rvimage_converse converse_Int converse_prod
 done
 
 lemma ordertype_eq_n:
-  assumes r: "well_ord(A,r)" and A: "A \<approx> n" and n: "n \<in> nat" 
+  assumes r: "well_ord(A,r)" and A: "A \<approx> n" and n: "n \<in> nat"
   shows "ordertype(A,r) = n"
 proof -
-  have "ordertype(A,r) \<approx> A" 
-    by (blast intro: bij_imp_eqpoll bij_converse_bij ordermap_bij r) 
+  have "ordertype(A,r) \<approx> A"
+    by (blast intro: bij_imp_eqpoll bij_converse_bij ordermap_bij r)
   also have "... \<approx> n" by (rule A)
   finally have "ordertype(A,r) \<approx> n" .
   thus ?thesis
-    by (simp add: Ord_nat_eqpoll_iff Ord_ordertype n r) 
+    by (simp add: Ord_nat_eqpoll_iff Ord_ordertype n r)
 qed
 
 lemma Finite_well_ord_converse:
@@ -1112,15 +1112,15 @@ lemma nat_not_Finite: "~ Finite(nat)"
 proof -
   { fix n
     assume n: "n \<in> nat" "nat \<approx> n"
-    have "n \<in> nat"    by (rule n) 
+    have "n \<in> nat"    by (rule n)
     also have "... = n" using n
-      by (simp add: Ord_nat_eqpoll_iff Ord_nat) 
+      by (simp add: Ord_nat_eqpoll_iff Ord_nat)
     finally have "n \<in> n" .
-    hence False 
-      by (blast elim: mem_irrefl) 
+    hence False
+      by (blast elim: mem_irrefl)
   }
   thus ?thesis
-    by (auto simp add: Finite_def) 
+    by (auto simp add: Finite_def)
 qed
 
 end

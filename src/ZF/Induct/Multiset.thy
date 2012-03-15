@@ -93,7 +93,7 @@ definition
 
 definition
   multirel :: "[i, i] => i"  where
-  "multirel(A, r) == multirel1(A, r)^+"                 
+  "multirel(A, r) == multirel1(A, r)^+"
 
   (* ordinal multiset orderings *)
 
@@ -446,7 +446,7 @@ lemma nat_add_eq_1_cases: "[| m \<in> nat; n \<in> nat |] ==> (m #+ n = 1) \<lon
 by (induct_tac n) auto
 
 lemma munion_is_single:
-     "[|multiset(M); multiset(N)|] 
+     "[|multiset(M); multiset(N)|]
       ==> (M +# N = {#a#}) \<longleftrightarrow>  (M={#a#} & N=0) | (M = 0 & N = {#a#})"
 apply (simp (no_asm_simp) add: multiset_equality)
 apply safe
@@ -747,7 +747,7 @@ apply (auto simp add: Mult_iff_multiset)
 done
 
 lemma multirel1_mono2: "r\<subseteq>s ==> multirel1(A,r)\<subseteq>multirel1(A, s)"
-apply (simp add: multirel1_def, auto) 
+apply (simp add: multirel1_def, auto)
 apply (rule_tac x = a in bexI)
 apply (rule_tac x = M0 in bexI)
 apply (simp_all add: Mult_iff_multiset)
@@ -807,9 +807,9 @@ apply (erule_tac P = "\<forall>x \<in> mset_of (K) . <x, a> \<in> r" in rev_mp)
 apply (erule_tac P = "mset_of (K) \<subseteq>A" in rev_mp)
 apply (erule_tac M = K in multiset_induct)
 (* three subgoals *)
-(* subgoal 1: the induction base case *)
+(* subgoal 1 \<in> the induction base case *)
 apply (simp (no_asm_simp))
-(* subgoal 2: the induction general case *)
+(* subgoal 2 \<in> the induction general case *)
 apply (simp add: Ball_def Un_subset_iff, clarify)
 apply (drule_tac x = aa in spec, simp)
 apply (subgoal_tac "aa \<in> A")
@@ -817,7 +817,7 @@ prefer 2 apply blast
 apply (drule_tac x = "M0 +# M" and P =
        "%x. x \<in> acc(multirel1(A, r)) \<longrightarrow> ?Q(x)" in spec)
 apply (simp add: munion_assoc [symmetric])
-(* subgoal 3: additional conditions *)
+(* subgoal 3 \<in> additional conditions *)
 apply (auto intro!: multirel1_base [THEN fieldI2] simp add: Mult_iff_multiset)
 done
 

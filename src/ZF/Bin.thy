@@ -24,7 +24,7 @@ consts  bin :: i
 datatype
   "bin" = Pls
         | Min
-        | Bit ("w: bin", "b: bool")     (infixl "BIT" 90)
+        | Bit ("w \<in> bin", "b \<in> bool")     (infixl "BIT" 90)
 
 consts
   integ_of  :: "i=>i"
@@ -132,26 +132,26 @@ lemmas NCons_simps [simp] =
 
 (** Type checking **)
 
-lemma integ_of_type [TC]: "w: bin ==> integ_of(w) \<in> int"
+lemma integ_of_type [TC]: "w \<in> bin ==> integ_of(w) \<in> int"
 apply (induct_tac "w")
 apply (simp_all add: bool_into_nat)
 done
 
-lemma NCons_type [TC]: "[| w: bin; b: bool |] ==> NCons(w,b) \<in> bin"
+lemma NCons_type [TC]: "[| w \<in> bin; b \<in> bool |] ==> NCons(w,b) \<in> bin"
 by (induct_tac "w", auto)
 
-lemma bin_succ_type [TC]: "w: bin ==> bin_succ(w) \<in> bin"
+lemma bin_succ_type [TC]: "w \<in> bin ==> bin_succ(w) \<in> bin"
 by (induct_tac "w", auto)
 
-lemma bin_pred_type [TC]: "w: bin ==> bin_pred(w) \<in> bin"
+lemma bin_pred_type [TC]: "w \<in> bin ==> bin_pred(w) \<in> bin"
 by (induct_tac "w", auto)
 
-lemma bin_minus_type [TC]: "w: bin ==> bin_minus(w) \<in> bin"
+lemma bin_minus_type [TC]: "w \<in> bin ==> bin_minus(w) \<in> bin"
 by (induct_tac "w", auto)
 
 (*This proof is complicated by the mutual recursion*)
 lemma bin_add_type [rule_format,TC]:
-     "v: bin ==> \<forall>w\<in>bin. bin_add(v,w) \<in> bin"
+     "v \<in> bin ==> \<forall>w\<in>bin. bin_add(v,w) \<in> bin"
 apply (unfold bin_add_def)
 apply (induct_tac "v")
 apply (rule_tac [3] ballI)
@@ -160,7 +160,7 @@ apply (induct_tac [3] "w'")
 apply (simp_all add: NCons_type)
 done
 
-lemma bin_mult_type [TC]: "[| v: bin; w: bin |] ==> bin_mult(v,w) \<in> bin"
+lemma bin_mult_type [TC]: "[| v \<in> bin; w \<in> bin |] ==> bin_mult(v,w) \<in> bin"
 by (induct_tac "v", auto)
 
 
@@ -169,19 +169,19 @@ subsubsection{*The Carry and Borrow Functions,
 
 (*NCons preserves the integer value of its argument*)
 lemma integ_of_NCons [simp]:
-     "[| w: bin; b: bool |] ==> integ_of(NCons(w,b)) = integ_of(w BIT b)"
+     "[| w \<in> bin; b \<in> bool |] ==> integ_of(NCons(w,b)) = integ_of(w BIT b)"
 apply (erule bin.cases)
 apply (auto elim!: boolE)
 done
 
 lemma integ_of_succ [simp]:
-     "w: bin ==> integ_of(bin_succ(w)) = $#1 $+ integ_of(w)"
+     "w \<in> bin ==> integ_of(bin_succ(w)) = $#1 $+ integ_of(w)"
 apply (erule bin.induct)
 apply (auto simp add: zadd_ac elim!: boolE)
 done
 
 lemma integ_of_pred [simp]:
-     "w: bin ==> integ_of(bin_pred(w)) = $- ($#1) $+ integ_of(w)"
+     "w \<in> bin ==> integ_of(bin_pred(w)) = $- ($#1) $+ integ_of(w)"
 apply (erule bin.induct)
 apply (auto simp add: zadd_ac elim!: boolE)
 done
@@ -189,7 +189,7 @@ done
 
 subsubsection{*@{term bin_minus}: Unary Negation of Binary Integers*}
 
-lemma integ_of_minus: "w: bin ==> integ_of(bin_minus(w)) = $- integ_of(w)"
+lemma integ_of_minus: "w \<in> bin ==> integ_of(bin_minus(w)) = $- integ_of(w)"
 apply (erule bin.induct)
 apply (auto simp add: zadd_ac zminus_zadd_distrib  elim!: boolE)
 done
@@ -197,18 +197,18 @@ done
 
 subsubsection{*@{term bin_add}: Binary Addition*}
 
-lemma bin_add_Pls [simp]: "w: bin ==> bin_add(Pls,w) = w"
+lemma bin_add_Pls [simp]: "w \<in> bin ==> bin_add(Pls,w) = w"
 by (unfold bin_add_def, simp)
 
-lemma bin_add_Pls_right: "w: bin ==> bin_add(w,Pls) = w"
+lemma bin_add_Pls_right: "w \<in> bin ==> bin_add(w,Pls) = w"
 apply (unfold bin_add_def)
 apply (erule bin.induct, auto)
 done
 
-lemma bin_add_Min [simp]: "w: bin ==> bin_add(Min,w) = bin_pred(w)"
+lemma bin_add_Min [simp]: "w \<in> bin ==> bin_add(Min,w) = bin_pred(w)"
 by (unfold bin_add_def, simp)
 
-lemma bin_add_Min_right: "w: bin ==> bin_add(w,Min) = bin_pred(w)"
+lemma bin_add_Min_right: "w \<in> bin ==> bin_add(w,Min) = bin_pred(w)"
 apply (unfold bin_add_def)
 apply (erule bin.induct, auto)
 done
@@ -220,13 +220,13 @@ lemma bin_add_BIT_Min [simp]: "bin_add(v BIT x,Min) = bin_pred(v BIT x)"
 by (unfold bin_add_def, simp)
 
 lemma bin_add_BIT_BIT [simp]:
-     "[| w: bin;  y: bool |]
+     "[| w \<in> bin;  y \<in> bool |]
       ==> bin_add(v BIT x, w BIT y) =
           NCons(bin_add(v, cond(x and y, bin_succ(w), w)), x xor y)"
 by (unfold bin_add_def, simp)
 
 lemma integ_of_add [rule_format]:
-     "v: bin ==>
+     "v \<in> bin ==>
           \<forall>w\<in>bin. integ_of(bin_add(v,w)) = integ_of(v) $+ integ_of(w)"
 apply (erule bin.induct, simp, simp)
 apply (rule ballI)
@@ -236,7 +236,7 @@ done
 
 (*Subtraction*)
 lemma diff_integ_of_eq:
-     "[| v: bin;  w: bin |]
+     "[| v \<in> bin;  w \<in> bin |]
       ==> integ_of(v) $- integ_of(w) = integ_of(bin_add (v, bin_minus(w)))"
 apply (unfold zdiff_def)
 apply (simp add: integ_of_add integ_of_minus)
@@ -246,7 +246,7 @@ done
 subsubsection{*@{term bin_mult}: Binary Multiplication*}
 
 lemma integ_of_mult:
-     "[| v: bin;  w: bin |]
+     "[| v \<in> bin;  w \<in> bin |]
       ==> integ_of(bin_mult(v,w)) = integ_of(v) $* integ_of(w)"
 apply (induct_tac "v", simp)
 apply (simp add: integ_of_minus)
@@ -280,15 +280,15 @@ by simp
 
 (** extra rules for bin_add **)
 
-lemma bin_add_BIT_11: "w: bin ==> bin_add(v BIT 1, w BIT 1) =
+lemma bin_add_BIT_11: "w \<in> bin ==> bin_add(v BIT 1, w BIT 1) =
                      NCons(bin_add(v, bin_succ(w)), 0)"
 by simp
 
-lemma bin_add_BIT_10: "w: bin ==> bin_add(v BIT 1, w BIT 0) =
+lemma bin_add_BIT_10: "w \<in> bin ==> bin_add(v BIT 1, w BIT 0) =
                      NCons(bin_add(v,w), 1)"
 by simp
 
-lemma bin_add_BIT_0: "[| w: bin;  y: bool |]
+lemma bin_add_BIT_0: "[| w \<in> bin;  y \<in> bool |]
       ==> bin_add(v BIT 0, w BIT y) = NCons(bin_add(v,w), y)"
 by simp
 
@@ -345,7 +345,7 @@ text{*Thanks to Norbert Voelker*}
 (** Equals (=) **)
 
 lemma eq_integ_of_eq:
-     "[| v: bin;  w: bin |]
+     "[| v \<in> bin;  w \<in> bin |]
       ==> ((integ_of(v)) = integ_of(w)) \<longleftrightarrow>
           iszero (integ_of (bin_add (v, bin_minus(w))))"
 apply (unfold iszero_def)
@@ -362,7 +362,7 @@ apply (simp add: zminus_equation)
 done
 
 lemma iszero_integ_of_BIT:
-     "[| w: bin; x: bool |]
+     "[| w \<in> bin; x \<in> bool |]
       ==> iszero (integ_of (w BIT x)) \<longleftrightarrow> (x=0 & iszero (integ_of(w)))"
 apply (unfold iszero_def, simp)
 apply (subgoal_tac "integ_of (w) \<in> int")
@@ -374,10 +374,10 @@ apply (simp_all (asm_lr) add: zcompare_rls zminus_zadd_distrib [symmetric]
 done
 
 lemma iszero_integ_of_0:
-     "w: bin ==> iszero (integ_of (w BIT 0)) \<longleftrightarrow> iszero (integ_of(w))"
+     "w \<in> bin ==> iszero (integ_of (w BIT 0)) \<longleftrightarrow> iszero (integ_of(w))"
 by (simp only: iszero_integ_of_BIT, blast)
 
-lemma iszero_integ_of_1: "w: bin ==> ~ iszero (integ_of (w BIT 1))"
+lemma iszero_integ_of_1: "w \<in> bin ==> ~ iszero (integ_of (w BIT 1))"
 by (simp only: iszero_integ_of_BIT, blast)
 
 
@@ -385,7 +385,7 @@ by (simp only: iszero_integ_of_BIT, blast)
 (** Less-than (<) **)
 
 lemma less_integ_of_eq_neg:
-     "[| v: bin;  w: bin |]
+     "[| v \<in> bin;  w \<in> bin |]
       ==> integ_of(v) $< integ_of(w)
           \<longleftrightarrow> znegative (integ_of (bin_add (v, bin_minus(w))))"
 apply (unfold zless_def zdiff_def)
@@ -399,7 +399,7 @@ lemma neg_integ_of_Min: "znegative (integ_of(Min))"
 by simp
 
 lemma neg_integ_of_BIT:
-     "[| w: bin; x: bool |]
+     "[| w \<in> bin; x \<in> bool |]
       ==> znegative (integ_of (w BIT x)) \<longleftrightarrow> znegative (integ_of(w))"
 apply simp
 apply (subgoal_tac "integ_of (w) \<in> int")
@@ -471,24 +471,24 @@ declare bin_rel_simps [simp]
 (** Simplification of arithmetic when nested to the right **)
 
 lemma add_integ_of_left [simp]:
-     "[| v: bin;  w: bin |]
+     "[| v \<in> bin;  w \<in> bin |]
       ==> integ_of(v) $+ (integ_of(w) $+ z) = (integ_of(bin_add(v,w)) $+ z)"
 by (simp add: zadd_assoc [symmetric])
 
 lemma mult_integ_of_left [simp]:
-     "[| v: bin;  w: bin |]
+     "[| v \<in> bin;  w \<in> bin |]
       ==> integ_of(v) $* (integ_of(w) $* z) = (integ_of(bin_mult(v,w)) $* z)"
 by (simp add: zmult_assoc [symmetric])
 
 lemma add_integ_of_diff1 [simp]:
-    "[| v: bin;  w: bin |]
+    "[| v \<in> bin;  w \<in> bin |]
       ==> integ_of(v) $+ (integ_of(w) $- c) = integ_of(bin_add(v,w)) $- (c)"
 apply (unfold zdiff_def)
 apply (rule add_integ_of_left, auto)
 done
 
 lemma add_integ_of_diff2 [simp]:
-     "[| v: bin;  w: bin |]
+     "[| v \<in> bin;  w \<in> bin |]
       ==> integ_of(v) $+ (c $- integ_of(w)) =
           integ_of (bin_add (v, bin_minus(w))) $+ (c)"
 apply (subst diff_integ_of_eq [symmetric])
@@ -509,10 +509,10 @@ by (simp add: zdiff_def)
 lemma zdiff_self [simp]: "x $- x = #0"
 by (simp add: zdiff_def)
 
-lemma znegative_iff_zless_0: "k: int ==> znegative(k) \<longleftrightarrow> k $< #0"
+lemma znegative_iff_zless_0: "k \<in> int ==> znegative(k) \<longleftrightarrow> k $< #0"
 by (simp add: zless_def)
 
-lemma zero_zless_imp_znegative_zminus: "[|#0 $< k; k: int|] ==> znegative($-k)"
+lemma zero_zless_imp_znegative_zminus: "[|#0 $< k; k \<in> int|] ==> znegative($-k)"
 by (simp add: zless_def)
 
 lemma zero_zle_int_of [simp]: "#0 $<= $# n"
@@ -521,7 +521,7 @@ by (simp add: not_zless_iff_zle [THEN iff_sym] znegative_iff_zless_0 [THEN iff_s
 lemma nat_of_0 [simp]: "nat_of(#0) = 0"
 by (simp only: natify_0 int_of_0 [symmetric] nat_of_int_of)
 
-lemma nat_le_int0_lemma: "[| z $<= $#0; z: int |] ==> nat_of(z) = 0"
+lemma nat_le_int0_lemma: "[| z $<= $#0; z \<in> int |] ==> nat_of(z) = 0"
 by (auto simp add: znegative_iff_zless_0 [THEN iff_sym] zle_def zneg_nat_of)
 
 lemma nat_le_int0: "z $<= $#0 ==> nat_of(z) = 0"
@@ -545,7 +545,7 @@ declare int_of_nat_of [simp] nat_of_zminus_int_of [simp]
 lemma int_of_nat_of_if: "$# nat_of(z) = (if #0 $<= z then intify(z) else #0)"
 by (simp add: int_of_nat_of znegative_iff_zless_0 not_zle_iff_zless)
 
-lemma zless_nat_iff_int_zless: "[| m: nat; z: int |] ==> (m < nat_of(z)) \<longleftrightarrow> ($#m $< z)"
+lemma zless_nat_iff_int_zless: "[| m \<in> nat; z \<in> int |] ==> (m < nat_of(z)) \<longleftrightarrow> ($#m $< z)"
 apply (case_tac "znegative (z) ")
 apply (erule_tac [2] not_zneg_nat_of [THEN subst])
 apply (auto dest: zless_trans dest!: zero_zle_int_of [THEN zle_zless_trans]

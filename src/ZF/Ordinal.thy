@@ -66,11 +66,11 @@ apply (blast dest: Transset_doubleton_D)
 done
 
 lemma Transset_includes_domain:
-    "[| Transset(C); A*B \<subseteq> C; b: B |] ==> A \<subseteq> C"
+    "[| Transset(C); A*B \<subseteq> C; b \<in> B |] ==> A \<subseteq> C"
 by (blast dest: Transset_Pair_D)
 
 lemma Transset_includes_range:
-    "[| Transset(C); A*B \<subseteq> C; a: A |] ==> B \<subseteq> C"
+    "[| Transset(C); A*B \<subseteq> C; a \<in> A |] ==> B \<subseteq> C"
 by (blast dest: Transset_Pair_D)
 
 subsubsection{*Closure Properties*}
@@ -276,12 +276,12 @@ subsection{*Natural Deduction Rules for Memrel*}
 lemma Memrel_iff [simp]: "<a,b> \<in> Memrel(A) <-> a\<in>b & a\<in>A & b\<in>A"
 by (unfold Memrel_def, blast)
 
-lemma MemrelI [intro!]: "[| a: b;  a: A;  b: A |] ==> <a,b> \<in> Memrel(A)"
+lemma MemrelI [intro!]: "[| a \<in> b;  a \<in> A;  b \<in> A |] ==> <a,b> \<in> Memrel(A)"
 by auto
 
 lemma MemrelE [elim!]:
     "[| <a,b> \<in> Memrel(A);
-        [| a: A;  b: A;  a\<in>b |]  ==> P |]
+        [| a \<in> A;  b \<in> A;  a\<in>b |]  ==> P |]
      ==> P"
 by auto
 
@@ -327,8 +327,8 @@ subsection{*Transfinite Induction*}
 
 (*Epsilon induction over a transitive set*)
 lemma Transset_induct:
-    "[| i: k;  Transset(k);
-        !!x.[| x: k;  \<forall>y\<in>x. P(y) |] ==> P(x) |]
+    "[| i \<in> k;  Transset(k);
+        !!x.[| x \<in> k;  \<forall>y\<in>x. P(y) |] ==> P(x) |]
      ==>  P(i)"
 apply (simp add: Transset_def)
 apply (erule wf_Memrel [THEN wf_induct2], blast+)
@@ -364,7 +364,7 @@ done
 text{*The trichotomy law for ordinals*}
 lemma Ord_linear_lt:
  assumes o: "Ord(i)" "Ord(j)"
- obtains (lt) "i<j" | (eq) "i=j" | (gt) "j<i" 
+ obtains (lt) "i<j" | (eq) "i=j" | (gt) "j<i"
 apply (simp add: lt_def)
 apply (rule_tac i1=i and j1=j in Ord_linear [THEN disjE])
 apply (blast intro: o)+
@@ -372,14 +372,14 @@ done
 
 lemma Ord_linear2:
  assumes o: "Ord(i)" "Ord(j)"
- obtains (lt) "i<j" | (ge) "j \<le> i" 
+ obtains (lt) "i<j" | (ge) "j \<le> i"
 apply (rule_tac i = i and j = j in Ord_linear_lt)
 apply (blast intro: leI le_eqI sym o) +
 done
 
 lemma Ord_linear_le:
  assumes o: "Ord(i)" "Ord(j)"
- obtains (le) "i \<le> j" | (ge) "j \<le> i" 
+ obtains (le) "i \<le> j" | (ge) "j \<le> i"
 apply (rule_tac i = i and j = j in Ord_linear_lt)
 apply (blast intro: leI le_eqI o) +
 done
@@ -598,7 +598,7 @@ lemma UN_upper_lt:
 by (unfold lt_def, blast)
 
 lemma UN_upper_le:
-     "[| a: A;  i \<le> b(a);  Ord(\<Union>x\<in>A. b(x)) |] ==> i \<le> (\<Union>x\<in>A. b(x))"
+     "[| a \<in> A;  i \<le> b(a);  Ord(\<Union>x\<in>A. b(x)) |] ==> i \<le> (\<Union>x\<in>A. b(x))"
 apply (frule ltD)
 apply (rule le_imp_subset [THEN subset_trans, THEN subset_imp_le])
 apply (blast intro: lt_Ord UN_upper)+
@@ -608,7 +608,7 @@ lemma lt_Union_iff: "\<forall>i\<in>A. Ord(i) ==> (j < \<Union>(A)) <-> (\<exist
 by (auto simp: lt_def Ord_Union)
 
 lemma Union_upper_le:
-     "[| j: J;  i\<le>j;  Ord(\<Union>(J)) |] ==> i \<le> \<Union>J"
+     "[| j \<in> J;  i\<le>j;  Ord(\<Union>(J)) |] ==> i \<le> \<Union>J"
 apply (subst Union_eq_UN)
 apply (rule UN_upper_le, auto)
 done
@@ -677,10 +677,10 @@ proof -
   { fix y
     assume yi: "y<i"
     hence Osy: "Ord(succ(y))" by (simp add: lt_Ord Ord_succ)
-    have "~ i \<le> y" using yi by (blast dest: le_imp_not_lt) 
-    hence "succ(y) < i" using nsucc [of y] 
+    have "~ i \<le> y" using yi by (blast dest: le_imp_not_lt)
+    hence "succ(y) < i" using nsucc [of y]
       by (blast intro: Ord_linear_lt [OF Osy Oi]) }
-  thus ?thesis using i Oi by (auto simp add: Limit_def) 
+  thus ?thesis using i Oi by (auto simp add: Limit_def)
 qed
 
 lemma succ_LimitE [elim!]: "Limit(succ(i)) ==> P"
@@ -703,7 +703,7 @@ by (blast intro!: non_succ_LimitI Ord_0_lt)
 
 lemma Ord_cases:
  assumes i: "Ord(i)"
- obtains (0) "i=0" | (succ) j where "Ord(j)" "i=succ(j)" | (limit) "Limit(i)" 
+ obtains (0) "i=0" | (succ) j where "Ord(j)" "i=succ(j)" | (limit) "Limit(i)"
 by (insert Ord_cases_disj [OF i], auto)
 
 lemma trans_induct3_raw:
@@ -722,7 +722,7 @@ text{*A set of ordinals is either empty, contains its own union, or its
 union is a limit ordinal.*}
 
 lemma Union_le: "[| !!x. x\<in>I ==> x\<le>j; Ord(j) |] ==> \<Union>(I) \<le> j"
-  by (auto simp add: le_subset_iff Union_least) 
+  by (auto simp add: le_subset_iff Union_least)
 
 lemma Ord_set_cases:
   assumes I: "\<forall>i\<in>I. Ord(i)"
@@ -734,20 +734,20 @@ next
 next
   fix j
   assume j: "Ord(j)" and UIj:"\<Union>(I) = succ(j)"
-  { assume "\<forall>i\<in>I. i\<le>j" 
-    hence "\<Union>(I) \<le> j" 
-      by (simp add: Union_le j) 
-    hence False 
+  { assume "\<forall>i\<in>I. i\<le>j"
+    hence "\<Union>(I) \<le> j"
+      by (simp add: Union_le j)
+    hence False
       by (simp add: UIj lt_not_refl) }
   then obtain i where i: "i \<in> I" "succ(j) \<le> i" using I j
-    by (atomize, auto simp add: not_le_iff_lt) 
+    by (atomize, auto simp add: not_le_iff_lt)
   have "\<Union>(I) \<le> succ(j)" using UIj j by auto
   hence "i \<le> succ(j)" using i
-    by (simp add: le_subset_iff Union_subset_iff) 
-  hence "succ(j) = i" using i 
-    by (blast intro: le_anti_sym) 
+    by (simp add: le_subset_iff Union_subset_iff)
+  hence "succ(j) = i" using i
+    by (blast intro: le_anti_sym)
   hence "succ(j) \<in> I" by (simp add: i)
-  thus ?thesis by (simp add: UIj) 
+  thus ?thesis by (simp add: UIj)
 next
   assume "Limit(\<Union>I)" thus ?thesis by auto
 qed

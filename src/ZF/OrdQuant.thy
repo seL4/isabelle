@@ -98,12 +98,12 @@ lemma le_implies_OUN_le_OUN:
 by (blast intro: OUN_least_le OUN_upper_le le_Ord2 Ord_OUN)
 
 lemma OUN_UN_eq:
-     "(!!x. x:A ==> Ord(B(x)))
+     "(!!x. x \<in> A ==> Ord(B(x)))
       ==> (\<Union>z < (\<Union>x\<in>A. B(x)). C(z)) = (\<Union>x\<in>A. \<Union>z < B(x). C(z))"
 by (simp add: OUnion_def)
 
 lemma OUN_Union_eq:
-     "(!!x. x:X ==> Ord(x))
+     "(!!x. x \<in> X ==> Ord(x))
       ==> (\<Union>z < \<Union>(X). C(z)) = (\<Union>x\<in>X. \<Union>z < x. C(z))"
 by (simp add: OUnion_def)
 
@@ -168,11 +168,11 @@ done
 
 subsubsection {*Rules for Ordinal-Indexed Unions*}
 
-lemma OUN_I [intro]: "[| a<i;  b: B(a) |] ==> b: (\<Union>z<i. B(z))"
+lemma OUN_I [intro]: "[| a<i;  b \<in> B(a) |] ==> b: (\<Union>z<i. B(z))"
 by (unfold OUnion_def lt_def, blast)
 
 lemma OUN_E [elim!]:
-    "[| b \<in> (\<Union>z<i. B(z));  !!a.[| b: B(a);  a<i |] ==> R |] ==> R"
+    "[| b \<in> (\<Union>z<i. B(z));  !!a.[| b \<in> B(a);  a<i |] ==> R |] ==> R"
 apply (unfold OUnion_def lt_def, blast)
 done
 

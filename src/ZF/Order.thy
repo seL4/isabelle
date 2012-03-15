@@ -46,16 +46,16 @@ definition
 definition
   mono_map :: "[i,i,i,i]=>i"            (*Order-preserving maps*)  where
    "mono_map(A,r,B,s) ==
-              {f: A->B. \<forall>x\<in>A. \<forall>y\<in>A. <x,y>:r \<longrightarrow> <f`x,f`y>:s}"
+              {f \<in> A->B. \<forall>x\<in>A. \<forall>y\<in>A. <x,y>:r \<longrightarrow> <f`x,f`y>:s}"
 
 definition
   ord_iso  :: "[i,i,i,i]=>i"            (*Order isomorphisms*)  where
    "ord_iso(A,r,B,s) ==
-              {f: bij(A,B). \<forall>x\<in>A. \<forall>y\<in>A. <x,y>:r \<longleftrightarrow> <f`x,f`y>:s}"
+              {f \<in> bij(A,B). \<forall>x\<in>A. \<forall>y\<in>A. <x,y>:r \<longleftrightarrow> <f`x,f`y>:s}"
 
 definition
   pred     :: "[i,i,i]=>i"              (*Set of predecessors*)  where
-   "pred(A,x,r) == {y:A. <y,x>:r}"
+   "pred(A,x,r) == {y \<in> A. <y,x>:r}"
 
 definition
   ord_iso_map :: "[i,i,i,i]=>i"         (*Construction for linearity theorem*)  where
@@ -64,7 +64,7 @@ definition
 
 definition
   first :: "[i, i, i] => o"  where
-    "first(u, X, R) == u:X & (\<forall>v\<in>X. v\<noteq>u \<longrightarrow> <u,v> \<in> R)"
+    "first(u, X, R) == u \<in> X & (\<forall>v\<in>X. v\<noteq>u \<longrightarrow> <u,v> \<in> R)"
 
 
 notation (xsymbols)
@@ -78,7 +78,7 @@ lemma part_ord_Imp_asym:
 by (unfold part_ord_def irrefl_def trans_on_def asym_def, blast)
 
 lemma linearE:
-    "[| linear(A,r);  x:A;  y:A;
+    "[| linear(A,r);  x \<in> A;  y \<in> A;
         <x,y>:r ==> P;  x=y ==> P;  <y,x>:r ==> P |]
      ==> P"
 by (simp add: linear_def, blast)
@@ -107,12 +107,12 @@ by (unfold well_ord_def tot_ord_def, blast)
 
 (** Derived rules for pred(A,x,r) **)
 
-lemma pred_iff: "y \<in> pred(A,x,r) \<longleftrightarrow> <y,x>:r & y:A"
+lemma pred_iff: "y \<in> pred(A,x,r) \<longleftrightarrow> <y,x>:r & y \<in> A"
 by (unfold pred_def, blast)
 
 lemmas predI = conjI [THEN pred_iff [THEN iffD2]]
 
-lemma predE: "[| y: pred(A,x,r);  [| y:A; <y,x>:r |] ==> P |] ==> P"
+lemma predE: "[| y \<in> pred(A,x,r);  [| y \<in> A; <y,x>:r |] ==> P |] ==> P"
 by (simp add: pred_def)
 
 lemma pred_subset_under: "pred(A,x,r) \<subseteq> r -`` {x}"
@@ -126,7 +126,7 @@ lemma pred_pred_eq:
 by (simp add: pred_def, blast)
 
 lemma trans_pred_pred_eq:
-    "[| trans[A](r);  <y,x>:r;  x:A;  y:A |]
+    "[| trans[A](r);  <y,x>:r;  x \<in> A;  y \<in> A |]
      ==> pred(pred(A,x,r), y, r) = pred(A,y,r)"
 by (unfold trans_on_def pred_def, blast)
 
@@ -244,39 +244,39 @@ text{*Suppes calls them "similarities"*}
 
 (** Order-preserving (monotone) maps **)
 
-lemma mono_map_is_fun: "f: mono_map(A,r,B,s) ==> f: A->B"
+lemma mono_map_is_fun: "f \<in> mono_map(A,r,B,s) ==> f \<in> A->B"
 by (simp add: mono_map_def)
 
 lemma mono_map_is_inj:
-    "[| linear(A,r);  wf[B](s);  f: mono_map(A,r,B,s) |] ==> f: inj(A,B)"
+    "[| linear(A,r);  wf[B](s);  f \<in> mono_map(A,r,B,s) |] ==> f \<in> inj(A,B)"
 apply (unfold mono_map_def inj_def, clarify)
 apply (erule_tac x=w and y=x in linearE, assumption+)
 apply (force intro: apply_type dest: wf_on_not_refl)+
 done
 
 lemma ord_isoI:
-    "[| f: bij(A, B);
-        !!x y. [| x:A; y:A |] ==> <x, y> \<in> r \<longleftrightarrow> <f`x, f`y> \<in> s |]
-     ==> f: ord_iso(A,r,B,s)"
+    "[| f \<in> bij(A, B);
+        !!x y. [| x \<in> A; y \<in> A |] ==> <x, y> \<in> r \<longleftrightarrow> <f`x, f`y> \<in> s |]
+     ==> f \<in> ord_iso(A,r,B,s)"
 by (simp add: ord_iso_def)
 
 lemma ord_iso_is_mono_map:
-    "f: ord_iso(A,r,B,s) ==> f: mono_map(A,r,B,s)"
+    "f \<in> ord_iso(A,r,B,s) ==> f \<in> mono_map(A,r,B,s)"
 apply (simp add: ord_iso_def mono_map_def)
 apply (blast dest!: bij_is_fun)
 done
 
 lemma ord_iso_is_bij:
-    "f: ord_iso(A,r,B,s) ==> f: bij(A,B)"
+    "f \<in> ord_iso(A,r,B,s) ==> f \<in> bij(A,B)"
 by (simp add: ord_iso_def)
 
 (*Needed?  But ord_iso_converse is!*)
 lemma ord_iso_apply:
-    "[| f: ord_iso(A,r,B,s);  <x,y>: r;  x:A;  y:A |] ==> <f`x, f`y> \<in> s"
+    "[| f \<in> ord_iso(A,r,B,s);  <x,y>: r;  x \<in> A;  y \<in> A |] ==> <f`x, f`y> \<in> s"
 by (simp add: ord_iso_def)
 
 lemma ord_iso_converse:
-    "[| f: ord_iso(A,r,B,s);  <x,y>: s;  x:B;  y:B |]
+    "[| f \<in> ord_iso(A,r,B,s);  <x,y>: s;  x \<in> B;  y \<in> B |]
      ==> <converse(f) ` x, converse(f) ` y> \<in> r"
 apply (simp add: ord_iso_def, clarify)
 apply (erule bspec [THEN bspec, THEN iffD2])
@@ -292,7 +292,7 @@ lemma ord_iso_refl: "id(A): ord_iso(A,r,A,r)"
 by (rule id_bij [THEN ord_isoI], simp)
 
 (*Symmetry of similarity*)
-lemma ord_iso_sym: "f: ord_iso(A,r,B,s) ==> converse(f): ord_iso(B,s,A,r)"
+lemma ord_iso_sym: "f \<in> ord_iso(A,r,B,s) ==> converse(f): ord_iso(B,s,A,r)"
 apply (simp add: ord_iso_def)
 apply (auto simp add: right_inverse_bij bij_converse_bij
                       bij_is_fun [THEN apply_funtype])
@@ -300,7 +300,7 @@ done
 
 (*Transitivity of similarity*)
 lemma mono_map_trans:
-    "[| g: mono_map(A,r,B,s);  f: mono_map(B,s,C,t) |]
+    "[| g \<in> mono_map(A,r,B,s);  f \<in> mono_map(B,s,C,t) |]
      ==> (f O g): mono_map(A,r,C,t)"
 apply (unfold mono_map_def)
 apply (auto simp add: comp_fun)
@@ -308,7 +308,7 @@ done
 
 (*Transitivity of similarity: the order-isomorphism relation*)
 lemma ord_iso_trans:
-    "[| g: ord_iso(A,r,B,s);  f: ord_iso(B,s,C,t) |]
+    "[| g \<in> ord_iso(A,r,B,s);  f \<in> ord_iso(B,s,C,t) |]
      ==> (f O g): ord_iso(A,r,C,t)"
 apply (unfold ord_iso_def, clarify)
 apply (frule bij_is_fun [of f])
@@ -319,8 +319,8 @@ done
 (** Two monotone maps can make an order-isomorphism **)
 
 lemma mono_ord_isoI:
-    "[| f: mono_map(A,r,B,s);  g: mono_map(B,s,A,r);
-        f O g = id(B);  g O f = id(A) |] ==> f: ord_iso(A,r,B,s)"
+    "[| f \<in> mono_map(A,r,B,s);  g \<in> mono_map(B,s,A,r);
+        f O g = id(B);  g O f = id(A) |] ==> f \<in> ord_iso(A,r,B,s)"
 apply (simp add: ord_iso_def mono_map_def, safe)
 apply (intro fg_imp_bijective, auto)
 apply (subgoal_tac "<g` (f`x), g` (f`y) > \<in> r")
@@ -330,8 +330,8 @@ done
 
 lemma well_ord_mono_ord_isoI:
      "[| well_ord(A,r);  well_ord(B,s);
-         f: mono_map(A,r,B,s);  converse(f): mono_map(B,s,A,r) |]
-      ==> f: ord_iso(A,r,B,s)"
+         f \<in> mono_map(A,r,B,s);  converse(f): mono_map(B,s,A,r) |]
+      ==> f \<in> ord_iso(A,r,B,s)"
 apply (intro mono_ord_isoI, auto)
 apply (frule mono_map_is_fun [THEN fun_is_rel])
 apply (erule converse_converse [THEN subst], rule left_comp_inverse)
@@ -343,13 +343,13 @@ done
 (** Order-isomorphisms preserve the ordering's properties **)
 
 lemma part_ord_ord_iso:
-    "[| part_ord(B,s);  f: ord_iso(A,r,B,s) |] ==> part_ord(A,r)"
+    "[| part_ord(B,s);  f \<in> ord_iso(A,r,B,s) |] ==> part_ord(A,r)"
 apply (simp add: part_ord_def irrefl_def trans_on_def ord_iso_def)
 apply (fast intro: bij_is_fun [THEN apply_type])
 done
 
 lemma linear_ord_iso:
-    "[| linear(B,s);  f: ord_iso(A,r,B,s) |] ==> linear(A,r)"
+    "[| linear(B,s);  f \<in> ord_iso(A,r,B,s) |] ==> linear(A,r)"
 apply (simp add: linear_def ord_iso_def, safe)
 apply (drule_tac x1 = "f`x" and x = "f`y" in bspec [THEN bspec])
 apply (safe elim!: bij_is_fun [THEN apply_type])
@@ -358,15 +358,15 @@ apply (simp add: left_inverse_bij)
 done
 
 lemma wf_on_ord_iso:
-    "[| wf[B](s);  f: ord_iso(A,r,B,s) |] ==> wf[A](r)"
+    "[| wf[B](s);  f \<in> ord_iso(A,r,B,s) |] ==> wf[A](r)"
 apply (simp add: wf_on_def wf_def ord_iso_def, safe)
-apply (drule_tac x = "{f`z. z:Z \<inter> A}" in spec)
+apply (drule_tac x = "{f`z. z \<in> Z \<inter> A}" in spec)
 apply (safe intro!: equalityI)
 apply (blast dest!: equalityD1 intro: bij_is_fun [THEN apply_type])+
 done
 
 lemma well_ord_ord_iso:
-    "[| well_ord(B,s);  f: ord_iso(A,r,B,s) |] ==> well_ord(A,r)"
+    "[| well_ord(B,s);  f \<in> ord_iso(A,r,B,s) |] ==> well_ord(A,r)"
 apply (unfold well_ord_def tot_ord_def)
 apply (fast elim!: part_ord_ord_iso linear_ord_iso wf_on_ord_iso)
 done
@@ -377,7 +377,7 @@ subsection{*Main results of Kunen, Chapter 1 section 6*}
 (*Inductive argument for Kunen's Lemma 6.1, etc.
   Simple proof from Halmos, page 72*)
 lemma well_ord_iso_subset_lemma:
-     "[| well_ord(A,r);  f: ord_iso(A,r, A',r);  A'<= A;  y: A |]
+     "[| well_ord(A,r);  f \<in> ord_iso(A,r, A',r);  A'<= A;  y \<in> A |]
       ==> ~ <f`y, y>: r"
 apply (simp add: well_ord_def ord_iso_def)
 apply (elim conjE CollectE)
@@ -385,10 +385,10 @@ apply (rule_tac a=y in wf_on_induct, assumption+)
 apply (blast dest: bij_is_fun [THEN apply_type])
 done
 
-(*Kunen's Lemma 6.1: there's no order-isomorphism to an initial segment
+(*Kunen's Lemma 6.1 \<in> there's no order-isomorphism to an initial segment
                      of a well-ordering*)
 lemma well_ord_iso_predE:
-     "[| well_ord(A,r);  f \<in> ord_iso(A, r, pred(A,x,r), r);  x:A |] ==> P"
+     "[| well_ord(A,r);  f \<in> ord_iso(A, r, pred(A,x,r), r);  x \<in> A |] ==> P"
 apply (insert well_ord_iso_subset_lemma [of A r f "pred(A,x,r)" x])
 apply (simp add: pred_subset)
 (*Now we know  f`x < x *)
@@ -400,7 +400,7 @@ done
 (*Simple consequence of Lemma 6.1*)
 lemma well_ord_iso_pred_eq:
      "[| well_ord(A,r);  f \<in> ord_iso(pred(A,a,r), r, pred(A,c,r), r);
-         a:A;  c:A |] ==> a=c"
+         a \<in> A;  c \<in> A |] ==> a=c"
 apply (frule well_ord_is_trans_on)
 apply (frule well_ord_is_linear)
 apply (erule_tac x=a and y=c in linearE, assumption+)
@@ -413,7 +413,7 @@ done
 
 (*Does not assume r is a wellordering!*)
 lemma ord_iso_image_pred:
-     "[|f \<in> ord_iso(A,r,B,s);  a:A|] ==> f `` pred(A,a,r) = pred(B, f`a, s)"
+     "[|f \<in> ord_iso(A,r,B,s);  a \<in> A|] ==> f `` pred(A,a,r) = pred(B, f`a, s)"
 apply (unfold ord_iso_def pred_def)
 apply (erule CollectE)
 apply (simp (no_asm_simp) add: image_fun [OF bij_is_fun Collect_subset])
@@ -434,7 +434,7 @@ done
 (*But in use, A and B may themselves be initial segments.  Then use
   trans_pred_pred_eq to simplify the pred(pred...) terms.  See just below.*)
 lemma ord_iso_restrict_pred:
-   "[| f \<in> ord_iso(A,r,B,s);   a:A |]
+   "[| f \<in> ord_iso(A,r,B,s);   a \<in> A |]
     ==> restrict(f, pred(A,a,r)) \<in> ord_iso(pred(A,a,r), r, pred(B, f`a, s), s)"
 apply (simp add: ord_iso_image_pred [symmetric])
 apply (blast intro: ord_iso_restrict_image elim: predE)
@@ -445,7 +445,7 @@ lemma well_ord_iso_preserving:
      "[| well_ord(A,r);  well_ord(B,s);  <a,c>: r;
          f \<in> ord_iso(pred(A,a,r), r, pred(B,b,s), s);
          g \<in> ord_iso(pred(A,c,r), r, pred(B,d,s), s);
-         a:A;  c:A;  b:B;  d:B |] ==> <b,d>: s"
+         a \<in> A;  c \<in> A;  b \<in> B;  d \<in> B |] ==> <b,d>: s"
 apply (frule ord_iso_is_bij [THEN bij_is_fun, THEN apply_type], (erule asm_rl predI predE)+)
 apply (subgoal_tac "b = g`a")
 apply (simp (no_asm_simp))
@@ -458,7 +458,7 @@ done
 (*See Halmos, page 72*)
 lemma well_ord_iso_unique_lemma:
      "[| well_ord(A,r);
-         f: ord_iso(A,r, B,s);  g: ord_iso(A,r, B,s);  y: A |]
+         f \<in> ord_iso(A,r, B,s);  g \<in> ord_iso(A,r, B,s);  y \<in> A |]
       ==> ~ <g`y, f`y> \<in> s"
 apply (frule well_ord_iso_subset_lemma)
 apply (rule_tac f = "converse (f) " and g = g in ord_iso_trans)
@@ -476,7 +476,7 @@ done
 
 (*Kunen's Lemma 6.2: Order-isomorphisms between well-orderings are unique*)
 lemma well_ord_iso_unique: "[| well_ord(A,r);
-         f: ord_iso(A,r, B,s);  g: ord_iso(A,r, B,s) |] ==> f = g"
+         f \<in> ord_iso(A,r, B,s);  g \<in> ord_iso(A,r, B,s) |] ==> f = g"
 apply (rule fun_extension)
 apply (erule ord_iso_is_bij [THEN bij_is_fun])+
 apply (subgoal_tac "f`x \<in> B & g`x \<in> B & linear(B,s)")
@@ -522,7 +522,7 @@ lemma ord_iso_map_mono_map:
 apply (unfold mono_map_def)
 apply (simp (no_asm_simp) add: ord_iso_map_fun)
 apply safe
-apply (subgoal_tac "x:A & ya:A & y:B & yb:B")
+apply (subgoal_tac "x \<in> A & ya:A & y \<in> B & yb:B")
  apply (simp add: apply_equality [OF _  ord_iso_map_fun])
  apply (unfold ord_iso_map_def)
  apply (blast intro: well_ord_iso_preserving, blast)
@@ -545,7 +545,7 @@ done
 (*One way of saying that domain(ord_iso_map(A,r,B,s)) is downwards-closed*)
 lemma domain_ord_iso_map_subset:
      "[| well_ord(A,r);  well_ord(B,s);
-         a: A;  a \<notin> domain(ord_iso_map(A,r,B,s)) |]
+         a \<in> A;  a \<notin> domain(ord_iso_map(A,r,B,s)) |]
       ==>  domain(ord_iso_map(A,r,B,s)) \<subseteq> pred(A, a, r)"
 apply (unfold ord_iso_map_def)
 apply (safe intro!: predI)
@@ -642,7 +642,7 @@ done
 (** By Krzysztof Grabczewski.
     Lemmas involving the first element of a well ordered set **)
 
-lemma first_is_elem: "first(b,B,r) ==> b:B"
+lemma first_is_elem: "first(b,B,r) ==> b \<in> B"
 by (unfold first_def, blast)
 
 lemma well_ord_imp_ex1_first:

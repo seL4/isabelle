@@ -79,11 +79,11 @@ apply (blast intro: Ord_trans)
 done
 
 lemma pred_Memrel:
-      "x:A ==> pred(A, x, Memrel(A)) = A \<inter> x"
+      "x \<in> A ==> pred(A, x, Memrel(A)) = A \<inter> x"
 by (unfold pred_def Memrel_def, blast)
 
 lemma Ord_iso_implies_eq_lemma:
-     "[| j<i;  f: ord_iso(i,Memrel(i),j,Memrel(j)) |] ==> R"
+     "[| j<i;  f \<in> ord_iso(i,Memrel(i),j,Memrel(j)) |] ==> R"
 apply (frule lt_pred_Memrel)
 apply (erule ltE)
 apply (rule well_ord_Memrel [THEN well_ord_iso_predE, of i f j], auto)
@@ -95,7 +95,7 @@ done
 
 (*Kunen's Theorem 7.3 (ii), page 16.  Isomorphic ordinals are equal*)
 lemma Ord_iso_implies_eq:
-     "[| Ord(i);  Ord(j);  f:  ord_iso(i,Memrel(i),j,Memrel(j)) |]
+     "[| Ord(i);  Ord(j);  f \<in> ord_iso(i,Memrel(i),j,Memrel(j)) |]
       ==> i=j"
 apply (rule_tac i = i and j = j in Ord_linear_lt)
 apply (blast intro: ord_iso_sym Ord_iso_implies_eq_lemma)+
@@ -115,7 +115,7 @@ subsubsection{*Unfolding of ordermap *}
 
 (*Useful for cardinality reasoning; see CardinalArith.ML*)
 lemma ordermap_eq_image:
-    "[| wf[A](r);  x:A |]
+    "[| wf[A](r);  x \<in> A |]
      ==> ordermap(A,r) ` x = ordermap(A,r) `` pred(A,x,r)"
 apply (unfold ordermap_def pred_def)
 apply (simp (no_asm_simp))
@@ -125,7 +125,7 @@ done
 
 (*Useful for rewriting PROVIDED pred is not unfolded until later!*)
 lemma ordermap_pred_unfold:
-     "[| wf[A](r);  x:A |]
+     "[| wf[A](r);  x \<in> A |]
       ==> ordermap(A,r) ` x = {ordermap(A,r)`y . y \<in> pred(A,x,r)}"
 by (simp add: ordermap_eq_image pred_subset ordermap_type [THEN image_fun])
 
@@ -135,14 +135,14 @@ lemmas ordermap_unfold = ordermap_pred_unfold [simplified pred_def]
 (*The theorem above is
 
 [| wf[A](r); x \<in> A |]
-==> ordermap(A,r) ` x = {ordermap(A,r) ` y . y: {y: A . <y,x> \<in> r}}
+==> ordermap(A,r) ` x = {ordermap(A,r) ` y . y: {y \<in> A . <y,x> \<in> r}}
 
 NOTE: the definition of ordermap used here delivers ordinals only if r is
 transitive.  If r is the predecessor relation on the naturals then
 ordermap(nat,predr) ` n equals {n-1} and not n.  A more complicated definition,
 like
 
-  ordermap(A,r) ` x = Union{succ(ordermap(A,r) ` y) . y: {y: A . <y,x> \<in> r}},
+  ordermap(A,r) ` x = Union{succ(ordermap(A,r) ` y) . y: {y \<in> A . <y,x> \<in> r}},
 
 might eliminate the need for r to be transitive.
 *)
@@ -151,7 +151,7 @@ might eliminate the need for r to be transitive.
 subsubsection{*Showing that ordermap, ordertype yield ordinals *}
 
 lemma Ord_ordermap:
-    "[| well_ord(A,r);  x:A |] ==> Ord(ordermap(A,r) ` x)"
+    "[| well_ord(A,r);  x \<in> A |] ==> Ord(ordermap(A,r) ` x)"
 apply (unfold well_ord_def tot_ord_def part_ord_def, safe)
 apply (rule_tac a=x in wf_on_induct, assumption+)
 apply (simp (no_asm_simp) add: ordermap_pred_unfold)
@@ -176,14 +176,14 @@ done
 subsubsection{*ordermap preserves the orderings in both directions *}
 
 lemma ordermap_mono:
-     "[| <w,x>: r;  wf[A](r);  w: A; x: A |]
+     "[| <w,x>: r;  wf[A](r);  w \<in> A; x \<in> A |]
       ==> ordermap(A,r)`w \<in> ordermap(A,r)`x"
 apply (erule_tac x1 = x in ordermap_unfold [THEN ssubst], assumption, blast)
 done
 
 (*linearity of r is crucial here*)
 lemma converse_ordermap_mono:
-    "[| ordermap(A,r)`w \<in> ordermap(A,r)`x;  well_ord(A,r); w: A; x: A |]
+    "[| ordermap(A,r)`w \<in> ordermap(A,r)`x;  well_ord(A,r); w \<in> A; x \<in> A |]
      ==> <w,x>: r"
 apply (unfold well_ord_def tot_ord_def, safe)
 apply (erule_tac x=w and y=x in linearE, assumption+)
@@ -214,7 +214,7 @@ apply (blast dest!: converse_ordermap_mono)
 done
 
 lemma ordertype_eq:
-     "[| f: ord_iso(A,r,B,s);  well_ord(B,s) |]
+     "[| f \<in> ord_iso(A,r,B,s);  well_ord(B,s) |]
       ==> ordertype(A,r) = ordertype(B,s)"
 apply (frule well_ord_ord_iso, assumption)
 apply (rule Ord_iso_implies_eq, (erule Ord_ordertype)+)
@@ -223,7 +223,7 @@ done
 
 lemma ordertype_eq_imp_ord_iso:
      "[| ordertype(A,r) = ordertype(B,s); well_ord(A,r);  well_ord(B,s) |]
-      ==> \<exists>f. f: ord_iso(A,r,B,s)"
+      ==> \<exists>f. f \<in> ord_iso(A,r,B,s)"
 apply (rule exI)
 apply (rule ordertype_ord_iso [THEN ord_iso_trans], assumption)
 apply (erule ssubst)
@@ -254,7 +254,7 @@ apply (rule well_ord_0)
 apply (rule Ord_0 [THEN ordertype_Memrel])
 done
 
-(*Ordertype of rvimage:  [| f: bij(A,B);  well_ord(B,s) |] ==>
+(*Ordertype of rvimage:  [| f \<in> bij(A,B);  well_ord(B,s) |] ==>
                          ordertype(A, rvimage(A,f,s)) = ordertype(B,s) *)
 lemmas bij_ordertype_vimage = ord_iso_rvimage [THEN ordertype_eq]
 
@@ -262,7 +262,7 @@ subsubsection{*A fundamental unfolding law for ordertype. *}
 
 (*Ordermap returns the same result if applied to an initial segment*)
 lemma ordermap_pred_eq_ordermap:
-     "[| well_ord(A,r);  y:A;  z: pred(A,y,r) |]
+     "[| well_ord(A,r);  y \<in> A;  z \<in> pred(A,y,r) |]
       ==> ordermap(pred(A,y,r), r) ` z = ordermap(A, r) ` z"
 apply (frule wf_on_subset_A [OF well_ord_is_wf pred_subset])
 apply (rule_tac a=z in wf_on_induct, assumption+)
@@ -284,14 +284,14 @@ done
 
 text{*Theorems by Krzysztof Grabczewski; proofs simplified by lcp *}
 
-lemma ordertype_pred_subset: "[| well_ord(A,r);  x:A |] ==>
+lemma ordertype_pred_subset: "[| well_ord(A,r);  x \<in> A |] ==>
           ordertype(pred(A,x,r),r) \<subseteq> ordertype(A,r)"
 apply (simp add: ordertype_unfold well_ord_subset [OF _ pred_subset])
 apply (fast intro: ordermap_pred_eq_ordermap elim: predE)
 done
 
 lemma ordertype_pred_lt:
-     "[| well_ord(A,r);  x:A |]
+     "[| well_ord(A,r);  x \<in> A |]
       ==> ordertype(pred(A,x,r),r) < ordertype(A,r)"
 apply (rule ordertype_pred_subset [THEN subset_imp_le, THEN leE])
 apply (simp_all add: Ord_ordertype well_ord_subset [OF _ pred_subset])
@@ -304,7 +304,7 @@ done
         well_ord(pred(A,x,r), r) *)
 lemma ordertype_pred_unfold:
      "well_ord(A,r)
-      ==> ordertype(A,r) = {ordertype(pred(A,x,r),r). x:A}"
+      ==> ordertype(A,r) = {ordertype(pred(A,x,r),r). x \<in> A}"
 apply (rule equalityI)
 apply (safe intro!: ordertype_pred_lt [THEN ltD])
 apply (auto simp add: ordertype_def well_ord_is_wf [THEN ordermap_eq_image]
@@ -367,7 +367,7 @@ text{*Initial segments of radd.  Statements by Grabczewski *}
 
 (*In fact, pred(A+B, Inl(a), radd(A,r,B,s)) = pred(A,a,r)+0 *)
 lemma pred_Inl_bij:
- "a:A ==> (\<lambda>x\<in>pred(A,a,r). Inl(x))
+ "a \<in> A ==> (\<lambda>x\<in>pred(A,a,r). Inl(x))
           \<in> bij(pred(A,a,r), pred(A+B, Inl(a), radd(A,r,B,s)))"
 apply (unfold pred_def)
 apply (rule_tac d = "case (%x. x, %y. y) " in lam_bijective)
@@ -375,7 +375,7 @@ apply auto
 done
 
 lemma ordertype_pred_Inl_eq:
-     "[| a:A;  well_ord(A,r) |]
+     "[| a \<in> A;  well_ord(A,r) |]
       ==> ordertype(pred(A+B, Inl(a), radd(A,r,B,s)), radd(A,r,B,s)) =
           ordertype(pred(A,a,r), r)"
 apply (rule pred_Inl_bij [THEN ord_isoI, THEN ord_iso_sym, THEN ordertype_eq])
@@ -384,7 +384,7 @@ apply (simp add: pred_def)
 done
 
 lemma pred_Inr_bij:
- "b:B ==>
+ "b \<in> B ==>
          id(A+pred(B,b,s))
          \<in> bij(A+pred(B,b,s), pred(A+B, Inr(b), radd(A,r,B,s)))"
 apply (unfold pred_def id_def)
@@ -392,7 +392,7 @@ apply (rule_tac d = "%z. z" in lam_bijective, auto)
 done
 
 lemma ordertype_pred_Inr_eq:
-     "[| b:B;  well_ord(A,r);  well_ord(B,s) |]
+     "[| b \<in> B;  well_ord(A,r);  well_ord(B,s) |]
       ==> ordertype(pred(A+B, Inr(b), radd(A,r,B,s)), radd(A,r,B,s)) =
           ordertype(A+pred(B,b,s), radd(A,r,pred(B,b,s),s))"
 apply (rule pred_Inr_bij [THEN ord_isoI, THEN ord_iso_sym, THEN ordertype_eq])
@@ -476,7 +476,7 @@ apply blast
 done
 
 lemma subset_ord_iso_Memrel:
-     "[| f: ord_iso(A,Memrel(B),C,r); A<=B |] ==> f: ord_iso(A,Memrel(A),C,r)"
+     "[| f \<in> ord_iso(A,Memrel(B),C,r); A<=B |] ==> f \<in> ord_iso(A,Memrel(A),C,r)"
 apply (frule ord_iso_is_bij [THEN bij_is_fun, THEN fun_is_rel])
 apply (frule ord_iso_trans [OF id_ord_iso_Memrel], assumption)
 apply (simp add: right_comp_id)
@@ -594,7 +594,7 @@ done
 text{*Ordinal addition with limit ordinals *}
 
 lemma oadd_UN:
-     "[| !!x. x:A ==> Ord(j(x));  a:A |]
+     "[| !!x. x \<in> A ==> Ord(j(x));  a \<in> A |]
       ==> i ++ (\<Union>x\<in>A. j(x)) = (\<Union>x\<in>A. i++j(x))"
 by (blast intro: ltI Ord_UN Ord_oadd lt_oadd1 [THEN ltD]
                  oadd_lt_mono2 [THEN ltD]
@@ -632,15 +632,15 @@ text{*Order/monotonicity properties of ordinal addition *}
 
 lemma oadd_le_self2: "Ord(i) ==> i \<le> j++i"
 proof (induct i rule: trans_induct3)
-  case 0 thus ?case by (simp add: Ord_0_le) 
+  case 0 thus ?case by (simp add: Ord_0_le)
 next
-  case (succ i) thus ?case by (simp add: oadd_succ succ_leI) 
+  case (succ i) thus ?case by (simp add: oadd_succ succ_leI)
 next
   case (limit l)
-  hence "l = (\<Union>x\<in>l. x)" 
+  hence "l = (\<Union>x\<in>l. x)"
     by (simp add: Union_eq_UN [symmetric] Limit_Union_eq)
-  also have "... \<le> (\<Union>x\<in>l. j++x)" 
-    by (rule le_implies_UN_le_UN) (rule limit.hyps) 
+  also have "... \<le> (\<Union>x\<in>l. j++x)"
+    by (rule le_implies_UN_le_UN) (rule limit.hyps)
   finally have "l \<le> (\<Union>x\<in>l. j++x)" .
   thus ?case using limit.hyps by (simp add: oadd_Limit)
 qed
@@ -691,7 +691,7 @@ text{*The difference is @{term "ordertype(j-i, Memrel(j))"}.
     It's probably simpler to define the difference recursively!*}
 
 lemma bij_sum_Diff:
-     "A<=B ==> (\<lambda>y\<in>B. if(y:A, Inl(y), Inr(y))) \<in> bij(B, A+(B-A))"
+     "A<=B ==> (\<lambda>y\<in>B. if(y \<in> A, Inl(y), Inr(y))) \<in> bij(B, A+(B-A))"
 apply (rule_tac d = "case (%x. x, %y. y) " in lam_bijective)
 apply (blast intro!: if_type)
 apply (fast intro!: case_type)
@@ -763,13 +763,13 @@ done
 subsubsection{*A useful unfolding law *}
 
 lemma pred_Pair_eq:
- "[| a:A;  b:B |] ==> pred(A*B, <a,b>, rmult(A,r,B,s)) =
+ "[| a \<in> A;  b \<in> B |] ==> pred(A*B, <a,b>, rmult(A,r,B,s)) =
                       pred(A,a,r)*B \<union> ({a} * pred(B,b,s))"
 apply (unfold pred_def, blast)
 done
 
 lemma ordertype_pred_Pair_eq:
-     "[| a:A;  b:B;  well_ord(A,r);  well_ord(B,s) |] ==>
+     "[| a \<in> A;  b \<in> B;  well_ord(A,r);  well_ord(B,s) |] ==>
          ordertype(pred(A*B, <a,b>, rmult(A,r,B,s)), rmult(A,r,B,s)) =
          ordertype(pred(A,a,r)*B + pred(B,b,s),
                   radd(A*B, rmult(A,r,B,s), B, s))"
@@ -908,7 +908,7 @@ done
 text{*Ordinal multiplication with limit ordinals *}
 
 lemma omult_UN:
-     "[| Ord(i);  !!x. x:A ==> Ord(j(x)) |]
+     "[| Ord(i);  !!x. x \<in> A ==> Ord(j(x)) |]
       ==> i ** (\<Union>x\<in>A. j(x)) = (\<Union>x\<in>A. i**j(x))"
 by (simp (no_asm_simp) add: Ord_UN omult_unfold, blast)
 
@@ -934,17 +934,17 @@ proof -
   have o: "Ord(k)" "Ord(j)" by (rule lt_Ord [OF kj] le_Ord2 [OF kj])+
   show ?thesis using i
   proof (induct i rule: trans_induct3)
-    case 0 thus ?case 
+    case 0 thus ?case
       by simp
   next
-    case (succ i) thus ?case 
-      by (simp add: o kj omult_succ oadd_le_mono) 
+    case (succ i) thus ?case
+      by (simp add: o kj omult_succ oadd_le_mono)
   next
     case (limit l)
-    thus ?case 
-      by (auto simp add: o kj omult_Limit le_implies_UN_le_UN) 
+    thus ?case
+      by (auto simp add: o kj omult_Limit le_implies_UN_le_UN)
   qed
-qed    
+qed
 
 lemma omult_lt_mono2: "[| k<j;  0<i |] ==> i**k < i**j"
 apply (rule ltI)
@@ -966,30 +966,30 @@ by (blast intro: le_trans omult_le_mono1 omult_le_mono2 Ord_succD elim: ltE)
 lemma omult_lt_mono: "[| i' \<le> i;  j'<j;  0<i |] ==> i'**j' < i**j"
 by (blast intro: lt_trans1 omult_le_mono1 omult_lt_mono2 Ord_succD elim: ltE)
 
-lemma omult_le_self2: 
+lemma omult_le_self2:
   assumes i: "Ord(i)" and j: "0<j" shows "i \<le> j**i"
 proof -
   have oj: "Ord(j)" by (rule lt_Ord2 [OF j])
   show ?thesis using i
   proof (induct i rule: trans_induct3)
-    case 0 thus ?case 
+    case 0 thus ?case
       by simp
   next
-    case (succ i) 
-    have "j \<times>\<times> i ++ 0 < j \<times>\<times> i ++ j" 
-      by (rule oadd_lt_mono2 [OF j]) 
-    with succ.hyps show ?case 
+    case (succ i)
+    have "j \<times>\<times> i ++ 0 < j \<times>\<times> i ++ j"
+      by (rule oadd_lt_mono2 [OF j])
+    with succ.hyps show ?case
       by (simp add: oj j omult_succ ) (rule lt_trans1)
   next
     case (limit l)
-    hence "l = (\<Union>x\<in>l. x)" 
+    hence "l = (\<Union>x\<in>l. x)"
       by (simp add: Union_eq_UN [symmetric] Limit_Union_eq)
-    also have "... \<le> (\<Union>x\<in>l. j**x)" 
-      by (rule le_implies_UN_le_UN) (rule limit.hyps) 
+    also have "... \<le> (\<Union>x\<in>l. j**x)"
+      by (rule le_implies_UN_le_UN) (rule limit.hyps)
     finally have "l \<le> (\<Union>x\<in>l. j**x)" .
     thus ?case using limit.hyps by (simp add: oj omult_Limit)
   qed
-qed    
+qed
 
 
 text{*Further properties of ordinal multiplication *}

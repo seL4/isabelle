@@ -9,7 +9,7 @@ theory AC imports Main_ZF begin
 
 text{*This definition comes from Halmos (1960), page 59.*}
 axiomatization where
-  AC: "[| a: A;  !!x. x:A ==> (\<exists>y. y:B(x)) |] ==> \<exists>z. z \<in> Pi(A,B)"
+  AC: "[| a \<in> A;  !!x. x \<in> A ==> (\<exists>y. y \<in> B(x)) |] ==> \<exists>z. z \<in> Pi(A,B)"
 
 (*The same as AC, but no premise @{term"a \<in> A"}*)
 lemma AC_Pi: "[| !!x. x \<in> A ==> (\<exists>y. y \<in> B(x)) |] ==> \<exists>z. z \<in> Pi(A,B)"

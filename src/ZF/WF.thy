@@ -21,7 +21,7 @@ theory WF imports Trancl begin
 definition
   wf           :: "i=>o"  where
     (*r is a well-founded relation*)
-    "wf(r) == \<forall>Z. Z=0 | (\<exists>x\<in>Z. \<forall>y. <y,x>:r \<longrightarrow> ~ y:Z)"
+    "wf(r) == \<forall>Z. Z=0 | (\<exists>x\<in>Z. \<forall>y. <y,x>:r \<longrightarrow> ~ y \<in> Z)"
 
 definition
   wf_on        :: "[i,i]=>o"                      ("wf[_]'(_')")  where
@@ -80,7 +80,7 @@ subsubsection{*Introduction Rules for @{term wf_on}*}
 text{*If every non-empty subset of @{term A} has an @{term r}-minimal element
    then we have @{term "wf[A](r)"}.*}
 lemma wf_onI:
- assumes prem: "!!Z u. [| Z<=A;  u:Z;  \<forall>x\<in>Z. \<exists>y\<in>Z. <y,x>:r |] ==> False"
+ assumes prem: "!!Z u. [| Z<=A;  u \<in> Z;  \<forall>x\<in>Z. \<exists>y\<in>Z. <y,x>:r |] ==> False"
  shows         "wf[A](r)"
 apply (unfold wf_on_def wf_def)
 apply (rule equals0I [THEN disjCI, THEN allI])
@@ -89,10 +89,10 @@ done
 
 text{*If @{term r} allows well-founded induction over @{term A}
    then we have @{term "wf[A](r)"}.   Premise is equivalent to
-  @{prop "!!B. \<forall>x\<in>A. (\<forall>y. <y,x>: r \<longrightarrow> y:B) \<longrightarrow> x:B ==> A<=B"} *}
+  @{prop "!!B. \<forall>x\<in>A. (\<forall>y. <y,x>: r \<longrightarrow> y \<in> B) \<longrightarrow> x \<in> B ==> A<=B"} *}
 lemma wf_onI2:
- assumes prem: "!!y B. [| \<forall>x\<in>A. (\<forall>y\<in>A. <y,x>:r \<longrightarrow> y:B) \<longrightarrow> x:B;   y:A |]
-                       ==> y:B"
+ assumes prem: "!!y B. [| \<forall>x\<in>A. (\<forall>y\<in>A. <y,x>:r \<longrightarrow> y \<in> B) \<longrightarrow> x \<in> B;   y \<in> A |]
+                       ==> y \<in> B"
  shows         "wf[A](r)"
 apply (rule wf_onI)
 apply (rule_tac c=u in prem [THEN DiffE])
@@ -118,10 +118,10 @@ lemmas wf_induct_rule = wf_induct [rule_format, induct set: wf]
 
 text{*The form of this rule is designed to match @{text wfI}*}
 lemma wf_induct2:
-    "[| wf(r);  a:A;  field(r)<=A;
-        !!x.[| x: A;  \<forall>y. <y,x>: r \<longrightarrow> P(y) |] ==> P(x) |]
+    "[| wf(r);  a \<in> A;  field(r)<=A;
+        !!x.[| x \<in> A;  \<forall>y. <y,x>: r \<longrightarrow> P(y) |] ==> P(x) |]
      ==>  P(a)"
-apply (erule_tac P="a:A" in rev_mp)
+apply (erule_tac P="a \<in> A" in rev_mp)
 apply (erule_tac a=a in wf_induct, blast)
 done
 
@@ -129,8 +129,8 @@ lemma field_Int_square: "field(r \<inter> A*A) \<subseteq> A"
 by blast
 
 lemma wf_on_induct [consumes 2, induct set: wf_on]:
-    "[| wf[A](r);  a:A;
-        !!x.[| x: A;  \<forall>y\<in>A. <y,x>: r \<longrightarrow> P(y) |] ==> P(x)
+    "[| wf[A](r);  a \<in> A;
+        !!x.[| x \<in> A;  \<forall>y\<in>A. <y,x>: r \<longrightarrow> P(y) |] ==> P(x)
      |]  ==>  P(a)"
 apply (unfold wf_on_def)
 apply (erule wf_induct2, assumption)
@@ -145,8 +145,8 @@ text{*If @{term r} allows well-founded induction
    then we have @{term "wf(r)"}.*}
 lemma wfI:
     "[| field(r)<=A;
-        !!y B. [| \<forall>x\<in>A. (\<forall>y\<in>A. <y,x>:r \<longrightarrow> y:B) \<longrightarrow> x:B;  y:A|]
-               ==> y:B |]
+        !!y B. [| \<forall>x\<in>A. (\<forall>y\<in>A. <y,x>:r \<longrightarrow> y \<in> B) \<longrightarrow> x \<in> B;  y \<in> A|]
+               ==> y \<in> B |]
      ==>  wf(r)"
 apply (rule wf_on_subset_A [THEN wf_on_field_imp_wf])
 apply (rule wf_onI2)
@@ -166,11 +166,11 @@ by (erule_tac a=a in wf_induct, blast)
 (* @{term"[| wf(r);  <a,x> \<in> r;  ~P ==> <x,a> \<in> r |] ==> P"} *)
 lemmas wf_asym = wf_not_sym [THEN swap]
 
-lemma wf_on_not_refl: "[| wf[A](r); a: A |] ==> <a,a> \<notin> r"
+lemma wf_on_not_refl: "[| wf[A](r); a \<in> A |] ==> <a,a> \<notin> r"
 by (erule_tac a=a in wf_on_induct, assumption, blast)
 
 lemma wf_on_not_sym [rule_format]:
-     "[| wf[A](r);  a:A |] ==> \<forall>b\<in>A. <a,b>:r \<longrightarrow> <b,a>\<notin>r"
+     "[| wf[A](r);  a \<in> A |] ==> \<forall>b\<in>A. <a,b>:r \<longrightarrow> <b,a>\<notin>r"
 apply (erule_tac a=a in wf_on_induct, assumption, blast)
 done
 
@@ -183,7 +183,7 @@ by (blast dest: wf_on_not_sym)
 (*Needed to prove well_ordI.  Could also reason that wf[A](r) means
   wf(r \<inter> A*A);  thus wf( (r \<inter> A*A)^+ ) and use wf_not_refl *)
 lemma wf_on_chain3:
-     "[| wf[A](r); <a,b>:r; <b,c>:r; <c,a>:r; a:A; b:A; c:A |] ==> P"
+     "[| wf[A](r); <a,b>:r; <b,c>:r; <c,a>:r; a \<in> A; b \<in> A; c \<in> A |] ==> P"
 apply (subgoal_tac "\<forall>y\<in>A. \<forall>z\<in>A. <a,y>:r \<longrightarrow> <y,z>:r \<longrightarrow> <z,a>:r \<longrightarrow> P",
        blast)
 apply (erule_tac a=a in wf_on_induct, assumption, blast)
@@ -218,7 +218,7 @@ lemmas underD = vimage_singleton_iff [THEN iffD1]
 
 subsection{*The Predicate @{term is_recfun}*}
 
-lemma is_recfun_type: "is_recfun(r,a,H,f) ==> f: r-``{a} -> range(f)"
+lemma is_recfun_type: "is_recfun(r,a,H,f) ==> f \<in> r-``{a} -> range(f)"
 apply (unfold is_recfun_def)
 apply (erule ssubst)
 apply (rule lamI [THEN rangeI, THEN lam_type], assumption)
@@ -345,8 +345,8 @@ apply (elim wfrec)
 done
 
 lemma wfrec_type:
-    "[| wf(r);  a:A;  field(r)<=A;
-        !!x u. [| x: A;  u: Pi(r-``{x}, B) |] ==> H(x,u) \<in> B(x)
+    "[| wf(r);  a \<in> A;  field(r)<=A;
+        !!x u. [| x \<in> A;  u \<in> Pi(r-``{x}, B) |] ==> H(x,u) \<in> B(x)
      |] ==> wfrec(r,a,H) \<in> B(a)"
 apply (rule_tac a = a in wf_induct2, assumption+)
 apply (subst wfrec, assumption)
@@ -355,7 +355,7 @@ done
 
 
 lemma wfrec_on:
- "[| wf[A](r);  a: A |] ==>
+ "[| wf[A](r);  a \<in> A |] ==>
          wfrec[A](r,a,H) = H(a, \<lambda>x\<in>(r-``{a}) \<inter> A. wfrec[A](r,x,H))"
 apply (unfold wf_on_def wfrec_on_def)
 apply (erule wfrec [THEN trans])
@@ -364,7 +364,7 @@ done
 
 text{*Minimal-element characterization of well-foundedness*}
 lemma wf_eq_minimal:
-     "wf(r) \<longleftrightarrow> (\<forall>Q x. x:Q \<longrightarrow> (\<exists>z\<in>Q. \<forall>y. <y,z>:r \<longrightarrow> y\<notin>Q))"
+     "wf(r) \<longleftrightarrow> (\<forall>Q x. x \<in> Q \<longrightarrow> (\<exists>z\<in>Q. \<forall>y. <y,z>:r \<longrightarrow> y\<notin>Q))"
 by (unfold wf_def, blast)
 
 end

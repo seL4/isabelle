@@ -23,24 +23,24 @@ definition "case" :: "[i=>i, i=>i, i]=>i" where
 
   (*operator for selecting out the various summands*)
 definition Part :: "[i,i=>i] => i" where
-     "Part(A,h) == {x: A. \<exists>z. x = h(z)}"
+     "Part(A,h) == {x \<in> A. \<exists>z. x = h(z)}"
 
 subsection{*Rules for the @{term Part} Primitive*}
 
-lemma Part_iff: 
-    "a \<in> Part(A,h) \<longleftrightarrow> a:A & (\<exists>y. a=h(y))"
+lemma Part_iff:
+    "a \<in> Part(A,h) \<longleftrightarrow> a \<in> A & (\<exists>y. a=h(y))"
 apply (unfold Part_def)
 apply (rule separation)
 done
 
-lemma Part_eqI [intro]: 
+lemma Part_eqI [intro]:
     "[| a \<in> A;  a=h(b) |] ==> a \<in> Part(A,h)"
 by (unfold Part_def, blast)
 
 lemmas PartI = refl [THEN [2] Part_eqI]
 
-lemma PartE [elim!]: 
-    "[| a \<in> Part(A,h);  !!z. [| a \<in> A;  a=h(z) |] ==> P   
+lemma PartE [elim!]:
+    "[| a \<in> Part(A,h);  !!z. [| a \<in> A;  a=h(z) |] ==> P
      |] ==> P"
 apply (unfold Part_def, blast)
 done
@@ -69,11 +69,11 @@ by (unfold sum_defs, blast)
 (** Elimination rules **)
 
 lemma sumE [elim!]:
-    "[| u: A+B;   
-        !!x. [| x:A;  u=Inl(x) |] ==> P;  
-        !!y. [| y:B;  u=Inr(y) |] ==> P  
+    "[| u \<in> A+B;
+        !!x. [| x \<in> A;  u=Inl(x) |] ==> P;
+        !!y. [| y \<in> B;  u=Inr(y) |] ==> P
      |] ==> P"
-by (unfold sum_defs, blast) 
+by (unfold sum_defs, blast)
 
 (** Injection and freeness equivalences, for rewriting **)
 
@@ -100,13 +100,13 @@ lemmas Inl_neq_Inr = Inl_Inr_iff [THEN iffD1, THEN FalseE, elim!]
 lemmas Inr_neq_Inl = Inr_Inl_iff [THEN iffD1, THEN FalseE, elim!]
 
 
-lemma InlD: "Inl(a): A+B ==> a: A"
+lemma InlD: "Inl(a): A+B ==> a \<in> A"
 by blast
 
-lemma InrD: "Inr(b): A+B ==> b: B"
+lemma InrD: "Inr(b): A+B ==> b \<in> B"
 by blast
 
-lemma sum_iff: "u: A+B \<longleftrightarrow> (\<exists>x. x:A & u=Inl(x)) | (\<exists>y. y:B & u=Inr(y))"
+lemma sum_iff: "u \<in> A+B \<longleftrightarrow> (\<exists>x. x \<in> A & u=Inl(x)) | (\<exists>y. y \<in> B & u=Inr(y))"
 by blast
 
 lemma Inl_in_sum_iff [simp]: "(Inl(x) \<in> A+B) \<longleftrightarrow> (x \<in> A)";
@@ -134,27 +134,27 @@ lemma case_Inr [simp]: "case(c, d, Inr(b)) = d(b)"
 by (simp add: sum_defs)
 
 lemma case_type [TC]:
-    "[| u: A+B;  
-        !!x. x: A ==> c(x): C(Inl(x));    
-        !!y. y: B ==> d(y): C(Inr(y))  
+    "[| u \<in> A+B;
+        !!x. x \<in> A ==> c(x): C(Inl(x));
+        !!y. y \<in> B ==> d(y): C(Inr(y))
      |] ==> case(c,d,u) \<in> C(u)"
 by auto
 
-lemma expand_case: "u: A+B ==>    
-        R(case(c,d,u)) \<longleftrightarrow>  
-        ((\<forall>x\<in>A. u = Inl(x) \<longrightarrow> R(c(x))) &  
+lemma expand_case: "u \<in> A+B ==>
+        R(case(c,d,u)) \<longleftrightarrow>
+        ((\<forall>x\<in>A. u = Inl(x) \<longrightarrow> R(c(x))) &
         (\<forall>y\<in>B. u = Inr(y) \<longrightarrow> R(d(y))))"
 by auto
 
 lemma case_cong:
-  "[| z: A+B;    
-      !!x. x:A ==> c(x)=c'(x);   
-      !!y. y:B ==> d(y)=d'(y)    
+  "[| z \<in> A+B;
+      !!x. x \<in> A ==> c(x)=c'(x);
+      !!y. y \<in> B ==> d(y)=d'(y)
    |] ==> case(c,d,z) = case(c',d',z)"
-by auto 
+by auto
 
-lemma case_case: "z: A+B ==>    
-        case(c, d, case(%x. Inl(c'(x)), %y. Inr(d'(y)), z)) =  
+lemma case_case: "z \<in> A+B ==>
+        case(c, d, case(%x. Inl(c'(x)), %y. Inr(d'(y)), z)) =
         case(%x. c(c'(x)), %y. d(d'(y)), z)"
 by auto
 
@@ -170,10 +170,10 @@ by blast
 lemmas Part_CollectE =
      Part_Collect [THEN equalityD1, THEN subsetD, THEN CollectE]
 
-lemma Part_Inl: "Part(A+B,Inl) = {Inl(x). x: A}"
+lemma Part_Inl: "Part(A+B,Inl) = {Inl(x). x \<in> A}"
 by blast
 
-lemma Part_Inr: "Part(A+B,Inr) = {Inr(y). y: B}"
+lemma Part_Inr: "Part(A+B,Inr) = {Inr(y). y \<in> B}"
 by blast
 
 lemma PartD1: "a \<in> Part(A,h) ==> a \<in> A"
@@ -182,7 +182,7 @@ by (simp add: Part_def)
 lemma Part_id: "Part(A,%x. x) = A"
 by blast
 
-lemma Part_Inr2: "Part(A+B, %x. Inr(h(x))) = {Inr(y). y: Part(B,h)}"
+lemma Part_Inr2: "Part(A+B, %x. Inr(h(x))) = {Inr(y). y \<in> Part(B,h)}"
 by blast
 
 lemma Part_sum_equality: "C \<subseteq> A+B ==> Part(C,Inl) \<union> Part(C,Inr) = C"

@@ -745,7 +745,7 @@ done
 (*The first premise can't simply be assumed as a schema.
   It is essential to take care when asserting instances of Replacement.
   Let K be a nonconstructible subset of nat and define
-  f(x) = x if x:K and f(x)=0 otherwise.  Then RepFun(nat,f) = cons(0,K), a
+  f(x) = x if x \<in> K and f(x)=0 otherwise.  Then RepFun(nat,f) = cons(0,K), a
   nonconstructible set.  So we cannot assume that M(X) implies M(RepFun(X,f))
   even for f \<in> M -> M.
 *)

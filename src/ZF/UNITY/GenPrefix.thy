@@ -30,7 +30,7 @@ inductive
   intros
     Nil:     "<[],[]>:gen_prefix(A, r)"
 
-    prepend: "[| <xs,ys>:gen_prefix(A, r);  <x,y>:r; x:A; y:A |]
+    prepend: "[| <xs,ys>:gen_prefix(A, r);  <x,y>:r; x \<in> A; y \<in> A |]
               ==> <Cons(x,xs), Cons(y,ys)>: gen_prefix(A, r)"
 
     append:  "[| <xs,ys>:gen_prefix(A, r); zs:list(A) |]

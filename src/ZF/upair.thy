@@ -17,7 +17,7 @@ uses "Tools/typechk.ML" begin
 setup TypeCheck.setup
 
 lemma atomize_ball [symmetric, rulify]:
-     "(!!x. x:A ==> P(x)) == Trueprop (\<forall>x\<in>A. P(x))"
+     "(!!x. x \<in> A ==> P(x)) == Trueprop (\<forall>x\<in>A. P(x))"
 by (simp add: Ball_def atomize_all atomize_imp)
 
 
@@ -37,7 +37,7 @@ by (simp, blast)
 
 subsection{*Rules for Binary Union, Defined via @{term Upair}*}
 
-lemma Un_iff [simp]: "c \<in> A \<union> B \<longleftrightarrow> (c:A | c:B)"
+lemma Un_iff [simp]: "c \<in> A \<union> B \<longleftrightarrow> (c \<in> A | c \<in> B)"
 apply (simp add: Un_def)
 apply (blast intro: UpairI1 UpairI2 elim: UpairE)
 done
@@ -50,11 +50,11 @@ by simp
 
 declare UnI1 [elim?]  UnI2 [elim?]
 
-lemma UnE [elim!]: "[| c \<in> A \<union> B;  c:A ==> P;  c:B ==> P |] ==> P"
+lemma UnE [elim!]: "[| c \<in> A \<union> B;  c \<in> A ==> P;  c \<in> B ==> P |] ==> P"
 by (simp, blast)
 
 (*Stronger version of the rule above*)
-lemma UnE': "[| c \<in> A \<union> B;  c:A ==> P;  [| c:B;  c\<notin>A |] ==> P |] ==> P"
+lemma UnE': "[| c \<in> A \<union> B;  c \<in> A ==> P;  [| c \<in> B;  c\<notin>A |] ==> P |] ==> P"
 by (simp, blast)
 
 (*Classical introduction rule: no commitment to A vs B*)
@@ -63,7 +63,7 @@ by (simp, blast)
 
 subsection{*Rules for Binary Intersection, Defined via @{term Upair}*}
 
-lemma Int_iff [simp]: "c \<in> A \<inter> B \<longleftrightarrow> (c:A & c:B)"
+lemma Int_iff [simp]: "c \<in> A \<inter> B \<longleftrightarrow> (c \<in> A & c \<in> B)"
 apply (unfold Int_def)
 apply (blast intro: UpairI1 UpairI2 elim: UpairE)
 done
@@ -77,13 +77,13 @@ by simp
 lemma IntD2: "c \<in> A \<inter> B ==> c \<in> B"
 by simp
 
-lemma IntE [elim!]: "[| c \<in> A \<inter> B;  [| c:A; c:B |] ==> P |] ==> P"
+lemma IntE [elim!]: "[| c \<in> A \<inter> B;  [| c \<in> A; c \<in> B |] ==> P |] ==> P"
 by simp
 
 
 subsection{*Rules for Set Difference, Defined via @{term Upair}*}
 
-lemma Diff_iff [simp]: "c \<in> A-B \<longleftrightarrow> (c:A & c\<notin>B)"
+lemma Diff_iff [simp]: "c \<in> A-B \<longleftrightarrow> (c \<in> A & c\<notin>B)"
 by (unfold Diff_def, blast)
 
 lemma DiffI [intro!]: "[| c \<in> A;  c \<notin> B |] ==> c \<in> A - B"
@@ -95,13 +95,13 @@ by simp
 lemma DiffD2: "c \<in> A - B ==> c \<notin> B"
 by simp
 
-lemma DiffE [elim!]: "[| c \<in> A - B;  [| c:A; c\<notin>B |] ==> P |] ==> P"
+lemma DiffE [elim!]: "[| c \<in> A - B;  [| c \<in> A; c\<notin>B |] ==> P |] ==> P"
 by simp
 
 
 subsection{*Rules for @{term cons}*}
 
-lemma cons_iff [simp]: "a \<in> cons(b,A) \<longleftrightarrow> (a=b | a:A)"
+lemma cons_iff [simp]: "a \<in> cons(b,A) \<longleftrightarrow> (a=b | a \<in> A)"
 apply (unfold cons_def)
 apply (blast intro: UpairI1 UpairI2 elim: UpairE)
 done
@@ -115,16 +115,16 @@ by simp
 lemma consI2: "a \<in> B ==> a \<in> cons(b,B)"
 by simp
 
-lemma consE [elim!]: "[| a \<in> cons(b,A);  a=b ==> P;  a:A ==> P |] ==> P"
+lemma consE [elim!]: "[| a \<in> cons(b,A);  a=b ==> P;  a \<in> A ==> P |] ==> P"
 by (simp, blast)
 
 (*Stronger version of the rule above*)
 lemma consE':
-    "[| a \<in> cons(b,A);  a=b ==> P;  [| a:A;  a\<noteq>b |] ==> P |] ==> P"
+    "[| a \<in> cons(b,A);  a=b ==> P;  [| a \<in> A;  a\<noteq>b |] ==> P |] ==> P"
 by (simp, blast)
 
 (*Classical introduction rule*)
-lemma consCI [intro!]: "(a\<notin>B ==> a=b) ==> a: cons(b,B)"
+lemma consCI [intro!]: "(a\<notin>B ==> a=b) ==> a \<in> cons(b,B)"
 by (simp, blast)
 
 lemma cons_not_0 [simp]: "cons(a,B) \<noteq> 0"
@@ -207,7 +207,7 @@ lemma if_cong:
      ==> (if P then a else b) = (if Q then c else d)"
 by (simp add: if_def cong add: conj_cong)
 
-(*Prevents simplification of x and y: faster and allows the execution
+(*Prevents simplification of x and y \<in> faster and allows the execution
   of functional programs. NOW THE DEFAULT.*)
 lemma if_weak_cong: "P\<longleftrightarrow>Q ==> (if P then x else y) = (if Q then x else y)"
 by simp
@@ -236,11 +236,11 @@ lemmas split_if_mem2 = split_if [of "%x. a \<in> x"] for x
 lemmas split_ifs = split_if_eq1 split_if_eq2 split_if_mem1 split_if_mem2
 
 (*Logically equivalent to split_if_mem2*)
-lemma if_iff: "a: (if P then x else y) \<longleftrightarrow> P & a:x | ~P & a:y"
+lemma if_iff: "a: (if P then x else y) \<longleftrightarrow> P & a \<in> x | ~P & a \<in> y"
 by simp
 
 lemma if_type [TC]:
-    "[| P ==> a: A;  ~P ==> b: A |] ==> (if P then a else b): A"
+    "[| P ==> a \<in> A;  ~P ==> b \<in> A |] ==> (if P then a else b): A"
 by simp
 
 (** Splitting IFs in the assumptions **)
@@ -254,14 +254,14 @@ lemmas if_splits = split_if split_if_asm
 subsection{*Consequences of Foundation*}
 
 (*was called mem_anti_sym*)
-lemma mem_asym: "[| a:b;  ~P ==> b:a |] ==> P"
+lemma mem_asym: "[| a \<in> b;  ~P ==> b \<in> a |] ==> P"
 apply (rule classical)
 apply (rule_tac A1 = "{a,b}" in foundation [THEN disjE])
 apply (blast elim!: equalityE)+
 done
 
 (*was called mem_anti_refl*)
-lemma mem_irrefl: "a:a ==> P"
+lemma mem_irrefl: "a \<in> a ==> P"
 by (blast intro: mem_asym)
 
 (*mem_irrefl should NOT be added to default databases:
@@ -273,7 +273,7 @@ apply (erule mem_irrefl)
 done
 
 (*Good for proving inequalities by rewriting*)
-lemma mem_imp_not_eq: "a:A ==> a \<noteq> A"
+lemma mem_imp_not_eq: "a \<in> A ==> a \<noteq> A"
 by (blast elim!: mem_irrefl)
 
 lemma eq_imp_not_mem: "a=A ==> a \<notin> A"
@@ -281,7 +281,7 @@ by (blast intro: elim: mem_irrefl)
 
 subsection{*Rules for Successor*}
 
-lemma succ_iff: "i \<in> succ(j) \<longleftrightarrow> i=j | i:j"
+lemma succ_iff: "i \<in> succ(j) \<longleftrightarrow> i=j | i \<in> j"
 by (unfold succ_def, blast)
 
 lemma succI1 [simp]: "i \<in> succ(i)"
@@ -291,12 +291,12 @@ lemma succI2: "i \<in> j ==> i \<in> succ(j)"
 by (simp add: succ_iff)
 
 lemma succE [elim!]:
-    "[| i \<in> succ(j);  i=j ==> P;  i:j ==> P |] ==> P"
+    "[| i \<in> succ(j);  i=j ==> P;  i \<in> j ==> P |] ==> P"
 apply (simp add: succ_iff, blast)
 done
 
 (*Classical introduction rule*)
-lemma succCI [intro!]: "(i\<notin>j ==> i=j) ==> i: succ(j)"
+lemma succCI [intro!]: "(i\<notin>j ==> i=j) ==> i \<in> succ(j)"
 by (simp add: succ_iff, blast)
 
 lemma succ_not_0 [simp]: "succ(n) \<noteq> 0"
@@ -383,22 +383,22 @@ by blast
 
 (** One-point rule for bounded quantifiers: see HOL/Set.ML **)
 
-lemma bex_triv_one_point1 [simp]: "(\<exists>x\<in>A. x=a) \<longleftrightarrow> (a:A)"
+lemma bex_triv_one_point1 [simp]: "(\<exists>x\<in>A. x=a) \<longleftrightarrow> (a \<in> A)"
 by blast
 
-lemma bex_triv_one_point2 [simp]: "(\<exists>x\<in>A. a=x) \<longleftrightarrow> (a:A)"
+lemma bex_triv_one_point2 [simp]: "(\<exists>x\<in>A. a=x) \<longleftrightarrow> (a \<in> A)"
 by blast
 
-lemma bex_one_point1 [simp]: "(\<exists>x\<in>A. x=a & P(x)) \<longleftrightarrow> (a:A & P(a))"
+lemma bex_one_point1 [simp]: "(\<exists>x\<in>A. x=a & P(x)) \<longleftrightarrow> (a \<in> A & P(a))"
 by blast
 
-lemma bex_one_point2 [simp]: "(\<exists>x\<in>A. a=x & P(x)) \<longleftrightarrow> (a:A & P(a))"
+lemma bex_one_point2 [simp]: "(\<exists>x\<in>A. a=x & P(x)) \<longleftrightarrow> (a \<in> A & P(a))"
 by blast
 
-lemma ball_one_point1 [simp]: "(\<forall>x\<in>A. x=a \<longrightarrow> P(x)) \<longleftrightarrow> (a:A \<longrightarrow> P(a))"
+lemma ball_one_point1 [simp]: "(\<forall>x\<in>A. x=a \<longrightarrow> P(x)) \<longleftrightarrow> (a \<in> A \<longrightarrow> P(a))"
 by blast
 
-lemma ball_one_point2 [simp]: "(\<forall>x\<in>A. a=x \<longrightarrow> P(x)) \<longleftrightarrow> (a:A \<longrightarrow> P(a))"
+lemma ball_one_point2 [simp]: "(\<forall>x\<in>A. a=x \<longrightarrow> P(x)) \<longleftrightarrow> (a \<in> A \<longrightarrow> P(a))"
 by blast
 
 
@@ -406,9 +406,9 @@ subsection{*Miniscoping of the Replacement Operator*}
 
 text{*These cover both @{term Replace} and @{term Collect}*}
 lemma Rep_simps [simp]:
-     "{x. y:0, R(x,y)} = 0"
-     "{x:0. P(x)} = 0"
-     "{x:A. Q} = (if Q then A else 0)"
+     "{x. y \<in> 0, R(x,y)} = 0"
+     "{x \<in> 0. P(x)} = 0"
+     "{x \<in> A. Q} = (if Q then A else 0)"
      "RepFun(0,f) = 0"
      "RepFun(succ(i),f) = cons(f(i), RepFun(i,f))"
      "RepFun(cons(a,B),f) = cons(f(a), RepFun(B,f))"

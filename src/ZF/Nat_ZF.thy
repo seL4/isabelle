@@ -9,7 +9,7 @@ theory Nat_ZF imports OrdQuant Bool begin
 
 definition
   nat :: i  where
-    "nat == lfp(Inf, %X. {0} \<union> {succ(i). i:X})"
+    "nat == lfp(Inf, %X. {0} \<union> {succ(i). i \<in> X})"
 
 definition
   quasinat :: "i => o"  where
@@ -45,18 +45,18 @@ definition
 
 definition
   greater_than :: "i=>i"  where
-    "greater_than(n) == {i:nat. n < i}"
+    "greater_than(n) == {i \<in> nat. n < i}"
 
 text{*No need for a less-than operator: a natural number is its list of
 predecessors!*}
 
 
-lemma nat_bnd_mono: "bnd_mono(Inf, %X. {0} \<union> {succ(i). i:X})"
+lemma nat_bnd_mono: "bnd_mono(Inf, %X. {0} \<union> {succ(i). i \<in> X})"
 apply (rule bnd_monoI)
 apply (cut_tac infinity, blast, blast)
 done
 
-(* @{term"nat = {0} \<union> {succ(x). x:nat}"} *)
+(* @{term"nat = {0} \<union> {succ(x). x \<in> nat}"} *)
 lemmas nat_unfold = nat_bnd_mono [THEN nat_def [THEN def_lfp_unfold]]
 
 (** Type checking of 0 and successor **)
@@ -87,22 +87,22 @@ subsection{*Injectivity Properties and Induction*}
 
 (*Mathematical induction*)
 lemma nat_induct [case_names 0 succ, induct set: nat]:
-    "[| n \<in> nat;  P(0);  !!x. [| x: nat;  P(x) |] ==> P(succ(x)) |] ==> P(n)"
+    "[| n \<in> nat;  P(0);  !!x. [| x \<in> nat;  P(x) |] ==> P(succ(x)) |] ==> P(n)"
 by (erule def_induct [OF nat_def nat_bnd_mono], blast)
 
 lemma natE:
  assumes "n \<in> nat"
- obtains (0) "n=0" | (succ) x where "x \<in> nat" "n=succ(x)" 
+ obtains (0) "n=0" | (succ) x where "x \<in> nat" "n=succ(x)"
 using assms
 by (rule nat_unfold [THEN equalityD1, THEN subsetD, THEN UnE]) auto
 
 lemma nat_into_Ord [simp]: "n \<in> nat ==> Ord(n)"
 by (erule nat_induct, auto)
 
-(* @{term"i: nat ==> 0 \<le> i"}; same thing as @{term"0<succ(i)"}  *)
+(* @{term"i \<in> nat ==> 0 \<le> i"}; same thing as @{term"0<succ(i)"}  *)
 lemmas nat_0_le = nat_into_Ord [THEN Ord_0_le]
 
-(* @{term"i: nat ==> i \<le> i"}; same thing as @{term"i<succ(i)"}  *)
+(* @{term"i \<in> nat ==> i \<le> i"}; same thing as @{term"i<succ(i)"}  *)
 lemmas nat_le_refl = nat_into_Ord [THEN le_refl]
 
 lemma Ord_nat [iff]: "Ord(nat)"
@@ -122,7 +122,7 @@ done
 lemma naturals_not_limit: "a \<in> nat ==> ~ Limit(a)"
 by (induct a rule: nat_induct, auto)
 
-lemma succ_natD: "succ(i): nat ==> i: nat"
+lemma succ_natD: "succ(i): nat ==> i \<in> nat"
 by (rule Ord_trans [OF succI1], auto)
 
 lemma nat_succ_iff [iff]: "succ(n): nat \<longleftrightarrow> n \<in> nat"
@@ -137,15 +137,15 @@ apply (erule nat_induct)
 apply (blast intro: Limit_has_succ [THEN ltD] ltI Limit_is_Ord)
 done
 
-(* [| succ(i): k;  k: nat |] ==> i: k *)
+(* [| succ(i): k;  k \<in> nat |] ==> i \<in> k *)
 lemmas succ_in_naturalD = Ord_trans [OF succI1 _ nat_into_Ord]
 
-lemma lt_nat_in_nat: "[| m<n;  n \<in> nat |] ==> m: nat"
+lemma lt_nat_in_nat: "[| m<n;  n \<in> nat |] ==> m \<in> nat"
 apply (erule ltE)
 apply (erule Ord_trans, assumption, simp)
 done
 
-lemma le_in_nat: "[| m \<le> n; n:nat |] ==> m:nat"
+lemma le_in_nat: "[| m \<le> n; n \<in> nat |] ==> m \<in> nat"
 by (blast dest!: lt_nat_in_nat)
 
 
@@ -160,8 +160,8 @@ lemmas complete_induct_rule =
 
 
 lemma nat_induct_from_lemma [rule_format]:
-    "[| n \<in> nat;  m: nat;
-        !!x. [| x: nat;  m \<le> x;  P(x) |] ==> P(succ(x)) |]
+    "[| n \<in> nat;  m \<in> nat;
+        !!x. [| x \<in> nat;  m \<le> x;  P(x) |] ==> P(succ(x)) |]
      ==> m \<le> n \<longrightarrow> P(m) \<longrightarrow> P(n)"
 apply (erule nat_induct)
 apply (simp_all add: distrib_simps le0_iff le_succ_iff)
@@ -169,19 +169,19 @@ done
 
 (*Induction starting from m rather than 0*)
 lemma nat_induct_from:
-    "[| m \<le> n;  m: nat;  n \<in> nat;
+    "[| m \<le> n;  m \<in> nat;  n \<in> nat;
         P(m);
-        !!x. [| x: nat;  m \<le> x;  P(x) |] ==> P(succ(x)) |]
+        !!x. [| x \<in> nat;  m \<le> x;  P(x) |] ==> P(succ(x)) |]
      ==> P(n)"
 apply (blast intro: nat_induct_from_lemma)
 done
 
 (*Induction suitable for subtraction and less-than*)
 lemma diff_induct [case_names 0 0_succ succ_succ, consumes 2]:
-    "[| m: nat;  n \<in> nat;
-        !!x. x: nat ==> P(x,0);
-        !!y. y: nat ==> P(0,succ(y));
-        !!x y. [| x: nat;  y: nat;  P(x,y) |] ==> P(succ(x),succ(y)) |]
+    "[| m \<in> nat;  n \<in> nat;
+        !!x. x \<in> nat ==> P(x,0);
+        !!y. y \<in> nat ==> P(0,succ(y));
+        !!x y. [| x \<in> nat;  y \<in> nat;  P(x,y) |] ==> P(succ(x),succ(y)) |]
      ==> P(m,n)"
 apply (erule_tac x = m in rev_bspec)
 apply (erule nat_induct, simp)
@@ -194,7 +194,7 @@ done
 (** Induction principle analogous to trancl_induct **)
 
 lemma succ_lt_induct_lemma [rule_format]:
-     "m: nat ==> P(m,succ(m)) \<longrightarrow> (\<forall>x\<in>nat. P(m,x) \<longrightarrow> P(m,succ(x))) \<longrightarrow>
+     "m \<in> nat ==> P(m,succ(m)) \<longrightarrow> (\<forall>x\<in>nat. P(m,x) \<longrightarrow> P(m,succ(x))) \<longrightarrow>
                  (\<forall>n\<in>nat. m<n \<longrightarrow> P(m,n))"
 apply (erule nat_induct)
  apply (intro impI, rule nat_induct [THEN ballI])
@@ -205,7 +205,7 @@ done
 lemma succ_lt_induct:
     "[| m<n;  n \<in> nat;
         P(m,succ(m));
-        !!x. [| x: nat;  P(m,x) |] ==> P(m,succ(x)) |]
+        !!x. [| x \<in> nat;  P(m,x) |] ==> P(m,succ(x)) |]
      ==> P(m,n)"
 by (blast intro: succ_lt_induct_lemma lt_nat_in_nat)
 
@@ -243,7 +243,7 @@ lemma nat_case_succ [simp]: "nat_case(a,b,succ(n)) = b(n)"
 by (simp add: nat_case_def)
 
 lemma nat_case_type [TC]:
-    "[| n \<in> nat;  a: C(0);  !!m. m: nat ==> b(m): C(succ(m)) |]
+    "[| n \<in> nat;  a \<in> C(0);  !!m. m \<in> nat ==> b(m): C(succ(m)) |]
      ==> nat_case(a,b,n) \<in> C(n)";
 by (erule nat_induct, auto)
 
@@ -266,7 +266,7 @@ apply (rule nat_rec_def [THEN def_wfrec, THEN trans])
 apply (rule nat_case_0)
 done
 
-lemma nat_rec_succ: "m: nat ==> nat_rec(succ(m),a,b) = b(m, nat_rec(m,a,b))"
+lemma nat_rec_succ: "m \<in> nat ==> nat_rec(succ(m),a,b) = b(m, nat_rec(m,a,b))"
 apply (rule nat_rec_def [THEN def_wfrec, THEN trans])
  apply (rule wf_Memrel)
 apply (simp add: vimage_singleton_iff)
@@ -274,12 +274,12 @@ done
 
 (** The union of two natural numbers is a natural number -- their maximum **)
 
-lemma Un_nat_type [TC]: "[| i: nat; j: nat |] ==> i \<union> j: nat"
+lemma Un_nat_type [TC]: "[| i \<in> nat; j \<in> nat |] ==> i \<union> j \<in> nat"
 apply (rule Un_least_lt [THEN ltD])
 apply (simp_all add: lt_def)
 done
 
-lemma Int_nat_type [TC]: "[| i: nat; j: nat |] ==> i \<inter> j: nat"
+lemma Int_nat_type [TC]: "[| i \<in> nat; j \<in> nat |] ==> i \<inter> j \<in> nat"
 apply (rule Int_greatest_lt [THEN ltD])
 apply (simp_all add: lt_def)
 done

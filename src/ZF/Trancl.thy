@@ -54,10 +54,10 @@ subsection{*General properties of relations*}
 subsubsection{*irreflexivity*}
 
 lemma irreflI:
-    "[| !!x. x:A ==> <x,x> \<notin> r |] ==> irrefl(A,r)"
+    "[| !!x. x \<in> A ==> <x,x> \<notin> r |] ==> irrefl(A,r)"
 by (simp add: irrefl_def)
 
-lemma irreflE: "[| irrefl(A,r);  x:A |] ==>  <x,x> \<notin> r"
+lemma irreflE: "[| irrefl(A,r);  x \<in> A |] ==>  <x,x> \<notin> r"
 by (simp add: irrefl_def)
 
 subsubsection{*symmetry*}
@@ -84,7 +84,7 @@ lemma transD: "[| trans(r);  <a,b>:r;  <b,c>:r |] ==> <a,c>:r"
 by (unfold trans_def, blast)
 
 lemma trans_onD:
-    "[| trans[A](r);  <a,b>:r;  <b,c>:r;  a:A;  b:A;  c:A |] ==> <a,c>:r"
+    "[| trans[A](r);  <a,b>:r;  <b,c>:r;  a \<in> A;  b \<in> A;  c \<in> A |] ==> <a,c>:r"
 by (unfold trans_on_def, blast)
 
 lemma trans_imp_trans_on: "trans(r) ==> trans[A](r)"
@@ -122,7 +122,7 @@ apply (blast dest: rtrancl_type [THEN subsetD])
 done
 
 (*Reflexivity of rtrancl*)
-lemma rtrancl_refl: "[| a: field(r) |] ==> <a,a> \<in> r^*"
+lemma rtrancl_refl: "[| a \<in> field(r) |] ==> <a,a> \<in> r^*"
 apply (rule rtrancl_unfold [THEN ssubst])
 apply (erule idI [THEN UnI1])
 done
@@ -149,13 +149,13 @@ by (blast intro: r_into_rtrancl dest!: rtrancl_type [THEN subsetD])
 
 lemma rtrancl_full_induct [case_names initial step, consumes 1]:
   "[| <a,b> \<in> r^*;
-      !!x. x: field(r) ==> P(<x,x>);
+      !!x. x \<in> field(r) ==> P(<x,x>);
       !!x y z.[| P(<x,y>); <x,y>: r^*; <y,z>: r |]  ==>  P(<x,z>) |]
    ==>  P(<a,b>)"
 by (erule def_induct [OF rtrancl_def rtrancl_bnd_mono], blast)
 
 (*nice induction rule.
-  Tried adding the typing hypotheses y,z:field(r), but these
+  Tried adding the typing hypotheses y,z \<in> field(r), but these
   caused expensive case splits!*)
 lemma rtrancl_induct [case_names initial step, induct set: rtrancl]:
   "[| <a,b> \<in> r^*;

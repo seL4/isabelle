@@ -34,7 +34,7 @@ lemmas [simp] =
 lemma zless_iff_zdiff_zless_0: "(x $< y) \<longleftrightarrow> (x$-y $< #0)"
   by (simp add: zcompare_rls)
 
-lemma eq_iff_zdiff_eq_0: "[| x: int; y: int |] ==> (x = y) \<longleftrightarrow> (x$-y = #0)"
+lemma eq_iff_zdiff_eq_0: "[| x \<in> int; y \<in> int |] ==> (x = y) \<longleftrightarrow> (x$-y = #0)"
   by (simp add: zcompare_rls)
 
 lemma zle_iff_zdiff_zle_0: "(x $<= y) \<longleftrightarrow> (x$-y $<= #0)"

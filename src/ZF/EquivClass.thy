@@ -9,7 +9,7 @@ theory EquivClass imports Trancl Perm begin
 
 definition
   quotient   :: "[i,i]=>i"    (infixl "'/'/" 90)  (*set of equiv classes*)  where
-      "A//r == {r``{x} . x:A}"
+      "A//r == {r``{x} . x \<in> A}"
 
 definition
   congruent  :: "[i,i=>i]=>o"  where
@@ -72,15 +72,15 @@ apply (unfold sym_def, blast)
 done
 
 lemma equiv_class_self:
-    "[| equiv(A,r);  a: A |] ==> a: r``{a}"
+    "[| equiv(A,r);  a \<in> A |] ==> a \<in> r``{a}"
 by (unfold equiv_def refl_def, blast)
 
 (*Lemma for the next result*)
 lemma subset_equiv_class:
-    "[| equiv(A,r);  r``{b} \<subseteq> r``{a};  b: A |] ==> <a,b>: r"
+    "[| equiv(A,r);  r``{b} \<subseteq> r``{a};  b \<in> A |] ==> <a,b>: r"
 by (unfold equiv_def refl_def, blast)
 
-lemma eq_equiv_class: "[| r``{a} = r``{b};  equiv(A,r);  b: A |] ==> <a,b>: r"
+lemma eq_equiv_class: "[| r``{a} = r``{b};  equiv(A,r);  b \<in> A |] ==> <a,b>: r"
 by (assumption | rule equalityD2 subset_equiv_class)+
 
 (*thus r``{a} = r``{b} as well*)
@@ -92,24 +92,24 @@ lemma equiv_type: "equiv(A,r) ==> r \<subseteq> A*A"
 by (unfold equiv_def, blast)
 
 lemma equiv_class_eq_iff:
-     "equiv(A,r) ==> <x,y>: r \<longleftrightarrow> r``{x} = r``{y} & x:A & y:A"
+     "equiv(A,r) ==> <x,y>: r \<longleftrightarrow> r``{x} = r``{y} & x \<in> A & y \<in> A"
 by (blast intro: eq_equiv_class equiv_class_eq dest: equiv_type)
 
 lemma eq_equiv_class_iff:
-     "[| equiv(A,r);  x: A;  y: A |] ==> r``{x} = r``{y} \<longleftrightarrow> <x,y>: r"
+     "[| equiv(A,r);  x \<in> A;  y \<in> A |] ==> r``{x} = r``{y} \<longleftrightarrow> <x,y>: r"
 by (blast intro: eq_equiv_class equiv_class_eq dest: equiv_type)
 
 (*** Quotients ***)
 
 (** Introduction/elimination rules -- needed? **)
 
-lemma quotientI [TC]: "x:A ==> r``{x}: A//r"
+lemma quotientI [TC]: "x \<in> A ==> r``{x}: A//r"
 apply (unfold quotient_def)
 apply (erule RepFunI)
 done
 
 lemma quotientE:
-    "[| X: A//r;  !!x. [| X = r``{x};  x:A |] ==> P |] ==> P"
+    "[| X \<in> A//r;  !!x. [| X = r``{x};  x \<in> A |] ==> P |] ==> P"
 by (unfold quotient_def, blast)
 
 lemma Union_quotient:
@@ -117,7 +117,7 @@ lemma Union_quotient:
 by (unfold equiv_def refl_def quotient_def, blast)
 
 lemma quotient_disj:
-    "[| equiv(A,r);  X: A//r;  Y: A//r |] ==> X=Y | (X \<inter> Y \<subseteq> 0)"
+    "[| equiv(A,r);  X \<in> A//r;  Y \<in> A//r |] ==> X=Y | (X \<inter> Y \<subseteq> 0)"
 apply (unfold quotient_def)
 apply (safe intro!: equiv_class_eq, assumption)
 apply (unfold equiv_def trans_def sym_def, blast)
@@ -130,7 +130,7 @@ subsection{*Defining Unary Operations upon Equivalence Classes*}
 
 (*Conversion rule*)
 lemma UN_equiv_class:
-    "[| equiv(A,r);  b respects r;  a: A |] ==> (\<Union>x\<in>r``{a}. b(x)) = b(a)"
+    "[| equiv(A,r);  b respects r;  a \<in> A |] ==> (\<Union>x\<in>r``{a}. b(x)) = b(a)"
 apply (subgoal_tac "\<forall>x \<in> r``{a}. b(x) = b(a)")
  apply simp
  apply (blast intro: equiv_class_self)
@@ -139,19 +139,19 @@ done
 
 (*type checking of  @{term"\<Union>x\<in>r``{a}. b(x)"} *)
 lemma UN_equiv_class_type:
-    "[| equiv(A,r);  b respects r;  X: A//r;  !!x.  x \<in> A ==> b(x) \<in> B |]
+    "[| equiv(A,r);  b respects r;  X \<in> A//r;  !!x.  x \<in> A ==> b(x) \<in> B |]
      ==> (\<Union>x\<in>X. b(x)) \<in> B"
 apply (unfold quotient_def, safe)
 apply (simp (no_asm_simp) add: UN_equiv_class)
 done
 
 (*Sufficient conditions for injectiveness.  Could weaken premises!
-  major premise could be an inclusion; bcong could be !!y. y:A ==> b(y):B
+  major premise could be an inclusion; bcong could be !!y. y \<in> A ==> b(y):B
 *)
 lemma UN_equiv_class_inject:
     "[| equiv(A,r);   b respects r;
-        (\<Union>x\<in>X. b(x))=(\<Union>y\<in>Y. b(y));  X: A//r;  Y: A//r;
-        !!x y. [| x:A; y:A; b(x)=b(y) |] ==> <x,y>:r |]
+        (\<Union>x\<in>X. b(x))=(\<Union>y\<in>Y. b(y));  X \<in> A//r;  Y \<in> A//r;
+        !!x y. [| x \<in> A; y \<in> A; b(x)=b(y) |] ==> <x,y>:r |]
      ==> X=Y"
 apply (unfold quotient_def, safe)
 apply (rule equiv_class_eq, assumption)
@@ -162,11 +162,11 @@ done
 subsection{*Defining Binary Operations upon Equivalence Classes*}
 
 lemma congruent2_implies_congruent:
-    "[| equiv(A,r1);  congruent2(r1,r2,b);  a: A |] ==> congruent(r2,b(a))"
+    "[| equiv(A,r1);  congruent2(r1,r2,b);  a \<in> A |] ==> congruent(r2,b(a))"
 by (unfold congruent_def congruent2_def equiv_def refl_def, blast)
 
 lemma congruent2_implies_congruent_UN:
-    "[| equiv(A1,r1);  equiv(A2,r2);  congruent2(r1,r2,b);  a: A2 |] ==>
+    "[| equiv(A1,r1);  equiv(A2,r2);  congruent2(r1,r2,b);  a \<in> A2 |] ==>
      congruent(r1, %x1. \<Union>x2 \<in> r2``{a}. b(x1,x2))"
 apply (unfold congruent_def, safe)
 apply (frule equiv_type [THEN subsetD], assumption)
@@ -206,8 +206,8 @@ done
 
 lemma congruent2_commuteI:
  assumes equivA: "equiv(A,r)"
-     and commute: "!! y z. [| y: A;  z: A |] ==> b(y,z) = b(z,y)"
-     and congt:   "!! y z w. [| w: A;  <y,z>: r |] ==> b(w,y) = b(w,z)"
+     and commute: "!! y z. [| y \<in> A;  z \<in> A |] ==> b(y,z) = b(z,y)"
+     and congt:   "!! y z w. [| w \<in> A;  <y,z>: r |] ==> b(w,y) = b(w,z)"
  shows "b respects2 r"
 apply (insert equivA [THEN equiv_type, THEN subsetD])
 apply (rule congruent2I [OF equivA equivA])
@@ -219,9 +219,9 @@ done
 
 (*Obsolete?*)
 lemma congruent_commuteI:
-    "[| equiv(A,r);  Z: A//r;
-        !!w. [| w: A |] ==> congruent(r, %z. b(w,z));
-        !!x y. [| x: A;  y: A |] ==> b(y,x) = b(x,y)
+    "[| equiv(A,r);  Z \<in> A//r;
+        !!w. [| w \<in> A |] ==> congruent(r, %z. b(w,z));
+        !!x y. [| x \<in> A;  y \<in> A |] ==> b(y,x) = b(x,y)
      |] ==> congruent(r, %w. \<Union>z\<in>Z. b(w,z))"
 apply (simp (no_asm) add: congruent_def)
 apply (safe elim!: quotientE)
