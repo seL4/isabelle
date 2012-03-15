@@ -177,7 +177,7 @@ apply (blast intro: eqpoll_sym [THEN eqpoll_trans])
 done
 
 lemma Union_lesspoll:
-     "[| \<forall>x \<in> X. x lepoll n & x \<subseteq> T; well_ord(T, R); X lepoll b;   
+     "[| \<forall>x \<in> X. x \<lesssim> n & x \<subseteq> T; well_ord(T, R); X \<lesssim> b;   
          b<a; ~Finite(a); Card(a); n \<in> nat |]   
       ==> \<Union>(X)\<prec>a"
 apply (case_tac "Finite (X)")
@@ -203,7 +203,7 @@ done
 lemma Un_sing_eq_cons: "A \<union> {a} = cons(a, A)"
 by fast
 
-lemma Un_lepoll_succ: "A lepoll B ==> A \<union> {a} lepoll succ(B)"
+lemma Un_lepoll_succ: "A \<lesssim> B ==> A \<union> {a} \<lesssim> succ(B)"
 apply (simp add: Un_sing_eq_cons succ_def)
 apply (blast elim!: mem_irrefl intro: cons_lepoll_cong)
 done
@@ -216,7 +216,7 @@ by blast
 
 lemma recfunAC16_Diff_lepoll_1:
      "Ord(x) 
-      ==> recfunAC16(f, g, x, a) - (\<Union>i<x. recfunAC16(f, g, i, a)) lepoll 1"
+      ==> recfunAC16(f, g, x, a) - (\<Union>i<x. recfunAC16(f, g, i, a)) \<lesssim> 1"
 apply (erule Ord_cases)
   apply (simp add: recfunAC16_0 empty_subsetI [THEN subset_imp_lepoll])
 (*Limit case*)
@@ -247,13 +247,13 @@ apply (blast intro: lt_Ord Least_le [THEN lt_trans1])
 done
 
 
-lemma two_in_lepoll_1: "[| A lepoll 1; a \<in> A; b \<in> A |] ==> a=b"
+lemma two_in_lepoll_1: "[| A \<lesssim> 1; a \<in> A; b \<in> A |] ==> a=b"
 by (fast dest!: lepoll_1_is_sing)
 
 
 lemma UN_lepoll_index:
-     "[| \<forall>i<a. F(i)-(\<Union>j<i. F(j)) lepoll 1; Limit(a) |]   
-      ==> (\<Union>x<a. F(x)) lepoll a"
+     "[| \<forall>i<a. F(i)-(\<Union>j<i. F(j)) \<lesssim> 1; Limit(a) |]   
+      ==> (\<Union>x<a. F(x)) \<lesssim> a"
 apply (rule lepoll_def [THEN def_imp_iff [THEN iffD2]])
 apply (rule_tac x = "\<lambda>z \<in> (\<Union>x<a. F (x)). LEAST i. z \<in> F (i) " in exI)
 apply (unfold inj_def)
@@ -271,7 +271,7 @@ apply (fast elim!: two_in_lepoll_1)
 done
 
 
-lemma recfunAC16_lepoll_index: "Ord(y) ==> recfunAC16(f, h, y, a) lepoll y"
+lemma recfunAC16_lepoll_index: "Ord(y) ==> recfunAC16(f, h, y, a) \<lesssim> y"
 apply (erule trans_induct3)
 (*0 case*)
 apply (simp (no_asm_simp) add: recfunAC16_0 lepoll_refl)
@@ -369,7 +369,7 @@ by blast
 
 
 lemma subset_imp_eq_lemma:
-     "m \<in> nat ==> \<forall>A B. A \<subseteq> B & m lepoll A & B lepoll m \<longrightarrow> A=B"
+     "m \<in> nat ==> \<forall>A B. A \<subseteq> B & m \<lesssim> A & B \<lesssim> m \<longrightarrow> A=B"
 apply (induct_tac "m")
 apply (fast dest!: lepoll_0_is_0)
 apply (intro allI impI)
@@ -385,7 +385,7 @@ apply (blast elim: equalityE)
 done
 
 
-lemma subset_imp_eq: "[| A \<subseteq> B; m lepoll A; B lepoll m; m \<in> nat |] ==> A=B"
+lemma subset_imp_eq: "[| A \<subseteq> B; m \<lesssim> A; B \<lesssim> m; m \<in> nat |] ==> A=B"
 by (blast dest!: subset_imp_eq_lemma)
 
 

@@ -92,7 +92,7 @@ by (erule def_induct [OF nat_def nat_bnd_mono], blast)
 
 lemma natE:
  assumes "n \<in> nat"
- obtains (0) "n=0" | (succ) x where "x \<in> nat" "n=succ(x)"
+ obtains ("0") "n=0" | (succ) x where "x \<in> nat" "n=succ(x)"
 using assms
 by (rule nat_unfold [THEN equalityD1, THEN subsetD, THEN UnE]) auto
 

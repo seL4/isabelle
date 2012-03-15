@@ -98,7 +98,7 @@ apply (blast dest: HH_eq_arg_lt [OF sym] ltD)
 done
 
 lemma HH_subset_x_imp_lepoll: 
-     "[| HH(f, x, i) \<in> Pow(x)-{0}; Ord(i) |] ==> i lepoll Pow(x)-{0}"
+     "[| HH(f, x, i) \<in> Pow(x)-{0}; Ord(i) |] ==> i \<lesssim> Pow(x)-{0}"
 apply (unfold lepoll_def inj_def)
 apply (rule_tac x = "\<lambda>j \<in> i. HH (f, x, j) " in exI)
 apply (simp (no_asm_simp))

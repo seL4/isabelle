@@ -703,7 +703,7 @@ by (blast intro!: non_succ_LimitI Ord_0_lt)
 
 lemma Ord_cases:
  assumes i: "Ord(i)"
- obtains (0) "i=0" | (succ) j where "Ord(j)" "i=succ(j)" | (limit) "Limit(i)"
+ obtains ("0") "i=0" | (succ) j where "Ord(j)" "i=succ(j)" | (limit) "Limit(i)"
 by (insert Ord_cases_disj [OF i], auto)
 
 lemma trans_induct3_raw:

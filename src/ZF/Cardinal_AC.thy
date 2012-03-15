@@ -11,7 +11,7 @@ theory Cardinal_AC imports CardinalArith Zorn begin
 
 subsection{*Strengthened Forms of Existing Theorems on Cardinals*}
 
-lemma cardinal_eqpoll: "|A| eqpoll A"
+lemma cardinal_eqpoll: "|A| \<approx> A"
 apply (rule AC_well_ord [THEN exE])
 apply (erule well_ord_cardinal_eqpoll)
 done
@@ -19,13 +19,13 @@ done
 text{*The theorem @{term "||A|| = |A|"} *}
 lemmas cardinal_idem = cardinal_eqpoll [THEN cardinal_cong, simp]
 
-lemma cardinal_eqE: "|X| = |Y| ==> X eqpoll Y"
+lemma cardinal_eqE: "|X| = |Y| ==> X \<approx> Y"
 apply (rule AC_well_ord [THEN exE])
 apply (rule AC_well_ord [THEN exE])
 apply (rule well_ord_cardinal_eqE, assumption+)
 done
 
-lemma cardinal_eqpoll_iff: "|X| = |Y| \<longleftrightarrow> X eqpoll Y"
+lemma cardinal_eqpoll_iff: "|X| = |Y| \<longleftrightarrow> X \<approx> Y"
 by (blast intro: cardinal_cong cardinal_eqE)
 
 lemma cardinal_disjoint_Un:
@@ -33,7 +33,7 @@ lemma cardinal_disjoint_Un:
       ==> |A \<union> C| = |B \<union> D|"
 by (simp add: cardinal_eqpoll_iff eqpoll_disjoint_Un)
 
-lemma lepoll_imp_Card_le: "A lepoll B ==> |A| \<le> |B|"
+lemma lepoll_imp_Card_le: "A \<lesssim> B ==> |A| \<le> |B|"
 apply (rule AC_well_ord [THEN exE])
 apply (erule well_ord_lepoll_imp_Card_le, assumption)
 done
@@ -59,7 +59,7 @@ apply (rule AC_well_ord [THEN exE])
 apply (rule well_ord_cadd_cmult_distrib, assumption+)
 done
 
-lemma InfCard_square_eq: "InfCard(|A|) ==> A*A eqpoll A"
+lemma InfCard_square_eq: "InfCard(|A|) ==> A*A \<approx> A"
 apply (rule AC_well_ord [THEN exE])
 apply (erule well_ord_InfCard_square_eq, assumption)
 done
@@ -67,36 +67,50 @@ done
 
 subsection {*The relationship between cardinality and le-pollence*}
 
-lemma Card_le_imp_lepoll: "|A| \<le> |B| ==> A lepoll B"
-apply (rule cardinal_eqpoll
-              [THEN eqpoll_sym, THEN eqpoll_imp_lepoll, THEN lepoll_trans])
-apply (erule le_imp_subset [THEN subset_imp_lepoll, THEN lepoll_trans])
-apply (rule cardinal_eqpoll [THEN eqpoll_imp_lepoll])
-done
+lemma Card_le_imp_lepoll:
+  assumes "|A| \<le> |B|" shows "A \<lesssim> B"
+proof -
+  have "A \<approx> |A|" 
+    by (rule cardinal_eqpoll [THEN eqpoll_sym])
+  also have "... \<lesssim> |B|"
+    by (rule le_imp_subset [THEN subset_imp_lepoll]) (rule assms)
+  also have "... \<approx> B" 
+    by (rule cardinal_eqpoll)
+  finally show ?thesis .
+qed
 
-lemma le_Card_iff: "Card(K) ==> |A| \<le> K \<longleftrightarrow> A lepoll K"
+lemma le_Card_iff: "Card(K) ==> |A| \<le> K \<longleftrightarrow> A \<lesssim> K"
 apply (erule Card_cardinal_eq [THEN subst], rule iffI,
        erule Card_le_imp_lepoll)
 apply (erule lepoll_imp_Card_le)
 done
 
-lemma cardinal_0_iff_0 [simp]: "|A| = 0 \<longleftrightarrow> A = 0";
+lemma cardinal_0_iff_0 [simp]: "|A| = 0 \<longleftrightarrow> A = 0"
 apply auto
 apply (drule cardinal_0 [THEN ssubst])
 apply (blast intro: eqpoll_0_iff [THEN iffD1] cardinal_eqpoll_iff [THEN iffD1])
 done
 
-lemma cardinal_lt_iff_lesspoll: "Ord(i) ==> i < |A| \<longleftrightarrow> i lesspoll A"
-apply (cut_tac A = "A" in cardinal_eqpoll)
-apply (auto simp add: eqpoll_iff)
-apply (blast intro: lesspoll_trans2 lt_Card_imp_lesspoll Card_cardinal)
-apply (force intro: cardinal_lt_imp_lt lesspoll_cardinal_lt lesspoll_trans2
-             simp add: cardinal_idem)
-done
+lemma cardinal_lt_iff_lesspoll:
+  assumes i: "Ord(i)" shows "i < |A| \<longleftrightarrow> i \<prec> A"
+proof
+  assume "i < |A|"
+  hence  "i \<prec> |A|" 
+    by (blast intro: lt_Card_imp_lesspoll Card_cardinal) 
+  also have "...  \<approx> A" 
+    by (rule cardinal_eqpoll)
+  finally show "i \<prec> A" .
+next
+  assume "i \<prec> A"
+  also have "...  \<approx> |A|" 
+    by (blast intro: cardinal_eqpoll eqpoll_sym) 
+  finally have "i \<prec> |A|" .
+  thus  "i < |A|" using i
+    by (force intro: cardinal_lt_imp_lt lesspoll_cardinal_lt)
+qed
 
 lemma cardinal_le_imp_lepoll: " i \<le> |A| ==> i \<lesssim> A"
-apply (blast intro: lt_Ord Card_le_imp_lepoll Ord_cardinal_le le_trans)
-done
+  by (blast intro: lt_Ord Card_le_imp_lepoll Ord_cardinal_le le_trans)
 
 
 subsection{*Other Applications of AC*}
@@ -164,15 +178,21 @@ done
     set need not be a cardinal.  Surprisingly complicated proof!
 **)
 
-(*Work backwards along the injection from W into K, given that @{term"W\<noteq>0"}.*)
+text{*Work backwards along the injection from @{term W} into @{term K}, given that @{term"W\<noteq>0"}.*}
+
 lemma inj_UN_subset:
-     "[| f: inj(A,B);  a:A |] ==>
-      (\<Union>x\<in>A. C(x)) \<subseteq> (\<Union>y\<in>B. C(if y: range(f) then converse(f)`y else a))"
-apply (rule UN_least)
-apply (rule_tac x1= "f`x" in subset_trans [OF _ UN_upper])
- apply (simp add: inj_is_fun [THEN apply_rangeI])
-apply (blast intro: inj_is_fun [THEN apply_type])
-done
+  assumes f: "f \<in> inj(A,B)" and a: "a \<in> A"
+  shows "(\<Union>x\<in>A. C(x)) \<subseteq> (\<Union>y\<in>B. C(if y \<in> range(f) then converse(f)`y else a))"
+proof (rule UN_least)
+  fix x
+  assume x: "x \<in> A"
+  hence fx: "f ` x \<in> B" by (blast intro: f inj_is_fun [THEN apply_type])
+  have "C(x) \<subseteq> C(if f ` x \<in> range(f) then converse(f) ` (f ` x) else a)" 
+    using f x by (simp add: inj_is_fun [THEN apply_rangeI])
+  also have "... \<subseteq> (\<Union>y\<in>B. C(if y \<in> range(f) then converse(f) ` y else a))"
+    by (rule UN_upper [OF fx]) 
+  finally show "C(x) \<subseteq> (\<Union>y\<in>B. C(if y \<in> range(f) then converse(f)`y else a))" .
+qed
 
 (*Simpler to require |W|=K; we'd have a bijection; but the theorem would
   be weaker.*)

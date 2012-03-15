@@ -342,7 +342,7 @@ apply (auto simp add: var.intros nat_list_inj_type)
 apply (simp add: length_nat_list_inj)
 done
 
-lemma nat_lepoll_var: "nat lepoll var"
+lemma nat_lepoll_var: "nat \<lesssim> var"
 apply (unfold lepoll_def)
 apply (rule_tac x = " (\<lambda>x\<in>nat. nat_var_inj (x))" in exI)
 apply (rule var_infinite_lemma)
