@@ -13,7 +13,7 @@ cd "$ISABELLE_HOME/etc"
 isabelle keywords \
   "$LOG/Pure.gz" "$LOG/HOL.gz" "$LOG/HOLCF.gz" "$LOG/HOL-Boogie.gz" \
   "$LOG/HOL-Library.gz" "$LOG/HOL-Nominal.gz" "$LOG/HOL-Statespace.gz" \
-  "$LOG/HOL-SPARK.gz"
+  "$LOG/HOL-SPARK.gz" "$LOG/HOL-TPTP.gz"
 
 isabelle keywords -k ZF \
   "$LOG/Pure.gz" "$LOG/FOL.gz" "$LOG/ZF.gz"

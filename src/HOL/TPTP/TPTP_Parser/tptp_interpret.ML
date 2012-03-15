@@ -887,14 +887,9 @@ fun import_file cautious path_prefix file_name type_map const_map thy =
   in TPTP_Data.map (cons ((prob_name, result))) thy' end
 
 val _ =
-  Outer_Syntax.improper_command "import_tptp" "import TPTP problem"
-   Keyword.diag (*FIXME why diag?*)
-   (Parse.string >>
-    (fn file_name =>
-      Toplevel.theory (fn thy =>
-        import_file true (Path.explode file_name |> Path.dir)
-         (Path.explode file_name) [] [] thy
-        )))
+  Outer_Syntax.improper_command "import_tptp" "import TPTP problem" Keyword.thy_decl
+    (Parse.path >> (fn path =>
+      Toplevel.theory (fn thy => import_file true (Path.dir path) path [] [] thy)))
 
 
 (*Used for debugging. Returns all files contained within a directory or its
