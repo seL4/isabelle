@@ -137,7 +137,13 @@ class Session(thy_load: Thy_Load = new Thy_Load)
 
   private val global_state = Volatile(Document.State.init)
   def current_state(): Document.State = global_state()
-  def recent_syntax(): Outer_Syntax = current_state().recent_stable.version.get_finished.syntax
+
+  def recent_syntax(): Outer_Syntax =
+  {
+    val version = current_state().recent_finished.version.get_finished
+    if (version.is_init) prover_syntax
+    else version.syntax
+  }
 
   def snapshot(name: Document.Node.Name = Document.Node.Name.empty,
       pending_edits: List[Text.Edit] = Nil): Document.Snapshot =
