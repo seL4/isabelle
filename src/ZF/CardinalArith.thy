@@ -154,13 +154,16 @@ qed
 (*Could probably weaken the premises to well_ord(K,r), or removing using AC*)
 
 lemma cadd_le_self:
-    "[| Card(K);  Ord(L) |] ==> K \<le> (K \<oplus> L)"
-apply (unfold cadd_def)
-apply (rule le_trans [OF Card_cardinal_le well_ord_lepoll_imp_Card_le],
-       assumption)
-apply (rule_tac [2] sum_lepoll_self)
-apply (blast intro: well_ord_radd well_ord_Memrel Card_is_Ord)
-done
+  assumes K: "Card(K)" and L: "Ord(L)" shows "K \<le> (K \<oplus> L)"
+proof (unfold cadd_def)
+  have "K \<le> |K|"
+    by (rule Card_cardinal_le [OF K]) 
+  moreover have "|K| \<le> |K + L|" using K L
+    by (blast intro: well_ord_lepoll_imp_Card_le sum_lepoll_self
+                     well_ord_radd well_ord_Memrel Card_is_Ord) 
+  ultimately show "K \<le> |K + L|" 
+    by (blast intro: le_trans) 
+qed
 
 subsubsection{*Monotonicity of addition*}
 
@@ -197,19 +200,26 @@ done
 (*Pulling the  succ(...)  outside the |...| requires m, n: nat  *)
 (*Unconditional version requires AC*)
 lemma cadd_succ_lemma:
-    "[| Ord(m);  Ord(n) |] ==> succ(m) \<oplus> n = |succ(m \<oplus> n)|"
-apply (unfold cadd_def)
-apply (rule sum_succ_eqpoll [THEN cardinal_cong, THEN trans])
-apply (rule succ_eqpoll_cong [THEN cardinal_cong])
-apply (rule well_ord_cardinal_eqpoll [THEN eqpoll_sym])
-apply (blast intro: well_ord_radd well_ord_Memrel)
-done
+  assumes "Ord(m)" "Ord(n)" shows "succ(m) \<oplus> n = |succ(m \<oplus> n)|"
+proof (unfold cadd_def)
+  have [intro]: "m + n \<approx> |m + n|" using assms
+    by (blast intro: eqpoll_sym well_ord_cardinal_eqpoll well_ord_radd well_ord_Memrel)
 
-lemma nat_cadd_eq_add: "[| m: nat;  n: nat |] ==> m \<oplus> n = m#+n"
-apply (induct_tac m)
-apply (simp add: nat_into_Card [THEN cadd_0])
-apply (simp add: cadd_succ_lemma nat_into_Card [THEN Card_cardinal_eq])
-done
+  have "|succ(m) + n| = |succ(m + n)|"
+    by (rule sum_succ_eqpoll [THEN cardinal_cong]) 
+  also have "... = |succ(|m + n|)|" 
+    by (blast intro: succ_eqpoll_cong cardinal_cong)
+  finally show "|succ(m) + n| = |succ(|m + n|)|" .
+qed
+
+lemma nat_cadd_eq_add:
+  assumes m: "m: nat" and [simp]: "n: nat" shows"m \<oplus> n = m #+ n"
+using m
+proof (induct m)
+  case 0 thus ?case by (simp add: nat_into_Card cadd_0)
+next
+  case (succ m) thus ?case by (simp add: cadd_succ_lemma nat_into_Card Card_cardinal_eq)
+qed
 
 
 subsection{*Cardinal multiplication*}
@@ -826,32 +836,40 @@ by (simp add: InfCard_def Card_csucc Card_is_Ord
 
 subsubsection{*Removing elements from a finite set decreases its cardinality*}
 
-lemma Fin_imp_not_cons_lepoll: "A: Fin(U) ==> x\<notin>A \<longrightarrow> ~ cons(x,A) \<lesssim> A"
-apply (erule Fin_induct)
-apply (simp add: lepoll_0_iff)
-apply (subgoal_tac "cons (x,cons (xa,y)) = cons (xa,cons (x,y))")
-apply simp
-apply (blast dest!: cons_lepoll_consD, blast)
-done
-
 lemma Finite_imp_cardinal_cons [simp]:
-     "[| Finite(A);  a\<notin>A |] ==> |cons(a,A)| = succ(|A|)"
-apply (unfold cardinal_def)
-apply (rule Least_equality)
-apply (fold cardinal_def)
-apply (simp add: succ_def)
-apply (blast intro: cons_eqpoll_cong well_ord_cardinal_eqpoll
-             elim!: mem_irrefl  dest!: Finite_imp_well_ord)
-apply (blast intro: Card_cardinal Card_is_Ord)
-apply (rule notI)
-apply (rule Finite_into_Fin [THEN Fin_imp_not_cons_lepoll, THEN mp, THEN notE],
-       assumption, assumption)
-apply (erule eqpoll_sym [THEN eqpoll_imp_lepoll, THEN lepoll_trans])
-apply (erule le_imp_lepoll [THEN lepoll_trans])
-apply (blast intro: well_ord_cardinal_eqpoll [THEN eqpoll_imp_lepoll]
-             dest!: Finite_imp_well_ord)
-done
-
+  assumes FA: "Finite(A)" and a: "a\<notin>A" shows "|cons(a,A)| = succ(|A|)"
+proof -
+  { fix X
+    have "Finite(X) ==> a \<notin> X \<Longrightarrow> cons(a,X) \<lesssim> X \<Longrightarrow> False"
+      proof (induct X rule: Finite_induct)
+        case 0 thus False  by (simp add: lepoll_0_iff) 
+      next
+        case (cons x Y) 
+        hence "cons(x, cons(a, Y)) \<lesssim> cons(x, Y)" by (simp add: cons_commute) 
+        hence "cons(a, Y) \<lesssim> Y" using cons        by (blast dest: cons_lepoll_consD)
+        thus False using cons by auto
+      qed
+  } 
+  hence [simp]: "~ cons(a,A) \<lesssim> A" using a FA by auto
+  have [simp]: "|A| \<approx> A" using Finite_imp_well_ord [OF FA]
+    by (blast intro: well_ord_cardinal_eqpoll)
+  have "(\<mu> i. i \<approx> cons(a, A)) = succ(|A|)" 
+    proof (rule Least_equality [OF _ _ notI])
+      show "succ(|A|) \<approx> cons(a, A)" 
+        by (simp add: succ_def cons_eqpoll_cong mem_not_refl a) 
+    next
+      show "Ord(succ(|A|))" by simp
+    next
+      fix i
+      assume i: "i \<le> |A|" "i \<approx> cons(a, A)"
+      have "cons(a, A) \<approx> i" by (rule eqpoll_sym) (rule i)
+      also have "... \<lesssim> |A|" by (rule le_imp_lepoll) (rule i)
+      also have "... \<approx> A"   by simp
+      finally have "cons(a, A) \<lesssim> A" .
+      thus False by simp
+    qed
+  thus ?thesis by (simp add: cardinal_def) 
+qed
 
 lemma Finite_imp_succ_cardinal_Diff:
      "[| Finite(A);  a:A |] ==> succ(|A-{a}|) = |A|"
@@ -866,9 +884,11 @@ apply (simp add: Finite_imp_succ_cardinal_Diff)
 done
 
 lemma Finite_cardinal_in_nat [simp]: "Finite(A) ==> |A| \<in> nat"
-apply (erule Finite_induct)
-apply (auto simp add: cardinal_0 Finite_imp_cardinal_cons)
-done
+proof (induct rule: Finite_induct)
+  case 0 thus ?case by (simp add: cardinal_0)
+next
+  case (cons x A) thus ?case by (simp add: Finite_imp_cardinal_cons)
+qed
 
 lemma card_Un_Int:
      "[|Finite(A); Finite(B)|] ==> |A| #+ |B| = |A \<union> B| #+ |A \<inter> B|"
@@ -880,17 +900,22 @@ lemma card_Un_disjoint:
      "[|Finite(A); Finite(B); A \<inter> B = 0|] ==> |A \<union> B| = |A| #+ |B|"
 by (simp add: Finite_Un card_Un_Int)
 
-lemma card_partition [rule_format]:
-     "Finite(C) ==>
-        Finite (\<Union> C) \<longrightarrow>
-        (\<forall>c\<in>C. |c| = k) \<longrightarrow>
-        (\<forall>c1 \<in> C. \<forall>c2 \<in> C. c1 \<noteq> c2 \<longrightarrow> c1 \<inter> c2 = 0) \<longrightarrow>
+lemma card_partition:
+  assumes FC: "Finite(C)"
+  shows
+     "Finite (\<Union> C) \<Longrightarrow>
+        (\<forall>c\<in>C. |c| = k) \<Longrightarrow>
+        (\<forall>c1 \<in> C. \<forall>c2 \<in> C. c1 \<noteq> c2 \<longrightarrow> c1 \<inter> c2 = 0) \<Longrightarrow>
         k #* |C| = |\<Union> C|"
-apply (erule Finite_induct, auto)
-apply (subgoal_tac " x \<inter> \<Union>B = 0")
-apply (auto simp add: card_Un_disjoint Finite_Union
-       subset_Finite [of _ "\<Union> (cons(x,F))"])
-done
+using FC
+proof (induct rule: Finite_induct)
+  case 0 thus ?case by simp
+next
+  case (cons x B)
+  hence "x \<inter> \<Union>B = 0" by auto
+  thus ?case using cons
+    by (auto simp add: card_Un_disjoint)
+qed
 
 
 subsubsection{*Theorems by Krzysztof Grabczewski, proofs by lcp*}
@@ -919,40 +944,5 @@ qed
 
 lemma Ord_nat_subset_into_Card: "[| Ord(i); i \<subseteq> nat |] ==> Card(i)"
 by (blast dest: Ord_subset_natD intro: Card_nat nat_into_Card)
-
-lemma Finite_Diff_sing_eq_diff_1: "[| Finite(A); x:A |] ==> |A-{x}| = |A| #- 1"
-apply (rule succ_inject)
-apply (rule_tac b = "|A|" in trans)
- apply (simp add: Finite_imp_succ_cardinal_Diff)
-apply (subgoal_tac "1 \<lesssim> A")
- prefer 2 apply (blast intro: not_0_is_lepoll_1)
-apply (frule Finite_imp_well_ord, clarify)
-apply (drule well_ord_lepoll_imp_Card_le)
- apply (auto simp add: cardinal_1)
-apply (rule trans)
- apply (rule_tac [2] diff_succ)
-  apply (auto simp add: Finite_cardinal_in_nat)
-done
-
-lemma cardinal_lt_imp_Diff_not_0 [rule_format]:
-     "Finite(B) ==> \<forall>A. |B|<|A| \<longrightarrow> A - B \<noteq> 0"
-apply (erule Finite_induct, auto)
-apply (case_tac "Finite (A)")
- apply (subgoal_tac [2] "Finite (cons (x, B))")
-  apply (drule_tac [2] B = "cons (x, B) " in Diff_Finite)
-   apply (auto simp add: Finite_0 Finite_cons)
-apply (subgoal_tac "|B|<|A|")
- prefer 2 apply (blast intro: lt_trans Ord_cardinal)
-apply (case_tac "x:A")
- apply (subgoal_tac [2] "A - cons (x, B) = A - B")
-  apply auto
-apply (subgoal_tac "|A| \<le> |cons (x, B) |")
- prefer 2
- apply (blast dest: Finite_cons [THEN Finite_imp_well_ord]
-              intro: well_ord_lepoll_imp_Card_le subset_imp_lepoll)
-apply (auto simp add: Finite_imp_cardinal_cons)
-apply (auto dest!: Finite_cardinal_in_nat simp add: le_iff)
-apply (blast intro: lt_trans)
-done
 
 end
