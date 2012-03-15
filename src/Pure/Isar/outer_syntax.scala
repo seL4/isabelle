@@ -34,6 +34,7 @@ object Outer_Syntax
     result.toString
   }
 
+  type Decl = (String, Option[(String, List[String])])
   def init(): Outer_Syntax = new Outer_Syntax()
 }
 
@@ -51,8 +52,12 @@ final class Outer_Syntax private(
       if (Keyword.control(kind)) completion else completion + (name, replace))
 
   def + (name: String, kind: String): Outer_Syntax = this + (name, kind, name)
-
   def + (name: String): Outer_Syntax = this + (name, Keyword.MINOR)
+  def + (decl: Outer_Syntax.Decl): Outer_Syntax =
+    decl match {
+      case ((name, Some((kind, _)))) => this + (name, kind)
+      case ((name, None)) => this + name
+    }
 
   def is_command(name: String): Boolean =
     keyword_kind(name) match {

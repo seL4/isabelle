@@ -113,7 +113,7 @@ object Thy_Header extends Parse.Parser
 
 sealed case class Thy_Header(
   name: String, imports: List[String],
-  keywords: List[(String, Option[(String, List[String])])],
+  keywords: List[Outer_Syntax.Decl],
   uses: List[(String, Boolean)])
 {
   def map(f: String => String): Thy_Header =

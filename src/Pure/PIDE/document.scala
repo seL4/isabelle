@@ -41,7 +41,7 @@ object Document
   {
     sealed case class Deps(
       imports: List[Name],
-      keywords: List[(String, Option[(String, List[String])])],
+      keywords: List[Outer_Syntax.Decl],
       uses: List[(String, Boolean)])
 
     object Name
