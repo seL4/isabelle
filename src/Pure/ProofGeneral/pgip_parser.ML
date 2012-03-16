@@ -76,7 +76,7 @@ val command_keywords = Symtab.empty
   |> command Keyword.prf_asm_goal     goal
   |> command Keyword.prf_script       proofstep;
 
-val _ = subset (op =) (Keyword.kinds, Symtab.keys command_keywords)
+val _ = subset (op =) (map Keyword.kind_of Keyword.kinds, Symtab.keys command_keywords)
   orelse raise Fail "Incomplete coverage of command keywords";
 
 fun parse_command "sorry" text = [D.Postponegoal {text = text}, D.Closeblock {}]

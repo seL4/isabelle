@@ -30,7 +30,7 @@ sig
   val prf_asm: T
   val prf_asm_goal: T
   val prf_script: T
-  val kinds: string list
+  val kinds: T list
   val tag: string -> T -> T
   val tags_of: T -> string list
   val tag_theory: T -> T
@@ -100,8 +100,7 @@ val prf_script = kind "prf_script";
 val kinds =
   [control, diag, thy_begin, thy_end, thy_heading, thy_decl, thy_script, thy_goal,
     thy_schematic_goal, qed, qed_block, qed_global, prf_heading, prf_goal, prf_block, prf_open,
-    prf_close, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script]
- |> map kind_of;
+    prf_close, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script];
 
 
 (* tags *)
@@ -116,29 +115,7 @@ val tag_ml = tag "ML";
 
 (* external names *)
 
-val name_table = Symtab.make
-  [("control",            control),
-   ("diag",               diag),
-   ("thy_begin",          thy_begin),
-   ("thy_end",            thy_end),
-   ("thy_heading",        thy_heading),
-   ("thy_decl",           thy_decl),
-   ("thy_script",         thy_script),
-   ("thy_goal",           thy_goal),
-   ("thy_schematic_goal", thy_schematic_goal),
-   ("qed",                qed),
-   ("qed_block",          qed_block),
-   ("qed_global",         qed_global),
-   ("prf_heading",        prf_heading),
-   ("prf_goal",           prf_goal),
-   ("prf_block",          prf_block),
-   ("prf_open",           prf_open),
-   ("prf_close",          prf_close),
-   ("prf_chain",          prf_chain),
-   ("prf_decl",           prf_decl),
-   ("prf_asm",            prf_asm),
-   ("prf_asm_goal",       prf_asm_goal),
-   ("prf_script",         prf_script)];
+val name_table = Symtab.make (map (`kind_of) kinds);
 
 type spec = string * string list;
 
