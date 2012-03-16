@@ -12,38 +12,36 @@ imports Order_Relation Main
 begin
 
 (* Define globally? In Set.thy? *)
-definition chain_subset :: "'a set set \<Rightarrow> bool" ("chain\<^bsub>\<subseteq>\<^esub>") where
-"chain\<^bsub>\<subseteq>\<^esub> C \<equiv> \<forall>A\<in>C.\<forall>B\<in>C. A \<subseteq> B \<or> B \<subseteq> A"
+definition chain_subset :: "'a set set \<Rightarrow> bool" ("chain\<^bsub>\<subseteq>\<^esub>")
+where
+  "chain\<^bsub>\<subseteq>\<^esub> C \<equiv> \<forall>A\<in>C.\<forall>B\<in>C. A \<subseteq> B \<or> B \<subseteq> A"
 
 text{*
   The lemma and section numbers refer to an unpublished article
   \cite{Abrial-Laffitte}.
 *}
 
-definition
-  chain     ::  "'a set set => 'a set set set" where
-  "chain S  = {F. F \<subseteq> S & chain\<^bsub>\<subseteq>\<^esub> F}"
+definition chain :: "'a set set \<Rightarrow> 'a set set set"
+where
+  "chain S = {F. F \<subseteq> S \<and> chain\<^bsub>\<subseteq>\<^esub> F}"
 
-definition
-  super     ::  "['a set set,'a set set] => 'a set set set" where
-  "super S c = {d. d \<in> chain S & c \<subset> d}"
+definition super :: "'a set set \<Rightarrow> 'a set set \<Rightarrow> 'a set set set"
+where
+  "super S c = {d. d \<in> chain S \<and> c \<subset> d}"
 
-definition
-  maxchain  ::  "'a set set => 'a set set set" where
-  "maxchain S = {c. c \<in> chain S & super S c = {}}"
+definition maxchain  ::  "'a set set \<Rightarrow> 'a set set set"
+where
+  "maxchain S = {c. c \<in> chain S \<and> super S c = {}}"
 
-definition
-  succ      ::  "['a set set,'a set set] => 'a set set" where
-  "succ S c =
-    (if c \<notin> chain S | c \<in> maxchain S
-    then c else SOME c'. c' \<in> super S c)"
+definition succ :: "'a set set \<Rightarrow> 'a set set \<Rightarrow> 'a set set"
+where
+  "succ S c = (if c \<notin> chain S \<or> c \<in> maxchain S then c else SOME c'. c' \<in> super S c)"
 
-inductive_set
-  TFin :: "'a set set => 'a set set set"
-  for S :: "'a set set"
-  where
-    succI:        "x \<in> TFin S ==> succ S x \<in> TFin S"
-  | Pow_UnionI:   "Y \<in> Pow(TFin S) ==> Union(Y) \<in> TFin S"
+inductive_set TFin :: "'a set set \<Rightarrow> 'a set set set"
+for S :: "'a set set"
+where
+  succI:      "x \<in> TFin S \<Longrightarrow> succ S x \<in> TFin S"
+| Pow_UnionI: "Y \<in> Pow (TFin S) \<Longrightarrow> \<Union>Y \<in> TFin S"
 
 
 subsection{*Mathematical Preamble*}
