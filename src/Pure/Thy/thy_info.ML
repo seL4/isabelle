@@ -314,6 +314,7 @@ fun toplevel_begin_theory dir (header: Thy_Header.header) =
     val {name, imports, ...} = header;
     val _ = kill_thy name;
     val _ = use_thys_wrt dir imports;
+    val _ = Thy_Header.define_keywords header;
     val parents = map (get_theory o base_name) imports;
   in Thy_Load.begin_theory dir header parents end;
 

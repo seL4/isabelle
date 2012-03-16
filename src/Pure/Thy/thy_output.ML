@@ -626,7 +626,7 @@ end;
 
 (* embedded lemma *)
 
-val _ = Keyword.declare "by" NONE;  (*overlap with command category*)
+val _ = Keyword.define ("by", NONE);  (*overlap with command category*)
 
 val _ =
   Context.>> (Context.map_theory

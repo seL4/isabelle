@@ -9,11 +9,8 @@ struct
 
 (** keywords **)
 
-(*keep keywords consistent with the parsers, otherwise be prepared for
-  unexpected errors*)
-
 val _ = Context.>> (Context.map_theory
-  (fold (fn name => Thy_Header.declare_keyword (name, NONE))
+  (fold (fn name => (Keyword.define (name, NONE); Thy_Header.declare_keyword (name, NONE)))
    ["!!", "!", "%", "(", ")", "+", ",", "--", ":", "::", ";", "<", "<=",
     "=", "==", "=>", "?", "[", "\\<equiv>", "\\<leftharpoondown>",
     "\\<rightharpoonup>", "\\<rightleftharpoons>", "\\<subseteq>", "]",

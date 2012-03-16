@@ -213,10 +213,8 @@ fun edit_nodes (name, node_edit) (Version nodes) =
     | Header header =>
         let
           val imports = (case header of Exn.Res (_, {imports, ...}) => imports | _ => []);
-          val keywords = (case header of Exn.Res (_, {keywords, ...}) => keywords | _ => []);
           val header' =
-            (List.app (fn (name, decl) =>
-                Keyword.declare name (Option.map Keyword.make decl)) keywords; header)
+            ((case header of Exn.Res (_, h) => Thy_Header.define_keywords h | _ => ()); header)
               handle exn as ERROR _ => Exn.Exn exn;
           val nodes1 = nodes
             |> default_node name

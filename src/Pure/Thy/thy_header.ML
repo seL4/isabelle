@@ -12,6 +12,7 @@ sig
     uses: (Path.T * bool) list}
   val make: string -> string list -> (string * (string * string list) option) list ->
     (Path.T * bool) list -> header
+  val define_keywords: header -> unit
   val declare_keyword: string * (string * string list) option -> theory -> theory
   val the_keyword: theory -> string -> Keyword.T option
   val args: header parser
@@ -33,6 +34,9 @@ fun make name imports keywords uses : header =
 
 (** keyword declarations **)
 
+fun define_keywords ({keywords, ...}: header) =
+  List.app (fn (name, decl) => Keyword.define (name, Option.map Keyword.make decl)) keywords;
+
 fun err_dup name = error ("Inconsistent declaration of outer syntax keyword " ^ quote name);
 
 structure Data = Theory_Data
@@ -44,9 +48,7 @@ structure Data = Theory_Data
 );
 
 fun declare_keyword (name, decl) = Data.map (fn data =>
-  let
-    val kind = Option.map Keyword.make decl;
-    val _ = Keyword.declare name kind;
+  let val kind = Option.map Keyword.make decl
   in Symtab.update_new (name, kind) data handle Symtab.DUP name => err_dup name end);
 
 fun the_keyword thy name =

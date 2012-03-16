@@ -170,14 +170,16 @@ fun begin_theory dir {name, imports, keywords, uses} parents =
 
 fun load_thy update_time dir header pos text parents =
   let
-    val (lexs, outer_syntax) = Outer_Syntax.get_syntax ();
     val time = ! Toplevel.timing;
 
     val {name, imports, uses, ...} = header;
+    val _ = Thy_Header.define_keywords header;
     val _ = Present.init_theory name;
     fun init () =
       begin_theory dir header parents
       |> Present.begin_theory update_time dir uses;
+
+    val (lexs, outer_syntax) = Outer_Syntax.get_syntax ();
 
     val toks = Thy_Syntax.parse_tokens lexs pos text;
     val spans = Thy_Syntax.parse_spans toks;

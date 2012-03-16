@@ -131,7 +131,7 @@ fun add_command name kind cmd = CRITICAL (fn () =>
           if k = SOME kind then ()
           else error ("Inconsistent outer syntax keyword declaration " ^ quote name)
       | NONE =>
-          if Context.theory_name thy = Context.PureN then Keyword.declare name (SOME kind)
+          if Context.theory_name thy = Context.PureN then Keyword.define (name, SOME kind)
           else error ("Undeclared outer syntax command " ^ quote name));
   in
     Unsynchronized.change global_outer_syntax (map_commands (fn commands =>

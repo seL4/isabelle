@@ -45,7 +45,7 @@ sig
   val dest: unit -> string list * string list
   val keyword_statusN: string
   val status: unit -> unit
-  val declare: string -> T option -> unit
+  val define: string * T option -> unit
   val is_diag: string -> bool
   val is_control: string -> bool
   val is_regular: string -> bool
@@ -214,15 +214,15 @@ fun status () =
   in () end;
 
 
-(* declare *)
+(* define *)
 
-fun declare name NONE =
+fun define (name, NONE) =
      (change_keywords (fn ((minor, major), commands) =>
         let
           val minor' = Scan.extend_lexicon (Symbol.explode name) minor;
         in ((minor', major), commands) end);
       keyword_status name)
-  | declare name (SOME kind) =
+  | define (name, SOME kind) =
      (change_keywords (fn ((minor, major), commands) =>
         let
           val major' = Scan.extend_lexicon (Symbol.explode name) major;
