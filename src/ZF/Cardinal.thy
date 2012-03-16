@@ -251,13 +251,28 @@ apply (elim conjE)
 apply (erule Ord_linear_lt, assumption, blast+)
 done
 
-lemma LeastI: "[| P(i);  Ord(i) |] ==> P(\<mu> x. P(x))"
-apply (erule rev_mp)
-apply (erule_tac i=i in trans_induct)
-apply (rule impI)
-apply (rule classical)
-apply (blast intro: Least_equality [THEN ssubst]  elim!: ltE)
-done
+lemma LeastI: 
+  assumes P: "P(i)" and i: "Ord(i)" shows "P(\<mu> x. P(x))"
+proof -
+  { from i have "P(i) \<Longrightarrow> P(\<mu> x. P(x))"
+      proof (induct i rule: trans_induct)
+        case (step i) 
+        show ?case
+          proof (cases "P(\<mu> a. P(a))")
+            case True thus ?thesis .
+          next
+            case False
+            hence "\<And>x. x \<in> i \<Longrightarrow> ~P(x)" using step
+              by blast
+            hence "(\<mu> x. P(x)) = i" using step
+              by (blast intro: Least_equality elim!: ltE) 
+            thus ?thesis using step
+              by simp 
+          qed
+      qed
+  }
+  thus ?thesis using P .
+qed
 
 (*Proof is almost identical to the one above!*)
 lemma Least_le: "[| P(i);  Ord(i) |] ==> (\<mu> x. P(x)) \<le> i"
@@ -442,10 +457,11 @@ qed
 
 lemma cardinal_mono:
   assumes ij: "i \<le> j" shows "|i| \<le> |j|"
-proof (cases rule: Ord_linear_le [OF Ord_cardinal Ord_cardinal])
-  assume "|i| \<le> |j|" thus ?thesis .
+using Ord_cardinal [of i] Ord_cardinal [of j]
+proof (cases rule: Ord_linear_le)
+  case le thus ?thesis .
 next
-  assume cj: "|j| \<le> |i|"
+  case ge
   have i: "Ord(i)" using ij
     by (simp add: lt_Ord)
   have ci: "|i| \<le> j"
@@ -453,12 +469,12 @@ next
   have "|i| = ||i||"
     by (auto simp add: Ord_cardinal_idem i)
   also have "... = |j|"
-    by (rule cardinal_eq_lemma [OF cj ci])
+    by (rule cardinal_eq_lemma [OF ge ci])
   finally have "|i| = |j|" .
   thus ?thesis by simp
 qed
 
-(*Since we have @{term"|succ(nat)| \<le> |nat|"}, the converse of cardinal_mono fails!*)
+text{*Since we have @{term"|succ(nat)| \<le> |nat|"}, the converse of @{text cardinal_mono} fails!*}
 lemma cardinal_lt_imp_lt: "[| |i| < |j|;  Ord(i);  Ord(j) |] ==> i < j"
 apply (rule Ord_linear2 [of i j], assumption+)
 apply (erule lt_trans2 [THEN lt_irrefl])
@@ -478,12 +494,15 @@ by (simp add: Card_lt_iff Card_is_Ord Ord_cardinal not_lt_iff_le [THEN iff_sym])
 lemma well_ord_lepoll_imp_Card_le:
   assumes wB: "well_ord(B,r)" and AB: "A \<lesssim> B"
   shows "|A| \<le> |B|"
-proof (rule Ord_linear_le [of "|A|" "|B|", OF Ord_cardinal Ord_cardinal], assumption)
-  assume BA: "|B| \<le> |A|"
+using Ord_cardinal [of A] Ord_cardinal [of B]
+proof (cases rule: Ord_linear_le)
+  case le thus ?thesis .
+next
+  case ge
   from lepoll_well_ord [OF AB wB]
   obtain s where s: "well_ord(A, s)" by blast
   have "B  \<approx> |B|" by (blast intro: wB eqpoll_sym well_ord_cardinal_eqpoll)
-  also have "... \<lesssim> |A|" by (rule le_imp_lepoll [OF BA])
+  also have "... \<lesssim> |A|" by (rule le_imp_lepoll [OF ge])
   also have "... \<approx> A" by (rule well_ord_cardinal_eqpoll [OF s])
   finally have "B \<lesssim> A" .
   hence "A \<approx> B" by (blast intro: eqpollI AB)
@@ -652,17 +671,16 @@ qed
 text{*A slightly weaker version of @{text nat_eqpoll_iff}*}
 lemma Ord_nat_eqpoll_iff:
   assumes i: "Ord(i)" and n: "n \<in> nat" shows "i \<approx> n \<longleftrightarrow> i=n"
-proof (cases rule: Ord_linear_lt [OF i])
-  show "Ord(n)" using n by auto
-next
-  assume "i < n"
+using i nat_into_Ord [OF n]
+proof (cases rule: Ord_linear_lt)
+  case lt
   hence  "i \<in> nat" by (rule lt_nat_in_nat) (rule n)
   thus ?thesis by (simp add: nat_eqpoll_iff n)
 next
-  assume "i = n"
+  case eq
   thus ?thesis by (simp add: eqpoll_refl)
 next
-  assume "n < i"
+  case gt
   hence  "~ i \<lesssim> n" using n  by (rule lt_not_lepoll)
   hence  "~ i \<approx> n" using n  by (blast intro: eqpoll_imp_lepoll)
   moreover have "i \<noteq> n" using `n<i` by auto
