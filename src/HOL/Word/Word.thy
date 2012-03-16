@@ -802,8 +802,10 @@ lemma uints_unats: "uints n = int ` unats n"
 lemma unats_uints: "unats n = nat ` uints n"
   by (auto simp add : uints_unats image_iff)
 
-lemmas bintr_num = word_ubin.norm_eq_iff [symmetric, folded word_number_of_def]
-lemmas sbintr_num = word_sbin.norm_eq_iff [symmetric, folded word_number_of_def]
+lemmas bintr_num = word_ubin.norm_eq_iff
+  [of "number_of a" "number_of b", symmetric, folded word_number_of_alt] for a b
+lemmas sbintr_num = word_sbin.norm_eq_iff
+  [of "number_of a" "number_of b", symmetric, folded word_number_of_alt] for a b
 
 lemmas num_of_bintr = word_ubin.Abs_norm [folded word_number_of_def]
 lemmas num_of_sbintr = word_sbin.Abs_norm [folded word_number_of_def]
@@ -812,22 +814,25 @@ lemmas num_of_sbintr = word_sbin.Abs_norm [folded word_number_of_def]
   may want these in reverse, but loop as simp rules, so use following *)
 
 lemma num_of_bintr':
-  "bintrunc (len_of TYPE('a :: len0)) a = b \<Longrightarrow> 
+  "bintrunc (len_of TYPE('a :: len0)) (number_of a) = (number_of b) \<Longrightarrow> 
     number_of a = (number_of b :: 'a word)"
-  apply safe
-  apply (rule_tac num_of_bintr [symmetric])
-  done
+  unfolding bintr_num by (erule subst, simp)
 
 lemma num_of_sbintr':
-  "sbintrunc (len_of TYPE('a :: len) - 1) a = b \<Longrightarrow> 
+  "sbintrunc (len_of TYPE('a :: len) - 1) (number_of a) = (number_of b) \<Longrightarrow> 
     number_of a = (number_of b :: 'a word)"
-  apply safe
-  apply (rule_tac num_of_sbintr [symmetric])
-  done
+  unfolding sbintr_num by (erule subst, simp)
 
-lemmas num_abs_bintr = sym [THEN trans, OF num_of_bintr word_number_of_def]
-lemmas num_abs_sbintr = sym [THEN trans, OF num_of_sbintr word_number_of_def]
-  
+lemma num_abs_bintr:
+  "(number_of x :: 'a word) =
+    word_of_int (bintrunc (len_of TYPE('a::len0)) (number_of x))"
+  by (simp only: word_ubin.Abs_norm word_number_of_alt)
+
+lemma num_abs_sbintr:
+  "(number_of x :: 'a word) =
+    word_of_int (sbintrunc (len_of TYPE('a::len) - 1) (number_of x))"
+  by (simp only: word_sbin.Abs_norm word_number_of_alt)
+
 (** cast - note, no arg for new length, as it's determined by type of result,
   thus in "cast w = w, the type means cast to length of w! **)
 
@@ -2880,16 +2885,16 @@ lemma shiftl_t2n: "shiftl (w :: 'a :: len word) n = 2 ^ n * w"
   by (induct n) (auto simp: shiftl1_2t)
 
 lemma shiftr1_bintr [simp]:
-  "(shiftr1 (number_of w) :: 'a :: len0 word) = 
-    number_of (bin_rest (bintrunc (len_of TYPE ('a)) w))" 
-  unfolding shiftr1_def word_number_of_def
-  by (simp add : word_ubin.eq_norm)
+  "(shiftr1 (number_of w) :: 'a :: len0 word) =
+    word_of_int (bin_rest (bintrunc (len_of TYPE ('a)) (number_of w)))"
+  unfolding shiftr1_def word_number_of_alt
+  by (simp add: word_ubin.eq_norm)
 
-lemma sshiftr1_sbintr [simp] :
-  "(sshiftr1 (number_of w) :: 'a :: len word) = 
-    number_of (bin_rest (sbintrunc (len_of TYPE ('a) - 1) w))" 
-  unfolding sshiftr1_def word_number_of_def
-  by (simp add : word_sbin.eq_norm)
+lemma sshiftr1_sbintr [simp]:
+  "(sshiftr1 (number_of w) :: 'a :: len word) =
+    word_of_int (bin_rest (sbintrunc (len_of TYPE ('a) - 1) (number_of w)))"
+  unfolding sshiftr1_def word_number_of_alt
+  by (simp add: word_sbin.eq_norm)
 
 lemma shiftr_no [simp]:
   "(number_of w::'a::len0 word) >> n = word_of_int
@@ -3379,11 +3384,9 @@ lemmas word_cat_bin' = word_cat_def
 
 lemma word_rsplit_no:
   "(word_rsplit (number_of bin :: 'b :: len0 word) :: 'a word list) = 
-    map number_of (bin_rsplit (len_of TYPE('a :: len)) 
-      (len_of TYPE('b), bintrunc (len_of TYPE('b)) bin))"
-  apply (unfold word_rsplit_def word_no_wi)
-  apply (simp add: word_ubin.eq_norm)
-  done
+    map word_of_int (bin_rsplit (len_of TYPE('a :: len)) 
+      (len_of TYPE('b), bintrunc (len_of TYPE('b)) (number_of bin)))"
+  unfolding word_rsplit_def by (simp add: word_ubin.eq_norm)
 
 lemmas word_rsplit_no_cl [simp] = word_rsplit_no
   [unfolded bin_rsplitl_def bin_rsplit_l [symmetric]]
