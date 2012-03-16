@@ -11,7 +11,6 @@ sig
   val control: T
   val diag: T
   val thy_begin: T
-  val thy_switch: T
   val thy_end: T
   val thy_heading: T
   val thy_decl: T
@@ -77,30 +76,29 @@ fun kind_of (Keyword (s, _)) = s;
 
 val control = kind "control";
 val diag = kind "diag";
-val thy_begin = kind "theory-begin";
-val thy_switch = kind "theory-switch";
-val thy_end = kind "theory-end";
-val thy_heading = kind "theory-heading";
-val thy_decl = kind "theory-decl";
-val thy_script = kind "theory-script";
-val thy_goal = kind "theory-goal";
-val thy_schematic_goal = kind "theory-schematic-goal";
+val thy_begin = kind "thy_begin";
+val thy_end = kind "thy_end";
+val thy_heading = kind "thy_heading";
+val thy_decl = kind "thy_decl";
+val thy_script = kind "thy_script";
+val thy_goal = kind "thy_goal";
+val thy_schematic_goal = kind "thy_schematic_goal";
 val qed = kind "qed";
-val qed_block = kind "qed-block";
-val qed_global = kind "qed-global";
-val prf_heading = kind "proof-heading";
-val prf_goal = kind "proof-goal";
-val prf_block = kind "proof-block";
-val prf_open = kind "proof-open";
-val prf_close = kind "proof-close";
-val prf_chain = kind "proof-chain";
-val prf_decl = kind "proof-decl";
-val prf_asm = kind "proof-asm";
-val prf_asm_goal = kind "proof-asm-goal";
-val prf_script = kind "proof-script";
+val qed_block = kind "qed_block";
+val qed_global = kind "qed_global";
+val prf_heading = kind "prf_heading";
+val prf_goal = kind "prf_goal";
+val prf_block = kind "prf_block";
+val prf_open = kind "prf_open";
+val prf_close = kind "prf_close";
+val prf_chain = kind "prf_chain";
+val prf_decl = kind "prf_decl";
+val prf_asm = kind "prf_asm";
+val prf_asm_goal = kind "prf_asm_goal";
+val prf_script = kind "prf_script";
 
 val kinds =
-  [control, diag, thy_begin, thy_switch, thy_end, thy_heading, thy_decl, thy_script, thy_goal,
+  [control, diag, thy_begin, thy_end, thy_heading, thy_decl, thy_script, thy_goal,
     thy_schematic_goal, qed, qed_block, qed_global, prf_heading, prf_goal, prf_block, prf_open,
     prf_close, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script]
  |> map kind_of;
@@ -122,7 +120,6 @@ val name_table = Symtab.make
   [("control",            control),
    ("diag",               diag),
    ("thy_begin",          thy_begin),
-   ("thy_switch",         thy_switch),
    ("thy_end",            thy_end),
    ("thy_heading",        thy_heading),
    ("thy_decl",           thy_decl),
@@ -206,11 +203,11 @@ fun status_message m s =
 
 fun keyword_status name =
   status_message (Isabelle_Markup.keyword_decl name)
-    ("Outer syntax keyword: " ^ quote name);
+    ("Outer syntax keyword " ^ quote name);
 
 fun command_status (name, kind) =
   status_message (Isabelle_Markup.command_decl name (kind_of kind))
-    ("Outer syntax command: " ^ quote name ^ " (" ^ kind_of kind ^ ")");
+    ("Outer syntax keyword " ^ quote name ^ " :: " ^ kind_of kind);
 
 fun status () =
   let
@@ -253,7 +250,7 @@ val is_heading = command_category [thy_heading, prf_heading];
 val is_theory_begin = command_category [thy_begin];
 
 val is_theory = command_category
-  [thy_begin, thy_switch, thy_end, thy_heading, thy_decl, thy_script, thy_goal, thy_schematic_goal];
+  [thy_begin, thy_end, thy_heading, thy_decl, thy_script, thy_goal, thy_schematic_goal];
 
 val is_proof = command_category
   [qed, qed_block, qed_global, prf_heading, prf_goal, prf_block, prf_open, prf_close,

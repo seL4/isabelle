@@ -30,17 +30,66 @@ sub set_keyword {
   }
 }
 
+my %convert_kinds = (
+  "thy_begin" => "theory-begin",
+  "thy_end" => "theory-end",
+  "thy_heading" => "theory-heading",
+  "thy_decl" => "theory-decl",
+  "thy_script" => "theory-script",
+  "thy_goal" => "theory-goal",
+  "thy_schematic_goal" => "theory-goal",
+  "qed_block" => "qed-block",
+  "qed_global" => "qed-global",
+  "prf_heading" => "proof-heading",
+  "prf_goal" => "proof-goal",
+  "prf_block" => "proof-block",
+  "prf_open" => "proof-open",
+  "prf_close" => "proof-close",
+  "prf_chain" => "proof-chain",
+  "prf_decl" => "proof-decl",
+  "prf_asm" => "proof-asm",
+  "prf_asm_goal" => "proof-asm-goal",
+  "prf_script" => "proof-script"
+);
+
+my @emacs_kinds = (
+  "major",
+  "minor",
+  "control",
+  "diag",
+  "theory-begin",
+  "theory-switch",
+  "theory-end",
+  "theory-heading",
+  "theory-decl",
+  "theory-script",
+  "theory-goal",
+  "qed",
+  "qed-block",
+  "qed-global",
+  "proof-heading",
+  "proof-goal",
+  "proof-block",
+  "proof-open",
+  "proof-close",
+  "proof-chain",
+  "proof-decl",
+  "proof-asm",
+  "proof-asm-goal",
+  "proof-script"
+);
+
 sub collect_keywords {
   while(<STDIN>) {
-    if (m/^Outer syntax keyword:\s*"(.*)"/) {
-      my $name = $1;
-      &set_keyword($name, "minor");
-    }
-    elsif (m/^Outer syntax command:\s*"(.*)"\s*\((.*)\)/) {
+    if (m/^Outer syntax keyword "([^"]*)" :: (\S*)/) {
       my $name = $1;
       my $kind = $2;
-      if ($kind eq "theory-schematic-goal") { $kind = "theory-goal"; }
+      if (defined $convert_kinds{$kind}) { $kind = $convert_kinds{$kind} }
       &set_keyword($name, $kind);
+    }
+    elsif (m/^Outer syntax keyword "([^"]*)"/) {
+      my $name = $1;
+      &set_keyword($name, "minor");
     }
   }
 }
@@ -49,32 +98,6 @@ sub collect_keywords {
 ## Emacs output
 
 sub emacs_output {
-  my @kinds = (
-    "major",
-    "minor",
-    "control",
-    "diag",
-    "theory-begin",
-    "theory-switch",
-    "theory-end",
-    "theory-heading",
-    "theory-decl",
-    "theory-script",
-    "theory-goal",
-    "qed",
-    "qed-block",
-    "qed-global",
-    "proof-heading",
-    "proof-goal",
-    "proof-block",
-    "proof-open",
-    "proof-close",
-    "proof-chain",
-    "proof-decl",
-    "proof-asm",
-    "proof-asm-goal",
-    "proof-script"
-  );
   my $file = $keywords_name eq "" ? "isar-keywords.el" : "isar-keywords-${keywords_name}.el";
   open (OUTPUT, "> ${file}") || die "$!";
   select OUTPUT;
@@ -85,7 +108,7 @@ sub emacs_output {
   print ";; *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT ***\n";
   print ";;\n";
 
-  for my $kind (@kinds) {
+  for my $kind (@emacs_kinds) {
     my @names;
     for my $name (keys(%keywords)) {
       if ($kind eq "major" ? $keywords{$name} ne "minor" : $keywords{$name} eq $kind) {

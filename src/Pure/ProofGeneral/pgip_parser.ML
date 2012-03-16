@@ -56,7 +56,6 @@ val command_keywords = Symtab.empty
   |> command Keyword.control          badcmd
   |> command Keyword.diag             (fn text => [D.Spuriouscmd {text = text}])
   |> command Keyword.thy_begin        thy_begin
-  |> command Keyword.thy_switch       badcmd
   |> command Keyword.thy_end          (fn text => [D.Closeblock {}, D.Closetheory {text = text}])
   |> command Keyword.thy_heading      thy_heading
   |> command Keyword.thy_decl         thy_decl
