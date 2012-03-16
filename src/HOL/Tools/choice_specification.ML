@@ -20,6 +20,12 @@ fun close_form t =
     fold_rev (fn (s, T) => fn t => HOLogic.mk_all (s, T, t))
              (map dest_Free (Misc_Legacy.term_frees t)) t
 
+fun add_final overloaded (c, T) thy =
+  let
+    val ctxt = Syntax.init_pretty_global thy;
+    val _ = Theory.check_overloading ctxt overloaded (c, T);
+  in Theory.add_deps ctxt "" (c, T) [] thy end;
+
 local
     fun mk_definitional [] arg = arg
       | mk_definitional ((thname,cname,covld)::cos) (thy,thm) =
@@ -58,8 +64,8 @@ local
                         val cdefname = if thname = ""
                                        then Thm.def_name (Long_Name.base_name cname)
                                        else thname
-                        val co = Const(cname_full,ctype)
-                        val thy' = Theory.add_finals_i covld [co] thy
+                        val thy' = add_final covld (cname_full,ctype) thy
+                        val co = Const (cname_full,ctype)
                         val tm' = case P of
                                       Abs(_, _, bodt) => subst_bound (co, bodt)
                                     | _ => P $ co

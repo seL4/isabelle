@@ -159,10 +159,6 @@ val _ =
 
 val opt_overloaded = Parse.opt_keyword "overloaded";
 
-val _ =
-  Outer_Syntax.command ("finalconsts", Keyword.thy_decl) "declare constants as final"
-    (opt_overloaded -- Scan.repeat1 Parse.term >> (uncurry (Toplevel.theory oo Theory.add_finals)));
-
 val mode_spec =
   (Parse.$$$ "output" >> K ("", false)) ||
     Parse.name -- Scan.optional (Parse.$$$ "output" >> K false) true;

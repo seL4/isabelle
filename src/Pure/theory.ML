@@ -33,9 +33,8 @@ sig
   val add_deps: Proof.context -> string -> string * typ -> (string * typ) list -> theory -> theory
   val add_deps_global: string -> string * typ -> (string * typ) list -> theory -> theory
   val add_def: Proof.context -> bool -> bool -> binding * term -> theory -> theory
-  val add_finals_i: bool -> term list -> theory -> theory
-  val add_finals: bool -> string list -> theory -> theory
   val specify_const: (binding * typ) * mixfix -> theory -> term * theory
+  val check_overloading: Proof.context -> bool -> string * typ -> unit
 end
 
 structure Theory: THEORY =
@@ -264,30 +263,6 @@ fun add_def ctxt unchecked overloaded raw_axm thy =
     |> map_defs (check_def ctxt thy unchecked overloaded axm)
     |> add_axiom ctxt axm
   end;
-
-end;
-
-
-(* add_finals(_i) *)
-
-local
-
-fun gen_add_finals prep_term overloaded args thy =
-  let
-    val ctxt = Syntax.init_pretty_global thy;
-    fun const_of (Const const) = const
-      | const_of (Free _) = error "Attempt to finalize variable (or undeclared constant)"
-      | const_of _ = error "Attempt to finalize non-constant term";
-    fun specify (c, T) = dependencies ctxt false NONE (c ^ " axiom") (c, T) [];
-    val finalize =
-      specify o tap (check_overloading ctxt overloaded) o const_of o
-        Sign.cert_term thy o prep_term ctxt;
-  in thy |> map_defs (fold finalize args) end;
-
-in
-
-val add_finals_i = gen_add_finals (K I);
-val add_finals = gen_add_finals Syntax.read_term;
 
 end;
 
