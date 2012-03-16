@@ -15,6 +15,15 @@ begin
 
 setup Refute.setup
 
+refute_params
+ [itself = 1,
+  minsize = 1,
+  maxsize = 8,
+  maxvars = 10000,
+  maxtime = 60,
+  satsolver = auto,
+  no_assms = false]
+
 text {*
 \small
 \begin{verbatim}
@@ -79,8 +88,6 @@ text {*
 (*                       not considered.                                     *)
 (* "expect"      string  Expected result ("genuine", "potential", "none", or *)
 (*                       "unknown").                                         *)
-(*                                                                           *)
-(* See 'HOL/SAT.thy' for default values.                                     *)
 (*                                                                           *)
 (* The size of particular types can be specified in the form type=size       *)
 (* (where 'type' is a string, and 'size' is an int).  Examples:              *)

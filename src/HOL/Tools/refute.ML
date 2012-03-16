@@ -204,16 +204,6 @@ type arguments =
     wellformed: prop_formula
   };
 
-val default_parameters =
- [("itself", "1"),
-  ("minsize", "1"),
-  ("maxsize", "8"),
-  ("maxvars", "10000"),
-  ("maxtime", "60"),
-  ("satsolver", "auto"),
-  ("no_assms", "false")]
- |> Symtab.make
-
 structure Data = Theory_Data
 (
   type T =
@@ -222,8 +212,7 @@ structure Data = Theory_Data
      printers: (string * (Proof.context -> model -> typ -> interpretation ->
       (int -> bool) -> term option)) list,
      parameters: string Symtab.table};
-  val empty =
-    {interpreters = [], printers = [], parameters = default_parameters};
+  val empty = {interpreters = [], printers = [], parameters = Symtab.empty};
   val extend = I;
   fun merge
     ({interpreters = in1, printers = pr1, parameters = pa1},
