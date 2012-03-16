@@ -12,6 +12,7 @@ sig
   type outer_syntax
   val is_markup: outer_syntax -> Thy_Output.markup -> string -> bool
   val get_syntax: unit -> (Scan.lexicon * Scan.lexicon) * outer_syntax
+  val check_syntax: unit -> unit
   type command_spec = string * Keyword.T
   val command: command_spec -> string ->
     (Toplevel.transition -> Toplevel.transition) parser -> unit
@@ -145,6 +146,15 @@ fun add_command (name, kind) cmd = CRITICAL (fn () =>
 in
 
 fun get_syntax () = CRITICAL (fn () => (Keyword.get_lexicons (), ! global_outer_syntax));
+
+fun check_syntax () =
+  let
+    val ((_, major), syntax) = CRITICAL (fn () => (Keyword.dest (), ! global_outer_syntax));
+  in
+    (case subtract (op =) (map #1 (dest_commands syntax)) major of
+      [] => ()
+    | missing => error ("Missing outer syntax command(s) " ^ commas_quote missing))
+  end;
 
 fun lookup_commands_dynamic () = lookup_commands (! global_outer_syntax);
 

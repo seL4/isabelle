@@ -75,6 +75,7 @@ fun init reset parent name =
 fun finish () =
   (Thy_Info.finish ();
     Present.finish ();
+    Outer_Syntax.check_syntax ();
     Future.shutdown ();
     session_finished := true);
 
