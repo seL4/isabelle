@@ -1723,6 +1723,13 @@ names of constants and types involved.  INCOMPATIBILITY.
 * All constant names are now qualified internally and use proper
 identifiers, e.g. "IFOL.eq" instead of "op =".  INCOMPATIBILITY.
 
+*** ZF ***
+
+* Greater support for structured proofs involving induction or case analysis.
+
+* Much greater use of special symbols.
+
+* Removal of many ML theorem bindings. INCOMPATIBILITY.
 
 *** ML ***
 
