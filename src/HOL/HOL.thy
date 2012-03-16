@@ -57,6 +57,11 @@ typedecl bool
 judgment
   Trueprop      :: "bool => prop"                   ("(_)" 5)
 
+axiomatization
+  implies       :: "[bool, bool] => bool"           (infixr "-->" 25)  and
+  eq            :: "['a, 'a] => bool"               (infixl "=" 50)  and
+  The           :: "('a => bool) => 'a"
+
 consts
   True          :: bool
   False         :: bool
@@ -64,11 +69,7 @@ consts
 
   conj          :: "[bool, bool] => bool"           (infixr "&" 35)
   disj          :: "[bool, bool] => bool"           (infixr "|" 30)
-  implies       :: "[bool, bool] => bool"           (infixr "-->" 25)
 
-  eq            :: "['a, 'a] => bool"               (infixl "=" 50)
-
-  The           :: "('a => bool) => 'a"
   All           :: "('a => bool) => bool"           (binder "ALL " 10)
   Ex            :: "('a => bool) => bool"           (binder "EX " 10)
   Ex1           :: "('a => bool) => bool"           (binder "EX! " 10)
@@ -106,10 +107,8 @@ abbreviation (iff)
 notation (xsymbols)
   iff  (infixr "\<longleftrightarrow>" 25)
 
-syntax
-  "_The" :: "[pttrn, bool] => 'a"  ("(3THE _./ _)" [0, 10] 10)
-translations
-  "THE x. P" == "CONST The (%x. P)"
+syntax "_The" :: "[pttrn, bool] => 'a"  ("(3THE _./ _)" [0, 10] 10)
+translations "THE x. P" == "CONST The (%x. P)"
 print_translation {*
   [(@{const_syntax The}, fn [Abs abs] =>
       let val (x, t) = Syntax_Trans.atomic_abs_tr' abs
@@ -150,19 +149,22 @@ notation (HOL)
 
 subsubsection {* Axioms and basic definitions *}
 
-axioms
-  refl:           "t = (t::'a)"
-  subst:          "s = t \<Longrightarrow> P s \<Longrightarrow> P t"
-  ext:            "(!!x::'a. (f x ::'b) = g x) ==> (%x. f x) = (%x. g x)"
+axiomatization where
+  refl: "t = (t::'a)" and
+  subst: "s = t \<Longrightarrow> P s \<Longrightarrow> P t" and
+  ext: "(!!x::'a. (f x ::'b) = g x) ==> (%x. f x) = (%x. g x)"
     -- {*Extensionality is built into the meta-logic, and this rule expresses
          a related property.  It is an eta-expanded version of the traditional
-         rule, and similar to the ABS rule of HOL*}
+         rule, and similar to the ABS rule of HOL*} and
 
   the_eq_trivial: "(THE x. x = a) = (a::'a)"
 
-  impI:           "(P ==> Q) ==> P-->Q"
-  mp:             "[| P-->Q;  P |] ==> Q"
+axiomatization where
+  impI: "(P ==> Q) ==> P-->Q" and
+  mp: "[| P-->Q;  P |] ==> Q" and
 
+  iff: "(P-->Q) --> (Q-->P) --> (P=Q)" and
+  True_or_False: "(P=True) | (P=False)"
 
 defs
   True_def:     "True      == ((%x::bool. x) = (%x. x))"
@@ -174,30 +176,19 @@ defs
   or_def:       "P | Q     == !R. (P-->R) --> (Q-->R) --> R"
   Ex1_def:      "Ex1(P)    == ? x. P(x) & (! y. P(y) --> y=x)"
 
-axioms
-  iff:          "(P-->Q) --> (Q-->P) --> (P=Q)"
-  True_or_False:  "(P=True) | (P=False)"
+definition If :: "bool \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" ("(if (_)/ then (_)/ else (_))" [0, 0, 10] 10)
+  where "If P x y \<equiv> (THE z::'a. (P=True --> z=x) & (P=False --> z=y))"
 
-finalconsts
-  eq
-  implies
-  The
-
-definition If :: "bool \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" ("(if (_)/ then (_)/ else (_))" [0, 0, 10] 10) where
-  "If P x y \<equiv> (THE z::'a. (P=True --> z=x) & (P=False --> z=y))"
-
-definition Let :: "'a \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b" where
-  "Let s f \<equiv> f s"
+definition Let :: "'a \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b"
+  where "Let s f \<equiv> f s"
 
 translations
   "_Let (_binds b bs) e"  == "_Let b (_Let bs e)"
   "let x = a in e"        == "CONST Let a (%x. e)"
 
-axiomatization
-  undefined :: 'a
+axiomatization undefined :: 'a
 
-class default =
-  fixes default :: 'a
+class default = fixes default :: 'a
 
 
 subsection {* Fundamental rules *}
