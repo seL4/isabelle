@@ -12,7 +12,10 @@ sig
   val diag: T
   val thy_begin: T
   val thy_end: T
-  val thy_heading: T
+  val thy_heading1: T
+  val thy_heading2: T
+  val thy_heading3: T
+  val thy_heading4: T
   val thy_decl: T
   val thy_script: T
   val thy_goal: T
@@ -20,7 +23,9 @@ sig
   val qed: T
   val qed_block: T
   val qed_global: T
-  val prf_heading: T
+  val prf_heading2: T
+  val prf_heading3: T
+  val prf_heading4: T
   val prf_goal: T
   val prf_block: T
   val prf_open: T
@@ -78,7 +83,10 @@ val control = kind "control";
 val diag = kind "diag";
 val thy_begin = kind "thy_begin";
 val thy_end = kind "thy_end";
-val thy_heading = kind "thy_heading";
+val thy_heading1 = kind "thy_heading1";
+val thy_heading2 = kind "thy_heading2";
+val thy_heading3 = kind "thy_heading3";
+val thy_heading4 = kind "thy_heading4";
 val thy_decl = kind "thy_decl";
 val thy_script = kind "thy_script";
 val thy_goal = kind "thy_goal";
@@ -86,7 +94,9 @@ val thy_schematic_goal = kind "thy_schematic_goal";
 val qed = kind "qed";
 val qed_block = kind "qed_block";
 val qed_global = kind "qed_global";
-val prf_heading = kind "prf_heading";
+val prf_heading2 = kind "prf_heading2";
+val prf_heading3 = kind "prf_heading3";
+val prf_heading4 = kind "prf_heading4";
 val prf_goal = kind "prf_goal";
 val prf_block = kind "prf_block";
 val prf_open = kind "prf_open";
@@ -98,8 +108,9 @@ val prf_asm_goal = kind "prf_asm_goal";
 val prf_script = kind "prf_script";
 
 val kinds =
-  [control, diag, thy_begin, thy_end, thy_heading, thy_decl, thy_script, thy_goal,
-    thy_schematic_goal, qed, qed_block, qed_global, prf_heading, prf_goal, prf_block, prf_open,
+  [control, diag, thy_begin, thy_end, thy_heading1, thy_heading2, thy_heading3, thy_heading4,
+    thy_decl, thy_script, thy_goal, thy_schematic_goal, qed, qed_block, qed_global,
+    prf_heading2, prf_heading3, prf_heading4, prf_goal, prf_block, prf_open,
     prf_close, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script];
 
 
@@ -222,16 +233,20 @@ val is_diag = command_category [diag];
 val is_control = command_category [control];
 val is_regular = not o command_category [diag, control];
 
-val is_heading = command_category [thy_heading, prf_heading];
+val is_heading =
+  command_category [thy_heading1, thy_heading2, thy_heading3, thy_heading4,
+    prf_heading2, prf_heading3, prf_heading4];
 
 val is_theory_begin = command_category [thy_begin];
 
 val is_theory = command_category
-  [thy_begin, thy_end, thy_heading, thy_decl, thy_script, thy_goal, thy_schematic_goal];
+  [thy_begin, thy_end, thy_heading1, thy_heading2, thy_heading3, thy_heading4,
+    thy_decl, thy_script, thy_goal, thy_schematic_goal];
 
 val is_proof = command_category
-  [qed, qed_block, qed_global, prf_heading, prf_goal, prf_block, prf_open, prf_close,
-    prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script];
+  [qed, qed_block, qed_global, prf_heading2, prf_heading3, prf_heading4,
+    prf_goal, prf_block, prf_open, prf_close, prf_chain, prf_decl,
+    prf_asm, prf_asm_goal, prf_script];
 
 val is_theory_goal = command_category [thy_goal, thy_schematic_goal];
 val is_proof_goal = command_category [prf_goal, prf_asm_goal];

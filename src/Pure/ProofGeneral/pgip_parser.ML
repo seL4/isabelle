@@ -57,7 +57,10 @@ val command_keywords = Symtab.empty
   |> command Keyword.diag             (fn text => [D.Spuriouscmd {text = text}])
   |> command Keyword.thy_begin        thy_begin
   |> command Keyword.thy_end          (fn text => [D.Closeblock {}, D.Closetheory {text = text}])
-  |> command Keyword.thy_heading      thy_heading
+  |> command Keyword.thy_heading1     thy_heading
+  |> command Keyword.thy_heading2     thy_heading
+  |> command Keyword.thy_heading3     thy_heading
+  |> command Keyword.thy_heading4     thy_heading
   |> command Keyword.thy_decl         thy_decl
   |> command Keyword.thy_script       thy_decl
   |> command Keyword.thy_goal         goal
@@ -65,7 +68,9 @@ val command_keywords = Symtab.empty
   |> command Keyword.qed              closegoal
   |> command Keyword.qed_block        closegoal
   |> command Keyword.qed_global       (fn text => [D.Giveupgoal {text = text}])
-  |> command Keyword.prf_heading      (fn text => [D.Doccomment {text = text}])
+  |> command Keyword.prf_heading2     (fn text => [D.Doccomment {text = text}])
+  |> command Keyword.prf_heading3     (fn text => [D.Doccomment {text = text}])
+  |> command Keyword.prf_heading4     (fn text => [D.Doccomment {text = text}])
   |> command Keyword.prf_goal         goal
   |> command Keyword.prf_block        prf_block
   |> command Keyword.prf_open         prf_open

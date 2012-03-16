@@ -68,19 +68,17 @@ final class Outer_Syntax private(
     }
 
   def heading_level(name: String): Option[Int] =
-    name match {
-      // FIXME avoid hard-wired info!?
-      case "header" => Some(1)
-      case "chapter" => Some(2)
-      case "section" | "sect" => Some(3)
-      case "subsection" | "subsect" => Some(4)
-      case "subsubsection" | "subsubsect" => Some(5)
-      case _ =>
-        keyword_kind(name) match {
-          case Some(kind) if Keyword.theory(kind) => Some(6)
-          case _ => None
-        }
+  {
+    keyword_kind(name) match {
+      case _ if name == "header" => Some(0)
+      case Some(Keyword.THY_HEADING1) => Some(1)
+      case Some(Keyword.THY_HEADING2) | Some(Keyword.PRF_HEADING2) => Some(2)
+      case Some(Keyword.THY_HEADING3) | Some(Keyword.PRF_HEADING3) => Some(3)
+      case Some(Keyword.THY_HEADING4) | Some(Keyword.PRF_HEADING4) => Some(4)
+      case Some(kind) if Keyword.theory(kind) => Some(5)
+      case _ => None
     }
+  }
 
   def heading_level(command: Command): Option[Int] =
     heading_level(command.name)

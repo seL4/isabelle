@@ -47,22 +47,22 @@ val _ =
 
 val _ =
   Outer_Syntax.markup_command Thy_Output.Markup
-    ("chapter", Keyword.thy_heading) "chapter heading"
+    ("chapter", Keyword.thy_heading1) "chapter heading"
     (Parse.opt_target -- Parse.doc_source >> Isar_Cmd.local_theory_markup);
 
 val _ =
   Outer_Syntax.markup_command Thy_Output.Markup
-    ("section", Keyword.thy_heading) "section heading"
+    ("section", Keyword.thy_heading2) "section heading"
     (Parse.opt_target -- Parse.doc_source >> Isar_Cmd.local_theory_markup);
 
 val _ =
   Outer_Syntax.markup_command Thy_Output.Markup
-    ("subsection", Keyword.thy_heading) "subsection heading"
+    ("subsection", Keyword.thy_heading3) "subsection heading"
     (Parse.opt_target -- Parse.doc_source >> Isar_Cmd.local_theory_markup);
 
 val _ =
   Outer_Syntax.markup_command Thy_Output.Markup
-    ("subsubsection", Keyword.thy_heading) "subsubsection heading"
+    ("subsubsection", Keyword.thy_heading4) "subsubsection heading"
     (Parse.opt_target -- Parse.doc_source >> Isar_Cmd.local_theory_markup);
 
 val _ =
@@ -77,17 +77,17 @@ val _ =
 
 val _ =
   Outer_Syntax.markup_command Thy_Output.Markup
-    ("sect", Keyword.tag_proof Keyword.prf_heading) "formal comment (proof)"
+    ("sect", Keyword.tag_proof Keyword.prf_heading2) "formal comment (proof)"
     (Parse.doc_source >> Isar_Cmd.proof_markup);
 
 val _ =
   Outer_Syntax.markup_command Thy_Output.Markup
-    ("subsect", Keyword.tag_proof Keyword.prf_heading) "formal comment (proof)"
+    ("subsect", Keyword.tag_proof Keyword.prf_heading3) "formal comment (proof)"
     (Parse.doc_source >> Isar_Cmd.proof_markup);
 
 val _ =
   Outer_Syntax.markup_command Thy_Output.Markup
-    ("subsubsect", Keyword.tag_proof Keyword.prf_heading) "formal comment (proof)"
+    ("subsubsect", Keyword.tag_proof Keyword.prf_heading4) "formal comment (proof)"
     (Parse.doc_source >> Isar_Cmd.proof_markup);
 
 val _ =

@@ -57,8 +57,8 @@ object Thy_Syntax
       {
         syntax.heading_level(command) match {
           case Some(i) =>
-            close(_ >= i)
-            stack = (i, command.source, buffer()) :: stack
+            close(_ > i)
+            stack = (i + 1, command.source, buffer()) :: stack
           case None =>
         }
         stack.head._3 += Atom(command)
