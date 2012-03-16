@@ -612,8 +612,8 @@ in
 val query_parser = Scan.repeat (((Scan.option Parse.minus >> is_none) -- criterion));
 
 val _ =
-  Outer_Syntax.improper_command "find_theorems" "print theorems meeting specified criteria"
-    Keyword.diag
+  Outer_Syntax.improper_command ("find_theorems", Keyword.diag)
+    "print theorems meeting specified criteria"
     (options -- query_parser
       >> (fn ((opt_lim, rem_dups), spec) =>
         Toplevel.no_timing o

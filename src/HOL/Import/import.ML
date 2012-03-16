@@ -238,51 +238,43 @@ fun fl_dump toks  = Scan.succeed flush_dump toks
 val append_dump = (Parse.verbatim || Parse.string) >> add_dump
 
 val _ =
-  (Outer_Syntax.command "import_segment"
-                       "Set import segment name"
-                       Keyword.thy_decl (import_segment >> Toplevel.theory);
-   Outer_Syntax.command "import_theory"
-                       "Set default external theory name"
-                       Keyword.thy_decl (import_theory >> Toplevel.theory);
-   Outer_Syntax.command "end_import"
-                       "End external import"
-                       Keyword.thy_decl (end_import >> Toplevel.theory);
-   Outer_Syntax.command "setup_theory"
-                       "Setup external theory replaying"
-                       Keyword.thy_decl (setup_theory >> Toplevel.theory);
-   Outer_Syntax.command "end_setup"
-                       "End external setup"
-                       Keyword.thy_decl (end_setup >> Toplevel.theory);
-   Outer_Syntax.command "setup_dump"
-                       "Setup the dump file name"
-                       Keyword.thy_decl (set_dump >> Toplevel.theory);
-   Outer_Syntax.command "append_dump"
-                       "Add text to dump file"
-                       Keyword.thy_decl (append_dump >> Toplevel.theory);
-   Outer_Syntax.command "flush_dump"
-                       "Write the dump to file"
-                       Keyword.thy_decl (fl_dump >> Toplevel.theory);
-   Outer_Syntax.command "ignore_thms"
-                       "Theorems to ignore in next external theory import"
-                       Keyword.thy_decl (ignore_thms >> Toplevel.theory);
-   Outer_Syntax.command "type_maps"
-                       "Map external type names to existing Isabelle/HOL type names"
-                       Keyword.thy_decl (type_maps >> Toplevel.theory);
-   Outer_Syntax.command "def_maps"
-                       "Map external constant names to their primitive definitions"
-                       Keyword.thy_decl (def_maps >> Toplevel.theory);
-   Outer_Syntax.command "thm_maps"
-                       "Map external theorem names to existing Isabelle/HOL theorem names"
-                       Keyword.thy_decl (thm_maps >> Toplevel.theory);
-   Outer_Syntax.command "const_renames"
-                       "Rename external const names"
-                       Keyword.thy_decl (const_renames >> Toplevel.theory);
-   Outer_Syntax.command "const_moves"
-                       "Rename external const names to other external constants"
-                       Keyword.thy_decl (const_moves >> Toplevel.theory);
-   Outer_Syntax.command "const_maps"
-                       "Map external const names to existing Isabelle/HOL const names"
-                       Keyword.thy_decl (const_maps >> Toplevel.theory));
+  (Outer_Syntax.command @{command_spec "import_segment"} "set import segment name"
+     (import_segment >> Toplevel.theory);
+   Outer_Syntax.command @{command_spec "import_theory"} "set default external theory name"
+     (import_theory >> Toplevel.theory);
+   Outer_Syntax.command @{command_spec "end_import"} "end external import"
+     (end_import >> Toplevel.theory);
+   Outer_Syntax.command @{command_spec "setup_theory"} "setup external theory replaying"
+     (setup_theory >> Toplevel.theory);
+   Outer_Syntax.command @{command_spec "end_setup"} "end external setup"
+     (end_setup >> Toplevel.theory);
+   Outer_Syntax.command @{command_spec "setup_dump"} "setup the dump file name"
+     (set_dump >> Toplevel.theory);
+   Outer_Syntax.command @{command_spec "append_dump"} "add text to dump file"
+     (append_dump >> Toplevel.theory);
+   Outer_Syntax.command @{command_spec "flush_dump"} "write the dump to file"
+     (fl_dump >> Toplevel.theory);
+   Outer_Syntax.command @{command_spec "ignore_thms"}
+     "theorems to ignore in next external theory import"
+     (ignore_thms >> Toplevel.theory);
+   Outer_Syntax.command @{command_spec "type_maps"}
+     "map external type names to existing Isabelle/HOL type names"
+     (type_maps >> Toplevel.theory);
+   Outer_Syntax.command @{command_spec "def_maps"}
+     "map external constant names to their primitive definitions"
+     (def_maps >> Toplevel.theory);
+   Outer_Syntax.command @{command_spec "thm_maps"}
+     "map external theorem names to existing Isabelle/HOL theorem names"
+     (thm_maps >> Toplevel.theory);
+   Outer_Syntax.command @{command_spec "const_renames"}
+     "rename external const names"
+     (const_renames >> Toplevel.theory);
+   Outer_Syntax.command @{command_spec "const_moves"}
+     "rename external const names to other external constants"
+     (const_moves >> Toplevel.theory);
+   Outer_Syntax.command @{command_spec "const_maps"}
+     "map external const names to existing Isabelle/HOL const names"
+     (const_maps >> Toplevel.theory));
 
 end
 

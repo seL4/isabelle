@@ -2044,7 +2044,7 @@ val nominal_datatype = gen_nominal_datatype Datatype.check_specs;
 val nominal_datatype_cmd = gen_nominal_datatype Datatype.read_specs;
 
 val _ =
-  Outer_Syntax.command "nominal_datatype" "define nominal datatypes" Keyword.thy_decl
+  Outer_Syntax.command @{command_spec "nominal_datatype"} "define nominal datatypes"
     (Parse.and_list1 Datatype.spec_cmd >>
       (Toplevel.theory o nominal_datatype_cmd Datatype.default_config));
 

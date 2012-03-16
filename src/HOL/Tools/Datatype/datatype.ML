@@ -792,7 +792,7 @@ val spec_cmd =
   >> (fn (((vs, t), mx), cons) => ((t, vs, mx), map Parse.triple1 cons));
 
 val _ =
-  Outer_Syntax.command "datatype" "define inductive datatypes" Keyword.thy_decl
+  Outer_Syntax.command @{command_spec "datatype"} "define inductive datatypes"
     (Parse.and_list1 spec_cmd
       >> (Toplevel.theory o (snd oo add_datatype_cmd Datatype_Aux.default_config)));
 

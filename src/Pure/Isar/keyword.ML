@@ -37,7 +37,9 @@ sig
   val tag_theory: T -> T
   val tag_proof: T -> T
   val tag_ml: T -> T
-  val make: string * string list -> T
+  type spec = string * string list
+  val spec: spec -> T
+  val command_spec: string * spec -> string * T
   val get_lexicons: unit -> Scan.lexicon * Scan.lexicon
   val is_keyword: string -> bool
   val command_keyword: string -> T option
@@ -65,7 +67,7 @@ struct
 
 (** keyword classification **)
 
-datatype T = Keyword of string * string list;
+datatype T = Keyword of string * string list;  (*kind, tags (in canonical reverse order)*)
 
 fun kind s = Keyword (s, []);
 fun kind_of (Keyword (s, _)) = s;
@@ -141,10 +143,14 @@ val name_table = Symtab.make
    ("prf_asm_goal",       prf_asm_goal),
    ("prf_script",         prf_script)];
 
-fun make (kind, tags) =
+type spec = string * string list;
+
+fun spec (kind, tags) =
   (case Symtab.lookup name_table kind of
     SOME k => k |> fold tag tags
   | NONE => error ("Unknown outer syntax keyword kind " ^ quote kind));
+
+fun command_spec (name, s) = (name, spec s);
 
 
 

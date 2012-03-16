@@ -402,7 +402,7 @@ val alt_specs' : (bool * (Attrib.binding * string)) list parser =
   in Parse.enum1 "|" (spec' --| Scan.option (unexpected -- Parse.!!! (@{keyword "|"}))) end
 
 val _ =
-  Outer_Syntax.local_theory "fixrec" "define recursive functions (HOLCF)" Keyword.thy_decl
+  Outer_Syntax.local_theory @{command_spec "fixrec"} "define recursive functions (HOLCF)"
     (Parse.fixes -- (Parse.where_ |-- Parse.!!! alt_specs')
       >> (fn (fixes, specs) => add_fixrec_cmd fixes specs))
 

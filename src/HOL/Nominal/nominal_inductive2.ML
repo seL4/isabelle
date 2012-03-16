@@ -484,9 +484,8 @@ fun prove_strong_ind s alt_name avoids ctxt =
 (* outer syntax *)
 
 val _ =
-  Outer_Syntax.local_theory_to_proof "nominal_inductive2"
+  Outer_Syntax.local_theory_to_proof @{command_spec "nominal_inductive2"}
     "prove strong induction theorem for inductive predicate involving nominal datatypes"
-    Keyword.thy_goal
     (Parse.xname -- 
      Scan.option (@{keyword "("} |-- Parse.!!! (Parse.name --| @{keyword ")"})) --
      (Scan.optional (@{keyword "avoids"} |-- Parse.enum1 "|" (Parse.name --

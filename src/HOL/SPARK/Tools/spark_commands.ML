@@ -105,41 +105,36 @@ fun show_status (p, f) = Toplevel.no_timing o Toplevel.keep (fn state =>
   end);
 
 val _ =
-  Outer_Syntax.command "spark_open"
+  Outer_Syntax.command @{command_spec "spark_open"}
     "open a new SPARK environment and load a SPARK-generated .vcg or .siv file"
-    Keyword.thy_decl
     (Parse.name -- Parse.parname >> (Toplevel.theory o spark_open));
 
 val pfun_type = Scan.option
   (Args.parens (Parse.list1 Parse.name) --| Args.colon -- Parse.name);
 
 val _ =
-  Outer_Syntax.command "spark_proof_functions"
+  Outer_Syntax.command @{command_spec "spark_proof_functions"}
     "associate SPARK proof functions with terms"
-    Keyword.thy_decl
     (Scan.repeat1 (Parse.name -- (pfun_type --| Args.$$$ "=" -- Parse.term)) >>
-       (Toplevel.theory o fold add_proof_fun_cmd));
+      (Toplevel.theory o fold add_proof_fun_cmd));
 
 val _ =
-  Outer_Syntax.command "spark_types"
+  Outer_Syntax.command @{command_spec "spark_types"}
     "associate SPARK types with types"
-    Keyword.thy_decl
     (Scan.repeat1 (Parse.name -- Parse.!!! (Args.$$$ "=" |-- Parse.typ --
        Scan.optional (Args.parens (Parse.list1
          (Parse.name -- Parse.!!! (Args.$$$ "=" |-- Parse.xname)))) [])) >>
        (Toplevel.theory o fold add_spark_type_cmd));
 
 val _ =
-  Outer_Syntax.command "spark_vc"
+  Outer_Syntax.command @{command_spec "spark_vc"}
     "enter into proof mode for a specific verification condition"
-    Keyword.thy_goal
     (Parse.name >> (fn name =>
       (Toplevel.print o Toplevel.local_theory_to_proof NONE (prove_vc name))));
 
 val _ =
-  Outer_Syntax.improper_command "spark_status"
+  Outer_Syntax.improper_command @{command_spec "spark_status"}
     "show the name and state of all loaded verification conditions"
-    Keyword.diag
     (Scan.optional
        (Args.parens
           (   Args.$$$ "proved" >> K (is_some, K "")
@@ -147,9 +142,8 @@ val _ =
        (K true, string_of_status) >> show_status);
 
 val _ =
-  Outer_Syntax.command "spark_end"
+  Outer_Syntax.command @{command_spec "spark_end"}
     "close the current SPARK environment"
-    Keyword.thy_decl
     (Scan.succeed (Toplevel.theory SPARK_VCs.close));
 
 val setup = Theory.at_end (fn thy =>

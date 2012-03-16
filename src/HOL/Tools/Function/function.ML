@@ -277,15 +277,15 @@ fun get_info ctxt t = Item_Net.retrieve (get_function ctxt) t
 (* outer syntax *)
 
 val _ =
-  Outer_Syntax.local_theory_to_proof' "function" "define general recursive functions"
-  Keyword.thy_goal
-  (function_parser default_config
-     >> (fn ((config, fixes), statements) => function_cmd fixes statements config))
+  Outer_Syntax.local_theory_to_proof' @{command_spec "function"}
+    "define general recursive functions"
+    (function_parser default_config
+      >> (fn ((config, fixes), statements) => function_cmd fixes statements config))
 
 val _ =
-  Outer_Syntax.local_theory_to_proof "termination" "prove termination of a recursive function"
-  Keyword.thy_goal
-  (Scan.option Parse.term >> termination_cmd)
+  Outer_Syntax.local_theory_to_proof @{command_spec "termination"}
+    "prove termination of a recursive function"
+    (Scan.option Parse.term >> termination_cmd)
 
 
 end

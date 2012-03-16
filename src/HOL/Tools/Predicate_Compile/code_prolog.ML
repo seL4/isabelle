@@ -1004,10 +1004,13 @@ fun values_cmd print_modes soln raw_t state =
 val opt_print_modes =
   Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.xname --| @{keyword ")"})) [];
 
-val _ = Outer_Syntax.improper_command "values" "enumerate and print comprehensions" Keyword.diag
-  (opt_print_modes -- Scan.optional (Parse.nat >> SOME) NONE -- Parse.term
-   >> (fn ((print_modes, soln), t) => Toplevel.keep
-        (values_cmd print_modes soln t))); (*FIXME does not preserve the previous functionality*)
+val _ =
+  Outer_Syntax.improper_command @{command_spec "values"}
+    "enumerate and print comprehensions"
+    (opt_print_modes -- Scan.optional (Parse.nat >> SOME) NONE -- Parse.term
+     >> (fn ((print_modes, soln), t) => Toplevel.keep
+          (values_cmd print_modes soln t))); (*FIXME does not preserve the previous functionality*)
+
 
 (* quickcheck generator *)
 

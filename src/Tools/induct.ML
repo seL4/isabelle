@@ -259,8 +259,9 @@ fun print_rules ctxt =
   end;
 
 val _ =
-  Outer_Syntax.improper_command "print_induct_rules" "print induction and cases rules"
-    Keyword.diag (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
+  Outer_Syntax.improper_command @{command_spec "print_induct_rules"}
+    "print induction and cases rules"
+    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
       Toplevel.keep (print_rules o Toplevel.context_of)));
 
 

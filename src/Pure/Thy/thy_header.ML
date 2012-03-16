@@ -8,13 +8,13 @@ signature THY_HEADER =
 sig
   type header =
    {name: string, imports: string list,
-    keywords: (string * (string * string list) option) list,
+    keywords: (string * Keyword.spec option) list,
     uses: (Path.T * bool) list}
-  val make: string -> string list -> (string * (string * string list) option) list ->
+  val make: string -> string list -> (string * Keyword.spec option) list ->
     (Path.T * bool) list -> header
   val define_keywords: header -> unit
-  val declare_keyword: string * (string * string list) option -> theory -> theory
-  val the_keyword: theory -> string -> Keyword.T option
+  val declare_keyword: string * Keyword.spec option -> theory -> theory
+  val the_keyword: theory -> string -> Keyword.spec option
   val args: header parser
   val read: Position.T -> string -> header
 end;
@@ -24,7 +24,7 @@ struct
 
 type header =
  {name: string, imports: string list,
-  keywords: (string * (string * string list) option) list,
+  keywords: (string * Keyword.spec option) list,
   uses: (Path.T * bool) list};
 
 fun make name imports keywords uses : header =
@@ -35,26 +35,27 @@ fun make name imports keywords uses : header =
 (** keyword declarations **)
 
 fun define_keywords ({keywords, ...}: header) =
-  List.app (fn (name, decl) => Keyword.define (name, Option.map Keyword.make decl)) keywords;
+  List.app (Keyword.define o apsnd (Option.map Keyword.spec)) keywords;
 
 fun err_dup name = error ("Inconsistent declaration of outer syntax keyword " ^ quote name);
 
 structure Data = Theory_Data
 (
-  type T = Keyword.T option Symtab.table;
+  type T = Keyword.spec option Symtab.table;
   val empty = Symtab.empty;
   val extend = I;
   fun merge data : T = Symtab.merge (op =) data handle Symtab.DUP name => err_dup name;
 );
 
-fun declare_keyword (name, decl) = Data.map (fn data =>
-  let val kind = Option.map Keyword.make decl
-  in Symtab.update_new (name, kind) data handle Symtab.DUP name => err_dup name end);
+fun declare_keyword (name, spec) =
+  Data.map (fn data =>
+    (Option.map Keyword.spec spec;
+      Symtab.update_new (name, spec) data handle Symtab.DUP dup => err_dup dup));
 
 fun the_keyword thy name =
   (case Symtab.lookup (Data.get thy) name of
-    SOME kind => kind
-  | NONE => error ("Unknown outer syntax keyword " ^ quote name));
+    SOME spec => spec
+  | NONE => error ("Undeclared outer syntax keyword " ^ quote name));
 
 
 

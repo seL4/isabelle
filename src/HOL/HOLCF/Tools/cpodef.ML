@@ -357,14 +357,14 @@ fun mk_pcpodef_proof pcpo ((((((def, opt_name), (args, t)), mx), A), morphs)) =
     ((def, the_default t opt_name), (t, args, mx), A, morphs)
 
 val _ =
-  Outer_Syntax.command "pcpodef" "HOLCF type definition (requires admissibility proof)"
-  Keyword.thy_goal
+  Outer_Syntax.command @{command_spec "pcpodef"}
+    "HOLCF type definition (requires admissibility proof)"
     (typedef_proof_decl >>
       (Toplevel.print oo (Toplevel.theory_to_proof o mk_pcpodef_proof true)))
 
 val _ =
-  Outer_Syntax.command "cpodef" "HOLCF type definition (requires admissibility proof)"
-  Keyword.thy_goal
+  Outer_Syntax.command @{command_spec "cpodef"}
+    "HOLCF type definition (requires admissibility proof)"
     (typedef_proof_decl >>
       (Toplevel.print oo (Toplevel.theory_to_proof o mk_pcpodef_proof false)))
 

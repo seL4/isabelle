@@ -237,25 +237,19 @@ fun process_spec axiomatic cos alt_props thy =
 val opt_name = Scan.optional (Parse.name --| @{keyword ":"}) ""
 val opt_overloaded = Parse.opt_keyword "overloaded"
 
-val specification_decl =
-  @{keyword "("} |-- Scan.repeat1 (opt_name -- Parse.term -- opt_overloaded) --| @{keyword ")"} --
-          Scan.repeat1 ((Parse_Spec.opt_thm_name ":" >> apfst Binding.name_of) -- Parse.prop)
-
 val _ =
-  Outer_Syntax.command "specification" "define constants by specification" Keyword.thy_goal
-    (specification_decl >> (fn (cos,alt_props) =>
-                               Toplevel.print o (Toplevel.theory_to_proof
-                                                     (process_spec NONE cos alt_props))))
-
-val ax_specification_decl =
-    Parse.name --
+  Outer_Syntax.command @{command_spec "specification"} "define constants by specification"
     (@{keyword "("} |-- Scan.repeat1 (opt_name -- Parse.term -- opt_overloaded) --| @{keyword ")"} --
-           Scan.repeat1 ((Parse_Spec.opt_thm_name ":" >> apfst Binding.name_of) -- Parse.prop))
+      Scan.repeat1 ((Parse_Spec.opt_thm_name ":" >> apfst Binding.name_of) -- Parse.prop)
+      >> (fn (cos, alt_props) => Toplevel.print o
+          (Toplevel.theory_to_proof (process_spec NONE cos alt_props))))
 
 val _ =
-  Outer_Syntax.command "ax_specification" "define constants by specification" Keyword.thy_goal
-    (ax_specification_decl >> (fn (axname,(cos,alt_props)) =>
-                               Toplevel.print o (Toplevel.theory_to_proof
-                                                     (process_spec (SOME axname) cos alt_props))))
+  Outer_Syntax.command @{command_spec "ax_specification"} "define constants by specification"
+    (Parse.name --
+      (@{keyword "("} |-- Scan.repeat1 (opt_name -- Parse.term -- opt_overloaded) --| @{keyword ")"} --
+        Scan.repeat1 ((Parse_Spec.opt_thm_name ":" >> apfst Binding.name_of) -- Parse.prop))
+      >> (fn (axname, (cos, alt_props)) =>
+           Toplevel.print o (Toplevel.theory_to_proof (process_spec (SOME axname) cos alt_props))))
 
 end

@@ -670,16 +670,15 @@ fun prove_eqvt s xatoms ctxt =
 (* outer syntax *)
 
 val _ =
-  Outer_Syntax.local_theory_to_proof "nominal_inductive"
+  Outer_Syntax.local_theory_to_proof @{command_spec "nominal_inductive"}
     "prove equivariance and strong induction theorem for inductive predicate involving nominal datatypes"
-    Keyword.thy_goal
     (Parse.xname -- Scan.optional (@{keyword "avoids"} |-- Parse.and_list1 (Parse.name --
       (@{keyword ":"} |-- Scan.repeat1 Parse.name))) [] >> (fn (name, avoids) =>
         prove_strong_ind name avoids));
 
 val _ =
-  Outer_Syntax.local_theory "equivariance"
-    "prove equivariance for inductive predicate involving nominal datatypes" Keyword.thy_decl
+  Outer_Syntax.local_theory @{command_spec "equivariance"}
+    "prove equivariance for inductive predicate involving nominal datatypes"
     (Parse.xname -- Scan.optional (@{keyword "["} |-- Parse.list1 Parse.name --| @{keyword "]"}) [] >>
       (fn (name, atoms) => prove_eqvt name atoms));
 

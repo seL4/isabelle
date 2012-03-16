@@ -820,25 +820,24 @@ fun extract thms thy =
 val parse_vars = Scan.optional (Parse.$$$ "(" |-- Parse.list1 Parse.name --| Parse.$$$ ")") [];
 
 val _ =
-  Outer_Syntax.command "realizers"
-  "specify realizers for primitive axioms / theorems, together with correctness proof"
-  Keyword.thy_decl
+  Outer_Syntax.command ("realizers", Keyword.thy_decl)
+    "specify realizers for primitive axioms / theorems, together with correctness proof"
     (Scan.repeat1 (Parse.xname -- parse_vars --| Parse.$$$ ":" -- Parse.string -- Parse.string) >>
      (fn xs => Toplevel.theory (fn thy => add_realizers
        (map (fn (((a, vs), s1), s2) => (Global_Theory.get_thm thy a, (vs, s1, s2))) xs) thy)));
 
 val _ =
-  Outer_Syntax.command "realizability"
-  "add equations characterizing realizability" Keyword.thy_decl
-  (Scan.repeat1 Parse.string >> (Toplevel.theory o add_realizes_eqns));
+  Outer_Syntax.command ("realizability", Keyword.thy_decl)
+    "add equations characterizing realizability"
+    (Scan.repeat1 Parse.string >> (Toplevel.theory o add_realizes_eqns));
 
 val _ =
-  Outer_Syntax.command "extract_type"
-  "add equations characterizing type of extracted program" Keyword.thy_decl
-  (Scan.repeat1 Parse.string >> (Toplevel.theory o add_typeof_eqns));
+  Outer_Syntax.command ("extract_type", Keyword.thy_decl)
+    "add equations characterizing type of extracted program"
+    (Scan.repeat1 Parse.string >> (Toplevel.theory o add_typeof_eqns));
 
 val _ =
-  Outer_Syntax.command "extract" "extract terms from proofs" Keyword.thy_decl
+  Outer_Syntax.command ("extract", Keyword.thy_decl) "extract terms from proofs"
     (Scan.repeat1 (Parse.xname -- parse_vars) >> (fn xs => Toplevel.theory (fn thy =>
       extract (map (apfst (Global_Theory.get_thm thy)) xs) thy)));
 

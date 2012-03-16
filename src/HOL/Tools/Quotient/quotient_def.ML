@@ -106,14 +106,13 @@ fun lift_raw_const qtys (qconst_name, rconst, mx) ctxt =
     quotient_def (SOME (Binding.name qconst_name, NONE, mx), (Attrib.empty_binding, (lhs, rconst))) ctxt
   end
 
-(* parser and command *)
-val quotdef_parser =
-  Scan.option Parse_Spec.constdecl --
-    Parse.!!! (Parse_Spec.opt_thm_name ":" -- (Parse.term --| @{keyword "is"} -- Parse.term))
+(* command *)
 
 val _ =
-  Outer_Syntax.local_theory "quotient_definition"
+  Outer_Syntax.local_theory @{command_spec "quotient_definition"}
     "definition for constants over the quotient type"
-      Keyword.thy_decl (quotdef_parser >> (snd oo quotient_def_cmd))
+    (Scan.option Parse_Spec.constdecl --
+      Parse.!!! (Parse_Spec.opt_thm_name ":" -- (Parse.term --| @{keyword "is"} -- Parse.term))
+      >> (snd oo quotient_def_cmd))
 
 end; (* structure *)

@@ -88,9 +88,9 @@ fun try_tools state =
     |> tap (fn NONE => Output.urgent_message "Tried in vain." | _ => ())
 
 val _ =
-  Outer_Syntax.improper_command tryN
-      "try a combination of automatic proving and disproving tools" Keyword.diag
-      (Scan.succeed (Toplevel.keep (ignore o try_tools o Toplevel.proof_of)))
+  Outer_Syntax.improper_command @{command_spec "try"}
+    "try a combination of automatic proving and disproving tools"
+    (Scan.succeed (Toplevel.keep (ignore o try_tools o Toplevel.proof_of)))
 
 
 (* automatic try *)

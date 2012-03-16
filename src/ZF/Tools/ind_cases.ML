@@ -65,8 +65,8 @@ val setup =
 (* outer syntax *)
 
 val _ =
-  Outer_Syntax.command "inductive_cases"
-    "create simplified instances of elimination rules (improper)" Keyword.thy_script
+  Outer_Syntax.command @{command_spec "inductive_cases"}
+    "create simplified instances of elimination rules (improper)"
     (Parse.and_list1 (Parse_Spec.opt_thm_name ":" -- Scan.repeat1 Parse.prop)
       >> (Toplevel.theory o inductive_cases));
 

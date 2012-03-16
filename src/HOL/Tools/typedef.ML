@@ -300,8 +300,8 @@ end;
 (** outer syntax **)
 
 val _ =
-  Outer_Syntax.local_theory_to_proof "typedef" "HOL type definition (requires non-emptiness proof)"
-    Keyword.thy_goal
+  Outer_Syntax.local_theory_to_proof @{command_spec "typedef"}
+    "HOL type definition (requires non-emptiness proof)"
     (Scan.optional (@{keyword "("} |--
         ((@{keyword "open"} >> K false) -- Scan.option Parse.binding ||
           Parse.binding >> (fn s => (true, SOME s))) --| @{keyword ")"}) (true, NONE) --
