@@ -40,14 +40,11 @@ sig
   val make: string * string list -> T
   val get_lexicons: unit -> Scan.lexicon * Scan.lexicon
   val is_keyword: string -> bool
-  val dest_keywords: unit -> string list
-  val dest_commands: unit -> string list
   val command_keyword: string -> T option
   val command_tags: string -> string list
+  val dest: unit -> string list * string list
   val keyword_statusN: string
   val status: unit -> unit
-  val keyword: string -> unit
-  val command: string -> T -> unit
   val declare: string -> T option -> unit
   val is_diag: string -> bool
   val is_control: string -> bool
@@ -153,30 +150,44 @@ fun make (kind, tags) =
 
 (** global keyword tables **)
 
+type keywords =
+ {lexicons: Scan.lexicon * Scan.lexicon,  (*minor, major*)
+  commands: T Symtab.table};  (*command classification*)
+
+fun make_keywords (lexicons, commands) : keywords =
+  {lexicons = lexicons, commands = commands};
+
 local
 
-val global_commands = Unsynchronized.ref (Symtab.empty: T Symtab.table);
-val global_lexicons = Unsynchronized.ref (Scan.empty_lexicon, Scan.empty_lexicon);
+val global_keywords =
+  Unsynchronized.ref (make_keywords ((Scan.empty_lexicon, Scan.empty_lexicon), Symtab.empty));
 
 in
 
-fun get_commands () = ! global_commands;
-fun get_lexicons () = ! global_lexicons;
+fun get_keywords () = ! global_keywords;
 
-fun change_commands f = CRITICAL (fn () => Unsynchronized.change global_commands f);
-fun change_lexicons f = CRITICAL (fn () => Unsynchronized.change global_lexicons f);
+fun change_keywords f = CRITICAL (fn () =>
+  Unsynchronized.change global_keywords
+    (fn {lexicons, commands} => make_keywords (f (lexicons, commands))));
 
 end;
+
+fun get_lexicons () = #lexicons (get_keywords ());
+fun get_commands () = #commands (get_keywords ());
 
 
 (* lookup *)
 
-fun is_keyword s = Scan.is_literal (#1 (get_lexicons ())) (Symbol.explode s);
-fun dest_keywords () = sort_strings (Scan.dest_lexicon (#1 (get_lexicons ())));
+fun is_keyword s =
+  let
+    val (minor, major) = get_lexicons ();
+    val syms = Symbol.explode s;
+  in Scan.is_literal minor syms orelse Scan.is_literal major syms end;
 
-fun dest_commands () = sort_strings (Symtab.keys (get_commands ()));
 fun command_keyword name = Symtab.lookup (get_commands ()) name;
 fun command_tags name = these (Option.map tags_of (command_keyword name));
+
+fun dest () = pairself (sort_strings o Scan.dest_lexicon) (get_lexicons ());
 
 
 (* status *)
@@ -196,27 +207,28 @@ fun command_status (name, kind) =
     ("Outer syntax command: " ^ quote name ^ " (" ^ kind_of kind ^ ")");
 
 fun status () =
-  let val (keywords, commands) = CRITICAL (fn () =>
-    (dest_keywords (), sort_wrt #1 (Symtab.dest (get_commands ()))))
-  in
-    List.app keyword_status keywords;
-    List.app command_status commands
-  end;
+  let
+    val {lexicons = (minor, _), commands} = get_keywords ();
+    val _ = List.app keyword_status (sort_strings (Scan.dest_lexicon minor));
+    val _ = List.app command_status (sort_wrt #1 (Symtab.dest commands));
+  in () end;
 
 
-(* augment tables *)
+(* declare *)
 
-fun keyword name =
- (change_lexicons (apfst (Scan.extend_lexicon (Symbol.explode name)));
-  keyword_status name);
-
-fun command name kind =
- (change_lexicons (apsnd (Scan.extend_lexicon (Symbol.explode name)));
-  change_commands (Symtab.update (name, kind));
-  command_status (name, kind));
-
-fun declare name NONE = keyword name
-  | declare name (SOME kind) = command name kind;
+fun declare name NONE =
+     (change_keywords (fn ((minor, major), commands) =>
+        let
+          val minor' = Scan.extend_lexicon (Symbol.explode name) minor;
+        in ((minor', major), commands) end);
+      keyword_status name)
+  | declare name (SOME kind) =
+     (change_keywords (fn ((minor, major), commands) =>
+        let
+          val major' = Scan.extend_lexicon (Symbol.explode name) major;
+          val commands' = Symtab.update (name, kind) commands;
+        in ((minor, major'), commands') end);
+      command_status (name, kind));
 
 
 (* command categories *)

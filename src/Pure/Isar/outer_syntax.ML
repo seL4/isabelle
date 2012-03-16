@@ -131,9 +131,8 @@ fun add_command name kind cmd = CRITICAL (fn () =>
           if k = SOME kind then ()
           else error ("Inconsistent outer syntax keyword declaration " ^ quote name)
       | NONE =>
-          (Keyword.command name kind;
-           if Context.theory_name thy = Context.PureN then ()
-           else error ("Undeclared outer syntax command " ^ quote name)));
+          if Context.theory_name thy = Context.PureN then Keyword.declare name (SOME kind)
+          else error ("Undeclared outer syntax command " ^ quote name));
   in
     Unsynchronized.change global_outer_syntax (map_commands (fn commands =>
      (if not (Symtab.defined commands name) then ()
@@ -178,8 +177,8 @@ val local_theory_to_proof = local_theory_command true Toplevel.local_theory_to_p
 
 fun print_outer_syntax () =
   let
-    val (keywords, outer_syntax) =
-      CRITICAL (fn () => (Keyword.dest_keywords (), #2 (get_syntax ())));
+    val ((keywords, _), outer_syntax) =
+      CRITICAL (fn () => (Keyword.dest (), #2 (get_syntax ())));
     fun pretty_cmd (name, comment, _) =
       Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
     val (int_cmds, cmds) = List.partition #3 (dest_commands outer_syntax);

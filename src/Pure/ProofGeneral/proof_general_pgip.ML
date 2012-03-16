@@ -314,8 +314,7 @@ end;
 (** lexicalstructure element with keywords (PGIP version of elisp keywords file) **)
 
 fun lexicalstructure_keywords () =
-    let val keywords = Keyword.dest_keywords ()
-        val commands = Keyword.dest_commands ()
+    let val (keywords, commands) = Keyword.dest ()
         fun keyword_elt kind keyword =
             XML.Elem (("keyword", [("word", keyword), ("category", kind)]), [])
         in

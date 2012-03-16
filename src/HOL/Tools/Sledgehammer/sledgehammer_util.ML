@@ -57,7 +57,7 @@ val subgoal_count = Try.subgoal_count
 val normalize_chained_theorems =
   maps (fn th => insert Thm.eq_thm_prop (zero_var_indexes th) [th])
 fun reserved_isar_keyword_table () =
-  union (op =) (Keyword.dest_keywords ()) (Keyword.dest_commands ())
+  Keyword.dest () |-> union (op =)
   |> map (rpair ()) |> Symtab.make
 
 end;
