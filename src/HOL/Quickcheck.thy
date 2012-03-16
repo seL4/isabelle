@@ -43,8 +43,9 @@ end
 instantiation itself :: (typerep) random
 begin
 
-definition random_itself :: "code_numeral \<Rightarrow> Random.seed \<Rightarrow> ('a itself \<times> (unit \<Rightarrow> term)) \<times> Random.seed" where
-  "random_itself _ = Pair (Code_Evaluation.valtermify TYPE('a))"
+definition
+  random_itself :: "code_numeral \<Rightarrow> Random.seed \<Rightarrow> ('a itself \<times> (unit \<Rightarrow> term)) \<times> Random.seed"
+where "random_itself _ = Pair (Code_Evaluation.valtermify TYPE('a))"
 
 instance ..
 
@@ -73,7 +74,9 @@ end
 instantiation nat :: random
 begin
 
-definition random_nat :: "code_numeral \<Rightarrow> Random.seed \<Rightarrow> (nat \<times> (unit \<Rightarrow> Code_Evaluation.term)) \<times> Random.seed" where
+definition random_nat :: "code_numeral \<Rightarrow> Random.seed
+  \<Rightarrow> (nat \<times> (unit \<Rightarrow> Code_Evaluation.term)) \<times> Random.seed"
+where
   "random_nat i = Random.range (i + 1) \<circ>\<rightarrow> (\<lambda>k. Pair (
      let n = Code_Numeral.nat_of k
      in (n, \<lambda>_. Code_Evaluation.term_of n)))"
@@ -100,18 +103,22 @@ subsection {* Complex generators *}
 text {* Towards @{typ "'a \<Rightarrow> 'b"} *}
 
 axiomatization random_fun_aux :: "typerep \<Rightarrow> typerep \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> term)
-  \<Rightarrow> (Random.seed \<Rightarrow> ('b \<times> (unit \<Rightarrow> term)) \<times> Random.seed) \<Rightarrow> (Random.seed \<Rightarrow> Random.seed \<times> Random.seed)
+  \<Rightarrow> (Random.seed \<Rightarrow> ('b \<times> (unit \<Rightarrow> term)) \<times> Random.seed)
+  \<Rightarrow> (Random.seed \<Rightarrow> Random.seed \<times> Random.seed)
   \<Rightarrow> Random.seed \<Rightarrow> (('a \<Rightarrow> 'b) \<times> (unit \<Rightarrow> term)) \<times> Random.seed"
 
 definition random_fun_lift :: "(Random.seed \<Rightarrow> ('b \<times> (unit \<Rightarrow> term)) \<times> Random.seed)
-  \<Rightarrow> Random.seed \<Rightarrow> (('a\<Colon>term_of \<Rightarrow> 'b\<Colon>typerep) \<times> (unit \<Rightarrow> term)) \<times> Random.seed" where
-  "random_fun_lift f = random_fun_aux TYPEREP('a) TYPEREP('b) (op =) Code_Evaluation.term_of f Random.split_seed"
+  \<Rightarrow> Random.seed \<Rightarrow> (('a\<Colon>term_of \<Rightarrow> 'b\<Colon>typerep) \<times> (unit \<Rightarrow> term)) \<times> Random.seed"
+where
+  "random_fun_lift f =
+    random_fun_aux TYPEREP('a) TYPEREP('b) (op =) Code_Evaluation.term_of f Random.split_seed"
 
 instantiation "fun" :: ("{equal, term_of}", random) random
 begin
 
-definition random_fun :: "code_numeral \<Rightarrow> Random.seed \<Rightarrow> (('a \<Rightarrow> 'b) \<times> (unit \<Rightarrow> term)) \<times> Random.seed" where
-  "random i = random_fun_lift (random i)"
+definition
+  random_fun :: "code_numeral \<Rightarrow> Random.seed \<Rightarrow> (('a \<Rightarrow> 'b) \<times> (unit \<Rightarrow> term)) \<times> Random.seed"
+  where "random i = random_fun_lift (random i)"
 
 instance ..
 
@@ -119,19 +126,21 @@ end
 
 text {* Towards type copies and datatypes *}
 
-definition collapse :: "('a \<Rightarrow> ('a \<Rightarrow> 'b \<times> 'a) \<times> 'a) \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a" where
-  "collapse f = (f \<circ>\<rightarrow> id)"
+definition collapse :: "('a \<Rightarrow> ('a \<Rightarrow> 'b \<times> 'a) \<times> 'a) \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a"
+  where "collapse f = (f \<circ>\<rightarrow> id)"
 
-definition beyond :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral" where
-  "beyond k l = (if l > k then l else 0)"
+definition beyond :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
+  where "beyond k l = (if l > k then l else 0)"
 
-lemma beyond_zero:
-  "beyond k 0 = 0"
+lemma beyond_zero: "beyond k 0 = 0"
   by (simp add: beyond_def)
 
 
-definition (in term_syntax) [code_unfold]: "valterm_emptyset = Code_Evaluation.valtermify ({} :: ('a :: typerep) set)"
-definition (in term_syntax) [code_unfold]: "valtermify_insert x s = Code_Evaluation.valtermify insert {\<cdot>} (x :: ('a :: typerep * _)) {\<cdot>} s"
+definition (in term_syntax) [code_unfold]:
+  "valterm_emptyset = Code_Evaluation.valtermify ({} :: ('a :: typerep) set)"
+
+definition (in term_syntax) [code_unfold]:
+  "valtermify_insert x s = Code_Evaluation.valtermify insert {\<cdot>} (x :: ('a :: typerep * _)) {\<cdot>} s"
 
 instantiation set :: (random) random
 begin
@@ -139,12 +148,17 @@ begin
 primrec random_aux_set
 where
   "random_aux_set 0 j = collapse (Random.select_weight [(1, Pair valterm_emptyset)])"
-| "random_aux_set (Code_Numeral.Suc i) j = collapse (Random.select_weight [(1, Pair valterm_emptyset), (Code_Numeral.Suc i, random j \<circ>\<rightarrow> (%x. random_aux_set i j \<circ>\<rightarrow> (%s. Pair (valtermify_insert x s))))])"
+| "random_aux_set (Code_Numeral.Suc i) j =
+    collapse (Random.select_weight
+      [(1, Pair valterm_emptyset),
+       (Code_Numeral.Suc i,
+        random j \<circ>\<rightarrow> (%x. random_aux_set i j \<circ>\<rightarrow> (%s. Pair (valtermify_insert x s))))])"
 
 lemma [code]:
-  "random_aux_set i j = collapse (Random.select_weight [(1, Pair valterm_emptyset), (i, random j \<circ>\<rightarrow> (%x. random_aux_set (i - 1) j \<circ>\<rightarrow> (%s. Pair (valtermify_insert x s))))])"
+  "random_aux_set i j =
+    collapse (Random.select_weight [(1, Pair valterm_emptyset),
+      (i, random j \<circ>\<rightarrow> (%x. random_aux_set (i - 1) j \<circ>\<rightarrow> (%s. Pair (valtermify_insert x s))))])"
 proof (induct i rule: code_numeral.induct)
-print_cases
   case zero
   show ?case by (subst select_weight_drop_zero[symmetric])
     (simp add: filter.simps random_aux_set.simps[simplified])
@@ -153,9 +167,7 @@ next
   show ?case by (simp only: random_aux_set.simps(2)[of "i"] Suc_code_numeral_minus_one)
 qed
 
-definition random_set
-where
-  "random_set i = random_aux_set i i" 
+definition "random_set i = random_aux_set i i"
 
 instance ..
 
@@ -190,13 +202,15 @@ no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 subsection {* The Random-Predicate Monad *} 
 
 fun iter' ::
-  "'a itself => code_numeral => code_numeral => code_numeral * code_numeral => ('a::random) Predicate.pred"
+  "'a itself => code_numeral => code_numeral => code_numeral * code_numeral
+    => ('a::random) Predicate.pred"
 where
   "iter' T nrandom sz seed = (if nrandom = 0 then bot_class.bot else
      let ((x, _), seed') = random sz seed
    in Predicate.Seq (%u. Predicate.Insert x (iter' T (nrandom - 1) sz seed')))"
 
-definition iter :: "code_numeral => code_numeral => code_numeral * code_numeral => ('a::random) Predicate.pred"
+definition iter :: "code_numeral => code_numeral => code_numeral * code_numeral
+  => ('a::random) Predicate.pred"
 where
   "iter nrandom sz seed = iter' (TYPE('a)) nrandom sz seed"
 
@@ -262,8 +276,10 @@ hide_fact
 
 hide_const (open) catch_match random collapse beyond random_fun_aux random_fun_lift
 
-hide_fact (open) iter'.simps iter_def empty_def single_def bind_def union_def if_randompred_def iterate_upto_def not_randompred_def Random_def map_def 
+hide_fact (open) iter'.simps iter_def empty_def single_def bind_def union_def
+  if_randompred_def iterate_upto_def not_randompred_def Random_def map_def 
 hide_type (open) randompred
-hide_const (open) iter' iter empty single bind union if_randompred iterate_upto not_randompred Random map
+hide_const (open) iter' iter empty single bind union if_randompred
+  iterate_upto not_randompred Random map
 
 end
