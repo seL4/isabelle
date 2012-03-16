@@ -36,110 +36,97 @@ typedecl o
 judgment
   Trueprop      :: "o => prop"                  ("(_)" 5)
 
-consts
-  True          :: o
-  False         :: o
 
-  (* Connectives *)
+subsubsection {* Equality *}
 
-  eq            :: "['a, 'a] => o"              (infixl "=" 50)
-
-  Not           :: "o => o"                     ("~ _" [40] 40)
-  conj          :: "[o, o] => o"                (infixr "&" 35)
-  disj          :: "[o, o] => o"                (infixr "|" 30)
-  imp           :: "[o, o] => o"                (infixr "-->" 25)
-  iff           :: "[o, o] => o"                (infixr "<->" 25)
-
-  (* Quantifiers *)
-
-  All           :: "('a => o) => o"             (binder "ALL " 10)
-  Ex            :: "('a => o) => o"             (binder "EX " 10)
-  Ex1           :: "('a => o) => o"             (binder "EX! " 10)
-
-
-abbreviation
-  not_equal :: "['a, 'a] => o"  (infixl "~=" 50) where
-  "x ~= y == ~ (x = y)"
-
-notation (xsymbols)
-  not_equal  (infixl "\<noteq>" 50)
-
-notation (HTML output)
-  not_equal  (infixl "\<noteq>" 50)
-
-notation (xsymbols)
-  Not       ("\<not> _" [40] 40) and
-  conj      (infixr "\<and>" 35) and
-  disj      (infixr "\<or>" 30) and
-  All       (binder "\<forall>" 10) and
-  Ex        (binder "\<exists>" 10) and
-  Ex1       (binder "\<exists>!" 10) and
-  imp       (infixr "\<longrightarrow>" 25) and
-  iff       (infixr "\<longleftrightarrow>" 25)
-
-notation (HTML output)
-  Not       ("\<not> _" [40] 40) and
-  conj      (infixr "\<and>" 35) and
-  disj      (infixr "\<or>" 30) and
-  All       (binder "\<forall>" 10) and
-  Ex        (binder "\<exists>" 10) and
-  Ex1       (binder "\<exists>!" 10)
-
-finalconsts
-  False All Ex eq conj disj imp
-
-axiomatization where
-  (* Equality *)
+axiomatization
+  eq :: "['a, 'a] => o"  (infixl "=" 50)
+where
   refl:         "a=a" and
   subst:        "a=b \<Longrightarrow> P(a) \<Longrightarrow> P(b)"
 
 
-axiomatization where
-  (* Propositional logic *)
-  conjI:        "[| P;  Q |] ==> P&Q" and
-  conjunct1:    "P&Q ==> P" and
-  conjunct2:    "P&Q ==> Q" and
+subsubsection {* Propositional logic *}
 
-  disjI1:       "P ==> P|Q" and
-  disjI2:       "Q ==> P|Q" and
-  disjE:        "[| P|Q;  P ==> R;  Q ==> R |] ==> R" and
+axiomatization
+  False :: o and
+  conj :: "[o, o] => o"  (infixr "&" 35) and
+  disj :: "[o, o] => o"  (infixr "|" 30) and
+  imp :: "[o, o] => o"  (infixr "-->" 25)
+where
+  conjI: "[| P;  Q |] ==> P&Q" and
+  conjunct1: "P&Q ==> P" and
+  conjunct2: "P&Q ==> Q" and
 
-  impI:         "(P ==> Q) ==> P-->Q" and
-  mp:           "[| P-->Q;  P |] ==> Q" and
+  disjI1: "P ==> P|Q" and
+  disjI2: "Q ==> P|Q" and
+  disjE: "[| P|Q;  P ==> R;  Q ==> R |] ==> R" and
 
-  FalseE:       "False ==> P"
+  impI: "(P ==> Q) ==> P-->Q" and
+  mp: "[| P-->Q;  P |] ==> Q" and
 
-axiomatization where
-  (* Quantifiers *)
-  allI:         "(!!x. P(x)) ==> (ALL x. P(x))" and
-  spec:         "(ALL x. P(x)) ==> P(x)" and
-
-  exI:          "P(x) ==> (EX x. P(x))" and
-  exE:          "[| EX x. P(x);  !!x. P(x) ==> R |] ==> R"
+  FalseE: "False ==> P"
 
 
-axiomatization where
-  (* Reflection, admissible *)
-  eq_reflection:  "(x=y)   ==> (x==y)" and
+subsubsection {* Quantifiers *}
+
+axiomatization
+  All :: "('a => o) => o"  (binder "ALL " 10) and
+  Ex :: "('a => o) => o"  (binder "EX " 10)
+where
+  allI: "(!!x. P(x)) ==> (ALL x. P(x))" and
+  spec: "(ALL x. P(x)) ==> P(x)" and
+  exI: "P(x) ==> (EX x. P(x))" and
+  exE: "[| EX x. P(x);  !!x. P(x) ==> R |] ==> R"
+
+
+subsubsection {* Definitions *}
+
+definition "True == False-->False"
+definition Not ("~ _" [40] 40) where not_def: "~P == P-->False"
+definition iff  (infixr "<->" 25) where "P<->Q == (P-->Q) & (Q-->P)"
+
+definition Ex1 :: "('a => o) => o"  (binder "EX! " 10)
+  where ex1_def: "EX! x. P(x) == EX x. P(x) & (ALL y. P(y) --> y=x)"
+
+axiomatization where  -- {* Reflection, admissible *}
+  eq_reflection: "(x=y) ==> (x==y)" and
   iff_reflection: "(P<->Q) ==> (P==Q)"
 
 
-lemmas strip = impI allI
+subsubsection {* Additional notation *}
 
+abbreviation not_equal :: "['a, 'a] => o"  (infixl "~=" 50)
+  where "x ~= y == ~ (x = y)"
 
-defs
-  (* Definitions *)
+notation (xsymbols)
+  not_equal  (infixl "\<noteq>" 50)
 
-  True_def:     "True  == False-->False"
-  not_def:      "~P    == P-->False"
-  iff_def:      "P<->Q == (P-->Q) & (Q-->P)"
+notation (HTML output)
+  not_equal  (infixl "\<noteq>" 50)
 
-  (* Unique existence *)
+notation (xsymbols)
+  Not  ("\<not> _" [40] 40) and
+  conj  (infixr "\<and>" 35) and
+  disj  (infixr "\<or>" 30) and
+  All  (binder "\<forall>" 10) and
+  Ex  (binder "\<exists>" 10) and
+  Ex1  (binder "\<exists>!" 10) and
+  imp  (infixr "\<longrightarrow>" 25) and
+  iff  (infixr "\<longleftrightarrow>" 25)
 
-  ex1_def:      "Ex1(P) == EX x. P(x) & (ALL y. P(y) --> y=x)"
+notation (HTML output)
+  Not  ("\<not> _" [40] 40) and
+  conj  (infixr "\<and>" 35) and
+  disj  (infixr "\<or>" 30) and
+  All  (binder "\<forall>" 10) and
+  Ex  (binder "\<exists>" 10) and
+  Ex1  (binder "\<exists>!" 10)
 
 
 subsection {* Lemmas and proof tools *}
+
+lemmas strip = impI allI
 
 lemma TrueI: True
   unfolding True_def by (rule impI)

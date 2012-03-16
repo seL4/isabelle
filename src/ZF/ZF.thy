@@ -14,11 +14,10 @@ declare [[eta_contract = false]]
 typedecl i
 arities  i :: "term"
 
-consts
-
-  zero        :: "i"                  ("0")   --{*the empty set*}
-  Pow         :: "i => i"                     --{*power sets*}
-  Inf         :: "i"                          --{*infinite set*}
+axiomatization
+  zero :: "i"  ("0")   --{*the empty set*}  and
+  Pow :: "i => i"  --{*power sets*}  and
+  Inf :: "i"  --{*infinite set*}
 
 text {*Bounded Quantifiers *}
 consts
@@ -26,13 +25,12 @@ consts
   Bex   :: "[i, i => o] => o"
 
 text {*General Union and Intersection *}
-consts
-  Union :: "i => i"
-  Inter :: "i => i"
+axiomatization Union :: "i => i"
+consts Inter :: "i => i"
 
 text {*Variations on Replacement *}
+axiomatization PrimReplace :: "[i, [i, i] => o] => i"
 consts
-  PrimReplace :: "[i, [i, i] => o] => i"
   Replace     :: "[i, [i, i] => o] => i"
   RepFun      :: "[i, i => i] => i"
   Collect     :: "[i, i => o] => i"
@@ -195,9 +193,6 @@ syntax (HTML output)
   "_Tuple"    :: "[i, is] => i"              ("\<langle>(_,/ _)\<rangle>")
   "_pattern"  :: "patterns => pttrn"         ("\<langle>_\<rangle>")
 
-
-finalconsts
-  0 Pow Inf Union PrimReplace mem
 
 defs  (* Bounded Quantifiers *)
   Ball_def:      "Ball(A, P) == \<forall>x. x\<in>A \<longrightarrow> P(x)"
