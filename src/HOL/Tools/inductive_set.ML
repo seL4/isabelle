@@ -575,11 +575,11 @@ val setup =
 val ind_set_decl = Inductive.gen_ind_decl add_ind_set_def;
 
 val _ =
-  Outer_Syntax.local_theory' "inductive_set" "define inductive sets" Keyword.thy_decl
+  Outer_Syntax.local_theory' @{command_spec "inductive_set"} "define inductive sets"
     (ind_set_decl false);
 
 val _ =
-  Outer_Syntax.local_theory' "coinductive_set" "define coinductive sets" Keyword.thy_decl
+  Outer_Syntax.local_theory' @{command_spec "coinductive_set"} "define coinductive sets"
     (ind_set_decl true);
 
 end;

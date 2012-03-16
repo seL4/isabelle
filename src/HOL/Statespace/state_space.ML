@@ -699,7 +699,7 @@ val statespace_decl =
         (plus1_unless comp parent --
           Scan.optional (@{keyword "+"} |-- Parse.!!! (Scan.repeat1 comp)) [])));
 val _ =
-  Outer_Syntax.command "statespace" "define state space" Keyword.thy_decl
+  Outer_Syntax.command @{command_spec "statespace"} "define state space"
     (statespace_decl >> (fn ((args, name), (parents, comps)) =>
       Toplevel.theory (define_statespace args name parents comps)));
 

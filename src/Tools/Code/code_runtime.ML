@@ -352,13 +352,14 @@ val parse_datatype =
 in
 
 val _ =
-  Outer_Syntax.command "code_reflect" "enrich runtime environment with generated code"
-    Keyword.thy_decl (Parse.name -- Scan.optional (@{keyword "datatypes"} |-- (parse_datatype
+  Outer_Syntax.command @{command_spec "code_reflect"}
+    "enrich runtime environment with generated code"
+    (Parse.name -- Scan.optional (@{keyword "datatypes"} |-- (parse_datatype
       ::: Scan.repeat (@{keyword "and"} |-- parse_datatype))) []
     -- Scan.optional (@{keyword "functions"} |-- Scan.repeat1 Parse.name) []
     -- Scan.option (@{keyword "file"} |-- Parse.name)
-  >> (fn (((module_name, raw_datatypes), raw_functions), some_file) => Toplevel.theory
-    (code_reflect_cmd raw_datatypes raw_functions module_name some_file)));
+    >> (fn (((module_name, raw_datatypes), raw_functions), some_file) => Toplevel.theory
+      (code_reflect_cmd raw_datatypes raw_functions module_name some_file)));
 
 end; (*local*)
 

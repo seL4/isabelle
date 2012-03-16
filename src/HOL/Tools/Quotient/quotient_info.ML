@@ -291,15 +291,15 @@ val setup =
 (* outer syntax commands *)
 
 val _ =
-  Outer_Syntax.improper_command "print_quotmaps" "print quotient map functions" Keyword.diag
+  Outer_Syntax.improper_command @{command_spec "print_quotmaps"} "print quotient map functions"
     (Scan.succeed (Toplevel.keep (print_quotmaps o Toplevel.context_of)))
 
 val _ =
-  Outer_Syntax.improper_command "print_quotients" "print quotients" Keyword.diag
+  Outer_Syntax.improper_command @{command_spec "print_quotients"} "print quotients"
     (Scan.succeed (Toplevel.keep (print_quotients o Toplevel.context_of)))
 
 val _ =
-  Outer_Syntax.improper_command "print_quotconsts" "print quotient constants" Keyword.diag
+  Outer_Syntax.improper_command @{command_spec "print_quotconsts"} "print quotient constants"
     (Scan.succeed (Toplevel.keep (print_quotconsts o Toplevel.context_of)))
 
 end;

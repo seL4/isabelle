@@ -2311,7 +2311,7 @@ val setup =
 (* outer syntax *)
 
 val _ =
-  Outer_Syntax.command "record" "define extensible record" Keyword.thy_decl
+  Outer_Syntax.command @{command_spec "record"} "define extensible record"
     (Parse.type_args_constrained -- Parse.binding --
       (@{keyword "="} |-- Scan.option (Parse.typ --| @{keyword "+"}) --
         Scan.repeat1 Parse.const_binding)

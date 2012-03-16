@@ -63,7 +63,7 @@ val opt_evaluator =
   Scan.option (@{keyword "["} |-- Parse.xname --| @{keyword "]"})
   
 val _ =
-  Outer_Syntax.improper_command "value" "evaluate and print term" Keyword.diag
+  Outer_Syntax.improper_command @{command_spec "value"} "evaluate and print term"
     (opt_evaluator -- opt_modes -- Parse.term
       >> (fn ((some_name, modes), t) => Toplevel.no_timing o Toplevel.keep
           (value_cmd some_name modes t)));

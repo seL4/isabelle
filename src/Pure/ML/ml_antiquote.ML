@@ -66,8 +66,7 @@ val _ = Context.>> (Context.map_theory
   inline (Binding.name "make_string") (Scan.succeed ml_make_string) #>
 
   value (Binding.name "binding")
-    (Scan.lift (Parse.position Args.name)
-      >> (fn name => ML_Syntax.atomic (ML_Syntax.make_binding name))) #>
+    (Scan.lift (Parse.position Args.name) >> ML_Syntax.make_binding) #>
 
   value (Binding.name "theory")
     (Scan.lift Args.name >> (fn name =>
@@ -97,10 +96,10 @@ val _ = Context.>> (Context.map_theory
     "Thm.ctyp_of (ML_Context.the_global_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_typ T))) #>
 
   value (Binding.name "cterm") (Args.term >> (fn t =>
-  "Thm.cterm_of (ML_Context.the_global_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_term t))) #>
+    "Thm.cterm_of (ML_Context.the_global_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_term t))) #>
 
   value (Binding.name "cprop") (Args.prop >> (fn t =>
-  "Thm.cterm_of (ML_Context.the_global_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_term t))) #>
+    "Thm.cterm_of (ML_Context.the_global_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_term t))) #>
 
   value (Binding.name "cpat")
     (Args.context --
@@ -185,13 +184,24 @@ val _ = Context.>> (Context.map_theory
 
 (* outer syntax *)
 
+fun with_keyword f =
+  Args.theory -- Scan.lift (Parse.position Parse.string) >> (fn (thy, (name, pos)) =>
+    (f (name, Thy_Header.the_keyword thy name)
+      handle ERROR msg => error (msg ^ Position.str_of pos)));
+
 val _ = Context.>> (Context.map_theory
-  (value (Binding.name "keyword")
-    (Args.theory -- Scan.lift (Parse.position Parse.string) >> (fn (thy, (name, pos)) =>
-      (if is_none (Thy_Header.the_keyword thy name) then
-        ML_Syntax.atomic ("Parse.$$$ " ^ ML_Syntax.print_string name)
-       else error ("Unknown minor keyword " ^ quote name))
-      handle ERROR msg => error (msg ^ Position.str_of pos)))));
+ (value (Binding.name "keyword")
+    (with_keyword
+      (fn (name, NONE) => "Parse.$$$ " ^ ML_Syntax.print_string name
+        | (name, SOME _) => error ("Expected minor keyword " ^ quote name))) #>
+  value (Binding.name "command_spec")
+    (with_keyword
+      (fn (name, SOME kind) =>
+          "Keyword.command_spec " ^ ML_Syntax.atomic
+            (ML_Syntax.print_pair ML_Syntax.print_string
+              (ML_Syntax.print_pair ML_Syntax.print_string
+                (ML_Syntax.print_list ML_Syntax.print_string)) (name, kind))
+        | (name, NONE) => error ("Expected command keyword " ^ quote name)))));
 
 end;
 

@@ -270,14 +270,16 @@ val value_options =
 
 (* code_pred command and values command *)
 
-val _ = Outer_Syntax.local_theory_to_proof "code_pred"
-  "prove equations for predicate specified by intro/elim rules"
-  Keyword.thy_goal
-  (opt_expected_modes -- opt_modes -- scan_options -- Parse.term_group >> code_pred_cmd)
+val _ =
+  Outer_Syntax.local_theory_to_proof @{command_spec "code_pred"}
+    "prove equations for predicate specified by intro/elim rules"
+    (opt_expected_modes -- opt_modes -- scan_options -- Parse.term_group >> code_pred_cmd)
 
-val _ = Outer_Syntax.improper_command "values" "enumerate and print comprehensions" Keyword.diag
-  (opt_print_modes -- opt_param_modes -- value_options -- Scan.optional Parse.nat ~1 -- Parse.term
-    >> (fn ((((print_modes, param_modes), options), k), t) => Toplevel.keep
-        (Predicate_Compile_Core.values_cmd print_modes param_modes options k t)));
+val _ =
+  Outer_Syntax.improper_command @{command_spec "values"}
+    "enumerate and print comprehensions"
+    (opt_print_modes -- opt_param_modes -- value_options -- Scan.optional Parse.nat ~1 -- Parse.term
+      >> (fn ((((print_modes, param_modes), options), k), t) => Toplevel.keep
+          (Predicate_Compile_Core.values_cmd print_modes param_modes options k t)))
 
 end

@@ -960,8 +960,7 @@ val setup = setup_attrs #> setup_methods;
 (** outer syntax **)
 
 val _ =
-  Outer_Syntax.improper_command "print_claset" "print context of Classical Reasoner"
-    Keyword.diag
+  Outer_Syntax.improper_command @{command_spec "print_claset"} "print context of Classical Reasoner"
     (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
       Toplevel.keep (fn state =>
         let val ctxt = Toplevel.context_of state

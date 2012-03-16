@@ -310,8 +310,8 @@ fun add_primrec_overloaded ops fixes specs thy =
 (* outer syntax *)
 
 val _ =
-  Outer_Syntax.local_theory "primrec" "define primitive recursive functions on datatypes"
-    Keyword.thy_decl
+  Outer_Syntax.local_theory @{command_spec "primrec"}
+    "define primitive recursive functions on datatypes"
     (Parse.fixes -- Parse_Spec.where_alt_specs
       >> (fn (fixes, specs) => add_primrec_cmd fixes specs #> snd));
 

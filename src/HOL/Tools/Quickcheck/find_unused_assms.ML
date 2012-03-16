@@ -104,8 +104,8 @@ fun print_unused_assms ctxt opt_thy_name =
 
 
 val _ =
-  Outer_Syntax.improper_command "find_unused_assms" "find theorems with superfluous assumptions"
-    Keyword.diag
+  Outer_Syntax.improper_command @{command_spec "find_unused_assms"}
+    "find theorems with superfluous assumptions"
     (Scan.option Parse.name
       >> (fn opt_thy_name =>
         Toplevel.no_timing o Toplevel.keep (fn state =>

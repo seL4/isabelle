@@ -402,8 +402,8 @@ val options =
   Scan.optional (@{keyword "("} |-- Parse.!!! (parser2 --| @{keyword ")"})) (NONE, NONE);
 
 val _ =
-  Outer_Syntax.local_theory_to_proof "nominal_primrec"
-    "define primitive recursive functions on nominal datatypes" Keyword.thy_goal
+  Outer_Syntax.local_theory_to_proof @{command_spec "nominal_primrec"}
+    "define primitive recursive functions on nominal datatypes"
     (options -- Parse.fixes -- Parse.for_fixes -- Parse_Spec.where_alt_specs
       >> (fn ((((invs, fctxt), fixes), params), specs) =>
         add_primrec_cmd invs fctxt fixes params specs));

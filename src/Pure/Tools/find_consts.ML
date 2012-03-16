@@ -135,7 +135,7 @@ val criterion =
 in
 
 val _ =
-  Outer_Syntax.improper_command "find_consts" "search constants by type pattern" Keyword.diag
+  Outer_Syntax.improper_command ("find_consts", Keyword.diag) "search constants by type pattern"
     (Scan.repeat ((Scan.option Parse.minus >> is_none) -- criterion)
       >> (fn spec => Toplevel.no_timing o
         Toplevel.keep (fn state => find_consts (Toplevel.context_of state) spec)));

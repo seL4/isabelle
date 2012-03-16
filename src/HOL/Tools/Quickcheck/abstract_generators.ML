@@ -64,8 +64,10 @@ val quickcheck_generator = gen_quickcheck_generator (K I) (K I)
 val quickcheck_generator_cmd = gen_quickcheck_generator
   (fn ctxt => fst o dest_Type o Proof_Context.read_type_name_proper ctxt false) Syntax.read_term
   
-val _ = Outer_Syntax.command "quickcheck_generator" "define quickcheck generators for abstract types"
-    Keyword.thy_decl ((Parse.type_const --
+val _ =
+  Outer_Syntax.command @{command_spec "quickcheck_generator"}
+    "define quickcheck generators for abstract types"
+    ((Parse.type_const --
       Scan.option (Args.$$$ "predicate" |-- @{keyword ":"} |-- Parse.term)) --
       (Args.$$$ "constructors" |-- @{keyword ":"} |-- Parse.list1 Parse.term)
       >> (fn ((tyco, opt_pred), constrs) =>

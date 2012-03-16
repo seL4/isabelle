@@ -409,8 +409,8 @@ val attrib_setup =
 (** Diagnostic command **)
 
 val _ =
-  Outer_Syntax.improper_command "print_orders"
-    "print order structures available to transitivity reasoner" Keyword.diag
+  Outer_Syntax.improper_command @{command_spec "print_orders"}
+    "print order structures available to transitivity reasoner"
     (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
         Toplevel.keep (print_structures o Toplevel.context_of)));
 

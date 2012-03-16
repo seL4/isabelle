@@ -83,7 +83,6 @@ structure Quickcheck : QUICKCHECK =
 struct
 
 val quickcheckN = "quickcheck"
-val quickcheck_paramsN = "quickcheck_params"
 
 val genuineN = "genuine"
 val noneN = "none"
@@ -530,11 +529,12 @@ val parse_args =
   @{keyword "["} |-- Parse.list1 parse_arg --| @{keyword "]"} || Scan.succeed [];
 
 val _ =
-  Outer_Syntax.command quickcheck_paramsN "set parameters for random testing" Keyword.thy_decl
+  Outer_Syntax.command @{command_spec "quickcheck_params"} "set parameters for random testing"
     (parse_args >> (fn args => Toplevel.theory (quickcheck_params_cmd args)));
 
 val _ =
-  Outer_Syntax.improper_command quickcheckN "try to find counterexample for subgoal" Keyword.diag
+  Outer_Syntax.improper_command @{command_spec "quickcheck"}
+    "try to find counterexample for subgoal"
     (parse_args -- Scan.optional Parse.nat 1
       >> (fn (args, i) => Toplevel.no_timing o Toplevel.keep (quickcheck_cmd args i)));
 

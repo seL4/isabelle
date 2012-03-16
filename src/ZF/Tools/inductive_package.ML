@@ -591,8 +591,9 @@ val ind_decl =
   >> (Toplevel.theory o mk_ind);
 
 val _ =
-  Outer_Syntax.command (co_prefix ^ "inductive")
-    ("define " ^ co_prefix ^ "inductive sets") Keyword.thy_decl ind_decl;
+  Outer_Syntax.command
+    (if coind then @{command_spec "coinductive"} else @{command_spec "inductive"})
+    ("define " ^ co_prefix ^ "inductive sets") ind_decl;
 
 end;
 

@@ -1028,10 +1028,10 @@ val setup =
 (* outer syntax commands *)
 
 val _ =
-  Outer_Syntax.improper_command "print_coercions" "print all coercions" Keyword.diag
+  Outer_Syntax.improper_command @{command_spec "print_coercions"} "print all coercions"
     (Scan.succeed (Toplevel.keep (print_coercions o Toplevel.context_of)))
 val _ =
-  Outer_Syntax.improper_command "print_coercion_maps" "print all coercion maps" Keyword.diag
+  Outer_Syntax.improper_command @{command_spec "print_coercion_maps"} "print all coercion maps"
     (Scan.succeed (Toplevel.keep (print_coercion_maps o Toplevel.context_of)))
 
 end;

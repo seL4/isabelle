@@ -390,16 +390,15 @@ fun nitpick_params_trans params =
                                params |> map string_for_raw_param
                                       |> sort_strings |> cat_lines)))))
 
-val parse_nitpick_command =
-  (parse_params -- Scan.optional Parse.nat 1) #>> nitpick_trans
-val parse_nitpick_params_command = parse_params #>> nitpick_params_trans
+val _ =
+  Outer_Syntax.improper_command @{command_spec "nitpick"}
+    "try to find a counterexample for a given subgoal using Nitpick"
+    ((parse_params -- Scan.optional Parse.nat 1) #>> nitpick_trans)
 
-val _ = Outer_Syntax.improper_command nitpickN
-            "try to find a counterexample for a given subgoal using Nitpick"
-            Keyword.diag parse_nitpick_command
-val _ = Outer_Syntax.command nitpick_paramsN
-            "set and display the default parameters for Nitpick"
-            Keyword.thy_decl parse_nitpick_params_command
+val _ =
+  Outer_Syntax.command @{command_spec "nitpick_params"}
+    "set and display the default parameters for Nitpick"
+    (parse_params #>> nitpick_params_trans)
 
 fun try_nitpick auto = pick_nits [] (if auto then Auto_Try else Try) 1 0
 

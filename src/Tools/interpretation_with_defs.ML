@@ -80,8 +80,8 @@ fun interpretation_cmd x = gen_interpretation Expression.read_goal_expression
 end;
 
 val _ =
-  Outer_Syntax.command "interpretation"
-    "prove interpretation of locale expression in theory" Keyword.thy_goal
+  Outer_Syntax.command @{command_spec "interpretation"}
+    "prove interpretation of locale expression in theory"
     (Parse.!!! (Parse_Spec.locale_expression true) --
       Scan.optional (@{keyword "defines"} |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":"
         -- ((Parse.binding -- Parse.opt_mixfix') --| @{keyword "is"} -- Parse.term))) [] --

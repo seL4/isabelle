@@ -266,9 +266,10 @@ fun gen_enriched_type prep_term some_prfx raw_mapper lthy =
 val enriched_type = gen_enriched_type Syntax.check_term;
 val enriched_type_cmd = gen_enriched_type Syntax.read_term;
 
-val _ = Outer_Syntax.local_theory_to_proof "enriched_type"
-  "register operations managing the functorial structure of a type"
-  Keyword.thy_goal (Scan.option (Parse.name --| @{keyword ":"}) -- Parse.term
-    >> (fn (prfx, t) => enriched_type_cmd prfx t));
+val _ =
+  Outer_Syntax.local_theory_to_proof @{command_spec "enriched_type"}
+    "register operations managing the functorial structure of a type"
+    (Scan.option (Parse.name --| @{keyword ":"}) -- Parse.term
+      >> (fn (prfx, t) => enriched_type_cmd prfx t));
 
 end;

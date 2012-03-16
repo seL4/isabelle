@@ -887,7 +887,7 @@ fun import_file cautious path_prefix file_name type_map const_map thy =
   in TPTP_Data.map (cons ((prob_name, result))) thy' end
 
 val _ =
-  Outer_Syntax.improper_command "import_tptp" "import TPTP problem" Keyword.thy_decl
+  Outer_Syntax.improper_command @{command_spec "import_tptp"} "import TPTP problem"
     (Parse.path >> (fn path =>
       Toplevel.theory (fn thy => import_file true (Path.dir path) path [] [] thy)))
 

@@ -413,20 +413,16 @@ val parse_relevance_override =
   Scan.optional (Args.parens (Scan.repeat parse_relevance_chunk
                               >> merge_relevance_overrides))
                 no_relevance_override
-val parse_sledgehammer_command =
-  (Scan.optional Parse.short_ident runN -- parse_params
-   -- parse_relevance_override -- Scan.option Parse.nat) #>> sledgehammer_trans
-val parse_sledgehammer_params_command =
-  parse_params #>> sledgehammer_params_trans
 
 val _ =
-  Outer_Syntax.improper_command sledgehammerN
-      "search for first-order proof using automatic theorem provers" Keyword.diag
-      parse_sledgehammer_command
+  Outer_Syntax.improper_command @{command_spec "sledgehammer"}
+    "search for first-order proof using automatic theorem provers"
+    ((Scan.optional Parse.short_ident runN -- parse_params
+      -- parse_relevance_override -- Scan.option Parse.nat) #>> sledgehammer_trans)
 val _ =
-  Outer_Syntax.command sledgehammer_paramsN
-      "set and display the default parameters for Sledgehammer" Keyword.thy_decl
-      parse_sledgehammer_params_command
+  Outer_Syntax.command @{command_spec "sledgehammer_params"}
+    "set and display the default parameters for Sledgehammer"
+    (parse_params #>> sledgehammer_params_trans)
 
 fun try_sledgehammer auto state =
   let

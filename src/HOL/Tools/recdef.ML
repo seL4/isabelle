@@ -302,7 +302,7 @@ val recdef_decl =
   >> (fn ((((p, f), R), eqs), src) => #1 o add_recdef p f R (map Parse.triple_swap eqs) src);
 
 val _ =
-  Outer_Syntax.command "recdef" "define general recursive functions (TFL)" Keyword.thy_decl
+  Outer_Syntax.command @{command_spec "recdef"} "define general recursive functions (TFL)"
     (recdef_decl >> Toplevel.theory);
 
 
@@ -313,12 +313,13 @@ val defer_recdef_decl =
   >> (fn ((f, eqs), congs) => #1 o defer_recdef f eqs congs);
 
 val _ =
-  Outer_Syntax.command "defer_recdef" "defer general recursive functions (TFL)" Keyword.thy_decl
+  Outer_Syntax.command @{command_spec "defer_recdef"}
+    "defer general recursive functions (TFL)"
     (defer_recdef_decl >> Toplevel.theory);
 
 val _ =
-  Outer_Syntax.local_theory_to_proof' "recdef_tc" "recommence proof of termination condition (TFL)"
-    Keyword.thy_goal
+  Outer_Syntax.local_theory_to_proof' @{command_spec "recdef_tc"}
+    "recommence proof of termination condition (TFL)"
     ((Parse_Spec.opt_thm_name ":" >> apfst Binding.name_of) -- Parse.xname --
         Scan.option (@{keyword "("} |-- Parse.nat --| @{keyword ")"})
       >> (fn ((thm_name, name), i) => recdef_tc thm_name name i));

@@ -449,10 +449,9 @@ fun add_monad target' raw_c_bind thy =
 (** Isar setup **)
 
 val _ =
-  Outer_Syntax.command "code_monad" "define code syntax for monads" Keyword.thy_decl (
-    Parse.term_group -- Parse.name >> (fn (raw_bind, target) =>
-      Toplevel.theory  (add_monad target raw_bind))
-  );
+  Outer_Syntax.command @{command_spec "code_monad"} "define code syntax for monads"
+    (Parse.term_group -- Parse.name >> (fn (raw_bind, target) =>
+      Toplevel.theory  (add_monad target raw_bind)));
 
 val setup =
   Code_Target.add_target

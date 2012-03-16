@@ -48,7 +48,7 @@ fun welcome () =
     (if Distribution.changelog <> "" then "\nSee also " ^ Distribution.changelog else "");
 
 val _ =
-  Outer_Syntax.improper_command "welcome" "print welcome message" Keyword.diag
+  Outer_Syntax.improper_command ("welcome", Keyword.diag) "print welcome message"
     (Scan.succeed (Toplevel.no_timing o Toplevel.imperative (writeln o welcome)));
 
 

@@ -1032,7 +1032,7 @@ end
 (* Extra command for embedding prover-control inside document (obscure/debug usage). *)
 
 val _ =
-  Outer_Syntax.improper_command "ProofGeneral.process_pgip" "(internal)" Keyword.control
+  Outer_Syntax.improper_command ("ProofGeneral.process_pgip", Keyword.control) "(internal)"
     (Parse.text >> (Toplevel.no_timing oo
       (fn txt => Toplevel.imperative (fn () =>
         if print_mode_active proof_general_emacsN

@@ -183,13 +183,10 @@ fun parse_attrs x =
   || Scan.repeat parse_attr
      >> (fn quad => fold merge_attrs quad ([], [], [], []))) x
 
-val parse_try0_command =
-  Scan.optional parse_attrs ([], [], [], []) #>> try0_trans
-
 val _ =
-  Outer_Syntax.improper_command try0N
-      "try a combination of proof methods" Keyword.diag
-      parse_try0_command
+  Outer_Syntax.improper_command @{command_spec "try0"}
+    "try a combination of proof methods"
+    (Scan.optional parse_attrs ([], [], [], []) #>> try0_trans)
 
 fun try_try0 auto =
   do_try0 (if auto then Auto_Try else Try) NONE ([], [], [], [])

@@ -680,57 +680,54 @@ val code_exprP =
        -- code_expr_argsP) >> (fn seris => export_code_cmd raw_cs seris)));
 
 val _ =
-  Outer_Syntax.command "code_class" "define code syntax for class" Keyword.thy_decl (
-    process_multi_syntax Parse.xname (Scan.option Parse.string)
-    add_class_syntax_cmd);
+  Outer_Syntax.command @{command_spec "code_class"} "define code syntax for class"
+    (process_multi_syntax Parse.xname (Scan.option Parse.string)
+      add_class_syntax_cmd);
 
 val _ =
-  Outer_Syntax.command "code_instance" "define code syntax for instance" Keyword.thy_decl (
-    process_multi_syntax (Parse.xname --| @{keyword "::"} -- Parse.xname)
+  Outer_Syntax.command @{command_spec "code_instance"} "define code syntax for instance"
+    (process_multi_syntax (Parse.xname --| @{keyword "::"} -- Parse.xname)
       (Scan.option (Parse.minus >> K ()))
-    add_instance_syntax_cmd);
+      add_instance_syntax_cmd);
 
 val _ =
-  Outer_Syntax.command "code_type" "define code syntax for type constructor" Keyword.thy_decl (
-    process_multi_syntax Parse.xname Code_Printer.parse_tyco_syntax
-    add_tyco_syntax_cmd);
+  Outer_Syntax.command @{command_spec "code_type"} "define code syntax for type constructor"
+    (process_multi_syntax Parse.xname Code_Printer.parse_tyco_syntax
+      add_tyco_syntax_cmd);
 
 val _ =
-  Outer_Syntax.command "code_const" "define code syntax for constant" Keyword.thy_decl (
-    process_multi_syntax Parse.term_group Code_Printer.parse_const_syntax
-    add_const_syntax_cmd);
+  Outer_Syntax.command @{command_spec "code_const"} "define code syntax for constant"
+    (process_multi_syntax Parse.term_group Code_Printer.parse_const_syntax
+      add_const_syntax_cmd);
 
 val _ =
-  Outer_Syntax.command "code_reserved" "declare words as reserved for target language"
-    Keyword.thy_decl (
-    Parse.name -- Scan.repeat1 Parse.name
-    >> (fn (target, reserveds) => (Toplevel.theory o fold (add_reserved target)) reserveds)
-  );
+  Outer_Syntax.command @{command_spec "code_reserved"}
+    "declare words as reserved for target language"
+    (Parse.name -- Scan.repeat1 Parse.name
+      >> (fn (target, reserveds) => (Toplevel.theory o fold (add_reserved target)) reserveds));
 
 val _ =
-  Outer_Syntax.command "code_include" "declare piece of code to be included in generated code"
-    Keyword.thy_decl (
-    Parse.name -- Parse.name -- (Parse.text :|-- (fn "-" => Scan.succeed NONE
-      | s => Scan.optional (@{keyword "attach"} |-- Scan.repeat1 Parse.term) [] >> pair s >> SOME))
-    >> (fn ((target, name), content_consts) =>
-        (Toplevel.theory o add_include_cmd target) (name, content_consts))
-  );
+  Outer_Syntax.command @{command_spec "code_include"}
+    "declare piece of code to be included in generated code"
+    (Parse.name -- Parse.name -- (Parse.text :|--
+      (fn "-" => Scan.succeed NONE
+        | s => Scan.optional (@{keyword "attach"} |-- Scan.repeat1 Parse.term) [] >> pair s >> SOME))
+      >> (fn ((target, name), content_consts) =>
+          (Toplevel.theory o add_include_cmd target) (name, content_consts)));
 
 val _ =
-  Outer_Syntax.command "code_modulename" "alias module to other name" Keyword.thy_decl (
-    Parse.name -- Scan.repeat1 (Parse.name -- Parse.name)
-    >> (fn (target, modlnames) => (Toplevel.theory o fold (add_module_alias target)) modlnames)
-  );
+  Outer_Syntax.command @{command_spec "code_modulename"} "alias module to other name"
+    (Parse.name -- Scan.repeat1 (Parse.name -- Parse.name)
+      >> (fn (target, modlnames) => (Toplevel.theory o fold (add_module_alias target)) modlnames));
 
 val _ =
-  Outer_Syntax.command "code_abort" "permit constant to be implemented as program abort"
-    Keyword.thy_decl (
-    Scan.repeat1 Parse.term_group >> (Toplevel.theory o fold allow_abort_cmd)
-  );
+  Outer_Syntax.command @{command_spec "code_abort"}
+    "permit constant to be implemented as program abort"
+    (Scan.repeat1 Parse.term_group >> (Toplevel.theory o fold allow_abort_cmd));
 
 val _ =
-  Outer_Syntax.command "export_code" "generate executable code for constants"
-    Keyword.diag (Parse.!!! code_exprP >> (fn f => Toplevel.keep (f o Toplevel.theory_of)));
+  Outer_Syntax.command @{command_spec "export_code"} "generate executable code for constants"
+    (Parse.!!! code_exprP >> (fn f => Toplevel.keep (f o Toplevel.theory_of)));
 
 end; (*local*)
 

@@ -12,21 +12,20 @@ sig
   type outer_syntax
   val is_markup: outer_syntax -> Thy_Output.markup -> string -> bool
   val get_syntax: unit -> (Scan.lexicon * Scan.lexicon) * outer_syntax
-  val command: string -> string -> Keyword.T ->
+  type command_spec = string * Keyword.T
+  val command: command_spec -> string ->
     (Toplevel.transition -> Toplevel.transition) parser -> unit
-  val markup_command: Thy_Output.markup -> string -> string -> Keyword.T ->
+  val markup_command: Thy_Output.markup -> command_spec -> string ->
     (Toplevel.transition -> Toplevel.transition) parser -> unit
-  val improper_command: string -> string -> Keyword.T ->
+  val improper_command: command_spec -> string ->
     (Toplevel.transition -> Toplevel.transition) parser -> unit
-  val internal_command: string ->
-    (Toplevel.transition -> Toplevel.transition) parser -> unit
-  val local_theory': string -> string -> Keyword.T ->
+  val local_theory': command_spec -> string ->
     (bool -> local_theory -> local_theory) parser -> unit
-  val local_theory: string -> string -> Keyword.T ->
+  val local_theory: command_spec -> string ->
     (local_theory -> local_theory) parser -> unit
-  val local_theory_to_proof': string -> string -> Keyword.T ->
+  val local_theory_to_proof': command_spec -> string ->
     (bool -> local_theory -> Proof.state) parser -> unit
-  val local_theory_to_proof: string -> string -> Keyword.T ->
+  val local_theory_to_proof: command_spec -> string ->
     (local_theory -> Proof.state) parser -> unit
   val print_outer_syntax: unit -> unit
   val scan: Position.T -> string -> Token.T list
@@ -117,21 +116,24 @@ fun is_markup (Outer_Syntax {markups, ...}) kind name =
 
 (** global outer syntax **)
 
+type command_spec = string * Keyword.T;
+
 local
 
 (*synchronized wrt. Keywords*)
 val global_outer_syntax = Unsynchronized.ref empty_outer_syntax;
 
-fun add_command name kind cmd = CRITICAL (fn () =>
+fun add_command (name, kind) cmd = CRITICAL (fn () =>
   let
     val thy = ML_Context.the_global_context ();
     val _ =
       (case try (Thy_Header.the_keyword thy) name of
-        SOME k =>
-          if k = SOME kind then ()
+        SOME spec =>
+          if Option.map Keyword.spec spec = SOME kind then ()
           else error ("Inconsistent outer syntax keyword declaration " ^ quote name)
       | NONE =>
-          if Context.theory_name thy = Context.PureN then Keyword.define (name, SOME kind)
+          if Context.theory_name thy = Context.PureN
+          then Keyword.define (name, SOME kind)
           else error ("Undeclared outer syntax command " ^ quote name));
   in
     Unsynchronized.change global_outer_syntax (map_commands (fn commands =>
@@ -146,25 +148,22 @@ fun get_syntax () = CRITICAL (fn () => (Keyword.get_lexicons (), ! global_outer_
 
 fun lookup_commands_dynamic () = lookup_commands (! global_outer_syntax);
 
-fun command name comment kind parse =
-  add_command name kind (make_command comment NONE false parse);
+fun command command_spec comment parse =
+  add_command command_spec (make_command comment NONE false parse);
 
-fun markup_command markup name comment kind parse =
-  add_command name kind (make_command comment (SOME markup) false parse);
+fun markup_command markup command_spec comment parse =
+  add_command command_spec (make_command comment (SOME markup) false parse);
 
-fun improper_command name comment kind parse =
-  add_command name kind (make_command comment NONE true parse);
-
-fun internal_command name parse =
-  command name "(internal)" Keyword.control (parse >> (fn tr => Toplevel.no_timing o tr));
+fun improper_command command_spec comment parse =
+  add_command command_spec (make_command comment NONE true parse);
 
 end;
 
 
 (* local_theory commands *)
 
-fun local_theory_command do_print trans name comment kind parse =
-  command name comment kind (Parse.opt_target -- parse
+fun local_theory_command do_print trans command_spec comment parse =
+  command command_spec comment (Parse.opt_target -- parse
     >> (fn (loc, f) => (if do_print then Toplevel.print else I) o trans loc f));
 
 val local_theory' = local_theory_command false Toplevel.local_theory';

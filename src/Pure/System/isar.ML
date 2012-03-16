@@ -164,35 +164,36 @@ in
 (* global history *)
 
 val _ =
-  Outer_Syntax.improper_command "init_toplevel" "init toplevel point-of-interest" Keyword.control
+  Outer_Syntax.improper_command ("init_toplevel", Keyword.control) "init toplevel point-of-interest"
     (Scan.succeed (Toplevel.no_timing o Toplevel.imperative init));
 
 val _ =
-  Outer_Syntax.improper_command "linear_undo" "undo commands" Keyword.control
+  Outer_Syntax.improper_command ("linear_undo", Keyword.control) "undo commands"
     (Scan.optional Parse.nat 1 >>
       (fn n => Toplevel.no_timing o Toplevel.imperative (fn () => linear_undo n)));
 
 val _ =
-  Outer_Syntax.improper_command "undo" "undo commands (skipping closed proofs)" Keyword.control
+  Outer_Syntax.improper_command ("undo", Keyword.control) "undo commands (skipping closed proofs)"
     (Scan.optional Parse.nat 1 >>
       (fn n => Toplevel.no_timing o Toplevel.imperative (fn () => undo n)));
 
 val _ =
-  Outer_Syntax.improper_command "undos_proof" "undo commands (skipping closed proofs)"
-    Keyword.control
+  Outer_Syntax.improper_command ("undos_proof", Keyword.control)
+    "undo commands (skipping closed proofs)"
     (Scan.optional Parse.nat 1 >> (fn n => Toplevel.no_timing o
       Toplevel.keep (fn state =>
         if Toplevel.is_proof state then (undo n; print ()) else raise Toplevel.UNDEF)));
 
 val _ =
-  Outer_Syntax.improper_command "cannot_undo" "partial undo -- Proof General legacy"
-    Keyword.control
+  Outer_Syntax.improper_command ("cannot_undo", Keyword.control)
+    "partial undo -- Proof General legacy"
     (Parse.name >>
       (fn "end" => Toplevel.no_timing o Toplevel.imperative (fn () => undo 1)
         | txt => Toplevel.imperative (fn () => error ("Cannot undo " ^ quote txt))));
 
 val _ =
-  Outer_Syntax.improper_command "kill" "kill partial proof or theory development" Keyword.control
+  Outer_Syntax.improper_command ("kill", Keyword.control)
+    "kill partial proof or theory development"
     (Scan.succeed (Toplevel.no_timing o Toplevel.imperative kill));
 
 end;

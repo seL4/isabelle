@@ -170,9 +170,9 @@ fun add_fun_cmd a b c int = gen_add_fun (fn tac => Function.add_function_cmd a b
 
 
 val _ =
-  Outer_Syntax.local_theory' "fun" "define general recursive functions (short version)"
-  Keyword.thy_decl
-  (function_parser fun_config
-     >> (fn ((config, fixes), statements) => add_fun_cmd fixes statements config))
+  Outer_Syntax.local_theory' @{command_spec "fun"}
+    "define general recursive functions (short version)"
+    (function_parser fun_config
+      >> (fn ((config, fixes), statements) => add_fun_cmd fixes statements config))
 
 end
