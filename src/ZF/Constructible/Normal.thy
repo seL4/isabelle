@@ -226,7 +226,7 @@ lemma NormalI:
 by (simp add: Normal_def mono_Ord_def cont_Ord_def)
 
 lemma mono_Ord_imp_Ord: "[| Ord(i); mono_Ord(F) |] ==> Ord(F(i))"
-apply (simp add: mono_Ord_def) 
+apply (auto simp add: mono_Ord_def)
 apply (blast intro: lt_Ord) 
 done
 
@@ -242,16 +242,29 @@ by (simp add: Normal_def cont_Ord_def)
 lemma Normal_imp_mono: "[| i<j; Normal(F) |] ==> F(i) < F(j)"
 by (simp add: Normal_def mono_Ord_def)
 
-lemma Normal_increasing: "[| Ord(i); Normal(F) |] ==> i\<le>F(i)"
-apply (induct i rule: trans_induct3)
-  apply (simp add: subset_imp_le)
- apply (subgoal_tac "F(x) < F(succ(x))")
-  apply (force intro: lt_trans1)
- apply (simp add: Normal_def mono_Ord_def)
-apply (subgoal_tac "(\<Union>y<x. y) \<le> (\<Union>y<x. F(y))")
- apply (simp add: Normal_imp_cont Limit_OUN_eq) 
-apply (blast intro: ltD le_implies_OUN_le_OUN)
-done
+lemma Normal_increasing:
+  assumes i: "Ord(i)" and F: "Normal(F)" shows"i \<le> F(i)"
+using i
+proof (induct i rule: trans_induct3)
+  case 0 thus ?case by (simp add: subset_imp_le F)
+next
+  case (succ i) 
+  hence "F(i) < F(succ(i))" using F
+    by (simp add: Normal_def mono_Ord_def)
+  thus ?case using succ.hyps
+    by (blast intro: lt_trans1)
+next
+  case (limit l) 
+  hence "l = (\<Union>y<l. y)" 
+    by (simp add: Limit_OUN_eq)
+  also have "... \<le> (\<Union>y<l. F(y))" using limit
+    by (blast intro: ltD le_implies_OUN_le_OUN)
+  finally have "l \<le> (\<Union>y<l. F(y))" .
+  moreover have "(\<Union>y<l. F(y)) \<le> F(l)" using limit F
+    by (simp add: Normal_imp_cont lt_Ord)
+  ultimately show ?case
+    by (blast intro: le_trans) 
+qed
 
 
 subsubsection{*The class of fixedpoints is closed and unbounded*}
@@ -387,24 +400,32 @@ apply (induct a rule: trans_induct3)
 apply (simp_all add: ltD def_transrec2 [OF normalize_def])
 done
 
-lemma normalize_lemma [rule_format]:
-     "[| Ord(b); !!x. Ord(x) ==> Ord(F(x)) |] 
-      ==> \<forall>a. a < b \<longrightarrow> normalize(F, a) < normalize(F, b)"
-apply (erule trans_induct3)
-  apply (simp_all add: le_iff def_transrec2 [OF normalize_def])
- apply clarify
-apply (rule Un_upper2_lt) 
-  apply auto
- apply (drule spec, drule mp, assumption) 
- apply (erule leI) 
-apply (drule Limit_has_succ, assumption)
-apply (blast intro!: Ord_normalize intro: OUN_upper_lt ltD lt_Ord)
-done  
-
 lemma normalize_increasing:
-     "[| a < b;  !!x. Ord(x) ==> Ord(F(x)) |] 
-      ==> normalize(F, a) < normalize(F, b)"
-by (blast intro!: normalize_lemma intro: lt_Ord2) 
+  assumes ab: "a < b" and F: "!!x. Ord(x) ==> Ord(F(x))"
+  shows "normalize(F,a) < normalize(F,b)"
+proof -
+  { fix x
+    have "Ord(b)" using ab by (blast intro: lt_Ord2) 
+    hence "x < b \<Longrightarrow> normalize(F,x) < normalize(F,b)"
+    proof (induct b arbitrary: x rule: trans_induct3)
+      case 0 thus ?case by simp
+    next
+      case (succ b)
+      thus ?case
+        by (auto simp add: le_iff def_transrec2 [OF normalize_def] intro: Un_upper2_lt F)
+    next
+      case (limit l)
+      hence sc: "succ(x) < l" 
+        by (blast intro: Limit_has_succ) 
+      hence "normalize(F,x) < normalize(F,succ(x))" 
+        by (blast intro: limit elim: ltE) 
+      hence "normalize(F,x) < (\<Union>j<l. normalize(F,j))"
+        by (blast intro: OUN_upper_lt lt_Ord F sc) 
+      thus ?case using limit
+        by (simp add: def_transrec2 [OF normalize_def])
+    qed
+  } thus ?thesis using ab .
+qed
 
 theorem Normal_normalize:
      "(!!x. Ord(x) ==> Ord(F(x))) ==> Normal(normalize(F))"
@@ -414,14 +435,20 @@ apply (simp add: def_transrec2 [OF normalize_def])
 done
 
 theorem le_normalize:
-     "[| Ord(a); cont_Ord(F); !!x. Ord(x) ==> Ord(F(x)) |] 
-      ==> F(a) \<le> normalize(F,a)"
-apply (erule trans_induct3) 
-apply (simp_all add: def_transrec2 [OF normalize_def])
-apply (simp add: Un_upper1_le) 
-apply (simp add: cont_Ord_def) 
-apply (blast intro: ltD le_implies_OUN_le_OUN)
-done
+  assumes a: "Ord(a)" and coF: "cont_Ord(F)" and F: "!!x. Ord(x) ==> Ord(F(x))"
+  shows "F(a) \<le> normalize(F,a)"
+using a
+proof (induct a rule: trans_induct3)
+  case 0 thus ?case by (simp add: F def_transrec2 [OF normalize_def])
+next
+  case (succ a)
+  thus ?case
+    by (simp add: def_transrec2 [OF normalize_def] Un_upper1_le F )
+next
+  case (limit l) 
+  thus ?case using F coF [unfolded cont_Ord_def]
+    by (simp add: def_transrec2 [OF normalize_def] le_implies_OUN_le_OUN ltD) 
+qed
 
 
 subsection {*The Alephs*}
@@ -442,18 +469,30 @@ apply (simp_all add: Card_csucc Card_nat Card_is_Ord
                      def_transrec2 [OF Aleph_def])
 done
 
-lemma Aleph_lemma [rule_format]:
-     "Ord(b) ==> \<forall>a. a < b \<longrightarrow> Aleph(a) < Aleph(b)"
-apply (erule trans_induct3) 
-apply (simp_all add: le_iff def_transrec2 [OF Aleph_def])  
-apply (blast intro: lt_trans lt_csucc Card_is_Ord, clarify)
-apply (drule Limit_has_succ, assumption)
-apply (blast intro: Card_is_Ord Card_Aleph OUN_upper_lt ltD lt_Ord)
-done  
-
 lemma Aleph_increasing:
-     "a < b ==> Aleph(a) < Aleph(b)"
-by (blast intro!: Aleph_lemma intro: lt_Ord2) 
+  assumes ab: "a < b" shows "Aleph(a) < Aleph(b)"
+proof -
+  { fix x
+    have "Ord(b)" using ab by (blast intro: lt_Ord2) 
+    hence "x < b \<Longrightarrow> Aleph(x) < Aleph(b)"
+    proof (induct b arbitrary: x rule: trans_induct3)
+      case 0 thus ?case by simp
+    next
+      case (succ b)
+      thus ?case
+        by (force simp add: le_iff def_transrec2 [OF Aleph_def] 
+                  intro: lt_trans lt_csucc Card_is_Ord)
+    next
+      case (limit l)
+      hence sc: "succ(x) < l" 
+        by (blast intro: Limit_has_succ) 
+      hence "\<aleph> x < (\<Union>j<l. \<aleph>j)" using limit
+        by (blast intro: OUN_upper_lt Card_is_Ord ltD lt_Ord)
+      thus ?case using limit
+        by (simp add: def_transrec2 [OF Aleph_def])
+    qed
+  } thus ?thesis using ab .
+qed
 
 theorem Normal_Aleph: "Normal(Aleph)"
 apply (rule NormalI) 

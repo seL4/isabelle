@@ -134,29 +134,38 @@ done
 
 (*Kunen's Lemma 10.21*)
 lemma cardinal_UN_le:
-     "[| InfCard(K);  \<forall>i\<in>K. |X(i)| \<le> K |] ==> |\<Union>i\<in>K. X(i)| \<le> K"
-apply (simp add: InfCard_is_Card le_Card_iff)
-apply (rule lepoll_trans)
- prefer 2
- apply (rule InfCard_square_eq [THEN eqpoll_imp_lepoll])
- apply (simp add: InfCard_is_Card Card_cardinal_eq)
-apply (unfold lepoll_def)
-apply (frule InfCard_is_Card [THEN Card_is_Ord])
-apply (erule AC_ball_Pi [THEN exE])
-apply (rule exI)
-(*Lemma needed in both subgoals, for a fixed z*)
-apply (subgoal_tac "\<forall>z\<in>(\<Union>i\<in>K. X (i)). z: X (LEAST i. z:X (i)) &
-                    (LEAST i. z:X (i)) \<in> K")
- prefer 2
- apply (fast intro!: Least_le [THEN lt_trans1, THEN ltD] ltI
-             elim!: LeastI Ord_in_Ord)
-apply (rule_tac c = "%z. <LEAST i. z:X (i), f ` (LEAST i. z:X (i)) ` z>"
-            and d = "%<i,j>. converse (f`i) ` j" in lam_injective)
-(*Instantiate the lemma proved above*)
-by (blast intro: inj_is_fun [THEN apply_type] dest: apply_type, force)
+  assumes K: "InfCard(K)" 
+  shows "(!!i. i\<in>K ==> |X(i)| \<le> K) ==> |\<Union>i\<in>K. X(i)| \<le> K"
+proof (simp add: K InfCard_is_Card le_Card_iff)
+  have [intro]: "Ord(K)" by (blast intro: InfCard_is_Card Card_is_Ord K) 
+  assume "!!i. i\<in>K ==> X(i) \<lesssim> K"
+  hence "!!i. i\<in>K ==> \<exists>f. f \<in> inj(X(i), K)" by (simp add: lepoll_def) 
+  with AC_Pi obtain f where f: "f \<in> (\<Pi> i\<in>K. inj(X(i), K))"
+    apply - apply atomize apply auto done
+  { fix z
+    assume z: "z \<in> (\<Union>i\<in>K. X(i))"
+    then obtain i where i: "i \<in> K" "Ord(i)" "z \<in> X(i)"
+      by (blast intro: Ord_in_Ord [of K]) 
+    hence "(LEAST i. z \<in> X(i)) \<le> i" by (fast intro: Least_le) 
+    hence "(LEAST i. z \<in> X(i)) < K" by (best intro: lt_trans1 ltI i) 
+    hence "(LEAST i. z \<in> X(i)) \<in> K" and "z \<in> X(LEAST i. z \<in> X(i))"  
+      by (auto intro: LeastI ltD i) 
+  } note mems = this
+  have "(\<Union>i\<in>K. X(i)) \<lesssim> K \<times> K" 
+    proof (unfold lepoll_def)
+      show "\<exists>f. f \<in> inj(\<Union>RepFun(K, X), K \<times> K)"
+        apply (rule exI) 
+        apply (rule_tac c = "%z. \<langle>LEAST i. z \<in> X(i), f ` (LEAST i. z \<in> X(i)) ` z\<rangle>"
+                    and d = "%\<langle>i,j\<rangle>. converse (f`i) ` j" in lam_injective) 
+        apply (force intro: f inj_is_fun mems apply_type Perm.left_inverse)+
+        done
+    qed
+  also have "... \<approx> K" 
+    by (simp add: K InfCard_square_eq InfCard_is_Card Card_cardinal_eq)
+  finally show "(\<Union>i\<in>K. X(i)) \<lesssim> K" .
+qed
 
-
-(*The same again, using csucc*)
+text{*The same again, using @{term csucc}*}
 lemma cardinal_UN_lt_csucc:
      "[| InfCard(K);  \<forall>i\<in>K. |X(i)| < csucc(K) |]
       ==> |\<Union>i\<in>K. X(i)| < csucc(K)"
