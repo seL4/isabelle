@@ -41,6 +41,10 @@ position information via constraints).
 "syntax_ambiguity_warning" and "syntax_ambiguity_limit" in isar-ref
 manual.  Minor INCOMPATIBILITY.
 
+* Forward declaration of outer syntax keywords within the theory
+header -- minor INCOMPATIBILITY for user-defined commands.  Allow new
+commands to be used in the same theory where defined.
+
 
 *** Pure ***
 
@@ -371,9 +375,6 @@ a list and a nat.
 
 
 *** ML ***
-
-* Outer syntax keywords for user-defined Isar commands need to be
-defined explicitly in the theory header.  Minor INCOMPATIBILITY.
 
 * Antiquotation @{keyword "name"} produces a parser for outer syntax
 from a minor keyword introduced via theory header declaration.

@@ -168,6 +168,26 @@ fun begin_theory dir {name, imports, keywords, uses} parents =
   |> fold (fn (path, true) => Context.theory_map (exec_ml path) o Theory.checkpoint | _ => I) uses
   |> Theory.checkpoint;
 
+fun excursion init elements =
+  let
+    val immediate = not (Goal.future_enabled ());
+
+    fun proof_result (tr, trs) (st, _) =
+      let
+        val (result, st') = Toplevel.proof_result immediate (tr, trs) st;
+        val pos' = Toplevel.pos_of (List.last (tr :: trs));
+      in (result, (st', pos')) end;
+
+    fun element_result elem x =
+      fold_map proof_result
+        (Outer_Syntax.read_element (#2 (Outer_Syntax.get_syntax ())) init elem) x;
+
+    val (results, (end_state, end_pos)) =
+      fold_map element_result elements (Toplevel.toplevel, Position.none);
+
+    val thy = Toplevel.end_theory end_pos end_state;
+  in (flat results, thy) end;
+
 fun load_thy update_time dir header pos text parents =
   let
     val time = ! Toplevel.timing;
@@ -179,29 +199,30 @@ fun load_thy update_time dir header pos text parents =
       begin_theory dir header parents
       |> Present.begin_theory update_time dir uses;
 
-    val (lexs, outer_syntax) = Outer_Syntax.get_syntax ();
+    val lexs = Keyword.get_lexicons ();
 
     val toks = Thy_Syntax.parse_tokens lexs pos text;
     val spans = Thy_Syntax.parse_spans toks;
-    val elements =
-      maps (Outer_Syntax.read_element outer_syntax init) (Thy_Syntax.parse_elements spans);
+    val elements = Thy_Syntax.parse_elements spans;
 
     val _ = Present.theory_source name
       (fn () => HTML.html_mode (implode o map Thy_Syntax.present_span) spans);
 
     val _ = if time then writeln ("\n**** Starting theory " ^ quote name ^ " ****") else ();
-    val (results, thy) = cond_timeit time "" (fn () => Toplevel.excursion elements);
+    val (results, thy) = cond_timeit time "" (fn () => excursion init elements);
     val _ = if time then writeln ("**** Finished theory " ^ quote name ^ " ****\n") else ();
 
     val present =
       singleton (Future.cond_forks {name = "Outer_Syntax.present:" ^ name, group = NONE,
         deps = map Future.task_of results, pri = 0, interrupts = true})
       (fn () =>
-        Thy_Output.present_thy (#1 lexs) Keyword.command_tags
-          (Outer_Syntax.is_markup outer_syntax)
-          (maps Future.join results) toks
-        |> Buffer.content
-        |> Present.theory_output name);
+        let val ((minor, _), outer_syntax) = Outer_Syntax.get_syntax () in
+          Thy_Output.present_thy minor Keyword.command_tags
+            (Outer_Syntax.is_markup outer_syntax)
+            (maps Future.join results) toks
+          |> Buffer.content
+          |> Present.theory_output name
+        end);
 
   in (thy, present) end;
 

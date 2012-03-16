@@ -90,8 +90,8 @@ sig
   val add_hook: (transition -> state -> state -> unit) -> unit
   val transition: bool -> transition -> state -> (state * (exn * string) option) option
   val command: transition -> state -> state
-  val excursion:
-    (transition * transition list) list -> (transition * state) list future list * theory
+  val proof_result: bool -> transition * transition list -> state ->
+    (transition * state) list future * state
 end;
 
 structure Toplevel: TOPLEVEL =
@@ -644,7 +644,7 @@ fun command_result tr st =
   in (st', st') end;
 
 
-(* excursion of units, consisting of commands with proof *)
+(* scheduled proof result *)
 
 structure States = Proof_Data
 (
@@ -691,13 +691,5 @@ fun proof_result immediate (tr, proof_trs) st =
 
       in (result, st'') end
   end;
-
-fun excursion input =
-  let
-    val end_pos = if null input then error "No input" else pos_of (fst (List.last input));
-    val immediate = not (Goal.future_enabled ());
-    val (results, end_state) = fold_map (proof_result immediate) input toplevel;
-    val thy = end_theory end_pos end_state;
-  in (results, thy) end;
 
 end;
