@@ -114,6 +114,8 @@ and predicates.  Consolidation of some relation theorems:
   Domain_def ~> Domain_unfold
   Range_def ~> Domain_converse [symmetric]
 
+Generalized theorems INF_INT_eq, INF_INT_eq2, SUP_UN_eq, SUP_UN_eq2.
+
 INCOMPATIBILITY.
 
 * Consolidated various theorem names relating to Finite_Set.fold

@@ -95,6 +95,18 @@ lemma sup_Un_eq [pred_set_conv]: "(\<lambda>x. x \<in> R) \<squnion> (\<lambda>x
 lemma sup_Un_eq2 [pred_set_conv]: "(\<lambda>x y. (x, y) \<in> R) \<squnion> (\<lambda>x y. (x, y) \<in> S) = (\<lambda>x y. (x, y) \<in> R \<union> S)"
   by (simp add: sup_fun_def)
 
+lemma INF_INT_eq [pred_set_conv]: "(\<Sqinter>i\<in>S. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Inter>i\<in>S. r i))"
+  by (simp add: fun_eq_iff)
+
+lemma INF_INT_eq2 [pred_set_conv]: "(\<Sqinter>i\<in>S. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Inter>i\<in>S. r i))"
+  by (simp add: fun_eq_iff)
+
+lemma SUP_UN_eq [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Union>i\<in>S. r i))"
+  by (simp add: fun_eq_iff)
+
+lemma SUP_UN_eq2 [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Union>i\<in>S. r i))"
+  by (simp add: fun_eq_iff)
+
 lemma Inf_INT_eq [pred_set_conv]: "\<Sqinter>S = (\<lambda>x. x \<in> INTER S Collect)"
   by (simp add: fun_eq_iff)
 
@@ -118,19 +130,6 @@ lemma Sup_SUP_eq2 [pred_set_conv]: "\<Squnion>S = (\<lambda>x y. (x, y) \<in> UN
 
 lemma SUP_Sup_eq2 [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x y. (x, y) \<in> i)) = (\<lambda>x y. (x, y) \<in> \<Union>S)"
   by (simp add: fun_eq_iff)
-
-lemma INF_INT_eq [pred_set_conv]: "(\<Sqinter>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Inter>i. r i))"
-  by (simp add: fun_eq_iff)
-
-lemma INF_INT_eq2 [pred_set_conv]: "(\<Sqinter>i\<in>S. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Inter>i\<in>S. r i))"
-  by (simp add: fun_eq_iff)
-
-lemma SUP_UN_eq [pred_set_conv]: "(\<Squnion>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Union>i. r i))"
-  by (simp add: fun_eq_iff)
-
-lemma SUP_UN_eq2 [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Union>i\<in>S. r i))"
-  by (simp add: fun_eq_iff)
-
 
 
 subsection {* Properties of relations *}
