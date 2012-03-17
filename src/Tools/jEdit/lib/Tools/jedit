@@ -228,7 +228,6 @@ then
   cp -p -R -f "${RESOURCES[@]}" dist/classes/.
   cp src/jEdit.props dist/properties/.
   cp -p -R -f src/modes/. dist/modes/.
-  cp -p -R -f "$SCALA_HOME/misc/scala-tool-support/jedit/modes/scala.xml" dist/modes/.
 
   perl -i -e 'while (<>) {
     if (m/NAME="javacc"/) {
