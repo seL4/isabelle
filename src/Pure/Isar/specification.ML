@@ -119,7 +119,8 @@ fun prepare prep_vars parse_prop prep_att do_close raw_vars raw_specss ctxt =
 
     val Asss =
       (map o map) snd raw_specss
-      |> (burrow o burrow) (Par_List.map_name "Specification.parse_prop" (parse_prop params_ctxt));
+      |> (burrow o burrow)
+        (grouped 10 (Par_List.map_name "Specification.parse_prop") (parse_prop params_ctxt));
     val names = Variable.names_of (params_ctxt |> (fold o fold o fold) Variable.declare_term Asss)
       |> fold Name.declare xs;
     val Asss' = #1 ((fold_map o fold_map o fold_map) Term.free_dummy_patterns Asss names);
@@ -213,7 +214,7 @@ fun gen_def prep (raw_var, raw_spec) int lthy =
           in (b, mx) end);
     val name = Thm.def_binding_optional b raw_name;
     val ((lhs, (_, raw_th)), lthy2) = lthy
-      |> Local_Theory.define (var, ((Binding.suffix_name "_raw" name, []), rhs));
+      |> Local_Theory.define_internal (var, ((Binding.suffix_name "_raw" name, []), rhs));
 
     val th = prove lthy2 raw_th;
     val lthy3 = lthy2 |> Spec_Rules.add Spec_Rules.Equational ([lhs], [th]);

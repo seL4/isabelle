@@ -360,7 +360,7 @@ fun parse_term is_prop ctxt =
 
           val results' =
             if parsed_len > 1 then
-              (Par_List.map_name "Syntax_Phases.parse_term" o apsnd o Exn.maps_result)
+              (grouped 10 (Par_List.map_name "Syntax_Phases.parse_term") o apsnd o Exn.maps_result)
                 check results
             else results;
           val reports' = fst (hd results');

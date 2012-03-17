@@ -1130,10 +1130,10 @@ qed auto
 lemma shift1_degree: "degree (shift1 p) = 1 + degree p"
   by (simp add: shift1_def)
 lemma funpow_shift1_degree: "degree (funpow k shift1 p) = k + degree p "
-  by (induct k arbitrary: p, auto simp add: shift1_degree)
+  by (induct k arbitrary: p) (auto simp add: shift1_degree)
 
 lemma funpow_shift1_nz: "p \<noteq> 0\<^sub>p \<Longrightarrow> funpow n shift1 p \<noteq> 0\<^sub>p"
-  by (induct n arbitrary: p, simp_all add: funpow_def)
+  by (induct n arbitrary: p) (simp_all add: funpow.simps)
 
 lemma head_isnpolyh_Suc[simp]: "isnpolyh p (Suc n) \<Longrightarrow> head p = p"
   by (induct p arbitrary: n rule: degree.induct, auto)

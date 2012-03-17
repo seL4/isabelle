@@ -390,10 +390,13 @@ Outer_Syntax.command_spec from a major keyword introduced via theory
 header declaration; it can be passed to Outer_Syntax.command etc.
 
 * Local_Theory.define no longer hard-wires default theorem name
-"foo_def": definitional packages need to make this explicit, and may
-choose to omit theorem bindings for definitions by using
-Binding.empty/Attrib.empty_binding.  Potential INCOMPATIBILITY for
-derived definitional packages.
+"foo_def", but retains the binding as given.  If that is Binding.empty
+/ Attrib.empty_binding, the result is not registered as user-level
+fact.  The Local_Theory.define_internal variant allows to specify a
+non-empty name (used for the foundation in the background theory),
+while omitting the fact binding in the user-context.  Potential
+INCOMPATIBILITY for derived definitional packages: need to specify
+naming policy for primitive definitions more explicitly.
 
 * Renamed Thm.capply to Thm.apply, and Thm.cabs to Thm.lambda in
 conformance with similar operations in structure Term and Logic.

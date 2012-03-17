@@ -9,7 +9,7 @@ signature GENERIC_TARGET =
 sig
   val define: (((binding * typ) * mixfix) * (binding * term) ->
       term list * term list -> local_theory -> (term * thm) * local_theory) ->
-    (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
+    bool -> (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory
   val notes: (string -> (Attrib.binding * (thm list * Args.src list) list) list ->
       (Attrib.binding * (thm list * Args.src list) list) list -> local_theory -> local_theory) ->
@@ -48,7 +48,7 @@ fun check_mixfix ctxt (b, extra_tfrees) mx =
 
 (* define *)
 
-fun define foundation ((b, mx), ((b_def, atts), rhs)) lthy =
+fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
   let
     val thy = Proof_Context.theory_of lthy;
     val thy_ctxt = Proof_Context.init_global thy;
@@ -88,7 +88,8 @@ fun define foundation ((b, mx), ((b_def, atts), rhs)) lthy =
 
     (*note*)
     val ([(res_name, [res])], lthy4) = lthy3
-      |> Local_Theory.notes_kind "" [((b_def, atts), [([def], [])])];
+      |> Local_Theory.notes_kind ""
+        [((if internal then Binding.empty else b_def, atts), [([def], [])])];
   in ((lhs, (res_name, res)), lthy4) end;
 
 

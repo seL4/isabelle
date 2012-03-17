@@ -2225,13 +2225,12 @@ fun read_parent NONE ctxt = (NONE, ctxt)
         Type (name, Ts) => (SOME (Ts, name), fold Variable.declare_typ Ts ctxt)
       | T => error ("Bad parent record specification: " ^ Syntax.string_of_typ ctxt T));
 
-fun prep_field prep (x, T, mx) = (x, prep T, mx)
-  handle ERROR msg =>
-    cat_error msg ("The error(s) above occurred in record field " ^ Binding.print x);
-
-fun read_field raw_field ctxt =
-  let val field as (_, T, _) = prep_field (Syntax.read_typ ctxt) raw_field
-  in (field, Variable.declare_typ T ctxt) end;
+fun read_fields raw_fields ctxt =
+  let
+    val Ts = Syntax.read_typs ctxt (map (fn (_, raw_T, _) => raw_T) raw_fields);
+    val fields = map2 (fn (x, _, mx) => fn T => (x, T, mx)) raw_fields Ts;
+    val ctxt' = fold Variable.declare_typ Ts ctxt;
+  in (fields, ctxt') end;
 
 in
 
@@ -2252,7 +2251,11 @@ fun add_record (params, binding) raw_parent raw_fields thy =
     val parent_args = (case parent of SOME (Ts, _) => Ts | NONE => []);
     val parents = get_parent_info thy parent;
 
-    val bfields = map (prep_field cert_typ) raw_fields;
+    val bfields =
+      raw_fields |> map (fn (x, raw_T, mx) => (x, cert_typ raw_T, mx)
+        handle ERROR msg =>
+          cat_error msg ("The error(s) above occurred in record field " ^ Binding.print x));
+
 
     (* errors *)
 
@@ -2293,7 +2296,7 @@ fun add_record_cmd (raw_params, binding) raw_parent raw_fields thy =
     val params = map (apsnd (Typedecl.read_constraint ctxt)) raw_params;
     val ctxt1 = fold (Variable.declare_typ o TFree) params ctxt;
     val (parent, ctxt2) = read_parent raw_parent ctxt1;
-    val (fields, ctxt3) = fold_map read_field raw_fields ctxt2;
+    val (fields, ctxt3) = read_fields raw_fields ctxt2;
     val params' = map (Proof_Context.check_tfree ctxt3) params;
   in thy |> add_record (params', binding) parent fields end;
 

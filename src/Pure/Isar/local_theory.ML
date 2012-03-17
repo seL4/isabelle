@@ -32,6 +32,8 @@ sig
   val global_morphism: local_theory -> morphism
   val define: (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory
+  val define_internal: (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
+    (term * (string * thm)) * local_theory
   val note: Attrib.binding * thm list -> local_theory -> (string * thm list) * local_theory
   val notes: (Attrib.binding * (thm list * Attrib.src list) list) list ->
     local_theory -> (string * thm list) list * local_theory
@@ -63,7 +65,7 @@ struct
 (* type lthy *)
 
 type operations =
- {define: (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
+ {define: bool -> (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory,
   notes: string ->
     (Attrib.binding * (thm list * Attrib.src list) list) list ->
@@ -195,7 +197,8 @@ fun operation2 f x y lthy = operation (fn ops => f ops x y) lthy;
 
 val pretty = operation #pretty;
 val abbrev = apsnd checkpoint ooo operation2 #abbrev;
-val define = apsnd checkpoint oo operation1 #define;
+val define = apsnd checkpoint oo operation2 #define false;
+val define_internal = apsnd checkpoint oo operation2 #define true;
 val notes_kind = apsnd checkpoint ooo operation2 #notes;
 val declaration = checkpoint ooo operation2 #declaration;
 
