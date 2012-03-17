@@ -52,7 +52,7 @@ test: \
   HOL-Isar_Examples \
   HOL-Lattice \
   HOL-Library-Codegenerator_Test \
-  HOL-Matrix \
+  HOL-Matrix_LP \
   HOL-Metis_Examples \
   HOL-MicroJava \
   HOL-Mirabelle \
@@ -1172,22 +1172,26 @@ $(LOG)/HOL-SET_Protocol.gz: $(OUT)/HOL SET_Protocol/ROOT.ML		\
 	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL SET_Protocol
 
 
-## HOL-Matrix
+## HOL-Matrix_LP
 
-HOL-Matrix: HOL $(LOG)/HOL-Matrix.gz
+HOL-Matrix_LP: HOL $(LOG)/HOL-Matrix_LP.gz
 
-$(LOG)/HOL-Matrix.gz: $(OUT)/HOL Matrix/ComputeFloat.thy		\
-  Matrix/ComputeHOL.thy Matrix/ComputeNumeral.thy			\
-  Matrix/Compute_Oracle/Compute_Oracle.thy Matrix/Compute_Oracle/am.ML	\
-  Matrix/Compute_Oracle/am_compiler.ML Matrix/Compute_Oracle/am_ghc.ML	\
-  Matrix/Compute_Oracle/am_interpreter.ML				\
-  Matrix/Compute_Oracle/am_sml.ML Matrix/Compute_Oracle/compute.ML	\
-  Matrix/Compute_Oracle/linker.ML Matrix/Cplex.thy			\
-  Matrix/CplexMatrixConverter.ML Matrix/Cplex_tools.ML			\
-  Matrix/FloatSparseMatrixBuilder.ML Matrix/LP.thy Matrix/Matrix.thy	\
-  Matrix/ROOT.ML Matrix/SparseMatrix.thy Matrix/document/root.tex	\
-  Matrix/fspmlp.ML Matrix/matrixlp.ML Tools/float_arith.ML
-	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Matrix
+$(LOG)/HOL-Matrix_LP.gz: $(OUT)/HOL Matrix_LP/ComputeFloat.thy		\
+  Matrix_LP/ComputeHOL.thy Matrix_LP/ComputeNumeral.thy			\
+  Matrix_LP/Compute_Oracle/Compute_Oracle.thy				\
+  Matrix_LP/Compute_Oracle/am.ML					\
+  Matrix_LP/Compute_Oracle/am_compiler.ML				\
+  Matrix_LP/Compute_Oracle/am_ghc.ML					\
+  Matrix_LP/Compute_Oracle/am_interpreter.ML				\
+  Matrix_LP/Compute_Oracle/am_sml.ML					\
+  Matrix_LP/Compute_Oracle/compute.ML					\
+  Matrix_LP/Compute_Oracle/linker.ML Matrix_LP/Cplex.thy		\
+  Matrix_LP/CplexMatrixConverter.ML Matrix_LP/Cplex_tools.ML		\
+  Matrix_LP/FloatSparseMatrixBuilder.ML Matrix_LP/LP.thy		\
+  Matrix_LP/Matrix.thy Matrix_LP/ROOT.ML Matrix_LP/SparseMatrix.thy	\
+  Matrix_LP/document/root.tex Matrix_LP/fspmlp.ML			\
+  Matrix_LP/matrixlp.ML Tools/float_arith.ML
+	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Matrix_LP
 
 
 ## TLA
@@ -1901,9 +1905,9 @@ clean:
 		$(LOG)/HOL-Lattice $(LOG)/HOL-Lattice.gz		\
 		$(LOG)/HOL-Lex.gz $(LOG)/HOL-Library.gz			\
 		$(LOG)/HOL-Library-Codegenerator_Test.gz		\
-		$(LOG)/HOL-Main.gz $(LOG)/HOL-Matrix			\
-		$(LOG)/HOL-Matrix.gz $(LOG)/HOL-Metis_Examples.gz	\
-		$(LOG)/HOL-MicroJava.gz $(LOG)/HOL-Mirabelle.gz		\
+		$(LOG)/HOL-Main.gz $(LOG)/HOL-Matrix_LP.gz		\
+		$(LOG)/HOL-Metis_Examples.gz $(LOG)/HOL-MicroJava.gz	\
+		$(LOG)/HOL-Mirabelle.gz					\
 		$(LOG)/HOL-Multivariate_Analysis.gz			\
 		$(LOG)/HOL-Mutabelle.gz $(LOG)/HOL-NSA-Examples.gz	\
 		$(LOG)/HOL-NSA.gz $(LOG)/HOL-NanoJava.gz		\

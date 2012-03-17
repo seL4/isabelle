@@ -32,7 +32,7 @@ ISABELLE_SESSIONS="
   HOL-Isar_Examples
   HOL-Lattice
   HOL-Library-Codegenerator_Test
-  HOL-Matrix
+  HOL-Matrix_LP
   HOL-Metis_Examples
   HOL-MicroJava
   HOL-Mirabelle
