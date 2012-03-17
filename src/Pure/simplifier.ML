@@ -189,9 +189,8 @@ local
 
 fun gen_simproc prep {name = b, lhss, proc, identifier} lthy =
   let
-    val naming = Local_Theory.naming_of lthy;
     val simproc = make_simproc
-      {name = Name_Space.full_name naming b,
+      {name = Local_Theory.full_name lthy b,
        lhss =
         let
           val lhss' = prep lthy lhss;
@@ -201,8 +200,9 @@ fun gen_simproc prep {name = b, lhss, proc, identifier} lthy =
        proc = proc,
        identifier = identifier};
   in
-    lthy |> Local_Theory.declaration {syntax = false, pervasive = false} (fn phi => fn context =>
+    lthy |> Local_Theory.declaration {syntax = false, pervasive = true} (fn phi => fn context =>
       let
+        val naming = Proof_Context.target_naming_of context;
         val b' = Morphism.binding phi b;
         val simproc' = transform_simproc phi simproc;
       in

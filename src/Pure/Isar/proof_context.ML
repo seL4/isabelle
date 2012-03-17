@@ -141,6 +141,7 @@ sig
     Context.generic -> Context.generic
   val target_notation: bool -> Syntax.mode -> (term * mixfix) list -> morphism ->
     Context.generic -> Context.generic
+  val target_naming_of: Context.generic -> Name_Space.naming
   val class_alias: binding -> class -> Proof.context -> Proof.context
   val type_alias: binding -> string -> Proof.context -> Proof.context
   val const_alias: binding -> string -> Proof.context -> Proof.context
@@ -990,6 +991,11 @@ fun target_notation add mode args phi =
   in Context.mapping (Sign.notation add mode args') (notation add mode args') end;
 
 end;
+
+
+(* naming *)
+
+val target_naming_of = Context.cases Sign.naming_of naming_of;
 
 
 (* aliases *)
