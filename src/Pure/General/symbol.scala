@@ -267,13 +267,13 @@ object Symbol
       val mapping =
         for {
           (sym, props) <- symbols
-          val code =
+          code =
             try { Integer.decode(props("code")).intValue }
             catch {
               case _: NoSuchElementException => error("Missing code for symbol " + sym)
               case _: NumberFormatException => error("Bad code for symbol " + sym)
             }
-          val ch = new String(Character.toChars(code))
+          ch = new String(Character.toChars(code))
         } yield {
           if (code < 128) error("Illegal ASCII code for symbol " + sym)
           else (sym, ch)

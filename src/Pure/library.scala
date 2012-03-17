@@ -130,8 +130,8 @@ object Library
 
   /* simple dialogs */
 
-  private def simple_dialog(kind: Int, default_title: String)
-    (parent: Component, title: String, message: Any*)
+  private def simple_dialog(kind: Int, default_title: String,
+    parent: Component, title: String, message: Seq[Any])
   {
     Swing_Thread.now {
       val java_message = message map { case x: scala.swing.Component => x.peer case x => x }
@@ -141,9 +141,14 @@ object Library
     }
   }
 
-  def dialog = simple_dialog(JOptionPane.PLAIN_MESSAGE, null) _
-  def warning_dialog = simple_dialog(JOptionPane.WARNING_MESSAGE, "Warning") _
-  def error_dialog = simple_dialog(JOptionPane.ERROR_MESSAGE, "Error") _
+  def dialog(parent: Component, title: String, message: Any*) =
+    simple_dialog(JOptionPane.PLAIN_MESSAGE, null, parent, title, message)
+
+  def warning_dialog(parent: Component, title: String, message: Any*) =
+    simple_dialog(JOptionPane.WARNING_MESSAGE, "Warning", parent, title, message)
+
+  def error_dialog(parent: Component, title: String, message: Any*) =
+    simple_dialog(JOptionPane.ERROR_MESSAGE, "Error", parent, title, message)
 
   def confirm_dialog(parent: Component, title: String, option_type: Int, message: Any*): Int =
     Swing_Thread.now {

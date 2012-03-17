@@ -181,7 +181,7 @@ object Isabelle
   def document_views(buffer: Buffer): List[Document_View] =
     for {
       text_area <- jedit_text_areas(buffer).toList
-      val doc_view = document_view(text_area)
+      doc_view = document_view(text_area)
       if doc_view.isDefined
     } yield doc_view.get
 

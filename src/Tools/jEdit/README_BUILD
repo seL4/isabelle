@@ -9,6 +9,8 @@ Requirements for instantaneous build from sources
 * Scala 2.8.2.final or 2.9.1-1
   http://www.scala-lang.org
 
+  (experimental support for Scala 2.10.x milestones)
+
 * Auxiliary jedit_build component
   http://www4.in.tum.de/~wenzelm/test/jedit_build-20120313.tar.gz
 

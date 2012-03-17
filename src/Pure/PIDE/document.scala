@@ -467,7 +467,7 @@ object Document
       var execs1 = Map.empty[Exec_ID, Command.State]
       for {
         (version_id, version) <- versions1.iterator
-        val command_execs = assignments1(version_id).command_execs
+        command_execs = assignments1(version_id).command_execs
         (_, node) <- version.nodes.entries
         command <- node.commands.iterator
       } {

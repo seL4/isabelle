@@ -124,10 +124,10 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     Text.Perspective(
       for {
         i <- 0 until text_area.getVisibleLines
-        val start = text_area.getScreenLineStartOffset(i)
-        val stop = text_area.getScreenLineEndOffset(i)
+        start = text_area.getScreenLineStartOffset(i)
+        stop = text_area.getScreenLineEndOffset(i)
         if start >= 0 && stop >= 0
-        val range <- buffer_range.try_restrict(Text.Range(start, stop))
+        range <- buffer_range.try_restrict(Text.Range(start, stop))
         if !range.is_singularity
       }
       yield range)
@@ -388,10 +388,10 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
                       if (visible_cmds.exists(changed.commands)) {
                         for {
                           line <- 0 until text_area.getVisibleLines
-                          val start = text_area.getScreenLineStartOffset(line) if start >= 0
-                          val end = text_area.getScreenLineEndOffset(line) if end >= 0
-                          val range = proper_line_range(start, end)
-                          val line_cmds = snapshot.node.command_range(snapshot.revert(range)).map(_._1)
+                          start = text_area.getScreenLineStartOffset(line) if start >= 0
+                          end = text_area.getScreenLineEndOffset(line) if end >= 0
+                          range = proper_line_range(start, end)
+                          line_cmds = snapshot.node.command_range(snapshot.revert(range)).map(_._1)
                           if line_cmds.exists(changed.commands)
                         } text_area.invalidateScreenLineRange(line, line)
                       }
