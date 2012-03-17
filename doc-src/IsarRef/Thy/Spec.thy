@@ -103,10 +103,10 @@ text {*
   \end{matharray}
 
   @{rail "
-    @@{command context} @{syntax name} @'begin'
+    @@{command context} @{syntax nameref} @'begin'
     ;
 
-    @{syntax_def target}: '(' @'in' @{syntax name} ')'
+    @{syntax_def target}: '(' @'in' @{syntax nameref} ')'
   "}
 
   \begin{description}
