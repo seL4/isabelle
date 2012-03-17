@@ -276,13 +276,17 @@ lemma sym_INTER:
   "\<forall>x\<in>S. sym (r x) \<Longrightarrow> sym (INTER S r)"
   by (fast intro: symI elim: symE)
 
-(* FIXME thm sym_INTER [to_pred] *)
+lemma symp_INF:
+  "\<forall>x\<in>S. symp (r x) \<Longrightarrow> symp (INFI S r)"
+  by (fact sym_INTER [to_pred])
 
 lemma sym_UNION:
   "\<forall>x\<in>S. sym (r x) \<Longrightarrow> sym (UNION S r)"
   by (fast intro: symI elim: symE)
 
-(* FIXME thm sym_UNION [to_pred] *)
+lemma symp_SUP:
+  "\<forall>x\<in>S. symp (r x) \<Longrightarrow> symp (SUPR S r)"
+  by (fact sym_UNION [to_pred])
 
 
 subsubsection {* Antisymmetry *}
