@@ -359,7 +359,7 @@ apply (subgoal_tac "#0 $< b $* (#1 $+ q $- q') ")
  apply (erule zle_zless_trans)
  apply (simp add: zdiff_zmult_distrib2 zadd_zmult_distrib2 zadd_ac zcompare_rls)
  apply (erule zle_zless_trans)
- apply (simp add: );
+ apply simp
 apply (subgoal_tac "b $* q' $< b $* (#1 $+ q)")
  prefer 2
  apply (simp add: zdiff_zmult_distrib2 zadd_zmult_distrib2 zadd_ac zcompare_rls)
@@ -430,16 +430,18 @@ lemma posDivAlg_induct_lemma [rule_format]:
   assumes prem:
         "!!a b. [| a \<in> int; b \<in> int;
                    ~ (a $< b | b $<= #0) \<longrightarrow> P(<a, #2 $* b>) |] ==> P(<a,b>)"
-  shows "<u,v> \<in> int*int \<longrightarrow> P(<u,v>)"
-apply (rule_tac a = "<u,v>" in wf_induct)
-apply (rule_tac A = "int*int" and f = "%<a,b>.nat_of (a $- b $+ #1)"
-       in wf_measure)
-apply clarify
-apply (rule prem)
-apply (drule_tac [3] x = "<xa, #2 $\<times> y>" in spec)
-apply auto
-apply (simp add: not_zle_iff_zless posDivAlg_termination)
-done
+  shows "<u,v> \<in> int*int \<Longrightarrow> P(<u,v>)"
+using wf_measure [where A = "int*int" and f = "%<a,b>.nat_of (a $- b $+ #1)"]
+proof (induct "<u,v>" arbitrary: u v rule: wf_induct)
+  case (step x)
+  hence uv: "u \<in> int" "v \<in> int" by auto
+  thus ?case
+    apply (rule prem) 
+    apply (rule impI) 
+    apply (rule step) 
+    apply (auto simp add: step uv not_zle_iff_zless posDivAlg_termination)
+    done
+qed
 
 
 lemma posDivAlg_induct [consumes 2]:
@@ -459,26 +461,20 @@ done
 (*FIXME: use intify in integ_of so that we always have @{term"integ_of w \<in> int"}.
     then this rewrite can work for all constants!!*)
 lemma intify_eq_0_iff_zle: "intify(m) = #0 \<longleftrightarrow> (m $<= #0 & #0 $<= m)"
-apply (simp (no_asm) add: int_eq_iff_zle)
-done
+  by (simp add: int_eq_iff_zle)
 
 
 subsection{* Some convenient biconditionals for products of signs *}
 
 lemma zmult_pos: "[| #0 $< i; #0 $< j |] ==> #0 $< i $* j"
-apply (drule zmult_zless_mono1)
-apply auto
-done
+  by (drule zmult_zless_mono1, auto)
 
 lemma zmult_neg: "[| i $< #0; j $< #0 |] ==> #0 $< i $* j"
-apply (drule zmult_zless_mono1_neg)
-apply auto
-done
+  by (drule zmult_zless_mono1_neg, auto)
 
 lemma zmult_pos_neg: "[| #0 $< i; j $< #0 |] ==> i $* j $< #0"
-apply (drule zmult_zless_mono1_neg)
-apply auto
-done
+  by (drule zmult_zless_mono1_neg, auto)
+
 
 (** Inequality reasoning **)
 
@@ -591,16 +587,18 @@ lemma negDivAlg_induct_lemma [rule_format]:
         "!!a b. [| a \<in> int; b \<in> int;
                    ~ (#0 $<= a $+ b | b $<= #0) \<longrightarrow> P(<a, #2 $* b>) |]
                 ==> P(<a,b>)"
-  shows "<u,v> \<in> int*int \<longrightarrow> P(<u,v>)"
-apply (rule_tac a = "<u,v>" in wf_induct)
-apply (rule_tac A = "int*int" and f = "%<a,b>.nat_of ($- a $- b)"
-       in wf_measure)
-apply clarify
-apply (rule prem)
-apply (drule_tac [3] x = "<xa, #2 $\<times> y>" in spec)
-apply auto
-apply (simp add: not_zle_iff_zless negDivAlg_termination)
-done
+  shows "<u,v> \<in> int*int \<Longrightarrow> P(<u,v>)"
+using wf_measure [where A = "int*int" and f = "%<a,b>.nat_of ($- a $- b)"]
+proof (induct "<u,v>" arbitrary: u v rule: wf_induct)
+  case (step x)
+  hence uv: "u \<in> int" "v \<in> int" by auto
+  thus ?case
+    apply (rule prem) 
+    apply (rule impI) 
+    apply (rule step) 
+    apply (auto simp add: step uv not_zle_iff_zless negDivAlg_termination)
+    done
+qed
 
 lemma negDivAlg_induct [consumes 2]:
   assumes u_int: "u \<in> int"
@@ -729,12 +727,10 @@ done
 (** intify cancellation **)
 
 lemma zdiv_intify1 [simp]: "intify(x) zdiv y = x zdiv y"
-apply (simp (no_asm) add: zdiv_def)
-done
+  by (simp add: zdiv_def)
 
 lemma zdiv_intify2 [simp]: "x zdiv intify(y) = x zdiv y"
-apply (simp (no_asm) add: zdiv_def)
-done
+  by (simp add: zdiv_def)
 
 lemma zdiv_type [iff,TC]: "z zdiv w \<in> int"
 apply (unfold zdiv_def)
@@ -742,12 +738,10 @@ apply (blast intro: fst_type divAlg_type)
 done
 
 lemma zmod_intify1 [simp]: "intify(x) zmod y = x zmod y"
-apply (simp (no_asm) add: zmod_def)
-done
+  by (simp add: zmod_def)
 
 lemma zmod_intify2 [simp]: "x zmod intify(y) = x zmod y"
-apply (simp (no_asm) add: zmod_def)
-done
+  by (simp add: zmod_def)
 
 lemma zmod_type [iff,TC]: "z zmod w \<in> int"
 apply (unfold zmod_def)
@@ -760,13 +754,10 @@ done
     certain equations **)
 
 lemma DIVISION_BY_ZERO_ZDIV: "a zdiv #0 = #0"
-apply (simp (no_asm) add: zdiv_def divAlg_def posDivAlg_zero_divisor)
-done  (*NOT for adding to default simpset*)
+  by (simp add: zdiv_def divAlg_def posDivAlg_zero_divisor)
 
 lemma DIVISION_BY_ZERO_ZMOD: "a zmod #0 = intify(a)"
-apply (simp (no_asm) add: zmod_def divAlg_def posDivAlg_zero_divisor)
-done  (*NOT for adding to default simpset*)
-
+  by (simp add: zmod_def divAlg_def posDivAlg_zero_divisor)
 
 
 (** Basic laws about division and remainder **)
@@ -1021,24 +1012,19 @@ done
 subsection{* Computation of division and remainder *}
 
 lemma zdiv_zero [simp]: "#0 zdiv b = #0"
-apply (simp (no_asm) add: zdiv_def divAlg_def)
-done
+  by (simp add: zdiv_def divAlg_def)
 
 lemma zdiv_eq_minus1: "#0 $< b ==> #-1 zdiv b = #-1"
-apply (simp (no_asm_simp) add: zdiv_def divAlg_def)
-done
+  by (simp (no_asm_simp) add: zdiv_def divAlg_def)
 
 lemma zmod_zero [simp]: "#0 zmod b = #0"
-apply (simp (no_asm) add: zmod_def divAlg_def)
-done
+  by (simp add: zmod_def divAlg_def)
 
 lemma zdiv_minus1: "#0 $< b ==> #-1 zdiv b = #-1"
-apply (simp (no_asm_simp) add: zdiv_def divAlg_def)
-done
+  by (simp add: zdiv_def divAlg_def)
 
 lemma zmod_minus1: "#0 $< b ==> #-1 zmod b = b $- #1"
-apply (simp (no_asm_simp) add: zmod_def divAlg_def)
-done
+  by (simp add: zmod_def divAlg_def)
 
 (** a positive, b positive **)
 
@@ -1350,20 +1336,16 @@ apply (rule zmod_zmult1_eq)
 done
 
 lemma zdiv_zmult_self1 [simp]: "intify(b) \<noteq> #0 ==> (a$*b) zdiv b = intify(a)"
-apply (simp (no_asm_simp) add: zdiv_zmult1_eq)
-done
+  by (simp add: zdiv_zmult1_eq)
 
 lemma zdiv_zmult_self2 [simp]: "intify(b) \<noteq> #0 ==> (b$*a) zdiv b = intify(a)"
-apply (subst zmult_commute , erule zdiv_zmult_self1)
-done
+  by (simp add: zmult_commute) 
 
 lemma zmod_zmult_self1 [simp]: "(a$*b) zmod b = #0"
-apply (simp (no_asm) add: zmod_zmult1_eq)
-done
+  by (simp add: zmod_zmult1_eq)
 
 lemma zmod_zmult_self2 [simp]: "(b$*a) zmod b = #0"
-apply (simp (no_asm) add: zmult_commute zmod_zmult1_eq)
-done
+  by (simp add: zmult_commute zmod_zmult1_eq)
 
 
 (** proving (a$+b) zdiv c =

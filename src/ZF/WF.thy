@@ -57,7 +57,7 @@ subsubsection{*Equivalences between @{term wf} and @{term wf_on}*}
 lemma wf_imp_wf_on: "wf(r) ==> wf[A](r)"
 by (unfold wf_def wf_on_def, force)
 
-lemma wf_on_imp_wf: "[|wf[A](r); r \<subseteq> A*A|] ==> wf(r)";
+lemma wf_on_imp_wf: "[|wf[A](r); r \<subseteq> A*A|] ==> wf(r)"
 by (simp add: wf_on_def subset_Int_iff)
 
 lemma wf_on_field_imp_wf: "wf[field(r)](r) ==> wf(r)"
@@ -105,7 +105,7 @@ subsubsection{*Well-founded Induction*}
 
 text{*Consider the least @{term z} in @{term "domain(r)"} such that
   @{term "P(z)"} does not hold...*}
-lemma wf_induct [induct set: wf]:
+lemma wf_induct_raw:
     "[| wf(r);
         !!x.[| \<forall>y. <y,x>: r \<longrightarrow> P(y) |] ==> P(x) |]
      ==> P(a)"
@@ -114,7 +114,7 @@ apply (erule_tac x = "{z \<in> domain(r). ~ P(z)}" in allE)
 apply blast
 done
 
-lemmas wf_induct_rule = wf_induct [rule_format, induct set: wf]
+lemmas wf_induct = wf_induct_raw [rule_format, consumes 1, case_names step, induct set: wf]
 
 text{*The form of this rule is designed to match @{text wfI}*}
 lemma wf_induct2:
@@ -128,7 +128,7 @@ done
 lemma field_Int_square: "field(r \<inter> A*A) \<subseteq> A"
 by blast
 
-lemma wf_on_induct [consumes 2, induct set: wf_on]:
+lemma wf_on_induct_raw [consumes 2, induct set: wf_on]:
     "[| wf[A](r);  a \<in> A;
         !!x.[| x \<in> A;  \<forall>y\<in>A. <y,x>: r \<longrightarrow> P(y) |] ==> P(x)
      |]  ==>  P(a)"
@@ -137,8 +137,8 @@ apply (erule wf_induct2, assumption)
 apply (rule field_Int_square, blast)
 done
 
-lemmas wf_on_induct_rule =
-  wf_on_induct [rule_format, consumes 2, induct set: wf_on]
+lemmas wf_on_induct =
+  wf_on_induct_raw [rule_format, consumes 2, case_names step, induct set: wf_on]
 
 
 text{*If @{term r} allows well-founded induction
@@ -297,6 +297,7 @@ apply (rule fun_extension)
  apply (rule lam_type [THEN restrict_type2])
   apply blast
  apply (blast dest: transD)
+apply atomize
 apply (frule spec [THEN mp], assumption)
 apply (subgoal_tac "<xa,a1> \<in> r")
  apply (drule_tac x1 = xa in spec [THEN mp], assumption)
