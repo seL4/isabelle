@@ -150,7 +150,7 @@ struct
 local
 fun lhs_of eq = fst (Thm.dest_equals (cprop_of eq));
 in
-fun rewrite_conv [] ct = raise CTERM ("rewrite_conv", [])
+fun rewrite_conv [] ct = raise CTERM ("rewrite_conv", [ct])
   | rewrite_conv (eq :: eqs) ct =
       Thm.instantiate (Thm.match (lhs_of eq, ct)) eq
       handle Pattern.MATCH => rewrite_conv eqs ct;
