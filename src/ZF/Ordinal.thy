@@ -353,13 +353,18 @@ section{*Fundamental properties of the epsilon ordering (< on ordinals)*}
 
 subsubsection{*Proving That < is a Linear Ordering on the Ordinals*}
 
-lemma Ord_linear [rule_format]:
-     "Ord(i) ==> (\<forall>j. Ord(j) \<longrightarrow> i\<in>j | i=j | j\<in>i)"
-apply (erule trans_induct)
-apply (rule impI [THEN allI])
-apply (erule_tac i=j in trans_induct)
-apply (blast dest: Ord_trans)
-done
+lemma Ord_linear:
+     "Ord(i) \<Longrightarrow> Ord(j) \<Longrightarrow> i\<in>j | i=j | j\<in>i"
+proof (induct i arbitrary: j rule: trans_induct)
+  case (step i)
+  note step_i = step
+  show ?case using `Ord(j)`
+    proof (induct j rule: trans_induct)
+      case (step j)
+      thus ?case using step_i
+        by (blast dest: Ord_trans)
+    qed
+qed
 
 text{*The trichotomy law for ordinals*}
 lemma Ord_linear_lt:
