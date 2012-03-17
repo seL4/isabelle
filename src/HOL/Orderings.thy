@@ -1314,7 +1314,6 @@ begin
 
 definition
   [no_atp]: "\<top> = (\<lambda>x. \<top>)"
-declare top_fun_def_raw [no_atp]
 
 lemma top_apply [simp] (* CANDIDATE [code] *):
   "\<top> x = \<top>"

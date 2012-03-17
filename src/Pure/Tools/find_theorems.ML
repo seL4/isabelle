@@ -420,7 +420,10 @@ fun sorted_filter filters theorems =
       then by the substitution size*)
     fun result_ord (((p0, s0), _), ((p1, s1), _)) =
       prod_ord int_ord int_ord ((p1, s1), (p0, s0));
-  in map_filter eval_filters theorems |> sort result_ord |> map #2 end;
+  in
+    grouped 100 Par_List.map eval_filters theorems
+    |> map_filter I |> sort result_ord |> map #2
+  end;
 
 fun lazy_filter filters =
   let
@@ -581,7 +584,7 @@ fun gen_print_theorems find ctxt opt_goal opt_limit rem_dups raw_criteria =
     (if null theorems then [Pretty.str "nothing found"]
      else
       [Pretty.str (tally_msg ^ ":"), Pretty.str ""] @
-        map (pretty_theorem ctxt) theorems)
+        grouped 10 Par_List.map (pretty_theorem ctxt) theorems)
   end |> Pretty.chunks |> Pretty.writeln;
 
 fun print_theorems ctxt =

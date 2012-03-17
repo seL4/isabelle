@@ -36,11 +36,11 @@ fun check_const pred (nm, (ty, _)) =
 fun opt_not f (c as (_, (ty, _))) =
   if is_some (f c) then NONE else SOME (Term.size_of_typ ty);
 
-fun filter_const _ NONE = NONE
-  | filter_const f (SOME (c, r)) =
+fun filter_const _ _ NONE = NONE
+  | filter_const c f (SOME rank) =
       (case f c of
         NONE => NONE
-      | SOME i => SOME (c, Int.min (r, i)));
+      | SOME i => SOME (Int.min (rank, i)));
 
 
 (* pretty results *)
@@ -103,14 +103,13 @@ fun find_consts ctxt raw_criteria =
     val consts = Sign.consts_of thy;
     val (_, consts_tab) = #constants (Consts.dest consts);
     fun eval_entry c =
-      fold filter_const (user_visible consts :: criteria)
-        (SOME (c, low_ranking));
+      fold (filter_const c) (user_visible consts :: criteria) (SOME low_ranking);
 
     val matches =
-      Symtab.fold (cons o eval_entry) consts_tab []
-      |> map_filter I
-      |> sort (rev_order o int_ord o pairself snd)
-      |> map (apsnd fst o fst);
+      Symtab.fold (fn c => (case eval_entry c of NONE => I | SOME rank => cons (rank, c)))
+        consts_tab []
+      |> sort (prod_ord (rev_order o int_ord) (string_ord o pairself fst))
+      |> map (apsnd fst o snd);
   in
     Pretty.big_list "searched for:" (map pretty_criterion raw_criteria) ::
     Pretty.str "" ::
