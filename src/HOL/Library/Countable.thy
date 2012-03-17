@@ -276,7 +276,7 @@ let
       let
         val ty_name =
           (case goal of
-            (_ $ Const ("TYPE", Type ("itself", [Type (n, _)]))) => n
+            (_ $ Const (@{const_name TYPE}, Type (@{type_name itself}, [Type (n, _)]))) => n
           | _ => raise Match)
         val typedef_info = hd (Typedef.get_info ctxt ty_name)
         val typedef_thm = #type_definition (snd typedef_info)
