@@ -164,16 +164,16 @@ lemma pprt_0[simp]: "pprt 0 = 0" by (simp add: pprt_def)
 lemma nprt_0[simp]: "nprt 0 = 0" by (simp add: nprt_def)
 
 lemma pprt_eq_id [simp, no_atp]: "0 \<le> x \<Longrightarrow> pprt x = x"
-  by (simp add: pprt_def sup_aci sup_absorb1)
+  by (simp add: pprt_def sup_absorb1)
 
 lemma nprt_eq_id [simp, no_atp]: "x \<le> 0 \<Longrightarrow> nprt x = x"
-  by (simp add: nprt_def inf_aci inf_absorb1)
+  by (simp add: nprt_def inf_absorb1)
 
 lemma pprt_eq_0 [simp, no_atp]: "x \<le> 0 \<Longrightarrow> pprt x = 0"
-  by (simp add: pprt_def sup_aci sup_absorb2)
+  by (simp add: pprt_def sup_absorb2)
 
 lemma nprt_eq_0 [simp, no_atp]: "0 \<le> x \<Longrightarrow> nprt x = 0"
-  by (simp add: nprt_def inf_aci inf_absorb2)
+  by (simp add: nprt_def inf_absorb2)
 
 lemma sup_0_imp_0: "sup a (- a) = 0 \<Longrightarrow> a = 0"
 proof -
