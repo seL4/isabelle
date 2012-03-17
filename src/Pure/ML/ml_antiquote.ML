@@ -178,7 +178,12 @@ val _ = Context.>> (Context.map_theory
       >> (fn ((ctxt, raw_c), Ts) =>
         let
           val Const (c, _) = Proof_Context.read_const_proper ctxt true raw_c;
-          val const = Const (c, Consts.instance (Proof_Context.consts_of ctxt) (c, Ts));
+          val consts = Proof_Context.consts_of ctxt;
+          val n = length (Consts.typargs consts (c, Consts.type_scheme consts c));
+          val _ = length Ts <> n andalso
+            error ("Constant requires " ^ string_of_int n ^ " type argument(s): " ^
+              quote c ^ enclose "(" ")" (commas (replicate n "_")));
+          val const = Const (c, Consts.instance consts (c, Ts));
         in ML_Syntax.atomic (ML_Syntax.print_term const) end))));
 
 
