@@ -64,7 +64,7 @@ by ((rule ext)+, simp)
 
 lemma transpose_infmatrix: "transpose_infmatrix (% j i. P j i) = (% j i. P i j)"
   apply (rule ext)+
-  by (simp add: transpose_infmatrix_def)
+  by simp
 
 lemma transpose_infmatrix_closed[simp]: "Rep_matrix (Abs_matrix (transpose_infmatrix (Rep_matrix x))) = transpose_infmatrix (Rep_matrix x)"
 apply (rule Abs_matrix_inverse)
@@ -836,7 +836,7 @@ lemma combine_matrix_zero: "f 0 0 = 0 \<Longrightarrow> combine_matrix f 0 0 = 0
   by (simp add: zero_matrix_def)
 
 lemma transpose_matrix_zero[simp]: "transpose_matrix 0 = 0"
-apply (simp add: transpose_matrix_def transpose_infmatrix_def zero_matrix_def RepAbs_matrix)
+apply (simp add: transpose_matrix_def zero_matrix_def RepAbs_matrix)
 apply (subst Rep_matrix_inject[symmetric], (rule ext)+)
 apply (simp add: RepAbs_matrix)
 done
@@ -1464,7 +1464,7 @@ definition "inf = combine_matrix inf"
 definition "sup = combine_matrix sup"
 
 instance
-  by default (auto simp add: inf_le1 inf_le2 le_infI le_matrix_def inf_matrix_def sup_matrix_def)
+  by default (auto simp add: le_infI le_matrix_def inf_matrix_def sup_matrix_def)
 
 end
 

@@ -50,7 +50,7 @@ lemmas bitadd = add_bin_simps
 
 (* multiplication for bit strings *) 
 lemma mult_Pls_right: "x * Int.Pls = Int.Pls" by (simp add: Pls_def)
-lemma mult_Min_right: "x * Int.Min = - x" by (subst mult_commute, simp add: mult_Min)
+lemma mult_Min_right: "x * Int.Min = - x" by (subst mult_commute) simp 
 lemma multb0x: "(Int.Bit0 x) * y = Int.Bit0 (x * y)" by (rule mult_Bit0)
 lemma multxb0: "x * (Int.Bit0 y) = Int.Bit0 (x * y)" unfolding Bit0_def by simp
 lemma multb1: "(Int.Bit1 x) * (Int.Bit1 y) = Int.Bit1 (Int.Bit0 (x * y) + x + y)"
