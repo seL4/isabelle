@@ -867,8 +867,7 @@ fun all_facts ctxt ho_atp reserved exporter add_ths chained_ths css_table =
             (not (Config.get ctxt ignore_no_atp) andalso
              is_package_def name0) orelse
             exists (fn s => String.isSuffix s name0)
-                   (multi_base_blacklist ctxt ho_atp) orelse
-            String.isSuffix "_def_raw" (* FIXME: crude hack *) name0) then
+                   (multi_base_blacklist ctxt ho_atp)) then
           I
         else
           let

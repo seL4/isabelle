@@ -262,16 +262,17 @@ definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a randompred \<Rightarr
   where "map f P = bind P (single o f)"
 
 hide_fact
-  random_bool_def random_bool_def_raw
-  random_itself_def random_itself_def_raw
-  random_char_def random_char_def_raw
-  random_literal_def random_literal_def_raw
-  random_nat_def random_nat_def_raw
-  random_int_def random_int_def_raw
-  random_fun_lift_def random_fun_lift_def_raw
-  random_fun_def random_fun_def_raw
-  collapse_def collapse_def_raw
-  beyond_def beyond_def_raw beyond_zero
+  random_bool_def
+  random_itself_def
+  random_char_def
+  random_literal_def
+  random_nat_def
+  random_int_def
+  random_fun_lift_def
+  random_fun_def
+  collapse_def
+  beyond_def
+  beyond_zero
   random_aux_rec
 
 hide_const (open) catch_match random collapse beyond random_fun_aux random_fun_lift
