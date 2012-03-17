@@ -214,7 +214,7 @@ fun gen_def prep (raw_var, raw_spec) int lthy =
           in (b, mx) end);
     val name = Thm.def_binding_optional b raw_name;
     val ((lhs, (_, raw_th)), lthy2) = lthy
-      |> Local_Theory.define (var, ((Binding.suffix_name "_raw" name, []), rhs));
+      |> Local_Theory.define_internal (var, ((Binding.suffix_name "_raw" name, []), rhs));
 
     val th = prove lthy2 raw_th;
     val lthy3 = lthy2 |> Spec_Rules.add Spec_Rules.Equational ([lhs], [th]);
