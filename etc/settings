@@ -60,6 +60,8 @@ else
   ISABELLE_JAVA="java"
 fi
 
+ISABELLE_SCALA_BUILD_OPTIONS="-nowarn -target:jvm-1.5"
+
 
 ###
 ### Interactive sessions (cf. isabelle tty)

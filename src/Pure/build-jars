@@ -170,7 +170,7 @@ then
 
   rm -rf classes && mkdir classes
 
-  SCALAC_OPTIONS="-unchecked -deprecation -d classes -target:jvm-1.5"
+  SCALAC_OPTIONS="$ISABELLE_SCALA_BUILD_OPTIONS -d classes"
 
   "$SCALA_HOME/bin/scalac" $SCALAC_OPTIONS "${PIDE_SOURCES[@]}" || \
     fail "Failed to compile PIDE sources"

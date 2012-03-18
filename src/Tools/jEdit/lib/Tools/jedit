@@ -244,8 +244,7 @@ then
       CLASSPATH="$CLASSPATH:$JAR"
     done
     CLASSPATH="$(jvmpath "$CLASSPATH")"
-    exec "$SCALA_HOME/bin/scalac" -unchecked -deprecation \
-      -d dist/classes -target:jvm-1.5 "${SOURCES[@]}"
+    exec "$SCALA_HOME/bin/scalac" $ISABELLE_SCALA_BUILD_OPTIONS -d dist/classes "${SOURCES[@]}"
   ) || fail "Failed to compile sources"
 
   cd dist/classes
