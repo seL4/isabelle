@@ -17,9 +17,11 @@ typedef (open) 'a poly = "Poly :: (nat => 'a::zero) set"
   morphisms coeff Abs_poly
   unfolding Poly_def by auto
 
+(* FIXME should be named poly_eq_iff *)
 lemma expand_poly_eq: "p = q \<longleftrightarrow> (\<forall>n. coeff p n = coeff q n)"
   by (simp add: coeff_inject [symmetric] fun_eq_iff)
 
+(* FIXME should be named poly_eqI *)
 lemma poly_ext: "(\<And>n. coeff p n = coeff q n) \<Longrightarrow> p = q"
   by (simp add: expand_poly_eq)
 
