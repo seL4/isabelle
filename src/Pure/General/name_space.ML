@@ -48,8 +48,8 @@ sig
   val qualified_path: bool -> binding -> naming -> naming
   val transform_binding: naming -> binding -> binding
   val full_name: naming -> binding -> string
-  val declare: Proof.context -> bool -> naming -> binding -> T -> string * T
   val alias: naming -> binding -> string -> T -> T
+  val declare: Proof.context -> bool -> naming -> binding -> T -> string * T
   type 'a table = T * 'a Symtab.table
   val check: Proof.context -> 'a table -> xstring * Position.T -> string * 'a
   val get: 'a table -> string -> 'a
@@ -330,6 +330,26 @@ fun accesses naming binding =
   in pairself (map Long_Name.implode) (sfxs @ pfxs, sfxs) end;
 
 
+(* alias *)
+
+fun alias naming binding name space =
+  let
+    val (accs, accs') = accesses naming binding;
+    val space' = space
+      |> fold (add_name name) accs
+      |> map_name_space (fn (kind, internals, entries) =>
+        let
+          val _ = Symtab.defined entries name orelse error (undefined kind name);
+          val entries' = entries
+            |> Symtab.map_entry name (fn (externals, entry) =>
+              (Library.merge (op =) (externals, accs'), entry))
+        in (kind, internals, entries') end);
+  in space' end;
+
+
+
+(** entry definition **)
+
 (* declaration *)
 
 fun new_entry strict (name, (externals, entry)) =
@@ -364,25 +384,7 @@ fun declare ctxt strict naming binding space =
   in (name, space') end;
 
 
-(* alias *)
-
-fun alias naming binding name space =
-  let
-    val (accs, accs') = accesses naming binding;
-    val space' = space
-      |> fold (add_name name) accs
-      |> map_name_space (fn (kind, internals, entries) =>
-        let
-          val _ = Symtab.defined entries name orelse error (undefined kind name);
-          val entries' = entries
-            |> Symtab.map_entry name (fn (externals, entry) =>
-              (Library.merge (op =) (externals, accs'), entry))
-        in (kind, internals, entries') end);
-  in space' end;
-
-
-
-(** name space coupled with symbol table **)
+(* definition in symbol table *)
 
 type 'a table = T * 'a Symtab.table;
 
