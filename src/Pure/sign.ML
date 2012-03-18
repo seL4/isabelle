@@ -204,8 +204,7 @@ val declared_const = can o the_const_constraint;
 val naming_of = Name_Space.naming_of o Context.Theory;
 val map_naming = Context.theory_map o Name_Space.map_naming;
 val restore_naming = map_naming o K o naming_of;
-fun inherit_naming thy =
-  Context.Proof o Context.proof_map (Name_Space.map_naming (K (naming_of thy)));
+fun inherit_naming thy = Name_Space.map_naming (K (naming_of thy)) o Context.Proof;
 
 val full_name = Name_Space.full_name o naming_of;
 fun full_name_path thy path = Name_Space.full_name (Name_Space.add_path path (naming_of thy));
