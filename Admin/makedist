@@ -6,7 +6,7 @@
 
 REPOS_NAME="isabelle"
 REPOS="${REPOS:-http://isabelle.in.tum.de/repos/${REPOS_NAME}}"
-DISTPREFIX="${DISTPREFIX:-~/tmp/isadist}"
+DISTPREFIX="${DISTPREFIX:-$HOME/tmp/isadist}"
 
 umask 022
 
