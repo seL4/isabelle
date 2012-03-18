@@ -420,7 +420,7 @@ end;
 
 (* abbreviations *)
 
-fun add_abbrev mode (b, raw_t) thy =
+fun add_abbrev mode (b, raw_t) thy =  (* FIXME proper ctxt (?) *)
   let
     val ctxt = Syntax.init_pretty_global thy;
     val prep_tm = no_frees ctxt o Term.no_dummy_patterns o cert_term_abbrev thy;
