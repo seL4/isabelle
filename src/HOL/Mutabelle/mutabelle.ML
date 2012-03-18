@@ -157,10 +157,9 @@ fun in_list_forb consSig (consNameStr,consType) [] = false
  | in_list_forb consSig (consNameStr,consType) ((forbNameStr,forbTypeStr)::xs) = 
    let 
      val forbType = Syntax.read_typ_global consSig forbTypeStr
-     val typeSignature = #tsig (Sign.rep_sg consSig)
    in
      if ((consNameStr = forbNameStr) 
-       andalso (Type.typ_instance typeSignature (consType,(Logic.varifyT_global forbType))))
+       andalso (Sign.typ_instance consSig (consType,(Logic.varifyT_global forbType))))
      then true
      else in_list_forb consSig (consNameStr,consType) xs
    end;
@@ -173,12 +172,11 @@ returns a list of those terms*)
 fun searchForSignatureMutations (sterm,stype) consSig forbidden_funs = 
  let 
    val sigConsTypeList = consts_of consSig;
-   val typeSignature = #tsig (Sign.rep_sg consSig)
  in 
    let 
      fun recursiveSearch mutatableTermList [] = mutatableTermList
        | recursiveSearch mutatableTermList ((ConsName,ConsType)::xs) = 
-         if (Type.typ_instance typeSignature (stype,ConsType) 
+         if (Sign.typ_instance consSig (stype,ConsType) 
            andalso (not (sterm = Const(ConsName,stype))) 
            andalso (not (in_list_forb consSig (ConsName,ConsType) forbidden_funs))) 
          then recursiveSearch ((Term.Const(ConsName,stype), [], [], [5])::mutatableTermList) xs
