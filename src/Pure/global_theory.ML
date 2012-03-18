@@ -91,8 +91,6 @@ val join_proofs = force_proofs o #2 o #2 o Data.get;
 
 fun get_fact context thy xthmref =
   let
-    val ctxt = Context.proof_of context;
-
     val facts = facts_of thy;
     val xname = Facts.name_of_ref xthmref;
     val pos = Facts.pos_of_ref xthmref;
@@ -107,9 +105,9 @@ fun get_fact context thy xthmref =
     (case res of
       NONE => error ("Unknown fact " ^ quote name ^ Position.str_of pos)
     | SOME (static, ths) =>
-        (Context_Position.report ctxt pos (Name_Space.markup (Facts.space_of facts) name);
+        (Context_Position.report_generic context pos (Name_Space.markup (Facts.space_of facts) name);
          if static then ()
-         else Context_Position.report ctxt pos (Isabelle_Markup.dynamic_fact name);
+         else Context_Position.report_generic context pos (Isabelle_Markup.dynamic_fact name);
          Facts.select xthmref (map (Thm.transfer thy) ths)))
   end;
 
