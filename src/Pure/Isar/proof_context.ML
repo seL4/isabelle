@@ -21,11 +21,6 @@ sig
   val restore_mode: Proof.context -> Proof.context -> Proof.context
   val abbrev_mode: Proof.context -> bool
   val set_stmt: bool -> Proof.context -> Proof.context
-  val local_naming: Name_Space.naming
-  val map_naming: (Name_Space.naming -> Name_Space.naming) -> Proof.context -> Proof.context
-  val naming_of: Proof.context -> Name_Space.naming
-  val restore_naming: Proof.context -> Proof.context -> Proof.context
-  val full_name: Proof.context -> binding -> string
   val syntax_of: Proof.context -> Local_Syntax.T
   val syn_of: Proof.context -> Syntax.syntax
   val tsig_of: Proof.context -> Type.tsig
@@ -37,6 +32,10 @@ sig
   val restore_syntax_mode: Proof.context -> Proof.context -> Proof.context
   val facts_of: Proof.context -> Facts.T
   val cases_of: Proof.context -> (string * (Rule_Cases.T * bool)) list
+  val map_naming: (Name_Space.naming -> Name_Space.naming) -> Proof.context -> Proof.context
+  val naming_of: Proof.context -> Name_Space.naming
+  val restore_naming: Proof.context -> Proof.context -> Proof.context
+  val full_name: Proof.context -> binding -> string
   val class_space: Proof.context -> Name_Space.T
   val type_space: Proof.context -> Name_Space.T
   val const_space: Proof.context -> Name_Space.T
@@ -141,7 +140,6 @@ sig
     Context.generic -> Context.generic
   val target_notation: bool -> Syntax.mode -> (term * mixfix) list -> morphism ->
     Context.generic -> Context.generic
-  val target_naming_of: Context.generic -> Name_Space.naming
   val class_alias: binding -> class -> Proof.context -> Proof.context
   val type_alias: binding -> string -> Proof.context -> Proof.context
   val const_alias: binding -> string -> Proof.context -> Proof.context
@@ -192,24 +190,20 @@ val mode_abbrev    = make_mode (false, false, false, true);
 datatype data =
   Data of
    {mode: mode,                  (*inner syntax mode*)
-    naming: Name_Space.naming,   (*local naming conventions*)
     syntax: Local_Syntax.T,      (*local syntax*)
     tsig: Type.tsig * Type.tsig, (*local/global type signature -- local name space / defsort only*)
     consts: Consts.T * Consts.T, (*local/global consts -- local name space / abbrevs only*)
     facts: Facts.T,              (*local facts*)
     cases: (string * (Rule_Cases.T * bool)) list};    (*named case contexts*)
 
-fun make_data (mode, naming, syntax, tsig, consts, facts, cases) =
-  Data {mode = mode, naming = naming, syntax = syntax,
-    tsig = tsig, consts = consts, facts = facts, cases = cases};
-
-val local_naming = Name_Space.default_naming |> Name_Space.add_path "local";
+fun make_data (mode, syntax, tsig, consts, facts, cases) =
+  Data {mode = mode, syntax = syntax, tsig = tsig, consts = consts, facts = facts, cases = cases};
 
 structure Data = Proof_Data
 (
   type T = data;
   fun init thy =
-    make_data (mode_default, local_naming, Local_Syntax.init thy,
+    make_data (mode_default, Local_Syntax.init thy,
       (Sign.tsig_of thy, Sign.tsig_of thy),
       (Sign.consts_of thy, Sign.consts_of thy), Facts.empty, []);
 );
@@ -217,39 +211,35 @@ structure Data = Proof_Data
 fun rep_data ctxt = Data.get ctxt |> (fn Data rep => rep);
 
 fun map_data f =
-  Data.map (fn Data {mode, naming, syntax, tsig, consts, facts, cases} =>
-    make_data (f (mode, naming, syntax, tsig, consts, facts, cases)));
+  Data.map (fn Data {mode, syntax, tsig, consts, facts, cases} =>
+    make_data (f (mode, syntax, tsig, consts, facts, cases)));
 
-fun set_mode mode = map_data (fn (_, naming, syntax, tsig, consts, facts, cases) =>
-  (mode, naming, syntax, tsig, consts, facts, cases));
+fun set_mode mode = map_data (fn (_, syntax, tsig, consts, facts, cases) =>
+  (mode, syntax, tsig, consts, facts, cases));
 
 fun map_mode f =
-  map_data (fn (Mode {stmt, pattern, schematic, abbrev}, naming, syntax, tsig, consts, facts, cases) =>
-    (make_mode (f (stmt, pattern, schematic, abbrev)), naming, syntax, tsig, consts, facts, cases));
-
-fun map_naming f =
-  map_data (fn (mode, naming, syntax, tsig, consts, facts, cases) =>
-    (mode, f naming, syntax, tsig, consts, facts, cases));
+  map_data (fn (Mode {stmt, pattern, schematic, abbrev}, syntax, tsig, consts, facts, cases) =>
+    (make_mode (f (stmt, pattern, schematic, abbrev)), syntax, tsig, consts, facts, cases));
 
 fun map_syntax f =
-  map_data (fn (mode, naming, syntax, tsig, consts, facts, cases) =>
-    (mode, naming, f syntax, tsig, consts, facts, cases));
+  map_data (fn (mode, syntax, tsig, consts, facts, cases) =>
+    (mode, f syntax, tsig, consts, facts, cases));
 
 fun map_tsig f =
-  map_data (fn (mode, naming, syntax, tsig, consts, facts, cases) =>
-    (mode, naming, syntax, f tsig, consts, facts, cases));
+  map_data (fn (mode, syntax, tsig, consts, facts, cases) =>
+    (mode, syntax, f tsig, consts, facts, cases));
 
 fun map_consts f =
-  map_data (fn (mode, naming, syntax, tsig, consts, facts, cases) =>
-    (mode, naming, syntax, tsig, f consts, facts, cases));
+  map_data (fn (mode, syntax, tsig, consts, facts, cases) =>
+    (mode, syntax, tsig, f consts, facts, cases));
 
 fun map_facts f =
-  map_data (fn (mode, naming, syntax, tsig, consts, facts, cases) =>
-    (mode, naming, syntax, tsig, consts, f facts, cases));
+  map_data (fn (mode, syntax, tsig, consts, facts, cases) =>
+    (mode, syntax, tsig, consts, f facts, cases));
 
 fun map_cases f =
-  map_data (fn (mode, naming, syntax, tsig, consts, facts, cases) =>
-    (mode, naming, syntax, tsig, consts, facts, f cases));
+  map_data (fn (mode, syntax, tsig, consts, facts, cases) =>
+    (mode, syntax, tsig, consts, facts, f cases));
 
 val get_mode = #mode o rep_data;
 val restore_mode = set_mode o get_mode;
@@ -257,10 +247,6 @@ val abbrev_mode = get_mode #> (fn Mode {abbrev, ...} => abbrev);
 
 fun set_stmt stmt =
   map_mode (fn (_, pattern, schematic, abbrev) => (stmt, pattern, schematic, abbrev));
-
-val naming_of = #naming o rep_data;
-val restore_naming = map_naming o K o naming_of
-val full_name = Name_Space.full_name o naming_of;
 
 val syntax_of = #syntax o rep_data;
 val syn_of = Local_Syntax.syn_of o syntax_of;
@@ -276,6 +262,15 @@ val the_const_constraint = Consts.the_constraint o consts_of;
 
 val facts_of = #facts o rep_data;
 val cases_of = #cases o rep_data;
+
+
+(* naming *)
+
+val naming_of = Name_Space.naming_of o Context.Proof;
+val map_naming = Context.proof_map o Name_Space.map_naming;
+val restore_naming = map_naming o K o naming_of;
+
+val full_name = Name_Space.full_name o naming_of;
 
 
 (* name spaces *)
@@ -300,7 +295,7 @@ fun transfer_syntax thy ctxt = ctxt |>
   map_tsig (fn tsig as (local_tsig, global_tsig) =>
     let val thy_tsig = Sign.tsig_of thy in
       if Type.eq_tsig (thy_tsig, global_tsig) then tsig
-      else (Type.merge_tsig ctxt (local_tsig, thy_tsig), thy_tsig)
+      else (Type.merge_tsig (Context.pretty ctxt) (local_tsig, thy_tsig), thy_tsig)
     end) |>
   map_consts (fn consts as (local_consts, global_consts) =>
     let val thy_consts = Sign.consts_of thy in
@@ -495,12 +490,13 @@ local
 
 fun prep_arity prep_tycon prep_sort ctxt (t, Ss, S) =
   let val arity = (prep_tycon ctxt t, map (prep_sort ctxt) Ss, prep_sort ctxt S)
-  in Type.add_arity ctxt arity (tsig_of ctxt); arity end;
+  in Type.add_arity (Context.pretty ctxt) arity (tsig_of ctxt); arity end;
 
 in
 
 val read_arity =
   prep_arity (fn ctxt => #1 o dest_Type o read_type_name_proper ctxt true) Syntax.read_sort;
+
 val cert_arity = prep_arity (K I) (Type.cert_sort o tsig_of);
 
 end;
@@ -892,7 +888,7 @@ local
 
 fun update_thms _ (b, NONE) ctxt = ctxt |> map_facts (Facts.del (full_name ctxt b))
   | update_thms do_props (b, SOME ths) ctxt = ctxt |> map_facts
-      (Facts.add_local ctxt do_props (naming_of ctxt) (b, ths) #> snd);
+      (Facts.add_local (Context.Proof ctxt) do_props (b, ths) #> snd);
 
 in
 
@@ -908,7 +904,7 @@ fun note_thmss kind = fold_map (fn ((b, more_atts), raw_facts) => fn ctxt =>
   in ((name, thms), ctxt' |> update_thms stmt (b, SOME thms)) end);
 
 fun put_thms do_props thms ctxt = ctxt
-  |> map_naming (K local_naming)
+  |> map_naming (K Name_Space.local_naming)
   |> Context_Position.set_visible false
   |> update_thms do_props (apfst Binding.name thms)
   |> Context_Position.restore_visible ctxt
@@ -993,11 +989,6 @@ fun target_notation add mode args phi =
 end;
 
 
-(* naming *)
-
-val target_naming_of = Context.cases Sign.naming_of naming_of;
-
-
 (* aliases *)
 
 fun class_alias b c ctxt = (map_tsig o apfst) (Type.class_alias (naming_of ctxt) b c) ctxt;
@@ -1020,7 +1011,7 @@ fun add_abbrev mode (b, raw_t) ctxt =
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ Binding.print b);
     val [t] = Variable.exportT_terms (Variable.declare_term t0 ctxt) ctxt [t0];
     val ((lhs, rhs), consts') = consts_of ctxt
-      |> Consts.abbreviate ctxt (tsig_of ctxt) (naming_of ctxt) mode (b, t);
+      |> Consts.abbreviate (Context.Proof ctxt) (tsig_of ctxt) mode (b, t);
   in
     ctxt
     |> (map_consts o apfst) (K consts')

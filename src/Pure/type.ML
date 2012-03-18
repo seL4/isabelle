@@ -87,16 +87,16 @@ sig
   val eq_type: tyenv -> typ * typ -> bool
 
   (*extend and merge type signatures*)
-  val add_class: Proof.context -> Name_Space.naming -> binding * class list -> tsig -> tsig
+  val add_class: Context.generic -> binding * class list -> tsig -> tsig
   val hide_class: bool -> string -> tsig -> tsig
   val set_defsort: sort -> tsig -> tsig
-  val add_type: Proof.context -> Name_Space.naming -> binding * int -> tsig -> tsig
-  val add_abbrev: Proof.context -> Name_Space.naming -> binding * string list * typ -> tsig -> tsig
-  val add_nonterminal: Proof.context -> Name_Space.naming -> binding -> tsig -> tsig
+  val add_type: Context.generic -> binding * int -> tsig -> tsig
+  val add_abbrev: Context.generic -> binding * string list * typ -> tsig -> tsig
+  val add_nonterminal: Context.generic -> binding -> tsig -> tsig
   val hide_type: bool -> string -> tsig -> tsig
-  val add_arity: Proof.context -> arity -> tsig -> tsig
-  val add_classrel: Proof.context -> class * class -> tsig -> tsig
-  val merge_tsig: Proof.context -> tsig * tsig -> tsig
+  val add_arity: Context.pretty -> arity -> tsig -> tsig
+  val add_classrel: Context.pretty -> class * class -> tsig -> tsig
+  val merge_tsig: Context.pretty -> tsig * tsig -> tsig
 end;
 
 structure Type: TYPE =
@@ -318,8 +318,9 @@ fun arity_number tsig a =
   | _ => error (undecl_type a));
 
 fun arity_sorts _ tsig a [] = replicate (arity_number tsig a) []
-  | arity_sorts pp (TSig {classes, ...}) a S = Sorts.mg_domain (#2 classes) a S
-      handle Sorts.CLASS_ERROR err => error (Sorts.class_error (Syntax.init_pretty pp) err);
+  | arity_sorts pp (TSig {classes, ...}) a S =
+      Sorts.mg_domain (#2 classes) a S
+        handle Sorts.CLASS_ERROR err => error (Sorts.class_error pp err);
 
 
 
@@ -584,14 +585,14 @@ fun eq_type tye =
 
 (* classes *)
 
-fun add_class ctxt naming (c, cs) tsig =
+fun add_class context (c, cs) tsig =
   tsig |> map_tsig (fn ((space, classes), default, types) =>
     let
       val cs' = map (cert_class tsig) cs
         handle TYPE (msg, _, _) => error msg;
       val _ = Binding.check c;
-      val (c', space') = space |> Name_Space.declare ctxt true naming c;
-      val classes' = classes |> Sorts.add_class ctxt (c', cs');
+      val (c', space') = space |> Name_Space.declare context true c;
+      val classes' = classes |> Sorts.add_class (Context.pretty_generic context) (c', cs');
     in ((space', classes'), default, types) end);
 
 fun hide_class fully c = map_tsig (fn ((space, classes), default, types) =>
@@ -600,7 +601,7 @@ fun hide_class fully c = map_tsig (fn ((space, classes), default, types) =>
 
 (* arities *)
 
-fun add_arity ctxt (t, Ss, S) tsig = tsig |> map_tsig (fn ((space, classes), default, types) =>
+fun add_arity pp (t, Ss, S) tsig = tsig |> map_tsig (fn ((space, classes), default, types) =>
   let
     val _ =
       (case lookup_type tsig t of
@@ -609,18 +610,18 @@ fun add_arity ctxt (t, Ss, S) tsig = tsig |> map_tsig (fn ((space, classes), def
       | NONE => error (undecl_type t));
     val (Ss', S') = (map (cert_sort tsig) Ss, cert_sort tsig S)
       handle TYPE (msg, _, _) => error msg;
-    val classes' = classes |> Sorts.add_arities ctxt ((t, map (fn c' => (c', Ss')) S'));
+    val classes' = classes |> Sorts.add_arities pp ((t, map (fn c' => (c', Ss')) S'));
   in ((space, classes'), default, types) end);
 
 
 (* classrel *)
 
-fun add_classrel ctxt rel tsig =
+fun add_classrel pp rel tsig =
   tsig |> map_tsig (fn ((space, classes), default, types) =>
     let
       val rel' = pairself (cert_class tsig) rel
         handle TYPE (msg, _, _) => error msg;
-      val classes' = classes |> Sorts.add_classrel ctxt rel';
+      val classes' = classes |> Sorts.add_classrel pp rel';
     in ((space, classes'), default, types) end);
 
 
@@ -634,8 +635,8 @@ fun set_defsort S tsig = tsig |> map_tsig (fn (classes, _, types) =>
 
 local
 
-fun new_decl ctxt naming (c, decl) types =
-  (Binding.check c; #2 (Name_Space.define ctxt true naming (c, decl) types));
+fun new_decl context (c, decl) types =
+  (Binding.check c; #2 (Name_Space.define context true (c, decl) types));
 
 fun map_types f = map_tsig (fn (classes, default, types) =>
   let
@@ -651,11 +652,11 @@ fun syntactic types (Type (c, Ts)) =
 
 in
 
-fun add_type ctxt naming (c, n) =
+fun add_type context (c, n) =
   if n < 0 then error ("Bad type constructor declaration " ^ Binding.print c)
-  else map_types (new_decl ctxt naming (c, LogicalType n));
+  else map_types (new_decl context (c, LogicalType n));
 
-fun add_abbrev ctxt naming (a, vs, rhs) tsig = tsig |> map_types (fn types =>
+fun add_abbrev context (a, vs, rhs) tsig = tsig |> map_types (fn types =>
   let
     fun err msg =
       cat_error msg ("The error(s) above occurred in type abbreviation " ^ Binding.print a);
@@ -669,9 +670,9 @@ fun add_abbrev ctxt naming (a, vs, rhs) tsig = tsig |> map_types (fn types =>
       (case subtract (op =) vs (map #1 (Term.add_tfreesT rhs' [])) of
         [] => []
       | extras => err ("Extra variables on rhs: " ^ commas_quote extras));
-  in types |> new_decl ctxt naming (a, Abbreviation (vs, rhs', syntactic (#2 types) rhs')) end);
+  in types |> new_decl context (a, Abbreviation (vs, rhs', syntactic (#2 types) rhs')) end);
 
-fun add_nonterminal ctxt naming = map_types o new_decl ctxt naming o rpair Nonterminal;
+fun add_nonterminal context = map_types o new_decl context o rpair Nonterminal;
 
 end;
 
@@ -681,7 +682,7 @@ fun hide_type fully c = map_tsig (fn (classes, default, (space, types)) =>
 
 (* merge type signatures *)
 
-fun merge_tsig ctxt (tsig1, tsig2) =
+fun merge_tsig pp (tsig1, tsig2) =
   let
     val (TSig {classes = (space1, classes1), default = default1, types = types1,
       log_types = _}) = tsig1;
@@ -689,7 +690,7 @@ fun merge_tsig ctxt (tsig1, tsig2) =
       log_types = _}) = tsig2;
 
     val space' = Name_Space.merge (space1, space2);
-    val classes' = Sorts.merge_algebra ctxt (classes1, classes2);
+    val classes' = Sorts.merge_algebra pp (classes1, classes2);
     val default' = Sorts.inter_sort classes' (default1, default2);
     val types' = Name_Space.merge_tables (types1, types2);
   in build_tsig ((space', classes'), default', types') end;

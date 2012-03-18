@@ -89,17 +89,11 @@ structure Antiquotations = Theory_Data
       Name_Space.merge_tables (options1, options2));
 );
 
-fun add_command name cmd thy =
-  thy |> Antiquotations.map
-    (apfst
-      (Name_Space.define
-        (Proof_Context.init_global thy) true (Sign.naming_of thy) (name, cmd) #> snd));
+fun add_command name cmd thy = thy
+  |> Antiquotations.map (apfst (Name_Space.define (Context.Theory thy) true (name, cmd) #> snd));
 
-fun add_option name opt thy =
-  thy |> Antiquotations.map
-    (apsnd
-      (Name_Space.define
-        (Proof_Context.init_global thy) true (Sign.naming_of thy) (name, opt) #> snd));
+fun add_option name opt thy = thy
+  |> Antiquotations.map (apsnd (Name_Space.define (Context.Theory thy) true (name, opt) #> snd));
 
 val intern_command = Name_Space.intern o #1 o #1 o Antiquotations.get;
 val defined_command = Symtab.defined o #2 o #1 o Antiquotations.get;
@@ -111,7 +105,7 @@ fun command src state ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
     val ((xname, _), pos) = Args.dest_src src;
-    val (name, f) = Name_Space.check ctxt (#1 (Antiquotations.get thy)) (xname, pos);
+    val (name, f) = Name_Space.check (Context.Proof ctxt) (#1 (Antiquotations.get thy)) (xname, pos);
   in
     f src state ctxt handle ERROR msg =>
       cat_error msg ("The error(s) above occurred in document antiquotation: " ^
@@ -121,7 +115,7 @@ fun command src state ctxt =
 fun option ((xname, pos), s) ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val (_, opt) = Name_Space.check ctxt (#2 (Antiquotations.get thy)) (xname, pos);
+    val (_, opt) = Name_Space.check (Context.Proof ctxt) (#2 (Antiquotations.get thy)) (xname, pos);
   in opt s ctxt end;
 
 fun print_antiquotations ctxt =

@@ -12,6 +12,7 @@ sig
   val if_visible: Proof.context -> ('a -> unit) -> 'a -> unit
   val is_visible_proof: Context.generic -> bool
   val if_visible_proof: Context.generic -> ('a -> unit) -> 'a -> unit
+  val report_generic: Context.generic -> Position.T -> Markup.T -> unit
   val reported_text: Proof.context -> Position.T -> Markup.T -> string -> string
   val report_text: Proof.context -> Position.T -> Markup.T -> string -> unit
   val report: Proof.context -> Position.T -> Markup.T -> unit
@@ -32,6 +33,11 @@ fun is_visible_proof (Context.Proof ctxt) = is_visible ctxt
   | is_visible_proof _ = false;
 
 fun if_visible_proof context f x = if is_visible_proof context then f x else ();
+
+fun report_generic context pos markup =
+  if Config.get_generic context visible then
+    Output.report (Position.reported_text pos markup "")
+  else ();
 
 fun reported_text ctxt pos markup txt =
   if is_visible ctxt then Position.reported_text pos markup txt else "";

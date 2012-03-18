@@ -165,7 +165,7 @@ fun map_node f (Node {context, facts, mode, goal}) =
 
 val init_context =
   Proof_Context.set_stmt true #>
-  Proof_Context.map_naming (K Proof_Context.local_naming);
+  Proof_Context.map_naming (K Name_Space.local_naming);
 
 fun init ctxt =
   State (Stack.init (make_node (init_context ctxt, NONE, Forward, NONE)));

@@ -109,9 +109,7 @@ structure Antiq_Parsers = Theory_Data
 );
 
 fun add_antiq name scan thy = thy
-  |> Antiq_Parsers.map
-    (Name_Space.define (Proof_Context.init_global thy) true (Sign.naming_of thy)
-      (name, scan) #> snd);
+  |> Antiq_Parsers.map (Name_Space.define (Context.Theory thy) true (name, scan) #> snd);
 
 val intern_antiq = Name_Space.intern o #1 o Antiq_Parsers.get;
 val defined_antiq = Symtab.defined o #2 o Antiq_Parsers.get;
@@ -120,7 +118,7 @@ fun antiquotation src ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
     val ((xname, _), pos) = Args.dest_src src;
-    val (_, scan) = Name_Space.check ctxt (Antiq_Parsers.get thy) (xname, pos);
+    val (_, scan) = Name_Space.check (Context.Proof ctxt) (Antiq_Parsers.get thy) (xname, pos);
   in Args.context_syntax Isabelle_Markup.ML_antiquotationN (scan pos) src ctxt end;
 
 

@@ -41,7 +41,7 @@ fun basic_decl decl (b, n, mx) lthy =
   end;
 
 fun basic_typedecl (b, n, mx) lthy =
-  basic_decl (fn name => Sign.add_types lthy [(b, n, NoSyn)] #> object_logic_arity name)
+  basic_decl (fn name => Sign.add_type lthy (b, n, NoSyn) #> object_logic_arity name)
     (b, n, mx) lthy;
 
 

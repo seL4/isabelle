@@ -92,9 +92,7 @@ fun print_attributes thy =
   end;
 
 fun add_attribute name att comment thy = thy
-  |> Attributes.map
-    (Name_Space.define (Proof_Context.init_global thy) true (Sign.naming_of thy)
-      (name, (att, comment)) #> snd);
+  |> Attributes.map (Name_Space.define (Context.Theory thy) true (name, (att, comment)) #> snd);
 
 
 (* name space *)

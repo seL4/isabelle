@@ -7,17 +7,6 @@ signature, polymorphic constants.
 
 signature SIGN =
 sig
-  val rep_sg: theory ->
-   {naming: Name_Space.naming,
-    syn: Syntax.syntax,
-    tsig: Type.tsig,
-    consts: Consts.T}
-  val map_naming: (Name_Space.naming -> Name_Space.naming) -> theory -> theory
-  val naming_of: theory -> Name_Space.naming
-  val full_name: theory -> binding -> string
-  val full_name_path: theory -> string -> binding -> string
-  val full_bname: theory -> bstring -> string
-  val full_bname_path: theory -> string -> bstring -> string
   val syn_of: theory -> Syntax.syntax
   val tsig_of: theory -> Type.tsig
   val classes_of: theory -> Sorts.algebra
@@ -42,6 +31,14 @@ sig
   val the_const_type: theory -> string -> typ
   val declared_tyname: theory -> string -> bool
   val declared_const: theory -> string -> bool
+  val naming_of: theory -> Name_Space.naming
+  val map_naming: (Name_Space.naming -> Name_Space.naming) -> theory -> theory
+  val restore_naming: theory -> theory -> theory
+  val inherit_naming: theory -> Proof.context -> Context.generic
+  val full_name: theory -> binding -> string
+  val full_name_path: theory -> string -> binding -> string
+  val full_bname: theory -> bstring -> string
+  val full_bname_path: theory -> string -> bstring -> string
   val const_monomorphic: theory -> string -> bool
   val const_typargs: theory -> string * typ -> typ list
   val const_instance: theory -> string * typ list -> typ
@@ -67,7 +64,7 @@ sig
   val cert_prop: theory -> term -> term
   val no_frees: Proof.context -> term -> term
   val no_vars: Proof.context -> term -> term
-  val add_types: Proof.context -> (binding * int * mixfix) list -> theory -> theory
+  val add_type: Proof.context -> binding * int * mixfix -> theory -> theory
   val add_types_global: (binding * int * mixfix) list -> theory -> theory
   val add_nonterminals: Proof.context -> binding list -> theory -> theory
   val add_nonterminals_global: binding list -> theory -> theory
@@ -113,7 +110,6 @@ sig
   val mandatory_path: string -> theory -> theory
   val qualified_path: bool -> binding -> theory -> theory
   val local_path: theory -> theory
-  val restore_naming: theory -> theory -> theory
   val hide_class: bool -> string -> theory -> theory
   val hide_type: bool -> string -> theory -> theory
   val hide_const: bool -> string -> theory -> theory
@@ -125,56 +121,37 @@ struct
 (** datatype sign **)
 
 datatype sign = Sign of
- {naming: Name_Space.naming,    (*common naming conventions*)
-  syn: Syntax.syntax,           (*concrete syntax for terms, types, sorts*)
+ {syn: Syntax.syntax,           (*concrete syntax for terms, types, sorts*)
   tsig: Type.tsig,              (*order-sorted signature of types*)
   consts: Consts.T};            (*polymorphic constants*)
 
-fun make_sign (naming, syn, tsig, consts) =
-  Sign {naming = naming, syn = syn, tsig = tsig, consts = consts};
+fun make_sign (syn, tsig, consts) = Sign {syn = syn, tsig = tsig, consts = consts};
 
 structure Data = Theory_Data_PP
 (
   type T = sign;
-  fun extend (Sign {syn, tsig, consts, ...}) =
-    make_sign (Name_Space.default_naming, syn, tsig, consts);
+  fun extend (Sign {syn, tsig, consts, ...}) = make_sign (syn, tsig, consts);
 
-  val empty =
-    make_sign (Name_Space.default_naming, Syntax.empty_syntax, Type.empty_tsig, Consts.empty);
+  val empty = make_sign (Syntax.empty_syntax, Type.empty_tsig, Consts.empty);
 
   fun merge pp (sign1, sign2) =
     let
-      val ctxt = Syntax.init_pretty pp;
-      val Sign {naming = _, syn = syn1, tsig = tsig1, consts = consts1} = sign1;
-      val Sign {naming = _, syn = syn2, tsig = tsig2, consts = consts2} = sign2;
+      val Sign {syn = syn1, tsig = tsig1, consts = consts1} = sign1;
+      val Sign {syn = syn2, tsig = tsig2, consts = consts2} = sign2;
 
-      val naming = Name_Space.default_naming;
       val syn = Syntax.merge_syntax (syn1, syn2);
-      val tsig = Type.merge_tsig ctxt (tsig1, tsig2);
+      val tsig = Type.merge_tsig pp (tsig1, tsig2);
       val consts = Consts.merge (consts1, consts2);
-    in make_sign (naming, syn, tsig, consts) end;
+    in make_sign (syn, tsig, consts) end;
 );
 
 fun rep_sg thy = Data.get thy |> (fn Sign args => args);
 
-fun map_sign f = Data.map (fn Sign {naming, syn, tsig, consts} =>
-  make_sign (f (naming, syn, tsig, consts)));
+fun map_sign f = Data.map (fn Sign {syn, tsig, consts} => make_sign (f (syn, tsig, consts)));
 
-fun map_naming f = map_sign (fn (naming, syn, tsig, consts) => (f naming, syn, tsig, consts));
-fun map_syn f = map_sign (fn (naming, syn, tsig, consts) => (naming, f syn, tsig, consts));
-fun map_tsig f = map_sign (fn (naming, syn, tsig, consts) => (naming, syn, f tsig, consts));
-fun map_consts f = map_sign (fn (naming, syn, tsig, consts) => (naming, syn, tsig, f consts));
-
-
-(* naming *)
-
-val naming_of = #naming o rep_sg;
-
-val full_name = Name_Space.full_name o naming_of;
-fun full_name_path thy path = Name_Space.full_name (Name_Space.add_path path (naming_of thy));
-
-fun full_bname thy = Name_Space.full_name (naming_of thy) o Binding.name;
-fun full_bname_path thy path = full_name_path thy path o Binding.name;
+fun map_syn f = map_sign (fn (syn, tsig, consts) => (f syn, tsig, consts));
+fun map_tsig f = map_sign (fn (syn, tsig, consts) => (syn, f tsig, consts));
+fun map_consts f = map_sign (fn (syn, tsig, consts) => (syn, tsig, f consts));
 
 
 (* syntax *)
@@ -220,6 +197,21 @@ fun mk_const thy (c, Ts) = Const (c, const_instance thy (c, Ts));
 
 val declared_tyname = Symtab.defined o #2 o #types o Type.rep_tsig o tsig_of;
 val declared_const = can o the_const_constraint;
+
+
+(* naming *)
+
+val naming_of = Name_Space.naming_of o Context.Theory;
+val map_naming = Context.theory_map o Name_Space.map_naming;
+val restore_naming = map_naming o K o naming_of;
+fun inherit_naming thy =
+  Context.Proof o Context.proof_map (Name_Space.map_naming (K (naming_of thy)));
+
+val full_name = Name_Space.full_name o naming_of;
+fun full_name_path thy path = Name_Space.full_name (Name_Space.add_path path (naming_of thy));
+
+fun full_bname thy = Name_Space.full_name (naming_of thy) o Binding.name;
+fun full_bname_path thy path = full_name_path thy path o Binding.name;
 
 
 
@@ -330,22 +322,21 @@ val no_vars = no_variables "schematic" Term.add_vars Term.add_tvars Var TVar;
 
 (* add type constructors *)
 
-fun add_types ctxt types thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
+fun add_type ctxt (b, n, mx) thy = thy |> map_sign (fn (syn, tsig, consts) =>
   let
-    fun type_syntax (b, n, mx) =
-      (Lexicon.mark_type (Name_Space.full_name naming b), Mixfix.make_type n, mx);
-    val syn' = Syntax.update_type_gram true Syntax.mode_default (map type_syntax types) syn;
-    val tsig' = fold (fn (a, n, _) => Type.add_type ctxt naming (a, n)) types tsig;
-  in (naming, syn', tsig', consts) end);
+    val type_syntax = (Lexicon.mark_type (full_name thy b), Mixfix.make_type n, mx);
+    val syn' = Syntax.update_type_gram true Syntax.mode_default [type_syntax] syn;
+    val tsig' = Type.add_type (inherit_naming thy ctxt) (b, n) tsig;
+  in (syn', tsig', consts) end);
 
 fun add_types_global types thy =
-  add_types (Syntax.init_pretty_global thy) types thy;
+  fold (add_type (Syntax.init_pretty_global thy)) types thy;
 
 
 (* add nonterminals *)
 
-fun add_nonterminals ctxt ns = map_sign (fn (naming, syn, tsig, consts) =>
-  (naming, syn, fold (Type.add_nonterminal ctxt naming) ns tsig, consts));
+fun add_nonterminals ctxt ns thy = thy |> map_sign (fn (syn, tsig, consts) =>
+  (syn, fold (Type.add_nonterminal (inherit_naming thy ctxt)) ns tsig, consts));
 
 fun add_nonterminals_global ns thy =
   add_nonterminals (Syntax.init_pretty_global thy) ns thy;
@@ -353,8 +344,8 @@ fun add_nonterminals_global ns thy =
 
 (* add type abbreviations *)
 
-fun add_type_abbrev ctxt abbr = map_sign (fn (naming, syn, tsig, consts) =>
-  (naming, syn, Type.add_abbrev ctxt naming abbr tsig, consts));
+fun add_type_abbrev ctxt abbr thy = thy |> map_sign (fn (syn, tsig, consts) =>
+  (syn, Type.add_abbrev (inherit_naming thy ctxt) abbr tsig, consts));
 
 
 (* modify syntax *)
@@ -409,7 +400,7 @@ fun gen_add_consts prep_typ ctxt raw_args thy =
     val args = map prep raw_args;
   in
     thy
-    |> map_consts (fold (Consts.declare ctxt (naming_of thy) o #1) args)
+    |> map_consts (fold (Consts.declare (inherit_naming thy ctxt) o #1) args)
     |> add_syntax_i (map #2 args)
     |> pair (map #3 args)
   end;
@@ -437,7 +428,7 @@ fun add_abbrev mode (b, raw_t) thy =
     val t = (prep_tm raw_t handle TYPE (msg, _, _) => error msg | TERM (msg, _) => error msg)
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ Binding.print b);
     val (res, consts') = consts_of thy
-      |> Consts.abbreviate ctxt (tsig_of thy) (naming_of thy) mode (b, t);
+      |> Consts.abbreviate (inherit_naming thy ctxt) (tsig_of thy) mode (b, t);
   in (res, thy |> map_consts (K consts')) end;
 
 fun revert_abbrev mode c = map_consts (Consts.revert_abbrev mode c);
@@ -458,18 +449,16 @@ fun add_const_constraint (c, opt_T) thy =
 
 fun primitive_class (bclass, classes) thy =
   thy
-  |> map_sign (fn (naming, syn, tsig, consts) =>
-    let
-      val ctxt = Syntax.init_pretty_global thy;
-      val tsig' = Type.add_class ctxt naming (bclass, classes) tsig;
-    in (naming, syn, tsig', consts) end)
+  |> map_sign (fn (syn, tsig, consts) =>
+      let val tsig' = Type.add_class (Context.Theory thy) (bclass, classes) tsig;
+      in (syn, tsig', consts) end)
   |> add_consts_i [(Binding.map_name Logic.const_of_class bclass, Term.a_itselfT --> propT, NoSyn)];
 
 fun primitive_classrel arg thy =
-  thy |> map_tsig (Type.add_classrel (Syntax.init_pretty_global thy) arg);
+  thy |> map_tsig (Type.add_classrel (Context.pretty_global thy) arg);
 
 fun primitive_arity arg thy =
-  thy |> map_tsig (Type.add_arity (Syntax.init_pretty_global thy) arg);
+  thy |> map_tsig (Type.add_arity (Context.pretty_global thy) arg);
 
 
 (* add translation functions *)
@@ -511,8 +500,6 @@ val mandatory_path = map_naming o Name_Space.mandatory_path;
 val qualified_path = map_naming oo Name_Space.qualified_path;
 
 fun local_path thy = thy |> root_path |> add_path (Context.theory_name thy);
-
-val restore_naming = map_naming o K o naming_of;
 
 
 (* hide names *)

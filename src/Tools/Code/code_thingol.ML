@@ -571,10 +571,9 @@ fun translation_error thy permissive some_thm msg sub_msg =
 
 fun not_wellsorted thy permissive some_thm ty sort e =
   let
-    val ctxt = Syntax.init_pretty_global thy;
-    val err_class = Sorts.class_error ctxt e;
+    val err_class = Sorts.class_error (Context.pretty_global thy) e;
     val err_typ =
-      "Type " ^ Syntax.string_of_typ ctxt ty ^ " not of sort " ^
+      "Type " ^ Syntax.string_of_typ_global thy ty ^ " not of sort " ^
         Syntax.string_of_sort_global thy sort;
   in
     translation_error thy permissive some_thm "Wellsortedness error"
@@ -1001,7 +1000,7 @@ fun static_value thy postproc consts evaluator =
 fun read_const_exprs thy =
   let
     fun consts_of thy' = Symtab.fold (fn (c, (_, NONE)) => cons c | _ => I)
-      ((snd o #constants o Consts.dest o #consts o Sign.rep_sg) thy') [];
+      ((snd o #constants o Consts.dest o Sign.consts_of) thy') [];
     fun belongs_here thy' c = forall
       (fn thy'' => not (Sign.declared_const thy'' c)) (Theory.parents_of thy');
     fun consts_of_select thy' = filter (belongs_here thy') (consts_of thy');

@@ -76,6 +76,7 @@ sig
   (*pretty printing context*)
   val pretty: Proof.context -> pretty
   val pretty_global: theory -> pretty
+  val pretty_generic: generic -> pretty
   val pretty_context: (theory -> Proof.context) -> pretty -> Proof.context
   (*thread data*)
   val thread_data: unit -> generic option
@@ -557,8 +558,9 @@ val proof_of = cases Proof_Context.init_global I;
 
 exception PRETTY of generic;
 
-val pretty = Pretty o PRETTY o Proof;
-val pretty_global = Pretty o PRETTY o Theory;
+val pretty_generic = Pretty o PRETTY;
+val pretty = pretty_generic o Proof;
+val pretty_global = pretty_generic o Theory;
 
 fun pretty_context init (Pretty (PRETTY context)) = cases init I context;
 

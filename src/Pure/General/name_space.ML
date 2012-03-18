@@ -34,7 +34,6 @@ sig
   val hide: bool -> string -> T -> T
   val merge: T * T -> T
   type naming
-  val default_naming: naming
   val conceal: naming -> naming
   val get_group: naming -> serial option
   val set_group: serial option -> naming -> naming
@@ -46,14 +45,18 @@ sig
   val parent_path: naming -> naming
   val mandatory_path: string -> naming -> naming
   val qualified_path: bool -> binding -> naming -> naming
+  val default_naming: naming
+  val local_naming: naming
   val transform_binding: naming -> binding -> binding
   val full_name: naming -> binding -> string
   val alias: naming -> binding -> string -> T -> T
-  val declare: Proof.context -> bool -> naming -> binding -> T -> string * T
+  val naming_of: Context.generic -> naming
+  val map_naming: (naming -> naming) -> Context.generic -> Context.generic
+  val declare: Context.generic -> bool -> binding -> T -> string * T
   type 'a table = T * 'a Symtab.table
-  val check: Proof.context -> 'a table -> xstring * Position.T -> string * 'a
+  val check: Context.generic -> 'a table -> xstring * Position.T -> string * 'a
   val get: 'a table -> string -> 'a
-  val define: Proof.context -> bool -> naming -> binding * 'a -> 'a table -> string * 'a table
+  val define: Context.generic -> bool -> binding * 'a -> 'a table -> string * 'a table
   val empty_table: string -> 'a table
   val merge_tables: 'a table * 'a table -> 'a table
   val join_tables: (string -> 'a * 'a -> 'a) (*Symtab.SAME*) ->
@@ -240,7 +243,7 @@ fun merge
 
 
 
-(** naming contexts **)
+(** naming context **)
 
 (* datatype naming *)
 
@@ -259,8 +262,6 @@ fun map_naming f (Naming {conceal, group, theory_name, path}) =
 fun map_path f = map_naming (fn (conceal, group, theory_name, path) =>
   (conceal, group, theory_name, f path));
 
-
-val default_naming = make_naming (false, NONE, "", []);
 
 val conceal = map_naming (fn (_, group, theory_name, path) =>
   (true, group, theory_name, path));
@@ -284,6 +285,9 @@ fun mandatory_path elems = map_path (fn path => path @ [(elems, true)]);
 
 fun qualified_path mandatory binding = map_path (fn path =>
   path @ #2 (Binding.dest (Binding.qualified mandatory "" binding)));
+
+val default_naming = make_naming (false, NONE, "", []);
+val local_naming = default_naming |> add_path "local";
 
 
 (* full name *)
@@ -348,6 +352,28 @@ fun alias naming binding name space =
 
 
 
+(** context naming **)
+
+structure Data_Args =
+struct
+  type T = naming;
+  val empty = default_naming;
+  fun extend _ = default_naming;
+  fun merge _ = default_naming;
+  fun init _ = local_naming;
+end;
+
+structure Global_Naming = Theory_Data(Data_Args);
+structure Local_Naming = Proof_Data(Data_Args);
+
+fun naming_of (Context.Theory thy) = Global_Naming.get thy
+  | naming_of (Context.Proof ctxt) = Local_Naming.get ctxt;
+
+fun map_naming f (Context.Theory thy) = Context.Theory (Global_Naming.map f thy)
+  | map_naming f (Context.Proof ctxt) = Context.Proof (Local_Naming.map f ctxt);
+
+
+
 (** entry definition **)
 
 (* declaration *)
@@ -361,8 +387,9 @@ fun new_entry strict (name, (externals, entry)) =
             err_dup kind (dup, #2 (the (Symtab.lookup entries dup))) (name, entry);
     in (kind, internals, entries') end);
 
-fun declare ctxt strict naming binding space =
+fun declare context strict binding space =
   let
+    val naming = naming_of context;
     val Naming {group, theory_name, ...} = naming;
     val (concealed, spec) = name_spec naming binding;
     val (accs, accs') = accesses naming binding;
@@ -380,7 +407,9 @@ fun declare ctxt strict naming binding space =
     val space' = space
       |> fold (add_name name) accs
       |> new_entry strict (name, (accs', entry));
-    val _ = Context_Position.report ctxt pos (entry_markup true (kind_of space) (name, entry));
+    val _ =
+      Context_Position.report_generic context pos
+        (entry_markup true (kind_of space) (name, entry));
   in (name, space') end;
 
 
@@ -388,10 +417,10 @@ fun declare ctxt strict naming binding space =
 
 type 'a table = T * 'a Symtab.table;
 
-fun check ctxt (space, tab) (xname, pos) =
+fun check context (space, tab) (xname, pos) =
   let val name = intern space xname in
     (case Symtab.lookup tab name of
-      SOME x => (Context_Position.report ctxt pos (markup space name); (name, x))
+      SOME x => (Context_Position.report_generic context pos (markup space name); (name, x))
     | NONE => error (undefined (kind_of space) name ^ Position.str_of pos))
   end;
 
@@ -400,8 +429,8 @@ fun get (space, tab) name =
     SOME x => x
   | NONE => error (undefined (kind_of space) name));
 
-fun define ctxt strict naming (binding, x) (space, tab) =
-  let val (name, space') = declare ctxt strict naming binding space
+fun define context strict (binding, x) (space, tab) =
+  let val (name, space') = declare context strict binding space
   in (name, (space', Symtab.update (name, x) tab)) end;
 
 fun empty_table kind = (empty kind, Symtab.empty);

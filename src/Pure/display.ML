@@ -185,7 +185,8 @@ fun pretty_full_theory verbose thy =
     val axioms = (Theory.axiom_space thy, Theory.axiom_table thy);
     val defs = Theory.defs_of thy;
     val {restricts, reducts} = Defs.dest defs;
-    val {naming = _, syn = _, tsig, consts} = Sign.rep_sg thy;
+    val tsig = Sign.tsig_of thy;
+    val consts = Sign.consts_of thy;
     val {constants, constraints} = Consts.dest consts;
     val extern_const = Name_Space.extern ctxt (#1 constants);
     val {classes, default, types, ...} = Type.rep_tsig tsig;

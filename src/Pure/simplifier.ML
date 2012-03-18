@@ -171,7 +171,7 @@ fun Delsimprocs args = Context.>> (map_ss (fn ss => ss delsimprocs args));
 
 (* get simprocs *)
 
-fun check_simproc ctxt = Name_Space.check ctxt (get_simprocs ctxt) #> #1;
+fun check_simproc ctxt = Name_Space.check (Context.Proof ctxt) (get_simprocs ctxt) #> #1;
 val the_simproc = Name_Space.get o get_simprocs;
 
 val _ =
@@ -202,14 +202,12 @@ fun gen_simproc prep {name = b, lhss, proc, identifier} lthy =
   in
     lthy |> Local_Theory.declaration {syntax = false, pervasive = true} (fn phi => fn context =>
       let
-        val naming = Proof_Context.target_naming_of context;
         val b' = Morphism.binding phi b;
         val simproc' = transform_simproc phi simproc;
       in
         context
         |> Data.map (fn (ss, tab) =>
-          (ss addsimprocs [simproc'],
-            #2 (Name_Space.define (Context.proof_of context) true naming (b', simproc') tab)))
+          (ss addsimprocs [simproc'], #2 (Name_Space.define context true (b', simproc') tab)))
       end)
   end;
 

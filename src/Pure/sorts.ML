@@ -38,15 +38,15 @@ sig
   val minimize_sort: algebra -> sort -> sort
   val complete_sort: algebra -> sort -> sort
   val minimal_sorts: algebra -> sort list -> sort Ord_List.T
-  val add_class: Proof.context -> class * class list -> algebra -> algebra
-  val add_classrel: Proof.context -> class * class -> algebra -> algebra
-  val add_arities: Proof.context -> string * (class * sort list) list -> algebra -> algebra
+  val add_class: Context.pretty -> class * class list -> algebra -> algebra
+  val add_classrel: Context.pretty -> class * class -> algebra -> algebra
+  val add_arities: Context.pretty -> string * (class * sort list) list -> algebra -> algebra
   val empty_algebra: algebra
-  val merge_algebra: Proof.context -> algebra * algebra -> algebra
-  val subalgebra: Proof.context -> (class -> bool) -> (class * string -> sort list option)
+  val merge_algebra: Context.pretty -> algebra * algebra -> algebra
+  val subalgebra: Context.pretty -> (class -> bool) -> (class * string -> sort list option)
     -> algebra -> (sort -> sort) * algebra
   type class_error
-  val class_error: Proof.context -> class_error -> string
+  val class_error: Context.pretty -> class_error -> string
   exception CLASS_ERROR of class_error
   val mg_domain: algebra -> string -> sort -> sort list   (*exception CLASS_ERROR*)
   val meet_sort: algebra -> typ * sort
@@ -187,16 +187,16 @@ fun minimal_sorts algebra raw_sorts =
 
 fun err_dup_class c = error ("Duplicate declaration of class: " ^ quote c);
 
-fun err_cyclic_classes ctxt css =
+fun err_cyclic_classes pp css =
   error (cat_lines (map (fn cs =>
-    "Cycle in class relation: " ^ Syntax.string_of_classrel ctxt cs) css));
+    "Cycle in class relation: " ^ Syntax.string_of_classrel (Syntax.init_pretty pp) cs) css));
 
-fun add_class ctxt (c, cs) = map_classes (fn classes =>
+fun add_class pp (c, cs) = map_classes (fn classes =>
   let
     val classes' = classes |> Graph.new_node (c, serial ())
       handle Graph.DUP dup => err_dup_class dup;
     val classes'' = classes' |> fold Graph.add_edge_trans_acyclic (map (pair c) cs)
-      handle Graph.CYCLES css => err_cyclic_classes ctxt css;
+      handle Graph.CYCLES css => err_cyclic_classes pp css;
   in classes'' end);
 
 
@@ -207,12 +207,14 @@ local
 fun for_classes _ NONE = ""
   | for_classes ctxt (SOME (c1, c2)) = " for classes " ^ Syntax.string_of_classrel ctxt [c1, c2];
 
-fun err_conflict ctxt t cc (c, Ss) (c', Ss') =
-  error ("Conflict of type arities" ^ for_classes ctxt cc ^ ":\n  " ^
-    Syntax.string_of_arity ctxt (t, Ss, [c]) ^ " and\n  " ^
-    Syntax.string_of_arity ctxt (t, Ss', [c']));
+fun err_conflict pp t cc (c, Ss) (c', Ss') =
+  let val ctxt = Syntax.init_pretty pp in
+    error ("Conflict of type arities" ^ for_classes ctxt cc ^ ":\n  " ^
+      Syntax.string_of_arity ctxt (t, Ss, [c]) ^ " and\n  " ^
+      Syntax.string_of_arity ctxt (t, Ss', [c']))
+  end;
 
-fun coregular ctxt algebra t (c, Ss) ars =
+fun coregular pp algebra t (c, Ss) ars =
   let
     fun conflict (c', Ss') =
       if class_le algebra (c, c') andalso not (sorts_le algebra (Ss, Ss')) then
@@ -222,62 +224,62 @@ fun coregular ctxt algebra t (c, Ss) ars =
       else NONE;
   in
     (case get_first conflict ars of
-      SOME ((c1, c2), (c', Ss')) => err_conflict ctxt t (SOME (c1, c2)) (c, Ss) (c', Ss')
+      SOME ((c1, c2), (c', Ss')) => err_conflict pp t (SOME (c1, c2)) (c, Ss) (c', Ss')
     | NONE => (c, Ss) :: ars)
   end;
 
 fun complete algebra (c, Ss) = map (rpair Ss) (c :: super_classes algebra c);
 
-fun insert ctxt algebra t (c, Ss) ars =
+fun insert pp algebra t (c, Ss) ars =
   (case AList.lookup (op =) ars c of
-    NONE => coregular ctxt algebra t (c, Ss) ars
+    NONE => coregular pp algebra t (c, Ss) ars
   | SOME Ss' =>
       if sorts_le algebra (Ss, Ss') then ars
       else if sorts_le algebra (Ss', Ss)
-      then coregular ctxt algebra t (c, Ss) (remove (op =) (c, Ss') ars)
-      else err_conflict ctxt t NONE (c, Ss) (c, Ss'));
+      then coregular pp algebra t (c, Ss) (remove (op =) (c, Ss') ars)
+      else err_conflict pp t NONE (c, Ss) (c, Ss'));
 
 in
 
-fun insert_ars ctxt algebra t = fold_rev (insert ctxt algebra t);
+fun insert_ars pp algebra t = fold_rev (insert pp algebra t);
 
-fun insert_complete_ars ctxt algebra (t, ars) arities =
+fun insert_complete_ars pp algebra (t, ars) arities =
   let val ars' =
     Symtab.lookup_list arities t
-    |> fold_rev (insert_ars ctxt algebra t) (map (complete algebra) ars);
+    |> fold_rev (insert_ars pp algebra t) (map (complete algebra) ars);
   in Symtab.update (t, ars') arities end;
 
-fun add_arities ctxt arg algebra =
-  algebra |> map_arities (insert_complete_ars ctxt algebra arg);
+fun add_arities pp arg algebra =
+  algebra |> map_arities (insert_complete_ars pp algebra arg);
 
-fun add_arities_table ctxt algebra =
-  Symtab.fold (fn (t, ars) => insert_complete_ars ctxt algebra (t, ars));
+fun add_arities_table pp algebra =
+  Symtab.fold (fn (t, ars) => insert_complete_ars pp algebra (t, ars));
 
 end;
 
 
 (* classrel *)
 
-fun rebuild_arities ctxt algebra = algebra |> map_arities (fn arities =>
+fun rebuild_arities pp algebra = algebra |> map_arities (fn arities =>
   Symtab.empty
-  |> add_arities_table ctxt algebra arities);
+  |> add_arities_table pp algebra arities);
 
-fun add_classrel ctxt rel = rebuild_arities ctxt o map_classes (fn classes =>
+fun add_classrel pp rel = rebuild_arities pp o map_classes (fn classes =>
   classes |> Graph.add_edge_trans_acyclic rel
-    handle Graph.CYCLES css => err_cyclic_classes ctxt css);
+    handle Graph.CYCLES css => err_cyclic_classes pp css);
 
 
 (* empty and merge *)
 
 val empty_algebra = make_algebra (Graph.empty, Symtab.empty);
 
-fun merge_algebra ctxt
+fun merge_algebra pp
    (Algebra {classes = classes1, arities = arities1},
     Algebra {classes = classes2, arities = arities2}) =
   let
     val classes' = Graph.merge_trans_acyclic (op =) (classes1, classes2)
       handle Graph.DUP c => err_dup_class c
-        | Graph.CYCLES css => err_cyclic_classes ctxt css;
+        | Graph.CYCLES css => err_cyclic_classes pp css;
     val algebra0 = make_algebra (classes', Symtab.empty);
     val arities' =
       (case (pointer_eq (classes1, classes2), pointer_eq (arities1, arities2)) of
@@ -285,20 +287,20 @@ fun merge_algebra ctxt
       | (true, false) =>  (*no completion*)
           (arities1, arities2) |> Symtab.join (fn t => fn (ars1, ars2) =>
             if pointer_eq (ars1, ars2) then raise Symtab.SAME
-            else insert_ars ctxt algebra0 t ars2 ars1)
+            else insert_ars pp algebra0 t ars2 ars1)
       | (false, true) =>  (*unary completion*)
           Symtab.empty
-          |> add_arities_table ctxt algebra0 arities1
+          |> add_arities_table pp algebra0 arities1
       | (false, false) => (*binary completion*)
           Symtab.empty
-          |> add_arities_table ctxt algebra0 arities1
-          |> add_arities_table ctxt algebra0 arities2);
+          |> add_arities_table pp algebra0 arities1
+          |> add_arities_table pp algebra0 arities2);
   in make_algebra (classes', arities') end;
 
 
 (* algebra projections *)  (* FIXME potentially violates abstract type integrity *)
 
-fun subalgebra ctxt P sargs (algebra as Algebra {classes, arities}) =
+fun subalgebra pp P sargs (algebra as Algebra {classes, arities}) =
   let
     val restrict_sort = minimize_sort algebra o filter P o Graph.all_succs classes;
     fun restrict_arity t (c, Ss) =
@@ -310,7 +312,7 @@ fun subalgebra ctxt P sargs (algebra as Algebra {classes, arities}) =
       else NONE;
     val classes' = classes |> Graph.restrict P;
     val arities' = arities |> Symtab.map (map_filter o restrict_arity);
-  in (restrict_sort, rebuild_arities ctxt (make_algebra (classes', arities'))) end;
+  in (restrict_sort, rebuild_arities pp (make_algebra (classes', arities'))) end;
 
 
 
@@ -323,13 +325,14 @@ datatype class_error =
   No_Arity of string * class |
   No_Subsort of sort * sort;
 
-fun class_error ctxt (No_Classrel (c1, c2)) =
-      "No class relation " ^ Syntax.string_of_classrel ctxt [c1, c2]
-  | class_error ctxt (No_Arity (a, c)) =
-      "No type arity " ^ Syntax.string_of_arity ctxt (a, [], [c])
-  | class_error ctxt (No_Subsort (S1, S2)) =
-      "Cannot derive subsort relation " ^
-        Syntax.string_of_sort ctxt S1 ^ " < " ^ Syntax.string_of_sort ctxt S2;
+fun class_error pp =
+  let val ctxt = Syntax.init_pretty pp in
+    fn No_Classrel (c1, c2) => "No class relation " ^ Syntax.string_of_classrel ctxt [c1, c2]
+     | No_Arity (a, c) => "No type arity " ^ Syntax.string_of_arity ctxt (a, [], [c])
+     | No_Subsort (S1, S2) =>
+        "Cannot derive subsort relation " ^
+          Syntax.string_of_sort ctxt S1 ^ " < " ^ Syntax.string_of_sort ctxt S2
+  end;
 
 exception CLASS_ERROR of class_error;
 

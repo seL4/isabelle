@@ -163,7 +163,7 @@ structure Locales = Theory_Data
 );
 
 val intern = Name_Space.intern o #1 o Locales.get;
-fun check thy = #1 o Name_Space.check (Proof_Context.init_global thy) (Locales.get thy);
+fun check thy = #1 o Name_Space.check (Context.Theory thy) (Locales.get thy);
 fun extern thy = Name_Space.extern (Proof_Context.init_global thy) (#1 (Locales.get thy));
 
 val get_locale = Symtab.lookup o #2 o Locales.get;
@@ -175,7 +175,7 @@ fun the_locale thy name =
   | NONE => error ("Unknown locale " ^ quote name));
 
 fun register_locale binding parameters spec intros axioms syntax_decls notes dependencies thy =
-  thy |> Locales.map (Name_Space.define (Proof_Context.init_global thy) true (Sign.naming_of thy)
+  thy |> Locales.map (Name_Space.define (Context.Theory thy) true
     (binding,
       mk_locale ((parameters, spec, intros, axioms),
         ((map (fn decl => (decl, serial ())) syntax_decls, map (fn n => (n, serial ())) notes),

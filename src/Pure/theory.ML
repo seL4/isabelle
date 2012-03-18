@@ -177,7 +177,7 @@ fun cert_axm ctxt (b, raw_tm) =
 fun add_axiom ctxt raw_axm thy = thy |> map_axioms (fn axioms =>
   let
     val axm = apsnd Logic.varify_global (cert_axm ctxt raw_axm);
-    val (_, axioms') = Name_Space.define ctxt true (Sign.naming_of thy) axm axioms;
+    val (_, axioms') = Name_Space.define (Sign.inherit_naming thy ctxt) true axm axioms;
   in axioms' end);
 
 
