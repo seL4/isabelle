@@ -30,7 +30,7 @@ sig
   val e_autoN : string
   val e_fun_weightN : string
   val e_sym_offset_weightN : string
-  val e_weight_method : string Config.T
+  val e_selection_weight_method : string Config.T
   val e_default_fun_weight : real Config.T
   val e_fun_weight_base : real Config.T
   val e_fun_weight_span : real Config.T
@@ -200,8 +200,8 @@ val e_autoN = "auto"
 val e_fun_weightN = "fun_weight"
 val e_sym_offset_weightN = "sym_offset_weight"
 
-val e_weight_method =
-  Attrib.setup_config_string @{binding atp_e_weight_method} (K e_smartN)
+val e_selection_weight_method =
+  Attrib.setup_config_string @{binding atp_e_selection_weight_method} (K e_smartN)
 (* FUDGE *)
 val e_default_fun_weight =
   Attrib.setup_config_real @{binding atp_e_default_fun_weight} (K 20.0)
@@ -216,19 +216,19 @@ val e_sym_offs_weight_base =
 val e_sym_offs_weight_span =
   Attrib.setup_config_real @{binding atp_e_sym_offs_weight_span} (K 60.0)
 
-fun e_weight_method_case method fw sow =
+fun e_selection_weight_method_case method fw sow =
   if method = e_fun_weightN then fw
   else if method = e_sym_offset_weightN then sow
   else raise Fail ("unexpected " ^ quote method)
 
-fun scaled_e_weight ctxt method w =
-  w * Config.get ctxt
-          (e_weight_method_case method e_fun_weight_span e_sym_offs_weight_span)
-  + Config.get ctxt
-        (e_weight_method_case method e_fun_weight_base e_sym_offs_weight_base)
+fun scaled_e_selection_weight ctxt method w =
+  w * Config.get ctxt (e_selection_weight_method_case method
+                           e_fun_weight_span e_sym_offs_weight_span)
+  + Config.get ctxt (e_selection_weight_method_case method
+                         e_fun_weight_base e_sym_offs_weight_base)
   |> Real.ceil |> signed_string_of_int
 
-fun e_weight_arguments ctxt method weights =
+fun e_selection_weight_arguments ctxt method weights =
   if method = e_autoN then
     "-xAutoDev"
   else
@@ -237,27 +237,32 @@ fun e_weight_arguments ctxt method weights =
     \--destructive-er-aggressive --destructive-er --presat-simplify \
     \--prefer-initial-clauses -tKBO6 -winvfreqrank -c1 -Ginvfreqconjmax -F1 \
     \--delete-bad-limit=150000000 -WSelectMaxLComplexAvoidPosPred \
-    \-H'(4*" ^ e_weight_method_case method "FunWeight" "SymOffsetWeight" ^
+    \-H'(4*" ^
+    e_selection_weight_method_case method "FunWeight" "SymOffsetWeight" ^
     "(SimulateSOS, " ^
-    (e_weight_method_case method e_default_fun_weight e_default_sym_offs_weight
+    (e_selection_weight_method_case method
+         e_default_fun_weight e_default_sym_offs_weight
      |> Config.get ctxt |> Real.ceil |> signed_string_of_int) ^
     ",20,1.5,1.5,1" ^
     (weights ()
-     |> map (fn (s, w) => "," ^ s ^ ":" ^ scaled_e_weight ctxt method w)
+     |> map (fn (s, w) => "," ^ s ^ ":" ^
+                          scaled_e_selection_weight ctxt method w)
      |> implode) ^
     "),3*ConjectureGeneralSymbolWeight(PreferNonGoals,200,100,200,50,50,1,100,\
     \1.5,1.5,1),1*Clauseweight(PreferProcessed,1,1,1),1*\
     \FIFOWeight(PreferProcessed))'"
 
-fun effective_e_weight_method ctxt =
-  if is_old_e_version () then e_autoN else Config.get ctxt e_weight_method
+fun effective_e_selection_weight_method ctxt =
+  if is_old_e_version () then e_autoN
+  else Config.get ctxt e_selection_weight_method
 
 val e_config : atp_config =
   {exec = ("E_HOME", "eproof"),
    required_execs = [],
    arguments =
      fn ctxt => fn _ => fn method => fn timeout => fn weights =>
-        "--tstp-in --tstp-out -l5 " ^ e_weight_arguments ctxt method weights ^
+        "--tstp-in --tstp-out -l5 " ^
+        e_selection_weight_arguments ctxt method weights ^
         " -tAutoDev --silent --cpu-limit=" ^ string_of_int (to_secs 2 timeout),
    proof_delims = tstp_proof_delims,
    known_failures =
@@ -268,7 +273,7 @@ val e_config : atp_config =
    conj_sym_kind = Hypothesis,
    prem_kind = Conjecture,
    best_slices = fn ctxt =>
-     let val method = effective_e_weight_method ctxt in
+     let val method = effective_e_selection_weight_method ctxt in
        (* FUDGE *)
        if method = e_smartN then
          [(0.333, (true, ((500, FOF, "mono_tags??", combsN, false), e_fun_weightN))),
