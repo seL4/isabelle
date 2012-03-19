@@ -8,7 +8,6 @@ signature SLEDGEHAMMER_ISAR =
 sig
   type params = Sledgehammer_Provers.params
 
-  val sledgehammerN : string
   val auto : bool Unsynchronized.ref
   val provers : string Unsynchronized.ref
   val timeout : int Unsynchronized.ref
@@ -28,9 +27,6 @@ open Sledgehammer_Filter
 open Sledgehammer_Provers
 open Sledgehammer_Minimize
 open Sledgehammer_Run
-
-val sledgehammerN = "sledgehammer"
-val sledgehammer_paramsN = "sledgehammer_params"
 
 val runN = "run"
 val minN = "min"
@@ -101,7 +97,8 @@ val default_default_params =
    ("preplay_timeout", "3")]
 
 val alias_params =
-  [("prover", "provers")]
+  [("prover", ("provers", [])),
+   ("dont_preplay", ("preplay_timeout", ["0"]))]
 val negated_alias_params =
   [("no_debug", "debug"),
    ("quiet", "verbose"),
@@ -133,7 +130,13 @@ fun is_prover_list ctxt s =
 
 fun unalias_raw_param (name, value) =
   case AList.lookup (op =) alias_params name of
-    SOME name' => (name', value)
+    SOME (name', []) => (name', value)
+  | SOME (param' as (name', _)) =>
+    if value <> ["false"] then
+      param'
+    else
+      error ("Parameter " ^ quote name ^ " cannot be set to \"false\" \
+             \(cf. " ^ quote name' ^ ").")
   | NONE =>
     case AList.lookup (op =) negated_alias_params name of
       SOME name' => (name', case value of
@@ -340,7 +343,7 @@ fun minimize_command override_params i more_override_params prover_name
       |> (if prover_name = default_minimize_prover then I else cons prover_name)
       |> space_implode ", "
   in
-    sledgehammerN ^ " " ^ minN ^
+    "sledgehammer" ^ " " ^ minN ^
     (if params = "" then "" else enclose " [" "]" params) ^
     " (" ^ space_implode " " fact_names ^ ")" ^
     (if i = 1 then "" else " " ^ string_of_int i)
@@ -434,6 +437,6 @@ fun try_sledgehammer auto state =
                      (minimize_command [] i) state
   end
 
-val setup = Try.register_tool (sledgehammerN, (40, auto, try_sledgehammer))
+val setup = Try.register_tool ("sledgehammer", (40, auto, try_sledgehammer))
 
 end;
