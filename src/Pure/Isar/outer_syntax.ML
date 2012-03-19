@@ -130,7 +130,7 @@ fun add_command (name, kind) cmd = CRITICAL (fn () =>
     val _ =
       (case try (Thy_Header.the_keyword thy) name of
         SOME spec =>
-          if Option.map Keyword.spec spec = SOME kind then ()
+          if Option.map #1 spec = SOME (Keyword.kind_of kind) then ()
           else error ("Inconsistent outer syntax keyword declaration " ^ quote name)
       | NONE =>
           if Context.theory_name thy = Context.PureN
