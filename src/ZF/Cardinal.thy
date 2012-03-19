@@ -264,9 +264,9 @@ proof -
             case False
             hence "\<And>x. x \<in> i \<Longrightarrow> ~P(x)" using step
               by blast
-            hence "(\<mu> x. P(x)) = i" using step
-              by (blast intro: Least_equality elim!: ltE) 
-            thus ?thesis using step
+            hence "(\<mu> a. P(a)) = i" using step
+              by (blast intro: Least_equality ltD) 
+            thus ?thesis using step.prems
               by simp 
           qed
       qed
@@ -274,16 +274,29 @@ proof -
   thus ?thesis using P .
 qed
 
-(*Proof is almost identical to the one above!*)
-lemma Least_le: "[| P(i);  Ord(i) |] ==> (\<mu> x. P(x)) \<le> i"
-apply (erule rev_mp)
-apply (erule_tac i=i in trans_induct)
-apply (rule impI)
-apply (rule classical)
-apply (subst Least_equality, assumption+)
-apply (erule_tac [2] le_refl)
-apply (blast elim: ltE intro: leI ltI lt_trans1)
-done
+text{*The proof is almost identical to the one above!*}
+lemma Least_le: 
+  assumes P: "P(i)" and i: "Ord(i)" shows "(\<mu> x. P(x)) \<le> i"
+proof -
+  { from i have "P(i) \<Longrightarrow> (\<mu> x. P(x)) \<le> i"
+      proof (induct i rule: trans_induct)
+        case (step i) 
+        show ?case
+          proof (cases "(\<mu> a. P(a)) \<le> i")
+            case True thus ?thesis .
+          next
+            case False
+            hence "\<And>x. x \<in> i \<Longrightarrow> ~ (\<mu> a. P(a)) \<le> i" using step
+              by blast
+            hence "(\<mu> a. P(a)) = i" using step
+              by (blast elim: ltE intro: ltI Least_equality lt_trans1)
+            thus ?thesis using step
+              by simp 
+          qed
+      qed
+  }
+  thus ?thesis using P .
+qed
 
 (*LEAST really is the smallest*)
 lemma less_LeastE: "[| P(i);  i < (\<mu> x. P(x)) |] ==> Q"
@@ -329,12 +342,11 @@ done
 
 (*Under AC, the premise becomes trivial; one consequence is ||A|| = |A|*)
 lemma well_ord_cardinal_eqpoll:
-    "well_ord(A,r) ==> |A| \<approx> A"
-apply (unfold cardinal_def)
-apply (rule LeastI)
-apply (erule_tac [2] Ord_ordertype)
-apply (erule ordermap_bij [THEN bij_converse_bij, THEN bij_imp_eqpoll])
-done
+  assumes r: "well_ord(A,r)" shows "|A| \<approx> A"
+proof (unfold cardinal_def)
+  show "(\<mu> i. i \<approx> A) \<approx> A"
+    by (best intro: LeastI Ord_ordertype ordermap_bij bij_converse_bij bij_imp_eqpoll r) 
+qed
 
 (* @{term"Ord(A) ==> |A| \<approx> A"} *)
 lemmas Ord_cardinal_eqpoll = well_ord_Memrel [THEN well_ord_cardinal_eqpoll]
@@ -373,7 +385,7 @@ done
 lemma CardI: "[| Ord(i);  !!j. j<i ==> ~(j \<approx> i) |] ==> Card(i)"
 apply (unfold Card_def cardinal_def)
 apply (subst Least_equality)
-apply (blast intro: eqpoll_refl )+
+apply (blast intro: eqpoll_refl)+
 done
 
 lemma Card_is_Ord: "Card(i) ==> Ord(i)"
@@ -391,14 +403,21 @@ apply (unfold cardinal_def)
 apply (rule Ord_Least)
 done
 
-(*The cardinals are the initial ordinals*)
+text{*The cardinals are the initial ordinals.*}
 lemma Card_iff_initial: "Card(K) \<longleftrightarrow> Ord(K) & (\<forall>j. j<K \<longrightarrow> ~ j \<approx> K)"
-apply (safe intro!: CardI Card_is_Ord)
- prefer 2 apply blast
-apply (unfold Card_def cardinal_def)
-apply (rule less_LeastE)
-apply (erule_tac [2] subst, assumption+)
-done
+proof -
+  { fix j
+    assume K: "Card(K)" "j \<approx> K"
+    assume "j < K"
+    also have "... = (\<mu> i. i \<approx> K)" using K
+      by (simp add: Card_def cardinal_def)
+    finally have "j < (\<mu> i. i \<approx> K)" .
+    hence "False" using K
+      by (best dest: less_LeastE) 
+  }
+  then show ?thesis
+    by (blast intro: CardI Card_is_Ord elim:) 
+qed
 
 lemma lt_Card_imp_lesspoll: "[| Card(a); i<a |] ==> i \<prec> a"
 apply (unfold lesspoll_def)
@@ -850,18 +869,46 @@ done
 
 subsection {*Finite and infinite sets*}
 
+lemma eqpoll_imp_Finite_iff: "A \<approx> B ==> Finite(A) \<longleftrightarrow> Finite(B)"
+apply (unfold Finite_def)
+apply (blast intro: eqpoll_trans eqpoll_sym)
+done
+
 lemma Finite_0 [simp]: "Finite(0)"
 apply (unfold Finite_def)
 apply (blast intro!: eqpoll_refl nat_0I)
 done
 
-lemma lepoll_nat_imp_Finite: "[| A \<lesssim> n;  n \<in> nat |] ==> Finite(A)"
+lemma Finite_cons: "Finite(x) ==> Finite(cons(y,x))"
 apply (unfold Finite_def)
-apply (erule rev_mp)
-apply (erule nat_induct)
-apply (blast dest!: lepoll_0_is_0 intro!: eqpoll_refl nat_0I)
-apply (blast dest!: lepoll_succ_disj)
+apply (case_tac "y \<in> x")
+apply (simp add: cons_absorb)
+apply (erule bexE)
+apply (rule bexI)
+apply (erule_tac [2] nat_succI)
+apply (simp (no_asm_simp) add: succ_def cons_eqpoll_cong mem_not_refl)
 done
+
+lemma Finite_succ: "Finite(x) ==> Finite(succ(x))"
+apply (unfold succ_def)
+apply (erule Finite_cons)
+done
+
+lemma lepoll_nat_imp_Finite:
+  assumes A: "A \<lesssim> n" and n: "n \<in> nat" shows "Finite(A)"
+proof -
+  have "A \<lesssim> n \<Longrightarrow> Finite(A)" using n
+    proof (induct n)
+      case 0
+      hence "A = 0" by (rule lepoll_0_is_0) 
+      thus ?case by simp
+    next
+      case (succ n)
+      hence "A \<lesssim> n \<or> A \<approx> succ(n)" by (blast dest: lepoll_succ_disj)
+      thus ?case using succ by (auto simp add: Finite_def) 
+    qed
+  thus ?thesis using A .
+qed
 
 lemma lesspoll_nat_is_Finite:
      "A \<prec> nat ==> Finite(A)"
@@ -883,31 +930,16 @@ qed
 
 lemmas subset_Finite = subset_imp_lepoll [THEN lepoll_Finite]
 
-lemma Finite_Int: "Finite(A) | Finite(B) ==> Finite(A \<inter> B)"
-by (blast intro: subset_Finite)
-
-lemmas Finite_Diff = Diff_subset [THEN subset_Finite]
-
-lemma Finite_cons: "Finite(x) ==> Finite(cons(y,x))"
-apply (unfold Finite_def)
-apply (case_tac "y \<in> x")
-apply (simp add: cons_absorb)
-apply (erule bexE)
-apply (rule bexI)
-apply (erule_tac [2] nat_succI)
-apply (simp (no_asm_simp) add: succ_def cons_eqpoll_cong mem_not_refl)
-done
-
-lemma Finite_succ: "Finite(x) ==> Finite(succ(x))"
-apply (unfold succ_def)
-apply (erule Finite_cons)
-done
-
 lemma Finite_cons_iff [iff]: "Finite(cons(y,x)) \<longleftrightarrow> Finite(x)"
 by (blast intro: Finite_cons subset_Finite)
 
 lemma Finite_succ_iff [iff]: "Finite(succ(x)) \<longleftrightarrow> Finite(x)"
 by (simp add: succ_def)
+
+lemma Finite_Int: "Finite(A) | Finite(B) ==> Finite(A \<inter> B)"
+by (blast intro: subset_Finite)
+
+lemmas Finite_Diff = Diff_subset [THEN subset_Finite]
 
 lemma nat_le_infinite_Ord:
       "[| Ord(i);  ~ Finite(i) |] ==> nat \<le> i"
@@ -948,11 +980,6 @@ done
 
 lemma Finite_Fin: "[| Finite(A); A \<subseteq> X |] ==> A \<in> Fin(X)"
 by (unfold Finite_def, blast intro: Finite_Fin_lemma)
-
-lemma eqpoll_imp_Finite_iff: "A \<approx> B ==> Finite(A) \<longleftrightarrow> Finite(B)"
-apply (unfold Finite_def)
-apply (blast intro: eqpoll_trans eqpoll_sym)
-done
 
 lemma Fin_lemma [rule_format]: "n \<in> nat ==> \<forall>A. A \<approx> n \<longrightarrow> A \<in> Fin(A)"
 apply (induct_tac n)
@@ -1074,22 +1101,30 @@ by (blast intro: Finite_Pow Finite_Pow_imp_Finite)
   set is well-ordered.  Proofs simplified by lcp. *)
 
 lemma nat_wf_on_converse_Memrel: "n \<in> nat ==> wf[n](converse(Memrel(n)))"
-apply (erule nat_induct)
-apply (blast intro: wf_onI)
-apply (rule wf_onI)
-apply (simp add: wf_on_def wf_def)
-apply (case_tac "x \<in> Z")
- txt{*true case*}
- apply (drule_tac x = x in bspec, assumption)
- apply (blast elim: mem_irrefl mem_asym)
-txt{*other case*}
-apply (drule_tac x = Z in spec, blast)
-done
+proof (induct n rule: nat_induct)
+  case 0 thus ?case by (blast intro: wf_onI)
+next
+  case (succ x)
+  hence wfx: "\<And>Z. Z = 0 \<or> (\<exists>z\<in>Z. \<forall>y. z \<in> y \<and> z \<in> x \<and> y \<in> x \<and> z \<in> x \<longrightarrow> y \<notin> Z)"
+    by (simp add: wf_on_def wf_def)  --{*not easy to erase the duplicate @{term"z \<in> x"}!*}
+  show ?case
+    proof (rule wf_onI)
+      fix Z u
+      assume Z: "u \<in> Z" "\<forall>z\<in>Z. \<exists>y\<in>Z. \<langle>y, z\<rangle> \<in> converse(Memrel(succ(x)))"
+      show False 
+        proof (cases "x \<in> Z")
+          case True thus False using Z
+            by (blast elim: mem_irrefl mem_asym)
+          next
+          case False thus False using wfx [of Z] Z
+            by blast
+        qed
+    qed
+qed
 
 lemma nat_well_ord_converse_Memrel: "n \<in> nat ==> well_ord(n,converse(Memrel(n)))"
 apply (frule Ord_nat [THEN Ord_in_Ord, THEN well_ord_Memrel])
-apply (unfold well_ord_def)
-apply (blast intro!: tot_ord_converse nat_wf_on_converse_Memrel)
+apply (simp add: well_ord_def tot_ord_converse nat_wf_on_converse_Memrel) 
 done
 
 lemma well_ord_converse:
@@ -1122,9 +1157,7 @@ apply (blast dest: ordertype_eq_n intro!: nat_well_ord_converse_Memrel)
 done
 
 lemma nat_into_Finite: "n \<in> nat ==> Finite(n)"
-apply (unfold Finite_def)
-apply (fast intro!: eqpoll_refl)
-done
+  by (auto simp add: Finite_def intro: eqpoll_refl) 
 
 lemma nat_not_Finite: "~ Finite(nat)"
 proof -
