@@ -49,6 +49,7 @@ sig
   val local_naming: naming
   val transform_binding: naming -> binding -> binding
   val full_name: naming -> binding -> string
+  val base_name: binding -> string
   val alias: naming -> binding -> string -> T -> T
   val naming_of: Context.generic -> naming
   val map_naming: (naming -> naming) -> Context.generic -> Context.generic
@@ -313,6 +314,8 @@ fun name_spec (naming as Naming {path, ...}) raw_binding =
 
 fun full_name naming =
   name_spec naming #> #2 #> map #1 #> Long_Name.implode;
+
+val base_name = full_name default_naming #> Long_Name.base_name;
 
 
 (* accesses *)

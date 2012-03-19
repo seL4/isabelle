@@ -178,7 +178,7 @@ fun gen_axioms prep raw_vars raw_specs thy =
     val (axioms, axioms_thy) = (specs, consts_thy) |-> fold_map (fn ((b, atts), props) =>
         fold_map Thm.add_axiom_global
           (map (apfst (fn a => Binding.map_name (K a) b))
-            (Global_Theory.name_multi (Variable.check_name b) (map subst props)))
+            (Global_Theory.name_multi (Binding.name_of b) (map subst props)))
         #>> (fn ths => ((b, atts), [(map #2 ths, [])])));
 
     (*facts*)
@@ -328,7 +328,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
   | Element.Obtains obtains =>
       let
         val case_names = obtains |> map_index (fn (i, (b, _)) =>
-          if Binding.is_empty b then string_of_int (i + 1) else Variable.check_name b);
+          if Binding.is_empty b then string_of_int (i + 1) else Name_Space.base_name b);
         val constraints = obtains |> map (fn (_, (vars, _)) =>
           Element.Constrains
             (vars |> map_filter (fn (x, SOME T) => SOME (Variable.check_name x, T) | _ => NONE)));
