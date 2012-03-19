@@ -710,7 +710,11 @@ fun run_atp mode name
                            type_enc false lam_trans uncurried_aliases
                            readable_names true hyp_ts concl_t
                 fun sel_weights () = atp_problem_selection_weights atp_problem
-                fun ord_weights () = atp_problem_term_order_weights atp_problem
+                fun ord_weights () =
+                  if #generate_weights (effective_term_order ctxt name) then
+                    atp_problem_term_order_weights atp_problem
+                  else
+                    []
                 val full_proof = debug orelse isar_proof
                 val command =
                   File.shell_path command ^ " " ^

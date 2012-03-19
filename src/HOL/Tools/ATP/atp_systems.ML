@@ -11,6 +11,11 @@ sig
   type formula_kind = ATP_Problem.formula_kind
   type failure = ATP_Proof.failure
 
+  type term_order =
+    {is_lpo : bool,
+     generate_weights : bool,
+     generate_prec : bool,
+     generate_simp : bool}
   type slice_spec = int * atp_format * string * string * bool
   type atp_config =
     {exec : string * string,
@@ -54,6 +59,7 @@ sig
   val waldmeisterN : string
   val z3_tptpN : string
   val remote_prefix : string
+  val effective_term_order : Proof.context -> string -> term_order
   val remote_atp :
     string -> string -> string list -> (string * string) list
     -> (failure * string) list -> formula_kind -> formula_kind
@@ -165,13 +171,34 @@ val force_sos = Attrib.setup_config_bool @{binding atp_force_sos} (K false)
 val smartN = "smart"
 val kboN = "kbo"
 val lpoN = "lpo"
-val weightsN = "_weights"
-val precsN = "_precs"
-val lrN = "_lr" (* SPASS-specific *)
+val xweightsN = "_weights"
+val xprecN = "_prec"
+val xsimpN = "_simp" (* SPASS-specific *)
 
 val term_order =
   Attrib.setup_config_string @{binding atp_term_order} (K smartN)
 
+type term_order =
+  {is_lpo : bool,
+   generate_weights : bool,
+   generate_prec : bool,
+   generate_simp : bool}
+
+fun effective_term_order ctxt atp =
+  let val ord = Config.get ctxt term_order in
+    if ord = smartN then
+      if atp = spass_newN then
+        {is_lpo = false, generate_weights = true, generate_prec = false,
+         generate_simp = true}
+      else
+        {is_lpo = false, generate_weights = false, generate_prec = false,
+         generate_simp = false}
+    else
+      {is_lpo = String.isSubstring lpoN ord,
+       generate_weights = String.isSubstring xweightsN ord,
+       generate_prec = String.isSubstring xprecN ord,
+       generate_simp = String.isSubstring xsimpN ord}
+  end
 
 (* Alt-Ergo *)
 
