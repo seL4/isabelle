@@ -2746,13 +2746,13 @@ fun atp_problem_selection_weights problem =
     |> sort (prod_ord Real.compare string_ord o pairself swap)
   end
 
-fun have_head_rolling (ATerm (s, args)) =
-    (* ugly hack: may make innocent victims *)
+fun make_head_roll (ATerm (s, args)) =
+    (* ugly hack: may make innocent victims (collateral damage) *)
     if String.isPrefix app_op_name s andalso length args = 2 then
-      have_head_rolling (hd args) ||> append (tl args)
+      make_head_roll (hd args) ||> append (tl args)
     else
       (s, args)
-  | have_head_rolling _ = ("", [])
+  | make_head_roll _ = ("", [])
 
 val max_term_order_weight = 2147483647
 
@@ -2764,7 +2764,7 @@ fun atp_problem_term_order_weights problem =
       | add_term_deps head (AAbs (_, tm)) = add_term_deps head tm
     fun add_eq_deps (ATerm (s, [lhs as _, rhs])) =
         if is_tptp_equal s then
-          let val (head, rest) = have_head_rolling lhs in
+          let val (head, rest) = make_head_roll lhs in
             fold (add_term_deps head) (rhs :: rest)
           end
         else

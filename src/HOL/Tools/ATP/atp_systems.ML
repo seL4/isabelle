@@ -26,11 +26,12 @@ sig
        Proof.context -> (real * (bool * (slice_spec * string))) list}
 
   val force_sos : bool Config.T
+  val term_order : string Config.T
   val e_smartN : string
   val e_autoN : string
   val e_fun_weightN : string
   val e_sym_offset_weightN : string
-  val e_selection_weight_method : string Config.T
+  val e_selection_heuristic : string Config.T
   val e_default_fun_weight : real Config.T
   val e_fun_weight_base : real Config.T
   val e_fun_weight_span : real Config.T
@@ -161,6 +162,16 @@ val no_sosN = "no_sos"
 
 val force_sos = Attrib.setup_config_bool @{binding atp_force_sos} (K false)
 
+val smartN = "smart"
+val kboN = "kbo"
+val lpoN = "lpo"
+val weightsN = "_weights"
+val precsN = "_precs"
+val lrN = "_lr" (* SPASS-specific *)
+
+val term_order =
+  Attrib.setup_config_string @{binding atp_term_order} (K smartN)
+
 
 (* Alt-Ergo *)
 
@@ -200,8 +211,8 @@ val e_autoN = "auto"
 val e_fun_weightN = "fun_weight"
 val e_sym_offset_weightN = "sym_offset_weight"
 
-val e_selection_weight_method =
-  Attrib.setup_config_string @{binding atp_e_selection_weight_method} (K e_smartN)
+val e_selection_heuristic =
+  Attrib.setup_config_string @{binding atp_e_selection_heuristic} (K e_smartN)
 (* FUDGE *)
 val e_default_fun_weight =
   Attrib.setup_config_real @{binding atp_e_default_fun_weight} (K 20.0)
@@ -216,15 +227,15 @@ val e_sym_offs_weight_base =
 val e_sym_offs_weight_span =
   Attrib.setup_config_real @{binding atp_e_sym_offs_weight_span} (K 60.0)
 
-fun e_selection_weight_method_case method fw sow =
+fun e_selection_heuristic_case method fw sow =
   if method = e_fun_weightN then fw
   else if method = e_sym_offset_weightN then sow
   else raise Fail ("unexpected " ^ quote method)
 
 fun scaled_e_selection_weight ctxt method w =
-  w * Config.get ctxt (e_selection_weight_method_case method
+  w * Config.get ctxt (e_selection_heuristic_case method
                            e_fun_weight_span e_sym_offs_weight_span)
-  + Config.get ctxt (e_selection_weight_method_case method
+  + Config.get ctxt (e_selection_heuristic_case method
                          e_fun_weight_base e_sym_offs_weight_base)
   |> Real.ceil |> signed_string_of_int
 
@@ -237,10 +248,9 @@ fun e_selection_weight_arguments ctxt method sel_weights =
     \--destructive-er-aggressive --destructive-er --presat-simplify \
     \--prefer-initial-clauses -tKBO6 -winvfreqrank -c1 -Ginvfreqconjmax -F1 \
     \--delete-bad-limit=150000000 -WSelectMaxLComplexAvoidPosPred \
-    \-H'(4*" ^
-    e_selection_weight_method_case method "FunWeight" "SymOffsetWeight" ^
+    \-H'(4*" ^ e_selection_heuristic_case method "FunWeight" "SymOffsetWeight" ^
     "(SimulateSOS, " ^
-    (e_selection_weight_method_case method
+    (e_selection_heuristic_case method
          e_default_fun_weight e_default_sym_offs_weight
      |> Config.get ctxt |> Real.ceil |> signed_string_of_int) ^
     ",20,1.5,1.5,1" ^
@@ -252,9 +262,8 @@ fun e_selection_weight_arguments ctxt method sel_weights =
     \1.5,1.5,1),1*Clauseweight(PreferProcessed,1,1,1),1*\
     \FIFOWeight(PreferProcessed))'"
 
-fun effective_e_selection_weight_method ctxt =
-  if is_old_e_version () then e_autoN
-  else Config.get ctxt e_selection_weight_method
+fun effective_e_selection_heuristic ctxt =
+  if is_old_e_version () then e_autoN else Config.get ctxt e_selection_heuristic
 
 val e_config : atp_config =
   {exec = ("E_HOME", "eproof"),
@@ -273,7 +282,7 @@ val e_config : atp_config =
    conj_sym_kind = Hypothesis,
    prem_kind = Conjecture,
    best_slices = fn ctxt =>
-     let val method = effective_e_selection_weight_method ctxt in
+     let val method = effective_e_selection_heuristic ctxt in
        (* FUDGE *)
        if method = e_smartN then
          [(0.333, (true, ((500, FOF, "mono_tags??", combsN, false), e_fun_weightN))),
