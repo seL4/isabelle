@@ -520,7 +520,8 @@ requires type information or if \textit{metis} failed when Sledgehammer
 preplayed the proof. (By default, Sledgehammer tries to run \textit{metis} with
 various options for up to 3 seconds each time to ensure that the generated
 one-line proofs actually work and to display timing information. This can be
-configured using the \textit{preplay\_timeout} option (\S\ref{timeouts}).)
+configured using the \textit{preplay\_timeout} and \textit{dont\_preplay}
+options (\S\ref{timeouts}).)
 %
 At the other end of the soundness spectrum, \textit{metis} (\textit{no\_types})
 uses no type information at all during the proof search, which is more efficient
@@ -721,6 +722,7 @@ For convenience, the following aliases are provided:
 \def\defr{\}}
 
 \def\flushitem#1{\item[]\noindent\kern-\leftmargin \textbf{#1}}
+\def\optrueonly#1{\flushitem{\textit{#1} $\bigl[$= \textit{true}$\bigr]$\enskip}\nopagebreak\\[\parskip]}
 \def\optrue#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{bool}$\bigr]$\enskip \defl\textit{true}\defr\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
 \def\opfalse#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{bool}$\bigr]$\enskip \defl\textit{false}\defr\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
 \def\opsmart#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{smart\_bool}$\bigr]$\enskip \defl\textit{smart}\defr\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
@@ -918,12 +920,6 @@ several provers are set, the first one is used.
 \opnodefault{prover}{string}
 Alias for \textit{provers}.
 
-%\opnodefault{atps}{string}
-%Legacy alias for \textit{provers}.
-
-%\opnodefault{atp}{string}
-%Legacy alias for \textit{provers}.
-
 \opfalse{blocking}{non\_blocking}
 Specifies whether the \textbf{sledgehammer} command should operate
 synchronously. The asynchronous (non-blocking) mode lets the user start proving
@@ -955,7 +951,8 @@ the number of facts in the original proof and the time it took to find or
 preplay it) or the proof involves an unreasonably large number of facts.
 
 \nopagebreak
-{\small See also \textit{preplay\_timeout} (\S\ref{timeouts}).}
+{\small See also \textit{preplay\_timeout} (\S\ref{timeouts})
+and \textit{dont\_preplay} (\S\ref{timeouts}).}
 
 \opfalse{overlord}{no\_overlord}
 Specifies whether Sledgehammer should put its temporary files in
@@ -1086,13 +1083,13 @@ falls back on \textit{mono\_native}.
 \textit{mono\_native}? (sound*):} \\
 The type encodings \textit{poly\_guards}, \textit{poly\_tags},
 \textit{raw\_mono\_guards}, \textit{raw\_mono\_tags}, \textit{mono\_guards},
-\textit{mono\_tags}, and \textit{mono\_native} are fully
-typed and sound. For each of these, Sledgehammer also provides a lighter,
-virtually sound variant identified by a question mark (`\hbox{?}')\ that detects
-and erases monotonic types, notably infinite types. (For \textit{mono\_native},
-the types are not actually erased but rather replaced by a shared uniform type
-of individuals.) As argument to the \textit{metis} proof method, the question
-mark is replaced by a \hbox{``\textit{\_query\/}''} suffix.
+\textit{mono\_tags}, and \textit{mono\_native} are fully typed and sound. For
+each of these, Sledgehammer also provides a lighter variant identified by a
+question mark (`\hbox{?}')\ that detects and erases monotonic types, notably
+infinite types. (For \textit{mono\_native}, the types are not actually erased
+but rather replaced by a shared uniform type of individuals.) As argument to the
+\textit{metis} proof method, the question mark is replaced by a
+\hbox{``\textit{\_query\/}''} suffix.
 
 \item[\labelitemi]
 \textbf{%
@@ -1143,7 +1140,7 @@ Alternative versions of the `\hbox{!!}' encodings. As argument to the
 \hbox{``\textit{\_at\_bang\/}''}.
 
 \item[\labelitemi] \textbf{\textit{smart}:} The actual encoding used depends on
-the ATP and should be the most efficient virtually sound encoding for that ATP.
+the ATP and should be the most efficient sound encoding for that ATP.
 \end{enum}
 
 For SMT solvers, the type encoding is always \textit{mono\_native}, irrespective
@@ -1271,6 +1268,10 @@ suggested \textit{metis} calls.
 
 \nopagebreak
 {\small See also \textit{minimize} (\S\ref{mode-of-operation}).}
+
+\optrueonly{dont\_preplay}
+Alias for ``\textit{preplay\_timeout} = 0''.
+
 \end{enum}
 
 \let\em=\sl
