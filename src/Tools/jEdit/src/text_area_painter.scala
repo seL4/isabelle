@@ -84,7 +84,7 @@ class Text_Area_Painter(doc_view: Document_View)
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
-      painter_snapshot = doc_view.update_snapshot()
+      painter_snapshot = model.snapshot()
       painter_clip = gfx.getClip
     }
   }

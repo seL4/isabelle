@@ -144,31 +144,6 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   }
 
 
-  /* snapshot */
-
-  // owned by Swing thread
-  @volatile private var was_outdated = false
-  @volatile private var was_updated = false
-
-  def update_snapshot(): Document.Snapshot =
-  {
-    Swing_Thread.require()
-    val snapshot = model.snapshot()
-    was_updated &&= !snapshot.is_outdated
-    was_outdated ||= snapshot.is_outdated
-    snapshot
-  }
-
-  def flush_snapshot(): (Boolean, Document.Snapshot) =
-  {
-    Swing_Thread.require()
-    val snapshot = update_snapshot()
-    val updated = was_updated
-    if (updated) { was_outdated = false; was_updated = false }
-    (updated, snapshot)
-  }
-
-
   /* HTML popups */
 
   private var html_popup: Option[Popup] = None
@@ -242,7 +217,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
       if (!model.buffer.isLoaded) exit_control()
       else
         Isabelle.buffer_lock(model.buffer) {
-          val snapshot = update_snapshot()
+          val snapshot = model.snapshot()
 
           if (control) init_popup(snapshot, x, y)
 
@@ -268,7 +243,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     override def getToolTipText(x: Int, y: Int): String =
     {
       robust_body(null: String) {
-        val snapshot = update_snapshot()
+        val snapshot = model.snapshot()
         val offset = text_area.xyToOffset(x, y)
         val range = Text.Range(offset, offset + 1)
         val tip =
@@ -295,7 +270,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
         if (gutter.isSelectionAreaEnabled && !gutter.isExpanded && width >= 12 && line_height >= 12) {
           Isabelle.buffer_lock(model.buffer) {
-            val snapshot = update_snapshot()
+            val snapshot = model.snapshot()
             for (i <- 0 until physical_lines.length) {
               if (physical_lines(i) != -1) {
                 val line_range = proper_line_range(start(i), end(i))
@@ -340,7 +315,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   def selected_command(): Option[Command] =
   {
     Swing_Thread.require()
-    update_snapshot().node.command_at(text_area.getCaretPosition).map(_._1)
+    model.snapshot().node.command_at(text_area.getCaretPosition).map(_._1)
   }
 
   private val delay_caret_update =
@@ -372,16 +347,16 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
           Swing_Thread.later {
             Isabelle.buffer_lock(buffer) {
               if (model.buffer == text_area.getBuffer) {
-                val (updated, snapshot) = flush_snapshot()
+                val snapshot = model.snapshot()
 
-                if (updated ||
+                if (changed.assignment ||
                     (changed.nodes.contains(model.name) &&
                      changed.commands.exists(snapshot.node.commands.contains)))
                   overview.delay_repaint(true)
 
                 visible_range() match {
                   case Some(visible) =>
-                    if (updated) invalidate_range(visible)
+                    if (changed.assignment) invalidate_range(visible)
                     else {
                       val visible_cmds =
                         snapshot.node.command_range(snapshot.revert(visible)).map(_._1)

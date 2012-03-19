@@ -24,7 +24,8 @@ object Session
   //{{{
   case object Global_Settings
   case object Caret_Focus
-  case class Commands_Changed(nodes: Set[Document.Node.Name], commands: Set[Command])
+  case class Commands_Changed(
+    assignment: Boolean, nodes: Set[Document.Node.Name], commands: Set[Command])
 
   sealed abstract class Phase
   case object Inactive extends Phase
@@ -227,9 +228,9 @@ class Session(thy_load: Thy_Load = new Thy_Load)
 
     object delay_commands_changed
     {
+      private var changed_assignment: Boolean = false
       private var changed_nodes: Set[Document.Node.Name] = Set.empty
       private var changed_commands: Set[Command] = Set.empty
-      private def changed: Boolean = !changed_nodes.isEmpty || !changed_commands.isEmpty
 
       private var flush_time: Option[Long] = None
 
@@ -241,17 +242,22 @@ class Session(thy_load: Thy_Load = new Thy_Load)
 
       def flush()
       {
-        if (changed)
-          commands_changed_buffer ! Session.Commands_Changed(changed_nodes, changed_commands)
+        if (changed_assignment || !changed_nodes.isEmpty || !changed_commands.isEmpty)
+          commands_changed_buffer !
+            Session.Commands_Changed(changed_assignment, changed_nodes, changed_commands)
+        changed_assignment = false
         changed_nodes = Set.empty
         changed_commands = Set.empty
         flush_time = None
       }
 
-      def invoke(command: Command)
+      def invoke(assign: Boolean, commands: List[Command])
       {
-        changed_nodes += command.node_name
-        changed_commands += command
+        changed_assignment |= assign
+        for (command <- commands) {
+          changed_nodes += command.node_name
+          changed_commands += command
+        }
         val now = System.currentTimeMillis()
         flush_time match {
           case None => flush_time = Some(now + output_delay.ms)
@@ -304,22 +310,16 @@ class Session(thy_load: Thy_Load = new Thy_Load)
     /* exec state assignment */
 
     def handle_assign(id: Document.Version_ID, assign: Document.Assign)
-    //{{{
     {
       val cmds = global_state >>> (_.assign(id, assign))
-      for (cmd <- cmds) delay_commands_changed.invoke(cmd)
+      delay_commands_changed.invoke(true, cmds)
     }
-    //}}}
 
 
     /* removed versions */
 
-    def handle_removed(removed: List[Document.Version_ID])
-    //{{{
-    {
+    def handle_removed(removed: List[Document.Version_ID]): Unit =
       global_state >> (_.removed_versions(removed))
-    }
-    //}}}
 
 
     /* resulting changes */
@@ -367,7 +367,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
         case Position.Id(state_id) if !output.is_protocol =>
           try {
             val st = global_state >>> (_.accumulate(state_id, output.message))
-            delay_commands_changed.invoke(st.command)
+            delay_commands_changed.invoke(false, List(st.command))
           }
           catch {
             case _: Document.State.Fail => bad_output(output)

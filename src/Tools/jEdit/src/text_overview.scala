@@ -55,7 +55,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
 
     doc_view.robust_body(()) {
       Isabelle.buffer_lock(buffer) {
-        val snapshot = doc_view.update_snapshot()
+        val snapshot = doc_view.model.snapshot()
 
         gfx.setColor(getBackground)
         gfx.asInstanceOf[Graphics2D].fill(gfx.getClipBounds)
