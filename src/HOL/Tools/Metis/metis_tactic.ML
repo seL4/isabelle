@@ -115,8 +115,8 @@ val active_params =
    postfactor = #postfactor Metis_Active.default}
 val waiting_params =
   {symbolsWeight = 1.0,
-   variablesWeight = 0.0,
-   literalsWeight = 0.0,
+   variablesWeight = 0.5,
+   literalsWeight = 0.1,
    models = []}
 val resolution_params = {active = active_params, waiting = waiting_params}
 
