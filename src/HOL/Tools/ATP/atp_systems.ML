@@ -572,7 +572,7 @@ val remote_satallax =
          (* FUDGE *))
 val remote_vampire =
   remotify_atp vampire "Vampire" ["1.8"]
-      (K (250, FOF, "mono_guards??", combs_or_liftingN, false) (* FUDGE *))
+      (K (250, vampire_tff0, "mono_native", combs_or_liftingN, false) (* FUDGE *))
 val remote_z3_tptp =
   remotify_atp z3_tptp "Z3" ["3.0"]
       (K (250, z3_tff0, "mono_native", combsN, false) (* FUDGE *))
