@@ -231,7 +231,7 @@ fun eta_redex (t $ Bound 0) =
 fun eta_contract thy _ origt =
     let
         val (typet,Tinst) = freeze_thaw_term origt
-        val (init,thaw) = Drule.legacy_freeze_thaw (Thm.reflexive (cterm_of thy typet))
+        val (init,thaw) = Misc_Legacy.freeze_thaw (Thm.reflexive (cterm_of thy typet))
         val final = inst_tfrees thy Tinst o thaw
         val t = #1 (Logic.dest_equals (prop_of init))
         val _ =
@@ -282,7 +282,7 @@ fun eta_contract thy _ origt =
 fun eta_expand thy _ origt =
     let
         val (typet,Tinst) = freeze_thaw_term origt
-        val (init,thaw) = Drule.legacy_freeze_thaw (Thm.reflexive (cterm_of thy typet))
+        val (init,thaw) = Misc_Legacy.freeze_thaw (Thm.reflexive (cterm_of thy typet))
         val final = inst_tfrees thy Tinst o thaw
         val t = #1 (Logic.dest_equals (prop_of init))
         val _ =
