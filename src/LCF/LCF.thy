@@ -44,77 +44,83 @@ consts
  COND   :: "[tr,'a,'a] => 'a"   ("(_ =>/ (_ |/ _))" [60,60,60] 60)
  less   :: "['a,'a] => o"       (infixl "<<" 50)
 
-axioms
+axiomatization where
   (** DOMAIN THEORY **)
 
-  eq_def:        "x=y == x << y & y << x"
+  eq_def:        "x=y == x << y & y << x" and
 
-  less_trans:    "[| x << y; y << z |] ==> x << z"
+  less_trans:    "[| x << y; y << z |] ==> x << z" and
 
-  less_ext:      "(ALL x. f(x) << g(x)) ==> f << g"
+  less_ext:      "(ALL x. f(x) << g(x)) ==> f << g" and
 
-  mono:          "[| f << g; x << y |] ==> f(x) << g(y)"
+  mono:          "[| f << g; x << y |] ==> f(x) << g(y)" and
 
-  minimal:       "UU << x"
+  minimal:       "UU << x" and
 
-  FIX_eq:        "f(FIX(f)) = FIX(f)"
+  FIX_eq:        "\<And>f. f(FIX(f)) = FIX(f)"
 
+axiomatization where
   (** TR **)
 
-  tr_cases:      "p=UU | p=TT | p=FF"
+  tr_cases:      "p=UU | p=TT | p=FF" and
 
-  not_TT_less_FF: "~ TT << FF"
-  not_FF_less_TT: "~ FF << TT"
-  not_TT_less_UU: "~ TT << UU"
-  not_FF_less_UU: "~ FF << UU"
+  not_TT_less_FF: "~ TT << FF" and
+  not_FF_less_TT: "~ FF << TT" and
+  not_TT_less_UU: "~ TT << UU" and
+  not_FF_less_UU: "~ FF << UU" and
 
-  COND_UU:       "UU => x | y  =  UU"
-  COND_TT:       "TT => x | y  =  x"
+  COND_UU:       "UU => x | y  =  UU" and
+  COND_TT:       "TT => x | y  =  x" and
   COND_FF:       "FF => x | y  =  y"
 
+axiomatization where
   (** PAIRS **)
 
-  surj_pairing:  "<FST(z),SND(z)> = z"
+  surj_pairing:  "<FST(z),SND(z)> = z" and
 
-  FST:   "FST(<x,y>) = x"
+  FST:   "FST(<x,y>) = x" and
   SND:   "SND(<x,y>) = y"
 
+axiomatization where
   (*** STRICT SUM ***)
 
-  INL_DEF: "~x=UU ==> ~INL(x)=UU"
-  INR_DEF: "~x=UU ==> ~INR(x)=UU"
+  INL_DEF: "~x=UU ==> ~INL(x)=UU" and
+  INR_DEF: "~x=UU ==> ~INR(x)=UU" and
 
-  INL_STRICT: "INL(UU) = UU"
-  INR_STRICT: "INR(UU) = UU"
+  INL_STRICT: "INL(UU) = UU" and
+  INR_STRICT: "INR(UU) = UU" and
 
-  WHEN_UU:  "WHEN(f,g,UU) = UU"
-  WHEN_INL: "~x=UU ==> WHEN(f,g,INL(x)) = f(x)"
-  WHEN_INR: "~x=UU ==> WHEN(f,g,INR(x)) = g(x)"
+  WHEN_UU:  "WHEN(f,g,UU) = UU" and
+  WHEN_INL: "~x=UU ==> WHEN(f,g,INL(x)) = f(x)" and
+  WHEN_INR: "~x=UU ==> WHEN(f,g,INR(x)) = g(x)" and
 
   SUM_EXHAUSTION:
     "z = UU | (EX x. ~x=UU & z = INL(x)) | (EX y. ~y=UU & z = INR(y))"
 
+axiomatization where
   (** VOID **)
 
   void_cases:    "(x::void) = UU"
 
   (** INDUCTION **)
 
+axiomatization where
   induct:        "[| adm(P); P(UU); ALL x. P(x) --> P(f(x)) |] ==> P(FIX(f))"
 
+axiomatization where
   (** Admissibility / Chain Completeness **)
   (* All rules can be found on pages 199--200 of Larry's LCF book.
      Note that "easiness" of types is not taken into account
      because it cannot be expressed schematically; flatness could be. *)
 
-  adm_less:      "adm(%x. t(x) << u(x))"
-  adm_not_less:  "adm(%x.~ t(x) << u)"
-  adm_not_free:  "adm(%x. A)"
-  adm_subst:     "adm(P) ==> adm(%x. P(t(x)))"
-  adm_conj:      "[| adm(P); adm(Q) |] ==> adm(%x. P(x)&Q(x))"
-  adm_disj:      "[| adm(P); adm(Q) |] ==> adm(%x. P(x)|Q(x))"
-  adm_imp:       "[| adm(%x.~P(x)); adm(Q) |] ==> adm(%x. P(x)-->Q(x))"
-  adm_all:       "(!!y. adm(P(y))) ==> adm(%x. ALL y. P(y,x))"
+  adm_less:      "\<And>t u. adm(%x. t(x) << u(x))" and
+  adm_not_less:  "\<And>t u. adm(%x.~ t(x) << u)" and
+  adm_not_free:  "\<And>A. adm(%x. A)" and
+  adm_subst:     "\<And>P t. adm(P) ==> adm(%x. P(t(x)))" and
+  adm_conj:      "\<And>P Q. [| adm(P); adm(Q) |] ==> adm(%x. P(x)&Q(x))" and
+  adm_disj:      "\<And>P Q. [| adm(P); adm(Q) |] ==> adm(%x. P(x)|Q(x))" and
+  adm_imp:       "\<And>P Q. [| adm(%x.~P(x)); adm(Q) |] ==> adm(%x. P(x)-->Q(x))" and
+  adm_all:       "\<And>P. (!!y. adm(P(y))) ==> adm(%x. ALL y. P(y,x))"
 
 
 lemma eq_imp_less1: "x = y ==> x << y"

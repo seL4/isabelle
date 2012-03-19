@@ -4,15 +4,14 @@ theory Ex1
 imports LCF
 begin
 
-consts
-  P     :: "'a => tr"
-  G     :: "'a => 'a"
-  H     :: "'a => 'a"
+axiomatization
+  P     :: "'a => tr" and
+  G     :: "'a => 'a" and
+  H     :: "'a => 'a" and
   K     :: "('a => 'a) => ('a => 'a)"
-
-axioms
-  P_strict:     "P(UU) = UU"
-  K:            "K = (%h x. P(x) => x | h(h(G(x))))"
+where
+  P_strict:     "P(UU) = UU" and
+  K:            "K = (%h x. P(x) => x | h(h(G(x))))" and
   H:            "H = FIX(K)"
 
 
@@ -30,11 +29,11 @@ lemma H_strict [simp]: "H(UU)=UU"
 
 lemma H_idemp_lemma: "ALL x. H(FIX(K,x)) = FIX(K,x)"
   apply (tactic {* induct_tac @{context} "K" 1 *})
-  apply (simp (no_asm))
-  apply (simp (no_asm) split: COND_cases_iff)
+  apply simp
+  apply (simp split: COND_cases_iff)
   apply (intro strip)
   apply (subst H_unfold)
-  apply (simp (no_asm_simp))
+  apply simp
   done
 
 lemma H_idemp: "ALL x. H(H(x)) = H(x)"
