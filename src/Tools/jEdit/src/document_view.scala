@@ -154,8 +154,8 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   {
     Swing_Thread.require()
     val snapshot = model.snapshot()
-    was_updated = was_outdated && !snapshot.is_outdated
-    was_outdated = was_outdated || snapshot.is_outdated
+    was_updated &&= !snapshot.is_outdated
+    was_outdated ||= snapshot.is_outdated
     snapshot
   }
 

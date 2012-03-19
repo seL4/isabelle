@@ -68,7 +68,7 @@ object Thy_Syntax
       /* result structure */
 
       val spans = parse_spans(syntax.scan(text))
-      spans.foreach(span => add(Command(node_name, span)))
+      spans.foreach(span => add(Command(Document.no_id, node_name, span)))
       result()
     }
   }
@@ -224,12 +224,12 @@ object Thy_Syntax
     commands: Linear_Set[Command]): Linear_Set[Command] =
   {
     commands.iterator.find(cmd => !cmd.is_defined) match {
-      case Some(first_unparsed) =>
+      case Some(first_undefined) =>
         val first =
-          commands.reverse_iterator(first_unparsed).
+          commands.reverse_iterator(first_undefined).
             dropWhile(_.newlines == 0).find(_.is_command) getOrElse commands.head
         val last =
-          commands.iterator(first_unparsed).
+          commands.iterator(first_undefined).
             dropWhile(_.newlines == 0).find(_.is_command) getOrElse commands.last
         val range =
           commands.iterator(first).takeWhile(_ != last).toList ::: List(last)

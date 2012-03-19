@@ -92,9 +92,6 @@ object Command
     new Command(id, node_name, span.toList, source)
   }
 
-  def apply(node_name: Document.Node.Name, toks: List[Token]): Command =
-    Command(Document.no_id, node_name, toks)
-
   def unparsed(source: String): Command =
     Command(Document.no_id, Document.Node.Name.empty, List(Token(Token.Kind.UNPARSED, source)))
 
@@ -131,11 +128,13 @@ final class Command private(
 
   def is_defined: Boolean = id != Document.no_id
 
-  def is_command: Boolean = !span.isEmpty && span.head.is_command
-  def is_ignored: Boolean = span.forall(_.is_ignored)
-  def is_malformed: Boolean = !is_command && !is_ignored
+  val is_ignored: Boolean = span.forall(_.is_ignored)
+  val is_malformed: Boolean = !is_ignored && (!span.head.is_command || span.exists(_.is_unparsed))
+  def is_command: Boolean = !is_ignored && !is_malformed
 
-  def name: String = if (is_command) span.head.content else ""
+  def name: String =
+    span.find(_.is_command) match { case Some(tok) => tok.content case _ => "" }
+
   override def toString =
     id + "/" + (if (is_command) name else if (is_ignored) "IGNORED" else "MALFORMED")
 
