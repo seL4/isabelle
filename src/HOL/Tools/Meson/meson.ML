@@ -349,10 +349,6 @@ end;
   (nf prem) returns a LIST of theorems, we can backtrack to get all combinations.*)
 fun resop nf [prem] = resolve_tac (nf prem) 1;
 
-(* Any need to extend this list with "HOL.type_class", "HOL.eq_class",
-   and "Pure.term"? *)
-val has_meta_conn = exists_Const (member (op =) ["==", "==>", "=simp=>", "all", "prop"] o #1);
-
 fun apply_skolem_theorem (th, rls) =
   let
     fun tryall [] = raise THM ("apply_skolem_theorem", 0, th::rls)
@@ -422,39 +418,6 @@ val resolution_clause_rules = [disj_assoc, make_neg_rule', make_pos_rule'];
 fun make_goal th =   (*Must check for negative literal first!*)
     make_goal (tryres(th, clause_rules))
   handle THM _ => tryres(th, [make_neg_goal, make_pos_goal]);
-
-(*Sort clauses by number of literals*)
-fun fewerlits(th1,th2) = nliterals(prop_of th1) < nliterals(prop_of th2);
-
-fun sort_clauses ths = sort (make_ord fewerlits) ths;
-
-fun has_bool @{typ bool} = true
-  | has_bool (Type (_, Ts)) = exists has_bool Ts
-  | has_bool _ = false
-
-fun has_fun (Type (@{type_name fun}, _)) = true
-  | has_fun (Type (_, Ts)) = exists has_fun Ts
-  | has_fun _ = false
-
-(*Is the string the name of a connective? Really only | and Not can remain,
-  since this code expects to be called on a clause form.*)
-val is_conn = member (op =)
-    [@{const_name Trueprop}, @{const_name HOL.conj}, @{const_name HOL.disj},
-     @{const_name HOL.implies}, @{const_name Not},
-     @{const_name All}, @{const_name Ex}, @{const_name Ball}, @{const_name Bex}];
-
-(*True if the term contains a function--not a logical connective--where the type
-  of any argument contains bool.*)
-val has_bool_arg_const =
-    exists_Const
-      (fn (c,T) => not(is_conn c) andalso exists has_bool (binder_types T));
-
-(*A higher-order instance of a first-order constant? Example is the definition of
-  one, 1, at a function type in theory Function_Algebras.*)
-fun higher_inst_const thy (c,T) =
-  case binder_types T of
-      [] => false (*not a function type, OK*)
-    | Ts => length (binder_types (Sign.the_const_type thy c)) <> length Ts;
 
 fun rigid t = not (is_Var (head_of t));
 
@@ -640,10 +603,13 @@ fun add_clauses ctxt th cls =
       val (cnfs, ctxt) = make_cnf [] th ctxt ctxt0
   in Variable.export ctxt ctxt0 cnfs @ cls end;
 
+(*Sort clauses by number of literals*)
+fun fewerlits (th1, th2) = nliterals (prop_of th1) < nliterals (prop_of th2)
+
 (*Make clauses from a list of theorems, previously Skolemized and put into nnf.
   The resulting clauses are HOL disjunctions.*)
 fun make_clauses_unsorted ctxt ths = fold_rev (add_clauses ctxt) ths [];
-val make_clauses = sort_clauses oo make_clauses_unsorted;
+val make_clauses = sort (make_ord fewerlits) oo make_clauses_unsorted;
 
 (*Convert a list of clauses (disjunctions) to Horn clauses (contrapositives)*)
 fun make_horns ths =
