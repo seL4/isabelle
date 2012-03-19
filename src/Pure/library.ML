@@ -1082,4 +1082,3 @@ end;
 structure Basic_Library: BASIC_LIBRARY = Library;
 open Basic_Library;
 
-datatype legacy = UnequalLengths;
