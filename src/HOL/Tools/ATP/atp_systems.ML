@@ -200,7 +200,7 @@ val alt_ergo = (alt_ergoN, alt_ergo_config)
 
 (* E *)
 
-fun is_old_e_version () = (string_ord (getenv "E_VERSION", "1.2w") = LESS)
+fun is_old_e_version () = (string_ord (getenv "E_VERSION", "1.3") = LESS)
 
 val tstp_proof_delims =
   [("# SZS output start CNFRefutation.", "# SZS output end CNFRefutation"),
