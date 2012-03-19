@@ -13,7 +13,7 @@ val strictK = "strict"
 val sliceK = "slice"
 val lam_transK = "lam_trans"
 val uncurried_aliasesK = "uncurried_aliases"
-val e_weight_methodK = "e_weight_method"
+val e_selection_weight_methodK = "e_selection_weight_method"
 val force_sosK = "force_sos"
 val max_relevantK = "max_relevant"
 val max_callsK = "max_calls"
@@ -376,9 +376,9 @@ datatype sh_result =
   SH_ERROR
 
 fun run_sh prover_name prover type_enc strict max_relevant slice lam_trans
-        uncurried_aliases e_weight_method force_sos hard_timeout timeout
-        preplay_timeout sh_minimizeLST max_new_mono_instancesLST max_mono_itersLST
-        dir pos st =
+        uncurried_aliases e_selection_weight_method force_sos hard_timeout
+        timeout preplay_timeout sh_minimizeLST max_new_mono_instancesLST
+        max_mono_itersLST dir pos st =
   let
     val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
     val i = 1
@@ -391,12 +391,13 @@ fun run_sh prover_name prover type_enc strict max_relevant slice lam_trans
           ^ serial_string ())
       | set_file_name NONE = I
     val st' =
-      st |> Proof.map_context
-                (set_file_name dir
-                 #> (Option.map (Config.put ATP_Systems.e_weight_method)
-                       e_weight_method |> the_default I)
-                 #> (Option.map (Config.put ATP_Systems.force_sos)
-                       force_sos |> the_default I))
+      st
+      |> Proof.map_context
+           (set_file_name dir
+            #> (Option.map (Config.put ATP_Systems.e_selection_weight_method)
+                  e_selection_weight_method |> the_default I)
+            #> (Option.map (Config.put ATP_Systems.force_sos)
+                  force_sos |> the_default I))
     val params as {relevance_thresholds, max_relevant, slice, ...} =
       Sledgehammer_Isar.default_params ctxt
          ([("verbose", "true"),
@@ -491,7 +492,7 @@ fun run_sledgehammer trivial args reconstructor named_thms id
     val slice = AList.lookup (op =) args sliceK |> the_default "true"
     val lam_trans = AList.lookup (op =) args lam_transK
     val uncurried_aliases = AList.lookup (op =) args uncurried_aliasesK
-    val e_weight_method = AList.lookup (op =) args e_weight_methodK
+    val e_selection_weight_method = AList.lookup (op =) args e_selection_weight_methodK
     val force_sos = AList.lookup (op =) args force_sosK
       |> Option.map (curry (op <>) "false")
     val dir = AList.lookup (op =) args keepK
@@ -507,9 +508,9 @@ fun run_sledgehammer trivial args reconstructor named_thms id
     val hard_timeout = SOME (2 * timeout)
     val (msg, result) =
       run_sh prover_name prover type_enc strict max_relevant slice lam_trans
-        uncurried_aliases e_weight_method force_sos hard_timeout timeout
-        preplay_timeout sh_minimizeLST max_new_mono_instancesLST max_mono_itersLST
-        dir pos st
+        uncurried_aliases e_selection_weight_method force_sos hard_timeout
+        timeout preplay_timeout sh_minimizeLST max_new_mono_instancesLST
+        max_mono_itersLST dir pos st
   in
     case result of
       SH_OK (time_isa, time_prover, names) =>

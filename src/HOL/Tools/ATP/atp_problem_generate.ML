@@ -107,8 +107,8 @@ sig
     -> ((string * stature) * term) list
     -> string problem * string Symtab.table * (string * stature) list vector
        * (string * term) list * int Symtab.table
-  val atp_problem_relevance_weights : string problem -> (string * real) list
-  val atp_problem_kbo_weights : string problem -> (string * int) list
+  val atp_problem_selection_weights : string problem -> (string * real) list
+  val atp_problem_term_order_weights : string problem -> (string * int) list
 end;
 
 structure ATP_Problem_Generate : ATP_PROBLEM_GENERATE =
@@ -2710,7 +2710,7 @@ val fact_max_weight = 1.0
 val type_info_default_weight = 0.8
 
 (* Weights are from 0.0 (most important) to 1.0 (least important). *)
-fun atp_problem_relevance_weights problem =
+fun atp_problem_selection_weights problem =
   let
     fun add_term_weights weight (ATerm (s, tms)) =
         is_tptp_user_symbol s ? Symtab.default (s, weight)
@@ -2754,9 +2754,9 @@ fun have_head_rolling (ATerm (s, args)) =
       (s, args)
   | have_head_rolling _ = ("", [])
 
-val max_kbo_weight = 2147483647
+val max_term_order_weight = 2147483647
 
-fun atp_problem_kbo_weights problem =
+fun atp_problem_term_order_weights problem =
   let
     fun add_term_deps head (ATerm (s, args)) =
         is_tptp_user_symbol s ? perhaps (try (Graph.add_edge_acyclic (s, head)))
@@ -2780,7 +2780,7 @@ fun atp_problem_kbo_weights problem =
     val graph =
       Graph.empty |> fold (fold (add_line_deps spec_eqN) o snd) problem
                   |> fold (fold (add_line_deps simpN) o snd) problem
-    fun next_weight w = if w + w <= max_kbo_weight then w + w else w + 1
+    fun next_weight w = if w + w <= max_term_order_weight then w + w else w + 1
     fun add_weights _ [] = I
       | add_weights weight syms =
         fold (AList.update (op =) o rpair weight) syms

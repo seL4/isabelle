@@ -228,7 +228,7 @@ fun scaled_e_selection_weight ctxt method w =
                          e_fun_weight_base e_sym_offs_weight_base)
   |> Real.ceil |> signed_string_of_int
 
-fun e_selection_weight_arguments ctxt method weights =
+fun e_selection_weight_arguments ctxt method sel_weights =
   if method = e_autoN then
     "-xAutoDev"
   else
@@ -244,7 +244,7 @@ fun e_selection_weight_arguments ctxt method weights =
          e_default_fun_weight e_default_sym_offs_weight
      |> Config.get ctxt |> Real.ceil |> signed_string_of_int) ^
     ",20,1.5,1.5,1" ^
-    (weights ()
+    (sel_weights ()
      |> map (fn (s, w) => "," ^ s ^ ":" ^
                           scaled_e_selection_weight ctxt method w)
      |> implode) ^
@@ -260,9 +260,9 @@ val e_config : atp_config =
   {exec = ("E_HOME", "eproof"),
    required_execs = [],
    arguments =
-     fn ctxt => fn _ => fn method => fn timeout => fn weights =>
+     fn ctxt => fn _ => fn method => fn timeout => fn sel_weights =>
         "--tstp-in --tstp-out -l5 " ^
-        e_selection_weight_arguments ctxt method weights ^
+        e_selection_weight_arguments ctxt method sel_weights ^
         " -tAutoDev --silent --cpu-limit=" ^ string_of_int (to_secs 2 timeout),
    proof_delims = tstp_proof_delims,
    known_failures =
