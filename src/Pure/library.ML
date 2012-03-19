@@ -213,7 +213,6 @@ sig
     'a -> 'b -> 'c * 'b
   val partition_eq: ('a * 'a -> bool) -> 'a list -> 'a list list
   val partition_list: (int -> 'a -> bool) -> int -> int -> 'a list -> 'a list list
-  val legacy_gensym: string -> string
   type serial = int
   val serial: unit -> serial
   val serial_string: unit -> string
@@ -1041,27 +1040,6 @@ fun partition_eq (eq: 'a * 'a -> bool) =
           let val (xs, xs') = List.partition (fn y => eq (x, y)) ys
           in (x :: xs) :: part xs' end;
   in part end;
-
-
-
-(* generating identifiers -- often fresh *)
-
-local
-(*Maps 0-61 to A-Z, a-z, 0-9; exclude _ or ' to avoid clash with internal/unusual indentifiers*)
-fun gensym_char i =
-  if i<26 then chr (ord "A" + i)
-  else if i<52 then chr (ord "a" + i - 26)
-  else chr (ord "0" + i - 52);
-
-val char_vec = Vector.tabulate (62, gensym_char);
-fun newid n = implode (map (fn i => Vector.sub (char_vec, i)) (radixpand (62, n)));
-
-val gensym_seed = Unsynchronized.ref (0: int);
-
-in
-  fun legacy_gensym pre =
-    pre ^ newid (NAMED_CRITICAL "legacy_gensym" (fn () => Unsynchronized.inc gensym_seed));
-end;
 
 
 (* serial numbers and abstract stamps *)

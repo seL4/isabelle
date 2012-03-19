@@ -23,6 +23,9 @@ sig
   val mk_defpair: term * term -> string * term
   val get_def: theory -> xstring -> thm
   val METAHYPS: (thm list -> tactic) -> int -> tactic
+  val gensym: string -> string
+  val freeze_thaw_robust: thm -> thm * (int -> thm -> thm)
+  val freeze_thaw: thm -> thm * (thm -> thm)
 end;
 
 structure Misc_Legacy: MISC_LEGACY =
@@ -228,6 +231,72 @@ fun METAHYPS tacf n thm = SUBGOAL (metahyps_aux_tac tacf) n thm
   handle THM("assume: variables",_,_) => (print_vars_terms n thm; Seq.empty)
 
 end;
+
+
+(* generating identifiers -- often fresh *)
+
+local
+(*Maps 0-61 to A-Z, a-z, 0-9; exclude _ or ' to avoid clash with internal/unusual indentifiers*)
+fun gensym_char i =
+  if i<26 then chr (ord "A" + i)
+  else if i<52 then chr (ord "a" + i - 26)
+  else chr (ord "0" + i - 52);
+
+val char_vec = Vector.tabulate (62, gensym_char);
+fun newid n = implode (map (fn i => Vector.sub (char_vec, i)) (radixpand (62, n)));
+
+val gensym_seed = Unsynchronized.ref (0: int);
+
+in
+  fun gensym pre = pre ^ newid (CRITICAL (fn () => Unsynchronized.inc gensym_seed));
+end;
+
+
+(*Convert all Vars in a theorem to Frees.  Also return a function for
+  reversing that operation.  DOES NOT WORK FOR TYPE VARIABLES.*)
+
+fun freeze_thaw_robust th =
+ let val fth = Thm.legacy_freezeT th
+     val thy = Thm.theory_of_thm fth
+ in
+   case Thm.fold_terms Term.add_vars fth [] of
+       [] => (fth, fn i => fn x => x)   (*No vars: nothing to do!*)
+     | vars =>
+         let fun newName (ix,_) = (ix, gensym (string_of_indexname ix))
+             val alist = map newName vars
+             fun mk_inst (v,T) =
+                 (cterm_of thy (Var(v,T)),
+                  cterm_of thy (Free(((the o AList.lookup (op =) alist) v), T)))
+             val insts = map mk_inst vars
+             fun thaw i th' = (*i is non-negative increment for Var indexes*)
+                 th' |> forall_intr_list (map #2 insts)
+                     |> forall_elim_list (map (Thm.incr_indexes_cterm i o #1) insts)
+         in  (Thm.instantiate ([],insts) fth, thaw)  end
+ end;
+
+(*Basic version of the function above. No option to rename Vars apart in thaw.
+  The Frees created from Vars have nice names.*)
+fun freeze_thaw th =
+ let val fth = Thm.legacy_freezeT th
+     val thy = Thm.theory_of_thm fth
+ in
+   case Thm.fold_terms Term.add_vars fth [] of
+       [] => (fth, fn x => x)
+     | vars =>
+         let fun newName (ix, _) (pairs, used) =
+                   let val v = singleton (Name.variant_list used) (string_of_indexname ix)
+                   in  ((ix,v)::pairs, v::used)  end;
+             val (alist, _) =
+                 fold_rev newName vars ([], Thm.fold_terms Term.add_free_names fth [])
+             fun mk_inst (v, T) =
+                 (cterm_of thy (Var(v,T)),
+                  cterm_of thy (Free(((the o AList.lookup (op =) alist) v), T)))
+             val insts = map mk_inst vars
+             fun thaw th' =
+                 th' |> forall_intr_list (map #2 insts)
+                     |> forall_elim_list (map #1 insts)
+         in  (Thm.instantiate ([],insts) fth, thaw)  end
+ end;
 
 end;
 

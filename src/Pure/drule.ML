@@ -20,8 +20,6 @@ sig
   val forall_elim_list: cterm list -> thm -> thm
   val gen_all: thm -> thm
   val lift_all: cterm -> thm -> thm
-  val legacy_freeze_thaw: thm -> thm * (thm -> thm)
-  val legacy_freeze_thaw_robust: thm -> thm * (int -> thm -> thm)
   val implies_elim_list: thm -> thm list -> thm
   val implies_intr_list: cterm list -> thm -> thm
   val instantiate_normalize: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm
@@ -298,52 +296,6 @@ val export_without_context =
   #> export_without_context_open
   #> Thm.close_derivation;
 
-
-(*Convert all Vars in a theorem to Frees.  Also return a function for
-  reversing that operation.  DOES NOT WORK FOR TYPE VARIABLES.*)
-
-fun legacy_freeze_thaw_robust th =
- let val fth = Thm.legacy_freezeT th
-     val thy = Thm.theory_of_thm fth
- in
-   case Thm.fold_terms Term.add_vars fth [] of
-       [] => (fth, fn i => fn x => x)   (*No vars: nothing to do!*)
-     | vars =>
-         let fun newName (ix,_) = (ix, legacy_gensym (string_of_indexname ix))
-             val alist = map newName vars
-             fun mk_inst (v,T) =
-                 (cterm_of thy (Var(v,T)),
-                  cterm_of thy (Free(((the o AList.lookup (op =) alist) v), T)))
-             val insts = map mk_inst vars
-             fun thaw i th' = (*i is non-negative increment for Var indexes*)
-                 th' |> forall_intr_list (map #2 insts)
-                     |> forall_elim_list (map (Thm.incr_indexes_cterm i o #1) insts)
-         in  (Thm.instantiate ([],insts) fth, thaw)  end
- end;
-
-(*Basic version of the function above. No option to rename Vars apart in thaw.
-  The Frees created from Vars have nice names.*)
-fun legacy_freeze_thaw th =
- let val fth = Thm.legacy_freezeT th
-     val thy = Thm.theory_of_thm fth
- in
-   case Thm.fold_terms Term.add_vars fth [] of
-       [] => (fth, fn x => x)
-     | vars =>
-         let fun newName (ix, _) (pairs, used) =
-                   let val v = singleton (Name.variant_list used) (string_of_indexname ix)
-                   in  ((ix,v)::pairs, v::used)  end;
-             val (alist, _) =
-                 fold_rev newName vars ([], Thm.fold_terms Term.add_free_names fth [])
-             fun mk_inst (v, T) =
-                 (cterm_of thy (Var(v,T)),
-                  cterm_of thy (Free(((the o AList.lookup (op =) alist) v), T)))
-             val insts = map mk_inst vars
-             fun thaw th' =
-                 th' |> forall_intr_list (map #2 insts)
-                     |> forall_elim_list (map #1 insts)
-         in  (Thm.instantiate ([],insts) fth, thaw)  end
- end;
 
 (*Rotates a rule's premises to the left by k*)
 fun rotate_prems 0 = I

@@ -374,7 +374,7 @@ fun add_pconsts_in_term thy is_built_in_const also_skolems pos =
       do_formula pos body_t
       #> (if also_skolems andalso will_surely_be_skolemized then
             add_pconst_to_table true
-                (legacy_gensym skolem_prefix, PType (order_of_type abs_T, []))
+                (Misc_Legacy.gensym skolem_prefix, PType (order_of_type abs_T, []))
           else
             I)
     and do_term_or_formula ext_arg T =
