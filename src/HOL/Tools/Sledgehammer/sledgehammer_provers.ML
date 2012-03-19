@@ -651,7 +651,8 @@ fun run_atp mode name
                 Monomorph.monomorph atp_schematic_consts_of rths ctxt
                 |> fst |> tl
                 |> curry ListPair.zip (map fst facts)
-                |> maps (fn (name, rths) => map (pair name o snd) rths)
+                |> maps (fn (name, rths) =>
+                            map (pair name o zero_var_indexes o snd) rths)
               end
             fun run_slice time_left (cache_key, cache_value)
                     (slice, (time_frac, (complete,
@@ -710,20 +711,18 @@ fun run_atp mode name
                            type_enc false lam_trans uncurried_aliases
                            readable_names true hyp_ts concl_t
                 fun sel_weights () = atp_problem_selection_weights atp_problem
-                fun ord_weights () =
-                  if #generate_weights (effective_term_order ctxt name) then
-                    atp_problem_term_order_weights atp_problem
-                  else
-                    []
+                fun ord_info () = atp_problem_term_order_info atp_problem
+                val ord = effective_term_order ctxt name
                 val full_proof = debug orelse isar_proof
+                val args = arguments ctxt full_proof extra slice_timeout
+                                     (ord, ord_info, sel_weights)
                 val command =
-                  File.shell_path command ^ " " ^
-                  arguments ctxt full_proof extra slice_timeout sel_weights ^
-                  " " ^ File.shell_path prob_file
+                  File.shell_path command ^ " " ^ args ^ " " ^
+                  File.shell_path prob_file
                   |> enclose "TIMEFORMAT='%3R'; { time " " ; } 2>&1"
                 val _ =
                   atp_problem
-                  |> lines_for_atp_problem format ord_weights
+                  |> lines_for_atp_problem format ord ord_info
                   |> cons ("% " ^ command ^ "\n")
                   |> File.write_list prob_file
                 val ((output, run_time), (atp_proof, outcome)) =

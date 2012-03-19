@@ -118,19 +118,19 @@ fun run_some_atp ctxt format problem =
   let
     val thy = Proof_Context.theory_of ctxt
     val prob_file = File.tmp_path (Path.explode "prob.tptp")
-    val {exec, arguments, proof_delims, known_failures, ...} =
-      get_atp thy (case format of DFG _ => spassN | _ => eN)
-    val _ = problem |> lines_for_atp_problem format (K [])
+    val atp = case format of DFG _ => spass_newN | _ => eN
+    val {exec, arguments, proof_delims, known_failures, ...} = get_atp thy atp
+    val ord = effective_term_order ctxt atp
+    val _ = problem |> lines_for_atp_problem format ord (K [])
                     |> File.write_list prob_file
     val command =
       File.shell_path (Path.explode (getenv (fst exec) ^ "/" ^ snd exec)) ^
-      " " ^ arguments ctxt false "" (seconds 1.0) (K []) ^ " " ^
+      " " ^ arguments ctxt false "" (seconds 1.0) (ord, K [], K []) ^ " " ^
       File.shell_path prob_file
   in
     TimeLimit.timeLimit (seconds 0.3) Isabelle_System.bash_output command
     |> fst
-    |> extract_tstplike_proof_and_outcome false true proof_delims
-                                          known_failures
+    |> extract_tstplike_proof_and_outcome false true proof_delims known_failures
     |> snd
   end
   handle TimeLimit.TimeOut => SOME TimedOut
@@ -214,7 +214,8 @@ fun generate_tptp_inference_file_for_theory ctxt thy format type_enc file_name =
       atp_problem
       |> (case format of DFG _ => I | _ => add_inferences_to_problem infers)
       |> order_problem_facts name_ord
-    val ss = lines_for_atp_problem format (K []) atp_problem
+    val ord = effective_term_order ctxt eN (* dummy *)
+    val ss = lines_for_atp_problem format ord (K []) atp_problem
     val _ = app (File.append path) ss
   in () end
 

@@ -7,22 +7,19 @@ Setup for supported ATPs.
 
 signature ATP_SYSTEMS =
 sig
+  type term_order = ATP_Problem.term_order
   type atp_format = ATP_Problem.atp_format
   type formula_kind = ATP_Problem.formula_kind
   type failure = ATP_Proof.failure
 
-  type term_order =
-    {is_lpo : bool,
-     generate_weights : bool,
-     generate_prec : bool,
-     generate_simp : bool}
   type slice_spec = int * atp_format * string * string * bool
   type atp_config =
     {exec : string * string,
      required_execs : (string * string) list,
      arguments :
        Proof.context -> bool -> string -> Time.time
-       -> (unit -> (string * real) list) -> string,
+       -> term_order * (unit -> (string * int) list)
+          * (unit -> (string * real) list) -> string,
      proof_delims : (string * string) list,
      known_failures : (failure * string) list,
      conj_sym_kind : formula_kind,
@@ -88,7 +85,8 @@ type atp_config =
    required_execs : (string * string) list,
    arguments :
      Proof.context -> bool -> string -> Time.time
-     -> (unit -> (string * real) list) -> string,
+     -> term_order * (unit -> (string * int) list)
+        * (unit -> (string * real) list) -> string,
    proof_delims : (string * string) list,
    known_failures : (failure * string) list,
    conj_sym_kind : formula_kind,
@@ -175,29 +173,26 @@ val xweightsN = "_weights"
 val xprecN = "_prec"
 val xsimpN = "_simp" (* SPASS-specific *)
 
+(* Possible values for "atp_term_order":
+   "smart", "(kbo(_weights)?|lpo)(_prec|_simp)?" *)
 val term_order =
   Attrib.setup_config_string @{binding atp_term_order} (K smartN)
-
-type term_order =
-  {is_lpo : bool,
-   generate_weights : bool,
-   generate_prec : bool,
-   generate_simp : bool}
 
 fun effective_term_order ctxt atp =
   let val ord = Config.get ctxt term_order in
     if ord = smartN then
       if atp = spass_newN then
-        {is_lpo = false, generate_weights = true, generate_prec = false,
-         generate_simp = true}
+        {is_lpo = false, gen_weights = true, gen_prec = false, gen_simp = true}
       else
-        {is_lpo = false, generate_weights = false, generate_prec = false,
-         generate_simp = false}
+        {is_lpo = false, gen_weights = false, gen_prec = false,
+         gen_simp = false}
     else
-      {is_lpo = String.isSubstring lpoN ord,
-       generate_weights = String.isSubstring xweightsN ord,
-       generate_prec = String.isSubstring xprecN ord,
-       generate_simp = String.isSubstring xsimpN ord}
+      let val is_lpo = String.isSubstring lpoN ord in
+        {is_lpo = is_lpo,
+         gen_weights = not is_lpo andalso String.isSubstring xweightsN ord,
+         gen_prec = String.isSubstring xprecN ord,
+         gen_simp = String.isSubstring xsimpN ord}
+      end
   end
 
 (* Alt-Ergo *)
@@ -254,40 +249,55 @@ val e_sym_offs_weight_base =
 val e_sym_offs_weight_span =
   Attrib.setup_config_real @{binding atp_e_sym_offs_weight_span} (K 60.0)
 
-fun e_selection_heuristic_case method fw sow =
-  if method = e_fun_weightN then fw
-  else if method = e_sym_offset_weightN then sow
-  else raise Fail ("unexpected " ^ quote method)
+fun e_selection_heuristic_case heuristic fw sow =
+  if heuristic = e_fun_weightN then fw
+  else if heuristic = e_sym_offset_weightN then sow
+  else raise Fail ("unexpected " ^ quote heuristic)
 
-fun scaled_e_selection_weight ctxt method w =
-  w * Config.get ctxt (e_selection_heuristic_case method
+fun scaled_e_selection_weight ctxt heuristic w =
+  w * Config.get ctxt (e_selection_heuristic_case heuristic
                            e_fun_weight_span e_sym_offs_weight_span)
-  + Config.get ctxt (e_selection_heuristic_case method
+  + Config.get ctxt (e_selection_heuristic_case heuristic
                          e_fun_weight_base e_sym_offs_weight_base)
   |> Real.ceil |> signed_string_of_int
 
-fun e_selection_weight_arguments ctxt method sel_weights =
-  if method = e_autoN then
-    "-xAutoDev"
+fun e_selection_weight_arguments ctxt heuristic sel_weights =
+  if heuristic = e_autoN then
+    "-xAuto"
   else
     (* supplied by Stephan Schulz *)
     "--split-clauses=4 --split-reuse-defs --simul-paramod --forward-context-sr \
     \--destructive-er-aggressive --destructive-er --presat-simplify \
     \--prefer-initial-clauses -tKBO6 -winvfreqrank -c1 -Ginvfreqconjmax -F1 \
     \--delete-bad-limit=150000000 -WSelectMaxLComplexAvoidPosPred \
-    \-H'(4*" ^ e_selection_heuristic_case method "FunWeight" "SymOffsetWeight" ^
+    \-H'(4*" ^
+    e_selection_heuristic_case heuristic "FunWeight" "SymOffsetWeight" ^
     "(SimulateSOS, " ^
-    (e_selection_heuristic_case method
+    (e_selection_heuristic_case heuristic
          e_default_fun_weight e_default_sym_offs_weight
      |> Config.get ctxt |> Real.ceil |> signed_string_of_int) ^
     ",20,1.5,1.5,1" ^
     (sel_weights ()
      |> map (fn (s, w) => "," ^ s ^ ":" ^
-                          scaled_e_selection_weight ctxt method w)
+                          scaled_e_selection_weight ctxt heuristic w)
      |> implode) ^
     "),3*ConjectureGeneralSymbolWeight(PreferNonGoals,200,100,200,50,50,1,100,\
     \1.5,1.5,1),1*Clauseweight(PreferProcessed,1,1,1),1*\
     \FIFOWeight(PreferProcessed))'"
+
+val e_ord_weights =
+  map (fn (s, w) => s ^ ":" ^ string_of_int w) #> space_implode ","
+fun e_ord_precedence [_] = ""
+  | e_ord_precedence info = info |> map fst |> space_implode "<"
+
+fun e_term_order_info_arguments _ false false _ = ""
+  | e_term_order_info_arguments ctxt gen_weights gen_prec ord_info =
+    let val ord_info = ord_info () in
+      (if gen_weights then "--order-weights='" ^ e_ord_weights ord_info ^ "' "
+       else "") ^
+      (if gen_prec then "--precedence='" ^ e_ord_precedence ord_info ^ "' "
+       else "")
+    end
 
 fun effective_e_selection_heuristic ctxt =
   if is_old_e_version () then e_autoN else Config.get ctxt e_selection_heuristic
@@ -296,10 +306,13 @@ val e_config : atp_config =
   {exec = ("E_HOME", "eproof"),
    required_execs = [],
    arguments =
-     fn ctxt => fn _ => fn method => fn timeout => fn sel_weights =>
-        "--tstp-in --tstp-out -l5 " ^
-        e_selection_weight_arguments ctxt method sel_weights ^
-        " -tAutoDev --silent --cpu-limit=" ^ string_of_int (to_secs 2 timeout),
+     fn ctxt => fn _ => fn heuristic => fn timeout =>
+        fn ({is_lpo, gen_weights, gen_prec, ...}, ord_info, sel_weights) =>
+        "--tstp-in --tstp-out --output-level=5 --silent " ^
+        e_selection_weight_arguments ctxt heuristic sel_weights ^ " " ^
+        e_term_order_info_arguments ctxt gen_weights gen_prec ord_info ^ " " ^
+        "--term-ordering=" ^ (if is_lpo then "LPO4" else "Auto") ^ " " ^
+        "--cpu-limit=" ^ string_of_int (to_secs 2 timeout),
    proof_delims = tstp_proof_delims,
    known_failures =
      known_szs_status_failures @
@@ -309,14 +322,14 @@ val e_config : atp_config =
    conj_sym_kind = Hypothesis,
    prem_kind = Conjecture,
    best_slices = fn ctxt =>
-     let val method = effective_e_selection_heuristic ctxt in
+     let val heuristic = effective_e_selection_heuristic ctxt in
        (* FUDGE *)
-       if method = e_smartN then
+       if heuristic = e_smartN then
          [(0.333, (true, ((500, FOF, "mono_tags??", combsN, false), e_fun_weightN))),
           (0.334, (true, ((50, FOF, "mono_guards??", combsN, false), e_fun_weightN))),
           (0.333, (true, ((1000, FOF, "mono_tags??", combsN, false), e_sym_offset_weightN)))]
        else
-         [(1.0, (true, ((500, FOF, "mono_tags??", combsN, false), method)))]
+         [(1.0, (true, ((500, FOF, "mono_tags??", combsN, false), heuristic)))]
      end}
 
 val e = (eN, e_config)

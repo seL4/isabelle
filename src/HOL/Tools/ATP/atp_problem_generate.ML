@@ -108,7 +108,7 @@ sig
     -> string problem * string Symtab.table * (string * stature) list vector
        * (string * term) list * int Symtab.table
   val atp_problem_selection_weights : string problem -> (string * real) list
-  val atp_problem_term_order_weights : string problem -> (string * int) list
+  val atp_problem_term_order_info : string problem -> (string * int) list
 end;
 
 structure ATP_Problem_Generate : ATP_PROBLEM_GENERATE =
@@ -1671,7 +1671,7 @@ fun rank_of_fact_num n j = min_rank + (max_rank - min_rank) * j div n
 
 val type_tag = `(make_fixed_const NONE) type_tag_name
 
-fun type_tag_idempotence_fact format type_enc =
+fun type_tag_idempotence_fact type_enc =
   let
     fun var s = ATerm (`I s, [])
     fun tag tm = ATerm (type_tag, [var "A", tm])
@@ -1679,7 +1679,7 @@ fun type_tag_idempotence_fact format type_enc =
   in
     Formula (type_tag_idempotence_helper_name, Axiom,
              eq_formula type_enc [] [] false (tag tagged_var) tagged_var,
-             NONE, isabelle_info format spec_eqN helper_rank)
+             NONE, isabelle_info spec_eqN helper_rank)
   end
 
 fun should_specialize_helper type_enc t =
@@ -2006,15 +2006,15 @@ fun formula_line_for_fact ctxt polym_constrs format prefix encode freshen pos
    NONE,
    let val rank = rank j in
      case snd stature of
-       Intro => isabelle_info format introN rank
-     | Elim => isabelle_info format elimN rank
-     | Simp => isabelle_info format simpN rank
-     | Spec_Eq => isabelle_info format spec_eqN rank
-     | _ => isabelle_info format "" rank
+       Intro => isabelle_info introN rank
+     | Elim => isabelle_info elimN rank
+     | Simp => isabelle_info simpN rank
+     | Spec_Eq => isabelle_info spec_eqN rank
+     | _ => isabelle_info "" rank
    end)
   |> Formula
 
-fun formula_line_for_class_rel_clause format type_enc
+fun formula_line_for_class_rel_clause type_enc
         ({name, subclass, superclass, ...} : class_rel_clause) =
   let val ty_arg = ATerm (tvar_a_name, []) in
     Formula (class_rel_clause_prefix ^ ascii_of name, Axiom,
@@ -2023,21 +2023,21 @@ fun formula_line_for_class_rel_clause format type_enc
                      type_class_formula type_enc superclass ty_arg])
              |> mk_aquant AForall
                           [(tvar_a_name, atype_of_type_vars type_enc)],
-             NONE, isabelle_info format introN helper_rank)
+             NONE, isabelle_info introN helper_rank)
   end
 
 fun formula_from_arity_atom type_enc (class, t, args) =
   ATerm (t, map (fn arg => ATerm (arg, [])) args)
   |> type_class_formula type_enc class
 
-fun formula_line_for_arity_clause format type_enc
+fun formula_line_for_arity_clause type_enc
         ({name, prem_atoms, concl_atom} : arity_clause) =
   Formula (arity_clause_prefix ^ name, Axiom,
            mk_ahorn (map (formula_from_arity_atom type_enc) prem_atoms)
                     (formula_from_arity_atom type_enc concl_atom)
            |> mk_aquant AForall
                   (map (rpair (atype_of_type_vars type_enc)) (#3 concl_atom)),
-           NONE, isabelle_info format introN helper_rank)
+           NONE, isabelle_info introN helper_rank)
 
 fun formula_line_for_conjecture ctxt polym_constrs format mono type_enc
         ({name, kind, iformula, atomic_types, ...} : translated_formula) =
@@ -2246,7 +2246,7 @@ fun formula_line_for_guards_mono_type ctxt format mono type_enc T =
                                     always_guard_var_in_formula (SOME true)
            |> close_formula_universally
            |> bound_tvars type_enc true (atomic_types_of T),
-           NONE, isabelle_info format introN helper_rank)
+           NONE, isabelle_info introN helper_rank)
 
 fun formula_line_for_tags_mono_type ctxt format mono type_enc T =
   let val x_var = ATerm (`make_bound_var "X", []) in
@@ -2255,7 +2255,7 @@ fun formula_line_for_tags_mono_type ctxt format mono type_enc T =
              Axiom,
              eq_formula type_enc (atomic_types_of T) [] false
                   (tag_with_type ctxt format mono type_enc NONE T x_var) x_var,
-             NONE, isabelle_info format spec_eqN helper_rank)
+             NONE, isabelle_info spec_eqN helper_rank)
   end
 
 fun problem_lines_for_mono_types ctxt format mono type_enc Ts =
@@ -2326,7 +2326,7 @@ fun formula_line_for_guards_sym_decl ctxt format conj_sym_kind mono type_enc n s
              |> close_formula_universally
              |> bound_tvars type_enc (n > 1) (atomic_types_of T)
              |> maybe_negate,
-             NONE, isabelle_info format introN helper_rank)
+             NONE, isabelle_info introN helper_rank)
   end
 
 fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
@@ -2360,7 +2360,7 @@ fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
         in
           cons (Formula (ident_base ^ "_res", kind,
                          eq (tag_with res_T (cst bounds)) (cst tagged_bounds),
-                         NONE, isabelle_info format spec_eqN helper_rank))
+                         NONE, isabelle_info spec_eqN helper_rank))
         end
       else
         I
@@ -2372,7 +2372,7 @@ fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
             cons (Formula (ident_base ^ "_arg" ^ string_of_int (k + 1), kind,
                            eq (cst (bounds1 @ tag_with arg_T bound :: bounds2))
                               (cst bounds),
-                           NONE, isabelle_info format spec_eqN helper_rank))
+                           NONE, isabelle_info spec_eqN helper_rank))
           | _ => raise Fail "expected nonempty tail"
         else
           I
@@ -2480,7 +2480,7 @@ fun do_uncurried_alias_lines_for_sym ctxt monom_constrs format conj_sym_kind
       in
         ([tm1, tm2],
          [Formula (uncurried_alias_eq_prefix ^ s2, kind, eq |> maybe_negate,
-                   NONE, isabelle_info format spec_eqN helper_rank)])
+                   NONE, isabelle_info spec_eqN helper_rank)])
         |> (if ary - 1 = base_ary orelse Symtab.defined sym_tab s1 then I
             else pair_append (do_alias (ary - 1)))
       end
@@ -2663,7 +2663,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
       |> map (formula_line_for_fact ctxt polym_constrs format helper_prefix I
                                     false true mono type_enc (K default_rank))
       |> (if needs_type_tag_idempotence ctxt type_enc then
-            cons (type_tag_idempotence_fact format type_enc)
+            cons (type_tag_idempotence_fact type_enc)
           else
             I)
     (* Reordering these might confuse the proof reconstruction code or the SPASS
@@ -2673,10 +2673,8 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
        (uncurried_alias_eqsN, uncurried_alias_eq_lines),
        (factsN, fact_lines),
        (class_relsN,
-        map (formula_line_for_class_rel_clause format type_enc)
-            class_rel_clauses),
-       (aritiesN,
-        map (formula_line_for_arity_clause format type_enc) arity_clauses),
+        map (formula_line_for_class_rel_clause type_enc) class_rel_clauses),
+       (aritiesN, map (formula_line_for_arity_clause type_enc) arity_clauses),
        (helpersN, helper_lines),
        (free_typesN, formula_lines_for_free_types type_enc (facts @ conjs)),
        (conjsN,
@@ -2756,22 +2754,26 @@ fun make_head_roll (ATerm (s, args)) =
 
 val max_term_order_weight = 2147483647
 
-fun atp_problem_term_order_weights problem =
+fun atp_problem_term_order_info problem =
   let
+    fun add_edge s s' =
+      Graph.default_node (s, ())
+      #> Graph.default_node (s', ())
+      #> Graph.add_edge_acyclic (s, s')
     fun add_term_deps head (ATerm (s, args)) =
-        is_tptp_user_symbol s ? perhaps (try (Graph.add_edge_acyclic (s, head)))
+        is_tptp_user_symbol s ? perhaps (try (add_edge s head))
         #> fold (add_term_deps head) args
       | add_term_deps head (AAbs (_, tm)) = add_term_deps head tm
     fun add_eq_deps (ATerm (s, [lhs as _, rhs])) =
         if is_tptp_equal s then
-          let val (head, rest) = make_head_roll lhs in
-            fold (add_term_deps head) (rhs :: rest)
-          end
+          case make_head_roll lhs of
+            (head, rest as _ :: _) =>
+            is_tptp_user_symbol head ? fold (add_term_deps head) (rhs :: rest)
+          | _ => I
         else
           I
       | add_eq_deps _ = I
-    fun add_line_deps _ (Decl (_, s, ty)) =
-        is_function_type ty ? Graph.default_node (s, ())
+    fun add_line_deps _ (Decl _) = I
       | add_line_deps status (Formula (_, _, phi, _, info)) =
         if extract_isabelle_status info = SOME status then
           formula_fold NONE (K add_eq_deps) phi
@@ -2787,6 +2789,8 @@ fun atp_problem_term_order_weights problem =
         #> add_weights (next_weight weight)
                (fold (union (op =) o Graph.immediate_succs graph) syms [])
   in
+    (* Sorting is not just for aesthetics: It specifies the precedence order
+       for the term ordering (KBO or LPO), from smaller to larger values. *)
     [] |> add_weights 1 (Graph.minimals graph) |> sort (int_ord o pairself snd)
   end
 
