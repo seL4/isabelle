@@ -19,25 +19,25 @@ consts
   countm :: "['a multiset, 'a => bool] => nat"
   count  :: "['a multiset, 'a] => nat"
 
-axioms
+axiomatization where
 
 delm_empty_def:
-  "delm {|} x = {|}"
+  "delm {|} x = {|}" and
 
 delm_nonempty_def:
-  "delm (addm M x) y == (if x=y then M else addm (delm M y) x)"
+  "delm (addm M x) y == (if x=y then M else addm (delm M y) x)" and
 
 countm_empty_def:
-   "countm {|} P == 0"
+   "countm {|} P == 0" and
 
 countm_nonempty_def:
-   "countm (addm M x) P == countm M P + (if P x then Suc 0 else 0)"
+   "countm (addm M x) P == countm M P + (if P x then Suc 0 else 0)" and
 
 count_def:
-   "count M x == countm M (%y. y = x)"
+   "count M x == countm M (%y. y = x)" and
 
 "induction":
-   "[| P({|}); !!M x. P(M) ==> P(addm M x) |] ==> P(M)"
+   "\<And>P M. [| P({|}); !!M x. P(M) ==> P(addm M x) |] ==> P(M)"
 
 lemma count_empty: 
    "count {|} x = 0"

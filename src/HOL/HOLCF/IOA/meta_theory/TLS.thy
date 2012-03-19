@@ -78,13 +78,13 @@ validIOA_def:
   "validIOA A P == ! ex : executions A . (ex |== P)"
 
 
-axioms
+axiomatization where
 
 mkfin_UU:
-  "mkfin UU = nil"
+  "mkfin UU = nil" and
 
 mkfin_nil:
-  "mkfin nil =nil"
+  "mkfin nil =nil" and
 
 mkfin_cons:
   "(mkfin (a>>s)) = (a>>(mkfin s))"

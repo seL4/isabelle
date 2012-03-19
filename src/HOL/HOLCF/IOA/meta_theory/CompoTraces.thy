@@ -61,7 +61,7 @@ par_traces_def:
         Int {tr. Forall (%x. x:(externals sigA Un externals sigB)) tr},
         asig_comp sigA sigB)"
 
-axioms
+axiomatization where
 
 finiteR_mksch:
   "Finite (mksch A B$tr$x$y) --> Finite tr"
