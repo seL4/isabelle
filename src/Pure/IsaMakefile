@@ -108,6 +108,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   Isar/args.ML						\
   Isar/attrib.ML					\
   Isar/auto_bind.ML					\
+  Isar/bundle.ML					\
   Isar/calculation.ML					\
   Isar/class.ML						\
   Isar/class_declaration.ML				\
