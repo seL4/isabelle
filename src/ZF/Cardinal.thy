@@ -200,17 +200,19 @@ apply (blast intro!: eqpollI elim!: eqpollE)
 done
 
 lemma inj_not_surj_succ:
-  "[| f \<in> inj(A, succ(m)); f \<notin> surj(A, succ(m)) |] ==> \<exists>f. f \<in> inj(A,m)"
-apply (unfold inj_def surj_def)
-apply (safe del: succE)
-apply (erule swap, rule exI)
-apply (rule_tac a = "\<lambda>z\<in>A. if f`z=m then y else f`z" in CollectI)
-txt{*the typing condition*}
- apply (best intro!: if_type [THEN lam_type] elim: apply_funtype [THEN succE])
-txt{*Proving it's injective*}
-apply simp
-apply blast
-done
+  assumes fi: "f \<in> inj(A, succ(m))" and fns: "f \<notin> surj(A, succ(m))" 
+  shows "\<exists>f. f \<in> inj(A,m)"
+proof -
+  from fi [THEN inj_is_fun] fns 
+  obtain y where y: "y \<in> succ(m)" "\<And>x. x\<in>A \<Longrightarrow> f ` x \<noteq> y"
+    by (auto simp add: surj_def)
+  show ?thesis
+    proof 
+      show "(\<lambda>z\<in>A. if f`z = m then y else f`z) \<in> inj(A, m)" using y fi
+        by (simp add: inj_def) 
+           (auto intro!: if_type [THEN lam_type] intro: Pi_type dest: apply_funtype)
+      qed
+qed
 
 (** Variations on transitivity **)
 
@@ -317,16 +319,21 @@ apply (rule the_0, blast)
 done
 
 lemma Ord_Least [intro,simp,TC]: "Ord(\<mu> x. P(x))"
-apply (case_tac "\<exists>i. Ord(i) & P(i)")
-apply safe
-apply (rule Least_le [THEN ltE])
-prefer 3 apply assumption+
-apply (erule Least_0 [THEN ssubst])
-apply (rule Ord_0)
-done
+proof (cases "\<exists>i. Ord(i) & P(i)")
+  case True 
+  then obtain i where "P(i)" "Ord(i)"  by auto
+  hence " (\<mu> x. P(x)) \<le> i"  by (rule Least_le) 
+  thus ?thesis
+    by (elim ltE)
+next
+  case False
+  hence "(\<mu> x. P(x)) = 0"  by (rule Least_0)
+  thus ?thesis
+    by auto
+qed
 
 
-(** Basic properties of cardinals **)
+subsection{*Basic Properties of Cardinals*}
 
 (*Not needed for simplification, but helpful below*)
 lemma Least_cong: "(!!y. P(y) \<longleftrightarrow> Q(y)) ==> (\<mu> x. P(x)) = (\<mu> x. Q(x))"
@@ -416,7 +423,7 @@ proof -
       by (best dest: less_LeastE) 
   }
   then show ?thesis
-    by (blast intro: CardI Card_is_Ord elim:) 
+    by (blast intro: CardI Card_is_Ord) 
 qed
 
 lemma lt_Card_imp_lesspoll: "[| Card(a); i<a |] ==> i \<prec> a"
@@ -602,14 +609,17 @@ done
 
 (*The object of all this work: every natural number is a (finite) cardinal*)
 lemma nat_into_Card:
-    "n \<in> nat ==> Card(n)"
-apply (unfold Card_def cardinal_def)
-apply (subst Least_equality)
-apply (rule eqpoll_refl)
-apply (erule nat_into_Ord)
-apply (simp (no_asm_simp) add: lt_nat_in_nat [THEN nat_eqpoll_iff])
-apply (blast elim!: lt_irrefl)+
-done
+  assumes n: "n \<in> nat" shows "Card(n)"
+proof (unfold Card_def cardinal_def, rule sym)
+  have "Ord(n)" using n  by auto
+  moreover
+  { fix i
+    assume "i < n" "i \<approx> n"
+    hence False using n
+      by (auto simp add: lt_nat_in_nat [THEN nat_eqpoll_iff])
+  }
+  ultimately show "(\<mu> i. i \<approx> n) = n" by (auto intro!: Least_equality) 
+qed
 
 lemmas cardinal_0 = nat_0I [THEN nat_into_Card, THEN Card_cardinal_eq, iff]
 lemmas cardinal_1 = nat_1I [THEN nat_into_Card, THEN Card_cardinal_eq, iff]
