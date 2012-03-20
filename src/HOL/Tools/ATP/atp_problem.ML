@@ -569,10 +569,8 @@ fun dfg_lines flavor {is_lpo, gen_weights, gen_prec, gen_simp} ord_info
       filt (formula (curry (op <>) Conjecture)) |> separate [""] |> flat
     val conjs =
       filt (formula (curry (op =) Conjecture)) |> separate [""] |> flat
-    (* The second layer of ")." is a temporary workaround for a quirk in SPASS's
-       parser. *)
     val settings =
-      (if is_lpo then ["set_flag(Ordering, 1).)."] else []) @
+      (if is_lpo then ["set_flag(Ordering, 1)."] else []) @
       (if gen_prec then
          [ord_info |> map fst |> rev |> commas
                    |> maybe_enclose "set_precedence(" ")."]
