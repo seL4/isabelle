@@ -7,12 +7,13 @@
 
 options=${@:1:$(($#-1))}
 name=${@:$(($#)):1}
+home=${SPASS_OLD_HOME:-$SPASS_HOME}
 
-"$SPASS_HOME/SPASS" -Flotter "$name" \
+"$home/SPASS" -Flotter "$name" \
     | sed 's/description({$/description({*/' \
     | sed 's/set_ClauseFormulaRelation()\.//' \
     > $name.cnf
 cat $name.cnf
-"$SPASS_HOME/SPASS" $options "$name.cnf" \
+"$home/SPASS" $options "$name.cnf" \
     | sed 's/\(Formulae used in the proof :\).*/\1 N\/A/'
 rm -f "$name.cnf"

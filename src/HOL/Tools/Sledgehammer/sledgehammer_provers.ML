@@ -580,7 +580,7 @@ fun suffix_for_mode Auto_Try = "_auto_try"
 val atp_timeout_slack = seconds 1.0
 
 fun run_atp mode name
-        ({exec, required_execs, arguments, proof_delims, known_failures,
+        ({exec, required_vars, arguments, proof_delims, known_failures,
           conj_sym_kind, prem_kind, best_slices, ...} : atp_config)
         (params as {debug, verbose, overlord, type_enc, strict, lam_trans,
                     uncurried_aliases, max_relevant, max_mono_iters,
@@ -605,7 +605,11 @@ fun run_atp mode name
         Path.append (Path.explode dest_dir) problem_file_name
       else
         error ("No such directory: " ^ quote dest_dir ^ ".")
-    val command = Path.explode (getenv (fst exec) ^ "/" ^ snd exec)
+    val command =
+      case find_first (fn var => getenv var <> "") (fst exec) of
+        SOME var => Path.explode (getenv var ^ "/" ^ snd exec)
+      | NONE => error ("The environment variable " ^ quote (hd (fst exec)) ^
+                       " is not set.")
     fun split_time s =
       let
         val split = String.tokens (fn c => str c = "\n")
@@ -622,10 +626,12 @@ fun run_atp mode name
          as_time t |> Time.fromMilliseconds)
       end
     fun run_on prob_file =
-      case filter (curry (op =) "" o getenv o fst) (exec :: required_execs) of
-        (home_var, _) :: _ =>
-        error ("The environment variable " ^ quote home_var ^ " is not set.")
-      | [] =>
+      case find_first (forall (fn var => getenv var = ""))
+                      (fst exec :: required_vars) of
+        SOME home_vars =>
+        error ("The environment variable " ^ quote (hd home_vars) ^
+               " is not set.")
+      | NONE =>
         if File.exists command then
           let
             (* If slicing is disabled, we expand the last slice to fill the

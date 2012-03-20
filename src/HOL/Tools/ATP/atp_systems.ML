@@ -14,8 +14,8 @@ sig
 
   type slice_spec = int * atp_format * string * string * bool
   type atp_config =
-    {exec : string * string,
-     required_execs : (string * string) list,
+    {exec : string list * string,
+     required_vars : string list list,
      arguments :
        Proof.context -> bool -> string -> Time.time
        -> term_order * (unit -> (string * int) list)
@@ -51,12 +51,12 @@ sig
   val satallaxN : string
   val snarkN : string
   val spassN : string
+  val spass_oldN : string
   val spass_newN : string
   val vampireN : string
   val waldmeisterN : string
   val z3_tptpN : string
   val remote_prefix : string
-  val effective_term_order : Proof.context -> string -> term_order
   val remote_atp :
     string -> string -> string list -> (string * string) list
     -> (failure * string) list -> formula_kind -> formula_kind
@@ -66,6 +66,7 @@ sig
   val supported_atps : theory -> string list
   val is_atp_installed : theory -> string -> bool
   val refresh_systems_on_tptp : unit -> unit
+  val effective_term_order : Proof.context -> string -> term_order
   val setup : theory -> theory
 end;
 
@@ -81,8 +82,8 @@ open ATP_Problem_Generate
 type slice_spec = int * atp_format * string * string * bool
 
 type atp_config =
-  {exec : string * string,
-   required_execs : (string * string) list,
+  {exec : string list * string,
+   required_vars : string list list,
    arguments :
      Proof.context -> bool -> string -> Time.time
      -> term_order * (unit -> (string * int) list)
@@ -133,7 +134,7 @@ val known_says_failures = known_szs_failures (prefix " says ")
 (* named ATPs *)
 
 val alt_ergoN = "alt_ergo"
-val dummy_thfN = "dummy_thf" (* experimental *)
+val dummy_thfN = "dummy_thf" (* for experiments *)
 val eN = "e"
 val e_sineN = "e_sine"
 val e_tofofN = "e_tofof"
@@ -143,7 +144,8 @@ val leo2N = "leo2"
 val satallaxN = "satallax"
 val snarkN = "snark"
 val spassN = "spass"
-val spass_newN = "spass_new" (* experimental *)
+val spass_oldN = "spass_old" (* for experiments *)
+val spass_newN = "spass_new" (* for experiments *)
 val vampireN = "vampire"
 val waldmeisterN = "waldmeister"
 val z3_tptpN = "z3_tptp"
@@ -178,30 +180,13 @@ val xsimpN = "_simp" (* SPASS-specific *)
 val term_order =
   Attrib.setup_config_string @{binding atp_term_order} (K smartN)
 
-fun effective_term_order ctxt atp =
-  let val ord = Config.get ctxt term_order in
-    if ord = smartN then
-      if atp = spass_newN then
-        {is_lpo = false, gen_weights = true, gen_prec = false, gen_simp = true}
-      else
-        {is_lpo = false, gen_weights = false, gen_prec = false,
-         gen_simp = false}
-    else
-      let val is_lpo = String.isSubstring lpoN ord in
-        {is_lpo = is_lpo,
-         gen_weights = not is_lpo andalso String.isSubstring xweightsN ord,
-         gen_prec = String.isSubstring xprecN ord,
-         gen_simp = String.isSubstring xsimpN ord}
-      end
-  end
-
 (* Alt-Ergo *)
 
 val alt_ergo_tff1 = TFF (TPTP_Polymorphic, TPTP_Explicit)
 
 val alt_ergo_config : atp_config =
-  {exec = ("WHY3_HOME", "why3"),
-   required_execs = [],
+  {exec = (["WHY3_HOME"], "why3"),
+   required_vars = [],
    arguments =
      fn _ => fn _ => fn _ => fn timeout => fn _ =>
         "--format tff1 --prover alt-ergo --timelimit " ^
@@ -222,7 +207,7 @@ val alt_ergo = (alt_ergoN, alt_ergo_config)
 
 (* E *)
 
-fun is_old_e_version () = (string_ord (getenv "E_VERSION", "1.3") = LESS)
+fun is_new_e_version () = (string_ord (getenv "E_VERSION", "1.2") = GREATER)
 
 val tstp_proof_delims =
   [("# SZS output start CNFRefutation.", "# SZS output end CNFRefutation"),
@@ -300,11 +285,11 @@ fun e_term_order_info_arguments false false _ = ""
     end
 
 fun effective_e_selection_heuristic ctxt =
-  if is_old_e_version () then e_autoN else Config.get ctxt e_selection_heuristic
+  if is_new_e_version () then Config.get ctxt e_selection_heuristic else e_autoN
 
 val e_config : atp_config =
-  {exec = ("E_HOME", "eproof"),
-   required_execs = [],
+  {exec = (["E_HOME"], "eproof"),
+   required_vars = [],
    arguments =
      fn ctxt => fn _ => fn heuristic => fn timeout =>
         fn ({is_lpo, gen_weights, gen_prec, ...}, ord_info, sel_weights) =>
@@ -340,8 +325,8 @@ val e = (eN, e_config)
 val leo2_thf0 = THF (TPTP_Monomorphic, TPTP_Explicit, THF_Without_Choice)
 
 val leo2_config : atp_config =
-  {exec = ("LEO2_HOME", "leo"),
-   required_execs = [],
+  {exec = (["LEO2_HOME"], "leo"),
+   required_vars = [],
    arguments =
      fn _ => fn _ => fn sos => fn timeout => fn _ =>
         "--proofoutput 1 --timeout " ^ string_of_int (to_secs 1 timeout)
@@ -368,8 +353,8 @@ val leo2 = (leo2N, leo2_config)
 val satallax_thf0 = THF (TPTP_Monomorphic, TPTP_Explicit, THF_With_Choice)
 
 val satallax_config : atp_config =
-  {exec = ("SATALLAX_HOME", "satallax"),
-   required_execs = [],
+  {exec = (["SATALLAX_HOME"], "satallax"),
+   required_vars = [],
    arguments =
      fn _ => fn _ => fn _ => fn timeout => fn _ =>
         "-p hocore -t " ^ string_of_int (to_secs 1 timeout),
@@ -387,11 +372,15 @@ val satallax = (satallaxN, satallax_config)
 
 (* SPASS *)
 
-(* The "-VarWeight=3" option helps the higher-order problems, probably by
-   counteracting the presence of explicit application operators. *)
-val spass_config : atp_config =
-  {exec = ("ISABELLE_ATP", "scripts/spass"),
-   required_execs = [("SPASS_HOME", "SPASS"), ("SPASS_HOME", "tptp2dfg")],
+fun is_new_spass_version () =
+  string_ord (getenv "SPASS_VERSION", "3.7") = GREATER orelse
+  getenv "SPASS_NEW_HOME" <> ""
+
+(* TODO: Legacy: Remove after planned Isabelle2012 release (and don't forget
+   "required_vars" and "script/spass"). *)
+val spass_old_config : atp_config =
+  {exec = (["ISABELLE_ATP"], "scripts/spass"),
+   required_vars = [["SPASS_OLD_HOME", "SPASS_HOME"]],
    arguments = fn _ => fn _ => fn sos => fn timeout => fn _ =>
      ("-Auto -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
       \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_secs 1 timeout))
@@ -415,7 +404,7 @@ val spass_config : atp_config =
       (0.334, (false, ((50, DFG DFG_Unsorted, "mono_tags??", liftingN, false), no_sosN)))]
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single else I)}
 
-val spass = (spassN, spass_config)
+val spass_old = (spass_oldN, spass_old_config)
 
 val spass_new_H2 = "-Heuristic=2"
 val spass_new_H2SOS = "-Heuristic=2 -SOS"
@@ -423,17 +412,16 @@ val spass_new_H2NuVS0 = "-Heuristic=2 -RNuV=1 -Sorts=0"
 val spass_new_H2NuVS0Red2 =
   "-Heuristic=2 -RNuV=1 -Sorts=0 -RFRew=2 -RBRew=2 -RTaut=2"
 
-(* Experimental *)
 val spass_new_config : atp_config =
-  {exec = ("SPASS_NEW_HOME", "SPASS"),
-   required_execs = [],
+  {exec = (["SPASS_NEW_HOME", "SPASS_HOME"], "SPASS"),
+   required_vars = [],
    arguments = fn _ => fn _ => fn extra_options => fn timeout => fn _ =>
      ("-Isabelle=1 -TimeLimit=" ^ string_of_int (to_secs 1 timeout))
      |> extra_options <> "" ? prefix (extra_options ^ " "),
-   proof_delims = #proof_delims spass_config,
-   known_failures = #known_failures spass_config,
-   conj_sym_kind = #conj_sym_kind spass_config,
-   prem_kind = #prem_kind spass_config,
+   proof_delims = #proof_delims spass_old_config,
+   known_failures = #known_failures spass_old_config,
+   conj_sym_kind = #conj_sym_kind spass_old_config,
+   prem_kind = #prem_kind spass_old_config,
    best_slices = fn _ =>
      (* FUDGE *)
      [(0.1667, (false, ((150, DFG DFG_Sorted, "mono_native", combsN, true), ""))),
@@ -447,19 +435,22 @@ val spass_new_config : atp_config =
 
 val spass_new = (spass_newN, spass_new_config)
 
+fun spass () =
+  (spassN, if is_new_spass_version () then spass_new_config
+           else spass_old_config)
 
 (* Vampire *)
 
 (* Vampire 1.8 has TFF support, but it's buggy and therefore disabled on
    SystemOnTPTP. *)
-fun is_old_vampire_version () =
-  string_ord (getenv "VAMPIRE_VERSION", "1.8") <> GREATER
+fun is_new_vampire_version () =
+  string_ord (getenv "VAMPIRE_VERSION", "1.8") = GREATER
 
 val vampire_tff0 = TFF (TPTP_Monomorphic, TPTP_Implicit)
 
 val vampire_config : atp_config =
-  {exec = ("VAMPIRE_HOME", "vampire"),
-   required_execs = [],
+  {exec = (["VAMPIRE_HOME"], "vampire"),
+   required_vars = [],
    arguments = fn _ => fn _ => fn sos => fn timeout => fn _ =>
      "--mode casc -t " ^ string_of_int (to_secs 1 timeout) ^
      " --proof tptp --output_axiom_names on\
@@ -482,14 +473,14 @@ val vampire_config : atp_config =
    prem_kind = Conjecture,
    best_slices = fn ctxt =>
      (* FUDGE *)
-     (if is_old_vampire_version () then
-        [(0.333, (false, ((150, FOF, "poly_guards??", combs_or_liftingN, false), sosN))),
-         (0.333, (false, ((500, FOF, "mono_tags??", combs_or_liftingN, false), sosN))),
-         (0.334, (true, ((50, FOF, "mono_guards??", combs_or_liftingN, false), no_sosN)))]
-      else
+     (if is_new_vampire_version () then
         [(0.333, (false, ((150, vampire_tff0, "poly_guards??", combs_or_liftingN, false), sosN))),
          (0.333, (false, ((500, vampire_tff0, "mono_native", combs_or_liftingN, false), sosN))),
-         (0.334, (true, ((50, vampire_tff0, "mono_native", combs_or_liftingN, false), no_sosN)))])
+         (0.334, (true, ((50, vampire_tff0, "mono_native", combs_or_liftingN, false), no_sosN)))]
+      else
+        [(0.333, (false, ((150, FOF, "poly_guards??", combs_or_liftingN, false), sosN))),
+         (0.333, (false, ((500, FOF, "mono_tags??", combs_or_liftingN, false), sosN))),
+         (0.334, (true, ((50, FOF, "mono_guards??", combs_or_liftingN, false), no_sosN)))])
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
@@ -501,8 +492,8 @@ val vampire = (vampireN, vampire_config)
 val z3_tff0 = TFF (TPTP_Monomorphic, TPTP_Implicit)
 
 val z3_tptp_config : atp_config =
-  {exec = ("Z3_HOME", "z3"),
-   required_execs = [],
+  {exec = (["Z3_HOME"], "z3"),
+   required_vars = [],
    arguments = fn _ => fn _ => fn _ => fn timeout => fn _ =>
      "MBQI=true -tptp -t:" ^ string_of_int (to_secs 1 timeout),
    proof_delims = [],
@@ -522,8 +513,8 @@ val z3_tptp = (z3_tptpN, z3_tptp_config)
 (* Not really a prover: Experimental Polymorphic TFF and THF output *)
 
 fun dummy_config format type_enc : atp_config =
-  {exec = ("ISABELLE_ATP", "scripts/dummy_atp"),
-   required_execs = [],
+  {exec = (["ISABELLE_ATP"], "scripts/dummy_atp"),
+   required_vars = [],
    arguments = K (K (K (K (K "")))),
    proof_delims = [],
    known_failures = known_szs_status_failures,
@@ -581,8 +572,8 @@ val max_remote_secs = 240 (* give Geoff Sutcliffe's servers a break *)
 
 fun remote_config system_name system_versions proof_delims known_failures
                   conj_sym_kind prem_kind best_slice : atp_config =
-  {exec = ("ISABELLE_ATP", "scripts/remote_atp"),
-   required_execs = [],
+  {exec = (["ISABELLE_ATP"], "scripts/remote_atp"),
+   required_vars = [],
    arguments = fn _ => fn _ => fn _ => fn timeout => fn _ =>
      "-t " ^ string_of_int (Int.min (max_remote_secs, to_secs 1 timeout)) ^
      " -s " ^ the_system system_name system_versions,
@@ -663,18 +654,37 @@ fun get_atp thy name =
 val supported_atps = Symtab.keys o Data.get
 
 fun is_atp_installed thy name =
-  let val {exec, required_execs, ...} = get_atp thy name in
-    forall (curry (op <>) "" o getenv o fst) (exec :: required_execs)
+  let val {exec, required_vars, ...} = get_atp thy name in
+    forall (exists (fn var => getenv var <> "")) (fst exec :: required_vars)
   end
 
 fun refresh_systems_on_tptp () =
   Synchronized.change systems (fn _ => get_systems ())
 
-val atps =
-  [alt_ergo, e, leo2, dummy_thf, satallax, spass, spass_new, vampire, z3_tptp,
-   remote_e, remote_e_sine, remote_e_tofof, remote_iprover, remote_iprover_eq,
-   remote_leo2, remote_satallax, remote_vampire, remote_z3_tptp, remote_snark,
-   remote_waldmeister]
-val setup = fold add_atp atps
+fun effective_term_order ctxt atp =
+  let val ord = Config.get ctxt term_order in
+    if ord = smartN then
+      if atp = spass_newN orelse
+         (atp = spassN andalso is_new_spass_version ()) then
+        {is_lpo = false, gen_weights = true, gen_prec = false, gen_simp = true}
+      else
+        {is_lpo = false, gen_weights = false, gen_prec = false,
+         gen_simp = false}
+    else
+      let val is_lpo = String.isSubstring lpoN ord in
+        {is_lpo = is_lpo,
+         gen_weights = not is_lpo andalso String.isSubstring xweightsN ord,
+         gen_prec = String.isSubstring xprecN ord,
+         gen_simp = String.isSubstring xsimpN ord}
+      end
+  end
+
+fun atps () =
+  [alt_ergo, e, leo2, dummy_thf, satallax, spass_old, spass_new, spass (),
+   vampire, z3_tptp, remote_e, remote_e_sine, remote_e_tofof, remote_iprover,
+   remote_iprover_eq, remote_leo2, remote_satallax, remote_vampire,
+   remote_z3_tptp, remote_snark, remote_waldmeister]
+
+fun setup thy = fold add_atp (atps ()) thy
 
 end;
