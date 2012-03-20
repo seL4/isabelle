@@ -115,24 +115,30 @@ lemma cardinal_le_imp_lepoll: " i \<le> |A| ==> i \<lesssim> A"
 
 subsection{*Other Applications of AC*}
 
-lemma surj_implies_inj: "f: surj(X,Y) ==> \<exists>g. g: inj(Y,X)"
-apply (unfold surj_def)
-apply (erule CollectE)
-apply (rule_tac A1 = Y and B1 = "%y. f-``{y}" in AC_Pi [THEN exE])
-apply (fast elim!: apply_Pair)
-apply (blast dest: apply_type Pi_memberD
-             intro: apply_equality Pi_type f_imp_injective)
-done
+lemma surj_implies_inj:
+  assumes f: "f \<in> surj(X,Y)" shows "\<exists>g. g \<in> inj(Y,X)"
+proof -
+  from f AC_Pi [of Y "%y. f-``{y}"]
+  obtain z where z: "z \<in> (\<Pi> y\<in>Y. f -`` {y})"  
+    by (auto simp add: surj_def) (fast dest: apply_Pair)
+  show ?thesis
+    proof
+      show "z \<in> inj(Y, X)" using z surj_is_fun [OF f]
+        by (blast dest: apply_type Pi_memberD
+                  intro: apply_equality Pi_type f_imp_injective)
+    qed
+qed
 
-(*Kunen's Lemma 10.20*)
-lemma surj_implies_cardinal_le: "f: surj(X,Y) ==> |Y| \<le> |X|"
-apply (rule lepoll_imp_Card_le)
-apply (erule surj_implies_inj [THEN exE])
-apply (unfold lepoll_def)
-apply (erule exI)
-done
+text{*Kunen's Lemma 10.20*}
+lemma surj_implies_cardinal_le: 
+  assumes f: "f \<in> surj(X,Y)" shows "|Y| \<le> |X|"
+proof (rule lepoll_imp_Card_le)
+  from f [THEN surj_implies_inj] obtain g where "g \<in> inj(Y,X)" ..
+  thus "Y \<lesssim> X"
+    by (auto simp add: lepoll_def)
+qed
 
-(*Kunen's Lemma 10.21*)
+text{*Kunen's Lemma 10.21*}
 lemma cardinal_UN_le:
   assumes K: "InfCard(K)" 
   shows "(!!i. i\<in>K ==> |X(i)| \<le> K) ==> |\<Union>i\<in>K. X(i)| \<le> K"
@@ -141,7 +147,7 @@ proof (simp add: K InfCard_is_Card le_Card_iff)
   assume "!!i. i\<in>K ==> X(i) \<lesssim> K"
   hence "!!i. i\<in>K ==> \<exists>f. f \<in> inj(X(i), K)" by (simp add: lepoll_def) 
   with AC_Pi obtain f where f: "f \<in> (\<Pi> i\<in>K. inj(X(i), K))"
-    apply - apply atomize apply auto done
+    by force 
   { fix z
     assume z: "z \<in> (\<Union>i\<in>K. X(i))"
     then obtain i where i: "i \<in> K" "Ord(i)" "z \<in> X(i)"
@@ -171,8 +177,8 @@ lemma cardinal_UN_lt_csucc:
       ==> |\<Union>i\<in>K. X(i)| < csucc(K)"
 by (simp add: Card_lt_csucc_iff cardinal_UN_le InfCard_is_Card Card_cardinal)
 
-(*The same again, for a union of ordinals.  In use, j(i) is a bit like rank(i),
-  the least ordinal j such that i:Vfrom(A,j). *)
+text{*The same again, for a union of ordinals.  In use, j(i) is a bit like rank(i),
+  the least ordinal j such that i:Vfrom(A,j). *}
 lemma cardinal_UN_Ord_lt_csucc:
      "[| InfCard(K);  \<forall>i\<in>K. j(i) < csucc(K) |]
       ==> (\<Union>i\<in>K. j(i)) < csucc(K)"
@@ -203,13 +209,12 @@ proof (rule UN_least)
   finally show "C(x) \<subseteq> (\<Union>y\<in>B. C(if y \<in> range(f) then converse(f)`y else a))" .
 qed
 
-(*Simpler to require |W|=K; we'd have a bijection; but the theorem would
-  be weaker.*)
+text{*Simpler to require |W|=K; we'd have a bijection; but the theorem would
+  be weaker.*}
 lemma le_UN_Ord_lt_csucc:
      "[| InfCard(K);  |W| \<le> K;  \<forall>w\<in>W. j(w) < csucc(K) |]
       ==> (\<Union>w\<in>W. j(w)) < csucc(K)"
-apply (case_tac "W=0")
-(*solve the easy 0 case*)
+apply (case_tac "W=0") --{*solve the easy 0 case*}
  apply (simp add: InfCard_is_Card Card_is_Ord [THEN Card_csucc]
                   Card_is_Ord Ord_0_lt_csucc)
 apply (simp add: InfCard_is_Card le_Card_iff lepoll_def)
