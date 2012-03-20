@@ -578,20 +578,20 @@ fun dfg_lines flavor {is_lpo, gen_weights, gen_prec, gen_simp} ord_info
                    |> maybe_enclose "set_precedence(" ")."]
        else
          [])
-    fun list_of _ _ _ [] = []
-      | list_of heading bef aft ss =
-        "list_of_" ^ heading ^ ".\n" :: bef :: map (suffix "\n") ss @
-        [aft, "end_of_list.\n\n"]
+    fun list_of _ [] = []
+      | list_of heading ss =
+        "list_of_" ^ heading ^ ".\n" :: map (suffix "\n") ss @
+        ["end_of_list.\n\n"]
   in
     "\nbegin_problem(isabelle).\n\n" ::
-    list_of "descriptions" "" ""
+    list_of "descriptions"
             ["name({**}).", "author({**}).", "status(unknown).",
              "description({**})."] @
-    list_of "symbols" "" "" syms @
-    list_of "declarations" "" "" decls @
-    list_of "formulae(axioms)" "" "" axioms @
-    list_of "formulae(conjectures)" "" "" conjs @
-    list_of "settings(SPASS)" "{*\n" "*}\n" settings @
+    list_of "symbols" syms @
+    list_of "declarations" decls @
+    list_of "formulae(axioms)" axioms @
+    list_of "formulae(conjectures)" conjs @
+    list_of "settings(SPASS)" settings @
     ["end_problem.\n"]
   end
 

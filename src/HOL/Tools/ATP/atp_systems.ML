@@ -311,7 +311,7 @@ val e_config : atp_config =
         "--tstp-in --tstp-out --output-level=5 --silent " ^
         e_selection_weight_arguments ctxt heuristic sel_weights ^ " " ^
         e_term_order_info_arguments gen_weights gen_prec ord_info ^ " " ^
-        "--term-ordering=" ^ (if is_lpo then "LPO4" else "Auto") ^ " " ^
+        "--term-ordering=" ^ (if is_lpo then "LPO4" else "KBO6") ^ " " ^
         "--cpu-limit=" ^ string_of_int (to_secs 2 timeout),
    proof_delims = tstp_proof_delims,
    known_failures =
