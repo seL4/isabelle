@@ -1939,10 +1939,7 @@ and ho_term_from_iterm ctxt format mono type_enc =
               AAbs ((name, ho_type_from_typ format type_enc true 0 T),
                     term Elsewhere tm)
             else
-              ATerm (("LAMBDA", "LAMBDA"), []) (*###*)
-(*###
               raise Fail "unexpected lambda-abstraction"
-*)
           | IApp _ => raise Fail "impossible \"IApp\""
         val T = ityp_of u
       in
@@ -2764,7 +2761,7 @@ fun atp_problem_term_order_info problem =
         is_tptp_user_symbol s ? perhaps (try (add_edge s head))
         #> fold (add_term_deps head) args
       | add_term_deps head (AAbs (_, tm)) = add_term_deps head tm
-    fun add_eq_deps (ATerm (s, [lhs as _, rhs])) =
+    fun add_eq_deps (SOME true) (ATerm (s, [lhs as _, rhs])) =
         if is_tptp_equal s then
           case make_head_roll lhs of
             (head, rest as _ :: _) =>
@@ -2772,16 +2769,20 @@ fun atp_problem_term_order_info problem =
           | _ => I
         else
           I
-      | add_eq_deps _ = I
-    fun add_line_deps _ (Decl _) = I
-      | add_line_deps status (Formula (_, _, phi, _, info)) =
-        if extract_isabelle_status info = SOME status then
-          formula_fold NONE (K add_eq_deps) phi
+      | add_eq_deps _ _ = I
+    fun add_deps pred (Formula (_, role, phi, _, info)) =
+        if pred (role, info) then
+          formula_fold (SOME (role <> Conjecture)) add_eq_deps phi
         else
           I
+      | add_deps _ _ = I
+    fun has_status status (_, info) =
+      extract_isabelle_status info = SOME status
+    fun is_conj (role, _) = (role = Conjecture orelse role = Hypothesis)
     val graph =
-      Graph.empty |> fold (fold (add_line_deps spec_eqN) o snd) problem
-                  |> fold (fold (add_line_deps simpN) o snd) problem
+      Graph.empty
+      |> fold (fold (add_deps (has_status spec_eqN)) o snd) problem
+      |> fold (fold (add_deps (has_status simpN orf is_conj)) o snd) problem
     fun next_weight w = if w + w <= max_term_order_weight then w + w else w + 1
     fun add_weights _ [] = I
       | add_weights weight syms =

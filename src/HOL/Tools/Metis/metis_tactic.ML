@@ -12,6 +12,7 @@ sig
   val trace : bool Config.T
   val verbose : bool Config.T
   val new_skolemizer : bool Config.T
+  val advisory_simp : bool Config.T
   val type_has_top_sort : typ -> bool
   val metis_tac :
     string list -> string -> Proof.context -> thm list -> int -> tactic
@@ -30,6 +31,8 @@ open Metis_Reconstruct
 
 val new_skolemizer =
   Attrib.setup_config_bool @{binding metis_new_skolemizer} (K false)
+val advisory_simp =
+  Attrib.setup_config_bool @{binding metis_advisory_simp} (K false)
 
 (* Designed to work also with monomorphic instances of polymorphic theorems. *)
 fun have_common_thm ths1 ths2 =
@@ -105,12 +108,12 @@ fun introduce_lam_wrappers ctxt th =
       val eq_th' = Goal.prove_internal [] eq_ct (K (Tactic.rtac eq_th 1))
     in Thm.equal_elim eq_th' th end
 
-val clause_params =
-  {ordering = Metis_KnuthBendixOrder.default,
+fun clause_params ordering =
+  {ordering = ordering,
    orderLiterals = Metis_Clause.UnsignedLiteralOrder,
    orderTerms = true}
-val active_params =
-  {clause = clause_params,
+fun active_params ordering =
+  {clause = clause_params ordering,
    prefactor = #prefactor Metis_Active.default,
    postfactor = #postfactor Metis_Active.default}
 val waiting_params =
@@ -118,7 +121,18 @@ val waiting_params =
    variablesWeight = 0.5,
    literalsWeight = 0.1,
    models = []}
-val resolution_params = {active = active_params, waiting = waiting_params}
+fun resolution_params ordering =
+  {active = active_params ordering, waiting = waiting_params}
+
+fun kbo_advisory_simp_ordering ord_info =
+  let
+    fun weight (m, _) =
+      AList.lookup (op =) ord_info (Metis_Name.toString m) |> the_default 1
+    fun precedence p =
+      case int_ord (pairself weight p) of
+        EQUAL => #precedence Metis_KnuthBendixOrder.default p
+      | ord => ord
+  in {weight = weight, precedence = precedence} end
 
 (* Main function to start Metis proof and reconstruction *)
 fun FOL_SOLVE (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
@@ -143,7 +157,7 @@ fun FOL_SOLVE (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
       val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) cls
       val _ = trace_msg ctxt (fn () => "type_enc = " ^ type_enc)
       val type_enc = type_enc_from_string Strict type_enc
-      val (sym_tab, axioms, concealed) =
+      val (sym_tab, axioms, ord_info, concealed) =
         prepare_metis_problem ctxt type_enc lam_trans cls ths
       fun get_isa_thm mth Isa_Reflexive_or_Trivial =
           reflexive_or_trivial_from_metis ctxt type_enc sym_tab concealed mth
@@ -156,11 +170,16 @@ fun FOL_SOLVE (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
       val _ = trace_msg ctxt (fn () => "METIS CLAUSES")
       val _ = app (fn (mth, _) => trace_msg ctxt (fn () => Metis_Thm.toString mth)) axioms
       val _ = trace_msg ctxt (fn () => "START METIS PROVE PROCESS")
+      val ordering =
+        if Config.get ctxt advisory_simp then
+          kbo_advisory_simp_ordering (ord_info ())
+        else
+          Metis_KnuthBendixOrder.default
   in
       case filter (fn t => prop_of t aconv @{prop False}) cls of
           false_th :: _ => [false_th RS @{thm FalseE}]
         | [] =>
-      case Metis_Resolution.new resolution_params
+      case Metis_Resolution.new (resolution_params ordering)
                                 {axioms = axioms |> map fst, conjecture = []}
            |> Metis_Resolution.loop of
           Metis_Resolution.Contradiction mth =>

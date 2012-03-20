@@ -290,8 +290,8 @@ val e_ord_weights =
 fun e_ord_precedence [_] = ""
   | e_ord_precedence info = info |> map fst |> space_implode "<"
 
-fun e_term_order_info_arguments _ false false _ = ""
-  | e_term_order_info_arguments ctxt gen_weights gen_prec ord_info =
+fun e_term_order_info_arguments false false _ = ""
+  | e_term_order_info_arguments gen_weights gen_prec ord_info =
     let val ord_info = ord_info () in
       (if gen_weights then "--order-weights='" ^ e_ord_weights ord_info ^ "' "
        else "") ^
@@ -310,7 +310,7 @@ val e_config : atp_config =
         fn ({is_lpo, gen_weights, gen_prec, ...}, ord_info, sel_weights) =>
         "--tstp-in --tstp-out --output-level=5 --silent " ^
         e_selection_weight_arguments ctxt heuristic sel_weights ^ " " ^
-        e_term_order_info_arguments ctxt gen_weights gen_prec ord_info ^ " " ^
+        e_term_order_info_arguments gen_weights gen_prec ord_info ^ " " ^
         "--term-ordering=" ^ (if is_lpo then "LPO4" else "Auto") ^ " " ^
         "--cpu-limit=" ^ string_of_int (to_secs 2 timeout),
    proof_delims = tstp_proof_delims,

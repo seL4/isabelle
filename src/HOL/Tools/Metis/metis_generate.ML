@@ -32,6 +32,7 @@ sig
   val prepare_metis_problem :
     Proof.context -> type_enc -> string -> thm list -> thm list
     -> int Symtab.table * (Metis_Thm.thm * isa_thm) list
+       * (unit -> (string * int) list)
        * ((string * term) list * (string * term) list)
 end
 
@@ -221,10 +222,11 @@ fun prepare_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
         |> fst |> chop (length conj_clauses)
         |> pairself (maps (map (zero_var_indexes o snd)))
     val num_conjs = length conj_clauses
+    (* Pretend every clause is a "simp" rule, to guide the term ordering. *)
     val clauses =
-      map2 (fn j => pair (Int.toString j, (Local, General)))
+      map2 (fn j => pair (Int.toString j, (Local, Simp)))
            (0 upto num_conjs - 1) conj_clauses @
-      map2 (fn j => pair (Int.toString (num_conjs + j), (Local, General)))
+      map2 (fn j => pair (Int.toString (num_conjs + j), (Local, Simp)))
            (0 upto length fact_clauses - 1) fact_clauses
     val (old_skolems, props) =
       fold_rev (fn (name, th) => fn (old_skolems, props) =>
@@ -241,8 +243,8 @@ fun prepare_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
     *)
     val lam_trans = if lam_trans = combsN then no_lamsN else lam_trans
     val (atp_problem, _, _, lifted, sym_tab) =
-      prepare_atp_problem ctxt CNF Hypothesis Axiom type_enc false lam_trans
-                          false false false [] @{prop False} props
+      prepare_atp_problem ctxt CNF Hypothesis Hypothesis type_enc false
+                          lam_trans false false false [] @{prop False} props
     (*
     val _ = tracing ("ATP PROBLEM: " ^
                      cat_lines (lines_for_atp_problem CNF atp_problem))
@@ -251,6 +253,7 @@ fun prepare_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
     val axioms =
       atp_problem
       |> maps (map_filter (metis_axiom_from_atp type_enc clauses) o snd) |> rev
-  in (sym_tab, axioms, (lifted, old_skolems)) end
+    fun ord_info () = atp_problem_term_order_info atp_problem
+  in (sym_tab, axioms, ord_info, (lifted, old_skolems)) end
 
 end;
