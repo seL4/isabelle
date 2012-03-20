@@ -185,35 +185,36 @@ object Isabelle
       if doc_view.isDefined
     } yield doc_view.get
 
+  def exit_model(buffer: Buffer)
+  {
+    swing_buffer_lock(buffer) {
+      jedit_text_areas(buffer).foreach(Document_View.exit)
+      Document_Model.exit(buffer)
+    }
+  }
+
   def init_model(buffer: Buffer)
   {
     swing_buffer_lock(buffer) {
       val opt_model =
-        document_model(buffer) match {
-          case Some(model) => Some(model)
-          case None =>
-            val name = buffer_name(buffer)
-            Thy_Header.thy_name(name) match {
-              case Some(theory) =>
-                val node_name = Document.Node.Name(name, buffer.getDirectory, theory)
-                Some(Document_Model.init(session, buffer, node_name))
-              case None => None
+      {
+        val name = buffer_name(buffer)
+        Thy_Header.thy_name(name) match {
+          case Some(theory) =>
+            val node_name = Document.Node.Name(name, buffer.getDirectory, theory)
+            document_model(buffer) match {
+              case Some(model) if model.name == node_name => Some(model)
+              case _ => Some(Document_Model.init(session, buffer, node_name))
             }
+          case None => None
         }
+      }
       if (opt_model.isDefined) {
         for (text_area <- jedit_text_areas(buffer)) {
           if (document_view(text_area).map(_.model) != opt_model)
             Document_View.init(opt_model.get, text_area)
         }
       }
-    }
-  }
-
-  def exit_model(buffer: Buffer)
-  {
-    swing_buffer_lock(buffer) {
-      jedit_text_areas(buffer).foreach(Document_View.exit)
-      Document_Model.exit(buffer)
     }
   }
 
@@ -419,10 +420,10 @@ class Plugin extends EBPlugin
           Isabelle.start_session()
 
       case msg: BufferUpdate
-      if msg.getWhat == BufferUpdate.LOADED =>
+      if msg.getWhat == BufferUpdate.LOADED || msg.getWhat == BufferUpdate.PROPERTIES_CHANGED =>
         if (Isabelle.session.is_ready) {
           val buffer = msg.getBuffer
-          if (buffer != null) Isabelle.init_model(buffer)
+          if (buffer != null && !buffer.isLoading) Isabelle.init_model(buffer)
           delay_load(true)
         }
 

@@ -239,7 +239,6 @@ object Token_Markup
   {
     buffer.setTokenMarker(jEdit.getMode("text").getTokenMarker)
     buffer.setTokenMarker(isabelle_token_marker)
-    buffer.propertiesChanged
   }
 }
 

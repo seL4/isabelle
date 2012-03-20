@@ -414,6 +414,29 @@ val _ =
       Toplevel.print o Toplevel.begin_local_theory true (Named_Target.context_cmd name)));
 
 
+(* bundled declarations *)
+
+val _ =
+  Outer_Syntax.local_theory ("bundle", Keyword.thy_decl) "define bundle of declarations"
+    ((Parse.binding --| Parse.$$$ "=") -- Parse_Spec.xthms1 -- Parse.for_fixes
+      >> (uncurry Bundle.bundle_cmd));
+
+val _ =
+  Outer_Syntax.command ("include", Keyword.prf_decl)
+    "include declarations from bundle in proof body"
+    (Parse.position Parse.xname >> (Toplevel.print oo (Toplevel.proof o Bundle.include_cmd)));
+
+val _ =
+  Outer_Syntax.command ("including", Keyword.prf_decl)
+    "include declarations from bundle in goal refinement"
+    (Parse.position Parse.xname >> (Toplevel.print oo (Toplevel.proof o Bundle.including_cmd)));
+
+val _ =
+  Outer_Syntax.improper_command ("print_bundles", Keyword.diag) "print bundles of declarations"
+    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
+      Toplevel.keep (Bundle.print_bundles o Toplevel.context_of)));
+
+
 (* locales *)
 
 val locale_val =

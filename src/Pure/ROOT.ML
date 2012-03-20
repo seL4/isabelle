@@ -224,6 +224,7 @@ use "Isar/class.ML";
 use "Isar/named_target.ML";
 use "Isar/expression.ML";
 use "Isar/class_declaration.ML";
+use "Isar/bundle.ML";
 
 use "simplifier.ML";
 
