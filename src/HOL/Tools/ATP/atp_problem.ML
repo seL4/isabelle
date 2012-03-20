@@ -466,7 +466,7 @@ fun binder_atypes (AFun (ty1, ty2)) = ty1 :: binder_atypes ty2
 fun dfg_string_for_formula gen_simp flavor info =
   let
     fun suffix_tag top_level s =
-      if top_level then
+      if flavor = DFG_Sorted andalso top_level then
         case extract_isabelle_status info of
           SOME s' => if s' = spec_eqN then s ^ ":lt"
                      else if s' = simpN andalso gen_simp then s ^ ":lr"
@@ -516,7 +516,11 @@ fun dfg_lines flavor {is_lpo, gen_weights, gen_prec, gen_simp} ord_info
       commas (sym :: map (string_for_type format) (binder_atypes ty)) ^ ")."
     fun formula pred (Formula (ident, kind, phi, _, info)) =
         if pred kind then
-          let val rank = extract_isabelle_rank info in
+          let
+            val rank =
+              if flavor = DFG_Sorted then extract_isabelle_rank info
+              else default_rank
+          in
             "formula(" ^ dfg_string_for_formula gen_simp flavor info phi ^
             ", " ^ ident ^
             (if rank = default_rank then "" else ", " ^ string_of_int rank) ^
