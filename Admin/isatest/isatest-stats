@@ -166,6 +166,7 @@ AFP_SESSIONS="
   HOL-Verified-Prover
   HOL-Word
   HOL-Word-RIPEMD-160-SPARK
+  HOL-Word-JinjaThreads-Basic-JinjaThreads
   HOLCF
   HOLCF-Shivers-CFA
   HOLCF-Stream-Fusion
