@@ -42,15 +42,18 @@ object Document_Model
       case Some(model) =>
         model.deactivate()
         buffer.unsetProperty(key)
+        buffer.propertiesChanged
     }
   }
 
   def init(session: Session, buffer: Buffer, name: Document.Node.Name): Document_Model =
   {
-    exit(buffer)
+    Swing_Thread.require()
+    apply(buffer).map(_.deactivate)
     val model = new Document_Model(session, buffer, name)
     buffer.setProperty(key, model)
     model.activate()
+    buffer.propertiesChanged
     model
   }
 }
