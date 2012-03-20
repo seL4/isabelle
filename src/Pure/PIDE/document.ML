@@ -445,7 +445,11 @@ fun check_theory nodes name =
 fun init_theory deps node =
   let
     (* FIXME provide files via Scala layer, not master_dir *)
-    val (master_dir, header) = Exn.release (get_header node);
+    val (dir, header) = Exn.release (get_header node);
+    val master_dir =
+      (case Url.explode dir of
+        Url.File path => path
+      | _ => Path.current);
     val parents =
       #imports header |> map (fn import =>
         (case Thy_Info.lookup_theory import of  (* FIXME more robust!? *)
@@ -453,7 +457,7 @@ fun init_theory deps node =
         | NONE =>
             get_theory (Position.file_only import)
               (snd (Future.join (the (AList.lookup (op =) deps import))))));
-  in Thy_Load.begin_theory (Path.explode master_dir) header parents end;
+  in Thy_Load.begin_theory master_dir header parents end;
 
 in
 
