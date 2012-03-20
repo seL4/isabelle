@@ -118,8 +118,8 @@ fun active_params ordering =
    postfactor = #postfactor Metis_Active.default}
 val waiting_params =
   {symbolsWeight = 1.0,
-   variablesWeight = 0.5,
-   literalsWeight = 0.1,
+   variablesWeight = 0.05,
+   literalsWeight = 0.01,
    models = []}
 fun resolution_params ordering =
   {active = active_params ordering, waiting = waiting_params}
