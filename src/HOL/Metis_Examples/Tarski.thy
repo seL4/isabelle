@@ -487,13 +487,7 @@ lemma (in CLF) flubH_le_lubH:
 apply (rule lub_upper, fast)
 apply (rule_tac t = "H" in ssubst, assumption)
 apply (rule CollectI)
-apply (rule conjI)
-(*??no longer terminates, with combinators
-apply (metis CO_refl_on lubH_le_flubH monotone_def monotone_f reflD1 reflD2)
-*)
-apply (metis CO_refl_on lubH_le_flubH monotoneE [OF monotone_f] refl_onD1 refl_onD2)
-apply (metis CO_refl_on lubH_le_flubH refl_onD2)
-done
+by (metis (lifting) CO_refl_on lubH_le_flubH monotone_def monotone_f refl_onD1 refl_onD2)
 
 declare CLF.f_in_funcset[rule del] funcset_mem[rule del]
         CL.lub_in_lattice[rule del] PO.monotoneE[rule del]
@@ -575,13 +569,8 @@ apply (simp add: P_def)
 apply (rule lubI)
 apply (metis P_def fix_subset)
 apply (metis Collect_conj_eq Collect_mem_eq Int_commute Int_lower1 lub_in_lattice vimage_def)
-(*??no longer terminates, with combinators
-apply (metis P_def fix_def fixf_le_lubH)
-apply (metis P_def fix_def lubH_least_fixf)
-*)
-apply (simp add: fixf_le_lubH)
-apply (simp add: lubH_least_fixf)
-done
+apply (metis P_def fixf_le_lubH)
+by (metis P_def lubH_least_fixf)
 
 declare CL.lubI[rule del] fix_subset[rule del] CL.lub_in_lattice[rule del]
         CLF.fixf_le_lubH[simp del] CLF.lubH_least_fixf[simp del]
