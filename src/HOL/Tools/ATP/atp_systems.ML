@@ -174,7 +174,7 @@ val xprecN = "_prec"
 val xsimpN = "_simp" (* SPASS-specific *)
 
 (* Possible values for "atp_term_order":
-   "smart", "(kbo(_weights)?|lpo)(_prec|_simp)?" *)
+   "smart", "(kbo|lpo)(_weights)?(_prec|_simp)?" *)
 val term_order =
   Attrib.setup_config_string @{binding atp_term_order} (K smartN)
 
