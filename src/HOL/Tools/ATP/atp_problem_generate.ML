@@ -30,8 +30,6 @@ sig
     No_Types
   type type_enc
 
-  val type_tag_idempotence : bool Config.T
-  val type_tag_arguments : bool Config.T
   val no_lamsN : string
   val hide_lamsN : string
   val liftingN : string
@@ -67,7 +65,6 @@ sig
   val lam_fact_prefix : string
   val typed_helper_suffix : string
   val untyped_helper_suffix : string
-  val type_tag_idempotence_helper_name : string
   val predicator_name : string
   val app_op_name : string
   val type_guard_name : string
@@ -118,11 +115,6 @@ open ATP_Util
 open ATP_Problem
 
 type name = string * string
-
-val type_tag_idempotence =
-  Attrib.setup_config_bool @{binding atp_type_tag_idempotence} (K false)
-val type_tag_arguments =
-  Attrib.setup_config_bool @{binding atp_type_tag_arguments} (K false)
 
 val no_lamsN = "no_lams" (* used internally; undocumented *)
 val hide_lamsN = "hide_lams"
@@ -178,7 +170,6 @@ val tfree_clause_prefix = "tfree_"
 val lam_fact_prefix = "ATP.lambda_"
 val typed_helper_suffix = "_T"
 val untyped_helper_suffix = "_U"
-val type_tag_idempotence_helper_name = helper_prefix ^ "ti_idem"
 
 val predicator_name = "pp"
 val app_op_name = "aa"
@@ -1671,17 +1662,6 @@ fun rank_of_fact_num n j = min_rank + (max_rank - min_rank) * j div n
 
 val type_tag = `(make_fixed_const NONE) type_tag_name
 
-fun type_tag_idempotence_fact type_enc =
-  let
-    fun var s = ATerm (`I s, [])
-    fun tag tm = ATerm (type_tag, [var "A", tm])
-    val tagged_var = tag (var "X")
-  in
-    Formula (type_tag_idempotence_helper_name, Axiom,
-             eq_formula type_enc [] [] false (tag tagged_var) tagged_var,
-             NONE, isabelle_info spec_eqN helper_rank)
-  end
-
 fun should_specialize_helper type_enc t =
   polymorphism_of_type_enc type_enc <> Polymorphic andalso
   level_of_type_enc type_enc <> No_Types andalso
@@ -2361,25 +2341,7 @@ fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
         end
       else
         I
-    fun add_formula_for_arg k =
-      let val arg_T = nth arg_Ts k in
-        if should_encode arg_T then
-          case chop k bounds of
-            (bounds1, bound :: bounds2) =>
-            cons (Formula (ident_base ^ "_arg" ^ string_of_int (k + 1), kind,
-                           eq (cst (bounds1 @ tag_with arg_T bound :: bounds2))
-                              (cst bounds),
-                           NONE, isabelle_info spec_eqN helper_rank))
-          | _ => raise Fail "expected nonempty tail"
-        else
-          I
-      end
-  in
-    [] |> not pred_sym ? add_formula_for_res
-       |> (Config.get ctxt type_tag_arguments andalso
-           grain = Positively_Naked_Vars)
-          ? fold add_formula_for_arg (ary - 1 downto 0)
-  end
+  in [] |> not pred_sym ? add_formula_for_res end
 
 fun result_type_of_decl (_, _, T, _, ary, _) = chop_fun ary T |> snd
 
@@ -2505,12 +2467,6 @@ fun uncurried_alias_lines_for_sym_table ctxt monom_constrs format conj_sym_kind
            (pair_append
             o uncurried_alias_lines_for_sym ctxt monom_constrs format
                   conj_sym_kind mono type_enc sym_tab0 sym_tab) sym_tab
-
-fun needs_type_tag_idempotence ctxt (Tags (poly, level)) =
-    Config.get ctxt type_tag_idempotence andalso
-    is_type_level_monotonicity_based level andalso
-    poly <> Mangled_Monomorphic
-  | needs_type_tag_idempotence _ _ = false
 
 val implicit_declsN = "Should-be-implicit typings"
 val explicit_declsN = "Explicit typings"
@@ -2659,10 +2615,6 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
       0 upto length helpers - 1 ~~ helpers
       |> map (formula_line_for_fact ctxt polym_constrs format helper_prefix I
                                     false true mono type_enc (K default_rank))
-      |> (if needs_type_tag_idempotence ctxt type_enc then
-            cons (type_tag_idempotence_fact type_enc)
-          else
-            I)
     (* Reordering these might confuse the proof reconstruction code or the SPASS
        FLOTTER hack. *)
     val problem =

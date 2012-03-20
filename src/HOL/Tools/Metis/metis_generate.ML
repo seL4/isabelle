@@ -168,8 +168,7 @@ fun metis_axiom_from_atp type_enc clauses (Formula (ident, _, phi, _, _)) =
                   |> Metis_LiteralSet.fromList
                   |> Metis_Thm.axiom, isa)
     in
-      if ident = type_tag_idempotence_helper_name orelse
-         String.isPrefix tags_sym_formula_prefix ident then
+      if String.isPrefix tags_sym_formula_prefix ident then
         Isa_Reflexive_or_Trivial |> some
       else if String.isPrefix conjecture_prefix ident then
         NONE
