@@ -32,7 +32,7 @@ open Metis_Reconstruct
 val new_skolemizer =
   Attrib.setup_config_bool @{binding metis_new_skolemizer} (K false)
 val advisory_simp =
-  Attrib.setup_config_bool @{binding metis_advisory_simp} (K false)
+  Attrib.setup_config_bool @{binding metis_advisory_simp} (K true)
 
 (* Designed to work also with monomorphic instances of polymorphic theorems. *)
 fun have_common_thm ths1 ths2 =
