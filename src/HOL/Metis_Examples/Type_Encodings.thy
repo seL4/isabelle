@@ -27,10 +27,10 @@ val type_encs =
    "poly_guards",
    "poly_guards?",
    "poly_guards??",
-   "poly_guards@?",
+   (* "poly_guards@?", *)
    "poly_guards!",
    "poly_guards!!",
-   "poly_guards@!",
+   (* "poly_guards@!", *)
    "poly_tags",
    "poly_tags?",
    "poly_tags??",
