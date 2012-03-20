@@ -680,7 +680,7 @@ apply blast
 txt{*K4*}
 apply (force dest!: Crypt_imp_keysFor)
 txt{*K6*}
-apply (metis Says_imp_spies Says_ticket_parts analz.Fst analz.Inj analz_conj_parts unique_CryptKey)
+apply (metis MPair_parts Says_imp_parts_knows_Spy unique_CryptKey)
 done
 
 text{*Needs a unicity theorem, hence moved here*}
