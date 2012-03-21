@@ -10,9 +10,10 @@ type generic_theory = Context.generic;
 signature LOCAL_THEORY =
 sig
   type operations
-  val level: Proof.context -> int
-  val affirm: local_theory -> local_theory
   val map_contexts: (Proof.context -> Proof.context) -> local_theory -> local_theory
+  val assert: local_theory -> local_theory
+  val level: Proof.context -> int
+  val assert_bottom: bool -> local_theory -> local_theory
   val open_target: Name_Space.naming -> operations -> local_theory -> local_theory
   val close_target: local_theory -> local_theory
   val naming_of: local_theory -> Name_Space.naming
@@ -33,6 +34,7 @@ sig
   val standard_morphism: local_theory -> Proof.context -> morphism
   val target_morphism: local_theory -> morphism
   val global_morphism: local_theory -> morphism
+  val operations_of: local_theory -> operations
   val define: (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory
   val define_internal: (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
@@ -96,31 +98,39 @@ structure Data = Proof_Data
   fun init _ = [];
 );
 
-val level = length o Data.get;
-
-fun affirm lthy =
-  if level lthy > 0 then lthy
-  else error "Missing local theory context";
-
-val get_lthy = hd o Data.get o affirm;
-
-fun map_lthy f = affirm #>
-  Data.map (fn {naming, operations, target} :: parents =>
-    make_lthy (f (naming, operations, target)) :: parents);
-
 fun map_contexts f =
   (Data.map o map) (fn {naming, operations, target} => make_lthy (naming, operations, f target))
   #> f;
 
+fun assert lthy =
+  if null (Data.get lthy) then error "Missing local theory context" else lthy;
+
+val get_lthy = hd o Data.get o assert;
+
+fun map_lthy f = assert #>
+  Data.map (fn {naming, operations, target} :: parents =>
+    make_lthy (f (naming, operations, target)) :: parents);
+
 
 (* nested structure *)
 
-fun open_target naming operations target = affirm target
+val level = length o Data.get;
+
+fun assert_bottom b lthy =
+  let
+    val _ = assert lthy;
+    val b' = level lthy <= 1;
+  in
+    if b andalso not b' then error "Not at bottom of local theory nesting"
+    else if not b andalso b' then error "Already at bottom of local theory nesting"
+    else lthy
+  end;
+
+fun open_target naming operations target = assert target
   |> Data.map (cons (make_lthy (naming, operations, target)));
 
 fun close_target lthy =
-  if level lthy >= 2 then Data.map tl lthy
-  else error "Unbalanced local theory targets";
+  assert_bottom false lthy |> Data.map tl;
 
 
 (* naming *)
@@ -205,9 +215,12 @@ fun global_morphism lthy =
 
 (** operations **)
 
+val operations_of = #operations o get_lthy;
+
+
 (* primitives *)
 
-fun operation f lthy = f (#operations (get_lthy lthy)) lthy;
+fun operation f lthy = f (operations_of lthy) lthy;
 fun operation2 f x y = operation (fn ops => f ops x y);
 
 val pretty = operation #pretty;

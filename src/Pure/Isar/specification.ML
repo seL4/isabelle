@@ -381,7 +381,7 @@ structure Theorem_Hook = Generic_Data
 fun gen_theorem schematic prep_att prep_stmt
     kind before_qed after_qed (name, raw_atts) raw_elems raw_concl int lthy =
   let
-    val _ = Local_Theory.affirm lthy;
+    val _ = Local_Theory.assert lthy;
     val thy = Proof_Context.theory_of lthy;
 
     val attrib = prep_att thy;

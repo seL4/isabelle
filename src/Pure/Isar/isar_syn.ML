@@ -424,12 +424,20 @@ val _ =
 val _ =
   Outer_Syntax.command ("include", Keyword.prf_decl)
     "include declarations from bundle in proof body"
-    (Parse.position Parse.xname >> (Toplevel.print oo (Toplevel.proof o Bundle.include_cmd)));
+    (Scan.repeat1 (Parse.position Parse.xname)
+      >> (Toplevel.print oo (Toplevel.proof o Bundle.include_cmd)));
 
 val _ =
   Outer_Syntax.command ("including", Keyword.prf_decl)
     "include declarations from bundle in goal refinement"
-    (Parse.position Parse.xname >> (Toplevel.print oo (Toplevel.proof o Bundle.including_cmd)));
+    (Scan.repeat1 (Parse.position Parse.xname)
+      >> (Toplevel.print oo (Toplevel.proof o Bundle.including_cmd)));
+
+val _ =
+  Outer_Syntax.local_theory ("context_includes", Keyword.thy_decl)  (* FIXME 'context' 'includes' *)
+    "nested target context including bundled declarations"
+    (Scan.repeat1 (Parse.position Parse.xname) --| Parse.begin
+      >> Bundle.context_includes_cmd);
 
 val _ =
   Outer_Syntax.improper_command ("print_bundles", Keyword.diag) "print bundles of declarations"
