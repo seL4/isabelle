@@ -183,7 +183,7 @@ fun map_all f (State st) = State (Stack.map_all (map_node f) st);
 fun open_block (State st) = State (Stack.push st);
 
 fun close_block (State st) = State (Stack.pop st)
-  handle Empty => error "Unbalanced block parentheses";
+  handle List.Empty => error "Unbalanced block parentheses";
 
 fun level (State st) = Stack.level st;
 

@@ -341,7 +341,7 @@ fun get_prover ctxt args =
   let
     fun default_prover_name () =
       hd (#provers (Sledgehammer_Isar.default_params ctxt []))
-      handle Empty => error "No ATP available."
+      handle List.Empty => error "No ATP available."
     fun get_prover name =
       (name, Sledgehammer_Run.get_minimizing_prover ctxt
                 Sledgehammer_Provers.Normal name)

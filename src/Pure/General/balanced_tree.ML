@@ -15,7 +15,7 @@ end;
 structure Balanced_Tree: BALANCED_TREE =
 struct
 
-fun make _ [] = raise Empty
+fun make _ [] = raise List.Empty
   | make _ [x] = x
   | make f xs =
       let
@@ -24,7 +24,7 @@ fun make _ [] = raise Empty
       in f (make f ps, make f qs) end;
 
 fun dest f n x =
-  if n <= 0 then raise Empty
+  if n <= 0 then raise List.Empty
   else if n = 1 then [x]
   else
     let

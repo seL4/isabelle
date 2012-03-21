@@ -201,7 +201,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                             val tk_prods =
                               these
                                 (AList.lookup (op =) nt_prods
-                                  (SOME (hd l_starts handle Empty => unknown_start)));
+                                  (SOME (hd l_starts handle List.Empty => unknown_start)));
 
                             (*add_lambda is true if an existing production of the nt
                               produces lambda due to the new lambda NT l*)

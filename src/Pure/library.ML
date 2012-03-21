@@ -328,7 +328,7 @@ fun setmp_thread_data tag orig_data data f x =
 fun single x = [x];
 
 fun the_single [x] = x
-  | the_single _ = raise Empty;
+  | the_single _ = raise List.Empty;
 
 fun singleton f x = the_single (f [x]);
 
@@ -372,12 +372,12 @@ fun foldr f (l, e) =
 
 (*  (op @) [x1, ..., xn]  ===>  ((x1 @ x2) @ x3) ... @ xn
     for operators that associate to the left (TAIL RECURSIVE)*)
-fun foldl1 f [] = raise Empty
+fun foldl1 f [] = raise List.Empty
   | foldl1 f (x :: xs) = foldl f (x, xs);
 
 (*  (op @) [x1, ..., xn]  ===>   x1 @ (x2 ... @ (x[n-1] @ xn))
     for n > 0, operators that associate to the right (not tail recursive)*)
-fun foldr1 f [] = raise Empty
+fun foldr1 f [] = raise List.Empty
   | foldr1 f l =
       let fun itr [x] = x
             | itr (x::l) = f(x, itr l)
@@ -454,7 +454,7 @@ fun map_range f i =
   in mapp 0 end;
 
 (*rear decomposition*)
-fun split_last [] = raise Empty
+fun split_last [] = raise List.Empty
   | split_last [x] = ([], x)
   | split_last (x :: xs) = apfst (cons x) (split_last xs);
 
