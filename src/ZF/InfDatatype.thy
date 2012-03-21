@@ -11,21 +11,38 @@ lemmas fun_Limit_VfromE =
     Limit_VfromE [OF apply_funtype InfCard_csucc [THEN InfCard_is_Limit]]
 
 lemma fun_Vcsucc_lemma:
-     "[| f: D -> Vfrom(A,csucc(K));  |D| \<le> K;  InfCard(K) |]
-      ==> \<exists>j. f: D -> Vfrom(A,j) & j < csucc(K)"
-apply (rule_tac x = "\<Union>d\<in>D. LEAST i. f`d \<in> Vfrom (A,i) " in exI)
-apply (rule conjI)
-apply (rule_tac [2] le_UN_Ord_lt_csucc)
-apply (rule_tac [4] ballI, erule_tac [4] fun_Limit_VfromE, simp_all)
- prefer 2 apply (fast elim: Least_le [THEN lt_trans1] ltE)
-apply (rule Pi_type)
-apply (rename_tac [2] d)
-apply (erule_tac [2] fun_Limit_VfromE, simp_all)
-apply (subgoal_tac "f`d \<in> Vfrom (A, LEAST i. f`d \<in> Vfrom (A,i))")
- apply (erule Vfrom_mono [OF subset_refl UN_upper, THEN subsetD])
- apply assumption
-apply (fast elim: LeastI ltE)
-done
+  assumes f: "f \<in> D -> Vfrom(A,csucc(K))" and DK: "|D| \<le> K" and ICK: "InfCard(K)"
+  shows "\<exists>j. f \<in> D -> Vfrom(A,j) & j < csucc(K)"
+proof (rule exI, rule conjI)
+  show "f \<in> D \<rightarrow> Vfrom(A, \<Union>z\<in>D. \<mu> i. f`z \<in> Vfrom (A,i))"
+    proof (rule Pi_type [OF f])
+      fix d
+      assume d: "d \<in> D"
+      show "f ` d \<in> Vfrom(A, \<Union>z\<in>D. \<mu> i. f ` z \<in> Vfrom(A, i))"
+        proof (rule fun_Limit_VfromE [OF f d ICK]) 
+          fix x
+          assume "x < csucc(K)"  "f ` d \<in> Vfrom(A, x)"
+          hence "f`d \<in> Vfrom(A, \<mu> i. f`d \<in> Vfrom (A,i))" using d
+            by (fast elim: LeastI ltE)
+          also have "... \<subseteq> Vfrom(A, \<Union>z\<in>D. \<mu> i. f ` z \<in> Vfrom(A, i))" 
+            by (rule Vfrom_mono) (auto intro: d) 
+          finally show "f`d \<in> Vfrom(A, \<Union>z\<in>D. \<mu> i. f ` z \<in> Vfrom(A, i))" .
+        qed
+    qed
+next
+  show "(\<Union>d\<in>D. \<mu> i. f ` d \<in> Vfrom(A, i)) < csucc(K)"
+    proof (rule le_UN_Ord_lt_csucc [OF ICK DK])
+      fix d
+      assume d: "d \<in> D"
+      show "(\<mu> i. f ` d \<in> Vfrom(A, i)) < csucc(K)"
+        proof (rule fun_Limit_VfromE [OF f d ICK]) 
+          fix x
+          assume "x < csucc(K)"  "f ` d \<in> Vfrom(A, x)"
+          thus "(\<mu> i. f ` d \<in> Vfrom(A, i)) < csucc(K)"
+            by (blast intro: Least_le lt_trans1 lt_Ord) 
+        qed
+    qed
+qed
 
 lemma subset_Vcsucc:
      "[| D \<subseteq> Vfrom(A,csucc(K));  |D| \<le> K;  InfCard(K) |]

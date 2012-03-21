@@ -173,14 +173,14 @@ qed
 
 text{*The same again, using @{term csucc}*}
 lemma cardinal_UN_lt_csucc:
-     "[| InfCard(K);  \<forall>i\<in>K. |X(i)| < csucc(K) |]
+     "[| InfCard(K);  \<And>i. i\<in>K \<Longrightarrow> |X(i)| < csucc(K) |]
       ==> |\<Union>i\<in>K. X(i)| < csucc(K)"
 by (simp add: Card_lt_csucc_iff cardinal_UN_le InfCard_is_Card Card_cardinal)
 
 text{*The same again, for a union of ordinals.  In use, j(i) is a bit like rank(i),
   the least ordinal j such that i:Vfrom(A,j). *}
 lemma cardinal_UN_Ord_lt_csucc:
-     "[| InfCard(K);  \<forall>i\<in>K. j(i) < csucc(K) |]
+     "[| InfCard(K);  \<And>i. i\<in>K \<Longrightarrow> j(i) < csucc(K) |]
       ==> (\<Union>i\<in>K. j(i)) < csucc(K)"
 apply (rule cardinal_UN_lt_csucc [THEN Card_lt_imp_lt], assumption)
 apply (blast intro: Ord_cardinal_le [THEN lt_trans1] elim: ltE)
@@ -189,11 +189,11 @@ apply (erule InfCard_is_Card [THEN Card_is_Ord, THEN Card_csucc])
 done
 
 
-(** Main result for infinite-branching datatypes.  As above, but the index
-    set need not be a cardinal.  Surprisingly complicated proof!
-**)
+subsection{*The Main Result for Infinite-Branching Datatypes*}
 
-text{*Work backwards along the injection from @{term W} into @{term K}, given that @{term"W\<noteq>0"}.*}
+text{*As above, but the index set need not be a cardinal. Work
+backwards along the injection from @{term W} into @{term K}, given
+that @{term"W\<noteq>0"}.*}
 
 lemma inj_UN_subset:
   assumes f: "f \<in> inj(A,B)" and a: "a \<in> A"
@@ -209,20 +209,35 @@ proof (rule UN_least)
   finally show "C(x) \<subseteq> (\<Union>y\<in>B. C(if y \<in> range(f) then converse(f)`y else a))" .
 qed
 
-text{*Simpler to require |W|=K; we'd have a bijection; but the theorem would
-  be weaker.*}
-lemma le_UN_Ord_lt_csucc:
-     "[| InfCard(K);  |W| \<le> K;  \<forall>w\<in>W. j(w) < csucc(K) |]
-      ==> (\<Union>w\<in>W. j(w)) < csucc(K)"
-apply (case_tac "W=0") --{*solve the easy 0 case*}
- apply (simp add: InfCard_is_Card Card_is_Ord [THEN Card_csucc]
-                  Card_is_Ord Ord_0_lt_csucc)
-apply (simp add: InfCard_is_Card le_Card_iff lepoll_def)
-apply (safe intro!: equalityI)
-apply (erule swap)
-apply (rule lt_subset_trans [OF inj_UN_subset cardinal_UN_Ord_lt_csucc], assumption+)
- apply (simp add: inj_converse_fun [THEN apply_type])
-apply (blast intro!: Ord_UN elim: ltE)
-done
+theorem le_UN_Ord_lt_csucc:
+  assumes IK: "InfCard(K)" and WK: "|W| \<le> K" and j: "\<And>w. w\<in>W \<Longrightarrow> j(w) < csucc(K)"
+  shows "(\<Union>w\<in>W. j(w)) < csucc(K)"
+proof -
+  have CK: "Card(K)" 
+    by (simp add: InfCard_is_Card IK)
+  then obtain f where f: "f \<in> inj(W, K)" using WK
+    by(auto simp add: le_Card_iff lepoll_def)
+  have OU: "Ord(\<Union>w\<in>W. j(w))" using j
+    by (blast elim: ltE)
+  note lt_subset_trans [OF _ _ OU, trans]
+  show ?thesis
+    proof (cases "W=0")
+      case True  --{*solve the easy 0 case*}
+      thus ?thesis by (simp add: CK Card_is_Ord Card_csucc Ord_0_lt_csucc)
+    next
+      case False
+        then obtain x where x: "x \<in> W" by blast
+        have "(\<Union>x\<in>W. j(x)) \<subseteq> (\<Union>k\<in>K. j(if k \<in> range(f) then converse(f) ` k else x))"
+          by (rule inj_UN_subset [OF f x]) 
+        also have "... < csucc(K)" using IK
+          proof (rule cardinal_UN_Ord_lt_csucc)
+            fix k
+            assume "k \<in> K"
+            thus "j(if k \<in> range(f) then converse(f) ` k else x) < csucc(K)" using f x j
+              by (simp add: inj_converse_fun [THEN apply_type])
+          qed
+        finally show ?thesis .
+    qed
+qed
 
 end
