@@ -6,7 +6,7 @@ JEDIT_SETTINGS="$ISABELLE_HOME_USER/jedit"
 JEDIT_OPTIONS="-reuseview -noserver -nobackground -log=9"
 JEDIT_JAVA_OPTIONS="-Xms128m -Xmx1024m -Xss4m -Dactors.corePoolSize=4 -Dactors.enableForkJoin=false"
 #JEDIT_JAVA_OPTIONS="-Xms128m -Xmx512m -Xss2m -Dactors.corePoolSize=4 -Dactors.enableForkJoin=false"
-JEDIT_SYSTEM_OPTIONS="-Dapple.laf.useScreenMenuBar=true -Dcom.apple.mrj.application.apple.menu.about.name=Isabelle/jEdit"
+JEDIT_SYSTEM_OPTIONS="-Dapple.laf.useScreenMenuBar=false -Dcom.apple.mrj.application.apple.menu.about.name=Isabelle/jEdit"
 
 JEDIT_STYLE_SHEETS="$ISABELLE_HOME/etc/isabelle.css:$JEDIT_HOME/etc/isabelle-jedit.css:$ISABELLE_HOME_USER/etc/isabelle.css:$ISABELLE_HOME_USER/etc/isabelle-jedit.css"
 
