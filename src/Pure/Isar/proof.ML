@@ -188,9 +188,9 @@ fun close_block (State st) = State (Stack.pop st)
 fun level (State st) = Stack.level st;
 
 fun assert_bottom b state =
-  let val b' = (level state <= 2) in
-    if b andalso not b' then error "Not at bottom of proof!"
-    else if not b andalso b' then error "Already at bottom of proof!"
+  let val b' = level state <= 2 in
+    if b andalso not b' then error "Not at bottom of proof"
+    else if not b andalso b' then error "Already at bottom of proof"
     else state
   end;
 
@@ -272,12 +272,12 @@ val enter_backward = put_mode Backward;
 fun current_goal state =
   (case current state of
     {context, goal = SOME (Goal goal), ...} => (context, goal)
-  | _ => error "No current goal!");
+  | _ => error "No current goal");
 
 fun assert_current_goal g state =
   let val g' = can current_goal state in
-    if g andalso not g' then error "No goal in this block!"
-    else if not g andalso g' then error "Goal present in this block!"
+    if g andalso not g' then error "No goal in this block"
+    else if not g andalso g' then error "Goal present in this block"
     else state
   end;
 
@@ -488,7 +488,7 @@ fun conclude_goal ctxt goal propss =
     val ngoals = Thm.nprems_of goal;
     val _ = ngoals = 0 orelse error (Pretty.string_of (Pretty.chunks
       (Goal_Display.pretty_goals ctxt goal @
-        [Pretty.str (string_of_int ngoals ^ " unsolved goal(s)!")])));
+        [Pretty.str (string_of_int ngoals ^ " unsolved goal(s)")])));
 
     val extra_hyps = Assumption.extra_hyps ctxt goal;
     val _ = null extra_hyps orelse
