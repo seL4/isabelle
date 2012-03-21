@@ -60,7 +60,7 @@ sig
   val remote_atp :
     string -> string -> string list -> (string * string) list
     -> (failure * string) list -> formula_kind -> formula_kind
-    -> (Proof.context -> slice_spec) -> string * atp_config
+    -> (Proof.context -> slice_spec * string) -> string * atp_config
   val add_atp : string * atp_config -> theory -> theory
   val get_atp : theory -> string -> atp_config
   val supported_atps : theory -> string list
@@ -574,14 +574,15 @@ fun remote_config system_name system_versions proof_delims known_failures
                   conj_sym_kind prem_kind best_slice : atp_config =
   {exec = (["ISABELLE_ATP"], "scripts/remote_atp"),
    required_vars = [],
-   arguments = fn _ => fn _ => fn _ => fn timeout => fn _ =>
-     "-t " ^ string_of_int (Int.min (max_remote_secs, to_secs 1 timeout)) ^
-     " -s " ^ the_system system_name system_versions,
+   arguments = fn _ => fn _ => fn command => fn timeout => fn _ =>
+     (if command <> "" then "-c " ^ quote command ^ " " else "") ^
+     "-s " ^ the_system system_name system_versions ^ " " ^
+     "-t " ^ string_of_int (Int.min (max_remote_secs, to_secs 1 timeout)),
    proof_delims = union (op =) tstp_proof_delims proof_delims,
    known_failures = known_failures @ known_perl_failures @ known_says_failures,
    conj_sym_kind = conj_sym_kind,
    prem_kind = prem_kind,
-   best_slices = fn ctxt => [(1.0, (false, (best_slice ctxt, "")))]}
+   best_slices = fn ctxt => [(1.0, (false, best_slice ctxt))]}
 
 fun remotify_config system_name system_versions best_slice
         ({proof_delims, known_failures, conj_sym_kind, prem_kind, ...}
@@ -602,44 +603,43 @@ val explicit_tff0 = TFF (TPTP_Monomorphic, TPTP_Explicit)
 
 val remote_e =
   remotify_atp e "EP" ["1.0", "1.1", "1.2"]
-      (K (750, FOF, "mono_tags??", combsN, false) (* FUDGE *))
+      (K ((750, FOF, "mono_tags??", combsN, false), "") (* FUDGE *))
 val remote_leo2 =
   remotify_atp leo2 "LEO-II" ["1.2.8", "1.2.6"]
-      (K (100, leo2_thf0, "mono_native_higher", liftingN, false) (* FUDGE *))
+      (K ((100, leo2_thf0, "mono_native_higher", liftingN, false), "") (* FUDGE *))
 val remote_satallax =
-  remotify_atp satallax "Satallax" ["2.1", "2.0", "2"]
-      (K (100, satallax_thf0, "mono_native_higher", keep_lamsN, false)
-         (* FUDGE *))
+  remotify_atp satallax "Satallax" ["2.3", "2.2", "2"]
+      (K ((100, satallax_thf0, "mono_native_higher", keep_lamsN, false), "satallax.opt -p hocore -t %d %s") (* FUDGE *))
 val remote_vampire =
   remotify_atp vampire "Vampire" ["1.8"]
-      (K (250, vampire_tff0, "mono_native", combs_or_liftingN, false) (* FUDGE *))
+      (K ((250, vampire_tff0, "mono_native", combs_or_liftingN, false), "") (* FUDGE *))
 val remote_z3_tptp =
   remotify_atp z3_tptp "Z3" ["3.0"]
-      (K (250, z3_tff0, "mono_native", combsN, false) (* FUDGE *))
+      (K ((250, z3_tff0, "mono_native", combsN, false), "") (* FUDGE *))
 val remote_e_sine =
-  remote_atp e_sineN "SInE" ["0.4"] [] (#known_failures e_config) Axiom
-      Conjecture (K (500, FOF, "mono_guards??", combsN, false) (* FUDGE *))
+  remote_atp e_sineN "SInE" ["0.4"] [] (#known_failures e_config) Axiom Conjecture
+      (K ((500, FOF, "mono_guards??", combsN, false), "") (* FUDGE *))
 val remote_iprover =
   remote_atp iproverN "iProver" [] [] [] Axiom Conjecture
-      (K (150, FOF, "mono_guards??", liftingN, false) (* FUDGE *))
+      (K ((150, FOF, "mono_guards??", liftingN, false), "") (* FUDGE *))
 val remote_iprover_eq =
   remote_atp iprover_eqN "iProver-Eq" [] [] [] Axiom Conjecture
-      (K (150, FOF, "mono_guards??", liftingN, false) (* FUDGE *))
+      (K ((150, FOF, "mono_guards??", liftingN, false), "") (* FUDGE *))
 val remote_snark =
   remote_atp snarkN "SNARK" ["20080805r029", "20080805r024"]
       [("refutation.", "end_refutation.")] [] Hypothesis Hypothesis
-      (K (100, explicit_tff0, "mono_native", liftingN, false) (* FUDGE *))
+      (K ((100, explicit_tff0, "mono_native", liftingN, false), "") (* FUDGE *))
 val remote_e_tofof =
   remote_atp e_tofofN "ToFoF" ["0.1"] [] (#known_failures e_config) Axiom
       Hypothesis
-      (K (150, explicit_tff0, "mono_native", liftingN, false) (* FUDGE *))
+      (K ((150, explicit_tff0, "mono_native", liftingN, false), "") (* FUDGE *))
 val remote_waldmeister =
   remote_atp waldmeisterN "Waldmeister" ["710"]
       [("#START OF PROOF", "Proved Goals:")]
       [(OutOfResources, "Too many function symbols"),
        (Crashed, "Unrecoverable Segmentation Fault")]
       Hypothesis Hypothesis
-      (K (50, CNF_UEQ, "mono_tags??", combsN, false) (* FUDGE *))
+      (K ((50, CNF_UEQ, "mono_tags??", combsN, false), "") (* FUDGE *))
 
 (* Setup *)
 

@@ -215,7 +215,8 @@ val max_default_remote_threads = 4
 (* The first ATP of the list is used by Auto Sledgehammer. Because of the low
    timeout, it makes sense to put SPASS first. *)
 fun default_provers_param_value ctxt =
-  [spassN, eN, vampireN, SMT_Solver.solver_name_of ctxt, e_sineN, waldmeisterN]
+  [spassN, eN, vampireN, SMT_Solver.solver_name_of ctxt, satallaxN,
+   waldmeisterN]
   |> map_filter (remotify_prover_if_not_installed ctxt)
   |> avoid_too_many_threads ctxt (Multithreading.max_threads_value (),
                                   max_default_remote_threads)
