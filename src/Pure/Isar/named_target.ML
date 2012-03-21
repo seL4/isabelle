@@ -215,7 +215,7 @@ fun init before_exit target thy =
 val theory_init = init I "";
 
 val reinit =
-  assert #> Data.get #> the #>
+  Local_Theory.assert_bottom true #> Data.get #> the #>
   (fn Target {target, before_exit, ...} => Local_Theory.exit_global #> init before_exit target);
 
 fun context_cmd ("-", _) thy = init I "" thy

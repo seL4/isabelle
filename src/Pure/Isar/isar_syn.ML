@@ -25,16 +25,17 @@ val _ = Context.>> (Context.map_theory
 (** init and exit **)
 
 val _ =
-  Outer_Syntax.command ("theory", Keyword.tag_theory Keyword.thy_begin) "begin theory"
+  Outer_Syntax.command ("theory", Keyword.tag_theory Keyword.thy_begin) "begin theory context"
     (Thy_Header.args >> (fn header =>
       Toplevel.print o
         Toplevel.init_theory
           (fn () => Thy_Info.toplevel_begin_theory (Thy_Load.get_master_path ()) header)));
 
 val _ =
-  Outer_Syntax.command ("end", Keyword.tag_theory Keyword.thy_end) "end (local) theory"
+  Outer_Syntax.command ("end", Keyword.tag_theory Keyword.thy_end) "end context"
     (Scan.succeed
-      (Toplevel.exit o Toplevel.end_local_theory o Toplevel.end_proof (K Proof.end_notepad)));
+      (Toplevel.exit o Toplevel.end_local_theory o Toplevel.close_target o
+        Toplevel.end_proof (K Proof.end_notepad)));
 
 
 
@@ -406,14 +407,6 @@ val _ =
       (fn (x, y) => Toplevel.theory (Isar_Cmd.oracle x y)));
 
 
-(* local theories *)
-
-val _ =
-  Outer_Syntax.command ("context", Keyword.thy_decl) "enter local theory context"
-    (Parse.position Parse.xname --| Parse.begin >> (fn name =>
-      Toplevel.print o Toplevel.begin_local_theory true (Named_Target.context_cmd name)));
-
-
 (* bundled declarations *)
 
 val _ =
@@ -434,15 +427,19 @@ val _ =
       >> (Toplevel.print oo (Toplevel.proof o Bundle.including_cmd)));
 
 val _ =
-  Outer_Syntax.local_theory ("context_includes", Keyword.thy_decl)  (* FIXME 'context' 'includes' *)
-    "nested target context including bundled declarations"
-    (Scan.repeat1 (Parse.position Parse.xname) --| Parse.begin
-      >> Bundle.context_includes_cmd);
-
-val _ =
   Outer_Syntax.improper_command ("print_bundles", Keyword.diag) "print bundles of declarations"
     (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
       Toplevel.keep (Bundle.print_bundles o Toplevel.context_of)));
+
+
+(* local theories *)
+
+val _ =
+  Outer_Syntax.command ("context", Keyword.thy_decl) "begin local theory context"
+    ((Parse_Spec.includes >> (Toplevel.open_target o Bundle.context_includes_cmd) ||
+      Parse.position Parse.xname >> (fn name =>
+        Toplevel.print o Toplevel.begin_local_theory true (Named_Target.context_cmd name)))
+      --| Parse.begin);
 
 
 (* locales *)
@@ -567,8 +564,7 @@ val _ = gen_theorem true Thm.lemmaK;
 val _ = gen_theorem true Thm.corollaryK;
 
 val _ =
-  Outer_Syntax.local_theory_to_proof ("notepad", Keyword.thy_decl)
-    "Isar proof state as formal notepad, without any result"
+  Outer_Syntax.local_theory_to_proof ("notepad", Keyword.thy_decl) "begin proof context"
     (Parse.begin >> K Proof.begin_notepad);
 
 val _ =
