@@ -10,7 +10,11 @@ type generic_theory = Context.generic;
 signature LOCAL_THEORY =
 sig
   type operations
+  val level: Proof.context -> int
   val affirm: local_theory -> local_theory
+  val map_contexts: (Proof.context -> Proof.context) -> local_theory -> local_theory
+  val open_target: Name_Space.naming -> operations -> local_theory -> local_theory
+  val close_target: local_theory -> local_theory
   val naming_of: local_theory -> Name_Space.naming
   val full_name: local_theory -> binding -> string
   val map_naming: (Name_Space.naming -> Name_Space.naming) -> local_theory -> local_theory
@@ -25,7 +29,6 @@ sig
   val background_theory: (theory -> theory) -> local_theory -> local_theory
   val target_result: (Proof.context -> 'a * Proof.context) -> local_theory -> 'a * local_theory
   val target: (Proof.context -> Proof.context) -> local_theory -> local_theory
-  val map_contexts: (Context.generic -> Context.generic) -> local_theory -> local_theory
   val propagate_ml_env: generic_theory -> generic_theory
   val standard_morphism: local_theory -> Proof.context -> morphism
   val target_morphism: local_theory -> morphism
@@ -76,33 +79,48 @@ type operations =
   pretty: local_theory -> Pretty.T list,
   exit: local_theory -> Proof.context};
 
-datatype lthy = LThy of
+type lthy =
  {naming: Name_Space.naming,
   operations: operations,
   target: Proof.context};
 
-fun make_lthy (naming, operations, target) =
-  LThy {naming = naming, operations = operations, target = target};
+fun make_lthy (naming, operations, target) : lthy =
+  {naming = naming, operations = operations, target = target};
 
 
 (* context data *)
 
 structure Data = Proof_Data
 (
-  type T = lthy option;
-  fun init _ = NONE;
+  type T = lthy list;
+  fun init _ = [];
 );
 
-fun get_lthy lthy =
-  (case Data.get lthy of
-    NONE => error "No local theory context"
-  | SOME (LThy data) => data);
+val level = length o Data.get;
 
-fun map_lthy f lthy =
-  let val {naming, operations, target} = get_lthy lthy
-  in Data.put (SOME (make_lthy (f (naming, operations, target)))) lthy end;
+fun affirm lthy =
+  if level lthy > 0 then lthy
+  else error "Missing local theory context";
 
-val affirm = tap get_lthy;
+val get_lthy = hd o Data.get o affirm;
+
+fun map_lthy f = affirm #>
+  Data.map (fn {naming, operations, target} :: parents =>
+    make_lthy (f (naming, operations, target)) :: parents);
+
+fun map_contexts f =
+  (Data.map o map) (fn {naming, operations, target} => make_lthy (naming, operations, f target))
+  #> f;
+
+
+(* nested structure *)
+
+fun open_target naming operations target = affirm target
+  |> Data.map (cons (make_lthy (naming, operations, target)));
+
+fun close_target lthy =
+  if level lthy >= 2 then Data.map tl lthy
+  else error "Unbalanced local theory targets";
 
 
 (* naming *)
@@ -131,9 +149,7 @@ fun map_target f = map_lthy (fn (naming, operations, target) => (naming, operati
 fun raw_theory_result f lthy =
   let
     val (res, thy') = f (Proof_Context.theory_of lthy);
-    val lthy' = lthy
-      |> map_target (Proof_Context.transfer thy')
-      |> Proof_Context.transfer thy';
+    val lthy' = map_contexts (Proof_Context.transfer thy') lthy;
   in (res, lthy') end;
 
 fun raw_theory f = #2 o raw_theory_result (f #> pair ());
@@ -159,18 +175,18 @@ fun target_result f lthy =
     val thy' = Proof_Context.theory_of ctxt';
     val lthy' = lthy
       |> map_target (K ctxt')
-      |> Proof_Context.transfer thy';
+      |> map_contexts (Proof_Context.transfer thy');
   in (res, lthy') end;
 
 fun target f = #2 o target_result (f #> pair ());
 
-fun map_contexts f =
-  background_theory (Context.theory_map f) #>
-  target (Context.proof_map f) #>
-  Context.proof_map f;
-
 fun propagate_ml_env (context as Context.Proof lthy) =
-      Context.Proof (map_contexts (ML_Env.inherit context) lthy)
+      let val inherit = ML_Env.inherit context in
+        lthy
+        |> background_theory (Context.theory_map inherit)
+        |> map_contexts (Context.proof_map inherit)
+        |> Context.Proof
+      end
   | propagate_ml_env context = context;
 
 
@@ -181,11 +197,15 @@ fun standard_morphism lthy ctxt =
   Morphism.binding_morphism (Name_Space.transform_binding (naming_of lthy));
 
 fun target_morphism lthy = standard_morphism lthy (target_of lthy);
+
 fun global_morphism lthy =
   standard_morphism lthy (Proof_Context.init_global (Proof_Context.theory_of lthy));
 
 
-(* primitive operations *)
+
+(** operations **)
+
+(* primitives *)
 
 fun operation f lthy = f (#operations (get_lthy lthy)) lthy;
 fun operation2 f x y = operation (fn ops => f ops x y);
@@ -198,8 +218,7 @@ val notes_kind = apsnd checkpoint ooo operation2 #notes;
 val declaration = checkpoint ooo operation2 #declaration;
 
 
-
-(** basic derived operations **)
+(* basic derived operations *)
 
 val notes = notes_kind "";
 fun note (a, ths) = notes [(a, [(ths, [])])] #>> the_single;
@@ -243,8 +262,8 @@ val const_alias = alias Sign.const_alias Proof_Context.const_alias;
 
 fun init naming operations target =
   target |> Data.map
-    (fn NONE => SOME (make_lthy (naming, operations, target))
-      | SOME _ => error "Local theory already initialized")
+    (fn [] => [make_lthy (naming, operations, target)]
+      | _ => error "Local theory already initialized")
   |> checkpoint;
 
 fun restore lthy =
