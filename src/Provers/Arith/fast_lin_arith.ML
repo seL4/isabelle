@@ -384,7 +384,7 @@ fun calc_blowup l =
 fun extract_first p =
   let
     fun extract xs (y::ys) = if p y then (y, xs @ ys) else extract (y::xs) ys
-      | extract xs [] = raise Empty
+      | extract xs [] = raise List.Empty
   in extract [] end;
 
 fun print_ineqs ctxt ineqs =

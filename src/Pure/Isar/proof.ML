@@ -23,7 +23,8 @@ sig
   val put_thms: bool -> string * thm list option -> state -> state
   val the_facts: state -> thm list
   val the_fact: state -> thm
-  val put_facts: thm list option -> state -> state
+  val set_facts: thm list -> state -> state
+  val reset_facts: state -> state
   val assert_forward: state -> state
   val assert_chain: state -> state
   val assert_forward_or_chain: state -> state
@@ -183,14 +184,14 @@ fun map_all f (State st) = State (Stack.map_all (map_node f) st);
 fun open_block (State st) = State (Stack.push st);
 
 fun close_block (State st) = State (Stack.pop st)
-  handle Empty => error "Unbalanced block parentheses";
+  handle List.Empty => error "Unbalanced block parentheses";
 
 fun level (State st) = Stack.level st;
 
 fun assert_bottom b state =
-  let val b' = (level state <= 2) in
-    if b andalso not b' then error "Not at bottom of proof!"
-    else if not b andalso b' then error "Already at bottom of proof!"
+  let val b' = level state <= 2 in
+    if b andalso not b' then error "Not at bottom of proof"
+    else if not b andalso b' then error "Already at bottom of proof"
     else state
   end;
 
@@ -231,16 +232,19 @@ fun put_facts facts =
   map_current (fn (ctxt, _, mode, goal) => (ctxt, facts, mode, goal)) #>
   put_thms true (Auto_Bind.thisN, facts);
 
+val set_facts = put_facts o SOME;
+val reset_facts = put_facts NONE;
+
 fun these_factss more_facts (named_factss, state) =
-  (named_factss, state |> put_facts (SOME (maps snd named_factss @ more_facts)));
+  (named_factss, state |> set_facts (maps snd named_factss @ more_facts));
 
 fun export_facts inner outer =
   (case get_facts inner of
-    NONE => put_facts NONE outer
+    NONE => reset_facts outer
   | SOME thms =>
       thms
       |> Proof_Context.export (context_of inner) (context_of outer)
-      |> (fn ths => put_facts (SOME ths) outer));
+      |> (fn ths => set_facts ths outer));
 
 
 (* mode *)
@@ -272,16 +276,19 @@ val enter_backward = put_mode Backward;
 fun current_goal state =
   (case current state of
     {context, goal = SOME (Goal goal), ...} => (context, goal)
-  | _ => error "No current goal!");
+  | _ => error "No current goal");
 
 fun assert_current_goal g state =
   let val g' = can current_goal state in
-    if g andalso not g' then error "No goal in this block!"
-    else if not g andalso g' then error "Goal present in this block!"
+    if g andalso not g' then error "No goal in this block"
+    else if not g andalso g' then error "Goal present in this block"
     else state
   end;
 
 fun put_goal goal = map_current (fn (ctxt, using, mode, _) => (ctxt, using, mode, goal));
+
+val set_goal = put_goal o SOME;
+val reset_goal = put_goal NONE;
 
 val before_qed = #before_qed o #2 o current_goal;
 
@@ -298,7 +305,7 @@ fun map_goal f g (State (Node {context, facts, mode, goal = SOME goal}, nodes)) 
       in map_context f (State (nd, node' :: nodes')) end
   | map_goal _ _ state = state;
 
-fun set_goal goal = map_goal I (fn (statement, _, using, _, before_qed, after_qed) =>
+fun provide_goal goal = map_goal I (fn (statement, _, using, _, before_qed, after_qed) =>
   (statement, [], using, goal, before_qed, after_qed));
 
 fun goal_message msg = map_goal I (fn (statement, messages, using, goal, before_qed, after_qed) =>
@@ -412,10 +419,10 @@ fun select_goals n meth state =
   |> ALLGOALS Goal.conjunction_tac
   |> Seq.maps (fn goal =>
     state
-    |> Seq.lift set_goal (Goal.extract 1 n goal |> Seq.maps (Goal.conjunction_tac 1))
+    |> Seq.lift provide_goal (Goal.extract 1 n goal |> Seq.maps (Goal.conjunction_tac 1))
     |> Seq.maps meth
     |> Seq.maps (fn state' => state'
-      |> Seq.lift set_goal (Goal.retrofit 1 n (#2 (#2 (get_goal state'))) goal))
+      |> Seq.lift provide_goal (Goal.retrofit 1 n (#2 (#2 (get_goal state'))) goal))
     |> Seq.maps (apply_method true (K Method.succeed)));
 
 fun apply_text cc text state =
@@ -471,7 +478,7 @@ fun refine_goals print_rule inner raw_rules state =
   in
     raw_rules
     |> Proof_Context.goal_export inner outer
-    |> (fn rules => Seq.lift set_goal (EVERY (map refine rules) goal) state)
+    |> (fn rules => Seq.lift provide_goal (EVERY (map refine rules) goal) state)
   end;
 
 end;
@@ -488,7 +495,7 @@ fun conclude_goal ctxt goal propss =
     val ngoals = Thm.nprems_of goal;
     val _ = ngoals = 0 orelse error (Pretty.string_of (Pretty.chunks
       (Goal_Display.pretty_goals ctxt goal @
-        [Pretty.str (string_of_int ngoals ^ " unsolved goal(s)!")])));
+        [Pretty.str (string_of_int ngoals ^ " unsolved goal(s)")])));
 
     val extra_hyps = Assumption.extra_hyps ctxt goal;
     val _ = null extra_hyps orelse
@@ -548,7 +555,7 @@ fun gen_bind bind args state =
   state
   |> assert_forward
   |> map_context (bind true args #> snd)
-  |> put_facts NONE;
+  |> reset_facts;
 
 in
 
@@ -565,7 +572,7 @@ local
 fun gen_write prep_arg mode args =
   assert_forward
   #> map_context (fn ctxt => ctxt |> Proof_Context.notation true mode (map (prep_arg ctxt) args))
-  #> put_facts NONE;
+  #> reset_facts;
 
 in
 
@@ -585,7 +592,7 @@ local
 fun gen_fix prep_vars args =
   assert_forward
   #> map_context (fn ctxt => snd (Proof_Context.add_fixes (fst (prep_vars args ctxt)) ctxt))
-  #> put_facts NONE;
+  #> reset_facts;
 
 in
 
@@ -635,7 +642,7 @@ fun gen_def prep_att prep_vars prep_binds args state =
     |-> (fn vars =>
       map_context_result (prep_binds false (map swap raw_rhss))
       #-> (fn rhss => map_context_result (Local_Defs.add_defs (vars ~~ (name_atts ~~ rhss)))))
-    |-> (put_facts o SOME o map (#2 o #2))
+    |-> (set_facts o map (#2 o #2))
   end;
 
 in
@@ -652,7 +659,7 @@ end;
 (* chain *)
 
 fun clean_facts ctxt =
-  put_facts (SOME (filter_out Thm.is_dummy (the_facts ctxt))) ctxt;
+  set_facts (filter_out Thm.is_dummy (the_facts ctxt)) ctxt;
 
 val chain =
   assert_forward
@@ -660,7 +667,7 @@ val chain =
   #> enter_chain;
 
 fun chain_facts facts =
-  put_facts (SOME facts)
+  set_facts facts
   #> chain;
 
 
@@ -765,15 +772,15 @@ end;
 val begin_block =
   assert_forward
   #> open_block
-  #> put_goal NONE
+  #> reset_goal
   #> open_block;
 
 val next_block =
   assert_forward
   #> close_block
   #> open_block
-  #> put_goal NONE
-  #> put_facts NONE;
+  #> reset_goal
+  #> reset_facts;
 
 fun end_block state =
   state
@@ -889,12 +896,12 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
   in
     goal_state
     |> map_context (init_context #> Variable.set_body true)
-    |> put_goal (SOME (make_goal (statement, [], [], Goal.init goal, before_qed, after_qed')))
+    |> set_goal (make_goal (statement, [], [], Goal.init goal, before_qed, after_qed'))
     |> map_context (Proof_Context.auto_bind_goal props)
     |> chaining ? (`the_facts #-> using_facts)
-    |> put_facts NONE
+    |> reset_facts
     |> open_block
-    |> put_goal NONE
+    |> reset_goal
     |> enter_backward
     |> not (null vars) ? refine_terms (length goal_propss)
     |> null props ? (refine (Method.Basic Method.assumption) #> Seq.hd)

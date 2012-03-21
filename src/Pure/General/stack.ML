@@ -13,7 +13,7 @@ sig
   val map_top: ('a -> 'a) -> 'a T -> 'a T
   val map_all: ('a -> 'a) -> 'a T -> 'a T
   val push: 'a T -> 'a T
-  val pop: 'a T -> 'a T      (*exception Empty*)
+  val pop: 'a T -> 'a T      (*exception List.Empty*)
 end;
 
 structure Stack: STACK =
@@ -34,6 +34,6 @@ fun map_all f (x, xs) = (f x, map f xs);
 fun push (x, xs) = (x, x :: xs);
 
 fun pop (_, x :: xs) = (x, xs)
-  | pop (_, []) = raise Empty;
+  | pop (_, []) = raise List.Empty;
 
 end;

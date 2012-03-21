@@ -505,7 +505,7 @@ fun rlz_attrib arg = Thm.declaration_attribute (fn thm => Context.mapping
       (case HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of thm)) of
            [_] => [pred_of (HOLogic.dest_Trueprop (hd (prems_of thm)))]
          | xs => map (pred_of o fst o HOLogic.dest_imp) xs)
-         handle TERM _ => err () | Empty => err ();
+         handle TERM _ => err () | List.Empty => err ();
   in 
     add_ind_realizers (hd sets)
       (case arg of

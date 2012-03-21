@@ -58,6 +58,8 @@ sig
   val theory': (bool -> theory -> theory) -> transition -> transition
   val begin_local_theory: bool -> (theory -> local_theory) -> transition -> transition
   val end_local_theory: transition -> transition
+  val open_target: (generic_theory -> local_theory) -> transition -> transition
+  val close_target: transition -> transition
   val local_theory': (xstring * Position.T) option -> (bool -> local_theory -> local_theory) ->
     transition -> transition
   val local_theory: (xstring * Position.T) option -> (local_theory -> local_theory) ->
@@ -105,7 +107,7 @@ exception UNDEF = Runtime.UNDEF;
 (* local theory wrappers *)
 
 val loc_init = Named_Target.context_cmd;
-val loc_exit = Local_Theory.exit_global;
+val loc_exit = Local_Theory.assert_bottom true #> Local_Theory.exit_global;
 
 fun loc_begin loc (Context.Theory thy) = loc_init (the_default ("-", Position.none) loc) thy
   | loc_begin NONE (Context.Proof lthy) = lthy
@@ -455,6 +457,20 @@ fun begin_local_theory begin f = transaction (fn _ =>
 val end_local_theory = transaction (fn _ =>
   (fn Theory (Context.Proof lthy, _) => Theory (Context.Theory (loc_exit lthy), SOME lthy)
     | _ => raise UNDEF));
+
+fun open_target f = transaction (fn _ =>
+  (fn Theory (gthy, _) =>
+        let val lthy = f gthy
+        in Theory (Context.Proof lthy, SOME lthy) end
+    | _ => raise UNDEF));
+
+val close_target = transaction (fn _ =>
+  (fn Theory (Context.Proof lthy, _) =>
+        (case try Local_Theory.close_target lthy of
+          SOME lthy' => Theory (Context.Proof lthy', SOME lthy)
+        | NONE => raise UNDEF)
+    | _ => raise UNDEF));
+
 
 local
 

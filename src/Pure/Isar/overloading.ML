@@ -189,6 +189,7 @@ fun conclude lthy =
 fun gen_overloading prep_const raw_overloading thy =
   let
     val ctxt = Proof_Context.init_global thy;
+    val naming = Sign.naming_of thy;
     val _ = if null raw_overloading then error "At least one parameter must be given" else ();
     val overloading = raw_overloading |> map (fn (v, const, checked) =>
       (Term.dest_Const (prep_const ctxt const), (v, checked)));
@@ -200,7 +201,7 @@ fun gen_overloading prep_const raw_overloading thy =
     |> fold (fn ((_, ty), (v, _)) => Variable.declare_names (Free (v, ty))) overloading
     |> activate_improvable_syntax
     |> synchronize_syntax
-    |> Local_Theory.init NONE ""
+    |> Local_Theory.init naming
        {define = Generic_Target.define foundation,
         notes = Generic_Target.notes
           (fn kind => fn global_facts => fn _ => Generic_Target.theory_notes kind global_facts),

@@ -832,7 +832,7 @@ fun add_type_map raw_t context =
       "\nwhere C is a constructor and fi is of type (xi => yi) or (yi => xi).";
 
     val ((fis, T1), T2) = apfst split_last (strip_type (fastype_of t))
-      handle Empty => error ("Not a proper map function:" ^ err_str t);
+      handle List.Empty => error ("Not a proper map function:" ^ err_str t);
 
     fun gen_arg_var ([], []) = []
       | gen_arg_var ((T, T') :: Ts, (U, U') :: Us) =

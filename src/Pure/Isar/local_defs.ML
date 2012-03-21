@@ -173,7 +173,7 @@ local
 
 val is_trivial = Pattern.aeconv o Logic.dest_equals o Thm.prop_of;
 
-fun trans_list _ _ [] = raise Empty
+fun trans_list _ _ [] = raise List.Empty
   | trans_list trans ctxt (th :: raw_eqs) =
       (case filter_out is_trivial raw_eqs of
         [] => th

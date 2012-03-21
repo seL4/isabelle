@@ -143,7 +143,7 @@ fun pat_completeness_tac ctxt = SUBGOAL (fn (subgoal, i) =>
 
     val (qss, x_pats) = split_list (map pat_of cases)
     val xs = map fst (hd x_pats)
-      handle Empty => raise COMPLETENESS
+      handle List.Empty => raise COMPLETENESS
 
     val patss = map (map snd) x_pats
     val complete_thm = prove_completeness thy xs thesis qss patss

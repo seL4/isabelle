@@ -83,7 +83,7 @@ fun generate_fresh_tac atom_name i thm =
    (cut_inst_tac_term' [(x,s)] exists_fresh' 1 THEN
    rtac fs_name_thm 1 THEN
    etac exE 1) thm
-  handle Empty  => all_tac thm (* if we collected no variables then we do nothing *)
+  handle List.Empty  => all_tac thm (* if we collected no variables then we do nothing *)
   end;
 
 fun get_inner_fresh_fun (Bound j) = NONE

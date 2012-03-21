@@ -13,10 +13,14 @@ sig
     (binding * typ option * mixfix) list -> local_theory -> local_theory
   val bundle_cmd: binding * (Facts.ref * Args.src list) list ->
     (binding * string option * mixfix) list -> local_theory -> local_theory
-  val include_: string -> Proof.state -> Proof.state
-  val include_cmd: xstring * Position.T -> Proof.state -> Proof.state
-  val including: string -> Proof.state -> Proof.state
-  val including_cmd: xstring * Position.T -> Proof.state -> Proof.state
+  val includes: string list -> Proof.context -> Proof.context
+  val includes_cmd: (xstring * Position.T) list -> Proof.context -> Proof.context
+  val context_includes: string list -> generic_theory -> local_theory
+  val context_includes_cmd: (xstring * Position.T) list -> generic_theory -> local_theory
+  val include_: string list -> Proof.state -> Proof.state
+  val include_cmd: (xstring * Position.T) list -> Proof.state -> Proof.state
+  val including: string list -> Proof.state -> Proof.state
+  val including_cmd: (xstring * Position.T) list -> Proof.state -> Proof.state
   val print_bundles: Proof.context -> unit
 end;
 
@@ -78,20 +82,42 @@ val bundle_cmd =
 end;
 
 
-(* include bundle *)
+(* include bundles *)
 
-fun gen_include prep raw_name =
-  Proof.map_context (fn ctxt =>
-    let
-      val bundle = the_bundle ctxt (prep ctxt raw_name);
-      val attrib = Attrib.attribute_i (Proof_Context.theory_of ctxt);
-      val note = ((Binding.empty, []), map (apsnd (map attrib)) bundle);
-    in #2 (Proof_Context.note_thmss "" [note] ctxt) end);
+local
 
-fun include_ name = Proof.assert_forward #> gen_include (K I) name #> Proof.put_facts NONE;
-fun include_cmd name = Proof.assert_forward #> gen_include check name #> Proof.put_facts NONE;
-fun including name = Proof.assert_backward #> gen_include (K I) name;
-fun including_cmd name = Proof.assert_backward #> gen_include check name;
+fun gen_includes prep args ctxt =
+  let
+    val decls = maps (the_bundle ctxt o prep ctxt) args;
+    val attrib = Attrib.attribute_i (Proof_Context.theory_of ctxt);
+    val note = ((Binding.empty, []), map (apsnd (map attrib)) decls);
+  in #2 (Proof_Context.note_thmss "" [note] ctxt) end;
+
+fun gen_context prep args (Context.Theory thy) =
+      Named_Target.theory_init thy
+      |> Local_Theory.target (gen_includes prep args)
+      |> Local_Theory.restore
+  | gen_context prep args (Context.Proof lthy) =
+      Named_Target.assert lthy
+      |> gen_includes prep args
+      |> Local_Theory.open_target (Local_Theory.naming_of lthy) (Local_Theory.operations_of lthy);
+
+in
+
+val includes = gen_includes (K I);
+val includes_cmd = gen_includes check;
+
+val context_includes = gen_context (K I);
+val context_includes_cmd = gen_context check;
+
+fun include_ bs = Proof.assert_forward #> Proof.map_context (includes bs) #> Proof.reset_facts;
+fun include_cmd bs =
+  Proof.assert_forward #> Proof.map_context (includes_cmd bs) #> Proof.reset_facts;
+
+fun including bs = Proof.assert_backward #> Proof.map_context (includes bs);
+fun including_cmd bs = Proof.assert_backward #> Proof.map_context (includes_cmd bs);
+
+end;
 
 
 (* print_bundles *)

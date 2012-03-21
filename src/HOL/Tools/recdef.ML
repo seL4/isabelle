@@ -266,7 +266,7 @@ fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i int lthy =
         " in recdef definition of " ^ quote name);
   in
     Specification.theorem "" NONE (K I)
-      (Binding.conceal (Binding.name bname), atts) []
+      (Binding.conceal (Binding.name bname), atts) [] []
       (Element.Shows [(Attrib.empty_binding, [(HOLogic.mk_Trueprop tc, [])])]) int lthy
   end;
 

@@ -167,7 +167,7 @@ fun map_filter f = maps (fn x => (case f x of NONE => empty | SOME y => single y
 fun lift f xq y = map (fn x => f x y) xq;
 fun lifts f xq y = maps (fn x => f x y) xq;
 
-fun singleton f x = f [x] |> map (fn [y] => y | _ => raise Empty);
+fun singleton f x = f [x] |> map (fn [y] => y | _ => raise List.Empty);
 
 (*print a sequence, up to "count" elements*)
 fun print print_elem count =

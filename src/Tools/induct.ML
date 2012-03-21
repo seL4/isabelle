@@ -104,12 +104,12 @@ local
 
 val mk_var = Net.encode_type o #2 o Term.dest_Var;
 
-fun concl_var which thm = mk_var (which (vars_of (Thm.concl_of thm))) handle Empty =>
+fun concl_var which thm = mk_var (which (vars_of (Thm.concl_of thm))) handle List.Empty =>
   raise THM ("No variables in conclusion of rule", 0, [thm]);
 
 in
 
-fun left_var_prem thm = mk_var (hd (vars_of (hd (Thm.prems_of thm)))) handle Empty =>
+fun left_var_prem thm = mk_var (hd (vars_of (hd (Thm.prems_of thm)))) handle List.Empty =>
   raise THM ("No variables in major premise of rule", 0, [thm]);
 
 val left_var_concl = concl_var hd;

@@ -60,19 +60,19 @@ sig
     bool -> local_theory -> (string * thm list) list * local_theory
   val theorem: string -> Method.text option ->
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
-    Element.context_i list -> Element.statement_i ->
+    string list -> Element.context_i list -> Element.statement_i ->
     bool -> local_theory -> Proof.state
   val theorem_cmd: string -> Method.text option ->
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
-    Element.context list -> Element.statement ->
+    (xstring * Position.T) list -> Element.context list -> Element.statement ->
     bool -> local_theory -> Proof.state
   val schematic_theorem: string -> Method.text option ->
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
-    Element.context_i list -> Element.statement_i ->
+    string list -> Element.context_i list -> Element.statement_i ->
     bool -> local_theory -> Proof.state
   val schematic_theorem_cmd: string -> Method.text option ->
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
-    Element.context list -> Element.statement ->
+    (xstring * Position.T) list -> Element.context list -> Element.statement ->
     bool -> local_theory -> Proof.state
   val add_theorem_hook: (bool -> Proof.state -> Proof.state) -> Context.generic -> Context.generic
 end;
@@ -378,16 +378,18 @@ structure Theorem_Hook = Generic_Data
   fun merge data : T = Library.merge (eq_snd op =) data;
 );
 
-fun gen_theorem schematic prep_att prep_stmt
-    kind before_qed after_qed (name, raw_atts) raw_elems raw_concl int lthy =
+fun gen_theorem schematic prep_bundle prep_att prep_stmt
+    kind before_qed after_qed (name, raw_atts) raw_includes raw_elems raw_concl int lthy =
   let
-    val _ = Local_Theory.affirm lthy;
+    val _ = Local_Theory.assert lthy;
     val thy = Proof_Context.theory_of lthy;
 
     val attrib = prep_att thy;
+
     val elems = raw_elems |> map (Element.map_ctxt_attrib attrib);
-    val ((more_atts, prems, stmt, facts), goal_ctxt) =
-      prep_statement attrib prep_stmt elems raw_concl lthy;
+    val ((more_atts, prems, stmt, facts), goal_ctxt) = lthy
+      |> Bundle.includes (map (prep_bundle lthy) raw_includes)
+      |> prep_statement attrib prep_stmt elems raw_concl;
     val atts = more_atts @ map attrib raw_atts;
 
     fun after_qed' results goal_ctxt' =
@@ -421,12 +423,13 @@ fun gen_theorem schematic prep_att prep_stmt
 
 in
 
-val theorem' = gen_theorem false (K I) Expression.cert_statement;
-fun theorem a b c d e f = theorem' a b c d e f;
-val theorem_cmd = gen_theorem false Attrib.intern_src Expression.read_statement;
+val theorem = gen_theorem false (K I) (K I) Expression.cert_statement;
+val theorem_cmd =
+  gen_theorem false Bundle.check Attrib.intern_src Expression.read_statement;
 
-val schematic_theorem = gen_theorem true (K I) Expression.cert_statement;
-val schematic_theorem_cmd = gen_theorem true Attrib.intern_src Expression.read_statement;
+val schematic_theorem = gen_theorem true (K I) (K I) Expression.cert_statement;
+val schematic_theorem_cmd =
+  gen_theorem true Bundle.check Attrib.intern_src Expression.read_statement;
 
 fun add_theorem_hook f = Theorem_Hook.map (cons (f, stamp ()));
 
