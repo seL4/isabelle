@@ -16,7 +16,8 @@ sig
   type 'a problem = 'a ATP_Problem.problem
 
   datatype scope = Global | Local | Assum | Chained
-  datatype status = General | Induct | Intro | Elim | Simp | Spec_Eq
+  datatype status =
+    General | Induct | Intro | Spec_Intro | Elim | Simp | Spec_Eq
   type stature = scope * status
 
   datatype polymorphism = Polymorphic | Raw_Monomorphic | Mangled_Monomorphic
@@ -547,7 +548,7 @@ fun iterm_from_term thy format bs (P $ Q) =
     in (IAbs ((name, T), tm), union (op =) atomic_Ts (atomic_types_of T)) end
 
 datatype scope = Global | Local | Assum | Chained
-datatype status = General | Induct | Intro | Elim | Simp | Spec_Eq
+datatype status = General | Induct | Intro | Spec_Intro | Elim | Simp | Spec_Eq
 type stature = scope * status
 
 datatype order = First_Order | Higher_Order
@@ -1413,7 +1414,11 @@ fun default_sym_tab_entries type_enc =
              {pred_sym = true, min_ary = 1, max_ary = 1, types = [],
               in_conj = false})
 
-datatype app_op_level = Incomplete_Apply | Sufficient_Apply | Full_Apply
+datatype app_op_level =
+  Min_App_Op |
+  Sufficient_App_Op |
+  Sufficient_App_Op_And_Predicator |
+  Full_App_Op_And_Predicator
 
 fun sym_table_for_facts ctxt type_enc app_op_level conjs facts =
   let
@@ -1428,10 +1433,14 @@ fun sym_table_for_facts ctxt type_enc app_op_level conjs facts =
             iter (ary + 1) (range_type T)
       in iter 0 const_T end
     fun add_universal_var T (accum as ((bool_vars, fun_var_Ts), sym_tab)) =
-      if app_op_level = Sufficient_Apply andalso
-         (can dest_funT T orelse T = @{typ bool}) then
+      if (app_op_level = Sufficient_App_Op andalso can dest_funT T) orelse
+         (app_op_level = Sufficient_App_Op_And_Predicator andalso
+          (can dest_funT T orelse T = @{typ bool})) then
         let
-          val bool_vars' = bool_vars orelse body_type T = @{typ bool}
+          val bool_vars' =
+            bool_vars orelse
+            (app_op_level = Sufficient_App_Op_And_Predicator andalso
+             body_type T = @{typ bool})
           fun repair_min_ary {pred_sym, min_ary, max_ary, types, in_conj} =
             {pred_sym = pred_sym andalso not bool_vars',
              min_ary = fold (fn T' => consider_var_ary T' T) types min_ary,
@@ -1468,8 +1477,9 @@ fun sym_table_for_facts ctxt type_enc app_op_level conjs facts =
                       val types' = types |> insert_type ctxt I T
                       val in_conj = in_conj orelse conj_fact
                       val min_ary =
-                        if app_op_level = Sufficient_Apply andalso
-                           not (pointer_eq (types', types)) then
+                        if (app_op_level = Sufficient_App_Op orelse
+                            app_op_level = Sufficient_App_Op_And_Predicator)
+                           andalso not (pointer_eq (types', types)) then
                           fold (consider_var_ary T) fun_var_Ts min_ary
                         else
                           min_ary
@@ -1496,10 +1506,9 @@ fun sym_table_for_facts ctxt type_enc app_op_level conjs facts =
                         | NONE => ary
                       val min_ary =
                         case app_op_level of
-                          Incomplete_Apply => ary
-                        | Sufficient_Apply =>
-                          fold (consider_var_ary T) fun_var_Ts ary
-                        | Full_Apply => 0
+                          Min_App_Op => ary
+                        | Full_App_Op_And_Predicator => 0
+                        | _ => fold (consider_var_ary T) fun_var_Ts ary
                     in
                       Symtab.update_new (s,
                           {pred_sym = pred_sym, min_ary = min_ary,
@@ -1984,6 +1993,7 @@ fun formula_line_for_fact ctxt polym_constrs format prefix encode freshen pos
    let val rank = rank j in
      case snd stature of
        Intro => isabelle_info introN rank
+     | Spec_Intro => isabelle_info spec_introN rank
      | Elim => isabelle_info elimN rank
      | Simp => isabelle_info simpN rank
      | Spec_Eq => isabelle_info spec_eqN rank
@@ -2000,7 +2010,7 @@ fun formula_line_for_class_rel_clause type_enc
                      type_class_formula type_enc superclass ty_arg])
              |> mk_aquant AForall
                           [(tvar_a_name, atype_of_type_vars type_enc)],
-             NONE, isabelle_info introN helper_rank)
+             NONE, isabelle_info spec_introN helper_rank)
   end
 
 fun formula_from_arity_atom type_enc (class, t, args) =
@@ -2014,7 +2024,7 @@ fun formula_line_for_arity_clause type_enc
                     (formula_from_arity_atom type_enc concl_atom)
            |> mk_aquant AForall
                   (map (rpair (atype_of_type_vars type_enc)) (#3 concl_atom)),
-           NONE, isabelle_info introN helper_rank)
+           NONE, isabelle_info spec_introN helper_rank)
 
 fun formula_line_for_conjecture ctxt polym_constrs format mono type_enc
         ({name, kind, iformula, atomic_types, ...} : translated_formula) =
@@ -2223,7 +2233,7 @@ fun formula_line_for_guards_mono_type ctxt format mono type_enc T =
                                     always_guard_var_in_formula (SOME true)
            |> close_formula_universally
            |> bound_tvars type_enc true (atomic_types_of T),
-           NONE, isabelle_info introN helper_rank)
+           NONE, isabelle_info spec_introN helper_rank)
 
 fun formula_line_for_tags_mono_type ctxt format mono type_enc T =
   let val x_var = ATerm (`make_bound_var "X", []) in
@@ -2303,7 +2313,7 @@ fun formula_line_for_guards_sym_decl ctxt format conj_sym_kind mono type_enc n s
              |> close_formula_universally
              |> bound_tvars type_enc (n > 1) (atomic_types_of T)
              |> maybe_negate,
-             NONE, isabelle_info introN helper_rank)
+             NONE, isabelle_info spec_introN helper_rank)
   end
 
 fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
@@ -2552,7 +2562,7 @@ fun all_constrs_of_polymorphic_datatypes thy =
   |> List.partition is_poly_constr
   |> pairself (map fst)
 
-val app_op_threshold = 50
+val app_op_and_predicator_threshold = 50
 
 fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
                         lam_trans uncurried_aliases readable_names preproc
@@ -2565,11 +2575,13 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
        ruin everything. Hence we do it only if there are few facts (which is
        normally the case for "metis" and the minimizer). *)
     val app_op_level =
-      if polymorphism_of_type_enc type_enc = Polymorphic andalso
-         length facts >= app_op_threshold then
-        Incomplete_Apply
+      if length facts > app_op_and_predicator_threshold then
+        if polymorphism_of_type_enc type_enc = Polymorphic then
+          Min_App_Op
+        else
+          Sufficient_App_Op
       else
-        Sufficient_Apply
+        Sufficient_App_Op_And_Predicator
     val lam_trans =
       if lam_trans = keep_lamsN andalso
          not (is_type_enc_higher_order type_enc) then
@@ -2590,7 +2602,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
       firstorderize_fact thy monom_constrs format type_enc sym_tab0
                          (uncurried_aliases andalso not in_helper)
     val (conjs, facts) = (conjs, facts) |> pairself (map (firstorderize false))
-    val sym_tab = sym_table_for_facts ctxt type_enc Incomplete_Apply conjs facts
+    val sym_tab = sym_table_for_facts ctxt type_enc Min_App_Op conjs facts
     val helpers =
       sym_tab |> helper_facts_for_sym_table ctxt format type_enc
               |> map (firstorderize true)
@@ -2693,13 +2705,33 @@ fun atp_problem_selection_weights problem =
     |> sort (prod_ord Real.compare string_ord o pairself swap)
   end
 
-fun make_head_roll (ATerm (s, args)) =
-    (* ugly hack: may make innocent victims (collateral damage) *)
-    if String.isPrefix app_op_name s andalso length args = 2 then
-      make_head_roll (hd args) ||> append (tl args)
-    else
-      (s, args)
+(* Ugly hack: may make innocent victims (collateral damage) *)
+fun may_be_app s args = String.isPrefix app_op_name s andalso length args = 2
+fun may_be_predicator s =
+  member (op =) [predicator_name, prefixed_predicator_name] s
+
+fun strip_predicator (tm as ATerm (s, [tm'])) =
+    if may_be_predicator s then tm' else tm
+  | strip_predicator tm = tm
+
+fun make_head_roll (ATerm (s, tms)) =
+    if may_be_app s tms then make_head_roll (hd tms) ||> append (tl tms)
+    else (s, tms)
   | make_head_roll _ = ("", [])
+
+fun strip_up_to_predicator (AQuant (_, _, phi)) = strip_up_to_predicator phi
+  | strip_up_to_predicator (AConn (_, phis)) = maps strip_up_to_predicator phis
+  | strip_up_to_predicator (AAtom tm) = [strip_predicator tm]
+
+fun strip_ahorn_etc (AQuant (_, _, phi)) = strip_ahorn_etc phi
+  | strip_ahorn_etc (AConn (AImplies, [phi1, phi2])) =
+    strip_ahorn_etc phi2 |>> append (strip_up_to_predicator phi1)
+  | strip_ahorn_etc phi = ([], hd (strip_up_to_predicator phi))
+
+fun strip_iff_etc (AQuant (_, _, phi)) = strip_iff_etc phi
+  | strip_iff_etc (AConn (AIff, [phi1, phi2])) =
+    pairself strip_up_to_predicator (phi1, phi2)
+  | strip_iff_etc _ = ([], [])
 
 val max_term_order_weight = 2147483647
 
@@ -2710,31 +2742,50 @@ fun atp_problem_term_order_info problem =
       #> Graph.default_node (s', ())
       #> Graph.add_edge_acyclic (s, s')
     fun add_term_deps head (ATerm (s, args)) =
-        is_tptp_user_symbol s ? perhaps (try (add_edge s head))
-        #> fold (add_term_deps head) args
+        if is_tptp_user_symbol head then
+          (if is_tptp_user_symbol s then perhaps (try (add_edge s head)) else I)
+          #> fold (add_term_deps head) args
+        else
+          I
       | add_term_deps head (AAbs (_, tm)) = add_term_deps head tm
-    fun add_eq_deps (SOME true) (ATerm (s, [lhs as _, rhs])) =
+    fun add_intro_deps pred (Formula (_, role, phi, _, info)) =
+        if pred (role, info) then
+          let val (hyps, concl) = strip_ahorn_etc phi in
+            case make_head_roll concl of
+              (head, args as _ :: _) => fold (add_term_deps head) (hyps @ args)
+            | _ => I
+          end
+        else
+          I
+      | add_intro_deps _ _ = I
+    fun add_atom_eq_deps (SOME true) (ATerm (s, [lhs as _, rhs])) =
         if is_tptp_equal s then
           case make_head_roll lhs of
-            (head, rest as _ :: _) =>
-            is_tptp_user_symbol head ? fold (add_term_deps head) (rhs :: rest)
+            (head, args as _ :: _) => fold (add_term_deps head) (rhs :: args)
           | _ => I
         else
           I
-      | add_eq_deps _ _ = I
-    fun add_deps pred (Formula (_, role, phi, _, info)) =
+      | add_atom_eq_deps _ _ = I
+    fun add_eq_deps pred (Formula (_, role, phi, _, info)) =
         if pred (role, info) then
-          formula_fold (SOME (role <> Conjecture)) add_eq_deps phi
+          case strip_iff_etc phi of
+            ([lhs], rhs) =>
+            (case make_head_roll lhs of
+               (head, args as _ :: _) => fold (add_term_deps head) (rhs @ args)
+             | _ => I)
+          | _ => formula_fold (SOME (role <> Conjecture)) add_atom_eq_deps phi
         else
           I
-      | add_deps _ _ = I
+      | add_eq_deps _ _ = I
     fun has_status status (_, info) =
       extract_isabelle_status info = SOME status
     fun is_conj (role, _) = (role = Conjecture orelse role = Hypothesis)
     val graph =
       Graph.empty
-      |> fold (fold (add_deps (has_status spec_eqN)) o snd) problem
-      |> fold (fold (add_deps (has_status simpN orf is_conj)) o snd) problem
+      |> fold (fold (add_eq_deps (has_status spec_eqN)) o snd) problem
+      |> fold (fold (add_eq_deps (has_status simpN orf is_conj)) o snd) problem
+      |> fold (fold (add_intro_deps (has_status spec_introN)) o snd) problem
+      |> fold (fold (add_intro_deps (has_status introN)) o snd) problem
     fun next_weight w = if w + w <= max_term_order_weight then w + w else w + 1
     fun add_weights _ [] = I
       | add_weights weight syms =

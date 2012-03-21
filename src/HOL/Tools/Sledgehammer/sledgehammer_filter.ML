@@ -128,31 +128,32 @@ fun clasimpset_rule_table_of ctxt =
                  fold (fn normalize => Termtab.update (normalize t, stature))
                       (I :: normalizers)
                end)
-(*
-    TODO: "intro" and "elim" rules are not exploited yet by SPASS (or any other
-    prover). Reintroduce this code when it becomes useful. It costs about 50 ms
-    per Sledgehammer invocation.
-
-    val {safeIs, safeEs, hazIs, hazEs, ...} =
+    val {safeIs, (* safeEs, *) hazIs, (* hazEs, *) ...} =
       ctxt |> claset_of |> Classical.rep_cs
     val intros = Item_Net.content safeIs @ Item_Net.content hazIs
+(* Add once it is used:
     val elims =
       Item_Net.content safeEs @ Item_Net.content hazEs
       |> map Classical.classical_rule
 *)
     val simps = ctxt |> simpset_of |> dest_ss |> #simps
+    val specs = ctxt |> Spec_Rules.get
     val spec_eqs =
-      ctxt |> Spec_Rules.get
-           |> filter (curry (op =) Spec_Rules.Equational o fst)
-           |> maps (snd o snd)
-           |> filter_out (member Thm.eq_thm_prop risky_spec_eqs)
+      specs |> filter (curry (op =) Spec_Rules.Equational o fst)
+            |> maps (snd o snd)
+            |> filter_out (member Thm.eq_thm_prop risky_spec_eqs)
+    val spec_intros =
+      specs |> filter (member (op =) [Spec_Rules.Inductive,
+                                      Spec_Rules.Co_Inductive] o fst)
+            |> maps (snd o snd)
   in
     Termtab.empty |> add Simp [atomize] snd simps
                   |> add Spec_Eq [] I spec_eqs
-(*
+(* Add once it is used:
                   |> add Elim [] I elims
-                  |> add Intro [] I intros
 *)
+                  |> add Intro [] I intros
+                  |> add Spec_Intro [] I spec_intros
   end
 
 fun needs_quoting reserved s =

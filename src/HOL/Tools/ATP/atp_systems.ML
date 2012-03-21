@@ -169,7 +169,7 @@ val no_sosN = "no_sos"
 val force_sos = Attrib.setup_config_bool @{binding atp_force_sos} (K false)
 
 val smartN = "smart"
-val kboN = "kbo"
+(* val kboN = "kbo" *)
 val lpoN = "lpo"
 val xweightsN = "_weights"
 val xprecN = "_prec"
@@ -666,7 +666,7 @@ fun effective_term_order ctxt atp =
     if ord = smartN then
       if atp = spass_newN orelse
          (atp = spassN andalso is_new_spass_version ()) then
-        {is_lpo = false, gen_weights = true, gen_prec = false, gen_simp = true}
+        {is_lpo = false, gen_weights = true, gen_prec = true, gen_simp = false}
       else
         {is_lpo = false, gen_weights = false, gen_prec = false,
          gen_simp = false}

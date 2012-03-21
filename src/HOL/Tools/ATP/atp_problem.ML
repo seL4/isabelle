@@ -85,6 +85,7 @@ sig
   val extract_isabelle_status : (string, 'a) ho_term list -> string option
   val extract_isabelle_rank : (string, 'a) ho_term list -> int
   val introN : string
+  val spec_introN : string
   val elimN : string
   val simpN : string
   val spec_eqN : string
@@ -217,6 +218,7 @@ val tptp_empty_list = "[]"
 val isabelle_info_prefix = "isabelle_"
 
 val introN = "intro"
+val spec_introN = "spec_intro"
 val elimN = "elim"
 val simpN = "simp"
 val spec_eqN = "spec_eq"
@@ -551,8 +553,8 @@ fun dfg_lines flavor {is_lpo, gen_weights, gen_prec, gen_simp} ord_info
       (if gen_weights then ord_info else [])
       |> map spair |> commas |> maybe_enclose "weights [" "]."
     val syms =
-      [func_aries] @ (if sorted then [do_term_order_weights ()] else []) @
-      [pred_aries] @ (if sorted then [sorts ()] else [])
+      [func_aries, pred_aries] @
+      (if sorted then [do_term_order_weights (), sorts ()] else [])
     fun func_sigs () =
       filt (fn Decl (_, sym, ty) =>
                if is_function_type ty then SOME (fun_typ sym ty) else NONE
