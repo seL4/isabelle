@@ -103,9 +103,9 @@ in
 val includes = gen_includes (K I);
 val includes_cmd = gen_includes check;
 
-fun include_ bs = Proof.assert_forward #> Proof.map_context (includes bs) #> Proof.put_facts NONE;
+fun include_ bs = Proof.assert_forward #> Proof.map_context (includes bs) #> Proof.reset_facts;
 fun include_cmd bs =
-  Proof.assert_forward #> Proof.map_context (includes_cmd bs) #> Proof.put_facts NONE;
+  Proof.assert_forward #> Proof.map_context (includes_cmd bs) #> Proof.reset_facts;
 
 fun including bs = Proof.assert_backward #> Proof.map_context (includes bs);
 fun including_cmd bs = Proof.assert_backward #> Proof.map_context (includes_cmd bs);
