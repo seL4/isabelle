@@ -16,7 +16,7 @@ val _ = Context.>> (Context.map_theory
     "\\<rightharpoonup>", "\\<rightleftharpoons>", "\\<subseteq>", "]",
     "advanced", "and", "assumes", "attach", "begin", "binder",
     "constrains", "defines", "fixes", "for", "identifier", "if",
-    "imports", "in", "infix", "infixl", "infixr", "is", "keywords",
+    "imports", "in", "includes", "infix", "infixl", "infixr", "is", "keywords",
     "notes", "obtains", "open", "output", "overloaded", "pervasive",
     "shows", "structure", "unchecked", "uses", "where", "|"]));
 
@@ -552,10 +552,12 @@ fun gen_theorem schematic kind =
      else (kind, Keyword.thy_goal))
     ("state " ^ (if schematic then "schematic " ^ kind else kind))
     (Scan.optional (Parse_Spec.opt_thm_name ":" --|
-      Scan.ahead (Parse_Spec.locale_keyword || Parse_Spec.statement_keyword)) Attrib.empty_binding --
-      Parse_Spec.general_statement >> (fn (a, (elems, concl)) =>
+      Scan.ahead (Parse_Spec.includes >> K "" ||
+        Parse_Spec.locale_keyword || Parse_Spec.statement_keyword)) Attrib.empty_binding --
+      Scan.optional Parse_Spec.includes [] --
+      Parse_Spec.general_statement >> (fn ((a, includes), (elems, concl)) =>
         ((if schematic then Specification.schematic_theorem_cmd else Specification.theorem_cmd)
-          kind NONE (K I) a elems concl)));
+          kind NONE (K I) a includes elems concl)));
 
 val _ = gen_theorem false Thm.theoremK;
 val _ = gen_theorem false Thm.lemmaK;

@@ -61,7 +61,7 @@ fun prove_vc vc_name lthy =
     Specification.theorem Thm.theoremK NONE
       (fn thmss => (Local_Theory.background_theory
          (SPARK_VCs.mark_proved vc_name (flat thmss))))
-      (Binding.name vc_name, []) ctxt stmt true lthy
+      (Binding.name vc_name, []) [] ctxt stmt true lthy
   end;
 
 fun string_of_status NONE = "(unproved)"

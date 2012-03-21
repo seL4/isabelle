@@ -19,6 +19,7 @@ sig
   val name_facts: (Attrib.binding * (Facts.ref * Attrib.src list) list) list parser
   val constdecl: (binding * string option * mixfix) parser
   val constdef: ((binding * string option * mixfix) option * (Attrib.binding * string)) parser
+  val includes: (xstring * Position.T) list parser
   val locale_mixfix: mixfix parser
   val locale_fixes: (binding * string option * mixfix) list parser
   val locale_insts: (string option list * (Attrib.binding * string) list) parser
@@ -78,6 +79,8 @@ val constdef = Scan.option constdecl -- (opt_thm_name ":" -- Parse.prop);
 
 
 (* locale and context elements *)
+
+val includes = Parse.$$$ "includes" |-- Parse.!!! (Scan.repeat1 (Parse.position Parse.xname));
 
 val locale_mixfix =
   Parse.$$$ "(" -- Parse.$$$ "structure" -- Parse.!!! (Parse.$$$ ")") >> K Structure ||

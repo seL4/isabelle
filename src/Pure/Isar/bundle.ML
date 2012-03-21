@@ -13,6 +13,8 @@ sig
     (binding * typ option * mixfix) list -> local_theory -> local_theory
   val bundle_cmd: binding * (Facts.ref * Args.src list) list ->
     (binding * string option * mixfix) list -> local_theory -> local_theory
+  val includes: string list -> Proof.context -> Proof.context
+  val includes_cmd: (xstring * Position.T) list -> Proof.context -> Proof.context
   val include_: string list -> Proof.state -> Proof.state
   val include_cmd: (xstring * Position.T) list -> Proof.state -> Proof.state
   val including: string list -> Proof.state -> Proof.state
@@ -84,30 +86,32 @@ end;
 
 local
 
-fun gen_include prep raw_names ctxt =
+fun gen_includes prep args ctxt =
   let
-    val bundle = maps (the_bundle ctxt o prep ctxt) raw_names;
+    val decls = maps (the_bundle ctxt o prep ctxt) args;
     val attrib = Attrib.attribute_i (Proof_Context.theory_of ctxt);
-    val note = ((Binding.empty, []), map (apsnd (map attrib)) bundle);
+    val note = ((Binding.empty, []), map (apsnd (map attrib)) decls);
   in #2 (Proof_Context.note_thmss "" [note] ctxt) end;
 
-fun gen_includes prep raw_names lthy =
+fun gen_context prep args lthy =
   Named_Target.assert lthy
-  |> gen_include prep raw_names
+  |> gen_includes prep args
   |> Local_Theory.open_target (Local_Theory.naming_of lthy) (Local_Theory.operations_of lthy);
 
 in
 
-fun include_ names =
-  Proof.assert_forward #> Proof.map_context (gen_include (K I) names) #> Proof.put_facts NONE;
-fun include_cmd names =
-  Proof.assert_forward #> Proof.map_context (gen_include check names) #> Proof.put_facts NONE;
+val includes = gen_includes (K I);
+val includes_cmd = gen_includes check;
 
-fun including names = Proof.assert_backward #> Proof.map_context (gen_include (K I) names);
-fun including_cmd names = Proof.assert_backward #> Proof.map_context (gen_include check names);
+fun include_ bs = Proof.assert_forward #> Proof.map_context (includes bs) #> Proof.put_facts NONE;
+fun include_cmd bs =
+  Proof.assert_forward #> Proof.map_context (includes_cmd bs) #> Proof.put_facts NONE;
 
-val context_includes = gen_includes (K I);
-val context_includes_cmd = gen_includes check;
+fun including bs = Proof.assert_backward #> Proof.map_context (includes bs);
+fun including_cmd bs = Proof.assert_backward #> Proof.map_context (includes_cmd bs);
+
+val context_includes = gen_context (K I);
+val context_includes_cmd = gen_context check;
 
 end;
 
