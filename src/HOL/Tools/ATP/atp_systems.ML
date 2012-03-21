@@ -609,7 +609,7 @@ val remote_leo2 =
       (K ((100, leo2_thf0, "mono_native_higher", liftingN, false), "") (* FUDGE *))
 val remote_satallax =
   remotify_atp satallax "Satallax" ["2.3", "2.2", "2"]
-      (K ((100, satallax_thf0, "mono_native_higher", keep_lamsN, false), "satallax.opt -p hocore -t %d %s") (* FUDGE *))
+      (K ((100, satallax_thf0, "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
 val remote_vampire =
   remotify_atp vampire "Vampire" ["1.8"]
       (K ((250, vampire_tff0, "mono_native", combs_or_liftingN, false), "") (* FUDGE *))
