@@ -108,8 +108,8 @@ sleep 15
 $SSH macbroy24 "$MAKEALL $HOME/settings/at64-poly"
 sleep 15
 $SSH macbroy2 "
-  $MAKEALL $HOME/settings/mac-poly64-M4 -l . full;
-  $MAKEALL $HOME/settings/mac-poly64-M8 -l . full;
+  $MAKEALL -l . full $HOME/settings/mac-poly64-M4;
+  $MAKEALL -l . full $HOME/settings/mac-poly64-M8;
   $MAKEALL $HOME/settings/mac-poly-M4;
   $MAKEALL $HOME/settings/mac-poly-M8"
 sleep 15
