@@ -444,16 +444,16 @@ apply (blast intro: Nat_Times_Nat.well_ord_L_r Nat_Times_Nat.intro)
 done
 
 
-text{*Locale for proving results under the assumption @{text "V=L"}*}
-locale V_equals_L =
-  assumes VL: "L(x)"
-
-text{*The Axiom of Choice holds in @{term L}!  Or, to be precise, the
-Wellordering Theorem.*}
-theorem (in V_equals_L) AC: "\<exists>r. well_ord(x,r)"
-apply (insert Transset_Lset VL [of x])
+text{*Every constructible set is well-ordered! Therefore the Wellordering Theorem and
+      the Axiom of Choice hold in @{term L}!!*}
+theorem L_implies_AC: assumes x: "L(x)" shows "\<exists>r. well_ord(x,r)"
+  using Transset_Lset x
 apply (simp add: Transset_def L_def)
 apply (blast dest!: well_ord_L_r intro: well_ord_subset)
 done
+
+text{*In order to prove @{term" \<exists>r[L]. wellordered(L, A, r)"}, it's necessary to know 
+that @{term r} is actually constructible. Of course, it follows from the assumption ``@{term V} equals @{term L''}, 
+but this reasoning doesn't appear to work in Isabelle.*}
 
 end

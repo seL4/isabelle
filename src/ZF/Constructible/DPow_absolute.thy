@@ -613,15 +613,14 @@ lemmas Lset_closed = M_Lset.Lset_closed [OF M_Lset_L]
 
 subsection{*The Notion of Constructible Set*}
 
-
 definition
   constructible :: "[i=>o,i] => o" where
     "constructible(M,x) ==
        \<exists>i[M]. \<exists>Li[M]. ordinal(M,i) & is_Lset(M,i,Li) & x \<in> Li"
 
 theorem V_equals_L_in_L:
-  "L(x) ==> constructible(L,x)"
-apply (simp add: constructible_def Lset_abs Lset_closed) 
+  "L(x) \<longleftrightarrow> constructible(L,x)"
+apply (simp add: constructible_def Lset_abs Lset_closed)
 apply (simp add: L_def)
 apply (blast intro: Ord_in_L) 
 done

@@ -109,7 +109,7 @@ by (blast intro: wellfounded_imp_wellfounded_on
 lemma (in M_basic) wellfounded_induct: 
      "[| wellfounded(M,r); M(a); M(r); separation(M, \<lambda>x. ~P(x));  
          \<forall>x. M(x) & (\<forall>y. <y,x> \<in> r \<longrightarrow> P(y)) \<longrightarrow> P(x) |]
-      ==> P(a)";
+      ==> P(a)"
 apply (simp (no_asm_use) add: wellfounded_def)
 apply (drule_tac x="{z \<in> domain(r). ~P(z)}" in rspec)
 apply (blast dest: transM)+
@@ -119,7 +119,7 @@ lemma (in M_basic) wellfounded_on_induct:
      "[| a\<in>A;  wellfounded_on(M,A,r);  M(A);  
        separation(M, \<lambda>x. x\<in>A \<longrightarrow> ~P(x));  
        \<forall>x\<in>A. M(x) & (\<forall>y\<in>A. <y,x> \<in> r \<longrightarrow> P(y)) \<longrightarrow> P(x) |]
-      ==> P(a)";
+      ==> P(a)"
 apply (simp (no_asm_use) add: wellfounded_on_def)
 apply (drule_tac x="{z\<in>A. z\<in>A \<longrightarrow> ~P(z)}" in rspec)
 apply (blast intro: transM)+
@@ -153,6 +153,9 @@ lemma (in M_basic) well_ord_imp_relativized:
 by (simp add: wellordered_def well_ord_def tot_ord_def part_ord_def
        linear_imp_relativized trans_on_imp_relativized wf_on_imp_relativized)
 
+text{*The property being well founded (and hence of being well ordered) is not absolute: 
+the set that doesn't contain a minimal element may not exist in the class M. 
+However, every set that is well founded in a transitive model M is well founded (page 124).*}
 
 subsection{* Relativized versions of order-isomorphisms and order types *}
 
