@@ -96,6 +96,7 @@ fun gen_includes prep args ctxt =
 fun gen_context prep args (Context.Theory thy) =
       Named_Target.theory_init thy
       |> Local_Theory.target (gen_includes prep args)
+      |> Local_Theory.restore
   | gen_context prep args (Context.Proof lthy) =
       Named_Target.assert lthy
       |> gen_includes prep args
