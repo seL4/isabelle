@@ -192,11 +192,13 @@ fun init_context (Target {target, is_locale, is_class, ...}) =
 fun init before_exit target thy =
   let
     val ta = named_target thy target before_exit;
+    val naming = Sign.naming_of thy
+      |> Name_Space.mandatory_path (Long_Name.base_name target);
   in
     thy
     |> init_context ta
     |> Data.put (SOME ta)
-    |> Local_Theory.init NONE (Long_Name.base_name target)
+    |> Local_Theory.init naming
        {define = Generic_Target.define (target_foundation ta),
         notes = Generic_Target.notes (target_notes ta),
         abbrev = Generic_Target.abbrev (target_abbrev ta),

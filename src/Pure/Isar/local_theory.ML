@@ -49,7 +49,7 @@ sig
   val class_alias: binding -> class -> local_theory -> local_theory
   val type_alias: binding -> string -> local_theory -> local_theory
   val const_alias: binding -> string -> local_theory -> local_theory
-  val init: serial option -> string -> operations -> Proof.context -> local_theory
+  val init: Name_Space.naming -> operations -> Proof.context -> local_theory
   val restore: local_theory -> local_theory
   val exit: local_theory -> Proof.context
   val exit_global: local_theory -> theory
@@ -78,13 +78,11 @@ type operations =
 
 datatype lthy = LThy of
  {naming: Name_Space.naming,
-  theory_prefix: string,
   operations: operations,
   target: Proof.context};
 
-fun make_lthy (naming, theory_prefix, operations, target) =
-  LThy {naming = naming, theory_prefix = theory_prefix,
-    operations = operations, target = target};
+fun make_lthy (naming, operations, target) =
+  LThy {naming = naming, operations = operations, target = target};
 
 
 (* context data *)
@@ -101,8 +99,8 @@ fun get_lthy lthy =
   | SOME (LThy data) => data);
 
 fun map_lthy f lthy =
-  let val {naming, theory_prefix, operations, target} = get_lthy lthy
-  in Data.put (SOME (make_lthy (f (naming, theory_prefix, operations, target)))) lthy end;
+  let val {naming, operations, target} = get_lthy lthy
+  in Data.put (SOME (make_lthy (f (naming, operations, target)))) lthy end;
 
 val affirm = tap get_lthy;
 
@@ -112,8 +110,7 @@ val affirm = tap get_lthy;
 val naming_of = #naming o get_lthy;
 val full_name = Name_Space.full_name o naming_of;
 
-fun map_naming f = map_lthy (fn (naming, theory_prefix, operations, target) =>
-  (f naming, theory_prefix, operations, target));
+fun map_naming f = map_lthy (fn (naming, operations, target) => (f naming, operations, target));
 
 val conceal = map_naming Name_Space.conceal;
 val new_group = map_naming Name_Space.new_group;
@@ -126,8 +123,7 @@ val restore_naming = map_naming o K o naming_of;
 
 val target_of = #target o get_lthy;
 
-fun map_target f = map_lthy (fn (naming, theory_prefix, operations, target) =>
-  (naming, theory_prefix, operations, f target));
+fun map_target f = map_lthy (fn (naming, operations, target) => (naming, operations, f target));
 
 
 (* substructure mappings *)
@@ -192,8 +188,7 @@ fun global_morphism lthy =
 (* primitive operations *)
 
 fun operation f lthy = f (#operations (get_lthy lthy)) lthy;
-fun operation1 f x = operation (fn ops => f ops x);
-fun operation2 f x y lthy = operation (fn ops => f ops x y) lthy;
+fun operation2 f x y = operation (fn ops => f ops x y);
 
 val pretty = operation #pretty;
 val abbrev = apsnd checkpoint ooo operation2 #abbrev;
@@ -246,21 +241,15 @@ val const_alias = alias Sign.const_alias Proof_Context.const_alias;
 
 (* init *)
 
-fun init group theory_prefix operations target =
-  let val naming =
-    Sign.naming_of (Proof_Context.theory_of target)
-    |> Name_Space.set_group group
-    |> Name_Space.mandatory_path theory_prefix;
-  in
-    target |> Data.map
-      (fn NONE => SOME (make_lthy (naming, theory_prefix, operations, target))
-        | SOME _ => error "Local theory already initialized")
-    |> checkpoint
-  end;
+fun init naming operations target =
+  target |> Data.map
+    (fn NONE => SOME (make_lthy (naming, operations, target))
+      | SOME _ => error "Local theory already initialized")
+  |> checkpoint;
 
 fun restore lthy =
-  let val {naming, theory_prefix, operations, target} = get_lthy lthy
-  in init (Name_Space.get_group naming) theory_prefix operations target end;
+  let val {naming, operations, target} = get_lthy lthy
+  in init naming operations target end;
 
 
 (* exit *)
