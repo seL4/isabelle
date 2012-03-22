@@ -4,7 +4,7 @@
 
 header {* The Axiom of Choice Holds in L! *}
 
-theory AC_in_L imports Formula begin
+theory AC_in_L imports Formula Separation begin
 
 subsection{*Extending a Wellordering over a List -- Lexicographic Power*}
 
@@ -451,6 +451,18 @@ theorem L_implies_AC: assumes x: "L(x)" shows "\<exists>r. well_ord(x,r)"
 apply (simp add: Transset_def L_def)
 apply (blast dest!: well_ord_L_r intro: well_ord_subset)
 done
+
+interpretation L?: M_basic L by (rule M_basic_L)
+
+theorem "\<forall>x[L]. \<exists>r. wellordered(L,x,r)"
+proof 
+  fix x
+  assume "L(x)"
+  then obtain r where "well_ord(x,r)" 
+    by (blast dest: L_implies_AC) 
+  thus "\<exists>r. wellordered(L,x,r)" 
+    by (blast intro: well_ord_imp_relativized)
+qed
 
 text{*In order to prove @{term" \<exists>r[L]. wellordered(L, A, r)"}, it's necessary to know 
 that @{term r} is actually constructible. Of course, it follows from the assumption ``@{term V} equals @{term L''}, 
