@@ -44,22 +44,32 @@ lemma rlist_Nil_Cons [intro]:
 by (simp add: shorterI)
 
 lemma linear_rlist:
-    "linear(A,r) ==> linear(list(A),rlist(A,r))"
-apply (simp (no_asm_simp) add: linear_def)
-apply (rule ballI)
-apply (induct_tac x)
- apply (rule ballI)
- apply (induct_tac y)
-  apply (simp_all add: shorterI)
-apply (rule ballI)
-apply (erule_tac a=y in list.cases)
- apply (rename_tac [2] a2 l2)
- apply (rule_tac [2] i = "length(l)" and j = "length(l2)" in Ord_linear_lt)
-     apply (simp_all add: shorterI)
-apply (erule_tac x=a and y=a2 in linearE)
-    apply (simp_all add: diffI)
-apply (blast intro: sameI)
-done
+  assumes r: "linear(A,r)" shows "linear(list(A),rlist(A,r))"
+proof -
+  { fix xs ys
+    have "xs \<in> list(A) \<Longrightarrow> ys \<in> list(A) \<Longrightarrow> \<langle>xs,ys\<rangle> \<in> rlist(A,r) \<or> xs = ys \<or> \<langle>ys,xs\<rangle> \<in> rlist(A, r) "
+    proof (induct xs arbitrary: ys rule: list.induct)
+      case Nil 
+      thus ?case by (induct ys rule: list.induct) (auto simp add: shorterI)
+    next
+      case (Cons x xs)
+      { fix y ys
+        assume "y \<in> A" and "ys \<in> list(A)"
+        with Cons
+        have "\<langle>Cons(x,xs),Cons(y,ys)\<rangle> \<in> rlist(A,r) \<or> x=y & xs = ys \<or> \<langle>Cons(y,ys), Cons(x,xs)\<rangle> \<in> rlist(A,r)" 
+          apply (rule_tac i = "length(xs)" and j = "length(ys)" in Ord_linear_lt)
+          apply (simp_all add: shorterI)
+          apply (rule linearE [OF r, of x y]) 
+          apply (auto simp add: diffI intro: sameI) 
+          done
+      }
+      note yConsCase = this
+      show ?case using `ys \<in> list(A)`
+        by (cases rule: list.cases) (simp_all add: Cons rlist_Nil_Cons yConsCase) 
+    qed
+  }
+  thus ?thesis by (simp add: linear_def) 
+qed
 
 
 subsubsection{*Well-foundedness*}
@@ -464,8 +474,8 @@ proof
     by (blast intro: well_ord_imp_relativized)
 qed
 
-text{*In order to prove @{term" \<exists>r[L]. wellordered(L, A, r)"}, it's necessary to know 
-that @{term r} is actually constructible. Of course, it follows from the assumption ``@{term V} equals @{term L''}, 
+text{*In order to prove @{term" \<exists>r[L]. wellordered(L,x,r)"}, it's necessary to know 
+that @{term r} is actually constructible. It follows from the assumption ``@{term V} equals @{term L''}, 
 but this reasoning doesn't appear to work in Isabelle.*}
 
 end
