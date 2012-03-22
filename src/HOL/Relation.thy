@@ -543,7 +543,7 @@ lemma rel_comp_empty1 [simp]:
   "{} O R = {}"
   by blast
 
-lemma prod_comp_bot1 [simp]:
+lemma pred_comp_bot1 [simp]:
   "\<bottom> OO R = \<bottom>"
   by (fact rel_comp_empty1 [to_pred])
 
