@@ -20,7 +20,9 @@ sig
     string * bool -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory
 
-  val theory_declaration: declaration -> local_theory -> local_theory
+  val background_declaration: declaration -> local_theory -> local_theory
+  val standard_declaration: declaration -> local_theory -> local_theory
+
   val theory_foundation: ((binding * typ) * mixfix) * (binding * term) ->
     term list * term list -> local_theory -> (term * thm) * local_theory
   val theory_notes: string -> (Attrib.binding * (thm list * Args.src list) list) list ->
@@ -179,19 +181,23 @@ fun abbrev target_abbrev prmode ((b, mx), t) lthy =
   end;
 
 
+(* declaration *)
+
+fun background_declaration decl lthy =
+  let
+    val theory_decl =
+      Local_Theory.standard_form lthy
+        (Proof_Context.init_global (Proof_Context.theory_of lthy)) decl;
+  in Local_Theory.background_theory (Context.theory_map theory_decl) lthy end;
+
+fun standard_declaration decl =
+  background_declaration decl #>
+  (fn lthy => Local_Theory.map_contexts (fn ctxt =>
+    Context.proof_map (Local_Theory.standard_form lthy ctxt decl) ctxt) lthy);
+
+
 
 (** primitive theory operations **)
-
-fun theory_declaration decl lthy =
-  let
-    val global_decl = Morphism.form
-      (Morphism.transform (Local_Theory.global_morphism lthy) decl);
-  in
-    lthy
-    |> Local_Theory.background_theory (Context.theory_map global_decl)
-    |> Local_Theory.target (Context.proof_map global_decl)
-    |> Context.proof_map (Morphism.form decl)
-  end;
 
 fun theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
   let
