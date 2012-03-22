@@ -145,10 +145,12 @@ fun these_defs thy = maps (#defs o the_class_data thy) o ancestry thy;
 fun these_operations thy = maps (#operations o the_class_data thy) o ancestry thy;
 
 val base_morphism = #base_morph oo the_class_data;
+
 fun morphism thy class =
   (case Element.eq_morphism thy (these_defs thy [class]) of
     SOME eq_morph => base_morphism thy class $> eq_morph
   | NONE => base_morphism thy class);
+
 val export_morphism = #export_morph oo the_class_data;
 
 fun print_classes ctxt =
@@ -228,9 +230,9 @@ fun register_subclass (sub, sup) some_dep_morph some_wit export thy =
     val intros = (snd o rules thy) sup :: map_filter I
       [Option.map (Drule.export_without_context_open o Element.conclude_witness) some_wit,
         (fst o rules thy) sub];
-    val tac = EVERY (map (TRYALL o Tactic.rtac) intros);
-    val classrel = Skip_Proof.prove_global thy [] [] (Logic.mk_classrel (sub, sup))
-      (K tac);
+    val classrel =
+      Skip_Proof.prove_global thy [] [] (Logic.mk_classrel (sub, sup))
+        (K (EVERY (map (TRYALL o Tactic.rtac) intros)));
     val diff_sort = Sign.complete_sort thy [sup]
       |> subtract (op =) (Sign.complete_sort thy [sub])
       |> filter (is_class thy);
@@ -312,13 +314,13 @@ fun init class thy =
 
 val class_prefix = Logic.const_of_class o Long_Name.base_name;
 
+local
+
 fun target_extension f class lthy =
   lthy
   |> Local_Theory.raw_theory f
   |> Local_Theory.target (synchronize_class_syntax [class]
       (base_sort (Proof_Context.theory_of lthy) class));
-
-local
 
 fun target_const class ((c, mx), (type_params, dict)) thy =
   let
@@ -478,8 +480,9 @@ fun resort_terms ctxt algebra consts constraints ts =
 
 (* target *)
 
-fun define_overloaded (c, U) v (b_def, rhs) = Local_Theory.background_theory_result
-    (AxClass.declare_overloaded (c, U) ##>> AxClass.define_overloaded b_def (c, rhs))
+fun define_overloaded (c, U) v (b_def, rhs) =
+  Local_Theory.background_theory_result (AxClass.declare_overloaded (c, U)
+  ##>> AxClass.define_overloaded b_def (c, rhs))
   ##> (map_instantiation o apsnd) (filter_out (fn (_, (v', _)) => v' = v))
   ##> Local_Theory.target synchronize_inst_syntax;
 
@@ -603,8 +606,8 @@ fun instance_arity_cmd raw_arities thy =
     val (tycos, vs, sort) = read_multi_arity thy raw_arities;
     val sorts = map snd vs;
     val arities = maps (fn tyco => Logic.mk_arities (tyco, sorts, sort)) tycos;
-    fun after_qed results = Proof_Context.background_theory
-      ((fold o fold) AxClass.add_arity results);
+    fun after_qed results =
+      Proof_Context.background_theory ((fold o fold) AxClass.add_arity results);
   in
     thy
     |> Proof_Context.init_global
