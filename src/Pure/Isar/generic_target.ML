@@ -88,8 +88,7 @@ fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
 
     (*note*)
     val ([(res_name, [res])], lthy4) = lthy3
-      |> Local_Theory.notes_kind ""
-        [((if internal then Binding.empty else b_def, atts), [([def], [])])];
+      |> Local_Theory.notes [((if internal then Binding.empty else b_def, atts), [([def], [])])];
   in ((lhs, (res_name, res)), lthy4) end;
 
 

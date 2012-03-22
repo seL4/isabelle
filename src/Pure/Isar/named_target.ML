@@ -133,7 +133,7 @@ fun locale_notes locale kind global_facts local_facts lthy =
     lthy
     |> Local_Theory.background_theory (Global_Theory.note_thmss kind global_facts' #> snd)
     |> Local_Theory.target (Locale.add_thmss locale kind local_facts')
-  end
+  end;
 
 fun target_notes (Target {target, is_locale, ...}) =
   if is_locale then locale_notes target
