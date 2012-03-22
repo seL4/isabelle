@@ -61,12 +61,10 @@ fun locale_declaration locale syntax decl lthy =
   end;
 
 fun target_declaration (Target {target, ...}) {syntax, pervasive} decl lthy =
-  if target = "" then Generic_Target.theory_declaration decl lthy
+  if target = "" then Generic_Target.standard_declaration decl lthy
   else
     lthy
-    |> pervasive ? Local_Theory.background_theory
-        (Context.theory_map
-          (Morphism.form (Morphism.transform (Local_Theory.global_morphism lthy) decl)))
+    |> pervasive ? Generic_Target.background_declaration decl
     |> locale_declaration target syntax decl
     |> Context.proof_map (Morphism.form decl);
 
@@ -133,7 +131,7 @@ fun locale_notes locale kind global_facts local_facts lthy =
     lthy
     |> Local_Theory.background_theory (Global_Theory.note_thmss kind global_facts' #> snd)
     |> Local_Theory.target (Locale.add_thmss locale kind local_facts')
-  end
+  end;
 
 fun target_notes (Target {target, is_locale, ...}) =
   if is_locale then locale_notes target

@@ -155,7 +155,7 @@ fun define_overloaded (c, U) (v, checked) (b_def, rhs) =
       (Thm.def_binding_optional (Binding.name v) b_def,
         Logic.mk_equals (Const (c, Term.fastype_of rhs), rhs)))
   ##> map_overloading (filter_out (fn (_, (v', _)) => v' = v))
-  ##> Local_Theory.target synchronize_syntax
+  ##> Local_Theory.map_contexts synchronize_syntax
   #-> (fn (_, def) => pair (Const (c, U), def));
 
 fun foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
@@ -208,7 +208,7 @@ fun gen_overloading prep_const raw_overloading thy =
         abbrev = Generic_Target.abbrev
           (fn prmode => fn (b, mx) => fn (t, _) => fn _ =>
             Generic_Target.theory_abbrev prmode ((b, mx), t)),
-        declaration = K Generic_Target.theory_declaration,
+        declaration = K Generic_Target.standard_declaration,
         pretty = pretty,
         exit = Local_Theory.target_of o conclude}
   end;

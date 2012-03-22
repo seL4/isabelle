@@ -33,7 +33,7 @@ sig
   val propagate_ml_env: generic_theory -> generic_theory
   val standard_morphism: local_theory -> Proof.context -> morphism
   val target_morphism: local_theory -> morphism
-  val global_morphism: local_theory -> morphism
+  val standard_form: local_theory -> Proof.context -> (morphism -> 'a) -> 'a
   val operations_of: local_theory -> operations
   val define: (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory
@@ -99,7 +99,12 @@ structure Data = Proof_Data
 );
 
 fun map_contexts f =
-  (Data.map o map) (fn {naming, operations, target} => make_lthy (naming, operations, f target))
+  (Data.map o map) (fn {naming, operations, target} =>
+    make_lthy (naming, operations,
+      target
+      |> Context_Position.set_visible false
+      |> f
+      |> Context_Position.restore_visible target))
   #> f;
 
 fun assert lthy =
@@ -178,10 +183,11 @@ fun background_theory f = #2 o background_theory_result (f #> pair ());
 
 fun target_result f lthy =
   let
-    val (res, ctxt') = target_of lthy
+    val target = target_of lthy;
+    val (res, ctxt') = target
       |> Context_Position.set_visible false
       |> f
-      ||> Context_Position.restore_visible lthy;
+      ||> Context_Position.restore_visible target;
     val thy' = Proof_Context.theory_of ctxt';
     val lthy' = lthy
       |> map_target (K ctxt')
@@ -208,8 +214,8 @@ fun standard_morphism lthy ctxt =
 
 fun target_morphism lthy = standard_morphism lthy (target_of lthy);
 
-fun global_morphism lthy =
-  standard_morphism lthy (Proof_Context.init_global (Proof_Context.theory_of lthy));
+fun standard_form lthy ctxt x =
+  Morphism.form (Morphism.transform (standard_morphism lthy ctxt) x);
 
 
 
