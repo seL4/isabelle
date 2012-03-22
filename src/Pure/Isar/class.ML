@@ -319,8 +319,8 @@ local
 fun target_extension f class lthy =
   lthy
   |> Local_Theory.raw_theory f
-  |> Local_Theory.target (synchronize_class_syntax [class]
-      (base_sort (Proof_Context.theory_of lthy) class));
+  |> Local_Theory.map_contexts
+      (synchronize_class_syntax [class] (base_sort (Proof_Context.theory_of lthy) class));
 
 fun target_const class ((c, mx), (type_params, dict)) thy =
   let
@@ -484,7 +484,7 @@ fun define_overloaded (c, U) v (b_def, rhs) =
   Local_Theory.background_theory_result (AxClass.declare_overloaded (c, U)
   ##>> AxClass.define_overloaded b_def (c, rhs))
   ##> (map_instantiation o apsnd) (filter_out (fn (_, (v', _)) => v' = v))
-  ##> Local_Theory.target synchronize_inst_syntax;
+  ##> Local_Theory.map_contexts synchronize_inst_syntax;
 
 fun foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
   (case instantiation_param lthy b of
