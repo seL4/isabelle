@@ -14,7 +14,7 @@ begin
 text {*
 
 For more lemmas about the extended real numbers go to
-  @{text "src/HOL/Multivariate_Analysis/Extended_Real_Limits.thy"}
+  @{file "~~/src/HOL/Multivariate_Analysis/Extended_Real_Limits.thy"}
 
 *}
 
@@ -127,7 +127,7 @@ qed auto
 instantiation ereal :: number
 begin
 definition [simp]: "number_of x = ereal (number_of x)"
-instance proof qed
+instance ..
 end
 
 instantiation ereal :: abs
@@ -184,11 +184,12 @@ lemma ereal_eq_0[simp]:
 
 instance
 proof
-  fix a :: ereal show "0 + a = a"
+  fix a b c :: ereal
+  show "0 + a = a"
     by (cases a) (simp_all add: zero_ereal_def)
-  fix b :: ereal show "a + b = b + a"
+  show "a + b = b + a"
     by (cases rule: ereal2_cases[of a b]) simp_all
-  fix c :: ereal show "a + b + c = a + (b + c)"
+  show "a + b + c = a + (b + c)"
     by (cases rule: ereal3_cases[of a b c]) simp_all
 qed
 end
@@ -232,7 +233,8 @@ lemma ereal_real:
 
 lemma real_of_ereal_add:
   fixes a b :: ereal
-  shows "real (a + b) = (if (\<bar>a\<bar> = \<infinity>) \<and> (\<bar>b\<bar> = \<infinity>) \<or> (\<bar>a\<bar> \<noteq> \<infinity>) \<and> (\<bar>b\<bar> \<noteq> \<infinity>) then real a + real b else 0)"
+  shows "real (a + b) =
+    (if (\<bar>a\<bar> = \<infinity>) \<and> (\<bar>b\<bar> = \<infinity>) \<or> (\<bar>a\<bar> \<noteq> \<infinity>) \<and> (\<bar>b\<bar> \<noteq> \<infinity>) then real a + real b else 0)"
   by (cases rule: ereal2_cases[of a b]) auto
 
 subsubsection "Linear order on @{typ ereal}"
@@ -240,13 +242,14 @@ subsubsection "Linear order on @{typ ereal}"
 instantiation ereal :: linorder
 begin
 
-function less_ereal where
-"   ereal x < ereal y     \<longleftrightarrow> x < y" |
-"(\<infinity>::ereal) < a           \<longleftrightarrow> False" |
-"         a < -(\<infinity>::ereal) \<longleftrightarrow> False" |
-"ereal x    < \<infinity>           \<longleftrightarrow> True" |
-"        -\<infinity> < ereal r     \<longleftrightarrow> True" |
-"        -\<infinity> < (\<infinity>::ereal) \<longleftrightarrow> True"
+function less_ereal
+where
+  "   ereal x < ereal y     \<longleftrightarrow> x < y"
+| "(\<infinity>::ereal) < a           \<longleftrightarrow> False"
+| "         a < -(\<infinity>::ereal) \<longleftrightarrow> False"
+| "ereal x    < \<infinity>           \<longleftrightarrow> True"
+| "        -\<infinity> < ereal r     \<longleftrightarrow> True"
+| "        -\<infinity> < (\<infinity>::ereal) \<longleftrightarrow> True"
 proof -
   case (goal1 P x)
   moreover then obtain a b where "x = (a,b)" by (cases x) auto
@@ -290,17 +293,19 @@ lemma ereal_infty_less_eq2:
 
 instance
 proof
-  fix x :: ereal show "x \<le> x"
+  fix x y z :: ereal
+  show "x \<le> x"
     by (cases x) simp_all
-  fix y :: ereal show "x < y \<longleftrightarrow> x \<le> y \<and> \<not> y \<le> x"
+  show "x < y \<longleftrightarrow> x \<le> y \<and> \<not> y \<le> x"
     by (cases rule: ereal2_cases[of x y]) auto
   show "x \<le> y \<or> y \<le> x "
     by (cases rule: ereal2_cases[of x y]) auto
   { assume "x \<le> y" "y \<le> x" then show "x = y"
     by (cases rule: ereal2_cases[of x y]) auto }
-  { fix z assume "x \<le> y" "y \<le> z" then show "x \<le> z"
+  { assume "x \<le> y" "y \<le> z" then show "x \<le> z"
     by (cases rule: ereal3_cases[of x y z]) auto }
 qed
+
 end
 
 instance ereal :: ordered_ab_semigroup_add
@@ -430,16 +435,20 @@ lemma ereal_bot:
   fixes x :: ereal assumes "\<And>B. x \<le> ereal B" shows "x = - \<infinity>"
 proof (cases x)
   case (real r) with assms[of "r - 1"] show ?thesis by auto
-next case PInf with assms[of 0] show ?thesis by auto
-next case MInf then show ?thesis by simp
+next
+  case PInf with assms[of 0] show ?thesis by auto
+next
+  case MInf then show ?thesis by simp
 qed
 
 lemma ereal_top:
   fixes x :: ereal assumes "\<And>B. x \<ge> ereal B" shows "x = \<infinity>"
 proof (cases x)
   case (real r) with assms[of "r + 1"] show ?thesis by auto
-next case MInf with assms[of 0] show ?thesis by auto
-next case PInf then show ?thesis by simp
+next
+  case MInf with assms[of 0] show ?thesis by auto
+next
+  case PInf then show ?thesis by simp
 qed
 
 lemma
@@ -516,11 +525,11 @@ termination by (relation "{}") simp
 
 instance
 proof
-  fix a :: ereal show "1 * a = a"
+  fix a b c :: ereal show "1 * a = a"
     by (cases a) (simp_all add: one_ereal_def)
-  fix b :: ereal show "a * b = b * a"
+  show "a * b = b * a"
     by (cases rule: ereal2_cases[of a b]) simp_all
-  fix c :: ereal show "a * b * c = a * (b * c)"
+  show "a * b * c = a * (b * c)"
     by (cases rule: ereal3_cases[of a b c])
        (simp_all add: zero_ereal_def zero_less_mult_iff)
 qed
@@ -668,11 +677,11 @@ lemma ereal_le_epsilon:
   shows "x <= y"
 proof-
 { assume a: "EX r. y = ereal r"
-  from this obtain r where r_def: "y = ereal r" by auto
+  then obtain r where r_def: "y = ereal r" by auto
   { assume "x=(-\<infinity>)" hence ?thesis by auto }
   moreover
   { assume "~(x=(-\<infinity>))"
-    from this obtain p where p_def: "x = ereal p"
+    then obtain p where p_def: "x = ereal p"
     using a assms[rule_format, of 1] by (cases x) auto
     { fix e have "0 < e --> p <= r + e"
       using assms[rule_format, of "ereal e"] p_def r_def by auto }
@@ -696,10 +705,10 @@ proof-
   { assume "e=\<infinity>" hence "x<=y+e" by auto }
   moreover
   { assume "e~=\<infinity>"
-    from this obtain r where "e = ereal r" using `e>0` apply (cases e) by auto
+    then obtain r where "e = ereal r" using `e>0` apply (cases e) by auto
     hence "x<=y+e" using assms[rule_format, of r] `e>0` by auto
   } ultimately have "x<=y+e" by blast
-} from this show ?thesis using ereal_le_epsilon by auto
+} then show ?thesis using ereal_le_epsilon by auto
 qed
 
 lemma ereal_le_real:
@@ -790,11 +799,14 @@ lemma ereal_minus_minus_image[simp]:
 
 lemma ereal_uminus_lessThan[simp]:
   fixes a :: ereal shows "uminus ` {..<a} = {-a<..}"
-proof (safe intro!: image_eqI)
-  fix x assume "-a < x"
-  then have "- x < - (- a)" by (simp del: ereal_uminus_uminus)
-  then show "- x < a" by simp
-qed auto
+proof -
+  {
+    fix x assume "-a < x"
+    then have "- x < - (- a)" by (simp del: ereal_uminus_uminus)
+    then have "- x < a" by simp
+  }
+  then show ?thesis by (auto intro!: image_eqI)
+qed
 
 lemma ereal_uminus_greaterThan[simp]:
   "uminus ` {(a::ereal)<..} = {..<-a}"
@@ -923,7 +935,8 @@ lemma ereal_between:
   assumes "\<bar>x\<bar> \<noteq> \<infinity>" "0 < e"
   shows "x - e < x" "x < x + e"
 using assms apply (cases x, cases e) apply auto
-using assms by (cases x, cases e) auto
+using assms apply (cases x, cases e) apply auto
+done
 
 subsubsection {* Division *}
 
@@ -939,7 +952,7 @@ termination by (relation "{}") simp
 
 definition "x / y = x * inverse (y :: ereal)"
 
-instance proof qed
+instance ..
 end
 
 lemma real_of_ereal_inverse[simp]:
@@ -1092,7 +1105,7 @@ instantiation ereal :: lattice
 begin
 definition [simp]: "sup x y = (max x y :: ereal)"
 definition [simp]: "inf x y = (min x y :: ereal)"
-instance proof qed simp_all
+instance by default simp_all
 end
 
 instantiation ereal :: complete_lattice
@@ -1161,7 +1174,7 @@ lemma ereal_complete_Inf:
 proof-
 def S1 == "uminus ` S"
 hence "S1 ~= {}" using assms by auto
-from this obtain x where x_def: "(ALL y:S1. y <= x) & (ALL z. (ALL y:S1. y <= z) --> x <= z)"
+then obtain x where x_def: "(ALL y:S1. y <= x) & (ALL z. (ALL y:S1. y <= z) --> x <= z)"
    using ereal_complete_Sup[of S1] by auto
 { fix z assume "ALL y:S. z <= y"
   hence "ALL y:S1. y <= -z" unfolding S1_def by auto
@@ -1372,8 +1385,8 @@ lemma ereal_le_Sup:
 proof-
 { assume "?rhs"
   { assume "~(x <= (SUP i:A. f i))" hence "(SUP i:A. f i)<x" by (simp add: not_le)
-    from this obtain y where y_def: "(SUP i:A. f i)<y & y<x" using ereal_dense by auto
-    from this obtain i where "i : A & y <= f i" using `?rhs` by auto
+    then obtain y where y_def: "(SUP i:A. f i)<y & y<x" using ereal_dense by auto
+    then obtain i where "i : A & y <= f i" using `?rhs` by auto
     hence "y <= (SUP i:A. f i)" using SUP_upper[of i A f] by auto
     hence False using y_def by auto
   } hence "?lhs" by auto
@@ -1391,8 +1404,8 @@ lemma ereal_Inf_le:
 proof-
 { assume "?rhs"
   { assume "~((INF i:A. f i) <= x)" hence "x < (INF i:A. f i)" by (simp add: not_le)
-    from this obtain y where y_def: "x<y & y<(INF i:A. f i)" using ereal_dense by auto
-    from this obtain i where "i : A & f i <= y" using `?rhs` by auto
+    then obtain y where y_def: "x<y & y<(INF i:A. f i)" using ereal_dense by auto
+    then obtain i where "i : A & f i <= y" using `?rhs` by auto
     hence "(INF i:A. f i) <= y" using INF_lower[of i A f] by auto
     hence False using y_def by auto
   } hence "?lhs" by auto
@@ -2023,7 +2036,7 @@ lemma tail_same_limit:
   shows "Y ----> L"
 proof-
 { fix S assume "open S" and "L:S"
-  from this obtain N1 where "ALL n>=N1. X n : S"
+  then obtain N1 where "ALL n>=N1. X n : S"
      using assms unfolding tendsto_def eventually_sequentially by auto
   hence "ALL n>=max N N1. Y n : S" using assms by auto
   hence "EX N. ALL n>=N. Y n : S" apply(rule_tac x="max N N1" in exI) by auto
@@ -2058,14 +2071,14 @@ moreover
     hence ?thesis by auto }
   moreover
   { assume "EX B. C = ereal B"
-    from this obtain B where B_def: "C=ereal B" by auto
+    then obtain B where B_def: "C=ereal B" by auto
     hence "~(l=\<infinity>)" using Lim_bounded_PInfty2 assms by auto
-    from this obtain m where m_def: "ereal m=l" using `~(l=(-\<infinity>))` by (cases l) auto
-    from this obtain N where N_def: "ALL n>=N. f n : {ereal(m - 1) <..< ereal(m+1)}"
+    then obtain m where m_def: "ereal m=l" using `~(l=(-\<infinity>))` by (cases l) auto
+    then obtain N where N_def: "ALL n>=N. f n : {ereal(m - 1) <..< ereal(m+1)}"
        apply (subst tendsto_obtains_N[of f l "{ereal(m - 1) <..< ereal(m+1)}"]) using assms by auto
     { fix n assume "n>=N"
       hence "EX r. ereal r = f n" using N_def by (cases "f n") auto
-    } from this obtain g where g_def: "ALL n>=N. ereal (g n) = f n" by metis
+    } then obtain g where g_def: "ALL n>=N. ereal (g n) = f n" by metis
     hence "(%n. ereal (g n)) ----> l" using tail_same_limit[of f l N] assms by auto
     hence *: "(%n. g n) ----> m" using m_def by auto
     { fix n assume "n>=max N M"
@@ -2175,7 +2188,7 @@ proof (rule topological_tendstoI, unfold eventually_sequentially)
     fix N assume "n <= N"
     from upper[OF this] lower[OF this] assms `0 < r`
     have "u N ~: {\<infinity>,(-\<infinity>)}" by auto
-    from this obtain ra where ra_def: "(u N) = ereal ra" by (cases "u N") auto
+    then obtain ra where ra_def: "(u N) = ereal ra" by (cases "u N") auto
     hence "rx < ra + r" and "ra < rx + r"
        using rx_def assms `0 < r` lower[OF `n <= N`] upper[OF `n <= N`] by auto
     hence "dist (real (u N)) rx < r"
@@ -2194,7 +2207,7 @@ lemma ereal_LimI_finite_iff:
 proof
   assume lim: "u ----> x"
   { fix r assume "(r::ereal)>0"
-    from this obtain N where N_def: "ALL n>=N. u n : {x - r <..< x + r}"
+    then obtain N where N_def: "ALL n>=N. u n : {x - r <..< x + r}"
        apply (subst tendsto_obtains_N[of u x "{x - r <..< x + r}"])
        using lim ereal_between[of x r] assms `r>0` by auto
     hence "EX N. ALL n>=N. u n < x + r & x < u n + r"
@@ -2537,8 +2550,8 @@ qed auto
 
 lemma real_ereal_id: "real o ereal = id"
 proof-
-{ fix x have "(real o ereal) x = id x" by auto }
-from this show ?thesis using ext by blast
+  { fix x have "(real o ereal) x = id x" by auto }
+  then show ?thesis using ext by blast
 qed
 
 lemma open_image_ereal: "open(UNIV-{ \<infinity> , (-\<infinity> :: ereal)})"
