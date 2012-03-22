@@ -323,7 +323,7 @@ fun fun_decl x = ($$$ "function" |-- !!! (identifier --
    $$$ ":" -- identifier)) >> add_fun_decl) x;
 
 fun declarations x =
- ($$$ "title" |-- subprogram_kind -- identifier --| $$$ ";" --
+ (the_identifier "title" |-- subprogram_kind -- identifier --| $$$ ";" --
   (Scan.repeat ((type_decl || const_decl || var_decl || fun_decl) --|
      !!! ($$$ ";")) >> (fn ds => fold I ds empty_decls)) --|
   $$$ "end" --| $$$ ";") x;

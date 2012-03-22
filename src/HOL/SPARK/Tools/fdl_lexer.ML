@@ -96,7 +96,6 @@ val $$$ = prfx o raw_explode;
 
 val lexicon = Scan.make_lexicon (map raw_explode
   ["rule_family",
-   "title",
    "For",
    ":",
    "[",
