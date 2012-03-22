@@ -120,6 +120,9 @@ and predicates.  Consolidation of some relation theorems:
 
 Generalized theorems INF_INT_eq, INF_INT_eq2, SUP_UN_eq, SUP_UN_eq2.
 
+See theory "Relation" for examples for making use of pred/set conversions
+by means of attributes "to_set" and "to_pred".
+
 INCOMPATIBILITY.
 
 * Consolidated various theorem names relating to Finite_Set.fold
