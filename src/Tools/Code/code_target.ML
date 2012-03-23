@@ -639,7 +639,7 @@ fun zip_list (x::xs) f g =
 fun process_multi_syntax parse_thing parse_syntax change =
   (Parse.and_list1 parse_thing
   :|-- (fn things => Scan.repeat1 (@{keyword "("} |-- Parse.name --
-        (zip_list things parse_syntax (@{keyword "and"})) --| @{keyword ")"})))
+        (zip_list things parse_syntax @{keyword "and"}) --| @{keyword ")"})))
   >> (Toplevel.theory oo fold)
     (fn (target, syns) => fold (fn (raw_x, syn) => change target raw_x syn) syns);
 
