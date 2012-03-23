@@ -126,7 +126,8 @@ fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial), opt_morphs), eq
     val equiv_thm_name = Binding.suffix_name "_equivp" qty_name
 
     (* storing the quotients *)
-    val quotients = {qtyp = Abs_ty, rtyp = rty, equiv_rel = rel, equiv_thm = equiv_thm}
+    val quotients = {qtyp = Abs_ty, rtyp = rty, equiv_rel = rel, equiv_thm = equiv_thm, 
+      quot_thm = quotient_thm}
 
     fun qinfo phi = Quotient_Info.transform_quotients phi quotients
     fun abs_rep phi = Quotient_Info.transform_abs_rep phi {abs = abs_t, rep = rep_t}

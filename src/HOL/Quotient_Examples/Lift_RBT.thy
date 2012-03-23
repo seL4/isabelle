@@ -6,30 +6,15 @@ theory Lift_RBT
 imports Main "~~/src/HOL/Library/RBT_Impl"
 begin
 
+definition inv :: "('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" 
+  where [simp]: "inv R = (\<lambda>x y. R x \<and> x = y)"
+
 subsection {* Type definition *}
 
-typedef (open) ('a, 'b) rbt = "{t :: ('a\<Colon>linorder, 'b) RBT_Impl.rbt. is_rbt t}"
-  morphisms impl_of RBT
-proof -
-  have "RBT_Impl.Empty \<in> ?rbt" by simp
-  then show ?thesis ..
-qed
+quotient_type ('a, 'b) rbt = "('a\<Colon>linorder, 'b) RBT_Impl.rbt" / "inv is_rbt" morphisms impl_of RBT
+sorry
 
-local_setup {* fn lthy =>
-let
-  val quotients = {qtyp = @{typ "('a, 'b) rbt"}, rtyp = @{typ "('a, 'b) RBT_Impl.rbt"},
-    equiv_rel = @{term "op ="}, equiv_thm = @{thm refl}}
-  val qty_full_name = @{type_name "rbt"}
-
-  fun qinfo phi = Quotient_Info.transform_quotients phi quotients
-  in lthy
-    |> Local_Theory.declaration {syntax = false, pervasive = true}
-        (fn phi => Quotient_Info.update_quotients qty_full_name (qinfo phi)
-       #> Quotient_Info.update_abs_rep qty_full_name (Quotient_Info.transform_abs_rep phi
-         {abs = @{term "RBT"}, rep = @{term "impl_of"}}))
-  end
-*}
-
+(*
 lemma rbt_eq_iff:
   "t1 = t2 \<longleftrightarrow> impl_of t1 = impl_of t2"
   by (simp add: impl_of_inject)
@@ -45,12 +30,12 @@ lemma is_rbt_impl_of [simp, intro]:
 lemma RBT_impl_of [simp, code abstype]:
   "RBT (impl_of t) = t"
   by (simp add: impl_of_inverse)
-
+*)
 
 subsection {* Primitive operations *}
 
 quotient_definition lookup where "lookup :: ('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'a \<rightharpoonup> 'b" is "RBT_Impl.lookup"
-done
+by simp
 
 declare lookup_def[unfolded map_fun_def comp_def id_def, code]
 

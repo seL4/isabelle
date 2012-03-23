@@ -18,7 +18,7 @@ sig
   val update_abs_rep: string -> abs_rep -> Context.generic -> Context.generic
   val print_abs_rep: Proof.context -> unit
   
-  type quotients = {qtyp: typ, rtyp: typ, equiv_rel: term, equiv_thm: thm}
+  type quotients = {qtyp: typ, rtyp: typ, equiv_rel: term, equiv_thm: thm, quot_thm: thm}
   val transform_quotients: morphism -> quotients -> quotients
   val lookup_quotients: Proof.context -> string -> quotients option
   val lookup_quotients_global: theory -> string -> quotients option
@@ -125,7 +125,7 @@ fun print_abs_rep ctxt =
   end
 
 (* info about quotient types *)
-type quotients = {qtyp: typ, rtyp: typ, equiv_rel: term, equiv_thm: thm}
+type quotients = {qtyp: typ, rtyp: typ, equiv_rel: term, equiv_thm: thm, quot_thm: thm}
 
 structure Quotients = Generic_Data
 (
@@ -135,11 +135,12 @@ structure Quotients = Generic_Data
   fun merge data = Symtab.merge (K true) data
 )
 
-fun transform_quotients phi {qtyp, rtyp, equiv_rel, equiv_thm} =
+fun transform_quotients phi {qtyp, rtyp, equiv_rel, equiv_thm, quot_thm} =
   {qtyp = Morphism.typ phi qtyp,
    rtyp = Morphism.typ phi rtyp,
    equiv_rel = Morphism.term phi equiv_rel,
-   equiv_thm = Morphism.thm phi equiv_thm}
+   equiv_thm = Morphism.thm phi equiv_thm,
+   quot_thm = Morphism.thm phi quot_thm}
 
 val lookup_quotients = Symtab.lookup o Quotients.get o Context.Proof
 val lookup_quotients_global = Symtab.lookup o Quotients.get o Context.Theory
@@ -151,7 +152,7 @@ fun dest_quotients ctxt =  (* FIXME slightly expensive way to retrieve data *)
 
 fun print_quotients ctxt =
   let
-    fun prt_quot {qtyp, rtyp, equiv_rel, equiv_thm} =
+    fun prt_quot {qtyp, rtyp, equiv_rel, equiv_thm, quot_thm} =
       Pretty.block (separate (Pretty.brk 2)
        [Pretty.str "quotient type:",
         Syntax.pretty_typ ctxt qtyp,
@@ -160,7 +161,9 @@ fun print_quotients ctxt =
         Pretty.str "relation:",
         Syntax.pretty_term ctxt equiv_rel,
         Pretty.str "equiv. thm:",
-        Syntax.pretty_term ctxt (prop_of equiv_thm)])
+        Syntax.pretty_term ctxt (prop_of equiv_thm),
+        Pretty.str "quot. thm:",
+        Syntax.pretty_term ctxt (prop_of quot_thm)])
   in
     map (prt_quot o snd) (Symtab.dest (Quotients.get (Context.Proof ctxt)))
     |> Pretty.big_list "quotients:"
