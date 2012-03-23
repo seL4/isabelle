@@ -960,4 +960,6 @@ no_notation
   map_fun (infixr "--->" 55) and
   fun_rel (infixr "===>" 55)
 
+hide_const (open) invariant
+
 end
