@@ -686,8 +686,7 @@ text {* Auxiliary data for the quotient package *}
 use "Tools/Quotient/quotient_info.ML"
 setup Quotient_Info.setup
 
-declare [[map "fun" = fun_rel]]
-declare [[map set = set_rel]]
+declare [[map "fun" = (fun_rel, fun_quotient)]]
 
 lemmas [quot_thm] = fun_quotient
 lemmas [quot_respect] = quot_rel_rsp if_rsp o_rsp let_rsp id_rsp

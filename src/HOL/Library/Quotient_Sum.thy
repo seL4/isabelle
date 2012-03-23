@@ -16,8 +16,6 @@ where
 | "sum_rel R1 R2 (Inr a2) (Inl b1) = False"
 | "sum_rel R1 R2 (Inr a2) (Inr b2) = R2 a2 b2"
 
-declare [[map sum = sum_rel]]
-
 lemma sum_rel_unfold:
   "sum_rel R1 R2 x y = (case (x, y) of (Inl x, Inl y) \<Rightarrow> R1 x y
     | (Inr x, Inr y) \<Rightarrow> R2 x y
@@ -66,6 +64,8 @@ lemma sum_quotient [quot_thm]:
   using Quotient_rel [OF q1] Quotient_rel [OF q2]
   apply (simp add: sum_rel_unfold comp_def split: sum.split)
   done
+
+declare [[map sum = (sum_rel, sum_quotient)]]
 
 lemma sum_Inl_rsp [quot_respect]:
   assumes q1: "Quotient R1 Abs1 Rep1"
