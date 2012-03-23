@@ -682,7 +682,7 @@ apply (rule well_ord_InfCard_square_eq)
 apply (simp add: InfCard_is_Card [THEN Card_cardinal_eq])
 done
 
-lemma Inf_Card_is_InfCard: "[| ~Finite(i); Card(i) |] ==> InfCard(i)"
+lemma Inf_Card_is_InfCard: "[| Card(i); ~ Finite(i) |] ==> InfCard(i)"
 by (simp add: InfCard_def Card_is_Ord [THEN nat_le_infinite_Ord])
 
 subsubsection{*Toward's Kunen's Corollary 10.13 (1)*}
