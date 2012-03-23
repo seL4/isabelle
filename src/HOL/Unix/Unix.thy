@@ -843,7 +843,9 @@ text {*
   neither owned nor writable by @{term user\<^isub>1}.
 *}
 
-definition
+
+
+definition invariant where 
   "invariant root path =
     (\<exists>att dir.
       access root path user\<^isub>1 {} = Some (Env att dir) \<and> dir \<noteq> empty \<and>
