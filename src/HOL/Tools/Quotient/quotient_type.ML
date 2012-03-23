@@ -6,6 +6,8 @@ Definition of a quotient type.
 
 signature QUOTIENT_TYPE =
 sig
+  val can_generate_code_cert: thm -> bool
+  
   val add_quotient_type: ((string list * binding * mixfix) * (typ * term * bool) * 
     ((binding * binding) option)) * thm -> local_theory -> Quotient_Info.quotients * local_theory
 
@@ -76,6 +78,44 @@ fun typedef_quot_type_thm (rel, abs, rep, equiv_thm, typedef_info) lthy =
     Goal.prove lthy [] [] goal
       (K (typedef_quot_type_tac equiv_thm typedef_info))
   end
+   
+fun can_generate_code_cert quot_thm  =
+   case Quotient_Term.get_rel_from_quot_thm quot_thm of
+      Const (@{const_name HOL.eq}, _) => true
+      | Const (@{const_name invariant}, _) $ _  => true
+      | _ => false
+
+fun define_abs_type quot_thm lthy =
+  if can_generate_code_cert quot_thm then
+    let
+      val abs_type_thm = quot_thm RS @{thm Quotient_abs_rep}
+      val add_abstype_attribute = 
+          Thm.declaration_attribute (fn thm => Context.mapping (Code.add_abstype thm) I)
+        val add_abstype_attrib = Attrib.internal (K add_abstype_attribute);
+    in
+      lthy
+        |> (snd oo Local_Theory.note) ((Binding.empty, [add_abstype_attrib]), [abs_type_thm])
+    end
+  else
+    lthy
+
+fun init_quotient_infr quot_thm equiv_thm lthy =
+  let
+    val (_ $ rel $ abs $ rep) = (HOLogic.dest_Trueprop o prop_of) quot_thm
+    val (qtyp, rtyp) = (dest_funT o fastype_of) rep
+    val qty_full_name = (fst o dest_Type) qtyp
+    val quotients = {qtyp = qtyp, rtyp = rtyp, equiv_rel = rel, equiv_thm = equiv_thm, 
+      quot_thm = quot_thm }
+    fun quot_info phi = Quotient_Info.transform_quotients phi quotients
+    val abs_rep = {abs = abs, rep = rep}
+    fun abs_rep_info phi = Quotient_Info.transform_abs_rep phi abs_rep
+  in
+    lthy
+      |> Local_Theory.declaration {syntax = false, pervasive = true}
+        (fn phi => Quotient_Info.update_quotients qty_full_name (quot_info phi)
+          #> Quotient_Info.update_abs_rep qty_full_name (abs_rep_info phi))
+      |> define_abs_type quot_thm
+  end
 
 (* main function for constructing a quotient type *)
 fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial), opt_morphs), equiv_thm) lthy =
@@ -86,7 +126,7 @@ fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial), opt_morphs), eq
       else equiv_thm RS @{thm equivp_implies_part_equivp}
 
     (* generates the typedef *)
-    val ((qty_full_name, typedef_info), lthy1) =
+    val ((_, typedef_info), lthy1) =
       typedef_make (vs, qty_name, mx, rel, rty) part_equiv lthy
 
     (* abs and rep functions from the typedef *)
@@ -108,9 +148,9 @@ fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial), opt_morphs), eq
         NONE => (Binding.prefix_name "rep_" qty_name, Binding.prefix_name "abs_" qty_name)
       | SOME morphs => morphs)
 
-    val ((abs_t, (_, abs_def)), lthy2) = lthy1
+    val ((_, (_, abs_def)), lthy2) = lthy1
       |> Local_Theory.define ((abs_name, NoSyn), ((Thm.def_binding abs_name, []), abs_trm))
-    val ((rep_t, (_, rep_def)), lthy3) = lthy2
+    val ((_, (_, rep_def)), lthy3) = lthy2
       |> Local_Theory.define ((rep_name, NoSyn), ((Thm.def_binding rep_name, []), rep_trm))
 
     (* quot_type theorem *)
@@ -129,13 +169,8 @@ fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial), opt_morphs), eq
     val quotients = {qtyp = Abs_ty, rtyp = rty, equiv_rel = rel, equiv_thm = equiv_thm, 
       quot_thm = quotient_thm}
 
-    fun qinfo phi = Quotient_Info.transform_quotients phi quotients
-    fun abs_rep phi = Quotient_Info.transform_abs_rep phi {abs = abs_t, rep = rep_t}
-
     val lthy4 = lthy3
-      |> Local_Theory.declaration {syntax = false, pervasive = true}
-        (fn phi => Quotient_Info.update_quotients qty_full_name (qinfo phi)
-           #> Quotient_Info.update_abs_rep qty_full_name (abs_rep phi))
+      |> init_quotient_infr quotient_thm equiv_thm
       |> (snd oo Local_Theory.note)
         ((equiv_thm_name,
           if partial then [] else [Attrib.internal (K Quotient_Info.equiv_rules_add)]),
@@ -276,6 +311,32 @@ val quotspec_parser =
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "quotient_type"}
     "quotient type definitions (require equivalence proofs)"
-    (quotspec_parser >> quotient_type_cmd)
+      (quotspec_parser >> quotient_type_cmd)
+
+(* Setup lifting using type_def_thm *)
+
+exception SETUP_LIFT_TYPE of string
+
+fun setup_lift_type typedef_thm =
+  let
+    val typedef_set = (snd o dest_comb o HOLogic.dest_Trueprop o prop_of) typedef_thm
+    val (quot_thm, equivp_thm) = (case typedef_set of
+      Const ("Orderings.top_class.top", _) => 
+        (typedef_thm RS @{thm copy_type_to_Quotient}, 
+         typedef_thm RS @{thm copy_type_to_equivp})
+      | Const (@{const_name "Collect"}, _) $ Abs (_, _, _ $ Bound 0) => 
+        (typedef_thm RS @{thm invariant_type_to_Quotient}, 
+         typedef_thm RS @{thm invariant_type_to_part_equivp})
+      | _ => raise SETUP_LIFT_TYPE "unsupported typedef theorem")
+  in
+    init_quotient_infr quot_thm equivp_thm
+  end
+
+fun setup_lift_type_aux xthm lthy = setup_lift_type (singleton (Attrib.eval_thms lthy) xthm) lthy
+
+val _ = 
+  Outer_Syntax.local_theory @{command_spec "setup_lifting"}
+    "Setup lifting infrastracture" 
+      (Parse_Spec.xthm >> (fn xthm => setup_lift_type_aux xthm))
 
 end;
