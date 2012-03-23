@@ -301,7 +301,7 @@ checkOf (Generated_Code.Property b) = (\[] -> b)
 checkOf (Generated_Code.Universal _ f _) = (\(t : ts) -> checkOf (f t) ts)
 checkOf (Generated_Code.Existential _ f _) = (\(t : ts) -> checkOf (f t) ts)
 
-dummy = Generated_Code.Var [] (Generated_Code.SumOfProd [[]])
+dummy = Generated_Code.Narrowing_variable [] (Generated_Code.Narrowing_sum_of_products [[]])
 
 treeOf :: Int -> Generated_Code.Property -> QuantTree
 treeOf n (Generated_Code.Property _) = Node uneval
