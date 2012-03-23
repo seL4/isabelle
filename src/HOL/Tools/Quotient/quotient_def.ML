@@ -6,13 +6,17 @@ Definitions for constants on quotient types.
 
 signature QUOTIENT_DEF =
 sig
+  val add_quotient_def:
+    ((binding * mixfix) * Attrib.binding) * (term * term) -> thm ->
+    local_theory -> Quotient_Info.quotconsts * local_theory
+
   val quotient_def:
     (binding * typ option * mixfix) option * (Attrib.binding * (term * term)) ->
-    local_theory -> Quotient_Info.quotconsts * local_theory
+    local_theory -> Proof.state
 
   val quotient_def_cmd:
     (binding * string option * mixfix) option * (Attrib.binding * (string * string)) ->
-    local_theory -> Quotient_Info.quotconsts * local_theory
+    local_theory -> Proof.state
 
   val lift_raw_const: typ list -> (string * term * mixfix) -> local_theory ->
     Quotient_Info.quotconsts * local_theory
@@ -30,6 +34,7 @@ struct
     - attributes
     - the new constant as term
     - the rhs of the definition as term
+    - respectfulness theorem for the rhs
 
    It stores the qconst_info in the quotconsts data slot.
 
@@ -45,7 +50,77 @@ fun error_msg bind str =
       quote str ^ " differs from declaration " ^ name ^ pos)
   end
 
-fun gen_quotient_def prep_vars prep_term (raw_var, ((name, atts), (lhs_raw, rhs_raw))) lthy =
+fun add_quotient_def ((var, (name, atts)), (lhs, rhs)) rsp_thm lthy =
+  let
+    val absrep_trm = 
+      Quotient_Term.absrep_fun lthy Quotient_Term.AbsF (fastype_of rhs, fastype_of lhs) $ rhs
+    val prop = Syntax.check_term lthy (Logic.mk_equals (lhs, absrep_trm))
+    val (_, prop') = Local_Defs.cert_def lthy prop
+    val (_, newrhs) = Local_Defs.abs_def prop'
+
+    val ((trm, (_ , thm)), lthy') =
+      Local_Theory.define (var, ((Thm.def_binding_optional (#1 var) name, atts), newrhs)) lthy
+
+    (* data storage *)
+    val qconst_data = {qconst = trm, rconst = rhs, def = thm}
+    fun get_rsp_thm_name (lhs_name, _) = Binding.suffix_name "_rsp" lhs_name
+    
+    val lthy'' = lthy'
+      |> Local_Theory.declaration {syntax = false, pervasive = true}
+        (fn phi =>
+          (case Quotient_Info.transform_quotconsts phi qconst_data of
+            qcinfo as {qconst = Const (c, _), ...} =>
+              Quotient_Info.update_quotconsts c qcinfo
+          | _ => I))
+      |> (snd oo Local_Theory.note) 
+        ((get_rsp_thm_name var, [Attrib.internal (K Quotient_Info.rsp_rules_add)]),
+        [rsp_thm])
+
+  in
+    (qconst_data, lthy'')
+  end
+
+fun mk_readable_rsp_thm_eq tm lthy =
+  let
+    val ctm = cterm_of (Proof_Context.theory_of lthy) tm
+    
+    fun norm_fun_eq ctm = 
+      let
+        fun abs_conv2 cv = Conv.abs_conv (K (Conv.abs_conv (K cv) lthy)) lthy
+        fun erase_quants ctm' =
+          case (Thm.term_of ctm') of
+            Const ("HOL.eq", _) $ _ $ _ => Conv.all_conv ctm'
+            | _ => (Conv.binder_conv (K erase_quants) lthy then_conv 
+              Conv.rewr_conv @{thm fun_eq_iff[symmetric, THEN eq_reflection]}) ctm'
+      in
+        (abs_conv2 erase_quants then_conv Thm.eta_conversion) ctm
+      end
+
+    fun simp_arrows_conv ctm =
+      let
+        val unfold_conv = Conv.rewrs_conv 
+          [@{thm fun_rel_eq_rel[THEN eq_reflection]}, @{thm fun_rel_def[THEN eq_reflection]}]
+        val left_conv = simp_arrows_conv then_conv Conv.try_conv norm_fun_eq
+        fun binop_conv2 cv1 cv2 = Conv.combination_conv (Conv.arg_conv cv1) cv2
+      in
+        case (Thm.term_of ctm) of
+          Const (@{const_name "fun_rel"}, _) $ _ $ _ => 
+            (binop_conv2  left_conv simp_arrows_conv then_conv unfold_conv) ctm
+          | _ => Conv.all_conv ctm
+      end
+
+    val simp_conv = Conv.arg_conv (Conv.fun2_conv simp_arrows_conv)
+    val univq_conv = Conv.rewr_conv @{thm HOL.all_simps(6)[symmetric, THEN eq_reflection]}
+    val univq_prenex_conv = Conv.top_conv (K (Conv.try_conv univq_conv)) lthy
+    val eq_thm = 
+      (simp_conv then_conv univq_prenex_conv then_conv Thm.beta_conversion true) ctm
+  in
+    Object_Logic.rulify(eq_thm RS Drule.equal_elim_rule2)
+  end
+
+
+
+fun gen_quotient_def prep_vars prep_term (raw_var, (attr, (lhs_raw, rhs_raw))) lthy =
   let
     val (vars, ctxt) = prep_vars (the_list raw_var) lthy
     val T_opt = (case vars of [(_, SOME T, _)] => SOME T | _ => NONE)
@@ -63,27 +138,50 @@ fun gen_quotient_def prep_vars prep_term (raw_var, ((name, atts), (lhs_raw, rhs_
           if Variable.check_name binding = lhs_str then (binding, mx)
           else error_msg binding lhs_str
       | _ => raise Match)
+    
+    fun try_to_prove_refl thm = 
+      let
+        val lhs_eq =
+          thm
+          |> prop_of
+          |> Logic.dest_implies
+          |> fst
+          |> strip_all_body
+          |> try HOLogic.dest_Trueprop
+      in
+        case lhs_eq of
+          SOME (Const ("HOL.eq", _) $ _ $ _) => SOME (@{thm refl} RS thm)
+          | SOME _ => (case body_type (fastype_of lhs) of
+            Type (typ_name, _) => ( SOME
+              (#equiv_thm (the (Quotient_Info.lookup_quotients lthy typ_name)) 
+                RS @{thm Equiv_Relations.equivp_reflp} RS thm)
+              handle _ => NONE)
+            | _ => NONE
+            )
+          | _ => NONE
+      end
 
-    val absrep_trm = Quotient_Term.absrep_fun lthy Quotient_Term.AbsF (fastype_of rhs, lhs_ty) $ rhs
-    val prop = Syntax.check_term lthy (Logic.mk_equals (lhs, absrep_trm))
-    val (_, prop') = Local_Defs.cert_def lthy prop
-    val (_, newrhs) = Local_Defs.abs_def prop'
+    val rsp_rel = Quotient_Term.equiv_relation lthy (fastype_of rhs, lhs_ty)
+    val internal_rsp_tm = HOLogic.mk_Trueprop (Syntax.check_term lthy (rsp_rel $ rhs $ rhs))
+    val readable_rsp_thm_eq = mk_readable_rsp_thm_eq internal_rsp_tm lthy
+    val maybe_proven_rsp_thm = try_to_prove_refl readable_rsp_thm_eq
+    val (readable_rsp_tm, _) = Logic.dest_implies (prop_of readable_rsp_thm_eq)
+  
+    fun after_qed thm_list lthy = 
+      let
+        val internal_rsp_thm =
+          case thm_list of
+            [] => the maybe_proven_rsp_thm
+          | [[thm]] => Goal.prove ctxt [] [] internal_rsp_tm 
+            (fn _ => rtac readable_rsp_thm_eq 1 THEN Proof_Context.fact_tac [thm] 1)
+      in
+        snd (add_quotient_def ((var, attr), (lhs, rhs)) internal_rsp_thm lthy)
+      end
 
-    val ((trm, (_ , thm)), lthy') =
-      Local_Theory.define (var, ((Thm.def_binding_optional (#1 var) name, atts), newrhs)) lthy
-
-    (* data storage *)
-    val qconst_data = {qconst = trm, rconst = rhs, def = thm}
-
-    val lthy'' = lthy'
-      |> Local_Theory.declaration {syntax = false, pervasive = true}
-        (fn phi =>
-          (case Quotient_Info.transform_quotconsts phi qconst_data of
-            qcinfo as {qconst = Const (c, _), ...} =>
-              Quotient_Info.update_quotconsts c qcinfo
-          | _ => I));
   in
-    (qconst_data, lthy'')
+    case maybe_proven_rsp_thm of
+      SOME _ => Proof.theorem NONE after_qed [] lthy
+      | NONE =>  Proof.theorem NONE after_qed [[(readable_rsp_tm,[])]] lthy
   end
 
 fun check_term' cnstr ctxt =
@@ -103,16 +201,19 @@ fun lift_raw_const qtys (qconst_name, rconst, mx) ctxt =
     val qty = Quotient_Term.derive_qtyp ctxt qtys rty
     val lhs = Free (qconst_name, qty)
   in
-    quotient_def (SOME (Binding.name qconst_name, NONE, mx), (Attrib.empty_binding, (lhs, rconst))) ctxt
+    (*quotient_def (SOME (Binding.name qconst_name, NONE, mx), (Attrib.empty_binding, (lhs, rconst))) ctxt*)
+    ({qconst = lhs, rconst = lhs, def = @{thm refl}}, ctxt)
   end
 
-(* command *)
+(* parser and command *)
+val quotdef_parser =
+  Scan.option Parse_Spec.constdecl --
+    Parse.!!! (Parse_Spec.opt_thm_name ":" -- (Parse.term --| @{keyword "is"} -- Parse.term))
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "quotient_definition"}
+  Outer_Syntax.local_theory_to_proof @{command_spec "quotient_definition"}
     "definition for constants over the quotient type"
-    (Scan.option Parse_Spec.constdecl --
-      Parse.!!! (Parse_Spec.opt_thm_name ":" -- (Parse.term --| @{keyword "is"} -- Parse.term))
-      >> (snd oo quotient_def_cmd))
+      (quotdef_parser >> quotient_def_cmd)
+
 
 end; (* structure *)

@@ -9,7 +9,7 @@ imports Plain Hilbert_Choice Equiv_Relations
 keywords
   "print_quotmaps" "print_quotients" "print_quotconsts" :: diag and
   "quotient_type" :: thy_goal and "/" and
-  "quotient_definition" :: thy_decl
+  "quotient_definition" :: thy_goal
 uses
   ("Tools/Quotient/quotient_info.ML")
   ("Tools/Quotient/quotient_type.ML")
@@ -78,6 +78,10 @@ lemma fun_relE:
 lemma fun_rel_eq:
   shows "((op =) ===> (op =)) = (op =)"
   by (auto simp add: fun_eq_iff elim: fun_relE)
+
+lemma fun_rel_eq_rel:
+  shows "((op =) ===> R) = (\<lambda>f g. \<forall>x. R (f x) (g x))"
+  by (simp add: fun_rel_def)
 
 subsection {* set map (vimage) and set relation *}
 

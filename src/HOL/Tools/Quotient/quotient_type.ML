@@ -264,15 +264,17 @@ fun quotient_type_cmd specs lthy =
 
 val partial = Scan.optional (Parse.reserved "partial" -- @{keyword ":"} >> K true) false
 
+val quotspec_parser =
+  Parse.and_list1
+    ((Parse.type_args -- Parse.binding) --
+      (* FIXME Parse.type_args_constrained and standard treatment of sort constraints *)
+      Parse.opt_mixfix -- (@{keyword "="} |-- Parse.typ) --
+        (@{keyword "/"} |-- (partial -- Parse.term))  --
+        Scan.option (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding)))
+
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "quotient_type"}
     "quotient type definitions (require equivalence proofs)"
-    (Parse.and_list1
-      ((Parse.type_args -- Parse.binding) --
-        (* FIXME Parse.type_args_constrained and standard treatment of sort constraints *)
-        Parse.opt_mixfix -- (@{keyword "="} |-- Parse.typ) --
-          (@{keyword "/"} |-- (partial -- Parse.term))  --
-          Scan.option (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding)))
-    >> quotient_type_cmd)
+    (quotspec_parser >> quotient_type_cmd)
 
 end;
