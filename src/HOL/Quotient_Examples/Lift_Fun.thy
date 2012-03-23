@@ -6,7 +6,7 @@ header {* Example of lifting definitions with contravariant or co/contravariant 
 
 
 theory Lift_Fun
-imports Main
+imports Main "~~/src/HOL/Library/Quotient_Syntax"
 begin
 
 text {* This file is meant as a test case for features introduced in the changeset 2d8949268303. 
@@ -62,6 +62,44 @@ proof -
   show "\<And>f g h i. map_endofun f g \<circ> map_endofun h i = map_endofun (f \<circ> h) (i \<circ> g)"
     by (auto simp: map_endofun_def map_endofun'_def map_fun_def fun_eq_iff) (simp add: a o_assoc) 
 qed
+
+text {* Relator for 'a endofun. *}
+
+definition
+  endofun_rel' :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> bool" 
+where
+  "endofun_rel' R = (\<lambda>f g. (R ===> R) f g)"
+
+quotient_definition "endofun_rel :: ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a endofun \<Rightarrow> 'b endofun \<Rightarrow> bool" is
+  endofun_rel' done
+
+lemma endofun_quotient:
+assumes a: "Quotient R Abs Rep"
+shows "Quotient (endofun_rel R) (map_endofun Abs Rep) (map_endofun Rep Abs)"
+proof (intro QuotientI)
+  show "\<And>a. map_endofun Abs Rep (map_endofun Rep Abs a) = a"
+    by (metis (hide_lams, no_types) a abs_o_rep id_apply map_endofun.comp map_endofun.id o_eq_dest_lhs)
+next
+  show "\<And>a. endofun_rel R (map_endofun Rep Abs a) (map_endofun Rep Abs a)"
+  using fun_quotient[OF a a, THEN Quotient_rep_reflp]
+  unfolding endofun_rel_def map_endofun_def map_fun_def o_def map_endofun'_def endofun_rel'_def id_def 
+    by (metis (mono_tags) Quotient_endofun rep_abs_rsp)
+next
+  show "\<And>r s. endofun_rel R r s =
+          (endofun_rel R r r \<and>
+           endofun_rel R s s \<and> map_endofun Abs Rep r = map_endofun Abs Rep s)"
+    apply(auto simp add: endofun_rel_def endofun_rel'_def map_endofun_def map_endofun'_def)
+    using fun_quotient[OF a a,THEN Quotient_refl1]
+    apply metis
+    using fun_quotient[OF a a,THEN Quotient_refl2]
+    apply metis
+    using fun_quotient[OF a a, THEN Quotient_rel]
+    apply metis
+    using fun_quotient[OF a a, THEN Quotient_rel]
+    by (smt Quotient_endofun rep_abs_rsp)
+qed
+
+declare [[map endofun = (endofun_rel, endofun_quotient)]]
 
 quotient_definition "endofun_id_id :: ('a endofun) endofun" is "id :: ('a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'a)" done
 
