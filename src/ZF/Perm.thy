@@ -505,6 +505,9 @@ apply (simp add: surj_def)
 apply (blast intro: apply_equality apply_Pair Pi_type)
 done
 
+lemma surj_image_eq: "f \<in> surj(A, B) ==> f``A = B"
+  by (auto simp add: surj_def image_fun) (blast dest: apply_type) 
+
 lemma restrict_image [simp]: "restrict(f,A) `` B = f `` (A \<inter> B)"
 by (auto simp add: restrict_def)
 

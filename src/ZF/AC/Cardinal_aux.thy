@@ -30,46 +30,32 @@ lemma lesspoll_imp_ex_lt_eqpoll:
      "[| A \<prec> i; Ord(i) |] ==> \<exists>j. j<i & A \<approx> j"
 by (unfold lesspoll_def, blast dest!: lepoll_imp_ex_le_eqpoll elim!: leE)
 
-lemma Inf_Ord_imp_InfCard_cardinal: "[| ~Finite(i); Ord(i) |] ==> InfCard(|i|)"
-apply (unfold InfCard_def)
-apply (rule conjI)
-apply (rule Card_cardinal)
-apply (rule Card_nat
-            [THEN Card_def [THEN def_imp_iff, THEN iffD1, THEN ssubst]])
-  -- "rewriting would loop!"
-apply (rule well_ord_Memrel [THEN well_ord_lepoll_imp_Card_le], assumption)
-apply (rule nat_le_infinite_Ord [THEN le_imp_lepoll], assumption+)
-done
-
-text{*An alternative and more general proof goes like this: A and B are both
-well-ordered (because they are injected into an ordinal), either @{term"A \<lesssim> B"}
-or @{term"B \<lesssim> A"}.  Also both are equipollent to their cardinalities, so
-(if A and B are infinite) then @{term"A \<union> B \<lesssim> |A\<oplus>B| \<longleftrightarrow> max(|A|,|B|) \<lesssim> i"}.
-In fact, the correctly strengthened version of this theorem appears below.*}
-lemma Un_lepoll_Inf_Ord_weak:
-     "[|A \<approx> i; B \<approx> i; \<not> Finite(i); Ord(i)|] ==> A \<union> B \<lesssim> i"
-apply (rule Un_lepoll_sum [THEN lepoll_trans])
-apply (rule lepoll_imp_sum_lepoll_prod [THEN lepoll_trans])
-apply (erule eqpoll_trans [THEN eqpoll_imp_lepoll])
-apply (erule eqpoll_sym)
-apply (rule subset_imp_lepoll [THEN lepoll_trans, THEN lepoll_trans])
-apply (rule nat_2I [THEN OrdmemD], rule Ord_nat)
-apply (rule nat_le_infinite_Ord [THEN le_imp_lepoll], assumption+)
-apply (erule eqpoll_sym [THEN eqpoll_imp_lepoll])
-apply (erule prod_eqpoll_cong [THEN eqpoll_imp_lepoll, THEN lepoll_trans],
-       assumption)
-apply (rule eqpoll_imp_lepoll)
-apply (rule well_ord_Memrel [THEN well_ord_InfCard_square_eq], assumption)
-apply (rule Inf_Ord_imp_InfCard_cardinal, assumption+)
-done
-
 lemma Un_eqpoll_Inf_Ord:
-     "[| A \<approx> i; B \<approx> i; ~Finite(i); Ord(i) |] ==> A \<union> B \<approx> i"
-apply (rule eqpollI)
-apply (blast intro: Un_lepoll_Inf_Ord_weak)
-apply (erule eqpoll_sym [THEN eqpoll_imp_lepoll, THEN lepoll_trans])
-apply (rule Un_upper1 [THEN subset_imp_lepoll])
-done
+  assumes A: "A \<approx> i" and B: "B \<approx> i" and NFI: "\<not> Finite(i)" and i: "Ord(i)"
+  shows "A \<union> B \<approx> i"
+proof (rule eqpollI)
+  have AB: "A \<approx> B" using A B by (blast intro: eqpoll_sym eqpoll_trans) 
+  have "2 \<lesssim> nat" 
+    by (rule subset_imp_lepoll) (rule OrdmemD [OF nat_2I Ord_nat]) 
+  also have "... \<lesssim> i" 
+    by (simp add: nat_le_infinite_Ord le_imp_lepoll NFI i)+
+  also have "... \<approx> A" by (blast intro: eqpoll_sym A) 
+  finally have "2 \<lesssim> A" .
+  have ICI: "InfCard(|i|)" 
+    by (simp add: Inf_Card_is_InfCard Finite_cardinal_iff NFI i) 
+  have "A \<union> B \<lesssim> A + B" by (rule Un_lepoll_sum)
+  also have "... \<lesssim> A \<times> B"
+    by (rule lepoll_imp_sum_lepoll_prod [OF AB [THEN eqpoll_imp_lepoll] `2 \<lesssim> A`])
+  also have "... \<approx> i \<times> i"
+    by (blast intro: prod_eqpoll_cong eqpoll_imp_lepoll A B) 
+  also have "... \<approx> i"
+    by (blast intro: well_ord_InfCard_square_eq well_ord_Memrel ICI i) 
+  finally show "A \<union> B \<lesssim> i" .
+next  
+  have "i \<approx> A" by (blast intro: A eqpoll_sym)
+  also have "... \<lesssim> A \<union> B" by (blast intro: subset_imp_lepoll) 
+  finally show "i \<lesssim> A \<union> B" .
+qed
 
 schematic_lemma paired_bij: "?f \<in> bij({{y,z}. y \<in> x}, x)"
 apply (rule RepFun_bijective)
@@ -82,8 +68,7 @@ by (unfold eqpoll_def, fast intro!: paired_bij)
 lemma ex_eqpoll_disjoint: "\<exists>B. B \<approx> A & B \<inter> C = 0"
 by (fast intro!: paired_eqpoll equals0I elim: mem_asym)
 
-(*Finally we reach this result.  Surely there's a simpler proof, as sketched
-  above?*)
+(*Finally we reach this result.  Surely there's a simpler proof?*)
 lemma Un_lepoll_Inf_Ord:
      "[| A \<lesssim> i; B \<lesssim> i; ~Finite(i); Ord(i) |] ==> A \<union> B \<lesssim> i"
 apply (rule_tac A1 = i and C1 = i in ex_eqpoll_disjoint [THEN exE])

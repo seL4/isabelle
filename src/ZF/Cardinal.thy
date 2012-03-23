@@ -445,7 +445,7 @@ done
 
 (*Infinite unions of cardinals?  See Devlin, Lemma 6.7, page 98*)
 
-lemma Card_cardinal: "Card(|A|)"
+lemma Card_cardinal [iff]: "Card(|A|)"
 proof (unfold cardinal_def)
   show "Card(\<mu> i. i \<approx> A)"
     proof (cases "\<exists>i. Ord (i) & i \<approx> A")
@@ -1105,6 +1105,9 @@ done
 lemma Finite_Pow_iff [iff]: "Finite(Pow(A)) \<longleftrightarrow> Finite(A)"
 by (blast intro: Finite_Pow Finite_Pow_imp_Finite)
 
+lemma Finite_cardinal_iff:
+  assumes i: "Ord(i)" shows "Finite(|i|) \<longleftrightarrow> Finite(i)"
+  by (auto simp add: Finite_def) (blast intro: eqpoll_trans eqpoll_sym Ord_cardinal_eqpoll [OF i])+
 
 
 (*Krzysztof Grabczewski's proof that the converse of a finite, well-ordered
