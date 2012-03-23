@@ -32,28 +32,29 @@ instantiation rat :: "{zero, one, plus, uminus, minus, times, ord, abs_if, sgn_i
 begin
 
 quotient_definition
-  "0 \<Colon> rat" is "(0\<Colon>int, 1\<Colon>int)"
+  "0 \<Colon> rat" is "(0\<Colon>int, 1\<Colon>int)" by simp
 
 quotient_definition
-  "1 \<Colon> rat" is "(1\<Colon>int, 1\<Colon>int)"
+  "1 \<Colon> rat" is "(1\<Colon>int, 1\<Colon>int)" by simp
 
 fun times_rat_raw where
   "times_rat_raw (a :: int, b :: int) (c, d) = (a * c, b * d)"
 
 quotient_definition
-  "(op *) :: (rat \<Rightarrow> rat \<Rightarrow> rat)" is times_rat_raw
+  "(op *) :: (rat \<Rightarrow> rat \<Rightarrow> rat)" is times_rat_raw by (auto simp add: mult_assoc mult_left_commute)
 
 fun plus_rat_raw where
   "plus_rat_raw (a :: int, b :: int) (c, d) = (a * d + c * b, b * d)"
 
 quotient_definition
-  "(op +) :: (rat \<Rightarrow> rat \<Rightarrow> rat)" is plus_rat_raw
+  "(op +) :: (rat \<Rightarrow> rat \<Rightarrow> rat)" is plus_rat_raw 
+  by (auto simp add: mult_commute mult_left_commute int_distrib(2))
 
 fun uminus_rat_raw where
   "uminus_rat_raw (a :: int, b :: int) = (-a, b)"
 
 quotient_definition
-  "(uminus \<Colon> (rat \<Rightarrow> rat))" is "uminus_rat_raw"
+  "(uminus \<Colon> (rat \<Rightarrow> rat))" is "uminus_rat_raw" by fastforce
 
 definition
   minus_rat_def: "a - b = a + (-b\<Colon>rat)"
@@ -63,6 +64,32 @@ fun le_rat_raw where
 
 quotient_definition
   "(op \<le>) :: rat \<Rightarrow> rat \<Rightarrow> bool" is "le_rat_raw"
+proof -
+  {
+    fix a b c d e f g h :: int
+    assume "a * f * (b * f) \<le> e * b * (b * f)"
+    then have le: "a * f * b * f \<le> e * b * b * f" by simp
+    assume nz: "b \<noteq> 0" "d \<noteq> 0" "f \<noteq> 0" "h \<noteq> 0"
+    then have b2: "b * b > 0"
+      by (metis linorder_neqE_linordered_idom mult_eq_0_iff not_square_less_zero)
+    have f2: "f * f > 0" using nz(3)
+      by (metis linorder_neqE_linordered_idom mult_eq_0_iff not_square_less_zero)
+    assume eq: "a * d = c * b" "e * h = g * f"
+    have "a * f * b * f * d * d \<le> e * b * b * f * d * d" using le nz(2)
+      by (metis linorder_le_cases mult_right_mono mult_right_mono_neg)
+    then have "c * f * f * d * (b * b) \<le> e * f * d * d * (b * b)" using eq
+      by (metis (no_types) mult_assoc mult_commute)
+    then have "c * f * f * d \<le> e * f * d * d" using b2
+      by (metis leD linorder_le_less_linear mult_strict_right_mono)
+    then have "c * f * f * d * h * h \<le> e * f * d * d * h * h" using nz(4)
+      by (metis linorder_le_cases mult_right_mono mult_right_mono_neg)
+    then have "c * h * (d * h) * (f * f) \<le> g * d * (d * h) * (f * f)" using eq
+      by (metis (no_types) mult_assoc mult_commute)
+    then have "c * h * (d * h) \<le> g * d * (d * h)" using f2
+      by (metis leD linorder_le_less_linear mult_strict_right_mono)
+  }
+  then show "\<And>x y xa ya. x \<approx> y \<Longrightarrow> xa \<approx> ya \<Longrightarrow> le_rat_raw x xa = le_rat_raw y ya" by auto
+qed
 
 definition
   less_rat_def: "(z\<Colon>rat) < w = (z \<le> w \<and> z \<noteq> w)"
@@ -83,14 +110,7 @@ definition
 where [simp]: "Fract_raw a b = (if b = 0 then (0, 1) else (a, b))"
 
 quotient_definition "Fract :: int \<Rightarrow> int \<Rightarrow> rat" is
-  Fract_raw
-
-lemma [quot_respect]:
-  "(op \<approx> ===> op \<approx> ===> op \<approx>) times_rat_raw times_rat_raw"
-  "(op \<approx> ===> op \<approx> ===> op \<approx>) plus_rat_raw plus_rat_raw"
-  "(op \<approx> ===> op \<approx>) uminus_rat_raw uminus_rat_raw"
-  "(op = ===> op = ===> op \<approx>) Fract_raw Fract_raw"
-  by (auto intro!: fun_relI simp add: mult_assoc mult_commute mult_left_commute int_distrib(2))
+  Fract_raw by simp
 
 lemmas [simp] = Respects_def
 
@@ -156,14 +176,10 @@ fun rat_inverse_raw where
   "rat_inverse_raw (a :: int, b :: int) = (if a = 0 then (0, 1) else (b, a))"
 
 quotient_definition
-  "inverse :: rat \<Rightarrow> rat" is rat_inverse_raw
+  "inverse :: rat \<Rightarrow> rat" is rat_inverse_raw by (force simp add: mult_commute)
 
 definition
   divide_rat_def: "q / r = q * inverse (r::rat)"
-
-lemma [quot_respect]:
-  "(op \<approx> ===> op \<approx>) rat_inverse_raw rat_inverse_raw"
-  by (auto intro!: fun_relI simp add: mult_commute)
 
 instance proof
   fix q :: rat
@@ -178,34 +194,6 @@ next
 qed
 
 end
-
-lemma [quot_respect]: "(op \<approx> ===> op \<approx> ===> op =) le_rat_raw le_rat_raw"
-proof -
-  {
-    fix a b c d e f g h :: int
-    assume "a * f * (b * f) \<le> e * b * (b * f)"
-    then have le: "a * f * b * f \<le> e * b * b * f" by simp
-    assume nz: "b \<noteq> 0" "d \<noteq> 0" "f \<noteq> 0" "h \<noteq> 0"
-    then have b2: "b * b > 0"
-      by (metis linorder_neqE_linordered_idom mult_eq_0_iff not_square_less_zero)
-    have f2: "f * f > 0" using nz(3)
-      by (metis linorder_neqE_linordered_idom mult_eq_0_iff not_square_less_zero)
-    assume eq: "a * d = c * b" "e * h = g * f"
-    have "a * f * b * f * d * d \<le> e * b * b * f * d * d" using le nz(2)
-      by (metis linorder_le_cases mult_right_mono mult_right_mono_neg)
-    then have "c * f * f * d * (b * b) \<le> e * f * d * d * (b * b)" using eq
-      by (metis (no_types) mult_assoc mult_commute)
-    then have "c * f * f * d \<le> e * f * d * d" using b2
-      by (metis leD linorder_le_less_linear mult_strict_right_mono)
-    then have "c * f * f * d * h * h \<le> e * f * d * d * h * h" using nz(4)
-      by (metis linorder_le_cases mult_right_mono mult_right_mono_neg)
-    then have "c * h * (d * h) * (f * f) \<le> g * d * (d * h) * (f * f)" using eq
-      by (metis (no_types) mult_assoc mult_commute)
-    then have "c * h * (d * h) \<le> g * d * (d * h)" using f2
-      by (metis leD linorder_le_less_linear mult_strict_right_mono)
-  }
-  then show ?thesis by (auto intro!: fun_relI)
-qed
 
 instantiation rat :: linorder
 begin

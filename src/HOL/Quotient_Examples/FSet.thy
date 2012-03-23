@@ -179,140 +179,6 @@ lemma quotient_compose_list[quot_thm]:
   by (rule quotient_compose_list_g, rule Quotient_fset, rule list_eq_equivp)
 
 
-
-subsection {* Respectfulness lemmas for list operations *}
-
-lemma list_equiv_rsp [quot_respect]:
-  shows "(op \<approx> ===> op \<approx> ===> op =) op \<approx> op \<approx>"
-  by (auto intro!: fun_relI)
-
-lemma append_rsp [quot_respect]:
-  shows "(op \<approx> ===> op \<approx> ===> op \<approx>) append append"
-  by (auto intro!: fun_relI)
-
-lemma sub_list_rsp [quot_respect]:
-  shows "(op \<approx> ===> op \<approx> ===> op =) sub_list sub_list"
-  by (auto intro!: fun_relI)
-
-lemma member_rsp [quot_respect]:
-  shows "(op \<approx> ===> op =) List.member List.member"
-proof
-  fix x y assume "x \<approx> y"
-  then show "List.member x = List.member y"
-    unfolding fun_eq_iff by simp
-qed
-
-lemma nil_rsp [quot_respect]:
-  shows "(op \<approx>) Nil Nil"
-  by simp
-
-lemma cons_rsp [quot_respect]:
-  shows "(op = ===> op \<approx> ===> op \<approx>) Cons Cons"
-  by (auto intro!: fun_relI)
-
-lemma map_rsp [quot_respect]:
-  shows "(op = ===> op \<approx> ===> op \<approx>) map map"
-  by (auto intro!: fun_relI)
-
-lemma set_rsp [quot_respect]:
-  "(op \<approx> ===> op =) set set"
-  by (auto intro!: fun_relI)
-
-lemma inter_list_rsp [quot_respect]:
-  shows "(op \<approx> ===> op \<approx> ===> op \<approx>) inter_list inter_list"
-  by (auto intro!: fun_relI)
-
-lemma removeAll_rsp [quot_respect]:
-  shows "(op = ===> op \<approx> ===> op \<approx>) removeAll removeAll"
-  by (auto intro!: fun_relI)
-
-lemma diff_list_rsp [quot_respect]:
-  shows "(op \<approx> ===> op \<approx> ===> op \<approx>) diff_list diff_list"
-  by (auto intro!: fun_relI)
-
-lemma card_list_rsp [quot_respect]:
-  shows "(op \<approx> ===> op =) card_list card_list"
-  by (auto intro!: fun_relI)
-
-lemma filter_rsp [quot_respect]:
-  shows "(op = ===> op \<approx> ===> op \<approx>) filter filter"
-  by (auto intro!: fun_relI)
-
-lemma remdups_removeAll: (*FIXME move*)
-  "remdups (removeAll x xs) = remove1 x (remdups xs)"
-  by (induct xs) auto
-
-lemma member_commute_fold_once:
-  assumes "rsp_fold f"
-    and "x \<in> set xs"
-  shows "fold_once f xs = fold_once f (removeAll x xs) \<circ> f x"
-proof -
-  from assms have "fold f (remdups xs) = fold f (remove1 x (remdups xs)) \<circ> f x"
-    by (auto intro!: fold_remove1_split elim: rsp_foldE)
-  then show ?thesis using `rsp_fold f` by (simp add: fold_once_fold_remdups remdups_removeAll)
-qed
-
-lemma fold_once_set_equiv:
-  assumes "xs \<approx> ys"
-  shows "fold_once f xs = fold_once f ys"
-proof (cases "rsp_fold f")
-  case False then show ?thesis by simp
-next
-  case True
-  then have "\<And>x y. x \<in> set (remdups xs) \<Longrightarrow> y \<in> set (remdups xs) \<Longrightarrow> f x \<circ> f y = f y \<circ> f x"
-    by (rule rsp_foldE)
-  moreover from assms have "multiset_of (remdups xs) = multiset_of (remdups ys)"
-    by (simp add: set_eq_iff_multiset_of_remdups_eq)
-  ultimately have "fold f (remdups xs) = fold f (remdups ys)"
-    by (rule fold_multiset_equiv)
-  with True show ?thesis by (simp add: fold_once_fold_remdups)
-qed
-
-lemma fold_once_rsp [quot_respect]:
-  shows "(op = ===> op \<approx> ===> op =) fold_once fold_once"
-  unfolding fun_rel_def by (auto intro: fold_once_set_equiv) 
-
-lemma concat_rsp_pre:
-  assumes a: "list_all2 op \<approx> x x'"
-  and     b: "x' \<approx> y'"
-  and     c: "list_all2 op \<approx> y' y"
-  and     d: "\<exists>x\<in>set x. xa \<in> set x"
-  shows "\<exists>x\<in>set y. xa \<in> set x"
-proof -
-  obtain xb where e: "xb \<in> set x" and f: "xa \<in> set xb" using d by auto
-  have "\<exists>y. y \<in> set x' \<and> xb \<approx> y" by (rule list_all2_find_element[OF e a])
-  then obtain ya where h: "ya \<in> set x'" and i: "xb \<approx> ya" by auto
-  have "ya \<in> set y'" using b h by simp
-  then have "\<exists>yb. yb \<in> set y \<and> ya \<approx> yb" using c by (rule list_all2_find_element)
-  then show ?thesis using f i by auto
-qed
-
-lemma concat_rsp [quot_respect]:
-  shows "(list_all2 op \<approx> OOO op \<approx> ===> op \<approx>) concat concat"
-proof (rule fun_relI, elim pred_compE)
-  fix a b ba bb
-  assume a: "list_all2 op \<approx> a ba"
-  with list_symp [OF list_eq_symp] have a': "list_all2 op \<approx> ba a" by (rule sympE)
-  assume b: "ba \<approx> bb"
-  with list_eq_symp have b': "bb \<approx> ba" by (rule sympE)
-  assume c: "list_all2 op \<approx> bb b"
-  with list_symp [OF list_eq_symp] have c': "list_all2 op \<approx> b bb" by (rule sympE)
-  have "\<forall>x. (\<exists>xa\<in>set a. x \<in> set xa) = (\<exists>xa\<in>set b. x \<in> set xa)" 
-  proof
-    fix x
-    show "(\<exists>xa\<in>set a. x \<in> set xa) = (\<exists>xa\<in>set b. x \<in> set xa)" 
-    proof
-      assume d: "\<exists>xa\<in>set a. x \<in> set xa"
-      show "\<exists>xa\<in>set b. x \<in> set xa" by (rule concat_rsp_pre[OF a b c d])
-    next
-      assume e: "\<exists>xa\<in>set b. x \<in> set xa"
-      show "\<exists>xa\<in>set a. x \<in> set xa" by (rule concat_rsp_pre[OF c' b' a' e])
-    qed
-  qed
-  then show "concat a \<approx> concat b" by auto
-qed
-
-
 section {* Quotient definitions for fsets *}
 
 
@@ -323,7 +189,7 @@ begin
 
 quotient_definition
   "bot :: 'a fset" 
-  is "Nil :: 'a list"
+  is "Nil :: 'a list" done
 
 abbreviation
   empty_fset  ("{||}")
@@ -332,7 +198,7 @@ where
 
 quotient_definition
   "less_eq_fset :: ('a fset \<Rightarrow> 'a fset \<Rightarrow> bool)"
-  is "sub_list :: ('a list \<Rightarrow> 'a list \<Rightarrow> bool)"
+  is "sub_list :: ('a list \<Rightarrow> 'a list \<Rightarrow> bool)" by simp
 
 abbreviation
   subset_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<subseteq>|" 50)
@@ -351,7 +217,7 @@ where
 
 quotient_definition
   "sup :: 'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset"
-  is "append :: 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
+  is "append :: 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" by simp
 
 abbreviation
   union_fset (infixl "|\<union>|" 65)
@@ -360,7 +226,7 @@ where
 
 quotient_definition
   "inf :: 'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset"
-  is "inter_list :: 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
+  is "inter_list :: 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" by simp
 
 abbreviation
   inter_fset (infixl "|\<inter>|" 65)
@@ -369,7 +235,7 @@ where
 
 quotient_definition
   "minus :: 'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset"
-  is "diff_list :: 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
+  is "diff_list :: 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" by fastforce
 
 instance
 proof
@@ -413,7 +279,7 @@ subsection {* Other constants for fsets *}
 
 quotient_definition
   "insert_fset :: 'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset"
-  is "Cons"
+  is "Cons" by auto
 
 syntax
   "_insert_fset"     :: "args => 'a fset"  ("{|(_)|}")
@@ -425,7 +291,7 @@ translations
 quotient_definition
   fset_member
 where
-  "fset_member :: 'a fset \<Rightarrow> 'a \<Rightarrow> bool" is "List.member"
+  "fset_member :: 'a fset \<Rightarrow> 'a \<Rightarrow> bool" is "List.member" by fastforce
 
 abbreviation
   in_fset :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<in>|" 50)
@@ -442,31 +308,84 @@ subsection {* Other constants on the Quotient Type *}
 
 quotient_definition
   "card_fset :: 'a fset \<Rightarrow> nat"
-  is card_list
+  is card_list by simp
 
 quotient_definition
   "map_fset :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a fset \<Rightarrow> 'b fset"
-  is map
+  is map by simp
 
 quotient_definition
   "remove_fset :: 'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset"
-  is removeAll
+  is removeAll by simp
 
 quotient_definition
   "fset :: 'a fset \<Rightarrow> 'a set"
-  is "set"
+  is "set" by simp
+
+lemma fold_once_set_equiv:
+  assumes "xs \<approx> ys"
+  shows "fold_once f xs = fold_once f ys"
+proof (cases "rsp_fold f")
+  case False then show ?thesis by simp
+next
+  case True
+  then have "\<And>x y. x \<in> set (remdups xs) \<Longrightarrow> y \<in> set (remdups xs) \<Longrightarrow> f x \<circ> f y = f y \<circ> f x"
+    by (rule rsp_foldE)
+  moreover from assms have "multiset_of (remdups xs) = multiset_of (remdups ys)"
+    by (simp add: set_eq_iff_multiset_of_remdups_eq)
+  ultimately have "fold f (remdups xs) = fold f (remdups ys)"
+    by (rule fold_multiset_equiv)
+  with True show ?thesis by (simp add: fold_once_fold_remdups)
+qed
 
 quotient_definition
   "fold_fset :: ('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a fset \<Rightarrow> 'b \<Rightarrow> 'b"
-  is fold_once
+  is fold_once by (rule fold_once_set_equiv)
+
+lemma concat_rsp_pre:
+  assumes a: "list_all2 op \<approx> x x'"
+  and     b: "x' \<approx> y'"
+  and     c: "list_all2 op \<approx> y' y"
+  and     d: "\<exists>x\<in>set x. xa \<in> set x"
+  shows "\<exists>x\<in>set y. xa \<in> set x"
+proof -
+  obtain xb where e: "xb \<in> set x" and f: "xa \<in> set xb" using d by auto
+  have "\<exists>y. y \<in> set x' \<and> xb \<approx> y" by (rule list_all2_find_element[OF e a])
+  then obtain ya where h: "ya \<in> set x'" and i: "xb \<approx> ya" by auto
+  have "ya \<in> set y'" using b h by simp
+  then have "\<exists>yb. yb \<in> set y \<and> ya \<approx> yb" using c by (rule list_all2_find_element)
+  then show ?thesis using f i by auto
+qed
 
 quotient_definition
   "concat_fset :: ('a fset) fset \<Rightarrow> 'a fset"
-  is concat
+  is concat 
+proof (elim pred_compE)
+fix a b ba bb
+  assume a: "list_all2 op \<approx> a ba"
+  with list_symp [OF list_eq_symp] have a': "list_all2 op \<approx> ba a" by (rule sympE)
+  assume b: "ba \<approx> bb"
+  with list_eq_symp have b': "bb \<approx> ba" by (rule sympE)
+  assume c: "list_all2 op \<approx> bb b"
+  with list_symp [OF list_eq_symp] have c': "list_all2 op \<approx> b bb" by (rule sympE)
+  have "\<forall>x. (\<exists>xa\<in>set a. x \<in> set xa) = (\<exists>xa\<in>set b. x \<in> set xa)" 
+  proof
+    fix x
+    show "(\<exists>xa\<in>set a. x \<in> set xa) = (\<exists>xa\<in>set b. x \<in> set xa)" 
+    proof
+      assume d: "\<exists>xa\<in>set a. x \<in> set xa"
+      show "\<exists>xa\<in>set b. x \<in> set xa" by (rule concat_rsp_pre[OF a b c d])
+    next
+      assume e: "\<exists>xa\<in>set b. x \<in> set xa"
+      show "\<exists>xa\<in>set a. x \<in> set xa" by (rule concat_rsp_pre[OF c' b' a' e])
+    qed
+  qed
+  then show "concat a \<approx> concat b" by auto
+qed
 
 quotient_definition
   "filter_fset :: ('a \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> 'a fset"
-  is filter
+  is filter by force
 
 
 subsection {* Compositional respectfulness and preservation lemmas *}
@@ -538,7 +457,7 @@ lemma compositional_rsp3:
 
 lemma append_rsp2 [quot_respect]:
   "(list_all2 op \<approx> OOO op \<approx> ===> list_all2 op \<approx> OOO op \<approx> ===> list_all2 op \<approx> OOO op \<approx>) append append"
-  by (intro compositional_rsp3 append_rsp)
+  by (intro compositional_rsp3)
      (auto intro!: fun_relI simp add: append_rsp2_pre)
 
 lemma map_rsp2 [quot_respect]:
@@ -967,6 +886,20 @@ lemma fold_insert_fset: "fold_fset f (insert_fset a A) =
   (if rsp_fold f then if a |\<in>| A then fold_fset f A else fold_fset f A \<circ> f a else id)"
   by descending (simp add: fold_once_fold_remdups)
 
+lemma remdups_removeAll:
+  "remdups (removeAll x xs) = remove1 x (remdups xs)"
+  by (induct xs) auto
+
+lemma member_commute_fold_once:
+  assumes "rsp_fold f"
+    and "x \<in> set xs"
+  shows "fold_once f xs = fold_once f (removeAll x xs) \<circ> f x"
+proof -
+  from assms have "fold f (remdups xs) = fold f (remove1 x (remdups xs)) \<circ> f x"
+    by (auto intro!: fold_remove1_split elim: rsp_foldE)
+  then show ?thesis using `rsp_fold f` by (simp add: fold_once_fold_remdups remdups_removeAll)
+qed
+
 lemma in_commute_fold_fset:
   "rsp_fold f \<Longrightarrow> h |\<in>| b \<Longrightarrow> fold_fset f b = fold_fset f (remove_fset h b) \<circ> f h"
   by descending (simp add: member_commute_fold_once)
@@ -1170,7 +1103,7 @@ next
       then have e': "List.member r a" using list_eq_def [simplified List.member_def [symmetric], of l r] b 
         by auto
       have f: "card_list (removeAll a l) = m" using e d by (simp)
-      have g: "removeAll a l \<approx> removeAll a r" using removeAll_rsp b by simp
+      have g: "removeAll a l \<approx> removeAll a r" using remove_fset_rsp b by simp
       have "(removeAll a l) \<approx>2 (removeAll a r)" by (rule Suc.hyps[OF f g])
       then have h: "(a # removeAll a l) \<approx>2 (a # removeAll a r)" by (rule list_eq2.intros(5))
       have i: "l \<approx>2 (a # removeAll a l)"

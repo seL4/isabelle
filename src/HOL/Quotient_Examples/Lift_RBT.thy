@@ -18,7 +18,7 @@ qed
 local_setup {* fn lthy =>
 let
   val quotients = {qtyp = @{typ "('a, 'b) rbt"}, rtyp = @{typ "('a, 'b) RBT_Impl.rbt"},
-    equiv_rel = @{term "dummy"}, equiv_thm = @{thm refl}}
+    equiv_rel = @{term "op ="}, equiv_thm = @{thm refl}}
   val qty_full_name = @{type_name "rbt"}
 
   fun qinfo phi = Quotient_Info.transform_quotients phi quotients
@@ -50,6 +50,7 @@ lemma RBT_impl_of [simp, code abstype]:
 subsection {* Primitive operations *}
 
 quotient_definition lookup where "lookup :: ('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'a \<rightharpoonup> 'b" is "RBT_Impl.lookup"
+done
 
 declare lookup_def[unfolded map_fun_def comp_def id_def, code]
 
@@ -67,21 +68,21 @@ Similar issue for quotient_definition for entries, keys, map, and fold.
 *)
 
 quotient_definition empty where "empty :: ('a\<Colon>linorder, 'b) rbt"
-is "(RBT_Impl.Empty :: ('a\<Colon>linorder, 'b) RBT_Impl.rbt)"
+is "(RBT_Impl.Empty :: ('a\<Colon>linorder, 'b) RBT_Impl.rbt)" done
 
 lemma impl_of_empty [code abstract]:
   "impl_of empty = RBT_Impl.Empty"
   by (simp add: empty_def RBT_inverse)
 
 quotient_definition insert where "insert :: 'a\<Colon>linorder \<Rightarrow> 'b \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt"
-is "RBT_Impl.insert"
+is "RBT_Impl.insert" done
 
 lemma impl_of_insert [code abstract]:
   "impl_of (insert k v t) = RBT_Impl.insert k v (impl_of t)"
   by (simp add: insert_def RBT_inverse)
 
 quotient_definition delete where "delete :: 'a\<Colon>linorder \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt"
-is "RBT_Impl.delete"
+is "RBT_Impl.delete" done
 
 lemma impl_of_delete [code abstract]:
   "impl_of (delete k t) = RBT_Impl.delete k (impl_of t)"
@@ -89,24 +90,24 @@ lemma impl_of_delete [code abstract]:
 
 (* FIXME: unnecessary type annotations *)
 quotient_definition "entries :: ('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a \<times> 'b) list"
-is "RBT_Impl.entries :: ('a\<Colon>linorder, 'b) RBT_Impl.rbt \<Rightarrow> ('a \<times> 'b) list"
+is "RBT_Impl.entries :: ('a\<Colon>linorder, 'b) RBT_Impl.rbt \<Rightarrow> ('a \<times> 'b) list" done
 
 lemma [code]: "entries t = RBT_Impl.entries (impl_of t)"
 unfolding entries_def map_fun_def comp_def id_def ..
 
 (* FIXME: unnecessary type annotations *)
 quotient_definition "keys :: ('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'a list"
-is "RBT_Impl.keys :: ('a\<Colon>linorder, 'b) RBT_Impl.rbt \<Rightarrow> 'a list"
+is "RBT_Impl.keys :: ('a\<Colon>linorder, 'b) RBT_Impl.rbt \<Rightarrow> 'a list" done
 
 quotient_definition "bulkload :: ('a\<Colon>linorder \<times> 'b) list \<Rightarrow> ('a, 'b) rbt"
-is "RBT_Impl.bulkload"
+is "RBT_Impl.bulkload" done
 
 lemma impl_of_bulkload [code abstract]:
   "impl_of (bulkload xs) = RBT_Impl.bulkload xs"
   by (simp add: bulkload_def RBT_inverse)
 
 quotient_definition "map_entry :: 'a \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a, 'b) rbt"
-is "RBT_Impl.map_entry"
+is "RBT_Impl.map_entry" done
 
 lemma impl_of_map_entry [code abstract]:
   "impl_of (map_entry k f t) = RBT_Impl.map_entry k f (impl_of t)"
@@ -115,13 +116,15 @@ lemma impl_of_map_entry [code abstract]:
 (* FIXME: unnecesary type annotations *)
 quotient_definition map where "map :: ('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a, 'b) rbt"
 is "RBT_Impl.map :: ('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a\<Colon>linorder, 'b) RBT_Impl.rbt \<Rightarrow> ('a, 'b) RBT_Impl.rbt"
+done
 
 lemma impl_of_map [code abstract]:
   "impl_of (map f t) = RBT_Impl.map f (impl_of t)"
   by (simp add: map_def RBT_inverse)
 
 (* FIXME: unnecessary type annotations *)
-quotient_definition fold where "fold :: ('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'c \<Rightarrow> 'c" is "RBT_Impl.fold :: ('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a\<Colon>linorder, 'b) RBT_Impl.rbt \<Rightarrow> 'c \<Rightarrow> 'c"
+quotient_definition fold where "fold :: ('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'c \<Rightarrow> 'c" 
+is "RBT_Impl.fold :: ('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a\<Colon>linorder, 'b) RBT_Impl.rbt \<Rightarrow> 'c \<Rightarrow> 'c" done
 
 lemma [code]: "fold f t = RBT_Impl.fold f (impl_of t)"
 unfolding fold_def map_fun_def comp_def id_def ..

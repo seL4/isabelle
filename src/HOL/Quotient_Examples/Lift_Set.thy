@@ -20,7 +20,7 @@ local_setup {* fn lthy =>
   let
     val quotients =
       {qtyp = @{typ "'a set"}, rtyp = @{typ "'a => bool"},
-        equiv_rel = @{term "dummy"}, equiv_thm = @{thm refl}}
+        equiv_rel = @{term "op ="}, equiv_thm = @{thm refl}}
     val qty_full_name = @{type_name "set"}
 
     fun qinfo phi = Quotient_Info.transform_quotients phi quotients
@@ -37,7 +37,7 @@ local_setup {* fn lthy =>
 text {* Now, we can employ quotient_definition to lift definitions. *}
 
 quotient_definition empty where "empty :: 'a set"
-is "bot :: 'a \<Rightarrow> bool"
+is "bot :: 'a \<Rightarrow> bool" done
 
 term "Lift_Set.empty"
 thm Lift_Set.empty_def
@@ -46,7 +46,7 @@ definition insertp :: "'a \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a
   "insertp x P y \<longleftrightarrow> y = x \<or> P y"
 
 quotient_definition insert where "insert :: 'a => 'a set => 'a set"
-is insertp
+is insertp done
 
 term "Lift_Set.insert"
 thm Lift_Set.insert_def

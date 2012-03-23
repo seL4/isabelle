@@ -88,45 +88,32 @@ text {* respectfulness and constant definitions *}
 definition [simp]: "card_remdups = length \<circ> remdups"
 definition [simp]: "foldr_remdups f xs e = foldr f (remdups xs) e"
 
-lemma [quot_respect]:
-  "(dlist_eq) Nil Nil"
-  "(dlist_eq ===> op =) List.member List.member"
-  "(op = ===> dlist_eq ===> dlist_eq) Cons Cons"
-  "(op = ===> dlist_eq ===> dlist_eq) removeAll removeAll"
-  "(dlist_eq ===> op =) card_remdups card_remdups"
-  "(dlist_eq ===> op =) remdups remdups"
-  "(op = ===> dlist_eq ===> op =) foldr_remdups foldr_remdups"
-  "(op = ===> dlist_eq ===> dlist_eq) map map"
-  "(op = ===> dlist_eq ===> dlist_eq) filter filter"
-  by (auto intro!: fun_relI simp add: remdups_filter)
-     (metis (full_types) set_remdups remdups_eq_map_eq remdups_eq_member_eq)+
-
 quotient_definition empty where "empty :: 'a dlist"
-  is "Nil"
+  is "Nil" done
 
 quotient_definition insert where "insert :: 'a \<Rightarrow> 'a dlist \<Rightarrow> 'a dlist"
-  is "Cons"
+  is "Cons" by (metis (mono_tags) List.insert_def dlist_eq_def remdups.simps(2) set_remdups)
 
 quotient_definition "member :: 'a dlist \<Rightarrow> 'a \<Rightarrow> bool"
-  is "List.member"
+  is "List.member" by (metis dlist_eq_def remdups_eq_member_eq)
 
 quotient_definition foldr where "foldr :: ('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a dlist \<Rightarrow> 'b \<Rightarrow> 'b"
-  is "foldr_remdups"
+  is "foldr_remdups" by auto
 
 quotient_definition "remove :: 'a \<Rightarrow> 'a dlist \<Rightarrow> 'a dlist"
-  is "removeAll"
+  is "removeAll" by force
 
 quotient_definition card where "card :: 'a dlist \<Rightarrow> nat"
-  is "card_remdups"
+  is "card_remdups" by fastforce
 
 quotient_definition map where "map :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a dlist \<Rightarrow> 'b dlist"
-  is "List.map :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list"
+  is "List.map :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list" by (metis dlist_eq_def remdups_eq_map_eq)
 
 quotient_definition filter where "filter :: ('a \<Rightarrow> bool) \<Rightarrow> 'a dlist \<Rightarrow> 'a dlist"
-  is "List.filter"
+  is "List.filter" by (metis dlist_eq_def remdups_filter)
 
 quotient_definition "list_of_dlist :: 'a dlist \<Rightarrow> 'a list"
-  is "remdups"
+  is "remdups" by simp
 
 text {* lifted theorems *}
 
