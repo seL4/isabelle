@@ -248,7 +248,7 @@ then
   ) || fail "Failed to compile sources"
 
   cd dist/classes
-  jar cf "../jars/Isabelle-jEdit.jar" * || failed
+  "$ISABELLE_JDK_HOME/bin/jar" cf "../jars/Isabelle-jEdit.jar" * || failed
   cd ../..
   rm -rf dist/classes
 fi

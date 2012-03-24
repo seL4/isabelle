@@ -51,7 +51,7 @@ object Isabelle_System
       val settings =
       {
         val env = Map(System.getenv.toList: _*) +
-          ("THIS_JAVA" -> standard_system.this_java())
+          ("ISABELLE_JDK_HOME" -> standard_system.this_jdk_home())
 
         val isabelle_home =
           if (this_isabelle_home != null) this_isabelle_home

@@ -43,6 +43,7 @@ object GUI_Setup extends SwingApplication
       text.append("Cygwin root: " + Cygwin.check_root() + "\n")
     text.append("JVM name: " + Platform.jvm_name + "\n")
     text.append("JVM platform: " + Platform.jvm_platform + "\n")
+    text.append("JVM home: " + java.lang.System.getProperty("java.home") + "\n")
     try {
       Isabelle_System.init()
       text.append("ML platform: " + Isabelle_System.getenv("ML_PLATFORM") + "\n")
@@ -50,7 +51,7 @@ object GUI_Setup extends SwingApplication
       val platform64 = Isabelle_System.getenv("ISABELLE_PLATFORM64")
       if (platform64 != "") text.append("Isabelle platform (64 bit): " + platform64 + "\n")
       text.append("Isabelle home: " + Isabelle_System.getenv("ISABELLE_HOME") + "\n")
-      text.append("Isabelle java: " + Isabelle_System.getenv("THIS_JAVA") + "\n")
+      text.append("Isabelle jdk home: " + Isabelle_System.getenv("ISABELLE_JDK_HOME") + "\n")
     }
     catch { case ERROR(msg) => text.append(msg + "\n") }
 
