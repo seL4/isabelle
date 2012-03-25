@@ -66,6 +66,7 @@ fun one_of T = Const(@{const_name Groups.one}, T);
 (* build product with trailing 1 rather than Numeral 1 in order to avoid the
    unnecessary restriction to type class number_ring
    which is not required for cancellation of common factors in divisions.
+   UPDATE: this reasoning no longer applies (number_ring is gone)
 *)
 fun mk_prod T = 
   let val one = one_of T
@@ -148,22 +149,24 @@ fun num_ord (i,j) =
 
 (*This resembles Term_Ord.term_ord, but it puts binary numerals before other
   non-atomic terms.*)
-local open Term 
-in 
-fun numterm_ord (Abs (_, T, t), Abs(_, U, u)) =
-      (case numterm_ord (t, u) of EQUAL => Term_Ord.typ_ord (T, U) | ord => ord)
-  | numterm_ord
-     (Const(@{const_name Int.number_of}, _) $ v, Const(@{const_name Int.number_of}, _) $ w) =
-     num_ord (HOLogic.dest_numeral v, HOLogic.dest_numeral w)
-  | numterm_ord (Const(@{const_name Int.number_of}, _) $ _, _) = LESS
-  | numterm_ord (_, Const(@{const_name Int.number_of}, _) $ _) = GREATER
-  | numterm_ord (t, u) =
-      (case int_ord (size_of_term t, size_of_term u) of
-        EQUAL =>
+local open Term
+in
+fun numterm_ord (t, u) =
+    case (try HOLogic.dest_number t, try HOLogic.dest_number u) of
+      (SOME (_, i), SOME (_, j)) => num_ord (i, j)
+    | (SOME _, NONE) => LESS
+    | (NONE, SOME _) => GREATER
+    | _ => (
+      case (t, u) of
+        (Abs (_, T, t), Abs(_, U, u)) =>
+        (prod_ord numterm_ord Term_Ord.typ_ord ((t, T), (u, U)))
+      | _ => (
+        case int_ord (size_of_term t, size_of_term u) of
+          EQUAL =>
           let val (f, ts) = strip_comb t and (g, us) = strip_comb u in
-            (case Term_Ord.hd_ord (f, g) of EQUAL => numterms_ord (ts, us) | ord => ord)
+            (prod_ord Term_Ord.hd_ord numterms_ord ((f, ts), (g, us)))
           end
-      | ord => ord)
+        | ord => ord))
 and numterms_ord (ts, us) = list_ord numterm_ord (ts, us)
 end;
 
@@ -171,16 +174,16 @@ fun numtermless tu = (numterm_ord tu = LESS);
 
 val num_ss = HOL_basic_ss |> Simplifier.set_termless numtermless;
 
-(*Maps 0 to Numeral0 and 1 to Numeral1 so that arithmetic isn't complicated by the abstract 0 and 1.*)
-val numeral_syms = [@{thm numeral_0_eq_0} RS sym, @{thm numeral_1_eq_1} RS sym];
+(*Maps 1 to Numeral1 so that arithmetic isn't complicated by the abstract 1.*)
+val numeral_syms = [@{thm numeral_1_eq_1} RS sym];
 
-(*Simplify Numeral0+n, n+Numeral0, Numeral1*n, n*Numeral1, 1*x, x*1, x/1 *)
+(*Simplify 0+n, n+0, Numeral1*n, n*Numeral1, 1*x, x*1, x/1 *)
 val add_0s =  @{thms add_0s};
 val mult_1s = @{thms mult_1s mult_1_left mult_1_right divide_1};
 
 (* For post-simplification of the rhs of simproc-generated rules *)
 val post_simps =
-    [@{thm numeral_0_eq_0}, @{thm numeral_1_eq_1},
+    [@{thm numeral_1_eq_1},
      @{thm add_0_left}, @{thm add_0_right},
      @{thm mult_zero_left}, @{thm mult_zero_right},
      @{thm mult_1_left}, @{thm mult_1_right},
@@ -195,18 +198,24 @@ val divide_1s = [@{thm divide_numeral_1}];
 
 (*To perform binary arithmetic.  The "left" rewriting handles patterns
   created by the Numeral_Simprocs, such as 3 * (5 * x). *)
-val simps = [@{thm numeral_0_eq_0} RS sym, @{thm numeral_1_eq_1} RS sym,
-                 @{thm add_number_of_left}, @{thm mult_number_of_left}] @
-                @{thms arith_simps} @ @{thms rel_simps};
-
+val simps =
+    [@{thm numeral_1_eq_1} RS sym] @
+    @{thms add_numeral_left} @
+    @{thms add_neg_numeral_left} @
+    @{thms mult_numeral_left} @
+    @{thms arith_simps} @ @{thms rel_simps};
+    
 (*Binary arithmetic BUT NOT ADDITION since it may collapse adjacent terms
   during re-arrangement*)
 val non_add_simps =
-  subtract Thm.eq_thm [@{thm add_number_of_left}, @{thm number_of_add} RS sym] simps;
+  subtract Thm.eq_thm
+    (@{thms add_numeral_left} @
+     @{thms add_neg_numeral_left} @
+     @{thms numeral_plus_numeral} @
+     @{thms add_neg_numeral_simps}) simps;
 
 (*To evaluate binary negations of coefficients*)
-val minus_simps = [@{thm numeral_m1_eq_minus_1} RS sym, @{thm number_of_minus} RS sym] @
-                   @{thms minus_bin_simps} @ @{thms pred_bin_simps};
+val minus_simps = [@{thm minus_zero}, @{thm minus_one}, @{thm minus_numeral}, @{thm minus_neg_numeral}];
 
 (*To let us treat subtraction as addition*)
 val diff_simps = [@{thm diff_minus}, @{thm minus_add_distrib}, @{thm minus_minus}];
@@ -365,9 +374,7 @@ struct
 
   (* simp_thms are necessary because some of the cancellation rules below
   (e.g. mult_less_cancel_left) introduce various logical connectives *)
-  val numeral_simp_ss = HOL_basic_ss addsimps
-    [@{thm eq_number_of_eq}, @{thm less_number_of}, @{thm le_number_of}] @ simps
-     @ @{thms simp_thms}
+  val numeral_simp_ss = HOL_basic_ss addsimps simps @ @{thms simp_thms}
   fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
   val simplify_meta_eq = Arith_Data.simplify_meta_eq
     ([@{thm Nat.add_0}, @{thm Nat.add_0_right}] @ post_simps)
@@ -425,13 +432,16 @@ fun divide_cancel_numeral_factor ss ct = DivideCancelNumeralFactor.proc ss (term
 val field_cancel_numeral_factors =
   map (prep_simproc @{theory})
    [("field_eq_cancel_numeral_factor",
-     ["(l::'a::{field,number_ring}) * m = n",
-      "(l::'a::{field,number_ring}) = m * n"],
+     ["(l::'a::field) * m = n",
+      "(l::'a::field) = m * n"],
      K EqCancelNumeralFactor.proc),
     ("field_cancel_numeral_factor",
-     ["((l::'a::{field_inverse_zero,number_ring}) * m) / n",
-      "(l::'a::{field_inverse_zero,number_ring}) / (m * n)",
-      "((number_of v)::'a::{field_inverse_zero,number_ring}) / (number_of w)"],
+     ["((l::'a::field_inverse_zero) * m) / n",
+      "(l::'a::field_inverse_zero) / (m * n)",
+      "((numeral v)::'a::field_inverse_zero) / (numeral w)",
+      "((numeral v)::'a::field_inverse_zero) / (neg_numeral w)",
+      "((neg_numeral v)::'a::field_inverse_zero) / (numeral w)",
+      "((neg_numeral v)::'a::field_inverse_zero) / (neg_numeral w)"],
      K DivideCancelNumeralFactor.proc)]
 
 
@@ -678,13 +688,13 @@ val ord_frac_simproc =
 
 val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"},
            @{thm "divide_Numeral1"},
-           @{thm "divide_zero"}, @{thm "divide_Numeral0"},
+           @{thm "divide_zero"}, @{thm divide_zero_left},
            @{thm "divide_divide_eq_left"}, 
            @{thm "times_divide_eq_left"}, @{thm "times_divide_eq_right"},
            @{thm "times_divide_times_eq"},
            @{thm "divide_divide_eq_right"},
            @{thm "diff_minus"}, @{thm "minus_divide_left"},
-           @{thm "Numeral1_eq1_nat"}, @{thm "add_divide_distrib"} RS sym,
+           @{thm "add_divide_distrib"} RS sym,
            @{thm field_divide_inverse} RS sym, @{thm inverse_divide}, 
            Conv.fconv_rule (Conv.arg_conv (Conv.arg1_conv (Conv.rewr_conv (mk_meta_eq @{thm mult_commute}))))   
            (@{thm field_divide_inverse} RS sym)]
@@ -699,8 +709,7 @@ val field_comp_conv =
       addsimprocs [add_frac_frac_simproc, add_frac_num_simproc, ord_frac_simproc]
       |> Simplifier.add_cong @{thm "if_weak_cong"})
   then_conv
-  Simplifier.rewrite (HOL_basic_ss addsimps
-    [@{thm numeral_1_eq_1},@{thm numeral_0_eq_0}] @ @{thms numerals(1-2)})
+  Simplifier.rewrite (HOL_basic_ss addsimps [@{thm numeral_1_eq_1}])
 
 end
 

@@ -5,7 +5,7 @@
 header {* An imperative in-place reversal on arrays *}
 
 theory Imperative_Reverse
-imports Subarray Imperative_HOL
+imports Subarray "~~/src/HOL/Imperative_HOL/Imperative_HOL"
 begin
 
 fun swap :: "'a\<Colon>heap array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> unit Heap" where
@@ -107,7 +107,7 @@ lemma rev2_rev:
   shows "Array.get h' a = List.rev (Array.get h a)"
   using rev2_rev'[OF assms] rev_length[OF assms] assms
     by (cases "Array.length h a = 0", auto simp add: Array.length_def
-      subarray_def sublist'_all rev.simps[where j=0] elim!: effect_elims)
+      subarray_def rev.simps[where j=0] elim!: effect_elims)
   (drule sym[of "List.length (Array.get h a)"], simp)
 
 definition "example = (Array.make 10 id \<guillemotright>= (\<lambda>a. rev a 0 9))"
@@ -115,3 +115,4 @@ definition "example = (Array.make 10 id \<guillemotright>= (\<lambda>a. rev a 0 
 export_code example checking SML SML_imp OCaml? OCaml_imp? Haskell? Scala? Scala_imp?
 
 end
+

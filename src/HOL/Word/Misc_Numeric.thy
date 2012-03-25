@@ -5,7 +5,7 @@
 header {* Useful Numerical Lemmas *}
 
 theory Misc_Numeric
-imports Main Parity
+imports "~~/src/HOL/Main" "~~/src/HOL/Parity"
 begin
 
 lemma the_elemI: "y = {x} ==> the_elem y = x" 
@@ -31,13 +31,6 @@ lemmas nat_iffs = le_add1 le_add2
 
 lemma sum_imp_diff: "j = k + i ==> j - i = (k :: nat)" by arith
 
-lemma nobm1:
-  "0 < (number_of w :: nat) ==> 
-   number_of w - (1 :: nat) = number_of (Int.pred w)" 
-  apply (unfold nat_number_of_def One_nat_def nat_1 [symmetric] pred_def)
-  apply (simp add: number_of_eq nat_diff_distrib [symmetric])
-  done
-
 lemma zless2: "0 < (2 :: int)" by arith
 
 lemmas zless2p [simp] = zless2 [THEN zero_less_power]
@@ -46,7 +39,6 @@ lemmas zle2p [simp] = zless2p [THEN order_less_imp_le]
 lemmas pos_mod_sign2 = zless2 [THEN pos_mod_sign [where b = "2::int"]]
 lemmas pos_mod_bound2 = zless2 [THEN pos_mod_bound [where b = "2::int"]]
 
--- "the inverse(s) of @{text number_of}"
 lemma nmod2: "n mod (2::int) = 0 | n mod 2 = 1" by arith
 
 lemma emep1:
@@ -282,15 +274,6 @@ lemmas pl_pl_mm' = add_commute [THEN [2] trans, THEN pl_pl_mm]
 lemma min_minus [simp] : "min m (m - k) = (m - k :: nat)" by arith
   
 lemmas min_minus' [simp] = trans [OF min_max.inf_commute min_minus]
-
-lemma nat_no_eq_iff: 
-  "(number_of b :: int) >= 0 ==> (number_of c :: int) >= 0 ==> 
-   (number_of b = (number_of c :: nat)) = (b = c)" 
-  apply (unfold nat_number_of_def) 
-  apply safe
-  apply (drule (2) eq_nat_nat_iff [THEN iffD1])
-  apply (simp add: number_of_eq)
-  done
 
 lemmas dme = box_equals [OF div_mod_equality add_0_right add_0_right]
 lemmas dtle = xtr3 [OF dme [symmetric] le_add1]

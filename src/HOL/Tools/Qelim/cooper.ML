@@ -41,9 +41,9 @@ val allowed_consts =
    @{term "Ex :: (int => _) => _"}, @{term "Ex :: (nat => _) => _"},
    @{term "All :: (int => _) => _"}, @{term "All :: (nat => _) => _"},
    @{term "nat"}, @{term "int"},
-   @{term "Int.Bit0"}, @{term "Int.Bit1"},
-   @{term "Int.Pls"}, @{term "Int.Min"},
-   @{term "Int.number_of :: int => int"}, @{term "Int.number_of :: int => nat"},
+   @{term "Num.One"}, @{term "Num.Bit0"}, @{term "Num.Bit1"},
+   @{term "Num.numeral :: num => int"}, @{term "Num.numeral :: num => nat"},
+   @{term "Num.neg_numeral :: num => int"},
    @{term "0::int"}, @{term "1::int"}, @{term "0::nat"}, @{term "1::nat"},
    @{term "True"}, @{term "False"}];
 
@@ -595,8 +595,10 @@ fun num_of_term vs (Free vT) = Proc.Bound (find_index (fn vT' => vT' = vT) vs)
   | num_of_term vs (Term.Bound i) = Proc.Bound i
   | num_of_term vs @{term "0::int"} = Proc.C 0
   | num_of_term vs @{term "1::int"} = Proc.C 1
-  | num_of_term vs (t as Const (@{const_name number_of}, _) $ _) =
+  | num_of_term vs (t as Const (@{const_name numeral}, _) $ _) =
       Proc.C (dest_number t)
+  | num_of_term vs (t as Const (@{const_name neg_numeral}, _) $ _) =
+      Proc.Neg (Proc.C (dest_number t))
   | num_of_term vs (Const (@{const_name Groups.uminus}, _) $ t') =
       Proc.Neg (num_of_term vs t')
   | num_of_term vs (Const (@{const_name Groups.plus}, _) $ t1 $ t2) =
@@ -784,16 +786,16 @@ fun generalize_tac f = CSUBGOAL (fn (p, i) => PRIMITIVE (fn st =>
 
 local
 val ss1 = comp_ss
-  addsimps @{thms simp_thms} @ [@{thm "nat_number_of_def"}, @{thm "zdvd_int"}]
-      @ map (fn r => r RS sym)
+  addsimps @{thms simp_thms} @ [@{thm "nat_numeral"} RS sym, @{thm "zdvd_int"}] 
+      @ map (fn r => r RS sym) 
         [@{thm "int_int_eq"}, @{thm "zle_int"}, @{thm "zless_int"}, @{thm "zadd_int"}, 
          @{thm "zmult_int"}]
   |> Splitter.add_split @{thm "zdiff_int_split"}
 
 val ss2 = HOL_basic_ss
-  addsimps [@{thm "nat_0_le"}, @{thm "int_nat_number_of"},
-            @{thm "all_nat"}, @{thm "ex_nat"}, @{thm "number_of1"}, 
-            @{thm "number_of2"}, @{thm "int_0"}, @{thm "int_1"}, @{thm "Suc_eq_plus1"}]
+  addsimps [@{thm "nat_0_le"}, @{thm "int_numeral"},
+            @{thm "all_nat"}, @{thm "ex_nat"}, @{thm "zero_le_numeral"}, 
+            @{thm "le_numeral_extra"(3)}, @{thm "int_0"}, @{thm "int_1"}, @{thm "Suc_eq_plus1"}]
   |> fold Simplifier.add_cong [@{thm "conj_le_cong"}, @{thm "imp_le_cong"}]
 val div_mod_ss = HOL_basic_ss addsimps @{thms simp_thms}
   @ map (Thm.symmetric o mk_meta_eq) 

@@ -4901,7 +4901,7 @@ proof(auto)
          (set U \<times> set U)"using mnz nnz th  
     apply (auto simp add: th add_divide_distrib algebra_simps split_def image_def)
     by (rule_tac x="(s,m)" in bexI,simp_all) 
-  (rule_tac x="(t,n)" in bexI,simp_all)
+  (rule_tac x="(t,n)" in bexI,simp_all add: mult_commute)
 next
   fix t n s m
   assume tnU: "(t,n) \<in> set U" and smU:"(s,m) \<in> set U" 
@@ -5536,14 +5536,18 @@ fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (op =) vs t
       (case (num_of_term vs t1)
        of @{code C} i => @{code Mul} (i, num_of_term vs t2)
         | _ => error "num_of_term: unsupported Multiplication")
-  | num_of_term vs (@{term "real :: int \<Rightarrow> real"} $ (@{term "number_of :: int \<Rightarrow> int"} $ t')) =
-      @{code C} (HOLogic.dest_numeral t')
+  | num_of_term vs (@{term "real :: int \<Rightarrow> real"} $ (@{term "numeral :: _ \<Rightarrow> int"} $ t')) =
+      @{code C} (HOLogic.dest_num t')
+  | num_of_term vs (@{term "real :: int \<Rightarrow> real"} $ (@{term "neg_numeral :: _ \<Rightarrow> int"} $ t')) =
+      @{code C} (~ (HOLogic.dest_num t'))
   | num_of_term vs (@{term "real :: int \<Rightarrow> real"} $ (@{term "floor :: real \<Rightarrow> int"} $ t')) =
       @{code Floor} (num_of_term vs t')
   | num_of_term vs (@{term "real :: int \<Rightarrow> real"} $ (@{term "ceiling :: real \<Rightarrow> int"} $ t')) =
       @{code Neg} (@{code Floor} (@{code Neg} (num_of_term vs t')))
-  | num_of_term vs (@{term "number_of :: int \<Rightarrow> real"} $ t') =
-      @{code C} (HOLogic.dest_numeral t')
+  | num_of_term vs (@{term "numeral :: _ \<Rightarrow> real"} $ t') =
+      @{code C} (HOLogic.dest_num t')
+  | num_of_term vs (@{term "neg_numeral :: _ \<Rightarrow> real"} $ t') =
+      @{code C} (~ (HOLogic.dest_num t'))
   | num_of_term vs t = error ("num_of_term: unknown term " ^ Syntax.string_of_term @{context} t);
 
 fun fm_of_term vs @{term True} = @{code T}
@@ -5554,8 +5558,10 @@ fun fm_of_term vs @{term True} = @{code T}
       @{code Le} (@{code Sub} (num_of_term vs t1, num_of_term vs t2))
   | fm_of_term vs (@{term "op = :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) =
       @{code Eq} (@{code Sub} (num_of_term vs t1, num_of_term vs t2)) 
-  | fm_of_term vs (@{term "op rdvd"} $ (@{term "real :: int \<Rightarrow> real"} $ (@{term "number_of :: int \<Rightarrow> int"} $ t1)) $ t2) =
-      @{code Dvd} (HOLogic.dest_numeral t1, num_of_term vs t2)
+  | fm_of_term vs (@{term "op rdvd"} $ (@{term "real :: int \<Rightarrow> real"} $ (@{term "numeral :: _ \<Rightarrow> int"} $ t1)) $ t2) =
+      @{code Dvd} (HOLogic.dest_num t1, num_of_term vs t2)
+  | fm_of_term vs (@{term "op rdvd"} $ (@{term "real :: int \<Rightarrow> real"} $ (@{term "neg_numeral :: _ \<Rightarrow> int"} $ t1)) $ t2) =
+      @{code Dvd} (~ (HOLogic.dest_num t1), num_of_term vs t2)
   | fm_of_term vs (@{term "op = :: bool \<Rightarrow> bool \<Rightarrow> bool"} $ t1 $ t2) =
       @{code Iff} (fm_of_term vs t1, fm_of_term vs t2)
   | fm_of_term vs (@{term HOL.conj} $ t1 $ t2) =

@@ -206,7 +206,7 @@ fun has_lonely_bool_var (@{const Pure.conjunction}
 
 val syntactic_sorts =
   @{sort "{default,zero,one,plus,minus,uminus,times,inverse,abs,sgn,ord,equal}"} @
-  @{sort number}
+  @{sort numeral}
 fun has_tfree_syntactic_sort (TFree (_, S as _ :: _)) =
     subset (op =) (S, syntactic_sorts)
   | has_tfree_syntactic_sort _ = false

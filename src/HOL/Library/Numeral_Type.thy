@@ -66,7 +66,6 @@ proof
     by simp
 qed
 
-
 subsection {* Locales for for modular arithmetic subtypes *}
 
 locale mod_type =
@@ -137,8 +136,8 @@ end
 
 locale mod_ring = mod_type n Rep Abs
   for n :: int
-  and Rep :: "'a::{number_ring} \<Rightarrow> int"
-  and Abs :: "int \<Rightarrow> 'a::{number_ring}"
+  and Rep :: "'a::{comm_ring_1} \<Rightarrow> int"
+  and Abs :: "int \<Rightarrow> 'a::{comm_ring_1}"
 begin
 
 lemma of_nat_eq: "of_nat k = Abs (int k mod n)"
@@ -152,13 +151,14 @@ apply (cases z rule: int_diff_cases)
 apply (simp add: Rep_simps of_nat_eq diff_def zmod_simps)
 done
 
-lemma Rep_number_of:
-  "Rep (number_of w) = number_of w mod n"
-by (simp add: number_of_eq of_int_eq Rep_Abs_mod)
+lemma Rep_numeral:
+  "Rep (numeral w) = numeral w mod n"
+using of_int_eq [of "numeral w"]
+by (simp add: Rep_inject_sym Rep_Abs_mod)
 
-lemma iszero_number_of:
-  "iszero (number_of w::'a) \<longleftrightarrow> number_of w mod n = 0"
-by (simp add: Rep_simps number_of_eq of_int_eq iszero_def zero_def)
+lemma iszero_numeral:
+  "iszero (numeral w::'a) \<longleftrightarrow> numeral w mod n = 0"
+by (simp add: Rep_inject_sym Rep_numeral Rep_0 iszero_def)
 
 lemma cases:
   assumes 1: "\<And>z. \<lbrakk>(x::'a) = of_int z; 0 \<le> z; z < n\<rbrakk> \<Longrightarrow> P"
@@ -175,14 +175,14 @@ by (cases x rule: cases) simp
 end
 
 
-subsection {* Number ring instances *}
+subsection {* Ring class instances *}
 
 text {*
-  Unfortunately a number ring instance is not possible for
+  Unfortunately @{text ring_1} instance is not possible for
   @{typ num1}, since 0 and 1 are not distinct.
 *}
 
-instantiation num1 :: "{comm_ring,comm_monoid_mult,number}"
+instantiation num1 :: "{comm_ring,comm_monoid_mult,numeral}"
 begin
 
 lemma num1_eq_iff: "(x::num1) = (y::num1) \<longleftrightarrow> True"
@@ -252,22 +252,10 @@ apply (rule uminus_bit1_def [unfolded Abs_bit1'_def])
 done
 
 instance bit0 :: (finite) comm_ring_1
-  by (rule bit0.comm_ring_1)+
+  by (rule bit0.comm_ring_1)
 
 instance bit1 :: (finite) comm_ring_1
-  by (rule bit1.comm_ring_1)+
-
-instantiation bit0 and bit1 :: (finite) number_ring
-begin
-
-definition "(number_of w :: _ bit0) = of_int w"
-
-definition "(number_of w :: _ bit1) = of_int w"
-
-instance proof
-qed (rule number_of_bit0_def number_of_bit1_def)+
-
-end
+  by (rule bit1.comm_ring_1)
 
 interpretation bit0:
   mod_ring "int CARD('a::finite bit0)"
@@ -289,9 +277,11 @@ lemmas bit1_cases [case_names of_int, cases type: bit1] = bit1.cases
 lemmas bit0_induct [case_names of_int, induct type: bit0] = bit0.induct
 lemmas bit1_induct [case_names of_int, induct type: bit1] = bit1.induct
 
-lemmas bit0_iszero_number_of [simp] = bit0.iszero_number_of
-lemmas bit1_iszero_number_of [simp] = bit1.iszero_number_of
+lemmas bit0_iszero_numeral [simp] = bit0.iszero_numeral
+lemmas bit1_iszero_numeral [simp] = bit1.iszero_numeral
 
+declare eq_numeral_iff_iszero [where 'a="('a::finite) bit0", standard, simp]
+declare eq_numeral_iff_iszero [where 'a="('a::finite) bit1", standard, simp]
 
 subsection {* Syntax *}
 

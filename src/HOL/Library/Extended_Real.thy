@@ -124,11 +124,6 @@ proof safe
   fix x :: ereal show "x \<in> range uminus" by (intro image_eqI[of _ _ "-x"]) auto
 qed auto
 
-instantiation ereal :: number
-begin
-definition [simp]: "number_of x = ereal (number_of x)"
-instance ..
-end
 
 instantiation ereal :: abs
 begin
@@ -671,6 +666,14 @@ lemma ereal_distrib:
   using assms
   by (cases rule: ereal3_cases[of a b c]) (simp_all add: field_simps)
 
+instance ereal :: numeral ..
+
+lemma numeral_eq_ereal [simp]: "numeral w = ereal (numeral w)"
+  apply (induct w rule: num_induct)
+  apply (simp only: numeral_One one_ereal_def)
+  apply (simp only: numeral_inc ereal_plus_1)
+  done
+
 lemma ereal_le_epsilon:
   fixes x y :: ereal
   assumes "ALL e. 0 < e --> x <= y + e"
@@ -781,8 +784,8 @@ lemma ereal_power_uminus[simp]:
   shows "(- x) ^ n = (if even n then x ^ n else - (x^n))"
   by (induct n) (auto simp: one_ereal_def)
 
-lemma ereal_power_number_of[simp]:
-  "(number_of num :: ereal) ^ n = ereal (number_of num ^ n)"
+lemma ereal_power_numeral[simp]:
+  "(numeral num :: ereal) ^ n = ereal (numeral num ^ n)"
   by (induct n) (auto simp: one_ereal_def)
 
 lemma zero_le_power_ereal[simp]:
@@ -1730,8 +1733,8 @@ lemma ereal_of_enat_le_iff[simp]:
   "ereal_of_enat m \<le> ereal_of_enat n \<longleftrightarrow> m \<le> n"
 by (cases m n rule: enat2_cases) auto
 
-lemma number_of_le_ereal_of_enat_iff[simp]:
-  shows "number_of m \<le> ereal_of_enat n \<longleftrightarrow> number_of m \<le> n"
+lemma numeral_le_ereal_of_enat_iff[simp]:
+  shows "numeral m \<le> ereal_of_enat n \<longleftrightarrow> numeral m \<le> n"
 by (cases n) (auto dest: natceiling_le intro: natceiling_le_eq[THEN iffD1])
 
 lemma ereal_of_enat_ge_zero_cancel_iff[simp]:

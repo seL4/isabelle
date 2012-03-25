@@ -10,9 +10,8 @@ begin
 lemma [code, code del]: "nat_of_char = nat_of_char" ..
 lemma [code, code del]: "char_of_nat = char_of_nat" ..
 
-declare Quickcheck_Narrowing.zero_code_int_code[code del]
-declare Quickcheck_Narrowing.one_code_int_code[code del]
-declare Quickcheck_Narrowing.int_of_code[code del]
+declare Quickcheck_Narrowing.one_code_int_code [code del]
+declare Quickcheck_Narrowing.int_of_code [code del]
 
 subsection {* Check whether generated code compiles *}
 

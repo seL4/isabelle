@@ -174,14 +174,17 @@ let
       | (NONE,  m') => apsnd (Rat.mult (Rat.inv m')) (demult (s, m)))
     (* terms that evaluate to numeric constants *)
     | demult (Const (@{const_name Groups.uminus}, _) $ t, m) = demult (t, Rat.neg m)
-    | demult (Const (@{const_name Groups.zero}, _), m) = (NONE, Rat.zero)
+    | demult (Const (@{const_name Groups.zero}, _), _) = (NONE, Rat.zero)
     | demult (Const (@{const_name Groups.one}, _), m) = (NONE, m)
-    (*Warning: in rare cases number_of encloses a non-numeral,
-      in which case dest_numeral raises TERM; hence all the handles below.
+    (*Warning: in rare cases (neg_)numeral encloses a non-numeral,
+      in which case dest_num raises TERM; hence all the handles below.
       Same for Suc-terms that turn out not to be numerals -
       although the simplifier should eliminate those anyway ...*)
-    | demult (t as Const ("Int.number_class.number_of", _) $ n, m) =
-      ((NONE, Rat.mult m (Rat.rat_of_int (HOLogic.dest_numeral n)))
+    | demult (t as Const ("Num.numeral_class.numeral", _) $ n, m) =
+      ((NONE, Rat.mult m (Rat.rat_of_int (HOLogic.dest_num n)))
+        handle TERM _ => (SOME t, m))
+    | demult (t as Const ("Num.neg_numeral_class.neg_numeral", _) $ n, m) =
+      ((NONE, Rat.mult m (Rat.rat_of_int (~ (HOLogic.dest_num n))))
         handle TERM _ => (SOME t, m))
     | demult (t as Const (@{const_name Suc}, _) $ _, m) =
       ((NONE, Rat.mult m (Rat.rat_of_int (HOLogic.dest_nat t)))
@@ -219,10 +222,13 @@ let
         (case demult inj_consts (all, m) of
            (NONE,   m') => (p, Rat.add i m')
          | (SOME u, m') => add_atom u m' pi)
-    | poly (all as Const ("Int.number_class.number_of", Type(_,[_,T])) $ t, m, pi as (p, i)) =
-        (let val k = HOLogic.dest_numeral t
-            val k2 = if k < 0 andalso T = HOLogic.natT then 0 else k
-        in (p, Rat.add i (Rat.mult m (Rat.rat_of_int k2))) end
+    | poly (all as Const ("Num.numeral_class.numeral", Type(_,[_,_])) $ t, m, pi as (p, i)) =
+        (let val k = HOLogic.dest_num t
+        in (p, Rat.add i (Rat.mult m (Rat.rat_of_int k))) end
+        handle TERM _ => add_atom all m pi)
+    | poly (all as Const ("Num.neg_numeral_class.neg_numeral", Type(_,[_,_])) $ t, m, pi as (p, i)) =
+        (let val k = HOLogic.dest_num t
+        in (p, Rat.add i (Rat.mult m (Rat.rat_of_int (~ k)))) end
         handle TERM _ => add_atom all m pi)
     | poly (all as Const f $ x, m, pi) =
         if member (op =) inj_consts f then poly (x, m, pi) else add_atom all m pi
@@ -464,9 +470,9 @@ in
       in
         SOME [(HOLogic.natT :: Ts, subgoal1), (Ts, subgoal2)]
       end
-    (* ?P ((?n::nat) mod (number_of ?k)) =
-         ((number_of ?k = 0 --> ?P ?n) & (~ (number_of ?k = 0) -->
-           (ALL i j. j < number_of ?k --> ?n = number_of ?k * i + j --> ?P j))) *)
+    (* ?P ((?n::nat) mod (numeral ?k)) =
+         ((numeral ?k = 0 --> ?P ?n) & (~ (numeral ?k = 0) -->
+           (ALL i j. j < numeral ?k --> ?n = numeral ?k * i + j --> ?P j))) *)
     | (Const ("Divides.div_class.mod", Type ("fun", [@{typ nat}, _])), [t1, t2]) =>
       let
         val rev_terms               = rev terms
@@ -496,9 +502,9 @@ in
       in
         SOME [(Ts, subgoal1), (split_type :: split_type :: Ts, subgoal2)]
       end
-    (* ?P ((?n::nat) div (number_of ?k)) =
-         ((number_of ?k = 0 --> ?P 0) & (~ (number_of ?k = 0) -->
-           (ALL i j. j < number_of ?k --> ?n = number_of ?k * i + j --> ?P i))) *)
+    (* ?P ((?n::nat) div (numeral ?k)) =
+         ((numeral ?k = 0 --> ?P 0) & (~ (numeral ?k = 0) -->
+           (ALL i j. j < numeral ?k --> ?n = numeral ?k * i + j --> ?P i))) *)
     | (Const ("Divides.div_class.div", Type ("fun", [@{typ nat}, _])), [t1, t2]) =>
       let
         val rev_terms               = rev terms
@@ -528,14 +534,14 @@ in
       in
         SOME [(Ts, subgoal1), (split_type :: split_type :: Ts, subgoal2)]
       end
-    (* ?P ((?n::int) mod (number_of ?k)) =
-         ((number_of ?k = 0 --> ?P ?n) &
-          (0 < number_of ?k -->
+    (* ?P ((?n::int) mod (numeral ?k)) =
+         ((numeral ?k = 0 --> ?P ?n) &
+          (0 < numeral ?k -->
             (ALL i j.
-              0 <= j & j < number_of ?k & ?n = number_of ?k * i + j --> ?P j)) &
-          (number_of ?k < 0 -->
+              0 <= j & j < numeral ?k & ?n = numeral ?k * i + j --> ?P j)) &
+          (numeral ?k < 0 -->
             (ALL i j.
-              number_of ?k < j & j <= 0 & ?n = number_of ?k * i + j --> ?P j))) *)
+              numeral ?k < j & j <= 0 & ?n = numeral ?k * i + j --> ?P j))) *)
     | (Const ("Divides.div_class.mod",
         Type ("fun", [Type ("Int.int", []), _])), [t1, t2]) =>
       let
@@ -582,14 +588,14 @@ in
       in
         SOME [(Ts, subgoal1), (Ts', subgoal2), (Ts', subgoal3)]
       end
-    (* ?P ((?n::int) div (number_of ?k)) =
-         ((number_of ?k = 0 --> ?P 0) &
-          (0 < number_of ?k -->
+    (* ?P ((?n::int) div (numeral ?k)) =
+         ((numeral ?k = 0 --> ?P 0) &
+          (0 < numeral ?k -->
             (ALL i j.
-              0 <= j & j < number_of ?k & ?n = number_of ?k * i + j --> ?P i)) &
-          (number_of ?k < 0 -->
+              0 <= j & j < numeral ?k & ?n = numeral ?k * i + j --> ?P i)) &
+          (numeral ?k < 0 -->
             (ALL i j.
-              number_of ?k < j & j <= 0 & ?n = number_of ?k * i + j --> ?P i))) *)
+              numeral ?k < j & j <= 0 & ?n = numeral ?k * i + j --> ?P i))) *)
     | (Const ("Divides.div_class.div",
         Type ("fun", [Type ("Int.int", []), _])), [t1, t2]) =>
       let

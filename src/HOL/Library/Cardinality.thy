@@ -5,7 +5,7 @@
 header {* Cardinality of types *}
 
 theory Cardinality
-imports Main
+imports "~~/src/HOL/Main"
 begin
 
 subsection {* Preliminary lemmas *}

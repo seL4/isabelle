@@ -190,7 +190,7 @@ by (simp add: Reals_eq_Standard)
 lemma SReal_hypreal_of_real [simp]: "hypreal_of_real x \<in> Reals"
 by (simp add: Reals_eq_Standard)
 
-lemma SReal_divide_number_of: "r \<in> Reals ==> r/(number_of w::hypreal) \<in> Reals"
+lemma SReal_divide_numeral: "r \<in> Reals ==> r/(numeral w::hypreal) \<in> Reals"
 by simp
 
 text{*epsilon is not in Reals because it is an infinitesimal*}
@@ -290,8 +290,8 @@ lemma HFinite_hnorm_iff [iff]:
   "(hnorm (x::hypreal) \<in> HFinite) = (x \<in> HFinite)"
 by (simp add: HFinite_def)
 
-lemma HFinite_number_of [simp]: "number_of w \<in> HFinite"
-unfolding star_number_def by (rule HFinite_star_of)
+lemma HFinite_numeral [simp]: "numeral w \<in> HFinite"
+unfolding star_numeral_def by (rule HFinite_star_of)
 
 (** As always with numerals, 0 and 1 are special cases **)
 
@@ -347,7 +347,7 @@ lemma Infinitesimal_add:
 apply (rule InfinitesimalI)
 apply (rule hypreal_sum_of_halves [THEN subst])
 apply (drule half_gt_zero)
-apply (blast intro: hnorm_add_less SReal_divide_number_of dest: InfinitesimalD)
+apply (blast intro: hnorm_add_less SReal_divide_numeral dest: InfinitesimalD)
 done
 
 lemma Infinitesimal_minus_iff [simp]: "(-x:Infinitesimal) = (x:Infinitesimal)"
@@ -652,7 +652,7 @@ by (blast intro: approx_sym)
 (*reorientation simplification procedure: reorients (polymorphic)
   0 = x, 1 = x, nnn = x provided x isn't 0, 1 or a numeral.*)
 simproc_setup approx_reorient_simproc
-  ("0 @= x" | "1 @= y" | "number_of w @= z") =
+  ("0 @= x" | "1 @= y" | "numeral w @= z" | "neg_numeral w @= r") =
 {*
   let val rule = @{thm approx_reorient} RS eq_reflection
       fun proc phi ss ct = case term_of ct of
@@ -957,9 +957,9 @@ lemma star_of_HFinite_diff_Infinitesimal:
      "x \<noteq> 0 ==> star_of x \<in> HFinite - Infinitesimal"
 by simp
 
-lemma number_of_not_Infinitesimal [simp]:
-     "number_of w \<noteq> (0::hypreal) ==> (number_of w :: hypreal) \<notin> Infinitesimal"
-by (fast dest: Reals_number_of [THEN SReal_Infinitesimal_zero])
+lemma numeral_not_Infinitesimal [simp]:
+     "numeral w \<noteq> (0::hypreal) ==> (numeral w :: hypreal) \<notin> Infinitesimal"
+by (fast dest: Reals_numeral [THEN SReal_Infinitesimal_zero])
 
 (*again: 1 is a special case, but not 0 this time*)
 lemma one_not_Infinitesimal [simp]:
@@ -1024,31 +1024,31 @@ apply (drule (1) SReal_Infinitesimal_zero)
 apply simp
 done
 
-lemma number_of_approx_iff [simp]:
-     "(number_of v @= (number_of w :: 'a::{number,real_normed_vector} star)) =
-      (number_of v = (number_of w :: 'a))"
-apply (unfold star_number_def)
+lemma numeral_approx_iff [simp]:
+     "(numeral v @= (numeral w :: 'a::{numeral,real_normed_vector} star)) =
+      (numeral v = (numeral w :: 'a))"
+apply (unfold star_numeral_def)
 apply (rule star_of_approx_iff)
 done
 
 (*And also for 0 @= #nn and 1 @= #nn, #nn @= 0 and #nn @= 1.*)
 lemma [simp]:
-  "(number_of w @= (0::'a::{number,real_normed_vector} star)) =
-   (number_of w = (0::'a))"
-  "((0::'a::{number,real_normed_vector} star) @= number_of w) =
-   (number_of w = (0::'a))"
-  "(number_of w @= (1::'b::{number,one,real_normed_vector} star)) =
-   (number_of w = (1::'b))"
-  "((1::'b::{number,one,real_normed_vector} star) @= number_of w) =
-   (number_of w = (1::'b))"
+  "(numeral w @= (0::'a::{numeral,real_normed_vector} star)) =
+   (numeral w = (0::'a))"
+  "((0::'a::{numeral,real_normed_vector} star) @= numeral w) =
+   (numeral w = (0::'a))"
+  "(numeral w @= (1::'b::{numeral,one,real_normed_vector} star)) =
+   (numeral w = (1::'b))"
+  "((1::'b::{numeral,one,real_normed_vector} star) @= numeral w) =
+   (numeral w = (1::'b))"
   "~ (0 @= (1::'c::{zero_neq_one,real_normed_vector} star))"
   "~ (1 @= (0::'c::{zero_neq_one,real_normed_vector} star))"
-apply (unfold star_number_def star_zero_def star_one_def)
+apply (unfold star_numeral_def star_zero_def star_one_def)
 apply (unfold star_of_approx_iff)
 by (auto intro: sym)
 
-lemma star_of_approx_number_of_iff [simp]:
-     "(star_of k @= number_of w) = (k = number_of w)"
+lemma star_of_approx_numeral_iff [simp]:
+     "(star_of k @= numeral w) = (k = numeral w)"
 by (subst star_of_approx_iff [symmetric], auto)
 
 lemma star_of_approx_zero_iff [simp]: "(star_of k @= 0) = (k = 0)"
@@ -1843,8 +1843,11 @@ by (blast dest!: st_approx_self [THEN approx_sym] bex_Infinitesimal_iff2 [THEN i
 lemma st_add: "\<lbrakk>x \<in> HFinite; y \<in> HFinite\<rbrakk> \<Longrightarrow> st (x + y) = st x + st y"
 by (simp add: st_unique st_SReal st_approx_self approx_add)
 
-lemma st_number_of [simp]: "st (number_of w) = number_of w"
-by (rule Reals_number_of [THEN st_SReal_eq])
+lemma st_numeral [simp]: "st (numeral w) = numeral w"
+by (rule Reals_numeral [THEN st_SReal_eq])
+
+lemma st_neg_numeral [simp]: "st (neg_numeral w) = neg_numeral w"
+by (rule Reals_neg_numeral [THEN st_SReal_eq])
 
 lemma st_0 [simp]: "st 0 = 0"
 by (simp add: st_SReal_eq)

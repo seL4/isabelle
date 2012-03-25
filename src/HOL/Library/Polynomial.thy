@@ -662,17 +662,6 @@ instance poly :: (comm_ring) comm_ring ..
 
 instance poly :: (comm_ring_1) comm_ring_1 ..
 
-instantiation poly :: (comm_ring_1) number_ring
-begin
-
-definition
-  "number_of k = (of_int k :: 'a poly)"
-
-instance
-  by default (rule number_of_poly_def)
-
-end
-
 
 subsection {* Polynomials form an integral domain *}
 
@@ -1052,12 +1041,12 @@ lemma mod_smult_left: "(smult a x) mod y = smult a (x mod y)"
 lemma poly_div_minus_left [simp]:
   fixes x y :: "'a::field poly"
   shows "(- x) div y = - (x div y)"
-  using div_smult_left [of "- 1::'a"] by simp
+  using div_smult_left [of "- 1::'a"] by (simp del: minus_one) (* FIXME *)
 
 lemma poly_mod_minus_left [simp]:
   fixes x y :: "'a::field poly"
   shows "(- x) mod y = - (x mod y)"
-  using mod_smult_left [of "- 1::'a"] by simp
+  using mod_smult_left [of "- 1::'a"] by (simp del: minus_one) (* FIXME *)
 
 lemma pdivmod_rel_smult_right:
   "\<lbrakk>a \<noteq> 0; pdivmod_rel x y q r\<rbrakk>
@@ -1075,12 +1064,12 @@ lemma poly_div_minus_right [simp]:
   fixes x y :: "'a::field poly"
   shows "x div (- y) = - (x div y)"
   using div_smult_right [of "- 1::'a"]
-  by (simp add: nonzero_inverse_minus_eq)
+  by (simp add: nonzero_inverse_minus_eq del: minus_one) (* FIXME *)
 
 lemma poly_mod_minus_right [simp]:
   fixes x y :: "'a::field poly"
   shows "x mod (- y) = x mod y"
-  using mod_smult_right [of "- 1::'a"] by simp
+  using mod_smult_right [of "- 1::'a"] by (simp del: minus_one) (* FIXME *)
 
 lemma pdivmod_rel_mult:
   "\<lbrakk>pdivmod_rel x y q r; pdivmod_rel q z q' r'\<rbrakk>

@@ -106,22 +106,26 @@ code_type code_numeral
   (Scala "Natural")
 
 setup {*
-  fold (Numeral.add_code @{const_name number_code_numeral_inst.number_of_code_numeral}
+  fold (Numeral.add_code @{const_name Code_Numeral.Num}
     false Code_Printer.literal_alternative_numeral) ["Haskell", "Scala"]
 *}
 
 code_instance code_numeral :: equal
   (Haskell -)
 
-code_const "op + \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
+code_const "0::code_numeral"
+  (Haskell "0")
+  (Scala "Natural(0)")
+
+code_const "plus \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
   (Haskell infixl 6 "+")
   (Scala infixl 7 "+")
 
-code_const "op - \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
+code_const "minus \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
   (Haskell infixl 6 "-")
   (Scala infixl 7 "-")
 
-code_const "op * \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
+code_const "times \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
   (Haskell infixl 7 "*")
   (Scala infixl 8 "*")
 
@@ -133,11 +137,11 @@ code_const "HOL.equal \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightar
   (Haskell infix 4 "==")
   (Scala infixl 5 "==")
 
-code_const "op \<le> \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
+code_const "less_eq \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
   (Haskell infix 4 "<=")
   (Scala infixl 4 "<=")
 
-code_const "op < \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
+code_const "less \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
   (Haskell infix 4 "<")
   (Scala infixl 4 "<")
 

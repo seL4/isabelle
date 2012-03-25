@@ -78,7 +78,7 @@ val zero_one_idom_simproc =
   proc = sproc, identifier = []}
 
 fun number_of thy T n =
-  if not (Sign.of_sort thy (T, @{sort number}))
+  if not (Sign.of_sort thy (T, @{sort numeral}))
   then raise CTERM ("number_of", [])
   else Numeral.mk_cnumber (Thm.ctyp_of thy T) n;
 

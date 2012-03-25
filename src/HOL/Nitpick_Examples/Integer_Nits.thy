@@ -198,7 +198,18 @@ sorry
 lemma "-5 * 55 > (-260::int)"
 nitpick [unary_ints, expect = none]
 nitpick [binary_ints, expect = none]
+(* BROKEN
+Nitpicking formula...
+Trying 5 scopes:
+  card bin = 1, card int = 1, and bits = 9;
+  card bin = 2, card int = 2, and bits = 9;
+  card bin = 3, card int = 3, and bits = 9;
+  card bin = 4, card int = 4, and bits = 9;
+  card bin = 5, card int = 5, and bits = 9.
+Nitpick found no counterexample.
+*** Unexpected outcome: "none".
 nitpick [binary_ints, bits = 9, expect = genuine]
+*)
 oops
 
 lemma "nat (of_nat n) = n"

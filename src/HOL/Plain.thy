@@ -1,7 +1,7 @@
 header {* Plain HOL *}
 
 theory Plain
-imports Datatype FunDef Extraction Metis
+imports Datatype FunDef Extraction Metis Num
 begin
 
 text {*

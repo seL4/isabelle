@@ -346,8 +346,8 @@ declaration {*
   K (Lin_Arith.add_inj_thms [@{thm star_of_le} RS iffD2,
     @{thm star_of_less} RS iffD2, @{thm star_of_eq} RS iffD2]
   #> Lin_Arith.add_simps [@{thm star_of_zero}, @{thm star_of_one},
-      @{thm star_of_number_of}, @{thm star_of_add}, @{thm star_of_minus},
-      @{thm star_of_diff}, @{thm star_of_mult}]
+      @{thm star_of_numeral}, @{thm star_of_neg_numeral}, @{thm star_of_add},
+      @{thm star_of_minus}, @{thm star_of_diff}, @{thm star_of_mult}]
   #> Lin_Arith.add_inj_const (@{const_name "StarDef.star_of"}, @{typ "real \<Rightarrow> hypreal"}))
 *}
 
@@ -419,10 +419,15 @@ lemma hrealpow_sum_square_expand:
       x ^ Suc (Suc 0) + y ^ Suc (Suc 0) + (hypreal_of_nat (Suc (Suc 0)))*x*y"
 by (simp add: right_distrib left_distrib)
 
-lemma power_hypreal_of_real_number_of:
-     "(number_of v :: hypreal) ^ n = hypreal_of_real ((number_of v) ^ n)"
+lemma power_hypreal_of_real_numeral:
+     "(numeral v :: hypreal) ^ n = hypreal_of_real ((numeral v) ^ n)"
 by simp
-declare power_hypreal_of_real_number_of [of _ "number_of w", simp] for w
+declare power_hypreal_of_real_numeral [of _ "numeral w", simp] for w
+
+lemma power_hypreal_of_real_neg_numeral:
+     "(neg_numeral v :: hypreal) ^ n = hypreal_of_real ((neg_numeral v) ^ n)"
+by simp
+declare power_hypreal_of_real_neg_numeral [of _ "numeral w", simp] for w
 (*
 lemma hrealpow_HFinite:
   fixes x :: "'a::{real_normed_algebra,power} star"
@@ -492,7 +497,7 @@ lemma hyperpow_eq_one [simp]:
 by transfer (rule power_one)
 
 lemma hrabs_hyperpow_minus_one [simp]:
-  "\<And>n. abs(-1 pow n) = (1::'a::{number_ring,linordered_idom} star)"
+  "\<And>n. abs(-1 pow n) = (1::'a::{linordered_idom} star)"
 by transfer (rule abs_power_minus_one)
 
 lemma hyperpow_mult:

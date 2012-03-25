@@ -25,15 +25,16 @@ end;
 structure Nat_Numeral_Simprocs : NAT_NUMERAL_SIMPROCS =
 struct
 
-(*Maps n to #n for n = 0, 1, 2*)
-val numeral_syms = [@{thm nat_numeral_0_eq_0} RS sym, @{thm nat_numeral_1_eq_1} RS sym, @{thm numeral_2_eq_2} RS sym];
+(*Maps n to #n for n = 1, 2*)
+val numeral_syms = [@{thm numeral_1_eq_1} RS sym, @{thm numeral_2_eq_2} RS sym];
 val numeral_sym_ss = HOL_basic_ss addsimps numeral_syms;
 
 val rename_numerals = simplify numeral_sym_ss o Thm.transfer @{theory};
 
 (*Utilities*)
 
-fun mk_number n = HOLogic.number_of_const HOLogic.natT $ HOLogic.mk_numeral n;
+fun mk_number 1 = HOLogic.numeral_const HOLogic.natT $ HOLogic.one_const
+  | mk_number n = HOLogic.mk_number HOLogic.natT n;
 fun dest_number t = Int.max (0, snd (HOLogic.dest_number t));
 
 fun find_first_numeral past (t::terms) =
@@ -59,14 +60,13 @@ val dest_plus = HOLogic.dest_bin @{const_name Groups.plus} HOLogic.natT;
 (** Other simproc items **)
 
 val bin_simps =
-     [@{thm nat_numeral_0_eq_0} RS sym, @{thm nat_numeral_1_eq_1} RS sym,
-      @{thm add_nat_number_of}, @{thm nat_number_of_add_left}, 
-      @{thm diff_nat_number_of}, @{thm le_number_of_eq_not_less},
-      @{thm mult_nat_number_of}, @{thm nat_number_of_mult_left}, 
-      @{thm less_nat_number_of}, 
+     [@{thm numeral_1_eq_1} RS sym,
+      @{thm numeral_plus_numeral}, @{thm add_numeral_left},
+      @{thm diff_nat_numeral}, @{thm diff_0_eq_0}, @{thm diff_0},
+      @{thm numeral_times_numeral}, @{thm mult_numeral_left(1)},
       @{thm if_True}, @{thm if_False}, @{thm not_False_eq_True},
-      @{thm Let_number_of}, @{thm nat_number_of}] @
-     @{thms arith_simps} @ @{thms rel_simps} @ @{thms neg_simps};
+      @{thm nat_0}, @{thm nat_numeral}, @{thm nat_neg_numeral}] @
+     @{thms arith_simps} @ @{thms rel_simps};
 
 
 (*** CancelNumerals simprocs ***)
@@ -115,7 +115,7 @@ fun dest_Suc_sum (Const (@{const_name Suc}, _) $ t, (k,ts)) = dest_Suc_sum (t, (
       handle TERM _ => (k, t::ts);
 
 (*Code for testing whether numerals are already used in the goal*)
-fun is_numeral (Const(@{const_name Int.number_of}, _) $ w) = true
+fun is_numeral (Const(@{const_name Num.numeral}, _) $ w) = true
   | is_numeral _ = false;
 
 fun prod_has_numeral t = exists is_numeral (dest_prod t);
@@ -147,7 +147,7 @@ val contra_rules = [@{thm add_Suc}, @{thm add_Suc_right}, @{thm Zero_not_Suc},
 
 val simplify_meta_eq =
     Arith_Data.simplify_meta_eq
-        ([@{thm nat_numeral_0_eq_0}, @{thm numeral_1_eq_Suc_0}, @{thm Nat.add_0}, @{thm Nat.add_0_right},
+        ([@{thm numeral_1_eq_Suc_0}, @{thm Nat.add_0}, @{thm Nat.add_0_right},
           @{thm mult_0}, @{thm mult_0_right}, @{thm mult_1}, @{thm mult_1_right}] @ contra_rules);
 
 

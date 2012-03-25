@@ -866,10 +866,11 @@ val known_sos_constants =
    @{term "op / :: real => _"}, @{term "inverse :: real => _"},
    @{term "op ^ :: real => _"}, @{term "abs :: real => _"},
    @{term "min :: real => _"}, @{term "max :: real => _"},
-   @{term "0::real"}, @{term "1::real"}, @{term "number_of :: int => real"},
-   @{term "number_of :: int => nat"},
-   @{term "Int.Bit0"}, @{term "Int.Bit1"},
-   @{term "Int.Pls"}, @{term "Int.Min"}];
+   @{term "0::real"}, @{term "1::real"},
+   @{term "numeral :: num => nat"},
+   @{term "numeral :: num => real"},
+   @{term "neg_numeral :: num => real"},
+   @{term "Num.Bit0"}, @{term "Num.Bit1"}, @{term "Num.One"}];
 
 fun check_sos kcts ct =
  let

@@ -32,14 +32,14 @@ lemma SReal_hcmod_hcomplex_of_complex [simp]:
      "hcmod (hcomplex_of_complex r) \<in> Reals"
 by (simp add: Reals_eq_Standard)
 
-lemma SReal_hcmod_number_of [simp]: "hcmod (number_of w ::hcomplex) \<in> Reals"
+lemma SReal_hcmod_numeral [simp]: "hcmod (numeral w ::hcomplex) \<in> Reals"
 by (simp add: Reals_eq_Standard)
 
 lemma SReal_hcmod_SComplex: "x \<in> SComplex ==> hcmod x \<in> Reals"
 by (simp add: Reals_eq_Standard)
 
-lemma SComplex_divide_number_of:
-     "r \<in> SComplex ==> r/(number_of w::hcomplex) \<in> SComplex"
+lemma SComplex_divide_numeral:
+     "r \<in> SComplex ==> r/(numeral w::hcomplex) \<in> SComplex"
 by simp
 
 lemma SComplex_UNIV_complex:
@@ -211,9 +211,9 @@ lemma hcomplex_of_complex_HFinite_diff_Infinitesimal:
       ==> hcomplex_of_complex x \<in> HFinite - Infinitesimal"
 by (rule SComplex_HFinite_diff_Infinitesimal, auto)
 
-lemma number_of_not_Infinitesimal [simp]:
-     "number_of w \<noteq> (0::hcomplex) ==> (number_of w::hcomplex) \<notin> Infinitesimal"
-by (fast dest: Standard_number_of [THEN SComplex_Infinitesimal_zero])
+lemma numeral_not_Infinitesimal [simp]:
+     "numeral w \<noteq> (0::hcomplex) ==> (numeral w::hcomplex) \<notin> Infinitesimal"
+by (fast dest: Standard_numeral [THEN SComplex_Infinitesimal_zero])
 
 lemma approx_SComplex_not_zero:
      "[| y \<in> SComplex; x @= y; y\<noteq> 0 |] ==> x \<noteq> 0"
@@ -223,11 +223,11 @@ lemma SComplex_approx_iff:
      "[|x \<in> SComplex; y \<in> SComplex|] ==> (x @= y) = (x = y)"
 by (auto simp add: Standard_def)
 
-lemma number_of_Infinitesimal_iff [simp]:
-     "((number_of w :: hcomplex) \<in> Infinitesimal) =
-      (number_of w = (0::hcomplex))"
+lemma numeral_Infinitesimal_iff [simp]:
+     "((numeral w :: hcomplex) \<in> Infinitesimal) =
+      (numeral w = (0::hcomplex))"
 apply (rule iffI)
-apply (fast dest: Standard_number_of [THEN SComplex_Infinitesimal_zero])
+apply (fast dest: Standard_numeral [THEN SComplex_Infinitesimal_zero])
 apply (simp (no_asm_simp))
 done
 
@@ -441,8 +441,8 @@ lemma stc_add:
      "[| x \<in> HFinite; y \<in> HFinite |] ==> stc (x + y) = stc(x) + stc(y)"
 by (simp add: stc_unique stc_SComplex stc_approx_self approx_add)
 
-lemma stc_number_of [simp]: "stc (number_of w) = number_of w"
-by (rule Standard_number_of [THEN stc_SComplex_eq])
+lemma stc_numeral [simp]: "stc (numeral w) = numeral w"
+by (rule Standard_numeral [THEN stc_SComplex_eq])
 
 lemma stc_zero [simp]: "stc 0 = 0"
 by simp

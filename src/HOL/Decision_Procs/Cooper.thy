@@ -1883,7 +1883,8 @@ fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (op =) vs t
       | SOME n => @{code Bound} n)
   | num_of_term vs @{term "0::int"} = @{code C} 0
   | num_of_term vs @{term "1::int"} = @{code C} 1
-  | num_of_term vs (@{term "number_of :: int \<Rightarrow> int"} $ t) = @{code C} (HOLogic.dest_numeral t)
+  | num_of_term vs (@{term "numeral :: _ \<Rightarrow> int"} $ t) = @{code C} (HOLogic.dest_num t)
+  | num_of_term vs (@{term "neg_numeral :: _ \<Rightarrow> int"} $ t) = @{code C} (~(HOLogic.dest_num t))
   | num_of_term vs (Bound i) = @{code Bound} i
   | num_of_term vs (@{term "uminus :: int \<Rightarrow> int"} $ t') = @{code Neg} (num_of_term vs t')
   | num_of_term vs (@{term "op + :: int \<Rightarrow> int \<Rightarrow> int"} $ t1 $ t2) =

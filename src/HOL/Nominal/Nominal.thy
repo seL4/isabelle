@@ -3481,7 +3481,7 @@ lemma Suc_eqvt:
 by (auto simp add: perm_nat_def)
 
 lemma numeral_nat_eqvt: 
- shows "pi\<bullet>((number_of n)::nat) = number_of n" 
+ shows "pi\<bullet>((numeral n)::nat) = numeral n" 
 by (simp add: perm_nat_def perm_int_def)
 
 lemma max_nat_eqvt:
@@ -3523,7 +3523,11 @@ lemma One_int_eqvt:
 by (simp add: perm_int_def)
 
 lemma numeral_int_eqvt: 
- shows "pi\<bullet>((number_of n)::int) = number_of n" 
+ shows "pi\<bullet>((numeral n)::int) = numeral n" 
+by (simp add: perm_int_def perm_int_def)
+
+lemma neg_numeral_int_eqvt:
+ shows "pi\<bullet>((neg_numeral n)::int) = neg_numeral n"
 by (simp add: perm_int_def perm_int_def)
 
 lemma max_int_eqvt:
@@ -3589,7 +3593,7 @@ lemmas [eqvt] =
 (* the lemmas numeral_nat_eqvt numeral_int_eqvt do not conform with the *)
 (* usual form of an eqvt-lemma, but they are needed for analysing       *)
 (* permutations on nats and ints *)
-lemmas [eqvt_force] = numeral_nat_eqvt numeral_int_eqvt
+lemmas [eqvt_force] = numeral_nat_eqvt numeral_int_eqvt neg_numeral_int_eqvt
 
 (***************************************)
 (* setup for the individial atom-kinds *)

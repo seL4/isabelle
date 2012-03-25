@@ -146,33 +146,29 @@ definition term_of_num_semiring :: "'a\<Colon>semiring_div \<Rightarrow> 'a \<Ri
   "term_of_num_semiring two = (\<lambda>_. dummy_term)"
 
 lemma (in term_syntax) term_of_num_semiring_code [code]:
-  "term_of_num_semiring two k = (if k = 0 then termify Int.Pls
+  "term_of_num_semiring two k = (
+    if k = 1 then termify Num.One
     else (if k mod two = 0
-      then termify Int.Bit0 <\<cdot>> term_of_num_semiring two (k div two)
-      else termify Int.Bit1 <\<cdot>> term_of_num_semiring two (k div two)))"
-  by (auto simp add: term_of_anything Const_def App_def term_of_num_semiring_def Let_def)
+      then termify Num.Bit0 <\<cdot>> term_of_num_semiring two (k div two)
+      else termify Num.Bit1 <\<cdot>> term_of_num_semiring two (k div two)))"
+  by (auto simp add: term_of_anything Const_def App_def term_of_num_semiring_def)
 
 lemma (in term_syntax) term_of_nat_code [code]:
-  "term_of (n::nat) = termify (number_of :: int \<Rightarrow> nat) <\<cdot>> term_of_num_semiring (2::nat) n"
+  "term_of (n::nat) = (
+    if n = 0 then termify (0 :: nat)
+    else termify (numeral :: num \<Rightarrow> nat) <\<cdot>> term_of_num_semiring (2::nat) n)"
   by (simp only: term_of_anything)
 
 lemma (in term_syntax) term_of_code_numeral_code [code]:
-  "term_of (k::code_numeral) = termify (number_of :: int \<Rightarrow> code_numeral) <\<cdot>> term_of_num_semiring (2::code_numeral) k"
+  "term_of (k::code_numeral) = (
+    if k = 0 then termify (0 :: code_numeral)
+    else termify (numeral :: num \<Rightarrow> code_numeral) <\<cdot>> term_of_num_semiring (2::code_numeral) k)"
   by (simp only: term_of_anything)
-
-definition term_of_num_ring :: "'a\<Colon>ring_div \<Rightarrow> 'a \<Rightarrow> term" where
-  "term_of_num_ring two = (\<lambda>_. dummy_term)"
-
-lemma (in term_syntax) term_of_num_ring_code [code]:
-  "term_of_num_ring two k = (if k = 0 then termify Int.Pls
-    else if k = -1 then termify Int.Min
-    else if k mod two = 0 then termify Int.Bit0 <\<cdot>> term_of_num_ring two (k div two)
-    else termify Int.Bit1 <\<cdot>> term_of_num_ring two (k div two))"
-  by (auto simp add: term_of_anything Const_def App_def term_of_num_ring_def Let_def)
 
 lemma (in term_syntax) term_of_int_code [code]:
   "term_of (k::int) = (if k = 0 then termify (0 :: int)
-    else termify (number_of :: int \<Rightarrow> int) <\<cdot>> term_of_num_ring (2::int) k)"
+    else if k < 0 then termify (neg_numeral :: num \<Rightarrow> int) <\<cdot>> term_of_num_semiring (2::int) (- k)
+    else termify (numeral :: num \<Rightarrow> int) <\<cdot>> term_of_num_semiring (2::int) k)"
   by (simp only: term_of_anything)
 
 
@@ -201,6 +197,6 @@ code_const "tracing :: String.literal => 'a => 'a"
 
 
 hide_const dummy_term valapp
-hide_const (open) Const App Abs Free termify valtermify term_of term_of_num_semiring term_of_num_ring tracing
+hide_const (open) Const App Abs Free termify valtermify term_of term_of_num_semiring tracing
 
 end

@@ -1029,9 +1029,7 @@ lemmas sparse_row_matrix_op_simps =
   sparse_row_matrix_pprt sorted_spvec_pprt_spmat sorted_spmat_pprt_spmat
   sparse_row_matrix_nprt sorted_spvec_nprt_spmat sorted_spmat_nprt_spmat
 
-lemma zero_eq_Numeral0: "(0::_::number_ring) = Numeral0" by simp
-
-lemmas sparse_row_matrix_arith_simps[simplified zero_eq_Numeral0] = 
+lemmas sparse_row_matrix_arith_simps = 
   mult_spmat.simps mult_spvec_spmat.simps 
   addmult_spvec.simps 
   smult_spvec_empty smult_spvec_cons

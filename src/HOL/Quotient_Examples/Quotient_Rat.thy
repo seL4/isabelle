@@ -159,17 +159,6 @@ lemma of_int_rat: "of_int k = Fract k 1"
   apply auto
   done
 
-instantiation rat :: number_ring
-begin
-
-definition
-  rat_number_of_def: "number_of w = Fract w 1"
-
-instance apply default
-  unfolding rat_number_of_def of_int_rat ..
-
-end
-
 instantiation rat :: field_inverse_zero begin
 
 fun rat_inverse_raw where

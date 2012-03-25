@@ -25,7 +25,7 @@ primrec tmsize :: "tm \<Rightarrow> nat" where
 | "tmsize (CNP n c a) = 3 + polysize c + tmsize a "
 
   (* Semantics of terms tm *)
-primrec Itm :: "'a::{field_char_0, field_inverse_zero, number_ring} list \<Rightarrow> 'a list \<Rightarrow> tm \<Rightarrow> 'a" where
+primrec Itm :: "'a::{field_char_0, field_inverse_zero} list \<Rightarrow> 'a list \<Rightarrow> tm \<Rightarrow> 'a" where
   "Itm vs bs (CP c) = (Ipoly vs c)"
 | "Itm vs bs (Bound n) = bs!n"
 | "Itm vs bs (Neg a) = -(Itm vs bs a)"
@@ -430,7 +430,7 @@ lemma fmsize_pos[termination_simp]: "fmsize p > 0"
 by (induct p rule: fmsize.induct) simp_all
 
   (* Semantics of formulae (fm) *)
-primrec Ifm ::"'a::{linordered_field_inverse_zero, number_ring} list \<Rightarrow> 'a list \<Rightarrow> fm \<Rightarrow> bool" where
+primrec Ifm ::"'a::{linordered_field_inverse_zero} list \<Rightarrow> 'a list \<Rightarrow> fm \<Rightarrow> bool" where
   "Ifm vs bs T = True"
 | "Ifm vs bs F = False"
 | "Ifm vs bs (Lt a) = (Itm vs bs a < 0)"
@@ -1937,7 +1937,7 @@ proof-
     
     also have "\<dots> \<longleftrightarrow> - (?a * ?s) + 2*?d*?r = 0" using d by simp 
     finally have ?thesis using c d 
-      by (simp add: r[of "- (Itm vs (x # bs) s / (2 * \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>))"] msubsteq_def Let_def evaldjf_ex del: one_add_one_is_two)
+      by (simp add: r[of "- (Itm vs (x # bs) s / (2 * \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>))"] msubsteq_def Let_def evaldjf_ex)
   }
   moreover
   {assume c: "?c \<noteq> 0" and d: "?d=0"
@@ -1950,7 +1950,7 @@ proof-
       by (simp add: field_simps right_distrib[of "2*?c"] del: right_distrib)
     also have "\<dots> \<longleftrightarrow> - (?a * ?t) + 2*?c*?r = 0" using c by simp 
     finally have ?thesis using c d 
-      by (simp add: r[of "- (?t/ (2*?c))"] msubsteq_def Let_def evaldjf_ex del: one_add_one_is_two)
+      by (simp add: r[of "- (?t/ (2*?c))"] msubsteq_def Let_def evaldjf_ex)
   }
   moreover
   {assume c: "?c \<noteq> 0" and d: "?d\<noteq>0" hence dc: "?c * ?d *2 \<noteq> 0" by simp
@@ -2019,7 +2019,7 @@ proof-
     
     also have "\<dots> \<longleftrightarrow> - (?a * ?s) + 2*?d*?r \<noteq> 0" using d by simp 
     finally have ?thesis using c d 
-      by (simp add: r[of "- (Itm vs (x # bs) s / (2 * \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>))"] msubstneq_def Let_def evaldjf_ex del: one_add_one_is_two)
+      by (simp add: r[of "- (Itm vs (x # bs) s / (2 * \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>))"] msubstneq_def Let_def evaldjf_ex)
   }
   moreover
   {assume c: "?c \<noteq> 0" and d: "?d=0"
@@ -2032,7 +2032,7 @@ proof-
       by (simp add: field_simps right_distrib[of "2*?c"] del: right_distrib)
     also have "\<dots> \<longleftrightarrow> - (?a * ?t) + 2*?c*?r \<noteq> 0" using c by simp 
     finally have ?thesis using c d 
-      by (simp add: r[of "- (?t/ (2*?c))"] msubstneq_def Let_def evaldjf_ex del: one_add_one_is_two)
+      by (simp add: r[of "- (?t/ (2*?c))"] msubstneq_def Let_def evaldjf_ex)
   }
   moreover
   {assume c: "?c \<noteq> 0" and d: "?d\<noteq>0" hence dc: "?c * ?d *2 \<noteq> 0" by simp
@@ -2616,10 +2616,10 @@ lemma msubst2_nb: assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero
 using lp tnb
 by (simp add: msubst2_def msubstneg_nb msubstpos_nb conj_nb disj_nb lt_nb simpfm_bound0)
 
-lemma mult_minus2_left: "-2 * (x::'a::number_ring) = - (2 * x)"
+lemma mult_minus2_left: "-2 * (x::'a::comm_ring_1) = - (2 * x)"
   by simp
 
-lemma mult_minus2_right: "(x::'a::number_ring) * -2 = - (x * 2)"
+lemma mult_minus2_right: "(x::'a::comm_ring_1) * -2 = - (x * 2)"
   by simp
 
 lemma islin_qf: "islin p \<Longrightarrow> qfree p"
@@ -3005,11 +3005,11 @@ end
 *} "parametric QE for linear Arithmetic over fields, Version 2"
 
 
-lemma "\<exists>(x::'a::{linordered_field_inverse_zero, number_ring}). y \<noteq> -1 \<longrightarrow> (y + 1)*x < 0"
-  apply (frpar type: "'a::{linordered_field_inverse_zero, number_ring}" pars: "y::'a::{linordered_field_inverse_zero, number_ring}")
+lemma "\<exists>(x::'a::{linordered_field_inverse_zero}). y \<noteq> -1 \<longrightarrow> (y + 1)*x < 0"
+  apply (frpar type: "'a::{linordered_field_inverse_zero}" pars: "y::'a::{linordered_field_inverse_zero}")
   apply (simp add: field_simps)
   apply (rule spec[where x=y])
-  apply (frpar type: "'a::{linordered_field_inverse_zero, number_ring}" pars: "z::'a::{linordered_field_inverse_zero, number_ring}")
+  apply (frpar type: "'a::{linordered_field_inverse_zero}" pars: "z::'a::{linordered_field_inverse_zero}")
   by simp
 
 text{* Collins/Jones Problem *}
@@ -3030,11 +3030,11 @@ apply (frpar type: "'a::{linordered_field_inverse_zero, number_ring}" pars: "t::
 oops
 *)
 
-lemma "\<exists>(x::'a::{linordered_field_inverse_zero, number_ring}). y \<noteq> -1 \<longrightarrow> (y + 1)*x < 0"
-  apply (frpar2 type: "'a::{linordered_field_inverse_zero, number_ring}" pars: "y::'a::{linordered_field_inverse_zero, number_ring}")
+lemma "\<exists>(x::'a::{linordered_field_inverse_zero}). y \<noteq> -1 \<longrightarrow> (y + 1)*x < 0"
+  apply (frpar2 type: "'a::{linordered_field_inverse_zero}" pars: "y::'a::{linordered_field_inverse_zero}")
   apply (simp add: field_simps)
   apply (rule spec[where x=y])
-  apply (frpar2 type: "'a::{linordered_field_inverse_zero, number_ring}" pars: "z::'a::{linordered_field_inverse_zero, number_ring}")
+  apply (frpar2 type: "'a::{linordered_field_inverse_zero}" pars: "z::'a::{linordered_field_inverse_zero}")
   by simp
 
 text{* Collins/Jones Problem *}

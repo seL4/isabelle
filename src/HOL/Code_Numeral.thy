@@ -123,25 +123,6 @@ lemma [code nbe]:
   by (rule equal_refl)
 
 
-subsection {* Code numerals as datatype of ints *}
-
-instantiation code_numeral :: number
-begin
-
-definition
-  "number_of = of_nat o nat"
-
-instance ..
-
-end
-
-lemma nat_of_number [simp]:
-  "nat_of (number_of k) = number_of k"
-  by (simp add: number_of_code_numeral_def nat_number_of_def number_of_is_id)
-
-code_datatype "number_of \<Colon> int \<Rightarrow> code_numeral"
-
-
 subsection {* Basic arithmetic *}
 
 instantiation code_numeral :: "{minus, linordered_semidom, semiring_div, linorder}"
@@ -176,16 +157,17 @@ qed (auto simp add: code_numeral left_distrib intro: mult_commute)
 
 end
 
-lemma zero_code_numeral_code [code]:
-  "(0\<Colon>code_numeral) = Numeral0"
-  by (simp add: number_of_code_numeral_def Pls_def)
+lemma nat_of_numeral [simp]: "nat_of (numeral k) = numeral k"
+  by (induct k rule: num_induct) (simp_all add: numeral_inc)
 
-lemma [code_abbrev]: "Numeral0 = (0\<Colon>code_numeral)"
-  using zero_code_numeral_code ..
+definition Num :: "num \<Rightarrow> code_numeral"
+  where [simp, code_abbrev]: "Num = numeral"
+
+code_datatype "0::code_numeral" Num
 
 lemma one_code_numeral_code [code]:
   "(1\<Colon>code_numeral) = Numeral1"
-  by (simp add: number_of_code_numeral_def Pls_def Bit1_def)
+  by simp
 
 lemma [code_abbrev]: "Numeral1 = (1\<Colon>code_numeral)"
   using one_code_numeral_code ..
@@ -194,15 +176,8 @@ lemma plus_code_numeral_code [code nbe]:
   "of_nat n + of_nat m = of_nat (n + m)"
   by simp
 
-definition subtract :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral" where
-  [simp]: "subtract = minus"
-
-lemma subtract_code [code nbe]:
-  "subtract (of_nat n) (of_nat m) = of_nat (n - m)"
-  by simp
-
-lemma minus_code_numeral_code [code]:
-  "minus = subtract"
+lemma minus_code_numeral_code [code nbe]:
+  "of_nat n - of_nat m = of_nat (n - m)"
   by simp
 
 lemma times_code_numeral_code [code nbe]:
@@ -281,7 +256,7 @@ proof -
 qed
 
 
-hide_const (open) of_nat nat_of Suc subtract int_of
+hide_const (open) of_nat nat_of Suc int_of
 
 
 subsection {* Code generator setup *}
@@ -298,14 +273,20 @@ code_instance code_numeral :: equal
   (Haskell -)
 
 setup {*
-  Numeral.add_code @{const_name number_code_numeral_inst.number_of_code_numeral}
+  Numeral.add_code @{const_name Num}
     false Code_Printer.literal_naive_numeral "SML"
-  #> fold (Numeral.add_code @{const_name number_code_numeral_inst.number_of_code_numeral}
+  #> fold (Numeral.add_code @{const_name Num}
     false Code_Printer.literal_numeral) ["OCaml", "Haskell", "Scala"]
 *}
 
 code_reserved SML Int int
 code_reserved Eval Integer
+
+code_const "0::code_numeral"
+  (SML "0")
+  (OCaml "Big'_int.zero'_big'_int")
+  (Haskell "0")
+  (Scala "BigInt(0)")
 
 code_const "plus \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
   (SML "Int.+/ ((_),/ (_))")
@@ -314,12 +295,12 @@ code_const "plus \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> 
   (Scala infixl 7 "+")
   (Eval infixl 8 "+")
 
-code_const "Code_Numeral.subtract \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
-  (SML "Int.max/ (_/ -/ _,/ 0 : int)")
-  (OCaml "Big'_int.max'_big'_int/ (Big'_int.sub'_big'_int/ _/ _)/ Big'_int.zero'_big'_int")
-  (Haskell "max/ (_/ -/ _)/ (0 :: Integer)")
+code_const "minus \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
+  (SML "Int.max/ (0 : int,/ Int.-/ ((_),/ (_)))")
+  (OCaml "Big'_int.max'_big'_int/ Big'_int.zero'_big'_int/ (Big'_int.sub'_big'_int/ _/ _)")
+  (Haskell "max/ (0 :: Integer)/ (_/ -/ _)")
   (Scala "!(_/ -/ _).max(0)")
-  (Eval "Integer.max/ (_/ -/ _)/ 0")
+  (Eval "Integer.max/ 0/ (_/ -/ _)")
 
 code_const "times \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
   (SML "Int.*/ ((_),/ (_))")

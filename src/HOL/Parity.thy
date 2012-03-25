@@ -45,9 +45,11 @@ lemma even_zero_nat[simp]: "even (0::nat)" by presburger
 
 lemma odd_1_nat [simp]: "odd (1::nat)" by presburger
 
-declare even_def[of "number_of v", simp] for v
+(* TODO: proper simp rules for Num.Bit0, Num.Bit1 *)
+declare even_def[of "numeral v", simp] for v
+declare even_def[of "neg_numeral v", simp] for v
 
-declare even_nat_def[of "number_of v", simp] for v
+declare even_nat_def[of "numeral v", simp] for v
 
 subsection {* Even and odd are mutually exclusive *}
 
@@ -197,18 +199,18 @@ lemma minus_one_odd_power [simp]:
   using minus_one_even_odd_power by blast
 
 lemma neg_one_even_odd_power:
-     "(even x --> (-1::'a::{number_ring})^x = 1) &
+     "(even x --> (-1::'a::{comm_ring_1})^x = 1) &
       (odd x --> (-1::'a)^x = -1)"
   apply (induct x)
   apply (simp, simp)
   done
 
 lemma neg_one_even_power [simp]:
-    "even x ==> (-1::'a::{number_ring})^x = 1"
+    "even x ==> (-1::'a::{comm_ring_1})^x = 1"
   using neg_one_even_odd_power by blast
 
 lemma neg_one_odd_power [simp]:
-    "odd x ==> (-1::'a::{number_ring})^x = -1"
+    "odd x ==> (-1::'a::{comm_ring_1})^x = -1"
   using neg_one_even_odd_power by blast
 
 lemma neg_power_if:
@@ -347,27 +349,28 @@ lemma lemma_even_mod_4_div_2: "n mod 4 = (1::nat) ==> even ((n - 1) div 2)"
 
 text {* Simplify, when the exponent is a numeral *}
 
-lemmas power_0_left_number_of = power_0_left [of "number_of w"] for w
-declare power_0_left_number_of [simp]
+lemma power_0_left_numeral [simp]:
+  "0 ^ numeral w = (0::'a::{power,semiring_0})"
+by (simp add: power_0_left)
 
-lemmas zero_le_power_eq_number_of [simp] =
-    zero_le_power_eq [of _ "number_of w"] for w
+lemmas zero_le_power_eq_numeral [simp] =
+    zero_le_power_eq [of _ "numeral w"] for w
 
-lemmas zero_less_power_eq_number_of [simp] =
-    zero_less_power_eq [of _ "number_of w"] for w
+lemmas zero_less_power_eq_numeral [simp] =
+    zero_less_power_eq [of _ "numeral w"] for w
 
-lemmas power_le_zero_eq_number_of [simp] =
-    power_le_zero_eq [of _ "number_of w"] for w
+lemmas power_le_zero_eq_numeral [simp] =
+    power_le_zero_eq [of _ "numeral w"] for w
 
-lemmas power_less_zero_eq_number_of [simp] =
-    power_less_zero_eq [of _ "number_of w"] for w
+lemmas power_less_zero_eq_numeral [simp] =
+    power_less_zero_eq [of _ "numeral w"] for w
 
-lemmas zero_less_power_nat_eq_number_of [simp] =
-    zero_less_power_nat_eq [of _ "number_of w"] for w
+lemmas zero_less_power_nat_eq_numeral [simp] =
+    zero_less_power_nat_eq [of _ "numeral w"] for w
 
-lemmas power_eq_0_iff_number_of [simp] = power_eq_0_iff [of _ "number_of w"] for w
+lemmas power_eq_0_iff_numeral [simp] = power_eq_0_iff [of _ "numeral w"] for w
 
-lemmas power_even_abs_number_of [simp] = power_even_abs [of "number_of w" _] for w
+lemmas power_even_abs_numeral [simp] = power_even_abs [of "numeral w" _] for w
 
 
 subsection {* An Equivalence for @{term [source] "0 \<le> a^n"} *}

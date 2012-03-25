@@ -12,7 +12,7 @@ subsection {* Class of Archimedean fields *}
 
 text {* Archimedean fields have no infinite elements. *}
 
-class archimedean_field = linordered_field + number_ring +
+class archimedean_field = linordered_field +
   assumes ex_le_of_int: "\<exists>z. x \<le> of_int z"
 
 lemma ex_less_of_int:
@@ -202,8 +202,11 @@ lemma floor_zero [simp]: "floor 0 = 0"
 lemma floor_one [simp]: "floor 1 = 1"
   using floor_of_int [of 1] by simp
 
-lemma floor_number_of [simp]: "floor (number_of v) = number_of v"
-  using floor_of_int [of "number_of v"] by simp
+lemma floor_numeral [simp]: "floor (numeral v) = numeral v"
+  using floor_of_int [of "numeral v"] by simp
+
+lemma floor_neg_numeral [simp]: "floor (neg_numeral v) = neg_numeral v"
+  using floor_of_int [of "neg_numeral v"] by simp
 
 lemma zero_le_floor [simp]: "0 \<le> floor x \<longleftrightarrow> 0 \<le> x"
   by (simp add: le_floor_iff)
@@ -211,7 +214,12 @@ lemma zero_le_floor [simp]: "0 \<le> floor x \<longleftrightarrow> 0 \<le> x"
 lemma one_le_floor [simp]: "1 \<le> floor x \<longleftrightarrow> 1 \<le> x"
   by (simp add: le_floor_iff)
 
-lemma number_of_le_floor [simp]: "number_of v \<le> floor x \<longleftrightarrow> number_of v \<le> x"
+lemma numeral_le_floor [simp]:
+  "numeral v \<le> floor x \<longleftrightarrow> numeral v \<le> x"
+  by (simp add: le_floor_iff)
+
+lemma neg_numeral_le_floor [simp]:
+  "neg_numeral v \<le> floor x \<longleftrightarrow> neg_numeral v \<le> x"
   by (simp add: le_floor_iff)
 
 lemma zero_less_floor [simp]: "0 < floor x \<longleftrightarrow> 1 \<le> x"
@@ -220,8 +228,12 @@ lemma zero_less_floor [simp]: "0 < floor x \<longleftrightarrow> 1 \<le> x"
 lemma one_less_floor [simp]: "1 < floor x \<longleftrightarrow> 2 \<le> x"
   by (simp add: less_floor_iff)
 
-lemma number_of_less_floor [simp]:
-  "number_of v < floor x \<longleftrightarrow> number_of v + 1 \<le> x"
+lemma numeral_less_floor [simp]:
+  "numeral v < floor x \<longleftrightarrow> numeral v + 1 \<le> x"
+  by (simp add: less_floor_iff)
+
+lemma neg_numeral_less_floor [simp]:
+  "neg_numeral v < floor x \<longleftrightarrow> neg_numeral v + 1 \<le> x"
   by (simp add: less_floor_iff)
 
 lemma floor_le_zero [simp]: "floor x \<le> 0 \<longleftrightarrow> x < 1"
@@ -230,8 +242,12 @@ lemma floor_le_zero [simp]: "floor x \<le> 0 \<longleftrightarrow> x < 1"
 lemma floor_le_one [simp]: "floor x \<le> 1 \<longleftrightarrow> x < 2"
   by (simp add: floor_le_iff)
 
-lemma floor_le_number_of [simp]:
-  "floor x \<le> number_of v \<longleftrightarrow> x < number_of v + 1"
+lemma floor_le_numeral [simp]:
+  "floor x \<le> numeral v \<longleftrightarrow> x < numeral v + 1"
+  by (simp add: floor_le_iff)
+
+lemma floor_le_neg_numeral [simp]:
+  "floor x \<le> neg_numeral v \<longleftrightarrow> x < neg_numeral v + 1"
   by (simp add: floor_le_iff)
 
 lemma floor_less_zero [simp]: "floor x < 0 \<longleftrightarrow> x < 0"
@@ -240,8 +256,12 @@ lemma floor_less_zero [simp]: "floor x < 0 \<longleftrightarrow> x < 0"
 lemma floor_less_one [simp]: "floor x < 1 \<longleftrightarrow> x < 1"
   by (simp add: floor_less_iff)
 
-lemma floor_less_number_of [simp]:
-  "floor x < number_of v \<longleftrightarrow> x < number_of v"
+lemma floor_less_numeral [simp]:
+  "floor x < numeral v \<longleftrightarrow> x < numeral v"
+  by (simp add: floor_less_iff)
+
+lemma floor_less_neg_numeral [simp]:
+  "floor x < neg_numeral v \<longleftrightarrow> x < neg_numeral v"
   by (simp add: floor_less_iff)
 
 text {* Addition and subtraction of integers *}
@@ -249,9 +269,13 @@ text {* Addition and subtraction of integers *}
 lemma floor_add_of_int [simp]: "floor (x + of_int z) = floor x + z"
   using floor_correct [of x] by (simp add: floor_unique)
 
-lemma floor_add_number_of [simp]:
-    "floor (x + number_of v) = floor x + number_of v"
-  using floor_add_of_int [of x "number_of v"] by simp
+lemma floor_add_numeral [simp]:
+    "floor (x + numeral v) = floor x + numeral v"
+  using floor_add_of_int [of x "numeral v"] by simp
+
+lemma floor_add_neg_numeral [simp]:
+    "floor (x + neg_numeral v) = floor x + neg_numeral v"
+  using floor_add_of_int [of x "neg_numeral v"] by simp
 
 lemma floor_add_one [simp]: "floor (x + 1) = floor x + 1"
   using floor_add_of_int [of x 1] by simp
@@ -259,9 +283,13 @@ lemma floor_add_one [simp]: "floor (x + 1) = floor x + 1"
 lemma floor_diff_of_int [simp]: "floor (x - of_int z) = floor x - z"
   using floor_add_of_int [of x "- z"] by (simp add: algebra_simps)
 
-lemma floor_diff_number_of [simp]:
-  "floor (x - number_of v) = floor x - number_of v"
-  using floor_diff_of_int [of x "number_of v"] by simp
+lemma floor_diff_numeral [simp]:
+  "floor (x - numeral v) = floor x - numeral v"
+  using floor_diff_of_int [of x "numeral v"] by simp
+
+lemma floor_diff_neg_numeral [simp]:
+  "floor (x - neg_numeral v) = floor x - neg_numeral v"
+  using floor_diff_of_int [of x "neg_numeral v"] by simp
 
 lemma floor_diff_one [simp]: "floor (x - 1) = floor x - 1"
   using floor_diff_of_int [of x 1] by simp
@@ -320,8 +348,11 @@ lemma ceiling_zero [simp]: "ceiling 0 = 0"
 lemma ceiling_one [simp]: "ceiling 1 = 1"
   using ceiling_of_int [of 1] by simp
 
-lemma ceiling_number_of [simp]: "ceiling (number_of v) = number_of v"
-  using ceiling_of_int [of "number_of v"] by simp
+lemma ceiling_numeral [simp]: "ceiling (numeral v) = numeral v"
+  using ceiling_of_int [of "numeral v"] by simp
+
+lemma ceiling_neg_numeral [simp]: "ceiling (neg_numeral v) = neg_numeral v"
+  using ceiling_of_int [of "neg_numeral v"] by simp
 
 lemma ceiling_le_zero [simp]: "ceiling x \<le> 0 \<longleftrightarrow> x \<le> 0"
   by (simp add: ceiling_le_iff)
@@ -329,8 +360,12 @@ lemma ceiling_le_zero [simp]: "ceiling x \<le> 0 \<longleftrightarrow> x \<le> 0
 lemma ceiling_le_one [simp]: "ceiling x \<le> 1 \<longleftrightarrow> x \<le> 1"
   by (simp add: ceiling_le_iff)
 
-lemma ceiling_le_number_of [simp]:
-  "ceiling x \<le> number_of v \<longleftrightarrow> x \<le> number_of v"
+lemma ceiling_le_numeral [simp]:
+  "ceiling x \<le> numeral v \<longleftrightarrow> x \<le> numeral v"
+  by (simp add: ceiling_le_iff)
+
+lemma ceiling_le_neg_numeral [simp]:
+  "ceiling x \<le> neg_numeral v \<longleftrightarrow> x \<le> neg_numeral v"
   by (simp add: ceiling_le_iff)
 
 lemma ceiling_less_zero [simp]: "ceiling x < 0 \<longleftrightarrow> x \<le> -1"
@@ -339,8 +374,12 @@ lemma ceiling_less_zero [simp]: "ceiling x < 0 \<longleftrightarrow> x \<le> -1"
 lemma ceiling_less_one [simp]: "ceiling x < 1 \<longleftrightarrow> x \<le> 0"
   by (simp add: ceiling_less_iff)
 
-lemma ceiling_less_number_of [simp]:
-  "ceiling x < number_of v \<longleftrightarrow> x \<le> number_of v - 1"
+lemma ceiling_less_numeral [simp]:
+  "ceiling x < numeral v \<longleftrightarrow> x \<le> numeral v - 1"
+  by (simp add: ceiling_less_iff)
+
+lemma ceiling_less_neg_numeral [simp]:
+  "ceiling x < neg_numeral v \<longleftrightarrow> x \<le> neg_numeral v - 1"
   by (simp add: ceiling_less_iff)
 
 lemma zero_le_ceiling [simp]: "0 \<le> ceiling x \<longleftrightarrow> -1 < x"
@@ -349,8 +388,12 @@ lemma zero_le_ceiling [simp]: "0 \<le> ceiling x \<longleftrightarrow> -1 < x"
 lemma one_le_ceiling [simp]: "1 \<le> ceiling x \<longleftrightarrow> 0 < x"
   by (simp add: le_ceiling_iff)
 
-lemma number_of_le_ceiling [simp]:
-  "number_of v \<le> ceiling x\<longleftrightarrow> number_of v - 1 < x"
+lemma numeral_le_ceiling [simp]:
+  "numeral v \<le> ceiling x \<longleftrightarrow> numeral v - 1 < x"
+  by (simp add: le_ceiling_iff)
+
+lemma neg_numeral_le_ceiling [simp]:
+  "neg_numeral v \<le> ceiling x \<longleftrightarrow> neg_numeral v - 1 < x"
   by (simp add: le_ceiling_iff)
 
 lemma zero_less_ceiling [simp]: "0 < ceiling x \<longleftrightarrow> 0 < x"
@@ -359,8 +402,12 @@ lemma zero_less_ceiling [simp]: "0 < ceiling x \<longleftrightarrow> 0 < x"
 lemma one_less_ceiling [simp]: "1 < ceiling x \<longleftrightarrow> 1 < x"
   by (simp add: less_ceiling_iff)
 
-lemma number_of_less_ceiling [simp]:
-  "number_of v < ceiling x \<longleftrightarrow> number_of v < x"
+lemma numeral_less_ceiling [simp]:
+  "numeral v < ceiling x \<longleftrightarrow> numeral v < x"
+  by (simp add: less_ceiling_iff)
+
+lemma neg_numeral_less_ceiling [simp]:
+  "neg_numeral v < ceiling x \<longleftrightarrow> neg_numeral v < x"
   by (simp add: less_ceiling_iff)
 
 text {* Addition and subtraction of integers *}
@@ -368,9 +415,13 @@ text {* Addition and subtraction of integers *}
 lemma ceiling_add_of_int [simp]: "ceiling (x + of_int z) = ceiling x + z"
   using ceiling_correct [of x] by (simp add: ceiling_unique)
 
-lemma ceiling_add_number_of [simp]:
-    "ceiling (x + number_of v) = ceiling x + number_of v"
-  using ceiling_add_of_int [of x "number_of v"] by simp
+lemma ceiling_add_numeral [simp]:
+    "ceiling (x + numeral v) = ceiling x + numeral v"
+  using ceiling_add_of_int [of x "numeral v"] by simp
+
+lemma ceiling_add_neg_numeral [simp]:
+    "ceiling (x + neg_numeral v) = ceiling x + neg_numeral v"
+  using ceiling_add_of_int [of x "neg_numeral v"] by simp
 
 lemma ceiling_add_one [simp]: "ceiling (x + 1) = ceiling x + 1"
   using ceiling_add_of_int [of x 1] by simp
@@ -378,9 +429,13 @@ lemma ceiling_add_one [simp]: "ceiling (x + 1) = ceiling x + 1"
 lemma ceiling_diff_of_int [simp]: "ceiling (x - of_int z) = ceiling x - z"
   using ceiling_add_of_int [of x "- z"] by (simp add: algebra_simps)
 
-lemma ceiling_diff_number_of [simp]:
-  "ceiling (x - number_of v) = ceiling x - number_of v"
-  using ceiling_diff_of_int [of x "number_of v"] by simp
+lemma ceiling_diff_numeral [simp]:
+  "ceiling (x - numeral v) = ceiling x - numeral v"
+  using ceiling_diff_of_int [of x "numeral v"] by simp
+
+lemma ceiling_diff_neg_numeral [simp]:
+  "ceiling (x - neg_numeral v) = ceiling x - neg_numeral v"
+  using ceiling_diff_of_int [of x "neg_numeral v"] by simp
 
 lemma ceiling_diff_one [simp]: "ceiling (x - 1) = ceiling x - 1"
   using ceiling_diff_of_int [of x 1] by simp

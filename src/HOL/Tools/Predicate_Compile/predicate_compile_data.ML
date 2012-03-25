@@ -240,10 +240,12 @@ fun special_cases (c, T) = member (op =) [
   @{const_name Groups.one},  @{const_name Groups.plus},
   @{const_name Nat.ord_nat_inst.less_eq_nat},
   @{const_name Nat.ord_nat_inst.less_nat},
+(* FIXME
   @{const_name number_nat_inst.number_of_nat},
-  @{const_name Int.Bit0},
-  @{const_name Int.Bit1},
-  @{const_name Int.Pls},
+*)
+  @{const_name Num.Bit0},
+  @{const_name Num.Bit1},
+  @{const_name Num.One},
   @{const_name Int.zero_int_inst.zero_int},
   @{const_name List.filter},
   @{const_name HOL.If},

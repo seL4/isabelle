@@ -303,9 +303,11 @@ by (induct n) auto
 lemma of_real_of_int_eq [simp]: "of_real (of_int z) = of_int z"
 by (cases z rule: int_diff_cases, simp)
 
-lemma of_real_number_of_eq:
-  "of_real (number_of w) = (number_of w :: 'a::{number_ring,real_algebra_1})"
-by (simp add: number_of_eq)
+lemma of_real_numeral: "of_real (numeral w) = numeral w"
+using of_real_of_int_eq [of "numeral w"] by simp
+
+lemma of_real_neg_numeral: "of_real (neg_numeral w) = neg_numeral w"
+using of_real_of_int_eq [of "neg_numeral w"] by simp
 
 text{*Every real algebra has characteristic zero*}
 
@@ -335,9 +337,11 @@ by (subst of_real_of_int_eq [symmetric], rule Reals_of_real)
 lemma Reals_of_nat [simp]: "of_nat n \<in> Reals"
 by (subst of_real_of_nat_eq [symmetric], rule Reals_of_real)
 
-lemma Reals_number_of [simp]:
-  "(number_of w::'a::{number_ring,real_algebra_1}) \<in> Reals"
-by (subst of_real_number_of_eq [symmetric], rule Reals_of_real)
+lemma Reals_numeral [simp]: "numeral w \<in> Reals"
+by (subst of_real_numeral [symmetric], rule Reals_of_real)
+
+lemma Reals_neg_numeral [simp]: "neg_numeral w \<in> Reals"
+by (subst of_real_neg_numeral [symmetric], rule Reals_of_real)
 
 lemma Reals_0 [simp]: "0 \<in> Reals"
 apply (unfold Reals_def)
@@ -752,10 +756,13 @@ lemma norm_of_real [simp]:
   "norm (of_real r :: 'a::real_normed_algebra_1) = \<bar>r\<bar>"
 unfolding of_real_def by simp
 
-lemma norm_number_of [simp]:
-  "norm (number_of w::'a::{number_ring,real_normed_algebra_1})
-    = \<bar>number_of w\<bar>"
-by (subst of_real_number_of_eq [symmetric], rule norm_of_real)
+lemma norm_numeral [simp]:
+  "norm (numeral w::'a::real_normed_algebra_1) = numeral w"
+by (subst of_real_numeral [symmetric], subst norm_of_real, simp)
+
+lemma norm_neg_numeral [simp]:
+  "norm (neg_numeral w::'a::real_normed_algebra_1) = numeral w"
+by (subst of_real_neg_numeral [symmetric], subst norm_of_real, simp)
 
 lemma norm_of_int [simp]:
   "norm (of_int z::'a::real_normed_algebra_1) = \<bar>of_int z\<bar>"

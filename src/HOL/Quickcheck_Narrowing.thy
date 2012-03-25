@@ -70,34 +70,15 @@ definition
   "HOL.equal k l \<longleftrightarrow> HOL.equal (int_of k) (int_of l)"
 
 instance proof
-qed (auto simp add: equal_code_int_def equal_int_def eq_int_refl)
+qed (auto simp add: equal_code_int_def equal_int_def equal_int_refl)
 
 end
-
-instantiation code_int :: number
-begin
-
-definition
-  "number_of = of_int"
-
-instance ..
-
-end
-
-lemma int_of_number [simp]:
-  "int_of (number_of k) = number_of k"
-  by (simp add: number_of_code_int_def number_of_is_id)
-
 
 definition nat_of :: "code_int => nat"
 where
   "nat_of i = nat (int_of i)"
-
-
-code_datatype "number_of \<Colon> int \<Rightarrow> code_int"
   
-  
-instantiation code_int :: "{minus, linordered_semidom, semiring_div, linorder}"
+instantiation code_int :: "{minus, linordered_semidom, semiring_div, neg_numeral, linorder}"
 begin
 
 definition [simp, code del]:
@@ -108,6 +89,9 @@ definition [simp, code del]:
 
 definition [simp, code del]:
   "n + m = of_int (int_of n + int_of m)"
+
+definition [simp, code del]:
+  "- n = of_int (- int_of n)"
 
 definition [simp, code del]:
   "n - m = of_int (int_of n - int_of m)"
@@ -127,34 +111,43 @@ definition [simp, code del]:
 definition [simp, code del]:
   "n < m \<longleftrightarrow> int_of n < int_of m"
 
-
 instance proof
 qed (auto simp add: code_int left_distrib zmult_zless_mono2)
 
 end
 
-lemma zero_code_int_code [code, code_unfold]:
-  "(0\<Colon>code_int) = Numeral0"
-  by (simp add: number_of_code_int_def Pls_def)
+lemma int_of_numeral [simp]:
+  "int_of (numeral k) = numeral k"
+  by (induct k) (simp_all only: numeral.simps plus_code_int_def
+    one_code_int_def of_int_inverse UNIV_I)
+
+definition Num :: "num \<Rightarrow> code_int"
+  where [code_abbrev]: "Num = numeral"
+
+lemma [code_abbrev]:
+  "- numeral k = (neg_numeral k :: code_int)"
+  by (unfold neg_numeral_def) simp
+
+code_datatype "0::code_int" Num
 
 lemma one_code_int_code [code, code_unfold]:
   "(1\<Colon>code_int) = Numeral1"
-  by (simp add: number_of_code_int_def Pls_def Bit1_def)
+  by (simp only: numeral.simps)
 
-definition div_mod_code_int :: "code_int \<Rightarrow> code_int \<Rightarrow> code_int \<times> code_int" where
-  [code del]: "div_mod_code_int n m = (n div m, n mod m)"
-
-lemma [code]:
-  "div_mod_code_int n m = (if m = 0 then (0, n) else (n div m, n mod m))"
-  unfolding div_mod_code_int_def by auto
+definition div_mod :: "code_int \<Rightarrow> code_int \<Rightarrow> code_int \<times> code_int" where
+  [code del]: "div_mod n m = (n div m, n mod m)"
 
 lemma [code]:
-  "n div m = fst (div_mod_code_int n m)"
-  unfolding div_mod_code_int_def by simp
+  "div_mod n m = (if m = 0 then (0, n) else (n div m, n mod m))"
+  unfolding div_mod_def by auto
 
 lemma [code]:
-  "n mod m = snd (div_mod_code_int n m)"
-  unfolding div_mod_code_int_def by simp
+  "n div m = fst (div_mod n m)"
+  unfolding div_mod_def by simp
+
+lemma [code]:
+  "n mod m = snd (div_mod n m)"
+  unfolding div_mod_def by simp
 
 lemma int_of_code [code]:
   "int_of k = (if k = 0 then 0
@@ -172,8 +165,11 @@ qed
 code_instance code_numeral :: equal
   (Haskell_Quickcheck -)
 
-setup {* fold (Numeral.add_code @{const_name number_code_int_inst.number_of_code_int}
+setup {* fold (Numeral.add_code @{const_name Num}
   false Code_Printer.literal_numeral) ["Haskell_Quickcheck"]  *}
+
+code_type code_int
+  (Haskell_Quickcheck "Int")
 
 code_const "0 \<Colon> code_int"
   (Haskell_Quickcheck "0")
@@ -182,24 +178,23 @@ code_const "1 \<Colon> code_int"
   (Haskell_Quickcheck "1")
 
 code_const "minus \<Colon> code_int \<Rightarrow> code_int \<Rightarrow> code_int"
-  (Haskell_Quickcheck "(_/ -/ _)")
+  (Haskell_Quickcheck infixl 6 "-")
 
-code_const div_mod_code_int
+code_const div_mod
   (Haskell_Quickcheck "divMod")
 
 code_const "HOL.equal \<Colon> code_int \<Rightarrow> code_int \<Rightarrow> bool"
   (Haskell_Quickcheck infix 4 "==")
 
-code_const "op \<le> \<Colon> code_int \<Rightarrow> code_int \<Rightarrow> bool"
+code_const "less_eq \<Colon> code_int \<Rightarrow> code_int \<Rightarrow> bool"
   (Haskell_Quickcheck infix 4 "<=")
 
-code_const "op < \<Colon> code_int \<Rightarrow> code_int \<Rightarrow> bool"
+code_const "less \<Colon> code_int \<Rightarrow> code_int \<Rightarrow> bool"
   (Haskell_Quickcheck infix 4 "<")
 
-code_type code_int
-  (Haskell_Quickcheck "Int")
-
 code_abort of_int
+
+hide_const (open) Num div_mod
 
 subsubsection {* Narrowing's deep representation of types and terms *}
 

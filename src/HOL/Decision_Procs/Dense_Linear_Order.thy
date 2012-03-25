@@ -636,14 +636,8 @@ lemma sum_eq:"((x::'a::ordered_ab_group_add) + t = 0) == (x = - t)"
 
 interpretation class_dense_linordered_field: constr_dense_linorder
  "op <=" "op <"
-   "\<lambda> x y. 1/2 * ((x::'a::{linordered_field,number_ring}) + y)"
-proof (unfold_locales, dlo, dlo, auto)
-  fix x y::'a assume lt: "x < y"
-  from  less_half_sum[OF lt] show "x < (x + y) /2" by simp
-next
-  fix x y::'a assume lt: "x < y"
-  from  gt_half_sum[OF lt] show "(x + y) /2 < y" by simp
-qed
+   "\<lambda> x y. 1/2 * ((x::'a::{linordered_field}) + y)"
+by (unfold_locales, dlo, dlo, auto)
 
 declaration{*
 let

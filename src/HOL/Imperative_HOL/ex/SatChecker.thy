@@ -702,15 +702,7 @@ where
                 else raise(''No empty clause''))
   }"
 
-section {* Code generation setup *}
-
-code_type ProofStep
-  (SML "MinisatProofStep.ProofStep")
-
-code_const ProofDone and Root and Conflict and Delete and Xstep
-  (SML "MinisatProofStep.ProofDone" and "MinisatProofStep.Root ((_),/ (_))" and "MinisatProofStep.Conflict ((_),/ (_))" and "MinisatProofStep.Delete" and "MinisatProofStep.Xstep ((_),/ (_))")
-
-export_code checker tchecker lchecker in SML
+export_code checker tchecker lchecker checking SML
 
 end
 

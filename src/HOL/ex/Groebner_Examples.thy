@@ -31,7 +31,7 @@ schematic_lemma
     (Conv.arg_conv (Conv.arg1_conv (Semiring_Normalizer.semiring_normalize_conv @{context})))) *})
   by (rule refl)
 
-lemma "((-3) ^ (Suc (Suc (Suc 0)))) == (X::'a::{number_ring})"
+lemma "((-3) ^ (Suc (Suc (Suc 0)))) == (X::'a::{comm_ring_1})"
   apply (simp only: power_Suc power_0)
   apply (simp only: semiring_norm)
   oops
@@ -58,7 +58,7 @@ theorem "x* (x\<twosuperior> - x  - 5) - 3 = (0::int) \<longleftrightarrow> (x =
   by algebra
 
 lemma
-  fixes x::"'a::{idom,number_ring}"
+  fixes x::"'a::{idom}"
   shows "x^2*y = x^2 & x*y^2 = y^2 \<longleftrightarrow>  x=1 & y=1 | x=0 & y=0"
   by algebra
 
@@ -69,7 +69,7 @@ definition
   "sq x == x*x"
 
 lemma
-  fixes x1 :: "'a::{idom,number_ring}"
+  fixes x1 :: "'a::{idom}"
   shows
   "(sq x1 + sq x2 + sq x3 + sq x4) * (sq y1 + sq y2 + sq y3 + sq y4) =
     sq (x1*y1 - x2*y2 - x3*y3 - x4*y4)  +
@@ -79,7 +79,7 @@ lemma
   by (algebra add: sq_def)
 
 lemma
-  fixes p1 :: "'a::{idom,number_ring}"
+  fixes p1 :: "'a::{idom}"
   shows
   "(sq p1 + sq q1 + sq r1 + sq s1 + sq t1 + sq u1 + sq v1 + sq w1) *
    (sq p2 + sq q2 + sq r2 + sq s2 + sq t2 + sq u2 + sq v2 + sq w2)

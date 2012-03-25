@@ -1732,7 +1732,7 @@ proof(auto)
          (set U \<times> set U)"using mnz nnz th  
     apply (auto simp add: th add_divide_distrib algebra_simps split_def image_def)
     by (rule_tac x="(s,m)" in bexI,simp_all) 
-  (rule_tac x="(t,n)" in bexI,simp_all)
+  (rule_tac x="(t,n)" in bexI,simp_all add: mult_commute)
 next
   fix t n s m
   assume tnU: "(t,n) \<in> set U" and smU:"(s,m) \<in> set U" 
@@ -1937,11 +1937,12 @@ fun num_of_term vs (Free vT) = @{code Bound} (find_index (fn vT' => vT = vT') vs
   | num_of_term vs (@{term "op * :: real \<Rightarrow> real \<Rightarrow> real"} $ t1 $ t2) = (case num_of_term vs t1
      of @{code C} i => @{code Mul} (i, num_of_term vs t2)
       | _ => error "num_of_term: unsupported multiplication")
-  | num_of_term vs (@{term "real :: int \<Rightarrow> real"} $ (@{term "number_of :: int \<Rightarrow> int"} $ t')) =
-     @{code C} (HOLogic.dest_numeral t')
-  | num_of_term vs (@{term "number_of :: int \<Rightarrow> real"} $ t') =
-     @{code C} (HOLogic.dest_numeral t')
-  | num_of_term vs t = error ("num_of_term: unknown term");
+  | num_of_term vs (@{term "real :: int \<Rightarrow> real"} $ t') =
+     (@{code C} (snd (HOLogic.dest_number t'))
+       handle TERM _ => error ("num_of_term: unknown term"))
+  | num_of_term vs t' =
+     (@{code C} (snd (HOLogic.dest_number t'))
+       handle TERM _ => error ("num_of_term: unknown term"));
 
 fun fm_of_term vs @{term True} = @{code T}
   | fm_of_term vs @{term False} = @{code F}

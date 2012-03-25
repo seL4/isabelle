@@ -1638,11 +1638,11 @@ fun unfold_defs_in_term
   let
     fun do_term depth Ts t =
       case t of
-        (t0 as Const (@{const_name Int.number_class.number_of},
+        (t0 as Const (@{const_name Num.numeral_class.numeral},
                       Type (@{type_name fun}, [_, ran_T]))) $ t1 =>
         ((if is_number_type ctxt ran_T then
             let
-              val j = t1 |> HOLogic.dest_numeral
+              val j = t1 |> HOLogic.dest_num
                          |> ran_T = nat_T ? Integer.max 0
               val s = numeral_prefix ^ signed_string_of_int j
             in

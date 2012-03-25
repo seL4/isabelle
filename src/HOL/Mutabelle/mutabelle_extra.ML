@@ -271,7 +271,7 @@ val forbidden_mutant_constnames =
  @{const_name enum_prod_inst.enum_ex_prod},
  @{const_name Quickcheck.catch_match},
  @{const_name Quickcheck_Exhaustive.unknown},
- @{const_name Int.Bit0}, @{const_name Int.Bit1}
+ @{const_name Num.Bit0}, @{const_name Num.Bit1}
  (*@{const_name "==>"}, @{const_name "=="}*)]
 
 val forbidden_mutant_consts =
