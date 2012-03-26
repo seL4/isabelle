@@ -333,15 +333,17 @@ class Standard_System
     else jvm_path
 
 
-  /* this_java executable */
+  /* JDK home of running JVM */
 
-  def this_java(): String =
+  def this_jdk_home(): String =
   {
     val java_home = System.getProperty("java.home")
-    val java_exe =
-      if (Platform.is_windows) new File(java_home + "\\bin\\java.exe")
-      else new File(java_home + "/bin/java")
-    if (!java_exe.isFile) error("Expected this Java executable: " + java_exe.toString)
-    posix_path(java_exe.getAbsolutePath)
+    val home = new File(java_home)
+    val parent = home.getParent
+    val jdk_home =
+      if (home.getName == "jre" && parent != null &&
+          (new File(new File(parent, "bin"), "javac")).exists) parent
+      else java_home
+    posix_path(jdk_home)
   }
 }

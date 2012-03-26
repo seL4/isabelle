@@ -71,7 +71,8 @@ apply simp
 apply (subst power_Suc)
 apply (subst pderiv_mult)
 apply (erule ssubst)
-apply (simp add: smult_add_left algebra_simps)
+apply (simp only: of_nat_Suc smult_add_left smult_1_left)
+apply (simp add: algebra_simps) (* FIXME *)
 done
 
 lemma DERIV_cmult2: "DERIV f x :> D ==> DERIV (%x. (f x) * c :: real) x :> D * c"

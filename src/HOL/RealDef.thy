@@ -720,7 +720,9 @@ instance proof
     unfolding less_eq_real_def less_real_def
     by (auto, drule (1) positive_add, simp add: positive_zero)
   show "a \<le> b \<Longrightarrow> c + a \<le> c + b"
-    unfolding less_eq_real_def less_real_def by auto
+    unfolding less_eq_real_def less_real_def by (auto simp: diff_minus) (* by auto *)
+    (* FIXME: Procedure int_combine_numerals: c + b - (c + a) \<equiv> b + - a *)
+    (* Should produce c + b - (c + a) \<equiv> b - a *)
   show "sgn a = (if a = 0 then 0 else if 0 < a then 1 else - 1)"
     by (rule sgn_real_def)
   show "a \<le> b \<or> b \<le> a"
@@ -744,17 +746,6 @@ definition
 
 instance proof
 qed (auto simp add: inf_real_def sup_real_def min_max.sup_inf_distrib1)
-
-end
-
-instantiation real :: number_ring
-begin
-
-definition
-  "(number_of x :: real) = of_int x"
-
-instance proof
-qed (rule number_of_real_def)
 
 end
 
@@ -877,7 +868,7 @@ lemma less_RealD:
 by (erule contrapos_pp, simp add: not_less, erule Real_leI [OF Y])
 
 lemma of_nat_less_two_power:
-  "of_nat n < (2::'a::{linordered_idom,number_ring}) ^ n"
+  "of_nat n < (2::'a::linordered_idom) ^ n"
 apply (induct n)
 apply simp
 apply (subgoal_tac "(1::'a) \<le> 2 ^ n")
@@ -1469,18 +1460,19 @@ qed
 subsection{*Numerals and Arithmetic*}
 
 lemma [code_abbrev]:
-  "real_of_int (number_of k) = number_of k"
-  unfolding number_of_is_id number_of_real_def ..
+  "real_of_int (numeral k) = numeral k"
+  "real_of_int (neg_numeral k) = neg_numeral k"
+  by simp_all
 
 text{*Collapse applications of @{term real} to @{term number_of}*}
-lemma real_number_of [simp]: "real (number_of v :: int) = number_of v"
-by (simp add: real_of_int_def)
+lemma real_numeral [simp]:
+  "real (numeral v :: int) = numeral v"
+  "real (neg_numeral v :: int) = neg_numeral v"
+by (simp_all add: real_of_int_def)
 
-lemma real_of_nat_number_of [simp]:
-     "real (number_of v :: nat) =  
-        (if neg (number_of v :: int) then 0  
-         else (number_of v :: real))"
-by (simp add: real_of_int_of_nat_eq [symmetric])
+lemma real_of_nat_numeral [simp]:
+  "real (numeral v :: nat) = numeral v"
+by (simp add: real_of_nat_def)
 
 declaration {*
   K (Lin_Arith.add_inj_thms [@{thm real_of_nat_le_iff} RS iffD2, @{thm real_of_nat_inject} RS iffD2]
@@ -1491,7 +1483,7 @@ declaration {*
       @{thm real_of_nat_mult}, @{thm real_of_int_zero}, @{thm real_of_one},
       @{thm real_of_int_add}, @{thm real_of_int_minus}, @{thm real_of_int_diff},
       @{thm real_of_int_mult}, @{thm real_of_int_of_nat_eq},
-      @{thm real_of_nat_number_of}, @{thm real_number_of}]
+      @{thm real_of_nat_numeral}, @{thm real_numeral(1)}, @{thm real_numeral(2)}]
   #> Lin_Arith.add_inj_const (@{const_name real}, @{typ "nat \<Rightarrow> real"})
   #> Lin_Arith.add_inj_const (@{const_name real}, @{typ "int \<Rightarrow> real"}))
 *}
@@ -1605,36 +1597,60 @@ by simp
 
 subsection {* Implementation of rational real numbers *}
 
+text {* Formal constructor *}
+
 definition Ratreal :: "rat \<Rightarrow> real" where
-  [simp]: "Ratreal = of_rat"
+  [code_abbrev, simp]: "Ratreal = of_rat"
 
 code_datatype Ratreal
 
-lemma Ratreal_number_collapse [code_post]:
-  "Ratreal 0 = 0"
-  "Ratreal 1 = 1"
-  "Ratreal (number_of k) = number_of k"
-by simp_all
 
-lemma zero_real_code [code, code_unfold]:
+text {* Numerals *}
+
+lemma [code_abbrev]:
+  "(of_rat (of_int a) :: real) = of_int a"
+  by simp
+
+lemma [code_abbrev]:
+  "(of_rat 0 :: real) = 0"
+  by simp
+
+lemma [code_abbrev]:
+  "(of_rat 1 :: real) = 1"
+  by simp
+
+lemma [code_abbrev]:
+  "(of_rat (numeral k) :: real) = numeral k"
+  by simp
+
+lemma [code_abbrev]:
+  "(of_rat (neg_numeral k) :: real) = neg_numeral k"
+  by simp
+
+lemma [code_post]:
+  "(of_rat (0 / r)  :: real) = 0"
+  "(of_rat (r / 0)  :: real) = 0"
+  "(of_rat (1 / 1)  :: real) = 1"
+  "(of_rat (numeral k / 1) :: real) = numeral k"
+  "(of_rat (neg_numeral k / 1) :: real) = neg_numeral k"
+  "(of_rat (1 / numeral k) :: real) = 1 / numeral k"
+  "(of_rat (1 / neg_numeral k) :: real) = 1 / neg_numeral k"
+  "(of_rat (numeral k / numeral l)  :: real) = numeral k / numeral l"
+  "(of_rat (numeral k / neg_numeral l)  :: real) = numeral k / neg_numeral l"
+  "(of_rat (neg_numeral k / numeral l)  :: real) = neg_numeral k / numeral l"
+  "(of_rat (neg_numeral k / neg_numeral l)  :: real) = neg_numeral k / neg_numeral l"
+  by (simp_all add: of_rat_divide)
+
+
+text {* Operations *}
+
+lemma zero_real_code [code]:
   "0 = Ratreal 0"
 by simp
 
-lemma one_real_code [code, code_unfold]:
+lemma one_real_code [code]:
   "1 = Ratreal 1"
 by simp
-
-lemma number_of_real_code [code_unfold]:
-  "number_of k = Ratreal (number_of k)"
-by simp
-
-lemma Ratreal_number_of_quotient [code_post]:
-  "Ratreal (number_of r) / Ratreal (number_of s) = number_of r / number_of s"
-by simp
-
-lemma Ratreal_number_of_quotient2 [code_post]:
-  "Ratreal (number_of r / number_of s) = number_of r / number_of s"
-unfolding Ratreal_number_of_quotient [symmetric] Ratreal_def of_rat_divide ..
 
 instantiation real :: equal
 begin
@@ -1680,6 +1696,9 @@ lemma real_divide_code [code]: "Ratreal x / Ratreal y = Ratreal (x / y)"
 
 lemma real_floor_code [code]: "floor (Ratreal x) = floor x"
   by (metis Ratreal_def floor_le_iff floor_unique le_floor_iff of_int_floor_le of_rat_of_int_eq real_less_eq_code)
+
+
+text {* Quickcheck *}
 
 definition (in term_syntax)
   valterm_ratreal :: "rat \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow> real \<times> (unit \<Rightarrow> Code_Evaluation.term)" where
@@ -1741,14 +1760,12 @@ declaration {*
     (@{const_name plus_real_inst.plus_real}, @{const_name Nitpick.plus_frac}),
     (@{const_name times_real_inst.times_real}, @{const_name Nitpick.times_frac}),
     (@{const_name uminus_real_inst.uminus_real}, @{const_name Nitpick.uminus_frac}),
-    (@{const_name number_real_inst.number_of_real}, @{const_name Nitpick.number_of_frac}),
     (@{const_name inverse_real_inst.inverse_real}, @{const_name Nitpick.inverse_frac}),
     (@{const_name ord_real_inst.less_real}, @{const_name Nitpick.less_frac}),
     (@{const_name ord_real_inst.less_eq_real}, @{const_name Nitpick.less_eq_frac})]
 *}
 
-lemmas [nitpick_unfold] = inverse_real_inst.inverse_real
-    number_real_inst.number_of_real one_real_inst.one_real
+lemmas [nitpick_unfold] = inverse_real_inst.inverse_real one_real_inst.one_real
     ord_real_inst.less_real ord_real_inst.less_eq_real plus_real_inst.plus_real
     times_real_inst.times_real uminus_real_inst.uminus_real
     zero_real_inst.zero_real

@@ -50,11 +50,13 @@ lemma int_not_BIT [simp]:
   unfolding int_not_def Bit_def by (cases b, simp_all)
 
 lemma int_not_simps [simp]:
-  "NOT Int.Pls = Int.Min"
-  "NOT Int.Min = Int.Pls"
-  "NOT (Int.Bit0 w) = Int.Bit1 (NOT w)"
-  "NOT (Int.Bit1 w) = Int.Bit0 (NOT w)"
-  unfolding int_not_def Pls_def Min_def Bit0_def Bit1_def by simp_all
+  "NOT (0::int) = -1"
+  "NOT (1::int) = -2"
+  "NOT (-1::int) = 0"
+  "NOT (numeral w::int) = neg_numeral (w + Num.One)"
+  "NOT (neg_numeral (Num.Bit0 w)::int) = numeral (Num.BitM w)"
+  "NOT (neg_numeral (Num.Bit1 w)::int) = numeral (Num.Bit0 w)"
+  unfolding int_not_def by simp_all
 
 lemma int_not_not [simp]: "NOT (NOT (x::int)) = x"
   unfolding int_not_def by simp
@@ -64,12 +66,6 @@ lemma int_and_0 [simp]: "(0::int) AND x = 0"
 
 lemma int_and_m1 [simp]: "(-1::int) AND x = x"
   by (simp add: bitAND_int.simps)
-
-lemma int_and_Pls [simp]: "Int.Pls AND x = Int.Pls"
-  unfolding Pls_def by simp
-
-lemma int_and_Min [simp]: "Int.Min AND x = x"
-  unfolding Min_def by simp
 
 lemma Bit_eq_0_iff: "w BIT b = 0 \<longleftrightarrow> w = 0 \<and> b = 0"
   by (subst BIT_eq_iff [symmetric], simp)
@@ -81,17 +77,10 @@ lemma int_and_Bits [simp]:
   "(x BIT b) AND (y BIT c) = (x AND y) BIT (b AND c)" 
   by (subst bitAND_int.simps, simp add: Bit_eq_0_iff Bit_eq_m1_iff)
 
-lemma int_and_Bits2 [simp]: 
-  "(Int.Bit0 x) AND (Int.Bit0 y) = Int.Bit0 (x AND y)"
-  "(Int.Bit0 x) AND (Int.Bit1 y) = Int.Bit0 (x AND y)"
-  "(Int.Bit1 x) AND (Int.Bit0 y) = Int.Bit0 (x AND y)"
-  "(Int.Bit1 x) AND (Int.Bit1 y) = Int.Bit1 (x AND y)"
-  unfolding BIT_simps [symmetric] int_and_Bits by simp_all
-
-lemma int_or_Pls [simp]: "Int.Pls OR x = x"
+lemma int_or_zero [simp]: "(0::int) OR x = x"
   unfolding int_or_def by simp
 
-lemma int_or_Min [simp]: "Int.Min OR x = Int.Min"
+lemma int_or_minus1 [simp]: "(-1::int) OR x = -1"
   unfolding int_or_def by simp
 
 lemma bit_or_def: "(b::bit) OR c = NOT (NOT b AND NOT c)"
@@ -101,14 +90,7 @@ lemma int_or_Bits [simp]:
   "(x BIT b) OR (y BIT c) = (x OR y) BIT (b OR c)"
   unfolding int_or_def bit_or_def by simp
 
-lemma int_or_Bits2 [simp]: 
-  "(Int.Bit0 x) OR (Int.Bit0 y) = Int.Bit0 (x OR y)"
-  "(Int.Bit0 x) OR (Int.Bit1 y) = Int.Bit1 (x OR y)"
-  "(Int.Bit1 x) OR (Int.Bit0 y) = Int.Bit1 (x OR y)"
-  "(Int.Bit1 x) OR (Int.Bit1 y) = Int.Bit1 (x OR y)"
-  unfolding int_or_def by simp_all
-
-lemma int_xor_Pls [simp]: "Int.Pls XOR x = x"
+lemma int_xor_zero [simp]: "(0::int) XOR x = x"
   unfolding int_xor_def by simp
 
 lemma bit_xor_def: "(b::bit) XOR c = (b AND NOT c) OR (NOT b AND c)"
@@ -117,13 +99,6 @@ lemma bit_xor_def: "(b::bit) XOR c = (b AND NOT c) OR (NOT b AND c)"
 lemma int_xor_Bits [simp]: 
   "(x BIT b) XOR (y BIT c) = (x XOR y) BIT (b XOR c)"
   unfolding int_xor_def bit_xor_def by simp
-
-lemma int_xor_Bits2 [simp]: 
-  "(Int.Bit0 x) XOR (Int.Bit0 y) = Int.Bit0 (x XOR y)"
-  "(Int.Bit0 x) XOR (Int.Bit1 y) = Int.Bit1 (x XOR y)"
-  "(Int.Bit1 x) XOR (Int.Bit0 y) = Int.Bit1 (x XOR y)"
-  "(Int.Bit1 x) XOR (Int.Bit1 y) = Int.Bit0 (x XOR y)"
-  unfolding BIT_simps [symmetric] int_xor_Bits by simp_all
 
 subsubsection {* Binary destructors *}
 
@@ -166,22 +141,22 @@ lemma bin_nth_ops:
 
 subsubsection {* Derived properties *}
 
-lemma int_xor_Min [simp]: "Int.Min XOR x = NOT x"
+lemma int_xor_minus1 [simp]: "(-1::int) XOR x = NOT x"
   by (auto simp add: bin_eq_iff bin_nth_ops)
 
 lemma int_xor_extra_simps [simp]:
-  "w XOR Int.Pls = w"
-  "w XOR Int.Min = NOT w"
+  "w XOR (0::int) = w"
+  "w XOR (-1::int) = NOT w"
   by (auto simp add: bin_eq_iff bin_nth_ops)
 
 lemma int_or_extra_simps [simp]:
-  "w OR Int.Pls = w"
-  "w OR Int.Min = Int.Min"
+  "w OR (0::int) = w"
+  "w OR (-1::int) = -1"
   by (auto simp add: bin_eq_iff bin_nth_ops)
 
 lemma int_and_extra_simps [simp]:
-  "w AND Int.Pls = Int.Pls"
-  "w AND Int.Min = w"
+  "w AND (0::int) = 0"
+  "w AND (-1::int) = w"
   by (auto simp add: bin_eq_iff bin_nth_ops)
 
 (* commutativity of the above *)
@@ -195,12 +170,12 @@ lemma bin_ops_comm:
 lemma bin_ops_same [simp]:
   "(x::int) AND x = x" 
   "(x::int) OR x = x" 
-  "(x::int) XOR x = Int.Pls"
+  "(x::int) XOR x = 0"
   by (auto simp add: bin_eq_iff bin_nth_ops)
 
 lemmas bin_log_esimps = 
   int_and_extra_simps  int_or_extra_simps  int_xor_extra_simps
-  int_and_Pls int_and_Min  int_or_Pls int_or_Min  int_xor_Pls int_xor_Min
+  int_and_0 int_and_m1 int_or_zero int_or_minus1 int_xor_zero int_xor_minus1
 
 (* basic properties of logical (bit-wise) operations *)
 
@@ -262,6 +237,106 @@ Why were these declared simp???
 declare bin_ops_comm [simp] bbw_assocs [simp] 
 *)
 
+subsubsection {* Simplification with numerals *}
+
+text {* Cases for @{text "0"} and @{text "-1"} are already covered by
+  other simp rules. *}
+
+lemma bin_rl_eqI: "\<lbrakk>bin_rest x = bin_rest y; bin_last x = bin_last y\<rbrakk> \<Longrightarrow> x = y"
+  by (metis bin_rl_simp)
+
+lemma bin_rest_neg_numeral_BitM [simp]:
+  "bin_rest (neg_numeral (Num.BitM w)) = neg_numeral w"
+  by (simp only: BIT_bin_simps [symmetric] bin_rest_BIT)
+
+lemma bin_last_neg_numeral_BitM [simp]:
+  "bin_last (neg_numeral (Num.BitM w)) = 1"
+  by (simp only: BIT_bin_simps [symmetric] bin_last_BIT)
+
+text {* FIXME: The rule sets below are very large (24 rules for each
+  operator). Is there a simpler way to do this? *}
+
+lemma int_and_numerals [simp]:
+  "numeral (Num.Bit0 x) AND numeral (Num.Bit0 y) = (numeral x AND numeral y) BIT 0"
+  "numeral (Num.Bit0 x) AND numeral (Num.Bit1 y) = (numeral x AND numeral y) BIT 0"
+  "numeral (Num.Bit1 x) AND numeral (Num.Bit0 y) = (numeral x AND numeral y) BIT 0"
+  "numeral (Num.Bit1 x) AND numeral (Num.Bit1 y) = (numeral x AND numeral y) BIT 1"
+  "numeral (Num.Bit0 x) AND neg_numeral (Num.Bit0 y) = (numeral x AND neg_numeral y) BIT 0"
+  "numeral (Num.Bit0 x) AND neg_numeral (Num.Bit1 y) = (numeral x AND neg_numeral (y + Num.One)) BIT 0"
+  "numeral (Num.Bit1 x) AND neg_numeral (Num.Bit0 y) = (numeral x AND neg_numeral y) BIT 0"
+  "numeral (Num.Bit1 x) AND neg_numeral (Num.Bit1 y) = (numeral x AND neg_numeral (y + Num.One)) BIT 1"
+  "neg_numeral (Num.Bit0 x) AND numeral (Num.Bit0 y) = (neg_numeral x AND numeral y) BIT 0"
+  "neg_numeral (Num.Bit0 x) AND numeral (Num.Bit1 y) = (neg_numeral x AND numeral y) BIT 0"
+  "neg_numeral (Num.Bit1 x) AND numeral (Num.Bit0 y) = (neg_numeral (x + Num.One) AND numeral y) BIT 0"
+  "neg_numeral (Num.Bit1 x) AND numeral (Num.Bit1 y) = (neg_numeral (x + Num.One) AND numeral y) BIT 1"
+  "neg_numeral (Num.Bit0 x) AND neg_numeral (Num.Bit0 y) = (neg_numeral x AND neg_numeral y) BIT 0"
+  "neg_numeral (Num.Bit0 x) AND neg_numeral (Num.Bit1 y) = (neg_numeral x AND neg_numeral (y + Num.One)) BIT 0"
+  "neg_numeral (Num.Bit1 x) AND neg_numeral (Num.Bit0 y) = (neg_numeral (x + Num.One) AND neg_numeral y) BIT 0"
+  "neg_numeral (Num.Bit1 x) AND neg_numeral (Num.Bit1 y) = (neg_numeral (x + Num.One) AND neg_numeral (y + Num.One)) BIT 1"
+  "(1::int) AND numeral (Num.Bit0 y) = 0"
+  "(1::int) AND numeral (Num.Bit1 y) = 1"
+  "(1::int) AND neg_numeral (Num.Bit0 y) = 0"
+  "(1::int) AND neg_numeral (Num.Bit1 y) = 1"
+  "numeral (Num.Bit0 x) AND (1::int) = 0"
+  "numeral (Num.Bit1 x) AND (1::int) = 1"
+  "neg_numeral (Num.Bit0 x) AND (1::int) = 0"
+  "neg_numeral (Num.Bit1 x) AND (1::int) = 1"
+  by (rule bin_rl_eqI, simp, simp)+
+
+lemma int_or_numerals [simp]:
+  "numeral (Num.Bit0 x) OR numeral (Num.Bit0 y) = (numeral x OR numeral y) BIT 0"
+  "numeral (Num.Bit0 x) OR numeral (Num.Bit1 y) = (numeral x OR numeral y) BIT 1"
+  "numeral (Num.Bit1 x) OR numeral (Num.Bit0 y) = (numeral x OR numeral y) BIT 1"
+  "numeral (Num.Bit1 x) OR numeral (Num.Bit1 y) = (numeral x OR numeral y) BIT 1"
+  "numeral (Num.Bit0 x) OR neg_numeral (Num.Bit0 y) = (numeral x OR neg_numeral y) BIT 0"
+  "numeral (Num.Bit0 x) OR neg_numeral (Num.Bit1 y) = (numeral x OR neg_numeral (y + Num.One)) BIT 1"
+  "numeral (Num.Bit1 x) OR neg_numeral (Num.Bit0 y) = (numeral x OR neg_numeral y) BIT 1"
+  "numeral (Num.Bit1 x) OR neg_numeral (Num.Bit1 y) = (numeral x OR neg_numeral (y + Num.One)) BIT 1"
+  "neg_numeral (Num.Bit0 x) OR numeral (Num.Bit0 y) = (neg_numeral x OR numeral y) BIT 0"
+  "neg_numeral (Num.Bit0 x) OR numeral (Num.Bit1 y) = (neg_numeral x OR numeral y) BIT 1"
+  "neg_numeral (Num.Bit1 x) OR numeral (Num.Bit0 y) = (neg_numeral (x + Num.One) OR numeral y) BIT 1"
+  "neg_numeral (Num.Bit1 x) OR numeral (Num.Bit1 y) = (neg_numeral (x + Num.One) OR numeral y) BIT 1"
+  "neg_numeral (Num.Bit0 x) OR neg_numeral (Num.Bit0 y) = (neg_numeral x OR neg_numeral y) BIT 0"
+  "neg_numeral (Num.Bit0 x) OR neg_numeral (Num.Bit1 y) = (neg_numeral x OR neg_numeral (y + Num.One)) BIT 1"
+  "neg_numeral (Num.Bit1 x) OR neg_numeral (Num.Bit0 y) = (neg_numeral (x + Num.One) OR neg_numeral y) BIT 1"
+  "neg_numeral (Num.Bit1 x) OR neg_numeral (Num.Bit1 y) = (neg_numeral (x + Num.One) OR neg_numeral (y + Num.One)) BIT 1"
+  "(1::int) OR numeral (Num.Bit0 y) = numeral (Num.Bit1 y)"
+  "(1::int) OR numeral (Num.Bit1 y) = numeral (Num.Bit1 y)"
+  "(1::int) OR neg_numeral (Num.Bit0 y) = neg_numeral (Num.BitM y)"
+  "(1::int) OR neg_numeral (Num.Bit1 y) = neg_numeral (Num.Bit1 y)"
+  "numeral (Num.Bit0 x) OR (1::int) = numeral (Num.Bit1 x)"
+  "numeral (Num.Bit1 x) OR (1::int) = numeral (Num.Bit1 x)"
+  "neg_numeral (Num.Bit0 x) OR (1::int) = neg_numeral (Num.BitM x)"
+  "neg_numeral (Num.Bit1 x) OR (1::int) = neg_numeral (Num.Bit1 x)"
+  by (rule bin_rl_eqI, simp, simp)+
+
+lemma int_xor_numerals [simp]:
+  "numeral (Num.Bit0 x) XOR numeral (Num.Bit0 y) = (numeral x XOR numeral y) BIT 0"
+  "numeral (Num.Bit0 x) XOR numeral (Num.Bit1 y) = (numeral x XOR numeral y) BIT 1"
+  "numeral (Num.Bit1 x) XOR numeral (Num.Bit0 y) = (numeral x XOR numeral y) BIT 1"
+  "numeral (Num.Bit1 x) XOR numeral (Num.Bit1 y) = (numeral x XOR numeral y) BIT 0"
+  "numeral (Num.Bit0 x) XOR neg_numeral (Num.Bit0 y) = (numeral x XOR neg_numeral y) BIT 0"
+  "numeral (Num.Bit0 x) XOR neg_numeral (Num.Bit1 y) = (numeral x XOR neg_numeral (y + Num.One)) BIT 1"
+  "numeral (Num.Bit1 x) XOR neg_numeral (Num.Bit0 y) = (numeral x XOR neg_numeral y) BIT 1"
+  "numeral (Num.Bit1 x) XOR neg_numeral (Num.Bit1 y) = (numeral x XOR neg_numeral (y + Num.One)) BIT 0"
+  "neg_numeral (Num.Bit0 x) XOR numeral (Num.Bit0 y) = (neg_numeral x XOR numeral y) BIT 0"
+  "neg_numeral (Num.Bit0 x) XOR numeral (Num.Bit1 y) = (neg_numeral x XOR numeral y) BIT 1"
+  "neg_numeral (Num.Bit1 x) XOR numeral (Num.Bit0 y) = (neg_numeral (x + Num.One) XOR numeral y) BIT 1"
+  "neg_numeral (Num.Bit1 x) XOR numeral (Num.Bit1 y) = (neg_numeral (x + Num.One) XOR numeral y) BIT 0"
+  "neg_numeral (Num.Bit0 x) XOR neg_numeral (Num.Bit0 y) = (neg_numeral x XOR neg_numeral y) BIT 0"
+  "neg_numeral (Num.Bit0 x) XOR neg_numeral (Num.Bit1 y) = (neg_numeral x XOR neg_numeral (y + Num.One)) BIT 1"
+  "neg_numeral (Num.Bit1 x) XOR neg_numeral (Num.Bit0 y) = (neg_numeral (x + Num.One) XOR neg_numeral y) BIT 1"
+  "neg_numeral (Num.Bit1 x) XOR neg_numeral (Num.Bit1 y) = (neg_numeral (x + Num.One) XOR neg_numeral (y + Num.One)) BIT 0"
+  "(1::int) XOR numeral (Num.Bit0 y) = numeral (Num.Bit1 y)"
+  "(1::int) XOR numeral (Num.Bit1 y) = numeral (Num.Bit0 y)"
+  "(1::int) XOR neg_numeral (Num.Bit0 y) = neg_numeral (Num.BitM y)"
+  "(1::int) XOR neg_numeral (Num.Bit1 y) = neg_numeral (Num.Bit0 (y + Num.One))"
+  "numeral (Num.Bit0 x) XOR (1::int) = numeral (Num.Bit1 x)"
+  "numeral (Num.Bit1 x) XOR (1::int) = numeral (Num.Bit0 x)"
+  "neg_numeral (Num.Bit0 x) XOR (1::int) = neg_numeral (Num.BitM x)"
+  "neg_numeral (Num.Bit1 x) XOR (1::int) = neg_numeral (Num.Bit0 (x + Num.One))"
+  by (rule bin_rl_eqI, simp, simp)+
+
 subsubsection {* Interactions with arithmetic *}
 
 lemma plus_and_or [rule_format]:
@@ -282,7 +357,6 @@ lemma le_int_or:
   "bin_sign (y::int) = 0 ==> x <= x OR y"
   apply (induct y arbitrary: x rule: bin_induct)
     apply clarsimp
-   apply (simp only: Min_def)
    apply clarsimp
   apply (case_tac x rule: bin_exhaust)
   apply (case_tac b)
@@ -293,13 +367,20 @@ lemma le_int_or:
 lemmas int_and_le =
   xtr3 [OF bbw_ao_absorbs (2) [THEN conjunct2, symmetric] le_int_or]
 
+lemma add_BIT_simps [simp]: (* FIXME: move *)
+  "x BIT 0 + y BIT 0 = (x + y) BIT 0"
+  "x BIT 0 + y BIT 1 = (x + y) BIT 1"
+  "x BIT 1 + y BIT 0 = (x + y) BIT 1"
+  "x BIT 1 + y BIT 1 = (x + y + 1) BIT 0"
+  by (simp_all add: Bit_B0_2t Bit_B1_2t)
+
 (* interaction between bit-wise and arithmetic *)
 (* good example of bin_induction *)
-lemma bin_add_not: "x + NOT x = Int.Min"
+lemma bin_add_not: "x + NOT x = (-1::int)"
   apply (induct x rule: bin_induct)
     apply clarsimp
    apply clarsimp
-  apply (case_tac bit, auto simp: BIT_simps)
+  apply (case_tac bit, auto)
   done
 
 subsubsection {* Truncating results of bit-wise operations *}
@@ -418,8 +499,10 @@ lemma bin_sc_minus:
 lemmas bin_sc_Suc_minus = 
   trans [OF bin_sc_minus [symmetric] bin_sc.Suc]
 
-lemmas bin_sc_Suc_pred [simp] = 
-  bin_sc_Suc_minus [of "number_of bin", simplified nobm1] for bin
+lemma bin_sc_numeral [simp]:
+  "bin_sc (numeral k) b w =
+    bin_sc (numeral k - 1) b (bin_rest w) BIT bin_last w"
+  by (subst expand_Suc, rule bin_sc.Suc)
 
 
 subsection {* Splitting and concatenation *}

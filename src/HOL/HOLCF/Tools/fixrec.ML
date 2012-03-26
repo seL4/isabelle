@@ -399,7 +399,7 @@ val spec' : (bool * (Attrib.binding * string)) parser =
 
 val alt_specs' : (bool * (Attrib.binding * string)) list parser =
   let val unexpected = Scan.ahead (Parse.name || @{keyword "["} || @{keyword "("})
-  in Parse.enum1 "|" (spec' --| Scan.option (unexpected -- Parse.!!! (@{keyword "|"}))) end
+  in Parse.enum1 "|" (spec' --| Scan.option (unexpected -- Parse.!!! @{keyword "|"})) end
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "fixrec"} "define recursive functions (HOLCF)"

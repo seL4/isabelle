@@ -374,18 +374,16 @@ lemma zdiff_int_split: "P (int (x - y)) =
   ((y \<le> x \<longrightarrow> P (int x - int y)) \<and> (x < y \<longrightarrow> P 0))"
   by (cases "y \<le> x") (simp_all add: zdiff_int)
 
-lemma number_of1: "(0::int) <= number_of n \<Longrightarrow> (0::int) <= number_of (Int.Bit0 n) \<and> (0::int) <= number_of (Int.Bit1 n)"
-by simp
-
-lemma number_of2: "(0::int) <= Numeral0" by simp
-
 text {*
   \medskip Specific instances of congruence rules, to prevent
   simplifier from looping. *}
 
-theorem imp_le_cong: "(0 <= x \<Longrightarrow> P = P') \<Longrightarrow> (0 <= (x::int) \<longrightarrow> P) = (0 <= x \<longrightarrow> P')" by simp
+theorem imp_le_cong:
+  "\<lbrakk>x = x'; 0 \<le> x' \<Longrightarrow> P = P'\<rbrakk> \<Longrightarrow> (0 \<le> (x::int) \<longrightarrow> P) = (0 \<le> x' \<longrightarrow> P')"
+  by simp
 
-theorem conj_le_cong: "(0 <= x \<Longrightarrow> P = P') \<Longrightarrow> (0 <= (x::int) \<and> P) = (0 <= x \<and> P')" 
+theorem conj_le_cong:
+  "\<lbrakk>x = x'; 0 \<le> x' \<Longrightarrow> P = P'\<rbrakk> \<Longrightarrow> (0 \<le> (x::int) \<and> P) = (0 \<le> x' \<and> P')"
   by (simp cong: conj_cong)
 
 use "Tools/Qelim/cooper.ML"

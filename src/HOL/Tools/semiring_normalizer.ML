@@ -179,7 +179,7 @@ fun semiring_funs key = funs key
       (case Rat.quotient_of_rat x of (i, 1) => i | _ => error "int_of_rat: bad int"),
     conv = fn phi => fn _ => Simplifier.rewrite (HOL_basic_ss addsimps @{thms semiring_norm})
       then_conv Simplifier.rewrite (HOL_basic_ss addsimps
-        (@{thms numeral_1_eq_1} @ @{thms numeral_0_eq_0} @ @{thms numerals(1-2)}))};
+        @{thms numeral_1_eq_1})};
 
 fun field_funs key =
   let
@@ -237,13 +237,13 @@ val dest_numeral = term_of #> HOLogic.dest_number #> snd;
 val is_numeral = can dest_numeral;
 
 val numeral01_conv = Simplifier.rewrite
-                         (HOL_basic_ss addsimps [@{thm numeral_1_eq_1}, @{thm numeral_0_eq_0}]);
+                         (HOL_basic_ss addsimps [@{thm numeral_1_eq_1}]);
 val zero1_numeral_conv = 
- Simplifier.rewrite (HOL_basic_ss addsimps [@{thm numeral_1_eq_1} RS sym, @{thm numeral_0_eq_0} RS sym]);
+ Simplifier.rewrite (HOL_basic_ss addsimps [@{thm numeral_1_eq_1} RS sym]);
 fun zerone_conv cv = zero1_numeral_conv then_conv cv then_conv numeral01_conv;
-val natarith = [@{thm "add_nat_number_of"}, @{thm "diff_nat_number_of"},
-                @{thm "mult_nat_number_of"}, @{thm "eq_nat_number_of"}, 
-                @{thm "less_nat_number_of"}];
+val natarith = [@{thm "numeral_plus_numeral"}, @{thm "diff_nat_numeral"},
+                @{thm "numeral_times_numeral"}, @{thm "numeral_eq_iff"}, 
+                @{thm "numeral_less_iff"}];
 
 val nat_add_conv = 
  zerone_conv 
@@ -251,7 +251,7 @@ val nat_add_conv =
     (HOL_basic_ss 
        addsimps @{thms arith_simps} @ natarith @ @{thms rel_simps}
              @ [@{thm if_False}, @{thm if_True}, @{thm Nat.add_0}, @{thm add_Suc},
-                 @{thm add_number_of_left}, @{thm Suc_eq_plus1}]
+                 @{thm add_numeral_left}, @{thm Suc_eq_plus1}]
              @ map (fn th => th RS sym) @{thms numerals}));
 
 val zeron_tm = @{cterm "0::nat"};

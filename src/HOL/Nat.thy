@@ -181,7 +181,7 @@ instantiation nat :: comm_semiring_1_cancel
 begin
 
 definition
-  One_nat_def [simp, code_post]: "1 = Suc 0"
+  One_nat_def [simp]: "1 = Suc 0"
 
 primrec times_nat where
   mult_0:     "0 * n = (0\<Colon>nat)"
@@ -1781,5 +1781,7 @@ code_modulename OCaml
 
 code_modulename Haskell
   Nat Arith
+
+hide_const (open) of_nat_aux
 
 end

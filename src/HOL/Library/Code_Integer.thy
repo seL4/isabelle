@@ -9,6 +9,43 @@ imports Main Code_Natural
 begin
 
 text {*
+  Representation-ignorant code equations for conversions.
+*}
+
+lemma nat_code [code]:
+  "nat k = (if k \<le> 0 then 0 else
+     let
+       (l, j) = divmod_int k 2;
+       l' = 2 * nat l
+     in if j = 0 then l' else Suc l')"
+proof -
+  have "2 = nat 2" by simp
+  show ?thesis
+    apply (auto simp add: Let_def divmod_int_mod_div not_le
+     nat_div_distrib nat_mult_distrib mult_div_cancel mod_2_not_eq_zero_eq_one_int)
+    apply (unfold `2 = nat 2`)
+    apply (subst nat_mod_distrib [symmetric])
+    apply simp_all
+  done
+qed
+
+lemma (in ring_1) of_int_code:
+  "of_int k = (if k = 0 then 0
+     else if k < 0 then - of_int (- k)
+     else let
+       (l, j) = divmod_int k 2;
+       l' = 2 * of_int l
+     in if j = 0 then l' else l' + 1)"
+proof -
+  from mod_div_equality have *: "of_int k = of_int (k div 2 * 2 + k mod 2)" by simp
+  show ?thesis
+    by (simp add: Let_def divmod_int_mod_div mod_2_not_eq_zero_eq_one_int
+      of_int_add [symmetric]) (simp add: * mult_commute)
+qed
+
+declare of_int_code [code]
+
+text {*
   HOL numeral expressions are mapped to integer literals
   in target languages, using predefined target language
   operations for abstract integer operations.
@@ -24,42 +61,21 @@ code_type int
 code_instance int :: equal
   (Haskell -)
 
+code_const "0::int"
+  (SML "0")
+  (OCaml "Big'_int.zero'_big'_int")
+  (Haskell "0")
+  (Scala "BigInt(0)")
+
 setup {*
-  fold (Numeral.add_code @{const_name number_int_inst.number_of_int}
-    true Code_Printer.literal_numeral) ["SML", "OCaml", "Haskell", "Scala"]
+  fold (Numeral.add_code @{const_name Int.Pos}
+    false Code_Printer.literal_numeral) ["SML", "OCaml", "Haskell", "Scala"]
 *}
 
-code_const "Int.Pls" and "Int.Min" and "Int.Bit0" and "Int.Bit1"
-  (SML "raise/ Fail/ \"Pls\""
-     and "raise/ Fail/ \"Min\""
-     and "!((_);/ raise/ Fail/ \"Bit0\")"
-     and "!((_);/ raise/ Fail/ \"Bit1\")")
-  (OCaml "failwith/ \"Pls\""
-     and "failwith/ \"Min\""
-     and "!((_);/ failwith/ \"Bit0\")"
-     and "!((_);/ failwith/ \"Bit1\")")
-  (Haskell "error/ \"Pls\""
-     and "error/ \"Min\""
-     and "error/ \"Bit0\""
-     and "error/ \"Bit1\"")
-  (Scala "!error(\"Pls\")"
-     and "!error(\"Min\")"
-     and "!error(\"Bit0\")"
-     and "!error(\"Bit1\")")
-
-code_const Int.pred
-  (SML "IntInf.- ((_), 1)")
-  (OCaml "Big'_int.pred'_big'_int")
-  (Haskell "!(_/ -/ 1)")
-  (Scala "!(_ -/ 1)")
-  (Eval "!(_/ -/ 1)")
-
-code_const Int.succ
-  (SML "IntInf.+ ((_), 1)")
-  (OCaml "Big'_int.succ'_big'_int")
-  (Haskell "!(_/ +/ 1)")
-  (Scala "!(_ +/ 1)")
-  (Eval "!(_/ +/ 1)")
+setup {*
+  fold (Numeral.add_code @{const_name Int.Neg}
+    true Code_Printer.literal_numeral) ["SML", "OCaml", "Haskell", "Scala"]
+*}
 
 code_const "op + \<Colon> int \<Rightarrow> int \<Rightarrow> int"
   (SML "IntInf.+ ((_), (_))")
@@ -81,6 +97,19 @@ code_const "op - \<Colon> int \<Rightarrow> int \<Rightarrow> int"
   (Haskell infixl 6 "-")
   (Scala infixl 7 "-")
   (Eval infixl 8 "-")
+
+code_const Int.dup
+  (SML "IntInf.*/ (2,/ (_))")
+  (OCaml "Big'_int.mult'_big'_int/ 2")
+  (Haskell "!(2 * _)")
+  (Scala "!(2 * _)")
+  (Eval "!(2 * _)")
+
+code_const Int.sub
+  (SML "!(raise/ Fail/ \"sub\")")
+  (OCaml "failwith/ \"sub\"")
+  (Haskell "error/ \"sub\"")
+  (Scala "!error(\"sub\")")
 
 code_const "op * \<Colon> int \<Rightarrow> int \<Rightarrow> int"
   (SML "IntInf.* ((_), (_))")
@@ -123,8 +152,6 @@ code_const Code_Numeral.int_of
   (Haskell "toInteger")
   (Scala "!_.as'_BigInt")
   (Eval "_")
-
-text {* Evaluation *}
 
 code_const "Code_Evaluation.term_of \<Colon> int \<Rightarrow> term"
   (Eval "HOLogic.mk'_number/ HOLogic.intT")

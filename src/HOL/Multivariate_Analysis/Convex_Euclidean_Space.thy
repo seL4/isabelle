@@ -281,7 +281,7 @@ lemma fst_snd_linear: "linear (%(x,y). x + y)" unfolding linear_def by (simp add
 lemma scaleR_2:
   fixes x :: "'a::real_vector"
   shows "scaleR 2 x = x + x"
-unfolding one_add_one_is_two [symmetric] scaleR_left_distrib by simp
+unfolding one_add_one [symmetric] scaleR_left_distrib by simp
 
 lemma vector_choose_size: "0 <= c ==> \<exists>(x::'a::euclidean_space). norm x = c"
   apply (rule exI[where x="c *\<^sub>R basis 0 ::'a"]) using DIM_positive[where 'a='a] by auto

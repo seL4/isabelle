@@ -61,19 +61,17 @@ lemma not_enat_eq [iff]: "(ALL y. x ~= enat y) = (x = \<infinity>)"
 primrec the_enat :: "enat \<Rightarrow> nat"
   where "the_enat (enat n) = n"
 
+
 subsection {* Constructors and numbers *}
 
-instantiation enat :: "{zero, one, number}"
+instantiation enat :: "{zero, one}"
 begin
 
 definition
   "0 = enat 0"
 
 definition
-  [code_unfold]: "1 = enat 1"
-
-definition
-  [code_unfold, code del]: "number_of k = enat (number_of k)"
+  "1 = enat 1"
 
 instance ..
 
@@ -82,14 +80,11 @@ end
 definition eSuc :: "enat \<Rightarrow> enat" where
   "eSuc i = (case i of enat n \<Rightarrow> enat (Suc n) | \<infinity> \<Rightarrow> \<infinity>)"
 
-lemma enat_0: "enat 0 = 0"
+lemma enat_0 [code_post]: "enat 0 = 0"
   by (simp add: zero_enat_def)
 
-lemma enat_1: "enat 1 = 1"
+lemma enat_1 [code_post]: "enat 1 = 1"
   by (simp add: one_enat_def)
-
-lemma enat_number: "enat (number_of k) = number_of k"
-  by (simp add: number_of_enat_def)
 
 lemma one_eSuc: "1 = eSuc 0"
   by (simp add: zero_enat_def one_enat_def eSuc_def)
@@ -99,16 +94,6 @@ lemma infinity_ne_i0 [simp]: "(\<infinity>::enat) \<noteq> 0"
 
 lemma i0_ne_infinity [simp]: "0 \<noteq> (\<infinity>::enat)"
   by (simp add: zero_enat_def)
-
-lemma zero_enat_eq [simp]:
-  "number_of k = (0\<Colon>enat) \<longleftrightarrow> number_of k = (0\<Colon>nat)"
-  "(0\<Colon>enat) = number_of k \<longleftrightarrow> number_of k = (0\<Colon>nat)"
-  unfolding zero_enat_def number_of_enat_def by simp_all
-
-lemma one_enat_eq [simp]:
-  "number_of k = (1\<Colon>enat) \<longleftrightarrow> number_of k = (1\<Colon>nat)"
-  "(1\<Colon>enat) = number_of k \<longleftrightarrow> number_of k = (1\<Colon>nat)"
-  unfolding one_enat_def number_of_enat_def by simp_all
 
 lemma zero_one_enat_neq [simp]:
   "\<not> 0 = (1\<Colon>enat)"
@@ -121,17 +106,8 @@ lemma infinity_ne_i1 [simp]: "(\<infinity>::enat) \<noteq> 1"
 lemma i1_ne_infinity [simp]: "1 \<noteq> (\<infinity>::enat)"
   by (simp add: one_enat_def)
 
-lemma infinity_ne_number [simp]: "(\<infinity>::enat) \<noteq> number_of k"
-  by (simp add: number_of_enat_def)
-
-lemma number_ne_infinity [simp]: "number_of k \<noteq> (\<infinity>::enat)"
-  by (simp add: number_of_enat_def)
-
 lemma eSuc_enat: "eSuc (enat n) = enat (Suc n)"
   by (simp add: eSuc_def)
-
-lemma eSuc_number_of: "eSuc (number_of k) = enat (Suc (number_of k))"
-  by (simp add: eSuc_enat number_of_enat_def)
 
 lemma eSuc_infinity [simp]: "eSuc \<infinity> = \<infinity>"
   by (simp add: eSuc_def)
@@ -144,11 +120,6 @@ lemma zero_ne_eSuc [simp]: "0 \<noteq> eSuc n"
 
 lemma eSuc_inject [simp]: "eSuc m = eSuc n \<longleftrightarrow> m = n"
   by (simp add: eSuc_def split: enat.splits)
-
-lemma number_of_enat_inject [simp]:
-  "(number_of k \<Colon> enat) = number_of l \<longleftrightarrow> (number_of k \<Colon> nat) = number_of l"
-  by (simp add: number_of_enat_def)
-
 
 subsection {* Addition *}
 
@@ -176,16 +147,6 @@ instance proof
 qed
 
 end
-
-lemma plus_enat_number [simp]:
-  "(number_of k \<Colon> enat) + number_of l = (if k < Int.Pls then number_of l
-    else if l < Int.Pls then number_of k else number_of (k + l))"
-  unfolding number_of_enat_def plus_enat_simps nat_arith(1) if_distrib [symmetric, of _ enat] ..
-
-lemma eSuc_number [simp]:
-  "eSuc (number_of k) = (if neg (number_of k \<Colon> int) then 1 else number_of (Int.succ k))"
-  unfolding eSuc_number_of
-  unfolding one_enat_def number_of_enat_def Suc_nat_number_of if_distrib [symmetric] ..
 
 lemma eSuc_plus_1:
   "eSuc n = n + 1"
@@ -261,12 +222,6 @@ lemma of_nat_eq_enat: "of_nat n = enat n"
   apply (simp add: plus_1_eSuc eSuc_enat)
   done
 
-instance enat :: number_semiring
-proof
-  fix n show "number_of (int n) = (of_nat n :: enat)"
-    unfolding number_of_enat_def number_of_int of_nat_id of_nat_eq_enat ..
-qed
-
 instance enat :: semiring_char_0 proof
   have "inj enat" by (rule injI) simp
   then show "inj (\<lambda>n. of_nat n :: enat)" by (simp add: of_nat_eq_enat)
@@ -278,6 +233,25 @@ lemma imult_is_0 [simp]: "((m::enat) * n = 0) = (m = 0 \<or> n = 0)"
 lemma imult_is_infinity: "((a::enat) * b = \<infinity>) = (a = \<infinity> \<and> b \<noteq> 0 \<or> b = \<infinity> \<and> a \<noteq> 0)"
   by (auto simp add: times_enat_def zero_enat_def split: enat.split)
 
+
+subsection {* Numerals *}
+
+lemma numeral_eq_enat:
+  "numeral k = enat (numeral k)"
+  using of_nat_eq_enat [of "numeral k"] by simp
+
+lemma enat_numeral [code_abbrev]:
+  "enat (numeral k) = numeral k"
+  using numeral_eq_enat ..
+
+lemma infinity_ne_numeral [simp]: "(\<infinity>::enat) \<noteq> numeral k"
+  by (simp add: numeral_eq_enat)
+
+lemma numeral_ne_infinity [simp]: "numeral k \<noteq> (\<infinity>::enat)"
+  by (simp add: numeral_eq_enat)
+
+lemma eSuc_numeral [simp]: "eSuc (numeral k) = numeral (k + Num.One)"
+  by (simp only: eSuc_plus_1 numeral_plus_one)
 
 subsection {* Subtraction *}
 
@@ -292,13 +266,13 @@ instance ..
 
 end
 
-lemma idiff_enat_enat [simp,code]: "enat a - enat b = enat (a - b)"
+lemma idiff_enat_enat [simp, code]: "enat a - enat b = enat (a - b)"
   by (simp add: diff_enat_def)
 
-lemma idiff_infinity [simp,code]: "\<infinity> - n = (\<infinity>::enat)"
+lemma idiff_infinity [simp, code]: "\<infinity> - n = (\<infinity>::enat)"
   by (simp add: diff_enat_def)
 
-lemma idiff_infinity_right [simp,code]: "enat a - \<infinity> = 0"
+lemma idiff_infinity_right [simp, code]: "enat a - \<infinity> = 0"
   by (simp add: diff_enat_def)
 
 lemma idiff_0 [simp]: "(0::enat) - n = 0"
@@ -344,13 +318,13 @@ lemma enat_ord_simps [simp]:
   "(\<infinity>::enat) < q \<longleftrightarrow> False"
   by (simp_all add: less_eq_enat_def less_enat_def split: enat.splits)
 
-lemma number_of_le_enat_iff[simp]:
-  shows "number_of m \<le> enat n \<longleftrightarrow> number_of m \<le> n"
-by (auto simp: number_of_enat_def)
+lemma numeral_le_enat_iff[simp]:
+  shows "numeral m \<le> enat n \<longleftrightarrow> numeral m \<le> n"
+by (auto simp: numeral_eq_enat)
 
-lemma number_of_less_enat_iff[simp]:
-  shows "number_of m < enat n \<longleftrightarrow> number_of m < n"
-by (auto simp: number_of_enat_def)
+lemma numeral_less_enat_iff[simp]:
+  shows "numeral m < enat n \<longleftrightarrow> numeral m < n"
+by (auto simp: numeral_eq_enat)
 
 lemma enat_ord_code [code]:
   "enat m \<le> enat n \<longleftrightarrow> m \<le> n"
@@ -375,10 +349,15 @@ proof
     by (simp split: enat.splits)
 qed
 
+(* BH: These equations are already proven generally for any type in
+class linordered_semidom. However, enat is not in that class because
+it does not have the cancellation property. Would it be worthwhile to
+a generalize linordered_semidom to a new class that includes enat? *)
+
 lemma enat_ord_number [simp]:
-  "(number_of m \<Colon> enat) \<le> number_of n \<longleftrightarrow> (number_of m \<Colon> nat) \<le> number_of n"
-  "(number_of m \<Colon> enat) < number_of n \<longleftrightarrow> (number_of m \<Colon> nat) < number_of n"
-  by (simp_all add: number_of_enat_def)
+  "(numeral m \<Colon> enat) \<le> numeral n \<longleftrightarrow> (numeral m \<Colon> nat) \<le> numeral n"
+  "(numeral m \<Colon> enat) < numeral n \<longleftrightarrow> (numeral m \<Colon> nat) < numeral n"
+  by (simp_all add: numeral_eq_enat)
 
 lemma i0_lb [simp]: "(0\<Colon>enat) \<le> n"
   by (simp add: zero_enat_def less_eq_enat_def split: enat.splits)
@@ -525,10 +504,10 @@ struct
   val find_first = find_first_t []
   val trans_tac = Numeral_Simprocs.trans_tac
   val norm_ss = HOL_basic_ss addsimps
-    @{thms add_ac semiring_numeral_0_eq_0 add_0_left add_0_right}
+    @{thms add_ac add_0_left add_0_right}
   fun norm_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss))
   fun simplify_meta_eq ss cancel_th th =
-    Arith_Data.simplify_meta_eq @{thms semiring_numeral_0_eq_0} ss
+    Arith_Data.simplify_meta_eq [] ss
       ([th, cancel_th] MRS trans)
   fun mk_eq (a, b) = HOLogic.mk_Trueprop (HOLogic.mk_eq (a, b))
 end
@@ -646,7 +625,7 @@ instance enat :: complete_linorder ..
 
 subsection {* Traditional theorem names *}
 
-lemmas enat_defs = zero_enat_def one_enat_def number_of_enat_def eSuc_def
+lemmas enat_defs = zero_enat_def one_enat_def eSuc_def
   plus_enat_def less_eq_enat_def less_enat_def
 
 end

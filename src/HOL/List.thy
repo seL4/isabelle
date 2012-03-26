@@ -2676,7 +2676,7 @@ lemma upt_rec[code]: "[i..<j] = (if i<j then i#[Suc i..<j] else [])"
 -- {* simp does not terminate! *}
 by (induct j) auto
 
-lemmas upt_rec_number_of[simp] = upt_rec[of "number_of m" "number_of n"] for m n
+lemmas upt_rec_numeral[simp] = upt_rec[of "numeral m" "numeral n"] for m n
 
 lemma upt_conv_Nil [simp]: "j <= i ==> [i..<j] = []"
 by (subst upt_rec) simp
@@ -2791,13 +2791,17 @@ by (cases n) simp_all
 lemma nth_Cons': "(x # xs)!n = (if n = 0 then x else xs!(n - 1))"
 by (cases n) simp_all
 
-lemmas take_Cons_number_of = take_Cons'[of "number_of v"] for v
-lemmas drop_Cons_number_of = drop_Cons'[of "number_of v"] for v
-lemmas nth_Cons_number_of = nth_Cons'[of _ _ "number_of v"] for v
+lemma take_Cons_numeral [simp]:
+  "take (numeral v) (x # xs) = x # take (numeral v - 1) xs"
+by (simp add: take_Cons')
 
-declare take_Cons_number_of [simp] 
-        drop_Cons_number_of [simp] 
-        nth_Cons_number_of [simp] 
+lemma drop_Cons_numeral [simp]:
+  "drop (numeral v) (x # xs) = drop (numeral v - 1) xs"
+by (simp add: drop_Cons')
+
+lemma nth_Cons_numeral [simp]:
+  "(x # xs) ! numeral v = xs ! (numeral v - 1)"
+by (simp add: nth_Cons')
 
 
 subsubsection {* @{text upto}: interval-list on @{typ int} *}
@@ -2812,7 +2816,11 @@ by(relation "measure(%(i::int,j). nat(j - i + 1))") auto
 
 declare upto.simps[code, simp del]
 
-lemmas upto_rec_number_of[simp] = upto.simps[of "number_of m" "number_of n"] for m n
+lemmas upto_rec_numeral [simp] =
+  upto.simps[of "numeral m" "numeral n"]
+  upto.simps[of "numeral m" "neg_numeral n"]
+  upto.simps[of "neg_numeral m" "numeral n"]
+  upto.simps[of "neg_numeral m" "neg_numeral n"] for m n
 
 lemma upto_empty[simp]: "j < i \<Longrightarrow> [i..j] = []"
 by(simp add: upto.simps)

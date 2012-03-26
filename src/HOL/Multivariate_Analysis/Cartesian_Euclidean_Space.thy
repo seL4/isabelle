@@ -207,6 +207,15 @@ proof
     by (auto intro!: injI simp add: vec_eq_iff of_nat_index)
 qed
 
+instance vec :: (numeral, finite) numeral ..
+instance vec :: (semiring_numeral, finite) semiring_numeral ..
+
+lemma numeral_index [simp]: "numeral w $ i = numeral w"
+  by (induct w, simp_all only: numeral.simps vector_add_component one_index)
+
+lemma neg_numeral_index [simp]: "neg_numeral w $ i = neg_numeral w"
+  by (simp only: neg_numeral_def vector_uminus_component numeral_index)
+
 instance vec :: (comm_ring_1, finite) comm_ring_1 ..
 instance vec :: (ring_char_0, finite) ring_char_0 ..
 
@@ -222,7 +231,7 @@ lemma vector_ssub_ldistrib: "(c::'a::ring) *s (x - y) = c *s x - c *s y"
   by (vector field_simps)
 lemma vector_smult_rneg: "(c::'a::ring) *s -x = -(c *s x)" by vector
 lemma vector_smult_lneg: "- (c::'a::ring) *s x = -(c *s x)" by vector
-lemma vector_sneg_minus1: "-x = (- (1::'a::ring_1)) *s x" by vector
+lemma vector_sneg_minus1: "-x = (-1::'a::ring_1) *s x" by vector
 lemma vector_smult_rzero[simp]: "c *s 0 = (0::'a::mult_zero ^ 'n)" by vector
 lemma vector_sub_rdistrib: "((a::'a::ring) - b) *s x = a *s x - b *s x"
   by (vector field_simps)

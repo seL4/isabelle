@@ -65,9 +65,9 @@ then
 
   rm -rf classes && mkdir classes
 
-  javac -d classes -source 1.4 "${SOURCES[@]}" || \
+  "$ISABELLE_JDK_HOME/bin/javac" -d classes -source 1.4 "${SOURCES[@]}" || \
     fail "Failed to compile sources"
-  jar cf "$(jvmpath "$TARGET")" -C classes . ||
+  "$ISABELLE_JDK_HOME/bin/jar" cf "$(jvmpath "$TARGET")" -C classes . ||
     fail "Failed to produce $TARGET"
 
   rm -rf classes

@@ -2,7 +2,7 @@
     Author:     Florian Haftmann
 *)
 
-header {* An experimental alternative numeral representation. *}
+header {* First experiments for a numeral representation (now obsolete). *}
 
 theory Numeral_Representation
 imports Main
@@ -498,7 +498,7 @@ lemma minus_of_num_le_one_iff: "- of_num n \<le> 1"
   by (simp add: less_imp_le minus_of_num_less_one_iff)
 
 lemma minus_one_le_of_num_iff: "- 1 \<le> of_num n"
-  by (simp add: less_imp_le minus_one_less_of_num_iff)
+  by (simp only: less_imp_le minus_one_less_of_num_iff)
 
 lemma minus_one_le_one_iff: "- 1 \<le> 1"
   by (simp add: less_imp_le minus_one_less_one_iff)
@@ -510,7 +510,7 @@ lemma one_le_minus_of_num_iff: "\<not> 1 \<le> - of_num n"
   by (simp add: not_le minus_of_num_less_one_iff)
 
 lemma of_num_le_minus_one_iff: "\<not> of_num n \<le> - 1"
-  by (simp add: not_le minus_one_less_of_num_iff)
+  by (simp only: not_le minus_one_less_of_num_iff)
 
 lemma one_le_minus_one_iff: "\<not> 1 \<le> - 1"
   by (simp add: not_le minus_one_less_one_iff)
@@ -522,10 +522,10 @@ lemma one_less_minus_of_num_iff: "\<not> 1 < - of_num n"
   by (simp add: not_less minus_of_num_le_one_iff)
 
 lemma of_num_less_minus_one_iff: "\<not> of_num n < - 1"
-  by (simp add: not_less minus_one_le_of_num_iff)
+  by (simp only: not_less minus_one_le_of_num_iff)
 
 lemma one_less_minus_one_iff: "\<not> 1 < - 1"
-  by (simp add: not_less minus_one_le_one_iff)
+  by (simp only: not_less minus_one_le_one_iff)
 
 lemmas le_signed_numeral_special [numeral] =
   minus_of_num_le_of_num_iff
@@ -835,10 +835,7 @@ subsection {* Code generator setup for @{typ int} *}
 
 text {* Reversing standard setup *}
 
-lemma [code_unfold del]: "(0::int) \<equiv> Numeral0" by simp
 lemma [code_unfold del]: "(1::int) \<equiv> Numeral1" by simp
-declare zero_is_num_zero [code_unfold del]
-declare one_is_num_one [code_unfold del]
   
 lemma [code, code del]:
   "(1 :: int) = 1"
@@ -970,147 +967,5 @@ lemma less_int_code [code]:
 
 hide_const (open) sub dup
 
-text {* Pretty literals *}
-
-ML {*
-local open Code_Thingol in
-
-fun add_code print target =
-  let
-    fun dest_num one' dig0' dig1' thm =
-      let
-        fun dest_dig (IConst (c, _)) = if c = dig0' then 0
-              else if c = dig1' then 1
-              else Code_Printer.eqn_error thm "Illegal numeral expression: illegal dig"
-          | dest_dig _ = Code_Printer.eqn_error thm "Illegal numeral expression: illegal digit";
-        fun dest_num (IConst (c, _)) = if c = one' then 1
-              else Code_Printer.eqn_error thm "Illegal numeral expression: illegal leading digit"
-          | dest_num (t1 `$ t2) = 2 * dest_num t2 + dest_dig t1
-          | dest_num _ = Code_Printer.eqn_error thm "Illegal numeral expression: illegal term";
-      in dest_num end;
-    fun pretty sgn literals [one', dig0', dig1'] _ thm _ _ [(t, _)] =
-      (Code_Printer.str o print literals o sgn o dest_num one' dig0' dig1' thm) t
-    fun add_syntax (c, sgn) = Code_Target.add_const_syntax target c
-      (SOME (Code_Printer.complex_const_syntax
-        (1, ([@{const_name One}, @{const_name Dig0}, @{const_name Dig1}],
-          pretty sgn))));
-  in
-    add_syntax (@{const_name Pls}, I)
-    #> add_syntax (@{const_name Mns}, (fn k => ~ k))
-  end;
-
 end
-*}
 
-hide_const (open) One Dig0 Dig1
-
-
-subsection {* Toy examples *}
-
-definition "foo \<longleftrightarrow> #4 * #2 + #7 = (#8 :: nat)"
-definition "bar \<longleftrightarrow> #4 * #2 + #7 \<ge> (#8 :: int) - #3"
-
-code_thms foo bar
-export_code foo bar checking SML OCaml? Haskell? Scala?
-
-text {* This is an ad-hoc @{text Code_Integer} setup. *}
-
-setup {*
-  fold (add_code Code_Printer.literal_numeral)
-    [Code_ML.target_SML, Code_ML.target_OCaml, Code_Haskell.target, Code_Scala.target]
-*}
-
-code_type int
-  (SML "IntInf.int")
-  (OCaml "Big'_int.big'_int")
-  (Haskell "Integer")
-  (Scala "BigInt")
-  (Eval "int")
-
-code_const "0::int"
-  (SML "0/ :/ IntInf.int")
-  (OCaml "Big'_int.zero")
-  (Haskell "0")
-  (Scala "BigInt(0)")
-  (Eval "0/ :/ int")
-
-code_const Int.pred
-  (SML "IntInf.- ((_), 1)")
-  (OCaml "Big'_int.pred'_big'_int")
-  (Haskell "!(_/ -/ 1)")
-  (Scala "!(_ -/ 1)")
-  (Eval "!(_/ -/ 1)")
-
-code_const Int.succ
-  (SML "IntInf.+ ((_), 1)")
-  (OCaml "Big'_int.succ'_big'_int")
-  (Haskell "!(_/ +/ 1)")
-  (Scala "!(_ +/ 1)")
-  (Eval "!(_/ +/ 1)")
-
-code_const "op + \<Colon> int \<Rightarrow> int \<Rightarrow> int"
-  (SML "IntInf.+ ((_), (_))")
-  (OCaml "Big'_int.add'_big'_int")
-  (Haskell infixl 6 "+")
-  (Scala infixl 7 "+")
-  (Eval infixl 8 "+")
-
-code_const "uminus \<Colon> int \<Rightarrow> int"
-  (SML "IntInf.~")
-  (OCaml "Big'_int.minus'_big'_int")
-  (Haskell "negate")
-  (Scala "!(- _)")
-  (Eval "~/ _")
-
-code_const "op - \<Colon> int \<Rightarrow> int \<Rightarrow> int"
-  (SML "IntInf.- ((_), (_))")
-  (OCaml "Big'_int.sub'_big'_int")
-  (Haskell infixl 6 "-")
-  (Scala infixl 7 "-")
-  (Eval infixl 8 "-")
-
-code_const "op * \<Colon> int \<Rightarrow> int \<Rightarrow> int"
-  (SML "IntInf.* ((_), (_))")
-  (OCaml "Big'_int.mult'_big'_int")
-  (Haskell infixl 7 "*")
-  (Scala infixl 8 "*")
-  (Eval infixl 9 "*")
-
-code_const pdivmod
-  (SML "IntInf.divMod/ (IntInf.abs _,/ IntInf.abs _)")
-  (OCaml "Big'_int.quomod'_big'_int/ (Big'_int.abs'_big'_int _)/ (Big'_int.abs'_big'_int _)")
-  (Haskell "divMod/ (abs _)/ (abs _)")
-  (Scala "!((k: BigInt) => (l: BigInt) =>/ if (l == 0)/ (BigInt(0), k) else/ (k.abs '/% l.abs))")
-  (Eval "Integer.div'_mod/ (abs _)/ (abs _)")
-
-code_const "HOL.equal \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
-  (SML "!((_ : IntInf.int) = _)")
-  (OCaml "Big'_int.eq'_big'_int")
-  (Haskell infix 4 "==")
-  (Scala infixl 5 "==")
-  (Eval infixl 6 "=")
-
-code_const "op \<le> \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
-  (SML "IntInf.<= ((_), (_))")
-  (OCaml "Big'_int.le'_big'_int")
-  (Haskell infix 4 "<=")
-  (Scala infixl 4 "<=")
-  (Eval infixl 6 "<=")
-
-code_const "op < \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
-  (SML "IntInf.< ((_), (_))")
-  (OCaml "Big'_int.lt'_big'_int")
-  (Haskell infix 4 "<")
-  (Scala infixl 4 "<")
-  (Eval infixl 6 "<")
-
-code_const Code_Numeral.int_of
-  (SML "IntInf.fromInt")
-  (OCaml "_")
-  (Haskell "toInteger")
-  (Scala "!_.as'_BigInt")
-  (Eval "_")
-
-export_code foo bar checking SML OCaml? Haskell? Scala?
-
-end

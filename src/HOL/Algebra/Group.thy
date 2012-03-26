@@ -30,7 +30,7 @@ definition
   where "Units G = {y. y \<in> carrier G & (\<exists>x \<in> carrier G. x \<otimes>\<^bsub>G\<^esub> y = \<one>\<^bsub>G\<^esub> & y \<otimes>\<^bsub>G\<^esub> x = \<one>\<^bsub>G\<^esub>)}"
 
 consts
-  pow :: "[('a, 'm) monoid_scheme, 'a, 'b::number] => 'a"  (infixr "'(^')\<index>" 75)
+  pow :: "[('a, 'm) monoid_scheme, 'a, 'b::semiring_1] => 'a"  (infixr "'(^')\<index>" 75)
 
 overloading nat_pow == "pow :: [_, 'a, nat] => 'a"
 begin

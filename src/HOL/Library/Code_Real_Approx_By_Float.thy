@@ -129,9 +129,23 @@ code_const real_of_int
 lemma of_int_eq_real_of_int[code_unfold]: "of_int = real_of_int"
   unfolding real_of_int_def ..
 
-hide_const (open) real_of_int
+lemma [code_unfold del]:
+  "0 \<equiv> (of_rat 0 :: real)"
+  by simp
 
-declare number_of_real_code [code_unfold del]
+lemma [code_unfold del]:
+  "1 \<equiv> (of_rat 1 :: real)"
+  by simp
+
+lemma [code_unfold del]:
+  "numeral k \<equiv> (of_rat (numeral k) :: real)"
+  by simp
+
+lemma [code_unfold del]:
+  "neg_numeral k \<equiv> (of_rat (neg_numeral k) :: real)"
+  by simp
+
+hide_const (open) real_of_int
 
 notepad
 begin

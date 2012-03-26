@@ -186,7 +186,6 @@ apply (unfold divide_inverse)
 apply (erule DERIV_mult')
 apply (erule (1) DERIV_inverse')
 apply (simp add: ring_distribs nonzero_inverse_mult_distrib)
-apply (simp add: mult_ac)
 done
 
 lemma DERIV_power_Suc:

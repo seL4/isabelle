@@ -157,20 +157,16 @@ lemma nat_of_Sat [simp]:
   "nat_of (Sat n :: ('a::len) sat) = min (len_of TYPE('a)) n"
   by (rule nat_of_Abs_sat' [unfolded Abs_sat'_eq_of_nat])
 
-instantiation sat :: (len) number_semiring
-begin
+lemma [code_abbrev]:
+  "of_nat (numeral k) = (numeral k :: 'a::len sat)"
+  by simp
 
-definition
-  number_of_sat_def [code del]: "number_of = Sat \<circ> nat"
-
-instance
-  by default (simp add: number_of_sat_def)
-
-end
+definition sat_of_nat :: "nat \<Rightarrow> ('a::len) sat"
+  where [code_abbrev]: "sat_of_nat = of_nat"
 
 lemma [code abstract]:
-  "nat_of (number_of n :: ('a::len) sat) = min (nat n) (len_of TYPE('a))"
-  unfolding number_of_sat_def by simp
+  "nat_of (sat_of_nat n :: ('a::len) sat) = min (len_of TYPE('a)) n"
+  by (simp add: sat_of_nat_def)
 
 instance sat :: (len) finite
 proof
@@ -251,5 +247,7 @@ next
 qed
 
 end
+
+hide_const (open) sat_of_nat
 
 end

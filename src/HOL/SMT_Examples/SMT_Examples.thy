@@ -467,7 +467,7 @@ lemma "i \<noteq> i1 \<and> i \<noteq> i2 \<Longrightarrow> (f (i1 := v1, i2 := 
 lemma "(f g (x::'a::type) = (g x \<and> True)) \<or> (f g x = True) \<or> (g x = True)"
   by smt
 
-lemma "id 3 = 3 \<and> id True = True" by (smt id_def)
+lemma "id x = x \<and> id True = True" by (smt id_def)
 
 lemma "i \<noteq> i1 \<and> i \<noteq> i2 \<Longrightarrow> ((f (i1 := v1)) (i2 := v2)) i = f i"
   using fun_upd_same fun_upd_apply

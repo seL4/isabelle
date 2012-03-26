@@ -350,7 +350,7 @@ proof-
     have eq: "(- (1\<Colon>'a)) ^ n = setprod (\<lambda>i. - 1) {0 .. n - 1}"
       by auto
     from n0 have ?thesis 
-      by (simp add: pochhammer_def gbinomial_def field_simps eq setprod_timesf[symmetric])}
+      by (simp add: pochhammer_def gbinomial_def field_simps eq setprod_timesf[symmetric] del: minus_one) (* FIXME: del: minus_one *)}
   ultimately show ?thesis by blast
 qed
 
@@ -417,8 +417,8 @@ proof-
     from eq[symmetric]
     have ?thesis using kn
       apply (simp add: binomial_fact[OF kn, where ?'a = 'a] 
-        gbinomial_pochhammer field_simps pochhammer_Suc_setprod)
-      apply (simp add: pochhammer_Suc_setprod fact_altdef_nat h of_nat_setprod setprod_timesf[symmetric] eq' del: One_nat_def power_Suc)
+        gbinomial_pochhammer field_simps pochhammer_Suc_setprod del: minus_one)
+      apply (simp add: pochhammer_Suc_setprod fact_altdef_nat h of_nat_setprod setprod_timesf[symmetric] eq' del: One_nat_def power_Suc del: minus_one)
       unfolding setprod_Un_disjoint[OF th0, unfolded eq3, of "of_nat:: nat \<Rightarrow> 'a"] eq[unfolded h]
       unfolding mult_assoc[symmetric] 
       unfolding setprod_timesf[symmetric]

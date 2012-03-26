@@ -18,12 +18,15 @@ local
 
 fun mk_number i =
   let
-    fun mk 0 = Syntax.const @{const_syntax Int.Pls}
-      | mk ~1 = Syntax.const @{const_syntax Int.Min}
+    fun mk 1 = Syntax.const @{const_syntax Num.One}
       | mk i =
           let val (q, r) = Integer.div_mod i 2
           in HOLogic.mk_bit r $ (mk q) end;
-  in Syntax.const @{const_syntax Int.number_of} $ mk i end;
+  in
+    if i = 0 then Syntax.const @{const_syntax Groups.zero}
+    else if i > 0 then Syntax.const @{const_syntax Num.numeral} $ mk i
+    else Syntax.const @{const_syntax Num.neg_numeral} $ mk (~i)
+  end;
 
 fun mk_frac str =
   let

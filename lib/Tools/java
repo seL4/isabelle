@@ -6,7 +6,7 @@
 
 CLASSPATH="$(jvmpath "$CLASSPATH")"
 
-JAVA_EXE="${THIS_JAVA:-$ISABELLE_JAVA}"
+JAVA_EXE="$ISABELLE_JDK_HOME/bin/java"
 
 if "$JAVA_EXE" -version >/dev/null 2>/dev/null; then
   :

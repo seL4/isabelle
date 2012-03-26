@@ -11,8 +11,10 @@ begin
 
 section {* Setup for Numerals *}
 
-setup {* Predicate_Compile_Data.ignore_consts [@{const_name number_of}] *}
-setup {* Predicate_Compile_Data.keep_functions [@{const_name number_of}] *}
+setup {* Predicate_Compile_Data.ignore_consts
+  [@{const_name numeral}, @{const_name neg_numeral}] *}
+
+setup {* Predicate_Compile_Data.keep_functions
+  [@{const_name numeral}, @{const_name neg_numeral}] *}
 
 end
-

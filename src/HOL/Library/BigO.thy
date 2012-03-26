@@ -132,7 +132,6 @@ lemma bigo_plus_subset [intro]: "O(f + g) <= O(f) \<oplus> O(g)"
   apply (simp add: abs_triangle_ineq)
   apply (simp add: order_less_le)
   apply (rule mult_nonneg_nonneg)
-  apply (rule add_nonneg_nonneg)
   apply auto
   apply (rule_tac x = "%n. if (abs (f n)) <  abs (g n) then x n else 0" 
      in exI)
@@ -150,11 +149,8 @@ lemma bigo_plus_subset [intro]: "O(f + g) <= O(f) \<oplus> O(g)"
   apply (rule abs_triangle_ineq)
   apply (simp add: order_less_le)
   apply (rule mult_nonneg_nonneg)
-  apply (rule add_nonneg_nonneg)
-  apply (erule order_less_imp_le)+
+  apply (erule order_less_imp_le)
   apply simp
-  apply (rule ext)
-  apply (auto simp add: if_splits linorder_not_le)
   done
 
 lemma bigo_plus_subset2 [intro]: "A <= O(f) ==> B <= O(f) ==> A \<oplus> B <= O(f)"

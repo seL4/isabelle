@@ -93,15 +93,15 @@ sig
   val size_const: typ -> term
   val code_numeralT: typ
   val intT: typ
-  val pls_const: term
-  val min_const: term
+  val one_const: term
   val bit0_const: term
   val bit1_const: term
   val mk_bit: int -> term
   val dest_bit: term -> int
   val mk_numeral: int -> term
-  val dest_numeral: term -> int
-  val number_of_const: typ -> term
+  val dest_num: term -> int
+  val numeral_const: typ -> term
+  val neg_numeral_const: typ -> term
   val add_numerals: term -> (term * typ) list -> (term * typ) list
   val mk_number: typ -> int -> term
   val dest_number: term -> typ * int
@@ -492,50 +492,54 @@ fun size_const T = Const ("Nat.size_class.size", T --> natT);
 val code_numeralT = Type ("Code_Numeral.code_numeral", []);
 
 
-(* binary numerals and int -- non-unique representation due to leading zeros/ones! *)
+(* binary numerals and int *)
 
+val numT = Type ("Num.num", []);
 val intT = Type ("Int.int", []);
 
-val pls_const = Const ("Int.Pls", intT)
-and min_const = Const ("Int.Min", intT)
-and bit0_const = Const ("Int.Bit0", intT --> intT)
-and bit1_const = Const ("Int.Bit1", intT --> intT);
+val one_const = Const ("Num.num.One", numT)
+and bit0_const = Const ("Num.num.Bit0", numT --> numT)
+and bit1_const = Const ("Num.num.Bit1", numT --> numT);
 
 fun mk_bit 0 = bit0_const
   | mk_bit 1 = bit1_const
   | mk_bit _ = raise TERM ("mk_bit", []);
 
-fun dest_bit (Const ("Int.Bit0", _)) = 0
-  | dest_bit (Const ("Int.Bit1", _)) = 1
+fun dest_bit (Const ("Num.num.Bit0", _)) = 0
+  | dest_bit (Const ("Num.num.Bit1", _)) = 1
   | dest_bit t = raise TERM ("dest_bit", [t]);
 
-fun mk_numeral 0 = pls_const
-  | mk_numeral ~1 = min_const
-  | mk_numeral i =
-      let val (q, r) = Integer.div_mod i 2;
-      in mk_bit r $ mk_numeral q end;
+fun mk_numeral i =
+  let fun mk 1 = one_const
+        | mk i = let val (q, r) = Integer.div_mod i 2 in mk_bit r $ mk q end
+  in if i > 0 then mk i else raise TERM ("mk_numeral: " ^ string_of_int i, [])
+  end
 
-fun dest_numeral (Const ("Int.Pls", _)) = 0
-  | dest_numeral (Const ("Int.Min", _)) = ~1
-  | dest_numeral (Const ("Int.Bit0", _) $ bs) = 2 * dest_numeral bs
-  | dest_numeral (Const ("Int.Bit1", _) $ bs) = 2 * dest_numeral bs + 1
-  | dest_numeral t = raise TERM ("dest_numeral", [t]);
+fun dest_num (Const ("Num.num.One", _)) = 1
+  | dest_num (Const ("Num.num.Bit0", _) $ bs) = 2 * dest_num bs
+  | dest_num (Const ("Num.num.Bit1", _) $ bs) = 2 * dest_num bs + 1
+  | dest_num t = raise TERM ("dest_num", [t]);
 
-fun number_of_const T = Const ("Int.number_class.number_of", intT --> T);
+fun numeral_const T = Const ("Num.numeral_class.numeral", numT --> T);
+fun neg_numeral_const T = Const ("Num.neg_numeral_class.neg_numeral", numT --> T);
 
-fun add_numerals (Const ("Int.number_class.number_of", Type (_, [_, T])) $ t) = cons (t, T)
+fun add_numerals (Const ("Num.numeral_class.numeral", Type (_, [_, T])) $ t) = cons (t, T)
   | add_numerals (t $ u) = add_numerals t #> add_numerals u
   | add_numerals (Abs (_, _, t)) = add_numerals t
   | add_numerals _ = I;
 
 fun mk_number T 0 = Const ("Groups.zero_class.zero", T)
   | mk_number T 1 = Const ("Groups.one_class.one", T)
-  | mk_number T i = number_of_const T $ mk_numeral i;
+  | mk_number T i =
+    if i > 0 then numeral_const T $ mk_numeral i
+    else neg_numeral_const T $ mk_numeral (~ i);
 
 fun dest_number (Const ("Groups.zero_class.zero", T)) = (T, 0)
   | dest_number (Const ("Groups.one_class.one", T)) = (T, 1)
-  | dest_number (Const ("Int.number_class.number_of", Type ("fun", [_, T])) $ t) =
-      (T, dest_numeral t)
+  | dest_number (Const ("Num.numeral_class.numeral", Type ("fun", [_, T])) $ t) =
+      (T, dest_num t)
+  | dest_number (Const ("Num.neg_numeral_class.neg_numeral", Type ("fun", [_, T])) $ t) =
+      (T, ~ (dest_num t))
   | dest_number t = raise TERM ("dest_number", [t]);
 
 

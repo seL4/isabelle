@@ -626,32 +626,38 @@ by transfer (rule refl)
 
 subsection{*Numerals and Arithmetic*}
 
-lemma hcomplex_number_of_def: "(number_of w :: hcomplex) == of_int w"
-by transfer (rule number_of_eq [THEN eq_reflection])
-
 lemma hcomplex_of_hypreal_eq_hcomplex_of_complex: 
      "hcomplex_of_hypreal (hypreal_of_real x) =  
       hcomplex_of_complex (complex_of_real x)"
 by transfer (rule refl)
 
-lemma hcomplex_hypreal_number_of: 
-  "hcomplex_of_complex (number_of w) = hcomplex_of_hypreal(number_of w)"
-by transfer (rule of_real_number_of_eq [symmetric])
+lemma hcomplex_hypreal_numeral:
+  "hcomplex_of_complex (numeral w) = hcomplex_of_hypreal(numeral w)"
+by transfer (rule of_real_numeral [symmetric])
 
-lemma hcomplex_number_of_hcnj [simp]:
-     "hcnj (number_of v :: hcomplex) = number_of v"
-by transfer (rule complex_cnj_number_of)
+lemma hcomplex_hypreal_neg_numeral:
+  "hcomplex_of_complex (neg_numeral w) = hcomplex_of_hypreal(neg_numeral w)"
+by transfer (rule of_real_neg_numeral [symmetric])
 
-lemma hcomplex_number_of_hcmod [simp]: 
-      "hcmod(number_of v :: hcomplex) = abs (number_of v :: hypreal)"
-by transfer (rule norm_number_of)
+lemma hcomplex_numeral_hcnj [simp]:
+     "hcnj (numeral v :: hcomplex) = numeral v"
+by transfer (rule complex_cnj_numeral)
 
-lemma hcomplex_number_of_hRe [simp]: 
-      "hRe(number_of v :: hcomplex) = number_of v"
-by transfer (rule complex_Re_number_of)
+lemma hcomplex_numeral_hcmod [simp]:
+      "hcmod(numeral v :: hcomplex) = (numeral v :: hypreal)"
+by transfer (rule norm_numeral)
 
-lemma hcomplex_number_of_hIm [simp]: 
-      "hIm(number_of v :: hcomplex) = 0"
-by transfer (rule complex_Im_number_of)
+lemma hcomplex_neg_numeral_hcmod [simp]: 
+      "hcmod(neg_numeral v :: hcomplex) = (numeral v :: hypreal)"
+by transfer (rule norm_neg_numeral)
 
+lemma hcomplex_numeral_hRe [simp]: 
+      "hRe(numeral v :: hcomplex) = numeral v"
+by transfer (rule complex_Re_numeral)
+
+lemma hcomplex_numeral_hIm [simp]: 
+      "hIm(numeral v :: hcomplex) = 0"
+by transfer (rule complex_Im_numeral)
+
+(* TODO: add neg_numeral rules above *)
 end

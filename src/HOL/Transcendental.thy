@@ -2044,8 +2044,8 @@ next
   finally show ?thesis by auto
 qed
 
-lemma tan_periodic_n[simp]: "tan (x + number_of n * pi) = tan x"
-  using tan_periodic_int[of _ "number_of n" ] unfolding real_number_of .
+lemma tan_periodic_n[simp]: "tan (x + numeral n * pi) = tan x"
+  using tan_periodic_int[of _ "numeral n" ] unfolding real_numeral .
 
 subsection {* Inverse Trigonometric Functions *}
 

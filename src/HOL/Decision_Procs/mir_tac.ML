@@ -21,16 +21,15 @@ in @{simpset} delsimps ths addsimps (map (fn th => th RS sym) ths)
 end;
 
 val nT = HOLogic.natT;
-  val nat_arith = [@{thm "add_nat_number_of"}, @{thm "diff_nat_number_of"},
-                       @{thm "mult_nat_number_of"}, @{thm "eq_nat_number_of"}, @{thm "less_nat_number_of"}];
+  val nat_arith = [@{thm diff_nat_numeral}];
 
   val comp_arith = [@{thm "Let_def"}, @{thm "if_False"}, @{thm "if_True"}, @{thm "add_0"},
-                 @{thm "add_Suc"}, @{thm "add_number_of_left"}, @{thm "mult_number_of_left"},
+                 @{thm "add_Suc"}, @{thm add_numeral_left}, @{thm mult_numeral_left(1)},
                  @{thm "Suc_eq_plus1"}] @
-                 (map (fn th => th RS sym) [@{thm "numeral_1_eq_1"}, @{thm "numeral_0_eq_0"}])
+                 (map (fn th => th RS sym) [@{thm "numeral_1_eq_1"}])
                  @ @{thms arith_simps} @ nat_arith @ @{thms rel_simps} 
   val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"}, 
-             @{thm "real_of_nat_number_of"},
+             @{thm real_of_nat_numeral},
              @{thm "real_of_nat_Suc"}, @{thm "real_of_nat_one"}, @{thm "real_of_one"},
              @{thm "real_of_int_zero"}, @{thm "real_of_nat_zero"},
              @{thm "divide_zero"}, 
@@ -44,8 +43,6 @@ val zdvd_int = @{thm "zdvd_int"};
 val zdiff_int_split = @{thm "zdiff_int_split"};
 val all_nat = @{thm "all_nat"};
 val ex_nat = @{thm "ex_nat"};
-val number_of1 = @{thm "number_of1"};
-val number_of2 = @{thm "number_of2"};
 val split_zdiv = @{thm "split_zdiv"};
 val split_zmod = @{thm "split_zmod"};
 val mod_div_equality' = @{thm "mod_div_equality'"};
@@ -113,15 +110,15 @@ fun mir_tac ctxt q =
             @{thm "split_min"}, @{thm "split_max"}]
     (* Simp rules for changing (n::int) to int n *)
     val simpset1 = HOL_basic_ss
-      addsimps [@{thm "nat_number_of_def"}, @{thm "zdvd_int"}] @ map (fn r => r RS sym)
+      addsimps [@{thm "zdvd_int"}] @ map (fn r => r RS sym)
         [@{thm "int_int_eq"}, @{thm "zle_int"}, @{thm "zless_int"}, @{thm "zadd_int"}, 
-         @{thm "zmult_int"}]
+         @{thm nat_numeral}, @{thm "zmult_int"}]
       |> Splitter.add_split @{thm "zdiff_int_split"}
     (*simp rules for elimination of int n*)
 
     val simpset2 = HOL_basic_ss
-      addsimps [@{thm "nat_0_le"}, @{thm "all_nat"}, @{thm "ex_nat"}, @{thm "number_of1"}, 
-                @{thm "number_of2"}, @{thm "int_0"}, @{thm "int_1"}]
+      addsimps [@{thm "nat_0_le"}, @{thm "all_nat"}, @{thm "ex_nat"}, @{thm zero_le_numeral}, 
+                @{thm "int_0"}, @{thm "int_1"}]
       |> fold Simplifier.add_cong [@{thm "conj_le_cong"}, @{thm "imp_le_cong"}]
     (* simp rules for elimination of abs *)
     val ct = cterm_of thy (HOLogic.mk_Trueprop t)

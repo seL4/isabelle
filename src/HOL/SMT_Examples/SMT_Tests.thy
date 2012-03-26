@@ -211,7 +211,7 @@ lemma
 
 lemma
   assumes "\<forall>x y. SMT.trigger [[SMT.pat (f x), SMT.pat (g y)]] (f x = g y)"
-  shows "f 1 = g 2"
+  shows "f a = g b"
   using assms by smt
 
 lemma

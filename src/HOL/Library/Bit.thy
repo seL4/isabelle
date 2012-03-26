@@ -96,27 +96,18 @@ lemma bit_add_eq_1_iff: "x + y = (1 :: bit) \<longleftrightarrow> x \<noteq> y"
 
 subsection {* Numerals at type @{typ bit} *}
 
-instantiation bit :: number_ring
-begin
-
-definition number_of_bit_def:
-  "(number_of w :: bit) = of_int w"
-
-instance proof
-qed (rule number_of_bit_def)
-
-end
-
 text {* All numerals reduce to either 0 or 1. *}
 
 lemma bit_minus1 [simp]: "-1 = (1 :: bit)"
-  by (simp only: number_of_Min uminus_bit_def)
+  by (simp only: minus_one [symmetric] uminus_bit_def)
 
-lemma bit_number_of_even [simp]: "number_of (Int.Bit0 w) = (0 :: bit)"
-  by (simp only: number_of_Bit0 add_0_left bit_add_self)
+lemma bit_neg_numeral [simp]: "(neg_numeral w :: bit) = numeral w"
+  by (simp only: neg_numeral_def uminus_bit_def)
 
-lemma bit_number_of_odd [simp]: "number_of (Int.Bit1 w) = (1 :: bit)"
-  by (simp only: number_of_Bit1 add_assoc bit_add_self
-                 monoid_add_class.add_0_right)
+lemma bit_numeral_even [simp]: "numeral (Num.Bit0 w) = (0 :: bit)"
+  by (simp only: numeral_Bit0 bit_add_self)
+
+lemma bit_numeral_odd [simp]: "numeral (Num.Bit1 w) = (1 :: bit)"
+  by (simp only: numeral_Bit1 bit_add_self add_0_left)
 
 end
