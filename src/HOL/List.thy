@@ -173,6 +173,12 @@ definition
 hide_const (open) insert
 hide_fact (open) insert_def
 
+primrec find :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a option" where
+  "find _ [] = None"
+| "find P (x#xs) = (if P x then Some x else find P xs)"
+
+hide_const (open) find
+
 primrec
   remove1 :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
     "remove1 x [] = []"
@@ -260,6 +266,8 @@ text{*
 @{lemma "remdups [2,0,2,1::nat,2] = [0,1,2]" by simp}\\
 @{lemma "List.insert 2 [0::nat,1,2] = [0,1,2]" by (simp add: List.insert_def)}\\
 @{lemma "List.insert 3 [0::nat,1,2] = [3,0,1,2]" by (simp add: List.insert_def)}\\
+@{lemma "List.find (%i::int. i>0) [0,0] = None" by simp}\\
+@{lemma "List.find (%i::int. i>0) [0,1,0,2] = Some 1" by simp}\\
 @{lemma "remove1 2 [2,0,2,1::nat,2] = [0,2,1,2]" by simp}\\
 @{lemma "removeAll 2 [2,0,2,1::nat,2] = [0,1]" by simp}\\
 @{lemma "nth [a,b,c,d] 2 = c" by simp}\\
@@ -908,8 +916,9 @@ lemma map_snd_zip[simp]:
 by (induct rule:list_induct2, simp_all)
 
 enriched_type map: map
-  by (simp_all add: fun_eq_iff id_def)
+by (simp_all add: id_def)
 
+declare map.id[simp]
 
 subsubsection {* @{text rev} *}
 
@@ -3074,6 +3083,10 @@ proof (rule zip_obtain_same_length)
     by (induct xs' ys' rule: list_induct2) (auto elim: in_set_zipE)
 qed
 
+lemma set_take_disj_set_drop_if_distinct:
+  "distinct vs \<Longrightarrow> i \<le> j \<Longrightarrow> set (take i vs) \<inter> set (drop j vs) = {}"
+by (auto simp: in_set_conv_nth distinct_conv_nth)
+
 (* The next two lemmas help Sledgehammer. *)
 
 lemma distinct_singleton: "distinct [x]" by simp
@@ -3273,7 +3286,40 @@ lemma insert_remdups:
   by (simp add: List.insert_def)
 
 
-subsubsection {* @{text remove1} *}
+subsubsection {* @{const List.find} *}
+
+lemma find_None_iff: "List.find P xs = None \<longleftrightarrow> \<not> (\<exists>x. x \<in> set xs \<and> P x)"
+proof (induction xs)
+  case Nil thus ?case by simp
+next
+  case (Cons x xs) thus ?case by (fastforce split: if_splits)
+qed
+
+lemma find_Some_iff:
+  "List.find P xs = Some x \<longleftrightarrow>
+  (\<exists>i<length xs. P (xs!i) \<and> x = xs!i \<and> (\<forall>j<i. \<not> P (xs!j)))"
+proof (induction xs)
+  case Nil thus ?case by simp
+next
+  case (Cons x xs) thus ?case
+    by(auto simp: nth_Cons' split: if_splits)
+      (metis One_nat_def diff_Suc_1 less_Suc_eq_0_disj)
+qed
+
+lemma find_cong[fundef_cong]:
+  assumes "xs = ys" and "\<And>x. x \<in> set ys \<Longrightarrow> P x = Q x" 
+  shows "List.find P xs = List.find Q ys"
+proof (cases "List.find P xs")
+  case None thus ?thesis by (metis find_None_iff assms)
+next
+  case (Some x)
+  hence "List.find Q ys = Some x" using assms
+    by (auto simp add: find_Some_iff)
+  thus ?thesis using Some by auto
+qed
+
+
+subsubsection {* @{const remove1} *}
 
 lemma remove1_append:
   "remove1 x (xs @ ys) =
@@ -5664,6 +5710,10 @@ lemma subset_code [code]:
   "List.coset xs <= List.coset ys \<longleftrightarrow> set ys <= set xs"
   "List.coset [] <= set [] \<longleftrightarrow> False"
 by auto
+
+text{* Optimising a frequent case: *}
+lemma [code_unfold]: "set xs \<subseteq> set ys \<longleftrightarrow> list_all (\<lambda>x. x \<in> set ys) xs"
+by (auto simp: list_all_iff)
 
 lemma setsum_code [code]:
   "setsum f (set xs) = listsum (map f (remdups xs))"
