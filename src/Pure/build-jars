@@ -88,7 +88,6 @@ function fail()
 }
 
 [ -z "$ISABELLE_HOME" ] && fail "Missing Isabelle settings environment"
-[ -z "$SCALA_HOME" ] && fail "Unknown SCALA_HOME -- Scala unavailable"
 
 
 ## process command line
@@ -172,10 +171,10 @@ then
 
   SCALAC_OPTIONS="$ISABELLE_SCALA_BUILD_OPTIONS -d classes"
 
-  "$SCALA_HOME/bin/scalac" $SCALAC_OPTIONS "${PIDE_SOURCES[@]}" || \
+  isabelle_scala scalac $SCALAC_OPTIONS "${PIDE_SOURCES[@]}" || \
     fail "Failed to compile PIDE sources"
 
-  "$SCALA_HOME/bin/scalac" $SCALAC_OPTIONS -classpath classes "${PURE_SOURCES[@]}" || \
+  isabelle_scala scalac $SCALAC_OPTIONS -classpath classes "${PURE_SOURCES[@]}" || \
     fail "Failed to compile Pure sources"
 
   mkdir -p "$TARGET_DIR/ext" || fail "Failed to create directory $TARGET_DIR/ext"
@@ -186,7 +185,7 @@ then
   mkdir -p "$(dirname "$CHARSET_SERVICE")"
   echo isabelle.Isabelle_Charset_Provider > "$CHARSET_SERVICE"
 
-  "$ISABELLE_JDK_HOME/bin/jar" cfe "$(jvmpath "$TARGET")" isabelle.GUI_Setup META-INF isabelle || \
+  isabelle_jdk jar cfe "$(jvmpath "$TARGET")" isabelle.GUI_Setup META-INF isabelle || \
     fail "Failed to produce $TARGET"
 
   cp "$SCALA_HOME/lib/scala-swing.jar" "$SCALA_HOME/lib/scala-library.jar" "$TARGET_DIR/ext"

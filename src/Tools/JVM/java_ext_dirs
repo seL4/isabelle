@@ -17,7 +17,7 @@ function fail()
 
 ## main
 
-exec "$ISABELLE_JDK_HOME/bin/java" \
+isabelle_jdk java \
   -classpath "$(jvmpath "$ISABELLE_HOME/src/Tools/JVM/java_ext_dirs.jar")" \
   isabelle.Java_Ext_Dirs "$(jvmpath "$ISABELLE_HOME/lib/classes/ext")"
 

@@ -4,10 +4,8 @@
 #
 # DESCRIPTION: invoke Scala compiler within the Isabelle environment
 
-[ -z "$SCALA_HOME" ] && { echo "Unknown SCALA_HOME -- Scala unavailable"; exit 2; }
-
 [ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
 
 CLASSPATH="$(jvmpath "$CLASSPATH")"
-exec "$SCALA_HOME/bin/scalac" -Dfile.encoding=UTF-8 \
+isabelle_scala scalac -Dfile.encoding=UTF-8 \
   "-Djava.ext.dirs=$("$ISABELLE_HOME/src/Tools/JVM/java_ext_dirs")" "$@"
