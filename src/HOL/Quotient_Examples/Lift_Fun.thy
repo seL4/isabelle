@@ -9,7 +9,7 @@ theory Lift_Fun
 imports Main "~~/src/HOL/Library/Quotient_Syntax"
 begin
 
-text {* This file is meant as a test case for features introduced in the changeset 2d8949268303. 
+text {* This file is meant as a test case. 
   It contains examples of lifting definitions with quotients that have contravariant 
   type variables or type variables which are covariant and contravariant in the same time. *}
 
