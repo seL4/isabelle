@@ -451,7 +451,7 @@ local
 
   val nat_ops = simple_nat_ops @ mult_nat_ops
 
-  val nat_consts = nat_ops @ [@{const number_of (nat)},
+  val nat_consts = nat_ops @ [@{const numeral (nat)},
     @{const zero_class.zero (nat)}, @{const one_class.one (nat)}]
 
   val nat_int_coercions = [@{const of_nat (int)}, @{const nat}]
@@ -466,7 +466,7 @@ local
   val expands = map mk_meta_eq @{lemma
     "0 = nat 0"
     "1 = nat 1"
-    "(number_of :: int => nat) = (%i. nat (number_of i))"
+    "(numeral :: num => nat) = (%i. nat (numeral i))"
     "op < = (%a b. int a < int b)"
     "op <= = (%a b. int a <= int b)"
     "Suc = (%a. nat (int a + 1))"
@@ -493,8 +493,7 @@ local
     let
       val eq = SMT_Utils.mk_cequals lhs (Numeral.mk_cnumber @{ctyp int} i)
       val ss = HOL_ss
-        addsimps [@{thm Nat_Numeral.int_nat_number_of}]
-        addsimps @{thms neg_simps}
+        addsimps [@{thm Nat_Numeral.int_numeral}]
       fun tac _ = Simplifier.simp_tac (Simplifier.context ctxt ss) 1       
     in Goal.norm_result (Goal.prove_internal [] eq tac) end
 
@@ -507,7 +506,7 @@ local
 
   fun int_conv ctxt ct =
     (case Thm.term_of ct of
-      @{const of_nat (int)} $ (n as (@{const number_of (nat)} $ _)) =>
+      @{const of_nat (int)} $ (n as (@{const numeral (nat)} $ _)) =>
         Conv.rewr_conv (mk_number_eq ctxt (snd (HOLogic.dest_number n)) ct)
     | @{const of_nat (int)} $ _ =>
         (Conv.rewrs_conv ints then_conv Conv.sub_conv ints_conv ctxt) else_conv
@@ -549,23 +548,15 @@ local
     rewrite Numeral1 into 1
   *)
 
-  fun is_strange_number ctxt (t as Const (@{const_name number_of}, _) $ _) =
+  fun is_strange_number ctxt (t as Const (@{const_name neg_numeral}, _) $ _) =
         (case try HOLogic.dest_number t of
           SOME (_, i) => SMT_Builtin.is_builtin_num ctxt t andalso i < 2
         | NONE => false)
     | is_strange_number _ _ = false
 
   val pos_num_ss = HOL_ss
-    addsimps [@{thm Int.number_of_minus}, @{thm Int.number_of_Min}]
-    addsimps [@{thm Int.number_of_Pls}, @{thm Int.numeral_1_eq_1}]
-    addsimps @{thms Int.pred_bin_simps}
-    addsimps @{thms Int.normalize_bin_simps}
-    addsimps @{lemma
-      "Int.Min = - Int.Bit1 Int.Pls"
-      "Int.Bit0 (- Int.Pls) = - Int.Pls"
-      "Int.Bit0 (- k) = - Int.Bit0 k"
-      "Int.Bit1 (- k) = - Int.Bit1 (Int.pred k)"
-      by simp_all (simp add: pred_def)}
+    addsimps [@{thm Num.numeral_One}]
+    addsimps [@{thm Num.neg_numeral_def}]
 
   fun norm_num_conv ctxt =
     SMT_Utils.if_conv (is_strange_number ctxt)

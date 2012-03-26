@@ -115,6 +115,7 @@ definition add_raw where
 "add_raw \<equiv> \<lambda>(x, y) (u, v). (x + (u\<Colon>nat), y + (v\<Colon>nat))"
 
 quotient_definition "add\<Colon>my_int \<Rightarrow> my_int \<Rightarrow> my_int" is add_raw
+unfolding add_raw_def by auto
 
 lemma "add x y = add x x"
 nitpick [show_datatypes, expect = genuine]

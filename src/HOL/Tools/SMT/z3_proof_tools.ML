@@ -334,14 +334,12 @@ local
 
   val basic_simpset = HOL_ss addsimps @{thms field_simps}
     addsimps [@{thm times_divide_eq_right}, @{thm times_divide_eq_left}]
-    addsimps @{thms arith_special} addsimps @{thms less_bin_simps}
-    addsimps @{thms le_bin_simps} addsimps @{thms eq_bin_simps}
-    addsimps @{thms add_bin_simps} addsimps @{thms succ_bin_simps}
-    addsimps @{thms minus_bin_simps} addsimps @{thms pred_bin_simps}
-    addsimps @{thms mult_bin_simps} addsimps @{thms iszero_simps}
+    addsimps @{thms arith_special} addsimps @{thms arith_simps}
+    addsimps @{thms rel_simps}
     addsimps @{thms array_rules}
     addsimps @{thms term_true_def} addsimps @{thms term_false_def}
     addsimps @{thms z3div_def} addsimps @{thms z3mod_def}
+    addsimprocs [@{simproc binary_int_div}, @{simproc binary_int_mod}]
     addsimprocs [
       Simplifier.simproc_global @{theory} "fast_int_arith" [
         "(m::int) < n", "(m::int) <= n", "(m::int) = n"] (K Lin_Arith.simproc),

@@ -392,25 +392,13 @@ instance fps :: (ring_1_no_zero_divisors) ring_1_no_zero_divisors ..
 
 instance fps :: (idom) idom ..
 
-instantiation fps :: (comm_ring_1) number_ring
-begin
-definition number_of_fps_def: "(number_of k::'a fps) = of_int k"
+lemma numeral_fps_const: "numeral k = fps_const (numeral k)"
+  by (induct k, simp_all only: numeral.simps fps_const_1_eq_1
+    fps_const_add [symmetric])
 
-instance proof
-qed (rule number_of_fps_def)
-end
+lemma neg_numeral_fps_const: "neg_numeral k = fps_const (neg_numeral k)"
+  by (simp only: neg_numeral_def numeral_fps_const fps_const_neg)
 
-lemma number_of_fps_const: "(number_of k::('a::comm_ring_1) fps) = fps_const (of_int k)"
-  
-proof(induct k rule: int_induct [where k=0])
-  case base thus ?case unfolding number_of_fps_def of_int_0 by simp
-next
-  case (step1 i) thus ?case unfolding number_of_fps_def 
-    by (simp add: fps_const_add[symmetric] del: fps_const_add)
-next
-  case (step2 i) thus ?case unfolding number_of_fps_def 
-    by (simp add: fps_const_sub[symmetric] del: fps_const_sub)
-qed
 subsection{* The eXtractor series X*}
 
 lemma minus_one_power_iff: "(- (1::'a :: {comm_ring_1})) ^ n = (if even n then 1 else - 1)"
@@ -1119,7 +1107,7 @@ proof-
   have eq: "(1 + X) * ?r = 1"
     unfolding minus_one_power_iff
     by (auto simp add: field_simps fps_eq_iff)
-  show ?thesis by (auto simp add: eq intro: fps_inverse_unique)
+  show ?thesis by (auto simp add: eq intro: fps_inverse_unique simp del: minus_one)
 qed
 
 
@@ -1157,8 +1145,11 @@ lemma fps_const_compose[simp]:
   "fps_const (a::'a::{comm_ring_1}) oo b = fps_const (a)"
   by (simp add: fps_eq_iff fps_compose_nth mult_delta_left setsum_delta)
 
-lemma number_of_compose[simp]: "(number_of k::('a::{comm_ring_1}) fps) oo b = number_of k"
-  unfolding number_of_fps_const by simp
+lemma numeral_compose[simp]: "(numeral k::('a::{comm_ring_1}) fps) oo b = numeral k"
+  unfolding numeral_fps_const by simp
+
+lemma neg_numeral_compose[simp]: "(neg_numeral k::('a::{comm_ring_1}) fps) oo b = neg_numeral k"
+  unfolding neg_numeral_fps_const by simp
 
 lemma X_fps_compose_startby0[simp]: "a$0 = 0 \<Longrightarrow> X oo a = (a :: ('a :: comm_ring_1) fps)"
   by (simp add: fps_eq_iff fps_compose_def mult_delta_left setsum_delta
@@ -2568,7 +2559,7 @@ lemma inverse_one_plus_X:
   (is "inverse ?l = ?r")
 proof-
   have th: "?l * ?r = 1"
-    by (auto simp add: field_simps fps_eq_iff minus_one_power_iff)
+    by (auto simp add: field_simps fps_eq_iff minus_one_power_iff simp del: minus_one)
   have th': "?l $ 0 \<noteq> 0" by (simp add: )
   from fps_inverse_unique[OF th' th] show ?thesis .
 qed
@@ -2765,7 +2756,7 @@ lemma fps_minomial_minus_one: "fps_binomial (- 1) = inverse (1 + X)"
 proof-
   have th: "?r$0 \<noteq> 0" by simp
   have th': "fps_deriv (inverse ?r) = fps_const (- 1) * inverse ?r / (1 + X)"
-    by (simp add: fps_inverse_deriv[OF th] fps_divide_def power2_eq_square mult_commute fps_const_neg[symmetric] del: fps_const_neg)
+    by (simp add: fps_inverse_deriv[OF th] fps_divide_def power2_eq_square mult_commute fps_const_neg[symmetric] del: fps_const_neg minus_one)
   have eq: "inverse ?r $ 0 = 1"
     by (simp add: fps_inverse_def)
   from iffD1[OF fps_binomial_ODE_unique[of "inverse (1 + X)" "- 1"] th'] eq
@@ -2855,7 +2846,7 @@ proof-
           unfolding m1nk 
           
           unfolding m h pochhammer_Suc_setprod
-          apply (simp add: field_simps del: fact_Suc id_def)
+          apply (simp add: field_simps del: fact_Suc id_def minus_one)
           unfolding fact_altdef_nat id_def
           unfolding of_nat_setprod
           unfolding setprod_timesf[symmetric]
@@ -3162,28 +3153,25 @@ lemma E_minus_ii_sin_cos: "E (- (ii * c)) = fps_cos c - fps_const ii * fps_sin c
 lemma fps_const_minus: "fps_const (c::'a::group_add) - fps_const d = fps_const (c - d)"
   by (simp add: fps_eq_iff fps_const_def)
 
-lemma fps_number_of_fps_const: "number_of i = fps_const (number_of i :: 'a:: {comm_ring_1, number_ring})"
-  apply (subst (2) number_of_eq)
-apply(rule int_induct [of _ 0])
-apply (simp_all add: number_of_fps_def)
-by (simp_all add: fps_const_add[symmetric] fps_const_minus[symmetric])
+lemma fps_numeral_fps_const: "numeral i = fps_const (numeral i :: 'a:: {comm_ring_1})"
+  by (fact numeral_fps_const) (* FIXME: duplicate *)
 
 lemma fps_cos_Eii:
   "fps_cos c = (E (ii * c) + E (- ii * c)) / fps_const 2"
 proof-
   have th: "fps_cos c + fps_cos c = fps_cos c * fps_const 2" 
-    by (simp add: fps_eq_iff fps_number_of_fps_const complex_number_of_def[symmetric])
+    by (simp add: numeral_fps_const)
   show ?thesis
   unfolding Eii_sin_cos minus_mult_commute
-  by (simp add: fps_sin_even fps_cos_odd fps_number_of_fps_const
-    fps_divide_def fps_const_inverse th complex_number_of_def[symmetric])
+  by (simp add: fps_sin_even fps_cos_odd numeral_fps_const
+    fps_divide_def fps_const_inverse th)
 qed
 
 lemma fps_sin_Eii:
   "fps_sin c = (E (ii * c) - E (- ii * c)) / fps_const (2*ii)"
 proof-
   have th: "fps_const \<i> * fps_sin c + fps_const \<i> * fps_sin c = fps_sin c * fps_const (2 * ii)" 
-    by (simp add: fps_eq_iff fps_number_of_fps_const complex_number_of_def[symmetric])
+    by (simp add: fps_eq_iff numeral_fps_const)
   show ?thesis
   unfolding Eii_sin_cos minus_mult_commute
   by (simp add: fps_sin_even fps_cos_odd fps_divide_def fps_const_inverse th)

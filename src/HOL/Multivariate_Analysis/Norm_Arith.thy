@@ -104,6 +104,17 @@ lemma norm_pths:
   "x \<noteq> y \<longleftrightarrow> \<not> (norm (x - y) \<le> 0)"
   using norm_ge_zero[of "x - y"] by auto
 
+lemmas arithmetic_simps =
+  arith_simps
+  add_numeral_special
+  add_neg_numeral_special
+  add_0_left
+  add_0_right
+  mult_zero_left
+  mult_zero_right
+  mult_1_left
+  mult_1_right
+
 use "normarith.ML"
 
 method_setup norm = {* Scan.succeed (SIMPLE_METHOD' o NormArith.norm_arith_tac)

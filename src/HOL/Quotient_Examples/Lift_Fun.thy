@@ -6,7 +6,7 @@ header {* Example of lifting definitions with contravariant or co/contravariant 
 
 
 theory Lift_Fun
-imports Main
+imports Main "~~/src/HOL/Library/Quotient_Syntax"
 begin
 
 text {* This file is meant as a test case for features introduced in the changeset 2d8949268303. 
@@ -23,17 +23,17 @@ quotient_type
   by (simp add: identity_equivp)
 
 quotient_definition "comp' :: ('b \<rightarrow> 'c) \<rightarrow> ('a \<rightarrow> 'b) \<rightarrow> 'a \<rightarrow> 'c"  is
-  "comp :: ('b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c"
+  "comp :: ('b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c" done
 
 quotient_definition "fcomp' :: ('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c" is 
-  fcomp
+  fcomp done
 
 quotient_definition "map_fun' :: ('c \<rightarrow> 'a) \<rightarrow> ('b \<rightarrow> 'd) \<rightarrow> ('a \<rightarrow> 'b) \<rightarrow> 'c \<rightarrow> 'd" 
-  is "map_fun::('c \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'c \<Rightarrow> 'd"
+  is "map_fun::('c \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'c \<Rightarrow> 'd" done
 
-quotient_definition "inj_on' :: ('a \<rightarrow> 'b) \<rightarrow> 'a set \<rightarrow> bool" is inj_on
+quotient_definition "inj_on' :: ('a \<rightarrow> 'b) \<rightarrow> 'a set \<rightarrow> bool" is inj_on done
 
-quotient_definition "bij_betw' :: ('a \<rightarrow> 'b) \<rightarrow> 'a set \<rightarrow> 'b set \<rightarrow> bool" is bij_betw
+quotient_definition "bij_betw' :: ('a \<rightarrow> 'b) \<rightarrow> 'a set \<rightarrow> 'b set \<rightarrow> bool" is bij_betw done
 
 
 subsection {* Co/Contravariant type variables *} 
@@ -47,7 +47,7 @@ definition map_endofun' :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow
   where "map_endofun' f g e = map_fun g f e"
 
 quotient_definition "map_endofun :: ('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a endofun \<Rightarrow> 'b endofun" is
-  map_endofun'
+  map_endofun' done
 
 text {* Registration of the map function for 'a endofun. *}
 
@@ -63,7 +63,45 @@ proof -
     by (auto simp: map_endofun_def map_endofun'_def map_fun_def fun_eq_iff) (simp add: a o_assoc) 
 qed
 
-quotient_definition "endofun_id_id :: ('a endofun) endofun" is "id :: ('a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'a)"
+text {* Relator for 'a endofun. *}
+
+definition
+  endofun_rel' :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> bool" 
+where
+  "endofun_rel' R = (\<lambda>f g. (R ===> R) f g)"
+
+quotient_definition "endofun_rel :: ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a endofun \<Rightarrow> 'b endofun \<Rightarrow> bool" is
+  endofun_rel' done
+
+lemma endofun_quotient:
+assumes a: "Quotient R Abs Rep"
+shows "Quotient (endofun_rel R) (map_endofun Abs Rep) (map_endofun Rep Abs)"
+proof (intro QuotientI)
+  show "\<And>a. map_endofun Abs Rep (map_endofun Rep Abs a) = a"
+    by (metis (hide_lams, no_types) a abs_o_rep id_apply map_endofun.comp map_endofun.id o_eq_dest_lhs)
+next
+  show "\<And>a. endofun_rel R (map_endofun Rep Abs a) (map_endofun Rep Abs a)"
+  using fun_quotient[OF a a, THEN Quotient_rep_reflp]
+  unfolding endofun_rel_def map_endofun_def map_fun_def o_def map_endofun'_def endofun_rel'_def id_def 
+    by (metis (mono_tags) Quotient_endofun rep_abs_rsp)
+next
+  show "\<And>r s. endofun_rel R r s =
+          (endofun_rel R r r \<and>
+           endofun_rel R s s \<and> map_endofun Abs Rep r = map_endofun Abs Rep s)"
+    apply(auto simp add: endofun_rel_def endofun_rel'_def map_endofun_def map_endofun'_def)
+    using fun_quotient[OF a a,THEN Quotient_refl1]
+    apply metis
+    using fun_quotient[OF a a,THEN Quotient_refl2]
+    apply metis
+    using fun_quotient[OF a a, THEN Quotient_rel]
+    apply metis
+    using fun_quotient[OF a a, THEN Quotient_rel]
+    by (smt Quotient_endofun rep_abs_rsp)
+qed
+
+declare [[map endofun = (endofun_rel, endofun_quotient)]]
+
+quotient_definition "endofun_id_id :: ('a endofun) endofun" is "id :: ('a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'a)" done
 
 term  endofun_id_id
 thm  endofun_id_id_def
@@ -73,7 +111,7 @@ quotient_type 'a endofun' = "'a endofun" / "op =" by (simp add: identity_equivp)
 text {* We have to map "'a endofun" to "('a endofun') endofun", i.e., mapping (lifting)
   over a type variable which is a covariant and contravariant type variable. *}
 
-quotient_definition "endofun'_id_id :: ('a endofun') endofun'" is endofun_id_id
+quotient_definition "endofun'_id_id :: ('a endofun') endofun'" is endofun_id_id done
 
 term  endofun'_id_id
 thm  endofun'_id_id_def

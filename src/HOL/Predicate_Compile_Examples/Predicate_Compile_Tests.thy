@@ -334,7 +334,7 @@ code_pred [inductify] one_or_two .
 code_pred [dseq] one_or_two .
 code_pred [random_dseq] one_or_two .
 thm one_or_two.dseq_equation
-values [expected "{Suc 0::nat, 2::nat}"] "{x. one_or_two x}"
+values [expected "{1::nat, 2::nat}"] "{x. one_or_two x}"
 values [random_dseq 0,0,10] 3 "{x. one_or_two x}"
 
 inductive one_or_two' :: "nat => bool"
@@ -442,7 +442,7 @@ values "{zs. append [0, Suc 0, 2] [17, 8] zs}"
 values "{ys. append [0, Suc 0, 2] ys [0, Suc 0, 2, 17, 0, 5]}"
 
 values [expected "{}" dseq 0] 10 "{(xs, ys). append xs ys [1, 2, 3, 4, (5::nat)]}"
-values [expected "{(([]::nat list), [Suc 0, 2, 3, 4, (5::nat)])}" dseq 1] 10 "{(xs, ys). append xs ys [1, 2, 3, 4, (5::nat)]}"
+values [expected "{(([]::nat list), [1, 2, 3, 4, (5::nat)])}" dseq 1] 10 "{(xs, ys). append xs ys [1, 2, 3, 4, (5::nat)]}"
 values [dseq 4] 10 "{(xs, ys). append xs ys [1, 2, 3, 4, (5::nat)]}"
 values [dseq 6] 10 "{(xs, ys). append xs ys [1, 2, 3, 4, (5::nat)]}"
 values [random_dseq 1, 1, 4] 10 "{(xs, ys). append xs ys [1, 2, 3, 4, (5::nat)]}"
@@ -1241,8 +1241,8 @@ values [expected "{6::nat}"] "{y. plus_nat_test 1 y 7}"
 values [expected "{2::nat}"] "{x. plus_nat_test x 7 9}"
 values [expected "{}"] "{x. plus_nat_test x 9 7}"
 values [expected "{(0::nat,0::nat)}"] "{(x, y). plus_nat_test x y 0}"
-values [expected "{(0, Suc 0), (Suc 0, 0)}"] "{(x, y). plus_nat_test x y 1}"
-values [expected "{(0, 5), (4, Suc 0), (3, 2), (2, 3), (Suc 0, 4), (5, 0)}"]
+values [expected "{(0::nat, 1::nat), (1, 0)}"] "{(x, y). plus_nat_test x y 1}"
+values [expected "{(0::nat, 5::nat), (4, 1), (3, 2), (2, 3), (1, 4), (5, 0)}"]
   "{(x, y). plus_nat_test x y 5}"
 
 inductive minus_nat_test :: "nat => nat => nat => bool"
@@ -1259,7 +1259,7 @@ values [expected "{0::nat}"] "{z. minus_nat_test 4 5 z}"
 values [expected "{5::nat}"] "{z. minus_nat_test 7 2 z}"
 values [expected "{16::nat}"] "{x. minus_nat_test x 7 9}"
 values [expected "{16::nat}"] "{x. minus_nat_test x 9 7}"
-values [expected "{0, Suc 0, 2, 3}"] "{x. minus_nat_test x 3 0}"
+values [expected "{0::nat, 1, 2, 3}"] "{x. minus_nat_test x 3 0}"
 values [expected "{0::nat}"] "{x. minus_nat_test x 0 0}"
 
 subsection {* Examples on int *}

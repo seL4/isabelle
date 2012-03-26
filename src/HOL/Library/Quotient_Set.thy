@@ -26,6 +26,8 @@ next
     by auto (metis rep_abs_rsp[OF assms] assms[simplified Quotient_def])+
 qed
 
+declare [[map set = (set_rel, set_quotient)]]
+
 lemma empty_set_rsp[quot_respect]:
   "set_rel R {} {}"
   unfolding set_rel_def by simp

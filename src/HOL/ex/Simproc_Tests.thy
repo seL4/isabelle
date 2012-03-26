@@ -5,7 +5,7 @@
 header {* Testing of arithmetic simprocs *}
 
 theory Simproc_Tests
-imports Main
+imports (*Main*) "../Numeral_Simprocs"
 begin
 
 text {*
@@ -43,7 +43,7 @@ like Groups.abel_cancel_sum, preserving the shape of terms as much as
 possible. *)
 
 notepad begin
-  fix a b c d oo uu i j k l u v w x y z :: "'a::number_ring"
+  fix a b c d oo uu i j k l u v w x y z :: "'a::comm_ring_1"
   {
     assume "a + - b = u" have "(a + c) - (b + c) = u"
       by (tactic {* test [@{simproc int_combine_numerals}] *}) fact
@@ -107,7 +107,7 @@ end
 subsection {* @{text inteq_cancel_numerals} *}
 
 notepad begin
-  fix i j k u vv w y z w' y' z' :: "'a::number_ring"
+  fix i j k u vv w y z w' y' z' :: "'a::comm_ring_1"
   {
     assume "u = 0" have "2*u = u"
       by (tactic {* test [@{simproc inteq_cancel_numerals}] *}) fact
@@ -130,7 +130,7 @@ end
 subsection {* @{text intless_cancel_numerals} *}
 
 notepad begin
-  fix b c i j k u y :: "'a::{linordered_idom,number_ring}"
+  fix b c i j k u y :: "'a::linordered_idom"
   {
     assume "y < 2 * b" have "y - b < b"
       by (tactic {* test [@{simproc intless_cancel_numerals}] *}) fact
@@ -151,7 +151,7 @@ end
 subsection {* @{text ring_eq_cancel_numeral_factor} *}
 
 notepad begin
-  fix x y :: "'a::{idom,ring_char_0,number_ring}"
+  fix x y :: "'a::{idom,ring_char_0}"
   {
     assume "3*x = 4*y" have "9*x = 12 * y"
       by (tactic {* test [@{simproc ring_eq_cancel_numeral_factor}] *}) fact
@@ -176,7 +176,7 @@ end
 subsection {* @{text int_div_cancel_numeral_factors} *}
 
 notepad begin
-  fix x y z :: "'a::{semiring_div,ring_char_0,number_ring}"
+  fix x y z :: "'a::{semiring_div,comm_ring_1,ring_char_0}"
   {
     assume "(3*x) div (4*y) = z" have "(9*x) div (12*y) = z"
       by (tactic {* test [@{simproc int_div_cancel_numeral_factors}] *}) fact
@@ -199,7 +199,7 @@ end
 subsection {* @{text ring_less_cancel_numeral_factor} *}
 
 notepad begin
-  fix x y :: "'a::{linordered_idom,number_ring}"
+  fix x y :: "'a::linordered_idom"
   {
     assume "3*x < 4*y" have "9*x < 12 * y"
       by (tactic {* test [@{simproc ring_less_cancel_numeral_factor}] *}) fact
@@ -224,7 +224,7 @@ end
 subsection {* @{text ring_le_cancel_numeral_factor} *}
 
 notepad begin
-  fix x y :: "'a::{linordered_idom,number_ring}"
+  fix x y :: "'a::linordered_idom"
   {
     assume "3*x \<le> 4*y" have "9*x \<le> 12 * y"
       by (tactic {* test [@{simproc ring_le_cancel_numeral_factor}] *}) fact
@@ -255,7 +255,7 @@ end
 subsection {* @{text divide_cancel_numeral_factor} *}
 
 notepad begin
-  fix x y z :: "'a::{field_inverse_zero,ring_char_0,number_ring}"
+  fix x y z :: "'a::{field_inverse_zero,ring_char_0}"
   {
     assume "(3*x) / (4*y) = z" have "(9*x) / (12 * y) = z"
       by (tactic {* test [@{simproc divide_cancel_numeral_factor}] *}) fact
@@ -321,6 +321,9 @@ notepad begin
       by (tactic {* test [@{simproc int_div_cancel_factor}] *}) fact
   }
 end
+
+lemma shows "a*(b*c)/(y*z) = d*(b::'a::linordered_field_inverse_zero)*(x*a)/z"
+oops -- "FIXME: need simproc to cover this case"
 
 subsection {* @{text divide_cancel_factor} *}
 
@@ -393,7 +396,7 @@ end
 subsection {* @{text field_combine_numerals} *}
 
 notepad begin
-  fix x y z uu :: "'a::{field_inverse_zero,ring_char_0,number_ring}"
+  fix x y z uu :: "'a::{field_inverse_zero,ring_char_0}"
   {
     assume "5 / 6 * x = uu" have "x / 2 + x / 3 = uu"
       by (tactic {* test [@{simproc field_combine_numerals}] *}) fact
@@ -415,7 +418,7 @@ notepad begin
 end
 
 lemma
-  fixes x :: "'a::{linordered_field_inverse_zero,number_ring}"
+  fixes x :: "'a::{linordered_field_inverse_zero}"
   shows "2/3 * x + x / 3 = uu"
 apply (tactic {* test [@{simproc field_combine_numerals}] *})?
 oops -- "FIXME: test fails"
@@ -448,17 +451,12 @@ notepad begin
   }
 end
 
-(*negative numerals: FAIL*)
-lemma "Suc (i + j + -3 + k) = u"
-apply (tactic {* test [@{simproc nat_combine_numerals}] *})?
-oops
-
 subsection {* @{text nateq_cancel_numerals} *}
 
 notepad begin
   fix i j k l oo u uu vv w y z w' y' z' :: "nat"
   {
-    assume "Suc 0 * u = 0" have "2*u = u"
+    assume "Suc 0 * u = 0" have "2*u = (u::nat)"
       by (tactic {* test [@{simproc nateq_cancel_numerals}] *}) fact
   next
     assume "Suc 0 * u = Suc 0" have "2*u = Suc (u)"
@@ -504,7 +502,7 @@ subsection {* @{text natless_cancel_numerals} *}
 
 notepad begin
   fix length :: "'a \<Rightarrow> nat" and l1 l2 xs :: "'a" and f :: "nat \<Rightarrow> 'a"
-  fix c i j k l oo u uu vv w y z w' y' z' :: "nat"
+  fix c i j k l m oo u uu vv w y z w' y' z' :: "nat"
   {
     assume "0 < j" have "(2*length xs < 2*length xs + j)"
       by (tactic {* test [@{simproc natless_cancel_numerals}] *}) fact
@@ -518,14 +516,6 @@ notepad begin
   next
     assume "0 < Suc 0 * (m * n) + u" have "(2*n*m) < (3*(m*n)) + u"
       by (tactic {* test [@{simproc natless_cancel_numerals}] *}) fact
-  next
-    (* FIXME: negative numerals fail
-    have "(i + j + -23 + (k::nat)) < u + 15 + y"
-      apply (tactic {* test [@{simproc natless_cancel_numerals}] *})?
-      sorry
-    have "(i + j + 3 + (k::nat)) < u + -15 + y"
-      apply (tactic {* test [@{simproc natless_cancel_numerals}] *})?
-      sorry*)
   }
 end
 
@@ -611,17 +601,6 @@ notepad begin
   next
     assume "u + y - 0 = v" have "Suc (Suc (Suc (Suc (Suc (u + y))))) - 5 = v"
       by (tactic {* test [@{simproc natdiff_cancel_numerals}] *}) fact
-  next
-    (* FIXME: negative numerals fail
-    have "(i + j + -12 + k) - 15 = y"
-      apply (tactic {* test [@{simproc natdiff_cancel_numerals}] *})?
-      sorry
-    have "(i + j + 12 + k) - -15 = y"
-      apply (tactic {* test [@{simproc natdiff_cancel_numerals}] *})?
-      sorry
-    have "(i + j + -12 + k) - -15 = y"
-      apply (tactic {* test [@{simproc natdiff_cancel_numerals}] *})?
-      sorry*)
   }
 end
 

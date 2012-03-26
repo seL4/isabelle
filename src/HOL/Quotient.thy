@@ -9,7 +9,8 @@ imports Plain Hilbert_Choice Equiv_Relations
 keywords
   "print_quotmaps" "print_quotients" "print_quotconsts" :: diag and
   "quotient_type" :: thy_goal and "/" and
-  "quotient_definition" :: thy_decl
+  "setup_lifting" :: thy_decl and
+  "quotient_definition" :: thy_goal
 uses
   ("Tools/Quotient/quotient_info.ML")
   ("Tools/Quotient/quotient_type.ML")
@@ -79,6 +80,10 @@ lemma fun_rel_eq:
   shows "((op =) ===> (op =)) = (op =)"
   by (auto simp add: fun_eq_iff elim: fun_relE)
 
+lemma fun_rel_eq_rel:
+  shows "((op =) ===> R) = (\<lambda>f g. \<forall>x. R (f x) (g x))"
+  by (simp add: fun_rel_def)
+
 subsection {* set map (vimage) and set relation *}
 
 definition "set_rel R xs ys \<equiv> \<forall>x y. R x y \<longrightarrow> x \<in> xs \<longleftrightarrow> y \<in> ys"
@@ -132,6 +137,18 @@ lemma Quotient_rel:
   using a
   unfolding Quotient_def
   by blast
+
+lemma Quotient_refl1: 
+  assumes a: "Quotient R Abs Rep" 
+  shows "R r s \<Longrightarrow> R r r"
+  using a unfolding Quotient_def 
+  by fast
+
+lemma Quotient_refl2: 
+  assumes a: "Quotient R Abs Rep" 
+  shows "R r s \<Longrightarrow> R s s"
+  using a unfolding Quotient_def 
+  by fast
 
 lemma Quotient_rel_rep:
   assumes a: "Quotient R Abs Rep"
@@ -258,6 +275,15 @@ lemma apply_rsp':
   assumes a: "(R1 ===> R2) f g" "R1 x y"
   shows "R2 (f x) (g y)"
   using a by (auto elim: fun_relE)
+
+lemma apply_rsp'':
+  assumes "Quotient R Abs Rep"
+  and "(R ===> S) f f"
+  shows "S (f (Rep x)) (f (Rep x))"
+proof -
+  from assms(1) have "R (Rep x) (Rep x)" by (rule Quotient_rep_reflp)
+  then show ?thesis using assms(2) by (auto intro: apply_rsp')
+qed
 
 subsection {* lemmas for regularisation of ball and bex *}
 
@@ -675,6 +701,153 @@ lemma Quotient:
 
 end
 
+subsection {* Quotient composition *}
+
+lemma OOO_quotient:
+  fixes R1 :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+  fixes Abs1 :: "'a \<Rightarrow> 'b" and Rep1 :: "'b \<Rightarrow> 'a"
+  fixes Abs2 :: "'b \<Rightarrow> 'c" and Rep2 :: "'c \<Rightarrow> 'b"
+  fixes R2' :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+  fixes R2 :: "'b \<Rightarrow> 'b \<Rightarrow> bool"
+  assumes R1: "Quotient R1 Abs1 Rep1"
+  assumes R2: "Quotient R2 Abs2 Rep2"
+  assumes Abs1: "\<And>x y. R2' x y \<Longrightarrow> R1 x x \<Longrightarrow> R1 y y \<Longrightarrow> R2 (Abs1 x) (Abs1 y)"
+  assumes Rep1: "\<And>x y. R2 x y \<Longrightarrow> R2' (Rep1 x) (Rep1 y)"
+  shows "Quotient (R1 OO R2' OO R1) (Abs2 \<circ> Abs1) (Rep1 \<circ> Rep2)"
+apply (rule QuotientI)
+   apply (simp add: o_def Quotient_abs_rep [OF R2] Quotient_abs_rep [OF R1])
+  apply simp
+  apply (rule_tac b="Rep1 (Rep2 a)" in pred_compI)
+   apply (rule Quotient_rep_reflp [OF R1])
+  apply (rule_tac b="Rep1 (Rep2 a)" in pred_compI [rotated])
+   apply (rule Quotient_rep_reflp [OF R1])
+  apply (rule Rep1)
+  apply (rule Quotient_rep_reflp [OF R2])
+ apply safe
+    apply (rename_tac x y)
+    apply (drule Abs1)
+      apply (erule Quotient_refl2 [OF R1])
+     apply (erule Quotient_refl1 [OF R1])
+    apply (drule Quotient_refl1 [OF R2], drule Rep1)
+    apply (subgoal_tac "R1 r (Rep1 (Abs1 x))")
+     apply (rule_tac b="Rep1 (Abs1 x)" in pred_compI, assumption)
+     apply (erule pred_compI)
+     apply (erule Quotient_symp [OF R1, THEN sympD])
+    apply (rule Quotient_rel[symmetric, OF R1, THEN iffD2])
+    apply (rule conjI, erule Quotient_refl1 [OF R1])
+    apply (rule conjI, rule Quotient_rep_reflp [OF R1])
+    apply (subst Quotient_abs_rep [OF R1])
+    apply (erule Quotient_rel_abs [OF R1])
+   apply (rename_tac x y)
+   apply (drule Abs1)
+     apply (erule Quotient_refl2 [OF R1])
+    apply (erule Quotient_refl1 [OF R1])
+   apply (drule Quotient_refl2 [OF R2], drule Rep1)
+   apply (subgoal_tac "R1 s (Rep1 (Abs1 y))")
+    apply (rule_tac b="Rep1 (Abs1 y)" in pred_compI, assumption)
+    apply (erule pred_compI)
+    apply (erule Quotient_symp [OF R1, THEN sympD])
+   apply (rule Quotient_rel[symmetric, OF R1, THEN iffD2])
+   apply (rule conjI, erule Quotient_refl2 [OF R1])
+   apply (rule conjI, rule Quotient_rep_reflp [OF R1])
+   apply (subst Quotient_abs_rep [OF R1])
+   apply (erule Quotient_rel_abs [OF R1, THEN sym])
+  apply simp
+  apply (rule Quotient_rel_abs [OF R2])
+  apply (rule Quotient_rel_abs [OF R1, THEN ssubst], assumption)
+  apply (rule Quotient_rel_abs [OF R1, THEN subst], assumption)
+  apply (erule Abs1)
+   apply (erule Quotient_refl2 [OF R1])
+  apply (erule Quotient_refl1 [OF R1])
+ apply (rename_tac a b c d)
+ apply simp
+ apply (rule_tac b="Rep1 (Abs1 r)" in pred_compI)
+  apply (rule Quotient_rel[symmetric, OF R1, THEN iffD2])
+  apply (rule conjI, erule Quotient_refl1 [OF R1])
+  apply (simp add: Quotient_abs_rep [OF R1] Quotient_rep_reflp [OF R1])
+ apply (rule_tac b="Rep1 (Abs1 s)" in pred_compI [rotated])
+  apply (rule Quotient_rel[symmetric, OF R1, THEN iffD2])
+  apply (simp add: Quotient_abs_rep [OF R1] Quotient_rep_reflp [OF R1])
+  apply (erule Quotient_refl2 [OF R1])
+ apply (rule Rep1)
+ apply (drule Abs1)
+   apply (erule Quotient_refl2 [OF R1])
+  apply (erule Quotient_refl1 [OF R1])
+ apply (drule Abs1)
+  apply (erule Quotient_refl2 [OF R1])
+ apply (erule Quotient_refl1 [OF R1])
+ apply (drule Quotient_rel_abs [OF R1])
+ apply (drule Quotient_rel_abs [OF R1])
+ apply (drule Quotient_rel_abs [OF R1])
+ apply (drule Quotient_rel_abs [OF R1])
+ apply simp
+ apply (rule Quotient_rel[symmetric, OF R2, THEN iffD2])
+ apply simp
+done
+
+lemma OOO_eq_quotient:
+  fixes R1 :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+  fixes Abs1 :: "'a \<Rightarrow> 'b" and Rep1 :: "'b \<Rightarrow> 'a"
+  fixes Abs2 :: "'b \<Rightarrow> 'c" and Rep2 :: "'c \<Rightarrow> 'b"
+  assumes R1: "Quotient R1 Abs1 Rep1"
+  assumes R2: "Quotient op= Abs2 Rep2"
+  shows "Quotient (R1 OOO op=) (Abs2 \<circ> Abs1) (Rep1 \<circ> Rep2)"
+using assms
+by (rule OOO_quotient) auto
+
+subsection {* Invariant *}
+
+definition invariant :: "('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" 
+  where "invariant R = (\<lambda>x y. R x \<and> x = y)"
+
+lemma invariant_to_eq:
+  assumes "invariant P x y"
+  shows "x = y"
+using assms by (simp add: invariant_def)
+
+lemma fun_rel_eq_invariant:
+  shows "((invariant R) ===> S) = (\<lambda>f g. \<forall>x. R x \<longrightarrow> S (f x) (g x))"
+by (auto simp add: invariant_def fun_rel_def)
+
+lemma invariant_same_args:
+  shows "invariant P x x \<equiv> P x"
+using assms by (auto simp add: invariant_def)
+
+lemma copy_type_to_Quotient:
+  assumes "type_definition Rep Abs UNIV"
+  shows "Quotient (op =) Abs Rep"
+proof -
+  interpret type_definition Rep Abs UNIV by fact
+  from Abs_inject Rep_inverse show ?thesis by (auto intro!: QuotientI)
+qed
+
+lemma copy_type_to_equivp:
+  fixes Abs :: "'a \<Rightarrow> 'b"
+  and Rep :: "'b \<Rightarrow> 'a"
+  assumes "type_definition Rep Abs (UNIV::'a set)"
+  shows "equivp (op=::'a\<Rightarrow>'a\<Rightarrow>bool)"
+by (rule identity_equivp)
+
+lemma invariant_type_to_Quotient:
+  assumes "type_definition Rep Abs {x. P x}"
+  shows "Quotient (invariant P) Abs Rep"
+proof -
+  interpret type_definition Rep Abs "{x. P x}" by fact
+  from Rep Abs_inject Rep_inverse show ?thesis by (auto intro!: QuotientI simp: invariant_def)
+qed
+
+lemma invariant_type_to_part_equivp:
+  assumes "type_definition Rep Abs {x. P x}"
+  shows "part_equivp (invariant P)"
+proof (intro part_equivpI)
+  interpret type_definition Rep Abs "{x. P x}" by fact
+  show "\<exists>x. invariant P x x" using Rep by (auto simp: invariant_def)
+next
+  show "symp (invariant P)" by (auto intro: sympI simp: invariant_def)
+next
+  show "transp (invariant P)" by (auto intro: transpI simp: invariant_def)
+qed
+
 subsection {* ML setup *}
 
 text {* Auxiliary data for the quotient package *}
@@ -682,8 +855,7 @@ text {* Auxiliary data for the quotient package *}
 use "Tools/Quotient/quotient_info.ML"
 setup Quotient_Info.setup
 
-declare [[map "fun" = fun_rel]]
-declare [[map set = set_rel]]
+declare [[map "fun" = (fun_rel, fun_quotient)]]
 
 lemmas [quot_thm] = fun_quotient
 lemmas [quot_respect] = quot_rel_rsp if_rsp o_rsp let_rsp id_rsp
@@ -787,5 +959,7 @@ no_notation
   rel_conj (infixr "OOO" 75) and
   map_fun (infixr "--->" 55) and
   fun_rel (infixr "===>" 55)
+
+hide_const (open) invariant
 
 end

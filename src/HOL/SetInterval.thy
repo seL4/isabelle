@@ -1282,7 +1282,7 @@ qed
 
 subsection {* The formula for arithmetic sums *}
 
-lemma gauss_sum:
+lemma gauss_sum: (* FIXME: rephrase in terms of "2" *)
   "((1::'a::comm_semiring_1) + 1)*(\<Sum>i\<in>{1..n}. of_nat i) =
    of_nat n*((of_nat n)+1)"
 proof (induct n)
@@ -1290,7 +1290,7 @@ proof (induct n)
   show ?case by simp
 next
   case (Suc n)
-  then show ?case by (simp add: algebra_simps)
+  then show ?case by (simp add: algebra_simps del: one_add_one) (* FIXME *)
 qed
 
 theorem arith_series_general:
@@ -1308,18 +1308,18 @@ proof cases
     unfolding One_nat_def
     by (simp add: setsum_right_distrib atLeast0LessThan[symmetric] setsum_shift_lb_Suc0_0_upt mult_ac)
   also have "(1+1)*\<dots> = (1+1)*?n*a + d*(1+1)*(\<Sum>i\<in>{1..<n}. ?I i)"
-    by (simp add: left_distrib right_distrib)
+    by (simp add: left_distrib right_distrib del: one_add_one)
   also from ngt1 have "{1..<n} = {1..n - 1}"
     by (cases n) (auto simp: atLeastLessThanSuc_atLeastAtMost)
   also from ngt1
   have "(1+1)*?n*a + d*(1+1)*(\<Sum>i\<in>{1..n - 1}. ?I i) = ((1+1)*?n*a + d*?I (n - 1)*?I n)"
     by (simp only: mult_ac gauss_sum [of "n - 1"], unfold One_nat_def)
        (simp add:  mult_ac trans [OF add_commute of_nat_Suc [symmetric]])
-  finally show ?thesis by (simp add: algebra_simps)
+  finally show ?thesis by (simp add: algebra_simps del: one_add_one)
 next
   assume "\<not>(n > 1)"
   hence "n = 1 \<or> n = 0" by auto
-  thus ?thesis by (auto simp: algebra_simps)
+  thus ?thesis by (auto simp: algebra_simps mult_2_right)
 qed
 
 lemma arith_series_nat:

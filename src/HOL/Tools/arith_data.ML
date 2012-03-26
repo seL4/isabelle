@@ -68,7 +68,8 @@ val setup =
 
 (* some specialized syntactic operations *)
 
-fun mk_number T n = HOLogic.number_of_const T $ HOLogic.mk_numeral n;
+fun mk_number T 1 = HOLogic.numeral_const T $ HOLogic.one_const
+  | mk_number T n = HOLogic.mk_number T n;
 
 val mk_plus = HOLogic.mk_binop @{const_name Groups.plus};
 

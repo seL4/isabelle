@@ -230,34 +230,22 @@ lemma Fract_of_nat_eq: "Fract (of_nat k) 1 = of_nat k"
 lemma Fract_of_int_eq: "Fract k 1 = of_int k"
   by (rule of_int_rat [symmetric])
 
-instantiation rat :: number_ring
-begin
-
-definition
-  rat_number_of_def: "number_of w = Fract w 1"
-
-instance proof
-qed (simp add: rat_number_of_def of_int_rat)
-
-end
-
 lemma rat_number_collapse:
   "Fract 0 k = 0"
   "Fract 1 1 = 1"
-  "Fract (number_of k) 1 = number_of k"
+  "Fract (numeral w) 1 = numeral w"
+  "Fract (neg_numeral w) 1 = neg_numeral w"
   "Fract k 0 = 0"
-  by (cases "k = 0")
-    (simp_all add: Zero_rat_def One_rat_def number_of_is_id number_of_eq of_int_rat eq_rat Fract_def)
+  using Fract_of_int_eq [of "numeral w"]
+  using Fract_of_int_eq [of "neg_numeral w"]
+  by (simp_all add: Zero_rat_def One_rat_def eq_rat)
 
-lemma rat_number_expand [code_unfold]:
+lemma rat_number_expand:
   "0 = Fract 0 1"
   "1 = Fract 1 1"
-  "number_of k = Fract (number_of k) 1"
+  "numeral k = Fract (numeral k) 1"
+  "neg_numeral k = Fract (neg_numeral k) 1"
   by (simp_all add: rat_number_collapse)
-
-lemma iszero_rat [simp]:
-  "iszero (number_of k :: rat) \<longleftrightarrow> iszero (number_of k :: int)"
-  by (simp add: iszero_def rat_number_expand number_of_is_id eq_rat)
 
 lemma Rat_cases_nonzero [case_names Fract 0]:
   assumes Fract: "\<And>a b. q = Fract a b \<Longrightarrow> b > 0 \<Longrightarrow> a \<noteq> 0 \<Longrightarrow> coprime a b \<Longrightarrow> C"
@@ -386,7 +374,8 @@ qed
 lemma quotient_of_number [simp]:
   "quotient_of 0 = (0, 1)"
   "quotient_of 1 = (1, 1)"
-  "quotient_of (number_of k) = (number_of k, 1)"
+  "quotient_of (numeral k) = (numeral k, 1)"
+  "quotient_of (neg_numeral k) = (neg_numeral k, 1)"
   by (simp_all add: rat_number_expand quotient_of_Fract)
 
 lemma quotient_of_eq: "quotient_of (Fract a b) = (p, q) \<Longrightarrow> Fract p q = Fract a b"
@@ -453,19 +442,12 @@ end
 
 subsubsection {* Various *}
 
-lemma Fract_add_one: "n \<noteq> 0 ==> Fract (m + n) n = Fract m n + 1"
-  by (simp add: rat_number_expand)
-
 lemma Fract_of_int_quotient: "Fract k l = of_int k / of_int l"
   by (simp add: Fract_of_int_eq [symmetric])
 
-lemma Fract_number_of_quotient:
-  "Fract (number_of k) (number_of l) = number_of k / number_of l"
-  unfolding Fract_of_int_quotient number_of_is_id number_of_eq ..
+lemma Fract_add_one: "n \<noteq> 0 ==> Fract (m + n) n = Fract m n + 1"
+  by (simp add: rat_number_expand)
 
-lemma Fract_1_number_of:
-  "Fract 1 (number_of k) = 1 / number_of k"
-  unfolding Fract_of_int_quotient number_of_eq by simp
 
 subsubsection {* The ordered field of rational numbers *}
 
@@ -771,7 +753,8 @@ declaration {*
     (* not needed because x < (y::int) can be rewritten as x + 1 <= y: of_int_less_iff RS iffD2 *)
   #> Lin_Arith.add_simps [@{thm neg_less_iff_less},
       @{thm True_implies_equals},
-      read_instantiate @{context} [(("a", 0), "(number_of ?v)")] @{thm right_distrib},
+      read_instantiate @{context} [(("a", 0), "(numeral ?v)")] @{thm right_distrib},
+      read_instantiate @{context} [(("a", 0), "(neg_numeral ?v)")] @{thm right_distrib},
       @{thm divide_1}, @{thm divide_zero_left},
       @{thm times_divide_eq_right}, @{thm times_divide_eq_left},
       @{thm minus_divide_left} RS sym, @{thm minus_divide_right} RS sym,
@@ -895,9 +878,13 @@ by (induct n) (simp_all add: of_rat_add)
 lemma of_rat_of_int_eq [simp]: "of_rat (of_int z) = of_int z"
 by (cases z rule: int_diff_cases) (simp add: of_rat_diff)
 
-lemma of_rat_number_of_eq [simp]:
-  "of_rat (number_of w) = (number_of w :: 'a::{number_ring,field_char_0})"
-by (simp add: number_of_eq)
+lemma of_rat_numeral_eq [simp]:
+  "of_rat (numeral w) = numeral w"
+using of_rat_of_int_eq [of "numeral w"] by simp
+
+lemma of_rat_neg_numeral_eq [simp]:
+  "of_rat (neg_numeral w) = neg_numeral w"
+using of_rat_of_int_eq [of "neg_numeral w"] by simp
 
 lemmas zero_rat = Zero_rat_def
 lemmas one_rat = One_rat_def
@@ -935,9 +922,11 @@ by (subst of_rat_of_int_eq [symmetric], rule Rats_of_rat)
 lemma Rats_of_nat [simp]: "of_nat n \<in> Rats"
 by (subst of_rat_of_nat_eq [symmetric], rule Rats_of_rat)
 
-lemma Rats_number_of [simp]:
-  "(number_of w::'a::{number_ring,field_char_0}) \<in> Rats"
-by (subst of_rat_number_of_eq [symmetric], rule Rats_of_rat)
+lemma Rats_number_of [simp]: "numeral w \<in> Rats"
+by (subst of_rat_numeral_eq [symmetric], rule Rats_of_rat)
+
+lemma Rats_neg_number_of [simp]: "neg_numeral w \<in> Rats"
+by (subst of_rat_neg_numeral_eq [symmetric], rule Rats_of_rat)
 
 lemma Rats_0 [simp]: "0 \<in> Rats"
 apply (unfold Rats_def)
@@ -1032,6 +1021,8 @@ lemma Rats_induct [case_names of_rat, induct set: Rats]:
 
 subsection {* Implementation of rational numbers as pairs of integers *}
 
+text {* Formal constructor *}
+
 definition Frct :: "int \<times> int \<Rightarrow> rat" where
   [simp]: "Frct p = Fract (fst p) (snd p)"
 
@@ -1039,16 +1030,44 @@ lemma [code abstype]:
   "Frct (quotient_of q) = q"
   by (cases q) (auto intro: quotient_of_eq)
 
-lemma Frct_code_post [code_post]:
-  "Frct (0, k) = 0"
-  "Frct (k, 0) = 0"
-  "Frct (1, 1) = 1"
-  "Frct (number_of k, 1) = number_of k"
-  "Frct (1, number_of k) = 1 / number_of k"
-  "Frct (number_of k, number_of l) = number_of k / number_of l"
-  by (simp_all add: rat_number_collapse Fract_number_of_quotient Fract_1_number_of)
+
+text {* Numerals *}
 
 declare quotient_of_Fract [code abstract]
+
+definition of_int :: "int \<Rightarrow> rat"
+where
+  [code_abbrev]: "of_int = Int.of_int"
+hide_const (open) of_int
+
+lemma quotient_of_int [code abstract]:
+  "quotient_of (Rat.of_int a) = (a, 1)"
+  by (simp add: of_int_def of_int_rat quotient_of_Fract)
+
+lemma [code_unfold]:
+  "numeral k = Rat.of_int (numeral k)"
+  by (simp add: Rat.of_int_def)
+
+lemma [code_unfold]:
+  "neg_numeral k = Rat.of_int (neg_numeral k)"
+  by (simp add: Rat.of_int_def)
+
+lemma Frct_code_post [code_post]:
+  "Frct (0, a) = 0"
+  "Frct (a, 0) = 0"
+  "Frct (1, 1) = 1"
+  "Frct (numeral k, 1) = numeral k"
+  "Frct (neg_numeral k, 1) = neg_numeral k"
+  "Frct (1, numeral k) = 1 / numeral k"
+  "Frct (1, neg_numeral k) = 1 / neg_numeral k"
+  "Frct (numeral k, numeral l) = numeral k / numeral l"
+  "Frct (numeral k, neg_numeral l) = numeral k / neg_numeral l"
+  "Frct (neg_numeral k, numeral l) = neg_numeral k / numeral l"
+  "Frct (neg_numeral k, neg_numeral l) = neg_numeral k / neg_numeral l"
+  by (simp_all add: Fract_of_int_quotient)
+
+
+text {* Operations *}
 
 lemma rat_zero_code [code abstract]:
   "quotient_of 0 = (0, 1)"
@@ -1132,6 +1151,9 @@ lemma [code]:
   "of_rat p = (let (a, b) = quotient_of p in of_int a / of_int b)"
   by (cases p) (simp add: quotient_of_Fract of_rat_rat)
 
+
+text {* Quickcheck *}
+
 definition (in term_syntax)
   valterm_fract :: "int \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow> int \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow> rat \<times> (unit \<Rightarrow> Code_Evaluation.term)" where
   [code_unfold]: "valterm_fract k l = Code_Evaluation.valtermify Fract {\<cdot>} k {\<cdot>} l"
@@ -1212,7 +1234,6 @@ declaration {*
     (@{const_name plus_rat_inst.plus_rat}, @{const_name Nitpick.plus_frac}),
     (@{const_name times_rat_inst.times_rat}, @{const_name Nitpick.times_frac}),
     (@{const_name uminus_rat_inst.uminus_rat}, @{const_name Nitpick.uminus_frac}),
-    (@{const_name number_rat_inst.number_of_rat}, @{const_name Nitpick.number_of_frac}),
     (@{const_name inverse_rat_inst.inverse_rat}, @{const_name Nitpick.inverse_frac}),
     (@{const_name ord_rat_inst.less_rat}, @{const_name Nitpick.less_frac}),
     (@{const_name ord_rat_inst.less_eq_rat}, @{const_name Nitpick.less_eq_frac}),
@@ -1220,7 +1241,7 @@ declaration {*
 *}
 
 lemmas [nitpick_unfold] = inverse_rat_inst.inverse_rat
-  number_rat_inst.number_of_rat one_rat_inst.one_rat ord_rat_inst.less_rat
+  one_rat_inst.one_rat ord_rat_inst.less_rat
   ord_rat_inst.less_eq_rat plus_rat_inst.plus_rat times_rat_inst.times_rat
   uminus_rat_inst.uminus_rat zero_rat_inst.zero_rat
 

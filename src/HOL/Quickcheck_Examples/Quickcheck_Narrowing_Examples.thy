@@ -79,15 +79,14 @@ lemma "rev xs = xs"
 quickcheck[tester = narrowing, finite_types = false, default_type = nat, expect = counterexample]
 oops
 
-(* FIXME: integer has strange representation! *)
 lemma "rev xs = xs"
 quickcheck[tester = narrowing, finite_types = false, default_type = int, expect = counterexample]
 oops
-(*
+
 lemma "rev xs = xs"
   quickcheck[tester = narrowing, finite_types = true, expect = counterexample]
 oops
-*)
+
 subsection {* Simple examples with functions *}
 
 lemma "map f xs = map g xs"

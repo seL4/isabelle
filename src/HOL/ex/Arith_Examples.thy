@@ -218,10 +218,10 @@ lemma "(0::nat) < 1"
 lemma "(0::int) < 1"
   by linarith
 
-lemma "(47::nat) + 11 < 08 * 15"
+lemma "(47::nat) + 11 < 8 * 15"
   by linarith
 
-lemma "(47::int) + 11 < 08 * 15"
+lemma "(47::int) + 11 < 8 * 15"
   by linarith
 
 text {* Splitting of inequalities of different type. *}

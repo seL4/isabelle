@@ -41,18 +41,6 @@ definition one_float where "1 = Float 1 0"
 instance ..
 end
 
-instantiation float :: number
-begin
-definition number_of_float where "number_of n = Float n 0"
-instance ..
-end
-
-lemma number_of_float_Float:
-  "number_of k = Float (number_of k) 0"
-  by (simp add: number_of_float_def number_of_is_id)
-
-declare number_of_float_Float [symmetric, code_abbrev]
-
 lemma real_of_float_simp[simp]: "real (Float a b) = real a * pow2 b"
   unfolding real_of_float_def using of_float.simps .
 
@@ -63,11 +51,8 @@ lemma real_of_float_ge0_exp: "0 \<le> e \<Longrightarrow> real (Float m e) = rea
 lemma Float_num[simp]: shows
    "real (Float 1 0) = 1" and "real (Float 1 1) = 2" and "real (Float 1 2) = 4" and
    "real (Float 1 -1) = 1/2" and "real (Float 1 -2) = 1/4" and "real (Float 1 -3) = 1/8" and
-   "real (Float -1 0) = -1" and "real (Float (number_of n) 0) = number_of n"
+   "real (Float -1 0) = -1" and "real (Float (numeral n) 0) = numeral n"
   by auto
-
-lemma float_number_of[simp]: "real (number_of x :: float) = number_of x"
-  by (simp only:number_of_float_def Float_num[unfolded number_of_is_id])
 
 lemma float_number_of_int[simp]: "real (Float n 0) = real n"
   by simp
@@ -349,6 +334,21 @@ next
     by (cases a, cases b) (simp add: plus_float.simps)
 qed
 
+instance float :: numeral ..
+
+lemma Float_add_same_scale: "Float x e + Float y e = Float (x + y) e"
+  by (simp add: plus_float.simps)
+
+(* FIXME: define other constant for code_unfold_post *)
+lemma numeral_float_Float (*[code_unfold_post]*):
+  "numeral k = Float (numeral k) 0"
+  by (induct k, simp_all only: numeral.simps one_float_def
+    Float_add_same_scale)
+
+lemma float_number_of[simp]: "real (numeral x :: float) = numeral x"
+  by (simp only: numeral_float_Float Float_num)
+
+
 instance float :: comm_monoid_mult
 proof (intro_classes)
   fix a b c :: float
@@ -555,6 +555,7 @@ next
   show ?thesis unfolding real_of_float_nge0_exp[OF P] divide_inverse by auto
 qed
 
+(* BROKEN
 lemma bitlen_Pls: "bitlen (Int.Pls) = Int.Pls" by (subst Pls_def, subst Pls_def, simp)
 
 lemma bitlen_Min: "bitlen (Int.Min) = Int.Bit1 Int.Pls" by (subst Min_def, simp add: Bit1_def) 
@@ -588,6 +589,7 @@ qed
 
 lemma bitlen_number_of: "bitlen (number_of w) = number_of (bitlen w)"
   by (simp add: number_of_is_id)
+BH *)
 
 lemma [code]: "bitlen x = 
      (if x = 0  then 0 
@@ -722,12 +724,12 @@ proof -
     hence "real x / real y < 1" using `0 < y` and `0 \<le> x` by auto
 
     from real_of_int_div4[of "?X" y]
-    have "real (?X div y) \<le> (real x / real y) * 2^?l" unfolding real_of_int_mult times_divide_eq_left real_of_int_power real_number_of .
+    have "real (?X div y) \<le> (real x / real y) * 2^?l" unfolding real_of_int_mult times_divide_eq_left real_of_int_power real_numeral .
     also have "\<dots> < 1 * 2^?l" using `real x / real y < 1` by (rule mult_strict_right_mono, auto)
     finally have "?X div y < 2^?l" unfolding real_of_int_less_iff[of _ "2^?l", symmetric] by auto
     hence "?X div y + 1 \<le> 2^?l" by auto
     hence "real (?X div y + 1) * inverse (2^?l) \<le> 2^?l * inverse (2^?l)"
-      unfolding real_of_int_le_iff[of _ "2^?l", symmetric] real_of_int_power real_number_of
+      unfolding real_of_int_le_iff[of _ "2^?l", symmetric] real_of_int_power real_numeral
       by (rule mult_right_mono, auto)
     hence "real (?X div y + 1) * inverse (2^?l) \<le> 1" by auto
     thus ?thesis unfolding rapprox_posrat_def Let_def normfloat real_of_float_simp if_not_P[OF False]
@@ -796,12 +798,12 @@ next
     qed
 
     from real_of_int_div4[of "?X" y]
-    have "real (?X div y) \<le> (real x / real y) * 2^?l" unfolding real_of_int_mult times_divide_eq_left real_of_int_power real_number_of .
+    have "real (?X div y) \<le> (real x / real y) * 2^?l" unfolding real_of_int_mult times_divide_eq_left real_of_int_power real_numeral .
     also have "\<dots> < 1/2 * 2^?l" using `real x / real y < 1/2` by (rule mult_strict_right_mono, auto)
     finally have "?X div y * 2 < 2^?l" unfolding real_of_int_less_iff[of _ "2^?l", symmetric] by auto
     hence "?X div y + 1 < 2^?l" using `0 < ?X div y` by auto
     hence "real (?X div y + 1) * inverse (2^?l) < 2^?l * inverse (2^?l)"
-      unfolding real_of_int_less_iff[of _ "2^?l", symmetric] real_of_int_power real_number_of
+      unfolding real_of_int_less_iff[of _ "2^?l", symmetric] real_of_int_power real_numeral
       by (rule mult_strict_right_mono, auto)
     hence "real (?X div y + 1) * inverse (2^?l) < 1" by auto
     thus ?thesis unfolding rapprox_posrat_def Let_def normfloat real_of_float_simp if_not_P[OF False]
@@ -1195,7 +1197,7 @@ proof (cases "normfloat (x * y)")
     case True
     have "real (m div 2^(nat ?l)) * pow2 ?l \<le> real m"
     proof -
-      have "real (m div 2^(nat ?l)) * pow2 ?l = real (2^(nat ?l) * (m div 2^(nat ?l)))" unfolding real_of_int_mult real_of_int_power real_number_of unfolding pow2_int[symmetric] 
+      have "real (m div 2^(nat ?l)) * pow2 ?l = real (2^(nat ?l) * (m div 2^(nat ?l)))" unfolding real_of_int_mult real_of_int_power real_numeral unfolding pow2_int[symmetric] 
         using `?l > 0` by auto
       also have "\<dots> \<le> real (2^(nat ?l) * (m div 2^(nat ?l)) + m mod 2^(nat ?l))" unfolding real_of_int_add by auto
       also have "\<dots> = real m" unfolding zmod_zdiv_equality[symmetric] ..
@@ -1262,7 +1264,7 @@ proof (cases x)
     hence me_eq: "pow2 (-e) = pow2 (int (nat (-e)))" by auto
     have "real (Float (m div (2 ^ (nat (-e)))) 0) = real (m div 2 ^ (nat (-e)))" unfolding real_of_float_simp by auto
     also have "\<dots> \<le> real m / real ((2::int) ^ (nat (-e)))" using real_of_int_div4 .
-    also have "\<dots> = real m * inverse (2 ^ (nat (-e)))" unfolding real_of_int_power real_number_of divide_inverse ..
+    also have "\<dots> = real m * inverse (2 ^ (nat (-e)))" unfolding real_of_int_power real_numeral divide_inverse ..
     also have "\<dots> = real (Float m e)" unfolding real_of_float_simp me_eq pow2_int pow2_neg[of e] ..
     finally show ?thesis unfolding Float floor_fl.simps if_not_P[OF `\<not> 0 \<le> e`] .
   next
@@ -1290,7 +1292,7 @@ proof (cases x)
     case False
     hence me_eq: "pow2 (-e) = pow2 (int (nat (-e)))" by auto
     have "real (Float m e) = real m * inverse (2 ^ (nat (-e)))" unfolding real_of_float_simp me_eq pow2_int pow2_neg[of e] ..
-    also have "\<dots> = real m / real ((2::int) ^ (nat (-e)))" unfolding real_of_int_power real_number_of divide_inverse ..
+    also have "\<dots> = real m / real ((2::int) ^ (nat (-e)))" unfolding real_of_int_power real_numeral divide_inverse ..
     also have "\<dots> \<le> 1 + real (m div 2 ^ (nat (-e)))" using real_of_int_div3[unfolded diff_le_eq] .
     also have "\<dots> = real (Float (m div (2 ^ (nat (-e))) + 1) 0)" unfolding real_of_float_simp by auto
     finally show ?thesis unfolding Float ceiling_fl.simps if_not_P[OF `\<not> 0 \<le> e`] .

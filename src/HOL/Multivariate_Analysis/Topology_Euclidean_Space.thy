@@ -5786,7 +5786,7 @@ next
     { assume as:"dist a b > dist (f n x) (f n y)"
       then obtain Na Nb where "\<forall>m\<ge>Na. dist (f (r m) x) a < (dist a b - dist (f n x) (f n y)) / 2"
         and "\<forall>m\<ge>Nb. dist (f (r m) y) b < (dist a b - dist (f n x) (f n y)) / 2"
-        using lima limb unfolding h_def LIMSEQ_def by (fastforce simp del: less_divide_eq_number_of1)
+        using lima limb unfolding h_def LIMSEQ_def by (fastforce simp del: less_divide_eq_numeral1)
       hence "dist (f (r (Na + Nb + n)) x - f (r (Na + Nb + n)) y) (a - b) < dist a b - dist (f n x) (f n y)"
         apply(erule_tac x="Na+Nb+n" in allE)
         apply(erule_tac x="Na+Nb+n" in allE) apply simp

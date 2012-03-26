@@ -20,17 +20,13 @@ val ferrack_ss = let val ths = [@{thm real_of_int_inject}, @{thm real_of_int_les
              in @{simpset} delsimps ths addsimps (map (fn th => th RS sym) ths)
              end;
 
-val binarith =
-  @{thms normalize_bin_simps} @ @{thms pred_bin_simps} @ @{thms succ_bin_simps} @
-  @{thms add_bin_simps} @ @{thms minus_bin_simps} @  @{thms mult_bin_simps};
-val comp_arith = binarith @ @{thms simp_thms};
+val binarith = @{thms arith_simps}
+val comp_arith = binarith @ @{thms simp_thms}
 
 val zdvd_int = @{thm zdvd_int};
 val zdiff_int_split = @{thm zdiff_int_split};
 val all_nat = @{thm all_nat};
 val ex_nat = @{thm ex_nat};
-val number_of1 = @{thm number_of1};
-val number_of2 = @{thm number_of2};
 val split_zdiv = @{thm split_zdiv};
 val split_zmod = @{thm split_zmod};
 val mod_div_equality' = @{thm mod_div_equality'};

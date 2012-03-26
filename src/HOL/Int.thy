@@ -6,10 +6,9 @@
 header {* The Integers as Equivalence Classes over Pairs of Natural Numbers *} 
 
 theory Int
-imports Equiv_Relations Nat Wellfounded
+imports Equiv_Relations Wellfounded
 uses
   ("Tools/numeral.ML")
-  ("Tools/numeral_syntax.ML")
   ("Tools/int_arith.ML")
 begin
 
@@ -323,15 +322,20 @@ text{*Collapse nested embeddings*}
 lemma of_int_of_nat_eq [simp]: "of_int (int n) = of_nat n"
 by (induct n) auto
 
+lemma of_int_numeral [simp, code_post]: "of_int (numeral k) = numeral k"
+  by (simp add: of_nat_numeral [symmetric] of_int_of_nat_eq [symmetric])
+
+lemma of_int_neg_numeral [simp, code_post]: "of_int (neg_numeral k) = neg_numeral k"
+  unfolding neg_numeral_def neg_numeral_class.neg_numeral_def
+  by (simp only: of_int_minus of_int_numeral)
+
 lemma of_int_power:
   "of_int (z ^ n) = of_int z ^ n"
   by (induct n) simp_all
 
 end
 
-text{*Class for unital rings with characteristic zero.
- Includes non-ordered rings like the complex numbers.*}
-class ring_char_0 = ring_1 + semiring_char_0
+context ring_char_0
 begin
 
 lemma of_int_eq_iff [simp]:
@@ -579,230 +583,27 @@ apply (rule_tac m=x and n=y in diff)
 apply (simp add: int_def minus add diff_minus)
 done
 
-
-subsection {* Binary representation *}
-
-text {*
-  This formalization defines binary arithmetic in terms of the integers
-  rather than using a datatype. This avoids multiple representations (leading
-  zeroes, etc.)  See @{text "ZF/Tools/twos-compl.ML"}, function @{text
-  int_of_binary}, for the numerical interpretation.
-
-  The representation expects that @{text "(m mod 2)"} is 0 or 1,
-  even if m is negative;
-  For instance, @{text "-5 div 2 = -3"} and @{text "-5 mod 2 = 1"}; thus
-  @{text "-5 = (-3)*2 + 1"}.
-  
-  This two's complement binary representation derives from the paper 
-  "An Efficient Representation of Arithmetic for Term Rewriting" by
-  Dave Cohen and Phil Watson, Rewriting Techniques and Applications,
-  Springer LNCS 488 (240-251), 1991.
-*}
-
-subsubsection {* The constructors @{term Bit0}, @{term Bit1}, @{term Pls} and @{term Min} *}
-
-definition Pls :: int where
-  "Pls = 0"
-
-definition Min :: int where
-  "Min = - 1"
-
-definition Bit0 :: "int \<Rightarrow> int" where
-  "Bit0 k = k + k"
-
-definition Bit1 :: "int \<Rightarrow> int" where
-  "Bit1 k = 1 + k + k"
-
-class number = -- {* for numeric types: nat, int, real, \dots *}
-  fixes number_of :: "int \<Rightarrow> 'a"
-
-use "Tools/numeral.ML"
-
-syntax
-  "_Numeral" :: "num_const \<Rightarrow> 'a"    ("_")
-
-use "Tools/numeral_syntax.ML"
-setup Numeral_Syntax.setup
-
-abbreviation
-  "Numeral0 \<equiv> number_of Pls"
-
-abbreviation
-  "Numeral1 \<equiv> number_of (Bit1 Pls)"
-
-lemma Let_number_of [simp]: "Let (number_of v) f = f (number_of v)"
+lemma Let_numeral [simp]: "Let (numeral v) f = f (numeral v)"
   -- {* Unfold all @{text let}s involving constants *}
   unfolding Let_def ..
 
-definition succ :: "int \<Rightarrow> int" where
-  "succ k = k + 1"
+lemma Let_neg_numeral [simp]: "Let (neg_numeral v) f = f (neg_numeral v)"
+  -- {* Unfold all @{text let}s involving constants *}
+  unfolding Let_def ..
 
-definition pred :: "int \<Rightarrow> int" where
-  "pred k = k - 1"
+text {* Unfold @{text min} and @{text max} on numerals. *}
 
-lemmas max_number_of [simp] = max_def [of "number_of u" "number_of v"]
-  and min_number_of [simp] = min_def [of "number_of u" "number_of v"]
-  for u v
-  -- {* unfolding @{text minx} and @{text max} on numerals *}
+lemmas max_number_of [simp] =
+  max_def [of "numeral u" "numeral v"]
+  max_def [of "numeral u" "neg_numeral v"]
+  max_def [of "neg_numeral u" "numeral v"]
+  max_def [of "neg_numeral u" "neg_numeral v"] for u v
 
-lemmas numeral_simps = 
-  succ_def pred_def Pls_def Min_def Bit0_def Bit1_def
-
-text {* Removal of leading zeroes *}
-
-lemma Bit0_Pls [simp, code_post]:
-  "Bit0 Pls = Pls"
-  unfolding numeral_simps by simp
-
-lemma Bit1_Min [simp, code_post]:
-  "Bit1 Min = Min"
-  unfolding numeral_simps by simp
-
-lemmas normalize_bin_simps =
-  Bit0_Pls Bit1_Min
-
-
-subsubsection {* Successor and predecessor functions *}
-
-text {* Successor *}
-
-lemma succ_Pls:
-  "succ Pls = Bit1 Pls"
-  unfolding numeral_simps by simp
-
-lemma succ_Min:
-  "succ Min = Pls"
-  unfolding numeral_simps by simp
-
-lemma succ_Bit0:
-  "succ (Bit0 k) = Bit1 k"
-  unfolding numeral_simps by simp
-
-lemma succ_Bit1:
-  "succ (Bit1 k) = Bit0 (succ k)"
-  unfolding numeral_simps by simp
-
-lemmas succ_bin_simps [simp] =
-  succ_Pls succ_Min succ_Bit0 succ_Bit1
-
-text {* Predecessor *}
-
-lemma pred_Pls:
-  "pred Pls = Min"
-  unfolding numeral_simps by simp
-
-lemma pred_Min:
-  "pred Min = Bit0 Min"
-  unfolding numeral_simps by simp
-
-lemma pred_Bit0:
-  "pred (Bit0 k) = Bit1 (pred k)"
-  unfolding numeral_simps by simp 
-
-lemma pred_Bit1:
-  "pred (Bit1 k) = Bit0 k"
-  unfolding numeral_simps by simp
-
-lemmas pred_bin_simps [simp] =
-  pred_Pls pred_Min pred_Bit0 pred_Bit1
-
-
-subsubsection {* Binary arithmetic *}
-
-text {* Addition *}
-
-lemma add_Pls:
-  "Pls + k = k"
-  unfolding numeral_simps by simp
-
-lemma add_Min:
-  "Min + k = pred k"
-  unfolding numeral_simps by simp
-
-lemma add_Bit0_Bit0:
-  "(Bit0 k) + (Bit0 l) = Bit0 (k + l)"
-  unfolding numeral_simps by simp
-
-lemma add_Bit0_Bit1:
-  "(Bit0 k) + (Bit1 l) = Bit1 (k + l)"
-  unfolding numeral_simps by simp
-
-lemma add_Bit1_Bit0:
-  "(Bit1 k) + (Bit0 l) = Bit1 (k + l)"
-  unfolding numeral_simps by simp
-
-lemma add_Bit1_Bit1:
-  "(Bit1 k) + (Bit1 l) = Bit0 (k + succ l)"
-  unfolding numeral_simps by simp
-
-lemma add_Pls_right:
-  "k + Pls = k"
-  unfolding numeral_simps by simp
-
-lemma add_Min_right:
-  "k + Min = pred k"
-  unfolding numeral_simps by simp
-
-lemmas add_bin_simps [simp] =
-  add_Pls add_Min add_Pls_right add_Min_right
-  add_Bit0_Bit0 add_Bit0_Bit1 add_Bit1_Bit0 add_Bit1_Bit1
-
-text {* Negation *}
-
-lemma minus_Pls:
-  "- Pls = Pls"
-  unfolding numeral_simps by simp
-
-lemma minus_Min:
-  "- Min = Bit1 Pls"
-  unfolding numeral_simps by simp
-
-lemma minus_Bit0:
-  "- (Bit0 k) = Bit0 (- k)"
-  unfolding numeral_simps by simp
-
-lemma minus_Bit1:
-  "- (Bit1 k) = Bit1 (pred (- k))"
-  unfolding numeral_simps by simp
-
-lemmas minus_bin_simps [simp] =
-  minus_Pls minus_Min minus_Bit0 minus_Bit1
-
-text {* Subtraction *}
-
-lemma diff_bin_simps [simp]:
-  "k - Pls = k"
-  "k - Min = succ k"
-  "Pls - (Bit0 l) = Bit0 (Pls - l)"
-  "Pls - (Bit1 l) = Bit1 (Min - l)"
-  "Min - (Bit0 l) = Bit1 (Min - l)"
-  "Min - (Bit1 l) = Bit0 (Min - l)"
-  "(Bit0 k) - (Bit0 l) = Bit0 (k - l)"
-  "(Bit0 k) - (Bit1 l) = Bit1 (pred k - l)"
-  "(Bit1 k) - (Bit0 l) = Bit1 (k - l)"
-  "(Bit1 k) - (Bit1 l) = Bit0 (k - l)"
-  unfolding numeral_simps by simp_all
-
-text {* Multiplication *}
-
-lemma mult_Pls:
-  "Pls * w = Pls"
-  unfolding numeral_simps by simp
-
-lemma mult_Min:
-  "Min * k = - k"
-  unfolding numeral_simps by simp
-
-lemma mult_Bit0:
-  "(Bit0 k) * l = Bit0 (k * l)"
-  unfolding numeral_simps int_distrib by simp
-
-lemma mult_Bit1:
-  "(Bit1 k) * l = (Bit0 (k * l)) + l"
-  unfolding numeral_simps int_distrib by simp
-
-lemmas mult_bin_simps [simp] =
-  mult_Pls mult_Min mult_Bit0 mult_Bit1
+lemmas min_number_of [simp] =
+  min_def [of "numeral u" "numeral v"]
+  min_def [of "numeral u" "neg_numeral v"]
+  min_def [of "neg_numeral u" "numeral v"]
+  min_def [of "neg_numeral u" "neg_numeral v"] for u v
 
 
 subsubsection {* Binary comparisons *}
@@ -812,7 +613,7 @@ text {* Preliminaries *}
 lemma even_less_0_iff:
   "a + a < 0 \<longleftrightarrow> a < (0::'a::linordered_idom)"
 proof -
-  have "a + a < 0 \<longleftrightarrow> (1+1)*a < 0" by (simp add: left_distrib)
+  have "a + a < 0 \<longleftrightarrow> (1+1)*a < 0" by (simp add: left_distrib del: one_add_one)
   also have "(1+1)*a < 0 \<longleftrightarrow> a < 0"
     by (simp add: mult_less_0_iff zero_less_two 
                   order_less_not_sym [OF zero_less_two])
@@ -824,7 +625,7 @@ lemma le_imp_0_less:
   shows "(0::int) < 1 + z"
 proof -
   have "0 \<le> z" by fact
-  also have "... < z + 1" by (rule less_add_one) 
+  also have "... < z + 1" by (rule less_add_one)
   also have "... = 1 + z" by (simp add: add_ac)
   finally show "0 < 1 + z" .
 qed
@@ -840,276 +641,6 @@ next
   thus ?thesis by (simp del: of_nat_Suc of_nat_add of_nat_1
     add: algebra_simps of_nat_1 [where 'a=int, symmetric] of_nat_add [symmetric])
 qed
-
-lemma bin_less_0_simps:
-  "Pls < 0 \<longleftrightarrow> False"
-  "Min < 0 \<longleftrightarrow> True"
-  "Bit0 w < 0 \<longleftrightarrow> w < 0"
-  "Bit1 w < 0 \<longleftrightarrow> w < 0"
-  unfolding numeral_simps
-  by (simp_all add: even_less_0_iff odd_less_0_iff)
-
-lemma less_bin_lemma: "k < l \<longleftrightarrow> k - l < (0::int)"
-  by simp
-
-lemma le_iff_pred_less: "k \<le> l \<longleftrightarrow> pred k < l"
-  unfolding numeral_simps
-  proof
-    have "k - 1 < k" by simp
-    also assume "k \<le> l"
-    finally show "k - 1 < l" .
-  next
-    assume "k - 1 < l"
-    hence "(k - 1) + 1 \<le> l" by (rule zless_imp_add1_zle)
-    thus "k \<le> l" by simp
-  qed
-
-lemma succ_pred: "succ (pred x) = x"
-  unfolding numeral_simps by simp
-
-text {* Less-than *}
-
-lemma less_bin_simps [simp]:
-  "Pls < Pls \<longleftrightarrow> False"
-  "Pls < Min \<longleftrightarrow> False"
-  "Pls < Bit0 k \<longleftrightarrow> Pls < k"
-  "Pls < Bit1 k \<longleftrightarrow> Pls \<le> k"
-  "Min < Pls \<longleftrightarrow> True"
-  "Min < Min \<longleftrightarrow> False"
-  "Min < Bit0 k \<longleftrightarrow> Min < k"
-  "Min < Bit1 k \<longleftrightarrow> Min < k"
-  "Bit0 k < Pls \<longleftrightarrow> k < Pls"
-  "Bit0 k < Min \<longleftrightarrow> k \<le> Min"
-  "Bit1 k < Pls \<longleftrightarrow> k < Pls"
-  "Bit1 k < Min \<longleftrightarrow> k < Min"
-  "Bit0 k < Bit0 l \<longleftrightarrow> k < l"
-  "Bit0 k < Bit1 l \<longleftrightarrow> k \<le> l"
-  "Bit1 k < Bit0 l \<longleftrightarrow> k < l"
-  "Bit1 k < Bit1 l \<longleftrightarrow> k < l"
-  unfolding le_iff_pred_less
-    less_bin_lemma [of Pls]
-    less_bin_lemma [of Min]
-    less_bin_lemma [of "k"]
-    less_bin_lemma [of "Bit0 k"]
-    less_bin_lemma [of "Bit1 k"]
-    less_bin_lemma [of "pred Pls"]
-    less_bin_lemma [of "pred k"]
-  by (simp_all add: bin_less_0_simps succ_pred)
-
-text {* Less-than-or-equal *}
-
-lemma le_bin_simps [simp]:
-  "Pls \<le> Pls \<longleftrightarrow> True"
-  "Pls \<le> Min \<longleftrightarrow> False"
-  "Pls \<le> Bit0 k \<longleftrightarrow> Pls \<le> k"
-  "Pls \<le> Bit1 k \<longleftrightarrow> Pls \<le> k"
-  "Min \<le> Pls \<longleftrightarrow> True"
-  "Min \<le> Min \<longleftrightarrow> True"
-  "Min \<le> Bit0 k \<longleftrightarrow> Min < k"
-  "Min \<le> Bit1 k \<longleftrightarrow> Min \<le> k"
-  "Bit0 k \<le> Pls \<longleftrightarrow> k \<le> Pls"
-  "Bit0 k \<le> Min \<longleftrightarrow> k \<le> Min"
-  "Bit1 k \<le> Pls \<longleftrightarrow> k < Pls"
-  "Bit1 k \<le> Min \<longleftrightarrow> k \<le> Min"
-  "Bit0 k \<le> Bit0 l \<longleftrightarrow> k \<le> l"
-  "Bit0 k \<le> Bit1 l \<longleftrightarrow> k \<le> l"
-  "Bit1 k \<le> Bit0 l \<longleftrightarrow> k < l"
-  "Bit1 k \<le> Bit1 l \<longleftrightarrow> k \<le> l"
-  unfolding not_less [symmetric]
-  by (simp_all add: not_le)
-
-text {* Equality *}
-
-lemma eq_bin_simps [simp]:
-  "Pls = Pls \<longleftrightarrow> True"
-  "Pls = Min \<longleftrightarrow> False"
-  "Pls = Bit0 l \<longleftrightarrow> Pls = l"
-  "Pls = Bit1 l \<longleftrightarrow> False"
-  "Min = Pls \<longleftrightarrow> False"
-  "Min = Min \<longleftrightarrow> True"
-  "Min = Bit0 l \<longleftrightarrow> False"
-  "Min = Bit1 l \<longleftrightarrow> Min = l"
-  "Bit0 k = Pls \<longleftrightarrow> k = Pls"
-  "Bit0 k = Min \<longleftrightarrow> False"
-  "Bit1 k = Pls \<longleftrightarrow> False"
-  "Bit1 k = Min \<longleftrightarrow> k = Min"
-  "Bit0 k = Bit0 l \<longleftrightarrow> k = l"
-  "Bit0 k = Bit1 l \<longleftrightarrow> False"
-  "Bit1 k = Bit0 l \<longleftrightarrow> False"
-  "Bit1 k = Bit1 l \<longleftrightarrow> k = l"
-  unfolding order_eq_iff [where 'a=int]
-  by (simp_all add: not_less)
-
-
-subsection {* Converting Numerals to Rings: @{term number_of} *}
-
-class number_ring = number + comm_ring_1 +
-  assumes number_of_eq: "number_of k = of_int k"
-
-class number_semiring = number + comm_semiring_1 +
-  assumes number_of_int: "number_of (int n) = of_nat n"
-
-instance number_ring \<subseteq> number_semiring
-proof
-  fix n show "number_of (int n) = (of_nat n :: 'a)"
-    unfolding number_of_eq by (rule of_int_of_nat_eq)
-qed
-
-text {* self-embedding of the integers *}
-
-instantiation int :: number_ring
-begin
-
-definition
-  int_number_of_def: "number_of w = (of_int w \<Colon> int)"
-
-instance proof
-qed (simp only: int_number_of_def)
-
-end
-
-lemma number_of_is_id:
-  "number_of (k::int) = k"
-  unfolding int_number_of_def by simp
-
-lemma number_of_succ:
-  "number_of (succ k) = (1 + number_of k ::'a::number_ring)"
-  unfolding number_of_eq numeral_simps by simp
-
-lemma number_of_pred:
-  "number_of (pred w) = (- 1 + number_of w ::'a::number_ring)"
-  unfolding number_of_eq numeral_simps by simp
-
-lemma number_of_minus:
-  "number_of (uminus w) = (- (number_of w)::'a::number_ring)"
-  unfolding number_of_eq by (rule of_int_minus)
-
-lemma number_of_add:
-  "number_of (v + w) = (number_of v + number_of w::'a::number_ring)"
-  unfolding number_of_eq by (rule of_int_add)
-
-lemma number_of_diff:
-  "number_of (v - w) = (number_of v - number_of w::'a::number_ring)"
-  unfolding number_of_eq by (rule of_int_diff)
-
-lemma number_of_mult:
-  "number_of (v * w) = (number_of v * number_of w::'a::number_ring)"
-  unfolding number_of_eq by (rule of_int_mult)
-
-text {*
-  The correctness of shifting.
-  But it doesn't seem to give a measurable speed-up.
-*}
-
-lemma double_number_of_Bit0:
-  "(1 + 1) * number_of w = (number_of (Bit0 w) ::'a::number_ring)"
-  unfolding number_of_eq numeral_simps left_distrib by simp
-
-text {*
-  Converting numerals 0 and 1 to their abstract versions.
-*}
-
-lemma semiring_numeral_0_eq_0 [simp, code_post]:
-  "Numeral0 = (0::'a::number_semiring)"
-  using number_of_int [where 'a='a and n=0]
-  unfolding numeral_simps by simp
-
-lemma semiring_numeral_1_eq_1 [simp, code_post]:
-  "Numeral1 = (1::'a::number_semiring)"
-  using number_of_int [where 'a='a and n=1]
-  unfolding numeral_simps by simp
-
-lemma numeral_0_eq_0: (* FIXME delete candidate *)
-  "Numeral0 = (0::'a::number_ring)"
-  by (rule semiring_numeral_0_eq_0)
-
-lemma numeral_1_eq_1: (* FIXME delete candidate *)
-  "Numeral1 = (1::'a::number_ring)"
-  by (rule semiring_numeral_1_eq_1)
-
-text {*
-  Special-case simplification for small constants.
-*}
-
-text{*
-  Unary minus for the abstract constant 1. Cannot be inserted
-  as a simprule until later: it is @{text number_of_Min} re-oriented!
-*}
-
-lemma numeral_m1_eq_minus_1:
-  "(-1::'a::number_ring) = - 1"
-  unfolding number_of_eq numeral_simps by simp
-
-lemma mult_minus1 [simp]:
-  "-1 * z = -(z::'a::number_ring)"
-  unfolding number_of_eq numeral_simps by simp
-
-lemma mult_minus1_right [simp]:
-  "z * -1 = -(z::'a::number_ring)"
-  unfolding number_of_eq numeral_simps by simp
-
-(*Negation of a coefficient*)
-lemma minus_number_of_mult [simp]:
-   "- (number_of w) * z = number_of (uminus w) * (z::'a::number_ring)"
-   unfolding number_of_eq by simp
-
-text {* Subtraction *}
-
-lemma diff_number_of_eq:
-  "number_of v - number_of w =
-    (number_of (v + uminus w)::'a::number_ring)"
-  unfolding number_of_eq by simp
-
-lemma number_of_Pls:
-  "number_of Pls = (0::'a::number_ring)"
-  unfolding number_of_eq numeral_simps by simp
-
-lemma number_of_Min:
-  "number_of Min = (- 1::'a::number_ring)"
-  unfolding number_of_eq numeral_simps by simp
-
-lemma number_of_Bit0:
-  "number_of (Bit0 w) = (0::'a::number_ring) + (number_of w) + (number_of w)"
-  unfolding number_of_eq numeral_simps by simp
-
-lemma number_of_Bit1:
-  "number_of (Bit1 w) = (1::'a::number_ring) + (number_of w) + (number_of w)"
-  unfolding number_of_eq numeral_simps by simp
-
-
-subsubsection {* Equality of Binary Numbers *}
-
-text {* First version by Norbert Voelker *}
-
-definition (*for simplifying equalities*) iszero :: "'a\<Colon>semiring_1 \<Rightarrow> bool" where
-  "iszero z \<longleftrightarrow> z = 0"
-
-lemma iszero_0: "iszero 0"
-  by (simp add: iszero_def)
-
-lemma iszero_Numeral0: "iszero (Numeral0 :: 'a::number_ring)"
-  by (simp add: iszero_0)
-
-lemma not_iszero_1: "\<not> iszero 1"
-  by (simp add: iszero_def)
-
-lemma not_iszero_Numeral1: "\<not> iszero (Numeral1 :: 'a::number_ring)"
-  by (simp add: not_iszero_1)
-
-lemma eq_number_of_eq [simp]:
-  "((number_of x::'a::number_ring) = number_of y) =
-     iszero (number_of (x + uminus y) :: 'a)"
-unfolding iszero_def number_of_add number_of_minus
-by (simp add: algebra_simps)
-
-lemma iszero_number_of_Pls:
-  "iszero ((number_of Pls)::'a::number_ring)"
-unfolding iszero_def numeral_0_eq_0 ..
-
-lemma nonzero_number_of_Min:
-  "~ iszero ((number_of Min)::'a::number_ring)"
-unfolding iszero_def numeral_m1_eq_minus_1 by simp
-
 
 subsubsection {* Comparisons, for Ordered Rings *}
 
@@ -1136,129 +667,6 @@ next
     thus False by blast
   qed
 qed
-
-lemma iszero_number_of_Bit0:
-  "iszero (number_of (Bit0 w)::'a) = 
-   iszero (number_of w::'a::{ring_char_0,number_ring})"
-proof -
-  have "(of_int w + of_int w = (0::'a)) \<Longrightarrow> (w = 0)"
-  proof -
-    assume eq: "of_int w + of_int w = (0::'a)"
-    then have "of_int (w + w) = (of_int 0 :: 'a)" by simp
-    then have "w + w = 0" by (simp only: of_int_eq_iff)
-    then show "w = 0" by (simp only: double_eq_0_iff)
-  qed
-  thus ?thesis
-    by (auto simp add: iszero_def number_of_eq numeral_simps)
-qed
-
-lemma iszero_number_of_Bit1:
-  "~ iszero (number_of (Bit1 w)::'a::{ring_char_0,number_ring})"
-proof -
-  have "1 + of_int w + of_int w \<noteq> (0::'a)"
-  proof
-    assume eq: "1 + of_int w + of_int w = (0::'a)"
-    hence "of_int (1 + w + w) = (of_int 0 :: 'a)" by simp 
-    hence "1 + w + w = 0" by (simp only: of_int_eq_iff)
-    with odd_nonzero show False by blast
-  qed
-  thus ?thesis
-    by (auto simp add: iszero_def number_of_eq numeral_simps)
-qed
-
-lemmas iszero_simps [simp] =
-  iszero_0 not_iszero_1
-  iszero_number_of_Pls nonzero_number_of_Min
-  iszero_number_of_Bit0 iszero_number_of_Bit1
-(* iszero_number_of_Pls would never normally be used
-   because its lhs simplifies to "iszero 0" *)
-
-text {* Less-Than or Equals *}
-
-text {* Reduces @{term "a\<le>b"} to @{term "~ (b<a)"} for ALL numerals. *}
-
-lemmas le_number_of_eq_not_less =
-  linorder_not_less [of "number_of w" "number_of v", symmetric] for w v
-
-
-text {* Absolute value (@{term abs}) *}
-
-lemma abs_number_of:
-  "abs(number_of x::'a::{linordered_idom,number_ring}) =
-   (if number_of x < (0::'a) then -number_of x else number_of x)"
-  by (simp add: abs_if)
-
-
-text {* Re-orientation of the equation nnn=x *}
-
-lemma number_of_reorient:
-  "(number_of w = x) = (x = number_of w)"
-  by auto
-
-
-subsubsection {* Simplification of arithmetic operations on integer constants. *}
-
-lemmas arith_extra_simps [simp] =
-  number_of_add [symmetric]
-  number_of_minus [symmetric]
-  numeral_m1_eq_minus_1 [symmetric]
-  number_of_mult [symmetric]
-  diff_number_of_eq abs_number_of
-
-text {*
-  For making a minimal simpset, one must include these default simprules.
-  Also include @{text simp_thms}.
-*}
-
-lemmas arith_simps = 
-  normalize_bin_simps pred_bin_simps succ_bin_simps
-  add_bin_simps minus_bin_simps mult_bin_simps
-  abs_zero abs_one arith_extra_simps
-
-text {* Simplification of relational operations *}
-
-lemma less_number_of [simp]:
-  "(number_of x::'a::{linordered_idom,number_ring}) < number_of y \<longleftrightarrow> x < y"
-  unfolding number_of_eq by (rule of_int_less_iff)
-
-lemma le_number_of [simp]:
-  "(number_of x::'a::{linordered_idom,number_ring}) \<le> number_of y \<longleftrightarrow> x \<le> y"
-  unfolding number_of_eq by (rule of_int_le_iff)
-
-lemma eq_number_of [simp]:
-  "(number_of x::'a::{ring_char_0,number_ring}) = number_of y \<longleftrightarrow> x = y"
-  unfolding number_of_eq by (rule of_int_eq_iff)
-
-lemmas rel_simps =
-  less_number_of less_bin_simps
-  le_number_of le_bin_simps
-  eq_number_of_eq eq_bin_simps
-  iszero_simps
-
-
-subsubsection {* Simplification of arithmetic when nested to the right. *}
-
-lemma add_number_of_left [simp]:
-  "number_of v + (number_of w + z) =
-   (number_of(v + w) + z::'a::number_ring)"
-  by (simp add: add_assoc [symmetric])
-
-lemma mult_number_of_left [simp]:
-  "number_of v * (number_of w * z) =
-   (number_of(v * w) * z::'a::number_ring)"
-  by (simp add: mult_assoc [symmetric])
-
-lemma add_number_of_diff1:
-  "number_of v + (number_of w - c) = 
-  number_of(v + w) - (c::'a::number_ring)"
-  by (simp add: diff_minus)
-
-lemma add_number_of_diff2 [simp]:
-  "number_of v + (c - number_of w) =
-   number_of (v + uminus w) + (c::'a::number_ring)"
-by (simp add: algebra_simps diff_number_of_eq [symmetric])
-
-
 
 
 subsection {* The Set of Integers *}
@@ -1363,14 +771,8 @@ proof -
   qed
 qed 
 
-lemma Ints_number_of [simp]:
-  "(number_of w :: 'a::number_ring) \<in> Ints"
-  unfolding number_of_eq Ints_def by simp
-
-lemma Nats_number_of [simp]:
-  "Int.Pls \<le> w \<Longrightarrow> (number_of w :: 'a::number_ring) \<in> Nats"
-unfolding Int.Pls_def number_of_eq
-by (simp only: of_nat_nat [symmetric] of_nat_in_Nats)
+lemma Nats_numeral [simp]: "numeral w \<in> Nats"
+  using of_nat_in_Nats [of "numeral w"] by simp
 
 lemma Ints_odd_less_0: 
   assumes in_Ints: "a \<in> Ints"
@@ -1412,100 +814,16 @@ lemmas int_setsum = of_nat_setsum [where 'a=int]
 lemmas int_setprod = of_nat_setprod [where 'a=int]
 
 
-subsection{*Inequality Reasoning for the Arithmetic Simproc*}
-
-lemma add_numeral_0: "Numeral0 + a = (a::'a::number_ring)"
-by simp 
-
-lemma add_numeral_0_right: "a + Numeral0 = (a::'a::number_ring)"
-by simp
-
-lemma mult_numeral_1: "Numeral1 * a = (a::'a::number_ring)"
-by simp 
-
-lemma mult_numeral_1_right: "a * Numeral1 = (a::'a::number_ring)"
-by simp
-
-lemma divide_numeral_1: "a / Numeral1 = (a::'a::{number_ring,field})"
-by simp
-
-lemma inverse_numeral_1:
-  "inverse Numeral1 = (Numeral1::'a::{number_ring,field})"
-by simp
-
-text{*Theorem lists for the cancellation simprocs. The use of binary numerals
-for 0 and 1 reduces the number of special cases.*}
-
-lemmas add_0s = add_numeral_0 add_numeral_0_right
-lemmas mult_1s = mult_numeral_1 mult_numeral_1_right 
-                 mult_minus1 mult_minus1_right
-
-
-subsection{*Special Arithmetic Rules for Abstract 0 and 1*}
-
-text{*Arithmetic computations are defined for binary literals, which leaves 0
-and 1 as special cases. Addition already has rules for 0, but not 1.
-Multiplication and unary minus already have rules for both 0 and 1.*}
-
-
-lemma binop_eq: "[|f x y = g x y; x = x'; y = y'|] ==> f x' y' = g x' y'"
-by simp
-
-
-lemmas add_number_of_eq = number_of_add [symmetric]
-
-text{*Allow 1 on either or both sides*}
-lemma semiring_one_add_one_is_two: "1 + 1 = (2::'a::number_semiring)"
-  using number_of_int [where 'a='a and n="Suc (Suc 0)"]
-  by (simp add: numeral_simps)
-
-lemma one_add_one_is_two: "1 + 1 = (2::'a::number_ring)"
-by (rule semiring_one_add_one_is_two)
-
-lemmas add_special =
-    one_add_one_is_two
-    binop_eq [of "op +", OF add_number_of_eq numeral_1_eq_1 refl]
-    binop_eq [of "op +", OF add_number_of_eq refl numeral_1_eq_1]
-
-text{*Allow 1 on either or both sides (1-1 already simplifies to 0)*}
-lemmas diff_special =
-    binop_eq [of "op -", OF diff_number_of_eq numeral_1_eq_1 refl]
-    binop_eq [of "op -", OF diff_number_of_eq refl numeral_1_eq_1]
-
-text{*Allow 0 or 1 on either side with a binary numeral on the other*}
-lemmas eq_special =
-    binop_eq [of "op =", OF eq_number_of_eq numeral_0_eq_0 refl]
-    binop_eq [of "op =", OF eq_number_of_eq numeral_1_eq_1 refl]
-    binop_eq [of "op =", OF eq_number_of_eq refl numeral_0_eq_0]
-    binop_eq [of "op =", OF eq_number_of_eq refl numeral_1_eq_1]
-
-text{*Allow 0 or 1 on either side with a binary numeral on the other*}
-lemmas less_special =
-  binop_eq [of "op <", OF less_number_of numeral_0_eq_0 refl]
-  binop_eq [of "op <", OF less_number_of numeral_1_eq_1 refl]
-  binop_eq [of "op <", OF less_number_of refl numeral_0_eq_0]
-  binop_eq [of "op <", OF less_number_of refl numeral_1_eq_1]
-
-text{*Allow 0 or 1 on either side with a binary numeral on the other*}
-lemmas le_special =
-    binop_eq [of "op \<le>", OF le_number_of numeral_0_eq_0 refl]
-    binop_eq [of "op \<le>", OF le_number_of numeral_1_eq_1 refl]
-    binop_eq [of "op \<le>", OF le_number_of refl numeral_0_eq_0]
-    binop_eq [of "op \<le>", OF le_number_of refl numeral_1_eq_1]
-
-lemmas arith_special[simp] = 
-       add_special diff_special eq_special less_special le_special
-
-
 text {* Legacy theorems *}
 
 lemmas zle_int = of_nat_le_iff [where 'a=int]
 lemmas int_int_eq = of_nat_eq_iff [where 'a=int]
+lemmas numeral_1_eq_1 = numeral_One
 
 subsection {* Setting up simplification procedures *}
 
 lemmas int_arith_rules =
-  neg_le_iff_le numeral_0_eq_0 numeral_1_eq_1
+  neg_le_iff_le numeral_One
   minus_zero diff_minus left_minus right_minus
   mult_zero_left mult_zero_right mult_1_left mult_1_right
   mult_minus_left mult_minus_right
@@ -1513,56 +831,39 @@ lemmas int_arith_rules =
   of_nat_0 of_nat_1 of_nat_Suc of_nat_add of_nat_mult
   of_int_0 of_int_1 of_int_add of_int_mult
 
+use "Tools/numeral.ML"
 use "Tools/int_arith.ML"
 declaration {* K Int_Arith.setup *}
 
-simproc_setup fast_arith ("(m::'a::{linordered_idom,number_ring}) < n" |
-  "(m::'a::{linordered_idom,number_ring}) <= n" |
-  "(m::'a::{linordered_idom,number_ring}) = n") =
+simproc_setup fast_arith ("(m::'a::linordered_idom) < n" |
+  "(m::'a::linordered_idom) <= n" |
+  "(m::'a::linordered_idom) = n") =
   {* fn _ => fn ss => fn ct => Lin_Arith.simproc ss (term_of ct) *}
 
 setup {*
   Reorient_Proc.add
-    (fn Const (@{const_name number_of}, _) $ _ => true | _ => false)
+    (fn Const (@{const_name numeral}, _) $ _ => true
+    | Const (@{const_name neg_numeral}, _) $ _ => true
+    | _ => false)
 *}
 
-simproc_setup reorient_numeral ("number_of w = x") = Reorient_Proc.proc
+simproc_setup reorient_numeral
+  ("numeral w = x" | "neg_numeral w = y") = Reorient_Proc.proc
 
 
 subsection{*Lemmas About Small Numerals*}
 
-lemma of_int_m1 [simp]: "of_int -1 = (-1 :: 'a :: number_ring)"
-proof -
-  have "(of_int -1 :: 'a) = of_int (- 1)" by simp
-  also have "... = - of_int 1" by (simp only: of_int_minus)
-  also have "... = -1" by simp
-  finally show ?thesis .
-qed
-
-lemma abs_minus_one [simp]: "abs (-1) = (1::'a::{linordered_idom,number_ring})"
-by (simp add: abs_if)
-
 lemma abs_power_minus_one [simp]:
-  "abs(-1 ^ n) = (1::'a::{linordered_idom,number_ring})"
+  "abs(-1 ^ n) = (1::'a::linordered_idom)"
 by (simp add: power_abs)
-
-lemma of_int_number_of_eq [simp]:
-     "of_int (number_of v) = (number_of v :: 'a :: number_ring)"
-by (simp add: number_of_eq) 
 
 text{*Lemmas for specialist use, NOT as default simprules*}
 (* TODO: see if semiring duplication can be removed without breaking proofs *)
-lemma semiring_mult_2: "2 * z = (z+z::'a::number_semiring)"
-unfolding semiring_one_add_one_is_two [symmetric] left_distrib by simp
+lemma mult_2: "2 * z = (z+z::'a::semiring_1)"
+unfolding one_add_one [symmetric] left_distrib by simp
 
-lemma semiring_mult_2_right: "z * 2 = (z+z::'a::number_semiring)"
-by (subst mult_commute, rule semiring_mult_2)
-
-lemma mult_2: "2 * z = (z+z::'a::number_ring)"
-by (rule semiring_mult_2)
-
-lemma mult_2_right: "z * 2 = (z+z::'a::number_ring)"
-by (rule semiring_mult_2_right)
+lemma mult_2_right: "z * 2 = (z+z::'a::semiring_1)"
+unfolding one_add_one [symmetric] right_distrib by simp
 
 
 subsection{*More Inequality Reasoning*}
@@ -1608,7 +909,7 @@ done
 
 text{*This simplifies expressions of the form @{term "int n = z"} where
       z is an integer literal.*}
-lemmas int_eq_iff_number_of [simp] = int_eq_iff [of _ "number_of v"] for v
+lemmas int_eq_iff_numeral [simp] = int_eq_iff [of _ "numeral v"] for v
 
 lemma split_nat [arith_split]:
   "P(nat(i::int)) = ((\<forall>n. i = int n \<longrightarrow> P n) & (i < 0 \<longrightarrow> P 0))"
@@ -1853,11 +1154,13 @@ proof -
       by (simp add: mn)
     finally have "2*\<bar>n\<bar> \<le> 1" .
     thus "False" using 0
-      by auto
+      by arith
   qed
   thus ?thesis using 0
     by auto
 qed
+
+ML_val {* @{const_name neg_numeral} *}
 
 lemma pos_zmult_eq_1_iff_lemma: "(m * n = 1) ==> m = (1::int) | m = -1"
 by (insert abs_zmult_eq_1 [of m n], arith)
@@ -1894,125 +1197,170 @@ subsubsection{*Special Simplification for Constants*}
 
 text{*These distributive laws move literals inside sums and differences.*}
 
-lemmas left_distrib_number_of [simp] = left_distrib [of _ _ "number_of v"] for v
-lemmas right_distrib_number_of [simp] = right_distrib [of "number_of v"] for v
-lemmas left_diff_distrib_number_of [simp] = left_diff_distrib [of _ _ "number_of v"] for v
-lemmas right_diff_distrib_number_of [simp] = right_diff_distrib [of "number_of v"] for v
+lemmas left_distrib_numeral [simp] = left_distrib [of _ _ "numeral v"] for v
+lemmas right_distrib_numeral [simp] = right_distrib [of "numeral v"] for v
+lemmas left_diff_distrib_numeral [simp] = left_diff_distrib [of _ _ "numeral v"] for v
+lemmas right_diff_distrib_numeral [simp] = right_diff_distrib [of "numeral v"] for v
 
 text{*These are actually for fields, like real: but where else to put them?*}
 
-lemmas zero_less_divide_iff_number_of [simp, no_atp] = zero_less_divide_iff [of "number_of w"] for w
-lemmas divide_less_0_iff_number_of [simp, no_atp] = divide_less_0_iff [of "number_of w"] for w
-lemmas zero_le_divide_iff_number_of [simp, no_atp] = zero_le_divide_iff [of "number_of w"] for w
-lemmas divide_le_0_iff_number_of [simp, no_atp] = divide_le_0_iff [of "number_of w"] for w
+lemmas zero_less_divide_iff_numeral [simp, no_atp] = zero_less_divide_iff [of "numeral w"] for w
+lemmas divide_less_0_iff_numeral [simp, no_atp] = divide_less_0_iff [of "numeral w"] for w
+lemmas zero_le_divide_iff_numeral [simp, no_atp] = zero_le_divide_iff [of "numeral w"] for w
+lemmas divide_le_0_iff_numeral [simp, no_atp] = divide_le_0_iff [of "numeral w"] for w
 
 
 text {*Replaces @{text "inverse #nn"} by @{text "1/#nn"}.  It looks
   strange, but then other simprocs simplify the quotient.*}
 
-lemmas inverse_eq_divide_number_of [simp] = inverse_eq_divide [of "number_of w"] for w
+lemmas inverse_eq_divide_numeral [simp] =
+  inverse_eq_divide [of "numeral w"] for w
+
+lemmas inverse_eq_divide_neg_numeral [simp] =
+  inverse_eq_divide [of "neg_numeral w"] for w
 
 text {*These laws simplify inequalities, moving unary minus from a term
 into the literal.*}
 
-lemmas less_minus_iff_number_of [simp, no_atp] = less_minus_iff [of "number_of v"] for v
-lemmas le_minus_iff_number_of [simp, no_atp] = le_minus_iff [of "number_of v"] for v
-lemmas equation_minus_iff_number_of [simp, no_atp] = equation_minus_iff [of "number_of v"] for v
-lemmas minus_less_iff_number_of [simp, no_atp] = minus_less_iff [of _ "number_of v"] for v
-lemmas minus_le_iff_number_of [simp, no_atp] = minus_le_iff [of _ "number_of v"] for v
-lemmas minus_equation_iff_number_of [simp, no_atp] = minus_equation_iff [of _ "number_of v"] for v
+lemmas le_minus_iff_numeral [simp, no_atp] =
+  le_minus_iff [of "numeral v"]
+  le_minus_iff [of "neg_numeral v"] for v
+
+lemmas equation_minus_iff_numeral [simp, no_atp] =
+  equation_minus_iff [of "numeral v"]
+  equation_minus_iff [of "neg_numeral v"] for v
+
+lemmas minus_less_iff_numeral [simp, no_atp] =
+  minus_less_iff [of _ "numeral v"]
+  minus_less_iff [of _ "neg_numeral v"] for v
+
+lemmas minus_le_iff_numeral [simp, no_atp] =
+  minus_le_iff [of _ "numeral v"]
+  minus_le_iff [of _ "neg_numeral v"] for v
+
+lemmas minus_equation_iff_numeral [simp, no_atp] =
+  minus_equation_iff [of _ "numeral v"]
+  minus_equation_iff [of _ "neg_numeral v"] for v
 
 text{*To Simplify Inequalities Where One Side is the Constant 1*}
 
 lemma less_minus_iff_1 [simp,no_atp]:
-  fixes b::"'b::{linordered_idom,number_ring}"
+  fixes b::"'b::linordered_idom"
   shows "(1 < - b) = (b < -1)"
 by auto
 
 lemma le_minus_iff_1 [simp,no_atp]:
-  fixes b::"'b::{linordered_idom,number_ring}"
+  fixes b::"'b::linordered_idom"
   shows "(1 \<le> - b) = (b \<le> -1)"
 by auto
 
 lemma equation_minus_iff_1 [simp,no_atp]:
-  fixes b::"'b::number_ring"
+  fixes b::"'b::ring_1"
   shows "(1 = - b) = (b = -1)"
 by (subst equation_minus_iff, auto)
 
 lemma minus_less_iff_1 [simp,no_atp]:
-  fixes a::"'b::{linordered_idom,number_ring}"
+  fixes a::"'b::linordered_idom"
   shows "(- a < 1) = (-1 < a)"
 by auto
 
 lemma minus_le_iff_1 [simp,no_atp]:
-  fixes a::"'b::{linordered_idom,number_ring}"
+  fixes a::"'b::linordered_idom"
   shows "(- a \<le> 1) = (-1 \<le> a)"
 by auto
 
 lemma minus_equation_iff_1 [simp,no_atp]:
-  fixes a::"'b::number_ring"
+  fixes a::"'b::ring_1"
   shows "(- a = 1) = (a = -1)"
 by (subst minus_equation_iff, auto)
 
 
 text {*Cancellation of constant factors in comparisons (@{text "<"} and @{text "\<le>"}) *}
 
-lemmas mult_less_cancel_left_number_of [simp, no_atp] = mult_less_cancel_left [of "number_of v"] for v
-lemmas mult_less_cancel_right_number_of [simp, no_atp] = mult_less_cancel_right [of _ "number_of v"] for v
-lemmas mult_le_cancel_left_number_of [simp, no_atp] = mult_le_cancel_left [of "number_of v"] for v
-lemmas mult_le_cancel_right_number_of [simp, no_atp] = mult_le_cancel_right [of _ "number_of v"] for v
+lemmas mult_less_cancel_left_numeral [simp, no_atp] = mult_less_cancel_left [of "numeral v"] for v
+lemmas mult_less_cancel_right_numeral [simp, no_atp] = mult_less_cancel_right [of _ "numeral v"] for v
+lemmas mult_le_cancel_left_numeral [simp, no_atp] = mult_le_cancel_left [of "numeral v"] for v
+lemmas mult_le_cancel_right_numeral [simp, no_atp] = mult_le_cancel_right [of _ "numeral v"] for v
 
 
 text {*Multiplying out constant divisors in comparisons (@{text "<"}, @{text "\<le>"} and @{text "="}) *}
 
-lemmas le_divide_eq_number_of1 [simp] = le_divide_eq [of _ _ "number_of w"] for w
-lemmas divide_le_eq_number_of1 [simp] = divide_le_eq [of _ "number_of w"] for w
-lemmas less_divide_eq_number_of1 [simp] = less_divide_eq [of _ _ "number_of w"] for w
-lemmas divide_less_eq_number_of1 [simp] = divide_less_eq [of _ "number_of w"] for w
-lemmas eq_divide_eq_number_of1 [simp] = eq_divide_eq [of _ _ "number_of w"] for w
-lemmas divide_eq_eq_number_of1 [simp] = divide_eq_eq [of _ "number_of w"] for w
+lemmas le_divide_eq_numeral1 [simp] =
+  pos_le_divide_eq [of "numeral w", OF zero_less_numeral]
+  neg_le_divide_eq [of "neg_numeral w", OF neg_numeral_less_zero] for w
 
+lemmas divide_le_eq_numeral1 [simp] =
+  pos_divide_le_eq [of "numeral w", OF zero_less_numeral]
+  neg_divide_le_eq [of "neg_numeral w", OF neg_numeral_less_zero] for w
+
+lemmas less_divide_eq_numeral1 [simp] =
+  pos_less_divide_eq [of "numeral w", OF zero_less_numeral]
+  neg_less_divide_eq [of "neg_numeral w", OF neg_numeral_less_zero] for w
+
+lemmas divide_less_eq_numeral1 [simp] =
+  pos_divide_less_eq [of "numeral w", OF zero_less_numeral]
+  neg_divide_less_eq [of "neg_numeral w", OF neg_numeral_less_zero] for w
+
+lemmas eq_divide_eq_numeral1 [simp] =
+  eq_divide_eq [of _ _ "numeral w"]
+  eq_divide_eq [of _ _ "neg_numeral w"] for w
+
+lemmas divide_eq_eq_numeral1 [simp] =
+  divide_eq_eq [of _ "numeral w"]
+  divide_eq_eq [of _ "neg_numeral w"] for w
 
 subsubsection{*Optional Simplification Rules Involving Constants*}
 
 text{*Simplify quotients that are compared with a literal constant.*}
 
-lemmas le_divide_eq_number_of = le_divide_eq [of "number_of w"] for w
-lemmas divide_le_eq_number_of = divide_le_eq [of _ _ "number_of w"] for w
-lemmas less_divide_eq_number_of = less_divide_eq [of "number_of w"] for w
-lemmas divide_less_eq_number_of = divide_less_eq [of _ _ "number_of w"] for w
-lemmas eq_divide_eq_number_of = eq_divide_eq [of "number_of w"] for w
-lemmas divide_eq_eq_number_of = divide_eq_eq [of _ _ "number_of w"] for w
+lemmas le_divide_eq_numeral =
+  le_divide_eq [of "numeral w"]
+  le_divide_eq [of "neg_numeral w"] for w
+
+lemmas divide_le_eq_numeral =
+  divide_le_eq [of _ _ "numeral w"]
+  divide_le_eq [of _ _ "neg_numeral w"] for w
+
+lemmas less_divide_eq_numeral =
+  less_divide_eq [of "numeral w"]
+  less_divide_eq [of "neg_numeral w"] for w
+
+lemmas divide_less_eq_numeral =
+  divide_less_eq [of _ _ "numeral w"]
+  divide_less_eq [of _ _ "neg_numeral w"] for w
+
+lemmas eq_divide_eq_numeral =
+  eq_divide_eq [of "numeral w"]
+  eq_divide_eq [of "neg_numeral w"] for w
+
+lemmas divide_eq_eq_numeral =
+  divide_eq_eq [of _ _ "numeral w"]
+  divide_eq_eq [of _ _ "neg_numeral w"] for w
 
 
 text{*Not good as automatic simprules because they cause case splits.*}
 lemmas divide_const_simps =
-  le_divide_eq_number_of divide_le_eq_number_of less_divide_eq_number_of
-  divide_less_eq_number_of eq_divide_eq_number_of divide_eq_eq_number_of
+  le_divide_eq_numeral divide_le_eq_numeral less_divide_eq_numeral
+  divide_less_eq_numeral eq_divide_eq_numeral divide_eq_eq_numeral
   le_divide_eq_1 divide_le_eq_1 less_divide_eq_1 divide_less_eq_1
 
 text{*Division By @{text "-1"}*}
 
-lemma divide_minus1 [simp]:
-     "x/-1 = -(x::'a::{field_inverse_zero, number_ring})"
-by simp
+lemma divide_minus1 [simp]: "(x::'a::field) / -1 = - x"
+  unfolding minus_one [symmetric]
+  unfolding nonzero_minus_divide_right [OF one_neq_zero, symmetric]
+  by simp
 
-lemma minus1_divide [simp]:
-     "-1 / (x::'a::{field_inverse_zero, number_ring}) = - (1/x)"
-by (simp add: divide_inverse)
+lemma minus1_divide [simp]: "-1 / (x::'a::field) = - (1 / x)"
+  unfolding minus_one [symmetric] by (rule divide_minus_left)
 
 lemma half_gt_zero_iff:
-     "(0 < r/2) = (0 < (r::'a::{linordered_field_inverse_zero,number_ring}))"
+     "(0 < r/2) = (0 < (r::'a::linordered_field_inverse_zero))"
 by auto
 
 lemmas half_gt_zero [simp] = half_gt_zero_iff [THEN iffD2]
 
-lemma divide_Numeral1:
-  "(x::'a::{field, number_ring}) / Numeral1 = x"
-  by simp
-
-lemma divide_Numeral0:
-  "(x::'a::{field_inverse_zero, number_ring}) / Numeral0 = 0"
+lemma divide_Numeral1: "(x::'a::field) / Numeral1 = x"
   by simp
 
 
@@ -2211,128 +1559,154 @@ by (rule rev_finite_subset[OF finite_interval_int1[of "a" "b"]]) auto
 
 subsection {* Configuration of the code generator *}
 
-code_datatype Pls Min Bit0 Bit1 "number_of \<Colon> int \<Rightarrow> int"
+text {* Constructors *}
 
-lemmas pred_succ_numeral_code [code] =
-  pred_bin_simps succ_bin_simps
+definition Pos :: "num \<Rightarrow> int" where
+  [simp, code_abbrev]: "Pos = numeral"
 
-lemmas plus_numeral_code [code] =
-  add_bin_simps
-  arith_extra_simps(1) [where 'a = int]
+definition Neg :: "num \<Rightarrow> int" where
+  [simp, code_abbrev]: "Neg = neg_numeral"
 
-lemmas minus_numeral_code [code] =
-  minus_bin_simps
-  arith_extra_simps(2) [where 'a = int]
-  arith_extra_simps(5) [where 'a = int]
+code_datatype "0::int" Pos Neg
 
-lemmas times_numeral_code [code] =
-  mult_bin_simps
-  arith_extra_simps(4) [where 'a = int]
+
+text {* Auxiliary operations *}
+
+definition dup :: "int \<Rightarrow> int" where
+  [simp]: "dup k = k + k"
+
+lemma dup_code [code]:
+  "dup 0 = 0"
+  "dup (Pos n) = Pos (Num.Bit0 n)"
+  "dup (Neg n) = Neg (Num.Bit0 n)"
+  unfolding Pos_def Neg_def neg_numeral_def
+  by (simp_all add: numeral_Bit0)
+
+definition sub :: "num \<Rightarrow> num \<Rightarrow> int" where
+  [simp]: "sub m n = numeral m - numeral n"
+
+lemma sub_code [code]:
+  "sub Num.One Num.One = 0"
+  "sub (Num.Bit0 m) Num.One = Pos (Num.BitM m)"
+  "sub (Num.Bit1 m) Num.One = Pos (Num.Bit0 m)"
+  "sub Num.One (Num.Bit0 n) = Neg (Num.BitM n)"
+  "sub Num.One (Num.Bit1 n) = Neg (Num.Bit0 n)"
+  "sub (Num.Bit0 m) (Num.Bit0 n) = dup (sub m n)"
+  "sub (Num.Bit1 m) (Num.Bit1 n) = dup (sub m n)"
+  "sub (Num.Bit1 m) (Num.Bit0 n) = dup (sub m n) + 1"
+  "sub (Num.Bit0 m) (Num.Bit1 n) = dup (sub m n) - 1"
+  unfolding sub_def dup_def numeral.simps Pos_def Neg_def
+    neg_numeral_def numeral_BitM
+  by (simp_all only: algebra_simps)
+
+
+text {* Implementations *}
+
+lemma one_int_code [code, code_unfold]:
+  "1 = Pos Num.One"
+  by simp
+
+lemma plus_int_code [code]:
+  "k + 0 = (k::int)"
+  "0 + l = (l::int)"
+  "Pos m + Pos n = Pos (m + n)"
+  "Pos m + Neg n = sub m n"
+  "Neg m + Pos n = sub n m"
+  "Neg m + Neg n = Neg (m + n)"
+  by simp_all
+
+lemma uminus_int_code [code]:
+  "uminus 0 = (0::int)"
+  "uminus (Pos m) = Neg m"
+  "uminus (Neg m) = Pos m"
+  by simp_all
+
+lemma minus_int_code [code]:
+  "k - 0 = (k::int)"
+  "0 - l = uminus (l::int)"
+  "Pos m - Pos n = sub m n"
+  "Pos m - Neg n = Pos (m + n)"
+  "Neg m - Pos n = Neg (m + n)"
+  "Neg m - Neg n = sub n m"
+  by simp_all
+
+lemma times_int_code [code]:
+  "k * 0 = (0::int)"
+  "0 * l = (0::int)"
+  "Pos m * Pos n = Pos (m * n)"
+  "Pos m * Neg n = Neg (m * n)"
+  "Neg m * Pos n = Neg (m * n)"
+  "Neg m * Neg n = Pos (m * n)"
+  by simp_all
 
 instantiation int :: equal
 begin
 
 definition
-  "HOL.equal k l \<longleftrightarrow> k - l = (0\<Colon>int)"
+  "HOL.equal k l \<longleftrightarrow> k = (l::int)"
 
-instance by default (simp add: equal_int_def)
+instance by default (rule equal_int_def)
 
 end
 
-lemma eq_number_of_int_code [code]:
-  "HOL.equal (number_of k \<Colon> int) (number_of l) \<longleftrightarrow> HOL.equal k l"
-  unfolding equal_int_def number_of_is_id ..
+lemma equal_int_code [code]:
+  "HOL.equal 0 (0::int) \<longleftrightarrow> True"
+  "HOL.equal 0 (Pos l) \<longleftrightarrow> False"
+  "HOL.equal 0 (Neg l) \<longleftrightarrow> False"
+  "HOL.equal (Pos k) 0 \<longleftrightarrow> False"
+  "HOL.equal (Pos k) (Pos l) \<longleftrightarrow> HOL.equal k l"
+  "HOL.equal (Pos k) (Neg l) \<longleftrightarrow> False"
+  "HOL.equal (Neg k) 0 \<longleftrightarrow> False"
+  "HOL.equal (Neg k) (Pos l) \<longleftrightarrow> False"
+  "HOL.equal (Neg k) (Neg l) \<longleftrightarrow> HOL.equal k l"
+  by (auto simp add: equal)
 
-lemma eq_int_code [code]:
-  "HOL.equal Int.Pls Int.Pls \<longleftrightarrow> True"
-  "HOL.equal Int.Pls Int.Min \<longleftrightarrow> False"
-  "HOL.equal Int.Pls (Int.Bit0 k2) \<longleftrightarrow> HOL.equal Int.Pls k2"
-  "HOL.equal Int.Pls (Int.Bit1 k2) \<longleftrightarrow> False"
-  "HOL.equal Int.Min Int.Pls \<longleftrightarrow> False"
-  "HOL.equal Int.Min Int.Min \<longleftrightarrow> True"
-  "HOL.equal Int.Min (Int.Bit0 k2) \<longleftrightarrow> False"
-  "HOL.equal Int.Min (Int.Bit1 k2) \<longleftrightarrow> HOL.equal Int.Min k2"
-  "HOL.equal (Int.Bit0 k1) Int.Pls \<longleftrightarrow> HOL.equal k1 Int.Pls"
-  "HOL.equal (Int.Bit1 k1) Int.Pls \<longleftrightarrow> False"
-  "HOL.equal (Int.Bit0 k1) Int.Min \<longleftrightarrow> False"
-  "HOL.equal (Int.Bit1 k1) Int.Min \<longleftrightarrow> HOL.equal k1 Int.Min"
-  "HOL.equal (Int.Bit0 k1) (Int.Bit0 k2) \<longleftrightarrow> HOL.equal k1 k2"
-  "HOL.equal (Int.Bit0 k1) (Int.Bit1 k2) \<longleftrightarrow> False"
-  "HOL.equal (Int.Bit1 k1) (Int.Bit0 k2) \<longleftrightarrow> False"
-  "HOL.equal (Int.Bit1 k1) (Int.Bit1 k2) \<longleftrightarrow> HOL.equal k1 k2"
-  unfolding equal_eq by simp_all
-
-lemma eq_int_refl [code nbe]:
+lemma equal_int_refl [code nbe]:
   "HOL.equal (k::int) k \<longleftrightarrow> True"
-  by (rule equal_refl)
-
-lemma less_eq_number_of_int_code [code]:
-  "(number_of k \<Colon> int) \<le> number_of l \<longleftrightarrow> k \<le> l"
-  unfolding number_of_is_id ..
+  by (fact equal_refl)
 
 lemma less_eq_int_code [code]:
-  "Int.Pls \<le> Int.Pls \<longleftrightarrow> True"
-  "Int.Pls \<le> Int.Min \<longleftrightarrow> False"
-  "Int.Pls \<le> Int.Bit0 k \<longleftrightarrow> Int.Pls \<le> k"
-  "Int.Pls \<le> Int.Bit1 k \<longleftrightarrow> Int.Pls \<le> k"
-  "Int.Min \<le> Int.Pls \<longleftrightarrow> True"
-  "Int.Min \<le> Int.Min \<longleftrightarrow> True"
-  "Int.Min \<le> Int.Bit0 k \<longleftrightarrow> Int.Min < k"
-  "Int.Min \<le> Int.Bit1 k \<longleftrightarrow> Int.Min \<le> k"
-  "Int.Bit0 k \<le> Int.Pls \<longleftrightarrow> k \<le> Int.Pls"
-  "Int.Bit1 k \<le> Int.Pls \<longleftrightarrow> k < Int.Pls"
-  "Int.Bit0 k \<le> Int.Min \<longleftrightarrow> k \<le> Int.Min"
-  "Int.Bit1 k \<le> Int.Min \<longleftrightarrow> k \<le> Int.Min"
-  "Int.Bit0 k1 \<le> Int.Bit0 k2 \<longleftrightarrow> k1 \<le> k2"
-  "Int.Bit0 k1 \<le> Int.Bit1 k2 \<longleftrightarrow> k1 \<le> k2"
-  "Int.Bit1 k1 \<le> Int.Bit0 k2 \<longleftrightarrow> k1 < k2"
-  "Int.Bit1 k1 \<le> Int.Bit1 k2 \<longleftrightarrow> k1 \<le> k2"
+  "0 \<le> (0::int) \<longleftrightarrow> True"
+  "0 \<le> Pos l \<longleftrightarrow> True"
+  "0 \<le> Neg l \<longleftrightarrow> False"
+  "Pos k \<le> 0 \<longleftrightarrow> False"
+  "Pos k \<le> Pos l \<longleftrightarrow> k \<le> l"
+  "Pos k \<le> Neg l \<longleftrightarrow> False"
+  "Neg k \<le> 0 \<longleftrightarrow> True"
+  "Neg k \<le> Pos l \<longleftrightarrow> True"
+  "Neg k \<le> Neg l \<longleftrightarrow> l \<le> k"
   by simp_all
-
-lemma less_number_of_int_code [code]:
-  "(number_of k \<Colon> int) < number_of l \<longleftrightarrow> k < l"
-  unfolding number_of_is_id ..
 
 lemma less_int_code [code]:
-  "Int.Pls < Int.Pls \<longleftrightarrow> False"
-  "Int.Pls < Int.Min \<longleftrightarrow> False"
-  "Int.Pls < Int.Bit0 k \<longleftrightarrow> Int.Pls < k"
-  "Int.Pls < Int.Bit1 k \<longleftrightarrow> Int.Pls \<le> k"
-  "Int.Min < Int.Pls \<longleftrightarrow> True"
-  "Int.Min < Int.Min \<longleftrightarrow> False"
-  "Int.Min < Int.Bit0 k \<longleftrightarrow> Int.Min < k"
-  "Int.Min < Int.Bit1 k \<longleftrightarrow> Int.Min < k"
-  "Int.Bit0 k < Int.Pls \<longleftrightarrow> k < Int.Pls"
-  "Int.Bit1 k < Int.Pls \<longleftrightarrow> k < Int.Pls"
-  "Int.Bit0 k < Int.Min \<longleftrightarrow> k \<le> Int.Min"
-  "Int.Bit1 k < Int.Min \<longleftrightarrow> k < Int.Min"
-  "Int.Bit0 k1 < Int.Bit0 k2 \<longleftrightarrow> k1 < k2"
-  "Int.Bit0 k1 < Int.Bit1 k2 \<longleftrightarrow> k1 \<le> k2"
-  "Int.Bit1 k1 < Int.Bit0 k2 \<longleftrightarrow> k1 < k2"
-  "Int.Bit1 k1 < Int.Bit1 k2 \<longleftrightarrow> k1 < k2"
+  "0 < (0::int) \<longleftrightarrow> False"
+  "0 < Pos l \<longleftrightarrow> True"
+  "0 < Neg l \<longleftrightarrow> False"
+  "Pos k < 0 \<longleftrightarrow> False"
+  "Pos k < Pos l \<longleftrightarrow> k < l"
+  "Pos k < Neg l \<longleftrightarrow> False"
+  "Neg k < 0 \<longleftrightarrow> True"
+  "Neg k < Pos l \<longleftrightarrow> True"
+  "Neg k < Neg l \<longleftrightarrow> l < k"
   by simp_all
 
-definition
-  nat_aux :: "int \<Rightarrow> nat \<Rightarrow> nat" where
-  "nat_aux i n = nat i + n"
+lemma nat_numeral [simp, code_abbrev]:
+  "nat (numeral k) = numeral k"
+  by (simp add: nat_eq_iff)
 
-lemma [code]:
-  "nat_aux i n = (if i \<le> 0 then n else nat_aux (i - 1) (Suc n))"  -- {* tail recursive *}
-  by (auto simp add: nat_aux_def nat_eq_iff linorder_not_le order_less_imp_le
-    dest: zless_imp_add1_zle)
+lemma nat_code [code]:
+  "nat (Int.Neg k) = 0"
+  "nat 0 = 0"
+  "nat (Int.Pos k) = nat_of_num k"
+  by (simp_all add: nat_of_num_numeral nat_numeral)
 
-lemma [code]: "nat i = nat_aux i 0"
-  by (simp add: nat_aux_def)
+lemma (in ring_1) of_int_code [code]:
+  "of_int (Int.Neg k) = neg_numeral k"
+  "of_int 0 = 0"
+  "of_int (Int.Pos k) = numeral k"
+  by simp_all
 
-hide_const (open) nat_aux
 
-lemma zero_is_num_zero [code, code_unfold]:
-  "(0\<Colon>int) = Numeral0" 
-  by simp
-
-lemma one_is_num_one [code, code_unfold]:
-  "(1\<Colon>int) = Numeral1" 
-  by simp
+text {* Serializer setup *}
 
 code_modulename SML
   Int Arith
@@ -2345,7 +1719,7 @@ code_modulename Haskell
 
 quickcheck_params [default_type = int]
 
-hide_const (open) Pls Min Bit0 Bit1 succ pred
+hide_const (open) Pos Neg sub dup
 
 
 subsection {* Legacy theorems *}
@@ -2378,3 +1752,4 @@ lemma int_power:
 lemmas zpower_int = int_power [symmetric]
 
 end
+

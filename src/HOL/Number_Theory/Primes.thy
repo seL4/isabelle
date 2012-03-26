@@ -206,7 +206,7 @@ lemma prime_nat_simp:
     "prime (p::nat) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> set [2..<p]. \<not> n dvd p)"
   by (auto simp add: prime_nat_code)
 
-lemmas prime_nat_simp_number_of [simp] = prime_nat_simp [of "number_of m"] for m
+lemmas prime_nat_simp_numeral [simp] = prime_nat_simp [of "numeral m"] for m
 
 lemma prime_int_code [code]:
   "prime (p::int) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {1<..<p}. ~ n dvd p)" (is "?L = ?R")
@@ -222,7 +222,7 @@ qed
 lemma prime_int_simp: "prime (p::int) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> set [2..p - 1]. ~ n dvd p)"
   by (auto simp add: prime_int_code)
 
-lemmas prime_int_simp_number_of [simp] = prime_int_simp [of "number_of m"] for m
+lemmas prime_int_simp_numeral [simp] = prime_int_simp [of "numeral m"] for m
 
 lemma two_is_prime_nat [simp]: "prime (2::nat)"
   by simp

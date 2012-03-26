@@ -116,7 +116,8 @@ lemma normalizing_semiring_rules:
   "x ^ (Suc q) = x * (x ^ q)"
   "x ^ (2*n) = (x ^ n) * (x ^ n)"
   "x ^ (Suc (2*n)) = x * ((x ^ n) * (x ^ n))"
-  by (simp_all add: algebra_simps power_add power2_eq_square power_mult_distrib power_mult)
+  by (simp_all add: algebra_simps power_add power2_eq_square
+    power_mult_distrib power_mult del: one_add_one)
 
 lemmas normalizing_comm_semiring_1_axioms =
   comm_semiring_1_axioms [normalizer
@@ -217,5 +218,14 @@ hide_fact (open) normalizing_comm_ring_1_axioms
   normalizing_idom_axioms normalizing_ring_ops normalizing_ring_rules
 
 hide_fact (open) normalizing_field_axioms normalizing_field_ops normalizing_field_rules
+
+code_modulename SML
+  Semiring_Normalization Arith
+
+code_modulename OCaml
+  Semiring_Normalization Arith
+
+code_modulename Haskell
+  Semiring_Normalization Arith
 
 end

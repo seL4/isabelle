@@ -195,6 +195,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Meson.thy \
   Metis.thy \
   Nat.thy \
+  Num.thy \
   Option.thy \
   Orderings.thy \
   Partial_Function.thy \
@@ -341,7 +342,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Nitpick/nitpick_util.ML \
   Tools/numeral.ML \
   Tools/numeral_simprocs.ML \
-  Tools/numeral_syntax.ML \
   Tools/Predicate_Compile/core_data.ML \
   Tools/Predicate_Compile/mode_inference.ML \
   Tools/Predicate_Compile/predicate_compile_aux.ML \
@@ -444,24 +444,25 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Library/Bit.thy Library/Boolean_Algebra.thy Library/Cardinality.thy	\
   Library/Char_nat.thy Library/Code_Char.thy Library/Code_Char_chr.thy	\
   Library/Code_Char_ord.thy Library/Code_Integer.thy			\
-  Library/Code_Natural.thy Library/Code_Prolog.thy			\
+  Library/Code_Nat.thy Library/Code_Natural.thy				\
+  Library/Efficient_Nat.thy Library/Code_Prolog.thy			\
   Library/Code_Real_Approx_By_Float.thy					\
   Tools/Predicate_Compile/code_prolog.ML Library/ContNotDenum.thy	\
   Library/Cset.thy Library/Cset_Monad.thy Library/Continuity.thy	\
   Library/Convex.thy Library/Countable.thy				\
+  Library/Dlist.thy Library/Dlist_Cset.thy Library/Eval_Witness.thy	\
   Library/DAList.thy Library/Dlist.thy Library/Dlist_Cset.thy 		\
-  Library/Efficient_Nat.thy Library/Eval_Witness.thy			\
+  Library/Eval_Witness.thy						\
   Library/Extended_Real.thy Library/Extended_Nat.thy Library/Float.thy	\
   Library/Formal_Power_Series.thy Library/Fraction_Field.thy		\
   Library/FrechetDeriv.thy Library/Cset.thy Library/FuncSet.thy		\
-  Library/Function_Algebras.thy						\
-  Library/Fundamental_Theorem_Algebra.thy Library/Glbs.thy		\
-  Library/Indicator_Function.thy Library/Infinite_Set.thy		\
-  Library/Inner_Product.thy Library/Kleene_Algebra.thy			\
-  Library/LaTeXsugar.thy Library/Lattice_Algebras.thy			\
-  Library/Lattice_Syntax.thy Library/Library.thy Library/List_Cset.thy	\
-  Library/List_Prefix.thy Library/List_lexord.thy Library/Mapping.thy	\
-  Library/Monad_Syntax.thy						\
+  Library/Function_Algebras.thy Library/Fundamental_Theorem_Algebra.thy	\
+  Library/Glbs.thy Library/Indicator_Function.thy			\
+  Library/Infinite_Set.thy Library/Inner_Product.thy			\
+  Library/Kleene_Algebra.thy Library/LaTeXsugar.thy			\
+  Library/Lattice_Algebras.thy Library/Lattice_Syntax.thy		\
+  Library/Library.thy Library/List_Cset.thy Library/List_Prefix.thy	\
+  Library/List_lexord.thy Library/Mapping.thy Library/Monad_Syntax.thy	\
   Library/Multiset.thy Library/Nat_Bijection.thy			\
   Library/Numeral_Type.thy Library/Old_Recdef.thy			\
   Library/OptionalSugar.thy Library/Order_Relation.thy			\
@@ -479,7 +480,7 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Library/State_Monad.thy Library/Ramsey.thy				\
   Library/Reflection.thy Library/Sublist_Order.thy			\
   Library/Sum_of_Squares.thy Library/Sum_of_Squares/sos_wrapper.ML	\
-  Library/Sum_of_Squares/sum_of_squares.ML				\
+  Library/Sum_of_Squares/sum_of_squares.ML Library/Target_Numeral.thy	\
   Library/Transitive_Closure_Table.thy Library/Univ_Poly.thy		\
   Library/Wfrec.thy Library/While_Combinator.thy Library/Zorn.thy	\
   $(SRC)/Tools/adhoc_overloading.ML Library/positivstellensatz.ML	\
@@ -758,11 +759,11 @@ $(LOG)/HOL-Hoare_Parallel.gz: $(OUT)/HOL Hoare_Parallel/Gar_Coll.thy	\
 
 HOL-Library-Codegenerator_Test: HOL-Library $(LOG)/HOL-Library-Codegenerator_Test.gz
 
-$(LOG)/HOL-Library-Codegenerator_Test.gz: $(OUT)/HOL-Library		\
-  Codegenerator_Test/ROOT.ML 						\
-  Codegenerator_Test/Candidates.thy					\
-  Codegenerator_Test/Candidates_Pretty.thy				\
-  Codegenerator_Test/Generate.thy					\
+$(LOG)/HOL-Library-Codegenerator_Test.gz: $(OUT)/HOL-Library \
+  Codegenerator_Test/ROOT.ML \
+  Codegenerator_Test/Candidates.thy \
+  Codegenerator_Test/Candidates_Pretty.thy \
+  Codegenerator_Test/Generate.thy \
   Codegenerator_Test/Generate_Pretty.thy
 	@$(ISABELLE_TOOL) usedir -d false -g false -i false $(OUT)/HOL-Library Codegenerator_Test
 
@@ -920,6 +921,10 @@ $(LOG)/HOL-ZF.gz: $(OUT)/HOL ZF/ROOT.ML ZF/LProd.thy \
 HOL-Imperative_HOL: HOL $(LOG)/HOL-Imperative_HOL.gz
 
 $(LOG)/HOL-Imperative_HOL.gz: $(OUT)/HOL \
+  Library/Code_Integer.thy \
+  Library/Code_Nat.thy \
+  Library/Code_Natural.thy \
+  Library/Efficient_Nat.thy \
   Imperative_HOL/Array.thy \
   Imperative_HOL/Heap.thy \
   Imperative_HOL/Heap_Monad.thy \
@@ -943,6 +948,10 @@ $(LOG)/HOL-Imperative_HOL.gz: $(OUT)/HOL \
 HOL-Decision_Procs: HOL $(LOG)/HOL-Decision_Procs.gz
 
 $(LOG)/HOL-Decision_Procs.gz: $(OUT)/HOL \
+  Library/Code_Integer.thy \
+  Library/Code_Nat.thy \
+  Library/Code_Natural.thy \
+  Library/Efficient_Nat.thy \
   Decision_Procs/Approximation.thy \
   Decision_Procs/Commutative_Ring.thy \
   Decision_Procs/Commutative_Ring_Complete.thy \
@@ -991,9 +1000,12 @@ $(LOG)/HOL-Proofs-ex.gz: $(OUT)/HOL-Proofs			\
 HOL-Proofs-Extraction: HOL-Proofs $(LOG)/HOL-Proofs-Extraction.gz
 
 $(LOG)/HOL-Proofs-Extraction.gz: $(OUT)/HOL-Proofs		\
-  Library/Efficient_Nat.thy Proofs/Extraction/Euclid.thy	\
+  Library/Code_Integer.thy Library/Code_Nat.thy			\
+  Library/Code_Natural.thy Library/Efficient_Nat.thy		\
+  Proofs/Extraction/Euclid.thy					\
   Proofs/Extraction/Greatest_Common_Divisor.thy			\
-  Proofs/Extraction/Higman.thy Proofs/Extraction/Higman_Extraction.thy	\
+  Proofs/Extraction/Higman.thy					\
+  Proofs/Extraction/Higman_Extraction.thy			\
   Proofs/Extraction/Pigeonhole.thy				\
   Proofs/Extraction/QuotRem.thy Proofs/Extraction/ROOT.ML	\
   Proofs/Extraction/Util.thy Proofs/Extraction/Warshall.thy	\
@@ -1113,15 +1125,17 @@ $(LOG)/HOL-Lattice.gz: $(OUT)/HOL Lattice/Bounds.thy			\
 HOL-ex: HOL $(LOG)/HOL-ex.gz
 
 $(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy	\
+  Library/Code_Integer.thy Library/Code_Nat.thy				\
+  Library/Code_Natural.thy Library/Efficient_Nat.thy			\
   Number_Theory/Primes.thy ex/Abstract_NAT.thy ex/Antiquote.thy		\
   ex/Arith_Examples.thy ex/Arithmetic_Series_Complex.thy ex/BT.thy	\
   ex/BinEx.thy ex/Binary.thy ex/Birthday_Paradox.thy ex/CTL.thy		\
   ex/Case_Product.thy ex/Chinese.thy ex/Classical.thy			\
-  ex/Coercion_Examples.thy ex/Coherent.thy				\
-  ex/Dedekind_Real.thy ex/Efficient_Nat_examples.thy			\
+  ex/Code_Nat_examples.thy						\
+  ex/Coercion_Examples.thy ex/Coherent.thy ex/Dedekind_Real.thy		\
   ex/Eval_Examples.thy ex/Executable_Relation.thy ex/Fundefs.thy	\
   ex/Gauge_Integration.thy ex/Groebner_Examples.thy ex/Guess.thy	\
-  ex/HarmonicSeries.thy ex/Hebrew.thy ex/Hex_Bin_Examples.thy 		\
+  ex/HarmonicSeries.thy ex/Hebrew.thy ex/Hex_Bin_Examples.thy		\
   ex/Higher_Order_Logic.thy ex/Iff_Oracle.thy ex/Induction_Schema.thy	\
   ex/Interpretation_with_Defs.thy ex/Intuitionistic.thy			\
   ex/Lagrange.thy ex/List_to_Set_Comprehension_Examples.thy		\

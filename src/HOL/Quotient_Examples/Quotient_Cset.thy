@@ -21,75 +21,50 @@ hide_type (open) set
 
 subsection {* Operations *}
 
-lemma [quot_respect]:
-  "(op = ===> set_eq ===> op =) (op \<in>) (op \<in>)"
-  "(op = ===> set_eq) Collect Collect"
-  "(set_eq ===> op =) Set.is_empty Set.is_empty"
-  "(op = ===> set_eq ===> set_eq) Set.insert Set.insert"
-  "(op = ===> set_eq ===> set_eq) Set.remove Set.remove"
-  "(op = ===> set_eq ===> set_eq) image image"
-  "(op = ===> set_eq ===> set_eq) Set.project Set.project"
-  "(set_eq ===> op =) Ball Ball"
-  "(set_eq ===> op =) Bex Bex"
-  "(set_eq ===> op =) Finite_Set.card Finite_Set.card"
-  "(set_eq ===> set_eq ===> op =) (op \<subseteq>) (op \<subseteq>)"
-  "(set_eq ===> set_eq ===> op =) (op \<subset>) (op \<subset>)"
-  "(set_eq ===> set_eq ===> set_eq) (op \<inter>) (op \<inter>)"
-  "(set_eq ===> set_eq ===> set_eq) (op \<union>) (op \<union>)"
-  "set_eq {} {}"
-  "set_eq UNIV UNIV"
-  "(set_eq ===> set_eq) uminus uminus"
-  "(set_eq ===> set_eq ===> set_eq) minus minus"
-  "(set_eq ===> op =) Inf Inf"
-  "(set_eq ===> op =) Sup Sup"
-  "(op = ===> set_eq) List.set List.set"
-  "(set_eq ===> (op = ===> set_eq) ===> set_eq) UNION UNION"
-by (auto simp: fun_rel_eq)
-
 quotient_definition "member :: 'a => 'a Quotient_Cset.set => bool"
-is "op \<in>"
+is "op \<in>" by simp
 quotient_definition "Set :: ('a => bool) => 'a Quotient_Cset.set"
-is Collect
+is Collect done
 quotient_definition is_empty where "is_empty :: 'a Quotient_Cset.set \<Rightarrow> bool"
-is Set.is_empty
+is Set.is_empty by simp 
 quotient_definition insert where "insert :: 'a \<Rightarrow> 'a Quotient_Cset.set \<Rightarrow> 'a Quotient_Cset.set"
-is Set.insert
+is Set.insert by simp
 quotient_definition remove where "remove :: 'a \<Rightarrow> 'a Quotient_Cset.set \<Rightarrow> 'a Quotient_Cset.set"
-is Set.remove
+is Set.remove by simp
 quotient_definition map where "map :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a Quotient_Cset.set \<Rightarrow> 'b Quotient_Cset.set"
-is image
+is image by simp
 quotient_definition filter where "filter :: ('a \<Rightarrow> bool) \<Rightarrow> 'a Quotient_Cset.set \<Rightarrow> 'a Quotient_Cset.set"
-is Set.project
+is Set.project by simp
 quotient_definition "forall :: 'a Quotient_Cset.set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
-is Ball
+is Ball by simp
 quotient_definition "exists :: 'a Quotient_Cset.set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
-is Bex
+is Bex by simp
 quotient_definition card where "card :: 'a Quotient_Cset.set \<Rightarrow> nat"
-is Finite_Set.card
+is Finite_Set.card by simp
 quotient_definition set where "set :: 'a list => 'a Quotient_Cset.set"
-is List.set
+is List.set done
 quotient_definition subset where "subset :: 'a Quotient_Cset.set \<Rightarrow> 'a Quotient_Cset.set \<Rightarrow> bool"
-is "op \<subseteq> :: 'a set \<Rightarrow> 'a set \<Rightarrow> bool"
+is "op \<subseteq> :: 'a set \<Rightarrow> 'a set \<Rightarrow> bool" by simp
 quotient_definition psubset where "psubset :: 'a Quotient_Cset.set \<Rightarrow> 'a Quotient_Cset.set \<Rightarrow> bool"
-is "op \<subset> :: 'a set \<Rightarrow> 'a set \<Rightarrow> bool"
+is "op \<subset> :: 'a set \<Rightarrow> 'a set \<Rightarrow> bool" by simp
 quotient_definition inter where "inter :: 'a Quotient_Cset.set \<Rightarrow> 'a Quotient_Cset.set \<Rightarrow> 'a Quotient_Cset.set"
-is "op \<inter> :: 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"
+is "op \<inter> :: 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" by simp
 quotient_definition union where "union :: 'a Quotient_Cset.set \<Rightarrow> 'a Quotient_Cset.set \<Rightarrow> 'a Quotient_Cset.set"
-is "op \<union> :: 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"
+is "op \<union> :: 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" by simp
 quotient_definition empty where "empty :: 'a Quotient_Cset.set"
-is "{} :: 'a set"
+is "{} :: 'a set" done
 quotient_definition UNIV where "UNIV :: 'a Quotient_Cset.set"
-is "Set.UNIV :: 'a set"
+is "Set.UNIV :: 'a set" done
 quotient_definition uminus where "uminus :: 'a Quotient_Cset.set \<Rightarrow> 'a Quotient_Cset.set"
-is "uminus_class.uminus :: 'a set \<Rightarrow> 'a set"
+is "uminus_class.uminus :: 'a set \<Rightarrow> 'a set" by simp
 quotient_definition minus where "minus :: 'a Quotient_Cset.set \<Rightarrow> 'a Quotient_Cset.set \<Rightarrow> 'a Quotient_Cset.set"
-is "(op -) :: 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"
+is "(op -) :: 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" by simp
 quotient_definition Inf where "Inf :: ('a :: Inf) Quotient_Cset.set \<Rightarrow> 'a"
-is "Inf_class.Inf :: ('a :: Inf) set \<Rightarrow> 'a"
+is "Inf_class.Inf :: ('a :: Inf) set \<Rightarrow> 'a" by simp
 quotient_definition Sup where "Sup :: ('a :: Sup) Quotient_Cset.set \<Rightarrow> 'a"
-is "Sup_class.Sup :: ('a :: Sup) set \<Rightarrow> 'a"
+is "Sup_class.Sup :: ('a :: Sup) set \<Rightarrow> 'a" by simp
 quotient_definition UNION where "UNION :: 'a Quotient_Cset.set \<Rightarrow> ('a \<Rightarrow> 'b Quotient_Cset.set) \<Rightarrow> 'b Quotient_Cset.set"
-is "Complete_Lattices.UNION :: 'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set"
+is "Complete_Lattices.UNION :: 'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" by simp
 
 hide_const (open) is_empty insert remove map filter forall exists card
   set subset psubset inter union empty UNIV uminus minus Inf Sup UNION

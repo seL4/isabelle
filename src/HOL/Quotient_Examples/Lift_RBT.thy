@@ -15,21 +15,6 @@ proof -
   then show ?thesis ..
 qed
 
-local_setup {* fn lthy =>
-let
-  val quotients = {qtyp = @{typ "('a, 'b) rbt"}, rtyp = @{typ "('a, 'b) RBT_Impl.rbt"},
-    equiv_rel = @{term "dummy"}, equiv_thm = @{thm refl}}
-  val qty_full_name = @{type_name "rbt"}
-
-  fun qinfo phi = Quotient_Info.transform_quotients phi quotients
-  in lthy
-    |> Local_Theory.declaration {syntax = false, pervasive = true}
-        (fn phi => Quotient_Info.update_quotients qty_full_name (qinfo phi)
-       #> Quotient_Info.update_abs_rep qty_full_name (Quotient_Info.transform_abs_rep phi
-         {abs = @{term "RBT"}, rep = @{term "impl_of"}}))
-  end
-*}
-
 lemma rbt_eq_iff:
   "t1 = t2 \<longleftrightarrow> impl_of t1 = impl_of t2"
   by (simp add: impl_of_inject)
@@ -46,12 +31,12 @@ lemma RBT_impl_of [simp, code abstype]:
   "RBT (impl_of t) = t"
   by (simp add: impl_of_inverse)
 
-
 subsection {* Primitive operations *}
 
-quotient_definition lookup where "lookup :: ('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'a \<rightharpoonup> 'b" is "RBT_Impl.lookup"
+setup_lifting type_definition_rbt
 
-declare lookup_def[unfolded map_fun_def comp_def id_def, code]
+quotient_definition lookup where "lookup :: ('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'a \<rightharpoonup> 'b" is "RBT_Impl.lookup"
+by simp
 
 (* FIXME: quotient_definition at the moment requires that types variables match exactly,
 i.e., sort constraints must be annotated to the constant being lifted.
@@ -67,65 +52,38 @@ Similar issue for quotient_definition for entries, keys, map, and fold.
 *)
 
 quotient_definition empty where "empty :: ('a\<Colon>linorder, 'b) rbt"
-is "(RBT_Impl.Empty :: ('a\<Colon>linorder, 'b) RBT_Impl.rbt)"
-
-lemma impl_of_empty [code abstract]:
-  "impl_of empty = RBT_Impl.Empty"
-  by (simp add: empty_def RBT_inverse)
+is "(RBT_Impl.Empty :: ('a\<Colon>linorder, 'b) RBT_Impl.rbt)" by (simp add: empty_def)
 
 quotient_definition insert where "insert :: 'a\<Colon>linorder \<Rightarrow> 'b \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt"
-is "RBT_Impl.insert"
-
-lemma impl_of_insert [code abstract]:
-  "impl_of (insert k v t) = RBT_Impl.insert k v (impl_of t)"
-  by (simp add: insert_def RBT_inverse)
+is "RBT_Impl.insert" by simp
 
 quotient_definition delete where "delete :: 'a\<Colon>linorder \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt"
-is "RBT_Impl.delete"
-
-lemma impl_of_delete [code abstract]:
-  "impl_of (delete k t) = RBT_Impl.delete k (impl_of t)"
-  by (simp add: delete_def RBT_inverse)
+is "RBT_Impl.delete" by simp
 
 (* FIXME: unnecessary type annotations *)
 quotient_definition "entries :: ('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a \<times> 'b) list"
-is "RBT_Impl.entries :: ('a\<Colon>linorder, 'b) RBT_Impl.rbt \<Rightarrow> ('a \<times> 'b) list"
-
-lemma [code]: "entries t = RBT_Impl.entries (impl_of t)"
-unfolding entries_def map_fun_def comp_def id_def ..
+is "RBT_Impl.entries :: ('a\<Colon>linorder, 'b) RBT_Impl.rbt \<Rightarrow> ('a \<times> 'b) list" by simp
 
 (* FIXME: unnecessary type annotations *)
 quotient_definition "keys :: ('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'a list"
-is "RBT_Impl.keys :: ('a\<Colon>linorder, 'b) RBT_Impl.rbt \<Rightarrow> 'a list"
+is "RBT_Impl.keys :: ('a\<Colon>linorder, 'b) RBT_Impl.rbt \<Rightarrow> 'a list" by simp
 
 quotient_definition "bulkload :: ('a\<Colon>linorder \<times> 'b) list \<Rightarrow> ('a, 'b) rbt"
-is "RBT_Impl.bulkload"
-
-lemma impl_of_bulkload [code abstract]:
-  "impl_of (bulkload xs) = RBT_Impl.bulkload xs"
-  by (simp add: bulkload_def RBT_inverse)
+is "RBT_Impl.bulkload" by simp
 
 quotient_definition "map_entry :: 'a \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a, 'b) rbt"
-is "RBT_Impl.map_entry"
-
-lemma impl_of_map_entry [code abstract]:
-  "impl_of (map_entry k f t) = RBT_Impl.map_entry k f (impl_of t)"
-  by (simp add: map_entry_def RBT_inverse)
+is "RBT_Impl.map_entry" by simp
 
 (* FIXME: unnecesary type annotations *)
 quotient_definition map where "map :: ('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a, 'b) rbt"
 is "RBT_Impl.map :: ('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a\<Colon>linorder, 'b) RBT_Impl.rbt \<Rightarrow> ('a, 'b) RBT_Impl.rbt"
-
-lemma impl_of_map [code abstract]:
-  "impl_of (map f t) = RBT_Impl.map f (impl_of t)"
-  by (simp add: map_def RBT_inverse)
+by simp
 
 (* FIXME: unnecessary type annotations *)
-quotient_definition fold where "fold :: ('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'c \<Rightarrow> 'c" is "RBT_Impl.fold :: ('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a\<Colon>linorder, 'b) RBT_Impl.rbt \<Rightarrow> 'c \<Rightarrow> 'c"
+quotient_definition fold where "fold :: ('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'c \<Rightarrow> 'c" 
+is "RBT_Impl.fold :: ('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a\<Colon>linorder, 'b) RBT_Impl.rbt \<Rightarrow> 'c \<Rightarrow> 'c" by simp
 
-lemma [code]: "fold f t = RBT_Impl.fold f (impl_of t)"
-unfolding fold_def map_fun_def comp_def id_def ..
-
+export_code lookup empty insert delete entries keys bulkload map_entry map fold in SML
 
 subsection {* Derived operations *}
 
@@ -189,6 +147,10 @@ lemma fold_fold:
   "fold f t = List.fold (prod_case f) (entries t)"
   by (simp add: fold_def fun_eq_iff RBT_Impl.fold_def entries_impl_of)
 
+lemma impl_of_empty:
+  "impl_of empty = RBT_Impl.Empty"
+  by (simp add: empty_def RBT_inverse)
+
 lemma is_empty_empty [simp]:
   "is_empty t \<longleftrightarrow> t = empty"
   by (simp add: rbt_eq_iff is_empty_def impl_of_empty split: rbt.split)
@@ -208,7 +170,6 @@ lemma sorted_keys [iff]:
 lemma distinct_keys [iff]:
   "distinct (keys t)"
   by (simp add: keys_def RBT_Impl.keys_def distinct_entries)
-
 
 
 end

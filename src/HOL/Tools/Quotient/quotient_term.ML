@@ -20,6 +20,9 @@ sig
   val equiv_relation: Proof.context -> typ * typ -> term
   val equiv_relation_chk: Proof.context -> typ * typ -> term
 
+  val get_rel_from_quot_thm: thm -> term
+  val prove_quot_theorem: Proof.context -> typ * typ -> thm
+
   val regularize_trm: Proof.context -> term * term -> term
   val regularize_trm_chk: Proof.context -> term * term -> term
 
@@ -72,9 +75,6 @@ fun get_mapfun_data ctxt s =
 
 fun defined_mapfun_data ctxt s =
   Symtab.defined (Enriched_Type.entries ctxt) s
-  
-(* makes a Free out of a TVar *)
-fun mk_Free (TVar ((x, i), _)) = Free (unprefix "'" x ^ string_of_int i, dummyT)
 
 (* looks up the (varified) rty and qty for
    a quotient definition
@@ -279,35 +279,10 @@ fun get_relmap thy s =
     SOME map_data => Const (#relmap map_data, dummyT)
   | NONE => raise LIFT_MATCH ("get_relmap (no relation map function found for type " ^ s ^ ")"))
 
-(* takes two type-environments and looks
-   up in both of them the variable v, which
-   must be listed in the environment
-*)
-fun double_lookup rtyenv qtyenv v =
-  let
-    val v' = fst (dest_TVar v)
-  in
-    (snd (the (Vartab.lookup rtyenv v')), snd (the (Vartab.lookup qtyenv v')))
-  end
-
-fun mk_relmap ctxt vs rty =
-  let
-    val vs' = map (mk_Free) vs
-
-    fun mk_relmap_aux rty =
-      case rty of
-        TVar _ => mk_Free rty
-      | Type (_, []) => HOLogic.eq_const rty
-      | Type (s, tys) => list_comb (get_relmap ctxt s, map mk_relmap_aux tys)
-      | _ => raise LIFT_MATCH ("mk_relmap (default)")
-  in
-    fold_rev Term.lambda vs' (mk_relmap_aux rty)
-  end
-
 fun get_equiv_rel thy s =
   (case Quotient_Info.lookup_quotients thy s of
     SOME qdata => #equiv_rel qdata
-  | NONE => raise LIFT_MATCH ("get_quotdata (no quotient found for type " ^ s ^ ")"))
+  | NONE => raise LIFT_MATCH ("get_equiv_rel (no quotient found for type " ^ s ^ ")"))
 
 fun equiv_match_err ctxt ty_pat ty =
   let
@@ -336,11 +311,10 @@ fun equiv_relation ctxt (rty, qty) =
           end
         else
           let
-            val (rty_pat, qty_pat as Type (_, vs)) = get_rty_qty ctxt s'
-            val rtyenv = match ctxt equiv_match_err rty_pat rty
+            val (Type (_, rtys), qty_pat) = get_rty_qty ctxt s'
             val qtyenv = match ctxt equiv_match_err qty_pat qty
-            val args_aux = map (double_lookup rtyenv qtyenv) vs
-            val args = map (equiv_relation ctxt) args_aux
+            val rtys' = map (Envir.subst_type qtyenv) rtys
+            val args = map (equiv_relation ctxt) (tys ~~ rtys')
             val eqv_rel = get_equiv_rel ctxt s'
             val eqv_rel' = force_typ ctxt eqv_rel ([rty, rty] ---> @{typ bool})
           in
@@ -348,8 +322,7 @@ fun equiv_relation ctxt (rty, qty) =
             then eqv_rel'
             else
               let
-                val rel_map = mk_relmap ctxt vs rty_pat
-                val result = list_comb (rel_map, args)
+                val result = list_comb (get_relmap ctxt s, args)
               in
                 mk_rel_compose (result, eqv_rel')
               end
@@ -360,6 +333,84 @@ fun equiv_relation ctxt (rty, qty) =
 fun equiv_relation_chk ctxt (rty, qty) =
   equiv_relation ctxt (rty, qty)
   |> Syntax.check_term ctxt
+
+(* generation of the Quotient theorem  *)
+
+exception CODE_GEN of string
+
+fun get_quot_thm ctxt s =
+  let
+    val thy = Proof_Context.theory_of ctxt
+  in
+    (case Quotient_Info.lookup_quotients ctxt s of
+      SOME qdata => Thm.transfer thy (#quot_thm qdata)
+    | NONE => raise CODE_GEN ("No quotient type " ^ quote s ^ " found."))
+  end
+
+fun get_rel_quot_thm ctxt s =
+   let
+    val thy = Proof_Context.theory_of ctxt
+  in
+    (case Quotient_Info.lookup_quotmaps ctxt s of
+      SOME map_data => Thm.transfer thy (#quot_thm map_data)
+    | NONE => raise CODE_GEN ("get_relmap (no relation map function found for type " ^ s ^ ")"))
+  end
+
+fun is_id_quot thm = (prop_of thm = prop_of @{thm identity_quotient})
+
+infix 0 MRSL
+
+fun ants MRSL thm = fold (fn rl => fn thm => rl RS thm) ants thm
+
+exception NOT_IMPL of string
+
+fun get_rel_from_quot_thm quot_thm = 
+  let
+    val (_ $ rel $ _ $ _) = (HOLogic.dest_Trueprop o prop_of) quot_thm
+  in
+    rel
+  end
+
+fun mk_quot_thm_compose (rel_quot_thm, quot_thm) = 
+  let
+    val quot_thm_rel = get_rel_from_quot_thm quot_thm
+  in
+    if is_eq quot_thm_rel then [rel_quot_thm, quot_thm] MRSL @{thm OOO_eq_quotient}
+    else raise NOT_IMPL "nested quotients: not implemented yet"
+  end
+
+fun prove_quot_theorem ctxt (rty, qty) =
+  if rty = qty
+  then @{thm identity_quotient}
+  else
+    case (rty, qty) of
+      (Type (s, tys), Type (s', tys')) =>
+        if s = s'
+        then
+          let
+            val args = map (prove_quot_theorem ctxt) (tys ~~ tys')
+          in
+            args MRSL (get_rel_quot_thm ctxt s)
+          end
+        else
+          let
+            val (Type (_, rtys), qty_pat) = get_rty_qty ctxt s'
+            val qtyenv = match ctxt equiv_match_err qty_pat qty
+            val rtys' = map (Envir.subst_type qtyenv) rtys
+            val args = map (prove_quot_theorem ctxt) (tys ~~ rtys')
+            val quot_thm = get_quot_thm ctxt s'
+          in
+            if forall is_id_quot args
+            then
+              quot_thm
+            else
+              let
+                val rel_quot_thm = args MRSL (get_rel_quot_thm ctxt s)
+              in
+                mk_quot_thm_compose (rel_quot_thm, quot_thm)
+             end
+          end
+    | _ => @{thm identity_quotient}
 
 
 

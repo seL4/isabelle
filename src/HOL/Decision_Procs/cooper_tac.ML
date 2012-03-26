@@ -18,15 +18,12 @@ fun trace_msg s = if !trace then tracing s else ();
 val cooper_ss = @{simpset};
 
 val nT = HOLogic.natT;
-val binarith = @{thms normalize_bin_simps};
-val comp_arith = binarith @ @{thms simp_thms};
+val comp_arith = @{thms simp_thms}
 
 val zdvd_int = @{thm zdvd_int};
 val zdiff_int_split = @{thm zdiff_int_split};
 val all_nat = @{thm all_nat};
 val ex_nat = @{thm ex_nat};
-val number_of1 = @{thm number_of1};
-val number_of2 = @{thm number_of2};
 val split_zdiv = @{thm split_zdiv};
 val split_zmod = @{thm split_zmod};
 val mod_div_equality' = @{thm mod_div_equality'};
@@ -90,14 +87,13 @@ fun linz_tac ctxt q = Object_Logic.atomize_prems_tac THEN' SUBGOAL (fn (g, i) =>
           [split_zdiv, split_zmod, split_div', @{thm "split_min"}, @{thm "split_max"}]
     (* Simp rules for changing (n::int) to int n *)
     val simpset1 = HOL_basic_ss
-      addsimps [@{thm nat_number_of_def}, zdvd_int] @ map (fn r => r RS sym)
-        [@{thm int_int_eq}, @{thm zle_int}, @{thm zless_int}, @{thm zadd_int}, @{thm zmult_int}]
+      addsimps [zdvd_int] @ map (fn r => r RS sym)
+        [@{thm int_numeral}, @{thm int_int_eq}, @{thm zle_int}, @{thm zless_int}, @{thm zadd_int}, @{thm zmult_int}]
       |> Splitter.add_split zdiff_int_split
     (*simp rules for elimination of int n*)
 
     val simpset2 = HOL_basic_ss
-      addsimps [@{thm nat_0_le}, @{thm all_nat}, @{thm ex_nat},
-        @{thm number_of1}, @{thm number_of2}, @{thm int_0}, @{thm int_1}]
+      addsimps [@{thm nat_0_le}, @{thm all_nat}, @{thm ex_nat}, @{thm zero_le_numeral}, @{thm order_refl}(* FIXME: necessary? *), @{thm int_0}, @{thm int_1}]
       |> fold Simplifier.add_cong [@{thm conj_le_cong}, @{thm imp_le_cong}]
     (* simp rules for elimination of abs *)
     val simpset3 = HOL_basic_ss |> Splitter.add_split @{thm abs_split}

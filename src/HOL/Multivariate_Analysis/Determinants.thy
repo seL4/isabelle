@@ -286,7 +286,7 @@ lemma det_identical_rows:
 proof-
   have tha: "\<And>(a::'a) b. a = b ==> b = - a ==> a = 0"
     by simp
-  have th1: "of_int (-1) = - 1" by (metis of_int_1 of_int_minus number_of_Min)
+  have th1: "of_int (-1) = - 1" by simp
   let ?p = "Fun.swap i j id"
   let ?A = "\<chi> i. A $ ?p i"
   from r have "A = ?A" by (simp add: vec_eq_iff row_def swap_def)
@@ -1058,8 +1058,7 @@ proof-
   unfolding det_def UNIV_2
   unfolding setsum_over_permutations_insert[OF f12]
   unfolding permutes_sing
-  apply (simp add: sign_swap_id sign_id swap_id_eq)
-  by (simp add: arith_simps(31)[symmetric] del: arith_simps(31))
+  by (simp add: sign_swap_id sign_id swap_id_eq)
 qed
 
 lemma det_3: "det (A::'a::comm_ring_1^3^3) =
@@ -1079,9 +1078,7 @@ proof-
   unfolding setsum_over_permutations_insert[OF f23]
 
   unfolding permutes_sing
-  apply (simp add: sign_swap_id permutation_swap_id sign_compose sign_id swap_id_eq)
-  apply (simp add: arith_simps(31)[symmetric] del: arith_simps(31))
-  by (simp add: field_simps)
+  by (simp add: sign_swap_id permutation_swap_id sign_compose sign_id swap_id_eq)
 qed
 
 end

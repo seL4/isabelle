@@ -106,13 +106,13 @@ lemma bin_to_bl_aux_Bit_minus_simp [simp]:
   by (cases n) auto
 
 lemma bin_to_bl_aux_Bit0_minus_simp [simp]:
-  "0 < n ==> bin_to_bl_aux n (number_of (Int.Bit0 w)) bl = 
-    bin_to_bl_aux (n - 1) (number_of w) (False # bl)"
+  "0 < n ==> bin_to_bl_aux n (numeral (Num.Bit0 w)) bl = 
+    bin_to_bl_aux (n - 1) (numeral w) (False # bl)"
   by (cases n) auto
 
 lemma bin_to_bl_aux_Bit1_minus_simp [simp]:
-  "0 < n ==> bin_to_bl_aux n (number_of (Int.Bit1 w)) bl = 
-    bin_to_bl_aux (n - 1) (number_of w) (True # bl)"
+  "0 < n ==> bin_to_bl_aux n (numeral (Num.Bit1 w)) bl = 
+    bin_to_bl_aux (n - 1) (numeral w) (True # bl)"
   by (cases n) auto
 
 text {* Link between bin and bool list. *}
@@ -632,8 +632,13 @@ lemmas takefill_Suc_Cons = takefill_Suc_cases (2)
 lemmas takefill_minus_simps = takefill_Suc_cases [THEN [2] 
   takefill_minus [symmetric, THEN trans]]
 
-lemmas takefill_pred_simps [simp] =
-  takefill_minus_simps [where n="number_of bin", simplified nobm1] for bin
+lemma takefill_numeral_Nil [simp]:
+  "takefill fill (numeral k) [] = fill # takefill fill (numeral k - 1) []"
+  by (subst expand_Suc, rule takefill_Suc_Nil)
+
+lemma takefill_numeral_Cons [simp]:
+  "takefill fill (numeral k) (x # xs) = x # takefill fill (numeral k - 1) xs"
+  by (subst expand_Suc, rule takefill_Suc_Cons)
 
 (* links with function bl_to_bin *)
 
@@ -1031,11 +1036,11 @@ lemmas bin_split_minus_simp =
   bin_split.Suc [THEN [2] bin_split_minus [symmetric, THEN trans]]
 
 lemma bin_split_pred_simp [simp]: 
-  "(0::nat) < number_of bin \<Longrightarrow>
-  bin_split (number_of bin) w =
-  (let (w1, w2) = bin_split (number_of (Int.pred bin)) (bin_rest w)
+  "(0::nat) < numeral bin \<Longrightarrow>
+  bin_split (numeral bin) w =
+  (let (w1, w2) = bin_split (numeral bin - 1) (bin_rest w)
    in (w1, w2 BIT bin_last w))" 
-  by (simp only: nobm1 bin_split_minus_simp)
+  by (simp only: bin_split_minus_simp)
 
 lemma bin_rsplit_aux_simp_alt:
   "bin_rsplit_aux n m c bs =

@@ -136,29 +136,25 @@ quotient_definition
   "Nonce :: nat \<Rightarrow> msg"
 is
   "NONCE"
+done
 
 quotient_definition
   "MPair :: msg \<Rightarrow> msg \<Rightarrow> msg"
 is
   "MPAIR"
+by (rule MPAIR)
 
 quotient_definition
   "Crypt :: nat \<Rightarrow> msg \<Rightarrow> msg"
 is
   "CRYPT"
+by (rule CRYPT)
 
 quotient_definition
   "Decrypt :: nat \<Rightarrow> msg \<Rightarrow> msg"
 is
   "DECRYPT"
-
-lemma [quot_respect]:
-  shows "(op = ===> op \<sim> ===> op \<sim>) CRYPT CRYPT"
-by (auto intro: CRYPT)
-
-lemma [quot_respect]:
-  shows "(op = ===> op \<sim> ===> op \<sim>) DECRYPT DECRYPT"
-by (auto intro: DECRYPT)
+by (rule DECRYPT)
 
 text{*Establishing these two equations is the point of the whole exercise*}
 theorem CD_eq [simp]:
@@ -175,24 +171,13 @@ quotient_definition
    "nonces:: msg \<Rightarrow> nat set"
 is
   "freenonces"
+by (rule msgrel_imp_eq_freenonces)
 
 text{*Now prove the four equations for @{term nonces}*}
-
-lemma [quot_respect]:
-  shows "(op \<sim> ===> op =) freenonces freenonces"
-  by (auto simp add: msgrel_imp_eq_freenonces)
-
-lemma [quot_respect]:
-  shows "(op = ===> op \<sim>) NONCE NONCE"
-  by (auto simp add: NONCE)
 
 lemma nonces_Nonce [simp]:
   shows "nonces (Nonce N) = {N}"
   by (lifting freenonces.simps(1))
-
-lemma [quot_respect]:
-  shows " (op \<sim> ===> op \<sim> ===> op \<sim>) MPAIR MPAIR"
-  by (auto simp add: MPAIR)
 
 lemma nonces_MPair [simp]:
   shows "nonces (MPair X Y) = nonces X \<union> nonces Y"
@@ -212,10 +197,7 @@ quotient_definition
   "left:: msg \<Rightarrow> msg"
 is
   "freeleft"
-
-lemma [quot_respect]:
-  shows "(op \<sim> ===> op \<sim>) freeleft freeleft"
-  by (auto simp add: msgrel_imp_eqv_freeleft)
+by (rule msgrel_imp_eqv_freeleft)
 
 lemma left_Nonce [simp]:
   shows "left (Nonce N) = Nonce N"
@@ -239,12 +221,9 @@ quotient_definition
   "right:: msg \<Rightarrow> msg"
 is
   "freeright"
+by (rule msgrel_imp_eqv_freeright)
 
 text{*Now prove the four equations for @{term right}*}
-
-lemma [quot_respect]:
-  shows "(op \<sim> ===> op \<sim>) freeright freeright"
-  by (auto simp add: msgrel_imp_eqv_freeright)
 
 lemma right_Nonce [simp]:
   shows "right (Nonce N) = Nonce N"
@@ -352,12 +331,9 @@ quotient_definition
   "discrim:: msg \<Rightarrow> int"
 is
   "freediscrim"
+by (rule msgrel_imp_eq_freediscrim)
 
 text{*Now prove the four equations for @{term discrim}*}
-
-lemma [quot_respect]:
-  shows "(op \<sim> ===> op =) freediscrim freediscrim"
-  by (auto simp add: msgrel_imp_eq_freediscrim)
 
 lemma discrim_Nonce [simp]:
   shows "discrim (Nonce N) = 0"

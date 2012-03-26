@@ -12,6 +12,7 @@ lemma member_raw:
   "(x, y) : (rel_raw X R) = ((x = y \<and> x : X) \<or> (x, y) : R)"
 unfolding rel_raw_def by auto
 
+
 lemma Id_raw:
   "Id = rel_raw UNIV {}"
 unfolding rel_raw_def by auto
@@ -74,36 +75,34 @@ by (rule Quotient_rep_abs[OF Quotient_rel]) (rule refl)
 
 lemmas rel_raw_of_set_eqI[intro!] = arg_cong[where f="rel_of_set"]
 
-definition rel :: "'a set => ('a * 'a) set => 'a rel"
-where
-  "rel X R = rel_of_set (rel_raw X R)"
+quotient_definition rel where "rel :: 'a set => ('a * 'a) set => 'a rel" is rel_raw done
 
 subsubsection {* Constant definitions on relations *}
 
 hide_const (open) converse rel_comp rtrancl Image
 
 quotient_definition member :: "'a * 'a => 'a rel => bool" where
-  "member" is "Set.member :: 'a * 'a => ('a * 'a) set => bool"
+  "member" is "Set.member :: 'a * 'a => ('a * 'a) set => bool" done
 
 quotient_definition converse :: "'a rel => 'a rel"
 where
-  "converse" is "Relation.converse :: ('a * 'a) set => ('a * 'a) set"
+  "converse" is "Relation.converse :: ('a * 'a) set => ('a * 'a) set" done
 
 quotient_definition union :: "'a rel => 'a rel => 'a rel"
 where
-  "union" is "Set.union :: ('a * 'a) set => ('a * 'a) set => ('a * 'a) set"
+  "union" is "Set.union :: ('a * 'a) set => ('a * 'a) set => ('a * 'a) set" done
 
 quotient_definition rel_comp :: "'a rel => 'a rel => 'a rel"
 where
-  "rel_comp" is "Relation.rel_comp :: ('a * 'a) set => ('a * 'a) set => ('a * 'a) set"
+  "rel_comp" is "Relation.rel_comp :: ('a * 'a) set => ('a * 'a) set => ('a * 'a) set" done
 
 quotient_definition rtrancl :: "'a rel => 'a rel"
 where
-  "rtrancl" is "Transitive_Closure.rtrancl :: ('a * 'a) set => ('a * 'a) set"
+  "rtrancl" is "Transitive_Closure.rtrancl :: ('a * 'a) set => ('a * 'a) set" done
 
 quotient_definition Image :: "'a rel => 'a set => 'a set"
 where
-  "Image" is "Relation.Image :: ('a * 'a) set => 'a set => 'a set"
+  "Image" is "Relation.Image :: ('a * 'a) set => 'a set => 'a set" done
 
 subsubsection {* Code generation *}
 
@@ -111,33 +110,27 @@ code_datatype rel
 
 lemma [code]:
   "member (x, y) (rel X R) = ((x = y \<and> x : X) \<or> (x, y) : R)"
-unfolding rel_def member_def
-by (simp add: member_raw)
+by (lifting member_raw)
 
 lemma [code]:
   "converse (rel X R) = rel X (R^-1)"
-unfolding rel_def converse_def
-by (simp add: converse_raw)
+by (lifting converse_raw)
 
 lemma [code]:
   "union (rel X R) (rel Y S) = rel (X Un Y) (R Un S)"
-unfolding rel_def union_def
-by (simp add: union_raw)
+by (lifting union_raw)
 
 lemma [code]:
    "rel_comp (rel X R) (rel Y S) = rel (X Int Y) (Set.project (%(x, y). y : Y) R Un (Set.project (%(x, y). x : X) S Un R O S))"
-unfolding rel_def rel_comp_def
-by (simp add: rel_comp_raw)
+by (lifting rel_comp_raw)
 
 lemma [code]:
   "rtrancl (rel X R) = rel UNIV (R^+)"
-unfolding rel_def rtrancl_def
-by (simp add: rtrancl_raw)
+by (lifting rtrancl_raw)
 
 lemma [code]:
   "Image (rel X R) S = (X Int S) Un (R `` S)"
-unfolding rel_def Image_def
-by (simp add: Image_raw)
+by (lifting Image_raw)
 
 quickcheck_generator rel constructors: rel
 

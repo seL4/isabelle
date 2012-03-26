@@ -40,7 +40,7 @@ lemma DEF_int_sub:
 
 lemma DEF_int_mul:
   "op * = (\<lambda>u ua. floor (real u * real ua))"
-  by (metis floor_number_of number_of_is_id number_of_real_def real_eq_of_int real_of_int_mult)
+  by (metis floor_real_of_int real_of_int_mult)
 
 lemma DEF_int_abs:
   "abs = (\<lambda>u. floor (abs (real u)))"
@@ -72,7 +72,7 @@ lemma int_min_th:
 
 lemma INT_IMAGE:
   "(\<exists>n. x = int n) \<or> (\<exists>n. x = - int n)"
-  by (metis number_of_eq number_of_is_id of_int_of_nat)
+  by (metis of_int_eq_id id_def of_int_of_nat)
 
 lemma DEF_int_pow:
   "op ^ = (\<lambda>u ua. floor (real u ^ ua))"

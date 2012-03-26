@@ -151,17 +151,6 @@ end
 
 subsection {* Numerals and Arithmetic *}
 
-instantiation complex :: number_ring
-begin
-
-definition complex_number_of_def:
-  "number_of w = (of_int w \<Colon> complex)"
-
-instance
-  by intro_classes (simp only: complex_number_of_def)
-
-end
-
 lemma complex_Re_of_nat [simp]: "Re (of_nat n) = of_nat n"
   by (induct n) simp_all
 
@@ -174,14 +163,24 @@ lemma complex_Re_of_int [simp]: "Re (of_int z) = of_int z"
 lemma complex_Im_of_int [simp]: "Im (of_int z) = 0"
   by (cases z rule: int_diff_cases) simp
 
-lemma complex_Re_number_of [simp]: "Re (number_of v) = number_of v"
-  unfolding number_of_eq by (rule complex_Re_of_int)
+lemma complex_Re_numeral [simp]: "Re (numeral v) = numeral v"
+  using complex_Re_of_int [of "numeral v"] by simp
 
-lemma complex_Im_number_of [simp]: "Im (number_of v) = 0"
-  unfolding number_of_eq by (rule complex_Im_of_int)
+lemma complex_Re_neg_numeral [simp]: "Re (neg_numeral v) = neg_numeral v"
+  using complex_Re_of_int [of "neg_numeral v"] by simp
 
-lemma Complex_eq_number_of [simp]:
-  "(Complex a b = number_of w) = (a = number_of w \<and> b = 0)"
+lemma complex_Im_numeral [simp]: "Im (numeral v) = 0"
+  using complex_Im_of_int [of "numeral v"] by simp
+
+lemma complex_Im_neg_numeral [simp]: "Im (neg_numeral v) = 0"
+  using complex_Im_of_int [of "neg_numeral v"] by simp
+
+lemma Complex_eq_numeral [simp]:
+  "(Complex a b = numeral w) = (a = numeral w \<and> b = 0)"
+  by (simp add: complex_eq_iff)
+
+lemma Complex_eq_neg_numeral [simp]:
+  "(Complex a b = neg_numeral w) = (a = neg_numeral w \<and> b = 0)"
   by (simp add: complex_eq_iff)
 
 
@@ -421,7 +420,10 @@ lemma complex_i_not_zero [simp]: "ii \<noteq> 0"
 lemma complex_i_not_one [simp]: "ii \<noteq> 1"
   by (simp add: complex_eq_iff)
 
-lemma complex_i_not_number_of [simp]: "ii \<noteq> number_of w"
+lemma complex_i_not_numeral [simp]: "ii \<noteq> numeral w"
+  by (simp add: complex_eq_iff)
+
+lemma complex_i_not_neg_numeral [simp]: "ii \<noteq> neg_numeral w"
   by (simp add: complex_eq_iff)
 
 lemma i_mult_Complex [simp]: "ii * Complex a b = Complex (- b) a"
@@ -505,7 +507,10 @@ lemma complex_cnj_of_nat [simp]: "cnj (of_nat n) = of_nat n"
 lemma complex_cnj_of_int [simp]: "cnj (of_int z) = of_int z"
   by (simp add: complex_eq_iff)
 
-lemma complex_cnj_number_of [simp]: "cnj (number_of w) = number_of w"
+lemma complex_cnj_numeral [simp]: "cnj (numeral w) = numeral w"
+  by (simp add: complex_eq_iff)
+
+lemma complex_cnj_neg_numeral [simp]: "cnj (neg_numeral w) = neg_numeral w"
   by (simp add: complex_eq_iff)
 
 lemma complex_cnj_scaleR: "cnj (scaleR r x) = scaleR r (cnj x)"
@@ -686,10 +691,10 @@ lemma of_nat_less_of_int_iff: (* TODO: move *)
   "(of_nat n :: 'a::linordered_idom) < of_int x \<longleftrightarrow> int n < x"
   by (metis of_int_of_nat_eq of_int_less_iff)
 
-lemma real_of_nat_less_number_of_iff [simp]: (* TODO: move *)
-  "real (n::nat) < number_of w \<longleftrightarrow> n < number_of w"
-  unfolding real_of_nat_def nat_number_of_def number_of_eq
-  by (simp add: of_nat_less_of_int_iff zless_nat_eq_int_zless)
+lemma real_of_nat_less_numeral_iff [simp]: (* TODO: move *)
+  "real (n::nat) < numeral w \<longleftrightarrow> n < numeral w"
+  using of_nat_less_of_int_iff [of n "numeral w", where 'a=real]
+  by (simp add: real_of_nat_def zless_nat_eq_int_zless [symmetric])
 
 lemma arg_unique:
   assumes "sgn z = cis x" and "-pi < x" and "x \<le> pi"

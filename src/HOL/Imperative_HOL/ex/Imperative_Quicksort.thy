@@ -6,7 +6,7 @@ header {* An imperative implementation of Quicksort on arrays *}
 
 theory Imperative_Quicksort
 imports
-  Imperative_HOL
+  "~~/src/HOL/Imperative_HOL/Imperative_HOL"
   Subarray
   "~~/src/HOL/Library/Multiset"
   "~~/src/HOL/Library/Efficient_Nat"
@@ -593,8 +593,8 @@ lemma success_part1I:
 proof (induct a l r p arbitrary: h rule: part1.induct)
   case (1 a l r p)
   thus ?case unfolding part1.simps [of a l r]
-  apply (auto intro!: success_intros del: success_ifI simp add: not_le)
-  apply (auto intro!: effect_intros effect_swapI)
+  apply (auto intro!: success_intros simp add: not_le)
+  apply (auto intro!: effect_intros)
   done
 qed
 

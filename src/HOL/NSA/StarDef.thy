@@ -522,16 +522,6 @@ instance ..
 
 end
 
-instantiation star :: (number) number
-begin
-
-definition
-  star_number_def:  "number_of b \<equiv> star_of (number_of b)"
-
-instance ..
-
-end
-
 instance star :: (Rings.dvd) Rings.dvd ..
 
 instantiation star :: (Divides.div) Divides.div
@@ -561,7 +551,7 @@ instance ..
 end
 
 lemmas star_class_defs [transfer_unfold] =
-  star_zero_def     star_one_def      star_number_def
+  star_zero_def     star_one_def
   star_add_def      star_diff_def     star_minus_def
   star_mult_def     star_divide_def   star_inverse_def
   star_le_def       star_less_def     star_abs_def       star_sgn_def
@@ -574,9 +564,6 @@ by (simp add: star_zero_def)
 
 lemma Standard_one: "1 \<in> Standard"
 by (simp add: star_one_def)
-
-lemma Standard_number_of: "number_of b \<in> Standard"
-by (simp add: star_number_def)
 
 lemma Standard_add: "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> x + y \<in> Standard"
 by (simp add: star_add_def)
@@ -606,7 +593,7 @@ lemma Standard_mod: "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Long
 by (simp add: star_mod_def)
 
 lemmas Standard_simps [simp] =
-  Standard_zero  Standard_one  Standard_number_of
+  Standard_zero  Standard_one
   Standard_add  Standard_diff  Standard_minus
   Standard_mult  Standard_divide  Standard_inverse
   Standard_abs  Standard_div  Standard_mod
@@ -648,9 +635,6 @@ by transfer (rule refl)
 lemma star_of_one: "star_of 1 = 1"
 by transfer (rule refl)
 
-lemma star_of_number_of: "star_of (number_of x) = number_of x"
-by transfer (rule refl)
-
 text {* @{term star_of} preserves orderings *}
 
 lemma star_of_less: "(star_of x < star_of y) = (x < y)"
@@ -682,34 +666,16 @@ lemmas star_of_less_1 = star_of_less [of _ 1, simplified star_of_one]
 lemmas star_of_le_1   = star_of_le   [of _ 1, simplified star_of_one]
 lemmas star_of_eq_1   = star_of_eq   [of _ 1, simplified star_of_one]
 
-text{*As above, for numerals*}
-
-lemmas star_of_number_less =
-  star_of_less [of "number_of w", simplified star_of_number_of] for w
-lemmas star_of_number_le   =
-  star_of_le   [of "number_of w", simplified star_of_number_of] for w
-lemmas star_of_number_eq   =
-  star_of_eq   [of "number_of w", simplified star_of_number_of] for w
-
-lemmas star_of_less_number =
-  star_of_less [of _ "number_of w", simplified star_of_number_of] for w
-lemmas star_of_le_number   =
-  star_of_le   [of _ "number_of w", simplified star_of_number_of] for w
-lemmas star_of_eq_number   =
-  star_of_eq   [of _ "number_of w", simplified star_of_number_of] for w
-
 lemmas star_of_simps [simp] =
   star_of_add     star_of_diff    star_of_minus
   star_of_mult    star_of_divide  star_of_inverse
   star_of_div     star_of_mod     star_of_abs
-  star_of_zero    star_of_one     star_of_number_of
+  star_of_zero    star_of_one
   star_of_less    star_of_le      star_of_eq
   star_of_0_less  star_of_0_le    star_of_0_eq
   star_of_less_0  star_of_le_0    star_of_eq_0
   star_of_1_less  star_of_1_le    star_of_1_eq
   star_of_less_1  star_of_le_1    star_of_eq_1
-  star_of_number_less star_of_number_le star_of_number_eq
-  star_of_less_number star_of_le_number star_of_eq_number
 
 subsection {* Ordering and lattice classes *}
 
@@ -984,8 +950,44 @@ lemma star_of_power [simp]: "star_of (x ^ n) = star_of x ^ n"
 
 subsection {* Number classes *}
 
+instance star :: (numeral) numeral ..
+
+lemma star_numeral_def [transfer_unfold]:
+  "numeral k = star_of (numeral k)"
+by (induct k, simp_all only: numeral.simps star_of_one star_of_add)
+
+lemma Standard_numeral [simp]: "numeral k \<in> Standard"
+by (simp add: star_numeral_def)
+
+lemma star_of_numeral [simp]: "star_of (numeral k) = numeral k"
+by transfer (rule refl)
+
+lemma star_neg_numeral_def [transfer_unfold]:
+  "neg_numeral k = star_of (neg_numeral k)"
+by (simp only: neg_numeral_def star_of_minus star_of_numeral)
+
+lemma Standard_neg_numeral [simp]: "neg_numeral k \<in> Standard"
+by (simp add: star_neg_numeral_def)
+
+lemma star_of_neg_numeral [simp]: "star_of (neg_numeral k) = neg_numeral k"
+by transfer (rule refl)
+
 lemma star_of_nat_def [transfer_unfold]: "of_nat n = star_of (of_nat n)"
 by (induct n, simp_all)
+
+lemmas star_of_compare_numeral [simp] =
+  star_of_less [of "numeral k", simplified star_of_numeral]
+  star_of_le   [of "numeral k", simplified star_of_numeral]
+  star_of_eq   [of "numeral k", simplified star_of_numeral]
+  star_of_less [of _ "numeral k", simplified star_of_numeral]
+  star_of_le   [of _ "numeral k", simplified star_of_numeral]
+  star_of_eq   [of _ "numeral k", simplified star_of_numeral]
+  star_of_less [of "neg_numeral k", simplified star_of_numeral]
+  star_of_le   [of "neg_numeral k", simplified star_of_numeral]
+  star_of_eq   [of "neg_numeral k", simplified star_of_numeral]
+  star_of_less [of _ "neg_numeral k", simplified star_of_numeral]
+  star_of_le   [of _ "neg_numeral k", simplified star_of_numeral]
+  star_of_eq   [of _ "neg_numeral k", simplified star_of_numeral] for k
 
 lemma Standard_of_nat [simp]: "of_nat n \<in> Standard"
 by (simp add: star_of_nat_def)
@@ -1010,11 +1012,6 @@ qed
 
 instance star :: (ring_char_0) ring_char_0 ..
 
-instance star :: (number_semiring) number_semiring
-by (intro_classes, simp only: star_number_def star_of_nat_def number_of_int)
-
-instance star :: (number_ring) number_ring
-by (intro_classes, simp only: star_number_def star_of_int_def number_of_eq)
 
 subsection {* Finite class *}
 

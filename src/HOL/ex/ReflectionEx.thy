@@ -143,7 +143,7 @@ lemma "4 * (2*x + (y::nat)) \<noteq> 0"
 oops
 text{* Hmmm let's specialize @{text Inum_C} with numerals.*}
 
-lemma Inum_number: "Inum (C (number_of t)) vs = number_of t" by simp
+lemma Inum_number: "Inum (C (numeral t)) vs = numeral t" by simp
 lemmas Inum_eqs = Inum_Var Inum_Add Inum_Mul Inum_CN Inum_number
 
   text{* Second attempt *}
@@ -155,7 +155,7 @@ oops
 lemma "1 * (2* x + (y::nat) + 0 + 1) \<noteq> 0"
   apply (reify Inum_eqs ("1 * (2*x + (y::nat) + 0 + 1)"))
 oops
-  text{* Oh!! 0 is not a variable \dots\ Oh! 0 is not a @{text "number_of"} \dots\ thing. The same for 1. So let's add those equations too *}
+  text{* Oh!! 0 is not a variable \dots\ Oh! 0 is not a @{text "numeral"} \dots\ thing. The same for 1. So let's add those equations too *}
 
 lemma Inum_01: "Inum (C 0) vs = 0" "Inum (C 1) vs = 1" "Inum (C(Suc n)) vs = Suc n"
   by simp+
@@ -312,9 +312,9 @@ lemma Irint_C0: "Irint (IC 0) vs = 0"
   by simp
 lemma Irint_C1: "Irint (IC 1) vs = 1"
   by simp
-lemma Irint_Cnumberof: "Irint (IC (number_of x)) vs = number_of x"
+lemma Irint_Cnumeral: "Irint (IC (numeral x)) vs = numeral x"
   by simp
-lemmas Irint_simps = Irint_Var Irint_Neg Irint_Add Irint_Sub Irint_Mult Irint_C0 Irint_C1 Irint_Cnumberof 
+lemmas Irint_simps = Irint_Var Irint_Neg Irint_Add Irint_Sub Irint_Mult Irint_C0 Irint_C1 Irint_Cnumeral
 lemma "(3::int) * x + y*y - 9 + (- z) = 0"
   apply (reify Irint_simps ("(3::int) * x + y*y - 9 + (- z)"))
   oops
@@ -348,10 +348,10 @@ lemma Irnat_C0: "Irnat (NC 0) is ls vs = 0"
 by simp
 lemma Irnat_C1: "Irnat (NC 1) is ls vs = 1"
 by simp
-lemma Irnat_Cnumberof: "Irnat (NC (number_of x)) is ls vs = number_of x"
+lemma Irnat_Cnumeral: "Irnat (NC (numeral x)) is ls vs = numeral x"
 by simp
 lemmas Irnat_simps = Irnat_Suc Irnat_Var Irnat_Neg Irnat_Add Irnat_Sub Irnat_Mult Irnat_lgth
-  Irnat_C0 Irnat_C1 Irnat_Cnumberof
+  Irnat_C0 Irnat_C1 Irnat_Cnumeral
 lemma "(Suc n) * length (([(3::int) * x + y*y - 9 + (- z)] @ []) @ xs) = length xs"
   apply (reify Irnat_simps Irlist.simps Irint_simps ("(Suc n) *length (([(3::int) * x + y*y - 9 + (- z)] @ []) @ xs)"))
   oops

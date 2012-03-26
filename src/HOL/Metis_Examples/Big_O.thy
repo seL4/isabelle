@@ -16,7 +16,7 @@ begin
 
 subsection {* Definitions *}
 
-definition bigo :: "('a => 'b\<Colon>{linordered_idom,number_ring}) => ('a => 'b) set" ("(1O'(_'))") where
+definition bigo :: "('a => 'b\<Colon>linordered_idom) => ('a => 'b) set" ("(1O'(_'))") where
   "O(f\<Colon>('a => 'b)) == {h. \<exists>c. \<forall>x. abs (h x) <= c * abs (f x)}"
 
 lemma bigo_pos_const:
@@ -180,7 +180,7 @@ apply (rule conjI)
  apply (rule_tac x = "c + c" in exI)
  apply auto
  apply (subgoal_tac "c * abs (f xa + g xa) <= (c + c) * abs (g xa)")
-  apply (metis order_trans semiring_mult_2)
+  apply (metis order_trans mult_2)
  apply (subgoal_tac "c * abs (f xa + g xa) <= c * (abs (f xa) + abs (g xa))")
   apply (erule order_trans)
   apply (simp add: ring_distribs)
@@ -325,7 +325,7 @@ lemma bigo_mult4 [intro]:"f : k +o O(h) \<Longrightarrow> g * f : (g * k) +o O(g
 by (metis bigo_mult2 set_plus_mono_b set_times_intro2 set_times_plus_distrib)
 
 lemma bigo_mult5: "\<forall>x. f x ~= 0 \<Longrightarrow>
-    O(f * g) <= (f\<Colon>'a => ('b\<Colon>{linordered_field,number_ring})) *o O(g)"
+    O(f * g) <= (f\<Colon>'a => ('b\<Colon>linordered_field)) *o O(g)"
 proof -
   assume a: "\<forall>x. f x ~= 0"
   show "O(f * g) <= f *o O(g)"
@@ -351,21 +351,21 @@ proof -
 qed
 
 lemma bigo_mult6:
-"\<forall>x. f x \<noteq> 0 \<Longrightarrow> O(f * g) = (f\<Colon>'a \<Rightarrow> ('b\<Colon>{linordered_field,number_ring})) *o O(g)"
+"\<forall>x. f x \<noteq> 0 \<Longrightarrow> O(f * g) = (f\<Colon>'a \<Rightarrow> ('b\<Colon>linordered_field)) *o O(g)"
 by (metis bigo_mult2 bigo_mult5 order_antisym)
 
 (*proof requires relaxing relevance: 2007-01-25*)
 declare bigo_mult6 [simp]
 
 lemma bigo_mult7:
-"\<forall>x. f x \<noteq> 0 \<Longrightarrow> O(f * g) \<le> O(f\<Colon>'a \<Rightarrow> ('b\<Colon>{linordered_field,number_ring})) \<otimes> O(g)"
+"\<forall>x. f x \<noteq> 0 \<Longrightarrow> O(f * g) \<le> O(f\<Colon>'a \<Rightarrow> ('b\<Colon>linordered_field)) \<otimes> O(g)"
 by (metis bigo_refl bigo_mult6 set_times_mono3)
 
 declare bigo_mult6 [simp del]
 declare bigo_mult7 [intro!]
 
 lemma bigo_mult8:
-"\<forall>x. f x \<noteq> 0 \<Longrightarrow> O(f * g) = O(f\<Colon>'a \<Rightarrow> ('b\<Colon>{linordered_field,number_ring})) \<otimes> O(g)"
+"\<forall>x. f x \<noteq> 0 \<Longrightarrow> O(f * g) = O(f\<Colon>'a \<Rightarrow> ('b\<Colon>linordered_field)) \<otimes> O(g)"
 by (metis bigo_mult bigo_mult7 order_antisym_conv)
 
 lemma bigo_minus [intro]: "f : O(g) \<Longrightarrow> - f : O(g)"
@@ -405,14 +405,14 @@ by (auto simp add: bigo_def mult_ac)
 lemma bigo_const2 [intro]: "O(\<lambda>x. c) \<le> O(\<lambda>x. 1)"
 by (metis bigo_const1 bigo_elt_subset)
 
-lemma bigo_const3: "(c\<Colon>'a\<Colon>{linordered_field,number_ring}) ~= 0 \<Longrightarrow> (\<lambda>x. 1) : O(\<lambda>x. c)"
+lemma bigo_const3: "(c\<Colon>'a\<Colon>linordered_field) ~= 0 \<Longrightarrow> (\<lambda>x. 1) : O(\<lambda>x. c)"
 apply (simp add: bigo_def)
 by (metis abs_eq_0 left_inverse order_refl)
 
-lemma bigo_const4: "(c\<Colon>'a\<Colon>{linordered_field,number_ring}) ~= 0 \<Longrightarrow> O(\<lambda>x. 1) <= O(\<lambda>x. c)"
+lemma bigo_const4: "(c\<Colon>'a\<Colon>linordered_field) ~= 0 \<Longrightarrow> O(\<lambda>x. 1) <= O(\<lambda>x. c)"
 by (metis bigo_elt_subset bigo_const3)
 
-lemma bigo_const [simp]: "(c\<Colon>'a\<Colon>{linordered_field,number_ring}) ~= 0 \<Longrightarrow>
+lemma bigo_const [simp]: "(c\<Colon>'a\<Colon>linordered_field) ~= 0 \<Longrightarrow>
     O(\<lambda>x. c) = O(\<lambda>x. 1)"
 by (metis bigo_const2 bigo_const4 equalityI)
 
@@ -423,19 +423,19 @@ by (metis le_less)
 lemma bigo_const_mult2: "O(\<lambda>x. c * f x) \<le> O(f)"
 by (rule bigo_elt_subset, rule bigo_const_mult1)
 
-lemma bigo_const_mult3: "(c\<Colon>'a\<Colon>{linordered_field,number_ring}) ~= 0 \<Longrightarrow> f : O(\<lambda>x. c * f x)"
+lemma bigo_const_mult3: "(c\<Colon>'a\<Colon>linordered_field) ~= 0 \<Longrightarrow> f : O(\<lambda>x. c * f x)"
 apply (simp add: bigo_def)
 by (metis (no_types) abs_mult mult_assoc mult_1 order_refl left_inverse)
 
 lemma bigo_const_mult4:
-"(c\<Colon>'a\<Colon>{linordered_field,number_ring}) \<noteq> 0 \<Longrightarrow> O(f) \<le> O(\<lambda>x. c * f x)"
+"(c\<Colon>'a\<Colon>linordered_field) \<noteq> 0 \<Longrightarrow> O(f) \<le> O(\<lambda>x. c * f x)"
 by (metis bigo_elt_subset bigo_const_mult3)
 
-lemma bigo_const_mult [simp]: "(c\<Colon>'a\<Colon>{linordered_field,number_ring}) ~= 0 \<Longrightarrow>
+lemma bigo_const_mult [simp]: "(c\<Colon>'a\<Colon>linordered_field) ~= 0 \<Longrightarrow>
     O(\<lambda>x. c * f x) = O(f)"
 by (metis equalityI bigo_const_mult2 bigo_const_mult4)
 
-lemma bigo_const_mult5 [simp]: "(c\<Colon>'a\<Colon>{linordered_field,number_ring}) ~= 0 \<Longrightarrow>
+lemma bigo_const_mult5 [simp]: "(c\<Colon>'a\<Colon>linordered_field) ~= 0 \<Longrightarrow>
     (\<lambda>x. c) *o O(f) = O(f)"
   apply (auto del: subsetI)
   apply (rule order_trans)
@@ -587,7 +587,7 @@ lemma bigo_useful_add: "f =o O(h) \<Longrightarrow> g =o O(h) \<Longrightarrow> 
   apply assumption+
 done
 
-lemma bigo_useful_const_mult: "(c\<Colon>'a\<Colon>{linordered_field,number_ring}) ~= 0 \<Longrightarrow>
+lemma bigo_useful_const_mult: "(c\<Colon>'a\<Colon>linordered_field) ~= 0 \<Longrightarrow>
     (\<lambda>x. c) * f =o O(h) \<Longrightarrow> f =o O(h)"
   apply (rule subsetD)
   apply (subgoal_tac "(\<lambda>x. 1 / c) *o O(h) <= O(h)")
@@ -696,7 +696,7 @@ apply (case_tac "0 <= f x - k x")
 by (metis abs_ge_zero linorder_linear min_max.sup_absorb1 min_max.sup_commute)
 
 lemma bigo_lesso4:
-  "f <o g =o O(k\<Colon>'a=>'b\<Colon>{linordered_field,number_ring}) \<Longrightarrow>
+  "f <o g =o O(k\<Colon>'a=>'b\<Colon>{linordered_field}) \<Longrightarrow>
    g =o h +o O(k) \<Longrightarrow> f <o h =o O(k)"
 apply (unfold lesso_def)
 apply (drule set_plus_imp_minus)

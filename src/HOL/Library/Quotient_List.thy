@@ -8,8 +8,6 @@ theory Quotient_List
 imports Main Quotient_Syntax
 begin
 
-declare [[map list = list_all2]]
-
 lemma map_id [id_simps]:
   "map id = id"
   by (fact List.map.id)
@@ -74,6 +72,8 @@ next
   then show "list_all2 R xs ys \<longleftrightarrow> list_all2 R xs xs \<and> list_all2 R ys ys \<and> map Abs xs = map Abs ys"
     by (induct xs ys rule: list_induct2') auto
 qed
+
+declare [[map list = (list_all2, list_quotient)]]
 
 lemma cons_prs [quot_preserve]:
   assumes q: "Quotient R Abs Rep"

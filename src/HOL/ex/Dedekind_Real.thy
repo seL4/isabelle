@@ -1658,19 +1658,6 @@ lemma real_less_all_real2: "~ 0 < y ==> \<forall>x. y < real_of_preal x"
 by (blast intro!: real_less_all_preal linorder_not_less [THEN iffD1])
 
 
-subsection{*Numerals and Arithmetic*}
-
-instantiation real :: number_ring
-begin
-
-definition
-  real_number_of_def: "(number_of w :: real) = of_int w"
-
-instance
-  by intro_classes (simp add: real_number_of_def)
-
-end
-
 subsection {* Completeness of Positive Reals *}
 
 text {*

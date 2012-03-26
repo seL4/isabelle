@@ -162,11 +162,6 @@ lemma inj_strengthen_type:
      "[| f \<in> inj(A, B);  !!a. a \<in> A ==> f`a \<in> C |] ==> f \<in> inj(A,C)"
 by (unfold inj_def, blast intro: Pi_type) 
 
-lemma nat_not_Finite: "~ Finite(nat)"
-by (unfold Finite_def, blast dest: eqpoll_imp_lepoll ltI lt_not_lepoll)
-
-lemmas le_imp_lepoll = le_imp_subset [THEN subset_imp_lepoll]
-
 (* ********************************************************************** *)
 (* Another elimination rule for \<exists>!                                       *)
 (* ********************************************************************** *)
@@ -175,30 +170,18 @@ lemma ex1_two_eq: "[| \<exists>! x. P(x); P(x); P(y) |] ==> x=y"
 by blast
 
 (* ********************************************************************** *)
-(* image of a surjection                                                  *)
-(* ********************************************************************** *)
-
-lemma surj_image_eq: "f \<in> surj(A, B) ==> f``A = B"
-apply (unfold surj_def)
-apply (erule CollectE)
-apply (rule image_fun [THEN ssubst], assumption, rule subset_refl)
-apply (blast dest: apply_type) 
-done
-
-
-(* ********************************************************************** *)
 (* Lemmas used in the proofs like WO? ==> AC?                             *)
 (* ********************************************************************** *)
 
 lemma first_in_B:
-     "[| well_ord(\<Union>(A),r); 0\<notin>A; B \<in> A |] ==> (THE b. first(b,B,r)) \<in> B"
+     "[| well_ord(\<Union>(A),r); 0 \<notin> A; B \<in> A |] ==> (THE b. first(b,B,r)) \<in> B"
 by (blast dest!: well_ord_imp_ex1_first
                     [THEN theI, THEN first_def [THEN def_imp_iff, THEN iffD1]])
 
-lemma ex_choice_fun: "[| well_ord(\<Union>(A), R); 0\<notin>A |] ==> \<exists>f. f:(\<Pi> X \<in> A. X)"
+lemma ex_choice_fun: "[| well_ord(\<Union>(A), R); 0 \<notin> A |] ==> \<exists>f. f \<in> (\<Pi> X \<in> A. X)"
 by (fast elim!: first_in_B intro!: lam_type)
 
-lemma ex_choice_fun_Pow: "well_ord(A, R) ==> \<exists>f. f:(\<Pi> X \<in> Pow(A)-{0}. X)"
+lemma ex_choice_fun_Pow: "well_ord(A, R) ==> \<exists>f. f \<in> (\<Pi> X \<in> Pow(A)-{0}. X)"
 by (fast elim!: well_ord_subset [THEN ex_choice_fun])
 
 

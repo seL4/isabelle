@@ -75,8 +75,11 @@ proof -
   ultimately show ?thesis by auto
 qed
 
-lemma real_is_int_number_of[simp]: "real_is_int ((number_of \<Colon> int \<Rightarrow> real) x)"
-  by (auto simp: real_is_int_def intro!: exI[of _ "number_of x"])
+lemma real_is_int_numeral[simp]: "real_is_int (numeral x)"
+  by (auto simp: real_is_int_def intro!: exI[of _ "numeral x"])
+
+lemma real_is_int_neg_numeral[simp]: "real_is_int (neg_numeral x)"
+  by (auto simp: real_is_int_def intro!: exI[of _ "neg_numeral x"])
 
 lemma int_of_real_0[simp]: "int_of_real (0::real) = (0::int)"
 by (simp add: int_of_real_def)
@@ -87,7 +90,12 @@ proof -
   show ?thesis by (simp only: 1 int_of_real_real)
 qed
 
-lemma int_of_real_number_of[simp]: "int_of_real (number_of b) = number_of b"
+lemma int_of_real_numeral[simp]: "int_of_real (numeral b) = numeral b"
+  unfolding int_of_real_def
+  by (intro some_equality)
+     (auto simp add: real_of_int_inject[symmetric] simp del: real_of_int_inject)
+
+lemma int_of_real_neg_numeral[simp]: "int_of_real (neg_numeral b) = neg_numeral b"
   unfolding int_of_real_def
   by (intro some_equality)
      (auto simp add: real_of_int_inject[symmetric] simp del: real_of_int_inject)
@@ -101,7 +109,7 @@ by (rule zmod_int)
 lemma abs_div_2_less: "a \<noteq> 0 \<Longrightarrow> a \<noteq> -1 \<Longrightarrow> abs((a::int) div 2) < abs a"
 by arith
 
-lemma norm_0_1: "(0::_::number_ring) = Numeral0 & (1::_::number_ring) = Numeral1"
+lemma norm_0_1: "(1::_::numeral) = Numeral1"
   by auto
 
 lemma add_left_zero: "0 + a = (a::'a::comm_monoid_add)"
@@ -116,33 +124,20 @@ lemma mult_left_one: "1 * a = (a::'a::semiring_1)"
 lemma mult_right_one: "a * 1 = (a::'a::semiring_1)"
   by simp
 
-lemma int_pow_0: "(a::int)^(Numeral0) = 1"
+lemma int_pow_0: "(a::int)^0 = 1"
   by simp
 
 lemma int_pow_1: "(a::int)^(Numeral1) = a"
   by simp
 
-lemma zero_eq_Numeral0_nring: "(0::'a::number_ring) = Numeral0"
-  by simp
-
-lemma one_eq_Numeral1_nring: "(1::'a::number_ring) = Numeral1"
-  by simp
-
-lemma zero_eq_Numeral0_nat: "(0::nat) = Numeral0"
+lemma one_eq_Numeral1_nring: "(1::'a::numeral) = Numeral1"
   by simp
 
 lemma one_eq_Numeral1_nat: "(1::nat) = Numeral1"
   by simp
 
-lemma zpower_Pls: "(z::int)^Numeral0 = Numeral1"
+lemma zpower_Pls: "(z::int)^0 = Numeral1"
   by simp
-
-lemma zpower_Min: "(z::int)^((-1)::nat) = Numeral1"
-proof -
-  have 1:"((-1)::nat) = 0"
-    by simp
-  show ?thesis by (simp add: 1)
-qed
 
 lemma fst_cong: "a=a' \<Longrightarrow> fst (a,b) = fst (a',b)"
   by simp
@@ -160,70 +155,8 @@ lemma not_false_eq_true: "(~ False) = True" by simp
 
 lemma not_true_eq_false: "(~ True) = False" by simp
 
-lemmas binarith =
-  normalize_bin_simps
-  pred_bin_simps succ_bin_simps
-  add_bin_simps minus_bin_simps mult_bin_simps
-
-lemma int_eq_number_of_eq:
-  "(((number_of v)::int)=(number_of w)) = iszero ((number_of (v + uminus w))::int)"
-  by (rule eq_number_of_eq)
-
-lemma int_iszero_number_of_Pls: "iszero (Numeral0::int)"
-  by (simp only: iszero_number_of_Pls)
-
-lemma int_nonzero_number_of_Min: "~(iszero ((-1)::int))"
-  by simp
-
-lemma int_iszero_number_of_Bit0: "iszero ((number_of (Int.Bit0 w))::int) = iszero ((number_of w)::int)"
-  by simp
-
-lemma int_iszero_number_of_Bit1: "\<not> iszero ((number_of (Int.Bit1 w))::int)"
-  by simp
-
-lemma int_less_number_of_eq_neg: "(((number_of x)::int) < number_of y) = neg ((number_of (x + (uminus y)))::int)"
-  unfolding neg_def number_of_is_id by simp
-
-lemma int_not_neg_number_of_Pls: "\<not> (neg (Numeral0::int))"
-  by simp
-
-lemma int_neg_number_of_Min: "neg (-1::int)"
-  by simp
-
-lemma int_neg_number_of_Bit0: "neg ((number_of (Int.Bit0 w))::int) = neg ((number_of w)::int)"
-  by simp
-
-lemma int_neg_number_of_Bit1: "neg ((number_of (Int.Bit1 w))::int) = neg ((number_of w)::int)"
-  by simp
-
-lemma int_le_number_of_eq: "(((number_of x)::int) \<le> number_of y) = (\<not> neg ((number_of (y + (uminus x)))::int))"
-  unfolding neg_def number_of_is_id by (simp add: not_less)
-
-lemmas intarithrel =
-  int_eq_number_of_eq
-  lift_bool[OF int_iszero_number_of_Pls] nlift_bool[OF int_nonzero_number_of_Min] int_iszero_number_of_Bit0
-  lift_bool[OF int_iszero_number_of_Bit1] int_less_number_of_eq_neg nlift_bool[OF int_not_neg_number_of_Pls] lift_bool[OF int_neg_number_of_Min]
-  int_neg_number_of_Bit0 int_neg_number_of_Bit1 int_le_number_of_eq
-
-lemma int_number_of_add_sym: "((number_of v)::int) + number_of w = number_of (v + w)"
-  by simp
-
-lemma int_number_of_diff_sym: "((number_of v)::int) - number_of w = number_of (v + (uminus w))"
-  by simp
-
-lemma int_number_of_mult_sym: "((number_of v)::int) * number_of w = number_of (v * w)"
-  by simp
-
-lemma int_number_of_minus_sym: "- ((number_of v)::int) = number_of (uminus v)"
-  by simp
-
-lemmas intarith = int_number_of_add_sym int_number_of_minus_sym int_number_of_diff_sym int_number_of_mult_sym
-
-lemmas natarith = add_nat_number_of diff_nat_number_of mult_nat_number_of eq_nat_number_of less_nat_number_of
-
-lemmas powerarith = nat_number_of zpower_number_of_even
-  zpower_number_of_odd[simplified zero_eq_Numeral0_nring one_eq_Numeral1_nring]
-  zpower_Pls zpower_Min
+lemmas powerarith = nat_numeral zpower_numeral_even
+  zpower_numeral_odd zpower_Pls
 
 definition float :: "(int \<times> int) \<Rightarrow> real" where
   "float = (\<lambda>(a, b). real a * 2 powr real b)"
@@ -302,7 +235,8 @@ lemmas floatarith[simplified norm_0_1] = float_add float_add_l0 float_add_r0 flo
           float_minus float_abs zero_le_float float_pprt float_nprt pprt_lbound nprt_ubound
 
 (* for use with the compute oracle *)
-lemmas arith = binarith intarith intarithrel natarith powerarith floatarith not_false_eq_true not_true_eq_false
+lemmas arith = arith_simps rel_simps diff_nat_numeral nat_0
+  nat_neg_numeral powerarith floatarith not_false_eq_true not_true_eq_false
 
 use "~~/src/HOL/Tools/float_arith.ML"
 

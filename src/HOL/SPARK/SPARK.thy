@@ -145,7 +145,7 @@ proof (induct x arbitrary: y n rule: bin_induct)
       then have "bin = 0" "bit = 0"
         by (auto simp add: Bit_def bitval_def split add: bit.split_asm) arith
       then show ?thesis using 0 1 `y < 2 ^ n`
-        by simp (simp add: Bit0_def int_or_Pls [unfolded Pls_def])
+        by simp
     next
       case (Suc m)
       from 3 have "0 \<le> bin"
@@ -188,7 +188,7 @@ proof (induct x arbitrary: y n rule: bin_induct)
       then have "bin = 0" "bit = 0"
         by (auto simp add: Bit_def bitval_def split add: bit.split_asm) arith
       then show ?thesis using 0 1 `y < 2 ^ n`
-        by simp (simp add: Bit0_def int_xor_Pls [unfolded Pls_def])
+        by simp
     next
       case (Suc m)
       from 3 have "0 \<le> bin"
@@ -257,17 +257,17 @@ lemma AND_mod:
 proof (induct x arbitrary: n rule: bin_induct)
   case 1
   then show ?case
-    by simp (simp add: Pls_def)
+    by simp
 next
   case 2
   then show ?case
-    by (simp, simp only: Min_def, simp add: m1mod2k)
+    by (simp, simp add: m1mod2k)
 next
   case (3 bin bit)
   show ?case
   proof (cases n)
     case 0
-    then show ?thesis by (simp add: int_and_extra_simps [unfolded Pls_def])
+    then show ?thesis by (simp add: int_and_extra_simps)
   next
     case (Suc m)
     with 3 show ?thesis

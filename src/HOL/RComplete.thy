@@ -129,26 +129,27 @@ qed
 
 subsection{*Floor and Ceiling Functions from the Reals to the Integers*}
 
-lemma number_of_less_real_of_int_iff [simp]:
-     "((number_of n) < real (m::int)) = (number_of n < m)"
+(* FIXME: theorems for negative numerals *)
+lemma numeral_less_real_of_int_iff [simp]:
+     "((numeral n) < real (m::int)) = (numeral n < m)"
 apply auto
 apply (rule real_of_int_less_iff [THEN iffD1])
 apply (drule_tac [2] real_of_int_less_iff [THEN iffD2], auto)
 done
 
-lemma number_of_less_real_of_int_iff2 [simp]:
-     "(real (m::int) < (number_of n)) = (m < number_of n)"
+lemma numeral_less_real_of_int_iff2 [simp]:
+     "(real (m::int) < (numeral n)) = (m < numeral n)"
 apply auto
 apply (rule real_of_int_less_iff [THEN iffD1])
 apply (drule_tac [2] real_of_int_less_iff [THEN iffD2], auto)
 done
 
-lemma number_of_le_real_of_int_iff [simp]:
-     "((number_of n) \<le> real (m::int)) = (number_of n \<le> m)"
+lemma numeral_le_real_of_int_iff [simp]:
+     "((numeral n) \<le> real (m::int)) = (numeral n \<le> m)"
 by (simp add: linorder_not_less [symmetric])
 
-lemma number_of_le_real_of_int_iff2 [simp]:
-     "(real (m::int) \<le> (number_of n)) = (m \<le> number_of n)"
+lemma numeral_le_real_of_int_iff2 [simp]:
+     "(real (m::int) \<le> (numeral n)) = (m \<le> numeral n)"
 by (simp add: linorder_not_less [symmetric])
 
 lemma floor_real_of_nat [simp]: "floor (real (n::nat)) = int n"
@@ -323,7 +324,7 @@ lemma natfloor_one [simp]: "natfloor 1 = 1"
 lemma zero_le_natfloor [simp]: "0 <= natfloor x"
   by (unfold natfloor_def, simp)
 
-lemma natfloor_number_of_eq [simp]: "natfloor (number_of n) = number_of n"
+lemma natfloor_numeral_eq [simp]: "natfloor (numeral n) = numeral n"
   by (unfold natfloor_def, simp)
 
 lemma natfloor_real_of_nat [simp]: "natfloor(real n) = n"
@@ -365,9 +366,9 @@ lemma le_natfloor_eq: "0 <= x ==> (a <= natfloor x) = (real a <= x)"
   apply (erule le_natfloor)
 done
 
-lemma le_natfloor_eq_number_of [simp]:
-    "~ neg((number_of n)::int) ==> 0 <= x ==>
-      (number_of n <= natfloor x) = (number_of n <= x)"
+lemma le_natfloor_eq_numeral [simp]:
+    "~ neg((numeral n)::int) ==> 0 <= x ==>
+      (numeral n <= natfloor x) = (numeral n <= x)"
   apply (subst le_natfloor_eq, assumption)
   apply simp
 done
@@ -407,9 +408,9 @@ lemma natfloor_add [simp]: "0 <= x ==> natfloor (x + real a) = natfloor x + a"
   unfolding real_of_int_of_nat_eq [symmetric] floor_add
   by (simp add: nat_add_distrib)
 
-lemma natfloor_add_number_of [simp]:
-    "~neg ((number_of n)::int) ==> 0 <= x ==>
-      natfloor (x + number_of n) = natfloor x + number_of n"
+lemma natfloor_add_numeral [simp]:
+    "~neg ((numeral n)::int) ==> 0 <= x ==>
+      natfloor (x + numeral n) = natfloor x + numeral n"
   by (simp add: natfloor_add [symmetric])
 
 lemma natfloor_add_one: "0 <= x ==> natfloor(x + 1) = natfloor x + 1"
@@ -453,7 +454,7 @@ lemma natceiling_one [simp]: "natceiling 1 = 1"
 lemma zero_le_natceiling [simp]: "0 <= natceiling x"
   by (unfold natceiling_def, simp)
 
-lemma natceiling_number_of_eq [simp]: "natceiling (number_of n) = number_of n"
+lemma natceiling_numeral_eq [simp]: "natceiling (numeral n) = numeral n"
   by (unfold natceiling_def, simp)
 
 lemma natceiling_real_of_nat [simp]: "natceiling(real n) = n"
@@ -476,9 +477,9 @@ lemma natceiling_le_eq: "(natceiling x <= a) = (x <= real a)"
   unfolding natceiling_def real_of_nat_def
   by (simp add: nat_le_iff ceiling_le_iff)
 
-lemma natceiling_le_eq_number_of [simp]:
-    "~ neg((number_of n)::int) ==>
-      (natceiling x <= number_of n) = (x <= number_of n)"
+lemma natceiling_le_eq_numeral [simp]:
+    "~ neg((numeral n)::int) ==>
+      (natceiling x <= numeral n) = (x <= numeral n)"
   by (simp add: natceiling_le_eq)
 
 lemma natceiling_le_eq_one: "(natceiling x <= 1) = (x <= 1)"
@@ -495,9 +496,9 @@ lemma natceiling_add [simp]: "0 <= x ==>
   unfolding real_of_int_of_nat_eq [symmetric] ceiling_add
   by (simp add: nat_add_distrib)
 
-lemma natceiling_add_number_of [simp]:
-    "~ neg ((number_of n)::int) ==> 0 <= x ==>
-      natceiling (x + number_of n) = natceiling x + number_of n"
+lemma natceiling_add_numeral [simp]:
+    "~ neg ((numeral n)::int) ==> 0 <= x ==>
+      natceiling (x + numeral n) = natceiling x + numeral n"
   by (simp add: natceiling_add [symmetric])
 
 lemma natceiling_add_one: "0 <= x ==> natceiling(x + 1) = natceiling x + 1"

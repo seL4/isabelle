@@ -13,8 +13,6 @@ definition
 where
   "prod_rel R1 R2 = (\<lambda>(a, b) (c, d). R1 a c \<and> R2 b d)"
 
-declare [[map prod = prod_rel]]
-
 lemma prod_rel_apply [simp]:
   "prod_rel R1 R2 (a, b) (c, d) \<longleftrightarrow> R1 a c \<and> R2 b d"
   by (simp add: prod_rel_def)
@@ -44,6 +42,8 @@ lemma prod_quotient [quot_thm]:
   using Quotient_rel [OF assms(1)] Quotient_rel [OF assms(2)]
   apply (auto simp add: split_paired_all)
   done
+
+declare [[map prod = (prod_rel, prod_quotient)]]
 
 lemma Pair_rsp [quot_respect]:
   assumes q1: "Quotient R1 Abs1 Rep1"

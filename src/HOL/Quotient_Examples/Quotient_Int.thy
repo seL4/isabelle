@@ -22,10 +22,10 @@ instantiation int :: "{zero, one, plus, uminus, minus, times, ord, abs, sgn}"
 begin
 
 quotient_definition
-  "0 \<Colon> int" is "(0\<Colon>nat, 0\<Colon>nat)"
+  "0 \<Colon> int" is "(0\<Colon>nat, 0\<Colon>nat)" done
 
 quotient_definition
-  "1 \<Colon> int" is "(1\<Colon>nat, 0\<Colon>nat)"
+  "1 \<Colon> int" is "(1\<Colon>nat, 0\<Colon>nat)" done
 
 fun
   plus_int_raw :: "(nat \<times> nat) \<Rightarrow> (nat \<times> nat) \<Rightarrow> (nat \<times> nat)"
@@ -33,7 +33,7 @@ where
   "plus_int_raw (x, y) (u, v) = (x + u, y + v)"
 
 quotient_definition
-  "(op +) \<Colon> (int \<Rightarrow> int \<Rightarrow> int)" is "plus_int_raw"
+  "(op +) \<Colon> (int \<Rightarrow> int \<Rightarrow> int)" is "plus_int_raw" by auto
 
 fun
   uminus_int_raw :: "(nat \<times> nat) \<Rightarrow> (nat \<times> nat)"
@@ -41,7 +41,7 @@ where
   "uminus_int_raw (x, y) = (y, x)"
 
 quotient_definition
-  "(uminus \<Colon> (int \<Rightarrow> int))" is "uminus_int_raw"
+  "(uminus \<Colon> (int \<Rightarrow> int))" is "uminus_int_raw" by auto
 
 definition
   minus_int_def:  "z - w = z + (-w\<Colon>int)"
@@ -51,8 +51,38 @@ fun
 where
   "times_int_raw (x, y) (u, v) = (x*u + y*v, x*v + y*u)"
 
+lemma times_int_raw_fst:
+  assumes a: "x \<approx> z"
+  shows "times_int_raw x y \<approx> times_int_raw z y"
+  using a
+  apply(cases x, cases y, cases z)
+  apply(auto simp add: times_int_raw.simps intrel.simps)
+  apply(rename_tac u v w x y z)
+  apply(subgoal_tac "u*w + z*w = y*w + v*w  &  u*x + z*x = y*x + v*x")
+  apply(simp add: mult_ac)
+  apply(simp add: add_mult_distrib [symmetric])
+done
+
+lemma times_int_raw_snd:
+  assumes a: "x \<approx> z"
+  shows "times_int_raw y x \<approx> times_int_raw y z"
+  using a
+  apply(cases x, cases y, cases z)
+  apply(auto simp add: times_int_raw.simps intrel.simps)
+  apply(rename_tac u v w x y z)
+  apply(subgoal_tac "u*w + z*w = y*w + v*w  &  u*x + z*x = y*x + v*x")
+  apply(simp add: mult_ac)
+  apply(simp add: add_mult_distrib [symmetric])
+done
+
 quotient_definition
   "(op *) :: (int \<Rightarrow> int \<Rightarrow> int)" is "times_int_raw"
+  apply(rule equivp_transp[OF int_equivp])
+  apply(rule times_int_raw_fst)
+  apply(assumption)
+  apply(rule times_int_raw_snd)
+  apply(assumption)
+done
 
 fun
   le_int_raw :: "(nat \<times> nat) \<Rightarrow> (nat \<times> nat) \<Rightarrow> bool"
@@ -60,7 +90,7 @@ where
   "le_int_raw (x, y) (u, v) = (x+v \<le> u+y)"
 
 quotient_definition
-  le_int_def: "(op \<le>) :: int \<Rightarrow> int \<Rightarrow> bool" is "le_int_raw"
+  le_int_def: "(op \<le>) :: int \<Rightarrow> int \<Rightarrow> bool" is "le_int_raw" by auto
 
 definition
   less_int_def: "(z\<Colon>int) < w = (z \<le> w \<and> z \<noteq> w)"
@@ -74,47 +104,6 @@ definition
 instance ..
 
 end
-
-lemma [quot_respect]:
-  shows "(op \<approx> ===> op \<approx> ===> op \<approx>) plus_int_raw plus_int_raw"
-  and   "(op \<approx> ===> op \<approx>) uminus_int_raw uminus_int_raw"
-  and   "(op \<approx> ===> op \<approx> ===> op =) le_int_raw le_int_raw"
-  by (auto intro!: fun_relI)
-
-lemma times_int_raw_fst:
-  assumes a: "x \<approx> z"
-  shows "times_int_raw x y \<approx> times_int_raw z y"
-  using a
-  apply(cases x, cases y, cases z)
-  apply(auto simp add: times_int_raw.simps intrel.simps)
-  apply(rename_tac u v w x y z)
-  apply(subgoal_tac "u*w + z*w = y*w + v*w  &  u*x + z*x = y*x + v*x")
-  apply(simp add: mult_ac)
-  apply(simp add: add_mult_distrib [symmetric])
-  done
-
-lemma times_int_raw_snd:
-  assumes a: "x \<approx> z"
-  shows "times_int_raw y x \<approx> times_int_raw y z"
-  using a
-  apply(cases x, cases y, cases z)
-  apply(auto simp add: times_int_raw.simps intrel.simps)
-  apply(rename_tac u v w x y z)
-  apply(subgoal_tac "u*w + z*w = y*w + v*w  &  u*x + z*x = y*x + v*x")
-  apply(simp add: mult_ac)
-  apply(simp add: add_mult_distrib [symmetric])
-  done
-
-lemma [quot_respect]:
-  shows "(op \<approx> ===> op \<approx> ===> op \<approx>) times_int_raw times_int_raw"
-  apply(simp only: fun_rel_def)
-  apply(rule allI | rule impI)+
-  apply(rule equivp_transp[OF int_equivp])
-  apply(rule times_int_raw_fst)
-  apply(assumption)
-  apply(rule times_int_raw_snd)
-  apply(assumption)
-  done
 
 
 text{* The integers form a @{text comm_ring_1}*}
@@ -165,11 +154,7 @@ definition int_of_nat_raw:
   "int_of_nat_raw m = (m :: nat, 0 :: nat)"
 
 quotient_definition
-  "int_of_nat :: nat \<Rightarrow> int" is "int_of_nat_raw"
-
-lemma[quot_respect]:
-  shows "(op = ===> op \<approx>) int_of_nat_raw int_of_nat_raw"
-  by (auto simp add: equivp_reflp [OF int_equivp])
+  "int_of_nat :: nat \<Rightarrow> int" is "int_of_nat_raw" done
 
 lemma int_of_nat:
   shows "of_nat m = int_of_nat m"
@@ -304,11 +289,7 @@ definition
 quotient_definition
   "int_to_nat::int \<Rightarrow> nat"
 is
-  "int_to_nat_raw"
-
-lemma [quot_respect]:
-  shows "(intrel ===> op =) int_to_nat_raw int_to_nat_raw"
-  by (auto iff: int_to_nat_raw_def)
+  "int_to_nat_raw" unfolding int_to_nat_raw_def by force
 
 lemma nat_le_eq_zle:
   fixes w z::"int"

@@ -14,8 +14,8 @@ uses
   ("Tools/nat_numeral_simprocs.ML")
 begin
 
-declare split_div [of _ _ "number_of k", arith_split] for k
-declare split_mod [of _ _ "number_of k", arith_split] for k
+declare split_div [of _ _ "numeral k", arith_split] for k
+declare split_mod [of _ _ "numeral k", arith_split] for k
 
 text {* For @{text combine_numerals} *}
 
@@ -98,72 +98,74 @@ simproc_setup semiring_assoc_fold
   ("(a::'a::comm_semiring_1_cancel) * b") =
   {* fn phi => Numeral_Simprocs.assoc_fold *}
 
+(* TODO: see whether the type class can be generalized further *)
 simproc_setup int_combine_numerals
-  ("(i::'a::number_ring) + j" | "(i::'a::number_ring) - j") =
+  ("(i::'a::comm_ring_1) + j" | "(i::'a::comm_ring_1) - j") =
   {* fn phi => Numeral_Simprocs.combine_numerals *}
 
 simproc_setup field_combine_numerals
-  ("(i::'a::{field_inverse_zero,ring_char_0,number_ring}) + j"
-  |"(i::'a::{field_inverse_zero,ring_char_0,number_ring}) - j") =
+  ("(i::'a::{field_inverse_zero,ring_char_0}) + j"
+  |"(i::'a::{field_inverse_zero,ring_char_0}) - j") =
   {* fn phi => Numeral_Simprocs.field_combine_numerals *}
 
 simproc_setup inteq_cancel_numerals
-  ("(l::'a::number_ring) + m = n"
-  |"(l::'a::number_ring) = m + n"
-  |"(l::'a::number_ring) - m = n"
-  |"(l::'a::number_ring) = m - n"
-  |"(l::'a::number_ring) * m = n"
-  |"(l::'a::number_ring) = m * n"
-  |"- (l::'a::number_ring) = m"
-  |"(l::'a::number_ring) = - m") =
+  ("(l::'a::comm_ring_1) + m = n"
+  |"(l::'a::comm_ring_1) = m + n"
+  |"(l::'a::comm_ring_1) - m = n"
+  |"(l::'a::comm_ring_1) = m - n"
+  |"(l::'a::comm_ring_1) * m = n"
+  |"(l::'a::comm_ring_1) = m * n"
+  |"- (l::'a::comm_ring_1) = m"
+  |"(l::'a::comm_ring_1) = - m") =
   {* fn phi => Numeral_Simprocs.eq_cancel_numerals *}
 
 simproc_setup intless_cancel_numerals
-  ("(l::'a::{linordered_idom,number_ring}) + m < n"
-  |"(l::'a::{linordered_idom,number_ring}) < m + n"
-  |"(l::'a::{linordered_idom,number_ring}) - m < n"
-  |"(l::'a::{linordered_idom,number_ring}) < m - n"
-  |"(l::'a::{linordered_idom,number_ring}) * m < n"
-  |"(l::'a::{linordered_idom,number_ring}) < m * n"
-  |"- (l::'a::{linordered_idom,number_ring}) < m"
-  |"(l::'a::{linordered_idom,number_ring}) < - m") =
+  ("(l::'a::linordered_idom) + m < n"
+  |"(l::'a::linordered_idom) < m + n"
+  |"(l::'a::linordered_idom) - m < n"
+  |"(l::'a::linordered_idom) < m - n"
+  |"(l::'a::linordered_idom) * m < n"
+  |"(l::'a::linordered_idom) < m * n"
+  |"- (l::'a::linordered_idom) < m"
+  |"(l::'a::linordered_idom) < - m") =
   {* fn phi => Numeral_Simprocs.less_cancel_numerals *}
 
 simproc_setup intle_cancel_numerals
-  ("(l::'a::{linordered_idom,number_ring}) + m \<le> n"
-  |"(l::'a::{linordered_idom,number_ring}) \<le> m + n"
-  |"(l::'a::{linordered_idom,number_ring}) - m \<le> n"
-  |"(l::'a::{linordered_idom,number_ring}) \<le> m - n"
-  |"(l::'a::{linordered_idom,number_ring}) * m \<le> n"
-  |"(l::'a::{linordered_idom,number_ring}) \<le> m * n"
-  |"- (l::'a::{linordered_idom,number_ring}) \<le> m"
-  |"(l::'a::{linordered_idom,number_ring}) \<le> - m") =
+  ("(l::'a::linordered_idom) + m \<le> n"
+  |"(l::'a::linordered_idom) \<le> m + n"
+  |"(l::'a::linordered_idom) - m \<le> n"
+  |"(l::'a::linordered_idom) \<le> m - n"
+  |"(l::'a::linordered_idom) * m \<le> n"
+  |"(l::'a::linordered_idom) \<le> m * n"
+  |"- (l::'a::linordered_idom) \<le> m"
+  |"(l::'a::linordered_idom) \<le> - m") =
   {* fn phi => Numeral_Simprocs.le_cancel_numerals *}
 
 simproc_setup ring_eq_cancel_numeral_factor
-  ("(l::'a::{idom,ring_char_0,number_ring}) * m = n"
-  |"(l::'a::{idom,ring_char_0,number_ring}) = m * n") =
+  ("(l::'a::{idom,ring_char_0}) * m = n"
+  |"(l::'a::{idom,ring_char_0}) = m * n") =
   {* fn phi => Numeral_Simprocs.eq_cancel_numeral_factor *}
 
 simproc_setup ring_less_cancel_numeral_factor
-  ("(l::'a::{linordered_idom,number_ring}) * m < n"
-  |"(l::'a::{linordered_idom,number_ring}) < m * n") =
+  ("(l::'a::linordered_idom) * m < n"
+  |"(l::'a::linordered_idom) < m * n") =
   {* fn phi => Numeral_Simprocs.less_cancel_numeral_factor *}
 
 simproc_setup ring_le_cancel_numeral_factor
-  ("(l::'a::{linordered_idom,number_ring}) * m <= n"
-  |"(l::'a::{linordered_idom,number_ring}) <= m * n") =
+  ("(l::'a::linordered_idom) * m <= n"
+  |"(l::'a::linordered_idom) <= m * n") =
   {* fn phi => Numeral_Simprocs.le_cancel_numeral_factor *}
 
+(* TODO: remove comm_ring_1 constraint if possible *)
 simproc_setup int_div_cancel_numeral_factors
-  ("((l::'a::{semiring_div,ring_char_0,number_ring}) * m) div n"
-  |"(l::'a::{semiring_div,ring_char_0,number_ring}) div (m * n)") =
+  ("((l::'a::{semiring_div,comm_ring_1,ring_char_0}) * m) div n"
+  |"(l::'a::{semiring_div,comm_ring_1,ring_char_0}) div (m * n)") =
   {* fn phi => Numeral_Simprocs.div_cancel_numeral_factor *}
 
 simproc_setup divide_cancel_numeral_factor
-  ("((l::'a::{field_inverse_zero,ring_char_0,number_ring}) * m) / n"
-  |"(l::'a::{field_inverse_zero,ring_char_0,number_ring}) / (m * n)"
-  |"((number_of v)::'a::{field_inverse_zero,ring_char_0,number_ring}) / (number_of w)") =
+  ("((l::'a::{field_inverse_zero,ring_char_0}) * m) / n"
+  |"(l::'a::{field_inverse_zero,ring_char_0}) / (m * n)"
+  |"((numeral v)::'a::{field_inverse_zero,ring_char_0}) / (numeral w)") =
   {* fn phi => Numeral_Simprocs.divide_cancel_numeral_factor *}
 
 simproc_setup ring_eq_cancel_factor
@@ -270,19 +272,25 @@ simproc_setup nat_dvd_cancel_factor
   ("((l::nat) * m) dvd n" | "(l::nat) dvd (m * n)") =
   {* fn phi => Nat_Numeral_Simprocs.dvd_cancel_factor *}
 
+(* FIXME: duplicate rule warnings for:
+  ring_distribs
+  numeral_plus_numeral numeral_times_numeral
+  numeral_eq_iff numeral_less_iff numeral_le_iff
+  numeral_neq_zero zero_neq_numeral zero_less_numeral
+  if_True if_False *)
 declaration {* 
-  K (Lin_Arith.add_simps (@{thms neg_simps} @ [@{thm Suc_nat_number_of}, @{thm int_nat_number_of}])
-  #> Lin_Arith.add_simps (@{thms ring_distribs} @ [@{thm Let_number_of}, @{thm Let_0}, @{thm Let_1},
+  K (Lin_Arith.add_simps ([@{thm Suc_numeral}, @{thm int_numeral}])
+  #> Lin_Arith.add_simps (@{thms ring_distribs} @ [@{thm Let_numeral}, @{thm Let_neg_numeral}, @{thm Let_0}, @{thm Let_1},
      @{thm nat_0}, @{thm nat_1},
-     @{thm add_nat_number_of}, @{thm diff_nat_number_of}, @{thm mult_nat_number_of},
-     @{thm eq_nat_number_of}, @{thm less_nat_number_of}, @{thm le_number_of_eq_not_less},
-     @{thm le_Suc_number_of}, @{thm le_number_of_Suc},
-     @{thm less_Suc_number_of}, @{thm less_number_of_Suc},
-     @{thm Suc_eq_number_of}, @{thm eq_number_of_Suc},
+     @{thm numeral_plus_numeral}, @{thm diff_nat_numeral}, @{thm numeral_times_numeral},
+     @{thm numeral_eq_iff}, @{thm numeral_less_iff}, @{thm numeral_le_iff},
+     @{thm le_Suc_numeral}, @{thm le_numeral_Suc},
+     @{thm less_Suc_numeral}, @{thm less_numeral_Suc},
+     @{thm Suc_eq_numeral}, @{thm eq_numeral_Suc},
      @{thm mult_Suc}, @{thm mult_Suc_right},
      @{thm add_Suc}, @{thm add_Suc_right},
-     @{thm eq_number_of_0}, @{thm eq_0_number_of}, @{thm less_0_number_of},
-     @{thm of_int_number_of_eq}, @{thm of_nat_number_of_eq}, @{thm nat_number_of},
+     @{thm numeral_neq_zero}, @{thm zero_neq_numeral}, @{thm zero_less_numeral},
+     @{thm of_int_numeral}, @{thm of_nat_numeral}, @{thm nat_numeral},
      @{thm if_True}, @{thm if_False}])
   #> Lin_Arith.add_simprocs
       [@{simproc semiring_assoc_fold},
