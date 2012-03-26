@@ -1636,30 +1636,32 @@ fun unfold_defs_in_term
         (hol_ctxt as {thy, ctxt, stds, whacks, total_consts, case_names,
                       def_tables, ground_thm_table, ersatz_table, ...}) =
   let
-    fun do_term depth Ts t =
+    fun do_numeral depth Ts mult T t0 t1 =
+      (if is_number_type ctxt T then
+         let
+           val j = mult * (HOLogic.dest_num t1)
+                   |> T = nat_T ? Integer.max 0
+           val s = numeral_prefix ^ signed_string_of_int j
+         in
+           if is_integer_like_type T then
+             if is_standard_datatype thy stds T then Const (s, T)
+             else funpow j (curry (op $) (suc_const T)) (zero_const T)
+           else
+             do_term depth Ts (Const (@{const_name of_int}, int_T --> T)
+                               $ Const (s, int_T))
+         end
+         handle TERM _ => raise SAME ()
+       else
+         raise SAME ())
+      handle SAME () => s_betapply [] (do_term depth Ts t0, do_term depth Ts t1)
+    and do_term depth Ts t =
       case t of
-        (t0 as Const (@{const_name Num.numeral_class.numeral},
+        (t0 as Const (@{const_name Num.neg_numeral_class.neg_numeral},
                       Type (@{type_name fun}, [_, ran_T]))) $ t1 =>
-        ((if is_number_type ctxt ran_T then
-            let
-              val j = t1 |> HOLogic.dest_num
-                         |> ran_T = nat_T ? Integer.max 0
-              val s = numeral_prefix ^ signed_string_of_int j
-            in
-              if is_integer_like_type ran_T then
-                if is_standard_datatype thy stds ran_T then
-                  Const (s, ran_T)
-                else
-                  funpow j (curry (op $) (suc_const ran_T)) (zero_const ran_T)
-              else
-                do_term depth Ts (Const (@{const_name of_int}, int_T --> ran_T)
-                                  $ Const (s, int_T))
-            end
-            handle TERM _ => raise SAME ()
-          else
-            raise SAME ())
-         handle SAME () =>
-                s_betapply [] (do_term depth Ts t0, do_term depth Ts t1))
+        do_numeral depth Ts ~1 ran_T t0 t1
+      | (t0 as Const (@{const_name Num.numeral_class.numeral},
+                      Type (@{type_name fun}, [_, ran_T]))) $ t1 =>
+        do_numeral depth Ts 1 ran_T t0 t1
       | Const (@{const_name refl_on}, T) $ Const (@{const_name top}, _) $ t2 =>
         do_const depth Ts t (@{const_name refl'}, range_type T) [t2]
       | (t0 as Const (@{const_name Sigma}, Type (_, [T1, Type (_, [T2, T3])])))
