@@ -1010,12 +1010,12 @@ hide_const (open) One Bit0 Bit1 BitM inc pow sqr sub dbl dbl_inc dbl_dec
 subsection {* code module namespace *}
 
 code_modulename SML
-  Numeral Arith
+  Num Arith
 
 code_modulename OCaml
-  Numeral Arith
+  Num Arith
 
 code_modulename Haskell
-  Numeral Arith
+  Num Arith
 
 end
