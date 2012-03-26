@@ -347,7 +347,7 @@ object Symbol
       "\\<^isub>", "\\<^isup>")
 
     val blanks =
-      recode_set(space, "\t", "\n", "\u000B", "\f", "\r", "\\<spacespace>", "\\<^newline>")
+      recode_set(space, "\t", "\n", "\u000B", "\f", "\r", "\r\n", "\\<spacespace>", "\\<^newline>")
 
     val sym_chars =
       Set("!", "#", "$", "%", "&", "*", "+", "-", "/", "<", "=", ">", "?", "@", "^", "_", "|", "~")
