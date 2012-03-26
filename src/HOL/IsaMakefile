@@ -65,7 +65,6 @@ test: \
   HOL-Predicate_Compile_Examples \
   HOL-Prolog \
   HOL-Proofs-ex \
-  HOL-Proofs-Lambda \
   HOL-SET_Protocol \
   HOL-SPARK-Examples \
   HOL-SPARK-Manual \
@@ -80,6 +79,8 @@ test: \
   HOL-Word-Examples \
   HOL-ZF
     # ^ this is the sort position
+
+# FIXME  HOL-Proofs-Lambda
 
 generate: \
   HOL-HOL4-Generate \
