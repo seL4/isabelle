@@ -159,7 +159,7 @@ lemma square_beta_eta: "square beta eta (eta^**) (beta^==)"
      apply (slowsimp intro: rtrancl_eta_subst eta_subst)
     apply (blast intro: rtrancl_eta_AppL)
    apply (blast intro: rtrancl_eta_AppR)
-  apply simp;
+  apply simp
   apply (slowsimp intro: rtrancl_eta_Abs free_beta
     iff del: dB.distinct simp: dB.distinct)    (*23 seconds?*)
   done
