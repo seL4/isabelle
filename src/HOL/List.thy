@@ -5354,9 +5354,9 @@ lemma list_all_cong [fundef_cong]:
   "xs = ys \<Longrightarrow> (\<And>x. x \<in> set ys \<Longrightarrow> f x = g x) \<Longrightarrow> list_all f xs = list_all g ys"
   by (simp add: list_all_iff)
 
-lemma list_any_cong [fundef_cong]:
+lemma list_ex_cong [fundef_cong]:
   "xs = ys \<Longrightarrow> (\<And>x. x \<in> set ys \<Longrightarrow> f x = g x) \<Longrightarrow> list_ex f xs = list_ex g ys"
-  by (simp add: list_ex_iff)
+by (simp add: list_ex_iff)
 
 text {* Executable checks for relations on sets *}
 
