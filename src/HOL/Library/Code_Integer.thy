@@ -16,11 +16,13 @@ lemma nat_code [code]:
   "nat k = (if k \<le> 0 then 0 else
      let
        (l, j) = divmod_int k 2;
-       l' = 2 * nat l
+       n = nat l;
+       l' = n + n
      in if j = 0 then l' else Suc l')"
 proof -
   have "2 = nat 2" by simp
   show ?thesis
+    apply (subst nat_mult_2 [symmetric])
     apply (auto simp add: Let_def divmod_int_mod_div not_le
      nat_div_distrib nat_mult_distrib mult_div_cancel mod_2_not_eq_zero_eq_one_int)
     apply (unfold `2 = nat 2`)
