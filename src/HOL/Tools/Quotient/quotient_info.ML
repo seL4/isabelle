@@ -71,9 +71,9 @@ val lookup_quotmaps_global = Symtab.lookup o Quotmaps.get o Context.Theory
 
 val quotmaps_attribute_setup =
   Attrib.setup @{binding map}
-    ((Args.type_name true --| Scan.lift (@{keyword "="})) --
-      (Scan.lift (@{keyword "("}) |-- Args.const_proper true --| Scan.lift (@{keyword ","}) --
-        Attrib.thm --| Scan.lift (@{keyword ")"})) >>
+    ((Args.type_name true --| Scan.lift @{keyword "="}) --
+      (Scan.lift @{keyword "("} |-- Args.const_proper true --| Scan.lift @{keyword ","} --
+        Attrib.thm --| Scan.lift @{keyword ")"}) >>
       (fn (tyname, (relname, qthm)) =>
         let val minfo = {relmap = relname, quot_thm = qthm}
         in Thm.declaration_attribute (fn _ => Quotmaps.map (Symtab.update (tyname, minfo))) end))
