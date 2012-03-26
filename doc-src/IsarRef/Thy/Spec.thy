@@ -51,9 +51,12 @@ text {*
   admissible.
 
   @{rail "
-    @@{command theory} @{syntax name} \\ @'imports' (@{syntax name} +) uses? @'begin'
+    @@{command theory} @{syntax name} imports \\ keywords? uses? @'begin'
     ;
-
+    imports: @'imports' (@{syntax name} +)
+    ;
+    keywords: @'keywords' ((@{syntax string} +) ('::' @{syntax name} @{syntax tags})? + @'and')
+    ;
     uses: @'uses' ((@{syntax name} | @{syntax parname}) +)
   "}
 
@@ -61,17 +64,28 @@ text {*
 
   \item @{command "theory"}~@{text "A \<IMPORTS> B\<^sub>1 \<dots> B\<^sub>n \<BEGIN>"}
   starts a new theory @{text A} based on the merge of existing
-  theories @{text "B\<^sub>1 \<dots> B\<^sub>n"}.
-  
-  Due to the possibility to import more than one ancestor, the
-  resulting theory structure of an Isabelle session forms a directed
-  acyclic graph (DAG).  Isabelle's theory loader ensures that the
-  sources contributing to the development graph are always up-to-date:
-  changed files are automatically reloaded whenever a theory header
-  specification is processed.
+  theories @{text "B\<^sub>1 \<dots> B\<^sub>n"}.  Due to the possibility to import more
+  than one ancestor, the resulting theory structure of an Isabelle
+  session forms a directed acyclic graph (DAG).  Isabelle takes care
+  that sources contributing to the development graph are always
+  up-to-date: changed files are automatically rechecked whenever a
+  theory header specification is processed.
+
+  The optional @{keyword_def "keywords"} specification declares outer
+  syntax (\chref{ch:outer-syntax}) that is introduced in this theory
+  later on (rare in end-user applications).  Both minor keywords and
+  major keywords of the Isar command language need to be specified, in
+  order to make parsing of proof documents work properly.  Command
+  keywords need to be classified according to their structural role in
+  the formal text.  Examples may be seen in Isabelle/HOL sources
+  itself, such as @{keyword "keywords"}~@{verbatim "\"typedef\""}
+  @{text ":: thy_goal"} or @{keyword "keywords"}~@{verbatim
+  "\"datatype\""} @{text ":: thy_decl"} for theory-level declarations
+  with and without proof, respectively.  Additional @{syntax tags}
+  provide defaults for document preparation (\secref{sec:tags}).
   
   The optional @{keyword_def "uses"} specification declares additional
-  dependencies on extra files (usually ML sources).  Files will be
+  dependencies on external files (notably ML sources).  Files will be
   loaded immediately (as ML), unless the name is parenthesized.  The
   latter case records a dependency that needs to be resolved later in
   the text, usually via explicit @{command_ref "use"} for ML files;
@@ -79,8 +93,10 @@ text {*
   corresponding tools or packages.
   
   \item @{command (global) "end"} concludes the current theory
-  definition.  Note that local theory targets involve a local
-  @{command (local) "end"}, which is clear from the nesting.
+  definition.  Note that some other commands, e.g.\ local theory
+  targets @{command locale} or @{command class} may involve a
+  @{keyword "begin"} that needs to be matched by @{command (local)
+  "end"}, according to the usual rules for nested blocks.
 
   \end{description}
 *}

@@ -2,7 +2,7 @@ theory Outer_Syntax
 imports Base Main
 begin
 
-chapter {* Outer syntax --- the theory language *}
+chapter {* Outer syntax --- the theory language \label{ch:outer-syntax} *}
 
 text {*
   The rather generic framework of Isabelle/Isar syntax emerges from
