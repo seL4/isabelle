@@ -85,7 +85,10 @@ next
   unfolding endofun_rel_def map_endofun_def map_fun_def o_def map_endofun'_def endofun_rel'_def id_def 
     by (metis (mono_tags) Quotient_endofun rep_abs_rsp)
 next
-  show "\<And>r s. endofun_rel R r s =
+  have abs_to_eq: "\<And> x y. abs_endofun x = abs_endofun y \<Longrightarrow> x = y" 
+  by (drule arg_cong[where f=rep_endofun]) (simp add: Quotient_rep_abs[OF Quotient_endofun])
+  fix r s
+  show "endofun_rel R r s =
           (endofun_rel R r r \<and>
            endofun_rel R s s \<and> map_endofun Abs Rep r = map_endofun Abs Rep s)"
     apply(auto simp add: endofun_rel_def endofun_rel'_def map_endofun_def map_endofun'_def)
@@ -95,8 +98,7 @@ next
     apply metis
     using fun_quotient[OF a a, THEN Quotient_rel]
     apply metis
-    using fun_quotient[OF a a, THEN Quotient_rel]
-    by (smt Quotient_endofun rep_abs_rsp)
+    by (auto intro: fun_quotient[OF a a, THEN Quotient_rel, THEN iffD1] simp add: abs_to_eq)
 qed
 
 declare [[map endofun = (endofun_rel, endofun_quotient)]]
