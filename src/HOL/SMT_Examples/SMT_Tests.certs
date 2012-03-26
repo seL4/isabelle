@@ -67155,3 +67155,80 @@ decl f14 :: S7
 #139 := [asserted]: #53
 [mp #139 #149]: false
 unsat
+f09576464eb9a729afbe3fe966b57e4354456502 30 0
+#2 := false
+decl f4 :: (-> S3 S4)
+decl f6 :: S3
+#16 := f6
+#17 := (f4 f6)
+decl f3 :: (-> S2 S4)
+decl f5 :: S2
+#14 := f5
+#15 := (f3 f5)
+#18 := (= #15 #17)
+#19 := (not #18)
+#41 := [asserted]: #19
+#9 := (:var 0 S3)
+#10 := (f4 #9)
+#7 := (:var 1 S2)
+#8 := (f3 #7)
+#11 := (pattern #8 #10)
+#12 := (= #8 #10)
+#13 := (forall (vars (?v0 S2) (?v1 S3)) (:pat #11) #12)
+#51 := (~ #13 #13)
+#49 := (~ #12 #12)
+#50 := [refl]: #49
+#52 := [nnf-pos #50]: #51
+#40 := [asserted]: #13
+#43 := [mp~ #40 #52]: #13
+#111 := (not #13)
+#197 := (or #111 #18)
+#112 := [quant-inst #14 #16]: #197
+[unit-resolution #112 #43 #41]: false
+unsat
+5a4509215da405eb20d4081e74524f90aaca407d 1 0
+unsat
+ec561a73aaf24cad28c298d64ff90ab9419e03b9 1 0
+unsat
+99895ba337908a50454cc51cd8d58f8c9973a5d8 1 0
+unsat
+f66af12ea27f7d59df586df568e3d48733d0c2ad 1 0
+unsat
+98a1d35ce489ce400102751e60b482d34ba4c100 1 0
+unsat
+997d0c877f7a6af3978a25e9a11fe86be44aa3d7 1 0
+unsat
+dec47d92e2bc6704596ff538272e4aa7dad033f8 1 0
+unsat
+79ff64606be9eaf1430551196cf6a56b904cd2f0 1 0
+unsat
+9ddb2d0aa5571f810dbdcf99f2a9c0dd91892822 1 0
+unsat
+383af2a9be136c8b9da304961ed7781d6d8b67da 1 0
+unsat
+8a45fca8152b4b73650f0bdadc7b4837d03b0e4f 1 0
+unsat
+028cbfc14838b1039241d56404b98b994249bd70 1 0
+unsat
+0c3c93869b86cd3cceaa64f6505c6b53e5a0d5f5 1 0
+unsat
+da5a18ce51a6fcaf95a5da1f3cf6ec44d50d2911 1 0
+unsat
+b326e9b62ea312d34250c299905421b42e169a3d 1 0
+unsat
+2df9f9573f4c3d690e8e9d39a01fbee0d0dabfca 1 0
+unsat
+64fe45c879d2ce11b605b7ccbadec44b7474cdb3 1 0
+unsat
+27388d866d376a195719342119d2c39bddbbda5e 1 0
+unsat
+4fdb33415d645476800f24bc2645077ed20fbcc7 1 0
+unsat
+34954aeef00ac521d8d6983ea46bbdde741af613 1 0
+unsat
+c975ecb6377964929f32ae1b30fbd693a2969c6a 1 0
+unsat
+5c9a9ffe9941b81f90170c912034e8b681bc281f 1 0
+unsat
+26a6ebeac1bb75693d61408e7c0984072dfbd2df 1 0
+unsat
