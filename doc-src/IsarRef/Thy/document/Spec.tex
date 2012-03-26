@@ -72,17 +72,41 @@ The Isabelle/Isar theory format integrates specifications and
 \rail@begin{4}{}
 \rail@term{\hyperlink{command.theory}{\mbox{\isa{\isacommand{theory}}}}}[]
 \rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nont{\isa{imports}}[]
 \rail@cr{2}
-\rail@term{\isa{\isakeyword{imports}}}[]
-\rail@plus
-\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
-\rail@nextplus{3}
-\rail@endplus
+\rail@bar
+\rail@nextbar{3}
+\rail@nont{\isa{keywords}}[]
+\rail@endbar
 \rail@bar
 \rail@nextbar{3}
 \rail@nont{\isa{uses}}[]
 \rail@endbar
 \rail@term{\isa{\isakeyword{begin}}}[]
+\rail@end
+\rail@begin{2}{\isa{imports}}
+\rail@term{\isa{\isakeyword{imports}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@end
+\rail@begin{3}{\isa{keywords}}
+\rail@term{\isa{\isakeyword{keywords}}}[]
+\rail@plus
+\rail@plus
+\rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nont{\hyperlink{syntax.tags}{\mbox{\isa{tags}}}}[]
+\rail@endbar
+\rail@nextplus{2}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
 \rail@end
 \rail@begin{3}{\isa{uses}}
 \rail@term{\isa{\isakeyword{uses}}}[]
@@ -102,17 +126,27 @@ The Isabelle/Isar theory format integrates specifications and
 
   \item \hyperlink{command.theory}{\mbox{\isa{\isacommand{theory}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}A\ {\isaliteral{5C3C494D504F5254533E}{\isasymIMPORTS}}\ B\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ B\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{5C3C424547494E3E}{\isasymBEGIN}}{\isaliteral{22}{\isachardoublequote}}}
   starts a new theory \isa{A} based on the merge of existing
-  theories \isa{{\isaliteral{22}{\isachardoublequote}}B\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ B\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}}.
-  
-  Due to the possibility to import more than one ancestor, the
-  resulting theory structure of an Isabelle session forms a directed
-  acyclic graph (DAG).  Isabelle's theory loader ensures that the
-  sources contributing to the development graph are always up-to-date:
-  changed files are automatically reloaded whenever a theory header
-  specification is processed.
+  theories \isa{{\isaliteral{22}{\isachardoublequote}}B\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ B\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}}.  Due to the possibility to import more
+  than one ancestor, the resulting theory structure of an Isabelle
+  session forms a directed acyclic graph (DAG).  Isabelle takes care
+  that sources contributing to the development graph are always
+  up-to-date: changed files are automatically rechecked whenever a
+  theory header specification is processed.
+
+  The optional \indexdef{}{keyword}{keywords}\hypertarget{keyword.keywords}{\hyperlink{keyword.keywords}{\mbox{\isa{\isakeyword{keywords}}}}} specification declares outer
+  syntax (\chref{ch:outer-syntax}) that is introduced in this theory
+  later on (rare in end-user applications).  Both minor keywords and
+  major keywords of the Isar command language need to be specified, in
+  order to make parsing of proof documents work properly.  Command
+  keywords need to be classified according to their structural role in
+  the formal text.  Examples may be seen in Isabelle/HOL sources
+  itself, such as \hyperlink{keyword.keywords}{\mbox{\isa{\isakeyword{keywords}}}}~\verb|"typedef"|
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ thy{\isaliteral{5F}{\isacharunderscore}}goal{\isaliteral{22}{\isachardoublequote}}} or \hyperlink{keyword.keywords}{\mbox{\isa{\isakeyword{keywords}}}}~\verb|"datatype"| \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ thy{\isaliteral{5F}{\isacharunderscore}}decl{\isaliteral{22}{\isachardoublequote}}} for theory-level declarations
+  with and without proof, respectively.  Additional \hyperlink{syntax.tags}{\mbox{\isa{tags}}}
+  provide defaults for document preparation (\secref{sec:tags}).
   
   The optional \indexdef{}{keyword}{uses}\hypertarget{keyword.uses}{\hyperlink{keyword.uses}{\mbox{\isa{\isakeyword{uses}}}}} specification declares additional
-  dependencies on extra files (usually ML sources).  Files will be
+  dependencies on external files (notably ML sources).  Files will be
   loaded immediately (as ML), unless the name is parenthesized.  The
   latter case records a dependency that needs to be resolved later in
   the text, usually via explicit \indexref{}{command}{use}\hyperlink{command.use}{\mbox{\isa{\isacommand{use}}}} for ML files;
@@ -120,8 +154,9 @@ The Isabelle/Isar theory format integrates specifications and
   corresponding tools or packages.
   
   \item \hyperlink{command.global.end}{\mbox{\isa{\isacommand{end}}}} concludes the current theory
-  definition.  Note that local theory targets involve a local
-  \hyperlink{command.local.end}{\mbox{\isa{\isacommand{end}}}}, which is clear from the nesting.
+  definition.  Note that some other commands, e.g.\ local theory
+  targets \hyperlink{command.locale}{\mbox{\isa{\isacommand{locale}}}} or \hyperlink{command.class}{\mbox{\isa{\isacommand{class}}}} may involve a
+  \hyperlink{keyword.begin}{\mbox{\isa{\isakeyword{begin}}}} that needs to be matched by \hyperlink{command.local.end}{\mbox{\isa{\isacommand{end}}}}, according to the usual rules for nested blocks.
 
   \end{description}%
 \end{isamarkuptext}%
