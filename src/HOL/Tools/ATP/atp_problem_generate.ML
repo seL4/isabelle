@@ -1199,11 +1199,13 @@ fun iformula_from_prop ctxt format type_enc eq_as_iff =
       | _ => do_term bs t
   in do_formula [] end
 
-fun presimplify_term ctxt t =
-  t |> exists_Const (member (op =) Meson.presimplified_consts o fst) t
-       ? (Skip_Proof.make_thm (Proof_Context.theory_of ctxt)
-          #> Meson.presimplify
-          #> prop_of)
+fun presimplify_term thy t =
+  if exists_Const (member (op =) Meson.presimplified_consts o fst) t then
+    t |> Skip_Proof.make_thm thy
+      |> Meson.presimplify
+      |> prop_of
+  else
+    t
 
 fun is_fun_equality (@{const_name HOL.eq},
                      Type (_, [Type (@{type_name fun}, _), _])) = true
@@ -1252,7 +1254,7 @@ fun presimp_prop ctxt role t =
    in
      t |> need_trueprop ? HOLogic.mk_Trueprop
        |> extensionalize_term ctxt
-       |> presimplify_term ctxt
+       |> presimplify_term thy
        |> HOLogic.dest_Trueprop
    end
    handle TERM _ => default_formula role)
