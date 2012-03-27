@@ -580,13 +580,8 @@ lemma divmod_nat_zero: "divmod_nat m 0 = (0, m)"
 lemma divmod_nat_zero_left: "divmod_nat 0 n = (0, 0)"
   by (simp add: divmod_nat_unique divmod_nat_rel_def)
 
-lemma divmod_nat_base:
-  assumes "m < n"
-  shows "divmod_nat m n = (0, m)"
-proof (rule divmod_nat_unique)
-  show "divmod_nat_rel m n (0, m)"
-    unfolding divmod_nat_rel_def using assms by simp
-qed
+lemma divmod_nat_base: "m < n \<Longrightarrow> divmod_nat m n = (0, m)"
+  by (simp add: divmod_nat_unique divmod_nat_rel_def)
 
 lemma divmod_nat_step:
   assumes "0 < n" and "n \<le> m"
