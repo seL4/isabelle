@@ -1909,8 +1909,18 @@ fun tag_with_type ctxt format mono type_enc pos T tm =
   |> ho_term_from_iterm ctxt format mono type_enc pos
   |> (fn ATerm (s, tms) => ATerm (s, tms @ [tm])
        | _ => raise Fail "unexpected lambda-abstraction")
-and ho_term_from_iterm ctxt format mono type_enc =
+and ho_term_from_iterm ctxt format mono type_enc pos =
   let
+    fun beta_red bs (IApp (IAbs ((name, _), tm), tm')) =
+        beta_red ((name, beta_red bs tm') :: bs) tm
+      | beta_red bs (IApp tmp) = IApp (pairself (beta_red bs) tmp)
+      | beta_red bs (tm as IConst (name, _, _)) =
+        (case AList.lookup (op =) bs name of
+           SOME tm' => tm'
+         | NONE => tm)
+      | beta_red bs (IAbs ((name, T), tm)) =
+        IAbs ((name, T), beta_red (AList.delete (op =) name bs) tm)
+      | beta_red _ tm = tm
     fun term site u =
       let
         val (head, args) = strip_iterm_comb u
@@ -1922,7 +1932,9 @@ and ho_term_from_iterm ctxt format mono type_enc =
         val t =
           case head of
             IConst (name as (s, _), _, T_args) =>
-            let val arg_site = if is_tptp_equal s then Eq_Arg pos else Elsewhere in
+            let
+              val arg_site = if is_tptp_equal s then Eq_Arg pos else Elsewhere
+            in
               map (term arg_site) args |> mk_aterm format type_enc name T_args
             end
           | IVar (name, _) =>
@@ -1941,7 +1953,7 @@ and ho_term_from_iterm ctxt format mono type_enc =
         else
           t
       end
-  in term o Top_Level end
+  in term (Top_Level pos) o beta_red [] end
 and formula_from_iformula ctxt polym_constrs format mono type_enc
                           should_guard_var =
   let
