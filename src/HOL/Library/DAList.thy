@@ -9,13 +9,21 @@ begin
 
 text {* This was based on some existing fragments in the AFP-Collection framework. *}
 
+subsection {* Preliminaries *}
+
+lemma distinct_map_fst_filter:
+   "distinct (map fst xs) ==> distinct (map fst (List.filter P xs))"
+by (induct xs) auto
+
 subsection {* Type @{text "('key, 'value) alist" } *}
 
-typedef (open) ('key, 'value) alist = "{xs :: ('key \<times> 'value) list. distinct (map fst xs)}"
+typedef (open) ('key, 'value) alist = "{xs :: ('key \<times> 'value) list. (distinct o map fst) xs}"
   morphisms impl_of Alist
 proof
-  show "[] \<in> {xs. distinct (map fst xs)}" by simp
+  show "[] \<in> {xs. (distinct o map fst) xs}" by simp
 qed
+
+setup_lifting type_definition_alist
 
 lemma alist_ext: "impl_of xs = impl_of ys \<Longrightarrow> xs = ys"
 by(simp add: impl_of_inject)
@@ -31,54 +39,45 @@ by(rule impl_of_inverse)
 
 subsection {* Primitive operations *}
 
-definition lookup :: "('key, 'value) alist \<Rightarrow> 'key \<Rightarrow> 'value option"
-where [code]: "lookup xs = map_of (impl_of xs)" 
+(* FIXME: improve quotient_definition so that type annotations on the right hand sides can be removed *) 
 
-definition empty :: "('key, 'value) alist"
-where [code del]: "empty = Alist []"
+quotient_definition lookup :: "('key, 'value) alist \<Rightarrow> 'key \<Rightarrow> 'value option"
+where "lookup" is "map_of :: ('key * 'value) list \<Rightarrow> 'key \<Rightarrow> 'value option" ..
 
-definition update :: "'key \<Rightarrow> 'value \<Rightarrow> ('key, 'value) alist \<Rightarrow> ('key, 'value) alist"
-where [code del]: "update k v xs = Alist (AList.update k v (impl_of xs))"
+quotient_definition empty :: "('key, 'value) alist"
+where "empty" is "[] :: ('key * 'value) list" by simp
+
+quotient_definition update :: "'key \<Rightarrow> 'value \<Rightarrow> ('key, 'value) alist \<Rightarrow> ('key, 'value) alist"
+where "update" is "AList.update :: 'key \<Rightarrow> 'value \<Rightarrow> ('key * 'value) list \<Rightarrow> ('key * 'value) list"
+by (simp add: distinct_update)
 
 (* FIXME: we use an unoptimised delete operation. *)
-definition delete :: "'key \<Rightarrow> ('key, 'value) alist \<Rightarrow> ('key, 'value) alist"
-where [code del]: "delete k xs = Alist (AList.delete k (impl_of xs))"
+quotient_definition delete :: "'key \<Rightarrow> ('key, 'value) alist \<Rightarrow> ('key, 'value) alist"
+where "delete" is "AList.delete :: 'key \<Rightarrow> ('key * 'value) list \<Rightarrow> ('key * 'value) list"
+by (simp add: distinct_delete)
 
-definition map_entry :: "'key \<Rightarrow> ('value \<Rightarrow> 'value) \<Rightarrow> ('key, 'value) alist \<Rightarrow> ('key, 'value) alist"
-where [code del]: "map_entry k f xs = Alist (AList.map_entry k f (impl_of xs))" 
+quotient_definition map_entry :: "'key \<Rightarrow> ('value \<Rightarrow> 'value) \<Rightarrow> ('key, 'value) alist \<Rightarrow> ('key, 'value) alist"
+where "map_entry" is "AList.map_entry :: 'key \<Rightarrow> ('value \<Rightarrow> 'value) \<Rightarrow> ('key * 'value) list \<Rightarrow> ('key * 'value) list"
+by (simp add: distinct_map_entry)
 
-definition filter :: "('key \<times> 'value \<Rightarrow> bool) \<Rightarrow> ('key, 'value) alist \<Rightarrow> ('key, 'value) alist"
-where [code del]: "filter P xs = Alist (List.filter P (impl_of xs))"
+quotient_definition filter :: "('key \<times> 'value \<Rightarrow> bool) \<Rightarrow> ('key, 'value) alist \<Rightarrow> ('key, 'value) alist"
+where "filter" is "List.filter :: ('key \<times> 'value \<Rightarrow> bool) \<Rightarrow> ('key * 'value) list \<Rightarrow> ('key * 'value) list"
+by (simp add: distinct_map_fst_filter)
 
-definition map_default :: "'key => 'value => ('value => 'value) => ('key, 'value) alist => ('key, 'value) alist"
-where
-  "map_default k v f xs = Alist (AList.map_default k v f (impl_of xs))"
+quotient_definition map_default :: "'key => 'value => ('value => 'value) => ('key, 'value) alist => ('key, 'value) alist"
+where "map_default" is "AList.map_default :: 'key => 'value => ('value => 'value) => ('key * 'value) list => ('key * 'value) list"
+by (simp add: distinct_map_default)
 
-lemma impl_of_empty [code abstract]: "impl_of empty = []"
+(* FIXME: theorems are still used in Multiset; make code certificates available to the user *)
+lemma impl_of_empty: "impl_of empty = []"
 by (simp add: empty_def Alist_inverse)
 
-lemma impl_of_update [code abstract]: "impl_of (update k v xs) = AList.update k v (impl_of xs)"
+lemma impl_of_update: "impl_of (update k v xs) = AList.update k v (impl_of xs)"
 by (simp add: update_def Alist_inverse distinct_update)
 
-lemma impl_of_delete [code abstract]:
-  "impl_of (delete k al) = AList.delete k (impl_of al)"
-unfolding delete_def by (simp add: Alist_inverse distinct_delete)
-
-lemma impl_of_map_entry [code abstract]:
-  "impl_of (map_entry k f xs) = AList.map_entry k f (impl_of xs)"
-unfolding map_entry_def by (simp add: Alist_inverse distinct_map_entry)
-
-lemma distinct_map_fst_filter:
-   "distinct (map fst xs) ==> distinct (map fst (List.filter P xs))"
-by (induct xs) auto
-
-lemma impl_of_filter [code abstract]:
+lemma impl_of_filter:
   "impl_of (filter P xs) = List.filter P (impl_of xs)"
 unfolding filter_def by (simp add: Alist_inverse distinct_map_fst_filter)
-
-lemma impl_of_map_default [code abstract]:
-  "impl_of (map_default k v f xs) = AList.map_default k v f (impl_of xs)"
-by (auto simp add: map_default_def Alist_inverse distinct_map_default)
 
 subsection {* Abstract operation properties *}
 

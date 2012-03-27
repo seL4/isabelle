@@ -520,7 +520,8 @@ fun run_sledgehammer trivial args reconstructor named_thms id
       SH_OK (time_isa, time_prover, names) =>
         let
           fun get_thms (name, stature) =
-            SOME ((name, stature), thms_of_name (Proof.context_of st) name)
+            try (thms_of_name (Proof.context_of st)) name
+            |> Option.map (pair (name, stature))
         in
           change_data id inc_sh_success;
           if trivial then () else change_data id inc_sh_nontriv_success;

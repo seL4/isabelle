@@ -26,7 +26,7 @@ sig
   val datatypes: bool Config.T
   val timeout: real Config.T
   val random_seed: int Config.T
-  val fixed: bool Config.T
+  val read_only_certificates: bool Config.T
   val verbose: bool Config.T
   val trace: bool Config.T
   val trace_used_facts: bool Config.T
@@ -153,7 +153,7 @@ val oracle = Attrib.setup_config_bool @{binding smt_oracle} (K true)
 val datatypes = Attrib.setup_config_bool @{binding smt_datatypes} (K false)
 val timeout = Attrib.setup_config_real @{binding smt_timeout} (K 30.0)
 val random_seed = Attrib.setup_config_int @{binding smt_random_seed} (K 1)
-val fixed = Attrib.setup_config_bool @{binding smt_fixed} (K false)
+val read_only_certificates = Attrib.setup_config_bool @{binding smt_read_only_certificates} (K false)
 val verbose = Attrib.setup_config_bool @{binding smt_verbose} (K true)
 val trace = Attrib.setup_config_bool @{binding smt_trace} (K false)
 val trace_used_facts = Attrib.setup_config_bool @{binding smt_trace_used_facts} (K false)
@@ -243,7 +243,7 @@ fun print_setup ctxt =
         string_of_bool (not (Config.get ctxt oracle))),
       Pretty.str ("Certificates cache: " ^ certs_filename),
       Pretty.str ("Fixed certificates: " ^
-        string_of_bool (Config.get ctxt fixed))])
+        string_of_bool (Config.get ctxt read_only_certificates))])
   end
 
 val _ =

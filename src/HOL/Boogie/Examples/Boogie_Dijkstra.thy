@@ -82,9 +82,9 @@ implementation Dijkstra()
 
 boogie_open "Boogie_Dijkstra.b2i"
 
-declare [[smt_certificates="Boogie_Dijkstra.certs"]]
-declare [[smt_fixed=true]]
-declare [[smt_oracle=false]]
+declare [[smt_certificates = "Boogie_Dijkstra.certs"]]
+declare [[smt_read_only_certificates = true]]
+declare [[smt_oracle = false]]
 
 boogie_vc Dijkstra
   by boogie

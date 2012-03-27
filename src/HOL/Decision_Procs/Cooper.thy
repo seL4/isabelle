@@ -1392,7 +1392,7 @@ proof (induct p rule: iszlfm.induct)
     have "c div c\<le> l div c"
       by (simp add: zdiv_mono1[OF clel cp])
     then have ldcp:"0 < l div c" 
-      by (simp add: zdiv_self[OF cnz])
+      by (simp add: div_self[OF cnz])
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
@@ -1410,7 +1410,7 @@ next
     have "c div c\<le> l div c"
       by (simp add: zdiv_mono1[OF clel cp])
     then have ldcp:"0 < l div c" 
-      by (simp add: zdiv_self[OF cnz])
+      by (simp add: div_self[OF cnz])
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
@@ -1428,7 +1428,7 @@ next
     have "c div c\<le> l div c"
       by (simp add: zdiv_mono1[OF clel cp])
     then have ldcp:"0 < l div c" 
-      by (simp add: zdiv_self[OF cnz])
+      by (simp add: div_self[OF cnz])
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
@@ -1446,7 +1446,7 @@ next
     have "c div c\<le> l div c"
       by (simp add: zdiv_mono1[OF clel cp])
     then have ldcp:"0 < l div c" 
-      by (simp add: zdiv_self[OF cnz])
+      by (simp add: div_self[OF cnz])
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
@@ -1466,7 +1466,7 @@ next
     have "c div c\<le> l div c"
       by (simp add: zdiv_mono1[OF clel cp])
     then have ldcp:"0 < l div c" 
-      by (simp add: zdiv_self[OF cnz])
+      by (simp add: div_self[OF cnz])
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
@@ -1484,7 +1484,7 @@ next
     have "c div c\<le> l div c"
       by (simp add: zdiv_mono1[OF clel cp])
     then have ldcp:"0 < l div c" 
-      by (simp add: zdiv_self[OF cnz])
+      by (simp add: div_self[OF cnz])
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
@@ -1502,7 +1502,7 @@ next
     have "c div c\<le> l div c"
       by (simp add: zdiv_mono1[OF clel cp])
     then have ldcp:"0 < l div c" 
-      by (simp add: zdiv_self[OF cnz])
+      by (simp add: div_self[OF cnz])
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
@@ -1519,7 +1519,7 @@ next
     have "c div c\<le> l div c"
       by (simp add: zdiv_mono1[OF clel cp])
     then have ldcp:"0 < l div c" 
-      by (simp add: zdiv_self[OF cnz])
+      by (simp add: div_self[OF cnz])
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp

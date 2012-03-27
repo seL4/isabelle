@@ -726,7 +726,7 @@ proof-
         have gpdd: "?g' dvd n" by simp
         have gpdgp: "?g' dvd ?g'" by simp
         from zdvd_imp_le[OF gpdd np] have g'n: "?g' \<le> n" .
-        from zdiv_mono1[OF g'n g'p, simplified zdiv_self[OF gp0]]
+        from zdiv_mono1[OF g'n g'p, simplified div_self[OF gp0]]
         have "n div ?g' >0" by simp
         hence ?thesis using assms g1 g'1
           by(auto simp add: simp_num_pair_def Let_def reducecoeffh_numbound0 simpnum_numbound0) }

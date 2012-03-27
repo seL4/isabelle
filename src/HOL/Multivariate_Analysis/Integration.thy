@@ -8,9 +8,9 @@ imports
   "~~/src/HOL/Library/Indicator_Function"
 begin
 
-declare [[smt_certificates="Integration.certs"]]
-declare [[smt_fixed=true]]
-declare [[smt_oracle=false]]
+declare [[smt_certificates = "Integration.certs"]]
+declare [[smt_read_only_certificates = true]]
+declare [[smt_oracle = false]]
 
 (*declare not_less[simp] not_le[simp]*)
 
@@ -5583,7 +5583,7 @@ proof- have "\<And>m. (\<lambda>x. Inf {f j x |j. m \<le> j}) integrable_on s \<
             using assms(3)[rule_format,OF x] unfolding real_norm_def abs_le_iff by auto
         qed qed(insert n,auto) qed qed qed
 
-declare [[smt_certificates=""]]
-declare [[smt_fixed=false]]
+declare [[smt_certificates = ""]]
+declare [[smt_read_only_certificates = false]]
 
 end

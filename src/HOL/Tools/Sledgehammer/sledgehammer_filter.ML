@@ -112,7 +112,14 @@ val skolem_prefix = sledgehammer_prefix ^ "sko"
 val theory_const_suffix = Long_Name.separator ^ " 1"
 
 (* unfolding these can yield really huge terms *)
-val risky_spec_eqs = @{thms Bit0_def Bit1_def}
+val risky_defs = @{thms Bit0_def Bit1_def}
+
+fun is_rec_eq lhs = Term.exists_subterm (curry (op =) (head_of lhs))
+fun is_rec_def (@{const Trueprop} $ t) = is_rec_def t
+  | is_rec_def (@{const ==>} $ _ $ t2) = is_rec_def t2
+  | is_rec_def (Const (@{const_name "=="}, _) $ t1 $ t2) = is_rec_eq t1 t2
+  | is_rec_def (Const (@{const_name HOL.eq}, _) $ t1 $ t2) = is_rec_eq t1 t2
+  | is_rec_def _ = false
 
 fun clasimpset_rule_table_of ctxt =
   let
@@ -138,22 +145,24 @@ fun clasimpset_rule_table_of ctxt =
 *)
     val simps = ctxt |> simpset_of |> dest_ss |> #simps
     val specs = ctxt |> Spec_Rules.get
-    val spec_eqs =
+    val (rec_defs, nonrec_defs) =
       specs |> filter (curry (op =) Spec_Rules.Equational o fst)
             |> maps (snd o snd)
-            |> filter_out (member Thm.eq_thm_prop risky_spec_eqs)
+            |> filter_out (member Thm.eq_thm_prop risky_defs)
+            |> List.partition (is_rec_def o prop_of)
     val spec_intros =
       specs |> filter (member (op =) [Spec_Rules.Inductive,
                                       Spec_Rules.Co_Inductive] o fst)
             |> maps (snd o snd)
   in
     Termtab.empty |> add Simp [atomize] snd simps
-                  |> add Spec_Eq [] I spec_eqs
+                  |> add Simp [] I rec_defs
+                  |> add Def [] I nonrec_defs
 (* Add once it is used:
                   |> add Elim [] I elims
 *)
                   |> add Intro [] I intros
-                  |> add Spec_Intro [] I spec_intros
+                  |> add Inductive [] I spec_intros
   end
 
 fun needs_quoting reserved s =
@@ -184,7 +193,7 @@ fun status_of_thm css_table name th =
   (* FIXME: use structured name *)
   if String.isSubstring ".induct" name orelse
      String.isSubstring ".inducts" name then
-    Induct
+    Induction
   else case Termtab.lookup css_table (prop_of th) of
     SOME status => status
   | NONE => General

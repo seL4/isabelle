@@ -38,8 +38,6 @@ val mod_add_left_eq = @{thm mod_add_left_eq} RS sym;
 val mod_add_right_eq = @{thm mod_add_right_eq} RS sym;
 val nat_div_add_eq = @{thm div_add1_eq} RS sym;
 val int_div_add_eq = @{thm zdiv_zadd1_eq} RS sym;
-val ZDIVISION_BY_ZERO_MOD = @{thm DIVISION_BY_ZERO} RS conjunct2;
-val ZDIVISION_BY_ZERO_DIV = @{thm DIVISION_BY_ZERO} RS conjunct1;
 
 fun prepare_for_linr sg q fm = 
   let

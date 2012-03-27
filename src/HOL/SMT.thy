@@ -272,16 +272,16 @@ practice to use the name of the current theory (with ending
 declare [[ smt_certificates = "" ]]
 
 text {*
-The option @{text smt_fixed} controls whether only stored
-certificates are should be used or invocation of an SMT solver is
-allowed.  When set to @{text true}, no SMT solver will ever be
+The option @{text smt_read_only_certificates} controls whether only
+stored certificates are should be used or invocation of an SMT solver
+is allowed.  When set to @{text true}, no SMT solver will ever be
 invoked and only the existing certificates found in the configured
 cache are used;  when set to @{text false} and there is no cached
 certificate for some proposition, then the configured SMT solver is
 invoked.
 *}
 
-declare [[ smt_fixed = false ]]
+declare [[ smt_read_only_certificates = false ]]
 
 
 

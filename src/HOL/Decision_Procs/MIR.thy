@@ -1000,7 +1000,7 @@ proof-
         have gpdd: "?g' dvd n" by simp
         have gpdgp: "?g' dvd ?g'" by simp
         from zdvd_imp_le[OF gpdd np] have g'n: "?g' \<le> n" .
-        from zdiv_mono1[OF g'n g'p, simplified zdiv_self[OF gp0]]
+        from zdiv_mono1[OF g'n g'p, simplified div_self[OF gp0]]
         have "n div ?g' >0" by simp
         hence ?thesis using assms g1 g'1
           by(auto simp add: simp_num_pair_def Let_def reducecoeffh_numbound0)}
@@ -1138,7 +1138,7 @@ proof-
       have "Ifm bs (Dvd (fst (simpdvd d t)) (snd(simpdvd d t))) = Ifm bs (Dvd (d div ?g') ?tt)"
         by (simp add: simpdvd_def Let_def)
       also have "\<dots> = (real d rdvd (Inum bs t))"
-        using rdvd_reduce[OF gpdd gpdgp g'p, where t="?t", simplified zdiv_self[OF gp0]] 
+        using rdvd_reduce[OF gpdd gpdgp g'p, where t="?t", simplified div_self[OF gp0]] 
           th2[symmetric] by simp
       finally have ?thesis by simp  }
     ultimately have ?thesis by blast
@@ -2420,7 +2420,7 @@ proof (induct p rule: iszlfm.induct)
     have "c div c\<le> l div c"
       by (simp add: zdiv_mono1[OF clel cp])
     then have ldcp:"0 < l div c" 
-      by (simp add: zdiv_self[OF cnz])
+      by (simp add: div_self[OF cnz])
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
@@ -2438,7 +2438,7 @@ next
     have "c div c\<le> l div c"
       by (simp add: zdiv_mono1[OF clel cp])
     then have ldcp:"0 < l div c" 
-      by (simp add: zdiv_self[OF cnz])
+      by (simp add: div_self[OF cnz])
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
@@ -2456,7 +2456,7 @@ next
     have "c div c\<le> l div c"
       by (simp add: zdiv_mono1[OF clel cp])
     then have ldcp:"0 < l div c" 
-      by (simp add: zdiv_self[OF cnz])
+      by (simp add: div_self[OF cnz])
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
@@ -2474,7 +2474,7 @@ next
     have "c div c\<le> l div c"
       by (simp add: zdiv_mono1[OF clel cp])
     then have ldcp:"0 < l div c" 
-      by (simp add: zdiv_self[OF cnz])
+      by (simp add: div_self[OF cnz])
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
@@ -2492,7 +2492,7 @@ next
     have "c div c\<le> l div c"
       by (simp add: zdiv_mono1[OF clel cp])
     then have ldcp:"0 < l div c" 
-      by (simp add: zdiv_self[OF cnz])
+      by (simp add: div_self[OF cnz])
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
@@ -2510,7 +2510,7 @@ next
     have "c div c\<le> l div c"
       by (simp add: zdiv_mono1[OF clel cp])
     then have ldcp:"0 < l div c" 
-      by (simp add: zdiv_self[OF cnz])
+      by (simp add: div_self[OF cnz])
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
@@ -2528,7 +2528,7 @@ next
     have "c div c\<le> l div c"
       by (simp add: zdiv_mono1[OF clel cp])
     then have ldcp:"0 < l div c" 
-      by (simp add: zdiv_self[OF cnz])
+      by (simp add: div_self[OF cnz])
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
@@ -2545,7 +2545,7 @@ next
     have "c div c\<le> l div c"
       by (simp add: zdiv_mono1[OF clel cp])
     then have ldcp:"0 < l div c" 
-      by (simp add: zdiv_self[OF cnz])
+      by (simp add: div_self[OF cnz])
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
@@ -3970,7 +3970,7 @@ proof (induct p)
         by (simp add: numgcd_def)
       from `c > 0` have th': "c\<noteq>0" by auto
       from `c > 0` have cp: "c \<ge> 0" by simp
-      from zdiv_mono2[OF cp th1 th, simplified zdiv_self[OF th']]
+      from zdiv_mono2[OF cp th1 th, simplified div_self[OF th']]
       have "0 < c div numgcd (CN 0 c (simpnum e))" by simp
     }
     with Lt a have ?case
@@ -3994,7 +3994,7 @@ next
         by (simp add: numgcd_def)
       from `c > 0` have th': "c\<noteq>0" by auto
       from `c > 0` have cp: "c \<ge> 0" by simp
-      from zdiv_mono2[OF cp th1 th, simplified zdiv_self[OF th']]
+      from zdiv_mono2[OF cp th1 th, simplified div_self[OF th']]
       have "0 < c div numgcd (CN 0 c (simpnum e))" by simp
     }
     with Le a have ?case
@@ -4018,7 +4018,7 @@ next
         by (simp add: numgcd_def)
       from `c > 0` have th': "c\<noteq>0" by auto
       from `c > 0` have cp: "c \<ge> 0" by simp
-      from zdiv_mono2[OF cp th1 th, simplified zdiv_self[OF th']]
+      from zdiv_mono2[OF cp th1 th, simplified div_self[OF th']]
       have "0 < c div numgcd (CN 0 c (simpnum e))" by simp
     }
     with Gt a have ?case
@@ -4042,7 +4042,7 @@ next
         by (simp add: numgcd_def)
       from `c > 0` have th': "c\<noteq>0" by auto
       from `c > 0` have cp: "c \<ge> 0" by simp
-      from zdiv_mono2[OF cp th1 th, simplified zdiv_self[OF th']]
+      from zdiv_mono2[OF cp th1 th, simplified div_self[OF th']]
       have "0 < c div numgcd (CN 0 c (simpnum e))" by simp
     }
     with Ge a have ?case
@@ -4066,7 +4066,7 @@ next
         by (simp add: numgcd_def)
       from `c > 0` have th': "c\<noteq>0" by auto
       from `c > 0` have cp: "c \<ge> 0" by simp
-      from zdiv_mono2[OF cp th1 th, simplified zdiv_self[OF th']]
+      from zdiv_mono2[OF cp th1 th, simplified div_self[OF th']]
       have "0 < c div numgcd (CN 0 c (simpnum e))" by simp
     }
     with Eq a have ?case
@@ -4090,7 +4090,7 @@ next
         by (simp add: numgcd_def)
       from `c > 0` have th': "c\<noteq>0" by auto
       from `c > 0` have cp: "c \<ge> 0" by simp
-      from zdiv_mono2[OF cp th1 th, simplified zdiv_self[OF th']]
+      from zdiv_mono2[OF cp th1 th, simplified div_self[OF th']]
       have "0 < c div numgcd (CN 0 c (simpnum e))" by simp
     }
     with NEq a have ?case
