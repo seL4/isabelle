@@ -8,9 +8,9 @@ theory SMT_Tests
 imports Complex_Main
 begin
 
-declare [[smt_oracle=false]]
-declare [[smt_certificates="SMT_Tests.certs"]]
-declare [[smt_fixed=true]]
+declare [[smt_oracle = false]]
+declare [[smt_certificates = "SMT_Tests.certs"]]
+declare [[smt_read_only_certificates = true]]
 
 
 

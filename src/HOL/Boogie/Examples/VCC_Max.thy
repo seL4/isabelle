@@ -47,9 +47,9 @@ static byte maximum(byte arr[], ulong len)
 
 boogie_open (quiet) "VCC_Max.b2i"
 
-declare [[smt_certificates="VCC_Max.certs"]]
-declare [[smt_fixed=true]]
-declare [[smt_oracle=false]]
+declare [[smt_certificates = "VCC_Max.certs"]]
+declare [[smt_read_only_certificates = true]]
+declare [[smt_oracle = false]]
 
 boogie_status
 

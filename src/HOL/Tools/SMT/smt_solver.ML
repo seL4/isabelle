@@ -79,8 +79,8 @@ fun run ctxt name mk_cmd input =
   | SOME certs =>
       (case Cache_IO.lookup certs input of
         (NONE, key) =>
-          if Config.get ctxt SMT_Config.fixed then
-            error ("Bad certificates cache: missing certificate")
+          if Config.get ctxt SMT_Config.read_only_certificates then
+            error ("Bad certificate cache: missing certificate")
           else
             Cache_IO.run_and_cache certs key mk_cmd input
       | (SOME output, _) =>
