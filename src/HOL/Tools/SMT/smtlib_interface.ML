@@ -32,16 +32,6 @@ local
   fun times _ _ ts =
     let val mk = Term.list_comb o pair @{const times (int)}
     in if is_linear ts then SOME ("*", 2, ts, mk) else NONE end
-
-  fun distinct _ T [t] =
-        (case try HOLogic.dest_list t of
-          SOME (ts as _ :: _) =>
-            let
-              val c = Const (@{const_name distinct}, T)
-              fun mk us = c $ HOLogic.mk_list T us
-            in SOME ("distinct", length ts, ts, mk) end
-        | _ => NONE)
-    | distinct _ _ _ = NONE
 in
 
 val setup_builtins =
@@ -63,9 +53,7 @@ val setup_builtins =
     (@{const plus (int)}, "+"),
     (@{const minus (int)}, "-") ] #>
   SMT_Builtin.add_builtin_fun smtlibC
-    (Term.dest_Const @{const times (int)}, times) #>
-  SMT_Builtin.add_builtin_fun smtlibC
-    (Term.dest_Const @{const distinct ('a)}, distinct)
+    (Term.dest_Const @{const times (int)}, times)
 
 end
 

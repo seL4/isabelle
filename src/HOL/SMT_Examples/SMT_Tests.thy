@@ -104,18 +104,6 @@ lemma
   by smt+
 
 lemma
-  "distinct []"
-  "distinct [a]"
-  "distinct [a, b, c] \<longrightarrow> a \<noteq> c"
-  "distinct [a, b, c] \<longrightarrow> d = b \<longrightarrow> a \<noteq> d"
-  "\<not> distinct [a, b, a, b]"
-  "a = b \<longrightarrow> \<not> distinct [a, b]"
-  "a = b \<and> a = c \<longrightarrow> \<not> distinct [a, b, c]"
-  "distinct [a, b, c, d] \<longrightarrow> distinct [d, b, c, a]"
-  "distinct [a, b, c, d] \<longrightarrow> distinct [a, b, c] \<and> distinct [b, c, d]"
-  by smt+
-
-lemma
   "\<forall>x. x = x"
   "(\<forall>x. P x) \<longleftrightarrow> (\<forall>y. P y)"
   "\<forall>x. P x \<longrightarrow> (\<forall>y. P x \<or> P y)"
@@ -193,7 +181,7 @@ lemma
   by smt+
 
 lemma
-  "distinct [a, b, c] \<and> (\<forall>x y. f x = f y \<longrightarrow> y = x) \<longrightarrow> f a \<noteq> f b"
+  "a \<noteq> b \<and> a \<noteq> c \<and> b \<noteq> c \<and> (\<forall>x y. f x = f y \<longrightarrow> y = x) \<longrightarrow> f a \<noteq> f b"
   by smt
 
 lemma
@@ -932,7 +920,7 @@ lemma
   "i1 \<noteq> i2 \<longrightarrow> (f (i1 := v1, i2 := v2)) i2 = v2"
   "i1 = i2 \<longrightarrow> (f (i1 := v1, i2 := v2)) i1 = v2"
   "i1 = i2 \<longrightarrow> (f (i1 := v1, i2 := v2)) i1 = v2"
-  "distinct [i1, i2, i3] \<longrightarrow> (f (i1 := v1, i2 := v2)) i3 = f i3"
+  "i1 \<noteq> i2 \<and>i1 \<noteq> i3 \<and>  i2 \<noteq> i3 \<longrightarrow> (f (i1 := v1, i2 := v2)) i3 = f i3"
   using fun_upd_same fun_upd_apply
   by smt+
 
