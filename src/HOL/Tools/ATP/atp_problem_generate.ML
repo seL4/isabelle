@@ -2035,14 +2035,21 @@ fun formula_line_for_conjecture ctxt polym_constrs format mono type_enc
            |> close_formula_universally
            |> bound_tvars type_enc true atomic_types, NONE, [])
 
+fun type_enc_needs_free_types (Simple_Types (_, Polymorphic, _)) = true
+  | type_enc_needs_free_types (Simple_Types _) = false
+  | type_enc_needs_free_types _ = true
+
 fun formula_line_for_free_type j phi =
   Formula (tfree_clause_prefix ^ string_of_int j, Hypothesis, phi, NONE, [])
 fun formula_lines_for_free_types type_enc (facts : translated_formula list) =
-  let
-    val phis =
-      fold (union (op =)) (map #atomic_types facts) []
-      |> formulas_for_types type_enc add_sorts_on_tfree
-  in map2 formula_line_for_free_type (0 upto length phis - 1) phis end
+  if type_enc_needs_free_types type_enc then
+    let
+      val phis =
+        fold (union (op =)) (map #atomic_types facts) []
+        |> formulas_for_types type_enc add_sorts_on_tfree
+    in map2 formula_line_for_free_type (0 upto length phis - 1) phis end
+  else
+    []
 
 (** Symbol declarations **)
 
@@ -2497,8 +2504,11 @@ fun default_type type_enc pred_sym s =
     val ind =
       case type_enc of
         Simple_Types _ =>
-        if String.isPrefix type_const_prefix s then atype_of_types
-        else individual_atype
+        if String.isPrefix type_const_prefix s orelse
+           String.isPrefix tfree_prefix s then
+          atype_of_types
+        else
+          individual_atype
       | _ => individual_atype
     fun typ 0 = if pred_sym then bool_atype else ind
       | typ ary = AFun (ind, typ (ary - 1))
