@@ -785,6 +785,9 @@ fun avoid_clash_with_dfg_keywords s =
     if n < 2 orelse (n = 2 andalso String.sub (s, 0) = String.sub (s, 1)) orelse
        String.isSubstring "_" s then
       s
+    else if s = "Dl" orelse s = "DL" then
+      (* "DL" appears to be a SPASS 3.7 keyword *)
+      s ^ "_"
     else
       String.substring (s, 0, n - 1) ^
       String.str (Char.toUpper (String.sub (s, n - 1)))
