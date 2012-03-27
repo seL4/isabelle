@@ -4465,9 +4465,9 @@ lemma mod_minus_cong:
       and 4: "x' - y' = z'"
   shows "(x - y) mod b = z' mod b'"
   using assms
-  apply (subst zmod_zsub_left_eq)
-  apply (subst zmod_zsub_right_eq)
-  apply (simp add: zmod_zsub_left_eq [symmetric] zmod_zsub_right_eq [symmetric])
+  apply (subst mod_diff_left_eq)
+  apply (subst mod_diff_right_eq)
+  apply (simp add: mod_diff_left_eq [symmetric] mod_diff_right_eq [symmetric])
   done
 
 lemma word_induct_less: 
