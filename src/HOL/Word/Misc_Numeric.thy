@@ -33,8 +33,8 @@ lemma sum_imp_diff: "j = k + i ==> j - i = (k :: nat)" by arith
 
 lemma zless2: "0 < (2 :: int)" by arith
 
-lemmas zless2p [simp] = zless2 [THEN zero_less_power]
-lemmas zle2p [simp] = zless2p [THEN order_less_imp_le]
+lemmas zless2p = zless2 [THEN zero_less_power]
+lemmas zle2p = zless2p [THEN order_less_imp_le]
 
 lemmas pos_mod_sign2 = zless2 [THEN pos_mod_sign [where b = "2::int"]]
 lemmas pos_mod_bound2 = zless2 [THEN pos_mod_bound [where b = "2::int"]]
