@@ -630,13 +630,13 @@ lemmas zpower_zmod' = zpower_zmod [where m=c and y=k] for c k
 lemmas brdmod1s' [symmetric] = 
   mod_add_left_eq mod_add_right_eq 
   zmod_zsub_left_eq zmod_zsub_right_eq 
-  zmod_zmult1_eq zmod_zmult1_eq_rev 
+  mod_mult_right_eq zmod_zmult1_eq_rev 
 
 lemmas brdmods' [symmetric] = 
   zpower_zmod' [symmetric]
   trans [OF mod_add_left_eq mod_add_right_eq] 
   trans [OF zmod_zsub_left_eq zmod_zsub_right_eq] 
-  trans [OF zmod_zmult1_eq zmod_zmult1_eq_rev] 
+  trans [OF mod_mult_right_eq zmod_zmult1_eq_rev] 
   zmod_uminus' [symmetric]
   mod_add_left_eq [where b = "1::int"]
   zmod_zsub_left_eq [where b = "1"]

@@ -56,7 +56,7 @@ lemma comm_monoid: "comm_monoid R"
   apply auto
   apply (subgoal_tac "x * y mod m * z mod m = z * (x * y mod m) mod m")
   apply (erule ssubst)
-  apply (subst zmod_zmult1_eq [symmetric])+
+  apply (subst mod_mult_right_eq [symmetric])+
   apply (simp_all only: mult_ac)
   done
 
@@ -67,7 +67,7 @@ lemma cring: "cring R"
   apply (unfold R_def residue_ring_def, auto)
   apply (subst mod_add_eq [symmetric])
   apply (subst mult_commute)
-  apply (subst zmod_zmult1_eq [symmetric])
+  apply (subst mod_mult_right_eq [symmetric])
   apply (simp add: field_simps)
   done
 
@@ -151,9 +151,9 @@ lemma add_cong: "(x mod m) \<oplus> (y mod m) = (x + y) mod m"
 
 lemma mult_cong: "(x mod m) \<otimes> (y mod m) = (x * y) mod m"
   apply (unfold R_def residue_ring_def, auto)
-  apply (subst zmod_zmult1_eq [symmetric])
+  apply (subst mod_mult_right_eq [symmetric])
   apply (subst mult_commute)
-  apply (subst zmod_zmult1_eq [symmetric])
+  apply (subst mod_mult_right_eq [symmetric])
   apply (subst mult_commute)
   apply auto
   done

@@ -407,7 +407,7 @@ lemma zcong_lineq_unique:
   apply (cut_tac a = a and n = n in zcong_lineq_ex, auto)
   apply (rule_tac x = "x * b mod n" in exI, safe)
     apply (simp_all (no_asm_simp))
-  apply (metis zcong_scalar zcong_zmod zmod_zmult1_eq mult_1 mult_assoc)
+  apply (metis zcong_scalar zcong_zmod mod_mult_right_eq mult_1 mult_assoc)
   done
 
 end

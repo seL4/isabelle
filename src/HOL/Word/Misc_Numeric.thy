@@ -121,13 +121,13 @@ lemma zmod_zsub_self [simp]:
 lemma zmod_zmult1_eq_rev:
   "b * a mod c = b mod c * a mod (c::int)"
   apply (simp add: mult_commute)
-  apply (subst zmod_zmult1_eq)
+  apply (subst mod_mult_right_eq)
   apply simp
   done
 
 lemmas rdmods [symmetric] = zmod_uminus [symmetric]
   zmod_zsub_left_eq zmod_zsub_right_eq mod_add_left_eq
-  mod_add_right_eq zmod_zmult1_eq zmod_zmult1_eq_rev
+  mod_add_right_eq mod_mult_right_eq zmod_zmult1_eq_rev
 
 lemma mod_plus_right:
   "((a + x) mod m = (b + x) mod m) = (a mod m = b mod (m :: nat))"

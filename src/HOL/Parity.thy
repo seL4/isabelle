@@ -74,7 +74,7 @@ lemma even_times_anything: "even (x::int) ==> even (x * y)"
 lemma anything_times_even: "even (y::int) ==> even (x * y)" by algebra
 
 lemma odd_times_odd: "odd (x::int) ==> odd y ==> odd (x * y)" 
-  by (simp add: even_def zmod_zmult1_eq)
+  by (simp add: even_def mod_mult_right_eq)
 
 lemma even_product[simp,presburger]: "even((x::int) * y) = (even x | even y)"
   apply (auto simp add: even_times_anything anything_times_even)

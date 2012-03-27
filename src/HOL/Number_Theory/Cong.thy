@@ -214,9 +214,9 @@ lemma cong_mult_nat:
 lemma cong_mult_int:
     "[(a::int) = b] (mod m) \<Longrightarrow> [c = d] (mod m) \<Longrightarrow> [a * c = b * d] (mod m)"
   apply (unfold cong_int_def)
-  apply (subst (1 2) zmod_zmult1_eq)
+  apply (subst (1 2) mod_mult_right_eq)
   apply (subst (1 2) mult_commute)
-  apply (subst (1 2) zmod_zmult1_eq)
+  apply (subst (1 2) mod_mult_right_eq)
   apply simp
   done
 

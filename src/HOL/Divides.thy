@@ -1786,9 +1786,6 @@ apply (case_tac "c = 0", simp)
 apply (blast intro: divmod_int_rel_div_mod [THEN zmult1_lemma, THEN div_int_unique])
 done
 
-lemma zmod_zmult1_eq: "(a*b) mod c = a*(b mod c) mod (c::int)"
-  by (fact mod_mult_right_eq) (* FIXME: delete *)
-
 text{*proving (a+b) div c = a div c + b div c + ((a mod c + b mod c) div c) *}
 
 lemma zadd1_lemma:
