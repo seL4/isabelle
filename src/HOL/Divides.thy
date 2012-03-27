@@ -1436,12 +1436,6 @@ text{*Basic laws about division and remainder*}
 lemma zmod_zdiv_equality: "(a::int) = b * (a div b) + (a mod b)"
   by (fact mod_div_equality2 [symmetric])
 
-lemma zdiv_zmod_equality: "(b * (a div b) + (a mod b)) + k = (a::int)+k"
-  by (fact div_mod_equality2)
-
-lemma zdiv_zmod_equality2: "((a div b) * b + (a mod b)) + k = (a::int)+k"
-  by (fact div_mod_equality)
-
 text {* Tool setup *}
 
 (* FIXME: Theorem list add_0s doesn't exist, because Numeral0 has gone. *)
@@ -1456,7 +1450,7 @@ structure Cancel_Div_Mod_Int = Cancel_Div_Mod
   val mk_sum = Arith_Data.mk_sum HOLogic.intT;
   val dest_sum = Arith_Data.dest_sum;
 
-  val div_mod_eqs = map mk_meta_eq [@{thm zdiv_zmod_equality}, @{thm zdiv_zmod_equality2}];
+  val div_mod_eqs = map mk_meta_eq [@{thm div_mod_equality}, @{thm div_mod_equality2}];
 
   val prove_eq_sums = Arith_Data.prove_conv2 all_tac (Arith_Data.simp_all_tac 
     (@{thm diff_minus} :: @{thms add_0s} @ @{thms add_ac}))

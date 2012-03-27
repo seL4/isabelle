@@ -405,8 +405,8 @@ declare mod_div_equality2[presburger]
 declare mod_div_equality[presburger]
 declare mod_mult_self1[presburger]
 declare mod_mult_self2[presburger]
-declare zdiv_zmod_equality2[presburger]
-declare zdiv_zmod_equality[presburger]
+declare div_mod_equality[presburger]
+declare div_mod_equality2[presburger]
 declare mod2_Suc_Suc[presburger]
 lemma [presburger]: "(a::int) div 0 = 0" and [presburger]: "a mod 0 = a"
 by simp_all

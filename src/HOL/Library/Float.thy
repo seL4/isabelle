@@ -488,7 +488,7 @@ proof (induct x rule: bitlen.induct)
         hence "x < x - x mod 2 +  2" unfolding algebra_simps by auto
         thus ?thesis by auto
       qed
-      also have "x - x mod 2 + 2 = (x div 2 + 1) * 2" unfolding algebra_simps using `0 < x` zdiv_zmod_equality2[of x 2 0] by auto
+      also have "x - x mod 2 + 2 = (x div 2 + 1) * 2" unfolding algebra_simps using `0 < x` div_mod_equality[of x 2 0] by auto
       also have "\<dots> \<le> 2^nat (bitlen (x div 2)) * 2" using hyp[OF `0 < x div 2`, THEN conjunct2] by (rule mult_right_mono, auto)
       also have "\<dots> = 2^(1 + nat (bitlen (x div 2)))" unfolding power_Suc2[symmetric] by auto
       finally have "x + 1 \<le> 2^(1 + nat (bitlen (x div 2)))" .
@@ -1122,7 +1122,7 @@ proof (cases x)
     show ?thesis
     proof (cases "m mod ?p = 0")
       case True
-      have m: "m = m div ?p * ?p + 0" unfolding True[symmetric] using zdiv_zmod_equality2[where k=0, unfolded monoid_add_class.add_0_right, symmetric] .
+      have m: "m = m div ?p * ?p + 0" unfolding True[symmetric] using mod_div_equality [symmetric] .
       have "real (Float m e) = real (Float (m div ?p) (e + ?d))" unfolding real_of_float_simp arg_cong[OF m, of real]
         by (auto simp add: pow2_add `0 < ?d` pow_d)
       thus ?thesis
@@ -1130,7 +1130,7 @@ proof (cases x)
         by auto
     next
       case False
-      have "m = m div ?p * ?p + m mod ?p" unfolding zdiv_zmod_equality2[where k=0, unfolded monoid_add_class.add_0_right] ..
+      have "m = m div ?p * ?p + m mod ?p" unfolding mod_div_equality ..
       also have "\<dots> \<le> (m div ?p + 1) * ?p" unfolding left_distrib mult_1 by (rule add_left_mono, rule pos_mod_bound[OF `0 < ?p`, THEN less_imp_le])
       finally have "real (Float m e) \<le> real (Float (m div ?p + 1) (e + ?d))" unfolding real_of_float_simp add_commute[of e]
         unfolding pow2_add mult_assoc[symmetric] real_of_int_le_iff[of m, symmetric]
@@ -1156,7 +1156,7 @@ proof (cases x)
     case True
     hence pow_d: "pow2 ?d = real ?p" using pow2_int[symmetric] by simp
     have "m div ?p * ?p \<le> m div ?p * ?p + m mod ?p" by (auto simp add: pos_mod_bound[OF `0 < ?p`, THEN less_imp_le])
-    also have "\<dots> \<le> m" unfolding zdiv_zmod_equality2[where k=0, unfolded monoid_add_class.add_0_right] ..
+    also have "\<dots> \<le> m" unfolding mod_div_equality ..
     finally have "real (Float (m div ?p) (e + ?d)) \<le> real (Float m e)" unfolding real_of_float_simp add_commute[of e]
       unfolding pow2_add mult_assoc[symmetric] real_of_int_le_iff[of _ m, symmetric]
       by (auto intro!: mult_mono simp add: pow2_add `0 < ?d` pow_d)

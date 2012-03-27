@@ -144,6 +144,8 @@ INCOMPATIBILITY, use the corresponding generic theorems instead.
   zmod_self ~> mod_self
   zdiv_zero ~> div_0
   zmod_zero ~> mod_0
+  zdiv_zmod_equality ~> div_mod_equality2
+  zdiv_zmod_equality2 ~> div_mod_equality
   zmod_zdiv_trivial ~> mod_div_trivial
   zdiv_zminus_zminus ~> div_minus_minus
   zmod_zminus_zminus ~> mod_minus_minus
