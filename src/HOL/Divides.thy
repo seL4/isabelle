@@ -535,7 +535,7 @@ proof -
   by (auto simp add: divmod_nat_def intro: theI elim: divmod_nat_rel_unique)
 qed
 
-lemma divmod_nat_eq:
+lemma divmod_nat_unique:
   assumes "divmod_nat_rel m n qr" 
   shows "divmod_nat m n = qr"
   using assms by (auto intro: divmod_nat_rel_unique divmod_nat_rel_divmod_nat)
@@ -561,22 +561,22 @@ lemma divmod_nat_div_mod:
   "divmod_nat m n = (m div n, m mod n)"
   by (simp add: prod_eq_iff)
 
-lemma div_eq:
+lemma div_nat_unique:
   assumes "divmod_nat_rel m n (q, r)" 
   shows "m div n = q"
-  using assms by (auto dest!: divmod_nat_eq simp add: prod_eq_iff)
+  using assms by (auto dest!: divmod_nat_unique simp add: prod_eq_iff)
 
-lemma mod_eq:
+lemma mod_nat_unique:
   assumes "divmod_nat_rel m n (q, r)" 
   shows "m mod n = r"
-  using assms by (auto dest!: divmod_nat_eq simp add: prod_eq_iff)
+  using assms by (auto dest!: divmod_nat_unique simp add: prod_eq_iff)
 
 lemma divmod_nat_rel: "divmod_nat_rel m n (m div n, m mod n)"
   using divmod_nat_rel_divmod_nat by (simp add: divmod_nat_div_mod)
 
 lemma divmod_nat_zero:
   "divmod_nat m 0 = (0, m)"
-proof (rule divmod_nat_eq)
+proof (rule divmod_nat_unique)
   show "divmod_nat_rel m 0 (0, m)"
     unfolding divmod_nat_rel_def by simp
 qed
@@ -584,7 +584,7 @@ qed
 lemma divmod_nat_base:
   assumes "m < n"
   shows "divmod_nat m n = (0, m)"
-proof (rule divmod_nat_eq)
+proof (rule divmod_nat_unique)
   show "divmod_nat_rel m n (0, m)"
     unfolding divmod_nat_rel_def using assms by simp
 qed
@@ -592,7 +592,7 @@ qed
 lemma divmod_nat_step:
   assumes "0 < n" and "n \<le> m"
   shows "divmod_nat m n = (Suc ((m - n) div n), (m - n) mod n)"
-proof (rule divmod_nat_eq)
+proof (rule divmod_nat_unique)
   have "divmod_nat_rel (m - n) n ((m - n) div n, (m - n) mod n)"
     by (rule divmod_nat_rel)
   thus "divmod_nat_rel m n (Suc ((m - n) div n), (m - n) mod n)"
@@ -656,7 +656,7 @@ instance proof -
         by (auto simp add: divmod_nat_rel_def) (simp_all add: algebra_simps)
       moreover from divmod_nat_rel have "divmod_nat_rel n q (n div q, n mod q)" .
       ultimately have "divmod_nat_rel (m * n) (m * q) (n div q, m * (n mod q))" .
-      then show ?thesis by (simp add: div_eq)
+      then show ?thesis by (simp add: div_nat_unique)
     qed
   qed simp_all
 qed
@@ -757,7 +757,7 @@ by (auto simp add: split_ifs divmod_nat_rel_def algebra_simps)
 
 lemma div_mult1_eq:
   "(a * b) div c = a * (b div c) + a * (b mod c) div (c::nat)"
-by (blast intro: divmod_nat_rel [THEN divmod_nat_rel_mult1_eq, THEN div_eq])
+by (blast intro: divmod_nat_rel_mult1_eq [THEN div_nat_unique] divmod_nat_rel)
 
 lemma divmod_nat_rel_add1_eq:
   "divmod_nat_rel a c (aq, ar) \<Longrightarrow> divmod_nat_rel b c (bq, br)
@@ -767,7 +767,7 @@ by (auto simp add: split_ifs divmod_nat_rel_def algebra_simps)
 (*NOT suitable for rewriting: the RHS has an instance of the LHS*)
 lemma div_add1_eq:
   "(a+b) div (c::nat) = a div c + b div c + ((a mod c + b mod c) div c)"
-by (blast intro: divmod_nat_rel_add1_eq [THEN div_eq] divmod_nat_rel)
+by (blast intro: divmod_nat_rel_add1_eq [THEN div_nat_unique] divmod_nat_rel)
 
 lemma mod_lemma: "[| (0::nat) < c; r < b |] ==> b * (q mod c) + r < b * c"
   apply (cut_tac m = q and n = c in mod_less_divisor)
@@ -782,10 +782,10 @@ lemma divmod_nat_rel_mult2_eq:
 by (auto simp add: mult_ac divmod_nat_rel_def add_mult_distrib2 [symmetric] mod_lemma)
 
 lemma div_mult2_eq: "a div (b*c) = (a div b) div (c::nat)"
-by (force simp add: divmod_nat_rel [THEN divmod_nat_rel_mult2_eq, THEN div_eq])
+by (force simp add: divmod_nat_rel [THEN divmod_nat_rel_mult2_eq, THEN div_nat_unique])
 
 lemma mod_mult2_eq: "a mod (b*c) = b*(a div b mod c) + a mod (b::nat)"
-by (auto simp add: mult_commute divmod_nat_rel [THEN divmod_nat_rel_mult2_eq, THEN mod_eq])
+by (auto simp add: mult_commute divmod_nat_rel [THEN divmod_nat_rel_mult2_eq, THEN mod_nat_unique])
 
 
 subsubsection {* Further Facts about Quotient and Remainder *}
