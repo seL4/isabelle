@@ -574,12 +574,11 @@ lemma mod_nat_unique:
 lemma divmod_nat_rel: "divmod_nat_rel m n (m div n, m mod n)"
   using divmod_nat_rel_divmod_nat by (simp add: divmod_nat_div_mod)
 
-lemma divmod_nat_zero:
-  "divmod_nat m 0 = (0, m)"
-proof (rule divmod_nat_unique)
-  show "divmod_nat_rel m 0 (0, m)"
-    unfolding divmod_nat_rel_def by simp
-qed
+lemma divmod_nat_zero: "divmod_nat m 0 = (0, m)"
+  by (simp add: divmod_nat_unique divmod_nat_rel_def)
+
+lemma divmod_nat_zero_left: "divmod_nat 0 n = (0, 0)"
+  by (simp add: divmod_nat_unique divmod_nat_rel_def)
 
 lemma divmod_nat_base:
   assumes "m < n"
@@ -625,40 +624,30 @@ lemma le_mod_geq:
   shows "m mod n = (m - n) mod n"
   using assms divmod_nat_step by (cases "n = 0") (simp_all add: prod_eq_iff)
 
-instance proof -
-  have [simp]: "\<And>n::nat. n div 0 = 0"
+instance proof
+  fix m n :: nat
+  show "m div n * n + m mod n = m"
+    using divmod_nat_rel [of m n] by (simp add: divmod_nat_rel_def)
+next
+  fix m n q :: nat
+  assume "n \<noteq> 0"
+  then show "(q + m * n) div n = m + q div n"
+    by (induct m) (simp_all add: le_div_geq)
+next
+  fix m n q :: nat
+  assume "m \<noteq> 0"
+  hence "\<And>a b. divmod_nat_rel n q (a, b) \<Longrightarrow> divmod_nat_rel (m * n) (m * q) (a, m * b)"
+    unfolding divmod_nat_rel_def
+    by (auto split: split_if_asm, simp_all add: algebra_simps)
+  moreover from divmod_nat_rel have "divmod_nat_rel n q (n div q, n mod q)" .
+  ultimately have "divmod_nat_rel (m * n) (m * q) (n div q, m * (n mod q))" .
+  thus "(m * n) div (m * q) = n div q" by (rule div_nat_unique)
+next
+  fix n :: nat show "n div 0 = 0"
     by (simp add: div_nat_def divmod_nat_zero)
-  have [simp]: "\<And>n::nat. 0 div n = 0"
-  proof -
-    fix n :: nat
-    show "0 div n = 0"
-      by (cases "n = 0") simp_all
-  qed
-  show "OFCLASS(nat, semiring_div_class)" proof
-    fix m n :: nat
-    show "m div n * n + m mod n = m"
-      using divmod_nat_rel [of m n] by (simp add: divmod_nat_rel_def)
-  next
-    fix m n q :: nat
-    assume "n \<noteq> 0"
-    then show "(q + m * n) div n = m + q div n"
-      by (induct m) (simp_all add: le_div_geq)
-  next
-    fix m n q :: nat
-    assume "m \<noteq> 0"
-    then show "(m * n) div (m * q) = n div q"
-    proof (cases "n \<noteq> 0 \<and> q \<noteq> 0")
-      case False then show ?thesis by auto
-    next
-      case True with `m \<noteq> 0`
-        have "m > 0" and "n > 0" and "q > 0" by auto
-      then have "\<And>a b. divmod_nat_rel n q (a, b) \<Longrightarrow> divmod_nat_rel (m * n) (m * q) (a, m * b)"
-        by (auto simp add: divmod_nat_rel_def) (simp_all add: algebra_simps)
-      moreover from divmod_nat_rel have "divmod_nat_rel n q (n div q, n mod q)" .
-      ultimately have "divmod_nat_rel (m * n) (m * q) (n div q, m * (n mod q))" .
-      then show ?thesis by (simp add: div_nat_unique)
-    qed
-  qed simp_all
+next
+  fix n :: nat show "0 div n = 0"
+    by (simp add: div_nat_def divmod_nat_zero_left)
 qed
 
 end
