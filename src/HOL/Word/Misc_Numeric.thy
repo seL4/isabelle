@@ -96,25 +96,9 @@ lemmas zadd_diff_inverse = trans [OF diff_add_cancel [symmetric] add_commute]
 
 lemmas add_diff_cancel2 = add_commute [THEN diff_eq_eq [THEN iffD2]]
 
-lemma zmod_uminus: "- ((a :: int) mod b) mod b = -a mod b"
-  by (fact zminus_zmod) (* FIXME: delete *)
-
-lemma zmod_zsub_distrib: "((a::int) - b) mod c = (a mod c - b mod c) mod c"
-  by (fact mod_diff_eq) (* FIXME: delete *)
-
-lemma zmod_zsub_right_eq: "((a::int) - b) mod c = (a - b mod c) mod c"
-  by (fact mod_diff_right_eq) (* FIXME: delete *)
-
-lemma zmod_zsub_left_eq: "((a::int) - b) mod c = (a mod c - b) mod c"
-  by (fact mod_diff_left_eq) (* FIXME: delete *)
-
 lemma zmod_zsub_self [simp]: 
   "((b :: int) - a) mod a = b mod a"
   by (simp add: mod_diff_right_eq)
-
-lemma zmod_zmult1_eq_rev:
-  "b * a mod c = b mod c * a mod (c::int)"
-  by (fact mod_mult_left_eq) (* FIXME: delete *)
 
 lemmas rdmods [symmetric] = mod_minus_eq
   mod_diff_left_eq mod_diff_right_eq mod_add_left_eq
