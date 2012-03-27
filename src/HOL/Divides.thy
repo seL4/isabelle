@@ -1983,44 +1983,30 @@ declare split_zdiv [of _ _ "numeral k", arith_split] for k
 declare split_zmod [of _ _ "numeral k", arith_split] for k
 
 
-subsubsection {* Speeding up the Division Algorithm with Shifting *}
+subsubsection {* Computing @{text "div"} and @{text "mod"} with shifting *}
+
+lemma pos_divmod_int_rel_mult_2:
+  assumes "0 \<le> b"
+  assumes "divmod_int_rel a b (q, r)"
+  shows "divmod_int_rel (1 + 2*a) (2*b) (q, 1 + 2*r)"
+  using assms unfolding divmod_int_rel_def by auto
+
+lemma neg_divmod_int_rel_mult_2:
+  assumes "b \<le> 0"
+  assumes "divmod_int_rel (a + 1) b (q, r)"
+  shows "divmod_int_rel (1 + 2*a) (2*b) (q, 2*r - 1)"
+  using assms unfolding divmod_int_rel_def by auto
 
 text{*computing div by shifting *}
 
 lemma pos_zdiv_mult_2: "(0::int) \<le> a ==> (1 + 2*b) div (2*a) = b div a"
-proof cases
-  assume "a=0"
-    thus ?thesis by simp
-next
-  assume "a\<noteq>0" and le_a: "0\<le>a"   
-  hence a_pos: "1 \<le> a" by arith
-  hence one_less_a2: "1 < 2 * a" by arith
-  hence le_2a: "2 * (1 + b mod a) \<le> 2 * a"
-    unfolding mult_le_cancel_left
-    by (simp add: add1_zle_eq add_commute [of 1])
-  with a_pos have "0 \<le> b mod a" by simp
-  hence le_addm: "0 \<le> 1 mod (2*a) + 2*(b mod a)"
-    by (simp add: mod_pos_pos_trivial one_less_a2)
-  with  le_2a
-  have "(1 mod (2*a) + 2*(b mod a)) div (2*a) = 0"
-    by (simp add: div_pos_pos_trivial le_addm mod_pos_pos_trivial one_less_a2
-                  right_distrib) 
-  thus ?thesis
-    by (subst zdiv_zadd1_eq,
-        simp add: mod_mult_mult1 one_less_a2
-                  div_pos_pos_trivial)
-qed
+  using pos_divmod_int_rel_mult_2 [OF _ divmod_int_rel_div_mod]
+  by (rule div_int_unique)
 
 lemma neg_zdiv_mult_2: 
   assumes A: "a \<le> (0::int)" shows "(1 + 2*b) div (2*a) = (b+1) div a"
-proof -
-  have R: "1 + - (2 * (b + 1)) = - (1 + 2 * b)" by simp
-  have "(1 + 2 * (-b - 1)) div (2 * (-a)) = (-b - 1) div (-a)"
-    by (rule pos_zdiv_mult_2, simp add: A)
-  thus ?thesis
-    by (simp only: R div_minus_minus diff_minus
-      minus_add_distrib [symmetric] mult_minus_right)
-qed
+  using neg_divmod_int_rel_mult_2 [OF A divmod_int_rel_div_mod]
+  by (rule div_int_unique)
 
 (* FIXME: add rules for negative numerals *)
 lemma zdiv_numeral_Bit0 [simp]:
@@ -2036,39 +2022,19 @@ lemma zdiv_numeral_Bit1 [simp]:
   unfolding mult_2 [symmetric] add_commute [of _ 1]
   by (rule pos_zdiv_mult_2, simp)
 
-
-subsubsection {* Computing mod by Shifting (proofs resemble those for div) *}
-
 lemma pos_zmod_mult_2:
   fixes a b :: int
   assumes "0 \<le> a"
   shows "(1 + 2 * b) mod (2 * a) = 1 + 2 * (b mod a)"
-proof (cases "0 < a")
-  case False with assms show ?thesis by simp
-next
-  case True
-  then have "b mod a < a" by (rule pos_mod_bound)
-  then have "1 + b mod a \<le> a" by simp
-  then have A: "2 * (1 + b mod a) \<le> 2 * a" by simp
-  from `0 < a` have "0 \<le> b mod a" by (rule pos_mod_sign)
-  then have B: "0 \<le> 1 + 2 * (b mod a)" by simp
-  have "((1\<Colon>int) mod ((2\<Colon>int) * a) + (2\<Colon>int) * b mod ((2\<Colon>int) * a)) mod ((2\<Colon>int) * a) = (1\<Colon>int) + (2\<Colon>int) * (b mod a)"
-    using `0 < a` and A
-    by (auto simp add: mod_mult_mult1 mod_pos_pos_trivial ring_distribs intro!: mod_pos_pos_trivial B)
-  then show ?thesis by (subst mod_add_eq)
-qed
+  using pos_divmod_int_rel_mult_2 [OF assms divmod_int_rel_div_mod]
+  by (rule mod_int_unique)
 
 lemma neg_zmod_mult_2:
   fixes a b :: int
   assumes "a \<le> 0"
   shows "(1 + 2 * b) mod (2 * a) = 2 * ((b + 1) mod a) - 1"
-proof -
-  from assms have "0 \<le> - a" by auto
-  then have "(1 + 2 * (- b - 1)) mod (2 * (- a)) = 1 + 2 * ((- b - 1) mod (- a))"
-    by (rule pos_zmod_mult_2)
-  then show ?thesis by (simp add: mod_minus_right algebra_simps)
-     (simp add: diff_minus add_ac)
-qed
+  using neg_divmod_int_rel_mult_2 [OF assms divmod_int_rel_div_mod]
+  by (rule mod_int_unique)
 
 (* FIXME: add rules for negative numerals *)
 lemma zmod_numeral_Bit0 [simp]:
