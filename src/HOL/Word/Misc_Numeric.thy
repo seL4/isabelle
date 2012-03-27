@@ -172,11 +172,11 @@ lemma int_mod_eq:
 
 lemmas int_mod_eq' = refl [THEN [3] int_mod_eq]
 
-lemma int_mod_le: "0 <= a ==> 0 < (n :: int) ==> a mod n <= a"
-  by (rule zmod_le_nonneg_dividend)
+lemma int_mod_le: "(0::int) <= a ==> a mod n <= a"
+  by (fact zmod_le_nonneg_dividend) (* FIXME: delete *)
 
-lemma int_mod_le': "0 <= b - n ==> 0 < (n :: int) ==> b mod n <= b - n"
-  by (rule int_mod_le [where a = "b - n" and n = n, simplified])
+lemma int_mod_le': "(0::int) <= b - n ==> b mod n <= b - n"
+  using zmod_le_nonneg_dividend [of "b - n" "n"] by simp
 
 lemma int_mod_ge: "a < n ==> 0 < (n :: int) ==> a <= a mod n"
   apply (cases "0 <= a")

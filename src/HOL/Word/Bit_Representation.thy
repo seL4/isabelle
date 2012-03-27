@@ -613,8 +613,7 @@ lemma sbintrunc_inc:
 
 lemma sb_dec_lem:
   "(0::int) <= - (2^k) + a ==> (a + 2^k) mod (2 * 2 ^ k) <= - (2 ^ k) + a"
-  by (rule int_mod_le' [where n = "2 ^ (Suc k)" and b = "a + 2 ^ k",
-    simplified zless2p, OF _ TrueI, simplified])
+  by (rule int_mod_le' [where n = "2 ^ (Suc k)" and b = "a + 2 ^ k", simplified])
 
 lemma sb_dec_lem':
   "(2::int) ^ k <= a ==> (a + 2 ^ k) mod (2 * 2 ^ k) <= - (2 ^ k) + a"
