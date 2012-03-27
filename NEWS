@@ -136,6 +136,16 @@ than predicates.  INCOMPATIBILITY.
 
 * New type synonym 'a rel = ('a * 'a) set
 
+* Theory Divides: Discontinued redundant theorems about div and mod.
+INCOMPATIBILITY, use the corresponding generic theorems instead.
+
+  DIVISION_BY_ZERO ~> div_by_0, mod_by_0
+  zdiv_self ~> div_self
+  zmod_self ~> mod_self
+  zdiv_zero ~> div_0
+  zmod_zero ~> mod_0
+  zmod_zdiv_trivial ~> mod_div_trivial
+
 * More default pred/set conversions on a couple of relation operations
 and predicates.  Consolidation of some relation theorems:
 

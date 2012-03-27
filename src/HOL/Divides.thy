@@ -1403,12 +1403,6 @@ next
     by (rule div_int_unique, auto simp add: divmod_int_rel_def)
 qed
 
-text{*Arbitrary definitions for division by zero.  Useful to simplify 
-    certain equations.*}
-
-lemma DIVISION_BY_ZERO [simp]: "a div (0::int) = 0 & a mod (0::int) = a"
-  by simp (* FIXME: delete *)
-
 text{*Basic laws about division and remainder*}
 
 lemma zmod_zdiv_equality: "(a::int) = b * (a div b) + (a mod b)"
@@ -1552,50 +1546,10 @@ lemma zmod_zminus2_not_zero:
   unfolding zmod_zminus2_eq_if by auto 
 
 
-subsubsection {* Division of a Number by Itself *}
-
-lemma self_quotient_aux1: "[| (0::int) < a; a = r + a*q; r < a |] ==> 1 \<le> q"
-apply (subgoal_tac "0 < a*q")
- apply (simp add: zero_less_mult_iff, arith)
-done
-
-lemma self_quotient_aux2: "[| (0::int) < a; a = r + a*q; 0 \<le> r |] ==> q \<le> 1"
-apply (subgoal_tac "0 \<le> a* (1-q) ")
- apply (simp add: zero_le_mult_iff)
-apply (simp add: right_diff_distrib)
-done
-
-lemma self_quotient: "[| divmod_int_rel a a (q, r); a \<noteq> 0 |] ==> q = 1"
-apply (simp add: split_ifs divmod_int_rel_def linorder_neq_iff)
-apply (rule order_antisym, safe, simp_all)
-apply (rule_tac [3] a = "-a" and r = "-r" in self_quotient_aux1)
-apply (rule_tac a = "-a" and r = "-r" in self_quotient_aux2)
-apply (force intro: self_quotient_aux1 self_quotient_aux2 simp add: add_commute)+
-done
-
-lemma self_remainder: "[| divmod_int_rel a a (q, r); a \<noteq> 0 |] ==> r = 0"
-apply (frule (1) self_quotient)
-apply (simp add: divmod_int_rel_def)
-done
-
-lemma zdiv_self [simp]: "a \<noteq> 0 ==> a div a = (1::int)"
-  by (fact div_self) (* FIXME: delete *)
-
-(*Here we have 0 mod 0 = 0, also assumed by Knuth (who puts m mod 0 = 0) *)
-lemma zmod_self [simp]: "a mod a = (0::int)"
-  by (fact mod_self) (* FIXME: delete *)
-
-
 subsubsection {* Computation of Division and Remainder *}
-
-lemma zdiv_zero [simp]: "(0::int) div b = 0"
-  by (fact div_0) (* FIXME: delete *)
 
 lemma div_eq_minus1: "(0::int) < b ==> -1 div b = -1"
 by (simp add: div_int_def divmod_int_def)
-
-lemma zmod_zero [simp]: "(0::int) mod b = 0"
-  by (fact mod_0) (* FIXME: delete *)
 
 lemma zmod_minus1: "(0::int) < b ==> -1 mod b = b - 1"
 by (simp add: mod_int_def divmod_int_def)
@@ -1840,9 +1794,6 @@ done
 
 lemma zmod_zmult1_eq: "(a*b) mod c = a*(b mod c) mod (c::int)"
   by (fact mod_mult_right_eq) (* FIXME: delete *)
-
-lemma zmod_zdiv_trivial: "(a mod b) div b = (0::int)"
-  by (fact mod_div_trivial) (* FIXME: delete *)
 
 text{*proving (a+b) div c = a div c + b div c + ((a mod c + b mod c) div c) *}
 
@@ -2235,14 +2186,14 @@ subsubsection {* Further properties *}
 
 lemma zmult_div_cancel: "(n::int) * (m div n) = m - (m mod n)"
   using zmod_zdiv_equality[where a="m" and b="n"]
-  by (simp add: algebra_simps)
+  by (simp add: algebra_simps) (* FIXME: generalize *)
 
 lemma zpower_zmod: "((x::int) mod m)^y mod m = x^y mod m"
 apply (induct "y", auto)
-apply (rule zmod_zmult1_eq [THEN trans])
+apply (rule mod_mult_right_eq [THEN trans])
 apply (simp (no_asm_simp))
 apply (rule mod_mult_eq [symmetric])
-done
+done (* FIXME: generalize *)
 
 lemma zdiv_int: "int (a div b) = (int a) div (int b)"
 apply (subst split_div, auto)
@@ -2290,7 +2241,7 @@ by (rule mod_diff_right_eq [symmetric])
 lemmas zmod_simps =
   mod_add_left_eq  [symmetric]
   mod_add_right_eq [symmetric]
-  zmod_zmult1_eq   [symmetric]
+  mod_mult_right_eq[symmetric]
   mod_mult_left_eq [symmetric]
   zpower_zmod
   zminus_zmod zdiff_zmod_left zdiff_zmod_right

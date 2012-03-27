@@ -73,10 +73,9 @@ fun linz_tac ctxt q = Object_Logic.atomize_prems_tac THEN' SUBGOAL (fn (g, i) =>
       addsimps [refl,mod_add_eq, mod_add_left_eq,
           mod_add_right_eq,
           nat_div_add_eq, int_div_add_eq,
-          @{thm mod_self}, @{thm "zmod_self"},
-          @{thm mod_by_0}, @{thm div_by_0},
-          @{thm "zdiv_zero"}, @{thm "zmod_zero"}, @{thm "div_0"}, @{thm "mod_0"},
-          @{thm "div_by_1"}, @{thm "mod_by_1"}, @{thm "div_1"}, @{thm "mod_1"},
+          @{thm mod_self},
+          @{thm div_by_0}, @{thm mod_by_0}, @{thm div_0}, @{thm mod_0},
+          @{thm div_by_1}, @{thm mod_by_1}, @{thm div_1}, @{thm mod_1},
           Suc_eq_plus1]
       addsimps @{thms add_ac}
       addsimprocs [@{simproc cancel_div_mod_nat}, @{simproc cancel_div_mod_int}]
