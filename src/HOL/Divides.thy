@@ -1352,26 +1352,73 @@ apply (cases "b = 0", simp add: divmod_int_def divmod_int_rel_def)
 by (force simp add: linorder_neq_iff divmod_int_rel_0 divmod_int_def divmod_int_rel_neg
                     posDivAlg_correct negDivAlg_correct)
 
+lemma divmod_int_unique:
+  assumes "divmod_int_rel a b qr" 
+  shows "divmod_int a b = qr"
+  using assms divmod_int_correct [of a b]
+  using unique_quotient [of a b] unique_remainder [of a b]
+  by (metis pair_collapse)
+
+lemma divmod_int_rel_div_mod: "divmod_int_rel a b (a div b, a mod b)"
+  using divmod_int_correct by (simp add: divmod_int_mod_div)
+
+lemma div_int_unique: "divmod_int_rel a b (q, r) \<Longrightarrow> a div b = q"
+  by (simp add: divmod_int_rel_div_mod [THEN unique_quotient])
+
+lemma mod_int_unique: "divmod_int_rel a b (q, r) \<Longrightarrow> a mod b = r"
+  by (simp add: divmod_int_rel_div_mod [THEN unique_remainder])
+
+instance int :: ring_div
+proof
+  fix a b :: int
+  show "a div b * b + a mod b = a"
+    using divmod_int_rel_div_mod [of a b]
+    unfolding divmod_int_rel_def by (simp add: mult_commute)
+next
+  fix a b c :: int
+  assume "b \<noteq> 0"
+  hence "divmod_int_rel (a + c * b) b (c + a div b, a mod b)"
+    using divmod_int_rel_div_mod [of a b]
+    unfolding divmod_int_rel_def by (auto simp: algebra_simps)
+  thus "(a + c * b) div b = c + a div b"
+    by (rule div_int_unique)
+next
+  fix a b c :: int
+  assume "c \<noteq> 0"
+  hence "\<And>q r. divmod_int_rel a b (q, r)
+    \<Longrightarrow> divmod_int_rel (c * a) (c * b) (q, c * r)"
+    unfolding divmod_int_rel_def
+    by - (rule linorder_cases [of 0 b], auto simp: algebra_simps
+      mult_less_0_iff zero_less_mult_iff mult_strict_right_mono
+      mult_strict_right_mono_neg zero_le_mult_iff mult_le_0_iff)
+  hence "divmod_int_rel (c * a) (c * b) (a div b, c * (a mod b))"
+    using divmod_int_rel_div_mod [of a b] .
+  thus "(c * a) div (c * b) = a div b"
+    by (rule div_int_unique)
+next
+  fix a :: int show "a div 0 = 0"
+    by (rule div_int_unique, simp add: divmod_int_rel_def)
+next
+  fix a :: int show "0 div a = 0"
+    by (rule div_int_unique, auto simp add: divmod_int_rel_def)
+qed
+
 text{*Arbitrary definitions for division by zero.  Useful to simplify 
     certain equations.*}
 
 lemma DIVISION_BY_ZERO [simp]: "a div (0::int) = 0 & a mod (0::int) = a"
-by (simp add: div_int_def mod_int_def divmod_int_def posDivAlg.simps)  
-
+  by simp (* FIXME: delete *)
 
 text{*Basic laws about division and remainder*}
 
 lemma zmod_zdiv_equality: "(a::int) = b * (a div b) + (a mod b)"
-apply (case_tac "b = 0", simp)
-apply (cut_tac a = a and b = b in divmod_int_correct)
-apply (auto simp add: divmod_int_rel_def prod_eq_iff)
-done
+  by (fact mod_div_equality2 [symmetric])
 
 lemma zdiv_zmod_equality: "(b * (a div b) + (a mod b)) + k = (a::int)+k"
-by(simp add: zmod_zdiv_equality[symmetric])
+  by (fact div_mod_equality2)
 
 lemma zdiv_zmod_equality2: "((a div b) * b + (a mod b)) + k = (a::int)+k"
-by(simp add: mult_commute zmod_zdiv_equality[symmetric])
+  by (fact div_mod_equality)
 
 text {* Tool setup *}
 
@@ -1396,35 +1443,22 @@ structure Cancel_Div_Mod_Int = Cancel_Div_Mod
 
 simproc_setup cancel_div_mod_int ("(k::int) + l") = {* K Cancel_Div_Mod_Int.proc *}
 
-lemma pos_mod_conj : "(0::int) < b ==> 0 \<le> a mod b & a mod b < b"
-apply (cut_tac a = a and b = b in divmod_int_correct)
-apply (auto simp add: divmod_int_rel_def prod_eq_iff)
-done
+lemma pos_mod_conj: "(0::int) < b \<Longrightarrow> 0 \<le> a mod b \<and> a mod b < b"
+  using divmod_int_correct [of a b]
+  by (auto simp add: divmod_int_rel_def prod_eq_iff)
 
 lemmas pos_mod_sign [simp] = pos_mod_conj [THEN conjunct1]
    and pos_mod_bound [simp] = pos_mod_conj [THEN conjunct2]
 
-lemma neg_mod_conj : "b < (0::int) ==> a mod b \<le> 0 & b < a mod b"
-apply (cut_tac a = a and b = b in divmod_int_correct)
-apply (auto simp add: divmod_int_rel_def prod_eq_iff)
-done
+lemma neg_mod_conj: "b < (0::int) \<Longrightarrow> a mod b \<le> 0 \<and> b < a mod b"
+  using divmod_int_correct [of a b]
+  by (auto simp add: divmod_int_rel_def prod_eq_iff)
 
 lemmas neg_mod_sign [simp] = neg_mod_conj [THEN conjunct1]
    and neg_mod_bound [simp] = neg_mod_conj [THEN conjunct2]
 
 
 subsubsection {* General Properties of div and mod *}
-
-lemma divmod_int_rel_div_mod: "divmod_int_rel a b (a div b, a mod b)"
-apply (cut_tac a = a and b = b in zmod_zdiv_equality)
-apply (force simp add: divmod_int_rel_def linorder_neq_iff)
-done
-
-lemma div_int_unique: "[| divmod_int_rel a b (q, r) |] ==> a div b = q"
-by (simp add: divmod_int_rel_div_mod [THEN unique_quotient])
-
-lemma mod_int_unique: "[| divmod_int_rel a b (q, r) |] ==> a mod b = r"
-by (simp add: divmod_int_rel_div_mod [THEN unique_remainder])
 
 lemma div_pos_pos_trivial: "[| (0::int) \<le> a;  a < b |] ==> a div b = 0"
 apply (rule div_int_unique)
@@ -1463,16 +1497,11 @@ text{*There is no @{text mod_neg_pos_trivial}.*}
 
 (*Simpler laws such as -a div b = -(a div b) FAIL, but see just below*)
 lemma zdiv_zminus_zminus [simp]: "(-a) div (-b) = a div (b::int)"
-apply (simp add: divmod_int_rel_div_mod [THEN divmod_int_rel_neg, simplified, 
-                                 THEN div_int_unique, THEN sym])
-
-done
+  using div_mult_mult1 [of "-1" a b] by simp (* FIXME: generalize *)
 
 (*Simpler laws such as -a mod b = -(a mod b) FAIL, but see just below*)
 lemma zmod_zminus_zminus [simp]: "(-a) mod (-b) = - (a mod (b::int))"
-apply (subst divmod_int_rel_div_mod [THEN divmod_int_rel_neg, simplified, THEN mod_int_unique],
-       auto)
-done
+  using mod_mult_mult1 [of "-1" a b] by simp (* FIXME: generalize *)
 
 
 subsubsection {* Laws for div and mod with Unary Minus *}
@@ -1502,10 +1531,10 @@ lemma zmod_zminus1_not_zero:
   unfolding zmod_zminus1_eq_if by auto
 
 lemma zdiv_zminus2: "a div (-b) = (-a::int) div b"
-by (cut_tac a = "-a" in zdiv_zminus_zminus, auto)
+  using zdiv_zminus_zminus [of "-a" b] by simp (* FIXME: generalize *)
 
 lemma zmod_zminus2: "a mod (-b) = - ((-a::int) mod b)"
-by (cut_tac a = "-a" and b = b in zmod_zminus_zminus, auto)
+  using zmod_zminus_zminus [of "-a" b] by simp (* FIXME: generalize*)
 
 lemma zdiv_zminus2_eq_if:
      "b \<noteq> (0::int)  
@@ -1550,25 +1579,23 @@ apply (simp add: divmod_int_rel_def)
 done
 
 lemma zdiv_self [simp]: "a \<noteq> 0 ==> a div a = (1::int)"
-by (simp add: divmod_int_rel_div_mod [THEN self_quotient])
+  by (fact div_self) (* FIXME: delete *)
 
 (*Here we have 0 mod 0 = 0, also assumed by Knuth (who puts m mod 0 = 0) *)
 lemma zmod_self [simp]: "a mod a = (0::int)"
-apply (case_tac "a = 0", simp)
-apply (simp add: divmod_int_rel_div_mod [THEN self_remainder])
-done
+  by (fact mod_self) (* FIXME: delete *)
 
 
 subsubsection {* Computation of Division and Remainder *}
 
 lemma zdiv_zero [simp]: "(0::int) div b = 0"
-by (simp add: div_int_def divmod_int_def)
+  by (fact div_0) (* FIXME: delete *)
 
 lemma div_eq_minus1: "(0::int) < b ==> -1 div b = -1"
 by (simp add: div_int_def divmod_int_def)
 
 lemma zmod_zero [simp]: "(0::int) mod b = 0"
-by (simp add: mod_int_def divmod_int_def)
+  by (fact mod_0) (* FIXME: delete *)
 
 lemma zmod_minus1: "(0::int) < b ==> -1 mod b = b - 1"
 by (simp add: mod_int_def divmod_int_def)
@@ -1686,10 +1713,11 @@ lemma zmod_minus1_right [simp]: "a mod (-1::int) = 0"
 apply (cut_tac a = a and b = "-1" in neg_mod_sign)
 apply (cut_tac [2] a = a and b = "-1" in neg_mod_bound)
 apply (auto simp del: neg_mod_sign neg_mod_bound)
-done
+done (* FIXME: generalize *)
 
 lemma zdiv_minus1_right [simp]: "a div (-1::int) = -a"
 by (cut_tac a = a and b = "-1" in zmod_zdiv_equality, auto)
+(* FIXME: generalize *)
 
 (** The last remaining special cases for constant arithmetic:
     1 div z and 1 mod z **)
@@ -1811,14 +1839,10 @@ apply (blast intro: divmod_int_rel_div_mod [THEN zmult1_lemma, THEN div_int_uniq
 done
 
 lemma zmod_zmult1_eq: "(a*b) mod c = a*(b mod c) mod (c::int)"
-apply (case_tac "c = 0", simp)
-apply (blast intro: divmod_int_rel_div_mod [THEN zmult1_lemma, THEN mod_int_unique])
-done
+  by (fact mod_mult_right_eq) (* FIXME: delete *)
 
 lemma zmod_zdiv_trivial: "(a mod b) div b = (0::int)"
-apply (case_tac "b = 0", simp)
-apply (auto simp add: linorder_neq_iff div_pos_pos_trivial div_neg_neg_trivial)
-done
+  by (fact mod_div_trivial) (* FIXME: delete *)
 
 text{*proving (a+b) div c = a div c + b div c + ((a mod c + b mod c) div c) *}
 
@@ -1833,33 +1857,6 @@ lemma zdiv_zadd1_eq:
 apply (case_tac "c = 0", simp)
 apply (blast intro: zadd1_lemma [OF divmod_int_rel_div_mod divmod_int_rel_div_mod] div_int_unique)
 done
-
-instance int :: ring_div
-proof
-  fix a b c :: int
-  assume not0: "b \<noteq> 0"
-  show "(a + c * b) div b = c + a div b"
-    unfolding zdiv_zadd1_eq [of a "c * b"] using not0 
-      by (simp add: zmod_zmult1_eq zmod_zdiv_trivial zdiv_zmult1_eq)
-next
-  fix a b c :: int
-  assume "a \<noteq> 0"
-  then show "(a * b) div (a * c) = b div c"
-  proof (cases "b \<noteq> 0 \<and> c \<noteq> 0")
-    case False then show ?thesis by auto
-  next
-    case True then have "b \<noteq> 0" and "c \<noteq> 0" by auto
-    with `a \<noteq> 0`
-    have "\<And>q r. divmod_int_rel b c (q, r) \<Longrightarrow> divmod_int_rel (a * b) (a * c) (q, a * r)"
-      apply (auto simp add: divmod_int_rel_def split: split_if_asm)
-      apply (auto simp add: algebra_simps)
-      apply (auto simp add: zero_less_mult_iff zero_le_mult_iff mult_le_0_iff mult_commute [of a] mult_less_cancel_right mult_less_0_iff)
-      done
-    moreover with `c \<noteq> 0` divmod_int_rel_div_mod have "divmod_int_rel b c (b div c, b mod c)" by auto
-    ultimately have "divmod_int_rel (a * b) (a * c) (b div c, a * (b mod c))" .
-    from this show ?thesis by (rule div_int_unique)
-  qed
-qed auto
 
 lemma posDivAlg_div_mod:
   assumes "k \<ge> 0"
@@ -1896,8 +1893,7 @@ lemmas zmod_eq_0D [dest!] = zmod_eq_0_iff [THEN iffD1]
 
 lemma zmod_zdiv_equality':
   "(m\<Colon>int) mod n = m - (m div n) * n"
-  by (rule_tac P="%x. m mod n = x - (m div n) * n" in subst [OF mod_div_equality [of _ n]])
-    arith
+  using mod_div_equality [of m n] by arith
 
 
 subsubsection {* Proving  @{term "a div (b*c) = (a div b) div c"} *}
