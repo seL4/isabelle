@@ -17,7 +17,7 @@ sig
 
   datatype scope = Global | Local | Assum | Chained
   datatype status =
-    General | Induct | Intro | Spec_Intro | Elim | Simp | Spec_Eq
+    General | Induction | Intro | Inductive | Elim | Simp | Def
   type stature = scope * status
 
   datatype polymorphism = Polymorphic | Raw_Monomorphic | Mangled_Monomorphic
@@ -548,7 +548,7 @@ fun iterm_from_term thy format bs (P $ Q) =
     in (IAbs ((name, T), tm), union (op =) atomic_Ts (atomic_types_of T)) end
 
 datatype scope = Global | Local | Assum | Chained
-datatype status = General | Induct | Intro | Spec_Intro | Elim | Simp | Spec_Eq
+datatype status = General | Induction | Intro | Inductive | Elim | Simp | Def
 type stature = scope * status
 
 datatype order = First_Order | Higher_Order
@@ -1225,8 +1225,7 @@ fun preprocess_abstractions_in_terms trans_lams facts =
             |>> map2 (fn (name, (kind, _)) => fn t => (name, (kind, t))) facts
     val lam_facts =
       map2 (fn t => fn j =>
-               ((lam_fact_prefix ^ Int.toString j, (Global, Spec_Eq)),
-                (Axiom, t)))
+               ((lam_fact_prefix ^ Int.toString j, (Global, Def)), (Axiom, t)))
            lambda_ts (1 upto length lambda_ts)
   in (facts, lam_facts) end
 
@@ -1696,8 +1695,7 @@ fun helper_facts_for_sym ctxt format type_enc (s, {types, ...} : sym_info) =
             [t]
         end
         |> tag_list 1
-        |> map (fn (k, t) =>
-                   ((dub needs_fairly_sound j k, (Global, Spec_Eq)), t))
+        |> map (fn (k, t) => ((dub needs_fairly_sound j k, (Global, Def)), t))
       val make_facts = map_filter (make_fact ctxt format type_enc false)
       val fairly_sound = is_type_enc_fairly_sound type_enc
     in
@@ -1993,10 +1991,10 @@ fun formula_line_for_fact ctxt polym_constrs format prefix encode freshen pos
    let val rank = rank j in
      case snd stature of
        Intro => isabelle_info introN rank
-     | Spec_Intro => isabelle_info spec_introN rank
+     | Inductive => isabelle_info inductiveN rank
      | Elim => isabelle_info elimN rank
      | Simp => isabelle_info simpN rank
-     | Spec_Eq => isabelle_info spec_eqN rank
+     | Def => isabelle_info defN rank
      | _ => isabelle_info "" rank
    end)
   |> Formula
@@ -2010,7 +2008,7 @@ fun formula_line_for_class_rel_clause type_enc
                      type_class_formula type_enc superclass ty_arg])
              |> mk_aquant AForall
                           [(tvar_a_name, atype_of_type_vars type_enc)],
-             NONE, isabelle_info spec_introN helper_rank)
+             NONE, isabelle_info inductiveN helper_rank)
   end
 
 fun formula_from_arity_atom type_enc (class, t, args) =
@@ -2024,7 +2022,7 @@ fun formula_line_for_arity_clause type_enc
                     (formula_from_arity_atom type_enc concl_atom)
            |> mk_aquant AForall
                   (map (rpair (atype_of_type_vars type_enc)) (#3 concl_atom)),
-           NONE, isabelle_info spec_introN helper_rank)
+           NONE, isabelle_info inductiveN helper_rank)
 
 fun formula_line_for_conjecture ctxt polym_constrs format mono type_enc
         ({name, kind, iformula, atomic_types, ...} : translated_formula) =
@@ -2240,7 +2238,7 @@ fun formula_line_for_guards_mono_type ctxt format mono type_enc T =
                                     always_guard_var_in_formula (SOME true)
            |> close_formula_universally
            |> bound_tvars type_enc true (atomic_types_of T),
-           NONE, isabelle_info spec_introN helper_rank)
+           NONE, isabelle_info inductiveN helper_rank)
 
 fun formula_line_for_tags_mono_type ctxt format mono type_enc T =
   let val x_var = ATerm (`make_bound_var "X", []) in
@@ -2249,7 +2247,7 @@ fun formula_line_for_tags_mono_type ctxt format mono type_enc T =
              Axiom,
              eq_formula type_enc (atomic_types_of T) [] false
                   (tag_with_type ctxt format mono type_enc NONE T x_var) x_var,
-             NONE, isabelle_info spec_eqN helper_rank)
+             NONE, isabelle_info defN helper_rank)
   end
 
 fun problem_lines_for_mono_types ctxt format mono type_enc Ts =
@@ -2320,7 +2318,7 @@ fun formula_line_for_guards_sym_decl ctxt format conj_sym_kind mono type_enc n s
              |> close_formula_universally
              |> bound_tvars type_enc (n > 1) (atomic_types_of T)
              |> maybe_negate,
-             NONE, isabelle_info spec_introN helper_rank)
+             NONE, isabelle_info inductiveN helper_rank)
   end
 
 fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
@@ -2354,7 +2352,7 @@ fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
         in
           cons (Formula (ident_base ^ "_res", kind,
                          eq (tag_with res_T (cst bounds)) (cst tagged_bounds),
-                         NONE, isabelle_info spec_eqN helper_rank))
+                         NONE, isabelle_info defN helper_rank))
         end
       else
         I
@@ -2456,7 +2454,7 @@ fun do_uncurried_alias_lines_for_sym ctxt monom_constrs format conj_sym_kind
       in
         ([tm1, tm2],
          [Formula (uncurried_alias_eq_prefix ^ s2, kind, eq |> maybe_negate,
-                   NONE, isabelle_info spec_eqN helper_rank)])
+                   NONE, isabelle_info defN helper_rank)])
         |> (if ary - 1 = base_ary orelse Symtab.defined sym_tab s1 then I
             else pair_append (do_alias (ary - 1)))
       end
@@ -2792,9 +2790,9 @@ fun atp_problem_term_order_info problem =
     fun is_conj (role, _) = (role = Conjecture orelse role = Hypothesis)
     val graph =
       Graph.empty
-      |> fold (fold (add_eq_deps (has_status spec_eqN)) o snd) problem
+      |> fold (fold (add_eq_deps (has_status defN)) o snd) problem
       |> fold (fold (add_eq_deps (has_status simpN orf is_conj)) o snd) problem
-      |> fold (fold (add_intro_deps (has_status spec_introN)) o snd) problem
+      |> fold (fold (add_intro_deps (has_status inductiveN)) o snd) problem
       |> fold (fold (add_intro_deps (has_status introN)) o snd) problem
     fun next_weight w = if w + w <= max_term_order_weight then w + w else w + 1
     fun add_weights _ [] = I

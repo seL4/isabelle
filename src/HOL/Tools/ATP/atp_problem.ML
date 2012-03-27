@@ -85,10 +85,10 @@ sig
   val extract_isabelle_status : (string, 'a) ho_term list -> string option
   val extract_isabelle_rank : (string, 'a) ho_term list -> int
   val introN : string
-  val spec_introN : string
+  val inductiveN : string
   val elimN : string
   val simpN : string
-  val spec_eqN : string
+  val defN : string
   val rankN : string
   val minimum_rank : int
   val default_rank : int
@@ -218,10 +218,10 @@ val tptp_empty_list = "[]"
 val isabelle_info_prefix = "isabelle_"
 
 val introN = "intro"
-val spec_introN = "spec_intro"
+val inductiveN = "inductive"
 val elimN = "elim"
 val simpN = "simp"
-val spec_eqN = "spec_eq"
+val defN = "def"
 val rankN = "rank"
 
 val minimum_rank = 0
@@ -470,7 +470,7 @@ fun dfg_string_for_formula gen_simp flavor info =
     fun suffix_tag top_level s =
       if flavor = DFG_Sorted andalso top_level then
         case extract_isabelle_status info of
-          SOME s' => if s' = spec_eqN then s ^ ":lt"
+          SOME s' => if s' = defN then s ^ ":lt"
                      else if s' = simpN andalso gen_simp then s ^ ":lr"
                      else s
         | NONE => s

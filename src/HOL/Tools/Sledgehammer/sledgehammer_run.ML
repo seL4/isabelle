@@ -172,7 +172,7 @@ fun get_minimizing_prover ctxt mode name params minimize_command problem =
   get_prover ctxt mode name params minimize_command problem
   |> minimize ctxt mode name params problem
 
-fun is_induction_fact (Untranslated_Fact ((_, (_, Induct)), _)) = true
+fun is_induction_fact (Untranslated_Fact ((_, (_, Induction)), _)) = true
   | is_induction_fact _ = false
 
 fun launch_prover (params as {debug, verbose, blocking, max_relevant, slice,
