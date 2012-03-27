@@ -296,7 +296,7 @@ proof -
   have aux2: "\<And>q::int. - int_of k = int_of l * q \<longleftrightarrow> int_of k = int_of l * - q" by auto
   show ?thesis
     by (simp add: prod_eq_iff Target_Numeral.int_eq_iff prod_case_beta aux1)
-      (auto simp add: zdiv_zminus1_eq_if zmod_zminus1_eq_if zdiv_zminus2 zmod_zminus2 aux2)
+      (auto simp add: zdiv_zminus1_eq_if zmod_zminus1_eq_if div_minus_right mod_minus_right aux2)
 qed
 
 lemma div_int_code [code]:

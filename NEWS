@@ -145,6 +145,12 @@ INCOMPATIBILITY, use the corresponding generic theorems instead.
   zdiv_zero ~> div_0
   zmod_zero ~> mod_0
   zmod_zdiv_trivial ~> mod_div_trivial
+  zdiv_zminus_zminus ~> div_minus_minus
+  zmod_zminus_zminus ~> mod_minus_minus
+  zdiv_zminus2 ~> div_minus_right
+  zmod_zminus2 ~> mod_minus_right
+  mod_mult_distrib ~> mult_mod_left
+  mod_mult_distrib2 ~> mult_mod_right
 
 * More default pred/set conversions on a couple of relation operations
 and predicates.  Consolidation of some relation theorems:

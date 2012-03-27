@@ -158,7 +158,7 @@ proof -
     unfolding 256 mult_assoc [symmetric] mod_mult_self3 ..
   show ?thesis
     by (simp add: nat_of_char.simps char_of_nat_def nibble_of_pair
-      nat_of_nibble_of_nat mod_mult_distrib
+      nat_of_nibble_of_nat mult_mod_left
       n aux3 l_256 aux4 mod_add_eq [of "256 * k"] l_div_256)
 qed
 

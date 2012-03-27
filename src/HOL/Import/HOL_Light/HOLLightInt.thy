@@ -162,7 +162,7 @@ lemma DEF_div:
   apply (simp add: hl_mod_def hl_div_def)
   apply (metis comm_semiring_1_class.normalizing_semiring_rules(24) div_mult_self2 not_less_iff_gr_or_eq order_less_le add_0 zdiv_eq_0_iff mult_commute)
   apply (simp add: hl_mod_def hl_div_def)
-  by (metis add.comm_neutral add_pos_nonneg div_mult_self1 less_minus_iff minus_add minus_add_cancel minus_minus mult_zero_right not_square_less_zero zdiv_eq_0_iff zdiv_zminus2)
+  by (metis add.comm_neutral add_pos_nonneg div_mult_self1 less_minus_iff minus_add minus_add_cancel minus_minus mult_zero_right not_square_less_zero zdiv_eq_0_iff div_minus_right)
 
 lemma DEF_rem:
   "hl_mod = (SOME r. \<forall>m n. if n = int 0 then
@@ -182,7 +182,7 @@ lemma DEF_rem:
   apply (simp add: hl_mod_def hl_div_def)
   apply (metis add_left_cancel mod_div_equality)
   apply (simp add: hl_mod_def hl_div_def)
-  by (metis minus_mult_right mod_mult_self2 mod_pos_pos_trivial add_commute zminus_zmod zmod_zminus2 mult_commute)
+  by (metis minus_mult_right mod_mult_self2 mod_pos_pos_trivial add_commute zminus_zmod mod_minus_right mult_commute)
 
 lemma DEF_int_gcd:
   "int_gcd = (SOME d. \<forall>a b. (int 0) \<le> (d (a, b)) \<and> (d (a, b)) dvd a \<and>

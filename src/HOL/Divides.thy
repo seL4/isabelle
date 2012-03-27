@@ -343,6 +343,12 @@ lemma mod_mult_mult2:
   "(a * c) mod (b * c) = (a mod b) * c"
   using mod_mult_mult1 [of c a b] by (simp add: mult_commute)
 
+lemma mult_mod_left: "(a mod b) * c = (a * c) mod (b * c)"
+  by (fact mod_mult_mult2 [symmetric])
+
+lemma mult_mod_right: "c * (a mod b) = (c * a) mod (c * b)"
+  by (fact mod_mult_mult1 [symmetric])
+
 lemma dvd_mod: "k dvd m \<Longrightarrow> k dvd n \<Longrightarrow> k dvd (m mod n)"
   unfolding dvd_def by (auto simp add: mod_mult_mult1)
 
@@ -443,6 +449,19 @@ apply (subgoal_tac "y * k = -y * -k")
  apply simp
 apply simp
 done
+
+lemma div_minus_minus [simp]: "(-a) div (-b) = a div b"
+  using div_mult_mult1 [of "- 1" a b]
+  unfolding neg_equal_0_iff_equal by simp
+
+lemma mod_minus_minus [simp]: "(-a) mod (-b) = - (a mod b)"
+  using mod_mult_mult1 [of "- 1" a b] by simp
+
+lemma div_minus_right: "a div (-b) = (-a) div b"
+  using div_minus_minus [of "-a" b] by simp
+
+lemma mod_minus_right: "a mod (-b) = - ((-a) mod b)"
+  using mod_minus_minus [of "-a" b] by simp
 
 end
 
@@ -711,12 +730,6 @@ by (simp add: le_mod_geq)
 
 lemma mod_1 [simp]: "m mod Suc 0 = 0"
 by (induct m) (simp_all add: mod_geq)
-
-lemma mod_mult_distrib: "(m mod n) * (k\<Colon>nat) = (m * k) mod (n * k)"
-  by (fact mod_mult_mult2 [symmetric]) (* FIXME: generalize *)
-
-lemma mod_mult_distrib2: "(k::nat) * (m mod n) = (k*m) mod (k*n)"
-  by (fact mod_mult_mult1 [symmetric]) (* FIXME: generalize *)
 
 (* a simple rearrangement of mod_div_equality: *)
 lemma mult_div_cancel: "(n::nat) * (m div n) = m - (m mod n)"
@@ -1489,15 +1502,6 @@ done
 text{*There is no @{text mod_neg_pos_trivial}.*}
 
 
-(*Simpler laws such as -a div b = -(a div b) FAIL, but see just below*)
-lemma zdiv_zminus_zminus [simp]: "(-a) div (-b) = a div (b::int)"
-  using div_mult_mult1 [of "-1" a b] by simp (* FIXME: generalize *)
-
-(*Simpler laws such as -a mod b = -(a mod b) FAIL, but see just below*)
-lemma zmod_zminus_zminus [simp]: "(-a) mod (-b) = - (a mod (b::int))"
-  using mod_mult_mult1 [of "-1" a b] by simp (* FIXME: generalize *)
-
-
 subsubsection {* Laws for div and mod with Unary Minus *}
 
 lemma zminus1_lemma:
@@ -1524,21 +1528,15 @@ lemma zmod_zminus1_not_zero:
   shows "- k mod l \<noteq> 0 \<Longrightarrow> k mod l \<noteq> 0"
   unfolding zmod_zminus1_eq_if by auto
 
-lemma zdiv_zminus2: "a div (-b) = (-a::int) div b"
-  using zdiv_zminus_zminus [of "-a" b] by simp (* FIXME: generalize *)
-
-lemma zmod_zminus2: "a mod (-b) = - ((-a::int) mod b)"
-  using zmod_zminus_zminus [of "-a" b] by simp (* FIXME: generalize*)
-
 lemma zdiv_zminus2_eq_if:
      "b \<noteq> (0::int)  
       ==> a div (-b) =  
           (if a mod b = 0 then - (a div b) else  - (a div b) - 1)"
-by (simp add: zdiv_zminus1_eq_if zdiv_zminus2)
+by (simp add: zdiv_zminus1_eq_if div_minus_right)
 
 lemma zmod_zminus2_eq_if:
      "a mod (-b::int) = (if a mod b = 0 then 0 else  (a mod b) - b)"
-by (simp add: zmod_zminus1_eq_if zmod_zminus2)
+by (simp add: zmod_zminus1_eq_if mod_minus_right)
 
 lemma zmod_zminus2_not_zero:
   fixes k l :: int
@@ -2024,7 +2022,7 @@ proof -
   have "(1 + 2 * (-b - 1)) div (2 * (-a)) = (-b - 1) div (-a)"
     by (rule pos_zdiv_mult_2, simp add: A)
   thus ?thesis
-    by (simp only: R zdiv_zminus_zminus diff_minus
+    by (simp only: R div_minus_minus diff_minus
       minus_add_distrib [symmetric] mult_minus_right)
 qed
 
@@ -2072,7 +2070,7 @@ proof -
   from assms have "0 \<le> - a" by auto
   then have "(1 + 2 * (- b - 1)) mod (2 * (- a)) = 1 + 2 * ((- b - 1) mod (- a))"
     by (rule pos_zmod_mult_2)
-  then show ?thesis by (simp add: zmod_zminus2 algebra_simps)
+  then show ?thesis by (simp add: mod_minus_right algebra_simps)
      (simp add: diff_minus add_ac)
 qed
 
@@ -2131,7 +2129,7 @@ done
 
 lemma neg_imp_zdiv_nonneg_iff:
   "b < (0::int) ==> (0 \<le> a div b) = (a \<le> (0::int))"
-apply (subst zdiv_zminus_zminus [symmetric])
+apply (subst div_minus_minus [symmetric])
 apply (subst pos_imp_zdiv_nonneg_iff, auto)
 done
 
