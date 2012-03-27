@@ -1189,7 +1189,7 @@ lemma count_Bag [simp, code]:
 lemma Mempty_Bag [code]:
   "{#} = Bag (DAList.empty)"
   by (simp add: multiset_eq_iff alist.Alist_inverse DAList.empty_def)
-  
+
 lemma single_Bag [code]:
   "{#x#} = Bag (DAList.update x 1 DAList.empty)"
   by (simp add: multiset_eq_iff alist.Alist_inverse impl_of_update impl_of_empty)
