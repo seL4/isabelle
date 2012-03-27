@@ -713,19 +713,14 @@ lemma mod_1 [simp]: "m mod Suc 0 = 0"
 by (induct m) (simp_all add: mod_geq)
 
 lemma mod_mult_distrib: "(m mod n) * (k\<Colon>nat) = (m * k) mod (n * k)"
-  apply (cases "n = 0", simp)
-  apply (cases "k = 0", simp)
-  apply (induct m rule: nat_less_induct)
-  apply (subst mod_if, simp)
-  apply (simp add: mod_geq diff_mult_distrib)
-  done
+  by (fact mod_mult_mult2 [symmetric]) (* FIXME: generalize *)
 
 lemma mod_mult_distrib2: "(k::nat) * (m mod n) = (k*m) mod (k*n)"
-by (simp add: mult_commute [of k] mod_mult_distrib)
+  by (fact mod_mult_mult1 [symmetric]) (* FIXME: generalize *)
 
 (* a simple rearrangement of mod_div_equality: *)
 lemma mult_div_cancel: "(n::nat) * (m div n) = m - (m mod n)"
-by (cut_tac a = m and b = n in mod_div_equality2, arith)
+  using mod_div_equality2 [of n m] by arith
 
 lemma mod_le_divisor[simp]: "0 < n \<Longrightarrow> m mod n \<le> (n::nat)"
   apply (drule mod_less_divisor [where m = m])
@@ -818,9 +813,9 @@ apply (simp_all (no_asm_simp))
 done
 
 (* Similar for "less than" *)
-lemma div_less_dividend [rule_format]:
-     "!!n::nat. 1<n ==> 0 < m --> m div n < m"
-apply (induct_tac m rule: nat_less_induct)
+lemma div_less_dividend [simp]:
+  "\<lbrakk>(1::nat) < n; 0 < m\<rbrakk> \<Longrightarrow> m div n < m"
+apply (induct m rule: nat_less_induct)
 apply (rename_tac "m")
 apply (case_tac "m<n", simp)
 apply (subgoal_tac "0<n")
@@ -832,8 +827,6 @@ apply (case_tac "n<m")
 apply assumption
   apply (simp_all)
 done
-
-declare div_less_dividend [simp]
 
 text{*A fact for the mutilated chess board*}
 lemma mod_Suc: "Suc(m) mod n = (if Suc(m mod n) = n then 0 else Suc(m mod n))"
@@ -963,23 +956,11 @@ next
 qed
 
 theorem mod_div_equality': "(m::nat) mod n = m - (m div n) * n"
-  apply (rule_tac P="%x. m mod n = x - (m div n) * n" in
-    subst [OF mod_div_equality [of _ n]])
-  apply arith
-  done
+  using mod_div_equality [of m n] by arith
 
-lemma div_mod_equality':
-  fixes m n :: nat
-  shows "m div n * n = m - m mod n"
-proof -
-  have "m mod n \<le> m mod n" ..
-  from div_mod_equality have 
-    "m div n * n + m mod n - m mod n = m - m mod n" by simp
-  with diff_add_assoc [OF `m mod n \<le> m mod n`, of "m div n * n"] have
-    "m div n * n + (m mod n - m mod n) = m - m mod n"
-    by simp
-  then show ?thesis by simp
-qed
+lemma div_mod_equality': "(m::nat) div n * n = m - m mod n"
+  using mod_div_equality [of m n] by arith
+(* FIXME: very similar to mult_div_cancel *)
 
 
 subsubsection {* An ``induction'' law for modulus arithmetic. *}
@@ -1071,16 +1052,13 @@ proof -
 qed
 
 lemma div2_Suc_Suc [simp]: "Suc (Suc m) div 2 = Suc (m div 2)"
-by (auto simp add: numeral_2_eq_2 le_div_geq)
+  by (simp add: numeral_2_eq_2 le_div_geq)
+
+lemma mod2_Suc_Suc [simp]: "Suc (Suc m) mod 2 = m mod 2"
+  by (simp add: numeral_2_eq_2 le_mod_geq)
 
 lemma add_self_div_2 [simp]: "(m + m) div 2 = (m::nat)"
 by (simp add: nat_mult_2 [symmetric])
-
-lemma mod2_Suc_Suc [simp]: "Suc(Suc(m)) mod 2 = m mod 2"
-apply (subgoal_tac "m mod 2 < 2")
-apply (erule less_2_cases [THEN disjE])
-apply (simp_all (no_asm_simp) add: Let_def mod_Suc)
-done
 
 lemma mod2_gr_0 [simp]: "0 < (m\<Colon>nat) mod 2 \<longleftrightarrow> m mod 2 = 1"
 proof -
@@ -1117,8 +1095,8 @@ done
 
 declare Suc_times_mod_eq [of "numeral w", simp] for w
 
-lemma [simp]: "n div k \<le> (Suc n) div k"
-by (simp add: div_le_mono) 
+lemma Suc_div_le_mono [simp]: "n div k \<le> (Suc n) div k"
+by (simp add: div_le_mono)
 
 lemma Suc_n_div_2_gt_zero [simp]: "(0::nat) < n ==> 0 < (n + 1) div 2"
 by (cases n) simp_all
