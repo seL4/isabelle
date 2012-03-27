@@ -576,43 +576,27 @@ lemma divmod_nat_rel: "divmod_nat_rel m n (m div n, m mod n)"
 
 lemma divmod_nat_zero:
   "divmod_nat m 0 = (0, m)"
-proof -
-  from divmod_nat_rel [of m 0] show ?thesis
-    unfolding divmod_nat_div_mod divmod_nat_rel_def by simp
+proof (rule divmod_nat_eq)
+  show "divmod_nat_rel m 0 (0, m)"
+    unfolding divmod_nat_rel_def by simp
 qed
 
 lemma divmod_nat_base:
   assumes "m < n"
   shows "divmod_nat m n = (0, m)"
-proof -
-  from divmod_nat_rel [of m n] show ?thesis
-    unfolding divmod_nat_div_mod divmod_nat_rel_def
-    using assms by (cases "m div n = 0")
-      (auto simp add: gr0_conv_Suc [of "m div n"])
+proof (rule divmod_nat_eq)
+  show "divmod_nat_rel m n (0, m)"
+    unfolding divmod_nat_rel_def using assms by simp
 qed
 
 lemma divmod_nat_step:
   assumes "0 < n" and "n \<le> m"
   shows "divmod_nat m n = (Suc ((m - n) div n), (m - n) mod n)"
-proof -
-  from divmod_nat_rel have divmod_nat_m_n: "divmod_nat_rel m n (m div n, m mod n)" .
-  with assms have m_div_n: "m div n \<ge> 1"
-    by (cases "m div n") (auto simp add: divmod_nat_rel_def)
-  have "divmod_nat_rel (m - n) n (m div n - Suc 0, m mod n)"
-  proof -
-    from assms have
-      "n \<noteq> 0"
-      "\<And>k. m = Suc k * n + m mod n ==> m - n = (Suc k - Suc 0) * n + m mod n"
-      by simp_all
-    then show ?thesis using assms divmod_nat_m_n 
-      by (cases "m div n")
-         (simp_all only: divmod_nat_rel_def fst_conv snd_conv, simp_all)
-  qed
-  with divmod_nat_eq have "divmod_nat (m - n) n = (m div n - Suc 0, m mod n)" by simp
-  moreover from divmod_nat_div_mod have "divmod_nat (m - n) n = ((m - n) div n, (m - n) mod n)" .
-  ultimately have "m div n = Suc ((m - n) div n)"
-    and "m mod n = (m - n) mod n" using m_div_n by simp_all
-  then show ?thesis using divmod_nat_div_mod by simp
+proof (rule divmod_nat_eq)
+  have "divmod_nat_rel (m - n) n ((m - n) div n, (m - n) mod n)"
+    by (rule divmod_nat_rel)
+  thus "divmod_nat_rel m n (Suc ((m - n) div n), (m - n) mod n)"
+    unfolding divmod_nat_rel_def using assms by auto
 qed
 
 text {* The ''recursion'' equations for @{const div} and @{const mod} *}
