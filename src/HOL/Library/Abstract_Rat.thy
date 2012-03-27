@@ -40,7 +40,7 @@ proof -
     from anz bnz have "?g \<noteq> 0" by simp  with gcd_ge_0_int[of a b]
     have gpos: "?g > 0" by arith
     have gdvd: "?g dvd a" "?g dvd b" by arith+
-    from zdvd_mult_div_cancel[OF gdvd(1)] zdvd_mult_div_cancel[OF gdvd(2)] anz bnz
+    from dvd_mult_div_cancel[OF gdvd(1)] dvd_mult_div_cancel[OF gdvd(2)] anz bnz
     have nz': "?a' \<noteq> 0" "?b' \<noteq> 0" by - (rule notI, simp)+
     from anz bnz have stupid: "a \<noteq> 0 \<or> b \<noteq> 0" by arith
     from div_gcd_coprime_int[OF stupid] have gp1: "?g' = 1" .
@@ -56,7 +56,7 @@ proof -
       assume b: "b < 0"
       { assume b': "?b' \<ge> 0"
         from gpos have th: "?g \<ge> 0" by arith
-        from mult_nonneg_nonneg[OF th b'] zdvd_mult_div_cancel[OF gdvd(2)]
+        from mult_nonneg_nonneg[OF th b'] dvd_mult_div_cancel[OF gdvd(2)]
         have False using b by arith }
       hence b': "?b' < 0" by (presburger add: linorder_not_le[symmetric])
       from anz bnz nz' b b' gp1 have ?thesis

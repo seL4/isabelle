@@ -105,7 +105,7 @@ lemma zgcd_zgcd_zmult:
   by (simp add: zgcd_zmult_cancel)
 
 lemma zdvd_iff_zgcd: "0 < m ==> m dvd n \<longleftrightarrow> zgcd n m = m"
-  by (metis abs_of_pos zdvd_mult_div_cancel zgcd_0 zgcd_commute zgcd_geq_zero zgcd_zdvd2 zgcd_zmult_eq_self)
+  by (metis abs_of_pos dvd_mult_div_cancel zgcd_0 zgcd_commute zgcd_geq_zero zgcd_zdvd2 zgcd_zmult_eq_self)
 
 
 
@@ -197,7 +197,7 @@ lemma zcong_zgcd_zmult_zmod:
   apply (subgoal_tac "m dvd n * ka")
    apply (subgoal_tac "m dvd ka")
     apply (case_tac [2] "0 \<le> ka")
-  apply (metis zdvd_mult_div_cancel dvd_refl dvd_mult_left mult_commute zrelprime_zdvd_zmult)
+  apply (metis dvd_mult_div_cancel dvd_refl dvd_mult_left mult_commute zrelprime_zdvd_zmult)
   apply (metis abs_dvd_iff abs_of_nonneg add_0 zgcd_0_left zgcd_commute zgcd_zadd_zmult zgcd_zdvd_zgcd_zmult zgcd_zmult_distrib2_abs mult_1_right mult_commute)
   apply (metis mult_le_0_iff  zdvd_mono zdvd_mult_cancel dvd_triv_left zero_le_mult_iff order_antisym linorder_linear order_refl mult_commute zrelprime_zdvd_zmult)
   apply (metis dvd_triv_left)

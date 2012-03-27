@@ -2207,12 +2207,6 @@ done
 lemma abs_div: "(y::int) dvd x \<Longrightarrow> abs (x div y) = abs x div abs y"
 by (unfold dvd_def, cases "y=0", auto simp add: abs_mult)
 
-lemma zdvd_mult_div_cancel:"(n::int) dvd m \<Longrightarrow> n * (m div n) = m"
-apply (subgoal_tac "m mod n = 0")
- apply (simp add: zmult_div_cancel)
-apply (simp only: dvd_eq_mod_eq_0)
-done
-
 text{*Suggested by Matthias Daum*}
 lemma int_power_div_base:
      "\<lbrakk>0 < m; 0 < k\<rbrakk> \<Longrightarrow> k ^ m div k = (k::int) ^ (m - Suc 0)"

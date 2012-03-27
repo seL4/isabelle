@@ -643,8 +643,8 @@ proof -
     unfolding dvd_def by blast
   then have "?g* ?a' = (?g * ?g') * ka'" "?g* ?b' = (?g * ?g') * kb'" by simp_all
   then have dvdgg':"?g * ?g' dvd a" "?g* ?g' dvd b"
-    by (auto simp add: zdvd_mult_div_cancel [OF dvdg(1)]
-      zdvd_mult_div_cancel [OF dvdg(2)] dvd_def)
+    by (auto simp add: dvd_mult_div_cancel [OF dvdg(1)]
+      dvd_mult_div_cancel [OF dvdg(2)] dvd_def)
   have "?g \<noteq> 0" using nz by simp
   then have gp: "?g \<noteq> 0" using zgcd_pos[where i="a" and j="b"] by arith
   from zgcd_greatest [OF dvdgg'] have "?g * ?g' dvd ?g" .
