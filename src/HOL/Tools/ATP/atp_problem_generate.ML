@@ -131,8 +131,8 @@ val lam_liftingN = "lam_lifting" (* legacy *)
 val avoid_first_order_ghost_type_vars = false
 
 val bound_var_prefix = "B_"
-val all_bound_var_prefix = "BA_"
-val exist_bound_var_prefix = "BE_"
+val all_bound_var_prefix = "A_"
+val exist_bound_var_prefix = "E_"
 val schematic_var_prefix = "V_"
 val fixed_var_prefix = "v_"
 val tvar_prefix = "T_"
@@ -824,10 +824,10 @@ fun update_iformula f ({name, stature, kind, iformula, atomic_types}
 
 fun fact_lift f ({iformula, ...} : translated_formula) = f iformula
 
-fun insert_type ctxt get_T x xs =
+fun insert_type thy get_T x xs =
   let val T = get_T x in
-    if exists (type_instance ctxt T o get_T) xs then xs
-    else x :: filter_out (type_generalization ctxt T o get_T) xs
+    if exists (type_instance thy T o get_T) xs then xs
+    else x :: filter_out (type_generalization thy T o get_T) xs
   end
 
 (* The Booleans indicate whether all type arguments should be kept. *)
@@ -1342,20 +1342,24 @@ fun should_encode_type _ (_ : monotonicity_info) All_Types _ = true
   | should_encode_type ctxt {maybe_finite_Ts, surely_infinite_Ts,
                              maybe_nonmono_Ts, ...}
                        (Noninf_Nonmono_Types (strictness, grain)) T =
-    grain = Ghost_Type_Arg_Vars orelse
-    (exists (type_intersect ctxt T) maybe_nonmono_Ts andalso
-     not (exists (type_instance ctxt T) surely_infinite_Ts orelse
-          (not (member (type_equiv ctxt) maybe_finite_Ts T) andalso
-           is_type_kind_of_surely_infinite ctxt strictness surely_infinite_Ts
-                                           T)))
+    let val thy = Proof_Context.theory_of ctxt in
+      grain = Ghost_Type_Arg_Vars orelse
+      (exists (type_intersect thy T) maybe_nonmono_Ts andalso
+       not (exists (type_instance thy T) surely_infinite_Ts orelse
+            (not (member (type_equiv thy) maybe_finite_Ts T) andalso
+             is_type_kind_of_surely_infinite ctxt strictness surely_infinite_Ts
+                                             T)))
+    end
   | should_encode_type ctxt {surely_finite_Ts, maybe_infinite_Ts,
                              maybe_nonmono_Ts, ...}
                        (Fin_Nonmono_Types grain) T =
-    grain = Ghost_Type_Arg_Vars orelse
-    (exists (type_intersect ctxt T) maybe_nonmono_Ts andalso
-     (exists (type_generalization ctxt T) surely_finite_Ts orelse
-      (not (member (type_equiv ctxt) maybe_infinite_Ts T) andalso
-       is_type_surely_finite ctxt T)))
+    let val thy = Proof_Context.theory_of ctxt in
+      grain = Ghost_Type_Arg_Vars orelse
+      (exists (type_intersect thy T) maybe_nonmono_Ts andalso
+       (exists (type_generalization thy T) surely_finite_Ts orelse
+        (not (member (type_equiv thy) maybe_infinite_Ts T) andalso
+         is_type_surely_finite ctxt T)))
+    end
   | should_encode_type _ _ _ _ = false
 
 fun should_guard_type ctxt mono (Guards (_, level)) should_guard_var T =
@@ -1425,8 +1429,8 @@ fun sym_table_for_facts ctxt type_enc app_op_level conjs facts =
     fun consider_var_ary const_T var_T max_ary =
       let
         fun iter ary T =
-          if ary = max_ary orelse type_instance ctxt var_T T orelse
-             type_instance ctxt T var_T then
+          if ary = max_ary orelse type_instance thy var_T T orelse
+             type_instance thy T var_T then
             ary
           else
             iter (ary + 1) (range_type T)
@@ -1445,7 +1449,7 @@ fun sym_table_for_facts ctxt type_enc app_op_level conjs facts =
              min_ary = fold (fn T' => consider_var_ary T' T) types min_ary,
              max_ary = max_ary, types = types, in_conj = in_conj}
           val fun_var_Ts' =
-            fun_var_Ts |> can dest_funT T ? insert_type ctxt I T
+            fun_var_Ts |> can dest_funT T ? insert_type thy I T
         in
           if bool_vars' = bool_vars andalso
              pointer_eq (fun_var_Ts', fun_var_Ts) then
@@ -1473,7 +1477,7 @@ fun sym_table_for_facts ctxt type_enc app_op_level conjs facts =
                     let
                       val pred_sym =
                         pred_sym andalso top_level andalso not bool_vars
-                      val types' = types |> insert_type ctxt I T
+                      val types' = types |> insert_type thy I T
                       val in_conj = in_conj orelse conj_fact
                       val min_ary =
                         if (app_op_level = Sufficient_App_Op orelse
@@ -2070,7 +2074,7 @@ fun decl_lines_for_classes type_enc classes =
     map (decl_line_for_class order) classes
   | _ => []
 
-fun sym_decl_table_for_facts ctxt format type_enc sym_tab
+fun sym_decl_table_for_facts thy format type_enc sym_tab
                              (conjs, facts, extra_tms) =
   let
     fun add_iterm_syms tm =
@@ -2091,8 +2095,8 @@ fun sym_decl_table_for_facts ctxt format type_enc sym_tab
            in
              if decl_sym then
                Symtab.map_default (s, [])
-                   (insert_type ctxt #3 (s', T_args, T, pred_sym, length args,
-                                         in_conj))
+                   (insert_type thy #3 (s', T_args, T, pred_sym, length args,
+                                        in_conj))
              else
                I
            end
@@ -2102,7 +2106,7 @@ fun sym_decl_table_for_facts ctxt format type_enc sym_tab
       end
     val add_fact_syms = K add_iterm_syms |> formula_fold NONE |> fact_lift
     fun add_formula_var_types (AQuant (_, xs, phi)) =
-        fold (fn (_, SOME T) => insert_type ctxt I T | _ => I) xs
+        fold (fn (_, SOME T) => insert_type thy I T | _ => I) xs
         #> add_formula_var_types phi
       | add_formula_var_types (AConn (_, phis)) =
         fold add_formula_var_types phis
@@ -2119,12 +2123,12 @@ fun sym_decl_table_for_facts ctxt format type_enc sym_tab
               | _ => I)
       in
         Symtab.map_default (s, [])
-                           (insert_type ctxt #3 (s', [T], T, false, 0, false))
+                           (insert_type thy #3 (s', [T], T, false, 0, false))
       end
     fun add_TYPE_const () =
       let val (s, s') = TYPE_name in
         Symtab.map_default (s, [])
-            (insert_type ctxt #3
+            (insert_type thy #3
                          (s', [tvar_a], @{typ "'a itself"}, false, 0, false))
       end
   in
@@ -2158,44 +2162,46 @@ fun add_iterm_mononotonicity_info _ _ (SOME false) _ mono = mono
         (IApp (IApp (IConst ((s, _), Type (_, [T, _]), _), tm1), tm2))
         (mono as {maybe_finite_Ts, surely_finite_Ts, maybe_infinite_Ts,
                   surely_infinite_Ts, maybe_nonmono_Ts}) =
-    if is_tptp_equal s andalso exists is_maybe_universal_var [tm1, tm2] then
-      case level of
-        Noninf_Nonmono_Types (strictness, _) =>
-        if exists (type_instance ctxt T) surely_infinite_Ts orelse
-           member (type_equiv ctxt) maybe_finite_Ts T then
-          mono
-        else if is_type_kind_of_surely_infinite ctxt strictness
-                                                surely_infinite_Ts T then
-          {maybe_finite_Ts = maybe_finite_Ts,
-           surely_finite_Ts = surely_finite_Ts,
-           maybe_infinite_Ts = maybe_infinite_Ts,
-           surely_infinite_Ts = surely_infinite_Ts |> insert_type ctxt I T,
-           maybe_nonmono_Ts = maybe_nonmono_Ts}
-        else
-          {maybe_finite_Ts = maybe_finite_Ts |> insert (type_equiv ctxt) T,
-           surely_finite_Ts = surely_finite_Ts,
-           maybe_infinite_Ts = maybe_infinite_Ts,
-           surely_infinite_Ts = surely_infinite_Ts,
-           maybe_nonmono_Ts = maybe_nonmono_Ts |> insert_type ctxt I T}
-      | Fin_Nonmono_Types _ =>
-        if exists (type_instance ctxt T) surely_finite_Ts orelse
-           member (type_equiv ctxt) maybe_infinite_Ts T then
-          mono
-        else if is_type_surely_finite ctxt T then
-          {maybe_finite_Ts = maybe_finite_Ts,
-           surely_finite_Ts = surely_finite_Ts |> insert_type ctxt I T,
-           maybe_infinite_Ts = maybe_infinite_Ts,
-           surely_infinite_Ts = surely_infinite_Ts,
-           maybe_nonmono_Ts = maybe_nonmono_Ts |> insert_type ctxt I T}
-        else
-          {maybe_finite_Ts = maybe_finite_Ts,
-           surely_finite_Ts = surely_finite_Ts,
-           maybe_infinite_Ts = maybe_infinite_Ts |> insert (type_equiv ctxt) T,
-           surely_infinite_Ts = surely_infinite_Ts,
-           maybe_nonmono_Ts = maybe_nonmono_Ts}
-      | _ => mono
-    else
-      mono
+    let val thy = Proof_Context.theory_of ctxt in
+      if is_tptp_equal s andalso exists is_maybe_universal_var [tm1, tm2] then
+        case level of
+          Noninf_Nonmono_Types (strictness, _) =>
+          if exists (type_instance thy T) surely_infinite_Ts orelse
+             member (type_equiv thy) maybe_finite_Ts T then
+            mono
+          else if is_type_kind_of_surely_infinite ctxt strictness
+                                                  surely_infinite_Ts T then
+            {maybe_finite_Ts = maybe_finite_Ts,
+             surely_finite_Ts = surely_finite_Ts,
+             maybe_infinite_Ts = maybe_infinite_Ts,
+             surely_infinite_Ts = surely_infinite_Ts |> insert_type thy I T,
+             maybe_nonmono_Ts = maybe_nonmono_Ts}
+          else
+            {maybe_finite_Ts = maybe_finite_Ts |> insert (type_equiv thy) T,
+             surely_finite_Ts = surely_finite_Ts,
+             maybe_infinite_Ts = maybe_infinite_Ts,
+             surely_infinite_Ts = surely_infinite_Ts,
+             maybe_nonmono_Ts = maybe_nonmono_Ts |> insert_type thy I T}
+        | Fin_Nonmono_Types _ =>
+          if exists (type_instance thy T) surely_finite_Ts orelse
+             member (type_equiv thy) maybe_infinite_Ts T then
+            mono
+          else if is_type_surely_finite ctxt T then
+            {maybe_finite_Ts = maybe_finite_Ts,
+             surely_finite_Ts = surely_finite_Ts |> insert_type thy I T,
+             maybe_infinite_Ts = maybe_infinite_Ts,
+             surely_infinite_Ts = surely_infinite_Ts,
+             maybe_nonmono_Ts = maybe_nonmono_Ts |> insert_type thy I T}
+          else
+            {maybe_finite_Ts = maybe_finite_Ts,
+             surely_finite_Ts = surely_finite_Ts,
+             maybe_infinite_Ts = maybe_infinite_Ts |> insert (type_equiv thy) T,
+             surely_infinite_Ts = surely_infinite_Ts,
+             maybe_nonmono_Ts = maybe_nonmono_Ts}
+        | _ => mono
+      else
+        mono
+    end
   | add_iterm_mononotonicity_info _ _ _ _ mono = mono
 fun add_fact_mononotonicity_info ctxt level
         ({kind, iformula, ...} : translated_formula) =
@@ -2210,9 +2216,10 @@ fun mononotonicity_info_for_facts ctxt type_enc facts =
 
 fun add_iformula_monotonic_types ctxt mono type_enc =
   let
+    val thy = Proof_Context.theory_of ctxt
     val level = level_of_type_enc type_enc
     val should_encode = should_encode_type ctxt mono level
-    fun add_type T = not (should_encode T) ? insert_type ctxt I T
+    fun add_type T = not (should_encode T) ? insert_type thy I T
     fun add_args (IApp (tm1, tm2)) = add_args tm1 #> add_term tm2
       | add_args _ = I
     and add_term tm = add_type (ityp_of tm) #> add_args tm
@@ -2360,12 +2367,12 @@ fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
 
 fun result_type_of_decl (_, _, T, _, ary, _) = chop_fun ary T |> snd
 
-fun rationalize_decls ctxt (decls as decl :: (decls' as _ :: _)) =
+fun rationalize_decls thy (decls as decl :: (decls' as _ :: _)) =
     let
       val T = result_type_of_decl decl
               |> map_type_tvar (fn (z, _) => TVar (z, HOLogic.typeS))
     in
-      if forall (type_generalization ctxt T o result_type_of_decl) decls' then
+      if forall (type_generalization thy T o result_type_of_decl) decls' then
         [decl]
       else
         decls
@@ -2378,7 +2385,8 @@ fun problem_lines_for_sym_decls ctxt format conj_sym_kind mono type_enc
     Simple_Types _ => [decl_line_for_sym ctxt format mono type_enc s (hd decls)]
   | Guards (_, level) =>
     let
-      val decls = decls |> rationalize_decls ctxt
+      val thy = Proof_Context.theory_of ctxt
+      val decls = decls |> rationalize_decls thy
       val n = length decls
       val decls =
         decls |> filter (should_encode_type ctxt mono level
@@ -2517,10 +2525,9 @@ fun nary_type_constr_type n =
 
 fun undeclared_syms_in_problem type_enc problem =
   let
-    val declared = declared_syms_in_problem problem
     fun do_sym (name as (s, _)) ty =
-      if is_tptp_user_symbol s andalso not (member (op =) declared name) then
-        AList.default (op =) (name, ty)
+      if is_tptp_user_symbol s then
+        Symtab.default (s, (name, ty))
       else
         I
     fun do_type (AType (name, tys)) =
@@ -2539,17 +2546,19 @@ fun undeclared_syms_in_problem type_enc problem =
     fun do_problem_line (Decl (_, _, ty)) = do_type ty
       | do_problem_line (Formula (_, _, phi, _, _)) = do_formula phi
   in
-    fold (fold do_problem_line o snd) problem []
-    |> filter_out (is_built_in_tptp_symbol o fst o fst)
+    Symtab.empty
+    |> fold (fn (s, _) => Symtab.default (s, (("", ""), K tvar_a_atype)))
+            (declared_syms_in_problem problem)
+    |> fold (fold do_problem_line o snd) problem
   end
 
 fun declare_undeclared_syms_in_atp_problem type_enc problem =
   let
     val decls =
-      problem
-      |> undeclared_syms_in_problem type_enc
-      |> sort_wrt (fst o fst)
-      |> map (fn (x as (s, _), ty) => Decl (type_decl_prefix ^ s, x, ty ()))
+      Symtab.fold (fn (_, (("", ""), _)) => I (* already declared *)
+                    | (s, (sym, ty)) =>
+                      cons (Decl (type_decl_prefix ^ s, sym, ty ())))
+                  (undeclared_syms_in_problem type_enc problem) []
   in (implicit_declsN, decls) :: problem end
 
 fun exists_subdtype P =
@@ -2622,7 +2631,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
           conj_sym_kind mono type_enc uncurried_aliases sym_tab0 sym_tab
     val sym_decl_lines =
       (conjs, helpers @ facts, uncurried_alias_eq_tms)
-      |> sym_decl_table_for_facts ctxt format type_enc sym_tab
+      |> sym_decl_table_for_facts thy format type_enc sym_tab
       |> problem_lines_for_sym_decl_table ctxt format conj_sym_kind mono
                                                type_enc mono_Ts
     val num_facts = length facts

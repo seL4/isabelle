@@ -125,7 +125,7 @@ sig
     (string * string) problem -> (string * string) problem
   val filter_cnf_ueq_problem :
     (string * string) problem -> (string * string) problem
-  val declared_syms_in_problem : (string * ''a) problem -> (string * ''a) list
+  val declared_syms_in_problem : 'a problem -> 'a list
   val nice_atp_problem :
     bool -> atp_format -> ('a * (string * string) problem_line list) list
     -> ('a * string problem_line list) list
@@ -689,7 +689,7 @@ fun filter_cnf_ueq_problem problem =
 
 (** Symbol declarations **)
 
-fun add_declared_syms_in_problem_line (Decl (_, sym, _)) = insert (op =) sym
+fun add_declared_syms_in_problem_line (Decl (_, sym, _)) = cons sym
   | add_declared_syms_in_problem_line _ = I
 fun declared_syms_in_problem problem =
   fold (fold add_declared_syms_in_problem_line o snd) problem []
@@ -785,9 +785,9 @@ fun avoid_clash_with_dfg_keywords s =
     if n < 2 orelse (n = 2 andalso String.sub (s, 0) = String.sub (s, 1)) orelse
        String.isSubstring "_" s then
       s
-    else if s = "Dl" orelse s = "DL" then
+    else if is_tptp_variable s then
       (* "DL" appears to be a SPASS 3.7 keyword *)
-      s ^ "_"
+      if s = "DL" then s ^ "_" else s
     else
       String.substring (s, 0, n - 1) ^
       String.str (Char.toUpper (String.sub (s, n - 1)))
