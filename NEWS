@@ -149,6 +149,8 @@ INCOMPATIBILITY, use the corresponding generic theorems instead.
   zmod_zminus_zminus ~> mod_minus_minus
   zdiv_zminus2 ~> div_minus_right
   zmod_zminus2 ~> mod_minus_right
+  zdiv_minus1_right ~> div_minus1_right
+  zmod_minus1_right ~> mod_minus1_right
   mod_mult_distrib ~> mult_mod_left
   mod_mult_distrib2 ~> mult_mod_right
 

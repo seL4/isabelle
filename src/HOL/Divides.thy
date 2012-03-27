@@ -463,6 +463,12 @@ lemma div_minus_right: "a div (-b) = (-a) div b"
 lemma mod_minus_right: "a mod (-b) = - ((-a) mod b)"
   using mod_minus_minus [of "-a" b] by simp
 
+lemma div_minus1_right [simp]: "a div (-1) = -a"
+  using div_minus_right [of a 1] by simp
+
+lemma mod_minus1_right [simp]: "a mod (-1) = 0"
+  using mod_minus_right [of a 1] by simp
+
 end
 
 
@@ -1660,16 +1666,6 @@ lemmas negDivAlg_eqn_numeral [simp] =
 
 
 text{*Special-case simplification *}
-
-lemma zmod_minus1_right [simp]: "a mod (-1::int) = 0"
-apply (cut_tac a = a and b = "-1" in neg_mod_sign)
-apply (cut_tac [2] a = a and b = "-1" in neg_mod_bound)
-apply (auto simp del: neg_mod_sign neg_mod_bound)
-done (* FIXME: generalize *)
-
-lemma zdiv_minus1_right [simp]: "a div (-1::int) = -a"
-by (cut_tac a = a and b = "-1" in zmod_zdiv_equality, auto)
-(* FIXME: generalize *)
 
 (** The last remaining special cases for constant arithmetic:
     1 div z and 1 mod z **)
