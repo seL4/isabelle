@@ -156,6 +156,8 @@ INCOMPATIBILITY, use the corresponding generic theorems instead.
   zdvd_mult_div_cancel ~> dvd_mult_div_cancel
   zmod_zmult1_eq ~> mod_mult_right_eq
   zpower_zmod ~> power_mod
+  zdvd_zmod ~> dvd_mod
+  zdvd_zmod_imp_zdvd ~> dvd_mod_imp_dvd
   mod_mult_distrib ~> mult_mod_left
   mod_mult_distrib2 ~> mult_mod_right
 

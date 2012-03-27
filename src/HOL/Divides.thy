@@ -2132,12 +2132,6 @@ lemmas zdvd_iff_zmod_eq_0_numeral [simp] =
   dvd_eq_mod_eq_0 [of "neg_numeral x::int" "numeral y::int"]
   dvd_eq_mod_eq_0 [of "neg_numeral x::int" "neg_numeral y::int"] for x y
 
-lemma zdvd_zmod: "f dvd m ==> f dvd (n::int) ==> f dvd m mod n"
-  by (rule dvd_mod) (* TODO: remove *)
-
-lemma zdvd_zmod_imp_zdvd: "k dvd m mod n ==> k dvd n ==> k dvd (m::int)"
-  by (rule dvd_mod_imp_dvd) (* TODO: remove *)
-
 lemmas dvd_eq_mod_eq_0_numeral [simp] =
   dvd_eq_mod_eq_0 [of "numeral x" "numeral y"] for x y
 
