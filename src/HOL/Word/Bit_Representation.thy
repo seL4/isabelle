@@ -625,7 +625,7 @@ lemma sbintrunc_dec:
   unfolding no_sbintr_alt2 by (drule sb_dec_lem') simp
 
 lemmas zmod_uminus' = zmod_uminus [where b=c] for c
-lemmas zpower_zmod' = zpower_zmod [where m=c and y=k] for c k
+lemmas zpower_zmod' = power_mod [where b=c and n=k] for c k
 
 lemmas brdmod1s' [symmetric] = 
   mod_add_left_eq mod_add_right_eq 

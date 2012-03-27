@@ -283,6 +283,15 @@ proof -
     by (simp only: mod_mult_eq [symmetric])
 qed
 
+text {* Exponentiation respects modular equivalence. *}
+
+lemma power_mod: "(a mod b)^n mod b = a^n mod b"
+apply (induct n, simp_all)
+apply (rule mod_mult_right_eq [THEN trans])
+apply (simp (no_asm_simp))
+apply (rule mod_mult_eq [symmetric])
+done
+
 lemma mod_mod_cancel:
   assumes "c dvd b"
   shows "a mod b mod c = a mod c"
@@ -2179,13 +2188,6 @@ lemma zmult_div_cancel: "(n::int) * (m div n) = m - (m mod n)"
   using zmod_zdiv_equality[where a="m" and b="n"]
   by (simp add: algebra_simps) (* FIXME: generalize *)
 
-lemma zpower_zmod: "((x::int) mod m)^y mod m = x^y mod m"
-apply (induct "y", auto)
-apply (rule mod_mult_right_eq [THEN trans])
-apply (simp (no_asm_simp))
-apply (rule mod_mult_eq [symmetric])
-done (* FIXME: generalize *)
-
 lemma zdiv_int: "int (a div b) = (int a) div (int b)"
 apply (subst split_div, auto)
 apply (subst split_zdiv, auto)
@@ -2228,7 +2230,7 @@ lemmas zmod_simps =
   mod_add_right_eq [symmetric]
   mod_mult_right_eq[symmetric]
   mod_mult_left_eq [symmetric]
-  zpower_zmod
+  power_mod
   zminus_zmod zdiff_zmod_left zdiff_zmod_right
 
 text {* Distributive laws for function @{text nat}. *}
