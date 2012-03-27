@@ -1133,8 +1133,8 @@ subsection {* Division on @{typ int} *}
 
 definition divmod_int_rel :: "int \<Rightarrow> int \<Rightarrow> int \<times> int \<Rightarrow> bool" where
     --{*definition of quotient and remainder*}
-    "divmod_int_rel a b = (\<lambda>(q, r). a = b * q + r \<and>
-               (if 0 < b then 0 \<le> r \<and> r < b else b < r \<and> r \<le> 0))"
+  "divmod_int_rel a b = (\<lambda>(q, r). a = b * q + r \<and>
+    (if 0 < b then 0 \<le> r \<and> r < b else if b < 0 then b < r \<and> r \<le> 0 else q = 0))"
 
 definition adjust :: "int \<Rightarrow> int \<times> int \<Rightarrow> int \<times> int" where
     --{*for the division algorithm*}
@@ -1332,19 +1332,23 @@ lemma negDivAlg_correct:
 subsubsection {* Existence Shown by Proving the Division Algorithm to be Correct *}
 
 (*the case a=0*)
-lemma divmod_int_rel_0: "b \<noteq> 0 ==> divmod_int_rel 0 b (0, 0)"
+lemma divmod_int_rel_0: "divmod_int_rel 0 b (0, 0)"
 by (auto simp add: divmod_int_rel_def linorder_neq_iff)
 
 lemma posDivAlg_0 [simp]: "posDivAlg 0 b = (0, 0)"
+by (subst posDivAlg.simps, auto)
+
+lemma posDivAlg_0_right [simp]: "posDivAlg a 0 = (0, a)"
 by (subst posDivAlg.simps, auto)
 
 lemma negDivAlg_minus1 [simp]: "negDivAlg -1 b = (-1, b - 1)"
 by (subst negDivAlg.simps, auto)
 
 lemma divmod_int_rel_neg: "divmod_int_rel (-a) (-b) qr ==> divmod_int_rel a b (apsnd uminus qr)"
-by (auto simp add: split_ifs divmod_int_rel_def)
+by (auto simp add: divmod_int_rel_def)
 
-lemma divmod_int_correct: "b \<noteq> 0 ==> divmod_int_rel a b (divmod_int a b)"
+lemma divmod_int_correct: "divmod_int_rel a b (divmod_int a b)"
+apply (cases "b = 0", simp add: divmod_int_def divmod_int_rel_def)
 by (force simp add: linorder_neq_iff divmod_int_rel_0 divmod_int_def divmod_int_rel_neg
                     posDivAlg_correct negDivAlg_correct)
 
@@ -1411,19 +1415,15 @@ lemmas neg_mod_sign [simp] = neg_mod_conj [THEN conjunct1]
 
 subsubsection {* General Properties of div and mod *}
 
-lemma divmod_int_rel_div_mod: "b \<noteq> 0 ==> divmod_int_rel a b (a div b, a mod b)"
+lemma divmod_int_rel_div_mod: "divmod_int_rel a b (a div b, a mod b)"
 apply (cut_tac a = a and b = b in zmod_zdiv_equality)
 apply (force simp add: divmod_int_rel_def linorder_neq_iff)
 done
 
 lemma divmod_int_rel_div: "[| divmod_int_rel a b (q, r) |] ==> a div b = q"
-apply (cases "b = 0")
-apply (simp add: divmod_int_rel_def)
 by (simp add: divmod_int_rel_div_mod [THEN unique_quotient])
 
 lemma divmod_int_rel_mod: "[| divmod_int_rel a b (q, r) |] ==> a mod b = r"
-apply (cases "b = 0")
-apply (simp add: divmod_int_rel_def)
 by (simp add: divmod_int_rel_div_mod [THEN unique_remainder])
 
 lemma div_pos_pos_trivial: "[| (0::int) \<le> a;  a < b |] ==> a div b = 0"
@@ -1463,7 +1463,6 @@ text{*There is no @{text mod_neg_pos_trivial}.*}
 
 (*Simpler laws such as -a div b = -(a div b) FAIL, but see just below*)
 lemma zdiv_zminus_zminus [simp]: "(-a) div (-b) = a div (b::int)"
-apply (case_tac "b = 0", simp)
 apply (simp add: divmod_int_rel_div_mod [THEN divmod_int_rel_neg, simplified, 
                                  THEN divmod_int_rel_div, THEN sym])
 
@@ -1471,7 +1470,6 @@ done
 
 (*Simpler laws such as -a mod b = -(a mod b) FAIL, but see just below*)
 lemma zmod_zminus_zminus [simp]: "(-a) mod (-b) = - (a mod (b::int))"
-apply (case_tac "b = 0", simp)
 apply (subst divmod_int_rel_div_mod [THEN divmod_int_rel_neg, simplified, THEN divmod_int_rel_mod],
        auto)
 done
@@ -1480,7 +1478,7 @@ done
 subsubsection {* Laws for div and mod with Unary Minus *}
 
 lemma zminus1_lemma:
-     "divmod_int_rel a b (q, r)
+     "divmod_int_rel a b (q, r) ==> b \<noteq> 0
       ==> divmod_int_rel (-a) b (if r=0 then -q else -q - 1,  
                           if r=0 then 0 else b-r)"
 by (force simp add: split_ifs divmod_int_rel_def linorder_neq_iff right_diff_distrib)
@@ -1538,7 +1536,7 @@ apply (subgoal_tac "0 \<le> a* (1-q) ")
 apply (simp add: right_diff_distrib)
 done
 
-lemma self_quotient: "[| divmod_int_rel a a (q, r) |] ==> q = 1"
+lemma self_quotient: "[| divmod_int_rel a a (q, r); a \<noteq> 0 |] ==> q = 1"
 apply (simp add: split_ifs divmod_int_rel_def linorder_neq_iff)
 apply (rule order_antisym, safe, simp_all)
 apply (rule_tac [3] a = "-a" and r = "-r" in self_quotient_aux1)
@@ -1546,8 +1544,8 @@ apply (rule_tac a = "-a" and r = "-r" in self_quotient_aux2)
 apply (force intro: self_quotient_aux1 self_quotient_aux2 simp add: add_commute)+
 done
 
-lemma self_remainder: "[| divmod_int_rel a a (q, r) |] ==> r = 0"
-apply (frule self_quotient)
+lemma self_remainder: "[| divmod_int_rel a a (q, r); a \<noteq> 0 |] ==> r = 0"
+apply (frule (1) self_quotient)
 apply (simp add: divmod_int_rel_def)
 done
 
@@ -1853,9 +1851,9 @@ next
     case True then have "b \<noteq> 0" and "c \<noteq> 0" by auto
     with `a \<noteq> 0`
     have "\<And>q r. divmod_int_rel b c (q, r) \<Longrightarrow> divmod_int_rel (a * b) (a * c) (q, a * r)"
-      apply (auto simp add: divmod_int_rel_def) 
+      apply (auto simp add: divmod_int_rel_def split: split_if_asm)
       apply (auto simp add: algebra_simps)
-      apply (auto simp add: zero_less_mult_iff zero_le_mult_iff mult_le_0_iff mult_commute [of a] mult_less_cancel_right)
+      apply (auto simp add: zero_less_mult_iff zero_le_mult_iff mult_le_0_iff mult_commute [of a] mult_less_cancel_right mult_less_0_iff)
       done
     moreover with `c \<noteq> 0` divmod_int_rel_div_mod have "divmod_int_rel b c (b div c, b mod c)" by auto
     ultimately have "divmod_int_rel (a * b) (a * c) (b div c, a * (b mod c))" .
@@ -1949,7 +1947,7 @@ lemma zmult2_lemma: "[| divmod_int_rel a b (q, r); 0 < c |]
       ==> divmod_int_rel a (b * c) (q div c, b*(q mod c) + r)"
 by (auto simp add: mult_ac divmod_int_rel_def linorder_neq_iff
                    zero_less_mult_iff right_distrib [symmetric] 
-                   zmult2_lemma_aux1 zmult2_lemma_aux2 zmult2_lemma_aux3 zmult2_lemma_aux4)
+                   zmult2_lemma_aux1 zmult2_lemma_aux2 zmult2_lemma_aux3 zmult2_lemma_aux4 mult_less_0_iff split: split_if_asm)
 
 lemma zdiv_zmult2_eq: "(0::int) < c ==> a div (b*c) = (a div b) div c"
 apply (case_tac "b = 0", simp)
