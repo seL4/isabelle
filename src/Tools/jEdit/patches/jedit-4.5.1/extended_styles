@@ -1,6 +1,6 @@
-diff -ru 4.5.0/jEdit/org/gjt/sp/jedit/gui/StyleEditor.java 4.5.0/jEdit-patched/org/gjt/sp/jedit/gui/StyleEditor.java
---- 4.5.0/jEdit/org/gjt/sp/jedit/gui/StyleEditor.java	2012-01-30 23:29:35.000000000 +0100
-+++ 4.5.0/jEdit-patched/org/gjt/sp/jedit/gui/StyleEditor.java	2012-03-04 22:14:51.000000000 +0100
+diff -ru 4.5.1/jEdit/org/gjt/sp/jedit/gui/StyleEditor.java 4.5.1/jEdit-patched/org/gjt/sp/jedit/gui/StyleEditor.java
+--- 4.5.1/jEdit/org/gjt/sp/jedit/gui/StyleEditor.java	2012-03-25 18:51:52.000000000 +0200
++++ 4.5.1/jEdit-patched/org/gjt/sp/jedit/gui/StyleEditor.java	2012-03-27 23:30:26.000000000 +0200
 @@ -78,7 +78,7 @@
  			start = next;
  			token = token.next;
@@ -10,9 +10,9 @@ diff -ru 4.5.0/jEdit/org/gjt/sp/jedit/gui/StyleEditor.java 4.5.0/jEdit-patched/o
  		{
  			JOptionPane.showMessageDialog(textArea.getView(),
  				jEdit.getProperty("syntax-style-no-token.message"),
-diff -ru 4.5.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java 4.5.0/jEdit-patched/org/gjt/sp/jedit/syntax/Chunk.java
---- 4.5.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java	2012-01-30 23:29:42.000000000 +0100
-+++ 4.5.0/jEdit-patched/org/gjt/sp/jedit/syntax/Chunk.java	2012-03-04 22:12:25.000000000 +0100
+diff -ru 4.5.1/jEdit/org/gjt/sp/jedit/syntax/Chunk.java 4.5.1/jEdit-patched/org/gjt/sp/jedit/syntax/Chunk.java
+--- 4.5.1/jEdit/org/gjt/sp/jedit/syntax/Chunk.java	2012-03-25 18:52:01.000000000 +0200
++++ 4.5.1/jEdit-patched/org/gjt/sp/jedit/syntax/Chunk.java	2012-03-27 23:31:27.000000000 +0200
 @@ -380,7 +380,7 @@
  	// this is either style.getBackgroundColor() or
  	// styles[defaultID].getBackgroundColor()
@@ -22,9 +22,9 @@ diff -ru 4.5.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java 4.5.0/jEdit-patched/org/
  	//private GlyphVector gv;
  	private List<GlyphVector> glyphs;
  	private boolean visible;
-diff -ru 4.5.0/jEdit/org/gjt/sp/jedit/syntax/Token.java 4.5.0/jEdit-patched/org/gjt/sp/jedit/syntax/Token.java
---- 4.5.0/jEdit/org/gjt/sp/jedit/syntax/Token.java	2012-01-30 23:29:42.000000000 +0100
-+++ 4.5.0/jEdit-patched/org/gjt/sp/jedit/syntax/Token.java	2012-03-04 22:15:41.000000000 +0100
+diff -ru 4.5.1/jEdit/org/gjt/sp/jedit/syntax/Token.java 4.5.1/jEdit-patched/org/gjt/sp/jedit/syntax/Token.java
+--- 4.5.1/jEdit/org/gjt/sp/jedit/syntax/Token.java	2012-03-25 18:52:01.000000000 +0200
++++ 4.5.1/jEdit-patched/org/gjt/sp/jedit/syntax/Token.java	2012-03-27 23:30:57.000000000 +0200
 @@ -57,7 +57,7 @@
  	 */
  	public static String tokenToString(byte token)
@@ -34,9 +34,9 @@ diff -ru 4.5.0/jEdit/org/gjt/sp/jedit/syntax/Token.java 4.5.0/jEdit-patched/org/
  	} //}}}
  
  	//{{{ Token types
-diff -ru 4.5.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java 4.5.0/jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java
---- 4.5.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java	2012-01-30 23:29:44.000000000 +0100
-+++ 4.5.0/jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java	2012-03-04 22:27:19.000000000 +0100
+diff -ru 4.5.1/jEdit/org/gjt/sp/util/SyntaxUtilities.java 4.5.1/jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java
+--- 4.5.1/jEdit/org/gjt/sp/util/SyntaxUtilities.java	2012-03-25 18:52:03.000000000 +0200
++++ 4.5.1/jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java	2012-03-27 23:33:07.000000000 +0200
 @@ -194,7 +194,24 @@
  	{
  		return loadStyles(family,size,true);

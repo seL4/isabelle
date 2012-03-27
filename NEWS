@@ -11,6 +11,8 @@ New in this Isabelle version
   - markup for bound variables
   - markup for types of term variables (e.g. displayed as tooltips)
   - support for user-defined Isar commands within the running session
+  - improved support for Unicode outside original 16bit range
+    e.g. glyph for \<A> (thanks to jEdit 4.5.1)
 
 * Updated and extended reference manuals ("isar-ref" and
 "implementation"); reduced remaining material in old "ref" manual.
