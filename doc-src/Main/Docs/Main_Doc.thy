@@ -17,6 +17,11 @@ setup {*
           (Thy_Output.maybe_pretty_source pretty_term_type_only ctxt source [arg]))
   end
 *}
+setup {*
+  Thy_Output.antiquotation @{binding expanded_typ} (Args.typ >> single)
+    (fn {source, context, ...} => Thy_Output.output context o
+      Thy_Output.maybe_pretty_source Syntax.pretty_typ context source)
+*}
 (*>*)
 text{*
 
@@ -264,7 +269,7 @@ e.g.\ \mbox{@{prop"ALL (x,y):A. P"},} @{term"{(x,y). P}"}, etc.
 \medskip
 
 \noindent
-Type synonym @{typ"'a rel"} @{text"="} @{typ "('a * 'a)set"}
+Type synonym \ @{typ"'a rel"} @{text"="} @{expanded_typ "'a rel"}
 
 \section{Equiv\_Relations}
 
