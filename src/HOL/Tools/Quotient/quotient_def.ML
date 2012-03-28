@@ -218,7 +218,7 @@ fun mk_readable_rsp_thm_eq tm lthy =
         fun abs_conv2 cv = Conv.abs_conv (K (Conv.abs_conv (K cv) lthy)) lthy
         fun erase_quants ctm' =
           case (Thm.term_of ctm') of
-            Const ("HOL.eq", _) $ _ $ _ => Conv.all_conv ctm'
+            Const (@{const_name HOL.eq}, _) $ _ $ _ => Conv.all_conv ctm'
             | _ => (Conv.binder_conv (K erase_quants) lthy then_conv 
               Conv.rewr_conv @{thm fun_eq_iff[symmetric, THEN eq_reflection]}) ctm'
       in
@@ -234,8 +234,8 @@ fun mk_readable_rsp_thm_eq tm lthy =
         fun binop_conv2 cv1 cv2 = Conv.combination_conv (Conv.arg_conv cv1) cv2
       in
         case (Thm.term_of ctm) of
-          Const (@{const_name "fun_rel"}, _) $ _ $ _ => 
-            (binop_conv2  left_conv simp_arrows_conv then_conv unfold_conv) ctm
+          Const (@{const_name fun_rel}, _) $ _ $ _ => 
+            (binop_conv2 left_conv simp_arrows_conv then_conv unfold_conv) ctm
           | _ => Conv.all_conv ctm
       end
 
@@ -248,7 +248,7 @@ fun mk_readable_rsp_thm_eq tm lthy =
     val eq_thm = 
       (simp_conv then_conv univq_prenex_conv then_conv beta_conv then_conv unfold_ret_val_invs) ctm
   in
-    Object_Logic.rulify(eq_thm RS Drule.equal_elim_rule2)
+    Object_Logic.rulify (eq_thm RS Drule.equal_elim_rule2)
   end
 
 
@@ -283,7 +283,7 @@ fun gen_quotient_def prep_vars prep_term (raw_var, (attr, (lhs_raw, rhs_raw))) l
           |> try HOLogic.dest_Trueprop
       in
         case lhs_eq of
-          SOME (Const ("HOL.eq", _) $ _ $ _) => SOME (@{thm refl} RS thm)
+          SOME (Const (@{const_name HOL.eq}, _) $ _ $ _) => SOME (@{thm refl} RS thm)
           | SOME _ => (case body_type (fastype_of lhs) of
             Type (typ_name, _) => ( SOME
               (#equiv_thm (the (Quotient_Info.lookup_quotients lthy typ_name)) 
