@@ -25,9 +25,6 @@ text{*
 *}
 
 text{*
-@{thm[display] numeral_0_eq_0[no_vars]}
-\rulename{numeral_0_eq_0}
-
 @{thm[display] numeral_1_eq_1[no_vars]}
 \rulename{numeral_1_eq_1}
 
@@ -67,8 +64,8 @@ text{*
 @{thm[display] diff_mult_distrib[no_vars]}
 \rulename{diff_mult_distrib}
 
-@{thm[display] mod_mult_distrib[no_vars]}
-\rulename{mod_mult_distrib}
+@{thm[display] mult_mod_left[no_vars]}
+\rulename{mult_mod_left}
 
 @{thm[display] nat_diff_split[no_vars]}
 \rulename{nat_diff_split}
@@ -152,8 +149,8 @@ Division, remainder of negatives
 @{thm[display] zdiv_zmult1_eq[no_vars]}
 \rulename{zdiv_zmult1_eq}
 
-@{thm[display] zmod_zmult1_eq[no_vars]}
-\rulename{zmod_zmult1_eq}
+@{thm[display] mod_mult_right_eq[no_vars]}
+\rulename{mod_mult_right_eq}
 
 @{thm[display] zdiv_zmult2_eq[no_vars]}
 \rulename{zdiv_zmult2_eq}

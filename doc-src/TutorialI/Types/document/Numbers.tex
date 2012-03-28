@@ -75,11 +75,6 @@ numeric literals; default simprules; can re-orient%
 %
 \begin{isamarkuptext}%
 \begin{isabelle}%
-Numeral{\isadigit{0}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{0}}{\isaliteral{5C3C436F6C6F6E3E}{\isasymColon}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{29}{\isacharparenright}}%
-\end{isabelle}
-\rulename{numeral_0_eq_0}
-
-\begin{isabelle}%
 Numeral{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{1}}{\isaliteral{5C3C436F6C6F6E3E}{\isasymColon}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
 \rulename{numeral_1_eq_1}
@@ -156,9 +151,9 @@ m\ {\isaliteral{5C3C6C653E}{\isasymle}}\ n\ {\isaliteral{5C3C4C6F6E6772696768746
 \rulename{diff_mult_distrib}
 
 \begin{isabelle}%
-m\ mod\ n\ {\isaliteral{2A}{\isacharasterisk}}\ k\ {\isaliteral{3D}{\isacharequal}}\ m\ {\isaliteral{2A}{\isacharasterisk}}\ k\ mod\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2A}{\isacharasterisk}}\ k{\isaliteral{29}{\isacharparenright}}%
+a\ mod\ b\ {\isaliteral{2A}{\isacharasterisk}}\ c\ {\isaliteral{3D}{\isacharequal}}\ a\ {\isaliteral{2A}{\isacharasterisk}}\ c\ mod\ {\isaliteral{28}{\isacharparenleft}}b\ {\isaliteral{2A}{\isacharasterisk}}\ c{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
-\rulename{mod_mult_distrib}
+\rulename{mult_mod_left}
 
 \begin{isabelle}%
 P\ {\isaliteral{28}{\isacharparenleft}}a\ {\isaliteral{2D}{\isacharminus}}\ b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}a\ {\isaliteral{3C}{\isacharless}}\ b\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ P\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}d{\isaliteral{2E}{\isachardot}}\ a\ {\isaliteral{3D}{\isacharequal}}\ b\ {\isaliteral{2B}{\isacharplus}}\ d\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ P\ d{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}%
@@ -326,7 +321,7 @@ a\ {\isaliteral{2A}{\isacharasterisk}}\ b\ div\ c\ {\isaliteral{3D}{\isacharequa
 \begin{isabelle}%
 a\ {\isaliteral{2A}{\isacharasterisk}}\ b\ mod\ c\ {\isaliteral{3D}{\isacharequal}}\ a\ {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{28}{\isacharparenleft}}b\ mod\ c{\isaliteral{29}{\isacharparenright}}\ mod\ c%
 \end{isabelle}
-\rulename{zmod_zmult1_eq}
+\rulename{mod_mult_right_eq}
 
 \begin{isabelle}%
 {\isadigit{0}}\ {\isaliteral{3C}{\isacharless}}\ c\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ a\ div\ {\isaliteral{28}{\isacharparenleft}}b\ {\isaliteral{2A}{\isacharasterisk}}\ c{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ a\ div\ b\ div\ c%
