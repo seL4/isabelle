@@ -48,8 +48,7 @@ header -- minor INCOMPATIBILITY for user-defined commands.  Allow new
 commands to be used in the same theory where defined.
 
 * ISABELLE_JDK_HOME settings variable points to JDK with javac and jar
-(not just JRE), derived from JAVA_HOME from the shell environment or
-java.home of the running JVM.
+(not just JRE).
 
 
 *** Pure ***

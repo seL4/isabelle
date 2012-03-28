@@ -54,14 +54,6 @@ ML_SOURCES="$ML_HOME/../src"
 ### JVM components (Scala or Java)
 ###
 
-if [ -z "$ISABELLE_JDK_HOME" -a -n "$JAVA_HOME" ]; then
-  if [ "$(basename "$JAVA_HOME")" = jre -a -e "$(dirname "$JAVA_HOME")"/bin/javac ]; then
-    ISABELLE_JDK_HOME="$(dirname "$JAVA_HOME")"
-  else
-    ISABELLE_JDK_HOME="$JAVA_HOME"
-  fi
-fi
-
 ISABELLE_SCALA_BUILD_OPTIONS="-nowarn -target:jvm-1.5"
 
 

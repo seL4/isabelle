@@ -18,9 +18,11 @@ Requirements for instantaneous build from sources
 Important settings within Isabelle environment
 ==============================================
 
-- JAVA_HOME
-- SCALA_HOME
-- ISABELLE_JEDIT_BUILD_HOME (via "init_component .../jedit_build...")
+* init_component ".../jedit_build-20120327"
+* ISABELLE_JDK_HOME
+* SCALA_HOME
+
+Note that the official directory layout of JDK and Scala is required!
 
 
 Build and run
@@ -28,15 +30,3 @@ Build and run
 
 isabelle jedit -l HOL Test.thy
 
-
------------------------------------------------------------------------
-To run jedit with remote debugging enabled, I use the following
-command: "java
--agentlib:jdwp=transport=dt_socket,suspend=y,server=y,address=XXXX
--jar jedit.jar"
-
-where XXXX is any open port number you wish. The above invocation
-works for Sun's JDK 5.0.  There's an alternate incantation for earlier
-releases. (See
-http://java.sun.com/j2se/1.5.0/docs/guide/jpda/conninv.html)
------------------------------------------------------------------------
