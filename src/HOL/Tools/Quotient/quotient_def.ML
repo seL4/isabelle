@@ -117,7 +117,7 @@ fun generate_code_cert ctxt def_thm rsp_thm (rty, qty) =
     simplify_code_eq ctxt code_cert
   end
 
-fun define_code_cert def_thm rsp_thm (rty, qty) lthy = 
+fun define_code_cert code_eqn_thm_name def_thm rsp_thm (rty, qty) lthy = 
   let
     val quot_thm = Quotient_Term.prove_quot_theorem lthy (get_body_types (rty, qty))
   in
@@ -129,27 +129,27 @@ fun define_code_cert def_thm rsp_thm (rty, qty) lthy =
         val add_abs_eqn_attrib = Attrib.internal (K add_abs_eqn_attribute);
       in
         lthy
-          |> (snd oo Local_Theory.note) ((Binding.empty, [add_abs_eqn_attrib]), [code_cert])
+          |> (snd oo Local_Theory.note) ((code_eqn_thm_name, [add_abs_eqn_attrib]), [code_cert])
       end
     else
       lthy
   end
 
-fun define_code_eq def_thm lthy =
+fun define_code_eq code_eqn_thm_name def_thm lthy =
   let
     val unfolded_def = Conv.fconv_rule unfold_fun_maps def_thm
     val code_eq = unabs_all_def lthy unfolded_def
     val simp_code_eq = simplify_code_eq lthy code_eq
   in
     lthy
-      |> (snd oo Local_Theory.note) ((Binding.empty, [Code.add_default_eqn_attrib]), [simp_code_eq])
+      |> (snd oo Local_Theory.note) ((code_eqn_thm_name, [Code.add_default_eqn_attrib]), [simp_code_eq])
   end
 
-fun define_code def_thm rsp_thm (rty, qty) lthy =
+fun define_code code_eqn_thm_name def_thm rsp_thm (rty, qty) lthy =
   if body_type rty = body_type qty then 
-    define_code_eq def_thm lthy
+    define_code_eq code_eqn_thm_name def_thm lthy
   else 
-    define_code_cert def_thm rsp_thm (rty, qty) lthy
+    define_code_cert code_eqn_thm_name def_thm rsp_thm (rty, qty) lthy
 
 (* The ML-interface for a quotient definition takes
    as argument:
@@ -189,7 +189,9 @@ fun add_quotient_def ((var, (name, atts)), (lhs, rhs)) rsp_thm lthy =
 
     (* data storage *)
     val qconst_data = {qconst = trm, rconst = rhs, def = def_thm}
-    fun get_rsp_thm_name (lhs_name, _) = Binding.suffix_name "_rsp" lhs_name
+    val lhs_name = #1 var
+    val rsp_thm_name = Binding.suffix_name "_rsp" lhs_name
+    val code_eqn_thm_name = Binding.suffix_name "_code_eqn" lhs_name
     
     val lthy'' = lthy'
       |> Local_Theory.declaration {syntax = false, pervasive = true}
@@ -199,9 +201,9 @@ fun add_quotient_def ((var, (name, atts)), (lhs, rhs)) rsp_thm lthy =
               Quotient_Info.update_quotconsts c qcinfo
           | _ => I))
       |> (snd oo Local_Theory.note) 
-        ((get_rsp_thm_name var, [Attrib.internal (K Quotient_Info.rsp_rules_add)]),
+        ((rsp_thm_name, [Attrib.internal (K Quotient_Info.rsp_rules_add)]),
         [rsp_thm])
-      |> define_code def_thm rsp_thm (rty, qty)
+      |> define_code code_eqn_thm_name def_thm rsp_thm (rty, qty)
 
   in
     (qconst_data, lthy'')

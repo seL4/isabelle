@@ -39,9 +39,9 @@ implementation max(array : [int]int, length : int) returns (max : int)
 
 boogie_open "Boogie_Max.b2i"
 
-declare [[smt_certificates="Boogie_Max.certs"]]
-declare [[smt_fixed=true]]
-declare [[smt_oracle=false]]
+declare [[smt_certificates = "Boogie_Max.certs"]]
+declare [[smt_read_only_certificates = true]]
+declare [[smt_oracle = false]]
 
 boogie_vc max
   by boogie

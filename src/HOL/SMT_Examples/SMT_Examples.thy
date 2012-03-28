@@ -8,9 +8,9 @@ theory SMT_Examples
 imports Complex_Main
 begin
 
-declare [[smt_oracle=false]]
-declare [[smt_certificates="SMT_Examples.certs"]]
-declare [[smt_fixed=true]]
+declare [[smt_oracle = false]]
+declare [[smt_certificates = "SMT_Examples.certs"]]
+declare [[smt_read_only_certificates = true]]
 
 
 
@@ -292,13 +292,6 @@ lemma
 
 lemma "(0 \<le> y + -1 * x \<or> \<not> 0 \<le> x \<or> 0 \<le> (x::int)) = (\<not> False)" by smt
 
-lemma "distinct [x < (3::int), 3 \<le> x]" by smt
-
-lemma
-  assumes "a > (0::int)"
-  shows "distinct [a, a * 2, a - a]"
-  using assms by smt
-
 lemma "
   (n < m & m < n') | (n < m & m = n') | (n < n' & n' < m) |
   (n = n' & n' < m) | (n = m & m < n') |
@@ -437,8 +430,6 @@ lemma
    let P = (if x > 0 then True else False) in
    False \<or> P = (x - 1 = y) \<or> (\<not>P \<longrightarrow> False)"
   by smt
-
-lemma "distinct [a + (1::nat), a * 2 + 3, a - a]" by smt
 
 lemma "int (nat \<bar>x::int\<bar>) = \<bar>x\<bar>" by smt
 

@@ -270,8 +270,12 @@ fun one_line_proof_text (preplay, banner, used_facts, minimize_command,
     val try_line =
       ([], map fst extra)
       |> reconstructor_command reconstr subgoal subgoal_count
-      |> (if failed then enclose "One-line proof reconstruction failed: " "."
-          else try_command_line banner ext_time)
+      |> (if failed then
+            enclose "One-line proof reconstruction failed: "
+                     ".\n(Invoking \"sledgehammer\" with \"[strict]\" might \
+                     \solve this.)"
+          else
+            try_command_line banner ext_time)
   in try_line ^ minimize_line minimize_command (map fst (extra @ chained)) end
 
 (** Hard-core proof reconstruction: structured Isar proofs **)

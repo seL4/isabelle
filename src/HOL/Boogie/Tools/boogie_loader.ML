@@ -63,6 +63,14 @@ fun mk_syntax name i =
 datatype attribute_value = StringValue of string | TermValue of term
 
 
+fun mk_distinct [] = @{const HOL.True}
+  | mk_distinct [_] = @{const HOL.True}
+  | mk_distinct (t :: ts) =
+      let
+        fun mk_noteq u u' =
+          HOLogic.mk_conj (HOLogic.mk_not (HOLogic.mk_eq (t, u)), u')
+      in fold_rev mk_noteq ts (mk_distinct ts) end
+
 
 local
   fun lookup_type_name thy name arity =
@@ -191,14 +199,11 @@ local
               SOME _ => Symtab.lookup fds name
             | NONE => NONE)
         | is_unique _ = NONE
-      fun mk_unique_axiom T ts =
-        Const (@{const_name distinct}, HOLogic.listT T --> @{typ bool}) $
-          HOLogic.mk_list T ts
     in
       map_filter is_unique fns
       |> map (swap o Term.dest_Const)
       |> AList.group (op =)
-      |> map (fn (T, ns) => mk_unique_axiom T (map (Const o rpair T) ns))
+      |> map (fn (T, ns) => mk_distinct (map (Const o rpair T) ns))
     end
 in
 fun declare_functions verbose fns =
@@ -384,10 +389,6 @@ local
 
   fun mk_list T = HOLogic.mk_list T
 
-  fun mk_distinct T ts =
-    Const (@{const_name distinct}, HOLogic.listT T --> @{typ bool}) $
-      mk_list T ts
-
   fun quant name f = scan_line name (num -- num -- num) >> pair f
   val quants =
     quant "forall" HOLogic.all_const ||
@@ -506,9 +507,7 @@ fun expr offset tds fds =
           Const (@{const_name If}, [@{typ bool}, T, T] ---> T) $ c $ t1 $ t2
         end) ||
       binexp "implies" (binop @{term HOL.implies}) ||
-      scan_line "distinct" num :|-- scan_count exp >>
-        (fn [] => @{term True}
-          | ts as (t :: _) => mk_distinct (Term.fastype_of t) ts) ||
+      scan_line "distinct" num :|-- scan_count exp >> mk_distinct ||
       binexp "=" HOLogic.mk_eq ||
       scan_line "var" var_name -- typ tds >> Free ||
       scan_line "fun" (str -- num) :|-- (fn (name, arity) =>

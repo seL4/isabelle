@@ -16,10 +16,10 @@ sig
   val maybe_quote : string -> string
   val string_from_ext_time : bool * Time.time -> string
   val string_from_time : Time.time -> string
-  val type_instance : Proof.context -> typ -> typ -> bool
-  val type_generalization : Proof.context -> typ -> typ -> bool
-  val type_intersect : Proof.context -> typ -> typ -> bool
-  val type_equiv : Proof.context -> typ * typ -> bool
+  val type_instance : theory -> typ -> typ -> bool
+  val type_generalization : theory -> typ -> typ -> bool
+  val type_intersect : theory -> typ -> typ -> bool
+  val type_equiv : theory -> typ * typ -> bool
   val varify_type : Proof.context -> typ -> typ
   val instantiate_type : theory -> typ -> typ -> typ -> typ
   val varify_and_instantiate_type : Proof.context -> typ -> typ -> typ -> typ
@@ -123,14 +123,12 @@ fun string_from_ext_time (plus, time) =
 
 val string_from_time = string_from_ext_time o pair false
 
-fun type_instance ctxt T T' =
-  Sign.typ_instance (Proof_Context.theory_of ctxt) (T, T')
-fun type_generalization ctxt T T' = type_instance ctxt T' T
-fun type_intersect ctxt T T' =
-  can (Sign.typ_unify (Proof_Context.theory_of ctxt)
-                      (T, Logic.incr_tvar (maxidx_of_typ T + 1) T'))
+fun type_instance thy T T' = Sign.typ_instance thy (T, T')
+fun type_generalization thy T T' = Sign.typ_instance thy (T', T)
+fun type_intersect thy T T' =
+  can (Sign.typ_unify thy (T, Logic.incr_tvar (maxidx_of_typ T + 1) T'))
       (Vartab.empty, 0)
-val type_equiv = Sign.typ_equiv o Proof_Context.theory_of
+val type_equiv = Sign.typ_equiv
 
 fun varify_type ctxt T =
   Variable.polymorphic_types ctxt [Const (@{const_name undefined}, T)]
@@ -177,7 +175,7 @@ fun tiny_card_of_type ctxt sound assigns default_card T =
     fun aux slack avoid T =
       if member (op =) avoid T then
         0
-      else case AList.lookup (type_equiv ctxt) assigns T of
+      else case AList.lookup (type_equiv thy) assigns T of
         SOME k => k
       | NONE =>
         case T of

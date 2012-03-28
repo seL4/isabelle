@@ -346,32 +346,6 @@ fun gen_normalize ctxt iwthms = map_filter (gen_norm1_safe ctxt) iwthms
 
 (* unfolding of definitions and theory-specific rewritings *)
 
-(** unfold trivial distincts **)
-
-local
-  fun is_trivial_distinct (Const (@{const_name distinct}, _) $ t) =
-        (case try HOLogic.dest_list t of
-          SOME [] => true
-        | SOME [_] => true
-        | _ => false)
-    | is_trivial_distinct _ = false
-
-  val thms = map mk_meta_eq @{lemma
-    "distinct [] = True"
-    "distinct [x] = True"
-    "distinct [x, y] = (x ~= y)"
-    by simp_all}
-  fun distinct_conv _ =
-    SMT_Utils.if_true_conv is_trivial_distinct (Conv.rewrs_conv thms)
-in
-
-fun trivial_distinct_conv ctxt =
-  SMT_Utils.if_exists_conv is_trivial_distinct
-    (Conv.top_conv distinct_conv ctxt)
-
-end
-
-
 (** rewrite bool case expressions as if expressions **)
 
 local
@@ -573,7 +547,6 @@ end
 (** combined unfoldings and rewritings **)
 
 fun unfold_conv ctxt =
-  trivial_distinct_conv ctxt then_conv
   rewrite_bool_case_conv ctxt then_conv
   unfold_abs_min_max_conv ctxt then_conv
   nat_as_int_conv ctxt then_conv
