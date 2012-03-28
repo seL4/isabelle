@@ -1617,8 +1617,8 @@ A \isa{name\ space} manages a collection of long names,
   \indexdef{}{ML type}{Name\_Space.T}\verb|type Name_Space.T| \\
   \indexdef{}{ML}{Name\_Space.empty}\verb|Name_Space.empty: string -> Name_Space.T| \\
   \indexdef{}{ML}{Name\_Space.merge}\verb|Name_Space.merge: Name_Space.T * Name_Space.T -> Name_Space.T| \\
-  \indexdef{}{ML}{Name\_Space.declare}\verb|Name_Space.declare: Proof.context -> bool ->|\isasep\isanewline%
-\verb|  Name_Space.naming -> binding -> Name_Space.T -> string * Name_Space.T| \\
+  \indexdef{}{ML}{Name\_Space.declare}\verb|Name_Space.declare: Context.generic -> bool ->|\isasep\isanewline%
+\verb|  binding -> Name_Space.T -> string * Name_Space.T| \\
   \indexdef{}{ML}{Name\_Space.intern}\verb|Name_Space.intern: Name_Space.T -> string -> string| \\
   \indexdef{}{ML}{Name\_Space.extern}\verb|Name_Space.extern: Proof.context -> Name_Space.T -> string -> string| \\
   \indexdef{}{ML}{Name\_Space.is\_concealed}\verb|Name_Space.is_concealed: Name_Space.T -> string -> bool|
@@ -1677,9 +1677,8 @@ A \isa{name\ space} manages a collection of long names,
   (\secref{sec:context-data}); \isa{kind} is a formal comment
   to characterize the purpose of a name space.
 
-  \item \verb|Name_Space.declare|~\isa{ctxt\ strict\ naming\ bindings\ space} enters a name binding as fully qualified internal name into
-  the name space, with external accesses determined by the naming
-  policy.
+  \item \verb|Name_Space.declare|~\isa{context\ strict\ binding\ space} enters a name binding as fully qualified internal name into
+  the name space, using the naming of the context.
 
   \item \verb|Name_Space.intern|~\isa{space\ name} internalizes a
   (partially qualified) external name.
