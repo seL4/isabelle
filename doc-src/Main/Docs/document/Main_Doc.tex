@@ -113,8 +113,8 @@ Available by loading theory \isa{Lattice{\isaliteral{5F}{\isacharunderscore}}Syn
 
 \section{Set}
 
-Sets are predicates: \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{27}{\isacharprime}}a\ set\ \ {\isaliteral{3D}{\isacharequal}}\ \ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequote}}}
-\bigskip
+%Sets are predicates: \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{27}{\isacharprime}}a\ set\ \ {\isaliteral{3D}{\isacharequal}}\ \ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequote}}}
+%\bigskip
 
 \begin{supertabular}{@ {} l @ {~::~} l l @ {}}
 \isa{{\isaliteral{7B}{\isacharbraceleft}}{\isaliteral{7D}{\isacharbraceright}}} & \isa{{\isaliteral{27}{\isacharprime}}a\ set}\\
@@ -244,7 +244,7 @@ e.g.\ \mbox{\isa{{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}{\isaliteral{28
 
 \section{Relation}
 
-\begin{supertabular}{@ {} l @ {~::~} l @ {}}
+\begin{tabular}{@ {} l @ {~::~} l @ {}}
 \isa{converse} & \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{29}{\isacharparenright}}\ set\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}b\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{29}{\isacharparenright}}\ set}\\
 \isa{op\ O} & \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{29}{\isacharparenright}}\ set\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}b\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{27}{\isacharprime}}c{\isaliteral{29}{\isacharparenright}}\ set\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{27}{\isacharprime}}c{\isaliteral{29}{\isacharparenright}}\ set}\\
 \isa{op\ {\isaliteral{60}{\isacharbackquote}}{\isaliteral{60}{\isacharbackquote}}} & \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{29}{\isacharparenright}}\ set\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ set\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b\ set}\\
@@ -262,13 +262,17 @@ e.g.\ \mbox{\isa{{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}{\isaliteral{28
 \isa{irrefl} & \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{29}{\isacharparenright}}\ set\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool}\\
 \isa{total{\isaliteral{5F}{\isacharunderscore}}on} & \isa{{\isaliteral{27}{\isacharprime}}a\ set\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{29}{\isacharparenright}}\ set\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool}\\
 \isa{total} & \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{29}{\isacharparenright}}\ set\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool}\\
-\end{supertabular}
+\end{tabular}
 
 \subsubsection*{Syntax}
 
 \begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
 \isa{r{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}} & \isa{{\isaliteral{22}{\isachardoublequote}}converse\ r{\isaliteral{22}{\isachardoublequote}}} & (\verb$^-1$)
 \end{tabular}
+\medskip
+
+\noindent
+Type synonym \isa{{\isaliteral{27}{\isacharprime}}a\ rel} \isa{{\isaliteral{3D}{\isacharequal}}} \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{29}{\isacharparenright}}\ set}
 
 \section{Equiv\_Relations}
 
@@ -345,6 +349,7 @@ overloaded operators:
 \isa{op\ {\isaliteral{2B}{\isacharplus}}} &
 \isa{op\ {\isaliteral{2D}{\isacharminus}}} &
 \isa{op\ {\isaliteral{2A}{\isacharasterisk}}} &
+\isa{op\ {\isaliteral{5E}{\isacharcircum}}} &
 \isa{op\ div}&
 \isa{op\ mod}&
 \isa{op\ dvd}\\
@@ -502,6 +507,7 @@ Type \isa{int}
 \isa{drop} & \isa{nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ list}\\
 \isa{dropWhile} & \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ list}\\
 \isa{filter} & \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ list}\\
+\isa{List{\isaliteral{2E}{\isachardot}}find} & \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ option}\\
 \isa{fold} & \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b}\\
 \isa{foldr} & \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b}\\
 \isa{foldl} & \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a}\\
@@ -563,9 +569,6 @@ guard, i.e.\ boolean expression.
 
 Maps model partial functions and are often used as finite tables. However,
 the domain of a map may be infinite.
-
-\isa{{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C7269676874686172706F6F6E75703E}{\isasymrightharpoonup}}\ {\isaliteral{27}{\isacharprime}}b\ \ {\isaliteral{3D}{\isacharequal}}\ \ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b\ option}
-\bigskip
 
 \begin{supertabular}{@ {} l @ {~::~} l @ {}}
 \isa{Map{\isaliteral{2E}{\isachardot}}empty} & \isa{{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b\ option}\\
