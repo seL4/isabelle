@@ -129,11 +129,12 @@ lemmas acc_modi_le_Dests = acc_modi_top           acc_modi_le_Public
                            acc_modi_Package_le    acc_modi_le_Package
                            acc_modi_Protected_le  acc_modi_le_Protected
 
-lemma acc_modi_Package_le_cases 
- [consumes 1,case_names Package Protected Public]:
- "Package \<le> m \<Longrightarrow> ( m = Package \<Longrightarrow> P m) \<Longrightarrow> (m=Protected \<Longrightarrow> P m) \<Longrightarrow> 
-   (m=Public \<Longrightarrow> P m) \<Longrightarrow> P m"
-by (auto dest: acc_modi_Package_le)
+lemma acc_modi_Package_le_cases:
+  assumes "Package \<le> m"
+  obtains (Package) "m = Package"
+    | (Protected) "m = Protected"
+    | (Public) "m = Public"
+using assms by (auto dest: acc_modi_Package_le)
 
 
 subsubsection {* Static Modifier *}

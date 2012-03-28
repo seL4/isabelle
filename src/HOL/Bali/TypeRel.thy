@@ -200,9 +200,10 @@ proof -
   qed  
 qed
 
-lemma subclseq_cases [consumes 1, case_names Eq Subcls]:
- "\<lbrakk>G\<turnstile>C \<preceq>\<^sub>C D; C = D \<Longrightarrow> P; G\<turnstile>C \<prec>\<^sub>C D \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
-by (blast intro: rtrancl_cases)
+lemma subclseq_cases:
+  assumes "G\<turnstile>C \<preceq>\<^sub>C D"
+  obtains (Eq) "C = D" | (Subcls) "G\<turnstile>C \<prec>\<^sub>C D"
+using assms by (blast intro: rtrancl_cases)
 
 lemma subclseq_acyclic: 
  "\<lbrakk>G\<turnstile>C \<preceq>\<^sub>C D; G\<turnstile>D \<preceq>\<^sub>C C; ws_prog G\<rbrakk> \<Longrightarrow> C=D"
