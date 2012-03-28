@@ -68,17 +68,6 @@ quotient_definition map_default :: "'key => 'value => ('value => 'value) => ('ke
 where "map_default" is "AList.map_default :: 'key => 'value => ('value => 'value) => ('key * 'value) list => ('key * 'value) list"
 by (simp add: distinct_map_default)
 
-(* FIXME: theorems are still used in Multiset; make code certificates available to the user *)
-lemma impl_of_empty: "impl_of empty = []"
-by (simp add: empty_def Alist_inverse)
-
-lemma impl_of_update: "impl_of (update k v xs) = AList.update k v (impl_of xs)"
-by (simp add: update_def Alist_inverse distinct_update)
-
-lemma impl_of_filter:
-  "impl_of (filter P xs) = List.filter P (impl_of xs)"
-unfolding filter_def by (simp add: Alist_inverse distinct_map_fst_filter)
-
 subsection {* Abstract operation properties *}
 
 (* FIXME: to be completed *)
