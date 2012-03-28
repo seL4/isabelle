@@ -1,11 +1,11 @@
 # -*- shell-script -*- :mode=shellscript:
 #
-# Isabelle settings -- site defaults.
+# Isabelle settings -- distribution defaults.
 #
 # Important notes:
-#   * See the system manual for explanations on Isabelle settings
+#   * See the "system" manual for explanations on Isabelle settings
 #   * DO NOT EDIT the repository copy of this file!
-#   * DO NOT COPY this file into your personal isabelle directory!
+#   * DO NOT COPY this file into your ~/.isabelle directory!
 
 ###
 ### ML compiler settings (ESSENTIAL!)
