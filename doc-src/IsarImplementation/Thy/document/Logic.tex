@@ -138,8 +138,7 @@ The language of types is an uninterpreted order-sorted first-order
   \begin{mldecls}
   \indexdef{}{ML}{Sign.subsort}\verb|Sign.subsort: theory -> sort * sort -> bool| \\
   \indexdef{}{ML}{Sign.of\_sort}\verb|Sign.of_sort: theory -> typ * sort -> bool| \\
-  \indexdef{}{ML}{Sign.add\_types}\verb|Sign.add_types: Proof.context ->|\isasep\isanewline%
-\verb|  (binding * int * mixfix) list -> theory -> theory| \\
+  \indexdef{}{ML}{Sign.add\_type}\verb|Sign.add_type: Proof.context -> binding * int * mixfix -> theory -> theory| \\
   \indexdef{}{ML}{Sign.add\_type\_abbrev}\verb|Sign.add_type_abbrev: Proof.context ->|\isasep\isanewline%
 \verb|  binding * string list * typ -> theory -> theory| \\
   \indexdef{}{ML}{Sign.primitive\_class}\verb|Sign.primitive_class: binding * class list -> theory -> theory| \\
@@ -174,7 +173,7 @@ The language of types is an uninterpreted order-sorted first-order
   \item \verb|Sign.of_sort|~\isa{thy\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{2C}{\isacharcomma}}\ s{\isaliteral{29}{\isacharparenright}}} tests whether type
   \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}} is of sort \isa{s}.
 
-  \item \verb|Sign.add_types|~\isa{ctxt\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6B617070613E}{\isasymkappa}}{\isaliteral{2C}{\isacharcomma}}\ k{\isaliteral{2C}{\isacharcomma}}\ mx{\isaliteral{29}{\isacharparenright}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{5D}{\isacharbrackright}}} declares a
+  \item \verb|Sign.add_type|~\isa{ctxt\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6B617070613E}{\isasymkappa}}{\isaliteral{2C}{\isacharcomma}}\ k{\isaliteral{2C}{\isacharcomma}}\ mx{\isaliteral{29}{\isacharparenright}}} declares a
   new type constructors \isa{{\isaliteral{5C3C6B617070613E}{\isasymkappa}}} with \isa{k} arguments and
   optional mixfix syntax.
 

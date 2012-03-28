@@ -127,8 +127,7 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML Sign.subsort: "theory -> sort * sort -> bool"} \\
   @{index_ML Sign.of_sort: "theory -> typ * sort -> bool"} \\
-  @{index_ML Sign.add_types: "Proof.context ->
-  (binding * int * mixfix) list -> theory -> theory"} \\
+  @{index_ML Sign.add_type: "Proof.context -> binding * int * mixfix -> theory -> theory"} \\
   @{index_ML Sign.add_type_abbrev: "Proof.context ->
   binding * string list * typ -> theory -> theory"} \\
   @{index_ML Sign.primitive_class: "binding * class list -> theory -> theory"} \\
@@ -166,7 +165,7 @@ text %mlref {*
   \item @{ML Sign.of_sort}~@{text "thy (\<tau>, s)"} tests whether type
   @{text "\<tau>"} is of sort @{text "s"}.
 
-  \item @{ML Sign.add_types}~@{text "ctxt [(\<kappa>, k, mx), \<dots>]"} declares a
+  \item @{ML Sign.add_type}~@{text "ctxt (\<kappa>, k, mx)"} declares a
   new type constructors @{text "\<kappa>"} with @{text "k"} arguments and
   optional mixfix syntax.
 
