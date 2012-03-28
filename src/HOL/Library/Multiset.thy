@@ -1109,23 +1109,17 @@ lemma distinct_subtract_entries_raw:
 using assms
 unfolding subtract_entries_raw_def by (induct ys) (auto simp add: distinct_map_entry)
 
-text {* Operations on alists *}
+text {* Operations on alists with distinct keys *}
 
-definition join
+quotient_definition join :: "('a \<Rightarrow> 'b \<times> 'b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) alist \<Rightarrow> ('a, 'b) alist \<Rightarrow> ('a, 'b) alist" 
 where
-  "join f xs ys = DAList.Alist (join_raw f (DAList.impl_of xs) (DAList.impl_of ys))" 
+  "join" is "join_raw :: ('a \<Rightarrow> 'b \<times> 'b \<Rightarrow> 'b) \<Rightarrow> ('a \<times> 'b) list \<Rightarrow> ('a \<times> 'b) list \<Rightarrow> ('a \<times> 'b) list"
+by (simp add: distinct_join_raw)
 
-lemma [code abstract]:
-  "DAList.impl_of (join f xs ys) = join_raw f (DAList.impl_of xs) (DAList.impl_of ys)"
-unfolding join_def by (simp add: Alist_inverse distinct_join_raw)
-
-definition subtract_entries
+quotient_definition subtract_entries :: "('a, ('b :: minus)) alist \<Rightarrow> ('a, 'b) alist \<Rightarrow> ('a, 'b) alist"
 where
-  "subtract_entries xs ys = DAList.Alist (subtract_entries_raw (DAList.impl_of xs) (DAList.impl_of ys))"
-
-lemma [code abstract]:
-  "DAList.impl_of (subtract_entries xs ys) = subtract_entries_raw (DAList.impl_of xs) (DAList.impl_of ys)"
-unfolding subtract_entries_def by (simp add: Alist_inverse distinct_subtract_entries_raw)
+  "subtract_entries" is "subtract_entries_raw :: ('a \<times> 'b) list \<Rightarrow> ('a \<times> 'b) list \<Rightarrow> ('a \<times> 'b) list" 
+by (simp add: distinct_subtract_entries_raw)
 
 text {* Implementing multisets by means of association lists *}
 
