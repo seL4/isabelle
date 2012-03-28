@@ -17,23 +17,18 @@ definition
                    | e1.[e2] \<Rightarrow> \<exists> a i. e1= Lit a \<and> e2 = Lit i
                    | InsInitV c v \<Rightarrow> False)"
 
-lemma groundVar_cases [consumes 1, case_names LVar FVar AVar]:
-  assumes ground: "groundVar v" and
-          LVar: "\<And> ln. \<lbrakk>v=LVar ln\<rbrakk> \<Longrightarrow> P" and
-          FVar: "\<And> accC statDeclC stat a fn. 
-                    \<lbrakk>v={accC,statDeclC,stat}(Lit a)..fn\<rbrakk> \<Longrightarrow> P" and
-          AVar: "\<And> a i. \<lbrakk>v=(Lit a).[Lit i]\<rbrakk> \<Longrightarrow> P"
-  shows "P"
-proof -
-  from ground LVar FVar AVar
-  show ?thesis
-    apply (cases v)
-    apply (simp add: groundVar_def)
-    apply (simp add: groundVar_def,blast)
-    apply (simp add: groundVar_def,blast)
-    apply (simp add: groundVar_def)
-    done
-qed
+lemma groundVar_cases:
+  assumes ground: "groundVar v"
+  obtains (LVar) ln where "v=LVar ln"
+    | (FVar) accC statDeclC stat a fn where "v={accC,statDeclC,stat}(Lit a)..fn"
+    | (AVar) a i where "v=(Lit a).[Lit i]"
+  using ground LVar FVar AVar
+  apply (cases v)
+  apply (simp add: groundVar_def)
+  apply (simp add: groundVar_def,blast)
+  apply (simp add: groundVar_def,blast)
+  apply (simp add: groundVar_def)
+  done
 
 definition
   groundExprs :: "expr list \<Rightarrow> bool"

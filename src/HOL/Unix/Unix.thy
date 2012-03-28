@@ -558,7 +558,7 @@ text {*
 *}
 
 lemma transitions_invariant:
-  assumes r: "\<And>r x r'. r \<midarrow>x\<rightarrow> r' \<Longrightarrow> Q r \<Longrightarrow>  P x \<Longrightarrow> Q r'"
+  assumes r: "\<And>r x r'. r \<midarrow>x\<rightarrow> r' \<Longrightarrow> Q r \<Longrightarrow> P x \<Longrightarrow> Q r'"
     and trans: "root =xs\<Rightarrow> root'"
   shows "Q root \<Longrightarrow> \<forall>x \<in> set xs. P x \<Longrightarrow> Q root'"
   using trans

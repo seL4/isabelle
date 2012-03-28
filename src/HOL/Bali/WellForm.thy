@@ -1052,23 +1052,19 @@ proof -
   qed
 qed
 
-lemma non_Package_instance_method_inheritance_cases [consumes 6,
-         case_names Inheritance Overriding]:
+lemma non_Package_instance_method_inheritance_cases:
   assumes old_inheritable: "G\<turnstile>Method old inheritable_in (pid C)" and
               accmodi_old: "accmodi old \<noteq> Package" and 
           instance_method: "\<not> is_static old" and
                    subcls: "G\<turnstile>C \<prec>\<^sub>C declclass old" and
              old_declared: "G\<turnstile>Method old declared_in (declclass old)" and
-                       wf: "wf_prog G" and
-              inheritance: "G\<turnstile>Method old member_of C \<Longrightarrow> P" and
-               overriding: "\<And> new.
-                           \<lbrakk>G\<turnstile> new overrides\<^sub>S old;G\<turnstile>Method new member_of C\<rbrakk>
-                           \<Longrightarrow> P"
-  shows P
+                       wf: "wf_prog G"
+  obtains (Inheritance) "G\<turnstile>Method old member_of C"
+    | (Overriding) new where "G\<turnstile> new overrides\<^sub>S old" and "G\<turnstile>Method new member_of C"
 proof -
   from old_inheritable accmodi_old instance_method subcls old_declared wf 
-       inheritance overriding
-  show ?thesis
+       Inheritance Overriding
+  show thesis
     by (auto dest: non_Package_instance_method_inheritance)
 qed
 
@@ -1438,15 +1434,13 @@ proof -
   qed
 qed
 
-lemma methd_rec_Some_cases [consumes 4, case_names NewMethod InheritedMethod]:
+lemma methd_rec_Some_cases:
   assumes methd_C: "methd G C sig = Some m" and
                ws: "ws_prog G" and
              clsC: "class G C = Some c" and
         neq_C_Obj: "C\<noteq>Object"
-  shows
-"\<lbrakk>table_of (map (\<lambda>(s, m). (s, C, m)) (methods c)) sig = Some m \<Longrightarrow> P;
-  \<lbrakk>G\<turnstile>C inherits (method sig m); methd G (super c) sig = Some m\<rbrakk> \<Longrightarrow> P 
- \<rbrakk> \<Longrightarrow> P"
+  obtains (NewMethod) "table_of (map (\<lambda>(s, m). (s, C, m)) (methods c)) sig = Some m"
+    | (InheritedMethod) "G\<turnstile>C inherits (method sig m)" and "methd G (super c) sig = Some m"
 proof -
   let ?inherited   = "filter_tab (\<lambda>sig m. G\<turnstile>C inherits method sig m) 
                               (methd G (super c))"
@@ -1454,20 +1448,17 @@ proof -
   from ws clsC neq_C_Obj methd_C 
   have methd_unfold: "(?inherited ++ ?new) sig = Some m"
     by (simp add: methd_rec)
-  assume NewMethod: "?new sig = Some m \<Longrightarrow> P"
-  assume InheritedMethod: "\<lbrakk>G\<turnstile>C inherits (method sig m); 
-                            methd G (super c) sig = Some m\<rbrakk> \<Longrightarrow> P"
-  show P
+  show thesis
   proof (cases "?new sig")
     case None
     with methd_unfold have "?inherited sig = Some m"
       by (auto)
-    with InheritedMethod show P by blast
+    with InheritedMethod show ?thesis by blast
   next
     case Some
     with methd_unfold have "?new sig = Some m"
       by auto
-    with NewMethod show P by blast
+    with NewMethod show ?thesis by blast
   qed
 qed
 
@@ -1708,23 +1699,19 @@ proof -
   qed
 qed
 
-lemma inheritable_instance_methd_cases [consumes 6
-                                       , case_names Inheritance Overriding]: 
+lemma inheritable_instance_methd_cases:
   assumes subclseq_C_D: "G\<turnstile>C \<preceq>\<^sub>C D" and
               is_cls_D: "is_class G D" and
                     wf: "wf_prog G" and 
                    old: "methd G D sig = Some old" and
            accmodi_old: "Protected \<le> accmodi old" and  
-        not_static_old: "\<not> is_static old" and
-           inheritance:  "methd G C sig = Some old \<Longrightarrow> P" and
-            overriding:  "\<And> new. \<lbrakk>methd G C sig = Some new;
-                                   G,sig\<turnstile>new overrides\<^sub>S old\<rbrakk> \<Longrightarrow> P"
-        
-  shows P
+        not_static_old: "\<not> is_static old"
+  obtains (Inheritance) "methd G C sig = Some old"
+    | (Overriding) new where "methd G C sig = Some new" and "G,sig\<turnstile>new overrides\<^sub>S old"
 proof -
-from subclseq_C_D is_cls_D wf old accmodi_old not_static_old 
-show ?thesis
-  by (auto dest: inheritable_instance_methd intro: inheritance overriding)
+  from subclseq_C_D is_cls_D wf old accmodi_old not_static_old 
+  show ?thesis
+    by (auto dest: inheritable_instance_methd intro: Inheritance Overriding)
 qed
 
 lemma inheritable_instance_methd_props: 
@@ -1941,21 +1928,22 @@ apply (auto simp add: cmheads_def accObjectmheads_def Objectmheads_def)
 apply (auto  dest!: accmethd_SomeD)
 done
 
-lemma mheads_cases [consumes 2, case_names Class_methd 
-                    Iface_methd Iface_Object_methd Array_Object_methd]: 
-"\<lbrakk>emh \<in> mheads G S t sig; wf_prog G;
- \<And> C D m. \<lbrakk>t = ClassT C;declrefT emh = ClassT D; accmethd G S C sig = Some m;
-           (declclass m = D); mhead (mthd m) = (mhd emh)\<rbrakk> \<Longrightarrow> P emh; 
- \<And> I im. \<lbrakk>t = IfaceT I; im  \<in> accimethds G (pid S) I sig; mthd im = mhd emh\<rbrakk>
-          \<Longrightarrow> P emh;
- \<And> I m. \<lbrakk>t = IfaceT I; G\<turnstile>Iface I accessible_in (pid S);
-          accmethd G S Object sig = Some m; accmodi m \<noteq> Private;
-         declrefT emh = ClassT Object; mhead (mthd m) = mhd emh\<rbrakk> \<Longrightarrow> P emh;
- \<And> T m. \<lbrakk>t = ArrayT T;G\<turnstile>Array T accessible_in (pid S);
-          accmethd G S Object sig = Some m; accmodi m \<noteq> Private; 
-          declrefT emh = ClassT Object; mhead (mthd m) = mhd emh\<rbrakk> \<Longrightarrow>  P emh 
-\<rbrakk> \<Longrightarrow> P emh"
-by (blast dest!: mheadsD)
+lemma mheads_cases:
+  assumes "emh \<in> mheads G S t sig" and "wf_prog G"
+  obtains (Class_methd) C D m where
+      "t = ClassT C" "declrefT emh = ClassT D" "accmethd G S C sig = Some m"
+      "declclass m = D" "mhead (mthd m) = mhd emh"
+    | (Iface_methd) I im where "t = IfaceT I"
+        "im  \<in> accimethds G (pid S) I sig" "mthd im = mhd emh"
+    | (Iface_Object_methd) I m where
+        "t = IfaceT I" "G\<turnstile>Iface I accessible_in (pid S)"
+        "accmethd G S Object sig = Some m" "accmodi m \<noteq> Private"
+        "declrefT emh = ClassT Object" "mhead (mthd m) = mhd emh"
+    | (Array_Object_methd) T m where
+        "t = ArrayT T" "G\<turnstile>Array T accessible_in (pid S)"
+        "accmethd G S Object sig = Some m" "accmodi m \<noteq> Private"
+        "declrefT emh = ClassT Object" "mhead (mthd m) = mhd emh"
+using assms by (blast dest!: mheadsD)
 
 lemma declclassD[rule_format]:
  "\<lbrakk>wf_prog G;class G C = Some c; methd G C sig = Some m; 
