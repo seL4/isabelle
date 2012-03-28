@@ -120,7 +120,7 @@ text {* Since ML is the primary medium to express the meaning of the
 
   For historical reasons, many capitalized names omit underscores,
   e.g.\ old-style @{ML_text FooBar} instead of @{ML_text Foo_Bar}.
-  Genuine mixed-case names are \emph{not} used, bacause clear division
+  Genuine mixed-case names are \emph{not} used, because clear division
   of words is essential for readability.\footnote{Camel-case was
   invented to workaround the lack of underscore in some early
   non-ASCII character sets.  Later it became habitual in some language
