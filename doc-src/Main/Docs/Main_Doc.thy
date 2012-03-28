@@ -105,8 +105,8 @@ Library}.
 
 \section{Set}
 
-Sets are predicates: @{text[source]"'a set  =  'a \<Rightarrow> bool"}
-\bigskip
+%Sets are predicates: @{text[source]"'a set  =  'a \<Rightarrow> bool"}
+%\bigskip
 
 \begin{supertabular}{@ {} l @ {~::~} l l @ {}}
 @{const Set.empty} & @{term_type_only "Set.empty" "'a set"}\\
@@ -236,7 +236,7 @@ e.g.\ \mbox{@{prop"ALL (x,y):A. P"},} @{term"{(x,y). P}"}, etc.
 
 \section{Relation}
 
-\begin{supertabular}{@ {} l @ {~::~} l @ {}}
+\begin{tabular}{@ {} l @ {~::~} l @ {}}
 @{const Relation.converse} & @{term_type_only Relation.converse "('a * 'b)set \<Rightarrow> ('b*'a)set"}\\
 @{const Relation.rel_comp} & @{term_type_only Relation.rel_comp "('a*'b)set\<Rightarrow>('b*'c)set\<Rightarrow>('a*'c)set"}\\
 @{const Relation.Image} & @{term_type_only Relation.Image "('a*'b)set\<Rightarrow>'a set\<Rightarrow>'b set"}\\
@@ -254,13 +254,17 @@ e.g.\ \mbox{@{prop"ALL (x,y):A. P"},} @{term"{(x,y). P}"}, etc.
 @{const Relation.irrefl} & @{term_type_only Relation.irrefl "('a*'a)set\<Rightarrow>bool"}\\
 @{const Relation.total_on} & @{term_type_only Relation.total_on "'a set\<Rightarrow>('a*'a)set\<Rightarrow>bool"}\\
 @{const Relation.total} & @{term_type_only Relation.total "('a*'a)set\<Rightarrow>bool"}\\
-\end{supertabular}
+\end{tabular}
 
 \subsubsection*{Syntax}
 
 \begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
 @{term"converse r"} & @{term[source]"converse r"} & (\verb$^-1$)
 \end{tabular}
+\medskip
+
+\noindent
+Type synonym @{typ"'a rel"} @{text"="} @{typ "('a * 'a)set"}
 
 \section{Equiv\_Relations}
 
@@ -338,6 +342,7 @@ overloaded operators:
 @{term "op + :: nat \<Rightarrow> nat \<Rightarrow> nat"} &
 @{term "op - :: nat \<Rightarrow> nat \<Rightarrow> nat"} &
 @{term "op * :: nat \<Rightarrow> nat \<Rightarrow> nat"} &
+@{term "op ^ :: nat \<Rightarrow> nat \<Rightarrow> nat"} &
 @{term "op div :: nat \<Rightarrow> nat \<Rightarrow> nat"}&
 @{term "op mod :: nat \<Rightarrow> nat \<Rightarrow> nat"}&
 @{term "op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"}\\
@@ -495,6 +500,7 @@ Type @{typ int}
 @{const List.drop} & @{typeof List.drop}\\
 @{const List.dropWhile} & @{typeof List.dropWhile}\\
 @{const List.filter} & @{typeof List.filter}\\
+@{const List.find} & @{typeof List.find}\\
 @{const List.fold} & @{typeof List.fold}\\
 @{const List.foldr} & @{typeof List.foldr}\\
 @{const List.foldl} & @{typeof List.foldl}\\
@@ -556,9 +562,6 @@ guard, i.e.\ boolean expression.
 
 Maps model partial functions and are often used as finite tables. However,
 the domain of a map may be infinite.
-
-@{text"'a \<rightharpoonup> 'b  =  'a \<Rightarrow> 'b option"}
-\bigskip
 
 \begin{supertabular}{@ {} l @ {~::~} l @ {}}
 @{const Map.empty} & @{typeof Map.empty}\\
