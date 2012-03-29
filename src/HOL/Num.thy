@@ -6,7 +6,7 @@
 header {* Binary Numerals *}
 
 theory Num
-imports Datatype Power
+imports Datatype
 begin
 
 subsection {* The @{text num} type *}
@@ -221,7 +221,7 @@ primrec sqr :: "num \<Rightarrow> num" where
 primrec pow :: "num \<Rightarrow> num \<Rightarrow> num" where
   "pow x One = x" |
   "pow x (Bit0 y) = sqr (pow x y)" |
-  "pow x (Bit1 y) = x * sqr (pow x y)"
+  "pow x (Bit1 y) = sqr (pow x y) * x"
 
 lemma nat_of_num_sqr: "nat_of_num (sqr x) = nat_of_num x * nat_of_num x"
   by (induct x, simp_all add: algebra_simps nat_of_num_add)
@@ -864,51 +864,6 @@ lemma nat_number:
   "numeral (Bit1 n) = Suc (numeral (Bit0 n))"
   by (simp_all add: numeral.simps BitM_plus_one)
 
-subsubsection {*
-  Structures with exponentiation
-*}
-
-context semiring_numeral
-begin
-
-lemma numeral_sqr: "numeral (sqr n) = numeral n * numeral n"
-  by (simp add: sqr_conv_mult numeral_mult)
-
-lemma numeral_pow: "numeral (pow m n) = numeral m ^ numeral n"
-  by (induct n, simp_all add: numeral_class.numeral.simps
-    power_add numeral_sqr numeral_mult)
-
-lemma power_numeral [simp]: "numeral m ^ numeral n = numeral (pow m n)"
-  by (rule numeral_pow [symmetric])
-
-end
-
-context semiring_1
-begin
-
-lemma power_zero_numeral [simp]: "(0::'a) ^ numeral n = 0"
-  by (induct n, simp_all add: numeral_class.numeral.simps power_add)
-
-end
-
-context ring_1
-begin
-
-lemma power_minus_Bit0: "(- x) ^ numeral (Bit0 n) = x ^ numeral (Bit0 n)"
-  by (induct n, simp_all add: numeral_class.numeral.simps power_add)
-
-lemma power_minus_Bit1: "(- x) ^ numeral (Bit1 n) = - (x ^ numeral (Bit1 n))"
-  by (simp only: nat_number(4) power_Suc power_minus_Bit0 mult_minus_left)
-
-lemma power_neg_numeral_Bit0 [simp]:
-  "neg_numeral m ^ numeral (Bit0 n) = numeral (pow m (Bit0 n))"
-  by (simp only: neg_numeral_def power_minus_Bit0 power_numeral)
-
-lemma power_neg_numeral_Bit1 [simp]:
-  "neg_numeral m ^ numeral (Bit1 n) = neg_numeral (pow m (Bit1 n))"
-  by (simp only: neg_numeral_def power_minus_Bit1 power_numeral pow.simps)
-
-end
 
 subsection {* Numeral equations as default simplification rules *}
 

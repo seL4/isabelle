@@ -6,7 +6,7 @@
 header {* Exponentiation *}
 
 theory Power
-imports Nat
+imports Num
 begin
 
 subsection {* Powers for Arbitrary Monoids *}
@@ -66,12 +66,30 @@ lemma power_mult_distrib:
 
 end
 
+context semiring_numeral
+begin
+
+lemma numeral_sqr: "numeral (Num.sqr k) = numeral k * numeral k"
+  by (simp only: sqr_conv_mult numeral_mult)
+
+lemma numeral_pow: "numeral (Num.pow k l) = numeral k ^ numeral l"
+  by (induct l, simp_all only: numeral_class.numeral.simps pow.simps
+    numeral_sqr numeral_mult power_add power_one_right)
+
+lemma power_numeral [simp]: "numeral k ^ numeral l = numeral (Num.pow k l)"
+  by (rule numeral_pow [symmetric])
+
+end
+
 context semiring_1
 begin
 
 lemma of_nat_power:
   "of_nat (m ^ n) = of_nat m ^ n"
   by (induct n) (simp_all add: of_nat_mult)
+
+lemma power_zero_numeral [simp]: "(0::'a) ^ numeral k = 0"
+  by (cases "numeral k :: nat", simp_all)
 
 end
 
@@ -127,6 +145,23 @@ next
   case (Suc n) then show ?case
     by (simp del: power_Suc add: power_Suc2 mult_assoc)
 qed
+
+lemma power_minus_Bit0:
+  "(- x) ^ numeral (Num.Bit0 k) = x ^ numeral (Num.Bit0 k)"
+  by (induct k, simp_all only: numeral_class.numeral.simps power_add
+    power_one_right mult_minus_left mult_minus_right minus_minus)
+
+lemma power_minus_Bit1:
+  "(- x) ^ numeral (Num.Bit1 k) = - (x ^ numeral (Num.Bit1 k))"
+  by (simp only: nat_number(4) power_Suc power_minus_Bit0 mult_minus_left)
+
+lemma power_neg_numeral_Bit0 [simp]:
+  "neg_numeral k ^ numeral (Num.Bit0 l) = numeral (Num.pow k (Num.Bit0 l))"
+  by (simp only: neg_numeral_def power_minus_Bit0 power_numeral)
+
+lemma power_neg_numeral_Bit1 [simp]:
+  "neg_numeral k ^ numeral (Num.Bit1 l) = neg_numeral (Num.pow k (Num.Bit1 l))"
+  by (simp only: neg_numeral_def power_minus_Bit1 power_numeral pow.simps)
 
 end
 
