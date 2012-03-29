@@ -538,7 +538,7 @@ done
 
 lemma hyperpow_minus_one2 [simp]:
      "\<And>n. -1 pow (2*n) = (1::hypreal)"
-by transfer (rule power_m1_even)
+by transfer (rule power_minus1_even)
 
 lemma hyperpow_less_le:
      "!!r n N. [|(0::hypreal) \<le> r; r \<le> 1; n < N|] ==> r pow N \<le> r pow n"

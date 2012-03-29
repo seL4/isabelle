@@ -200,12 +200,6 @@ lemmas semiring_norm =
 lemma Let_Suc [simp]: "Let (Suc n) f == f (Suc n)"
   by (fact Let_def)
 
-lemma power_m1_even: "(-1) ^ (2*n) = (1::'a::ring_1)"
-  by (fact power_minus1_even) (* FIXME: duplicate *)
-
-lemma power_m1_odd: "(-1) ^ Suc(2*n) = (-1::'a::ring_1)"
-  by (fact power_minus1_odd) (* FIXME: duplicate *)
-
 
 subsection{*Literal arithmetic and @{term of_nat}*}
 
