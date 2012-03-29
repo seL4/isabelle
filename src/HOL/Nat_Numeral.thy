@@ -159,15 +159,6 @@ lemma min_numeral_Suc [simp]:
  
 subsection{*Literal arithmetic involving powers*}
 
-(* TODO: replace with more generic rule for powers of numerals *)
-lemma power_nat_numeral:
-  "(numeral v :: nat) ^ n = nat ((numeral v :: int) ^ n)"
-  by (simp only: nat_power_eq zero_le_numeral nat_numeral)
-
-lemmas power_nat_numeral_numeral = power_nat_numeral [of _ "numeral w"] for w
-declare power_nat_numeral_numeral [simp]
-
-
 text{*For arbitrary rings*}
 
 lemma power_numeral_even:
@@ -183,12 +174,6 @@ lemma power_numeral_odd:
 
 lemmas zpower_numeral_even = power_numeral_even [where 'a=int]
 lemmas zpower_numeral_odd = power_numeral_odd [where 'a=int]
-
-lemmas power_numeral_even_numeral [simp] =
-    power_numeral_even [of "numeral v"] for v
-
-lemmas power_numeral_odd_numeral [simp] =
-    power_numeral_odd [of "numeral v"] for v
 
 lemma nat_numeral_Bit0:
   "numeral (Num.Bit0 w) = (let n::nat = numeral w in n + n)"
