@@ -425,6 +425,9 @@ a list and a nat.
   - Added possibility to specify lambda translations scheme as a
     parenthesized argument (e.g., "by (metis (lifting) ...)").
 
+* SMT:
+  - renamed "smt_fixed" option to "smt_read_only_certificates".
+ 
 * Command 'try0':
   - Renamed from 'try_methods'. INCOMPATIBILITY.
 
