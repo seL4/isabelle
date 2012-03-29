@@ -58,7 +58,10 @@ ISABELLE_BROWSER_INFO="$ISABELLE_HOME/browser_info"
 ISABELLE_PATH="%s"
 
 ISABELLE_USEDIR_OPTIONS="%s"
+
+[[ -z "$ISABELLE_JDK_HOME" ]] && ISABELLE_JDK_HOME="$ISABELLE_HOME/contrib/jdk"
 Z3_NON_COMMERCIAL="yes"
+
 %s
 ''' % (isabelle_path, usedir_options, more_settings)
 
