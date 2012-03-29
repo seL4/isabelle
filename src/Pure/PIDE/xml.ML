@@ -327,7 +327,8 @@ fun list f xs = map (node o f) xs;
 fun option _ NONE = []
   | option f (SOME x) = [node (f x)];
 
-fun variant fs x = [tagged (the (get_index (fn f => try f x) fs))];
+fun variant fs x =
+  [tagged (the (get_index (fn f => SOME (f x) handle General.Match => NONE) fs))];
 
 end;
 
