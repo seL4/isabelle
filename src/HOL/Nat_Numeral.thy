@@ -72,14 +72,6 @@ subsection{*Comparisons*}
 lemmas numerals = numeral_1_eq_1 [where 'a=nat] numeral_2_eq_2
 
 
-subsection{*Powers with Numeric Exponents*}
-
-text{*Squares of literal numerals will be evaluated.*}
-(* FIXME: replace with more general rules for powers of numerals *)
-lemmas power2_eq_square_numeral [simp] =
-    power2_eq_square [of "numeral w"] for w
-
-
 text{*Simprules for comparisons where common factors can be cancelled.*}
 lemmas zero_compare_simps =
     add_strict_increasing add_strict_increasing2 add_increasing
