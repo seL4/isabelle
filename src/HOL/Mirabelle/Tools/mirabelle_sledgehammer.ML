@@ -26,6 +26,7 @@ val preplay_timeoutK = "preplay_timeout"
 val sh_minimizeK = "sh_minimize" (*refers to minimizer run within Sledgehammer*)
 val max_new_mono_instancesK = "max_new_mono_instances"
 val max_mono_itersK = "max_mono_iters"
+val check_trivialK = "check_trivial" (*false by default*)
 
 fun sh_tag id = "#" ^ string_of_int id ^ " sledgehammer: "
 fun minimize_tag id = "#" ^ string_of_int id ^ " minimize (sledgehammer): "
@@ -701,8 +702,11 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
           val minimize = AList.defined (op =) args minimizeK
           val metis_ft = AList.defined (op =) args metis_ftK
           val trivial =
-            Try0.try0 (SOME try_timeout) ([], [], [], []) pre
-            handle TimeLimit.TimeOut => false
+            if AList.lookup (op =) args check_trivialK |> the_default "false"
+                            |> Bool.fromString |> the then
+              Try0.try0 (SOME try_timeout) ([], [], [], []) pre
+              handle TimeLimit.TimeOut => false
+            else false
           fun apply_reconstructor m1 m2 =
             if metis_ft
             then
