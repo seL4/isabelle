@@ -40,10 +40,6 @@ lemma Suc_nat_number_of_add:
   "Suc (numeral v + n) = numeral (v + Num.One) + n"
   by simp
 
-lemma Suc_numeral [simp]:
-  "Suc (numeral v) = numeral (v + Num.One)"
-  by simp
-
 
 subsubsection{*Subtraction *}
 
