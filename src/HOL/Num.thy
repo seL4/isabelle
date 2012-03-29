@@ -528,6 +528,12 @@ lemma of_nat_numeral [simp]: "of_nat (numeral n) = numeral n"
   by (induct n,
     simp_all only: numeral.simps numeral_class.numeral.simps of_nat_add of_nat_1)
 
+lemma mult_2: "2 * z = z + z"
+  unfolding one_add_one [symmetric] left_distrib by simp
+
+lemma mult_2_right: "z * 2 = z + z"
+  unfolding one_add_one [symmetric] right_distrib by simp
+
 end
 
 lemma nat_of_num_numeral: "nat_of_num = numeral"
@@ -863,6 +869,12 @@ lemma nat_number:
   "numeral (Bit0 n) = Suc (numeral (BitM n))"
   "numeral (Bit1 n) = Suc (numeral (Bit0 n))"
   by (simp_all add: numeral.simps BitM_plus_one)
+
+lemma numeral_2_eq_2: "2 = Suc (Suc 0)"
+  by (simp add: nat_number(2-4))
+
+lemma numeral_3_eq_3: "3 = Suc (Suc (Suc 0))"
+  by (simp add: nat_number(2-4))
 
 
 subsection {* Numeral equations as default simplification rules *}

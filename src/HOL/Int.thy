@@ -857,14 +857,6 @@ lemma abs_power_minus_one [simp]:
   "abs(-1 ^ n) = (1::'a::linordered_idom)"
 by (simp add: power_abs)
 
-text{*Lemmas for specialist use, NOT as default simprules*}
-(* TODO: see if semiring duplication can be removed without breaking proofs *)
-lemma mult_2: "2 * z = (z+z::'a::semiring_1)"
-unfolding one_add_one [symmetric] left_distrib by simp
-
-lemma mult_2_right: "z * 2 = (z+z::'a::semiring_1)"
-unfolding one_add_one [symmetric] right_distrib by simp
-
 
 subsection{*More Inequality Reasoning*}
 
