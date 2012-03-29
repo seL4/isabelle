@@ -1103,7 +1103,7 @@ next
       then have e': "List.member r a" using list_eq_def [simplified List.member_def [symmetric], of l r] b 
         by auto
       have f: "card_list (removeAll a l) = m" using e d by (simp)
-      have g: "removeAll a l \<approx> removeAll a r" using remove_fset_rsp b by simp
+      have g: "removeAll a l \<approx> removeAll a r" using remove_fset.rsp b by simp
       have "(removeAll a l) \<approx>2 (removeAll a r)" by (rule Suc.hyps[OF f g])
       then have h: "(a # removeAll a l) \<approx>2 (a # removeAll a r)" by (rule list_eq2.intros(5))
       have i: "l \<approx>2 (a # removeAll a l)"

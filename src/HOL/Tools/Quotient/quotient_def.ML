@@ -189,9 +189,13 @@ fun add_quotient_def ((var, (name, atts)), (lhs, rhs)) rsp_thm lthy =
 
     (* data storage *)
     val qconst_data = {qconst = trm, rconst = rhs, def = def_thm}
-    val lhs_name = #1 var
-    val rsp_thm_name = Binding.suffix_name "_rsp" lhs_name
-    val code_eqn_thm_name = Binding.suffix_name "_code_eqn" lhs_name
+     
+    fun qualify defname suffix = Binding.name suffix
+      |> Binding.qualify true defname
+
+    val lhs_name = Binding.name_of (#1 var)
+    val rsp_thm_name = qualify lhs_name "rsp"
+    val code_eqn_thm_name = qualify lhs_name "rep_eq"
     
     val lthy'' = lthy'
       |> Local_Theory.declaration {syntax = false, pervasive = true}
