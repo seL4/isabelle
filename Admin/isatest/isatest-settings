@@ -7,8 +7,7 @@
 # source bashrc, we're called by cron
 . ~/.bashrc
 
-export SCALA_HOME="$HOME/lib/scala/current"
-export ISABELLE_JDK_HOME="$HOME/lib/jdk/jdk1.7.0_03"
+export ISABELLE_JDK_HOME="$JAVA_HOME"
 
 # canoncical home for all platforms
 HOME=/home/isatest
