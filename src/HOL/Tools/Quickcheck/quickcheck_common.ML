@@ -419,10 +419,9 @@ fun define_functions (mk_equations, termination_tac) prfx argnames names Ts =
           (fn _ => Skip_Proof.cheat_tac (Proof_Context.theory_of lthy))) eqs_t
       in
         fold (fn (name, eq) => Local_Theory.note
-          ((Binding.conceal
-            (Binding.qualify true prfx
-              (Binding.qualify true name (Binding.name "simps"))),
-             Code.add_default_eqn_attrib :: @{attributes [simp, nitpick_simp]}), [eq]) #> snd)
+          ((Binding.qualify true prfx
+              (Binding.qualify true name (Binding.name "simps")),
+             [Code.add_default_eqn_attrib]), [eq]) #> snd)
           (names ~~ eqs) lthy
       end)
 
