@@ -2084,6 +2084,9 @@ qed
 lemma card_UNIV_unit: "card (UNIV :: unit set) = 1"
   unfolding UNIV_unit by simp
 
+lemma card_UNIV_bool [simp]: "card (UNIV :: bool set) = 2"
+  unfolding UNIV_bool by simp
+
 
 subsubsection {* Cardinality of image *}
 

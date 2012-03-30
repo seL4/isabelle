@@ -132,9 +132,6 @@ lemma nat_rec_add_eq_if [simp]:
 
 subsubsection{*Various Other Lemmas*}
 
-lemma card_UNIV_bool[simp]: "card (UNIV :: bool set) = 2"
-by(simp add: UNIV_bool)
-
 text {*Evens and Odds, for Mutilated Chess Board*}
 
 text{*Lemmas for specialist use, NOT as default simprules*}
