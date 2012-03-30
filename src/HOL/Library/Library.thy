@@ -12,15 +12,12 @@ imports
   ContNotDenum
   Convex
   Countable
-  Cset_Monad
-  Dlist_Cset
   Eval_Witness
   Extended_Nat
   Float
   Formal_Power_Series
   Fraction_Field
   FrechetDeriv
-  Cset
   FuncSet
   Function_Algebras
   Fundamental_Theorem_Algebra

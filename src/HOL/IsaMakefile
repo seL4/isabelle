@@ -448,20 +448,20 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Library/Efficient_Nat.thy Library/Code_Prolog.thy			\
   Library/Code_Real_Approx_By_Float.thy					\
   Tools/Predicate_Compile/code_prolog.ML Library/ContNotDenum.thy	\
-  Library/Cset.thy Library/Cset_Monad.thy Library/Continuity.thy	\
+  Library/Continuity.thy						\
   Library/Convex.thy Library/Countable.thy				\
-  Library/Dlist.thy Library/Dlist_Cset.thy Library/Eval_Witness.thy	\
-  Library/DAList.thy Library/Dlist.thy Library/Dlist_Cset.thy 		\
+  Library/Dlist.thy Library/Eval_Witness.thy				\
+  Library/DAList.thy Library/Dlist.thy					\
   Library/Eval_Witness.thy						\
   Library/Extended_Real.thy Library/Extended_Nat.thy Library/Float.thy	\
   Library/Formal_Power_Series.thy Library/Fraction_Field.thy		\
-  Library/FrechetDeriv.thy Library/Cset.thy Library/FuncSet.thy		\
+  Library/FrechetDeriv.thy Library/FuncSet.thy				\
   Library/Function_Algebras.thy Library/Fundamental_Theorem_Algebra.thy	\
   Library/Glbs.thy Library/Indicator_Function.thy			\
   Library/Infinite_Set.thy Library/Inner_Product.thy			\
   Library/Kleene_Algebra.thy Library/LaTeXsugar.thy			\
   Library/Lattice_Algebras.thy Library/Lattice_Syntax.thy		\
-  Library/Library.thy Library/List_Cset.thy Library/List_Prefix.thy	\
+  Library/Library.thy Library/List_Prefix.thy				\
   Library/List_lexord.thy Library/Mapping.thy Library/Monad_Syntax.thy	\
   Library/Multiset.thy Library/Nat_Bijection.thy			\
   Library/Numeral_Type.thy Library/Old_Recdef.thy			\
@@ -1274,7 +1274,7 @@ HOL-Multivariate_Analysis: HOL $(OUT)/HOL-Multivariate_Analysis
 
 $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL				\
   Multivariate_Analysis/Brouwer_Fixpoint.thy				\
-  Multivariate_Analysis/Cartesian_Euclidean_Space.thy                   \
+  Multivariate_Analysis/Cartesian_Euclidean_Space.thy			\
   Multivariate_Analysis/Convex_Euclidean_Space.thy			\
   Multivariate_Analysis/Derivative.thy					\
   Multivariate_Analysis/Determinants.thy				\
@@ -1313,7 +1313,7 @@ $(OUT)/HOL-Probability: $(OUT)/HOL-Multivariate_Analysis		\
   Probability/ex/Dining_Cryptographers.thy				\
   Probability/ex/Koepf_Duermuth_Countermeasure.thy			\
   Probability/Finite_Product_Measure.thy				\
-  Probability/Independent_Family.thy                                    \
+  Probability/Independent_Family.thy					\
   Probability/Infinite_Product_Measure.thy Probability/Information.thy	\
   Probability/Lebesgue_Integration.thy Probability/Lebesgue_Measure.thy \
   Probability/Measure.thy Probability/Probability_Measure.thy		\
@@ -1617,8 +1617,8 @@ $(LOG)/HOL-Quickcheck_Examples.gz: $(OUT)/HOL				\
 HOL-Quotient_Examples: HOL $(LOG)/HOL-Quotient_Examples.gz
 
 $(LOG)/HOL-Quotient_Examples.gz: $(OUT)/HOL				\
-  Quotient_Examples/DList.thy Quotient_Examples/Quotient_Cset.thy \
-  Quotient_Examples/FSet.thy Quotient_Examples/List_Quotient_Cset.thy \
+  Quotient_Examples/DList.thy \
+  Quotient_Examples/FSet.thy \
   Quotient_Examples/Quotient_Int.thy Quotient_Examples/Quotient_Message.thy \
   Quotient_Examples/Lift_Set.thy Quotient_Examples/Lift_RBT.thy \
   Quotient_Examples/Lift_Fun.thy 
