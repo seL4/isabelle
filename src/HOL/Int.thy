@@ -844,16 +844,6 @@ simproc_setup fast_arith ("(m::'a::linordered_idom) < n" |
   "(m::'a::linordered_idom) = n") =
   {* fn _ => fn ss => fn ct => Lin_Arith.simproc ss (term_of ct) *}
 
-setup {*
-  Reorient_Proc.add
-    (fn Const (@{const_name numeral}, _) $ _ => true
-    | Const (@{const_name neg_numeral}, _) $ _ => true
-    | _ => false)
-*}
-
-simproc_setup reorient_numeral
-  ("numeral w = x" | "neg_numeral w = y") = Reorient_Proc.proc
-
 
 subsection{*Lemmas About Small Numerals*}
 

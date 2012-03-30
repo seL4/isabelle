@@ -975,10 +975,6 @@ declare (in ring_1) mult_neg_numeral_simps [simp]
 
 subsection {* Setting up simprocs *}
 
-lemma numeral_reorient:
-  "(numeral w = x) = (x = numeral w)"
-  by auto
-
 lemma mult_numeral_1: "Numeral1 * a = (a::'a::semiring_numeral)"
   by simp
 
@@ -998,6 +994,16 @@ numeral for 1 reduces the number of special cases.*}
 lemmas mult_1s =
   mult_numeral_1 mult_numeral_1_right 
   mult_minus1 mult_minus1_right
+
+setup {*
+  Reorient_Proc.add
+    (fn Const (@{const_name numeral}, _) $ _ => true
+    | Const (@{const_name neg_numeral}, _) $ _ => true
+    | _ => false)
+*}
+
+simproc_setup reorient_numeral
+  ("numeral w = x" | "neg_numeral w = y") = Reorient_Proc.proc
 
 
 subsubsection {* Simplification of arithmetic operations on integer constants. *}
