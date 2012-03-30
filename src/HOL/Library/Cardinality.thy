@@ -59,7 +59,7 @@ lemma card_option [simp]: "CARD('a option) = Suc CARD('a::finite)"
 
 lemma card_set [simp]: "CARD('a set) = 2 ^ CARD('a::finite)"
   unfolding Pow_UNIV [symmetric]
-  by (simp only: card_Pow finite numeral_2_eq_2)
+  by (simp only: card_Pow finite)
 
 lemma card_nat [simp]: "CARD(nat) = 0"
   by (simp add: card_eq_0_iff)

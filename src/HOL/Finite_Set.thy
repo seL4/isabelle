@@ -2212,12 +2212,13 @@ lemma card_Plus_conv_if:
 
 subsubsection {* Cardinality of the Powerset *}
 
-lemma card_Pow: "finite A ==> card (Pow A) = Suc (Suc 0) ^ card A"  (* FIXME numeral 2 (!?) *)
+lemma card_Pow: "finite A ==> card (Pow A) = 2 ^ card A"
 apply (induct rule: finite_induct)
  apply (simp_all add: Pow_insert)
 apply (subst card_Un_disjoint, blast)
   apply (blast, blast)
 apply (subgoal_tac "inj_on (insert x) (Pow F)")
+ apply (subst mult_2)
  apply (simp add: card_image Pow_insert)
 apply (unfold inj_on_def)
 apply (blast elim!: equalityE)

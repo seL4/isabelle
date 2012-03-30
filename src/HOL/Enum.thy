@@ -465,7 +465,7 @@ primrec sublists :: "'a list \<Rightarrow> 'a list list" where
   | "sublists (x#xs) = (let xss = sublists xs in map (Cons x) xss @ xss)"
 
 lemma length_sublists:
-  "length (sublists xs) = Suc (Suc (0\<Colon>nat)) ^ length xs"
+  "length (sublists xs) = 2 ^ length xs"
   by (induct xs) (simp_all add: Let_def)
 
 lemma sublists_powset:
@@ -484,9 +484,9 @@ lemma distinct_set_sublists:
   shows "distinct (map set (sublists xs))"
 proof (rule card_distinct)
   have "finite (set xs)" by rule
-  then have "card (Pow (set xs)) = Suc (Suc 0) ^ card (set xs)" by (rule card_Pow)
+  then have "card (Pow (set xs)) = 2 ^ card (set xs)" by (rule card_Pow)
   with assms distinct_card [of xs]
-    have "card (Pow (set xs)) = Suc (Suc 0) ^ length xs" by simp
+    have "card (Pow (set xs)) = 2 ^ length xs" by simp
   then show "card (set (map set (sublists xs))) = length (map set (sublists xs))"
     by (simp add: sublists_powset length_sublists)
 qed
