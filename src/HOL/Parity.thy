@@ -358,10 +358,6 @@ lemma lemma_even_mod_4_div_2: "n mod 4 = (1::nat) ==> even ((n - 1) div 2)"
 
 text {* Simplify, when the exponent is a numeral *}
 
-lemma power_0_left_numeral [simp]:
-  "0 ^ numeral w = (0::'a::{power,semiring_0})"
-by (simp add: power_0_left)
-
 lemmas zero_le_power_eq_numeral [simp] =
     zero_le_power_eq [of _ "numeral w"] for w
 
