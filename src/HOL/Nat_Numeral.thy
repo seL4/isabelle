@@ -31,12 +31,6 @@ lemmas expand_Suc = Suc_pred' [of "numeral v", OF zero_less_numeral] for v
 
 subsubsection{*Arith *}
 
-lemma Suc_eq_plus1: "Suc n = n + 1"
-  unfolding One_nat_def by simp
-
-lemma Suc_eq_plus1_left: "Suc n = 1 + n"
-  unfolding One_nat_def by simp
-
 (* These two can be useful when m = numeral... *)
 
 lemma add_eq_if: "(m::nat) + n = (if m=0 then n else Suc ((m - 1) + n))"

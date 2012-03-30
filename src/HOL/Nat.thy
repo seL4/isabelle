@@ -252,6 +252,12 @@ lemma inj_on_add_nat[simp]: "inj_on (%n::nat. n+k) N"
   apply (simp add:o_def)
   done
 
+lemma Suc_eq_plus1: "Suc n = n + 1"
+  unfolding One_nat_def by simp
+
+lemma Suc_eq_plus1_left: "Suc n = 1 + n"
+  unfolding One_nat_def by simp
+
 
 subsubsection {* Difference *}
 
