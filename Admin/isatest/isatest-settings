@@ -7,6 +7,8 @@
 # source bashrc, we're called by cron
 . ~/.bashrc
 
+export ISABELLE_JDK_HOME="$JAVA_HOME"
+
 # canoncical home for all platforms
 HOME=/home/isatest
 
