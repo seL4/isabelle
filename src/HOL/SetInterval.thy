@@ -1282,19 +1282,21 @@ qed
 
 subsection {* The formula for arithmetic sums *}
 
-lemma gauss_sum: (* FIXME: rephrase in terms of "2" *)
-  "((1::'a::comm_semiring_1) + 1)*(\<Sum>i\<in>{1..n}. of_nat i) =
+lemma gauss_sum:
+  "(2::'a::comm_semiring_1)*(\<Sum>i\<in>{1..n}. of_nat i) =
    of_nat n*((of_nat n)+1)"
 proof (induct n)
   case 0
   show ?case by simp
 next
   case (Suc n)
-  then show ?case by (simp add: algebra_simps del: one_add_one) (* FIXME *)
+  then show ?case
+    by (simp add: algebra_simps add: one_add_one [symmetric] del: one_add_one)
+      (* FIXME: make numeral cancellation simprocs work for semirings *)
 qed
 
 theorem arith_series_general:
-  "((1::'a::comm_semiring_1) + 1) * (\<Sum>i\<in>{..<n}. a + of_nat i * d) =
+  "(2::'a::comm_semiring_1) * (\<Sum>i\<in>{..<n}. a + of_nat i * d) =
   of_nat n * (a + (a + of_nat(n - 1)*d))"
 proof cases
   assume ngt1: "n > 1"
@@ -1307,26 +1309,27 @@ proof cases
   also from ngt1 have "\<dots> = (?n*a + d*(\<Sum>i\<in>{1..<n}. ?I i))"
     unfolding One_nat_def
     by (simp add: setsum_right_distrib atLeast0LessThan[symmetric] setsum_shift_lb_Suc0_0_upt mult_ac)
-  also have "(1+1)*\<dots> = (1+1)*?n*a + d*(1+1)*(\<Sum>i\<in>{1..<n}. ?I i)"
-    by (simp add: left_distrib right_distrib del: one_add_one)
+  also have "2*\<dots> = 2*?n*a + d*2*(\<Sum>i\<in>{1..<n}. ?I i)"
+    by (simp add: algebra_simps)
   also from ngt1 have "{1..<n} = {1..n - 1}"
     by (cases n) (auto simp: atLeastLessThanSuc_atLeastAtMost)
   also from ngt1
-  have "(1+1)*?n*a + d*(1+1)*(\<Sum>i\<in>{1..n - 1}. ?I i) = ((1+1)*?n*a + d*?I (n - 1)*?I n)"
+  have "2*?n*a + d*2*(\<Sum>i\<in>{1..n - 1}. ?I i) = (2*?n*a + d*?I (n - 1)*?I n)"
     by (simp only: mult_ac gauss_sum [of "n - 1"], unfold One_nat_def)
        (simp add:  mult_ac trans [OF add_commute of_nat_Suc [symmetric]])
-  finally show ?thesis by (simp add: algebra_simps del: one_add_one)
+  finally show ?thesis
+    unfolding mult_2 by (simp add: algebra_simps)
 next
   assume "\<not>(n > 1)"
   hence "n = 1 \<or> n = 0" by auto
-  thus ?thesis by (auto simp: algebra_simps mult_2_right)
+  thus ?thesis by (auto simp: mult_2)
 qed
 
 lemma arith_series_nat:
-  "Suc (Suc 0) * (\<Sum>i\<in>{..<n}. a+i*d) = n * (a + (a+(n - 1)*d))"
+  "(2::nat) * (\<Sum>i\<in>{..<n}. a+i*d) = n * (a + (a+(n - 1)*d))"
 proof -
   have
-    "((1::nat) + 1) * (\<Sum>i\<in>{..<n::nat}. a + of_nat(i)*d) =
+    "2 * (\<Sum>i\<in>{..<n::nat}. a + of_nat(i)*d) =
     of_nat(n) * (a + (a + of_nat(n - 1)*d))"
     by (rule arith_series_general)
   thus ?thesis
@@ -1334,15 +1337,8 @@ proof -
 qed
 
 lemma arith_series_int:
-  "(2::int) * (\<Sum>i\<in>{..<n}. a + of_nat i * d) =
-  of_nat n * (a + (a + of_nat(n - 1)*d))"
-proof -
-  have
-    "((1::int) + 1) * (\<Sum>i\<in>{..<n}. a + of_nat i * d) =
-    of_nat(n) * (a + (a + of_nat(n - 1)*d))"
-    by (rule arith_series_general)
-  thus ?thesis by simp
-qed
+  "2 * (\<Sum>i\<in>{..<n}. a + int i * d) = int n * (a + (a + int(n - 1)*d))"
+  by (fact arith_series_general) (* FIXME: duplicate *)
 
 lemma sum_diff_distrib:
   fixes P::"nat\<Rightarrow>nat"
