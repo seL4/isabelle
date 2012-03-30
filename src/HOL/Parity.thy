@@ -45,11 +45,20 @@ lemma even_zero_nat[simp]: "even (0::nat)" by presburger
 
 lemma odd_1_nat [simp]: "odd (1::nat)" by presburger
 
+lemma even_numeral_int [simp]: "even (numeral (Num.Bit0 k) :: int)"
+  unfolding even_def by simp
+
+lemma odd_numeral_int [simp]: "odd (numeral (Num.Bit1 k) :: int)"
+  unfolding even_def by simp
+
 (* TODO: proper simp rules for Num.Bit0, Num.Bit1 *)
-declare even_def[of "numeral v", simp] for v
 declare even_def[of "neg_numeral v", simp] for v
 
-declare even_nat_def[of "numeral v", simp] for v
+lemma even_numeral_nat [simp]: "even (numeral (Num.Bit0 k) :: nat)"
+  unfolding even_nat_def by simp
+
+lemma odd_numeral_nat [simp]: "odd (numeral (Num.Bit1 k) :: nat)"
+  unfolding even_nat_def by simp
 
 subsection {* Even and odd are mutually exclusive *}
 
