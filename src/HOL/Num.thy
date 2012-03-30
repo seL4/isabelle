@@ -230,10 +230,10 @@ lemma sqr_conv_mult: "sqr x = x * x"
   by (simp add: num_eq_iff nat_of_num_sqr nat_of_num_mult)
 
 
-subsection {* Numary numerals *}
+subsection {* Binary numerals *}
 
 text {*
-  We embed numary representations into a generic algebraic
+  We embed binary representations into a generic algebraic
   structure using @{text numeral}.
 *}
 
@@ -967,7 +967,7 @@ lemma inverse_numeral_1:
   "inverse Numeral1 = (Numeral1::'a::division_ring)"
   by simp
 
-text{*Theorem lists for the cancellation simprocs. The use of a numary
+text{*Theorem lists for the cancellation simprocs. The use of a binary
 numeral for 1 reduces the number of special cases.*}
 
 lemmas mult_1s =
