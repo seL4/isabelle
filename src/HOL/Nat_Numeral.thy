@@ -101,11 +101,6 @@ text{*Where K above is a literal*}
 lemma Suc_diff_eq_diff_pred: "0 < n ==> Suc m - n = m - (n - Numeral1)"
 by (simp split: nat_diff_split)
 
-text{*No longer required as a simprule because of the @{text inverse_fold}
-   simproc*}
-lemma Suc_diff_numeral: "Suc m - (numeral v) = m - (numeral v - 1)"
-  by (subst expand_Suc, simp only: diff_Suc_Suc)
-
 lemma diff_Suc_eq_diff_pred: "m - Suc n = (m - 1) - n"
 by (simp split: nat_diff_split)
 

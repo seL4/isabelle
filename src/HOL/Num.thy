@@ -919,6 +919,12 @@ lemma le_numeral_Suc [simp]: "numeral k \<le> Suc n \<longleftrightarrow> pred_n
 lemma le_Suc_numeral [simp]: "Suc n \<le> numeral k \<longleftrightarrow> n \<le> pred_numeral k"
   by (simp add: numeral_eq_Suc)
 
+lemma diff_Suc_numeral [simp]: "Suc n - numeral k = n - pred_numeral k"
+  by (simp add: numeral_eq_Suc)
+
+lemma diff_numeral_Suc [simp]: "numeral k - Suc n = pred_numeral k - n"
+  by (simp add: numeral_eq_Suc)
+
 lemma max_Suc_numeral [simp]:
   "max (Suc n) (numeral k) = Suc (max n (pred_numeral k))"
   by (simp add: numeral_eq_Suc)
