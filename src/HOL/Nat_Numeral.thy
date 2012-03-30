@@ -61,17 +61,6 @@ lemma power_numeral_odd:
 lemmas zpower_numeral_even = power_numeral_even [where 'a=int]
 lemmas zpower_numeral_odd = power_numeral_odd [where 'a=int]
 
-lemma nat_numeral_Bit0:
-  "numeral (Num.Bit0 w) = (let n::nat = numeral w in n + n)"
-  unfolding numeral_Bit0 Let_def ..
-
-lemma nat_numeral_Bit1:
-  "numeral (Num.Bit1 w) = (let n = numeral w in Suc (n + n))"
-  unfolding numeral_Bit1 Let_def by simp
-
-lemmas eval_nat_numeral =
-  nat_numeral_Bit0 nat_numeral_Bit1
-
 lemmas nat_arith =
   diff_nat_numeral
 

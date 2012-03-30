@@ -869,8 +869,7 @@ definition pred_numeral :: "num \<Rightarrow> nat"
 lemma numeral_eq_Suc: "numeral k = Suc (pred_numeral k)"
   unfolding pred_numeral_def by simp
 
-lemma nat_number:
-  "1 = Suc 0"
+lemma eval_nat_numeral:
   "numeral One = Suc 0"
   "numeral (Bit0 n) = Suc (numeral (BitM n))"
   "numeral (Bit1 n) = Suc (numeral (Bit0 n))"
@@ -880,14 +879,14 @@ lemma pred_numeral_simps [simp]:
   "pred_numeral Num.One = 0"
   "pred_numeral (Num.Bit0 k) = numeral (Num.BitM k)"
   "pred_numeral (Num.Bit1 k) = numeral (Num.Bit0 k)"
-  unfolding pred_numeral_def nat_number
+  unfolding pred_numeral_def eval_nat_numeral
   by (simp_all only: diff_Suc_Suc diff_0)
 
 lemma numeral_2_eq_2: "2 = Suc (Suc 0)"
-  by (simp add: nat_number(2-4))
+  by (simp add: eval_nat_numeral)
 
 lemma numeral_3_eq_3: "3 = Suc (Suc (Suc 0))"
-  by (simp add: nat_number(2-4))
+  by (simp add: eval_nat_numeral)
 
 lemma numeral_1_eq_Suc_0: "Numeral1 = Suc 0"
   by (simp only: numeral_One One_nat_def)

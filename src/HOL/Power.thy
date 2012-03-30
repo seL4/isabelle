@@ -185,7 +185,7 @@ lemma power_minus_Bit0:
 
 lemma power_minus_Bit1:
   "(- x) ^ numeral (Num.Bit1 k) = - (x ^ numeral (Num.Bit1 k))"
-  by (simp only: nat_number(4) power_Suc power_minus_Bit0 mult_minus_left)
+  by (simp only: eval_nat_numeral(3) power_Suc power_minus_Bit0 mult_minus_left)
 
 lemma power_neg_numeral_Bit0 [simp]:
   "neg_numeral k ^ numeral (Num.Bit0 l) = numeral (Num.pow k (Num.Bit0 l))"
