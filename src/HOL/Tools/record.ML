@@ -1314,7 +1314,7 @@ val ex_sel_eq_simproc =
           if is_selector thy sel then
             let
               val x' =
-                if not (loose_bvar1 (x, 0))
+                if not (Term.is_dependent x)
                 then Free ("x" ^ string_of_int i, range_type Tsel)
                 else raise TERM ("", [x]);
               val sel' = Const (sel, Tsel) $ Bound 0;
