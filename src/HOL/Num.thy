@@ -507,7 +507,7 @@ subclass numeral ..
 lemma numeral_mult: "numeral (m * n) = numeral m * numeral n"
   apply (induct n rule: num_induct)
   apply (simp add: numeral_One)
-  apply (simp add: mult_inc numeral_inc numeral_add numeral_inc right_distrib)
+  apply (simp add: mult_inc numeral_inc numeral_add right_distrib)
   done
 
 lemma numeral_times_numeral: "numeral m * numeral n = numeral (m * n)"
