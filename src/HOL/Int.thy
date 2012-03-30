@@ -575,6 +575,10 @@ theorem int_of_nat_induct [case_names nonneg neg, induct type: int]:
      "[|!! n. P (int n);  !!n. P (- (int (Suc n))) |] ==> P z"
   by (cases z) auto
 
+lemma nonneg_int_cases:
+  assumes "0 \<le> k" obtains n where "k = int n"
+  using assms by (cases k, simp, simp del: of_nat_Suc)
+
 text{*Contributed by Brian Huffman*}
 theorem int_diff_cases:
   obtains (diff) m n where "z = int m - int n"
@@ -888,7 +892,7 @@ lemmas diff_int_def_symmetric = diff_int_def [symmetric, simp]
 lemma nat_0 [simp]: "nat 0 = 0"
 by (simp add: nat_eq_iff)
 
-lemma nat_1: "nat 1 = Suc 0"
+lemma nat_1 [simp]: "nat 1 = Suc 0"
 by (subst nat_eq_iff, simp)
 
 lemma nat_2: "nat 2 = Suc (Suc 0)"
@@ -896,7 +900,7 @@ by (subst nat_eq_iff, simp)
 
 lemma one_less_nat_eq [simp]: "(Suc 0 < nat z) = (1 < z)"
 apply (insert zless_nat_conj [of 1 z])
-apply (auto simp add: nat_1)
+apply auto
 done
 
 text{*This simplifies expressions of the form @{term "int n = z"} where
@@ -962,6 +966,41 @@ apply (cases "z=0 | w=0")
 apply (auto simp add: abs_if nat_mult_distrib [symmetric] 
                       nat_mult_distrib_neg [symmetric] mult_less_0_iff)
 done
+
+lemma Suc_nat_eq_nat_zadd1: "(0::int) <= z ==> Suc (nat z) = nat (1 + z)"
+apply (rule sym)
+apply (simp add: nat_eq_iff)
+done
+
+lemma diff_nat_eq_if:
+     "nat z - nat z' =  
+        (if z' < 0 then nat z   
+         else let d = z-z' in     
+              if d < 0 then 0 else nat d)"
+by (simp add: Let_def nat_diff_distrib [symmetric])
+
+(* nat_diff_distrib has too-strong premises *)
+lemma nat_diff_distrib': "\<lbrakk>0 \<le> x; 0 \<le> y\<rbrakk> \<Longrightarrow> nat (x - y) = nat x - nat y"
+apply (rule int_int_eq [THEN iffD1], clarsimp)
+apply (subst of_nat_diff)
+apply (rule nat_mono, simp_all)
+done
+
+lemma nat_numeral [simp, code_abbrev]:
+  "nat (numeral k) = numeral k"
+  by (simp add: nat_eq_iff)
+
+lemma nat_neg_numeral [simp]:
+  "nat (neg_numeral k) = 0"
+  by simp
+
+lemma diff_nat_numeral [simp]: 
+  "(numeral v :: nat) - numeral v' = nat (numeral v - numeral v')"
+  by (simp only: nat_diff_distrib' zero_le_numeral nat_numeral)
+
+lemma nat_numeral_diff_1 [simp]:
+  "numeral v - (1::nat) = nat (numeral v - 1)"
+  using diff_nat_numeral [of v Num.One] by simp
 
 
 subsection "Induction principles for int"
@@ -1681,10 +1720,6 @@ lemma less_int_code [code]:
   "Neg k < Neg l \<longleftrightarrow> l < k"
   by simp_all
 
-lemma nat_numeral [simp, code_abbrev]:
-  "nat (numeral k) = numeral k"
-  by (simp add: nat_eq_iff)
-
 lemma nat_code [code]:
   "nat (Int.Neg k) = 0"
   "nat 0 = 0"
@@ -1729,6 +1764,7 @@ lemmas int_le_0_conv = of_nat_le_0_iff [where 'a=int and m="n"] for n
 lemmas int_0 = of_nat_0 [where 'a=int]
 lemmas int_1 = of_nat_1 [where 'a=int]
 lemmas int_Suc = of_nat_Suc [where 'a=int]
+lemmas int_numeral = of_nat_numeral [where 'a=int]
 lemmas abs_int_eq = abs_of_nat [where 'a=int and n="m"] for m
 lemmas of_int_int_eq = of_int_of_nat_eq [where 'a=int]
 lemmas zdiff_int = of_nat_diff [where 'a=int, symmetric]
@@ -1744,4 +1780,3 @@ lemma int_power:
 lemmas zpower_int = int_power [symmetric]
 
 end
-

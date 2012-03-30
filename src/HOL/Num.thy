@@ -876,6 +876,16 @@ lemma numeral_2_eq_2: "2 = Suc (Suc 0)"
 lemma numeral_3_eq_3: "3 = Suc (Suc (Suc 0))"
   by (simp add: nat_number(2-4))
 
+lemma numeral_1_eq_Suc_0: "Numeral1 = Suc 0"
+  by (simp only: numeral_One One_nat_def)
+
+lemma Suc_nat_number_of_add:
+  "Suc (numeral v + n) = numeral (v + Num.One) + n"
+  by simp
+
+(*Maps #n to n for n = 1, 2*)
+lemmas numerals = numeral_One [where 'a=nat] numeral_2_eq_2
+
 
 subsection {* Numeral equations as default simplification rules *}
 

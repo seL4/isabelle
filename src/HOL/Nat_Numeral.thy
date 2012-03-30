@@ -9,68 +9,7 @@ theory Nat_Numeral
 imports Int
 begin
 
-subsection{*Function @{term nat}: Coercion from Type @{typ int} to @{typ nat}*}
-
-declare nat_1 [simp]
-
-lemma nat_neg_numeral [simp]: "nat (neg_numeral w) = 0"
-  by simp
-
-lemma numeral_1_eq_Suc_0: "Numeral1 = Suc 0"
-  by simp
-
-
-subsection{*Function @{term int}: Coercion from Type @{typ nat} to @{typ int}*}
-
-lemma int_numeral: "int (numeral v) = numeral v"
-  by (rule of_nat_numeral) (* already simp *)
-
-lemma nonneg_int_cases:
-  fixes k :: int assumes "0 \<le> k" obtains n where "k = of_nat n"
-  using assms by (cases k, simp, simp)
-
-subsubsection{*Successor *}
-
-lemma Suc_nat_eq_nat_zadd1: "(0::int) <= z ==> Suc (nat z) = nat (1 + z)"
-apply (rule sym)
-apply (simp add: nat_eq_iff)
-done
-
-lemma Suc_nat_number_of_add:
-  "Suc (numeral v + n) = numeral (v + Num.One) + n"
-  by simp
-
-
-subsubsection{*Subtraction *}
-
-lemma diff_nat_eq_if:
-     "nat z - nat z' =  
-        (if z' < 0 then nat z   
-         else let d = z-z' in     
-              if d < 0 then 0 else nat d)"
-by (simp add: Let_def nat_diff_distrib [symmetric])
-
-(* Int.nat_diff_distrib has too-strong premises *)
-lemma nat_diff_distrib': "\<lbrakk>0 \<le> x; 0 \<le> y\<rbrakk> \<Longrightarrow> nat (x - y) = nat x - nat y"
-apply (rule int_int_eq [THEN iffD1], clarsimp)
-apply (subst zdiff_int [symmetric])
-apply (rule nat_mono, simp_all)
-done
-
-lemma diff_nat_numeral [simp]: 
-  "(numeral v :: nat) - numeral v' = nat (numeral v - numeral v')"
-  by (simp only: nat_diff_distrib' zero_le_numeral nat_numeral)
-
-lemma nat_numeral_diff_1 [simp]:
-  "numeral v - (1::nat) = nat (numeral v - 1)"
-  using diff_nat_numeral [of v Num.One] by simp
-
-
 subsection{*Comparisons*}
-
-(*Maps #n to n for n = 1, 2*)
-lemmas numerals = numeral_1_eq_1 [where 'a=nat] numeral_2_eq_2
-
 
 text{*Simprules for comparisons where common factors can be cancelled.*}
 lemmas zero_compare_simps =

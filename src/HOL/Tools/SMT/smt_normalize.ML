@@ -467,7 +467,7 @@ local
     let
       val eq = SMT_Utils.mk_cequals lhs (Numeral.mk_cnumber @{ctyp int} i)
       val ss = HOL_ss
-        addsimps [@{thm Nat_Numeral.int_numeral}]
+        addsimps [@{thm Int.int_numeral}]
       fun tac _ = Simplifier.simp_tac (Simplifier.context ctxt ss) 1       
     in Goal.norm_result (Goal.prove_internal [] eq tac) end
 
