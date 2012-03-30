@@ -1128,7 +1128,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy	\
   Library/Code_Integer.thy Library/Code_Nat.thy				\
   Library/Code_Natural.thy Library/Efficient_Nat.thy			\
   Number_Theory/Primes.thy ex/Abstract_NAT.thy ex/Antiquote.thy		\
-  ex/Arith_Examples.thy ex/Arithmetic_Series_Complex.thy ex/BT.thy	\
+  ex/Arith_Examples.thy ex/BT.thy					\
   ex/BinEx.thy ex/Binary.thy ex/Birthday_Paradox.thy ex/CTL.thy		\
   ex/Case_Product.thy ex/Chinese.thy ex/Classical.thy			\
   ex/Code_Nat_examples.thy						\

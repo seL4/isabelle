@@ -57,7 +57,6 @@ use_thys [
   "Sqrt",
   "Sqrt_Script",
   "Transfer_Ex",
-  "Arithmetic_Series_Complex",
   "HarmonicSeries",
   "Refute_Examples",
   "Landau",
