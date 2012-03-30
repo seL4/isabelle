@@ -86,6 +86,7 @@ val setup =
   Lin_Arith.add_inj_thms [@{thm zle_int} RS iffD2, @{thm int_int_eq} RS iffD2]
   #> Lin_Arith.add_lessD @{thm zless_imp_add1_zle}
   #> Lin_Arith.add_simps (@{thms simp_thms} @ @{thms arith_simps} @ @{thms rel_simps}
+      @ @{thms pred_numeral_simps}
       @ @{thms arith_special} @ @{thms int_arith_rules})
   #> Lin_Arith.add_simprocs [zero_one_idom_simproc]
   #> Lin_Arith.set_number_of number_of

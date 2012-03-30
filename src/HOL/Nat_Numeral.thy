@@ -42,45 +42,6 @@ lemma mult_eq_if: "(m::nat) * n = (if m=0 then 0 else n + ((m - 1) * n))"
 lemma power_eq_if: "(p ^ m :: nat) = (if m=0 then 1 else p * (p ^ (m - 1)))"
   unfolding One_nat_def by (cases m) simp_all
 
-
-subsection{*Comparisons involving  @{term Suc} *}
-
-lemma eq_numeral_Suc [simp]: "numeral v = Suc n \<longleftrightarrow> nat (numeral v - 1) = n"
-  by (subst expand_Suc, simp only: nat.inject nat_numeral_diff_1)
-
-lemma Suc_eq_numeral [simp]: "Suc n = numeral v \<longleftrightarrow> n = nat (numeral v - 1)"
-  by (subst expand_Suc, simp only: nat.inject nat_numeral_diff_1)
-
-lemma less_numeral_Suc [simp]: "numeral v < Suc n \<longleftrightarrow> nat (numeral v - 1) < n"
-  by (subst expand_Suc, simp only: Suc_less_eq nat_numeral_diff_1)
-
-lemma less_Suc_numeral [simp]: "Suc n < numeral v \<longleftrightarrow> n < nat (numeral v - 1)"
-  by (subst expand_Suc, simp only: Suc_less_eq nat_numeral_diff_1)
-
-lemma le_numeral_Suc [simp]: "numeral v \<le> Suc n \<longleftrightarrow> nat (numeral v - 1) \<le> n"
-  by (subst expand_Suc, simp only: Suc_le_mono nat_numeral_diff_1)
-
-lemma le_Suc_numeral [simp]: "Suc n \<le> numeral v \<longleftrightarrow> n \<le> nat (numeral v - 1)"
-  by (subst expand_Suc, simp only: Suc_le_mono nat_numeral_diff_1)
-
-
-subsection{*Max and Min Combined with @{term Suc} *}
-
-lemma max_Suc_numeral [simp]:
-  "max (Suc n) (numeral v) = Suc (max n (nat (numeral v - 1)))"
-  by (subst expand_Suc, simp only: max_Suc_Suc nat_numeral_diff_1)
-
-lemma max_numeral_Suc [simp]:
-  "max (numeral v) (Suc n) = Suc (max (nat (numeral v - 1)) n)"
-  by (subst expand_Suc, simp only: max_Suc_Suc nat_numeral_diff_1)
-
-lemma min_Suc_numeral [simp]:
-  "min (Suc n) (numeral v) = Suc (min n (nat (numeral v - 1)))"
-  by (subst expand_Suc, simp only: min_Suc_Suc nat_numeral_diff_1)
-
-lemma min_numeral_Suc [simp]:
-  "min (numeral v) (Suc n) = Suc (min (nat (numeral v - 1)) n)"
-  by (subst expand_Suc, simp only: min_Suc_Suc nat_numeral_diff_1)
  
 subsection{*Literal arithmetic involving powers*}
 

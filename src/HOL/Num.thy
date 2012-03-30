@@ -863,12 +863,25 @@ subsubsection {*
 lemma Suc_numeral [simp]: "Suc (numeral n) = numeral (n + One)"
   unfolding numeral_plus_one [symmetric] by simp
 
+definition pred_numeral :: "num \<Rightarrow> nat"
+  where [code del]: "pred_numeral k = numeral k - 1"
+
+lemma numeral_eq_Suc: "numeral k = Suc (pred_numeral k)"
+  unfolding pred_numeral_def by simp
+
 lemma nat_number:
   "1 = Suc 0"
   "numeral One = Suc 0"
   "numeral (Bit0 n) = Suc (numeral (BitM n))"
   "numeral (Bit1 n) = Suc (numeral (Bit0 n))"
   by (simp_all add: numeral.simps BitM_plus_one)
+
+lemma pred_numeral_simps [simp]:
+  "pred_numeral Num.One = 0"
+  "pred_numeral (Num.Bit0 k) = numeral (Num.BitM k)"
+  "pred_numeral (Num.Bit1 k) = numeral (Num.Bit0 k)"
+  unfolding pred_numeral_def nat_number
+  by (simp_all only: diff_Suc_Suc diff_0)
 
 lemma numeral_2_eq_2: "2 = Suc (Suc 0)"
   by (simp add: nat_number(2-4))
@@ -885,6 +898,42 @@ lemma Suc_nat_number_of_add:
 
 (*Maps #n to n for n = 1, 2*)
 lemmas numerals = numeral_One [where 'a=nat] numeral_2_eq_2
+
+text {* Comparisons involving @{term Suc}. *}
+
+lemma eq_numeral_Suc [simp]: "numeral k = Suc n \<longleftrightarrow> pred_numeral k = n"
+  by (simp add: numeral_eq_Suc)
+
+lemma Suc_eq_numeral [simp]: "Suc n = numeral k \<longleftrightarrow> n = pred_numeral k"
+  by (simp add: numeral_eq_Suc)
+
+lemma less_numeral_Suc [simp]: "numeral k < Suc n \<longleftrightarrow> pred_numeral k < n"
+  by (simp add: numeral_eq_Suc)
+
+lemma less_Suc_numeral [simp]: "Suc n < numeral k \<longleftrightarrow> n < pred_numeral k"
+  by (simp add: numeral_eq_Suc)
+
+lemma le_numeral_Suc [simp]: "numeral k \<le> Suc n \<longleftrightarrow> pred_numeral k \<le> n"
+  by (simp add: numeral_eq_Suc)
+
+lemma le_Suc_numeral [simp]: "Suc n \<le> numeral k \<longleftrightarrow> n \<le> pred_numeral k"
+  by (simp add: numeral_eq_Suc)
+
+lemma max_Suc_numeral [simp]:
+  "max (Suc n) (numeral k) = Suc (max n (pred_numeral k))"
+  by (simp add: numeral_eq_Suc)
+
+lemma max_numeral_Suc [simp]:
+  "max (numeral k) (Suc n) = Suc (max (pred_numeral k) n)"
+  by (simp add: numeral_eq_Suc)
+
+lemma min_Suc_numeral [simp]:
+  "min (Suc n) (numeral k) = Suc (min n (pred_numeral k))"
+  by (simp add: numeral_eq_Suc)
+
+lemma min_numeral_Suc [simp]:
+  "min (numeral k) (Suc n) = Suc (min (pred_numeral k) n)"
+  by (simp add: numeral_eq_Suc)
 
 
 subsection {* Numeral equations as default simplification rules *}

@@ -115,7 +115,7 @@ lemma of_nat_power:
   by (induct n) (simp_all add: of_nat_mult)
 
 lemma power_zero_numeral [simp]: "(0::'a) ^ numeral k = 0"
-  by (cases "numeral k :: nat", simp_all)
+  by (simp add: numeral_eq_Suc)
 
 lemma zero_power2: "0\<twosuperior> = 0" (* delete? *)
   by (rule power_zero_numeral)
