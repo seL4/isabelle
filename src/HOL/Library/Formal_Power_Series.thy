@@ -2781,7 +2781,7 @@ lemma binomial_Vandermonde: "setsum (\<lambda>k. (a choose k) * (b choose (n - k
   
 lemma binomial_Vandermonde_same: "setsum (\<lambda>k. (n choose k)^2) {0..n} = (2*n) choose n"
   using binomial_Vandermonde[of n n n,symmetric]
-  unfolding nat_mult_2 apply (simp add: power2_eq_square)
+  unfolding mult_2 apply (simp add: power2_eq_square)
   apply (rule setsum_cong2)
   by (auto intro:  binomial_symmetric)
 
@@ -3139,7 +3139,7 @@ proof-
     moreover
     {assume on: "odd n"
       from on obtain m where m: "n = 2*m + 1" 
-        unfolding odd_nat_equiv_def2 by (auto simp add: nat_mult_2)  
+        unfolding odd_nat_equiv_def2 by (auto simp add: mult_2)  
       have "?l $n = ?r$n" 
         by (simp add: m fps_sin_def fps_cos_def power_mult_distrib
           power_mult power_minus)}

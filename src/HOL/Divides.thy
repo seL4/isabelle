@@ -1086,7 +1086,7 @@ lemma mod2_Suc_Suc [simp]: "Suc (Suc m) mod 2 = m mod 2"
   by (simp add: numeral_2_eq_2 le_mod_geq)
 
 lemma add_self_div_2 [simp]: "(m + m) div 2 = (m::nat)"
-by (simp add: nat_mult_2 [symmetric])
+by (simp add: mult_2 [symmetric])
 
 lemma mod2_gr_0 [simp]: "0 < (m\<Colon>nat) mod 2 \<longleftrightarrow> m mod 2 = 1"
 proof -

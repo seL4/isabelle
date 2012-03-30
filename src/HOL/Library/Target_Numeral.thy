@@ -385,7 +385,7 @@ proof -
       by simp
     then have "num_of_nat (nat (int_of k)) =
       num_of_nat (nat (int_of k) div 2 + nat (int_of k) div 2 + nat (int_of k) mod 2)"
-      by (simp add: nat_mult_2)
+      by (simp add: mult_2)
     with ** have "num_of_nat (nat (int_of k)) =
       num_of_nat (nat (int_of k) div 2 + nat (int_of k) div 2 + 1)"
       by simp
@@ -395,7 +395,7 @@ proof -
     by (auto simp add: num_of_int_def nat_of_def Let_def prod_case_beta
       not_le Target_Numeral.int_eq_iff less_eq_int_def
       nat_mult_distrib nat_div_distrib num_of_nat_One num_of_nat_plus_distrib
-       nat_mult_2 aux add_One)
+       mult_2 [where 'a=nat] aux add_One)
 qed
 
 hide_const (open) int_of nat_of Pos Neg sub dup divmod_abs num_of_int

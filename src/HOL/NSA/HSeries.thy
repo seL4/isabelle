@@ -114,7 +114,7 @@ done
 lemma sumhr_minus_one_realpow_zero [simp]: 
      "!!N. sumhr(0, N + N, %i. (-1) ^ (i+1)) = 0"
 unfolding sumhr_app
-by transfer (simp del: power_Suc add: nat_mult_2 [symmetric])
+by transfer (simp del: power_Suc add: mult_2 [symmetric])
 
 lemma sumhr_interval_const:
      "(\<forall>n. m \<le> Suc n --> f n = r) & m \<le> na  

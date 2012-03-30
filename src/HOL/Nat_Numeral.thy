@@ -114,13 +114,6 @@ subsubsection{*Various Other Lemmas*}
 
 text {*Evens and Odds, for Mutilated Chess Board*}
 
-text{*Lemmas for specialist use, NOT as default simprules*}
-lemma nat_mult_2: "2 * z = (z+z::nat)"
-by (rule mult_2) (* FIXME: duplicate *)
-
-lemma nat_mult_2_right: "z * 2 = (z+z::nat)"
-by (rule mult_2_right) (* FIXME: duplicate *)
-
 text{*Case analysis on @{term "n<2"}*}
 lemma less_2_cases: "(n::nat) < 2 ==> n = 0 | n = Suc 0"
 by (auto simp add: numeral_2_eq_2)
