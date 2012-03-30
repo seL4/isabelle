@@ -165,9 +165,8 @@ proof -
 
   {
     assume bcmp: "b > b'"
-    then have "\<exists>c::nat. b - b' = int c + 1"
-      by arith
-    then guess c ..
+    then obtain c :: nat where "b - b' = int c + 1"
+      by atomize_elim arith
     with a' have "real a' = real (a * 2^c * 2)"
       by (simp add: pow2_def nat_add_distrib)
     with odd have False

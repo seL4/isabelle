@@ -152,7 +152,8 @@ proof -
     from length map_of_zip_enum_is_Some obtain y1 y2
       where "map_of (zip (enum \<Colon> 'a list) xs) x = Some y1"
         and "map_of (zip (enum \<Colon> 'a list) ys) x = Some y2" by blast
-    moreover from map_of have "the (map_of (zip (enum \<Colon> 'a\<Colon>enum list) xs) x) = the (map_of (zip (enum \<Colon> 'a\<Colon>enum list) ys) x)"
+    moreover from map_of
+      have "the (map_of (zip (enum \<Colon> 'a\<Colon>enum list) xs) x) = the (map_of (zip (enum \<Colon> 'a\<Colon>enum list) ys) x)"
       by (auto dest: fun_cong)
     ultimately show "map_of (zip (enum \<Colon> 'a\<Colon>enum list) xs) x = map_of (zip (enum \<Colon> 'a\<Colon>enum list) ys) x"
       by simp
@@ -832,7 +833,7 @@ proof -
       by (rule finite_imageD)
     then show False by simp
   qed
-  then guess n .. note n = this
+  then obtain n where n: "f n = f (Suc n)" ..
   def N \<equiv> "LEAST n. f n = f (Suc n)"
   have N: "f N = f (Suc N)"
     unfolding N_def using n by (rule LeastI)
@@ -921,13 +922,13 @@ lemma acc_subseteq_bacc:
 proof
   fix x
   assume "x : acc r"
-  from this have "\<exists> n. x : bacc r n"
-  proof (induct x arbitrary: n rule: acc.induct)
+  then have "\<exists> n. x : bacc r n"
+  proof (induct x arbitrary: rule: acc.induct)
     case (accI x)
-    from accI have "\<forall> y. \<exists> n. (y, x) \<in> r --> y : bacc r n" by simp
-    from choice[OF this] guess n .. note n = this
-    have "\<exists> n. \<forall>y. (y, x) : r --> y : bacc r n"
-    proof (safe intro!: exI[of _ "Max ((%(y,x). n y)`r)"])
+    then have "\<forall>y. \<exists> n. (y, x) \<in> r --> y : bacc r n" by simp
+    from choice[OF this] obtain n where n: "\<forall>y. (y, x) \<in> r \<longrightarrow> y \<in> bacc r (n y)" ..
+    obtain n where "\<And>y. (y, x) : r \<Longrightarrow> y : bacc r n"
+    proof
       fix y assume y: "(y, x) : r"
       with n have "y : bacc r (n y)" by auto
       moreover have "n y <= Max ((%(y, x). n y) ` r)"
@@ -935,11 +936,10 @@ proof
       note bacc_mono[OF this, of r]
       ultimately show "y : bacc r (Max ((%(y, x). n y) ` r))" by auto
     qed
-    from this guess n ..
-    from this show ?case
+    then show ?case
       by (auto simp add: Let_def intro!: exI[of _ "Suc n"])
   qed
-  thus "x : (UN n. bacc r n)" by auto
+  then show "x : (UN n. bacc r n)" by auto
 qed
 
 lemma acc_bacc_eq: "acc ((set xs) :: (('a :: enum) * 'a) set) = bacc (set xs) (card (UNIV :: 'a set))"

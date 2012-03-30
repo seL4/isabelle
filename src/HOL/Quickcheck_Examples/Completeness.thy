@@ -173,7 +173,7 @@ proof
     show ?case
     proof
       assume "\<exists>v. Completeness.size_class.size v \<le> Suc n \<and> is_some (f v)"
-      from this guess v .. note v = this
+      then obtain v where v: "size v \<le> Suc n" "is_some (f v)" by blast
       show "is_some (exhaustive_class.exhaustive f (Code_Numeral.of_nat (Suc n)))"
       proof (cases "v")
       case Nil
@@ -196,20 +196,23 @@ proof
       show "\<exists>v. size v \<le> Suc n \<and> is_some (f v)"
       proof (cases "f []")
         case Some
-        from this show ?thesis
+        then show ?thesis
         by (metis Suc_eq_plus1 is_some.simps(1) le_add2 size_list.simps(1))
       next
         case None
-        from this is_some have
+        with is_some have
           "is_some (exhaustive_class.exhaustive (\<lambda>x. exhaustive_class.exhaustive (\<lambda>xs. f (x # xs)) (Code_Numeral.of_nat n)) (Code_Numeral.of_nat n))"
           unfolding list.exhaustive_list.simps[of _ "Code_Numeral.of_nat (Suc n)"] Quickcheck_Exhaustive.orelse_def
           by simp
-        from complete_imp2[OF this] guess v' . note v = this
-        from Suc[of "%xs. f (v' # xs)"] this(2) obtain vs' where "size vs' \<le> n" "is_some (f (v' # vs'))"
+        then obtain v' where
+            v: "size v' \<le> n"
+              "is_some (exhaustive_class.exhaustive (\<lambda>xs. f (v' # xs)) (Code_Numeral.of_nat n))"
+          by (rule complete_imp2)
+        with Suc[of "%xs. f (v' # xs)"]
+        obtain vs' where vs': "size vs' \<le> n" "is_some (f (v' # vs'))"
           by metis
-        note vs' = this
-        from this v have "size (v' # vs') \<le> Suc n" by auto
-        from this vs' v show ?thesis by metis
+        with v have "size (v' # vs') \<le> Suc n" by auto
+        with vs' v show ?thesis by metis
       qed
     qed
   qed
