@@ -110,26 +110,6 @@ lemma diff_Suc_eq_diff_pred: "m - Suc n = (m - 1) - n"
 by (simp split: nat_diff_split)
 
 
-subsubsection{*For @{term nat_case} and @{term nat_rec}*}
-
-lemma nat_case_numeral [simp]:
-  "nat_case a f (numeral v) = (let pv = nat (numeral v - 1) in f pv)"
-  by (subst expand_Suc, simp only: nat.cases nat_numeral_diff_1 Let_def)
-
-lemma nat_case_add_eq_if [simp]:
-  "nat_case a f ((numeral v) + n) = (let pv = nat (numeral v - 1) in f (pv + n))"
-  by (subst expand_Suc, simp only: nat.cases nat_numeral_diff_1 Let_def add_Suc)
-
-lemma nat_rec_numeral [simp]:
-  "nat_rec a f (numeral v) = (let pv = nat (numeral v - 1) in f pv (nat_rec a f pv))"
-  by (subst expand_Suc, simp only: nat_rec_Suc nat_numeral_diff_1 Let_def)
-
-lemma nat_rec_add_eq_if [simp]:
-  "nat_rec a f (numeral v + n) =
-    (let pv = nat (numeral v - 1) in f (pv + n) (nat_rec a f (pv + n)))"
-  by (subst expand_Suc, simp only: nat_rec_Suc nat_numeral_diff_1 Let_def add_Suc)
-
-
 subsubsection{*Various Other Lemmas*}
 
 text {*Evens and Odds, for Mutilated Chess Board*}

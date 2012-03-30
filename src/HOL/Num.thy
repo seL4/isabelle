@@ -935,6 +935,26 @@ lemma min_numeral_Suc [simp]:
   "min (numeral k) (Suc n) = Suc (min (pred_numeral k) n)"
   by (simp add: numeral_eq_Suc)
 
+text {* For @{term nat_case} and @{term nat_rec}. *}
+
+lemma nat_case_numeral [simp]:
+  "nat_case a f (numeral v) = (let pv = pred_numeral v in f pv)"
+  by (simp add: numeral_eq_Suc)
+
+lemma nat_case_add_eq_if [simp]:
+  "nat_case a f ((numeral v) + n) = (let pv = pred_numeral v in f (pv + n))"
+  by (simp add: numeral_eq_Suc)
+
+lemma nat_rec_numeral [simp]:
+  "nat_rec a f (numeral v) =
+    (let pv = pred_numeral v in f pv (nat_rec a f pv))"
+  by (simp add: numeral_eq_Suc Let_def)
+
+lemma nat_rec_add_eq_if [simp]:
+  "nat_rec a f (numeral v + n) =
+    (let pv = pred_numeral v in f (pv + n) (nat_rec a f (pv + n)))"
+  by (simp add: numeral_eq_Suc Let_def)
+
 
 subsection {* Numeral equations as default simplification rules *}
 
