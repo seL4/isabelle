@@ -501,8 +501,8 @@ lemmas bin_sc_Suc_minus =
 
 lemma bin_sc_numeral [simp]:
   "bin_sc (numeral k) b w =
-    bin_sc (numeral k - 1) b (bin_rest w) BIT bin_last w"
-  by (subst expand_Suc, rule bin_sc.Suc)
+    bin_sc (pred_numeral k) b (bin_rest w) BIT bin_last w"
+  by (simp add: numeral_eq_Suc)
 
 
 subsection {* Splitting and concatenation *}

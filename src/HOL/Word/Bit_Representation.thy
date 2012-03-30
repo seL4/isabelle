@@ -229,8 +229,8 @@ lemma bin_nth_minus [simp]: "0 < n ==> bin_nth (w BIT b) n = bin_nth w (n - 1)"
   by (cases n) auto
 
 lemma bin_nth_numeral:
-  "bin_rest x = y \<Longrightarrow> bin_nth x (numeral n) = bin_nth y (numeral n - 1)"
-  by (subst expand_Suc, simp only: bin_nth.simps)
+  "bin_rest x = y \<Longrightarrow> bin_nth x (numeral n) = bin_nth y (pred_numeral n)"
+  by (simp add: numeral_eq_Suc)
 
 lemmas bin_nth_numeral_simps [simp] =
   bin_nth_numeral [OF bin_rest_numeral_simps(2)]
@@ -543,35 +543,35 @@ lemmas nat_non0_gr =
 
 lemma bintrunc_numeral:
   "bintrunc (numeral k) x =
-    bintrunc (numeral k - 1) (bin_rest x) BIT bin_last x"
-  by (subst expand_Suc, rule bintrunc.simps)
+    bintrunc (pred_numeral k) (bin_rest x) BIT bin_last x"
+  by (simp add: numeral_eq_Suc)
 
 lemma sbintrunc_numeral:
   "sbintrunc (numeral k) x =
-    sbintrunc (numeral k - 1) (bin_rest x) BIT bin_last x"
-  by (subst expand_Suc, rule sbintrunc.simps)
+    sbintrunc (pred_numeral k) (bin_rest x) BIT bin_last x"
+  by (simp add: numeral_eq_Suc)
 
 lemma bintrunc_numeral_simps [simp]:
   "bintrunc (numeral k) (numeral (Num.Bit0 w)) =
-    bintrunc (numeral k - 1) (numeral w) BIT 0"
+    bintrunc (pred_numeral k) (numeral w) BIT 0"
   "bintrunc (numeral k) (numeral (Num.Bit1 w)) =
-    bintrunc (numeral k - 1) (numeral w) BIT 1"
+    bintrunc (pred_numeral k) (numeral w) BIT 1"
   "bintrunc (numeral k) (neg_numeral (Num.Bit0 w)) =
-    bintrunc (numeral k - 1) (neg_numeral w) BIT 0"
+    bintrunc (pred_numeral k) (neg_numeral w) BIT 0"
   "bintrunc (numeral k) (neg_numeral (Num.Bit1 w)) =
-    bintrunc (numeral k - 1) (neg_numeral (w + Num.One)) BIT 1"
+    bintrunc (pred_numeral k) (neg_numeral (w + Num.One)) BIT 1"
   "bintrunc (numeral k) 1 = 1"
   by (simp_all add: bintrunc_numeral)
 
 lemma sbintrunc_numeral_simps [simp]:
   "sbintrunc (numeral k) (numeral (Num.Bit0 w)) =
-    sbintrunc (numeral k - 1) (numeral w) BIT 0"
+    sbintrunc (pred_numeral k) (numeral w) BIT 0"
   "sbintrunc (numeral k) (numeral (Num.Bit1 w)) =
-    sbintrunc (numeral k - 1) (numeral w) BIT 1"
+    sbintrunc (pred_numeral k) (numeral w) BIT 1"
   "sbintrunc (numeral k) (neg_numeral (Num.Bit0 w)) =
-    sbintrunc (numeral k - 1) (neg_numeral w) BIT 0"
+    sbintrunc (pred_numeral k) (neg_numeral w) BIT 0"
   "sbintrunc (numeral k) (neg_numeral (Num.Bit1 w)) =
-    sbintrunc (numeral k - 1) (neg_numeral (w + Num.One)) BIT 1"
+    sbintrunc (pred_numeral k) (neg_numeral (w + Num.One)) BIT 1"
   "sbintrunc (numeral k) 1 = 1"
   by (simp_all add: sbintrunc_numeral)
 
@@ -754,12 +754,12 @@ lemma funpow_minus_simp:
   by (cases n) simp_all
 
 lemma funpow_numeral [simp]:
-  "f ^^ numeral k = f \<circ> f ^^ (numeral k - 1)"
-  by (subst expand_Suc, rule funpow.simps)
+  "f ^^ numeral k = f \<circ> f ^^ (pred_numeral k)"
+  by (simp add: numeral_eq_Suc)
 
 lemma replicate_numeral [simp]: (* TODO: move to List.thy *)
-  "replicate (numeral k) x = x # replicate (numeral k - 1) x"
-  by (subst expand_Suc, rule replicate_Suc)
+  "replicate (numeral k) x = x # replicate (pred_numeral k) x"
+  by (simp add: numeral_eq_Suc)
 
 lemmas power_minus_simp = 
   trans [OF gen_minus [where f = "power f"] power_Suc] for f

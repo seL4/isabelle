@@ -633,12 +633,12 @@ lemmas takefill_minus_simps = takefill_Suc_cases [THEN [2]
   takefill_minus [symmetric, THEN trans]]
 
 lemma takefill_numeral_Nil [simp]:
-  "takefill fill (numeral k) [] = fill # takefill fill (numeral k - 1) []"
-  by (subst expand_Suc, rule takefill_Suc_Nil)
+  "takefill fill (numeral k) [] = fill # takefill fill (pred_numeral k) []"
+  by (simp add: numeral_eq_Suc)
 
 lemma takefill_numeral_Cons [simp]:
-  "takefill fill (numeral k) (x # xs) = x # takefill fill (numeral k - 1) xs"
-  by (subst expand_Suc, rule takefill_Suc_Cons)
+  "takefill fill (numeral k) (x # xs) = x # takefill fill (pred_numeral k) xs"
+  by (simp add: numeral_eq_Suc)
 
 (* links with function bl_to_bin *)
 
