@@ -845,7 +845,7 @@ text {*
 
 
 
-definition invariant where 
+definition
   "invariant root path =
     (\<exists>att dir.
       access root path user\<^isub>1 {} = Some (Env att dir) \<and> dir \<noteq> empty \<and>
