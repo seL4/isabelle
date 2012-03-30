@@ -587,7 +587,7 @@ subsection {* Defining generators for abstract types *}
 
 use "Tools/Quickcheck/abstract_generators.ML"
 
-hide_fact orelse_def
+hide_fact (open) orelse_def
 no_notation orelse (infixr "orelse" 55)
 
 hide_fact
