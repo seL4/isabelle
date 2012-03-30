@@ -710,13 +710,23 @@ text {* @{text "R ^^ n = R O ... O R"}, the n-fold composition of @{text R} *}
 
 overloading
   relpow == "compow :: nat \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set"
+  relpowp == "compow :: nat \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool)"
 begin
 
 primrec relpow :: "nat \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set" where
     "relpow 0 R = Id"
   | "relpow (Suc n) R = (R ^^ n) O R"
 
+primrec relpowp :: "nat \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool)" where
+    "relpowp 0 R = HOL.eq"
+  | "relpowp (Suc n) R = (R ^^ n) OO R"
+
 end
+
+lemma relpowp_relpow_eq [pred_set_conv]:
+  fixes R :: "'a rel"
+  shows "(\<lambda>x y. (x, y) \<in> R) ^^ n = (\<lambda>x y. (x, y) \<in> R ^^ n)"
+  by (induct n) (simp_all add: rel_compp_rel_comp_eq)
 
 text {* for code generation *}
 

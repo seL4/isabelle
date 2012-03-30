@@ -1186,7 +1186,7 @@ lemma Mempty_Bag [code]:
 
 lemma single_Bag [code]:
   "{#x#} = Bag (DAList.update x 1 DAList.empty)"
-  by (simp add: multiset_eq_iff alist.Alist_inverse update_code_eqn empty_code_eqn)
+  by (simp add: multiset_eq_iff alist.Alist_inverse update.rep_eq empty.rep_eq)
 
 lemma union_Bag [code]:
   "Bag xs + Bag ys = Bag (join (\<lambda>x (n1, n2). n1 + n2) xs ys)"
@@ -1199,7 +1199,7 @@ by (rule multiset_eqI)
 
 lemma filter_Bag [code]:
   "Multiset.filter P (Bag xs) = Bag (DAList.filter (P \<circ> fst) xs)"
-by (rule multiset_eqI) (simp add: count_of_filter filter_code_eqn)
+by (rule multiset_eqI) (simp add: count_of_filter filter.rep_eq)
 
 lemma mset_less_eq_Bag [code]:
   "Bag xs \<le> A \<longleftrightarrow> (\<forall>(x, n) \<in> set (DAList.impl_of xs). count_of (DAList.impl_of xs) x \<le> count A x)"
