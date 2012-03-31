@@ -32,68 +32,22 @@ qed
 
 lemma aux1: assumes a: "0 <= x" and b: "x <= 1"
     shows "inverse (fact ((n::nat) + 2)) * x ^ (n + 2) <= (x^2/2) * ((1/2)^n)"
-proof (induct n)
-  show "inverse (fact ((0::nat) + 2)) * x ^ (0 + 2) <= 
-      x ^ 2 / 2 * (1 / 2) ^ 0"
-    by (simp add: real_of_nat_Suc power2_eq_square)
-next
-  fix n :: nat
-  assume c: "inverse (fact (n + 2)) * x ^ (n + 2)
-       <= x ^ 2 / 2 * (1 / 2) ^ n"
-  show "inverse (fact (Suc n + 2)) * x ^ (Suc n + 2)
-           <= x ^ 2 / 2 * (1 / 2) ^ Suc n"
-  proof -
-    have "inverse(fact (Suc n + 2)) <= (1/2) * inverse (fact (n+2))"
-    proof -
-      have "Suc n + 2 = Suc (n + 2)" by simp
-      then have "fact (Suc n + 2) = Suc (n + 2) * fact (n + 2)" 
-        by simp
-      then have "real(fact (Suc n + 2)) = real(Suc (n + 2) * fact (n + 2))" 
-        apply (rule subst)
-        apply (rule refl)
-        done
-      also have "... = real(Suc (n + 2)) * real(fact (n + 2))"
-        by (rule real_of_nat_mult)
-      finally have "real (fact (Suc n + 2)) = 
-         real (Suc (n + 2)) * real (fact (n + 2))" .
-      then have "inverse(fact (Suc n + 2)) = 
-         inverse(Suc (n + 2)) * inverse(fact (n + 2))"
-        apply (rule ssubst)
-        apply (rule inverse_mult_distrib)
-        done
-      also have "... <= (1/2) * inverse(fact (n + 2))"
-        apply (rule mult_right_mono)
-        apply (subst inverse_eq_divide)
-        apply simp
-        apply (simp del: fact_Suc)
-        done
-      finally show ?thesis .
-    qed
-    moreover have "x ^ (Suc n + 2) <= x ^ (n + 2)"
-      by (simp add: mult_left_le_one_le mult_nonneg_nonneg a b)
-    ultimately have "inverse (fact (Suc n + 2)) *  x ^ (Suc n + 2) <=
-        (1 / 2 * inverse (fact (n + 2))) * x ^ (n + 2)"
-      apply (rule mult_mono)
-      apply (rule mult_nonneg_nonneg)
-      apply simp
-      apply (subst inverse_nonnegative_iff_nonnegative)
-      apply (rule real_of_nat_ge_zero)
-      apply (rule zero_le_power)
-      apply (rule a)
-      done
-    also have "... = 1 / 2 * (inverse (fact (n + 2)) * x ^ (n + 2))"
-      by simp
-    also have "... <= 1 / 2 * (x ^ 2 / 2 * (1 / 2) ^ n)"
-      apply (rule mult_left_mono)
-      apply (rule c)
-      apply simp
-      done
-    also have "... = x ^ 2 / 2 * (1 / 2 * (1 / 2) ^ n)"
-      by auto
-    also have "(1::real) / 2 * (1 / 2) ^ n = (1 / 2) ^ (Suc n)"
-      by (rule power_Suc [THEN sym])
-    finally show ?thesis .
-  qed
+proof -
+  have "2 * 2 ^ n \<le> fact (n + 2)"
+    by (induct n, simp, simp)
+  hence "real ((2::nat) * 2 ^ n) \<le> real (fact (n + 2))"
+    by (simp only: real_of_nat_le_iff)
+  hence "2 * 2 ^ n \<le> real (fact (n + 2))"
+    by simp
+  hence "inverse (fact (n + 2)) \<le> inverse (2 * 2 ^ n)"
+    by (rule le_imp_inverse_le) simp
+  hence "inverse (fact (n + 2)) \<le> 1/2 * (1/2)^n"
+    by (simp add: inverse_mult_distrib power_inverse)
+  hence "inverse (fact (n + 2)) * (x^n * x\<twosuperior>) \<le> 1/2 * (1/2)^n * (1 * x\<twosuperior>)"
+    by (rule mult_mono)
+      (rule mult_mono, simp_all add: power_le_one a b mult_nonneg_nonneg)
+  thus ?thesis
+    unfolding power_add by (simp add: mult_ac del: fact_Suc)
 qed
 
 lemma aux2: "(%n. (x::real) ^ 2 / 2 * (1 / 2) ^ n) sums x^2"
