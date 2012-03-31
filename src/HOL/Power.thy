@@ -289,13 +289,15 @@ lemma zero_le_power [simp]:
   "0 \<le> a \<Longrightarrow> 0 \<le> a ^ n"
   by (induct n) (simp_all add: mult_nonneg_nonneg)
 
-lemma one_le_power[simp]:
-  "1 \<le> a \<Longrightarrow> 1 \<le> a ^ n"
-  apply (induct n)
-  apply simp_all
-  apply (rule order_trans [OF _ mult_mono [of 1 _ 1]])
-  apply (simp_all add: order_trans [OF zero_le_one])
-  done
+lemma power_mono:
+  "a \<le> b \<Longrightarrow> 0 \<le> a \<Longrightarrow> a ^ n \<le> b ^ n"
+  by (induct n) (auto intro: mult_mono order_trans [of 0 a b])
+
+lemma one_le_power [simp]: "1 \<le> a \<Longrightarrow> 1 \<le> a ^ n"
+  using power_mono [of 1 a n] by simp
+
+lemma power_le_one: "\<lbrakk>0 \<le> a; a \<le> 1\<rbrakk> \<Longrightarrow> a ^ n \<le> 1"
+  using power_mono [of a 1 n] by simp
 
 lemma power_gt1_lemma:
   assumes gt1: "1 < a"
@@ -352,11 +354,6 @@ lemma power_less_imp_less_exp:
   "1 < a \<Longrightarrow> a ^ m < a ^ n \<Longrightarrow> m < n"
   by (simp add: order_less_le [of m n] less_le [of "a^m" "a^n"]
     power_le_imp_le_exp)
-
-lemma power_mono:
-  "a \<le> b \<Longrightarrow> 0 \<le> a \<Longrightarrow> a ^ n \<le> b ^ n"
-  by (induct n)
-    (auto intro: mult_mono order_trans [of 0 a b])
 
 lemma power_strict_mono [rule_format]:
   "a < b \<Longrightarrow> 0 \<le> a \<Longrightarrow> 0 < n \<longrightarrow> a ^ n < b ^ n"
