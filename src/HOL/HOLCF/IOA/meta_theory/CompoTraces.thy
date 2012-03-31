@@ -967,7 +967,7 @@ apply (simp add: compositionality_tr externals_of_par)
 done
 
 
-declaration {* fn _ => Simplifier.map_ss (Simplifier.set_mksym (K (SOME o symmetric_fun))) *}
+declaration {* fn _ => Simplifier.map_ss (Simplifier.set_mksym Simplifier.default_mk_sym) *}
 
 
 end
