@@ -58,7 +58,6 @@ fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
     (*term and type parameters*)
     val crhs = Thm.cterm_of thy rhs;
     val ((defs, _), rhs') = Local_Defs.export_cterm lthy thy_ctxt crhs ||> Thm.term_of;
-    val rhs_conv = Raw_Simplifier.rewrite true defs crhs;
 
     val xs = Variable.add_fixed (Local_Theory.target_of lthy) rhs' [];
     val T = Term.fastype_of rhs;
@@ -83,12 +82,12 @@ fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
     (*local definition*)
     val ((lhs, local_def), lthy3) = lthy2
       |> Local_Defs.add_def ((b, NoSyn), lhs');
-    val def = Local_Defs.trans_terms lthy3
-      [(*c == global.c xs*)     local_def,
-       (*global.c xs == rhs'*)  global_def,
-       (*rhs' == rhs*)          Thm.symmetric rhs_conv];
 
-    (*note*)
+    (*result*)
+    val def =
+      Thm.transitive local_def global_def
+      |> Local_Defs.contract defs
+          (Thm.cterm_of (Proof_Context.theory_of lthy3) (Logic.mk_equals (lhs, rhs)));
     val ([(res_name, [res])], lthy4) = lthy3
       |> Local_Theory.notes [((if internal then Binding.empty else b_def, atts), [([def], [])])];
   in ((lhs, (res_name, res)), lthy4) end;
@@ -134,7 +133,7 @@ fun import_export_proof ctxt (name, raw_th) =
     val result'' =
       (fold (curry op COMP) asms' result'
         handle THM _ => raise THM ("Failed to re-import result", 0, result' :: asms'))
-      |> Local_Defs.contract ctxt defs (Thm.cprop_of th)
+      |> Local_Defs.contract defs (Thm.cprop_of th)
       |> Goal.norm_result
       |> Global_Theory.name_thm false false name;
 

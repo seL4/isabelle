@@ -101,6 +101,7 @@ sig
   val solver: simpset -> solver -> int -> tactic
   val simp_depth_limit_raw: Config.raw
   val clear_ss: simpset -> simpset
+  val default_mk_sym: simpset -> thm -> thm option
   val simproc_global_i: theory -> string -> term list
     -> (theory -> simpset -> term -> thm option) -> simproc
   val simproc_global: theory -> string -> string list
@@ -766,11 +767,13 @@ fun clear_ss (ss as Simpset (_, {mk_rews, termless, subgoal_tac, solvers, ...}))
   init_ss mk_rews termless subgoal_tac solvers
   |> inherit_context ss;
 
+fun default_mk_sym _ th = SOME (th RS Drule.symmetric_thm);
+
 val empty_ss =
   init_ss
     {mk = fn _ => fn th => if can Logic.dest_equals (Thm.concl_of th) then [th] else [],
       mk_cong = K I,
-      mk_sym = K (SOME o Drule.symmetric_fun),
+      mk_sym = default_mk_sym,
       mk_eq_True = K (K NONE),
       reorient = default_reorient}
     Term_Ord.termless (K (K no_tac)) ([], []);

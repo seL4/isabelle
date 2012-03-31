@@ -43,7 +43,6 @@ sig
   val reflexive_thm: thm
   val symmetric_thm: thm
   val transitive_thm: thm
-  val symmetric_fun: thm -> thm
   val extensional: thm -> thm
   val asm_rl: thm
   val cut_rl: thm
@@ -399,8 +398,6 @@ val transitive_thm =
     val yzthm = Thm.assume yz;
     val thm = Thm.implies_intr yz (Thm.transitive xythm yzthm);
   in store_standard_thm_open (Binding.name "transitive") thm end;
-
-fun symmetric_fun thm = thm RS symmetric_thm;
 
 fun extensional eq =
   let val eq' =

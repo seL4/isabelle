@@ -192,7 +192,7 @@ fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_mor
 
         val cert = Thm.cterm_of (Proof_Context.theory_of axiom_lthy);
         val typedef =
-          Local_Defs.contract axiom_lthy defs (cert (mk_typedef newT oldT RepC AbsC set')) axiom;
+          Local_Defs.contract defs (cert (mk_typedef newT oldT RepC AbsC set')) axiom;
       in ((RepC, AbsC, axiom_name, typedef), axiom_lthy) end;
 
     val alias_lthy = typedef_lthy
@@ -210,7 +210,7 @@ fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_mor
       let
         val cert = Thm.cterm_of (Proof_Context.theory_of lthy1);
         val inhabited' =
-          Local_Defs.contract lthy1 (the_list set_def) (cert (mk_inhabited set')) inhabited;
+          Local_Defs.contract (the_list set_def) (cert (mk_inhabited set')) inhabited;
         val typedef' = inhabited' RS typedef;
         fun make th = Goal.norm_result (typedef' RS th);
         val (((((((((((_, [type_definition]), Rep), Rep_inverse), Abs_inverse), Rep_inject),

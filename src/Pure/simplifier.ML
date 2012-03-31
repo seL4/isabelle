@@ -33,6 +33,7 @@ sig
   val map_simpset_global: (simpset -> simpset) -> theory -> theory
   val pretty_ss: Proof.context -> simpset -> Pretty.T
   val clear_ss: simpset -> simpset
+  val default_mk_sym: simpset -> thm -> thm option
   val debug_bounds: bool Unsynchronized.ref
   val prems_of: simpset -> thm list
   val add_simp: thm -> simpset -> simpset

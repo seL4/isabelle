@@ -17,9 +17,7 @@ sig
     (term * term) * Proof.context
   val export: Proof.context -> Proof.context -> thm -> (thm list * thm list) * thm
   val export_cterm: Proof.context -> Proof.context -> cterm -> (thm list * thm list) * cterm
-  val trans_terms: Proof.context -> thm list -> thm
-  val trans_props: Proof.context -> thm list -> thm
-  val contract: Proof.context -> thm list -> cterm -> thm -> thm
+  val contract: thm list -> cterm -> thm -> thm
   val print_rules: Proof.context -> unit
   val defn_add: attribute
   val defn_del: attribute
@@ -137,7 +135,7 @@ fun export inner outer =    (*beware of closure sizes*)
   let
     val exp = Assumption.export false inner outer;
     val exp_term = Assumption.export_term inner outer;
-    val prems = Assumption.all_prems_of inner;
+    val prems = Assumption.local_prems_of inner outer;
   in
     fn th =>
       let
@@ -166,30 +164,9 @@ fun export inner outer =    (*beware of closure sizes*)
 fun export_cterm inner outer ct =
   export inner outer (Drule.mk_term ct) ||> Drule.dest_term;
 
+fun contract defs ct th =
+  th COMP (Raw_Simplifier.rewrite true defs ct COMP_INCR Drule.equal_elim_rule2);
 
-(* basic transitivity reasoning -- modulo beta-eta *)
-
-local
-
-val is_trivial = Pattern.aeconv o Logic.dest_equals o Thm.prop_of;
-
-fun trans_list _ _ [] = raise List.Empty
-  | trans_list trans ctxt (th :: raw_eqs) =
-      (case filter_out is_trivial raw_eqs of
-        [] => th
-      | eqs =>
-          let val ((_, th' :: eqs'), ctxt') = Variable.import true (th :: eqs) ctxt
-          in singleton (Variable.export ctxt' ctxt) (fold trans eqs' th') end);
-
-in
-
-val trans_terms = trans_list (fn eq2 => fn eq1 => eq2 COMP (eq1 COMP Drule.transitive_thm));
-val trans_props = trans_list (fn eq => fn th => th COMP (eq COMP Drule.equal_elim_rule1));
-
-end;
-
-fun contract ctxt defs ct th =
-  trans_props ctxt [th, Thm.symmetric (Raw_Simplifier.rewrite true defs ct)];
 
 
 (** defived definitions **)

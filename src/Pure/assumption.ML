@@ -56,7 +56,7 @@ val assume = Raw_Simplifier.norm_hhf o Thm.assume;
 
 datatype data = Data of
  {assms: (export * cterm list) list,    (*assumes: A ==> _*)
-  prems: thm list};                     (*prems: A |- A*)
+  prems: thm list};                     (*prems: A |- norm_hhf A*)
 
 fun make_data (assms, prems) = Data {assms = assms, prems = prems};
 
