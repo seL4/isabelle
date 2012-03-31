@@ -137,7 +137,7 @@ fun export inner outer =    (*beware of closure sizes*)
   let
     val exp = Assumption.export false inner outer;
     val exp_term = Assumption.export_term inner outer;
-    val prems = Assumption.all_prems_of inner;
+    val prems = Assumption.local_prems_of inner outer;
   in
     fn th =>
       let
@@ -190,6 +190,7 @@ end;
 
 fun contract ctxt defs ct th =
   trans_props ctxt [th, Thm.symmetric (Raw_Simplifier.rewrite true defs ct)];
+
 
 
 (** defived definitions **)
