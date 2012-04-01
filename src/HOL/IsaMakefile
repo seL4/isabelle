@@ -548,11 +548,11 @@ $(LOG)/HOL-IMPP.gz: $(OUT)/HOL IMPP/ROOT.ML IMPP/Com.thy		\
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL IMPP
 
 
-## Import sessions
+## HOL-HOL_Light
 
-HOL-HOL_Light: $(LOG)/HOL-HOL_Light.gz
+HOL-HOL_Light: $(OUT)/HOL-HOL_Light
 
-$(LOG)/HOL-HOL_Light.gz: $(OUT)/HOL \
+$(OUT)/HOL-HOL_Light: $(OUT)/HOL \
   Import/ROOT.ML \
   Import/Import_Setup.thy \
   Import/import_data.ML \
@@ -560,6 +560,7 @@ $(LOG)/HOL-HOL_Light.gz: $(OUT)/HOL \
   Import/HOL_Light_Maps.thy \
   Import/HOL_Light_Import.thy
 	@cd Import; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-HOL_Light
+
 
 ## HOL-Number_Theory
 
@@ -1785,9 +1786,10 @@ clean:
 	@rm -f $(LOG)/HOL-Algebra.gz $(LOG)/HOL-Auth.gz			\
 		$(LOG)/HOL-Bali.gz $(LOG)/HOL-Base.gz			\
 		$(LOG)/HOL-Boogie-Examples.gz $(LOG)/HOL-Boogie.gz	\
-		$(LOG)/HOL-Decision_Procs.gz $(LOG)/HOL-Hahn_Banach.gz	\
-		$(LOG)/HOL-Hoare.gz $(LOG)/HOL-Hoare_Parallel.gz	\
-		$(LOG)/HOL-IMP.gz $(LOG)/HOL-IMPP.gz $(LOG)/HOL-IOA.gz	\
+		$(LOG)/HOL-Decision_Procs.gz $(LOG)/HOL-HOL_Light.gz	\
+		$(LOG)/HOL-Hahn_Banach.gz $(LOG)/HOL-Hoare.gz		\
+		$(LOG)/HOL-Hoare_Parallel.gz $(LOG)/HOL-IMP.gz		\
+		$(LOG)/HOL-IMPP.gz $(LOG)/HOL-IOA.gz			\
 		$(LOG)/HOL-Imperative_HOL.gz $(LOG)/HOL-Import.gz	\
 		$(LOG)/HOL-Induct.gz $(LOG)/HOL-Isar_Examples.gz	\
 		$(LOG)/HOL-Lattice $(LOG)/HOL-Lattice.gz		\
@@ -1817,18 +1819,17 @@ clean:
 		$(LOG)/HOL-TPTP.gz $(LOG)/HOL-UNITY.gz			\
 		$(LOG)/HOL-Unix.gz $(LOG)/HOL-Word-Examples.gz		\
 		$(LOG)/HOL-Word.gz $(LOG)/HOL-ZF.gz $(LOG)/HOL-ex.gz	\
-		$(LOG)/HOL.gz $(LOG)/TLA-Buffer.gz			\
-		$(LOG)/TLA-Inc.gz $(LOG)/TLA-Memory.gz $(LOG)/TLA.gz	\
-		$(OUT)/HOL $(OUT)/HOL-Algebra $(OUT)/HOL-Base		\
-		$(OUT)/HOL-Boogie $(OUT)/HOL-IMP $(OUT)/HOL-Library	\
+		$(LOG)/HOL.gz $(LOG)/TLA-Buffer.gz $(LOG)/TLA-Inc.gz	\
+		$(LOG)/TLA-Memory.gz $(LOG)/TLA.gz $(OUT)/HOL		\
+		$(OUT)/HOL-Algebra $(OUT)/HOL-Base $(OUT)/HOL-Boogie	\
+		$(OUT)/HOL-HOL_Light $(OUT)/HOL-IMP $(OUT)/HOL-Library	\
 		$(OUT)/HOL-Main $(OUT)/HOL-Multivariate_Analysis	\
 		$(OUT)/HOL-NSA $(OUT)/HOL-Nominal $(OUT)/HOL-Plain	\
 		$(OUT)/HOL-Probability $(OUT)/HOL-Proofs		\
-		$(OUT)/HOL-SPARK $(OUT)/HOL-Word			\
-		$(OUT)/TLA $(OUT)/HOLCF $(LOG)/HOLCF.gz			\
-		$(LOG)/HOLCF-IMP.gz $(LOG)/HOLCF-ex.gz			\
-		$(LOG)/HOLCF-FOCUS.gz $(OUT)/IOA $(LOG)/IOA.gz		\
-		$(LOG)/IOA-ABP.gz $(LOG)/IOA-NTP.gz			\
+		$(OUT)/HOL-SPARK $(OUT)/HOL-Word $(OUT)/TLA		\
+		$(OUT)/HOLCF $(LOG)/HOLCF.gz $(LOG)/HOLCF-IMP.gz	\
+		$(LOG)/HOLCF-ex.gz $(LOG)/HOLCF-FOCUS.gz $(OUT)/IOA	\
+		$(LOG)/IOA.gz $(LOG)/IOA-ABP.gz $(LOG)/IOA-NTP.gz	\
 		$(LOG)/IOA-Storage.gz $(LOG)/HOLCF-Library.gz		\
 		$(LOG)/IOA-ex.gz $(LOG)/HOLCF-Tutorial.gz		\
 		$(LOG)/HOL-Datatype_Benchmark.gz			\
