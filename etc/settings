@@ -190,9 +190,6 @@ ISABELLE_SYMBOLS="$ISABELLE_HOME/etc/symbols:$ISABELLE_HOME_USER/etc/symbols"
 
 ## Set HOME only for tools you have installed!
 
-# HOL4 proof objects (cf. src/HOL/Import)
-#HOL4_PROOFS="$ISABELLE_HOME_USER/proofs:$ISABELLE_HOME/proofs"
-
 # SVC (Stanford Validity Checker)
 #SVC_HOME=
 #SVC_MACHINE=i386-redhat-linux

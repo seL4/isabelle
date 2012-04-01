@@ -38,8 +38,6 @@ test: \
       HOLCF-Library \
       HOLCF-Tutorial \
       HOLCF-ex \
-  HOL-HOL4 \
-  HOL-HOL4-Imported \
   HOL-HOL_Light \
   HOL-IMPP \
   HOL-IOA \
@@ -80,9 +78,6 @@ test: \
   HOL-Word-Examples \
   HOL-ZF
     # ^ this is the sort position
-
-generate: \
-  HOL-HOL4-Generate
 
 benchmark: \
   HOL-Datatype_Benchmark \
@@ -556,25 +551,6 @@ $(LOG)/HOL-IMPP.gz: $(OUT)/HOL IMPP/ROOT.ML IMPP/Com.thy		\
 
 ## Import sessions
 
-IMPORTER_BASIC_DEPENDENCIES = \
-  Import/HOL4/Importer.thy \
-  Import/HOL4/shuffler.ML \
-  Import/HOL4/import_rews.ML \
-  Import/HOL4/proof_kernel.ML \
-  Import/HOL4/replay.ML \
-  Import/HOL4/import.ML
-
-IMPORTER_HOL4_COMPATIBILITY_DEDEPENDENCIES = \
-  Import/HOL4/ROOT.ML \
-  Import/HOL4/Compatibility.thy
-
-HOL-HOL4: $(LOG)/HOL-HOL4.gz
-
-$(LOG)/HOL-HOL4.gz: $(OUT)/HOL \
-  $(IMPORTER_BASIC_DEPENDENCIES) \
-  $(IMPORTER_HOL4_COMPATIBILITY_DEDEPENDENCIES)
-	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Import/HOL4
-
 HOL-HOL_Light: $(LOG)/HOL-HOL_Light.gz
 
 $(LOG)/HOL-HOL_Light.gz: $(OUT)/HOL \
@@ -585,82 +561,6 @@ $(LOG)/HOL-HOL_Light.gz: $(OUT)/HOL \
   Import/HOL_Light_Maps.thy \
   Import/HOL_Light_Import.thy
 	@cd Import; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-HOL_Light
-
-HOL-HOL4-Imported: $(LOG)/HOL-HOL4-Imported.gz
-
-$(LOG)/HOL-HOL4-Imported.gz: $(OUT)/HOL \
-  $(IMPORTER_BASIC_DEPENDENCIES) \
-  $(IMPORTER_HOL4_COMPATIBILITY_DEDEPENDENCIES) \
-  Import/HOL4/imported.ML \
-  Import/HOL4/Imported.thy \
-  Import/HOL4/Generated/HOL4Base.thy \
-  Import/HOL4/Generated/HOL4Prob.thy \
-  Import/HOL4/Generated/HOL4Real.thy \
-  Import/HOL4/Generated/HOL4Vec.thy \
-  Import/HOL4/Generated/HOL4Word32.thy \
-  Import/HOL4/Generated/arithmetic.imp \
-  Import/HOL4/Generated/bits.imp \
-  Import/HOL4/Generated/boolean_sequence.imp \
-  Import/HOL4/Generated/bool.imp \
-  Import/HOL4/Generated/bword_arith.imp \
-  Import/HOL4/Generated/bword_bitop.imp \
-  Import/HOL4/Generated/bword_num.imp \
-  Import/HOL4/Generated/combin.imp \
-  Import/HOL4/Generated/divides.imp \
-  Import/HOL4/Generated/hrat.imp \
-  Import/HOL4/Generated/hreal.imp \
-  Import/HOL4/Generated/ind_type.imp \
-  Import/HOL4/Generated/lim.imp \
-  Import/HOL4/Generated/list.imp \
-  Import/HOL4/Generated/marker.imp \
-  Import/HOL4/Generated/nets.imp \
-  Import/HOL4/Generated/numeral.imp \
-  Import/HOL4/Generated/num.imp \
-  Import/HOL4/Generated/one.imp \
-  Import/HOL4/Generated/operator.imp \
-  Import/HOL4/Generated/option.imp \
-  Import/HOL4/Generated/pair.imp \
-  Import/HOL4/Generated/poly.imp \
-  Import/HOL4/Generated/powser.imp \
-  Import/HOL4/Generated/pred_set.imp \
-  Import/HOL4/Generated/prime.imp \
-  Import/HOL4/Generated/prim_rec.imp \
-  Import/HOL4/Generated/prob_algebra.imp \
-  Import/HOL4/Generated/prob_canon.imp \
-  Import/HOL4/Generated/prob_extra.imp \
-  Import/HOL4/Generated/prob.imp \
-  Import/HOL4/Generated/prob_indep.imp \
-  Import/HOL4/Generated/prob_pseudo.imp \
-  Import/HOL4/Generated/prob_uniform.imp \
-  Import/HOL4/Generated/realax.imp \
-  Import/HOL4/Generated/real.imp \
-  Import/HOL4/Generated/relation.imp \
-  Import/HOL4/Generated/res_quan.imp \
-  Import/HOL4/Generated/rich_list.imp \
-  Import/HOL4/Generated/seq.imp \
-  Import/HOL4/Generated/state_transformer.imp \
-  Import/HOL4/Generated/sum.imp \
-  Import/HOL4/Generated/topology.imp \
-  Import/HOL4/Generated/transc.imp \
-  Import/HOL4/Generated/word32.imp \
-  Import/HOL4/Generated/word_base.imp \
-  Import/HOL4/Generated/word_bitop.imp \
-  Import/HOL4/Generated/word_num.imp
-	@$(ISABELLE_TOOL) usedir -f imported.ML -s HOL4-Imported -p 0 $(OUT)/HOL Import/HOL4
-
-HOL-HOL4-Generate: $(LOG)/Import-HOL4-Generate.gz
-
-$(LOG)/Import-HOL4-Generate.gz: $(OUT)/HOL \
-  $(IMPORTER_BASIC_DEPENDENCIES) \
-  $(IMPORTER_HOL4_COMPATIBILITY_DEDEPENDENCIES) \
-  Import/HOL4/generate.ML \
-  Import/HOL4/Generate.thy \
-  Import/HOL4/Template/GenHOL4Base.thy \
-  Import/HOL4/Template/GenHOL4Prob.thy \
-  Import/HOL4/Template/GenHOL4Real.thy \
-  Import/HOL4/Template/GenHOL4Vec.thy \
-  Import/HOL4/Template/GenHOL4Word32.thy
-	@$(ISABELLE_TOOL) usedir -f generate.ML -s HOL4-Generate -p 0 $(OUT)/HOL Import/HOL4
 
 ## HOL-Number_Theory
 
@@ -1918,14 +1818,14 @@ clean:
 		$(LOG)/HOL-TPTP.gz $(LOG)/HOL-UNITY.gz			\
 		$(LOG)/HOL-Unix.gz $(LOG)/HOL-Word-Examples.gz		\
 		$(LOG)/HOL-Word.gz $(LOG)/HOL-ZF.gz $(LOG)/HOL-ex.gz	\
-		$(LOG)/HOL.gz $(LOG)/HOL4.gz $(LOG)/TLA-Buffer.gz	\
+		$(LOG)/HOL.gz $(LOG)/TLA-Buffer.gz			\
 		$(LOG)/TLA-Inc.gz $(LOG)/TLA-Memory.gz $(LOG)/TLA.gz	\
 		$(OUT)/HOL $(OUT)/HOL-Algebra $(OUT)/HOL-Base		\
 		$(OUT)/HOL-Boogie $(OUT)/HOL-IMP $(OUT)/HOL-Library	\
 		$(OUT)/HOL-Main $(OUT)/HOL-Multivariate_Analysis	\
 		$(OUT)/HOL-NSA $(OUT)/HOL-Nominal $(OUT)/HOL-Plain	\
 		$(OUT)/HOL-Probability $(OUT)/HOL-Proofs		\
-		$(OUT)/HOL-SPARK $(OUT)/HOL-Word $(OUT)/HOL4		\
+		$(OUT)/HOL-SPARK $(OUT)/HOL-Word			\
 		$(OUT)/TLA $(OUT)/HOLCF $(LOG)/HOLCF.gz			\
 		$(LOG)/HOLCF-IMP.gz $(LOG)/HOLCF-ex.gz			\
 		$(LOG)/HOLCF-FOCUS.gz $(OUT)/IOA $(LOG)/IOA.gz		\
