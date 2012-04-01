@@ -142,7 +142,6 @@ fun import_export_proof ctxt (name, raw_th) =
 
 fun notes target_notes kind facts lthy =
   let
-    val thy = Proof_Context.theory_of lthy;
     val facts' = facts
       |> map (fn (a, bs) => (a, Global_Theory.burrow_fact (Global_Theory.name_multi
           (Local_Theory.full_name lthy (fst a))) bs))
@@ -152,7 +151,7 @@ fun notes target_notes kind facts lthy =
   in
     lthy
     |> target_notes kind global_facts local_facts
-    |> Proof_Context.note_thmss kind (Attrib.map_facts (map (Attrib.attribute_i thy)) local_facts)
+    |> Attrib.local_notes kind local_facts
   end;
 
 
@@ -215,15 +214,9 @@ fun theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lt
           (Thm.def_binding_optional b b_def, Logic.mk_equals (lhs, rhs)));
   in ((lhs, def), lthy3) end;
 
-fun theory_notes kind global_facts lthy =
-  let
-    val thy = Proof_Context.theory_of lthy;
-    val global_facts' = Attrib.map_facts (map (Attrib.attribute_i thy)) global_facts;
-  in
-    lthy
-    |> Local_Theory.background_theory (Global_Theory.note_thmss kind global_facts' #> snd)
-    |> Local_Theory.target (Proof_Context.note_thmss kind global_facts' #> snd)
-  end;
+fun theory_notes kind global_facts =
+  Local_Theory.background_theory (Attrib.global_notes kind global_facts #> snd) #>
+  Local_Theory.target (Attrib.local_notes kind global_facts #> snd);
 
 fun theory_abbrev prmode ((b, mx), t) =
   Local_Theory.background_theory

@@ -87,11 +87,8 @@ end;
 local
 
 fun gen_includes prep args ctxt =
-  let
-    val decls = maps (the_bundle ctxt o prep ctxt) args;
-    val attrib = Attrib.attribute_i (Proof_Context.theory_of ctxt);
-    val note = ((Binding.empty, []), map (apsnd (map attrib)) decls);
-  in #2 (Proof_Context.note_thmss "" [note] ctxt) end;
+  let val decls = maps (the_bundle ctxt o prep ctxt) args
+  in #2 (Attrib.local_notes "" [((Binding.empty, []), decls)] ctxt) end;
 
 fun gen_context prep args (Context.Theory thy) =
       Named_Target.theory_init thy
