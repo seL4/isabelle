@@ -14,6 +14,14 @@ uses
   ("Tools/nat_numeral_simprocs.ML")
 begin
 
+lemmas semiring_norm =
+  Let_def arith_simps nat_arith rel_simps
+  if_False if_True
+  add_0 add_Suc add_numeral_left
+  add_neg_numeral_left mult_numeral_left
+  numeral_1_eq_1 [symmetric] Suc_eq_plus1
+  eq_numeral_iff_iszero not_iszero_Numeral1
+
 declare split_div [of _ _ "numeral k", arith_split] for k
 declare split_mod [of _ _ "numeral k", arith_split] for k
 

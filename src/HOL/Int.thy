@@ -990,6 +990,8 @@ lemma nat_numeral_diff_1 [simp]:
   "numeral v - (1::nat) = nat (numeral v - 1)"
   using diff_nat_numeral [of v Num.One] by simp
 
+lemmas nat_arith = diff_nat_numeral
+
 
 subsection "Induction principles for int"
 
@@ -1756,6 +1758,8 @@ lemmas int_numeral = of_nat_numeral [where 'a=int]
 lemmas abs_int_eq = abs_of_nat [where 'a=int and n="m"] for m
 lemmas of_int_int_eq = of_int_of_nat_eq [where 'a=int]
 lemmas zdiff_int = of_nat_diff [where 'a=int, symmetric]
+lemmas zpower_numeral_even = power_numeral_even [where 'a=int]
+lemmas zpower_numeral_odd = power_numeral_odd [where 'a=int]
 
 lemma zpower_zpower:
   "(x ^ y) ^ z = (x ^ (y * z)::int)"

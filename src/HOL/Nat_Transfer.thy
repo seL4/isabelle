@@ -4,7 +4,7 @@
 header {* Generic transfer machinery;  specific transfer from nats to ints and back. *}
 
 theory Nat_Transfer
-imports Nat_Numeral
+imports Int
 uses ("Tools/transfer.ML")
 begin
 

@@ -965,6 +965,27 @@ lemma nat_rec_add_eq_if [simp]:
     (let pv = pred_numeral v in f (pv + n) (nat_rec a f (pv + n)))"
   by (simp add: numeral_eq_Suc Let_def)
 
+text {* Case analysis on @{term "n < 2"} *}
+
+lemma less_2_cases: "n < 2 \<Longrightarrow> n = 0 \<or> n = Suc 0"
+  by (auto simp add: numeral_2_eq_2)
+
+text {* Removal of Small Numerals: 0, 1 and (in additive positions) 2 *}
+text {* bh: Are these rules really a good idea? *}
+
+lemma add_2_eq_Suc [simp]: "2 + n = Suc (Suc n)"
+  by simp
+
+lemma add_2_eq_Suc' [simp]: "n + 2 = Suc (Suc n)"
+  by simp
+
+text {* Can be used to eliminate long strings of Sucs, but not by default. *}
+
+lemma Suc3_eq_add_3: "Suc (Suc (Suc n)) = 3 + n"
+  by simp
+
+lemmas nat_1_add_1 = one_add_one [where 'a=nat] (* legacy *)
+
 
 subsection {* Numeral equations as default simplification rules *}
 

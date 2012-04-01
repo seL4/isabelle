@@ -1112,6 +1112,24 @@ lemma nat_diff_split_asm:
     -- {* elimination of @{text -} on @{text nat} in assumptions *}
 by (auto split: nat_diff_split)
 
+lemma Suc_pred': "0 < n ==> n = Suc(n - 1)"
+  by simp
+
+lemma add_eq_if: "(m::nat) + n = (if m=0 then n else Suc ((m - 1) + n))"
+  unfolding One_nat_def by (cases m) simp_all
+
+lemma mult_eq_if: "(m::nat) * n = (if m=0 then 0 else n + ((m - 1) * n))"
+  unfolding One_nat_def by (cases m) simp_all
+
+lemma Suc_diff_eq_diff_pred: "0 < n ==> Suc m - n = m - (n - 1)"
+  unfolding One_nat_def by (cases n) simp_all
+
+lemma diff_Suc_eq_diff_pred: "m - Suc n = (m - 1) - n"
+  unfolding One_nat_def by (cases m) simp_all
+
+lemma Let_Suc [simp]: "Let (Suc n) f == f (Suc n)"
+  by (fact Let_def)
+
 
 subsubsection {* Monotonicity of Multiplication *}
 
