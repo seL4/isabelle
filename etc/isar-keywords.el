@@ -1,6 +1,6 @@
 ;;
 ;; Keyword classification tables for Isabelle/Isar.
-;; Generated from Pure + HOL + HOLCF + HOL-Boogie + HOL-Library + HOL-Nominal + HOL-Statespace + HOL-SPARK + HOL-TPTP.
+;; Generated from Pure + HOL + HOLCF + HOL-Boogie + HOL-Library + HOL-Nominal + HOL-Statespace + HOL-SPARK + HOL-TPTP + HOL-Import.
 ;; *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT ***
 ;;
 
@@ -108,7 +108,10 @@
     "hide_const"
     "hide_fact"
     "hide_type"
+    "import_const_map"
+    "import_file"
     "import_tptp"
+    "import_type_map"
     "include"
     "including"
     "inductive"
@@ -491,7 +494,10 @@
     "hide_const"
     "hide_fact"
     "hide_type"
+    "import_const_map"
+    "import_file"
     "import_tptp"
+    "import_type_map"
     "inductive"
     "inductive_set"
     "instantiation"

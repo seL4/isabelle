@@ -49,8 +49,7 @@ sig
   (* Storing results *)
   val add_thmss: string -> string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
     Proof.context -> Proof.context
-  val add_declaration: string -> declaration -> Proof.context -> Proof.context
-  val add_syntax_declaration: string -> declaration -> Proof.context -> Proof.context
+  val add_declaration: string -> bool -> declaration -> Proof.context -> Proof.context
 
   (* Activation *)
   val activate_declarations: string * morphism -> Proof.context -> Proof.context
@@ -536,32 +535,34 @@ fun add_dependency loc (name, morph) mixin export thy =
 fun add_thmss _ _ [] ctxt = ctxt
   | add_thmss loc kind facts ctxt =
       ctxt
-      |> Proof_Context.note_thmss kind
-        (Attrib.map_facts (map (Attrib.attribute_i (Proof_Context.theory_of ctxt))) facts)
-      |> snd
+      |> Attrib.local_notes kind facts |> snd
       |> Proof_Context.background_theory
         ((change_locale loc o apfst o apsnd) (cons ((kind, facts), serial ())) #>
           (* Registrations *)
-          (fn thy => fold_rev (fn (_, morph) =>
-                let
-                  val facts' = facts
-                    |> Element.transform_facts morph
-                    |> Attrib.map_facts (map (Attrib.attribute_i thy));
-                in snd o Global_Theory.note_thmss kind facts' end)
+          (fn thy =>
+            fold_rev (fn (_, morph) =>
+              snd o Attrib.global_notes kind (Element.transform_facts morph facts))
             (registrations_of (Context.Theory thy) loc) thy));
 
 
 (* Declarations *)
 
-fun add_declaration loc decl =
+local
+
+fun add_decl loc decl =
   add_thmss loc ""
     [((Binding.conceal Binding.empty,
         [Attrib.internal (fn phi => Thm.declaration_attribute (K (decl phi)))]),
       [([Drule.dummy_thm], [])])];
 
-fun add_syntax_declaration loc decl =
-  Proof_Context.background_theory ((change_locale loc o apfst o apfst) (cons (decl, serial ())))
-  #> add_declaration loc decl;
+in
+
+fun add_declaration loc syntax decl =
+  syntax ?
+    Proof_Context.background_theory ((change_locale loc o apfst o apfst) (cons (decl, serial ())))
+  #> add_decl loc decl;
+
+end;
 
 
 (*** Reasoning about locales ***)
