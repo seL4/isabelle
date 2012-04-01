@@ -23,7 +23,7 @@ fun note_eqns_register deps witss def_eqns attrss eqns export export' =
       map (Local_Defs.meta_rewrite_rule (Context.proof_of context) #> Drule.abs_def) o
         maps snd;
   in
-    Element.generic_note_thmss Thm.lemmaK
+    Attrib.generic_notes Thm.lemmaK
       (attrss ~~ map (fn eqn => [([Morphism.thm (export' $> export) eqn], [])]) eqns)
     #-> (fn facts => `(fn context => meta_rewrite context facts))
     #-> (fn eqns => fold (fn ((dep, morph), wits) =>
