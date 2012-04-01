@@ -81,6 +81,15 @@ lemma power_odd_eq:
   "a ^ Suc (2*n) = a * (a ^ n) ^ 2"
   by (simp add: power_even_eq)
 
+lemma power_numeral_even:
+  "z ^ numeral (Num.Bit0 w) = (let w = z ^ (numeral w) in w * w)"
+  unfolding numeral_Bit0 power_add Let_def ..
+
+lemma power_numeral_odd:
+  "z ^ numeral (Num.Bit1 w) = (let w = z ^ (numeral w) in z * w * w)"
+  unfolding numeral_Bit1 One_nat_def add_Suc_right add_0_right
+  unfolding power_Suc power_add Let_def mult_assoc ..
+
 end
 
 context comm_monoid_mult
@@ -596,6 +605,9 @@ end
 
 subsection {* Miscellaneous rules *}
 
+lemma power_eq_if: "p ^ m = (if m=0 then 1 else p * (p ^ (m - 1)))"
+  unfolding One_nat_def by (cases m) simp_all
+
 lemma power2_sum:
   fixes x y :: "'a::comm_semiring_1"
   shows "(x + y)\<twosuperior> = x\<twosuperior> + y\<twosuperior> + 2 * x * y"
@@ -646,6 +658,16 @@ apply (simp add: power_0_left)
 apply (rule nonzero_power_divide)
 apply assumption
 done
+
+text {* Simprules for comparisons where common factors can be cancelled. *}
+
+lemmas zero_compare_simps =
+    add_strict_increasing add_strict_increasing2 add_increasing
+    zero_le_mult_iff zero_le_divide_iff 
+    zero_less_mult_iff zero_less_divide_iff 
+    mult_le_0_iff divide_le_0_iff 
+    mult_less_0_iff divide_less_0_iff 
+    zero_le_power2 power2_less_0
 
 
 subsection {* Exponentiation for the Natural Numbers *}

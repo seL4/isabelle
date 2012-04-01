@@ -3,7 +3,7 @@
 header {* Type of target language numerals *}
 
 theory Code_Numeral
-imports Nat_Numeral Nat_Transfer Divides
+imports Nat_Transfer Divides
 begin
 
 text {*

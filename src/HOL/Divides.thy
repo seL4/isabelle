@@ -6,7 +6,7 @@
 header {* The division operators div and mod *}
 
 theory Divides
-imports Nat_Numeral Nat_Transfer
+imports Nat_Transfer
 uses "~~/src/Provers/Arith/cancel_div_mod.ML"
 begin
 

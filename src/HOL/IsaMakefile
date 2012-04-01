@@ -284,7 +284,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   List.thy \
   Main.thy \
   Map.thy \
-  Nat_Numeral.thy \
   Nat_Transfer.thy \
   New_DSequence.thy \
   New_Random_Sequence.thy \
