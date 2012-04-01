@@ -95,7 +95,7 @@ fun gen_context prep args (Context.Theory thy) =
       |> Local_Theory.target (gen_includes prep args)
       |> Local_Theory.restore
   | gen_context prep args (Context.Proof lthy) =
-      Named_Target.assert lthy
+      Local_Theory.assert lthy
       |> gen_includes prep args
       |> Local_Theory.open_target (Local_Theory.naming_of lthy) (Local_Theory.operations_of lthy);
 

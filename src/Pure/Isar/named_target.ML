@@ -8,7 +8,6 @@ Targets for theory, locale, class -- at the bottom the nested structure.
 signature NAMED_TARGET =
 sig
   val peek: local_theory -> {target: string, is_locale: bool, is_class: bool} option
-  val assert: local_theory -> local_theory
   val init: (local_theory -> local_theory) -> string -> theory -> local_theory
   val theory_init: theory -> local_theory
   val reinit: local_theory -> local_theory -> local_theory
@@ -43,10 +42,6 @@ structure Data = Proof_Data
 val peek =
   Data.get #> Option.map (fn Target {target, is_locale, is_class, ...} =>
     {target = target, is_locale = is_locale, is_class = is_class});
-
-fun assert lthy =
-  if is_some (peek lthy) then lthy
-  else error "Not in a named target (global theory, locale, class)";
 
 
 (* consts in locale *)
