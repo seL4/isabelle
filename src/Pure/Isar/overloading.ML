@@ -203,8 +203,7 @@ fun gen_overloading prep_const raw_overloading thy =
     |> synchronize_syntax
     |> Local_Theory.init naming
        {define = Generic_Target.define foundation,
-        notes = Generic_Target.notes
-          (fn kind => fn global_facts => fn _ => Generic_Target.theory_notes kind global_facts),
+        notes = Generic_Target.notes Generic_Target.theory_notes,
         abbrev = Generic_Target.abbrev
           (fn prmode => fn (b, mx) => fn (t, _) => fn _ =>
             Generic_Target.theory_abbrev prmode ((b, mx), t)),

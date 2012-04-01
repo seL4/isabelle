@@ -11,22 +11,26 @@ sig
       term list * term list -> local_theory -> (term * thm) * local_theory) ->
     bool -> (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory
-  val notes: (string -> (Attrib.binding * (thm list * Args.src list) list) list ->
+  val notes:
+    (string -> (Attrib.binding * (thm list * Args.src list) list) list ->
       (Attrib.binding * (thm list * Args.src list) list) list -> local_theory -> local_theory) ->
     string -> (Attrib.binding * (thm list * Args.src list) list) list -> local_theory ->
     (string * thm list) list * local_theory
+  val locale_notes: string -> string ->
+    (Attrib.binding * (thm list * Args.src list) list) list ->
+    (Attrib.binding * (thm list * Args.src list) list) list ->
+    local_theory -> local_theory
   val abbrev: (string * bool -> binding * mixfix -> term * term ->
       term list -> local_theory -> local_theory) ->
-    string * bool -> (binding * mixfix) * term -> local_theory ->
-    (term * term) * local_theory
-
+    string * bool -> (binding * mixfix) * term -> local_theory -> (term * term) * local_theory
   val background_declaration: declaration -> local_theory -> local_theory
   val standard_declaration: declaration -> local_theory -> local_theory
   val locale_declaration: string -> bool -> declaration -> local_theory -> local_theory
-
   val theory_foundation: ((binding * typ) * mixfix) * (binding * term) ->
     term list * term list -> local_theory -> (term * thm) * local_theory
-  val theory_notes: string -> (Attrib.binding * (thm list * Args.src list) list) list ->
+  val theory_notes: string ->
+    (Attrib.binding * (thm list * Args.src list) list) list ->
+    (Attrib.binding * (thm list * Args.src list) list) list ->
     local_theory -> local_theory
   val theory_abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory -> local_theory
 end
@@ -96,6 +100,8 @@ fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
 
 (* notes *)
 
+local
+
 fun import_export_proof ctxt (name, raw_th) =
   let
     val thy = Proof_Context.theory_of ctxt;
@@ -140,6 +146,11 @@ fun import_export_proof ctxt (name, raw_th) =
 
   in (result'', result) end;
 
+fun standard_facts lthy ctxt =
+  Element.transform_facts (Local_Theory.standard_morphism lthy ctxt);
+
+in
+
 fun notes target_notes kind facts lthy =
   let
     val facts' = facts
@@ -150,9 +161,22 @@ fun notes target_notes kind facts lthy =
     val global_facts = Global_Theory.map_facts #2 facts';
   in
     lthy
-    |> target_notes kind global_facts local_facts
+    |> target_notes kind global_facts (Attrib.partial_evaluation lthy local_facts)
     |> Attrib.local_notes kind local_facts
   end;
+
+fun locale_notes locale kind global_facts local_facts =
+  Local_Theory.background_theory
+    (Attrib.global_notes kind (Attrib.map_facts (K []) global_facts) #> snd) #>
+  (fn lthy => lthy |>
+    Local_Theory.target (fn ctxt => ctxt |>
+      Locale.add_thmss locale kind (standard_facts lthy ctxt local_facts))) #>
+  (fn lthy => lthy |>
+    Local_Theory.map_contexts (fn level => fn ctxt =>
+      if level = 0 orelse level = Local_Theory.level lthy then ctxt
+      else ctxt |> Attrib.local_notes kind (standard_facts lthy ctxt local_facts) |> snd));
+
+end;
 
 
 (* abbrev *)
@@ -214,9 +238,13 @@ fun theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lt
           (Thm.def_binding_optional b b_def, Logic.mk_equals (lhs, rhs)));
   in ((lhs, def), lthy3) end;
 
-fun theory_notes kind global_facts =
+fun theory_notes kind global_facts local_facts =
   Local_Theory.background_theory (Attrib.global_notes kind global_facts #> snd) #>
-  Local_Theory.target (Attrib.local_notes kind global_facts #> snd);
+  (fn lthy => lthy |> Local_Theory.map_contexts (fn level => fn ctxt =>
+    if level = Local_Theory.level lthy then ctxt
+    else
+      ctxt |> Attrib.local_notes kind
+        (Element.transform_facts (Local_Theory.standard_morphism lthy ctxt) local_facts) |> snd));
 
 fun theory_abbrev prmode ((b, mx), t) =
   Local_Theory.background_theory

@@ -101,21 +101,9 @@ fun target_foundation (ta as Target {is_locale, is_class, ...}) =
 
 (* notes *)
 
-fun locale_notes locale kind global_facts local_facts lthy =
-  let
-    val global_facts' = Attrib.map_facts (K []) global_facts;
-    val local_facts' = local_facts
-      |> Attrib.partial_evaluation lthy
-      |> Element.transform_facts (Local_Theory.target_morphism lthy);
-  in
-    lthy
-    |> Local_Theory.background_theory (Global_Theory.note_thmss kind global_facts' #> snd)
-    |> Local_Theory.target (Locale.add_thmss locale kind local_facts')
-  end;
-
 fun target_notes (Target {target, is_locale, ...}) =
-  if is_locale then locale_notes target
-  else fn kind => fn global_facts => fn _ => Generic_Target.theory_notes kind global_facts;
+  if is_locale then Generic_Target.locale_notes target
+  else Generic_Target.theory_notes;
 
 
 (* abbrev *)
@@ -145,8 +133,9 @@ fun target_declaration (Target {target, ...}) {syntax, pervasive} decl lthy =
     lthy
     |> pervasive ? Generic_Target.background_declaration decl
     |> Generic_Target.locale_declaration target syntax decl
-    |> (fn lthy' => lthy' |> Local_Theory.map_contexts (fn level => fn ctxt => ctxt |>
-        level > 0 ? Context.proof_map (Local_Theory.standard_form lthy' ctxt decl)));
+    |> (fn lthy' => lthy' |> Local_Theory.map_contexts (fn level => fn ctxt =>
+        if level = 0 then ctxt
+        else Context.proof_map (Local_Theory.standard_form lthy' ctxt decl) ctxt));
 
 
 (* pretty *)
