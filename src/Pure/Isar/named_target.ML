@@ -49,30 +49,10 @@ fun assert lthy =
   else error "Not in a named target (global theory, locale, class)";
 
 
-(* generic declarations *)
+(* consts in locale *)
 
-fun locale_declaration locale syntax decl lthy =
-  let
-    val add = if syntax then Locale.add_syntax_declaration else Locale.add_declaration;
-    val locale_decl = Morphism.transform (Local_Theory.target_morphism lthy) decl;
-  in
-    lthy
-    |> Local_Theory.target (add locale locale_decl)
-  end;
-
-fun target_declaration (Target {target, ...}) {syntax, pervasive} decl lthy =
-  if target = "" then Generic_Target.standard_declaration decl lthy
-  else
-    lthy
-    |> pervasive ? Generic_Target.background_declaration decl
-    |> locale_declaration target syntax decl
-    |> Context.proof_map (Morphism.form decl);
-
-
-(* consts in locales *)
-
-fun locale_const (ta as Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx), rhs) =
-  locale_declaration target true (fn phi =>
+fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx), rhs) =
+  Generic_Target.locale_declaration target true (fn phi =>
     let
       val b' = Morphism.binding phi b;
       val rhs' = Morphism.term phi rhs;
@@ -155,6 +135,18 @@ fun target_abbrev (ta as Target {target, is_locale, is_class, ...})
   else
     lthy
     |> Generic_Target.theory_abbrev prmode ((b, mx), global_rhs);
+
+
+(* declaration *)
+
+fun target_declaration (Target {target, ...}) {syntax, pervasive} decl lthy =
+  if target = "" then Generic_Target.standard_declaration decl lthy
+  else
+    lthy
+    |> pervasive ? Generic_Target.background_declaration decl
+    |> Generic_Target.locale_declaration target syntax decl
+    |> (fn lthy' => lthy' |> Local_Theory.map_contexts (fn level => fn ctxt => ctxt |>
+        level > 0 ? Context.proof_map (Local_Theory.standard_form lthy' ctxt decl)));
 
 
 (* pretty *)

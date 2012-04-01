@@ -22,6 +22,7 @@ sig
 
   val background_declaration: declaration -> local_theory -> local_theory
   val standard_declaration: declaration -> local_theory -> local_theory
+  val locale_declaration: string -> bool -> declaration -> local_theory -> local_theory
 
   val theory_foundation: ((binding * typ) * mixfix) * (binding * term) ->
     term list * term list -> local_theory -> (term * thm) * local_theory
@@ -193,6 +194,11 @@ fun standard_declaration decl =
   background_declaration decl #>
   (fn lthy => Local_Theory.map_contexts (fn _ => fn ctxt =>
     Context.proof_map (Local_Theory.standard_form lthy ctxt decl) ctxt) lthy);
+
+fun locale_declaration locale syntax decl lthy = lthy
+  |> Local_Theory.target (fn ctxt => ctxt |>
+    Locale.add_declaration locale syntax
+      (Morphism.transform (Local_Theory.standard_morphism lthy ctxt) decl));
 
 
 

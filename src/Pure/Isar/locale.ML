@@ -49,8 +49,7 @@ sig
   (* Storing results *)
   val add_thmss: string -> string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
     Proof.context -> Proof.context
-  val add_declaration: string -> declaration -> Proof.context -> Proof.context
-  val add_syntax_declaration: string -> declaration -> Proof.context -> Proof.context
+  val add_declaration: string -> bool -> declaration -> Proof.context -> Proof.context
 
   (* Activation *)
   val activate_declarations: string * morphism -> Proof.context -> Proof.context
@@ -553,15 +552,22 @@ fun add_thmss _ _ [] ctxt = ctxt
 
 (* Declarations *)
 
-fun add_declaration loc decl =
+local
+
+fun add_decl loc decl =
   add_thmss loc ""
     [((Binding.conceal Binding.empty,
         [Attrib.internal (fn phi => Thm.declaration_attribute (K (decl phi)))]),
       [([Drule.dummy_thm], [])])];
 
-fun add_syntax_declaration loc decl =
-  Proof_Context.background_theory ((change_locale loc o apfst o apfst) (cons (decl, serial ())))
-  #> add_declaration loc decl;
+in
+
+fun add_declaration loc syntax decl =
+  syntax ?
+    Proof_Context.background_theory ((change_locale loc o apfst o apfst) (cons (decl, serial ())))
+  #> add_decl loc decl;
+
+end;
 
 
 (*** Reasoning about locales ***)
