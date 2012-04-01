@@ -25,6 +25,12 @@ sig
   val map_facts_refs: ('a list -> 'att list) -> ('b -> 'fact) ->
     (('c * 'a list) * ('b * 'a list) list) list ->
     (('c * 'att list) * ('fact * 'att list) list) list
+  val global_notes: string -> (binding * (thm list * src list) list) list ->
+    theory -> (string * thm list) list * theory
+  val local_notes: string -> (binding * (thm list * src list) list) list ->
+    Proof.context -> (string * thm list) list * Proof.context
+  val generic_notes: string -> (binding * (thm list * src list) list) list ->
+    Context.generic -> (string * thm list) list * Context.generic
   val eval_thms: Proof.context -> (Facts.ref * src list) list -> thm list
   val setup: Binding.binding -> attribute context_parser -> string -> theory -> theory
   val attribute_setup: bstring * Position.T -> Symbol_Pos.text * Position.T -> string ->
@@ -137,6 +143,15 @@ fun map_facts_refs f g = map_facts f #> map (apsnd (map (apfst g)));
 
 
 (* fact expressions *)
+
+fun global_notes kind facts thy = thy |>
+  Global_Theory.note_thmss kind (map_facts (map (attribute_i thy)) facts);
+
+fun local_notes kind facts ctxt = ctxt |>
+  Proof_Context.note_thmss kind (map_facts (map (attribute_i (Proof_Context.theory_of ctxt))) facts);
+
+fun generic_notes kind facts context = context |>
+  Context.mapping_result (global_notes kind facts) (local_notes kind facts);
 
 fun eval_thms ctxt srcs = ctxt
   |> Proof_Context.note_thmss ""

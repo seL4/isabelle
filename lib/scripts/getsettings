@@ -92,7 +92,7 @@ function librarypath () {
 #robust invocation via ISABELLE_JDK_HOME
 function isabelle_jdk () {
   [ -z "$ISABELLE_JDK_HOME" ] && \
-    { echo "Unknown ISABELLE_JDK_HOME -- Java tools unavailable"; exit 2; }
+    { echo "Unknown ISABELLE_JDK_HOME -- Java tools unavailable" >&2; return 2; }
   local PRG="$1"; shift
   "$ISABELLE_JDK_HOME/bin/$PRG" "$@"
 }
@@ -100,7 +100,7 @@ function isabelle_jdk () {
 #robust invocation via SCALA_HOME
 function isabelle_scala () {
   [ -z "$SCALA_HOME" ] && \
-    { echo "Unknown SCALA_HOME -- Scala unavailable"; exit 2; }
+    { echo "Unknown SCALA_HOME -- Scala unavailable" >&2; return 2; }
   local PRG="$1"; shift
   "$SCALA_HOME/bin/$PRG" "$@"
 }

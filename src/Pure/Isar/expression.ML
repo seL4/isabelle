@@ -816,7 +816,7 @@ fun meta_rewrite ctxt = map (Local_Defs.meta_rewrite_rule ctxt #> Drule.abs_def)
 local
 
 fun note_eqns_register deps witss attrss eqns export export' =
-  Element.generic_note_thmss Thm.lemmaK
+  Attrib.generic_notes Thm.lemmaK
     (attrss ~~ map (fn eqn => [([Morphism.thm (export' $> export) eqn], [])]) eqns)
   #-> (fn facts => `(fn context => meta_rewrite (Context.proof_of context) (maps snd facts)))
   #-> (fn eqns => fold (fn ((dep, morph), wits) =>
@@ -885,12 +885,10 @@ local
 
 fun note_eqns_dependency target deps witss attrss eqns export export' ctxt =
   let
-    val thy = Proof_Context.theory_of ctxt;
-
     val facts =
       (attrss ~~ map (fn eqn => [([Morphism.thm (export' $> export) eqn], [])]) eqns);
     val eqns' = ctxt
-      |> Proof_Context.note_thmss Thm.lemmaK (Attrib.map_facts (map (Attrib.attribute_i thy)) facts)
+      |> Attrib.local_notes Thm.lemmaK facts
       |-> (fn facts => `(fn ctxt => meta_rewrite ctxt (maps snd facts)))
       |> fst;  (* FIXME duplication to add_thmss *)
   in

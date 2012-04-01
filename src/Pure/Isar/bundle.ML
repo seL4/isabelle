@@ -15,12 +15,13 @@ sig
     (binding * string option * mixfix) list -> local_theory -> local_theory
   val includes: string list -> Proof.context -> Proof.context
   val includes_cmd: (xstring * Position.T) list -> Proof.context -> Proof.context
-  val context_includes: string list -> generic_theory -> local_theory
-  val context_includes_cmd: (xstring * Position.T) list -> generic_theory -> local_theory
   val include_: string list -> Proof.state -> Proof.state
   val include_cmd: (xstring * Position.T) list -> Proof.state -> Proof.state
   val including: string list -> Proof.state -> Proof.state
   val including_cmd: (xstring * Position.T) list -> Proof.state -> Proof.state
+  val context: string list -> Element.context_i list -> generic_theory -> local_theory
+  val context_cmd: (xstring * Position.T) list -> Element.context list ->
+    generic_theory -> local_theory
   val print_bundles: Proof.context -> unit
 end;
 
@@ -87,28 +88,25 @@ end;
 local
 
 fun gen_includes prep args ctxt =
-  let
-    val decls = maps (the_bundle ctxt o prep ctxt) args;
-    val attrib = Attrib.attribute_i (Proof_Context.theory_of ctxt);
-    val note = ((Binding.empty, []), map (apsnd (map attrib)) decls);
-  in #2 (Proof_Context.note_thmss "" [note] ctxt) end;
+  let val decls = maps (the_bundle ctxt o prep ctxt) args
+  in #2 (Attrib.local_notes "" [((Binding.empty, []), decls)] ctxt) end;
 
-fun gen_context prep args (Context.Theory thy) =
-      Named_Target.theory_init thy
-      |> Local_Theory.target (gen_includes prep args)
-      |> Local_Theory.restore
-  | gen_context prep args (Context.Proof lthy) =
-      Named_Target.assert lthy
-      |> gen_includes prep args
-      |> Local_Theory.open_target (Local_Theory.naming_of lthy) (Local_Theory.operations_of lthy);
+fun gen_context prep_bundle prep_stmt raw_incls raw_elems gthy =
+  let
+    val lthy = Context.cases Named_Target.theory_init Local_Theory.assert gthy;
+    val augment = gen_includes prep_bundle raw_incls #> prep_stmt raw_elems [] #> snd;
+  in
+    (case gthy of
+      Context.Theory _ => Local_Theory.target augment lthy |> Local_Theory.restore
+    | Context.Proof _ =>
+        augment lthy |>
+        Local_Theory.open_target (Local_Theory.naming_of lthy) (Local_Theory.operations_of lthy))
+  end;
 
 in
 
 val includes = gen_includes (K I);
 val includes_cmd = gen_includes check;
-
-val context_includes = gen_context (K I);
-val context_includes_cmd = gen_context check;
 
 fun include_ bs = Proof.assert_forward #> Proof.map_context (includes bs) #> Proof.reset_facts;
 fun include_cmd bs =
@@ -116,6 +114,9 @@ fun include_cmd bs =
 
 fun including bs = Proof.assert_backward #> Proof.map_context (includes bs);
 fun including_cmd bs = Proof.assert_backward #> Proof.map_context (includes_cmd bs);
+
+val context = gen_context (K I) Expression.cert_statement;
+val context_cmd = gen_context check Expression.read_statement;
 
 end;
 

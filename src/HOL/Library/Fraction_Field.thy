@@ -146,14 +146,15 @@ proof -
 qed
 
 lemma mult_fract_cancel:
-  assumes "c \<noteq> 0"
+  assumes "c \<noteq> (0::'a)"
   shows "Fract (c * a) (c * b) = Fract a b"
 proof -
   from assms have "Fract c c = Fract 1 1" by (simp add: Fract_def)
   then show ?thesis by (simp add: mult_fract [symmetric])
 qed
 
-instance proof
+instance
+proof
   fix q r s :: "'a fract" show "(q * r) * s = q * (r * s)" 
     by (cases q, cases r, cases s) (simp add: eq_fract algebra_simps)
 next
@@ -249,7 +250,8 @@ definition divide_fract_def: "q / r = q * inverse (r:: 'a fract)"
 lemma divide_fract [simp]: "Fract a b / Fract c d = Fract (a * d) (b * c)"
   by (simp add: divide_fract_def)
 
-instance proof
+instance
+proof
   fix q :: "'a fract"
   assume "q \<noteq> 0"
   then show "inverse q * q = 1"
@@ -328,7 +330,8 @@ lemma less_fract [simp]:
   shows "Fract a b < Fract c d \<longleftrightarrow> (a * d) * (b * d) < (c * b) * (b * d)"
 by (simp add: less_fract_def less_le_not_le mult_ac assms)
 
-instance proof
+instance
+proof
   fix q r s :: "'a fract"
   assume "q \<le> r" and "r \<le> s" thus "q \<le> s"
   proof (induct q, induct r, induct s)

@@ -51,8 +51,6 @@ sig
   val satisfy_morphism: witness list -> morphism
   val eq_morphism: theory -> thm list -> morphism option
   val transfer_morphism: theory -> morphism
-  val generic_note_thmss: string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
-    Context.generic -> (string * thm list) list * Context.generic
   val init: context_i -> Context.generic -> Context.generic
   val activate_i: context_i -> Proof.context -> context_i * Proof.context
   val activate: (typ, term, Facts.ref) ctxt -> Proof.context -> context_i * Proof.context
@@ -483,16 +481,6 @@ fun transfer_morphism thy =
 
 (* init *)
 
-fun generic_note_thmss kind facts context =
-  let
-    val facts' =
-      Attrib.map_facts (map (Attrib.attribute_i (Context.theory_of context))) facts;
-  in
-    context |> Context.mapping_result
-      (Global_Theory.note_thmss kind facts')
-      (Proof_Context.note_thmss kind facts')
-  end;
-
 fun init (Fixes fixes) = Context.map_proof (Proof_Context.add_fixes fixes #> #2)
   | init (Constrains _) = I
   | init (Assumes asms) = Context.map_proof (fn ctxt =>
@@ -514,7 +502,7 @@ fun init (Fixes fixes) = Context.map_proof (Proof_Context.add_fixes fixes #> #2)
           |> fold Variable.auto_fixes (map #1 asms)
           |> Proof_Context.add_assms_i Local_Defs.def_export (map #2 asms);
       in ctxt' end)
-  | init (Notes (kind, facts)) = generic_note_thmss kind facts #> #2;
+  | init (Notes (kind, facts)) = Attrib.generic_notes kind facts #> #2;
 
 
 (* activate *)
