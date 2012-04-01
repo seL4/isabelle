@@ -22,73 +22,48 @@ proof -
   finally show ?thesis .
 qed
 
-lemma exp_tail_after_first_two_terms_summable: 
-  "summable (%n. inverse(fact (n+2)) * (x ^ (n+2)))"
-proof -
-  note summable_exp
-  thus ?thesis
-    by (frule summable_ignore_initial_segment)
-qed
-
-lemma aux1: assumes a: "0 <= x" and b: "x <= 1"
-    shows "inverse (fact ((n::nat) + 2)) * x ^ (n + 2) <= (x^2/2) * ((1/2)^n)"
-proof -
-  have "2 * 2 ^ n \<le> fact (n + 2)"
-    by (induct n, simp, simp)
-  hence "real ((2::nat) * 2 ^ n) \<le> real (fact (n + 2))"
-    by (simp only: real_of_nat_le_iff)
-  hence "2 * 2 ^ n \<le> real (fact (n + 2))"
-    by simp
-  hence "inverse (fact (n + 2)) \<le> inverse (2 * 2 ^ n)"
-    by (rule le_imp_inverse_le) simp
-  hence "inverse (fact (n + 2)) \<le> 1/2 * (1/2)^n"
-    by (simp add: inverse_mult_distrib power_inverse)
-  hence "inverse (fact (n + 2)) * (x^n * x\<twosuperior>) \<le> 1/2 * (1/2)^n * (1 * x\<twosuperior>)"
-    by (rule mult_mono)
-      (rule mult_mono, simp_all add: power_le_one a b mult_nonneg_nonneg)
-  thus ?thesis
-    unfolding power_add by (simp add: mult_ac del: fact_Suc)
-qed
-
-lemma aux2: "(%n. (x::real) ^ 2 / 2 * (1 / 2) ^ n) sums x^2"
-proof -
-  have "(%n. (1 / 2::real)^n) sums (1 / (1 - (1/2)))"
-    apply (rule geometric_sums)
-    by (simp add: abs_less_iff)
-  also have "(1::real) / (1 - 1/2) = 2"
-    by simp
-  finally have "(%n. (1 / 2::real)^n) sums 2" .
-  then have "(%n. x ^ 2 / 2 * (1 / 2) ^ n) sums (x^2 / 2 * 2)"
-    by (rule sums_mult)
-  also have "x^2 / 2 * 2 = x^2"
-    by simp
-  finally show ?thesis .
-qed
-
 lemma exp_bound: "0 <= (x::real) ==> x <= 1 ==> exp x <= 1 + x + x^2"
 proof -
   assume a: "0 <= x"
   assume b: "x <= 1"
-  have c: "exp x = 1 + x + suminf (%n. inverse(fact (n+2)) * 
-      (x ^ (n+2)))"
-    by (rule exp_first_two_terms)
-  moreover have "suminf (%n. inverse(fact (n+2)) * (x ^ (n+2))) <= x^2"
+  { fix n :: nat
+    have "2 * 2 ^ n \<le> fact (n + 2)"
+      by (induct n, simp, simp)
+    hence "real ((2::nat) * 2 ^ n) \<le> real (fact (n + 2))"
+      by (simp only: real_of_nat_le_iff)
+    hence "2 * 2 ^ n \<le> real (fact (n + 2))"
+      by simp
+    hence "inverse (fact (n + 2)) \<le> inverse (2 * 2 ^ n)"
+      by (rule le_imp_inverse_le) simp
+    hence "inverse (fact (n + 2)) \<le> 1/2 * (1/2)^n"
+      by (simp add: inverse_mult_distrib power_inverse)
+    hence "inverse (fact (n + 2)) * (x^n * x\<twosuperior>) \<le> 1/2 * (1/2)^n * (1 * x\<twosuperior>)"
+      by (rule mult_mono)
+        (rule mult_mono, simp_all add: power_le_one a b mult_nonneg_nonneg)
+    hence "inverse (fact (n + 2)) * x ^ (n + 2) \<le> (x\<twosuperior>/2) * ((1/2)^n)"
+      unfolding power_add by (simp add: mult_ac del: fact_Suc) }
+  note aux1 = this
+  have "(\<lambda>n. x\<twosuperior> / 2 * (1 / 2) ^ n) sums (x\<twosuperior> / 2 * (1 / (1 - 1 / 2)))"
+    by (intro sums_mult geometric_sums, simp)
+  hence aux2: "(\<lambda>n. (x::real) ^ 2 / 2 * (1 / 2) ^ n) sums x^2"
+    by simp
+  have "suminf (%n. inverse(fact (n+2)) * (x ^ (n+2))) <= x^2"
   proof -
     have "suminf (%n. inverse(fact (n+2)) * (x ^ (n+2))) <=
         suminf (%n. (x^2/2) * ((1/2)^n))"
       apply (rule summable_le)
-      apply (auto simp only: aux1 a b)
-      apply (rule exp_tail_after_first_two_terms_summable)
-      by (rule sums_summable, rule aux2)  
+      apply (rule allI, rule aux1)
+      apply (rule summable_exp [THEN summable_ignore_initial_segment])
+      by (rule sums_summable, rule aux2)
     also have "... = x^2"
       by (rule sums_unique [THEN sym], rule aux2)
     finally show ?thesis .
   qed
-  ultimately show ?thesis
-    by auto
+  thus ?thesis unfolding exp_first_two_terms by auto
 qed
 
-lemma aux4: "0 <= (x::real) ==> x <= 1 ==> exp (x - x^2) <= 1 + x" 
+lemma ln_one_plus_pos_lower_bound: "0 <= x ==> x <= 1 ==> 
+    x - x^2 <= ln (1 + x)"
 proof -
   assume a: "0 <= x" and b: "x <= 1"
   have "exp (x - x^2) = exp x / exp (x^2)"
@@ -101,25 +76,13 @@ proof -
     done
   also have "... <= (1 + x + x^2) / (1 + x^2)"
     apply (rule divide_left_mono)
-    apply (auto simp add: exp_ge_add_one_self_aux)
-    apply (rule add_nonneg_nonneg)
-    using a apply auto
-    apply (rule mult_pos_pos)
-    apply auto
-    apply (rule add_pos_nonneg)
-    apply auto
+    apply (simp add: exp_ge_add_one_self_aux)
+    apply (simp add: a)
+    apply (simp add: mult_pos_pos add_pos_nonneg)
     done
   also from a have "... <= 1 + x"
     by (simp add: field_simps add_strict_increasing zero_le_mult_iff)
-  finally show ?thesis .
-qed
-
-lemma ln_one_plus_pos_lower_bound: "0 <= x ==> x <= 1 ==> 
-    x - x^2 <= ln (1 + x)"
-proof -
-  assume a: "0 <= x" and b: "x <= 1"
-  then have "exp (x - x^2) <= 1 + x"
-    by (rule aux4)
+  finally have "exp (x - x^2) <= 1 + x" .
   also have "... = exp (ln (1 + x))"
   proof -
     from a have "0 < 1 + x" by auto
@@ -138,19 +101,18 @@ proof -
   also have "... <= 1"
     by (auto simp add: a)
   finally have "(1 - x) * (1 + x + x ^ 2) <= 1" .
-  moreover have "0 < 1 + x + x^2"
-    apply (rule add_pos_nonneg)
-    using a apply auto
-    done
+  moreover have c: "0 < 1 + x + x\<twosuperior>"
+    by (simp add: add_pos_nonneg a)
   ultimately have "1 - x <= 1 / (1 + x + x^2)"
     by (elim mult_imp_le_div_pos)
   also have "... <= 1 / exp x"
     apply (rule divide_left_mono)
     apply (rule exp_bound, rule a)
-    using a b apply auto
+    apply (rule b [THEN less_imp_le])
+    apply simp
     apply (rule mult_pos_pos)
-    apply (rule add_pos_nonneg)
-    apply auto
+    apply (rule c)
+    apply simp
     done
   also have "... = exp (-x)"
     by (auto simp add: exp_minus divide_inverse)
@@ -230,8 +192,7 @@ lemma exp_ge_add_one_self [simp]: "1 + (x::real) <= exp x"
 done
 
 lemma ln_add_one_self_le_self2: "-1 < x ==> ln(1 + x) <= x"
-  apply (subgoal_tac "x = ln (exp x)")
-  apply (erule ssubst)back
+  apply (subgoal_tac "ln (1 + x) \<le> ln (exp x)", simp)
   apply (subst ln_le_cancel_iff)
   apply auto
 done
