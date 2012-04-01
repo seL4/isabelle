@@ -136,9 +136,9 @@ sig
   val get_case: Proof.context -> string -> binding option list -> Rule_Cases.T
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> Proof.context -> Proof.context
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> Proof.context -> Proof.context
-  val target_type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> morphism ->
+  val generic_type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> morphism ->
     Context.generic -> Context.generic
-  val target_notation: bool -> Syntax.mode -> (term * mixfix) list -> morphism ->
+  val generic_notation: bool -> Syntax.mode -> (term * mixfix) list -> morphism ->
     Context.generic -> Context.generic
   val class_alias: binding -> class -> Proof.context -> Proof.context
   val type_alias: binding -> string -> Proof.context -> Proof.context
@@ -970,7 +970,7 @@ in
 val type_notation = gen_notation (K type_syntax);
 val notation = gen_notation const_syntax;
 
-fun target_type_notation add mode args phi =
+fun generic_type_notation add mode args phi =
   let
     val args' = args |> map_filter (fn (T, mx) =>
       let
@@ -979,7 +979,7 @@ fun target_type_notation add mode args phi =
       in if similar then SOME (T', mx) else NONE end);
   in Context.mapping (Sign.type_notation add mode args') (type_notation add mode args') end;
 
-fun target_notation add mode args phi =
+fun generic_notation add mode args phi =
   let
     val args' = args |> map_filter (fn (t, mx) =>
       let val t' = Morphism.term phi t

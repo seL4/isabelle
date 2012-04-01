@@ -75,7 +75,7 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx)
             same_shape ?
               (Context.mapping
                 (Sign.revert_abbrev mode d) (Proof_Context.revert_abbrev mode d) #>
-               Morphism.form (Proof_Context.target_notation true prmode [(lhs', mx)]))))
+               Morphism.form (Proof_Context.generic_notation true prmode [(lhs', mx)]))))
     end);
 
 
