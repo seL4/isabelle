@@ -135,9 +135,10 @@ Isabelle2011-1 before jumping right into the current release.
 * Code generation by default implements sets as container type rather
 than predicates.  INCOMPATIBILITY.
 
-* New proof import from HOL Light, cf. HOL/Import. Requires a proof
-bundle, which is available as an external component. Removed old (and
-mostly dead) Importer for HOL4 and HOL Light.  INCOMPATIBILITY.
+* New proof import from HOL Light: Faster, simpler, and more scalable.
+Requires a proof bundle, which is available as an external component.
+Removed old (and mostly dead) Importer for HOL4 and HOL Light.
+INCOMPATIBILITY.
 
 * New type synonym 'a rel = ('a * 'a) set
 
