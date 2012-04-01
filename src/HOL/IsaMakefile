@@ -38,8 +38,8 @@ test: \
       HOLCF-Library \
       HOLCF-Tutorial \
       HOLCF-ex \
-  HOL-HOL_Light \
   HOL-IMPP \
+  HOL-Import \
   HOL-IOA \
       IOA-ABP \
       IOA-NTP \
@@ -550,16 +550,16 @@ $(LOG)/HOL-IMPP.gz: $(OUT)/HOL IMPP/ROOT.ML IMPP/Com.thy		\
 
 ## Import sessions
 
-HOL-HOL_Light: $(LOG)/HOL-HOL_Light.gz
+HOL-Import: $(LOG)/HOL-Import.gz
 
-$(LOG)/HOL-HOL_Light.gz: $(OUT)/HOL \
+$(LOG)/HOL-Import.gz: $(OUT)/HOL \
   Import/ROOT.ML \
   Import/Import_Setup.thy \
   Import/import_data.ML \
   Import/import_rule.ML \
   Import/HOL_Light_Maps.thy \
   Import/HOL_Light_Import.thy
-	@cd Import; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-HOL_Light
+	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Import
 
 ## HOL-Number_Theory
 
