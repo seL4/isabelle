@@ -82,8 +82,7 @@ test: \
     # ^ this is the sort position
 
 generate: \
-  HOL-HOL4-Generate \
-  HOL-HOL_Light-Generate
+  HOL-HOL4-Generate
 
 benchmark: \
   HOL-Datatype_Benchmark \
@@ -558,23 +557,16 @@ $(LOG)/HOL-IMPP.gz: $(OUT)/HOL IMPP/ROOT.ML IMPP/Com.thy		\
 ## Import sessions
 
 IMPORTER_BASIC_DEPENDENCIES = \
-  Import/Importer.thy \
-  Import/shuffler.ML \
-  Import/import_rews.ML \
-  Import/proof_kernel.ML \
-  Import/replay.ML \
-  Import/import.ML
+  Import/HOL4/Importer.thy \
+  Import/HOL4/shuffler.ML \
+  Import/HOL4/import_rews.ML \
+  Import/HOL4/proof_kernel.ML \
+  Import/HOL4/replay.ML \
+  Import/HOL4/import.ML
 
 IMPORTER_HOL4_COMPATIBILITY_DEDEPENDENCIES = \
   Import/HOL4/ROOT.ML \
   Import/HOL4/Compatibility.thy
-
-IMPORTER_HOL_LIGHT_COMPATIBILITY_DEDEPENDENCIES = \
-  Import/HOL_Light/ROOT.ML \
-  Import/HOL_Light/HOLLightInt.thy \
-  Import/HOL_Light/HOLLightList.thy \
-  Import/HOL_Light/HOLLightReal.thy \
-  Import/HOL_Light/Compatibility.thy
 
 HOL-HOL4: $(LOG)/HOL-HOL4.gz
 
@@ -586,9 +578,13 @@ $(LOG)/HOL-HOL4.gz: $(OUT)/HOL \
 HOL-HOL_Light: $(LOG)/HOL-HOL_Light.gz
 
 $(LOG)/HOL-HOL_Light.gz: $(OUT)/HOL \
-  $(IMPORTER_BASIC_DEPENDENCIES) \
-  $(IMPORTER_HOL_LIGHT_COMPATIBILITY_DEDEPENDENCIES)
-	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Import/HOL_Light
+  Import/ROOT.ML \
+  Import/Import_Setup.thy \
+  Import/import_data.ML \
+  Import/import_rule.ML \
+  Import/HOL_Light_Maps.thy \
+  Import/HOL_Light_Import.thy
+	@cd Import; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-HOL_Light
 
 HOL-HOL4-Imported: $(LOG)/HOL-HOL4-Imported.gz
 
@@ -652,17 +648,6 @@ $(LOG)/HOL-HOL4-Imported.gz: $(OUT)/HOL \
   Import/HOL4/Generated/word_num.imp
 	@$(ISABELLE_TOOL) usedir -f imported.ML -s HOL4-Imported -p 0 $(OUT)/HOL Import/HOL4
 
-HOL-HOL_Light-Imported: $(LOG)/HOL-HOL_Light-Imported.gz
-
-$(LOG)/HOL-HOL_Light-Imported.gz: $(OUT)/HOL \
-  $(IMPORTER_BASIC_DEPENDENCIES) \
-  $(IMPORTER_HOL_LIGHT_COMPATIBILITY_DEDEPENDENCIES) \
-  Import/HOL_Light/imported.ML \
-  Import/HOL_Light/Imported.thy \
-  Import/HOL_Light/Generated/HOLLight.thy \
-  Import/HOL_Light/Generated/hollight.imp
-	@$(ISABELLE_TOOL) usedir -f imported.ML -s HOL_Light-Imported -p 0 $(OUT)/HOL Import/HOL_Light
-
 HOL-HOL4-Generate: $(LOG)/Import-HOL4-Generate.gz
 
 $(LOG)/Import-HOL4-Generate.gz: $(OUT)/HOL \
@@ -676,17 +661,6 @@ $(LOG)/Import-HOL4-Generate.gz: $(OUT)/HOL \
   Import/HOL4/Template/GenHOL4Vec.thy \
   Import/HOL4/Template/GenHOL4Word32.thy
 	@$(ISABELLE_TOOL) usedir -f generate.ML -s HOL4-Generate -p 0 $(OUT)/HOL Import/HOL4
-
-HOL-HOL_Light-Generate: $(LOG)/Import-HOL_Light-Generate.gz
-
-$(LOG)/Import-HOL_Light-Generate.gz: $(OUT)/HOL \
-  $(IMPORTER_BASIC_DEPENDENCIES) \
-  $(IMPORTER_HOL_LIGHT_COMPATIBILITY_DEDEPENDENCIES) \
-  Import/HOL_Light/generate.ML \
-  Import/HOL_Light/Generate.thy \
-  Import/HOL_Light/Template/GenHOLLight.thy
-	@$(ISABELLE_TOOL) usedir -f generate.ML -s HOL_Light-Generate -p 0 $(OUT)/HOL Import/HOL_Light
-
 
 ## HOL-Number_Theory
 
