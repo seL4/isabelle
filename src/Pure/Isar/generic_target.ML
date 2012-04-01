@@ -191,7 +191,7 @@ fun background_declaration decl lthy =
 
 fun standard_declaration decl =
   background_declaration decl #>
-  (fn lthy => Local_Theory.map_contexts (fn ctxt =>
+  (fn lthy => Local_Theory.map_contexts (fn _ => fn ctxt =>
     Context.proof_map (Local_Theory.standard_form lthy ctxt decl) ctxt) lthy);
 
 

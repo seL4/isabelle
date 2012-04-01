@@ -10,12 +10,12 @@ type generic_theory = Context.generic;
 signature LOCAL_THEORY =
 sig
   type operations
-  val map_contexts: (Proof.context -> Proof.context) -> local_theory -> local_theory
   val assert: local_theory -> local_theory
   val level: Proof.context -> int
   val assert_bottom: bool -> local_theory -> local_theory
   val open_target: Name_Space.naming -> operations -> local_theory -> local_theory
   val close_target: local_theory -> local_theory
+  val map_contexts: (int -> Proof.context -> Proof.context) -> local_theory -> local_theory
   val naming_of: local_theory -> Name_Space.naming
   val full_name: local_theory -> binding -> string
   val map_naming: (Name_Space.naming -> Name_Space.naming) -> local_theory -> local_theory
@@ -23,17 +23,16 @@ sig
   val new_group: local_theory -> local_theory
   val reset_group: local_theory -> local_theory
   val restore_naming: local_theory -> local_theory -> local_theory
-  val target_of: local_theory -> Proof.context
+  val standard_morphism: local_theory -> Proof.context -> morphism
+  val standard_form: local_theory -> Proof.context -> (morphism -> 'a) -> 'a
   val raw_theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
   val raw_theory: (theory -> theory) -> local_theory -> local_theory
   val background_theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
   val background_theory: (theory -> theory) -> local_theory -> local_theory
-  val target_result: (Proof.context -> 'a * Proof.context) -> local_theory -> 'a * local_theory
+  val target_of: local_theory -> Proof.context
   val target: (Proof.context -> Proof.context) -> local_theory -> local_theory
-  val propagate_ml_env: generic_theory -> generic_theory
-  val standard_morphism: local_theory -> Proof.context -> morphism
   val target_morphism: local_theory -> morphism
-  val standard_form: local_theory -> Proof.context -> (morphism -> 'a) -> 'a
+  val propagate_ml_env: generic_theory -> generic_theory
   val operations_of: local_theory -> operations
   val define: (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory
@@ -98,21 +97,13 @@ structure Data = Proof_Data
   fun init _ = [];
 );
 
-fun map_contexts f =
-  (Data.map o map) (fn {naming, operations, target} =>
-    make_lthy (naming, operations,
-      target
-      |> Context_Position.set_visible false
-      |> f
-      |> Context_Position.restore_visible target))
-  #> f;
-
 fun assert lthy =
   if null (Data.get lthy) then error "Missing local theory context" else lthy;
 
-val get_lthy = hd o Data.get o assert;
+val get_last_lthy = List.last o Data.get o assert;
+val get_first_lthy = hd o Data.get o assert;
 
-fun map_lthy f = assert #>
+fun map_first_lthy f = assert #>
   Data.map (fn {naming, operations, target} :: parents =>
     make_lthy (f (naming, operations, target)) :: parents);
 
@@ -137,13 +128,25 @@ fun open_target naming operations target = assert target
 fun close_target lthy =
   assert_bottom false lthy |> Data.map tl;
 
+fun map_contexts f lthy =
+  let val n = level lthy in
+    lthy |> (Data.map o map_index) (fn (i, {naming, operations, target}) =>
+      make_lthy (naming, operations,
+        target
+        |> Context_Position.set_visible false
+        |> f (n - i - 1)
+        |> Context_Position.restore_visible target))
+    |> f n
+  end;
+
 
 (* naming *)
 
-val naming_of = #naming o get_lthy;
+val naming_of = #naming o get_first_lthy;
 val full_name = Name_Space.full_name o naming_of;
 
-fun map_naming f = map_lthy (fn (naming, operations, target) => (f naming, operations, target));
+fun map_naming f =
+  map_first_lthy (fn (naming, operations, target) => (f naming, operations, target));
 
 val conceal = map_naming Name_Space.conceal;
 val new_group = map_naming Name_Space.new_group;
@@ -152,19 +155,22 @@ val reset_group = map_naming Name_Space.reset_group;
 val restore_naming = map_naming o K o naming_of;
 
 
-(* target *)
+(* standard morphisms *)
 
-val target_of = #target o get_lthy;
+fun standard_morphism lthy ctxt =
+  Proof_Context.norm_export_morphism lthy ctxt $>
+  Morphism.binding_morphism (Name_Space.transform_binding (naming_of lthy));
 
-fun map_target f = map_lthy (fn (naming, operations, target) => (naming, operations, f target));
+fun standard_form lthy ctxt x =
+  Morphism.form (Morphism.transform (standard_morphism lthy ctxt) x);
 
 
-(* substructure mappings *)
+(* background theory *)
 
 fun raw_theory_result f lthy =
   let
     val (res, thy') = f (Proof_Context.theory_of lthy);
-    val lthy' = map_contexts (Proof_Context.transfer thy') lthy;
+    val lthy' = map_contexts (K (Proof_Context.transfer thy')) lthy;
   in (res, lthy') end;
 
 fun raw_theory f = #2 o raw_theory_result (f #> pair ());
@@ -181,47 +187,37 @@ fun background_theory_result f lthy =
 
 fun background_theory f = #2 o background_theory_result (f #> pair ());
 
-fun target_result f lthy =
+
+(* target contexts *)
+
+val target_of = #target o get_last_lthy;
+
+fun target f lthy =
   let
-    val target = target_of lthy;
-    val (res, ctxt') = target
+    val ctxt = target_of lthy;
+    val ctxt' = ctxt
       |> Context_Position.set_visible false
       |> f
-      ||> Context_Position.restore_visible target;
+      |> Context_Position.restore_visible ctxt;
     val thy' = Proof_Context.theory_of ctxt';
-    val lthy' = lthy
-      |> map_target (K ctxt')
-      |> map_contexts (Proof_Context.transfer thy');
-  in (res, lthy') end;
+  in map_contexts (fn 0 => K ctxt' | _ => Proof_Context.transfer thy') lthy end;
 
-fun target f = #2 o target_result (f #> pair ());
+fun target_morphism lthy = standard_morphism lthy (target_of lthy);
 
 fun propagate_ml_env (context as Context.Proof lthy) =
       let val inherit = ML_Env.inherit context in
         lthy
         |> background_theory (Context.theory_map inherit)
-        |> map_contexts (Context.proof_map inherit)
+        |> map_contexts (K (Context.proof_map inherit))
         |> Context.Proof
       end
   | propagate_ml_env context = context;
 
 
-(* morphisms *)
-
-fun standard_morphism lthy ctxt =
-  Proof_Context.norm_export_morphism lthy ctxt $>
-  Morphism.binding_morphism (Name_Space.transform_binding (naming_of lthy));
-
-fun target_morphism lthy = standard_morphism lthy (target_of lthy);
-
-fun standard_form lthy ctxt x =
-  Morphism.form (Morphism.transform (standard_morphism lthy ctxt) x);
-
-
 
 (** operations **)
 
-val operations_of = #operations o get_lthy;
+val operations_of = #operations o get_first_lthy;
 
 
 (* primitives *)
@@ -286,7 +282,7 @@ fun init naming operations target =
   |> checkpoint;
 
 fun restore lthy =
-  let val {naming, operations, target} = get_lthy lthy
+  let val {naming, operations, target} = get_first_lthy lthy
   in init naming operations target end;
 
 
