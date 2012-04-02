@@ -61,8 +61,8 @@ fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
     val thy_ctxt = Proof_Context.init_global thy;
 
     (*term and type parameters*)
-    val crhs = Thm.cterm_of thy rhs;
-    val ((defs, _), rhs') = Local_Defs.export_cterm lthy thy_ctxt crhs ||> Thm.term_of;
+    val ((defs, _), rhs') = Thm.cterm_of thy rhs
+      |> Local_Defs.export_cterm lthy thy_ctxt ||> Thm.term_of;
 
     val xs = Variable.add_fixed lthy rhs' [];
     val T = Term.fastype_of rhs;
