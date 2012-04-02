@@ -51,7 +51,7 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx)
     let
       val b' = Morphism.binding phi b;
       val rhs' = Morphism.term phi rhs;
-      val arg = (b', Term.close_schematic_term rhs');
+      val rhs'' = Term.close_schematic_term rhs';
       val same_shape = Term.aconv_untyped (rhs, rhs');
 
       (* FIXME workaround based on educated guess *)
@@ -63,13 +63,10 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx)
         orelse same_shape);
     in
       not is_canonical_class ?
-        (Context.mapping_result
-          (Sign.add_abbrev Print_Mode.internal arg)
-          (Proof_Context.add_abbrev Print_Mode.internal arg)
+        (Proof_Context.generic_add_abbrev Print_Mode.internal (b', rhs'')
         #-> (fn (lhs' as Const (d, _), _) =>
             same_shape ?
-              (Context.mapping
-                (Sign.revert_abbrev mode d) (Proof_Context.revert_abbrev mode d) #>
+              (Proof_Context.generic_revert_abbrev mode d #>
                Morphism.form (Proof_Context.generic_notation true prmode [(lhs', mx)]))))
     end);
 
