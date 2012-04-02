@@ -128,7 +128,7 @@ fun open_target naming operations target = assert target
   |> Data.map (cons (make_lthy (naming, operations, target)));
 
 fun close_target lthy =
-  assert_bottom false lthy |> Data.map tl;
+  assert_bottom false lthy |> Data.map tl |> restore;
 
 fun map_contexts f lthy =
   let val n = level lthy in
