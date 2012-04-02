@@ -46,6 +46,12 @@ val peek =
 
 (* consts in locale *)
 
+fun generic_const same_shape prmode ((b, mx), t) =
+  Proof_Context.generic_add_abbrev Print_Mode.internal (b, t)
+  #-> (fn (const as Const (c, _), _) => same_shape ?
+        (Proof_Context.generic_revert_abbrev (#1 prmode) c #>
+          Morphism.form (Proof_Context.generic_notation true prmode [(const, mx)])));
+
 fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx), rhs) =
   Generic_Target.locale_declaration target true (fn phi =>
     let
@@ -61,14 +67,7 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx)
           andalso not (null prefix')
           andalso List.last prefix' = (Class.class_prefix target, false)
         orelse same_shape);
-    in
-      not is_canonical_class ?
-        (Proof_Context.generic_add_abbrev Print_Mode.internal (b', rhs'')
-        #-> (fn (lhs' as Const (d, _), _) =>
-            same_shape ?
-              (Proof_Context.generic_revert_abbrev mode d #>
-               Morphism.form (Proof_Context.generic_notation true prmode [(lhs', mx)]))))
-    end);
+    in not is_canonical_class ? generic_const same_shape prmode ((b', mx), rhs'') end);
 
 
 (* define *)
