@@ -216,13 +216,18 @@ demonstration purposes:%
 %
 \endisadelimproof
 \isacommand{datatype}\isamarkupfalse%
-\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{3D}{\isacharequal}}\ Nil\ {\isaliteral{7C}{\isacharbar}}\ Cons\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ list{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
+\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{3D}{\isacharequal}}\ Nil\ {\isaliteral{7C}{\isacharbar}}\ Cons\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ list{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
-This means that all lists are built up from \isa{Nil}, the empty
-list, and \isa{Cons}, the operation of putting an element in front of a
-list.  Hence all lists are of the form \isa{Nil}, or \isa{Cons\ x\ Nil},
+\begin{itemize}
+\item Type \isa{{\isaliteral{27}{\isacharprime}}a\ list} is the type of list over elements of type \isa{{\isaliteral{27}{\isacharprime}}a}. Because \isa{{\isaliteral{27}{\isacharprime}}a} is a type variable, lists are in fact \concept{polymorphic}: the elements of a list can be of arbitrary type (but must all be of the same type).
+\item Lists have two constructors: \isa{Nil}, the empty list, and \isa{Cons}, which puts an element (of type \isa{{\isaliteral{27}{\isacharprime}}a}) in front of a list (of type \isa{{\isaliteral{27}{\isacharprime}}a\ list}).
+Hence all lists are of the form \isa{Nil}, or \isa{Cons\ x\ Nil},
 or \isa{Cons\ x\ {\isaliteral{28}{\isacharparenleft}}Cons\ y\ Nil{\isaliteral{29}{\isacharparenright}}} etc.
-
+\item \isacom{datatype} requires no quotation marks on the
+left-hand side, but on the right-hand side each of the argument
+types of a constructor needs to be enclosed in quotation marks, unless
+it is just an identifier (e.g.\ \isa{nat} or \isa{{\isaliteral{27}{\isacharprime}}a}).
+\end{itemize}
 We also define two standard functions, append and reverse:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -254,11 +259,12 @@ yields the result \isa{Cons\ False\ {\isaliteral{28}{\isacharparenleft}}Cons\ Tr
 yields \isa{Cons\ b\ {\isaliteral{28}{\isacharparenleft}}Cons\ a\ Nil{\isaliteral{29}{\isacharparenright}}}.
 \medskip
 
-Figure~\ref{fig:MyList} shows the theory created so far. Notice where the
-quotations marks are needed that we mostly sweep under the carpet.  In
-particular, notice that \isacom{datatype} requires no quotation marks on the
-left-hand side, but that on the right-hand side each of the argument
-types of a constructor needs to be enclosed in quotation marks.
+Figure~\ref{fig:MyList} shows the theory created so far.
+% Notice where the
+%quotations marks are needed that we mostly sweep under the carpet.  In
+%particular, notice that \isacom{datatype} requires no quotation marks on the
+%left-hand side, but that on the right-hand side each of the argument
+%types of a constructor needs to be enclosed in quotation marks.
 
 \begin{figure}[htbp]
 \begin{alltt}

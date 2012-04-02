@@ -2,7 +2,7 @@ theory MyList
 imports Main
 begin
 
-datatype 'a list = Nil | Cons "'a" "('a list)"
+datatype 'a list = Nil | Cons 'a "'a list"
 
 fun app :: "'a list => 'a list => 'a list" where
 "app Nil ys = ys" |
