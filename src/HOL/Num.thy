@@ -865,8 +865,11 @@ subsubsection {*
   Natural numbers
 *}
 
+lemma Suc_1 [simp]: "Suc 1 = 2"
+  unfolding Suc_eq_plus1 by (rule one_add_one)
+
 lemma Suc_numeral [simp]: "Suc (numeral n) = numeral (n + One)"
-  unfolding numeral_plus_one [symmetric] by simp
+  unfolding Suc_eq_plus1 by (rule numeral_plus_one)
 
 definition pred_numeral :: "num \<Rightarrow> nat"
   where [code del]: "pred_numeral k = numeral k - 1"
