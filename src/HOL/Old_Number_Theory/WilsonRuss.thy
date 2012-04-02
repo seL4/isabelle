@@ -60,11 +60,6 @@ lemma inv_not_0:
   apply safe
   apply (cut_tac a = a and p = p in inv_is_inv)
      apply (unfold zcong_def, auto)
-  apply (subgoal_tac "\<not> p dvd 1")
-   apply (rule_tac [2] zdvd_not_zless)
-    apply (subgoal_tac "p dvd 1")
-     prefer 2
-     apply (subst dvd_minus_iff [symmetric], auto)
   done
 
 lemma inv_not_1:

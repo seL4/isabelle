@@ -2126,11 +2126,15 @@ done
 
 subsubsection {* The Divides Relation *}
 
-lemmas zdvd_iff_zmod_eq_0_numeral [simp] =
-  dvd_eq_mod_eq_0 [of "numeral x::int" "numeral y::int"]
-  dvd_eq_mod_eq_0 [of "numeral x::int" "neg_numeral y::int"]
-  dvd_eq_mod_eq_0 [of "neg_numeral x::int" "numeral y::int"]
-  dvd_eq_mod_eq_0 [of "neg_numeral x::int" "neg_numeral y::int"] for x y
+lemma dvd_neg_numeral_left [simp]:
+  fixes y :: "'a::comm_ring_1"
+  shows "(neg_numeral k) dvd y \<longleftrightarrow> (numeral k) dvd y"
+  unfolding neg_numeral_def minus_dvd_iff ..
+
+lemma dvd_neg_numeral_right [simp]:
+  fixes x :: "'a::comm_ring_1"
+  shows "x dvd (neg_numeral k) \<longleftrightarrow> x dvd (numeral k)"
+  unfolding neg_numeral_def dvd_minus_iff ..
 
 lemmas dvd_eq_mod_eq_0_numeral [simp] =
   dvd_eq_mod_eq_0 [of "numeral x" "numeral y"] for x y
