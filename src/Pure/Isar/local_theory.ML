@@ -11,6 +11,7 @@ signature LOCAL_THEORY =
 sig
   type operations
   val assert: local_theory -> local_theory
+  val restore: local_theory -> local_theory
   val level: Proof.context -> int
   val assert_bottom: bool -> local_theory -> local_theory
   val open_target: Name_Space.naming -> operations -> local_theory -> local_theory
@@ -33,7 +34,6 @@ sig
   val target: (Proof.context -> Proof.context) -> local_theory -> local_theory
   val target_morphism: local_theory -> morphism
   val propagate_ml_env: generic_theory -> generic_theory
-  val restore: local_theory -> local_theory
   val operations_of: local_theory -> operations
   val define: (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory
@@ -106,6 +106,8 @@ val get_first_lthy = hd o Data.get o assert;
 fun map_first_lthy f = assert #>
   Data.map (fn {naming, operations, target} :: parents =>
     make_lthy (f (naming, operations, target)) :: parents);
+
+fun restore lthy = #target (get_first_lthy lthy) |> Data.put (Data.get lthy);
 
 
 (* nested structure *)
@@ -212,8 +214,6 @@ fun propagate_ml_env (context as Context.Proof lthy) =
         |> Context.Proof
       end
   | propagate_ml_env context = context;
-
-fun restore lthy = target_of lthy |> Data.put (Data.get lthy);
 
 
 
