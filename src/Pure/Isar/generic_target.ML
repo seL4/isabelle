@@ -24,8 +24,8 @@ sig
       term list -> local_theory -> local_theory) ->
     string * bool -> (binding * mixfix) * term -> local_theory -> (term * term) * local_theory
   val background_declaration: declaration -> local_theory -> local_theory
-  val standard_declaration: declaration -> local_theory -> local_theory
   val locale_declaration: string -> bool -> declaration -> local_theory -> local_theory
+  val standard_declaration: declaration -> local_theory -> local_theory
   val theory_foundation: ((binding * typ) * mixfix) * (binding * term) ->
     term list * term list -> local_theory -> (term * thm) * local_theory
   val theory_notes: string ->
@@ -210,14 +210,14 @@ fun background_declaration decl lthy =
         (Proof_Context.init_global (Proof_Context.theory_of lthy)) decl;
   in Local_Theory.background_theory (Context.theory_map theory_decl) lthy end;
 
-fun standard_declaration decl lthy =
-  Local_Theory.map_contexts (fn _ => fn ctxt =>
-    Context.proof_map (Local_Theory.standard_form lthy ctxt decl) ctxt) lthy;
-
 fun locale_declaration locale syntax decl lthy = lthy
   |> Local_Theory.target (fn ctxt => ctxt |>
     Locale.add_declaration locale syntax
       (Morphism.transform (Local_Theory.standard_morphism lthy ctxt) decl));
+
+fun standard_declaration decl lthy =
+  Local_Theory.map_contexts (fn _ => fn ctxt =>
+    Context.proof_map (Local_Theory.standard_form lthy ctxt decl) ctxt) lthy;
 
 
 
