@@ -95,6 +95,8 @@ distinct sorts used to be assigned accidentally.  For example:
 
 *** HOL ***
 
+* New tutorial Programming and Proving in Isabelle/HOL
+
 * The representation of numerals has changed. We now have a datatype
 "num" representing strictly positive binary numerals, along with
 functions "numeral :: num => 'a" and "neg_numeral :: num => 'a" to
