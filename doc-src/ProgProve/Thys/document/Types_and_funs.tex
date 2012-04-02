@@ -1,0 +1,605 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Types{\isaliteral{5F}{\isacharunderscore}}and{\isaliteral{5F}{\isacharunderscore}}funs}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\begin{isamarkuptext}%
+\vspace{-5ex}
+\section{Type and function definitions}
+
+Type synonyms are abbreviations for existing types, for example%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{type{\isaliteral{5F}{\isacharunderscore}}synonym}\isamarkupfalse%
+\ string\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequoteopen}}char\ list{\isaliteral{22}{\isachardoublequoteclose}}%
+\begin{isamarkuptext}%
+Type synonyms are expanded after parsing and are not present in internal representation and output. They are mere conveniences for the reader.
+
+\subsection{Datatypes}
+
+The general form of a datatype definition looks like this:
+\begin{quote}
+\begin{tabular}{@ {}rclcll}
+\isacom{datatype} \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}{\isaliteral{27}{\isacharprime}}a\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{29}{\isacharparenright}}t}
+     & = & $C_1 \ \isa{{\isaliteral{22}{\isachardoublequote}}}\tau_{1,1}\isa{{\isaliteral{22}{\isachardoublequote}}} \dots \isa{{\isaliteral{22}{\isachardoublequote}}}\tau_{1,n_1}\isa{{\isaliteral{22}{\isachardoublequote}}}$ \\
+     & $|$ & \dots \\
+     & $|$ & $C_k \ \isa{{\isaliteral{22}{\isachardoublequote}}}\tau_{k,1}\isa{{\isaliteral{22}{\isachardoublequote}}} \dots \isa{{\isaliteral{22}{\isachardoublequote}}}\tau_{k,n_k}\isa{{\isaliteral{22}{\isachardoublequote}}}$
+\end{tabular}
+\end{quote}
+It introduces the constructors \
+$C_i :: \tau_{i,1}\Rightarrow \cdots \Rightarrow \tau_{i,n_i} \Rightarrow$~\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}{\isaliteral{27}{\isacharprime}}a\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{29}{\isacharparenright}}t} \ and expresses that any value of this type is built from these constructors in a unique manner. Uniqueness is implied by the following
+properties of the constructors:
+\begin{itemize}
+\item \emph{Distinctness:} $C_i\ \ldots \neq C_j\ \dots$ \quad if $i \neq j$
+\item \emph{Injectivity:}
+\begin{tabular}[t]{l}
+ $(C_i \ x_1 \dots x_{n_i} = C_i \ y_1 \dots y_{n_i}) =$\\
+ $(x_1 = y_1 \land \dots \land x_{n_i} = y_{n_i})$
+\end{tabular}
+\end{itemize}
+The fact that any value of the datatype is built from the constructors implies
+the structural induction rule: to show
+$P~x$ for all $x$ of type \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}{\isaliteral{27}{\isacharprime}}a\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{29}{\isacharparenright}}t},
+one needs to show $P(C_i\ x_1 \dots x_{n_i})$ (for each $i$) assuming
+$P(x_j)$ for all $j$ where $\tau_{i,j} =$~\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}{\isaliteral{27}{\isacharprime}}a\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{29}{\isacharparenright}}t}.
+Distinctness and injectivity are applied automatically by \isa{auto}
+and other proof methods. Induction must be applied explicitly.
+
+Datatype values can be taken apart with case-expressions, for example
+\begin{quote}
+\noquotes{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}case\ xs\ of\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isadigit{0}}\ {\isaliteral{7C}{\isacharbar}}\ x\ {\isaliteral{23}{\isacharhash}}\ {\isaliteral{5F}{\isacharunderscore}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ Suc\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}}
+\end{quote}
+just like in functional programming languages. Case expressions
+must be enclosed in parentheses.
+
+As an example, consider binary trees:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{datatype}\isamarkupfalse%
+\ {\isaliteral{27}{\isacharprime}}a\ tree\ {\isaliteral{3D}{\isacharequal}}\ Tip\ {\isaliteral{7C}{\isacharbar}}\ Node\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ tree{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ tree{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
+\begin{isamarkuptext}%
+with a mirror function:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{fun}\isamarkupfalse%
+\ mirror\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ tree\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ tree{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}mirror\ Tip\ {\isaliteral{3D}{\isacharequal}}\ Tip{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}mirror\ {\isaliteral{28}{\isacharparenleft}}Node\ l\ a\ r{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ Node\ {\isaliteral{28}{\isacharparenleft}}mirror\ r{\isaliteral{29}{\isacharparenright}}\ a\ {\isaliteral{28}{\isacharparenleft}}mirror\ l{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
+\begin{isamarkuptext}%
+The following lemma illustrates induction:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}mirror{\isaliteral{28}{\isacharparenleft}}mirror\ t{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ t{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+{\isaliteral{28}{\isacharparenleft}}induction\ t{\isaliteral{29}{\isacharparenright}}%
+\begin{isamarkuptxt}%
+yields
+\begin{isabelle}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ mirror\ {\isaliteral{28}{\isacharparenleft}}mirror\ Tip{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ Tip\isanewline
+\ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}t{\isadigit{1}}\ a\ t{\isadigit{2}}{\isaliteral{2E}{\isachardot}}\isanewline
+\isaindent{\ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}mirror\ {\isaliteral{28}{\isacharparenleft}}mirror\ t{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ t{\isadigit{1}}{\isaliteral{3B}{\isacharsemicolon}}\ mirror\ {\isaliteral{28}{\isacharparenleft}}mirror\ t{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ t{\isadigit{2}}{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\isaindent{\ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ mirror\ {\isaliteral{28}{\isacharparenleft}}mirror\ {\isaliteral{28}{\isacharparenleft}}Node\ t{\isadigit{1}}\ a\ t{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ Node\ t{\isadigit{1}}\ a\ t{\isadigit{2}}%
+\end{isabelle}
+The induction step contains two induction hypotheses, one for each subtree.
+An application of \isa{auto} finishes the proof.
+
+A very simple but also very useful datatype is the predefined
+\begin{isabelle}%
+\isacommand{datatype}\ {\isaliteral{27}{\isacharprime}}a\ option\ {\isaliteral{3D}{\isacharequal}}\ None\ {\isaliteral{7C}{\isacharbar}}\ Some\ {\isaliteral{27}{\isacharprime}}a%
+\end{isabelle}
+Its sole purpose is to add a new element \isa{None} to an existing
+type \isa{{\isaliteral{27}{\isacharprime}}a}. To make sure that \isa{None} is distinct from all the
+elements of \isa{{\isaliteral{27}{\isacharprime}}a}, you wrap them up in \isa{Some} and call
+the new type \isa{{\isaliteral{27}{\isacharprime}}a\ option}. A typical application is a lookup function
+on a list of key-value pairs, often called an association list:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isacommand{fun}\isamarkupfalse%
+\ lookup\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{29}{\isacharparenright}}\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b\ option{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}lookup\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ x{\isaliteral{27}{\isacharprime}}\ {\isaliteral{3D}{\isacharequal}}\ None{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}lookup\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{23}{\isacharhash}}\ ps{\isaliteral{29}{\isacharparenright}}\ x{\isaliteral{27}{\isacharprime}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}if\ x\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{27}{\isacharprime}}\ then\ Some\ y\ else\ lookup\ ps\ x{\isaliteral{27}{\isacharprime}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
+\begin{isamarkuptext}%
+Note that \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}} is the type of pairs, also written \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}}.
+
+\subsection{Definitions}
+
+Non recursive functions can be defined as in the following example:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{definition}\isamarkupfalse%
+\ sq\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}sq\ n\ {\isaliteral{3D}{\isacharequal}}\ n\ {\isaliteral{2A}{\isacharasterisk}}\ n{\isaliteral{22}{\isachardoublequoteclose}}%
+\begin{isamarkuptext}%
+Such definitions do not allow pattern matching but only
+\isa{f\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub n\ {\isaliteral{3D}{\isacharequal}}\ t}, where \isa{f} does not occur in \isa{t}.
+
+\subsection{Abbreviations}
+
+Abbreviations are similar to definitions:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{abbreviation}\isamarkupfalse%
+\ sq{\isaliteral{27}{\isacharprime}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}sq{\isaliteral{27}{\isacharprime}}\ n\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3D}{\isacharequal}}\ n\ {\isaliteral{2A}{\isacharasterisk}}\ n{\isaliteral{22}{\isachardoublequoteclose}}%
+\begin{isamarkuptext}%
+The key difference is that \isa{sq{\isaliteral{27}{\isacharprime}}} is only syntactic sugar:
+\isa{sq{\isaliteral{27}{\isacharprime}}\ t} is replaced by \mbox{\isa{t\ {\isaliteral{2A}{\isacharasterisk}}\ t}} after parsing, and every
+occurrence of a term \isa{u\ {\isaliteral{2A}{\isacharasterisk}}\ u} is replaced by \mbox{\isa{sq{\isaliteral{27}{\isacharprime}}\ u}} before
+printing.  Internally, \isa{sq{\isaliteral{27}{\isacharprime}}} does not exist.  This is also the
+advantage of abbreviations over definitions: definitions need to be expanded
+explicitly (see \autoref{sec:rewr-defs}) whereas abbreviations are already
+expanded upon parsing. However, abbreviations should be introduced sparingly:
+if abused, they can lead to a confusing discrepancy between the internal and
+external view of a term.
+
+\subsection{Recursive functions}
+\label{sec:recursive-funs}
+
+Recursive functions are defined with \isacom{fun} by pattern matching
+over datatype constructors. The order of equations matters. Just as in
+functional programming languages. However, all HOL functions must be
+total. This simplifies the logic---terms are always defined---but means
+that recursive functions must terminate. Otherwise one could define a
+function \isa{f\ n\ {\isaliteral{3D}{\isacharequal}}\ f\ n\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}} and conclude \mbox{\isa{{\isadigit{0}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}}} by
+subtracting \isa{f\ n} on both sides.
+
+Isabelle automatic termination checker requires that the arguments of
+recursive calls on the right-hand side must be strictly smaller than the
+arguments on the left-hand side. In the simplest case, this means that one
+fixed argument position decreases in size with each recursive call. The size
+is measured as the number of constructors (excluding 0-ary ones, e.g.\ \isa{Nil}). Lexicographic combinations are also recognised. In more complicated
+situations, the user may have to prove termination by hand. For details
+see~\cite{Krauss}.
+
+Functions defined with \isacom{fun} come with their own induction schema
+that mirrors the recursion schema and is derived from the termination
+order. For example,%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{fun}\isamarkupfalse%
+\ div{\isadigit{2}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}div{\isadigit{2}}\ {\isadigit{0}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}div{\isadigit{2}}\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ Suc\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}div{\isadigit{2}}\ {\isaliteral{28}{\isacharparenleft}}Suc{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ Suc{\isaliteral{28}{\isacharparenleft}}div{\isadigit{2}}\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
+\begin{isamarkuptext}%
+does not just define \isa{div{\isadigit{2}}} but also proves a
+customised induction rule:
+\[
+\inferrule{
+\mbox{\isa{P\ {\isadigit{0}}}}\\
+\mbox{\isa{P\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}}}\\
+\mbox{\isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}n{\isaliteral{2E}{\isachardot}}\ P\ n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}}}}
+{\mbox{\isa{P\ m}}}
+\]
+This customised induction rule can simplify inductive proofs. For example,%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}div{\isadigit{2}}{\isaliteral{28}{\isacharparenleft}}n{\isaliteral{2B}{\isacharplus}}n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ n{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+{\isaliteral{28}{\isacharparenleft}}induction\ n\ rule{\isaliteral{3A}{\isacharcolon}}\ div{\isadigit{2}}{\isaliteral{2E}{\isachardot}}induct{\isaliteral{29}{\isacharparenright}}%
+\begin{isamarkuptxt}%
+yields the 3 subgoals
+\begin{isabelle}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ div{\isadigit{2}}\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{0}}\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}\isanewline
+\ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ div{\isadigit{2}}\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isadigit{0}}\ {\isaliteral{2B}{\isacharplus}}\ Suc\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ Suc\ {\isadigit{0}}\isanewline
+\ {\isadigit{3}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}n{\isaliteral{2E}{\isachardot}}\ div{\isadigit{2}}\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2B}{\isacharplus}}\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\isanewline
+\isaindent{\ {\isadigit{3}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}n{\isaliteral{2E}{\isachardot}}\ }div{\isadigit{2}}\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{2B}{\isacharplus}}\ Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}%
+\end{isabelle}
+An application of \isa{auto} finishes the proof.
+Had we used ordinary structural induction on \isa{n},
+the proof would have needed an additional
+case distinction in the induction step.
+
+The general case is often called \concept{computation induction},
+because the induction follows the (terminating!) computation.
+For every defining equation
+\begin{quote}
+\isa{f{\isaliteral{28}{\isacharparenleft}}e{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ f{\isaliteral{28}{\isacharparenleft}}r\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ f{\isaliteral{28}{\isacharparenleft}}r\isaliteral{5C3C5E697375623E}{}\isactrlisub k{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}}
+\end{quote}
+where \isa{f{\isaliteral{28}{\isacharparenleft}}r\isaliteral{5C3C5E697375623E}{}\isactrlisub i{\isaliteral{29}{\isacharparenright}}}, \isa{i{\isaliteral{3D}{\isacharequal}}{\isadigit{1}}{\isaliteral{5C3C646F74733E}{\isasymdots}}k}, are all the recursive calls,
+the induction rule \isa{f{\isaliteral{2E}{\isachardot}}induct} contains one premise of the form
+\begin{quote}
+\isa{P{\isaliteral{28}{\isacharparenleft}}r\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{28}{\isacharparenleft}}r\isaliteral{5C3C5E697375623E}{}\isactrlisub k{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{28}{\isacharparenleft}}e{\isaliteral{29}{\isacharparenright}}}
+\end{quote}
+If \isa{f\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub n\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}} then \isa{f{\isaliteral{2E}{\isachardot}}induct} is applied like this:
+\begin{quote}
+\isacom{apply}\isa{{\isaliteral{28}{\isacharparenleft}}induction\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub n\ rule{\isaliteral{3A}{\isacharcolon}}\ f{\isaliteral{2E}{\isachardot}}induct{\isaliteral{29}{\isacharparenright}}}
+\end{quote}
+where typically there is a call \isa{f\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub n} in the goal.
+But note that the induction rule does not mention \isa{f} at all,
+except in its name, and is applicable independently of \isa{f}.
+
+\section{Induction heuristics}
+
+We have already noted that theorems about recursive functions are proved by
+induction. In case the function has more than one argument, we have followed
+the following heuristic in the proofs about the append function:
+\begin{quote}
+\emph{Perform induction on argument number $i$\\
+ if the function is defined by recursion on argument number $i$.}
+\end{quote}
+The key heuristic, and the main point of this section, is to
+\emph{generalise the goal before induction}.
+The reason is simple: if the goal is
+too specific, the induction hypothesis is too weak to allow the induction
+step to go through. Let us illustrate the idea with an example.
+
+Function \isa{rev} has quadratic worst-case running time
+because it calls append for each element of the list and
+append is linear in its first argument.  A linear time version of
+\isa{rev} requires an extra argument where the result is accumulated
+gradually, using only~\isa{{\isaliteral{23}{\isacharhash}}}:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isacommand{fun}\isamarkupfalse%
+\ itrev\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ list{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}itrev\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ \ \ \ \ ys\ {\isaliteral{3D}{\isacharequal}}\ ys{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}itrev\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{23}{\isacharhash}}xs{\isaliteral{29}{\isacharparenright}}\ ys\ {\isaliteral{3D}{\isacharequal}}\ itrev\ xs\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{23}{\isacharhash}}ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
+\begin{isamarkuptext}%
+The behaviour of \isa{itrev} is simple: it reverses
+its first argument by stacking its elements onto the second argument,
+and returning that second argument when the first one becomes
+empty. Note that \isa{itrev} is tail-recursive: it can be
+compiled into a loop, no stack is necessary for executing it.
+
+Naturally, we would like to show that \isa{itrev} does indeed reverse
+its first argument provided the second one is empty:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}itrev\ xs\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ rev\ xs{\isaliteral{22}{\isachardoublequoteclose}}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\begin{isamarkuptxt}%
+There is no choice as to the induction variable:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\isacommand{apply}\isamarkupfalse%
+{\isaliteral{28}{\isacharparenleft}}induction\ xs{\isaliteral{29}{\isacharparenright}}\isanewline
+\isacommand{apply}\isamarkupfalse%
+{\isaliteral{28}{\isacharparenleft}}auto{\isaliteral{29}{\isacharparenright}}%
+\begin{isamarkuptxt}%
+Unfortunately, this attempt does not prove
+the induction step:
+\begin{isabelle}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}a\ xs{\isaliteral{2E}{\isachardot}}\ itrev\ xs\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ rev\ xs\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ itrev\ xs\ {\isaliteral{5B}{\isacharbrackleft}}a{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ rev\ xs\ {\isaliteral{40}{\isacharat}}\ {\isaliteral{5B}{\isacharbrackleft}}a{\isaliteral{5D}{\isacharbrackright}}%
+\end{isabelle}
+The induction hypothesis is too weak.  The fixed
+argument,~\isa{{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}}, prevents it from rewriting the conclusion.  
+This example suggests a heuristic:
+\begin{quote}
+\emph{Generalise goals for induction by replacing constants by variables.}
+\end{quote}
+Of course one cannot do this na\"{\i}vely: \isa{itrev\ xs\ ys\ {\isaliteral{3D}{\isacharequal}}\ rev\ xs} is
+just not true.  The correct generalisation is%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isacommand{lemma}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}itrev\ xs\ ys\ {\isaliteral{3D}{\isacharequal}}\ rev\ xs\ {\isaliteral{40}{\isacharat}}\ ys{\isaliteral{22}{\isachardoublequoteclose}}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\begin{isamarkuptxt}%
+If \isa{ys} is replaced by \isa{{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}}, the right-hand side simplifies to
+\isa{rev\ xs}, as required.
+In this instance it was easy to guess the right generalisation.
+Other situations can require a good deal of creativity.  
+
+Although we now have two variables, only \isa{xs} is suitable for
+induction, and we repeat our proof attempt. Unfortunately, we are still
+not there:
+\begin{isabelle}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}a\ xs{\isaliteral{2E}{\isachardot}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }itrev\ xs\ ys\ {\isaliteral{3D}{\isacharequal}}\ rev\ xs\ {\isaliteral{40}{\isacharat}}\ ys\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }itrev\ xs\ {\isaliteral{28}{\isacharparenleft}}a\ {\isaliteral{23}{\isacharhash}}\ ys{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ rev\ xs\ {\isaliteral{40}{\isacharat}}\ a\ {\isaliteral{23}{\isacharhash}}\ ys%
+\end{isabelle}
+The induction hypothesis is still too weak, but this time it takes no
+intuition to generalise: the problem is that the \isa{ys}
+in the induction hypothesis is fixed,
+but the induction hypothesis needs to be applied with
+\isa{a\ {\isaliteral{23}{\isacharhash}}\ ys} instead of \isa{ys}. Hence we prove the theorem
+for all \isa{ys} instead of a fixed one. We can instruct induction
+to perform this generalisation for us by adding \isa{arbitrary{\isaliteral{3A}{\isacharcolon}}\ ys}.%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+{\isaliteral{28}{\isacharparenleft}}induction\ xs\ arbitrary{\isaliteral{3A}{\isacharcolon}}\ ys{\isaliteral{29}{\isacharparenright}}%
+\begin{isamarkuptxt}%
+The induction hypothesis in the induction step is now universally quantified over \isa{ys}:
+\begin{isabelle}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}ys{\isaliteral{2E}{\isachardot}}\ itrev\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ ys\ {\isaliteral{3D}{\isacharequal}}\ rev\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{40}{\isacharat}}\ ys\isanewline
+\ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}a\ xs\ ys{\isaliteral{2E}{\isachardot}}\isanewline
+\isaindent{\ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}ys{\isaliteral{2E}{\isachardot}}\ itrev\ xs\ ys\ {\isaliteral{3D}{\isacharequal}}\ rev\ xs\ {\isaliteral{40}{\isacharat}}\ ys{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\isanewline
+\isaindent{\ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }itrev\ {\isaliteral{28}{\isacharparenleft}}a\ {\isaliteral{23}{\isacharhash}}\ xs{\isaliteral{29}{\isacharparenright}}\ ys\ {\isaliteral{3D}{\isacharequal}}\ rev\ {\isaliteral{28}{\isacharparenleft}}a\ {\isaliteral{23}{\isacharhash}}\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{40}{\isacharat}}\ ys%
+\end{isabelle}
+Thus the proof succeeds:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\isacommand{apply}\isamarkupfalse%
+\ auto\isanewline
+\isacommand{done}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+This leads to another heuristic for generalisation:
+\begin{quote}
+\emph{Generalise induction by generalising all free
+variables\\ {\em(except the induction variable itself)}.}
+\end{quote}
+Generalisation is best performed with \isa{arbitrary{\isaliteral{3A}{\isacharcolon}}\ y\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ y\isaliteral{5C3C5E697375623E}{}\isactrlisub k}. 
+This heuristic prevents trivial failures like the one above.
+However, it should not be applied blindly.
+It is not always required, and the additional quantifiers can complicate
+matters in some cases. The variables that need to be quantified are typically
+those that change in recursive calls.
+
+\section{Simplification}
+
+So far we have talked a lot about simplifying terms without explaining the concept. \concept{Simplification} means
+\begin{itemize}
+\item using equations $l = r$ from left to right (only),
+\item as long as possible.
+\end{itemize}
+To emphasise the directionality, equations that have been given the
+\isa{simp} attribute are called \concept{simplification}
+rules. Logically, they are still symmetric, but proofs by
+simplification use them only in the left-to-right direction.  The proof tool
+that performs simplifications is called the \concept{simplifier}. It is the
+basis of \isa{auto} and other related proof methods.
+
+The idea of simplification is best explained by an example. Given the
+simplification rules
+\[
+\begin{array}{rcl@ {\quad}l}
+\isa{{\isadigit{0}}\ {\isaliteral{2B}{\isacharplus}}\ n} &\isa{{\isaliteral{3D}{\isacharequal}}}& \isa{n} & (1) \\
+\isa{Suc\ m\ {\isaliteral{2B}{\isacharplus}}\ n} &\isa{{\isaliteral{3D}{\isacharequal}}}& \isa{Suc\ {\isaliteral{28}{\isacharparenleft}}m\ {\isaliteral{2B}{\isacharplus}}\ n{\isaliteral{29}{\isacharparenright}}} & (2) \\
+\isa{{\isaliteral{28}{\isacharparenleft}}Suc\ m\ {\isaliteral{5C3C6C653E}{\isasymle}}\ Suc\ n{\isaliteral{29}{\isacharparenright}}} &\isa{{\isaliteral{3D}{\isacharequal}}}& \isa{{\isaliteral{28}{\isacharparenleft}}m\ {\isaliteral{5C3C6C653E}{\isasymle}}\ n{\isaliteral{29}{\isacharparenright}}} & (3)\\
+\isa{{\isaliteral{28}{\isacharparenleft}}{\isadigit{0}}\ {\isaliteral{5C3C6C653E}{\isasymle}}\ m{\isaliteral{29}{\isacharparenright}}} &\isa{{\isaliteral{3D}{\isacharequal}}}& \isa{True} & (4)
+\end{array}
+\]
+the formula \isa{{\isadigit{0}}\ {\isaliteral{2B}{\isacharplus}}\ Suc\ {\isadigit{0}}\ {\isaliteral{5C3C6C653E}{\isasymle}}\ Suc\ {\isadigit{0}}\ {\isaliteral{2B}{\isacharplus}}\ x} is simplified to \isa{True}
+as follows:
+\[
+\begin{array}{r@ {}c@ {}l@ {\quad}l}
+\isa{{\isaliteral{28}{\isacharparenleft}}{\isadigit{0}}\ {\isaliteral{2B}{\isacharplus}}\ Suc\ {\isadigit{0}}} & \leq & \isa{Suc\ {\isadigit{0}}\ {\isaliteral{2B}{\isacharplus}}\ x{\isaliteral{29}{\isacharparenright}}}  & \stackrel{(1)}{=} \\
+\isa{{\isaliteral{28}{\isacharparenleft}}Suc\ {\isadigit{0}}}     & \leq & \isa{Suc\ {\isadigit{0}}\ {\isaliteral{2B}{\isacharplus}}\ x{\isaliteral{29}{\isacharparenright}}}  & \stackrel{(2)}{=} \\
+\isa{{\isaliteral{28}{\isacharparenleft}}Suc\ {\isadigit{0}}}     & \leq & \isa{Suc\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{0}}\ {\isaliteral{2B}{\isacharplus}}\ x{\isaliteral{29}{\isacharparenright}}} & \stackrel{(3)}{=} \\
+\isa{{\isaliteral{28}{\isacharparenleft}}{\isadigit{0}}}         & \leq & \isa{{\isadigit{0}}\ {\isaliteral{2B}{\isacharplus}}\ x{\isaliteral{29}{\isacharparenright}}}      & \stackrel{(4)}{=} \\[1ex]
+ & \isa{True}
+\end{array}
+\]
+Simplification is often also called \concept{rewriting}
+and simplification rules \concept{rewrite rules}.
+
+\subsection{Simplification rules}
+
+The attribute \isa{simp} declares theorems to be simplification rules,
+which the simplifier will use automatically. In addition,
+\isacom{datatype} and \isacom{fun} commands implicitly declare some
+simplification rules: \isacom{datatype} the distinctness and injectivity
+rules, \isacom{fun} the defining equations. Definitions are not declared
+as simplification rules automatically! Nearly any theorem can become a
+simplification rule. The simplifier will try to transform it into an
+equation. For example, the theorem \isa{{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ P} is turned into \isa{P\ {\isaliteral{3D}{\isacharequal}}\ False}.
+
+Only equations that really simplify, like \isa{rev\ {\isaliteral{28}{\isacharparenleft}}rev\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ xs} and
+\isa{xs\ {\isaliteral{40}{\isacharat}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ xs}, should be declared as simplification
+rules. Equations that may be counterproductive as simplification rules
+should only be used in specific proof steps (see \S\ref{sec:simp} below).
+Distributivity laws, for example, alter the structure of terms
+and can produce an exponential blow-up.
+
+\subsection{Conditional simplification rules}
+
+Simplification rules can be conditional.  Before applying such a rule, the
+simplifier will first try to prove the preconditions, again by
+simplification. For example, given the simplification rules
+\begin{quote}
+\isa{p\ {\isadigit{0}}\ {\isaliteral{3D}{\isacharequal}}\ True}\\
+\isa{p\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ f\ x\ {\isaliteral{3D}{\isacharequal}}\ g\ x},
+\end{quote}
+the term \isa{f\ {\isadigit{0}}} simplifies to \isa{g\ {\isadigit{0}}}
+but \isa{f\ {\isadigit{1}}} does not simplify because \isa{p\ {\isadigit{1}}}
+is not provable.
+
+\subsection{Termination}
+
+Simplification can run forever, for example if both \isa{f\ x\ {\isaliteral{3D}{\isacharequal}}\ g\ x} and
+\isa{g\ x\ {\isaliteral{3D}{\isacharequal}}\ f\ x} are simplification rules. It is the user's
+responsibility not to include simplification rules that can lead to
+nontermination, either on their own or in combination with other
+simplification rules. The right-hand side of a simplification rule should
+always be ``simpler'' than the left-hand side---in some sense. But since
+termination is undecidable, such a check cannot be automated completely
+and Isabelle makes little attempt to detect nontermination.
+
+When conditional simplification rules are applied, their preconditions are
+proved first. Hence all preconditions need to be
+simpler than the left-hand side of the conclusion. For example
+\begin{quote}
+\isa{n\ {\isaliteral{3C}{\isacharless}}\ m\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{3C}{\isacharless}}\ Suc\ m{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ True}
+\end{quote}
+is suitable as a simplification rule: both \isa{n\ {\isaliteral{3C}{\isacharless}}\ m} and \isa{True}
+are simpler than \mbox{\isa{n\ {\isaliteral{3C}{\isacharless}}\ Suc\ m}}. But
+\begin{quote}
+\isa{Suc\ n\ {\isaliteral{3C}{\isacharless}}\ m\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{3C}{\isacharless}}\ m{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ True}
+\end{quote}
+leads to nontermination: when trying to rewrite \isa{n\ {\isaliteral{3C}{\isacharless}}\ m} to \isa{True}
+one first has to prove \mbox{\isa{Suc\ n\ {\isaliteral{3C}{\isacharless}}\ m}}, which can be rewritten to \isa{True} provided \isa{Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3C}{\isacharless}}\ m}, \emph{ad infinitum}.
+
+\subsection{The \isa{simp} proof method}
+\label{sec:simp}
+
+So far we have only used the proof method \isa{auto}.  Method \isa{simp}
+is the key component of \isa{auto}, but \isa{auto} can do much more. In
+some cases, \isa{auto} is overeager and modifies the proof state too much.
+In such cases the more predictable \isa{simp} method should be used.
+Given a goal
+\begin{quote}
+\isa{{\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}\ P\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{3B}{\isacharsemicolon}}\ P\isaliteral{5C3C5E697375623E}{}\isactrlisub m\ {\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C}
+\end{quote}
+the command
+\begin{quote}
+\isacom{apply}\isa{{\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ th\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ th\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{29}{\isacharparenright}}}
+\end{quote}
+simplifies the assumptions \isa{P\isaliteral{5C3C5E697375623E}{}\isactrlisub i} and the conclusion \isa{C} using
+\begin{itemize}
+\item all simplification rules, including the ones coming from \isacom{datatype} and \isacom{fun},
+\item the additional lemmas \isa{th\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ th\isaliteral{5C3C5E697375623E}{}\isactrlisub n}, and
+\item the assumptions.
+\end{itemize}
+In addition to or instead of \isa{add} there is also \isa{del} for removing
+simplification rules temporarily. Both are optional. Method \isa{auto}
+can be modified similarly:
+\begin{quote}
+\isacom{apply}\isa{{\isaliteral{28}{\isacharparenleft}}auto\ simp\ add{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ simp\ del{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{29}{\isacharparenright}}}
+\end{quote}
+Here the modifiers are \isa{simp\ add} and \isa{simp\ del}
+instead of just \isa{add} and \isa{del} because \isa{auto}
+does not just perform simplification.
+
+Note that \isa{simp} acts only on subgoal 1, \isa{auto} acts on all
+subgoals. There is also \isa{simp{\isaliteral{5F}{\isacharunderscore}}all}, which applies \isa{simp} to
+all subgoals.
+
+\subsection{Rewriting with definitions}
+\label{sec:rewr-defs}
+
+Definitions introduced by the command \isacom{definition}
+can also be used as simplification rules,
+but by default they are not: the simplifier does not expand them
+automatically. Definitions are intended for introducing abstract concepts and
+not merely as abbreviations. Of course, we need to expand the definition
+initially, but once we have proved enough abstract properties of the new
+constant, we can forget its original definition. This style makes proofs more
+robust: if the definition has to be changed, only the proofs of the abstract
+properties will be affected.
+
+The definition of a function \isa{f} is a theorem named \isa{f{\isaliteral{5F}{\isacharunderscore}}def}
+and can be added to a call of \isa{simp} just like any other theorem:
+\begin{quote}
+\isacom{apply}\isa{{\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ f{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}}
+\end{quote}
+In particular, let-expressions can be unfolded by
+making \isa{Let{\isaliteral{5F}{\isacharunderscore}}def} a simplification rule.
+
+\subsection{Case splitting with \isa{simp}}
+
+Goals containing if-expressions are automatically split into two cases by
+\isa{simp} using the rule
+\begin{quote}
+\isa{P\ {\isaliteral{28}{\isacharparenleft}}if\ A\ then\ s\ else\ t{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}A\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ P\ s{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ P\ t{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}}
+\end{quote}
+For example, \isa{simp} can prove
+\begin{quote}
+\isa{{\isaliteral{28}{\isacharparenleft}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}if\ A\ then\ B\ else\ False{\isaliteral{29}{\isacharparenright}}}
+\end{quote}
+because both \isa{A\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ B} and \isa{{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ False}
+simplify to \isa{True}.
+
+We can split case-expressions similarly. For \isa{nat} the rule looks like this:
+\begin{isabelle}%
+\ \ \ \ P\ {\isaliteral{28}{\isacharparenleft}}case\ e\ of\ {\isadigit{0}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ a\ {\isaliteral{7C}{\isacharbar}}\ Suc\ n\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ b\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\isaindent{\ \ \ \ }{\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}e\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ P\ a{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}n{\isaliteral{2E}{\isachardot}}\ e\ {\isaliteral{3D}{\isacharequal}}\ Suc\ n\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ P\ {\isaliteral{28}{\isacharparenleft}}b\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}%
+\end{isabelle}
+Case expressions are not split automatically by \isa{simp}, but \isa{simp}
+can be instructed to do so:
+\begin{quote}
+\isacom{apply}\isa{{\isaliteral{28}{\isacharparenleft}}simp\ split{\isaliteral{3A}{\isacharcolon}}\ nat{\isaliteral{2E}{\isachardot}}split{\isaliteral{29}{\isacharparenright}}}
+\end{quote}
+splits all case-expressions over natural numbers. For an arbitrary
+datatype \isa{t} it is \isa{t{\isaliteral{2E}{\isachardot}}split} instead of \isa{nat{\isaliteral{2E}{\isachardot}}split}.
+Method \isa{auto} can be modified in exactly the same way.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

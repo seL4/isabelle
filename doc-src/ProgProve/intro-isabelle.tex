@@ -1,0 +1,38 @@
+Isabelle is a generic system for
+implementing logical formalisms, and Isabelle/HOL is the specialization
+of Isabelle for HOL, which abbreviates Higher-Order Logic. We introduce
+HOL step by step following the equation
+\[ \mbox{HOL} = \mbox{Functional Programming} + \mbox{Logic}. \]
+We assume that the reader is familiar with the basic concepts of functional
+programming and is used to logical and set theoretic notation.
+
+\autoref{sec:FP} introduces HOL as a functional programming language and
+explains how to write simple inductive proofs of mostly equational properties
+of recursive functions.
+\sem
+\autoref{sec:CaseStudyExp} contains a
+little case study: arithmetic and boolean expressions, their evaluation,
+optimization and compilation.
+\endsem
+\autoref{ch:Logic} introduces the rest of HOL: the
+language of formulas beyond equality, automatic proof tools, single
+step proofs, and inductive definitions, an essential specification construct.
+\autoref{ch:Isar} introduces Isar, Isabelle's language for writing structured
+proofs.
+
+%Further material (slides, demos etc) can be found online at
+%\url{http://www.in.tum.de/~nipkow}.
+
+% Relics:
+% We aim to minimise the amount of background knowledge of logic we expect
+% from the reader
+% We have focussed on the core material
+% in the intersection of computation and logic.
+
+This introduction to the core of Isabelle is intentionally concrete and
+example-based: we concentrate on examples that illustrate the typical cases;
+we do not explain the general case if it can be inferred from the examples.
+For a comprehensive treatment of all things Isabelle we recommend the
+\emph{Isabelle/Isar Reference Manual}~\cite{IsarRef}, which comes with the
+Isabelle distribution.
+The tutorial by Nipkow, Paulson and Wenzel~\cite{LNCS2283} (in its updated version that comes with the Isabelle distribution) is still recommended for the wealth of examples and material, but its proof style is outdated. In particular it fails to cover the structured proof language Isar.

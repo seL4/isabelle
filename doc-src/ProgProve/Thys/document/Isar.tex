@@ -1,0 +1,1680 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Isar}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\begin{isamarkuptext}%
+Apply-scripts are unreadable and hard to maintain. The language of choice
+for larger proofs is \concept{Isar}. The two key features of Isar are:
+\begin{itemize}
+\item It is structured, not linear.
+\item It is readable without running it because
+you need to state what you are proving at any given point.
+\end{itemize}
+Whereas apply-scripts are like assembly language programs, Isar proofs
+are like structured programs with comments. A typical Isar proof looks like this:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{tabular}{@ {}l}
+\isacom{proof}\\
+\quad\isacom{assume} \isa{{\isaliteral{22}{\isachardoublequote}}}$\mathit{formula}_0$\isa{{\isaliteral{22}{\isachardoublequote}}}\\
+\quad\isacom{have} \isa{{\isaliteral{22}{\isachardoublequote}}}$\mathit{formula}_1$\isa{{\isaliteral{22}{\isachardoublequote}}} \quad\isacom{by} \isa{simp}\\
+\quad\vdots\\
+\quad\isacom{have} \isa{{\isaliteral{22}{\isachardoublequote}}}$\mathit{formula}_n$\isa{{\isaliteral{22}{\isachardoublequote}}} \quad\isacom{by} \isa{blast}\\
+\quad\isacom{show} \isa{{\isaliteral{22}{\isachardoublequote}}}$\mathit{formula}_{n+1}$\isa{{\isaliteral{22}{\isachardoublequote}}} \quad\isacom{by} \isa{{\isaliteral{5C3C646F74733E}{\isasymdots}}}\\
+\isacom{qed}
+\end{tabular}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+It proves $\mathit{formula}_0 \Longrightarrow \mathit{formula}_{n+1}$
+(provided provided each proof step succeeds).
+The intermediate \isacom{have} statements are merely stepping stones
+on the way towards the \isacom{show} statement that proves the actual
+goal. In more detail, this is the Isar core syntax:
+\medskip
+
+\begin{tabular}{@ {}lcl@ {}}
+\textit{proof} &=& \isacom{by} \textit{method}\\
+      &$\mid$& \isacom{proof} [\textit{method}] \ \textit{step}$^*$ \ \isacom{qed}
+\end{tabular}
+\medskip
+
+\begin{tabular}{@ {}lcl@ {}}
+\textit{step} &=& \isacom{fix} \textit{variables} \\
+      &$\mid$& \isacom{assume} \textit{proposition} \\
+      &$\mid$& [\isacom{from} \textit{fact}$^+$] (\isacom{have} $\mid$ \isacom{show}) \ \textit{proposition} \ \textit{proof}
+\end{tabular}
+\medskip
+
+\begin{tabular}{@ {}lcl@ {}}
+\textit{proposition} &=& [\textit{name}:] \isa{{\isaliteral{22}{\isachardoublequote}}}\textit{formula}\isa{{\isaliteral{22}{\isachardoublequote}}}
+\end{tabular}
+\medskip
+
+\begin{tabular}{@ {}lcl@ {}}
+\textit{fact} &=& \textit{name} \ $\mid$ \ \dots
+\end{tabular}
+\medskip
+
+\noindent A proof can either be an atomic \isacom{by} with a single proof
+method which must finish off the statement being proved, for example \isa{auto}.  Or it can be a \isacom{proof}--\isacom{qed} block of multiple
+steps. Such a block can optionally begin with a proof method that indicates
+how to start off the proof, e.g.\ \mbox{\isa{{\isaliteral{28}{\isacharparenleft}}induction\ xs{\isaliteral{29}{\isacharparenright}}}}.
+
+A step either assumes a proposition or states a proposition
+together with its proof. The optional \isacom{from} clause
+indicates which facts are to be used in the proof.
+Intermediate propositions are stated with \isacom{have}, the overall goal
+with \isacom{show}. A step can also introduce new local variables with
+\isacom{fix}. Logically, \isacom{fix} introduces \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}}-quantified
+variables, \isacom{assume} introduces the assumption of an implication
+(\isa{{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}}) and \isacom{have}/\isacom{show} the conclusion.
+
+Propositions are optionally named formulas. These names can be referred to in
+later \isacom{from} clauses. In the simplest case, a fact is such a name.
+But facts can also be composed with \isa{OF} and \isa{of} as shown in
+\S\ref{sec:forward-proof}---hence the \dots\ in the above grammar.  Note
+that assumptions, intermediate \isacom{have} statements and global lemmas all
+have the same status and are thus collectively referred to as
+\concept{facts}.
+
+Fact names can stand for whole lists of facts. For example, if \isa{f} is
+defined by command \isacom{fun}, \isa{f{\isaliteral{2E}{\isachardot}}simps} refers to the whole list of
+recursion equations defining \isa{f}. Individual facts can be selected by
+writing \isa{f{\isaliteral{2E}{\isachardot}}simps{\isaliteral{28}{\isacharparenleft}}{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}}, whole sublists by \isa{f{\isaliteral{2E}{\isachardot}}simps{\isaliteral{28}{\isacharparenleft}}{\isadigit{2}}{\isaliteral{2D}{\isacharminus}}{\isadigit{4}}{\isaliteral{29}{\isacharparenright}}}.
+
+
+\section{Isar by example}
+
+We show a number of proofs of Cantors theorem that a function from a set to
+its powerset cannot be surjective, illustrating various features of Isar. The
+constant \isa{surj} is predefined.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ surj{\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ set{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isadigit{0}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}surj\ f{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ {\isadigit{0}}\ \isacommand{have}\isamarkupfalse%
+\ {\isadigit{1}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}A{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}a{\isaliteral{2E}{\isachardot}}\ A\ {\isaliteral{3D}{\isacharequal}}\ f\ a{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+{\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ surj{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ {\isadigit{1}}\ \isacommand{have}\isamarkupfalse%
+\ {\isadigit{2}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}a{\isaliteral{2E}{\isachardot}}\ {\isaliteral{7B}{\isacharbraceleft}}x{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ f\ x{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{3D}{\isacharequal}}\ f\ a{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ {\isadigit{2}}\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}False{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+The \isacom{proof} command lacks an explicit method how to perform
+the proof. In such cases Isabelle tries to use some standard introduction
+rule, in the above case for \isa{{\isaliteral{5C3C6E6F743E}{\isasymnot}}}:
+\[
+\inferrule{
+\mbox{\isa{P\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ False}}}
+{\mbox{\isa{{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ P}}}
+\]
+In order to prove \isa{{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ P}, assume \isa{P} and show \isa{False}.
+Thus we may assume \isa{surj\ f}. The proof shows that names of propositions
+may be (single!) digits---meaningful names are hard to invent and are often
+not necessary. Both \isacom{have} steps are obvious. The second one introduces
+the diagonal set \isa{{\isaliteral{7B}{\isacharbraceleft}}x{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ f\ x{\isaliteral{7D}{\isacharbraceright}}}, the key idea in the proof.
+If you wonder why \isa{{\isadigit{2}}} directly implies \isa{False}: from \isa{{\isadigit{2}}}
+it follows that \isa{{\isaliteral{28}{\isacharparenleft}}a\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ f\ a{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}a\ {\isaliteral{5C3C696E3E}{\isasymin}}\ f\ a{\isaliteral{29}{\isacharparenright}}}.
+
+\subsection{\isa{this}, \isa{then}, \isa{hence} and \isa{thus}}
+
+Labels should be avoided. They interrupt the flow of the reader who has to
+scan the context for the point where the label was introduced. Ideally, the
+proof is a linear flow, where the output of one step becomes the input of the
+next step, piping the previously proved fact into the next proof, just like
+in a UNIX pipe. In such cases the predefined name \isa{this} can be used
+to refer to the proposition proved in the previous step. This allows us to
+eliminate all labels from our proof (we suppress the \isacom{lemma} statement):%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}surj\ f{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ this\ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}a{\isaliteral{2E}{\isachardot}}\ {\isaliteral{7B}{\isacharbraceleft}}x{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ f\ x{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{3D}{\isacharequal}}\ f\ a{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+{\isaliteral{28}{\isacharparenleft}}auto\ simp{\isaliteral{3A}{\isacharcolon}}\ surj{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ this\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}False{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+We have also taken the opportunity to compress the two \isacom{have}
+steps into one.
+
+To compact the text further, Isar has a few convenient abbreviations:
+\medskip
+
+\begin{tabular}{rcl}
+\isacom{then} &=& \isacom{from} \isa{this}\\
+\isacom{thus} &=& \isacom{then} \isacom{show}\\
+\isacom{hence} &=& \isacom{then} \isacom{have}
+\end{tabular}
+\medskip
+
+\noindent
+With the help of these abbreviations the proof becomes%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}surj\ f{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{hence}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}a{\isaliteral{2E}{\isachardot}}\ {\isaliteral{7B}{\isacharbraceleft}}x{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ f\ x{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{3D}{\isacharequal}}\ f\ a{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+{\isaliteral{28}{\isacharparenleft}}auto\ simp{\isaliteral{3A}{\isacharcolon}}\ surj{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isacommand{thus}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}False{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+There are two further linguistic variations:
+\medskip
+
+\begin{tabular}{rcl}
+(\isacom{have}$\mid$\isacom{show}) \ \textit{prop} \ \isacom{using} \ \textit{facts}
+&=&
+\isacom{from} \ \textit{facts} \ (\isacom{have}$\mid$\isacom{show}) \ \textit{prop}\\
+\isacom{with} \ \textit{facts} &=& \isacom{from} \ \textit{facts} \isa{this}
+\end{tabular}
+\medskip
+
+\noindent The \isacom{using} idiom de-emphasises the used facts by moving them
+behind the proposition.
+
+\subsection{Structured lemma statements: \isacom{fixes}, \isacom{assumes}, \isacom{shows}}
+
+Lemmas can also be stated in a more structured fashion. To demonstrate this
+feature with Cantor's theorem, we rephrase \noquotes{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ surj\ f{\isaliteral{22}{\isachardoublequote}}}}
+a little:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\isanewline
+\ \ \isakeyword{fixes}\ f\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ set{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isakeyword{assumes}\ s{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}surj\ f{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isakeyword{shows}\ {\isaliteral{22}{\isachardoublequoteopen}}False{\isaliteral{22}{\isachardoublequoteclose}}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\begin{isamarkuptxt}%
+The optional \isacom{fixes} part allows you to state the types of
+variables up front rather than by decorating one of their occurrences in the
+formula with a type constraint. The key advantage of the structured format is
+the \isacom{assumes} part that allows you to name each assumption. The
+\isacom{shows} part gives the goal. The actual theorem that will come out of
+the proof is \isa{surj\ f\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ False}, but during the proof the assumption
+\isa{surj\ f} is available under the name \isa{s} like any other fact.%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\isacommand{proof}\isamarkupfalse%
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}\ a{\isaliteral{2E}{\isachardot}}\ {\isaliteral{7B}{\isacharbraceleft}}x{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ f\ x{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{3D}{\isacharequal}}\ f\ a{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{using}\isamarkupfalse%
+\ s\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+{\isaliteral{28}{\isacharparenleft}}auto\ simp{\isaliteral{3A}{\isacharcolon}}\ surj{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isacommand{thus}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}False{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+In the \isacom{have} step the assumption \isa{surj\ f} is now
+referenced by its name \isa{s}. The duplication of \isa{surj\ f} in the
+above proofs (once in the statement of the lemma, once in its proof) has been
+eliminated.
+
+\begin{warn}
+Note the dash after the \isacom{proof}
+command.  It is the null method that does nothing to the goal. Leaving it out
+would ask Isabelle to try some suitable introduction rule on the goal \isa{False}---but there is no suitable introduction rule and \isacom{proof}
+would fail.
+\end{warn}
+
+Stating a lemmas with \isacom{assumes}-\isacom{shows} implicitly introduces the
+name \isa{assms} that stands for the list of all assumptions. You can refer
+to individual assumptions by \isa{assms{\isaliteral{28}{\isacharparenleft}}{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}}, \isa{assms{\isaliteral{28}{\isacharparenleft}}{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}} etc,
+thus obviating the need to name them individually.
+
+\section{Proof patterns}
+
+We show a number of important basic proof patterns. Many of them arise from
+the rules of natural deduction that are applied by \isacom{proof} by
+default. The patterns are phrased in terms of \isacom{show} but work for
+\isacom{have} and \isacom{lemma}, too.
+
+We start with two forms of \concept{case distinction}:
+starting from a formula \isa{P} we have the two cases \isa{P} and
+\isa{{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ P}, and starting from a fact \isa{P\ {\isaliteral{5C3C6F723E}{\isasymor}}\ Q}
+we have the two cases \isa{P} and \isa{Q}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{tabular}{@ {}ll@ {}}
+\begin{minipage}[t]{.4\textwidth}
+\isa{%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}R{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isacommand{proof}\isamarkupfalse%
+\ cases\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P{\isaliteral{22}{\isachardoublequoteclose}}%
+\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}R{\isaliteral{22}{\isachardoublequoteclose}}\ %
+\ $\dots$\\
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ P{\isaliteral{22}{\isachardoublequoteclose}}%
+\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}R{\isaliteral{22}{\isachardoublequoteclose}}\ %
+\ $\dots$\\
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+}
+\end{minipage}
+&
+\begin{minipage}[t]{.4\textwidth}
+\isa{%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P\ {\isaliteral{5C3C6F723E}{\isasymor}}\ Q{\isaliteral{22}{\isachardoublequoteclose}}\ %
+\ $\dots$\\
+\isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}R{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P{\isaliteral{22}{\isachardoublequoteclose}}%
+\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}R{\isaliteral{22}{\isachardoublequoteclose}}\ %
+\ $\dots$\\
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}Q{\isaliteral{22}{\isachardoublequoteclose}}%
+\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}R{\isaliteral{22}{\isachardoublequoteclose}}\ %
+\ $\dots$\\
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+}
+\end{minipage}
+\end{tabular}
+\medskip
+\begin{isamarkuptext}%
+How to prove a logical equivalence:
+\end{isamarkuptext}%
+\isa{%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ Q{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P{\isaliteral{22}{\isachardoublequoteclose}}%
+\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}Q{\isaliteral{22}{\isachardoublequoteclose}}\ %
+\ $\dots$\\
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}Q{\isaliteral{22}{\isachardoublequoteclose}}%
+\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P{\isaliteral{22}{\isachardoublequoteclose}}\ %
+\ $\dots$\\
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+}
+\medskip
+\begin{isamarkuptext}%
+Proofs by contradiction:
+\end{isamarkuptext}%
+\begin{tabular}{@ {}ll@ {}}
+\begin{minipage}[t]{.4\textwidth}
+\isa{%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ P{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P{\isaliteral{22}{\isachardoublequoteclose}}%
+\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}False{\isaliteral{22}{\isachardoublequoteclose}}\ %
+\ $\dots$\\
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+}
+\end{minipage}
+&
+\begin{minipage}[t]{.4\textwidth}
+\isa{%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isacommand{proof}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}rule\ ccontr{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}P{\isaliteral{22}{\isachardoublequoteclose}}%
+\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}False{\isaliteral{22}{\isachardoublequoteclose}}\ %
+\ $\dots$\\
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+}
+\end{minipage}
+\end{tabular}
+\medskip
+\begin{isamarkuptext}%
+The name \isa{ccontr} stands for ``classical contradiction''.
+
+How to prove quantified formulas:
+\end{isamarkuptext}%
+\begin{tabular}{@ {}ll@ {}}
+\begin{minipage}[t]{.4\textwidth}
+\isa{%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ x%
+\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ %
+\ $\dots$\\
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+}
+\end{minipage}
+&
+\begin{minipage}[t]{.4\textwidth}
+\isa{%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ P{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isacommand{proof}\isamarkupfalse%
+%
+\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P{\isaliteral{28}{\isacharparenleft}}witness{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ %
+\ $\dots$\\
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+}
+\end{minipage}
+\end{tabular}
+\medskip
+\begin{isamarkuptext}%
+In the proof of \noquotes{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}},
+the step \isacom{fix}~\isa{x} introduces a locale fixed variable \isa{x}
+into the subproof, the proverbial ``arbitrary but fixed value''.
+Instead of \isa{x} we could have chosen any name in the subproof.
+In the proof of \noquotes{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ P{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}},
+\isa{witness} is some arbitrary
+term for which we can prove that it satisfies \isa{P}.
+
+How to reason forward from \noquotes{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ P{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}}:
+\end{isamarkuptext}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ P{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ %
+\ $\dots$\\
+\isacommand{then}\isamarkupfalse%
+\ \isacommand{obtain}\isamarkupfalse%
+\ x\ \isakeyword{where}\ p{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}P{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ blast%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+After the \isacom{obtain} step, \isa{x} (we could have chosen any name)
+is a fixed local
+variable, and \isa{p} is the name of the fact
+\noquotes{\isa{{\isaliteral{22}{\isachardoublequote}}P{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}}.
+This pattern works for one or more \isa{x}.
+As an example of the \isacom{obtain} command, here is the proof of
+Cantor's theorem in more detail:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ surj{\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ set{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}surj\ f{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{hence}\isamarkupfalse%
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}a{\isaliteral{2E}{\isachardot}}\ {\isaliteral{7B}{\isacharbraceleft}}x{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ f\ x{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{3D}{\isacharequal}}\ f\ a{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+{\isaliteral{28}{\isacharparenleft}}auto\ simp{\isaliteral{3A}{\isacharcolon}}\ surj{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{obtain}\isamarkupfalse%
+\ a\ \isakeyword{where}\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{7B}{\isacharbraceleft}}x{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ f\ x{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{3D}{\isacharequal}}\ f\ a{\isaliteral{22}{\isachardoublequoteclose}}\ \ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \isacommand{hence}\isamarkupfalse%
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}a\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ f\ a\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ a\ {\isaliteral{5C3C696E3E}{\isasymin}}\ f\ a{\isaliteral{22}{\isachardoublequoteclose}}\ \ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \isacommand{thus}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}False{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+How to prove set equality and subset relationship:
+\end{isamarkuptext}%
+\begin{tabular}{@ {}ll@ {}}
+\begin{minipage}[t]{.4\textwidth}
+\isa{%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{3D}{\isacharequal}}\ B{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ B{\isaliteral{22}{\isachardoublequoteclose}}\ %
+\ $\dots$\\
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}B\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ A{\isaliteral{22}{\isachardoublequoteclose}}\ %
+\ $\dots$\\
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+}
+\end{minipage}
+&
+\begin{minipage}[t]{.4\textwidth}
+\isa{%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ B{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ x\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ A{\isaliteral{22}{\isachardoublequoteclose}}%
+\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ B{\isaliteral{22}{\isachardoublequoteclose}}\ %
+\ $\dots$\\
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+}
+\end{minipage}
+\end{tabular}
+\begin{isamarkuptext}%
+\section{Streamlining proofs}
+
+\subsection{Pattern matching and quotations}
+
+In the proof patterns shown above, formulas are often duplicated.
+This can make the text harder to read, write and maintain. Pattern matching
+is an abbreviation mechanism to avoid such duplication. Writing
+\begin{quote}
+\isacom{show} \ \textit{formula} \isa{{\isaliteral{28}{\isacharparenleft}}}\isacom{is} \textit{pattern}\isa{{\isaliteral{29}{\isacharparenright}}}
+\end{quote}
+matches the pattern against the formula, thus instantiating the unknowns in
+the pattern for later use. As an example, consider the proof pattern for
+\isa{{\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}}:
+\end{isamarkuptext}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}formula\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ formula\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{28}{\isacharparenleft}}\isakeyword{is}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{3F}{\isacharquery}}L\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ {\isaliteral{3F}{\isacharquery}}R{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{3F}{\isacharquery}}L{\isaliteral{22}{\isachardoublequoteclose}}%
+\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{3F}{\isacharquery}}R{\isaliteral{22}{\isachardoublequoteclose}}\ %
+\ $\dots$\\
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{3F}{\isacharquery}}R{\isaliteral{22}{\isachardoublequoteclose}}%
+\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{3F}{\isacharquery}}L{\isaliteral{22}{\isachardoublequoteclose}}\ %
+\ $\dots$\\
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+Instead of duplicating \isa{formula\isaliteral{5C3C5E697375623E}{}\isactrlisub i} in the text, we introduce
+the two abbreviations \isa{{\isaliteral{3F}{\isacharquery}}L} and \isa{{\isaliteral{3F}{\isacharquery}}R} by pattern matching.
+Pattern matching works wherever a formula is stated, in particular
+with \isacom{have} and \isacom{lemma}.
+
+The unknown \isa{{\isaliteral{3F}{\isacharquery}}thesis} is implicitly matched against any goal stated by
+\isacom{lemma} or \isacom{show}. Here is a typical example:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}formula{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isaliteral{2D}{\isacharminus}}%
+\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ %
+\ $\dots$\\
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+Unknowns can also be instantiated with \isacom{let} commands
+\begin{quote}
+\isacom{let} \isa{{\isaliteral{3F}{\isacharquery}}t} = \isa{{\isaliteral{22}{\isachardoublequote}}}\textit{some-big-term}\isa{{\isaliteral{22}{\isachardoublequote}}}
+\end{quote}
+Later proof steps can refer to \isa{{\isaliteral{3F}{\isacharquery}}t}:
+\begin{quote}
+\isacom{have} \isa{{\isaliteral{22}{\isachardoublequote}}}\dots \isa{{\isaliteral{3F}{\isacharquery}}t} \dots\isa{{\isaliteral{22}{\isachardoublequote}}}
+\end{quote}
+\begin{warn}
+Names of facts are introduced with \isa{name{\isaliteral{3A}{\isacharcolon}}} and refer to proved
+theorems. Unknowns \isa{{\isaliteral{3F}{\isacharquery}}X} refer to terms or formulas.
+\end{warn}
+
+Although abbreviations shorten the text, the reader needs to remember what
+they stand for. Similarly for names of facts. Names like \isa{{\isadigit{1}}}, \isa{{\isadigit{2}}}
+and \isa{{\isadigit{3}}} are not helpful and should only be used in short proofs. For
+longer proof, descriptive names are better. But look at this example:
+\begin{quote}
+\isacom{have} \ \isa{x{\isaliteral{5F}{\isacharunderscore}}gr{\isaliteral{5F}{\isacharunderscore}}{\isadigit{0}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequote}}x\ {\isaliteral{3E}{\isachargreater}}\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequote}}}\\
+$\vdots$\\
+\isacom{from} \isa{x{\isaliteral{5F}{\isacharunderscore}}gr{\isaliteral{5F}{\isacharunderscore}}{\isadigit{0}}} \dots
+\end{quote}
+The name is longer than the fact it stands for! Short facts do not need names,
+one can refer to them easily by quoting them:
+\begin{quote}
+\isacom{have} \ \isa{{\isaliteral{22}{\isachardoublequote}}x\ {\isaliteral{3E}{\isachargreater}}\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequote}}}\\
+$\vdots$\\
+\isacom{from} \isa{{\isaliteral{60}{\isacharbackquote}}x{\isaliteral{3E}{\isachargreater}}{\isadigit{0}}{\isaliteral{60}{\isacharbackquote}}} \dots
+\end{quote}
+Note that the quotes around \isa{x{\isaliteral{3E}{\isachargreater}}{\isadigit{0}}} are \concept{back quotes}.
+They refer to the fact not by name but by value.
+
+\subsection{\isacom{moreover}}
+
+Sometimes one needs a number of facts to enable some deduction. Of course
+one can name these facts individually, as shown on the right,
+but one can also combine them with \isacom{moreover}, as shown on the left:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{tabular}{@ {}ll@ {}}
+\begin{minipage}[t]{.4\textwidth}
+\isa{%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{22}{\isachardoublequoteclose}}\ %
+\ $\dots$\\
+\isacommand{moreover}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}{\isaliteral{22}{\isachardoublequoteclose}}\ %
+\ $\dots$\\
+\isacommand{moreover}\isamarkupfalse%
+%
+\\$\vdots$\\\hspace{-1.4ex}
+\isacommand{moreover}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{22}{\isachardoublequoteclose}}\ %
+\ $\dots$\\
+\isacommand{ultimately}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P{\isaliteral{22}{\isachardoublequoteclose}}\ \ %
+\ $\dots$\\
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+}
+\end{minipage}
+&
+\qquad
+\begin{minipage}[t]{.4\textwidth}
+\isa{%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{have}\isamarkupfalse%
+\ lab\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}P\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{22}{\isachardoublequoteclose}}\ %
+\ $\dots$\\
+\isacommand{have}\isamarkupfalse%
+\ lab\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}P\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}{\isaliteral{22}{\isachardoublequoteclose}}\ %
+\ $\dots$
+%
+\\$\vdots$\\\hspace{-1.4ex}
+\isacommand{have}\isamarkupfalse%
+\ lab\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}P\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{22}{\isachardoublequoteclose}}\ %
+\ $\dots$\\
+\isacommand{from}\isamarkupfalse%
+\ lab\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ lab\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}%
+\ $\dots$\\
+\isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P{\isaliteral{22}{\isachardoublequoteclose}}\ \ %
+\ $\dots$\\
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+}
+\end{minipage}
+\end{tabular}
+\begin{isamarkuptext}%
+The \isacom{moreover} version is no shorter but expresses the structure more
+clearly and avoids new names.
+
+\subsection{Raw proof blocks}
+
+Sometimes one would like to prove some lemma locally with in a proof.
+A lemma that shares the current context of assumptions but that
+has its own assumptions and is generalised over its locally fixed
+variables at the end. This is what a \concept{raw proof block} does:
+\begin{quote}
+\isa{{\isaliteral{7B}{\isacharbraceleft}}} \isacom{fix} \isa{x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub n}\\
+\mbox{}\ \ \ \isacom{assume} \isa{A\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ A\isaliteral{5C3C5E697375623E}{}\isactrlisub m}\\
+\mbox{}\ \ \ $\vdots$\\
+\mbox{}\ \ \ \isacom{have} \isa{B}\\
+\isa{{\isaliteral{7D}{\isacharbraceright}}}
+\end{quote}
+proves \isa{{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}\ A\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3B}{\isacharsemicolon}}\ A\isaliteral{5C3C5E697375623E}{}\isactrlisub m\ {\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B}
+where all \isa{x\isaliteral{5C3C5E697375623E}{}\isactrlisub i} have been replaced by unknowns \isa{{\isaliteral{3F}{\isacharquery}}x\isaliteral{5C3C5E697375623E}{}\isactrlisub i}.
+\begin{warn}
+The conclusion of a raw proof block is \emph{not} indicated by \isacom{show}
+but is simply the final \isacom{have}.
+\end{warn}
+
+As an example we prove a simple fact about divisibility on integers.
+The definition of \isa{dvd} is \isa{{\isaliteral{28}{\isacharparenleft}}b\ dvd\ a{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}k{\isaliteral{2E}{\isachardot}}\ a\ {\isaliteral{3D}{\isacharequal}}\ b\ {\isaliteral{2A}{\isacharasterisk}}\ k{\isaliteral{29}{\isacharparenright}}}.
+\end{isamarkuptext}%
+\isacommand{lemma}\isamarkupfalse%
+\ \isakeyword{fixes}\ a\ b\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ int\ \isakeyword{assumes}\ {\isaliteral{22}{\isachardoublequoteopen}}b\ dvd\ {\isaliteral{28}{\isacharparenleft}}a{\isaliteral{2B}{\isacharplus}}b{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{shows}\ {\isaliteral{22}{\isachardoublequoteopen}}b\ dvd\ a{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
+\ \ \isacommand{{\isaliteral{7B}{\isacharbraceleft}}}\isamarkupfalse%
+\ \isacommand{fix}\isamarkupfalse%
+\ k\ \isacommand{assume}\isamarkupfalse%
+\ k{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}a{\isaliteral{2B}{\isacharplus}}b\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{2A}{\isacharasterisk}}k{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}k{\isaliteral{27}{\isacharprime}}{\isaliteral{2E}{\isachardot}}\ a\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{2A}{\isacharasterisk}}k{\isaliteral{27}{\isacharprime}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \ \ \isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}a\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{28}{\isacharparenleft}}k\ {\isaliteral{2D}{\isacharminus}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{using}\isamarkupfalse%
+\ k\ \isacommand{by}\isamarkupfalse%
+{\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ algebra{\isaliteral{5F}{\isacharunderscore}}simps{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ \isacommand{qed}\isamarkupfalse%
+\ \isacommand{{\isaliteral{7D}{\isacharbraceright}}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{using}\isamarkupfalse%
+\ assms\ \isacommand{by}\isamarkupfalse%
+{\isaliteral{28}{\isacharparenleft}}auto\ simp\ add{\isaliteral{3A}{\isacharcolon}}\ dvd{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+Note that the result of a raw proof block has no name. In this example
+it was directly piped (via \isacom{then}) into the final proof, but it can
+also be named for later reference: you simply follow the block directly by a
+\isacom{note} command:
+\begin{quote}
+\isacom{note} \ \isa{name\ {\isaliteral{3D}{\isacharequal}}\ this}
+\end{quote}
+This introduces a new name \isa{name} that refers to \isa{this},
+the fact just proved, in this case the preceding block. In general,
+\isacom{note} introduces a new name for one or more facts.
+
+\section{Case distinction and induction}
+
+\subsection{Datatype case distinction}
+
+We have seen case distinction on formulas. Now we want to distinguish
+which form some term takes: is it \isa{{\isadigit{0}}} or of the form \isa{Suc\ n},
+is it \isa{{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}} or of the form \isa{x\ {\isaliteral{23}{\isacharhash}}\ xs}, etc. Here is a typical example
+proof by case distinction on the form of \isa{xs}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}length{\isaliteral{28}{\isacharparenleft}}tl\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ length\ xs\ {\isaliteral{2D}{\isacharminus}}\ {\isadigit{1}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}cases\ xs{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}xs\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{thus}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ y\ ys\ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}xs\ {\isaliteral{3D}{\isacharequal}}\ y{\isaliteral{23}{\isacharhash}}ys{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{thus}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+Function \isa{tl} (''tail'') is defined by \isa{tl\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}} and
+\isa{tl\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{23}{\isacharhash}}\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ xs}. Note that the result type of \isa{length} is \isa{nat}
+and \isa{{\isadigit{0}}\ {\isaliteral{2D}{\isacharminus}}\ {\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}}.
+
+This proof pattern works for any term \isa{t} whose type is a datatype.
+The goal has to be proved for each constructor \isa{C}:
+\begin{quote}
+\isacom{fix} \ \isa{x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub n} \isacom{assume} \isa{{\isaliteral{22}{\isachardoublequote}}t\ {\isaliteral{3D}{\isacharequal}}\ C\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{22}{\isachardoublequote}}}
+\end{quote}
+Each case can be written in a more compact form by means of the \isacom{case}
+command:
+\begin{quote}
+\isacom{case} \isa{{\isaliteral{28}{\isacharparenleft}}C\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{29}{\isacharparenright}}}
+\end{quote}
+This is equivalent to the explicit \isacom{fix}-\isacom{assumen} line
+but also gives the assumption \isa{{\isaliteral{22}{\isachardoublequote}}t\ {\isaliteral{3D}{\isacharequal}}\ C\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{22}{\isachardoublequote}}} a name: \isa{C},
+like the constructor.
+Here is the \isacom{case} version of the proof above:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}cases\ xs{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ Nil\isanewline
+\ \ \isacommand{thus}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}Cons\ y\ ys{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isacommand{thus}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+Remember that \isa{Nil} and \isa{Cons} are the alphanumeric names
+for \isa{{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}} and \isa{{\isaliteral{23}{\isacharhash}}}. The names of the assumptions
+are not used because they are directly piped (via \isacom{thus})
+into the proof of the claim.
+
+\subsection{Structural induction}
+
+We illustrate structural induction with an example based on natural numbers:
+the sum (\isa{{\isaliteral{5C3C53756D3E}{\isasymSum}}}) of the first \isa{n} natural numbers
+(\isa{{\isaliteral{7B}{\isacharbraceleft}}{\isadigit{0}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}n{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}nat{\isaliteral{7D}{\isacharbraceright}}}) is equal to \mbox{\isa{n\ {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ div\ {\isadigit{2}}}}.
+Never mind the details, just focus on the pattern:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C53756D3E}{\isasymSum}}{\isaliteral{7B}{\isacharbraceleft}}{\isadigit{0}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}n{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}nat{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{3D}{\isacharequal}}\ n{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{28}{\isacharparenleft}}n{\isaliteral{2B}{\isacharplus}}{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ div\ {\isadigit{2}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{28}{\isacharparenleft}}\isakeyword{is}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{3F}{\isacharquery}}P\ n{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}induction\ n{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C53756D3E}{\isasymSum}}{\isaliteral{7B}{\isacharbraceleft}}{\isadigit{0}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}{\isadigit{0}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}nat{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{28}{\isacharparenleft}}{\isadigit{0}}{\isaliteral{2B}{\isacharplus}}{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ div\ {\isadigit{2}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ n\ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C53756D3E}{\isasymSum}}{\isaliteral{7B}{\isacharbraceleft}}{\isadigit{0}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}n{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}nat{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{3D}{\isacharequal}}\ n{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{28}{\isacharparenleft}}n{\isaliteral{2B}{\isacharplus}}{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ div\ {\isadigit{2}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{thus}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C53756D3E}{\isasymSum}}{\isaliteral{7B}{\isacharbraceleft}}{\isadigit{0}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}Suc\ n{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}nat{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{3D}{\isacharequal}}\ Suc\ n{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{2B}{\isacharplus}}{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ div\ {\isadigit{2}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+Except for the rewrite steps, everything is explicitly given. This
+makes the proof easily readable, but the duplication means it is tedious to
+write and maintain. Here is how pattern
+matching can completely avoid any duplication:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C53756D3E}{\isasymSum}}{\isaliteral{7B}{\isacharbraceleft}}{\isadigit{0}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}n{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}nat{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{3D}{\isacharequal}}\ n{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{28}{\isacharparenleft}}n{\isaliteral{2B}{\isacharplus}}{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ div\ {\isadigit{2}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{28}{\isacharparenleft}}\isakeyword{is}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{3F}{\isacharquery}}P\ n{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}induction\ n{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{3F}{\isacharquery}}P\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ n\ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{3F}{\isacharquery}}P\ n{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{thus}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{3F}{\isacharquery}}P{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+The first line introduces an abbreviation \isa{{\isaliteral{3F}{\isacharquery}}P\ n} for the goal.
+Pattern matching \isa{{\isaliteral{3F}{\isacharquery}}P\ n} with the goal instantiates \isa{{\isaliteral{3F}{\isacharquery}}P} to the
+function \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}n{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C53756D3E}{\isasymSum}}{\isaliteral{7B}{\isacharbraceleft}}{\isadigit{0}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}n{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{3D}{\isacharequal}}\ n\ {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ div\ {\isadigit{2}}}.  Now the proposition to
+be proved in the base case can be written as \isa{{\isaliteral{3F}{\isacharquery}}P\ {\isadigit{0}}}, the induction
+hypothesis as \isa{{\isaliteral{3F}{\isacharquery}}P\ n}, and the conclusion of the induction step as
+\isa{{\isaliteral{3F}{\isacharquery}}P{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}}.
+
+Induction also provides the \isacom{case} idiom that abbreviates
+the \isacom{fix}-\isacom{assume} step. The above proof becomes%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}induction\ n{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ {\isadigit{0}}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}case\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isacommand{thus}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}case\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+The unknown \isa{{\isaliteral{3F}{\isacharquery}}case} is set in each case to the required
+claim, i.e.\ \isa{{\isaliteral{3F}{\isacharquery}}P\ {\isadigit{0}}} and \mbox{\isa{{\isaliteral{3F}{\isacharquery}}P{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}}} in the above proof,
+without requiring the user to define a \isa{{\isaliteral{3F}{\isacharquery}}P}. The general
+pattern for induction over \isa{nat} is shown on the left-hand side:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{tabular}{@ {}ll@ {}}
+\begin{minipage}[t]{.4\textwidth}
+\isa{%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P{\isaliteral{28}{\isacharparenleft}}n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isacommand{proof}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}induction\ n{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ {\isadigit{0}}%
+\\\mbox{}\ \ $\vdots$\\\mbox{}\hspace{-1ex}
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}case\ %
+\ $\dots$\\
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}%
+\\\mbox{}\ \ $\vdots$\\\mbox{}\hspace{-1ex}
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}case\ %
+\ $\dots$\\
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+}
+\end{minipage}
+&
+\begin{minipage}[t]{.4\textwidth}
+~\\
+~\\
+\isacom{let} \isa{{\isaliteral{3F}{\isacharquery}}case\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequote}}P{\isaliteral{28}{\isacharparenleft}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}\\
+~\\
+~\\
+~\\[1ex]
+\isacom{fix} \isa{n} \isacom{assume} \isa{Suc{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequote}}P{\isaliteral{28}{\isacharparenleft}}n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}\\
+\isacom{let} \isa{{\isaliteral{3F}{\isacharquery}}case\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequote}}P{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}\\
+\end{minipage}
+\end{tabular}
+\medskip
+%
+\begin{isamarkuptext}%
+On the right side you can see what the \isacom{case} command
+on the left stands for.
+
+In case the goal is an implication, induction does one more thing: the
+proposition to be proved in each case is not the whole implication but only
+its conclusion; the premises of the implication are immediately made
+assumptions of that case. That is, if in the above proof we replace
+\isacom{show}~\isa{P{\isaliteral{28}{\isacharparenleft}}n{\isaliteral{29}{\isacharparenright}}} by
+\mbox{\isacom{show}~\isa{A{\isaliteral{28}{\isacharparenleft}}n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{28}{\isacharparenleft}}n{\isaliteral{29}{\isacharparenright}}}}
+then \isacom{case}~\isa{{\isadigit{0}}} stands for
+\begin{quote}
+\isacom{assume} \ \isa{{\isadigit{0}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequote}}A{\isaliteral{28}{\isacharparenleft}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}\\
+\isacom{let} \isa{{\isaliteral{3F}{\isacharquery}}case\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequote}}P{\isaliteral{28}{\isacharparenleft}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}
+\end{quote}
+and \isacom{case}~\isa{{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}} stands for
+\begin{quote}
+\isacom{fix} \isa{n}\\
+\isacom{assume} \isa{Suc{\isaliteral{3A}{\isacharcolon}}}
+  \begin{tabular}[t]{l}\isa{A{\isaliteral{28}{\isacharparenleft}}n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{28}{\isacharparenleft}}n{\isaliteral{29}{\isacharparenright}}}\\\isa{A{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}}\end{tabular}\\
+\isacom{let} \isa{{\isaliteral{3F}{\isacharquery}}case\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequote}}P{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}
+\end{quote}
+The list of assumptions \isa{Suc} is actually subdivided
+into \isa{Suc{\isaliteral{2E}{\isachardot}}IH}, the induction hypotheses (here \isa{A{\isaliteral{28}{\isacharparenleft}}n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{28}{\isacharparenleft}}n{\isaliteral{29}{\isacharparenright}}})
+and \isa{Suc{\isaliteral{2E}{\isachardot}}prems}, the premises of the goal being proved
+(here \isa{A{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}}).
+
+Induction works for any datatype.
+Proving a goal \isa{{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}\ A\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{3B}{\isacharsemicolon}}\ A\isaliteral{5C3C5E697375623E}{}\isactrlisub k{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{29}{\isacharparenright}}}
+by induction on \isa{x} generates a proof obligation for each constructor
+\isa{C} of the datatype. The command \isa{case\ {\isaliteral{28}{\isacharparenleft}}C\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{29}{\isacharparenright}}}
+performs the following steps:
+\begin{enumerate}
+\item \isacom{fix} \isa{x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub n}
+\item \isacom{assume} the induction hypotheses (calling them \isa{C{\isaliteral{2E}{\isachardot}}IH})
+ and the premises \mbox{\isa{A\isaliteral{5C3C5E697375623E}{}\isactrlisub i{\isaliteral{28}{\isacharparenleft}}C\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{29}{\isacharparenright}}}} (calling them \isa{C{\isaliteral{2E}{\isachardot}}prems})
+ and calling the whole list \isa{C}
+\item \isacom{let} \isa{{\isaliteral{3F}{\isacharquery}}case\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequote}}P{\isaliteral{28}{\isacharparenleft}}C\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}
+\end{enumerate}
+
+\subsection{Rule induction}
+
+Recall the inductive and recursive definitions of even numbers in
+\autoref{sec:inductive-defs}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{inductive}\isamarkupfalse%
+\ ev\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+ev{\isadigit{0}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}ev\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+evSS{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}ev\ n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ ev{\isaliteral{28}{\isacharparenleft}}Suc{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ even\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}even\ {\isadigit{0}}\ {\isaliteral{3D}{\isacharequal}}\ True{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}even\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ False{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}even\ {\isaliteral{28}{\isacharparenleft}}Suc{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ even\ n{\isaliteral{22}{\isachardoublequoteclose}}%
+\begin{isamarkuptext}%
+We recast the proof of \isa{ev\ n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ even\ n} in Isar. The
+left column shows the actual proof text, the right column shows
+the implicit effect of the two \isacom{case} commands:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{tabular}{@ {}l@ {\qquad}l@ {}}
+\begin{minipage}[t]{.5\textwidth}
+\isa{%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}ev\ n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ even\ n{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+{\isaliteral{28}{\isacharparenleft}}induction\ rule{\isaliteral{3A}{\isacharcolon}}\ ev{\isaliteral{2E}{\isachardot}}induct{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ ev{\isadigit{0}}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}case\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ evSS\isanewline
+\isanewline
+\isanewline
+\isanewline
+\ \ \isacommand{thus}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}case\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+}
+\end{minipage}
+&
+\begin{minipage}[t]{.5\textwidth}
+~\\
+~\\
+\isacom{let} \isa{{\isaliteral{3F}{\isacharquery}}case\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequote}}even\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequote}}}\\
+~\\
+~\\
+\isacom{fix} \isa{n}\\
+\isacom{assume} \isa{evSS{\isaliteral{3A}{\isacharcolon}}}
+  \begin{tabular}[t]{l} \isa{ev\ n}\\\isa{even\ n}\end{tabular}\\
+\isacom{let} \isa{{\isaliteral{3F}{\isacharquery}}case\ {\isaliteral{3D}{\isacharequal}}\ even{\isaliteral{28}{\isacharparenleft}}Suc{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}}\\
+\end{minipage}
+\end{tabular}
+\medskip
+%
+\begin{isamarkuptext}%
+The proof resembles structural induction, but the induction rule is given
+explicitly and the names of the cases are the names of the rules in the
+inductive definition.
+Let us examine the two assumptions named \isa{evSS}:
+\isa{ev\ n} is the premise of rule \isa{evSS}, which we may assume
+because we are in the case where that rule was used; \isa{even\ n}
+is the induction hypothesis.
+\begin{warn}
+Because each \isacom{case} command introduces a list of assumptions
+named like the case name, which is the name of a rule of the inductive
+definition, those rules now need to be accessed with a qualified name, here
+\isa{ev{\isaliteral{2E}{\isachardot}}ev{\isadigit{0}}} and \isa{ev{\isaliteral{2E}{\isachardot}}evSS}
+\end{warn}
+
+In the case \isa{evSS} of the proof above we have pretended that the
+system fixes a variable \isa{n}.  But unless the user provides the name
+\isa{n}, the system will just invent its own name that cannot be referred
+to.  In the above proof, we do not need to refer to it, hence we do not give
+it a specific name. In case one needs to refer to it one writes
+\begin{quote}
+\isacom{case} \isa{{\isaliteral{28}{\isacharparenleft}}evSS\ m{\isaliteral{29}{\isacharparenright}}}
+\end{quote}
+just like \isacom{case}~\isa{{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}} in earlier structural inductions.
+The name \isa{m} is an arbitrary choice. As a result,
+case \isa{evSS} is derived from a renamed version of
+rule \isa{evSS}: \isa{ev\ m\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ ev{\isaliteral{28}{\isacharparenleft}}Suc{\isaliteral{28}{\isacharparenleft}}Suc\ m{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}}.
+Here is an example with a (contrived) intermediate step that refers to \isa{m}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}ev\ n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ even\ n{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+{\isaliteral{28}{\isacharparenleft}}induction\ rule{\isaliteral{3A}{\isacharcolon}}\ ev{\isaliteral{2E}{\isachardot}}induct{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ ev{\isadigit{0}}\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}case\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}evSS\ m{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}even{\isaliteral{28}{\isacharparenleft}}Suc{\isaliteral{28}{\isacharparenleft}}Suc\ m{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ even\ m{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\ \ \isacommand{thus}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}case\ \isacommand{using}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}even\ m{\isaliteral{60}{\isacharbackquoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+\indent
+In general, let \isa{I} be a (for simplicity unary) inductively defined
+predicate and let the rules in the definition of \isa{I}
+be called \isa{rule\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}}, \dots, \isa{rule\isaliteral{5C3C5E697375623E}{}\isactrlisub n}. A proof by rule
+induction follows this pattern:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}I\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isacommand{proof}\isamarkupfalse%
+{\isaliteral{28}{\isacharparenleft}}induction\ rule{\isaliteral{3A}{\isacharcolon}}\ I{\isaliteral{2E}{\isachardot}}induct{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ rule\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}%
+\\[-.4ex]\mbox{}\ \ $\vdots$\\[-.4ex]\mbox{}\hspace{-1ex}
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}case\ %
+\ $\dots$\\
+\isacommand{next}\isamarkupfalse%
+%
+\\[-.4ex]$\vdots$\\[-.4ex]\mbox{}\hspace{-1ex}
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ rule\isaliteral{5C3C5E697375623E}{}\isactrlisub n%
+\\[-.4ex]\mbox{}\ \ $\vdots$\\[-.4ex]\mbox{}\hspace{-1ex}
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}case\ %
+\ $\dots$\\
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+One can provide explicit variable names by writing
+\isacom{case}~\isa{{\isaliteral{28}{\isacharparenleft}}rule\isaliteral{5C3C5E697375623E}{}\isactrlisub i\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub k{\isaliteral{29}{\isacharparenright}}}, thus renaming the first \isa{k}
+free variables in rule \isa{i} to \isa{x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub k},
+going through rule \isa{i} from left to right.
+
+\subsection{Assumption naming}
+
+In any induction, \isacom{case}~\isa{name} sets up a list of assumptions
+also called \isa{name}, which is subdivided into three parts:
+\begin{description}
+\item[\isa{name{\isaliteral{2E}{\isachardot}}IH}] contains the induction hypotheses.
+\item[\isa{name{\isaliteral{2E}{\isachardot}}hyps}] contains all the other hypotheses of this case in the
+induction rule. For rule inductions these are the hypotheses of rule
+\isa{name}, for structural inductions these are empty.
+\item[\isa{name{\isaliteral{2E}{\isachardot}}prems}] contains the (suitably instantiated) premises
+of the statement being proved, i.e. the \isa{A\isaliteral{5C3C5E697375623E}{}\isactrlisub i} when
+proving \isa{{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}\ A\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{3B}{\isacharsemicolon}}\ A\isaliteral{5C3C5E697375623E}{}\isactrlisub n\ {\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A}.
+\end{description}
+\begin{warn}
+Proof method \isa{induct} differs from \isa{induction}
+only in this naming policy: \isa{induct} does not distinguish
+\isa{IH} from \isa{hyps} but subsumes \isa{IH} under \isa{hyps}.
+\end{warn}
+
+More complicated inductive proofs than the ones we have seen so far
+often need to refer to specific assumptions---just \isa{name} or even
+\isa{name{\isaliteral{2E}{\isachardot}}prems} and \isa{name{\isaliteral{2E}{\isachardot}}IH} can be too unspecific.
+This is where the indexing of fact lists comes in handy, e.g.\
+\isa{name{\isaliteral{2E}{\isachardot}}IH{\isaliteral{28}{\isacharparenleft}}{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}} or \isa{name{\isaliteral{2E}{\isachardot}}prems{\isaliteral{28}{\isacharparenleft}}{\isadigit{1}}{\isaliteral{2D}{\isacharminus}}{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}}.
+
+\subsection{Rule inversion}
+
+Rule inversion is case distinction on which rule could have been used to
+derive some fact. The name \concept{rule inversion} emphasizes that we are
+reasoning backwards: by which rules could some given fact have been proved?
+For the inductive definition of \isa{ev}, rule inversion can be summarized
+like this:
+\begin{isabelle}%
+ev\ n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ n\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}k{\isaliteral{2E}{\isachardot}}\ n\ {\isaliteral{3D}{\isacharequal}}\ Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ k{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ ev\ k{\isaliteral{29}{\isacharparenright}}%
+\end{isabelle}
+The realisation in Isabelle is a case distinction.
+A simple example is the proof that \isa{ev\ n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ ev\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2D}{\isacharminus}}\ {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}}. We
+already went through the details informally in \autoref{sec:Logic:even}. This
+is the Isar proof:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}ev\ n{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ this\ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}ev{\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2D}{\isacharminus}}\ {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ cases\isanewline
+\ \ \ \ \isacommand{case}\isamarkupfalse%
+\ ev{\isadigit{0}}\ \isacommand{thus}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}ev{\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2D}{\isacharminus}}\ {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ ev{\isaliteral{2E}{\isachardot}}ev{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{case}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}evSS\ k{\isaliteral{29}{\isacharparenright}}\ \isacommand{thus}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}ev{\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2D}{\isacharminus}}\ {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ ev{\isaliteral{2E}{\isachardot}}evSS{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+The key point here is that a case distinction over some inductively
+defined predicate is triggered by piping the given fact
+(here: \isacom{from}~\isa{this}) into a proof by \isa{cases}.
+Let us examine the assumptions available in each case. In case \isa{ev{\isadigit{0}}}
+we have \isa{n\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}} and in case \isa{evSS} we have \isa{n\ {\isaliteral{3D}{\isacharequal}}\ Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ k{\isaliteral{29}{\isacharparenright}}}
+and \isa{ev\ k}. In each case the assumptions are available under the name
+of the case; there is no fine grained naming schema like for induction.
+
+Sometimes some rules could not have beed used to derive the given fact
+because constructors clash. As an extreme example consider
+rule inversion applied to \isa{ev\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}}: neither rule \isa{ev{\isadigit{0}}} nor
+rule \isa{evSS} can yield \isa{ev\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}} because \isa{Suc\ {\isadigit{0}}} unifies
+neither with \isa{{\isadigit{0}}} nor with \isa{Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}}. Impossible cases do not
+have to be proved. Hence we can prove anything from \isa{ev\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}ev{\isaliteral{28}{\isacharparenleft}}Suc\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ P\ \isacommand{by}\isamarkupfalse%
+\ cases%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+That is, \isa{ev\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}} is simply not provable:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ ev{\isaliteral{28}{\isacharparenleft}}Suc\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}ev{\isaliteral{28}{\isacharparenleft}}Suc\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ False\ \isacommand{by}\isamarkupfalse%
+\ cases\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+Normally not all cases will be impossible. As a simple exercise,
+prove that \mbox{\isa{{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ ev\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}}.}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

@@ -1,0 +1,98 @@
+\usepackage{makeidx}         % allows index generation
+\usepackage{graphicx}        % standard LaTeX graphics tool
+                             % when including figure files
+\usepackage{multicol}        % used for the two-column index
+\usepackage[bottom]{footmisc}% places footnotes at page bottom
+\usepackage{alltt}
+
+\usepackage[T1]{fontenc}
+\usepackage{ccfonts}
+\usepackage[euler-digits]{eulervm}
+
+\let\bfdefaultold=\bfdefault
+\def\bfdefault{sbc} % make sans serif the default bold font
+
+\usepackage{isabelle,isabellesym}
+\usepackage{mathpartir}
+\usepackage{amssymb}
+
+% Enables fixmes
+\newif \ifDraft         \Drafttrue
+
+\ifDraft
+  \newcommand{\FIXME}[1]{\textbf{\textsl{FIXME: #1}}}
+\else
+  \newcommand{\FIXME}[1]{\relax}
+\fi
+
+\renewcommand*\descriptionlabel[1]{\hspace\labelsep \textbf{#1}\hfil}
+
+% this should be the last package used
+\usepackage{color}
+\definecolor{linkcolor}{rgb}{0,0,0.4}
+\usepackage[colorlinks=true,linkcolor=linkcolor,citecolor=linkcolor,
+            filecolor=linkcolor,pagecolor=linkcolor,
+            urlcolor=linkcolor]{hyperref}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{tt}
+\isabellestyle{it}
+
+\renewcommand{\isadigit}[1]{\ensuremath{#1}}
+
+% font size
+\renewcommand{\isastyle}{\isastyleminor}
+
+% indexing
+\usepackage{ifthen}
+\newcommand{\indexdef}[3]%
+{\ifthenelse{\equal{}{#1}}{\index{#3 (#2)|bold}}{\index{#3 (#1\ #2)|bold}}}
+
+% section commands
+\renewcommand{\chapterautorefname}{Chapter}
+\renewcommand{\sectionautorefname}{Section}
+
+\renewcommand{\isamarkupheader}[1]{{\rmfamily\subsection{#1}}}
+\renewcommand{\isamarkupsection}[1]{{\rmfamily\subsection{#1}}}
+\renewcommand{\isamarkupsubsection}[1]{{\rmfamily\subsubsection{#1}}}
+% isabelle in-text command font
+\newcommand{\isacom}[1]{\isa{\isacommand{#1}}}
+% isabelle keyword, adapted from isabelle.sty
+\renewcommand{\isakeyword}[1]
+{\emph{\def\isachardot{.}%
+\def\isacharbraceleft{\{}\def\isacharbraceright{\}}\textbf{#1}}}
+\renewcommand{\isacharunderscore}{\_}
+\renewcommand{\isacharunderscorekeyword}{\_}
+
+% add \noindent to text blocks automatically
+\renewenvironment{isamarkuptext}{\par\isastyletext\begin{isapar}\noindent}{\end{isapar}}
+\renewenvironment{isamarkuptxt}{\par\isastyletext\begin{isapar}\noindent}{\end{isapar}}
+
+\newcommand{\noquotes}[1]{{\renewcommand{\isachardoublequote}{}#1}}
+\newcommand{\concept}[1]{\textbf{#1}}
+\newcommand{\xsymbol}[1]{\texttt{\char`\\\char`<#1>}}
+
+\newcommand{\isabox}{\fbox}
+\newcommand{\bigisabox}[1]
+{\isabox{\renewcommand{\isanewline}{\\}%
+ \begin{tabular}{l}#1\end{tabular}}}
+
+%%%% ``WARNING'' environment: 2 ! characters separated by negative thin space
+%\def\warnbang{\vtop to 0pt{\vss\hbox{\let\bfdefault=\bfdefaultold\Huge\textbf{!$\!$!}}\vss}}
+
+\def\warnbang{\vtop to 0pt{\vss\hbox{\includegraphics[width=3ex, height=5.5ex]{bang}}\vss}}
+
+\newenvironment{warn}{\begin{trivlist}\small\item[]\noindent%
+    \begingroup\hangindent=\parindent\hangafter=-2%\clubpenalty=10000%
+    \def\par{\endgraf\endgroup}%
+    \hbox to0pt{\hskip-\hangindent\warnbang\hfill}\ignorespaces}
+  {\par\end{trivlist}}
+
+\renewcommand{\isachardoublequote}{}
+\renewcommand{\isachardoublequoteopen}{}
+\renewcommand{\isachardoublequoteclose}{}
+
+\renewcommand{\isacharbackquoteopen}{\isacharbackquote}
+\renewcommand{\isacharbackquoteclose}{\isacharbackquote}
+
+\hyphenation{Isa-belle}

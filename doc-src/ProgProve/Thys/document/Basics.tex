@@ -1,0 +1,173 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Basics}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\begin{isamarkuptext}%
+This chapter introduces HOL as a functional programming language and shows
+how to prove properties of functional programs by induction.
+
+\section{Basics}
+
+\subsection{Types, Terms and Formulae}
+\label{sec:TypesTermsForms}
+
+HOL is a typed logic whose type system resembles that of functional
+programming languages. Thus there are
+\begin{description}
+\item[base types,] 
+in particular \isa{bool}, the type of truth values,
+\isa{nat}, the type of natural numbers ($\mathbb{N}$), and \isa{int},
+the type of mathematical integers ($\mathbb{Z}$).
+\item[type constructors,]
+ in particular \isa{list}, the type of
+lists, and \isa{set}, the type of sets. Type constructors are written
+postfix, e.g.\ \isa{nat\ list} is the type of lists whose elements are
+natural numbers.
+\item[function types,]
+denoted by \isa{{\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}}.
+\item[type variables,]
+  denoted by \isa{{\isaliteral{27}{\isacharprime}}a}, \isa{{\isaliteral{27}{\isacharprime}}b} etc., just like in ML\@.
+\end{description}
+
+\concept{Terms} are formed as in functional programming by
+applying functions to arguments. If \isa{f} is a function of type
+\isa{{\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}} and \isa{t} is a term of type
+\isa{{\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}} then \isa{f\ t} is a term of type \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}}. We write \isa{t\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}} to mean that term \isa{t} has type \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}}.
+
+\begin{warn}
+There are many predefined infix symbols like \isa{{\isaliteral{2B}{\isacharplus}}} and \isa{{\isaliteral{5C3C6C653E}{\isasymle}}}.
+The name of the corresponding binary function is \isa{op\ {\isaliteral{2B}{\isacharplus}}},
+not just \isa{{\isaliteral{2B}{\isacharplus}}}. That is, \isa{x\ {\isaliteral{2B}{\isacharplus}}\ y} is syntactic sugar for
+\noquotes{\isa{{\isaliteral{22}{\isachardoublequote}}op\ {\isaliteral{2B}{\isacharplus}}\ x\ y{\isaliteral{22}{\isachardoublequote}}}}.
+\end{warn}
+
+HOL also supports some basic constructs from functional programming:
+\begin{quote}
+\isa{{\isaliteral{28}{\isacharparenleft}}if\ b\ then\ t\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ else\ t\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}}\\
+\isa{{\isaliteral{28}{\isacharparenleft}}let\ x\ {\isaliteral{3D}{\isacharequal}}\ t\ in\ u{\isaliteral{29}{\isacharparenright}}}\\
+\isa{{\isaliteral{28}{\isacharparenleft}}case\ t\ of\ pat\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ t\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{7C}{\isacharbar}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{7C}{\isacharbar}}\ pat\isaliteral{5C3C5E697375623E}{}\isactrlisub n\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ t\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{29}{\isacharparenright}}}
+\end{quote}
+\begin{warn}
+The above three constructs must always be enclosed in parentheses
+if they occur inside other constructs.
+\end{warn}
+Terms may also contain \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}}-abstractions. For example,
+\isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ x} is the identity function.
+
+\concept{Formulae} are terms of type \isa{bool}.
+There are the basic constants \isa{True} and \isa{False} and
+the usual logical connectives (in decreasing order of precedence):
+\isa{{\isaliteral{5C3C6E6F743E}{\isasymnot}}}, \isa{{\isaliteral{5C3C616E643E}{\isasymand}}}, \isa{{\isaliteral{5C3C6F723E}{\isasymor}}}, \isa{{\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}}.
+
+\concept{Equality} is available in the form of the infix function \isa{{\isaliteral{3D}{\isacharequal}}}
+of type \isa{{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool}. It also works for formulas, where
+it means ``if and only if''.
+
+\concept{Quantifiers} are written \isa{{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P} and \isa{{\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ P}.
+
+Isabelle automatically computes the type of each variable in a term. This is
+called \concept{type inference}.  Despite type inference, it is sometimes
+necessary to attach explicit \concept{type constraints} (or \concept{type
+annotations}) to a variable or term.  The syntax is \isa{t\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}} as in
+\mbox{\noquotes{\isa{{\isaliteral{22}{\isachardoublequote}}m\ {\isaliteral{3C}{\isacharless}}\ {\isaliteral{28}{\isacharparenleft}}n{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}nat{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}}}. Type constraints may be
+needed to
+disambiguate terms involving overloaded functions such as \isa{{\isaliteral{2B}{\isacharplus}}}, \isa{{\isaliteral{2A}{\isacharasterisk}}} and \isa{{\isaliteral{5C3C6C653E}{\isasymle}}}.
+
+Finally there are the universal quantifier \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}} and the implication
+\isa{{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}}. They are part of the Isabelle framework, not the logic
+HOL. Logically, they agree with their HOL counterparts \isa{{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}} and
+\isa{{\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}}, but operationally they behave differently. This will become
+clearer as we go along.
+\begin{warn}
+Right-arrows of all kinds always associate to the right. In particular,
+the formula
+\isa{A\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{3}}} means \isa{A\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}A\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{3}}{\isaliteral{29}{\isacharparenright}}}.
+The (Isabelle specific) notation \mbox{\isa{{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}\ A\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{3B}{\isacharsemicolon}}\ A\isaliteral{5C3C5E697375623E}{}\isactrlisub n\ {\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A}}
+is short for the iterated implication \mbox{\isa{A\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A\isaliteral{5C3C5E697375623E}{}\isactrlisub n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A}}.
+Sometimes we also employ inference rule notation:
+\inferrule{\mbox{\isa{A\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}}}\\ \mbox{\isa{{\isaliteral{5C3C646F74733E}{\isasymdots}}}}\\ \mbox{\isa{A\isaliteral{5C3C5E697375623E}{}\isactrlisub n}}}
+{\mbox{\isa{A}}}
+\end{warn}
+
+
+\subsection{Theories}
+\label{sec:Basic:Theories}
+
+Roughly speaking, a \concept{theory} is a named collection of types,
+functions, and theorems, much like a module in a programming language.
+All the Isabelle text that you ever type needs to go into a theory.
+The general format of a theory \isa{T} is
+\begin{quote}
+\isacom{theory} \isa{T}\\
+\isacom{imports} \isa{T\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ T\isaliteral{5C3C5E697375623E}{}\isactrlisub n}\\
+\isacom{begin}\\
+\emph{definitions, theorems and proofs}\\
+\isacom{end}
+\end{quote}
+where \isa{T\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ T\isaliteral{5C3C5E697375623E}{}\isactrlisub n} are the names of existing
+theories that \isa{T} is based on. The \isa{T\isaliteral{5C3C5E697375623E}{}\isactrlisub i} are the
+direct \concept{parent theories} of \isa{T}.
+Everything defined in the parent theories (and their parents, recursively) is
+automatically visible. Each theory \isa{T} must
+reside in a \concept{theory file} named \isa{T{\isaliteral{2E}{\isachardot}}thy}.
+
+\begin{warn}
+HOL contains a theory \isa{Main}, the union of all the basic
+predefined theories like arithmetic, lists, sets, etc.
+Unless you know what you are doing, always include \isa{Main}
+as a direct or indirect parent of all your theories.
+\end{warn}
+
+In addition to the theories that come with the Isabelle/HOL distribution
+(see \url{http://isabelle.in.tum.de/library/HOL/})
+there is also the \emph{Archive of Formal Proofs}
+at  \url{http://afp.sourceforge.net}, a growing collection of Isabelle theories
+that everybody can contribute to.
+
+\subsection{Quotation Marks}
+
+The textual definition of a theory follows a fixed syntax with keywords like
+\isacommand{begin} and \isacommand{datatype}.  Embedded in this syntax are
+the types and formulae of HOL.  To distinguish the two levels, everything
+HOL-specific (terms and types) must be enclosed in quotation marks:
+\texttt{"}\dots\texttt{"}. To lessen this burden, quotation marks around a
+single identifier can be dropped.  When Isabelle prints a syntax error
+message, it refers to the HOL syntax as the \concept{inner syntax} and the
+enclosing theory language as the \concept{outer syntax}.
+\begin{warn}
+For reasons of readability, we almost never show the quotation marks in this
+book. Consult the accompanying theory files to see where they need to go.
+\end{warn}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
