@@ -85,7 +85,8 @@ lemma snd_prs [quot_preserve]:
 
 lemma split_rsp [quot_respect]:
   shows "((R1 ===> R2 ===> (op =)) ===> (prod_rel R1 R2) ===> (op =)) split split"
-  by (auto intro!: fun_relI elim!: fun_relE)
+  unfolding prod_rel_def fun_rel_def
+  by auto
 
 lemma split_prs [quot_preserve]:
   assumes q1: "Quotient R1 Abs1 Rep1"
