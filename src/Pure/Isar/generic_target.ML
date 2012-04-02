@@ -25,7 +25,11 @@ sig
     string * bool -> (binding * mixfix) * term -> local_theory -> (term * term) * local_theory
   val background_declaration: declaration -> local_theory -> local_theory
   val locale_declaration: string -> bool -> declaration -> local_theory -> local_theory
-  val standard_declaration: declaration -> local_theory -> local_theory
+  val standard_declaration: (int -> bool) -> declaration -> local_theory -> local_theory
+  val generic_const: bool -> Syntax.mode -> (binding * mixfix) * term ->
+    Context.generic -> Context.generic
+  val const_declaration: (int -> bool) -> Syntax.mode -> (binding * mixfix) * term ->
+    local_theory -> local_theory
   val theory_foundation: ((binding * typ) * mixfix) * (binding * term) ->
     term list * term list -> local_theory -> (term * thm) * local_theory
   val theory_notes: string ->
@@ -215,9 +219,55 @@ fun locale_declaration locale syntax decl lthy = lthy
     Locale.add_declaration locale syntax
       (Morphism.transform (Local_Theory.standard_morphism lthy ctxt) decl));
 
-fun standard_declaration decl lthy =
-  Local_Theory.map_contexts (fn _ => fn ctxt =>
-    Context.proof_map (Local_Theory.standard_form lthy ctxt decl) ctxt) lthy;
+fun standard_declaration pred decl lthy =
+  Local_Theory.map_contexts (fn level => fn ctxt =>
+    if pred level then Context.proof_map (Local_Theory.standard_form lthy ctxt decl) ctxt
+    else ctxt) lthy;
+
+
+(* const declaration *)
+
+fun generic_const same_shape prmode ((b, mx), t) context =
+  let
+    val const_alias =
+      if same_shape then
+        (case t of
+          Const (c, T) =>
+            let
+              val thy = Context.theory_of context;
+              val ctxt = Context.proof_of context;
+              val t' = Syntax.check_term ctxt (Const (c, dummyT))
+                |> singleton (Variable.polymorphic ctxt);
+            in
+              (case t' of
+                Const (c', T') =>
+                  if c = c' andalso Sign.typ_equiv thy (T, T') then SOME c else NONE
+              | _ => NONE)
+            end
+        | _ => NONE)
+      else NONE;
+  in
+    (case const_alias of
+      SOME c =>
+        context
+        |> Context.mapping (Sign.const_alias b c) (Proof_Context.const_alias b c)
+        |> Morphism.form (Proof_Context.generic_notation true prmode [(t, mx)])
+    | NONE =>
+        context
+        |> Proof_Context.generic_add_abbrev Print_Mode.internal (b, t)
+        |-> (fn (const as Const (c, _), _) => same_shape ?
+              (Proof_Context.generic_revert_abbrev (#1 prmode) c #>
+               Morphism.form (Proof_Context.generic_notation true prmode [(const, mx)]))))
+  end;
+
+fun const_declaration pred prmode ((b, mx), rhs) =
+  standard_declaration pred (fn phi =>
+    let
+      val b' = Morphism.binding phi b;
+      val rhs' = Morphism.term phi rhs;
+      val rhs'' = Term.close_schematic_term rhs';
+      val same_shape = Term.aconv_untyped (rhs, rhs');
+    in generic_const same_shape prmode ((b', mx), rhs'') end);
 
 
 
@@ -248,6 +298,6 @@ fun theory_abbrev prmode ((b, mx), t) =
       (fn (lhs, _) => Sign.notation true prmode [(lhs, mx)]));
 
 fun theory_declaration decl =
-  background_declaration decl #> standard_declaration decl;
+  background_declaration decl #> standard_declaration (K true) decl;
 
 end;

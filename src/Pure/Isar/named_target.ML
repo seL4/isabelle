@@ -46,40 +46,7 @@ val peek =
 
 (* consts in locale *)
 
-fun generic_const same_shape prmode ((b, mx), t) context =
-  let
-    val const_alias =
-      if same_shape then
-        (case t of
-          Const (c, T) =>
-            let
-              val thy = Context.theory_of context;
-              val ctxt = Context.proof_of context;
-              val t' = Syntax.check_term ctxt (Const (c, dummyT))
-                |> singleton (Variable.polymorphic ctxt);
-            in
-              (case t' of
-                Const (c', T') =>
-                  if c = c' andalso Sign.typ_equiv thy (T, T') then SOME c else NONE
-              | _ => NONE)
-            end
-        | _ => NONE)
-      else NONE;
-  in
-    (case const_alias of
-      SOME c =>
-        context
-        |> Context.mapping (Sign.const_alias b c) (Proof_Context.const_alias b c)
-        |> Morphism.form (Proof_Context.generic_notation true prmode [(t, mx)])
-    | NONE =>
-        context
-        |> Proof_Context.generic_add_abbrev Print_Mode.internal (b, t)
-        |-> (fn (const as Const (c, _), _) => same_shape ?
-              (Proof_Context.generic_revert_abbrev (#1 prmode) c #>
-               Morphism.form (Proof_Context.generic_notation true prmode [(const, mx)]))))
-  end;
-
-fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx), rhs) =
+fun locale_const (Target {target, is_class, ...}) prmode ((b, mx), rhs) =
   Generic_Target.locale_declaration target true (fn phi =>
     let
       val b' = Morphism.binding phi b;
@@ -94,27 +61,36 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx)
           andalso not (null prefix')
           andalso List.last prefix' = (Class.class_prefix target, false)
         orelse same_shape);
-    in not is_canonical_class ? generic_const same_shape prmode ((b', mx), rhs'') end);
+    in
+      not is_canonical_class ? Generic_Target.generic_const same_shape prmode ((b', mx), rhs'')
+    end) #>
+  (fn lthy => lthy |> Generic_Target.const_declaration
+    (fn level => level <> 0 andalso level <> Local_Theory.level lthy) prmode ((b, mx), rhs));
 
 
 (* define *)
 
+fun global_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) =
+  Generic_Target.theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params)
+  #-> (fn (lhs, def) => Generic_Target.const_declaration (K true) Syntax.mode_default ((b, mx), lhs)
+    #> pair (lhs, def));
+
 fun locale_foundation ta (((b, U), mx), (b_def, rhs)) (type_params, term_params) =
   Generic_Target.theory_foundation (((b, U), NoSyn), (b_def, rhs)) (type_params, term_params)
   #-> (fn (lhs, def) => locale_const ta Syntax.mode_default ((b, mx), lhs)
-    #> pair (lhs, def))
+    #> pair (lhs, def));
 
 fun class_foundation (ta as Target {target, ...})
     (((b, U), mx), (b_def, rhs)) (type_params, term_params) =
   Generic_Target.theory_foundation (((b, U), NoSyn), (b_def, rhs)) (type_params, term_params)
   #-> (fn (lhs, def) => locale_const ta Syntax.mode_default ((b, NoSyn), lhs)
     #> Class.const target ((b, mx), (type_params, lhs))
-    #> pair (lhs, def))
+    #> pair (lhs, def));
 
 fun target_foundation (ta as Target {is_locale, is_class, ...}) =
   if is_class then class_foundation ta
   else if is_locale then locale_foundation ta
-  else Generic_Target.theory_foundation;
+  else global_foundation;
 
 
 (* notes *)
@@ -151,9 +127,7 @@ fun target_declaration (Target {target, ...}) {syntax, pervasive} decl lthy =
     lthy
     |> pervasive ? Generic_Target.background_declaration decl
     |> Generic_Target.locale_declaration target syntax decl
-    |> (fn lthy' => lthy' |> Local_Theory.map_contexts (fn level => fn ctxt =>
-        if level = 0 then ctxt
-        else Context.proof_map (Local_Theory.standard_form lthy' ctxt decl) ctxt));
+    |> (fn lthy' => lthy' |> Generic_Target.standard_declaration (fn level => level <> 0) decl);
 
 
 (* pretty *)
