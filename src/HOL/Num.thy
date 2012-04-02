@@ -193,7 +193,7 @@ lemma mult_inc: "x * inc y = x * y + x"
 text {* The @{const num_of_nat} conversion *}
 
 lemma num_of_nat_One:
-  "n \<le> 1 \<Longrightarrow> num_of_nat n = Num.One"
+  "n \<le> 1 \<Longrightarrow> num_of_nat n = One"
   by (cases n) simp_all
 
 lemma num_of_nat_plus_distrib:
@@ -884,9 +884,9 @@ lemma eval_nat_numeral:
   by (simp_all add: numeral.simps BitM_plus_one)
 
 lemma pred_numeral_simps [simp]:
-  "pred_numeral Num.One = 0"
-  "pred_numeral (Num.Bit0 k) = numeral (Num.BitM k)"
-  "pred_numeral (Num.Bit1 k) = numeral (Num.Bit0 k)"
+  "pred_numeral One = 0"
+  "pred_numeral (Bit0 k) = numeral (BitM k)"
+  "pred_numeral (Bit1 k) = numeral (Bit0 k)"
   unfolding pred_numeral_def eval_nat_numeral
   by (simp_all only: diff_Suc_Suc diff_0)
 
@@ -900,7 +900,7 @@ lemma numeral_1_eq_Suc_0: "Numeral1 = Suc 0"
   by (simp only: numeral_One One_nat_def)
 
 lemma Suc_nat_number_of_add:
-  "Suc (numeral v + n) = numeral (v + Num.One) + n"
+  "Suc (numeral v + n) = numeral (v + One) + n"
   by simp
 
 (*Maps #n to n for n = 1, 2*)
