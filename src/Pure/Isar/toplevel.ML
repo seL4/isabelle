@@ -109,13 +109,12 @@ exception UNDEF = Runtime.UNDEF;
 val loc_init = Named_Target.context_cmd;
 val loc_exit = Local_Theory.assert_bottom true #> Local_Theory.exit_global;
 
-fun loc_begin loc (Context.Theory thy) = loc_init (the_default ("-", Position.none) loc) thy
-  | loc_begin NONE (Context.Proof lthy) = lthy
-  | loc_begin (SOME loc) (Context.Proof lthy) = (loc_init loc o loc_exit) lthy;
-
-fun loc_finish _ (Context.Theory _) = Context.Theory o loc_exit
-  | loc_finish NONE (Context.Proof _) = Context.Proof o Local_Theory.restore
-  | loc_finish (SOME _) (Context.Proof lthy) = Context.Proof o Named_Target.reinit lthy;
+fun loc_begin loc (Context.Theory thy) =
+      (Context.Theory o loc_exit, loc_init (the_default ("-", Position.none) loc) thy)
+  | loc_begin NONE (Context.Proof lthy) =
+      (Context.Proof o Local_Theory.restore, lthy)
+  | loc_begin (SOME loc) (Context.Proof lthy) =
+      (Context.Proof o Named_Target.reinit lthy, loc_init loc (loc_exit lthy));
 
 
 (* datatype node *)
@@ -477,8 +476,8 @@ local
 fun local_theory_presentation loc f = present_transaction (fn int =>
   (fn Theory (gthy, _) =>
         let
-          val finish = loc_finish loc gthy;
-          val lthy' = loc_begin loc gthy
+          val (finish, lthy) = loc_begin loc gthy;
+          val lthy' = lthy
             |> local_theory_group
             |> f int
             |> Local_Theory.reset_group;
@@ -511,34 +510,37 @@ fun end_proof f = transaction (fn int =>
 
 local
 
-fun begin_proof init finish = transaction (fn int =>
+fun begin_proof init = transaction (fn int =>
   (fn Theory (gthy, _) =>
     let
-      val prf = init int gthy;
+      val (finish, prf) = init int gthy;
       val skip = ! skip_proofs;
       val (is_goal, no_skip) =
         (true, Proof.schematic_goal prf) handle ERROR _ => (false, true);
+      val _ =
+        if is_goal andalso skip andalso no_skip then
+          warning "Cannot skip proof of schematic goal statement"
+        else ();
     in
-      if is_goal andalso skip andalso no_skip then
-        warning "Cannot skip proof of schematic goal statement"
-      else ();
       if skip andalso not no_skip then
-        SkipProof (0, (finish gthy (Proof.global_skip_proof int prf), gthy))
-      else Proof (Proof_Node.init prf, (finish gthy, gthy))
+        SkipProof (0, (finish (Proof.global_skip_proof int prf), gthy))
+      else Proof (Proof_Node.init prf, (finish, gthy))
     end
   | _ => raise UNDEF));
 
 in
 
 fun local_theory_to_proof' loc f = begin_proof
-  (fn int => fn gthy => f int (local_theory_group (loc_begin loc gthy)))
-  (fn gthy => loc_finish loc gthy o Local_Theory.reset_group);
+  (fn int => fn gthy =>
+    let val (finish, lthy) = loc_begin loc gthy
+    in (finish o Local_Theory.reset_group, f int (local_theory_group lthy)) end);
 
 fun local_theory_to_proof loc f = local_theory_to_proof' loc (K f);
 
 fun theory_to_proof f = begin_proof
-  (K (fn Context.Theory thy => f (global_theory_group thy) | _ => raise UNDEF))
-  (K (Context.Theory o Sign.reset_group o Proof_Context.theory_of));
+  (fn _ => fn gthy =>
+    (Context.Theory o Sign.reset_group o Proof_Context.theory_of,
+      (case gthy of Context.Theory thy => f (global_theory_group thy) | _ => raise UNDEF)));
 
 end;
 

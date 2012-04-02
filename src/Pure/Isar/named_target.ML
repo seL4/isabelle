@@ -192,7 +192,7 @@ val reinit =
   Local_Theory.assert_bottom true #> Data.get #> the #>
   (fn Target {target, before_exit, ...} => Local_Theory.exit_global #> init before_exit target);
 
-fun context_cmd ("-", _) thy = init I "" thy
+fun context_cmd ("-", _) thy = theory_init thy
   | context_cmd target thy = init I (Locale.check thy target) thy;
 
 end;
