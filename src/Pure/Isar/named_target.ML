@@ -46,11 +46,38 @@ val peek =
 
 (* consts in locale *)
 
-fun generic_const same_shape prmode ((b, mx), t) =
-  Proof_Context.generic_add_abbrev Print_Mode.internal (b, t)
-  #-> (fn (const as Const (c, _), _) => same_shape ?
-        (Proof_Context.generic_revert_abbrev (#1 prmode) c #>
-          Morphism.form (Proof_Context.generic_notation true prmode [(const, mx)])));
+fun generic_const same_shape prmode ((b, mx), t) context =
+  let
+    val const_alias =
+      if same_shape then
+        (case t of
+          Const (c, T) =>
+            let
+              val thy = Context.theory_of context;
+              val ctxt = Context.proof_of context;
+              val t' = Syntax.check_term ctxt (Const (c, dummyT))
+                |> singleton (Variable.polymorphic ctxt);
+            in
+              (case t' of
+                Const (c', T') =>
+                  if c = c' andalso Sign.typ_equiv thy (T, T') then SOME c else NONE
+              | _ => NONE)
+            end
+        | _ => NONE)
+      else NONE;
+  in
+    (case const_alias of
+      SOME c =>
+        context
+        |> Context.mapping (Sign.const_alias b c) (Proof_Context.const_alias b c)
+        |> Morphism.form (Proof_Context.generic_notation true prmode [(t, mx)])
+    | NONE =>
+        context
+        |> Proof_Context.generic_add_abbrev Print_Mode.internal (b, t)
+        |-> (fn (const as Const (c, _), _) => same_shape ?
+              (Proof_Context.generic_revert_abbrev (#1 prmode) c #>
+               Morphism.form (Proof_Context.generic_notation true prmode [(const, mx)]))))
+  end;
 
 fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx), rhs) =
   Generic_Target.locale_declaration target true (fn phi =>
