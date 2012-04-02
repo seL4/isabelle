@@ -33,6 +33,7 @@ sig
   val target: (Proof.context -> Proof.context) -> local_theory -> local_theory
   val target_morphism: local_theory -> morphism
   val propagate_ml_env: generic_theory -> generic_theory
+  val restore: local_theory -> local_theory
   val operations_of: local_theory -> operations
   val define: (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory
@@ -54,7 +55,6 @@ sig
   val type_alias: binding -> string -> local_theory -> local_theory
   val const_alias: binding -> string -> local_theory -> local_theory
   val init: Name_Space.naming -> operations -> Proof.context -> local_theory
-  val restore: local_theory -> local_theory
   val exit: local_theory -> Proof.context
   val exit_global: local_theory -> theory
   val exit_result: (morphism -> 'a -> 'b) -> 'a * local_theory -> 'b * Proof.context
@@ -213,6 +213,8 @@ fun propagate_ml_env (context as Context.Proof lthy) =
       end
   | propagate_ml_env context = context;
 
+fun restore lthy = target_of lthy |> Data.put (Data.get lthy);
+
 
 
 (** operations **)
@@ -280,10 +282,6 @@ fun init naming operations target =
     (fn [] => [make_lthy (naming, operations, target)]
       | _ => error "Local theory already initialized")
   |> checkpoint;
-
-fun restore lthy =
-  let val {naming, operations, target} = get_first_lthy lthy
-  in init naming operations target end;
 
 
 (* exit *)
