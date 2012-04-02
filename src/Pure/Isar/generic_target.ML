@@ -64,18 +64,14 @@ fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
     val crhs = Thm.cterm_of thy rhs;
     val ((defs, _), rhs') = Local_Defs.export_cterm lthy thy_ctxt crhs ||> Thm.term_of;
 
-    val xs = Variable.add_fixed (Local_Theory.target_of lthy) rhs' [];
+    val xs = Variable.add_fixed lthy rhs' [];
     val T = Term.fastype_of rhs;
     val tfreesT = Term.add_tfreesT T (fold (Term.add_tfreesT o #2) xs []);
     val extra_tfrees = rev (subtract (op =) tfreesT (Term.add_tfrees rhs []));
     val mx' = check_mixfix lthy (b, extra_tfrees) mx;
 
     val type_params = map (Logic.mk_type o TFree) extra_tfrees;
-    val target_ctxt = Local_Theory.target_of lthy;
-    val term_params =
-      filter (Variable.is_fixed target_ctxt o #1) xs
-      |> sort (Variable.fixed_ord target_ctxt o pairself #1)
-      |> map Free;
+    val term_params = map Free (sort (Variable.fixed_ord lthy o pairself #1) xs);
     val params = type_params @ term_params;
 
     val U = map Term.fastype_of params ---> T;
@@ -187,7 +183,7 @@ fun abbrev target_abbrev prmode ((b, mx), t) lthy =
     val target_ctxt = Local_Theory.target_of lthy;
 
     val t' = Assumption.export_term lthy target_ctxt t;
-    val xs = map Free (rev (Variable.add_fixed target_ctxt t' []));
+    val xs = map Free (rev (Variable.add_fixed lthy t' []));
     val u = fold_rev lambda xs t';
 
     val extra_tfrees =
