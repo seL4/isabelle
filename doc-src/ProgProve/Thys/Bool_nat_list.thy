@@ -158,13 +158,19 @@ apply(auto)
 done 
 declare [[names_short]]
 (*>*)
-datatype 'a list = Nil | Cons "'a" "('a list)"
+datatype 'a list = Nil | Cons 'a "'a list"
 
-text{* This means that all lists are built up from @{const Nil}, the empty
-list, and @{const Cons}, the operation of putting an element in front of a
-list.  Hence all lists are of the form @{const Nil}, or @{term"Cons x Nil"},
+text{*
+\begin{itemize}
+\item Type @{typ "'a list"} is the type of list over elements of type @{typ 'a}. Because @{typ 'a} is a type variable, lists are in fact \concept{polymorphic}: the elements of a list can be of arbitrary type (but must all be of the same type).
+\item Lists have two constructors: @{const Nil}, the empty list, and @{const Cons}, which puts an element (of type @{typ 'a}) in front of a list (of type @{typ "'a list"}).
+Hence all lists are of the form @{const Nil}, or @{term"Cons x Nil"},
 or @{term"Cons x (Cons y Nil)"} etc.
-
+\item \isacom{datatype} requires no quotation marks on the
+left-hand side, but on the right-hand side each of the argument
+types of a constructor needs to be enclosed in quotation marks, unless
+it is just an identifier (e.g.\ @{typ nat} or @{typ 'a}).
+\end{itemize}
 We also define two standard functions, append and reverse: *}
 
 fun app :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
@@ -189,11 +195,12 @@ value "rev(Cons a (Cons b Nil))"
 text{* yields @{value "rev(Cons a (Cons b Nil))"}.
 \medskip
 
-Figure~\ref{fig:MyList} shows the theory created so far. Notice where the
-quotations marks are needed that we mostly sweep under the carpet.  In
-particular, notice that \isacom{datatype} requires no quotation marks on the
-left-hand side, but that on the right-hand side each of the argument
-types of a constructor needs to be enclosed in quotation marks.
+Figure~\ref{fig:MyList} shows the theory created so far.
+% Notice where the
+%quotations marks are needed that we mostly sweep under the carpet.  In
+%particular, notice that \isacom{datatype} requires no quotation marks on the
+%left-hand side, but that on the right-hand side each of the argument
+%types of a constructor needs to be enclosed in quotation marks.
 
 \begin{figure}[htbp]
 \begin{alltt}
