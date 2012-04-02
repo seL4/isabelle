@@ -255,31 +255,25 @@ lemmas int_distrib =
   minus_add_distrib[of z1 z2]
   for z1 z2 w :: int
 
-lemma int_induct_raw:
-  assumes a: "P (0::nat, 0)"
-  and     b: "\<And>i. P i \<Longrightarrow> P (plus_int_raw i (1, 0))"
-  and     c: "\<And>i. P i \<Longrightarrow> P (plus_int_raw i (uminus_int_raw (1, 0)))"
-  shows      "P x"
-proof (cases x, clarify)
-  fix a b
-  show "P (a, b)"
-  proof (induct a arbitrary: b rule: nat.induct)
-    case zero
-    show "P (0, b)" using assms by (induct b) auto
-  next
-    case (Suc n)
-    then show ?case using assms by auto
-  qed
-qed
+lemma int_induct2:
+  assumes "P 0 0"
+  and     "\<And>n m. P n m \<Longrightarrow> P (Suc n) m"
+  and     "\<And>n m. P n m \<Longrightarrow> P n (Suc m)"
+  shows   "P n m"
+using assms
+by (induction_schema) (pat_completeness, lexicographic_order)
+
 
 lemma int_induct:
-  fixes x :: int
+  fixes j :: int
   assumes a: "P 0"
-  and     b: "\<And>i. P i \<Longrightarrow> P (i + 1)"
-  and     c: "\<And>i. P i \<Longrightarrow> P (i - 1)"
-  shows      "P x"
-  using a b c unfolding minus_int_def
-  by (lifting int_induct_raw)
+  and     b: "\<And>i::int. P i \<Longrightarrow> P (i + 1)"
+  and     c: "\<And>i::int. P i \<Longrightarrow> P (i - 1)"
+  shows      "P j"
+using a b c 
+unfolding minus_int_def
+by (descending) (auto intro: int_induct2)
+  
 
 text {* Magnitide of an Integer, as a Natural Number: @{term nat} *}
 
@@ -289,7 +283,8 @@ definition
 quotient_definition
   "int_to_nat::int \<Rightarrow> nat"
 is
-  "int_to_nat_raw" unfolding int_to_nat_raw_def by force
+  "int_to_nat_raw" 
+unfolding int_to_nat_raw_def by auto 
 
 lemma nat_le_eq_zle:
   fixes w z::"int"

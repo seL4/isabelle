@@ -307,20 +307,15 @@ next
   thus "Decrypt K X = Decrypt K X'" by simp
 qed
 
-lemma msg_induct_aux:
-  shows "\<lbrakk>\<And>N. P (Nonce N);
-          \<And>X Y. \<lbrakk>P X; P Y\<rbrakk> \<Longrightarrow> P (MPair X Y);
-          \<And>K X. P X \<Longrightarrow> P (Crypt K X);
-          \<And>K X. P X \<Longrightarrow> P (Decrypt K X)\<rbrakk> \<Longrightarrow> P msg"
-  by (lifting freemsg.induct)
-
 lemma msg_induct [case_names Nonce MPair Crypt Decrypt, cases type: msg]:
   assumes N: "\<And>N. P (Nonce N)"
       and M: "\<And>X Y. \<lbrakk>P X; P Y\<rbrakk> \<Longrightarrow> P (MPair X Y)"
       and C: "\<And>K X. P X \<Longrightarrow> P (Crypt K X)"
       and D: "\<And>K X. P X \<Longrightarrow> P (Decrypt K X)"
   shows "P msg"
-  using N M C D by (rule msg_induct_aux)
+  using N M C D 
+  by (descending) (auto intro: freemsg.induct)
+
 
 subsection{*The Abstract Discriminator*}
 
