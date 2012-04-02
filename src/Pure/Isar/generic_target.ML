@@ -33,6 +33,7 @@ sig
     (Attrib.binding * (thm list * Args.src list) list) list ->
     local_theory -> local_theory
   val theory_abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory -> local_theory
+  val theory_declaration: declaration -> local_theory -> local_theory
 end
 
 structure Generic_Target: GENERIC_TARGET =
@@ -209,10 +210,9 @@ fun background_declaration decl lthy =
         (Proof_Context.init_global (Proof_Context.theory_of lthy)) decl;
   in Local_Theory.background_theory (Context.theory_map theory_decl) lthy end;
 
-fun standard_declaration decl =
-  background_declaration decl #>
-  (fn lthy => Local_Theory.map_contexts (fn _ => fn ctxt =>
-    Context.proof_map (Local_Theory.standard_form lthy ctxt decl) ctxt) lthy);
+fun standard_declaration decl lthy =
+  Local_Theory.map_contexts (fn _ => fn ctxt =>
+    Context.proof_map (Local_Theory.standard_form lthy ctxt decl) ctxt) lthy;
 
 fun locale_declaration locale syntax decl lthy = lthy
   |> Local_Theory.target (fn ctxt => ctxt |>
@@ -246,5 +246,8 @@ fun theory_abbrev prmode ((b, mx), t) =
   Local_Theory.background_theory
     (Sign.add_abbrev (#1 prmode) (b, t) #->
       (fn (lhs, _) => Sign.notation true prmode [(lhs, mx)]));
+
+fun theory_declaration decl =
+  background_declaration decl #> standard_declaration decl;
 
 end;

@@ -146,7 +146,7 @@ fun target_abbrev (ta as Target {target, is_locale, is_class, ...})
 (* declaration *)
 
 fun target_declaration (Target {target, ...}) {syntax, pervasive} decl lthy =
-  if target = "" then Generic_Target.standard_declaration decl lthy
+  if target = "" then Generic_Target.theory_declaration decl lthy
   else
     lthy
     |> pervasive ? Generic_Target.background_declaration decl

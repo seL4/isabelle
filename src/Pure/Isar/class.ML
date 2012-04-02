@@ -556,7 +556,7 @@ fun instantiation (tycos, vs, sort) thy =
         abbrev = Generic_Target.abbrev
           (fn prmode => fn (b, mx) => fn (t, _) => fn _ =>
             Generic_Target.theory_abbrev prmode ((b, mx), t)),
-        declaration = K Generic_Target.standard_declaration,
+        declaration = K Generic_Target.theory_declaration,
         pretty = pretty,
         exit = Local_Theory.target_of o conclude}
   end;
