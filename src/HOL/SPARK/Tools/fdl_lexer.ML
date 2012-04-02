@@ -174,6 +174,7 @@ val long_identifier =
   identifier @@@ (Scan.repeat1 ($$$ "." @@@ identifier) >> flat);
 
 val whitespace = Scan.many (is_whitespace o symbol);
+val whitespace1 = Scan.many1 (is_whitespace o symbol);
 val whitespace' = Scan.many (is_whitespace' o symbol);
 val newline = Scan.one (is_newline o symbol);
 
@@ -261,7 +262,7 @@ fun scan header comment =
   Scan.repeat (Scan.unless (Scan.one is_char_eof)
     (!!! "bad input"
        (   comment
-        || (keyword "For" -- whitespace) |--
+        || (keyword "For" -- whitespace1) |--
               Scan.repeat1 (Scan.unless (keyword ":") any) --|
               keyword ":" >> make_token Traceability
         || Scan.max leq_token
