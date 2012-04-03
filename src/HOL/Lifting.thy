@@ -1,0 +1,316 @@
+(*  Title:      HOL/Lifting.thy
+    Author:     Brian Huffman and Ondrej Kuncar
+    Author:     Cezary Kaliszyk and Christian Urban
+*)
+
+header {* Lifting package *}
+
+theory Lifting
+imports Plain Equiv_Relations
+keywords
+  "print_quotmaps" "print_quotients" :: diag and
+  "lift_definition" :: thy_goal and
+  "setup_lifting" :: thy_decl
+uses
+  ("Tools/Lifting/lifting_info.ML")
+  ("Tools/Lifting/lifting_term.ML")
+  ("Tools/Lifting/lifting_def.ML")
+  ("Tools/Lifting/lifting_setup.ML")
+begin
+
+subsection {* Function map and function relation *}
+
+notation map_fun (infixr "--->" 55)
+
+lemma map_fun_id:
+  "(id ---> id) = id"
+  by (simp add: fun_eq_iff)
+
+definition
+  fun_rel :: "('a \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('c \<Rightarrow> 'd) \<Rightarrow> bool" (infixr "===>" 55)
+where
+  "fun_rel R1 R2 = (\<lambda>f g. \<forall>x y. R1 x y \<longrightarrow> R2 (f x) (g y))"
+
+lemma fun_relI [intro]:
+  assumes "\<And>x y. R1 x y \<Longrightarrow> R2 (f x) (g y)"
+  shows "(R1 ===> R2) f g"
+  using assms by (simp add: fun_rel_def)
+
+lemma fun_relE:
+  assumes "(R1 ===> R2) f g" and "R1 x y"
+  obtains "R2 (f x) (g y)"
+  using assms by (simp add: fun_rel_def)
+
+lemma fun_rel_eq:
+  shows "((op =) ===> (op =)) = (op =)"
+  by (auto simp add: fun_eq_iff elim: fun_relE)
+
+lemma fun_rel_eq_rel:
+  shows "((op =) ===> R) = (\<lambda>f g. \<forall>x. R (f x) (g x))"
+  by (simp add: fun_rel_def)
+
+subsection {* Quotient Predicate *}
+
+definition
+  "Quotient R Abs Rep T \<longleftrightarrow>
+     (\<forall>a. Abs (Rep a) = a) \<and> 
+     (\<forall>a. R (Rep a) (Rep a)) \<and>
+     (\<forall>r s. R r s \<longleftrightarrow> R r r \<and> R s s \<and> Abs r = Abs s) \<and>
+     T = (\<lambda>x y. R x x \<and> Abs x = y)"
+
+lemma QuotientI:
+  assumes "\<And>a. Abs (Rep a) = a"
+    and "\<And>a. R (Rep a) (Rep a)"
+    and "\<And>r s. R r s \<longleftrightarrow> R r r \<and> R s s \<and> Abs r = Abs s"
+    and "T = (\<lambda>x y. R x x \<and> Abs x = y)"
+  shows "Quotient R Abs Rep T"
+  using assms unfolding Quotient_def by blast
+
+lemma Quotient_abs_rep:
+  assumes a: "Quotient R Abs Rep T"
+  shows "Abs (Rep a) = a"
+  using a
+  unfolding Quotient_def
+  by simp
+
+lemma Quotient_rep_reflp:
+  assumes a: "Quotient R Abs Rep T"
+  shows "R (Rep a) (Rep a)"
+  using a
+  unfolding Quotient_def
+  by blast
+
+lemma Quotient_rel:
+  assumes a: "Quotient R Abs Rep T"
+  shows "R r r \<and> R s s \<and> Abs r = Abs s \<longleftrightarrow> R r s" -- {* orientation does not loop on rewriting *}
+  using a
+  unfolding Quotient_def
+  by blast
+
+lemma Quotient_cr_rel:
+  assumes a: "Quotient R Abs Rep T"
+  shows "T = (\<lambda>x y. R x x \<and> Abs x = y)"
+  using a
+  unfolding Quotient_def
+  by blast
+
+lemma Quotient_refl1: 
+  assumes a: "Quotient R Abs Rep T" 
+  shows "R r s \<Longrightarrow> R r r"
+  using a unfolding Quotient_def 
+  by fast
+
+lemma Quotient_refl2: 
+  assumes a: "Quotient R Abs Rep T" 
+  shows "R r s \<Longrightarrow> R s s"
+  using a unfolding Quotient_def 
+  by fast
+
+lemma Quotient_rel_rep:
+  assumes a: "Quotient R Abs Rep T"
+  shows "R (Rep a) (Rep b) \<longleftrightarrow> a = b"
+  using a
+  unfolding Quotient_def
+  by metis
+
+lemma Quotient_rep_abs:
+  assumes a: "Quotient R Abs Rep T"
+  shows "R r r \<Longrightarrow> R (Rep (Abs r)) r"
+  using a unfolding Quotient_def
+  by blast
+
+lemma Quotient_rel_abs:
+  assumes a: "Quotient R Abs Rep T"
+  shows "R r s \<Longrightarrow> Abs r = Abs s"
+  using a unfolding Quotient_def
+  by blast
+
+lemma Quotient_symp:
+  assumes a: "Quotient R Abs Rep T"
+  shows "symp R"
+  using a unfolding Quotient_def using sympI by (metis (full_types))
+
+lemma Quotient_transp:
+  assumes a: "Quotient R Abs Rep T"
+  shows "transp R"
+  using a unfolding Quotient_def using transpI by (metis (full_types))
+
+lemma Quotient_part_equivp:
+  assumes a: "Quotient R Abs Rep T"
+  shows "part_equivp R"
+by (metis Quotient_rep_reflp Quotient_symp Quotient_transp a part_equivpI)
+
+lemma identity_quotient: "Quotient (op =) id id (op =)"
+unfolding Quotient_def by simp 
+
+lemma Quotient_alt_def:
+  "Quotient R Abs Rep T \<longleftrightarrow>
+    (\<forall>a b. T a b \<longrightarrow> Abs a = b) \<and>
+    (\<forall>b. T (Rep b) b) \<and>
+    (\<forall>x y. R x y \<longleftrightarrow> T x (Abs x) \<and> T y (Abs y) \<and> Abs x = Abs y)"
+apply safe
+apply (simp (no_asm_use) only: Quotient_def, fast)
+apply (simp (no_asm_use) only: Quotient_def, fast)
+apply (simp (no_asm_use) only: Quotient_def, fast)
+apply (simp (no_asm_use) only: Quotient_def, fast)
+apply (simp (no_asm_use) only: Quotient_def, fast)
+apply (simp (no_asm_use) only: Quotient_def, fast)
+apply (rule QuotientI)
+apply simp
+apply metis
+apply simp
+apply (rule ext, rule ext, metis)
+done
+
+lemma Quotient_alt_def2:
+  "Quotient R Abs Rep T \<longleftrightarrow>
+    (\<forall>a b. T a b \<longrightarrow> Abs a = b) \<and>
+    (\<forall>b. T (Rep b) b) \<and>
+    (\<forall>x y. R x y \<longleftrightarrow> T x (Abs y) \<and> T y (Abs x))"
+  unfolding Quotient_alt_def by (safe, metis+)
+
+lemma fun_quotient:
+  assumes 1: "Quotient R1 abs1 rep1 T1"
+  assumes 2: "Quotient R2 abs2 rep2 T2"
+  shows "Quotient (R1 ===> R2) (rep1 ---> abs2) (abs1 ---> rep2) (T1 ===> T2)"
+  using assms unfolding Quotient_alt_def2
+  unfolding fun_rel_def fun_eq_iff map_fun_apply
+  by (safe, metis+)
+
+lemma apply_rsp:
+  fixes f g::"'a \<Rightarrow> 'c"
+  assumes q: "Quotient R1 Abs1 Rep1 T1"
+  and     a: "(R1 ===> R2) f g" "R1 x y"
+  shows "R2 (f x) (g y)"
+  using a by (auto elim: fun_relE)
+
+lemma apply_rsp':
+  assumes a: "(R1 ===> R2) f g" "R1 x y"
+  shows "R2 (f x) (g y)"
+  using a by (auto elim: fun_relE)
+
+lemma apply_rsp'':
+  assumes "Quotient R Abs Rep T"
+  and "(R ===> S) f f"
+  shows "S (f (Rep x)) (f (Rep x))"
+proof -
+  from assms(1) have "R (Rep x) (Rep x)" by (rule Quotient_rep_reflp)
+  then show ?thesis using assms(2) by (auto intro: apply_rsp')
+qed
+
+subsection {* Quotient composition *}
+
+lemma Quotient_compose:
+  assumes 1: "Quotient R1 Abs1 Rep1 T1"
+  assumes 2: "Quotient R2 Abs2 Rep2 T2"
+  shows "Quotient (T1 OO R2 OO conversep T1) (Abs2 \<circ> Abs1) (Rep1 \<circ> Rep2) (T1 OO T2)"
+proof -
+  from 1 have Abs1: "\<And>a b. T1 a b \<Longrightarrow> Abs1 a = b"
+    unfolding Quotient_alt_def by simp
+  from 1 have Rep1: "\<And>b. T1 (Rep1 b) b"
+    unfolding Quotient_alt_def by simp
+  from 2 have Abs2: "\<And>a b. T2 a b \<Longrightarrow> Abs2 a = b"
+    unfolding Quotient_alt_def by simp
+  from 2 have Rep2: "\<And>b. T2 (Rep2 b) b"
+    unfolding Quotient_alt_def by simp
+  from 2 have R2:
+    "\<And>x y. R2 x y \<longleftrightarrow> T2 x (Abs2 x) \<and> T2 y (Abs2 y) \<and> Abs2 x = Abs2 y"
+    unfolding Quotient_alt_def by simp
+  show ?thesis
+    unfolding Quotient_alt_def
+    apply simp
+    apply safe
+    apply (drule Abs1, simp)
+    apply (erule Abs2)
+    apply (rule pred_compI)
+    apply (rule Rep1)
+    apply (rule Rep2)
+    apply (rule pred_compI, assumption)
+    apply (drule Abs1, simp)
+    apply (clarsimp simp add: R2)
+    apply (rule pred_compI, assumption)
+    apply (drule Abs1, simp)+
+    apply (clarsimp simp add: R2)
+    apply (drule Abs1, simp)+
+    apply (clarsimp simp add: R2)
+    apply (rule pred_compI, assumption)
+    apply (rule pred_compI [rotated])
+    apply (erule conversepI)
+    apply (drule Abs1, simp)+
+    apply (simp add: R2)
+    done
+qed
+
+subsection {* Invariant *}
+
+definition invariant :: "('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" 
+  where "invariant R = (\<lambda>x y. R x \<and> x = y)"
+
+lemma invariant_to_eq:
+  assumes "invariant P x y"
+  shows "x = y"
+using assms by (simp add: invariant_def)
+
+lemma fun_rel_eq_invariant:
+  shows "((invariant R) ===> S) = (\<lambda>f g. \<forall>x. R x \<longrightarrow> S (f x) (g x))"
+by (auto simp add: invariant_def fun_rel_def)
+
+lemma invariant_same_args:
+  shows "invariant P x x \<equiv> P x"
+using assms by (auto simp add: invariant_def)
+
+lemma copy_type_to_Quotient:
+  assumes "type_definition Rep Abs UNIV"
+  and T_def: "T \<equiv> (\<lambda>x y. Abs x = y)"
+  shows "Quotient (op =) Abs Rep T"
+proof -
+  interpret type_definition Rep Abs UNIV by fact
+  from Abs_inject Rep_inverse T_def show ?thesis by (auto intro!: QuotientI)
+qed
+
+lemma copy_type_to_equivp:
+  fixes Abs :: "'a \<Rightarrow> 'b"
+  and Rep :: "'b \<Rightarrow> 'a"
+  assumes "type_definition Rep Abs (UNIV::'a set)"
+  shows "equivp (op=::'a\<Rightarrow>'a\<Rightarrow>bool)"
+by (rule identity_equivp)
+
+lemma invariant_type_to_Quotient:
+  assumes "type_definition Rep Abs {x. P x}"
+  and T_def: "T \<equiv> (\<lambda>x y. (invariant P) x x \<and> Abs x = y)"
+  shows "Quotient (invariant P) Abs Rep T"
+proof -
+  interpret type_definition Rep Abs "{x. P x}" by fact
+  from Rep Abs_inject Rep_inverse T_def show ?thesis by (auto intro!: QuotientI simp: invariant_def)
+qed
+
+lemma invariant_type_to_part_equivp:
+  assumes "type_definition Rep Abs {x. P x}"
+  shows "part_equivp (invariant P)"
+proof (intro part_equivpI)
+  interpret type_definition Rep Abs "{x. P x}" by fact
+  show "\<exists>x. invariant P x x" using Rep by (auto simp: invariant_def)
+next
+  show "symp (invariant P)" by (auto intro: sympI simp: invariant_def)
+next
+  show "transp (invariant P)" by (auto intro: transpI simp: invariant_def)
+qed
+
+subsection {* ML setup *}
+
+text {* Auxiliary data for the lifting package *}
+
+use "Tools/Lifting/lifting_info.ML"
+setup Lifting_Info.setup
+
+declare [[map "fun" = (fun_rel, fun_quotient)]]
+
+use "Tools/Lifting/lifting_term.ML"
+
+use "Tools/Lifting/lifting_def.ML"
+
+use "Tools/Lifting/lifting_setup.ML"
+
+hide_const (open) invariant
+
+end

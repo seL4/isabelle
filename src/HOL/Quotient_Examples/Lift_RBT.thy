@@ -1,4 +1,6 @@
-(* Author: Lukas Bulwahn, TU Muenchen *)
+(*  Title:      HOL/Quotient_Examples/Lift_RBT.thy
+    Author:     Lukas Bulwahn and Ondrej Kuncar
+*)
 
 header {* Lifting operations of RBT trees *}
 
@@ -35,53 +37,35 @@ subsection {* Primitive operations *}
 
 setup_lifting type_definition_rbt
 
-quotient_definition lookup where "lookup :: ('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'a \<rightharpoonup> 'b" is "RBT_Impl.lookup"
+lift_definition lookup :: "('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'a \<rightharpoonup> 'b" is "RBT_Impl.lookup" 
 by simp
 
-(* FIXME: quotient_definition at the moment requires that types variables match exactly,
-i.e., sort constraints must be annotated to the constant being lifted.
-But, it should be possible to infer the necessary sort constraints, making the explicit
-sort constraints unnecessary.
+lift_definition empty :: "('a\<Colon>linorder, 'b) rbt" is RBT_Impl.Empty 
+by (simp add: empty_def)
 
-Hence this unannotated quotient_definition fails:
-
-quotient_definition empty where "empty :: ('a\<Colon>linorder, 'b) rbt"
-is "RBT_Impl.Empty"
-
-Similar issue for quotient_definition for entries, keys, map, and fold.
-*)
-
-quotient_definition empty where "empty :: ('a\<Colon>linorder, 'b) rbt"
-is "(RBT_Impl.Empty :: ('a\<Colon>linorder, 'b) RBT_Impl.rbt)" by (simp add: empty_def)
-
-quotient_definition insert where "insert :: 'a\<Colon>linorder \<Rightarrow> 'b \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt"
-is "RBT_Impl.insert" by simp
-
-quotient_definition delete where "delete :: 'a\<Colon>linorder \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt"
-is "RBT_Impl.delete" by simp
-
-(* FIXME: unnecessary type annotations *)
-quotient_definition "entries :: ('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a \<times> 'b) list"
-is "RBT_Impl.entries :: ('a\<Colon>linorder, 'b) RBT_Impl.rbt \<Rightarrow> ('a \<times> 'b) list" by simp
-
-(* FIXME: unnecessary type annotations *)
-quotient_definition "keys :: ('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'a list"
-is "RBT_Impl.keys :: ('a\<Colon>linorder, 'b) RBT_Impl.rbt \<Rightarrow> 'a list" by simp
-
-quotient_definition "bulkload :: ('a\<Colon>linorder \<times> 'b) list \<Rightarrow> ('a, 'b) rbt"
-is "RBT_Impl.bulkload" by simp
-
-quotient_definition "map_entry :: 'a \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a, 'b) rbt"
-is "RBT_Impl.map_entry" by simp
-
-(* FIXME: unnecesary type annotations *)
-quotient_definition map where "map :: ('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a, 'b) rbt"
-is "RBT_Impl.map :: ('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a\<Colon>linorder, 'b) RBT_Impl.rbt \<Rightarrow> ('a, 'b) RBT_Impl.rbt"
+lift_definition insert :: "'a\<Colon>linorder \<Rightarrow> 'b \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" is "RBT_Impl.insert" 
 by simp
 
-(* FIXME: unnecessary type annotations *)
-quotient_definition fold where "fold :: ('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'c \<Rightarrow> 'c" 
-is "RBT_Impl.fold :: ('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a\<Colon>linorder, 'b) RBT_Impl.rbt \<Rightarrow> 'c \<Rightarrow> 'c" by simp
+lift_definition delete :: "'a\<Colon>linorder \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" is "RBT_Impl.delete" 
+by simp
+
+lift_definition entries :: "('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a \<times> 'b) list" is RBT_Impl.entries
+by simp
+
+lift_definition keys :: "('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'a list" is RBT_Impl.keys 
+by simp
+
+lift_definition bulkload :: "('a\<Colon>linorder \<times> 'b) list \<Rightarrow> ('a, 'b) rbt" is "RBT_Impl.bulkload" 
+by simp
+
+lift_definition map_entry :: "'a \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a, 'b) rbt" is RBT_Impl.map_entry 
+by simp
+
+lift_definition map :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a, 'b) rbt" is RBT_Impl.map
+by simp
+
+lift_definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'c \<Rightarrow> 'c"  is RBT_Impl.fold 
+by simp
 
 export_code lookup empty insert delete entries keys bulkload map_entry map fold in SML
 

@@ -5,11 +5,10 @@
 header {* Definition of Quotient Types *}
 
 theory Quotient
-imports Plain Hilbert_Choice Equiv_Relations
+imports Plain Hilbert_Choice Equiv_Relations Lifting
 keywords
-  "print_quotmaps" "print_quotients" "print_quotconsts" :: diag and
+  "print_quotmapsQ3" "print_quotientsQ3" "print_quotconsts" :: diag and
   "quotient_type" :: thy_goal and "/" and
-  "setup_lifting" :: thy_decl and
   "quotient_definition" :: thy_goal
 uses
   ("Tools/Quotient/quotient_info.ML")
@@ -53,37 +52,6 @@ lemma in_respects:
   shows "x \<in> Respects R \<longleftrightarrow> R x x"
   unfolding Respects_def by simp
 
-subsection {* Function map and function relation *}
-
-notation map_fun (infixr "--->" 55)
-
-lemma map_fun_id:
-  "(id ---> id) = id"
-  by (simp add: fun_eq_iff)
-
-definition
-  fun_rel :: "('a \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('c \<Rightarrow> 'd) \<Rightarrow> bool" (infixr "===>" 55)
-where
-  "fun_rel R1 R2 = (\<lambda>f g. \<forall>x y. R1 x y \<longrightarrow> R2 (f x) (g y))"
-
-lemma fun_relI [intro]:
-  assumes "\<And>x y. R1 x y \<Longrightarrow> R2 (f x) (g y)"
-  shows "(R1 ===> R2) f g"
-  using assms by (simp add: fun_rel_def)
-
-lemma fun_relE:
-  assumes "(R1 ===> R2) f g" and "R1 x y"
-  obtains "R2 (f x) (g y)"
-  using assms by (simp add: fun_rel_def)
-
-lemma fun_rel_eq:
-  shows "((op =) ===> (op =)) = (op =)"
-  by (auto simp add: fun_eq_iff elim: fun_relE)
-
-lemma fun_rel_eq_rel:
-  shows "((op =) ===> R) = (\<lambda>f g. \<forall>x. R (f x) (g x))"
-  by (simp add: fun_rel_def)
-
 subsection {* set map (vimage) and set relation *}
 
 definition "set_rel R xs ys \<equiv> \<forall>x y. R x y \<longrightarrow> x \<in> xs \<longleftrightarrow> y \<in> ys"
@@ -106,155 +74,169 @@ lemma set_rel_equivp:
 subsection {* Quotient Predicate *}
 
 definition
-  "Quotient R Abs Rep \<longleftrightarrow>
+  "Quotient3 R Abs Rep \<longleftrightarrow>
      (\<forall>a. Abs (Rep a) = a) \<and> (\<forall>a. R (Rep a) (Rep a)) \<and>
      (\<forall>r s. R r s \<longleftrightarrow> R r r \<and> R s s \<and> Abs r = Abs s)"
 
-lemma QuotientI:
+lemma Quotient3I:
   assumes "\<And>a. Abs (Rep a) = a"
     and "\<And>a. R (Rep a) (Rep a)"
     and "\<And>r s. R r s \<longleftrightarrow> R r r \<and> R s s \<and> Abs r = Abs s"
-  shows "Quotient R Abs Rep"
-  using assms unfolding Quotient_def by blast
+  shows "Quotient3 R Abs Rep"
+  using assms unfolding Quotient3_def by blast
 
-lemma Quotient_abs_rep:
-  assumes a: "Quotient R Abs Rep"
+lemma Quotient3_abs_rep:
+  assumes a: "Quotient3 R Abs Rep"
   shows "Abs (Rep a) = a"
   using a
-  unfolding Quotient_def
+  unfolding Quotient3_def
   by simp
 
-lemma Quotient_rep_reflp:
-  assumes a: "Quotient R Abs Rep"
+lemma Quotient3_rep_reflp:
+  assumes a: "Quotient3 R Abs Rep"
   shows "R (Rep a) (Rep a)"
   using a
-  unfolding Quotient_def
+  unfolding Quotient3_def
   by blast
 
-lemma Quotient_rel:
-  assumes a: "Quotient R Abs Rep"
+lemma Quotient3_rel:
+  assumes a: "Quotient3 R Abs Rep"
   shows "R r r \<and> R s s \<and> Abs r = Abs s \<longleftrightarrow> R r s" -- {* orientation does not loop on rewriting *}
   using a
-  unfolding Quotient_def
+  unfolding Quotient3_def
   by blast
 
-lemma Quotient_refl1: 
-  assumes a: "Quotient R Abs Rep" 
+lemma Quotient3_refl1: 
+  assumes a: "Quotient3 R Abs Rep" 
   shows "R r s \<Longrightarrow> R r r"
-  using a unfolding Quotient_def 
+  using a unfolding Quotient3_def 
   by fast
 
-lemma Quotient_refl2: 
-  assumes a: "Quotient R Abs Rep" 
+lemma Quotient3_refl2: 
+  assumes a: "Quotient3 R Abs Rep" 
   shows "R r s \<Longrightarrow> R s s"
-  using a unfolding Quotient_def 
+  using a unfolding Quotient3_def 
   by fast
 
-lemma Quotient_rel_rep:
-  assumes a: "Quotient R Abs Rep"
+lemma Quotient3_rel_rep:
+  assumes a: "Quotient3 R Abs Rep"
   shows "R (Rep a) (Rep b) \<longleftrightarrow> a = b"
   using a
-  unfolding Quotient_def
+  unfolding Quotient3_def
   by metis
 
-lemma Quotient_rep_abs:
-  assumes a: "Quotient R Abs Rep"
+lemma Quotient3_rep_abs:
+  assumes a: "Quotient3 R Abs Rep"
   shows "R r r \<Longrightarrow> R (Rep (Abs r)) r"
-  using a unfolding Quotient_def
+  using a unfolding Quotient3_def
   by blast
 
-lemma Quotient_rel_abs:
-  assumes a: "Quotient R Abs Rep"
+lemma Quotient3_rel_abs:
+  assumes a: "Quotient3 R Abs Rep"
   shows "R r s \<Longrightarrow> Abs r = Abs s"
-  using a unfolding Quotient_def
+  using a unfolding Quotient3_def
   by blast
 
-lemma Quotient_symp:
-  assumes a: "Quotient R Abs Rep"
+lemma Quotient3_symp:
+  assumes a: "Quotient3 R Abs Rep"
   shows "symp R"
-  using a unfolding Quotient_def using sympI by metis
+  using a unfolding Quotient3_def using sympI by metis
 
-lemma Quotient_transp:
-  assumes a: "Quotient R Abs Rep"
+lemma Quotient3_transp:
+  assumes a: "Quotient3 R Abs Rep"
   shows "transp R"
-  using a unfolding Quotient_def using transpI by metis
+  using a unfolding Quotient3_def using transpI by (metis (full_types))
 
-lemma identity_quotient:
-  shows "Quotient (op =) id id"
-  unfolding Quotient_def id_def
+lemma Quotient3_part_equivp:
+  assumes a: "Quotient3 R Abs Rep"
+  shows "part_equivp R"
+by (metis Quotient3_rep_reflp Quotient3_symp Quotient3_transp a part_equivpI)
+
+lemma identity_quotient3:
+  shows "Quotient3 (op =) id id"
+  unfolding Quotient3_def id_def
   by blast
 
-lemma fun_quotient:
-  assumes q1: "Quotient R1 abs1 rep1"
-  and     q2: "Quotient R2 abs2 rep2"
-  shows "Quotient (R1 ===> R2) (rep1 ---> abs2) (abs1 ---> rep2)"
+lemma fun_quotient3:
+  assumes q1: "Quotient3 R1 abs1 rep1"
+  and     q2: "Quotient3 R2 abs2 rep2"
+  shows "Quotient3 (R1 ===> R2) (rep1 ---> abs2) (abs1 ---> rep2)"
 proof -
-  have "\<And>a. (rep1 ---> abs2) ((abs1 ---> rep2) a) = a"
-    using q1 q2 by (simp add: Quotient_def fun_eq_iff)
+  have "\<And>a.(rep1 ---> abs2) ((abs1 ---> rep2) a) = a"
+    using q1 q2 by (simp add: Quotient3_def fun_eq_iff)
   moreover
-  have "\<And>a. (R1 ===> R2) ((abs1 ---> rep2) a) ((abs1 ---> rep2) a)"
+  have "\<And>a.(R1 ===> R2) ((abs1 ---> rep2) a) ((abs1 ---> rep2) a)"
     by (rule fun_relI)
-      (insert q1 q2 Quotient_rel_abs [of R1 abs1 rep1] Quotient_rel_rep [of R2 abs2 rep2],
-        simp (no_asm) add: Quotient_def, simp)
+      (insert q1 q2 Quotient3_rel_abs [of R1 abs1 rep1] Quotient3_rel_rep [of R2 abs2 rep2],
+        simp (no_asm) add: Quotient3_def, simp)
+  
   moreover
-  have "\<And>r s. (R1 ===> R2) r s = ((R1 ===> R2) r r \<and> (R1 ===> R2) s s \<and>
+  {
+  fix r s
+  have "(R1 ===> R2) r s = ((R1 ===> R2) r r \<and> (R1 ===> R2) s s \<and>
         (rep1 ---> abs2) r  = (rep1 ---> abs2) s)"
-    apply(auto simp add: fun_rel_def fun_eq_iff)
-    using q1 q2 unfolding Quotient_def
-    apply(metis)
-    using q1 q2 unfolding Quotient_def
-    apply(metis)
-    using q1 q2 unfolding Quotient_def
-    apply(metis)
-    using q1 q2 unfolding Quotient_def
-    apply(metis)
-    done
-  ultimately
-  show "Quotient (R1 ===> R2) (rep1 ---> abs2) (abs1 ---> rep2)"
-    unfolding Quotient_def by blast
+  proof -
+    
+    have "(R1 ===> R2) r s \<Longrightarrow> (R1 ===> R2) r r" unfolding fun_rel_def
+      using Quotient3_part_equivp[OF q1] Quotient3_part_equivp[OF q2] 
+      by (metis (full_types) part_equivp_def)
+    moreover have "(R1 ===> R2) r s \<Longrightarrow> (R1 ===> R2) s s" unfolding fun_rel_def
+      using Quotient3_part_equivp[OF q1] Quotient3_part_equivp[OF q2] 
+      by (metis (full_types) part_equivp_def)
+    moreover have "(R1 ===> R2) r s \<Longrightarrow> (rep1 ---> abs2) r  = (rep1 ---> abs2) s"
+      apply(auto simp add: fun_rel_def fun_eq_iff) using q1 q2 unfolding Quotient3_def by metis
+    moreover have "((R1 ===> R2) r r \<and> (R1 ===> R2) s s \<and>
+        (rep1 ---> abs2) r  = (rep1 ---> abs2) s) \<Longrightarrow> (R1 ===> R2) r s"
+      apply(auto simp add: fun_rel_def fun_eq_iff) using q1 q2 unfolding Quotient3_def 
+    by (metis map_fun_apply)
+  
+    ultimately show ?thesis by blast
+ qed
+ }
+ ultimately show ?thesis by (intro Quotient3I) (assumption+)
 qed
 
 lemma abs_o_rep:
-  assumes a: "Quotient R Abs Rep"
+  assumes a: "Quotient3 R Abs Rep"
   shows "Abs o Rep = id"
   unfolding fun_eq_iff
-  by (simp add: Quotient_abs_rep[OF a])
+  by (simp add: Quotient3_abs_rep[OF a])
 
 lemma equals_rsp:
-  assumes q: "Quotient R Abs Rep"
+  assumes q: "Quotient3 R Abs Rep"
   and     a: "R xa xb" "R ya yb"
   shows "R xa ya = R xb yb"
-  using a Quotient_symp[OF q] Quotient_transp[OF q]
+  using a Quotient3_symp[OF q] Quotient3_transp[OF q]
   by (blast elim: sympE transpE)
 
 lemma lambda_prs:
-  assumes q1: "Quotient R1 Abs1 Rep1"
-  and     q2: "Quotient R2 Abs2 Rep2"
+  assumes q1: "Quotient3 R1 Abs1 Rep1"
+  and     q2: "Quotient3 R2 Abs2 Rep2"
   shows "(Rep1 ---> Abs2) (\<lambda>x. Rep2 (f (Abs1 x))) = (\<lambda>x. f x)"
   unfolding fun_eq_iff
-  using Quotient_abs_rep[OF q1] Quotient_abs_rep[OF q2]
+  using Quotient3_abs_rep[OF q1] Quotient3_abs_rep[OF q2]
   by simp
 
 lemma lambda_prs1:
-  assumes q1: "Quotient R1 Abs1 Rep1"
-  and     q2: "Quotient R2 Abs2 Rep2"
+  assumes q1: "Quotient3 R1 Abs1 Rep1"
+  and     q2: "Quotient3 R2 Abs2 Rep2"
   shows "(Rep1 ---> Abs2) (\<lambda>x. (Abs1 ---> Rep2) f x) = (\<lambda>x. f x)"
   unfolding fun_eq_iff
-  using Quotient_abs_rep[OF q1] Quotient_abs_rep[OF q2]
+  using Quotient3_abs_rep[OF q1] Quotient3_abs_rep[OF q2]
   by simp
 
 lemma rep_abs_rsp:
-  assumes q: "Quotient R Abs Rep"
+  assumes q: "Quotient3 R Abs Rep"
   and     a: "R x1 x2"
   shows "R x1 (Rep (Abs x2))"
-  using a Quotient_rel[OF q] Quotient_abs_rep[OF q] Quotient_rep_reflp[OF q]
+  using a Quotient3_rel[OF q] Quotient3_abs_rep[OF q] Quotient3_rep_reflp[OF q]
   by metis
 
 lemma rep_abs_rsp_left:
-  assumes q: "Quotient R Abs Rep"
+  assumes q: "Quotient3 R Abs Rep"
   and     a: "R x1 x2"
   shows "R (Rep (Abs x1)) x2"
-  using a Quotient_rel[OF q] Quotient_abs_rep[OF q] Quotient_rep_reflp[OF q]
+  using a Quotient3_rel[OF q] Quotient3_abs_rep[OF q] Quotient3_rep_reflp[OF q]
   by metis
 
 text{*
@@ -264,24 +246,19 @@ text{*
   will be provable; which is why we need to use @{text apply_rsp} and
   not the primed version *}
 
-lemma apply_rsp:
+lemma apply_rspQ3:
   fixes f g::"'a \<Rightarrow> 'c"
-  assumes q: "Quotient R1 Abs1 Rep1"
+  assumes q: "Quotient3 R1 Abs1 Rep1"
   and     a: "(R1 ===> R2) f g" "R1 x y"
   shows "R2 (f x) (g y)"
   using a by (auto elim: fun_relE)
 
-lemma apply_rsp':
-  assumes a: "(R1 ===> R2) f g" "R1 x y"
-  shows "R2 (f x) (g y)"
-  using a by (auto elim: fun_relE)
-
-lemma apply_rsp'':
-  assumes "Quotient R Abs Rep"
+lemma apply_rspQ3'':
+  assumes "Quotient3 R Abs Rep"
   and "(R ===> S) f f"
   shows "S (f (Rep x)) (f (Rep x))"
 proof -
-  from assms(1) have "R (Rep x) (Rep x)" by (rule Quotient_rep_reflp)
+  from assms(1) have "R (Rep x) (Rep x)" by (rule Quotient3_rep_reflp)
   then show ?thesis using assms(2) by (auto intro: apply_rsp')
 qed
 
@@ -393,29 +370,29 @@ where
   "x \<in> p \<Longrightarrow> Babs p m x = m x"
 
 lemma babs_rsp:
-  assumes q: "Quotient R1 Abs1 Rep1"
+  assumes q: "Quotient3 R1 Abs1 Rep1"
   and     a: "(R1 ===> R2) f g"
   shows      "(R1 ===> R2) (Babs (Respects R1) f) (Babs (Respects R1) g)"
   apply (auto simp add: Babs_def in_respects fun_rel_def)
   apply (subgoal_tac "x \<in> Respects R1 \<and> y \<in> Respects R1")
   using a apply (simp add: Babs_def fun_rel_def)
   apply (simp add: in_respects fun_rel_def)
-  using Quotient_rel[OF q]
+  using Quotient3_rel[OF q]
   by metis
 
 lemma babs_prs:
-  assumes q1: "Quotient R1 Abs1 Rep1"
-  and     q2: "Quotient R2 Abs2 Rep2"
+  assumes q1: "Quotient3 R1 Abs1 Rep1"
+  and     q2: "Quotient3 R2 Abs2 Rep2"
   shows "((Rep1 ---> Abs2) (Babs (Respects R1) ((Abs1 ---> Rep2) f))) = f"
   apply (rule ext)
   apply (simp add:)
   apply (subgoal_tac "Rep1 x \<in> Respects R1")
-  apply (simp add: Babs_def Quotient_abs_rep[OF q1] Quotient_abs_rep[OF q2])
-  apply (simp add: in_respects Quotient_rel_rep[OF q1])
+  apply (simp add: Babs_def Quotient3_abs_rep[OF q1] Quotient3_abs_rep[OF q2])
+  apply (simp add: in_respects Quotient3_rel_rep[OF q1])
   done
 
 lemma babs_simp:
-  assumes q: "Quotient R1 Abs Rep"
+  assumes q: "Quotient3 R1 Abs Rep"
   shows "((R1 ===> R2) (Babs (Respects R1) f) (Babs (Respects R1) g)) = ((R1 ===> R2) f g)"
   apply(rule iffI)
   apply(simp_all only: babs_rsp[OF q])
@@ -423,7 +400,7 @@ lemma babs_simp:
   apply (subgoal_tac "x \<in> Respects R1 \<and> y \<in> Respects R1")
   apply(metis Babs_def)
   apply (simp add: in_respects)
-  using Quotient_rel[OF q]
+  using Quotient3_rel[OF q]
   by metis
 
 (* If a user proves that a particular functional relation
@@ -451,15 +428,15 @@ lemma bex1_rsp:
 
 (* 2 lemmas needed for cleaning of quantifiers *)
 lemma all_prs:
-  assumes a: "Quotient R absf repf"
+  assumes a: "Quotient3 R absf repf"
   shows "Ball (Respects R) ((absf ---> id) f) = All f"
-  using a unfolding Quotient_def Ball_def in_respects id_apply comp_def map_fun_def
+  using a unfolding Quotient3_def Ball_def in_respects id_apply comp_def map_fun_def
   by metis
 
 lemma ex_prs:
-  assumes a: "Quotient R absf repf"
+  assumes a: "Quotient3 R absf repf"
   shows "Bex (Respects R) ((absf ---> id) f) = Ex f"
-  using a unfolding Quotient_def Bex_def in_respects id_apply comp_def map_fun_def
+  using a unfolding Quotient3_def Bex_def in_respects id_apply comp_def map_fun_def
   by metis
 
 subsection {* @{text Bex1_rel} quantifier *}
@@ -508,7 +485,7 @@ lemma bex1_rel_aux2:
   done
 
 lemma bex1_rel_rsp:
-  assumes a: "Quotient R absf repf"
+  assumes a: "Quotient3 R absf repf"
   shows "((R ===> op =) ===> op =) (Bex1_rel R) (Bex1_rel R)"
   apply (simp add: fun_rel_def)
   apply clarify
@@ -520,7 +497,7 @@ lemma bex1_rel_rsp:
 
 
 lemma ex1_prs:
-  assumes a: "Quotient R absf repf"
+  assumes a: "Quotient3 R absf repf"
   shows "((absf ---> id) ---> id) (Bex1_rel R) f = Ex1 f"
 apply (simp add:)
 apply (subst Bex1_rel_def)
@@ -535,7 +512,7 @@ apply rule
   apply (rule_tac x="absf x" in exI)
   apply (simp)
   apply rule+
-  using a unfolding Quotient_def
+  using a unfolding Quotient3_def
   apply metis
  apply rule+
  apply (erule_tac x="x" in ballE)
@@ -548,10 +525,10 @@ apply (erule_tac exE)
  apply (rule_tac x="repf x" in exI)
  apply (simp only: in_respects)
   apply rule
- apply (metis Quotient_rel_rep[OF a])
-using a unfolding Quotient_def apply (simp)
+ apply (metis Quotient3_rel_rep[OF a])
+using a unfolding Quotient3_def apply (simp)
 apply rule+
-using a unfolding Quotient_def in_respects
+using a unfolding Quotient3_def in_respects
 apply metis
 done
 
@@ -587,7 +564,7 @@ lemma bex1_bexeq_reg_eqv:
 subsection {* Various respects and preserve lemmas *}
 
 lemma quot_rel_rsp:
-  assumes a: "Quotient R Abs Rep"
+  assumes a: "Quotient3 R Abs Rep"
   shows "(R ===> R ===> op =) R R"
   apply(rule fun_relI)+
   apply(rule equals_rsp[OF a])
@@ -595,12 +572,12 @@ lemma quot_rel_rsp:
   done
 
 lemma o_prs:
-  assumes q1: "Quotient R1 Abs1 Rep1"
-  and     q2: "Quotient R2 Abs2 Rep2"
-  and     q3: "Quotient R3 Abs3 Rep3"
+  assumes q1: "Quotient3 R1 Abs1 Rep1"
+  and     q2: "Quotient3 R2 Abs2 Rep2"
+  and     q3: "Quotient3 R3 Abs3 Rep3"
   shows "((Abs2 ---> Rep3) ---> (Abs1 ---> Rep2) ---> (Rep1 ---> Abs3)) op \<circ> = op \<circ>"
   and   "(id ---> (Abs1 ---> id) ---> Rep1 ---> id) op \<circ> = op \<circ>"
-  using Quotient_abs_rep[OF q1] Quotient_abs_rep[OF q2] Quotient_abs_rep[OF q3]
+  using Quotient3_abs_rep[OF q1] Quotient3_abs_rep[OF q2] Quotient3_abs_rep[OF q3]
   by (simp_all add: fun_eq_iff)
 
 lemma o_rsp:
@@ -609,26 +586,26 @@ lemma o_rsp:
   by (force elim: fun_relE)+
 
 lemma cond_prs:
-  assumes a: "Quotient R absf repf"
+  assumes a: "Quotient3 R absf repf"
   shows "absf (if a then repf b else repf c) = (if a then b else c)"
-  using a unfolding Quotient_def by auto
+  using a unfolding Quotient3_def by auto
 
 lemma if_prs:
-  assumes q: "Quotient R Abs Rep"
+  assumes q: "Quotient3 R Abs Rep"
   shows "(id ---> Rep ---> Rep ---> Abs) If = If"
-  using Quotient_abs_rep[OF q]
+  using Quotient3_abs_rep[OF q]
   by (auto simp add: fun_eq_iff)
 
 lemma if_rsp:
-  assumes q: "Quotient R Abs Rep"
+  assumes q: "Quotient3 R Abs Rep"
   shows "(op = ===> R ===> R ===> R) If If"
   by force
 
 lemma let_prs:
-  assumes q1: "Quotient R1 Abs1 Rep1"
-  and     q2: "Quotient R2 Abs2 Rep2"
+  assumes q1: "Quotient3 R1 Abs1 Rep1"
+  and     q2: "Quotient3 R2 Abs2 Rep2"
   shows "(Rep2 ---> (Abs2 ---> Rep1) ---> Abs1) Let = Let"
-  using Quotient_abs_rep[OF q1] Quotient_abs_rep[OF q2]
+  using Quotient3_abs_rep[OF q1] Quotient3_abs_rep[OF q2]
   by (auto simp add: fun_eq_iff)
 
 lemma let_rsp:
@@ -640,9 +617,9 @@ lemma id_rsp:
   by auto
 
 lemma id_prs:
-  assumes a: "Quotient R Abs Rep"
+  assumes a: "Quotient3 R Abs Rep"
   shows "(Rep ---> Abs) id = id"
-  by (simp add: fun_eq_iff Quotient_abs_rep [OF a])
+  by (simp add: fun_eq_iff Quotient3_abs_rep [OF a])
 
 
 locale quot_type =
@@ -673,8 +650,8 @@ lemma some_collect:
   by (metis assms exE_some equivp[simplified part_equivp_def])
 
 lemma Quotient:
-  shows "Quotient R abs rep"
-  unfolding Quotient_def abs_def rep_def
+  shows "Quotient3 R abs rep"
+  unfolding Quotient3_def abs_def rep_def
   proof (intro conjI allI)
     fix a r s
     show x: "R (SOME x. x \<in> Rep a) (SOME x. x \<in> Rep a)" proof -
@@ -703,149 +680,114 @@ end
 
 subsection {* Quotient composition *}
 
-lemma OOO_quotient:
+lemma OOO_quotient3:
   fixes R1 :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
   fixes Abs1 :: "'a \<Rightarrow> 'b" and Rep1 :: "'b \<Rightarrow> 'a"
   fixes Abs2 :: "'b \<Rightarrow> 'c" and Rep2 :: "'c \<Rightarrow> 'b"
   fixes R2' :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
   fixes R2 :: "'b \<Rightarrow> 'b \<Rightarrow> bool"
-  assumes R1: "Quotient R1 Abs1 Rep1"
-  assumes R2: "Quotient R2 Abs2 Rep2"
+  assumes R1: "Quotient3 R1 Abs1 Rep1"
+  assumes R2: "Quotient3 R2 Abs2 Rep2"
   assumes Abs1: "\<And>x y. R2' x y \<Longrightarrow> R1 x x \<Longrightarrow> R1 y y \<Longrightarrow> R2 (Abs1 x) (Abs1 y)"
   assumes Rep1: "\<And>x y. R2 x y \<Longrightarrow> R2' (Rep1 x) (Rep1 y)"
-  shows "Quotient (R1 OO R2' OO R1) (Abs2 \<circ> Abs1) (Rep1 \<circ> Rep2)"
-apply (rule QuotientI)
-   apply (simp add: o_def Quotient_abs_rep [OF R2] Quotient_abs_rep [OF R1])
+  shows "Quotient3 (R1 OO R2' OO R1) (Abs2 \<circ> Abs1) (Rep1 \<circ> Rep2)"
+apply (rule Quotient3I)
+   apply (simp add: o_def Quotient3_abs_rep [OF R2] Quotient3_abs_rep [OF R1])
   apply simp
   apply (rule_tac b="Rep1 (Rep2 a)" in pred_compI)
-   apply (rule Quotient_rep_reflp [OF R1])
+   apply (rule Quotient3_rep_reflp [OF R1])
   apply (rule_tac b="Rep1 (Rep2 a)" in pred_compI [rotated])
-   apply (rule Quotient_rep_reflp [OF R1])
+   apply (rule Quotient3_rep_reflp [OF R1])
   apply (rule Rep1)
-  apply (rule Quotient_rep_reflp [OF R2])
+  apply (rule Quotient3_rep_reflp [OF R2])
  apply safe
     apply (rename_tac x y)
     apply (drule Abs1)
-      apply (erule Quotient_refl2 [OF R1])
-     apply (erule Quotient_refl1 [OF R1])
-    apply (drule Quotient_refl1 [OF R2], drule Rep1)
+      apply (erule Quotient3_refl2 [OF R1])
+     apply (erule Quotient3_refl1 [OF R1])
+    apply (drule Quotient3_refl1 [OF R2], drule Rep1)
     apply (subgoal_tac "R1 r (Rep1 (Abs1 x))")
      apply (rule_tac b="Rep1 (Abs1 x)" in pred_compI, assumption)
      apply (erule pred_compI)
-     apply (erule Quotient_symp [OF R1, THEN sympD])
-    apply (rule Quotient_rel[symmetric, OF R1, THEN iffD2])
-    apply (rule conjI, erule Quotient_refl1 [OF R1])
-    apply (rule conjI, rule Quotient_rep_reflp [OF R1])
-    apply (subst Quotient_abs_rep [OF R1])
-    apply (erule Quotient_rel_abs [OF R1])
+     apply (erule Quotient3_symp [OF R1, THEN sympD])
+    apply (rule Quotient3_rel[symmetric, OF R1, THEN iffD2])
+    apply (rule conjI, erule Quotient3_refl1 [OF R1])
+    apply (rule conjI, rule Quotient3_rep_reflp [OF R1])
+    apply (subst Quotient3_abs_rep [OF R1])
+    apply (erule Quotient3_rel_abs [OF R1])
    apply (rename_tac x y)
    apply (drule Abs1)
-     apply (erule Quotient_refl2 [OF R1])
-    apply (erule Quotient_refl1 [OF R1])
-   apply (drule Quotient_refl2 [OF R2], drule Rep1)
+     apply (erule Quotient3_refl2 [OF R1])
+    apply (erule Quotient3_refl1 [OF R1])
+   apply (drule Quotient3_refl2 [OF R2], drule Rep1)
    apply (subgoal_tac "R1 s (Rep1 (Abs1 y))")
     apply (rule_tac b="Rep1 (Abs1 y)" in pred_compI, assumption)
     apply (erule pred_compI)
-    apply (erule Quotient_symp [OF R1, THEN sympD])
-   apply (rule Quotient_rel[symmetric, OF R1, THEN iffD2])
-   apply (rule conjI, erule Quotient_refl2 [OF R1])
-   apply (rule conjI, rule Quotient_rep_reflp [OF R1])
-   apply (subst Quotient_abs_rep [OF R1])
-   apply (erule Quotient_rel_abs [OF R1, THEN sym])
+    apply (erule Quotient3_symp [OF R1, THEN sympD])
+   apply (rule Quotient3_rel[symmetric, OF R1, THEN iffD2])
+   apply (rule conjI, erule Quotient3_refl2 [OF R1])
+   apply (rule conjI, rule Quotient3_rep_reflp [OF R1])
+   apply (subst Quotient3_abs_rep [OF R1])
+   apply (erule Quotient3_rel_abs [OF R1, THEN sym])
   apply simp
-  apply (rule Quotient_rel_abs [OF R2])
-  apply (rule Quotient_rel_abs [OF R1, THEN ssubst], assumption)
-  apply (rule Quotient_rel_abs [OF R1, THEN subst], assumption)
+  apply (rule Quotient3_rel_abs [OF R2])
+  apply (rule Quotient3_rel_abs [OF R1, THEN ssubst], assumption)
+  apply (rule Quotient3_rel_abs [OF R1, THEN subst], assumption)
   apply (erule Abs1)
-   apply (erule Quotient_refl2 [OF R1])
-  apply (erule Quotient_refl1 [OF R1])
+   apply (erule Quotient3_refl2 [OF R1])
+  apply (erule Quotient3_refl1 [OF R1])
  apply (rename_tac a b c d)
  apply simp
  apply (rule_tac b="Rep1 (Abs1 r)" in pred_compI)
-  apply (rule Quotient_rel[symmetric, OF R1, THEN iffD2])
-  apply (rule conjI, erule Quotient_refl1 [OF R1])
-  apply (simp add: Quotient_abs_rep [OF R1] Quotient_rep_reflp [OF R1])
+  apply (rule Quotient3_rel[symmetric, OF R1, THEN iffD2])
+  apply (rule conjI, erule Quotient3_refl1 [OF R1])
+  apply (simp add: Quotient3_abs_rep [OF R1] Quotient3_rep_reflp [OF R1])
  apply (rule_tac b="Rep1 (Abs1 s)" in pred_compI [rotated])
-  apply (rule Quotient_rel[symmetric, OF R1, THEN iffD2])
-  apply (simp add: Quotient_abs_rep [OF R1] Quotient_rep_reflp [OF R1])
-  apply (erule Quotient_refl2 [OF R1])
+  apply (rule Quotient3_rel[symmetric, OF R1, THEN iffD2])
+  apply (simp add: Quotient3_abs_rep [OF R1] Quotient3_rep_reflp [OF R1])
+  apply (erule Quotient3_refl2 [OF R1])
  apply (rule Rep1)
  apply (drule Abs1)
-   apply (erule Quotient_refl2 [OF R1])
-  apply (erule Quotient_refl1 [OF R1])
+   apply (erule Quotient3_refl2 [OF R1])
+  apply (erule Quotient3_refl1 [OF R1])
  apply (drule Abs1)
-  apply (erule Quotient_refl2 [OF R1])
- apply (erule Quotient_refl1 [OF R1])
- apply (drule Quotient_rel_abs [OF R1])
- apply (drule Quotient_rel_abs [OF R1])
- apply (drule Quotient_rel_abs [OF R1])
- apply (drule Quotient_rel_abs [OF R1])
+  apply (erule Quotient3_refl2 [OF R1])
+ apply (erule Quotient3_refl1 [OF R1])
+ apply (drule Quotient3_rel_abs [OF R1])
+ apply (drule Quotient3_rel_abs [OF R1])
+ apply (drule Quotient3_rel_abs [OF R1])
+ apply (drule Quotient3_rel_abs [OF R1])
  apply simp
- apply (rule Quotient_rel[symmetric, OF R2, THEN iffD2])
+ apply (rule Quotient3_rel[symmetric, OF R2, THEN iffD2])
  apply simp
 done
 
-lemma OOO_eq_quotient:
+lemma OOO_eq_quotient3:
   fixes R1 :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
   fixes Abs1 :: "'a \<Rightarrow> 'b" and Rep1 :: "'b \<Rightarrow> 'a"
   fixes Abs2 :: "'b \<Rightarrow> 'c" and Rep2 :: "'c \<Rightarrow> 'b"
-  assumes R1: "Quotient R1 Abs1 Rep1"
-  assumes R2: "Quotient op= Abs2 Rep2"
-  shows "Quotient (R1 OOO op=) (Abs2 \<circ> Abs1) (Rep1 \<circ> Rep2)"
+  assumes R1: "Quotient3 R1 Abs1 Rep1"
+  assumes R2: "Quotient3 op= Abs2 Rep2"
+  shows "Quotient3 (R1 OOO op=) (Abs2 \<circ> Abs1) (Rep1 \<circ> Rep2)"
 using assms
-by (rule OOO_quotient) auto
+by (rule OOO_quotient3) auto
 
 subsection {* Invariant *}
 
-definition invariant :: "('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" 
-  where "invariant R = (\<lambda>x y. R x \<and> x = y)"
-
-lemma invariant_to_eq:
-  assumes "invariant P x y"
-  shows "x = y"
-using assms by (simp add: invariant_def)
-
-lemma fun_rel_eq_invariant:
-  shows "((invariant R) ===> S) = (\<lambda>f g. \<forall>x. R x \<longrightarrow> S (f x) (g x))"
-by (auto simp add: invariant_def fun_rel_def)
-
-lemma invariant_same_args:
-  shows "invariant P x x \<equiv> P x"
-using assms by (auto simp add: invariant_def)
-
-lemma copy_type_to_Quotient:
+lemma copy_type_to_Quotient3:
   assumes "type_definition Rep Abs UNIV"
-  shows "Quotient (op =) Abs Rep"
+  shows "Quotient3 (op =) Abs Rep"
 proof -
   interpret type_definition Rep Abs UNIV by fact
-  from Abs_inject Rep_inverse show ?thesis by (auto intro!: QuotientI)
+  from Abs_inject Rep_inverse show ?thesis by (auto intro!: Quotient3I)
 qed
 
-lemma copy_type_to_equivp:
-  fixes Abs :: "'a \<Rightarrow> 'b"
-  and Rep :: "'b \<Rightarrow> 'a"
-  assumes "type_definition Rep Abs (UNIV::'a set)"
-  shows "equivp (op=::'a\<Rightarrow>'a\<Rightarrow>bool)"
-by (rule identity_equivp)
-
-lemma invariant_type_to_Quotient:
+lemma invariant_type_to_Quotient3:
   assumes "type_definition Rep Abs {x. P x}"
-  shows "Quotient (invariant P) Abs Rep"
+  shows "Quotient3 (Lifting.invariant P) Abs Rep"
 proof -
   interpret type_definition Rep Abs "{x. P x}" by fact
-  from Rep Abs_inject Rep_inverse show ?thesis by (auto intro!: QuotientI simp: invariant_def)
-qed
-
-lemma invariant_type_to_part_equivp:
-  assumes "type_definition Rep Abs {x. P x}"
-  shows "part_equivp (invariant P)"
-proof (intro part_equivpI)
-  interpret type_definition Rep Abs "{x. P x}" by fact
-  show "\<exists>x. invariant P x x" using Rep by (auto simp: invariant_def)
-next
-  show "symp (invariant P)" by (auto intro: sympI simp: invariant_def)
-next
-  show "transp (invariant P)" by (auto intro: transpI simp: invariant_def)
+  from Rep Abs_inject Rep_inverse show ?thesis by (auto intro!: Quotient3I simp: invariant_def)
 qed
 
 subsection {* ML setup *}
@@ -855,9 +797,9 @@ text {* Auxiliary data for the quotient package *}
 use "Tools/Quotient/quotient_info.ML"
 setup Quotient_Info.setup
 
-declare [[map "fun" = (fun_rel, fun_quotient)]]
+declare [[mapQ3 "fun" = (fun_rel, fun_quotient3)]]
 
-lemmas [quot_thm] = fun_quotient
+lemmas [quot_thm] = fun_quotient3
 lemmas [quot_respect] = quot_rel_rsp if_rsp o_rsp let_rsp id_rsp
 lemmas [quot_preserve] = if_prs o_prs let_prs id_prs
 lemmas [quot_equiv] = identity_equivp
@@ -959,7 +901,5 @@ no_notation
   rel_conj (infixr "OOO" 75) and
   map_fun (infixr "--->" 55) and
   fun_rel (infixr "===>" 55)
-
-hide_const (open) invariant
 
 end

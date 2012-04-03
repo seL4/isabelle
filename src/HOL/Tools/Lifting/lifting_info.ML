@@ -1,0 +1,125 @@
+(*  Title:      HOL/Tools/Lifting/lifting_info.ML
+    Author:     Ondrej Kuncar
+
+Context data for the lifting package.
+*)
+
+signature LIFTING_INFO =
+sig
+  type quotmaps = {relmap: string, quot_thm: thm}
+  val lookup_quotmaps: Proof.context -> string -> quotmaps option
+  val lookup_quotmaps_global: theory -> string -> quotmaps option
+  val print_quotmaps: Proof.context -> unit
+
+  type quotients = {quot_thm: thm}
+  val transform_quotients: morphism -> quotients -> quotients
+  val lookup_quotients: Proof.context -> string -> quotients option
+  val lookup_quotients_global: theory -> string -> quotients option
+  val update_quotients: string -> quotients -> Context.generic -> Context.generic
+  val dest_quotients: Proof.context -> quotients list
+  val print_quotients: Proof.context -> unit
+
+  val setup: theory -> theory
+end;
+
+structure Lifting_Info: LIFTING_INFO =
+struct
+
+(** data containers **)
+
+(* FIXME just one data slot (record) per program unit *)
+
+(* info about map- and rel-functions for a type *)
+type quotmaps = {relmap: string, quot_thm: thm}
+
+structure Quotmaps = Generic_Data
+(
+  type T = quotmaps Symtab.table
+  val empty = Symtab.empty
+  val extend = I
+  fun merge data = Symtab.merge (K true) data
+)
+
+val lookup_quotmaps = Symtab.lookup o Quotmaps.get o Context.Proof
+val lookup_quotmaps_global = Symtab.lookup o Quotmaps.get o Context.Theory
+
+(* FIXME export proper internal update operation!? *)
+
+val quotmaps_attribute_setup =
+  Attrib.setup @{binding map}
+    ((Args.type_name true --| Scan.lift @{keyword "="}) --
+      (Scan.lift @{keyword "("} |-- Args.const_proper true --| Scan.lift @{keyword ","} --
+        Attrib.thm --| Scan.lift @{keyword ")"}) >>
+      (fn (tyname, (relname, qthm)) =>
+        let val minfo = {relmap = relname, quot_thm = qthm}
+        in Thm.declaration_attribute (fn _ => Quotmaps.map (Symtab.update (tyname, minfo))) end))
+    "declaration of map information"
+
+fun print_quotmaps ctxt =
+  let
+    fun prt_map (ty_name, {relmap, quot_thm}) =
+      Pretty.block (separate (Pretty.brk 2)
+         [Pretty.str "type:", 
+          Pretty.str ty_name,
+          Pretty.str "relation map:", 
+          Pretty.str relmap,
+          Pretty.str "quot. theorem:", 
+          Syntax.pretty_term ctxt (prop_of quot_thm)])
+  in
+    map prt_map (Symtab.dest (Quotmaps.get (Context.Proof ctxt)))
+    |> Pretty.big_list "maps for type constructors:"
+    |> Pretty.writeln
+  end
+
+(* info about quotient types *)
+type quotients = {quot_thm: thm}
+
+structure Quotients = Generic_Data
+(
+  type T = quotients Symtab.table
+  val empty = Symtab.empty
+  val extend = I
+  fun merge data = Symtab.merge (K true) data
+)
+
+fun transform_quotients phi {quot_thm} =
+  {quot_thm = Morphism.thm phi quot_thm}
+
+val lookup_quotients = Symtab.lookup o Quotients.get o Context.Proof
+val lookup_quotients_global = Symtab.lookup o Quotients.get o Context.Theory
+
+fun update_quotients str qinfo = Quotients.map (Symtab.update (str, qinfo))
+
+fun dest_quotients ctxt =  (* FIXME slightly expensive way to retrieve data *)
+  map snd (Symtab.dest (Quotients.get (Context.Proof ctxt)))
+
+fun print_quotients ctxt =
+  let
+    fun prt_quot (qty_name, {quot_thm}) =
+      Pretty.block (separate (Pretty.brk 2)
+       [Pretty.str "type:", 
+        Pretty.str qty_name,
+        Pretty.str "quot. thm:",
+        Syntax.pretty_term ctxt (prop_of quot_thm)])
+  in
+    map prt_quot (Symtab.dest (Quotients.get (Context.Proof ctxt)))
+    |> Pretty.big_list "quotients:"
+    |> Pretty.writeln
+  end
+
+(* theory setup *)
+
+val setup =
+  quotmaps_attribute_setup
+
+(* outer syntax commands *)
+
+val _ =
+  Outer_Syntax.improper_command @{command_spec "print_quotmaps"} "print quotient map functions"
+    (Scan.succeed (Toplevel.keep (print_quotmaps o Toplevel.context_of)))
+
+val _ =
+  Outer_Syntax.improper_command @{command_spec "print_quotients"} "print quotients"
+    (Scan.succeed (Toplevel.keep (print_quotients o Toplevel.context_of)))
+
+end;

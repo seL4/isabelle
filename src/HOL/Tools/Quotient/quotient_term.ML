@@ -356,7 +356,7 @@ fun get_rel_quot_thm ctxt s =
     | NONE => raise CODE_GEN ("get_relmap (no relation map function found for type " ^ s ^ ")"))
   end
 
-fun is_id_quot thm = (prop_of thm = prop_of @{thm identity_quotient})
+fun is_id_quot thm = (prop_of thm = prop_of @{thm identity_quotient3})
 
 infix 0 MRSL
 
@@ -375,13 +375,13 @@ fun mk_quot_thm_compose (rel_quot_thm, quot_thm) =
   let
     val quot_thm_rel = get_rel_from_quot_thm quot_thm
   in
-    if is_eq quot_thm_rel then [rel_quot_thm, quot_thm] MRSL @{thm OOO_eq_quotient}
+    if is_eq quot_thm_rel then [rel_quot_thm, quot_thm] MRSL @{thm OOO_eq_quotient3}
     else raise NOT_IMPL "nested quotients: not implemented yet"
   end
 
 fun prove_quot_theorem ctxt (rty, qty) =
   if rty = qty
-  then @{thm identity_quotient}
+  then @{thm identity_quotient3}
   else
     case (rty, qty) of
       (Type (s, tys), Type (s', tys')) =>
@@ -410,7 +410,7 @@ fun prove_quot_theorem ctxt (rty, qty) =
                 mk_quot_thm_compose (rel_quot_thm, quot_thm)
              end
           end
-    | _ => @{thm identity_quotient}
+    | _ => @{thm identity_quotient3}
 
 
 

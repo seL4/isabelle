@@ -1,4 +1,4 @@
-(*  Title:      HOL/Quotient_Examples/FSet.thy
+(*  Title:      HOL/Quotient3_Examples/FSet.thy
     Author:     Cezary Kaliszyk, TU Munich
     Author:     Christian Urban, TU Munich
 
@@ -117,15 +117,15 @@ lemma map_list_eq_cong: "b \<approx> ba \<Longrightarrow> map f b \<approx> map 
   by (simp only: list_eq_def set_map)
 
 lemma quotient_compose_list_g:
-  assumes q: "Quotient R Abs Rep"
+  assumes q: "Quotient3 R Abs Rep"
   and     e: "equivp R"
-  shows  "Quotient ((list_all2 R) OOO (op \<approx>))
+  shows  "Quotient3 ((list_all2 R) OOO (op \<approx>))
     (abs_fset \<circ> (map Abs)) ((map Rep) \<circ> rep_fset)"
-  unfolding Quotient_def comp_def
+  unfolding Quotient3_def comp_def
 proof (intro conjI allI)
   fix a r s
   show "abs_fset (map Abs (map Rep (rep_fset a))) = a"
-    by (simp add: abs_o_rep[OF q] Quotient_abs_rep[OF Quotient_fset] List.map.id)
+    by (simp add: abs_o_rep[OF q] Quotient3_abs_rep[OF Quotient3_fset] List.map.id)
   have b: "list_all2 R (map Rep (rep_fset a)) (map Rep (rep_fset a))"
     by (rule list_all2_refl'[OF e])
   have c: "(op \<approx> OO list_all2 R) (map Rep (rep_fset a)) (map Rep (rep_fset a))"
@@ -146,37 +146,37 @@ proof (intro conjI allI)
       assume d: "b \<approx> ba"
       assume e: "list_all2 R ba s"
       have f: "map Abs r = map Abs b"
-        using Quotient_rel[OF list_quotient[OF q]] c by blast
+        using Quotient3_rel[OF list_quotient3[OF q]] c by blast
       have "map Abs ba = map Abs s"
-        using Quotient_rel[OF list_quotient[OF q]] e by blast
+        using Quotient3_rel[OF list_quotient3[OF q]] e by blast
       then have g: "map Abs s = map Abs ba" by simp
       then show "map Abs r \<approx> map Abs s" using d f map_list_eq_cong by simp
     qed
     then show "abs_fset (map Abs r) = abs_fset (map Abs s)"
-      using Quotient_rel[OF Quotient_fset] by blast
+      using Quotient3_rel[OF Quotient3_fset] by blast
   next
     assume a: "(list_all2 R OOO op \<approx>) r r \<and> (list_all2 R OOO op \<approx>) s s
       \<and> abs_fset (map Abs r) = abs_fset (map Abs s)"
     then have s: "(list_all2 R OOO op \<approx>) s s" by simp
     have d: "map Abs r \<approx> map Abs s"
-      by (subst Quotient_rel [OF Quotient_fset, symmetric]) (simp add: a)
+      by (subst Quotient3_rel [OF Quotient3_fset, symmetric]) (simp add: a)
     have b: "map Rep (map Abs r) \<approx> map Rep (map Abs s)"
       by (rule map_list_eq_cong[OF d])
     have y: "list_all2 R (map Rep (map Abs s)) s"
-      by (fact rep_abs_rsp_left[OF list_quotient[OF q], OF list_all2_refl'[OF e, of s]])
+      by (fact rep_abs_rsp_left[OF list_quotient3[OF q], OF list_all2_refl'[OF e, of s]])
     have c: "(op \<approx> OO list_all2 R) (map Rep (map Abs r)) s"
       by (rule pred_compI) (rule b, rule y)
     have z: "list_all2 R r (map Rep (map Abs r))"
-      by (fact rep_abs_rsp[OF list_quotient[OF q], OF list_all2_refl'[OF e, of r]])
+      by (fact rep_abs_rsp[OF list_quotient3[OF q], OF list_all2_refl'[OF e, of r]])
     then show "(list_all2 R OOO op \<approx>) r s"
       using a c pred_compI by simp
   qed
 qed
 
 lemma quotient_compose_list[quot_thm]:
-  shows  "Quotient ((list_all2 op \<approx>) OOO (op \<approx>))
+  shows  "Quotient3 ((list_all2 op \<approx>) OOO (op \<approx>))
     (abs_fset \<circ> (map abs_fset)) ((map rep_fset) \<circ> rep_fset)"
-  by (rule quotient_compose_list_g, rule Quotient_fset, rule list_eq_equivp)
+  by (rule quotient_compose_list_g, rule Quotient3_fset, rule list_eq_equivp)
 
 
 section {* Quotient definitions for fsets *}
@@ -404,19 +404,19 @@ lemma Cons_rsp2 [quot_respect]:
   done
 
 lemma Nil_prs2 [quot_preserve]:
-  assumes "Quotient R Abs Rep"
+  assumes "Quotient3 R Abs Rep"
   shows "(Abs \<circ> map f) [] = Abs []"
   by simp
 
 lemma Cons_prs2 [quot_preserve]:
-  assumes q: "Quotient R1 Abs1 Rep1"
-  and     r: "Quotient R2 Abs2 Rep2"
+  assumes q: "Quotient3 R1 Abs1 Rep1"
+  and     r: "Quotient3 R2 Abs2 Rep2"
   shows "(Rep1 ---> (map Rep1 \<circ> Rep2) ---> (Abs2 \<circ> map Abs1)) (op #) = (id ---> Rep2 ---> Abs2) (op #)"
-  by (auto simp add: fun_eq_iff comp_def Quotient_abs_rep [OF q])
+  by (auto simp add: fun_eq_iff comp_def Quotient3_abs_rep [OF q])
 
 lemma append_prs2 [quot_preserve]:
-  assumes q: "Quotient R1 Abs1 Rep1"
-  and     r: "Quotient R2 Abs2 Rep2"
+  assumes q: "Quotient3 R1 Abs1 Rep1"
+  and     r: "Quotient3 R2 Abs2 Rep2"
   shows "((map Rep1 \<circ> Rep2) ---> (map Rep1 \<circ> Rep2) ---> (Abs2 \<circ> map Abs1)) op @ =
     (Rep2 ---> Rep2 ---> Abs2) op @"
   by (simp add: fun_eq_iff abs_o_rep[OF q] List.map.id)
@@ -485,7 +485,7 @@ qed
 lemma map_prs2 [quot_preserve]:
   shows "((abs_fset ---> rep_fset) ---> (map rep_fset \<circ> rep_fset) ---> abs_fset \<circ> map abs_fset) map = (id ---> rep_fset ---> abs_fset) map"
   by (auto simp add: fun_eq_iff)
-     (simp only: map_map[symmetric] map_prs_aux[OF Quotient_fset Quotient_fset])
+     (simp only: map_map[symmetric] map_prs_aux[OF Quotient3_fset Quotient3_fset])
 
 section {* Lifted theorems *}
 

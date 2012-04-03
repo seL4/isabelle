@@ -62,7 +62,7 @@ val equiv_solver = mk_solver "Equivalence goal solver" equiv_solver_tac
 
 fun quotient_tac ctxt =
   (REPEAT_ALL_NEW (FIRST'
-    [rtac @{thm identity_quotient},
+    [rtac @{thm identity_quotient3},
      resolve_tac (Quotient_Info.quotient_rules ctxt)]))
 
 fun quotient_solver_tac ss = quotient_tac (Simplifier.the_context ss)
@@ -259,7 +259,7 @@ val apply_rsp_tac =
               val ty_inst = map (SOME o (ctyp_of thy)) [ty_x, ty_b, ty_f]
               val t_inst = map (SOME o (cterm_of thy)) [R2, f, g, x, y];
               val inst_thm = Drule.instantiate' ty_inst
-                ([NONE, NONE, NONE] @ t_inst) @{thm apply_rsp}
+                ([NONE, NONE, NONE] @ t_inst) @{thm apply_rspQ3}
             in
               (rtac inst_thm THEN' SOLVED' (quotient_tac context)) 1
             end
@@ -529,7 +529,7 @@ fun clean_tac lthy =
     val prs = Quotient_Info.prs_rules lthy
     val ids = Quotient_Info.id_simps lthy
     val thms =
-      @{thms Quotient_abs_rep Quotient_rel_rep babs_prs all_prs ex_prs ex1_prs} @ ids @ prs @ defs
+      @{thms Quotient3_abs_rep Quotient3_rel_rep babs_prs all_prs ex_prs ex1_prs} @ ids @ prs @ defs
 
     val ss = (mk_minimal_ss lthy) addsimps thms addSolver quotient_solver
   in

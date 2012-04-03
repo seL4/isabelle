@@ -39,33 +39,29 @@ by(rule impl_of_inverse)
 
 subsection {* Primitive operations *}
 
-(* FIXME: improve quotient_definition so that type annotations on the right hand sides can be removed *) 
+lift_definition lookup :: "('key, 'value) alist \<Rightarrow> 'key \<Rightarrow> 'value option" is map_of  ..
 
-quotient_definition lookup :: "('key, 'value) alist \<Rightarrow> 'key \<Rightarrow> 'value option"
-where "lookup" is "map_of :: ('key * 'value) list \<Rightarrow> 'key \<Rightarrow> 'value option" ..
+lift_definition empty :: "('key, 'value) alist" is "[]" by simp
 
-quotient_definition empty :: "('key, 'value) alist"
-where "empty" is "[] :: ('key * 'value) list" by simp
-
-quotient_definition update :: "'key \<Rightarrow> 'value \<Rightarrow> ('key, 'value) alist \<Rightarrow> ('key, 'value) alist"
-where "update" is "AList.update :: 'key \<Rightarrow> 'value \<Rightarrow> ('key * 'value) list \<Rightarrow> ('key * 'value) list"
+lift_definition update :: "'key \<Rightarrow> 'value \<Rightarrow> ('key, 'value) alist \<Rightarrow> ('key, 'value) alist"
+  is AList.update
 by (simp add: distinct_update)
 
 (* FIXME: we use an unoptimised delete operation. *)
-quotient_definition delete :: "'key \<Rightarrow> ('key, 'value) alist \<Rightarrow> ('key, 'value) alist"
-where "delete" is "AList.delete :: 'key \<Rightarrow> ('key * 'value) list \<Rightarrow> ('key * 'value) list"
+lift_definition delete :: "'key \<Rightarrow> ('key, 'value) alist \<Rightarrow> ('key, 'value) alist"
+  is AList.delete
 by (simp add: distinct_delete)
 
-quotient_definition map_entry :: "'key \<Rightarrow> ('value \<Rightarrow> 'value) \<Rightarrow> ('key, 'value) alist \<Rightarrow> ('key, 'value) alist"
-where "map_entry" is "AList.map_entry :: 'key \<Rightarrow> ('value \<Rightarrow> 'value) \<Rightarrow> ('key * 'value) list \<Rightarrow> ('key * 'value) list"
+lift_definition map_entry :: "'key \<Rightarrow> ('value \<Rightarrow> 'value) \<Rightarrow> ('key, 'value) alist \<Rightarrow> ('key, 'value) alist"
+  is AList.map_entry
 by (simp add: distinct_map_entry)
 
-quotient_definition filter :: "('key \<times> 'value \<Rightarrow> bool) \<Rightarrow> ('key, 'value) alist \<Rightarrow> ('key, 'value) alist"
-where "filter" is "List.filter :: ('key \<times> 'value \<Rightarrow> bool) \<Rightarrow> ('key * 'value) list \<Rightarrow> ('key * 'value) list"
+lift_definition filter :: "('key \<times> 'value \<Rightarrow> bool) \<Rightarrow> ('key, 'value) alist \<Rightarrow> ('key, 'value) alist"
+  is List.filter
 by (simp add: distinct_map_fst_filter)
 
-quotient_definition map_default :: "'key => 'value => ('value => 'value) => ('key, 'value) alist => ('key, 'value) alist"
-where "map_default" is "AList.map_default :: 'key => 'value => ('value => 'value) => ('key * 'value) list => ('key * 'value) list"
+lift_definition map_default :: "'key => 'value => ('value => 'value) => ('key, 'value) alist => ('key, 'value) alist"
+  is AList.map_default
 by (simp add: distinct_map_default)
 
 subsection {* Abstract operation properties *}
