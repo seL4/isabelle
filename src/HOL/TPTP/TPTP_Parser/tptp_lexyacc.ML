@@ -1342,9 +1342,9 @@ let fun continue() : Internal.result =
 		     yybl := size (!yyb);
 		     scan (s,AcceptingLeaves,l-i0,0))
 	    end
-	  else let val NewChar = Char.ord(CharVector.sub(!yyb,l))
+	  else let val NewChar = Char.ord(String.sub(!yyb,l))
 		val NewChar = if NewChar<128 then NewChar else 128
-		val NewState = Char.ord(CharVector.sub(trans,NewChar))
+		val NewState = Char.ord(String.sub(trans,NewChar))
 		in if NewState=0 then action(l,NewAcceptingLeaves)
 		else scan(NewState,NewAcceptingLeaves,l+1,i0)
 	end
