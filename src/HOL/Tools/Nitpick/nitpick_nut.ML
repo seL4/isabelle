@@ -522,7 +522,7 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, ...}) eq =
           Op1 (Converse, range_type T, Any, sub t1)
         | (Const (@{const_name trancl}, T), [t1]) =>
           Op1 (Closure, range_type T, Any, sub t1)
-        | (Const (@{const_name rel_comp}, T), [t1, t2]) =>
+        | (Const (@{const_name relcomp}, T), [t1, t2]) =>
           Op2 (Composition, nth_range_type 2 T, Any, sub t1, sub t2)
         | (Const (x as (s as @{const_name Suc}, T)), []) =>
           if is_built_in_const thy stds x then Cst (Suc, T, Any)

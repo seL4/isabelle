@@ -726,7 +726,7 @@ end
 lemma relpowp_relpow_eq [pred_set_conv]:
   fixes R :: "'a rel"
   shows "(\<lambda>x y. (x, y) \<in> R) ^^ n = (\<lambda>x y. (x, y) \<in> R ^^ n)"
-  by (induct n) (simp_all add: rel_compp_rel_comp_eq)
+  by (induct n) (simp_all add: relcompp_relcomp_eq)
 
 text {* for code generation *}
 
@@ -849,7 +849,7 @@ lemma trancl_power:
    apply (drule tranclD2)
    apply (clarsimp simp: rtrancl_is_UN_relpow)
    apply (rule_tac x="Suc n" in exI)
-   apply (clarsimp simp: rel_comp_unfold)
+   apply (clarsimp simp: relcomp_unfold)
    apply fastforce
   apply clarsimp
   apply (case_tac n, simp)
@@ -870,7 +870,7 @@ proof (induct n arbitrary: b)
 next
   case (Suc n)
   show ?case
-  proof (simp add: rel_comp_unfold Suc)
+  proof (simp add: relcomp_unfold Suc)
     show "(\<exists>y. (\<exists>f. f 0 = a \<and> f n = y \<and> (\<forall>i<n. (f i,f(Suc i)) \<in> R)) \<and> (y,b) \<in> R)
      = (\<exists>f. f 0 = a \<and> f(Suc n) = b \<and> (\<forall>i<Suc n. (f i, f (Suc i)) \<in> R))"
     (is "?l = ?r")
@@ -979,7 +979,7 @@ apply(auto simp add: trancl_power)
 apply(auto dest: relpow_finite_bounded1)
 done
 
-lemma finite_rel_comp[simp,intro]:
+lemma finite_relcomp[simp,intro]:
 assumes "finite R" and "finite S"
 shows "finite(R O S)"
 proof-
