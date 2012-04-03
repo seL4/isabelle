@@ -30,6 +30,8 @@ sig
     Context.generic -> Context.generic
   val const_declaration: (int -> bool) -> Syntax.mode -> (binding * mixfix) * term ->
     local_theory -> local_theory
+  val background_foundation: ((binding * typ) * mixfix) * (binding * term) ->
+    term list * term list -> local_theory -> (term * thm) * local_theory
   val theory_foundation: ((binding * typ) * mixfix) * (binding * term) ->
     term list * term list -> local_theory -> (term * thm) * local_theory
   val theory_notes: string ->
@@ -272,7 +274,7 @@ fun const_declaration pred prmode ((b, mx), rhs) =
 
 (** primitive theory operations **)
 
-fun theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
+fun background_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
   let
     val (const, lthy2) = lthy
       |> Local_Theory.background_theory_result (Sign.declare_const lthy ((b, U), mx));
@@ -282,6 +284,11 @@ fun theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lt
         (Thm.add_def lthy2 false false
           (Thm.def_binding_optional b b_def, Logic.mk_equals (lhs, rhs)));
   in ((lhs, def), lthy3) end;
+
+fun theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) =
+  background_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params)
+  #-> (fn (lhs, def) => const_declaration (K true) Syntax.mode_default ((b, mx), lhs)
+    #> pair (lhs, def));
 
 fun theory_notes kind global_facts local_facts =
   Local_Theory.background_theory (Attrib.global_notes kind global_facts #> snd) #>
