@@ -1,7 +1,6 @@
 Miscellaneous tutorials
+  prog-prove      Programming and Proving in Isabelle/HOL
   tutorial        Tutorial on Isabelle/HOL
-  main            What's in Main
-  isar-overview   Tutorial on Isar
   locales         Tutorial on Locales
   classes         Tutorial on Type Classes
   functions       Tutorial on Function Definitions
@@ -10,7 +9,8 @@ Miscellaneous tutorials
   sledgehammer    User's Guide to Sledgehammer
   sugar           LaTeX Sugar for Isabelle documents
 
-Main Reference Manuals
+Reference Manuals
+  main            What's in Main
   isar-ref        The Isabelle/Isar Reference Manual
   implementation  The Isabelle/Isar Implementation Manual
   system          The Isabelle System Manual
