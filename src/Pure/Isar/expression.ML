@@ -357,17 +357,19 @@ fun prep_full_context_statement
               Term.map_type_tvar (fn ((x, _), S) => TVar ((x, i), S)) o Logic.varifyT_global);
         val inst'' = map2 Type.constraint parm_types' inst';
         val insts' = insts @ [(loc, (prfx, inst''))];
-        val (insts'', _, _, ctxt' (* FIXME not used *) ) = check_autofix insts' [] [] ctxt;
+        val (insts'', _, _, _) = check_autofix insts' [] [] ctxt;
         val inst''' = insts'' |> List.last |> snd |> snd;
         val (morph, _) = inst_morph (parm_names, parm_types) (prfx, inst''') ctxt;
         val ctxt'' = Locale.activate_declarations (loc, morph) ctxt;
       in (i + 1, insts', ctxt'') end;
 
-    fun prep_elem insts raw_elem (elems, ctxt) =
+    fun prep_elem insts raw_elem ctxt =
       let
-        val ctxt' = declare_elem prep_vars_elem raw_elem ctxt;
-        val elems' = elems @ [parse_elem parse_typ parse_prop ctxt' raw_elem];
-        val (_, _, _, ctxt'' (* FIXME not used *) ) = check_autofix insts elems' [] ctxt';
+        val ctxt' = ctxt
+          |> Context_Position.set_visible false
+          |> declare_elem prep_vars_elem raw_elem
+          |> Context_Position.restore_visible ctxt;
+        val elems' = parse_elem parse_typ parse_prop ctxt' raw_elem;
       in (elems', ctxt') end;
 
     fun prep_concl raw_concl (insts, elems, ctxt) =
@@ -388,7 +390,7 @@ fun prep_full_context_statement
             commas_quote (map (Syntax.string_of_term ctxt3 o Free) (rev frees))));
 
     val ctxt4 = init_body ctxt3;
-    val (elems, ctxt5) = fold (prep_elem insts') raw_elems ([], ctxt4);
+    val (elems, ctxt5) = fold_map (prep_elem insts') raw_elems ctxt4;
     val (insts, elems', concl, ctxt6) = prep_concl raw_concl (insts', elems, ctxt5);
 
     (* Retrieve parameter types *)
