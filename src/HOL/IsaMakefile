@@ -1041,7 +1041,8 @@ HOL-Isar_Examples: HOL $(LOG)/HOL-Isar_Examples.gz
 $(LOG)/HOL-Isar_Examples.gz: $(OUT)/HOL Isar_Examples/Basic_Logic.thy	\
   Isar_Examples/Cantor.thy Isar_Examples/Drinker.thy			\
   Isar_Examples/Expr_Compiler.thy Isar_Examples/Fibonacci.thy		\
-  Isar_Examples/Group.thy Isar_Examples/Hoare.thy			\
+  Isar_Examples/Group.thy Isar_Examples/Group_Context.thy		\
+  Isar_Examples/Group_Notepad.thy Isar_Examples/Hoare.thy		\
   Isar_Examples/Hoare_Ex.thy Isar_Examples/Knaster_Tarski.thy		\
   Isar_Examples/Mutilated_Checkerboard.thy				\
   Isar_Examples/Nested_Datatype.thy Isar_Examples/Peirce.thy		\

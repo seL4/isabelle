@@ -46,12 +46,11 @@ val peek =
 
 (* consts in locale *)
 
-fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx), rhs) =
+fun locale_const (Target {target, is_class, ...}) prmode ((b, mx), rhs) =
   Generic_Target.locale_declaration target true (fn phi =>
     let
       val b' = Morphism.binding phi b;
       val rhs' = Morphism.term phi rhs;
-      val arg = (b', Term.close_schematic_term rhs');
       val same_shape = Term.aconv_untyped (rhs, rhs');
 
       (* FIXME workaround based on educated guess *)
@@ -62,31 +61,24 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx)
           andalso List.last prefix' = (Class.class_prefix target, false)
         orelse same_shape);
     in
-      not is_canonical_class ?
-        (Context.mapping_result
-          (Sign.add_abbrev Print_Mode.internal arg)
-          (Proof_Context.add_abbrev Print_Mode.internal arg)
-        #-> (fn (lhs' as Const (d, _), _) =>
-            same_shape ?
-              (Context.mapping
-                (Sign.revert_abbrev mode d) (Proof_Context.revert_abbrev mode d) #>
-               Morphism.form (Proof_Context.generic_notation true prmode [(lhs', mx)]))))
-    end);
+      not is_canonical_class ? Generic_Target.generic_const same_shape prmode ((b', mx), rhs')
+    end) #>
+  (fn lthy => lthy |> Generic_Target.const_declaration
+    (fn level => level <> 0 andalso level <> Local_Theory.level lthy) prmode ((b, mx), rhs));
 
 
 (* define *)
 
-fun locale_foundation ta (((b, U), mx), (b_def, rhs)) (type_params, term_params) =
-  Generic_Target.theory_foundation (((b, U), NoSyn), (b_def, rhs)) (type_params, term_params)
+fun locale_foundation ta (((b, U), mx), (b_def, rhs)) params =
+  Generic_Target.background_foundation (((b, U), NoSyn), (b_def, rhs)) params
   #-> (fn (lhs, def) => locale_const ta Syntax.mode_default ((b, mx), lhs)
-    #> pair (lhs, def))
+    #> pair (lhs, def));
 
-fun class_foundation (ta as Target {target, ...})
-    (((b, U), mx), (b_def, rhs)) (type_params, term_params) =
-  Generic_Target.theory_foundation (((b, U), NoSyn), (b_def, rhs)) (type_params, term_params)
+fun class_foundation (ta as Target {target, ...}) (((b, U), mx), (b_def, rhs)) params =
+  Generic_Target.background_foundation (((b, U), NoSyn), (b_def, rhs)) params
   #-> (fn (lhs, def) => locale_const ta Syntax.mode_default ((b, NoSyn), lhs)
-    #> Class.const target ((b, mx), (type_params, lhs))
-    #> pair (lhs, def))
+    #> Class.const target ((b, mx), (#1 params, lhs))
+    #> pair (lhs, def));
 
 fun target_foundation (ta as Target {is_locale, is_class, ...}) =
   if is_class then class_foundation ta
@@ -106,31 +98,26 @@ fun target_notes (Target {target, is_locale, ...}) =
 fun locale_abbrev ta prmode ((b, mx), t) xs =
   Local_Theory.background_theory_result
     (Sign.add_abbrev Print_Mode.internal (b, t)) #->
-      (fn (lhs, _) => locale_const ta prmode
-        ((b, mx), Term.list_comb (Logic.unvarify_global lhs, xs)));
+      (fn (lhs, _) =>
+        locale_const ta prmode ((b, mx), Term.list_comb (Logic.unvarify_global lhs, xs)));
 
-fun target_abbrev (ta as Target {target, is_locale, is_class, ...})
-    prmode (b, mx) (global_rhs, t') xs lthy =
+fun target_abbrev (ta as Target {target, is_locale, is_class, ...}) prmode (b, mx) (t, t') xs lthy =
   if is_locale then
     lthy
-    |> locale_abbrev ta prmode ((b, if is_class then NoSyn else mx), global_rhs) xs
+    |> locale_abbrev ta prmode ((b, if is_class then NoSyn else mx), t) xs
     |> is_class ? Class.abbrev target prmode ((b, mx), t')
-  else
-    lthy
-    |> Generic_Target.theory_abbrev prmode ((b, mx), global_rhs);
+  else lthy |> Generic_Target.theory_abbrev prmode (b, mx) (t, t') xs;
 
 
 (* declaration *)
 
 fun target_declaration (Target {target, ...}) {syntax, pervasive} decl lthy =
-  if target = "" then Generic_Target.standard_declaration decl lthy
+  if target = "" then Generic_Target.theory_declaration decl lthy
   else
     lthy
     |> pervasive ? Generic_Target.background_declaration decl
     |> Generic_Target.locale_declaration target syntax decl
-    |> (fn lthy' => lthy' |> Local_Theory.map_contexts (fn level => fn ctxt =>
-        if level = 0 then ctxt
-        else Context.proof_map (Local_Theory.standard_form lthy' ctxt decl) ctxt));
+    |> (fn lthy' => lthy' |> Generic_Target.standard_declaration (fn level => level <> 0) decl);
 
 
 (* pretty *)
@@ -192,7 +179,7 @@ val reinit =
   Local_Theory.assert_bottom true #> Data.get #> the #>
   (fn Target {target, before_exit, ...} => Local_Theory.exit_global #> init before_exit target);
 
-fun context_cmd ("-", _) thy = init I "" thy
+fun context_cmd ("-", _) thy = theory_init thy
   | context_cmd target thy = init I (Locale.check thy target) thy;
 
 end;

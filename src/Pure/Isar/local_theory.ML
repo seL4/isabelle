@@ -11,6 +11,7 @@ signature LOCAL_THEORY =
 sig
   type operations
   val assert: local_theory -> local_theory
+  val restore: local_theory -> local_theory
   val level: Proof.context -> int
   val assert_bottom: bool -> local_theory -> local_theory
   val open_target: Name_Space.naming -> operations -> local_theory -> local_theory
@@ -54,7 +55,6 @@ sig
   val type_alias: binding -> string -> local_theory -> local_theory
   val const_alias: binding -> string -> local_theory -> local_theory
   val init: Name_Space.naming -> operations -> Proof.context -> local_theory
-  val restore: local_theory -> local_theory
   val exit: local_theory -> Proof.context
   val exit_global: local_theory -> theory
   val exit_result: (morphism -> 'a -> 'b) -> 'a * local_theory -> 'b * Proof.context
@@ -107,6 +107,8 @@ fun map_first_lthy f = assert #>
   Data.map (fn {naming, operations, target} :: parents =>
     make_lthy (f (naming, operations, target)) :: parents);
 
+fun restore lthy = #target (get_first_lthy lthy) |> Data.put (Data.get lthy);
+
 
 (* nested structure *)
 
@@ -126,7 +128,7 @@ fun open_target naming operations target = assert target
   |> Data.map (cons (make_lthy (naming, operations, target)));
 
 fun close_target lthy =
-  assert_bottom false lthy |> Data.map tl;
+  assert_bottom false lthy |> Data.map tl |> restore;
 
 fun map_contexts f lthy =
   let val n = level lthy in
@@ -280,10 +282,6 @@ fun init naming operations target =
     (fn [] => [make_lthy (naming, operations, target)]
       | _ => error "Local theory already initialized")
   |> checkpoint;
-
-fun restore lthy =
-  let val {naming, operations, target} = get_first_lthy lthy
-  in init naming operations target end;
 
 
 (* exit *)

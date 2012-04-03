@@ -43,12 +43,9 @@ sig
     (Attrib.binding * term) list -> theory -> Proof.state
   val sublocale_cmd: (local_theory -> local_theory) -> xstring * Position.T -> expression ->
     (Attrib.binding * string) list -> theory -> Proof.state
-  val interpretation: expression_i -> (Attrib.binding * term) list ->
-    theory -> Proof.state
-  val interpretation_cmd: expression -> (Attrib.binding * string) list ->
-    theory -> Proof.state
-  val interpret: expression_i -> (Attrib.binding * term) list ->
-    bool -> Proof.state -> Proof.state
+  val interpretation: expression_i -> (Attrib.binding * term) list -> theory -> Proof.state
+  val interpretation_cmd: expression -> (Attrib.binding * string) list -> theory -> Proof.state
+  val interpret: expression_i -> (Attrib.binding * term) list -> bool -> Proof.state -> Proof.state
   val interpret_cmd: expression -> (Attrib.binding * string) list ->
     bool -> Proof.state -> Proof.state
 
