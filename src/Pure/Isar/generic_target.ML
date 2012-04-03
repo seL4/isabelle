@@ -257,7 +257,7 @@ fun generic_const same_shape prmode ((b, mx), t) context =
         |> Morphism.form (Proof_Context.generic_notation true prmode [(t, mx)])
     | NONE =>
         context
-        |> Proof_Context.generic_add_abbrev Print_Mode.internal (b, t)
+        |> Proof_Context.generic_add_abbrev Print_Mode.internal (b, Term.close_schematic_term t)
         |-> (fn (const as Const (c, _), _) => same_shape ?
               (Proof_Context.generic_revert_abbrev (#1 prmode) c #>
                Morphism.form (Proof_Context.generic_notation true prmode [(const, mx)]))))
@@ -269,7 +269,7 @@ fun const_declaration pred prmode ((b, mx), rhs) =
       val b' = Morphism.binding phi b;
       val rhs' = Morphism.term phi rhs;
       val same_shape = Term.aconv_untyped (rhs, rhs');
-    in generic_const same_shape prmode ((b', mx), Term.close_schematic_term rhs') end);
+    in generic_const same_shape prmode ((b', mx), rhs') end);
 
 
 

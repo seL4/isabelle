@@ -61,8 +61,7 @@ fun locale_const (Target {target, is_class, ...}) prmode ((b, mx), rhs) =
           andalso List.last prefix' = (Class.class_prefix target, false)
         orelse same_shape);
     in
-      not is_canonical_class ?
-        Generic_Target.generic_const same_shape prmode ((b', mx), Term.close_schematic_term rhs')
+      not is_canonical_class ? Generic_Target.generic_const same_shape prmode ((b', mx), rhs')
     end) #>
   (fn lthy => lthy |> Generic_Target.const_declaration
     (fn level => level <> 0 andalso level <> Local_Theory.level lthy) prmode ((b, mx), rhs));
