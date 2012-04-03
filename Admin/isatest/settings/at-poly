@@ -1,7 +1,7 @@
 # -*- shell-script -*- :mode=shellscript:
 
-  POLYML_HOME="/home/polyml/polyml-5.3.0"
-  ML_SYSTEM="polyml-5.3.0"
+  POLYML_HOME="/home/polyml/polyml-5.2.1"
+  ML_SYSTEM="polyml-5.2.1"
   ML_PLATFORM="x86-linux"
   ML_HOME="$POLYML_HOME/$ML_PLATFORM"
   ML_OPTIONS="-H 500"
