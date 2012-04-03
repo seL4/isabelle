@@ -1,7 +1,6 @@
 Miscellaneous tutorials
-  tutorial        Tutorial on Isabelle/HOL
   prog-prove      Programming and Proving in Isabelle/HOL
-  isar-overview   Tutorial on Isar
+  tutorial        Tutorial on Isabelle/HOL
   locales         Tutorial on Locales
   classes         Tutorial on Type Classes
   functions       Tutorial on Function Definitions
