@@ -158,14 +158,13 @@ fun define_overloaded (c, U) (v, checked) (b_def, rhs) =
   ##> Local_Theory.map_contexts (K synchronize_syntax)
   #-> (fn (_, def) => pair (Const (c, U), def));
 
-fun foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
+fun foundation (((b, U), mx), (b_def, rhs)) params lthy =
   (case operation lthy b of
     SOME (c, (v, checked)) =>
       if mx <> NoSyn
       then error ("Illegal mixfix syntax for overloaded constant " ^ quote c)
       else lthy |> define_overloaded (c, U) (v, checked) (b_def, rhs)
-  | NONE => lthy
-      |> Generic_Target.theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params));
+  | NONE => lthy |> Generic_Target.theory_foundation (((b, U), mx), (b_def, rhs)) params);
 
 fun pretty lthy =
   let

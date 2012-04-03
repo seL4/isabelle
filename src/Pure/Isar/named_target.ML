@@ -69,16 +69,15 @@ fun locale_const (Target {target, is_class, ...}) prmode ((b, mx), rhs) =
 
 (* define *)
 
-fun locale_foundation ta (((b, U), mx), (b_def, rhs)) (type_params, term_params) =
-  Generic_Target.background_foundation (((b, U), NoSyn), (b_def, rhs)) (type_params, term_params)
+fun locale_foundation ta (((b, U), mx), (b_def, rhs)) params =
+  Generic_Target.background_foundation (((b, U), NoSyn), (b_def, rhs)) params
   #-> (fn (lhs, def) => locale_const ta Syntax.mode_default ((b, mx), lhs)
     #> pair (lhs, def));
 
-fun class_foundation (ta as Target {target, ...})
-    (((b, U), mx), (b_def, rhs)) (type_params, term_params) =
-  Generic_Target.background_foundation (((b, U), NoSyn), (b_def, rhs)) (type_params, term_params)
+fun class_foundation (ta as Target {target, ...}) (((b, U), mx), (b_def, rhs)) params =
+  Generic_Target.background_foundation (((b, U), NoSyn), (b_def, rhs)) params
   #-> (fn (lhs, def) => locale_const ta Syntax.mode_default ((b, NoSyn), lhs)
-    #> Class.const target ((b, mx), (type_params, lhs))
+    #> Class.const target ((b, mx), (#1 params, lhs))
     #> pair (lhs, def));
 
 fun target_foundation (ta as Target {is_locale, is_class, ...}) =
