@@ -311,7 +311,7 @@ fun theory_abbrev prmode (b, mx) (t, _) xs =
         Sign.notation true prmode [(lhs, check_mixfix_global (b, null xs) mx)] #> pair lhs))
   #-> (fn lhs => fn lthy' => lthy' |>
         const_declaration (fn level => level <> Local_Theory.level lthy') prmode
-          ((b, mx), Term.list_comb (Logic.unvarify_global lhs, xs)));
+          ((b, if null xs then NoSyn else mx), Term.list_comb (Logic.unvarify_global lhs, xs)));
 
 fun theory_declaration decl =
   background_declaration decl #> standard_declaration (K true) decl;
