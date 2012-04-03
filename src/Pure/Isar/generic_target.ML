@@ -60,6 +60,11 @@ fun check_mixfix ctxt (b, extra_tfrees) mx =
          else "\nDropping mixfix syntax " ^ Pretty.string_of (Mixfix.pretty_mixfix mx)));
       NoSyn);
 
+fun check_mixfix_global (b, no_params) mx =
+  if no_params orelse mx = NoSyn then mx
+  else (warning ("Dropping global mixfix syntax: " ^ Binding.print b ^ " " ^
+    Pretty.string_of (Mixfix.pretty_mixfix mx)); NoSyn);
+
 
 (* define *)
 
@@ -236,13 +241,10 @@ fun generic_const same_shape prmode ((b, mx), t) context =
             let
               val thy = Context.theory_of context;
               val ctxt = Context.proof_of context;
-              val t' = Syntax.check_term ctxt (Const (c, dummyT))
-                |> singleton (Variable.polymorphic ctxt);
             in
-              (case t' of
-                Const (c', T') =>
-                  if c = c' andalso Sign.typ_equiv thy (T, T') then SOME c else NONE
-              | _ => NONE)
+              (case Type_Infer_Context.const_type ctxt c of
+                SOME T' => if Sign.typ_equiv thy (T, T') then SOME c else NONE
+              | NONE => NONE)
             end
         | _ => NONE)
       else NONE;
@@ -274,9 +276,13 @@ fun const_declaration pred prmode ((b, mx), rhs) =
 
 fun background_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
   let
+    val params = type_params @ term_params;
+    val mx' = check_mixfix_global (b, null params) mx;
+
     val (const, lthy2) = lthy
-      |> Local_Theory.background_theory_result (Sign.declare_const lthy ((b, U), mx));
-    val lhs = list_comb (const, type_params @ term_params);
+      |> Local_Theory.background_theory_result (Sign.declare_const lthy ((b, U), mx'));
+    val lhs = Term.list_comb (const, params);
+
     val ((_, def), lthy3) = lthy2
       |> Local_Theory.background_theory_result
         (Thm.add_def lthy2 false false
@@ -301,7 +307,8 @@ fun theory_notes kind global_facts local_facts =
 fun theory_abbrev prmode (b, mx) (t, _) xs =
   Local_Theory.background_theory_result
     (Sign.add_abbrev (#1 prmode) (b, t) #->
-      (fn (lhs, _) => Sign.notation true prmode [(lhs, mx)] #> pair lhs))
+      (fn (lhs, _) =>  (* FIXME type_params!? *)
+        Sign.notation true prmode [(lhs, check_mixfix_global (b, null xs) mx)] #> pair lhs))
   #-> (fn lhs => fn lthy' => lthy' |>
         const_declaration (fn level => level <> Local_Theory.level lthy') prmode
           ((b, mx), Term.list_comb (Logic.unvarify_global lhs, xs)));
