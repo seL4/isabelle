@@ -188,18 +188,15 @@ end;
 fun abbrev target_abbrev prmode ((b, mx), t) lthy =
   let
     val thy_ctxt = Proof_Context.init_global (Proof_Context.theory_of lthy);
-    val target_ctxt = Local_Theory.target_of lthy;
 
-    val t' = Assumption.export_term lthy target_ctxt t;
-    val xs = map Free (rev (Variable.add_fixed lthy t' []));
+    val t' = Assumption.export_term lthy thy_ctxt t;
+    val xs = map Free (sort (Variable.fixed_ord lthy o pairself #1) (Variable.add_fixed lthy t' []));
     val u = fold_rev lambda xs t';
+    val global_rhs = singleton (Variable.polymorphic thy_ctxt) u;
 
     val extra_tfrees =
       subtract (op =) (Term.add_tfreesT (Term.fastype_of u) []) (Term.add_tfrees u []);
     val mx' = check_mixfix lthy (b, extra_tfrees) mx;
-
-    val global_rhs =
-      singleton (Variable.export_terms (Variable.declare_term u target_ctxt) thy_ctxt) u;
   in
     lthy
     |> target_abbrev prmode (b, mx') (global_rhs, t') xs
