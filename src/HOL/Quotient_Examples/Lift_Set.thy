@@ -2,7 +2,7 @@
     Author:     Lukas Bulwahn and Ondrej Kuncar
 *)
 
-header {* Example of lifting definitions with the quotient infrastructure *}
+header {* Example of lifting definitions with the lifting infrastructure *}
 
 theory Lift_Set
 imports Main
@@ -16,19 +16,14 @@ typedef (open) 'a set = "set :: ('a \<Rightarrow> bool) set"
 
 setup_lifting type_definition_set[unfolded set_def]
 
-text {* Now, we can employ quotient_definition to lift definitions. *}
+text {* Now, we can employ lift_definition to lift definitions. *}
 
-quotient_definition empty where "empty :: 'a set"
-is "bot :: 'a \<Rightarrow> bool" done
+lift_definition empty :: "'a set" is "bot :: 'a \<Rightarrow> bool" done
 
 term "Lift_Set.empty"
 thm Lift_Set.empty_def
 
-definition insertp :: "'a \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool" where
-  "insertp x P y \<longleftrightarrow> y = x \<or> P y"
-
-quotient_definition insert where "insert :: 'a => 'a set => 'a set"
-is insertp done
+lift_definition insert :: "'a => 'a set => 'a set" is "\<lambda> x P y. y = x \<or> P y" done 
 
 term "Lift_Set.insert"
 thm Lift_Set.insert_def

@@ -67,11 +67,11 @@ morphisms set_of_rel rel_of_set by (metis identity_equivp)
 
 lemma [simp]:
   "rel_of_set (set_of_rel S) = S"
-by (rule Quotient_abs_rep[OF Quotient_rel])
+by (rule Quotient3_abs_rep[OF Quotient3_rel])
 
 lemma [simp]:
   "set_of_rel (rel_of_set R) = R"
-by (rule Quotient_rep_abs[OF Quotient_rel]) (rule refl)
+by (rule Quotient3_rep_abs[OF Quotient3_rel]) (rule refl)
 
 lemmas rel_raw_of_set_eqI[intro!] = arg_cong[where f="rel_of_set"]
 

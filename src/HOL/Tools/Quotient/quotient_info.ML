@@ -70,7 +70,7 @@ val lookup_quotmaps_global = Symtab.lookup o Quotmaps.get o Context.Theory
 (* FIXME export proper internal update operation!? *)
 
 val quotmaps_attribute_setup =
-  Attrib.setup @{binding map}
+  Attrib.setup @{binding mapQ3}
     ((Args.type_name true --| Scan.lift @{keyword "="}) --
       (Scan.lift @{keyword "("} |-- Args.const_proper true --| Scan.lift @{keyword ","} --
         Attrib.thm --| Scan.lift @{keyword ")"}) >>
@@ -298,11 +298,11 @@ val setup =
 (* outer syntax commands *)
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_quotmaps"} "print quotient map functions"
+  Outer_Syntax.improper_command @{command_spec "print_quotmapsQ3"} "print quotient map functions"
     (Scan.succeed (Toplevel.keep (print_quotmaps o Toplevel.context_of)))
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_quotients"} "print quotients"
+  Outer_Syntax.improper_command @{command_spec "print_quotientsQ3"} "print quotients"
     (Scan.succeed (Toplevel.keep (print_quotients o Toplevel.context_of)))
 
 val _ =

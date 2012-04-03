@@ -146,6 +146,9 @@ sig
   val add_const_constraint: string * typ option -> Proof.context -> Proof.context
   val add_abbrev: string -> binding * term -> Proof.context -> (term * term) * Proof.context
   val revert_abbrev: string -> string -> Proof.context -> Proof.context
+  val generic_add_abbrev: string -> binding * term -> Context.generic ->
+    (term * term) * Context.generic
+  val generic_revert_abbrev: string -> string -> Context.generic -> Context.generic
   val print_syntax: Proof.context -> unit
   val print_abbrevs: Proof.context -> unit
   val print_binds: Proof.context -> unit
@@ -1020,6 +1023,12 @@ fun add_abbrev mode (b, raw_t) ctxt =
   end;
 
 fun revert_abbrev mode c = (map_consts o apfst) (Consts.revert_abbrev mode c);
+
+fun generic_add_abbrev mode arg =
+  Context.mapping_result (Sign.add_abbrev mode arg) (add_abbrev mode arg);
+
+fun generic_revert_abbrev mode arg =
+  Context.mapping (Sign.revert_abbrev mode arg) (revert_abbrev mode arg);
 
 
 (* fixes *)

@@ -1111,14 +1111,12 @@ unfolding subtract_entries_raw_def by (induct ys) (auto simp add: distinct_map_e
 
 text {* Operations on alists with distinct keys *}
 
-quotient_definition join :: "('a \<Rightarrow> 'b \<times> 'b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) alist \<Rightarrow> ('a, 'b) alist \<Rightarrow> ('a, 'b) alist" 
-where
-  "join" is "join_raw :: ('a \<Rightarrow> 'b \<times> 'b \<Rightarrow> 'b) \<Rightarrow> ('a \<times> 'b) list \<Rightarrow> ('a \<times> 'b) list \<Rightarrow> ('a \<times> 'b) list"
+lift_definition join :: "('a \<Rightarrow> 'b \<times> 'b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) alist \<Rightarrow> ('a, 'b) alist \<Rightarrow> ('a, 'b) alist" 
+is join_raw
 by (simp add: distinct_join_raw)
 
-quotient_definition subtract_entries :: "('a, ('b :: minus)) alist \<Rightarrow> ('a, 'b) alist \<Rightarrow> ('a, 'b) alist"
-where
-  "subtract_entries" is "subtract_entries_raw :: ('a \<times> 'b) list \<Rightarrow> ('a \<times> 'b) list \<Rightarrow> ('a \<times> 'b) list" 
+lift_definition subtract_entries :: "('a, ('b :: minus)) alist \<Rightarrow> ('a, 'b) alist \<Rightarrow> ('a, 'b) alist"
+is subtract_entries_raw 
 by (simp add: distinct_subtract_entries_raw)
 
 text {* Implementing multisets by means of association lists *}

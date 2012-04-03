@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Quotient_List.thy
+(*  Title:      HOL/Library/Quotient3_List.thy
     Author:     Cezary Kaliszyk and Christian Urban
 *)
 
@@ -56,63 +56,63 @@ lemma list_equivp [quot_equiv]:
   "equivp R \<Longrightarrow> equivp (list_all2 R)"
   by (blast intro: equivpI list_reflp list_symp list_transp elim: equivpE)
 
-lemma list_quotient [quot_thm]:
-  assumes "Quotient R Abs Rep"
-  shows "Quotient (list_all2 R) (map Abs) (map Rep)"
-proof (rule QuotientI)
-  from assms have "\<And>x. Abs (Rep x) = x" by (rule Quotient_abs_rep)
+lemma list_quotient3 [quot_thm]:
+  assumes "Quotient3 R Abs Rep"
+  shows "Quotient3 (list_all2 R) (map Abs) (map Rep)"
+proof (rule Quotient3I)
+  from assms have "\<And>x. Abs (Rep x) = x" by (rule Quotient3_abs_rep)
   then show "\<And>xs. map Abs (map Rep xs) = xs" by (simp add: comp_def)
 next
-  from assms have "\<And>x y. R (Rep x) (Rep y) \<longleftrightarrow> x = y" by (rule Quotient_rel_rep)
+  from assms have "\<And>x y. R (Rep x) (Rep y) \<longleftrightarrow> x = y" by (rule Quotient3_rel_rep)
   then show "\<And>xs. list_all2 R (map Rep xs) (map Rep xs)"
     by (simp add: list_all2_map1 list_all2_map2 list_all2_eq)
 next
   fix xs ys
-  from assms have "\<And>x y. R x x \<and> R y y \<and> Abs x = Abs y \<longleftrightarrow> R x y" by (rule Quotient_rel)
+  from assms have "\<And>x y. R x x \<and> R y y \<and> Abs x = Abs y \<longleftrightarrow> R x y" by (rule Quotient3_rel)
   then show "list_all2 R xs ys \<longleftrightarrow> list_all2 R xs xs \<and> list_all2 R ys ys \<and> map Abs xs = map Abs ys"
     by (induct xs ys rule: list_induct2') auto
 qed
 
-declare [[map list = (list_all2, list_quotient)]]
+declare [[mapQ3 list = (list_all2, list_quotient3)]]
 
 lemma cons_prs [quot_preserve]:
-  assumes q: "Quotient R Abs Rep"
+  assumes q: "Quotient3 R Abs Rep"
   shows "(Rep ---> (map Rep) ---> (map Abs)) (op #) = (op #)"
-  by (auto simp add: fun_eq_iff comp_def Quotient_abs_rep [OF q])
+  by (auto simp add: fun_eq_iff comp_def Quotient3_abs_rep [OF q])
 
 lemma cons_rsp [quot_respect]:
-  assumes q: "Quotient R Abs Rep"
+  assumes q: "Quotient3 R Abs Rep"
   shows "(R ===> list_all2 R ===> list_all2 R) (op #) (op #)"
   by auto
 
 lemma nil_prs [quot_preserve]:
-  assumes q: "Quotient R Abs Rep"
+  assumes q: "Quotient3 R Abs Rep"
   shows "map Abs [] = []"
   by simp
 
 lemma nil_rsp [quot_respect]:
-  assumes q: "Quotient R Abs Rep"
+  assumes q: "Quotient3 R Abs Rep"
   shows "list_all2 R [] []"
   by simp
 
 lemma map_prs_aux:
-  assumes a: "Quotient R1 abs1 rep1"
-  and     b: "Quotient R2 abs2 rep2"
+  assumes a: "Quotient3 R1 abs1 rep1"
+  and     b: "Quotient3 R2 abs2 rep2"
   shows "(map abs2) (map ((abs1 ---> rep2) f) (map rep1 l)) = map f l"
   by (induct l)
-     (simp_all add: Quotient_abs_rep[OF a] Quotient_abs_rep[OF b])
+     (simp_all add: Quotient3_abs_rep[OF a] Quotient3_abs_rep[OF b])
 
 lemma map_prs [quot_preserve]:
-  assumes a: "Quotient R1 abs1 rep1"
-  and     b: "Quotient R2 abs2 rep2"
+  assumes a: "Quotient3 R1 abs1 rep1"
+  and     b: "Quotient3 R2 abs2 rep2"
   shows "((abs1 ---> rep2) ---> (map rep1) ---> (map abs2)) map = map"
   and   "((abs1 ---> id) ---> map rep1 ---> id) map = map"
   by (simp_all only: fun_eq_iff map_prs_aux[OF a b] comp_def)
-    (simp_all add: Quotient_abs_rep[OF a] Quotient_abs_rep[OF b])
+    (simp_all add: Quotient3_abs_rep[OF a] Quotient3_abs_rep[OF b])
 
 lemma map_rsp [quot_respect]:
-  assumes q1: "Quotient R1 Abs1 Rep1"
-  and     q2: "Quotient R2 Abs2 Rep2"
+  assumes q1: "Quotient3 R1 Abs1 Rep1"
+  and     q2: "Quotient3 R2 Abs2 Rep2"
   shows "((R1 ===> R2) ===> (list_all2 R1) ===> list_all2 R2) map map"
   and   "((R1 ===> op =) ===> (list_all2 R1) ===> op =) map map"
   apply (simp_all add: fun_rel_def)
@@ -124,35 +124,35 @@ lemma map_rsp [quot_respect]:
   done
 
 lemma foldr_prs_aux:
-  assumes a: "Quotient R1 abs1 rep1"
-  and     b: "Quotient R2 abs2 rep2"
+  assumes a: "Quotient3 R1 abs1 rep1"
+  and     b: "Quotient3 R2 abs2 rep2"
   shows "abs2 (foldr ((abs1 ---> abs2 ---> rep2) f) (map rep1 l) (rep2 e)) = foldr f l e"
-  by (induct l) (simp_all add: Quotient_abs_rep[OF a] Quotient_abs_rep[OF b])
+  by (induct l) (simp_all add: Quotient3_abs_rep[OF a] Quotient3_abs_rep[OF b])
 
 lemma foldr_prs [quot_preserve]:
-  assumes a: "Quotient R1 abs1 rep1"
-  and     b: "Quotient R2 abs2 rep2"
+  assumes a: "Quotient3 R1 abs1 rep1"
+  and     b: "Quotient3 R2 abs2 rep2"
   shows "((abs1 ---> abs2 ---> rep2) ---> (map rep1) ---> rep2 ---> abs2) foldr = foldr"
   apply (simp add: fun_eq_iff)
   by (simp only: fun_eq_iff foldr_prs_aux[OF a b])
      (simp)
 
 lemma foldl_prs_aux:
-  assumes a: "Quotient R1 abs1 rep1"
-  and     b: "Quotient R2 abs2 rep2"
+  assumes a: "Quotient3 R1 abs1 rep1"
+  and     b: "Quotient3 R2 abs2 rep2"
   shows "abs1 (foldl ((abs1 ---> abs2 ---> rep1) f) (rep1 e) (map rep2 l)) = foldl f e l"
-  by (induct l arbitrary:e) (simp_all add: Quotient_abs_rep[OF a] Quotient_abs_rep[OF b])
+  by (induct l arbitrary:e) (simp_all add: Quotient3_abs_rep[OF a] Quotient3_abs_rep[OF b])
 
 lemma foldl_prs [quot_preserve]:
-  assumes a: "Quotient R1 abs1 rep1"
-  and     b: "Quotient R2 abs2 rep2"
+  assumes a: "Quotient3 R1 abs1 rep1"
+  and     b: "Quotient3 R2 abs2 rep2"
   shows "((abs1 ---> abs2 ---> rep1) ---> rep1 ---> (map rep2) ---> abs1) foldl = foldl"
   by (simp add: fun_eq_iff foldl_prs_aux [OF a b])
 
 (* induct_tac doesn't accept 'arbitrary', so we manually 'spec' *)
 lemma foldl_rsp[quot_respect]:
-  assumes q1: "Quotient R1 Abs1 Rep1"
-  and     q2: "Quotient R2 Abs2 Rep2"
+  assumes q1: "Quotient3 R1 Abs1 Rep1"
+  and     q2: "Quotient3 R2 Abs2 Rep2"
   shows "((R1 ===> R2 ===> R1) ===> R1 ===> list_all2 R2 ===> R1) foldl foldl"
   apply(auto simp add: fun_rel_def)
   apply (erule_tac P="R1 xa ya" in rev_mp)
@@ -162,8 +162,8 @@ lemma foldl_rsp[quot_respect]:
   done
 
 lemma foldr_rsp[quot_respect]:
-  assumes q1: "Quotient R1 Abs1 Rep1"
-  and     q2: "Quotient R2 Abs2 Rep2"
+  assumes q1: "Quotient3 R1 Abs1 Rep1"
+  and     q2: "Quotient3 R2 Abs2 Rep2"
   shows "((R1 ===> R2 ===> R2) ===> list_all2 R1 ===> R2 ===> R2) foldr foldr"
   apply (auto simp add: fun_rel_def)
   apply (erule list_all2_induct, simp_all)
@@ -183,18 +183,18 @@ lemma [quot_respect]:
   by (simp add: list_all2_rsp fun_rel_def)
 
 lemma [quot_preserve]:
-  assumes a: "Quotient R abs1 rep1"
+  assumes a: "Quotient3 R abs1 rep1"
   shows "((abs1 ---> abs1 ---> id) ---> map rep1 ---> map rep1 ---> id) list_all2 = list_all2"
   apply (simp add: fun_eq_iff)
   apply clarify
   apply (induct_tac xa xb rule: list_induct2')
-  apply (simp_all add: Quotient_abs_rep[OF a])
+  apply (simp_all add: Quotient3_abs_rep[OF a])
   done
 
 lemma [quot_preserve]:
-  assumes a: "Quotient R abs1 rep1"
+  assumes a: "Quotient3 R abs1 rep1"
   shows "(list_all2 ((rep1 ---> rep1 ---> id) R) l m) = (l = m)"
-  by (induct l m rule: list_induct2') (simp_all add: Quotient_rel_rep[OF a])
+  by (induct l m rule: list_induct2') (simp_all add: Quotient3_rel_rep[OF a])
 
 lemma list_all2_find_element:
   assumes a: "x \<in> set a"
@@ -206,5 +206,49 @@ lemma list_all2_refl:
   assumes a: "\<And>x y. R x y = (R x = R y)"
   shows "list_all2 R x x"
   by (induct x) (auto simp add: a)
+
+lemma list_quotient:
+  assumes "Quotient R Abs Rep T"
+  shows "Quotient (list_all2 R) (List.map Abs) (List.map Rep) (list_all2 T)"
+proof (rule QuotientI)
+  from assms have "\<And>x. Abs (Rep x) = x" by (rule Quotient_abs_rep)
+  then show "\<And>xs. List.map Abs (List.map Rep xs) = xs" by (simp add: comp_def)
+next
+  from assms have "\<And>x y. R (Rep x) (Rep y) \<longleftrightarrow> x = y" by (rule Quotient_rel_rep)
+  then show "\<And>xs. list_all2 R (List.map Rep xs) (List.map Rep xs)"
+    by (simp add: list_all2_map1 list_all2_map2 list_all2_eq)
+next
+  fix xs ys
+  from assms have "\<And>x y. R x x \<and> R y y \<and> Abs x = Abs y \<longleftrightarrow> R x y" by (rule Quotient_rel)
+  then show "list_all2 R xs ys \<longleftrightarrow> list_all2 R xs xs \<and> list_all2 R ys ys \<and> List.map Abs xs = List.map Abs ys"
+    by (induct xs ys rule: list_induct2') auto
+next
+  {
+    fix l1 l2
+    have "List.length l1 = List.length l2 \<Longrightarrow>
+         (\<forall>(x, y)\<in>set (zip l1 l1). R x y) = (\<forall>(x, y)\<in>set (zip l1 l2). R x x)"
+     by (induction rule: list_induct2) auto
+  } note x = this
+  {
+    fix f g
+    have "list_all2 (\<lambda>x y. f x y \<and> g x y) = (\<lambda> x y. list_all2 f x y \<and> list_all2 g x y)"
+      by (intro ext) (auto simp add: list_all2_def)
+  } note list_all2_conj = this
+  from assms have t: "T = (\<lambda>x y. R x x \<and> Abs x = y)" by (rule Quotient_cr_rel)
+  show "list_all2 T = (\<lambda>x y. list_all2 R x x \<and> List.map Abs x = y)" 
+    apply (simp add: t list_all2_conj[symmetric])
+    apply (rule sym) 
+    apply (simp add: list_all2_conj) 
+    apply(intro ext) 
+    apply (intro rev_conj_cong)
+      unfolding list_all2_def apply (metis List.list_all2_eq list_all2_def list_all2_map1)
+    apply (drule conjunct1) 
+    apply (intro conj_cong) 
+      apply simp 
+    apply(simp add: x)
+  done
+qed
+
+declare [[map list = (list_all2, list_quotient)]]
 
 end

@@ -145,9 +145,9 @@ lemma add_abs_int:
    (abs_int (x + u, y + v))"
   apply(simp add: plus_int_def id_simps)
   apply(fold plus_int_raw.simps)
-  apply(rule Quotient_rel_abs[OF Quotient_int])
+  apply(rule Quotient3_rel_abs[OF Quotient3_int])
   apply(rule plus_int_raw_rsp_aux)
-  apply(simp_all add: rep_abs_rsp_left[OF Quotient_int])
+  apply(simp_all add: rep_abs_rsp_left[OF Quotient3_int])
   done
 
 definition int_of_nat_raw:

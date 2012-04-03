@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Quotient_Sum.thy
+(*  Title:      HOL/Library/Quotient3_Sum.thy
     Author:     Cezary Kaliszyk and Christian Urban
 *)
 
@@ -55,44 +55,44 @@ lemma sum_equivp [quot_equiv]:
   by (blast intro: equivpI sum_reflp sum_symp sum_transp elim: equivpE)
   
 lemma sum_quotient [quot_thm]:
-  assumes q1: "Quotient R1 Abs1 Rep1"
-  assumes q2: "Quotient R2 Abs2 Rep2"
-  shows "Quotient (sum_rel R1 R2) (sum_map Abs1 Abs2) (sum_map Rep1 Rep2)"
-  apply (rule QuotientI)
+  assumes q1: "Quotient3 R1 Abs1 Rep1"
+  assumes q2: "Quotient3 R2 Abs2 Rep2"
+  shows "Quotient3 (sum_rel R1 R2) (sum_map Abs1 Abs2) (sum_map Rep1 Rep2)"
+  apply (rule Quotient3I)
   apply (simp_all add: sum_map.compositionality comp_def sum_map.identity sum_rel_eq sum_rel_map1 sum_rel_map2
-    Quotient_abs_rep [OF q1] Quotient_rel_rep [OF q1] Quotient_abs_rep [OF q2] Quotient_rel_rep [OF q2])
-  using Quotient_rel [OF q1] Quotient_rel [OF q2]
+    Quotient3_abs_rep [OF q1] Quotient3_rel_rep [OF q1] Quotient3_abs_rep [OF q2] Quotient3_rel_rep [OF q2])
+  using Quotient3_rel [OF q1] Quotient3_rel [OF q2]
   apply (simp add: sum_rel_unfold comp_def split: sum.split)
   done
 
-declare [[map sum = (sum_rel, sum_quotient)]]
+declare [[mapQ3 sum = (sum_rel, sum_quotient)]]
 
 lemma sum_Inl_rsp [quot_respect]:
-  assumes q1: "Quotient R1 Abs1 Rep1"
-  assumes q2: "Quotient R2 Abs2 Rep2"
+  assumes q1: "Quotient3 R1 Abs1 Rep1"
+  assumes q2: "Quotient3 R2 Abs2 Rep2"
   shows "(R1 ===> sum_rel R1 R2) Inl Inl"
   by auto
 
 lemma sum_Inr_rsp [quot_respect]:
-  assumes q1: "Quotient R1 Abs1 Rep1"
-  assumes q2: "Quotient R2 Abs2 Rep2"
+  assumes q1: "Quotient3 R1 Abs1 Rep1"
+  assumes q2: "Quotient3 R2 Abs2 Rep2"
   shows "(R2 ===> sum_rel R1 R2) Inr Inr"
   by auto
 
 lemma sum_Inl_prs [quot_preserve]:
-  assumes q1: "Quotient R1 Abs1 Rep1"
-  assumes q2: "Quotient R2 Abs2 Rep2"
+  assumes q1: "Quotient3 R1 Abs1 Rep1"
+  assumes q2: "Quotient3 R2 Abs2 Rep2"
   shows "(Rep1 ---> sum_map Abs1 Abs2) Inl = Inl"
   apply(simp add: fun_eq_iff)
-  apply(simp add: Quotient_abs_rep[OF q1])
+  apply(simp add: Quotient3_abs_rep[OF q1])
   done
 
 lemma sum_Inr_prs [quot_preserve]:
-  assumes q1: "Quotient R1 Abs1 Rep1"
-  assumes q2: "Quotient R2 Abs2 Rep2"
+  assumes q1: "Quotient3 R1 Abs1 Rep1"
+  assumes q2: "Quotient3 R2 Abs2 Rep2"
   shows "(Rep2 ---> sum_map Abs1 Abs2) Inr = Inr"
   apply(simp add: fun_eq_iff)
-  apply(simp add: Quotient_abs_rep[OF q2])
+  apply(simp add: Quotient3_abs_rep[OF q2])
   done
 
 end

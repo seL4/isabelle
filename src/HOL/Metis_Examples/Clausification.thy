@@ -131,7 +131,7 @@ lemma "bounded T \<Longrightarrow> S \<subseteq> T ==> bounded S"
 by (metis bounded_def subset_eq)
 
 lemma
-  assumes a: "Quotient R Abs Rep"
+  assumes a: "Quotient R Abs Rep T"
   shows "symp R"
 using a unfolding Quotient_def using sympI
 by (metis (full_types))

@@ -30,7 +30,9 @@ EOF
 
 for FILE in $INTERMEDIATE_FILES
 do
-  perl -p -e 's/\bref\b/Unsynchronized.ref/g;' -e 's/Unsafe\.(.*)/\1/g;' $FILE
+  perl -p -e 's/\bref\b/Unsynchronized.ref/g;' \
+          -e 's/Unsafe\.(.*)/\1/g;' \
+          -e 's/\b(Char\.ord\()CharVector\.sub\b/\1String\.sub/g;' $FILE
 done
 ) > tptp_lexyacc.ML
 

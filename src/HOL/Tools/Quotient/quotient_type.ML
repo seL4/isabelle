@@ -82,13 +82,13 @@ fun typedef_quot_type_thm (rel, abs, rep, equiv_thm, typedef_info) lthy =
 fun can_generate_code_cert quot_thm  =
    case Quotient_Term.get_rel_from_quot_thm quot_thm of
       Const (@{const_name HOL.eq}, _) => true
-      | Const (@{const_name invariant}, _) $ _  => true
+      | Const (@{const_name Lifting.invariant}, _) $ _  => true
       | _ => false
 
 fun define_abs_type quot_thm lthy =
   if can_generate_code_cert quot_thm then
     let
-      val abs_type_thm = quot_thm RS @{thm Quotient_abs_rep}
+      val abs_type_thm = quot_thm RS @{thm Quotient3_abs_rep}
       val add_abstype_attribute = 
           Thm.declaration_attribute (fn thm => Context.mapping (Code.add_abstype thm) I)
         val add_abstype_attrib = Attrib.internal (K add_abstype_attribute);
@@ -157,7 +157,7 @@ fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial), opt_morphs), eq
     val quot_thm = typedef_quot_type_thm (rel, Abs_const, Rep_const, part_equiv, typedef_info) lthy3
 
     (* quotient theorem *)
-    val quotient_thm_name = Binding.prefix_name "Quotient_" qty_name
+    val quotient_thm_name = Binding.prefix_name "Quotient3_" qty_name
     val quotient_thm =
       (quot_thm RS @{thm quot_type.Quotient})
       |> fold_rule [abs_def, rep_def]
@@ -313,30 +313,5 @@ val _ =
     "quotient type definitions (require equivalence proofs)"
       (quotspec_parser >> quotient_type_cmd)
 
-(* Setup lifting using type_def_thm *)
-
-exception SETUP_LIFT_TYPE of string
-
-fun setup_lift_type typedef_thm =
-  let
-    val typedef_set = (snd o dest_comb o HOLogic.dest_Trueprop o prop_of) typedef_thm
-    val (quot_thm, equivp_thm) = (case typedef_set of
-      Const ("Orderings.top_class.top", _) => 
-        (typedef_thm RS @{thm copy_type_to_Quotient}, 
-         typedef_thm RS @{thm copy_type_to_equivp})
-      | Const (@{const_name "Collect"}, _) $ Abs (_, _, _ $ Bound 0) => 
-        (typedef_thm RS @{thm invariant_type_to_Quotient}, 
-         typedef_thm RS @{thm invariant_type_to_part_equivp})
-      | _ => raise SETUP_LIFT_TYPE "unsupported typedef theorem")
-  in
-    init_quotient_infr quot_thm equivp_thm
-  end
-
-fun setup_lift_type_aux xthm lthy = setup_lift_type (singleton (Attrib.eval_thms lthy) xthm) lthy
-
-val _ = 
-  Outer_Syntax.local_theory @{command_spec "setup_lifting"}
-    "Setup lifting infrastracture" 
-      (Parse_Spec.xthm >> (fn xthm => setup_lift_type_aux xthm))
 
 end;

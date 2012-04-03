@@ -227,7 +227,7 @@ lemma distinct_list_of_dlist [simp, intro]:
 lemma list_of_dlist_dlist [simp]:
   "list_of_dlist (dlist xs) = remdups xs"
   unfolding list_of_dlist_def map_fun_apply id_def
-  by (metis Quotient_rep_abs[OF Quotient_dlist] dlist_eq_def)
+  by (metis Quotient3_rep_abs[OF Quotient3_dlist] dlist_eq_def)
 
 lemma remdups_list_of_dlist [simp]:
   "remdups (list_of_dlist dxs) = list_of_dlist dxs"
@@ -236,7 +236,7 @@ lemma remdups_list_of_dlist [simp]:
 lemma dlist_list_of_dlist [simp, code abstype]:
   "dlist (list_of_dlist dxs) = dxs"
   by (simp add: list_of_dlist_def)
-  (metis Quotient_def Quotient_dlist dlist_eqI list_of_dlist_dlist remdups_list_of_dlist)
+  (metis Quotient3_def Quotient3_dlist dlist_eqI list_of_dlist_dlist remdups_list_of_dlist)
 
 lemma dlist_filter_simps:
   "filter P empty = empty"

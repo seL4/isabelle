@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Quotient_Option.thy
+(*  Title:      HOL/Library/Quotient3_Option.thy
     Author:     Cezary Kaliszyk and Christian Urban
 *)
 
@@ -55,36 +55,36 @@ lemma option_equivp [quot_equiv]:
   by (blast intro: equivpI option_reflp option_symp option_transp elim: equivpE)
 
 lemma option_quotient [quot_thm]:
-  assumes "Quotient R Abs Rep"
-  shows "Quotient (option_rel R) (Option.map Abs) (Option.map Rep)"
-  apply (rule QuotientI)
-  apply (simp_all add: Option.map.compositionality comp_def Option.map.identity option_rel_eq option_rel_map1 option_rel_map2 Quotient_abs_rep [OF assms] Quotient_rel_rep [OF assms])
-  using Quotient_rel [OF assms]
+  assumes "Quotient3 R Abs Rep"
+  shows "Quotient3 (option_rel R) (Option.map Abs) (Option.map Rep)"
+  apply (rule Quotient3I)
+  apply (simp_all add: Option.map.compositionality comp_def Option.map.identity option_rel_eq option_rel_map1 option_rel_map2 Quotient3_abs_rep [OF assms] Quotient3_rel_rep [OF assms])
+  using Quotient3_rel [OF assms]
   apply (simp add: option_rel_unfold split: option.split)
   done
 
-declare [[map option = (option_rel, option_quotient)]]
+declare [[mapQ3 option = (option_rel, option_quotient)]]
 
 lemma option_None_rsp [quot_respect]:
-  assumes q: "Quotient R Abs Rep"
+  assumes q: "Quotient3 R Abs Rep"
   shows "option_rel R None None"
   by simp
 
 lemma option_Some_rsp [quot_respect]:
-  assumes q: "Quotient R Abs Rep"
+  assumes q: "Quotient3 R Abs Rep"
   shows "(R ===> option_rel R) Some Some"
   by auto
 
 lemma option_None_prs [quot_preserve]:
-  assumes q: "Quotient R Abs Rep"
+  assumes q: "Quotient3 R Abs Rep"
   shows "Option.map Abs None = None"
   by simp
 
 lemma option_Some_prs [quot_preserve]:
-  assumes q: "Quotient R Abs Rep"
+  assumes q: "Quotient3 R Abs Rep"
   shows "(Rep ---> Option.map Abs) Some = Some"
   apply(simp add: fun_eq_iff)
-  apply(simp add: Quotient_abs_rep[OF q])
+  apply(simp add: Quotient3_abs_rep[OF q])
   done
 
 end
