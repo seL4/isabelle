@@ -5,7 +5,7 @@ header {* Generic transfer machinery;  specific transfer from nats to ints and b
 
 theory Nat_Transfer
 imports Int
-uses ("Tools/transfer.ML")
+uses ("Tools/legacy_transfer.ML")
 begin
 
 subsection {* Generic transfer machinery *}
@@ -16,9 +16,9 @@ definition transfer_morphism:: "('b \<Rightarrow> 'a) \<Rightarrow> ('b \<Righta
 lemma transfer_morphismI[intro]: "transfer_morphism f A"
   by (simp add: transfer_morphism_def)
 
-use "Tools/transfer.ML"
+use "Tools/legacy_transfer.ML"
 
-setup Transfer.setup
+setup Legacy_Transfer.setup
 
 
 subsection {* Set up transfer from nat to int *}

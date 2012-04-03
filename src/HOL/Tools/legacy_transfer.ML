@@ -6,7 +6,7 @@
 Simple transfer principle on theorems.
 *)
 
-signature TRANSFER =
+signature LEGACY_TRANSFER =
 sig
   datatype selection = Direction of term * term | Hints of string list | Prop
   val transfer: Context.generic -> selection -> string list -> thm -> thm list
@@ -17,7 +17,7 @@ sig
   val setup: theory -> theory
 end;
 
-structure Transfer : TRANSFER =
+structure Legacy_Transfer : LEGACY_TRANSFER =
 struct
 
 (* data administration *)

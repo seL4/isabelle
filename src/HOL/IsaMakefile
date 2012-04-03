@@ -316,6 +316,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/code_evaluation.ML \
   Tools/groebner.ML \
   Tools/int_arith.ML \
+  Tools/legacy_transfer.ML \
   Tools/Lifting/lifting_def.ML \
   Tools/Lifting/lifting_info.ML \
   Tools/Lifting/lifting_term.ML \
@@ -393,7 +394,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/SMT/z3_proof_tools.ML \
   Tools/string_code.ML \
   Tools/string_syntax.ML \
-  Tools/transfer.ML \
 
 $(OUT)/HOL-Main: main.ML $(MAIN_DEPENDENCIES)
 	@$(ISABELLE_TOOL) usedir -b -f main.ML -g true $(OUT)/Pure HOL-Main
