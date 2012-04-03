@@ -135,22 +135,22 @@ fun export inner outer =    (*beware of closure sizes*)
   let
     val exp = Assumption.export false inner outer;
     val exp_term = Assumption.export_term inner outer;
-    val prems = Assumption.local_prems_of inner outer;
+    val asms = Assumption.local_assms_of inner outer;
   in
     fn th =>
       let
         val th' = exp th;
-        val defs_asms = prems |> map (fn prem =>
-          (case try (head_of_def o Thm.prop_of) prem of
-            NONE => (prem, false)
+        val defs_asms = asms |> map (Thm.assume #> (fn asm =>
+          (case try (head_of_def o Thm.prop_of) asm of
+            NONE => (asm, false)
           | SOME x =>
               let val t = Free x in
                 (case try exp_term t of
-                  NONE => (prem, false)
+                  NONE => (asm, false)
                 | SOME u =>
-                    if t aconv u then (prem, false)
-                    else (Drule.abs_def prem, true))
-              end));
+                    if t aconv u then (asm, false)
+                    else (Drule.abs_def asm, true))
+              end)));
       in (pairself (map #1) (List.partition #2 defs_asms), th') end
   end;
 
