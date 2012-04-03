@@ -306,6 +306,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Sledgehammer.thy \
   SMT.thy \
   String.thy \
+  Transfer.thy \
   Typerep.thy \
   $(SRC)/Provers/Arith/assoc_fold.ML \
   $(SRC)/Provers/Arith/cancel_numeral_factor.ML \
@@ -394,6 +395,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/SMT/z3_proof_tools.ML \
   Tools/string_code.ML \
   Tools/string_syntax.ML \
+  Tools/transfer.ML \
 
 $(OUT)/HOL-Main: main.ML $(MAIN_DEPENDENCIES)
 	@$(ISABELLE_TOOL) usedir -b -f main.ML -g true $(OUT)/Pure HOL-Main

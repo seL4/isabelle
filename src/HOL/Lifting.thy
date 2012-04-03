@@ -6,7 +6,7 @@
 header {* Lifting package *}
 
 theory Lifting
-imports Plain Equiv_Relations
+imports Plain Equiv_Relations Transfer
 keywords
   "print_quotmaps" "print_quotients" :: diag and
   "lift_definition" :: thy_goal and
@@ -18,36 +18,13 @@ uses
   ("Tools/Lifting/lifting_setup.ML")
 begin
 
-subsection {* Function map and function relation *}
+subsection {* Function map *}
 
 notation map_fun (infixr "--->" 55)
 
 lemma map_fun_id:
   "(id ---> id) = id"
   by (simp add: fun_eq_iff)
-
-definition
-  fun_rel :: "('a \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('c \<Rightarrow> 'd) \<Rightarrow> bool" (infixr "===>" 55)
-where
-  "fun_rel R1 R2 = (\<lambda>f g. \<forall>x y. R1 x y \<longrightarrow> R2 (f x) (g y))"
-
-lemma fun_relI [intro]:
-  assumes "\<And>x y. R1 x y \<Longrightarrow> R2 (f x) (g y)"
-  shows "(R1 ===> R2) f g"
-  using assms by (simp add: fun_rel_def)
-
-lemma fun_relE:
-  assumes "(R1 ===> R2) f g" and "R1 x y"
-  obtains "R2 (f x) (g y)"
-  using assms by (simp add: fun_rel_def)
-
-lemma fun_rel_eq:
-  shows "((op =) ===> (op =)) = (op =)"
-  by (auto simp add: fun_eq_iff elim: fun_relE)
-
-lemma fun_rel_eq_rel:
-  shows "((op =) ===> R) = (\<lambda>f g. \<forall>x. R (f x) (g x))"
-  by (simp add: fun_rel_def)
 
 subsection {* Quotient Predicate *}
 
