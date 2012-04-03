@@ -287,8 +287,10 @@ fun background_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params
 
 fun theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) =
   background_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params)
-  #-> (fn (lhs, def) => const_declaration (K true) Syntax.mode_default ((b, mx), lhs)
-    #> pair (lhs, def));
+  #-> (fn (lhs, def) => fn lthy' => lthy' |>
+        const_declaration (fn level => level <> Local_Theory.level lthy')
+          Syntax.mode_default ((b, mx), lhs)
+    |> pair (lhs, def));
 
 fun theory_notes kind global_facts local_facts =
   Local_Theory.background_theory (Attrib.global_notes kind global_facts #> snd) #>
