@@ -178,7 +178,7 @@ behind the proposition.
 \subsection{Structured lemma statements: \isacom{fixes}, \isacom{assumes}, \isacom{shows}}
 
 Lemmas can also be stated in a more structured fashion. To demonstrate this
-feature with Cantor's theorem, we rephrase \noquotes{@{prop[source]"\<not> surj f"}}
+feature with Cantor's theorem, we rephrase @{prop"\<not> surj f"}
 a little:
 *}
 
@@ -190,7 +190,8 @@ lemma
 txt{* The optional \isacom{fixes} part allows you to state the types of
 variables up front rather than by decorating one of their occurrences in the
 formula with a type constraint. The key advantage of the structured format is
-the \isacom{assumes} part that allows you to name each assumption. The
+the \isacom{assumes} part that allows you to name each assumption; multiple
+assumptions can be separated by \isacom{and}. The
 \isacom{shows} part gives the goal. The actual theorem that will come out of
 the proof is @{prop"surj f \<Longrightarrow> False"}, but during the proof the assumption
 @{prop"surj f"} is available under the name @{text s} like any other fact.
@@ -393,7 +394,8 @@ qed
 
 text_raw{*
 \begin{isamarkuptext}%
-How to prove set equality and subset relationship:
+
+Finally, how to prove set equality and subset relationship:
 \end{isamarkuptext}%
 \begin{tabular}{@ {}ll@ {}}
 \begin{minipage}[t]{.4\textwidth}
@@ -544,7 +546,7 @@ clearly and avoids new names.
 
 \subsection{Raw proof blocks}
 
-Sometimes one would like to prove some lemma locally with in a proof.
+Sometimes one would like to prove some lemma locally within a proof.
 A lemma that shares the current context of assumptions but that
 has its own assumptions and is generalised over its locally fixed
 variables at the end. This is what a \concept{raw proof block} does:
@@ -745,7 +747,7 @@ and \isacom{case}~@{text"(Suc n)"} stands for
 \begin{quote}
 \isacom{fix} @{text n}\\
 \isacom{assume} @{text"Suc:"}
-  \begin{tabular}[t]{l}@{text"A(n) \<Longrightarrow> P(n)"}\\@{text"A(Suc n)"}\end{tabular}\\
+  \begin{tabular}[t]{l}@{text"\"A(n) \<Longrightarrow> P(n)\""}\\@{text"\"A(Suc n)\""}\end{tabular}\\
 \isacom{let} @{text"?case = \"P(Suc n)\""}
 \end{quote}
 The list of assumptions @{text Suc} is actually subdivided
@@ -812,8 +814,8 @@ text_raw {* }
 ~\\
 \isacom{fix} @{text n}\\
 \isacom{assume} @{text"evSS:"}
-  \begin{tabular}[t]{l} @{text"ev n"}\\@{text"even n"}\end{tabular}\\
-\isacom{let} @{text"?case = even(Suc(Suc n))"}\\
+  \begin{tabular}[t]{l} @{text"\"ev n\""}\\@{text"\"even n\""}\end{tabular}\\
+\isacom{let} @{text"?case = \"even(Suc(Suc n))\""}\\
 \end{minipage}
 \end{tabular}
 \medskip

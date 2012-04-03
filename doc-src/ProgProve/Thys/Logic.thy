@@ -438,7 +438,7 @@ and write
 inductive ev :: "nat \<Rightarrow> bool" where
 ev0:    "ev 0" |
 evSS:  (*<*)"ev n \<Longrightarrow> ev (Suc(Suc n))"(*>*)
-text_raw{* @{prop"ev n \<Longrightarrow> ev (n + 2)"} *}
+text_raw{* @{prop[source]"ev n \<Longrightarrow> ev (n + 2)"} *}
 
 text{* To get used to inductive definitions, we will first prove a few
 properties of @{const ev} informally before we descend to the Isabelle level.

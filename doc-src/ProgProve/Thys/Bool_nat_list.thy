@@ -387,10 +387,11 @@ The most important ones are the length function
 @{text"length :: 'a list \<Rightarrow> nat"} (with the obvious definition),
 and the map function that applies a function to all elements of a list:
 \begin{isabelle}
-\isacom{fun} @{text "map :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list"}\\
-@{thm map.simps(1)} @{text"|"}\\
-@{thm map.simps(2)}
+\isacom{fun} @{const map} @{text"::"} @{typ[source] "('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list"}\\
+@{text"\""}@{thm map.simps(1)}@{text"\" |"}\\
+@{text"\""}@{thm map.simps(2)}@{text"\""}
 \end{isabelle}
+\sem
 Also useful are the \concept{head} of a list, its first element,
 and the \concept{tail}, the rest of the list:
 \begin{isabelle}
@@ -405,6 +406,8 @@ and the \concept{tail}, the rest of the list:
 Note that since HOL is a logic of total functions, @{term"hd []"} is defined,
 but we do now know what the result is. That is, @{term"hd []"} is not undefined
 but underdefined.
+\endsem
+%
 *}
 (*<*)
 end

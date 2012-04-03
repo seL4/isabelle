@@ -269,7 +269,7 @@ behind the proposition.
 \subsection{Structured lemma statements: \isacom{fixes}, \isacom{assumes}, \isacom{shows}}
 
 Lemmas can also be stated in a more structured fashion. To demonstrate this
-feature with Cantor's theorem, we rephrase \noquotes{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ surj\ f{\isaliteral{22}{\isachardoublequote}}}}
+feature with Cantor's theorem, we rephrase \isa{{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ surj\ f}
 a little:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -288,7 +288,8 @@ a little:%
 The optional \isacom{fixes} part allows you to state the types of
 variables up front rather than by decorating one of their occurrences in the
 formula with a type constraint. The key advantage of the structured format is
-the \isacom{assumes} part that allows you to name each assumption. The
+the \isacom{assumes} part that allows you to name each assumption; multiple
+assumptions can be separated by \isacom{and}. The
 \isacom{shows} part gives the goal. The actual theorem that will come out of
 the proof is \isa{surj\ f\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ False}, but during the proof the assumption
 \isa{surj\ f} is available under the name \isa{s} like any other fact.%
@@ -672,7 +673,8 @@ Cantor's theorem in more detail:%
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-How to prove set equality and subset relationship:
+
+Finally, how to prove set equality and subset relationship:
 \end{isamarkuptext}%
 \begin{tabular}{@ {}ll@ {}}
 \begin{minipage}[t]{.4\textwidth}
@@ -942,7 +944,7 @@ clearly and avoids new names.
 
 \subsection{Raw proof blocks}
 
-Sometimes one would like to prove some lemma locally with in a proof.
+Sometimes one would like to prove some lemma locally within a proof.
 A lemma that shares the current context of assumptions but that
 has its own assumptions and is generalised over its locally fixed
 variables at the end. This is what a \concept{raw proof block} does:
@@ -1307,7 +1309,7 @@ and \isacom{case}~\isa{{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29
 \begin{quote}
 \isacom{fix} \isa{n}\\
 \isacom{assume} \isa{Suc{\isaliteral{3A}{\isacharcolon}}}
-  \begin{tabular}[t]{l}\isa{A{\isaliteral{28}{\isacharparenleft}}n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{28}{\isacharparenleft}}n{\isaliteral{29}{\isacharparenright}}}\\\isa{A{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}}\end{tabular}\\
+  \begin{tabular}[t]{l}\isa{{\isaliteral{22}{\isachardoublequote}}A{\isaliteral{28}{\isacharparenleft}}n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{28}{\isacharparenleft}}n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}\\\isa{{\isaliteral{22}{\isachardoublequote}}A{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}\end{tabular}\\
 \isacom{let} \isa{{\isaliteral{3F}{\isacharquery}}case\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequote}}P{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}
 \end{quote}
 The list of assumptions \isa{Suc} is actually subdivided
@@ -1399,8 +1401,8 @@ the implicit effect of the two \isacom{case} commands:%
 ~\\
 \isacom{fix} \isa{n}\\
 \isacom{assume} \isa{evSS{\isaliteral{3A}{\isacharcolon}}}
-  \begin{tabular}[t]{l} \isa{ev\ n}\\\isa{even\ n}\end{tabular}\\
-\isacom{let} \isa{{\isaliteral{3F}{\isacharquery}}case\ {\isaliteral{3D}{\isacharequal}}\ even{\isaliteral{28}{\isacharparenleft}}Suc{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}}\\
+  \begin{tabular}[t]{l} \isa{{\isaliteral{22}{\isachardoublequote}}ev\ n{\isaliteral{22}{\isachardoublequote}}}\\\isa{{\isaliteral{22}{\isachardoublequote}}even\ n{\isaliteral{22}{\isachardoublequote}}}\end{tabular}\\
+\isacom{let} \isa{{\isaliteral{3F}{\isacharquery}}case\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequote}}even{\isaliteral{28}{\isacharparenleft}}Suc{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}\\
 \end{minipage}
 \end{tabular}
 \medskip

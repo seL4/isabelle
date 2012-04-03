@@ -557,10 +557,11 @@ The most important ones are the length function
 \isa{length\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat} (with the obvious definition),
 and the map function that applies a function to all elements of a list:
 \begin{isabelle}
-\isacom{fun} \isa{map\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b\ list}\\
-\isa{map\ f\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}} \isa{{\isaliteral{7C}{\isacharbar}}}\\
-\isa{map\ f\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{23}{\isacharhash}}\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ f\ x\ {\isaliteral{23}{\isacharhash}}\ map\ f\ xs}
+\isacom{fun} \isa{map} \isa{{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}} \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b\ list{\isaliteral{22}{\isachardoublequote}}}\\
+\isa{{\isaliteral{22}{\isachardoublequote}}}\isa{map\ f\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}}\isa{{\isaliteral{22}{\isachardoublequote}}\ {\isaliteral{7C}{\isacharbar}}}\\
+\isa{{\isaliteral{22}{\isachardoublequote}}}\isa{map\ f\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{23}{\isacharhash}}\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ f\ x\ {\isaliteral{23}{\isacharhash}}\ map\ f\ xs}\isa{{\isaliteral{22}{\isachardoublequote}}}
 \end{isabelle}
+\sem
 Also useful are the \concept{head} of a list, its first element,
 and the \concept{tail}, the rest of the list:
 \begin{isabelle}
@@ -574,7 +575,9 @@ and the \concept{tail}, the rest of the list:
 \end{isabelle}
 Note that since HOL is a logic of total functions, \isa{hd\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}} is defined,
 but we do now know what the result is. That is, \isa{hd\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}} is not undefined
-but underdefined.%
+but underdefined.
+\endsem
+%%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

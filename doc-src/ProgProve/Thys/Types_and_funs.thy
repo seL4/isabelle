@@ -55,7 +55,7 @@ must be enclosed in parentheses.
 As an example, consider binary trees:
 *}
 
-datatype 'a tree = Tip | Node "('a tree)" 'a "('a tree)"
+datatype 'a tree = Tip | Node  "'a tree"  'a  "'a tree"
 
 text{* with a mirror function: *}
 
@@ -86,8 +86,8 @@ apply auto
 done
 (*>*)
 fun lookup :: "('a * 'b) list \<Rightarrow> 'a \<Rightarrow> 'b option" where
-"lookup [] x' = None" |
-"lookup ((x,y) # ps) x' = (if x = x' then Some y else lookup ps x')"
+"lookup [] x = None" |
+"lookup ((a,b) # ps) x = (if a = x then Some b else lookup ps x)"
 
 text{*
 Note that @{text"\<tau>\<^isub>1 * \<tau>\<^isub>2"} is the type of pairs, also written @{text"\<tau>\<^isub>1 \<times> \<tau>\<^isub>2"}.

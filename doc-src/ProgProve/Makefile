@@ -10,7 +10,7 @@ include ../Makefile.in
 NAME = prog-prove
 
 FILES = prog-prove.tex prog-prove.bib Thys/document/*.tex prelude.tex \
-  svmono.cls mathpartir.sty isabelle.sty isabellesym.sty
+  svmono.cls mathpartir.sty isabelle.sty isabellesym.sty Thys/MyList.thy
 
 dvi: $(NAME).dvi
 
