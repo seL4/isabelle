@@ -512,10 +512,9 @@ inductive_set relcomp  :: "('a \<times> 'b) set \<Rightarrow> ('b \<times> 'c) s
 where
   relcompI [intro]: "(a, b) \<in> r \<Longrightarrow> (b, c) \<in> s \<Longrightarrow> (a, c) \<in> r O s"
 
-abbreviation pred_comp (infixr "OO" 75) where
-  "pred_comp \<equiv> relcompp"
+notation relcompp (infixr "OO" 75)
 
-lemmas pred_compI = relcompp.intros
+lemmas relcomppI = relcompp.intros
 
 text {*
   For historic reasons, the elimination rules are not wholly corresponding.
@@ -523,13 +522,11 @@ text {*
 *}
 
 inductive_cases relcompEpair: "(a, c) \<in> r O s"
-inductive_cases pred_compE [elim!]: "(r OO s) a c"
+inductive_cases relcomppE [elim!]: "(r OO s) a c"
 
 lemma relcompE [elim!]: "xz \<in> r O s \<Longrightarrow>
   (\<And>x y z. xz = (x, z) \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (y, z) \<in> s  \<Longrightarrow> P) \<Longrightarrow> P"
   by (cases xz) (simp, erule relcompEpair, iprover)
-
-lemmas pred_comp_relcomp_eq = relcompp_relcomp_eq
 
 lemma R_O_Id [simp]:
   "R O Id = R"
@@ -543,7 +540,7 @@ lemma relcomp_empty1 [simp]:
   "{} O R = {}"
   by blast
 
-lemma pred_comp_bot1 [simp]:
+lemma relcompp_bot1 [simp]:
   "\<bottom> OO R = \<bottom>"
   by (fact relcomp_empty1 [to_pred])
 
@@ -551,7 +548,7 @@ lemma relcomp_empty2 [simp]:
   "R O {} = {}"
   by blast
 
-lemma pred_comp_bot2 [simp]:
+lemma relcompp_bot2 [simp]:
   "R OO \<bottom> = \<bottom>"
   by (fact relcomp_empty2 [to_pred])
 
@@ -560,7 +557,7 @@ lemma O_assoc:
   by blast
 
 
-lemma pred_comp_assoc:
+lemma relcompp_assoc:
   "(r OO s) OO t = r OO (s OO t)"
   by (fact O_assoc [to_pred])
 
@@ -568,7 +565,7 @@ lemma trans_O_subset:
   "trans r \<Longrightarrow> r O r \<subseteq> r"
   by (unfold trans_def) blast
 
-lemma transp_pred_comp_less_eq:
+lemma transp_relcompp_less_eq:
   "transp r \<Longrightarrow> r OO r \<le> r "
   by (fact trans_O_subset [to_pred])
 
@@ -576,7 +573,7 @@ lemma relcomp_mono:
   "r' \<subseteq> r \<Longrightarrow> s' \<subseteq> s \<Longrightarrow> r' O s' \<subseteq> r O s"
   by blast
 
-lemma pred_comp_mono:
+lemma relcompp_mono:
   "r' \<le> r \<Longrightarrow> s' \<le> s \<Longrightarrow> r' OO s' \<le> r OO s "
   by (fact relcomp_mono [to_pred])
 
@@ -588,7 +585,7 @@ lemma relcomp_distrib [simp]:
   "R O (S \<union> T) = (R O S) \<union> (R O T)" 
   by auto
 
-lemma pred_comp_distrib [simp]:
+lemma relcompp_distrib [simp]:
   "R OO (S \<squnion> T) = R OO S \<squnion> R OO T"
   by (fact relcomp_distrib [to_pred])
 
@@ -596,7 +593,7 @@ lemma relcomp_distrib2 [simp]:
   "(S \<union> T) O R = (S O R) \<union> (T O R)"
   by auto
 
-lemma pred_comp_distrib2 [simp]:
+lemma relcompp_distrib2 [simp]:
   "(S \<squnion> T) OO R = S OO R \<squnion> T OO R"
   by (fact relcomp_distrib2 [to_pred])
 
@@ -679,9 +676,9 @@ lemma conversep_conversep [simp]:
 lemma converse_relcomp: "(r O s)^-1 = s^-1 O r^-1"
   by blast
 
-lemma converse_pred_comp: "(r OO s)^--1 = s^--1 OO r^--1"
-  by (iprover intro: order_antisym conversepI pred_compI
-    elim: pred_compE dest: conversepD)
+lemma converse_relcompp: "(r OO s)^--1 = s^--1 OO r^--1"
+  by (iprover intro: order_antisym conversepI relcomppI
+    elim: relcomppE dest: conversepD)
 
 lemma converse_Int: "(r \<inter> s)^-1 = r^-1 \<inter> s^-1"
   by blast
