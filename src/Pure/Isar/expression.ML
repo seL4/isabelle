@@ -21,14 +21,14 @@ sig
   (* Declaring locales *)
   val cert_declaration: expression_i -> (Proof.context -> Proof.context) -> Element.context_i list ->
     Proof.context -> (((string * typ) * mixfix) list * (string * morphism) list
-      * Element.context_i list) * ((string * typ) list * Proof.context)
+      * Element.context_i list * Proof.context) * ((string * typ) list * Proof.context)
   val cert_read_declaration: expression_i -> (Proof.context -> Proof.context) -> Element.context list ->
     Proof.context -> (((string * typ) * mixfix) list * (string * morphism) list
-      * Element.context_i list) * ((string * typ) list * Proof.context)
+      * Element.context_i list * Proof.context) * ((string * typ) list * Proof.context)
       (*FIXME*)
   val read_declaration: expression -> (Proof.context -> Proof.context) -> Element.context list ->
     Proof.context -> (((string * typ) * mixfix) list * (string * morphism) list
-      * Element.context_i list) * ((string * typ) list * Proof.context)
+      * Element.context_i list * Proof.context) * ((string * typ) list * Proof.context)
   val add_locale: (local_theory -> local_theory) -> binding -> binding ->
     expression_i -> Element.context_i list -> theory -> string * local_theory
   val add_locale_cmd: (local_theory -> local_theory) -> binding -> binding ->
@@ -458,10 +458,10 @@ fun prep_declaration prep activate raw_import init_body raw_elems context =
     val context' = context |>
       fix_params fixed |>
       fold (Context.proof_map o Locale.activate_facts NONE) deps;
-    val (elems', _) = context' |>
+    val (elems', context'') = context' |>
       Proof_Context.set_stmt true |>
       fold_map activate elems;
-  in ((fixed, deps, elems'), (parms, ctxt')) end;
+  in ((fixed, deps, elems', context''), (parms, ctxt')) end;
 
 in
 
@@ -735,7 +735,7 @@ fun gen_add_locale prep_decl
     val _ = Locale.defined thy name andalso
       error ("Duplicate definition of locale " ^ quote name);
 
-    val ((fixed, deps, body_elems), (parms, ctxt')) =
+    val ((fixed, deps, body_elems, _), (parms, ctxt')) =
       prep_decl raw_import I raw_body (Proof_Context.init_global thy);
     val text as (((_, exts'), _), defs) = eval ctxt' deps body_elems;
 

@@ -91,10 +91,16 @@ fun gen_includes prep args ctxt =
   let val decls = maps (the_bundle ctxt o prep ctxt) args
   in #2 (Attrib.local_notes "" [((Binding.empty, []), decls)] ctxt) end;
 
-fun gen_context prep_bundle prep_stmt raw_incls raw_elems gthy =
+fun gen_context prep_bundle prep_decl raw_incls raw_elems gthy =
   let
     val lthy = Context.cases Named_Target.theory_init Local_Theory.assert gthy;
-    val augment = gen_includes prep_bundle raw_incls #> prep_stmt raw_elems [] #> snd;
+    fun augment ctxt =
+      let
+        val ((_, _, _, ctxt'), _) = ctxt
+          |> Context_Position.set_visible true
+          |> gen_includes prep_bundle raw_incls
+          |> prep_decl ([], []) I raw_elems;
+      in ctxt' |> Context_Position.restore_visible ctxt end;
   in
     (case gthy of
       Context.Theory _ => Local_Theory.target augment lthy |> Local_Theory.restore
@@ -115,8 +121,8 @@ fun include_cmd bs =
 fun including bs = Proof.assert_backward #> Proof.map_context (includes bs);
 fun including_cmd bs = Proof.assert_backward #> Proof.map_context (includes_cmd bs);
 
-val context = gen_context (K I) Expression.cert_statement;
-val context_cmd = gen_context check Expression.read_statement;
+val context = gen_context (K I) Expression.cert_declaration;
+val context_cmd = gen_context check Expression.read_declaration;
 
 end;
 
