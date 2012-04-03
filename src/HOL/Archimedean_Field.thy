@@ -194,6 +194,9 @@ lemma floor_of_int [simp]: "floor (of_int z) = z"
 lemma floor_of_nat [simp]: "floor (of_nat n) = int n"
   using floor_of_int [of "of_nat n"] by simp
 
+lemma le_floor_add: "floor x + floor y \<le> floor (x + y)"
+  by (simp only: le_floor_iff of_int_add add_mono of_int_floor_le)
+
 text {* Floor with numerals *}
 
 lemma floor_zero [simp]: "floor 0 = 0"
@@ -339,6 +342,9 @@ lemma ceiling_of_int [simp]: "ceiling (of_int z) = z"
 
 lemma ceiling_of_nat [simp]: "ceiling (of_nat n) = int n"
   using ceiling_of_int [of "of_nat n"] by simp
+
+lemma ceiling_add_le: "ceiling (x + y) \<le> ceiling x + ceiling y"
+  by (simp only: ceiling_le_iff of_int_add add_mono le_of_int_ceiling)
 
 text {* Ceiling with numerals *}
 
