@@ -265,9 +265,8 @@ fun const_declaration pred prmode ((b, mx), rhs) =
     let
       val b' = Morphism.binding phi b;
       val rhs' = Morphism.term phi rhs;
-      val rhs'' = Term.close_schematic_term rhs';
       val same_shape = Term.aconv_untyped (rhs, rhs');
-    in generic_const same_shape prmode ((b', mx), rhs'') end);
+    in generic_const same_shape prmode ((b', mx), Term.close_schematic_term rhs') end);
 
 
 
