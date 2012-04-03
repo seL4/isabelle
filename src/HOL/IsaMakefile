@@ -301,7 +301,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Record.thy \
   Refute.thy \
   Semiring_Normalization.thy \
-  SetInterval.thy \
+  Set_Interval.thy \
   Sledgehammer.thy \
   SMT.thy \
   String.thy \

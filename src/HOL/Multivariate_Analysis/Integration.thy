@@ -4477,7 +4477,7 @@ proof- have *:"e / (2 * (real DIM('n) + 1)) > 0" apply(rule divide_pos_pos) usin
 subsection {* Geometric progression *}
 
 text {* FIXME: Should one or more of these theorems be moved to @{file
-"~~/src/HOL/SetInterval.thy"}, alongside @{text geometric_sum}? *}
+"~~/src/HOL/Set_Interval.thy"}, alongside @{text geometric_sum}? *}
 
 lemma sum_gp_basic:
   fixes x :: "'a::ring_1"

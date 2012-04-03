@@ -1,4 +1,4 @@
-(*  Title:      HOL/SetInterval.thy
+(*  Title:      HOL/Set_Interval.thy
     Author:     Tobias Nipkow
     Author:     Clemens Ballarin
     Author:     Jeremy Avigad
@@ -8,7 +8,7 @@ lessThan, greaterThan, atLeast, atMost and two-sided intervals
 
 header {* Set intervals *}
 
-theory SetInterval
+theory Set_Interval
 imports Int Nat_Transfer
 begin
 
