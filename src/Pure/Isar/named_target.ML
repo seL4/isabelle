@@ -100,18 +100,15 @@ fun target_notes (Target {target, is_locale, ...}) =
 fun locale_abbrev ta prmode ((b, mx), t) xs =
   Local_Theory.background_theory_result
     (Sign.add_abbrev Print_Mode.internal (b, t)) #->
-      (fn (lhs, _) => locale_const ta prmode
-        ((b, mx), Term.list_comb (Logic.unvarify_global lhs, xs)));
+      (fn (lhs, _) =>
+        locale_const ta prmode ((b, mx), Term.list_comb (Logic.unvarify_global lhs, xs)));
 
-fun target_abbrev (ta as Target {target, is_locale, is_class, ...})
-    prmode (b, mx) (global_rhs, t') xs lthy =
+fun target_abbrev (ta as Target {target, is_locale, is_class, ...}) prmode (b, mx) (t, t') xs lthy =
   if is_locale then
     lthy
-    |> locale_abbrev ta prmode ((b, if is_class then NoSyn else mx), global_rhs) xs
+    |> locale_abbrev ta prmode ((b, if is_class then NoSyn else mx), t) xs
     |> is_class ? Class.abbrev target prmode ((b, mx), t')
-  else
-    lthy
-    |> Generic_Target.theory_abbrev prmode ((b, mx), global_rhs);
+  else lthy |> Generic_Target.theory_abbrev prmode (b, mx) (t, t') xs;
 
 
 (* declaration *)
