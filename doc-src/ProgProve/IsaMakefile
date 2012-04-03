@@ -20,7 +20,15 @@ USEDIR = $(ISABELLE_TOOL) usedir -v true -i false -d false -C false -D document
 
 HOL-ProgProve: $(LOG)/HOL-ProgProve.gz
 
-$(LOG)/HOL-ProgProve.gz: Thys/*.thy Thys/ROOT.ML
+$(LOG)/HOL-ProgProve.gz: \
+  Thys/Basics.thy \
+  Thys/Bool_nat_list.thy \
+  Thys/Isar.thy \
+  Thys/LaTeXsugar.thy \
+  Thys/Logic.thy \
+  Thys/MyList.thy \
+  Thys/Types_and_funs.thy \
+  Thys/ROOT.ML
 	@$(USEDIR) -s ProgProve HOL Thys
 	@rm -f Thys/document/MyList.tex
 	@rm -f Thys/document/isabelle.sty

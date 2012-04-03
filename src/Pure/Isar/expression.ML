@@ -21,14 +21,14 @@ sig
   (* Declaring locales *)
   val cert_declaration: expression_i -> (Proof.context -> Proof.context) -> Element.context_i list ->
     Proof.context -> (((string * typ) * mixfix) list * (string * morphism) list
-      * Element.context_i list) * ((string * typ) list * Proof.context)
+      * Element.context_i list * Proof.context) * ((string * typ) list * Proof.context)
   val cert_read_declaration: expression_i -> (Proof.context -> Proof.context) -> Element.context list ->
     Proof.context -> (((string * typ) * mixfix) list * (string * morphism) list
-      * Element.context_i list) * ((string * typ) list * Proof.context)
+      * Element.context_i list * Proof.context) * ((string * typ) list * Proof.context)
       (*FIXME*)
   val read_declaration: expression -> (Proof.context -> Proof.context) -> Element.context list ->
     Proof.context -> (((string * typ) * mixfix) list * (string * morphism) list
-      * Element.context_i list) * ((string * typ) list * Proof.context)
+      * Element.context_i list * Proof.context) * ((string * typ) list * Proof.context)
   val add_locale: (local_theory -> local_theory) -> binding -> binding ->
     expression_i -> Element.context_i list -> theory -> string * local_theory
   val add_locale_cmd: (local_theory -> local_theory) -> binding -> binding ->
@@ -357,17 +357,19 @@ fun prep_full_context_statement
               Term.map_type_tvar (fn ((x, _), S) => TVar ((x, i), S)) o Logic.varifyT_global);
         val inst'' = map2 Type.constraint parm_types' inst';
         val insts' = insts @ [(loc, (prfx, inst''))];
-        val (insts'', _, _, ctxt' (* FIXME not used *) ) = check_autofix insts' [] [] ctxt;
+        val (insts'', _, _, _) = check_autofix insts' [] [] ctxt;
         val inst''' = insts'' |> List.last |> snd |> snd;
         val (morph, _) = inst_morph (parm_names, parm_types) (prfx, inst''') ctxt;
         val ctxt'' = Locale.activate_declarations (loc, morph) ctxt;
       in (i + 1, insts', ctxt'') end;
 
-    fun prep_elem insts raw_elem (elems, ctxt) =
+    fun prep_elem insts raw_elem ctxt =
       let
-        val ctxt' = declare_elem prep_vars_elem raw_elem ctxt;
-        val elems' = elems @ [parse_elem parse_typ parse_prop ctxt' raw_elem];
-        val (_, _, _, ctxt'' (* FIXME not used *) ) = check_autofix insts elems' [] ctxt';
+        val ctxt' = ctxt
+          |> Context_Position.set_visible false
+          |> declare_elem prep_vars_elem raw_elem
+          |> Context_Position.restore_visible ctxt;
+        val elems' = parse_elem parse_typ parse_prop ctxt' raw_elem;
       in (elems', ctxt') end;
 
     fun prep_concl raw_concl (insts, elems, ctxt) =
@@ -388,7 +390,7 @@ fun prep_full_context_statement
             commas_quote (map (Syntax.string_of_term ctxt3 o Free) (rev frees))));
 
     val ctxt4 = init_body ctxt3;
-    val (elems, ctxt5) = fold (prep_elem insts') raw_elems ([], ctxt4);
+    val (elems, ctxt5) = fold_map (prep_elem insts') raw_elems ctxt4;
     val (insts, elems', concl, ctxt6) = prep_concl raw_concl (insts', elems, ctxt5);
 
     (* Retrieve parameter types *)
@@ -458,10 +460,10 @@ fun prep_declaration prep activate raw_import init_body raw_elems context =
     val context' = context |>
       fix_params fixed |>
       fold (Context.proof_map o Locale.activate_facts NONE) deps;
-    val (elems', _) = context' |>
+    val (elems', context'') = context' |>
       Proof_Context.set_stmt true |>
       fold_map activate elems;
-  in ((fixed, deps, elems'), (parms, ctxt')) end;
+  in ((fixed, deps, elems', context''), (parms, ctxt')) end;
 
 in
 
@@ -735,7 +737,7 @@ fun gen_add_locale prep_decl
     val _ = Locale.defined thy name andalso
       error ("Duplicate definition of locale " ^ quote name);
 
-    val ((fixed, deps, body_elems), (parms, ctxt')) =
+    val ((fixed, deps, body_elems, _), (parms, ctxt')) =
       prep_decl raw_import I raw_body (Proof_Context.init_global thy);
     val text as (((_, exts'), _), defs) = eval ctxt' deps body_elems;
 

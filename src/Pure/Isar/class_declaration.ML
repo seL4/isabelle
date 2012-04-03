@@ -157,7 +157,7 @@ fun prep_class_elems prep_decl thy sups raw_elems =
       fold (Proof_Context.add_const_constraint o apsnd SOME) base_constraints
       #> Class.redeclare_operations thy sups
       #> Context.proof_map (Syntax_Phases.term_check 0 "singleton_fixate" (K singleton_fixate));
-    val ((raw_supparams, _, raw_inferred_elems), _) =
+    val ((raw_supparams, _, raw_inferred_elems, _), _) =
       Proof_Context.init_global thy
       |> Context.proof_map (Syntax_Phases.term_check 0 "after_infer_fixate" (K after_infer_fixate))
       |> prep_decl raw_supexpr init_class_body raw_elems;
@@ -221,7 +221,7 @@ fun prep_class_spec prep_class prep_class_elems thy raw_supclasses raw_elems =
 
     (* process elements as class specification *)
     val class_ctxt = Class.begin sups base_sort thy_ctxt;
-    val ((_, _, syntax_elems), _) = class_ctxt
+    val ((_, _, syntax_elems, _), _) = class_ctxt
       |> Expression.cert_declaration supexpr I inferred_elems;
     fun check_vars e vs =
       if null vs then
