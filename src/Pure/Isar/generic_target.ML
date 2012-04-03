@@ -121,7 +121,7 @@ fun import_export_proof ctxt (name, raw_th) =
     (*export assumes/defines*)
     val th = Goal.norm_result raw_th;
     val ((defs, asms), th') = Local_Defs.export ctxt thy_ctxt th;
-    val asms' = map (Raw_Simplifier.rewrite_rule defs) asms;
+    val asms' = map (Raw_Simplifier.rewrite_rule (Drule.norm_hhf_eqs @ defs)) asms;
 
     (*export fixes*)
     val tfrees = map TFree (Thm.fold_terms Term.add_tfrees th' []);
