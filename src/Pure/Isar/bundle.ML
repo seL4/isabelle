@@ -97,7 +97,7 @@ fun gen_context prep_bundle prep_decl raw_incls raw_elems gthy =
     fun augment ctxt =
       let
         val ((_, _, _, ctxt'), _) = ctxt
-          |> Context_Position.set_visible true
+          |> Context_Position.restore_visible lthy
           |> gen_includes prep_bundle raw_incls
           |> prep_decl ([], []) I raw_elems;
       in ctxt' |> Context_Position.restore_visible ctxt end;
