@@ -13,7 +13,7 @@ sig
   val setup_by_typedef_thm: thm -> local_theory -> local_theory
 end;
 
-structure Lifting_Seup: LIFTING_SETUP =
+structure Lifting_Setup: LIFTING_SETUP =
 struct
 
 infix 0 MRSL
