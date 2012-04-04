@@ -13,9 +13,9 @@ sig
   type const_map = (string * term) list
   type var_types = (string * typ option) list
 
-  (*mapping from THF types to Isabelle/HOL types. This map works over all
-  base types (i.e. THF functions must be interpreted as Isabelle/HOL functions).
-  The map must be total wrt THF types. Later on there could be a configuration
+  (*mapping from TPTP types to Isabelle/HOL types. This map works over all
+  base types (i.e. TPTP functions must be interpreted as Isabelle/HOL functions).
+  The map must be total wrt TPTP types. Later on there could be a configuration
   option to make a map extensible.*)
   type type_map = (TPTP_Syntax.tptp_type * typ) list
 
@@ -33,7 +33,7 @@ sig
   directive, may include the meaning of an entire TPTP file, is an extended
   Isabelle/HOL theory, an explicit map from constants to their Isabelle/HOL
   counterparts and their types, the meaning of any TPTP formulas encountered
-  while interpreting that statement, and a map from THF to Isabelle/HOL types
+  while interpreting that statement, and a map from TPTP to Isabelle/HOL types
   (these types would have been added to the theory returned in the first position
   of the tuple). The last value is NONE when the function which produced the
   whole tptp_general_meaning value was given a type_map argument -- since
@@ -53,7 +53,7 @@ sig
      generative_type_interpretation : bool,
      generative_const_interpretation : bool*)}
 
-  (*map types form THF to Isabelle/HOL*)
+  (*map types form TPTP to Isabelle/HOL*)
   val interpret_type : config -> theory -> type_map ->
     TPTP_Syntax.tptp_type -> typ
 
@@ -68,11 +68,11 @@ sig
   Arguments:
     cautious = indicates whether additional checks are made to check
       that all used types have been declared.
-    type_map = mapping of THF-types to Isabelle/HOL types. This argument may be
+    type_map = mapping of TPTP-types to Isabelle/HOL types. This argument may be
       given to force a specific mapping: this is usually done for using an
-      imported THF problem in Isar.
+      imported TPTP problem in Isar.
     const_map = as previous, but for constants.
-    path_prefix = path where THF problems etc are located (to help the "include"
+    path_prefix = path where TPTP problems etc are located (to help the "include"
       directive find the files.
     thy = theory where interpreted info will be stored.
   *)
@@ -93,8 +93,8 @@ sig
     Arguments:
       new_basic_types = indicates whether interpretations of $i and $o
         types are to be added to the type map (unless it is Given).
-        This is "true" if we are running this over a fresh THF problem, but
-        "false" if we are calling this _during_ the interpretation of a THF file
+        This is "true" if we are running this over a fresh TPTP problem, but
+        "false" if we are calling this _during_ the interpretation of a TPTP file
         (i.e. when interpreting an "include" directive.
       config = config
       path_prefix = " "
@@ -118,13 +118,13 @@ sig
   exception MISINTERPRET_TERM of string * TPTP_Syntax.tptp_term
   exception MISINTERPRET_TYPE of string * TPTP_Syntax.tptp_type
 
-  (*Generates a fresh Isabelle/HOL type for interpreting a THF type in a theory.*)
+  (*Generates a fresh Isabelle/HOL type for interpreting a TPTP type in a theory.*)
   val declare_type : config -> (TPTP_Syntax.tptp_type * string) -> type_map ->
     theory -> type_map * theory
 
   (*Returns the list of all files included in a directory and its
   subdirectories. This is only used for testing the parser/interpreter against
-  all THF problems.*)
+  all TPTP problems.*)
   val get_file_list : Path.T -> Path.T list
 
   type manifest = TPTP_Problem_Name.problem_name * tptp_general_meaning
@@ -245,13 +245,13 @@ fun fmlatype_to_type (Atom (THF_Atom_term (Term_Func (TypeSymbol typ, [])))) =
       Defined_type typ
   | fmlatype_to_type (Atom (THF_Atom_term (Term_Func (Uninterpreted str, [])))) =
       Atom_type str
-  | fmlatype_to_type (THF_type (Fn_type (ty1, ty2))) =
+  | fmlatype_to_type (Type_fmla (Fn_type (ty1, ty2))) =
       let
         val ty1' = case ty1 of
-            Fn_type _ => fmlatype_to_type (THF_type ty1)
+            Fn_type _ => fmlatype_to_type (Type_fmla ty1)
           | Fmla_type ty1 => fmlatype_to_type ty1
         val ty2' = case ty2 of
-            Fn_type _ => fmlatype_to_type (THF_type ty2)
+            Fn_type _ => fmlatype_to_type (Type_fmla ty2)
           | Fmla_type ty2 => fmlatype_to_type ty2
       in Fn_type (ty1', ty2') end
 
@@ -327,7 +327,7 @@ fun mk_swapped_fun str =
   (Const (str, Term.dummyT) $ Bound 0 $ Bound 1)
    |> (Term.absdummy Term.dummyT #> Term.absdummy Term.dummyT)
 
-fun dummy_THF () =
+fun dummy_term () =
   HOLogic.choice_const Term.dummyT $ Term.absdummy Term.dummyT @{term "True"}
 
 fun interpret_symbol config thy language const_map symb =
@@ -357,7 +357,7 @@ fun interpret_symbol config thy language const_map symb =
         | Remainder_F | Floor | Ceiling | Truncate | Round | To_Int | To_Rat
         | To_Real | EvalEq | Is_Int | Is_Rat*)
         | Apply => raise MISINTERPRET_SYMBOL ("Malformed term?", symb)
-        | _ => dummy_THF ()
+        | _ => dummy_term ()
         )
    | Interpreted_Logic logic_symbol =>
        (case logic_symbol of
@@ -523,7 +523,7 @@ fun interpret_term formula_level config language thy const_map var_types type_ma
         val num_term =
           if number_kind = Int_num then
             HOLogic.mk_number @{typ "int"} (the (Int.fromString num))
-          else dummy_THF () (*FIXME: not yet supporting rationals and reals*)
+          else dummy_term () (*FIXME: not yet supporting rationals and reals*)
       in (num_term, thy) end
   | Term_Distinct_Object str =>
       let
@@ -651,14 +651,19 @@ fun interpret_formula config language const_map var_types type_map tptp_fmla thy
         | Dep_Sum =>
             raise MISINTERPRET_FORMULA ("Unsupported", tptp_fmla)
         end
-  (*FIXME unsupported
-    | Conditional of tptp_formula * tptp_formula * tptp_formula
-    | Let of tptp_let list * tptp_formula
-
-    and tptp_let =
-        Let_fmla of (string * tptp_type option) * tptp_formula (*both TFF and THF*)
-      | Let_term of (string * tptp_type option) * tptp_term  (*only TFF*)
-  *)
+    | Conditional (fmla1, fmla2, fmla3) =>
+        let
+          val interp = interpret_formula config language const_map var_types type_map
+          val (((fmla1', fmla2'), fmla3'), thy') =
+            interp fmla1 thy
+            ||>> interp fmla2
+            ||>> interp fmla3
+        in (HOLogic.mk_conj (HOLogic.mk_imp (fmla1', fmla2'),
+                             HOLogic.mk_imp (HOLogic.mk_not fmla1', fmla3')),
+            thy')
+        end
+    | Let (tptp_let_list, tptp_formula) => (*FIXME not yet implemented*)
+        raise MISINTERPRET_FORMULA ("'Let' not yet implemented", tptp_fmla)
     | Atom tptp_atom =>
         (case tptp_atom of
           TFF_Typed_Atom (symbol, tptp_type_opt) =>
@@ -669,7 +674,7 @@ fun interpret_formula config language const_map var_types type_map tptp_fmla thy
              type_map tptp_term
         | THF_Atom_conn_term symbol =>
             (interpret_symbol config thy language const_map symbol, thy))
-    | THF_type _ => (*FIXME unsupported*)
+    | Type_fmla _ => (*FIXME unsupported*)
          raise MISINTERPRET_FORMULA
           ("Cannot interpret types as formulas", tptp_fmla)
     | THF_typing (tptp_formula, _) => (*FIXME ignoring type info*)
@@ -748,7 +753,7 @@ fun interpret_line config type_map const_map path_prefix line thy =
            in
              case tptp_ty of
                Defined_type Type_Type => (*add new type*)
-                 (*generate an Isabelle/HOL type to interpret this THF type,
+                 (*generate an Isabelle/HOL type to interpret this TPTP type,
                  and add it to both the Isabelle/HOL theory and to the type_map*)
                   let
                     val (type_map', thy') =

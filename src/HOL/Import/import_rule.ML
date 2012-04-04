@@ -235,7 +235,7 @@ fun tydef' tycname abs_name rep_name cP ct td_th thy =
           [SOME rept, SOME abst, SOME cP, SOME (cterm_of thy' (Free ("a", aty))),
              SOME (cterm_of thy' (Free ("r", typ_of ctT)))]
           @{thm typedef_hol2hollight}
-    val th4 = meta_mp typedef_th (#type_definition (#2 typedef_info))
+    val th4 = typedef_th OF [#type_definition (#2 typedef_info)]
   in
     (th4, thy')
   end

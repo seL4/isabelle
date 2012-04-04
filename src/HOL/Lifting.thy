@@ -236,16 +236,17 @@ lemma invariant_same_args:
   shows "invariant P x x \<equiv> P x"
 using assms by (auto simp add: invariant_def)
 
-lemma copy_type_to_Quotient:
+lemma UNIV_typedef_to_Quotient:
   assumes "type_definition Rep Abs UNIV"
-  and T_def: "T \<equiv> (\<lambda>x y. Abs x = y)"
+  and T_def: "T \<equiv> (\<lambda>x y. x = Rep y)"
   shows "Quotient (op =) Abs Rep T"
 proof -
   interpret type_definition Rep Abs UNIV by fact
-  from Abs_inject Rep_inverse T_def show ?thesis by (auto intro!: QuotientI)
+  from Abs_inject Rep_inverse Abs_inverse T_def show ?thesis 
+    by (fastforce intro!: QuotientI fun_eq_iff)
 qed
 
-lemma copy_type_to_equivp:
+lemma UNIV_typedef_to_equivp:
   fixes Abs :: "'a \<Rightarrow> 'b"
   and Rep :: "'b \<Rightarrow> 'a"
   assumes "type_definition Rep Abs (UNIV::'a set)"
@@ -253,6 +254,28 @@ lemma copy_type_to_equivp:
 by (rule identity_equivp)
 
 lemma typedef_to_Quotient:
+  assumes "type_definition Rep Abs S"
+  and T_def: "T \<equiv> (\<lambda>x y. x = Rep y)"
+  shows "Quotient (Lifting.invariant (\<lambda>x. x \<in> S)) Abs Rep T"
+proof -
+  interpret type_definition Rep Abs S by fact
+  from Rep Abs_inject Rep_inverse Abs_inverse T_def show ?thesis
+    by (auto intro!: QuotientI simp: invariant_def fun_eq_iff)
+qed
+
+lemma typedef_to_part_equivp:
+  assumes "type_definition Rep Abs S"
+  shows "part_equivp (Lifting.invariant (\<lambda>x. x \<in> S))"
+proof (intro part_equivpI)
+  interpret type_definition Rep Abs S by fact
+  show "\<exists>x. Lifting.invariant (\<lambda>x. x \<in> S) x x" using Rep by (auto simp: invariant_def)
+next
+  show "symp (Lifting.invariant (\<lambda>x. x \<in> S))" by (auto intro: sympI simp: invariant_def)
+next
+  show "transp (Lifting.invariant (\<lambda>x. x \<in> S))" by (auto intro: transpI simp: invariant_def)
+qed
+
+lemma open_typedef_to_Quotient:
   assumes "type_definition Rep Abs {x. P x}"
   and T_def: "T \<equiv> (\<lambda>x y. x = Rep y)"
   shows "Quotient (invariant P) Abs Rep T"
@@ -262,16 +285,7 @@ proof -
     by (auto intro!: QuotientI simp: invariant_def fun_eq_iff)
 qed
 
-lemma invariant_type_to_Quotient:
-  assumes "type_definition Rep Abs {x. P x}"
-  and T_def: "T \<equiv> (\<lambda>x y. (invariant P) x x \<and> Abs x = y)"
-  shows "Quotient (invariant P) Abs Rep T"
-proof -
-  interpret type_definition Rep Abs "{x. P x}" by fact
-  from Rep Abs_inject Rep_inverse T_def show ?thesis by (auto intro!: QuotientI simp: invariant_def)
-qed
-
-lemma invariant_type_to_part_equivp:
+lemma open_typedef_to_part_equivp:
   assumes "type_definition Rep Abs {x. P x}"
   shows "part_equivp (invariant P)"
 proof (intro part_equivpI)

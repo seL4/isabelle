@@ -772,22 +772,30 @@ lemma OOO_eq_quotient3:
 using assms
 by (rule OOO_quotient3) auto
 
-subsection {* Invariant *}
+subsection {* Quotient3 to Quotient *}
 
-lemma copy_type_to_Quotient3:
-  assumes "type_definition Rep Abs UNIV"
-  shows "Quotient3 (op =) Abs Rep"
-proof -
-  interpret type_definition Rep Abs UNIV by fact
-  from Abs_inject Rep_inverse show ?thesis by (auto intro!: Quotient3I)
-qed
+lemma Quotient3_to_Quotient:
+assumes "Quotient3 R Abs Rep"
+and "T \<equiv> \<lambda>x y. R x x \<and> Abs x = y"
+shows "Quotient R Abs Rep T"
+using assms unfolding Quotient3_def by (intro QuotientI) blast+
 
-lemma invariant_type_to_Quotient3:
-  assumes "type_definition Rep Abs {x. P x}"
-  shows "Quotient3 (Lifting.invariant P) Abs Rep"
-proof -
-  interpret type_definition Rep Abs "{x. P x}" by fact
-  from Rep Abs_inject Rep_inverse show ?thesis by (auto intro!: Quotient3I simp: invariant_def)
+lemma Quotient3_to_Quotient_equivp:
+assumes q: "Quotient3 R Abs Rep"
+and T_def: "T \<equiv> \<lambda>x y. Abs x = y"
+and eR: "equivp R"
+shows "Quotient R Abs Rep T"
+proof (intro QuotientI)
+  fix a
+  show "Abs (Rep a) = a" using q by(rule Quotient3_abs_rep)
+next
+  fix a
+  show "R (Rep a) (Rep a)" using q by(rule Quotient3_rep_reflp)
+next
+  fix r s
+  show "R r s = (R r r \<and> R s s \<and> Abs r = Abs s)" using q by(rule Quotient3_rel[symmetric])
+next
+  show "T = (\<lambda>x y. R x x \<and> Abs x = y)" using T_def equivp_reflp[OF eR] by simp
 qed
 
 subsection {* ML setup *}
