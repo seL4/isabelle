@@ -1382,9 +1382,9 @@ text {*
     is a quotient extension theorem. Quotient extension theorems
     allow for quotienting inside container types. Given a polymorphic
     type that serves as a container, a map function defined for this
-    container  using @{command (HOL) "enriched_type"} and a relation
+    container using @{command (HOL) "enriched_type"} and a relation
     map defined for for the container type, the quotient extension
-    theorem should be @{term "Quotient R Abs Rep \<Longrightarrow> Quotient
+    theorem should be @{term "Quotient3 R Abs Rep \<Longrightarrow> Quotient3
     (rel_map R) (map Abs) (map Rep)"}. Quotient extension theorems
     are stored in a database and are used all the steps of lifting
     theorems.
@@ -1739,6 +1739,15 @@ text {*
 
     \item[@{text no_assms}] specifies whether assumptions in
     structured proofs should be ignored.
+
+    \item[@{text locale}] specifies how to process conjectures in
+    a locale context, i.e., they can be interpreted or expanded.
+    The option is a whitespace-separated list of the two words
+    @{text interpret} and @{text expand}. The list determines the
+    order they are employed. The default setting is to first use 
+    interpretations and then test the expanded conjecture.
+    The option is only provided as attribute declaration, but not
+    as parameter to the command. 
 
     \item[@{text timeout}] sets the time limit in seconds.
 
