@@ -127,7 +127,7 @@ distinct_object           = {double_quote}{do_char}+{double_quote};
 ":="            => (col:=yypos-(!eolpos); T.LET(!linep,!col));
 ">"             => (col:=yypos-(!eolpos); T.ARROW(!linep,!col));
 
-"<="            => (col:=yypos-(!eolpos); T.IF(!linep,!col));
+"<="            => (col:=yypos-(!eolpos); T.FI(!linep,!col));
 "<=>"           => (col:=yypos-(!eolpos); T.IFF(!linep,!col));
 "=>"            => (col:=yypos-(!eolpos); T.IMPLIES(!linep,!col));
 "["             => (col:=yypos-(!eolpos); T.LBRKT(!linep,!col));
@@ -170,6 +170,10 @@ distinct_object           = {double_quote}{do_char}+{double_quote};
 
 "$ite_f"        => (col:=yypos-(!eolpos); T.ITE_F(!linep,!col));
 "$ite_t"        => (col:=yypos-(!eolpos); T.ITE_T(!linep,!col));
+"$let_tf"        => (col:=yypos-(!eolpos); T.LET_TF(!linep,!col));
+"$let_ff"        => (col:=yypos-(!eolpos); T.LET_FF(!linep,!col));
+"$let_ft"        => (col:=yypos-(!eolpos); T.LET_FT(!linep,!col));
+"$let_tt"        => (col:=yypos-(!eolpos); T.LET_TT(!linep,!col));
 
 {lower_word}          => (col:=yypos-(!eolpos); T.LOWER_WORD(yytext,!linep,!col));
 {atomic_system_word}  => (col:=yypos-(!eolpos); T.ATOMIC_SYSTEM_WORD(yytext,!linep,!col));

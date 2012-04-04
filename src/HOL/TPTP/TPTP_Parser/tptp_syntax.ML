@@ -55,6 +55,7 @@ sig
     Floor | Ceiling | Truncate | Round | To_Int | To_Rat | To_Real |
     (*these should be in defined_pred, but that's not being used in TPTP*)
     Less | LessEq | Greater | GreaterEq | EvalEq | Is_Int | Is_Rat |
+    Distinct |
     Apply (*this is just a matter of convenience*)
 
   and logic_symbol = Equals | NEquals | Or | And | Iff | If | Fi | Xor |
@@ -86,6 +87,7 @@ sig
     | Term_Conditional of tptp_formula * tptp_term * tptp_term
     | Term_Num of number_kind * string
     | Term_Distinct_Object of string
+    | Term_Let of tptp_let list * tptp_term (*FIXME remove list?*)
 
   and tptp_atom =
       TFF_Typed_Atom of symbol * tptp_type option (*only TFF*)
@@ -98,14 +100,14 @@ sig
     | Sequent of tptp_formula list * tptp_formula list
     | Quant of quantifier * (string * tptp_type option) list * tptp_formula
     | Conditional of tptp_formula * tptp_formula * tptp_formula
-    | Let of tptp_let list * tptp_formula
+    | Let of tptp_let list * tptp_formula (*FIXME remove list?*)
     | Atom of tptp_atom
     | THF_type of tptp_type
     | THF_typing of tptp_formula * tptp_type (*only THF*)
 
   and tptp_let =
       Let_fmla of (string * tptp_type option) * tptp_formula
-    | Let_term of (string * tptp_type option) * tptp_term  (*only TFF*)
+    | Let_term of (string * tptp_type option) * tptp_term (*only TFF*)
 
   and tptp_type =
       Prod_type of tptp_type * tptp_type
@@ -113,7 +115,7 @@ sig
     | Atom_type of string
     | Defined_type of tptp_base_type
     | Sum_type of tptp_type * tptp_type (*only THF*)
-    | Fmla_type of tptp_formula (*only THF*)
+    | Fmla_type of tptp_formula
     | Subtype of symbol * symbol (*only THF*)
 
   type general_list = general_term list
@@ -198,6 +200,7 @@ and general_data = (*Bind of variable * formula_data*)
     Floor | Ceiling | Truncate | Round | To_Int | To_Rat | To_Real |
     (*these should be in defined_pred, but that's not being used in TPTP*)
     Less | LessEq | Greater | GreaterEq | EvalEq | Is_Int | Is_Rat |
+    Distinct |
     Apply (*this is just a matter of convenience*)
 
   and logic_symbol = Equals | NEquals | Or | And | Iff | If | Fi | Xor |
@@ -229,6 +232,7 @@ and general_data = (*Bind of variable * formula_data*)
     | Term_Conditional of tptp_formula * tptp_term * tptp_term
     | Term_Num of number_kind * string
     | Term_Distinct_Object of string
+    | Term_Let of tptp_let list * tptp_term (*FIXME remove list?*)
 
   and tptp_atom =
       TFF_Typed_Atom of symbol * tptp_type option (*only TFF*)
