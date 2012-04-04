@@ -106,13 +106,13 @@ fun quot_thm_rty_qty quot_thm =
     (domain_type abs_type, range_type abs_type)
   end
 
-fun prove_quot_theorem ctxt (rty, qty) =
+fun prove_quot_theorem' ctxt (rty, qty) =
   case (rty, qty) of
     (Type (s, tys), Type (s', tys')) =>
       if s = s'
       then
         let
-          val args = map (prove_quot_theorem ctxt) (tys ~~ tys')
+          val args = map (prove_quot_theorem' ctxt) (tys ~~ tys')
         in
           if forall is_id_quot args
           then
@@ -126,7 +126,7 @@ fun prove_quot_theorem ctxt (rty, qty) =
           val (Type (_, rtys), qty_pat) = quot_thm_rty_qty quot_thm
           val qtyenv = match ctxt equiv_match_err qty_pat qty
           val rtys' = map (Envir.subst_type qtyenv) rtys
-          val args = map (prove_quot_theorem ctxt) (tys ~~ rtys')
+          val args = map (prove_quot_theorem' ctxt) (tys ~~ rtys')
         in
           if forall is_id_quot args
           then
@@ -152,22 +152,18 @@ fun force_qty_type thy qty quot_thm =
     Thm.instantiate (ty_inst, []) quot_thm
   end
 
-fun absrep_fun ctxt (rty, qty) = 
+fun prove_quot_theorem ctxt (rty, qty) =
   let
     val thy = Proof_Context.theory_of ctxt
-    val quot_thm = prove_quot_theorem ctxt (rty, qty)
-    val forced_quot_thm = force_qty_type thy qty quot_thm
+    val quot_thm = prove_quot_theorem' ctxt (rty, qty)
   in
-    quot_thm_abs forced_quot_thm
+    force_qty_type thy qty quot_thm
   end
 
+fun absrep_fun ctxt (rty, qty) =
+  quot_thm_abs (prove_quot_theorem ctxt (rty, qty))
+
 fun equiv_relation ctxt (rty, qty) =
-  let
-    val thy = Proof_Context.theory_of ctxt
-    val quot_thm = prove_quot_theorem ctxt (rty, qty)
-    val forced_quot_thm = force_qty_type thy qty quot_thm
-  in
-    quot_thm_rel forced_quot_thm
-  end
+  quot_thm_rel (prove_quot_theorem ctxt (rty, qty))
 
 end;
