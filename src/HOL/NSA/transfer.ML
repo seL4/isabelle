@@ -4,14 +4,14 @@
 Transfer principle tactic for nonstandard analysis.
 *)
 
-signature TRANSFER =
+signature TRANSFER_PRINCIPLE =
 sig
   val transfer_tac: Proof.context -> thm list -> int -> tactic
   val add_const: string -> theory -> theory
   val setup: theory -> theory
 end;
 
-structure Transfer: TRANSFER =
+structure Transfer_Principle: TRANSFER_PRINCIPLE =
 struct
 
 structure TransferData = Generic_Data
