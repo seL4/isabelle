@@ -363,6 +363,16 @@ fun finitize_functions (xTs, t) =
             (fn t => absdummy dT (rt' (mk_eval_ffun dT rT' $ incr_boundvars 1 t $ Bound 0)),
               Type (@{type_name "Quickcheck_Narrowing.ffun"}, [dT, rT']))
       end
+      | eval_function (T as Type (@{type_name prod}, [fT, sT])) =
+        let
+          val (ft', fT') = eval_function fT
+          val (st', sT') = eval_function sT
+          val T' = Type (@{type_name prod}, [fT', sT'])
+          val map_const = Const (@{const_name map_pair}, (fT' --> fT) --> (sT' --> sT) --> T' --> T)
+          fun apply_dummy T t = absdummy T (t (Bound 0))
+        in
+          (fn t => list_comb (map_const, [apply_dummy fT' ft', apply_dummy sT' st', t]), T')
+        end
       | eval_function T = (I, T)
     val (tt, boundTs') = split_list (map eval_function boundTs)
     val t' = subst_bounds (map2 (fn f => fn x => f x) (rev tt) (map_index (Bound o fst) boundTs), t)
