@@ -117,6 +117,14 @@ val post_simps =
   @{thms App_def Abs_def transfer_forall_eq [symmetric]
     transfer_implies_eq [symmetric] transfer_bforall_unfold}
 
+fun gen_frees_tac keepers ctxt = SUBGOAL (fn (t, i) =>
+  let
+    val vs = rev (Term.add_frees t [])
+    val vs' = filter_out (member (op =) keepers o fst) vs
+  in
+    Induct.arbitrary_tac ctxt 0 vs' i
+  end)
+
 fun transfer_tac ctxt = SUBGOAL (fn (t, i) =>
   let
     val bs = bnames t
@@ -147,7 +155,7 @@ fun correspondence_tac ctxt i =
   end
 
 val transfer_method : (Proof.context -> Method.method) context_parser =
-  Scan.succeed (fn ctxt => SIMPLE_METHOD' (transfer_tac ctxt))
+  Scan.succeed (fn ctxt => SIMPLE_METHOD' (gen_frees_tac [] ctxt THEN' transfer_tac ctxt))
 
 val correspondence_method : (Proof.context -> Method.method) context_parser =
   Scan.succeed (fn ctxt => SIMPLE_METHOD' (correspondence_tac ctxt))
