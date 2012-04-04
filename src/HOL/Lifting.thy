@@ -283,6 +283,54 @@ next
   show "transp (invariant P)" by (auto intro: transpI simp: invariant_def)
 qed
 
+text {* Generating transfer rules for a type defined with @{text "typedef"}. *}
+
+lemma typedef_bi_unique:
+  assumes type: "type_definition Rep Abs A"
+  assumes T_def: "T \<equiv> (\<lambda>x y. x = Rep y)"
+  shows "bi_unique T"
+  unfolding bi_unique_def T_def
+  by (simp add: type_definition.Rep_inject [OF type])
+
+lemma typedef_right_total:
+  assumes T_def: "T \<equiv> (\<lambda>x y. x = Rep y)"
+  shows "right_total T"
+  unfolding right_total_def T_def by simp
+
+lemma copy_type_bi_total:
+  assumes type: "type_definition Rep Abs UNIV"
+  assumes T_def: "T \<equiv> (\<lambda>x y. x = Rep y)"
+  shows "bi_total T"
+  unfolding bi_total_def T_def
+  by (metis type_definition.Abs_inverse [OF type] UNIV_I)
+
+lemma typedef_transfer_All:
+  assumes type: "type_definition Rep Abs A"
+  assumes T_def: "T \<equiv> (\<lambda>x y. x = Rep y)"
+  shows "((T ===> op =) ===> op =) (Ball A) All"
+  unfolding T_def fun_rel_def
+  by (metis type_definition.Rep [OF type]
+    type_definition.Abs_inverse [OF type])
+
+lemma typedef_transfer_Ex:
+  assumes type: "type_definition Rep Abs A"
+  assumes T_def: "T \<equiv> (\<lambda>x y. x = Rep y)"
+  shows "((T ===> op =) ===> op =) (Bex A) Ex"
+  unfolding T_def fun_rel_def
+  by (metis type_definition.Rep [OF type]
+    type_definition.Abs_inverse [OF type])
+
+lemma typedef_transfer_bforall:
+  assumes type: "type_definition Rep Abs A"
+  assumes T_def: "T \<equiv> (\<lambda>x y. x = Rep y)"
+  shows "((T ===> op =) ===> op =)
+    (transfer_bforall (\<lambda>x. x \<in> A)) transfer_forall"
+  unfolding transfer_bforall_def transfer_forall_def Ball_def [symmetric]
+  by (rule typedef_transfer_All [OF assms])
+
+text {* Generating the correspondence rule for a constant defined with
+  @{text "lift_definition"}. *}
+
 lemma Quotient_to_transfer:
   assumes "Quotient R Abs Rep T" and "R c c" and "c' \<equiv> Abs c"
   shows "T c c'"
