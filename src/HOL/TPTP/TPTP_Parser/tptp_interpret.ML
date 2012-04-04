@@ -178,7 +178,8 @@ structure TPTP_Data = Theory_Data
   (type T = manifest list
    val empty = []
    val extend = I
-   val merge = Library.merge (op =))
+   (*SMLNJ complains if non-expanded form used below*)
+   fun merge v = Library.merge (op =) v)
 val get_manifests = TPTP_Data.get
 
 
@@ -189,7 +190,8 @@ fun type_exists thy ty_name =
 
 val IND_TYPE = "ind"
 
-fun mk_binding config ident =
+(*SMLNJ complains if type annotation not used below*)
+fun mk_binding (config : config) ident =
   let
     val pre_binding = Binding.name ident
   in
