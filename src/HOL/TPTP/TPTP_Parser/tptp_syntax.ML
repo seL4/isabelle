@@ -53,14 +53,13 @@ sig
     UMinus | Sum | Difference | Product | Quotient | Quotient_E |
     Quotient_T | Quotient_F | Remainder_E | Remainder_T | Remainder_F |
     Floor | Ceiling | Truncate | Round | To_Int | To_Rat | To_Real |
-    (*these should be in defined_pred, but that's not being used in TPTP*)
+    (*FIXME these should be in defined_pred, but that's not being used in TPTP*)
     Less | LessEq | Greater | GreaterEq | EvalEq | Is_Int | Is_Rat |
-    Distinct |
-    Apply (*this is just a matter of convenience*)
+    Distinct | Apply
 
   and logic_symbol = Equals | NEquals | Or | And | Iff | If | Fi | Xor |
     Nor | Nand | Not | Op_Forall | Op_Exists |
-    (*these should be in defined_pred, but that's not being used in TPTP*)
+    (*FIXME these should be in defined_pred, but that's not being used in TPTP*)
     True | False
 
   and quantifier = (*interpreted binders*)
@@ -102,7 +101,7 @@ sig
     | Conditional of tptp_formula * tptp_formula * tptp_formula
     | Let of tptp_let list * tptp_formula (*FIXME remove list?*)
     | Atom of tptp_atom
-    | THF_type of tptp_type
+    | Type_fmla of tptp_type
     | THF_typing of tptp_formula * tptp_type (*only THF*)
 
   and tptp_let =
@@ -130,7 +129,8 @@ sig
   type position = string * int * int
 
   datatype tptp_line =
-      Annotated_Formula of position * language * string * role * tptp_formula * annotation option
+      Annotated_Formula of position * language * string * role *
+        tptp_formula * annotation option
    |  Include of string * string list
 
   type tptp_problem = tptp_line list
@@ -198,14 +198,12 @@ and general_data = (*Bind of variable * formula_data*)
     UMinus | Sum | Difference | Product | Quotient | Quotient_E |
     Quotient_T | Quotient_F | Remainder_E | Remainder_T | Remainder_F |
     Floor | Ceiling | Truncate | Round | To_Int | To_Rat | To_Real |
-    (*these should be in defined_pred, but that's not being used in TPTP*)
     Less | LessEq | Greater | GreaterEq | EvalEq | Is_Int | Is_Rat |
     Distinct |
-    Apply (*this is just a matter of convenience*)
+    Apply
 
   and logic_symbol = Equals | NEquals | Or | And | Iff | If | Fi | Xor |
     Nor | Nand | Not | Op_Forall | Op_Exists |
-    (*these should be in defined_pred, but that's not being used in TPTP*)
     True | False
 
   and quantifier = (*interpreted binders*)
@@ -247,21 +245,21 @@ and general_data = (*Bind of variable * formula_data*)
     | Conditional of tptp_formula * tptp_formula * tptp_formula
     | Let of tptp_let list * tptp_formula
     | Atom of tptp_atom
-    | THF_type of tptp_type
+    | Type_fmla of tptp_type
     | THF_typing of tptp_formula * tptp_type
 
   and tptp_let =
-      Let_fmla of (string * tptp_type option) * tptp_formula (*both TFF and THF*)
-    | Let_term of (string * tptp_type option) * tptp_term  (*only TFF*)
+      Let_fmla of (string * tptp_type option) * tptp_formula
+    | Let_term of (string * tptp_type option) * tptp_term
 
   and tptp_type =
       Prod_type of tptp_type * tptp_type
     | Fn_type of tptp_type * tptp_type
     | Atom_type of string
     | Defined_type of tptp_base_type
-    | Sum_type of tptp_type * tptp_type (*only THF*)
-    | Fmla_type of tptp_formula (*only THF*)
-    | Subtype of symbol * symbol (*only THF*)
+    | Sum_type of tptp_type * tptp_type
+    | Fmla_type of tptp_formula
+    | Subtype of symbol * symbol
 
 type general_list = general_term list
 type parent_details = general_list
@@ -272,13 +270,6 @@ type info = useful_info
 type annotation = general_term * general_term list
 
 exception DEQUOTE of string
-
-(*
-datatype defined_functor =
-  ITE_T | UMINUS | SUM | DIFFERENCE | PRODUCT | QUOTIENT | QUOTIENT_E |
-  QUOTIENT_T | QUOTIENT_F | REMAINDER_E | REMAINDER_T | REMAINDER_F |
-  FLOOR | CEILING | TRUNCATE | ROUND | TO_INT | TO_RAT | TO_REAL
-*)
 
 type position = string * int * int
 
@@ -474,7 +465,7 @@ and string_of_tptp_formula (Pred (symbol, tptp_term_list)) =
   | string_of_tptp_formula (Conditional _) = "" (*FIXME*)
   | string_of_tptp_formula (Let _) = "" (*FIXME*)
   | string_of_tptp_formula (Atom tptp_atom) = string_of_tptp_atom tptp_atom
-  | string_of_tptp_formula (THF_type tptp_type) = string_of_tptp_type tptp_type
+  | string_of_tptp_formula (Type_fmla tptp_type) = string_of_tptp_type tptp_type
   | string_of_tptp_formula (THF_typing (tptp_formula, tptp_type)) =
       string_of_tptp_formula tptp_formula ^ " : " ^ string_of_tptp_type tptp_type
 

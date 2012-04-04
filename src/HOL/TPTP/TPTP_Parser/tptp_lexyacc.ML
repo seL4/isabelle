@@ -3880,7 +3880,7 @@ thf_type_formula1right), rest671)
 end
 |  ( 22, ( ( _, ( MlyValue.thf_subtype thf_subtype, thf_subtype1left, 
 thf_subtype1right)) :: rest671)) => let val  result = 
-MlyValue.thf_logic_formula (( THF_type thf_subtype ))
+MlyValue.thf_logic_formula (( Type_fmla thf_subtype ))
  in ( LrTable.NT 124, ( result, thf_subtype1left, thf_subtype1right), 
 rest671)
 end
@@ -3898,7 +3898,7 @@ thf_binary_tuple1right), rest671)
 end
 |  ( 25, ( ( _, ( MlyValue.thf_binary_type thf_binary_type, 
 thf_binary_type1left, thf_binary_type1right)) :: rest671)) => let val 
- result = MlyValue.thf_binary_formula (( THF_type thf_binary_type ))
+ result = MlyValue.thf_binary_formula (( Type_fmla thf_binary_type ))
  in ( LrTable.NT 123, ( result, thf_binary_type1left, 
 thf_binary_type1right), rest671)
 end
@@ -4619,7 +4619,7 @@ tff_monotype1right)) :: _ :: _ :: ( _, ( MlyValue.tff_variable_list
 tff_variable_list, _, _)) :: _ :: ( _, ( _, DEP_PROD1left, _)) :: 
 rest671)) => let val  result = MlyValue.tff_quantified_type (
 (
-       Fmla_type (Quant (Dep_Prod, tff_variable_list, THF_type tff_monotype))
+       Fmla_type (Quant (Dep_Prod, tff_variable_list, Type_fmla tff_monotype))
 )
 )
  in ( LrTable.NT 140, ( result, DEP_PROD1left, tff_monotype1right), 
@@ -4674,7 +4674,7 @@ end
 MlyValue.tff_type_arguments tff_type_arguments, _, _)) :: _ :: ( _, ( 
 MlyValue.atomic_word atomic_word, atomic_word1left, _)) :: rest671))
  => let val  result = MlyValue.tff_atomic_type (
-( Fmla_type (Fmla (Uninterpreted atomic_word, (map THF_type tff_type_arguments))) )
+( Fmla_type (Fmla (Uninterpreted atomic_word, (map Type_fmla tff_type_arguments))) )
 )
  in ( LrTable.NT 79, ( result, atomic_word1left, RPAREN1right), 
 rest671)

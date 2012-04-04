@@ -280,11 +280,11 @@ thf_formula : thf_logic_formula (( thf_logic_formula ))
 thf_logic_formula : thf_binary_formula   (( thf_binary_formula ))
                   | thf_unitary_formula  (( thf_unitary_formula ))
                   | thf_type_formula     (( THF_typing thf_type_formula ))
-                  | thf_subtype          (( THF_type thf_subtype ))
+                  | thf_subtype          (( Type_fmla thf_subtype ))
 
 thf_binary_formula : thf_binary_pair   (( thf_binary_pair ))
                    | thf_binary_tuple  (( thf_binary_tuple ))
-                   | thf_binary_type   (( THF_type thf_binary_type ))
+                   | thf_binary_type   (( Type_fmla thf_binary_type ))
 
 thf_binary_pair : thf_unitary_formula thf_pair_connective thf_unitary_formula ((
   Fmla (thf_pair_connective, [thf_unitary_formula1, thf_unitary_formula2])
@@ -468,7 +468,7 @@ tff_top_level_type : tff_atomic_type     (( tff_atomic_type ))
                    | tff_quantified_type (( tff_quantified_type ))
 
 tff_quantified_type : DEP_PROD LBRKT tff_variable_list RBRKT COLON tff_monotype ((
-       Fmla_type (Quant (Dep_Prod, tff_variable_list, THF_type tff_monotype))
+       Fmla_type (Quant (Dep_Prod, tff_variable_list, Type_fmla tff_monotype))
 ))
                     | LPAREN tff_quantified_type RPAREN (( tff_quantified_type ))
 
@@ -480,7 +480,7 @@ tff_unitary_type : tff_atomic_type               (( tff_atomic_type ))
 
 tff_atomic_type : atomic_word   (( Atom_type atomic_word ))
                 | defined_type  (( Defined_type defined_type ))
-                | atomic_word LPAREN tff_type_arguments RPAREN (( Fmla_type (Fmla (Uninterpreted atomic_word, (map THF_type tff_type_arguments))) ))
+                | atomic_word LPAREN tff_type_arguments RPAREN (( Fmla_type (Fmla (Uninterpreted atomic_word, (map Type_fmla tff_type_arguments))) ))
                 | variable_ (( Fmla_type (Pred (Interpreted_ExtraLogic Apply, [Term_Var variable_])) ))
 
 tff_type_arguments : tff_atomic_type   (( [tff_atomic_type]  ))
