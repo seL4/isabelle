@@ -127,7 +127,7 @@ fun set_last_exec last_exec =
   map_node (fn (touched, header, perspective, entries, _, result) =>
     (touched, header, perspective, entries, last_exec, result));
 
-fun get_theory pos (Node {result, ...}) = Toplevel.end_theory pos (Lazy.force result);
+fun get_result (Node {result, ...}) = result;
 fun set_result result =
   map_node (fn (touched, header, perspective, entries, last_exec, _) =>
     (touched, header, perspective, entries, last_exec, result));
@@ -337,8 +337,9 @@ fun init_theory deps node =
         (case Thy_Info.lookup_theory import of  (* FIXME more robust!? *)
           SOME thy => thy
         | NONE =>
-            get_theory (Position.file_only import)
-              (snd (Future.join (the (AList.lookup (op =) deps import))))));
+            Toplevel.end_theory (Position.file_only import)
+              (Lazy.force
+                (get_result (snd (Future.join (the (AList.lookup (op =) deps import))))))));
   in Thy_Load.begin_theory master_dir header parents end;
 
 fun check_theory nodes name =
