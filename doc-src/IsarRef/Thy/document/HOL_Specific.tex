@@ -1959,9 +1959,9 @@ This avoids re-doing basic definitions and proofs from the
     is a quotient extension theorem. Quotient extension theorems
     allow for quotienting inside container types. Given a polymorphic
     type that serves as a container, a map function defined for this
-    container  using \hyperlink{command.HOL.enriched-type}{\mbox{\isa{\isacommand{enriched{\isaliteral{5F}{\isacharunderscore}}type}}}} and a relation
+    container using \hyperlink{command.HOL.enriched-type}{\mbox{\isa{\isacommand{enriched{\isaliteral{5F}{\isacharunderscore}}type}}}} and a relation
     map defined for for the container type, the quotient extension
-    theorem should be \isa{{\isaliteral{22}{\isachardoublequote}}Quotient\ R\ Abs\ Rep\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Quotient\ {\isaliteral{28}{\isacharparenleft}}rel{\isaliteral{5F}{\isacharunderscore}}map\ R{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}map\ Abs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}map\ Rep{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}. Quotient extension theorems
+    theorem should be \isa{{\isaliteral{22}{\isachardoublequote}}Quotient{\isadigit{3}}\ R\ Abs\ Rep\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Quotient{\isadigit{3}}\ {\isaliteral{28}{\isacharparenleft}}rel{\isaliteral{5F}{\isacharunderscore}}map\ R{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}map\ Abs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}map\ Rep{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}. Quotient extension theorems
     are stored in a database and are used all the steps of lifting
     theorems.
 
@@ -2503,6 +2503,15 @@ Identifying incorrect propositions usually involves evaluation of
 
     \item[\isa{no{\isaliteral{5F}{\isacharunderscore}}assms}] specifies whether assumptions in
     structured proofs should be ignored.
+
+    \item[\isa{locale}] specifies how to process conjectures in
+    a locale context, i.e., they can be interpreted or expanded.
+    The option is a whitespace-separated list of the two words
+    \isa{interpret} and \isa{expand}. The list determines the
+    order they are employed. The default setting is to first use 
+    interpretations and then test the expanded conjecture.
+    The option is only provided as attribute declaration, but not
+    as parameter to the command. 
 
     \item[\isa{timeout}] sets the time limit in seconds.
 

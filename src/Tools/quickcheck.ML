@@ -30,6 +30,7 @@ sig
   val finite_types : bool Config.T
   val finite_type_size : int Config.T
   val tag : string Config.T
+  val locale : string Config.T
   val set_active_testers: string list -> Context.generic -> Context.generic
   datatype expectation = No_Expectation | No_Counterexample | Counterexample;
   datatype test_params = Test_Params of {default_type: typ list, expect : expectation};
@@ -176,6 +177,7 @@ val iterations = Attrib.setup_config_int @{binding quickcheck_iterations} (K 100
 val depth = Attrib.setup_config_int @{binding quickcheck_depth} (K 10)
 
 val no_assms = Attrib.setup_config_bool @{binding quickcheck_no_assms} (K false)
+val locale = Attrib.setup_config_string @{binding quickcheck_locale} (K "interpret expand")
 val report = Attrib.setup_config_bool @{binding quickcheck_report} (K true)
 val timing = Attrib.setup_config_bool @{binding quickcheck_timing} (K false)
 val timeout = Attrib.setup_config_real @{binding quickcheck_timeout} (K 30.0)
@@ -336,6 +338,15 @@ fun all_axioms_of ctxt t =
     all t
   end
 
+fun locale_config_of s =
+  let
+    val cs = space_explode " " s
+  in
+    if forall (fn c => c = "expand" orelse c = "interpret") cs then cs
+    else (Output.warning ("Invalid quickcheck_locale setting: falling back to the default setting.");
+      ["interpret", "expand"])
+  end
+
 fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
   let
     val lthy = Proof.context_of state;
@@ -356,12 +367,14 @@ fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
     fun axioms_of locale = case fst (Locale.specification_of thy locale) of
         NONE => []
       | SOME t => the_default [] (all_axioms_of lthy t)
-    val goals = case some_locale
+   val config = locale_config_of (Config.get lthy locale) 
+   val goals = case some_locale
      of NONE => [(proto_goal, eval_terms)]
-      | SOME locale =>
-          (Logic.list_implies (axioms_of locale, proto_goal), eval_terms) ::
-          map (fn (_, phi) => (Morphism.term phi proto_goal, map (Morphism.term phi) eval_terms))
-          (Locale.registrations_of (Context.Theory thy) (*FIXME*) locale);
+      | SOME locale => fold (fn c =>
+          if c = "expand" then cons (Logic.list_implies (axioms_of locale, proto_goal), eval_terms) else
+          if c = "interpret" then
+            append (map (fn (_, phi) => (Morphism.term phi proto_goal, map (Morphism.term phi) eval_terms))
+          (Locale.registrations_of (Context.Theory thy) (*FIXME*) locale)) else I) config [];
     val _ = verbose_message lthy (Pretty.string_of
       (Pretty.big_list ("Checking goals: ") (map (Syntax.pretty_term lthy o fst) goals)))
   in

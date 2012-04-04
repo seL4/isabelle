@@ -422,7 +422,9 @@ a list and a nat.
   - Support for multisets.
 
   - Added "use_subtype" options.
- 
+  - Added "quickcheck_locale" configuration to specify how to process
+    conjectures in a locale context.
+
 * Nitpick:
   - Fixed infinite loop caused by the 'peephole_optim' option and
     affecting 'rat' and 'real'.
