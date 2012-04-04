@@ -49,7 +49,7 @@ struct
 
 (** theory data **)
 
-type proofs = thm list * unit lazy;
+type proofs = thm list * unit lazy;  (*accumulated thms, persistent join*)
 
 val empty_proofs: proofs = ([], Lazy.value ());
 
@@ -61,7 +61,7 @@ fun force_proofs ((_, prfs): proofs) = Lazy.force prfs;
 
 structure Data = Theory_Data
 (
-  type T = Facts.T * (proofs * proofs);
+  type T = Facts.T * (proofs * proofs);  (*facts, recent proofs, all proofs of theory node*)
   val empty = (Facts.empty, (empty_proofs, empty_proofs));
   fun extend (facts, _) = (facts, snd empty);
   fun merge ((facts1, _), (facts2, _)) = (Facts.merge (facts1, facts2), snd empty);
