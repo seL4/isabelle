@@ -99,6 +99,54 @@ fun define_abs_type quot_thm lthy =
   else
     lthy
 
+infix 0 MRSL
+
+fun ants MRSL thm = fold (fn rl => fn thm => rl RS thm) ants thm
+
+fun define_cr_rel equiv_thm abs_fun lthy =
+  let
+    fun force_type_of_rel rel forced_ty =
+      let
+        val thy = Proof_Context.theory_of lthy
+        val rel_ty = (domain_type o fastype_of) rel
+        val ty_inst = Sign.typ_match thy (rel_ty, forced_ty) Vartab.empty
+      in
+        Envir.subst_term_types ty_inst rel
+      end
+  
+    val (rty, qty) = (dest_funT o fastype_of) abs_fun
+    val abs_fun_graph = HOLogic.mk_eq(abs_fun $ Bound 1, Bound 0)
+    val Abs_body = (case (HOLogic.dest_Trueprop o prop_of) equiv_thm of
+      Const (@{const_name equivp}, _) $ _ => abs_fun_graph
+      | Const (@{const_name part_equivp}, _) $ rel => 
+        HOLogic.mk_conj (force_type_of_rel rel rty $ Bound 1 $ Bound 1, abs_fun_graph)
+      | _ => error "unsupported equivalence theorem"
+      )
+    val def_term = Abs ("x", rty, Abs ("y", qty, Abs_body));
+    val qty_name = (fst o dest_Type) qty
+    val cr_rel_name = Binding.prefix_name "cr_" (Binding.qualified_name qty_name)  
+    val (fixed_def_term, lthy') = yield_singleton (Variable.importT_terms) def_term lthy
+    val ((_, (_ , def_thm)), lthy'') =
+      Local_Theory.define ((cr_rel_name, NoSyn), ((Thm.def_binding cr_rel_name, []), fixed_def_term)) lthy'
+  in
+    (def_thm, lthy'')
+  end;
+
+fun setup_lifting_package quot3_thm equiv_thm lthy =
+  let
+    val (_ $ _ $ abs_fun $ _) = (HOLogic.dest_Trueprop o prop_of) quot3_thm
+    val (T_def, lthy') = define_cr_rel equiv_thm abs_fun lthy
+    val quot_thm = (case (HOLogic.dest_Trueprop o prop_of) equiv_thm of
+      Const (@{const_name equivp}, _) $ _ => 
+        [quot3_thm, T_def, equiv_thm] MRSL @{thm Quotient3_to_Quotient_equivp}
+      | Const (@{const_name part_equivp}, _) $ _ => 
+        [quot3_thm, T_def] MRSL @{thm Quotient3_to_Quotient}
+      | _ => error "unsupported equivalence theorem"
+      )
+  in
+    Lifting_Setup.setup_lifting_infr quot_thm equiv_thm lthy'
+  end
+
 fun init_quotient_infr quot_thm equiv_thm lthy =
   let
     val (_ $ rel $ abs $ rep) = (HOLogic.dest_Trueprop o prop_of) quot_thm
@@ -115,6 +163,7 @@ fun init_quotient_infr quot_thm equiv_thm lthy =
         (fn phi => Quotient_Info.update_quotients qty_full_name (quot_info phi)
           #> Quotient_Info.update_abs_rep qty_full_name (abs_rep_info phi))
       |> define_abs_type quot_thm
+      |> setup_lifting_package quot_thm equiv_thm
   end
 
 (* main function for constructing a quotient type *)
