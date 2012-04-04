@@ -3,8 +3,8 @@
 
  Notes:
  * Omit %full in definitions to restrict alphabet to ascii.
- * Could include %posarg to ensure that start counting character positions from
-   0, but it would punish performance.
+ * Could include %posarg to ensure that we'd start counting character positions
+   from 0, but it would punish performance.
  * %s AF F COMMENT; -- could improve by making stateful.
 
  Acknowledgements:
@@ -52,55 +52,55 @@ val count_commentlines : string -> unit = fn str =>
 %header (functor TPTPLexFun(structure Tokens: TPTP_TOKENS));
 %arg (file_name:string);
 
-printable_char            = .;
-viewable_char             = [.\n];
+percentage_sign           = "%";
+double_quote              = ["];
+do_char                   = ([^"]|[\\]["\\]);
+single_quote              = ['];
+sq_char                   = ([\040-\041\043-\126]|[\\]['\\]);
+sign                      = [+-];
+dot                       = [.];
+exponent                  = [Ee];
+slash                     = [/];
+zero_numeric              = [0];
+non_zero_numeric          = [1-9];
 numeric                   = [0-9];
 lower_alpha               = [a-z];
 upper_alpha               = [A-Z];
 alpha_numeric             = ({lower_alpha}|{upper_alpha}|{numeric}|_);
-zero_numeric              = [0];
-non_zero_numeric          = [1-9];
-slash                     = [/];
-exponent                  = [Ee];
-dot                       = [.];
-any_char                  = [^\n];
 dollar                    = \$;
+printable_char            = .;
+viewable_char             = [.\n];
+
+dot_decimal               = {dot}{numeric}+;
+
 ddollar                   = \$\$;
 unsigned_integer          = {numeric}+;
-sign                      = [+-];
 divide                    = [/];
 
 signed_integer            = {sign}{unsigned_integer};
-dot_decimal               = {dot}{numeric}+;
 exp_suffix                = {exponent}({signed_integer}|{unsigned_integer});
 real                      = ({signed_integer}|{unsigned_integer}){dot_decimal}{exp_suffix}?;
-upper_word                = {upper_alpha}{alpha_numeric}*;
 rational                  = ({signed_integer}|{unsigned_integer}){divide}{unsigned_integer};
 
-percentage_sign           = "%";
+lower_word                = {lower_alpha}{alpha_numeric}*;
+upper_word                = {upper_alpha}{alpha_numeric}*;
+dollar_dollar_word        = {ddollar}{lower_word};
+dollar_word               = {dollar}{lower_word};
 
-sq_char                   = ([\040-\041\043-\126]|[\\]['\\]);
+distinct_object           = {double_quote}{do_char}+{double_quote};
 
 ws                        = ([\ ]|[\t]);
-eol                       = ("\013\010"|"\010"|"\013");
-
-single_quote              = ['];
 single_quoted             = {single_quote}({alpha_numeric}|{sq_char}|{ws})+{single_quote};
-
-lower_word                = {lower_alpha}{alpha_numeric}*;
-atomic_system_word        = {ddollar}{lower_word};
-atomic_defined_word       = {dollar}{lower_word};
 
 system_comment_one        = [%][\ ]*{ddollar}[_]*;
 system_comment_multi      = [/][\*][\ ]*(ddollar)([^\*]*[\*][\*]*[^/\*])*[^\*]*[\*][\*]*[/];
 system_comment            = (system_comment_one)|(system_comment_multi);
-comment_one               = {percentage_sign}[^\n]*;
-comment_multi             = [/][\*]([^\*]*[\*]+[^/\*])*[^\*]*[\*]+[/];
-comment                   = ({comment_one}|{comment_multi})+;
 
-do_char                   = ([^"]|[\\]["\\]);
-double_quote              = ["];
-distinct_object           = {double_quote}{do_char}+{double_quote};
+comment_line              = {percentage_sign}[^\n]*;
+comment_block             = [/][\*]([^\*]*[\*]+[^/\*])*[^\*]*[\*]+[/];
+comment                   = ({comment_line}|{comment_block})+;
+
+eol                       = ("\013\010"|"\010"|"\013");
 
 %%
 
@@ -175,9 +175,9 @@ distinct_object           = {double_quote}{do_char}+{double_quote};
 "$let_ft"        => (col:=yypos-(!eolpos); T.LET_FT(!linep,!col));
 "$let_tt"        => (col:=yypos-(!eolpos); T.LET_TT(!linep,!col));
 
-{lower_word}          => (col:=yypos-(!eolpos); T.LOWER_WORD(yytext,!linep,!col));
-{atomic_system_word}  => (col:=yypos-(!eolpos); T.ATOMIC_SYSTEM_WORD(yytext,!linep,!col));
-{atomic_defined_word} => (col:=yypos-(!eolpos); T.ATOMIC_DEFINED_WORD(yytext,!linep,!col));
+{lower_word}   => (col:=yypos-(!eolpos); T.LOWER_WORD(yytext,!linep,!col));
+{dollar_word}  => (col:=yypos-(!eolpos); T.DOLLAR_WORD(yytext,!linep,!col));
+{dollar_dollar_word}  => (col:=yypos-(!eolpos); T.DOLLAR_DOLLAR_WORD(yytext,!linep,!col));
 
 "+"           => (col:=yypos-(!eolpos); T.PLUS(!linep,!col));
 "*"           => (col:=yypos-(!eolpos); T.TIMES(!linep,!col));

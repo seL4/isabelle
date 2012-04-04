@@ -39,7 +39,7 @@ fun extract_quant_info (Quant (quantifier, vars, tptp_formula)) =
   | DUD | INDEF_CHOICE | DEFIN_CHOICE
   | OPERATOR_FORALL | OPERATOR_EXISTS
   | PLUS | TIMES | GENTZEN_ARROW | DEP_SUM | DEP_PROD
-  | ATOMIC_DEFINED_WORD of string | ATOMIC_SYSTEM_WORD of string
+  | DOLLAR_WORD of string | DOLLAR_DOLLAR_WORD of string
   | SUBTYPE | LET_TERM
   | THF | TFF | FOF | CNF
   | ITE_F | ITE_T
@@ -191,6 +191,8 @@ fun extract_quant_info (Quant (quantifier, vars, tptp_formula)) =
   | tff_monotype of tptp_type
   | tff_type_arguments of tptp_type list
   | let_term of tptp_term
+  | atomic_defined_word of string
+  | atomic_system_word of string
 
 %pos int
 %eop EOF
@@ -611,8 +613,8 @@ use token GENTZEN_ARROW
 
 (* Types for THF and TFF *)
 
-defined_type : ATOMIC_DEFINED_WORD ((
-  case ATOMIC_DEFINED_WORD of
+defined_type : atomic_defined_word ((
+  case atomic_defined_word of
     "$oType" => Type_Bool
   | "$o" => Type_Bool
   | "$iType" => Type_Ind
@@ -624,7 +626,7 @@ defined_type : ATOMIC_DEFINED_WORD ((
   | thing => raise UNRECOGNISED_SYMBOL ("defined_type", thing)
 ))
 
-system_type : ATOMIC_SYSTEM_WORD (( ATOMIC_SYSTEM_WORD ))
+system_type : atomic_system_word (( atomic_system_word ))
 
 
 (* First-order atoms *)
@@ -641,16 +643,16 @@ defined_atomic_formula : defined_plain_formula (( defined_plain_formula ))
 defined_plain_formula : defined_plain_term (( Pred defined_plain_term ))
 
 (*FIXME not used*)
-defined_prop : ATOMIC_DEFINED_WORD ((
-  case ATOMIC_DEFINED_WORD of
+defined_prop : atomic_defined_word ((
+  case atomic_defined_word of
     "$true"  => "$true"
   | "$false" => "$false"
   | thing => raise UNRECOGNISED_SYMBOL ("defined_prop", thing)
 ))
 
 (*FIXME not used*)
-defined_pred : ATOMIC_DEFINED_WORD ((
-  case ATOMIC_DEFINED_WORD of
+defined_pred : atomic_defined_word ((
+  case atomic_defined_word of
     "$distinct"  => "$distinct"
   | "$ite_f" => "$ite_f"
   | "$less" => "$less"
@@ -704,9 +706,9 @@ defined_plain_term : defined_constant                        (( (defined_constan
 
 defined_constant : defined_functor (( defined_functor ))
 
-(*FIXME must the ones other than the first batch be included here?*)
-defined_functor : ATOMIC_DEFINED_WORD ((
-  case ATOMIC_DEFINED_WORD of
+(*FIXME would be nicer to split these up*)
+defined_functor : atomic_defined_word ((
+  case atomic_defined_word of
     "$uminus" => Interpreted_ExtraLogic UMinus
   | "$sum" => Interpreted_ExtraLogic Sum
   | "$difference" => Interpreted_ExtraLogic Difference
@@ -757,7 +759,7 @@ system_term : system_constant                         (( (system_constant, []) )
 
 system_constant : system_functor (( system_functor ))
 
-system_functor : ATOMIC_SYSTEM_WORD (( System ATOMIC_SYSTEM_WORD ))
+system_functor : atomic_system_word (( System atomic_system_word ))
 
 variable_ : UPPER_WORD  (( UPPER_WORD ))
 
@@ -832,7 +834,6 @@ general_terms : general_term COMMA general_terms (( general_term :: general_term
 name : atomic_word (( atomic_word ))
      | integer     (( integer ))
 
-(*FIXME -- "THF" onwards*)
 atomic_word : LOWER_WORD    (( LOWER_WORD ))
             | SINGLE_QUOTED (( SINGLE_QUOTED ))
             | THF           (( "thf" ))
@@ -841,7 +842,9 @@ atomic_word : LOWER_WORD    (( LOWER_WORD ))
             | CNF           (( "cnf" ))
             | INCLUDE       (( "include" ))
 
-(*atomic_defined_word and atomic_system_word are picked up by lex*)
+atomic_defined_word : DOLLAR_WORD (( DOLLAR_WORD ))
+
+atomic_system_word : DOLLAR_DOLLAR_WORD (( DOLLAR_DOLLAR_WORD ))
 
 integer: UNSIGNED_INTEGER (( UNSIGNED_INTEGER ))
        | SIGNED_INTEGER   (( SIGNED_INTEGER ))
