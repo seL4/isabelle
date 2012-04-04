@@ -165,7 +165,8 @@ fun define_code code_eqn_thm_name def_thm rsp_thm (rty, qty) lthy =
 fun add_lift_def var qty rhs rsp_thm lthy =
   let
     val rty = fastype_of rhs
-    val absrep_trm =  Lifting_Term.absrep_fun lthy (rty, qty)
+    val quotient_thm = Lifting_Term.prove_quot_theorem lthy (rty, qty)
+    val absrep_trm =  Lifting_Term.quot_thm_abs quotient_thm
     val rty_forced = (domain_type o fastype_of) absrep_trm
     val forced_rhs = force_rty_type lthy rty_forced rhs
     val lhs = Free (Binding.print (#1 var), qty)
@@ -176,15 +177,19 @@ fun add_lift_def var qty rhs rsp_thm lthy =
     val ((_, (_ , def_thm)), lthy') = 
       Local_Theory.define (var, ((Thm.def_binding (#1 var), []), newrhs)) lthy
 
+    val transfer_thm = def_thm RS (rsp_thm RS (quotient_thm RS @{thm Quotient_to_transfer}))
+
     fun qualify defname suffix = Binding.name suffix
       |> Binding.qualify true defname
 
     val lhs_name = Binding.name_of (#1 var)
     val rsp_thm_name = qualify lhs_name "rsp"
     val code_eqn_thm_name = qualify lhs_name "rep_eq"
+    val transfer_thm_name = qualify lhs_name "transfer"
   in
     lthy'
       |> (snd oo Local_Theory.note) ((rsp_thm_name, []), [rsp_thm])
+      |> (snd oo Local_Theory.note) ((transfer_thm_name, []), [transfer_thm])
       |> define_code code_eqn_thm_name def_thm rsp_thm (rty_forced, qty)
   end
 

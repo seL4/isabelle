@@ -273,6 +273,11 @@ next
   show "transp (invariant P)" by (auto intro: transpI simp: invariant_def)
 qed
 
+lemma Quotient_to_transfer:
+  assumes "Quotient R Abs Rep T" and "R c c" and "c' \<equiv> Abs c"
+  shows "T c c'"
+  using assms by (auto dest: Quotient_cr_rel)
+
 subsection {* ML setup *}
 
 text {* Auxiliary data for the lifting package *}
