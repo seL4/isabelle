@@ -69,7 +69,7 @@ primrec app :: "('a \<Rightarrow> 'a) list \<Rightarrow> 'a \<Rightarrow> 'a" wh
 
 lemma "app (fs @ gs) x = app gs (app fs x)"
   quickcheck[random, expect = no_counterexample]
-  quickcheck[exhaustive, size = 4, expect = no_counterexample]
+  quickcheck[exhaustive, size = 2, expect = no_counterexample]
   by (induct fs arbitrary: x) simp_all
 
 lemma "app (fs @ gs) x = app fs (app gs x)"
@@ -477,15 +477,31 @@ end
 locale antisym =
   fixes R
   assumes "R x y --> R y x --> x = y"
-begin
 
-lemma
+interpretation equal : antisym "op =" by default simp
+interpretation order_nat : antisym "op <= :: nat => _ => _" by default simp
+
+lemma (in antisym)
   "R x y --> R y z --> R x z"
 quickcheck[exhaustive, finite_type_size = 2, expect = no_counterexample]
 quickcheck[exhaustive, expect = counterexample]
 oops
 
-end
+declare [[quickcheck_locale = "interpret"]]
+
+lemma (in antisym)
+  "R x y --> R y z --> R x z"
+quickcheck[exhaustive, expect = no_counterexample]
+oops
+
+declare [[quickcheck_locale = "expand"]]
+
+lemma (in antisym)
+  "R x y --> R y z --> R x z"
+quickcheck[exhaustive, finite_type_size = 2, expect = no_counterexample]
+quickcheck[exhaustive, expect = counterexample]
+oops
+
 
 subsection {* Examples with HOL quantifiers *}
 
