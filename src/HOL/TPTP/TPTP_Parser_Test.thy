@@ -7,7 +7,7 @@ TPTP-vX.Y.Z/Problems directory.
 *)
 
 theory TPTP_Parser_Test
-imports TPTP_Parser
+imports TPTP_Parser TPTP_Parser_Example
 begin
 
 ML {*
