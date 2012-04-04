@@ -772,24 +772,6 @@ lemma OOO_eq_quotient3:
 using assms
 by (rule OOO_quotient3) auto
 
-subsection {* Invariant *}
-
-lemma copy_type_to_Quotient3:
-  assumes "type_definition Rep Abs UNIV"
-  shows "Quotient3 (op =) Abs Rep"
-proof -
-  interpret type_definition Rep Abs UNIV by fact
-  from Abs_inject Rep_inverse show ?thesis by (auto intro!: Quotient3I)
-qed
-
-lemma invariant_type_to_Quotient3:
-  assumes "type_definition Rep Abs {x. P x}"
-  shows "Quotient3 (Lifting.invariant P) Abs Rep"
-proof -
-  interpret type_definition Rep Abs "{x. P x}" by fact
-  from Rep Abs_inject Rep_inverse show ?thesis by (auto intro!: Quotient3I simp: invariant_def)
-qed
-
 subsection {* ML setup *}
 
 text {* Auxiliary data for the quotient package *}

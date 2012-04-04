@@ -177,7 +177,7 @@ fun add_lift_def var qty rhs rsp_thm lthy =
     val ((_, (_ , def_thm)), lthy') = 
       Local_Theory.define (var, ((Thm.def_binding (#1 var), []), newrhs)) lthy
 
-    val transfer_thm = def_thm RS (rsp_thm RS (quotient_thm RS @{thm Quotient_to_transfer}))
+    val transfer_thm = [quotient_thm, rsp_thm, def_thm] MRSL @{thm Quotient_to_transfer}
 
     fun qualify defname suffix = Binding.name suffix
       |> Binding.qualify true defname
