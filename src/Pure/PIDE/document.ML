@@ -243,7 +243,7 @@ end;
 
 abstype state = State of
  {versions: version Inttab.table,  (*version_id -> document content*)
-  commands: (string * Token.T list lazy) Inttab.table,  (*command_id -> name * span*)
+  commands: (string * Token.T list lazy) Inttab.table,  (*command_id -> named span*)
   execution: version_id * Future.group}  (*current execution process*)
 with
 
@@ -310,6 +310,12 @@ end;
 
 local
 
+fun run int tr st =
+  (case Toplevel.transition int tr st of
+    SOME (st', NONE) => ([], SOME st')
+  | SOME (_, SOME (exn, _)) => (ML_Compiler.exn_messages exn, NONE)
+  | NONE => ([(serial (), ML_Compiler.exn_message Runtime.TERMINATE)], NONE));
+
 fun timing tr t =
   if Timing.is_relevant t then Toplevel.status tr (Isabelle_Markup.timing t) else ();
 
@@ -321,12 +327,6 @@ fun proof_status tr st =
 fun print_state tr st =
   (Lazy.lazy o Toplevel.setmp_thread_position tr)
     (fn () => Toplevel.print_state false st);
-
-fun run int tr st =
-  (case Toplevel.transition int tr st of
-    SOME (st', NONE) => ([], SOME st')
-  | SOME (_, SOME (exn, _)) => (ML_Compiler.exn_messages exn, NONE)
-  | NONE => ([(serial (), ML_Compiler.exn_message Runtime.TERMINATE)], NONE));
 
 in
 
@@ -363,7 +363,6 @@ end;
 
 
 
-
 (** update **)
 
 (* perspective *)
@@ -379,6 +378,37 @@ fun update_perspective (old_id: version_id) (new_id: version_id) name perspectiv
 (* edits *)
 
 local
+
+fun make_required nodes =
+  let
+    val all_visible =
+      Graph.fold (fn (a, (node, _)) => is_some (#2 (get_perspective node)) ? cons a) nodes []
+      |> Graph.all_preds nodes;
+    val required =
+      fold (fn a => exists (fn b => Graph.is_edge nodes (a, b)) all_visible ? Symtab.update (a, ()))
+        all_visible Symtab.empty;
+  in Symtab.defined required end;
+
+fun init_theory deps node =
+  let
+    (* FIXME provide files via Scala layer, not master_dir *)
+    val (dir, header) = Exn.release (get_header node);
+    val master_dir =
+      (case Url.explode dir of
+        Url.File path => path
+      | _ => Path.current);
+    val parents =
+      #imports header |> map (fn import =>
+        (case Thy_Info.lookup_theory import of  (* FIXME more robust!? *)
+          SOME thy => thy
+        | NONE =>
+            get_theory (Position.file_only import)
+              (snd (Future.join (the (AList.lookup (op =) deps import))))));
+  in Thy_Load.begin_theory master_dir header parents end;
+
+fun check_theory nodes name =
+  is_some (Thy_Info.lookup_theory name) orelse  (* FIXME more robust!? *)
+  is_some (Exn.get_res (get_header (get_node nodes name)));
 
 fun last_common state last_visible node0 node =
   let
@@ -427,37 +457,6 @@ fun new_exec state bad_init command_id' (execs, command_exec, init) =
       val exec' = snd (snd command_exec) |> Lazy.map (fn (st, _) => run_command (tr ()) st);
       val command_exec' = (command_id', (exec_id', exec'));
     in SOME (command_exec' :: execs, command_exec', init') end;
-
-fun make_required nodes =
-  let
-    val all_visible =
-      Graph.fold (fn (a, (node, _)) => is_some (#2 (get_perspective node)) ? cons a) nodes []
-      |> Graph.all_preds nodes;
-    val required =
-      fold (fn a => exists (fn b => Graph.is_edge nodes (a, b)) all_visible ? Symtab.update (a, ()))
-        all_visible Symtab.empty;
-  in Symtab.defined required end;
-
-fun check_theory nodes name =
-  is_some (Thy_Info.lookup_theory name) orelse  (* FIXME more robust!? *)
-  is_some (Exn.get_res (get_header (get_node nodes name)));
-
-fun init_theory deps node =
-  let
-    (* FIXME provide files via Scala layer, not master_dir *)
-    val (dir, header) = Exn.release (get_header node);
-    val master_dir =
-      (case Url.explode dir of
-        Url.File path => path
-      | _ => Path.current);
-    val parents =
-      #imports header |> map (fn import =>
-        (case Thy_Info.lookup_theory import of  (* FIXME more robust!? *)
-          SOME thy => thy
-        | NONE =>
-            get_theory (Position.file_only import)
-              (snd (Future.join (the (AList.lookup (op =) deps import))))));
-  in Thy_Load.begin_theory master_dir header parents end;
 
 in
 
