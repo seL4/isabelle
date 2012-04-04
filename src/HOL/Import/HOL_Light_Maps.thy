@@ -93,9 +93,9 @@ lemma [import_const SND]:
   "snd = (\<lambda>p\<Colon>'A \<times> 'B. SOME y\<Colon>'B. \<exists>x\<Colon>'A. p = (x, y))"
   by auto
 
-(*lemma [import_const CURRY]:
+lemma CURRY_DEF[import_const CURRY]:
   "curry = (\<lambda>(f\<Colon>'A \<times> 'B \<Rightarrow> 'C) x y. f (x, y))"
-  using curry_def .*)
+  using curry_def .
 
 lemma [import_const ONE_ONE : Fun.inj]:
   "inj = (\<lambda>(f\<Colon>'A \<Rightarrow> 'B). \<forall>x1 x2. f x1 = f x2 \<longrightarrow> x1 = x2)"
@@ -200,16 +200,16 @@ lemma DIVISION_0:
   "\<forall>m n\<Colon>nat. if n = id 0 then m div n = id 0 \<and> m mod n = m else m = m div n * n + m mod n \<and> m mod n < n"
   by simp
 
-lemmas [import_type sum "_dest_sum" "_mk_sum"] = type_definition_sum
+lemmas [import_type sum "_dest_sum" "_mk_sum"] = type_definition_sum[where 'a="'A" and 'b="'B"]
 import_const_map INL : Sum_Type.Inl
 import_const_map INR : Sum_Type.Inr
 
 lemma sum_INDUCT:
-  "\<forall>P. (\<forall>a. P (Inl a)) \<and> (\<forall>a. P (Inr a)) \<longrightarrow> (\<forall>x. P x)"
+  "\<forall>P. (\<forall>a :: 'A. P (Inl a)) \<and> (\<forall>a :: 'B. P (Inr a)) \<longrightarrow> (\<forall>x. P x)"
   by (auto intro: sum.induct)
 
 lemma sum_RECURSION:
-  "\<forall>Inl' Inr'. \<exists>fn. (\<forall>a. fn (Inl a) = Inl' a) \<and> (\<forall>a. fn (Inr a) = Inr' a)"
+  "\<forall>Inl' Inr'. \<exists>fn. (\<forall>a :: 'A. fn (Inl a) = (Inl' a :: 'Z)) \<and> (\<forall>a :: 'B. fn (Inr a) = Inr' a)"
   by (intro allI, rule_tac x="sum_case Inl' Inr'" in exI) auto
 
 lemma OUTL[import_const "OUTL" : "Sum_Type.Projl"]:
@@ -249,7 +249,7 @@ lemma REVERSE[import_const REVERSE : List.rev]:
   by simp
 
 lemma LENGTH[import_const LENGTH : List.length]:
-  "length [] = id 0 \<and> (\<forall>(h\<Colon>'A) t. length (h # t) = Suc (length t))"
+  "length ([] :: 'A list) = id 0 \<and> (\<forall>(h\<Colon>'A) t. length (h # t) = Suc (length t))"
   by simp
 
 lemma MAP[import_const MAP : List.map]:
@@ -307,7 +307,7 @@ lemma ZIP[import_const ZIP : List.zip]:
   by simp
 
 lemma WF[import_const WF : Wellfounded.wfP]:
-  "wfP u \<longleftrightarrow> (\<forall>P. (\<exists>x :: 'A. P x) \<longrightarrow> (\<exists>x. P x \<and> (\<forall>y. u y x \<longrightarrow> \<not> P y)))"
+  "\<forall>u. wfP u \<longleftrightarrow> (\<forall>P. (\<exists>x :: 'A. P x) \<longrightarrow> (\<exists>x. P x \<and> (\<forall>y. u y x \<longrightarrow> \<not> P y)))"
 proof (intro allI iffI impI wfI_min[to_pred], elim exE wfE_min[to_pred])
   fix x :: "'a \<Rightarrow> 'a \<Rightarrow> bool" and xa :: "'a" and Q
   assume a: "xa \<in> Q"
