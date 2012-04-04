@@ -143,10 +143,10 @@ fun correspondence_tac ctxt i =
          (resolve_tac rules ORELSE' atac ORELSE' eq_tac ctxt) i]
   end
 
-val transfer_method =
+val transfer_method : (Proof.context -> Method.method) context_parser =
   Scan.succeed (fn ctxt => SIMPLE_METHOD' (transfer_tac ctxt))
 
-val correspondence_method =
+val correspondence_method : (Proof.context -> Method.method) context_parser =
   Scan.succeed (fn ctxt => SIMPLE_METHOD' (correspondence_tac ctxt))
 
 (* Attribute for correspondence rules *)
