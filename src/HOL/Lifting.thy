@@ -252,6 +252,16 @@ lemma copy_type_to_equivp:
   shows "equivp (op=::'a\<Rightarrow>'a\<Rightarrow>bool)"
 by (rule identity_equivp)
 
+lemma typedef_to_Quotient:
+  assumes "type_definition Rep Abs {x. P x}"
+  and T_def: "T \<equiv> (\<lambda>x y. x = Rep y)"
+  shows "Quotient (invariant P) Abs Rep T"
+proof -
+  interpret type_definition Rep Abs "{x. P x}" by fact
+  from Rep Abs_inject Rep_inverse Abs_inverse T_def show ?thesis
+    by (auto intro!: QuotientI simp: invariant_def fun_eq_iff)
+qed
+
 lemma invariant_type_to_Quotient:
   assumes "type_definition Rep Abs {x. P x}"
   and T_def: "T \<equiv> (\<lambda>x y. (invariant P) x x \<and> Abs x = y)"
