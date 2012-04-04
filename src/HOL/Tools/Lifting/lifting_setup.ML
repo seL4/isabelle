@@ -1,7 +1,7 @@
 (*  Title:      HOL/Tools/Lifting/lifting_setup.ML
     Author:     Ondrej Kuncar
 
-Setting the lifting infranstructure up.
+Setting up the lifting infrastructure.
 *)
 
 signature LIFTING_SETUP =
@@ -39,7 +39,7 @@ fun define_cr_rel equiv_thm abs_fun lthy =
       Const (@{const_name equivp}, _) $ _ => abs_fun_graph
       | Const (@{const_name part_equivp}, _) $ rel => 
         HOLogic.mk_conj (force_type_of_rel rel rty $ Bound 1 $ Bound 1, abs_fun_graph)
-      | _ => raise SETUP_LIFTING_INFR "unsopported equivalence theorem"
+      | _ => raise SETUP_LIFTING_INFR "unsupported equivalence theorem"
       )
     val def_term = Abs ("x", rty, Abs ("y", qty, Abs_body));
     val qty_name = (fst o dest_Type) qty
@@ -107,7 +107,7 @@ fun setup_by_typedef_thm_aux xthm lthy = setup_by_typedef_thm (singleton (Attrib
 
 val _ = 
   Outer_Syntax.local_theory @{command_spec "setup_lifting"}
-    "Setup lifting infrastracture" 
+    "Setup lifting infrastructure" 
       (Parse_Spec.xthm >> (fn xthm => setup_by_typedef_thm_aux xthm))
 
 end;
