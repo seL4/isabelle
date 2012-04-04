@@ -651,14 +651,19 @@ fun interpret_formula config language const_map var_types type_map tptp_fmla thy
         | Dep_Sum =>
             raise MISINTERPRET_FORMULA ("Unsupported", tptp_fmla)
         end
-  (*FIXME unsupported
-    | Conditional of tptp_formula * tptp_formula * tptp_formula
-    | Let of tptp_let list * tptp_formula
-
-    and tptp_let =
-        Let_fmla of (string * tptp_type option) * tptp_formula (*both TFF and THF*)
-      | Let_term of (string * tptp_type option) * tptp_term  (*only TFF*)
-  *)
+    | Conditional (fmla1, fmla2, fmla3) =>
+        let
+          val interp = interpret_formula config language const_map var_types type_map
+          val (((fmla1', fmla2'), fmla3'), thy') =
+            interp fmla1 thy
+            ||>> interp fmla2
+            ||>> interp fmla3
+        in (HOLogic.mk_conj (HOLogic.mk_imp (fmla1', fmla2'),
+                             HOLogic.mk_imp (HOLogic.mk_not fmla1', fmla3')),
+            thy')
+        end
+    | Let (tptp_let_list, tptp_formula) => (*FIXME not yet implemented*)
+        raise MISINTERPRET_FORMULA ("'Let' not yet implemented", tptp_fmla)
     | Atom tptp_atom =>
         (case tptp_atom of
           TFF_Typed_Atom (symbol, tptp_type_opt) =>
