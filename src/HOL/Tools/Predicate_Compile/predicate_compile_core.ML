@@ -1334,7 +1334,7 @@ fun add_code_equations ctxt preds result_thmss =
       let
         val full_mode = fold_rev (curry Fun) (map (K Input) (binder_types T)) Bool
       in
-        if member (op =) (modes_of Pred ctxt predname) full_mode then
+        if member eq_mode  (modes_of Pred ctxt predname) full_mode then
           let
             val Ts = binder_types T
             val arg_names = Name.variant_list []
