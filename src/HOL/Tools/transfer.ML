@@ -113,6 +113,10 @@ fun eq_tac ctxt = SUBGOAL (fn (t, i) =>
     rtac thm2 i
   end handle Match => no_tac | TERM _ => no_tac)
 
+val post_simps =
+  @{thms App_def Abs_def transfer_forall_eq [symmetric]
+    transfer_implies_eq [symmetric] transfer_bforall_unfold}
+
 fun transfer_tac ctxt = SUBGOAL (fn (t, i) =>
   let
     val bs = bnames t
@@ -128,8 +132,7 @@ fun transfer_tac ctxt = SUBGOAL (fn (t, i) =>
          rtac @{thm equal_elim_rule1} i THEN
          rtac (Thm.reflexive (cert ctxt (fst (rename bs u)))) i) i,
        (* FIXME: rewrite_goal_tac does unwanted eta-contraction *)
-       rewrite_goal_tac @{thms App_def Abs_def} i,
-       rewrite_goal_tac @{thms transfer_forall_eq [symmetric] transfer_implies_eq [symmetric]} i,
+       rewrite_goal_tac post_simps i,
        rtac @{thm _} i]
   end)
 
