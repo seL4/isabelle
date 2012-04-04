@@ -1027,8 +1027,8 @@ code_pred (modes:
   (o * o => bool) => i * i => bool) [inductify] converse .
 
 thm converse.equation
-code_pred [inductify] rel_comp .
-thm rel_comp.equation
+code_pred [inductify] relcomp .
+thm relcomp.equation
 code_pred [inductify] Image .
 thm Image.equation
 declare singleton_iff[code_pred_inline]
