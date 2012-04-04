@@ -1,0 +1,85 @@
+(*  Title:      Pure/PIDE/command.ML
+    Author:     Makarius
+
+Prover command execution.
+*)
+
+signature COMMAND =
+sig
+  val parse_command: string -> string -> Token.T list
+  val run_command: Toplevel.transition -> Toplevel.state -> Toplevel.state * unit lazy
+end;
+
+structure Command: COMMAND =
+struct
+
+(* parse *)
+
+fun parse_command id text =
+  Position.setmp_thread_data (Position.id_only id)
+    (fn () =>
+      let
+        val toks = Thy_Syntax.parse_tokens (#1 (Outer_Syntax.get_syntax ())) (Position.id id) text;
+        val _ = Output.status (Markup.markup_only Isabelle_Markup.parsed);
+      in toks end) ();
+
+
+(* run *)
+
+local
+
+fun run int tr st =
+  (case Toplevel.transition int tr st of
+    SOME (st', NONE) => ([], SOME st')
+  | SOME (_, SOME (exn, _)) => (ML_Compiler.exn_messages exn, NONE)
+  | NONE => ([(serial (), ML_Compiler.exn_message Runtime.TERMINATE)], NONE));
+
+fun timing tr t =
+  if Timing.is_relevant t then Toplevel.status tr (Isabelle_Markup.timing t) else ();
+
+fun proof_status tr st =
+  (case try Toplevel.proof_of st of
+    SOME prf => Toplevel.status tr (Proof.status_markup prf)
+  | NONE => ());
+
+val no_print = Lazy.value ();
+
+fun print_state tr st =
+  (Lazy.lazy o Toplevel.setmp_thread_position tr)
+    (fn () => Toplevel.print_state false st);
+
+in
+
+fun run_command tr st =
+  let
+    val is_init = Toplevel.is_init tr;
+    val is_proof = Keyword.is_proof (Toplevel.name_of tr);
+
+    val _ = Multithreading.interrupted ();
+    val _ = Toplevel.status tr Isabelle_Markup.forked;
+    val start = Timing.start ();
+    val (errs, result) = run (is_init orelse is_proof) (Toplevel.set_print false tr) st;
+    val _ = timing tr (Timing.result start);
+    val _ = Toplevel.status tr Isabelle_Markup.joined;
+    val _ = List.app (Toplevel.error_msg tr) errs;
+  in
+    (case result of
+      NONE =>
+        let
+          val _ = if null errs then Exn.interrupt () else ();
+          val _ = Toplevel.status tr Isabelle_Markup.failed;
+        in (st, no_print) end
+    | SOME st' =>
+        let
+          val _ = Toplevel.status tr Isabelle_Markup.finished;
+          val _ = proof_status tr st';
+          val do_print =
+            not is_init andalso
+              (Toplevel.print_of tr orelse (is_proof andalso Toplevel.is_proof st'));
+        in (st', if do_print then print_state tr st' else no_print) end)
+  end;
+
+end;
+
+end;
+
