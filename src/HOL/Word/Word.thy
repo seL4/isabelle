@@ -239,33 +239,31 @@ lemma Quotient_word:
   unfolding Quotient_alt_def cr_word_def
   by (simp add: word_ubin.norm_eq_iff)
 
-lemma equivp_word:
-  "equivp (\<lambda>x y. bintrunc (len_of TYPE('a::len0)) x = bintrunc (len_of TYPE('a)) y)"
-  by (auto intro!: equivpI reflpI sympI transpI)
+lemma reflp_word:
+  "reflp (\<lambda>x y. bintrunc (len_of TYPE('a::len0)) x = bintrunc (len_of TYPE('a)) y)"
+  by (simp add: reflp_def)
 
 local_setup {*
-  Lifting_Setup.setup_lifting_infr @{thm Quotient_word} @{thm equivp_word}
+  Lifting_Setup.setup_lifting_infr @{thm Quotient_word} @{thm reflp_word}
 *}
 
 text {* TODO: The next several lemmas could be generated automatically. *}
 
 lemma bi_total_cr_word [transfer_rule]: "bi_total cr_word"
-  unfolding bi_total_def cr_word_def
-  by (auto intro: word_of_int_uint)
+  using Quotient_word reflp_word by (rule Quotient_bi_total)
 
 lemma right_unique_cr_word [transfer_rule]: "right_unique cr_word"
-  unfolding right_unique_def cr_word_def by simp
+  using Quotient_word by (rule Quotient_right_unique)
 
 lemma word_eq_transfer [transfer_rule]:
   "(fun_rel cr_word (fun_rel cr_word op =))
     (\<lambda>x y. bintrunc (len_of TYPE('a)) x = bintrunc (len_of TYPE('a)) y)
     (op = :: 'a::len0 word \<Rightarrow> 'a word \<Rightarrow> bool)"
-  unfolding fun_rel_def cr_word_def
-  by (simp add: word_ubin.norm_eq_iff)
+  using Quotient_word by (rule Quotient_rel_eq_transfer)
 
 lemma word_of_int_transfer [transfer_rule]:
   "(fun_rel op = cr_word) (\<lambda>x. x) word_of_int"
-  unfolding fun_rel_def cr_word_def by simp
+  using Quotient_word reflp_word by (rule Quotient_id_abs_transfer)
 
 lemma uint_transfer [transfer_rule]:
   "(fun_rel cr_word op =) (bintrunc (len_of TYPE('a)))
