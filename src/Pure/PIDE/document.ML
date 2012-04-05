@@ -400,7 +400,7 @@ fun new_exec state bad_init command_id' (execs, command_exec, init) =
             |> modify_init
             |> Toplevel.put_id exec_id'_string);
       val exec' = Command.memo (fn () =>
-        let val (st, _) = Command.memo_result (snd (snd command_exec));
+        let val (st, _) = Command.memo_eval (snd (snd command_exec));  (* FIXME memo_result !?! *)
         in Command.run_command (tr ()) st end);
       val command_exec' = (command_id', (exec_id', exec'));
     in SOME (command_exec' :: execs, command_exec', init') end;
