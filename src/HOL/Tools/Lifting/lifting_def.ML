@@ -186,10 +186,11 @@ fun add_lift_def var qty rhs rsp_thm lthy =
     val rsp_thm_name = qualify lhs_name "rsp"
     val code_eqn_thm_name = qualify lhs_name "rep_eq"
     val transfer_thm_name = qualify lhs_name "transfer"
+    val transfer_attr = Attrib.internal (K Transfer.transfer_add)
   in
     lthy'
       |> (snd oo Local_Theory.note) ((rsp_thm_name, []), [rsp_thm])
-      |> (snd oo Local_Theory.note) ((transfer_thm_name, []), [transfer_thm])
+      |> (snd oo Local_Theory.note) ((transfer_thm_name, [transfer_attr]), [transfer_thm])
       |> define_code code_eqn_thm_name def_thm rsp_thm (rty_forced, qty)
   end
 
