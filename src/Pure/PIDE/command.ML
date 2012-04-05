@@ -10,7 +10,8 @@ sig
   type 'a memo
   val memo: (unit -> 'a) -> 'a memo
   val memo_value: 'a -> 'a memo
-  val memo_result: 'a memo -> 'a Exn.result
+  val memo_eval: 'a memo -> 'a
+  val memo_result: 'a memo -> 'a
   val memo_stable: 'a memo -> bool
   val run_command: Toplevel.transition -> Toplevel.state -> Toplevel.state * unit lazy
 end;
@@ -41,7 +42,7 @@ with
 fun memo e = Memo (Synchronized.var "Command.memo" (Expr e));
 fun memo_value a = Memo (Synchronized.var "Command.memo" (Result (Exn.Res a)));
 
-fun memo_result (Memo v) =
+fun memo_eval (Memo v) =
   (case Synchronized.value v of
     Result res => res
   | _ =>
@@ -49,7 +50,13 @@ fun memo_result (Memo v) =
         (fn Result res => SOME (res, Result res)
           | Expr e =>
               let val res = Exn.capture e ();  (*memoing of physical interrupts!*)
-              in SOME (res, Result res) end));
+              in SOME (res, Result res) end))
+  |> Exn.release;
+
+fun memo_result (Memo v) =
+  (case Synchronized.value v of
+    Result res => Exn.release res
+  | _ => raise Fail "Unfinished memo result");
 
 fun memo_stable (Memo v) =
   (case Synchronized.value v of

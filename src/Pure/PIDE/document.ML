@@ -226,7 +226,7 @@ fun edit_nodes (name, node_edit) (Version nodes) =
         in Graph.map_node name (set_header header'') nodes3 end
         |> touch_node name
     | Perspective perspective =>
-        update_node name (set_perspective perspective) nodes);
+        update_node name (set_perspective perspective #> set_touched true) nodes);
 
 end;
 
@@ -337,8 +337,8 @@ fun init_theory deps node =
           SOME thy => thy
         | NONE =>
             Toplevel.end_theory (Position.file_only import)
-              (fst (Exn.release (Command.memo_result
-                (get_result (snd (Future.join (the (AList.lookup (op =) deps import))))))))));
+              (fst (Command.memo_eval  (* FIXME memo_result !?! *)
+                (get_result (snd (Future.join (the (AList.lookup (op =) deps import)))))))));
   in Thy_Load.begin_theory master_dir header parents end;
 
 fun check_theory nodes name =
@@ -396,7 +396,7 @@ fun new_exec state bad_init command_id' (execs, command_exec, init) =
             |> modify_init
             |> Toplevel.put_id exec_id'_string);
       val exec' = Command.memo (fn () =>
-        let val (st, _) = Exn.release (Command.memo_result (snd (snd command_exec)));
+        let val (st, _) = Command.memo_result (snd (snd command_exec));
         in Command.run_command (tr ()) st end);
       val command_exec' = (command_id', (exec_id', exec'));
     in SOME (command_exec' :: execs, command_exec', init') end;
@@ -486,7 +486,7 @@ fun execute version_id state =
       fun force_exec _ _ NONE = ()
         | force_exec node command_id (SOME (_, exec)) =
             let
-              val (_, print) = Exn.release (Command.memo_result exec);
+              val (_, print) = Command.memo_eval exec;
               val _ =
                 if #1 (get_perspective node) command_id
                 then ignore (Lazy.future Future.default_params print)
