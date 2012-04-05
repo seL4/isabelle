@@ -228,6 +228,34 @@ proof
   thus "PROP P x" by simp
 qed
 
+subsection {* Correspondence relation for theorem transfer *}
+
+definition cr_word :: "int \<Rightarrow> 'a::len0 word \<Rightarrow> bool"
+  where "cr_word \<equiv> (\<lambda>x y. word_of_int x = y)"
+
+lemma bi_total_cr_word [transfer_rule]: "bi_total cr_word"
+  unfolding bi_total_def cr_word_def
+  by (auto intro: word_of_int_uint)
+
+lemma right_unique_cr_word [transfer_rule]: "right_unique cr_word"
+  unfolding right_unique_def cr_word_def by simp
+
+lemma word_eq_transfer [transfer_rule]:
+  "(fun_rel cr_word (fun_rel cr_word op =))
+    (\<lambda>x y. bintrunc (len_of TYPE('a)) x = bintrunc (len_of TYPE('a)) y)
+    (op = :: 'a::len0 word \<Rightarrow> 'a word \<Rightarrow> bool)"
+  unfolding fun_rel_def cr_word_def
+  by (simp add: word_ubin.norm_eq_iff)
+
+lemma word_of_int_transfer [transfer_rule]:
+  "(fun_rel op = cr_word) (\<lambda>x. x) word_of_int"
+  unfolding fun_rel_def cr_word_def by simp
+
+lemma uint_transfer [transfer_rule]:
+  "(fun_rel cr_word op =) (bintrunc (len_of TYPE('a)))
+    (uint :: 'a::len0 word \<Rightarrow> int)"
+  unfolding fun_rel_def cr_word_def by (simp add: word_ubin.eq_norm)
+
 subsection  "Arithmetic operations"
 
 definition
@@ -290,8 +318,19 @@ lemmas word_of_int_homs = wi_homs word_0_wi word_1_wi
 
 lemmas word_of_int_hom_syms = word_of_int_homs [symmetric]
 
+lemma word_arith_transfer [transfer_rule]:
+  "cr_word 0 0"
+  "cr_word 1 1"
+  "(fun_rel cr_word (fun_rel cr_word cr_word)) (op +) (op +)"
+  "(fun_rel cr_word (fun_rel cr_word cr_word)) (op -) (op -)"
+  "(fun_rel cr_word (fun_rel cr_word cr_word)) (op *) (op *)"
+  "(fun_rel cr_word cr_word) uminus uminus"
+  "(fun_rel cr_word cr_word) (\<lambda>x. x + 1) word_succ"
+  "(fun_rel cr_word cr_word) (\<lambda>x. x - 1) word_pred"
+  unfolding cr_word_def fun_rel_def by (simp_all add: word_of_int_homs)
+
 instance
-  by default (auto simp: split_word_all word_of_int_homs algebra_simps)
+  by default (transfer, simp add: algebra_simps)+
 
 end
 
@@ -299,8 +338,7 @@ instance word :: (len) comm_ring_1
 proof
   have "0 < len_of TYPE('a)" by (rule len_gt_0)
   then show "(0::'a word) \<noteq> 1"
-    unfolding word_0_wi word_1_wi
-    by (auto simp add: word_ubin.norm_eq_iff [symmetric] gr0_conv_Suc)
+    by - (transfer, auto simp add: gr0_conv_Suc)
 qed
 
 lemma word_of_nat: "of_nat n = word_of_int (int n)"
@@ -566,6 +604,12 @@ lemma word_neg_numeral_alt:
   by (simp only: neg_numeral_def word_numeral_alt wi_hom_neg)
 
 declare word_neg_numeral_alt [symmetric, code_abbrev]
+
+lemma word_numeral_transfer [transfer_rule]:
+  "(fun_rel op = cr_word) numeral numeral"
+  "(fun_rel op = cr_word) neg_numeral neg_numeral"
+  unfolding fun_rel_def cr_word_def word_numeral_alt word_neg_numeral_alt
+  by simp_all
 
 lemma uint_bintrunc [simp]:
   "uint (numeral bin :: 'a word) = 
@@ -2120,6 +2164,14 @@ lemma word_wi_log_defs:
   "word_of_int a XOR word_of_int b = word_of_int (a XOR b)"
   unfolding word_log_defs wils1 by simp_all
 
+lemma word_bitwise_transfer [transfer_rule]:
+  "(fun_rel cr_word cr_word) bitNOT bitNOT"
+  "(fun_rel cr_word (fun_rel cr_word cr_word)) bitAND bitAND"
+  "(fun_rel cr_word (fun_rel cr_word cr_word)) bitOR bitOR"
+  "(fun_rel cr_word (fun_rel cr_word cr_word)) bitXOR bitXOR"
+  unfolding fun_rel_def cr_word_def
+  by (simp_all add: word_wi_log_defs)
+
 lemma word_no_log_defs [simp]:
   "NOT (numeral a) = word_of_int (NOT (numeral a))"
   "NOT (neg_numeral a) = word_of_int (NOT (neg_numeral a))"
@@ -2135,7 +2187,7 @@ lemma word_no_log_defs [simp]:
   "numeral a XOR neg_numeral b = word_of_int (numeral a XOR neg_numeral b)"
   "neg_numeral a XOR numeral b = word_of_int (neg_numeral a XOR numeral b)"
   "neg_numeral a XOR neg_numeral b = word_of_int (neg_numeral a XOR neg_numeral b)"
-  unfolding word_numeral_alt word_neg_numeral_alt word_wi_log_defs by simp_all
+  by (transfer, rule refl)+
 
 text {* Special cases for when one of the arguments equals 1. *}
 
@@ -2153,15 +2205,23 @@ lemma word_bitwise_1_simps [simp]:
   "1 XOR neg_numeral b = word_of_int (1 XOR neg_numeral b)"
   "numeral a XOR 1 = word_of_int (numeral a XOR 1)"
   "neg_numeral a XOR 1 = word_of_int (neg_numeral a XOR 1)"
-  unfolding word_1_no word_no_log_defs by simp_all
+  by (transfer, simp)+
 
 lemma uint_or: "uint (x OR y) = (uint x) OR (uint y)"
-  by (simp add: word_or_def word_wi_log_defs word_ubin.eq_norm
-                bin_trunc_ao(2) [symmetric])
+  by (transfer, simp add: bin_trunc_ao)
 
 lemma uint_and: "uint (x AND y) = (uint x) AND (uint y)"
-  by (simp add: word_and_def word_wi_log_defs word_ubin.eq_norm
-                bin_trunc_ao(1) [symmetric]) 
+  by (transfer, simp add: bin_trunc_ao)
+
+lemma test_bit_wi [simp]:
+  "(word_of_int x::'a::len0 word) !! n \<longleftrightarrow> n < len_of TYPE('a) \<and> bin_nth x n"
+  unfolding word_test_bit_def
+  by (simp add: word_ubin.eq_norm nth_bintr)
+
+lemma word_test_bit_transfer [transfer_rule]:
+  "(fun_rel cr_word (fun_rel op = op =))
+    (\<lambda>x n. n < len_of TYPE('a) \<and> bin_nth x n) (test_bit :: 'a::len0 word \<Rightarrow> _)"
+  unfolding fun_rel_def cr_word_def by simp
 
 lemma word_ops_nth_size:
   "n < size (x::'a::len0 word) \<Longrightarrow> 
@@ -2169,42 +2229,32 @@ lemma word_ops_nth_size:
     (x AND y) !! n = (x !! n & y !! n) & 
     (x XOR y) !! n = (x !! n ~= y !! n) & 
     (NOT x) !! n = (~ x !! n)"
-  unfolding word_size word_test_bit_def word_log_defs
-  by (clarsimp simp add : word_ubin.eq_norm nth_bintr bin_nth_ops)
+  unfolding word_size by transfer (simp add: bin_nth_ops)
 
 lemma word_ao_nth:
   fixes x :: "'a::len0 word"
   shows "(x OR y) !! n = (x !! n | y !! n) & 
          (x AND y) !! n = (x !! n & y !! n)"
-  apply (cases "n < size x")
-   apply (drule_tac y = "y" in word_ops_nth_size)
-   apply simp
-  apply (simp add : test_bit_bin word_size)
-  done
-
-lemma test_bit_wi [simp]:
-  "(word_of_int x::'a::len0 word) !! n \<longleftrightarrow> n < len_of TYPE('a) \<and> bin_nth x n"
-  unfolding word_test_bit_def
-  by (simp add: nth_bintr [symmetric] word_ubin.eq_norm)
+  by transfer (auto simp add: bin_nth_ops)
 
 lemma test_bit_numeral [simp]:
   "(numeral w :: 'a::len0 word) !! n \<longleftrightarrow>
     n < len_of TYPE('a) \<and> bin_nth (numeral w) n"
-  unfolding word_numeral_alt test_bit_wi ..
+  by transfer (rule refl)
 
 lemma test_bit_neg_numeral [simp]:
   "(neg_numeral w :: 'a::len0 word) !! n \<longleftrightarrow>
     n < len_of TYPE('a) \<and> bin_nth (neg_numeral w) n"
-  unfolding word_neg_numeral_alt test_bit_wi ..
+  by transfer (rule refl)
 
 lemma test_bit_1 [simp]: "(1::'a::len word) !! n \<longleftrightarrow> n = 0"
-  unfolding word_1_wi test_bit_wi by auto
+  by transfer auto
   
 lemma nth_0 [simp]: "~ (0::'a::len0 word) !! n"
-  unfolding word_test_bit_def by simp
+  by transfer simp
 
 lemma nth_minus1 [simp]: "(-1::'a::len0 word) !! n \<longleftrightarrow> n < len_of TYPE('a)"
-  unfolding word_test_bit_def by (simp add: nth_bintr)
+  by transfer simp
 
 (* get from commutativity, associativity etc of int_and etc
   to same for word_and etc *)
@@ -2299,15 +2349,12 @@ lemma word_oa_dist:
 lemma word_add_not [simp]: 
   fixes x :: "'a::len0 word"
   shows "x + NOT x = -1"
-  using word_of_int_Ex [where x=x] 
-  by (auto simp: bwsimps bin_add_not [unfolded Min_def])
+  by transfer (simp add: bin_add_not)
 
 lemma word_plus_and_or [simp]:
   fixes x :: "'a::len0 word"
   shows "(x AND y) + (x OR y) = x + y"
-  using word_of_int_Ex [where x=x] 
-        word_of_int_Ex [where x=y] 
-  by (auto simp: bwsimps plus_and_or)
+  by transfer (simp add: plus_and_or)
 
 lemma leoa:   
   fixes x :: "'a::len0 word"
