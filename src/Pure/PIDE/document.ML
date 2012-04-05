@@ -62,8 +62,8 @@ type node_header = (string * Thy_Header.header) Exn.result;
 type perspective = (command_id -> bool) * command_id option; (*visible commands, last*)
 structure Entries = Linear_Set(type key = command_id val ord = int_ord);
 
-type exec = (Toplevel.state * unit lazy) lazy;  (*eval/print process*)
-val no_exec = (no_id, Lazy.value (Toplevel.toplevel, Lazy.value ()));
+type exec = (Toplevel.state * unit lazy) Command.memo;  (*eval/print process*)
+val no_exec = Command.memo_value (Toplevel.toplevel, Lazy.value ());
 
 abstype node = Node of
  {touched: bool,
@@ -71,7 +71,7 @@ abstype node = Node of
   perspective: perspective,
   entries: (exec_id * exec) option Entries.T,  (*command entries with excecutions*)
   last_exec: command_id option,  (*last command with exec state assignment*)
-  result: Toplevel.state lazy}
+  result: exec}
 and version = Version of node Graph.T  (*development graph wrt. static imports*)
 with
 
@@ -87,11 +87,10 @@ fun make_perspective command_ids : perspective =
 
 val no_header = Exn.Exn (ERROR "Bad theory header");
 val no_perspective = make_perspective [];
-val no_result = Lazy.value Toplevel.toplevel;
 
-val empty_node = make_node (false, no_header, no_perspective, Entries.empty, NONE, no_result);
+val empty_node = make_node (false, no_header, no_perspective, Entries.empty, NONE, no_exec);
 val clear_node = map_node (fn (_, header, _, _, _, _) =>
-  (false, header, no_perspective, Entries.empty, NONE, no_result));
+  (false, header, no_perspective, Entries.empty, NONE, no_exec));
 
 
 (* basic components *)
@@ -159,8 +158,8 @@ fun the_entry (Node {entries, ...}) id =
     NONE => err_undef "command entry" id
   | SOME (exec, _) => exec);
 
-fun the_default_entry node (SOME id) = (id, (the_default no_exec (the_entry node id)))
-  | the_default_entry _ NONE = (no_id, no_exec);
+fun the_default_entry node (SOME id) = (id, (the_default (no_id, no_exec) (the_entry node id)))
+  | the_default_entry _ NONE = (no_id, (no_id, no_exec));
 
 fun update_entry id exec =
   map_entries (Entries.update (id, exec));
@@ -193,7 +192,7 @@ fun touch_node name nodes =
   fold (fn desc =>
       update_node desc
         (set_touched true #>
-          desc <> name ? (map_entries (reset_after NONE) #> set_result no_result)))
+          desc <> name ? (map_entries (reset_after NONE) #> set_result no_exec)))
     (Graph.all_succs nodes [name]) nodes;
 
 in
@@ -338,8 +337,8 @@ fun init_theory deps node =
           SOME thy => thy
         | NONE =>
             Toplevel.end_theory (Position.file_only import)
-              (Lazy.force
-                (get_result (snd (Future.join (the (AList.lookup (op =) deps import))))))));
+              (fst (Exn.release (Command.memo_result
+                (get_result (snd (Future.join (the (AList.lookup (op =) deps import))))))))));
   in Thy_Load.begin_theory master_dir header parents end;
 
 fun check_theory nodes name =
@@ -363,6 +362,7 @@ fun last_common state last_visible node0 node =
           (case opt_exec of
             NONE => true
           | SOME (exec_id, exec) =>
+              not (Command.memo_stable exec) orelse
               (case lookup_entry node0 id of
                 NONE => true
               | SOME (exec_id0, _) => exec_id <> exec_id0));
@@ -395,8 +395,9 @@ fun new_exec state bad_init command_id' (execs, command_exec, init) =
             #1 (Outer_Syntax.read_span (#2 (Outer_Syntax.get_syntax ())) span)
             |> modify_init
             |> Toplevel.put_id exec_id'_string);
-      val exec' =
-        snd (snd command_exec) |> Lazy.map (fn (st, _) => Command.run_command (tr ()) st);
+      val exec' = Command.memo (fn () =>
+        let val (st, _) = Exn.release (Command.memo_result (snd (snd command_exec)));
+        in Command.run_command (tr ()) st end);
       val command_exec' = (command_id', (exec_id', exec'));
     in SOME (command_exec' :: execs, command_exec', init') end;
 
@@ -448,8 +449,8 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
 
                     val last_exec = if command_id = no_id then NONE else SOME command_id;
                     val result =
-                      if is_some (after_entry node last_exec) then no_result
-                      else Lazy.map #1 exec;
+                      if is_some (after_entry node last_exec) then no_exec
+                      else exec;
 
                     val node' = node
                       |> fold reset_entry no_execs
@@ -485,7 +486,7 @@ fun execute version_id state =
       fun force_exec _ _ NONE = ()
         | force_exec node command_id (SOME (_, exec)) =
             let
-              val (_, print) = Lazy.force exec;
+              val (_, print) = Exn.release (Command.memo_result exec);
               val _ =
                 if #1 (get_perspective node) command_id
                 then ignore (Lazy.future Future.default_params print)

@@ -7,13 +7,18 @@ Prover command execution.
 signature COMMAND =
 sig
   val parse_command: string -> string -> Token.T list
+  type 'a memo
+  val memo: (unit -> 'a) -> 'a memo
+  val memo_value: 'a -> 'a memo
+  val memo_result: 'a memo -> 'a Exn.result
+  val memo_stable: 'a memo -> bool
   val run_command: Toplevel.transition -> Toplevel.state -> Toplevel.state * unit lazy
 end;
 
 structure Command: COMMAND =
 struct
 
-(* parse *)
+(* parse command *)
 
 fun parse_command id text =
   Position.setmp_thread_data (Position.id_only id)
@@ -24,7 +29,37 @@ fun parse_command id text =
       in toks end) ();
 
 
-(* run *)
+(* memo results *)
+
+datatype 'a expr =
+  Expr of unit -> 'a |
+  Result of 'a Exn.result;
+
+abstype 'a memo = Memo of 'a expr Synchronized.var
+with
+
+fun memo e = Memo (Synchronized.var "Command.memo" (Expr e));
+fun memo_value a = Memo (Synchronized.var "Command.memo" (Result (Exn.Res a)));
+
+fun memo_result (Memo v) =
+  (case Synchronized.value v of
+    Result res => res
+  | _ =>
+      Synchronized.guarded_access v
+        (fn Result res => SOME (res, Result res)
+          | Expr e =>
+              let val res = Exn.capture e ();  (*memoing of physical interrupts!*)
+              in SOME (res, Result res) end));
+
+fun memo_stable (Memo v) =
+  (case Synchronized.value v of
+    Result (Exn.Exn exn) => not (Exn.is_interrupt exn)
+  | _ => true);
+
+end;
+
+
+(* run command *)
 
 local
 
