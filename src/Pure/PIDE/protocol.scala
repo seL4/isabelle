@@ -191,10 +191,9 @@ trait Protocol extends Isabelle_Process
 
   /* document versions */
 
-  def cancel_execution()
-  {
-    input("Document.cancel_execution")
-  }
+  def discontinue_execution() { input("Document.discontinue_execution") }
+
+  def cancel_execution() { input("Document.cancel_execution") }
 
   def update_perspective(old_id: Document.Version_ID, new_id: Document.Version_ID,
     name: Document.Node.Name, perspective: Command.Perspective)

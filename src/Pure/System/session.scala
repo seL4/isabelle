@@ -296,7 +296,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
     {
       val previous = global_state().history.tip.version
 
-      prover.get.cancel_execution()
+      prover.get.discontinue_execution()
 
       val text_edits = header_edit(name, header) :: edits.map(edit => (name, edit))
       val version = Future.promise[Document.Version]

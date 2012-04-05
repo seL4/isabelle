@@ -13,6 +13,10 @@ val _ =
       Document.change_state (Document.define_command (Document.parse_id id) name text));
 
 val _ =
+  Isabelle_Process.protocol_command "Document.discontinue_execution"
+    (fn [] => Document.discontinue_execution (Document.state ()));
+
+val _ =
   Isabelle_Process.protocol_command "Document.cancel_execution"
     (fn [] => ignore (Document.cancel_execution (Document.state ())));
 
