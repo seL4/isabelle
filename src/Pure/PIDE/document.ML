@@ -62,14 +62,14 @@ type node_header = (string * Thy_Header.header) Exn.result;
 type perspective = (command_id -> bool) * command_id option; (*visible commands, last*)
 structure Entries = Linear_Set(type key = command_id val ord = int_ord);
 
-type exec = exec_id * (Toplevel.state * unit lazy) lazy;  (*eval/print process*)
+type exec = (Toplevel.state * unit lazy) lazy;  (*eval/print process*)
 val no_exec = (no_id, Lazy.value (Toplevel.toplevel, Lazy.value ()));
 
 abstype node = Node of
  {touched: bool,
   header: node_header,
   perspective: perspective,
-  entries: exec option Entries.T,  (*command entries with excecutions*)
+  entries: (exec_id * exec) option Entries.T,  (*command entries with excecutions*)
   last_exec: command_id option,  (*last command with exec state assignment*)
   result: Toplevel.state lazy}
 and version = Version of node Graph.T  (*development graph wrt. static imports*)
@@ -356,11 +356,16 @@ fun last_common state last_visible node0 node =
             NONE => true
           | SOME id => not (Keyword.is_theory_begin (#1 (the_command state id))));
       in (visible', initial') end;
-    fun get_common ((prev, id), exec) (found, (_, flags)) =
+    fun get_common ((prev, id), opt_exec) (found, (_, flags)) =
       if found then NONE
       else
         let val found' =
-          is_none exec orelse op <> (pairself (Option.map #1) (exec, lookup_entry node0 id));
+          (case opt_exec of
+            NONE => true
+          | SOME (exec_id, exec) =>
+              (case lookup_entry node0 id of
+                NONE => true
+              | SOME (exec_id0, _) => exec_id <> exec_id0));
         in SOME (found', (prev, update_flags prev flags)) end;
     val (found, (common, flags)) =
       iterate_entries get_common node (false, (NONE, (true, true)));
@@ -409,9 +414,7 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
     val updated =
       nodes |> Graph.schedule
         (fn deps => fn (name, node) =>
-          if not (is_touched node orelse is_required name)
-          then Future.value (([], [], []), node)
-          else
+          if is_touched node orelse is_required name then
             let
               val node0 = node_of old_version name;
               fun init () = init_theory deps node;
@@ -455,7 +458,8 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
                       |> set_result result
                       |> set_touched false;
                   in ((no_execs, execs, [(name, node')]), node') end)
-            end)
+            end
+          else Future.value (([], [], []), node))
       |> Future.joins |> map #1;
 
     val command_execs =
