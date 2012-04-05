@@ -146,7 +146,7 @@ where -- {* reflexivity over a type *}
 
 definition reflp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
 where
-  "reflp r \<longleftrightarrow> refl {(x, y). r x y}"
+  "reflp r \<longleftrightarrow> (\<forall>x. r x x)"
 
 lemma reflp_refl_eq [pred_set_conv]:
   "reflp (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> refl r" 
