@@ -896,7 +896,11 @@ fun import_file cautious path_prefix file_name type_map const_map thy =
 val _ =
   Outer_Syntax.improper_command @{command_spec "import_tptp"} "import TPTP problem"
     (Parse.path >> (fn path =>
-      Toplevel.theory (fn thy => import_file true (Path.dir path) path [] [] thy)))
+      Toplevel.theory (fn thy =>
+       (*NOTE: assumes Axioms directory is on same level as the Problems one
+         (which is how TPTP is currently organised)*)
+       import_file true (Path.appends [Path.dir path, Path.parent, Path.parent])
+        path [] [] thy)))
 
 
 (*Used for debugging. Returns all files contained within a directory or its

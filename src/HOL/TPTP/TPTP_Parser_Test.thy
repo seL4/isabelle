@@ -7,7 +7,7 @@ TPTP-vX.Y.Z/Problems directory.
 *)
 
 theory TPTP_Parser_Test
-imports TPTP_Parser
+imports TPTP_Parser TPTP_Parser_Example
 begin
 
 ML {*
@@ -69,12 +69,12 @@ open TPTP_Syntax;
 section "Source problems"
 ML {*
   (*problem source*)
-  val thf_probs_dir =
+  val tptp_probs_dir =
     Path.explode "$TPTP_PROBLEMS_PATH"
     |> Path.expand;
 
   (*list of files to under test*)
-  val files = TPTP_Syntax.get_file_list thf_probs_dir;
+  val files = TPTP_Syntax.get_file_list tptp_probs_dir;
 
 (*  (*test problem-name parsing and mangling*)
   val problem_names =
@@ -140,7 +140,7 @@ ML {*
 
 subsection "More parser tests"
 ML {*
-  fun situate file_name = Path.append thf_probs_dir (Path.explode file_name);
+  fun situate file_name = Path.append tptp_probs_dir (Path.explode file_name);
   fun parser_test ctxt = (*FIXME argument order*)
     test_fn ctxt
      (fn file_name =>
@@ -184,8 +184,8 @@ ML {*
     Timing.timing
     (TPTP_Interpret.interpret_file
      false
-     (Path.dir thf_probs_dir)
-    (Path.append thf_probs_dir (Path.explode "LCL/LCL825-1.p"))
+     (Path.dir tptp_probs_dir)
+    (Path.append tptp_probs_dir (Path.explode "LCL/LCL825-1.p"))
      []
      [])
     @{theory}
@@ -228,7 +228,7 @@ ML {*
        TimeLimit.timeLimit (Time.fromSeconds timeout)
        (TPTP_Interpret.interpret_file
          false
-         (Path.dir thf_probs_dir)
+         (Path.dir tptp_probs_dir)
          file
          []
          [])
