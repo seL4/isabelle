@@ -50,8 +50,35 @@ fun define_abs_type quot_thm lthy =
   else
     lthy
 
+fun quot_thm_sanity_check ctxt quot_thm =
+  let
+    val ((_, [quot_thm_fixed]), ctxt') = Variable.importT [quot_thm] ctxt 
+    val (rty, qty) = Lifting_Term.quot_thm_rty_qty quot_thm_fixed
+    val rty_tfreesT = Term.add_tfree_namesT rty []
+    val qty_tfreesT = Term.add_tfree_namesT qty []
+    val extra_rty_tfrees =
+      (case subtract (op =) qty_tfreesT rty_tfreesT of
+        [] => []
+      | extras => [Pretty.block ([Pretty.str "Extra variables in the raw type:",
+                                 Pretty.brk 1] @ 
+                                 ((Pretty.commas o map (Pretty.str o quote)) extras) @
+                                 [Pretty.str "."])])
+    val not_type_constr = 
+      (case qty of
+         Type _ => []
+         | _ => [Pretty.block [Pretty.str "The quotient type ",
+                                Pretty.quote (Syntax.pretty_typ ctxt' qty),
+                                Pretty.brk 1,
+                                Pretty.str "is not a type constructor."]])
+    val errs = extra_rty_tfrees @ not_type_constr
+  in
+    if null errs then () else error (cat_lines (["Sanity check of the quotient theorem failed:",""] 
+                                                @ (map Pretty.string_of errs)))
+  end
+
 fun setup_lifting_infr quot_thm equiv_thm lthy =
   let
+    val _ = quot_thm_sanity_check lthy quot_thm
     val (_, qtyp) = Lifting_Term.quot_thm_rty_qty quot_thm
     val qty_full_name = (fst o dest_Type) qtyp
     val quotients = { quot_thm = quot_thm }

@@ -6,6 +6,8 @@ Definitions for constants on quotient types.
 
 signature LIFTING_DEF =
 sig
+  exception FORCE_RTY of typ * term
+
   val add_lift_def:
     (binding * mixfix) -> typ -> term -> thm -> local_theory -> local_theory
 
@@ -26,6 +28,8 @@ infix 0 MRSL
 
 fun ants MRSL thm = fold (fn rl => fn thm => rl RS thm) ants thm
 
+exception FORCE_RTY of typ * term
+
 fun get_body_types (Type ("fun", [_, U]), Type ("fun", [_, V])) = get_body_types (U, V)
   | get_body_types (U, V)  = (U, V)
 
@@ -38,6 +42,7 @@ fun force_rty_type ctxt rty rhs =
     val rhs_schematic = singleton (Variable.polymorphic ctxt) rhs
     val rty_schematic = fastype_of rhs_schematic
     val match = Sign.typ_match thy (rty_schematic, rty) Vartab.empty
+      handle Type.TYPE_MATCH => raise FORCE_RTY (rty, rhs)
   in
     Envir.subst_term_types match rhs_schematic
   end
@@ -283,6 +288,46 @@ fun lift_def_cmd (raw_var, rhs_raw) lthy =
       | NONE =>  Proof.theorem NONE after_qed [[(readable_rsp_tm,[])]] lthy
   end
 
+fun quot_thm_err ctxt (rty, qty) pretty_msg =
+  let
+    val error_msg = cat_lines
+       ["Lifting failed for the following types:",
+        Pretty.string_of (Pretty.block
+         [Pretty.str "Raw type:", Pretty.brk 2, Syntax.pretty_typ ctxt rty]),
+        Pretty.string_of (Pretty.block
+         [Pretty.str "Abstract type:", Pretty.brk 2, Syntax.pretty_typ ctxt qty]),
+        "",
+        (Pretty.string_of (Pretty.block
+         [Pretty.str "Reason:", Pretty.brk 2, pretty_msg]))]
+  in
+    error error_msg
+  end
+
+fun force_rty_err ctxt rty rhs =
+  let
+    val error_msg = cat_lines
+       ["Lifting failed for the following term:",
+        Pretty.string_of (Pretty.block
+         [Pretty.str "Term:", Pretty.brk 2, Syntax.pretty_term ctxt rhs]),
+        Pretty.string_of (Pretty.block
+         [Pretty.str "Type:", Pretty.brk 2, Syntax.pretty_typ ctxt (fastype_of rhs)]),
+        "",
+        (Pretty.string_of (Pretty.block
+         [Pretty.str "Reason:", 
+          Pretty.brk 2, 
+          Pretty.str "The type of the term cannot be instancied to",
+          Pretty.brk 1,
+          Pretty.quote (Syntax.pretty_typ ctxt rty),
+          Pretty.str "."]))]
+    in
+      error error_msg
+    end
+
+fun lift_def_cmd_with_err_handling (raw_var, rhs_raw) lthy =
+  (lift_def_cmd (raw_var, rhs_raw) lthy
+    handle Lifting_Term.QUOT_THM (rty, qty, msg) => quot_thm_err lthy (rty, qty) msg)
+    handle FORCE_RTY (rty, rhs) => force_rty_err lthy rty rhs
+
 (* parser and command *)
 val liftdef_parser =
   ((Parse.binding -- (@{keyword "::"} |-- (Parse.typ >> SOME) -- Parse.opt_mixfix')) >> Parse.triple2)
@@ -291,7 +336,7 @@ val liftdef_parser =
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "lift_definition"}
     "definition for constants over the quotient type"
-      (liftdef_parser >> lift_def_cmd)
+      (liftdef_parser >> lift_def_cmd_with_err_handling)
 
 
 end; (* structure *)

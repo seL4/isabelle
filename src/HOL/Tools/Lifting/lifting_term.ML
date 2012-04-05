@@ -6,6 +6,8 @@ Proves Quotient theorem.
 
 signature LIFTING_TERM =
 sig
+  exception QUOT_THM of typ * typ * Pretty.T
+
   val prove_quot_theorem: Proof.context -> typ * typ -> thm
 
   val absrep_fun: Proof.context -> typ * typ -> term
@@ -24,7 +26,10 @@ end
 structure Lifting_Term: LIFTING_TERM =
 struct
 
-exception LIFT_MATCH of string
+(* generation of the Quotient theorem  *)
+
+exception QUOT_THM_INTERNAL of Pretty.T
+exception QUOT_THM of typ * typ * Pretty.T
 
 (* matches a type pattern with a type *)
 fun match ctxt err ty_pat ty =
@@ -40,13 +45,13 @@ fun equiv_match_err ctxt ty_pat ty =
     val ty_pat_str = Syntax.string_of_typ ctxt ty_pat
     val ty_str = Syntax.string_of_typ ctxt ty
   in
-    raise LIFT_MATCH (space_implode " "
-      ["equiv_relation (Types ", quote ty_pat_str, "and", quote ty_str, " do not match.)"])
+    raise QUOT_THM_INTERNAL (Pretty.block
+      [Pretty.str ("The quotient type " ^ quote ty_str),
+       Pretty.brk 1,
+       Pretty.str ("and the quotient type pattern " ^ quote ty_pat_str),
+       Pretty.brk 1,
+       Pretty.str "don't match."])
   end
-
-(* generation of the Quotient theorem  *)
-
-exception QUOT_THM of string
 
 fun get_quot_thm ctxt s =
   let
@@ -54,7 +59,10 @@ fun get_quot_thm ctxt s =
   in
     (case Lifting_Info.lookup_quotients ctxt s of
       SOME qdata => Thm.transfer thy (#quot_thm qdata)
-    | NONE => raise QUOT_THM ("No quotient type " ^ quote s ^ " found."))
+    | NONE => raise QUOT_THM_INTERNAL (Pretty.block 
+      [Pretty.str ("No quotient type " ^ quote s), 
+       Pretty.brk 1, 
+       Pretty.str "found."]))
   end
 
 fun get_rel_quot_thm ctxt s =
@@ -63,7 +71,10 @@ fun get_rel_quot_thm ctxt s =
   in
     (case Lifting_Info.lookup_quotmaps ctxt s of
       SOME map_data => Thm.transfer thy (#quot_thm map_data)
-    | NONE => raise QUOT_THM ("get_relmap (no relation map function found for type " ^ s ^ ")"))
+    | NONE => raise QUOT_THM_INTERNAL (Pretty.block 
+      [Pretty.str ("No relator for the type " ^ quote s), 
+       Pretty.brk 1,
+       Pretty.str "found."]))
   end
 
 fun is_id_quot thm = (prop_of thm = prop_of @{thm identity_quotient})
@@ -106,8 +117,19 @@ fun quot_thm_rty_qty quot_thm =
     (domain_type abs_type, range_type abs_type)
   end
 
+fun check_raw_types (provided_rty_name, rty_of_qty_name) qty_name =
+  if provided_rty_name <> rty_of_qty_name then
+    raise QUOT_THM_INTERNAL (Pretty.block 
+        [Pretty.str ("The type " ^ quote provided_rty_name),
+         Pretty.brk 1,
+         Pretty.str ("is not a raw type for the quotient type " ^ quote qty_name ^ ";"),
+         Pretty.brk 1,
+         Pretty.str ("the correct raw type is " ^ quote rty_of_qty_name ^ ".")])
+  else
+    ()
+
 fun prove_quot_theorem' ctxt (rty, qty) =
-  case (rty, qty) of
+  (case (rty, qty) of
     (Type (s, tys), Type (s', tys')) =>
       if s = s'
       then
@@ -123,7 +145,8 @@ fun prove_quot_theorem' ctxt (rty, qty) =
       else
         let
           val quot_thm = get_quot_thm ctxt s'
-          val (Type (_, rtys), qty_pat) = quot_thm_rty_qty quot_thm
+          val (Type (rs, rtys), qty_pat) = quot_thm_rty_qty quot_thm
+          val _ = check_raw_types (s, rs) s'
           val qtyenv = match ctxt equiv_match_err qty_pat qty
           val rtys' = map (Envir.subst_type qtyenv) rtys
           val args = map (prove_quot_theorem' ctxt) (tys ~~ rtys')
@@ -138,7 +161,8 @@ fun prove_quot_theorem' ctxt (rty, qty) =
               [rel_quot_thm, quot_thm] MRSL @{thm Quotient_compose}
            end
         end
-  | _ => @{thm identity_quotient}
+  | _ => @{thm identity_quotient})
+    handle QUOT_THM_INTERNAL pretty_msg => raise QUOT_THM (rty, qty, pretty_msg)
 
 fun force_qty_type thy qty quot_thm =
   let
