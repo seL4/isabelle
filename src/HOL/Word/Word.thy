@@ -233,6 +233,22 @@ subsection {* Correspondence relation for theorem transfer *}
 definition cr_word :: "int \<Rightarrow> 'a::len0 word \<Rightarrow> bool"
   where "cr_word \<equiv> (\<lambda>x y. word_of_int x = y)"
 
+lemma Quotient_word:
+  "Quotient (\<lambda>x y. bintrunc (len_of TYPE('a)) x = bintrunc (len_of TYPE('a)) y)
+    word_of_int uint (cr_word :: _ \<Rightarrow> 'a::len0 word \<Rightarrow> bool)"
+  unfolding Quotient_alt_def cr_word_def
+  by (simp add: word_ubin.norm_eq_iff)
+
+lemma equivp_word:
+  "equivp (\<lambda>x y. bintrunc (len_of TYPE('a::len0)) x = bintrunc (len_of TYPE('a)) y)"
+  by (auto intro!: equivpI reflpI sympI transpI)
+
+local_setup {*
+  Lifting_Setup.setup_lifting_infr @{thm Quotient_word} @{thm equivp_word}
+*}
+
+text {* TODO: The next several lemmas could be generated automatically. *}
+
 lemma bi_total_cr_word [transfer_rule]: "bi_total cr_word"
   unfolding bi_total_def cr_word_def
   by (auto intro: word_of_int_uint)
@@ -258,36 +274,34 @@ lemma uint_transfer [transfer_rule]:
 
 subsection  "Arithmetic operations"
 
-definition
-  word_succ :: "'a :: len0 word => 'a word"
-where
-  "word_succ a = word_of_int (uint a + 1)"
+lift_definition word_succ :: "'a::len0 word \<Rightarrow> 'a word" is "\<lambda>x::int. x + 1"
+  by (metis bintr_ariths(6))
 
-definition
-  word_pred :: "'a :: len0 word => 'a word"
-where
-  "word_pred a = word_of_int (uint a - 1)"
+lift_definition word_pred :: "'a::len0 word \<Rightarrow> 'a word" is "\<lambda>x::int. x - 1"
+  by (metis bintr_ariths(7))
 
 instantiation word :: (len0) "{neg_numeral, Divides.div, comm_monoid_mult, comm_ring}"
 begin
 
-definition
-  word_0_wi: "0 = word_of_int 0"
+lift_definition zero_word :: "'a word" is "0::int" .
 
-definition
-  word_1_wi: "1 = word_of_int 1"
+lift_definition one_word :: "'a word" is "1::int" .
 
-definition
-  word_add_def: "a + b = word_of_int (uint a + uint b)"
+lift_definition plus_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
+  is "op + :: int \<Rightarrow> int \<Rightarrow> int"
+  by (metis bintr_ariths(2))
 
-definition
-  word_sub_wi: "a - b = word_of_int (uint a - uint b)"
+lift_definition minus_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
+  is "op - :: int \<Rightarrow> int \<Rightarrow> int"
+  by (metis bintr_ariths(3))
 
-definition
-  word_minus_def: "- a = word_of_int (- uint a)"
+lift_definition uminus_word :: "'a word \<Rightarrow> 'a word"
+  is "uminus :: int \<Rightarrow> int"
+  by (metis bintr_ariths(5))
 
-definition
-  word_mult_def: "a * b = word_of_int (uint a * uint b)"
+lift_definition times_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
+  is "op * :: int \<Rightarrow> int \<Rightarrow> int"
+  by (metis bintr_ariths(4))
 
 definition
   word_div_def: "a div b = word_of_int (uint a div uint b)"
@@ -295,9 +309,25 @@ definition
 definition
   word_mod_def: "a mod b = word_of_int (uint a mod uint b)"
 
-lemmas word_arith_wis =
-  word_add_def word_sub_wi word_mult_def word_minus_def 
-  word_succ_def word_pred_def word_0_wi word_1_wi
+instance
+  by default (transfer, simp add: algebra_simps)+
+
+end
+
+text {* Legacy theorems: *}
+
+lemma word_arith_wis: shows
+  word_add_def: "a + b = word_of_int (uint a + uint b)" and
+  word_sub_wi: "a - b = word_of_int (uint a - uint b)" and
+  word_mult_def: "a * b = word_of_int (uint a * uint b)" and
+  word_minus_def: "- a = word_of_int (- uint a)" and
+  word_succ_alt: "word_succ a = word_of_int (uint a + 1)" and
+  word_pred_alt: "word_pred a = word_of_int (uint a - 1)" and
+  word_0_wi: "0 = word_of_int 0" and
+  word_1_wi: "1 = word_of_int 1"
+  unfolding plus_word_def minus_word_def times_word_def uminus_word_def
+  unfolding word_succ_def word_pred_def zero_word_def one_word_def
+  by simp_all
 
 lemmas arths = 
   bintr_ariths [THEN word_ubin.norm_eq_iff [THEN iffD1], folded word_ubin.eq_norm]
@@ -310,29 +340,13 @@ lemma wi_homs:
   wi_hom_neg: "- word_of_int a = word_of_int (- a)" and
   wi_hom_succ: "word_succ (word_of_int a) = word_of_int (a + 1)" and
   wi_hom_pred: "word_pred (word_of_int a) = word_of_int (a - 1)"
-  by (auto simp: word_arith_wis arths)
+  by (transfer, simp)+
 
 lemmas wi_hom_syms = wi_homs [symmetric]
 
 lemmas word_of_int_homs = wi_homs word_0_wi word_1_wi
 
 lemmas word_of_int_hom_syms = word_of_int_homs [symmetric]
-
-lemma word_arith_transfer [transfer_rule]:
-  "cr_word 0 0"
-  "cr_word 1 1"
-  "(fun_rel cr_word (fun_rel cr_word cr_word)) (op +) (op +)"
-  "(fun_rel cr_word (fun_rel cr_word cr_word)) (op -) (op -)"
-  "(fun_rel cr_word (fun_rel cr_word cr_word)) (op *) (op *)"
-  "(fun_rel cr_word cr_word) uminus uminus"
-  "(fun_rel cr_word cr_word) (\<lambda>x. x + 1) word_succ"
-  "(fun_rel cr_word cr_word) (\<lambda>x. x - 1) word_pred"
-  unfolding cr_word_def fun_rel_def by (simp_all add: word_of_int_homs)
-
-instance
-  by default (transfer, simp add: algebra_simps)+
-
-end
 
 instance word :: (len) comm_ring_1
 proof
@@ -382,21 +396,21 @@ subsection "Bit-wise operations"
 instantiation word :: (len0) bits
 begin
 
-definition
-  word_and_def: 
-  "(a::'a word) AND b = word_of_int (uint a AND uint b)"
+lift_definition bitNOT_word :: "'a word \<Rightarrow> 'a word"
+  is "bitNOT :: int \<Rightarrow> int"
+  by (metis bin_trunc_not)
 
-definition
-  word_or_def:  
-  "(a::'a word) OR b = word_of_int (uint a OR uint b)"
+lift_definition bitAND_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
+  is "bitAND :: int \<Rightarrow> int \<Rightarrow> int"
+  by (metis bin_trunc_and)
 
-definition
-  word_xor_def: 
-  "(a::'a word) XOR b = word_of_int (uint a XOR uint b)"
+lift_definition bitOR_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
+  is "bitOR :: int \<Rightarrow> int \<Rightarrow> int"
+  by (metis bin_trunc_or)
 
-definition
-  word_not_def: 
-  "NOT (a::'a word) = word_of_int (NOT (uint a))"
+lift_definition bitXOR_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
+  is "bitXOR :: int \<Rightarrow> int \<Rightarrow> int"
+  by (metis bin_trunc_xor)
 
 definition
   word_test_bit_def: "test_bit a = bin_nth (uint a)"
@@ -427,6 +441,14 @@ definition
 instance ..
 
 end
+
+lemma shows
+  word_not_def: "NOT (a::'a::len0 word) = word_of_int (NOT (uint a))" and
+  word_and_def: "(a::'a word) AND b = word_of_int (uint a AND uint b)" and
+  word_or_def: "(a::'a word) OR b = word_of_int (uint a OR uint b)" and
+  word_xor_def: "(a::'a word) XOR b = word_of_int (uint a XOR uint b)"
+  unfolding bitNOT_word_def bitAND_word_def bitOR_word_def bitXOR_word_def
+  by simp_all
 
 instantiation word :: (len) bitss
 begin
@@ -1245,9 +1267,6 @@ lemmas word_arith_alts =
   word_sub_wi
   word_arith_wis (* FIXME: duplicate *)
 
-lemmas word_succ_alt = word_succ_def (* FIXME: duplicate *)
-lemmas word_pred_alt = word_pred_def (* FIXME: duplicate *)
-
 subsection  "Transferring goals from words to ints"
 
 lemma word_ths:  
@@ -1257,11 +1276,7 @@ lemma word_ths:
   word_pred_succ: "word_pred (word_succ a) = a" and
   word_succ_pred: "word_succ (word_pred a) = a" and
   word_mult_succ: "word_succ a * b = b + a * b"
-  by (rule word_uint.Abs_cases [of b],
-      rule word_uint.Abs_cases [of a],
-      simp add: add_commute mult_commute 
-                ring_distribs word_of_int_homs
-           del: word_of_int_0 word_of_int_1)+
+  by (transfer, simp add: algebra_simps)+
 
 lemma uint_cong: "x = y \<Longrightarrow> uint x = uint y"
   by simp
@@ -1281,7 +1296,7 @@ lemmas uint_div_alt = word_div_def [THEN trans [OF uint_cong int_word_uint]]
 lemmas uint_mod_alt = word_mod_def [THEN trans [OF uint_cong int_word_uint]]
 
 lemma word_pred_0_n1: "word_pred 0 = word_of_int -1"
-  unfolding word_pred_def uint_eq_0 by simp
+  unfolding word_pred_m1 by simp
 
 lemma succ_pred_no [simp]:
   "word_succ (numeral w) = numeral w + 1"
@@ -2162,15 +2177,7 @@ lemma word_wi_log_defs:
   "word_of_int a AND word_of_int b = word_of_int (a AND b)"
   "word_of_int a OR word_of_int b = word_of_int (a OR b)"
   "word_of_int a XOR word_of_int b = word_of_int (a XOR b)"
-  unfolding word_log_defs wils1 by simp_all
-
-lemma word_bitwise_transfer [transfer_rule]:
-  "(fun_rel cr_word cr_word) bitNOT bitNOT"
-  "(fun_rel cr_word (fun_rel cr_word cr_word)) bitAND bitAND"
-  "(fun_rel cr_word (fun_rel cr_word cr_word)) bitOR bitOR"
-  "(fun_rel cr_word (fun_rel cr_word cr_word)) bitXOR bitXOR"
-  unfolding fun_rel_def cr_word_def
-  by (simp_all add: word_wi_log_defs)
+  by (transfer, rule refl)+
 
 lemma word_no_log_defs [simp]:
   "NOT (numeral a) = word_of_int (NOT (numeral a))"
