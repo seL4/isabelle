@@ -297,6 +297,31 @@ next
   show "transp (invariant P)" by (auto intro: transpI simp: invariant_def)
 qed
 
+text {* Generating transfer rules for quotients. *}
+
+lemma Quotient_right_unique:
+  assumes "Quotient R Abs Rep T" shows "right_unique T"
+  using assms unfolding Quotient_alt_def right_unique_def by metis
+
+lemma Quotient_right_total:
+  assumes "Quotient R Abs Rep T" shows "right_total T"
+  using assms unfolding Quotient_alt_def right_total_def by metis
+
+lemma Quotient_rel_eq_transfer:
+  assumes "Quotient R Abs Rep T"
+  shows "(T ===> T ===> op =) R (op =)"
+  using assms unfolding Quotient_alt_def fun_rel_def by simp
+
+lemma Quotient_bi_total:
+  assumes "Quotient R Abs Rep T" and "reflp R"
+  shows "bi_total T"
+  using assms unfolding Quotient_alt_def bi_total_def reflp_def by auto
+
+lemma Quotient_id_abs_transfer:
+  assumes "Quotient R Abs Rep T" and "reflp R"
+  shows "(op = ===> T) (\<lambda>x. x) Abs"
+  using assms unfolding Quotient_alt_def reflp_def fun_rel_def by simp
+
 text {* Generating transfer rules for a type defined with @{text "typedef"}. *}
 
 lemma typedef_bi_unique:
