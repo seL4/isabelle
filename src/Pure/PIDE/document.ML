@@ -27,10 +27,10 @@ sig
   val define_command: command_id -> string -> string -> state -> state
   val discontinue_execution: state -> unit
   val cancel_execution: state -> Future.task list
+  val execute: version_id -> state -> state
   val update_perspective: version_id -> version_id -> string -> command_id list -> state -> state
   val update: version_id -> version_id -> edit list -> state ->
     ((command_id * exec_id option) list * (string * command_id option) list) * state
-  val execute: version_id -> state -> state
   val remove_versions: version_id list -> state -> state
   val state: unit -> state
   val change_state: (state -> state) -> unit
@@ -110,6 +110,10 @@ fun get_perspective (Node {perspective, ...}) = perspective;
 fun set_perspective ids =
   map_node (fn (touched, header, _, entries, last_exec, result) =>
     (touched, header, make_perspective ids, entries, last_exec, result));
+
+val visible_command = #1 o get_perspective;
+val visible_last = #2 o get_perspective;
+val visible_node = is_some o visible_last
 
 fun map_entries f =
   map_node (fn (touched, header, perspective, entries, last_exec, result) =>
@@ -293,11 +297,54 @@ fun the_command (State {commands, ...}) (id: command_id) =
 
 (* document execution *)
 
-fun discontinue_execution  (State {execution = (_, _, running), ...}) = running := false;
+fun discontinue_execution (State {execution = (_, _, running), ...}) = running := false;
 
 fun cancel_execution (State {execution = (_, group, _), ...}) = Future.cancel_group group;
 
 end;
+
+
+
+(** execute **)
+
+fun finished_theory node =
+  (case Exn.capture Command.memo_result (get_result node) of
+    Exn.Res (st, _) => can (Toplevel.end_theory Position.none) st
+  | _ => false);
+
+fun execute version_id state =
+  state |> map_state (fn (versions, commands, _) =>
+    let
+      val version = the_version state version_id;
+
+      val group = Future.new_group NONE;
+      val running = Unsynchronized.ref true;
+
+      fun run _ _ NONE = ()
+        | run node command_id (SOME (_, exec)) =
+            let
+              val (_, print) = Command.memo_eval exec;
+              val _ =
+                if visible_command node command_id
+                then ignore (Lazy.future Future.default_params print)
+                else ();
+            in () end;
+
+      val _ =
+        nodes_of version |> Graph.schedule
+          (fn deps => fn (name, node) =>
+            if not (visible_node node) andalso finished_theory node then
+              Future.value ()
+            else
+              (singleton o Future.forks)
+                {name = "theory:" ^ name, group = SOME (Future.new_group (SOME group)),
+                  deps = map (Future.task_of o #2) deps, pri = 1, interrupts = false}
+                (fn () =>
+                  iterate_entries (fn ((_, id), exec) => fn () =>
+                    if ! running then SOME (run node id exec) else NONE) node ()));
+
+    in (versions, commands, (version_id, group, running)) end);
+
 
 
 
@@ -320,11 +367,14 @@ local
 fun make_required nodes =
   let
     val all_visible =
-      Graph.fold (fn (a, (node, _)) => is_some (#2 (get_perspective node)) ? cons a) nodes []
-      |> Graph.all_preds nodes;
+      Graph.fold (fn (a, (node, _)) => visible_node node ? cons a) nodes []
+      |> Graph.all_preds nodes
+      |> map (rpair ()) |> Symtab.make;
+
     val required =
-      fold (fn a => exists (fn b => Graph.is_edge nodes (a, b)) all_visible ? Symtab.update (a, ()))
-        all_visible Symtab.empty;
+      Symtab.fold (fn (a, ()) =>
+        exists (Symtab.defined all_visible) (Graph.immediate_succs nodes a) ?
+          Symtab.update (a, ())) all_visible Symtab.empty;
   in Symtab.defined required end;
 
 fun init_theory deps node =
@@ -419,7 +469,7 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
     val updated =
       nodes |> Graph.schedule
         (fn deps => fn (name, node) =>
-          if is_touched node orelse is_required name then
+          if is_touched node orelse is_required name andalso not (finished_theory node) then
             let
               val node0 = node_of old_version name;
               fun init () = init_theory deps node;
@@ -432,7 +482,7 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
                 (fn () =>
                   let
                     val required = is_required name;
-                    val last_visible = #2 (get_perspective node);
+                    val last_visible = visible_last node;
                     val (common, (visible, initial)) = last_common state last_visible node0 node;
                     val common_command_exec = the_default_entry node common;
 
@@ -478,39 +528,6 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
   in ((command_execs, last_execs), state') end;
 
 end;
-
-
-(* execute *)
-
-fun execute version_id state =
-  state |> map_state (fn (versions, commands, _) =>
-    let
-      val version = the_version state version_id;
-
-      val group = Future.new_group NONE;
-      val running = Unsynchronized.ref true;
-
-      fun run _ _ NONE = ()
-        | run node command_id (SOME (_, exec)) =
-            let
-              val (_, print) = Command.memo_eval exec;
-              val _ =
-                if #1 (get_perspective node) command_id
-                then ignore (Lazy.future Future.default_params print)
-                else ();
-            in () end;
-
-      val _ =
-        nodes_of version |> Graph.schedule
-          (fn deps => fn (name, node) =>
-            (singleton o Future.forks)
-              {name = "theory:" ^ name, group = SOME (Future.new_group (SOME group)),
-                deps = map (Future.task_of o #2) deps, pri = 1, interrupts = false}
-              (fn () =>
-                iterate_entries (fn ((_, id), exec) => fn () =>
-                  if ! running then SOME (run node id exec) else NONE) node ()));
-
-    in (versions, commands, (version_id, group, running)) end);
 
 
 (* remove versions *)
