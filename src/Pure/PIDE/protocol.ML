@@ -13,24 +13,12 @@ val _ =
       Document.change_state (Document.define_command (Document.parse_id id) name text));
 
 val _ =
-  Isabelle_Process.protocol_command "Document.cancel_execution"
-    (fn [] => ignore (Document.cancel_execution (Document.state ())));
+  Isabelle_Process.protocol_command "Document.discontinue_execution"
+    (fn [] => Document.discontinue_execution (Document.state ()));
 
 val _ =
-  Isabelle_Process.protocol_command "Document.update_perspective"
-    (fn [old_id_string, new_id_string, name, ids_yxml] => Document.change_state (fn state =>
-      let
-        val old_id = Document.parse_id old_id_string;
-        val new_id = Document.parse_id new_id_string;
-        val ids = YXML.parse_body ids_yxml
-          |> let open XML.Decode in list int end;
-
-        val _ = Future.join_tasks (Document.cancel_execution state);
-      in
-        state
-        |> Document.update_perspective old_id new_id name ids
-        |> Document.execute new_id
-      end));
+  Isabelle_Process.protocol_command "Document.cancel_execution"
+    (fn [] => ignore (Document.cancel_execution (Document.state ())));
 
 val _ =
   Isabelle_Process.protocol_command "Document.update"
