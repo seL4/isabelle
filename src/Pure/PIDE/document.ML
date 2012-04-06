@@ -241,7 +241,7 @@ end;
 
 
 
-(** global state -- document structure and execution process **)
+(** document state -- content structure and execution process **)
 
 abstype state = State of
  {versions: version Inttab.table,  (*version_id -> document content*)
@@ -316,18 +316,17 @@ fun execute version_id state =
     let
       val version = the_version state version_id;
 
+      fun run node command_id exec =
+        let
+          val (_, print) = Command.memo_eval exec;
+          val _ =
+            if visible_command node command_id
+            then ignore (Lazy.future Future.default_params print)
+            else ();
+        in () end;
+
       val group = Future.new_group NONE;
       val running = Unsynchronized.ref true;
-
-      fun run _ _ NONE = ()
-        | run node command_id (SOME (_, exec)) =
-            let
-              val (_, print) = Command.memo_eval exec;
-              val _ =
-                if visible_command node command_id
-                then ignore (Lazy.future Future.default_params print)
-                else ();
-            in () end;
 
       val _ =
         nodes_of version |> Graph.schedule
@@ -339,8 +338,10 @@ fun execute version_id state =
                 {name = "theory:" ^ name, group = SOME (Future.new_group (SOME group)),
                   deps = map (Future.task_of o #2) deps, pri = 1, interrupts = false}
                 (fn () =>
-                  iterate_entries (fn ((_, id), exec) => fn () =>
-                    if ! running then SOME (run node id exec) else NONE) node ()));
+                  iterate_entries (fn ((_, id), opt_exec) => fn () =>
+                    (case opt_exec of
+                      SOME (_, exec) => if ! running then SOME (run node id exec) else NONE
+                    | NONE => NONE)) node ()));
 
     in (versions, commands, (version_id, group, running)) end);
 
