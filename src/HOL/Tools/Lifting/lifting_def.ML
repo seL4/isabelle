@@ -246,7 +246,8 @@ fun mk_readable_rsp_thm_eq tm lthy =
 fun lift_def_cmd (raw_var, rhs_raw) lthy =
   let
     val ((binding, SOME qty, mx), ctxt) = yield_singleton Proof_Context.read_vars raw_var lthy 
-    val rhs = (Syntax.check_term ctxt o Syntax.parse_term ctxt) rhs_raw
+    val rhs' = (Syntax.check_term ctxt o Syntax.parse_term ctxt) rhs_raw
+    val rhs = singleton (Variable.polymorphic ctxt) rhs'
  
     fun try_to_prove_refl thm = 
       let
@@ -263,7 +264,8 @@ fun lift_def_cmd (raw_var, rhs_raw) lthy =
           | _ => NONE
       end
 
-    val rsp_rel = Lifting_Term.equiv_relation lthy (fastype_of rhs, qty)
+    val quot_thm = Lifting_Term.prove_quot_theorem lthy (fastype_of rhs, qty)
+    val rsp_rel = Lifting_Term.quot_thm_rel quot_thm
     val rty_forced = (domain_type o fastype_of) rsp_rel;
     val forced_rhs = force_rty_type ctxt rty_forced rhs;
     val internal_rsp_tm = HOLogic.mk_Trueprop (rsp_rel $ forced_rhs $ forced_rhs)
