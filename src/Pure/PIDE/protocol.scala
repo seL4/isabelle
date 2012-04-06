@@ -195,17 +195,6 @@ trait Protocol extends Isabelle_Process
 
   def cancel_execution() { input("Document.cancel_execution") }
 
-  def update_perspective(old_id: Document.Version_ID, new_id: Document.Version_ID,
-    name: Document.Node.Name, perspective: Command.Perspective)
-  {
-    val ids =
-    { import XML.Encode._
-      list(long)(perspective.commands.map(_.id)) }
-
-    input("Document.update_perspective", Document.ID(old_id), Document.ID(new_id),
-      name.node, YXML.string_of_body(ids))
-  }
-
   def update(old_id: Document.Version_ID, new_id: Document.Version_ID,
     edits: List[Document.Edit_Command])
   {

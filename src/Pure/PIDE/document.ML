@@ -28,7 +28,6 @@ sig
   val discontinue_execution: state -> unit
   val cancel_execution: state -> Future.task list
   val execute: version_id -> state -> state
-  val update_perspective: version_id -> version_id -> string -> command_id list -> state -> state
   val update: version_id -> version_id -> edit list -> state ->
     ((command_id * exec_id option) list * (string * command_id option) list) * state
   val remove_versions: version_id list -> state -> state
@@ -348,19 +347,9 @@ fun execute version_id state =
 
 
 
-(** update **)
+(** edits **)
 
-(* perspective *)
-
-fun update_perspective (old_id: version_id) (new_id: version_id) name perspective state =
-  let
-    val old_version = the_version state old_id;
-    val _ = Time.now ();  (* FIXME odd workaround for polyml-5.4.0/x86_64 -- needed? *)
-    val new_version = edit_nodes (name, Perspective perspective) old_version;
-  in define_version new_id new_version state end;
-
-
-(* edits *)
+(* update *)
 
 local
 
