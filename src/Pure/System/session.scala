@@ -267,27 +267,6 @@ class Session(thy_load: Thy_Load = new Thy_Load)
     }
 
 
-    /* perspective */
-
-    def update_perspective(name: Document.Node.Name, text_perspective: Text.Perspective)
-    {
-      val previous = global_state().tip_version
-      val (perspective, version) = Thy_Syntax.edit_perspective(previous, name, text_perspective)
-
-      val text_edits: List[Document.Edit_Text] =
-        List((name, Document.Node.Perspective(text_perspective)))
-      val change =
-        global_state >>>
-          (_.continue_history(Future.value(previous), text_edits, Future.value(version)))
-
-      val assignment = global_state().the_assignment(previous).check_finished
-      global_state >> (_.define_version(version, assignment))
-      global_state >>> (_.assign(version.id))
-
-      prover.get.update_perspective(previous.id, version.id, name, perspective)
-    }
-
-
     /* incoming edits */
 
     def handle_edits(name: Document.Node.Name,
@@ -296,7 +275,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
     {
       val previous = global_state().history.tip.version
 
-      prover.get.cancel_execution()
+      prover.get.discontinue_execution()
 
       val text_edits = header_edit(name, header) :: edits.map(edit => (name, edit))
       val version = Future.promise[Document.Version]
@@ -465,12 +444,8 @@ class Session(thy_load: Thy_Load = new Thy_Load)
           reply(())
 
         case Edit_Node(name, header, perspective, text_edits) if prover.isDefined =>
-          if (text_edits.isEmpty && global_state().tip_stable &&
-              perspective.range.stop <= global_state().last_exec_offset(name))
-            update_perspective(name, perspective)
-          else
-            handle_edits(name, header,
-              List(Document.Node.Edits(text_edits), Document.Node.Perspective(perspective)))
+          handle_edits(name, header,
+            List(Document.Node.Edits(text_edits), Document.Node.Perspective(perspective)))
           reply(())
 
         case Messages(msgs) =>

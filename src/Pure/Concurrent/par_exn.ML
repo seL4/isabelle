@@ -14,7 +14,7 @@ sig
   val release_first: 'a Exn.result list -> 'a list
 end;
 
-structure Par_Exn =
+structure Par_Exn: PAR_EXN =
 struct
 
 (* identification via serial numbers *)

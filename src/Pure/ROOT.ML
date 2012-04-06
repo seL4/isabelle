@@ -251,6 +251,7 @@ use "Isar/outer_syntax.ML";
 use "Thy/present.ML";
 use "Thy/thy_load.ML";
 use "Thy/thy_info.ML";
+use "PIDE/command.ML";
 use "PIDE/document.ML";
 use "Thy/rail.ML";
 
