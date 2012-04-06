@@ -272,33 +272,29 @@ lemma uint_transfer [transfer_rule]:
 
 subsection  "Arithmetic operations"
 
-lift_definition word_succ :: "'a::len0 word \<Rightarrow> 'a word" is "\<lambda>x::int. x + 1"
+lift_definition word_succ :: "'a::len0 word \<Rightarrow> 'a word" is "\<lambda>x. x + 1"
   by (metis bintr_ariths(6))
 
-lift_definition word_pred :: "'a::len0 word \<Rightarrow> 'a word" is "\<lambda>x::int. x - 1"
+lift_definition word_pred :: "'a::len0 word \<Rightarrow> 'a word" is "\<lambda>x. x - 1"
   by (metis bintr_ariths(7))
 
 instantiation word :: (len0) "{neg_numeral, Divides.div, comm_monoid_mult, comm_ring}"
 begin
 
-lift_definition zero_word :: "'a word" is "0::int" .
+lift_definition zero_word :: "'a word" is "0" .
 
-lift_definition one_word :: "'a word" is "1::int" .
+lift_definition one_word :: "'a word" is "1" .
 
-lift_definition plus_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
-  is "op + :: int \<Rightarrow> int \<Rightarrow> int"
+lift_definition plus_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is "op +"
   by (metis bintr_ariths(2))
 
-lift_definition minus_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
-  is "op - :: int \<Rightarrow> int \<Rightarrow> int"
+lift_definition minus_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is "op -"
   by (metis bintr_ariths(3))
 
-lift_definition uminus_word :: "'a word \<Rightarrow> 'a word"
-  is "uminus :: int \<Rightarrow> int"
+lift_definition uminus_word :: "'a word \<Rightarrow> 'a word" is uminus
   by (metis bintr_ariths(5))
 
-lift_definition times_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
-  is "op * :: int \<Rightarrow> int \<Rightarrow> int"
+lift_definition times_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is "op *"
   by (metis bintr_ariths(4))
 
 definition
@@ -394,20 +390,16 @@ subsection "Bit-wise operations"
 instantiation word :: (len0) bits
 begin
 
-lift_definition bitNOT_word :: "'a word \<Rightarrow> 'a word"
-  is "bitNOT :: int \<Rightarrow> int"
+lift_definition bitNOT_word :: "'a word \<Rightarrow> 'a word" is bitNOT
   by (metis bin_trunc_not)
 
-lift_definition bitAND_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
-  is "bitAND :: int \<Rightarrow> int \<Rightarrow> int"
+lift_definition bitAND_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is bitAND
   by (metis bin_trunc_and)
 
-lift_definition bitOR_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
-  is "bitOR :: int \<Rightarrow> int \<Rightarrow> int"
+lift_definition bitOR_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is bitOR
   by (metis bin_trunc_or)
 
-lift_definition bitXOR_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
-  is "bitXOR :: int \<Rightarrow> int \<Rightarrow> int"
+lift_definition bitXOR_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is bitXOR
   by (metis bin_trunc_xor)
 
 definition
