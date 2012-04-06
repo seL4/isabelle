@@ -55,7 +55,7 @@ val _ =
           Output.protocol_message Isabelle_Markup.assign_execs
             ((new_id, assignment) |>
               let open XML.Encode
-              in pair int (pair (list (pair int (option int))) (list (pair string (option int)))) end
+              in pair int (list (pair int (option int))) end
               |> YXML.string_of_body);
         val state2 = Document.execute new_id state1;
       in state2 end));

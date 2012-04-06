@@ -296,9 +296,7 @@ object Document
       result: PartialFunction[Text.Markup, A]): Stream[Text.Info[A]]
   }
 
-  type Assign =
-   (List[(Document.Command_ID, Option[Document.Exec_ID])],  // exec state assignment
-    List[(String, Option[Document.Command_ID])])  // last exec
+  type Assign = List[(Document.Command_ID, Option[Document.Exec_ID])]  // exec state assignment
 
   object State
   {
@@ -311,14 +309,12 @@ object Document
 
     final class Assignment private(
       val command_execs: Map[Command_ID, Exec_ID] = Map.empty,
-      val last_execs: Map[String, Option[Command_ID]] = Map.empty,
       val is_finished: Boolean = false)
     {
       def check_finished: Assignment = { require(is_finished); this }
-      def unfinished: Assignment = new Assignment(command_execs, last_execs, false)
+      def unfinished: Assignment = new Assignment(command_execs, false)
 
-      def assign(add_command_execs: List[(Command_ID, Option[Exec_ID])],
-        add_last_execs: List[(String, Option[Command_ID])]): Assignment =
+      def assign(add_command_execs: List[(Command_ID, Option[Exec_ID])]): Assignment =
       {
         require(!is_finished)
         val command_execs1 =
@@ -326,7 +322,7 @@ object Document
             case (res, (command_id, None)) => res - command_id
             case (res, (command_id, Some(exec_id))) => res + (command_id -> exec_id)
           }
-        new Assignment(command_execs1, last_execs ++ add_last_execs, true)
+        new Assignment(command_execs1, true)
       }
     }
 
@@ -387,10 +383,9 @@ object Document
           }
       }
 
-    def assign(id: Version_ID, arg: Assign = (Nil, Nil)): (List[Command], State) =
+    def assign(id: Version_ID, command_execs: Assign = Nil): (List[Command], State) =
     {
       val version = the_version(id)
-      val (command_execs, last_execs) = arg
 
       val (changed_commands, new_execs) =
         ((Nil: List[Command], execs) /: command_execs) {
@@ -404,7 +399,7 @@ object Document
               }
             (commands2, execs2)
         }
-      val new_assignment = the_assignment(version).assign(command_execs, last_execs)
+      val new_assignment = the_assignment(version).assign(command_execs)
       val new_state = copy(assignments = assignments + (id -> new_assignment), execs = new_execs)
 
       (changed_commands, new_state)
@@ -423,21 +418,6 @@ object Document
     def recent_stable: Change = history.undo_list.find(is_stable) getOrElse fail
     def tip_stable: Boolean = is_stable(history.tip)
     def tip_version: Version = history.tip.version.get_finished
-
-    def last_exec_offset(name: Node.Name): Text.Offset =
-    {
-      val version = tip_version
-      the_assignment(version).last_execs.get(name.node) match {
-        case Some(Some(id)) =>
-          val node = version.nodes(name)
-          val cmd = the_command(id).command
-          node.command_start(cmd) match {
-            case None => 0
-            case Some(start) => start + cmd.length
-          }
-        case _ => 0
-      }
-    }
 
     def continue_history(
         previous: Future[Version],

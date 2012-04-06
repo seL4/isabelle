@@ -17,7 +17,7 @@ object Protocol
       try {
         import XML.Decode._
         val body = YXML.parse_body(text)
-        Some(pair(long, pair(list(pair(long, option(long))), list(pair(string, option(long)))))(body))
+        Some(pair(long, list(pair(long, option(long))))(body))
       }
       catch {
         case ERROR(_) => None
