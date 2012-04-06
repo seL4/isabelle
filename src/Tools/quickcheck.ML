@@ -343,7 +343,7 @@ fun locale_config_of s =
     val cs = space_explode " " s
   in
     if forall (fn c => c = "expand" orelse c = "interpret") cs then cs
-    else (Output.warning ("Invalid quickcheck_locale setting: falling back to the default setting.");
+    else (warning ("Invalid quickcheck_locale setting: falling back to the default setting.");
       ["interpret", "expand"])
   end
 
