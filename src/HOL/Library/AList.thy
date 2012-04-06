@@ -97,7 +97,7 @@ proof -
   have "map_of \<circ> fold (prod_case update) (zip ks vs) =
     fold (\<lambda>(k, v) f. f(k \<mapsto> v)) (zip ks vs) \<circ> map_of"
     by (rule fold_commute) (auto simp add: fun_eq_iff update_conv')
-  then show ?thesis by (auto simp add: updates_def fun_eq_iff map_upds_fold_map_upd foldl_def split_def)
+  then show ?thesis by (auto simp add: updates_def fun_eq_iff map_upds_fold_map_upd foldl_conv_fold split_def)
 qed
 
 lemma updates_conv: "map_of (updates ks vs al) k = ((map_of al)(ks[\<mapsto>]vs)) k"
@@ -427,7 +427,7 @@ lemma merge_simps [simp]:
 
 lemma merge_updates:
   "merge qs ps = updates (rev (map fst ps)) (rev (map snd ps)) qs"
-  by (simp add: merge_def updates_def foldr_def zip_rev zip_map_fst_snd)
+  by (simp add: merge_def updates_def foldr_conv_fold zip_rev zip_map_fst_snd)
 
 lemma dom_merge: "fst ` set (merge xs ys) = fst ` set xs \<union> fst ` set ys"
   by (induct ys arbitrary: xs) (auto simp add: dom_update)
@@ -448,7 +448,7 @@ proof -
     fold (\<lambda>(k, v) m. m(k \<mapsto> v)) (rev ys) \<circ> map_of"
     by (rule fold_commute) (simp add: update_conv' prod_case_beta split_def fun_eq_iff)
   then show ?thesis
-    by (simp add: merge_def map_add_map_of_foldr foldr_def fun_eq_iff)
+    by (simp add: merge_def map_add_map_of_foldr foldr_conv_fold fun_eq_iff)
 qed
 
 corollary merge_conv:

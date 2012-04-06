@@ -208,10 +208,11 @@ INCOMPATIBILITY.
   SUPR_set_fold ~> SUP_set_fold
   INF_code ~> INF_set_foldr
   SUP_code ~> SUP_set_foldr
-  foldr.simps ~> foldr_Nil foldr_Cons (in point-free formulation)
-  foldl.simps ~> foldl_Nil foldl_Cons
-  foldr_fold_rev ~> foldr_def
-  foldl_fold ~> foldl_def
+  foldr.simps ~> foldr.simps (in point-free formulation)
+  foldr_fold_rev ~> foldr_conv_fold
+  foldl_fold ~> foldl_conv_fold
+  foldr_foldr ~> foldr_conv_foldl
+  foldl_foldr ~> foldl_conv_foldr
 
 INCOMPATIBILITY.
 
@@ -220,11 +221,12 @@ foldl_apply, foldl_fun_comm, foldl_rev, fold_weak_invariant,
 rev_foldl_cons, fold_set_remdups, fold_set, fold_set1,
 concat_conv_foldl, foldl_weak_invariant, foldl_invariant,
 foldr_invariant, foldl_absorb0, foldl_foldr1_lemma, foldl_foldr1,
-listsum_conv_fold, listsum_foldl, sort_foldl_insort.  INCOMPATIBILITY.
-Prefer "List.fold" with canonical argument order, or boil down
-"List.foldr" and "List.foldl" to "List.fold" by unfolding "foldr_def"
-and "foldl_def".  For the common phrases "%xs. List.foldr plus xs 0"
-and "List.foldl plus 0", prefer "List.listsum".
+listsum_conv_fold, listsum_foldl, sort_foldl_insort, foldl_assoc,
+foldr_conv_foldl, start_le_sum, elem_le_sum, sum_eq_0_conv.
+INCOMPATIBILITY.  For the common phrases "%xs. List.foldr plus xs 0"
+and "List.foldl plus 0", prefer "List.listsum".  Otherwise it can
+be useful to boil down "List.foldr" and "List.foldl" to "List.fold"
+by unfolding "foldr_conv_fold" and "foldl_conv_fold".  
 
 * Congruence rules Option.map_cong and Option.bind_cong for recursion
 through option types.
