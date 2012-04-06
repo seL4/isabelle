@@ -5619,8 +5619,6 @@ code_const list_ex
 
 subsubsection {* Implementation of sets by lists *}
 
-text {* Basic operations *}
-
 lemma is_empty_set [code]:
   "Set.is_empty (set xs) \<longleftrightarrow> List.null xs"
   by (simp add: Set.is_empty_def null_def)
@@ -5664,6 +5662,17 @@ lemma image_set [code]:
   "image f (set xs) = set (map f xs)"
   by simp
 
+lemma subset_code [code]:
+  "set xs \<le> B \<longleftrightarrow> (\<forall>x\<in>set xs. x \<in> B)"
+  "A \<le> List.coset ys \<longleftrightarrow> (\<forall>y\<in>set ys. y \<notin> A)"
+  "List.coset [] \<le> set [] \<longleftrightarrow> False"
+  by auto
+
+text {* A frequent case – avoid intermediate sets *}
+lemma [code_unfold]:
+  "set xs \<subseteq> set ys \<longleftrightarrow> list_all (\<lambda>x. x \<in> set ys) xs"
+  by (auto simp: list_all_iff)
+
 lemma Ball_set [code]:
   "Ball (set xs) P \<longleftrightarrow> list_all P xs"
   by (simp add: list_all_iff)
@@ -5689,20 +5698,6 @@ lemma Pow_set [code]:
   "Pow (set (x # xs)) = (let A = Pow (set xs) in A \<union> insert x ` A)"
   by (simp_all add: Pow_insert Let_def)
 
-text {* Further operations on sets *}
-
-(* Minimal refinement of equality on sets *)
-declare subset_eq[code del]
-lemma subset_code [code]:
-  "set xs <= B \<longleftrightarrow> (ALL x : set xs. x : B)"
-  "List.coset xs <= List.coset ys \<longleftrightarrow> set ys <= set xs"
-  "List.coset [] <= set [] \<longleftrightarrow> False"
-by auto
-
-text{* Optimising a frequent case: *}
-lemma [code_unfold]: "set xs \<subseteq> set ys \<longleftrightarrow> list_all (\<lambda>x. x \<in> set ys) xs"
-by (auto simp: list_all_iff)
-
 lemma setsum_code [code]:
   "setsum f (set xs) = listsum (map f (remdups xs))"
 by (simp add: listsum_distinct_conv_setsum_set)
@@ -5712,8 +5707,7 @@ definition map_project :: "('a \<Rightarrow> 'b option) \<Rightarrow> 'a set \<R
 
 lemma [code]:
   "map_project f (set xs) = set (List.map_filter f xs)"
-unfolding map_project_def map_filter_def
-by auto (metis (lifting, mono_tags) CollectI image_eqI o_apply the.simps)
+  by (auto simp add: map_project_def map_filter_def image_def)
 
 hide_const (open) map_project
 
