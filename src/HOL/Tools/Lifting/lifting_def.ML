@@ -265,7 +265,7 @@ fun lift_def_cmd (raw_var, rhs_raw) lthy =
 
     val rsp_rel = Lifting_Term.equiv_relation lthy (fastype_of rhs, qty)
     val rty_forced = (domain_type o fastype_of) rsp_rel;
-    val forced_rhs = force_rty_type lthy rty_forced rhs;
+    val forced_rhs = force_rty_type ctxt rty_forced rhs;
     val internal_rsp_tm = HOLogic.mk_Trueprop (rsp_rel $ forced_rhs $ forced_rhs)
     val readable_rsp_thm_eq = mk_readable_rsp_thm_eq internal_rsp_tm lthy
     val maybe_proven_rsp_thm = try_to_prove_refl readable_rsp_thm_eq
@@ -284,8 +284,8 @@ fun lift_def_cmd (raw_var, rhs_raw) lthy =
 
   in
     case maybe_proven_rsp_thm of
-      SOME _ => Proof.theorem NONE after_qed [] lthy
-      | NONE =>  Proof.theorem NONE after_qed [[(readable_rsp_tm,[])]] lthy
+      SOME _ => Proof.theorem NONE after_qed [] ctxt
+      | NONE =>  Proof.theorem NONE after_qed [[(readable_rsp_tm,[])]] ctxt
   end
 
 fun quot_thm_err ctxt (rty, qty) pretty_msg =
