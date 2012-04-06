@@ -492,7 +492,7 @@ lemma smult_eq_0_iff [simp]:
 
 subsection {* Multiplication of polynomials *}
 
-text {* TODO: move to Set_Interval.thy *}
+(* TODO: move to Set_Interval.thy *)
 lemma setsum_atMost_Suc_shift:
   fixes f :: "nat \<Rightarrow> 'a::comm_monoid_add"
   shows "(\<Sum>i\<le>Suc n. f i) = f 0 + (\<Sum>i\<le>n. f (Suc i))"
