@@ -702,7 +702,8 @@ termination by (relation "measure (%(f, n, m). Code_Numeral.nat_of (m + 1 - n))"
 
 text {* Misc *}
 
-declare Inf_set_foldr [where 'a = "'a Predicate.pred", code] Sup_set_foldr [where 'a = "'a Predicate.pred", code]
+declare Inf_set_fold [where 'a = "'a Predicate.pred", code]
+declare Sup_set_fold [where 'a = "'a Predicate.pred", code]
 
 (* FIXME: better implement conversion by bisection *)
 

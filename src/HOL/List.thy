@@ -2641,58 +2641,6 @@ lemma concat_conv_foldr [code]:
   "concat xss = foldr append xss []"
   by (simp add: fold_append_concat_rev foldr_conv_fold)
 
-lemma minus_set_foldr:
-  "A - set xs = foldr Set.remove xs A"
-proof -
-  have "\<And>x y :: 'a. Set.remove y \<circ> Set.remove x = Set.remove x \<circ> Set.remove y"
-    by (auto simp add: remove_def)
-  then show ?thesis by (simp add: minus_set_fold foldr_fold)
-qed
-
-lemma union_set_foldr:
-  "set xs \<union> A = foldr Set.insert xs A"
-proof -
-  have "\<And>x y :: 'a. insert y \<circ> insert x = insert x \<circ> insert y"
-    by auto
-  then show ?thesis by (simp add: union_set_fold foldr_fold)
-qed
-
-lemma inter_coset_foldr:
-  "A \<inter> List.coset xs = foldr Set.remove xs A"
-  by (simp add: Diff_eq [symmetric] minus_set_foldr)
-
-lemma (in lattice) Inf_fin_set_foldr:
-  "Inf_fin (set (x # xs)) = foldr inf xs x"
-  by (simp add: Inf_fin_set_fold ac_simps foldr_fold fun_eq_iff del: set.simps)
-
-lemma (in lattice) Sup_fin_set_foldr:
-  "Sup_fin (set (x # xs)) = foldr sup xs x"
-  by (simp add: Sup_fin_set_fold ac_simps foldr_fold fun_eq_iff del: set.simps)
-
-lemma (in linorder) Min_fin_set_foldr:
-  "Min (set (x # xs)) = foldr min xs x"
-  by (simp add: Min_fin_set_fold ac_simps foldr_fold fun_eq_iff del: set.simps)
-
-lemma (in linorder) Max_fin_set_foldr:
-  "Max (set (x # xs)) = foldr max xs x"
-  by (simp add: Max_fin_set_fold ac_simps foldr_fold fun_eq_iff del: set.simps)
-
-lemma (in complete_lattice) Inf_set_foldr:
-  "Inf (set xs) = foldr inf xs top"
-  by (simp add: Inf_set_fold ac_simps foldr_fold fun_eq_iff)
-
-lemma (in complete_lattice) Sup_set_foldr:
-  "Sup (set xs) = foldr sup xs bot"
-  by (simp add: Sup_set_fold ac_simps foldr_fold fun_eq_iff)
-
-lemma (in complete_lattice) INF_set_foldr:
-  "INFI (set xs) f = foldr (inf \<circ> f) xs top"
-  by (simp only: INF_def Inf_set_foldr foldr_map set_map [symmetric])
-
-lemma (in complete_lattice) SUP_set_foldr:
-  "SUPR (set xs) f = foldr (sup \<circ> f) xs bot"
-  by (simp only: SUP_def Sup_set_foldr foldr_map set_map [symmetric])
-
 
 subsubsection {* @{text upt} *}
 

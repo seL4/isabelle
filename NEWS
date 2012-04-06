@@ -226,7 +226,14 @@ foldr_conv_foldl, start_le_sum, elem_le_sum, sum_eq_0_conv.
 INCOMPATIBILITY.  For the common phrases "%xs. List.foldr plus xs 0"
 and "List.foldl plus 0", prefer "List.listsum".  Otherwise it can
 be useful to boil down "List.foldr" and "List.foldl" to "List.fold"
-by unfolding "foldr_conv_fold" and "foldl_conv_fold".  
+by unfolding "foldr_conv_fold" and "foldl_conv_fold".
+
+* Dropped lemmas minus_set_foldr, union_set_foldr, union_coset_foldr,
+inter_coset_foldr, Inf_fin_set_foldr, Sup_fin_set_foldr,
+Min_fin_set_foldr, Max_fin_set_foldr, Inf_set_foldr, Sup_set_foldr,
+INF_set_foldr, SUP_set_foldr.  INCOMPATIBILITY.  Prefer corresponding
+lemmas over fold rather than foldr, or make use of lemmas
+fold_conv_foldr and fold_rev.
 
 * Congruence rules Option.map_cong and Option.bind_cong for recursion
 through option types.
