@@ -85,29 +85,21 @@ fun ants MRSL thm = fold (fn rl => fn thm => rl RS thm) ants thm
 
 exception NOT_IMPL of string
 
-fun quot_thm_rel quot_thm = 
-  let
-    val (Const (@{const_name Quotient}, _) $ rel $ _ $ _ $ _) = 
-      (HOLogic.dest_Trueprop o prop_of) quot_thm
-  in
-    rel
-  end
+fun dest_Quotient (Const (@{const_name Quotient}, _) $ rel $ abs $ rep $ cr)
+      = (rel, abs, rep, cr)
+  | dest_Quotient t = raise TERM ("dest_Quotient", [t])
+
+fun quot_thm_rel quot_thm =
+  case (dest_Quotient o HOLogic.dest_Trueprop o prop_of) quot_thm of
+    (rel, _, _, _) => rel
 
 fun quot_thm_abs quot_thm =
-  let
-    val (Const (@{const_name Quotient}, _) $ _ $ abs $ _ $ _) = 
-      (HOLogic.dest_Trueprop o prop_of) quot_thm
-  in
-    abs
-  end
+  case (dest_Quotient o HOLogic.dest_Trueprop o prop_of) quot_thm of
+    (_, abs, _, _) => abs
 
 fun quot_thm_rep quot_thm =
-  let
-    val (Const (@{const_name Quotient}, _) $ _ $ _ $ rep $ _) = 
-      (HOLogic.dest_Trueprop o prop_of) quot_thm
-  in
-    rep
-  end
+  case (dest_Quotient o HOLogic.dest_Trueprop o prop_of) quot_thm of
+    (_, _, rep, _) => rep
 
 fun quot_thm_rty_qty quot_thm =
   let
