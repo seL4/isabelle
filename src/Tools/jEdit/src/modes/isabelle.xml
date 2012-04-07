@@ -33,6 +33,7 @@
       <KEYWORD2>header</KEYWORD2>
       <KEYWORD1>theory</KEYWORD1>
       <KEYWORD2>imports</KEYWORD2>
+      <KEYWORD2>keywords</KEYWORD2>
       <KEYWORD2>uses</KEYWORD2>
       <KEYWORD2>begin</KEYWORD2>
       <KEYWORD2>end</KEYWORD2>
