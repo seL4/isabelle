@@ -235,7 +235,7 @@ end;
 
 
 
-(** document state -- content structure and execution process **)
+(** main state -- document structure and execution process **)
 
 abstype state = State of
  {versions: version Inttab.table,  (*version_id -> document content*)
@@ -298,12 +298,18 @@ end;
 
 
 
-(** execute **)
+(** edit operations **)
+
+(* execute *)
+
+local
 
 fun finished_theory node =
   (case Exn.capture Command.memo_result (get_result node) of
     Exn.Res (st, _) => can (Toplevel.end_theory Position.none) st
   | _ => false);
+
+in
 
 fun execute version_id state =
   state |> map_state (fn (versions, commands, _) =>
@@ -339,14 +345,26 @@ fun execute version_id state =
 
     in (versions, commands, (version_id, group, running)) end);
 
+end;
 
-
-
-(** edits **)
 
 (* update *)
 
 local
+
+fun stable_finished_theory node =
+  is_some (Exn.get_res (Exn.capture (fn () =>
+    fst (Command.memo_result (get_result node))
+    |> Toplevel.end_theory Position.none
+    |> Global_Theory.join_proofs) ()));
+
+fun stable_command exec =
+  (case Exn.capture Command.memo_result exec of
+    Exn.Exn exn => not (Exn.is_interrupt exn)
+  | Exn.Res (st, _) =>
+      (case try Toplevel.theory_of st of
+        NONE => true
+      | SOME thy => is_some (Exn.get_res (Exn.capture Global_Theory.join_recent_proofs thy))));
 
 fun make_required nodes =
   let
@@ -400,7 +418,7 @@ fun last_common state last_visible node0 node =
           (case opt_exec of
             NONE => true
           | SOME (exec_id, exec) =>
-              not (Command.memo_stable exec) orelse
+              not (stable_command exec) orelse
               (case lookup_entry node0 id of
                 NONE => true
               | SOME (exec_id0, _) => exec_id <> exec_id0));
@@ -453,7 +471,7 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
     val updated =
       nodes |> Graph.schedule
         (fn deps => fn (name, node) =>
-          if is_touched node orelse is_required name andalso not (finished_theory node) then
+          if is_touched node orelse is_required name andalso not (stable_finished_theory node) then
             let
               val node0 = node_of old_version name;
               fun init () = init_theory deps node;

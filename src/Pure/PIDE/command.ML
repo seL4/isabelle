@@ -12,7 +12,6 @@ sig
   val memo_value: 'a -> 'a memo
   val memo_eval: 'a memo -> 'a
   val memo_result: 'a memo -> 'a
-  val memo_stable: 'a memo -> bool
   val run_command: Toplevel.transition -> Toplevel.state -> Toplevel.state * unit lazy
 end;
 
@@ -57,11 +56,6 @@ fun memo_result (Memo v) =
   (case Synchronized.value v of
     Result res => Exn.release res
   | _ => raise Fail "Unfinished memo result");
-
-fun memo_stable (Memo v) =
-  (case Synchronized.value v of
-    Result (Exn.Exn exn) => not (Exn.is_interrupt exn)
-  | _ => true);
 
 end;
 
