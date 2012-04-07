@@ -163,6 +163,10 @@ lemma int_of_max [simp]:
   "int_of (max k l) = max (int_of k) (int_of l)"
   by (simp add: max_def less_eq_int_def)
 
+lemma of_nat_nat_of [simp]:
+  "of_nat (nat_of k) = max 0 k"
+  by (simp add: nat_of_def Target_Numeral.int_eq_iff less_eq_int_def max_def)
+
 
 subsection {* Code theorems for target language numerals *}
 
@@ -620,18 +624,25 @@ declare of_int_code [code]
 
 subsection {* Implementation for @{typ nat} *}
 
+definition Nat :: "Target_Numeral.int \<Rightarrow> nat" where
+  "Nat = Target_Numeral.nat_of"
+
 definition of_nat :: "nat \<Rightarrow> Target_Numeral.int" where
   [code_abbrev]: "of_nat = Nat.of_nat"
 
-hide_const (open) of_nat
+hide_const (open) of_nat Nat
 
 lemma int_of_nat [simp]:
   "Target_Numeral.int_of (Target_Numeral.of_nat n) = of_nat n"
   by (simp add: of_nat_def)
 
 lemma [code abstype]:
-  "Target_Numeral.nat_of (Target_Numeral.of_nat n) = n"
-  by (simp add: nat_of_def)
+  "Target_Numeral.Nat (Target_Numeral.of_nat n) = n"
+  by (simp add: Nat_def nat_of_def)
+
+lemma [code abstract]:
+  "Target_Numeral.of_nat (Target_Numeral.nat_of k) = max 0 k"
+  by (simp add: of_nat_def)
 
 lemma [code_abbrev]:
   "nat (Int.Pos k) = nat_of_num k"
@@ -724,3 +735,4 @@ lemma [code abstract]:
   by (simp add: of_nat_def of_int_of_nat max_def)
 
 end
+
