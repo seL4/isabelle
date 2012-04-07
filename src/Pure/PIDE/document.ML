@@ -276,7 +276,15 @@ fun delete_version (id: version_id) versions = Inttab.delete id versions
 fun define_command (id: command_id) name text =
   map_state (fn (versions, commands, execution) =>
     let
-      val span = Lazy.lazy (fn () => Command.parse_command (print_id id) text);
+      val id_string = print_id id;
+      val span = Lazy.lazy (fn () =>
+        Position.setmp_thread_data (Position.id_only id_string)
+          (fn () =>
+            Thy_Syntax.parse_tokens
+              (#1 (Outer_Syntax.get_syntax ())) (Position.id id_string) text) ());
+      val _ =
+        Position.setmp_thread_data (Position.id_only id_string)
+          (fn () => Output.status (Markup.markup_only Isabelle_Markup.accepted)) ();
       val commands' =
         Inttab.update_new (id, (name, span)) commands
           handle Inttab.DUP dup => err_dup "command" dup;

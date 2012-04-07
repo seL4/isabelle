@@ -364,7 +364,7 @@ object Document
       }
 
     def the_version(id: Version_ID): Version = versions.getOrElse(id, fail)
-    def the_command(id: Command_ID): Command.State = commands.getOrElse(id, fail)  // FIXME rename
+    def the_command_state(id: Command_ID): Command.State = commands.getOrElse(id, fail)
     def the_exec(id: Exec_ID): Command.State = execs.getOrElse(id, fail)
     def the_assignment(version: Version): State.Assignment =
       assignments.getOrElse(version.id, fail)
@@ -390,7 +390,7 @@ object Document
       val (changed_commands, new_execs) =
         ((Nil: List[Command], execs) /: command_execs) {
           case ((commands1, execs1), (cmd_id, exec)) =>
-            val st = the_command(cmd_id)
+            val st = the_command_state(cmd_id)
             val commands2 = st.command :: commands1
             val execs2 =
               exec match {
@@ -470,7 +470,11 @@ object Document
         the_exec(the_assignment(version).check_finished.command_execs
           .getOrElse(command.id, fail))
       }
-      catch { case _: State.Fail => command.empty_state }
+      catch {
+        case _: State.Fail =>
+          try { the_command_state(command.id) }
+          catch { case _: State.Fail => command.empty_state }
+      }
     }
 
 

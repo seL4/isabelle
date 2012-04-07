@@ -6,7 +6,6 @@ Prover command execution.
 
 signature COMMAND =
 sig
-  val parse_command: string -> string -> Token.T list
   type 'a memo
   val memo: (unit -> 'a) -> 'a memo
   val memo_value: 'a -> 'a memo
@@ -17,17 +16,6 @@ end;
 
 structure Command: COMMAND =
 struct
-
-(* parse command *)
-
-fun parse_command id text =
-  Position.setmp_thread_data (Position.id_only id)
-    (fn () =>
-      let
-        val toks = Thy_Syntax.parse_tokens (#1 (Outer_Syntax.get_syntax ())) (Position.id id) text;
-        val _ = Output.status (Markup.markup_only Isabelle_Markup.parsed);
-      in toks end) ();
-
 
 (* memo results *)
 
