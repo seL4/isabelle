@@ -95,7 +95,6 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
   private object pending_edits  // owned by Swing thread
   {
     private val pending = new mutable.ListBuffer[Text.Edit]
-    private var pending_perspective = false
     private var last_perspective: Text.Perspective = Text.Perspective.empty
 
     def snapshot(): List[Text.Edit] = pending.toList
@@ -104,16 +103,12 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
     {
       Swing_Thread.require()
 
-      val new_perspective =
-        if (pending_perspective) { pending_perspective = false; perspective() }
-        else last_perspective
-
-      snapshot() match {
-        case Nil if last_perspective == new_perspective =>
-        case edits =>
-          pending.clear
-          last_perspective = new_perspective
-          session.edit_node(name, node_header(), new_perspective, edits)
+      val edits = snapshot()
+      val new_perspective = perspective()
+      if (!edits.isEmpty || last_perspective != new_perspective) {
+        pending.clear
+        last_perspective = new_perspective
+        session.edit_node(name, node_header(), new_perspective, edits)
       }
     }
 
@@ -129,7 +124,6 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
 
     def update_perspective()
     {
-      pending_perspective = true
       delay_flush(true)
     }
 

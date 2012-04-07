@@ -90,7 +90,7 @@ sig
   val sendbackN: string val sendback: Markup.T
   val hiliteN: string val hilite: Markup.T
   val taskN: string
-  val parsedN: string val parsed: Markup.T
+  val acceptedN: string val accepted: Markup.T
   val forkedN: string val forked: Markup.T
   val joinedN: string val joined: Markup.T
   val failedN: string val failed: Markup.T
@@ -283,7 +283,7 @@ val (hiliteN, hilite) = markup_elem "hilite";
 
 val taskN = "task";
 
-val (parsedN, parsed) = markup_elem "parsed";
+val (acceptedN, accepted) = markup_elem "accepted";
 val (forkedN, forked) = markup_elem "forked";
 val (joinedN, joined) = markup_elem "joined";
 

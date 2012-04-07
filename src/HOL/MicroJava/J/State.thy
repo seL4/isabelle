@@ -190,9 +190,12 @@ apply(erule_tac x="a" in allE)
 apply simp
 done
 
-instantiation loc' :: equal begin
+instantiation loc' :: equal
+begin
+
 definition "HOL.equal (l :: loc') l' \<longleftrightarrow> l = l'"
-instance proof qed(simp add: equal_loc'_def)
+instance by default (simp add: equal_loc'_def)
+
 end
 
 end

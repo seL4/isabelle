@@ -399,7 +399,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
         case _ =>
           if (output.is_exit && phase == Session.Startup) phase = Session.Failed
           else if (output.is_exit) phase = Session.Inactive
-          else if (output.is_stdout) { }
+          else if (output.is_init || output.is_stdout) { }
           else bad_output(output)
       }
     }

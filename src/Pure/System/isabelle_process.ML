@@ -167,8 +167,8 @@ fun init rendezvous = ignore (Simple_Thread.fork false (fn () =>
     val _ = OS.Process.sleep (seconds 0.5);  (*yield to raw ML toplevel*)
     val _ = Output.physical_stderr Symbol.STX;
 
-    val _ = quick_and_dirty := true;
-    val _ = Goal.parallel_proofs := 0;
+    val _ = quick_and_dirty := false;
+    val _ = Goal.parallel_proofs := 1;
     val _ =
       if Multithreading.max_threads_value () < 2
       then Multithreading.max_threads := 2 else ();
