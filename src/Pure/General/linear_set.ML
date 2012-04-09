@@ -18,6 +18,7 @@ sig
   val update: key * 'a -> 'a T -> 'a T
   val iterate: key option ->
     ((key option * key) * 'a -> 'b -> 'b option) -> 'a T -> 'b -> 'b
+  val dest: 'a T -> (key * 'a) list
   val get_after: 'a T -> key option -> key option
   val insert_after: key option -> key * 'a -> 'a T -> 'a T
   val delete_after: key option -> 'a T -> 'a T
@@ -94,6 +95,8 @@ fun iterate opt_start f set =
           end;
   in apply NONE (optional_start set opt_start) end;
 
+fun dest set = rev (iterate NONE (fn ((_, key), x) => SOME o cons (key, x)) set []);
+
 
 (* relative addressing *)
 
@@ -128,6 +131,16 @@ fun delete_after hook set = set |> map_set (fn (start, entries) =>
               |> put_entry (key1, (x1, next_entry entries key2))
               |> del_entry key2;
           in (start, entries') end)));
+
+
+(* ML pretty-printing -- requires Poly/ML 5.3.0 or later *)
+
+val _ =
+  PolyML.addPrettyPrinter (fn depth => fn pretty => fn set =>
+    ml_pretty
+      (ML_Pretty.enum "," "{" "}"
+        (ML_Pretty.pair (pretty_ml o PolyML.prettyRepresentation) (pretty_ml o pretty))
+        (dest set, depth)));
 
 end;
 
