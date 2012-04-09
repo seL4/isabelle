@@ -52,8 +52,8 @@ sig
   val peek: 'a future -> 'a Exn.result option
   val is_finished: 'a future -> bool
   val interruptible_task: ('a -> 'b) -> 'a -> 'b
-  val cancel_group: group -> task list
-  val cancel: 'a future -> task list
+  val cancel_group: group -> unit
+  val cancel: 'a future -> unit
   type params = {name: string, group: group option, deps: task list, pri: int, interrupts: bool}
   val default_params: params
   val forks: params -> (unit -> 'a) list -> 'a future list
@@ -74,6 +74,8 @@ sig
   val fulfill: 'a future -> 'a -> unit
   val shutdown: unit -> unit
   val status: (unit -> 'a) -> 'a
+  val group_tasks: group -> task list
+  val queue_status: unit -> {ready: int, pending: int, running: int, passive: int}
 end;
 
 structure Future: FUTURE =
@@ -181,9 +183,9 @@ fun count_workers state = (*requires SYNCHRONIZED*)
 
 fun cancel_now group = (*requires SYNCHRONIZED*)
   let
-    val (tasks, threads) = Task_Queue.cancel (! queue) group;
-    val _ = List.app Simple_Thread.interrupt_unsynchronized threads;
-  in tasks end;
+    val running = Task_Queue.cancel (! queue) group;
+    val _ = List.app Simple_Thread.interrupt_unsynchronized running;
+  in running end;
 
 fun cancel_all () = (*requires SYNCHRONIZED*)
   let
@@ -413,7 +415,7 @@ fun cancel_group group = SYNCHRONIZED "cancel_group" (fn () =>
     val _ =
       if null running then ()
       else (cancel_later group; signal work_available; scheduler_check ());
-  in running end);
+  in () end);
 
 fun cancel x = cancel_group (Task_Queue.group_of_task (task_of x));
 
@@ -648,6 +650,13 @@ fun status e =
     val x = e ();  (*sic -- report "joined" only for success*)
     val _ = Output.status (Markup.markup_only (task_props Isabelle_Markup.joined));
   in x end;
+
+
+(* queue status *)
+
+fun group_tasks group = Task_Queue.group_tasks (! queue) group;
+
+fun queue_status () = Task_Queue.status (! queue);
 
 
 (*final declarations of this structure!*)

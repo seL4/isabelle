@@ -39,8 +39,7 @@ fun managed_results name f xs =
         Future.forks {name = name, group = SOME group, deps = [], pri = 0, interrupts = true}
           (map (fn x => fn () => f x) xs);
       val results = Future.join_results futures
-        handle exn =>
-          (if Exn.is_interrupt exn then ignore (Future.cancel_group group) else (); reraise exn);
+        handle exn => (if Exn.is_interrupt exn then Future.cancel_group group else (); reraise exn);
     in results end;
 
 fun map_name name f xs = Par_Exn.release_first (managed_results name f xs);

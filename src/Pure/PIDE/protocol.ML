@@ -18,12 +18,14 @@ val _ =
 
 val _ =
   Isabelle_Process.protocol_command "Document.cancel_execution"
-    (fn [] => ignore (Document.cancel_execution (Document.state ())));
+    (fn [] => Document.cancel_execution (Document.state ()));
 
 val _ =
   Isabelle_Process.protocol_command "Document.update"
     (fn [old_id_string, new_id_string, edits_yxml] => Document.change_state (fn state =>
       let
+        val _ = Document.cancel_execution state;
+
         val old_id = Document.parse_id old_id_string;
         val new_id = Document.parse_id new_id_string;
         val edits =
@@ -48,9 +50,7 @@ val _ =
                   fn (a, []) => Document.Perspective (map int_atom a)]))
             end;
 
-        val running = Document.cancel_execution state;
         val (assignment, state1) = Document.update old_id new_id edits state;
-        val _ = Future.join_tasks running;
         val _ =
           Output.protocol_message Isabelle_Markup.assign_execs
             ((new_id, assignment) |>

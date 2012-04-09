@@ -26,7 +26,7 @@ sig
   val init_state: state
   val define_command: command_id -> string -> string -> state -> state
   val discontinue_execution: state -> unit
-  val cancel_execution: state -> Future.task list
+  val cancel_execution: state -> unit
   val execute: version_id -> state -> state
   val update: version_id -> version_id -> edit list -> state ->
     (command_id * exec_id option) list * state
@@ -301,6 +301,7 @@ fun the_command (State {commands, ...}) (id: command_id) =
 fun discontinue_execution (State {execution = (_, _, running), ...}) = running := false;
 
 fun cancel_execution (State {execution = (_, group, _), ...}) = Future.cancel_group group;
+fun execution_tasks (State {execution = (_, group, _), ...}) = Future.group_tasks group;
 
 end;
 
@@ -476,6 +477,7 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
     val nodes = nodes_of new_version;
     val is_required = make_required nodes;
 
+    val _ = Future.join_tasks (execution_tasks state);
     val updated =
       nodes |> Graph.schedule
         (fn deps => fn (name, node) =>
