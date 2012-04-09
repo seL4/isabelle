@@ -66,20 +66,18 @@ type exec = (Toplevel.state * unit lazy) Command.memo;  (*eval/print process*)
 val no_exec = Command.memo_value (Toplevel.toplevel, Lazy.value ());
 
 abstype node = Node of
- {touched: bool,
-  header: node_header,
+ {header: node_header,
   perspective: perspective,
   entries: (exec_id * exec) option Entries.T,  (*command entries with excecutions*)
   result: exec}
 and version = Version of node Graph.T  (*development graph wrt. static imports*)
 with
 
-fun make_node (touched, header, perspective, entries, result) =
-  Node {touched = touched, header = header, perspective = perspective,
-    entries = entries, result = result};
+fun make_node (header, perspective, entries, result) =
+  Node {header = header, perspective = perspective, entries = entries, result = result};
 
-fun map_node f (Node {touched, header, perspective, entries, result}) =
-  make_node (f (touched, header, perspective, entries, result));
+fun map_node f (Node {header, perspective, entries, result}) =
+  make_node (f (header, perspective, entries, result));
 
 fun make_perspective command_ids : perspective =
   (Inttab.defined (Inttab.make (map (rpair ()) command_ids)), try List.last command_ids);
@@ -87,35 +85,26 @@ fun make_perspective command_ids : perspective =
 val no_header = Exn.Exn (ERROR "Bad theory header");
 val no_perspective = make_perspective [];
 
-val empty_node = make_node (false, no_header, no_perspective, Entries.empty, no_exec);
-val clear_node = map_node (fn (_, header, _, _, _) =>
-  (false, header, no_perspective, Entries.empty, no_exec));
+val empty_node = make_node (no_header, no_perspective, Entries.empty, no_exec);
+val clear_node = map_node (fn (header, _, _, _) => (header, no_perspective, Entries.empty, no_exec));
 
 
 (* basic components *)
 
-fun is_touched (Node {touched, ...}) = touched;
-fun set_touched touched =
-  map_node (fn (_, header, perspective, entries, result) =>
-    (touched, header, perspective, entries, result));
-
 fun get_header (Node {header, ...}) = header;
 fun set_header header =
-  map_node (fn (touched, _, perspective, entries, result) =>
-    (touched, header, perspective, entries, result));
+  map_node (fn (_, perspective, entries, result) => (header, perspective, entries, result));
 
 fun get_perspective (Node {perspective, ...}) = perspective;
 fun set_perspective ids =
-  map_node (fn (touched, header, _, entries, result) =>
-    (touched, header, make_perspective ids, entries, result));
+  map_node (fn (header, _, entries, result) => (header, make_perspective ids, entries, result));
 
 val visible_command = #1 o get_perspective;
 val visible_last = #2 o get_perspective;
 val visible_node = is_some o visible_last
 
 fun map_entries f =
-  map_node (fn (touched, header, perspective, entries, result) =>
-    (touched, header, perspective, f entries, result));
+  map_node (fn (header, perspective, entries, result) => (header, perspective, f entries, result));
 fun get_entries (Node {entries, ...}) = entries;
 
 fun iterate_entries f = Entries.iterate NONE f o get_entries;
@@ -126,8 +115,7 @@ fun iterate_entries_after start f (Node {entries, ...}) =
 
 fun get_result (Node {result, ...}) = result;
 fun set_result result =
-  map_node (fn (touched, header, perspective, entries, _) =>
-    (touched, header, perspective, entries, result));
+  map_node (fn (header, perspective, entries, _) => (header, perspective, entries, result));
 
 fun get_node nodes name = Graph.get_node nodes name handle Graph.UNDEF _ => empty_node;
 fun default_node name = Graph.default_node (name, empty_node);
@@ -182,30 +170,13 @@ val empty_version = Version Graph.empty;
 fun nodes_of (Version nodes) = nodes;
 val node_of = get_node o nodes_of;
 
-local
-
 fun cycle_msg names = "Cyclic dependency of " ^ space_implode " via " (map quote names);
-
-fun touch_node name nodes =
-  fold (fn desc =>
-      update_node desc
-        (set_touched true #>
-          desc <> name ? (map_entries (reset_after NONE) #> set_result no_exec)))
-    (Graph.all_succs nodes [name]) nodes;
-
-in
 
 fun edit_nodes (name, node_edit) (Version nodes) =
   Version
     (case node_edit of
-      Clear =>
-        nodes
-        |> update_node name clear_node
-        |> touch_node name
-    | Edits edits =>
-        nodes
-        |> update_node name (edit_node edits)
-        |> touch_node name
+      Clear => update_node name clear_node nodes
+    | Edits edits => update_node name (edit_node edits) nodes
     | Header header =>
         let
           val imports = (case header of Exn.Res (_, {imports, ...}) => imports | _ => []);
@@ -222,11 +193,7 @@ fun edit_nodes (name, node_edit) (Version nodes) =
             (header', Graph.add_deps_acyclic (name, imports) nodes2)
               handle Graph.CYCLES cs => (Exn.Exn (ERROR (cat_lines (map cycle_msg cs))), nodes2);
         in Graph.map_node name (set_header header'') nodes3 end
-        |> touch_node name
-    | Perspective perspective =>
-        update_node name (set_perspective perspective #> set_touched true) nodes);
-
-end;
+    | Perspective perspective => update_node name (set_perspective perspective) nodes);
 
 fun put_node (name, node) (Version nodes) =
   Version (update_node name (K node) nodes);
@@ -388,7 +355,7 @@ fun make_required nodes =
           Symtab.update (a, ())) all_visible Symtab.empty;
   in Symtab.defined required end;
 
-fun init_theory deps node =
+fun init_theory imports node =
   let
     (* FIXME provide files via Scala layer, not master_dir *)
     val (dir, header) = Exn.release (get_header node);
@@ -402,8 +369,8 @@ fun init_theory deps node =
           SOME thy => thy
         | NONE =>
             Toplevel.end_theory (Position.file_only import)
-              (fst (Command.memo_eval  (* FIXME memo_result !?! *)
-                (get_result (snd (Future.join (the (AList.lookup (op =) deps import)))))))));
+              (fst (Command.memo_result
+                (get_result (snd (the (AList.lookup (op =) imports import))))))));
   in Thy_Load.begin_theory master_dir header parents end;
 
 fun check_theory nodes name =
@@ -460,9 +427,9 @@ fun new_exec state bad_init command_id' (execs, command_exec, init) =
             #1 (Outer_Syntax.read_span (#2 (Outer_Syntax.get_syntax ())) span)
             |> modify_init
             |> Toplevel.put_id exec_id'_string);
-      val exec' = Command.memo (fn () =>
-        let val (st, _) = Command.memo_eval (snd (snd command_exec));  (* FIXME memo_result !?! *)
-        in Command.run_command (tr ()) st end);
+      val exec' =
+        Command.memo (fn () =>
+          Command.run_command (tr ()) (fst (Command.memo_result (snd (snd command_exec)))));
       val command_exec' = (command_id', (exec_id', exec'));
     in SOME (command_exec' :: execs, command_exec', init') end;
 
@@ -481,21 +448,28 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
     val updated =
       nodes |> Graph.schedule
         (fn deps => fn (name, node) =>
-          if is_touched node orelse is_required name andalso not (stable_finished_theory node) then
-            let
-              val node0 = node_of old_version name;
-              fun init () = init_theory deps node;
-              val bad_init =
-                not (check_theory nodes name andalso forall (check_theory nodes o #1) deps);
-            in
-              (singleton o Future.forks)
-                {name = "Document.update", group = NONE,
-                  deps = map (Future.task_of o #2) deps, pri = 0, interrupts = false}
-                (fn () =>
+          (singleton o Future.forks)
+            {name = "Document.update", group = NONE,
+              deps = map (Future.task_of o #2) deps, pri = 0, interrupts = false}
+            (fn () =>
+              let
+                val imports = map (apsnd Future.join) deps;
+                val updated_imports = exists (is_some o #3 o #1 o #2) imports;
+                val required = is_required name;
+              in
+                if updated_imports orelse AList.defined (op =) edits name orelse
+                  required andalso not (stable_finished_theory node)
+                then
                   let
-                    val required = is_required name;
+                    val node0 = node_of old_version name;
+                    fun init () = init_theory imports node;
+                    val bad_init =
+                      not (check_theory nodes name andalso forall (check_theory nodes o #1) imports);
+
                     val last_visible = visible_last node;
-                    val (common, (visible, initial)) = last_common state last_visible node0 node;
+                    val (common, (visible, initial)) =
+                      if updated_imports then (NONE, (true, true))
+                      else last_common state last_visible node0 node;
                     val common_command_exec = the_default_entry node common;
 
                     val (new_execs, (command_id', (_, exec')), _) =
@@ -521,17 +495,19 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
                     val node' = node
                       |> fold reset_entry no_execs
                       |> fold (fn (id, exec) => update_entry id (SOME exec)) new_execs
-                      |> set_result result
-                      |> set_touched false;
-                  in ((no_execs, new_execs, [(name, node')]), node') end)
-            end
-          else Future.value (([], [], []), node))
+                      |> set_result result;
+                    val updated_node =
+                      if null no_execs andalso null new_execs then NONE
+                      else SOME (name, node');
+                  in ((no_execs, new_execs, updated_node), node') end
+                else (([], [], NONE), node)
+              end))
       |> Future.joins |> map #1;
 
     val command_execs =
       map (rpair NONE) (maps #1 updated) @
       map (fn (command_id, (exec_id, _)) => (command_id, SOME exec_id)) (maps #2 updated);
-    val updated_nodes = maps #3 updated;
+    val updated_nodes = map_filter #3 updated;
 
     val state' = state
       |> define_version new_id (fold put_node updated_nodes new_version);
