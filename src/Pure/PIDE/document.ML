@@ -59,7 +59,7 @@ fun err_undef kind id = error ("Undefined " ^ kind ^ ": " ^ print_id id);
 (** document structure **)
 
 type node_header = (string * Thy_Header.header) Exn.result;
-type perspective = (command_id -> bool) * command_id option; (*visible commands, last*)
+type perspective = (command_id -> bool) * command_id option;
 structure Entries = Linear_Set(type key = command_id val ord = int_ord);
 
 type exec = (Toplevel.state * unit lazy) Command.memo;  (*eval/print process*)
@@ -67,9 +67,9 @@ val no_exec = Command.memo_value (Toplevel.toplevel, Lazy.value ());
 
 abstype node = Node of
  {header: node_header,
-  perspective: perspective,
+  perspective: perspective,  (*visible commands, last*)
   entries: (exec_id * exec) option Entries.T,  (*command entries with excecutions*)
-  result: exec}
+  result: exec option}  (*result of last execution*)
 and version = Version of node Graph.T  (*development graph wrt. static imports*)
 with
 
@@ -85,8 +85,8 @@ fun make_perspective command_ids : perspective =
 val no_header = Exn.Exn (ERROR "Bad theory header");
 val no_perspective = make_perspective [];
 
-val empty_node = make_node (no_header, no_perspective, Entries.empty, no_exec);
-val clear_node = map_node (fn (header, _, _, _) => (header, no_perspective, Entries.empty, no_exec));
+val empty_node = make_node (no_header, no_perspective, Entries.empty, NONE);
+val clear_node = map_node (fn (header, _, _, _) => (header, no_perspective, Entries.empty, NONE));
 
 
 (* basic components *)
@@ -281,7 +281,7 @@ end;
 local
 
 fun finished_theory node =
-  (case Exn.capture Command.memo_result (get_result node) of
+  (case Exn.capture (Command.memo_result o the) (get_result node) of
     Exn.Res (st, _) => can (Toplevel.end_theory Position.none) st
   | _ => false);
 
@@ -330,7 +330,7 @@ local
 
 fun stable_finished_theory node =
   is_some (Exn.get_res (Exn.capture (fn () =>
-    fst (Command.memo_result (get_result node))
+    fst (Command.memo_result (the (get_result node)))
     |> Toplevel.end_theory Position.none
     |> Global_Theory.join_proofs) ()));
 
@@ -365,17 +365,19 @@ fun init_theory imports node =
       | _ => Path.current);
     val parents =
       #imports header |> map (fn import =>
-        (case Thy_Info.lookup_theory import of  (* FIXME more robust!? *)
+        (case Thy_Info.lookup_theory import of
           SOME thy => thy
         | NONE =>
             Toplevel.end_theory (Position.file_only import)
-              (fst (Command.memo_result
-                (get_result (snd (the (AList.lookup (op =) imports import))))))));
+              (fst
+                (Command.memo_result
+                  (the_default no_exec
+                    (get_result (snd (the (AList.lookup (op =) imports import)))))))));
   in Thy_Load.begin_theory master_dir header parents end;
 
-fun check_theory nodes name =
-  is_some (Thy_Info.lookup_theory name) orelse  (* FIXME more robust!? *)
-  is_some (Exn.get_res (get_header (get_node nodes name)));
+fun check_theory full name node =
+  is_some (Thy_Info.lookup_theory name) orelse
+  is_some (Exn.get_res (get_header node)) andalso (not full orelse is_some (get_result node));
 
 fun last_common state last_visible node0 node =
   let
@@ -410,8 +412,8 @@ fun last_common state last_visible node0 node =
 
 fun illegal_init () = error "Illegal theory header after end of theory";
 
-fun new_exec state bad_init command_id' (execs, command_exec, init) =
-  if bad_init andalso is_none init then NONE
+fun new_exec state proper_init command_id' (execs, command_exec, init) =
+  if not proper_init andalso is_none init then NONE
   else
     let
       val (name, span) = the_command state command_id' ||> Lazy.force;
@@ -463,8 +465,9 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
                   let
                     val node0 = node_of old_version name;
                     fun init () = init_theory imports node;
-                    val bad_init =
-                      not (check_theory nodes name andalso forall (check_theory nodes o #1) imports);
+                    val proper_init =
+                      check_theory false name node andalso
+                      forall (fn (name, (_, node)) => check_theory true name node) imports;
 
                     val last_visible = visible_last node;
                     val (common, (visible, initial)) =
@@ -478,7 +481,7 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
                         iterate_entries_after common
                           (fn ((prev, id), _) => fn res =>
                             if not required andalso prev = last_visible then NONE
-                            else new_exec state bad_init id res) node;
+                            else new_exec state proper_init id res) node;
 
                     val no_execs =
                       iterate_entries_after common
@@ -489,8 +492,8 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
 
                     val last_exec = if command_id' = no_id then NONE else SOME command_id';
                     val result =
-                      if is_some (after_entry node last_exec) then no_exec
-                      else exec';
+                      if is_some (after_entry node last_exec) then NONE
+                      else SOME exec';
 
                     val node' = node
                       |> fold reset_entry no_execs
