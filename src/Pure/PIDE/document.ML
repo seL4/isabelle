@@ -498,7 +498,7 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
                     val (common, (visible, initial)) = last_common state last_visible node0 node;
                     val common_command_exec = the_default_entry node common;
 
-                    val (execs, (command_id, (_, exec)), _) =
+                    val (new_execs, (command_id', (_, exec')), _) =
                       ([], common_command_exec, if initial then SOME init else NONE) |>
                       (visible orelse required) ?
                         iterate_entries_after common
@@ -510,20 +510,20 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
                       iterate_entries_after common
                         (fn ((_, id0), exec0) => fn res =>
                           if is_none exec0 then NONE
-                          else if exists (fn (_, (id, _)) => id0 = id) execs then SOME res
+                          else if exists (fn (_, (id, _)) => id0 = id) new_execs then SOME res
                           else SOME (id0 :: res)) node0 [];
 
-                    val last_exec = if command_id = no_id then NONE else SOME command_id;
+                    val last_exec = if command_id' = no_id then NONE else SOME command_id';
                     val result =
                       if is_some (after_entry node last_exec) then no_exec
-                      else exec;
+                      else exec';
 
                     val node' = node
                       |> fold reset_entry no_execs
-                      |> fold (fn (id, exec) => update_entry id (SOME exec)) execs
+                      |> fold (fn (id, exec) => update_entry id (SOME exec)) new_execs
                       |> set_result result
                       |> set_touched false;
-                  in ((no_execs, execs, [(name, node')]), node') end)
+                  in ((no_execs, new_execs, [(name, node')]), node') end)
             end
           else Future.value (([], [], []), node))
       |> Future.joins |> map #1;
