@@ -28,6 +28,7 @@ Usage: $PRG [MODULES]
     doc             documentation (requires latex and rail)
     doc-src         documentation sources from Isabelle theories
     jars            Isabelle/Scala layer (requires \$ISABELLE_JDK_HOME and \$SCALA_HOME)
+    jars_test       test separate build of jars
     jars_fresh      fresh build of jars
 
 EOF
@@ -121,6 +122,7 @@ do
     doc-src) build_doc-src;;
     jars) build_jars;;
     jars_fresh) build_jars -f;;
+    jars_test) build_jars -t;;
     *) fail "Bad module $MODULE"
   esac
 done
