@@ -672,12 +672,7 @@ structure States = Proof_Data
 
 fun proof_result immediate (tr, proof_trs) st =
   let val st' = command tr st in
-    if immediate orelse
-      null proof_trs orelse
-      Keyword.is_schematic_goal (name_of tr) orelse
-      exists (Keyword.is_qed_global o name_of) proof_trs orelse
-      not (can proof_of st') orelse
-      Proof.is_relevant (proof_of st')
+    if immediate orelse null proof_trs orelse not (can proof_of st')
     then
       let val (states, st'') = fold_map command_result proof_trs st'
       in (Future.value ((tr, st') :: (proof_trs ~~ states)), st'') end
