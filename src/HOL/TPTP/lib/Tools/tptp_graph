@@ -1,0 +1,156 @@
+#!/usr/bin/env bash
+#
+# Author: Nik Sultana, Cambridge University Computer Lab
+#
+# DESCRIPTION: TPTP visualisation utility
+
+
+PRG="$(basename "$0")"
+
+#FIXME inline or move to settings
+DOT2TEX=dot2tex
+DOT=dot
+SED=sed
+PDFLATEX=pdflatex
+[ -n "$ISABELLE_PDFLATEX" ] && PDFLATEX=$ISABELLE_PDFLATEX
+DOT2TEX_VERSION="$($DOT2TEX -V 2> /dev/null)"
+DOT_VERSION="$($DOT -V 2> /dev/null)"
+SED_VERSION="$($SED --version | head -1 2> /dev/null)"
+PDFLATEX_VERSION="$($PDFLATEX -version | head -1 2> /dev/null)"
+
+function check_deps()
+{
+  #FIXME how well does this work across different platforms and/or versions of
+  #      the tools?
+  for DEP in DOT2TEX_VERSION DOT_VERSION SED_VERSION PDFLATEX_VERSION
+  do
+    eval DEP_VAL=\$$DEP
+    if [ -z "$DEP_VAL" ]; then
+      echo "$DEP not installed"
+    else
+      echo "$DEP_VAL"
+    fi
+  done
+}
+
+function usage() {
+  echo
+  echo "Usage: isabelle $PRG [OPTIONS] IN_FILE OUT_FILE"
+  echo
+  echo "  Options are:"
+  echo "    -d           probe for dependencies"
+  echo "    -k           don't delete temp files, and print their location"
+  echo "    -n           print name of the generated file"
+  echo
+  echo "  Produces a DOT/TeX/PDF from a TPTP problem/proof, depending on whether"
+  echo "  the extension of OUT_FILE is dot/tex/pdf."
+  echo
+  exit 1
+}
+
+OUTPUT_FORMAT=2
+SHOW_TARGET=""
+KEEP_TEMP=""
+NON_EXEC=""
+
+while getopts "dknX" OPT
+do
+  #FIXME could add "quiet" mode to send stderr (and some stdout) to /dev/null
+  case "$OPT" in
+    n)
+      SHOW_TARGET=true
+      ;;
+    k)
+      KEEP_TEMP=true
+      ;;
+    X)
+      NON_EXEC=true
+      ;;
+    d)
+      check_deps
+      exit 0
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+[ "$#" -ne 2 -o "$1" = "-?" ] && usage
+
+case "${2##*.}" in
+    dot)
+      OUTPUT_FORMAT=0
+      ;;
+    tex)
+      OUTPUT_FORMAT=1
+      ;;
+    pdf)
+      OUTPUT_FORMAT=2
+      ;;
+    *)
+      echo "Unrecognised output file extension."
+      exit 1
+      ;;
+esac
+
+function generate_dot()
+{
+  #FIXME using a thy might be more robust
+  LOADER="use \"$TPTP_HOME/TPTP_Parser/ml_yacc_lib.ML\"; \
+          use \"$TPTP_HOME/TPTP_Parser/tptp_syntax.ML\"; \
+          use \"$TPTP_HOME/TPTP_Parser/tptp_lexyacc.ML\"; \
+          use \"$TPTP_HOME/TPTP_Parser/tptp_parser.ML\"; \
+          (*\"$TPTP_HOME/TPTP_Parser/tptp_problem_name.ML\";*) \
+          use \"$TPTP_HOME/TPTP_Parser/tptp_proof.ML\"; \
+          use \"$TPTP_HOME/TPTP_Parser/tptp_to_dot.ML\"; \
+          TPTP_To_Dot.write_proof_dot \"$1\" \"$2\"; exit 0;"
+  "$ISABELLE_PROCESS" -e "$LOADER" Pure
+}
+
+
+if [ "$OUTPUT_FORMAT" -eq 0 ]; then
+  [ -z "$NON_EXEC" ] && generate_dot "$1" "$2"
+  exit 0
+fi
+
+## set some essential variables
+
+[ -z "$TMPDIR" ] && TMPDIR=/tmp
+WORKDIR=""
+while :
+do
+  WORKDIR="$TMPDIR/tptpgraph$RANDOM"
+  if [ ! -d "$WORKDIR" ]; then
+    break
+  fi
+done
+OUTPUT_FILENAME="$(basename "$2")"
+FILEDIR="$(cd "$(dirname "$2")"; cd "$(pwd -P)"; pwd)"
+FILENAME="${OUTPUT_FILENAME%.*}"
+WD="$(pwd)"
+
+## generate and process files in temporary workdir, then move to destination dir
+
+mkdir -p $WORKDIR
+[ -z "$NON_EXEC" ] && generate_dot $1 "$WORKDIR/${FILENAME}.dot"
+cd $WORKDIR
+if [ -z "$NON_EXEC" ]; then
+  $DOT -Txdot "${FILENAME}.dot" \
+  | $DOT2TEX -f pgf -t raw --crop > "${FILENAME}.tex"
+  $SED -i 's/_/\\_/g' "${FILENAME}.tex"
+fi
+
+if [ "$OUTPUT_FORMAT" -eq 1 ]; then
+  TARGET=$FILENAME.tex
+else
+  TARGET=$FILENAME.pdf
+  [ -z "$NON_EXEC" ] && $PDFLATEX "${FILENAME}.tex"
+fi
+[ -z "$NON_EXEC" ] && mv $TARGET $WD
+cd $WD
+if [ -n "$KEEP_TEMP" ]; then
+  echo $WORKDIR
+else
+  rm -rf $WORKDIR
+fi
+
+[ -n "$SHOW_TARGET" ] && echo "$FILEDIR/$TARGET"
