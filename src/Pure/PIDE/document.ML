@@ -312,7 +312,7 @@ fun execute version_id state =
             else
               (singleton o Future.forks)
                 {name = "theory:" ^ name, group = SOME (Future.new_group (SOME group)),
-                  deps = map (Future.task_of o #2) deps, pri = 1, interrupts = false}
+                  deps = map (Future.task_of o #2) deps, pri = ~2, interrupts = false}
                 (fn () =>
                   iterate_entries (fn ((_, id), opt_exec) => fn () =>
                     (case opt_exec of

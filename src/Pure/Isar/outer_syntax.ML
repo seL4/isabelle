@@ -296,7 +296,8 @@ fun read_element outer_syntax init {head, proof, proper_proof} =
     val (tr, proper_head) = read head |>> Toplevel.modify_init init;
     val proof_trs = map read proof |> filter #2 |> map #1;
   in
-    if proper_head andalso proper_proof then [(tr, proof_trs)]
+    if proper_head andalso proper_proof andalso
+      not (Keyword.is_schematic_goal (Toplevel.name_of tr)) then [(tr, proof_trs)]
     else map (rpair []) (if proper_head then tr :: proof_trs else proof_trs)
   end;
 
