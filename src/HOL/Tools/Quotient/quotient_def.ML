@@ -18,8 +18,6 @@ sig
     (binding * string option * mixfix) option * (Attrib.binding * (string * string)) ->
     local_theory -> Proof.state
 
-  val lift_raw_const: typ list -> (string * term * mixfix) -> thm -> local_theory ->
-    Quotient_Info.quotconsts * local_theory
 end;
 
 structure Quotient_Def: QUOTIENT_DEF =
@@ -330,27 +328,6 @@ fun read_term' cnstr ctxt =
 val quotient_def = gen_quotient_def Proof_Context.cert_vars check_term'
 val quotient_def_cmd = gen_quotient_def Proof_Context.read_vars read_term'
 
-
-(* a wrapper for automatically lifting a raw constant *)
-fun lift_raw_const qtys (qconst_name, rconst, mx') rsp_thm lthy =
-  let
-    val rty = fastype_of rconst
-    val qty = Quotient_Term.derive_qtyp lthy qtys rty
-    val lhs_raw = Free (qconst_name, qty)
-    val rhs_raw = rconst
-
-    val raw_var = (Binding.name qconst_name, NONE, mx')
-    val ([(binding, _, mx)], ctxt) = Proof_Context.cert_vars [raw_var] lthy
-    val lhs = Syntax.check_term ctxt lhs_raw
-    val rhs = Syntax.check_term ctxt rhs_raw
-
-    val (lhs_str, lhs_ty) = dest_Free lhs handle TERM _ => error "Constant already defined."
-    val _ = if null (strip_abs_vars rhs) then () else error "The definiens cannot be an abstraction"
-    val _ = if is_Const rhs then () else warning "The definiens is not a constant"
-
-  in
-    add_quotient_def (((binding, mx), Attrib.empty_binding), (lhs, rhs)) rsp_thm  ctxt
-  end
 
 (* parser and command *)
 val quotdef_parser =
