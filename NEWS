@@ -456,6 +456,9 @@ a list and a nat.
 * New "eventually_elim" method as a generalized variant of the
   eventually_elim* rules. Supports structured proofs.
 
+* HOL/TPTP: support to parse and import TPTP problems (all languages)
+  into Isabelle/HOL.
+
 
 *** FOL ***
 

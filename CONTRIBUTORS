@@ -6,6 +6,9 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* March 2012: Nik Sultana, University of Cambridge
+  HOL/TPTP parser and import facilities.
+
 * January 2012: Florian Haftmann, TUM, et. al.
   (Re-)Introduction of the "set" type constructor.
 
