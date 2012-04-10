@@ -133,9 +133,6 @@ sig
 
   val import_file : bool -> Path.T -> Path.T -> type_map -> const_map ->
     theory -> theory
-
-  val extract_inference_info : (TPTP_Syntax.general_term * 'a list) option ->
-                               (string * string list) option
 end
 
 structure TPTP_Interpret : TPTP_INTERPRET =
@@ -681,32 +678,6 @@ fun interpret_formula config language const_map var_types type_map tptp_fmla thy
         interpret_formula config language
          const_map var_types type_map tptp_formula thy
 
-
-(*Extract name of inference rule, and the inferences it relies on*)
-(*This is tuned to work with LEO-II, and is brittle to upstream
-  changes of the proof protocol.*)
-fun extract_inference_info annot =
-  let
-    fun get_line_id (General_Data (Number (Int_num, num))) = [num]
-      | get_line_id (General_Data (Atomic_Word name)) = [name]
-      | get_line_id (General_Term (Number (Int_num, num), _ (*e.g. a bind*))) = [num]
-      | get_line_id _ = []
-        (*e.g. General_Data (Application ("theory", [General_Data
-          (Atomic_Word "equality")])) -- which would come from E through LEO-II*)
-  in
-    case annot of
-      NONE => NONE
-    | SOME annot =>
-      (case annot of
-        (General_Data (Application ("inference",
-        [General_Data (Atomic_Word inference_name),
-         _,
-         General_List related_lines])), _) =>
-          (SOME (inference_name, map get_line_id related_lines |> List.concat))
-      | _ => NONE)
-  end
-
-
 (*Extract the type from a typing*)
 local
   fun extract_type tptp_type =
@@ -824,7 +795,7 @@ fun interpret_line config type_map const_map path_prefix line thy =
             ((type_map, const_map,
               [(label, role, tptp_formula,
                 Syntax.check_term (Proof_Context.init_global thy') t,
-                extract_inference_info annotation_opt)]), thy')
+                TPTP_Proof.extract_inference_info annotation_opt)]), thy')
            end
 
 and interpret_problem new_basic_types config path_prefix lines type_map const_map thy =
