@@ -53,6 +53,11 @@ commands to be used in the same theory where defined.
 
 *** Pure ***
 
+* Rule composition via attribute "OF" (or ML functions OF/MRS) is more
+tolerant against multiple unifiers, as long as the final result is
+unique.  (As before, rules are composed in canonical right-to-left
+order to accommodate newly introduced premises.)
+
 * Command 'definition' no longer exports the foundational "raw_def"
 into the user context.  Minor INCOMPATIBILITY, may use the regular
 "def" result with attribute "abs_def" to imitate the old version.
