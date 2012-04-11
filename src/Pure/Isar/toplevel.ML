@@ -691,7 +691,8 @@ fun proof_result immediate (tr, proof_trs) st =
               in (result, presentation_context_of result_state) end))
         #-> Result.put;
 
-      val st'' = st' |> command (end_tr |> reset_trans |> end_proof (K future_proof));
+      val st'' = st'
+        |> command (tr |> set_print false |> reset_trans |> end_proof (K future_proof));
       val result =
         Result.get (presentation_context_of st'')
         |> Future.map (fn body => (tr, st') :: body @ [(end_tr, st'')]);
