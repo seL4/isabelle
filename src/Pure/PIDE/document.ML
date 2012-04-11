@@ -25,12 +25,12 @@ sig
   type state
   val init_state: state
   val define_command: command_id -> string -> string -> state -> state
+  val remove_versions: version_id list -> state -> state
   val discontinue_execution: state -> unit
   val cancel_execution: state -> unit
-  val execute: version_id -> state -> state
+  val start_execution: state -> unit
   val update: version_id -> version_id -> edit list -> state ->
     (command_id * exec_id option) list * state
-  val remove_versions: version_id list -> state -> state
   val state: unit -> state
   val change_state: (state -> state) -> unit
 end;
@@ -144,7 +144,7 @@ fun the_entry (Node {entries, ...}) id =
     NONE => err_undef "command entry" id
   | SOME (exec, _) => exec);
 
-fun the_default_entry node (SOME id) = (id, (the_default (no_id, no_exec) (the_entry node id)))
+fun the_default_entry node (SOME id) = (id, the_default (no_id, no_exec) (the_entry node id))
   | the_default_entry _ NONE = (no_id, (no_id, no_exec));
 
 fun update_entry id exec =
@@ -220,14 +220,18 @@ val init_state =
   make_state (Inttab.make [(no_id, empty_version)], Inttab.empty,
     (no_id, Future.new_group NONE, Unsynchronized.ref false));
 
+fun execution_of (State {execution, ...}) = execution;
+
 
 (* document versions *)
 
 fun define_version (id: version_id) version =
-  map_state (fn (versions, commands, execution) =>
-    let val versions' = Inttab.update_new (id, version) versions
-      handle Inttab.DUP dup => err_dup "document version" dup
-    in (versions', commands, execution) end);
+  map_state (fn (versions, commands, _) =>
+    let
+      val versions' = Inttab.update_new (id, version) versions
+        handle Inttab.DUP dup => err_dup "document version" dup;
+      val execution' = (id, Future.new_group NONE, Unsynchronized.ref true);
+    in (versions', commands, execution') end);
 
 fun the_version (State {versions, ...}) (id: version_id) =
   (case Inttab.lookup versions id of
@@ -262,69 +266,72 @@ fun the_command (State {commands, ...}) (id: command_id) =
     NONE => err_undef "command" id
   | SOME command => command);
 
-
-(* document execution *)
-
-fun discontinue_execution (State {execution = (_, _, running), ...}) = running := false;
-
-fun cancel_execution (State {execution = (_, group, _), ...}) = Future.cancel_group group;
-fun execution_tasks (State {execution = (_, group, _), ...}) = Future.group_tasks group;
-
 end;
 
+fun remove_versions ids state = state |> map_state (fn (versions, _, execution) =>
+  let
+    val _ = member (op =) ids (#1 execution) andalso
+      error ("Attempt to remove execution version " ^ print_id (#1 execution));
+
+    val versions' = fold delete_version ids versions;
+    val commands' =
+      (versions', Inttab.empty) |->
+        Inttab.fold (fn (_, version) => nodes_of version |>
+          Graph.fold (fn (_, (node, _)) => node |>
+            iterate_entries (fn ((_, id), _) =>
+              SOME o Inttab.insert (K true) (id, the_command state id))));
+  in (versions', commands', execution) end);
 
 
-(** edit operations **)
 
-(* execute *)
+(** document execution **)
 
-local
+val discontinue_execution = execution_of #> (fn (_, _, running) => running := false);
 
-fun finished_theory node =
-  (case Exn.capture (Command.memo_result o the) (get_result node) of
-    Exn.Res (st, _) => can (Toplevel.end_theory Position.none) st
-  | _ => false);
+val cancel_execution = execution_of #> (fn (_, group, _) => Future.cancel_group group);
 
-in
+fun terminate_execution state =
+  let
+    val (_, group, _) = execution_of state;
+    val _ = Future.cancel_group group;
+  in Future.join_tasks (Future.group_tasks group) end;
 
-fun execute version_id state =
-  state |> map_state (fn (versions, commands, _) =>
-    let
-      val version = the_version state version_id;
+fun start_execution state =
+  let
+    fun finished_theory node =
+      (case Exn.capture (Command.memo_result o the) (get_result node) of
+        Exn.Res (st, _) => can (Toplevel.end_theory Position.none) st
+      | _ => false);
 
-      fun run node command_id exec =
-        let
-          val (_, print) = Command.memo_eval exec;
-          val _ =
-            if visible_command node command_id
-            then ignore (Lazy.future Future.default_params print)
-            else ();
-        in () end;
+    fun run node command_id exec =
+      let
+        val (_, print) = Command.memo_eval exec;
+        val _ =
+          if visible_command node command_id
+          then ignore (Lazy.future Future.default_params print)
+          else ();
+      in () end;
 
-      val group = Future.new_group NONE;
-      val running = Unsynchronized.ref true;
-
-      val _ =
-        nodes_of version |> Graph.schedule
-          (fn deps => fn (name, node) =>
-            if not (visible_node node) andalso finished_theory node then
-              Future.value ()
-            else
-              (singleton o Future.forks)
-                {name = "theory:" ^ name, group = SOME (Future.new_group (SOME group)),
-                  deps = map (Future.task_of o #2) deps, pri = ~2, interrupts = false}
-                (fn () =>
-                  iterate_entries (fn ((_, id), opt_exec) => fn () =>
-                    (case opt_exec of
-                      SOME (_, exec) => if ! running then SOME (run node id exec) else NONE
-                    | NONE => NONE)) node ()));
-
-    in (versions, commands, (version_id, group, running)) end);
-
-end;
+    val (version_id, group, running) = execution_of state;
+    val _ =
+      nodes_of (the_version state version_id) |> Graph.schedule
+        (fn deps => fn (name, node) =>
+          if not (visible_node node) andalso finished_theory node then
+            Future.value ()
+          else
+            (singleton o Future.forks)
+              {name = "theory:" ^ name, group = SOME (Future.new_group (SOME group)),
+                deps = map (Future.task_of o #2) deps, pri = ~2, interrupts = false}
+              (fn () =>
+                iterate_entries (fn ((_, id), opt_exec) => fn () =>
+                  (case opt_exec of
+                    SOME (_, exec) => if ! running then SOME (run node id exec) else NONE
+                  | NONE => NONE)) node ()));
+  in () end;
 
 
-(* update *)
+
+(** document update **)
 
 local
 
@@ -446,7 +453,7 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
     val nodes = nodes_of new_version;
     val is_required = make_required nodes;
 
-    val _ = Future.join_tasks (execution_tasks state);
+    val _ = terminate_execution state;
     val updated =
       nodes |> Graph.schedule
         (fn deps => fn (name, node) =>
@@ -517,23 +524,6 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
   in (command_execs, state') end;
 
 end;
-
-
-(* remove versions *)
-
-fun remove_versions ids state = state |> map_state (fn (versions, _, execution) =>
-  let
-    val _ = member (op =) ids (#1 execution) andalso
-      error ("Attempt to remove execution version " ^ print_id (#1 execution));
-
-    val versions' = fold delete_version ids versions;
-    val commands' =
-      (versions', Inttab.empty) |->
-        Inttab.fold (fn (_, version) => nodes_of version |>
-          Graph.fold (fn (_, (node, _)) => node |>
-            iterate_entries (fn ((_, id), _) =>
-              SOME o Inttab.insert (K true) (id, the_command state id))));
-  in (versions', commands', execution) end);
 
 
 
