@@ -403,10 +403,9 @@ fun last_common state last_visible node0 node =
           (case opt_exec of
             NONE => true
           | SOME (exec_id, exec) =>
-              not (stable_command exec) orelse
               (case lookup_entry node0 id of
                 NONE => true
-              | SOME (exec_id0, _) => exec_id <> exec_id0));
+              | SOME (exec_id0, _) => exec_id <> exec_id0) orelse not (stable_command exec));
         in SOME (found', (prev, update_flags prev flags)) end;
     val (found, (common, flags)) =
       iterate_entries get_common node (false, (NONE, (true, true)));
