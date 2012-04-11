@@ -367,7 +367,7 @@ fun string_of_tptp_term x =
   case x of
       Term_Func (symbol, tptp_term_list) =>
         "(" ^ string_of_symbol symbol ^ " " ^
-        String.concatWith " " (map string_of_tptp_term tptp_term_list) ^ ")"
+        space_implode " " (map string_of_tptp_term tptp_term_list) ^ ")"
     | Term_Var str => str
     | Term_Conditional (tptp_formula, tptp_term1, tptp_term2) => "" (*FIXME*)
     | Term_Num (_, str) => str
@@ -449,15 +449,15 @@ and string_of_tptp_atom (TFF_Typed_Atom (symbol, tptp_type_option)) =
 
 and string_of_tptp_formula (Pred (symbol, tptp_term_list)) =
       "(" ^ string_of_symbol symbol ^
-      String.concatWith " " (map string_of_tptp_term tptp_term_list) ^ ")"
+      space_implode " " (map string_of_tptp_term tptp_term_list) ^ ")"
   | string_of_tptp_formula (Fmla (symbol, tptp_formula_list)) =
       "(" ^
       string_of_symbol symbol ^
-      String.concatWith " " (map string_of_tptp_formula tptp_formula_list) ^ ")"
+      space_implode " " (map string_of_tptp_formula tptp_formula_list) ^ ")"
   | string_of_tptp_formula (Sequent (tptp_formula_list1, tptp_formula_list2)) = "" (*FIXME*)
   | string_of_tptp_formula (Quant (quantifier, varlist, tptp_formula)) =
       string_of_quantifier quantifier ^ "[" ^
-      String.concatWith ", " (map (fn (n, ty) =>
+      space_implode ", " (map (fn (n, ty) =>
         case ty of
           NONE => n
         | SOME ty => n ^ " : " ^ string_of_tptp_type ty) varlist) ^ "] : (" ^

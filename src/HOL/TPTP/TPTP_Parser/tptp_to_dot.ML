@@ -83,7 +83,7 @@ fun tptp_dot_node with_label reverse_arrows
    | SOME (rule, ids) =>
        map (dot_arc reverse_arrows
              (n, if with_label then SOME rule else NONE)) ids
-       |> String.concat)
+       |> implode)
  else ""
 
 (*FIXME add opts to label arcs etc*)
@@ -100,7 +100,7 @@ fun write_proof_dot input_file output_file =
   in
     TPTP_Parser.parse_file input_file
     |> map (tptp_dot_node false true)
-    |> String.concat
+    |> implode
     |> (fn str => "digraph ProofGraph {\n" ^ defaults ^ str ^ "}")
     |> File.write (Path.explode output_file)
   end
