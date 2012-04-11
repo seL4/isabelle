@@ -411,10 +411,9 @@ fun scheduler_check () = (*requires SYNCHRONIZED*)
 
 fun cancel_group group = SYNCHRONIZED "cancel_group" (fn () =>
   let
-    val running = cancel_now group;
-    val _ =
-      if null running then ()
-      else (cancel_later group; signal work_available; scheduler_check ());
+    val _ = if null (cancel_now group) then () else cancel_later group;
+    val _ = signal work_available;
+    val _ = scheduler_check ();
   in () end);
 
 fun cancel x = cancel_group (Task_Queue.group_of_task (task_of x));
