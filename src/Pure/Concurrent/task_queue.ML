@@ -38,7 +38,7 @@ sig
   val enqueue_passive: group -> (unit -> bool) -> queue -> task * queue
   val enqueue: string -> group -> task list -> int -> (bool -> bool) -> queue -> task * queue
   val extend: task -> (bool -> bool) -> queue -> queue option
-  val dequeue_passive: Thread.thread -> task -> queue -> bool * queue
+  val dequeue_passive: Thread.thread -> task -> queue -> bool option * queue
   val dequeue: Thread.thread -> queue -> (task * (bool -> bool) list) option * queue
   val dequeue_deps: Thread.thread -> task list -> queue ->
     (((task * (bool -> bool) list) option * task list) * queue)
@@ -317,8 +317,9 @@ fun dequeue_passive thread task (queue as Queue {groups, jobs}) =
   (case try (get_job jobs) task of
     SOME (Passive _) =>
       let val jobs' = set_job task (Running thread) jobs
-      in (true, make_queue groups jobs') end
-  | _ => (false, queue));
+      in (SOME true, make_queue groups jobs') end
+  | SOME _ => (SOME false, queue)
+  | NONE => (NONE, queue));
 
 fun dequeue thread (queue as Queue {groups, jobs}) =
   (case Task_Graph.get_first (uncurry ready_job) jobs of

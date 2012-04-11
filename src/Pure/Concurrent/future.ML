@@ -598,7 +598,7 @@ fun promise_group group abort : 'a future =
             else reraise exn;
     fun job () =
       Multithreading.with_attributes Multithreading.no_interrupts
-        (fn _ => assign () before abort ());
+        (fn _ => Exn.release (Exn.capture assign () before abort ()));
     val task = SYNCHRONIZED "enqueue_passive" (fn () =>
       Unsynchronized.change_result queue (Task_Queue.enqueue_passive group job));
   in Future {promised = true, task = task, result = result} end;
@@ -614,11 +614,16 @@ fun fulfill_result (Future {promised, task, result}) res =
       val _ =
         Multithreading.with_attributes Multithreading.no_interrupts (fn _ =>
           let
-            val still_passive =
+            val passive_job =
               SYNCHRONIZED "fulfill_result" (fn () =>
                 Unsynchronized.change_result queue
                   (Task_Queue.dequeue_passive (Thread.self ()) task));
-          in if still_passive then worker_exec (task, [job]) else () end);
+          in
+            (case passive_job of
+              SOME true => worker_exec (task, [job])
+            | SOME false => ()
+            | NONE => ignore (job (not (Task_Queue.is_canceled group))))
+          end);
       val _ =
         if is_some (Single_Assignment.peek result) then ()
         else worker_waiting [task] (fn () => ignore (Single_Assignment.await result));
