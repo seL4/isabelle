@@ -199,19 +199,19 @@ proof -
     apply safe
     apply (drule Abs1, simp)
     apply (erule Abs2)
-    apply (rule pred_compI)
+    apply (rule relcomppI)
     apply (rule Rep1)
     apply (rule Rep2)
-    apply (rule pred_compI, assumption)
+    apply (rule relcomppI, assumption)
     apply (drule Abs1, simp)
     apply (clarsimp simp add: R2)
-    apply (rule pred_compI, assumption)
+    apply (rule relcomppI, assumption)
     apply (drule Abs1, simp)+
     apply (clarsimp simp add: R2)
     apply (drule Abs1, simp)+
     apply (clarsimp simp add: R2)
-    apply (rule pred_compI, assumption)
-    apply (rule pred_compI [rotated])
+    apply (rule relcomppI, assumption)
+    apply (rule relcomppI [rotated])
     apply (erule conversepI)
     apply (drule Abs1, simp)+
     apply (simp add: R2)

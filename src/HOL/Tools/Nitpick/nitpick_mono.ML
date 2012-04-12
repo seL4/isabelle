@@ -856,7 +856,7 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                  accum ||> add_annotation_atom_comp Neq [] (V x) (A New))
               end
             | @{const_name trancl} => do_fragile_set_operation T accum
-            | @{const_name rel_comp} =>
+            | @{const_name relcomp} =>
               let
                 val x = Unsynchronized.inc max_fresh
                 val bc_set_M = domain_type T |> mtype_for_set x

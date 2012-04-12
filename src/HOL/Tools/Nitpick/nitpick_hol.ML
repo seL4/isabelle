@@ -391,7 +391,7 @@ val built_in_consts =
    (@{const_name Id}, 0),
    (@{const_name converse}, 1),
    (@{const_name trancl}, 1),
-   (@{const_name rel_comp}, 2),
+   (@{const_name relcomp}, 2),
    (@{const_name finite}, 1),
    (@{const_name unknown}, 0),
    (@{const_name is_unknown}, 1),

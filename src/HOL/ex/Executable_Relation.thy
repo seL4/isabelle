@@ -27,7 +27,7 @@ unfolding rel_raw_def by auto
 
 lemma comp_Id_on:
   "Id_on X O R = Set.project (%(x, y). x : X) R"
-by (auto intro!: rel_compI)
+by (auto intro!: relcompI)
 
 lemma comp_Id_on':
   "R O Id_on X = Set.project (%(x, y). y : X) R"
@@ -37,7 +37,7 @@ lemma project_Id_on:
   "Set.project (%(x, y). x : X) (Id_on Y) = Id_on (X Int Y)"
 by auto
 
-lemma rel_comp_raw:
+lemma relcomp_raw:
   "(rel_raw X R) O (rel_raw Y S) = rel_raw (X Int Y) (Set.project (%(x, y). y : Y) R Un (Set.project (%(x, y). x : X) S Un R O S))"
 unfolding rel_raw_def
 apply simp
@@ -79,7 +79,7 @@ quotient_definition rel where "rel :: 'a set => ('a * 'a) set => 'a rel" is rel_
 
 subsubsection {* Constant definitions on relations *}
 
-hide_const (open) converse rel_comp rtrancl Image
+hide_const (open) converse relcomp rtrancl Image
 
 quotient_definition member :: "'a * 'a => 'a rel => bool" where
   "member" is "Set.member :: 'a * 'a => ('a * 'a) set => bool" done
@@ -92,9 +92,9 @@ quotient_definition union :: "'a rel => 'a rel => 'a rel"
 where
   "union" is "Set.union :: ('a * 'a) set => ('a * 'a) set => ('a * 'a) set" done
 
-quotient_definition rel_comp :: "'a rel => 'a rel => 'a rel"
+quotient_definition relcomp :: "'a rel => 'a rel => 'a rel"
 where
-  "rel_comp" is "Relation.rel_comp :: ('a * 'a) set => ('a * 'a) set => ('a * 'a) set" done
+  "relcomp" is "Relation.relcomp :: ('a * 'a) set => ('a * 'a) set => ('a * 'a) set" done
 
 quotient_definition rtrancl :: "'a rel => 'a rel"
 where
@@ -121,8 +121,8 @@ lemma [code]:
 by (lifting union_raw)
 
 lemma [code]:
-   "rel_comp (rel X R) (rel Y S) = rel (X Int Y) (Set.project (%(x, y). y : Y) R Un (Set.project (%(x, y). x : X) S Un R O S))"
-by (lifting rel_comp_raw)
+   "relcomp (rel X R) (rel Y S) = rel (X Int Y) (Set.project (%(x, y). y : Y) R Un (Set.project (%(x, y). x : X) S Un R O S))"
+by (lifting relcomp_raw)
 
 lemma [code]:
   "rtrancl (rel X R) = rel UNIV (R^+)"
