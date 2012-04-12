@@ -762,7 +762,7 @@ end
 
 method_setup prepare = {*
     Scan.succeed (K (SIMPLE_METHOD ShoupRubin.prepare_tac)) *}
-  "to launch a few simple facts that'll help the simplifier"
+  "to launch a few simple facts that will help the simplifier"
 
 method_setup parts_prepare = {*
     Scan.succeed (fn ctxt => SIMPLE_METHOD (ShoupRubin.parts_prepare_tac ctxt)) *}

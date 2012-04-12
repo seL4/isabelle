@@ -110,14 +110,21 @@ use "Tools/Function/pattern_split.ML"
 use "Tools/Function/relation.ML"
 use "Tools/Function/function.ML"
 use "Tools/Function/pat_completeness.ML"
+
+method_setup pat_completeness = {*
+  Scan.succeed (SIMPLE_METHOD' o Pat_Completeness.pat_completeness_tac)
+*} "prove completeness of datatype patterns"
+
 use "Tools/Function/fun.ML"
 use "Tools/Function/induction_schema.ML"
 
+method_setup induction_schema = {*
+  Scan.succeed (RAW_METHOD o Induction_Schema.induction_schema_tac)
+*} "prove an induction principle"
+
 setup {* 
   Function.setup
-  #> Pat_Completeness.setup
   #> Function_Fun.setup
-  #> Induction_Schema.setup
 *}
 
 subsection {* Measure Functions *}
@@ -137,6 +144,12 @@ lemma measure_snd[measure_function]: "is_measure f \<Longrightarrow> is_measure 
 by (rule is_measure_trivial)
 
 use "Tools/Function/lexicographic_order.ML"
+
+method_setup lexicographic_order = {*
+  Method.sections clasimp_modifiers >>
+  (K (SIMPLE_METHOD o Lexicographic_Order.lexicographic_order_tac false))
+*} "termination prover for lexicographic orderings"
+
 setup Lexicographic_Order.setup 
 
 

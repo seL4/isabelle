@@ -1,4 +1,4 @@
 # -*- shell-script -*- :mode=shellscript:
 
-ISABELLE_JDK_HOME="$COMPONENT/${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM}/jdk1.7.0_03"
+ISABELLE_JDK_HOME="$COMPONENT/jdk1.7.0_03"
 

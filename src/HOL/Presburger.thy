@@ -387,10 +387,25 @@ theorem conj_le_cong:
   by (simp cong: conj_cong)
 
 use "Tools/Qelim/cooper.ML"
-
 setup Cooper.setup
 
-method_setup presburger = "Cooper.method" "Cooper's algorithm for Presburger arithmetic"
+method_setup presburger = {*
+  let
+    fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ()
+    fun simple_keyword k = Scan.lift (Args.$$$ k) >> K ()
+    val addN = "add"
+    val delN = "del"
+    val elimN = "elim"
+    val any_keyword = keyword addN || keyword delN || simple_keyword elimN
+    val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
+  in
+    Scan.optional (simple_keyword elimN >> K false) true --
+    Scan.optional (keyword addN |-- thms) [] --
+    Scan.optional (keyword delN |-- thms) [] >>
+    (fn ((elim, add_ths), del_ths) => fn ctxt =>
+      SIMPLE_METHOD' (Cooper.tac elim add_ths del_ths ctxt))
+  end
+*} "Cooper's algorithm for Presburger arithmetic"
 
 declare dvd_eq_mod_eq_0[symmetric, presburger]
 declare mod_1[presburger] 
