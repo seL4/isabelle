@@ -1058,8 +1058,7 @@ lemma real_mult_le_cancel_iff1 [simp]: "(0::real) < z ==> (x*z \<le> y*z) = (x\<
 by simp (* solved by linordered_ring_le_cancel_factor simproc *)
 
 lemma real_mult_le_cancel_iff2 [simp]: "(0::real) < z ==> (z*x \<le> z*y) = (x\<le>y)"
-by (rule mult_le_cancel_left_pos)
-(* BH: Why doesn't "simp" prove this one, like it does the last one? *)
+by simp (* solved by linordered_ring_le_cancel_factor simproc *)
 
 
 subsection {* Embedding numbers into the Reals *}
