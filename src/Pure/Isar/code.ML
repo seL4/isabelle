@@ -66,7 +66,7 @@ sig
   val is_constr: theory -> string -> bool
   val is_abstr: theory -> string -> bool
   val get_cert: theory -> ((thm * bool) list -> (thm * bool) list) -> string -> cert
-  val get_case_scheme: theory -> string -> (int * (int * string list)) option
+  val get_case_scheme: theory -> string -> (int * (int * string option list)) option
   val get_case_cong: theory -> string -> thm option
   val undefineds: theory -> string list
   val print_codesetup: theory -> unit
@@ -180,7 +180,7 @@ datatype spec = Spec of {
     (*with explicit history*),
   types: ((serial * ((string * sort) list * typ_spec)) list) Symtab.table
     (*with explicit history*),
-  cases: ((int * (int * string list)) * thm) Symtab.table * unit Symtab.table
+  cases: ((int * (int * string option list)) * thm) Symtab.table * unit Symtab.table
 };
 
 fun make_spec (history_concluded, (functions, (types, cases))) =
@@ -895,7 +895,7 @@ fun case_certificate thm =
     fun analyze_cases cases =
       let
         val co_list = fold (AList.update (op =) o dest_case) cases [];
-      in map (the o AList.lookup (op =) co_list) params end;
+      in map (AList.lookup (op =) co_list) params end;
     fun analyze_let t =
       let
         val (head' $ arg, Var (param', _) $ arg') = Logic.dest_equals t;
@@ -948,10 +948,12 @@ fun print_codesetup thy =
                       :: Pretty.str "of"
                       :: map (Pretty.quote o Syntax.pretty_typ_global thy) tys)) cos)
       );
+    fun ignored_cases NONE = "<ignored>"
+      | ignored_cases (SOME c) = string_of_const thy c
     fun pretty_case (const, ((_, (_, [])), _)) = Pretty.str (string_of_const thy const)
       | pretty_case (const, ((_, (_, cos)), _)) = (Pretty.block o Pretty.breaks) [
           Pretty.str (string_of_const thy const), Pretty.str "with",
-          (Pretty.block o Pretty.commas o map (Pretty.str o string_of_const thy)) cos];
+          (Pretty.block o Pretty.commas o map (Pretty.str o ignored_cases)) cos];
     val functions = the_functions exec
       |> Symtab.dest
       |> (map o apsnd) (snd o fst)
@@ -1087,7 +1089,7 @@ fun case_cong thy case_const (num_args, (pos, _)) =
 fun add_case thm thy =
   let
     val (case_const, (k, cos)) = case_cert thm;
-    val _ = case filter_out (is_constr thy) cos
+    val _ = case map_filter I cos |> filter_out (is_constr thy)
      of [] => ()
       | cs => error ("Non-constructor(s) in case certificate: " ^ commas_quote cs);
     val entry = (1 + Int.max (1, length cos), (k, cos));
@@ -1095,7 +1097,7 @@ fun add_case thm thy =
       (Symtab.update (case_const, (entry, cong)));
     fun register_for_constructors (Constructors (cos', cases)) =
          Constructors (cos',
-           if exists (fn (co, _) => member (op =) cos co) cos'
+           if exists (fn (co, _) => member (op =) cos (SOME co)) cos'
            then insert (op =) case_const cases
            else cases)
       | register_for_constructors (x as Abstractor _) = x;
@@ -1131,7 +1133,7 @@ fun register_type (tyco, vs_spec) thy =
             ((the_functions o the_exec) thy) [old_proj];
     fun drop_outdated_cases cases = fold Symtab.delete_safe
       (Symtab.fold (fn (c, ((_, (_, cos)), _)) =>
-        if exists (member (op =) old_constrs) cos
+        if exists (member (op =) old_constrs) (map_filter I cos)
           then insert (op =) c else I) cases []) cases;
   in
     thy
