@@ -61,15 +61,15 @@ fun force_result (Lazy var) =
             SOME e =>
               let
                 val res0 = Exn.capture (restore_attributes e) ();
-                val res1 = Exn.capture (fn () => Future.fulfill_result x res0) ();
-                val res2 = Future.join_result x;
-              in
+                val _ = Exn.capture (fn () => Future.fulfill_result x res0) ();
+                val res = Future.join_result x;
                 (*semantic race: some other threads might see the same
                   interrupt, until there is a fresh start*)
-                if Exn.is_interrupt_exn res1 orelse Exn.is_interrupt_exn res2 then
-                  (Synchronized.change var (fn _ => Expr e); Exn.interrupt ())
-                else res2
-              end
+                val _ =
+                  if Exn.is_interrupt_exn res then
+                    Synchronized.change var (fn _ => Expr e)
+                  else ();
+              in res end
           | NONE => Exn.capture (restore_attributes (fn () => Future.join x)) ())
         end) ());
 
