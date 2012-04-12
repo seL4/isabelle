@@ -7,11 +7,8 @@ Method "pat_completeness" to prove completeness of datatype patterns.
 signature PAT_COMPLETENESS =
 sig
     val pat_completeness_tac: Proof.context -> int -> tactic
-    val pat_completeness: Proof.context -> Proof.method
     val prove_completeness : theory -> term list -> term -> term list list ->
       term list list -> thm
-
-    val setup : theory -> theory
 end
 
 structure Pat_Completeness : PAT_COMPLETENESS =
@@ -152,12 +149,5 @@ fun pat_completeness_tac ctxt = SUBGOAL (fn (subgoal, i) =>
       PRIMITIVE (fn st => Drule.compose_single(complete_thm, i, st))
   end
   handle COMPLETENESS => no_tac)
-
-
-val pat_completeness = SIMPLE_METHOD' o pat_completeness_tac
-
-val setup =
-  Method.setup @{binding pat_completeness} (Scan.succeed pat_completeness)
-    "Completeness prover for datatype patterns"
 
 end

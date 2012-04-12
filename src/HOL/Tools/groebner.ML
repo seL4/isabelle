@@ -16,7 +16,6 @@ sig
   val ring_tac: thm list -> thm list -> Proof.context -> int -> tactic
   val ideal_tac: thm list -> thm list -> Proof.context -> int -> tactic
   val algebra_tac: thm list -> thm list -> Proof.context -> int -> tactic
-  val algebra_method: (Proof.context -> Method.method) context_parser
 end
 
 structure Groebner : GROEBNER =
@@ -1026,22 +1025,5 @@ end;
 
 fun algebra_tac add_ths del_ths ctxt i =
  ring_tac add_ths del_ths ctxt i ORELSE ideal_tac add_ths del_ths ctxt i
-
-local
-
-fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ()
-val addN = "add"
-val delN = "del"
-val any_keyword = keyword addN || keyword delN
-val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
-
-in
-
-val algebra_method = ((Scan.optional (keyword addN |-- thms) []) --
-   (Scan.optional (keyword delN |-- thms) [])) >>
-  (fn (add_ths, del_ths) => fn ctxt =>
-       SIMPLE_METHOD' (algebra_tac add_ths del_ths ctxt))
-
-end;
 
 end;

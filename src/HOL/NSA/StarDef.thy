@@ -91,6 +91,12 @@ text {*Initialize transfer tactic.*}
 use "transfer.ML"
 setup Transfer_Principle.setup
 
+method_setup transfer = {*
+  Attrib.thms >> (fn ths => fn ctxt =>
+    SIMPLE_METHOD' (Transfer_Principle.transfer_tac ctxt ths))
+*} "transfer principle"
+
+
 text {* Transfer introduction rules. *}
 
 lemma transfer_ex [transfer_intro]:

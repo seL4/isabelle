@@ -112,8 +112,6 @@ val setup =
   Attrib.setup @{binding transfer_unfold} (Attrib.add_del unfold_add unfold_del)
     "declaration of transfer unfolding rule" #>
   Attrib.setup @{binding transfer_refold} (Attrib.add_del refold_add refold_del)
-    "declaration of transfer refolding rule" #>
-  Method.setup @{binding transfer} (Attrib.thms >> (fn ths => fn ctxt =>
-    SIMPLE_METHOD' (transfer_tac ctxt ths))) "transfer principle";
+    "declaration of transfer refolding rule"
 
 end;

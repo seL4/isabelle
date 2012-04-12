@@ -43,8 +43,20 @@ setup Algebra_Simplification.setup
 
 use "Tools/groebner.ML"
 
-method_setup algebra = Groebner.algebra_method
-  "solve polynomial equations over (semi)rings and ideal membership problems using Groebner bases"
+method_setup algebra = {*
+  let
+    fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ()
+    val addN = "add"
+    val delN = "del"
+    val any_keyword = keyword addN || keyword delN
+    val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
+  in
+    Scan.optional (keyword addN |-- thms) [] --
+     Scan.optional (keyword delN |-- thms) [] >>
+    (fn (add_ths, del_ths) => fn ctxt =>
+      SIMPLE_METHOD' (Groebner.algebra_tac add_ths del_ths ctxt))
+  end
+*} "solve polynomial equations over (semi)rings and ideal membership problems using Groebner bases"
 
 declare dvd_def[algebra]
 declare dvd_eq_mod_eq_0[symmetric, algebra]

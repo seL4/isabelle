@@ -13,7 +13,6 @@ sig
   exception COOPER of string
   val conv: Proof.context -> conv
   val tac: bool -> thm list -> thm list -> Proof.context -> int -> tactic
-  val method: (Proof.context -> Method.method) context_parser
   val setup: theory -> theory
 end;
 
@@ -856,23 +855,6 @@ in
   THEN_ALL_NEW (core_tac ctxt)
   THEN_ALL_NEW finish_tac elim
 end;
-
-val method =
-  let
-    fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ()
-    fun simple_keyword k = Scan.lift (Args.$$$ k) >> K ()
-    val addN = "add"
-    val delN = "del"
-    val elimN = "elim"
-    val any_keyword = keyword addN || keyword delN || simple_keyword elimN
-    val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
-  in
-    Scan.optional (simple_keyword elimN >> K false) true --
-    Scan.optional (keyword addN |-- thms) [] --
-    Scan.optional (keyword delN |-- thms) [] >>
-    (fn ((elim, add_ths), del_ths) => fn ctxt =>
-      SIMPLE_METHOD' (tac elim add_ths del_ths ctxt))
-  end;
 
 
 (* theory setup *)

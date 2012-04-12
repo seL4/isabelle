@@ -6,7 +6,6 @@ signature COOPER_TAC =
 sig
   val trace: bool Unsynchronized.ref
   val linz_tac: Proof.context -> bool -> int -> tactic
-  val setup: theory -> theory
 end
 
 structure Cooper_Tac: COOPER_TAC =
@@ -114,16 +113,5 @@ fun linz_tac ctxt q = Object_Logic.atomize_prems_tac THEN' SUBGOAL (fn (g, i) =>
     end
       | _ => (pre_thm, assm_tac i)
   in rtac (((mp_step nh) o (spec_step np)) th) i THEN tac end);
-
-val setup =
-  Method.setup @{binding cooper}
-    let
-      val parse_flag = Args.$$$ "no_quantify" >> K (K false)
-    in
-      Scan.lift (Scan.optional (Args.$$$ "(" |-- Scan.repeat1 parse_flag --| Args.$$$ ")") [] >>
-        curry (Library.foldl op |>) true) >>
-      (fn q => fn ctxt => SIMPLE_METHOD' (linz_tac ctxt q))
-    end
-    "decision procedure for linear integer arithmetic";
 
 end

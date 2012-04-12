@@ -112,7 +112,8 @@ proof -
 qed
 
 ML {*
-  fun ev_elim_tac ctxt thms thm = let
+  fun eventually_elim_tac ctxt thms thm =
+    let
       val thy = Proof_Context.theory_of ctxt
       val mp_thms = thms RL [@{thm eventually_rev_mp}]
       val raw_elim_thm =
@@ -124,13 +125,11 @@ ML {*
     in
       CASES cases (rtac raw_elim_thm 1) thm
     end
-
-  fun eventually_elim_setup name =
-    Method.setup name (Scan.succeed (fn ctxt => METHOD_CASES (ev_elim_tac ctxt)))
-      "elimination of eventually quantifiers"
 *}
 
-setup {* eventually_elim_setup @{binding "eventually_elim"} *}
+method_setup eventually_elim = {*
+  Scan.succeed (fn ctxt => METHOD_CASES (eventually_elim_tac ctxt))
+*} "elimination of eventually quantifiers"
 
 
 subsection {* Finer-than relation *}

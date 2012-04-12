@@ -2004,7 +2004,12 @@ end;
 *}
 
 use "ferrack_tac.ML"
-setup Ferrack_Tac.setup
+
+method_setup rferrack = {*
+  Args.mode "no_quantify" >>
+    (fn q => fn ctxt => SIMPLE_METHOD' (Ferrack_Tac.linr_tac ctxt (not q)))
+*} "decision procedure for linear real arithmetic"
+
 
 lemma
   fixes x :: real
