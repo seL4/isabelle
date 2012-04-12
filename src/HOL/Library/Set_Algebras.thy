@@ -34,14 +34,6 @@ instance ..
 
 end
 
-
-text {* Legacy syntax: *}
-
-abbreviation (input) set_plus :: "'a::plus set \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixl "\<oplus>" 65) where
-  "A \<oplus> B \<equiv> A + B"
-abbreviation (input) set_times :: "'a::times set \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixl "\<otimes>" 70) where
-  "A \<otimes> B \<equiv> A * B"
-
 instantiation set :: (zero) zero
 begin
 
@@ -95,14 +87,14 @@ by default (simp_all add: set_times_def)
 instance set :: (comm_monoid_mult) comm_monoid_mult
 by default (simp_all add: set_times_def)
 
-lemma set_plus_intro [intro]: "a : C ==> b : D ==> a + b : C \<oplus> D"
+lemma set_plus_intro [intro]: "a : C ==> b : D ==> a + b : C + D"
   by (auto simp add: set_plus_def)
 
 lemma set_plus_intro2 [intro]: "b : C ==> a + b : a +o C"
   by (auto simp add: elt_set_plus_def)
 
-lemma set_plus_rearrange: "((a::'a::comm_monoid_add) +o C) \<oplus>
-    (b +o D) = (a + b) +o (C \<oplus> D)"
+lemma set_plus_rearrange: "((a::'a::comm_monoid_add) +o C) +
+    (b +o D) = (a + b) +o (C + D)"
   apply (auto simp add: elt_set_plus_def set_plus_def add_ac)
    apply (rule_tac x = "ba + bb" in exI)
   apply (auto simp add: add_ac)
@@ -114,8 +106,8 @@ lemma set_plus_rearrange2: "(a::'a::semigroup_add) +o (b +o C) =
     (a + b) +o C"
   by (auto simp add: elt_set_plus_def add_assoc)
 
-lemma set_plus_rearrange3: "((a::'a::semigroup_add) +o B) \<oplus> C =
-    a +o (B \<oplus> C)"
+lemma set_plus_rearrange3: "((a::'a::semigroup_add) +o B) + C =
+    a +o (B + C)"
   apply (auto simp add: elt_set_plus_def set_plus_def)
    apply (blast intro: add_ac)
   apply (rule_tac x = "a + aa" in exI)
@@ -126,8 +118,8 @@ lemma set_plus_rearrange3: "((a::'a::semigroup_add) +o B) \<oplus> C =
    apply (auto simp add: add_ac)
   done
 
-theorem set_plus_rearrange4: "C \<oplus> ((a::'a::comm_monoid_add) +o D) =
-    a +o (C \<oplus> D)"
+theorem set_plus_rearrange4: "C + ((a::'a::comm_monoid_add) +o D) =
+    a +o (C + D)"
   apply (auto simp add: elt_set_plus_def set_plus_def add_ac)
    apply (rule_tac x = "aa + ba" in exI)
    apply (auto simp add: add_ac)
@@ -140,17 +132,17 @@ lemma set_plus_mono [intro!]: "C <= D ==> a +o C <= a +o D"
   by (auto simp add: elt_set_plus_def)
 
 lemma set_plus_mono2 [intro]: "(C::('a::plus) set) <= D ==> E <= F ==>
-    C \<oplus> E <= D \<oplus> F"
+    C + E <= D + F"
   by (auto simp add: set_plus_def)
 
-lemma set_plus_mono3 [intro]: "a : C ==> a +o D <= C \<oplus> D"
+lemma set_plus_mono3 [intro]: "a : C ==> a +o D <= C + D"
   by (auto simp add: elt_set_plus_def set_plus_def)
 
 lemma set_plus_mono4 [intro]: "(a::'a::comm_monoid_add) : C ==>
-    a +o D <= D \<oplus> C"
+    a +o D <= D + C"
   by (auto simp add: elt_set_plus_def set_plus_def add_ac)
 
-lemma set_plus_mono5: "a:C ==> B <= D ==> a +o B <= C \<oplus> D"
+lemma set_plus_mono5: "a:C ==> B <= D ==> a +o B <= C + D"
   apply (subgoal_tac "a +o B <= a +o D")
    apply (erule order_trans)
    apply (erule set_plus_mono3)
@@ -163,21 +155,21 @@ lemma set_plus_mono_b: "C <= D ==> x : a +o C
   apply auto
   done
 
-lemma set_plus_mono2_b: "C <= D ==> E <= F ==> x : C \<oplus> E ==>
-    x : D \<oplus> F"
+lemma set_plus_mono2_b: "C <= D ==> E <= F ==> x : C + E ==>
+    x : D + F"
   apply (frule set_plus_mono2)
    prefer 2
    apply force
   apply assumption
   done
 
-lemma set_plus_mono3_b: "a : C ==> x : a +o D ==> x : C \<oplus> D"
+lemma set_plus_mono3_b: "a : C ==> x : a +o D ==> x : C + D"
   apply (frule set_plus_mono3)
   apply auto
   done
 
 lemma set_plus_mono4_b: "(a::'a::comm_monoid_add) : C ==>
-    x : a +o D ==> x : D \<oplus> C"
+    x : a +o D ==> x : D + C"
   apply (frule set_plus_mono4)
   apply auto
   done
@@ -185,7 +177,7 @@ lemma set_plus_mono4_b: "(a::'a::comm_monoid_add) : C ==>
 lemma set_zero_plus [simp]: "(0::'a::comm_monoid_add) +o C = C"
   by (auto simp add: elt_set_plus_def)
 
-lemma set_zero_plus2: "(0::'a::comm_monoid_add) : A ==> B <= A \<oplus> B"
+lemma set_zero_plus2: "(0::'a::comm_monoid_add) : A ==> B <= A + B"
   apply (auto simp add: set_plus_def)
   apply (rule_tac x = 0 in bexI)
    apply (rule_tac x = x in bexI)
@@ -206,14 +198,14 @@ lemma set_minus_plus: "((a::'a::ab_group_add) - b : C) = (a : b +o C)"
   by (rule iffI, rule set_minus_imp_plus, assumption, rule set_plus_imp_minus,
     assumption)
 
-lemma set_times_intro [intro]: "a : C ==> b : D ==> a * b : C \<otimes> D"
+lemma set_times_intro [intro]: "a : C ==> b : D ==> a * b : C * D"
   by (auto simp add: set_times_def)
 
 lemma set_times_intro2 [intro!]: "b : C ==> a * b : a *o C"
   by (auto simp add: elt_set_times_def)
 
-lemma set_times_rearrange: "((a::'a::comm_monoid_mult) *o C) \<otimes>
-    (b *o D) = (a * b) *o (C \<otimes> D)"
+lemma set_times_rearrange: "((a::'a::comm_monoid_mult) *o C) *
+    (b *o D) = (a * b) *o (C * D)"
   apply (auto simp add: elt_set_times_def set_times_def)
    apply (rule_tac x = "ba * bb" in exI)
    apply (auto simp add: mult_ac)
@@ -225,8 +217,8 @@ lemma set_times_rearrange2: "(a::'a::semigroup_mult) *o (b *o C) =
     (a * b) *o C"
   by (auto simp add: elt_set_times_def mult_assoc)
 
-lemma set_times_rearrange3: "((a::'a::semigroup_mult) *o B) \<otimes> C =
-    a *o (B \<otimes> C)"
+lemma set_times_rearrange3: "((a::'a::semigroup_mult) *o B) * C =
+    a *o (B * C)"
   apply (auto simp add: elt_set_times_def set_times_def)
    apply (blast intro: mult_ac)
   apply (rule_tac x = "a * aa" in exI)
@@ -237,8 +229,8 @@ lemma set_times_rearrange3: "((a::'a::semigroup_mult) *o B) \<otimes> C =
    apply (auto simp add: mult_ac)
   done
 
-theorem set_times_rearrange4: "C \<otimes> ((a::'a::comm_monoid_mult) *o D) =
-    a *o (C \<otimes> D)"
+theorem set_times_rearrange4: "C * ((a::'a::comm_monoid_mult) *o D) =
+    a *o (C * D)"
   apply (auto simp add: elt_set_times_def set_times_def
     mult_ac)
    apply (rule_tac x = "aa * ba" in exI)
@@ -252,17 +244,17 @@ lemma set_times_mono [intro]: "C <= D ==> a *o C <= a *o D"
   by (auto simp add: elt_set_times_def)
 
 lemma set_times_mono2 [intro]: "(C::('a::times) set) <= D ==> E <= F ==>
-    C \<otimes> E <= D \<otimes> F"
+    C * E <= D * F"
   by (auto simp add: set_times_def)
 
-lemma set_times_mono3 [intro]: "a : C ==> a *o D <= C \<otimes> D"
+lemma set_times_mono3 [intro]: "a : C ==> a *o D <= C * D"
   by (auto simp add: elt_set_times_def set_times_def)
 
 lemma set_times_mono4 [intro]: "(a::'a::comm_monoid_mult) : C ==>
-    a *o D <= D \<otimes> C"
+    a *o D <= D * C"
   by (auto simp add: elt_set_times_def set_times_def mult_ac)
 
-lemma set_times_mono5: "a:C ==> B <= D ==> a *o B <= C \<otimes> D"
+lemma set_times_mono5: "a:C ==> B <= D ==> a *o B <= C * D"
   apply (subgoal_tac "a *o B <= a *o D")
    apply (erule order_trans)
    apply (erule set_times_mono3)
@@ -275,21 +267,21 @@ lemma set_times_mono_b: "C <= D ==> x : a *o C
   apply auto
   done
 
-lemma set_times_mono2_b: "C <= D ==> E <= F ==> x : C \<otimes> E ==>
-    x : D \<otimes> F"
+lemma set_times_mono2_b: "C <= D ==> E <= F ==> x : C * E ==>
+    x : D * F"
   apply (frule set_times_mono2)
    prefer 2
    apply force
   apply assumption
   done
 
-lemma set_times_mono3_b: "a : C ==> x : a *o D ==> x : C \<otimes> D"
+lemma set_times_mono3_b: "a : C ==> x : a *o D ==> x : C * D"
   apply (frule set_times_mono3)
   apply auto
   done
 
 lemma set_times_mono4_b: "(a::'a::comm_monoid_mult) : C ==>
-    x : a *o D ==> x : D \<otimes> C"
+    x : a *o D ==> x : D * C"
   apply (frule set_times_mono4)
   apply auto
   done
@@ -301,16 +293,16 @@ lemma set_times_plus_distrib: "(a::'a::semiring) *o (b +o C)=
     (a * b) +o (a *o C)"
   by (auto simp add: elt_set_plus_def elt_set_times_def ring_distribs)
 
-lemma set_times_plus_distrib2: "(a::'a::semiring) *o (B \<oplus> C) =
-    (a *o B) \<oplus> (a *o C)"
+lemma set_times_plus_distrib2: "(a::'a::semiring) *o (B + C) =
+    (a *o B) + (a *o C)"
   apply (auto simp add: set_plus_def elt_set_times_def ring_distribs)
    apply blast
   apply (rule_tac x = "b + bb" in exI)
   apply (auto simp add: ring_distribs)
   done
 
-lemma set_times_plus_distrib3: "((a::'a::semiring) +o C) \<otimes> D <=
-    a *o D \<oplus> C \<otimes> D"
+lemma set_times_plus_distrib3: "((a::'a::semiring) +o C) * D <=
+    a *o D + C * D"
   apply (auto simp add:
     elt_set_plus_def elt_set_times_def set_times_def
     set_plus_def ring_distribs)
@@ -330,7 +322,7 @@ lemma set_neg_intro2: "(a::'a::ring_1) : C ==>
   by (auto simp add: elt_set_times_def)
 
 lemma set_plus_image:
-  fixes S T :: "'n::semigroup_add set" shows "S \<oplus> T = (\<lambda>(x, y). x + y) ` (S \<times> T)"
+  fixes S T :: "'n::semigroup_add set" shows "S + T = (\<lambda>(x, y). x + y) ` (S \<times> T)"
   unfolding set_plus_def by (fastforce simp: image_iff)
 
 lemma set_setsum_alt:
@@ -339,7 +331,7 @@ lemma set_setsum_alt:
     (is "_ = ?setsum I")
 using fin proof induct
   case (insert x F)
-  have "setsum S (insert x F) = S x \<oplus> ?setsum F"
+  have "setsum S (insert x F) = S x + ?setsum F"
     using insert.hyps by auto
   also have "...= {s x + setsum s F |s. \<forall> i\<in>insert x F. s i \<in> S i}"
     unfolding set_plus_def
@@ -355,8 +347,8 @@ qed auto
 
 lemma setsum_set_cond_linear:
   fixes f :: "('a::comm_monoid_add) set \<Rightarrow> ('b::comm_monoid_add) set"
-  assumes [intro!]: "\<And>A B. P A  \<Longrightarrow> P B  \<Longrightarrow> P (A \<oplus> B)" "P {0}"
-    and f: "\<And>A B. P A  \<Longrightarrow> P B \<Longrightarrow> f (A \<oplus> B) = f A \<oplus> f B" "f {0} = {0}"
+  assumes [intro!]: "\<And>A B. P A  \<Longrightarrow> P B  \<Longrightarrow> P (A + B)" "P {0}"
+    and f: "\<And>A B. P A  \<Longrightarrow> P B \<Longrightarrow> f (A + B) = f A + f B" "f {0} = {0}"
   assumes all: "\<And>i. i \<in> I \<Longrightarrow> P (S i)"
   shows "f (setsum S I) = setsum (f \<circ> S) I"
 proof cases
@@ -372,7 +364,7 @@ qed (auto intro!: f)
 
 lemma setsum_set_linear:
   fixes f :: "('a::comm_monoid_add) set => ('b::comm_monoid_add) set"
-  assumes "\<And>A B. f(A) \<oplus> f(B) = f(A \<oplus> B)" "f {0} = {0}"
+  assumes "\<And>A B. f(A) + f(B) = f(A + B)" "f {0} = {0}"
   shows "f (setsum S I) = setsum (f \<circ> S) I"
   using setsum_set_cond_linear[of "\<lambda>x. True" f I S] assms by auto
 

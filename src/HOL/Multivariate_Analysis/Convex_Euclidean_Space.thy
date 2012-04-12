@@ -5428,13 +5428,13 @@ subsection {* Convexity on direct sums *}
 
 lemma closure_sum:
   fixes S T :: "('n::euclidean_space) set"
-  shows "closure S \<oplus> closure T \<subseteq> closure (S \<oplus> T)"
+  shows "closure S + closure T \<subseteq> closure (S + T)"
 proof-
-  have "(closure S) \<oplus> (closure T) = (\<lambda>(x,y). x + y) ` (closure S \<times> closure T)"
+  have "(closure S) + (closure T) = (\<lambda>(x,y). x + y) ` (closure S \<times> closure T)"
     by (simp add: set_plus_image)
   also have "... = (\<lambda>(x,y). x + y) ` closure (S \<times> T)"
     using closure_direct_sum by auto
-  also have "... \<subseteq> closure (S \<oplus> T)"
+  also have "... \<subseteq> closure (S + T)"
     using fst_snd_linear closure_linear_image[of "(\<lambda>(x,y). x + y)" "S \<times> T"]
     by (auto simp: set_plus_image)
   finally show ?thesis
@@ -5444,7 +5444,7 @@ qed
 lemma convex_oplus:
 fixes S T :: "('n::euclidean_space) set"
 assumes "convex S" "convex T"
-shows "convex (S \<oplus> T)"
+shows "convex (S + T)"
 proof-
 have "{x + y |x y. x : S & y : T} = {c. EX a:S. EX b:T. c = a + b}" by auto
 thus ?thesis unfolding set_plus_def using convex_sums[of S T] assms by auto
@@ -5452,13 +5452,13 @@ qed
 
 lemma convex_hull_sum:
 fixes S T :: "('n::euclidean_space) set"
-shows "convex hull (S \<oplus> T) = (convex hull S) \<oplus> (convex hull T)"
+shows "convex hull (S + T) = (convex hull S) + (convex hull T)"
 proof-
-have "(convex hull S) \<oplus> (convex hull T) =
+have "(convex hull S) + (convex hull T) =
       (%(x,y). x + y) ` ((convex hull S) <*> (convex hull T))"
    by (simp add: set_plus_image)
 also have "... = (%(x,y). x + y) ` (convex hull (S <*> T))" using convex_hull_direct_sum by auto
-also have "...= convex hull (S \<oplus> T)" using fst_snd_linear linear_conv_bounded_linear
+also have "...= convex hull (S + T)" using fst_snd_linear linear_conv_bounded_linear
    convex_hull_linear_image[of "(%(x,y). x + y)" "S <*> T"] by (auto simp add: set_plus_image)
 finally show ?thesis by auto
 qed
@@ -5466,12 +5466,12 @@ qed
 lemma rel_interior_sum:
 fixes S T :: "('n::euclidean_space) set"
 assumes "convex S" "convex T"
-shows "rel_interior (S \<oplus> T) = (rel_interior S) \<oplus> (rel_interior T)"
+shows "rel_interior (S + T) = (rel_interior S) + (rel_interior T)"
 proof-
-have "(rel_interior S) \<oplus> (rel_interior T) = (%(x,y). x + y) ` (rel_interior S <*> rel_interior T)"
+have "(rel_interior S) + (rel_interior T) = (%(x,y). x + y) ` (rel_interior S <*> rel_interior T)"
    by (simp add: set_plus_image)
 also have "... = (%(x,y). x + y) ` rel_interior (S <*> T)" using rel_interior_direct_sum assms by auto
-also have "...= rel_interior (S \<oplus> T)" using fst_snd_linear convex_direct_sum assms
+also have "...= rel_interior (S + T)" using fst_snd_linear convex_direct_sum assms
    rel_interior_convex_linear_image[of "(%(x,y). x + y)" "S <*> T"] by (auto simp add: set_plus_image)
 finally show ?thesis by auto
 qed
@@ -5507,7 +5507,7 @@ by (metis assms convex_direct_sum rel_interior_direct_sum rel_open_def)
 lemma convex_rel_open_sum:
 fixes S T :: "('n::euclidean_space) set"
 assumes "convex S" "rel_open S" "convex T" "rel_open T"
-shows "convex (S \<oplus> T) & rel_open (S \<oplus> T)"
+shows "convex (S + T) & rel_open (S + T)"
 by (metis assms convex_oplus rel_interior_sum rel_open_def)
 
 lemma convex_hull_finite_union_cones:
@@ -5547,7 +5547,7 @@ lemma convex_hull_union_cones_two:
 fixes S T :: "('m::euclidean_space) set"
 assumes "convex S" "cone S" "S ~= {}"
 assumes "convex T" "cone T" "T ~= {}"
-shows "convex hull (S Un T) = S \<oplus> T"
+shows "convex hull (S Un T) = S + T"
 proof-
 def I == "{(1::nat),2}"
 def A == "(%i. (if i=(1::nat) then S else T))"
@@ -5556,7 +5556,7 @@ hence "convex hull (Union (A ` I)) = convex hull (S Un T)" by auto
 moreover have "convex hull Union (A ` I) = setsum A I"
     apply (subst convex_hull_finite_union_cones[of I A]) using assms A_def I_def by auto
 moreover have
-  "setsum A I = S \<oplus> T" using A_def I_def
+  "setsum A I = S + T" using A_def I_def
      unfolding set_plus_def apply auto unfolding set_plus_def by auto
 ultimately show ?thesis by auto
 qed
