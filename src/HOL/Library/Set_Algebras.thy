@@ -368,4 +368,14 @@ lemma setsum_set_linear:
   shows "f (setsum S I) = setsum (f \<circ> S) I"
   using setsum_set_cond_linear[of "\<lambda>x. True" f I S] assms by auto
 
+lemma set_times_Un_distrib:
+  "A * (B \<union> C) = A * B \<union> A * C"
+  "(A \<union> B) * C = A * C \<union> B * C"
+by (auto simp: set_times_def)
+
+lemma set_times_UNION_distrib:
+  "A * UNION I M = UNION I (%i. A * M i)"
+  "UNION I M * A = UNION I (%i. M i * A)"
+by (auto simp: set_times_def)
+
 end
