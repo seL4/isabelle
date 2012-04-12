@@ -6,7 +6,6 @@ signature FERRACK_TAC =
 sig
   val trace: bool Unsynchronized.ref
   val linr_tac: Proof.context -> bool -> int -> tactic
-  val setup: theory -> theory
 end
 
 structure Ferrack_Tac =
@@ -95,11 +94,5 @@ fun linr_tac ctxt q =
     end
       | _ => (pre_thm, assm_tac i)
   in rtac ((mp_step nh o spec_step np) th) i THEN tac end);
-
-val setup =
-  Method.setup @{binding rferrack}
-    (Args.mode "no_quantify" >> (fn q => fn ctxt =>
-      SIMPLE_METHOD' (linr_tac ctxt (not q))))
-    "decision procedure for linear real arithmetic";
 
 end

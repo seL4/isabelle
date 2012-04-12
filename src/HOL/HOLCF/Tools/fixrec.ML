@@ -12,7 +12,6 @@ sig
     -> (bool * (Attrib.binding * string)) list -> local_theory -> local_theory
   val add_matchers: (string * string) list -> theory -> theory
   val fixrec_simp_tac: Proof.context -> int -> tactic
-  val setup: theory -> theory
 end
 
 structure Fixrec : FIXREC =
@@ -405,10 +404,5 @@ val _ =
   Outer_Syntax.local_theory @{command_spec "fixrec"} "define recursive functions (HOLCF)"
     (Parse.fixes -- (Parse.where_ |-- Parse.!!! alt_specs')
       >> (fn (fixes, specs) => add_fixrec_cmd fixes specs))
-
-val setup =
-  Method.setup @{binding fixrec_simp}
-    (Scan.succeed (SIMPLE_METHOD' o fixrec_simp_tac))
-    "pattern prover for fixrec constants"
 
 end

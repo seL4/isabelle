@@ -5635,7 +5635,12 @@ end;
 *}
 
 use "mir_tac.ML"
-setup "Mir_Tac.setup"
+
+method_setup mir = {*
+  Args.mode "no_quantify" >>
+    (fn q => fn ctxt => SIMPLE_METHOD' (Mir_Tac.mir_tac ctxt (not q)))
+*} "decision procedure for MIR arithmetic"
+
 
 lemma "ALL (x::real). (\<lfloor>x\<rfloor> = \<lceil>x\<rceil> = (x = real \<lfloor>x\<rfloor>))"
   by mir

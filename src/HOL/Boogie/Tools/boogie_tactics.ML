@@ -45,12 +45,12 @@ fun boogie_method all =
     in tac ctxt (thms @ facts) end))
 
 val setup_boogie = Method.setup @{binding boogie} (boogie_method false)
-  ("Applies an SMT solver to the current goal " ^
-   "using the current set of Boogie background axioms")
+  "apply an SMT solver to the current goal \
+  \using the current set of Boogie background axioms"
 
 val setup_boogie_all = Method.setup @{binding boogie_all} (boogie_method true)
-  ("Applies an SMT solver to all goals " ^
-   "using the current set of Boogie background axioms")
+  "apply an SMT solver to all goals \
+  \using the current set of Boogie background axioms"
 
 
 local
@@ -96,7 +96,7 @@ local
 in
 val setup_boogie_cases = Method.setup @{binding boogie_cases}
   (Scan.succeed boogie_cases)
-  "Prepares a set of Boogie assertions for case-based proofs"
+  "prepare a set of Boogie assertions for case-based proofs"
 end
 
 

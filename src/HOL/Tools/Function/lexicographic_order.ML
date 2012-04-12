@@ -9,8 +9,6 @@ signature LEXICOGRAPHIC_ORDER =
 sig
   val lex_order_tac : bool -> Proof.context -> tactic -> tactic
   val lexicographic_order_tac : bool -> Proof.context -> tactic
-  val lexicographic_order : Proof.context -> Proof.method
-
   val setup: theory -> theory
 end
 
@@ -218,12 +216,7 @@ fun lexicographic_order_tac quiet ctxt =
   lex_order_tac quiet ctxt
     (auto_tac (map_simpset (fn ss => ss addsimps Function_Common.Termination_Simps.get ctxt) ctxt))
 
-val lexicographic_order = SIMPLE_METHOD o lexicographic_order_tac false
-
 val setup =
-  Method.setup @{binding lexicographic_order}
-    (Method.sections clasimp_modifiers >> (K lexicographic_order))
-    "termination prover for lexicographic orderings"
-  #> Context.theory_map (Function_Common.set_termination_prover (lexicographic_order_tac false))
+  Context.theory_map (Function_Common.set_termination_prover (lexicographic_order_tac false))
 
 end;

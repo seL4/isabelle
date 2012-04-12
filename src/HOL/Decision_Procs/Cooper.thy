@@ -2005,7 +2005,12 @@ end;
 *}
 
 use "cooper_tac.ML"
-setup "Cooper_Tac.setup"
+
+method_setup cooper = {*
+  Args.mode "no_quantify" >>
+    (fn q => fn ctxt => SIMPLE_METHOD' (Cooper_Tac.linz_tac ctxt (not q)))
+*} "decision procedure for linear integer arithmetic"
+
 
 text {* Tests *}
 

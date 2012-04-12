@@ -314,6 +314,9 @@ qed
 
 
 use "commutative_ring_tac.ML"
-setup Commutative_Ring_Tac.setup
+
+method_setup comm_ring = {*
+  Scan.succeed (SIMPLE_METHOD' o Commutative_Ring_Tac.tac)
+*} "reflective decision procedure for equalities over commutative rings"
 
 end

@@ -7,7 +7,6 @@ Tactic for solving equalities over commutative rings.
 signature COMMUTATIVE_RING_TAC =
 sig
   val tac: Proof.context -> int -> tactic
-  val setup: theory -> theory
 end
 
 structure Commutative_Ring_Tac: COMMUTATIVE_RING_TAC =
@@ -97,9 +96,5 @@ fun tac ctxt = SUBGOAL (fn (g, i) =>
     THEN (simp_tac cring_ss i)
     THEN (simp_tac cring_ss i)
   end);
-
-val setup =
-  Method.setup @{binding comm_ring} (Scan.succeed (SIMPLE_METHOD' o tac))
-    "reflective decision procedure for equalities over commutative rings";
 
 end;
