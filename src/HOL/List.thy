@@ -5677,7 +5677,7 @@ lemma trancl_set_ntrancl [code]:
   "trancl (set xs) = ntrancl (card (set xs) - 1) (set xs)"
   by (simp add: finite_trancl_ntranl)
 
-lemma set_rel_comp [code]:
+lemma set_relcomp [code]:
   "set xys O set yzs = set ([(fst xy, snd yz). xy \<leftarrow> xys, yz \<leftarrow> yzs, snd xy = fst yz])"
   by (auto simp add: Bex_def)
 
