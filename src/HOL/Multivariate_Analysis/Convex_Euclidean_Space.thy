@@ -5479,7 +5479,7 @@ qed
 lemma convex_sum_gen:
   fixes S :: "'a \<Rightarrow> 'n::euclidean_space set"
   assumes "\<And>i. i \<in> I \<Longrightarrow> (convex (S i))"
-  shows "convex (setsum_set S I)"
+  shows "convex (setsum S I)"
 proof cases
   assume "finite I" from this assms show ?thesis
     by induct (auto simp: convex_oplus)
@@ -5487,14 +5487,14 @@ qed auto
 
 lemma convex_hull_sum_gen:
 fixes S :: "'a => ('n::euclidean_space) set"
-shows "convex hull (setsum_set S I) = setsum_set (%i. (convex hull (S i))) I"
+shows "convex hull (setsum S I) = setsum (%i. (convex hull (S i))) I"
 apply (subst setsum_set_linear) using convex_hull_sum convex_hull_singleton by auto
 
 
 lemma rel_interior_sum_gen:
 fixes S :: "'a => ('n::euclidean_space) set"
 assumes "!i:I. (convex (S i))"
-shows "rel_interior (setsum_set S I) = setsum_set (%i. (rel_interior (S i))) I"
+shows "rel_interior (setsum S I) = setsum (%i. (rel_interior (S i))) I"
 apply (subst setsum_set_cond_linear[of convex])
   using rel_interior_sum rel_interior_sing[of "0"] assms by (auto simp add: convex_oplus)
 
@@ -5513,7 +5513,7 @@ by (metis assms convex_oplus rel_interior_sum rel_open_def)
 lemma convex_hull_finite_union_cones:
 assumes "finite I" "I ~= {}"
 assumes "!i:I. (convex (S i) & cone (S i) & (S i) ~= {})"
-shows "convex hull (Union (S ` I)) = setsum_set S I"
+shows "convex hull (Union (S ` I)) = setsum S I"
   (is "?lhs = ?rhs")
 proof-
 { fix x assume "x : ?lhs"
@@ -5553,10 +5553,10 @@ def I == "{(1::nat),2}"
 def A == "(%i. (if i=(1::nat) then S else T))"
 have "Union (A ` I) = S Un T" using A_def I_def by auto
 hence "convex hull (Union (A ` I)) = convex hull (S Un T)" by auto
-moreover have "convex hull Union (A ` I) = setsum_set A I"
+moreover have "convex hull Union (A ` I) = setsum A I"
     apply (subst convex_hull_finite_union_cones[of I A]) using assms A_def I_def by auto
 moreover have
-  "setsum_set A I = S \<oplus> T" using A_def I_def
+  "setsum A I = S \<oplus> T" using A_def I_def
      unfolding set_plus_def apply auto unfolding set_plus_def by auto
 ultimately show ?thesis by auto
 qed
@@ -5600,15 +5600,15 @@ moreover
   ultimately have "convex hull (Union (K ` I)) >= K0"
      unfolding K0_def using hull_minimal[of _ "convex hull (Union (K ` I))" "cone"] by blast
   hence "K0 = convex hull (Union (K ` I))" using geq by auto
-  also have "...=setsum_set K I"
+  also have "...=setsum K I"
      apply (subst convex_hull_finite_union_cones[of I K])
      using assms apply blast
      using `I ~= {}` apply blast
      unfolding K_def apply rule
      apply (subst convex_cone_hull) apply (subst convex_direct_sum)
      using assms cone_cone_hull `!i:I. K i ~= {}` K_def by auto
-  finally have "K0 = setsum_set K I" by auto
-  hence *: "rel_interior K0 = setsum_set (%i. (rel_interior (K i))) I"
+  finally have "K0 = setsum K I" by auto
+  hence *: "rel_interior K0 = setsum (%i. (rel_interior (K i))) I"
      using rel_interior_sum_gen[of I K] convK by auto
   { fix x assume "x : ?lhs"
     hence "((1::real),x) : rel_interior K0" using K0_def C0_def
