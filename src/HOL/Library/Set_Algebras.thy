@@ -14,11 +14,53 @@ text {*
   comments at the top of theory @{text BigO}.
 *}
 
-definition set_plus :: "'a::plus set \<Rightarrow> 'a set \<Rightarrow> 'a set"  (infixl "\<oplus>" 65) where
-  "A \<oplus> B = {c. \<exists>a\<in>A. \<exists>b\<in>B. c = a + b}"
+instantiation set :: (plus) plus
+begin
 
-definition set_times :: "'a::times set \<Rightarrow> 'a set \<Rightarrow> 'a set"  (infixl "\<otimes>" 70) where
-  "A \<otimes> B = {c. \<exists>a\<in>A. \<exists>b\<in>B. c = a * b}"
+definition plus_set :: "'a::plus set \<Rightarrow> 'a set \<Rightarrow> 'a set" where
+  set_plus_def: "A + B = {c. \<exists>a\<in>A. \<exists>b\<in>B. c = a + b}"
+
+instance ..
+
+end
+
+instantiation set :: (times) times
+begin
+
+definition times_set :: "'a::times set \<Rightarrow> 'a set \<Rightarrow> 'a set" where
+  set_times_def: "A * B = {c. \<exists>a\<in>A. \<exists>b\<in>B. c = a * b}"
+
+instance ..
+
+end
+
+
+text {* Legacy syntax: *}
+
+abbreviation (input) set_plus :: "'a::plus set \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixl "\<oplus>" 65) where
+  "A \<oplus> B \<equiv> A + B"
+abbreviation (input) set_times :: "'a::times set \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixl "\<otimes>" 70) where
+  "A \<otimes> B \<equiv> A * B"
+
+instantiation set :: (zero) zero
+begin
+
+definition
+  set_zero[simp]: "0::('a::zero)set == {0}"
+
+instance ..
+
+end
+ 
+instantiation set :: (one) one
+begin
+
+definition
+  set_one[simp]: "1::('a::one)set == {1}"
+
+instance ..
+
+end
 
 definition elt_set_plus :: "'a::plus \<Rightarrow> 'a set \<Rightarrow> 'a set"  (infixl "+o" 70) where
   "a +o B = {c. \<exists>b\<in>B. c = a + b}"
@@ -29,96 +71,29 @@ definition elt_set_times :: "'a::times \<Rightarrow> 'a set \<Rightarrow> 'a set
 abbreviation (input) elt_set_eq :: "'a \<Rightarrow> 'a set \<Rightarrow> bool"  (infix "=o" 50) where
   "x =o A \<equiv> x \<in> A"
 
-interpretation set_add!: semigroup "set_plus :: 'a::semigroup_add set \<Rightarrow> 'a set \<Rightarrow> 'a set" proof
-qed (force simp add: set_plus_def add.assoc)
+instance set :: (semigroup_add) semigroup_add
+by default (force simp add: set_plus_def add.assoc)
 
-interpretation set_add!: abel_semigroup "set_plus :: 'a::ab_semigroup_add set \<Rightarrow> 'a set \<Rightarrow> 'a set" proof
-qed (force simp add: set_plus_def add.commute)
+instance set :: (ab_semigroup_add) ab_semigroup_add
+by default (force simp add: set_plus_def add.commute)
 
-interpretation set_add!: monoid "set_plus :: 'a::monoid_add set \<Rightarrow> 'a set \<Rightarrow> 'a set" "{0}" proof
-qed (simp_all add: set_plus_def)
+instance set :: (monoid_add) monoid_add
+by default (simp_all add: set_plus_def)
 
-interpretation set_add!: comm_monoid "set_plus :: 'a::comm_monoid_add set \<Rightarrow> 'a set \<Rightarrow> 'a set" "{0}" proof
-qed (simp add: set_plus_def)
+instance set :: (comm_monoid_add) comm_monoid_add
+by default (simp_all add: set_plus_def)
 
-definition listsum_set :: "('a::monoid_add set) list \<Rightarrow> 'a set" where
-  "listsum_set = monoid_add.listsum set_plus {0}"
+instance set :: (semigroup_mult) semigroup_mult
+by default (force simp add: set_times_def mult.assoc)
 
-interpretation set_add!: monoid_add "set_plus :: 'a::monoid_add set \<Rightarrow> 'a set \<Rightarrow> 'a set" "{0}" where
-  "monoid_add.listsum set_plus {0::'a} = listsum_set"
-proof -
-  show "class.monoid_add set_plus {0::'a}" proof
-  qed (simp_all add: set_add.assoc)
-  then interpret set_add!: monoid_add "set_plus :: 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" "{0}" .
-  show "monoid_add.listsum set_plus {0::'a} = listsum_set"
-    by (simp only: listsum_set_def)
-qed
+instance set :: (ab_semigroup_mult) ab_semigroup_mult
+by default (force simp add: set_times_def mult.commute)
 
-definition setsum_set :: "('b \<Rightarrow> ('a::comm_monoid_add) set) \<Rightarrow> 'b set \<Rightarrow> 'a set" where
-  "setsum_set f A = (if finite A then fold_image set_plus f {0} A else {0})"
+instance set :: (monoid_mult) monoid_mult
+by default (simp_all add: set_times_def)
 
-interpretation set_add!:
-  comm_monoid_big "set_plus :: 'a::comm_monoid_add set \<Rightarrow> 'a set \<Rightarrow> 'a set" "{0}" setsum_set 
-proof
-qed (fact setsum_set_def)
-
-interpretation set_add!: comm_monoid_add "set_plus :: 'a::comm_monoid_add set \<Rightarrow> 'a set \<Rightarrow> 'a set" "{0}" where
-  "monoid_add.listsum set_plus {0::'a} = listsum_set"
-  and "comm_monoid_add.setsum set_plus {0::'a} = setsum_set"
-proof -
-  show "class.comm_monoid_add (set_plus :: 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set) {0}" proof
-  qed (simp_all add: set_add.commute)
-  then interpret set_add!: comm_monoid_add "set_plus :: 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" "{0}" .
-  show "monoid_add.listsum set_plus {0::'a} = listsum_set"
-    by (simp only: listsum_set_def)
-  show "comm_monoid_add.setsum set_plus {0::'a} = setsum_set"
-    by (simp add: set_add.setsum_def setsum_set_def fun_eq_iff)
-qed
-
-interpretation set_mult!: semigroup "set_times :: 'a::semigroup_mult set \<Rightarrow> 'a set \<Rightarrow> 'a set" proof
-qed (force simp add: set_times_def mult.assoc)
-
-interpretation set_mult!: abel_semigroup "set_times :: 'a::ab_semigroup_mult set \<Rightarrow> 'a set \<Rightarrow> 'a set" proof
-qed (force simp add: set_times_def mult.commute)
-
-interpretation set_mult!: monoid "set_times :: 'a::monoid_mult set \<Rightarrow> 'a set \<Rightarrow> 'a set" "{1}" proof
-qed (simp_all add: set_times_def)
-
-interpretation set_mult!: comm_monoid "set_times :: 'a::comm_monoid_mult set \<Rightarrow> 'a set \<Rightarrow> 'a set" "{1}" proof
-qed (simp add: set_times_def)
-
-definition power_set :: "nat \<Rightarrow> ('a::monoid_mult set) \<Rightarrow> 'a set" where
-  "power_set n A = power.power {1} set_times A n"
-
-interpretation set_mult!: monoid_mult "{1}" "set_times :: 'a::monoid_mult set \<Rightarrow> 'a set \<Rightarrow> 'a set" where
-  "power.power {1} set_times = (\<lambda>A n. power_set n A)"
-proof -
-  show "class.monoid_mult {1} (set_times :: 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set)" proof
-  qed (simp_all add: set_mult.assoc)
-  show "power.power {1} set_times = (\<lambda>A n. power_set n A)"
-    by (simp add: power_set_def)
-qed
-
-definition setprod_set :: "('b \<Rightarrow> ('a::comm_monoid_mult) set) \<Rightarrow> 'b set \<Rightarrow> 'a set" where
-  "setprod_set f A = (if finite A then fold_image set_times f {1} A else {1})"
-
-interpretation set_mult!:
-  comm_monoid_big "set_times :: 'a::comm_monoid_mult set \<Rightarrow> 'a set \<Rightarrow> 'a set" "{1}" setprod_set 
-proof
-qed (fact setprod_set_def)
-
-interpretation set_mult!: comm_monoid_mult "set_times :: 'a::comm_monoid_mult set \<Rightarrow> 'a set \<Rightarrow> 'a set" "{1}" where
-  "power.power {1} set_times = (\<lambda>A n. power_set n A)"
-  and "comm_monoid_mult.setprod set_times {1::'a} = setprod_set"
-proof -
-  show "class.comm_monoid_mult (set_times :: 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set) {1}" proof
-  qed (simp_all add: set_mult.commute)
-  then interpret set_mult!: comm_monoid_mult "set_times :: 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" "{1}" .
-  show "power.power {1} set_times = (\<lambda>A n. power_set n A)"
-    by (simp add: power_set_def)
-  show "comm_monoid_mult.setprod set_times {1::'a} = setprod_set"
-    by (simp add: set_mult.setprod_def setprod_set_def fun_eq_iff)
-qed
+instance set :: (comm_monoid_mult) comm_monoid_mult
+by default (simp_all add: set_times_def)
 
 lemma set_plus_intro [intro]: "a : C ==> b : D ==> a + b : C \<oplus> D"
   by (auto simp add: set_plus_def)
@@ -357,6 +332,11 @@ lemma set_neg_intro2: "(a::'a::ring_1) : C ==>
 lemma set_plus_image:
   fixes S T :: "'n::semigroup_add set" shows "S \<oplus> T = (\<lambda>(x, y). x + y) ` (S \<times> T)"
   unfolding set_plus_def by (fastforce simp: image_iff)
+
+text {* Legacy syntax: *}
+
+abbreviation (input) setsum_set :: "('b \<Rightarrow> ('a::comm_monoid_add) set) \<Rightarrow> 'b set \<Rightarrow> 'a set" where
+   "setsum_set == setsum"
 
 lemma set_setsum_alt:
   assumes fin: "finite I"
