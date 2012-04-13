@@ -294,6 +294,42 @@ INCOMPATIBILITY.
  
 INCOMPATIBILITY.
 
+* Theory Relation: Consolidated constant name for relation composition
+  and corresponding theorem names:
+  - Renamed constant rel_comp to relcomp
+  - Dropped abbreviation pred_comp. Use relcompp instead.
+  - Renamed theorems:
+  Relation:
+    rel_compI ~> relcompI
+    rel_compEpair ~> relcompEpair
+    rel_compE ~> relcompE
+    pred_comp_rel_comp_eq ~> relcompp_relcomp_eq
+    rel_comp_empty1 ~> relcomp_empty1
+    rel_comp_mono ~> relcomp_mono
+    rel_comp_subset_Sigma ~> relcomp_subset_Sigma
+    rel_comp_distrib ~> relcomp_distrib
+    rel_comp_distrib2 ~> relcomp_distrib2
+    rel_comp_UNION_distrib ~> relcomp_UNION_distrib
+    rel_comp_UNION_distrib2 ~> relcomp_UNION_distrib2
+    single_valued_rel_comp ~> single_valued_relcomp
+    rel_comp_unfold ~> relcomp_unfold
+    converse_rel_comp ~> converse_relcomp
+    pred_compI ~> relcomppI
+    pred_compE ~> relcomppE
+    pred_comp_bot1 ~> relcompp_bot1
+    pred_comp_bot2 ~> relcompp_bot2
+    transp_pred_comp_less_eq ~> transp_relcompp_less_eq
+    pred_comp_mono ~> relcompp_mono
+    pred_comp_distrib ~> relcompp_distrib
+    pred_comp_distrib2 ~> relcompp_distrib2
+    converse_pred_comp ~> converse_relcompp
+  Transitive_Closure:
+    finite_rel_comp ~> finite_relcomp
+  List:
+    set_rel_comp ~> set_relcomp
+
+INCOMPATIBILITY.
+
 * New theory HOL/Library/DAList provides an abstract type for association
   lists with distinct keys.
 

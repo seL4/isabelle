@@ -6,6 +6,9 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* March 2012: Christian Sternagel, Japan Advanced Institute of Science and Technology
+  Consolidated theory of relation composition.
+
 * March 2012: Nik Sultana, University of Cambridge
   HOL/TPTP parser and import facilities.
 
