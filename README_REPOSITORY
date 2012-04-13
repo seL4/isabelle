@@ -32,10 +32,9 @@ some freedom for experimentation without affecting anybody else.
 
 Mercurial provides nice web presentation of incoming changes with a
 digest of log entries; this also includes RSS/Atom news feeds.  There
-are add-on browsers, notably hgtk that is part of the TortoiseHg
-distribution and works for generic Python/GTk platforms.  The
-alternative "view" utility helps to inspect the semantic content of
-merge nodes.
+are add-on history browsers such as "hg view" and TortoiseHg.  Unlike
+the default web view, some of these tools help to inspect the semantic
+content of non-trivial merge nodes.
 
 
 Initial configuration
@@ -107,27 +106,27 @@ changes.  In any case, changesets need to be understandable, at the
 time of writing and many years later.
 
 Push access to the Isabelle repository requires an account at TUM,
-with properly configured ssh to the local machines (e.g. macbroy20,
-atbroy100).  You also need to be a member of the "isabelle" Unix
+with properly configured ssh to the local machines (e.g. macbroy20 ..
+macbroy29).  You also need to be a member of the "isabelle" Unix
 group.
 
 Sharing a locally modified clone then works as follows, using your
 user name instead of "wenzelm":
 
-  hg out ssh://wenzelm@atbroy100//home/isabelle-repository/repos/isabelle
+  hg out ssh://wenzelm@macbroy20//home/isabelle-repository/repos/isabelle
 
 In fact, the "out" or "outgoing" command performs only a dry run: it
 displays the changesets that would get published.  An actual "push",
 with a lasting effect on the Isabelle repository, works like this:
 
-  hg push ssh://wenzelm@atbroy100//home/isabelle-repository/repos/isabelle
+  hg push ssh://wenzelm@macbroy20//home/isabelle-repository/repos/isabelle
 
 
 Default paths for push and pull can be configured in
 isabelle/.hg/hgrc, for example:
 
   [paths]
-  default = ssh://wenzelm@atbroy100//home/isabelle-repository/repos/isabelle
+  default = ssh://wenzelm@macbroy20//home/isabelle-repository/repos/isabelle
 
 Now "hg pull" or "hg push" will use that shared file space, unless a
 different URL is specified explicitly.
@@ -136,7 +135,7 @@ When cloning a repository, the default path is set to the initial
 source URL.  So we could have cloned via that ssh URL in the first
 place, to get exactly to the same point:
 
-  hg clone ssh://wenzelm@atbroy100//home/isabelle-repository/repos/isabelle
+  hg clone ssh://wenzelm@macbroy20//home/isabelle-repository/repos/isabelle
 
 
 Simple merges
