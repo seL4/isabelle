@@ -40,7 +40,7 @@ lemma map_entry_Mapping [code]:
 
 lemma keys_Mapping [code]:
   "Mapping.keys (Mapping t) = set (keys t)"
-  by (simp add: RBT.keys_def Mapping_def Mapping.keys_def lookup_def lookup_keys)
+  by (simp add: RBT.keys_def Mapping_def Mapping.keys_def lookup_def rbt_lookup_keys)
 
 lemma ordered_keys_Mapping [code]:
   "Mapping.ordered_keys (Mapping t) = keys t"
@@ -144,22 +144,22 @@ text {*
   @{thm Empty_is_rbt}\hfill(@{text "Empty_is_rbt"})
 
   \noindent
-  @{thm insert_is_rbt}\hfill(@{text "insert_is_rbt"})
+  @{thm rbt_insert_is_rbt}\hfill(@{text "rbt_insert_is_rbt"})
 
   \noindent
-  @{thm delete_is_rbt}\hfill(@{text "delete_is_rbt"})
+  @{thm rbt_delete_is_rbt}\hfill(@{text "delete_is_rbt"})
 
   \noindent
-  @{thm bulkload_is_rbt}\hfill(@{text "bulkload_is_rbt"})
+  @{thm rbt_bulkload_is_rbt}\hfill(@{text "bulkload_is_rbt"})
 
   \noindent
-  @{thm map_entry_is_rbt}\hfill(@{text "map_entry_is_rbt"})
+  @{thm rbt_map_entry_is_rbt}\hfill(@{text "map_entry_is_rbt"})
 
   \noindent
   @{thm map_is_rbt}\hfill(@{text "map_is_rbt"})
 
   \noindent
-  @{thm union_is_rbt}\hfill(@{text "union_is_rbt"})
+  @{thm rbt_union_is_rbt}\hfill(@{text "union_is_rbt"})
 *}
 
 
