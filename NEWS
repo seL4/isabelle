@@ -338,6 +338,116 @@ INCOMPATIBILITY.
 * Theory HOL/Library/Diagonalize has been removed. INCOMPATIBILITY,
 use theory HOL/Library/Nat_Bijection instead.
 
+* Theory HOL/Library/RBT_Impl: Backing implementation of red-black trees is
+now inside the type class' local context. Names of affected operations and lemmas 
+have been prefixed by rbt_. INCOMPATIBILITY for theories working directly with
+raw red-black trees, adapt the names as follows:
+
+  Operations:
+  bulkload -> rbt_bulkload
+  del_from_left -> rbt_del_from_left
+  del_from_right -> rbt_del_from_right
+  del -> rbt_del
+  delete -> rbt_delete
+  ins -> rbt_ins
+  insert -> rbt_insert
+  insertw -> rbt_insert_with
+  insert_with_key -> rbt_insert_with_key
+  map_entry -> rbt_map_entry
+  lookup -> rbt_lookup
+  sorted -> rbt_sorted
+  tree_greater -> rbt_greater
+  tree_less -> rbt_less
+  tree_less_symbol -> rbt_less_symbol
+  union -> rbt_union
+  union_with -> rbt_union_with
+  union_with_key -> rbt_union_with_key
+
+  Lemmas:
+  balance_left_sorted -> balance_left_rbt_sorted
+  balance_left_tree_greater -> balance_left_rbt_greater
+  balance_left_tree_less -> balance_left_rbt_less
+  balance_right_sorted -> balance_right_rbt_sorted
+  balance_right_tree_greater -> balance_right_rbt_greater
+  balance_right_tree_less -> balance_right_rbt_less
+  balance_sorted -> balance_rbt_sorted
+  balance_tree_greater -> balance_rbt_greater
+  balance_tree_less -> balance_rbt_less
+  bulkload_is_rbt -> rbt_bulkload_is_rbt
+  combine_sorted -> combine_rbt_sorted
+  combine_tree_greater -> combine_rbt_greater
+  combine_tree_less -> combine_rbt_less
+  delete_in_tree -> rbt_delete_in_tree
+  delete_is_rbt -> rbt_delete_is_rbt
+  del_from_left_tree_greater -> rbt_del_from_left_rbt_greater
+  del_from_left_tree_less -> rbt_del_from_left_rbt_less
+  del_from_right_tree_greater -> rbt_del_from_right_rbt_greater
+  del_from_right_tree_less -> rbt_del_from_right_rbt_less
+  del_in_tree -> rbt_del_in_tree
+  del_inv1_inv2 -> rbt_del_inv1_inv2
+  del_sorted -> rbt_del_rbt_sorted
+  del_tree_greater -> rbt_del_rbt_greater
+  del_tree_less -> rbt_del_rbt_less
+  dom_lookup_Branch -> dom_rbt_lookup_Branch
+  entries_lookup -> entries_rbt_lookup
+  finite_dom_lookup -> finite_dom_rbt_lookup
+  insert_sorted -> rbt_insert_rbt_sorted
+  insertw_is_rbt -> rbt_insertw_is_rbt
+  insertwk_is_rbt -> rbt_insertwk_is_rbt
+  insertwk_sorted -> rbt_insertwk_rbt_sorted
+  insertw_sorted -> rbt_insertw_rbt_sorted
+  ins_sorted -> ins_rbt_sorted
+  ins_tree_greater -> ins_rbt_greater
+  ins_tree_less -> ins_rbt_less
+  is_rbt_sorted -> is_rbt_rbt_sorted
+  lookup_balance -> rbt_lookup_balance
+  lookup_bulkload -> rbt_lookup_rbt_bulkload
+  lookup_delete -> rbt_lookup_rbt_delete
+  lookup_Empty -> rbt_lookup_Empty
+  lookup_from_in_tree -> rbt_lookup_from_in_tree
+  lookup_in_tree -> rbt_lookup_in_tree
+  lookup_ins -> rbt_lookup_ins
+  lookup_insert -> rbt_lookup_rbt_insert
+  lookup_insertw -> rbt_lookup_rbt_insertw
+  lookup_insertwk -> rbt_lookup_rbt_insertwk
+  lookup_keys -> rbt_lookup_keys
+  lookup_map -> rbt_lookup_map
+  lookup_map_entry -> rbt_lookup_rbt_map_entry
+  lookup_tree_greater -> rbt_lookup_rbt_greater
+  lookup_tree_less -> rbt_lookup_rbt_less
+  lookup_union -> rbt_lookup_rbt_union
+  map_entry_color_of -> rbt_map_entry_color_of
+  map_entry_inv1 -> rbt_map_entry_inv1
+  map_entry_inv2 -> rbt_map_entry_inv2
+  map_entry_is_rbt -> rbt_map_entry_is_rbt
+  map_entry_sorted -> rbt_map_entry_rbt_sorted
+  map_entry_tree_greater -> rbt_map_entry_rbt_greater
+  map_entry_tree_less -> rbt_map_entry_rbt_less
+  map_tree_greater -> map_rbt_greater
+  map_tree_less -> map_rbt_less
+  map_sorted -> map_rbt_sorted
+  paint_sorted -> paint_rbt_sorted
+  paint_lookup -> paint_rbt_lookup
+  paint_tree_greater -> paint_rbt_greater
+  paint_tree_less -> paint_rbt_less
+  sorted_entries -> rbt_sorted_entries
+  tree_greater_eq_trans -> rbt_greater_eq_trans
+  tree_greater_nit -> rbt_greater_nit
+  tree_greater_prop -> rbt_greater_prop
+  tree_greater_simps -> rbt_greater_simps
+  tree_greater_trans -> rbt_greater_trans
+  tree_less_eq_trans -> rbt_less_eq_trans
+  tree_less_nit -> rbt_less_nit
+  tree_less_prop -> rbt_less_prop
+  tree_less_simps -> rbt_less_simps
+  tree_less_trans -> rbt_less_trans
+  tree_ord_props -> rbt_ord_props
+  union_Branch -> rbt_union_Branch
+  union_is_rbt -> rbt_union_is_rbt
+  unionw_is_rbt -> rbt_unionw_is_rbt
+  unionwk_is_rbt -> rbt_unionwk_is_rbt
+  unionwk_sorted -> rbt_unionwk_rbt_sorted
+
 * Session HOL-Word: Discontinued many redundant theorems specific to
 type 'a word. INCOMPATIBILITY, use the corresponding generic theorems
 instead.
