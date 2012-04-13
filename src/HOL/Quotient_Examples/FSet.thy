@@ -1,4 +1,4 @@
-(*  Title:      HOL/Quotient3_Examples/FSet.thy
+(*  Title:      HOL/Quotient_Examples/FSet.thy
     Author:     Cezary Kaliszyk, TU Munich
     Author:     Christian Urban, TU Munich
 

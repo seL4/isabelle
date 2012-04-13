@@ -1,4 +1,4 @@
-(*  Title:      RBT_Impl.thy
+(*  Title:      HOL/Library/RBT_Impl.thy
     Author:     Markus Reiter, TU Muenchen
     Author:     Alexander Krauss, TU Muenchen
 *)

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Matrix/fspmlp.ML
+(*  Title:      HOL/Matrix_LP/fspmlp.ML
     Author:     Steven Obua
 *)
 

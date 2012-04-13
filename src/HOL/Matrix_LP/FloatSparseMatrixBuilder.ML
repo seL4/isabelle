@@ -1,4 +1,4 @@
-(*  Title:      HOL/Matrix/FloatSparseMatrixBuilder.ML
+(*  Title:      HOL/Matrix_LP/FloatSparseMatrixBuilder.ML
     Author:     Steven Obua
 *)
 

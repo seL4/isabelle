@@ -1,4 +1,4 @@
-(*  Title:      HOL/Matrix/Cplex_tools.ML
+(*  Title:      HOL/Matrix_LP/Cplex_tools.ML
     Author:     Steven Obua
 *)
 

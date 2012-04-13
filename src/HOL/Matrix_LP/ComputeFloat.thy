@@ -1,4 +1,4 @@
-(*  Title:      HOL/Matrix/ComputeFloat.thy
+(*  Title:      HOL/Matrix_LP/ComputeFloat.thy
     Author:     Steven Obua
 *)
 

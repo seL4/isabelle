@@ -1,4 +1,4 @@
-(*  Title:      HOL/Matrix/Compute_Oracle/Compute_Oracle.thy
+(*  Title:      HOL/Matrix_LP/Compute_Oracle/Compute_Oracle.thy
     Author:     Steven Obua, TU Munich
 
 Steven Obua's evaluator.

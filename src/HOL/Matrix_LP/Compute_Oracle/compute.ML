@@ -1,4 +1,4 @@
-(*  Title:      HOL/Matrix/Compute_Oracle/compute.ML
+(*  Title:      HOL/Matrix_LP/Compute_Oracle/compute.ML
     Author:     Steven Obua
 *)
 

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Matrix/SparseMatrix.thy
+(*  Title:      HOL/Matrix_LP/SparseMatrix.thy
     Author:     Steven Obua
 *)
 
