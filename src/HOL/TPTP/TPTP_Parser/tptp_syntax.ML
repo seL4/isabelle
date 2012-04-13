@@ -345,23 +345,23 @@ fun dequote str : single_quoted =
 
 fun status_to_string status_value =
   case status_value of
-      Suc => "suc"	| Unp => "unp"
+      Suc => "suc"  | Unp => "unp"
     | Sap => "sap"  | Esa => "esa"
     | Sat => "sat"  | Fsa => "fsa"
     | Thm => "thm"  | Wuc => "wuc"
-    | Eqv => "eqv"	| Tac => "tac"
-    | Wec => "wec"	| Eth => "eth"
-    | Tau => "tau"	| Wtc => "wtc"
-    | Wth => "wth"	| Cax => "cax"
-    | Sca => "sca"	| Tca => "tca"
-    | Wca => "wca"	| Cup => "cup"
-    | Csp => "csp"	| Ecs => "ecs"
-    | Csa => "csa"	| Cth => "cth"
-    | Ceq => "ceq"	| Unc => "unc"
-    | Wcc => "wcc"	| Ect => "ect"
-    | Fun => "fun"	| Uns => "uns"
-    | Wct => "wct"	| Scc => "scc"
-    | Uca => "uca"	| Noc => "noc"
+    | Eqv => "eqv"  | Tac => "tac"
+    | Wec => "wec"  | Eth => "eth"
+    | Tau => "tau"  | Wtc => "wtc"
+    | Wth => "wth"  | Cax => "cax"
+    | Sca => "sca"  | Tca => "tca"
+    | Wca => "wca"  | Cup => "cup"
+    | Csp => "csp"  | Ecs => "ecs"
+    | Csa => "csa"  | Cth => "cth"
+    | Ceq => "ceq"  | Unc => "unc"
+    | Wcc => "wcc"  | Ect => "ect"
+    | Fun => "fun"  | Uns => "uns"
+    | Wct => "wct"  | Scc => "scc"
+    | Uca => "uca"  | Noc => "noc"
 
 fun string_of_tptp_term x =
   case x of
