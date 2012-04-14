@@ -5,28 +5,39 @@
 structure Mirabelle_Sledgehammer : MIRABELLE_ACTION =
 struct
 
-val proverK = "prover"
-val prover_timeoutK = "prover_timeout"
-val keepK = "keep"
-val type_encK = "type_enc"
-val strictK = "strict"
-val sliceK = "slice"
-val lam_transK = "lam_trans"
-val uncurried_aliasesK = "uncurried_aliases"
-val e_selection_heuristicK = "e_selection_heuristic"
-val term_orderK = "term_order"
-val force_sosK = "force_sos"
-val max_relevantK = "max_relevant"
-val max_callsK = "max_calls"
-val minimizeK = "minimize" (*refers to minimization attempted by Mirabelle*)
-val minimize_timeoutK = "minimize_timeout"
-val metis_ftK = "metis_ft"
-val reconstructorK = "reconstructor"
-val preplay_timeoutK = "preplay_timeout"
-val sh_minimizeK = "sh_minimize" (*refers to minimizer run within Sledgehammer*)
-val max_new_mono_instancesK = "max_new_mono_instances"
-val max_mono_itersK = "max_mono_iters"
-val check_trivialK = "check_trivial" (*false by default*)
+(*To facilitate synching the description of Mirabelle Sledgehammer parameters
+ (in ../lib/Tools/mirabelle) with the parameters actually used by this
+ interface, the former extracts PARAMETER and DESCRIPTION from code below which
+ has this pattern (provided it appears in a single line):
+   val .*K = "PARAMETER" (*DESCRIPTION*)
+*)
+(*NOTE: descriptions mention parameters (particularly NAME) without a defined range.*)
+val proverK = "prover" (*=NAME: name of the external prover to call*)
+val prover_timeoutK = "prover_timeout" (*=TIME: timeout for invoked ATP (seconds of process time)*)
+val keepK = "keep" (*=PATH: path where to keep temporary files created by sledgehammer*)
+val minimizeK = "minimize" (*: enable minimization of theorem set found by sledgehammer*)
+                           (*refers to minimization attempted by Mirabelle*)
+val minimize_timeoutK = "minimize_timeout" (*=TIME: timeout for each minimization step (seconds of*)
+
+val reconstructorK = "reconstructor" (*=NAME: how to reconstruct proofs (ie. using metis/smt)*)
+val metis_ftK = "metis_ft" (*: apply metis with fully-typed encoding to the theorems found by sledgehammer*)
+
+val max_relevantK = "max_relevant" (*=NUM: max. relevant clauses to use*)
+val max_callsK = "max_calls" (*=NUM: max. no. of calls to sledgehammer*)
+val preplay_timeoutK = "preplay_timeout" (*=TIME: timeout for finding reconstructed proof*)
+val sh_minimizeK = "sh_minimize" (*: instruct sledgehammer to run its minimizer*)
+
+val check_trivialK = "check_trivial" (*: check if goals are "trivial" (false by default)*)
+val type_encK = "type_enc" (*=STRING: type encoding scheme*)
+val lam_transK = "lam_trans" (*=STRING: lambda translation scheme*)
+val strictK = "strict" (*=BOOL: run in strict mode*)
+val sliceK = "slice" (*=BOOL: allow sledgehammer-level strategy-scheduling*)
+val uncurried_aliasesK = "uncurried_aliases" (*=SMART_BOOL: use fresh function names to alias curried applications*)
+val e_selection_heuristicK = "e_selection_heuristic" (*: FIXME*)
+val term_orderK = "term_order" (*: FIXME*)
+val force_sosK = "force_sos" (*: use SOS*)
+val max_new_mono_instancesK = "max_new_mono_instances" (*=NUM: max. new monomorphic instances*)
+val max_mono_itersK = "max_mono_iters" (*=NUM: max. iterations of monomorphiser*)
 
 fun sh_tag id = "#" ^ string_of_int id ^ " sledgehammer: "
 fun minimize_tag id = "#" ^ string_of_int id ^ " minimize (sledgehammer): "
