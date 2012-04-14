@@ -220,7 +220,7 @@ class Text_Area_Painter(doc_view: Document_View)
           else chunk_font.getStringBounds(s, font_context).getWidth.toFloat
 
         val caret_range =
-          if (text_area.hasFocus) doc_view.caret_range()
+          if (text_area.isCaretVisible) doc_view.caret_range()
           else Text.Range(-1)
 
         val markup =
@@ -373,7 +373,7 @@ class Text_Area_Painter(doc_view: Document_View)
       screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int)
     {
       robust_snapshot { _ =>
-        if (text_area.hasFocus) {
+        if (text_area.isCaretVisible) {
           val caret = text_area.getCaretPosition
           if (start <= caret && caret == end - 1) {
             val painter = text_area.getPainter

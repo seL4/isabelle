@@ -1,0 +1,12 @@
+diff -ru 4.5.1/jEdit/org/gjt/sp/jedit/textarea/TextArea.java 4.5.1/jEdit-patched/org/gjt/sp/jedit/textarea/TextArea.java
+--- 4.5.1/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2012-03-25 18:51:47.000000000 +0200
++++ 4.5.1/jEdit-patched/org/gjt/sp/jedit/textarea/TextArea.java	2012-04-14 18:37:11.000000000 +0200
+@@ -4907,7 +4907,7 @@
+ 	/**
+ 	 * Returns true if the caret is visible, false otherwise.
+ 	 */
+-	final boolean isCaretVisible()
++	public final boolean isCaretVisible()
+ 	{
+ 		return blink && hasFocus();
+ 	} //}}}
