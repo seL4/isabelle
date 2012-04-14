@@ -95,18 +95,27 @@ function librarypath () {
 
 #robust invocation via ISABELLE_JDK_HOME
 function isabelle_jdk () {
-  [ -z "$ISABELLE_JDK_HOME" ] && \
-    { echo "Unknown ISABELLE_JDK_HOME -- Java tools unavailable" >&2; return 2; }
-  local PRG="$1"; shift
-  "$ISABELLE_JDK_HOME/bin/$PRG" "$@"
+  if [ -z "$ISABELLE_JDK_HOME" ]; then
+    echo "Unknown ISABELLE_JDK_HOME -- Java tools unavailable" >&2
+    return 2
+  else
+    local PRG="$1"; shift
+    "$ISABELLE_JDK_HOME/bin/$PRG" "$@"
+  fi
 }
 
 #robust invocation via SCALA_HOME
 function isabelle_scala () {
-  [ -z "$SCALA_HOME" ] && \
-    { echo "Unknown SCALA_HOME -- Scala unavailable" >&2; return 2; }
-  local PRG="$1"; shift
-  "$SCALA_HOME/bin/$PRG" "$@"
+  if [ -z "$ISABELLE_JDK_HOME" ]; then
+    echo "Unknown ISABELLE_JDK_HOME -- Java tools unavailable" >&2
+    return 2
+  elif [ -z "$SCALA_HOME" ]; then
+    echo "Unknown SCALA_HOME -- Scala unavailable" >&2
+    return 2
+  else
+    local PRG="$1"; shift
+    "$SCALA_HOME/bin/$PRG" "$@"
+  fi
 }
 
 #CLASSPATH convenience
