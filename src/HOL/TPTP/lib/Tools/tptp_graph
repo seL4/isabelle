@@ -10,25 +10,26 @@ PRG="$(basename "$0")"
 #FIXME inline or move to settings
 DOT2TEX=dot2tex
 DOT=dot
-SED=sed
+PERL=perl
 PDFLATEX=pdflatex
 [ -n "$ISABELLE_PDFLATEX" ] && PDFLATEX=$ISABELLE_PDFLATEX
 DOT2TEX_VERSION="$($DOT2TEX -V 2> /dev/null)"
-DOT_VERSION="$($DOT -V 2> /dev/null)"
-SED_VERSION="$($SED --version | head -1 2> /dev/null)"
+DOT_VERSION="$($DOT -V 2>&1 | grep Graphviz)"
+PERL_VERSION="$($PERL -v | grep -e "v[0-9]\+." 2> /dev/null)"
 PDFLATEX_VERSION="$($PDFLATEX -version | head -1 2> /dev/null)"
 
 function check_deps()
 {
   #FIXME how well does this work across different platforms and/or versions of
   #      the tools?
-  for DEP in DOT2TEX_VERSION DOT_VERSION SED_VERSION PDFLATEX_VERSION
+  for DEP in DOT2TEX DOT PERL PDFLATEX
   do
-    eval DEP_VAL=\$$DEP
-    if [ -z "$DEP_VAL" ]; then
+    eval DEP_VAL=\$${DEP}
+    eval DEP_VERSION=\$${DEP}_VERSION
+    if [ -z "$DEP_VERSION" ]; then
       echo "$DEP not installed"
     else
-      echo "$DEP_VAL"
+      echo "$DEP ($DEP_VAL) : $DEP_VERSION"
     fi
   done
 }
@@ -53,7 +54,7 @@ SHOW_TARGET=""
 KEEP_TEMP=""
 NON_EXEC=""
 
-while getopts "dknX" OPT
+while getopts "dnkX" OPT
 do
   #FIXME could add "quiet" mode to send stderr (and some stdout) to /dev/null
   case "$OPT" in
@@ -106,7 +107,6 @@ function generate_dot()
   "$ISABELLE_PROCESS" -e "$LOADER" Pure
 }
 
-
 if [ "$OUTPUT_FORMAT" -eq 0 ]; then
   [ -z "$NON_EXEC" ] && generate_dot "$1" "$2"
   exit 0
@@ -114,14 +114,12 @@ fi
 
 ## set some essential variables
 
-[ -z "$TMPDIR" ] && TMPDIR=/tmp
 WORKDIR=""
 while :
 do
-  WORKDIR="$TMPDIR/tptpgraph$RANDOM"
-  if [ ! -d "$WORKDIR" ]; then
-    break
-  fi
+  #FIXME not perfectly reliable method, but probably good enough
+  WORKDIR="${ISABELLE_TMP_PREFIX}-tptpgraph$RANDOM"
+  [ ! -d "$WORKDIR" ] && break
 done
 OUTPUT_FILENAME="$(basename "$2")"
 FILEDIR="$(cd "$(dirname "$2")"; cd "$(pwd -P)"; pwd)"
@@ -136,7 +134,7 @@ cd $WORKDIR
 if [ -z "$NON_EXEC" ]; then
   $DOT -Txdot "${FILENAME}.dot" \
   | $DOT2TEX -f pgf -t raw --crop > "${FILENAME}.tex"
-  $SED -i 's/_/\\_/g' "${FILENAME}.tex"
+  $PERL -w -p -e 's/_/\\_/g' "${FILENAME}.tex"
 fi
 
 if [ "$OUTPUT_FORMAT" -eq 1 ]; then
