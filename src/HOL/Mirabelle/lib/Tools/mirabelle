@@ -11,7 +11,7 @@ function print_action_names() {
   ACTIONS="$MIRABELLE_HOME/Actions/mirabelle_*.ML"
   for ACTION in $ACTIONS
   do
-    echo $ACTION | sed 's/.*mirabelle_\(.*\)\.ML/    \1/'
+    echo $ACTION | perl -w -p -e 's/.*mirabelle_(.*)\.ML/    $1/'
   done
 }
 
