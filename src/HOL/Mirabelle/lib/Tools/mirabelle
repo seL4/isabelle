@@ -67,6 +67,8 @@ function fail()
 
 # options
 
+[ $# -eq 0 ] && usage
+
 while getopts "L:T:O:t:q?" OPT
 do
   case "$OPT" in
