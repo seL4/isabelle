@@ -1,4 +1,4 @@
-(*  Title:      HOL/Mirabelle/Tools/mirabelle_sledgehammer.ML
+(*  Title:      HOL/Mirabelle/Actions/mirabelle_sledgehammer.ML
     Author:     Jasmin Blanchette and Sascha Boehme and Tobias Nipkow, TU Munich
 *)
 

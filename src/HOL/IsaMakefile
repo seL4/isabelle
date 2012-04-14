@@ -1319,16 +1319,16 @@ $(LOG)/HOL-NSA-Examples.gz: $(OUT)/HOL-NSA NSA/Examples/ROOT.ML		\
 
 HOL-Mirabelle: HOL $(LOG)/HOL-Mirabelle.gz
 
-$(LOG)/HOL-Mirabelle.gz: $(OUT)/HOL Mirabelle/Mirabelle_Test.thy	\
-  Mirabelle/Mirabelle.thy Mirabelle/Tools/mirabelle.ML			\
-  Mirabelle/ROOT.ML Mirabelle/Tools/mirabelle_arith.ML			\
-  Mirabelle/Tools/mirabelle_metis.ML					\
-  Mirabelle/Tools/mirabelle_quickcheck.ML				\
-  Mirabelle/Tools/mirabelle_refute.ML					\
-  Mirabelle/Tools/mirabelle_sledgehammer.ML 				\
-  Mirabelle/Tools/mirabelle_sledgehammer_filter.ML			\
-  ex/sledgehammer_tactics.ML Mirabelle/lib/Tools/mirabelle		\
-  Mirabelle/lib/scripts/mirabelle.pl Library/FrechetDeriv.thy		\
+$(LOG)/HOL-Mirabelle.gz: $(OUT)/HOL Mirabelle/Mirabelle_Test.thy \
+  Mirabelle/Mirabelle.thy Mirabelle/Actions/mirabelle.ML \
+  Mirabelle/ROOT.ML Mirabelle/Actions/mirabelle_arith.ML \
+  Mirabelle/Actions/mirabelle_metis.ML \
+  Mirabelle/Actions/mirabelle_quickcheck.ML \
+  Mirabelle/Actions/mirabelle_refute.ML	\
+  Mirabelle/Actions/mirabelle_sledgehammer.ML \
+  Mirabelle/Actions/mirabelle_sledgehammer_filter.ML \
+  ex/sledgehammer_tactics.ML Mirabelle/lib/Tools/mirabelle \
+  Mirabelle/lib/scripts/mirabelle.pl Library/FrechetDeriv.thy \
   Library/Inner_Product.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Mirabelle
 	@cd Library; $(ISABELLE_TOOL) mirabelle -q arith Inner_Product.thy # some arbitrary small test case

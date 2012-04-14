@@ -1,4 +1,4 @@
-(*  Title:      HOL/Mirabelle/Tools/mirabelle_refute.ML
+(*  Title:      HOL/Mirabelle/Actions/mirabelle_refute.ML
     Author:     Jasmin Blanchette and Sascha Boehme, TU Munich
 *)
 

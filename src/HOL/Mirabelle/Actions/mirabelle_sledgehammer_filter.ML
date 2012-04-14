@@ -1,4 +1,4 @@
-(*  Title:      HOL/Mirabelle/Tools/mirabelle_sledgehammer_filter.ML
+(*  Title:      HOL/Mirabelle/Actions/mirabelle_sledgehammer_filter.ML
     Author:     Jasmin Blanchette, TU Munich
 *)
 

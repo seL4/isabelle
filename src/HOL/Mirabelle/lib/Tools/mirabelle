@@ -8,10 +8,10 @@
 PRG="$(basename "$0")"
 
 function print_action_names() {
-  TOOLS="$MIRABELLE_HOME/Tools/mirabelle_*.ML"
-  for NAME in $TOOLS
+  ACTIONS="$MIRABELLE_HOME/Actions/mirabelle_*.ML"
+  for ACTION in $ACTIONS
   do
-    echo $NAME | sed 's/.*mirabelle_\(.*\)\.ML/    \1/'
+    echo $ACTION | sed 's/.*mirabelle_\(.*\)\.ML/    \1/'
   done
 }
 
