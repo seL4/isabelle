@@ -47,9 +47,6 @@ manual.  Minor INCOMPATIBILITY.
 header -- minor INCOMPATIBILITY for user-defined commands.  Allow new
 commands to be used in the same theory where defined.
 
-* ISABELLE_JDK_HOME settings variable points to JDK with javac and jar
-(not just JRE).
-
 
 *** Pure ***
 
@@ -68,21 +65,21 @@ expand it.  This also works for object-logic equality.  (Formerly
 undocumented feature.)
 
 * Discontinued old "prems" fact, which used to refer to the accidental
-collection of foundational premises in the context (marked as legacy
-since Isabelle2011).
+collection of foundational premises in the context (already marked as
+legacy since Isabelle2011).
 
 * Obsolete command 'types' has been discontinued.  Use 'type_synonym'
 instead.  INCOMPATIBILITY.
 
-* Ancient code generator for SML and its commands 'code_module',
+* Old code generator for SML and its commands 'code_module',
 'code_library', 'consts_code', 'types_code' have been discontinued.
 Use commands of the generic code generator instead.  INCOMPATIBILITY.
 
-* Redundant attribute 'code_inline' has been discontinued. Use
-'code_unfold' instead.  INCOMPATIBILITY.
+* Redundant attribute "code_inline" has been discontinued. Use
+"code_unfold" instead.  INCOMPATIBILITY.
 
-* Dropped attribute 'code_unfold_post' in favor of the its dual
-'code_abbrev', which yields a common pattern in definitions like
+* Dropped attribute "code_unfold_post" in favor of the its dual
+"code_abbrev", which yields a common pattern in definitions like
 
   definition [code_abbrev]: "f = t"
 
@@ -100,14 +97,30 @@ distinct sorts used to be assigned accidentally.  For example:
 
 *** HOL ***
 
-* New tutorial Programming and Proving in Isabelle/HOL
+* New tutorial Programming and Proving in Isabelle/HOL ("prog-prove").
 
-* The representation of numerals has changed. We now have a datatype
-"num" representing strictly positive binary numerals, along with
-functions "numeral :: num => 'a" and "neg_numeral :: num => 'a" to
-represent positive and negated numeric literals, respectively. (See
-definitions in Num.thy.) Potential INCOMPATIBILITY; some user theories
-may require adaptations:
+* Discontinued old Tutorial on Isar ("isar-overview");
+
+* Type 'a set is now a proper type constructor (just as before
+Isabelle2008).  Definitions mem_def and Collect_def have disappeared.
+Non-trivial INCOMPATIBILITY.  For developments keeping predicates and
+sets separate, it is often sufficient to rephrase sets S accidentally
+used as predicates by "%x. x : S" and predicates P accidentally used
+as sets by "{x. P x}".  Corresponding proofs in a first step should be
+pruned from any tinkering with former theorems mem_def and Collect_def
+as far as possible.
+
+For developments which deliberately mixed predicates and sets, a
+planning step is necessary to determine what should become a predicate
+and what a set.  It can be helpful to carry out that step in
+Isabelle2011-1 before jumping right into the current release.
+
+* The representation of numerals has changed.  Datatype "num"
+represents strictly positive binary numerals, along with functions
+"numeral :: num => 'a" and "neg_numeral :: num => 'a" to represent
+positive and negated numeric literals, respectively. (See definitions
+in ~~/src/HOL/Num.thy.) Potential INCOMPATIBILITY, some user theories
+may require adaptations as follows:
 
   - Theorems with number_ring or number_semiring constraints: These
     classes are gone; use comm_ring_1 or comm_semiring_1 instead.
@@ -126,25 +139,12 @@ may require adaptations:
   - Definitions and theorems using old constructors Pls/Min/Bit0/Bit1:
     Redefine using other integer operations.
 
-* Type 'a set is now a proper type constructor (just as before
-Isabelle2008).  Definitions mem_def and Collect_def have disappeared.
-Non-trivial INCOMPATIBILITY.  For developments keeping predicates and
-sets separate, it is often sufficient to rephrase sets S accidentally
-used as predicates by "%x. x : S" and predicates P accidentally used
-as sets by "{x. P x}".  Corresponding proofs in a first step should be
-pruned from any tinkering with former theorems mem_def and
-Collect_def as far as possible.
-For developments which deliberately mixed predicates and
-sets, a planning step is necessary to determine what should become a
-predicate and what a set.  It can be helpful to carry out that step in
-Isabelle2011-1 before jumping right into the current release.
-
 * Code generation by default implements sets as container type rather
 than predicates.  INCOMPATIBILITY.
 
 * New proof import from HOL Light: Faster, simpler, and more scalable.
 Requires a proof bundle, which is available as an external component.
-Removed old (and mostly dead) Importer for HOL4 and HOL Light.
+Discontinued old (and mostly dead) Importer for HOL4 and HOL Light.
 INCOMPATIBILITY.
 
 * New type synonym 'a rel = ('a * 'a) set
@@ -178,8 +178,8 @@ INCOMPATIBILITY, use the corresponding generic theorems instead.
 generic mult_2 and mult_2_right instead. INCOMPATIBILITY.
 
 * More default pred/set conversions on a couple of relation operations
-and predicates.  Added powers of predicate relations.
-Consolidation of some relation theorems:
+and predicates.  Added powers of predicate relations.  Consolidation
+of some relation theorems:
 
   converse_def ~> converse_unfold
   rel_comp_def ~> rel_comp_unfold
@@ -190,8 +190,8 @@ Consolidation of some relation theorems:
 
 Generalized theorems INF_INT_eq, INF_INT_eq2, SUP_UN_eq, SUP_UN_eq2.
 
-See theory "Relation" for examples for making use of pred/set conversions
-by means of attributes "to_set" and "to_pred".
+See theory "Relation" for examples for making use of pred/set
+conversions by means of attributes "to_set" and "to_pred".
 
 INCOMPATIBILITY.
 
@@ -229,9 +229,9 @@ foldr_invariant, foldl_absorb0, foldl_foldr1_lemma, foldl_foldr1,
 listsum_conv_fold, listsum_foldl, sort_foldl_insort, foldl_assoc,
 foldr_conv_foldl, start_le_sum, elem_le_sum, sum_eq_0_conv.
 INCOMPATIBILITY.  For the common phrases "%xs. List.foldr plus xs 0"
-and "List.foldl plus 0", prefer "List.listsum".  Otherwise it can
-be useful to boil down "List.foldr" and "List.foldl" to "List.fold"
-by unfolding "foldr_conv_fold" and "foldl_conv_fold".
+and "List.foldl plus 0", prefer "List.listsum".  Otherwise it can be
+useful to boil down "List.foldr" and "List.foldl" to "List.fold" by
+unfolding "foldr_conv_fold" and "foldl_conv_fold".
 
 * Dropped lemmas minus_set_foldr, union_set_foldr, union_coset_foldr,
 inter_coset_foldr, Inf_fin_set_foldr, Sup_fin_set_foldr,
@@ -265,7 +265,7 @@ with the same base names:
 INCOMPATIBILITY.
 
 * Renamed facts about the power operation on relations, i.e., relpow
-  to match the constant's name:
+to match the constant's name:
 
   rel_pow_1 ~> relpow_1
   rel_pow_0_I ~> relpow_0_I
@@ -295,11 +295,14 @@ INCOMPATIBILITY.
 INCOMPATIBILITY.
 
 * Theory Relation: Consolidated constant name for relation composition
-  and corresponding theorem names:
+and corresponding theorem names:
+
   - Renamed constant rel_comp to relcomp
+
   - Dropped abbreviation pred_comp. Use relcompp instead.
+
   - Renamed theorems:
-  Relation:
+
     rel_compI ~> relcompI
     rel_compEpair ~> relcompEpair
     rel_compE ~> relcompE
@@ -323,25 +326,26 @@ INCOMPATIBILITY.
     pred_comp_distrib ~> relcompp_distrib
     pred_comp_distrib2 ~> relcompp_distrib2
     converse_pred_comp ~> converse_relcompp
-  Transitive_Closure:
+
     finite_rel_comp ~> finite_relcomp
-  List:
+
     set_rel_comp ~> set_relcomp
 
 INCOMPATIBILITY.
 
-* New theory HOL/Library/DAList provides an abstract type for association
-  lists with distinct keys.
+* New theory HOL/Library/DAList provides an abstract type for
+association lists with distinct keys.
 
 * 'datatype' specifications allow explicit sort constraints.
 
 * Theory HOL/Library/Diagonalize has been removed. INCOMPATIBILITY,
 use theory HOL/Library/Nat_Bijection instead.
 
-* Theory HOL/Library/RBT_Impl: Backing implementation of red-black trees is
-now inside the type class' local context. Names of affected operations and lemmas
-have been prefixed by rbt_. INCOMPATIBILITY for theories working directly with
-raw red-black trees, adapt the names as follows:
+* Theory HOL/Library/RBT_Impl: Backing implementation of red-black
+trees is now inside a type class context.  Names of affected
+operations and lemmas have been prefixed by rbt_.  INCOMPATIBILITY for
+theories working directly with raw red-black trees, adapt the names as
+follows:
 
   Operations:
   bulkload -> rbt_bulkload
@@ -554,38 +558,45 @@ case distinctions at the same time.  E.g.
 produces a rule which can be used to perform case distinction on both
 a list and a nat.
 
-* Improved code generation of multisets.
+* Theory Library/Multiset: Improved code generation of multisets.
 
-* New diagnostic command find_unused_assms to find potentially superfluous
-  assumptions in theorems using Quickcheck.
+* New diagnostic command 'find_unused_assms' to find potentially
+superfluous assumptions in theorems using Quickcheck.
 
 * Quickcheck:
+
   - Quickcheck returns variable assignments as counterexamples, which
     allows to reveal the underspecification of functions under test.
     For example, refuting "hd xs = x", it presents the variable
     assignment xs = [] and x = a1 as a counterexample, assuming that
     any property is false whenever "hd []" occurs in it.
+
     These counterexample are marked as potentially spurious, as
     Quickcheck also returns "xs = []" as a counterexample to the
     obvious theorem "hd xs = hd xs".
+
     After finding a potentially spurious counterexample, Quickcheck
     continues searching for genuine ones.
+
     By default, Quickcheck shows potentially spurious and genuine
-    counterexamples. The option "genuine_only" sets quickcheck to
-    only show genuine counterexamples.
+    counterexamples. The option "genuine_only" sets quickcheck to only
+    show genuine counterexamples.
 
   - The command 'quickcheck_generator' creates random and exhaustive
     value generators for a given type and operations.
+
     It generates values by using the operations as if they were
     constructors of that type.
 
   - Support for multisets.
 
   - Added "use_subtype" options.
+
   - Added "quickcheck_locale" configuration to specify how to process
     conjectures in a locale context.
 
 * Nitpick:
+
   - Fixed infinite loop caused by the 'peephole_optim' option and
     affecting 'rat' and 'real'.
 
@@ -605,10 +616,10 @@ a list and a nat.
   - Renamed from 'try_methods'. INCOMPATIBILITY.
 
 * New "eventually_elim" method as a generalized variant of the
-  eventually_elim* rules. Supports structured proofs.
+eventually_elim* rules. Supports structured proofs.
 
 * HOL/TPTP: support to parse and import TPTP problems (all languages)
-  into Isabelle/HOL.
+into Isabelle/HOL.
 
 
 *** FOL ***
@@ -675,6 +686,9 @@ context as well.
 
 
 *** System ***
+
+* ISABELLE_JDK_HOME settings variable points to JDK with javac and jar
+(not just JRE).
 
 * ISABELLE_HOME_WINDOWS refers to ISABELLE_HOME in windows file name
 notation, which is useful for the jEdit file browser, for example.
