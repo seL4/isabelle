@@ -46,8 +46,18 @@ fun reconstructor_tag reconstructor id =
 
 val separator = "-----"
 
-val preplay_timeout_default = "4"
 (*FIXME sensible to have Mirabelle-level Sledgehammer defaults?*)
+(*defaults used in this Mirabelle action*)
+val preplay_timeout_default = "4"
+val lam_trans_default = "smart"
+val uncurried_aliases_default = "smart"
+val type_enc_default = "smart"
+val strict_default = "false"
+val max_relevant_default = "smart"
+val slice_default = "true"
+val max_calls_default = "10000000"
+val trivial_default = "false"
+val minimize_timeout_default = 5
 
 (*If a key is present in args then augment a list with its pair*)
 (*This is used to avoid fixing default values at the Mirabelle level, and
@@ -418,8 +428,8 @@ fun run_sh prover_name prover type_enc strict max_relevant slice lam_trans
          ([("verbose", "true"),
            ("type_enc", type_enc),
            ("strict", strict),
-           ("lam_trans", lam_trans |> the_default "smart"),
-           ("uncurried_aliases", uncurried_aliases |> the_default "smart"),
+           ("lam_trans", lam_trans |> the_default lam_trans_default),
+           ("uncurried_aliases", uncurried_aliases |> the_default uncurried_aliases_default),
            ("max_relevant", max_relevant),
            ("slice", slice),
            ("timeout", string_of_int timeout),
@@ -501,10 +511,10 @@ fun run_sledgehammer trivial args reconstructor named_thms id
     val _ = change_data id inc_sh_calls
     val _ = if trivial then () else change_data id inc_sh_nontriv_calls
     val (prover_name, prover) = get_prover (Proof.context_of st) args
-    val type_enc = AList.lookup (op =) args type_encK |> the_default "smart"
-    val strict = AList.lookup (op =) args strictK |> the_default "false"
-    val max_relevant = AList.lookup (op =) args max_relevantK |> the_default "smart"
-    val slice = AList.lookup (op =) args sliceK |> the_default "true"
+    val type_enc = AList.lookup (op =) args type_encK |> the_default type_enc_default
+    val strict = AList.lookup (op =) args strictK |> the_default strict_default
+    val max_relevant = AList.lookup (op =) args max_relevantK |> the_default max_relevant_default
+    val slice = AList.lookup (op =) args sliceK |> the_default slice_default
     val lam_trans = AList.lookup (op =) args lam_transK
     val uncurried_aliases = AList.lookup (op =) args uncurried_aliasesK
     val e_selection_heuristic = AList.lookup (op =) args e_selection_heuristicK
@@ -562,12 +572,12 @@ fun run_minimize args reconstructor named_thms id
     val ctxt = Proof.context_of st
     val n0 = length (these (!named_thms))
     val (prover_name, _) = get_prover ctxt args
-    val type_enc = AList.lookup (op =) args type_encK |> the_default "smart"
-    val strict = AList.lookup (op =) args strictK |> the_default "false"
+    val type_enc = AList.lookup (op =) args type_encK |> the_default type_enc_default
+    val strict = AList.lookup (op =) args strictK |> the_default strict_default
     val timeout =
       AList.lookup (op =) args minimize_timeoutK
       |> Option.map (fst o read_int o raw_explode)  (* FIXME Symbol.explode (?) *)
-      |> the_default 5
+      |> the_default minimize_timeout_default
     val preplay_timeout = AList.lookup (op =) args preplay_timeoutK
       |> the_default preplay_timeout_default
     val sh_minimizeLST = available_parameter args sh_minimizeK "minimize"
@@ -700,7 +710,7 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
     then () else
     let
       val max_calls =
-        AList.lookup (op =) args max_callsK |> the_default "10000000"
+        AList.lookup (op =) args max_callsK |> the_default max_calls_default
         |> Int.fromString |> the
       val _ = num_sledgehammer_calls := !num_sledgehammer_calls + 1;
     in
@@ -713,7 +723,7 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
           val minimize = AList.defined (op =) args minimizeK
           val metis_ft = AList.defined (op =) args metis_ftK
           val trivial =
-            if AList.lookup (op =) args check_trivialK |> the_default "false"
+            if AList.lookup (op =) args check_trivialK |> the_default trivial_default
                             |> Bool.fromString |> the then
               Try0.try0 (SOME try_timeout) ([], [], [], []) pre
               handle TimeLimit.TimeOut => false
