@@ -1,29 +1,15 @@
-Subject: Announcing Isabelle2011-1
+Subject: Announcing Isabelle2012
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle2011-1 is now available.
+Isabelle2012 is now available.
 
-This version significantly improves upon Isabelle2011, see the NEWS
+This version significantly improves upon Isabelle2011-1, see the NEWS
 file in the distribution for more details.  Some notable changes are:
 
-* Significantly improved Isabelle/jEdit Prover IDE (PIDE).
-
-* Improved system integration with Isabelle/Scala: YXML data encoding.
-
-* Improved parallel performance and scalability.
-
-* Improved document preparation: embedded rail-road diagrams.
-
-* HOL tool enhancements: Quickcheck, Nitpick, Sledgehammer, SMT/Z3
-  integration.
-
-* Numerous HOL library improvements: main HOL, HOLCF, HOL-Library,
-  Multivariate_Analysis, Probability.
-
-* Updated and extended Isabelle/Isar reference manual.
+* FIXME
 
 
-You may get Isabelle2011-1 from the following mirror sites:
+You may get Isabelle2012 from the following mirror sites:
 
   Cambridge (UK)       http://www.cl.cam.ac.uk/research/hvg/Isabelle/
   Munich (Germany)     http://isabelle.in.tum.de/

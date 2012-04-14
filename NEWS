@@ -1,8 +1,8 @@
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
-New in this Isabelle version
-----------------------------
+New in Isabelle2012 (May 2012)
+------------------------------
 
 *** General ***
 
@@ -95,7 +95,7 @@ distinct sorts used to be assigned accidentally.  For example:
   lemma "P (x::'a::foo)" and "Q (y::'a::bar)"  -- "now illegal"
 
   lemma "P (x::'a)" and "Q (y::'a::bar)"
-    -- "now uniform 'a::bar instead of default sort for first occurence (!)"
+    -- "now uniform 'a::bar instead of default sort for first occurrence (!)"
 
 
 *** HOL ***
