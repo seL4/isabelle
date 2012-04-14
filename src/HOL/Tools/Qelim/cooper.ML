@@ -721,8 +721,12 @@ fun thin_prems_tac ctxt P = simp_tac all_maxscope_ss THEN'
      val ntac = (case qs of [] => q aconvc @{cterm "False"}
                          | _ => false)
     in 
-    if ntac then no_tac
-      else rtac (Goal.prove_internal [] g (K (blast_tac (put_claset HOL_cs ctxt) 1))) i
+      if ntac then no_tac
+      else
+        (case try (fn () =>
+            Goal.prove_internal [] g (K (blast_tac (put_claset HOL_cs ctxt) 1))) () of
+          NONE => no_tac
+        | SOME r => rtac r i)
     end)
 end;
 
@@ -835,26 +839,27 @@ fun core_tac ctxt = CSUBGOAL (fn (p, i) =>
 fun finish_tac q = SUBGOAL (fn (_, i) =>
   (if q then I else TRY) (rtac TrueI i));
 
-fun tac elim add_ths del_ths ctxt =
-let val ss = Simplifier.context ctxt (fst (get ctxt)) delsimps del_ths addsimps add_ths
+fun tac elim add_ths del_ths = Subgoal.FOCUS_PARAMS (fn {context = ctxt, ...} =>
+  let
+    val ss = Simplifier.context ctxt (fst (get ctxt)) delsimps del_ths addsimps add_ths
     val aprems = Arith_Data.get_arith_facts ctxt
-in
-  Method.insert_tac aprems
-  THEN_ALL_NEW Object_Logic.full_atomize_tac
-  THEN_ALL_NEW CONVERSION Thm.eta_long_conversion
-  THEN_ALL_NEW simp_tac ss
-  THEN_ALL_NEW (TRY o generalize_tac (int_nat_terms ctxt))
-  THEN_ALL_NEW Object_Logic.full_atomize_tac
-  THEN_ALL_NEW (thin_prems_tac ctxt (is_relevant ctxt))
-  THEN_ALL_NEW Object_Logic.full_atomize_tac
-  THEN_ALL_NEW div_mod_tac ctxt
-  THEN_ALL_NEW splits_tac ctxt
-  THEN_ALL_NEW simp_tac ss
-  THEN_ALL_NEW CONVERSION Thm.eta_long_conversion
-  THEN_ALL_NEW nat_to_int_tac ctxt
-  THEN_ALL_NEW (core_tac ctxt)
-  THEN_ALL_NEW finish_tac elim
-end;
+  in
+    Method.insert_tac aprems
+    THEN_ALL_NEW Object_Logic.full_atomize_tac
+    THEN_ALL_NEW CONVERSION Thm.eta_long_conversion
+    THEN_ALL_NEW simp_tac ss
+    THEN_ALL_NEW (TRY o generalize_tac (int_nat_terms ctxt))
+    THEN_ALL_NEW Object_Logic.full_atomize_tac
+    THEN_ALL_NEW (thin_prems_tac ctxt (is_relevant ctxt))
+    THEN_ALL_NEW Object_Logic.full_atomize_tac
+    THEN_ALL_NEW div_mod_tac ctxt
+    THEN_ALL_NEW splits_tac ctxt
+    THEN_ALL_NEW simp_tac ss
+    THEN_ALL_NEW CONVERSION Thm.eta_long_conversion
+    THEN_ALL_NEW nat_to_int_tac ctxt
+    THEN_ALL_NEW (core_tac ctxt)
+    THEN_ALL_NEW finish_tac elim
+  end 1);
 
 
 (* theory setup *)
