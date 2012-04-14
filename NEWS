@@ -266,7 +266,7 @@ INCOMPATIBILITY.
 
 * Renamed facts about the power operation on relations, i.e., relpow
   to match the constant's name:
-  
+
   rel_pow_1 ~> relpow_1
   rel_pow_0_I ~> relpow_0_I
   rel_pow_Suc_I ~> relpow_Suc_I
@@ -275,7 +275,7 @@ INCOMPATIBILITY.
   rel_pow_Suc_E ~> relpow_Suc_E
   rel_pow_E ~> relpow_E
   rel_pow_Suc_D2 ~> relpow_Suc_D2
-  rel_pow_Suc_E2 ~> relpow_Suc_E2 
+  rel_pow_Suc_E2 ~> relpow_Suc_E2
   rel_pow_Suc_D2' ~> relpow_Suc_D2'
   rel_pow_E2 ~> relpow_E2
   rel_pow_add ~> relpow_add
@@ -291,7 +291,7 @@ INCOMPATIBILITY.
   rtrancl_finite_eq_rel_pow ~> rtrancl_finite_eq_relpow
   trancl_finite_eq_rel_pow ~> trancl_finite_eq_relpow
   single_valued_rel_pow ~> single_valued_relpow
- 
+
 INCOMPATIBILITY.
 
 * Theory Relation: Consolidated constant name for relation composition
@@ -339,7 +339,7 @@ INCOMPATIBILITY.
 use theory HOL/Library/Nat_Bijection instead.
 
 * Theory HOL/Library/RBT_Impl: Backing implementation of red-black trees is
-now inside the type class' local context. Names of affected operations and lemmas 
+now inside the type class' local context. Names of affected operations and lemmas
 have been prefixed by rbt_. INCOMPATIBILITY for theories working directly with
 raw red-black trees, adapt the names as follows:
 
@@ -577,7 +577,7 @@ a list and a nat.
   - The command 'quickcheck_generator' creates random and exhaustive
     value generators for a given type and operations.
     It generates values by using the operations as if they were
-    constructors of that type. 
+    constructors of that type.
 
   - Support for multisets.
 
@@ -600,7 +600,7 @@ a list and a nat.
 
 * SMT:
   - renamed "smt_fixed" option to "smt_read_only_certificates".
- 
+
 * Command 'try0':
   - Renamed from 'try_methods'. INCOMPATIBILITY.
 
@@ -614,6 +614,16 @@ a list and a nat.
 *** FOL ***
 
 * New "case_product" attribute (see HOL).
+
+
+*** ZF ***
+
+* Greater support for structured proofs involving induction or case
+analysis.
+
+* Much greater use of mathematical symbols.
+
+* Removal of many ML theorem bindings.  INCOMPATIBILITY.
 
 
 *** ML ***
@@ -1978,13 +1988,6 @@ names of constants and types involved.  INCOMPATIBILITY.
 * All constant names are now qualified internally and use proper
 identifiers, e.g. "IFOL.eq" instead of "op =".  INCOMPATIBILITY.
 
-*** ZF ***
-
-* Greater support for structured proofs involving induction or case analysis.
-
-* Much greater use of special symbols.
-
-* Removal of many ML theorem bindings. INCOMPATIBILITY.
 
 *** ML ***
 
@@ -5076,7 +5079,7 @@ fold_set now are named Inf_fin, Sup_fin.  INCOMPATIBILITY.
 * HOL/Nat: neq0_conv no longer declared as iff.  INCOMPATIBILITY.
 
 * HOL-Word: New extensive library and type for generic, fixed size
-machine words, with arithmetic, bit-wise, shifting and rotating
+machine words, with arithemtic, bit-wise, shifting and rotating
 operations, reflection into int, nat, and bool lists, automation for
 linear arithmetic (by automatic reflection into nat or int), including
 lemmas on overflow and monotonicity.  Instantiated to all appropriate
