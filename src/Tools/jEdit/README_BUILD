@@ -12,13 +12,13 @@ Requirements for instantaneous build from sources
   (experimental support for Scala 2.10.x milestones)
 
 * Auxiliary jedit_build component
-  http://www4.in.tum.de/~wenzelm/test/jedit_build-20120327.tar.gz
+  http://www4.in.tum.de/~wenzelm/test/jedit_build-20120414.tar.gz
 
 
 Important settings within Isabelle environment
 ==============================================
 
-* init_component ".../jedit_build-20120327"
+* init_component ".../jedit_build-20120414"
 * ISABELLE_JDK_HOME
 * SCALA_HOME
 
