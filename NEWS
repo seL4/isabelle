@@ -664,6 +664,12 @@ context as well.
   delsplits     ~> Splitter.del_split
 
 
+*** System ***
+
+* ISABELLE_HOME_WINDOWS refers to ISABELLE_HOME in windows file name
+notation, which is useful for the jEdit file browser, for example.
+
+
 
 New in Isabelle2011-1 (October 2011)
 ------------------------------------
