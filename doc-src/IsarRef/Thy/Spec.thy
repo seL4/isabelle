@@ -104,14 +104,20 @@ text {*
 
 section {* Local theory targets \label{sec:target} *}
 
-text {*
-  A local theory target is a context managed separately within the
-  enclosing theory.  Contexts may introduce parameters (fixed
+text {* A local theory target is a context managed separately within
+  the enclosing theory.  Contexts may introduce parameters (fixed
   variables) and assumptions (hypotheses).  Definitions and theorems
-  depending on the context may be added incrementally later on.  Named
-  contexts refer to locales (cf.\ \secref{sec:locale}) or type classes
-  (cf.\ \secref{sec:class}); the name ``@{text "-"}'' signifies the
-  global theory context.
+  depending on the context may be added incrementally later on.
+
+  \emph{Named contexts} refer to locales (cf.\ \secref{sec:locale}) or
+  type classes (cf.\ \secref{sec:class}); the name ``@{text "-"}''
+  signifies the global theory context.
+
+  \emph{Unnamed contexts} may introduce additional parameters and
+  assumptions, and results produced in the context are generalized
+  accordingly.  Such auxiliary contexts may be nested within other
+  targets, like @{command "locale"}, @{command "class"}, @{command
+  "instantiation"}, @{command "overloading"}.
 
   \begin{matharray}{rcll}
     @{command_def "context"} & : & @{text "theory \<rightarrow> local_theory"} \\
@@ -119,7 +125,7 @@ text {*
   \end{matharray}
 
   @{rail "
-    @@{command context} @{syntax nameref} @'begin'
+    @@{command context} (@{syntax nameref} | (@{syntax context_elem}+)) @'begin'
     ;
 
     @{syntax_def target}: '(' @'in' @{syntax nameref} ')'
@@ -127,16 +133,23 @@ text {*
 
   \begin{description}
   
-  \item @{command "context"}~@{text "c \<BEGIN>"} recommences an
-  existing locale or class context @{text c}.  Note that locale and
-  class definitions allow to include the @{keyword "begin"} keyword as
-  well, in order to continue the local theory immediately after the
-  initial specification.
+  \item @{command "context"}~@{text "c \<BEGIN>"} opens a named
+  context, by recommencing an existing locale or class @{text c}.
+  Note that locale and class definitions allow to include the
+  @{keyword "begin"} keyword as well, in order to continue the local
+  theory immediately after the initial specification.
+
+  \item @{command "context"}~@{text "elements \<BEGIN>"} opens an
+  unnamed context, by extending the enclosing global or local theory
+  target by the given context elements (@{text "\<FIXES>"}, @{text
+  "\<ASSUMES>"} etc.).  This means any results stemming from
+  definitions and proofs in the extended context will be exported into
+  the enclosing target by lifting over extra parameters and premises.
   
-  \item @{command (local) "end"} concludes the current local theory
-  and continues the enclosing global theory.  Note that a global
-  @{command (global) "end"} has a different meaning: it concludes the
-  theory itself (\secref{sec:begin-thy}).
+  \item @{command (local) "end"} concludes the current local theory,
+  according to the nesting of contexts.  Note that a global @{command
+  (global) "end"} has a different meaning: it concludes the theory
+  itself (\secref{sec:begin-thy}).
   
   \item @{text "("}@{keyword_def "in"}~@{text "c)"} given after any
   local theory command specifies an immediate target, e.g.\
@@ -166,7 +179,11 @@ text {*
   generalizing the parameters of the context.  For example, @{text "a:
   B[x]"} becomes @{text "c.a: A[?x] \<Longrightarrow> B[?x]"}, again for arbitrary
   @{text "?x"}.
-*}
+
+  \medskip The Isabelle/HOL library contains numerous applications of
+  locales and classes, e.g.\ see @{file "~~/src/HOL/Algebra"}.  An
+  example for an unnamed auxiliary contexts is given in @{file
+  "~~/src/HOL/Isar_Examples/Group_Context.thy"}.  *}
 
 
 section {* Basic specification elements *}

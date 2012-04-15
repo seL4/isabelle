@@ -167,13 +167,19 @@ The Isabelle/Isar theory format integrates specifications and
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-A local theory target is a context managed separately within the
-  enclosing theory.  Contexts may introduce parameters (fixed
+A local theory target is a context managed separately within
+  the enclosing theory.  Contexts may introduce parameters (fixed
   variables) and assumptions (hypotheses).  Definitions and theorems
-  depending on the context may be added incrementally later on.  Named
-  contexts refer to locales (cf.\ \secref{sec:locale}) or type classes
-  (cf.\ \secref{sec:class}); the name ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2D}{\isacharminus}}{\isaliteral{22}{\isachardoublequote}}}'' signifies the
-  global theory context.
+  depending on the context may be added incrementally later on.
+
+  \emph{Named contexts} refer to locales (cf.\ \secref{sec:locale}) or
+  type classes (cf.\ \secref{sec:class}); the name ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2D}{\isacharminus}}{\isaliteral{22}{\isachardoublequote}}}''
+  signifies the global theory context.
+
+  \emph{Unnamed contexts} may introduce additional parameters and
+  assumptions, and results produced in the context are generalized
+  accordingly.  Such auxiliary contexts may be nested within other
+  targets, like \hyperlink{command.locale}{\mbox{\isa{\isacommand{locale}}}}, \hyperlink{command.class}{\mbox{\isa{\isacommand{class}}}}, \hyperlink{command.instantiation}{\mbox{\isa{\isacommand{instantiation}}}}, \hyperlink{command.overloading}{\mbox{\isa{\isacommand{overloading}}}}.
 
   \begin{matharray}{rcll}
     \indexdef{}{command}{context}\hypertarget{command.context}{\hyperlink{command.context}{\mbox{\isa{\isacommand{context}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
@@ -181,9 +187,16 @@ A local theory target is a context managed separately within the
   \end{matharray}
 
   \begin{railoutput}
-\rail@begin{1}{}
+\rail@begin{3}{}
 \rail@term{\hyperlink{command.context}{\mbox{\isa{\isacommand{context}}}}}[]
+\rail@bar
 \rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@nextbar{1}
+\rail@plus
+\rail@nont{\hyperlink{syntax.context-elem}{\mbox{\isa{context{\isaliteral{5F}{\isacharunderscore}}elem}}}}[]
+\rail@nextplus{2}
+\rail@endplus
+\rail@endbar
 \rail@term{\isa{\isakeyword{begin}}}[]
 \rail@end
 \rail@begin{1}{\indexdef{}{syntax}{target}\hypertarget{syntax.target}{\hyperlink{syntax.target}{\mbox{\isa{target}}}}}
@@ -197,16 +210,21 @@ A local theory target is a context managed separately within the
 
   \begin{description}
   
-  \item \hyperlink{command.context}{\mbox{\isa{\isacommand{context}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}c\ {\isaliteral{5C3C424547494E3E}{\isasymBEGIN}}{\isaliteral{22}{\isachardoublequote}}} recommences an
-  existing locale or class context \isa{c}.  Note that locale and
-  class definitions allow to include the \hyperlink{keyword.begin}{\mbox{\isa{\isakeyword{begin}}}} keyword as
-  well, in order to continue the local theory immediately after the
-  initial specification.
+  \item \hyperlink{command.context}{\mbox{\isa{\isacommand{context}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}c\ {\isaliteral{5C3C424547494E3E}{\isasymBEGIN}}{\isaliteral{22}{\isachardoublequote}}} opens a named
+  context, by recommencing an existing locale or class \isa{c}.
+  Note that locale and class definitions allow to include the
+  \hyperlink{keyword.begin}{\mbox{\isa{\isakeyword{begin}}}} keyword as well, in order to continue the local
+  theory immediately after the initial specification.
+
+  \item \hyperlink{command.context}{\mbox{\isa{\isacommand{context}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}elements\ {\isaliteral{5C3C424547494E3E}{\isasymBEGIN}}{\isaliteral{22}{\isachardoublequote}}} opens an
+  unnamed context, by extending the enclosing global or local theory
+  target by the given context elements (\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C46495845533E}{\isasymFIXES}}{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C415353554D45533E}{\isasymASSUMES}}{\isaliteral{22}{\isachardoublequote}}} etc.).  This means any results stemming from
+  definitions and proofs in the extended context will be exported into
+  the enclosing target by lifting over extra parameters and premises.
   
-  \item \hyperlink{command.local.end}{\mbox{\isa{\isacommand{end}}}} concludes the current local theory
-  and continues the enclosing global theory.  Note that a global
-  \hyperlink{command.global.end}{\mbox{\isa{\isacommand{end}}}} has a different meaning: it concludes the
-  theory itself (\secref{sec:begin-thy}).
+  \item \hyperlink{command.local.end}{\mbox{\isa{\isacommand{end}}}} concludes the current local theory,
+  according to the nesting of contexts.  Note that a global \hyperlink{command.global.end}{\mbox{\isa{\isacommand{end}}}} has a different meaning: it concludes the theory
+  itself (\secref{sec:begin-thy}).
   
   \item \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequote}}}\indexdef{}{keyword}{in}\hypertarget{keyword.in}{\hyperlink{keyword.in}{\mbox{\isa{\isakeyword{in}}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}c{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} given after any
   local theory command specifies an immediate target, e.g.\
@@ -233,7 +251,11 @@ A local theory target is a context managed separately within the
 
   Theorems are exported by discharging the assumptions and
   generalizing the parameters of the context.  For example, \isa{{\isaliteral{22}{\isachardoublequote}}a{\isaliteral{3A}{\isacharcolon}}\ B{\isaliteral{5B}{\isacharbrackleft}}x{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}} becomes \isa{{\isaliteral{22}{\isachardoublequote}}c{\isaliteral{2E}{\isachardot}}a{\isaliteral{3A}{\isacharcolon}}\ A{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{3F}{\isacharquery}}x{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{3F}{\isacharquery}}x{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}}, again for arbitrary
-  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}x{\isaliteral{22}{\isachardoublequote}}}.%
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}x{\isaliteral{22}{\isachardoublequote}}}.
+
+  \medskip The Isabelle/HOL library contains numerous applications of
+  locales and classes, e.g.\ see \verb|~~/src/HOL/Algebra|.  An
+  example for an unnamed auxiliary contexts is given in \verb|~~/src/HOL/Isar_Examples/Group_Context.thy|.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

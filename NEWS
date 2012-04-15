@@ -50,6 +50,30 @@ commands to be used in the same theory where defined.
 
 *** Pure ***
 
+* Auxiliary contexts indicate block structure for specifications with
+additional parameters and assumptions.  Such unnamed contexts may be
+nested within other targets, like 'theory', 'locale', 'class',
+'instantiation' etc.  Results from the local context are generalized
+accordingly and applied to the enclosing target context.  Example:
+
+  context
+    fixes x y z :: 'a
+    assumes xy: "x = y" and yz: "y = z"
+  begin
+
+  lemma my_trans: "x = z" using xy yz by simp
+
+  end
+
+  thm my_trans
+
+The most basic application is to factor-out context elements of
+several fixes/assumes/shows theorem statements, e.g. see
+~~/src/HOL/Isar_Examples/Group_Context.thy
+
+Any other local theory specification element works within the "context
+... begin ... end" block as well.
+
 * Rule composition via attribute "OF" (or ML functions OF/MRS) is more
 tolerant against multiple unifiers, as long as the final result is
 unique.  (As before, rules are composed in canonical right-to-left
