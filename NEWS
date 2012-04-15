@@ -74,6 +74,14 @@ several fixes/assumes/shows theorem statements, e.g. see
 Any other local theory specification element works within the "context
 ... begin ... end" block as well.
 
+* Bundled declarations associate attributed fact expressions with a
+given name in the context.  These may be later included in other
+contexts.  This allows to manage context extensions casually, without
+the logical dependencies of locales and locale interpretation.
+
+See commands 'bundle', 'include', 'including' etc. in the isar-ref
+manual.
+
 * Rule composition via attribute "OF" (or ML functions OF/MRS) is more
 tolerant against multiple unifiers, as long as the final result is
 unique.  (As before, rules are composed in canonical right-to-left

@@ -373,7 +373,7 @@ Proof commands perform transitions of Isar/VM machine
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Facts and forward chaining%
+\isamarkupsubsection{Facts and forward chaining \label{sec:proof-facts}%
 }
 \isamarkuptrue%
 %
@@ -590,6 +590,10 @@ Proof commands perform transitions of Isar/VM machine
 \rail@nextbar{1}
 \rail@nont{\hyperlink{syntax.thmdecl}{\mbox{\isa{thmdecl}}}}[]
 \rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\indexref{}{syntax}{includes}\hyperlink{syntax.includes}{\mbox{\isa{includes}}}}[]
+\rail@endbar
 \rail@plus
 \rail@nextplus{1}
 \rail@cnont{\hyperlink{syntax.context-elem}{\mbox{\isa{context{\isaliteral{5F}{\isacharunderscore}}elem}}}}[]
@@ -634,8 +638,8 @@ Proof commands perform transitions of Isar/VM machine
   \item \hyperlink{command.lemma}{\mbox{\isa{\isacommand{lemma}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}} enters proof mode with
   \isa{{\isaliteral{5C3C7068693E}{\isasymphi}}} as main goal, eventually resulting in some fact \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}} to be put back into the target context.  An additional \hyperlink{syntax.context}{\mbox{\isa{context}}} specification may build up an initial proof context for the
   subsequent claim; this includes local definitions and syntax as
-  well, see the definition of \hyperlink{syntax.context-elem}{\mbox{\isa{context{\isaliteral{5F}{\isacharunderscore}}elem}}} in
-  \secref{sec:locale}.
+  well, see also \hyperlink{syntax.includes}{\mbox{\isa{includes}}} in \secref{sec:bundle} and
+  \hyperlink{syntax.context-elem}{\mbox{\isa{context{\isaliteral{5F}{\isacharunderscore}}elem}}} in \secref{sec:locale}.
   
   \item \hyperlink{command.theorem}{\mbox{\isa{\isacommand{theorem}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}} and \hyperlink{command.corollary}{\mbox{\isa{\isacommand{corollary}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}} are essentially the same as \hyperlink{command.lemma}{\mbox{\isa{\isacommand{lemma}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}}, but the facts are internally marked as
   being of a different kind.  This discrimination acts like a formal

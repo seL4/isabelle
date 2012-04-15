@@ -187,16 +187,21 @@ The Isabelle/Isar theory format integrates specifications and
   targets, like \hyperlink{command.locale}{\mbox{\isa{\isacommand{locale}}}}, \hyperlink{command.class}{\mbox{\isa{\isacommand{class}}}}, \hyperlink{command.instantiation}{\mbox{\isa{\isacommand{instantiation}}}}, \hyperlink{command.overloading}{\mbox{\isa{\isacommand{overloading}}}}.
 
   \begin{railoutput}
-\rail@begin{3}{}
+\rail@begin{1}{}
+\rail@term{\hyperlink{command.context}{\mbox{\isa{\isacommand{context}}}}}[]
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@term{\isa{\isakeyword{begin}}}[]
+\rail@end
+\rail@begin{2}{}
 \rail@term{\hyperlink{command.context}{\mbox{\isa{\isacommand{context}}}}}[]
 \rail@bar
-\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
 \rail@nextbar{1}
-\rail@plus
-\rail@nont{\hyperlink{syntax.context-elem}{\mbox{\isa{context{\isaliteral{5F}{\isacharunderscore}}elem}}}}[]
-\rail@nextplus{2}
-\rail@endplus
+\rail@nont{\indexref{}{syntax}{includes}\hyperlink{syntax.includes}{\mbox{\isa{includes}}}}[]
 \rail@endbar
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\hyperlink{syntax.context-elem}{\mbox{\isa{context{\isaliteral{5F}{\isacharunderscore}}elem}}}}[]
+\rail@endplus
 \rail@term{\isa{\isakeyword{begin}}}[]
 \rail@end
 \rail@begin{1}{\indexdef{}{syntax}{target}\hypertarget{syntax.target}{\hyperlink{syntax.target}{\mbox{\isa{target}}}}}
@@ -216,11 +221,13 @@ The Isabelle/Isar theory format integrates specifications and
   \hyperlink{keyword.begin}{\mbox{\isa{\isakeyword{begin}}}} keyword as well, in order to continue the local
   theory immediately after the initial specification.
 
-  \item \hyperlink{command.context}{\mbox{\isa{\isacommand{context}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}elements\ {\isaliteral{5C3C424547494E3E}{\isasymBEGIN}}{\isaliteral{22}{\isachardoublequote}}} opens an
-  unnamed context, by extending the enclosing global or local theory
-  target by the given context elements (\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C46495845533E}{\isasymFIXES}}{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C415353554D45533E}{\isasymASSUMES}}{\isaliteral{22}{\isachardoublequote}}} etc.).  This means any results stemming from
-  definitions and proofs in the extended context will be exported into
-  the enclosing target by lifting over extra parameters and premises.
+  \item \hyperlink{command.context}{\mbox{\isa{\isacommand{context}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}bundles\ elements\ {\isaliteral{5C3C424547494E3E}{\isasymBEGIN}}{\isaliteral{22}{\isachardoublequote}}} opens
+  an unnamed context, by extending the enclosing global or local
+  theory target by the given declaration bundles (\secref{sec:bundle})
+  and context elements (\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C46495845533E}{\isasymFIXES}}{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C415353554D45533E}{\isasymASSUMES}}{\isaliteral{22}{\isachardoublequote}}}
+  etc.).  This means any results stemming from definitions and proofs
+  in the extended context will be exported into the enclosing target
+  by lifting over extra parameters and premises.
   
   \item \hyperlink{command.local.end}{\mbox{\isa{\isacommand{end}}}} concludes the current local theory,
   according to the nesting of contexts.  Note that a global \hyperlink{command.global.end}{\mbox{\isa{\isacommand{end}}}} has a different meaning: it concludes the theory
@@ -258,6 +265,129 @@ The Isabelle/Isar theory format integrates specifications and
   example for an unnamed auxiliary contexts is given in \verb|~~/src/HOL/Isar_Examples/Group_Context.thy|.%
 \end{isamarkuptext}%
 \isamarkuptrue%
+%
+\isamarkupsection{Bundled declarations \label{sec:bundle}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{}{command}{bundle}\hypertarget{command.bundle}{\hyperlink{command.bundle}{\mbox{\isa{\isacommand{bundle}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{print\_bundles}\hypertarget{command.print-bundles}{\hyperlink{command.print-bundles}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}bundles}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{include}\hypertarget{command.include}{\hyperlink{command.include}{\mbox{\isa{\isacommand{include}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{including}\hypertarget{command.including}{\hyperlink{command.including}{\mbox{\isa{\isacommand{including}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{keyword}{includes}\hypertarget{keyword.includes}{\hyperlink{keyword.includes}{\mbox{\isa{\isakeyword{includes}}}}} & : & syntax \\
+  \end{matharray}
+
+  The outer syntax of fact expressions (\secref{sec:syn-att}) involves
+  theorems and attributes, which are evaluated in the context and
+  applied to it.  Attributes may declare theorems to the context, as
+  in \isa{{\isaliteral{22}{\isachardoublequote}}this{\isaliteral{5F}{\isacharunderscore}}rule\ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{5D}{\isacharbrackright}}\ that{\isaliteral{5F}{\isacharunderscore}}rule\ {\isaliteral{5B}{\isacharbrackleft}}elim{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}} for example.
+  Configuration options (\secref{sec:config}) are special declaration
+  attributes that operate on the context without a theorem, as in
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5B}{\isacharbrackleft}}show{\isaliteral{5F}{\isacharunderscore}}types\ {\isaliteral{3D}{\isacharequal}}\ false{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}} for example.
+
+  Expressions of this form may be defined as \emph{bundled
+  declarations} in the context, and included in other situations later
+  on.  Including declaration bundles augments a local context casually
+  without logical dependencies, which is in contrast to locales and
+  locale interpretation (\secref{sec:locale}).
+
+  \begin{railoutput}
+\rail@begin{6}{}
+\rail@term{\hyperlink{command.bundle}{\mbox{\isa{\isacommand{bundle}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.target}{\mbox{\isa{target}}}}[]
+\rail@endbar
+\rail@cr{3}
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@bar
+\rail@nextbar{4}
+\rail@term{\isa{\isakeyword{for}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.vars}{\mbox{\isa{vars}}}}[]
+\rail@nextplus{5}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@endbar
+\rail@end
+\rail@begin{2}{}
+\rail@bar
+\rail@term{\hyperlink{command.include}{\mbox{\isa{\isacommand{include}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.including}{\mbox{\isa{\isacommand{including}}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@end
+\rail@begin{2}{\indexdef{}{syntax}{includes}\hypertarget{syntax.includes}{\hyperlink{syntax.includes}{\mbox{\isa{includes}}}}}
+\rail@term{\isa{\isakeyword{includes}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@end
+\end{railoutput}
+
+
+  \begin{description}
+
+  \item \hyperlink{command.bundle}{\mbox{\isa{\isacommand{bundle}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}b\ {\isaliteral{3D}{\isacharequal}}\ decls{\isaliteral{22}{\isachardoublequote}}} defines a bundle of
+  declarations in the current context.  The RHS is similar to the one
+  of the \hyperlink{command.declare}{\mbox{\isa{\isacommand{declare}}}} command.  Bundles defined in local theory
+  targets are subject to transformations via morphisms, when moved
+  into different application contexts; this works analogously to any
+  other local theory specification.
+
+  \item \hyperlink{command.print-bundles}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}bundles}}}} prints the named bundles that are
+  available in the current context.
+
+  \item \hyperlink{command.include}{\mbox{\isa{\isacommand{include}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}b\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ b\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} includes the declarations
+  from the given bundles into the current proof body context.  This is
+  analogous to \hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}} (\secref{sec:proof-facts}) with the
+  expanded bundles.
+
+  \item \hyperlink{command.including}{\mbox{\isa{\isacommand{including}}}} is similar to \hyperlink{command.include}{\mbox{\isa{\isacommand{include}}}}, but
+  works in proof refinement (backward mode).  This is analogous to
+  \hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}} (\secref{sec:proof-facts}) with the expanded
+  bundles.
+
+  \item \hyperlink{keyword.includes}{\mbox{\isa{\isakeyword{includes}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}b\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ b\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} is similar to
+  \hyperlink{command.include}{\mbox{\isa{\isacommand{include}}}}, but works in situations where a specification
+  context is constructed, notably for \hyperlink{command.context}{\mbox{\isa{\isacommand{context}}}} and long
+  statements of \hyperlink{command.theorem}{\mbox{\isa{\isacommand{theorem}}}} etc.
+
+  \end{description}
+
+  Here is an artificial example of bundling various configuration
+  options:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{bundle}\isamarkupfalse%
+\ trace\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5B}{\isacharbrackleft}}simp{\isaliteral{5F}{\isacharunderscore}}trace{\isaliteral{2C}{\isacharcomma}}\ blast{\isaliteral{5F}{\isacharunderscore}}trace{\isaliteral{2C}{\isacharcomma}}\ linarith{\isaliteral{5F}{\isacharunderscore}}trace{\isaliteral{2C}{\isacharcomma}}\ metis{\isaliteral{5F}{\isacharunderscore}}trace{\isaliteral{2C}{\isacharcomma}}\ smt{\isaliteral{5F}{\isacharunderscore}}trace{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{5D}{\isacharbrackright}}\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{including}\isamarkupfalse%
+\ trace%
+\isadelimproof
+\ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ metis%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
 %
 \isamarkupsection{Basic specification elements%
 }

@@ -126,9 +126,10 @@ text {*
   "instantiation"}, @{command "overloading"}.
 
   @{rail "
-    @@{command context} (@{syntax nameref} | (@{syntax context_elem}+)) @'begin'
+    @@{command context} @{syntax nameref} @'begin'
     ;
-
+    @@{command context} @{syntax_ref \"includes\"}? (@{syntax context_elem} * ) @'begin'
+    ;
     @{syntax_def target}: '(' @'in' @{syntax nameref} ')'
   "}
 
@@ -140,12 +141,13 @@ text {*
   @{keyword "begin"} keyword as well, in order to continue the local
   theory immediately after the initial specification.
 
-  \item @{command "context"}~@{text "elements \<BEGIN>"} opens an
-  unnamed context, by extending the enclosing global or local theory
-  target by the given context elements (@{text "\<FIXES>"}, @{text
-  "\<ASSUMES>"} etc.).  This means any results stemming from
-  definitions and proofs in the extended context will be exported into
-  the enclosing target by lifting over extra parameters and premises.
+  \item @{command "context"}~@{text "bundles elements \<BEGIN>"} opens
+  an unnamed context, by extending the enclosing global or local
+  theory target by the given declaration bundles (\secref{sec:bundle})
+  and context elements (@{text "\<FIXES>"}, @{text "\<ASSUMES>"}
+  etc.).  This means any results stemming from definitions and proofs
+  in the extended context will be exported into the enclosing target
+  by lifting over extra parameters and premises.
   
   \item @{command (local) "end"} concludes the current local theory,
   according to the nesting of contexts.  Note that a global @{command
@@ -185,6 +187,78 @@ text {*
   locales and classes, e.g.\ see @{file "~~/src/HOL/Algebra"}.  An
   example for an unnamed auxiliary contexts is given in @{file
   "~~/src/HOL/Isar_Examples/Group_Context.thy"}.  *}
+
+
+section {* Bundled declarations \label{sec:bundle} *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def "bundle"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "print_bundles"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow> "} \\
+    @{command_def "include"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
+    @{command_def "including"} & : & @{text "proof(prove) \<rightarrow> proof(prove)"} \\
+    @{keyword_def "includes"} & : & syntax \\
+  \end{matharray}
+
+  The outer syntax of fact expressions (\secref{sec:syn-att}) involves
+  theorems and attributes, which are evaluated in the context and
+  applied to it.  Attributes may declare theorems to the context, as
+  in @{text "this_rule [intro] that_rule [elim]"} for example.
+  Configuration options (\secref{sec:config}) are special declaration
+  attributes that operate on the context without a theorem, as in
+  @{text "[[show_types = false]]"} for example.
+
+  Expressions of this form may be defined as \emph{bundled
+  declarations} in the context, and included in other situations later
+  on.  Including declaration bundles augments a local context casually
+  without logical dependencies, which is in contrast to locales and
+  locale interpretation (\secref{sec:locale}).
+
+  @{rail "
+    @@{command bundle} @{syntax target}? \\
+    @{syntax name} '=' @{syntax thmrefs} (@'for' (@{syntax vars} + @'and'))?
+    ;
+    (@@{command include} | @@{command including}) (@{syntax nameref}+)
+    ;
+    @{syntax_def \"includes\"}: @'includes' (@{syntax nameref}+)
+  "}
+
+  \begin{description}
+
+  \item @{command bundle}~@{text "b = decls"} defines a bundle of
+  declarations in the current context.  The RHS is similar to the one
+  of the @{command declare} command.  Bundles defined in local theory
+  targets are subject to transformations via morphisms, when moved
+  into different application contexts; this works analogously to any
+  other local theory specification.
+
+  \item @{command print_bundles} prints the named bundles that are
+  available in the current context.
+
+  \item @{command include}~@{text "b\<^sub>1 \<dots> b\<^sub>n"} includes the declarations
+  from the given bundles into the current proof body context.  This is
+  analogous to @{command "note"} (\secref{sec:proof-facts}) with the
+  expanded bundles.
+
+  \item @{command including} is similar to @{command include}, but
+  works in proof refinement (backward mode).  This is analogous to
+  @{command "using"} (\secref{sec:proof-facts}) with the expanded
+  bundles.
+
+  \item @{keyword "includes"}~@{text "b\<^sub>1 \<dots> b\<^sub>n"} is similar to
+  @{command include}, but works in situations where a specification
+  context is constructed, notably for @{command context} and long
+  statements of @{command theorem} etc.
+
+  \end{description}
+
+  Here is an artificial example of bundling various configuration
+  options: *}
+
+bundle trace = [[simp_trace, blast_trace, linarith_trace, metis_trace, smt_trace]]
+
+lemma "x = x"
+  including trace by metis
 
 
 section {* Basic specification elements *}
