@@ -21,6 +21,7 @@ Contributions to Isabelle2012
   (Re-)Introduction of the "set" type constructor.
 
 * 2011/2012: Makarius Wenzel, Université Paris-Sud / LRI
+  Various refinements of local theory infrastructure.
   Improvements of Isabelle/Scala layer and Isabelle/jEdit Prover IDE.
 
 
