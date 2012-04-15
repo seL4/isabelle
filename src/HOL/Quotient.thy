@@ -19,13 +19,6 @@ uses
 begin
 
 text {*
-  An aside: contravariant functorial structure of sets.
-*}
-
-enriched_type vimage
-  by (simp_all add: fun_eq_iff vimage_compose)
-
-text {*
   Basic definition for equivalence relations
   that are represented by predicates.
 *}
@@ -911,3 +904,4 @@ no_notation
   fun_rel (infixr "===>" 55)
 
 end
+

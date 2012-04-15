@@ -803,4 +803,11 @@ subsubsection {* Functorial structure of types *}
 
 use "Tools/enriched_type.ML"
 
+enriched_type map_fun: map_fun
+  by (simp_all add: fun_eq_iff)
+
+enriched_type vimage
+  by (simp_all add: fun_eq_iff vimage_compose)
+
 end
+

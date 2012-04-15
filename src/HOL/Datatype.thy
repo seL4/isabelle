@@ -14,12 +14,6 @@ uses
   ("Tools/Datatype/datatype_realizer.ML")
 begin
 
-subsection {* Prelude: lifting over function space *}
-
-enriched_type map_fun: map_fun
-  by (simp_all add: fun_eq_iff)
-
-
 subsection {* The datatype universe *}
 
 definition "Node = {p. EX f x k. p = (f :: nat => 'b + nat, x ::'a + nat) & f k = Inr 0}"
@@ -532,3 +526,4 @@ use "Tools/Datatype/datatype_realizer.ML"
 setup Datatype_Realizer.setup
 
 end
+
