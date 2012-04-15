@@ -735,4 +735,3 @@ lemma [code abstract]:
   by (simp add: of_nat_def of_int_of_nat max_def)
 
 end
-
