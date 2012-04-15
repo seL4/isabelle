@@ -167,8 +167,13 @@ The Isabelle/Isar theory format integrates specifications and
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-A local theory target is a context managed separately within
-  the enclosing theory.  Contexts may introduce parameters (fixed
+\begin{matharray}{rcll}
+    \indexdef{}{command}{context}\hypertarget{command.context}{\hyperlink{command.context}{\mbox{\isa{\isacommand{context}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{local}{command}{end}\hypertarget{command.local.end}{\hyperlink{command.local.end}{\mbox{\isa{\isacommand{end}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
+  \end{matharray}
+
+  A local theory target is a context managed separately within the
+  enclosing theory.  Contexts may introduce parameters (fixed
   variables) and assumptions (hypotheses).  Definitions and theorems
   depending on the context may be added incrementally later on.
 
@@ -180,11 +185,6 @@ A local theory target is a context managed separately within
   assumptions, and results produced in the context are generalized
   accordingly.  Such auxiliary contexts may be nested within other
   targets, like \hyperlink{command.locale}{\mbox{\isa{\isacommand{locale}}}}, \hyperlink{command.class}{\mbox{\isa{\isacommand{class}}}}, \hyperlink{command.instantiation}{\mbox{\isa{\isacommand{instantiation}}}}, \hyperlink{command.overloading}{\mbox{\isa{\isacommand{overloading}}}}.
-
-  \begin{matharray}{rcll}
-    \indexdef{}{command}{context}\hypertarget{command.context}{\hyperlink{command.context}{\mbox{\isa{\isacommand{context}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
-    \indexdef{local}{command}{end}\hypertarget{command.local.end}{\hyperlink{command.local.end}{\mbox{\isa{\isacommand{end}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
-  \end{matharray}
 
   \begin{railoutput}
 \rail@begin{3}{}
@@ -427,7 +427,13 @@ A local theory target is a context managed separately within
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Arbitrary operations on the background context may be wrapped-up as
+\begin{matharray}{rcl}
+    \indexdef{}{command}{declaration}\hypertarget{command.declaration}{\hyperlink{command.declaration}{\mbox{\isa{\isacommand{declaration}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{syntax\_declaration}\hypertarget{command.syntax-declaration}{\hyperlink{command.syntax-declaration}{\mbox{\isa{\isacommand{syntax{\isaliteral{5F}{\isacharunderscore}}declaration}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{declare}\hypertarget{command.declare}{\hyperlink{command.declare}{\mbox{\isa{\isacommand{declare}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
+  \end{matharray}
+
+  Arbitrary operations on the background context may be wrapped-up as
   generic declaration elements.  Since the underlying concept of local
   theories may be subject to later re-interpretation, there is an
   additional dependency on a morphism that tells the difference of the
@@ -435,12 +441,6 @@ Arbitrary operations on the background context may be wrapped-up as
   encountered later on.  A fact declaration is an important special
   case: it consists of a theorem which is applied to the context by
   means of an attribute.
-
-  \begin{matharray}{rcl}
-    \indexdef{}{command}{declaration}\hypertarget{command.declaration}{\hyperlink{command.declaration}{\mbox{\isa{\isacommand{declaration}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
-    \indexdef{}{command}{syntax\_declaration}\hypertarget{command.syntax-declaration}{\hyperlink{command.syntax-declaration}{\mbox{\isa{\isacommand{syntax{\isaliteral{5F}{\isacharunderscore}}declaration}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
-    \indexdef{}{command}{declare}\hypertarget{command.declare}{\hyperlink{command.declare}{\mbox{\isa{\isacommand{declare}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
-  \end{matharray}
 
   \begin{railoutput}
 \rail@begin{5}{}
@@ -829,19 +829,19 @@ A \emph{locale expression} denotes a structured context composed of
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Locale expressions may be instantiated, and the instantiated facts
-  added to the current context.  This requires a proof of the
-  instantiated specification and is called \emph{locale
-  interpretation}.  Interpretation is possible in locales \hyperlink{command.sublocale}{\mbox{\isa{\isacommand{sublocale}}}}, theories (command \hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}}) and
-  also within a proof body (command \hyperlink{command.interpret}{\mbox{\isa{\isacommand{interpret}}}}).
-
-  \begin{matharray}{rcl}
+\begin{matharray}{rcl}
     \indexdef{}{command}{interpretation}\hypertarget{command.interpretation}{\hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{command}{interpret}\hypertarget{command.interpret}{\hyperlink{command.interpret}{\mbox{\isa{\isacommand{interpret}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{7C}{\isacharbar}}\ proof{\isaliteral{28}{\isacharparenleft}}chain{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{command}{sublocale}\hypertarget{command.sublocale}{\hyperlink{command.sublocale}{\mbox{\isa{\isacommand{sublocale}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{command}{print\_dependencies}\hypertarget{command.print-dependencies}{\hyperlink{command.print-dependencies}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}dependencies}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{command}{print\_interps}\hypertarget{command.print-interps}{\hyperlink{command.print-interps}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}interps}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
+
+  Locale expressions may be instantiated, and the instantiated facts
+  added to the current context.  This requires a proof of the
+  instantiated specification and is called \emph{locale
+  interpretation}.  Interpretation is possible in locales \hyperlink{command.sublocale}{\mbox{\isa{\isacommand{sublocale}}}}, theories (command \hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}}) and
+  also within a proof body (command \hyperlink{command.interpret}{\mbox{\isa{\isacommand{interpret}}}}).
 
   \begin{railoutput}
 \rail@begin{2}{}
@@ -1006,16 +1006,7 @@ Locale expressions may be instantiated, and the instantiated facts
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-A class is a particular locale with \emph{exactly one} type variable
-  \isa{{\isaliteral{5C3C616C7068613E}{\isasymalpha}}}.  Beyond the underlying locale, a corresponding type class
-  is established which is interpreted logically as axiomatic type
-  class \cite{Wenzel:1997:TPHOL} whose logical content are the
-  assumptions of the locale.  Thus, classes provide the full
-  generality of locales combined with the commodity of type classes
-  (notably type-inference).  See \cite{isabelle-classes} for a short
-  tutorial.
-
-  \begin{matharray}{rcl}
+\begin{matharray}{rcl}
     \indexdef{}{command}{class}\hypertarget{command.class}{\hyperlink{command.class}{\mbox{\isa{\isacommand{class}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{command}{instantiation}\hypertarget{command.instantiation}{\hyperlink{command.instantiation}{\mbox{\isa{\isacommand{instantiation}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{command}{instance}\hypertarget{command.instance}{\hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
@@ -1025,6 +1016,15 @@ A class is a particular locale with \emph{exactly one} type variable
     \indexdef{}{command}{class\_deps}\hypertarget{command.class-deps}{\hyperlink{command.class-deps}{\mbox{\isa{\isacommand{class{\isaliteral{5F}{\isacharunderscore}}deps}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{method}{intro\_classes}\hypertarget{method.intro-classes}{\hyperlink{method.intro-classes}{\mbox{\isa{intro{\isaliteral{5F}{\isacharunderscore}}classes}}}} & : & \isa{method} \\
   \end{matharray}
+
+  A class is a particular locale with \emph{exactly one} type variable
+  \isa{{\isaliteral{5C3C616C7068613E}{\isasymalpha}}}.  Beyond the underlying locale, a corresponding type class
+  is established which is interpreted logically as axiomatic type
+  class \cite{Wenzel:1997:TPHOL} whose logical content are the
+  assumptions of the locale.  Thus, classes provide the full
+  generality of locales combined with the commodity of type classes
+  (notably type-inference).  See \cite{isabelle-classes} for a short
+  tutorial.
 
   \begin{railoutput}
 \rail@begin{2}{}
@@ -1236,7 +1236,11 @@ The class relation together with the collection of
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Isabelle/Pure's definitional schemes support certain forms of
+\begin{matharray}{rcl}
+    \indexdef{}{command}{overloading}\hypertarget{command.overloading}{\hyperlink{command.overloading}{\mbox{\isa{\isacommand{overloading}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
+  \end{matharray}
+
+  Isabelle/Pure's definitional schemes support certain forms of
   overloading (see \secref{sec:consts}).  Overloading means that a
   constant being declared as \isa{{\isaliteral{22}{\isachardoublequote}}c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\ decl{\isaliteral{22}{\isachardoublequote}}} may be
   defined separately on type instances
@@ -1247,10 +1251,6 @@ Isabelle/Pure's definitional schemes support certain forms of
   \secref{sec:class}).  Sometimes low-level overloading is desirable.
   The \hyperlink{command.overloading}{\mbox{\isa{\isacommand{overloading}}}} target provides a convenient view for
   end-users.
-
-  \begin{matharray}{rcl}
-    \indexdef{}{command}{overloading}\hypertarget{command.overloading}{\hyperlink{command.overloading}{\mbox{\isa{\isacommand{overloading}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
-  \end{matharray}
 
   \begin{railoutput}
 \rail@begin{2}{}
@@ -1575,7 +1575,12 @@ Isabelle/Pure's definitional schemes support certain forms of
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Definitions essentially express abbreviations within the logic.  The
+\begin{matharray}{rcl}
+    \indexdef{}{command}{consts}\hypertarget{command.consts}{\hyperlink{command.consts}{\mbox{\isa{\isacommand{consts}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{defs}\hypertarget{command.defs}{\hyperlink{command.defs}{\mbox{\isa{\isacommand{defs}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
+  \end{matharray}
+
+  Definitions essentially express abbreviations within the logic.  The
   simplest form of a definition is \isa{{\isaliteral{22}{\isachardoublequote}}c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t{\isaliteral{22}{\isachardoublequote}}}, where \isa{c} is a newly declared constant.  Isabelle also allows derived forms
   where the arguments of \isa{c} appear on the left, abbreviating a
   prefix of \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}}-abstractions, e.g.\ \isa{{\isaliteral{22}{\isachardoublequote}}c\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ {\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x\ y{\isaliteral{2E}{\isachardot}}\ t{\isaliteral{22}{\isachardoublequote}}} may be
@@ -1609,11 +1614,6 @@ Definitions essentially express abbreviations within the logic.  The
   e.g.\ \isa{{\isaliteral{22}{\isachardoublequote}}d\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}{\isaliteral{22}{\isachardoublequote}}} on the left-hand side means that all
   corresponding occurrences on some right-hand side need to be an
   instance of this, general \isa{{\isaliteral{22}{\isachardoublequote}}d\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{5C3C626574613E}{\isasymbeta}}{\isaliteral{22}{\isachardoublequote}}} will be disallowed.
-
-  \begin{matharray}{rcl}
-    \indexdef{}{command}{consts}\hypertarget{command.consts}{\hyperlink{command.consts}{\mbox{\isa{\isacommand{consts}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
-    \indexdef{}{command}{defs}\hypertarget{command.defs}{\hyperlink{command.defs}{\mbox{\isa{\isacommand{defs}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
-  \end{matharray}
 
   \begin{railoutput}
 \rail@begin{3}{}
@@ -1760,10 +1760,14 @@ Definitions essentially express abbreviations within the logic.  The
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Oracles allow Isabelle to take advantage of external reasoners
-  such as arithmetic decision procedures, model checkers, fast
-  tautology checkers or computer algebra systems.  Invoked as an
-  oracle, an external reasoner can create arbitrary Isabelle theorems.
+\begin{matharray}{rcll}
+    \indexdef{}{command}{oracle}\hypertarget{command.oracle}{\hyperlink{command.oracle}{\mbox{\isa{\isacommand{oracle}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} & (axiomatic!) \\
+  \end{matharray}
+
+  Oracles allow Isabelle to take advantage of external reasoners such
+  as arithmetic decision procedures, model checkers, fast tautology
+  checkers or computer algebra systems.  Invoked as an oracle, an
+  external reasoner can create arbitrary Isabelle theorems.
 
   It is the responsibility of the user to ensure that the external
   reasoner is as trustworthy as the application requires.  Another
@@ -1774,10 +1778,6 @@ Oracles allow Isabelle to take advantage of external reasoners
   Isabelle merely guarantees well-formedness of the propositions being
   asserted, and records within the internal derivation object how
   presumed theorems depend on unproven suppositions.
-
-  \begin{matharray}{rcll}
-    \indexdef{}{command}{oracle}\hypertarget{command.oracle}{\hyperlink{command.oracle}{\mbox{\isa{\isacommand{oracle}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} & (axiomatic!) \\
-  \end{matharray}
 
   \begin{railoutput}
 \rail@begin{1}{}
