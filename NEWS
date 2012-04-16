@@ -129,7 +129,6 @@ distinct sorts used to be assigned accidentally.  For example:
 
 *** HOL ***
 
-
 * New tutorial "Programming and Proving in Isabelle/HOL" ("prog-prove").
 It completely supercedes "A Tutorial Introduction to Structured Isar Proofs",
 which has been removed. It supercedes "Isabelle/HOL, A Proof Assistant
@@ -137,30 +136,6 @@ for Higher-Order Logic" as the recommended beginners tutorial
 but does not cover all of the material of that old tutorial.
 
 * Discontinued old Tutorial on Isar ("isar-overview");
-
-* The representation of numerals has changed. We now have a datatype
-"num" representing strictly positive binary numerals, along with
-functions "numeral :: num => 'a" and "neg_numeral :: num => 'a" to
-represent positive and negated numeric literals, respectively. (See
-definitions in Num.thy.) Potential INCOMPATIBILITY; some user theories
-may require adaptations:
-
-  - Theorems with number_ring or number_semiring constraints: These
-    classes are gone; use comm_ring_1 or comm_semiring_1 instead.
-
-  - Theories defining numeric types: Remove number, number_semiring,
-    and number_ring instances. Defer all theorems about numerals until
-    after classes one and semigroup_add have been instantiated.
-
-  - Numeral-only simp rules: Replace each rule having a "number_of v"
-    pattern with two copies, one for numeral and one for neg_numeral.
-
-  - Theorems about subclasses of semiring_1 or ring_1: These classes
-    automatically support numerals now, so more simp rules and
-    simprocs may now apply within the proof.
-
-  - Definitions and theorems using old constructors Pls/Min/Bit0/Bit1:
-    Redefine using other integer operations.
 
 * Type 'a set is now a proper type constructor (just as before
 Isabelle2008).  Definitions mem_def and Collect_def have disappeared.
