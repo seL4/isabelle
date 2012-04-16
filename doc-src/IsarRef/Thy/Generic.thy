@@ -129,7 +129,8 @@ text {*
     @{attribute_def THEN} & : & @{text attribute} \\
     @{attribute_def COMP} & : & @{text attribute} \\[0.5ex]
     @{attribute_def unfolded} & : & @{text attribute} \\
-    @{attribute_def folded} & : & @{text attribute} \\[0.5ex]
+    @{attribute_def folded} & : & @{text attribute} \\
+    @{attribute_def abs_def} & : & @{text attribute} \\[0.5ex]
     @{attribute_def rotated} & : & @{text attribute} \\
     @{attribute_def (Pure) elim_format} & : & @{text attribute} \\
     @{attribute_def standard}@{text "\<^sup>*"} & : & @{text attribute} \\
@@ -166,6 +167,11 @@ text {*
   \item @{attribute unfolded}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} and @{attribute
   folded}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} expand and fold back again the given
   definitions throughout a rule.
+
+  \item @{attribute abs_def} turns an equation of the form @{prop "f x
+  y \<equiv> t"} into @{prop "f \<equiv> \<lambda>x y. t"}, which ensures that @{method
+  simp} or @{method unfold} steps always expand it.  This also works
+  for object-logic equality.
 
   \item @{attribute rotated}~@{text n} rotate the premises of a
   theorem by @{text n} (default 1).
