@@ -269,8 +269,7 @@ proof
     by - (rule exI)
 qed
 
-method_setup countable_datatype = {*
-let
+ML {*
   fun countable_tac ctxt =
     SUBGOAL (fn (goal, i) =>
       let
@@ -297,9 +296,10 @@ let
            etac induct_thm i,
            REPEAT (resolve_tac rules i ORELSE atac i)]) 1
       end)
-in
+*}
+
+method_setup countable_datatype = {*
   Scan.succeed (fn ctxt => SIMPLE_METHOD' (countable_tac ctxt))
-end
 *} "prove countable class instances for datatypes"
 
 hide_const (open) finite_item nth_item

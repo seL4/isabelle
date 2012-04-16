@@ -112,11 +112,8 @@ sig
   val show_cmd: Method.text option -> (thm list list -> state -> state) ->
     (Attrib.binding * (string * string list) list) list -> bool -> state -> state
   val schematic_goal: state -> bool
-  val is_relevant: state -> bool
-  val local_future_proof: (state -> ('a * state) Future.future) ->
-    state -> 'a Future.future * state
-  val global_future_proof: (state -> ('a * Proof.context) Future.future) ->
-    state -> 'a Future.future * context
+  val local_future_proof: (state -> ('a * state) future) -> state -> 'a future * state
+  val global_future_proof: (state -> ('a * Proof.context) future) -> state -> 'a future * context
   val local_future_terminal_proof: Method.text * Method.text option -> bool -> state -> state
   val global_future_terminal_proof: Method.text * Method.text option -> bool -> state -> context
 end;
@@ -200,6 +197,9 @@ fun assert_bottom b state =
 
 val context_of = #context o current;
 val theory_of = Proof_Context.theory_of o context_of;
+
+fun map_node_context f =
+  map_node (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
 
 fun map_context f =
   map_current (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
@@ -295,24 +295,27 @@ val before_qed = #before_qed o #2 o current_goal;
 
 (* nested goal *)
 
-fun map_goal f g (State (Node {context, facts, mode, goal = SOME goal}, nodes)) =
+fun map_goal f g h (State (Node {context, facts, mode, goal = SOME goal}, node :: nodes)) =
       let
         val Goal {statement, messages, using, goal, before_qed, after_qed} = goal;
         val goal' = make_goal (g (statement, messages, using, goal, before_qed, after_qed));
-      in State (make_node (f context, facts, mode, SOME goal'), nodes) end
-  | map_goal f g (State (nd, node :: nodes)) =
-      let val State (node', nodes') = map_goal f g (State (node, nodes))
-      in map_context f (State (nd, node' :: nodes')) end
-  | map_goal _ _ state = state;
+        val node' = map_node_context h node;
+      in State (make_node (f context, facts, mode, SOME goal'), node' :: nodes) end
+  | map_goal f g h (State (nd, node :: nodes)) =
+      let
+        val nd' = map_node_context f nd;
+        val State (node', nodes') = map_goal f g h (State (node, nodes));
+      in State (nd', node' :: nodes') end
+  | map_goal _ _ _ state = state;
 
 fun provide_goal goal = map_goal I (fn (statement, _, using, _, before_qed, after_qed) =>
-  (statement, [], using, goal, before_qed, after_qed));
+  (statement, [], using, goal, before_qed, after_qed)) I;
 
 fun goal_message msg = map_goal I (fn (statement, messages, using, goal, before_qed, after_qed) =>
-  (statement, msg :: messages, using, goal, before_qed, after_qed));
+  (statement, msg :: messages, using, goal, before_qed, after_qed)) I;
 
 fun using_facts using = map_goal I (fn (statement, _, _, goal, before_qed, after_qed) =>
-  (statement, [], using, goal, before_qed, after_qed));
+  (statement, [], using, goal, before_qed, after_qed)) I;
 
 local
   fun find i state =
@@ -410,7 +413,7 @@ fun apply_method current_context meth state =
       |> map_goal
           (Proof_Context.add_cases false (no_goal_cases goal @ goal_cases goal') #>
            Proof_Context.add_cases true meth_cases)
-          (K (statement, [], using, goal', before_qed, after_qed)))
+          (K (statement, [], using, goal', before_qed, after_qed)) I)
   end;
 
 fun select_goals n meth state =
@@ -720,7 +723,7 @@ fun gen_using f g prep_att prep_fact args state =
       let
         val ctxt = context_of state';
         val ths = maps snd named_facts;
-      in (statement, [], f ctxt ths using, g ctxt ths goal, before_qed, after_qed) end));
+      in (statement, [], f ctxt ths using, g ctxt ths goal, before_qed, after_qed) end) I);
 
 fun append_using _ ths using = using @ filter_out Thm.is_dummy ths;
 fun unfold_using ctxt ths = map (Local_Defs.unfold ctxt ths);
@@ -1077,7 +1080,9 @@ fun future_proof done get_context fork_proof state =
     val _ = assert_backward state;
     val (goal_ctxt, (_, goal)) = find_goal state;
     val {statement as (kind, _, prop), messages, using, goal, before_qed, after_qed} = goal;
-    val goal_txt = prop :: map Thm.term_of (Assumption.all_assms_of goal_ctxt);
+    val goal_tfrees =
+      fold Term.add_tfrees
+        (prop :: map Thm.term_of (Assumption.all_assms_of goal_ctxt)) [];
 
     val _ = is_relevant state andalso error "Cannot fork relevant proof";
 
@@ -1093,8 +1098,8 @@ fun future_proof done get_context fork_proof state =
 
     val result_ctxt =
       state
-      |> map_contexts (fold Variable.declare_term goal_txt)
       |> map_goal I (K (statement', messages, using, goal', before_qed, after_qed'))
+        (fold (Variable.declare_typ o TFree) goal_tfrees)
       |> fork_proof;
 
     val future_thm = result_ctxt |> Future.map (fn (_, x) =>
@@ -1102,7 +1107,7 @@ fun future_proof done get_context fork_proof state =
     val finished_goal = Goal.future_result goal_ctxt future_thm prop';
     val state' =
       state
-      |> map_goal I (K (statement, messages, using, finished_goal, NONE, after_qed))
+      |> map_goal I (K (statement, messages, using, finished_goal, NONE, after_qed)) I
       |> done;
   in (Future.map #1 result_ctxt, state') end;
 

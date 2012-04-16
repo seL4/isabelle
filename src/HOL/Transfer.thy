@@ -62,11 +62,18 @@ definition transfer_forall where
 definition transfer_implies where
   "transfer_implies \<equiv> op \<longrightarrow>"
 
+definition transfer_bforall :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
+  where "transfer_bforall \<equiv> (\<lambda>P Q. \<forall>x. P x \<longrightarrow> Q x)"
+
 lemma transfer_forall_eq: "(\<And>x. P x) \<equiv> Trueprop (transfer_forall (\<lambda>x. P x))"
   unfolding atomize_all transfer_forall_def ..
 
 lemma transfer_implies_eq: "(A \<Longrightarrow> B) \<equiv> Trueprop (transfer_implies A B)"
   unfolding atomize_imp transfer_implies_def ..
+
+lemma transfer_bforall_unfold:
+  "Trueprop (transfer_bforall P (\<lambda>x. Q x)) \<equiv> (\<And>x. P x \<Longrightarrow> Q x)"
+  unfolding transfer_bforall_def atomize_imp atomize_all ..
 
 lemma transfer_start: "\<lbrakk>Rel (op =) P Q; P\<rbrakk> \<Longrightarrow> Q"
   unfolding Rel_def by simp

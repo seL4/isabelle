@@ -19,7 +19,7 @@ proof
   show "(\<lambda>x. 0::nat) \<in> {f. finite {x. f x > 0}}" by simp
 qed
 
-lemmas multiset_typedef = Abs_multiset_inverse count_inverse count
+setup_lifting type_definition_multiset
 
 abbreviation Melem :: "'a => 'a multiset => bool"  ("(_/ :# _)" [50, 51] 50) where
   "a :# M == 0 < count M a"
@@ -82,21 +82,21 @@ text {* Multiset enumeration *}
 instantiation multiset :: (type) "{zero, plus}"
 begin
 
-definition Mempty_def:
-  "0 = Abs_multiset (\<lambda>a. 0)"
+lift_definition zero_multiset :: "'a multiset" is "\<lambda>a. 0"
+by (rule const0_in_multiset)
 
 abbreviation Mempty :: "'a multiset" ("{#}") where
   "Mempty \<equiv> 0"
 
-definition union_def:
-  "M + N = Abs_multiset (\<lambda>a. count M a + count N a)"
+lift_definition plus_multiset :: "'a multiset => 'a multiset => 'a multiset" is "\<lambda>M N. (\<lambda>a. M a + N a)"
+by (rule union_preserves_multiset)
 
 instance ..
 
 end
 
-definition single :: "'a => 'a multiset" where
-  "single a = Abs_multiset (\<lambda>b. if b = a then 1 else 0)"
+lift_definition single :: "'a => 'a multiset" is "\<lambda>a b. if b = a then 1 else 0"
+by (rule only1_in_multiset)
 
 syntax
   "_multiset" :: "args => 'a multiset"    ("{#(_)#}")
@@ -105,10 +105,10 @@ translations
   "{#x#}" == "CONST single x"
 
 lemma count_empty [simp]: "count {#} a = 0"
-  by (simp add: Mempty_def in_multiset multiset_typedef)
+  by (simp add: zero_multiset.rep_eq)
 
 lemma count_single [simp]: "count {#b#} a = (if b = a then 1 else 0)"
-  by (simp add: single_def in_multiset multiset_typedef)
+  by (simp add: single.rep_eq)
 
 
 subsection {* Basic operations *}
@@ -116,7 +116,7 @@ subsection {* Basic operations *}
 subsubsection {* Union *}
 
 lemma count_union [simp]: "count (M + N) a = count M a + count N a"
-  by (simp add: union_def in_multiset multiset_typedef)
+  by (simp add: plus_multiset.rep_eq)
 
 instance multiset :: (type) cancel_comm_monoid_add
   by default (simp_all add: multiset_eq_iff)
@@ -127,15 +127,15 @@ subsubsection {* Difference *}
 instantiation multiset :: (type) minus
 begin
 
-definition diff_def:
-  "M - N = Abs_multiset (\<lambda>a. count M a - count N a)"
-
+lift_definition minus_multiset :: "'a multiset => 'a multiset => 'a multiset" is "\<lambda> M N. \<lambda>a. M a - N a"
+by (rule diff_preserves_multiset)
+ 
 instance ..
 
 end
 
 lemma count_diff [simp]: "count (M - N) a = count M a - count N a"
-  by (simp add: diff_def in_multiset multiset_typedef)
+  by (simp add: minus_multiset.rep_eq)
 
 lemma diff_empty [simp]: "M - {#} = M \<and> {#} - M = {#}"
 by(simp add: multiset_eq_iff)
@@ -264,8 +264,9 @@ subsubsection {* Pointwise ordering induced by count *}
 instantiation multiset :: (type) ordered_ab_semigroup_add_imp_le
 begin
 
-definition less_eq_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" where
-  mset_le_def: "A \<le> B \<longleftrightarrow> (\<forall>a. count A a \<le> count B a)"
+lift_definition less_eq_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" is "\<lambda> A B. (\<forall>a. A a \<le> B a)"
+by simp
+lemmas mset_le_def = less_eq_multiset_def
 
 definition less_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" where
   mset_less_def: "(A::'a multiset) < B \<longleftrightarrow> A \<le> B \<and> A \<noteq> B"
@@ -391,7 +392,7 @@ abbreviation multiset_inter :: "'a multiset \<Rightarrow> 'a multiset \<Rightarr
 
 lemma multiset_inter_count [simp]:
   "count (A #\<inter> B) x = min (count A x) (count B x)"
-  by (simp add: multiset_inter_def multiset_typedef)
+  by (simp add: multiset_inter_def)
 
 lemma multiset_inter_single: "a \<noteq> b \<Longrightarrow> {#a#} #\<inter> {#b#} = {#}"
   by (rule multiset_eqI) auto
@@ -414,14 +415,14 @@ subsubsection {* Filter (with comprehension syntax) *}
 
 text {* Multiset comprehension *}
 
-definition filter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset" where
-  "filter P M = Abs_multiset (\<lambda>x. if P x then count M x else 0)"
+lift_definition filter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset" is "\<lambda>P M. \<lambda>x. if P x then M x else 0"
+by (rule filter_preserves_multiset)
 
 hide_const (open) filter
 
 lemma count_filter [simp]:
   "count (Multiset.filter P M) a = (if P a then count M a else 0)"
-  by (simp add: filter_def in_multiset multiset_typedef)
+  by (simp add: filter.rep_eq)
 
 lemma filter_empty [simp]:
   "Multiset.filter P {#} = {#}"
@@ -593,7 +594,7 @@ assumes empty: "P {#}"
   and add: "!!M x. P M ==> P (M + {#x#})"
 shows "P M"
 proof -
-  note defns = union_def single_def Mempty_def
+  note defns = plus_multiset_def single_def zero_multiset_def
   note add' = add [unfolded defns, simplified]
   have aux: "\<And>a::'a. count (Abs_multiset (\<lambda>b. if b = a then 1 else 0)) =
     (\<lambda>b. if b = a then 1 else 0)" by (simp add: Abs_multiset_inverse in_multiset) 
@@ -1073,7 +1074,8 @@ by (simp add: join_raw_def)
 
 lemma map_of_join_raw:
   assumes "distinct (map fst ys)"
-  shows "map_of (join_raw f xs ys) x = (case map_of xs x of None => map_of ys x | Some v => (case map_of ys x of None => Some v | Some v' => Some (f x (v, v'))))"
+  shows "map_of (join_raw f xs ys) x = (case map_of xs x of None => map_of ys x | Some v =>
+    (case map_of ys x of None => Some v | Some v' => Some (f x (v, v'))))"
 using assms
 apply (induct ys)
 apply (auto simp add: map_of_map_default split: option.split)
@@ -1093,8 +1095,10 @@ definition
   "subtract_entries_raw xs ys = foldr (%(k, v). AList.map_entry k (%v'. v' - v)) ys xs"
 
 lemma map_of_subtract_entries_raw:
-  "distinct (map fst ys) ==> map_of (subtract_entries_raw xs ys) x = (case map_of xs x of None => None | Some v => (case map_of ys x of None => Some v | Some v' => Some (v - v')))"
-unfolding subtract_entries_raw_def
+  assumes "distinct (map fst ys)"
+  shows "map_of (subtract_entries_raw xs ys) x = (case map_of xs x of None => None | Some v =>
+    (case map_of ys x of None => Some v | Some v' => Some (v - v')))"
+using assms unfolding subtract_entries_raw_def
 apply (induct ys)
 apply auto
 apply (simp split: option.split)
@@ -1197,7 +1201,7 @@ by (rule multiset_eqI)
 
 lemma filter_Bag [code]:
   "Multiset.filter P (Bag xs) = Bag (DAList.filter (P \<circ> fst) xs)"
-by (rule multiset_eqI) (simp add: count_of_filter filter.rep_eq)
+by (rule multiset_eqI) (simp add: count_of_filter DAList.filter.rep_eq)
 
 lemma mset_less_eq_Bag [code]:
   "Bag xs \<le> A \<longleftrightarrow> (\<forall>(x, n) \<in> set (DAList.impl_of xs). count_of (DAList.impl_of xs) x \<le> count A x)"

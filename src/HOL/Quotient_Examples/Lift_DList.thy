@@ -54,28 +54,13 @@ lift_definition concat :: "'a dlist dlist \<Rightarrow> 'a dlist" is "remdups o 
 proof -
   {
     fix x y
-    have "list_all2 cr_dlist x y \<Longrightarrow> 
-      List.map Abs_dlist x = y \<and> list_all2 (Lifting.invariant distinct) x x"
+    have "list_all2 cr_dlist x y \<Longrightarrow> x = List.map list_of_dlist y"
       unfolding list_all2_def cr_dlist_def by (induction x y rule: list_induct2') auto
   }
   note cr = this
-
   fix x :: "'a list list" and y :: "'a list list"
-  assume a: "(list_all2 cr_dlist OO Lifting.invariant distinct OO (list_all2 cr_dlist)\<inverse>\<inverse>) x y"
-  from a have l_x: "list_all2 (Lifting.invariant distinct) x x" by (auto simp add: cr)
-  from a have l_y: "list_all2 (Lifting.invariant distinct) y y" by (auto simp add: cr)
-  from a have m: "(Lifting.invariant distinct) (List.map Abs_dlist x) (List.map Abs_dlist y)" 
-    by (auto simp add: cr)
-
-  have "x = y" 
-  proof -
-    have m':"List.map Abs_dlist x = List.map Abs_dlist y" using m unfolding Lifting.invariant_def by simp
-    have dist: "\<And>l. list_all2 (Lifting.invariant distinct) l l \<Longrightarrow> !x. x \<in> (set l) \<longrightarrow> distinct x"
-      unfolding list_all2_def Lifting.invariant_def by (auto simp add: zip_same)
-    from dist[OF l_x] dist[OF l_y] have "inj_on Abs_dlist (set x \<union> set y)" by (intro inj_onI) 
-      (metis CollectI UnE Abs_dlist_inverse)
-    with m' show ?thesis by (rule map_inj_on)
-  qed
+  assume "(list_all2 cr_dlist OO Lifting.invariant distinct OO (list_all2 cr_dlist)\<inverse>\<inverse>) x y"
+  then have "x = y" by (auto dest: cr simp add: Lifting.invariant_def)
   then show "?thesis x y" unfolding Lifting.invariant_def by auto
 qed
 

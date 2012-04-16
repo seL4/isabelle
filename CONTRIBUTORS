@@ -3,15 +3,26 @@ For the purposes of the license agreement in the file COPYRIGHT, a
 who is listed as an author in one of the source files of this Isabelle
 distribution.
 
-Contributions to this Isabelle version
---------------------------------------
+Contributions to Isabelle2012
+-----------------------------
 
-* January 2012: Florian Haftmann, TUM, et. al.
-  (Re-)Introduction of the "set" type constructor.
+* March 2012: Christian Sternagel, Japan Advanced Institute of Science
+  and Technology
+  Consolidated theory of relation composition.
+
+* March 2012: Nik Sultana, University of Cambridge
+  HOL/TPTP parser and import facilities.
 
 * March 2012: Cezary Kaliszyk, University of Innsbruck and
   Alexander Krauss, QAware GmbH
   Faster and more scalable Import mechanism for HOL Light proofs.
+
+* January 2012: Florian Haftmann, TUM, et. al.
+  (Re-)Introduction of the "set" type constructor.
+
+* 2011/2012: Makarius Wenzel, Université Paris-Sud / LRI
+  Various refinements of local theory infrastructure.
+  Improvements of Isabelle/Scala layer and Isabelle/jEdit Prover IDE.
 
 
 Contributions to Isabelle2011-1

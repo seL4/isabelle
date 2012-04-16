@@ -1,4 +1,4 @@
-(*  Title:      HOL/Matrix/Compute_Oracle/am_ghc.ML
+(*  Title:      HOL/Matrix_LP/Compute_Oracle/am_ghc.ML
     Author:     Steven Obua
 *)
 

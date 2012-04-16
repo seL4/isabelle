@@ -506,7 +506,7 @@ lemma subsetCE [no_atp,elim]: "A \<subseteq> B ==> (c \<notin> A ==> P) ==> (c \
   -- {* Classical elimination rule. *}
   by (auto simp add: less_eq_set_def le_fun_def)
 
-lemma subset_eq [code, no_atp]: "A \<le> B = (\<forall>x\<in>A. x \<in> B)" by blast
+lemma subset_eq [no_atp]: "A \<le> B = (\<forall>x\<in>A. x \<in> B)" by blast
 
 lemma contra_subsetD [no_atp]: "A \<subseteq> B ==> c \<notin> B ==> c \<notin> A"
   by blast

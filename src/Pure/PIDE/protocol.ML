@@ -13,29 +13,19 @@ val _ =
       Document.change_state (Document.define_command (Document.parse_id id) name text));
 
 val _ =
-  Isabelle_Process.protocol_command "Document.cancel_execution"
-    (fn [] => ignore (Document.cancel_execution (Document.state ())));
+  Isabelle_Process.protocol_command "Document.discontinue_execution"
+    (fn [] => Document.discontinue_execution (Document.state ()));
 
 val _ =
-  Isabelle_Process.protocol_command "Document.update_perspective"
-    (fn [old_id_string, new_id_string, name, ids_yxml] => Document.change_state (fn state =>
-      let
-        val old_id = Document.parse_id old_id_string;
-        val new_id = Document.parse_id new_id_string;
-        val ids = YXML.parse_body ids_yxml
-          |> let open XML.Decode in list int end;
-
-        val _ = Future.join_tasks (Document.cancel_execution state);
-      in
-        state
-        |> Document.update_perspective old_id new_id name ids
-        |> Document.execute new_id
-      end));
+  Isabelle_Process.protocol_command "Document.cancel_execution"
+    (fn [] => Document.cancel_execution (Document.state ()));
 
 val _ =
   Isabelle_Process.protocol_command "Document.update"
     (fn [old_id_string, new_id_string, edits_yxml] => Document.change_state (fn state =>
       let
+        val _ = Document.cancel_execution state;
+
         val old_id = Document.parse_id old_id_string;
         val new_id = Document.parse_id new_id_string;
         val edits =
@@ -60,17 +50,16 @@ val _ =
                   fn (a, []) => Document.Perspective (map int_atom a)]))
             end;
 
-        val running = Document.cancel_execution state;
-        val (assignment, state1) = Document.update old_id new_id edits state;
-        val _ = Future.join_tasks running;
+        val (assignment, state') = Document.update old_id new_id edits state;
         val _ =
           Output.protocol_message Isabelle_Markup.assign_execs
             ((new_id, assignment) |>
               let open XML.Encode
-              in pair int (pair (list (pair int (option int))) (list (pair string (option int)))) end
+              in pair int (list (pair int (option int))) end
               |> YXML.string_of_body);
-        val state2 = Document.execute new_id state1;
-      in state2 end));
+
+        val _ = Document.start_execution state';
+      in state' end));
 
 val _ =
   Isabelle_Process.protocol_command "Document.remove_versions"

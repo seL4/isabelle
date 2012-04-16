@@ -1,4 +1,4 @@
-(*  Title:      HOL/Matrix/Compute_Oracle/am_compiler.ML
+(*  Title:      HOL/Matrix_LP/Compute_Oracle/am_compiler.ML
     Author:     Steven Obua
 *)
 

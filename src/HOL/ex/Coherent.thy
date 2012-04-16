@@ -13,7 +13,7 @@ subsection {* Equivalence of two versions of Pappus' Axiom *}
 
 no_notation
   comp (infixl "o" 55) and
-  rel_comp (infixr "O" 75)
+  relcomp (infixr "O" 75)
 
 lemma p1p2:
   assumes

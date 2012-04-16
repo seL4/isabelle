@@ -312,7 +312,7 @@ ML {*
 signature ORDERS =
 sig
   val print_structures: Proof.context -> unit
-  val setup: theory -> theory
+  val attrib_setup: theory -> theory
   val order_tac: Proof.context -> thm list -> int -> tactic
 end;
 
@@ -414,19 +414,15 @@ val _ =
     (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
         Toplevel.keep (print_structures o Toplevel.context_of)));
 
-
-(** Setup **)
-
-val setup =
-  Method.setup @{binding order} (Scan.succeed (fn ctxt => SIMPLE_METHOD' (order_tac ctxt [])))
-    "transitivity reasoner" #>
-  attrib_setup;
-
 end;
 
 *}
 
-setup Orders.setup
+setup Orders.attrib_setup
+
+method_setup order = {*
+  Scan.succeed (fn ctxt => SIMPLE_METHOD' (Orders.order_tac ctxt []))
+*} "transitivity reasoner"
 
 
 text {* Declarations to set up transitivity reasoner of partial and linear orders. *}

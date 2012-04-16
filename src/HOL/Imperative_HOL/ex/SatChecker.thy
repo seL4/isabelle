@@ -675,21 +675,21 @@ section {* Functional version with RedBlackTrees *}
 primrec tres_thm :: "(ClauseId, Clause) RBT_Impl.rbt \<Rightarrow> Lit \<times> ClauseId \<Rightarrow> Clause \<Rightarrow> Clause Heap"
 where
   "tres_thm t (l, j) cli =
-  (case (RBT_Impl.lookup t j) of 
+  (case (rbt_lookup t j) of 
      None \<Rightarrow> raise (''MiniSatChecked.res_thm: No resolvant clause in thms array for Conflict step.'')
    | Some clj \<Rightarrow> res_thm' l cli clj)"
 
 fun tdoProofStep :: " ProofStep \<Rightarrow> ((ClauseId, Clause) RBT_Impl.rbt * Clause list) \<Rightarrow> ((ClauseId, Clause) RBT_Impl.rbt * Clause list) Heap"
 where
   "tdoProofStep (Conflict saveTo (i, rs)) (t, rcl) =
-     (case (RBT_Impl.lookup t i) of
+     (case (rbt_lookup t i) of
        None \<Rightarrow> raise (''MiniSatChecked.doProofStep: No starting clause in thms array for Conflict step.'')
      | Some cli \<Rightarrow> do {
                       result \<leftarrow> foldM (tres_thm t) rs cli;
-                      return ((RBT_Impl.insert saveTo result t), rcl)
+                      return ((rbt_insert saveTo result t), rcl)
                    })"
-| "tdoProofStep (Delete cid) (t, rcl) = return ((RBT_Impl.delete cid t), rcl)"
-| "tdoProofStep (Root cid clause) (t, rcl) = return (RBT_Impl.insert cid (sort clause) t, (remdups(sort clause)) # rcl)"
+| "tdoProofStep (Delete cid) (t, rcl) = return ((rbt_delete cid t), rcl)"
+| "tdoProofStep (Root cid clause) (t, rcl) = return (rbt_insert cid (sort clause) t, (remdups(sort clause)) # rcl)"
 | "tdoProofStep (Xstep cid1 cid2) (t, rcl) = raise ''MiniSatChecked.doProofStep: Xstep constructor found.''"
 | "tdoProofStep (ProofDone b) (t, rcl) = raise ''MiniSatChecked.doProofStep: ProofDone constructor found.''"
 
@@ -698,7 +698,7 @@ where
   "tchecker n p i =
   do {
      rcs \<leftarrow> foldM (tdoProofStep) p (RBT_Impl.Empty, []);
-     (if (RBT_Impl.lookup (fst rcs) i) = Some [] then return (snd rcs) 
+     (if (rbt_lookup (fst rcs) i) = Some [] then return (snd rcs) 
                 else raise(''No empty clause''))
   }"
 

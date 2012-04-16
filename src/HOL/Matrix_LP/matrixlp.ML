@@ -1,4 +1,4 @@
-(*  Title:      HOL/Matrix/matrixlp.ML
+(*  Title:      HOL/Matrix_LP/matrixlp.ML
     Author:     Steven Obua
 *)
 

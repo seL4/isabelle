@@ -60,7 +60,7 @@ lemma (in principalideal) is_principalideal: "principalideal I R"
 lemma principalidealI:
   fixes R (structure)
   assumes "ideal I R"
-  assumes generate: "\<exists>i \<in> carrier R. I = Idl {i}"
+    and generate: "\<exists>i \<in> carrier R. I = Idl {i}"
   shows "principalideal I R"
 proof -
   interpret ideal I R by fact
@@ -82,7 +82,7 @@ lemma (in maximalideal) is_maximalideal: "maximalideal I R"
 lemma maximalidealI:
   fixes R
   assumes "ideal I R"
-  assumes I_notcarr: "carrier R \<noteq> I"
+    and I_notcarr: "carrier R \<noteq> I"
     and I_maximal: "\<And>J. \<lbrakk>ideal J R; I \<subseteq> J; J \<subseteq> carrier R\<rbrakk> \<Longrightarrow> J = I \<or> J = carrier R"
   shows "maximalideal I R"
 proof -
@@ -105,8 +105,8 @@ lemma (in primeideal) is_primeideal: "primeideal I R"
 lemma primeidealI:
   fixes R (structure)
   assumes "ideal I R"
-  assumes "cring R"
-  assumes I_notcarr: "carrier R \<noteq> I"
+    and "cring R"
+    and I_notcarr: "carrier R \<noteq> I"
     and I_prime: "\<And>a b. \<lbrakk>a \<in> carrier R; b \<in> carrier R; a \<otimes> b \<in> I\<rbrakk> \<Longrightarrow> a \<in> I \<or> b \<in> I"
   shows "primeideal I R"
 proof -
@@ -120,8 +120,8 @@ qed
 lemma primeidealI2:
   fixes R (structure)
   assumes "additive_subgroup I R"
-  assumes "cring R"
-  assumes I_l_closed: "\<And>a x. \<lbrakk>a \<in> I; x \<in> carrier R\<rbrakk> \<Longrightarrow> x \<otimes> a \<in> I"
+    and "cring R"
+    and I_l_closed: "\<And>a x. \<lbrakk>a \<in> I; x \<in> carrier R\<rbrakk> \<Longrightarrow> x \<otimes> a \<in> I"
     and I_r_closed: "\<And>a x. \<lbrakk>a \<in> I; x \<in> carrier R\<rbrakk> \<Longrightarrow> a \<otimes> x \<in> I"
     and I_notcarr: "carrier R \<noteq> I"
     and I_prime: "\<And>a b. \<lbrakk>a \<in> carrier R; b \<in> carrier R; a \<otimes> b \<in> I\<rbrakk> \<Longrightarrow> a \<in> I \<or> b \<in> I"
@@ -378,8 +378,8 @@ proof
   with a show "H \<subseteq> I" by simp
 next
   fix x
-  assume HI: "H \<subseteq> I"
-  from Iideal and HI have "I \<in> {I. ideal I R \<and> H \<subseteq> I}" by fast
+  assume "H \<subseteq> I"
+  with Iideal have "I \<in> {I. ideal I R \<and> H \<subseteq> I}" by fast
   then show "Idl H \<subseteq> I" unfolding genideal_def by fast
 qed
 

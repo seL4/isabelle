@@ -20,65 +20,73 @@ locale filter =
   assumes empty [iff]: "{} \<notin> F"
   assumes Int:         "\<lbrakk>u \<in> F; v \<in> F\<rbrakk> \<Longrightarrow> u \<inter> v \<in> F"
   assumes subset:      "\<lbrakk>u \<in> F; u \<subseteq> v\<rbrakk> \<Longrightarrow> v \<in> F"
+begin
 
-lemma (in filter) memD: "A \<in> F \<Longrightarrow> - A \<notin> F"
+lemma memD: "A \<in> F \<Longrightarrow> - A \<notin> F"
 proof
   assume "A \<in> F" and "- A \<in> F"
   hence "A \<inter> (- A) \<in> F" by (rule Int)
   thus "False" by simp
 qed
 
-lemma (in filter) not_memI: "- A \<in> F \<Longrightarrow> A \<notin> F"
+lemma not_memI: "- A \<in> F \<Longrightarrow> A \<notin> F"
 by (drule memD, simp)
 
-lemma (in filter) Int_iff: "(x \<inter> y \<in> F) = (x \<in> F \<and> y \<in> F)"
+lemma Int_iff: "(x \<inter> y \<in> F) = (x \<in> F \<and> y \<in> F)"
 by (auto elim: subset intro: Int)
+
+end
 
 subsubsection {* Ultrafilters *}
 
 locale ultrafilter = filter +
   assumes ultra: "A \<in> F \<or> - A \<in> F"
+begin
 
-lemma (in ultrafilter) memI: "- A \<notin> F \<Longrightarrow> A \<in> F"
-by (cut_tac ultra [of A], simp)
+lemma memI: "- A \<notin> F \<Longrightarrow> A \<in> F"
+using ultra [of A] by simp
 
-lemma (in ultrafilter) not_memD: "A \<notin> F \<Longrightarrow> - A \<in> F"
+lemma not_memD: "A \<notin> F \<Longrightarrow> - A \<in> F"
 by (rule memI, simp)
 
-lemma (in ultrafilter) not_mem_iff: "(A \<notin> F) = (- A \<in> F)"
+lemma not_mem_iff: "(A \<notin> F) = (- A \<in> F)"
 by (rule iffI [OF not_memD not_memI])
 
-lemma (in ultrafilter) Compl_iff: "(- A \<in> F) = (A \<notin> F)"
+lemma Compl_iff: "(- A \<in> F) = (A \<notin> F)"
 by (rule iffI [OF not_memI not_memD])
 
-lemma (in ultrafilter) Un_iff: "(x \<union> y \<in> F) = (x \<in> F \<or> y \<in> F)"
+lemma Un_iff: "(x \<union> y \<in> F) = (x \<in> F \<or> y \<in> F)"
  apply (rule iffI)
   apply (erule contrapos_pp)
   apply (simp add: Int_iff not_mem_iff)
  apply (auto elim: subset)
 done
 
+end
+
 subsubsection {* Free Ultrafilters *}
 
 locale freeultrafilter = ultrafilter +
   assumes infinite: "A \<in> F \<Longrightarrow> infinite A"
+begin
 
-lemma (in freeultrafilter) finite: "finite A \<Longrightarrow> A \<notin> F"
+lemma finite: "finite A \<Longrightarrow> A \<notin> F"
 by (erule contrapos_pn, erule infinite)
 
-lemma (in freeultrafilter) singleton: "{x} \<notin> F"
+lemma singleton: "{x} \<notin> F"
 by (rule finite, simp)
 
-lemma (in freeultrafilter) insert_iff [simp]: "(insert x A \<in> F) = (A \<in> F)"
+lemma insert_iff [simp]: "(insert x A \<in> F) = (A \<in> F)"
 apply (subst insert_is_Un)
 apply (subst Un_iff)
 apply (simp add: singleton)
 done
 
-lemma (in freeultrafilter) filter: "filter F" ..
+lemma filter: "filter F" ..
 
-lemma (in freeultrafilter) ultrafilter: "ultrafilter F" ..
+lemma ultrafilter: "ultrafilter F" ..
 
+end
 
 subsection {* Collect properties *}
 
@@ -192,8 +200,8 @@ qed
 
 subsection {* Ultrafilter Theorem *}
 
-text "A locale makes proof of ultrafilter Theorem more modular"
-locale UFT =
+text "A local context makes proof of ultrafilter Theorem more modular"
+context
   fixes   frechet :: "'a set set"
   and     superfrechet :: "'a set set set"
 
@@ -201,16 +209,17 @@ locale UFT =
 
   defines frechet_def: "frechet \<equiv> {A. finite (- A)}"
   and     superfrechet_def: "superfrechet \<equiv> {G. filter G \<and> frechet \<subseteq> G}"
+begin
 
-lemma (in UFT) superfrechetI:
+lemma superfrechetI:
   "\<lbrakk>filter G; frechet \<subseteq> G\<rbrakk> \<Longrightarrow> G \<in> superfrechet"
 by (simp add: superfrechet_def)
 
-lemma (in UFT) superfrechetD1:
+lemma superfrechetD1:
   "G \<in> superfrechet \<Longrightarrow> filter G"
 by (simp add: superfrechet_def)
 
-lemma (in UFT) superfrechetD2:
+lemma superfrechetD2:
   "G \<in> superfrechet \<Longrightarrow> frechet \<subseteq> G"
 by (simp add: superfrechet_def)
 
@@ -240,13 +249,13 @@ text {*
              export main result: The ultrafilter Theorem
 *}
 
-lemma (in UFT) filter_frechet: "filter frechet"
+lemma filter_frechet: "filter frechet"
 by (unfold frechet_def, rule filter_cofinite [OF infinite_UNIV])
 
-lemma (in UFT) frechet_in_superfrechet: "frechet \<in> superfrechet"
+lemma frechet_in_superfrechet: "frechet \<in> superfrechet"
 by (rule superfrechetI [OF filter_frechet subset_refl])
 
-lemma (in UFT) lemma_mem_chain_filter:
+lemma lemma_mem_chain_filter:
   "\<lbrakk>c \<in> chain superfrechet; x \<in> c\<rbrakk> \<Longrightarrow> filter x"
 by (unfold chain_def superfrechet_def, blast)
 
@@ -260,8 +269,8 @@ with respect to unions of non-empty chains. We must show
 
 Number 2 is trivial, but 1 requires us to prove all the filter rules."
 
-lemma (in UFT) Union_chain_UNIV:
-"\<lbrakk>c \<in> chain superfrechet; c \<noteq> {}\<rbrakk> \<Longrightarrow> UNIV \<in> \<Union>c"
+lemma Union_chain_UNIV:
+  "\<lbrakk>c \<in> chain superfrechet; c \<noteq> {}\<rbrakk> \<Longrightarrow> UNIV \<in> \<Union>c"
 proof -
   assume 1: "c \<in> chain superfrechet" and 2: "c \<noteq> {}"
   from 2 obtain x where 3: "x \<in> c" by blast
@@ -270,8 +279,8 @@ proof -
   with 3 show "UNIV \<in> \<Union>c" by blast
 qed
 
-lemma (in UFT) Union_chain_empty:
-"c \<in> chain superfrechet \<Longrightarrow> {} \<notin> \<Union>c"
+lemma Union_chain_empty:
+  "c \<in> chain superfrechet \<Longrightarrow> {} \<notin> \<Union>c"
 proof
   assume 1: "c \<in> chain superfrechet" and 2: "{} \<in> \<Union>c"
   from 2 obtain x where 3: "x \<in> c" and 4: "{} \<in> x" ..
@@ -280,8 +289,8 @@ proof
   with 4 show "False" by simp
 qed
 
-lemma (in UFT) Union_chain_Int:
-"\<lbrakk>c \<in> chain superfrechet; u \<in> \<Union>c; v \<in> \<Union>c\<rbrakk> \<Longrightarrow> u \<inter> v \<in> \<Union>c"
+lemma Union_chain_Int:
+  "\<lbrakk>c \<in> chain superfrechet; u \<in> \<Union>c; v \<in> \<Union>c\<rbrakk> \<Longrightarrow> u \<inter> v \<in> \<Union>c"
 proof -
   assume c: "c \<in> chain superfrechet"
   assume "u \<in> \<Union>c"
@@ -298,8 +307,8 @@ proof -
   with xyc show "u \<inter> v \<in> \<Union>c" ..
 qed
 
-lemma (in UFT) Union_chain_subset:
-"\<lbrakk>c \<in> chain superfrechet; u \<in> \<Union>c; u \<subseteq> v\<rbrakk> \<Longrightarrow> v \<in> \<Union>c"
+lemma Union_chain_subset:
+  "\<lbrakk>c \<in> chain superfrechet; u \<in> \<Union>c; u \<subseteq> v\<rbrakk> \<Longrightarrow> v \<in> \<Union>c"
 proof -
   assume c: "c \<in> chain superfrechet"
      and u: "u \<in> \<Union>c" and uv: "u \<subseteq> v"
@@ -309,7 +318,7 @@ proof -
   with xc show "v \<in> \<Union>c" ..
 qed
 
-lemma (in UFT) Union_chain_filter:
+lemma Union_chain_filter:
 assumes chain: "c \<in> chain superfrechet" and nonempty: "c \<noteq> {}"
 shows "filter (\<Union>c)"
 proof (rule filter.intro)
@@ -324,11 +333,11 @@ next
   with chain show "v \<in> \<Union>c" by (rule Union_chain_subset)
 qed
 
-lemma (in UFT) lemma_mem_chain_frechet_subset:
+lemma lemma_mem_chain_frechet_subset:
   "\<lbrakk>c \<in> chain superfrechet; x \<in> c\<rbrakk> \<Longrightarrow> frechet \<subseteq> x"
 by (unfold superfrechet_def chain_def, blast)
 
-lemma (in UFT) Union_chain_superfrechet:
+lemma Union_chain_superfrechet:
   "\<lbrakk>c \<noteq> {}; c \<in> chain superfrechet\<rbrakk> \<Longrightarrow> \<Union>c \<in> superfrechet"
 proof (rule superfrechetI)
   assume 1: "c \<in> chain superfrechet" and 2: "c \<noteq> {}"
@@ -341,7 +350,7 @@ qed
 
 subsubsection {* Existence of free ultrafilter *}
 
-lemma (in UFT) max_cofinite_filter_Ex:
+lemma max_cofinite_filter_Ex:
   "\<exists>U\<in>superfrechet. \<forall>G\<in>superfrechet. U \<subseteq> G \<longrightarrow> U = G"
 proof (rule Zorn_Lemma2 [rule_format])
   fix c assume c: "c \<in> chain superfrechet"
@@ -357,7 +366,7 @@ proof (rule Zorn_Lemma2 [rule_format])
   qed
 qed
 
-lemma (in UFT) mem_superfrechet_all_infinite:
+lemma mem_superfrechet_all_infinite:
   "\<lbrakk>U \<in> superfrechet; A \<in> U\<rbrakk> \<Longrightarrow> infinite A"
 proof
   assume U: "U \<in> superfrechet" and A: "A \<in> U" and fin: "finite A"
@@ -371,7 +380,7 @@ qed
 
 text {* There exists a free ultrafilter on any infinite set *}
 
-lemma (in UFT) freeultrafilter_ex:
+lemma freeultrafilter_Ex:
   "\<exists>U::'a set set. freeultrafilter U"
 proof -
   from max_cofinite_filter_Ex obtain U
@@ -397,7 +406,7 @@ proof -
   then show ?thesis ..
 qed
 
-lemmas freeultrafilter_Ex = UFT.freeultrafilter_ex [OF UFT.intro]
+end
 
 hide_const (open) filter
 

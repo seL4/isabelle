@@ -1,4 +1,4 @@
-(*  Title:      HOL/Matrix/Cplex.thy
+(*  Title:      HOL/Matrix_LP/Cplex.thy
     Author:     Steven Obua
 *)
 

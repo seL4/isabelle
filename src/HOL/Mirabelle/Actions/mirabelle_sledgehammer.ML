@@ -1,32 +1,43 @@
-(*  Title:      HOL/Mirabelle/Tools/mirabelle_sledgehammer.ML
+(*  Title:      HOL/Mirabelle/Actions/mirabelle_sledgehammer.ML
     Author:     Jasmin Blanchette and Sascha Boehme and Tobias Nipkow, TU Munich
 *)
 
 structure Mirabelle_Sledgehammer : MIRABELLE_ACTION =
 struct
 
-val proverK = "prover"
-val prover_timeoutK = "prover_timeout"
-val keepK = "keep"
-val type_encK = "type_enc"
-val strictK = "strict"
-val sliceK = "slice"
-val lam_transK = "lam_trans"
-val uncurried_aliasesK = "uncurried_aliases"
-val e_selection_heuristicK = "e_selection_heuristic"
-val term_orderK = "term_order"
-val force_sosK = "force_sos"
-val max_relevantK = "max_relevant"
-val max_callsK = "max_calls"
-val minimizeK = "minimize" (*refers to minimization attempted by Mirabelle*)
-val minimize_timeoutK = "minimize_timeout"
-val metis_ftK = "metis_ft"
-val reconstructorK = "reconstructor"
-val preplay_timeoutK = "preplay_timeout"
-val sh_minimizeK = "sh_minimize" (*refers to minimizer run within Sledgehammer*)
-val max_new_mono_instancesK = "max_new_mono_instances"
-val max_mono_itersK = "max_mono_iters"
-val check_trivialK = "check_trivial" (*false by default*)
+(*To facilitate synching the description of Mirabelle Sledgehammer parameters
+ (in ../lib/Tools/mirabelle) with the parameters actually used by this
+ interface, the former extracts PARAMETER and DESCRIPTION from code below which
+ has this pattern (provided it appears in a single line):
+   val .*K = "PARAMETER" (*DESCRIPTION*)
+*)
+(*NOTE: descriptions mention parameters (particularly NAME) without a defined range.*)
+val proverK = "prover" (*=NAME: name of the external prover to call*)
+val prover_timeoutK = "prover_timeout" (*=TIME: timeout for invoked ATP (seconds of process time)*)
+val keepK = "keep" (*=PATH: path where to keep temporary files created by sledgehammer*)
+val minimizeK = "minimize" (*: enable minimization of theorem set found by sledgehammer*)
+                           (*refers to minimization attempted by Mirabelle*)
+val minimize_timeoutK = "minimize_timeout" (*=TIME: timeout for each minimization step (seconds of*)
+
+val reconstructorK = "reconstructor" (*=NAME: how to reconstruct proofs (ie. using metis/smt)*)
+val metis_ftK = "metis_ft" (*: apply metis with fully-typed encoding to the theorems found by sledgehammer*)
+
+val max_relevantK = "max_relevant" (*=NUM: max. relevant clauses to use*)
+val max_callsK = "max_calls" (*=NUM: max. no. of calls to sledgehammer*)
+val preplay_timeoutK = "preplay_timeout" (*=TIME: timeout for finding reconstructed proof*)
+val sh_minimizeK = "sh_minimize" (*: instruct sledgehammer to run its minimizer*)
+
+val check_trivialK = "check_trivial" (*: check if goals are "trivial" (false by default)*)
+val type_encK = "type_enc" (*=STRING: type encoding scheme*)
+val lam_transK = "lam_trans" (*=STRING: lambda translation scheme*)
+val strictK = "strict" (*=BOOL: run in strict mode*)
+val sliceK = "slice" (*=BOOL: allow sledgehammer-level strategy-scheduling*)
+val uncurried_aliasesK = "uncurried_aliases" (*=SMART_BOOL: use fresh function names to alias curried applications*)
+val e_selection_heuristicK = "e_selection_heuristic" (*: FIXME*)
+val term_orderK = "term_order" (*: FIXME*)
+val force_sosK = "force_sos" (*: use SOS*)
+val max_new_mono_instancesK = "max_new_mono_instances" (*=NUM: max. new monomorphic instances*)
+val max_mono_itersK = "max_mono_iters" (*=NUM: max. iterations of monomorphiser*)
 
 fun sh_tag id = "#" ^ string_of_int id ^ " sledgehammer: "
 fun minimize_tag id = "#" ^ string_of_int id ^ " minimize (sledgehammer): "
@@ -35,8 +46,18 @@ fun reconstructor_tag reconstructor id =
 
 val separator = "-----"
 
-val preplay_timeout_default = "4"
 (*FIXME sensible to have Mirabelle-level Sledgehammer defaults?*)
+(*defaults used in this Mirabelle action*)
+val preplay_timeout_default = "4"
+val lam_trans_default = "smart"
+val uncurried_aliases_default = "smart"
+val type_enc_default = "smart"
+val strict_default = "false"
+val max_relevant_default = "smart"
+val slice_default = "true"
+val max_calls_default = "10000000"
+val trivial_default = "false"
+val minimize_timeout_default = 5
 
 (*If a key is present in args then augment a list with its pair*)
 (*This is used to avoid fixing default values at the Mirabelle level, and
@@ -407,8 +428,8 @@ fun run_sh prover_name prover type_enc strict max_relevant slice lam_trans
          ([("verbose", "true"),
            ("type_enc", type_enc),
            ("strict", strict),
-           ("lam_trans", lam_trans |> the_default "smart"),
-           ("uncurried_aliases", uncurried_aliases |> the_default "smart"),
+           ("lam_trans", lam_trans |> the_default lam_trans_default),
+           ("uncurried_aliases", uncurried_aliases |> the_default uncurried_aliases_default),
            ("max_relevant", max_relevant),
            ("slice", slice),
            ("timeout", string_of_int timeout),
@@ -490,10 +511,10 @@ fun run_sledgehammer trivial args reconstructor named_thms id
     val _ = change_data id inc_sh_calls
     val _ = if trivial then () else change_data id inc_sh_nontriv_calls
     val (prover_name, prover) = get_prover (Proof.context_of st) args
-    val type_enc = AList.lookup (op =) args type_encK |> the_default "smart"
-    val strict = AList.lookup (op =) args strictK |> the_default "false"
-    val max_relevant = AList.lookup (op =) args max_relevantK |> the_default "smart"
-    val slice = AList.lookup (op =) args sliceK |> the_default "true"
+    val type_enc = AList.lookup (op =) args type_encK |> the_default type_enc_default
+    val strict = AList.lookup (op =) args strictK |> the_default strict_default
+    val max_relevant = AList.lookup (op =) args max_relevantK |> the_default max_relevant_default
+    val slice = AList.lookup (op =) args sliceK |> the_default slice_default
     val lam_trans = AList.lookup (op =) args lam_transK
     val uncurried_aliases = AList.lookup (op =) args uncurried_aliasesK
     val e_selection_heuristic = AList.lookup (op =) args e_selection_heuristicK
@@ -551,12 +572,12 @@ fun run_minimize args reconstructor named_thms id
     val ctxt = Proof.context_of st
     val n0 = length (these (!named_thms))
     val (prover_name, _) = get_prover ctxt args
-    val type_enc = AList.lookup (op =) args type_encK |> the_default "smart"
-    val strict = AList.lookup (op =) args strictK |> the_default "false"
+    val type_enc = AList.lookup (op =) args type_encK |> the_default type_enc_default
+    val strict = AList.lookup (op =) args strictK |> the_default strict_default
     val timeout =
       AList.lookup (op =) args minimize_timeoutK
       |> Option.map (fst o read_int o raw_explode)  (* FIXME Symbol.explode (?) *)
-      |> the_default 5
+      |> the_default minimize_timeout_default
     val preplay_timeout = AList.lookup (op =) args preplay_timeoutK
       |> the_default preplay_timeout_default
     val sh_minimizeLST = available_parameter args sh_minimizeK "minimize"
@@ -689,7 +710,7 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
     then () else
     let
       val max_calls =
-        AList.lookup (op =) args max_callsK |> the_default "10000000"
+        AList.lookup (op =) args max_callsK |> the_default max_calls_default
         |> Int.fromString |> the
       val _ = num_sledgehammer_calls := !num_sledgehammer_calls + 1;
     in
@@ -702,7 +723,7 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
           val minimize = AList.defined (op =) args minimizeK
           val metis_ft = AList.defined (op =) args metis_ftK
           val trivial =
-            if AList.lookup (op =) args check_trivialK |> the_default "false"
+            if AList.lookup (op =) args check_trivialK |> the_default trivial_default
                             |> Bool.fromString |> the then
               Try0.try0 (SOME try_timeout) ([], [], [], []) pre
               handle TimeLimit.TimeOut => false

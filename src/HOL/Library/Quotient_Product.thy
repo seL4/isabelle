@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Quotient3_Product.thy
+(*  Title:      HOL/Library/Quotient_Product.thy
     Author:     Cezary Kaliszyk and Christian Urban
 *)
 

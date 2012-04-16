@@ -228,38 +228,38 @@ text {*
   set of all sums of elements from @{text U} and @{text V}.
 *}
 
-lemma sum_def: "U \<oplus> V = {u + v | u v. u \<in> U \<and> v \<in> V}"
+lemma sum_def: "U + V = {u + v | u v. u \<in> U \<and> v \<in> V}"
   unfolding set_plus_def by auto
 
 lemma sumE [elim]:
-    "x \<in> U \<oplus> V \<Longrightarrow> (\<And>u v. x = u + v \<Longrightarrow> u \<in> U \<Longrightarrow> v \<in> V \<Longrightarrow> C) \<Longrightarrow> C"
+    "x \<in> U + V \<Longrightarrow> (\<And>u v. x = u + v \<Longrightarrow> u \<in> U \<Longrightarrow> v \<in> V \<Longrightarrow> C) \<Longrightarrow> C"
   unfolding sum_def by blast
 
 lemma sumI [intro]:
-    "u \<in> U \<Longrightarrow> v \<in> V \<Longrightarrow> x = u + v \<Longrightarrow> x \<in> U \<oplus> V"
+    "u \<in> U \<Longrightarrow> v \<in> V \<Longrightarrow> x = u + v \<Longrightarrow> x \<in> U + V"
   unfolding sum_def by blast
 
 lemma sumI' [intro]:
-    "u \<in> U \<Longrightarrow> v \<in> V \<Longrightarrow> u + v \<in> U \<oplus> V"
+    "u \<in> U \<Longrightarrow> v \<in> V \<Longrightarrow> u + v \<in> U + V"
   unfolding sum_def by blast
 
-text {* @{text U} is a subspace of @{text "U \<oplus> V"}. *}
+text {* @{text U} is a subspace of @{text "U + V"}. *}
 
 lemma subspace_sum1 [iff]:
   assumes "vectorspace U" "vectorspace V"
-  shows "U \<unlhd> U \<oplus> V"
+  shows "U \<unlhd> U + V"
 proof -
   interpret vectorspace U by fact
   interpret vectorspace V by fact
   show ?thesis
   proof
     show "U \<noteq> {}" ..
-    show "U \<subseteq> U \<oplus> V"
+    show "U \<subseteq> U + V"
     proof
       fix x assume x: "x \<in> U"
       moreover have "0 \<in> V" ..
-      ultimately have "x + 0 \<in> U \<oplus> V" ..
-      with x show "x \<in> U \<oplus> V" by simp
+      ultimately have "x + 0 \<in> U + V" ..
+      with x show "x \<in> U + V" by simp
     qed
     fix x y assume x: "x \<in> U" and "y \<in> U"
     then show "x + y \<in> U" by simp
@@ -271,30 +271,30 @@ text {* The sum of two subspaces is again a subspace. *}
 
 lemma sum_subspace [intro?]:
   assumes "subspace U E" "vectorspace E" "subspace V E"
-  shows "U \<oplus> V \<unlhd> E"
+  shows "U + V \<unlhd> E"
 proof -
   interpret subspace U E by fact
   interpret vectorspace E by fact
   interpret subspace V E by fact
   show ?thesis
   proof
-    have "0 \<in> U \<oplus> V"
+    have "0 \<in> U + V"
     proof
       show "0 \<in> U" using `vectorspace E` ..
       show "0 \<in> V" using `vectorspace E` ..
       show "(0::'a) = 0 + 0" by simp
     qed
-    then show "U \<oplus> V \<noteq> {}" by blast
-    show "U \<oplus> V \<subseteq> E"
+    then show "U + V \<noteq> {}" by blast
+    show "U + V \<subseteq> E"
     proof
-      fix x assume "x \<in> U \<oplus> V"
+      fix x assume "x \<in> U + V"
       then obtain u v where "x = u + v" and
         "u \<in> U" and "v \<in> V" ..
       then show "x \<in> E" by simp
     qed
   next
-    fix x y assume x: "x \<in> U \<oplus> V" and y: "y \<in> U \<oplus> V"
-    show "x + y \<in> U \<oplus> V"
+    fix x y assume x: "x \<in> U + V" and y: "y \<in> U + V"
+    show "x + y \<in> U + V"
     proof -
       from x obtain ux vx where "x = ux + vx" and "ux \<in> U" and "vx \<in> V" ..
       moreover
@@ -306,7 +306,7 @@ proof -
         using x y by (simp_all add: add_ac)
       then show ?thesis ..
     qed
-    fix a show "a \<cdot> x \<in> U \<oplus> V"
+    fix a show "a \<cdot> x \<in> U + V"
     proof -
       from x obtain u v where "x = u + v" and "u \<in> U" and "v \<in> V" ..
       then have "a \<cdot> u \<in> U" and "a \<cdot> v \<in> V"
@@ -319,7 +319,7 @@ qed
 text{* The sum of two subspaces is a vectorspace. *}
 
 lemma sum_vs [intro?]:
-    "U \<unlhd> E \<Longrightarrow> V \<unlhd> E \<Longrightarrow> vectorspace E \<Longrightarrow> vectorspace (U \<oplus> V)"
+    "U \<unlhd> E \<Longrightarrow> V \<unlhd> E \<Longrightarrow> vectorspace E \<Longrightarrow> vectorspace (U + V)"
   by (rule subspace.vectorspace) (rule sum_subspace)
 
 
@@ -481,7 +481,7 @@ lemma h'_definite:
 proof -
   interpret vectorspace E by fact
   interpret subspace H E by fact
-  from x y x' have "x \<in> H \<oplus> lin x'" by auto
+  from x y x' have "x \<in> H + lin x'" by auto
   have "\<exists>!p. (\<lambda>(y, a). x = y + a \<cdot> x' \<and> y \<in> H) p" (is "\<exists>!p. ?P p")
   proof (rule ex_ex1I)
     from x y show "\<exists>p. ?P p" by blast

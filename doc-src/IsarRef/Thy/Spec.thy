@@ -105,38 +105,54 @@ text {*
 section {* Local theory targets \label{sec:target} *}
 
 text {*
-  A local theory target is a context managed separately within the
-  enclosing theory.  Contexts may introduce parameters (fixed
-  variables) and assumptions (hypotheses).  Definitions and theorems
-  depending on the context may be added incrementally later on.  Named
-  contexts refer to locales (cf.\ \secref{sec:locale}) or type classes
-  (cf.\ \secref{sec:class}); the name ``@{text "-"}'' signifies the
-  global theory context.
-
   \begin{matharray}{rcll}
     @{command_def "context"} & : & @{text "theory \<rightarrow> local_theory"} \\
     @{command_def (local) "end"} & : & @{text "local_theory \<rightarrow> theory"} \\
   \end{matharray}
 
+  A local theory target is a context managed separately within the
+  enclosing theory.  Contexts may introduce parameters (fixed
+  variables) and assumptions (hypotheses).  Definitions and theorems
+  depending on the context may be added incrementally later on.
+
+  \emph{Named contexts} refer to locales (cf.\ \secref{sec:locale}) or
+  type classes (cf.\ \secref{sec:class}); the name ``@{text "-"}''
+  signifies the global theory context.
+
+  \emph{Unnamed contexts} may introduce additional parameters and
+  assumptions, and results produced in the context are generalized
+  accordingly.  Such auxiliary contexts may be nested within other
+  targets, like @{command "locale"}, @{command "class"}, @{command
+  "instantiation"}, @{command "overloading"}.
+
   @{rail "
     @@{command context} @{syntax nameref} @'begin'
     ;
-
+    @@{command context} @{syntax_ref \"includes\"}? (@{syntax context_elem} * ) @'begin'
+    ;
     @{syntax_def target}: '(' @'in' @{syntax nameref} ')'
   "}
 
   \begin{description}
   
-  \item @{command "context"}~@{text "c \<BEGIN>"} recommences an
-  existing locale or class context @{text c}.  Note that locale and
-  class definitions allow to include the @{keyword "begin"} keyword as
-  well, in order to continue the local theory immediately after the
-  initial specification.
+  \item @{command "context"}~@{text "c \<BEGIN>"} opens a named
+  context, by recommencing an existing locale or class @{text c}.
+  Note that locale and class definitions allow to include the
+  @{keyword "begin"} keyword as well, in order to continue the local
+  theory immediately after the initial specification.
+
+  \item @{command "context"}~@{text "bundles elements \<BEGIN>"} opens
+  an unnamed context, by extending the enclosing global or local
+  theory target by the given declaration bundles (\secref{sec:bundle})
+  and context elements (@{text "\<FIXES>"}, @{text "\<ASSUMES>"}
+  etc.).  This means any results stemming from definitions and proofs
+  in the extended context will be exported into the enclosing target
+  by lifting over extra parameters and premises.
   
-  \item @{command (local) "end"} concludes the current local theory
-  and continues the enclosing global theory.  Note that a global
-  @{command (global) "end"} has a different meaning: it concludes the
-  theory itself (\secref{sec:begin-thy}).
+  \item @{command (local) "end"} concludes the current local theory,
+  according to the nesting of contexts.  Note that a global @{command
+  (global) "end"} has a different meaning: it concludes the theory
+  itself (\secref{sec:begin-thy}).
   
   \item @{text "("}@{keyword_def "in"}~@{text "c)"} given after any
   local theory command specifies an immediate target, e.g.\
@@ -166,7 +182,83 @@ text {*
   generalizing the parameters of the context.  For example, @{text "a:
   B[x]"} becomes @{text "c.a: A[?x] \<Longrightarrow> B[?x]"}, again for arbitrary
   @{text "?x"}.
-*}
+
+  \medskip The Isabelle/HOL library contains numerous applications of
+  locales and classes, e.g.\ see @{file "~~/src/HOL/Algebra"}.  An
+  example for an unnamed auxiliary contexts is given in @{file
+  "~~/src/HOL/Isar_Examples/Group_Context.thy"}.  *}
+
+
+section {* Bundled declarations \label{sec:bundle} *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def "bundle"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "print_bundles"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow> "} \\
+    @{command_def "include"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
+    @{command_def "including"} & : & @{text "proof(prove) \<rightarrow> proof(prove)"} \\
+    @{keyword_def "includes"} & : & syntax \\
+  \end{matharray}
+
+  The outer syntax of fact expressions (\secref{sec:syn-att}) involves
+  theorems and attributes, which are evaluated in the context and
+  applied to it.  Attributes may declare theorems to the context, as
+  in @{text "this_rule [intro] that_rule [elim]"} for example.
+  Configuration options (\secref{sec:config}) are special declaration
+  attributes that operate on the context without a theorem, as in
+  @{text "[[show_types = false]]"} for example.
+
+  Expressions of this form may be defined as \emph{bundled
+  declarations} in the context, and included in other situations later
+  on.  Including declaration bundles augments a local context casually
+  without logical dependencies, which is in contrast to locales and
+  locale interpretation (\secref{sec:locale}).
+
+  @{rail "
+    @@{command bundle} @{syntax target}? \\
+    @{syntax name} '=' @{syntax thmrefs} (@'for' (@{syntax vars} + @'and'))?
+    ;
+    (@@{command include} | @@{command including}) (@{syntax nameref}+)
+    ;
+    @{syntax_def \"includes\"}: @'includes' (@{syntax nameref}+)
+  "}
+
+  \begin{description}
+
+  \item @{command bundle}~@{text "b = decls"} defines a bundle of
+  declarations in the current context.  The RHS is similar to the one
+  of the @{command declare} command.  Bundles defined in local theory
+  targets are subject to transformations via morphisms, when moved
+  into different application contexts; this works analogously to any
+  other local theory specification.
+
+  \item @{command print_bundles} prints the named bundles that are
+  available in the current context.
+
+  \item @{command include}~@{text "b\<^sub>1 \<dots> b\<^sub>n"} includes the declarations
+  from the given bundles into the current proof body context.  This is
+  analogous to @{command "note"} (\secref{sec:proof-facts}) with the
+  expanded bundles.
+
+  \item @{command including} is similar to @{command include}, but
+  works in proof refinement (backward mode).  This is analogous to
+  @{command "using"} (\secref{sec:proof-facts}) with the expanded
+  bundles.
+
+  \item @{keyword "includes"}~@{text "b\<^sub>1 \<dots> b\<^sub>n"} is similar to
+  @{command include}, but works in situations where a specification
+  context is constructed, notably for @{command context} and long
+  statements of @{command theorem} etc.
+
+  \end{description}
+
+  Here is an artificial example of bundling various configuration
+  options: *}
+
+bundle trace = [[simp_trace, blast_trace, linarith_trace, metis_trace, smt_trace]]
+
+lemma "x = x"
+  including trace by metis
 
 
 section {* Basic specification elements *}
@@ -258,6 +350,12 @@ text {*
 section {* Generic declarations *}
 
 text {*
+  \begin{matharray}{rcl}
+    @{command_def "declaration"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "syntax_declaration"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "declare"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+  \end{matharray}
+
   Arbitrary operations on the background context may be wrapped-up as
   generic declaration elements.  Since the underlying concept of local
   theories may be subject to later re-interpretation, there is an
@@ -266,12 +364,6 @@ text {*
   encountered later on.  A fact declaration is an important special
   case: it consists of a theorem which is applied to the context by
   means of an attribute.
-
-  \begin{matharray}{rcl}
-    @{command_def "declaration"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def "syntax_declaration"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def "declare"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-  \end{matharray}
 
   @{rail "
     (@@{command declaration} | @@{command syntax_declaration})
@@ -499,13 +591,6 @@ text {*
 subsection {* Locale interpretations *}
 
 text {*
-  Locale expressions may be instantiated, and the instantiated facts
-  added to the current context.  This requires a proof of the
-  instantiated specification and is called \emph{locale
-  interpretation}.  Interpretation is possible in locales @{command
-  "sublocale"}, theories (command @{command "interpretation"}) and
-  also within a proof body (command @{command "interpret"}).
-
   \begin{matharray}{rcl}
     @{command_def "interpretation"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
     @{command_def "interpret"} & : & @{text "proof(state) | proof(chain) \<rightarrow> proof(prove)"} \\
@@ -513,6 +598,13 @@ text {*
     @{command_def "print_dependencies"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "print_interps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
   \end{matharray}
+
+  Locale expressions may be instantiated, and the instantiated facts
+  added to the current context.  This requires a proof of the
+  instantiated specification and is called \emph{locale
+  interpretation}.  Interpretation is possible in locales @{command
+  "sublocale"}, theories (command @{command "interpretation"}) and
+  also within a proof body (command @{command "interpret"}).
 
   @{rail "
     @@{command interpretation} @{syntax locale_expr} equations?
@@ -635,15 +727,6 @@ text {*
 section {* Classes \label{sec:class} *}
 
 text {*
-  A class is a particular locale with \emph{exactly one} type variable
-  @{text \<alpha>}.  Beyond the underlying locale, a corresponding type class
-  is established which is interpreted logically as axiomatic type
-  class \cite{Wenzel:1997:TPHOL} whose logical content are the
-  assumptions of the locale.  Thus, classes provide the full
-  generality of locales combined with the commodity of type classes
-  (notably type-inference).  See \cite{isabelle-classes} for a short
-  tutorial.
-
   \begin{matharray}{rcl}
     @{command_def "class"} & : & @{text "theory \<rightarrow> local_theory"} \\
     @{command_def "instantiation"} & : & @{text "theory \<rightarrow> local_theory"} \\
@@ -654,6 +737,15 @@ text {*
     @{command_def "class_deps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{method_def intro_classes} & : & @{text method} \\
   \end{matharray}
+
+  A class is a particular locale with \emph{exactly one} type variable
+  @{text \<alpha>}.  Beyond the underlying locale, a corresponding type class
+  is established which is interpreted logically as axiomatic type
+  class \cite{Wenzel:1997:TPHOL} whose logical content are the
+  assumptions of the locale.  Thus, classes provide the full
+  generality of locales combined with the commodity of type classes
+  (notably type-inference).  See \cite{isabelle-classes} for a short
+  tutorial.
 
   @{rail "
     @@{command class} class_spec @'begin'?
@@ -811,6 +903,10 @@ text {* The class relation together with the collection of
 section {* Unrestricted overloading *}
 
 text {*
+  \begin{matharray}{rcl}
+    @{command_def "overloading"} & : & @{text "theory \<rightarrow> local_theory"} \\
+  \end{matharray}
+
   Isabelle/Pure's definitional schemes support certain forms of
   overloading (see \secref{sec:consts}).  Overloading means that a
   constant being declared as @{text "c :: \<alpha> decl"} may be
@@ -822,10 +918,6 @@ text {*
   \secref{sec:class}).  Sometimes low-level overloading is desirable.
   The @{command "overloading"} target provides a convenient view for
   end-users.
-
-  \begin{matharray}{rcl}
-    @{command_def "overloading"} & : & @{text "theory \<rightarrow> local_theory"} \\
-  \end{matharray}
 
   @{rail "
     @@{command overloading} ( spec + ) @'begin'
@@ -1042,6 +1134,11 @@ text {*
 subsection {* Constants and definitions \label{sec:consts} *}
 
 text {*
+  \begin{matharray}{rcl}
+    @{command_def "consts"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "defs"} & : & @{text "theory \<rightarrow> theory"} \\
+  \end{matharray}
+
   Definitions essentially express abbreviations within the logic.  The
   simplest form of a definition is @{text "c :: \<sigma> \<equiv> t"}, where @{text
   c} is a newly declared constant.  Isabelle also allows derived forms
@@ -1078,11 +1175,6 @@ text {*
   e.g.\ @{text "d :: \<alpha> \<times> \<alpha>"} on the left-hand side means that all
   corresponding occurrences on some right-hand side need to be an
   instance of this, general @{text "d :: \<alpha> \<times> \<beta>"} will be disallowed.
-
-  \begin{matharray}{rcl}
-    @{command_def "consts"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def "defs"} & : & @{text "theory \<rightarrow> theory"} \\
-  \end{matharray}
 
   @{rail "
     @@{command consts} ((@{syntax name} '::' @{syntax type} @{syntax mixfix}?) +)
@@ -1159,10 +1251,15 @@ text {*
 
 section {* Oracles *}
 
-text {* Oracles allow Isabelle to take advantage of external reasoners
-  such as arithmetic decision procedures, model checkers, fast
-  tautology checkers or computer algebra systems.  Invoked as an
-  oracle, an external reasoner can create arbitrary Isabelle theorems.
+text {*
+  \begin{matharray}{rcll}
+    @{command_def "oracle"} & : & @{text "theory \<rightarrow> theory"} & (axiomatic!) \\
+  \end{matharray}
+
+  Oracles allow Isabelle to take advantage of external reasoners such
+  as arithmetic decision procedures, model checkers, fast tautology
+  checkers or computer algebra systems.  Invoked as an oracle, an
+  external reasoner can create arbitrary Isabelle theorems.
 
   It is the responsibility of the user to ensure that the external
   reasoner is as trustworthy as the application requires.  Another
@@ -1173,10 +1270,6 @@ text {* Oracles allow Isabelle to take advantage of external reasoners
   Isabelle merely guarantees well-formedness of the propositions being
   asserted, and records within the internal derivation object how
   presumed theorems depend on unproven suppositions.
-
-  \begin{matharray}{rcll}
-    @{command_def "oracle"} & : & @{text "theory \<rightarrow> theory"} & (axiomatic!) \\
-  \end{matharray}
 
   @{rail "
     @@{command oracle} @{syntax name} '=' @{syntax text}

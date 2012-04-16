@@ -19,13 +19,6 @@ uses
 begin
 
 text {*
-  An aside: contravariant functorial structure of sets.
-*}
-
-enriched_type vimage
-  by (simp_all add: fun_eq_iff vimage_compose)
-
-text {*
   Basic definition for equivalence relations
   that are represented by predicates.
 *}
@@ -694,9 +687,9 @@ lemma OOO_quotient3:
 apply (rule Quotient3I)
    apply (simp add: o_def Quotient3_abs_rep [OF R2] Quotient3_abs_rep [OF R1])
   apply simp
-  apply (rule_tac b="Rep1 (Rep2 a)" in pred_compI)
+  apply (rule_tac b="Rep1 (Rep2 a)" in relcomppI)
    apply (rule Quotient3_rep_reflp [OF R1])
-  apply (rule_tac b="Rep1 (Rep2 a)" in pred_compI [rotated])
+  apply (rule_tac b="Rep1 (Rep2 a)" in relcomppI [rotated])
    apply (rule Quotient3_rep_reflp [OF R1])
   apply (rule Rep1)
   apply (rule Quotient3_rep_reflp [OF R2])
@@ -707,8 +700,8 @@ apply (rule Quotient3I)
      apply (erule Quotient3_refl1 [OF R1])
     apply (drule Quotient3_refl1 [OF R2], drule Rep1)
     apply (subgoal_tac "R1 r (Rep1 (Abs1 x))")
-     apply (rule_tac b="Rep1 (Abs1 x)" in pred_compI, assumption)
-     apply (erule pred_compI)
+     apply (rule_tac b="Rep1 (Abs1 x)" in relcomppI, assumption)
+     apply (erule relcomppI)
      apply (erule Quotient3_symp [OF R1, THEN sympD])
     apply (rule Quotient3_rel[symmetric, OF R1, THEN iffD2])
     apply (rule conjI, erule Quotient3_refl1 [OF R1])
@@ -721,8 +714,8 @@ apply (rule Quotient3I)
     apply (erule Quotient3_refl1 [OF R1])
    apply (drule Quotient3_refl2 [OF R2], drule Rep1)
    apply (subgoal_tac "R1 s (Rep1 (Abs1 y))")
-    apply (rule_tac b="Rep1 (Abs1 y)" in pred_compI, assumption)
-    apply (erule pred_compI)
+    apply (rule_tac b="Rep1 (Abs1 y)" in relcomppI, assumption)
+    apply (erule relcomppI)
     apply (erule Quotient3_symp [OF R1, THEN sympD])
    apply (rule Quotient3_rel[symmetric, OF R1, THEN iffD2])
    apply (rule conjI, erule Quotient3_refl2 [OF R1])
@@ -738,11 +731,11 @@ apply (rule Quotient3I)
   apply (erule Quotient3_refl1 [OF R1])
  apply (rename_tac a b c d)
  apply simp
- apply (rule_tac b="Rep1 (Abs1 r)" in pred_compI)
+ apply (rule_tac b="Rep1 (Abs1 r)" in relcomppI)
   apply (rule Quotient3_rel[symmetric, OF R1, THEN iffD2])
   apply (rule conjI, erule Quotient3_refl1 [OF R1])
   apply (simp add: Quotient3_abs_rep [OF R1] Quotient3_rep_reflp [OF R1])
- apply (rule_tac b="Rep1 (Abs1 s)" in pred_compI [rotated])
+ apply (rule_tac b="Rep1 (Abs1 s)" in relcomppI [rotated])
   apply (rule Quotient3_rel[symmetric, OF R1, THEN iffD2])
   apply (simp add: Quotient3_abs_rep [OF R1] Quotient3_rep_reflp [OF R1])
   apply (erule Quotient3_refl2 [OF R1])
@@ -772,22 +765,30 @@ lemma OOO_eq_quotient3:
 using assms
 by (rule OOO_quotient3) auto
 
-subsection {* Invariant *}
+subsection {* Quotient3 to Quotient *}
 
-lemma copy_type_to_Quotient3:
-  assumes "type_definition Rep Abs UNIV"
-  shows "Quotient3 (op =) Abs Rep"
-proof -
-  interpret type_definition Rep Abs UNIV by fact
-  from Abs_inject Rep_inverse show ?thesis by (auto intro!: Quotient3I)
-qed
+lemma Quotient3_to_Quotient:
+assumes "Quotient3 R Abs Rep"
+and "T \<equiv> \<lambda>x y. R x x \<and> Abs x = y"
+shows "Quotient R Abs Rep T"
+using assms unfolding Quotient3_def by (intro QuotientI) blast+
 
-lemma invariant_type_to_Quotient3:
-  assumes "type_definition Rep Abs {x. P x}"
-  shows "Quotient3 (Lifting.invariant P) Abs Rep"
-proof -
-  interpret type_definition Rep Abs "{x. P x}" by fact
-  from Rep Abs_inject Rep_inverse show ?thesis by (auto intro!: Quotient3I simp: invariant_def)
+lemma Quotient3_to_Quotient_equivp:
+assumes q: "Quotient3 R Abs Rep"
+and T_def: "T \<equiv> \<lambda>x y. Abs x = y"
+and eR: "equivp R"
+shows "Quotient R Abs Rep T"
+proof (intro QuotientI)
+  fix a
+  show "Abs (Rep a) = a" using q by(rule Quotient3_abs_rep)
+next
+  fix a
+  show "R (Rep a) (Rep a)" using q by(rule Quotient3_rep_reflp)
+next
+  fix r s
+  show "R r s = (R r r \<and> R s s \<and> Abs r = Abs s)" using q by(rule Quotient3_rel[symmetric])
+next
+  show "T = (\<lambda>x y. R x x \<and> Abs x = y)" using T_def equivp_reflp[OF eR] by simp
 qed
 
 subsection {* ML setup *}
@@ -903,3 +904,4 @@ no_notation
   fun_rel (infixr "===>" 55)
 
 end
+

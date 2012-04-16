@@ -146,17 +146,17 @@ lemma bigo_zero2: "O(\<lambda>x. 0) = {\<lambda>x. 0}"
 by (auto simp add: bigo_def)
 
 lemma bigo_plus_self_subset [intro]:
-  "O(f) \<oplus> O(f) <= O(f)"
+  "O(f) + O(f) <= O(f)"
 apply (auto simp add: bigo_alt_def set_plus_def)
 apply (rule_tac x = "c + ca" in exI)
 apply auto
 apply (simp add: ring_distribs func_plus)
 by (metis order_trans abs_triangle_ineq add_mono)
 
-lemma bigo_plus_idemp [simp]: "O(f) \<oplus> O(f) = O(f)"
+lemma bigo_plus_idemp [simp]: "O(f) + O(f) = O(f)"
 by (metis bigo_plus_self_subset bigo_zero set_eq_subset set_zero_plus2)
 
-lemma bigo_plus_subset [intro]: "O(f + g) <= O(f) \<oplus> O(g)"
+lemma bigo_plus_subset [intro]: "O(f + g) <= O(f) + O(g)"
 apply (rule subsetI)
 apply (auto simp add: bigo_def bigo_pos_const func_plus set_plus_def)
 apply (subst bigo_pos_const [symmetric])+
@@ -187,10 +187,10 @@ apply (rule conjI)
  apply (metis abs_triangle_ineq mult_le_cancel_left_pos)
 by (metis abs_ge_zero abs_of_pos zero_le_mult_iff)
 
-lemma bigo_plus_subset2 [intro]: "A <= O(f) \<Longrightarrow> B <= O(f) \<Longrightarrow> A \<oplus> B <= O(f)"
+lemma bigo_plus_subset2 [intro]: "A <= O(f) \<Longrightarrow> B <= O(f) \<Longrightarrow> A + B <= O(f)"
 by (metis bigo_plus_idemp set_plus_mono2)
 
-lemma bigo_plus_eq: "\<forall>x. 0 <= f x \<Longrightarrow> \<forall>x. 0 <= g x \<Longrightarrow> O(f + g) = O(f) \<oplus> O(g)"
+lemma bigo_plus_eq: "\<forall>x. 0 <= f x \<Longrightarrow> \<forall>x. 0 <= g x \<Longrightarrow> O(f + g) = O(f) + O(g)"
 apply (rule equalityI)
 apply (rule bigo_plus_subset)
 apply (simp add: bigo_alt_def set_plus_def func_plus)
@@ -284,25 +284,25 @@ qed
 lemma bigo_abs5: "f =o O(g) \<Longrightarrow> (\<lambda>x. abs(f x)) =o O(g)"
 by (unfold bigo_def, auto)
 
-lemma bigo_elt_subset2 [intro]: "f : g +o O(h) \<Longrightarrow> O(f) <= O(g) \<oplus> O(h)"
+lemma bigo_elt_subset2 [intro]: "f : g +o O(h) \<Longrightarrow> O(f) <= O(g) + O(h)"
 proof -
   assume "f : g +o O(h)"
-  also have "... <= O(g) \<oplus> O(h)"
+  also have "... <= O(g) + O(h)"
     by (auto del: subsetI)
-  also have "... = O(\<lambda>x. abs(g x)) \<oplus> O(\<lambda>x. abs(h x))"
+  also have "... = O(\<lambda>x. abs(g x)) + O(\<lambda>x. abs(h x))"
     by (metis bigo_abs3)
   also have "... = O((\<lambda>x. abs(g x)) + (\<lambda>x. abs(h x)))"
     by (rule bigo_plus_eq [symmetric], auto)
   finally have "f : ...".
   then have "O(f) <= ..."
     by (elim bigo_elt_subset)
-  also have "... = O(\<lambda>x. abs(g x)) \<oplus> O(\<lambda>x. abs(h x))"
+  also have "... = O(\<lambda>x. abs(g x)) + O(\<lambda>x. abs(h x))"
     by (rule bigo_plus_eq, auto)
   finally show ?thesis
     by (simp add: bigo_abs3 [symmetric])
 qed
 
-lemma bigo_mult [intro]: "O(f) \<otimes> O(g) <= O(f * g)"
+lemma bigo_mult [intro]: "O(f) * O(g) <= O(f * g)"
 apply (rule subsetI)
 apply (subst bigo_def)
 apply (auto simp del: abs_mult mult_ac
@@ -358,14 +358,14 @@ by (metis bigo_mult2 bigo_mult5 order_antisym)
 declare bigo_mult6 [simp]
 
 lemma bigo_mult7:
-"\<forall>x. f x \<noteq> 0 \<Longrightarrow> O(f * g) \<le> O(f\<Colon>'a \<Rightarrow> ('b\<Colon>linordered_field)) \<otimes> O(g)"
+"\<forall>x. f x \<noteq> 0 \<Longrightarrow> O(f * g) \<le> O(f\<Colon>'a \<Rightarrow> ('b\<Colon>linordered_field)) * O(g)"
 by (metis bigo_refl bigo_mult6 set_times_mono3)
 
 declare bigo_mult6 [simp del]
 declare bigo_mult7 [intro!]
 
 lemma bigo_mult8:
-"\<forall>x. f x \<noteq> 0 \<Longrightarrow> O(f * g) = O(f\<Colon>'a \<Rightarrow> ('b\<Colon>linordered_field)) \<otimes> O(g)"
+"\<forall>x. f x \<noteq> 0 \<Longrightarrow> O(f * g) = O(f\<Colon>'a \<Rightarrow> ('b\<Colon>linordered_field)) * O(g)"
 by (metis bigo_mult bigo_mult7 order_antisym_conv)
 
 lemma bigo_minus [intro]: "f : O(g) \<Longrightarrow> - f : O(g)"
@@ -575,7 +575,7 @@ done
 subsection {* Misc useful stuff *}
 
 lemma bigo_useful_intro: "A <= O(f) \<Longrightarrow> B <= O(f) \<Longrightarrow>
-  A \<oplus> B <= O(f)"
+  A + B <= O(f)"
   apply (subst bigo_plus_idemp [symmetric])
   apply (rule set_plus_mono2)
   apply assumption+

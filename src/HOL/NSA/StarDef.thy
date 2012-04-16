@@ -89,7 +89,13 @@ by (subgoal_tac "P \<equiv> Q", simp, simp add: atomize_eq)
 
 text {*Initialize transfer tactic.*}
 use "transfer.ML"
-setup Transfer.setup
+setup Transfer_Principle.setup
+
+method_setup transfer = {*
+  Attrib.thms >> (fn ths => fn ctxt =>
+    SIMPLE_METHOD' (Transfer_Principle.transfer_tac ctxt ths))
+*} "transfer principle"
+
 
 text {* Transfer introduction rules. *}
 
@@ -167,7 +173,7 @@ definition
   "Standard = range star_of"
 
 text {* Transfer tactic should remove occurrences of @{term star_of} *}
-setup {* Transfer.add_const "StarDef.star_of" *}
+setup {* Transfer_Principle.add_const "StarDef.star_of" *}
 
 declare star_of_def [transfer_intro]
 
@@ -194,7 +200,7 @@ by (simp add: Ifun_def star_n_def Abs_star_inverse starrel_in_star
     UN_equiv_class2 [OF equiv_starrel equiv_starrel Ifun_congruent2])
 
 text {* Transfer tactic should remove occurrences of @{term Ifun} *}
-setup {* Transfer.add_const "StarDef.Ifun" *}
+setup {* Transfer_Principle.add_const "StarDef.Ifun" *}
 
 lemma transfer_Ifun [transfer_intro]:
   "\<lbrakk>f \<equiv> star_n F; x \<equiv> star_n X\<rbrakk> \<Longrightarrow> f \<star> x \<equiv> star_n (\<lambda>n. F n (X n))"
@@ -301,7 +307,7 @@ lemma unstar_star_of [simp]: "unstar (star_of p) = p"
 by (simp add: unstar_def star_of_inject)
 
 text {* Transfer tactic should remove occurrences of @{term unstar} *}
-setup {* Transfer.add_const "StarDef.unstar" *}
+setup {* Transfer_Principle.add_const "StarDef.unstar" *}
 
 lemma transfer_unstar [transfer_intro]:
   "p \<equiv> star_n P \<Longrightarrow> unstar p \<equiv> {n. P n} \<in> \<U>"
@@ -343,7 +349,7 @@ lemma Iset_star_n:
 by (simp add: Iset_def starP2_star_n)
 
 text {* Transfer tactic should remove occurrences of @{term Iset} *}
-setup {* Transfer.add_const "StarDef.Iset" *}
+setup {* Transfer_Principle.add_const "StarDef.Iset" *}
 
 lemma transfer_mem [transfer_intro]:
   "\<lbrakk>x \<equiv> star_n X; a \<equiv> Iset (star_n A)\<rbrakk>

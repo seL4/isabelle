@@ -90,7 +90,7 @@ text {*
 lemma h'_lf:
   assumes h'_def: "h' \<equiv> \<lambda>x. let (y, a) =
       SOME (y, a). x = y + a \<cdot> x0 \<and> y \<in> H in h y + a * xi"
-    and H'_def: "H' \<equiv> H \<oplus> lin x0"
+    and H'_def: "H' \<equiv> H + lin x0"
     and HE: "H \<unlhd> E"
   assumes "linearform H h"
   assumes x0: "x0 \<notin> H"  "x0 \<in> E"  "x0 \<noteq> 0"
@@ -106,7 +106,7 @@ proof -
     proof (unfold H'_def)
       from `x0 \<in> E`
       have "lin x0 \<unlhd> E" ..
-      with HE show "vectorspace (H \<oplus> lin x0)" using E ..
+      with HE show "vectorspace (H + lin x0)" using E ..
     qed
     {
       fix x1 x2 assume x1: "x1 \<in> H'" and x2: "x2 \<in> H'"
@@ -194,7 +194,7 @@ text {* \medskip The linear extension @{text h'} of @{text h}
 lemma h'_norm_pres:
   assumes h'_def: "h' \<equiv> \<lambda>x. let (y, a) =
       SOME (y, a). x = y + a \<cdot> x0 \<and> y \<in> H in h y + a * xi"
-    and H'_def: "H' \<equiv> H \<oplus> lin x0"
+    and H'_def: "H' \<equiv> H + lin x0"
     and x0: "x0 \<notin> H"  "x0 \<in> E"  "x0 \<noteq> 0"
   assumes E: "vectorspace E" and HE: "subspace H E"
     and "seminorm E p" and "linearform H h"

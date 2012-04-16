@@ -1,4 +1,4 @@
-(*  Title:      HOL/Mirabelle/Tools/mirabelle_metis.ML
+(*  Title:      HOL/Mirabelle/Actions/mirabelle_metis.ML
     Author:     Jasmin Blanchette and Sascha Boehme, TU Munich
 *)
 

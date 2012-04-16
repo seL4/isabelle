@@ -423,13 +423,10 @@ lemma one_zeroD:
 proof (rule, rule)
   fix x
   assume xcarr: "x \<in> carrier R"
-  from xcarr
-      have "x = x \<otimes> \<one>" by simp
-  from this and onezero
-      have "x = x \<otimes> \<zero>" by simp
-  from this and xcarr
-      have "x = \<zero>" by simp
-  thus "x \<in> {\<zero>}" by fast
+  from xcarr have "x = x \<otimes> \<one>" by simp
+  with onezero have "x = x \<otimes> \<zero>" by simp
+  with xcarr have "x = \<zero>" by simp
+  then show "x \<in> {\<zero>}" by fast
 qed fast
 
 lemma one_zeroI:
@@ -550,11 +547,9 @@ lemma (in cring) cring_fieldI:
   assumes field_Units: "Units R = carrier R - {\<zero>}"
   shows "field R"
 proof
-  from field_Units
-  have a: "\<zero> \<notin> Units R" by fast
-  have "\<one> \<in> Units R" by fast
-  from this and a
-  show "\<one> \<noteq> \<zero>" by force
+  from field_Units have "\<zero> \<notin> Units R" by fast
+  moreover have "\<one> \<in> Units R" by fast
+  ultimately show "\<one> \<noteq> \<zero>" by force
 next
   fix a b
   assume acarr: "a \<in> carrier R"
@@ -563,21 +558,15 @@ next
   show "a = \<zero> \<or> b = \<zero>"
   proof (cases "a = \<zero>", simp)
     assume "a \<noteq> \<zero>"
-    from this and field_Units and acarr
-    have aUnit: "a \<in> Units R" by fast
-    from bcarr
-    have "b = \<one> \<otimes> b" by algebra
-    also from aUnit acarr
-    have "... = (inv a \<otimes> a) \<otimes> b" by simp
+    with field_Units and acarr have aUnit: "a \<in> Units R" by fast
+    from bcarr have "b = \<one> \<otimes> b" by algebra
+    also from aUnit acarr have "... = (inv a \<otimes> a) \<otimes> b" by simp
     also from acarr bcarr aUnit[THEN Units_inv_closed]
     have "... = (inv a) \<otimes> (a \<otimes> b)" by algebra
-    also from ab and acarr bcarr aUnit
-    have "... = (inv a) \<otimes> \<zero>" by simp
-    also from aUnit[THEN Units_inv_closed]
-    have "... = \<zero>" by algebra
-    finally
-    have "b = \<zero>" .
-    thus "a = \<zero> \<or> b = \<zero>" by simp
+    also from ab and acarr bcarr aUnit have "... = (inv a) \<otimes> \<zero>" by simp
+    also from aUnit[THEN Units_inv_closed] have "... = \<zero>" by algebra
+    finally have "b = \<zero>" .
+    then show "a = \<zero> \<or> b = \<zero>" by simp
   qed
 qed (rule field_Units)
 
@@ -593,16 +582,10 @@ proof (clarsimp)
   fix x
   assume xcarr: "x \<in> carrier R"
     and "x \<noteq> \<zero>"
-  from this
-  have "\<exists>y\<in>carrier R. x \<otimes> y = \<one>" by (rule invex)
-  from this
-  obtain y
-    where ycarr: "y \<in> carrier R"
-    and xy: "x \<otimes> y = \<one>"
-    by fast
+  then have "\<exists>y\<in>carrier R. x \<otimes> y = \<one>" by (rule invex)
+  then obtain y where ycarr: "y \<in> carrier R" and xy: "x \<otimes> y = \<one>" by fast
   from xy xcarr ycarr have "y \<otimes> x = \<one>" by (simp add: m_comm)
-  from ycarr and this and xy
-  show "\<exists>y\<in>carrier R. y \<otimes> x = \<one> \<and> x \<otimes> y = \<one>" by fast
+  with ycarr and xy show "\<exists>y\<in>carrier R. y \<otimes> x = \<one> \<and> x \<otimes> y = \<one>" by fast
 qed
 
 

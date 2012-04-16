@@ -1058,8 +1058,7 @@ lemma real_mult_le_cancel_iff1 [simp]: "(0::real) < z ==> (x*z \<le> y*z) = (x\<
 by simp (* solved by linordered_ring_le_cancel_factor simproc *)
 
 lemma real_mult_le_cancel_iff2 [simp]: "(0::real) < z ==> (z*x \<le> z*y) = (x\<le>y)"
-by (rule mult_le_cancel_left_pos)
-(* BH: Why doesn't "simp" prove this one, like it does the last one? *)
+by simp (* solved by linordered_ring_le_cancel_factor simproc *)
 
 
 subsection {* Embedding numbers into the Reals *}
@@ -1252,7 +1251,7 @@ lemma real_of_nat_le_iff [iff]: "(real (n::nat) \<le> real m) = (n \<le> m)"
 by (simp add: real_of_nat_def)
 
 lemma real_of_nat_ge_zero [iff]: "0 \<le> real (n::nat)"
-by (simp add: real_of_nat_def zero_le_imp_of_nat)
+by (simp add: real_of_nat_def)
 
 lemma real_of_nat_Suc_gt_zero: "0 < real (Suc n)"
 by (simp add: real_of_nat_def del: of_nat_Suc)

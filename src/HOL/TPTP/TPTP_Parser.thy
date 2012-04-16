@@ -17,6 +17,7 @@ uses
   "TPTP_Parser/tptp_lexyacc.ML" (*generated from tptp.lex and tptp.yacc*)
   "TPTP_Parser/tptp_parser.ML"
   "TPTP_Parser/tptp_problem_name.ML"
+  "TPTP_Parser/tptp_proof.ML"
   "TPTP_Parser/tptp_interpret.ML"
 
 begin

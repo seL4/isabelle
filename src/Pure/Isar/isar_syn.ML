@@ -464,7 +464,7 @@ fun parse_interpretation_arguments mandatory =
       (Parse.where_ |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)) [];
 
 val _ =
-  Outer_Syntax.command ("sublocale", Keyword.thy_goal)
+  Outer_Syntax.command ("sublocale", Keyword.thy_schematic_goal)
     "prove sublocale relation between a locale and a locale expression"
     (Parse.position Parse.xname --| (Parse.$$$ "\\<subseteq>" || Parse.$$$ "<") --
       parse_interpretation_arguments false
@@ -472,7 +472,7 @@ val _ =
           Toplevel.print o Toplevel.theory_to_proof (Expression.sublocale_cmd I loc expr equations)));
 
 val _ =
-  Outer_Syntax.command ("interpretation", Keyword.thy_goal)
+  Outer_Syntax.command ("interpretation", Keyword.thy_schematic_goal)
     "prove interpretation of locale expression in theory"
     (parse_interpretation_arguments true
       >> (fn (expr, equations) => Toplevel.print o

@@ -294,7 +294,7 @@ text {*
 *}
 
 
-subsection {* Facts and forward chaining *}
+subsection {* Facts and forward chaining \label{sec:proof-facts} *}
 
 text {*
   \begin{matharray}{rcl}
@@ -440,7 +440,7 @@ text {*
   
     goal: (@{syntax props} + @'and')
     ;
-    longgoal: @{syntax thmdecl}? (@{syntax context_elem} * ) conclusion
+    longgoal: @{syntax thmdecl}? (@{syntax_ref \"includes\"}?) (@{syntax context_elem} * ) conclusion
     ;
     conclusion: @'shows' goal | @'obtains' (@{syntax parname}? case + '|')
     ;
@@ -454,8 +454,8 @@ text {*
   \<phi>"} to be put back into the target context.  An additional @{syntax
   context} specification may build up an initial proof context for the
   subsequent claim; this includes local definitions and syntax as
-  well, see the definition of @{syntax context_elem} in
-  \secref{sec:locale}.
+  well, see also @{syntax "includes"} in \secref{sec:bundle} and
+  @{syntax context_elem} in \secref{sec:locale}.
   
   \item @{command "theorem"}~@{text "a: \<phi>"} and @{command
   "corollary"}~@{text "a: \<phi>"} are essentially the same as @{command

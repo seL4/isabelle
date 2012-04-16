@@ -8,11 +8,16 @@
 PRG="$(basename "$0")"
 
 function print_action_names() {
-  TOOLS="$MIRABELLE_HOME/Tools/mirabelle_*.ML"
-  for NAME in $TOOLS
+  ACTIONS="$MIRABELLE_HOME/Actions/mirabelle_*.ML"
+  for ACTION in $ACTIONS
   do
-    echo $NAME | sed 's/.*mirabelle_\(.*\)\.ML/    \1/'
+    echo $ACTION | perl -w -p -e 's/.*mirabelle_(.*)\.ML/    $1/'
   done
+}
+
+function print_sledgehammer_options() {
+  grep -e "^val .*K =" $MIRABELLE_HOME/Actions/mirabelle_sledgehammer.ML \
+  | perl -w -p -e 's/val .*K *= *"(.*)" *\(\*(.*)\*\)/    $1$2/'
 }
 
 function usage() {
@@ -36,18 +41,7 @@ function usage() {
   print_action_names
   echo
   echo "  Available OPTIONs for the ACTION sledgehammer:"
-  echo "    * prover=NAME: name of the external prover to call"
-  echo "    * prover_timeout=TIME: timeout for invoked ATP (seconds of process time)"
-  echo "    * prover_hard_timeout=TIME: timeout for invoked ATP (seconds of elapsed"
-  echo "      time)"
-  echo "    * keep=PATH: path where to keep temporary files created by sledgehammer"
-  echo "    * full_types: enable fully-typed encoding"
-  echo "    * minimize: enable minimization of theorem set found by sledgehammer"
-  echo "    * minimize_timeout=TIME: timeout for each minimization step (seconds of"
-  echo "      process time)"
-  echo "    * metis: apply metis to the theorems found by sledgehammer"
-  echo "    * metis_ft: apply metis with fully-typed encoding to the theorems found"
-  echo "      by sledgehammer"
+  print_sledgehammer_options
   echo
   echo "  FILES is a list of theory files, where each file is either NAME.thy"
   echo "  or NAME.thy[START:END] and START and END are numbers indicating the"
@@ -66,6 +60,8 @@ function fail()
 ## process command line
 
 # options
+
+[ $# -eq 0 ] && usage
 
 while getopts "L:T:O:t:q?" OPT
 do

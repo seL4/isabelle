@@ -85,18 +85,20 @@ syntax (xsymbols)
 syntax (HTML output)
   "_filter" :: "[pttrn, 'a list, bool] => 'a list"("(1[_\<leftarrow>_ ./ _])")
 
-primrec -- {* canonical argument order *}
-  fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b" where
-    "fold f [] = id"
-  | "fold f (x # xs) = fold f xs \<circ> f x"
+primrec fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b"
+where
+  fold_Nil:  "fold f [] = id"
+| fold_Cons: "fold f (x # xs) = fold f xs \<circ> f x" -- {* natural argument order *}
 
-definition 
-  foldr :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b" where
-  [code_abbrev]: "foldr f xs = fold f (rev xs)"
+primrec foldr :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b"
+where
+  foldr_Nil:  "foldr f [] = id"
+| foldr_Cons: "foldr f (x # xs) = f x \<circ> foldr f xs" -- {* natural argument order *}
 
-definition
-  foldl :: "('b \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a list \<Rightarrow> 'b" where
-  "foldl f s xs = fold (\<lambda>x s. f s x)  xs s"
+primrec foldl :: "('b \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a list \<Rightarrow> 'b"
+where
+  foldl_Nil:  "foldl f a [] = a"
+| foldl_Cons: "foldl f a (x # xs) = foldl f (f a x) xs"
 
 primrec
   concat:: "'a list list \<Rightarrow> 'a list" where
@@ -250,8 +252,8 @@ text{*
 @{lemma[source] "filter (\<lambda>n::nat. n<2) [0,2,1] = [0,1]" by simp}\\
 @{lemma "concat [[a,b],[c,d,e],[],[f]] = [a,b,c,d,e,f]" by simp}\\
 @{lemma "fold f [a,b,c] x = f c (f b (f a x))" by simp}\\
-@{lemma "foldr f [a,b,c] x = f a (f b (f c x))" by (simp add: foldr_def)}\\
-@{lemma "foldl f x [a,b,c] = f (f (f x a) b) c" by (simp add: foldl_def)}\\
+@{lemma "foldr f [a,b,c] x = f a (f b (f c x))" by simp}\\
+@{lemma "foldl f x [a,b,c] = f (f (f x a) b) c" by simp}\\
 @{lemma "zip [a,b,c] [x,y,z] = [(a,x),(b,y),(c,z)]" by simp}\\
 @{lemma "zip [a,b] [x,y,z] = [(a,x),(b,y)]" by simp}\\
 @{lemma "splice [a,b,c] [x,y,z] = [a,x,b,y,c,z]" by simp}\\
@@ -277,7 +279,7 @@ text{*
 @{lemma "rotate 3 [a,b,c,d] = [d,a,b,c]" by (simp add:rotate_def eval_nat_numeral)}\\
 @{lemma "replicate 4 a = [a,a,a,a]" by (simp add:eval_nat_numeral)}\\
 @{lemma "[2..<5] = [2,3,4]" by (simp add:eval_nat_numeral)}\\
-@{lemma "listsum [1,2,3::nat] = 6" by (simp add: listsum_def foldr_def)}
+@{lemma "listsum [1,2,3::nat] = 6" by (simp add: listsum_def)}
 \end{tabular}}
 \caption{Characteristic examples}
 \label{fig:Characteristic}
@@ -2387,7 +2389,7 @@ lemma list_eq_iff_zip_eq:
 by(auto simp add: set_zip list_all2_eq list_all2_conv_all_nth cong: conj_cong)
 
 
-subsubsection {* @{const fold} with canonical argument order *}
+subsubsection {* @{const fold} with natural argument order *}
 
 lemma fold_remove1_split:
   assumes f: "\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> f x \<circ> f y = f y \<circ> f x"
@@ -2477,7 +2479,7 @@ proof -
   qed
 qed
 
-lemma union_set_fold:
+lemma union_set_fold [code]:
   "set xs \<union> A = fold Set.insert xs A"
 proof -
   interpret comp_fun_idem Set.insert
@@ -2485,7 +2487,11 @@ proof -
   show ?thesis by (simp add: union_fold_insert fold_set_fold)
 qed
 
-lemma minus_set_fold:
+lemma union_coset_filter [code]:
+  "List.coset xs \<union> A = List.coset (List.filter (\<lambda>x. x \<notin> A) xs)"
+  by auto
+
+lemma minus_set_fold [code]:
   "A - set xs = fold Set.remove xs A"
 proof -
   interpret comp_fun_idem Set.remove
@@ -2493,6 +2499,18 @@ proof -
   show ?thesis
     by (simp add: minus_fold_remove [of _ A] fold_set_fold)
 qed
+
+lemma minus_coset_filter [code]:
+  "A - List.coset xs = set (List.filter (\<lambda>x. x \<in> A) xs)"
+  by auto
+
+lemma inter_set_filter [code]:
+  "A \<inter> set xs = set (List.filter (\<lambda>x. x \<in> A) xs)"
+  by auto
+
+lemma inter_coset_fold [code]:
+  "A \<inter> List.coset xs = fold Set.remove xs A"
+  by (simp add: Diff_eq [symmetric] minus_set_fold)
 
 lemma (in lattice) Inf_fin_set_fold:
   "Inf_fin (set (x # xs)) = fold inf xs x"
@@ -2503,6 +2521,8 @@ proof -
     by (simp add: Inf_fin_def fold1_set_fold del: set.simps)
 qed
 
+declare Inf_fin_set_fold [code]
+
 lemma (in lattice) Sup_fin_set_fold:
   "Sup_fin (set (x # xs)) = fold sup xs x"
 proof -
@@ -2511,6 +2531,8 @@ proof -
   show ?thesis
     by (simp add: Sup_fin_def fold1_set_fold del: set.simps)
 qed
+
+declare Sup_fin_set_fold [code]
 
 lemma (in linorder) Min_fin_set_fold:
   "Min (set (x # xs)) = fold min xs x"
@@ -2521,6 +2543,8 @@ proof -
     by (simp add: Min_def fold1_set_fold del: set.simps)
 qed
 
+declare Min_fin_set_fold [code]
+
 lemma (in linorder) Max_fin_set_fold:
   "Max (set (x # xs)) = fold max xs x"
 proof -
@@ -2530,6 +2554,8 @@ proof -
     by (simp add: Max_def fold1_set_fold del: set.simps)
 qed
 
+declare Max_fin_set_fold [code]
+
 lemma (in complete_lattice) Inf_set_fold:
   "Inf (set xs) = fold inf xs top"
 proof -
@@ -2537,6 +2563,8 @@ proof -
     by (fact comp_fun_idem_inf)
   show ?thesis by (simp add: Inf_fold_inf fold_set_fold inf_commute)
 qed
+
+declare Inf_set_fold [where 'a = "'a set", code]
 
 lemma (in complete_lattice) Sup_set_fold:
   "Sup (set xs) = fold sup xs bot"
@@ -2546,137 +2574,72 @@ proof -
   show ?thesis by (simp add: Sup_fold_sup fold_set_fold sup_commute)
 qed
 
+declare Sup_set_fold [where 'a = "'a set", code]
+
 lemma (in complete_lattice) INF_set_fold:
   "INFI (set xs) f = fold (inf \<circ> f) xs top"
   unfolding INF_def set_map [symmetric] Inf_set_fold fold_map ..
+
+declare INF_set_fold [code]
 
 lemma (in complete_lattice) SUP_set_fold:
   "SUPR (set xs) f = fold (sup \<circ> f) xs bot"
   unfolding SUP_def set_map [symmetric] Sup_set_fold fold_map ..
 
+declare SUP_set_fold [code]
 
 subsubsection {* Fold variants: @{const foldr} and @{const foldl} *}
 
 text {* Correspondence *}
 
-lemma foldr_foldl: -- {* The ``Third Duality Theorem'' in Bird \& Wadler: *}
-  "foldr f xs a = foldl (\<lambda>x y. f y x) a (rev xs)"
-  by (simp add: foldr_def foldl_def)
+lemma foldr_conv_fold [code_abbrev]:
+  "foldr f xs = fold f (rev xs)"
+  by (induct xs) simp_all
 
-lemma foldl_foldr:
+lemma foldl_conv_fold:
+  "foldl f s xs = fold (\<lambda>x s. f s x) xs s"
+  by (induct xs arbitrary: s) simp_all
+
+lemma foldr_conv_foldl: -- {* The ``Third Duality Theorem'' in Bird \& Wadler: *}
+  "foldr f xs a = foldl (\<lambda>x y. f y x) a (rev xs)"
+  by (simp add: foldr_conv_fold foldl_conv_fold)
+
+lemma foldl_conv_foldr:
   "foldl f a xs = foldr (\<lambda>x y. f y x) (rev xs) a"
-  by (simp add: foldr_def foldl_def)
+  by (simp add: foldr_conv_fold foldl_conv_fold)
 
 lemma foldr_fold:
   assumes "\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> f y \<circ> f x = f x \<circ> f y"
   shows "foldr f xs = fold f xs"
-  using assms unfolding foldr_def by (rule fold_rev)
-
-lemma
-  foldr_Nil [code, simp]: "foldr f [] = id"
-  and foldr_Cons [code, simp]: "foldr f (x # xs) = f x \<circ> foldr f xs"
-  by (simp_all add: foldr_def)
-
-lemma
-  foldl_Nil [simp]: "foldl f a [] = a"
-  and foldl_Cons [simp]: "foldl f a (x # xs) = foldl f (f a x) xs"
-  by (simp_all add: foldl_def)
+  using assms unfolding foldr_conv_fold by (rule fold_rev)
 
 lemma foldr_cong [fundef_cong]:
   "a = b \<Longrightarrow> l = k \<Longrightarrow> (\<And>a x. x \<in> set l \<Longrightarrow> f x a = g x a) \<Longrightarrow> foldr f l a = foldr g k b"
-  by (auto simp add: foldr_def intro!: fold_cong)
+  by (auto simp add: foldr_conv_fold intro!: fold_cong)
 
 lemma foldl_cong [fundef_cong]:
   "a = b \<Longrightarrow> l = k \<Longrightarrow> (\<And>a x. x \<in> set l \<Longrightarrow> f a x = g a x) \<Longrightarrow> foldl f a l = foldl g b k"
-  by (auto simp add: foldl_def intro!: fold_cong)
+  by (auto simp add: foldl_conv_fold intro!: fold_cong)
 
 lemma foldr_append [simp]:
   "foldr f (xs @ ys) a = foldr f xs (foldr f ys a)"
-  by (simp add: foldr_def)
+  by (simp add: foldr_conv_fold)
 
 lemma foldl_append [simp]:
   "foldl f a (xs @ ys) = foldl f (foldl f a xs) ys"
-  by (simp add: foldl_def)
+  by (simp add: foldl_conv_fold)
 
 lemma foldr_map [code_unfold]:
   "foldr g (map f xs) a = foldr (g o f) xs a"
-  by (simp add: foldr_def fold_map rev_map)
+  by (simp add: foldr_conv_fold fold_map rev_map)
 
 lemma foldl_map [code_unfold]:
   "foldl g a (map f xs) = foldl (\<lambda>a x. g a (f x)) a xs"
-  by (simp add: foldl_def fold_map comp_def)
-
-text {* Executing operations in terms of @{const foldr} -- tail-recursive! *}
+  by (simp add: foldl_conv_fold fold_map comp_def)
 
 lemma concat_conv_foldr [code]:
   "concat xss = foldr append xss []"
-  by (simp add: fold_append_concat_rev foldr_def)
-
-lemma minus_set_foldr [code]:
-  "A - set xs = foldr Set.remove xs A"
-proof -
-  have "\<And>x y :: 'a. Set.remove y \<circ> Set.remove x = Set.remove x \<circ> Set.remove y"
-    by (auto simp add: remove_def)
-  then show ?thesis by (simp add: minus_set_fold foldr_fold)
-qed
-
-lemma subtract_coset_filter [code]:
-  "A - List.coset xs = set (List.filter (\<lambda>x. x \<in> A) xs)"
-  by auto
-
-lemma union_set_foldr [code]:
-  "set xs \<union> A = foldr Set.insert xs A"
-proof -
-  have "\<And>x y :: 'a. insert y \<circ> insert x = insert x \<circ> insert y"
-    by auto
-  then show ?thesis by (simp add: union_set_fold foldr_fold)
-qed
-
-lemma union_coset_foldr [code]:
-  "List.coset xs \<union> A = List.coset (List.filter (\<lambda>x. x \<notin> A) xs)"
-  by auto
-
-lemma inter_set_filer [code]:
-  "A \<inter> set xs = set (List.filter (\<lambda>x. x \<in> A) xs)"
-  by auto
-
-lemma inter_coset_foldr [code]:
-  "A \<inter> List.coset xs = foldr Set.remove xs A"
-  by (simp add: Diff_eq [symmetric] minus_set_foldr)
-
-lemma (in lattice) Inf_fin_set_foldr [code]:
-  "Inf_fin (set (x # xs)) = foldr inf xs x"
-  by (simp add: Inf_fin_set_fold ac_simps foldr_fold fun_eq_iff del: set.simps)
-
-lemma (in lattice) Sup_fin_set_foldr [code]:
-  "Sup_fin (set (x # xs)) = foldr sup xs x"
-  by (simp add: Sup_fin_set_fold ac_simps foldr_fold fun_eq_iff del: set.simps)
-
-lemma (in linorder) Min_fin_set_foldr [code]:
-  "Min (set (x # xs)) = foldr min xs x"
-  by (simp add: Min_fin_set_fold ac_simps foldr_fold fun_eq_iff del: set.simps)
-
-lemma (in linorder) Max_fin_set_foldr [code]:
-  "Max (set (x # xs)) = foldr max xs x"
-  by (simp add: Max_fin_set_fold ac_simps foldr_fold fun_eq_iff del: set.simps)
-
-lemma (in complete_lattice) Inf_set_foldr:
-  "Inf (set xs) = foldr inf xs top"
-  by (simp add: Inf_set_fold ac_simps foldr_fold fun_eq_iff)
-
-lemma (in complete_lattice) Sup_set_foldr:
-  "Sup (set xs) = foldr sup xs bot"
-  by (simp add: Sup_set_fold ac_simps foldr_fold fun_eq_iff)
-
-declare Inf_set_foldr [where 'a = "'a set", code] Sup_set_foldr [where 'a = "'a set", code]
-
-lemma (in complete_lattice) INF_set_foldr [code]:
-  "INFI (set xs) f = foldr (inf \<circ> f) xs top"
-  by (simp only: INF_def Inf_set_foldr foldr_map set_map [symmetric])
-
-lemma (in complete_lattice) SUP_set_foldr [code]:
-  "SUPR (set xs) f = foldr (sup \<circ> f) xs bot"
-  by (simp only: SUP_def Sup_set_foldr foldr_map set_map [symmetric])
+  by (simp add: fold_append_concat_rev foldr_conv_fold)
 
 
 subsubsection {* @{text upt} *}
@@ -3108,7 +3071,7 @@ lemma (in monoid_add) listsum_append [simp]:
 
 lemma (in comm_monoid_add) listsum_rev [simp]:
   "listsum (rev xs) = listsum xs"
-  by (simp add: listsum_def foldr_def fold_rev fun_eq_iff add_ac)
+  by (simp add: listsum_def foldr_fold fold_rev fun_eq_iff add_ac)
 
 lemma (in monoid_add) fold_plus_listsum_rev:
   "fold plus xs = plus (listsum (rev xs))"
@@ -3116,39 +3079,11 @@ proof
   fix x
   have "fold plus xs x = fold plus xs (x + 0)" by simp
   also have "\<dots> = fold plus (x # xs) 0" by simp
-  also have "\<dots> = foldr plus (rev xs @ [x]) 0" by (simp add: foldr_def)
+  also have "\<dots> = foldr plus (rev xs @ [x]) 0" by (simp add: foldr_conv_fold)
   also have "\<dots> = listsum (rev xs @ [x])" by (simp add: listsum_def)
   also have "\<dots> = listsum (rev xs) + listsum [x]" by simp
   finally show "fold plus xs x = listsum (rev xs) + x" by simp
 qed
-
-lemma (in semigroup_add) foldl_assoc:
-  "foldl plus (x + y) zs = x + foldl plus y zs"
-  by (simp add: foldl_def fold_commute_apply [symmetric] fun_eq_iff add_assoc)
-
-lemma (in ab_semigroup_add) foldr_conv_foldl:
-  "foldr plus xs a = foldl plus a xs"
-  by (simp add: foldl_def foldr_fold fun_eq_iff add_ac)
-
-text {*
-  Note: @{text "n \<le> foldl (op +) n ns"} looks simpler, but is more
-  difficult to use because it requires an additional transitivity step.
-*}
-
-lemma start_le_sum:
-  fixes m n :: nat
-  shows "m \<le> n \<Longrightarrow> m \<le> foldl plus n ns"
-  by (simp add: foldl_def add_commute fold_plus_listsum_rev)
-
-lemma elem_le_sum:
-  fixes m n :: nat 
-  shows "n \<in> set ns \<Longrightarrow> n \<le> foldl plus 0 ns"
-  by (force intro: start_le_sum simp add: in_set_conv_decomp)
-
-lemma sum_eq_0_conv [iff]:
-  fixes m :: nat
-  shows "foldl plus m ns = 0 \<longleftrightarrow> m = 0 \<and> (\<forall>n \<in> set ns. n = 0)"
-  by (induct ns arbitrary: m) auto
 
 text{* Some syntactic sugar for summing a function over a list: *}
 
@@ -3186,17 +3121,18 @@ lemma (in monoid_add) distinct_listsum_conv_Setsum:
 
 lemma listsum_eq_0_nat_iff_nat [simp]:
   "listsum ns = (0::nat) \<longleftrightarrow> (\<forall>n \<in> set ns. n = 0)"
-  by (simp add: listsum_def foldr_conv_foldl)
+  by (induct ns) simp_all
+
+lemma member_le_listsum_nat:
+  "(n :: nat) \<in> set ns \<Longrightarrow> n \<le> listsum ns"
+  by (induct ns) auto
 
 lemma elem_le_listsum_nat:
   "k < size ns \<Longrightarrow> ns ! k \<le> listsum (ns::nat list)"
-apply(induct ns arbitrary: k)
- apply simp
-apply(fastforce simp add:nth_Cons split: nat.split)
-done
+  by (rule member_le_listsum_nat) simp
 
 lemma listsum_update_nat:
-  "k<size ns \<Longrightarrow> listsum (ns[k := (n::nat)]) = listsum ns + n - ns ! k"
+  "k < size ns \<Longrightarrow> listsum (ns[k := (n::nat)]) = listsum ns + n - ns ! k"
 apply(induct ns arbitrary:k)
  apply (auto split:nat.split)
 apply(drule elem_le_listsum_nat)
@@ -4053,7 +3989,7 @@ proof -
     show "(insort_key f y \<circ> insort_key f x) zs = (insort_key f x \<circ> insort_key f y) zs"
       by (induct zs) (auto intro: * simp add: **)
   qed
-  then show ?thesis by (simp add: sort_key_def foldr_def)
+  then show ?thesis by (simp add: sort_key_def foldr_conv_fold)
 qed
 
 lemma (in linorder) sort_conv_fold:
@@ -4601,7 +4537,7 @@ lemmas lists_IntI = listsp_infI [to_set]
 lemma listsp_inf_eq [simp]: "listsp (inf A B) = inf (listsp A) (listsp B)"
 proof (rule mono_inf [where f=listsp, THEN order_antisym])
   show "mono listsp" by (simp add: mono_def listsp_mono)
-  show "inf (listsp A) (listsp B) \<le> listsp (inf A B)" by (blast intro!: listsp_infI predicate1I)
+  show "inf (listsp A) (listsp B) \<le> listsp (inf A B)" by (blast intro!: listsp_infI)
 qed
 
 lemmas listsp_conj_eq [simp] = listsp_inf_eq [simplified inf_fun_def inf_bool_def]
@@ -5631,8 +5567,6 @@ code_const list_ex
 
 subsubsection {* Implementation of sets by lists *}
 
-text {* Basic operations *}
-
 lemma is_empty_set [code]:
   "Set.is_empty (set xs) \<longleftrightarrow> List.null xs"
   by (simp add: Set.is_empty_def null_def)
@@ -5676,6 +5610,17 @@ lemma image_set [code]:
   "image f (set xs) = set (map f xs)"
   by simp
 
+lemma subset_code [code]:
+  "set xs \<le> B \<longleftrightarrow> (\<forall>x\<in>set xs. x \<in> B)"
+  "A \<le> List.coset ys \<longleftrightarrow> (\<forall>y\<in>set ys. y \<notin> A)"
+  "List.coset [] \<le> set [] \<longleftrightarrow> False"
+  by auto
+
+text {* A frequent case – avoid intermediate sets *}
+lemma [code_unfold]:
+  "set xs \<subseteq> set ys \<longleftrightarrow> list_all (\<lambda>x. x \<in> set ys) xs"
+  by (auto simp: list_all_iff)
+
 lemma Ball_set [code]:
   "Ball (set xs) P \<longleftrightarrow> list_all P xs"
   by (simp add: list_all_iff)
@@ -5701,20 +5646,6 @@ lemma Pow_set [code]:
   "Pow (set (x # xs)) = (let A = Pow (set xs) in A \<union> insert x ` A)"
   by (simp_all add: Pow_insert Let_def)
 
-text {* Further operations on sets *}
-
-(* Minimal refinement of equality on sets *)
-declare subset_eq[code del]
-lemma subset_code [code]:
-  "set xs <= B \<longleftrightarrow> (ALL x : set xs. x : B)"
-  "List.coset xs <= List.coset ys \<longleftrightarrow> set ys <= set xs"
-  "List.coset [] <= set [] \<longleftrightarrow> False"
-by auto
-
-text{* Optimising a frequent case: *}
-lemma [code_unfold]: "set xs \<subseteq> set ys \<longleftrightarrow> list_all (\<lambda>x. x \<in> set ys) xs"
-by (auto simp: list_all_iff)
-
 lemma setsum_code [code]:
   "setsum f (set xs) = listsum (map f (remdups xs))"
 by (simp add: listsum_distinct_conv_setsum_set)
@@ -5724,8 +5655,7 @@ definition map_project :: "('a \<Rightarrow> 'b option) \<Rightarrow> 'a set \<R
 
 lemma [code]:
   "map_project f (set xs) = set (List.map_filter f xs)"
-unfolding map_project_def map_filter_def
-by auto (metis (lifting, mono_tags) CollectI image_eqI o_apply the.simps)
+  by (auto simp add: map_project_def map_filter_def image_def)
 
 hide_const (open) map_project
 
@@ -5747,7 +5677,7 @@ lemma trancl_set_ntrancl [code]:
   "trancl (set xs) = ntrancl (card (set xs) - 1) (set xs)"
   by (simp add: finite_trancl_ntranl)
 
-lemma set_rel_comp [code]:
+lemma set_relcomp [code]:
   "set xys O set yzs = set ([(fst xy, snd yz). xy \<leftarrow> xys, yz \<leftarrow> yzs, snd xy = fst yz])"
   by (auto simp add: Bex_def)
 
@@ -5756,3 +5686,4 @@ lemma wf_set [code]:
   by (simp add: wf_iff_acyclic_if_finite)
 
 end
+

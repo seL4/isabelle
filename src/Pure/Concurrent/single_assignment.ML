@@ -46,7 +46,7 @@ fun await (v as Var {name, lock, cond, ...}) =
 fun assign (v as Var {name, lock, cond, var}) x =
   Simple_Thread.synchronized name lock (fn () =>
     (case peek v of
-      SOME _ => raise Fail ("Duplicate assignment to variable " ^ quote name)
+      SOME _ => raise Fail ("Duplicate assignment to " ^ name)
     | NONE =>
         uninterruptible (fn _ => fn () =>
          (SingleAssignment.saset (var, x); ConditionVar.broadcast cond)) ()));

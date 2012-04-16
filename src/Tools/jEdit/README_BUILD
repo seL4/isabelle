@@ -1,24 +1,24 @@
 Requirements for instantaneous build from sources
 =================================================
 
-* Official Java JDK 1.6 from Sun/Oracle/Apple
+* Official Java JDK 1.6/1.7 from Sun/Oracle/Apple
   http://www.oracle.com/technetwork/java/javase/downloads/index.html
 
-  (or JDK/OpenJDK 1.7, but not OpenJDK 1.6)
+  (or OpenJDK 1.7, but not OpenJDK 1.6)
 
-* Scala 2.8.2.final or 2.9.1-1
+* Scala 2.9.2 (or 2.8.2.final)
   http://www.scala-lang.org
 
   (experimental support for Scala 2.10.x milestones)
 
 * Auxiliary jedit_build component
-  http://www4.in.tum.de/~wenzelm/test/jedit_build-20120327.tar.gz
+  http://www4.in.tum.de/~wenzelm/test/jedit_build-20120414.tar.gz
 
 
 Important settings within Isabelle environment
 ==============================================
 
-* init_component ".../jedit_build-20120327"
+* init_component ".../jedit_build-20120414"
 * ISABELLE_JDK_HOME
 * SCALA_HOME
 

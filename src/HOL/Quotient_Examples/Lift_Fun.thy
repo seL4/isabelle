@@ -1,4 +1,4 @@
-(*  Title:      HOL/Quotient3_Examples/Lift_Fun.thy
+(*  Title:      HOL/Quotient_Examples/Lift_Fun.thy
     Author:     Ondrej Kuncar
 *)
 

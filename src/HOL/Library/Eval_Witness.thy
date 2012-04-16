@@ -77,8 +77,8 @@ end
 
 method_setup eval_witness = {*
   Scan.lift (Scan.repeat Args.name) >>
-  (fn ws => K (SIMPLE_METHOD'
-    (CSUBGOAL (fn (ct, i) => rtac (eval_witness_oracle (ct, ws)) i))))
+    (fn ws => K (SIMPLE_METHOD'
+      (CSUBGOAL (fn (ct, i) => rtac (eval_witness_oracle (ct, ws)) i))))
 *} "evaluation with ML witnesses"
 
 

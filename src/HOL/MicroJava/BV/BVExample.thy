@@ -408,7 +408,7 @@ definition test_kil :: "jvm_prog \<Rightarrow> cname \<Rightarrow> ty list \<Rig
 
 lemma [code]:
   "unstables r step ss = 
-   foldr (\<lambda>p A. if \<not>stable r step ss p then insert p A else A) [0..<size ss] {}"
+   fold (\<lambda>p A. if \<not>stable r step ss p then insert p A else A) [0..<size ss] {}"
 proof -
   have "unstables r step ss = (UN p:{..<size ss}. if \<not>stable r step ss p then {p} else {})"
     apply (unfold unstables_def)
@@ -425,7 +425,7 @@ proof -
     apply simp+
     done
   also have "\<And>f. (UN p:{..<size ss}. f p) = Union (set (map f [0..<size ss]))" by auto
-  also note Sup_set_foldr also note foldr_map
+  also note Sup_set_fold also note fold_map
   also have "op \<union> \<circ> (\<lambda>p. if \<not> stable r step ss p then {p} else {}) = 
             (\<lambda>p A. if \<not>stable r step ss p then insert p A else A)"
     by(auto simp add: fun_eq_iff)
@@ -486,3 +486,4 @@ ML {*
 *}
 
 end
+

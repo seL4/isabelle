@@ -61,7 +61,7 @@ fun force_result (Lazy var) =
             SOME e =>
               let
                 val res0 = Exn.capture (restore_attributes e) ();
-                val _ = Future.fulfill_result x res0;
+                val _ = Exn.capture (fn () => Future.fulfill_result x res0) ();
                 val res = Future.join_result x;
                 (*semantic race: some other threads might see the same
                   interrupt, until there is a fresh start*)

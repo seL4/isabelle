@@ -46,7 +46,7 @@ my @action_files;
 my @action_names;
 foreach (split(/:/, $actions)) {
   if (m/([^[]*)/) {
-    push @action_files, "\"$mirabelle_home/Tools/mirabelle_$1.ML\"";
+    push @action_files, "\"$mirabelle_home/Actions/mirabelle_$1.ML\"";
     push @action_names, $1;
   }
 }

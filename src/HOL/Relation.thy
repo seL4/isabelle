@@ -146,7 +146,7 @@ where -- {* reflexivity over a type *}
 
 definition reflp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
 where
-  "reflp r \<longleftrightarrow> refl {(x, y). r x y}"
+  "reflp r \<longleftrightarrow> (\<forall>x. r x x)"
 
 lemma reflp_refl_eq [pred_set_conv]:
   "reflp (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> refl r" 
@@ -507,29 +507,26 @@ lemma single_valued_Id_on [simp]: "single_valued (Id_on A)"
 
 subsubsection {* Composition *}
 
-inductive_set rel_comp  :: "('a \<times> 'b) set \<Rightarrow> ('b \<times> 'c) set \<Rightarrow> ('a \<times> 'c) set" (infixr "O" 75)
+inductive_set relcomp  :: "('a \<times> 'b) set \<Rightarrow> ('b \<times> 'c) set \<Rightarrow> ('a \<times> 'c) set" (infixr "O" 75)
   for r :: "('a \<times> 'b) set" and s :: "('b \<times> 'c) set"
 where
-  rel_compI [intro]: "(a, b) \<in> r \<Longrightarrow> (b, c) \<in> s \<Longrightarrow> (a, c) \<in> r O s"
+  relcompI [intro]: "(a, b) \<in> r \<Longrightarrow> (b, c) \<in> s \<Longrightarrow> (a, c) \<in> r O s"
 
-abbreviation pred_comp (infixr "OO" 75) where
-  "pred_comp \<equiv> rel_compp"
+notation relcompp (infixr "OO" 75)
 
-lemmas pred_compI = rel_compp.intros
+lemmas relcomppI = relcompp.intros
 
 text {*
   For historic reasons, the elimination rules are not wholly corresponding.
   Feel free to consolidate this.
 *}
 
-inductive_cases rel_compEpair: "(a, c) \<in> r O s"
-inductive_cases pred_compE [elim!]: "(r OO s) a c"
+inductive_cases relcompEpair: "(a, c) \<in> r O s"
+inductive_cases relcomppE [elim!]: "(r OO s) a c"
 
-lemma rel_compE [elim!]: "xz \<in> r O s \<Longrightarrow>
+lemma relcompE [elim!]: "xz \<in> r O s \<Longrightarrow>
   (\<And>x y z. xz = (x, z) \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (y, z) \<in> s  \<Longrightarrow> P) \<Longrightarrow> P"
-  by (cases xz) (simp, erule rel_compEpair, iprover)
-
-lemmas pred_comp_rel_comp_eq = rel_compp_rel_comp_eq
+  by (cases xz) (simp, erule relcompEpair, iprover)
 
 lemma R_O_Id [simp]:
   "R O Id = R"
@@ -539,28 +536,28 @@ lemma Id_O_R [simp]:
   "Id O R = R"
   by fast
 
-lemma rel_comp_empty1 [simp]:
+lemma relcomp_empty1 [simp]:
   "{} O R = {}"
   by blast
 
-lemma pred_comp_bot1 [simp]:
+lemma relcompp_bot1 [simp]:
   "\<bottom> OO R = \<bottom>"
-  by (fact rel_comp_empty1 [to_pred])
+  by (fact relcomp_empty1 [to_pred])
 
-lemma rel_comp_empty2 [simp]:
+lemma relcomp_empty2 [simp]:
   "R O {} = {}"
   by blast
 
-lemma pred_comp_bot2 [simp]:
+lemma relcompp_bot2 [simp]:
   "R OO \<bottom> = \<bottom>"
-  by (fact rel_comp_empty2 [to_pred])
+  by (fact relcomp_empty2 [to_pred])
 
 lemma O_assoc:
   "(R O S) O T = R O (S O T)"
   by blast
 
 
-lemma pred_comp_assoc:
+lemma relcompp_assoc:
   "(r OO s) OO t = r OO (s OO t)"
   by (fact O_assoc [to_pred])
 
@@ -568,55 +565,55 @@ lemma trans_O_subset:
   "trans r \<Longrightarrow> r O r \<subseteq> r"
   by (unfold trans_def) blast
 
-lemma transp_pred_comp_less_eq:
+lemma transp_relcompp_less_eq:
   "transp r \<Longrightarrow> r OO r \<le> r "
   by (fact trans_O_subset [to_pred])
 
-lemma rel_comp_mono:
+lemma relcomp_mono:
   "r' \<subseteq> r \<Longrightarrow> s' \<subseteq> s \<Longrightarrow> r' O s' \<subseteq> r O s"
   by blast
 
-lemma pred_comp_mono:
+lemma relcompp_mono:
   "r' \<le> r \<Longrightarrow> s' \<le> s \<Longrightarrow> r' OO s' \<le> r OO s "
-  by (fact rel_comp_mono [to_pred])
+  by (fact relcomp_mono [to_pred])
 
-lemma rel_comp_subset_Sigma:
+lemma relcomp_subset_Sigma:
   "r \<subseteq> A \<times> B \<Longrightarrow> s \<subseteq> B \<times> C \<Longrightarrow> r O s \<subseteq> A \<times> C"
   by blast
 
-lemma rel_comp_distrib [simp]:
+lemma relcomp_distrib [simp]:
   "R O (S \<union> T) = (R O S) \<union> (R O T)" 
   by auto
 
-lemma pred_comp_distrib [simp]:
+lemma relcompp_distrib [simp]:
   "R OO (S \<squnion> T) = R OO S \<squnion> R OO T"
-  by (fact rel_comp_distrib [to_pred])
+  by (fact relcomp_distrib [to_pred])
 
-lemma rel_comp_distrib2 [simp]:
+lemma relcomp_distrib2 [simp]:
   "(S \<union> T) O R = (S O R) \<union> (T O R)"
   by auto
 
-lemma pred_comp_distrib2 [simp]:
+lemma relcompp_distrib2 [simp]:
   "(S \<squnion> T) OO R = S OO R \<squnion> T OO R"
-  by (fact rel_comp_distrib2 [to_pred])
+  by (fact relcomp_distrib2 [to_pred])
 
-lemma rel_comp_UNION_distrib:
+lemma relcomp_UNION_distrib:
   "s O UNION I r = (\<Union>i\<in>I. s O r i) "
   by auto
 
-(* FIXME thm rel_comp_UNION_distrib [to_pred] *)
+(* FIXME thm relcomp_UNION_distrib [to_pred] *)
 
-lemma rel_comp_UNION_distrib2:
+lemma relcomp_UNION_distrib2:
   "UNION I r O s = (\<Union>i\<in>I. r i O s) "
   by auto
 
-(* FIXME thm rel_comp_UNION_distrib2 [to_pred] *)
+(* FIXME thm relcomp_UNION_distrib2 [to_pred] *)
 
-lemma single_valued_rel_comp:
+lemma single_valued_relcomp:
   "single_valued r \<Longrightarrow> single_valued s \<Longrightarrow> single_valued (r O s)"
   by (unfold single_valued_def) blast
 
-lemma rel_comp_unfold:
+lemma relcomp_unfold:
   "r O s = {(x, z). \<exists>y. (x, y) \<in> r \<and> (y, z) \<in> s}"
   by (auto simp add: set_eq_iff)
 
@@ -676,12 +673,12 @@ lemma conversep_conversep [simp]:
   "(r\<inverse>\<inverse>)\<inverse>\<inverse> = r"
   by (fact converse_converse [to_pred])
 
-lemma converse_rel_comp: "(r O s)^-1 = s^-1 O r^-1"
+lemma converse_relcomp: "(r O s)^-1 = s^-1 O r^-1"
   by blast
 
-lemma converse_pred_comp: "(r OO s)^--1 = s^--1 OO r^--1"
-  by (iprover intro: order_antisym conversepI pred_compI
-    elim: pred_compE dest: conversepD)
+lemma converse_relcompp: "(r OO s)^--1 = s^--1 OO r^--1"
+  by (iprover intro: order_antisym conversepI relcomppI
+    elim: relcomppE dest: conversepD)
 
 lemma converse_Int: "(r \<inter> s)^-1 = r^-1 \<inter> s^-1"
   by blast

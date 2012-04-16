@@ -271,7 +271,7 @@ proof (rule wfI_min)
       assume "y \<in> Q"
       with `y \<notin> ?Q'` 
       obtain w where "(w, y) \<in> R" and "w \<in> Q" by auto
-      from `(w, y) \<in> R` `(y, z) \<in> S` have "(w, z) \<in> R O S" by (rule rel_compI)
+      from `(w, y) \<in> R` `(y, z) \<in> S` have "(w, z) \<in> R O S" by (rule relcompI)
       with `R O S \<subseteq> R` have "(w, z) \<in> R" ..
       with `z \<in> ?Q'` have "w \<notin> Q" by blast 
       with `w \<in> Q` show False by contradiction

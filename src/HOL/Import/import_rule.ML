@@ -235,7 +235,7 @@ fun tydef' tycname abs_name rep_name cP ct td_th thy =
           [SOME rept, SOME abst, SOME cP, SOME (cterm_of thy' (Free ("a", aty))),
              SOME (cterm_of thy' (Free ("r", typ_of ctT)))]
           @{thm typedef_hol2hollight}
-    val th4 = meta_mp typedef_th (#type_definition (#2 typedef_info))
+    val th4 = typedef_th OF [#type_definition (#2 typedef_info)]
   in
     (th4, thy')
   end
@@ -339,6 +339,14 @@ fun store_thm binding thm thy =
     snd (Global_Theory.add_thm ((binding, thm'), []) thy)
   end
 
+fun log_timestamp () =
+  let
+    val time = Time.now ()
+    val millis = nth (space_explode "." (Time.fmt 3 time)) 1
+  in
+    Date.fmt "%d.%m.%Y %H:%M:%S." (Date.fromTimeLocal time) ^ millis
+  end
+
 fun process_line str tstate =
   let
     fun process tstate (#"R", [t]) = gettm t tstate |>> refl |-> setth
@@ -416,7 +424,7 @@ fun process_line str tstate =
           gettm t1 tstate ||>> gettm t2 |>> (fn (t1, t2) => Thm.lambda t1 t2) |-> settm
       | process (thy, state) (#"+", [s]) =
           let
-            val _ = tracing ("Noting: " ^ s)
+            val _ = tracing ("NOTING " ^ log_timestamp () ^ ": " ^ s)
           in
             (store_thm (Binding.name (transl_dot s)) (last_thm state) thy, state)
           end

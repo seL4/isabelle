@@ -18,8 +18,6 @@ sig
     (binding * string option * mixfix) option * (Attrib.binding * (string * string)) ->
     local_theory -> Proof.state
 
-  val lift_raw_const: typ list -> (string * term * mixfix) -> local_theory ->
-    Quotient_Info.quotconsts * local_theory
 end;
 
 structure Quotient_Def: QUOTIENT_DEF =
@@ -330,17 +328,6 @@ fun read_term' cnstr ctxt =
 val quotient_def = gen_quotient_def Proof_Context.cert_vars check_term'
 val quotient_def_cmd = gen_quotient_def Proof_Context.read_vars read_term'
 
-
-(* a wrapper for automatically lifting a raw constant *)
-fun lift_raw_const qtys (qconst_name, rconst, mx) ctxt =
-  let
-    val rty = fastype_of rconst
-    val qty = Quotient_Term.derive_qtyp ctxt qtys rty
-    val lhs = Free (qconst_name, qty)
-  in
-    (*quotient_def (SOME (Binding.name qconst_name, NONE, mx), (Attrib.empty_binding, (lhs, rconst))) ctxt*)
-    ({qconst = lhs, rconst = lhs, def = @{thm refl}}, ctxt)
-  end
 
 (* parser and command *)
 val quotdef_parser =

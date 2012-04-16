@@ -1,4 +1,4 @@
-(*  Title:      HOL/Quotient3_Examples/FSet.thy
+(*  Title:      HOL/Quotient_Examples/FSet.thy
     Author:     Cezary Kaliszyk, TU Munich
     Author:     Christian Urban, TU Munich
 
@@ -140,7 +140,7 @@ proof (intro conjI allI)
   next
     assume a: "(list_all2 R OOO op \<approx>) r s"
     then have b: "map Abs r \<approx> map Abs s"
-    proof (elim pred_compE)
+    proof (elim relcomppE)
       fix b ba
       assume c: "list_all2 R r b"
       assume d: "b \<approx> ba"
@@ -165,11 +165,11 @@ proof (intro conjI allI)
     have y: "list_all2 R (map Rep (map Abs s)) s"
       by (fact rep_abs_rsp_left[OF list_quotient3[OF q], OF list_all2_refl'[OF e, of s]])
     have c: "(op \<approx> OO list_all2 R) (map Rep (map Abs r)) s"
-      by (rule pred_compI) (rule b, rule y)
+      by (rule relcomppI) (rule b, rule y)
     have z: "list_all2 R r (map Rep (map Abs r))"
       by (fact rep_abs_rsp[OF list_quotient3[OF q], OF list_all2_refl'[OF e, of r]])
     then show "(list_all2 R OOO op \<approx>) r s"
-      using a c pred_compI by simp
+      using a c relcomppI by simp
   qed
 qed
 
@@ -360,7 +360,7 @@ qed
 quotient_definition
   "concat_fset :: ('a fset) fset \<Rightarrow> 'a fset"
   is concat 
-proof (elim pred_compE)
+proof (elim relcomppE)
 fix a b ba bb
   assume a: "list_all2 op \<approx> a ba"
   with list_symp [OF list_eq_symp] have a': "list_all2 op \<approx> ba a" by (rule sympE)
@@ -397,9 +397,9 @@ lemma Nil_rsp2 [quot_respect]:
 lemma Cons_rsp2 [quot_respect]:
   shows "(op \<approx> ===> list_all2 op \<approx> OOO op \<approx> ===> list_all2 op \<approx> OOO op \<approx>) Cons Cons"
   apply (auto intro!: fun_relI)
-  apply (rule_tac b="x # b" in pred_compI)
+  apply (rule_tac b="x # b" in relcomppI)
   apply auto
-  apply (rule_tac b="x # ba" in pred_compI)
+  apply (rule_tac b="x # ba" in relcomppI)
   apply auto
   done
 
@@ -453,7 +453,7 @@ lemma compositional_rsp3:
   assumes "(R1 ===> R2 ===> R3) C C" and "(R4 ===> R5 ===> R6) C C"
   shows "(R1 OOO R4 ===> R2 OOO R5 ===> R3 OOO R6) C C"
   by (auto intro!: fun_relI)
-     (metis (full_types) assms fun_relE pred_compI)
+     (metis (full_types) assms fun_relE relcomppI)
 
 lemma append_rsp2 [quot_respect]:
   "(list_all2 op \<approx> OOO op \<approx> ===> list_all2 op \<approx> OOO op \<approx> ===> list_all2 op \<approx> OOO op \<approx>) append append"
@@ -479,7 +479,7 @@ proof (auto intro!: fun_relI)
     by (induct y ya rule: list_induct2')
        (simp_all, metis apply_rsp' list_eq_def)
   show "(list_all2 op \<approx> OOO op \<approx>) (map f xa) (map f' ya)"
-    by (metis a b c list_eq_def pred_compI)
+    by (metis a b c list_eq_def relcomppI)
 qed
 
 lemma map_prs2 [quot_preserve]:

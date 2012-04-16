@@ -155,6 +155,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   ML/ml_parse.ML					\
   ML/ml_syntax.ML					\
   ML/ml_thms.ML						\
+  PIDE/command.ML					\
   PIDE/document.ML					\
   PIDE/isabelle_markup.ML				\
   PIDE/markup.ML					\

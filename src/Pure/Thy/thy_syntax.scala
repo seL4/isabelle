@@ -118,28 +118,6 @@ object Thy_Syntax
     }
   }
 
-  def update_perspective(nodes: Document.Nodes,
-      name: Document.Node.Name, text_perspective: Text.Perspective)
-    : (Command.Perspective, Option[Document.Nodes]) =
-  {
-    val node = nodes(name)
-    val perspective = command_perspective(node, text_perspective)
-    val new_nodes =
-      if (node.perspective same perspective) None
-      else Some(nodes + (name -> node.update_perspective(perspective)))
-    (perspective, new_nodes)
-  }
-
-  def edit_perspective(previous: Document.Version,
-      name: Document.Node.Name, text_perspective: Text.Perspective)
-    : (Command.Perspective, Document.Version) =
-  {
-    val nodes = previous.nodes
-    val (perspective, new_nodes) = update_perspective(nodes, name, text_perspective)
-    val version = Document.Version.make(previous.syntax, new_nodes getOrElse nodes)
-    (perspective, version)
-  }
-
 
 
   /** header edits: structure and outer syntax **/
@@ -311,11 +289,11 @@ object Thy_Syntax
       case (name, Document.Node.Header(_)) =>
 
       case (name, Document.Node.Perspective(text_perspective)) =>
-        update_perspective(nodes, name, text_perspective) match {
-          case (_, None) =>
-          case (perspective, Some(nodes1)) =>
-            doc_edits += (name -> Document.Node.Perspective(perspective))
-            nodes = nodes1
+        val node = nodes(name)
+        val perspective = command_perspective(node, text_perspective)
+        if (!(node.perspective same perspective)) {
+          doc_edits += (name -> Document.Node.Perspective(perspective))
+          nodes += (name -> node.update_perspective(perspective))
         }
     }
     (doc_edits.toList, Document.Version.make(syntax, nodes))

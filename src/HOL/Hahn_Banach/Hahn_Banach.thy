@@ -151,12 +151,12 @@ proof -
         qed
       qed
 
-      def H' \<equiv> "H \<oplus> lin x'"
+      def H' \<equiv> "H + lin x'"
         -- {* Define @{text H'} as the direct sum of @{text H} and the linear closure of @{text x'}. \skp *}
       have HH': "H \<unlhd> H'"
       proof (unfold H'_def)
         from x'E have "vectorspace (lin x')" ..
-        with H show "H \<unlhd> H \<oplus> lin x'" ..
+        with H show "H \<unlhd> H + lin x'" ..
       qed
 
       obtain xi where

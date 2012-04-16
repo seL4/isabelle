@@ -1,8 +1,8 @@
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
-New in this Isabelle version
-----------------------------
+New in Isabelle2012 (May 2012)
+------------------------------
 
 *** General ***
 
@@ -47,11 +47,45 @@ manual.  Minor INCOMPATIBILITY.
 header -- minor INCOMPATIBILITY for user-defined commands.  Allow new
 commands to be used in the same theory where defined.
 
-* ISABELLE_JDK_HOME settings variable points to JDK with javac and jar
-(not just JRE).
-
 
 *** Pure ***
+
+* Auxiliary contexts indicate block structure for specifications with
+additional parameters and assumptions.  Such unnamed contexts may be
+nested within other targets, like 'theory', 'locale', 'class',
+'instantiation' etc.  Results from the local context are generalized
+accordingly and applied to the enclosing target context.  Example:
+
+  context
+    fixes x y z :: 'a
+    assumes xy: "x = y" and yz: "y = z"
+  begin
+
+  lemma my_trans: "x = z" using xy yz by simp
+
+  end
+
+  thm my_trans
+
+The most basic application is to factor-out context elements of
+several fixes/assumes/shows theorem statements, e.g. see
+~~/src/HOL/Isar_Examples/Group_Context.thy
+
+Any other local theory specification element works within the "context
+... begin ... end" block as well.
+
+* Bundled declarations associate attributed fact expressions with a
+given name in the context.  These may be later included in other
+contexts.  This allows to manage context extensions casually, without
+the logical dependencies of locales and locale interpretation.
+
+See commands 'bundle', 'include', 'including' etc. in the isar-ref
+manual.
+
+* Rule composition via attribute "OF" (or ML functions OF/MRS) is more
+tolerant against multiple unifiers, as long as the final result is
+unique.  (As before, rules are composed in canonical right-to-left
+order to accommodate newly introduced premises.)
 
 * Command 'definition' no longer exports the foundational "raw_def"
 into the user context.  Minor INCOMPATIBILITY, may use the regular
@@ -63,21 +97,21 @@ expand it.  This also works for object-logic equality.  (Formerly
 undocumented feature.)
 
 * Discontinued old "prems" fact, which used to refer to the accidental
-collection of foundational premises in the context (marked as legacy
-since Isabelle2011).
+collection of foundational premises in the context (already marked as
+legacy since Isabelle2011).
 
 * Obsolete command 'types' has been discontinued.  Use 'type_synonym'
 instead.  INCOMPATIBILITY.
 
-* Ancient code generator for SML and its commands 'code_module',
+* Old code generator for SML and its commands 'code_module',
 'code_library', 'consts_code', 'types_code' have been discontinued.
 Use commands of the generic code generator instead.  INCOMPATIBILITY.
 
-* Redundant attribute 'code_inline' has been discontinued. Use
-'code_unfold' instead.  INCOMPATIBILITY.
+* Redundant attribute "code_inline" has been discontinued. Use
+"code_unfold" instead.  INCOMPATIBILITY.
 
-* Dropped attribute 'code_unfold_post' in favor of the its dual
-'code_abbrev', which yields a common pattern in definitions like
+* Dropped attribute "code_unfold_post" in favor of the its dual
+"code_abbrev", which yields a common pattern in definitions like
 
   definition [code_abbrev]: "f = t"
 
@@ -90,16 +124,19 @@ distinct sorts used to be assigned accidentally.  For example:
   lemma "P (x::'a::foo)" and "Q (y::'a::bar)"  -- "now illegal"
 
   lemma "P (x::'a)" and "Q (y::'a::bar)"
-    -- "now uniform 'a::bar instead of default sort for first occurence (!)"
+    -- "now uniform 'a::bar instead of default sort for first occurrence (!)"
 
 
 *** HOL ***
 
-* New tutorial "Programming and Proving in Isabelle/HOL".
+
+* New tutorial "Programming and Proving in Isabelle/HOL" ("prog-prove").
 It completely supercedes "A Tutorial Introduction to Structured Isar Proofs",
 which has been removed. It supercedes "Isabelle/HOL, A Proof Assistant
 for Higher-Order Logic" as the recommended beginners tutorial
 but does not cover all of the material of that old tutorial.
+
+* Discontinued old Tutorial on Isar ("isar-overview");
 
 * The representation of numerals has changed. We now have a datatype
 "num" representing strictly positive binary numerals, along with
@@ -131,19 +168,44 @@ Non-trivial INCOMPATIBILITY.  For developments keeping predicates and
 sets separate, it is often sufficient to rephrase sets S accidentally
 used as predicates by "%x. x : S" and predicates P accidentally used
 as sets by "{x. P x}".  Corresponding proofs in a first step should be
-pruned from any tinkering with former theorems mem_def and
-Collect_def as far as possible.
-For developments which deliberately mixed predicates and
-sets, a planning step is necessary to determine what should become a
-predicate and what a set.  It can be helpful to carry out that step in
+pruned from any tinkering with former theorems mem_def and Collect_def
+as far as possible.
+
+For developments which deliberately mixed predicates and sets, a
+planning step is necessary to determine what should become a predicate
+and what a set.  It can be helpful to carry out that step in
 Isabelle2011-1 before jumping right into the current release.
+
+* The representation of numerals has changed.  Datatype "num"
+represents strictly positive binary numerals, along with functions
+"numeral :: num => 'a" and "neg_numeral :: num => 'a" to represent
+positive and negated numeric literals, respectively. (See definitions
+in ~~/src/HOL/Num.thy.) Potential INCOMPATIBILITY, some user theories
+may require adaptations as follows:
+
+  - Theorems with number_ring or number_semiring constraints: These
+    classes are gone; use comm_ring_1 or comm_semiring_1 instead.
+
+  - Theories defining numeric types: Remove number, number_semiring,
+    and number_ring instances. Defer all theorems about numerals until
+    after classes one and semigroup_add have been instantiated.
+
+  - Numeral-only simp rules: Replace each rule having a "number_of v"
+    pattern with two copies, one for numeral and one for neg_numeral.
+
+  - Theorems about subclasses of semiring_1 or ring_1: These classes
+    automatically support numerals now, so more simp rules and
+    simprocs may now apply within the proof.
+
+  - Definitions and theorems using old constructors Pls/Min/Bit0/Bit1:
+    Redefine using other integer operations.
 
 * Code generation by default implements sets as container type rather
 than predicates.  INCOMPATIBILITY.
 
 * New proof import from HOL Light: Faster, simpler, and more scalable.
 Requires a proof bundle, which is available as an external component.
-Removed old (and mostly dead) Importer for HOL4 and HOL Light.
+Discontinued old (and mostly dead) Importer for HOL4 and HOL Light.
 INCOMPATIBILITY.
 
 * New type synonym 'a rel = ('a * 'a) set
@@ -177,8 +239,8 @@ INCOMPATIBILITY, use the corresponding generic theorems instead.
 generic mult_2 and mult_2_right instead. INCOMPATIBILITY.
 
 * More default pred/set conversions on a couple of relation operations
-and predicates.  Added powers of predicate relations.
-Consolidation of some relation theorems:
+and predicates.  Added powers of predicate relations.  Consolidation
+of some relation theorems:
 
   converse_def ~> converse_unfold
   rel_comp_def ~> rel_comp_unfold
@@ -189,8 +251,8 @@ Consolidation of some relation theorems:
 
 Generalized theorems INF_INT_eq, INF_INT_eq2, SUP_UN_eq, SUP_UN_eq2.
 
-See theory "Relation" for examples for making use of pred/set conversions
-by means of attributes "to_set" and "to_pred".
+See theory "Relation" for examples for making use of pred/set
+conversions by means of attributes "to_set" and "to_pred".
 
 INCOMPATIBILITY.
 
@@ -212,10 +274,11 @@ INCOMPATIBILITY.
   SUPR_set_fold ~> SUP_set_fold
   INF_code ~> INF_set_foldr
   SUP_code ~> SUP_set_foldr
-  foldr.simps ~> foldr_Nil foldr_Cons (in point-free formulation)
-  foldl.simps ~> foldl_Nil foldl_Cons
-  foldr_fold_rev ~> foldr_def
-  foldl_fold ~> foldl_def
+  foldr.simps ~> foldr.simps (in point-free formulation)
+  foldr_fold_rev ~> foldr_conv_fold
+  foldl_fold ~> foldl_conv_fold
+  foldr_foldr ~> foldr_conv_foldl
+  foldl_foldr ~> foldl_conv_foldr
 
 INCOMPATIBILITY.
 
@@ -224,11 +287,19 @@ foldl_apply, foldl_fun_comm, foldl_rev, fold_weak_invariant,
 rev_foldl_cons, fold_set_remdups, fold_set, fold_set1,
 concat_conv_foldl, foldl_weak_invariant, foldl_invariant,
 foldr_invariant, foldl_absorb0, foldl_foldr1_lemma, foldl_foldr1,
-listsum_conv_fold, listsum_foldl, sort_foldl_insort.  INCOMPATIBILITY.
-Prefer "List.fold" with canonical argument order, or boil down
-"List.foldr" and "List.foldl" to "List.fold" by unfolding "foldr_def"
-and "foldl_def".  For the common phrases "%xs. List.foldr plus xs 0"
-and "List.foldl plus 0", prefer "List.listsum".
+listsum_conv_fold, listsum_foldl, sort_foldl_insort, foldl_assoc,
+foldr_conv_foldl, start_le_sum, elem_le_sum, sum_eq_0_conv.
+INCOMPATIBILITY.  For the common phrases "%xs. List.foldr plus xs 0"
+and "List.foldl plus 0", prefer "List.listsum".  Otherwise it can be
+useful to boil down "List.foldr" and "List.foldl" to "List.fold" by
+unfolding "foldr_conv_fold" and "foldl_conv_fold".
+
+* Dropped lemmas minus_set_foldr, union_set_foldr, union_coset_foldr,
+inter_coset_foldr, Inf_fin_set_foldr, Sup_fin_set_foldr,
+Min_fin_set_foldr, Max_fin_set_foldr, Inf_set_foldr, Sup_set_foldr,
+INF_set_foldr, SUP_set_foldr.  INCOMPATIBILITY.  Prefer corresponding
+lemmas over fold rather than foldr, or make use of lemmas
+fold_conv_foldr and fold_rev.
 
 * Congruence rules Option.map_cong and Option.bind_cong for recursion
 through option types.
@@ -255,8 +326,8 @@ with the same base names:
 INCOMPATIBILITY.
 
 * Renamed facts about the power operation on relations, i.e., relpow
-  to match the constant's name:
-  
+to match the constant's name:
+
   rel_pow_1 ~> relpow_1
   rel_pow_0_I ~> relpow_0_I
   rel_pow_Suc_I ~> relpow_Suc_I
@@ -265,7 +336,7 @@ INCOMPATIBILITY.
   rel_pow_Suc_E ~> relpow_Suc_E
   rel_pow_E ~> relpow_E
   rel_pow_Suc_D2 ~> relpow_Suc_D2
-  rel_pow_Suc_E2 ~> relpow_Suc_E2 
+  rel_pow_Suc_E2 ~> relpow_Suc_E2
   rel_pow_Suc_D2' ~> relpow_Suc_D2'
   rel_pow_E2 ~> relpow_E2
   rel_pow_add ~> relpow_add
@@ -281,16 +352,166 @@ INCOMPATIBILITY.
   rtrancl_finite_eq_rel_pow ~> rtrancl_finite_eq_relpow
   trancl_finite_eq_rel_pow ~> trancl_finite_eq_relpow
   single_valued_rel_pow ~> single_valued_relpow
- 
+
 INCOMPATIBILITY.
 
-* New theory HOL/Library/DAList provides an abstract type for association
-  lists with distinct keys.
+* Theory Relation: Consolidated constant name for relation composition
+and corresponding theorem names:
+
+  - Renamed constant rel_comp to relcomp
+
+  - Dropped abbreviation pred_comp. Use relcompp instead.
+
+  - Renamed theorems:
+
+    rel_compI ~> relcompI
+    rel_compEpair ~> relcompEpair
+    rel_compE ~> relcompE
+    pred_comp_rel_comp_eq ~> relcompp_relcomp_eq
+    rel_comp_empty1 ~> relcomp_empty1
+    rel_comp_mono ~> relcomp_mono
+    rel_comp_subset_Sigma ~> relcomp_subset_Sigma
+    rel_comp_distrib ~> relcomp_distrib
+    rel_comp_distrib2 ~> relcomp_distrib2
+    rel_comp_UNION_distrib ~> relcomp_UNION_distrib
+    rel_comp_UNION_distrib2 ~> relcomp_UNION_distrib2
+    single_valued_rel_comp ~> single_valued_relcomp
+    rel_comp_unfold ~> relcomp_unfold
+    converse_rel_comp ~> converse_relcomp
+    pred_compI ~> relcomppI
+    pred_compE ~> relcomppE
+    pred_comp_bot1 ~> relcompp_bot1
+    pred_comp_bot2 ~> relcompp_bot2
+    transp_pred_comp_less_eq ~> transp_relcompp_less_eq
+    pred_comp_mono ~> relcompp_mono
+    pred_comp_distrib ~> relcompp_distrib
+    pred_comp_distrib2 ~> relcompp_distrib2
+    converse_pred_comp ~> converse_relcompp
+
+    finite_rel_comp ~> finite_relcomp
+
+    set_rel_comp ~> set_relcomp
+
+INCOMPATIBILITY.
+
+* New theory HOL/Library/DAList provides an abstract type for
+association lists with distinct keys.
 
 * 'datatype' specifications allow explicit sort constraints.
 
 * Theory HOL/Library/Diagonalize has been removed. INCOMPATIBILITY,
 use theory HOL/Library/Nat_Bijection instead.
+
+* Theory HOL/Library/RBT_Impl: Backing implementation of red-black
+trees is now inside a type class context.  Names of affected
+operations and lemmas have been prefixed by rbt_.  INCOMPATIBILITY for
+theories working directly with raw red-black trees, adapt the names as
+follows:
+
+  Operations:
+  bulkload -> rbt_bulkload
+  del_from_left -> rbt_del_from_left
+  del_from_right -> rbt_del_from_right
+  del -> rbt_del
+  delete -> rbt_delete
+  ins -> rbt_ins
+  insert -> rbt_insert
+  insertw -> rbt_insert_with
+  insert_with_key -> rbt_insert_with_key
+  map_entry -> rbt_map_entry
+  lookup -> rbt_lookup
+  sorted -> rbt_sorted
+  tree_greater -> rbt_greater
+  tree_less -> rbt_less
+  tree_less_symbol -> rbt_less_symbol
+  union -> rbt_union
+  union_with -> rbt_union_with
+  union_with_key -> rbt_union_with_key
+
+  Lemmas:
+  balance_left_sorted -> balance_left_rbt_sorted
+  balance_left_tree_greater -> balance_left_rbt_greater
+  balance_left_tree_less -> balance_left_rbt_less
+  balance_right_sorted -> balance_right_rbt_sorted
+  balance_right_tree_greater -> balance_right_rbt_greater
+  balance_right_tree_less -> balance_right_rbt_less
+  balance_sorted -> balance_rbt_sorted
+  balance_tree_greater -> balance_rbt_greater
+  balance_tree_less -> balance_rbt_less
+  bulkload_is_rbt -> rbt_bulkload_is_rbt
+  combine_sorted -> combine_rbt_sorted
+  combine_tree_greater -> combine_rbt_greater
+  combine_tree_less -> combine_rbt_less
+  delete_in_tree -> rbt_delete_in_tree
+  delete_is_rbt -> rbt_delete_is_rbt
+  del_from_left_tree_greater -> rbt_del_from_left_rbt_greater
+  del_from_left_tree_less -> rbt_del_from_left_rbt_less
+  del_from_right_tree_greater -> rbt_del_from_right_rbt_greater
+  del_from_right_tree_less -> rbt_del_from_right_rbt_less
+  del_in_tree -> rbt_del_in_tree
+  del_inv1_inv2 -> rbt_del_inv1_inv2
+  del_sorted -> rbt_del_rbt_sorted
+  del_tree_greater -> rbt_del_rbt_greater
+  del_tree_less -> rbt_del_rbt_less
+  dom_lookup_Branch -> dom_rbt_lookup_Branch
+  entries_lookup -> entries_rbt_lookup
+  finite_dom_lookup -> finite_dom_rbt_lookup
+  insert_sorted -> rbt_insert_rbt_sorted
+  insertw_is_rbt -> rbt_insertw_is_rbt
+  insertwk_is_rbt -> rbt_insertwk_is_rbt
+  insertwk_sorted -> rbt_insertwk_rbt_sorted
+  insertw_sorted -> rbt_insertw_rbt_sorted
+  ins_sorted -> ins_rbt_sorted
+  ins_tree_greater -> ins_rbt_greater
+  ins_tree_less -> ins_rbt_less
+  is_rbt_sorted -> is_rbt_rbt_sorted
+  lookup_balance -> rbt_lookup_balance
+  lookup_bulkload -> rbt_lookup_rbt_bulkload
+  lookup_delete -> rbt_lookup_rbt_delete
+  lookup_Empty -> rbt_lookup_Empty
+  lookup_from_in_tree -> rbt_lookup_from_in_tree
+  lookup_in_tree -> rbt_lookup_in_tree
+  lookup_ins -> rbt_lookup_ins
+  lookup_insert -> rbt_lookup_rbt_insert
+  lookup_insertw -> rbt_lookup_rbt_insertw
+  lookup_insertwk -> rbt_lookup_rbt_insertwk
+  lookup_keys -> rbt_lookup_keys
+  lookup_map -> rbt_lookup_map
+  lookup_map_entry -> rbt_lookup_rbt_map_entry
+  lookup_tree_greater -> rbt_lookup_rbt_greater
+  lookup_tree_less -> rbt_lookup_rbt_less
+  lookup_union -> rbt_lookup_rbt_union
+  map_entry_color_of -> rbt_map_entry_color_of
+  map_entry_inv1 -> rbt_map_entry_inv1
+  map_entry_inv2 -> rbt_map_entry_inv2
+  map_entry_is_rbt -> rbt_map_entry_is_rbt
+  map_entry_sorted -> rbt_map_entry_rbt_sorted
+  map_entry_tree_greater -> rbt_map_entry_rbt_greater
+  map_entry_tree_less -> rbt_map_entry_rbt_less
+  map_tree_greater -> map_rbt_greater
+  map_tree_less -> map_rbt_less
+  map_sorted -> map_rbt_sorted
+  paint_sorted -> paint_rbt_sorted
+  paint_lookup -> paint_rbt_lookup
+  paint_tree_greater -> paint_rbt_greater
+  paint_tree_less -> paint_rbt_less
+  sorted_entries -> rbt_sorted_entries
+  tree_greater_eq_trans -> rbt_greater_eq_trans
+  tree_greater_nit -> rbt_greater_nit
+  tree_greater_prop -> rbt_greater_prop
+  tree_greater_simps -> rbt_greater_simps
+  tree_greater_trans -> rbt_greater_trans
+  tree_less_eq_trans -> rbt_less_eq_trans
+  tree_less_nit -> rbt_less_nit
+  tree_less_prop -> rbt_less_prop
+  tree_less_simps -> rbt_less_simps
+  tree_less_trans -> rbt_less_trans
+  tree_ord_props -> rbt_ord_props
+  union_Branch -> rbt_union_Branch
+  union_is_rbt -> rbt_union_is_rbt
+  unionw_is_rbt -> rbt_unionw_is_rbt
+  unionwk_is_rbt -> rbt_unionwk_is_rbt
+  unionwk_sorted -> rbt_unionwk_rbt_sorted
 
 * Session HOL-Word: Discontinued many redundant theorems specific to
 type 'a word. INCOMPATIBILITY, use the corresponding generic theorems
@@ -398,36 +619,45 @@ case distinctions at the same time.  E.g.
 produces a rule which can be used to perform case distinction on both
 a list and a nat.
 
-* Improved code generation of multisets.
+* Theory Library/Multiset: Improved code generation of multisets.
 
-* New diagnostic command find_unused_assms to find potentially superfluous
-  assumptions in theorems using Quickcheck.
+* New diagnostic command 'find_unused_assms' to find potentially
+superfluous assumptions in theorems using Quickcheck.
 
 * Quickcheck:
+
   - Quickcheck returns variable assignments as counterexamples, which
     allows to reveal the underspecification of functions under test.
     For example, refuting "hd xs = x", it presents the variable
     assignment xs = [] and x = a1 as a counterexample, assuming that
     any property is false whenever "hd []" occurs in it.
+
     These counterexample are marked as potentially spurious, as
     Quickcheck also returns "xs = []" as a counterexample to the
     obvious theorem "hd xs = hd xs".
+
     After finding a potentially spurious counterexample, Quickcheck
     continues searching for genuine ones.
+
     By default, Quickcheck shows potentially spurious and genuine
-    counterexamples. The option "genuine_only" sets quickcheck to
-    only show genuine counterexamples.
+    counterexamples. The option "genuine_only" sets quickcheck to only
+    show genuine counterexamples.
 
   - The command 'quickcheck_generator' creates random and exhaustive
     value generators for a given type and operations.
+
     It generates values by using the operations as if they were
-    constructors of that type. 
+    constructors of that type.
 
   - Support for multisets.
 
   - Added "use_subtype" options.
- 
+
+  - Added "quickcheck_locale" configuration to specify how to process
+    conjectures in a locale context.
+
 * Nitpick:
+
   - Fixed infinite loop caused by the 'peephole_optim' option and
     affecting 'rat' and 'real'.
 
@@ -442,17 +672,30 @@ a list and a nat.
 
 * SMT:
   - renamed "smt_fixed" option to "smt_read_only_certificates".
- 
+
 * Command 'try0':
   - Renamed from 'try_methods'. INCOMPATIBILITY.
 
 * New "eventually_elim" method as a generalized variant of the
-  eventually_elim* rules. Supports structured proofs.
+eventually_elim* rules. Supports structured proofs.
+
+* HOL/TPTP: support to parse and import TPTP problems (all languages)
+into Isabelle/HOL.
 
 
 *** FOL ***
 
 * New "case_product" attribute (see HOL).
+
+
+*** ZF ***
+
+* Greater support for structured proofs involving induction or case
+analysis.
+
+* Much greater use of mathematical symbols.
+
+* Removal of many ML theorem bindings.  INCOMPATIBILITY.
 
 
 *** ML ***
@@ -501,6 +744,15 @@ context as well.
   setsubgoaler  ~> Simplifier.set_subgoaler
   addsplits     ~> Splitter.add_split
   delsplits     ~> Splitter.del_split
+
+
+*** System ***
+
+* ISABELLE_JDK_HOME settings variable points to JDK with javac and jar
+(not just JRE).
+
+* ISABELLE_HOME_WINDOWS refers to ISABELLE_HOME in windows file name
+notation, which is useful for the jEdit file browser, for example.
 
 
 
@@ -1811,13 +2063,6 @@ names of constants and types involved.  INCOMPATIBILITY.
 * All constant names are now qualified internally and use proper
 identifiers, e.g. "IFOL.eq" instead of "op =".  INCOMPATIBILITY.
 
-*** ZF ***
-
-* Greater support for structured proofs involving induction or case analysis.
-
-* Much greater use of special symbols.
-
-* Removal of many ML theorem bindings. INCOMPATIBILITY.
 
 *** ML ***
 
@@ -4909,7 +5154,7 @@ fold_set now are named Inf_fin, Sup_fin.  INCOMPATIBILITY.
 * HOL/Nat: neq0_conv no longer declared as iff.  INCOMPATIBILITY.
 
 * HOL-Word: New extensive library and type for generic, fixed size
-machine words, with arithmetic, bit-wise, shifting and rotating
+machine words, with arithemtic, bit-wise, shifting and rotating
 operations, reflection into int, nat, and bool lists, automation for
 linear arithmetic (by automatic reflection into nat or int), including
 lemmas on overflow and monotonicity.  Instantiated to all appropriate

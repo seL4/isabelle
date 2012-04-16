@@ -1,4 +1,4 @@
-(*  Title:      HOL/Matrix/Matrix.thy
+(*  Title:      HOL/Matrix_LP/Matrix.thy
     Author:     Steven Obua
 *)
 

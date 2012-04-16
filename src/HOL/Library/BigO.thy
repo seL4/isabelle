@@ -92,7 +92,7 @@ lemma bigo_zero2: "O(%x.0) = {%x.0}"
   by (auto simp add: bigo_def) 
 
 lemma bigo_plus_self_subset [intro]: 
-  "O(f) \<oplus> O(f) <= O(f)"
+  "O(f) + O(f) <= O(f)"
   apply (auto simp add: bigo_alt_def set_plus_def)
   apply (rule_tac x = "c + ca" in exI)
   apply auto
@@ -104,14 +104,14 @@ lemma bigo_plus_self_subset [intro]:
   apply force
 done
 
-lemma bigo_plus_idemp [simp]: "O(f) \<oplus> O(f) = O(f)"
+lemma bigo_plus_idemp [simp]: "O(f) + O(f) = O(f)"
   apply (rule equalityI)
   apply (rule bigo_plus_self_subset)
   apply (rule set_zero_plus2) 
   apply (rule bigo_zero)
   done
 
-lemma bigo_plus_subset [intro]: "O(f + g) <= O(f) \<oplus> O(g)"
+lemma bigo_plus_subset [intro]: "O(f + g) <= O(f) + O(g)"
   apply (rule subsetI)
   apply (auto simp add: bigo_def bigo_pos_const func_plus set_plus_def)
   apply (subst bigo_pos_const [symmetric])+
@@ -153,15 +153,15 @@ lemma bigo_plus_subset [intro]: "O(f + g) <= O(f) \<oplus> O(g)"
   apply simp
   done
 
-lemma bigo_plus_subset2 [intro]: "A <= O(f) ==> B <= O(f) ==> A \<oplus> B <= O(f)"
-  apply (subgoal_tac "A \<oplus> B <= O(f) \<oplus> O(f)")
+lemma bigo_plus_subset2 [intro]: "A <= O(f) ==> B <= O(f) ==> A + B <= O(f)"
+  apply (subgoal_tac "A + B <= O(f) + O(f)")
   apply (erule order_trans)
   apply simp
   apply (auto del: subsetI simp del: bigo_plus_idemp)
   done
 
 lemma bigo_plus_eq: "ALL x. 0 <= f x ==> ALL x. 0 <= g x ==> 
-    O(f + g) = O(f) \<oplus> O(g)"
+    O(f + g) = O(f) + O(g)"
   apply (rule equalityI)
   apply (rule bigo_plus_subset)
   apply (simp add: bigo_alt_def set_plus_def func_plus)
@@ -273,12 +273,12 @@ qed
 lemma bigo_abs5: "f =o O(g) ==> (%x. abs(f x)) =o O(g)" 
   by (unfold bigo_def, auto)
 
-lemma bigo_elt_subset2 [intro]: "f : g +o O(h) ==> O(f) <= O(g) \<oplus> O(h)"
+lemma bigo_elt_subset2 [intro]: "f : g +o O(h) ==> O(f) <= O(g) + O(h)"
 proof -
   assume "f : g +o O(h)"
-  also have "... <= O(g) \<oplus> O(h)"
+  also have "... <= O(g) + O(h)"
     by (auto del: subsetI)
-  also have "... = O(%x. abs(g x)) \<oplus> O(%x. abs(h x))"
+  also have "... = O(%x. abs(g x)) + O(%x. abs(h x))"
     apply (subst bigo_abs3 [symmetric])+
     apply (rule refl)
     done
@@ -287,13 +287,13 @@ proof -
   finally have "f : ...".
   then have "O(f) <= ..."
     by (elim bigo_elt_subset)
-  also have "... = O(%x. abs(g x)) \<oplus> O(%x. abs(h x))"
+  also have "... = O(%x. abs(g x)) + O(%x. abs(h x))"
     by (rule bigo_plus_eq, auto)
   finally show ?thesis
     by (simp add: bigo_abs3 [symmetric])
 qed
 
-lemma bigo_mult [intro]: "O(f)\<otimes>O(g) <= O(f * g)"
+lemma bigo_mult [intro]: "O(f)*O(g) <= O(f * g)"
   apply (rule subsetI)
   apply (subst bigo_def)
   apply (auto simp add: bigo_alt_def set_times_def func_times)
@@ -369,7 +369,7 @@ lemma bigo_mult6: "ALL x. f x ~= 0 ==>
   done
 
 lemma bigo_mult7: "ALL x. f x ~= 0 ==>
-    O(f * g) <= O(f::'a => ('b::linordered_field)) \<otimes> O(g)"
+    O(f * g) <= O(f::'a => ('b::linordered_field)) * O(g)"
   apply (subst bigo_mult6)
   apply assumption
   apply (rule set_times_mono3)
@@ -377,7 +377,7 @@ lemma bigo_mult7: "ALL x. f x ~= 0 ==>
   done
 
 lemma bigo_mult8: "ALL x. f x ~= 0 ==>
-    O(f * g) = O(f::'a => ('b::linordered_field)) \<otimes> O(g)"
+    O(f * g) = O(f::'a => ('b::linordered_field)) * O(g)"
   apply (rule equalityI)
   apply (erule bigo_mult7)
   apply (rule bigo_mult)
@@ -402,9 +402,9 @@ proof -
   show "f +o O(g) <= O(g)"
   proof -
     have "f : O(f)" by auto
-    then have "f +o O(g) <= O(f) \<oplus> O(g)"
+    then have "f +o O(g) <= O(f) + O(g)"
       by (auto del: subsetI)
-    also have "... <= O(g) \<oplus> O(g)"
+    also have "... <= O(g) + O(g)"
     proof -
       from a have "O(f) <= O(g)" by (auto del: subsetI)
       thus ?thesis by (auto del: subsetI)
@@ -656,7 +656,7 @@ lemma bigo_setsum6: "f =o g +o O(h) ==> ALL x y. 0 <= l x y ==>
 subsection {* Misc useful stuff *}
 
 lemma bigo_useful_intro: "A <= O(f) ==> B <= O(f) ==>
-  A \<oplus> B <= O(f)"
+  A + B <= O(f)"
   apply (subst bigo_plus_idemp [symmetric])
   apply (rule set_plus_mono2)
   apply assumption+

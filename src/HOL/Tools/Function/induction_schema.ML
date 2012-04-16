@@ -9,7 +9,6 @@ sig
   val mk_ind_tac : (int -> tactic) -> (int -> tactic) -> (int -> tactic)
                    -> Proof.context -> thm list -> tactic
   val induction_schema_tac : Proof.context -> thm list -> tactic
-  val setup : theory -> theory
 end
 
 
@@ -394,9 +393,5 @@ fun mk_ind_tac comp_tac pres_tac term_tac ctxt facts =
 
 fun induction_schema_tac ctxt =
   mk_ind_tac (K all_tac) (assume_tac APPEND' Goal.assume_rule_tac ctxt) (K all_tac) ctxt;
-
-val setup =
-  Method.setup @{binding induction_schema} (Scan.succeed (RAW_METHOD o induction_schema_tac))
-    "proves an induction principle"
 
 end

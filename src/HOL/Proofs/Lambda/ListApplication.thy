@@ -110,10 +110,8 @@ lemma lem:
     prefer 2
     apply (erule allE, erule mp, rule refl)
    apply simp
-   apply (rule lem0)
-    apply force
-   apply (rule elem_le_sum)
-   apply force
+   apply (simp only: foldl_conv_fold add_commute fold_plus_listsum_rev)
+   apply (fastforce simp add: listsum_map_remove1)
   apply clarify
   apply (rule assms)
    apply (erule allE, erule impE)
@@ -128,8 +126,8 @@ lemma lem:
   apply (rule le_imp_less_Suc)
   apply (rule trans_le_add1)
   apply (rule trans_le_add2)
-  apply (rule elem_le_sum)
-  apply force
+  apply (simp only: foldl_conv_fold add_commute fold_plus_listsum_rev)
+  apply (simp add: member_le_listsum_nat)
   done
 
 theorem Apps_dB_induct:
@@ -143,3 +141,4 @@ theorem Apps_dB_induct:
   done
 
 end
+

@@ -113,6 +113,18 @@ fun eq_tac ctxt = SUBGOAL (fn (t, i) =>
     rtac thm2 i
   end handle Match => no_tac | TERM _ => no_tac)
 
+val post_simps =
+  @{thms App_def Abs_def transfer_forall_eq [symmetric]
+    transfer_implies_eq [symmetric] transfer_bforall_unfold}
+
+fun gen_frees_tac keepers ctxt = SUBGOAL (fn (t, i) =>
+  let
+    val vs = rev (Term.add_frees t [])
+    val vs' = filter_out (member (op =) keepers o fst) vs
+  in
+    Induct.arbitrary_tac ctxt 0 vs' i
+  end)
+
 fun transfer_tac ctxt = SUBGOAL (fn (t, i) =>
   let
     val bs = bnames t
@@ -128,8 +140,7 @@ fun transfer_tac ctxt = SUBGOAL (fn (t, i) =>
          rtac @{thm equal_elim_rule1} i THEN
          rtac (Thm.reflexive (cert ctxt (fst (rename bs u)))) i) i,
        (* FIXME: rewrite_goal_tac does unwanted eta-contraction *)
-       rewrite_goal_tac @{thms App_def Abs_def} i,
-       rewrite_goal_tac @{thms transfer_forall_eq [symmetric] transfer_implies_eq [symmetric]} i,
+       rewrite_goal_tac post_simps i,
        rtac @{thm _} i]
   end)
 
@@ -143,10 +154,10 @@ fun correspondence_tac ctxt i =
          (resolve_tac rules ORELSE' atac ORELSE' eq_tac ctxt) i]
   end
 
-val transfer_method =
-  Scan.succeed (fn ctxt => SIMPLE_METHOD' (transfer_tac ctxt))
+val transfer_method : (Proof.context -> Method.method) context_parser =
+  Scan.succeed (fn ctxt => SIMPLE_METHOD' (gen_frees_tac [] ctxt THEN' transfer_tac ctxt))
 
-val correspondence_method =
+val correspondence_method : (Proof.context -> Method.method) context_parser =
   Scan.succeed (fn ctxt => SIMPLE_METHOD' (correspondence_tac ctxt))
 
 (* Attribute for correspondence rules *)

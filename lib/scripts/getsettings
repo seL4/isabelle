@@ -11,6 +11,21 @@ set -o allexport
 
 ISABELLE_SETTINGS_PRESENT=true
 
+#JVM path wrapper
+if [ "$OSTYPE" = cygwin ]
+then
+  ISABELLE_HOME_WINDOWS="$(cygpath -d "$(dirname "$ISABELLE_HOME")")\\$(basename "$ISABELLE_HOME")"
+  ISABELLE_HOME="$(cygpath -u "$ISABELLE_HOME_WINDOWS")"
+
+  CLASSPATH="$(cygpath -i -u -p "$CLASSPATH")"
+  function jvmpath() { cygpath -i -C UTF8 -w -p "$@"; }
+  THIS_CYGWIN="$(jvmpath "/")"
+else
+  function jvmpath() { echo "$@"; }
+  CLASSPATH="$CLASSPATH"
+fi
+HOME_JVM="$HOME"
+
 export ISABELLE_HOME
 if { echo -n "$ISABELLE_HOME" | fgrep " " >/dev/null; }
 then
@@ -53,17 +68,6 @@ function choosefrom ()
   echo "$RESULT"
 }
 
-#JVM path wrapper
-if [ "$OSTYPE" = cygwin ]; then
-  CLASSPATH="$(cygpath -i -u -p "$CLASSPATH")"
-  function jvmpath() { cygpath -i -C UTF8 -w -p "$@"; }
-  THIS_CYGWIN="$(jvmpath "/")"
-else
-  function jvmpath() { echo "$@"; }
-  CLASSPATH="$CLASSPATH"
-fi
-HOME_JVM="$HOME"
-
 #shared library convenience
 function librarypath () {
   for X in "$@"
@@ -91,18 +95,27 @@ function librarypath () {
 
 #robust invocation via ISABELLE_JDK_HOME
 function isabelle_jdk () {
-  [ -z "$ISABELLE_JDK_HOME" ] && \
-    { echo "Unknown ISABELLE_JDK_HOME -- Java tools unavailable" >&2; return 2; }
-  local PRG="$1"; shift
-  "$ISABELLE_JDK_HOME/bin/$PRG" "$@"
+  if [ -z "$ISABELLE_JDK_HOME" ]; then
+    echo "Unknown ISABELLE_JDK_HOME -- Java tools unavailable" >&2
+    return 127
+  else
+    local PRG="$1"; shift
+    "$ISABELLE_JDK_HOME/bin/$PRG" "$@"
+  fi
 }
 
 #robust invocation via SCALA_HOME
 function isabelle_scala () {
-  [ -z "$SCALA_HOME" ] && \
-    { echo "Unknown SCALA_HOME -- Scala unavailable" >&2; return 2; }
-  local PRG="$1"; shift
-  "$SCALA_HOME/bin/$PRG" "$@"
+  if [ -z "$ISABELLE_JDK_HOME" ]; then
+    echo "Unknown ISABELLE_JDK_HOME -- Java tools unavailable" >&2
+    return 127
+  elif [ -z "$SCALA_HOME" ]; then
+    echo "Unknown SCALA_HOME -- Scala unavailable" >&2
+    return 127
+  else
+    local PRG="$1"; shift
+    "$SCALA_HOME/bin/$PRG" "$@"
+  fi
 }
 
 #CLASSPATH convenience

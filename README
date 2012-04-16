@@ -16,8 +16,8 @@ System requirements
      * The Poly/ML compiler and runtime system (version 5.2.1 or later).
      * The GNU bash shell (version 3.x or 2.x).
      * Perl (version 5.x).
-     * Java 1.6.x from Oracle or Apple -- for Scala and jEdit.
-     * GNU Emacs (version 23) -- for the Proof General 4.x interface.
+     * Java 1.6.x or 1.7.x from Oracle or Apple -- for Scala and jEdit.
+     * GNU Emacs (version 23 or 24) -- for the Proof General 4.x interface.
      * A complete LaTeX installation -- for document preparation.
 
 Installation

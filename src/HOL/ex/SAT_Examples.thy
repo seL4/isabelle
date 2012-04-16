@@ -80,11 +80,9 @@ by sat
 ML {* sat.trace_sat := false; *}
 ML {* quick_and_dirty := false; *}
 
-method_setup rawsat =
-  {* Scan.succeed (SIMPLE_METHOD' o sat.rawsat_tac) *}
-  "SAT solver (no preprocessing)"
-
-(* ML {* Toplevel.profiling := 1; *} *)
+method_setup rawsat = {*
+  Scan.succeed (SIMPLE_METHOD' o sat.rawsat_tac)
+*} "SAT solver (no preprocessing)"
 
 (* Translated from TPTP problem library: PUZ015-2.006.dimacs *)
 
@@ -511,8 +509,6 @@ by rawsat  -- {* this is without CNF conversion *}
 
    (as of 2006-08-30, on a 2.5 GHz Pentium 4)
 *)
-
-(* ML {* Toplevel.profiling := 0; *} *)
 
 text {*
 Function {\tt benchmark} takes the name of an existing DIMACS CNF

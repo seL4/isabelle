@@ -67,7 +67,6 @@ use_thys [
   "Quicksort",
   "Birthday_Paradox",
   "List_to_Set_Comprehension_Examples",
-  "Set_Algebras",
   "Seq",
   "Simproc_Tests",
   "Executable_Relation"

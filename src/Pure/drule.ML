@@ -67,6 +67,8 @@ sig
   val store_standard_thm: binding -> thm -> thm
   val store_thm_open: binding -> thm -> thm
   val store_standard_thm_open: binding -> thm -> thm
+  val multi_resolve: thm list -> thm -> thm Seq.seq
+  val multi_resolves: thm list -> thm list -> thm Seq.seq
   val compose_single: thm * int * thm -> thm
   val equals_cong: thm
   val imp_cong: thm
@@ -108,8 +110,6 @@ sig
   val equal_elim_rule1: thm
   val equal_elim_rule2: thm
   val remdups_rl: thm
-  val multi_resolve: thm list -> thm -> thm Seq.seq
-  val multi_resolves: thm list -> thm list -> thm Seq.seq
   val abs_def: thm -> thm
 end;
 
@@ -314,50 +314,64 @@ val rearrange_prems =
             (Thm.permute_prems (new + 1) (new - p) (Thm.permute_prems new (p - new) thm))
   in rearr 0 end;
 
-(*Resolution: exactly one resolvent must be produced.*)
-fun tha RSN (i,thb) =
-  case Seq.chop 2 (Thm.biresolution false [(false,tha)] i thb) of
-      ([th],_) => th
-    | ([],_)   => raise THM("RSN: no unifiers", i, [tha,thb])
-    |      _   => raise THM("RSN: multiple unifiers", i, [tha,thb]);
 
-(*resolution: P==>Q, Q==>R gives P==>R. *)
+(*Resolution: multiple arguments, multiple results*)
+local
+  fun res th i rule =
+    Thm.biresolution false [(false, th)] i rule handle THM _ => Seq.empty;
+
+  fun multi_res _ [] rule = Seq.single rule
+    | multi_res i (th :: ths) rule = Seq.maps (res th i) (multi_res (i + 1) ths rule);
+in
+  val multi_resolve = multi_res 1;
+  fun multi_resolves facts rules = Seq.maps (multi_resolve facts) (Seq.of_list rules);
+end;
+
+(*Resolution: exactly one resolvent must be produced*)
+fun tha RSN (i, thb) =
+  (case Seq.chop 2 (Thm.biresolution false [(false, tha)] i thb) of
+    ([th], _) => th
+  | ([], _) => raise THM ("RSN: no unifiers", i, [tha, thb])
+  | _ => raise THM ("RSN: multiple unifiers", i, [tha, thb]));
+
+(*Resolution: P==>Q, Q==>R gives P==>R*)
 fun tha RS thb = tha RSN (1,thb);
 
 (*For joining lists of rules*)
-fun thas RLN (i,thbs) =
+fun thas RLN (i, thbs) =
   let val resolve = Thm.biresolution false (map (pair false) thas) i
       fun resb thb = Seq.list_of (resolve thb) handle THM _ => []
   in maps resb thbs end;
 
-fun thas RL thbs = thas RLN (1,thbs);
+fun thas RL thbs = thas RLN (1, thbs);
+
+(*Isar-style multi-resolution*)
+fun bottom_rl OF rls =
+  (case Seq.chop 2 (multi_resolve rls bottom_rl) of
+    ([th], _) => th
+  | ([], _) => raise THM ("OF: no unifiers", 0, bottom_rl :: rls)
+  | _ => raise THM ("OF: multiple unifiers", 0, bottom_rl :: rls));
 
 (*Resolve a list of rules against bottom_rl from right to left;
   makes proof trees*)
-fun rls MRS bottom_rl =
-  let fun rs_aux i [] = bottom_rl
-        | rs_aux i (rl::rls) = rl RSN (i, rs_aux (i+1) rls)
-  in  rs_aux 1 rls  end;
-
-(*A version of MRS with more appropriate argument order*)
-fun bottom_rl OF rls = rls MRS bottom_rl;
+fun rls MRS bottom_rl = bottom_rl OF rls;
 
 (*compose Q and [...,Qi,Q(i+1),...]==>R to [...,Q(i+1),...]==>R
   with no lifting or renaming!  Q may contain ==> or meta-quants
   ALWAYS deletes premise i *)
 fun compose(tha,i,thb) =
-    distinct Thm.eq_thm (Seq.list_of (Thm.bicompose false (false,tha,0) i thb));
+  distinct Thm.eq_thm (Seq.list_of (Thm.bicompose false (false,tha,0) i thb));
 
 fun compose_single (tha,i,thb) =
-  case compose (tha,i,thb) of
+  (case compose (tha,i,thb) of
     [th] => th
-  | _ => raise THM ("compose: unique result expected", i, [tha,thb]);
+  | _ => raise THM ("compose: unique result expected", i, [tha,thb]));
 
 (*compose Q and [Q1,Q2,...,Qk]==>R to [Q2,...,Qk]==>R getting unique result*)
 fun tha COMP thb =
-    case compose(tha,1,thb) of
-        [th] => th
-      | _ =>   raise THM("COMP", 1, [tha,thb]);
+  (case compose(tha, 1, thb) of
+    [th] => th
+  | _ => raise THM ("COMP", 1, [tha, thb]));
 
 
 (** theorem equality **)
@@ -865,25 +879,6 @@ fun rename_bvars' xs thm =
       ([], prop') => Thm.equal_elim (Thm.reflexive (cert prop')) thm
     | _ => error "More names than abstractions in theorem"
   end;
-
-
-
-(** multi_resolve **)
-
-local
-
-fun res th i rule =
-  Thm.biresolution false [(false, th)] i rule handle THM _ => Seq.empty;
-
-fun multi_res _ [] rule = Seq.single rule
-  | multi_res i (th :: ths) rule = Seq.maps (res th i) (multi_res (i + 1) ths rule);
-
-in
-
-val multi_resolve = multi_res 1;
-fun multi_resolves facts rules = Seq.maps (multi_resolve facts) (Seq.of_list rules);
-
-end;
 
 end;
 

@@ -12,6 +12,6 @@ else
   SERVER=""
 fi
 
-exec "$ISABELLE_JDK_HOME/bin/java" -Dfile.encoding=UTF-8 $SERVER \
+isabelle_jdk java -Dfile.encoding=UTF-8 $SERVER \
   "-Djava.ext.dirs=$("$ISABELLE_HOME/src/Tools/JVM/java_ext_dirs")" "$@"
 

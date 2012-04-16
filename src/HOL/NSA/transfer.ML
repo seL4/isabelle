@@ -4,14 +4,14 @@
 Transfer principle tactic for nonstandard analysis.
 *)
 
-signature TRANSFER =
+signature TRANSFER_PRINCIPLE =
 sig
   val transfer_tac: Proof.context -> thm list -> int -> tactic
   val add_const: string -> theory -> theory
   val setup: theory -> theory
 end;
 
-structure Transfer: TRANSFER =
+structure Transfer_Principle: TRANSFER_PRINCIPLE =
 struct
 
 structure TransferData = Generic_Data
@@ -112,8 +112,6 @@ val setup =
   Attrib.setup @{binding transfer_unfold} (Attrib.add_del unfold_add unfold_del)
     "declaration of transfer unfolding rule" #>
   Attrib.setup @{binding transfer_refold} (Attrib.add_del refold_add refold_del)
-    "declaration of transfer refolding rule" #>
-  Method.setup @{binding transfer} (Attrib.thms >> (fn ths => fn ctxt =>
-    SIMPLE_METHOD' (transfer_tac ctxt ths))) "transfer principle";
+    "declaration of transfer refolding rule"
 
 end;

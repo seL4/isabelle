@@ -230,7 +230,9 @@ subsection {* Initializing the fixrec package *}
 use "Tools/holcf_library.ML"
 use "Tools/fixrec.ML"
 
-setup {* Fixrec.setup *}
+method_setup fixrec_simp = {*
+  Scan.succeed (SIMPLE_METHOD' o Fixrec.fixrec_simp_tac)
+*} "pattern prover for fixrec constants"
 
 setup {*
   Fixrec.add_matchers

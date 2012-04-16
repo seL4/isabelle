@@ -1,4 +1,4 @@
-(*  Title:      HOL/Matrix/Compute_Oracle/am_sml.ML
+(*  Title:      HOL/Matrix_LP/Compute_Oracle/am_sml.ML
     Author:     Steven Obua
 
 TODO: "parameterless rewrite cannot be used in pattern": In a lot of

@@ -199,19 +199,19 @@ proof -
     apply safe
     apply (drule Abs1, simp)
     apply (erule Abs2)
-    apply (rule pred_compI)
+    apply (rule relcomppI)
     apply (rule Rep1)
     apply (rule Rep2)
-    apply (rule pred_compI, assumption)
+    apply (rule relcomppI, assumption)
     apply (drule Abs1, simp)
     apply (clarsimp simp add: R2)
-    apply (rule pred_compI, assumption)
+    apply (rule relcomppI, assumption)
     apply (drule Abs1, simp)+
     apply (clarsimp simp add: R2)
     apply (drule Abs1, simp)+
     apply (clarsimp simp add: R2)
-    apply (rule pred_compI, assumption)
-    apply (rule pred_compI [rotated])
+    apply (rule relcomppI, assumption)
+    apply (rule relcomppI [rotated])
     apply (erule conversepI)
     apply (drule Abs1, simp)+
     apply (simp add: R2)
@@ -236,32 +236,56 @@ lemma invariant_same_args:
   shows "invariant P x x \<equiv> P x"
 using assms by (auto simp add: invariant_def)
 
-lemma copy_type_to_Quotient:
+lemma UNIV_typedef_to_Quotient:
   assumes "type_definition Rep Abs UNIV"
-  and T_def: "T \<equiv> (\<lambda>x y. Abs x = y)"
+  and T_def: "T \<equiv> (\<lambda>x y. x = Rep y)"
   shows "Quotient (op =) Abs Rep T"
 proof -
   interpret type_definition Rep Abs UNIV by fact
-  from Abs_inject Rep_inverse T_def show ?thesis by (auto intro!: QuotientI)
+  from Abs_inject Rep_inverse Abs_inverse T_def show ?thesis 
+    by (fastforce intro!: QuotientI fun_eq_iff)
 qed
 
-lemma copy_type_to_equivp:
+lemma UNIV_typedef_to_equivp:
   fixes Abs :: "'a \<Rightarrow> 'b"
   and Rep :: "'b \<Rightarrow> 'a"
   assumes "type_definition Rep Abs (UNIV::'a set)"
   shows "equivp (op=::'a\<Rightarrow>'a\<Rightarrow>bool)"
 by (rule identity_equivp)
 
-lemma invariant_type_to_Quotient:
+lemma typedef_to_Quotient:
+  assumes "type_definition Rep Abs S"
+  and T_def: "T \<equiv> (\<lambda>x y. x = Rep y)"
+  shows "Quotient (Lifting.invariant (\<lambda>x. x \<in> S)) Abs Rep T"
+proof -
+  interpret type_definition Rep Abs S by fact
+  from Rep Abs_inject Rep_inverse Abs_inverse T_def show ?thesis
+    by (auto intro!: QuotientI simp: invariant_def fun_eq_iff)
+qed
+
+lemma typedef_to_part_equivp:
+  assumes "type_definition Rep Abs S"
+  shows "part_equivp (Lifting.invariant (\<lambda>x. x \<in> S))"
+proof (intro part_equivpI)
+  interpret type_definition Rep Abs S by fact
+  show "\<exists>x. Lifting.invariant (\<lambda>x. x \<in> S) x x" using Rep by (auto simp: invariant_def)
+next
+  show "symp (Lifting.invariant (\<lambda>x. x \<in> S))" by (auto intro: sympI simp: invariant_def)
+next
+  show "transp (Lifting.invariant (\<lambda>x. x \<in> S))" by (auto intro: transpI simp: invariant_def)
+qed
+
+lemma open_typedef_to_Quotient:
   assumes "type_definition Rep Abs {x. P x}"
-  and T_def: "T \<equiv> (\<lambda>x y. (invariant P) x x \<and> Abs x = y)"
+  and T_def: "T \<equiv> (\<lambda>x y. x = Rep y)"
   shows "Quotient (invariant P) Abs Rep T"
 proof -
   interpret type_definition Rep Abs "{x. P x}" by fact
-  from Rep Abs_inject Rep_inverse T_def show ?thesis by (auto intro!: QuotientI simp: invariant_def)
+  from Rep Abs_inject Rep_inverse Abs_inverse T_def show ?thesis
+    by (auto intro!: QuotientI simp: invariant_def fun_eq_iff)
 qed
 
-lemma invariant_type_to_part_equivp:
+lemma open_typedef_to_part_equivp:
   assumes "type_definition Rep Abs {x. P x}"
   shows "part_equivp (invariant P)"
 proof (intro part_equivpI)
@@ -272,6 +296,84 @@ next
 next
   show "transp (invariant P)" by (auto intro: transpI simp: invariant_def)
 qed
+
+text {* Generating transfer rules for quotients. *}
+
+lemma Quotient_right_unique:
+  assumes "Quotient R Abs Rep T" shows "right_unique T"
+  using assms unfolding Quotient_alt_def right_unique_def by metis
+
+lemma Quotient_right_total:
+  assumes "Quotient R Abs Rep T" shows "right_total T"
+  using assms unfolding Quotient_alt_def right_total_def by metis
+
+lemma Quotient_rel_eq_transfer:
+  assumes "Quotient R Abs Rep T"
+  shows "(T ===> T ===> op =) R (op =)"
+  using assms unfolding Quotient_alt_def fun_rel_def by simp
+
+lemma Quotient_bi_total:
+  assumes "Quotient R Abs Rep T" and "reflp R"
+  shows "bi_total T"
+  using assms unfolding Quotient_alt_def bi_total_def reflp_def by auto
+
+lemma Quotient_id_abs_transfer:
+  assumes "Quotient R Abs Rep T" and "reflp R"
+  shows "(op = ===> T) (\<lambda>x. x) Abs"
+  using assms unfolding Quotient_alt_def reflp_def fun_rel_def by simp
+
+text {* Generating transfer rules for a type defined with @{text "typedef"}. *}
+
+lemma typedef_bi_unique:
+  assumes type: "type_definition Rep Abs A"
+  assumes T_def: "T \<equiv> (\<lambda>x y. x = Rep y)"
+  shows "bi_unique T"
+  unfolding bi_unique_def T_def
+  by (simp add: type_definition.Rep_inject [OF type])
+
+lemma typedef_right_total:
+  assumes T_def: "T \<equiv> (\<lambda>x y. x = Rep y)"
+  shows "right_total T"
+  unfolding right_total_def T_def by simp
+
+lemma copy_type_bi_total:
+  assumes type: "type_definition Rep Abs UNIV"
+  assumes T_def: "T \<equiv> (\<lambda>x y. x = Rep y)"
+  shows "bi_total T"
+  unfolding bi_total_def T_def
+  by (metis type_definition.Abs_inverse [OF type] UNIV_I)
+
+lemma typedef_transfer_All:
+  assumes type: "type_definition Rep Abs A"
+  assumes T_def: "T \<equiv> (\<lambda>x y. x = Rep y)"
+  shows "((T ===> op =) ===> op =) (Ball A) All"
+  unfolding T_def fun_rel_def
+  by (metis type_definition.Rep [OF type]
+    type_definition.Abs_inverse [OF type])
+
+lemma typedef_transfer_Ex:
+  assumes type: "type_definition Rep Abs A"
+  assumes T_def: "T \<equiv> (\<lambda>x y. x = Rep y)"
+  shows "((T ===> op =) ===> op =) (Bex A) Ex"
+  unfolding T_def fun_rel_def
+  by (metis type_definition.Rep [OF type]
+    type_definition.Abs_inverse [OF type])
+
+lemma typedef_transfer_bforall:
+  assumes type: "type_definition Rep Abs A"
+  assumes T_def: "T \<equiv> (\<lambda>x y. x = Rep y)"
+  shows "((T ===> op =) ===> op =)
+    (transfer_bforall (\<lambda>x. x \<in> A)) transfer_forall"
+  unfolding transfer_bforall_def transfer_forall_def Ball_def [symmetric]
+  by (rule typedef_transfer_All [OF assms])
+
+text {* Generating the correspondence rule for a constant defined with
+  @{text "lift_definition"}. *}
+
+lemma Quotient_to_transfer:
+  assumes "Quotient R Abs Rep T" and "R c c" and "c' \<equiv> Abs c"
+  shows "T c c'"
+  using assms by (auto dest: Quotient_cr_rel)
 
 subsection {* ML setup *}
 

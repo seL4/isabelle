@@ -493,26 +493,19 @@ end
 subsection {* Evaluation *}
 
 ML {*
-
-local
-  structure Data = Named_Thms(val name = @{binding eval} val description = "evaluation rules");
-in
+structure Eval_Rules =
+  Named_Thms(val name = @{binding eval} val description = "evaluation rules");
 
 fun eval_tac ths =
   Subgoal.FOCUS_PREMS (fn {context, prems, ...} =>
-    DEPTH_SOLVE_1 (resolve_tac (ths @ prems @ Data.get context) 1));
+    DEPTH_SOLVE_1 (resolve_tac (ths @ prems @ Eval_Rules.get context) 1));
+*}
+setup Eval_Rules.setup
 
-val eval_setup =
-  Data.setup #>
-  Method.setup @{binding eval}
-    (Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (CHANGED o eval_tac ths ctxt)))
-    "evaluation";
-
-end;
-
+method_setup eval = {*
+  Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (CHANGED o eval_tac ths ctxt))
 *}
 
-setup eval_setup
 
 lemmas eval_rls [eval] = trueV falseV pairV lamV caseVtrue caseVfalse caseVpair caseVlam
 

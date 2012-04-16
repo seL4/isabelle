@@ -1027,7 +1027,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy	\
   ex/Quicksort.thy ex/ROOT.ML						\
   ex/Records.thy ex/ReflectionEx.thy ex/Refute_Examples.thy		\
   ex/SAT_Examples.thy ex/Serbian.thy ex/Set_Theory.thy			\
-  ex/Set_Algebras.thy ex/Simproc_Tests.thy ex/SVC_Oracle.thy		\
+  ex/Simproc_Tests.thy ex/SVC_Oracle.thy		\
   ex/sledgehammer_tactics.ML ex/Seq.thy ex/Sqrt.thy ex/Sqrt_Script.thy 	\
   ex/Sudoku.thy ex/Tarski.thy ex/Termination.thy ex/Transfer_Ex.thy	\
   ex/Tree23.thy	ex/Unification.thy ex/While_Combinator_Example.thy	\
@@ -1319,16 +1319,16 @@ $(LOG)/HOL-NSA-Examples.gz: $(OUT)/HOL-NSA NSA/Examples/ROOT.ML		\
 
 HOL-Mirabelle: HOL $(LOG)/HOL-Mirabelle.gz
 
-$(LOG)/HOL-Mirabelle.gz: $(OUT)/HOL Mirabelle/Mirabelle_Test.thy	\
-  Mirabelle/Mirabelle.thy Mirabelle/Tools/mirabelle.ML			\
-  Mirabelle/ROOT.ML Mirabelle/Tools/mirabelle_arith.ML			\
-  Mirabelle/Tools/mirabelle_metis.ML					\
-  Mirabelle/Tools/mirabelle_quickcheck.ML				\
-  Mirabelle/Tools/mirabelle_refute.ML					\
-  Mirabelle/Tools/mirabelle_sledgehammer.ML 				\
-  Mirabelle/Tools/mirabelle_sledgehammer_filter.ML			\
-  ex/sledgehammer_tactics.ML Mirabelle/lib/Tools/mirabelle		\
-  Mirabelle/lib/scripts/mirabelle.pl Library/FrechetDeriv.thy		\
+$(LOG)/HOL-Mirabelle.gz: $(OUT)/HOL Mirabelle/Mirabelle_Test.thy \
+  Mirabelle/Mirabelle.thy Mirabelle/Actions/mirabelle.ML \
+  Mirabelle/ROOT.ML Mirabelle/Actions/mirabelle_arith.ML \
+  Mirabelle/Actions/mirabelle_metis.ML \
+  Mirabelle/Actions/mirabelle_quickcheck.ML \
+  Mirabelle/Actions/mirabelle_refute.ML	\
+  Mirabelle/Actions/mirabelle_sledgehammer.ML \
+  Mirabelle/Actions/mirabelle_sledgehammer_filter.ML \
+  ex/sledgehammer_tactics.ML Mirabelle/lib/Tools/mirabelle \
+  Mirabelle/lib/scripts/mirabelle.pl Library/FrechetDeriv.thy \
   Library/Inner_Product.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Mirabelle
 	@cd Library; $(ISABELLE_TOOL) mirabelle -q arith Inner_Product.thy # some arbitrary small test case

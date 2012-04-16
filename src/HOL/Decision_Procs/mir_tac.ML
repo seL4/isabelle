@@ -6,7 +6,6 @@ signature MIR_TAC =
 sig
   val trace: bool Unsynchronized.ref
   val mir_tac: Proof.context -> bool -> int -> tactic
-  val setup: theory -> theory
 end
 
 structure Mir_Tac =
@@ -142,16 +141,5 @@ fun mir_tac ctxt q =
     end
       | _ => (pre_thm, assm_tac i)
   in rtac (((mp_step nh) o (spec_step np)) th) i THEN tac end);
-
-val setup =
-  Method.setup @{binding mir}
-    let
-      val parse_flag = Args.$$$ "no_quantify" >> K (K false)
-    in
-      Scan.lift (Scan.optional (Args.$$$ "(" |-- Scan.repeat1 parse_flag --| Args.$$$ ")") [] >>
-        curry (Library.foldl op |>) true) >>
-      (fn q => fn ctxt => SIMPLE_METHOD' (mir_tac ctxt q))
-    end
-    "decision procedure for MIR arithmetic";
 
 end
