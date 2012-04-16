@@ -733,43 +733,83 @@ text {* for code generation *}
 definition relpow :: "nat \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set" where
   relpow_code_def [code_abbrev]: "relpow = compow"
 
+definition relpowp :: "nat \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool)" where
+  relpowp_code_def [code_abbrev]: "relpowp = compow"
+
 lemma [code]:
   "relpow (Suc n) R = (relpow n R) O R"
   "relpow 0 R = Id"
   by (simp_all add: relpow_code_def)
 
+lemma [code]:
+  "relpowp (Suc n) R = (R ^^ n) OO R"
+  "relpowp 0 R = HOL.eq"
+  by (simp_all add: relpowp_code_def)
+
 hide_const (open) relpow
+hide_const (open) relpowp
 
 lemma relpow_1 [simp]:
   fixes R :: "('a \<times> 'a) set"
   shows "R ^^ 1 = R"
   by simp
 
+lemma relpowp_1 [simp]:
+  fixes P :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+  shows "P ^^ 1 = P"
+  by (fact relpow_1 [to_pred])
+
 lemma relpow_0_I: 
   "(x, x) \<in> R ^^ 0"
   by simp
+
+lemma relpowp_0_I:
+  "(P ^^ 0) x x"
+  by (fact relpow_0_I [to_pred])
 
 lemma relpow_Suc_I:
   "(x, y) \<in>  R ^^ n \<Longrightarrow> (y, z) \<in> R \<Longrightarrow> (x, z) \<in> R ^^ Suc n"
   by auto
 
+lemma relpowp_Suc_I:
+  "(P ^^ n) x y \<Longrightarrow> P y z \<Longrightarrow> (P ^^ Suc n) x z"
+  by (fact relpow_Suc_I [to_pred])
+
 lemma relpow_Suc_I2:
   "(x, y) \<in> R \<Longrightarrow> (y, z) \<in> R ^^ n \<Longrightarrow> (x, z) \<in> R ^^ Suc n"
   by (induct n arbitrary: z) (simp, fastforce)
+
+lemma relpowp_Suc_I2:
+  "P x y \<Longrightarrow> (P ^^ n) y z \<Longrightarrow> (P ^^ Suc n) x z"
+  by (fact relpow_Suc_I2 [to_pred])
 
 lemma relpow_0_E:
   "(x, y) \<in> R ^^ 0 \<Longrightarrow> (x = y \<Longrightarrow> P) \<Longrightarrow> P"
   by simp
 
+lemma relpowp_0_E:
+  "(P ^^ 0) x y \<Longrightarrow> (x = y \<Longrightarrow> Q) \<Longrightarrow> Q"
+  by (fact relpow_0_E [to_pred])
+
 lemma relpow_Suc_E:
   "(x, z) \<in> R ^^ Suc n \<Longrightarrow> (\<And>y. (x, y) \<in> R ^^ n \<Longrightarrow> (y, z) \<in> R \<Longrightarrow> P) \<Longrightarrow> P"
   by auto
+
+lemma relpowp_Suc_E:
+  "(P ^^ Suc n) x z \<Longrightarrow> (\<And>y. (P ^^ n) x y \<Longrightarrow> P y z \<Longrightarrow> Q) \<Longrightarrow> Q"
+  by (fact relpow_Suc_E [to_pred])
 
 lemma relpow_E:
   "(x, z) \<in>  R ^^ n \<Longrightarrow>  (n = 0 \<Longrightarrow> x = z \<Longrightarrow> P)
    \<Longrightarrow> (\<And>y m. n = Suc m \<Longrightarrow> (x, y) \<in>  R ^^ m \<Longrightarrow> (y, z) \<in> R \<Longrightarrow> P)
    \<Longrightarrow> P"
   by (cases n) auto
+
+lemma relpowp_E:
+  "(P ^^ n) x z \<Longrightarrow> (n = 0 \<Longrightarrow> x = z \<Longrightarrow> Q)
+  \<Longrightarrow> (\<And>y m. n = Suc m \<Longrightarrow> (P ^^ m) x y \<Longrightarrow> P y z \<Longrightarrow> Q)
+  \<Longrightarrow> Q"
+  by (fact relpow_E [to_pred])
 
 lemma relpow_Suc_D2:
   "(x, z) \<in> R ^^ Suc n \<Longrightarrow> (\<exists>y. (x, y) \<in> R \<and> (y, z) \<in> R ^^ n)"
@@ -778,13 +818,25 @@ lemma relpow_Suc_D2:
   apply (blast intro: relpow_Suc_I elim: relpow_0_E relpow_Suc_E)
   done
 
+lemma relpowp_Suc_D2:
+  "(P ^^ Suc n) x z \<Longrightarrow> \<exists>y. P x y \<and> (P ^^ n) y z"
+  by (fact relpow_Suc_D2 [to_pred])
+
 lemma relpow_Suc_E2:
   "(x, z) \<in> R ^^ Suc n \<Longrightarrow> (\<And>y. (x, y) \<in> R \<Longrightarrow> (y, z) \<in> R ^^ n \<Longrightarrow> P) \<Longrightarrow> P"
   by (blast dest: relpow_Suc_D2)
 
+lemma relpowp_Suc_E2:
+  "(P ^^ Suc n) x z \<Longrightarrow> (\<And>y. P x y \<Longrightarrow> (P ^^ n) y z \<Longrightarrow> Q) \<Longrightarrow> Q"
+  by (fact relpow_Suc_E2 [to_pred])
+
 lemma relpow_Suc_D2':
   "\<forall>x y z. (x, y) \<in> R ^^ n \<and> (y, z) \<in> R \<longrightarrow> (\<exists>w. (x, w) \<in> R \<and> (w, z) \<in> R ^^ n)"
   by (induct n) (simp_all, blast)
+
+lemma relpowp_Suc_D2':
+  "\<forall>x y z. (P ^^ n) x y \<and> P y z \<longrightarrow> (\<exists>w. P x w \<and> (P ^^ n) w z)"
+  by (fact relpow_Suc_D2' [to_pred])
 
 lemma relpow_E2:
   "(x, z) \<in> R ^^ n \<Longrightarrow>  (n = 0 \<Longrightarrow> x = z \<Longrightarrow> P)
@@ -794,15 +846,31 @@ lemma relpow_E2:
   apply (cut_tac n=nat and R=R in relpow_Suc_D2', simp, blast)
   done
 
+lemma relpowp_E2:
+  "(P ^^ n) x z \<Longrightarrow> (n = 0 \<Longrightarrow> x = z \<Longrightarrow> Q)
+    \<Longrightarrow> (\<And>y m. n = Suc m \<Longrightarrow> P x y \<Longrightarrow> (P ^^ m) y z \<Longrightarrow> Q)
+  \<Longrightarrow> Q"
+  by (fact relpow_E2 [to_pred])
+
 lemma relpow_add: "R ^^ (m+n) = R^^m O R^^n"
   by (induct n) auto
+
+lemma relpowp_add: "P ^^ (m + n) = P ^^ m OO P ^^ n"
+  by (fact relpow_add [to_pred])
 
 lemma relpow_commute: "R O R ^^ n = R ^^ n O R"
   by (induct n) (simp, simp add: O_assoc [symmetric])
 
+lemma relpowp_commute: "P OO P ^^ n = P ^^ n OO P"
+  by (fact relpow_commute [to_pred])
+
 lemma relpow_empty:
   "0 < n \<Longrightarrow> ({} :: ('a \<times> 'a) set) ^^ n = {}"
   by (cases n) auto
+
+lemma relpowp_bot:
+  "0 < n \<Longrightarrow> (\<bottom> :: 'a \<Rightarrow> 'a \<Rightarrow> bool) ^^ n = \<bottom>"
+  by (fact relpow_empty [to_pred])
 
 lemma rtrancl_imp_UN_relpow:
   assumes "p \<in> R^*"
@@ -817,6 +885,11 @@ proof (cases p)
   qed
   with Pair show ?thesis by simp
 qed
+
+lemma rtranclp_imp_Sup_relpowp:
+  assumes "(P^**) x y"
+  shows "(\<Squnion>n. P ^^ n) x y"
+  using assms and rtrancl_imp_UN_relpow [to_pred] by blast
 
 lemma relpow_imp_rtrancl:
   assumes "p \<in> R ^^ n"
@@ -833,13 +906,26 @@ proof (cases p)
   with Pair show ?thesis by simp
 qed
 
+lemma relpowp_imp_rtranclp:
+  assumes "(P ^^ n) x y"
+  shows "(P^**) x y"
+  using assms and relpow_imp_rtrancl [to_pred] by blast
+
 lemma rtrancl_is_UN_relpow:
   "R^* = (\<Union>n. R ^^ n)"
   by (blast intro: rtrancl_imp_UN_relpow relpow_imp_rtrancl)
 
+lemma rtranclp_is_Sup_relpowp:
+  "P^** = (\<Squnion>n. P ^^ n)"
+  using rtrancl_is_UN_relpow [to_pred, of P] by auto
+
 lemma rtrancl_power:
   "p \<in> R^* \<longleftrightarrow> (\<exists>n. p \<in> R ^^ n)"
   by (simp add: rtrancl_is_UN_relpow)
+
+lemma rtranclp_power:
+  "(P^**) x y \<longleftrightarrow> (\<exists>n. (P ^^ n) x y)"
+  by (simp add: rtranclp_is_Sup_relpowp)
 
 lemma trancl_power:
   "p \<in> R^+ \<longleftrightarrow> (\<exists>n > 0. p \<in> R ^^ n)"
@@ -858,9 +944,17 @@ lemma trancl_power:
   apply (drule rtrancl_into_trancl1) apply auto
   done
 
+lemma tranclp_power:
+  "(P^++) x y \<longleftrightarrow> (\<exists>n > 0. (P ^^ n) x y)"
+  using trancl_power [to_pred, of P "(x, y)"] by simp
+
 lemma rtrancl_imp_relpow:
   "p \<in> R^* \<Longrightarrow> \<exists>n. p \<in> R ^^ n"
   by (auto dest: rtrancl_imp_UN_relpow)
+
+lemma rtranclp_imp_relpowp:
+  "(P^**) x y \<Longrightarrow> \<exists>n. (P ^^ n) x y"
+  by (auto dest: rtranclp_imp_Sup_relpowp)
 
 text{* By Sternagel/Thiemann: *}
 lemma relpow_fun_conv:
@@ -886,6 +980,10 @@ next
     qed
   qed
 qed
+
+lemma relpowp_fun_conv:
+  "(P ^^ n) x y \<longleftrightarrow> (\<exists>f. f 0 = x \<and> f n = y \<and> (\<forall>i<n. P (f i) (f (Suc i))))"
+  by (fact relpow_fun_conv [to_pred])
 
 lemma relpow_finite_bounded1:
 assumes "finite(R :: ('a*'a)set)" and "k>0"
