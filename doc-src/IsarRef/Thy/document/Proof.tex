@@ -1111,11 +1111,17 @@ The following proof methods and attributes refer to basic logical
   \item \hyperlink{attribute.Pure.rule}{\mbox{\isa{rule}}}~\isa{del} undeclares introduction,
   elimination, or destruct rules.
   
-  \item \hyperlink{attribute.OF}{\mbox{\isa{OF}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ a\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} applies some
-  theorem to all of the given rules \isa{{\isaliteral{22}{\isachardoublequote}}a\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ a\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}}
-  (in parallel).  This corresponds to the \verb|MRS| operation in
-  ML, but note the reversed order.  Positions may be effectively
-  skipped by including ``\isa{{\isaliteral{5F}{\isacharunderscore}}}'' (underscore) as argument.
+  \item \hyperlink{attribute.OF}{\mbox{\isa{OF}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ a\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} applies some theorem to all
+  of the given rules \isa{{\isaliteral{22}{\isachardoublequote}}a\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ a\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} in canonical right-to-left
+  order, which means that premises stemming from the \isa{{\isaliteral{22}{\isachardoublequote}}a\isaliteral{5C3C5E7375623E}{}\isactrlsub i{\isaliteral{22}{\isachardoublequote}}}
+  emerge in parallel in the result, without interfering with each
+  other.  In many practical situations, the \isa{{\isaliteral{22}{\isachardoublequote}}a\isaliteral{5C3C5E7375623E}{}\isactrlsub i{\isaliteral{22}{\isachardoublequote}}} do not have
+  premises themselves, so \isa{{\isaliteral{22}{\isachardoublequote}}rule\ {\isaliteral{5B}{\isacharbrackleft}}OF\ a\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ a\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}} can be actually
+  read as functional application (modulo unification).
+
+  Argument positions may be effectively skipped by using ``\isa{{\isaliteral{5F}{\isacharunderscore}}}''
+  (underscore), which refers to the propositional identity rule in the
+  Pure theory.
   
   \item \hyperlink{attribute.of}{\mbox{\isa{of}}}~\isa{{\isaliteral{22}{\isachardoublequote}}t\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ t\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} performs positional
   instantiation of term variables.  The terms \isa{{\isaliteral{22}{\isachardoublequote}}t\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ t\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} are

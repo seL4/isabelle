@@ -1261,7 +1261,9 @@ The rule calculus of Isabelle/Pure provides two main inferences:
   against premise \isa{i} of \isa{rule}, for \isa{i\ {\isaliteral{3D}{\isacharequal}}\ n{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{1}}}.  By working from right to left, newly emerging premises are
   concatenated in the result, without interfering.
 
-  \item \isa{rule\ OF\ rules} abbreviates \isa{rules\ MRS\ rule}.
+  \item \isa{rule\ OF\ rules} is an alternative notation for \isa{rules\ MRS\ rule}, which makes rule composition look more like
+  function application.  Note that the argument \isa{rules} need
+  not be atomic.
 
   This corresponds to the rule attribute \hyperlink{attribute.OF}{\mbox{\isa{OF}}} in Isar
   source language.

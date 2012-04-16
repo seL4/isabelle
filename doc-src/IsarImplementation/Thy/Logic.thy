@@ -1123,7 +1123,10 @@ text %mlref {*
   1"}.  By working from right to left, newly emerging premises are
   concatenated in the result, without interfering.
 
-  \item @{text "rule OF rules"} abbreviates @{text "rules MRS rule"}.
+  \item @{text "rule OF rules"} is an alternative notation for @{text
+  "rules MRS rule"}, which makes rule composition look more like
+  function application.  Note that the argument @{text "rules"} need
+  not be atomic.
 
   This corresponds to the rule attribute @{attribute OF} in Isar
   source language.

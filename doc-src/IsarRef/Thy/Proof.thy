@@ -784,11 +784,17 @@ text {*
   \item @{attribute (Pure) rule}~@{text del} undeclares introduction,
   elimination, or destruct rules.
   
-  \item @{attribute OF}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} applies some
-  theorem to all of the given rules @{text "a\<^sub>1, \<dots>, a\<^sub>n"}
-  (in parallel).  This corresponds to the @{ML_op "MRS"} operation in
-  ML, but note the reversed order.  Positions may be effectively
-  skipped by including ``@{text _}'' (underscore) as argument.
+  \item @{attribute OF}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} applies some theorem to all
+  of the given rules @{text "a\<^sub>1, \<dots>, a\<^sub>n"} in canonical right-to-left
+  order, which means that premises stemming from the @{text "a\<^sub>i"}
+  emerge in parallel in the result, without interfering with each
+  other.  In many practical situations, the @{text "a\<^sub>i"} do not have
+  premises themselves, so @{text "rule [OF a\<^sub>1 \<dots> a\<^sub>n]"} can be actually
+  read as functional application (modulo unification).
+
+  Argument positions may be effectively skipped by using ``@{text _}''
+  (underscore), which refers to the propositional identity rule in the
+  Pure theory.
   
   \item @{attribute of}~@{text "t\<^sub>1 \<dots> t\<^sub>n"} performs positional
   instantiation of term variables.  The terms @{text "t\<^sub>1, \<dots>, t\<^sub>n"} are
