@@ -256,7 +256,7 @@ by (rule identity_equivp)
 lemma typedef_to_Quotient:
   assumes "type_definition Rep Abs S"
   and T_def: "T \<equiv> (\<lambda>x y. x = Rep y)"
-  shows "Quotient (Lifting.invariant (\<lambda>x. x \<in> S)) Abs Rep T"
+  shows "Quotient (invariant (\<lambda>x. x \<in> S)) Abs Rep T"
 proof -
   interpret type_definition Rep Abs S by fact
   from Rep Abs_inject Rep_inverse Abs_inverse T_def show ?thesis
@@ -265,14 +265,14 @@ qed
 
 lemma typedef_to_part_equivp:
   assumes "type_definition Rep Abs S"
-  shows "part_equivp (Lifting.invariant (\<lambda>x. x \<in> S))"
+  shows "part_equivp (invariant (\<lambda>x. x \<in> S))"
 proof (intro part_equivpI)
   interpret type_definition Rep Abs S by fact
-  show "\<exists>x. Lifting.invariant (\<lambda>x. x \<in> S) x x" using Rep by (auto simp: invariant_def)
+  show "\<exists>x. invariant (\<lambda>x. x \<in> S) x x" using Rep by (auto simp: invariant_def)
 next
-  show "symp (Lifting.invariant (\<lambda>x. x \<in> S))" by (auto intro: sympI simp: invariant_def)
+  show "symp (invariant (\<lambda>x. x \<in> S))" by (auto intro: sympI simp: invariant_def)
 next
-  show "transp (Lifting.invariant (\<lambda>x. x \<in> S))" by (auto intro: transpI simp: invariant_def)
+  show "transp (invariant (\<lambda>x. x \<in> S))" by (auto intro: transpI simp: invariant_def)
 qed
 
 lemma open_typedef_to_Quotient:
