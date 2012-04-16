@@ -97,7 +97,7 @@ function librarypath () {
 function isabelle_jdk () {
   if [ -z "$ISABELLE_JDK_HOME" ]; then
     echo "Unknown ISABELLE_JDK_HOME -- Java tools unavailable" >&2
-    return 2
+    return 127
   else
     local PRG="$1"; shift
     "$ISABELLE_JDK_HOME/bin/$PRG" "$@"
@@ -108,10 +108,10 @@ function isabelle_jdk () {
 function isabelle_scala () {
   if [ -z "$ISABELLE_JDK_HOME" ]; then
     echo "Unknown ISABELLE_JDK_HOME -- Java tools unavailable" >&2
-    return 2
+    return 127
   elif [ -z "$SCALA_HOME" ]; then
     echo "Unknown SCALA_HOME -- Scala unavailable" >&2
-    return 2
+    return 127
   else
     local PRG="$1"; shift
     "$SCALA_HOME/bin/$PRG" "$@"

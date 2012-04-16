@@ -1067,7 +1067,7 @@ fun uncached_solve_any_problem overlord deadline max_threads max_solutions
                   TimedOut js
                 else if code = 0 then
                   Normal ([], js, first_error)
-                else if has_error "exec: java" then
+                else if code = 127 then
                   JavaNotInstalled
                 else if has_error "UnsupportedClassVersionError" then
                   JavaTooOld
