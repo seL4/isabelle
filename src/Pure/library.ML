@@ -150,6 +150,7 @@ sig
   val suffix: string -> string -> string
   val unprefix: string -> string -> string
   val unsuffix: string -> string -> string
+  val trim_line: string -> string
   val replicate_string: int -> string -> string
   val translate_string: (string -> string) -> string -> string
   val match_string: string -> string -> bool
@@ -754,6 +755,8 @@ fun unprefix prfx s =
 fun unsuffix sffx s =
   if String.isSuffix sffx s then String.substring (s, 0, size s - size sffx)
   else raise Fail "unsuffix";
+
+val trim_line = perhaps (try (unsuffix "\n"));
 
 fun replicate_string (0: int) _ = ""
   | replicate_string 1 a = a

@@ -6,7 +6,7 @@ GNU bash processes, with propagation of interrupts.
 
 signature BASH =
 sig
-  val process: string -> {output: string, rc: int, terminate: unit -> unit}
+  val process: string -> {out: string, err: string, rc: int, terminate: unit -> unit}
 end;
 
 structure Bash: BASH =
@@ -19,7 +19,8 @@ val process = uninterruptible (fn restore_attributes => fn script =>
 
     val id = serial_string ();
     val script_path = File.tmp_path (Path.basic ("bash_script" ^ id));
-    val output_path = File.tmp_path (Path.basic ("bash_output" ^ id));
+    val out_path = File.tmp_path (Path.basic ("bash_out" ^ id));
+    val err_path = File.tmp_path (Path.basic ("bash_err" ^ id));
     val pid_path = File.tmp_path (Path.basic ("bash_pid" ^ id));
 
     val system_thread =
@@ -31,8 +32,9 @@ val process = uninterruptible (fn restore_attributes => fn script =>
               OS.Process.system
                 ("exec \"$ISABELLE_HOME/lib/scripts/process\" group " ^
                   File.shell_path pid_path ^ " script \"exec bash " ^
-                  File.shell_path script_path ^ " > " ^
-                  File.shell_path output_path ^ "\"");
+                  File.shell_path script_path ^
+                  " > " ^ File.shell_path out_path ^
+                  " 2> " ^ File.shell_path err_path ^ "\"");
             val res =
               (case Posix.Process.fromStatus status of
                 Posix.Process.W_EXITED => Result 0
@@ -75,7 +77,8 @@ val process = uninterruptible (fn restore_attributes => fn script =>
     fun cleanup () =
      (Simple_Thread.interrupt_unsynchronized system_thread;
       try File.rm script_path;
-      try File.rm output_path;
+      try File.rm out_path;
+      try File.rm err_path;
       try File.rm pid_path);
   in
     let
@@ -83,11 +86,12 @@ val process = uninterruptible (fn restore_attributes => fn script =>
         restore_attributes (fn () =>
           Synchronized.guarded_access result (fn Wait => NONE | x => SOME ((), x))) ();
 
-      val output = the_default "" (try File.read output_path);
+      val out = the_default "" (try File.read out_path);
+      val err = the_default "" (try File.read err_path);
       val rc = (case Synchronized.value result of Signal => Exn.interrupt () | Result rc => rc);
       val pid = get_pid ();
       val _ = cleanup ();
-    in {output = output, rc = rc, terminate = fn () => terminate pid} end
+    in {out = out, err = err, rc = rc, terminate = fn () => terminate pid} end
     handle exn => (terminate (get_pid ()); cleanup (); reraise exn)
   end);
 

@@ -25,13 +25,16 @@ struct
 (* bash *)
 
 fun bash_output s =
-  let val {output, rc, ...} = Bash.process s
-  in (output, rc) end;
+  let
+    val {out, err, rc, ...} = Bash.process s;
+    val _ = warning (trim_line err);
+  in (out, rc) end;
 
 fun bash s =
-  (case bash_output s of
-    ("", rc) => rc
-  | (out, rc) => (writeln (perhaps (try (unsuffix "\n")) out); rc));
+  let
+    val (out, rc) = bash_output s;
+    val _ = writeln (trim_line out);
+  in rc end;
 
 
 (* system commands *)
@@ -46,7 +49,7 @@ fun isabelle_tool name args =
         else NONE
       end handle OS.SysErr _ => NONE) of
     SOME path => bash (File.shell_quote path ^ " " ^ args)
-  | NONE => (writeln ("Unknown Isabelle tool: " ^ name); 2));
+  | NONE => (warning ("Unknown Isabelle tool: " ^ name); 2));
 
 fun system_command cmd =
   if bash cmd <> 0 then error ("System command failed: " ^ cmd)
@@ -94,7 +97,7 @@ fun with_tmp_fifo f =
     (fn path =>
       (case bash_output ("mkfifo -m 600 " ^ File.shell_path path) of
         (_, 0) => f path
-      | (out, _) => error (perhaps (try (unsuffix "\n")) out)));
+      | (out, _) => error (trim_line out)));
 
 (* FIXME blocks on Cygwin 1.7.x *)
 (* See also http://cygwin.com/ml/cygwin/2010-08/msg00459.html *)
@@ -104,7 +107,7 @@ fun bash_output_fifo script f =
       (case Bash.process (script ^ " > " ^ File.shell_path fifo ^ " &") of
         {rc = 0, terminate, ...} =>
           (restore_attributes f fifo handle exn => (terminate (); reraise exn))
-      | {output, ...} => error (perhaps (try (unsuffix "\n")) output))) ());
+      | {out, ...} => error (trim_line out))) ());
 
 end;
 
