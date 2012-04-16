@@ -1251,7 +1251,7 @@ lemma real_of_nat_le_iff [iff]: "(real (n::nat) \<le> real m) = (n \<le> m)"
 by (simp add: real_of_nat_def)
 
 lemma real_of_nat_ge_zero [iff]: "0 \<le> real (n::nat)"
-by (simp add: real_of_nat_def zero_le_imp_of_nat)
+by (simp add: real_of_nat_def)
 
 lemma real_of_nat_Suc_gt_zero: "0 < real (Suc n)"
 by (simp add: real_of_nat_def del: of_nat_Suc)

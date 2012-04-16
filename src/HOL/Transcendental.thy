@@ -421,7 +421,7 @@ proof -
          order_trans [OF norm_setsum]
          real_setsum_nat_ivl_bounded2
          mult_nonneg_nonneg
-         zero_le_imp_of_nat
+         of_nat_0_le_iff
          zero_le_power K)
       apply (rule le_Kn, simp)
       done

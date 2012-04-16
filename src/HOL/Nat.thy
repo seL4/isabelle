@@ -1373,25 +1373,23 @@ end
 context linordered_semidom
 begin
 
-lemma zero_le_imp_of_nat: "0 \<le> of_nat m"
-  by (induct m) simp_all
+lemma of_nat_0_le_iff [simp]: "0 \<le> of_nat n"
+  by (induct n) simp_all
 
-lemma less_imp_of_nat_less: "m < n \<Longrightarrow> of_nat m < of_nat n"
-  apply (induct m n rule: diff_induct, simp_all)
-  apply (rule add_pos_nonneg [OF zero_less_one zero_le_imp_of_nat])
-  done
-
-lemma of_nat_less_imp_less: "of_nat m < of_nat n \<Longrightarrow> m < n"
-  apply (induct m n rule: diff_induct, simp_all)
-  apply (insert zero_le_imp_of_nat)
-  apply (force simp add: not_less [symmetric])
-  done
+lemma of_nat_less_0_iff [simp]: "\<not> of_nat m < 0"
+  by (simp add: not_less)
 
 lemma of_nat_less_iff [simp]: "of_nat m < of_nat n \<longleftrightarrow> m < n"
-  by (blast intro: of_nat_less_imp_less less_imp_of_nat_less)
+  by (induct m n rule: diff_induct, simp_all add: add_pos_nonneg)
 
 lemma of_nat_le_iff [simp]: "of_nat m \<le> of_nat n \<longleftrightarrow> m \<le> n"
   by (simp add: not_less [symmetric] linorder_not_less [symmetric])
+
+lemma less_imp_of_nat_less: "m < n \<Longrightarrow> of_nat m < of_nat n"
+  by simp
+
+lemma of_nat_less_imp_less: "of_nat m < of_nat n \<Longrightarrow> m < n"
+  by simp
 
 text{*Every @{text linordered_semidom} has characteristic zero.*}
 
@@ -1400,17 +1398,11 @@ qed (auto intro!: injI simp add: eq_iff)
 
 text{*Special cases where either operand is zero*}
 
-lemma of_nat_0_le_iff [simp]: "0 \<le> of_nat n"
-  by (rule of_nat_le_iff [of 0, simplified])
-
 lemma of_nat_le_0_iff [simp, no_atp]: "of_nat m \<le> 0 \<longleftrightarrow> m = 0"
   by (rule of_nat_le_iff [of _ 0, simplified])
 
 lemma of_nat_0_less_iff [simp]: "0 < of_nat n \<longleftrightarrow> 0 < n"
   by (rule of_nat_less_iff [of 0, simplified])
-
-lemma of_nat_less_0_iff [simp]: "\<not> of_nat m < 0"
-  by (rule of_nat_less_iff [of _ 0, simplified])
 
 end
 
