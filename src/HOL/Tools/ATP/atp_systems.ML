@@ -253,9 +253,8 @@ fun e_selection_weight_arguments ctxt heuristic sel_weights =
     (* supplied by Stephan Schulz *)
     "--split-clauses=4 --split-reuse-defs --simul-paramod --forward-context-sr \
     \--destructive-er-aggressive --destructive-er --presat-simplify \
-    \--prefer-initial-clauses -tKBO6 -winvfreqrank -c1 -Ginvfreqconjmax -F1 \
-    \--delete-bad-limit=150000000 -WSelectMaxLComplexAvoidPosPred \
-    \-H'(4*" ^
+    \--prefer-initial-clauses -winvfreqrank -c1 -Ginvfreqconjmax -F1 \
+    \--delete-bad-limit=150000000 -WSelectMaxLComplexAvoidPosPred -H'(4*" ^
     e_selection_heuristic_case heuristic "FunWeight" "SymOffsetWeight" ^
     "(SimulateSOS, " ^
     (e_selection_heuristic_case heuristic
@@ -287,6 +286,8 @@ fun e_term_order_info_arguments false false _ = ""
 fun effective_e_selection_heuristic ctxt =
   if is_new_e_version () then Config.get ctxt e_selection_heuristic else e_autoN
 
+fun e_kbo () = if is_new_e_version () then "KBO6" else "KBO"
+
 val e_config : atp_config =
   {exec = (["E_HOME"], "eproof"),
    required_vars = [],
@@ -296,7 +297,7 @@ val e_config : atp_config =
         "--tstp-in --tstp-out --output-level=5 --silent " ^
         e_selection_weight_arguments ctxt heuristic sel_weights ^ " " ^
         e_term_order_info_arguments gen_weights gen_prec ord_info ^ " " ^
-        "--term-ordering=" ^ (if is_lpo then "LPO4" else "KBO6") ^ " " ^
+        "--term-ordering=" ^ (if is_lpo then "LPO4" else e_kbo ()) ^ " " ^
         "--cpu-limit=" ^ string_of_int (to_secs 2 timeout),
    proof_delims = tstp_proof_delims,
    known_failures =
