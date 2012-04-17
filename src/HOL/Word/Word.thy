@@ -10,7 +10,9 @@ imports
   Misc_Typedef
   "~~/src/HOL/Library/Boolean_Algebra"
   Bool_List_Representation
-uses ("~~/src/HOL/Word/Tools/smt_word.ML")
+uses
+  ("~~/src/HOL/Word/Tools/smt_word.ML")
+  ("~~/src/HOL/Word/Tools/word_lib.ML")
 begin
 
 text {* see @{text "Examples/WordExamples.thy"} for examples *}
@@ -4642,7 +4644,7 @@ lemma word_no_1 [simp]: "(Numeral1::'a::len0 word) = 1"
 
 declare bin_to_bl_def [simp]
 
-
+use "~~/src/HOL/Word/Tools/word_lib.ML"
 use "~~/src/HOL/Word/Tools/smt_word.ML"
 setup {* SMT_Word.setup *}
 

@@ -12,23 +12,7 @@ end
 structure SMT_Word: SMT_WORD =
 struct
 
-
-(* utilities *)
-
-fun dest_binT T =
-  (case T of
-    Type (@{type_name "Numeral_Type.num0"}, _) => 0
-  | Type (@{type_name "Numeral_Type.num1"}, _) => 1
-  | Type (@{type_name "Numeral_Type.bit0"}, [T]) => 2 * dest_binT T
-  | Type (@{type_name "Numeral_Type.bit1"}, [T]) => 1 + 2 * dest_binT T
-  | _ => raise TYPE ("dest_binT", [T], []))
-
-fun is_wordT (Type (@{type_name word}, _)) = true
-  | is_wordT _ = false
-
-fun dest_wordT (Type (@{type_name word}, [T])) = dest_binT T
-  | dest_wordT T = raise TYPE ("dest_wordT", [T], [])
-
+open Word_Lib
 
 (* SMT-LIB logic *)
 

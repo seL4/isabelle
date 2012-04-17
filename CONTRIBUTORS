@@ -6,6 +6,10 @@ distribution.
 Contributions to Isabelle2012
 -----------------------------
 
+* April 2012: Thomas Sewell, NICTA
+    (based on work done with Sascha Boehme, TUM in 2010)
+  WordBitwise: logic/circuit expansion of bitvector equalities/inequalities.
+
 * March 2012: Christian Sternagel, Japan Advanced Institute of Science
   and Technology
   Consolidated theory of relation composition.
