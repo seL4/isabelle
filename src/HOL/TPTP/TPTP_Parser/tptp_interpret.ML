@@ -187,10 +187,25 @@ fun type_exists thy ty_name =
 
 val IND_TYPE = "ind"
 
+(*transform quoted names into acceptable ASCII strings*)
+fun alphanumerate c =
+  let
+    val c' = ord c
+    val out_of_range =
+      ((c' > 64) andalso (c' < 91)) orelse ((c' > 96)
+       andalso (c' < 123)) orelse ((c' > 47) andalso (c' < 58))
+  in
+    if (not out_of_range) andalso (not (c = "_")) then
+      "_nom_" ^ Int.toString (ord c) ^ "_"
+    else c
+  end
+fun alphanumerated_name prefix name =
+  prefix ^ (raw_explode #> map alphanumerate #> implode) name
+
 (*SMLNJ complains if type annotation not used below*)
 fun mk_binding (config : config) ident =
   let
-    val pre_binding = Binding.name ident
+    val pre_binding = Binding.name (alphanumerated_name "bnd_" ident)
   in
     case #problem_name config of
       NONE => pre_binding
@@ -523,22 +538,8 @@ fun interpret_term formula_level config language thy const_map var_types type_ma
           else dummy_term () (*FIXME: not yet supporting rationals and reals*)
       in (num_term, thy) end
   | Term_Distinct_Object str =>
-      let
-        fun alphanumerate c =
-          let
-            val c' = ord c
-            val out_of_range =
-              ((c' > 64) andalso (c' < 91)) orelse ((c' > 96)
-               andalso (c' < 123)) orelse ((c' > 47) andalso (c' < 58))
-          in
-            if (not out_of_range) andalso (not (c = "_")) then
-              "_nom_" ^ Int.toString (ord c) ^ "_"
-            else c
-          end
-        val alphanumerated_name = raw_explode #> map alphanumerate #> implode
-      in declare_constant config ("ds_" ^ alphanumerated_name str)
-          (interpret_type config thy type_map (Defined_type Type_Ind)) thy
-      end
+      declare_constant config (alphanumerated_name "ds_" str)
+        (interpret_type config thy type_map (Defined_type Type_Ind)) thy
 
 (*Given a list of "'a option", then applies a function to each element if that
 element is SOME value, otherwise it leaves it as NONE.*)
