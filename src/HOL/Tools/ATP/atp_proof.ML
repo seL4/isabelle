@@ -109,7 +109,7 @@ fun involving [] = ""
     "involving " ^ space_implode " " (Try.serial_commas "and" (map quote ss)) ^
     " "
 
-fun string_for_failure Unprovable = "The problem is unprovable."
+fun string_for_failure Unprovable = "The generated problem is unprovable."
   | string_for_failure GaveUp = "The prover gave up."
   | string_for_failure ProofMissing =
     "The prover claims the conjecture is a theorem but did not provide a proof."
@@ -128,7 +128,7 @@ fun string_for_failure Unprovable = "The problem is unprovable."
   | string_for_failure CantConnect = "Cannot connect to remote server."
   | string_for_failure TimedOut = "Timed out."
   | string_for_failure Inappropriate =
-    "The problem lies outside the prover's scope."
+    "The generated problem lies outside the prover's scope."
   | string_for_failure OutOfResources = "The prover ran out of resources."
   | string_for_failure NoPerl = "Perl" ^ missing_message_tail
   | string_for_failure NoLibwwwPerl =

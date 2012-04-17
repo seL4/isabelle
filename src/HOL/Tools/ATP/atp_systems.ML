@@ -639,6 +639,7 @@ val remote_waldmeister =
   remote_atp waldmeisterN "Waldmeister" ["710"]
       [("#START OF PROOF", "Proved Goals:")]
       [(OutOfResources, "Too many function symbols"),
+       (Inappropriate, "****  Unexpected end of file."),
        (Crashed, "Unrecoverable Segmentation Fault")]
       Hypothesis Hypothesis
       (K ((50, CNF_UEQ, "mono_tags??", combsN, false), "") (* FUDGE *))
