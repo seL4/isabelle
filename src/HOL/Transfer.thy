@@ -88,6 +88,8 @@ use "Tools/transfer.ML"
 
 setup Transfer.setup
 
+declare fun_rel_eq [relator_eq]
+
 lemma Rel_App [transfer_raw]:
   assumes "Rel (A ===> B) f g" and "Rel A x y"
   shows "Rel B (App f x) (App g y)"

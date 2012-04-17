@@ -8,6 +8,7 @@ signature TRANSFER =
 sig
   val fo_conv: Proof.context -> conv
   val prep_conv: conv
+  val get_relator_eq: Proof.context -> thm list
   val transfer_add: attribute
   val transfer_del: attribute
   val transfer_tac: Proof.context -> int -> tactic
@@ -23,6 +24,15 @@ structure Data = Named_Thms
   val name = @{binding transfer_raw}
   val description = "raw correspondence rule for transfer method"
 )
+
+structure Relator_Eq = Named_Thms
+(
+  val name = @{binding relator_eq}
+  val description = "relator equality rule (used by transfer method)"
+)
+
+fun get_relator_eq ctxt =
+  map (Thm.symmetric o mk_meta_eq) (Relator_Eq.get ctxt)
 
 (** Conversions **)
 
@@ -106,7 +116,7 @@ fun eq_tac ctxt = SUBGOAL (fn (t, i) =>
   let
     val T = RelT (HOLogic.dest_Trueprop (Logic.strip_assums_concl t))
     val cT = ctyp_of (Proof_Context.theory_of ctxt) T
-    val rews = [@{thm fun_rel_eq [symmetric, THEN eq_reflection]}]
+    val rews = get_relator_eq ctxt
     val thm1 = Drule.instantiate' [SOME cT] [] @{thm Rel_eq_refl}
     val thm2 = Raw_Simplifier.rewrite_rule rews thm1
   in
@@ -177,6 +187,7 @@ val transfer_attribute =
 
 val setup =
   Data.setup
+  #> Relator_Eq.setup
   #> Attrib.setup @{binding transfer_rule} transfer_attribute
      "correspondence rule for transfer method"
   #> Method.setup @{binding transfer} transfer_method
