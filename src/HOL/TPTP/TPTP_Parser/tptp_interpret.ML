@@ -6,58 +6,55 @@ Interprets TPTP problems in Isabelle/HOL.
 
 signature TPTP_INTERPRET =
 sig
-  (*signature extension: typing information for variables and constants
-  (note that the former isn't really part of the signature, but it's bundled
-  along for more configurability -- though it's probably useless and could be
-  dropped in the future.*)
-  type const_map = (string * term) list
+  (*Signature extension: typing information for variables and constants*)
   type var_types = (string * typ option) list
+  type const_map = (string * term) list
 
-  (*mapping from TPTP types to Isabelle/HOL types. This map works over all
-  base types (i.e. TPTP functions must be interpreted as Isabelle/HOL functions).
-  The map must be total wrt TPTP types. Later on there could be a configuration
-  option to make a map extensible.*)
+  (*Mapping from TPTP types to Isabelle/HOL types. This map works over all
+  base types. The map must be total wrt TPTP types.*)
   type type_map = (TPTP_Syntax.tptp_type * typ) list
 
-  (*inference info, when available, consists of the name of the inference rule
+  (*Inference info, when available, consists of the name of the inference rule
   and the names of the inferences involved in the reasoning step.*)
   type inference_info = (string * string list) option
 
-  (*a parsed annotated formula is represented as a triple consisting of
-  the formula's label, its role, and a constant function to its Isabelle/HOL
-  term meaning*)
+  (*A parsed annotated formula is represented as a 5-tuple consisting of
+  the formula's label, its role, the TPTP formula, its Isabelle/HOL meaning, and
+  inference info*)
   type tptp_formula_meaning =
     string * TPTP_Syntax.role * TPTP_Syntax.tptp_formula * term * inference_info
 
   (*In general, the meaning of a TPTP statement (which, through the Include
-  directive, may include the meaning of an entire TPTP file, is an extended
-  Isabelle/HOL theory, an explicit map from constants to their Isabelle/HOL
-  counterparts and their types, the meaning of any TPTP formulas encountered
-  while interpreting that statement, and a map from TPTP to Isabelle/HOL types
-  (these types would have been added to the theory returned in the first position
-  of the tuple). The last value is NONE when the function which produced the
-  whole tptp_general_meaning value was given a type_map argument -- since
-  this means that the type_map is already known, and it has not been changed.*)
+  directive, may include the meaning of an entire TPTP file, is a map from
+  TPTP to Isabelle/HOL types, a map from TPTP constants to their Isabelle/HOL
+  counterparts and their types, and a list of interpreted annotated formulas.*)
   type tptp_general_meaning =
     (type_map * const_map * tptp_formula_meaning list)
 
-  (*if problem_name is given then it is used to qualify types & constants*)
+  (*cautious = indicates whether additional checks are made to check
+      that all used types have been declared.
+    problem_name = if given then it is used to qualify types & constants*)
   type config =
-    {(*init_type_map : type_map with_origin,
-     init_const_map : type_map with_origin,*)
-     cautious : bool,
+    {cautious : bool,
      problem_name : TPTP_Problem_Name.problem_name option
-     (*dont_build_maps : bool,
+     (*FIXME future extensibility
+     init_type_map : type_map with_origin,
+     init_const_map : type_map with_origin,
+     dont_build_maps : bool,
      extend_given_type_map : bool,
      extend_given_const_map : bool,
      generative_type_interpretation : bool,
      generative_const_interpretation : bool*)}
 
-  (*map types form TPTP to Isabelle/HOL*)
+  (*Generates a fresh Isabelle/HOL type for interpreting a TPTP type in a theory.*)
+  val declare_type : config -> (TPTP_Syntax.tptp_type * string) -> type_map ->
+    theory -> type_map * theory
+
+  (*Map TPTP types to Isabelle/HOL types*)
   val interpret_type : config -> theory -> type_map ->
     TPTP_Syntax.tptp_type -> typ
 
-  (*map terms form TPTP to Isabelle/HOL*)
+  (*Map TPTP terms to Isabelle/HOL terms*)
   val interpret_term : bool -> config -> TPTP_Syntax.language -> theory ->
     const_map -> var_types -> type_map -> TPTP_Syntax.tptp_term ->
     term * theory
@@ -66,73 +63,69 @@ sig
     var_types -> type_map -> TPTP_Syntax.tptp_formula -> theory ->
     term * theory
 
-  (*interpret a TPTP line: return an updated theory including the
-  types & constants which were specified in that formula, a map from
-  constant names to their types, and a map from constant names to Isabelle/HOL
-  constants; and a list possible formulas resulting from that line.
+  (*Interpret a TPTP line: return a "tptp_general_meaning" for that line,
+  as well as an updated Isabelle theory including any types & constants
+  which were specified in that line.
   Note that type/constant declarations do not result in any formulas being
-  returned. A typical TPTP line might update the theory, or return a single
-  formula. The sole exception is the "include" directive which may update the
-  theory and also return a list of formulas from the included file.
+  returned. A typical TPTP line might update the theory, and/or return one or
+  more formulas. For instance, the "include" directive may update the theory
+  and also return a list of formulas from the included file.
   Arguments:
-    cautious = indicates whether additional checks are made to check
-      that all used types have been declared.
+    config = (see above)
+    inclusion list = names of annotated formulas to interpret (since "include"
+      directive can be selective wrt to such names)
     type_map = mapping of TPTP-types to Isabelle/HOL types. This argument may be
       given to force a specific mapping: this is usually done for using an
       imported TPTP problem in Isar.
     const_map = as previous, but for constants.
     path_prefix = path where TPTP problems etc are located (to help the "include"
       directive find the files.
+    line = parsed TPTP line
     thy = theory where interpreted info will be stored.
   *)
-
   val interpret_line : config -> string list -> type_map -> const_map ->
     Path.T -> TPTP_Syntax.tptp_line -> theory -> tptp_general_meaning * theory
 
   (*Like "interpret_line" above, but works over a whole parsed problem.
     Arguments:
       new_basic_types = indicates whether interpretations of $i and $o
-        types are to be added to the type map (unless it is Given).
-        This is "true" if we are running this over a fresh TPTP problem, but
-        "false" if we are calling this _during_ the interpretation of a TPTP file
-        (i.e. when interpreting an "include" directive.
-      config = config
-      path_prefix = " "
-      contents = parsed TPTP syntax
-      type_map = see "interpret_line"
-      const_map = " "
-      thy = " "
+        types are to be added to the type map. This is "true" if we are
+        running this over a fresh TPTP problem, but "false" if we are
+        calling this _during_ the interpretation of a TPTP file
+        (i.e. when interpreting an "include" directive).
+      config = as previously
+      inclusion list = as previously
+      path_prefix = as previously
+      lines = parsed TPTP syntax
+      type_map = as previously
+      const_map = as previously
+      thy = as previously
   *)
   val interpret_problem : bool -> config -> string list -> Path.T ->
     TPTP_Syntax.tptp_line list -> type_map -> const_map -> theory ->
     tptp_general_meaning * theory
 
-  (*Like "interpret_problem" above, but it's given a filename rather than
+  (*Like "interpret_problem" above, but it is given a filename rather than
   a parsed problem.*)
   val interpret_file : bool -> Path.T -> Path.T -> type_map -> const_map ->
     theory -> tptp_general_meaning * theory
 
-  (*General exception for this signature.*)
   exception MISINTERPRET_FORMULA of string * TPTP_Syntax.tptp_formula
   exception MISINTERPRET_SYMBOL of string * TPTP_Syntax.symbol
   exception MISINTERPRET_TERM of string * TPTP_Syntax.tptp_term
   exception MISINTERPRET_TYPE of string * TPTP_Syntax.tptp_type
 
-  (*Generates a fresh Isabelle/HOL type for interpreting a TPTP type in a theory.*)
-  val declare_type : config -> (TPTP_Syntax.tptp_type * string) -> type_map ->
-    theory -> type_map * theory
+  val import_file : bool -> Path.T -> Path.T -> type_map -> const_map ->
+    theory -> theory
+
+  (*Imported TPTP files are stored as "manifests" in the theory.*)
+  type manifest = TPTP_Problem_Name.problem_name * tptp_general_meaning
+  val get_manifests : theory -> manifest list
 
   (*Returns the list of all files included in a directory and its
   subdirectories. This is only used for testing the parser/interpreter against
   all TPTP problems.*)
   val get_file_list : Path.T -> Path.T list
-
-  type manifest = TPTP_Problem_Name.problem_name * tptp_general_meaning
-
-  val get_manifests : theory -> manifest list
-
-  val import_file : bool -> Path.T -> Path.T -> type_map -> const_map ->
-    theory -> theory
 end
 
 structure TPTP_Interpret : TPTP_INTERPRET =
@@ -144,18 +137,13 @@ exception MISINTERPRET_SYMBOL of string * TPTP_Syntax.symbol
 exception MISINTERPRET_TERM of string * TPTP_Syntax.tptp_term
 exception MISINTERPRET_TYPE of string * TPTP_Syntax.tptp_type
 
+
 (* General stuff *)
 
 type config =
-  {(*init_type_map : type_map with_origin,
-   init_const_map : type_map with_origin,*)
-   cautious : bool,
-   problem_name : TPTP_Problem_Name.problem_name option
-   (*dont_build_maps : bool,
-   extend_given_type_map : bool,
-   extend_given_const_map : bool,
-   generative_type_interpretation : bool,
-   generative_const_interpretation : bool*)}
+  {cautious : bool,
+   problem_name : TPTP_Problem_Name.problem_name option}
+
 
 (* Interpretation *)
 
@@ -251,7 +239,7 @@ fun declare_constant config const_name ty thy =
      ((mk_binding config const_name, ty), NoSyn) thy
 
 
-(** Interpretation **)
+(** Interpretation functions **)
 
 (*Types in THF are encoded as formulas. This function translates them to type form.*)
 (*FIXME possibly incomplete hack*)
@@ -477,7 +465,7 @@ fun is_prod_typed thy config symb =
     names. This is fixed, and it is determined by declaration lines earlier
     in the script (i.e. constants must be declared before appearing in terms.
  - type context: maps bound variables to their Isabelle type. This is discarded
-    after each call of interpret_term since variables' can't be bound across
+    after each call of interpret_term since variables' cannot be bound across
     terms.
 *)
 fun interpret_term formula_level config language thy const_map var_types type_map
