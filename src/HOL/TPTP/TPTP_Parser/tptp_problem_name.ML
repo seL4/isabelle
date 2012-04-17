@@ -56,7 +56,7 @@ val numer = lift numerics
 datatype suffix =
     Problem of
       ((*version*)int *
-      (*size parameter*)int option) *
+       (*size parameter*)int option) *
       (*extension*)string
   | Axiom of
       (*specialisation*)int *
@@ -94,10 +94,10 @@ fun parse_problem_name str' : problem_name =
     (*NOTE there's an ambiguity in the spec: there's no way of knowing if a
     file ending in "rm" used to be "ax" or "p". Here we default to "p".*)
     val ((((prob_domain, prob_number), prob_form), suffix), rest) =
-     Scan.finite Symbol.stopper
-     ((alpha ^^ alpha ^^ alpha) --
-     (numer ^^ numer ^^ numer >> to_int) --
-     lift forms -- (prob_suffix || ax_ending)) str
+      Scan.finite Symbol.stopper
+      ((alpha ^^ alpha ^^ alpha) --
+      (numer ^^ numer ^^ numer >> to_int) --
+      lift forms -- (prob_suffix || ax_ending)) str
 
     fun parse_form str =
       case str of
@@ -115,36 +115,41 @@ fun parse_problem_name str' : problem_name =
          prob_number = prob_number,
          prob_form = parse_form prob_form,
          suffix = suffix}
-      handle _ => Nonstandard str'
     else raise TPTP_PROBLEM_NAME ("Parse error")
   end
+  handle exn =>
+    (*FIXME brittle*)
+    if General.exnName exn = "FAIL" andalso General.exnMessage exn = "FAIL NONE" then
+      (*It's very likely that the scanner failed*)
+      Nonstandard str'
+    else reraise exn
 
 (*Produces an ASCII encoding of a TPTP problem-file name.*)
 fun mangle_problem_name (prob : problem_name) : string =
   case prob of
-     Standard tptp_prob =>
-       let
-         val prob_form =
-           case #prob_form tptp_prob of
-             TPTP_Syntax.THF => "_thf_"
-           | TPTP_Syntax.TFF => "_tff_"
-           | TPTP_Syntax.TFF_with_arithmetic => "_thfwa_"
-           | TPTP_Syntax.FOF => "_fof_"
-           | TPTP_Syntax.CNF => "_cnf_"
-         val suffix =
-           case #suffix tptp_prob of
-             Problem ((version, size), extension) =>
-               Int.toString version ^ "_" ^
-               (if is_some size then Int.toString (the size) ^ "_" else "") ^
-               extension
-           | Axiom (specialisation, extension) =>
-               Int.toString specialisation ^ "_" ^ extension
-       in
-         #prob_domain tptp_prob ^
-         Int.toString (#prob_number tptp_prob) ^
-         prob_form ^
-         suffix
-       end
-   | Nonstandard str => str
+      Standard tptp_prob =>
+        let
+          val prob_form =
+            case #prob_form tptp_prob of
+              TPTP_Syntax.THF => "_thf_"
+            | TPTP_Syntax.TFF => "_tff_"
+            | TPTP_Syntax.TFF_with_arithmetic => "_thfwa_"
+            | TPTP_Syntax.FOF => "_fof_"
+            | TPTP_Syntax.CNF => "_cnf_"
+          val suffix =
+            case #suffix tptp_prob of
+              Problem ((version, size), extension) =>
+                Int.toString version ^ "_" ^
+                (if is_some size then Int.toString (the size) ^ "_" else "") ^
+                extension
+            | Axiom (specialisation, extension) =>
+                Int.toString specialisation ^ "_" ^ extension
+        in
+          #prob_domain tptp_prob ^
+          Int.toString (#prob_number tptp_prob) ^
+          prob_form ^
+          suffix
+        end
+    | Nonstandard str => str
 
 end

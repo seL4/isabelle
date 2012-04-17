@@ -825,21 +825,16 @@ and interpret_file cautious path_prefix file_name =
       {cautious = cautious,
        problem_name =
         SOME (TPTP_Problem_Name.parse_problem_name ((Path.base #> Path.implode)
-         file_name))
-      }
-    handle _(*FIXME*) =>
-      {cautious = cautious,
-       problem_name = NONE
-      }
+         file_name))}
   in interpret_file' config [] path_prefix file_name end
 
 fun import_file cautious path_prefix file_name type_map const_map thy =
   let
     val prob_name =
       TPTP_Problem_Name.parse_problem_name (Path.implode (Path.base file_name))
-      handle _(*FIXME*) => TPTP_Problem_Name.Nonstandard (Path.implode file_name)
     val (result, thy') =
       interpret_file cautious path_prefix file_name type_map const_map thy
+  (*FIXME doesn't check if problem has already been interpreted*)
   in TPTP_Data.map (cons ((prob_name, result))) thy' end
 
 val _ =
