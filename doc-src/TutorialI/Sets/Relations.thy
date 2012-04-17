@@ -11,8 +11,8 @@ text{*
 *}
 
 text{*
-@{thm[display] rel_comp_def[no_vars]}
-\rulename{rel_comp_def}
+@{thm[display] relcomp_unfold[no_vars]}
+\rulename{relcomp_unfold}
 *}
 
 text{*
@@ -21,8 +21,8 @@ text{*
 *}
 
 text{*
-@{thm[display] rel_comp_mono[no_vars]}
-\rulename{rel_comp_mono}
+@{thm[display] relcomp_mono[no_vars]}
+\rulename{relcomp_mono}
 *}
 
 text{*
@@ -31,8 +31,8 @@ text{*
 *}
 
 text{*
-@{thm[display] converse_rel_comp[no_vars]}
-\rulename{converse_rel_comp}
+@{thm[display] converse_relcomp[no_vars]}
+\rulename{converse_relcomp}
 *}
 
 text{*
