@@ -88,11 +88,6 @@ sig
 
   (*Like "interpret_line" above, but works over a whole parsed problem.
     Arguments:
-      new_basic_types = indicates whether interpretations of $i and $o
-        types are to be added to the type map. This is "true" if we are
-        running this over a fresh TPTP problem, but "false" if we are
-        calling this _during_ the interpretation of a TPTP file
-        (i.e. when interpreting an "include" directive).
       config = as previously
       inclusion list = as previously
       path_prefix = as previously
@@ -101,7 +96,7 @@ sig
       const_map = as previously
       thy = as previously
   *)
-  val interpret_problem : bool -> config -> string list -> Path.T ->
+  val interpret_problem : config -> string list -> Path.T ->
     TPTP_Syntax.tptp_line list -> type_map -> const_map -> theory ->
     tptp_general_meaning * theory
 
@@ -172,8 +167,6 @@ val get_manifests = TPTP_Data.get
 
 fun type_exists thy ty_name =
   Sign.declared_tyname thy (Sign.full_bname thy ty_name)
-
-val IND_TYPE = "ind"
 
 (*transform quoted names into acceptable ASCII strings*)
 fun alphanumerate c =
@@ -280,7 +273,7 @@ fun interpret_type config thy type_map thf_ty =
          lookup_type type_map thf_ty
      | Defined_type tptp_base_type =>
          (case tptp_base_type of
-            Type_Ind => lookup_type type_map thf_ty
+            Type_Ind => @{typ ind}
           | Type_Bool => HOLogic.boolT
           | Type_Type => raise MISINTERPRET_TYPE ("No type interpretation", thf_ty)
           | Type_Int => Type ("Int.int", [])
@@ -689,7 +682,6 @@ fun interpret_line config inc_list type_map const_map path_prefix line thy =
   case line of
      Include (quoted_path, inc_list) =>
        interpret_file'
-        false
         config
         inc_list
         path_prefix
@@ -796,22 +788,9 @@ fun interpret_line config inc_list type_map const_map path_prefix line thy =
        else (*do nothing if we're not to includ this AF*)
          ((type_map, const_map, []), thy)
 
-and interpret_problem new_basic_types config inc_list path_prefix lines
- type_map const_map thy =
+and interpret_problem config inc_list path_prefix lines type_map const_map thy =
   let
     val thy_name = Context.theory_name thy
-    (*Add interpretation of $o and generate an Isabelle/HOL type to
-    interpret $i, unless we've been given a mapping of types.*)
-    val (thy', type_map') =
-      if not new_basic_types then (thy, type_map)
-      else
-        let
-          val (type_map', thy') =
-            declare_type config
-             (Defined_type Type_Ind, IND_TYPE) type_map thy
-        in
-          (thy', type_map')
-        end
   in
     fold (fn line =>
            fn ((type_map, const_map, lines), thy) =>
@@ -826,17 +805,17 @@ and interpret_problem new_basic_types config inc_list path_prefix lines
                 thy')
              end)
          lines (*lines of the problem file*)
-         ((type_map', const_map, []), thy') (*initial values*)
+         ((type_map, const_map, []), thy) (*initial values*)
   end
 
-and interpret_file' new_basic_types config inc_list path_prefix file_name =
+and interpret_file' config inc_list path_prefix file_name =
   let
     val file_name' = Path.expand file_name
   in
     if Path.is_absolute file_name' then
       Path.implode file_name
       |> TPTP_Parser.parse_file
-      |> interpret_problem new_basic_types config inc_list path_prefix
+      |> interpret_problem config inc_list path_prefix
     else error "Could not determine absolute path to file"
   end
 
@@ -852,7 +831,7 @@ and interpret_file cautious path_prefix file_name =
       {cautious = cautious,
        problem_name = NONE
       }
-  in interpret_file' true config [] path_prefix file_name end
+  in interpret_file' config [] path_prefix file_name end
 
 fun import_file cautious path_prefix file_name type_map const_map thy =
   let
