@@ -535,8 +535,8 @@ fun interpret_term formula_level config language thy const_map var_types type_ma
               "_nom_" ^ Int.toString (ord c) ^ "_"
             else c
           end
-        val mangle_name = raw_explode #> map alphanumerate #> implode
-      in declare_constant config (mangle_name str)
+        val alphanumerated_name = raw_explode #> map alphanumerate #> implode
+      in declare_constant config ("ds_" ^ alphanumerated_name str)
           (interpret_type config thy type_map (Defined_type Type_Ind)) thy
       end
 
@@ -745,7 +745,7 @@ fun interpret_line config inc_list type_map const_map path_prefix line thy =
                          []),
                         thy')
                     end
-  
+
                | _ => (*declaration of constant*)
                   (*Here we populate the map from constants to the Isabelle/HOL
                   terms they map to (which in turn contain their types).*)
@@ -788,7 +788,7 @@ fun interpret_line config inc_list type_map const_map path_prefix line thy =
                       thy')(*theory was extended with new constant*)
                   end
              end
-  
+
          | _ => (*i.e. the AF is not a type declaration*)
              let
                (*gather interpreted term, and the map of types occurring in that term*)
