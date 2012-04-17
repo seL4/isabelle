@@ -14,7 +14,7 @@ ISABELLE_SETTINGS_PRESENT=true
 #JVM path wrapper
 if [ "$OSTYPE" = cygwin ]
 then
-  ISABELLE_HOME_WINDOWS="$(cygpath -d "$(dirname "$ISABELLE_HOME")")\\$(basename "$ISABELLE_HOME")"
+  ISABELLE_HOME_WINDOWS="$(cygpath -w "$(dirname "$ISABELLE_HOME")")\\$(basename "$ISABELLE_HOME")"
   ISABELLE_HOME="$(cygpath -u "$ISABELLE_HOME_WINDOWS")"
 
   CLASSPATH="$(cygpath -i -u -p "$CLASSPATH")"
