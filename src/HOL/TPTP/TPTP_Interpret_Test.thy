@@ -11,7 +11,7 @@ imports TPTP_Test TPTP_Interpret
 begin
 
 section "Interpreter tests"
-
+(*
 text "Interpret a problem."
 ML {*
   val (time, ((type_map, const_map, fmlas), thy)) =
@@ -33,22 +33,35 @@ ML {*
   (*Don't use TPTP_Syntax.string_of_tptp_formula, it's just for testing*)
   List.app (writeln o TPTP_Syntax.string_of_tptp_formula o #3) fmlas
 *}
-
+*)
 
 subsection "Multiple tests"
 
 ML {*
+  fun interpret timeout file thy =
+    TimeLimit.timeLimit (Time.fromSeconds (if timeout = 0 then 600 else timeout))
+     (TPTP_Interpret.interpret_file
+       false
+       (Path.dir tptp_probs_dir)
+       file
+       []
+       []) thy
+
+  fun interpret_timed timeout file thy =
+    Timing.timing (interpret timeout file) thy
+
+  (*default timeout is 10 mins*)
   fun interpretation_test timeout ctxt =
     test_fn ctxt
-     (fn file =>
-       TimeLimit.timeLimit (Time.fromSeconds timeout)
+     (fn file => (*FIXME use "interpret" function above*)
+       TimeLimit.timeLimit (Time.fromSeconds (if timeout = 0 then 600 else timeout))
         (TPTP_Interpret.interpret_file
           false
           (Path.dir tptp_probs_dir)
           file
           []
           [])
-          @{theory})
+          @{theory}(*FIXME*))
      "interpreter"
      ()
 
@@ -76,6 +89,19 @@ ML {*
      "SWV/SWV567-1.015.p",
      "LCL/LCL680+1.020.p"]
 
+  val timeouts =
+    ["NUM/NUM923^4.p",
+    "NUM/NUM926^4.p",
+    "NUM/NUM925^4.p",
+    "NUM/NUM924^4.p",
+    "CSR/CSR153^3.p",
+    "CSR/CSR151^3.p",
+    "CSR/CSR148^3.p",
+    "CSR/CSR120^3.p",
+    "CSR/CSR150^3.p",
+    "CSR/CSR119^3.p",
+    "CSR/CSR149^3.p"]
+
   val more_probs =
     ["GEG/GEG014^1.p",
      "GEG/GEG009^1.p",
@@ -98,10 +124,15 @@ ML {*
 *}
 
 ML {*
- interpretation_tests 5 @{context}
-   (some_probs @ take_too_long @ more_probs)
+  interpret_timed 0 (situate "NUM/NUM923^4.p") @{theory}
 *}
 
+ML {*
+ interpretation_tests 5 @{context}
+   (some_probs @ take_too_long @ timeouts @ more_probs)
+*}
+
+declare [[warning_out = ""]]
 
 subsection "Test against whole TPTP"
 
@@ -109,19 +140,6 @@ text "Run interpretation over all problems. This works only for logics
  for which interpretation is defined (in TPTP_Parser/tptp_interpret.ML)."
 ML {*
   report @{context} "Interpreting all problems.";
-  fun interpretation_test timeout ctxt =
-    test_fn ctxt
-     (fn file =>
-       TimeLimit.timeLimit (Time.fromSeconds timeout)
-        (TPTP_Interpret.interpret_file
-          false
-          (Path.dir tptp_probs_dir)
-          file
-          []
-          [])
-          @{theory})
-     "interpreter"
-     ()
   (*val _ = S timed_test (interpretation_test 5) @{context}*)
 *}
 
