@@ -244,26 +244,10 @@ lemma reflp_word:
   by (simp add: reflp_def)
 
 local_setup {*
-  Lifting_Setup.setup_lifting_infr @{thm Quotient_word} @{thm reflp_word}
+  Lifting_Setup.setup_by_quotient @{thm Quotient_word} (SOME @{thm reflp_word})
 *}
 
-text {* TODO: The next several lemmas could be generated automatically. *}
-
-lemma bi_total_cr_word [transfer_rule]: "bi_total cr_word"
-  using Quotient_word reflp_word by (rule Quotient_bi_total)
-
-lemma right_unique_cr_word [transfer_rule]: "right_unique cr_word"
-  using Quotient_word by (rule Quotient_right_unique)
-
-lemma word_eq_transfer [transfer_rule]:
-  "(fun_rel cr_word (fun_rel cr_word op =))
-    (\<lambda>x y. bintrunc (len_of TYPE('a)) x = bintrunc (len_of TYPE('a)) y)
-    (op = :: 'a::len0 word \<Rightarrow> 'a word \<Rightarrow> bool)"
-  using Quotient_word by (rule Quotient_rel_eq_transfer)
-
-lemma word_of_int_transfer [transfer_rule]:
-  "(fun_rel op = cr_word) (\<lambda>x. x) word_of_int"
-  using Quotient_word reflp_word by (rule Quotient_id_abs_transfer)
+text {* TODO: The next lemma could be generated automatically. *}
 
 lemma uint_transfer [transfer_rule]:
   "(fun_rel cr_word op =) (bintrunc (len_of TYPE('a)))

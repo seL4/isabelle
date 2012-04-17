@@ -218,6 +218,10 @@ proof -
     done
 qed
 
+lemma equivp_reflp2:
+  "equivp R \<Longrightarrow> reflp R"
+  by (erule equivpE)
+
 subsection {* Invariant *}
 
 definition invariant :: "('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" 

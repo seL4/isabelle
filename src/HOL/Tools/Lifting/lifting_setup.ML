@@ -8,7 +8,9 @@ signature LIFTING_SETUP =
 sig
   exception SETUP_LIFTING_INFR of string
 
-  val setup_lifting_infr: thm -> thm -> local_theory -> local_theory
+  val setup_lifting_infr: thm -> local_theory -> local_theory
+
+  val setup_by_quotient: thm -> thm option -> local_theory -> local_theory
 
   val setup_by_typedef_thm: thm -> local_theory -> local_theory
 end;
@@ -76,7 +78,7 @@ fun quot_thm_sanity_check ctxt quot_thm =
                                                 @ (map Pretty.string_of errs)))
   end
 
-fun setup_lifting_infr quot_thm equiv_thm lthy =
+fun setup_lifting_infr quot_thm lthy =
   let
     val _ = quot_thm_sanity_check lthy quot_thm
     val (_, qtyp) = Lifting_Term.quot_thm_rty_qty quot_thm
@@ -90,36 +92,73 @@ fun setup_lifting_infr quot_thm equiv_thm lthy =
       |> define_abs_type quot_thm
   end
 
-fun setup_by_typedef_thm typedef_thm lthy =
+fun setup_by_quotient quot_thm maybe_reflp_thm lthy =
   let
-    fun derive_quot_and_equiv_thm to_quot_thm to_equiv_thm typedef_thm lthy =
-      let
-        val (_ $ rep_fun $ _ $ _) = (HOLogic.dest_Trueprop o prop_of) typedef_thm
-        val equiv_thm = typedef_thm RS to_equiv_thm
-        val (T_def, lthy') = define_cr_rel rep_fun lthy
-        val quot_thm =  [typedef_thm, T_def] MRSL to_quot_thm
-      in
-        (quot_thm, equiv_thm, lthy')
-      end
-
-    val typedef_set = (snd o dest_comb o HOLogic.dest_Trueprop o prop_of) typedef_thm
-    val (quot_thm, equiv_thm, lthy') = (case typedef_set of
-      Const ("Orderings.top_class.top", _) => 
-        derive_quot_and_equiv_thm @{thm UNIV_typedef_to_Quotient} @{thm UNIV_typedef_to_equivp} 
-          typedef_thm lthy
-      | Const (@{const_name "Collect"}, _) $ Abs (_, _, _) => 
-        derive_quot_and_equiv_thm @{thm open_typedef_to_Quotient} @{thm open_typedef_to_part_equivp} 
-          typedef_thm lthy
-      | _ => derive_quot_and_equiv_thm @{thm typedef_to_Quotient} @{thm typedef_to_part_equivp} 
-          typedef_thm lthy)
+    val transfer_attr = Attrib.internal (K Transfer.transfer_add)
+    val lthy' = case maybe_reflp_thm of
+      SOME reflp_thm => lthy
+        |> (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
+          [[quot_thm, reflp_thm] MRSL @{thm Quotient_bi_total}])
+        |> (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
+          [[quot_thm, reflp_thm] MRSL @{thm Quotient_id_abs_transfer}])
+      | NONE => lthy
   in
-    setup_lifting_infr quot_thm equiv_thm lthy'
+    lthy'
+      |> (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
+        [quot_thm RS @{thm Quotient_right_unique}])
+      |> (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
+        [quot_thm RS @{thm Quotient_right_total}])
+      |> (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
+        [quot_thm RS @{thm Quotient_rel_eq_transfer}])
+      |> setup_lifting_infr quot_thm
   end
 
-fun setup_by_typedef_thm_aux xthm lthy = setup_by_typedef_thm (singleton (Attrib.eval_thms lthy) xthm) lthy
+fun setup_by_typedef_thm typedef_thm lthy =
+  let
+    val transfer_attr = Attrib.internal (K Transfer.transfer_add)
+    val (_ $ rep_fun $ _ $ typedef_set) = (HOLogic.dest_Trueprop o prop_of) typedef_thm
+    val (T_def, lthy') = define_cr_rel rep_fun lthy
+    
+    val quot_thm = (case typedef_set of
+      Const ("Orderings.top_class.top", _) => 
+        [typedef_thm, T_def] MRSL @{thm UNIV_typedef_to_Quotient}
+      | Const (@{const_name "Collect"}, _) $ Abs (_, _, _) => 
+        [typedef_thm, T_def] MRSL @{thm open_typedef_to_Quotient}
+      | _ => 
+        [typedef_thm, T_def] MRSL @{thm typedef_to_Quotient})
+
+    val lthy'' = (case typedef_set of
+      Const ("Orderings.top_class.top", _) => (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
+        [[typedef_thm,T_def] MRSL @{thm copy_type_bi_total}]) lthy'
+      | _ => lthy')
+  in
+    lthy''
+      |> (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
+        [[typedef_thm, T_def] MRSL @{thm typedef_bi_unique}])
+      |> (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
+        [T_def RS @{thm typedef_right_total}])
+      |> (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
+        [[typedef_thm, T_def] MRSL @{thm typedef_transfer_All}])
+      |> (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
+        [[typedef_thm, T_def] MRSL @{thm typedef_transfer_Ex}])
+      |> (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
+        [[typedef_thm, T_def] MRSL @{thm typedef_transfer_bforall}])
+      |> setup_lifting_infr quot_thm
+  end
+
+fun setup_lifting_cmd xthm lthy =
+  let 
+    val input_thm = singleton (Attrib.eval_thms lthy) xthm
+    val input_term = (HOLogic.dest_Trueprop o prop_of) input_thm
+  in
+    case input_term of
+      (Const (@{const_name Quotient}, _) $ _ $ _ $ _ $ _) => setup_lifting_infr input_thm lthy
+      | (Const (@{const_name type_definition}, _) $ _ $ _ $ _) => setup_by_typedef_thm input_thm lthy
+      | _ => error "Unsupported type of a theorem. Only Quotient or type_definition are supported."
+  end
 
 val _ = 
   Outer_Syntax.local_theory @{command_spec "setup_lifting"}
     "Setup lifting infrastructure" 
-      (Parse_Spec.xthm >> (fn xthm => setup_by_typedef_thm_aux xthm))
+      (Parse_Spec.xthm >> (fn xthm => setup_lifting_cmd xthm))
 end;
