@@ -87,17 +87,17 @@ datatype problem_name =
 
 exception TPTP_PROBLEM_NAME of string
 
-(*FIXME add graceful handling on non-wellformed TPTP filenames*)
 fun parse_problem_name str' : problem_name =
   let
     val str = Symbol.explode str'
     (*NOTE there's an ambiguity in the spec: there's no way of knowing if a
     file ending in "rm" used to be "ax" or "p". Here we default to "p".*)
-    val ((((prob_domain, prob_number), prob_form), suffix), rest) =
+    val (parsed_name, rest) =
       Scan.finite Symbol.stopper
-      ((alpha ^^ alpha ^^ alpha) --
-      (numer ^^ numer ^^ numer >> to_int) --
-      lift forms -- (prob_suffix || ax_ending)) str
+      (((alpha ^^ alpha ^^ alpha) --
+       (numer ^^ numer ^^ numer >> to_int) --
+       lift forms -- (prob_suffix || ax_ending)) >> SOME
+      || Scan.succeed NONE) str
 
     fun parse_form str =
       case str of
@@ -108,21 +108,19 @@ fun parse_problem_name str' : problem_name =
       | "-" => TPTP_Syntax.CNF
       | _ => raise TPTP_PROBLEM_NAME ("Unknown TPTP form: " ^ str)
   in
-    if null rest (*check if the whole name was parsed*)
-    then
-      Standard
-        {prob_domain = prob_domain,
-         prob_number = prob_number,
-         prob_form = parse_form prob_form,
-         suffix = suffix}
-    else raise TPTP_PROBLEM_NAME ("Parse error")
+    if not (null rest) orelse is_none parsed_name then Nonstandard str'
+    else
+      let
+        val (((prob_domain, prob_number), prob_form), suffix) =
+          the parsed_name
+      in
+        Standard
+          {prob_domain = prob_domain,
+           prob_number = prob_number,
+           prob_form = parse_form prob_form,
+           suffix = suffix}
+      end
   end
-  handle exn =>
-    (*FIXME brittle*)
-    if General.exnName exn = "FAIL" andalso General.exnMessage exn = "FAIL NONE" then
-      (*It's very likely that the scanner failed*)
-      Nonstandard str'
-    else reraise exn
 
 (*Produces an ASCII encoding of a TPTP problem-file name.*)
 fun mangle_problem_name (prob : problem_name) : string =
