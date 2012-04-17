@@ -7,7 +7,7 @@ TPTP-vX.Y.Z/Problems directory.
 *)
 
 theory TPTP_Parser_Test
-imports TPTP_Test (*TPTP_Parser_Example*)
+imports TPTP_Test TPTP_Parser_Example
 begin
 
 section "Parser tests"
@@ -73,10 +73,11 @@ ML {*
 *}
 
 text "Run the parser over all problems."
-ML {*report @{context} "Testing parser"*}
 ML {*
-(*  val _ = S timed_test parser_test @{context}*)
+  if test_all @{context} then
+    (report @{context} "Testing parser";
+     S timed_test parser_test @{context})
+  else ()
 *}
-
 
 end

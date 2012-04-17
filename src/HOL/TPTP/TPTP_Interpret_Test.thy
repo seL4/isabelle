@@ -11,7 +11,7 @@ imports TPTP_Test TPTP_Interpret
 begin
 
 section "Interpreter tests"
-(*
+
 text "Interpret a problem."
 ML {*
   val (time, ((type_map, const_map, fmlas), thy)) =
@@ -27,19 +27,18 @@ ML {*
 
 text "... and display nicely."
 ML {*
-  List.app (Pretty.writeln o (Syntax.pretty_term @{context}) o #4) fmlas
-*}
-ML {*
+  List.app (Pretty.writeln o (Syntax.pretty_term @{context}) o #4) fmlas;
+
   (*Don't use TPTP_Syntax.string_of_tptp_formula, it's just for testing*)
   List.app (writeln o TPTP_Syntax.string_of_tptp_formula o #3) fmlas
 *}
-*)
 
 subsection "Multiple tests"
 
 ML {*
+  (*default timeout is 1 min*)
   fun interpret timeout file thy =
-    TimeLimit.timeLimit (Time.fromSeconds (if timeout = 0 then 600 else timeout))
+    TimeLimit.timeLimit (Time.fromSeconds (if timeout = 0 then 60 else timeout))
      (TPTP_Interpret.interpret_file
        false
        (Path.dir tptp_probs_dir)
@@ -50,18 +49,9 @@ ML {*
   fun interpret_timed timeout file thy =
     Timing.timing (interpret timeout file) thy
 
-  (*default timeout is 10 mins*)
   fun interpretation_test timeout ctxt =
     test_fn ctxt
-     (fn file => (*FIXME use "interpret" function above*)
-       TimeLimit.timeLimit (Time.fromSeconds (if timeout = 0 then 600 else timeout))
-        (TPTP_Interpret.interpret_file
-          false
-          (Path.dir tptp_probs_dir)
-          file
-          []
-          [])
-          @{theory}(*FIXME*))
+     (fn file => interpret timeout file (Proof_Context.theory_of ctxt))
      "interpreter"
      ()
 
@@ -128,19 +118,20 @@ ML {*
 *}
 
 ML {*
- interpretation_tests 5 @{context}
+ interpretation_tests (get_timeout @{context}) @{context}
    (some_probs @ take_too_long @ timeouts @ more_probs)
 *}
 
-declare [[warning_out = ""]]
 
 subsection "Test against whole TPTP"
 
 text "Run interpretation over all problems. This works only for logics
  for which interpretation is defined (in TPTP_Parser/tptp_interpret.ML)."
 ML {*
-  report @{context} "Interpreting all problems.";
-  (*val _ = S timed_test (interpretation_test 5) @{context}*)
+  if test_all @{context} then
+    (report @{context} "Interpreting all problems";
+     S timed_test (interpretation_test (get_timeout @{context})) @{context})
+  else ()
 *}
 
 end

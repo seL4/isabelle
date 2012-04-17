@@ -5,7 +5,7 @@ Example of importing a TPTP problem and trying to prove it in Isabelle/HOL.
 *)
 
 theory TPTP_Parser_Example
-imports TPTP_Parser
+imports TPTP_Parser TPTP_Interpret
 uses "~~/src/HOL/ex/sledgehammer_tactics.ML"
 begin
 

@@ -1,9 +1,9 @@
 (*  Title:      HOL/TPTP/TPTP_Test.thy
-5A    Author:     Nik Sultana, Cambridge University Computer Laboratory
+    Author:     Nik Sultana, Cambridge University Computer Laboratory
 
-Some tests for the TPTP interface. Some of the tests rely on the Isabelle
-environment variable TPTP_PROBLEMS_PATH, which should point to the
-TPTP-vX.Y.Z/Problems directory.
+Some test support for the TPTP interface. Some of the tests rely on
+the Isabelle environment variable TPTP_PROBLEMS_PATH, which should
+point to the TPTP-vX.Y.Z/Problems directory.
 *)
 
 theory TPTP_Test
@@ -11,7 +11,12 @@ imports TPTP_Parser
 begin
 
 ML {*
-  val warning_out = Attrib.setup_config_string @{binding "warning_out"} (K "")
+  val tptp_test_out = Attrib.setup_config_string @{binding "tptp_test_out"} (K "")
+  val tptp_test_all = Attrib.setup_config_bool @{binding "tptp_test_all"} (K false)
+  val tptp_test_timeout =
+    Attrib.setup_config_int @{binding "tptp_test_timeout"} (K 5)
+  fun test_all ctxt = Config.get ctxt tptp_test_all
+  fun get_timeout ctxt = Config.get ctxt tptp_test_timeout
   fun S x y z = x z (y z)
 *}
 
@@ -47,12 +52,12 @@ section "Supporting test functions"
 ML {*
   fun report ctxt str =
     let
-      val warning_out = Config.get ctxt warning_out
+      val tptp_test_out = Config.get ctxt tptp_test_out
     in
-      if warning_out = "" then warning str
+      if tptp_test_out = "" then warning str
       else
         let
-          val out_stream = TextIO.openAppend warning_out
+          val out_stream = TextIO.openAppend tptp_test_out
         in (TextIO.output (out_stream, str ^ "\n");
             TextIO.flushOut out_stream;
             TextIO.closeOut out_stream)
@@ -107,7 +112,5 @@ ML {*
      "parser"
      ()
 *}
-
-declare [[warning_out = ""]]
 
 end
