@@ -57,7 +57,13 @@ do
 
     if [ -e "$ISABELLE_HOME/contrib/$NAME/etc/settings" ]; then
       echo "component $NAME"
-      echo "contrib/$NAME" >> "$ISABELLE_HOME/etc/components"
+      if [ "$PLATFORM" != x86-cygwin -a "$NAME" = ProofGeneral-3.7.1.1 ]; then
+        echo "#contrib/$NAME" >> "$ISABELLE_HOME/etc/components"
+      elif [ "$PLATFORM" = x86-cygwin -a "$NAME" = ProofGeneral-4.1 ]; then
+        echo "#contrib/$NAME" >> "$ISABELLE_HOME/etc/components"
+      else
+        echo "contrib/$NAME" >> "$ISABELLE_HOME/etc/components"
+      fi
     else
       echo "package $NAME"
     fi
@@ -69,12 +75,6 @@ HEAPS_ARCHIVE="$ARCHIVE_DIR/${ISABELLE_NAME}_heaps_${PLATFORM}.tar.gz"
 [ -f "$HEAPS_ARCHIVE" ] || fail "Bad heaps archive: $HEAPS_ARCHIVE"
 echo "heaps"
 tar -C "$TMP" -x -z -f "$HEAPS_ARCHIVE"
-
-
-(
-  cd "$TMP/$ISABELLE_NAME/contrib/ProofGeneral"
-  find . -name "*.elc" -exec rm {} ";"
-)
 
 case "$PLATFORM" in
   x86_64-linux)
@@ -90,8 +90,6 @@ case "$PLATFORM" in
   *-cygwin)
     perl -pi -e "s,lookAndFeel=.*,lookAndFeel=com.sun.java.swing.plaf.windows.WindowsLookAndFeel,g;" \
       "$TMP/$ISABELLE_NAME/src/Tools/jEdit/dist/properties/jEdit.props"
-    rm "$TMP/$ISABELLE_NAME/contrib/ProofGeneral"
-    ln -s ProofGeneral-3.7.1.1 "$TMP/$ISABELLE_NAME/contrib/ProofGeneral"
     ;;
   *)
     ;;
