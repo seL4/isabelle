@@ -10,6 +10,44 @@ theory TPTP_Parser_Test
 imports TPTP_Test TPTP_Parser_Example
 begin
 
+section "Problem-name parsing tests"
+ML {*
+local
+  open TPTP_Syntax;
+  open TPTP_Problem_Name;
+
+  val name_tests =
+    [("HWV041_4.p",
+        Standard {suffix = Problem ((4, NONE), "p"), prob_form = TFF, prob_domain = "HWV", prob_number = 41}),
+     ("LCL617^1.p",
+        Standard {suffix = Problem ((1, NONE), "p"), prob_form = THF, prob_domain = "LCL", prob_number = 617}),
+     ("LCL831-1.p",
+        Standard {suffix = Problem ((1, NONE), "p"), prob_form = CNF, prob_domain = "LCL", prob_number = 831}),
+     ("HWV045=1.p",
+        Standard {suffix = Problem ((1, NONE), "p"), prob_form = TFF_with_arithmetic, prob_domain = "HWV", prob_number = 45}),
+     ("LCL655+1.010.p",
+        Standard {suffix = Problem ((1, SOME 10), "p"), prob_form = FOF, prob_domain = "LCL", prob_number = 655}),
+     ("OTH123.p",
+        Nonstandard "OTH123.p"),
+     ("other",
+        Nonstandard "other"),
+     ("AAA000£0.axiom",
+        Nonstandard "AAA000£0.axiom"),
+     ("AAA000£0.p",
+        Nonstandard "AAA000£0.p"),
+     ("AAA000.0.p",
+        Nonstandard "AAA000.0.p"),
+     ("AAA000£0.what",
+        Nonstandard "AAA000£0.what"),
+     ("",
+        Nonstandard "")];
+in
+  val _ = map (fn (str, res) =>
+    @{assert}(TPTP_Problem_Name.parse_problem_name str = res)) name_tests
+end
+*}
+
+
 section "Parser tests"
 
 ML {*
