@@ -211,7 +211,9 @@ fun declare_type (config : config) (thf_type, type_name) ty_map thy =
     let
       val binding = mk_binding config type_name
       val final_fqn = Sign.full_name thy binding
-      val thy' = Typedecl.typedecl_global (mk_binding config type_name, [], NoSyn) thy |> snd
+      val thy' =
+        Typedecl.typedecl_global (mk_binding config type_name, [], NoSyn) thy
+        |> snd
       val typ_map_entry = (thf_type, (Type (final_fqn, [])))
       val ty_map' = typ_map_entry :: ty_map
     in (ty_map', thy') end
@@ -258,8 +260,8 @@ fun interpret_type config thy type_map thf_ty =
       (case AList.lookup (op =) ty_map thf_ty of
           NONE =>
             raise MISINTERPRET_TYPE
-              ("Could not find the interpretation of this TPTP type in the " ^
-               "mapping to Isabelle/HOL", thf_ty)
+              ("Could not find the interpretation of this TPTP type in the \
+               \mapping to Isabelle/HOL", thf_ty)
         | SOME ty => ty)
   in
     case thf_ty of (*FIXME make tail*)
@@ -275,12 +277,9 @@ fun interpret_type config thy type_map thf_ty =
          lookup_type type_map thf_ty
      | Defined_type tptp_base_type =>
          (case tptp_base_type of
-            Type_Ind =>
-              lookup_type type_map thf_ty
+            Type_Ind => lookup_type type_map thf_ty
           | Type_Bool => HOLogic.boolT
-          | Type_Type =>
-              raise MISINTERPRET_TYPE
-               ("No type interpretation", thf_ty)
+          | Type_Type => raise MISINTERPRET_TYPE ("No type interpretation", thf_ty)
           | Type_Int => Type ("Int.int", [])
          (*FIXME these types are currently unsupported, so they're treated as
          individuals*)
@@ -304,15 +303,15 @@ fun the_const config thy language const_map_payload str =
   if language = THF then
     (case AList.lookup (op =) const_map_payload str of
         NONE => raise MISINTERPRET_TERM
-          ("Could not find the interpretation of this constant in the " ^
-          "mapping to Isabelle/HOL", Term_Func (Uninterpreted str, []))
+          ("Could not find the interpretation of this constant in the \
+            \mapping to Isabelle/HOL", Term_Func (Uninterpreted str, []))
       | SOME t => t)
   else
     if const_exists config thy str then
        Sign.mk_const thy ((Sign.full_name thy (mk_binding config str)), [])
     else raise MISINTERPRET_TERM
-          ("Could not find the interpretation of this constant in the " ^
-          "mapping to Isabelle/HOL: ", Term_Func (Uninterpreted str, []))
+          ("Could not find the interpretation of this constant in the \
+            \mapping to Isabelle/HOL", Term_Func (Uninterpreted str, []))
 
 (*Eta-expands Isabelle/HOL binary function.
  "str" is the name of a polymorphic constant in Isabelle/HOL*)
@@ -383,7 +382,7 @@ fun interpret_symbol config thy language const_map symb =
         ("Cannot have TypeSymbol in term", symb)
    | System str =>
        raise MISINTERPRET_SYMBOL
-        ("How to interpret system terms?", symb)
+        ("Cannot interpret system symbol", symb)
 
 (*Apply a function to a list of arguments*)
 val mapply = fold (fn x => fn y => y $ x)
@@ -466,7 +465,8 @@ fun is_prod_typed thy config symb =
     after each call of interpret_term since variables' can't be bound across
     terms.
 *)
-fun interpret_term formula_level config language thy const_map var_types type_map tptp_t =
+fun interpret_term formula_level config language thy const_map var_types type_map
+ tptp_t =
   case tptp_t of
     Term_Func (symb, tptp_ts) =>
        let
@@ -596,12 +596,14 @@ fun interpret_formula config language const_map var_types type_map tptp_fmla thy
                thy')
             end)
     | Sequent _ =>
-        raise MISINTERPRET_FORMULA ("Sequent", tptp_fmla) (*FIXME unsupported*)
+        (*FIXME unsupported*)
+        raise MISINTERPRET_FORMULA ("'Sequent' unsupported", tptp_fmla)
     | Quant (quantifier, bindings, tptp_formula) =>
         let
           val (bound_vars, bound_var_types) = ListPair.unzip bindings
           val bound_var_types' : typ option list =
-            (map_opt : (tptp_type -> typ) -> (tptp_type option list) -> typ option list)
+            (map_opt : (tptp_type -> typ) ->
+             (tptp_type option list) -> typ option list)
             (interpret_type config thy type_map) bound_var_types
           val var_types' =
             ListPair.zip (bound_vars, List.rev bound_var_types')
@@ -671,7 +673,7 @@ fun interpret_formula config language const_map var_types type_map tptp_fmla thy
              type_map tptp_term
         | THF_Atom_conn_term symbol =>
             (interpret_symbol config thy language const_map symbol, thy))
-    | Type_fmla _ => (*FIXME unsupported*)
+    | Type_fmla _ =>
          raise MISINTERPRET_FORMULA
           ("Cannot interpret types as formulas", tptp_fmla)
     | THF_typing (tptp_formula, _) => (*FIXME ignoring type info*)
@@ -759,8 +761,8 @@ fun interpret_line config type_map const_map path_prefix line thy =
                                if type_exists thy ty_name then ()
                                else
                                 raise MISINTERPRET_TYPE
-                                 ("This type, in signature of " ^
-                                    name ^ " has not been declared.",
+                                 ("Type (in signature of " ^
+                                    name ^ ") has not been declared",
                                    Atom_type ty_name)
                            | _ => ()
                          else () (*skip test if we're not being cautious.*)
@@ -838,7 +840,7 @@ and interpret_file' new_basic_types config path_prefix file_name =
       Path.implode file_name
       |> TPTP_Parser.parse_file
       |> interpret_problem new_basic_types config path_prefix
-    else error "Could not determine absolute path to file."
+    else error "Could not determine absolute path to file"
   end
 
 and interpret_file cautious path_prefix file_name =
