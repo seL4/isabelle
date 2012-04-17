@@ -138,13 +138,16 @@ fun gen_frees_tac keepers ctxt = SUBGOAL (fn (t, i) =>
 fun transfer_tac ctxt = SUBGOAL (fn (t, i) =>
   let
     val bs = bnames t
+    val rules0 = @{thms Rel_App Rel_Abs}
     val rules = Data.get ctxt
   in
     EVERY
       [rewrite_goal_tac @{thms transfer_forall_eq transfer_implies_eq} i,
        CONVERSION (Trueprop_conv (fo_conv ctxt)) i,
        rtac @{thm transfer_start [rotated]} i,
-       REPEAT_ALL_NEW (resolve_tac rules ORELSE' atac ORELSE' eq_tac ctxt) (i + 1),
+       REPEAT_ALL_NEW (resolve_tac rules0 ORELSE' atac
+         ORELSE' SOLVED' (REPEAT_ALL_NEW (resolve_tac rules))
+         ORELSE' eq_tac ctxt) (i + 1),
        (* Alpha-rename bound variables in goal *)
        SUBGOAL (fn (u, i) =>
          rtac @{thm equal_elim_rule1} i THEN
@@ -156,7 +159,7 @@ fun transfer_tac ctxt = SUBGOAL (fn (t, i) =>
 
 fun correspondence_tac ctxt i =
   let
-    val rules = Data.get ctxt
+    val rules = @{thms Rel_App Rel_Abs} @ Data.get ctxt
   in
     EVERY
       [CONVERSION (correspond_conv ctxt) i,

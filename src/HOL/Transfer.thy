@@ -84,21 +84,21 @@ lemma transfer_start': "\<lbrakk>Rel (op \<longrightarrow>) P Q; P\<rbrakk> \<Lo
 lemma Rel_eq_refl: "Rel (op =) x x"
   unfolding Rel_def ..
 
+lemma Rel_App:
+  assumes "Rel (A ===> B) f g" and "Rel A x y"
+  shows "Rel B (App f x) (App g y)"
+  using assms unfolding Rel_def App_def fun_rel_def by fast
+
+lemma Rel_Abs:
+  assumes "\<And>x y. Rel A x y \<Longrightarrow> Rel B (f x) (g y)"
+  shows "Rel (A ===> B) (Abs (\<lambda>x. f x)) (Abs (\<lambda>y. g y))"
+  using assms unfolding Rel_def Abs_def fun_rel_def by fast
+
 use "Tools/transfer.ML"
 
 setup Transfer.setup
 
 declare fun_rel_eq [relator_eq]
-
-lemma Rel_App [transfer_raw]:
-  assumes "Rel (A ===> B) f g" and "Rel A x y"
-  shows "Rel B (App f x) (App g y)"
-  using assms unfolding Rel_def App_def fun_rel_def by fast
-
-lemma Rel_Abs [transfer_raw]:
-  assumes "\<And>x y. Rel A x y \<Longrightarrow> Rel B (f x) (g y)"
-  shows "Rel (A ===> B) (Abs (\<lambda>x. f x)) (Abs (\<lambda>y. g y))"
-  using assms unfolding Rel_def Abs_def fun_rel_def by fast
 
 hide_const (open) App Abs Rel
 
