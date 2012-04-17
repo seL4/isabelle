@@ -57,6 +57,15 @@ sig
   val interpret_type : config -> theory -> type_map ->
     TPTP_Syntax.tptp_type -> typ
 
+  (*map terms form TPTP to Isabelle/HOL*)
+  val interpret_term : bool -> config -> TPTP_Syntax.language -> theory ->
+    const_map -> var_types -> type_map -> TPTP_Syntax.tptp_term ->
+    term * theory
+
+  val interpret_formula : config -> TPTP_Syntax.language -> const_map ->
+    var_types -> type_map -> TPTP_Syntax.tptp_formula -> theory ->
+    term * theory
+
   (*interpret a TPTP line: return an updated theory including the
   types & constants which were specified in that formula, a map from
   constant names to their types, and a map from constant names to Isabelle/HOL
@@ -77,16 +86,7 @@ sig
     thy = theory where interpreted info will be stored.
   *)
 
-  (*map terms form TPTP to Isabelle/HOL*)
-  val interpret_term : bool -> config -> TPTP_Syntax.language -> theory ->
-    const_map -> var_types -> type_map -> TPTP_Syntax.tptp_term ->
-    term * theory
-
-  val interpret_formula : config -> TPTP_Syntax.language -> const_map ->
-    var_types -> type_map -> TPTP_Syntax.tptp_formula -> theory ->
-    term * theory
-
-  val interpret_line : config -> type_map -> const_map ->
+  val interpret_line : config -> string list -> type_map -> const_map ->
     Path.T -> TPTP_Syntax.tptp_line -> theory -> tptp_general_meaning * theory
 
   (*Like "interpret_line" above, but works over a whole parsed problem.
@@ -103,7 +103,7 @@ sig
       const_map = " "
       thy = " "
   *)
-  val interpret_problem : bool -> config -> Path.T ->
+  val interpret_problem : bool -> config -> string list -> Path.T ->
     TPTP_Syntax.tptp_line list -> type_map -> const_map -> theory ->
     tptp_general_meaning * theory
 
@@ -696,12 +696,13 @@ fun nameof_typing
      ((Atom (THF_Atom_term (Term_Func (Uninterpreted str, [])))), _)) = str
 fun nameof_tff_typing (Atom (TFF_Typed_Atom (Uninterpreted str, _))) = str
 
-fun interpret_line config type_map const_map path_prefix line thy =
+fun interpret_line config inc_list type_map const_map path_prefix line thy =
   case line of
-     Include (quoted_path, _) => (*FIXME currently everything is imported*)
+     Include (quoted_path, inc_list) =>
        interpret_file'
         false
         config
+        inc_list
         path_prefix
         (Path.append
           path_prefix
@@ -712,134 +713,141 @@ fun interpret_line config type_map const_map path_prefix line thy =
         const_map
         thy
    | Annotated_Formula (pos, lang, label, role, tptp_formula, annotation_opt) =>
-       case role of
-         Role_Type =>
-           let
-             val thy_name = Context.theory_name thy
-             val (tptp_ty, name) =
-               if lang = THF then
-                 (typeof_typing tptp_formula (*assuming tptp_formula is a typing*),
-                  nameof_typing tptp_formula (*and that the LHS is a (atom) name*))
-               else
-                 (typeof_tff_typing tptp_formula,
-                  nameof_tff_typing tptp_formula)
-           in
-             case tptp_ty of
-               Defined_type Type_Type => (*add new type*)
-                 (*generate an Isabelle/HOL type to interpret this TPTP type,
-                 and add it to both the Isabelle/HOL theory and to the type_map*)
-                  let
-                    val (type_map', thy') =
-                      declare_type
-                       config
-                       (Atom_type name, name)
-                       type_map
-                       thy
-                  in ((type_map',
-                       const_map,
-                       []),
-                      thy')
-                  end
-
-             | _ => (*declaration of constant*)
-                (*Here we populate the map from constants to the Isabelle/HOL
-                terms they map to (which in turn contain their types).*)
-                let
-                  val ty = interpret_type config thy type_map tptp_ty
-                  (*make sure that the theory contains all the types appearing
-                  in this constant's signature. Exception is thrown if encounter
-                  an undeclared types.*)
-                  val (t, thy') =
+       (*interpret a line only if "label" is in "inc_list", or if "inc_list" is
+          empty (in which case interpret all lines)*)
+       (*FIXME could work better if inc_list were sorted*)
+       if null inc_list orelse is_some (List.find (fn x => x = label) inc_list) then
+         case role of
+           Role_Type =>
+             let
+               val thy_name = Context.theory_name thy
+               val (tptp_ty, name) =
+                 if lang = THF then
+                   (typeof_typing tptp_formula (*assuming tptp_formula is a typing*),
+                    nameof_typing tptp_formula (*and that the LHS is a (atom) name*))
+                 else
+                   (typeof_tff_typing tptp_formula,
+                    nameof_tff_typing tptp_formula)
+             in
+               case tptp_ty of
+                 Defined_type Type_Type => (*add new type*)
+                   (*generate an Isabelle/HOL type to interpret this TPTP type,
+                   and add it to both the Isabelle/HOL theory and to the type_map*)
                     let
-                      fun analyse_type thy thf_ty =
-                         if #cautious config then
-                          case thf_ty of
-                             Fn_type (thf_ty1, thf_ty2) =>
-                               (analyse_type thy thf_ty1;
-                               analyse_type thy thf_ty2)
-                           | Atom_type ty_name =>
-                               if type_exists thy ty_name then ()
-                               else
-                                raise MISINTERPRET_TYPE
-                                 ("Type (in signature of " ^
-                                    name ^ ") has not been declared",
-                                   Atom_type ty_name)
-                           | _ => ()
-                         else () (*skip test if we're not being cautious.*)
-                    in
-                      analyse_type thy tptp_ty;
-                      declare_constant config name ty thy
+                      val (type_map', thy') =
+                        declare_type
+                         config
+                         (Atom_type name, name)
+                         type_map
+                         thy
+                    in ((type_map',
+                         const_map,
+                         []),
+                        thy')
                     end
-                  (*register a mapping from name to t. Constants' type
-                  declarations should occur at most once, so it's justified to
-                  use "::". Note that here we use a constant's name rather
-                  than the possibly- new one, since all references in the
-                  theory will be to this name.*)
-                  val const_map' = ((name, t) :: const_map)
-                in ((type_map,(*type_map unchanged, since a constant's
-                                declaration shouldn't include any new types.*)
-                     const_map',(*typing table of constant was extended*)
-                     []),(*no formulas were interpreted*)
-                    thy')(*theory was extended with new constant*)
-                end
-           end
+  
+               | _ => (*declaration of constant*)
+                  (*Here we populate the map from constants to the Isabelle/HOL
+                  terms they map to (which in turn contain their types).*)
+                  let
+                    val ty = interpret_type config thy type_map tptp_ty
+                    (*make sure that the theory contains all the types appearing
+                    in this constant's signature. Exception is thrown if encounter
+                    an undeclared types.*)
+                    val (t, thy') =
+                      let
+                        fun analyse_type thy thf_ty =
+                           if #cautious config then
+                            case thf_ty of
+                               Fn_type (thf_ty1, thf_ty2) =>
+                                 (analyse_type thy thf_ty1;
+                                 analyse_type thy thf_ty2)
+                             | Atom_type ty_name =>
+                                 if type_exists thy ty_name then ()
+                                 else
+                                  raise MISINTERPRET_TYPE
+                                   ("Type (in signature of " ^
+                                      name ^ ") has not been declared",
+                                     Atom_type ty_name)
+                             | _ => ()
+                           else () (*skip test if we're not being cautious.*)
+                      in
+                        analyse_type thy tptp_ty;
+                        declare_constant config name ty thy
+                      end
+                    (*register a mapping from name to t. Constants' type
+                    declarations should occur at most once, so it's justified to
+                    use "::". Note that here we use a constant's name rather
+                    than the possibly- new one, since all references in the
+                    theory will be to this name.*)
+                    val const_map' = ((name, t) :: const_map)
+                  in ((type_map,(*type_map unchanged, since a constant's
+                                  declaration shouldn't include any new types.*)
+                       const_map',(*typing table of constant was extended*)
+                       []),(*no formulas were interpreted*)
+                      thy')(*theory was extended with new constant*)
+                  end
+             end
+  
+         | _ => (*i.e. the AF is not a type declaration*)
+             let
+               (*gather interpreted term, and the map of types occurring in that term*)
+               val (t, thy') =
+                 interpret_formula config lang
+                  const_map [] type_map tptp_formula thy
+                 |>> HOLogic.mk_Trueprop
+               (*type_maps grow monotonically, so return the newest value (type_mapped);
+               there's no need to unify it with the type_map parameter.*)
+             in
+              ((type_map, const_map,
+                [(label, role, tptp_formula,
+                  Syntax.check_term (Proof_Context.init_global thy') t,
+                  TPTP_Proof.extract_inference_info annotation_opt)]), thy')
+             end
+       else (*do nothing if we're not to includ this AF*)
+         ((type_map, const_map, []), thy)
 
-       | _ => (*i.e. the AF is not a type declaration*)
-           let
-             (*gather interpreted term, and the map of types occurring in that term*)
-             val (t, thy') =
-               interpret_formula config lang
-                const_map [] type_map tptp_formula thy
-               |>> HOLogic.mk_Trueprop
-             (*type_maps grow monotonically, so return the newest value (type_mapped);
-             there's no need to unify it with the type_map parameter.*)
-           in
-            ((type_map, const_map,
-              [(label, role, tptp_formula,
-                Syntax.check_term (Proof_Context.init_global thy') t,
-                TPTP_Proof.extract_inference_info annotation_opt)]), thy')
-           end
+and interpret_problem new_basic_types config inc_list path_prefix lines
+ type_map const_map thy =
+  let
+    val thy_name = Context.theory_name thy
+    (*Add interpretation of $o and generate an Isabelle/HOL type to
+    interpret $i, unless we've been given a mapping of types.*)
+    val (thy', type_map') =
+      if not new_basic_types then (thy, type_map)
+      else
+        let
+          val (type_map', thy') =
+            declare_type config
+             (Defined_type Type_Ind, IND_TYPE) type_map thy
+        in
+          (thy', type_map')
+        end
+  in
+    fold (fn line =>
+           fn ((type_map, const_map, lines), thy) =>
+             let
+               (*process the line, ignoring the type-context for variables*)
+               val ((type_map', const_map', l'), thy') =
+                 interpret_line config inc_list type_map const_map path_prefix line thy
+             in
+               ((type_map',
+                 const_map',
+                 l' @ lines),(*append is sufficient, union would be overkill*)
+                thy')
+             end)
+         lines (*lines of the problem file*)
+         ((type_map', const_map, []), thy') (*initial values*)
+  end
 
-and interpret_problem new_basic_types config path_prefix lines type_map const_map thy =
-      let
-        val thy_name = Context.theory_name thy
-        (*Add interpretation of $o and generate an Isabelle/HOL type to
-        interpret $i, unless we've been given a mapping of types.*)
-        val (thy', type_map') =
-          if not new_basic_types then (thy, type_map)
-          else
-            let
-              val (type_map', thy') =
-                declare_type config
-                 (Defined_type Type_Ind, IND_TYPE) type_map thy
-            in
-              (thy', type_map')
-            end
-      in
-        fold (fn line =>
-               fn ((type_map, const_map, lines), thy) =>
-                 let
-                   (*process the line, ignoring the type-context for variables*)
-                   val ((type_map', const_map', l'), thy') =
-                     interpret_line config type_map const_map path_prefix line thy
-                 in
-                   ((type_map',
-                     const_map',
-                     l' @ lines),(*append is sufficient, union would be overkill*)
-                    thy')
-                 end)
-             lines (*lines of the problem file*)
-             ((type_map', const_map, []), thy') (*initial values*)
-      end
-
-and interpret_file' new_basic_types config path_prefix file_name =
+and interpret_file' new_basic_types config inc_list path_prefix file_name =
   let
     val file_name' = Path.expand file_name
   in
     if Path.is_absolute file_name' then
       Path.implode file_name
       |> TPTP_Parser.parse_file
-      |> interpret_problem new_basic_types config path_prefix
+      |> interpret_problem new_basic_types config inc_list path_prefix
     else error "Could not determine absolute path to file"
   end
 
@@ -855,7 +863,7 @@ and interpret_file cautious path_prefix file_name =
       {cautious = cautious,
        problem_name = NONE
       }
-  in interpret_file' true config path_prefix file_name end
+  in interpret_file' true config [] path_prefix file_name end
 
 fun import_file cautious path_prefix file_name type_map const_map thy =
   let
