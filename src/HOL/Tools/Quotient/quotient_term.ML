@@ -21,7 +21,7 @@ sig
   val equiv_relation_chk: Proof.context -> typ * typ -> term
 
   val get_rel_from_quot_thm: thm -> term
-  val prove_quot_theorem: Proof.context -> typ * typ -> thm
+  val prove_quot_thm: Proof.context -> typ * typ -> thm
 
   val regularize_trm: Proof.context -> term * term -> term
   val regularize_trm_chk: Proof.context -> term * term -> term
@@ -379,7 +379,7 @@ fun mk_quot_thm_compose (rel_quot_thm, quot_thm) =
     else raise NOT_IMPL "nested quotients: not implemented yet"
   end
 
-fun prove_quot_theorem ctxt (rty, qty) =
+fun prove_quot_thm ctxt (rty, qty) =
   if rty = qty
   then @{thm identity_quotient3}
   else
@@ -388,7 +388,7 @@ fun prove_quot_theorem ctxt (rty, qty) =
         if s = s'
         then
           let
-            val args = map (prove_quot_theorem ctxt) (tys ~~ tys')
+            val args = map (prove_quot_thm ctxt) (tys ~~ tys')
           in
             args MRSL (get_rel_quot_thm ctxt s)
           end
@@ -397,7 +397,7 @@ fun prove_quot_theorem ctxt (rty, qty) =
             val (Type (_, rtys), qty_pat) = get_rty_qty ctxt s'
             val qtyenv = match ctxt equiv_match_err qty_pat qty
             val rtys' = map (Envir.subst_type qtyenv) rtys
-            val args = map (prove_quot_theorem ctxt) (tys ~~ rtys')
+            val args = map (prove_quot_thm ctxt) (tys ~~ rtys')
             val quot_thm = get_quot_thm ctxt s'
           in
             if forall is_id_quot args

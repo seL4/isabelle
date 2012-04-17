@@ -82,7 +82,7 @@ fun prove_rel ctxt rsp_thm (rty, qty) =
     val ty_args = get_binder_types (rty, qty)
     fun disch_arg args_ty thm = 
       let
-        val quot_thm = Quotient_Term.prove_quot_theorem ctxt args_ty
+        val quot_thm = Quotient_Term.prove_quot_thm ctxt args_ty
       in
         [quot_thm, thm] MRSL @{thm apply_rspQ3''}
       end
@@ -97,7 +97,7 @@ fun simplify_code_eq ctxt def_thm =
 
 fun generate_code_cert ctxt def_thm rsp_thm (rty, qty) =
   let
-    val quot_thm = Quotient_Term.prove_quot_theorem ctxt (get_body_types (rty, qty))
+    val quot_thm = Quotient_Term.prove_quot_thm ctxt (get_body_types (rty, qty))
     val fun_rel = prove_rel ctxt rsp_thm (rty, qty)
     val abs_rep_thm = [quot_thm, fun_rel] MRSL @{thm Quotient3_rep_abs}
     val abs_rep_eq = 
@@ -117,7 +117,7 @@ fun generate_code_cert ctxt def_thm rsp_thm (rty, qty) =
 
 fun define_code_cert code_eqn_thm_name def_thm rsp_thm (rty, qty) lthy = 
   let
-    val quot_thm = Quotient_Term.prove_quot_theorem lthy (get_body_types (rty, qty))
+    val quot_thm = Quotient_Term.prove_quot_thm lthy (get_body_types (rty, qty))
   in
     if Quotient_Type.can_generate_code_cert quot_thm then
       let

@@ -6,8 +6,6 @@ Definitions for constants on quotient types.
 
 signature LIFTING_DEF =
 sig
-  exception FORCE_RTY of typ * term
-
   val add_lift_def:
     (binding * mixfix) -> typ -> term -> thm -> local_theory -> local_theory
 
@@ -28,8 +26,6 @@ infix 0 MRSL
 
 fun ants MRSL thm = fold (fn rl => fn thm => rl RS thm) ants thm
 
-exception FORCE_RTY of typ * term
-
 fun get_body_types (Type ("fun", [_, U]), Type ("fun", [_, V])) = get_body_types (U, V)
   | get_body_types (U, V)  = (U, V)
 
@@ -42,7 +38,6 @@ fun force_rty_type ctxt rty rhs =
     val rhs_schematic = singleton (Variable.polymorphic ctxt) rhs
     val rty_schematic = fastype_of rhs_schematic
     val match = Sign.typ_match thy (rty_schematic, rty) Vartab.empty
-      handle Type.TYPE_MATCH => raise FORCE_RTY (rty, rhs)
   in
     Envir.subst_term_types match rhs_schematic
   end
@@ -92,7 +87,7 @@ fun prove_rel ctxt rsp_thm (rty, qty) =
     val ty_args = get_binder_types (rty, qty)
     fun disch_arg args_ty thm = 
       let
-        val quot_thm = Lifting_Term.prove_quot_theorem ctxt args_ty
+        val quot_thm = Lifting_Term.prove_quot_thm ctxt args_ty
       in
         [quot_thm, thm] MRSL @{thm apply_rsp''}
       end
@@ -114,7 +109,7 @@ fun can_generate_code_cert quot_thm  =
 fun generate_code_cert ctxt def_thm rsp_thm (rty, qty) =
   let
     val thy = Proof_Context.theory_of ctxt
-    val quot_thm = Lifting_Term.prove_quot_theorem ctxt (get_body_types (rty, qty))
+    val quot_thm = Lifting_Term.prove_quot_thm ctxt (get_body_types (rty, qty))
     val fun_rel = prove_rel ctxt rsp_thm (rty, qty)
     val abs_rep_thm = [quot_thm, fun_rel] MRSL @{thm Quotient_rep_abs}
     val abs_rep_eq = 
@@ -134,7 +129,7 @@ fun generate_code_cert ctxt def_thm rsp_thm (rty, qty) =
 
 fun define_code_cert code_eqn_thm_name def_thm rsp_thm (rty, qty) lthy = 
   let
-    val quot_thm = Lifting_Term.prove_quot_theorem lthy (get_body_types (rty, qty))
+    val quot_thm = Lifting_Term.prove_quot_thm lthy (get_body_types (rty, qty))
   in
     if can_generate_code_cert quot_thm then
       let
@@ -170,7 +165,7 @@ fun define_code code_eqn_thm_name def_thm rsp_thm (rty, qty) lthy =
 fun add_lift_def var qty rhs rsp_thm lthy =
   let
     val rty = fastype_of rhs
-    val quotient_thm = Lifting_Term.prove_quot_theorem lthy (rty, qty)
+    val quotient_thm = Lifting_Term.prove_quot_thm lthy (rty, qty)
     val absrep_trm =  Lifting_Term.quot_thm_abs quotient_thm
     val rty_forced = (domain_type o fastype_of) absrep_trm
     val forced_rhs = force_rty_type lthy rty_forced rhs
@@ -246,9 +241,8 @@ fun mk_readable_rsp_thm_eq tm lthy =
 
 fun lift_def_cmd (raw_var, rhs_raw) lthy =
   let
-    val ((binding, SOME qty, mx), ctxt) = yield_singleton Proof_Context.read_vars raw_var lthy 
-    val rhs' = (Syntax.check_term ctxt o Syntax.parse_term ctxt) rhs_raw
-    val rhs = singleton (Variable.polymorphic ctxt) rhs'
+    val ((binding, SOME qty, mx), lthy') = yield_singleton Proof_Context.read_vars raw_var lthy 
+    val rhs = (Syntax.check_term lthy' o Syntax.parse_term lthy') rhs_raw
  
     fun try_to_prove_refl thm = 
       let
@@ -265,12 +259,11 @@ fun lift_def_cmd (raw_var, rhs_raw) lthy =
           | _ => NONE
       end
 
-    val quot_thm = Lifting_Term.prove_quot_theorem lthy (fastype_of rhs, qty)
-    val rsp_rel = Lifting_Term.quot_thm_rel quot_thm
+    val rsp_rel = Lifting_Term.equiv_relation lthy' (fastype_of rhs, qty)
     val rty_forced = (domain_type o fastype_of) rsp_rel;
-    val forced_rhs = force_rty_type ctxt rty_forced rhs;
+    val forced_rhs = force_rty_type lthy' rty_forced rhs;
     val internal_rsp_tm = HOLogic.mk_Trueprop (rsp_rel $ forced_rhs $ forced_rhs)
-    val readable_rsp_thm_eq = mk_readable_rsp_thm_eq internal_rsp_tm lthy
+    val readable_rsp_thm_eq = mk_readable_rsp_thm_eq internal_rsp_tm lthy'
     val maybe_proven_rsp_thm = try_to_prove_refl readable_rsp_thm_eq
     val (readable_rsp_tm, _) = Logic.dest_implies (prop_of readable_rsp_thm_eq)
   
@@ -279,7 +272,7 @@ fun lift_def_cmd (raw_var, rhs_raw) lthy =
         val internal_rsp_thm =
           case thm_list of
             [] => the maybe_proven_rsp_thm
-          | [[thm]] => Goal.prove ctxt [] [] internal_rsp_tm 
+          | [[thm]] => Goal.prove lthy [] [] internal_rsp_tm 
             (fn _ => rtac readable_rsp_thm_eq 1 THEN Proof_Context.fact_tac [thm] 1)
       in
         add_lift_def (binding, mx) qty rhs internal_rsp_thm lthy
@@ -287,8 +280,8 @@ fun lift_def_cmd (raw_var, rhs_raw) lthy =
 
   in
     case maybe_proven_rsp_thm of
-      SOME _ => Proof.theorem NONE after_qed [] ctxt
-      | NONE =>  Proof.theorem NONE after_qed [[(readable_rsp_tm,[])]] ctxt
+      SOME _ => Proof.theorem NONE after_qed [] lthy'
+      | NONE =>  Proof.theorem NONE after_qed [[(readable_rsp_tm,[])]] lthy'
   end
 
 fun quot_thm_err ctxt (rty, qty) pretty_msg =
@@ -306,21 +299,23 @@ fun quot_thm_err ctxt (rty, qty) pretty_msg =
     error error_msg
   end
 
-fun force_rty_err ctxt rty rhs =
+fun check_rty_err ctxt (rty_schematic, rty_forced) (raw_var, rhs_raw) =
   let
+    val (_, ctxt') = yield_singleton Proof_Context.read_vars raw_var ctxt 
+    val rhs = (Syntax.check_term ctxt' o Syntax.parse_term ctxt') rhs_raw
     val error_msg = cat_lines
        ["Lifting failed for the following term:",
         Pretty.string_of (Pretty.block
          [Pretty.str "Term:", Pretty.brk 2, Syntax.pretty_term ctxt rhs]),
         Pretty.string_of (Pretty.block
-         [Pretty.str "Type:", Pretty.brk 2, Syntax.pretty_typ ctxt (fastype_of rhs)]),
+         [Pretty.str "Type:", Pretty.brk 2, Syntax.pretty_typ ctxt rty_schematic]),
         "",
         (Pretty.string_of (Pretty.block
          [Pretty.str "Reason:", 
           Pretty.brk 2, 
           Pretty.str "The type of the term cannot be instancied to",
           Pretty.brk 1,
-          Pretty.quote (Syntax.pretty_typ ctxt rty),
+          Pretty.quote (Syntax.pretty_typ ctxt rty_forced),
           Pretty.str "."]))]
     in
       error error_msg
@@ -329,7 +324,8 @@ fun force_rty_err ctxt rty rhs =
 fun lift_def_cmd_with_err_handling (raw_var, rhs_raw) lthy =
   (lift_def_cmd (raw_var, rhs_raw) lthy
     handle Lifting_Term.QUOT_THM (rty, qty, msg) => quot_thm_err lthy (rty, qty) msg)
-    handle FORCE_RTY (rty, rhs) => force_rty_err lthy rty rhs
+    handle Lifting_Term.CHECK_RTY (rty_schematic, rty_forced) => 
+      check_rty_err lthy (rty_schematic, rty_forced) (raw_var, rhs_raw)
 
 (* parser and command *)
 val liftdef_parser =
