@@ -136,6 +136,9 @@ fun setup_lifting_package quot3_thm equiv_thm lthy =
   let
     val (_ $ _ $ abs_fun $ _) = (HOLogic.dest_Trueprop o prop_of) quot3_thm
     val (T_def, lthy') = define_cr_rel equiv_thm abs_fun lthy
+    val (rty, qty) = (dest_funT o fastype_of) abs_fun
+    val qty_name = (fst o dest_Type) qty
+    val quotient_thm_name = Binding.prefix_name "Quotient_" (Binding.qualified_name qty_name) 
     val quot_thm = (case (HOLogic.dest_Trueprop o prop_of) equiv_thm of
       Const (@{const_name equivp}, _) $ _ => 
         [quot3_thm, T_def, equiv_thm] MRSL @{thm Quotient3_to_Quotient_equivp}
@@ -144,7 +147,9 @@ fun setup_lifting_package quot3_thm equiv_thm lthy =
       | _ => error "unsupported equivalence theorem"
       )
   in
-    Lifting_Setup.setup_lifting_infr quot_thm equiv_thm lthy'
+    lthy'
+      |> Lifting_Setup.setup_lifting_infr quot_thm equiv_thm
+      |> (snd oo Local_Theory.note) ((quotient_thm_name, []), [quot_thm])
   end
 
 fun init_quotient_infr quot_thm equiv_thm lthy =
