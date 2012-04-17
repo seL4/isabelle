@@ -1,15 +1,11 @@
 (*  Title:      HOL/TPTP/TPTP_Parser.thy
     Author:     Nik Sultana, Cambridge University Computer Laboratory
 
-Importing TPTP files into Isabelle/HOL:
-* parsing TPTP formulas;
-* interpreting TPTP formulas as HOL terms (i.e. importing types, and
-    type-checking the terms);
+Parser for TPTP formulas
 *)
 
 theory TPTP_Parser
-imports Main
-keywords "import_tptp" :: thy_decl 
+imports Pure
 uses
   "TPTP_Parser/ml_yacc_lib.ML" (*generated from ML-Yacc's lib*)
 
@@ -18,7 +14,6 @@ uses
   "TPTP_Parser/tptp_parser.ML"
   "TPTP_Parser/tptp_problem_name.ML"
   "TPTP_Parser/tptp_proof.ML"
-  "TPTP_Parser/tptp_interpret.ML"
 
 begin
 
