@@ -36,19 +36,19 @@ only one variable can be used.
 section "Compute some transcendental values"
 
 lemma "\<bar> ln 2 - 544531980202654583340825686620847 / 785593587443817081832229725798400 \<bar> < inverse (2^51) "
-  by (approximation 80)
+  by (approximation 60)
 
 lemma "\<bar> exp 1.626 - 5.083499996273 \<bar> < (inverse 10 ^ 10 :: real)"
-  by (approximation 80)
+  by (approximation 40)
 
 lemma "\<bar> sqrt 2 - 1.4142135623730951 \<bar> < inverse 10 ^ 16"
-  by (approximation 80)
+  by (approximation 60)
 
 lemma "\<bar> pi - 3.1415926535897932385 \<bar> < inverse 10 ^ 18"
-  by (approximation 80)
+  by (approximation 70)
 
 lemma "\<bar> sin 100 + 0.50636564110975879 \<bar> < inverse 10 ^ 17"
-  by (approximation 80)
+  by (approximation 70)
 
 section "Use variable ranges"
 
@@ -70,7 +70,7 @@ lemma "3.2 \<le> x \<and> x \<le> 6.2 \<Longrightarrow> sin x \<le> 0"
 lemma
   defines "g \<equiv> 9.80665" and "v \<equiv> 128.61" and "d \<equiv> pi / 180"
   shows "g / v * tan (35 * d) \<in> { 3 * d .. 3.1 * d }"
-  using assms by (approximation 80)
+  using assms by (approximation 20)
 
 lemma "x \<in> { 0 .. 1 :: real } \<longrightarrow> x ^ 2 \<le> x"
   by (approximation 30 splitting: x=1 taylor: x = 3)

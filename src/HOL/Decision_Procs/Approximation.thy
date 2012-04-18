@@ -12,6 +12,9 @@ imports
   "~~/src/HOL/Library/Efficient_Nat"
 begin
 
+declare powr_numeral[simp]
+declare powr_neg_numeral[simp]
+
 section "Horner Scheme"
 
 subsection {* Define auxiliary helper @{text horner} function *}
@@ -148,7 +151,7 @@ proof (cases "even n")
   case True
   show ?thesis
   proof (cases "0 < l")
-    case True hence "odd n \<or> 0 < l" and "0 \<le> real l" unfolding less_float_def by auto
+    case True hence "odd n \<or> 0 < l" and "0 \<le> real l" by auto
     have u1: "u1 = u ^ n" and l1: "l1 = l ^ n" using assms
       unfolding float_power_bnds_def if_P[OF `odd n \<or> 0 < l`] by auto
     have "real l ^ n \<le> x ^ n" and "x ^ n \<le> real u ^ n " using `0 \<le> real l` assms
@@ -158,7 +161,7 @@ proof (cases "even n")
     case False hence P: "\<not> (odd n \<or> 0 < l)" using `even n` by auto
     show ?thesis
     proof (cases "u < 0")
-      case True hence "0 \<le> - real u" and "- real u \<le> - x" and "0 \<le> - x" and "-x \<le> - real l" using assms unfolding less_float_def by auto
+      case True hence "0 \<le> - real u" and "- real u \<le> - x" and "0 \<le> - x" and "-x \<le> - real l" using assms  by auto
       hence "real u ^ n \<le> x ^ n" and "x ^ n \<le> real l ^ n" using power_mono[of  "-x" "-real l" n] power_mono[of "-real u" "-x" n]
         unfolding power_minus_even[OF `even n`] by auto
       moreover have u1: "u1 = l ^ n" and l1: "l1 = u ^ n" using assms unfolding float_power_bnds_def if_not_P[OF P] if_P[OF True] by auto
@@ -167,9 +170,9 @@ proof (cases "even n")
       case False
       have "\<bar>x\<bar> \<le> real (max (-l) u)"
       proof (cases "-l \<le> u")
-        case True thus ?thesis unfolding max_def if_P[OF True] using assms unfolding less_eq_float_def by auto
+        case True thus ?thesis unfolding max_def if_P[OF True] using assms by auto
       next
-        case False thus ?thesis unfolding max_def if_not_P[OF False] using assms unfolding less_eq_float_def by auto
+        case False thus ?thesis unfolding max_def if_not_P[OF False] using assms by auto
       qed
       hence x_abs: "\<bar>x\<bar> \<le> \<bar>real (max (-l) u)\<bar>" by auto
       have u1: "u1 = (max (-l) u) ^ n" and l1: "l1 = 0" using assms unfolding float_power_bnds_def if_not_P[OF P] if_not_P[OF False] by auto
@@ -215,7 +218,7 @@ function ub_sqrt lb_sqrt :: "nat \<Rightarrow> float \<Rightarrow> float" where
               else if x < 0 then - ub_sqrt prec (- x)
                             else 0)"
 by pat_completeness auto
-termination by (relation "measure (\<lambda> v. let (prec, x) = sum_case id id v in (if x < 0 then 1 else 0))", auto simp add: less_float_def)
+termination by (relation "measure (\<lambda> v. let (prec, x) = sum_case id id v in (if x < 0 then 1 else 0))", auto)
 
 declare lb_sqrt.simps[simp del]
 declare ub_sqrt.simps[simp del]
@@ -284,7 +287,7 @@ proof (induct n)
     qed
     finally show ?thesis using `0 < m`
       unfolding Float
-      by (subst compute_sqrt_iteration_base) (simp add: ac_simps real_Float del: Float_def)
+      by (subst compute_sqrt_iteration_base) (simp add: ac_simps)
   qed
 next
   case (Suc n)
@@ -308,20 +311,20 @@ qed
 lemma lb_sqrt_lower_bound: assumes "0 \<le> real x"
   shows "0 \<le> real (lb_sqrt prec x)"
 proof (cases "0 < x")
-  case True hence "0 < real x" and "0 \<le> x" using `0 \<le> real x` unfolding less_float_def less_eq_float_def by auto
-  hence "0 < sqrt_iteration prec prec x" unfolding less_float_def using sqrt_iteration_lower_bound by auto
+  case True hence "0 < real x" and "0 \<le> x" using `0 \<le> real x` by auto
+  hence "0 < sqrt_iteration prec prec x" using sqrt_iteration_lower_bound by auto
   hence "0 \<le> real (float_divl prec x (sqrt_iteration prec prec x))" using float_divl_lower_bound[OF `0 \<le> x`] unfolding less_eq_float_def by auto
   thus ?thesis unfolding lb_sqrt.simps using True by auto
 next
-  case False with `0 \<le> real x` have "real x = 0" unfolding less_float_def by auto
-  thus ?thesis unfolding lb_sqrt.simps less_float_def by auto
+  case False with `0 \<le> real x` have "real x = 0" by auto
+  thus ?thesis unfolding lb_sqrt.simps by auto
 qed
 
 lemma bnds_sqrt':
   shows "sqrt x \<in> {(lb_sqrt prec x) .. (ub_sqrt prec x) }"
 proof -
   { fix x :: float assume "0 < x"
-    hence "0 < real x" and "0 \<le> real x" unfolding less_float_def by auto
+    hence "0 < real x" and "0 \<le> real x" by auto
     hence sqrt_gt0: "0 < sqrt x" by auto
     hence sqrt_ub: "sqrt x < sqrt_iteration prec prec x" using sqrt_iteration_bound by auto
 
@@ -338,7 +341,7 @@ proof -
   note lb = this
 
   { fix x :: float assume "0 < x"
-    hence "0 < real x" unfolding less_float_def by auto
+    hence "0 < real x" by auto
     hence "0 < sqrt x" by auto
     hence "sqrt x < sqrt_iteration prec prec x"
       using sqrt_iteration_bound by auto
@@ -352,10 +355,10 @@ proof -
   next case False show ?thesis
   proof (cases "real x = 0")
     case True thus ?thesis
-      by (auto simp add: less_float_def lb_sqrt.simps ub_sqrt.simps)
+      by (auto simp add: lb_sqrt.simps ub_sqrt.simps)
   next
     case False with `\<not> 0 < x` have "x < 0" and "0 < -x"
-      by (auto simp add: less_float_def)
+      by auto
 
     with `\<not> 0 < x`
     show ?thesis using lb[OF `0 < -x`] ub[OF `0 < -x`]
@@ -553,7 +556,7 @@ function lb_arctan :: "nat \<Rightarrow> float \<Rightarrow> float" and ub_arcta
                                            else Float 1 1 * ub_horner y
                           else ub_pi prec * Float 1 -1 - lb_horner (float_divl prec 1 x)))"
 by pat_completeness auto
-termination by (relation "measure (\<lambda> v. let (prec, x) = sum_case id id v in (if x < 0 then 1 else 0))", auto simp add: less_float_def)
+termination by (relation "measure (\<lambda> v. let (prec, x) = sum_case id id v in (if x < 0 then 1 else 0))", auto)
 
 declare ub_arctan_horner.simps[simp del]
 declare lb_arctan_horner.simps[simp del]
@@ -561,17 +564,17 @@ declare lb_arctan_horner.simps[simp del]
 lemma lb_arctan_bound': assumes "0 \<le> real x"
   shows "lb_arctan prec x \<le> arctan x"
 proof -
-  have "\<not> x < 0" and "0 \<le> x" unfolding less_float_def less_eq_float_def using `0 \<le> real x` by auto
+  have "\<not> x < 0" and "0 \<le> x" using `0 \<le> real x` by auto
   let "?ub_horner x" = "x * ub_arctan_horner prec (get_odd (prec div 4 + 1)) 1 (x * x)"
     and "?lb_horner x" = "x * lb_arctan_horner prec (get_even (prec div 4 + 1)) 1 (x * x)"
 
   show ?thesis
   proof (cases "x \<le> Float 1 -1")
-    case True hence "real x \<le> 1" unfolding less_eq_float_def Float_num by auto
+    case True hence "real x \<le> 1" by auto
     show ?thesis unfolding lb_arctan.simps Let_def if_not_P[OF `\<not> x < 0`] if_P[OF True]
       using arctan_0_1_bounds[OF `0 \<le> real x` `real x \<le> 1`] by auto
   next
-    case False hence "0 < real x" unfolding less_eq_float_def Float_num by auto
+    case False hence "0 < real x" by auto
     let ?R = "1 + sqrt (1 + real x * real x)"
     let ?fR = "1 + ub_sqrt prec (1 + x * x)"
     let ?DIV = "float_divl prec x ?fR"
@@ -583,7 +586,7 @@ proof -
       using bnds_sqrt'[of "1 + x * x"] by auto
 
     hence "?R \<le> ?fR" by auto
-    hence "0 < ?fR" and "0 < real ?fR" unfolding less_float_def using `0 < ?R` by auto
+    hence "0 < ?fR" and "0 < real ?fR" using `0 < ?R` by auto
 
     have monotone: "(float_divl prec x ?fR) \<le> x / ?R"
     proof -
@@ -613,7 +616,7 @@ proof -
       finally show ?thesis unfolding lb_arctan.simps Let_def if_not_P[OF `\<not> x < 0`] if_not_P[OF `\<not> x \<le> Float 1 -1`] if_P[OF True] .
     next
       case False
-      hence "2 < real x" unfolding less_eq_float_def Float_num by auto
+      hence "2 < real x" by auto
       hence "1 \<le> real x" by auto
 
       let "?invx" = "float_divr prec 1 x"
@@ -626,7 +629,7 @@ proof -
           using `0 \<le> arctan x` by auto
       next
         case False
-        hence "real ?invx \<le> 1" unfolding less_float_def by auto
+        hence "real ?invx \<le> 1" by auto
         have "0 \<le> real ?invx" by (rule order_trans[OF _ float_divr], auto simp add: `0 \<le> real x`)
 
         have "1 / x \<noteq> 0" and "0 < 1 / x" using `0 < real x` by auto
@@ -650,18 +653,18 @@ qed
 lemma ub_arctan_bound': assumes "0 \<le> real x"
   shows "arctan x \<le> ub_arctan prec x"
 proof -
-  have "\<not> x < 0" and "0 \<le> x" unfolding less_float_def less_eq_float_def using `0 \<le> real x` by auto
+  have "\<not> x < 0" and "0 \<le> x" using `0 \<le> real x` by auto
 
   let "?ub_horner x" = "x * ub_arctan_horner prec (get_odd (prec div 4 + 1)) 1 (x * x)"
     and "?lb_horner x" = "x * lb_arctan_horner prec (get_even (prec div 4 + 1)) 1 (x * x)"
 
   show ?thesis
   proof (cases "x \<le> Float 1 -1")
-    case True hence "real x \<le> 1" unfolding less_eq_float_def Float_num by auto
+    case True hence "real x \<le> 1" by auto
     show ?thesis unfolding ub_arctan.simps Let_def if_not_P[OF `\<not> x < 0`] if_P[OF True]
       using arctan_0_1_bounds[OF `0 \<le> real x` `real x \<le> 1`] by auto
   next
-    case False hence "0 < real x" unfolding less_eq_float_def Float_num by auto
+    case False hence "0 < real x" by auto
     let ?R = "1 + sqrt (1 + real x * real x)"
     let ?fR = "1 + lb_sqrt prec (1 + x * x)"
     let ?DIV = "float_divr prec x ?fR"
@@ -695,7 +698,7 @@ proof -
         show ?thesis unfolding ub_arctan.simps Let_def if_not_P[OF `\<not> x < 0`] if_not_P[OF `\<not> x \<le> Float 1 -1`] if_P[OF `x \<le> Float 1 1`] if_P[OF True] .
       next
         case False
-        hence "real ?DIV \<le> 1" unfolding less_float_def by auto
+        hence "real ?DIV \<le> 1" by auto
 
         have "0 \<le> x / ?R" using `0 \<le> real x` `0 < ?R` unfolding zero_le_divide_iff by auto
         hence "0 \<le> real ?DIV" using monotone by (rule order_trans)
@@ -709,16 +712,16 @@ proof -
       qed
     next
       case False
-      hence "2 < real x" unfolding less_eq_float_def Float_num by auto
+      hence "2 < real x" by auto
       hence "1 \<le> real x" by auto
       hence "0 < real x" by auto
-      hence "0 < x" unfolding less_float_def by auto
+      hence "0 < x" by auto
 
       let "?invx" = "float_divl prec 1 x"
       have "0 \<le> arctan x" using arctan_monotone'[OF `0 \<le> real x`] using arctan_tan[of 0, unfolded tan_zero] by auto
 
       have "real ?invx \<le> 1" unfolding less_float_def by (rule order_trans[OF float_divl], auto simp add: `1 \<le> real x` divide_le_eq_1_pos[OF `0 < real x`])
-      have "0 \<le> real ?invx" by (rule float_divl_lower_bound[unfolded less_eq_float_def], auto simp add: `0 < x`)
+      have "0 \<le> real ?invx" using `0 < x` by (intro float_divl_lower_bound) auto
 
       have "1 / x \<noteq> 0" and "0 < 1 / x" using `0 < real x` by auto
 
@@ -739,11 +742,11 @@ qed
 lemma arctan_boundaries:
   "arctan x \<in> {(lb_arctan prec x) .. (ub_arctan prec x)}"
 proof (cases "0 \<le> x")
-  case True hence "0 \<le> real x" unfolding less_eq_float_def by auto
+  case True hence "0 \<le> real x" by auto
   show ?thesis using ub_arctan_bound'[OF `0 \<le> real x`] lb_arctan_bound'[OF `0 \<le> real x`] unfolding atLeastAtMost_iff by auto
 next
   let ?mx = "-x"
-  case False hence "x < 0" and "0 \<le> real ?mx" unfolding less_eq_float_def less_float_def by auto
+  case False hence "x < 0" and "0 \<le> real ?mx" by auto
   hence bounds: "lb_arctan prec ?mx \<le> arctan ?mx \<and> arctan ?mx \<le> ub_arctan prec ?mx"
     using ub_arctan_bound'[OF `0 \<le> real ?mx`] lb_arctan_bound'[OF `0 \<le> real ?mx`] by auto
   show ?thesis unfolding real_of_float_minus arctan_minus lb_arctan.simps[where x=x] ub_arctan.simps[where x=x] Let_def if_P[OF `x < 0`]
@@ -801,8 +804,8 @@ lemma cos_boundaries: assumes "0 \<le> real x" and "x \<le> pi / 2"
   shows "cos x \<in> {(lb_sin_cos_aux prec (get_even n) 1 1 (x * x)) .. (ub_sin_cos_aux prec (get_odd n) 1 1 (x * x))}"
 proof (cases "real x = 0")
   case False hence "real x \<noteq> 0" by auto
-  hence "0 < x" and "0 < real x" using `0 \<le> real x` unfolding less_float_def by auto
-  have "0 < x * x" using `0 < x` unfolding less_float_def real_of_float_zero
+  hence "0 < x" and "0 < real x" using `0 \<le> real x` by auto
+  have "0 < x * x" using `0 < x`
     using mult_pos_pos[where a="real x" and b="real x"] by auto
 
   { fix x n have "(\<Sum> i=0..<n. -1^i * (1/real (fact (2 * i))) * x ^ (2 * i))
@@ -918,8 +921,8 @@ lemma sin_boundaries: assumes "0 \<le> real x" and "x \<le> pi / 2"
   shows "sin x \<in> {(x * lb_sin_cos_aux prec (get_even n) 2 1 (x * x)) .. (x * ub_sin_cos_aux prec (get_odd n) 2 1 (x * x))}"
 proof (cases "real x = 0")
   case False hence "real x \<noteq> 0" by auto
-  hence "0 < x" and "0 < real x" using `0 \<le> real x` unfolding less_float_def by auto
-  have "0 < x * x" using `0 < x` unfolding less_float_def real_of_float_zero
+  hence "0 < x" and "0 < real x" using `0 \<le> real x` by auto
+  have "0 < x * x" using `0 < x`
     using mult_pos_pos[where a="real x" and b="real x"] by auto
 
   { fix x n have "(\<Sum> j = 0 ..< n. -1 ^ (((2 * j + 1) - Suc 0) div 2) / (real (fact (2 * j + 1))) * x ^(2 * j + 1))
@@ -1036,7 +1039,7 @@ proof -
     finally have "cos x = 2 * cos (x / 2) * cos (x / 2) - 1" .
   } note x_half = this[symmetric]
 
-  have "\<not> x < 0" using `0 \<le> real x` unfolding less_float_def by auto
+  have "\<not> x < 0" using `0 \<le> real x` by auto
   let "?ub_horner x" = "ub_sin_cos_aux prec (get_odd (prec div 4 + 1)) 1 1 (x * x)"
   let "?lb_horner x" = "lb_sin_cos_aux prec (get_even (prec div 4 + 1)) 1 1 (x * x)"
   let "?ub_half x" = "Float 1 1 * x * x - 1"
@@ -1044,7 +1047,7 @@ proof -
 
   show ?thesis
   proof (cases "x < Float 1 -1")
-    case True hence "x \<le> pi / 2" unfolding less_float_def using pi_ge_two by auto
+    case True hence "x \<le> pi / 2" using pi_ge_two by auto
     show ?thesis unfolding lb_cos_def[where x=x] ub_cos_def[where x=x] if_not_P[OF `\<not> x < 0`] if_P[OF `x < Float 1 -1`] Let_def
       using cos_boundaries[OF `0 \<le> real x` `x \<le> pi / 2`] .
   next
@@ -1059,7 +1062,7 @@ proof -
         case True show ?thesis using cos_ge_minus_one unfolding if_P[OF True] by auto
       next
         case False
-        hence "0 \<le> real y" unfolding less_float_def by auto
+        hence "0 \<le> real y" by auto
         from mult_mono[OF `y \<le> cos ?x2` `y \<le> cos ?x2` `0 \<le> cos ?x2` this]
         have "real y * real y \<le> cos ?x2 * cos ?x2" .
         hence "2 * real y * real y \<le> 2 * cos ?x2 * cos ?x2" by auto
@@ -1091,7 +1094,7 @@ proof -
 
     show ?thesis
     proof (cases "x < 1")
-      case True hence "real x \<le> 1" unfolding less_float_def by auto
+      case True hence "real x \<le> 1" by auto
       have "0 \<le> real ?x2" and "?x2 \<le> pi / 2" using pi_ge_two `0 \<le> real x` using assms by auto
       from cos_boundaries[OF this]
       have lb: "(?lb_horner ?x2) \<le> ?cos ?x2" and ub: "?cos ?x2 \<le> (?ub_horner ?x2)" by auto
@@ -1113,7 +1116,7 @@ proof -
       from cos_boundaries[OF this]
       have lb: "(?lb_horner ?x4) \<le> ?cos ?x4" and ub: "?cos ?x4 \<le> (?ub_horner ?x4)" by auto
 
-      have eq_4: "?x2 * Float 1 -1 = x * Float 1 -2" by simp
+      have eq_4: "?x2 * Float 1 -1 = x * Float 1 -2" by transfer simp
 
       have "(?lb x) \<le> ?cos x"
       proof -
@@ -1197,7 +1200,7 @@ proof ((rule allI | rule impI | erule conjE) +)
     using x unfolding k[symmetric]
     by (cases "k = 0")
        (auto intro!: add_mono
-                simp add: diff_minus k[symmetric] less_float_def
+                simp add: diff_minus k[symmetric]
                 simp del: float_of_numeral)
   note lx = this[THEN conjunct1] and ux = this[THEN conjunct2]
   hence lx_less_ux: "?lx \<le> real ?ux" by (rule order_trans)
@@ -1205,7 +1208,7 @@ proof ((rule allI | rule impI | erule conjE) +)
   { assume "- ?lpi \<le> ?lx" and x_le_0: "x - k * (2 * pi) \<le> 0"
     with lpi[THEN le_imp_neg_le] lx
     have pi_lx: "- pi \<le> ?lx" and lx_0: "real ?lx \<le> 0"
-      by (simp_all add: less_eq_float_def)
+      by simp_all
 
     have "(lb_cos prec (- ?lx)) \<le> cos (real (- ?lx))"
       using lb_cos_minus[OF pi_lx lx_0] by simp
@@ -1220,7 +1223,7 @@ proof ((rule allI | rule impI | erule conjE) +)
   { assume "0 \<le> ?lx" and pi_x: "x - k * (2 * pi) \<le> pi"
     with lx
     have pi_lx: "?lx \<le> pi" and lx_0: "0 \<le> real ?lx"
-      by (auto simp add: less_eq_float_def)
+      by auto
 
     have "cos (x + (-k) * (2 * pi)) \<le> cos ?lx"
       using cos_monotone_0_pi'[OF lx_0 lx pi_x]
@@ -1235,7 +1238,7 @@ proof ((rule allI | rule impI | erule conjE) +)
   { assume pi_x: "- pi \<le> x - k * (2 * pi)" and "?ux \<le> 0"
     with ux
     have pi_ux: "- pi \<le> ?ux" and ux_0: "real ?ux \<le> 0"
-      by (simp_all add: less_eq_float_def)
+      by simp_all
 
     have "cos (x + (-k) * (2 * pi)) \<le> cos (real (- ?ux))"
       using cos_monotone_minus_pi_0'[OF pi_x ux ux_0]
@@ -1250,7 +1253,7 @@ proof ((rule allI | rule impI | erule conjE) +)
   { assume "?ux \<le> ?lpi" and x_ge_0: "0 \<le> x - k * (2 * pi)"
     with lpi ux
     have pi_ux: "?ux \<le> pi" and ux_0: "0 \<le> real ?ux"
-      by (simp_all add: less_eq_float_def)
+      by simp_all
 
     have "(lb_cos prec ?ux) \<le> cos ?ux"
       using lb_cos[OF ux_0 pi_ux] by simp
@@ -1272,7 +1275,7 @@ proof ((rule allI | rule impI | erule conjE) +)
     from True lpi[THEN le_imp_neg_le] lx ux
     have "- pi \<le> x - k * (2 * pi)"
       and "x - k * (2 * pi) \<le> 0"
-      by (auto simp add: less_eq_float_def)
+      by auto
     with True negative_ux negative_lx
     show ?thesis unfolding l u by simp
   next case False note 1 = this show ?thesis
@@ -1285,7 +1288,7 @@ proof ((rule allI | rule impI | erule conjE) +)
     from True lpi lx ux
     have "0 \<le> x - k * (2 * pi)"
       and "x - k * (2 * pi) \<le> pi"
-      by (auto simp add: less_eq_float_def)
+      by auto
     with True positive_ux positive_lx
     show ?thesis unfolding l u by simp
   next case False note 2 = this show ?thesis
@@ -1314,16 +1317,16 @@ proof ((rule allI | rule impI | erule conjE) +)
       case False hence "pi \<le> x - k * (2 * pi)" by simp
       hence pi_x: "- pi \<le> x - k * (2 * pi) - 2 * pi" by simp
 
-      have "?ux \<le> 2 * pi" using Cond lpi by (auto simp add: less_eq_float_def)
+      have "?ux \<le> 2 * pi" using Cond lpi by auto
       hence "x - k * (2 * pi) - 2 * pi \<le> 0" using ux by simp
 
       have ux_0: "real (?ux - 2 * ?lpi) \<le> 0"
-        using Cond by (auto simp add: less_eq_float_def)
+        using Cond by auto
 
       from 2 and Cond have "\<not> ?ux \<le> ?lpi" by auto
-      hence "- ?lpi \<le> ?ux - 2 * ?lpi" by (auto simp add: less_eq_float_def)
+      hence "- ?lpi \<le> ?ux - 2 * ?lpi" by auto
       hence pi_ux: "- pi \<le> (?ux - 2 * ?lpi)"
-        using lpi[THEN le_imp_neg_le] by (auto simp add: less_eq_float_def)
+        using lpi[THEN le_imp_neg_le] by auto
 
       have x_le_ux: "x - k * (2 * pi) - 2 * pi \<le> (?ux - 2 * ?lpi)"
         using ux lpi by auto
@@ -1345,7 +1348,7 @@ proof ((rule allI | rule impI | erule conjE) +)
     case True note Cond = this with bnds 1 2 3 4
     have l: "l = Float -1 0"
       and u: "u = max (ub_cos prec (?lx + 2 * ?lpi)) (ub_cos prec (-?ux))"
-      by (auto simp add: bnds_cos_def Let_def simp del: neg_numeral_float_Float)
+      by (auto simp add: bnds_cos_def Let_def)
 
     have "cos x \<le> u"
     proof (cases "-pi < x - k * (2 * pi)")
@@ -1356,17 +1359,17 @@ proof ((rule allI | rule impI | erule conjE) +)
       case False hence "x - k * (2 * pi) \<le> -pi" by simp
       hence pi_x: "x - k * (2 * pi) + 2 * pi \<le> pi" by simp
 
-      have "-2 * pi \<le> ?lx" using Cond lpi by (auto simp add: less_eq_float_def)
+      have "-2 * pi \<le> ?lx" using Cond lpi by auto
 
       hence "0 \<le> x - k * (2 * pi) + 2 * pi" using lx by simp
 
       have lx_0: "0 \<le> real (?lx + 2 * ?lpi)"
-        using Cond lpi by (auto simp add: less_eq_float_def)
+        using Cond lpi by auto
 
       from 1 and Cond have "\<not> -?lpi \<le> ?lx" by auto
-      hence "?lx + 2 * ?lpi \<le> ?lpi" by (auto simp add: less_eq_float_def)
+      hence "?lx + 2 * ?lpi \<le> ?lpi" by auto
       hence pi_lx: "(?lx + 2 * ?lpi) \<le> pi"
-        using lpi[THEN le_imp_neg_le] by (auto simp add: less_eq_float_def)
+        using lpi[THEN le_imp_neg_le] by auto
 
       have lx_le_x: "(?lx + 2 * ?lpi) \<le> x - k * (2 * pi) + 2 * pi"
         using lx lpi by auto
@@ -1455,7 +1458,7 @@ function ub_exp :: "nat \<Rightarrow> float \<Rightarrow> float" and lb_exp :: "
              else if x < - 1  then ub_exp_horner prec (get_odd (prec + 2)) 1 1 (float_divr prec x (- floor_fl x)) ^ (nat (- int_floor_fl x))
                               else ub_exp_horner prec (get_odd (prec + 2)) 1 1 x)"
 by pat_completeness auto
-termination by (relation "measure (\<lambda> v. let (prec, x) = sum_case id id v in (if 0 < x then 1 else 0))", auto simp add: less_float_def)
+termination by (relation "measure (\<lambda> v. let (prec, x) = sum_case id id v in (if 0 < x then 1 else 0))", auto)
 
 lemma exp_m1_ge_quarter: "(1 / 4 :: real) \<le> exp (- 1)"
 proof -
@@ -1466,22 +1469,22 @@ proof -
     unfolding get_even_def eq4
     by (auto simp add: compute_lapprox_rat compute_rapprox_rat compute_lapprox_posrat compute_rapprox_posrat rat_precision_def compute_bitlen)
   also have "\<dots> \<le> exp (- 1 :: float)" using bnds_exp_horner[where x="- 1"] by auto
-  finally show ?thesis unfolding real_of_float_minus real_of_float_one by simp
+  finally show ?thesis by simp
 qed
 
 lemma lb_exp_pos: assumes "\<not> 0 < x" shows "0 < lb_exp prec x"
 proof -
   let "?lb_horner x" = "lb_exp_horner prec (get_even (prec + 2)) 1 1 x"
   let "?horner x" = "let  y = ?lb_horner x  in if y \<le> 0 then Float 1 -2 else y"
-  have pos_horner: "\<And> x. 0 < ?horner x" unfolding Let_def by (cases "?lb_horner x \<le> 0", auto simp add: less_eq_float_def less_float_def)
+  have pos_horner: "\<And> x. 0 < ?horner x" unfolding Let_def by (cases "?lb_horner x \<le> 0", auto)
   moreover { fix x :: float fix num :: nat
-    have "0 < real (?horner x) ^ num" using `0 < ?horner x`[unfolded less_float_def real_of_float_zero] by (rule zero_less_power)
+    have "0 < real (?horner x) ^ num" using `0 < ?horner x` by simp
     also have "\<dots> = (?horner x) ^ num" by auto
     finally have "0 < real ((?horner x) ^ num)" .
   }
   ultimately show ?thesis
     unfolding lb_exp.simps if_not_P[OF `\<not> 0 < x`] Let_def
-    by (cases "floor_fl x", cases "x < - 1", auto simp add: less_eq_float_def less_float_def)
+    by (cases "floor_fl x", cases "x < - 1", auto)
 qed
 
 lemma exp_boundaries': assumes "x \<le> 0"
@@ -1490,13 +1493,13 @@ proof -
   let "?lb_exp_horner x" = "lb_exp_horner prec (get_even (prec + 2)) 1 1 x"
   let "?ub_exp_horner x" = "ub_exp_horner prec (get_odd (prec + 2)) 1 1 x"
 
-  have "real x \<le> 0" and "\<not> x > 0" using `x \<le> 0` unfolding less_eq_float_def less_float_def by auto
+  have "real x \<le> 0" and "\<not> x > 0" using `x \<le> 0` by auto
   show ?thesis
   proof (cases "x < - 1")
-    case False hence "- 1 \<le> real x" unfolding less_float_def by auto
+    case False hence "- 1 \<le> real x" by auto
     show ?thesis
     proof (cases "?lb_exp_horner x \<le> 0")
-      from `\<not> x < - 1` have "- 1 \<le> real x" unfolding less_float_def by auto
+      from `\<not> x < - 1` have "- 1 \<le> real x" by auto
       hence "exp (- 1) \<le> exp x" unfolding exp_le_cancel_iff .
       from order_trans[OF exp_m1_ge_quarter this]
       have "Float 1 -2 \<le> exp x" unfolding Float_num .
@@ -1510,8 +1513,8 @@ proof -
 
     let ?num = "nat (- int_floor_fl x)"
 
-    have "real (int_floor_fl x) < - 1" using int_floor_fl `x < - 1` unfolding less_eq_float_def less_float_def real_of_float_uminus real_of_float_one
-      by (rule order_le_less_trans)
+    have "real (int_floor_fl x) < - 1" using int_floor_fl[of x] `x < - 1`
+      by simp
     hence "real (int_floor_fl x) < 0" by simp
     hence "int_floor_fl x < 0" by auto
     hence "1 \<le> - int_floor_fl x" by auto
@@ -1550,7 +1553,7 @@ proof -
 
       show ?thesis
       proof (cases "?horner \<le> 0")
-        case False hence "0 \<le> real ?horner" unfolding less_eq_float_def by auto
+        case False hence "0 \<le> real ?horner" by auto
 
         have div_less_zero: "real (float_divl prec x (- floor_fl x)) \<le> 0"
           using `real (floor_fl x) < 0` `real x \<le> 0` by (auto intro!: order_trans[OF float_divl] divide_nonpos_neg)
@@ -1586,10 +1589,10 @@ lemma exp_boundaries: "exp x \<in> { lb_exp prec x .. ub_exp prec x }"
 proof -
   show ?thesis
   proof (cases "0 < x")
-    case False hence "x \<le> 0" unfolding less_float_def less_eq_float_def by auto
+    case False hence "x \<le> 0" by auto
     from exp_boundaries'[OF this] show ?thesis .
   next
-    case True hence "-x \<le> 0" unfolding less_float_def less_eq_float_def by auto
+    case True hence "-x \<le> 0" by auto
 
     have "lb_exp prec x \<le> exp x"
     proof -
@@ -1605,15 +1608,14 @@ proof -
     moreover
     have "exp x \<le> ub_exp prec x"
     proof -
-      have "\<not> 0 < -x" using `0 < x` unfolding less_float_def by auto
+      have "\<not> 0 < -x" using `0 < x` by auto
 
       from exp_boundaries'[OF `-x \<le> 0`]
       have lb_exp: "lb_exp prec (-x) \<le> exp (- real x)" unfolding atLeastAtMost_iff real_of_float_minus by auto
 
       have "exp x \<le> (1 :: float) / lb_exp prec (-x)"
-        using lb_exp[unfolded inverse_le_iff_le[OF exp_gt_zero lb_exp_pos[OF `\<not> 0 < -x`, unfolded less_float_def real_of_float_zero],
-                                                symmetric]]
-        unfolding exp_minus nonzero_inverse_inverse_eq[OF exp_not_eq_zero] inverse_eq_divide real_of_float_one by auto
+        using lb_exp lb_exp_pos[OF `\<not> 0 < -x`, of prec]
+        by (simp del: lb_exp.simps add: exp_minus inverse_eq_divide field_simps)
       also have "\<dots> \<le> float_divr prec 1 (lb_exp prec (-x))" using float_divr .
       finally show ?thesis unfolding ub_exp.simps if_P[OF True] .
     qed
@@ -1778,16 +1780,15 @@ function ub_ln :: "nat \<Rightarrow> float \<Rightarrow> float option" and lb_ln
 by pat_completeness auto
 
 termination proof (relation "measure (\<lambda> v. let (prec, x) = sum_case id id v in (if x < 1 then 1 else 0))", auto)
-  fix prec x assume "\<not> x \<le> 0" and "x < 1" and "float_divl (max prec (Suc 0)) 1 x < 1"
-  hence "0 < real x" "1 \<le> max prec (Suc 0)" "real x < 1"
-    unfolding less_float_def less_eq_float_def by auto
+  fix prec and x :: float assume "\<not> real x \<le> 0" and "real x < 1" and "real (float_divl (max prec (Suc 0)) 1 x) < 1"
+  hence "0 < real x" "1 \<le> max prec (Suc 0)" "real x < 1" by auto
   from float_divl_pos_less1_bound[OF `0 < real x` `real x < 1` `1 \<le> max prec (Suc 0)`]
-  show False using `float_divl (max prec (Suc 0)) 1 x < 1` unfolding less_float_def less_eq_float_def by auto
+  show False using `real (float_divl (max prec (Suc 0)) 1 x) < 1` by auto
 next
-  fix prec x assume "\<not> x \<le> 0" and "x < 1" and "float_divr prec 1 x < 1"
-  hence "0 < x" unfolding less_float_def less_eq_float_def by auto
-  from float_divr_pos_less1_lower_bound[OF `0 < x` `x < 1`, of prec]
-  show False using `float_divr prec 1 x < 1` unfolding less_float_def less_eq_float_def by auto
+  fix prec x assume "\<not> real x \<le> 0" and "real x < 1" and "real (float_divr prec 1 x) < 1"
+  hence "0 < x" by auto
+  from float_divr_pos_less1_lower_bound[OF `0 < x`, of prec] `real x < 1`
+  show False using `real (float_divr prec 1 x) < 1` by auto
 qed
 
 lemma float_pos_eq_mantissa_pos:  "x > 0 \<longleftrightarrow> mantissa x > 0"
@@ -1811,24 +1812,20 @@ lemma Float_representation_aux:
     and "Float (mantissa x) (- (bitlen (mantissa x) - 1)) = Float m ( - (bitlen m - 1))"  (is ?th2)
 proof -
   from assms have mantissa_pos: "m > 0" "mantissa x > 0"
-    using Float_pos_eq_mantissa_pos float_pos_eq_mantissa_pos by simp_all
-  thus ?th1 using bitlen_Float[of m e] assms by (simp add: less_float_def zero_less_mult_iff)
-  from assms have "x \<noteq> float_of 0" by (auto simp add: zero_float_def zero_less_mult_iff)
+    using Float_pos_eq_mantissa_pos[of m e] float_pos_eq_mantissa_pos[of x] by simp_all
+  thus ?th1 using bitlen_Float[of m e] assms by (auto simp add: zero_less_mult_iff intro!: arg_cong2[where f=Float])
+  have "x \<noteq> float_of 0"
+    unfolding zero_float_def[symmetric] using `0 < x` by auto
   from denormalize_shift[OF assms(1) this] guess i . note i = this
-  from `x \<noteq> float_of 0` have "mantissa x \<noteq> 0" by (simp add: mantissa_noteq_0)
-  from assms
-  have "real (mantissa x) * 2 powr (1 - real (bitlen (mantissa x))) \<in> float"
-    using two_powr_int_float[of "1 - bitlen (mantissa x)"] by simp
-  moreover
+
   have "2 powr (1 - (real (bitlen (mantissa x)) + real i)) =
     2 powr (1 - (real (bitlen (mantissa x)))) * inverse (2 powr (real i))"
     by (simp add: powr_minus[symmetric] powr_add[symmetric] field_simps)
   hence "real (mantissa x) * 2 powr (1 - real (bitlen (mantissa x))) =
     (real (mantissa x) * 2 ^ i) * 2 powr (1 - real (bitlen (mantissa x * 2 ^ i)))"
     using `mantissa x > 0` by (simp add: powr_realpow)
-  ultimately
-  show ?th2
-    using two_powr_int_float[of "1 - bitlen (mantissa x)"] by (simp add: i)
+  then show ?th2
+    unfolding i by transfer auto
 qed
 
 lemma compute_ln[code]:
@@ -1854,7 +1851,7 @@ lemma compute_ln[code]:
 proof -
   from assms Float_pos_eq_mantissa_pos have "x > 0 \<Longrightarrow> m > 0" by simp
   thus ?th1 ?th2 using Float_representation_aux[of m e] unfolding x_def[symmetric]
-    by (auto simp add: simp del: Float_def dest: not_leE)
+    by (auto dest: not_leE)
 qed
 
 lemma ln_shifted_float: assumes "0 < m" shows "ln (Float m e) = ln 2 * (e + (bitlen m - 1)) + ln (Float m (- (bitlen m - 1)))"
@@ -1893,9 +1890,9 @@ lemma ub_ln_lb_ln_bounds': assumes "1 \<le> x"
   (is "?lb \<le> ?ln \<and> ?ln \<le> ?ub")
 proof (cases "x < Float 1 1")
   case True
-  hence "real (x - 1) < 1" and "real x < 2" unfolding less_float_def Float_num by auto
-  have "\<not> x \<le> 0" and "\<not> x < 1" using `1 \<le> x` unfolding less_float_def less_eq_float_def by auto
-  hence "0 \<le> real (x - 1)" using `1 \<le> x` unfolding less_float_def Float_num by auto
+  hence "real (x - 1) < 1" and "real x < 2" by auto
+  have "\<not> x \<le> 0" and "\<not> x < 1" using `1 \<le> x` by auto
+  hence "0 \<le> real (x - 1)" using `1 \<le> x` by auto
 
   have [simp]: "(Float 3 -1) = 3 / 2" by simp
 
@@ -1906,7 +1903,7 @@ proof (cases "x < Float 1 1")
       using ln_float_bounds[OF `0 \<le> real (x - 1)` `real (x - 1) < 1`, of prec] `\<not> x \<le> 0` `\<not> x < 1` True
       by auto
   next
-    case False hence *: "3 / 2 < x" by (auto simp add: less_eq_float_def)
+    case False hence *: "3 / 2 < x" by auto
 
     with ln_add[of "3 / 2" "x - 3 / 2"]
     have add: "ln x = ln (3 / 2) + ln (real x * 2 / 3)"
@@ -1975,8 +1972,7 @@ proof (cases "x < Float 1 1")
 next
   case False
   hence "\<not> x \<le> 0" and "\<not> x < 1" "0 < x" "\<not> x \<le> Float 3 -1"
-    using `1 \<le> x` unfolding less_float_def less_eq_float_def
-    by auto
+    using `1 \<le> x` by auto
   show ?thesis
   proof -
     def m \<equiv> "mantissa x"
@@ -1986,7 +1982,7 @@ next
     let ?x = "Float m (- (bitlen m - 1))"
 
     have "0 < m" and "m \<noteq> 0" using `0 < x` Float powr_gt_zero[of 2 e]
-      by (auto simp: less_float_def less_eq_float_def zero_less_mult_iff)
+      by (auto simp: zero_less_mult_iff)
     def bl \<equiv> "bitlen m - 1" hence "bl \<ge> 0" using `m > 0` by (simp add: bitlen_def)
     have "1 \<le> Float m e" using `1 \<le> x` Float unfolding less_eq_float_def by auto
     from bitlen_div[OF `0 < m`] float_gt1_scale[OF `1 \<le> Float m e`] `bl \<ge> 0`
@@ -2040,15 +2036,15 @@ proof (cases "x < 1")
   case False hence "1 \<le> x" unfolding less_float_def less_eq_float_def by auto
   show ?thesis using ub_ln_lb_ln_bounds'[OF `1 \<le> x`] .
 next
-  case True have "\<not> x \<le> 0" using `0 < x` unfolding less_float_def less_eq_float_def by auto
-  from True have "real x < 1" by (simp add: less_float_def)
-  have "0 < real x" and "real x \<noteq> 0" using `0 < x` unfolding less_float_def by auto
+  case True have "\<not> x \<le> 0" using `0 < x` by auto
+  from True have "real x < 1" by simp
+  have "0 < real x" and "real x \<noteq> 0" using `0 < x` by auto
   hence A: "0 < 1 / real x" by auto
 
   {
     let ?divl = "float_divl (max prec 1) 1 x"
-    have A': "1 \<le> ?divl" using float_divl_pos_less1_bound[OF `0 < real x` `real x < 1`] unfolding less_eq_float_def less_float_def by auto
-    hence B: "0 < real ?divl" unfolding less_eq_float_def by auto
+    have A': "1 \<le> ?divl" using float_divl_pos_less1_bound[OF `0 < real x` `real x < 1`] by auto
+    hence B: "0 < real ?divl" by auto
 
     have "ln ?divl \<le> ln (1 / x)" unfolding ln_le_cancel_iff[OF B A] using float_divl[of _ 1 x] by auto
     hence "ln x \<le> - ln ?divl" unfolding nonzero_inverse_eq_divide[OF `real x \<noteq> 0`, symmetric] ln_inverse[OF `0 < real x`] by auto
@@ -2058,7 +2054,7 @@ next
   {
     let ?divr = "float_divr prec 1 x"
     have A': "1 \<le> ?divr" using float_divr_pos_less1_lower_bound[OF `0 < x` `x < 1`] unfolding less_eq_float_def less_float_def by auto
-    hence B: "0 < real ?divr" unfolding less_eq_float_def by auto
+    hence B: "0 < real ?divr" by auto
 
     have "ln (1 / x) \<le> ln ?divr" unfolding ln_le_cancel_iff[OF A B] using float_divr[of 1 x] by auto
     hence "- ln ?divr \<le> ln x" unfolding nonzero_inverse_eq_divide[OF `real x \<noteq> 0`, symmetric] ln_inverse[OF `0 < real x`] by auto
@@ -2077,7 +2073,7 @@ proof -
     assume "\<not> 0 < x" hence "x \<le> 0" unfolding less_eq_float_def less_float_def by auto
     thus False using assms by auto
   qed
-  thus "0 < real x" unfolding less_float_def by auto
+  thus "0 < real x" by auto
   have "the (lb_ln prec x) \<le> ln x" using ub_ln_lb_ln_bounds[OF `0 < x`] ..
   thus "y \<le> ln x" unfolding assms[symmetric] by auto
 qed
@@ -2087,10 +2083,10 @@ lemma ub_ln: assumes "Some y = ub_ln prec x"
 proof -
   have "0 < x"
   proof (rule ccontr)
-    assume "\<not> 0 < x" hence "x \<le> 0" unfolding less_eq_float_def less_float_def by auto
+    assume "\<not> 0 < x" hence "x \<le> 0" by auto
     thus False using assms by auto
   qed
-  thus "0 < real x" unfolding less_float_def by auto
+  thus "0 < real x" by auto
   have "ln x \<le> the (ub_ln prec x)" using ub_ln_lb_ln_bounds[OF `0 < x`] ..
   thus "ln x \<le> y" unfolding assms[symmetric] by auto
 qed
@@ -2470,13 +2466,13 @@ next
     and l1: "l1 \<le> interpret_floatarith a xs" and u1: "interpret_floatarith a xs \<le> u1" by blast
   have either: "0 < l1 \<or> u1 < 0" proof (rule ccontr) assume P: "\<not> (0 < l1 \<or> u1 < 0)" show False using l' unfolding if_not_P[OF P] by auto qed
   moreover have l1_le_u1: "real l1 \<le> real u1" using l1 u1 by auto
-  ultimately have "real l1 \<noteq> 0" and "real u1 \<noteq> 0" unfolding less_float_def by auto
+  ultimately have "real l1 \<noteq> 0" and "real u1 \<noteq> 0" by auto
 
   have inv: "inverse u1 \<le> inverse (interpret_floatarith a xs)
            \<and> inverse (interpret_floatarith a xs) \<le> inverse l1"
   proof (cases "0 < l1")
     case True hence "0 < real u1" and "0 < real l1" "0 < interpret_floatarith a xs"
-      unfolding less_float_def using l1_le_u1 l1 by auto
+      using l1_le_u1 l1 by auto
     show ?thesis
       unfolding inverse_le_iff_le[OF `0 < real u1` `0 < interpret_floatarith a xs`]
         inverse_le_iff_le[OF `0 < interpret_floatarith a xs` `0 < real l1`]
@@ -2484,7 +2480,7 @@ next
   next
     case False hence "u1 < 0" using either by blast
     hence "real u1 < 0" and "real l1 < 0" "interpret_floatarith a xs < 0"
-      unfolding less_float_def using l1_le_u1 u1 by auto
+      using l1_le_u1 u1 by auto
     show ?thesis
       unfolding inverse_le_iff_le_neg[OF `real u1 < 0` `interpret_floatarith a xs < 0`]
         inverse_le_iff_le_neg[OF `interpret_floatarith a xs < 0` `real l1 < 0`]
@@ -2505,7 +2501,7 @@ next
   from lift_un'[OF Abs.prems[unfolded approx.simps], unfolded fst_conv snd_conv] Abs.hyps
   obtain l1 u1 where l': "l = (if l1 < 0 \<and> 0 < u1 then 0 else min \<bar>l1\<bar> \<bar>u1\<bar>)" and u': "u = max \<bar>l1\<bar> \<bar>u1\<bar>"
     and l1: "l1 \<le> interpret_floatarith x xs" and u1: "interpret_floatarith x xs \<le> u1" by blast
-  thus ?case unfolding l' u' by (cases "l1 < 0 \<and> 0 < u1", auto simp add: real_of_float_min real_of_float_max less_float_def)
+  thus ?case unfolding l' u' by (cases "l1 < 0 \<and> 0 < u1", auto simp add: real_of_float_min real_of_float_max)
 next
   case (Min a b)
   from lift_bin'[OF Min.prems[unfolded approx.simps], unfolded fst_conv snd_conv] Min.hyps
@@ -2664,7 +2660,7 @@ next
     and inequality: "u < l'"
     by (cases "approx prec a vs", auto,
       cases "approx prec b vs", auto)
-  from inequality[unfolded less_float_def] approx[OF Less.prems(2) l_eq] approx[OF Less.prems(2) u_eq]
+  from inequality approx[OF Less.prems(2) l_eq] approx[OF Less.prems(2) u_eq]
   show ?case by auto
 next
   case (LessEqual a b)
@@ -2674,7 +2670,7 @@ next
     and inequality: "u \<le> l'"
     by (cases "approx prec a vs", auto,
       cases "approx prec b vs", auto)
-  from inequality[unfolded less_eq_float_def] approx[OF LessEqual.prems(2) l_eq] approx[OF LessEqual.prems(2) u_eq]
+  from inequality approx[OF LessEqual.prems(2) l_eq] approx[OF LessEqual.prems(2) u_eq]
   show ?case by auto
 next
   case (AtLeastAtMost x a b)
@@ -2686,7 +2682,7 @@ next
     by (cases "approx prec x vs", auto,
       cases "approx prec a vs", auto,
       cases "approx prec b vs", auto, blast)
-  from inequality[unfolded less_eq_float_def] approx[OF AtLeastAtMost.prems(2) l_eq] approx[OF AtLeastAtMost.prems(2) u_eq] approx[OF AtLeastAtMost.prems(2) x_eq]
+  from inequality approx[OF AtLeastAtMost.prems(2) l_eq] approx[OF AtLeastAtMost.prems(2) u_eq] approx[OF AtLeastAtMost.prems(2) x_eq]
   show ?case by auto
 qed
 
@@ -2750,7 +2746,6 @@ next case (Cos a) thus ?case
   apply (auto intro!: DERIV_intros
            simp del: interpret_floatarith.simps(5)
            simp add: interpret_floatarith_sin interpret_floatarith.simps(5)[of a])
-  apply (simp add: cos_sin_eq)
   done
 next case (Power a n) thus ?case
   by (cases n, auto intro!: DERIV_intros
@@ -2794,7 +2789,7 @@ using isDERIV_approx proof (induct f)
     and *: "0 < l \<or> u < 0"
     by (cases "approx prec a vs", auto)
   with approx[OF `bounded_by xs vs` approx_Some]
-  have "interpret_floatarith a xs \<noteq> 0" unfolding less_float_def by auto
+  have "interpret_floatarith a xs \<noteq> 0" by auto
   thus ?case using Inverse by auto
 next
   case (Ln a)
@@ -2802,7 +2797,7 @@ next
     and *: "0 < l"
     by (cases "approx prec a vs", auto)
   with approx[OF `bounded_by xs vs` approx_Some]
-  have "0 < interpret_floatarith a xs" unfolding less_float_def by auto
+  have "0 < interpret_floatarith a xs" by auto
   thus ?case using Ln by auto
 next
   case (Sqrt a)
@@ -2810,7 +2805,7 @@ next
     and *: "0 < l"
     by (cases "approx prec a vs", auto)
   with approx[OF `bounded_by xs vs` approx_Some]
-  have "0 < interpret_floatarith a xs" unfolding less_float_def by auto
+  have "0 < interpret_floatarith a xs" by auto
   thus ?case using Sqrt by auto
 next
   case (Power a n) thus ?case by (cases n, auto)
@@ -3160,7 +3155,7 @@ proof -
   from approx_tse[OF this _ _ _ _ tse[symmetric], of l' u'] x'
   have "ly \<le> interpret_floatarith a [x] - interpret_floatarith b [x]"
     by (auto simp add: diff_minus)
-  from order_less_le_trans[OF `0 < ly`[unfolded less_float_def] this]
+  from order_less_le_trans[OF _ this, of 0] `0 < ly`
   show ?thesis by auto
 qed
 
@@ -3182,7 +3177,7 @@ proof -
   from approx_tse[OF this _ _ _ _ tse[symmetric], of l' u'] x'
   have "ly \<le> interpret_floatarith a [x] - interpret_floatarith b [x]"
     by (auto simp add: diff_minus)
-  from order_trans[OF `0 \<le> ly`[unfolded less_eq_float_def] this]
+  from order_trans[OF _ this, of 0] `0 \<le> ly`
   show ?thesis by auto
 qed
 
