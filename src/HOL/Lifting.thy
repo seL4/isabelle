@@ -282,28 +282,36 @@ qed
 
 text {* Generating transfer rules for quotients. *}
 
-lemma Quotient_right_unique:
-  assumes "Quotient R Abs Rep T" shows "right_unique T"
-  using assms unfolding Quotient_alt_def right_unique_def by metis
+context
+  fixes R Abs Rep T
+  assumes 1: "Quotient R Abs Rep T"
+begin
 
-lemma Quotient_right_total:
-  assumes "Quotient R Abs Rep T" shows "right_total T"
-  using assms unfolding Quotient_alt_def right_total_def by metis
+lemma Quotient_right_unique: "right_unique T"
+  using 1 unfolding Quotient_alt_def right_unique_def by metis
 
-lemma Quotient_rel_eq_transfer:
-  assumes "Quotient R Abs Rep T"
-  shows "(T ===> T ===> op =) R (op =)"
-  using assms unfolding Quotient_alt_def fun_rel_def by simp
+lemma Quotient_right_total: "right_total T"
+  using 1 unfolding Quotient_alt_def right_total_def by metis
 
-lemma Quotient_bi_total:
-  assumes "Quotient R Abs Rep T" and "reflp R"
-  shows "bi_total T"
-  using assms unfolding Quotient_alt_def bi_total_def reflp_def by auto
+lemma Quotient_rel_eq_transfer: "(T ===> T ===> op =) R (op =)"
+  using 1 unfolding Quotient_alt_def fun_rel_def by simp
 
-lemma Quotient_id_abs_transfer:
-  assumes "Quotient R Abs Rep T" and "reflp R"
-  shows "(op = ===> T) (\<lambda>x. x) Abs"
-  using assms unfolding Quotient_alt_def reflp_def fun_rel_def by simp
+end
+
+text {* Generating transfer rules for total quotients. *}
+
+context
+  fixes R Abs Rep T
+  assumes 1: "Quotient R Abs Rep T" and 2: "reflp R"
+begin
+
+lemma Quotient_bi_total: "bi_total T"
+  using 1 2 unfolding Quotient_alt_def bi_total_def reflp_def by auto
+
+lemma Quotient_id_abs_transfer: "(op = ===> T) (\<lambda>x. x) Abs"
+  using 1 2 unfolding Quotient_alt_def reflp_def fun_rel_def by simp
+
+end
 
 text {* Generating transfer rules for a type defined with @{text "typedef"}. *}
 
@@ -340,6 +348,8 @@ lemma typedef_transfer_bforall:
   by (rule typedef_transfer_All)
 
 end
+
+text {* Generating transfer rules for a type copy. *}
 
 lemma copy_type_bi_total:
   assumes type: "type_definition Rep Abs UNIV"
