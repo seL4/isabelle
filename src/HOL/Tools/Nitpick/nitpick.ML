@@ -242,6 +242,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
         o Pretty.mark Isabelle_Markup.hilite
       else
         print o Pretty.string_of
+    val pprint_a = pprint Output.urgent_message
     fun pprint_n f = () |> mode = Normal ? pprint Output.urgent_message o f
     fun pprint_v f = () |> verbose ? pprint Output.urgent_message o f
     fun pprint_d f = () |> debug ? pprint tracing o f
@@ -670,7 +671,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
           codatatypes_ok
         fun assms_prop () = Logic.mk_conjunction_list (neg_t :: assm_ts)
       in
-        (pprint_n (fn () => Pretty.chunks
+        (pprint_a (Pretty.chunks
              [Pretty.blk (0,
                   (pstrs ((if mode = Auto_Try then "Auto " else "") ^
                           "Nitpick found a" ^
