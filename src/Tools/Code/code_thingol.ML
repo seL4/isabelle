@@ -901,11 +901,11 @@ structure Program = Code_Data
   val empty = (empty_naming, Graph.empty);
 );
 
-fun invoke_generation ignore_cache thy (algebra, eqngr) f name =
+fun invoke_generation ignore_cache thy (algebra, eqngr) generate thing =
   Program.change_yield (if ignore_cache then NONE else SOME thy)
     (fn naming_program => (NONE, naming_program)
-      |> f thy algebra eqngr name
-      |-> (fn name => fn (_, naming_program) => (name, naming_program)));
+      |> generate thy algebra eqngr thing
+      |-> (fn thing => fn (_, naming_program) => (thing, naming_program)));
 
 
 (* program generation *)
