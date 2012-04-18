@@ -529,8 +529,6 @@ relations.
 
 * Constant "Set.not_member" now qualified.  INCOMPATIBILITY.
 
-* "sublists" moved to theory More_List.  INCOMPATIBILITY.
-
 * Theory Int: Discontinued many legacy theorems specific to type int.
 INCOMPATIBILITY, use the corresponding generic theorems instead.
 
