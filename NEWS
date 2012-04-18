@@ -300,6 +300,8 @@ INCOMPATIBILITY, use the corresponding generic theorems instead.
 * Removed redundant theorems nat_mult_2 and nat_mult_2_right; use
 generic mult_2 and mult_2_right instead. INCOMPATIBILITY.
 
+* Finite_Set.fold now qualified.  INCOMPATIBILITY.
+
 * Consolidated various theorem names relating to Finite_Set.fold
 combinator:
 
@@ -345,6 +347,16 @@ INF_set_foldr, SUP_set_foldr.  INCOMPATIBILITY.  Prefer corresponding
 lemmas over fold rather than foldr, or make use of lemmas
 fold_conv_foldr and fold_rev.
 
+* Renamed some facts on canonical fold on lists, in order to avoid
+problems with interpretation involving corresponding facts on foldl
+with the same base names:
+
+  fold_set_remdups ~> fold_set_fold_remdups
+  fold_set ~> fold_set_fold
+  fold1_set ~> fold1_set_fold
+
+INCOMPATIBILITY.
+
 * Congruence rules Option.map_cong and Option.bind_cong for recursion
 through option types.
 
@@ -356,18 +368,6 @@ one_case.
 
 * Discontinued configuration option "syntax_positions": atomic terms
 in parse trees are always annotated by position constraints.
-
-* Finite_Set.fold now qualified.  INCOMPATIBILITY.
-
-* Renamed some facts on canonical fold on lists, in order to avoid
-problems with interpretation involving corresponding facts on foldl
-with the same base names:
-
-  fold_set_remdups ~> fold_set_fold_remdups
-  fold_set ~> fold_set_fold
-  fold1_set ~> fold1_set_fold
-
-INCOMPATIBILITY.
 
 * New theory HOL/Library/DAList provides an abstract type for
 association lists with distinct keys.
