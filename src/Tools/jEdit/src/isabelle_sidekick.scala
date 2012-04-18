@@ -155,15 +155,12 @@ class Isabelle_Sidekick_Raw extends Isabelle_Sidekick("isabelle-raw")
     val snapshot = Swing_Thread.now { model.snapshot() }  // FIXME cover all nodes (!??)
     for ((command, command_start) <- snapshot.node.command_range() if !stopped) {
       snapshot.state.command_state(snapshot.version, command).markup
-        .swing_tree(root)((info: Text.Markup) =>
+        .swing_tree(root)((info: Text.Info[List[XML.Elem]]) =>
           {
             val range = info.range + command_start
             val content = command.source(info.range).replace('\n', ' ')
             val info_text =
-              info.info match {
-                case elem @ XML.Elem(_, _) => Pretty.formatted(List(elem), margin = 40).mkString
-                case x => x.toString
-              }
+              Pretty.formatted(Library.separate(Pretty.FBreak, info.info), margin = 40).mkString
 
             new DefaultMutableTreeNode(
               new Isabelle_Sidekick.Asset(command.toString, range.start, range.stop) {

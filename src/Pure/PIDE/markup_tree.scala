@@ -155,15 +155,13 @@ final class Markup_Tree private(branches: Markup_Tree.Branches.T)
   }
 
   def swing_tree(parent: DefaultMutableTreeNode)
-    (swing_node: Text.Markup => DefaultMutableTreeNode)
+    (swing_node: Text.Info[List[XML.Elem]] => DefaultMutableTreeNode)
   {
     for ((_, entry) <- branches) {
       var current = parent
-      for (info <- entry.markup) {
-        val node = swing_node(Text.Info(entry.range, info))
-        current.add(node)
-        current = node
-      }
+      val node = swing_node(Text.Info(entry.range, entry.markup))
+      current.add(node)
+      current = node
       entry.subtree.swing_tree(current)(swing_node)
     }
   }

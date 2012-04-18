@@ -41,6 +41,8 @@ object Text
 
     override def toString = "[" + start.toString + ":" + stop.toString + "]"
 
+    def length: Int = stop - start
+
     def map(f: Offset => Offset): Range = Range(f(start), f(stop))
     def +(i: Offset): Range = map(_ + i)
     def -(i: Offset): Range = map(_ - i)
