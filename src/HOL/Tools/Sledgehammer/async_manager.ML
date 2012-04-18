@@ -24,7 +24,7 @@ struct
 (** preferences **)
 
 val message_store_limit = 20;
-val message_display_limit = 5;
+val message_display_limit = 10;
 
 
 (** thread management **)
