@@ -168,6 +168,29 @@ lemma log_le_cancel_iff [simp]:
      "[| 1 < a; 0 < x; 0 < y |] ==> (log a x \<le> log a y) = (x \<le> y)"
 by (simp add: linorder_not_less [symmetric])
 
+lemma zero_less_log_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> 0 < log a x \<longleftrightarrow> 1 < x"
+  using log_less_cancel_iff[of a 1 x] by simp
+
+lemma zero_le_log_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> 0 \<le> log a x \<longleftrightarrow> 1 \<le> x"
+  using log_le_cancel_iff[of a 1 x] by simp
+
+lemma log_less_zero_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> log a x < 0 \<longleftrightarrow> x < 1"
+  using log_less_cancel_iff[of a x 1] by simp
+
+lemma log_le_zero_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> log a x \<le> 0 \<longleftrightarrow> x \<le> 1"
+  using log_le_cancel_iff[of a x 1] by simp
+
+lemma one_less_log_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> 1 < log a x \<longleftrightarrow> a < x"
+  using log_less_cancel_iff[of a a x] by simp
+
+lemma one_le_log_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> 1 \<le> log a x \<longleftrightarrow> a \<le> x"
+  using log_le_cancel_iff[of a a x] by simp
+
+lemma log_less_one_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> log a x < 1 \<longleftrightarrow> x < a"
+  using log_less_cancel_iff[of a x a] by simp
+
+lemma log_le_one_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> log a x \<le> 1 \<longleftrightarrow> x \<le> a"
+  using log_le_cancel_iff[of a x a] by simp
 
 lemma powr_realpow: "0 < x ==> x powr (real n) = x^n"
   apply (induct n, simp)
