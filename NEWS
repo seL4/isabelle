@@ -185,34 +185,6 @@ INCOMPATIBILITY.
 
 * New type synonym 'a rel = ('a * 'a) set
 
-* Theory Divides: Discontinued redundant theorems about div and mod.
-INCOMPATIBILITY, use the corresponding generic theorems instead.
-
-  DIVISION_BY_ZERO ~> div_by_0, mod_by_0
-  zdiv_self ~> div_self
-  zmod_self ~> mod_self
-  zdiv_zero ~> div_0
-  zmod_zero ~> mod_0
-  zdiv_zmod_equality ~> div_mod_equality2
-  zdiv_zmod_equality2 ~> div_mod_equality
-  zmod_zdiv_trivial ~> mod_div_trivial
-  zdiv_zminus_zminus ~> div_minus_minus
-  zmod_zminus_zminus ~> mod_minus_minus
-  zdiv_zminus2 ~> div_minus_right
-  zmod_zminus2 ~> mod_minus_right
-  zdiv_minus1_right ~> div_minus1_right
-  zmod_minus1_right ~> mod_minus1_right
-  zdvd_mult_div_cancel ~> dvd_mult_div_cancel
-  zmod_zmult1_eq ~> mod_mult_right_eq
-  zpower_zmod ~> power_mod
-  zdvd_zmod ~> dvd_mod
-  zdvd_zmod_imp_zdvd ~> dvd_mod_imp_dvd
-  mod_mult_distrib ~> mult_mod_left
-  mod_mult_distrib2 ~> mult_mod_right
-
-* Removed redundant theorems nat_mult_2 and nat_mult_2_right; use
-generic mult_2 and mult_2_right instead. INCOMPATIBILITY.
-
 * More default pred/set conversions on a couple of relation operations
 and predicates.  Added powers of predicate relations.  Consolidation
 of some relation theorems:
@@ -228,75 +200,6 @@ Generalized theorems INF_INT_eq, INF_INT_eq2, SUP_UN_eq, SUP_UN_eq2.
 
 See theory "Relation" for examples for making use of pred/set
 conversions by means of attributes "to_set" and "to_pred".
-
-INCOMPATIBILITY.
-
-* Consolidated various theorem names relating to Finite_Set.fold
-combinator:
-
-  inf_INFI_fold_inf ~> inf_INF_fold_inf
-  sup_SUPR_fold_sup ~> sup_SUP_fold_sup
-  INFI_fold_inf ~> INF_fold_inf
-  SUPR_fold_sup ~> SUP_fold_sup
-  union_set ~> union_set_fold
-  minus_set ~> minus_set_fold
-
-INCOMPATIBILITY.
-
-* Consolidated theorem names concerning fold combinators:
-
-  INFI_set_fold ~> INF_set_fold
-  SUPR_set_fold ~> SUP_set_fold
-  INF_code ~> INF_set_foldr
-  SUP_code ~> SUP_set_foldr
-  foldr.simps ~> foldr.simps (in point-free formulation)
-  foldr_fold_rev ~> foldr_conv_fold
-  foldl_fold ~> foldl_conv_fold
-  foldr_foldr ~> foldr_conv_foldl
-  foldl_foldr ~> foldl_conv_foldr
-
-INCOMPATIBILITY.
-
-* Dropped rarely useful theorems concerning fold combinators:
-foldl_apply, foldl_fun_comm, foldl_rev, fold_weak_invariant,
-rev_foldl_cons, fold_set_remdups, fold_set, fold_set1,
-concat_conv_foldl, foldl_weak_invariant, foldl_invariant,
-foldr_invariant, foldl_absorb0, foldl_foldr1_lemma, foldl_foldr1,
-listsum_conv_fold, listsum_foldl, sort_foldl_insort, foldl_assoc,
-foldr_conv_foldl, start_le_sum, elem_le_sum, sum_eq_0_conv.
-INCOMPATIBILITY.  For the common phrases "%xs. List.foldr plus xs 0"
-and "List.foldl plus 0", prefer "List.listsum".  Otherwise it can be
-useful to boil down "List.foldr" and "List.foldl" to "List.fold" by
-unfolding "foldr_conv_fold" and "foldl_conv_fold".
-
-* Dropped lemmas minus_set_foldr, union_set_foldr, union_coset_foldr,
-inter_coset_foldr, Inf_fin_set_foldr, Sup_fin_set_foldr,
-Min_fin_set_foldr, Max_fin_set_foldr, Inf_set_foldr, Sup_set_foldr,
-INF_set_foldr, SUP_set_foldr.  INCOMPATIBILITY.  Prefer corresponding
-lemmas over fold rather than foldr, or make use of lemmas
-fold_conv_foldr and fold_rev.
-
-* Congruence rules Option.map_cong and Option.bind_cong for recursion
-through option types.
-
-* Concrete syntax for case expressions includes constraints for source
-positions, and thus produces Prover IDE markup for its bindings.
-INCOMPATIBILITY for old-style syntax translations that augment the
-pattern notation; e.g. see src/HOL/HOLCF/One.thy for translations of
-one_case.
-
-* Discontinued configuration option "syntax_positions": atomic terms
-in parse trees are always annotated by position constraints.
-
-* Finite_Set.fold now qualified.  INCOMPATIBILITY.
-
-* Renamed some facts on canonical fold on lists, in order to avoid
-problems with interpretation involving corresponding facts on foldl
-with the same base names:
-
-  fold_set_remdups ~> fold_set_fold_remdups
-  fold_set ~> fold_set_fold
-  fold1_set ~> fold1_set_fold
 
 INCOMPATIBILITY.
 
@@ -366,6 +269,103 @@ and corresponding theorem names:
     finite_rel_comp ~> finite_relcomp
 
     set_rel_comp ~> set_relcomp
+
+INCOMPATIBILITY.
+
+* Theory Divides: Discontinued redundant theorems about div and mod.
+INCOMPATIBILITY, use the corresponding generic theorems instead.
+
+  DIVISION_BY_ZERO ~> div_by_0, mod_by_0
+  zdiv_self ~> div_self
+  zmod_self ~> mod_self
+  zdiv_zero ~> div_0
+  zmod_zero ~> mod_0
+  zdiv_zmod_equality ~> div_mod_equality2
+  zdiv_zmod_equality2 ~> div_mod_equality
+  zmod_zdiv_trivial ~> mod_div_trivial
+  zdiv_zminus_zminus ~> div_minus_minus
+  zmod_zminus_zminus ~> mod_minus_minus
+  zdiv_zminus2 ~> div_minus_right
+  zmod_zminus2 ~> mod_minus_right
+  zdiv_minus1_right ~> div_minus1_right
+  zmod_minus1_right ~> mod_minus1_right
+  zdvd_mult_div_cancel ~> dvd_mult_div_cancel
+  zmod_zmult1_eq ~> mod_mult_right_eq
+  zpower_zmod ~> power_mod
+  zdvd_zmod ~> dvd_mod
+  zdvd_zmod_imp_zdvd ~> dvd_mod_imp_dvd
+  mod_mult_distrib ~> mult_mod_left
+  mod_mult_distrib2 ~> mult_mod_right
+
+* Removed redundant theorems nat_mult_2 and nat_mult_2_right; use
+generic mult_2 and mult_2_right instead. INCOMPATIBILITY.
+
+* Consolidated various theorem names relating to Finite_Set.fold
+combinator:
+
+  inf_INFI_fold_inf ~> inf_INF_fold_inf
+  sup_SUPR_fold_sup ~> sup_SUP_fold_sup
+  INFI_fold_inf ~> INF_fold_inf
+  SUPR_fold_sup ~> SUP_fold_sup
+  union_set ~> union_set_fold
+  minus_set ~> minus_set_fold
+
+INCOMPATIBILITY.
+
+* Consolidated theorem names concerning fold combinators:
+
+  INFI_set_fold ~> INF_set_fold
+  SUPR_set_fold ~> SUP_set_fold
+  INF_code ~> INF_set_foldr
+  SUP_code ~> SUP_set_foldr
+  foldr.simps ~> foldr.simps (in point-free formulation)
+  foldr_fold_rev ~> foldr_conv_fold
+  foldl_fold ~> foldl_conv_fold
+  foldr_foldr ~> foldr_conv_foldl
+  foldl_foldr ~> foldl_conv_foldr
+
+INCOMPATIBILITY.
+
+* Dropped rarely useful theorems concerning fold combinators:
+foldl_apply, foldl_fun_comm, foldl_rev, fold_weak_invariant,
+rev_foldl_cons, fold_set_remdups, fold_set, fold_set1,
+concat_conv_foldl, foldl_weak_invariant, foldl_invariant,
+foldr_invariant, foldl_absorb0, foldl_foldr1_lemma, foldl_foldr1,
+listsum_conv_fold, listsum_foldl, sort_foldl_insort, foldl_assoc,
+foldr_conv_foldl, start_le_sum, elem_le_sum, sum_eq_0_conv.
+INCOMPATIBILITY.  For the common phrases "%xs. List.foldr plus xs 0"
+and "List.foldl plus 0", prefer "List.listsum".  Otherwise it can be
+useful to boil down "List.foldr" and "List.foldl" to "List.fold" by
+unfolding "foldr_conv_fold" and "foldl_conv_fold".
+
+* Dropped lemmas minus_set_foldr, union_set_foldr, union_coset_foldr,
+inter_coset_foldr, Inf_fin_set_foldr, Sup_fin_set_foldr,
+Min_fin_set_foldr, Max_fin_set_foldr, Inf_set_foldr, Sup_set_foldr,
+INF_set_foldr, SUP_set_foldr.  INCOMPATIBILITY.  Prefer corresponding
+lemmas over fold rather than foldr, or make use of lemmas
+fold_conv_foldr and fold_rev.
+
+* Congruence rules Option.map_cong and Option.bind_cong for recursion
+through option types.
+
+* Concrete syntax for case expressions includes constraints for source
+positions, and thus produces Prover IDE markup for its bindings.
+INCOMPATIBILITY for old-style syntax translations that augment the
+pattern notation; e.g. see src/HOL/HOLCF/One.thy for translations of
+one_case.
+
+* Discontinued configuration option "syntax_positions": atomic terms
+in parse trees are always annotated by position constraints.
+
+* Finite_Set.fold now qualified.  INCOMPATIBILITY.
+
+* Renamed some facts on canonical fold on lists, in order to avoid
+problems with interpretation involving corresponding facts on foldl
+with the same base names:
+
+  fold_set_remdups ~> fold_set_fold_remdups
+  fold_set ~> fold_set_fold
+  fold1_set ~> fold1_set_fold
 
 INCOMPATIBILITY.
 
