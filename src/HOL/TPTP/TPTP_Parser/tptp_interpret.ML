@@ -22,7 +22,7 @@ sig
   the formula's label, its role, the TPTP formula, its Isabelle/HOL meaning, and
   inference info*)
   type tptp_formula_meaning =
-    string * TPTP_Syntax.role * TPTP_Syntax.tptp_formula * term * inference_info
+    string * TPTP_Syntax.role * term * inference_info
 
   (*In general, the meaning of a TPTP statement (which, through the Include
   directive, may include the meaning of an entire TPTP file, is a map from
@@ -36,15 +36,7 @@ sig
     problem_name = if given then it is used to qualify types & constants*)
   type config =
     {cautious : bool,
-     problem_name : TPTP_Problem_Name.problem_name option
-     (*FIXME future extensibility
-     init_type_map : type_map with_origin,
-     init_const_map : type_map with_origin,
-     dont_build_maps : bool,
-     extend_given_type_map : bool,
-     extend_given_const_map : bool,
-     generative_type_interpretation : bool,
-     generative_const_interpretation : bool*)}
+     problem_name : TPTP_Problem_Name.problem_name option}
 
   (*Generates a fresh Isabelle/HOL type for interpreting a TPTP type in a theory.*)
   val declare_type : config -> (TPTP_Syntax.tptp_type * string) -> type_map ->
@@ -149,7 +141,7 @@ type var_types = (string * typ option) list
 type type_map = (TPTP_Syntax.tptp_type * typ) list
 type inference_info = (string * string list) option
 type tptp_formula_meaning =
-  string * TPTP_Syntax.role * TPTP_Syntax.tptp_formula * term * inference_info
+  string * TPTP_Syntax.role * term * inference_info
 type tptp_general_meaning =
   (type_map * const_map * tptp_formula_meaning list)
 
@@ -164,9 +156,6 @@ val get_manifests = TPTP_Data.get
 
 
 (** Adding types to a signature **)
-
-fun type_exists thy ty_name =
-  Sign.declared_tyname thy (Sign.full_bname thy ty_name)
 
 (*transform quoted names into acceptable ASCII strings*)
 fun alphanumerate c =
@@ -197,11 +186,14 @@ fun mk_binding (config : config) ident =
          pre_binding
   end
 
+fun type_exists config thy ty_name =
+  Sign.declared_tyname thy (Sign.full_name thy (mk_binding config ty_name))
+
 (*Returns updated theory and the name of the final type's name -- i.e. if the
 original name is already taken then the function looks for an available
 alternative. It also returns an updated type_map if one has been passed to it.*)
 fun declare_type (config : config) (thf_type, type_name) ty_map thy =
-  if type_exists thy type_name then
+  if type_exists config thy type_name then
     raise MISINTERPRET_TYPE ("Type already exists", Atom_type type_name)
   else
     let
@@ -260,7 +252,7 @@ fun interpret_type config thy type_map thf_ty =
                \mapping to Isabelle/HOL", thf_ty)
         | SOME ty => ty)
   in
-    case thf_ty of (*FIXME make tail*)
+    case thf_ty of
        Prod_type (thf_ty1, thf_ty2) =>
          Type ("Product_Type.prod",
           [interpret_type config thy type_map thf_ty1,
@@ -744,7 +736,7 @@ fun interpret_line config inc_list type_map const_map path_prefix line thy =
                                  (analyse_type thy thf_ty1;
                                  analyse_type thy thf_ty2)
                              | Atom_type ty_name =>
-                                 if type_exists thy ty_name then ()
+                                 if type_exists config thy ty_name then ()
                                  else
                                   raise MISINTERPRET_TYPE
                                    ("Type (in signature of " ^
@@ -781,13 +773,12 @@ fun interpret_line config inc_list type_map const_map path_prefix line thy =
                there's no need to unify it with the type_map parameter.*)
              in
               ((type_map, const_map,
-                [(label, role, tptp_formula,
+                [(label, role,
                   Syntax.check_term (Proof_Context.init_global thy') t,
                   TPTP_Proof.extract_inference_info annotation_opt)]), thy')
              end
        else (*do nothing if we're not to includ this AF*)
          ((type_map, const_map, []), thy)
-
 and interpret_problem config inc_list path_prefix lines type_map const_map thy =
   let
     val thy_name = Context.theory_name thy

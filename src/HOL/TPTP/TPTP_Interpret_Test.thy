@@ -27,10 +27,7 @@ ML {*
 
 text "... and display nicely."
 ML {*
-  List.app (Pretty.writeln o (Syntax.pretty_term @{context}) o #4) fmlas;
-
-  (*Don't use TPTP_Syntax.string_of_tptp_formula, it's just for testing*)
-  List.app (writeln o TPTP_Syntax.string_of_tptp_formula o #3) fmlas
+  List.app (Pretty.writeln o (Syntax.pretty_term @{context}) o #3) fmlas;
 *}
 
 subsection "Multiple tests"

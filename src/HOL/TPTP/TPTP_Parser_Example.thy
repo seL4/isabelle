@@ -9,8 +9,7 @@ imports TPTP_Parser TPTP_Interpret
 uses "~~/src/HOL/ex/sledgehammer_tactics.ML"
 begin
 
-import_tptp "$TPTP_PROBLEMS_PATH/ALG/ALG001^5.p" (*FIXME multiple imports*)
-(*import_tptp "$TPTP_PROBLEMS_PATH/NUM/NUM021^1.p"*)
+import_tptp "$TPTP_PROBLEMS_PATH/ALG/ALG001^5.p"
 
 ML {*
 val an_fmlas =
@@ -22,7 +21,7 @@ val an_fmlas =
 
 (*Display nicely.*)
 ML {*
-List.app (fn (n, role, _, fmla, _) =>
+List.app (fn (n, role, fmla, _) =>
   Pretty.writeln
     (Pretty.block [Pretty.str ("\"" ^ n ^ "\"" ^ "(" ^
       TPTP_Syntax.role_to_string role  ^ "): "), Syntax.pretty_term @{context} fmla])
@@ -35,9 +34,9 @@ ML {*
 fun extract_terms roles : TPTP_Interpret.tptp_formula_meaning list ->
  (string * term) list =
    let
-     fun role_predicate (_, role, _, _, _) =
+     fun role_predicate (_, role, _, _) =
        fold (fn r1 => fn b => role = r1 orelse b) roles false
-   in filter role_predicate #> map (fn (n, _, _, t, _) => (n, t)) end
+   in filter role_predicate #> map (fn (n, _, t, _) => (n, t)) end
 *}
 
 ML {*
