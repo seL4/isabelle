@@ -296,6 +296,10 @@ lemma Quotient_right_total: "right_total T"
 lemma Quotient_rel_eq_transfer: "(T ===> T ===> op =) R (op =)"
   using 1 unfolding Quotient_alt_def fun_rel_def by simp
 
+lemma Quotient_abs_induct:
+  assumes "\<And>y. R y y \<Longrightarrow> P (Abs y)" shows "P x"
+  using 1 assms unfolding Quotient_def by metis
+
 end
 
 text {* Generating transfer rules for total quotients. *}
