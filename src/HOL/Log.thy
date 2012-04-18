@@ -285,6 +285,10 @@ lemma powr_mono2: "0 <= a ==> 0 < x ==> x <= y ==> x powr a <= y powr a"
   apply (rule powr_less_mono2, auto)
 done
 
+lemma powr_inj:
+  "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> a powr x = a powr y \<longleftrightarrow> x = y"
+  unfolding powr_def exp_inj_iff by simp
+
 lemma ln_powr_bound: "1 <= x ==> 0 < a ==> ln x <= (x powr a) / a"
   apply (rule mult_imp_le_div_pos)
   apply (assumption)
