@@ -130,7 +130,7 @@ val post_simps =
 fun gen_frees_tac keepers ctxt = SUBGOAL (fn (t, i) =>
   let
     val vs = rev (Term.add_frees t [])
-    val vs' = filter_out (member (op =) keepers o fst) vs
+    val vs' = filter_out (member (op =) keepers) vs
   in
     Induct.arbitrary_tac ctxt 0 vs' i
   end)
@@ -167,8 +167,15 @@ fun correspondence_tac ctxt i =
          (resolve_tac rules ORELSE' atac ORELSE' eq_tac ctxt) i]
   end
 
+val free = Args.context -- Args.term >> (fn (_, Free v) => v | (ctxt, t) =>
+  error ("Bad free variable: " ^ Syntax.string_of_term ctxt t))
+
+val fixing = Scan.optional (Scan.lift (Args.$$$ "fixing" -- Args.colon)
+  |-- Scan.repeat free) []
+
 val transfer_method : (Proof.context -> Method.method) context_parser =
-  Scan.succeed (fn ctxt => SIMPLE_METHOD' (gen_frees_tac [] ctxt THEN' transfer_tac ctxt))
+  fixing >> (fn vs => fn ctxt =>
+    SIMPLE_METHOD' (gen_frees_tac vs ctxt THEN' transfer_tac ctxt))
 
 val correspondence_method : (Proof.context -> Method.method) context_parser =
   Scan.succeed (fn ctxt => SIMPLE_METHOD' (correspondence_tac ctxt))
