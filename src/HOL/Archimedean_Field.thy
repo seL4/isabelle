@@ -446,6 +446,17 @@ lemma ceiling_diff_neg_numeral [simp]:
 lemma ceiling_diff_one [simp]: "ceiling (x - 1) = ceiling x - 1"
   using ceiling_diff_of_int [of x 1] by simp
 
+lemma ceiling_diff_floor_le_1: "ceiling x - floor x \<le> 1"
+proof -
+  have "of_int \<lceil>x\<rceil> - 1 < x" 
+    using ceiling_correct[of x] by simp
+  also have "x < of_int \<lfloor>x\<rfloor> + 1"
+    using floor_correct[of x] by simp_all
+  finally have "of_int (\<lceil>x\<rceil> - \<lfloor>x\<rfloor>) < (of_int 2::'a)"
+    by simp
+  then show ?thesis
+    unfolding of_int_less_iff by simp
+qed
 
 subsection {* Negation *}
 
