@@ -43,79 +43,58 @@ lemma QuotientI:
   shows "Quotient R Abs Rep T"
   using assms unfolding Quotient_def by blast
 
-lemma Quotient_abs_rep:
+context
+  fixes R Abs Rep T
   assumes a: "Quotient R Abs Rep T"
-  shows "Abs (Rep a) = a"
-  using a
-  unfolding Quotient_def
+begin
+
+lemma Quotient_abs_rep: "Abs (Rep a) = a"
+  using a unfolding Quotient_def
   by simp
 
-lemma Quotient_rep_reflp:
-  assumes a: "Quotient R Abs Rep T"
-  shows "R (Rep a) (Rep a)"
-  using a
-  unfolding Quotient_def
+lemma Quotient_rep_reflp: "R (Rep a) (Rep a)"
+  using a unfolding Quotient_def
   by blast
 
 lemma Quotient_rel:
-  assumes a: "Quotient R Abs Rep T"
-  shows "R r r \<and> R s s \<and> Abs r = Abs s \<longleftrightarrow> R r s" -- {* orientation does not loop on rewriting *}
-  using a
-  unfolding Quotient_def
+  "R r r \<and> R s s \<and> Abs r = Abs s \<longleftrightarrow> R r s" -- {* orientation does not loop on rewriting *}
+  using a unfolding Quotient_def
   by blast
 
-lemma Quotient_cr_rel:
-  assumes a: "Quotient R Abs Rep T"
-  shows "T = (\<lambda>x y. R x x \<and> Abs x = y)"
-  using a
-  unfolding Quotient_def
+lemma Quotient_cr_rel: "T = (\<lambda>x y. R x x \<and> Abs x = y)"
+  using a unfolding Quotient_def
   by blast
 
-lemma Quotient_refl1: 
-  assumes a: "Quotient R Abs Rep T" 
-  shows "R r s \<Longrightarrow> R r r"
-  using a unfolding Quotient_def 
+lemma Quotient_refl1: "R r s \<Longrightarrow> R r r"
+  using a unfolding Quotient_def
   by fast
 
-lemma Quotient_refl2: 
-  assumes a: "Quotient R Abs Rep T" 
-  shows "R r s \<Longrightarrow> R s s"
-  using a unfolding Quotient_def 
+lemma Quotient_refl2: "R r s \<Longrightarrow> R s s"
+  using a unfolding Quotient_def
   by fast
 
-lemma Quotient_rel_rep:
-  assumes a: "Quotient R Abs Rep T"
-  shows "R (Rep a) (Rep b) \<longleftrightarrow> a = b"
-  using a
-  unfolding Quotient_def
+lemma Quotient_rel_rep: "R (Rep a) (Rep b) \<longleftrightarrow> a = b"
+  using a unfolding Quotient_def
   by metis
 
-lemma Quotient_rep_abs:
-  assumes a: "Quotient R Abs Rep T"
-  shows "R r r \<Longrightarrow> R (Rep (Abs r)) r"
+lemma Quotient_rep_abs: "R r r \<Longrightarrow> R (Rep (Abs r)) r"
   using a unfolding Quotient_def
   by blast
 
-lemma Quotient_rel_abs:
-  assumes a: "Quotient R Abs Rep T"
-  shows "R r s \<Longrightarrow> Abs r = Abs s"
+lemma Quotient_rel_abs: "R r s \<Longrightarrow> Abs r = Abs s"
   using a unfolding Quotient_def
   by blast
 
-lemma Quotient_symp:
-  assumes a: "Quotient R Abs Rep T"
-  shows "symp R"
+lemma Quotient_symp: "symp R"
   using a unfolding Quotient_def using sympI by (metis (full_types))
 
-lemma Quotient_transp:
-  assumes a: "Quotient R Abs Rep T"
-  shows "transp R"
+lemma Quotient_transp: "transp R"
   using a unfolding Quotient_def using transpI by (metis (full_types))
 
-lemma Quotient_part_equivp:
-  assumes a: "Quotient R Abs Rep T"
-  shows "part_equivp R"
-by (metis Quotient_rep_reflp Quotient_symp Quotient_transp a part_equivpI)
+lemma Quotient_part_equivp: "part_equivp R"
+by (metis Quotient_rep_reflp Quotient_symp Quotient_transp part_equivpI)
+
+end
 
 lemma identity_quotient: "Quotient (op =) id id (op =)"
 unfolding Quotient_def by simp 
