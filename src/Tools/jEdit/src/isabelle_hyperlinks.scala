@@ -71,8 +71,8 @@ class Isabelle_Hyperlinks extends HyperlinkSource
                   val Text.Range(begin, end) = info_range
                   val line = buffer.getLineOfOffset(begin)
                   (Position.File.unapply(props), Position.Line.unapply(props)) match {
-                    case (Some(def_file), Some(def_line)) =>
-                      new External_Hyperlink(begin, end, line, def_file, def_line)
+                    case (Some(def_file), def_line) =>
+                      new External_Hyperlink(begin, end, line, def_file, def_line.getOrElse(1))
                     case _ if !snapshot.is_outdated =>
                       (props, props) match {
                         case (Position.Id(def_id), Position.Offset(def_offset)) =>
