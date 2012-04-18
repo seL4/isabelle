@@ -1159,6 +1159,18 @@ by (simp add: real_of_int_def)
 lemma real_of_int_le_zero_cancel_iff [simp, presburger]: "(real (n::int) <= 0) = (n <= 0)"
 by (simp add: real_of_int_def)
 
+lemma one_less_real_of_int_cancel_iff: "1 < real (i :: int) \<longleftrightarrow> 1 < i"
+  unfolding real_of_one[symmetric] real_of_int_less_iff ..
+
+lemma one_le_real_of_int_cancel_iff: "1 \<le> real (i :: int) \<longleftrightarrow> 1 \<le> i"
+  unfolding real_of_one[symmetric] real_of_int_le_iff ..
+
+lemma real_of_int_less_one_cancel_iff: "real (i :: int) < 1 \<longleftrightarrow> i < 1"
+  unfolding real_of_one[symmetric] real_of_int_less_iff ..
+
+lemma real_of_int_le_one_cancel_iff: "real (i :: int) \<le> 1 \<longleftrightarrow> i \<le> 1"
+  unfolding real_of_one[symmetric] real_of_int_le_iff ..
+
 lemma real_of_int_abs [simp]: "real (abs x) = abs(real (x::int))"
 by (auto simp add: abs_if)
 
