@@ -28,22 +28,34 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   private val html_panel =
     new HTML_Panel(Isabelle.font_family(), scala.math.round(Isabelle.font_size()))
   {
-    override val handler: PartialFunction[HTML_Panel.Event, Unit] = {
-      case HTML_Panel.Mouse_Click(elem, event) if elem.getClassName() == "sendback" =>
-        val text = elem.getFirstChild().getNodeValue()
-
+    override val handler: PartialFunction[HTML_Panel.Event, Unit] =
+    {
+      case HTML_Panel.Mouse_Click(elem, event)
+      if Protocol.Sendback.unapply(elem.getUserData(Markup.Data.name)).isDefined =>
+        val sendback = Protocol.Sendback.unapply(elem.getUserData(Markup.Data.name)).get
         Document_View(view.getTextArea) match {
           case Some(doc_view) =>
-            val cmd = current_command.get
-            val start_ofs = doc_view.model.snapshot().node.command_start(cmd).get
-            val buffer = view.getBuffer
-            buffer.beginCompoundEdit()
-            buffer.remove(start_ofs, cmd.length)
-            buffer.insert(start_ofs, text)
-            buffer.endCompoundEdit()
+            doc_view.robust_body() {
+              current_command match {
+                case Some(cmd) =>
+                  val model = doc_view.model
+                  val buffer = model.buffer
+                  val snapshot = model.snapshot()
+                  snapshot.node.command_start(cmd) match {
+                    case Some(start) if !snapshot.is_outdated =>
+                      val text = Pretty.string_of(sendback)
+                      buffer.beginCompoundEdit()
+                      buffer.remove(start, cmd.proper_range.length)
+                      buffer.insert(start, text)
+                      buffer.endCompoundEdit()
+                    case _ =>
+                  }
+                case None =>
+              }
+            }
           case None =>
         }
-    }       
+    }
   }
 
   set_content(html_panel)
