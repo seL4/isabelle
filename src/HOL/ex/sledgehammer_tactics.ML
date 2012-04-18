@@ -46,8 +46,7 @@ fun run_atp override_params relevance_override i n ctxt goal =
              relevance_fudge relevance_override chained_ths hyp_ts concl_t
     val problem =
       {state = Proof.init ctxt, goal = goal, subgoal = i, subgoal_count = n,
-       facts = map Sledgehammer_Provers.Untranslated_Fact facts,
-       smt_filter = NONE}
+       facts = map Sledgehammer_Provers.Untranslated_Fact facts}
   in
     (case prover params (K (K (K ""))) problem of
       {outcome = NONE, used_facts, ...} => used_facts |> map fst |> SOME
