@@ -243,9 +243,7 @@ lemma reflp_word:
   "reflp (\<lambda>x y. bintrunc (len_of TYPE('a::len0)) x = bintrunc (len_of TYPE('a)) y)"
   by (simp add: reflp_def)
 
-local_setup {*
-  Lifting_Setup.setup_by_quotient @{thm Quotient_word} (SOME @{thm reflp_word})
-*}
+setup_lifting Quotient_word reflp_word
 
 text {* TODO: The next lemma could be generated automatically. *}
 

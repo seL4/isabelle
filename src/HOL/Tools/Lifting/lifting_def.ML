@@ -127,9 +127,19 @@ fun generate_code_cert ctxt def_thm rsp_thm (rty, qty) =
     simplify_code_eq ctxt code_cert
   end
 
+fun is_abstype ctxt typ =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val type_name = (fst o dest_Type) typ
+  in
+    (snd oo Code.get_type) thy type_name
+  end
+  
+
 fun define_code_cert code_eqn_thm_name def_thm rsp_thm (rty, qty) lthy = 
   let
-    val quot_thm = Lifting_Term.prove_quot_thm lthy (get_body_types (rty, qty))
+    val (rty_body, qty_body) = get_body_types (rty, qty)
+    val quot_thm = Lifting_Term.prove_quot_thm lthy (rty_body, qty_body)
   in
     if can_generate_code_cert quot_thm then
       let
@@ -137,9 +147,13 @@ fun define_code_cert code_eqn_thm_name def_thm rsp_thm (rty, qty) lthy =
         val add_abs_eqn_attribute = 
           Thm.declaration_attribute (fn thm => Context.mapping (Code.add_abs_eqn thm) I)
         val add_abs_eqn_attrib = Attrib.internal (K add_abs_eqn_attribute);
+        val lthy' = 
+          (snd oo Local_Theory.note) ((code_eqn_thm_name, []), [code_cert]) lthy
       in
-        lthy
-          |> (snd oo Local_Theory.note) ((code_eqn_thm_name, [add_abs_eqn_attrib]), [code_cert])
+        if is_abstype lthy qty_body then
+          (snd oo Local_Theory.note) ((Binding.empty, [add_abs_eqn_attrib]), [code_cert]) lthy'
+        else
+          lthy'
       end
     else
       lthy

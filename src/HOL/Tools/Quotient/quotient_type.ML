@@ -150,7 +150,7 @@ fun setup_lifting_package quot3_thm equiv_thm lthy =
       )
   in
     lthy'
-      |> Lifting_Setup.setup_by_quotient quot_thm reflp_thm
+      |> Lifting_Setup.setup_by_quotient false quot_thm reflp_thm
       |> (snd oo Local_Theory.note) ((quotient_thm_name, []), [quot_thm])
   end
 
