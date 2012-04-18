@@ -350,8 +350,13 @@ local
 
   fun as_term t = @{const HOL.eq (bool)} $ t $ @{const SMT.term_true}
 
-  fun wrap_in_if t =
-    @{const If (bool)} $ t $ @{const SMT.term_true} $ @{const SMT.term_false}
+  exception BAD_PATTERN of unit
+
+  fun wrap_in_if pat t =
+    if pat then
+      raise BAD_PATTERN ()
+    else
+      @{const If (bool)} $ t $ @{const SMT.term_true} $ @{const SMT.term_false}
 
   fun is_builtin_conn_or_pred ctxt c ts =
     is_some (SMT_Builtin.dest_builtin_conn ctxt c ts) orelse
@@ -368,30 +373,34 @@ in
 
 fun folify ctxt =
   let
-    fun in_list T f t = HOLogic.mk_list T (map f (HOLogic.dest_list t))
+    fun in_list T f t = HOLogic.mk_list T (map_filter f (HOLogic.dest_list t))
 
-    fun in_term t =
+    fun in_term pat t =
       (case Term.strip_comb t of
         (@{const True}, []) => @{const SMT.term_true}
       | (@{const False}, []) => @{const SMT.term_false}
       | (u as Const (@{const_name If}, _), [t1, t2, t3]) =>
-          u $ in_form t1 $ in_term t2 $ in_term t3
+          if pat then raise BAD_PATTERN ()
+          else u $ in_form t1 $ in_term pat t2 $ in_term pat t3
       | (Const (c as (n, _)), ts) =>
-          if is_builtin_conn_or_pred ctxt c ts then wrap_in_if (in_form t)
-          else  if is_quant n then wrap_in_if (in_form t)
-          else Term.list_comb (Const c, map in_term ts)
-      | (Free c, ts) => Term.list_comb (Free c, map in_term ts)
+          if is_builtin_conn_or_pred ctxt c ts then wrap_in_if pat (in_form t)
+          else if is_quant n then wrap_in_if pat (in_form t)
+          else Term.list_comb (Const c, map (in_term pat) ts)
+      | (Free c, ts) => Term.list_comb (Free c, map (in_term pat) ts)
       | _ => t)
 
     and in_weight ((c as @{const SMT.weight}) $ w $ t) = c $ w $ in_form t
       | in_weight t = in_form t 
 
-    and in_pat ((p as Const (@{const_name SMT.pat}, _)) $ t) = p $ in_term t
-      | in_pat ((p as Const (@{const_name SMT.nopat}, _)) $ t) = p $ in_term t
+    and in_pat ((p as Const (@{const_name SMT.pat}, _)) $ t) =
+          p $ in_term true t
+      | in_pat ((p as Const (@{const_name SMT.nopat}, _)) $ t) =
+          p $ in_term true t
       | in_pat t = raise TERM ("bad pattern", [t])
 
     and in_pats ps =
-      in_list @{typ "SMT.pattern list"} (in_list @{typ SMT.pattern} in_pat) ps
+      in_list @{typ "SMT.pattern list"}
+        (SOME o in_list @{typ SMT.pattern} (try in_pat)) ps
 
     and in_trigger ((c as @{const SMT.trigger}) $ p $ t) =
           c $ in_pats p $ in_weight t
@@ -401,15 +410,15 @@ fun folify ctxt =
       (case Term.strip_comb t of
         (q as Const (qn, _), [Abs (n, T, u)]) =>
           if is_quant qn then q $ Abs (n, T, in_trigger u)
-          else as_term (in_term t)
+          else as_term (in_term false t)
       | (Const c, ts) =>
           (case SMT_Builtin.dest_builtin_conn ctxt c ts of
             SOME (_, _, us, mk) => mk (map in_form us)
           | NONE =>
               (case SMT_Builtin.dest_builtin_pred ctxt c ts of
-                SOME (_, _, us, mk) => mk (map in_term us)
-              | NONE => as_term (in_term t)))
-      | _ => as_term (in_term t))
+                SOME (_, _, us, mk) => mk (map (in_term false) us)
+              | NONE => as_term (in_term false t)))
+      | _ => as_term (in_term false t))
   in
     map in_form #>
     cons (SMT_Utils.prop_of term_bool) #>
