@@ -252,6 +252,16 @@ proof -
   finally show ?thesis unfolding real_of_int_less_iff by simp
 qed
 
+lemma floor_divide_eq_div:
+  "floor (real a / real b) = a div b"
+proof cases
+  assume "b \<noteq> 0 \<or> b dvd a"
+  with real_of_int_div3[of a b] show ?thesis
+    by (auto simp: real_of_int_div[symmetric] intro!: floor_eq2 real_of_int_div4 neq_le_trans)
+       (metis add_left_cancel zero_neq_one real_of_int_div_aux real_of_int_inject
+              real_of_int_zero_cancel right_inverse_eq div_self mod_div_trivial)
+qed (auto simp: real_of_int_div)
+
 lemma ceiling_real_of_nat [simp]: "ceiling (real (n::nat)) = int n"
   unfolding real_of_nat_def by simp
 
