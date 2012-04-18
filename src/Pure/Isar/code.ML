@@ -948,12 +948,12 @@ fun print_codesetup thy =
                       :: Pretty.str "of"
                       :: map (Pretty.quote o Syntax.pretty_typ_global thy) tys)) cos)
       );
-    fun ignored_cases NONE = "<ignored>"
-      | ignored_cases (SOME c) = string_of_const thy c
+    fun pretty_caseparam NONE = "<ignored>"
+      | pretty_caseparam (SOME c) = string_of_const thy c
     fun pretty_case (const, ((_, (_, [])), _)) = Pretty.str (string_of_const thy const)
       | pretty_case (const, ((_, (_, cos)), _)) = (Pretty.block o Pretty.breaks) [
           Pretty.str (string_of_const thy const), Pretty.str "with",
-          (Pretty.block o Pretty.commas o map (Pretty.str o ignored_cases)) cos];
+          (Pretty.block o Pretty.commas o map (Pretty.str o pretty_caseparam)) cos];
     val functions = the_functions exec
       |> Symtab.dest
       |> (map o apsnd) (snd o fst)
@@ -1089,7 +1089,7 @@ fun case_cong thy case_const (num_args, (pos, _)) =
 fun add_case thm thy =
   let
     val (case_const, (k, cos)) = case_cert thm;
-    val _ = case map_filter I cos |> filter_out (is_constr thy)
+    val _ = case (filter_out (is_constr thy) o map_filter I) cos
      of [] => ()
       | cs => error ("Non-constructor(s) in case certificate: " ^ commas_quote cs);
     val entry = (1 + Int.max (1, length cos), (k, cos));

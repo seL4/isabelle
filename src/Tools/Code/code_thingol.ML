@@ -580,19 +580,20 @@ fun not_wellsorted thy permissive some_thm ty sort e =
       (err_typ ^ "\n" ^ err_class)
   end;
 
+
 (* inference of type annotations for disambiguation with type classes *)
 
 fun mk_tagged_type (true, T) = Type ("", [T])
-  | mk_tagged_type (false, T) = T
+  | mk_tagged_type (false, T) = T;
 
 fun dest_tagged_type (Type ("", [T])) = (true, T)
-  | dest_tagged_type T = (false, T)
+  | dest_tagged_type T = (false, T);
 
-val untag_term = map_types (snd o dest_tagged_type)
+val untag_term = map_types (snd o dest_tagged_type);
 
 fun tag_term (proj_sort, _) eqngr =
   let
-    val has_sort_constraints = exists (not o null) o map proj_sort o Code_Preproc.sortargs eqngr
+    val has_sort_constraints = exists (not o null) o map proj_sort o Code_Preproc.sortargs eqngr;
     fun tag (Const (c', T')) (Const (c, T)) =
         Const (c,
           mk_tagged_type (not (null (Term.add_tvarsT T' [])) andalso has_sort_constraints c, T))
@@ -600,7 +601,7 @@ fun tag_term (proj_sort, _) eqngr =
       | tag (Abs (_, _, t1)) (Abs (x, T, t)) = Abs (x, T, tag t1 t)
       | tag (Free _) (t as Free _) = t
       | tag (Var _) (t as Var _) = t
-      | tag (Bound _) (t as Bound _) = t
+      | tag (Bound _) (t as Bound _) = t;
   in
     tag
   end
@@ -619,6 +620,7 @@ fun annotate thy algbr eqngr (c, ty) args rhs =
 fun annotate_eqns thy algbr eqngr (c, ty) eqns = 
   map (apfst (fn (args, (rhs, some_abs)) => (args,
     (annotate thy algbr eqngr (c, ty) args rhs, some_abs)))) eqns
+
 
 (* translation *)
 
@@ -782,13 +784,13 @@ and translate_case thy algbr eqngr permissive some_thm (num_args, (t_pos, case_p
     val tys = arg_types num_args (snd c_ty);
     val ty = nth tys t_pos;
     fun mk_constr NONE t = NONE
-      | mk_constr (SOME c) t = let val n = Code.args_number thy c
-        in SOME ((c, arg_types n (fastype_of (untag_term t)) ---> ty), n) end;
-
-    val constrs = if null case_pats then []
-      else map2 mk_constr case_pats (nth_drop t_pos ts);
-    val constrs' = map_filter I constrs
-
+      | mk_constr (SOME c) t =
+          let
+            val n = Code.args_number thy c;
+          in SOME ((c, arg_types n (fastype_of (untag_term t)) ---> ty), n) end;
+    val constrs =
+      if null case_pats then []
+      else map_filter I (map2 mk_constr case_pats (nth_drop t_pos ts));
     fun casify naming constrs ty ts =
       let
         val undefineds = map_filter (lookup_const naming) (Code.undefineds thy);
@@ -821,12 +823,13 @@ and translate_case thy algbr eqngr permissive some_thm (num_args, (t_pos, case_p
           then mk_clause (fn ([t], body) => (t, body)) [ty] (the_single ts_clause)
           else maps (fn ((constr as IConst (_, ((_, (tys, _)), _)), n), t) =>
             mk_clause (fn (ts, body) => (constr `$$ ts, body)) (take n tys) t)
-              (constrs ~~ (map_filter (fn (NONE, _) => NONE | (SOME _, t) => SOME t) (case_pats ~~ ts_clause)));
+              (constrs ~~ (map_filter (fn (NONE, _) => NONE | (SOME _, t) => SOME t)
+                (case_pats ~~ ts_clause)));
       in ((t, ty), clauses) end;
   in
     translate_const thy algbr eqngr permissive some_thm (c_ty, NONE)
     ##>> fold_map (fn (constr, n) => translate_const thy algbr eqngr permissive some_thm (constr, NONE)
-      #>> rpair n) constrs'
+      #>> rpair n) constrs
     ##>> translate_typ thy algbr eqngr permissive ty
     ##>> fold_map (translate_term thy algbr eqngr permissive some_thm o rpair NONE) ts
     #-> (fn (((t, constrs), ty), ts) =>
