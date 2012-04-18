@@ -15,5 +15,5 @@
 .operator { font-weight: bold; }
 .command { font-weight: bold; color: #006699; }
 
-.sendback { text-decoration: underline; }
-.sendback:hover { background-color: #FFCC66; }
+.sendback { background-color: #DCDCDC; }
+.sendback:hover { background-color: #9DC75D; }
