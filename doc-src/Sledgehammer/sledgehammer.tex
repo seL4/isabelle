@@ -92,16 +92,24 @@ Lawrence C. Paulson \\
 \label{introduction}
 
 Sledgehammer is a tool that applies automatic theorem provers (ATPs)
-and satisfiability-modulo-theories (SMT) solvers on the current goal. The
-supported ATPs are E \cite{schulz-2002}, E-SInE \cite{sine}, E-ToFoF
-\cite{tofof}, LEO-II \cite{leo2}, Satallax \cite{satallax}, SNARK \cite{snark},
-SPASS \cite{weidenbach-et-al-2009}, Vampire \cite{riazanov-voronkov-2002}, and
-Waldmeister \cite{waldmeister}. The ATPs are run either locally or remotely via
-the System\-On\-TPTP web service \cite{sutcliffe-2000}. In addition to the ATPs,
-the SMT solvers Z3 \cite{z3} is used by default, and you can tell Sledgehammer
-to try Alt-Ergo \cite{alt-ergo}, CVC3 \cite{cvc3}, and Yices \cite{yices} as
-well; these are run either locally or (for CVC3 and Z3) on a server at the TU
-M\"unchen.
+and satisfiability-modulo-theories (SMT) solvers on the current goal.%
+\footnote{The distinction between ATPs and SMT solvers is convenient but mostly
+historical. The two communities are converging, with more and more ATPs
+supporting typical SMT features such as arithemtic and sorts, and a few SMT
+solvers parsing ATP syntaxes. There is also a strong technological connection
+between instantiation-based ATPs (such as iProver and iProver-Eq) and SMT
+solvers.}
+%
+The supported ATPs are E \cite{schulz-2002}, E-SInE \cite{sine}, E-ToFoF
+\cite{tofof}, iProver \cite{korovin-2009}, iProver-Eq
+\cite{korovin-sticksel-2010}, LEO-II \cite{leo2}, Satallax \cite{satallax},
+SNARK \cite{snark}, SPASS \cite{weidenbach-et-al-2009}, Vampire
+\cite{riazanov-voronkov-2002}, and Waldmeister \cite{waldmeister}. The ATPs are
+run either locally or remotely via the System\-On\-TPTP web service
+\cite{sutcliffe-2000}. In addition to the ATPs, the SMT solvers Z3 \cite{z3} is
+used by default, and you can tell Sledgehammer to try Alt-Ergo \cite{alt-ergo},
+CVC3 \cite{cvc3}, and Yices \cite{yices} as well; these are run either locally
+or (for CVC3 and Z3) on a server at the TU M\"unchen.
 
 The problem passed to the automatic provers consists of your current goal
 together with a heuristic selection of hundreds of facts (theorems) from the
@@ -149,7 +157,7 @@ relies on third-party automatic provers (ATPs and SMT solvers).
 
 Among the ATPs, E, LEO-II, Satallax, SPASS, and Vampire can be run locally; in
 addition, E, E-SInE, E-ToFoF, iProver, iProver-Eq, LEO-II, Satallax, SNARK,
-Waldmeister, and Vampire are available remotely via System\-On\-TPTP
+Vampire, and Waldmeister are available remotely via System\-On\-TPTP
 \cite{sutcliffe-2000}. If you want better performance, you should at least
 install E and SPASS locally.
 
@@ -171,7 +179,7 @@ For Z3, you must additionally set the variable
 \texttt{Z3\_NON\_COMMERCIAL} to ``yes'' to confirm that you are a
 noncommercial user, either in the environment in which Isabelle is
 launched or in your
-\texttt{\char`\~/\$ISABELLE\_HOME\_USER/etc/settings} file.
+\texttt{\$ISABELLE\_HOME\_USER/etc/settings} file.
 
 \item[\labelitemi] Alternatively, you can download the Isabelle-aware CVC3, E,
 SPASS, and Z3 binary packages from \download. Extract the archives, then add a
@@ -187,7 +195,7 @@ file with the absolute path to CVC3, E, SPASS, or Z3. For example, if the
 \texttt{/usr/local/spass-3.7}
 \postw
 
-(including an invisible newline character) in it.
+in it.
 
 \item[\labelitemi] If you prefer to build E, LEO-II, Satallax, or SPASS
 manually, or found a Vampire executable somewhere (e.g.,
@@ -231,7 +239,7 @@ Remote prover invocation requires Perl with the World Wide Web Library
 (\texttt{libwww-perl}) installed. If you must use a proxy server to access the
 Internet, set the \texttt{http\_proxy} environment variable to the proxy, either
 in the environment in which Isabelle is launched or in your
-\texttt{\char`\~/\$ISABELLE\_HOME\_USER/etc/settings} file. Here are a few
+\texttt{\$ISABELLE\_HOME\_USER/etc/settings} file. Here are a few
 examples:
 
 \prew
