@@ -54,7 +54,8 @@ val parse_cnf_or_fof =
    || Scan.this_string "hypothesis" || Scan.this_string "conjecture"
    || Scan.this_string "negated_conjecture") --| $$ "," -- parse_formula
       --| $$ ")" --| $$ "."
-    >> (fn ("conjecture", phi) => AConn (ANot, [phi]) | (_, phi) => phi)
+    >> (fn ("conjecture", phi) => (true, AConn (ANot, [phi]))
+         | (_, phi) => (false, phi))
   || Scan.this_string "thf" >> (fn _ => raise THF ())
 
 val parse_problem =
@@ -108,7 +109,7 @@ fun close_hol_prop t = fold (mk_all o Free) (Term.add_frees t []) t
 
 fun mk_meta_not P = Logic.mk_implies (P, @{prop False})
 
-fun get_tptp_formula (_, role, _, P, _) =
+fun get_tptp_formula (_, role, P, _) =
   P |> role = TPTP_Syntax.Role_Conjecture ? mk_meta_not
 
 fun read_tptp_file thy file_name =
@@ -116,20 +117,20 @@ fun read_tptp_file thy file_name =
     (case parse_tptp_problem (File.read path) of
        (_, s :: ss) =>
        raise SYNTAX ("cannot parse " ^ quote (implode (s :: ss)))
-     | (phis, []) =>
-       map (HOLogic.mk_Trueprop o close_hol_prop o hol_prop_from_formula) phis)
+     | (problem, []) =>
+       (exists fst problem,
+        map (HOLogic.mk_Trueprop o close_hol_prop o hol_prop_from_formula o snd)
+            problem))
     handle THF () =>
-    TPTP_Interpret.interpret_file true (Path.explode "$TPTP") path [] [] thy
-    |> fst |> #3 |> map get_tptp_formula
+    let
+      val problem =
+        TPTP_Interpret.interpret_file true (Path.explode "$TPTP") path [] [] thy
+        |> fst |> #3
+    in
+      (exists (fn (_, role, _, _) => role = TPTP_Syntax.Role_Conjecture) problem,
+       map get_tptp_formula problem)
+    end
   end
-
-fun print_szs_from_outcome s =
-  "% SZS status " ^
-  (if s = Nitpick.genuineN then
-     "CounterSatisfiable"
-   else
-     "Unknown")
-  |> writeln
 
 (** Isabelle (combination of provers) **)
 
@@ -140,7 +141,7 @@ fun isabelle_tptp_file file_name = ()
 
 fun nitpick_tptp_file file_name =
   let
-    val ts = read_tptp_file @{theory} file_name
+    val (falsify, ts) = read_tptp_file @{theory} file_name
     val state = Proof.init @{context}
     val params =
       [("card", "1\<emdash>100"),
@@ -148,6 +149,7 @@ fun nitpick_tptp_file file_name =
        ("sat_solver", "smart"),
        ("max_threads", "1"),
        ("batch_size", "10"),
+       ("falsify", if falsify then "true" else "false"),
        (* ("debug", "true"), *)
        ("verbose", "true"),
        (* ("overlord", "true"), *)
@@ -162,24 +164,31 @@ fun nitpick_tptp_file file_name =
     val step = 0
     val subst = []
   in
-    Nitpick.pick_nits_in_term state params Nitpick.Normal i n step subst ts
-        @{prop False}
-    |> fst |> print_szs_from_outcome
+    Nitpick.pick_nits_in_term state params Nitpick.TPTP i n step subst ts
+        (if falsify then @{prop False} else @{prop True}); ()
   end
 
 
 (** Refute **)
 
+fun print_szs_from_outcome falsify s =
+  "% SZS status " ^
+  (if s = "genuine" then
+     if falsify then "CounterSatisfiable" else "Satisfiable"
+   else
+     "Unknown")
+  |> writeln
+
 fun refute_tptp_file file_name =
   let
-    val ts = read_tptp_file @{theory} file_name
+    val (falsify, ts) = read_tptp_file @{theory} file_name
     val params =
       [("maxtime", "10000"),
        ("assms", "true"),
        ("expect", Nitpick.genuineN)]
   in
     Refute.refute_term @{context} params ts @{prop False}
-    |> print_szs_from_outcome
+    |> print_szs_from_outcome falsify
   end
 
 

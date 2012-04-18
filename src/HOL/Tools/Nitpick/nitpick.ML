@@ -680,7 +680,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                 if falsify then "CounterSatisfiable" else "Satisfiable"
               else
                 "Unknown") ^ "\n" ^
-             "% SZS output start FiniteModel\n");
+             "% SZS output start FiniteModel");
          pprint_a (Pretty.chunks
              [Pretty.blk (0,
                   (pstrs ((if mode = Auto_Try then "Auto " else "") ^
@@ -693,7 +693,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                     | pretties => pstrs " for " @ pretties) @
                    [Pretty.str ":\n"])),
               Pretty.indent indent_size reconstructed_model]);
-         print_t (fn () => "% SZS output stop\n");
+         print_t (fn () => "% SZS output stop");
          if genuine then
            (if check_genuine andalso standard then
               case prove_hol_model scope tac_timeout free_names sel_names
@@ -1005,7 +1005,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
           (print_nt (fn () => excipit "checked"); unknownN)
         else if max_genuine = original_max_genuine then
           if max_potential = original_max_potential then
-            (print_t (K "% SZS status Unknown\n");
+            (print_t (K "% SZS status Unknown");
              print_nt (fn () =>
                  "Nitpick found no " ^ das_wort_model ^ "." ^
                  (if not standard andalso likely_in_struct_induct_step then
