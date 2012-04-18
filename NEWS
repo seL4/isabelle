@@ -218,7 +218,7 @@ and predicates.  Added powers of predicate relations.  Consolidation
 of some relation theorems:
 
   converse_def ~> converse_unfold
-  rel_comp_def ~> rel_comp_unfold
+  rel_comp_def ~> relcomp_unfold
   symp_def ~> (dropped, use symp_def and sym_def instead)
   transp_def ~> transp_trans
   Domain_def ~> Domain_unfold
@@ -333,7 +333,7 @@ INCOMPATIBILITY.
 * Theory Relation: Consolidated constant name for relation composition
 and corresponding theorem names:
 
-  - Renamed constant rel_comp to relcomp
+  - Renamed constant rel_comp to relcomp.
 
   - Dropped abbreviation pred_comp. Use relcompp instead.
 
@@ -351,7 +351,7 @@ and corresponding theorem names:
     rel_comp_UNION_distrib ~> relcomp_UNION_distrib
     rel_comp_UNION_distrib2 ~> relcomp_UNION_distrib2
     single_valued_rel_comp ~> single_valued_relcomp
-    rel_comp_unfold ~> relcomp_unfold
+    rel_comp_def ~> relcomp_unfold
     converse_rel_comp ~> converse_relcomp
     pred_compI ~> relcomppI
     pred_compE ~> relcomppE
