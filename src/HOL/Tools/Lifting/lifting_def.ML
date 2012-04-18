@@ -180,10 +180,9 @@ fun add_lift_def var qty rhs rsp_thm lthy =
     val transfer_thm = [quotient_thm, rsp_thm, def_thm] MRSL @{thm Quotient_to_transfer}
         |> Raw_Simplifier.rewrite_rule (Transfer.get_relator_eq lthy')
 
-    fun qualify defname suffix = Binding.name suffix
-      |> Binding.qualify true defname
+    fun qualify defname suffix = Binding.qualified true suffix defname
 
-    val lhs_name = Binding.name_of (#1 var)
+    val lhs_name = (#1 var)
     val rsp_thm_name = qualify lhs_name "rsp"
     val code_eqn_thm_name = qualify lhs_name "rep_eq"
     val transfer_thm_name = qualify lhs_name "transfer"

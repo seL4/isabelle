@@ -353,38 +353,26 @@ lemma typedef_bi_unique: "bi_unique T"
   unfolding bi_unique_def T_def
   by (simp add: type_definition.Rep_inject [OF type])
 
-lemma typedef_right_total: "right_total T"
-  unfolding right_total_def T_def by simp
-
 lemma typedef_rep_transfer: "(T ===> op =) (\<lambda>x. x) Rep"
   unfolding fun_rel_def T_def by simp
 
-lemma typedef_transfer_All: "((T ===> op =) ===> op =) (Ball A) All"
+lemma typedef_All_transfer: "((T ===> op =) ===> op =) (Ball A) All"
   unfolding T_def fun_rel_def
   by (metis type_definition.Rep [OF type]
     type_definition.Abs_inverse [OF type])
 
-lemma typedef_transfer_Ex: "((T ===> op =) ===> op =) (Bex A) Ex"
+lemma typedef_Ex_transfer: "((T ===> op =) ===> op =) (Bex A) Ex"
   unfolding T_def fun_rel_def
   by (metis type_definition.Rep [OF type]
     type_definition.Abs_inverse [OF type])
 
-lemma typedef_transfer_bforall:
+lemma typedef_forall_transfer:
   "((T ===> op =) ===> op =)
     (transfer_bforall (\<lambda>x. x \<in> A)) transfer_forall"
   unfolding transfer_bforall_def transfer_forall_def Ball_def [symmetric]
-  by (rule typedef_transfer_All)
+  by (rule typedef_All_transfer)
 
 end
-
-text {* Generating transfer rules for a type copy. *}
-
-lemma copy_type_bi_total:
-  assumes type: "type_definition Rep Abs UNIV"
-  assumes T_def: "T \<equiv> (\<lambda>x y. x = Rep y)"
-  shows "bi_total T"
-  unfolding bi_total_def T_def
-  by (metis type_definition.Abs_inverse [OF type] UNIV_I)
 
 text {* Generating the correspondence rule for a constant defined with
   @{text "lift_definition"}. *}

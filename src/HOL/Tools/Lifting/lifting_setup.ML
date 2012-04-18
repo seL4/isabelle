@@ -59,19 +59,19 @@ fun quot_thm_sanity_check ctxt quot_thm =
     val rty_tfreesT = Term.add_tfree_namesT rty []
     val qty_tfreesT = Term.add_tfree_namesT qty []
     val extra_rty_tfrees =
-      (case subtract (op =) qty_tfreesT rty_tfreesT of
+      case subtract (op =) qty_tfreesT rty_tfreesT of
         [] => []
       | extras => [Pretty.block ([Pretty.str "Extra variables in the raw type:",
                                  Pretty.brk 1] @ 
                                  ((Pretty.commas o map (Pretty.str o quote)) extras) @
-                                 [Pretty.str "."])])
+                                 [Pretty.str "."])]
     val not_type_constr = 
-      (case qty of
+      case qty of
          Type _ => []
          | _ => [Pretty.block [Pretty.str "The quotient type ",
                                 Pretty.quote (Syntax.pretty_typ ctxt' qty),
                                 Pretty.brk 1,
-                                Pretty.str "is not a type constructor."]])
+                                Pretty.str "is not a type constructor."]]
     val errs = extra_rty_tfrees @ not_type_constr
   in
     if null errs then () else error (cat_lines (["Sanity check of the quotient theorem failed:",""] 
@@ -95,20 +95,29 @@ fun setup_lifting_infr quot_thm lthy =
 fun setup_by_quotient quot_thm maybe_reflp_thm lthy =
   let
     val transfer_attr = Attrib.internal (K Transfer.transfer_add)
+    val (_, qty) = Lifting_Term.quot_thm_rty_qty quot_thm
+    val qty_name = (Binding.name o fst o dest_Type) qty
+    fun qualify suffix = Binding.qualified true suffix qty_name
     val lthy' = case maybe_reflp_thm of
       SOME reflp_thm => lthy
-        |> (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
+        |> (snd oo Local_Theory.note) ((qualify "bi_total", [transfer_attr]), 
           [[quot_thm, reflp_thm] MRSL @{thm Quotient_bi_total}])
-        |> (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
+        |> (snd oo Local_Theory.note) ((qualify "id_abs_transfer", [transfer_attr]), 
           [[quot_thm, reflp_thm] MRSL @{thm Quotient_id_abs_transfer}])
       | NONE => lthy
+        |> (snd oo Local_Theory.note) ((qualify "All_transfer", [transfer_attr]), 
+          [quot_thm RS @{thm Quotient_All_transfer}])
+        |> (snd oo Local_Theory.note) ((qualify "Ex_transfer", [transfer_attr]), 
+          [quot_thm RS @{thm Quotient_Ex_transfer}])
+        |> (snd oo Local_Theory.note) ((qualify "forall_transfer", [transfer_attr]), 
+          [quot_thm RS @{thm Quotient_forall_transfer}])
   in
     lthy'
-      |> (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
+      |> (snd oo Local_Theory.note) ((qualify "right_unique", [transfer_attr]), 
         [quot_thm RS @{thm Quotient_right_unique}])
-      |> (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
+      |> (snd oo Local_Theory.note) ((qualify "right_total", [transfer_attr]), 
         [quot_thm RS @{thm Quotient_right_total}])
-      |> (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
+      |> (snd oo Local_Theory.note) ((qualify "rel_eq_transfer", [transfer_attr]), 
         [quot_thm RS @{thm Quotient_rel_eq_transfer}])
       |> setup_lifting_infr quot_thm
   end
@@ -118,33 +127,48 @@ fun setup_by_typedef_thm typedef_thm lthy =
     val transfer_attr = Attrib.internal (K Transfer.transfer_add)
     val (_ $ rep_fun $ _ $ typedef_set) = (HOLogic.dest_Trueprop o prop_of) typedef_thm
     val (T_def, lthy') = define_cr_rel rep_fun lthy
-    
-    val quot_thm = (case typedef_set of
+
+    val quot_thm = case typedef_set of
       Const ("Orderings.top_class.top", _) => 
         [typedef_thm, T_def] MRSL @{thm UNIV_typedef_to_Quotient}
       | Const (@{const_name "Collect"}, _) $ Abs (_, _, _) => 
         [typedef_thm, T_def] MRSL @{thm open_typedef_to_Quotient}
       | _ => 
-        [typedef_thm, T_def] MRSL @{thm typedef_to_Quotient})
+        [typedef_thm, T_def] MRSL @{thm typedef_to_Quotient}
 
-    val lthy'' = (case typedef_set of
-      Const ("Orderings.top_class.top", _) => (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
-        [[typedef_thm,T_def] MRSL @{thm copy_type_bi_total}]) lthy'
-      | _ => lthy')
+    val (_, qty) = Lifting_Term.quot_thm_rty_qty quot_thm
+    val qty_name = (Binding.name o fst o dest_Type) qty
+    fun qualify suffix = Binding.qualified true suffix qty_name
+
+    val lthy'' = case typedef_set of
+      Const ("Orderings.top_class.top", _) => 
+        let
+          val equivp_thm = typedef_thm RS @{thm UNIV_typedef_to_equivp}
+          val reflp_thm = equivp_thm RS @{thm equivp_reflp2}
+        in
+          lthy'
+            |> (snd oo Local_Theory.note) ((qualify "bi_total", [transfer_attr]), 
+              [[quot_thm, reflp_thm] MRSL @{thm Quotient_bi_total}])
+            |> (snd oo Local_Theory.note) ((qualify "id_abs_transfer", [transfer_attr]), 
+              [[quot_thm, reflp_thm] MRSL @{thm Quotient_id_abs_transfer}])
+        end
+      | _ => lthy'
+        |> (snd oo Local_Theory.note) ((qualify "All_transfer", [transfer_attr]), 
+          [[typedef_thm, T_def] MRSL @{thm typedef_All_transfer}])
+        |> (snd oo Local_Theory.note) ((qualify "Ex_transfer", [transfer_attr]), 
+          [[typedef_thm, T_def] MRSL @{thm typedef_Ex_transfer}])
+        |> (snd oo Local_Theory.note) ((qualify "forall_transfer", [transfer_attr]), 
+          [[typedef_thm, T_def] MRSL @{thm typedef_forall_transfer}])
   in
     lthy''
-      |> (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
+      |> (snd oo Local_Theory.note) ((qualify "bi_unique", [transfer_attr]), 
         [[typedef_thm, T_def] MRSL @{thm typedef_bi_unique}])
-      |> (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
-        [[typedef_thm, T_def] MRSL @{thm typedef_right_total}])
-      |> (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
+      |> (snd oo Local_Theory.note) ((qualify "rep_transfer", [transfer_attr]), 
         [[typedef_thm, T_def] MRSL @{thm typedef_rep_transfer}])
-      |> (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
-        [[typedef_thm, T_def] MRSL @{thm typedef_transfer_All}])
-      |> (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
-        [[typedef_thm, T_def] MRSL @{thm typedef_transfer_Ex}])
-      |> (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
-        [[typedef_thm, T_def] MRSL @{thm typedef_transfer_bforall}])
+      |> (snd oo Local_Theory.note) ((qualify "right_unique", [transfer_attr]), 
+        [[quot_thm] MRSL @{thm Quotient_right_unique}])
+      |> (snd oo Local_Theory.note) ((qualify "right_total", [transfer_attr]), 
+        [[quot_thm] MRSL @{thm Quotient_right_total}])
       |> setup_lifting_infr quot_thm
   end
 
