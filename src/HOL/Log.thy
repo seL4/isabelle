@@ -199,11 +199,25 @@ lemma powr_realpow: "0 < x ==> x powr (real n) = x^n"
   apply (subst powr_add, simp, simp)
 done
 
-lemma powr_realpow2: "0 <= x ==> 0 < n ==> x^n = (if (x = 0) then 0
-  else x powr (real n))"
+lemma powr_realpow2: "0 <= x ==> 0 < n ==> x^n = (if (x = 0) then 0 else x powr (real n))"
   apply (case_tac "x = 0", simp, simp)
   apply (rule powr_realpow [THEN sym], simp)
 done
+
+lemma powr_int:
+  assumes "x > 0"
+  shows "x powr i = (if i \<ge> 0 then x ^ nat i else 1 / x ^ nat (-i))"
+proof cases
+  assume "i < 0"
+  have r: "x powr i = 1 / x powr (-i)" by (simp add: powr_minus field_simps)
+  show ?thesis using `i < 0` `x > 0` by (simp add: r field_simps powr_realpow[symmetric])
+qed (simp add: assms powr_realpow[symmetric])
+
+lemma powr_numeral: "0 < x \<Longrightarrow> x powr numeral n = x^numeral n"
+  using powr_realpow[of x "numeral n"] by simp
+
+lemma powr_neg_numeral: "0 < x \<Longrightarrow> x powr neg_numeral n = 1 / x^numeral n"
+  using powr_int[of x "neg_numeral n"] by simp
 
 lemma root_powr_inverse:
   "0 < n \<Longrightarrow> 0 < x \<Longrightarrow> root n x = x powr (1/n)"
