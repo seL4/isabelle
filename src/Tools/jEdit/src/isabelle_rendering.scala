@@ -147,24 +147,26 @@ object Isabelle_Rendering
 
   def tooltip(snapshot: Document.Snapshot, range: Text.Range): Option[String] =
   {
-    def add(prev: Text.Info[List[String]], r: Text.Range, s: String) =
-      if (prev.range == r) Text.Info(r, s :: prev.info) else Text.Info(r, List(s))
+    def add(prev: Text.Info[List[(Boolean, String)]], r: Text.Range, p: (Boolean, String)) =
+      if (prev.range == r) Text.Info(r, p :: prev.info) else Text.Info(r, List(p))
 
     val tips =
-      snapshot.cumulate_markup[Text.Info[List[String]]](
+      snapshot.cumulate_markup[Text.Info[(List[(Boolean, String)])]](
         range, Text.Info(range, Nil), Some(tooltip_elements),
         {
           case (prev, Text.Info(r, XML.Elem(Isabelle_Markup.Entity(kind, name), _))) =>
-            add(prev, r, kind + " " + quote(name))
+            add(prev, r, (true, kind + " " + quote(name)))
           case (prev, Text.Info(r, XML.Elem(Markup(Isabelle_Markup.TYPING, _), body))) =>
-            add(prev, r, string_of_typing("::", body))
+            add(prev, r, (true, string_of_typing("::", body)))
           case (prev, Text.Info(r, XML.Elem(Markup(Isabelle_Markup.ML_TYPING, _), body))) =>
-            add(prev, r, string_of_typing("ML:", body))
+            add(prev, r, (false, string_of_typing("ML:", body)))
           case (prev, Text.Info(r, XML.Elem(Markup(name, _), _)))
-          if tooltips.isDefinedAt(name) => add (prev, r, tooltips(name))
+          if tooltips.isDefinedAt(name) => add(prev, r, (true, tooltips(name)))
         }).toList.flatMap(_.info.info)
 
-    if (tips.isEmpty) None else Some(cat_lines(tips))
+    val all_tips =
+      (tips.filter(_._1) ++ tips.filter(!_._1).lastOption.toList).map(_._2)
+    if (all_tips.isEmpty) None else Some(cat_lines(all_tips))
   }
 
 
