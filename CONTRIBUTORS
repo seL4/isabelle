@@ -17,8 +17,12 @@ Contributions to Isabelle2012
   Alexander Krauss, QAware GmbH
   Faster and more scalable Import mechanism for HOL Light proofs.
 
-* January 2012: Florian Haftmann, TUM, et. al.
+* January 2012: Florian Haftmann, TUM, et al.
   (Re-)Introduction of the "set" type constructor.
+
+* 2011/2012: Jasmin Blanchette, TUM
+  Various improvements to Sledgehammer, notably: tighter integration
+  with SPASS, support for more provers (Alt-Ergo, iProver, iProver-Eq).
 
 * 2011/2012: Makarius Wenzel, Université Paris-Sud / LRI
   Various refinements of local theory infrastructure.

@@ -617,11 +617,17 @@ superfluous assumptions in theorems using Quickcheck.
     conjectures in a locale context.
 
 * Nitpick:
-
   - Fixed infinite loop caused by the 'peephole_optim' option and
     affecting 'rat' and 'real'.
 
 * Sledgehammer:
+  - Integrated more tightly with SPASS, as described in the ITP 2012 paper "More
+    SPASS with Isabelle".
+  - Made it try "smt" as a fallback if "metis" fails or times out.
+  - Added support for the following provers: Alt-Ergo (via Why3 and TFF1),
+    iProver, iProver-Eq.
+  - Replaced remote E-SInE with remote Satallax in the default setup.
+  - Sped up the minimizer.
   - Added "lam_trans", "uncurry_aliases", and "minimize" options.
   - Renamed "slicing" ("no_slicing") option to "slice" ("dont_slice").
   - Renamed "sound" option to "strict".
@@ -631,7 +637,7 @@ superfluous assumptions in theorems using Quickcheck.
     parenthesized argument (e.g., "by (metis (lifting) ...)").
 
 * SMT:
-  - renamed "smt_fixed" option to "smt_read_only_certificates".
+  - Renamed "smt_fixed" option to "smt_read_only_certificates".
 
 * Command 'try0':
   - Renamed from 'try_methods'. INCOMPATIBILITY.
