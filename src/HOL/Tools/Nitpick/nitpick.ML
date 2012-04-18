@@ -693,7 +693,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                     | pretties => pstrs " for " @ pretties) @
                    [Pretty.str ":\n"])),
               Pretty.indent indent_size reconstructed_model]);
-         print_t (fn () => "% SZS output stop");
+         print_t (K "% SZS output end FiniteModel");
          if genuine then
            (if check_genuine andalso standard then
               case prove_hol_model scope tac_timeout free_names sel_names
