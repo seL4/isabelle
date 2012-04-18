@@ -9,8 +9,9 @@ include ../Makefile.in
 
 NAME = prog-prove
 
-FILES = prog-prove.tex prog-prove.bib Thys/document/*.tex prelude.tex \
-  svmono.cls mathpartir.sty isabelle.sty isabellesym.sty Thys/MyList.thy
+FILES = prog-prove.tex prog-prove.bib intro-isabelle.tex \
+  Thys/document/*.tex Thys/MyList.thy \
+  prelude.tex svmono.cls mathpartir.sty isabelle.sty isabellesym.sty
 
 dvi: $(NAME).dvi
 
