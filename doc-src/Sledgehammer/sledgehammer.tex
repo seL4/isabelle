@@ -195,7 +195,7 @@ manually, or found a Vampire executable somewhere (e.g.,
 \texttt{LEO2\_HOME}, \texttt{SATALLAX\_HOME}, \texttt{SPASS\_HOME}, or
 \texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{eproof},
 \texttt{leo}, \texttt{satallax}, \texttt{SPASS}, or \texttt{vampire} executable.
-Sledgehammer has been tested with E 1.0 to 1.4, LEO-II 1.2.9, Satallax 2.2,
+Sledgehammer has been tested with E 1.0 to 1.4, LEO-II 1.2.9, Satallax 2.2 and 2.3,
 SPASS 3.5 and 3.7, and Vampire 0.6, 1.0, and 1.8%
 \footnote{Following the rewrite of Vampire, the counter for version numbers was
 reset to 0; hence the (new) Vampire versions 0.6, 1.0, and 1.8 are more recent
@@ -213,7 +213,7 @@ Yices or Z3 executable somewhere (e.g.,
 set the environment variable \texttt{CVC3\_\allowbreak SOLVER},
 \texttt{YICES\_SOLVER}, or \texttt{Z3\_SOLVER} to the complete path of
 the executable, \emph{including the file name}. Sledgehammer has been tested
-with Alt-Ergo 0.93, CVC3 2.2, Yices 1.0.28, and Z3 3.0 to 3.2.
+with Alt-Ergo 0.93, CVC3 2.2 and 2.4.1, Yices 1.0.28 and 1.0.33, and Z3 3.0 to 3.2.
 Since the SMT solvers' output formats are somewhat unstable, other
 versions of the solvers might not work well with Sledgehammer. Ideally,
 also set \texttt{CVC3\_VERSION}, \texttt{YICES\_VERSION}, or
@@ -633,7 +633,7 @@ involving fewer facts. The options and goal number are as for \textit{run}.
 \item[\labelitemi] \textbf{\textit{messages}:} Redisplays recent messages issued
 by Sledgehammer. This allows you to examine results that might have been lost
 due to Sledgehammer's asynchronous nature. The \qty{num} argument specifies a
-limit on the number of messages to display (5 by default).
+limit on the number of messages to display (10 by default).
 
 \item[\labelitemi] \textbf{\textit{supported\_provers}:} Prints the list of
 automatic provers supported by Sledgehammer. See \S\ref{installation} and
