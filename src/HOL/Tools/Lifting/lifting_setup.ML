@@ -136,7 +136,7 @@ fun setup_by_typedef_thm typedef_thm lthy =
       |> (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
         [[typedef_thm, T_def] MRSL @{thm typedef_bi_unique}])
       |> (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
-        [T_def RS @{thm typedef_right_total}])
+        [[typedef_thm, T_def] MRSL @{thm typedef_right_total}])
       |> (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
         [[typedef_thm, T_def] MRSL @{thm typedef_transfer_All}])
       |> (snd oo Local_Theory.note) ((Binding.empty, [transfer_attr]), 
