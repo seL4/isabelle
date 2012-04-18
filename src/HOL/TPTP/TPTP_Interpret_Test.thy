@@ -114,12 +114,36 @@ ML {*
 *}
 
 ML {*
+ interpretation_tests (get_timeout @{context}) @{context}
+   (some_probs @ take_too_long @ timeouts @ more_probs)
+*}
+
+ML {*
+  parse_timed (situate "NUM/NUM923^4.p");
   interpret_timed 0 (situate "NUM/NUM923^4.p") @{theory}
 *}
 
 ML {*
- interpretation_tests (get_timeout @{context}) @{context}
-   (some_probs @ take_too_long @ timeouts @ more_probs)
+  fun interp_gain timeout thy file =
+    let
+      val t1 = (parse_timed file |> fst)
+      val t2 = (interpret_timed timeout file thy |> fst)
+        handle exn => (*FIXME*)
+          if Exn.is_interrupt exn then reraise exn
+          else
+            (warning (" test: file " ^ Path.print file ^
+             " raised exception: " ^ ML_Compiler.exn_message exn);
+             {gc = Time.zeroTime, cpu = Time.zeroTime, elapsed = Time.zeroTime})
+      val to_real = Time.toReal
+      val diff_elapsed =
+        #elapsed t2 - #elapsed t1
+        |> to_real
+      val elapsed = to_real (#elapsed t2)
+    in
+      (Path.base file, diff_elapsed,
+       diff_elapsed / elapsed,
+       elapsed)
+    end
 *}
 
 

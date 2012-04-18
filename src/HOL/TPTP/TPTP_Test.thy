@@ -102,6 +102,7 @@ ML {*
 
 ML {*
   fun situate file_name = Path.append tptp_probs_dir (Path.explode file_name);
+
   fun parser_test ctxt = (*FIXME argument order*)
     test_fn ctxt
      (fn file_name =>
@@ -111,6 +112,9 @@ ML {*
               TPTP_Parser.parse_file file)))
      "parser"
      ()
+
+  fun parse_timed file =
+    Timing.timing TPTP_Parser.parse_file (Path.implode file)
 *}
 
 end
