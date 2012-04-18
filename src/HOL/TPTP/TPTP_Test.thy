@@ -1,9 +1,8 @@
 (*  Title:      HOL/TPTP/TPTP_Test.thy
     Author:     Nik Sultana, Cambridge University Computer Laboratory
 
-Some test support for the TPTP interface. Some of the tests rely on
-the Isabelle environment variable TPTP_PROBLEMS_PATH, which should
-point to the TPTP-vX.Y.Z/Problems directory.
+Some test support for the TPTP interface. Some of the tests rely on the Isabelle
+environment variable $TPTP, which should point to the TPTP-vX.Y.Z directory.
 *)
 
 theory TPTP_Test
@@ -32,7 +31,7 @@ section "Source problems"
 ML {*
   (*problem source*)
   val tptp_probs_dir =
-    Path.explode "$TPTP_PROBLEMS_PATH"
+    Path.explode "$TPTP/Problems"
     |> Path.expand;
 
   (*list of files to under test*)

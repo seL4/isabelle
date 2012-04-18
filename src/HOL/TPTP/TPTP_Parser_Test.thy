@@ -2,8 +2,7 @@
     Author:     Nik Sultana, Cambridge University Computer Laboratory
 
 Some tests for the TPTP interface. Some of the tests rely on the Isabelle
-environment variable TPTP_PROBLEMS_PATH, which should point to the
-TPTP-vX.Y.Z/Problems directory.
+environment variable $TPTP, which should point to the TPTP-vX.Y.Z directory.
 *)
 
 theory TPTP_Parser_Test
@@ -98,10 +97,10 @@ open TPTP_Syntax;
 text "Parse a specific problem."
 ML {*
   map TPTP_Parser.parse_file
-   ["$TPTP_PROBLEMS_PATH/FLD/FLD051-1.p",
-    "$TPTP_PROBLEMS_PATH/FLD/FLD005-3.p",
-    "$TPTP_PROBLEMS_PATH/SWV/SWV567-1.015.p",
-    "$TPTP_PROBLEMS_PATH/SWV/SWV546-1.010.p"]
+   ["$TPTP/Problems/FLD/FLD051-1.p",
+    "$TPTP/Problems/FLD/FLD005-3.p",
+    "$TPTP/Problems/SWV/SWV567-1.015.p",
+    "$TPTP/Problems/SWV/SWV546-1.010.p"]
 *}
 ML {*
   parser_test @{context} (situate "DAT/DAT001=1.p");

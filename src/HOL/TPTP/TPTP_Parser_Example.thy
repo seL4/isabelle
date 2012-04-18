@@ -9,7 +9,7 @@ imports TPTP_Parser TPTP_Interpret
 uses "~~/src/HOL/ex/sledgehammer_tactics.ML"
 begin
 
-import_tptp "$TPTP_PROBLEMS_PATH/ALG/ALG001^5.p"
+import_tptp "$TPTP/Problems/ALG/ALG001^5.p"
 
 ML {*
 val an_fmlas =

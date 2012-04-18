@@ -2,8 +2,7 @@
     Author:     Nik Sultana, Cambridge University Computer Laboratory
 
 Some tests for the TPTP interface. Some of the tests rely on the Isabelle
-environment variable TPTP_PROBLEMS_PATH, which should point to the
-TPTP-vX.Y.Z/Problems directory.
+environment variable $TPTP, which should point to the TPTP-vX.Y.Z directory.
 *)
 
 theory TPTP_Interpret_Test
