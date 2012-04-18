@@ -201,6 +201,14 @@ lemma equivp_reflp2:
   "equivp R \<Longrightarrow> reflp R"
   by (erule equivpE)
 
+subsection {* Respects predicate *}
+
+definition Respects :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a set"
+  where "Respects R = {x. R x x}"
+
+lemma in_respects: "x \<in> Respects R \<longleftrightarrow> R x x"
+  unfolding Respects_def by simp
+
 subsection {* Invariant *}
 
 definition invariant :: "('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" 
@@ -299,6 +307,22 @@ lemma Quotient_rel_eq_transfer: "(T ===> T ===> op =) R (op =)"
 lemma Quotient_abs_induct:
   assumes "\<And>y. R y y \<Longrightarrow> P (Abs y)" shows "P x"
   using 1 assms unfolding Quotient_def by metis
+
+lemma Quotient_All_transfer:
+  "((T ===> op =) ===> op =) (Ball (Respects R)) All"
+  unfolding fun_rel_def Respects_def Quotient_cr_rel [OF 1]
+  by (auto, metis Quotient_abs_induct)
+
+lemma Quotient_Ex_transfer:
+  "((T ===> op =) ===> op =) (Bex (Respects R)) Ex"
+  unfolding fun_rel_def Respects_def Quotient_cr_rel [OF 1]
+  by (auto, metis Quotient_rep_reflp [OF 1] Quotient_abs_rep [OF 1])
+
+lemma Quotient_forall_transfer:
+  "((T ===> op =) ===> op =) (transfer_bforall (\<lambda>x. R x x)) transfer_forall"
+  using Quotient_All_transfer
+  unfolding transfer_forall_def transfer_bforall_def
+    Ball_def [abs_def] in_respects .
 
 end
 

@@ -34,17 +34,6 @@ lemma eq_comp_r:
   shows "((op =) OOO R) = R"
   by (auto simp add: fun_eq_iff)
 
-subsection {* Respects predicate *}
-
-definition
-  Respects :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a set"
-where
-  "Respects R = {x. R x x}"
-
-lemma in_respects:
-  shows "x \<in> Respects R \<longleftrightarrow> R x x"
-  unfolding Respects_def by simp
-
 subsection {* set map (vimage) and set relation *}
 
 definition "set_rel R xs ys \<equiv> \<forall>x y. R x y \<longrightarrow> x \<in> xs \<longleftrightarrow> y \<in> ys"
