@@ -22,9 +22,10 @@ open ATP_Problem
 open ATP_Proof
 
 
-(** General TPTP parsing **)
+(** Crude TPTP CNF and FOF parsing **)
 
 exception SYNTAX of string
+exception THF of unit
 
 val tptp_explode = raw_explode o strip_spaces_except_between_idents
 
@@ -53,7 +54,8 @@ val parse_cnf_or_fof =
    || Scan.this_string "hypothesis" || Scan.this_string "conjecture"
    || Scan.this_string "negated_conjecture") --| $$ "," -- parse_formula
       --| $$ ")" --| $$ "."
-  >> (fn ("conjecture", phi) => AConn (ANot, [phi]) | (_, phi) => phi)
+    >> (fn ("conjecture", phi) => AConn (ANot, [phi]) | (_, phi) => phi)
+  || Scan.this_string "thf" >> (fn _ => raise THF ())
 
 val parse_problem =
   Scan.repeat parse_include
@@ -104,11 +106,22 @@ fun mk_all x t = Const (@{const_name All}, quant_T) $ lambda x t
 
 fun close_hol_prop t = fold (mk_all o Free) (Term.add_frees t []) t
 
-fun read_tptp_file file_name =
-  case parse_tptp_problem (File.read (Path.explode file_name)) of
-    (_, s :: ss) => raise SYNTAX ("cannot parse " ^ quote (implode (s :: ss)))
-  | (phis, []) =>
-    map (HOLogic.mk_Trueprop o close_hol_prop o hol_prop_from_formula) phis
+fun mk_meta_not P = Logic.mk_implies (P, @{prop False})
+
+fun get_tptp_formula (_, role, _, P, _) =
+  P |> role = TPTP_Syntax.Role_Conjecture ? mk_meta_not
+
+fun read_tptp_file thy file_name =
+  let val path = Path.explode file_name in
+    (case parse_tptp_problem (File.read path) of
+       (_, s :: ss) =>
+       raise SYNTAX ("cannot parse " ^ quote (implode (s :: ss)))
+     | (phis, []) =>
+       map (HOLogic.mk_Trueprop o close_hol_prop o hol_prop_from_formula) phis)
+    handle THF () =>
+    TPTP_Interpret.interpret_file true (Path.explode "$TPTP") path [] [] thy
+    |> fst |> #3 |> map get_tptp_formula
+  end
 
 fun print_szs_from_outcome s =
   "% SZS status " ^
@@ -127,11 +140,10 @@ fun isabelle_tptp_file file_name = ()
 
 fun nitpick_tptp_file file_name =
   let
-    val ts = read_tptp_file file_name
+    val ts = read_tptp_file @{theory} file_name
     val state = Proof.init @{context}
     val params =
-      [("card iota", "1\<emdash>100"),
-       ("card", "1\<emdash>8"),
+      [("card", "1\<emdash>100"),
        ("box", "false"),
        ("sat_solver", "smart"),
        ("max_threads", "1"),
@@ -160,7 +172,7 @@ fun nitpick_tptp_file file_name =
 
 fun refute_tptp_file file_name =
   let
-    val ts = read_tptp_file file_name
+    val ts = read_tptp_file @{theory} file_name
     val params =
       [("maxtime", "10000"),
        ("assms", "true"),
