@@ -177,8 +177,8 @@ fun is_induction_fact (Untranslated_Fact ((_, (_, Induction)), _)) = true
 
 fun launch_prover (params as {debug, verbose, blocking, max_relevant, slice,
                               timeout, expect, ...})
-        mode minimize_command only
-        {state, goal, subgoal, subgoal_count, facts, smt_filter} name =
+        mode minimize_command only {state, goal, subgoal, subgoal_count, facts}
+        name =
   let
     val ctxt = Proof.context_of state
     val hard_timeout = Time.+ (timeout, timeout)
@@ -197,8 +197,7 @@ fun launch_prover (params as {debug, verbose, blocking, max_relevant, slice,
          subgoal_count = subgoal_count, facts =
           ((Sledgehammer_Provers.is_ho_atp ctxt name |> not) ? filter_induction)
             facts
-          |> take num_facts,
-         smt_filter = smt_filter}
+          |> take num_facts}
       end
     fun really_go () =
       problem
@@ -268,14 +267,11 @@ fun class_of_smt_solver ctxt name =
   ctxt |> select_smt_solver name
        |> SMT_Config.solver_class_of |> SMT_Utils.string_of_class
 
-fun dest_SMT_Weighted_Fact (SMT_Weighted_Fact p) = p
-  | dest_SMT_Weighted_Fact _ = raise Fail "dest_SMT_Weighted_Fact"
-
 val auto_try_max_relevant_divisor = 2 (* FUDGE *)
 
 fun run_sledgehammer (params as {debug, verbose, blocking, provers,
                                  relevance_thresholds, max_relevant, slice,
-                                 timeout, ...})
+                                 ...})
         mode i (relevance_override as {only, ...}) minimize_command state =
   if null provers then
     error "No prover is set."
@@ -303,7 +299,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
       val (smts, (ueq_atps, full_atps)) =
         provers |> List.partition (is_smt_prover ctxt)
                 ||> List.partition (is_unit_equational_atp ctxt)
-      fun launch_provers state get_facts translate maybe_smt_filter provers =
+      fun launch_provers state get_facts translate provers =
         let
           val facts = get_facts ()
           val num_facts = length facts
@@ -311,9 +307,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
                       |> map (translate num_facts)
           val problem =
             {state = state, goal = goal, subgoal = i, subgoal_count = n,
-             facts = facts,
-             smt_filter = maybe_smt_filter
-                  (fn () => map_filter (try dest_SMT_Weighted_Fact) facts) i}
+             facts = facts}
           val launch = launch_prover params mode minimize_command only
         in
           if mode = Auto_Try orelse mode = Try then
@@ -377,7 +371,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
         else
           launch_provers state
               (get_facts label is_appropriate_prop atp_relevance_fudge o K atps)
-              (K (Untranslated_Fact o fst)) (K (K NONE)) atps
+              (K (Untranslated_Fact o fst)) atps
       fun launch_smts accum =
         if null smts then
           accum
@@ -385,15 +379,10 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
           let
             val facts = get_facts "SMT solver" NONE smt_relevance_fudge smts
             val weight = SMT_Weighted_Fact oo weight_smt_fact ctxt
-            fun smt_filter facts =
-              (if debug then curry (op o) SOME
-               else TimeLimit.timeLimit timeout o try)
-                  (SMT_Solver.smt_filter_preprocess state (facts ()))
           in
             smts |> map (`(class_of_smt_solver ctxt))
                  |> AList.group (op =)
-                 |> map (snd #> launch_provers state (K facts) weight smt_filter
-                             #> fst)
+                 |> map (snd #> launch_provers state (K facts) weight #> fst)
                  |> max_outcome_code |> rpair state
           end
       val launch_full_atps = launch_atps "ATP" NONE full_atps

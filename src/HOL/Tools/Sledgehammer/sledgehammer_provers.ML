@@ -49,8 +49,7 @@ sig
      goal: thm,
      subgoal: int,
      subgoal_count: int,
-     facts: prover_fact list,
-     smt_filter: (string * stature) SMT_Solver.smt_filter_data option}
+     facts: prover_fact list}
 
   type prover_result =
     {outcome: failure option,
@@ -314,8 +313,7 @@ type prover_problem =
    goal: thm,
    subgoal: int,
    subgoal_count: int,
-   facts: prover_fact list,
-   smt_filter: (string * stature) SMT_Solver.smt_filter_data option}
+   facts: prover_fact list}
 
 type prover_result =
   {outcome: failure option,
@@ -900,7 +898,7 @@ val smt_slice_min_secs =
 fun smt_filter_loop ctxt name
                     ({debug, verbose, overlord, max_mono_iters,
                       max_new_mono_instances, timeout, slice, ...} : params)
-                    state i smt_filter =
+                    state i =
   let
     val max_slices = if slice then Config.get ctxt smt_max_slices else 1
     val repair_context =
@@ -944,9 +942,7 @@ fun smt_filter_loop ctxt name
         val _ =
           if debug then Output.urgent_message "Invoking SMT solver..." else ()
         val (outcome, used_facts) =
-          (case (slice, smt_filter) of
-             (1, SOME head) => head |> apsnd (apsnd repair_context)
-           | _ => SMT_Solver.smt_filter_preprocess state facts i)
+          SMT_Solver.smt_filter_preprocess state facts i
           |> SMT_Solver.smt_filter_apply slice_timeout
           |> (fn {outcome, used_facts} => (outcome, used_facts))
           handle exn => if Exn.is_interrupt exn then
@@ -995,15 +991,14 @@ fun smt_filter_loop ctxt name
 
 fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
         minimize_command
-        ({state, subgoal, subgoal_count, facts, smt_filter, ...}
-         : prover_problem) =
+        ({state, subgoal, subgoal_count, facts, ...} : prover_problem) =
   let
     val ctxt = Proof.context_of state
     val num_facts = length facts
     val facts = facts ~~ (0 upto num_facts - 1)
                 |> map (smt_weighted_fact ctxt num_facts)
     val {outcome, used_facts = used_pairs, run_time} =
-      smt_filter_loop ctxt name params state subgoal smt_filter facts
+      smt_filter_loop ctxt name params state subgoal facts
     val used_facts = used_pairs |> map fst
     val outcome = outcome |> Option.map failure_from_smt_failure
     val (preplay, message, message_tail) =

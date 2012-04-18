@@ -72,7 +72,7 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
        preplay_timeout = preplay_timeout, expect = ""}
     val problem =
       {state = state, goal = goal, subgoal = i, subgoal_count = n,
-       facts = facts, smt_filter = NONE}
+       facts = facts}
     val result as {outcome, used_facts, run_time, ...} =
       prover params (K (K (K ""))) problem
   in
