@@ -97,6 +97,8 @@ sig
   val interpret_file : bool -> Path.T -> Path.T -> type_map -> const_map ->
     theory -> tptp_general_meaning * theory
 
+  type position = string * int * int
+  exception MISINTERPRET of position list * exn
   exception MISINTERPRET_FORMULA of string * TPTP_Syntax.tptp_formula
   exception MISINTERPRET_SYMBOL of string * TPTP_Syntax.symbol
   exception MISINTERPRET_TERM of string * TPTP_Syntax.tptp_term
@@ -119,6 +121,8 @@ structure TPTP_Interpret : TPTP_INTERPRET =
 struct
 
 open TPTP_Syntax
+type position = string * int * int
+exception MISINTERPRET of position list * exn
 exception MISINTERPRET_FORMULA of string * TPTP_Syntax.tptp_formula
 exception MISINTERPRET_SYMBOL of string * TPTP_Syntax.symbol
 exception MISINTERPRET_TERM of string * TPTP_Syntax.tptp_term
@@ -672,7 +676,7 @@ fun nameof_tff_typing (Atom (TFF_Typed_Atom (Uninterpreted str, _))) = str
 
 fun interpret_line config inc_list type_map const_map path_prefix line thy =
   case line of
-     Include (quoted_path, inc_list) =>
+     Include (_, quoted_path, inc_list) =>
        interpret_file'
         config
         inc_list
@@ -685,7 +689,7 @@ fun interpret_line config inc_list type_map const_map path_prefix line thy =
         type_map
         const_map
         thy
-   | Annotated_Formula (pos, lang, label, role, tptp_formula, annotation_opt) =>
+   | Annotated_Formula (_, lang, label, role, tptp_formula, annotation_opt) =>
        (*interpret a line only if "label" is in "inc_list", or if "inc_list" is
           empty (in which case interpret all lines)*)
        (*FIXME could work better if inc_list were sorted*)
@@ -779,6 +783,7 @@ fun interpret_line config inc_list type_map const_map path_prefix line thy =
              end
        else (*do nothing if we're not to includ this AF*)
          ((type_map, const_map, []), thy)
+
 and interpret_problem config inc_list path_prefix lines type_map const_map thy =
   let
     val thy_name = Context.theory_name thy
@@ -789,6 +794,16 @@ and interpret_problem config inc_list path_prefix lines type_map const_map thy =
                (*process the line, ignoring the type-context for variables*)
                val ((type_map', const_map', l'), thy') =
                  interpret_line config inc_list type_map const_map path_prefix line thy
+                   handle
+                     (*package all exceptions to include position information,
+                       even relating to multiple levels of "include"ed files*)
+                       (*FIXME "exn" contents may appear garbled due to markup
+                         FIXME this appears as ML source position *)
+                       MISINTERPRET (pos_list, exn)  =>
+                         raise MISINTERPRET
+                           (TPTP_Syntax.pos_of_line line :: pos_list, exn)
+                     | exn => raise MISINTERPRET
+                         ([TPTP_Syntax.pos_of_line line], exn)
              in
                ((type_map',
                  const_map',

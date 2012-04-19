@@ -3717,7 +3717,7 @@ exception mlyAction of int
 local open Header in
 val actions = 
 fn (i392,defaultPos,stack,
-    (file_name):arg) =>
+    (this_file_name):arg) =>
 case (i392,stack)
 of  ( 0, ( ( _, ( MlyValue.tptp_file tptp_file, tptp_file1left, 
 tptp_file1right)) :: rest671)) => let val  result = MlyValue.tptp (
@@ -3784,7 +3784,7 @@ MlyValue.formula_role formula_role, _, _)) :: _ :: ( _, (
 MlyValue.name name, _, _)) :: _ :: ( _, ( _, (THFleft as THF1left), 
 THFright)) :: rest671)) => let val  result = MlyValue.thf_annotated (
 (
-  Annotated_Formula ((file_name, THFleft + 1, THFright + 1),
+  Annotated_Formula ((this_file_name, THFleft + 1, THFright + 1),
    THF, name, formula_role, thf_formula, annotations)
 )
 )
@@ -3797,7 +3797,7 @@ MlyValue.formula_role formula_role, _, _)) :: _ :: ( _, (
 MlyValue.name name, _, _)) :: _ :: ( _, ( _, (TFFleft as TFF1left), 
 TFFright)) :: rest671)) => let val  result = MlyValue.tff_annotated (
 (
-  Annotated_Formula ((file_name, TFFleft + 1, TFFright + 1),
+  Annotated_Formula ((this_file_name, TFFleft + 1, TFFright + 1),
    TFF, name, formula_role, tff_formula, annotations)
 )
 )
@@ -3810,7 +3810,7 @@ MlyValue.formula_role formula_role, _, _)) :: _ :: ( _, (
 MlyValue.name name, _, _)) :: _ :: ( _, ( _, (FOFleft as FOF1left), 
 FOFright)) :: rest671)) => let val  result = MlyValue.fof_annotated (
 (
-  Annotated_Formula ((file_name, FOFleft + 1, FOFright + 1),
+  Annotated_Formula ((this_file_name, FOFleft + 1, FOFright + 1),
    FOF, name, formula_role, fof_formula, annotations)
 )
 )
@@ -3823,7 +3823,7 @@ MlyValue.formula_role formula_role, _, _)) :: _ :: ( _, (
 MlyValue.name name, _, _)) :: _ :: ( _, ( _, (CNFleft as CNF1left), 
 CNFright)) :: rest671)) => let val  result = MlyValue.cnf_annotated (
 (
-  Annotated_Formula ((file_name, CNFleft + 1, CNFright + 1),
+  Annotated_Formula ((this_file_name, CNFleft + 1, CNFright + 1),
    CNF, name, formula_role, cnf_formula, annotations)
 )
 )
@@ -5519,11 +5519,14 @@ result = MlyValue.useful_info (( general_list ))
 end
 |  ( 249, ( ( _, ( _, _, PERIOD1right)) :: _ :: ( _, ( 
 MlyValue.formula_selection formula_selection, _, _)) :: ( _, ( 
-MlyValue.file_name file_name, _, _)) :: _ :: ( _, ( _, INCLUDE1left, _
-)) :: rest671)) => let val  result = MlyValue.include_ (
+MlyValue.file_name file_name, _, _)) :: _ :: ( _, ( _, (INCLUDEleft
+ as INCLUDE1left), INCLUDEright)) :: rest671)) => let val  result = 
+MlyValue.include_ (
 (
-  Include (file_name, formula_selection)
-))
+  Include ((this_file_name, INCLUDEleft + 1, INCLUDEright + 1),
+    file_name, formula_selection)
+)
+)
  in ( LrTable.NT 132, ( result, INCLUDE1left, PERIOD1right), rest671)
 
 end

@@ -197,7 +197,7 @@ fun extract_quant_info (Quant (quantifier, vars, tptp_formula)) =
 %pos int
 %eop EOF
 %noshift EOF
-%arg (file_name) : string
+%arg (this_file_name) : string
 
 %nonassoc LET
 %nonassoc RPAREN
@@ -247,22 +247,22 @@ annotated_formula : thf_annotated (( thf_annotated ))
                   | cnf_annotated (( cnf_annotated ))
 
 thf_annotated : THF LPAREN name COMMA formula_role COMMA thf_formula annotations RPAREN PERIOD ((
-  Annotated_Formula ((file_name, THFleft + 1, THFright + 1),
+  Annotated_Formula ((this_file_name, THFleft + 1, THFright + 1),
    THF, name, formula_role, thf_formula, annotations)
 ))
 
 tff_annotated : TFF LPAREN name COMMA formula_role COMMA tff_formula annotations RPAREN PERIOD ((
-  Annotated_Formula ((file_name, TFFleft + 1, TFFright + 1),
+  Annotated_Formula ((this_file_name, TFFleft + 1, TFFright + 1),
    TFF, name, formula_role, tff_formula, annotations)
 ))
 
 fof_annotated : FOF LPAREN name COMMA formula_role COMMA fof_formula annotations RPAREN PERIOD ((
-  Annotated_Formula ((file_name, FOFleft + 1, FOFright + 1),
+  Annotated_Formula ((this_file_name, FOFleft + 1, FOFright + 1),
    FOF, name, formula_role, fof_formula, annotations)
 ))
 
 cnf_annotated : CNF LPAREN name COMMA formula_role COMMA cnf_formula annotations RPAREN PERIOD ((
-  Annotated_Formula ((file_name, CNFleft + 1, CNFright + 1),
+  Annotated_Formula ((this_file_name, CNFleft + 1, CNFright + 1),
    CNF, name, formula_role, cnf_formula, annotations)
 ))
 
@@ -791,7 +791,8 @@ optional_info : COMMA useful_info (( useful_info ))
 useful_info : general_list (( general_list ))
 
 include_ : INCLUDE LPAREN file_name formula_selection RPAREN PERIOD ((
-  Include (file_name, formula_selection)
+  Include ((this_file_name, INCLUDEleft + 1, INCLUDEright + 1),
+    file_name, formula_selection)
 ))
 
 formula_selection : COMMA LBRKT name_list RBRKT   (( name_list  ))

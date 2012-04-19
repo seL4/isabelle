@@ -131,7 +131,7 @@ sig
   datatype tptp_line =
       Annotated_Formula of position * language * string * role *
         tptp_formula * annotation option
-   |  Include of string * string list
+   |  Include of position * string * string list
 
   type tptp_problem = tptp_line list
 
@@ -142,6 +142,8 @@ sig
   val status_to_string : status_value -> string
 
   val nameof_tff_atom_type : tptp_type -> string
+
+  val pos_of_line : tptp_line -> position
 
   (*Returns the list of all files included in a directory and its
   subdirectories. This is only used for testing the parser/interpreter against
@@ -275,7 +277,7 @@ type position = string * int * int
 
 datatype tptp_line =
     Annotated_Formula of position * language * string * role * tptp_formula * annotation option
- |  Include of string * string list
+ |  Include of position * string * string list
 
 type tptp_problem = tptp_line list
 
@@ -283,6 +285,11 @@ fun debug f x = if !Runtime.debug then (f x; ()) else ()
 
 fun nameof_tff_atom_type (Atom_type str) = str
   | nameof_tff_atom_type _ = raise TPTP_SYNTAX "nameof_tff_atom_type called on non-atom type"
+
+fun pos_of_line tptp_line =
+  case tptp_line of
+      Annotated_Formula (position, _, _, _, _, _) => position
+   |  Include (position, _, _) => position
 
 (*Used for debugging. Returns all files contained within a directory or its
 subdirectories. Follows symbolic links, filters away directories.*)
