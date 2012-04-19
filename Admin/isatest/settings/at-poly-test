@@ -28,4 +28,5 @@ ISABELLE_GHC="/home/isabelle/contrib_devel/ghc/x86-linux/ghc"
 ISABELLE_OCAML="/home/isabelle/contrib_devel/ocaml/x86-linux/ocaml"
 ISABELLE_SWIPL="/home/isabelle/contrib_devel/swipl/bin/swipl"
 
+init_component "$HOME/contrib_devel/jdk-7u3_x86-linux"
 init_component "$HOME/contrib_devel/kodkodi-1.2.16"

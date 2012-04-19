@@ -13,13 +13,15 @@ import isabelle._
 import scala.collection.Set
 import scala.collection.immutable.TreeSet
 
+import java.awt.Component
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.text.Position
-import javax.swing.Icon
+import javax.swing.{Icon, DefaultListCellRenderer, ListCellRenderer, JList}
 
 import org.gjt.sp.jedit.{Buffer, EditPane, TextUtilities, View}
 import errorlist.DefaultErrorSource
-import sidekick.{SideKickParser, SideKickParsedData, SideKickCompletion, IAsset}
+import sidekick.{SideKickParser, SideKickParsedData, SideKickCompletion,
+  SideKickCompletionPopup, IAsset}
 
 
 object Isabelle_Sidekick
@@ -101,8 +103,27 @@ abstract class Isabelle_Sidekick(name: String) extends SideKickParser(name)
                   cs.map(Symbol.decode(_)).sorted
                  else cs).filter(_ != word)
               if (ds.isEmpty) null
-              else new SideKickCompletion(
-                pane.getView, word, ds.toArray.asInstanceOf[Array[Object]]) { }
+              else
+                new SideKickCompletion(pane.getView, word, ds.toArray.asInstanceOf[Array[Object]]) {
+                  /* FIXME Java 7 only
+                  override def getRenderer() =
+                    new ListCellRenderer[Any] {
+                      val default_renderer =
+                        (new DefaultListCellRenderer).asInstanceOf[ListCellRenderer[Any]]
+
+                      override def getListCellRendererComponent(
+                          list: JList[_ <: Any], value: Any, index: Int,
+                          selected: Boolean, focus: Boolean): Component =
+                      {
+                        val renderer: Component =
+                          default_renderer.getListCellRendererComponent(
+                            list, value, index, selected, focus)
+                        renderer.setFont(pane.getTextArea.getPainter.getFont)
+                        renderer
+                      }
+                    }
+                  */
+                }
           }
       }
     }

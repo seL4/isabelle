@@ -13,15 +13,17 @@
 \newcommand{\figref}[1]{figure~\ref{#1}}
 \newcommand{\Figref}[1]{Figure~\ref{#1}}
 
-%% ML
-\newenvironment{mldecls}{\par\noindent\begingroup\def\isanewline{\\}\begin{tabular}{ll}}{\end{tabular}\medskip\endgroup}
-
-\renewcommand{\isatagML}{\begingroup\isabellestyle{default}\isastyle\def\isadigit##1{##1}}
-\renewcommand{\endisatagML}{\endgroup}
-
 %% Isar
 \newcommand{\isasymBBAR}{{\,\newdimen{\tmpheight}\settoheight\tmpheight{\isacharbar}\rule{1pt}{\tmpheight}\,}}
 \isafoldtag{noproof}\def\isafoldnoproof{~\isafold{proof}}
+\newcommand{\isadigitreset}{\def\isadigit##1{##1}}
+\renewcommand{\isacommand}[1]{\isakeyword{\isadigitreset#1}}
+
+%% ML
+\newenvironment{mldecls}{\par\noindent\begingroup\def\isanewline{\\}\begin{tabular}{ll}}{\end{tabular}\medskip\endgroup}
+
+\renewcommand{\isatagML}{\begingroup\isabellestyle{default}\isastyle\isadigitreset}
+\renewcommand{\endisatagML}{\endgroup}
 
 %% math
 \newcommand{\isasymstrut}{\isamath{\mathstrut}}

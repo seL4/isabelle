@@ -44,10 +44,12 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
                   snapshot.node.command_start(cmd) match {
                     case Some(start) if !snapshot.is_outdated =>
                       val text = Pretty.string_of(sendback)
-                      buffer.beginCompoundEdit()
-                      buffer.remove(start, cmd.proper_range.length)
-                      buffer.insert(start, text)
-                      buffer.endCompoundEdit()
+                      try {
+                        buffer.beginCompoundEdit()
+                        buffer.remove(start, cmd.proper_range.length)
+                        buffer.insert(start, text)
+                      }
+                      finally { buffer.endCompoundEdit() }
                     case _ =>
                   }
                 case None =>

@@ -24,5 +24,6 @@ ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 
 ISABELLE_USEDIR_OPTIONS="-i true -d pdf -v true -t true"
 
+init_component "$HOME/contrib_devel/jdk-7u3_x86-linux"
 init_component "$HOME/contrib_devel/kodkodi-1.2.16"
 
