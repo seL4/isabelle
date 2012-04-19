@@ -1,7 +1,7 @@
 (* Author: Tobias Nipkow *)
 
-theory Abs_Int2
-imports Abs_Int1_ivl
+theory Abs_Int3_ITP
+imports Abs_Int2_ivl_ITP
 begin
 
 subsection "Widening and Narrowing"

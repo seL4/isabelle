@@ -1159,6 +1159,18 @@ by (simp add: real_of_int_def)
 lemma real_of_int_le_zero_cancel_iff [simp, presburger]: "(real (n::int) <= 0) = (n <= 0)"
 by (simp add: real_of_int_def)
 
+lemma one_less_real_of_int_cancel_iff: "1 < real (i :: int) \<longleftrightarrow> 1 < i"
+  unfolding real_of_one[symmetric] real_of_int_less_iff ..
+
+lemma one_le_real_of_int_cancel_iff: "1 \<le> real (i :: int) \<longleftrightarrow> 1 \<le> i"
+  unfolding real_of_one[symmetric] real_of_int_le_iff ..
+
+lemma real_of_int_less_one_cancel_iff: "real (i :: int) < 1 \<longleftrightarrow> i < 1"
+  unfolding real_of_one[symmetric] real_of_int_less_iff ..
+
+lemma real_of_int_le_one_cancel_iff: "real (i :: int) \<le> 1 \<longleftrightarrow> i \<le> 1"
+  unfolding real_of_one[symmetric] real_of_int_le_iff ..
+
 lemma real_of_int_abs [simp]: "real (abs x) = abs(real (x::int))"
 by (auto simp add: abs_if)
 
@@ -1554,6 +1566,30 @@ by (rule_tac y = 0 in order_trans, auto)
 lemma realpow_square_minus_le [simp]: "-(u ^ 2) \<le> (x::real) ^ 2"
 by (auto simp add: power2_eq_square)
 
+
+lemma numeral_power_le_real_of_nat_cancel_iff[simp]:
+  "(numeral x::real) ^ n \<le> real a \<longleftrightarrow> (numeral x::nat) ^ n \<le> a"
+  unfolding real_of_nat_le_iff[symmetric] by simp
+
+lemma real_of_nat_le_numeral_power_cancel_iff[simp]:
+  "real a \<le> (numeral x::real) ^ n \<longleftrightarrow> a \<le> (numeral x::nat) ^ n"
+  unfolding real_of_nat_le_iff[symmetric] by simp
+
+lemma numeral_power_le_real_of_int_cancel_iff[simp]:
+  "(numeral x::real) ^ n \<le> real a \<longleftrightarrow> (numeral x::int) ^ n \<le> a"
+  unfolding real_of_int_le_iff[symmetric] by simp
+
+lemma real_of_int_le_numeral_power_cancel_iff[simp]:
+  "real a \<le> (numeral x::real) ^ n \<longleftrightarrow> a \<le> (numeral x::int) ^ n"
+  unfolding real_of_int_le_iff[symmetric] by simp
+
+lemma neg_numeral_power_le_real_of_int_cancel_iff[simp]:
+  "(neg_numeral x::real) ^ n \<le> real a \<longleftrightarrow> (neg_numeral x::int) ^ n \<le> a"
+  unfolding real_of_int_le_iff[symmetric] by simp
+
+lemma real_of_int_le_neg_numeral_power_cancel_iff[simp]:
+  "real a \<le> (neg_numeral x::real) ^ n \<longleftrightarrow> a \<le> (neg_numeral x::int) ^ n"
+  unfolding real_of_int_le_iff[symmetric] by simp
 
 subsection{*Density of the Reals*}
 

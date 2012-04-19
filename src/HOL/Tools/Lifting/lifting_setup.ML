@@ -97,7 +97,7 @@ fun setup_by_quotient no_code quot_thm maybe_reflp_thm lthy =
     val transfer_attr = Attrib.internal (K Transfer.transfer_add)
     val (_, qty) = Lifting_Term.quot_thm_rty_qty quot_thm
     val induct_attr = Attrib.internal (K (Induct.induct_type (fst (dest_Type qty))))
-    val qty_name = (Binding.name o fst o dest_Type) qty
+    val qty_name = (Binding.name o Long_Name.base_name o fst o dest_Type) qty
     fun qualify suffix = Binding.qualified true suffix qty_name
     val lthy' = case maybe_reflp_thm of
       SOME reflp_thm => lthy
@@ -142,7 +142,7 @@ fun setup_by_typedef_thm no_code typedef_thm lthy =
         [typedef_thm, T_def] MRSL @{thm typedef_to_Quotient}
 
     val (_, qty) = Lifting_Term.quot_thm_rty_qty quot_thm
-    val qty_name = (Binding.name o fst o dest_Type) qty
+    val qty_name = (Binding.name o Long_Name.base_name o fst o dest_Type) qty
     fun qualify suffix = Binding.qualified true suffix qty_name
 
     val lthy'' = case typedef_set of

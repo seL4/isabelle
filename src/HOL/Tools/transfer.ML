@@ -14,6 +14,7 @@ sig
   val transfer_tac: Proof.context -> int -> tactic
   val correspondence_tac: Proof.context -> int -> tactic
   val setup: theory -> theory
+  val abs_tac: int -> tactic
 end
 
 structure Transfer : TRANSFER =
@@ -93,21 +94,8 @@ fun correspond_conv ctxt ct = (
 
 (** Transfer proof method **)
 
-fun bnames (t $ u) = bnames t @ bnames u
-  | bnames (Abs (x,_,t)) = x :: bnames t
-  | bnames _ = []
-
-fun rename [] t = (t, [])
-  | rename (x::xs) ((c as Const (@{const_name Abs}, _)) $ Abs (_, T, t)) =
-    let val (t', xs') = rename xs t
-    in (c $ Abs (x, T, t'), xs') end
-  | rename xs0 (t $ u) =
-    let val (t', xs1) = rename xs0 t
-        val (u', xs2) = rename xs1 u
-    in (t' $ u', xs2) end
-  | rename xs t = (t, xs)
-
-fun cert ctxt t = cterm_of (Proof_Context.theory_of ctxt) t
+fun dest_Rel (Const (@{const_name Rel}, _) $ r $ x $ y) = (r, x, y)
+  | dest_Rel t = raise TERM ("dest_Rel", [t])
 
 fun RelT (Const (@{const_name Rel}, _) $ _ $ _ $ y) = fastype_of y
 
@@ -135,23 +123,28 @@ fun gen_frees_tac keepers ctxt = SUBGOAL (fn (t, i) =>
     Induct.arbitrary_tac ctxt 0 vs' i
   end)
 
+(* Apply rule Rel_Abs with appropriate bound variable name *)
+val abs_tac = SUBGOAL (fn (t, i) =>
+  let
+    val pat = (#2 o dest_Rel o HOLogic.dest_Trueprop o Thm.concl_of) @{thm Rel_Abs}
+    val obj = (#3 o dest_Rel o HOLogic.dest_Trueprop o Logic.strip_assums_concl) t
+    val rule = Thm.rename_boundvars pat obj @{thm Rel_Abs}
+  in
+    rtac rule i
+  end handle TERM _ => no_tac)
+
 fun transfer_tac ctxt = SUBGOAL (fn (t, i) =>
   let
-    val bs = bnames t
-    val rules0 = @{thms Rel_App Rel_Abs}
     val rules = Data.get ctxt
+    val app_tac = rtac @{thm Rel_App}
   in
     EVERY
       [rewrite_goal_tac @{thms transfer_forall_eq transfer_implies_eq} i,
        CONVERSION (Trueprop_conv (fo_conv ctxt)) i,
        rtac @{thm transfer_start [rotated]} i,
-       REPEAT_ALL_NEW (resolve_tac rules0 ORELSE' atac
+       REPEAT_ALL_NEW (app_tac ORELSE' abs_tac ORELSE' atac
          ORELSE' SOLVED' (REPEAT_ALL_NEW (resolve_tac rules))
          ORELSE' eq_tac ctxt) (i + 1),
-       (* Alpha-rename bound variables in goal *)
-       SUBGOAL (fn (u, i) =>
-         rtac @{thm equal_elim_rule1} i THEN
-         rtac (Thm.reflexive (cert ctxt (fst (rename bs u)))) i) i,
        (* FIXME: rewrite_goal_tac does unwanted eta-contraction *)
        rewrite_goal_tac post_simps i,
        rtac @{thm _} i]

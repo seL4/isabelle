@@ -168,6 +168,29 @@ lemma log_le_cancel_iff [simp]:
      "[| 1 < a; 0 < x; 0 < y |] ==> (log a x \<le> log a y) = (x \<le> y)"
 by (simp add: linorder_not_less [symmetric])
 
+lemma zero_less_log_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> 0 < log a x \<longleftrightarrow> 1 < x"
+  using log_less_cancel_iff[of a 1 x] by simp
+
+lemma zero_le_log_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> 0 \<le> log a x \<longleftrightarrow> 1 \<le> x"
+  using log_le_cancel_iff[of a 1 x] by simp
+
+lemma log_less_zero_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> log a x < 0 \<longleftrightarrow> x < 1"
+  using log_less_cancel_iff[of a x 1] by simp
+
+lemma log_le_zero_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> log a x \<le> 0 \<longleftrightarrow> x \<le> 1"
+  using log_le_cancel_iff[of a x 1] by simp
+
+lemma one_less_log_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> 1 < log a x \<longleftrightarrow> a < x"
+  using log_less_cancel_iff[of a a x] by simp
+
+lemma one_le_log_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> 1 \<le> log a x \<longleftrightarrow> a \<le> x"
+  using log_le_cancel_iff[of a a x] by simp
+
+lemma log_less_one_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> log a x < 1 \<longleftrightarrow> x < a"
+  using log_less_cancel_iff[of a x a] by simp
+
+lemma log_le_one_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> log a x \<le> 1 \<longleftrightarrow> x \<le> a"
+  using log_le_cancel_iff[of a x a] by simp
 
 lemma powr_realpow: "0 < x ==> x powr (real n) = x^n"
   apply (induct n, simp)
@@ -176,11 +199,25 @@ lemma powr_realpow: "0 < x ==> x powr (real n) = x^n"
   apply (subst powr_add, simp, simp)
 done
 
-lemma powr_realpow2: "0 <= x ==> 0 < n ==> x^n = (if (x = 0) then 0
-  else x powr (real n))"
+lemma powr_realpow2: "0 <= x ==> 0 < n ==> x^n = (if (x = 0) then 0 else x powr (real n))"
   apply (case_tac "x = 0", simp, simp)
   apply (rule powr_realpow [THEN sym], simp)
 done
+
+lemma powr_int:
+  assumes "x > 0"
+  shows "x powr i = (if i \<ge> 0 then x ^ nat i else 1 / x ^ nat (-i))"
+proof cases
+  assume "i < 0"
+  have r: "x powr i = 1 / x powr (-i)" by (simp add: powr_minus field_simps)
+  show ?thesis using `i < 0` `x > 0` by (simp add: r field_simps powr_realpow[symmetric])
+qed (simp add: assms powr_realpow[symmetric])
+
+lemma powr_numeral: "0 < x \<Longrightarrow> x powr numeral n = x^numeral n"
+  using powr_realpow[of x "numeral n"] by simp
+
+lemma powr_neg_numeral: "0 < x \<Longrightarrow> x powr neg_numeral n = 1 / x^numeral n"
+  using powr_int[of x "neg_numeral n"] by simp
 
 lemma root_powr_inverse:
   "0 < n \<Longrightarrow> 0 < x \<Longrightarrow> root n x = x powr (1/n)"
@@ -247,6 +284,10 @@ lemma powr_mono2: "0 <= a ==> 0 < x ==> x <= y ==> x powr a <= y powr a"
   apply (rule order_less_imp_le)
   apply (rule powr_less_mono2, auto)
 done
+
+lemma powr_inj:
+  "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> a powr x = a powr y \<longleftrightarrow> x = y"
+  unfolding powr_def exp_inj_iff by simp
 
 lemma ln_powr_bound: "1 <= x ==> 0 < a ==> ln x <= (x powr a) / a"
   apply (rule mult_imp_le_div_pos)

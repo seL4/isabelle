@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-theory Abs_Int0_fun
+theory Abs_Int0_ITP
 imports "~~/src/HOL/ex/Interpretation_with_Defs"
         "~~/src/HOL/Library/While_Combinator"
         Collecting
