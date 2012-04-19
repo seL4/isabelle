@@ -475,6 +475,15 @@ follows:
   unionwk_is_rbt -> rbt_unionwk_is_rbt
   unionwk_sorted -> rbt_unionwk_rbt_sorted
 
+* Theory HOL/Library/Float: Floating point numbers are now defined as a
+subset of the real numbers. All operations are defined using the
+lifing-framework and most proofs use the transfer method.
+INCOMPATIBILITY.
+
+  Changed Operations:
+  scale   ~>   exponent
+  pow2 x  ~>   use "2 powr (real x)"
+
 * Session HOL-Word: Discontinued many redundant theorems specific to
 type 'a word. INCOMPATIBILITY, use the corresponding generic theorems
 instead.
