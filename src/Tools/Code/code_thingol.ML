@@ -270,7 +270,6 @@ fun contains_dict_var t =
 local
   fun thyname_of_type thy = #theory_name o Name_Space.the_entry (Sign.type_space thy);
   fun thyname_of_class thy = #theory_name o Name_Space.the_entry (Sign.class_space thy);
-  fun thyname_of_const' thy = #theory_name o Name_Space.the_entry (Sign.const_space thy);
   fun thyname_of_instance thy inst = case AxClass.thynames_of_arity thy inst
    of [] => error ("No such instance: " ^ quote (snd inst ^ " :: " ^ fst inst))
     | thyname :: _ => thyname;
@@ -278,7 +277,7 @@ local
    of SOME class => thyname_of_class thy class
     | NONE => (case Code.get_type_of_constr_or_abstr thy c
        of SOME (tyco, _) => thyname_of_type thy tyco
-        | NONE => thyname_of_const' thy c);
+        | NONE => #theory_name (Name_Space.the_entry (Sign.const_space thy) c));
   fun purify_base "==>" = "follows"
     | purify_base "==" = "meta_eq"
     | purify_base s = Name.desymbolize false s;
@@ -471,11 +470,6 @@ fun is_cons program name = case Graph.get_node program name
 fun is_case (Fun (_, (_, SOME _))) = true
   | is_case _ = false;
 
-fun lookup_classparam_instance program name = program |> Graph.get_first
-  (fn (_, (Classinst ((class, _), (_, (param_insts, _))), _)) =>
-    Option.map (fn ((const, _), _) => (class, const))
-      (find_first (fn ((_, (inst_const, _)), _) => inst_const = name) param_insts) | _ => NONE)
-  
 fun labelled_name thy program name =
   let val ctxt = Proof_Context.init_global thy in
     case Graph.get_node program name of
