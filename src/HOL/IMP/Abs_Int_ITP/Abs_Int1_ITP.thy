@@ -329,23 +329,6 @@ proof-
 qed
 
 
-fun annos :: "'a acom \<Rightarrow> 'a list" where
-"annos (SKIP {a}) = [a]" |
-"annos (x::=e {a}) = [a]" |
-"annos (c1;c2) = annos c1 @ annos c2" |
-"annos (IF b THEN c1 ELSE c2 {a}) = a #  annos c1 @ annos c2" |
-"annos ({i} WHILE b DO c {a}) = i # a # annos c"
-
-lemma size_annos_same: "strip c1 = strip c2 \<Longrightarrow> size(annos c1) = size(annos c2)"
-apply(induct c2 arbitrary: c1)
-apply (auto simp: strip_eq_SKIP strip_eq_Assign strip_eq_Semi strip_eq_If strip_eq_While)
-done
-
-lemmas size_annos_same2 = eqTrueI[OF size_annos_same]
-
-lemma set_annos_anno: "set (annos (anno a c)) = {a}"
-by(induction c)(auto)
-
 lemma le_iff_le_annos: "c1 \<sqsubseteq> c2 \<longleftrightarrow>
  (annos c1, annos c2) : listrel{(x,y). x \<sqsubseteq> y} \<and> strip c1 = strip c2"
 apply(induct c1 c2 rule: le_acom.induct)

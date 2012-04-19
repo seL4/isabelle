@@ -526,6 +526,9 @@ HOL-IMP: HOL $(OUT)/HOL-IMP
 
 $(OUT)/HOL-IMP: $(OUT)/HOL \
   IMP/ACom.thy \
+  IMP/Abs_Int0.thy IMP/Abs_State.thy IMP/Abs_Int1.thy \
+  IMP/Abs_Int1_const.thy IMP/Abs_Int1_parity.thy \
+  IMP/Abs_Int2.thy IMP/Abs_Int2_ivl.thy IMP/Abs_Int3.thy \
   IMP/Abs_Int_ITP/Abs_Int0_ITP.thy IMP/Abs_Int_ITP/Abs_State_ITP.thy \
   IMP/Abs_Int_ITP/Abs_Int1_ITP.thy IMP/Abs_Int_ITP/Abs_Int1_const_ITP.thy \
   IMP/Abs_Int_ITP/Abs_Int1_parity_ITP.thy IMP/Abs_Int_ITP/Abs_Int2_ITP.thy \
