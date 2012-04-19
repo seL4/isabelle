@@ -339,6 +339,9 @@ lemma Quotient_bi_total: "bi_total T"
 lemma Quotient_id_abs_transfer: "(op = ===> T) (\<lambda>x. x) Abs"
   using 1 2 unfolding Quotient_alt_def reflp_def fun_rel_def by simp
 
+lemma Quotient_total_abs_induct: "(\<And>y. P (Abs y)) \<Longrightarrow> P x"
+  using 1 2 assms unfolding Quotient_alt_def reflp_def by metis
+
 end
 
 text {* Generating transfer rules for a type defined with @{text "typedef"}. *}

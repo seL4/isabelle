@@ -96,6 +96,7 @@ fun setup_by_quotient no_code quot_thm maybe_reflp_thm lthy =
   let
     val transfer_attr = Attrib.internal (K Transfer.transfer_add)
     val (_, qty) = Lifting_Term.quot_thm_rty_qty quot_thm
+    val induct_attr = Attrib.internal (K (Induct.induct_type (fst (dest_Type qty))))
     val qty_name = (Binding.name o fst o dest_Type) qty
     fun qualify suffix = Binding.qualified true suffix qty_name
     val lthy' = case maybe_reflp_thm of
@@ -104,6 +105,8 @@ fun setup_by_quotient no_code quot_thm maybe_reflp_thm lthy =
           [[quot_thm, reflp_thm] MRSL @{thm Quotient_bi_total}])
         |> (snd oo Local_Theory.note) ((qualify "id_abs_transfer", [transfer_attr]), 
           [[quot_thm, reflp_thm] MRSL @{thm Quotient_id_abs_transfer}])
+        |> (snd oo Local_Theory.note) ((qualify "abs_induct", [induct_attr]),
+          [[quot_thm, reflp_thm] MRSL @{thm Quotient_total_abs_induct}])
       | NONE => lthy
         |> (snd oo Local_Theory.note) ((qualify "All_transfer", [transfer_attr]), 
           [quot_thm RS @{thm Quotient_All_transfer}])
@@ -111,6 +114,8 @@ fun setup_by_quotient no_code quot_thm maybe_reflp_thm lthy =
           [quot_thm RS @{thm Quotient_Ex_transfer}])
         |> (snd oo Local_Theory.note) ((qualify "forall_transfer", [transfer_attr]), 
           [quot_thm RS @{thm Quotient_forall_transfer}])
+        |> (snd oo Local_Theory.note) ((qualify "abs_induct", [induct_attr]),
+          [quot_thm RS @{thm Quotient_abs_induct}])
   in
     lthy'
       |> (snd oo Local_Theory.note) ((qualify "right_unique", [transfer_attr]), 
