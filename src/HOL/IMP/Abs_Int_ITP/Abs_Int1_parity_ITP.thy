@@ -1,5 +1,7 @@
-theory Abs_Int0_parity
-imports Abs_Int0
+(* Author: Tobias Nipkow *)
+
+theory Abs_Int1_parity_ITP
+imports Abs_Int1_ITP
 begin
 
 subsection "Parity Analysis"
