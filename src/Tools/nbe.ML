@@ -579,7 +579,7 @@ fun compile ignore_cache thy program =
   in (nbe_program, idx_tab) end;
 
 
-(* dynamic evaluation oracle *)
+(* evaluation oracle *)
 
 fun mk_equals thy lhs raw_rhs =
   let
