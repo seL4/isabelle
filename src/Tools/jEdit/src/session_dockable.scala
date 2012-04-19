@@ -16,7 +16,7 @@ import scala.swing.event.{ButtonClicked, MouseClicked, SelectionChanged}
 
 import java.lang.System
 import java.awt.{BorderLayout, Graphics2D, Insets}
-import javax.swing.{JList, DefaultListCellRenderer, BorderFactory}
+import javax.swing.{JList, BorderFactory}
 import javax.swing.border.{BevelBorder, SoftBevelBorder}
 
 import org.gjt.sp.jedit.{View, jEdit}
