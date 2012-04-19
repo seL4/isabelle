@@ -1,3 +1,8 @@
+(*  Title:      HOL/Library/Float.thy
+    Author:     Johannes Hölzl, Fabian Immler
+    Copyright   2012  TU München
+*)
+
 header {* Floating-Point Numbers *}
 
 theory Float
@@ -614,7 +619,7 @@ proof cases
   show ?thesis
   proof cases
     assume "2^nat (-(p + e)) dvd m"
-    with `p + e < 0` twopow_rewrite show ?thesis unfolding Let_def
+    with `p + e < 0` twopow_rewrite show ?thesis
       by transfer (auto simp: ac_simps round_up_def floor_divide_eq_div dvd_eq_mod_eq_0)
   next
     assume ndvd: "\<not> 2 ^ nat (- (p + e)) dvd m"
@@ -626,7 +631,6 @@ proof cases
       using ndvd unfolding powr_rewrite one_div
       by (subst ceil_divide_floor_conv) (auto simp: field_simps)
     thus ?thesis using `p + e < 0` twopow_rewrite
-      unfolding Let_def
       by transfer (auto simp: ac_simps round_up_def floor_divide_eq_div[symmetric])
   qed
 next
@@ -636,7 +640,6 @@ next
     by (auto simp add: ac_simps powr_add[symmetric] r1 powr_realpow
       intro: exI[where x="m*2^nat (e+p)"])
   then show ?thesis using `\<not> p + e < 0`
-    unfolding Let_def
     by transfer
        (simp add: round_up_def floor_divide_eq_div field_simps powr_add powr_minus inverse_eq_divide)
 qed
@@ -846,9 +849,9 @@ lemma compute_lapprox_posrat[code]:
        l = rat_precision prec x y;
        d = if 0 \<le> l then x * 2^nat l div y else x div 2^nat (- l) div y
     in normfloat (Float d (- l)))"
-    unfolding div_mult_twopow_eq Let_def normfloat_def
+    unfolding div_mult_twopow_eq normfloat_def
     by transfer
-       (simp add: round_down_def powr_int real_div_nat_eq_floor_of_divide field_simps
+       (simp add: round_down_def powr_int real_div_nat_eq_floor_of_divide field_simps Let_def
              del: two_powr_minus_int_float)
 
 lift_definition rapprox_posrat :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> float"
@@ -865,7 +868,7 @@ lemma compute_rapprox_posrat[code]:
      m = fst X mod snd X
    in normfloat (Float (d + (if m = 0 \<or> y = 0 then 0 else 1)) (- l)))"
 proof (cases "y = 0")
-  assume "y = 0" thus ?thesis unfolding Let_def normfloat_def by transfer simp
+  assume "y = 0" thus ?thesis unfolding normfloat_def by transfer simp
 next
   assume "y \<noteq> 0"
   show ?thesis
@@ -876,7 +879,7 @@ next
     moreover have "real x * 2 powr real l = real x'"
       by (simp add: powr_realpow[symmetric] `0 \<le> l` x'_def)
     ultimately show ?thesis
-      unfolding Let_def normfloat_def
+      unfolding normfloat_def
       using ceil_divide_floor_conv[of y x'] powr_realpow[of 2 "nat l"] `0 \<le> l` `y \<noteq> 0`
         l_def[symmetric, THEN meta_eq_to_obj_eq]
       by transfer
@@ -890,7 +893,7 @@ next
       using `\<not> 0 \<le> l`
       by (simp add: powr_realpow[symmetric] powr_minus y'_def field_simps inverse_eq_divide)
     ultimately show ?thesis
-      unfolding Let_def normfloat_def
+      unfolding normfloat_def
       using ceil_divide_floor_conv[of y' x] `\<not> 0 \<le> l` `y' \<noteq> 0` `y \<noteq> 0`
         l_def[symmetric, THEN meta_eq_to_obj_eq]
       by transfer
@@ -1206,7 +1209,6 @@ lemma compute_float_round_down[code]:
     if 0 < d then let P = 2^nat d ; n = m div P in Float n (e + d)
              else Float m e)"
   using compute_float_down[of "prec - bitlen \<bar>m\<bar> - e" m e, symmetric]
-  unfolding Let_def
   by transfer (simp add: field_simps abs_mult log_mult bitlen_def cong del: if_weak_cong)
 
 lemma compute_float_round_up[code]:
