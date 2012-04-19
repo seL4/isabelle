@@ -3,7 +3,7 @@ contrib/cvc3-2.2
 contrib/e-1.4
 contrib/hol-light-bundle-0.5-126
 contrib/kodkodi-1.2.16
-contrib/spass-3.7
+contrib_devel/spass-3.8ds
 contrib/scala-2.9.2
 contrib/vampire-1.0
 contrib/yices-1.0.28
