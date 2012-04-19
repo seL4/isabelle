@@ -1,7 +1,7 @@
 (* Author: Tobias Nipkow *)
 
-theory Abs_State
-imports Abs_Int0_fun
+theory Abs_State_ITP
+imports Abs_Int0_ITP
   "~~/src/HOL/Library/Char_ord" "~~/src/HOL/Library/List_lexord"
   (* Library import merely to allow string lists to be sorted for output *)
 begin

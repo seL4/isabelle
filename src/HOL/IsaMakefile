@@ -525,9 +525,12 @@ $(LOG)/HOL-Induct.gz: $(OUT)/HOL Induct/Com.thy Induct/Comb.thy		\
 HOL-IMP: HOL $(OUT)/HOL-IMP
 
 $(OUT)/HOL-IMP: $(OUT)/HOL \
-  IMP/ACom.thy IMP/Abs_Int0_fun.thy IMP/Abs_State.thy IMP/Abs_Int0.thy \
-  IMP/Abs_Int0_const.thy IMP/Abs_Int1.thy IMP/Abs_Int1_ivl.thy \
-  IMP/Abs_Int2.thy IMP/Abs_Int_Den/Abs_Int_den0_fun.thy \
+  IMP/ACom.thy \
+  IMP/Abs_Int_ITP/Abs_Int0_ITP.thy IMP/Abs_Int_ITP/Abs_State_ITP.thy \
+  IMP/Abs_Int_ITP/Abs_Int1_ITP.thy IMP/Abs_Int_ITP/Abs_Int1_const_ITP.thy \
+  IMP/Abs_Int_ITP/Abs_Int1_parity_ITP.thy IMP/Abs_Int_ITP/Abs_Int2_ITP.thy \
+  IMP/Abs_Int_ITP/Abs_Int2_ivl_ITP.thy IMP/Abs_Int_ITP/Abs_Int3_ITP.thy \
+  IMP/Abs_Int_Den/Abs_Int_den0_fun.thy \
   IMP/Abs_Int_Den/Abs_State_den.thy  IMP/Abs_Int_Den/Abs_Int_den0.thy \
   IMP/Abs_Int_Den/Abs_Int_den0_const.thy IMP/Abs_Int_Den/Abs_Int_den1.thy \
   IMP/Abs_Int_Den/Abs_Int_den1_ivl.thy IMP/Abs_Int_Den/Abs_Int_den2.thy \

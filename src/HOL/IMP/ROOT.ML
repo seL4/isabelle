@@ -1,5 +1,6 @@
 no_document use_thys
   ["~~/src/HOL/ex/Interpretation_with_Defs",
+   "~~/src/HOL/Library/While_Combinator",
    "~~/src/HOL/Library/Char_ord", "~~/src/HOL/Library/List_lexord"
   ];
 
@@ -21,10 +22,10 @@ use_thys
  "HoareT",
  "Collecting1",
  "Collecting_list",
- "Abs_Int0",
- "Abs_Int0_parity",
- "Abs_Int0_const",
- "Abs_Int2",
+ "Abs_Int_Tests",
+ "Abs_Int_ITP/Abs_Int1_parity_ITP",
+ "Abs_Int_ITP/Abs_Int1_const_ITP",
+ "Abs_Int_ITP/Abs_Int3_ITP",
  "Abs_Int_Den/Abs_Int_den2",
  "Procs_Dyn_Vars_Dyn",
  "Procs_Stat_Vars_Dyn",
