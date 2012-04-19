@@ -7,4 +7,4 @@ contrib_devel/spass-3.8ds
 contrib/scala-2.9.2
 contrib/vampire-1.0
 contrib/yices-1.0.28
-contrib/z3-3.1
+contrib_devel/z3-3.2
