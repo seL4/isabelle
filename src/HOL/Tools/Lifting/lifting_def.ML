@@ -250,7 +250,20 @@ fun mk_readable_rsp_thm_eq tm lthy =
     Object_Logic.rulify(eq_thm RS Drule.equal_elim_rule2)
   end
 
+fun rename_to_tnames ctxt term =
+  let
+    fun all_typs (Const ("all", _) $ Abs (_, T, t)) = T :: all_typs t
+      | all_typs _ = []
 
+    fun rename (Const ("all", T1) $ Abs (_, T2, t)) (new_name :: names) = 
+        (Const ("all", T1) $ Abs (new_name, T2, rename t names)) 
+      | rename t _ = t
+
+    val (fixed_def_t, _) = yield_singleton (Variable.importT_terms) term ctxt
+    val new_names = Datatype_Prop.make_tnames (all_typs fixed_def_t)
+  in
+    rename term new_names
+  end
 
 fun lift_def_cmd (raw_var, rhs_raw) lthy =
   let
@@ -279,7 +292,8 @@ fun lift_def_cmd (raw_var, rhs_raw) lthy =
     val readable_rsp_thm_eq = mk_readable_rsp_thm_eq internal_rsp_tm lthy'
     val maybe_proven_rsp_thm = try_to_prove_refl readable_rsp_thm_eq
     val (readable_rsp_tm, _) = Logic.dest_implies (prop_of readable_rsp_thm_eq)
-  
+    val readable_rsp_tm_tnames = rename_to_tnames lthy' readable_rsp_tm
+
     fun after_qed thm_list lthy = 
       let
         val internal_rsp_thm =
@@ -294,7 +308,7 @@ fun lift_def_cmd (raw_var, rhs_raw) lthy =
   in
     case maybe_proven_rsp_thm of
       SOME _ => Proof.theorem NONE after_qed [] lthy'
-      | NONE =>  Proof.theorem NONE after_qed [[(readable_rsp_tm,[])]] lthy'
+      | NONE =>  Proof.theorem NONE after_qed [[(readable_rsp_tm_tnames,[])]] lthy'
   end
 
 fun quot_thm_err ctxt (rty, qty) pretty_msg =
