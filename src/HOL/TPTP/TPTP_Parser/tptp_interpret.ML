@@ -47,8 +47,8 @@ sig
     TPTP_Syntax.tptp_type -> typ
 
   (*Map TPTP terms to Isabelle/HOL terms*)
-  val interpret_term : bool -> config -> TPTP_Syntax.language -> theory ->
-    const_map -> var_types -> type_map -> TPTP_Syntax.tptp_term ->
+  val interpret_term : bool -> config -> TPTP_Syntax.language ->
+    const_map -> var_types -> type_map -> TPTP_Syntax.tptp_term -> theory ->
     term * theory
 
   val interpret_formula : config -> TPTP_Syntax.language -> const_map ->
@@ -318,7 +318,7 @@ fun mk_swapped_fun str =
 fun dummy_term () =
   HOLogic.choice_const Term.dummyT $ Term.absdummy Term.dummyT @{term "True"}
 
-fun interpret_symbol config thy language const_map symb =
+fun interpret_symbol config language const_map symb thy =
   case symb of
      Uninterpreted n =>
        (*Constant would have been added to the map at the time of
@@ -378,14 +378,27 @@ fun interpret_symbol config thy language const_map symb =
 
 (*Apply a function to a list of arguments*)
 val mapply = fold (fn x => fn y => y $ x)
+
+fun mapply' (args, thy) f =
+  let
+    val (f', thy') = f thy
+  in (mapply args f', thy') end
+
 (*As above, but for products*)
 fun mtimes thy =
   fold (fn x => fn y =>
     Sign.mk_const thy
     ("Product_Type.Pair",[Term.dummyT, Term.dummyT]) $ y $ x)
 
-(*Adds constants to signature in FOL. "formula_level" means that the constants
-are to be interpreted as predicates, otherwise as functions over individuals.*)
+fun mtimes' (args, thy) f =
+  let
+    val (f', thy') = f thy
+  in (mtimes thy' args f', thy') end
+
+
+(*Adds constants to signature in FOL (since explicit type declaration isn't
+expected). "formula_level" means that the constants are to be interpreted as
+predicates, otherwise as functions over individuals.*)
 fun FO_const_types config formula_level type_map tptp_t thy =
   let
     val ind_type = interpret_type config thy type_map (Defined_type Type_Ind)
@@ -457,8 +470,8 @@ fun is_prod_typed thy config symb =
     after each call of interpret_term since variables' cannot be bound across
     terms.
 *)
-fun interpret_term formula_level config language thy const_map var_types type_map
- tptp_t =
+fun interpret_term formula_level config language const_map var_types type_map
+ tptp_t thy =
   case tptp_t of
     Term_Func (symb, tptp_ts) =>
        let
@@ -469,28 +482,30 @@ fun interpret_term formula_level config language thy const_map var_types type_ma
          case symb of
            Interpreted_ExtraLogic Apply =>
              (*apply the head of the argument list to the tail*)
-             (mapply
-               (map (interpret_term false config language thy' const_map
-                var_types type_map #> fst) (tl tptp_ts))
-               (interpret_term formula_level config language thy' const_map
-                var_types type_map (hd tptp_ts) |> fst),
-              thy')
+             (mapply'
+               (fold_map (interpret_term false config language const_map
+                var_types type_map) (tl tptp_ts) thy')
+               (interpret_term formula_level config language const_map
+                var_types type_map (hd tptp_ts)))
            | _ =>
               (*apply symb to tptp_ts*)
               if is_prod_typed thy' config symb then
-                (interpret_symbol config thy' language const_map symb $
-                  mtimes thy'
-                  (map (interpret_term false config language thy' const_map
-                   var_types type_map #> fst) (tl tptp_ts))
-                  ((interpret_term false config language thy' const_map
-                   var_types type_map #> fst) (hd tptp_ts)),
-                 thy')
+                let
+                  val (t, thy'') =
+                    mtimes'
+                      (fold_map (interpret_term false config language const_map
+                       var_types type_map) (tl tptp_ts) thy')
+                      (interpret_term false config language const_map
+                       var_types type_map (hd tptp_ts))
+                in (interpret_symbol config language const_map symb thy' $ t, thy'')
+                end
               else
-                (mapply
-                  (map (interpret_term false config language thy' const_map
-                   var_types type_map #> fst) tptp_ts)
-                  (interpret_symbol config thy' language const_map symb),
-                 thy')
+                (
+                mapply'
+                  (fold_map (interpret_term false config language const_map
+                   var_types type_map) tptp_ts thy')
+                  (`(interpret_symbol config language const_map symb))
+                )
        end
   | Term_Var n =>
      (if language = THF orelse language = TFF then
@@ -515,7 +530,7 @@ fun interpret_term formula_level config language thy const_map var_types type_ma
           else dummy_term () (*FIXME: not yet supporting rationals and reals*)
       in (num_term, thy) end
   | Term_Distinct_Object str =>
-      declare_constant config (alphanumerated_name "ds_" str)
+      declare_constant config ("do_" ^ str)
         (interpret_type config thy type_map (Defined_type Type_Ind)) thy
 
 (*Given a list of "'a option", then applies a function to each element if that
@@ -531,17 +546,16 @@ fun map_opt f xs =
 fun interpret_formula config language const_map var_types type_map tptp_fmla thy =
   case tptp_fmla of
       Pred app =>
-        interpret_term true config language thy const_map
-         var_types type_map (Term_Func app)
+        interpret_term true config language const_map
+         var_types type_map (Term_Func app) thy
     | Fmla (symbol, tptp_formulas) =>
        (case symbol of
           Interpreted_ExtraLogic Apply =>
-            let
-              val (args, thy') = (fold_map (interpret_formula config language
-               const_map var_types type_map) (tl tptp_formulas) thy)
-              val (func, thy') = interpret_formula config language const_map
-               var_types type_map (hd tptp_formulas) thy'
-            in (mapply args func, thy') end
+            mapply'
+              (fold_map (interpret_formula config language const_map
+               var_types type_map) (tl tptp_formulas) thy)
+              (interpret_formula config language const_map
+               var_types type_map (hd tptp_formulas))
         | Uninterpreted const_name =>
             let
               val (args, thy') = (fold_map (interpret_formula config language
@@ -550,11 +564,11 @@ fun interpret_formula config language const_map var_types type_map tptp_fmla thy
                (length tptp_formulas) thy'
             in
               (if is_prod_typed thy' config symbol then
-                 mtimes thy' args (interpret_symbol config thy' language
-                  const_map symbol)
+                 mtimes thy' args (interpret_symbol config language
+                  const_map symbol thy')
                else
                 mapply args
-                 (interpret_symbol config thy' language const_map symbol),
+                 (interpret_symbol config language const_map symbol thy'),
               thy')
             end
         | _ =>
@@ -566,11 +580,11 @@ fun interpret_formula config language const_map var_types type_map tptp_fmla thy
                  tptp_formulas thy
             in
               (if is_prod_typed thy' config symbol then
-                 mtimes thy' args (interpret_symbol config thy' language
-                  const_map symbol)
+                 mtimes thy' args (interpret_symbol config language
+                  const_map symbol thy')
                else
                  mapply args
-                  (interpret_symbol config thy' language const_map symbol),
+                  (interpret_symbol config language const_map symbol thy'),
                thy')
             end)
     | Sequent _ =>
@@ -645,12 +659,12 @@ fun interpret_formula config language const_map var_types type_map tptp_fmla thy
         (case tptp_atom of
           TFF_Typed_Atom (symbol, tptp_type_opt) =>
             (*FIXME ignoring type info*)
-            (interpret_symbol config thy language const_map symbol, thy)
+            (interpret_symbol config language const_map symbol thy, thy)
         | THF_Atom_term tptp_term =>
-            interpret_term true config language thy const_map var_types
-             type_map tptp_term
+            interpret_term true config language const_map var_types
+             type_map tptp_term thy
         | THF_Atom_conn_term symbol =>
-            (interpret_symbol config thy language const_map symbol, thy))
+            (interpret_symbol config language const_map symbol thy, thy))
     | Type_fmla _ =>
          raise MISINTERPRET_FORMULA
           ("Cannot interpret types as formulas", tptp_fmla)
