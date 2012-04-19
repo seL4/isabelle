@@ -1,11 +1,7 @@
 (* Author: Tobias Nipkow *)
 
-header "Abstract Interpretation (ITP)"
-
-theory Abs_Int0_ITP
-imports "~~/src/HOL/ex/Interpretation_with_Defs"
-        "~~/src/HOL/Library/While_Combinator"
-        Collecting
+theory Abs_Int0
+imports Abs_Int_init
 begin
 
 subsection "Orderings"
@@ -18,11 +14,6 @@ begin
 
 definition mono where "mono f = (\<forall>x y. x \<sqsubseteq> y \<longrightarrow> f x \<sqsubseteq> f y)"
 
-lemma monoD: "mono f \<Longrightarrow> x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y" by(simp add: mono_def)
-
-lemma mono_comp: "mono f \<Longrightarrow> mono g \<Longrightarrow> mono (g o f)"
-by(simp add: mono_def)
-
 declare le_trans[trans]
 
 end
@@ -33,8 +24,10 @@ such that @{prop"x \<sqsubseteq> y"} and @{prop"y \<sqsubseteq> x"}. Antisymmetr
 needed because we never compare elements for equality but only for @{text"\<sqsubseteq>"}.
 *}
 
-class SL_top = preord +
+class join = preord +
 fixes join :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<squnion>" 65)
+
+class SL_top = join +
 fixes Top :: "'a" ("\<top>")
 assumes join_ge1 [simp]: "x \<sqsubseteq> x \<squnion> y"
 and join_ge2 [simp]: "y \<sqsubseteq> x \<squnion> y"
@@ -50,10 +43,22 @@ by (metis join_ge1 join_ge2 le_trans)
 
 end
 
+instantiation "fun" :: (type, preord) preord
+begin
+
+definition "f \<sqsubseteq> g = (\<forall>x. f x \<sqsubseteq> g x)"
+
+instance
+proof
+  case goal2 thus ?case by (metis le_fun_def preord_class.le_trans)
+qed (simp_all add: le_fun_def)
+
+end
+
+
 instantiation "fun" :: (type, SL_top) SL_top
 begin
 
-definition "f \<sqsubseteq> g = (ALL x. f x \<sqsubseteq> g x)"
 definition "f \<squnion> g = (\<lambda>x. f x \<squnion> g x)"
 definition "\<top> = (\<lambda>x. \<top>)"
 
@@ -62,7 +67,6 @@ by (simp add: join_fun_def)
 
 instance
 proof
-  case goal2 thus ?case by (metis le_fun_def preord_class.le_trans)
 qed (simp_all add: le_fun_def Top_fun_def)
 
 end
@@ -74,29 +78,29 @@ begin
 fun le_acom :: "('a::preord)acom \<Rightarrow> 'a acom \<Rightarrow> bool" where
 "le_acom (SKIP {S}) (SKIP {S'}) = (S \<sqsubseteq> S')" |
 "le_acom (x ::= e {S}) (x' ::= e' {S'}) = (x=x' \<and> e=e' \<and> S \<sqsubseteq> S')" |
-"le_acom (c1;c2) (c1';c2') = (le_acom c1 c1' \<and> le_acom c2 c2')" |
-"le_acom (IF b THEN c1 ELSE c2 {S}) (IF b' THEN c1' ELSE c2' {S'}) =
-  (b=b' \<and> le_acom c1 c1' \<and> le_acom c2 c2' \<and> S \<sqsubseteq> S')" |
-"le_acom ({Inv} WHILE b DO c {P}) ({Inv'} WHILE b' DO c' {P'}) =
-  (b=b' \<and> le_acom c c' \<and> Inv \<sqsubseteq> Inv' \<and> P \<sqsubseteq> P')" |
+"le_acom (C1;C2) (D1;D2) = (C1 \<sqsubseteq> D1 \<and> C2 \<sqsubseteq> D2)" |
+"le_acom (IF b THEN C1 ELSE C2 {S}) (IF b' THEN D1 ELSE D2 {S'}) =
+  (b=b' \<and> C1 \<sqsubseteq> D1 \<and> C2 \<sqsubseteq> D2 \<and> S \<sqsubseteq> S')" |
+"le_acom ({I} WHILE b DO C {P}) ({I'} WHILE b' DO C' {P'}) =
+  (b=b' \<and> C \<sqsubseteq> C' \<and> I \<sqsubseteq> I' \<and> P \<sqsubseteq> P')" |
 "le_acom _ _ = False"
 
-lemma [simp]: "SKIP {S} \<sqsubseteq> c \<longleftrightarrow> (\<exists>S'. c = SKIP {S'} \<and> S \<sqsubseteq> S')"
-by (cases c) auto
+lemma [simp]: "SKIP {S} \<sqsubseteq> C \<longleftrightarrow> (\<exists>S'. C = SKIP {S'} \<and> S \<sqsubseteq> S')"
+by (cases C) auto
 
-lemma [simp]: "x ::= e {S} \<sqsubseteq> c \<longleftrightarrow> (\<exists>S'. c = x ::= e {S'} \<and> S \<sqsubseteq> S')"
-by (cases c) auto
+lemma [simp]: "x ::= e {S} \<sqsubseteq> C \<longleftrightarrow> (\<exists>S'. C = x ::= e {S'} \<and> S \<sqsubseteq> S')"
+by (cases C) auto
 
-lemma [simp]: "c1;c2 \<sqsubseteq> c \<longleftrightarrow> (\<exists>c1' c2'. c = c1';c2' \<and> c1 \<sqsubseteq> c1' \<and> c2 \<sqsubseteq> c2')"
-by (cases c) auto
+lemma [simp]: "C1;C2 \<sqsubseteq> C \<longleftrightarrow> (\<exists>D1 D2. C = D1;D2 \<and> C1 \<sqsubseteq> D1 \<and> C2 \<sqsubseteq> D2)"
+by (cases C) auto
 
-lemma [simp]: "IF b THEN c1 ELSE c2 {S} \<sqsubseteq> c \<longleftrightarrow>
-  (\<exists>c1' c2' S'. c = IF b THEN c1' ELSE c2' {S'} \<and> c1 \<sqsubseteq> c1' \<and> c2 \<sqsubseteq> c2' \<and> S \<sqsubseteq> S')"
-by (cases c) auto
+lemma [simp]: "IF b THEN C1 ELSE C2 {S} \<sqsubseteq> C \<longleftrightarrow>
+  (\<exists>D1 D2 S'. C = IF b THEN D1 ELSE D2 {S'} \<and> C1 \<sqsubseteq> D1 \<and> C2 \<sqsubseteq> D2 \<and> S \<sqsubseteq> S')"
+by (cases C) auto
 
-lemma [simp]: "{Inv} WHILE b DO c {P} \<sqsubseteq> w \<longleftrightarrow>
-  (\<exists>Inv' c' P'. w = {Inv'} WHILE b DO c' {P'} \<and> c \<sqsubseteq> c' \<and> Inv \<sqsubseteq> Inv' \<and> P \<sqsubseteq> P')"
-by (cases w) auto
+lemma [simp]: "{I} WHILE b DO C {P} \<sqsubseteq> W \<longleftrightarrow>
+  (\<exists>I' C' P'. W = {I'} WHILE b DO C' {P'} \<and> C \<sqsubseteq> C' \<and> I \<sqsubseteq> I' \<and> P \<sqsubseteq> P')"
+by (cases W) auto
 
 instance
 proof
@@ -111,8 +115,6 @@ qed
 end
 
 
-subsubsection "Lifting"
-
 instantiation option :: (preord)preord
 begin
 
@@ -124,7 +126,7 @@ fun le_option where
 lemma [simp]: "(x \<sqsubseteq> None) = (x = None)"
 by (cases x) simp_all
 
-lemma [simp]: "(Some x \<sqsubseteq> u) = (\<exists>y. u = Some y & x \<sqsubseteq> y)"
+lemma [simp]: "(Some x \<sqsubseteq> u) = (\<exists>y. u = Some y \<and> x \<sqsubseteq> y)"
 by (cases u) auto
 
 instance proof
@@ -136,7 +138,7 @@ qed
 
 end
 
-instantiation option :: (SL_top)SL_top
+instantiation option :: (join)join
 begin
 
 fun join_option where
@@ -146,6 +148,13 @@ fun join_option where
 
 lemma join_None2[simp]: "x \<squnion> None = x"
 by (cases x) simp_all
+
+instance ..
+
+end
+
+instantiation option :: (SL_top)SL_top
+begin
 
 definition "\<top> = Some \<top>"
 
@@ -161,26 +170,32 @@ qed
 
 end
 
-definition bot_acom :: "com \<Rightarrow> ('a::SL_top)option acom" ("\<bottom>\<^sub>c") where
-"\<bottom>\<^sub>c = anno None"
+class Bot = preord +
+fixes Bot :: "'a" ("\<bottom>")
+assumes Bot[simp]: "\<bottom> \<sqsubseteq> x"
 
-lemma strip_bot_acom[simp]: "strip(\<bottom>\<^sub>c c) = c"
-by(simp add: bot_acom_def)
+instantiation option :: (preord)Bot
+begin
 
-lemma bot_acom[rule_format]: "strip c' = c \<longrightarrow> \<bottom>\<^sub>c c \<sqsubseteq> c'"
-apply(induct c arbitrary: c')
-apply (simp_all add: bot_acom_def)
- apply(induct_tac c')
-  apply simp_all
- apply(induct_tac c')
-  apply simp_all
- apply(induct_tac c')
-  apply simp_all
- apply(induct_tac c')
-  apply simp_all
- apply(induct_tac c')
-  apply simp_all
-done
+definition Bot_option :: "'a option" where
+"\<bottom> = None"
+
+instance
+proof
+  case goal1 thus ?case by(auto simp: Bot_option_def)
+qed
+
+end
+
+
+definition bot :: "com \<Rightarrow> 'a option acom" where
+"bot c = anno None c"
+
+lemma bot_least: "strip C = c \<Longrightarrow> bot c \<sqsubseteq> C"
+by(induct C arbitrary: c)(auto simp: bot_def)
+
+lemma strip_bot[simp]: "strip(bot c) = c"
+by(simp add: bot_def)
 
 
 subsubsection "Post-fixed point iteration"
@@ -205,28 +220,21 @@ proof-
 qed
 
 definition
- lpfp\<^isub>c :: "(('a::SL_top)option acom \<Rightarrow> 'a option acom) \<Rightarrow> com \<Rightarrow> 'a option acom option" where
-"lpfp\<^isub>c f c = pfp f (\<bottom>\<^sub>c c)"
+ lpfp :: "('a::preord option acom \<Rightarrow> 'a option acom) \<Rightarrow> com \<Rightarrow> 'a option acom option"
+where "lpfp f c = pfp f (bot c)"
 
-lemma lpfpc_pfp: "lpfp\<^isub>c f c0 = Some c \<Longrightarrow> f c \<sqsubseteq> c"
-by(simp add: pfp_pfp lpfp\<^isub>c_def)
+lemma lpfpc_pfp: "lpfp f c = Some p \<Longrightarrow> f p \<sqsubseteq> p"
+by(simp add: pfp_pfp lpfp_def)
 
 lemma strip_pfp:
 assumes "\<And>x. g(f x) = g x" and "pfp f x0 = Some x" shows "g x = g x0"
 using assms while_option_rule[where P = "%x. g x = g x0" and c = f]
 unfolding pfp_def by metis
 
-lemma strip_lpfpc: assumes "\<And>c. strip(f c) = strip c" and "lpfp\<^isub>c f c = Some c'"
-shows "strip c' = c"
-using assms(1) strip_pfp[OF _ assms(2)[simplified lpfp\<^isub>c_def]]
-by(metis strip_bot_acom)
-
-lemma lpfpc_least:
-assumes mono: "\<And>x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y"
-and "strip p = c0" and "f p \<sqsubseteq> p" and lp: "lpfp\<^isub>c f c0 = Some c" shows "c \<sqsubseteq> p"
-using pfp_least[OF _ _ bot_acom[OF `strip p = c0`] lp[simplified lpfp\<^isub>c_def]]
-  mono `f p \<sqsubseteq> p`
-by blast
+lemma strip_lpfp: assumes "\<And>C. strip(f C) = strip C" and "lpfp f c = Some C"
+shows "strip C = c"
+using assms(1) strip_pfp[OF _ assms(2)[simplified lpfp_def]]
+by(metis strip_bot)
 
 
 subsection "Abstract Interpretation"
@@ -265,18 +273,18 @@ fun step' :: "'av st option \<Rightarrow> 'av st option acom \<Rightarrow> 'av s
 "step' S (SKIP {P}) = (SKIP {S})" |
 "step' S (x ::= e {P}) =
   x ::= e {case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(S(x := aval' e S))}" |
-"step' S (c1; c2) = step' S c1; step' (post c1) c2" |
-"step' S (IF b THEN c1 ELSE c2 {P}) =
-   IF b THEN step' S c1 ELSE step' S c2 {post c1 \<squnion> post c2}" |
-"step' S ({Inv} WHILE b DO c {P}) =
-  {S \<squnion> post c} WHILE b DO (step' Inv c) {Inv}"
+"step' S (C1; C2) = step' S C1; step' (post C1) C2" |
+"step' S (IF b THEN C1 ELSE C2 {P}) =
+   IF b THEN step' S C1 ELSE step' S C2 {post C1 \<squnion> post C2}" |
+"step' S ({Inv} WHILE b DO C {P}) =
+  {S \<squnion> post C} WHILE b DO (step' Inv C) {Inv}"
 
 definition AI :: "com \<Rightarrow> 'av st option acom option" where
-"AI = lpfp\<^isub>c (step' \<top>)"
+"AI = lpfp (step' \<top>)"
 
 
-lemma strip_step'[simp]: "strip(step' S c) = strip c"
-by(induct c arbitrary: S) (simp_all add: Let_def)
+lemma strip_step'[simp]: "strip(step' S C) = strip C"
+by(induct C arbitrary: S) (simp_all add: Let_def)
 
 
 abbreviation \<gamma>\<^isub>f :: "'av st \<Rightarrow> state set"
@@ -296,15 +304,15 @@ by (simp add: Top_option_def)
 
 (* FIXME (maybe also le \<rightarrow> sqle?) *)
 
-lemma mono_gamma_f: "f \<sqsubseteq> g \<Longrightarrow> \<gamma>\<^isub>f f \<subseteq> \<gamma>\<^isub>f g"
+lemma mono_gamma_f: "f1 \<sqsubseteq> f2 \<Longrightarrow> \<gamma>\<^isub>f f1 \<subseteq> \<gamma>\<^isub>f f2"
 by(auto simp: le_fun_def \<gamma>_fun_def dest: mono_gamma)
 
 lemma mono_gamma_o:
-  "sa \<sqsubseteq> sa' \<Longrightarrow> \<gamma>\<^isub>o sa \<subseteq> \<gamma>\<^isub>o sa'"
-by(induction sa sa' rule: le_option.induct)(simp_all add: mono_gamma_f)
+  "S1 \<sqsubseteq> S2 \<Longrightarrow> \<gamma>\<^isub>o S1 \<subseteq> \<gamma>\<^isub>o S2"
+by(induction S1 S2 rule: le_option.induct)(simp_all add: mono_gamma_f)
 
-lemma mono_gamma_c: "ca \<sqsubseteq> ca' \<Longrightarrow> \<gamma>\<^isub>c ca \<le> \<gamma>\<^isub>c ca'"
-by (induction ca ca' rule: le_acom.induct) (simp_all add:mono_gamma_o)
+lemma mono_gamma_c: "C1 \<sqsubseteq> C2 \<Longrightarrow> \<gamma>\<^isub>c C1 \<le> \<gamma>\<^isub>c C2"
+by (induction C1 C2 rule: le_acom.induct) (simp_all add:mono_gamma_o)
 
 text{* Soundness: *}
 
@@ -316,8 +324,8 @@ lemma in_gamma_update:
 by(simp add: \<gamma>_fun_def)
 
 lemma step_preserves_le:
-  "\<lbrakk> S \<subseteq> \<gamma>\<^isub>o S'; c \<le> \<gamma>\<^isub>c c' \<rbrakk> \<Longrightarrow> step S c \<le> \<gamma>\<^isub>c (step' S' c')"
-proof(induction c arbitrary: c' S S')
+  "\<lbrakk> S \<subseteq> \<gamma>\<^isub>o S'; C \<le> \<gamma>\<^isub>c C' \<rbrakk> \<Longrightarrow> step S C \<le> \<gamma>\<^isub>c (step' S' C')"
+proof(induction C arbitrary: C' S S')
   case SKIP thus ?case by(auto simp:SKIP_le map_acom_SKIP)
 next
   case Assign thus ?case
@@ -327,43 +335,43 @@ next
   case Semi thus ?case apply (auto simp: Semi_le map_acom_Semi)
     by (metis le_post post_map_acom)
 next
-  case (If b c1 c2 P)
-  then obtain c1' c2' P' where
-      "c' = IF b THEN c1' ELSE c2' {P'}"
-      "P \<subseteq> \<gamma>\<^isub>o P'" "c1 \<le> \<gamma>\<^isub>c c1'" "c2 \<le> \<gamma>\<^isub>c c2'"
+  case (If b C1 C2 P)
+  then obtain D1 D2 P' where
+      "C' = IF b THEN D1 ELSE D2 {P'}"
+      "P \<subseteq> \<gamma>\<^isub>o P'" "C1 \<le> \<gamma>\<^isub>c D1" "C2 \<le> \<gamma>\<^isub>c D2"
     by (fastforce simp: If_le map_acom_If)
-  moreover have "post c1 \<subseteq> \<gamma>\<^isub>o(post c1' \<squnion> post c2')"
-    by (metis (no_types) `c1 \<le> \<gamma>\<^isub>c c1'` join_ge1 le_post mono_gamma_o order_trans post_map_acom)
-  moreover have "post c2 \<subseteq> \<gamma>\<^isub>o(post c1' \<squnion> post c2')"
-    by (metis (no_types) `c2 \<le> \<gamma>\<^isub>c c2'` join_ge2 le_post mono_gamma_o order_trans post_map_acom)
+  moreover have "post C1 \<subseteq> \<gamma>\<^isub>o(post D1 \<squnion> post D2)"
+    by (metis (no_types) `C1 \<le> \<gamma>\<^isub>c D1` join_ge1 le_post mono_gamma_o order_trans post_map_acom)
+  moreover have "post C2 \<subseteq> \<gamma>\<^isub>o(post D1 \<squnion> post D2)"
+    by (metis (no_types) `C2 \<le> \<gamma>\<^isub>c D2` join_ge2 le_post mono_gamma_o order_trans post_map_acom)
   ultimately show ?case using `S \<subseteq> \<gamma>\<^isub>o S'` by (simp add: If.IH subset_iff)
 next
-  case (While I b c1 P)
-  then obtain c1' I' P' where
-    "c' = {I'} WHILE b DO c1' {P'}"
-    "I \<subseteq> \<gamma>\<^isub>o I'" "P \<subseteq> \<gamma>\<^isub>o P'" "c1 \<le> \<gamma>\<^isub>c c1'"
+  case (While I b C1 P)
+  then obtain D1 I' P' where
+    "C' = {I'} WHILE b DO D1 {P'}"
+    "I \<subseteq> \<gamma>\<^isub>o I'" "P \<subseteq> \<gamma>\<^isub>o P'" "C1 \<le> \<gamma>\<^isub>c D1"
     by (fastforce simp: map_acom_While While_le)
-  moreover have "S \<union> post c1 \<subseteq> \<gamma>\<^isub>o (S' \<squnion> post c1')"
-    using `S \<subseteq> \<gamma>\<^isub>o S'` le_post[OF `c1 \<le> \<gamma>\<^isub>c c1'`, simplified]
+  moreover have "S \<union> post C1 \<subseteq> \<gamma>\<^isub>o (S' \<squnion> post D1)"
+    using `S \<subseteq> \<gamma>\<^isub>o S'` le_post[OF `C1 \<le> \<gamma>\<^isub>c D1`, simplified]
     by (metis (no_types) join_ge1 join_ge2 le_sup_iff mono_gamma_o order_trans)
   ultimately show ?case by (simp add: While.IH subset_iff)
 qed
 
-lemma AI_sound: "AI c = Some c' \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c c'"
+lemma AI_sound: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"
 proof(simp add: CS_def AI_def)
-  assume 1: "lpfp\<^isub>c (step' \<top>) c = Some c'"
-  have 2: "step' \<top> c' \<sqsubseteq> c'" by(rule lpfpc_pfp[OF 1])
-  have 3: "strip (\<gamma>\<^isub>c (step' \<top> c')) = c"
-    by(simp add: strip_lpfpc[OF _ 1])
-  have "lfp (step UNIV) c \<le> \<gamma>\<^isub>c (step' \<top> c')"
+  assume 1: "lpfp (step' \<top>) c = Some C"
+  have 2: "step' \<top> C \<sqsubseteq> C" by(rule lpfpc_pfp[OF 1])
+  have 3: "strip (\<gamma>\<^isub>c (step' \<top> C)) = c"
+    by(simp add: strip_lpfp[OF _ 1])
+  have "lfp (step UNIV) c \<le> \<gamma>\<^isub>c (step' \<top> C)"
   proof(rule lfp_lowerbound[simplified,OF 3])
-    show "step UNIV (\<gamma>\<^isub>c (step' \<top> c')) \<le> \<gamma>\<^isub>c (step' \<top> c')"
+    show "step UNIV (\<gamma>\<^isub>c (step' \<top> C)) \<le> \<gamma>\<^isub>c (step' \<top> C)"
     proof(rule step_preserves_le[OF _ _])
       show "UNIV \<subseteq> \<gamma>\<^isub>o \<top>" by simp
-      show "\<gamma>\<^isub>c (step' \<top> c') \<le> \<gamma>\<^isub>c c'" by(rule mono_gamma_c[OF 2])
+      show "\<gamma>\<^isub>c (step' \<top> C) \<le> \<gamma>\<^isub>c C" by(rule mono_gamma_c[OF 2])
     qed
   qed
-  with 2 show "lfp (step UNIV) c \<le> \<gamma>\<^isub>c c'"
+  with 2 show "lfp (step UNIV) c \<le> \<gamma>\<^isub>c C"
     by (blast intro: mono_gamma_c order_trans)
 qed
 
@@ -372,8 +380,8 @@ end
 
 subsubsection "Monotonicity"
 
-lemma mono_post: "c \<sqsubseteq> c' \<Longrightarrow> post c \<sqsubseteq> post c'"
-by(induction c c' rule: le_acom.induct) (auto)
+lemma mono_post: "C1 \<sqsubseteq> C2 \<Longrightarrow> post C1 \<sqsubseteq> post C2"
+by(induction C1 C2 rule: le_acom.induct) (auto)
 
 locale Abs_Int_Fun_mono = Abs_Int_Fun +
 assumes mono_plus': "a1 \<sqsubseteq> b1 \<Longrightarrow> a2 \<sqsubseteq> b2 \<Longrightarrow> plus' a1 a2 \<sqsubseteq> plus' b1 b2"
@@ -385,8 +393,8 @@ by(induction e)(auto simp: le_fun_def mono_plus')
 lemma mono_update: "a \<sqsubseteq> a' \<Longrightarrow> S \<sqsubseteq> S' \<Longrightarrow> S(x := a) \<sqsubseteq> S'(x := a')"
 by(simp add: le_fun_def)
 
-lemma mono_step': "S \<sqsubseteq> S' \<Longrightarrow> c \<sqsubseteq> c' \<Longrightarrow> step' S c \<sqsubseteq> step' S' c'"
-apply(induction c c' arbitrary: S S' rule: le_acom.induct)
+lemma mono_step': "S1 \<sqsubseteq> S2 \<Longrightarrow> C1 \<sqsubseteq> C2 \<Longrightarrow> step' S1 C1 \<sqsubseteq> step' S2 C2"
+apply(induction C1 C2 arbitrary: S1 S2 rule: le_acom.induct)
 apply (auto simp: Let_def mono_update mono_aval' mono_post le_join_disj
             split: option.split)
 done

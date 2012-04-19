@@ -41,6 +41,13 @@ fun anno :: "'a \<Rightarrow> com \<Rightarrow> 'a acom" where
 "anno a (WHILE b DO c) =
   ({a} WHILE b DO anno a c {a})"
 
+fun annos :: "'a acom \<Rightarrow> 'a list" where
+"annos (SKIP {a}) = [a]" |
+"annos (x::=e {a}) = [a]" |
+"annos (C1;C2) = annos C1 @ annos C2" |
+"annos (IF b THEN C1 ELSE C2 {a}) = a #  annos C1 @ annos C2" |
+"annos ({i} WHILE b DO C {a}) = i # a # annos C"
+
 fun map_acom :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a acom \<Rightarrow> 'b acom" where
 "map_acom f (SKIP {P}) = SKIP {f P}" |
 "map_acom f (x ::= e {P}) = (x ::= e {f P})" |
@@ -105,5 +112,17 @@ lemma strip_eq_While:
   "strip c = WHILE b DO c1 \<longleftrightarrow>
   (EX I d1 P. c = {I} WHILE b DO d1 {P} & strip d1 = c1)"
 by (cases c) simp_all
+
+
+lemma set_annos_anno[simp]: "set (annos (anno a C)) = {a}"
+by(induction C)(auto)
+
+lemma size_annos_same: "strip C1 = strip C2 \<Longrightarrow> size(annos C1) = size(annos C2)"
+apply(induct C2 arbitrary: C1)
+apply (auto simp: strip_eq_SKIP strip_eq_Assign strip_eq_Semi strip_eq_If strip_eq_While)
+done
+
+lemmas size_annos_same2 = eqTrueI[OF size_annos_same]
+
 
 end
