@@ -294,7 +294,7 @@ end
 
 text {* Legacy theorems: *}
 
-lemma word_arith_wis: shows
+lemma word_arith_wis [code]: shows
   word_add_def: "a + b = word_of_int (uint a + uint b)" and
   word_sub_wi: "a - b = word_of_int (uint a - uint b)" and
   word_mult_def: "a * b = word_of_int (uint a * uint b)" and
@@ -416,7 +416,7 @@ instance ..
 
 end
 
-lemma shows
+lemma [code]: shows
   word_not_def: "NOT (a::'a::len0 word) = word_of_int (NOT (uint a))" and
   word_and_def: "(a::'a word) AND b = word_of_int (uint a AND uint b)" and
   word_or_def: "(a::'a word) OR b = word_of_int (uint a OR uint b)" and
