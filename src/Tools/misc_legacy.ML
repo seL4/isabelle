@@ -260,7 +260,7 @@ fun freeze_thaw_robust th =
      val thy = Thm.theory_of_thm fth
  in
    case Thm.fold_terms Term.add_vars fth [] of
-       [] => (fth, fn i => fn x => x)   (*No vars: nothing to do!*)
+       [] => (fth, fn _ => fn x => x)   (*No vars: nothing to do!*)
      | vars =>
          let fun newName (ix,_) = (ix, gensym (string_of_indexname ix))
              val alist = map newName vars

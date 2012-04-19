@@ -137,14 +137,6 @@ fun set_response names eval_terms (SOME (genuine, ts)) (Result r) =
   | set_response _ _ NONE result = result
 
 
-fun set_counterexample counterexample (Result r) =
-  Result {counterexample = counterexample,  evaluation_terms = #evaluation_terms r,
-    timings = #timings r, reports = #reports r}
-
-fun set_evaluation_terms evaluation_terms (Result r) =
-  Result {counterexample = #counterexample r,  evaluation_terms = evaluation_terms,
-    timings = #timings r, reports = #reports r}
-
 fun cons_timing timing (Result r) =
   Result {counterexample = #counterexample r, evaluation_terms = #evaluation_terms r,
     timings = cons timing (#timings r), reports = #reports r}
@@ -288,8 +280,6 @@ val mk_batch_tester =
 val mk_batch_validator =
   gen_mk_tester (fn ctxt => AList.lookup (op =) ((snd o snd o fst o Data.get o Context.Proof) ctxt))
   
-fun lookup_tester ctxt = AList.lookup (op =) ((fst o fst o Data.get o Context.Proof) ctxt)
-
 (* testing propositions *)
 
 type compile_generator =
@@ -413,26 +403,10 @@ fun pretty_report (Report {iterations = iterations, raised_match_errors = raised
      @ [pretty_stat "positive conclusion tests" positive_concl_tests])
   end
 
-fun pretty_reports ctxt (SOME reports) =
-  Pretty.chunks (Pretty.fbrk :: Pretty.str "Quickcheck report:" ::
-    maps (fn (size, report) =>
-      Pretty.str ("size " ^ string_of_int size ^ ":") :: pretty_report report @ [Pretty.brk 1])
-      (rev reports))
-  | pretty_reports ctxt NONE = Pretty.str ""
-
 fun pretty_timings timings =
   Pretty.chunks (Pretty.fbrk :: Pretty.str "timings:" ::
     maps (fn (label, time) =>
       Pretty.str (label ^ ": " ^ string_of_int time ^ " ms") :: Pretty.brk 1 :: []) (rev timings))
-
-fun pretty_counterex_and_reports ctxt auto [] =
-    Pretty.chunks [Pretty.strs (tool_name auto ::
-        space_explode " " "is used in a locale where no interpretation is provided."),
-      Pretty.strs (space_explode " " "Please provide an executable interpretation for the locale.")]
-  | pretty_counterex_and_reports ctxt auto (result :: _) =
-    Pretty.chunks (pretty_counterex ctxt auto (response_of result) ::
-      (* map (pretty_reports ctxt) (reports_of result) :: *)
-      (if Config.get ctxt timing then cons (pretty_timings (timings_of result)) else I) [])
 
 (* Isar commands *)
 

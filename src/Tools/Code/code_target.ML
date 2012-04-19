@@ -270,7 +270,7 @@ local
 
 fun activate_target thy target =
   let
-    val ((targets, abortable), default_width) = Targets.get thy;
+    val ((_, abortable), default_width) = Targets.get thy;
     val (modify, data) = collapse_hierarchy thy target;
   in (default_width, abortable, data, modify) end;
 
@@ -630,7 +630,7 @@ fun gen_allow_abort prep_const raw_c thy =
 
 local
 
-fun zip_list (x::xs) f g =
+fun zip_list (x :: xs) f g =
   f
   :|-- (fn y =>
     fold_map (fn x => g |-- f >> pair x) xs

@@ -146,7 +146,7 @@ fun filter_presentation [] tree =
           |> pair false;
         fun filter (XML.Elem (name_attrs, xs)) =
               fold (if is_selected name_attrs then add_content_with_space else filter) xs
-          | filter (XML.Text s) = I;
+          | filter (XML.Text _) = I;
       in snd (fold filter tree (true, Buffer.empty)) end;
 
 fun format presentation_names width =

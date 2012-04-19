@@ -53,7 +53,7 @@ fun conclude_tac thy some_ss = Simplifier.full_simp_tac (simpset_default thy som
 (* evaluation with dynamic code context *)
 
 fun dynamic_conv thy = Code_Thingol.dynamic_conv thy
-  (fn naming => fn program => fn t => fn deps => rewrite_modulo thy NONE program);
+  (fn _ => fn program => fn _ => fn _ => rewrite_modulo thy NONE program);
 
 fun dynamic_tac thy = CONVERSION (dynamic_conv thy) THEN' conclude_tac thy NONE;
 

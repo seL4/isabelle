@@ -42,12 +42,6 @@ datatype ml_stmt =
 fun stmt_name_of_binding (ML_Function (name, _)) = name
   | stmt_name_of_binding (ML_Instance (name, _)) = name;
 
-fun stmt_names_of (ML_Exc (name, _)) = [name]
-  | stmt_names_of (ML_Val binding) = [stmt_name_of_binding binding]
-  | stmt_names_of (ML_Funs (bindings, _)) = map stmt_name_of_binding bindings
-  | stmt_names_of (ML_Datas ds) = map fst ds
-  | stmt_names_of (ML_Class (name, _)) = [name];
-
 fun print_product _ [] = NONE
   | print_product print [x] = SOME (print x)
   | print_product print xs = (SOME o enum " *" "" "") (map print xs);
@@ -59,7 +53,7 @@ fun tuplify _ _ [] = NONE
 
 (** SML serializer **)
 
-fun print_sml_stmt labelled_name tyco_syntax const_syntax reserved is_cons deresolve =
+fun print_sml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
   let
     fun print_tyco_expr fxy (tyco, []) = (str o deresolve) tyco
       | print_tyco_expr fxy (tyco, [ty]) =
@@ -363,7 +357,7 @@ val literals_sml = Literals {
 
 (** OCaml serializer **)
 
-fun print_ocaml_stmt labelled_name tyco_syntax const_syntax reserved is_cons deresolve =
+fun print_ocaml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
   let
     fun print_tyco_expr fxy (tyco, []) = (str o deresolve) tyco
       | print_tyco_expr fxy (tyco, [ty]) =
@@ -372,7 +366,7 @@ fun print_ocaml_stmt labelled_name tyco_syntax const_syntax reserved is_cons der
           concat [enum "," "(" ")" (map (print_typ BR) tys), (str o deresolve) tyco]
     and print_typ fxy (tyco `%% tys) = (case tyco_syntax tyco
          of NONE => print_tyco_expr fxy (tyco, tys)
-          | SOME (i, print) => print print_typ fxy tys)
+          | SOME (_, print) => print print_typ fxy tys)
       | print_typ fxy (ITyVar v) = str ("'" ^ v);
     fun print_dicttyp (class, ty) = print_tyco_expr NOBR (class, [ty]);
     fun print_typscheme_prefix (vs, p) = enum " ->" "" ""
@@ -435,7 +429,7 @@ fun print_ocaml_stmt labelled_name tyco_syntax const_syntax reserved is_cons der
     and print_case is_pseudo_fun some_thm vars fxy (cases as ((_, [_]), _)) =
           let
             val (binds, body) = Code_Thingol.unfold_let (ICase cases);
-            fun print_let ((pat, ty), t) vars =
+            fun print_let ((pat, _), t) vars =
               vars
               |> print_bind is_pseudo_fun some_thm NOBR pat
               |>> (fn p => concat
@@ -764,7 +758,7 @@ fun ml_program_of_program labelled_name reserved module_alias program =
     fun modify_class stmts = single (SOME
       (ML_Class (the_single (map_filter
         (fn (name, Code_Thingol.Class (_, stmt)) => SOME (name, stmt) | _ => NONE) stmts))))
-    fun modify_stmts ([stmt as (name, stmt' as Code_Thingol.Fun _)]) =
+    fun modify_stmts ([stmt as (_, stmt' as Code_Thingol.Fun _)]) =
           if Code_Thingol.is_case stmt' then [] else [modify_fun stmt]
       | modify_stmts ((stmts as (_, Code_Thingol.Fun _)::_)) =
           modify_funs (filter_out (Code_Thingol.is_case o snd) stmts)
@@ -790,7 +784,7 @@ fun ml_program_of_program labelled_name reserved module_alias program =
       cyclic_modules = false, empty_data = (), memorize_data = K I, modify_stmts = modify_stmts } program
   end;
 
-fun serialize_ml target print_ml_module print_ml_stmt with_signatures
+fun serialize_ml print_ml_module print_ml_stmt with_signatures
     { labelled_name, reserved_syms, includes, module_alias,
       class_syntax, tyco_syntax, const_syntax } program =
   let
@@ -801,12 +795,12 @@ fun serialize_ml target print_ml_module print_ml_stmt with_signatures
 
     (* print statements *)
     fun print_stmt prefix_fragments (_, stmt) = print_ml_stmt
-      labelled_name tyco_syntax const_syntax (make_vars reserved_syms)
+      tyco_syntax const_syntax (make_vars reserved_syms)
       (Code_Thingol.is_cons program) (deresolver prefix_fragments) stmt
       |> apfst SOME;
 
     (* print modules *)
-    fun print_module prefix_fragments base _ xs =
+    fun print_module _ base _ xs =
       let
         val (raw_decls, body) = split_list xs;
         val decls = if with_signatures then SOME (maps these raw_decls) else NONE 
@@ -825,13 +819,11 @@ fun serialize_ml target print_ml_module print_ml_stmt with_signatures
 
 val serializer_sml : Code_Target.serializer =
   Code_Target.parse_args (Scan.optional (Args.$$$ "no_signatures" >> K false) true
-  >> (fn with_signatures => serialize_ml target_SML
-      print_sml_module print_sml_stmt with_signatures));
+  >> (fn with_signatures => serialize_ml print_sml_module print_sml_stmt with_signatures));
 
 val serializer_ocaml : Code_Target.serializer =
   Code_Target.parse_args (Scan.optional (Args.$$$ "no_signatures" >> K false) true
-  >> (fn with_signatures => serialize_ml target_OCaml
-      print_ocaml_module print_ocaml_stmt with_signatures));
+  >> (fn with_signatures => serialize_ml print_ocaml_module print_ocaml_stmt with_signatures));
 
 
 (** Isar setup **)

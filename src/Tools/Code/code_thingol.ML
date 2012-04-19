@@ -436,8 +436,7 @@ datatype stmt =
 type program = stmt Graph.T;
 
 fun empty_funs program =
-  Graph.fold (fn (name, (Fun (c, ((_, []), _)), _)) => cons c
-               | _ => I) program [];
+  Graph.fold (fn (_, (Fun (c, ((_, []), _)), _)) => cons c | _ => I) program [];
 
 fun map_terms_bottom_up f (t as IConst _) = f t
   | map_terms_bottom_up f (t as IVar _) = f t
@@ -533,21 +532,24 @@ fun ensure_stmt lookup declare generate thing (dep, (naming, program)) =
     val (name, naming') = case lookup naming thing
      of SOME name => (name, naming)
       | NONE => declare thing naming;
-  in case try (Graph.get_node program) name
-   of SOME stmt => program
-        |> add_dep name
-        |> pair naming'
-        |> pair dep
-        |> pair name
-    | NONE => program
-        |> Graph.default_node (name, NoStmt)
-        |> add_dep name
-        |> pair naming'
-        |> curry generate (SOME name)
-        ||> snd
-        |-> (fn stmt => (apsnd o Graph.map_node name) (K stmt))
-        |> pair dep
-        |> pair name
+  in
+    if can (Graph.get_node program) name
+    then
+      program
+      |> add_dep name
+      |> pair naming'
+      |> pair dep
+      |> pair name
+    else
+      program
+      |> Graph.default_node (name, NoStmt)
+      |> add_dep name
+      |> pair naming'
+      |> curry generate (SOME name)
+      ||> snd
+      |-> (fn stmt => (apsnd o Graph.map_node name) (K stmt))
+      |> pair dep
+      |> pair name
   end;
 
 exception PERMISSIVE of unit;
@@ -588,7 +590,7 @@ val untag_term = map_types (snd o dest_tagged_type);
 fun tag_term (proj_sort, _) eqngr =
   let
     val has_sort_constraints = exists (not o null) o map proj_sort o Code_Preproc.sortargs eqngr;
-    fun tag (Const (c', T')) (Const (c, T)) =
+    fun tag (Const (_, T')) (Const (c, T)) =
         Const (c,
           mk_tagged_type (not (null (Term.add_tvarsT T' [])) andalso has_sort_constraints c, T))
       | tag (t1 $ u1) (t $ u) = tag t1 t $ tag u1 u
@@ -965,7 +967,7 @@ fun dynamic_value thy postproc evaluator =
 
 fun lift_evaluation thy evaluation' algebra eqngr naming program vs t =
   let
-    val (((_, program'), (((vs', ty'), t'), deps)), _) =
+    val (((_, _), (((vs', ty'), t'), deps)), _) =
       ensure_value thy algebra eqngr t (NONE, (naming, program));
   in evaluation' ((original_sorts vs vs', (vs', ty')), t') deps end;
 
@@ -982,7 +984,7 @@ fun lift_evaluator_simple thy evaluator' consts algebra eqngr =
   let
     fun generate_consts thy algebra eqngr =
       fold_map (ensure_const thy algebra eqngr false);
-    val (consts', (naming, program)) =
+    val (_, (_, program)) =
       invoke_generation true thy (algebra, eqngr) generate_consts consts;
   in evaluator' program end;
 

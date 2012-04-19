@@ -78,8 +78,8 @@ fun flat_program labelled_name { module_alias, module_prefix, reserved,
       end;
     fun add_dependency name name' =
       let
-        val (module_name, base) = dest_name name;
-        val (module_name', base') = dest_name name';
+        val (module_name, _) = dest_name name;
+        val (module_name', _) = dest_name name';
       in if module_name = module_name'
         then (Graph.map_node module_name o apfst) (Graph.add_edge (name, name'))
         else (Graph.map_node module_name o apsnd) (AList.map_default (op =) (module_name', []) (insert (op =) name'))
@@ -177,8 +177,8 @@ fun hierarchical_program labelled_name { module_alias, reserved, empty_nsp,
       end;
     fun add_dependency name name' =
       let
-        val (name_fragments, base) = dest_name name;
-        val (name_fragments', base') = dest_name name';
+        val (name_fragments, _) = dest_name name;
+        val (name_fragments', _) = dest_name name';
         val (name_fragments_common, (diff, diff')) =
           chop_prefix (op =) (name_fragments, name_fragments');
         val is_module = not (null diff andalso null diff');
