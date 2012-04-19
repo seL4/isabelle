@@ -105,6 +105,7 @@ abstract class Isabelle_Sidekick(name: String) extends SideKickParser(name)
               if (ds.isEmpty) null
               else
                 new SideKickCompletion(pane.getView, word, ds.toArray.asInstanceOf[Array[Object]]) {
+                  /* FIXME Java 7 only
                   override def getRenderer() =
                     new ListCellRenderer[Any] {
                       val default_renderer =
@@ -121,6 +122,7 @@ abstract class Isabelle_Sidekick(name: String) extends SideKickParser(name)
                         renderer
                       }
                     }
+                  */
                 }
           }
       }
