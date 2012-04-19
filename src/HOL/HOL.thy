@@ -7,16 +7,19 @@ header {* The basis of Higher-Order Logic *}
 theory HOL
 imports Pure "~~/src/Tools/Code_Generator"
 keywords
-  "print_coercions" "print_coercion_maps" "print_claset" "print_induct_rules" :: diag
+  "try" "solve_direct" "quickcheck"
+    "print_coercions" "print_coercion_maps" "print_claset" "print_induct_rules" :: diag and
+  "quickcheck_params" :: thy_decl
 uses
   ("Tools/hologic.ML")
+  "~~/src/Tools/misc_legacy.ML"
+  "~~/src/Tools/try.ML"
+  "~~/src/Tools/quickcheck.ML"
+  "~~/src/Tools/solve_direct.ML"
   "~~/src/Tools/IsaPlanner/zipper.ML"
   "~~/src/Tools/IsaPlanner/isand.ML"
   "~~/src/Tools/IsaPlanner/rw_tools.ML"
   "~~/src/Tools/IsaPlanner/rw_inst.ML"
-  "~~/src/Tools/intuitionistic.ML"
-  "~~/src/Tools/project_rule.ML"
-  "~~/src/Tools/cong_tac.ML"
   "~~/src/Provers/hypsubst.ML"
   "~~/src/Provers/splitter.ML"
   "~~/src/Provers/classical.ML"
@@ -28,6 +31,9 @@ uses
   ("Tools/simpdata.ML")
   "~~/src/Tools/atomize_elim.ML"
   "~~/src/Tools/induct.ML"
+  "~~/src/Tools/cong_tac.ML"
+  "~~/src/Tools/intuitionistic.ML"
+  "~~/src/Tools/project_rule.ML"
   ("~~/src/Tools/induction.ML")
   ("~~/src/Tools/induct_tacs.ML")
   ("Tools/cnf_funcs.ML")
@@ -35,10 +41,13 @@ uses
   "~~/src/Tools/case_product.ML"
 begin
 
-setup {* Intuitionistic.method_setup @{binding iprover} *}
-setup Subtyping.setup
-setup Case_Product.setup
-
+setup {*
+  Intuitionistic.method_setup @{binding iprover}
+  #> Quickcheck.setup
+  #> Solve_Direct.setup
+  #> Subtyping.setup
+  #> Case_Product.setup
+*}
 
 subsection {* Primitive logic *}
 
@@ -2008,3 +2017,4 @@ val nnf_conv = Simplifier.rewrite (HOL_basic_ss addsimps @{thms simp_thms nnf_si
 hide_const (open) eq equal
 
 end
+

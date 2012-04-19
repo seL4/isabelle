@@ -7,19 +7,14 @@ header {* Loading the code generator and related modules *}
 theory Code_Generator
 imports Pure
 keywords
-  "try" "solve_direct" "quickcheck" "value" "print_codeproc"
-    "code_thms" "code_deps" "export_code" :: diag and
-  "quickcheck_params" "code_class" "code_instance" "code_type"
+  "value" "print_codeproc" "code_thms" "code_deps" "export_code" :: diag and
+  "code_class" "code_instance" "code_type"
     "code_const" "code_reserved" "code_include" "code_modulename"
     "code_abort" "code_monad" "code_reflect" :: thy_decl and
   "datatypes" "functions" "module_name" "file" "checking"
 uses
-  "~~/src/Tools/misc_legacy.ML"
-  "~~/src/Tools/cache_io.ML"
-  "~~/src/Tools/try.ML"
-  "~~/src/Tools/solve_direct.ML"
-  "~~/src/Tools/quickcheck.ML"
   "~~/src/Tools/value.ML"
+  "~~/src/Tools/cache_io.ML"
   "~~/src/Tools/Code/code_preproc.ML"
   "~~/src/Tools/Code/code_thingol.ML"
   "~~/src/Tools/Code/code_simp.ML"
@@ -34,15 +29,13 @@ uses
 begin
 
 setup {*
-  Solve_Direct.setup
+  Value.setup
   #> Code_Preproc.setup
   #> Code_Simp.setup
   #> Code_Target.setup
   #> Code_ML.setup
   #> Code_Haskell.setup
   #> Code_Scala.setup
-  #> Quickcheck.setup
-  #> Value.setup
 *}
 
 code_datatype "TYPE('a\<Colon>{})"
@@ -80,3 +73,4 @@ setup Nbe.setup
 hide_const (open) holds
 
 end
+
