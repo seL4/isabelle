@@ -38,8 +38,8 @@ fun define_cr_rel rep_fun lthy =
     (def_thm, lthy'')
   end
 
-fun define_abs_type no_code quot_thm lthy =
-  if not no_code andalso Lifting_Def.can_generate_code_cert quot_thm then
+fun define_abs_type no_abs_code quot_thm lthy =
+  if not no_abs_code andalso Lifting_Def.can_generate_code_cert quot_thm then
     let
       val abs_type_thm = quot_thm RS @{thm Quotient_abs_rep}
       val add_abstype_attribute = 
@@ -78,7 +78,7 @@ fun quot_thm_sanity_check ctxt quot_thm =
                                                 @ (map Pretty.string_of errs)))
   end
 
-fun setup_lifting_infr no_code quot_thm lthy =
+fun setup_lifting_infr no_abs_code quot_thm lthy =
   let
     val _ = quot_thm_sanity_check lthy quot_thm
     val (_, qtyp) = Lifting_Term.quot_thm_rty_qty quot_thm
@@ -89,10 +89,10 @@ fun setup_lifting_infr no_code quot_thm lthy =
     lthy
       |> Local_Theory.declaration {syntax = false, pervasive = true}
         (fn phi => Lifting_Info.update_quotients qty_full_name (quot_info phi))
-      |> define_abs_type no_code quot_thm
+      |> define_abs_type no_abs_code quot_thm
   end
 
-fun setup_by_quotient no_code quot_thm maybe_reflp_thm lthy =
+fun setup_by_quotient no_abs_code quot_thm maybe_reflp_thm lthy =
   let
     val transfer_attr = Attrib.internal (K Transfer.transfer_add)
     val (_, qty) = Lifting_Term.quot_thm_rty_qty quot_thm
@@ -124,10 +124,10 @@ fun setup_by_quotient no_code quot_thm maybe_reflp_thm lthy =
         [quot_thm RS @{thm Quotient_right_total}])
       |> (snd oo Local_Theory.note) ((qualify "rel_eq_transfer", [transfer_attr]), 
         [quot_thm RS @{thm Quotient_rel_eq_transfer}])
-      |> setup_lifting_infr no_code quot_thm
+      |> setup_lifting_infr no_abs_code quot_thm
   end
 
-fun setup_by_typedef_thm no_code typedef_thm lthy =
+fun setup_by_typedef_thm no_abs_code typedef_thm lthy =
   let
     val transfer_attr = Attrib.internal (K Transfer.transfer_add)
     val (_ $ rep_fun $ _ $ typedef_set) = (HOLogic.dest_Trueprop o prop_of) typedef_thm
@@ -174,10 +174,10 @@ fun setup_by_typedef_thm no_code typedef_thm lthy =
         [[quot_thm] MRSL @{thm Quotient_right_unique}])
       |> (snd oo Local_Theory.note) ((qualify "right_total", [transfer_attr]), 
         [[quot_thm] MRSL @{thm Quotient_right_total}])
-      |> setup_lifting_infr no_code quot_thm
+      |> setup_lifting_infr no_abs_code quot_thm
   end
 
-fun setup_lifting_cmd no_code xthm opt_reflp_xthm lthy =
+fun setup_lifting_cmd no_abs_code xthm opt_reflp_xthm lthy =
   let 
     val input_thm = singleton (Attrib.eval_thms lthy) xthm
     val input_term = (HOLogic.dest_Trueprop o prop_of) input_thm
@@ -200,14 +200,14 @@ fun setup_lifting_cmd no_code xthm opt_reflp_xthm lthy =
             val reflp_thm = singleton (Attrib.eval_thms lthy) reflp_xthm
             val _ = sanity_check_reflp_thm reflp_thm
           in
-            setup_by_quotient no_code input_thm (SOME reflp_thm) lthy
+            setup_by_quotient no_abs_code input_thm (SOME reflp_thm) lthy
           end
-        | NONE => setup_by_quotient no_code input_thm NONE lthy
+        | NONE => setup_by_quotient no_abs_code input_thm NONE lthy
 
     fun setup_typedef () = 
       case opt_reflp_xthm of
         SOME _ => error "The reflexivity theorem cannot be specified if the type_definition theorem is used."
-        | NONE => setup_by_typedef_thm no_code input_thm lthy
+        | NONE => setup_by_typedef_thm no_abs_code input_thm lthy
   in
     case input_term of
       (Const (@{const_name Quotient}, _) $ _ $ _ $ _ $ _) => setup_quotient ()
@@ -215,12 +215,12 @@ fun setup_lifting_cmd no_code xthm opt_reflp_xthm lthy =
       | _ => error "Unsupported type of a theorem. Only Quotient or type_definition are supported."
   end
 
-val opt_no_code =
-  Scan.optional (@{keyword "("} |-- Parse.!!! ((Parse.reserved "no_code" >> K true) --| @{keyword ")"})) false
+val opt_no_abs_code =
+  Scan.optional (@{keyword "("} |-- Parse.!!! ((Parse.reserved "no_abs_code" >> K true) --| @{keyword ")"})) false
 
 val _ = 
   Outer_Syntax.local_theory @{command_spec "setup_lifting"}
     "Setup lifting infrastructure" 
-      (opt_no_code -- Parse_Spec.xthm -- Scan.option Parse_Spec.xthm >> 
-        (fn ((no_code, xthm), opt_reflp_xthm) => setup_lifting_cmd no_code xthm opt_reflp_xthm))
+      (opt_no_abs_code -- Parse_Spec.xthm -- Scan.option Parse_Spec.xthm >> 
+        (fn ((no_abs_code, xthm), opt_reflp_xthm) => setup_lifting_cmd no_abs_code xthm opt_reflp_xthm))
 end;
