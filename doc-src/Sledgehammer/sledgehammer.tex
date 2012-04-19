@@ -189,10 +189,10 @@ startup. Its value can be retrieved by executing \texttt{isabelle}
 \texttt{getenv} \texttt{ISABELLE\_HOME\_USER} on the command line.}
 file with the absolute path to CVC3, E, SPASS, or Z3. For example, if the
 \texttt{components} file does not exist yet and you extracted SPASS to
-\texttt{/usr/local/spass-3.7}, create it with the single line
+\texttt{/usr/local/spass-3.8ds}, create it with the single line
 
 \prew
-\texttt{/usr/local/spass-3.7}
+\texttt{/usr/local/spass-3.8ds}
 \postw
 
 in it.
@@ -203,14 +203,14 @@ manually, or found a Vampire executable somewhere (e.g.,
 \texttt{LEO2\_HOME}, \texttt{SATALLAX\_HOME}, \texttt{SPASS\_HOME}, or
 \texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{eproof},
 \texttt{leo}, \texttt{satallax}, \texttt{SPASS}, or \texttt{vampire} executable.
-Sledgehammer has been tested with E 1.0 to 1.4, LEO-II 1.2.9, Satallax 2.2 and 2.3,
-SPASS 3.5 and 3.7, and Vampire 0.6, 1.0, and 1.8%
+Sledgehammer has been tested with E 1.0 to 1.4, LEO-II 1.2.9, Satallax 2.2 and~2.3,
+SPASS 3.5, 3.7, and 3.8ds, and Vampire 0.6, 1.0, and 1.8%
 \footnote{Following the rewrite of Vampire, the counter for version numbers was
 reset to 0; hence the (new) Vampire versions 0.6, 1.0, and 1.8 are more recent
 than 9.0 or 11.5.}%
 . Since the ATPs' output formats are neither documented nor stable, other
-versions of the ATPs might not work well with Sledgehammer. Ideally,
-also set \texttt{E\_VERSION}, \texttt{LEO2\_VERSION},
+versions might not work well with Sledgehammer. Ideally,
+you should also set \texttt{E\_VERSION}, \texttt{LEO2\_VERSION},
 \texttt{SATALLAX\_VERSION}, \texttt{SPASS\_VERSION}, or
 \texttt{VAMPIRE\_VERSION} to the prover's version number (e.g., ``1.4'').
 
@@ -825,7 +825,7 @@ current settings (usually:\ Z3 with proof reconstruction).
 prover developed by Christoph Weidenbach et al.\ \cite{weidenbach-et-al-2009}.
 To use SPASS, set the environment variable \texttt{SPASS\_HOME} to the directory
 that contains the \texttt{SPASS} executable and \texttt{SPASS\_VERSION} to the
-version number (e.g., ``3.7''), or install the prebuilt SPASS package from
+version number (e.g., ``3.8ds''), or install the prebuilt SPASS package from
 \download. Sledgehammer requires version 3.5 or above.
 
 \item[\labelitemi] \textbf{\textit{vampire}:} Vampire is a first-order resolution
