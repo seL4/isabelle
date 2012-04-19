@@ -24,11 +24,11 @@ definition id :: "'a \<Rightarrow> 'a" where
 lemma id_apply [simp]: "id x = x"
   by (simp add: id_def)
 
-lemma image_id [simp]: "id ` Y = Y"
-  by (simp add: id_def)
+lemma image_id [simp]: "image id = id"
+  by (simp add: id_def fun_eq_iff)
 
-lemma vimage_id [simp]: "id -` A = A"
-  by (simp add: id_def)
+lemma vimage_id [simp]: "vimage id = id"
+  by (simp add: id_def fun_eq_iff)
 
 
 subsection {* The Composition Operator @{text "f \<circ> g"} *}

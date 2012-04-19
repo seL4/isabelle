@@ -38,10 +38,6 @@ subsection {* set map (vimage) and set relation *}
 
 definition "set_rel R xs ys \<equiv> \<forall>x y. R x y \<longrightarrow> x \<in> xs \<longleftrightarrow> y \<in> ys"
 
-lemma vimage_id:
-  "vimage id = id"
-  unfolding vimage_def fun_eq_iff by auto
-
 lemma set_rel_eq:
   "set_rel op = = op ="
   by (subst fun_eq_iff, subst fun_eq_iff) (simp add: set_eq_iff set_rel_def)
