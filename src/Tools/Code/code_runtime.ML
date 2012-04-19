@@ -149,7 +149,7 @@ val reject_vars = fn thy => tap (reject_vars thy o Thm.term_of);
 
 local
 
-fun check_holds thy evaluator vs_t deps ct =
+fun check_holds thy evaluator vs_t ct =
   let
     val t = Thm.term_of ct;
     val _ = if fastype_of t <> propT
@@ -165,10 +165,10 @@ fun check_holds thy evaluator vs_t deps ct =
 
 val (_, raw_check_holds_oracle) = Context.>>> (Context.map_theory_result
   (Thm.add_oracle (@{binding holds_by_evaluation},
-  fn (thy, evaluator, vs_t, deps, ct) => check_holds thy evaluator vs_t deps ct)));
+  fn (thy, evaluator, vs_t, ct) => check_holds thy evaluator vs_t ct)));
 
 fun check_holds_oracle thy evaluator ((_, vs_ty), t) deps ct =
-  raw_check_holds_oracle (thy, evaluator, (vs_ty, t), deps, ct);
+  raw_check_holds_oracle (thy, evaluator, (vs_ty, t), ct);
 
 in
 

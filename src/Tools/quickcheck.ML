@@ -390,24 +390,6 @@ fun pretty_counterex ctxt auto NONE =
                Pretty.block [Syntax.pretty_term ctxt t, Pretty.str " =", Pretty.brk 1,
                  Syntax.pretty_term ctxt u]) (rev eval_terms))));
 
-fun pretty_report (Report {iterations = iterations, raised_match_errors = raised_match_errors,
-    satisfied_assms = satisfied_assms, positive_concl_tests = positive_concl_tests}) =
-  let
-    fun pretty_stat s i = Pretty.block ([Pretty.str (s ^ ": " ^ string_of_int i)])
-  in
-     ([pretty_stat "iterations" iterations,
-     pretty_stat "match exceptions" raised_match_errors]
-     @ map_index
-       (fn (i, n) => pretty_stat ("satisfied " ^ string_of_int (i + 1) ^ ". assumption") n)
-       satisfied_assms
-     @ [pretty_stat "positive conclusion tests" positive_concl_tests])
-  end
-
-fun pretty_timings timings =
-  Pretty.chunks (Pretty.fbrk :: Pretty.str "timings:" ::
-    maps (fn (label, time) =>
-      Pretty.str (label ^ ": " ^ string_of_int time ^ " ms") :: Pretty.brk 1 :: []) (rev timings))
-
 (* Isar commands *)
 
 fun read_nat s = case (Library.read_int o Symbol.explode) s

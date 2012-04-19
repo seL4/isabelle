@@ -119,7 +119,7 @@ fun lift_triv_classes_conv thy conv ct =
   in
     ct
     |> (Drule.cterm_fun o map_types o map_type_tfree)
-        (fn (v, sort) => TFree (v, (fst o the o AList.lookup (op =) vs_tab) v))
+        (fn (v, _) => TFree (v, (fst o the o AList.lookup (op =) vs_tab) v))
     |> conv
     |> Thm.strip_shyps
     |> Thm.varifyT_global
@@ -240,7 +240,6 @@ val put_result = Univs.put;
 local
   val prefix =     "Nbe.";
   val name_put =   prefix ^ "put_result";
-  val name_ref =   prefix ^ "univs_ref";
   val name_const = prefix ^ "Const";
   val name_abss =  prefix ^ "abss";
   val name_apps =  prefix ^ "apps";

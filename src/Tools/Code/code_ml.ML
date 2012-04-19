@@ -39,9 +39,6 @@ datatype ml_stmt =
   | ML_Datas of (string * ((vname * sort) list * ((string * vname list) * itype list) list)) list
   | ML_Class of string * (vname * ((class * string) list * (string * itype) list));
 
-fun stmt_name_of_binding (ML_Function (name, _)) = name
-  | stmt_name_of_binding (ML_Instance (name, _)) = name;
-
 fun print_product _ [] = NONE
   | print_product print [x] = SOME (print x)
   | print_product print xs = (SOME o enum " *" "" "") (map print xs);
@@ -55,16 +52,16 @@ fun tuplify _ _ [] = NONE
 
 fun print_sml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
   let
-    fun print_tyco_expr fxy (tyco, []) = (str o deresolve) tyco
-      | print_tyco_expr fxy (tyco, [ty]) =
+    fun print_tyco_expr (tyco, []) = (str o deresolve) tyco
+      | print_tyco_expr (tyco, [ty]) =
           concat [print_typ BR ty, (str o deresolve) tyco]
-      | print_tyco_expr fxy (tyco, tys) =
+      | print_tyco_expr (tyco, tys) =
           concat [enum "," "(" ")" (map (print_typ BR) tys), (str o deresolve) tyco]
     and print_typ fxy (tyco `%% tys) = (case tyco_syntax tyco
-         of NONE => print_tyco_expr fxy (tyco, tys)
-          | SOME (i, print) => print print_typ fxy tys)
+         of NONE => print_tyco_expr (tyco, tys)
+          | SOME (_, print) => print print_typ fxy tys)
       | print_typ fxy (ITyVar v) = str ("'" ^ v);
-    fun print_dicttyp (class, ty) = print_tyco_expr NOBR (class, [ty]);
+    fun print_dicttyp (class, ty) = print_tyco_expr (class, [ty]);
     fun print_typscheme_prefix (vs, p) = enum " ->" "" ""
       (map_filter (fn (v, sort) =>
         (print_product (fn class => print_dicttyp (class, ITyVar v)) sort)) vs @| p);
@@ -129,7 +126,7 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
     and print_case is_pseudo_fun some_thm vars fxy (cases as ((_, [_]), _)) =
           let
             val (binds, body) = Code_Thingol.unfold_let (ICase cases);
-            fun print_match ((pat, ty), t) vars =
+            fun print_match ((pat, _), t) vars =
               vars
               |> print_bind is_pseudo_fun some_thm NOBR pat
               |>> (fn p => semicolon [str "val", p, str "=",
@@ -170,7 +167,7 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
       in
         concat (
           str definer
-          :: print_tyco_expr NOBR (tyco, map (ITyVar o fst) vs)
+          :: print_tyco_expr (tyco, map (ITyVar o fst) vs)
           :: str "="
           :: separate (str "|") (map print_co cos)
         )
@@ -236,7 +233,7 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
                 (map print_super_instance super_instances
                   @ map print_classparam_instance classparam_instances)
               :: str ":"
-              @@ print_tyco_expr NOBR (class, [tyco `%% map (ITyVar o fst) vs])
+              @@ print_tyco_expr (class, [tyco `%% map (ITyVar o fst) vs])
             ))
           end;
     fun print_stmt (ML_Exc (name, (vs_ty, n))) = pair
@@ -276,7 +273,7 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
           end
      | print_stmt (ML_Datas [(tyco, (vs, []))]) =
           let
-            val ty_p = print_tyco_expr NOBR (tyco, map (ITyVar o fst) vs);
+            val ty_p = print_tyco_expr (tyco, map (ITyVar o fst) vs);
           in
             pair
             [concat [str "type", ty_p]]
@@ -359,16 +356,16 @@ val literals_sml = Literals {
 
 fun print_ocaml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
   let
-    fun print_tyco_expr fxy (tyco, []) = (str o deresolve) tyco
-      | print_tyco_expr fxy (tyco, [ty]) =
+    fun print_tyco_expr (tyco, []) = (str o deresolve) tyco
+      | print_tyco_expr (tyco, [ty]) =
           concat [print_typ BR ty, (str o deresolve) tyco]
-      | print_tyco_expr fxy (tyco, tys) =
+      | print_tyco_expr (tyco, tys) =
           concat [enum "," "(" ")" (map (print_typ BR) tys), (str o deresolve) tyco]
     and print_typ fxy (tyco `%% tys) = (case tyco_syntax tyco
-         of NONE => print_tyco_expr fxy (tyco, tys)
+         of NONE => print_tyco_expr (tyco, tys)
           | SOME (_, print) => print print_typ fxy tys)
       | print_typ fxy (ITyVar v) = str ("'" ^ v);
-    fun print_dicttyp (class, ty) = print_tyco_expr NOBR (class, [ty]);
+    fun print_dicttyp (class, ty) = print_tyco_expr (class, [ty]);
     fun print_typscheme_prefix (vs, p) = enum " ->" "" ""
       (map_filter (fn (v, sort) =>
         (print_product (fn class => print_dicttyp (class, ITyVar v)) sort)) vs @| p);
@@ -465,7 +462,7 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
       in
         concat (
           str definer
-          :: print_tyco_expr NOBR (tyco, map (ITyVar o fst) vs)
+          :: print_tyco_expr (tyco, map (ITyVar o fst) vs)
           :: str "="
           :: separate (str "|") (map print_co cos)
         )
@@ -576,7 +573,7 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
                 enum_default "()" ";" "{" "}" (map print_super_instance super_instances
                   @ map print_classparam_instance classparam_instances),
                 str ":",
-                print_tyco_expr NOBR (class, [tyco `%% map (ITyVar o fst) vs])
+                print_tyco_expr (class, [tyco `%% map (ITyVar o fst) vs])
               ]
             ))
           end;
@@ -616,7 +613,7 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
           end
      | print_stmt (ML_Datas [(tyco, (vs, []))]) =
           let
-            val ty_p = print_tyco_expr NOBR (tyco, map (ITyVar o fst) vs);
+            val ty_p = print_tyco_expr (tyco, map (ITyVar o fst) vs);
           in
             pair
             [concat [str "type", ty_p]]

@@ -24,7 +24,7 @@ infixr 5 @|;
 
 (** Scala serializer **)
 
-fun print_scala_stmt labelled_name tyco_syntax const_syntax reserved
+fun print_scala_stmt tyco_syntax const_syntax reserved
     args_num is_singleton_constr (deresolve, deresolve_full) =
   let
     fun lookup_tyvar tyvars = lookup_var tyvars o first_upper;
@@ -33,7 +33,7 @@ fun print_scala_stmt labelled_name tyco_syntax const_syntax reserved
           (print_typ tyvars NOBR) fxy ((str o deresolve) tyco) tys
     and print_typ tyvars fxy (tyco `%% tys) = (case tyco_syntax tyco
          of NONE => print_tyco_expr tyvars fxy (tyco, tys)
-          | SOME (i, print) => print (print_typ tyvars) fxy tys)
+          | SOME (_, print) => print (print_typ tyvars) fxy tys)
       | print_typ tyvars fxy (ITyVar v) = (str o lookup_tyvar tyvars) v;
     fun print_dicttyp tyvars (class, ty) = print_tyco_expr tyvars NOBR (class, [ty]);
     fun print_tupled_typ tyvars ([], ty) =
@@ -362,7 +362,7 @@ fun serialize_scala { labelled_name, reserved_syms, includes,
     fun is_singleton_constr c = case Graph.get_node program c
      of Code_Thingol.Datatypecons (_, tyco) => null (lookup_constr tyco c)
       | _ => false;
-    fun print_stmt prefix_fragments = print_scala_stmt labelled_name
+    fun print_stmt prefix_fragments = print_scala_stmt
       tyco_syntax const_syntax (make_vars reserved_syms) args_num
       is_singleton_constr (deresolver prefix_fragments, deresolver []);
 

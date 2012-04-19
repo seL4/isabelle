@@ -34,7 +34,7 @@ infixr 5 @|;
 
 (** Haskell serializer **)
 
-fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
+fun print_haskell_stmt class_syntax tyco_syntax const_syntax
     reserved deresolve deriving_show =
   let
     fun class_name class = case class_syntax class
@@ -52,9 +52,9 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
           (map (str o lookup_var tyvars) vnames) @ str "." @@ Pretty.brk 1;
     fun print_tyco_expr tyvars fxy (tyco, tys) =
       brackify fxy (str tyco :: map (print_typ tyvars BR) tys)
-    and print_typ tyvars fxy (tycoexpr as tyco `%% tys) = (case tyco_syntax tyco
+    and print_typ tyvars fxy (tyco `%% tys) = (case tyco_syntax tyco
          of NONE => print_tyco_expr tyvars fxy (deresolve tyco, tys)
-          | SOME (i, print) => print (print_typ tyvars) fxy tys)
+          | SOME (_, print) => print (print_typ tyvars) fxy tys)
       | print_typ tyvars fxy (ITyVar v) = (str o lookup_var tyvars) v;
     fun print_typdecl tyvars (vs, tycoexpr) =
       Pretty.block (print_typcontext tyvars vs @| print_tyco_expr tyvars NOBR tycoexpr);
@@ -101,7 +101,7 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
     and print_case tyvars some_thm vars fxy (cases as ((_, [_]), _)) =
           let
             val (binds, body) = Code_Thingol.unfold_let (ICase cases);
-            fun print_match ((pat, ty), t) vars =
+            fun print_match ((pat, _), t) vars =
               vars
               |> print_bind tyvars some_thm BR pat
               |>> (fn p => semicolon [p, str "=", print_term tyvars some_thm vars NOBR t])
@@ -325,7 +325,7 @@ fun serialize_haskell module_prefix string_classes { labelled_name, reserved_sym
               andalso forall (deriv' tycos) tys
           | deriv' _ (ITyVar _) = true
       in deriv [] tyco end;
-    fun print_stmt deresolve = print_haskell_stmt labelled_name
+    fun print_stmt deresolve = print_haskell_stmt
       class_syntax tyco_syntax const_syntax (make_vars reserved)
       deresolve (if string_classes then deriving_show else K false);
 
