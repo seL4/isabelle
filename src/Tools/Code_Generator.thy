@@ -20,7 +20,7 @@ uses
   "~~/src/Tools/solve_direct.ML"
   "~~/src/Tools/quickcheck.ML"
   "~~/src/Tools/value.ML"
-  "~~/src/Tools/Code/code_preproc.ML" 
+  "~~/src/Tools/Code/code_preproc.ML"
   "~~/src/Tools/Code/code_thingol.ML"
   "~~/src/Tools/Code/code_simp.ML"
   "~~/src/Tools/Code/code_printer.ML"
