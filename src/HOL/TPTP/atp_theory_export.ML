@@ -119,7 +119,8 @@ fun run_some_atp ctxt format problem =
     val thy = Proof_Context.theory_of ctxt
     val prob_file = File.tmp_path (Path.explode "prob")
     val atp = case format of DFG _ => spass_newN | _ => eN
-    val {exec, arguments, proof_delims, known_failures, ...} = get_atp thy atp
+    val {exec, arguments, proof_delims, known_failures, ...} =
+      get_atp thy atp ()
     val ord = effective_term_order ctxt atp
     val _ = problem |> lines_for_atp_problem format ord (K [])
                     |> File.write_list prob_file

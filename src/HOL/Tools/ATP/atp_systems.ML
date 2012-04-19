@@ -60,9 +60,9 @@ sig
   val remote_atp :
     string -> string -> string list -> (string * string) list
     -> (failure * string) list -> formula_kind -> formula_kind
-    -> (Proof.context -> slice_spec * string) -> string * atp_config
-  val add_atp : string * atp_config -> theory -> theory
-  val get_atp : theory -> string -> atp_config
+    -> (Proof.context -> slice_spec * string) -> string * (unit -> atp_config)
+  val add_atp : string * (unit -> atp_config) -> theory -> theory
+  val get_atp : theory -> string -> (unit -> atp_config)
   val supported_atps : theory -> string list
   val is_atp_installed : theory -> string -> bool
   val refresh_systems_on_tptp : unit -> unit
@@ -153,7 +153,7 @@ val remote_prefix = "remote_"
 
 structure Data = Theory_Data
 (
-  type T = (atp_config * stamp) Symtab.table
+  type T = ((unit -> atp_config) * stamp) Symtab.table
   val empty = Symtab.empty
   val extend = I
   fun merge data : T =
@@ -202,7 +202,7 @@ val alt_ergo_config : atp_config =
      (* FUDGE *)
      [(1.0, (false, ((100, alt_ergo_tff1, "poly_native", liftingN, false), "")))]}
 
-val alt_ergo = (alt_ergoN, alt_ergo_config)
+val alt_ergo = (alt_ergoN, K alt_ergo_config)
 
 
 (* E *)
@@ -318,7 +318,7 @@ val e_config : atp_config =
          [(1.0, (true, ((500, FOF, "mono_tags??", combsN, false), heuristic)))]
      end}
 
-val e = (eN, e_config)
+val e = (eN, K e_config)
 
 
 (* LEO-II *)
@@ -346,7 +346,7 @@ val leo2_config : atp_config =
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
-val leo2 = (leo2N, leo2_config)
+val leo2 = (leo2N, K leo2_config)
 
 
 (* Satallax *)
@@ -368,7 +368,7 @@ val satallax_config : atp_config =
      (* FUDGE *)
      K [(1.0, (true, ((100, satallax_thf0, "mono_native_higher", keep_lamsN, false), "")))]}
 
-val satallax = (satallaxN, satallax_config)
+val satallax = (satallaxN, K satallax_config)
 
 
 (* SPASS *)
@@ -405,7 +405,7 @@ val spass_old_config : atp_config =
       (0.334, (false, ((50, DFG DFG_Unsorted, "mono_tags??", liftingN, false), no_sosN)))]
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single else I)}
 
-val spass_old = (spass_oldN, spass_old_config)
+val spass_old = (spass_oldN, K spass_old_config)
 
 val spass_new_H1SOS = "-Heuristic=1 -SOS"
 val spass_new_H2 = "-Heuristic=2"
@@ -435,11 +435,11 @@ val spass_new_config : atp_config =
       (0.1000, (false, ((150, DFG DFG_Sorted, "poly_guards??", liftingN, false), spass_new_H2NuVS0Red2))),
       (0.1000, (false, ((300, DFG DFG_Sorted, "mono_native", combsN, true), spass_new_H2SOS)))]}
 
-val spass_new = (spass_newN, spass_new_config)
+val spass_new = (spass_newN, K spass_new_config)
 
-fun spass () =
-  (spassN, if is_new_spass_version () then spass_new_config
-           else spass_old_config)
+val spass =
+  (spassN, fn () => if is_new_spass_version () then spass_new_config
+                    else spass_old_config)
 
 (* Vampire *)
 
@@ -486,7 +486,7 @@ val vampire_config : atp_config =
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
-val vampire = (vampireN, vampire_config)
+val vampire = (vampireN, K vampire_config)
 
 
 (* Z3 with TPTP syntax *)
@@ -509,7 +509,7 @@ val z3_tptp_config : atp_config =
         (0.125, (false, ((62, z3_tff0, "mono_native", combsN, false), ""))),
         (0.125, (false, ((31, z3_tff0, "mono_native", combsN, false), "")))]}
 
-val z3_tptp = (z3_tptpN, z3_tptp_config)
+val z3_tptp = (z3_tptpN, K z3_tptp_config)
 
 
 (* Not really a prover: Experimental Polymorphic TFF and THF output *)
@@ -529,7 +529,7 @@ fun dummy_config format type_enc : atp_config =
 
 val dummy_thf_format = THF (TPTP_Polymorphic, TPTP_Explicit, THF_With_Choice)
 val dummy_thf_config = dummy_config dummy_thf_format "poly_native_higher"
-val dummy_thf = (dummy_thfN, dummy_thf_config)
+val dummy_thf = (dummy_thfN, K dummy_thf_config)
 
 
 (* Remote ATP invocation via SystemOnTPTP *)
@@ -595,11 +595,11 @@ fun remotify_config system_name system_versions best_slice
 fun remote_atp name system_name system_versions proof_delims known_failures
                conj_sym_kind prem_kind best_slice =
   (remote_prefix ^ name,
-   remote_config system_name system_versions proof_delims known_failures
-                 conj_sym_kind prem_kind best_slice)
+   K (remote_config system_name system_versions proof_delims known_failures
+                    conj_sym_kind prem_kind best_slice))
 fun remotify_atp (name, config) system_name system_versions best_slice =
   (remote_prefix ^ name,
-   remotify_config system_name system_versions best_slice config)
+   remotify_config system_name system_versions best_slice o config)
 
 val explicit_tff0 = TFF (TPTP_Monomorphic, TPTP_Explicit)
 
@@ -657,7 +657,7 @@ fun get_atp thy name =
 val supported_atps = Symtab.keys o Data.get
 
 fun is_atp_installed thy name =
-  let val {exec, required_vars, ...} = get_atp thy name in
+  let val {exec, required_vars, ...} = get_atp thy name () in
     forall (exists (fn var => getenv var <> "")) (fst exec :: required_vars)
   end
 
@@ -682,12 +682,12 @@ fun effective_term_order ctxt atp =
       end
   end
 
-fun atps () =
-  [alt_ergo, e, leo2, dummy_thf, satallax, spass_old, spass_new, spass (),
+val atps=
+  [alt_ergo, e, leo2, dummy_thf, satallax, spass_old, spass_new, spass,
    vampire, z3_tptp, remote_e, remote_e_sine, remote_e_tofof, remote_iprover,
    remote_iprover_eq, remote_leo2, remote_satallax, remote_vampire,
    remote_z3_tptp, remote_snark, remote_waldmeister]
 
-fun setup thy = fold add_atp (atps ()) thy
+val setup = fold add_atp atps
 
 end;

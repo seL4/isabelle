@@ -146,9 +146,9 @@ fun is_smt_prover ctxt = member (op =) (SMT_Solver.available_solvers_of ctxt)
 fun is_atp_for_format is_format ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
     case try (get_atp thy) name of
-      SOME {best_slices, ...} =>
+      SOME config =>
       exists (fn (_, (_, ((_, format, _, _, _), _))) => is_format format)
-             (best_slices ctxt)
+             (#best_slices (config ()) ctxt)
     | NONE => false
   end
 
@@ -175,7 +175,7 @@ fun default_max_relevant_for_prover ctxt slice name =
       reconstructor_default_max_relevant
     else if is_atp thy name then
       fold (Integer.max o #1 o fst o snd o snd o snd)
-           (get_slices slice (#best_slices (get_atp thy name) ctxt)) 0
+           (get_slices slice (#best_slices (get_atp thy name ()) ctxt)) 0
     else (* is_smt_prover ctxt name *)
       SMT_Solver.default_max_relevant ctxt name
   end
@@ -1073,7 +1073,7 @@ fun run_reconstructor mode name
 fun get_prover ctxt mode name =
   let val thy = Proof_Context.theory_of ctxt in
     if is_reconstructor name then run_reconstructor mode name
-    else if is_atp thy name then run_atp mode name (get_atp thy name)
+    else if is_atp thy name then run_atp mode name (get_atp thy name ())
     else if is_smt_prover ctxt name then run_smt_solver mode name
     else error ("No such prover: " ^ name ^ ".")
   end
