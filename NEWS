@@ -8,6 +8,8 @@ New in Isabelle2012 (May 2012)
 
 * Prover IDE (PIDE) improvements:
 
+  - more robust Sledgehammer integration (as before the sledgehammer
+    command line needs to be typed into the source buffer)
   - markup for bound variables
   - markup for types of term variables (e.g. displayed as tooltips)
   - support for user-defined Isar commands within the running session
