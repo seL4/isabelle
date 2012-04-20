@@ -472,7 +472,7 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
                 val required = is_required name;
               in
                 if updated_imports orelse AList.defined (op =) edits name orelse
-                  required andalso not (stable_finished_theory node)
+                  not (stable_finished_theory node)
                 then
                   let
                     val node0 = node_of old_version name;
