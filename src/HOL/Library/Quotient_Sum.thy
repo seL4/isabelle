@@ -1,5 +1,5 @@
 (*  Title:      HOL/Library/Quotient_Sum.thy
-    Author:     Cezary Kaliszyk and Christian Urban
+    Author:     Cezary Kaliszyk, Christian Urban and Brian Huffman
 *)
 
 header {* Quotient infrastructure for the sum type *}
@@ -7,6 +7,8 @@ header {* Quotient infrastructure for the sum type *}
 theory Quotient_Sum
 imports Main Quotient_Syntax
 begin
+
+subsection {* Relator for sum type *}
 
 fun
   sum_rel :: "('a \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> 'a + 'b \<Rightarrow> 'c + 'd \<Rightarrow> bool"
@@ -34,26 +36,74 @@ lemma sum_map_id [id_simps]:
   "sum_map id id = id"
   by (simp add: id_def sum_map.identity fun_eq_iff)
 
-lemma sum_rel_eq [id_simps]:
+lemma sum_rel_eq [id_simps, relator_eq]:
   "sum_rel (op =) (op =) = (op =)"
   by (simp add: sum_rel_unfold fun_eq_iff split: sum.split)
 
+lemma split_sum_all: "(\<forall>x. P x) \<longleftrightarrow> (\<forall>x. P (Inl x)) \<and> (\<forall>x. P (Inr x))"
+  by (metis sum.exhaust) (* TODO: move to Sum_Type.thy *)
+
+lemma split_sum_ex: "(\<exists>x. P x) \<longleftrightarrow> (\<exists>x. P (Inl x)) \<or> (\<exists>x. P (Inr x))"
+  by (metis sum.exhaust) (* TODO: move to Sum_Type.thy *)
+
 lemma sum_reflp:
   "reflp R1 \<Longrightarrow> reflp R2 \<Longrightarrow> reflp (sum_rel R1 R2)"
-  by (auto simp add: sum_rel_unfold split: sum.splits intro!: reflpI elim: reflpE)
+  unfolding reflp_def split_sum_all sum_rel.simps by fast
 
 lemma sum_symp:
   "symp R1 \<Longrightarrow> symp R2 \<Longrightarrow> symp (sum_rel R1 R2)"
-  by (auto simp add: sum_rel_unfold split: sum.splits intro!: sympI elim: sympE)
+  unfolding symp_def split_sum_all sum_rel.simps by fast
 
 lemma sum_transp:
   "transp R1 \<Longrightarrow> transp R2 \<Longrightarrow> transp (sum_rel R1 R2)"
-  by (auto simp add: sum_rel_unfold split: sum.splits intro!: transpI elim: transpE)
+  unfolding transp_def split_sum_all sum_rel.simps by fast
 
 lemma sum_equivp [quot_equiv]:
   "equivp R1 \<Longrightarrow> equivp R2 \<Longrightarrow> equivp (sum_rel R1 R2)"
   by (blast intro: equivpI sum_reflp sum_symp sum_transp elim: equivpE)
-  
+
+lemma right_total_sum_rel [transfer_rule]:
+  "right_total R1 \<Longrightarrow> right_total R2 \<Longrightarrow> right_total (sum_rel R1 R2)"
+  unfolding right_total_def split_sum_all split_sum_ex by simp
+
+lemma right_unique_sum_rel [transfer_rule]:
+  "right_unique R1 \<Longrightarrow> right_unique R2 \<Longrightarrow> right_unique (sum_rel R1 R2)"
+  unfolding right_unique_def split_sum_all by simp
+
+lemma bi_total_sum_rel [transfer_rule]:
+  "bi_total R1 \<Longrightarrow> bi_total R2 \<Longrightarrow> bi_total (sum_rel R1 R2)"
+  using assms unfolding bi_total_def split_sum_all split_sum_ex by simp
+
+lemma bi_unique_sum_rel [transfer_rule]:
+  "bi_unique R1 \<Longrightarrow> bi_unique R2 \<Longrightarrow> bi_unique (sum_rel R1 R2)"
+  using assms unfolding bi_unique_def split_sum_all by simp
+
+subsection {* Correspondence rules for transfer package *}
+
+lemma Inl_transfer [transfer_rule]: "(A ===> sum_rel A B) Inl Inl"
+  unfolding fun_rel_def by simp
+
+lemma Inr_transfer [transfer_rule]: "(B ===> sum_rel A B) Inr Inr"
+  unfolding fun_rel_def by simp
+
+lemma sum_case_transfer [transfer_rule]:
+  "((A ===> C) ===> (B ===> C) ===> sum_rel A B ===> C) sum_case sum_case"
+  unfolding fun_rel_def sum_rel_unfold by (simp split: sum.split)
+
+subsection {* Setup for lifting package *}
+
+lemma Quotient_sum:
+  assumes "Quotient R1 Abs1 Rep1 T1"
+  assumes "Quotient R2 Abs2 Rep2 T2"
+  shows "Quotient (sum_rel R1 R2) (sum_map Abs1 Abs2)
+    (sum_map Rep1 Rep2) (sum_rel T1 T2)"
+  using assms unfolding Quotient_alt_def
+  by (simp add: split_sum_all)
+
+declare [[map sum = (sum_rel, Quotient_sum)]]
+
+subsection {* Rules for quotient package *}
+
 lemma sum_quotient [quot_thm]:
   assumes q1: "Quotient3 R1 Abs1 Rep1"
   assumes q2: "Quotient3 R2 Abs2 Rep2"

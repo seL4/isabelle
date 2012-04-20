@@ -1,5 +1,5 @@
 (*  Title:      HOL/Library/Quotient_Option.thy
-    Author:     Cezary Kaliszyk and Christian Urban
+    Author:     Cezary Kaliszyk, Christian Urban and Brian Huffman
 *)
 
 header {* Quotient infrastructure for the option type *}
@@ -7,6 +7,8 @@ header {* Quotient infrastructure for the option type *}
 theory Quotient_Option
 imports Main Quotient_Syntax
 begin
+
+subsection {* Relator for option type *}
 
 fun
   option_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> 'b option \<Rightarrow> bool"
@@ -34,25 +36,81 @@ lemma option_map_id [id_simps]:
   "Option.map id = id"
   by (simp add: id_def Option.map.identity fun_eq_iff)
 
-lemma option_rel_eq [id_simps]:
+lemma option_rel_eq [id_simps, relator_eq]:
   "option_rel (op =) = (op =)"
   by (simp add: option_rel_unfold fun_eq_iff split: option.split)
 
+lemma split_option_all: "(\<forall>x. P x) \<longleftrightarrow> P None \<and> (\<forall>x. P (Some x))"
+  by (metis option.exhaust) (* TODO: move to Option.thy *)
+
+lemma split_option_ex: "(\<exists>x. P x) \<longleftrightarrow> P None \<or> (\<exists>x. P (Some x))"
+  by (metis option.exhaust) (* TODO: move to Option.thy *)
+
 lemma option_reflp:
   "reflp R \<Longrightarrow> reflp (option_rel R)"
-  by (auto simp add: option_rel_unfold split: option.splits intro!: reflpI elim: reflpE)
+  unfolding reflp_def split_option_all by simp
 
 lemma option_symp:
   "symp R \<Longrightarrow> symp (option_rel R)"
-  by (auto simp add: option_rel_unfold split: option.splits intro!: sympI elim: sympE)
+  unfolding symp_def split_option_all option_rel.simps by fast
 
 lemma option_transp:
   "transp R \<Longrightarrow> transp (option_rel R)"
-  by (auto simp add: option_rel_unfold split: option.splits intro!: transpI elim: transpE)
+  unfolding transp_def split_option_all option_rel.simps by fast
 
 lemma option_equivp [quot_equiv]:
   "equivp R \<Longrightarrow> equivp (option_rel R)"
   by (blast intro: equivpI option_reflp option_symp option_transp elim: equivpE)
+
+lemma right_total_option_rel [transfer_rule]:
+  "right_total R \<Longrightarrow> right_total (option_rel R)"
+  unfolding right_total_def split_option_all split_option_ex by simp
+
+lemma right_unique_option_rel [transfer_rule]:
+  "right_unique R \<Longrightarrow> right_unique (option_rel R)"
+  unfolding right_unique_def split_option_all by simp
+
+lemma bi_total_option_rel [transfer_rule]:
+  "bi_total R \<Longrightarrow> bi_total (option_rel R)"
+  unfolding bi_total_def split_option_all split_option_ex by simp
+
+lemma bi_unique_option_rel [transfer_rule]:
+  "bi_unique R \<Longrightarrow> bi_unique (option_rel R)"
+  unfolding bi_unique_def split_option_all by simp
+
+subsection {* Correspondence rules for transfer package *}
+
+lemma None_transfer [transfer_rule]: "(option_rel A) None None"
+  by simp
+
+lemma Some_transfer [transfer_rule]: "(A ===> option_rel A) Some Some"
+  unfolding fun_rel_def by simp
+
+lemma option_case_transfer [transfer_rule]:
+  "(B ===> (A ===> B) ===> option_rel A ===> B) option_case option_case"
+  unfolding fun_rel_def split_option_all by simp
+
+lemma option_map_transfer [transfer_rule]:
+  "((A ===> B) ===> option_rel A ===> option_rel B) Option.map Option.map"
+  unfolding Option.map_def by correspondence
+
+lemma option_bind_transfer [transfer_rule]:
+  "(option_rel A ===> (A ===> option_rel B) ===> option_rel B)
+    Option.bind Option.bind"
+  unfolding fun_rel_def split_option_all by simp
+
+subsection {* Setup for lifting package *}
+
+lemma Quotient_option:
+  assumes "Quotient R Abs Rep T"
+  shows "Quotient (option_rel R) (Option.map Abs)
+    (Option.map Rep) (option_rel T)"
+  using assms unfolding Quotient_alt_def option_rel_unfold
+  by (simp split: option.split)
+
+declare [[map option = (option_rel, Quotient_option)]]
+
+subsection {* Rules for quotient package *}
 
 lemma option_quotient [quot_thm]:
   assumes "Quotient3 R Abs Rep"
@@ -68,12 +126,12 @@ declare [[mapQ3 option = (option_rel, option_quotient)]]
 lemma option_None_rsp [quot_respect]:
   assumes q: "Quotient3 R Abs Rep"
   shows "option_rel R None None"
-  by simp
+  by (rule None_transfer)
 
 lemma option_Some_rsp [quot_respect]:
   assumes q: "Quotient3 R Abs Rep"
   shows "(R ===> option_rel R) Some Some"
-  by auto
+  by (rule Some_transfer)
 
 lemma option_None_prs [quot_preserve]:
   assumes q: "Quotient3 R Abs Rep"

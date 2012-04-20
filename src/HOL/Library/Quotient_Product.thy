@@ -1,5 +1,5 @@
 (*  Title:      HOL/Library/Quotient_Product.thy
-    Author:     Cezary Kaliszyk and Christian Urban
+    Author:     Cezary Kaliszyk, Christian Urban and Brian Huffman
 *)
 
 header {* Quotient infrastructure for the product type *}
@@ -7,6 +7,8 @@ header {* Quotient infrastructure for the product type *}
 theory Quotient_Product
 imports Main Quotient_Syntax
 begin
+
+subsection {* Relator for product type *}
 
 definition
   prod_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('c \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> 'a \<times> 'c \<Rightarrow> 'b \<times> 'd \<Rightarrow> bool"
@@ -21,7 +23,7 @@ lemma map_pair_id [id_simps]:
   shows "map_pair id id = id"
   by (simp add: fun_eq_iff)
 
-lemma prod_rel_eq [id_simps]:
+lemma prod_rel_eq [id_simps, relator_eq]:
   shows "prod_rel (op =) (op =) = (op =)"
   by (simp add: fun_eq_iff)
 
@@ -30,6 +32,68 @@ lemma prod_equivp [quot_equiv]:
   assumes "equivp R2"
   shows "equivp (prod_rel R1 R2)"
   using assms by (auto intro!: equivpI reflpI sympI transpI elim!: equivpE elim: reflpE sympE transpE)
+
+lemma right_total_prod_rel [transfer_rule]:
+  assumes "right_total R1" and "right_total R2"
+  shows "right_total (prod_rel R1 R2)"
+  using assms unfolding right_total_def prod_rel_def by auto
+
+lemma right_unique_prod_rel [transfer_rule]:
+  assumes "right_unique R1" and "right_unique R2"
+  shows "right_unique (prod_rel R1 R2)"
+  using assms unfolding right_unique_def prod_rel_def by auto
+
+lemma bi_total_prod_rel [transfer_rule]:
+  assumes "bi_total R1" and "bi_total R2"
+  shows "bi_total (prod_rel R1 R2)"
+  using assms unfolding bi_total_def prod_rel_def by auto
+
+lemma bi_unique_prod_rel [transfer_rule]:
+  assumes "bi_unique R1" and "bi_unique R2"
+  shows "bi_unique (prod_rel R1 R2)"
+  using assms unfolding bi_unique_def prod_rel_def by auto
+
+subsection {* Correspondence rules for transfer package *}
+
+lemma Pair_transfer [transfer_rule]: "(A ===> B ===> prod_rel A B) Pair Pair"
+  unfolding fun_rel_def prod_rel_def by simp
+
+lemma fst_transfer [transfer_rule]: "(prod_rel A B ===> A) fst fst"
+  unfolding fun_rel_def prod_rel_def by simp
+
+lemma snd_transfer [transfer_rule]: "(prod_rel A B ===> B) snd snd"
+  unfolding fun_rel_def prod_rel_def by simp
+
+lemma prod_case_transfer [transfer_rule]:
+  "((A ===> B ===> C) ===> prod_rel A B ===> C) prod_case prod_case"
+  unfolding fun_rel_def prod_rel_def by simp
+
+lemma curry_transfer [transfer_rule]:
+  "((prod_rel A B ===> C) ===> A ===> B ===> C) curry curry"
+  unfolding curry_def by correspondence
+
+lemma map_pair_transfer [transfer_rule]:
+  "((A ===> C) ===> (B ===> D) ===> prod_rel A B ===> prod_rel C D)
+    map_pair map_pair"
+  unfolding map_pair_def [abs_def] by correspondence
+
+lemma prod_rel_transfer [transfer_rule]:
+  "((A ===> B ===> op =) ===> (C ===> D ===> op =) ===>
+    prod_rel A C ===> prod_rel B D ===> op =) prod_rel prod_rel"
+  unfolding fun_rel_def by auto
+
+subsection {* Setup for lifting package *}
+
+lemma Quotient_prod:
+  assumes "Quotient R1 Abs1 Rep1 T1"
+  assumes "Quotient R2 Abs2 Rep2 T2"
+  shows "Quotient (prod_rel R1 R2) (map_pair Abs1 Abs2)
+    (map_pair Rep1 Rep2) (prod_rel T1 T2)"
+  using assms unfolding Quotient_alt_def by auto
+
+declare [[map prod = (prod_rel, Quotient_prod)]]
+
+subsection {* Rules for quotient package *}
 
 lemma prod_quotient [quot_thm]:
   assumes "Quotient3 R1 Abs1 Rep1"
@@ -49,7 +113,7 @@ lemma Pair_rsp [quot_respect]:
   assumes q1: "Quotient3 R1 Abs1 Rep1"
   assumes q2: "Quotient3 R2 Abs2 Rep2"
   shows "(R1 ===> R2 ===> prod_rel R1 R2) Pair Pair"
-  by (auto simp add: prod_rel_def)
+  by (rule Pair_transfer)
 
 lemma Pair_prs [quot_preserve]:
   assumes q1: "Quotient3 R1 Abs1 Rep1"
@@ -85,8 +149,7 @@ lemma snd_prs [quot_preserve]:
 
 lemma split_rsp [quot_respect]:
   shows "((R1 ===> R2 ===> (op =)) ===> (prod_rel R1 R2) ===> (op =)) split split"
-  unfolding prod_rel_def fun_rel_def
-  by auto
+  by (rule prod_case_transfer)
 
 lemma split_prs [quot_preserve]:
   assumes q1: "Quotient3 R1 Abs1 Rep1"
@@ -97,7 +160,7 @@ lemma split_prs [quot_preserve]:
 lemma [quot_respect]:
   shows "((R2 ===> R2 ===> op =) ===> (R1 ===> R1 ===> op =) ===>
   prod_rel R2 R1 ===> prod_rel R2 R1 ===> op =) prod_rel prod_rel"
-  by (auto simp add: fun_rel_def)
+  by (rule prod_rel_transfer)
 
 lemma [quot_preserve]:
   assumes q1: "Quotient3 R1 abs1 rep1"
