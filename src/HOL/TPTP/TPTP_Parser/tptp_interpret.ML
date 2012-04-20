@@ -150,12 +150,14 @@ type tptp_general_meaning =
   (type_map * const_map * tptp_formula_meaning list)
 
 type manifest = TPTP_Problem_Name.problem_name * tptp_general_meaning
+
 structure TPTP_Data = Theory_Data
-  (type T = manifest list
-   val empty = []
-   val extend = I
-   (*SMLNJ complains if non-expanded form used below*)
-   fun merge v = Library.merge (op =) v)
+(
+  type T = manifest list
+  val empty = []
+  val extend = I
+  fun merge data : T = Library.merge (op =) data
+)
 val get_manifests = TPTP_Data.get
 
 
