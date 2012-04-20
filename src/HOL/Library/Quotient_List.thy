@@ -207,6 +207,8 @@ lemma list_all2_refl:
   shows "list_all2 R x x"
   by (induct x) (auto simp add: a)
 
+subsection {* Setup for lifting package *}
+
 lemma list_quotient:
   assumes "Quotient R Abs Rep T"
   shows "Quotient (list_all2 R) (List.map Abs) (List.map Rep) (list_all2 T)"
@@ -250,5 +252,14 @@ next
 qed
 
 declare [[map list = (list_all2, list_quotient)]]
+
+lemma list_invariant_commute [invariant_commute]:
+  "list_all2 (Lifting.invariant P) = Lifting.invariant (list_all P)"
+  apply (simp add: fun_eq_iff list_all2_def list_all_iff Lifting.invariant_def Ball_def) 
+  apply (intro allI) 
+  apply (induct_tac rule: list_induct2') 
+  apply simp_all 
+  apply metis
+done
 
 end

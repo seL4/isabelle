@@ -19,6 +19,8 @@ sig
   val dest_quotients: Proof.context -> quotients list
   val print_quotients: Proof.context -> unit
 
+  val get_invariant_commute_rules: Proof.context -> thm list
+
   val setup: theory -> theory
 end;
 
@@ -26,8 +28,6 @@ structure Lifting_Info: LIFTING_INFO =
 struct
 
 (** data containers **)
-
-(* FIXME just one data slot (record) per program unit *)
 
 (* info about map- and rel-functions for a type *)
 type quotmaps = {relmap: string, quot_thm: thm}
@@ -107,10 +107,19 @@ fun print_quotients ctxt =
     |> Pretty.writeln
   end
 
+structure Invariant_Commute = Named_Thms
+(
+  val name = @{binding invariant_commute}
+  val description = "theorems that a relator of an invariant is an invariant of the corresponding predicate"
+)
+
+fun get_invariant_commute_rules ctxt = map safe_mk_meta_eq (Invariant_Commute.get ctxt)
+
 (* theory setup *)
 
 val setup =
   quotmaps_attribute_setup
+  #> Invariant_Commute.setup
 
 (* outer syntax commands *)
 

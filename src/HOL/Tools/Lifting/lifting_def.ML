@@ -231,11 +231,13 @@ fun mk_readable_rsp_thm_eq tm lthy =
             @{thm fun_rel_def[THEN eq_reflection]}]
         val left_conv = simp_arrows_conv then_conv Conv.try_conv norm_fun_eq
         fun binop_conv2 cv1 cv2 = Conv.combination_conv (Conv.arg_conv cv1) cv2
+        val invariant_commute_conv = Conv.bottom_conv
+          (K (Conv.try_conv (Conv.rewrs_conv (Lifting_Info.get_invariant_commute_rules lthy)))) lthy
       in
         case (Thm.term_of ctm) of
           Const (@{const_name "fun_rel"}, _) $ _ $ _ => 
             (binop_conv2  left_conv simp_arrows_conv then_conv unfold_conv) ctm
-          | _ => Conv.all_conv ctm
+          | _ => invariant_commute_conv ctm
       end
 
     val unfold_ret_val_invs = Conv.bottom_conv 

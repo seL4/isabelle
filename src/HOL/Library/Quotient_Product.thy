@@ -93,6 +93,15 @@ lemma Quotient_prod:
 
 declare [[map prod = (prod_rel, Quotient_prod)]]
 
+definition prod_pred :: "('a \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
+where "prod_pred R1 R2 = (\<lambda>(a, b). R1 a \<and> R2 b)"
+
+lemma prod_invariant_commute [invariant_commute]: 
+  "prod_rel (Lifting.invariant P1) (Lifting.invariant P2) = Lifting.invariant (prod_pred P1 P2)"
+  apply (simp add: fun_eq_iff prod_rel_def prod_pred_def Lifting.invariant_def) 
+  apply blast
+done
+
 subsection {* Rules for quotient package *}
 
 lemma prod_quotient [quot_thm]:

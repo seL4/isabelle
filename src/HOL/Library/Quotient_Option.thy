@@ -110,6 +110,22 @@ lemma Quotient_option:
 
 declare [[map option = (option_rel, Quotient_option)]]
 
+fun option_pred :: "('a \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> bool"
+where
+  "option_pred R None = True"
+| "option_pred R (Some x) = R x"
+
+lemma option_invariant_commute [invariant_commute]:
+  "option_rel (Lifting.invariant P) = Lifting.invariant (option_pred P)"
+  apply (simp add: fun_eq_iff Lifting.invariant_def)
+  apply (intro allI) 
+  apply (case_tac x rule: option.exhaust)
+  apply (case_tac xa rule: option.exhaust)
+  apply auto[2]
+  apply (case_tac xa rule: option.exhaust)
+  apply auto
+done
+
 subsection {* Rules for quotient package *}
 
 lemma option_quotient [quot_thm]:

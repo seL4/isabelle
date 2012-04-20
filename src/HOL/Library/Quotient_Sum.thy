@@ -102,6 +102,22 @@ lemma Quotient_sum:
 
 declare [[map sum = (sum_rel, Quotient_sum)]]
 
+fun sum_pred :: "('a \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> 'a + 'b \<Rightarrow> bool"
+where
+  "sum_pred R1 R2 (Inl a) = R1 a"
+| "sum_pred R1 R2 (Inr a) = R2 a"
+
+lemma sum_invariant_commute [invariant_commute]: 
+  "sum_rel (Lifting.invariant P1) (Lifting.invariant P2) = Lifting.invariant (sum_pred P1 P2)"
+  apply (simp add: fun_eq_iff Lifting.invariant_def)
+  apply (intro allI) 
+  apply (case_tac x rule: sum.exhaust)
+  apply (case_tac xa rule: sum.exhaust)
+  apply auto[2]
+  apply (case_tac xa rule: sum.exhaust)
+  apply auto
+done
+
 subsection {* Rules for quotient package *}
 
 lemma sum_quotient [quot_thm]:
