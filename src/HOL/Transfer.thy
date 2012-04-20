@@ -240,6 +240,9 @@ lemma If_parametric [transfer_rule]: "(op = ===> A ===> A ===> A) If If"
 lemma Let_parametric [transfer_rule]: "(A ===> (A ===> B) ===> B) Let Let"
   unfolding fun_rel_def by simp
 
+lemma id_parametric [transfer_rule]: "(A ===> A) id id"
+  unfolding fun_rel_def by simp
+
 lemma comp_parametric [transfer_rule]:
   "((B ===> C) ===> (A ===> B) ===> (A ===> C)) (op \<circ>) (op \<circ>)"
   unfolding fun_rel_def by simp
