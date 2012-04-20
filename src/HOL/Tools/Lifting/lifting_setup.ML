@@ -144,6 +144,7 @@ fun setup_by_typedef_thm no_abs_code typedef_thm lthy =
     val (_, qty) = Lifting_Term.quot_thm_rty_qty quot_thm
     val qty_name = (Binding.name o Long_Name.base_name o fst o dest_Type) qty
     fun qualify suffix = Binding.qualified true suffix qty_name
+    val simplify = Raw_Simplifier.rewrite_rule [mk_meta_eq @{thm mem_Collect_eq}]
 
     val lthy'' = case typedef_set of
       Const ("Orderings.top_class.top", _) => 
@@ -163,7 +164,7 @@ fun setup_by_typedef_thm no_abs_code typedef_thm lthy =
         |> (snd oo Local_Theory.note) ((qualify "Ex_transfer", [transfer_attr]), 
           [[typedef_thm, T_def] MRSL @{thm typedef_Ex_transfer}])
         |> (snd oo Local_Theory.note) ((qualify "forall_transfer", [transfer_attr]), 
-          [[typedef_thm, T_def] MRSL @{thm typedef_forall_transfer}])
+          [simplify ([typedef_thm, T_def] MRSL @{thm typedef_forall_transfer})])
   in
     lthy''
       |> (snd oo Local_Theory.note) ((qualify "bi_unique", [transfer_attr]), 
