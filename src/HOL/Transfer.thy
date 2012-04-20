@@ -81,6 +81,9 @@ lemma transfer_start: "\<lbrakk>Rel (op =) P Q; P\<rbrakk> \<Longrightarrow> Q"
 lemma transfer_start': "\<lbrakk>Rel (op \<longrightarrow>) P Q; P\<rbrakk> \<Longrightarrow> Q"
   unfolding Rel_def by simp
 
+lemma correspondence_start: "\<lbrakk>x = x'; Rel R x' y\<rbrakk> \<Longrightarrow> Rel R x y"
+  by simp
+
 lemma Rel_eq_refl: "Rel (op =) x x"
   unfolding Rel_def ..
 

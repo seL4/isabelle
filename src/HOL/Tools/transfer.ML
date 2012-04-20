@@ -86,8 +86,7 @@ fun correspond_conv ctxt ct = (
       Conv.implies_conv Conv.all_conv (correspond_conv ctxt)
       else_conv
       Trueprop_conv
-      (Conv.combination_conv
-         (Conv.combination_conv Rel_conv (fo_conv ctxt)) (fo_conv ctxt))
+      (Conv.combination_conv (Conv.fun_conv Rel_conv) (fo_conv ctxt))
       else_conv
       Conv.all_conv) ct
 
@@ -156,8 +155,11 @@ fun correspondence_tac ctxt i =
   in
     EVERY
       [CONVERSION (correspond_conv ctxt) i,
+       rtac @{thm correspondence_start} i,
        REPEAT_ALL_NEW
-         (resolve_tac rules ORELSE' atac ORELSE' eq_tac ctxt) i]
+         (resolve_tac rules ORELSE' atac ORELSE' eq_tac ctxt) (i+1),
+       rewrite_goal_tac @{thms App_def Abs_def} i,
+       rtac @{thm refl} i]
   end
 
 val free = Args.context -- Args.term >> (fn (_, Free v) => v | (ctxt, t) =>
