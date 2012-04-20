@@ -219,35 +219,35 @@ lemma bi_unique_fun [transfer_rule]:
 
 subsection {* Transfer rules *}
 
-lemma eq_parametric [transfer_rule]:
+lemma eq_transfer [transfer_rule]:
   assumes "bi_unique A"
   shows "(A ===> A ===> op =) (op =) (op =)"
   using assms unfolding bi_unique_def fun_rel_def by auto
 
-lemma All_parametric [transfer_rule]:
+lemma All_transfer [transfer_rule]:
   assumes "bi_total A"
   shows "((A ===> op =) ===> op =) All All"
   using assms unfolding bi_total_def fun_rel_def by fast
 
-lemma Ex_parametric [transfer_rule]:
+lemma Ex_transfer [transfer_rule]:
   assumes "bi_total A"
   shows "((A ===> op =) ===> op =) Ex Ex"
   using assms unfolding bi_total_def fun_rel_def by fast
 
-lemma If_parametric [transfer_rule]: "(op = ===> A ===> A ===> A) If If"
+lemma If_transfer [transfer_rule]: "(op = ===> A ===> A ===> A) If If"
   unfolding fun_rel_def by simp
 
-lemma Let_parametric [transfer_rule]: "(A ===> (A ===> B) ===> B) Let Let"
+lemma Let_transfer [transfer_rule]: "(A ===> (A ===> B) ===> B) Let Let"
   unfolding fun_rel_def by simp
 
-lemma id_parametric [transfer_rule]: "(A ===> A) id id"
+lemma id_transfer [transfer_rule]: "(A ===> A) id id"
   unfolding fun_rel_def by simp
 
-lemma comp_parametric [transfer_rule]:
+lemma comp_transfer [transfer_rule]:
   "((B ===> C) ===> (A ===> B) ===> (A ===> C)) (op \<circ>) (op \<circ>)"
   unfolding fun_rel_def by simp
 
-lemma fun_upd_parametric [transfer_rule]:
+lemma fun_upd_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
   shows "((A ===> B) ===> A ===> B ===> A ===> B) fun_upd fun_upd"
   unfolding fun_upd_def [abs_def] by transfer_prover
@@ -270,8 +270,8 @@ lemma Domainp_forall_transfer [transfer_rule]:
 text {* Preferred rule for transferring universal quantifiers over
   bi-total correspondence relations (later rules are tried first). *}
 
-lemma transfer_forall_parametric [transfer_rule]:
+lemma forall_transfer [transfer_rule]:
   "bi_total A \<Longrightarrow> ((A ===> op =) ===> op =) transfer_forall transfer_forall"
-  unfolding transfer_forall_def by (rule All_parametric)
+  unfolding transfer_forall_def by (rule All_transfer)
 
 end
