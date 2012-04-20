@@ -252,7 +252,26 @@ lemma fun_upd_parametric [transfer_rule]:
   shows "((A ===> B) ===> A ===> B ===> A ===> B) fun_upd fun_upd"
   unfolding fun_upd_def [abs_def] by correspondence
 
-lemmas transfer_forall_parametric [transfer_rule]
-  = All_parametric [folded transfer_forall_def]
+lemma Domainp_iff: "Domainp T x \<longleftrightarrow> (\<exists>y. T x y)"
+  by auto
+
+text {* Fallback rule for transferring universal quantifiers over
+  correspondence relations that are not bi-total, and do not have
+  custom transfer rules (e.g. relations between function types). *}
+
+lemma Domainp_forall_transfer [transfer_rule]:
+  assumes "right_total A"
+  shows "((A ===> op =) ===> op =)
+    (transfer_bforall (Domainp A)) transfer_forall"
+  using assms unfolding right_total_def
+  unfolding transfer_forall_def transfer_bforall_def fun_rel_def Domainp_iff
+  by metis
+
+text {* Preferred rule for transferring universal quantifiers over
+  bi-total correspondence relations (later rules are tried first). *}
+
+lemma transfer_forall_parametric [transfer_rule]:
+  "bi_total A \<Longrightarrow> ((A ===> op =) ===> op =) transfer_forall transfer_forall"
+  unfolding transfer_forall_def by (rule All_parametric)
 
 end
