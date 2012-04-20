@@ -8,6 +8,21 @@ theory Quotient_Set
 imports Main Quotient_Syntax
 begin
 
+subsection {* set map (vimage) and set relation *}
+
+definition "set_rel R xs ys \<equiv> \<forall>x y. R x y \<longrightarrow> x \<in> xs \<longleftrightarrow> y \<in> ys"
+
+lemma set_rel_eq [id_simps]:
+  "set_rel op = = op ="
+  by (subst fun_eq_iff, subst fun_eq_iff) (simp add: set_eq_iff set_rel_def)
+
+lemma set_rel_equivp:
+  assumes e: "equivp R"
+  shows "set_rel R xs ys \<longleftrightarrow> xs = ys \<and> (\<forall>x y. x \<in> xs \<longrightarrow> R x y \<longrightarrow> y \<in> xs)"
+  unfolding set_rel_def
+  using equivp_reflp[OF e]
+  by auto (metis, metis equivp_symp[OF e])
+
 lemma set_quotient [quot_thm]:
   assumes "Quotient3 R Abs Rep"
   shows "Quotient3 (set_rel R) (vimage Rep) (vimage Abs)"

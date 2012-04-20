@@ -34,21 +34,6 @@ lemma eq_comp_r:
   shows "((op =) OOO R) = R"
   by (auto simp add: fun_eq_iff)
 
-subsection {* set map (vimage) and set relation *}
-
-definition "set_rel R xs ys \<equiv> \<forall>x y. R x y \<longrightarrow> x \<in> xs \<longleftrightarrow> y \<in> ys"
-
-lemma set_rel_eq:
-  "set_rel op = = op ="
-  by (subst fun_eq_iff, subst fun_eq_iff) (simp add: set_eq_iff set_rel_def)
-
-lemma set_rel_equivp:
-  assumes e: "equivp R"
-  shows "set_rel R xs ys \<longleftrightarrow> xs = ys \<and> (\<forall>x y. x \<in> xs \<longrightarrow> R x y \<longrightarrow> y \<in> xs)"
-  unfolding set_rel_def
-  using equivp_reflp[OF e]
-  by auto (metis, metis equivp_symp[OF e])
-
 subsection {* Quotient Predicate *}
 
 definition
@@ -799,7 +784,6 @@ lemmas [id_simps] =
   id_o
   o_id
   eq_comp_r
-  set_rel_eq
   vimage_id
 
 text {* Translation functions for the lifting process. *}
