@@ -252,12 +252,16 @@ lemma fun_upd_transfer [transfer_rule]:
   shows "((A ===> B) ===> A ===> B ===> A ===> B) fun_upd fun_upd"
   unfolding fun_upd_def [abs_def] by transfer_prover
 
-lemma Domainp_iff: "Domainp T x \<longleftrightarrow> (\<exists>y. T x y)"
-  by auto
+lemma nat_case_transfer [transfer_rule]:
+  "(A ===> (op = ===> A) ===> op = ===> A) nat_case nat_case"
+  unfolding fun_rel_def by (simp split: nat.split)
 
 text {* Fallback rule for transferring universal quantifiers over
   correspondence relations that are not bi-total, and do not have
   custom transfer rules (e.g. relations between function types). *}
+
+lemma Domainp_iff: "Domainp T x \<longleftrightarrow> (\<exists>y. T x y)"
+  by auto
 
 lemma Domainp_forall_transfer [transfer_rule]:
   assumes "right_total A"
