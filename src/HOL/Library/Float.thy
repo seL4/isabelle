@@ -218,14 +218,14 @@ lemma float_numeral[simp]: "real (numeral x :: float) = numeral x"
 
 lemma transfer_numeral [transfer_rule]: 
   "fun_rel (op =) cr_float (numeral :: _ \<Rightarrow> real) (numeral :: _ \<Rightarrow> float)"
-  unfolding fun_rel_def cr_float_def by (simp add: real_of_float_def[symmetric])
+  unfolding fun_rel_def cr_float_def by simp
 
 lemma float_neg_numeral[simp]: "real (neg_numeral x :: float) = neg_numeral x"
   by (simp add: minus_numeral[symmetric] del: minus_numeral)
 
 lemma transfer_neg_numeral [transfer_rule]: 
   "fun_rel (op =) cr_float (neg_numeral :: _ \<Rightarrow> real) (neg_numeral :: _ \<Rightarrow> float)"
-  unfolding fun_rel_def cr_float_def by (simp add: real_of_float_def[symmetric])
+  unfolding fun_rel_def cr_float_def by simp
 
 lemma
   shows float_of_numeral[simp]: "numeral k = float_of (numeral k)"
@@ -366,10 +366,6 @@ qed
 
 subsection {* Compute arithmetic operations *}
 
-lemma real_of_float_Float[code]: "real_of_float (Float m e) =
-  (if e \<ge> 0 then m * 2 ^ nat e else m * inverse (2 ^ nat (- e)))"
-by (auto simp add: powr_realpow[symmetric] powr_minus real_of_float_def[symmetric])
-
 lemma Float_mantissa_exponent: "Float (mantissa f) (exponent f) = f"
   unfolding real_of_float_eq mantissa_exponent[of f] by simp
 
@@ -415,11 +411,13 @@ proof
     unfolding real_of_int_inject by auto
 qed
 
-lemma compute_zero[code_unfold, code]: "0 = Float 0 0"
+lemma compute_float_zero[code_unfold, code]: "0 = Float 0 0"
   by transfer simp
+hide_fact (open) compute_float_zero
 
-lemma compute_one[code_unfold, code]: "1 = Float 1 0"
+lemma compute_float_one[code_unfold, code]: "1 = Float 1 0"
   by transfer simp
+hide_fact (open) compute_float_one
 
 definition normfloat :: "float \<Rightarrow> float" where
   [simp]: "normfloat x = x"
@@ -429,56 +427,71 @@ lemma compute_normfloat[code]: "normfloat (Float m e) =
                            else if m = 0 then 0 else Float m e)"
   unfolding normfloat_def
   by transfer (auto simp add: powr_add zmod_eq_0_iff)
+hide_fact (open) compute_normfloat
 
 lemma compute_float_numeral[code_abbrev]: "Float (numeral k) 0 = numeral k"
   by transfer simp
+hide_fact (open) compute_float_numeral
 
 lemma compute_float_neg_numeral[code_abbrev]: "Float (neg_numeral k) 0 = neg_numeral k"
   by transfer simp
+hide_fact (open) compute_float_neg_numeral
 
 lemma compute_float_uminus[code]: "- Float m1 e1 = Float (- m1) e1"
   by transfer simp
+hide_fact (open) compute_float_uminus
 
 lemma compute_float_times[code]: "Float m1 e1 * Float m2 e2 = Float (m1 * m2) (e1 + e2)"
   by transfer (simp add: field_simps powr_add)
+hide_fact (open) compute_float_times
 
 lemma compute_float_plus[code]: "Float m1 e1 + Float m2 e2 =
   (if e1 \<le> e2 then Float (m1 + m2 * 2^nat (e2 - e1)) e1
               else Float (m2 + m1 * 2^nat (e1 - e2)) e2)"
   by transfer (simp add: field_simps powr_realpow[symmetric] powr_divide2[symmetric])
+hide_fact (open) compute_float_plus
 
 lemma compute_float_minus[code]: fixes f g::float shows "f - g = f + (-g)"
   by simp
+hide_fact (open) compute_float_minus
 
 lemma compute_float_sgn[code]: "sgn (Float m1 e1) = (if 0 < m1 then 1 else if m1 < 0 then -1 else 0)"
   by transfer (simp add: sgn_times)
+hide_fact (open) compute_float_sgn
 
 lift_definition is_float_pos :: "float \<Rightarrow> bool" is "op < 0 :: real \<Rightarrow> bool" ..
 
 lemma compute_is_float_pos[code]: "is_float_pos (Float m e) \<longleftrightarrow> 0 < m"
   by transfer (auto simp add: zero_less_mult_iff not_le[symmetric, of _ 0])
+hide_fact (open) compute_is_float_pos
 
 lemma compute_float_less[code]: "a < b \<longleftrightarrow> is_float_pos (b - a)"
   by transfer (simp add: field_simps)
+hide_fact (open) compute_float_less
 
 lift_definition is_float_nonneg :: "float \<Rightarrow> bool" is "op \<le> 0 :: real \<Rightarrow> bool" ..
 
 lemma compute_is_float_nonneg[code]: "is_float_nonneg (Float m e) \<longleftrightarrow> 0 \<le> m"
   by transfer (auto simp add: zero_le_mult_iff not_less[symmetric, of _ 0])
+hide_fact (open) compute_is_float_nonneg
 
 lemma compute_float_le[code]: "a \<le> b \<longleftrightarrow> is_float_nonneg (b - a)"
   by transfer (simp add: field_simps)
+hide_fact (open) compute_float_le
 
 lift_definition is_float_zero :: "float \<Rightarrow> bool"  is "op = 0 :: real \<Rightarrow> bool" by simp
 
 lemma compute_is_float_zero[code]: "is_float_zero (Float m e) \<longleftrightarrow> 0 = m"
   by transfer (auto simp add: is_float_zero_def)
+hide_fact (open) compute_is_float_zero
 
 lemma compute_float_abs[code]: "abs (Float m e) = Float (abs m) e"
   by transfer (simp add: abs_mult)
+hide_fact (open) compute_float_abs
 
 lemma compute_float_eq[code]: "equal_class.equal f g = is_float_zero (f - g)"
   by transfer simp
+hide_fact (open) compute_float_eq
 
 subsection {* Rounding Real numbers *}
 
@@ -581,6 +594,7 @@ next
     by transfer
        (auto simp add: round_down_def field_simps powr_add powr_minus inverse_eq_divide)
 qed
+hide_fact (open) compute_float_down
 
 lemma ceil_divide_floor_conv:
 assumes "b \<noteq> 0"
@@ -643,6 +657,7 @@ next
     by transfer
        (simp add: round_up_def floor_divide_eq_div field_simps powr_add powr_minus inverse_eq_divide)
 qed
+hide_fact (open) compute_float_up
 
 lemmas real_of_ints =
   real_of_int_zero
@@ -777,6 +792,7 @@ proof -
     unfolding bitlen_def
     by (auto simp: pos_imp_zdiv_pos_iff not_le)
 qed
+hide_fact (open) compute_bitlen
 
 lemma float_gt1_scale: assumes "1 \<le> Float m e"
   shows "0 \<le> e + (bitlen m - 1)"
@@ -853,6 +869,7 @@ lemma compute_lapprox_posrat[code]:
     by transfer
        (simp add: round_down_def powr_int real_div_nat_eq_floor_of_divide field_simps Let_def
              del: two_powr_minus_int_float)
+hide_fact (open) compute_lapprox_posrat
 
 lift_definition rapprox_posrat :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> float"
   is "\<lambda>prec (x::nat) (y::nat). round_up (rat_precision prec x y) (x / y)" by simp
@@ -900,6 +917,7 @@ next
          (simp add: round_up_def ceil_divide_floor_conv floor_divide_eq_div[symmetric] dvd_eq_mod_eq_0)
   qed
 qed
+hide_fact (open) compute_rapprox_posrat
 
 lemma rat_precision_pos:
   assumes "0 \<le> x" and "0 < y" and "2 * x < y" and "0 < n"
@@ -959,6 +977,7 @@ lemma compute_lapprox_rat[code]:
         then - (rapprox_posrat prec (nat (-x)) (nat y))
         else lapprox_posrat prec (nat (-x)) (nat (-y))))"
   by transfer (auto simp: round_up_def round_down_def ceiling_def ac_simps)
+hide_fact (open) compute_lapprox_rat
 
 lift_definition rapprox_rat :: "nat \<Rightarrow> int \<Rightarrow> int \<Rightarrow> float" is
   "\<lambda>prec (x::int) (y::int). round_up (rat_precision prec \<bar>x\<bar> \<bar>y\<bar>) (x / y)" by simp
@@ -973,6 +992,7 @@ lemma compute_rapprox_rat[code]:
         then - (lapprox_posrat prec (nat (-x)) (nat y))
         else rapprox_posrat prec (nat (-x)) (nat (-y))))"
   by transfer (auto simp: round_up_def round_down_def ceiling_def ac_simps)
+hide_fact (open) compute_rapprox_rat
 
 subsection {* Division *}
 
@@ -994,6 +1014,7 @@ proof cases
     using not_0 
     by (transfer fixing: m1 s1 m2 s2 prec) (unfold eq1 eq2 round_down_shift, simp add: field_simps)
 qed (transfer, auto)
+hide_fact (open) compute_float_divl
 
 lift_definition float_divr :: "nat \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float" is
   "\<lambda>(prec::nat) a b. round_up (prec + \<lfloor> log 2 \<bar>b\<bar> \<rfloor> - \<lfloor> log 2 \<bar>a\<bar> \<rfloor>) (a / b)" by simp
@@ -1013,6 +1034,7 @@ proof cases
     using not_0 
     by (transfer fixing: m1 s1 m2 s2 prec) (unfold eq1 eq2 round_up_shift, simp add: field_simps)
 qed (transfer, auto)
+hide_fact (open) compute_float_divr
 
 subsection {* Lemmas needed by Approximate *}
 
@@ -1208,34 +1230,28 @@ lemma compute_float_round_down[code]:
   "float_round_down prec (Float m e) = (let d = bitlen (abs m) - int prec in
     if 0 < d then let P = 2^nat d ; n = m div P in Float n (e + d)
              else Float m e)"
-  using compute_float_down[of "prec - bitlen \<bar>m\<bar> - e" m e, symmetric]
+  using Float.compute_float_down[of "prec - bitlen \<bar>m\<bar> - e" m e, symmetric]
   by transfer (simp add: field_simps abs_mult log_mult bitlen_def cong del: if_weak_cong)
+hide_fact (open) compute_float_round_down
 
 lemma compute_float_round_up[code]:
   "float_round_up prec (Float m e) = (let d = (bitlen (abs m) - int prec) in
      if 0 < d then let P = 2^nat d ; n = m div P ; r = m mod P
                    in Float (n + (if r = 0 then 0 else 1)) (e + d)
               else Float m e)"
-  using compute_float_up[of "prec - bitlen \<bar>m\<bar> - e" m e, symmetric]
+  using Float.compute_float_up[of "prec - bitlen \<bar>m\<bar> - e" m e, symmetric]
   unfolding Let_def
   by transfer (simp add: field_simps abs_mult log_mult bitlen_def cong del: if_weak_cong)
+hide_fact (open) compute_float_round_up
 
 lemma Float_le_zero_iff: "Float a b \<le> 0 \<longleftrightarrow> a \<le> 0"
  apply (auto simp: zero_float_def mult_le_0_iff)
  using powr_gt_zero[of 2 b] by simp
 
-(* TODO: how to use as code equation? -> pprt_float?! *)
-lemma compute_pprt[code]: "pprt (Float a e) = (if a <= 0 then 0 else (Float a e))"
-unfolding pprt_def sup_float_def max_def Float_le_zero_iff ..
-
-(* TODO: how to use as code equation? *)
-lemma compute_nprt[code]: "nprt (Float a e) = (if a <= 0 then (Float a e) else 0)"
-unfolding nprt_def inf_float_def min_def Float_le_zero_iff ..
-
-lemma of_float_pprt[simp]: fixes a::float shows "real (pprt a) = pprt (real a)"
+lemma real_of_float_pprt[simp]: fixes a::float shows "real (pprt a) = pprt (real a)"
   unfolding pprt_def sup_float_def max_def sup_real_def by auto
 
-lemma of_float_nprt[simp]: fixes a::float shows "real (nprt a) = nprt (real a)"
+lemma real_of_float_nprt[simp]: fixes a::float shows "real (nprt a) = nprt (real a)"
   unfolding nprt_def inf_float_def min_def inf_real_def by auto
 
 lift_definition int_floor_fl :: "float \<Rightarrow> int" is floor by simp
@@ -1243,12 +1259,14 @@ lift_definition int_floor_fl :: "float \<Rightarrow> int" is floor by simp
 lemma compute_int_floor_fl[code]:
   "int_floor_fl (Float m e) = (if 0 \<le> e then m * 2 ^ nat e else m div (2 ^ (nat (-e))))"
   by transfer (simp add: powr_int int_of_reals floor_divide_eq_div del: real_of_ints)
+hide_fact (open) compute_int_floor_fl
 
 lift_definition floor_fl :: "float \<Rightarrow> float" is "\<lambda>x. real (floor x)" by simp
 
 lemma compute_floor_fl[code]:
   "floor_fl (Float m e) = (if 0 \<le> e then Float m e else Float (m div (2 ^ (nat (-e)))) 0)"
   by transfer (simp add: powr_int int_of_reals floor_divide_eq_div del: real_of_ints)
+hide_fact (open) compute_floor_fl
 
 lemma floor_fl: "real (floor_fl x) \<le> real x" by transfer simp
 

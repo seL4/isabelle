@@ -891,7 +891,7 @@ next
     case True
     thus ?thesis unfolding `n = 0` get_even_def get_odd_def
       using `real x = 0` lapprox_rat[where x="-1" and y=1]
-      by (auto simp: compute_lapprox_rat compute_rapprox_rat)
+      by (auto simp: Float.compute_lapprox_rat Float.compute_rapprox_rat)
   next
     case False with not0_implies_Suc obtain m where "n = Suc m" by blast
     thus ?thesis unfolding `n = Suc m` get_even_def get_odd_def using `real x = 0` rapprox_rat[where x=1 and y=1] lapprox_rat[where x=1 and y=1] by (cases "even (Suc m)", auto)
@@ -1468,7 +1468,8 @@ proof -
   have "1 / 4 = (Float 1 -2)" unfolding Float_num by auto
   also have "\<dots> \<le> lb_exp_horner 1 (get_even 4) 1 1 (- 1)"
     unfolding get_even_def eq4
-    by (auto simp add: compute_lapprox_rat compute_rapprox_rat compute_lapprox_posrat compute_rapprox_posrat rat_precision_def compute_bitlen)
+    by (auto simp add: Float.compute_lapprox_rat Float.compute_rapprox_rat
+                  Float.compute_lapprox_posrat Float.compute_rapprox_posrat rat_precision_def Float.compute_bitlen)
   also have "\<dots> \<le> exp (- 1 :: float)" using bnds_exp_horner[where x="- 1"] by auto
   finally show ?thesis by simp
 qed
@@ -1738,7 +1739,7 @@ proof -
   have lb2: "0 \<le> real (Float 1 -1)" and ub2: "real (Float 1 -1) < 1" unfolding Float_num by auto
 
   have "0 \<le> (1::int)" and "0 < (3::int)" by auto
-  have ub3_ub: "real ?uthird < 1" by (simp add: compute_rapprox_rat rapprox_posrat_less1)
+  have ub3_ub: "real ?uthird < 1" by (simp add: Float.compute_rapprox_rat rapprox_posrat_less1)
 
   have third_gt0: "(0 :: real) < 1 / 3 + 1" by auto
   have uthird_gt0: "0 < real ?uthird + 1" using ub3_lb by auto
