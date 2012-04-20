@@ -29,6 +29,7 @@ sig
   val discontinue_execution: state -> unit
   val cancel_execution: state -> unit
   val start_execution: state -> unit
+  val timing: bool Unsynchronized.ref
   val update: version_id -> version_id -> edit list -> state ->
     (command_id * exec_id option) list * state
   val state: unit -> state
@@ -333,6 +334,9 @@ fun start_execution state =
 
 (** document update **)
 
+val timing = Unsynchronized.ref false;
+fun timeit msg e = cond_timeit (! timing) msg e;
+
 local
 
 fun stable_finished_theory node =
@@ -447,13 +451,13 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
   let
     val old_version = the_version state old_id;
     val _ = Time.now ();  (* FIXME odd workaround for polyml-5.4.0/x86_64 *)
-    val new_version = fold edit_nodes edits old_version;
+    val new_version = timeit "Document.edit_nodes" (fn () => fold edit_nodes edits old_version);
 
     val nodes = nodes_of new_version;
     val is_required = make_required nodes;
 
-    val _ = terminate_execution state;
-    val updated =
+    val _ = timeit "Document.terminate_execution" (fn () => terminate_execution state);
+    val updated = timeit "Document.update" (fn () =>
       nodes |> Graph.schedule
         (fn deps => fn (name, node) =>
           (singleton o Future.forks)
@@ -511,7 +515,7 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
                   in ((no_execs, new_execs, updated_node), node') end
                 else (([], [], NONE), node)
               end))
-      |> Future.joins |> map #1;
+      |> Future.joins |> map #1);
 
     val command_execs =
       map (rpair NONE) (maps #1 updated) @
