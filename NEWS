@@ -479,12 +479,69 @@ follows:
 
 * Theory HOL/Library/Float: Floating point numbers are now defined as a
 subset of the real numbers. All operations are defined using the
-lifing-framework and most proofs use the transfer method.
+lifing-framework and proofs use the transfer method.
 INCOMPATIBILITY.
 
   Changed Operations:
-  scale   ~>   exponent
-  pow2 x  ~>   use "2 powr (real x)"
+  float_abs -> abs
+  float_nprt -> nprt
+  float_pprt -> pprt
+  pow2 -> use powr
+  round_down -> float_round_down
+  round_up -> float_round_up
+  scale -> exponent
+
+  Removed Operations:
+  ceiling_fl, lb_mult, lb_mod, ub_mult, ub_mod
+
+  Renamed Lemmas:
+  abs_float_def -> Float.compute_float_abs
+  bitlen_ge0 -> bitlen_nonneg
+  bitlen.simps -> Float.compute_bitlen
+  float_components -> Float_mantissa_exponent
+  float_divl.simps -> Float.compute_float_divl
+  float_divr.simps -> Float.compute_float_divr
+  float_eq_odd -> mult_powr_eq_mult_powr_iff
+  float_power -> real_of_float_power
+  lapprox_posrat_def -> Float.compute_lapprox_posrat
+  lapprox_rat.simps -> Float.compute_lapprox_rat
+  le_float_def' -> Float.compute_float_le
+  le_float_def -> less_eq_float.rep_eq
+  less_float_def' -> Float.compute_float_less
+  less_float_def -> less_float.rep_eq
+  normfloat_def -> Float.compute_normfloat
+  normfloat_imp_odd_or_zero -> mantissa_not_dvd and mantissa_noteq_0
+  normfloat -> normfloat_def
+  normfloat_unique -> use normfloat_def
+  number_of_float_Float -> Float.compute_float_numeral, Float.compute_float_neg_numeral
+  one_float_def -> Float.compute_float_one
+  plus_float_def -> Float.compute_float_plus
+  rapprox_posrat_def -> Float.compute_rapprox_posrat
+  rapprox_rat.simps -> Float.compute_rapprox_rat
+  real_of_float_0 -> zero_float.rep_eq
+  real_of_float_1 -> one_float.rep_eq
+  real_of_float_abs -> abs_float.rep_eq
+  real_of_float_add -> plus_float.rep_eq
+  real_of_float_minus -> uminus_float.rep_eq
+  real_of_float_mult -> times_float.rep_eq
+  real_of_float_simp -> Float.rep_eq
+  real_of_float_sub -> minus_float.rep_eq
+  round_down.simps -> Float.compute_float_round_down
+  round_up.simps -> Float.compute_float_round_up
+  times_float_def -> Float.compute_float_times
+  uminus_float_def -> Float.compute_float_uminus
+  zero_float_def -> Float.compute_float_zero
+
+  Lemmas not necessary anymore, use the transfer method:
+  bitlen_B0, bitlen_B1, bitlen_ge1, bitlen_Min, bitlen_Pls, float_divl,
+  float_divr, float_le_simp, float_less1_mantissa_bound,
+  float_less_simp, float_less_zero, float_le_zero,
+  float_pos_less1_e_neg, float_pos_m_pos, float_split, float_split2,
+  floor_pos_exp, lapprox_posrat, lapprox_posrat_bottom, lapprox_rat,
+  lapprox_rat_bottom, normalized_float, rapprox_posrat,
+  rapprox_posrat_le1, rapprox_rat, real_of_float_ge0_exp,
+  real_of_float_neg_exp, real_of_float_nge0_exp, round_down floor_fl,
+  round_up, zero_le_float, zero_less_float
 
 * Session HOL-Word: Discontinued many redundant theorems specific to
 type 'a word. INCOMPATIBILITY, use the corresponding generic theorems
