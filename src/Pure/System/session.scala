@@ -87,7 +87,6 @@ class Session(thy_load: Thy_Load = new Thy_Load)
 
   //{{{
   private case class Text_Edits(
-    name: Document.Node.Name,
     previous: Future[Document.Version],
     text_edits: List[Document.Edit_Text],
     version_result: Promise[Document.Version])
@@ -99,11 +98,11 @@ class Session(thy_load: Thy_Load = new Thy_Load)
       receive {
         case Stop => finished = true; reply(())
 
-        case Text_Edits(name, previous, text_edits, version_result) =>
+        case Text_Edits(previous, text_edits, version_result) =>
           val prev = previous.get_finished
           val (doc_edits, version) = Thy_Syntax.text_edits(prover_syntax, prev, text_edits)
           version_result.fulfill(version)
-          sender ! Change_Node(name, doc_edits, prev, version)
+          sender ! Change(doc_edits, prev, version)
 
         case bad => System.err.println("change_parser: ignoring bad message " + bad)
       }
@@ -169,12 +168,8 @@ class Session(thy_load: Thy_Load = new Thy_Load)
 
   private case class Start(timeout: Time, args: List[String])
   private case object Cancel_Execution
-  private case class Init_Node(name: Document.Node.Name,
-    header: Document.Node_Header, perspective: Text.Perspective, text: String)
-  private case class Edit_Node(name: Document.Node.Name,
-    header: Document.Node_Header, perspective: Text.Perspective, edits: List[Text.Edit])
-  private case class Change_Node(
-    name: Document.Node.Name,
+  private case class Edit(edits: List[Document.Edit_Text])
+  private case class Change(
     doc_edits: List[Document.Edit_Command],
     previous: Document.Version,
     version: Document.Version)
@@ -267,48 +262,13 @@ class Session(thy_load: Thy_Load = new Thy_Load)
     }
 
 
-    /* incoming edits */
-
-    def handle_edits(name: Document.Node.Name,
-        header: Document.Node_Header, edits: List[Document.Node.Edit[Text.Edit, Text.Perspective]])
-    //{{{
-    {
-      val previous = global_state().history.tip.version
-
-      prover.get.discontinue_execution()
-
-      val text_edits = header_edit(name, header) :: edits.map(edit => (name, edit))
-      val version = Future.promise[Document.Version]
-      val change = global_state >>> (_.continue_history(previous, text_edits, version))
-
-      change_parser ! Text_Edits(name, previous, text_edits, version)
-    }
-    //}}}
-
-
-    /* exec state assignment */
-
-    def handle_assign(id: Document.Version_ID, assign: Document.Assign)
-    {
-      val cmds = global_state >>> (_.assign(id, assign))
-      delay_commands_changed.invoke(true, cmds)
-    }
-
-
-    /* removed versions */
-
-    def handle_removed(removed: List[Document.Version_ID]): Unit =
-      global_state >> (_.removed_versions(removed))
-
-
     /* resulting changes */
 
-    def handle_change(change: Change_Node)
+    def handle_change(change: Change)
     //{{{
     {
       val previous = change.previous
       val version = change.version
-      val name = change.name
       val doc_edits = change.doc_edits
 
       def id_command(command: Command)
@@ -355,7 +315,10 @@ class Session(thy_load: Thy_Load = new Thy_Load)
         case Isabelle_Markup.Assign_Execs if output.is_protocol =>
           XML.content(output.body).mkString match {
             case Protocol.Assign(id, assign) =>
-              try { handle_assign(id, assign) }
+              try {
+                val cmds = global_state >>> (_.assign(id, assign))
+                delay_commands_changed.invoke(true, cmds)
+              }
               catch { case _: Document.State.Fail => bad_output(output) }
             case _ => bad_output(output)
           }
@@ -369,7 +332,9 @@ class Session(thy_load: Thy_Load = new Thy_Load)
         case Isabelle_Markup.Removed_Versions if output.is_protocol =>
           XML.content(output.body).mkString match {
             case Protocol.Removed(removed) =>
-              try { handle_removed(removed) }
+              try {
+                global_state >> (_.removed_versions(removed))
+              }
               catch { case _: Document.State.Fail => bad_output(output) }
             case _ => bad_output(output)
           }
@@ -435,17 +400,14 @@ class Session(thy_load: Thy_Load = new Thy_Load)
         case Cancel_Execution if prover.isDefined =>
           prover.get.cancel_execution()
 
-        case Init_Node(name, header, perspective, text) if prover.isDefined =>
-          // FIXME compare with existing node
-          handle_edits(name, header,
-            List(Document.Node.Clear(),
-              Document.Node.Edits(List(Text.Edit.insert(0, text))),
-              Document.Node.Perspective(perspective)))
-          reply(())
+        case Edit(edits) if prover.isDefined =>
+          prover.get.discontinue_execution()
 
-        case Edit_Node(name, header, perspective, text_edits) if prover.isDefined =>
-          handle_edits(name, header,
-            List(Document.Node.Edits(text_edits), Document.Node.Perspective(perspective)))
+          val previous = global_state().history.tip.version
+          val version = Future.promise[Document.Version]
+          val change = global_state >>> (_.continue_history(previous, edits, version))
+          change_parser ! Text_Edits(previous, edits, version)
+
           reply(())
 
         case Messages(msgs) =>
@@ -460,11 +422,11 @@ class Session(thy_load: Thy_Load = new Thy_Load)
               all_messages.event(output)
           }
 
-        case change: Change_Node
+        case change: Change
         if prover.isDefined && global_state().is_assigned(change.previous) =>
           handle_change(change)
 
-        case bad if !bad.isInstanceOf[Change_Node] =>
+        case bad if !bad.isInstanceOf[Change] =>
           System.err.println("session_actor: ignoring bad message " + bad)
       }
     }
@@ -483,11 +445,23 @@ class Session(thy_load: Thy_Load = new Thy_Load)
 
   def cancel_execution() { session_actor ! Cancel_Execution }
 
+  def edit(edits: List[Document.Edit_Text])
+  { session_actor !? Edit(edits) }
+
   def init_node(name: Document.Node.Name,
     header: Document.Node_Header, perspective: Text.Perspective, text: String)
-  { session_actor !? Init_Node(name, header, perspective, text) }
+  {
+    edit(List(header_edit(name, header),
+      name -> Document.Node.Clear(),    // FIXME diff wrt. existing node
+      name -> Document.Node.Edits(List(Text.Edit.insert(0, text))),
+      name -> Document.Node.Perspective(perspective)))
+  }
 
   def edit_node(name: Document.Node.Name,
-    header: Document.Node_Header, perspective: Text.Perspective, edits: List[Text.Edit])
-  { session_actor !? Edit_Node(name, header, perspective, edits) }
+    header: Document.Node_Header, perspective: Text.Perspective, text_edits: List[Text.Edit])
+  {
+    edit(List(header_edit(name, header),
+      name -> Document.Node.Edits(text_edits),
+      name -> Document.Node.Perspective(perspective)))
+  }
 }

@@ -29,6 +29,7 @@ sig
   val discontinue_execution: state -> unit
   val cancel_execution: state -> unit
   val start_execution: state -> unit
+  val timing: bool Unsynchronized.ref
   val update: version_id -> version_id -> edit list -> state ->
     (command_id * exec_id option) list * state
   val state: unit -> state
@@ -313,25 +314,33 @@ fun start_execution state =
       in () end;
 
     val (version_id, group, running) = execution_of state;
+
     val _ =
-      nodes_of (the_version state version_id) |> Graph.schedule
-        (fn deps => fn (name, node) =>
-          if not (visible_node node) andalso finished_theory node then
-            Future.value ()
-          else
-            (singleton o Future.forks)
-              {name = "theory:" ^ name, group = SOME (Future.new_group (SOME group)),
-                deps = map (Future.task_of o #2) deps, pri = ~2, interrupts = false}
-              (fn () =>
-                iterate_entries (fn ((_, id), opt_exec) => fn () =>
-                  (case opt_exec of
-                    SOME (_, exec) => if ! running then SOME (run node id exec) else NONE
-                  | NONE => NONE)) node ()));
+      (singleton o Future.forks)
+        {name = "execution", group = SOME group, deps = [], pri = ~2, interrupts = true}
+        (fn () =>
+         (OS.Process.sleep (seconds 0.02);
+          nodes_of (the_version state version_id) |> Graph.schedule
+            (fn deps => fn (name, node) =>
+              if not (visible_node node) andalso finished_theory node then
+                Future.value ()
+              else
+                (singleton o Future.forks)
+                  {name = "theory:" ^ name, group = SOME (Future.new_group (SOME group)),
+                    deps = map (Future.task_of o #2) deps, pri = ~2, interrupts = false}
+                  (fn () =>
+                    iterate_entries (fn ((_, id), opt_exec) => fn () =>
+                      (case opt_exec of
+                        SOME (_, exec) => if ! running then SOME (run node id exec) else NONE
+                      | NONE => NONE)) node ()))));
   in () end;
 
 
 
 (** document update **)
+
+val timing = Unsynchronized.ref false;
+fun timeit msg e = cond_timeit (! timing) msg e;
 
 local
 
@@ -396,24 +405,26 @@ fun last_common state last_visible node0 node =
             NONE => true
           | SOME id => not (Keyword.is_theory_begin (#1 (the_command state id))));
       in (visible', initial') end;
-    fun get_common ((prev, id), opt_exec) (found, (_, flags)) =
-      if found then NONE
-      else
-        let val found' =
-          (case opt_exec of
-            NONE => true
-          | SOME (exec_id, exec) =>
-              (case lookup_entry node0 id of
-                NONE => true
-              | SOME (exec_id0, _) => exec_id <> exec_id0) orelse not (stable_command exec));
-        in SOME (found', (prev, update_flags prev flags)) end;
-    val (found, (common, flags)) =
-      iterate_entries get_common node (false, (NONE, (true, true)));
+    fun get_common ((prev, id), opt_exec) (same, (_, flags)) =
+      if same then
+        let
+          val flags' = update_flags prev flags;
+          val same' =
+            (case opt_exec of
+              NONE => false
+            | SOME (exec_id, exec) =>
+                (case lookup_entry node0 id of
+                  NONE => false
+                | SOME (exec_id0, _) => exec_id = exec_id0 andalso stable_command exec));
+        in SOME (same', (prev, flags')) end
+      else NONE;
+    val (same, (common, flags)) =
+      iterate_entries get_common node (true, (NONE, (true, true)));
   in
-    if found then (common, flags)
-    else
+    if same then
       let val last = Entries.get_after (get_entries node) common
       in (last, update_flags last flags) end
+    else (common, flags)
   end;
 
 fun illegal_init () = error "Illegal theory header after end of theory";
@@ -447,13 +458,13 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
   let
     val old_version = the_version state old_id;
     val _ = Time.now ();  (* FIXME odd workaround for polyml-5.4.0/x86_64 *)
-    val new_version = fold edit_nodes edits old_version;
+    val new_version = timeit "Document.edit_nodes" (fn () => fold edit_nodes edits old_version);
 
     val nodes = nodes_of new_version;
     val is_required = make_required nodes;
 
-    val _ = terminate_execution state;
-    val updated =
+    val _ = timeit "Document.terminate_execution" (fn () => terminate_execution state);
+    val updated = timeit "Document.update" (fn () =>
       nodes |> Graph.schedule
         (fn deps => fn (name, node) =>
           (singleton o Future.forks)
@@ -466,7 +477,7 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
                 val required = is_required name;
               in
                 if updated_imports orelse AList.defined (op =) edits name orelse
-                  required andalso not (stable_finished_theory node)
+                  not (stable_finished_theory node)
                 then
                   let
                     val node0 = node_of old_version name;
@@ -511,7 +522,7 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
                   in ((no_execs, new_execs, updated_node), node') end
                 else (([], [], NONE), node)
               end))
-      |> Future.joins |> map #1;
+      |> Future.joins |> map #1);
 
     val command_execs =
       map (rpair NONE) (maps #1 updated) @

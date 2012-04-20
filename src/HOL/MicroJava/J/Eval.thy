@@ -137,7 +137,7 @@ lemmas eval_evals_exec_induct = eval_evals_exec.induct [split_format (complete)]
 lemma NewCI: "[|new_Addr (heap s) = (a,x);  
        s' = c_hupd (heap s(a\<mapsto>(C,init_vars (fields (G,C))))) (x,s)|] ==>  
        G\<turnstile>Norm s -NewC C\<succ>Addr a-> s'"
-apply (simp (no_asm_simp))
+apply simp
 apply (rule eval_evals_exec.NewC)
 apply auto
 done
@@ -146,7 +146,7 @@ lemma eval_evals_exec_no_xcpt:
  "!!s s'. (G\<turnstile>(x,s) -e \<succ>  v -> (x',s') --> x'=None --> x=None) \<and>  
           (G\<turnstile>(x,s) -es[\<succ>]vs-> (x',s') --> x'=None --> x=None) \<and>  
           (G\<turnstile>(x,s) -c       -> (x',s') --> x'=None --> x=None)"
-apply(simp (no_asm_simp) only: split_tupled_all)
+apply(simp only: split_tupled_all)
 apply(rule eval_evals_exec_induct)
 apply(unfold c_hupd_def)
 apply(simp_all)
@@ -173,7 +173,7 @@ lemma eval_evals_exec_xcpt:
 "!!s s'. (G\<turnstile>(x,s) -e \<succ>  v -> (x',s') --> x=Some xc --> x'=Some xc \<and> s'=s) \<and>  
          (G\<turnstile>(x,s) -es[\<succ>]vs-> (x',s') --> x=Some xc --> x'=Some xc \<and> s'=s) \<and>  
          (G\<turnstile>(x,s) -c       -> (x',s') --> x=Some xc --> x'=Some xc \<and> s'=s)"
-apply (simp (no_asm_simp) only: split_tupled_all)
+apply (simp only: split_tupled_all)
 apply (rule eval_evals_exec_induct)
 apply (unfold c_hupd_def)
 apply (simp_all)
