@@ -81,7 +81,7 @@ lemma transfer_start: "\<lbrakk>Rel (op =) P Q; P\<rbrakk> \<Longrightarrow> Q"
 lemma transfer_start': "\<lbrakk>Rel (op \<longrightarrow>) P Q; P\<rbrakk> \<Longrightarrow> Q"
   unfolding Rel_def by simp
 
-lemma correspondence_start: "\<lbrakk>x = x'; Rel R x' y\<rbrakk> \<Longrightarrow> Rel R x y"
+lemma transfer_prover_start: "\<lbrakk>x = x'; Rel R x' y\<rbrakk> \<Longrightarrow> Rel R x y"
   by simp
 
 lemma Rel_eq_refl: "Rel (op =) x x"
@@ -217,7 +217,7 @@ lemma bi_unique_fun [transfer_rule]:
   by (safe, metis, fast)
 
 
-subsection {* Correspondence rules *}
+subsection {* Transfer rules *}
 
 lemma eq_parametric [transfer_rule]:
   assumes "bi_unique A"
@@ -250,7 +250,7 @@ lemma comp_parametric [transfer_rule]:
 lemma fun_upd_parametric [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
   shows "((A ===> B) ===> A ===> B ===> A ===> B) fun_upd fun_upd"
-  unfolding fun_upd_def [abs_def] by correspondence
+  unfolding fun_upd_def [abs_def] by transfer_prover
 
 lemma Domainp_iff: "Domainp T x \<longleftrightarrow> (\<exists>y. T x y)"
   by auto

@@ -53,7 +53,7 @@ lemma bi_unique_prod_rel [transfer_rule]:
   shows "bi_unique (prod_rel R1 R2)"
   using assms unfolding bi_unique_def prod_rel_def by auto
 
-subsection {* Correspondence rules for transfer package *}
+subsection {* Transfer rules for transfer package *}
 
 lemma Pair_transfer [transfer_rule]: "(A ===> B ===> prod_rel A B) Pair Pair"
   unfolding fun_rel_def prod_rel_def by simp
@@ -70,12 +70,12 @@ lemma prod_case_transfer [transfer_rule]:
 
 lemma curry_transfer [transfer_rule]:
   "((prod_rel A B ===> C) ===> A ===> B ===> C) curry curry"
-  unfolding curry_def by correspondence
+  unfolding curry_def by transfer_prover
 
 lemma map_pair_transfer [transfer_rule]:
   "((A ===> C) ===> (B ===> D) ===> prod_rel A B ===> prod_rel C D)
     map_pair map_pair"
-  unfolding map_pair_def [abs_def] by correspondence
+  unfolding map_pair_def [abs_def] by transfer_prover
 
 lemma prod_rel_transfer [transfer_rule]:
   "((A ===> B ===> op =) ===> (C ===> D ===> op =) ===>

@@ -78,7 +78,7 @@ lemma bi_unique_sum_rel [transfer_rule]:
   "bi_unique R1 \<Longrightarrow> bi_unique R2 \<Longrightarrow> bi_unique (sum_rel R1 R2)"
   using assms unfolding bi_unique_def split_sum_all by simp
 
-subsection {* Correspondence rules for transfer package *}
+subsection {* Transfer rules for transfer package *}
 
 lemma Inl_transfer [transfer_rule]: "(A ===> sum_rel A B) Inl Inl"
   unfolding fun_rel_def by simp

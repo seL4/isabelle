@@ -78,7 +78,7 @@ lemma bi_unique_option_rel [transfer_rule]:
   "bi_unique R \<Longrightarrow> bi_unique (option_rel R)"
   unfolding bi_unique_def split_option_all by simp
 
-subsection {* Correspondence rules for transfer package *}
+subsection {* Transfer rules for transfer package *}
 
 lemma None_transfer [transfer_rule]: "(option_rel A) None None"
   by simp
@@ -92,7 +92,7 @@ lemma option_case_transfer [transfer_rule]:
 
 lemma option_map_transfer [transfer_rule]:
   "((A ===> B) ===> option_rel A ===> option_rel B) Option.map Option.map"
-  unfolding Option.map_def by correspondence
+  unfolding Option.map_def by transfer_prover
 
 lemma option_bind_transfer [transfer_rule]:
   "(option_rel A ===> (A ===> option_rel B) ===> option_rel B)

@@ -12,7 +12,7 @@ sig
   val transfer_add: attribute
   val transfer_del: attribute
   val transfer_tac: Proof.context -> int -> tactic
-  val correspondence_tac: Proof.context -> int -> tactic
+  val transfer_prover_tac: Proof.context -> int -> tactic
   val setup: theory -> theory
   val abs_tac: int -> tactic
 end
@@ -23,7 +23,7 @@ struct
 structure Data = Named_Thms
 (
   val name = @{binding transfer_raw}
-  val description = "raw correspondence rule for transfer method"
+  val description = "raw transfer rule for transfer method"
 )
 
 structure Relator_Eq = Named_Thms
@@ -71,7 +71,7 @@ fun fo_conv ctxt ct = (
       else_conv
       Conv.all_conv) ct
 
-(* Conversion to preprocess a correspondence rule *)
+(* Conversion to preprocess a transfer rule *)
 fun prep_conv ct = (
       Conv.implies_conv Conv.all_conv prep_conv
       else_conv
@@ -79,11 +79,11 @@ fun prep_conv ct = (
       else_conv
       Conv.all_conv) ct
 
-(* Conversion to prep a proof goal containing a correspondence rule *)
-fun correspond_conv ctxt ct = (
-      Conv.forall_conv (correspond_conv o snd) ctxt
+(* Conversion to prep a proof goal containing a transfer rule *)
+fun transfer_goal_conv ctxt ct = (
+      Conv.forall_conv (transfer_goal_conv o snd) ctxt
       else_conv
-      Conv.implies_conv Conv.all_conv (correspond_conv ctxt)
+      Conv.implies_conv Conv.all_conv (transfer_goal_conv ctxt)
       else_conv
       Trueprop_conv
       (Conv.combination_conv (Conv.fun_conv Rel_conv) (fo_conv ctxt))
@@ -149,13 +149,13 @@ fun transfer_tac ctxt = SUBGOAL (fn (t, i) =>
        rtac @{thm _} i]
   end)
 
-fun correspondence_tac ctxt i =
+fun transfer_prover_tac ctxt i =
   let
     val rules = @{thms Rel_App Rel_Abs} @ Data.get ctxt
   in
     EVERY
-      [CONVERSION (correspond_conv ctxt) i,
-       rtac @{thm correspondence_start} i,
+      [CONVERSION (transfer_goal_conv ctxt) i,
+       rtac @{thm transfer_prover_start} i,
        REPEAT_ALL_NEW
          (resolve_tac rules ORELSE' atac ORELSE' eq_tac ctxt) (i+1),
        rewrite_goal_tac @{thms App_def Abs_def} i,
@@ -172,10 +172,10 @@ val transfer_method : (Proof.context -> Method.method) context_parser =
   fixing >> (fn vs => fn ctxt =>
     SIMPLE_METHOD' (gen_frees_tac vs ctxt THEN' transfer_tac ctxt))
 
-val correspondence_method : (Proof.context -> Method.method) context_parser =
-  Scan.succeed (fn ctxt => SIMPLE_METHOD' (correspondence_tac ctxt))
+val transfer_prover_method : (Proof.context -> Method.method) context_parser =
+  Scan.succeed (fn ctxt => SIMPLE_METHOD' (transfer_prover_tac ctxt))
 
-(* Attribute for correspondence rules *)
+(* Attribute for transfer rules *)
 
 val prep_rule = Conv.fconv_rule prep_conv
 
@@ -194,10 +194,10 @@ val setup =
   Data.setup
   #> Relator_Eq.setup
   #> Attrib.setup @{binding transfer_rule} transfer_attribute
-     "correspondence rule for transfer method"
+     "transfer rule for transfer method"
   #> Method.setup @{binding transfer} transfer_method
      "generic theorem transfer method"
-  #> Method.setup @{binding correspondence} correspondence_method
-     "for proving correspondence rules"
+  #> Method.setup @{binding transfer_prover} transfer_prover_method
+     "for proving transfer rules"
 
 end
