@@ -314,20 +314,25 @@ fun start_execution state =
       in () end;
 
     val (version_id, group, running) = execution_of state;
+
     val _ =
-      nodes_of (the_version state version_id) |> Graph.schedule
-        (fn deps => fn (name, node) =>
-          if not (visible_node node) andalso finished_theory node then
-            Future.value ()
-          else
-            (singleton o Future.forks)
-              {name = "theory:" ^ name, group = SOME (Future.new_group (SOME group)),
-                deps = map (Future.task_of o #2) deps, pri = ~2, interrupts = false}
-              (fn () =>
-                iterate_entries (fn ((_, id), opt_exec) => fn () =>
-                  (case opt_exec of
-                    SOME (_, exec) => if ! running then SOME (run node id exec) else NONE
-                  | NONE => NONE)) node ()));
+      (singleton o Future.forks)
+        {name = "execution", group = SOME group, deps = [], pri = ~2, interrupts = true}
+        (fn () =>
+         (OS.Process.sleep (seconds 0.02);
+          nodes_of (the_version state version_id) |> Graph.schedule
+            (fn deps => fn (name, node) =>
+              if not (visible_node node) andalso finished_theory node then
+                Future.value ()
+              else
+                (singleton o Future.forks)
+                  {name = "theory:" ^ name, group = SOME (Future.new_group (SOME group)),
+                    deps = map (Future.task_of o #2) deps, pri = ~2, interrupts = false}
+                  (fn () =>
+                    iterate_entries (fn ((_, id), opt_exec) => fn () =>
+                      (case opt_exec of
+                        SOME (_, exec) => if ! running then SOME (run node id exec) else NONE
+                      | NONE => NONE)) node ()))));
   in () end;
 
 
