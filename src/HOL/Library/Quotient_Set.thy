@@ -10,47 +10,47 @@ begin
 
 subsection {* set map (vimage) and set relation *}
 
-definition "set_rel R xs ys \<equiv> \<forall>x y. R x y \<longrightarrow> x \<in> xs \<longleftrightarrow> y \<in> ys"
+definition "vset_rel R xs ys \<equiv> \<forall>x y. R x y \<longrightarrow> x \<in> xs \<longleftrightarrow> y \<in> ys"
 
-lemma set_rel_eq [id_simps]:
-  "set_rel op = = op ="
-  by (subst fun_eq_iff, subst fun_eq_iff) (simp add: set_eq_iff set_rel_def)
+lemma vset_rel_eq [id_simps]:
+  "vset_rel op = = op ="
+  by (subst fun_eq_iff, subst fun_eq_iff) (simp add: set_eq_iff vset_rel_def)
 
-lemma set_rel_equivp:
+lemma vset_rel_equivp:
   assumes e: "equivp R"
-  shows "set_rel R xs ys \<longleftrightarrow> xs = ys \<and> (\<forall>x y. x \<in> xs \<longrightarrow> R x y \<longrightarrow> y \<in> xs)"
-  unfolding set_rel_def
+  shows "vset_rel R xs ys \<longleftrightarrow> xs = ys \<and> (\<forall>x y. x \<in> xs \<longrightarrow> R x y \<longrightarrow> y \<in> xs)"
+  unfolding vset_rel_def
   using equivp_reflp[OF e]
   by auto (metis, metis equivp_symp[OF e])
 
 lemma set_quotient [quot_thm]:
   assumes "Quotient3 R Abs Rep"
-  shows "Quotient3 (set_rel R) (vimage Rep) (vimage Abs)"
+  shows "Quotient3 (vset_rel R) (vimage Rep) (vimage Abs)"
 proof (rule Quotient3I)
   from assms have "\<And>x. Abs (Rep x) = x" by (rule Quotient3_abs_rep)
   then show "\<And>xs. Rep -` (Abs -` xs) = xs"
     unfolding vimage_def by auto
 next
-  show "\<And>xs. set_rel R (Abs -` xs) (Abs -` xs)"
-    unfolding set_rel_def vimage_def
+  show "\<And>xs. vset_rel R (Abs -` xs) (Abs -` xs)"
+    unfolding vset_rel_def vimage_def
     by auto (metis Quotient3_rel_abs[OF assms])+
 next
   fix r s
-  show "set_rel R r s = (set_rel R r r \<and> set_rel R s s \<and> Rep -` r = Rep -` s)"
-    unfolding set_rel_def vimage_def set_eq_iff
+  show "vset_rel R r s = (vset_rel R r r \<and> vset_rel R s s \<and> Rep -` r = Rep -` s)"
+    unfolding vset_rel_def vimage_def set_eq_iff
     by auto (metis rep_abs_rsp[OF assms] assms[simplified Quotient3_def])+
 qed
 
-declare [[mapQ3 set = (set_rel, set_quotient)]]
+declare [[mapQ3 set = (vset_rel, set_quotient)]]
 
 lemma empty_set_rsp[quot_respect]:
-  "set_rel R {} {}"
-  unfolding set_rel_def by simp
+  "vset_rel R {} {}"
+  unfolding vset_rel_def by simp
 
 lemma collect_rsp[quot_respect]:
   assumes "Quotient3 R Abs Rep"
-  shows "((R ===> op =) ===> set_rel R) Collect Collect"
-  by (intro fun_relI) (simp add: fun_rel_def set_rel_def)
+  shows "((R ===> op =) ===> vset_rel R) Collect Collect"
+  by (intro fun_relI) (simp add: fun_rel_def vset_rel_def)
 
 lemma collect_prs[quot_preserve]:
   assumes "Quotient3 R Abs Rep"
@@ -60,8 +60,8 @@ lemma collect_prs[quot_preserve]:
 
 lemma union_rsp[quot_respect]:
   assumes "Quotient3 R Abs Rep"
-  shows "(set_rel R ===> set_rel R ===> set_rel R) op \<union> op \<union>"
-  by (intro fun_relI) (simp add: set_rel_def)
+  shows "(vset_rel R ===> vset_rel R ===> vset_rel R) op \<union> op \<union>"
+  by (intro fun_relI) (simp add: vset_rel_def)
 
 lemma union_prs[quot_preserve]:
   assumes "Quotient3 R Abs Rep"
@@ -71,8 +71,8 @@ lemma union_prs[quot_preserve]:
 
 lemma diff_rsp[quot_respect]:
   assumes "Quotient3 R Abs Rep"
-  shows "(set_rel R ===> set_rel R ===> set_rel R) op - op -"
-  by (intro fun_relI) (simp add: set_rel_def)
+  shows "(vset_rel R ===> vset_rel R ===> vset_rel R) op - op -"
+  by (intro fun_relI) (simp add: vset_rel_def)
 
 lemma diff_prs[quot_preserve]:
   assumes "Quotient3 R Abs Rep"
@@ -82,8 +82,8 @@ lemma diff_prs[quot_preserve]:
 
 lemma inter_rsp[quot_respect]:
   assumes "Quotient3 R Abs Rep"
-  shows "(set_rel R ===> set_rel R ===> set_rel R) op \<inter> op \<inter>"
-  by (intro fun_relI) (auto simp add: set_rel_def)
+  shows "(vset_rel R ===> vset_rel R ===> vset_rel R) op \<inter> op \<inter>"
+  by (intro fun_relI) (auto simp add: vset_rel_def)
 
 lemma inter_prs[quot_preserve]:
   assumes "Quotient3 R Abs Rep"
@@ -97,7 +97,7 @@ lemma mem_prs[quot_preserve]:
   by (simp add: fun_eq_iff Quotient3_abs_rep[OF assms])
 
 lemma mem_rsp[quot_respect]:
-  shows "(R ===> set_rel R ===> op =) op \<in> op \<in>"
-  by (intro fun_relI) (simp add: set_rel_def)
+  shows "(R ===> vset_rel R ===> op =) op \<in> op \<in>"
+  by (intro fun_relI) (simp add: vset_rel_def)
 
 end
