@@ -5,7 +5,7 @@
 header {* Quotient infrastructure for the list type *}
 
 theory Quotient_List
-imports Main Quotient_Syntax
+imports Main Quotient_Set
 begin
 
 subsection {* Relator for list type *}
@@ -156,6 +156,10 @@ lemma list_all2_transfer [transfer_rule]:
   apply (rule fun_relI, erule list_all2_induct [of B])
   apply (simp, simp add: fun_rel_def)
   done
+
+lemma set_transfer [transfer_rule]:
+  "(list_all2 A ===> set_rel A) set set"
+  unfolding set_def by transfer_prover
 
 subsection {* Setup for lifting package *}
 
