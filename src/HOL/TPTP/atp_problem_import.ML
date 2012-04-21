@@ -123,7 +123,13 @@ fun get_tptp_formula (_, role, P, _) =
     |> role = TPTP_Syntax.Role_Conjecture ? mk_meta_not
 
 fun read_tptp_file thy file_name =
-  let val path = Path.explode file_name in
+  let
+    val path =
+      Path.explode file_name
+      |> (fn path =>
+             path |> not (Path.is_absolute path)
+                     ? Path.append (Path.explode "$PWD"))
+  in
     (case parse_tptp_problem (File.read path) of
        (_, s :: ss) =>
        raise SYNTAX ("cannot parse " ^ quote (implode (s :: ss)))
