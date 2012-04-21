@@ -1,5 +1,5 @@
 (*  Title:      HOL/Library/Quotient_List.thy
-    Author:     Cezary Kaliszyk and Christian Urban
+    Author:     Cezary Kaliszyk, Christian Urban and Brian Huffman
 *)
 
 header {* Quotient infrastructure for the list type *}
@@ -8,11 +8,13 @@ theory Quotient_List
 imports Main Quotient_Syntax
 begin
 
+subsection {* Relator for list type *}
+
 lemma map_id [id_simps]:
   "map id = id"
   by (fact List.map.id)
 
-lemma list_all2_eq [id_simps]:
+lemma list_all2_eq [id_simps, relator_eq]:
   "list_all2 (op =) = (op =)"
 proof (rule ext)+
   fix xs ys
@@ -55,6 +57,144 @@ qed
 lemma list_equivp [quot_equiv]:
   "equivp R \<Longrightarrow> equivp (list_all2 R)"
   by (blast intro: equivpI list_reflp list_symp list_transp elim: equivpE)
+
+lemma right_total_list_all2 [transfer_rule]:
+  "right_total R \<Longrightarrow> right_total (list_all2 R)"
+  unfolding right_total_def
+  by (rule allI, induct_tac y, simp, simp add: list_all2_Cons2)
+
+lemma right_unique_list_all2 [transfer_rule]:
+  "right_unique R \<Longrightarrow> right_unique (list_all2 R)"
+  unfolding right_unique_def
+  apply (rule allI, rename_tac xs, induct_tac xs)
+  apply (auto simp add: list_all2_Cons1)
+  done
+
+lemma bi_total_list_all2 [transfer_rule]:
+  "bi_total A \<Longrightarrow> bi_total (list_all2 A)"
+  unfolding bi_total_def
+  apply safe
+  apply (rename_tac xs, induct_tac xs, simp, simp add: list_all2_Cons1)
+  apply (rename_tac ys, induct_tac ys, simp, simp add: list_all2_Cons2)
+  done
+
+lemma bi_unique_list_all2 [transfer_rule]:
+  "bi_unique A \<Longrightarrow> bi_unique (list_all2 A)"
+  unfolding bi_unique_def
+  apply (rule conjI)
+  apply (rule allI, rename_tac xs, induct_tac xs)
+  apply (simp, force simp add: list_all2_Cons1)
+  apply (subst (2) all_comm, subst (1) all_comm)
+  apply (rule allI, rename_tac xs, induct_tac xs)
+  apply (simp, force simp add: list_all2_Cons2)
+  done
+
+subsection {* Transfer rules for transfer package *}
+
+lemma Nil_transfer [transfer_rule]: "(list_all2 A) [] []"
+  by simp
+
+lemma Cons_transfer [transfer_rule]:
+  "(A ===> list_all2 A ===> list_all2 A) Cons Cons"
+  unfolding fun_rel_def by simp
+
+lemma list_case_transfer [transfer_rule]:
+  "(B ===> (A ===> list_all2 A ===> B) ===> list_all2 A ===> B)
+    list_case list_case"
+  unfolding fun_rel_def by (simp split: list.split)
+
+lemma list_rec_transfer [transfer_rule]:
+  "(B ===> (A ===> list_all2 A ===> B ===> B) ===> list_all2 A ===> B)
+    list_rec list_rec"
+  unfolding fun_rel_def by (clarify, erule list_all2_induct, simp_all)
+
+lemma map_transfer [transfer_rule]:
+  "((A ===> B) ===> list_all2 A ===> list_all2 B) map map"
+  unfolding List.map_def by transfer_prover
+
+lemma append_transfer [transfer_rule]:
+  "(list_all2 A ===> list_all2 A ===> list_all2 A) append append"
+  unfolding List.append_def by transfer_prover
+
+lemma filter_transfer [transfer_rule]:
+  "((A ===> op =) ===> list_all2 A ===> list_all2 A) filter filter"
+  unfolding List.filter_def by transfer_prover
+
+lemma id_transfer [transfer_rule]: "(A ===> A) id id"
+  unfolding fun_rel_def by simp
+
+lemma foldr_transfer [transfer_rule]:
+  "((A ===> B ===> B) ===> list_all2 A ===> B ===> B) foldr foldr"
+  unfolding List.foldr_def by transfer_prover
+
+lemma foldl_transfer [transfer_rule]:
+  "((B ===> A ===> B) ===> B ===> list_all2 A ===> B) foldl foldl"
+  unfolding List.foldl_def by transfer_prover
+
+lemma concat_transfer [transfer_rule]:
+  "(list_all2 (list_all2 A) ===> list_all2 A) concat concat"
+  unfolding List.concat_def by transfer_prover
+
+lemma drop_transfer [transfer_rule]:
+  "(op = ===> list_all2 A ===> list_all2 A) drop drop"
+  unfolding List.drop_def by transfer_prover
+
+lemma take_transfer [transfer_rule]:
+  "(op = ===> list_all2 A ===> list_all2 A) take take"
+  unfolding List.take_def by transfer_prover
+
+lemma length_transfer [transfer_rule]:
+  "(list_all2 A ===> op =) length length"
+  unfolding list_size_overloaded_def by transfer_prover
+
+lemma list_all_transfer [transfer_rule]:
+  "((A ===> op =) ===> list_all2 A ===> op =) list_all list_all"
+  unfolding fun_rel_def by (clarify, erule list_all2_induct, simp_all)
+
+lemma list_all2_transfer [transfer_rule]:
+  "((A ===> B ===> op =) ===> list_all2 A ===> list_all2 B ===> op =)
+    list_all2 list_all2"
+  apply (rule fun_relI, rule fun_relI, erule list_all2_induct)
+  apply (rule fun_relI, erule list_all2_induct, simp, simp)
+  apply (rule fun_relI, erule list_all2_induct [of B])
+  apply (simp, simp add: fun_rel_def)
+  done
+
+subsection {* Setup for lifting package *}
+
+lemma Quotient_list:
+  assumes "Quotient R Abs Rep T"
+  shows "Quotient (list_all2 R) (map Abs) (map Rep) (list_all2 T)"
+proof (unfold Quotient_alt_def, intro conjI allI impI)
+  from assms have 1: "\<And>x y. T x y \<Longrightarrow> Abs x = y"
+    unfolding Quotient_alt_def by simp
+  fix xs ys assume "list_all2 T xs ys" thus "map Abs xs = ys"
+    by (induct, simp, simp add: 1)
+next
+  from assms have 2: "\<And>x. T (Rep x) x"
+    unfolding Quotient_alt_def by simp
+  fix xs show "list_all2 T (map Rep xs) xs"
+    by (induct xs, simp, simp add: 2)
+next
+  from assms have 3: "\<And>x y. R x y \<longleftrightarrow> T x (Abs x) \<and> T y (Abs y) \<and> Abs x = Abs y"
+    unfolding Quotient_alt_def by simp
+  fix xs ys show "list_all2 R xs ys \<longleftrightarrow> list_all2 T xs (map Abs xs) \<and>
+    list_all2 T ys (map Abs ys) \<and> map Abs xs = map Abs ys"
+    by (induct xs ys rule: list_induct2', simp_all, metis 3)
+qed
+
+declare [[map list = (list_all2, Quotient_list)]]
+
+lemma list_invariant_commute [invariant_commute]:
+  "list_all2 (Lifting.invariant P) = Lifting.invariant (list_all P)"
+  apply (simp add: fun_eq_iff list_all2_def list_all_iff Lifting.invariant_def Ball_def) 
+  apply (intro allI) 
+  apply (induct_tac rule: list_induct2') 
+  apply simp_all 
+  apply metis
+done
+
+subsection {* Rules for quotient package *}
 
 lemma list_quotient3 [quot_thm]:
   assumes "Quotient3 R Abs Rep"
@@ -115,13 +255,7 @@ lemma map_rsp [quot_respect]:
   and     q2: "Quotient3 R2 Abs2 Rep2"
   shows "((R1 ===> R2) ===> (list_all2 R1) ===> list_all2 R2) map map"
   and   "((R1 ===> op =) ===> (list_all2 R1) ===> op =) map map"
-  apply (simp_all add: fun_rel_def)
-  apply(rule_tac [!] allI)+
-  apply(rule_tac [!] impI)
-  apply(rule_tac [!] allI)+
-  apply (induct_tac [!] xa ya rule: list_induct2')
-  apply simp_all
-  done
+  unfolding list_all2_eq [symmetric] by (rule map_transfer)+
 
 lemma foldr_prs_aux:
   assumes a: "Quotient3 R1 abs1 rep1"
@@ -154,20 +288,13 @@ lemma foldl_rsp[quot_respect]:
   assumes q1: "Quotient3 R1 Abs1 Rep1"
   and     q2: "Quotient3 R2 Abs2 Rep2"
   shows "((R1 ===> R2 ===> R1) ===> R1 ===> list_all2 R2 ===> R1) foldl foldl"
-  apply(auto simp add: fun_rel_def)
-  apply (erule_tac P="R1 xa ya" in rev_mp)
-  apply (rule_tac x="xa" in spec)
-  apply (rule_tac x="ya" in spec)
-  apply (erule list_all2_induct, simp_all)
-  done
+  by (rule foldl_transfer)
 
 lemma foldr_rsp[quot_respect]:
   assumes q1: "Quotient3 R1 Abs1 Rep1"
   and     q2: "Quotient3 R2 Abs2 Rep2"
   shows "((R1 ===> R2 ===> R2) ===> list_all2 R1 ===> R2 ===> R2) foldr foldr"
-  apply (auto simp add: fun_rel_def)
-  apply (erule list_all2_induct, simp_all)
-  done
+  by (rule foldr_transfer)
 
 lemma list_all2_rsp:
   assumes r: "\<forall>x y. R x y \<longrightarrow> (\<forall>a b. R a b \<longrightarrow> S x a = T y b)"
@@ -180,7 +307,7 @@ lemma list_all2_rsp:
 
 lemma [quot_respect]:
   "((R ===> R ===> op =) ===> list_all2 R ===> list_all2 R ===> op =) list_all2 list_all2"
-  by (simp add: list_all2_rsp fun_rel_def)
+  by (rule list_all2_transfer)
 
 lemma [quot_preserve]:
   assumes a: "Quotient3 R abs1 rep1"
@@ -206,60 +333,5 @@ lemma list_all2_refl:
   assumes a: "\<And>x y. R x y = (R x = R y)"
   shows "list_all2 R x x"
   by (induct x) (auto simp add: a)
-
-subsection {* Setup for lifting package *}
-
-lemma list_quotient:
-  assumes "Quotient R Abs Rep T"
-  shows "Quotient (list_all2 R) (List.map Abs) (List.map Rep) (list_all2 T)"
-proof (rule QuotientI)
-  from assms have "\<And>x. Abs (Rep x) = x" by (rule Quotient_abs_rep)
-  then show "\<And>xs. List.map Abs (List.map Rep xs) = xs" by (simp add: comp_def)
-next
-  from assms have "\<And>x y. R (Rep x) (Rep y) \<longleftrightarrow> x = y" by (rule Quotient_rel_rep)
-  then show "\<And>xs. list_all2 R (List.map Rep xs) (List.map Rep xs)"
-    by (simp add: list_all2_map1 list_all2_map2 list_all2_eq)
-next
-  fix xs ys
-  from assms have "\<And>x y. R x x \<and> R y y \<and> Abs x = Abs y \<longleftrightarrow> R x y" by (rule Quotient_rel)
-  then show "list_all2 R xs ys \<longleftrightarrow> list_all2 R xs xs \<and> list_all2 R ys ys \<and> List.map Abs xs = List.map Abs ys"
-    by (induct xs ys rule: list_induct2') auto
-next
-  {
-    fix l1 l2
-    have "List.length l1 = List.length l2 \<Longrightarrow>
-         (\<forall>(x, y)\<in>set (zip l1 l1). R x y) = (\<forall>(x, y)\<in>set (zip l1 l2). R x x)"
-     by (induction rule: list_induct2) auto
-  } note x = this
-  {
-    fix f g
-    have "list_all2 (\<lambda>x y. f x y \<and> g x y) = (\<lambda> x y. list_all2 f x y \<and> list_all2 g x y)"
-      by (intro ext) (auto simp add: list_all2_def)
-  } note list_all2_conj = this
-  from assms have t: "T = (\<lambda>x y. R x x \<and> Abs x = y)" by (rule Quotient_cr_rel)
-  show "list_all2 T = (\<lambda>x y. list_all2 R x x \<and> List.map Abs x = y)" 
-    apply (simp add: t list_all2_conj[symmetric])
-    apply (rule sym) 
-    apply (simp add: list_all2_conj) 
-    apply(intro ext) 
-    apply (intro rev_conj_cong)
-      unfolding list_all2_def apply (metis List.list_all2_eq list_all2_def list_all2_map1)
-    apply (drule conjunct1) 
-    apply (intro conj_cong) 
-      apply simp 
-    apply(simp add: x)
-  done
-qed
-
-declare [[map list = (list_all2, list_quotient)]]
-
-lemma list_invariant_commute [invariant_commute]:
-  "list_all2 (Lifting.invariant P) = Lifting.invariant (list_all P)"
-  apply (simp add: fun_eq_iff list_all2_def list_all_iff Lifting.invariant_def Ball_def) 
-  apply (intro allI) 
-  apply (induct_tac rule: list_induct2') 
-  apply simp_all 
-  apply metis
-done
 
 end
