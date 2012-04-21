@@ -120,9 +120,6 @@ lemma filter_transfer [transfer_rule]:
   "((A ===> op =) ===> list_all2 A ===> list_all2 A) filter filter"
   unfolding List.filter_def by transfer_prover
 
-lemma id_transfer [transfer_rule]: "(A ===> A) id id"
-  unfolding fun_rel_def by simp
-
 lemma foldr_transfer [transfer_rule]:
   "((A ===> B ===> B) ===> list_all2 A ===> B ===> B) foldr foldr"
   unfolding List.foldr_def by transfer_prover
