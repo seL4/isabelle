@@ -674,6 +674,8 @@ a list and a nat.
     Goals are generalized over all free variables by default; this is
     necessary for variables whose types changes, but can be overridden
     for specific variables with e.g. 'transfer fixing: x y z'.
+    The variant transfer' method allows replacing a subgoal with
+    one that is logically stronger (rather than equivalent).
 
   - relator_eq attribute: Collects identity laws for relators of
     various type constructors, e.g. "list_all2 (op =) = (op =)". The
@@ -729,10 +731,7 @@ a list and a nat.
 
   - The 'quotient_definition' command now requires the user to prove a
     respectfulness property at the point where the constant is
-    defined, similar to lift_definition; INCOMPATIBILITY. Users are
-    encouraged to use lift_definition + transfer instead of
-    quotient_definition + descending, which will eventually be
-    deprecated.
+    defined, similar to lift_definition; INCOMPATIBILITY.
 
   - Renamed predicate 'Quotient' to 'Quotient3', and renamed theorems
     accordingly, INCOMPATIBILITY.
