@@ -202,7 +202,7 @@ val alt_ergo_config : atp_config =
      (* FUDGE *)
      [(1.0, (false, ((100, alt_ergo_tff1, "poly_native", liftingN, false), "")))]}
 
-val alt_ergo = (alt_ergoN, K alt_ergo_config)
+val alt_ergo = (alt_ergoN, fn () => alt_ergo_config)
 
 
 (* E *)
@@ -318,7 +318,7 @@ val e_config : atp_config =
          [(1.0, (true, ((500, FOF, "mono_tags??", combsN, false), heuristic)))]
      end}
 
-val e = (eN, K e_config)
+val e = (eN, fn () => e_config)
 
 
 (* LEO-II *)
@@ -346,7 +346,7 @@ val leo2_config : atp_config =
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
-val leo2 = (leo2N, K leo2_config)
+val leo2 = (leo2N, fn () => leo2_config)
 
 
 (* Satallax *)
@@ -368,7 +368,7 @@ val satallax_config : atp_config =
      (* FUDGE *)
      K [(1.0, (true, ((100, satallax_thf0, "mono_native_higher", keep_lamsN, false), "")))]}
 
-val satallax = (satallaxN, K satallax_config)
+val satallax = (satallaxN, fn () => satallax_config)
 
 
 (* SPASS *)
@@ -405,7 +405,7 @@ val spass_old_config : atp_config =
       (0.334, (false, ((50, DFG DFG_Unsorted, "mono_tags??", liftingN, false), no_sosN)))]
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single else I)}
 
-val spass_old = (spass_oldN, K spass_old_config)
+val spass_old = (spass_oldN, fn () => spass_old_config)
 
 val spass_new_H1SOS = "-Heuristic=1 -SOS"
 val spass_new_H2 = "-Heuristic=2"
@@ -435,7 +435,7 @@ val spass_new_config : atp_config =
       (0.1000, (false, ((150, DFG DFG_Sorted, "poly_guards??", liftingN, false), spass_new_H2NuVS0Red2))),
       (0.1000, (false, ((300, DFG DFG_Sorted, "mono_native", combsN, true), spass_new_H2SOS)))]}
 
-val spass_new = (spass_newN, K spass_new_config)
+val spass_new = (spass_newN, fn () => spass_new_config)
 
 val spass =
   (spassN, fn () => if is_new_spass_version () then spass_new_config
@@ -486,7 +486,7 @@ val vampire_config : atp_config =
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
-val vampire = (vampireN, K vampire_config)
+val vampire = (vampireN, fn () => vampire_config)
 
 
 (* Z3 with TPTP syntax *)
@@ -509,7 +509,7 @@ val z3_tptp_config : atp_config =
         (0.125, (false, ((62, z3_tff0, "mono_native", combsN, false), ""))),
         (0.125, (false, ((31, z3_tff0, "mono_native", combsN, false), "")))]}
 
-val z3_tptp = (z3_tptpN, K z3_tptp_config)
+val z3_tptp = (z3_tptpN, fn () => z3_tptp_config)
 
 
 (* Not really a prover: Experimental Polymorphic TFF and THF output *)
@@ -529,7 +529,7 @@ fun dummy_config format type_enc : atp_config =
 
 val dummy_thf_format = THF (TPTP_Polymorphic, TPTP_Explicit, THF_With_Choice)
 val dummy_thf_config = dummy_config dummy_thf_format "poly_native_higher"
-val dummy_thf = (dummy_thfN, K dummy_thf_config)
+val dummy_thf = (dummy_thfN, fn () => dummy_thf_config)
 
 
 (* Remote ATP invocation via SystemOnTPTP *)
