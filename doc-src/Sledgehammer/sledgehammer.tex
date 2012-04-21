@@ -290,12 +290,12 @@ Sledgehammer: ``\textit{remote\_waldmeister\/}'' on goal \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
 Try this: \textbf{by} (\textit{metis hd.simps}) (15 ms). \\[3\smallskipamount]
 %
-Sledgehammer: ``\textit{remote\_satallax\/}'' on goal \\
+Sledgehammer: ``\textit{remote\_e\_sine\/}'' on goal \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
 Try this: \textbf{by} (\textit{metis hd.simps}) (18 ms).
 \postw
 
-Sledgehammer ran E, Satallax, SPASS, Vampire, Waldmeister, and Z3 in parallel.
+Sledgehammer ran E, E-SInE, SPASS, Vampire, Waldmeister, and Z3 in parallel.
 Depending on which provers are installed and how many processor cores are
 available, some of the provers might be missing or present with a
 \textit{remote\_} prefix. Waldmeister is run only for unit equational problems,
@@ -913,7 +913,7 @@ point).
 with TPTP syntax'' runs on Geoff Sutcliffe's Miami servers.
 \end{enum}
 
-By default, Sledgehammer runs E, Satallax, SPASS, Vampire, Z3 (or whatever
+By default, Sledgehammer runs E, E-SInE, SPASS, Vampire, Z3 (or whatever
 the SMT module's \textit{smt\_solver} configuration option is set to), and (if
 appropriate) Waldmeister in parallel---either locally or remotely, depending on
 the number of processor cores available. For historical reasons, the default
