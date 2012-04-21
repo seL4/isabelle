@@ -657,6 +657,86 @@ a list and a nat.
 
 * Theory Library/Multiset: Improved code generation of multisets.
 
+* New Transfer package:
+
+  - transfer_rule attribute: Maintains a collection of transfer rules,
+    which relate constants at two different types. Transfer rules may
+    relate different type instances of the same polymorphic constant,
+    or they may relate an operation on a raw type to a corresponding
+    operation on an abstract type (quotient or subtype). For example:
+
+    ((A ===> B) ===> list_all2 A ===> list_all2 B) map map
+    (cr_int ===> cr_int ===> cr_int) (%(x,y) (u,v). (x+u, y+v)) plus_int
+
+  - transfer method: Replaces a subgoal on abstract types with an
+    equivalent subgoal on the corresponding raw types. Constants are
+    replaced with corresponding ones according to the transfer rules.
+    Goals are generalized over all free variables by default; this is
+    necessary for variables whose types changes, but can be overridden
+    for specific variables with e.g. 'transfer fixing: x y z'.
+
+  - relator_eq attribute: Collects identity laws for relators of
+    various type constructors, e.g. "list_all2 (op =) = (op =)". The
+    transfer method uses these lemmas to infer transfer rules for
+    non-polymorphic constants on the fly.
+
+  - transfer_prover method: Assists with proving a transfer rule for a
+    new constant, provided the constant is defined in terms of other
+    constants that already have transfer rules. It should be applied
+    after unfolding the constant definitions.
+
+  - HOL/ex/Transfer_Int_Nat.thy: Example theory demonstrating transfer
+    from type nat to type int.
+
+* New Lifting package:
+
+  - lift_definition command: Defines operations on an abstract type in
+    terms of a corresponding operation on a representation type. Example
+    syntax:
+
+    lift_definition dlist_insert :: "'a => 'a dlist => 'a dlist"
+      is List.insert
+
+    Users must discharge a respectfulness proof obligation when each
+    constant is defined. (For a type copy, i.e. a typedef with UNIV,
+    the proof is discharged automatically.) The obligation is
+    presented in a user-friendly, readable form; a respectfulness
+    theorem in the standard format and a transfer rule are generated
+    by the package.
+
+  - Integration with code_abstype: For typedefs (e.g. subtypes
+    corresponding to a datatype invariant, such as dlist),
+    lift_definition generates a code certificate theorem and sets up
+    code generation for each constant.
+
+  - setup_lifting command: Sets up the Lifting package to work with
+    a user-defined type. The user must provide either a quotient
+    theorem or a type_definition theorem. The package configures
+    transfer rules for equality and quantifiers on the type, and sets
+    up the lift_definition command to work with the type.
+
+  - Usage examples: See Quotient_Examples/Lift_DList.thy,
+    Quotient_Examples/Lift_RBT.thy, Word/Word.thy and
+    Library/Float.thy.
+
+* Quotient package:
+
+  - The 'quotient_type' command now supports a 'morphisms' option with
+    rep and abs functions, similar to typedef.
+
+  - 'quotient_type' sets up new types to work with the Lifting and
+    Transfer packages, as with 'setup_lifting'.
+
+  - The 'quotient_definition' command now requires the user to prove a
+    respectfulness property at the point where the constant is
+    defined, similar to lift_definition; INCOMPATIBILITY. Users are
+    encouraged to use lift_definition + transfer instead of
+    quotient_definition + descending, which will eventually be
+    deprecated.
+
+  - Renamed predicate 'Quotient' to 'Quotient3', and renamed theorems
+    accordingly, INCOMPATIBILITY.
+
 * New diagnostic command 'find_unused_assms' to find potentially
 superfluous assumptions in theorems using Quickcheck.
 
