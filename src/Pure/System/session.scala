@@ -39,6 +39,12 @@ object Session
 
 class Session(thy_load: Thy_Load = new Thy_Load)
 {
+  /* global flags */
+
+  @volatile var timing: Boolean = false
+  @volatile var verbose: Boolean = false
+
+
   /* tuning parameters */  // FIXME properties or settings (!?)
 
   val message_delay = Time.seconds(0.01)  // prover messages
@@ -100,7 +106,10 @@ class Session(thy_load: Thy_Load = new Thy_Load)
 
         case Text_Edits(previous, text_edits, version_result) =>
           val prev = previous.get_finished
-          val (doc_edits, version) = Thy_Syntax.text_edits(prover_syntax, prev, text_edits)
+          val (doc_edits, version) =
+            Timing.timeit("Thy_Syntax.text_edits", timing) {
+              Thy_Syntax.text_edits(prover_syntax, prev, text_edits)
+            }
           version_result.fulfill(version)
           sender ! Change(doc_edits, prev, version)
 
@@ -111,11 +120,10 @@ class Session(thy_load: Thy_Load = new Thy_Load)
   //}}}
 
 
+
   /** main protocol actor **/
 
   /* global state */
-
-  @volatile var verbose: Boolean = false
 
   @volatile private var prover_syntax =
     Outer_Syntax.init() +
