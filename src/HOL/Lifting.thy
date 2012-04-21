@@ -270,23 +270,12 @@ lemma open_typedef_to_Quotient:
   assumes "type_definition Rep Abs {x. P x}"
   and T_def: "T \<equiv> (\<lambda>x y. x = Rep y)"
   shows "Quotient (invariant P) Abs Rep T"
-proof -
-  interpret type_definition Rep Abs "{x. P x}" by fact
-  from Rep Abs_inject Rep_inverse Abs_inverse T_def show ?thesis
-    by (auto intro!: QuotientI simp: invariant_def fun_eq_iff)
-qed
+  using typedef_to_Quotient [OF assms] by simp
 
 lemma open_typedef_to_part_equivp:
   assumes "type_definition Rep Abs {x. P x}"
   shows "part_equivp (invariant P)"
-proof (intro part_equivpI)
-  interpret type_definition Rep Abs "{x. P x}" by fact
-  show "\<exists>x. invariant P x x" using Rep by (auto simp: invariant_def)
-next
-  show "symp (invariant P)" by (auto intro: sympI simp: invariant_def)
-next
-  show "transp (invariant P)" by (auto intro: transpI simp: invariant_def)
-qed
+  using typedef_to_part_equivp [OF assms] by simp
 
 text {* Generating transfer rules for quotients. *}
 
