@@ -174,17 +174,6 @@ lemma finite_transfer [transfer_rule]:
 
 subsection {* Setup for lifting package *}
 
-lemma Quotient_alt_def3:
-  "Quotient R Abs Rep T \<longleftrightarrow>
-    (\<forall>a b. T a b \<longrightarrow> Abs a = b) \<and> (\<forall>b. T (Rep b) b) \<and>
-    (\<forall>x y. R x y \<longleftrightarrow> (\<exists>z. T x z \<and> T y z))"
-  unfolding Quotient_alt_def2 by (safe, metis+)
-
-lemma Quotient_alt_def4:
-  "Quotient R Abs Rep T \<longleftrightarrow>
-    (\<forall>a b. T a b \<longrightarrow> Abs a = b) \<and> (\<forall>b. T (Rep b) b) \<and> R = T OO conversep T"
-  unfolding Quotient_alt_def3 fun_eq_iff by auto
-
 lemma Quotient_set:
   assumes "Quotient R Abs Rep T"
   shows "Quotient (set_rel R) (image Abs) (image Rep) (set_rel T)"

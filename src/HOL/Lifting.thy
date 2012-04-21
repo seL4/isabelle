@@ -99,6 +99,8 @@ end
 lemma identity_quotient: "Quotient (op =) id id (op =)"
 unfolding Quotient_def by simp 
 
+text {* TODO: Use one of these alternatives as the real definition. *}
+
 lemma Quotient_alt_def:
   "Quotient R Abs Rep T \<longleftrightarrow>
     (\<forall>a b. T a b \<longrightarrow> Abs a = b) \<and>
@@ -124,6 +126,17 @@ lemma Quotient_alt_def2:
     (\<forall>b. T (Rep b) b) \<and>
     (\<forall>x y. R x y \<longleftrightarrow> T x (Abs y) \<and> T y (Abs x))"
   unfolding Quotient_alt_def by (safe, metis+)
+
+lemma Quotient_alt_def3:
+  "Quotient R Abs Rep T \<longleftrightarrow>
+    (\<forall>a b. T a b \<longrightarrow> Abs a = b) \<and> (\<forall>b. T (Rep b) b) \<and>
+    (\<forall>x y. R x y \<longleftrightarrow> (\<exists>z. T x z \<and> T y z))"
+  unfolding Quotient_alt_def2 by (safe, metis+)
+
+lemma Quotient_alt_def4:
+  "Quotient R Abs Rep T \<longleftrightarrow>
+    (\<forall>a b. T a b \<longrightarrow> Abs a = b) \<and> (\<forall>b. T (Rep b) b) \<and> R = T OO conversep T"
+  unfolding Quotient_alt_def3 fun_eq_iff by auto
 
 lemma fun_quotient:
   assumes 1: "Quotient R1 abs1 rep1 T1"
@@ -160,42 +173,7 @@ lemma Quotient_compose:
   assumes 1: "Quotient R1 Abs1 Rep1 T1"
   assumes 2: "Quotient R2 Abs2 Rep2 T2"
   shows "Quotient (T1 OO R2 OO conversep T1) (Abs2 \<circ> Abs1) (Rep1 \<circ> Rep2) (T1 OO T2)"
-proof -
-  from 1 have Abs1: "\<And>a b. T1 a b \<Longrightarrow> Abs1 a = b"
-    unfolding Quotient_alt_def by simp
-  from 1 have Rep1: "\<And>b. T1 (Rep1 b) b"
-    unfolding Quotient_alt_def by simp
-  from 2 have Abs2: "\<And>a b. T2 a b \<Longrightarrow> Abs2 a = b"
-    unfolding Quotient_alt_def by simp
-  from 2 have Rep2: "\<And>b. T2 (Rep2 b) b"
-    unfolding Quotient_alt_def by simp
-  from 2 have R2:
-    "\<And>x y. R2 x y \<longleftrightarrow> T2 x (Abs2 x) \<and> T2 y (Abs2 y) \<and> Abs2 x = Abs2 y"
-    unfolding Quotient_alt_def by simp
-  show ?thesis
-    unfolding Quotient_alt_def
-    apply simp
-    apply safe
-    apply (drule Abs1, simp)
-    apply (erule Abs2)
-    apply (rule relcomppI)
-    apply (rule Rep1)
-    apply (rule Rep2)
-    apply (rule relcomppI, assumption)
-    apply (drule Abs1, simp)
-    apply (clarsimp simp add: R2)
-    apply (rule relcomppI, assumption)
-    apply (drule Abs1, simp)+
-    apply (clarsimp simp add: R2)
-    apply (drule Abs1, simp)+
-    apply (clarsimp simp add: R2)
-    apply (rule relcomppI, assumption)
-    apply (rule relcomppI [rotated])
-    apply (erule conversepI)
-    apply (drule Abs1, simp)+
-    apply (simp add: R2)
-    done
-qed
+  using assms unfolding Quotient_alt_def4 by (auto intro!: ext)
 
 lemma equivp_reflp2:
   "equivp R \<Longrightarrow> reflp R"
