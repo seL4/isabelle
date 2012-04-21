@@ -11,7 +11,7 @@ sig
   val get_relator_eq: Proof.context -> thm list
   val transfer_add: attribute
   val transfer_del: attribute
-  val transfer_tac: Proof.context -> int -> tactic
+  val transfer_tac: bool -> Proof.context -> int -> tactic
   val transfer_prover_tac: Proof.context -> int -> tactic
   val setup: theory -> theory
   val abs_tac: int -> tactic
@@ -132,18 +132,20 @@ val abs_tac = SUBGOAL (fn (t, i) =>
     rtac rule i
   end handle TERM _ => no_tac)
 
-fun transfer_tac ctxt = SUBGOAL (fn (t, i) =>
+fun transfer_tac equiv ctxt = SUBGOAL (fn (t, i) =>
   let
     val rules = Data.get ctxt
     val app_tac = rtac @{thm Rel_App}
+    val start_rule =
+      if equiv then @{thm transfer_start} else @{thm transfer_start'}
   in
     EVERY
       [rewrite_goal_tac @{thms transfer_forall_eq transfer_implies_eq} i,
        CONVERSION (Trueprop_conv (fo_conv ctxt)) i,
-       rtac @{thm transfer_start [rotated]} i,
-       REPEAT_ALL_NEW (app_tac ORELSE' abs_tac ORELSE' atac
+       rtac start_rule i,
+       SOLVED' (REPEAT_ALL_NEW (app_tac ORELSE' abs_tac ORELSE' atac
          ORELSE' SOLVED' (REPEAT_ALL_NEW (resolve_tac rules))
-         ORELSE' eq_tac ctxt) (i + 1),
+         ORELSE' eq_tac ctxt)) (i + 1),
        (* FIXME: rewrite_goal_tac does unwanted eta-contraction *)
        rewrite_goal_tac post_simps i,
        rtac @{thm _} i]
@@ -168,9 +170,9 @@ val free = Args.context -- Args.term >> (fn (_, Free v) => v | (ctxt, t) =>
 val fixing = Scan.optional (Scan.lift (Args.$$$ "fixing" -- Args.colon)
   |-- Scan.repeat free) []
 
-val transfer_method : (Proof.context -> Method.method) context_parser =
+fun transfer_method equiv : (Proof.context -> Method.method) context_parser =
   fixing >> (fn vs => fn ctxt =>
-    SIMPLE_METHOD' (gen_frees_tac vs ctxt THEN' transfer_tac ctxt))
+    SIMPLE_METHOD' (gen_frees_tac vs ctxt THEN' transfer_tac equiv ctxt))
 
 val transfer_prover_method : (Proof.context -> Method.method) context_parser =
   Scan.succeed (fn ctxt => SIMPLE_METHOD' (transfer_prover_tac ctxt))
@@ -195,7 +197,9 @@ val setup =
   #> Relator_Eq.setup
   #> Attrib.setup @{binding transfer_rule} transfer_attribute
      "transfer rule for transfer method"
-  #> Method.setup @{binding transfer} transfer_method
+  #> Method.setup @{binding transfer} (transfer_method true)
+     "generic theorem transfer method"
+  #> Method.setup @{binding transfer'} (transfer_method false)
      "generic theorem transfer method"
   #> Method.setup @{binding transfer_prover} transfer_prover_method
      "for proving transfer rules"

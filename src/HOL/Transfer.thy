@@ -75,10 +75,10 @@ lemma transfer_bforall_unfold:
   "Trueprop (transfer_bforall P (\<lambda>x. Q x)) \<equiv> (\<And>x. P x \<Longrightarrow> Q x)"
   unfolding transfer_bforall_def atomize_imp atomize_all ..
 
-lemma transfer_start: "\<lbrakk>Rel (op =) P Q; P\<rbrakk> \<Longrightarrow> Q"
+lemma transfer_start: "\<lbrakk>P; Rel (op =) P Q\<rbrakk> \<Longrightarrow> Q"
   unfolding Rel_def by simp
 
-lemma transfer_start': "\<lbrakk>Rel (op \<longrightarrow>) P Q; P\<rbrakk> \<Longrightarrow> Q"
+lemma transfer_start': "\<lbrakk>P; Rel (op \<longrightarrow>) P Q\<rbrakk> \<Longrightarrow> Q"
   unfolding Rel_def by simp
 
 lemma transfer_prover_start: "\<lbrakk>x = x'; Rel R x' y\<rbrakk> \<Longrightarrow> Rel R x y"
@@ -277,5 +277,15 @@ text {* Preferred rule for transferring universal quantifiers over
 lemma forall_transfer [transfer_rule]:
   "bi_total A \<Longrightarrow> ((A ===> op =) ===> op =) transfer_forall transfer_forall"
   unfolding transfer_forall_def by (rule All_transfer)
+
+text {* Transfer rules using implication instead of equality on booleans. *}
+
+lemma eq_imp_transfer [transfer_rule]:
+  "right_unique A \<Longrightarrow> (A ===> A ===> op \<longrightarrow>) (op =) (op =)"
+  unfolding right_unique_alt_def .
+
+lemma forall_imp_transfer [transfer_rule]:
+  "right_total A \<Longrightarrow> ((A ===> op \<longrightarrow>) ===> op \<longrightarrow>) transfer_forall transfer_forall"
+  unfolding right_total_alt_def transfer_forall_def .
 
 end
