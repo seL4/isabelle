@@ -2261,7 +2261,8 @@ lemma list_all2_induct
   [consumes 1, case_names Nil Cons, induct set: list_all2]:
   assumes P: "list_all2 P xs ys"
   assumes Nil: "R [] []"
-  assumes Cons: "\<And>x xs y ys. \<lbrakk>P x y; R xs ys\<rbrakk> \<Longrightarrow> R (x # xs) (y # ys)"
+  assumes Cons: "\<And>x xs y ys.
+    \<lbrakk>P x y; list_all2 P xs ys; R xs ys\<rbrakk> \<Longrightarrow> R (x # xs) (y # ys)"
   shows "R xs ys"
 using P
 by (induct xs arbitrary: ys) (auto simp add: list_all2_Cons1 Nil Cons)
