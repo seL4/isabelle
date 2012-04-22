@@ -1,23 +1,29 @@
 <launch4jConfig>
   <dontWrapJar>true</dontWrapJar>
   <headerType>gui</headerType>
-  <jar>lib\classes\isabelle-scala.jar</jar>
+  <jar></jar>
   <outfile>Isabelle.exe</outfile>
   <errTitle></errTitle>
   <cmdLine></cmdLine>
   <chdir></chdir>
   <priority>normal</priority>
-  <downloadUrl>http://java.com/download</downloadUrl>
+  <downloadUrl></downloadUrl>
   <supportUrl></supportUrl>
   <customProcName>false</customProcName>
   <stayAlive>true</stayAlive>
   <manifest></manifest>
   <icon>isabelle.ico</icon>
+  <classPath>
+    <mainClass>isabelle.GUI_Setup</mainClass>
+    <cp>lib\classes\ext\Pure.jar</cp>
+    <cp>lib\classes\ext\scala-library.jar</cp>
+    <cp>lib\classes\ext\scala-swing.jar</cp>
+  </classPath>
   <jre>
-    <path></path>
-    <minVersion>1.6.0</minVersion>
+    <path>contrib\jdk-7u3_x86-cygwin\jdk1.7.0_03</path>
+    <minVersion></minVersion>
     <maxVersion></maxVersion>
-    <jdkPreference>preferJre</jdkPreference>
+    <jdkPreference>jdkOnly</jdkPreference>
     <opt>-Disabelle.home=&quot;%EXEDIR%&quot;</opt>
   </jre>
 </launch4jConfig>
