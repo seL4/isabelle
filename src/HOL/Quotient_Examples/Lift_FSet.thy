@@ -156,7 +156,7 @@ lemma fmap_transfer [transfer_rule]:
   apply (elim relcomppE)
   apply (rule relcomppI)
   apply (erule (1) map_transfer [THEN fun_relD, THEN fun_relD])
-  apply (erule fmap.transfer [THEN fun_relD, THEN fun_relD, OF refl])
+  apply (erule fmap.transfer [THEN fun_relD, THEN fun_relD, unfolded relator_eq, OF refl])
   done
 
 lemma ffilter_transfer [transfer_rule]:
@@ -166,7 +166,7 @@ lemma ffilter_transfer [transfer_rule]:
   apply (elim relcomppE)
   apply (rule relcomppI)
   apply (erule (1) filter_transfer [THEN fun_relD, THEN fun_relD])
-  apply (erule ffilter.transfer [THEN fun_relD, THEN fun_relD, OF refl])
+  apply (erule ffilter.transfer [THEN fun_relD, THEN fun_relD, unfolded relator_eq, OF refl])
   done
 
 lemma fset_transfer [transfer_rule]:
@@ -174,7 +174,7 @@ lemma fset_transfer [transfer_rule]:
   unfolding cr_fset'_def
   apply (intro fun_relI)
   apply (elim relcomppE)
-  apply (drule fset.transfer [THEN fun_relD])
+  apply (drule fset.transfer [THEN fun_relD, unfolded relator_eq])
   apply (erule subst)
   apply (erule set_transfer [THEN fun_relD])
   done
