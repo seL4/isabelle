@@ -24,6 +24,6 @@
     <minVersion></minVersion>
     <maxVersion></maxVersion>
     <jdkPreference>jdkOnly</jdkPreference>
-    <opt>-Disabelle.home=&quot;%EXEDIR%&quot;</opt>
+    <opt>-Disabelle.home=&quot;%EXEDIR%&quot; -Dcygwin.root=&quot;%EXEDIR%\\contrib\\cygwin-1.7.9&quot;</opt>
   </jre>
 </launch4jConfig>

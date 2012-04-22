@@ -94,12 +94,14 @@ object Cygwin
   def check_root(): String =
   {
     val this_cygwin = System.getenv("THIS_CYGWIN")
+    val cygwin_root = System.getProperty("cygwin.root")
     val root =
       if (this_cygwin != null && this_cygwin != "") this_cygwin
+      else if (cygwin_root != null && cygwin_root != "") cygwin_root
       else
         query_registry(CYGWIN_SETUP1, "rootdir") orElse
         query_registry(CYGWIN_SETUP2, "rootdir") getOrElse
-        error("Failed to determine Cygwin installation -- version 1.7 required")
+        error("Failed to determine Cygwin installation -- version 1.7.x required")
     sanity_check(new File(root))
     root
   }
