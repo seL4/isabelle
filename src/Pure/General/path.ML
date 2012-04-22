@@ -127,7 +127,7 @@ end;
 local
 
 fun explode_elem ".." = Parent
-  | explode_elem "~" = Variable "HOME"
+  | explode_elem "~" = Variable "USER_HOME"
   | explode_elem "~~" = Variable "ISABELLE_HOME"
   | explode_elem s =
       (case raw_explode s of

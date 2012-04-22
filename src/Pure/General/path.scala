@@ -72,7 +72,7 @@ object Path
 
   private def explode_elem(s: String): Elem =
     if (s == "..") Parent
-    else if (s == "~") Variable("HOME")
+    else if (s == "~") Variable("USER_HOME")
     else if (s == "~~") Variable("ISABELLE_HOME")
     else if (s.startsWith("$")) variable_elem(s.substring(1))
     else basic_elem(s)

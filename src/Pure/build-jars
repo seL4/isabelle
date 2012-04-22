@@ -47,6 +47,7 @@ declare -a SOURCES=(
   System/isabelle_charset.scala
   System/isabelle_process.scala
   System/isabelle_system.scala
+  System/main.scala
   System/platform.scala
   System/session.scala
   System/session_manager.scala

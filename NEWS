@@ -869,6 +869,14 @@ context as well.
 
 *** System ***
 
+* USER_HOME settings variable points to cross-platform user home
+directory, which coincides with HOME on POSIX systems only.  Likewise,
+the Isabelle path specification "~" now expands to $USER_HOME, instead
+of former $HOME.  A different default for USER_HOME may be set
+explicitly in shell environment, before Isabelle settings are
+evaluated.  Minor INCOMPATIBILITY: need to adapt Isabelle path where
+the generic user home was intended.
+
 * ISABELLE_JDK_HOME settings variable points to JDK with javac and jar
 (not just JRE).
 

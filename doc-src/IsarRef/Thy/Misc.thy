@@ -143,9 +143,9 @@ text {*
   %FIXME proper place (!?)
   Isabelle file specification may contain path variables (e.g.\
   @{verbatim "$ISABELLE_HOME"}) that are expanded accordingly.  Note
-  that @{verbatim "~"} abbreviates @{verbatim "$HOME"}, and @{verbatim
-  "~~"} abbreviates @{verbatim "$ISABELLE_HOME"}.  The general syntax
-  for path specifications follows POSIX conventions.
+  that @{verbatim "~"} abbreviates @{verbatim "$USER_HOME"}, and
+  @{verbatim "~~"} abbreviates @{verbatim "$ISABELLE_HOME"}.  The
+  general syntax for path specifications follows POSIX conventions.
 *}
 
 end

@@ -79,9 +79,7 @@ object Isabelle_System
                   if (i <= 0) (entry -> "")
                   else (entry.substring(0, i) -> entry.substring(i + 1))
                 }
-              Map(entries: _*) +
-                ("HOME" -> System.getenv("HOME")) +
-                ("PATH" -> System.getenv("PATH"))
+              Map(entries: _*) + ("PATH" -> System.getenv("PATH"))
             }
           }
       _state = Some(State(standard_system, settings))
@@ -91,8 +89,7 @@ object Isabelle_System
 
   /* getenv */
 
-  def getenv(name: String): String =
-    settings.getOrElse(if (name == "HOME") "HOME_JVM" else name, "")
+  def getenv(name: String): String = settings.getOrElse(name, "")
 
   def getenv_strict(name: String): String =
   {

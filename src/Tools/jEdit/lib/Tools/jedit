@@ -189,8 +189,10 @@ else
   else
     if [ -n "$ISABELLE_JEDIT_BUILD_HOME" ]; then
       declare -a DEPS=("$JEDIT_JAR" "${JEDIT_JARS[@]}" "$PURE_JAR" "${SOURCES[@]}" "${RESOURCES[@]}")
-    else
+    elif [ -e "$ISABELLE_HOME/Admin/build" ]; then
       declare -a DEPS=("$PURE_JAR" "${SOURCES[@]}" "${RESOURCES[@]}")
+    else
+      declare -a DEPS=()
     fi
     for DEP in "${DEPS[@]}"
     do
