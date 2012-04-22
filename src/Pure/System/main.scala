@@ -22,7 +22,7 @@ object Main
       catch { case exn: Throwable => (Exn.message(exn), 2) }
 
     if (rc != 0) {
-      val text = new TextArea(out)
+      val text = new TextArea(out + "\nReturn code: " + rc)
       text.editable = false
       Library.dialog(null, "Isabelle", "Isabelle output", text)
     }
