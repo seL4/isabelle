@@ -243,7 +243,7 @@ e.g.\ \mbox{@{prop"ALL (x,y):A. P"},} @{term"{(x,y). P}"}, etc.
 
 \begin{tabular}{@ {} l @ {~::~} l @ {}}
 @{const Relation.converse} & @{term_type_only Relation.converse "('a * 'b)set \<Rightarrow> ('b*'a)set"}\\
-@{const Relation.rel_comp} & @{term_type_only Relation.rel_comp "('a*'b)set\<Rightarrow>('b*'c)set\<Rightarrow>('a*'c)set"}\\
+@{const Relation.relcomp} & @{term_type_only Relation.relcomp "('a*'b)set\<Rightarrow>('b*'c)set\<Rightarrow>('a*'c)set"}\\
 @{const Relation.Image} & @{term_type_only Relation.Image "('a*'b)set\<Rightarrow>'a set\<Rightarrow>'b set"}\\
 @{const Relation.inv_image} & @{term_type_only Relation.inv_image "('a*'a)set\<Rightarrow>('b\<Rightarrow>'a)\<Rightarrow>('b*'b)set"}\\
 @{const Relation.Id_on} & @{term_type_only Relation.Id_on "'a set\<Rightarrow>('a*'a)set"}\\
