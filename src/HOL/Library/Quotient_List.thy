@@ -22,6 +22,21 @@ proof (rule ext)+
     by (induct xs ys rule: list_induct2') simp_all
 qed
 
+lemma list_all2_OO: "list_all2 (A OO B) = list_all2 A OO list_all2 B"
+proof (intro ext iffI)
+  fix xs ys
+  assume "list_all2 (A OO B) xs ys"
+  thus "(list_all2 A OO list_all2 B) xs ys"
+    unfolding OO_def
+    by (induct, simp, simp add: list_all2_Cons1 list_all2_Cons2, fast)
+next
+  fix xs ys
+  assume "(list_all2 A OO list_all2 B) xs ys"
+  then obtain zs where "list_all2 A xs zs" and "list_all2 B zs ys" ..
+  thus "list_all2 (A OO B) xs ys"
+    by (induct arbitrary: ys, simp, clarsimp simp add: list_all2_Cons1, fast)
+qed
+
 lemma list_reflp:
   assumes "reflp R"
   shows "reflp (list_all2 R)"

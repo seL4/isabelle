@@ -1509,6 +1509,7 @@ $(LOG)/HOL-Quotient_Examples.gz: $(OUT)/HOL				\
   Quotient_Examples/DList.thy \
   Quotient_Examples/FSet.thy \
   Quotient_Examples/Quotient_Int.thy Quotient_Examples/Quotient_Message.thy \
+  Quotient_Examples/Lift_FSet.thy \
   Quotient_Examples/Lift_Set.thy Quotient_Examples/Lift_RBT.thy \
   Quotient_Examples/Lift_Fun.thy Quotient_Examples/Lift_DList.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Quotient_Examples

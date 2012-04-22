@@ -153,6 +153,25 @@ lemma bi_unique_alt_def:
   "bi_unique R \<longleftrightarrow> (R ===> R ===> op =) (op =) (op =)"
   unfolding bi_unique_def fun_rel_def by auto
 
+text {* Properties are preserved by relation composition. *}
+
+lemma OO_def: "R OO S = (\<lambda>x z. \<exists>y. R x y \<and> S y z)"
+  by auto
+
+lemma bi_total_OO: "\<lbrakk>bi_total A; bi_total B\<rbrakk> \<Longrightarrow> bi_total (A OO B)"
+  unfolding bi_total_def OO_def by metis
+
+lemma bi_unique_OO: "\<lbrakk>bi_unique A; bi_unique B\<rbrakk> \<Longrightarrow> bi_unique (A OO B)"
+  unfolding bi_unique_def OO_def by metis
+
+lemma right_total_OO:
+  "\<lbrakk>right_total A; right_total B\<rbrakk> \<Longrightarrow> right_total (A OO B)"
+  unfolding right_total_def OO_def by metis
+
+lemma right_unique_OO:
+  "\<lbrakk>right_unique A; right_unique B\<rbrakk> \<Longrightarrow> right_unique (A OO B)"
+  unfolding right_unique_def OO_def by metis
+
 
 subsection {* Properties of relators *}
 

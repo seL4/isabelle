@@ -91,6 +91,10 @@ lemma image_transfer [transfer_rule]:
   "((A ===> B) ===> set_rel A ===> set_rel B) image image"
   unfolding fun_rel_def set_rel_def by simp fast
 
+lemma UNION_transfer [transfer_rule]:
+  "(set_rel A ===> (A ===> set_rel B) ===> set_rel B) UNION UNION"
+  unfolding SUP_def [abs_def] by transfer_prover
+
 lemma Ball_transfer [transfer_rule]:
   "(set_rel A ===> (A ===> op =) ===> op =) Ball Ball"
   unfolding set_rel_def fun_rel_def by fast
