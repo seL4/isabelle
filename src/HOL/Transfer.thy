@@ -238,6 +238,16 @@ lemma bi_unique_fun [transfer_rule]:
 
 subsection {* Transfer rules *}
 
+text {* Transfer rules using implication instead of equality on booleans. *}
+
+lemma eq_imp_transfer [transfer_rule]:
+  "right_unique A \<Longrightarrow> (A ===> A ===> op \<longrightarrow>) (op =) (op =)"
+  unfolding right_unique_alt_def .
+
+lemma forall_imp_transfer [transfer_rule]:
+  "right_total A \<Longrightarrow> ((A ===> op \<longrightarrow>) ===> op \<longrightarrow>) transfer_forall transfer_forall"
+  unfolding right_total_alt_def transfer_forall_def .
+
 lemma eq_transfer [transfer_rule]:
   assumes "bi_unique A"
   shows "(A ===> A ===> op =) (op =) (op =)"
@@ -296,15 +306,5 @@ text {* Preferred rule for transferring universal quantifiers over
 lemma forall_transfer [transfer_rule]:
   "bi_total A \<Longrightarrow> ((A ===> op =) ===> op =) transfer_forall transfer_forall"
   unfolding transfer_forall_def by (rule All_transfer)
-
-text {* Transfer rules using implication instead of equality on booleans. *}
-
-lemma eq_imp_transfer [transfer_rule]:
-  "right_unique A \<Longrightarrow> (A ===> A ===> op \<longrightarrow>) (op =) (op =)"
-  unfolding right_unique_alt_def .
-
-lemma forall_imp_transfer [transfer_rule]:
-  "right_total A \<Longrightarrow> ((A ===> op \<longrightarrow>) ===> op \<longrightarrow>) transfer_forall transfer_forall"
-  unfolding right_total_alt_def transfer_forall_def .
 
 end
