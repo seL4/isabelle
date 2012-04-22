@@ -1048,7 +1048,10 @@ val timeout_bonus = seconds 1.0
 
 fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) mode i n
                       step subst assm_ts orig_t =
-  let val print_nt = if is_mode_nt mode then Output.urgent_message else K () in
+  let
+    val print_nt = if is_mode_nt mode then Output.urgent_message else K ()
+    val print_t = if mode = TPTP then Output.urgent_message else K ()
+  in
     if getenv "KODKODI" = "" then
       (* The "expect" argument is deliberately ignored if Kodkodi is missing so
          that the "Nitpick_Examples" can be processed on any machine. *)
@@ -1064,14 +1067,18 @@ fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) mode i n
               (pick_them_nits_in_term deadline state params mode i n step subst
                                       assm_ts) orig_t
           handle TOO_LARGE (_, details) =>
-                 (print_nt ("Limit reached: " ^ details ^ "."); unknown_outcome)
+                 (print_t "% SZS status Unknown";
+                  print_nt ("Limit reached: " ^ details ^ "."); unknown_outcome)
                | TOO_SMALL (_, details) =>
-                 (print_nt ("Limit reached: " ^ details ^ "."); unknown_outcome)
+                 (print_t "% SZS status Unknown";
+                  print_nt ("Limit reached: " ^ details ^ "."); unknown_outcome)
                | Kodkod.SYNTAX (_, details) =>
-                 (print_nt ("Malformed Kodkodi output: " ^ details ^ ".");
+                 (print_t "% SZS status Unknown";
+                  print_nt ("Malformed Kodkodi output: " ^ details ^ ".");
                   unknown_outcome)
                | TimeLimit.TimeOut =>
-                 (print_nt "Nitpick ran out of time."; unknown_outcome)
+                 (print_t "% SZS status TimedOut";
+                  print_nt "Nitpick ran out of time."; unknown_outcome)
       in
         if expect = "" orelse outcome_code = expect then outcome
         else error ("Unexpected outcome: " ^ quote outcome_code ^ ".")

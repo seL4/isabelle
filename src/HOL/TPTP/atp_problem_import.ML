@@ -7,10 +7,10 @@ Import TPTP problems as Isabelle terms or goals.
 
 signature ATP_PROBLEM_IMPORT =
 sig
-  val isabelle_tptp_file : string -> unit
-  val nitpick_tptp_file : string -> unit
-  val refute_tptp_file : string -> unit
-  val sledgehammer_tptp_file : string -> unit
+  val isabelle_tptp_file : int -> string -> unit
+  val nitpick_tptp_file : int -> string -> unit
+  val refute_tptp_file : int -> string -> unit
+  val sledgehammer_tptp_file : int -> string -> unit
   val translate_tptp_file : string -> string -> string -> unit
 end;
 
@@ -150,12 +150,12 @@ fun read_tptp_file thy file_name =
 
 (** Isabelle (combination of provers) **)
 
-fun isabelle_tptp_file file_name = ()
+fun isabelle_tptp_file timeout file_name = ()
 
 
 (** Nitpick (alias Nitrox) **)
 
-fun nitpick_tptp_file file_name =
+fun nitpick_tptp_file timeout file_name =
   let
     val (falsify, ts) = read_tptp_file @{theory} file_name
     val state = Proof.init @{context}
@@ -172,8 +172,7 @@ fun nitpick_tptp_file file_name =
        ("show_consts", "true"),
        ("format", "1000"),
        ("max_potential", "0"),
-       ("timeout", "none"),
-       ("expect", Nitpick.genuineN)]
+       ("timeout", string_of_int timeout)]
       |> Nitpick_Isar.default_params @{theory}
     val i = 1
     val n = 1
@@ -195,13 +194,11 @@ fun print_szs_from_outcome falsify s =
      "Unknown")
   |> writeln
 
-fun refute_tptp_file file_name =
+fun refute_tptp_file timeout file_name =
   let
     val (falsify, ts) = read_tptp_file @{theory} file_name
     val params =
-      [("maxtime", "10000"),
-       ("assms", "true"),
-       ("expect", Nitpick.genuineN)]
+      [("maxtime", string_of_int timeout)]
   in
     Refute.refute_term @{context} params ts @{prop False}
     |> print_szs_from_outcome falsify
@@ -210,7 +207,7 @@ fun refute_tptp_file file_name =
 
 (** Sledgehammer **)
 
-fun sledgehammer_tptp_file file_name = ()
+fun sledgehammer_tptp_file timeout file_name = ()
 
 
 (** Translator between TPTP(-like) file formats **)

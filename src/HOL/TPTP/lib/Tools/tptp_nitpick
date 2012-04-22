@@ -9,9 +9,10 @@ PRG="$(basename "$0")"
 
 function usage() {
   echo
-  echo "Usage: isabelle $PRG FILES"
+  echo "Usage: isabelle $PRG TIMEOUT FILES"
   echo
   echo "  Runs Nitpick on TPTP problems."
+  echo "  Each problem is allocated at most TIMEOUT seconds."
   echo
   exit 1
 }
@@ -20,10 +21,13 @@ function usage() {
 
 SCRATCH="Scratch_${PRG}_$$_${RANDOM}"
 
+TIMEOUT=$1
+shift
+
 for FILE in "$@"
 do
   echo "theory $SCRATCH imports \"$TPTP_HOME/ATP_Problem_Import\" begin \
-ML {* ATP_Problem_Import.nitpick_tptp_file \"$FILE\" *} end;" \
+ML {* ATP_Problem_Import.nitpick_tptp_file ($TIMEOUT) \"$FILE\" *} end;" \
     > /tmp/$SCRATCH.thy
   "$ISABELLE_PROCESS" -e "use_thy \"/tmp/$SCRATCH\"; exit 1;"
 done

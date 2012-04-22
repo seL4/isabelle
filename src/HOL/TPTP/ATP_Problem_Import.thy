@@ -9,6 +9,8 @@ imports Complex_Main TPTP_Interpret
 uses ("atp_problem_import.ML")
 begin
 
+declare [[show_consts]] (* for Refute *)
+
 typedecl iota (* for TPTP *)
 
 use "atp_problem_import.ML"
