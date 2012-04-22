@@ -996,6 +996,7 @@ fun bounded_card_of_type max default_card assigns
     in
       if k1 = max orelse k2 = max then max
       else Int.min (max, reasonable_power k2 k1)
+      handle TOO_LARGE _ => default_card
     end
   | bounded_card_of_type max default_card assigns
                          (Type (@{type_name prod}, [T1, T2])) =

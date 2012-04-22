@@ -118,7 +118,8 @@ fun reasonable_power _ 0 = 1
                  "negative exponent (" ^ signed_string_of_int b ^ ")")
     else if b > max_exponent then
       raise TOO_LARGE ("Nitpick_Util.reasonable_power",
-                       "too large exponent (" ^ signed_string_of_int b ^ ")")
+                       "too large exponent (" ^ signed_string_of_int a ^ " ^ " ^
+                       signed_string_of_int b ^ ")")
     else
       let val c = reasonable_power a (b div 2) in
         c * c * reasonable_power a (b mod 2)
