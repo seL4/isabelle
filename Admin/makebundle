@@ -70,6 +70,16 @@ do
   fi
 done
 
+if [ "$PLATFORM" = x86-cygwin ]; then
+  EXE="$ARCHIVE_DIR/contrib/x86-cygwin/Isabelle.exe"
+  if [ -e "$EXE" ]; then
+    cp "$EXE" "$ISABELLE_HOME/"
+    chmod +x "$ISABELLE_HOME/Isabelle.exe"
+  else
+    fail "Missing $EXE"
+  fi
+fi
+
 
 HEAPS_ARCHIVE="$ARCHIVE_DIR/${ISABELLE_NAME}_heaps_${PLATFORM}.tar.gz"
 [ -f "$HEAPS_ARCHIVE" ] || fail "Bad heaps archive: $HEAPS_ARCHIVE"
