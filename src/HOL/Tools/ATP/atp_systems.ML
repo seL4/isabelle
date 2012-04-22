@@ -595,8 +595,8 @@ fun remotify_config system_name system_versions best_slice
 fun remote_atp name system_name system_versions proof_delims known_failures
                conj_sym_kind prem_kind best_slice =
   (remote_prefix ^ name,
-   K (remote_config system_name system_versions proof_delims known_failures
-                    conj_sym_kind prem_kind best_slice))
+   fn () => remote_config system_name system_versions proof_delims known_failures
+                          conj_sym_kind prem_kind best_slice)
 fun remotify_atp (name, config) system_name system_versions best_slice =
   (remote_prefix ^ name,
    remotify_config system_name system_versions best_slice o config)
