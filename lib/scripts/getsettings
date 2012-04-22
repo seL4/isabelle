@@ -11,9 +11,13 @@ set -o allexport
 
 ISABELLE_SETTINGS_PRESENT=true
 
-#JVM path wrapper
+#Cygwin vs Posix
 if [ "$OSTYPE" = cygwin ]
 then
+  if [ -z "$USER_HOME" ]; then
+    USER_HOME="$(cygpath -u "$HOMEDRIVE\\$HOMEPATH")"
+  fi
+
   ISABELLE_HOME_WINDOWS="$(cygpath -w "$(dirname "$ISABELLE_HOME")")\\$(basename "$ISABELLE_HOME")"
   ISABELLE_HOME="$(cygpath -u "$ISABELLE_HOME_WINDOWS")"
 
@@ -21,10 +25,13 @@ then
   function jvmpath() { cygpath -i -C UTF8 -w -p "$@"; }
   THIS_CYGWIN="$(jvmpath "/")"
 else
+  if [ -z "$USER_HOME" ]; then
+    USER_HOME="$HOME"
+  fi
+
   function jvmpath() { echo "$@"; }
   CLASSPATH="$CLASSPATH"
 fi
-HOME_JVM="$HOME"
 
 export ISABELLE_HOME
 if { echo -n "$ISABELLE_HOME" | fgrep " " >/dev/null; }
