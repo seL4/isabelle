@@ -867,20 +867,21 @@ fun special_congruence_axioms (hol_ctxt as {special_funs, ...}) ts =
 
 fun defined_free_by_assumption t =
   let
-    fun do_equals x def =
-      if exists_subterm (curry (op aconv) (Free x)) def then NONE else SOME x
+    fun do_equals u def =
+      if exists_subterm (curry (op aconv) u) def then NONE else SOME u
   in
     case t of
-      Const (@{const_name "=="}, _) $ Free x $ def => do_equals x def
-    | @{const Trueprop} $ (Const (@{const_name "=="}, _) $ Free x $ def) =>
-      do_equals x def
+      Const (@{const_name "=="}, _) $ (u as Free _) $ def => do_equals u def
+    | @{const Trueprop}
+      $ (Const (@{const_name HOL.eq}, _) $ (u as Free _) $ def) =>
+      do_equals u def
     | _ => NONE
   end
 
 fun assumption_exclusively_defines_free assm_ts t =
   case defined_free_by_assumption t of
-    SOME x =>
-    length (filter ((fn SOME x' => x = x' | NONE => false)
+    SOME u =>
+    length (filter ((fn SOME u' => u aconv u' | NONE => false)
                      o defined_free_by_assumption) assm_ts) = 1
   | NONE => false
 
@@ -994,10 +995,10 @@ fun axioms_for_term
                                (nondef_props_for_const thy false nondef_table x)
            end)
         |> add_axioms_for_type depth T
-      | Free (x as (_, T)) =>
+      | Free (_, T) =>
         (if member (op aconv) seen t then
            accum
-         else case AList.lookup (op =) def_assm_table x of
+         else case AList.lookup (op =) def_assm_table t of
            SOME t => add_def_axiom depth t accum
          | NONE => accum)
         |> add_axioms_for_type depth T
