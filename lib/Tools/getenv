@@ -76,6 +76,7 @@ else
 fi
 
 if [ -n "$DUMP" ]; then
+  export PATH_JVM="$(jvmpath "$PATH")"
   exec perl -w -e 'for $key (keys %ENV) { print $key, "=", $ENV{$key}, "\x00"; }' > "$DUMP"
 fi
 

@@ -74,12 +74,12 @@ object Isabelle_System
               if (rc != 0) error(output)
 
               val entries =
-                for (entry <- Source.fromFile(dump).mkString split "\0" if entry != "") yield {
+                (for (entry <- Source.fromFile(dump).mkString split "\0" if entry != "") yield {
                   val i = entry.indexOf('=')
                   if (i <= 0) (entry -> "")
                   else (entry.substring(0, i) -> entry.substring(i + 1))
-                }
-              Map(entries: _*) + ("PATH" -> System.getenv("PATH"))
+                }).toMap
+              entries + ("PATH" -> entries("PATH_JVM")) - "PATH_JVM"
             }
           }
       _state = Some(State(standard_system, settings))
