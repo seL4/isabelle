@@ -114,7 +114,7 @@ Isabelle executables need to be run within a proper settings
   \item The file \verb|$ISABELLE_HOME_USER/etc/settings| (if it
   exists) is run in the same way as the site default settings. Note
   that the variable \hyperlink{setting.ISABELLE-HOME-USER}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME{\isaliteral{5F}{\isacharunderscore}}USER}}}} has already been set
-  before --- usually to something like \verb|$HOME/.isabelle/IsabelleXXXX|.
+  before --- usually to something like \verb|$USER_HOME/.isabelle/IsabelleXXXX|.
   
   Thus individual users may override the site-wide defaults.  See also
   file \verb|$ISABELLE_HOME/etc/user-settings.sample| in the
@@ -167,18 +167,23 @@ This is a reference of common Isabelle settings variables. Note that
 
   \begin{description}
 
-  \item[\indexdef{}{setting}{ISABELLE\_HOME}\hypertarget{setting.ISABELLE-HOME}{\hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}] is the
-  location of the top-level Isabelle distribution directory. This is
-  automatically determined from the Isabelle executable that has been
-  invoked.  Do not attempt to set \hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME}}}} yourself
-  from the shell!
+  \item[\indexdef{}{setting}{USER\_HOME}\hypertarget{setting.USER-HOME}{\hyperlink{setting.USER-HOME}{\mbox{\isa{\isatt{USER{\isaliteral{5F}{\isacharunderscore}}HOME}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}] Is the cross-platform
+  user home directory.  On Unix systems this is usually the same as
+  \hyperlink{setting.HOME}{\mbox{\isa{\isatt{HOME}}}}, but on Windows it is the regular home directory of
+  the, not the one of within the Cygwin root file-system.
+
+ \item[\indexdef{}{setting}{ISABELLE\_HOME}\hypertarget{setting.ISABELLE-HOME}{\hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}] is the location of the
+  top-level Isabelle distribution directory. This is automatically
+  determined from the Isabelle executable that has been invoked.  Do
+  not attempt to set \hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME}}}} yourself from the shell!
   
   \item[\indexdef{}{setting}{ISABELLE\_HOME\_USER}\hypertarget{setting.ISABELLE-HOME-USER}{\hyperlink{setting.ISABELLE-HOME-USER}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME{\isaliteral{5F}{\isacharunderscore}}USER}}}}}] is the user-specific
   counterpart of \hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME}}}}. The default value is
-  relative to \verb|$HOME/.isabelle|, under rare circumstances
-  this may be changed in the global setting file.  Typically, the
-  \hyperlink{setting.ISABELLE-HOME-USER}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME{\isaliteral{5F}{\isacharunderscore}}USER}}}} directory mimics \hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME}}}} to some extend. In particular, site-wide defaults may
-  be overridden by a private \verb|$ISABELLE_HOME_USER/etc/settings|.
+  relative to \verb|$USER_HOME/.isabelle|, under rare
+  circumstances this may be changed in the global setting file.
+  Typically, the \hyperlink{setting.ISABELLE-HOME-USER}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME{\isaliteral{5F}{\isacharunderscore}}USER}}}} directory mimics
+  \hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME}}}} to some extend. In particular, site-wide
+  defaults may be overridden by a private \verb|$ISABELLE_HOME_USER/etc/settings|.
   
   \item[\indexdef{}{setting}{ISABELLE\_PLATFORM}\hypertarget{setting.ISABELLE-PLATFORM}{\hyperlink{setting.ISABELLE-PLATFORM}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}PLATFORM}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}] is automatically
   set to a symbolic identifier for the underlying hardware and

@@ -96,7 +96,7 @@ text {* Isabelle executables need to be run within a proper settings
   exists) is run in the same way as the site default settings. Note
   that the variable @{setting ISABELLE_HOME_USER} has already been set
   before --- usually to something like @{verbatim
-  "$HOME/.isabelle/IsabelleXXXX"}.
+  "$USER_HOME/.isabelle/IsabelleXXXX"}.
   
   Thus individual users may override the site-wide defaults.  See also
   file @{file "$ISABELLE_HOME/etc/user-settings.sample"} in the
@@ -149,19 +149,24 @@ text {*
 
   \begin{description}
 
-  \item[@{setting_def ISABELLE_HOME}@{text "\<^sup>*"}] is the
-  location of the top-level Isabelle distribution directory. This is
-  automatically determined from the Isabelle executable that has been
-  invoked.  Do not attempt to set @{setting ISABELLE_HOME} yourself
-  from the shell!
+  \item[@{setting_def USER_HOME}@{text "\<^sup>*"}] Is the
+  cross-platform user home directory.  On Unix systems this is usually
+  the same as @{setting HOME}, but on Windows it is the regular home
+  directory of the user, not the one of within the Cygwin root
+  file-system.
+
+ \item[@{setting_def ISABELLE_HOME}@{text "\<^sup>*"}] is the location of the
+  top-level Isabelle distribution directory. This is automatically
+  determined from the Isabelle executable that has been invoked.  Do
+  not attempt to set @{setting ISABELLE_HOME} yourself from the shell!
   
   \item[@{setting_def ISABELLE_HOME_USER}] is the user-specific
   counterpart of @{setting ISABELLE_HOME}. The default value is
-  relative to @{verbatim "$HOME/.isabelle"}, under rare circumstances
-  this may be changed in the global setting file.  Typically, the
-  @{setting ISABELLE_HOME_USER} directory mimics @{setting
-  ISABELLE_HOME} to some extend. In particular, site-wide defaults may
-  be overridden by a private @{verbatim
+  relative to @{verbatim "$USER_HOME/.isabelle"}, under rare
+  circumstances this may be changed in the global setting file.
+  Typically, the @{setting ISABELLE_HOME_USER} directory mimics
+  @{setting ISABELLE_HOME} to some extend. In particular, site-wide
+  defaults may be overridden by a private @{verbatim
   "$ISABELLE_HOME_USER/etc/settings"}.
   
   \item[@{setting_def ISABELLE_PLATFORM}@{text "\<^sup>*"}] is automatically
