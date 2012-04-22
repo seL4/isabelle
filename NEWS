@@ -5275,7 +5275,7 @@ fold_set now are named Inf_fin, Sup_fin.  INCOMPATIBILITY.
 * HOL/Nat: neq0_conv no longer declared as iff.  INCOMPATIBILITY.
 
 * HOL-Word: New extensive library and type for generic, fixed size
-machine words, with arithemtic, bit-wise, shifting and rotating
+machine words, with arithmetic, bit-wise, shifting and rotating
 operations, reflection into int, nat, and bool lists, automation for
 linear arithmetic (by automatic reflection into nat or int), including
 lemmas on overflow and monotonicity.  Instantiated to all appropriate
