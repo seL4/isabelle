@@ -14,7 +14,7 @@
   <manifest></manifest>
   <icon>isabelle.ico</icon>
   <classPath>
-    <mainClass>isabelle.GUI_Setup</mainClass>
+    <mainClass>isabelle.Main</mainClass>
     <cp>lib\classes\ext\Pure.jar</cp>
     <cp>lib\classes\ext\scala-library.jar</cp>
     <cp>lib\classes\ext\scala-swing.jar</cp>
