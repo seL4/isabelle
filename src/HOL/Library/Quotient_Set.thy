@@ -129,6 +129,13 @@ lemma inter_transfer [transfer_rule]:
   shows "(set_rel A ===> set_rel A ===> set_rel A) inter inter"
   using assms unfolding fun_rel_def set_rel_def bi_unique_def by fast
 
+lemma Diff_transfer [transfer_rule]:
+  assumes "bi_unique A"
+  shows "(set_rel A ===> set_rel A ===> set_rel A) (op -) (op -)"
+  using assms unfolding fun_rel_def set_rel_def bi_unique_def
+  unfolding Ball_def Bex_def Diff_eq
+  by (safe, simp, metis, simp, metis)
+
 lemma subset_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
   shows "(set_rel A ===> set_rel A ===> op =) (op \<subseteq>) (op \<subseteq>)"
