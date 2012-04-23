@@ -56,7 +56,7 @@ are like structured programs with comments. A typical Isar proof looks like this
 %
 \begin{isamarkuptext}%
 It proves $\mathit{formula}_0 \Longrightarrow \mathit{formula}_{n+1}$
-(provided provided each proof step succeeds).
+(provided each proof step succeeds).
 The intermediate \isacom{have} statements are merely stepping stones
 on the way towards the \isacom{show} statement that proves the actual
 goal. In more detail, this is the Isar core syntax:
@@ -115,7 +115,7 @@ writing \isa{f{\isaliteral{2E}{\isachardot}}simps{\isaliteral{28}{\isacharparenl
 
 \section{Isar by example}
 
-We show a number of proofs of Cantors theorem that a function from a set to
+We show a number of proofs of Cantor's theorem that a function from a set to
 its powerset cannot be surjective, illustrating various features of Isar. The
 constant \isa{surj} is predefined.%
 \end{isamarkuptext}%
@@ -327,7 +327,7 @@ would ask Isabelle to try some suitable introduction rule on the goal \isa{False
 would fail.
 \end{warn}
 
-Stating a lemmas with \isacom{assumes}-\isacom{shows} implicitly introduces the
+Stating a lemma with \isacom{assumes}-\isacom{shows} implicitly introduces the
 name \isa{assms} that stands for the list of all assumptions. You can refer
 to individual assumptions by \isa{assms{\isaliteral{28}{\isacharparenleft}}{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}}, \isa{assms{\isaliteral{28}{\isacharparenleft}}{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}} etc,
 thus obviating the need to name them individually.
@@ -599,7 +599,7 @@ How to prove quantified formulas:
 \medskip
 \begin{isamarkuptext}%
 In the proof of \noquotes{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}},
-the step \isacom{fix}~\isa{x} introduces a locale fixed variable \isa{x}
+the step \isacom{fix}~\isa{x} introduces a locally fixed variable \isa{x}
 into the subproof, the proverbial ``arbitrary but fixed value''.
 Instead of \isa{x} we could have chosen any name in the subproof.
 In the proof of \noquotes{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ P{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}},
@@ -839,7 +839,7 @@ theorems. Unknowns \isa{{\isaliteral{3F}{\isacharquery}}X} refer to terms or for
 Although abbreviations shorten the text, the reader needs to remember what
 they stand for. Similarly for names of facts. Names like \isa{{\isadigit{1}}}, \isa{{\isadigit{2}}}
 and \isa{{\isadigit{3}}} are not helpful and should only be used in short proofs. For
-longer proof, descriptive names are better. But look at this example:
+longer proofs, descriptive names are better. But look at this example:
 \begin{quote}
 \isacom{have} \ \isa{x{\isaliteral{5F}{\isacharunderscore}}gr{\isaliteral{5F}{\isacharunderscore}}{\isadigit{0}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequote}}x\ {\isaliteral{3E}{\isachargreater}}\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequote}}}\\
 $\vdots$\\
@@ -1073,7 +1073,7 @@ command:
 \begin{quote}
 \isacom{case} \isa{{\isaliteral{28}{\isacharparenleft}}C\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{29}{\isacharparenright}}}
 \end{quote}
-This is equivalent to the explicit \isacom{fix}-\isacom{assumen} line
+This is equivalent to the explicit \isacom{fix}-\isacom{assume} line
 but also gives the assumption \isa{{\isaliteral{22}{\isachardoublequote}}t\ {\isaliteral{3D}{\isacharequal}}\ C\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{22}{\isachardoublequote}}} a name: \isa{C},
 like the constructor.
 Here is the \isacom{case} version of the proof above:%
@@ -1603,7 +1603,7 @@ we have \isa{n\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}} and in case \i
 and \isa{ev\ k}. In each case the assumptions are available under the name
 of the case; there is no fine grained naming schema like for induction.
 
-Sometimes some rules could not have beed used to derive the given fact
+Sometimes some rules could not have been used to derive the given fact
 because constructors clash. As an extreme example consider
 rule inversion applied to \isa{ev\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}}: neither rule \isa{ev{\isadigit{0}}} nor
 rule \isa{evSS} can yield \isa{ev\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}} because \isa{Suc\ {\isadigit{0}}} unifies
