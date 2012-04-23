@@ -308,8 +308,11 @@ val _ =
       (Parse.type_args_constrained -- Parse.binding) --
         Parse.opt_mixfix -- (@{keyword "="} |-- Parse.term) --
         Scan.option (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding))
-    >> (fn ((((((def, opt_name), (args, t)), mx), A), morphs)) =>
-        typedef_cmd ((def, the_default t opt_name), (t, args, mx), A, morphs)));
+    >> (fn ((((((def, opt_name), (args, t)), mx), A), morphs)) => fn lthy =>
+          (if def then
+            legacy_feature "typedef with implicit set definition -- use \"typedef (open)\" instead"
+           else ();
+           typedef_cmd ((def, the_default t opt_name), (t, args, mx), A, morphs) lthy)));
 
 end;
 

@@ -187,6 +187,10 @@ INCOMPATIBILITY.
 
 * New type synonym 'a rel = ('a * 'a) set
 
+* Typedef with implicit set definition is considered legacy.  Use
+"typedef (open)" form instead, which will eventually become the
+default.
+
 * More default pred/set conversions on a couple of relation operations
 and predicates.  Added powers of predicate relations.  Consolidation
 of some relation theorems:
