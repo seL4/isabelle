@@ -438,6 +438,13 @@ fun is_prod_typed thy config symb =
      | _ => false
    end
 
+(*Given a list of "'a option", apply an ('a -> 'b) function to each
+element s.t. the function is only applied if that element isn't NONE*)
+fun map_opt f xs =
+  map (fn x =>
+    if is_some x then
+       SOME (f (the x))
+    else NONE) xs
 
 (*
  Information needed to be carried around:
@@ -499,7 +506,13 @@ fun interpret_term formula_level config language const_map var_types type_map
         Free (n, interpret_type config thy type_map (Defined_type Type_Ind)),
       thy)
   | Term_Conditional (tptp_formula, tptp_t1, tptp_t2) =>
-      (mk_fun @{const_name If}, thy)
+      let
+        val (t_fmla, thy') =
+          interpret_formula config language const_map var_types type_map tptp_formula thy
+        val ([t1, t2], thy'') =
+          fold_map (interpret_term formula_level config language const_map var_types type_map)
+           [tptp_t1, tptp_t2] thy'
+      in (mk_fun @{const_name If} $ t_fmla $ t1 $ t2, thy'') end
   | Term_Num (number_kind, num) =>
       let
         val num_term =
@@ -515,17 +528,7 @@ fun interpret_term formula_level config language const_map var_types type_map
       declare_constant config ("do_" ^ str)
         (interpret_type config thy type_map (Defined_type Type_Ind)) thy
 
-(*Given a list of "'a option", then applies a function to each element if that
-element is SOME value, otherwise it leaves it as NONE.*)
-fun map_opt f xs =
-  fold
-  (fn x => fn y =>
-    (if Option.isSome x then
-       SOME (f (Option.valOf x))
-     else NONE) :: y
-  ) xs []
-
-fun interpret_formula config language const_map var_types type_map tptp_fmla thy =
+and interpret_formula config language const_map var_types type_map tptp_fmla thy =
   case tptp_fmla of
       Pred app =>
         interpret_term true config language const_map
