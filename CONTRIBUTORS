@@ -30,6 +30,9 @@ Contributions to Isabelle2012
 * January 2012: Florian Haftmann, TUM, et al.
   (Re-)Introduction of the "set" type constructor.
 
+* 2012: Ondrej Kuncar, TUM
+  New package Lifting, various improvements and refinements to the Quotient package.
+
 * 2011/2012: Jasmin Blanchette, TUM
   Various improvements to Sledgehammer, notably: tighter integration
   with SPASS, support for more provers (Alt-Ergo, iProver, iProver-Eq).
