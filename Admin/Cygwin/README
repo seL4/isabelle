@@ -7,3 +7,16 @@ Notes on Cygwin
 
 * http://chinese-watercolor.com/LRP/printsrv/cygwin-sshd.html
 
+* Cygwin crash of Poly/ML 5.4.0, 5.4.1 with threads (and sockets?)
+http://cygwin.com/ml/cygwin/2012-04/msg00415.html
+http://cygwin.com/ml/cygwin/2012-04/msg00417.html
+
+* Mirror with many old versions (not setup.init!)
+  http://ftp.eq.uc.pt/software/pc/prog/cygwin
+
+* Time machine for older versions:
+  http://www.fruitbat.org/Cygwin/index.html#cygwincirca
+
+  e.g. ftp://www.fruitbat.org/pub/cygwin/circa/2012/02/04/034515/setup.ini
+  for last 1.7.9 version
+
