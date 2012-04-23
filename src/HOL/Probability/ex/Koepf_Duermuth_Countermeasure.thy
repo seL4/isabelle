@@ -103,49 +103,14 @@ next
       lessThan_Suc_eq_insert_0 setprod_reindex setsum_left_distrib[symmetric] setsum_right_distrib[symmetric])
 qed
 
-lemma ex_ordered_bij_betw_nat_finite:
-  fixes order :: "nat \<Rightarrow> 'a\<Colon>linorder"
-  assumes "finite S"
-  shows "\<exists>f. bij_betw f {0..<card S} S \<and> (\<forall>i<card S. \<forall>j<card S. i \<le> j \<longrightarrow> order (f i) \<le> order (f j))"
-proof -
-  from ex_bij_betw_nat_finite [OF `finite S`] guess f .. note f = this
-  let ?xs = "sort_key order (map f [0 ..< card S])"
+declare space_point_measure[simp]
 
-  have "?xs <~~> map f [0 ..< card S]"
-    unfolding multiset_of_eq_perm[symmetric] by (rule multiset_of_sort)
-  from permutation_Ex_bij [OF this]
-  obtain g where g: "bij_betw g {0..<card S} {0..<card S}" and
-    map: "\<And>i. i<card S \<Longrightarrow> ?xs ! i = map f [0 ..< card S] ! g i"
-    by (auto simp: atLeast0LessThan)
+declare sets_point_measure[simp]
 
-  { fix i assume "i < card S"
-    then have "g i < card S" using g by (auto simp: bij_betw_def)
-    with map [OF `i < card S`] have "f (g i) = ?xs ! i" by simp }
-  note this[simp]
-
-  show ?thesis
-  proof (intro exI allI conjI impI)
-    show "bij_betw (f\<circ>g) {0..<card S} S"
-      using g f by (rule bij_betw_trans)
-    fix i j assume [simp]: "i < card S" "j < card S" "i \<le> j"
-    from sorted_nth_mono[of "map order ?xs" i j]
-    show "order ((f\<circ>g) i) \<le> order ((f\<circ>g) j)" by simp
-  qed
-qed
-
-definition (in prob_space)
-  "ordered_variable_partition X = (SOME f. bij_betw f {0..<card (X`space M)} (X`space M) \<and>
-    (\<forall>i<card (X`space M). \<forall>j<card (X`space M). i \<le> j \<longrightarrow> distribution X {f i} \<le> distribution X {f j}))"
-
-definition (in prob_space)
-  "order_distribution X i = real (distribution X {ordered_variable_partition X i})"
-
-definition (in prob_space)
-  "guessing_entropy b X = (\<Sum>i<card(X`space M). real i * log b (order_distribution X i))"
-
-abbreviation (in information_space)
-  finite_guessing_entropy ("\<G>'(_')") where
-  "\<G>(X) \<equiv> guessing_entropy b X"
+lemma measure_point_measure:
+  "finite \<Omega> \<Longrightarrow> A \<subseteq> \<Omega> \<Longrightarrow> (\<And>x. x \<in> \<Omega> \<Longrightarrow> 0 \<le> p x) \<Longrightarrow>
+    measure (point_measure \<Omega> (\<lambda>x. ereal (p x))) A = (\<Sum>i\<in>A. p i)"
+  unfolding measure_def by (subst emeasure_point_measure_finite) auto
 
 locale finite_information =
   fixes \<Omega> :: "'a set"
@@ -159,17 +124,14 @@ locale finite_information =
 lemma (in finite_information) positive_p_sum[simp]: "0 \<le> setsum p X"
    by (auto intro!: setsum_nonneg)
 
-sublocale finite_information \<subseteq> finite_measure_space "\<lparr> space = \<Omega>, sets = Pow \<Omega>, measure = \<lambda>S. ereal (setsum p S)\<rparr>"
-  by (rule finite_measure_spaceI) (simp_all add: setsum_Un_disjoint finite_subset)
+sublocale finite_information \<subseteq> prob_space "point_measure \<Omega> p"
+  by default (simp add: one_ereal_def emeasure_point_measure_finite)
 
-sublocale finite_information \<subseteq> finite_prob_space "\<lparr> space = \<Omega>, sets = Pow \<Omega>, measure = \<lambda>S. ereal (setsum p S)\<rparr>"
-  by default (simp add: one_ereal_def)
-
-sublocale finite_information \<subseteq> information_space "\<lparr> space = \<Omega>, sets = Pow \<Omega>, measure = \<lambda>S. ereal (setsum p S)\<rparr>" b
+sublocale finite_information \<subseteq> information_space "point_measure \<Omega> p" b
   by default simp
 
-lemma (in finite_information) \<mu>'_eq: "A \<subseteq> \<Omega> \<Longrightarrow> \<mu>' A = setsum p A"
-  unfolding \<mu>'_def by auto
+lemma (in finite_information) \<mu>'_eq: "A \<subseteq> \<Omega> \<Longrightarrow> prob A = setsum p A"
+  by (auto simp: measure_point_measure)
 
 locale koepf_duermuth = K: finite_information keys K b + M: finite_information messages M b
     for b :: real
@@ -247,14 +209,19 @@ qed
 abbreviation
  "p A \<equiv> setsum P A"
 
+abbreviation
+  "\<mu> \<equiv> point_measure msgs P"
+
 abbreviation probability ("\<P>'(_') _") where
- "\<P>(X) x \<equiv> distribution X x"
+  "\<P>(X) x \<equiv> measure \<mu> (X -` x \<inter> msgs)"
 
-abbreviation joint_probability ("\<P>'(_, _') _") where
- "\<P>(X, Y) x \<equiv> joint_distribution X Y x"
+abbreviation joint_probability ("\<P>'(_ ; _') _") where
+  "\<P>(X ; Y) x \<equiv> \<P>(\<lambda>x. (X x, Y x)) x"
 
-abbreviation conditional_probability ("\<P>'(_|_') _") where
- "\<P>(X|Y) x \<equiv> \<P>(X, Y) x / \<P>(Y) (snd`x)"
+no_notation disj (infixr "|" 30)
+
+abbreviation conditional_probability ("\<P>'(_ | _') _") where
+  "\<P>(X | Y) x \<equiv> (\<P>(X ; Y) x) / \<P>(Y) (snd`x)"
 
 notation
   entropy_Pow ("\<H>'( _ ')")
@@ -280,8 +247,8 @@ proof -
   from assms have *:
       "fst -` {k} \<inter> msgs = {k}\<times>{ms. set ms \<subseteq> messages \<and> length ms = n}"
     unfolding msgs_def by auto
-  show "\<P>(fst) {k} = K k"
-    apply (simp add: \<mu>'_eq distribution_def)
+  show "(\<P>(fst) {k}) = K k"
+    apply (simp add: \<mu>'_eq)
     apply (simp add: * P_def)
     apply (simp add: setsum_cartesian_product')
     using setprod_setsum_distrib_lists[OF M.finite_space, of M n "\<lambda>x x. True"] `k \<in> keys`
@@ -295,6 +262,67 @@ proof -
     by (auto intro!: exI[of _ "replicate n m"])
   then show ?thesis
     unfolding msgs_def fst_image_times if_not_P[OF *] by simp
+qed
+
+lemma setsum_distribution_cut:
+  "\<P>(X) {x} = (\<Sum>y \<in> Y`space \<mu>. \<P>(X ; Y) {(x, y)})"
+  by (subst finite_measure_finite_Union[symmetric])
+     (auto simp add: disjoint_family_on_def inj_on_def
+           intro!: arg_cong[where f=prob])
+
+lemma prob_conj_imp1:
+  "prob ({x. Q x} \<inter> msgs) = 0 \<Longrightarrow> prob ({x. Pr x \<and> Q x} \<inter> msgs) = 0"
+  using finite_measure_mono[of "{x. Pr x \<and> Q x} \<inter> msgs" "{x. Q x} \<inter> msgs"]
+  using measure_nonneg[of \<mu> "{x. Pr x \<and> Q x} \<inter> msgs"]
+  by (simp add: subset_eq)
+
+lemma prob_conj_imp2:
+  "prob ({x. Pr x} \<inter> msgs) = 0 \<Longrightarrow> prob ({x. Pr x \<and> Q x} \<inter> msgs) = 0"
+  using finite_measure_mono[of "{x. Pr x \<and> Q x} \<inter> msgs" "{x. Pr x} \<inter> msgs"]
+  using measure_nonneg[of \<mu> "{x. Pr x \<and> Q x} \<inter> msgs"]
+  by (simp add: subset_eq)
+
+lemma simple_function_finite: "simple_function \<mu> f"
+  by (simp add: simple_function_def)
+
+lemma entropy_commute: "\<H>(\<lambda>x. (X x, Y x)) = \<H>(\<lambda>x. (Y x, X x))"
+  apply (subst (1 2) entropy_simple_distributed[OF simple_distributedI[OF simple_function_finite refl]])
+  unfolding space_point_measure
+proof -
+  have eq: "(\<lambda>x. (X x, Y x)) ` msgs = (\<lambda>(x, y). (y, x)) ` (\<lambda>x. (Y x, X x)) ` msgs"
+    by auto
+  show "- (\<Sum>x\<in>(\<lambda>x. (X x, Y x)) ` msgs. (\<P>(X ; Y) {x}) * log b (\<P>(X ; Y) {x})) =
+    - (\<Sum>x\<in>(\<lambda>x. (Y x, X x)) ` msgs. (\<P>(Y ; X) {x}) * log b (\<P>(Y ; X) {x}))"
+    unfolding eq
+    apply (subst setsum_reindex)
+    apply (auto simp: vimage_def inj_on_def intro!: setsum_cong arg_cong[where f="\<lambda>x. prob x * log b (prob x)"])
+    done
+qed
+
+lemma (in -) measure_eq_0I: "A = {} \<Longrightarrow> measure M A = 0" by simp
+
+lemma conditional_entropy_eq_ce_with_hypothesis:
+  "\<H>(X | Y) = -(\<Sum>y\<in>Y`msgs. (\<P>(Y) {y}) * (\<Sum>x\<in>X`msgs. (\<P>(X ; Y) {(x,y)}) / (\<P>(Y) {y}) *
+     log b ((\<P>(X ; Y) {(x,y)}) / (\<P>(Y) {y}))))"
+  apply (subst conditional_entropy_eq[OF
+    simple_distributedI[OF simple_function_finite refl]
+    simple_function_finite
+    simple_distributedI[OF simple_function_finite refl]])
+  unfolding space_point_measure
+proof -
+  have "- (\<Sum>(x, y)\<in>(\<lambda>x. (X x, Y x)) ` msgs. (\<P>(X ; Y) {(x, y)}) * log b ((\<P>(X ; Y) {(x, y)}) / (\<P>(Y) {y}))) =
+    - (\<Sum>x\<in>X`msgs. (\<Sum>y\<in>Y`msgs. (\<P>(X ; Y) {(x, y)}) * log b ((\<P>(X ; Y) {(x, y)}) / (\<P>(Y) {y}))))"
+    unfolding setsum_cartesian_product
+    apply (intro arg_cong[where f=uminus] setsum_mono_zero_left)
+    apply (auto simp: vimage_def image_iff intro!: measure_eq_0I)
+    apply metis
+    done
+  also have "\<dots> = - (\<Sum>y\<in>Y`msgs. (\<Sum>x\<in>X`msgs. (\<P>(X ; Y) {(x, y)}) * log b ((\<P>(X ; Y) {(x, y)}) / (\<P>(Y) {y}))))"
+    by (subst setsum_commute) rule
+  also have "\<dots> = -(\<Sum>y\<in>Y`msgs. (\<P>(Y) {y}) * (\<Sum>x\<in>X`msgs. (\<P>(X ; Y) {(x,y)}) / (\<P>(Y) {y}) * log b ((\<P>(X ; Y) {(x,y)}) / (\<P>(Y) {y}))))"
+    by (auto simp add: setsum_right_distrib vimage_def intro!: setsum_cong prob_conj_imp1)
+  finally show "- (\<Sum>(x, y)\<in>(\<lambda>x. (X x, Y x)) ` msgs. (\<P>(X ; Y) {(x, y)}) * log b ((\<P>(X ; Y) {(x, y)}) / (\<P>(Y) {y}))) =
+    -(\<Sum>y\<in>Y`msgs. (\<P>(Y) {y}) * (\<Sum>x\<in>X`msgs. (\<P>(X ; Y) {(x,y)}) / (\<P>(Y) {y}) * log b ((\<P>(X ; Y) {(x,y)}) / (\<P>(Y) {y}))))" .
 qed
 
 lemma ce_OB_eq_ce_t: "\<H>(fst | OB) = \<H>(fst | t\<circ>OB)"
@@ -314,22 +342,22 @@ proof -
       then have **: "\<And>ms. length ms = n \<Longrightarrow> OB (k, ms) = obs \<longleftrightarrow> (\<forall>i<n. observe k (ms!i) = obs ! i)"
         unfolding OB_def msgs_def by (simp add: image_iff list_eq_iff_nth_eq)
 
-      have "\<P>(OB, fst) {(obs, k)} / K k =
+      have "(\<P>(OB ; fst) {(obs, k)}) / K k =
           p ({k}\<times>{ms. (k,ms) \<in> msgs \<and> OB (k,ms) = obs}) / K k"
-        apply (simp add: distribution_def \<mu>'_eq) by (auto intro!: arg_cong[where f=p])
+        apply (simp add: \<mu>'_eq) by (auto intro!: arg_cong[where f=p])
       also have "\<dots> =
           (\<Prod>i<n. \<Sum>m\<in>{m\<in>messages. observe k m = obs ! i}. M m)"
         unfolding P_def using `K k \<noteq> 0` `k \<in> keys`
         apply (simp add: setsum_cartesian_product' setsum_divide_distrib msgs_def ** cong: conj_cong)
         apply (subst setprod_setsum_distrib_lists[OF M.finite_space]) ..
-      finally have "\<P>(OB, fst) {(obs, k)} / K k =
+      finally have "(\<P>(OB ; fst) {(obs, k)}) / K k =
             (\<Prod>i<n. \<Sum>m\<in>{m\<in>messages. observe k m = obs ! i}. M m)" . }
     note * = this
 
-    have "\<P>(OB, fst) {(obs, k)} / K k = \<P>(OB, fst) {(obs', k)} / K k"
+    have "(\<P>(OB ; fst) {(obs, k)}) / K k = (\<P>(OB ; fst) {(obs', k)}) / K k"
       unfolding *[OF obs] *[OF obs']
       using t_f(1) obs_t_f by (subst (2) t_f(2)) (simp add: setprod_reindex)
-    then have "\<P>(OB, fst) {(obs, k)} = \<P>(OB, fst) {(obs', k)}"
+    then have "(\<P>(OB ; fst) {(obs, k)}) = (\<P>(OB ; fst) {(obs', k)})"
       using `K k \<noteq> 0` by auto }
   note t_eq_imp = this
 
@@ -339,13 +367,13 @@ proof -
       (\<Union>obs'\<in>?S obs. ((\<lambda>x. (OB x, fst x)) -` {(obs', k)} \<inter> msgs))" by auto
     have df: "disjoint_family_on (\<lambda>obs'. (\<lambda>x. (OB x, fst x)) -` {(obs', k)} \<inter> msgs) (?S obs)"
       unfolding disjoint_family_on_def by auto
-    have "\<P>(t\<circ>OB, fst) {(t obs, k)} = (\<Sum>obs'\<in>?S obs. \<P>(OB, fst) {(obs', k)})"
-      unfolding distribution_def comp_def
-      using finite_measure_finite_Union[OF _ _ df]
-      by (force simp add: * intro!: setsum_nonneg)
-    also have "(\<Sum>obs'\<in>?S obs. \<P>(OB, fst) {(obs', k)}) = real (card (?S obs)) * \<P>(OB, fst) {(obs, k)}"
+    have "\<P>(t\<circ>OB ; fst) {(t obs, k)} = (\<Sum>obs'\<in>?S obs. \<P>(OB ; fst) {(obs', k)})"
+      unfolding comp_def
+      using finite_measure_finite_Union[OF _ df]
+      by (auto simp add: * intro!: setsum_nonneg)
+    also have "(\<Sum>obs'\<in>?S obs. \<P>(OB ; fst) {(obs', k)}) = real (card (?S obs)) * \<P>(OB ; fst) {(obs, k)}"
       by (simp add: t_eq_imp[OF `k \<in> keys` `K k \<noteq> 0` obs] real_eq_of_nat)
-    finally have "\<P>(t\<circ>OB, fst) {(t obs, k)} = real (card (?S obs)) * \<P>(OB, fst) {(obs, k)}" .}
+    finally have "\<P>(t\<circ>OB ; fst) {(t obs, k)} = real (card (?S obs)) * \<P>(OB ; fst) {(obs, k)}" .}
   note P_t_eq_P_OB = this
 
   { fix k obs assume "k \<in> keys" and obs: "obs \<in> OB`msgs"
@@ -359,11 +387,15 @@ proof -
     then have "real (card ?S) \<noteq> 0" by auto
 
     have "\<P>(fst | t\<circ>OB) {(k, t obs)} = \<P>(t\<circ>OB | fst) {(t obs, k)} * \<P>(fst) {k} / \<P>(t\<circ>OB) {t obs}"
-      using distribution_order(7,8)[where X=fst and x=k and Y="t\<circ>OB" and y="t obs"]
-      by (subst joint_distribution_commute) auto
-    also have "\<P>(t\<circ>OB) {t obs} = (\<Sum>k'\<in>keys. \<P>(t\<circ>OB|fst) {(t obs, k')} * \<P>(fst) {k'})"
-      using setsum_distribution_cut(2)[of "t\<circ>OB" fst "t obs", symmetric]
-      by (auto intro!: setsum_cong distribution_order(8))
+      using finite_measure_mono[of "{x. fst x = k \<and> t (OB x) = t obs} \<inter> msgs" "{x. fst x = k} \<inter> msgs"]
+      using measure_nonneg[of \<mu> "{x. fst x = k \<and> t (OB x) = t obs} \<inter> msgs"]
+      by (auto simp add: vimage_def conj_commute subset_eq)
+    also have "(\<P>(t\<circ>OB) {t obs}) = (\<Sum>k'\<in>keys. (\<P>(t\<circ>OB|fst) {(t obs, k')}) * (\<P>(fst) {k'}))"
+      using finite_measure_mono[of "{x. t (OB x) = t obs \<and> fst x = k} \<inter> msgs" "{x. fst x = k} \<inter> msgs"]
+      using measure_nonneg[of \<mu> "{x. fst x = k \<and> t (OB x) = t obs} \<inter> msgs"]
+      apply (simp add: setsum_distribution_cut[of "t\<circ>OB" "t obs" fst])
+      apply (auto intro!: setsum_cong simp: subset_eq vimage_def prob_conj_imp1)
+      done
     also have "\<P>(t\<circ>OB | fst) {(t obs, k)} * \<P>(fst) {k} / (\<Sum>k'\<in>keys. \<P>(t\<circ>OB|fst) {(t obs, k')} * \<P>(fst) {k'}) =
       \<P>(OB | fst) {(obs, k)} * \<P>(fst) {k} / (\<Sum>k'\<in>keys. \<P>(OB|fst) {(obs, k')} * \<P>(fst) {k'})"
       using CP_t_K[OF `k\<in>keys` obs] CP_t_K[OF _ obs] `real (card ?S) \<noteq> 0`
@@ -371,10 +403,10 @@ proof -
           mult_divide_mult_cancel_left[OF `real (card ?S) \<noteq> 0`]
         cong: setsum_cong)
     also have "(\<Sum>k'\<in>keys. \<P>(OB|fst) {(obs, k')} * \<P>(fst) {k'}) = \<P>(OB) {obs}"
-      using setsum_distribution_cut(2)[of OB fst obs, symmetric]
-      by (auto intro!: setsum_cong distribution_order(8))
+      using setsum_distribution_cut[of OB obs fst]
+      by (auto intro!: setsum_cong simp: prob_conj_imp1 vimage_def)
     also have "\<P>(OB | fst) {(obs, k)} * \<P>(fst) {k} / \<P>(OB) {obs} = \<P>(fst | OB) {(k, obs)}"
-      by (subst joint_distribution_commute) (auto intro!: distribution_order(8))
+      by (auto simp: vimage_def conj_commute prob_conj_imp2)
     finally have "\<P>(fst | t\<circ>OB) {(k, t obs)} = \<P>(fst | OB) {(k, obs)}" . }
   note CP_T_eq_CP_O = this
 
@@ -396,15 +428,15 @@ proof -
     have df: "disjoint_family_on (\<lambda>obs. OB -` {obs} \<inter> msgs) (?S (OB x))"
       unfolding disjoint_family_on_def by auto
     have "\<P>(t\<circ>OB) {t (OB x)} = (\<Sum>obs\<in>?S (OB x). \<P>(OB) {obs})"
-      unfolding distribution_def comp_def
-      using finite_measure_finite_Union[OF _ _ df]
+      unfolding comp_def
+      using finite_measure_finite_Union[OF _ df]
       by (force simp add: * intro!: setsum_nonneg) }
   note P_t_sum_P_O = this
 
   txt {* Lemma 3 *}
+  txt {* Lemma 3 *}
   have "\<H>(fst | OB) = -(\<Sum>obs\<in>OB`msgs. \<P>(OB) {obs} * ?Ht (t obs))"
-    unfolding conditional_entropy_eq_ce_with_hypothesis[OF
-      simple_function_finite simple_function_finite] using * by simp
+    unfolding conditional_entropy_eq_ce_with_hypothesis using * by simp
   also have "\<dots> = -(\<Sum>obs\<in>t`OB`msgs. \<P>(t\<circ>OB) {obs} * ?Ht obs)"
     apply (subst SIGMA_image_vimage[symmetric, of "OB`msgs" t])
     apply (subst setsum_reindex)
@@ -418,8 +450,7 @@ proof -
     by (simp add: setsum_divide_distrib[symmetric] field_simps **
                   setsum_right_distrib[symmetric] setsum_left_distrib[symmetric])
   also have "\<dots> = \<H>(fst | t\<circ>OB)"
-    unfolding conditional_entropy_eq_ce_with_hypothesis[OF
-      simple_function_finite simple_function_finite]
+    unfolding conditional_entropy_eq_ce_with_hypothesis
     by (simp add: comp_def image_image[symmetric])
   finally show ?thesis .
 qed
@@ -433,11 +464,11 @@ proof -
     unfolding ce_OB_eq_ce_t ..
   also have "\<dots> = \<H>(t\<circ>OB) - \<H>(t\<circ>OB | fst)"
     unfolding entropy_chain_rule[symmetric, OF simple_function_finite simple_function_finite] sign_simps
-    by (subst entropy_commute[OF simple_function_finite simple_function_finite]) simp
+    by (subst entropy_commute) simp
   also have "\<dots> \<le> \<H>(t\<circ>OB)"
-    using conditional_entropy_positive[of "t\<circ>OB" fst] by simp
+    using conditional_entropy_nonneg[of "t\<circ>OB" fst] by simp
   also have "\<dots> \<le> log b (real (card ((t\<circ>OB)`msgs)))"
-    using entropy_le_card[of "t\<circ>OB"] by simp
+    using entropy_le_card[of "t\<circ>OB", OF simple_distributedI[OF simple_function_finite refl]] by simp
   also have "\<dots> \<le> log b (real (n + 1)^card observations)"
     using card_T_bound not_empty
     by (auto intro!: log_le simp: card_gt_0_iff power_real_of_nat simp del: real_of_nat_power)

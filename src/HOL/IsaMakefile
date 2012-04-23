@@ -1198,14 +1198,13 @@ HOL-Probability: HOL-Multivariate_Analysis $(OUT)/HOL-Probability
 $(OUT)/HOL-Probability: $(OUT)/HOL-Multivariate_Analysis		\
   Probability/Binary_Product_Measure.thy Probability/Borel_Space.thy	\
   Probability/Caratheodory.thy Probability/Complete_Measure.thy		\
-  Probability/Conditional_Probability.thy				\
   Probability/ex/Dining_Cryptographers.thy				\
   Probability/ex/Koepf_Duermuth_Countermeasure.thy			\
   Probability/Finite_Product_Measure.thy				\
   Probability/Independent_Family.thy					\
   Probability/Infinite_Product_Measure.thy Probability/Information.thy	\
   Probability/Lebesgue_Integration.thy Probability/Lebesgue_Measure.thy \
-  Probability/Measure.thy Probability/Probability_Measure.thy		\
+  Probability/Measure_Space.thy Probability/Probability_Measure.thy	\
   Probability/Probability.thy Probability/Radon_Nikodym.thy		\
   Probability/ROOT.ML Probability/Sigma_Algebra.thy			\
   Library/Countable.thy Library/FuncSet.thy Library/Nat_Bijection.thy

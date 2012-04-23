@@ -8,29 +8,6 @@ lemma image_ex1_eq: "inj_on f A \<Longrightarrow> (b \<in> f ` A) \<longleftrigh
 lemma Ex1_eq: "\<exists>! x. P x \<Longrightarrow> P x \<Longrightarrow> P y \<Longrightarrow> x = y"
   by auto
 
-locale finite_space =
-  fixes S :: "'a set"
-  assumes finite[simp]: "finite S"
-  and not_empty[simp]: "S \<noteq> {}"
-
-definition (in finite_space) "M = \<lparr> space = S, sets = Pow S,
-  measure = \<lambda>A. ereal (card A / card S) \<rparr>"
-
-lemma (in finite_space)
-  shows space_M[simp]: "space M = S"
-  and sets_M[simp]: "sets M = Pow S"
-  by (simp_all add: M_def)
-
-sublocale finite_space \<subseteq> finite_measure_space M
-  by (rule finite_measure_spaceI)
-     (simp_all add: M_def real_of_nat_def)
-
-sublocale finite_space \<subseteq> information_space M 2
-  by default (simp_all add: M_def one_ereal_def)
-
-lemma (in finite_space) \<mu>'_eq[simp]: "\<mu>' A = (if A \<subseteq> S then card A / card S else 0)"
-  unfolding \<mu>'_def by (auto simp: M_def)
-
 section "Define the state space"
 
 text {*
@@ -68,7 +45,7 @@ begin
 definition "dining_cryptographers =
   ({None} \<union> Some ` {0..<n}) \<times> {xs :: bool list. length xs = n}"
 definition "payer dc = fst dc"
-definition coin :: "(nat option \<times> bool list) => nat \<Rightarrow> bool" where
+definition coin :: "(nat option \<times> bool list) \<Rightarrow> nat \<Rightarrow> bool" where
   "coin dc c = snd dc ! (c mod n)"
 definition "inversion dc =
   map (\<lambda>c. (payer dc = Some c) \<noteq> (coin dc c \<noteq> coin dc (c + 1))) [0..<n]"
@@ -417,15 +394,12 @@ qed
 
 end
 
+sublocale dining_cryptographers_space \<subseteq> prob_space "uniform_count_measure dc_crypto"
+  by (rule prob_space_uniform_count_measure[OF finite_dc_crypto])
+     (insert n_gt_3, auto simp: dc_crypto intro: exI[of _ "replicate n True"])
 
-sublocale
-  dining_cryptographers_space \<subseteq> finite_space "dc_crypto"
-proof
-  show "finite dc_crypto" using finite_dc_crypto .
-  show "dc_crypto \<noteq> {}"
-    unfolding dc_crypto
-    using n_gt_3 by (auto intro: exI[of _ "replicate n True"])
-qed
+sublocale dining_cryptographers_space \<subseteq> information_space "uniform_count_measure dc_crypto" 2
+  by default auto
 
 notation (in dining_cryptographers_space)
   mutual_information_Pow ("\<I>'( _ ; _ ')")
@@ -438,71 +412,64 @@ notation (in dining_cryptographers_space)
 
 theorem (in dining_cryptographers_space)
   "\<I>( inversion ; payer ) = 0"
-proof -
+proof (rule mutual_information_eq_0_simple)
   have n: "0 < n" using n_gt_3 by auto
-  have lists: "{xs. length xs = n} \<noteq> {}" using Ex_list_of_length by auto
   have card_image_inversion:
     "real (card (inversion ` dc_crypto)) = 2^n / 2"
     unfolding card_image_inversion using `0 < n` by (cases n) auto
 
-  let ?dIP = "distribution (\<lambda>x. (inversion x, payer x))"
-  let ?dP = "distribution payer"
-  let ?dI = "distribution inversion"
+  show inversion: "simple_distributed (uniform_count_measure dc_crypto) inversion (\<lambda>x. 2 / 2^n)"
+  proof (rule simple_distributedI)
+    show "simple_function (uniform_count_measure dc_crypto) inversion"
+      using finite_dc_crypto
+      by (auto simp: simple_function_def space_uniform_count_measure sets_uniform_count_measure)
+    fix x assume "x \<in> inversion ` space (uniform_count_measure dc_crypto)"
+    moreover have "inversion -` {x} \<inter> dc_crypto = {dc \<in> dc_crypto. inversion dc = x}" by auto
+    ultimately show "2 / 2^n = prob (inversion -` {x} \<inter> space (uniform_count_measure dc_crypto))"
+      using `0 < n`
+      by (simp add: card_inversion card_dc_crypto finite_dc_crypto
+                    subset_eq space_uniform_count_measure measure_uniform_count_measure)
+  qed
 
-  { have "\<H>(inversion|payer) =
-        - (\<Sum>x\<in>inversion`dc_crypto. (\<Sum>z\<in>Some ` {0..<n}. ?dIP {(x, z)} * log 2 (?dIP {(x, z)} / ?dP {z})))"
-      unfolding conditional_entropy_eq[OF simple_function_finite simple_function_finite]
-      by (simp add: image_payer_dc_crypto setsum_Sigma)
-    also have "... =
-        - (\<Sum>x\<in>inversion`dc_crypto. (\<Sum>z\<in>Some ` {0..<n}. 2 / (real n * 2^n) * (1 - real n)))"
-      unfolding neg_equal_iff_equal
-    proof (rule setsum_cong[OF refl], rule setsum_cong[OF refl])
-      fix x z assume x: "x \<in> inversion`dc_crypto" and z: "z \<in> Some ` {0..<n}"
-      hence "(\<lambda>x. (inversion x, payer x)) -` {(x, z)} \<inter> dc_crypto =
-          {dc \<in> dc_crypto. payer dc = Some (the z) \<and> inversion dc = x}"
-        by (auto simp add: payer_def)
-      moreover from x z obtain i where "z = Some i" and "i < n" by auto
-      moreover from x have "length x = n" by (auto simp: inversion_def [abs_def] dc_crypto)
-      ultimately
-      have "?dIP {(x, z)} = 2 / (real n * 2^n)" using x
-        by (auto simp add: card_dc_crypto card_payer_and_inversion distribution_def)
-      moreover
-      from z have "payer -` {z} \<inter> dc_crypto = {z} \<times> {xs. length xs = n}"
-        by (auto simp: dc_crypto payer_def)
-      hence "card (payer -` {z} \<inter> dc_crypto) = 2^n"
-        using card_lists_length_eq[where A="UNIV::bool set"]
-        by (simp add: card_cartesian_product_singleton)
-      hence "?dP {z} = 1 / real n"
-        by (simp add: distribution_def card_dc_crypto)
-      ultimately
-      show "?dIP {(x,z)} * log 2 (?dIP {(x,z)} / ?dP {z}) =
-       2 / (real n * 2^n) * (1 - real n)"
-        by (simp add: log_divide log_nat_power[of 2])
-    qed
-    also have "... = real n - 1"
-      using n finite_space
-      by (simp add: card_image_inversion card_image[OF inj_Some] field_simps real_eq_of_nat[symmetric])
-    finally have "\<H>(inversion|payer) = real n - 1" . }
-  moreover
-  { have "\<H>(inversion) = - (\<Sum>x \<in> inversion`dc_crypto. ?dI {x} * log 2 (?dI {x}))"
-      unfolding entropy_eq[OF simple_function_finite] by simp
-    also have "... = - (\<Sum>x \<in> inversion`dc_crypto. 2 * (1 - real n) / 2^n)"
-      unfolding neg_equal_iff_equal
-    proof (rule setsum_cong[OF refl])
-      fix x assume x_inv: "x \<in> inversion ` dc_crypto"
-      hence "length x = n" by (auto simp: inversion_def [abs_def] dc_crypto)
-      moreover have "inversion -` {x} \<inter> dc_crypto = {dc \<in> dc_crypto. inversion dc = x}" by auto
-      ultimately have "?dI {x} = 2 / 2^n" using `0 < n`
-        by (auto simp: card_inversion[OF x_inv] card_dc_crypto distribution_def)
-      thus "?dI {x} * log 2 (?dI {x}) = 2 * (1 - real n) / 2^n"
-        by (simp add: log_divide log_nat_power power_le_zero_eq inverse_eq_divide)
-    qed
-    also have "... = real n - 1"
-      by (simp add: card_image_inversion real_of_nat_def[symmetric] field_simps)
-    finally have "\<H>(inversion) = real n - 1" .
-  }
-  ultimately show ?thesis
-    unfolding mutual_information_eq_entropy_conditional_entropy[OF simple_function_finite simple_function_finite]
+  show "simple_distributed (uniform_count_measure dc_crypto) payer (\<lambda>x. 1 / real n)"
+  proof (rule simple_distributedI)
+    show "simple_function (uniform_count_measure dc_crypto) payer"
+      using finite_dc_crypto
+      by (auto simp: simple_function_def space_uniform_count_measure sets_uniform_count_measure)
+    fix z assume "z \<in> payer ` space (uniform_count_measure dc_crypto)"
+    then have "payer -` {z} \<inter> dc_crypto = {z} \<times> {xs. length xs = n}"
+      by (auto simp: dc_crypto payer_def space_uniform_count_measure)
+    hence "card (payer -` {z} \<inter> dc_crypto) = 2^n"
+      using card_lists_length_eq[where A="UNIV::bool set"]
+      by (simp add: card_cartesian_product_singleton)
+    then show "1 / real n = prob (payer -` {z} \<inter> space (uniform_count_measure dc_crypto))"
+      using finite_dc_crypto
+      by (subst measure_uniform_count_measure) (auto simp add: card_dc_crypto space_uniform_count_measure)
+  qed
+
+  show "simple_distributed (uniform_count_measure dc_crypto) (\<lambda>x. (inversion x, payer x)) (\<lambda>x. 2 / (real n *2^n))"
+  proof (rule simple_distributedI)
+    show "simple_function (uniform_count_measure dc_crypto) (\<lambda>x. (inversion x, payer x))"
+      using finite_dc_crypto
+      by (auto simp: simple_function_def space_uniform_count_measure sets_uniform_count_measure)
+    fix x assume "x \<in> (\<lambda>x. (inversion x, payer x)) ` space (uniform_count_measure dc_crypto)"
+    then obtain i xs where x: "x = (inversion (Some i, xs), payer (Some i, xs))"
+      and "i < n" "length xs = n"
+      by (simp add: image_iff space_uniform_count_measure dc_crypto Bex_def) blast
+    then have xs: "inversion (Some i, xs) \<in> inversion`dc_crypto" and i: "Some i \<in> Some ` {0..<n}"
+      and x: "x = (inversion (Some i, xs), Some i)" by (simp_all add: payer_def dc_crypto)
+    moreover def ys \<equiv> "inversion (Some i, xs)"
+    ultimately have ys: "ys \<in> inversion`dc_crypto"
+      and "Some i \<in> Some ` {0..<n}" "x = (ys, Some i)" by simp_all
+    then have "(\<lambda>x. (inversion x, payer x)) -` {x} \<inter> space (uniform_count_measure dc_crypto) =
+      {dc \<in> dc_crypto. payer dc = Some (the (Some i)) \<and> inversion dc = ys}"
+      by (auto simp add: payer_def space_uniform_count_measure)
+    then show "2 / (real n * 2 ^ n) = prob ((\<lambda>x. (inversion x, payer x)) -` {x} \<inter> space (uniform_count_measure dc_crypto))"
+      using `i < n` ys
+      by (simp add: measure_uniform_count_measure card_payer_and_inversion finite_dc_crypto subset_eq card_dc_crypto)
+  qed
+
+  show "\<forall>x\<in>space (uniform_count_measure dc_crypto). 2 / (real n * 2 ^ n) = 2 / 2 ^ n * (1 / real n) "
     by simp
 qed
 
