@@ -269,9 +269,10 @@ fun interpret_type config thy type_map thf_ty =
             Type_Ind => @{typ ind}
           | Type_Bool => HOLogic.boolT
           | Type_Type => raise MISINTERPRET_TYPE ("No type interpretation", thf_ty)
-          | Type_Int => Type ("Int.int", [])
          (*FIXME these types are currently unsupported, so they're treated as
          individuals*)
+          | Type_Int =>
+              interpret_type config thy type_map (Defined_type Type_Ind)
           | Type_Rat =>
               interpret_type config thy type_map (Defined_type Type_Ind)
           | Type_Real =>
@@ -322,28 +323,8 @@ fun interpret_symbol config language const_map symb thy =
        declaration*)
        the_const config thy language const_map n
    | Interpreted_ExtraLogic interpreted_symbol =>
-       (case interpreted_symbol of (*FIXME incomplete,
-                                     and doesn't work with $i*)
-          Sum => mk_fun @{const_name Groups.plus}
-        | UMinus =>
-            (Const (@{const_name Groups.uminus}, Term.dummyT) $ Bound 0)
-             |> Term.absdummy Term.dummyT
-        | Difference => mk_fun @{const_name Groups.minus}
-        | Product => mk_fun @{const_name Groups.times}
-        | Quotient => mk_fun @{const_name Fields.divide}
-        | Less => mk_fun @{const_name Orderings.less}
-        | LessEq => mk_fun @{const_name Orderings.less_eq}
-        | Greater => mk_swapped_fun @{const_name Orderings.less}
-          (*FIXME would be nicer to expand "greater"
-            and "greater_eq" abbreviations*)
-        | GreaterEq => mk_swapped_fun @{const_name Orderings.less_eq}
-        (* FIXME todo
-        | Quotient_E | Quotient_T | Quotient_F | Remainder_E | Remainder_T
-        | Remainder_F | Floor | Ceiling | Truncate | Round | To_Int | To_Rat
-        | To_Real | EvalEq | Is_Int | Is_Rat*)
-        | Apply => raise MISINTERPRET_SYMBOL ("Malformed term?", symb)
-        | _ => dummy_term ()
-        )
+       (*FIXME make constant, if not interpreting*)
+       dummy_term ()
    | Interpreted_Logic logic_symbol =>
        (case logic_symbol of
           Equals => HOLogic.eq_const Term.dummyT
@@ -522,9 +503,13 @@ fun interpret_term formula_level config language const_map var_types type_map
   | Term_Num (number_kind, num) =>
       let
         val num_term =
+          (*FIXME
           if number_kind = Int_num then
             HOLogic.mk_number @{typ "int"} (the (Int.fromString num))
           else dummy_term () (*FIXME: not yet supporting rationals and reals*)
+           *)
+          (*FIXME make constant*)
+          dummy_term ()
       in (num_term, thy) end
   | Term_Distinct_Object str =>
       declare_constant config ("do_" ^ str)
