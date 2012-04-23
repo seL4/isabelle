@@ -108,6 +108,11 @@ use "Tools/Function/sum_tree.ML"
 use "Tools/Function/mutual.ML"
 use "Tools/Function/pattern_split.ML"
 use "Tools/Function/relation.ML"
+
+method_setup relation = {*
+  Args.term >> (fn t => fn ctxt => SIMPLE_METHOD' (Function_Relation.relation_infer_tac ctxt t))
+*} "prove termination using a user-specified wellfounded relation"
+
 use "Tools/Function/function.ML"
 use "Tools/Function/pat_completeness.ML"
 
@@ -122,7 +127,7 @@ method_setup induction_schema = {*
   Scan.succeed (RAW_METHOD o Induction_Schema.induction_schema_tac)
 *} "prove an induction principle"
 
-setup {* 
+setup {*
   Function.setup
   #> Function_Fun.setup
 *}
@@ -150,7 +155,7 @@ method_setup lexicographic_order = {*
   (K (SIMPLE_METHOD o Lexicographic_Order.lexicographic_order_tac false))
 *} "termination prover for lexicographic orderings"
 
-setup Lexicographic_Order.setup 
+setup Lexicographic_Order.setup
 
 
 subsection {* Congruence Rules *}
@@ -175,7 +180,7 @@ lemma comp_cong [fundef_cong]:
 subsection {* Simp rules for termination proofs *}
 
 lemma termination_basic_simps[termination_simp]:
-  "x < (y::nat) \<Longrightarrow> x < y + z" 
+  "x < (y::nat) \<Longrightarrow> x < y + z"
   "x < z \<Longrightarrow> x < y + z"
   "x \<le> y \<Longrightarrow> x \<le> y + (z::nat)"
   "x \<le> z \<Longrightarrow> x \<le> y + (z::nat)"
@@ -190,13 +195,13 @@ by (induct p) auto
 
 subsection {* Decomposition *}
 
-lemma less_by_empty: 
+lemma less_by_empty:
   "A = {} \<Longrightarrow> A \<subseteq> B"
 and  union_comp_emptyL:
   "\<lbrakk> A O C = {}; B O C = {} \<rbrakk> \<Longrightarrow> (A \<union> B) O C = {}"
 and union_comp_emptyR:
   "\<lbrakk> A O B = {}; A O C = {} \<rbrakk> \<Longrightarrow> A O (B \<union> C) = {}"
-and wf_no_loop: 
+and wf_no_loop:
   "R O R = {} \<Longrightarrow> wf R"
 by (auto simp add: wf_comp_self[of R])
 
@@ -218,10 +223,10 @@ lemma reduction_pair_lemma:
 proof -
   from rp `S \<subseteq> snd P` have "wf (fst P)" "fst P O S \<subseteq> fst P"
     unfolding reduction_pair_def by auto
-  with `wf S` have "wf (fst P \<union> S)" 
+  with `wf S` have "wf (fst P \<union> S)"
     by (auto intro: wf_union_compatible)
   moreover from `R \<subseteq> fst P` have "R \<union> S \<subseteq> fst P \<union> S" by auto
-  ultimately show ?thesis by (rule wf_subset) 
+  ultimately show ?thesis by (rule wf_subset)
 qed
 
 definition
@@ -253,33 +258,33 @@ lemma pair_leqI1: "a < b \<Longrightarrow> ((a, s), (b, t)) \<in> pair_leq"
   unfolding pair_leq_def pair_less_def by auto
 
 text {* Introduction rules for max *}
-lemma smax_emptyI: 
-  "finite Y \<Longrightarrow> Y \<noteq> {} \<Longrightarrow> ({}, Y) \<in> max_strict" 
-  and smax_insertI: 
+lemma smax_emptyI:
+  "finite Y \<Longrightarrow> Y \<noteq> {} \<Longrightarrow> ({}, Y) \<in> max_strict"
+  and smax_insertI:
   "\<lbrakk>y \<in> Y; (x, y) \<in> pair_less; (X, Y) \<in> max_strict\<rbrakk> \<Longrightarrow> (insert x X, Y) \<in> max_strict"
-  and wmax_emptyI: 
-  "finite X \<Longrightarrow> ({}, X) \<in> max_weak" 
+  and wmax_emptyI:
+  "finite X \<Longrightarrow> ({}, X) \<in> max_weak"
   and wmax_insertI:
-  "\<lbrakk>y \<in> YS; (x, y) \<in> pair_leq; (XS, YS) \<in> max_weak\<rbrakk> \<Longrightarrow> (insert x XS, YS) \<in> max_weak" 
+  "\<lbrakk>y \<in> YS; (x, y) \<in> pair_leq; (XS, YS) \<in> max_weak\<rbrakk> \<Longrightarrow> (insert x XS, YS) \<in> max_weak"
 unfolding max_strict_def max_weak_def by (auto elim!: max_ext.cases)
 
 text {* Introduction rules for min *}
-lemma smin_emptyI: 
-  "X \<noteq> {} \<Longrightarrow> (X, {}) \<in> min_strict" 
-  and smin_insertI: 
+lemma smin_emptyI:
+  "X \<noteq> {} \<Longrightarrow> (X, {}) \<in> min_strict"
+  and smin_insertI:
   "\<lbrakk>x \<in> XS; (x, y) \<in> pair_less; (XS, YS) \<in> min_strict\<rbrakk> \<Longrightarrow> (XS, insert y YS) \<in> min_strict"
-  and wmin_emptyI: 
-  "(X, {}) \<in> min_weak" 
-  and wmin_insertI: 
-  "\<lbrakk>x \<in> XS; (x, y) \<in> pair_leq; (XS, YS) \<in> min_weak\<rbrakk> \<Longrightarrow> (XS, insert y YS) \<in> min_weak" 
+  and wmin_emptyI:
+  "(X, {}) \<in> min_weak"
+  and wmin_insertI:
+  "\<lbrakk>x \<in> XS; (x, y) \<in> pair_leq; (XS, YS) \<in> min_weak\<rbrakk> \<Longrightarrow> (XS, insert y YS) \<in> min_weak"
 by (auto simp: min_strict_def min_weak_def min_ext_def)
 
 text {* Reduction Pairs *}
 
-lemma max_ext_compat: 
+lemma max_ext_compat:
   assumes "R O S \<subseteq> R"
   shows "max_ext R O (max_ext S \<union> {({},{})}) \<subseteq> max_ext R"
-using assms 
+using assms
 apply auto
 apply (elim max_ext.cases)
 apply rule
@@ -291,16 +296,16 @@ apply (drule_tac x=xb in meta_spec)
 by auto
 
 lemma max_rpair_set: "reduction_pair (max_strict, max_weak)"
-  unfolding max_strict_def max_weak_def 
+  unfolding max_strict_def max_weak_def
 apply (intro reduction_pairI max_ext_wf)
 apply simp
 apply (rule max_ext_compat)
 by (auto simp: pair_less_def pair_leq_def)
 
-lemma min_ext_compat: 
+lemma min_ext_compat:
   assumes "R O S \<subseteq> R"
   shows "min_ext R O  (min_ext S \<union> {({},{})}) \<subseteq> min_ext R"
-using assms 
+using assms
 apply (auto simp: min_ext_def)
 apply (drule_tac x=ya in bspec, assumption)
 apply (erule bexE)
@@ -309,7 +314,7 @@ apply assumption
 by auto
 
 lemma min_rpair_set: "reduction_pair (min_strict, min_weak)"
-  unfolding min_strict_def min_weak_def 
+  unfolding min_strict_def min_weak_def
 apply (intro reduction_pairI min_ext_wf)
 apply simp
 apply (rule min_ext_compat)

@@ -391,7 +391,11 @@ text {* Setup algebra method:
 
 use "ringsimp.ML"
 
-setup Algebra.setup
+setup Algebra.attrib_setup
+
+method_setup algebra = {*
+  Scan.succeed (SIMPLE_METHOD' o Algebra.algebra_tac)
+*} "normalisation of algebraic structure"
 
 lemmas (in ring) ring_simprules
   [algebra ring "zero R" "add R" "a_inv R" "a_minus R" "one R" "mult R"] =
