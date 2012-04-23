@@ -8,7 +8,8 @@ package isabelle
 
 import java.lang.System
 
-import scala.swing.{Button, FlowPanel, BorderPanel, MainFrame, TextArea, SwingApplication}
+import scala.swing.{ScrollPane, Button, FlowPanel,
+  BorderPanel, MainFrame, TextArea, SwingApplication}
 import scala.swing.event.ButtonClicked
 
 
@@ -34,7 +35,7 @@ object GUI_Setup extends SwingApplication
     val ok_panel = new FlowPanel(FlowPanel.Alignment.Center)(ok)
 
     val panel = new BorderPanel
-    panel.layout(text) = BorderPanel.Position.Center
+    panel.layout(new ScrollPane(text)) = BorderPanel.Position.Center
     panel.layout(ok_panel) = BorderPanel.Position.South
     contents = panel
 
