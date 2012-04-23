@@ -35,15 +35,7 @@ ML {*
     |> Path.expand;
 
   (*list of files to under test*)
-  val files = TPTP_Syntax.get_file_list tptp_probs_dir;
-
-(*  (*test problem-name parsing and mangling*)
-  val problem_names =
-    map (Path.base #>
-         Path.implode #>
-         TPTP_Problem_Name.parse_problem_name #>
-         TPTP_Problem_Name.mangle_problem_name)
-        files*)
+  fun test_files () = TPTP_Syntax.get_file_list tptp_probs_dir;
 *}
 
 
@@ -82,7 +74,7 @@ ML {*
     let
       fun f' x = (f x; ())
       val time =
-        Timing.timing (List.app f') files
+        Timing.timing (List.app f') (test_files ())
         |> fst
       val duration =
         #elapsed time
@@ -90,7 +82,7 @@ ML {*
         |> Real.fromLargeInt
       val average =
         (StringCvt.FIX (SOME 3),
-         (duration / Real.fromInt (length files)))
+         (duration / Real.fromInt (length (test_files ()))))
         |-> Real.fmt
     in
       report ctxt ("Test timing: " ^ Timing.message time ^ "\n(about " ^ average ^

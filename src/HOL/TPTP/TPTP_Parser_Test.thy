@@ -44,6 +44,14 @@ in
   val _ = map (fn (str, res) =>
     @{assert}(TPTP_Problem_Name.parse_problem_name str = res)) name_tests
 end
+
+(*test against all TPTP problems*)
+fun problem_names () =
+    map (Path.base #>
+         Path.implode #>
+         TPTP_Problem_Name.parse_problem_name #>
+         TPTP_Problem_Name.mangle_problem_name)
+        (test_files ())
 *}
 
 
