@@ -805,6 +805,7 @@ and interpret_problem config inc_list path_prefix lines type_map const_map thy =
                (*process the line, ignoring the type-context for variables*)
                val ((type_map', const_map', l'), thy') =
                  interpret_line config inc_list type_map const_map path_prefix line thy
+                 (*FIXME
                    handle
                      (*package all exceptions to include position information,
                        even relating to multiple levels of "include"ed files*)
@@ -815,6 +816,7 @@ and interpret_problem config inc_list path_prefix lines type_map const_map thy =
                            (TPTP_Syntax.pos_of_line line :: pos_list, exn)
                      | exn => raise MISINTERPRET
                          ([TPTP_Syntax.pos_of_line line], exn)
+                  *)
              in
                ((type_map',
                  const_map',
