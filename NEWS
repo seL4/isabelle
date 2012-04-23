@@ -358,6 +358,12 @@ one_case.
 * Discontinued configuration option "syntax_positions": atomic terms
 in parse trees are always annotated by position constraints.
 
+* HOL/Library/Set_Algebras.thy: Addition and multiplication on sets
+are expressed via type classes again. The special syntax
+\<oplus>/\<otimes> has been replaced by plain +/*. Removed constant
+setsum_set, which is now subsumed by Big_Operators.setsum.
+INCOMPATIBILITY.
+
 * New theory HOL/Library/DAList provides an abstract type for
 association lists with distinct keys.
 
