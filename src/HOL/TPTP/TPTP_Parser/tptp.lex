@@ -54,9 +54,9 @@ val count_commentlines : string -> unit = fn str =>
 
 percentage_sign           = "%";
 double_quote              = ["];
-do_char                   = ([^"]|[\\]["\\]);
+do_char                   = ([^"\\]|[\\]["\\]);
 single_quote              = ['];
-sq_char                   = ([\040-\041\043-\126]|[\\]['\\]);
+sq_char                   = ([^'\\]|[\\]['\\]);
 sign                      = [+-];
 dot                       = [.];
 exponent                  = [Ee];
@@ -90,7 +90,7 @@ dollar_word               = {dollar}{lower_word};
 distinct_object           = {double_quote}{do_char}+{double_quote};
 
 ws                        = ([\ ]|[\t]);
-single_quoted             = {single_quote}({alpha_numeric}|{sq_char}|{ws})+{single_quote};
+single_quoted             = {single_quote}{sq_char}+{single_quote};
 
 system_comment_one        = [%][\ ]*{ddollar}[_]*;
 system_comment_multi      = [/][\*][\ ]*(ddollar)([^\*]*[\*][\*]*[^/\*])*[^\*]*[\*][\*]*[/];

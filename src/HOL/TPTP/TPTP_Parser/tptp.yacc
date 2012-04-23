@@ -836,7 +836,7 @@ name : atomic_word (( atomic_word ))
      | integer     (( integer ))
 
 atomic_word : LOWER_WORD    (( LOWER_WORD ))
-            | SINGLE_QUOTED (( SINGLE_QUOTED ))
+            | SINGLE_QUOTED (( dequote SINGLE_QUOTED ))
             | THF           (( "thf" ))
             | TFF           (( "tff" ))
             | FOF           (( "fof" ))
