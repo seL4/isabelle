@@ -110,11 +110,6 @@ sig
   (*Imported TPTP files are stored as "manifests" in the theory.*)
   type manifest = TPTP_Problem_Name.problem_name * tptp_general_meaning
   val get_manifests : theory -> manifest list
-
-  (*Returns the list of all files included in a directory and its
-  subdirectories. This is only used for testing the parser/interpreter against
-  all TPTP problems.*)
-  val get_file_list : Path.T -> Path.T list
 end
 
 structure TPTP_Interpret : TPTP_INTERPRET =
@@ -866,30 +861,5 @@ val _ =
        (*NOTE: assumes include files are located at $TPTP/Axioms
          (which is how TPTP is organised)*)
        import_file true (Path.explode "$TPTP") path [] [] thy)))
-
-
-(*Used for debugging. Returns all files contained within a directory or its
-subdirectories. Follows symbolic links, filters away directories.*)
-fun get_file_list path =
-  let
-    fun check_file_entry f rest =
-      let
-        (*NOTE needed since don't have File.is_link and File.read_link*)
-        val f_str = Path.implode f
-      in
-        if File.is_dir f then
-          rest (*filter out directories*)
-        else if OS.FileSys.isLink f_str then
-          (*follow links -- NOTE this breaks if links are relative paths*)
-          check_file_entry (Path.explode (OS.FileSys.readLink f_str)) rest
-        else f :: rest
-      end
-  in
-    File.read_dir path
-    |> map
-        (Path.explode
-        #> Path.append path)
-    |> (fn l => fold check_file_entry l [])
-  end
 
 end
