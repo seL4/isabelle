@@ -6,6 +6,12 @@ distribution.
 Contributions to Isabelle2012
 -----------------------------
 
+* April 2012: Johannes Hölzl, TUM
+  Probability: Introduced type to represent measures instead of locales.
+
+* April 2012: Johannes Hölzl, Fabian Immler, TUM
+  Float: Moved to Dyadic rationals to represent floating point numers.
+
 * April 2012: Thomas Sewell, NICTA
     (based on work done with Sascha Boehme, TUM in 2010)
   WordBitwise: logic/circuit expansion of bitvector equalities/inequalities.
