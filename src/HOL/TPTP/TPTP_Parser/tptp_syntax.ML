@@ -151,6 +151,7 @@ sig
   val get_file_list : Path.T -> Path.T list
 
   val string_of_tptp_term : tptp_term -> string
+  val string_of_interpreted_symbol : interpreted_symbol -> string
   val string_of_tptp_formula : tptp_formula -> string
 
 end
@@ -420,6 +421,7 @@ and string_of_interpreted_symbol x =
     | EvalEq => "$evaleq"
     | Is_Int => "$is_int"
     | Is_Rat => "$is_rat"
+    | Distinct => "$distinct"
     | Apply => "@"
 
 and string_of_logic_symbol Equals = "="

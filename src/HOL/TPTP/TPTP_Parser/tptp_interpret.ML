@@ -224,6 +224,11 @@ fun declare_constant config const_name ty thy =
     Theory.specify_const
      ((mk_binding config const_name, ty), NoSyn) thy
 
+fun declare_const_ifnot config const_name ty thy =
+  if const_exists config thy const_name then
+    (Sign.mk_const thy ((Sign.full_name thy (mk_binding config const_name)), []), thy)
+  else declare_constant config const_name ty thy
+
 
 (** Interpretation functions **)
 
@@ -303,18 +308,52 @@ fun the_const config thy language const_map_payload str =
           ("Could not find the interpretation of this constant in the \
             \mapping to Isabelle/HOL", Term_Func (Uninterpreted str, []))
 
-(*Eta-expands Isabelle/HOL binary function.
- "str" is the name of a polymorphic constant in Isabelle/HOL*)
-fun mk_fun str =
-  (Const (str, Term.dummyT) $ Bound 1 $ Bound 0)
-   |> (Term.absdummy Term.dummyT #> Term.absdummy Term.dummyT)
-(*As above, but swaps the function's arguments*)
-fun mk_swapped_fun str =
-  (Const (str, Term.dummyT) $ Bound 0 $ Bound 1)
-   |> (Term.absdummy Term.dummyT #> Term.absdummy Term.dummyT)
+(*Eta-expands n-ary function.
+ "str" is the name of an Isabelle/HOL constant*)
+fun mk_n_fun n str =
+  let
+    fun body 0 t = t
+      | body n t = body (n - 1) (t  $ (Bound (n - 1)))
+  in
+    body n (Const (str, Term.dummyT))
+    |> funpow n (Term.absdummy Term.dummyT)
+  end
+fun mk_fun_type [] b acc = acc b
+  | mk_fun_type (ty :: tys) b acc =
+      mk_fun_type tys b (fn ty_rest => Type ("fun", [ty, acc ty_rest]))
 
 fun dummy_term () =
   HOLogic.choice_const Term.dummyT $ Term.absdummy Term.dummyT @{term "True"}
+
+(*These arities are not part of the TPTP spec*)
+fun arity_of interpreted_symbol = case interpreted_symbol of
+    UMinus => 1
+  | Sum => 2
+  | Difference => 2
+  | Product => 2
+  | Quotient => 2
+  | Quotient_E => 2
+  | Quotient_T => 2
+  | Quotient_F => 2
+  | Remainder_E => 2
+  | Remainder_T => 2
+  | Remainder_F => 2
+  | Floor => 1
+  | Ceiling => 1
+  | Truncate => 1
+  | Round => 1
+  | To_Int => 1
+  | To_Rat => 1
+  | To_Real => 1
+  | Less => 2
+  | LessEq => 2
+  | Greater => 2
+  | GreaterEq => 2
+  | EvalEq => 2
+  | Is_Int => 1
+  | Is_Rat => 1
+  | Distinct => 1
+  | Apply=> 2
 
 fun interpret_symbol config language const_map symb thy =
   case symb of
@@ -323,8 +362,9 @@ fun interpret_symbol config language const_map symb thy =
        declaration*)
        the_const config thy language const_map n
    | Interpreted_ExtraLogic interpreted_symbol =>
-       (*FIXME make constant, if not interpreting*)
-       dummy_term ()
+       (*FIXME not interpreting*)
+       Sign.mk_const thy ((Sign.full_name thy (mk_binding config
+          (string_of_interpreted_symbol interpreted_symbol))), [])
    | Interpreted_Logic logic_symbol =>
        (case logic_symbol of
           Equals => HOLogic.eq_const Term.dummyT
@@ -366,57 +406,61 @@ fun mapply' (args, thy) f =
 fun mtimes thy =
   fold (fn x => fn y =>
     Sign.mk_const thy
-    ("Product_Type.Pair",[Term.dummyT, Term.dummyT]) $ y $ x)
+    ("Product_Type.Pair", [Term.dummyT, Term.dummyT]) $ y $ x)
 
 fun mtimes' (args, thy) f =
   let
     val (f', thy') = f thy
   in (mtimes thy' args f', thy') end
 
+datatype tptp_atom_value =
+    Atom_App of tptp_term
+  | Atom_Arity of string * int (*FIXME instead of int could use type list*)
 
-(*Adds constants to signature in FOL (since explicit type declaration isn't
-expected). "formula_level" means that the constants are to be interpreted as
-predicates, otherwise as functions over individuals.*)
-fun FO_const_types config formula_level type_map tptp_t thy =
+(*Adds constants to signature when explicit type declaration isn't
+expected, e.g. FOL. "formula_level" means that the constants are to be interpreted
+as predicates, otherwise as functions over individuals.*)
+fun type_atoms_to_thy config formula_level type_map tptp_atom_value thy =
   let
     val ind_type = interpret_type config thy type_map (Defined_type Type_Ind)
     val value_type =
       if formula_level then
         interpret_type config thy type_map (Defined_type Type_Bool)
       else ind_type
-  in case tptp_t of
-      Term_Func (symb, tptp_ts) =>
+  in case tptp_atom_value of
+      Atom_App (Term_Func (symb, tptp_ts)) =>
         let
-          val thy' = fold (FO_const_types config false type_map) tptp_ts thy
-          val ty = fold (fn ty1 => fn ty2 => Type ("fun", [ty1, ty2]))
-            (map (fn _ => ind_type) tptp_ts) value_type
+          val thy' = fold (fn t =>
+            type_atoms_to_thy config false type_map (Atom_App t)) tptp_ts thy
         in
           case symb of
              Uninterpreted const_name =>
-                 if const_exists config thy' const_name then thy'
-                 else snd (declare_constant config const_name ty thy')
+               declare_const_ifnot config const_name
+                (mk_fun_type (replicate (length tptp_ts) ind_type) value_type I) thy'
+               |> snd
            | _ => thy'
         end
-     | _ => thy
+    | Atom_App _ => thy
+    | Atom_Arity (const_name, n_args) =>
+        declare_const_ifnot config const_name
+         (mk_fun_type (replicate n_args ind_type) value_type I) thy
+        |> snd
+    | _ => thy
   end
 
-(*like FO_const_types but works over symbols*)
-fun symb_const_types config type_map formula_level const_name n_args thy =
+(*FIXME only used until interpretation is implemented*)
+fun add_interp_symbols_to_thy config type_map thy =
   let
-    val ind_type = interpret_type config thy type_map (Defined_type Type_Ind)
-    val value_type =
-      if formula_level then
-        interpret_type config thy type_map (Defined_type Type_Bool)
-      else interpret_type config thy type_map (Defined_type Type_Ind)
-    fun mk_i_fun b n acc =
-      if n = 0 then acc b
-      else
-        mk_i_fun b (n - 1) (fn ty => Type ("fun", [ind_type, acc ty]))
+    val ind_symbols = [UMinus, Sum, Difference, Product, Quotient, Quotient_E,
+      Quotient_T, Quotient_F, Remainder_E, Remainder_T, Remainder_F, Floor,
+      Ceiling, Truncate, Round, To_Int, To_Rat, To_Real, Distinct, Apply]
+    val bool_symbols = [Less, LessEq, Greater, GreaterEq, EvalEq, Is_Int, Is_Rat]
+    fun add_interp_symbol_to_thy formula_level symbol =
+      type_atoms_to_thy config formula_level type_map
+       (Atom_Arity (string_of_interpreted_symbol symbol, arity_of symbol))
   in
-    if const_exists config thy const_name then thy
-    else
-      snd (declare_constant config const_name
-           (mk_i_fun value_type n_args I) thy)
+    fold (add_interp_symbol_to_thy false) ind_symbols thy
+    |> fold (add_interp_symbol_to_thy true) bool_symbols
   end
 
 (*Next batch of functions give info about Isabelle/HOL types*)
@@ -460,7 +504,8 @@ fun interpret_term formula_level config language const_map var_types type_map
   case tptp_t of
     Term_Func (symb, tptp_ts) =>
        let
-         val thy' = FO_const_types config formula_level type_map tptp_t thy
+         val thy' =
+           type_atoms_to_thy config formula_level type_map (Atom_App tptp_t) thy
          fun typeof_const const_name = Sign.the_const_type thy'
              (Sign.full_name thy' (mk_binding config const_name))
        in
@@ -512,18 +557,18 @@ fun interpret_term formula_level config language const_map var_types type_map
         val ([t1, t2], thy'') =
           fold_map (interpret_term formula_level config language const_map var_types type_map)
            [tptp_t1, tptp_t2] thy'
-      in (mk_fun @{const_name If} $ t_fmla $ t1 $ t2, thy'') end
+      in (mk_n_fun 3 @{const_name If} $ t_fmla $ t1 $ t2, thy'') end
   | Term_Num (number_kind, num) =>
       let
-        val num_term =
-          (*FIXME
-          if number_kind = Int_num then
-            HOLogic.mk_number @{typ "int"} (the (Int.fromString num))
-          else dummy_term () (*FIXME: not yet supporting rationals and reals*)
-           *)
-          (*FIXME make constant*)
-          dummy_term ()
-      in (num_term, thy) end
+        (*FIXME hack*)
+        val ind_type = interpret_type config thy type_map (Defined_type Type_Ind)
+        val prefix = case number_kind of
+            Int_num => "intn_"
+          | Real_num => "realn_"
+          | Rat_num => "ratn_"
+      (*FIXME hack -- for Int_num should be
+       HOLogic.mk_number @{typ "int"} (the (Int.fromString num))*)
+      in declare_const_ifnot config (prefix ^ num) ind_type thy end
   | Term_Distinct_Object str =>
       declare_constant config ("do_" ^ str)
         (interpret_type config thy type_map (Defined_type Type_Ind)) thy
@@ -545,8 +590,9 @@ and interpret_formula config language const_map var_types type_map tptp_fmla thy
             let
               val (args, thy') = (fold_map (interpret_formula config language
                const_map var_types type_map) tptp_formulas thy)
-              val thy' = symb_const_types config type_map true const_name
-               (length tptp_formulas) thy'
+              val thy' =
+                type_atoms_to_thy config true type_map
+                 (Atom_Arity (const_name, length tptp_formulas)) thy'
             in
               (if is_prod_typed thy' config symbol then
                  mtimes thy' args (interpret_symbol config language
@@ -577,14 +623,11 @@ and interpret_formula config language const_map var_types type_map tptp_fmla thy
         raise MISINTERPRET_FORMULA ("'Sequent' unsupported", tptp_fmla)
     | Quant (quantifier, bindings, tptp_formula) =>
         let
-          val (bound_vars, bound_var_types) = ListPair.unzip bindings
-          val bound_var_types' : typ option list =
-            (map_opt : (tptp_type -> typ) ->
-             (tptp_type option list) -> typ option list)
-            (interpret_type config thy type_map) bound_var_types
           val var_types' =
-            ListPair.zip (bound_vars, List.rev bound_var_types')
-            |> List.rev
+              ListPair.unzip bindings
+           |> (apsnd (map_opt (interpret_type config thy type_map)))
+           |> ListPair.zip
+           |> List.rev
           fun fold_bind f =
             fold
               (fn (n, ty) => fn t =>
@@ -786,6 +829,7 @@ fun interpret_line config inc_list type_map const_map path_prefix line thy =
 and interpret_problem config inc_list path_prefix lines type_map const_map thy =
   let
     val thy_name = Context.theory_name thy
+    val thy_with_symbols = add_interp_symbols_to_thy config type_map thy
   in
     fold (fn line =>
            fn ((type_map, const_map, lines), thy) =>
@@ -812,7 +856,7 @@ and interpret_problem config inc_list path_prefix lines type_map const_map thy =
                 thy')
              end)
          lines (*lines of the problem file*)
-         ((type_map, const_map, []), thy) (*initial values*)
+         ((type_map, const_map, []), thy_with_symbols) (*initial values*)
   end
 
 and interpret_file' config inc_list path_prefix file_name =
