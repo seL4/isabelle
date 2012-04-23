@@ -71,14 +71,15 @@ do
 done
 
 if [ "$PLATFORM" = x86-cygwin ]; then
-  EXE="$ARCHIVE_DIR/contrib/x86-cygwin/Isabelle.exe"
-  if [ -e "$EXE" ]; then
-    rm -f "$ISABELLE_HOME/Isabelle"
+  for NAME in Isabelle.exe Cygwin-Terminal.bat
+  do
+    EXE="$ARCHIVE_DIR/contrib/x86-cygwin/$NAME"
+    [ ! -e "$EXE" ] && fail "Missing $NAME"
+    echo "$NAME"
     cp "$EXE" "$ISABELLE_HOME/"
-    chmod +x "$ISABELLE_HOME/Isabelle.exe"
-  else
-    fail "Missing $EXE"
-  fi
+    chmod +x "$ISABELLE_HOME/$NAME"
+  done
+  rm -f "$ISABELLE_HOME/Isabelle"
 fi
 
 
