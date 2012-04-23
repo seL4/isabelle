@@ -73,6 +73,7 @@ done
 if [ "$PLATFORM" = x86-cygwin ]; then
   EXE="$ARCHIVE_DIR/contrib/x86-cygwin/Isabelle.exe"
   if [ -e "$EXE" ]; then
+    rm -f "$ISABELLE_HOME/Isabelle"
     cp "$EXE" "$ISABELLE_HOME/"
     chmod +x "$ISABELLE_HOME/Isabelle.exe"
   else
