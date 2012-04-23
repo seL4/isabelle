@@ -26,7 +26,7 @@ are like structured programs with comments. A typical Isar proof looks like this
 \end{tabular}
 *}text{*
 It proves $\mathit{formula}_0 \Longrightarrow \mathit{formula}_{n+1}$
-(provided provided each proof step succeeds).
+(provided each proof step succeeds).
 The intermediate \isacom{have} statements are merely stepping stones
 on the way towards the \isacom{show} statement that proves the actual
 goal. In more detail, this is the Isar core syntax:
@@ -86,7 +86,7 @@ writing @{text"f.simps(2)"}, whole sublists by @{text"f.simps(2-4)"}.
 
 \section{Isar by example}
 
-We show a number of proofs of Cantors theorem that a function from a set to
+We show a number of proofs of Cantor's theorem that a function from a set to
 its powerset cannot be surjective, illustrating various features of Isar. The
 constant @{const surj} is predefined.
 *}
@@ -216,7 +216,7 @@ False}---but there is no suitable introduction rule and \isacom{proof}
 would fail.
 \end{warn}
 
-Stating a lemmas with \isacom{assumes}-\isacom{shows} implicitly introduces the
+Stating a lemma with \isacom{assumes}-\isacom{shows} implicitly introduces the
 name @{text assms} that stands for the list of all assumptions. You can refer
 to individual assumptions by @{text"assms(1)"}, @{text"assms(2)"} etc,
 thus obviating the need to name them individually.
@@ -359,7 +359,7 @@ text_raw {* }
 \medskip
 \begin{isamarkuptext}%
 In the proof of \noquotes{@{prop[source]"\<forall>x. P(x)"}},
-the step \isacom{fix}~@{text x} introduces a locale fixed variable @{text x}
+the step \isacom{fix}~@{text x} introduces a locally fixed variable @{text x}
 into the subproof, the proverbial ``arbitrary but fixed value''.
 Instead of @{text x} we could have chosen any name in the subproof.
 In the proof of \noquotes{@{prop[source]"\<exists>x. P(x)"}},
@@ -486,7 +486,7 @@ theorems. Unknowns @{text"?X"} refer to terms or formulas.
 Although abbreviations shorten the text, the reader needs to remember what
 they stand for. Similarly for names of facts. Names like @{text 1}, @{text 2}
 and @{text 3} are not helpful and should only be used in short proofs. For
-longer proof, descriptive names are better. But look at this example:
+longer proofs, descriptive names are better. But look at this example:
 \begin{quote}
 \isacom{have} \ @{text"x_gr_0: \"x > 0\""}\\
 $\vdots$\\
@@ -623,7 +623,7 @@ command:
 \begin{quote}
 \isacom{case} @{text "(C x\<^isub>1 \<dots> x\<^isub>n)"}
 \end{quote}
-This is equivalent to the explicit \isacom{fix}-\isacom{assumen} line
+This is equivalent to the explicit \isacom{fix}-\isacom{assume} line
 but also gives the assumption @{text"\"t = C x\<^isub>1 \<dots> x\<^isub>n\""} a name: @{text C},
 like the constructor.
 Here is the \isacom{case} version of the proof above:
@@ -954,7 +954,7 @@ we have @{text"n = 0"} and in case @{text evSS} we have @{prop"n = Suc(Suc k)"}
 and @{prop"ev k"}. In each case the assumptions are available under the name
 of the case; there is no fine grained naming schema like for induction.
 
-Sometimes some rules could not have beed used to derive the given fact
+Sometimes some rules could not have been used to derive the given fact
 because constructors clash. As an extreme example consider
 rule inversion applied to @{prop"ev(Suc 0)"}: neither rule @{text ev0} nor
 rule @{text evSS} can yield @{prop"ev(Suc 0)"} because @{text"Suc 0"} unifies
