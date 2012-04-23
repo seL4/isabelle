@@ -18,11 +18,12 @@ ML {*
       (TPTP_Interpret.interpret_file
        false
        (Path.dir tptp_probs_dir)
-      (Path.append tptp_probs_dir (Path.explode "LCL/LCL825-1.p"))
+       (Path.append tptp_probs_dir (Path.explode "LCL/LCL825-1.p"))
        []
        [])
       @{theory}
 *}
+
 
 text "... and display nicely."
 ML {*
@@ -100,13 +101,16 @@ ML {*
      "GEG/GEG018^1.p",
      "SYN/SYN045^4.p",
      "SYN/SYN001^4.001.p",
-     "SYN/SYN000^2.p",
      "SYN/SYN387^4.p",
      "SYN/SYN393^4.002.p",
      "SYN/SYN978^4.p",
      "SYN/SYN044^4.p",
      "SYN/SYN393^4.003.p",
-     "SYN/SYN389^4.p"]
+     "SYN/SYN389^4.p",
+     "ARI/ARI625=1.p",
+     "SYO/SYO561_2.p",
+     "SYO/SYO562_1.p",
+     "SYN/SYN000_2.p"]
 *}
 
 ML {*
