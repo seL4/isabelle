@@ -18,13 +18,11 @@ end;
 structure Lifting_Def: LIFTING_DEF =
 struct
 
-(** Interface and Syntax Setup **)
-
-(* Generation of the code certificate from the rsp theorem *)
+open Lifting_Util
 
 infix 0 MRSL
 
-fun ants MRSL thm = fold (fn rl => fn thm => rl RS thm) ants thm
+(* Generation of the code certificate from the rsp theorem *)
 
 fun get_body_types (Type ("fun", [_, U]), Type ("fun", [_, V])) = get_body_types (U, V)
   | get_body_types (U, V)  = (U, V)

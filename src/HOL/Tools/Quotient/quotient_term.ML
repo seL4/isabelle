@@ -358,9 +358,9 @@ fun get_rel_quot_thm ctxt s =
 
 fun is_id_quot thm = (prop_of thm = prop_of @{thm identity_quotient3})
 
-infix 0 MRSL
+open Lifting_Util
 
-fun ants MRSL thm = fold (fn rl => fn thm => rl RS thm) ants thm
+infix 0 MRSL
 
 exception NOT_IMPL of string
 

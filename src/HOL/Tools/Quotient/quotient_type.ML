@@ -99,9 +99,9 @@ fun define_abs_type quot_thm lthy =
   else
     lthy
 
-infix 0 MRSL
+open Lifting_Util
 
-fun ants MRSL thm = fold (fn rl => fn thm => rl RS thm) ants thm
+infix 0 MRSL
 
 fun define_cr_rel equiv_thm abs_fun lthy =
   let

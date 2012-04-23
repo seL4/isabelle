@@ -27,6 +27,10 @@ end
 structure Lifting_Term: LIFTING_TERM =
 struct
 
+open Lifting_Util
+
+infix 0 MRSL
+
 (* generation of the Quotient theorem  *)
 
 exception QUOT_THM_INTERNAL of Pretty.T
@@ -80,10 +84,6 @@ fun get_rel_quot_thm ctxt s =
   end
 
 fun is_id_quot thm = (prop_of thm = prop_of @{thm identity_quotient})
-
-infix 0 MRSL
-
-fun ants MRSL thm = fold (fn rl => fn thm => rl RS thm) ants thm
 
 fun dest_Quotient (Const (@{const_name Quotient}, _) $ rel $ abs $ rep $ cr)
       = (rel, abs, rep, cr)

@@ -12,6 +12,7 @@ keywords
   "lift_definition" :: thy_goal and
   "setup_lifting" :: thy_decl
 uses
+  ("Tools/Lifting/lifting_util.ML")
   ("Tools/Lifting/lifting_info.ML")
   ("Tools/Lifting/lifting_term.ML")
   ("Tools/Lifting/lifting_def.ML")
@@ -354,7 +355,7 @@ lemma Quotient_to_transfer:
 
 subsection {* ML setup *}
 
-text {* Auxiliary data for the lifting package *}
+use "Tools/Lifting/lifting_util.ML"
 
 use "Tools/Lifting/lifting_info.ML"
 setup Lifting_Info.setup

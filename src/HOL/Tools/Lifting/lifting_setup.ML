@@ -18,9 +18,9 @@ end;
 structure Lifting_Setup: LIFTING_SETUP =
 struct
 
-infix 0 MRSL
+open Lifting_Util
 
-fun ants MRSL thm = fold (fn rl => fn thm => rl RS thm) ants thm
+infix 0 MRSL
 
 exception SETUP_LIFTING_INFR of string
 

@@ -27,9 +27,9 @@ struct
 
 (* Generation of the code certificate from the rsp theorem *)
 
-infix 0 MRSL
+open Lifting_Util
 
-fun ants MRSL thm = fold (fn rl => fn thm => rl RS thm) ants thm
+infix 0 MRSL
 
 fun get_body_types (Type ("fun", [_, U]), Type ("fun", [_, V])) = get_body_types (U, V)
   | get_body_types (U, V)  = (U, V)
