@@ -6,7 +6,8 @@ Normalisation method for locales ring and cring.
 signature ALGEBRA =
 sig
   val print_structures: Proof.context -> unit
-  val setup: theory -> theory
+  val attrib_setup: theory -> theory
+  val algebra_tac: Proof.context -> int -> tactic
 end;
 
 structure Algebra: ALGEBRA =
@@ -58,6 +59,7 @@ fun algebra_tac ctxt =
 fun add_struct_thm s =
   Thm.declaration_attribute
     (fn thm => Data.map (AList.map_default struct_eq (s, []) (insert Thm.eq_thm_prop thm)));
+
 fun del_struct s =
   Thm.declaration_attribute
     (fn _ => Data.map (AList.delete struct_eq s));
@@ -68,14 +70,5 @@ val attrib_setup =
       -- Scan.lift Args.name -- Scan.repeat Args.term
       >> (fn ((b, n), ts) => if b then add_struct_thm (n, ts) else del_struct (n, ts)))
     "theorems controlling algebra method";
-
-
-
-(** Setup **)
-
-val setup =
-  Method.setup @{binding algebra} (Scan.succeed (SIMPLE_METHOD' o algebra_tac))
-    "normalisation of algebraic structure" #>
-  attrib_setup;
 
 end;

@@ -265,7 +265,6 @@ val setup =
     (Attrib.add_del Function_Ctx_Tree.cong_add Function_Ctx_Tree.cong_del)
     "declaration of congruence rule for function definitions"
   #> setup_case_cong
-  #> Function_Relation.setup
   #> Function_Common.Termination_Simps.setup
 
 val get_congs = Function_Ctx_Tree.get_function_congs

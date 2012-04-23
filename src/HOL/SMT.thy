@@ -153,13 +153,17 @@ use "Tools/SMT/smt_setup_solvers.ML"
 setup {*
   SMT_Config.setup #>
   SMT_Normalize.setup #>
-  SMT_Solver.setup #>
   SMTLIB_Interface.setup #>
   Z3_Interface.setup #>
   Z3_Proof_Reconstruction.setup #>
   SMT_Setup_Solvers.setup
 *}
 
+method_setup smt = {*
+  Scan.optional Attrib.thms [] >>
+    (fn thms => fn ctxt =>
+      METHOD (fn facts => HEADGOAL (SMT_Solver.smt_tac ctxt (thms @ facts))))
+*} "apply an SMT solver to the current goal"
 
 
 subsection {* Configuration *}

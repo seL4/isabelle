@@ -41,9 +41,6 @@ sig
   (*tactic*)
   val smt_tac: Proof.context -> thm list -> int -> tactic
   val smt_tac': Proof.context -> thm list -> int -> tactic
-
-  (*setup*)
-  val setup: theory -> theory
 end
 
 structure SMT_Solver: SMT_SOLVER =
@@ -372,18 +369,5 @@ val smt_tac = tac safe_solve
 val smt_tac' = tac (SOME oo solve)
 
 end
-
-
-val smt_method =
-  Scan.optional Attrib.thms [] >>
-  (fn thms => fn ctxt => METHOD (fn facts =>
-    HEADGOAL (smt_tac ctxt (thms @ facts))))
-
-
-(* setup *)
-
-val setup =
-  Method.setup @{binding smt} smt_method
-    "Applies an SMT solver to the current goal."
 
 end

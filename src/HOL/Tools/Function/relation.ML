@@ -1,13 +1,13 @@
 (*  Title:      HOL/Tools/Function/relation.ML
     Author:     Alexander Krauss, TU Muenchen
 
-Method "relation" to start a termination proof using a user-specified relation.
+Tactics to start a termination proof using a user-specified relation.
 *)
 
 signature FUNCTION_RELATION =
 sig
   val relation_tac: Proof.context -> (typ -> term) -> int -> tactic
-  val setup: theory -> theory
+  val relation_infer_tac: Proof.context -> term -> int -> tactic
 end
 
 structure Function_Relation : FUNCTION_RELATION =
@@ -27,7 +27,7 @@ fun relation_tac ctxt rel i =
   THEN inst_state_tac rel;
 
 
-(* method version (with type inference) *)
+(* version with type inference *)
 
 fun inst_state_infer_tac ctxt rel st =
   case Term.add_vars (prop_of st) [] of
@@ -44,12 +44,8 @@ fun inst_state_infer_tac ctxt rel st =
       end
   | _ => Seq.empty;
 
-fun relation_meth rel ctxt = SIMPLE_METHOD' (fn i =>
+fun relation_infer_tac ctxt rel i =
   TRY (Function_Common.apply_termination_rule ctxt i)
-  THEN inst_state_infer_tac ctxt rel);
-
-val setup =
-  Method.setup @{binding relation} (Args.term >> relation_meth)
-    "proves termination using a user-specified wellfounded relation";
+  THEN inst_state_infer_tac ctxt rel;
 
 end
