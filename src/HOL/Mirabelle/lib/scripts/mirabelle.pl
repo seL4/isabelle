@@ -108,10 +108,13 @@ open(OLD_FILE, "<$thy_file") || die "Cannot open file '$thy_file'";
 my @lines = <OLD_FILE>;
 close(OLD_FILE);
 
+my $setup_import =
+  substr("\"$output_path\/$setup_thy_name\"" . (" " x 1000), 0, 1000);
+
 my $thy_text = join("", @lines);
 my $old_len = length($thy_text);
 $thy_text =~ s/(theory\s+)\"?$thy_name\"?/$1"$new_thy_name"/g;
-$thy_text =~ s/(imports)(\s+)/$1 "$output_path\/$setup_thy_name"$2/g;
+$thy_text =~ s/(imports)(\s+)/$1 $setup_import$2/g;
 die "No 'imports' found" if length($thy_text) == $old_len;
 
 open(NEW_FILE, ">$new_thy_file") || die "Cannot create file '$new_thy_file'";
