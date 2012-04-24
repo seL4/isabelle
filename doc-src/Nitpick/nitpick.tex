@@ -2534,14 +2534,15 @@ Limit'' option in Proof General.
 {\small See also \textit{max\_threads} (\S\ref{optimizations}).}
 
 \opdefault{tac\_timeout}{float\_or\_none}{\upshape 0.5}
-Specifies the maximum number of seconds that the \textit{auto} tactic should use
-when checking a counterexample, and similarly that \textit{lexicographic\_order}
-and \textit{size\_change} should use when checking whether a (co)in\-duc\-tive
-predicate is well-founded. Nitpick tries to honor this constraint as well as it
-can but offers no guarantees.
+Specifies the maximum number of seconds that should be used by internal
+tactics---\textit{lexicographic\_order} and \textit{size\_change} when checking
+whether a (co)in\-duc\-tive predicate is well-founded, \textit{auto} tactic when
+checking a counterexample, or the monotonicity inference. Nitpick tries to honor
+this constraint but offers no guarantees.
 
 \nopagebreak
 {\small See also \textit{wf} (\S\ref{scope-of-search}),
+\textit{mono} (\S\ref{scope-of-search}),
 \textit{check\_potential} (\S\ref{authentication}),
 and \textit{check\_genuine} (\S\ref{authentication}).}
 \end{enum}
