@@ -196,6 +196,12 @@ text{* yields @{value "rev(Cons a (Cons b Nil))"}.
 \medskip
 
 Figure~\ref{fig:MyList} shows the theory created so far.
+Because @{text list}, @{const Nil}, @{const Cons} etc are already predefined,
+ Isabelle prints qualified (long) names when executing this theory, for example, @{text MyList.Nil}
+ instead of @{const Nil}.
+ To suppress the qualified names you can insert the command
+ \texttt{declare [[names\_short]]}.
+ This is not recommended in general but just for this unusual example.
 % Notice where the
 %quotations marks are needed that we mostly sweep under the carpet.  In
 %particular, notice that \isacom{datatype} requires no quotation marks on the

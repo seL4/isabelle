@@ -260,6 +260,12 @@ yields \isa{Cons\ b\ {\isaliteral{28}{\isacharparenleft}}Cons\ a\ Nil{\isalitera
 \medskip
 
 Figure~\ref{fig:MyList} shows the theory created so far.
+Because \isa{list}, \isa{Nil}, \isa{Cons} etc are already predefined,
+ Isabelle prints qualified (long) names when executing this theory, for example, \isa{MyList{\isaliteral{2E}{\isachardot}}Nil}
+ instead of \isa{Nil}.
+ To suppress the qualified names you can insert the command
+ \texttt{declare [[names\_short]]}.
+ This is not recommended in general but just for this unusual example.
 % Notice where the
 %quotations marks are needed that we mostly sweep under the carpet.  In
 %particular, notice that \isacom{datatype} requires no quotation marks on the
