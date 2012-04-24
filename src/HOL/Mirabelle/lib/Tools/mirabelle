@@ -8,10 +8,10 @@
 PRG="$(basename "$0")"
 
 function print_action_names() {
-  ACTIONS="$MIRABELLE_HOME/Actions/mirabelle_*.ML"
-  for ACTION in $ACTIONS
+  TOOLS="$MIRABELLE_HOME/Actions/mirabelle_*.ML"
+  for TOOL in $TOOLS
   do
-    echo $ACTION | perl -w -p -e 's/.*mirabelle_(.*)\.ML/    $1/'
+    echo $TOOL | perl -w -p -e 's/.*mirabelle_(.*)\.ML/    $1/'
   done
 }
 

@@ -7,12 +7,12 @@ header {* Simple test theory for Mirabelle actions *}
 theory Mirabelle_Test
 imports Main Mirabelle
 uses
-  "Actions/mirabelle_arith.ML"
-  "Actions/mirabelle_metis.ML"
-  "Actions/mirabelle_quickcheck.ML"
-  "Actions/mirabelle_refute.ML"
-  "Actions/mirabelle_sledgehammer.ML"
-  "Actions/mirabelle_sledgehammer_filter.ML"
+  "Tools/mirabelle_arith.ML"
+  "Tools/mirabelle_metis.ML"
+  "Tools/mirabelle_quickcheck.ML"
+  "Tools/mirabelle_refute.ML"
+  "Tools/mirabelle_sledgehammer.ML"
+  "Tools/mirabelle_sledgehammer_filter.ML"
 begin
 
 text {*

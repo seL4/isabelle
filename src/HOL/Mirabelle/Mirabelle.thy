@@ -4,7 +4,7 @@
 
 theory Mirabelle
 imports Sledgehammer
-uses "Actions/mirabelle.ML"
+uses "Tools/mirabelle.ML"
      "../ex/sledgehammer_tactics.ML"
 begin
 
