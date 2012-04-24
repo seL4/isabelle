@@ -11,7 +11,7 @@ text{*
 \subsection{Formulas}
 
 The core syntax of formulas (\textit{form} below)
-provides the standard logical constructs, in decreasing precedence:
+provides the standard logical constructs, in decreasing order of precedence:
 \[
 \begin{array}{rcl}
 
