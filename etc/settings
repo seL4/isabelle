@@ -144,11 +144,9 @@ case "$ISABELLE_PLATFORM" in
     PDF_VIEWER="open -W -n"
     ;;
   *)
-    PDF_VIEWER=xpdf
+    PDF_VIEWER=evince
     ;;
 esac
-#PDF_VIEWER=acroread
-#PDF_VIEWER=evince
 
 
 # Printer spool command for PS files
