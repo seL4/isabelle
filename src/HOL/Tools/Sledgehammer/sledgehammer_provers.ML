@@ -611,7 +611,9 @@ fun run_atp mode name
     fun split_time s =
       let
         val split = String.tokens (fn c => str c = "\n")
-        val (output, t) = s |> split |> split_last |> apfst cat_lines
+        val (output, t) =
+          s |> split |> (try split_last #> the_default ([], "0"))
+            |>> cat_lines
         fun as_num f = f >> (fst o read_int)
         val num = as_num (Scan.many1 Symbol.is_ascii_digit)
         val digit = Scan.one Symbol.is_ascii_digit
@@ -619,10 +621,7 @@ fun run_atp mode name
         val time = num --| Scan.$$ "." -- num3 >> (fn (a, b) => a * 1000 + b)
         val as_time =
           raw_explode #> Scan.read Symbol.stopper time #> the_default 0
-      in
-        (output,
-         as_time t |> Time.fromMilliseconds)
-      end
+      in (output, as_time t |> Time.fromMilliseconds) end
     fun run_on prob_file =
       case find_first (forall (fn var => getenv var = ""))
                       (fst exec :: required_vars) of
