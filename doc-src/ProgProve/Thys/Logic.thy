@@ -5,12 +5,12 @@ begin
 (*>*)
 text{*
 \vspace{-5ex}
-\section{Logic and Proof Beyond Equality}
+\section{Logic and proof beyond equality}
 \label{sec:Logic}
 
 \subsection{Formulas}
 
-The basic syntax of formulas (\textit{form} below)
+The core syntax of formulas (\textit{form} below)
 provides the standard logical constructs, in decreasing precedence:
 \[
 \begin{array}{rcl}
@@ -27,14 +27,14 @@ provides the standard logical constructs, in decreasing precedence:
  &\mid& @{prop"\<forall>x. form"} ~\mid~  @{prop"\<exists>x. form"}
 \end{array}
 \]
-Terms are the ones we have seen all along, built from constant, variables,
+Terms are the ones we have seen all along, built from constants, variables,
 function application and @{text"\<lambda>"}-abstraction, including all the syntactic
 sugar like infix symbols, @{text "if"}, @{text "case"} etc.
 \begin{warn}
 Remember that formulas are simply terms of type @{text bool}. Hence
 @{text "="} also works for formulas. Beware that @{text"="} has a higher
 precedence than the other logical operators. Hence @{prop"s = t \<and> A"} means
-@{text"(s = t) \<and> A"}, and @{prop"A\<and>B = B\<and>A"} means @{text"A \<and> (B = A) \<and> B"}.
+@{text"(s = t) \<and> A"}, and @{prop"A\<and>B = B\<and>A"} means @{text"A \<and> (B = B) \<and> A"}.
 Logical equivalence can also be written with
 @{text "\<longleftrightarrow>"} instead of @{text"="}, where @{text"\<longleftrightarrow>"} has the same low
 precedence as @{text"\<longrightarrow>"}. Hence @{text"A \<and> B \<longleftrightarrow> B \<and> A"} really means
@@ -51,7 +51,7 @@ The most frequent logical symbols have the following ASCII representations:
 @{text "\<exists>"} & \xsymbol{exists} & \texttt{EX}\\
 @{text "\<lambda>"} & \xsymbol{lambda} & \texttt{\%}\\
 @{text "\<longrightarrow>"} & \texttt{-{}->}\\
-@{text "\<longleftrightarrow>"} & \texttt{<-{}->}\\
+@{text "\<longleftrightarrow>"} & \texttt{<->}\\
 @{text "\<and>"} & \texttt{/\char`\\} & \texttt{\&}\\
 @{text "\<or>"} & \texttt{\char`\\/} & \texttt{|}\\
 @{text "\<not>"} & \xsymbol{not} & \texttt{\char`~}\\
@@ -63,7 +63,7 @@ that Isabelle interfaces convert into the corresponding symbol,
 and the third column shows ASCII representations that stay fixed.
 \begin{warn}
 The implication @{text"\<Longrightarrow>"} is part of the Isabelle framework. It structures
-theorems and proof states, separating assumptions from conclusion.
+theorems and proof states, separating assumptions from conclusions.
 The implication @{text"\<longrightarrow>"} is part of the logic HOL and can occur inside the
 formulas that make up the assumptions and conclusion.
 Theorems should be of the form @{text"\<lbrakk> A\<^isub>1; \<dots>; A\<^isub>n \<rbrakk> \<Longrightarrow> A"},
@@ -74,7 +74,7 @@ but the first one works better when using the theorem in further proofs.
 \subsection{Sets}
 
 Sets of elements of type @{typ 'a} have type @{typ"'a set"}.
-They can be finite or infinite. Sets come with the usual notations:
+They can be finite or infinite. Sets come with the usual notation:
 \begin{itemize}
 \item @{term"{}"},\quad @{text"{e\<^isub>1,\<dots>,e\<^isub>n}"}
 \item @{prop"e \<in> A"},\quad @{prop"A \<subseteq> B"}
@@ -87,7 +87,7 @@ of the construct.
 \begin{warn}
 In @{term"{x. P}"} the @{text x} must be a variable. Set comprehension
 involving a proper term @{text t} must be written
-@{term[source]"{t |x y z. P}"},
+@{term[source]"{t | x y z. P}"},
 where @{text "x y z"} are the free variables in @{text t}.
 This is just a shorthand for @{term"{v. EX x y z. v = t \<and> P}"}, where
 @{text v} is a new variable.
@@ -153,8 +153,8 @@ becomes more complicated. In a few cases, its slow version @{text force}
 succeeds where @{text fastforce} fails.
 
 The method of choice for complex logical goals is @{text blast}. In the
-following example, @{text T} and @{text A} are two binary predicates, and it
-is shown that @{text T} is total, @{text A} is antisymmetric and @{text T} is
+following example, @{text T} and @{text A} are two binary predicates. It
+is shown that if @{text T} is total, @{text A} is antisymmetric and @{text T} is
 a subset of @{text A}, then @{text A} is a subset of @{text T}:
 *}
 
@@ -344,12 +344,12 @@ The command
 automatically selects the appropriate rule for the current subgoal.
 
 You can also turn your own theorems into introduction rules by giving them
-them @{text"intro"} attribute, analogous to the @{text simp} attribute.  In
+the @{text"intro"} attribute, analogous to the @{text simp} attribute.  In
 that case @{text blast}, @{text fastforce} and (to a limited extent) @{text
 auto} will automatically backchain with those theorems. The @{text intro}
 attribute should be used with care because it increases the search space and
-can lead to nontermination.  Sometimes it is better to use it only in a
-particular calls of @{text blast} and friends. For example,
+can lead to nontermination.  Sometimes it is better to use it only in
+specific calls of @{text blast} and friends. For example,
 @{thm[source] le_trans}, transitivity of @{text"\<le>"} on type @{typ nat},
 is not an introduction rule by default because of the disastrous effect
 on the search space, but can be useful in specific situations:
@@ -419,8 +419,11 @@ in front of unknowns from now on.
 \label{sec:inductive-defs}
 
 Inductive definitions are the third important definition facility, after
-datatypes and recursive function. In fact, they are the key construct in the
+datatypes and recursive function.
+\sem
+In fact, they are the key construct in the
 definition of operational semantics in the second part of the book.
+\endsem
 
 \subsection{An example: even numbers}
 \label{sec:Logic:even}
@@ -506,9 +509,9 @@ from @{prop"ev 0"} because @{prop"0 - 2 = (0::nat)"} on type @{typ nat}. In
 case @{thm[source]evSS} we have \mbox{@{prop"m = n+(2::nat)"}} and may assume
 @{prop"ev n"}, which implies @{prop"ev (m - 2)"} because @{text"m - 2 = (n +
 2) - 2 = n"}. We did not need the induction hypothesis at all for this proof,
-it is just a case distinction on which rule was used, but having @{prop"ev
+it is just a case analysis of which rule was used, but having @{prop"ev
 n"} at our disposal in case @{thm[source]evSS} was essential.
-This case distinction over rules is also called ``rule inversion''
+This case analysis of rules is also called ``rule inversion''
 and is discussed in more detail in \autoref{ch:Isar}.
 
 \subsubsection{In Isabelle}
@@ -589,7 +592,7 @@ negative information (which numbers are not even) directly. An inductive
 definition only expresses the positive information directly. The negative
 information, for example, that @{text 1} is not even, has to be proved from
 it (by induction or rule inversion). On the other hand, rule induction is
-Taylor made for proving \mbox{@{prop"ev n \<Longrightarrow> P n"}} because it only asks you
+tailor-made for proving \mbox{@{prop"ev n \<Longrightarrow> P n"}} because it only asks you
 to prove the positive cases. In the proof of @{prop"even n \<Longrightarrow> P n"} by
 computation induction via @{thm[source]even.induct}, we are also presented
 with the trivial negative cases. If you want the convenience of both
@@ -599,8 +602,8 @@ from it, for example rule induction from computation induction.
 
 But many concepts do not admit a recursive definition at all because there is
 no datatype for the recursion (for example, the transitive closure of a
-relation), or the recursion would not terminate (for example, the operational
-semantics in the second part of this book). Even if there is a recursive
+relation), or the recursion would not terminate (for example,
+an interpreter for a programming language). Even if there is a recursive
 definition, if we are only interested in the positive information, the
 inductive definition may be much simpler.
 
@@ -609,8 +612,11 @@ inductive definition may be much simpler.
 
 Evenness is really more conveniently expressed recursively than inductively.
 As a second and very typical example of an inductive definition we define the
-reflexive transitive closure. It will also be an important building block for
+reflexive transitive closure.
+\sem
+It will also be an important building block for
 some of the semantics considered in the second part of the book.
+\endsem
 
 The reflexive transitive closure, called @{text star} below, is a function
 that maps a binary predicate to another binary predicate: if @{text r} is of
@@ -628,8 +634,8 @@ step:  "r x y \<Longrightarrow> star r y z \<Longrightarrow> star r x z"
 
 text{* The base case @{thm[source] refl} is reflexivity: @{term "x=y"}. The
 step case @{thm[source]step} combines an @{text r} step (from @{text x} to
-@{text y}) and a @{const star} step (from @{text y} to @{text z}) into a
-@{const star} step (from @{text x} to @{text z}).
+@{text y}) and a @{term"star r"} step (from @{text y} to @{text z}) into a
+@{term"star r"} step (from @{text x} to @{text z}).
 The ``\isacom{for}~@{text r}'' in the header is merely a hint to Isabelle
 that @{text r} is a fixed parameter of @{const star}, in contrast to the
 further parameters of @{const star}, which change. As a result, Isabelle

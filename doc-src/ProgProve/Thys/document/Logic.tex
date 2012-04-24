@@ -17,12 +17,12 @@
 %
 \begin{isamarkuptext}%
 \vspace{-5ex}
-\section{Logic and Proof Beyond Equality}
+\section{Logic and proof beyond equality}
 \label{sec:Logic}
 
 \subsection{Formulas}
 
-The basic syntax of formulas (\textit{form} below)
+The core syntax of formulas (\textit{form} below)
 provides the standard logical constructs, in decreasing precedence:
 \[
 \begin{array}{rcl}
@@ -39,14 +39,14 @@ provides the standard logical constructs, in decreasing precedence:
  &\mid& \isa{{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ form} ~\mid~  \isa{{\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ form}
 \end{array}
 \]
-Terms are the ones we have seen all along, built from constant, variables,
+Terms are the ones we have seen all along, built from constants, variables,
 function application and \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}}-abstraction, including all the syntactic
 sugar like infix symbols, \isa{if}, \isa{case} etc.
 \begin{warn}
 Remember that formulas are simply terms of type \isa{bool}. Hence
 \isa{{\isaliteral{3D}{\isacharequal}}} also works for formulas. Beware that \isa{{\isaliteral{3D}{\isacharequal}}} has a higher
 precedence than the other logical operators. Hence \isa{s\ {\isaliteral{3D}{\isacharequal}}\ t\ {\isaliteral{5C3C616E643E}{\isasymand}}\ A} means
-\isa{{\isaliteral{28}{\isacharparenleft}}s\ {\isaliteral{3D}{\isacharequal}}\ t{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ A}, and \isa{A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B\ {\isaliteral{3D}{\isacharequal}}\ B\ {\isaliteral{5C3C616E643E}{\isasymand}}\ A} means \isa{A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{28}{\isacharparenleft}}B\ {\isaliteral{3D}{\isacharequal}}\ A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B}.
+\isa{{\isaliteral{28}{\isacharparenleft}}s\ {\isaliteral{3D}{\isacharequal}}\ t{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ A}, and \isa{A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B\ {\isaliteral{3D}{\isacharequal}}\ B\ {\isaliteral{5C3C616E643E}{\isasymand}}\ A} means \isa{A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{28}{\isacharparenleft}}B\ {\isaliteral{3D}{\isacharequal}}\ B{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ A}.
 Logical equivalence can also be written with
 \isa{{\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}} instead of \isa{{\isaliteral{3D}{\isacharequal}}}, where \isa{{\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}} has the same low
 precedence as \isa{{\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}}. Hence \isa{A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ B\ {\isaliteral{5C3C616E643E}{\isasymand}}\ A} really means
@@ -63,7 +63,7 @@ The most frequent logical symbols have the following ASCII representations:
 \isa{{\isaliteral{5C3C6578697374733E}{\isasymexists}}} & \xsymbol{exists} & \texttt{EX}\\
 \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}} & \xsymbol{lambda} & \texttt{\%}\\
 \isa{{\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}} & \texttt{-{}->}\\
-\isa{{\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}} & \texttt{<-{}->}\\
+\isa{{\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}} & \texttt{<->}\\
 \isa{{\isaliteral{5C3C616E643E}{\isasymand}}} & \texttt{/\char`\\} & \texttt{\&}\\
 \isa{{\isaliteral{5C3C6F723E}{\isasymor}}} & \texttt{\char`\\/} & \texttt{|}\\
 \isa{{\isaliteral{5C3C6E6F743E}{\isasymnot}}} & \xsymbol{not} & \texttt{\char`~}\\
@@ -75,7 +75,7 @@ that Isabelle interfaces convert into the corresponding symbol,
 and the third column shows ASCII representations that stay fixed.
 \begin{warn}
 The implication \isa{{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}} is part of the Isabelle framework. It structures
-theorems and proof states, separating assumptions from conclusion.
+theorems and proof states, separating assumptions from conclusions.
 The implication \isa{{\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}} is part of the logic HOL and can occur inside the
 formulas that make up the assumptions and conclusion.
 Theorems should be of the form \isa{{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}\ A\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{3B}{\isacharsemicolon}}\ A\isaliteral{5C3C5E697375623E}{}\isactrlisub n\ {\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A},
@@ -86,7 +86,7 @@ but the first one works better when using the theorem in further proofs.
 \subsection{Sets}
 
 Sets of elements of type \isa{{\isaliteral{27}{\isacharprime}}a} have type \isa{{\isaliteral{27}{\isacharprime}}a\ set}.
-They can be finite or infinite. Sets come with the usual notations:
+They can be finite or infinite. Sets come with the usual notation:
 \begin{itemize}
 \item \isa{{\isaliteral{7B}{\isacharbraceleft}}{\isaliteral{7D}{\isacharbraceright}}},\quad \isa{{\isaliteral{7B}{\isacharbraceleft}}e\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}e\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{7D}{\isacharbraceright}}}
 \item \isa{e\ {\isaliteral{5C3C696E3E}{\isasymin}}\ A},\quad \isa{A\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ B}
@@ -99,7 +99,7 @@ of the construct.
 \begin{warn}
 In \isa{{\isaliteral{7B}{\isacharbraceleft}}x{\isaliteral{2E}{\isachardot}}\ P{\isaliteral{7D}{\isacharbraceright}}} the \isa{x} must be a variable. Set comprehension
 involving a proper term \isa{t} must be written
-\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{7B}{\isacharbraceleft}}t\ {\isaliteral{7C}{\isacharbar}}x\ y\ z{\isaliteral{2E}{\isachardot}}\ P{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequote}}},
+\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{7B}{\isacharbraceleft}}t\ {\isaliteral{7C}{\isacharbar}}\ x\ y\ z{\isaliteral{2E}{\isachardot}}\ P{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequote}}},
 where \isa{x\ y\ z} are the free variables in \isa{t}.
 This is just a shorthand for \isa{{\isaliteral{7B}{\isacharbraceleft}}v{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}x\ y\ z{\isaliteral{2E}{\isachardot}}\ v\ {\isaliteral{3D}{\isacharequal}}\ t\ {\isaliteral{5C3C616E643E}{\isasymand}}\ P{\isaliteral{7D}{\isacharbraceright}}}, where
 \isa{v} is a new variable.
@@ -210,8 +210,8 @@ becomes more complicated. In a few cases, its slow version \isa{force}
 succeeds where \isa{fastforce} fails.
 
 The method of choice for complex logical goals is \isa{blast}. In the
-following example, \isa{T} and \isa{A} are two binary predicates, and it
-is shown that \isa{T} is total, \isa{A} is antisymmetric and \isa{T} is
+following example, \isa{T} and \isa{A} are two binary predicates. It
+is shown that if \isa{T} is total, \isa{A} is antisymmetric and \isa{T} is
 a subset of \isa{A}, then \isa{A} is a subset of \isa{T}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -449,11 +449,11 @@ The command
 automatically selects the appropriate rule for the current subgoal.
 
 You can also turn your own theorems into introduction rules by giving them
-them \isa{intro} attribute, analogous to the \isa{simp} attribute.  In
+the \isa{intro} attribute, analogous to the \isa{simp} attribute.  In
 that case \isa{blast}, \isa{fastforce} and (to a limited extent) \isa{auto} will automatically backchain with those theorems. The \isa{intro}
 attribute should be used with care because it increases the search space and
-can lead to nontermination.  Sometimes it is better to use it only in a
-particular calls of \isa{blast} and friends. For example,
+can lead to nontermination.  Sometimes it is better to use it only in
+specific calls of \isa{blast} and friends. For example,
 \isa{le{\isaliteral{5F}{\isacharunderscore}}trans}, transitivity of \isa{{\isaliteral{5C3C6C653E}{\isasymle}}} on type \isa{nat},
 is not an introduction rule by default because of the disastrous effect
 on the search space, but can be useful in specific situations:%
@@ -550,8 +550,11 @@ in front of unknowns from now on.
 \label{sec:inductive-defs}
 
 Inductive definitions are the third important definition facility, after
-datatypes and recursive function. In fact, they are the key construct in the
+datatypes and recursive function.
+\sem
+In fact, they are the key construct in the
 definition of operational semantics in the second part of the book.
+\endsem
 
 \subsection{An example: even numbers}
 \label{sec:Logic:even}
@@ -639,8 +642,8 @@ Case \isa{ev{\isadigit{0}}} requires us to prove \isa{ev\ {\isaliteral{28}{\isac
 from \isa{ev\ {\isadigit{0}}} because \isa{{\isadigit{0}}\ {\isaliteral{2D}{\isacharminus}}\ {\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}} on type \isa{nat}. In
 case \isa{evSS} we have \mbox{\isa{m\ {\isaliteral{3D}{\isacharequal}}\ n\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{2}}}} and may assume
 \isa{ev\ n}, which implies \isa{ev\ {\isaliteral{28}{\isacharparenleft}}m\ {\isaliteral{2D}{\isacharminus}}\ {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}} because \isa{m\ {\isaliteral{2D}{\isacharminus}}\ {\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{2D}{\isacharminus}}\ {\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ n}. We did not need the induction hypothesis at all for this proof,
-it is just a case distinction on which rule was used, but having \isa{ev\ n} at our disposal in case \isa{evSS} was essential.
-This case distinction over rules is also called ``rule inversion''
+it is just a case analysis of which rule was used, but having \isa{ev\ n} at our disposal in case \isa{evSS} was essential.
+This case analysis of rules is also called ``rule inversion''
 and is discussed in more detail in \autoref{ch:Isar}.
 
 \subsubsection{In Isabelle}
@@ -789,7 +792,7 @@ negative information (which numbers are not even) directly. An inductive
 definition only expresses the positive information directly. The negative
 information, for example, that \isa{{\isadigit{1}}} is not even, has to be proved from
 it (by induction or rule inversion). On the other hand, rule induction is
-Taylor made for proving \mbox{\isa{ev\ n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ n}} because it only asks you
+tailor-made for proving \mbox{\isa{ev\ n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ n}} because it only asks you
 to prove the positive cases. In the proof of \isa{even\ n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ n} by
 computation induction via \isa{even{\isaliteral{2E}{\isachardot}}induct}, we are also presented
 with the trivial negative cases. If you want the convenience of both
@@ -799,8 +802,8 @@ from it, for example rule induction from computation induction.
 
 But many concepts do not admit a recursive definition at all because there is
 no datatype for the recursion (for example, the transitive closure of a
-relation), or the recursion would not terminate (for example, the operational
-semantics in the second part of this book). Even if there is a recursive
+relation), or the recursion would not terminate (for example,
+an interpreter for a programming language). Even if there is a recursive
 definition, if we are only interested in the positive information, the
 inductive definition may be much simpler.
 
@@ -809,8 +812,11 @@ inductive definition may be much simpler.
 
 Evenness is really more conveniently expressed recursively than inductively.
 As a second and very typical example of an inductive definition we define the
-reflexive transitive closure. It will also be an important building block for
+reflexive transitive closure.
+\sem
+It will also be an important building block for
 some of the semantics considered in the second part of the book.
+\endsem
 
 The reflexive transitive closure, called \isa{star} below, is a function
 that maps a binary predicate to another binary predicate: if \isa{r} is of
@@ -828,8 +834,8 @@ step{\isaliteral{3A}{\isacharcolon}}\ \ {\isaliteral{22}{\isachardoublequoteopen
 \begin{isamarkuptext}%
 The base case \isa{refl} is reflexivity: \isa{x\ {\isaliteral{3D}{\isacharequal}}\ y}. The
 step case \isa{step} combines an \isa{r} step (from \isa{x} to
-\isa{y}) and a \isa{star} step (from \isa{y} to \isa{z}) into a
-\isa{star} step (from \isa{x} to \isa{z}).
+\isa{y}) and a \isa{star\ r} step (from \isa{y} to \isa{z}) into a
+\isa{star\ r} step (from \isa{x} to \isa{z}).
 The ``\isacom{for}~\isa{r}'' in the header is merely a hint to Isabelle
 that \isa{r} is a fixed parameter of \isa{star}, in contrast to the
 further parameters of \isa{star}, which change. As a result, Isabelle

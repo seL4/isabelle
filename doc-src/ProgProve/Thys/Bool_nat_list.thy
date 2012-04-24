@@ -138,11 +138,11 @@ might look like this:
 Throughout this book, \concept{IH} will stand for ``induction hypothesis''.
 
 We have now seen three proofs of @{prop"add m 0 = 0"}: the Isabelle one, the
-terse 4 lines explaining the base case and the induction step, and just now a
+terse four lines explaining the base case and the induction step, and just now a
 model of a traditional inductive proof. The three proofs differ in the level
 of detail given and the intended reader: the Isabelle proof is for the
 machine, the informal proofs are for humans. Although this book concentrates
-of Isabelle proofs, it is important to be able to rephrase those proofs
+on Isabelle proofs, it is important to be able to rephrase those proofs
 as informal text comprehensible to a reader familiar with traditional
 mathematical proofs. Later on we will introduce an Isabelle proof language
 that is closer to traditional informal mathematical language and is often
@@ -162,7 +162,7 @@ datatype 'a list = Nil | Cons 'a "'a list"
 
 text{*
 \begin{itemize}
-\item Type @{typ "'a list"} is the type of list over elements of type @{typ 'a}. Because @{typ 'a} is a type variable, lists are in fact \concept{polymorphic}: the elements of a list can be of arbitrary type (but must all be of the same type).
+\item Type @{typ "'a list"} is the type of lists over elements of type @{typ 'a}. Because @{typ 'a} is a type variable, lists are in fact \concept{polymorphic}: the elements of a list can be of arbitrary type (but must all be of the same type).
 \item Lists have two constructors: @{const Nil}, the empty list, and @{const Cons}, which puts an element (of type @{typ 'a}) in front of a list (of type @{typ "'a list"}).
 Hence all lists are of the form @{const Nil}, or @{term"Cons x Nil"},
 or @{term"Cons x (Cons y Nil)"} etc.
@@ -218,7 +218,7 @@ the list, although the length remains implicit. To prove that some property
 you need to prove
 \begin{enumerate}
 \item the base case @{prop"P(Nil)"} and
-\item the inductive case @{prop"P(Cons x xs)"} under the assumption @{prop"P(xs)"}, for some arbitrary but fixed @{text xs}.
+\item the inductive case @{prop"P(Cons x xs)"} under the assumption @{prop"P(xs)"}, for some arbitrary but fixed @{text x} and @{text xs}.
 \end{enumerate}
 This is often called \concept{structural induction}.
 
@@ -302,7 +302,7 @@ txt{*
 We find that this time @{text"auto"} solves the base case, but the
 induction step merely simplifies to
 @{subgoals[display,indent=0,goals_limit=1]}
-The the missing lemma is associativity of @{const app},
+The missing lemma is associativity of @{const app},
 which we insert in front of the failed lemma @{text rev_app}.
 
 \subsubsection{Associativity of @{const app}}

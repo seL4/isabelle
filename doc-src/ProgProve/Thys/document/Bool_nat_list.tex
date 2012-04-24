@@ -192,11 +192,11 @@ might look like this:
 Throughout this book, \concept{IH} will stand for ``induction hypothesis''.
 
 We have now seen three proofs of \isa{add\ m\ {\isadigit{0}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}}: the Isabelle one, the
-terse 4 lines explaining the base case and the induction step, and just now a
+terse four lines explaining the base case and the induction step, and just now a
 model of a traditional inductive proof. The three proofs differ in the level
 of detail given and the intended reader: the Isabelle proof is for the
 machine, the informal proofs are for humans. Although this book concentrates
-of Isabelle proofs, it is important to be able to rephrase those proofs
+on Isabelle proofs, it is important to be able to rephrase those proofs
 as informal text comprehensible to a reader familiar with traditional
 mathematical proofs. Later on we will introduce an Isabelle proof language
 that is closer to traditional informal mathematical language and is often
@@ -219,7 +219,7 @@ demonstration purposes:%
 \ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{3D}{\isacharequal}}\ Nil\ {\isaliteral{7C}{\isacharbar}}\ Cons\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ list{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \begin{itemize}
-\item Type \isa{{\isaliteral{27}{\isacharprime}}a\ list} is the type of list over elements of type \isa{{\isaliteral{27}{\isacharprime}}a}. Because \isa{{\isaliteral{27}{\isacharprime}}a} is a type variable, lists are in fact \concept{polymorphic}: the elements of a list can be of arbitrary type (but must all be of the same type).
+\item Type \isa{{\isaliteral{27}{\isacharprime}}a\ list} is the type of lists over elements of type \isa{{\isaliteral{27}{\isacharprime}}a}. Because \isa{{\isaliteral{27}{\isacharprime}}a} is a type variable, lists are in fact \concept{polymorphic}: the elements of a list can be of arbitrary type (but must all be of the same type).
 \item Lists have two constructors: \isa{Nil}, the empty list, and \isa{Cons}, which puts an element (of type \isa{{\isaliteral{27}{\isacharprime}}a}) in front of a list (of type \isa{{\isaliteral{27}{\isacharprime}}a\ list}).
 Hence all lists are of the form \isa{Nil}, or \isa{Cons\ x\ Nil},
 or \isa{Cons\ x\ {\isaliteral{28}{\isacharparenleft}}Cons\ y\ Nil{\isaliteral{29}{\isacharparenright}}} etc.
@@ -282,7 +282,7 @@ the list, although the length remains implicit. To prove that some property
 you need to prove
 \begin{enumerate}
 \item the base case \isa{P\ Nil} and
-\item the inductive case \isa{P\ {\isaliteral{28}{\isacharparenleft}}Cons\ x\ xs{\isaliteral{29}{\isacharparenright}}} under the assumption \isa{P\ xs}, for some arbitrary but fixed \isa{xs}.
+\item the inductive case \isa{P\ {\isaliteral{28}{\isacharparenleft}}Cons\ x\ xs{\isaliteral{29}{\isacharparenright}}} under the assumption \isa{P\ xs}, for some arbitrary but fixed \isa{x} and \isa{xs}.
 \end{enumerate}
 This is often called \concept{structural induction}.
 
@@ -435,7 +435,7 @@ induction step merely simplifies to
 \isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }app\ {\isaliteral{28}{\isacharparenleft}}app\ {\isaliteral{28}{\isacharparenleft}}rev\ ys{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}rev\ xs{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}Cons\ a\ Nil{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
 \isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }app\ {\isaliteral{28}{\isacharparenleft}}rev\ ys{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}app\ {\isaliteral{28}{\isacharparenleft}}rev\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}Cons\ a\ Nil{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
-The the missing lemma is associativity of \isa{app},
+The missing lemma is associativity of \isa{app},
 which we insert in front of the failed lemma \isa{rev{\isaliteral{5F}{\isacharunderscore}}app}.
 
 \subsubsection{Associativity of \isa{app}}

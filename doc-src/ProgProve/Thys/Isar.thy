@@ -172,7 +172,7 @@ There are two further linguistic variations:
 \end{tabular}
 \medskip
 
-\noindent The \isacom{using} idiom de-emphasises the used facts by moving them
+\noindent The \isacom{using} idiom de-emphasizes the used facts by moving them
 behind the proposition.
 
 \subsection{Structured lemma statements: \isacom{fixes}, \isacom{assumes}, \isacom{shows}}
@@ -228,7 +228,7 @@ the rules of natural deduction that are applied by \isacom{proof} by
 default. The patterns are phrased in terms of \isacom{show} but work for
 \isacom{have} and \isacom{lemma}, too.
 
-We start with two forms of \concept{case distinction}:
+We start with two forms of \concept{case analysis}:
 starting from a formula @{text P} we have the two cases @{text P} and
 @{prop"~P"}, and starting from a fact @{prop"P \<or> Q"}
 we have the two cases @{text P} and @{text Q}:
@@ -548,7 +548,7 @@ clearly and avoids new names.
 
 Sometimes one would like to prove some lemma locally within a proof.
 A lemma that shares the current context of assumptions but that
-has its own assumptions and is generalised over its locally fixed
+has its own assumptions and is generalized over its locally fixed
 variables at the end. This is what a \concept{raw proof block} does:
 \begin{quote}
 @{text"{"} \isacom{fix} @{text"x\<^isub>1 \<dots> x\<^isub>n"}\\
@@ -590,14 +590,14 @@ This introduces a new name @{text name} that refers to @{text this},
 the fact just proved, in this case the preceding block. In general,
 \isacom{note} introduces a new name for one or more facts.
 
-\section{Case distinction and induction}
+\section{Case analysis and induction}
 
-\subsection{Datatype case distinction}
+\subsection{Datatype case analysis}
 
-We have seen case distinction on formulas. Now we want to distinguish
+We have seen case analysis on formulas. Now we want to distinguish
 which form some term takes: is it @{text 0} or of the form @{term"Suc n"},
 is it @{term"[]"} or of the form @{term"x#xs"}, etc. Here is a typical example
-proof by case distinction on the form of @{text xs}:
+proof by case analysis on the form of @{text xs}:
 *}
 
 lemma "length(tl xs) = length xs - 1"
@@ -650,12 +650,12 @@ the sum (@{text"\<Sum>"}) of the first @{text n} natural numbers
 Never mind the details, just focus on the pattern:
 *}
 
-lemma "\<Sum>{0..n::nat} = n*(n+1) div 2" (is "?P n")
+lemma "\<Sum>{0..n::nat} = n*(n+1) div 2"
 proof (induction n)
   show "\<Sum>{0..0::nat} = 0*(0+1) div 2" by simp
 next
   fix n assume "\<Sum>{0..n::nat} = n*(n+1) div 2"
-  thus "\<Sum>{0..Suc n::nat} = Suc n*(Suc n+1) div 2" by simp
+  thus "\<Sum>{0..Suc n} = Suc n*(Suc n+1) div 2" by simp
 qed
 
 text{* Except for the rewrite steps, everything is explicitly given. This
@@ -920,13 +920,13 @@ This is where the indexing of fact lists comes in handy, e.g.\
 
 \subsection{Rule inversion}
 
-Rule inversion is case distinction on which rule could have been used to
+Rule inversion is case analysis of which rule could have been used to
 derive some fact. The name \concept{rule inversion} emphasizes that we are
 reasoning backwards: by which rules could some given fact have been proved?
 For the inductive definition of @{const ev}, rule inversion can be summarized
 like this:
 @{prop[display]"ev n \<Longrightarrow> n = 0 \<or> (EX k. n = Suc(Suc k) \<and> ev k)"}
-The realisation in Isabelle is a case distinction.
+The realisation in Isabelle is a case analysis.
 A simple example is the proof that @{prop"ev n \<Longrightarrow> ev (n - 2)"}. We
 already went through the details informally in \autoref{sec:Logic:even}. This
 is the Isar proof:
@@ -946,7 +946,7 @@ begin fix n
 end
 (*>*)
 
-text{* The key point here is that a case distinction over some inductively
+text{* The key point here is that a case analysis over some inductively
 defined predicate is triggered by piping the given fact
 (here: \isacom{from}~@{text this}) into a proof by @{text cases}.
 Let us examine the assumptions available in each case. In case @{text ev0}

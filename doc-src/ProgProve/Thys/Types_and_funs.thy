@@ -132,12 +132,12 @@ that recursive functions must terminate. Otherwise one could define a
 function @{prop"f n = f n + (1::nat)"} and conclude \mbox{@{prop"(0::nat) = 1"}} by
 subtracting @{term"f n"} on both sides.
 
-Isabelle automatic termination checker requires that the arguments of
+Isabelle's automatic termination checker requires that the arguments of
 recursive calls on the right-hand side must be strictly smaller than the
 arguments on the left-hand side. In the simplest case, this means that one
 fixed argument position decreases in size with each recursive call. The size
 is measured as the number of constructors (excluding 0-ary ones, e.g.\ @{text
-Nil}). Lexicographic combinations are also recognised. In more complicated
+Nil}). Lexicographic combinations are also recognized. In more complicated
 situations, the user may have to prove termination by hand. For details
 see~\cite{Krauss}.
 
@@ -152,7 +152,7 @@ fun div2 :: "nat \<Rightarrow> nat" where
 "div2 (Suc(Suc n)) = Suc(div2 n)"
 
 text{* does not just define @{const div2} but also proves a
-customised induction rule:
+customized induction rule:
 \[
 \inferrule{
 \mbox{@{thm (prem 1) div2.induct}}\\
@@ -160,7 +160,7 @@ customised induction rule:
 \mbox{@{thm (prem 3) div2.induct}}}
 {\mbox{@{thm (concl) div2.induct[of _ "m"]}}}
 \]
-This customised induction rule can simplify inductive proofs. For example,
+This customized induction rule can simplify inductive proofs. For example,
 *}
 
 lemma "div2(n+n) = n"
@@ -171,7 +171,7 @@ txt{* yields the 3 subgoals
 An application of @{text auto} finishes the proof.
 Had we used ordinary structural induction on @{text n},
 the proof would have needed an additional
-case distinction in the induction step.
+case analysis in the induction step.
 
 The general case is often called \concept{computation induction},
 because the induction follows the (terminating!) computation.
@@ -202,7 +202,7 @@ the following heuristic in the proofs about the append function:
  if the function is defined by recursion on argument number $i$.}
 \end{quote}
 The key heuristic, and the main point of this section, is to
-\emph{generalise the goal before induction}.
+\emph{generalize the goal before induction}.
 The reason is simple: if the goal is
 too specific, the induction hypothesis is too weak to allow the induction
 step to go through. Let us illustrate the idea with an example.
@@ -218,12 +218,12 @@ apply auto
 done
 (*>*)
 fun itrev :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-"itrev []     ys = ys" |
+"itrev []        ys = ys" |
 "itrev (x#xs) ys = itrev xs (x#ys)"
 
 text{* The behaviour of @{const itrev} is simple: it reverses
 its first argument by stacking its elements onto the second argument,
-and returning that second argument when the first one becomes
+and it returns that second argument when the first one becomes
 empty. Note that @{const itrev} is tail-recursive: it can be
 compiled into a loop, no stack is necessary for executing it.
 
@@ -247,10 +247,10 @@ The induction hypothesis is too weak.  The fixed
 argument,~@{term"[]"}, prevents it from rewriting the conclusion.  
 This example suggests a heuristic:
 \begin{quote}
-\emph{Generalise goals for induction by replacing constants by variables.}
+\emph{Generalize goals for induction by replacing constants by variables.}
 \end{quote}
 Of course one cannot do this na\"{\i}vely: @{prop"itrev xs ys = rev xs"} is
-just not true.  The correct generalisation is
+just not true.  The correct generalization is
 *};
 (*<*)oops;(*>*)
 lemma "itrev xs ys = rev xs @ ys"
@@ -258,7 +258,7 @@ lemma "itrev xs ys = rev xs @ ys"
 txt{*
 If @{text ys} is replaced by @{term"[]"}, the right-hand side simplifies to
 @{term"rev xs"}, as required.
-In this instance it was easy to guess the right generalisation.
+In this instance it was easy to guess the right generalization.
 Other situations can require a good deal of creativity.  
 
 Although we now have two variables, only @{text xs} is suitable for
@@ -266,12 +266,12 @@ induction, and we repeat our proof attempt. Unfortunately, we are still
 not there:
 @{subgoals[display,margin=65]}
 The induction hypothesis is still too weak, but this time it takes no
-intuition to generalise: the problem is that the @{text ys}
+intuition to generalize: the problem is that the @{text ys}
 in the induction hypothesis is fixed,
 but the induction hypothesis needs to be applied with
 @{term"a # ys"} instead of @{text ys}. Hence we prove the theorem
 for all @{text ys} instead of a fixed one. We can instruct induction
-to perform this generalisation for us by adding @{text "arbitrary: ys"}.
+to perform this generalization for us by adding @{text "arbitrary: ys"}.
 *}
 (*<*)oops
 lemma "itrev xs ys = rev xs @ ys"
@@ -287,12 +287,12 @@ apply auto
 done
 
 text{*
-This leads to another heuristic for generalisation:
+This leads to another heuristic for generalization:
 \begin{quote}
-\emph{Generalise induction by generalising all free
+\emph{Generalize induction by generalizing all free
 variables\\ {\em(except the induction variable itself)}.}
 \end{quote}
-Generalisation is best performed with @{text"arbitrary: y\<^isub>1 \<dots> y\<^isub>k"}. 
+Generalization is best performed with @{text"arbitrary: y\<^isub>1 \<dots> y\<^isub>k"}. 
 This heuristic prevents trivial failures like the one above.
 However, it should not be applied blindly.
 It is not always required, and the additional quantifiers can complicate
@@ -306,7 +306,7 @@ So far we have talked a lot about simplifying terms without explaining the conce
 \item using equations $l = r$ from left to right (only),
 \item as long as possible.
 \end{itemize}
-To emphasise the directionality, equations that have been given the
+To emphasize the directionality, equations that have been given the
 @{text"simp"} attribute are called \concept{simplification}
 rules. Logically, they are still symmetric, but proofs by
 simplification use them only in the left-to-right direction.  The proof tool

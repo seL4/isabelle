@@ -263,7 +263,7 @@ There are two further linguistic variations:
 \end{tabular}
 \medskip
 
-\noindent The \isacom{using} idiom de-emphasises the used facts by moving them
+\noindent The \isacom{using} idiom de-emphasizes the used facts by moving them
 behind the proposition.
 
 \subsection{Structured lemma statements: \isacom{fixes}, \isacom{assumes}, \isacom{shows}}
@@ -339,7 +339,7 @@ the rules of natural deduction that are applied by \isacom{proof} by
 default. The patterns are phrased in terms of \isacom{show} but work for
 \isacom{have} and \isacom{lemma}, too.
 
-We start with two forms of \concept{case distinction}:
+We start with two forms of \concept{case analysis}:
 starting from a formula \isa{P} we have the two cases \isa{P} and
 \isa{{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ P}, and starting from a fact \isa{P\ {\isaliteral{5C3C6F723E}{\isasymor}}\ Q}
 we have the two cases \isa{P} and \isa{Q}:%
@@ -946,7 +946,7 @@ clearly and avoids new names.
 
 Sometimes one would like to prove some lemma locally within a proof.
 A lemma that shares the current context of assumptions but that
-has its own assumptions and is generalised over its locally fixed
+has its own assumptions and is generalized over its locally fixed
 variables at the end. This is what a \concept{raw proof block} does:
 \begin{quote}
 \isa{{\isaliteral{7B}{\isacharbraceleft}}} \isacom{fix} \isa{x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub n}\\
@@ -1016,14 +1016,14 @@ This introduces a new name \isa{name} that refers to \isa{this},
 the fact just proved, in this case the preceding block. In general,
 \isacom{note} introduces a new name for one or more facts.
 
-\section{Case distinction and induction}
+\section{Case analysis and induction}
 
-\subsection{Datatype case distinction}
+\subsection{Datatype case analysis}
 
-We have seen case distinction on formulas. Now we want to distinguish
+We have seen case analysis on formulas. Now we want to distinguish
 which form some term takes: is it \isa{{\isadigit{0}}} or of the form \isa{Suc\ n},
 is it \isa{{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}} or of the form \isa{x\ {\isaliteral{23}{\isacharhash}}\ xs}, etc. Here is a typical example
-proof by case distinction on the form of \isa{xs}:%
+proof by case analysis on the form of \isa{xs}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
@@ -1123,7 +1123,7 @@ Never mind the details, just focus on the pattern:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C53756D3E}{\isasymSum}}{\isaliteral{7B}{\isacharbraceleft}}{\isadigit{0}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}n{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}nat{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{3D}{\isacharequal}}\ n{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{28}{\isacharparenleft}}n{\isaliteral{2B}{\isacharplus}}{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ div\ {\isadigit{2}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{28}{\isacharparenleft}}\isakeyword{is}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{3F}{\isacharquery}}P\ n{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C53756D3E}{\isasymSum}}{\isaliteral{7B}{\isacharbraceleft}}{\isadigit{0}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}n{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}nat{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{3D}{\isacharequal}}\ n{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{28}{\isacharparenleft}}n{\isaliteral{2B}{\isacharplus}}{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ div\ {\isadigit{2}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -1141,7 +1141,7 @@ Never mind the details, just focus on the pattern:%
 \ n\ \isacommand{assume}\isamarkupfalse%
 \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C53756D3E}{\isasymSum}}{\isaliteral{7B}{\isacharbraceleft}}{\isadigit{0}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}n{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}nat{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{3D}{\isacharequal}}\ n{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{28}{\isacharparenleft}}n{\isaliteral{2B}{\isacharplus}}{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ div\ {\isadigit{2}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{thus}\isamarkupfalse%
-\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C53756D3E}{\isasymSum}}{\isaliteral{7B}{\isacharbraceleft}}{\isadigit{0}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}Suc\ n{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}nat{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{3D}{\isacharequal}}\ Suc\ n{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{2B}{\isacharplus}}{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ div\ {\isadigit{2}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C53756D3E}{\isasymSum}}{\isaliteral{7B}{\isacharbraceleft}}{\isadigit{0}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}Suc\ n{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{3D}{\isacharequal}}\ Suc\ n{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{2B}{\isacharplus}}{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ div\ {\isadigit{2}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \isacommand{qed}\isamarkupfalse%
 %
@@ -1548,7 +1548,7 @@ This is where the indexing of fact lists comes in handy, e.g.\
 
 \subsection{Rule inversion}
 
-Rule inversion is case distinction on which rule could have been used to
+Rule inversion is case analysis of which rule could have been used to
 derive some fact. The name \concept{rule inversion} emphasizes that we are
 reasoning backwards: by which rules could some given fact have been proved?
 For the inductive definition of \isa{ev}, rule inversion can be summarized
@@ -1556,7 +1556,7 @@ like this:
 \begin{isabelle}%
 ev\ n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ n\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}k{\isaliteral{2E}{\isachardot}}\ n\ {\isaliteral{3D}{\isacharequal}}\ Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ k{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ ev\ k{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
-The realisation in Isabelle is a case distinction.
+The realisation in Isabelle is a case analysis.
 A simple example is the proof that \isa{ev\ n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ ev\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2D}{\isacharminus}}\ {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}}. We
 already went through the details informally in \autoref{sec:Logic:even}. This
 is the Isar proof:%
@@ -1595,7 +1595,7 @@ is the Isar proof:%
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-The key point here is that a case distinction over some inductively
+The key point here is that a case analysis over some inductively
 defined predicate is triggered by piping the given fact
 (here: \isacom{from}~\isa{this}) into a proof by \isa{cases}.
 Let us examine the assumptions available in each case. In case \isa{ev{\isadigit{0}}}

@@ -169,11 +169,11 @@ that recursive functions must terminate. Otherwise one could define a
 function \isa{f\ n\ {\isaliteral{3D}{\isacharequal}}\ f\ n\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}} and conclude \mbox{\isa{{\isadigit{0}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}}} by
 subtracting \isa{f\ n} on both sides.
 
-Isabelle automatic termination checker requires that the arguments of
+Isabelle's automatic termination checker requires that the arguments of
 recursive calls on the right-hand side must be strictly smaller than the
 arguments on the left-hand side. In the simplest case, this means that one
 fixed argument position decreases in size with each recursive call. The size
-is measured as the number of constructors (excluding 0-ary ones, e.g.\ \isa{Nil}). Lexicographic combinations are also recognised. In more complicated
+is measured as the number of constructors (excluding 0-ary ones, e.g.\ \isa{Nil}). Lexicographic combinations are also recognized. In more complicated
 situations, the user may have to prove termination by hand. For details
 see~\cite{Krauss}.
 
@@ -189,7 +189,7 @@ order. For example,%
 {\isaliteral{22}{\isachardoublequoteopen}}div{\isadigit{2}}\ {\isaliteral{28}{\isacharparenleft}}Suc{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ Suc{\isaliteral{28}{\isacharparenleft}}div{\isadigit{2}}\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 does not just define \isa{div{\isadigit{2}}} but also proves a
-customised induction rule:
+customized induction rule:
 \[
 \inferrule{
 \mbox{\isa{P\ {\isadigit{0}}}}\\
@@ -197,7 +197,7 @@ customised induction rule:
 \mbox{\isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}n{\isaliteral{2E}{\isachardot}}\ P\ n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}}}}
 {\mbox{\isa{P\ m}}}
 \]
-This customised induction rule can simplify inductive proofs. For example,%
+This customized induction rule can simplify inductive proofs. For example,%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
@@ -221,7 +221,7 @@ yields the 3 subgoals
 An application of \isa{auto} finishes the proof.
 Had we used ordinary structural induction on \isa{n},
 the proof would have needed an additional
-case distinction in the induction step.
+case analysis in the induction step.
 
 The general case is often called \concept{computation induction},
 because the induction follows the (terminating!) computation.
@@ -252,7 +252,7 @@ the following heuristic in the proofs about the append function:
  if the function is defined by recursion on argument number $i$.}
 \end{quote}
 The key heuristic, and the main point of this section, is to
-\emph{generalise the goal before induction}.
+\emph{generalize the goal before induction}.
 The reason is simple: if the goal is
 too specific, the induction hypothesis is too weak to allow the induction
 step to go through. Let us illustrate the idea with an example.
@@ -273,12 +273,12 @@ gradually, using only~\isa{{\isaliteral{23}{\isacharhash}}}:%
 \endisadelimproof
 \isacommand{fun}\isamarkupfalse%
 \ itrev\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ list{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
-{\isaliteral{22}{\isachardoublequoteopen}}itrev\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ \ \ \ \ ys\ {\isaliteral{3D}{\isacharequal}}\ ys{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}itrev\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ \ \ \ \ \ \ \ ys\ {\isaliteral{3D}{\isacharequal}}\ ys{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
 {\isaliteral{22}{\isachardoublequoteopen}}itrev\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{23}{\isacharhash}}xs{\isaliteral{29}{\isacharparenright}}\ ys\ {\isaliteral{3D}{\isacharequal}}\ itrev\ xs\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{23}{\isacharhash}}ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 The behaviour of \isa{itrev} is simple: it reverses
 its first argument by stacking its elements onto the second argument,
-and returning that second argument when the first one becomes
+and it returns that second argument when the first one becomes
 empty. Note that \isa{itrev} is tail-recursive: it can be
 compiled into a loop, no stack is necessary for executing it.
 
@@ -312,10 +312,10 @@ The induction hypothesis is too weak.  The fixed
 argument,~\isa{{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}}, prevents it from rewriting the conclusion.  
 This example suggests a heuristic:
 \begin{quote}
-\emph{Generalise goals for induction by replacing constants by variables.}
+\emph{Generalize goals for induction by replacing constants by variables.}
 \end{quote}
 Of course one cannot do this na\"{\i}vely: \isa{itrev\ xs\ ys\ {\isaliteral{3D}{\isacharequal}}\ rev\ xs} is
-just not true.  The correct generalisation is%
+just not true.  The correct generalization is%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 %
@@ -336,7 +336,7 @@ just not true.  The correct generalisation is%
 \begin{isamarkuptxt}%
 If \isa{ys} is replaced by \isa{{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}}, the right-hand side simplifies to
 \isa{rev\ xs}, as required.
-In this instance it was easy to guess the right generalisation.
+In this instance it was easy to guess the right generalization.
 Other situations can require a good deal of creativity.  
 
 Although we now have two variables, only \isa{xs} is suitable for
@@ -348,12 +348,12 @@ not there:
 \isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }itrev\ xs\ {\isaliteral{28}{\isacharparenleft}}a\ {\isaliteral{23}{\isacharhash}}\ ys{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ rev\ xs\ {\isaliteral{40}{\isacharat}}\ a\ {\isaliteral{23}{\isacharhash}}\ ys%
 \end{isabelle}
 The induction hypothesis is still too weak, but this time it takes no
-intuition to generalise: the problem is that the \isa{ys}
+intuition to generalize: the problem is that the \isa{ys}
 in the induction hypothesis is fixed,
 but the induction hypothesis needs to be applied with
 \isa{a\ {\isaliteral{23}{\isacharhash}}\ ys} instead of \isa{ys}. Hence we prove the theorem
 for all \isa{ys} instead of a fixed one. We can instruct induction
-to perform this generalisation for us by adding \isa{arbitrary{\isaliteral{3A}{\isacharcolon}}\ ys}.%
+to perform this generalization for us by adding \isa{arbitrary{\isaliteral{3A}{\isacharcolon}}\ ys}.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 %
@@ -394,12 +394,12 @@ Thus the proof succeeds:%
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-This leads to another heuristic for generalisation:
+This leads to another heuristic for generalization:
 \begin{quote}
-\emph{Generalise induction by generalising all free
+\emph{Generalize induction by generalizing all free
 variables\\ {\em(except the induction variable itself)}.}
 \end{quote}
-Generalisation is best performed with \isa{arbitrary{\isaliteral{3A}{\isacharcolon}}\ y\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ y\isaliteral{5C3C5E697375623E}{}\isactrlisub k}. 
+Generalization is best performed with \isa{arbitrary{\isaliteral{3A}{\isacharcolon}}\ y\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ y\isaliteral{5C3C5E697375623E}{}\isactrlisub k}. 
 This heuristic prevents trivial failures like the one above.
 However, it should not be applied blindly.
 It is not always required, and the additional quantifiers can complicate
@@ -413,7 +413,7 @@ So far we have talked a lot about simplifying terms without explaining the conce
 \item using equations $l = r$ from left to right (only),
 \item as long as possible.
 \end{itemize}
-To emphasise the directionality, equations that have been given the
+To emphasize the directionality, equations that have been given the
 \isa{simp} attribute are called \concept{simplification}
 rules. Logically, they are still symmetric, but proofs by
 simplification use them only in the left-to-right direction.  The proof tool
