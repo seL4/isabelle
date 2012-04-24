@@ -244,6 +244,19 @@ of further operators like @{const min} and @{const max}. On @{typ nat} and
 but we will not enlarge on that here.
 
 
+\subsubsection{Trying them all}
+
+If you want to try all of the above automatic proof methods you simply type
+\begin{isabelle}
+\isacom{try}
+\end{isabelle}
+You can also add specific simplification and introduction rules:
+\begin{isabelle}
+\isacom{try} @{text"simp: \<dots> intro: \<dots>"}
+\end{isabelle}
+There is also a lightweight variant \isacom{try0} that does not call
+sledgehammer.
+
 \subsection{Single step proofs}
 
 Although automation is nice, it often fails, at least initially, and you need
@@ -410,10 +423,18 @@ by(blast dest: Suc_leD)
 text{* In this particular example we could have backchained with
 @{thm[source] Suc_leD}, too, but because the premise is more complicated than the conclusion this can easily lead to nontermination.
 
+\subsubsection{Finding theorems}
+
+Command \isacom{find\_theorems} searches for specific theorems in the current
+theory. Search criteria include pattern matching on terms and on names.
+For details see the Isabelle/Isar Reference Manual~\cite{IsarRef}.
+\bigskip
+
 \begin{warn}
 To ease readability we will drop the question marks
 in front of unknowns from now on.
 \end{warn}
+
 
 \section{Inductive definitions}
 \label{sec:inductive-defs}
