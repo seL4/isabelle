@@ -142,7 +142,7 @@ echo "### Preparing distribution $DISTNAME"
 echo "###"
 
 rm -f .hgignore
-find . "(" -name \*.thy -o -name \*.ML ")" -perm +111 -print | xargs chmod -f -x
+find . "(" -name \*.thy -o -name \*.ML -o -name \*.scala ")" -perm +111 -print | xargs chmod -f -x
 find . -print | xargs chmod -f u+rw
 
 perl -pi -e 's/^(ISABELLE_SCALA_BUILD_OPTIONS=")/$1-optimise /,' etc/settings
