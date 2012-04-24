@@ -1242,23 +1242,20 @@ fun freeze_term t =
       | freeze t = t
   in t |> exists_subterm is_Var t ? freeze end
 
-fun default_formula role = if role = Conjecture then @{term False} else @{term True}
-
-fun presimp_prop ctxt role t =
-  (let
-     val thy = Proof_Context.theory_of ctxt
-     val t = t |> Envir.beta_eta_contract
-               |> transform_elim_prop
-               |> Object_Logic.atomize_term thy
-     val need_trueprop = (fastype_of t = @{typ bool})
-   in
-     t |> need_trueprop ? HOLogic.mk_Trueprop
-       |> extensionalize_term ctxt
-       |> presimplify_term thy
-       |> HOLogic.dest_Trueprop
-   end
-   handle TERM _ => default_formula role)
-  |> pair role
+fun presimp_prop ctxt t =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val t = t |> Envir.beta_eta_contract
+              |> transform_elim_prop
+              |> Object_Logic.atomize_term thy
+    val need_trueprop = (fastype_of t = @{typ bool})
+  in
+    t |> need_trueprop ? HOLogic.mk_Trueprop
+      |> extensionalize_term ctxt
+      |> presimplify_term thy
+      |> HOLogic.dest_Trueprop
+  end
+  handle TERM _ => @{const True}
 
 fun make_formula ctxt format type_enc eq_as_iff name stature kind t =
   let
@@ -1278,14 +1275,16 @@ fun make_fact ctxt format type_enc eq_as_iff ((name, stature), t) =
     if s = tptp_true then NONE else SOME formula
   | formula => SOME formula
 
-fun s_not_trueprop (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
-  | s_not_trueprop t =
-    if fastype_of t = @{typ bool} then s_not t
-    else @{prop False} (* "t" is too meta *)
+fun s_not_prop (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
+  | s_not_prop _ = @{prop True} (* "t" is too meta for "metis" *)
+(*
+  | s_not_prop (@{const "==>"} $ t $ @{prop False}) = t
+  | s_not_prop t = @{const "==>"} $ t $ @{prop False}
+*)
 
 fun make_conjecture ctxt format type_enc =
   map (fn ((name, stature), (kind, t)) =>
-          t |> kind = Conjecture ? s_not_trueprop
+          t |> kind = Conjecture ? s_not
             |> make_formula ctxt format type_enc (format <> CNF) name stature
                             kind)
 
@@ -1804,13 +1803,13 @@ fun translate_formulas ctxt format prem_kind type_enc lam_trans presimp hyp_ts
       |> map (fn t => if member (op aconv) fact_ts t then @{prop True} else t)
     val facts = facts |> map (apsnd (pair Axiom))
     val conjs =
-      map (pair prem_kind) hyp_ts @ [(Conjecture, s_not_trueprop concl_t)]
+      map (pair prem_kind) hyp_ts @ [(Conjecture, s_not_prop concl_t)]
       |> map (apsnd freeze_term)
       |> map2 (pair o rpair (Local, General) o string_of_int)
               (0 upto length hyp_ts)
     val ((conjs, facts), lam_facts) =
       (conjs, facts)
-      |> presimp ? pairself (map (apsnd (uncurry (presimp_prop ctxt))))
+      |> presimp ? pairself (map (apsnd (apsnd (presimp_prop ctxt))))
       |> (if lam_trans = no_lamsN then
             rpair []
           else
