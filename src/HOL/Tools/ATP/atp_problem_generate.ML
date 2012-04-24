@@ -764,18 +764,6 @@ fun constify_lifted (t $ u) = constify_lifted t $ constify_lifted u
     (if String.isPrefix lam_lifted_prefix s then Const else Free) x
   | constify_lifted t = t
 
-(* Requires bound variables not to clash with any schematic variables (as should
-   be the case right after lambda-lifting). *)
-fun open_form unprefix (t as Const (@{const_name All}, _) $ Abs (s, T, t')) =
-    (case try unprefix s of
-       SOME s =>
-       let
-         val names = Name.make_context (map fst (Term.add_var_names t' []))
-         val (s, _) = Name.variant s names
-       in open_form unprefix (subst_bound (Var ((s, 0), T), t')) end
-     | NONE => t)
-  | open_form _ t = t
-
 fun lift_lams_part_1 ctxt type_enc =
   map close_form #> rpair ctxt
   #-> Lambda_Lifting.lift_lambdas
@@ -792,6 +780,8 @@ fun lift_lams_part_2 ctxt (facts, lifted) =
      of them *)
   |> pairself (map (introduce_combinators ctxt))
   |> pairself (map constify_lifted)
+  (* Requires bound variables not to clash with any schematic variables (as
+     should be the case right after lambda-lifting). *)
   |>> map (open_form (unprefix close_form_prefix))
   ||> map (open_form I)
 
