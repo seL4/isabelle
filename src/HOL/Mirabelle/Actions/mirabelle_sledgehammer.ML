@@ -285,7 +285,7 @@ fun log_sh_data log
   )
 
 fun str_of_pos (pos, triv) =
-  str0 (Position.line_of pos) (* ^ ":" ^ str0 (Position.offset_of pos) *) ^
+  str0 (Position.line_of pos) ^ ":" ^ str0 (Position.offset_of pos) ^
   (if triv then "[T]" else "")
 
 fun log_re_data log tag sh_calls (re_calls, re_success, re_nontriv_calls,
