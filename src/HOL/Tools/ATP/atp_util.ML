@@ -35,6 +35,7 @@ sig
   val close_form : term -> term
   val monomorphic_term : Type.tyenv -> term -> term
   val eta_expand : typ list -> term -> int -> term
+  val extensionalize_term : Proof.context -> term -> term
   val transform_elim_prop : term -> term
   val specialize_type : theory -> (string * typ) -> term -> term
   val strip_subgoal :
@@ -285,6 +286,19 @@ fun eta_expand _ t 0 = t
     fold_rev (fn T => fn t' => Abs ("x" ^ nat_subscript n, T, t'))
              (List.take (binder_types (fastype_of1 (Ts, t)), n))
              (list_comb (incr_boundvars n t, map Bound (n - 1 downto 0)))
+
+fun is_fun_equality (@{const_name HOL.eq},
+                     Type (_, [Type (@{type_name fun}, _), _])) = true
+  | is_fun_equality _ = false
+
+fun extensionalize_term ctxt t =
+  if exists_Const is_fun_equality t then
+    let val thy = Proof_Context.theory_of ctxt in
+      t |> cterm_of thy |> Meson.extensionalize_conv ctxt
+        |> prop_of |> Logic.dest_equals |> snd
+    end
+  else
+    t
 
 (* Converts an elim-rule into an equivalent theorem that does not have the
    predicate variable. Leaves other theorems unchanged. We simply instantiate

@@ -72,7 +72,7 @@ sig
   val unregister_term_postprocessor : typ -> theory -> theory
   val pick_nits_in_term :
     Proof.state -> params -> mode -> int -> int -> int -> (term * term) list
-    -> term list -> term -> string * Proof.state
+    -> term list -> term list -> term -> string * Proof.state
   val pick_nits_in_subgoal :
     Proof.state -> params -> mode -> int -> int -> string * Proof.state
 end;
@@ -217,7 +217,7 @@ val has_syntactic_sorts = exists_type (exists_subtype has_tfree_syntactic_sort)
 fun plazy f = Pretty.blk (0, pstrs (f ()))
 
 fun pick_them_nits_in_term deadline state (params : params) mode i n step
-                           subst assm_ts orig_t =
+                           subst def_assm_ts nondef_assm_ts orig_t =
   let
     val timer = Timer.startRealTimer ()
     val thy = Proof.theory_of state
@@ -259,7 +259,9 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
     fun check_deadline () =
       if passed_deadline deadline then raise TimeLimit.TimeOut else ()
 
-    val assm_ts = if assms orelse mode <> Normal then assm_ts else []
+    val (def_assm_ts, nondef_assm_ts) =
+      if assms orelse mode <> Normal then (def_assm_ts, nondef_assm_ts)
+      else ([], [])
     val _ =
       if step = 0 then
         print_nt (fn () => "Nitpicking formula...")
@@ -269,26 +271,27 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                 (if i <> 1 orelse n <> 1 then
                    "subgoal " ^ string_of_int i ^ " of " ^ string_of_int n
                  else
-                   "goal")) [Logic.list_implies (assm_ts, orig_t)]))
+                   "goal")) [Logic.list_implies (nondef_assm_ts, orig_t)]))
     val _ = print_v (enclose "Timestamp: " "." o Date.fmt "%H:%M:%S"
                      o Date.fromTimeLocal o Time.now)
     val neg_t = if falsify then Logic.mk_implies (orig_t, @{prop False})
                 else orig_t
-    val conj_ts = neg_t :: assm_ts @ evals @ these needs
+    val conj_ts = neg_t :: def_assm_ts @ nondef_assm_ts @ evals @ these needs
     val tfree_table =
       if merge_type_vars then merged_type_var_table_for_terms thy conj_ts
       else []
     val merge_tfrees = merge_type_vars_in_term thy merge_type_vars tfree_table
     val neg_t = neg_t |> merge_tfrees
-    val assm_ts = assm_ts |> map merge_tfrees
+    val def_assm_ts = def_assm_ts |> map merge_tfrees
+    val nondef_assm_ts = nondef_assm_ts |> map merge_tfrees
     val evals = evals |> map merge_tfrees
     val needs = needs |> Option.map (map merge_tfrees)
-    val conj_ts = neg_t :: assm_ts @ evals @ these needs
+    val conj_ts = neg_t :: def_assm_ts @ nondef_assm_ts @ evals @ these needs
     val original_max_potential = max_potential
     val original_max_genuine = max_genuine
     val max_bisim_depth = fold Integer.max bisim_depths ~1
     val case_names = case_const_names ctxt stds
-    val defs = all_defs_of thy subst
+    val defs = def_assm_ts @ all_defs_of thy subst
     val nondefs = all_nondefs_of ctxt subst
     val def_tables = const_def_tables ctxt subst defs
     val nondef_table = const_nondef_table nondefs
@@ -321,7 +324,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
             error "Nitpick cannot handle goals with schematic type variables."
     val (nondef_ts, def_ts, need_ts, got_all_mono_user_axioms,
          no_poly_user_axioms, binarize) =
-      preprocess_formulas hol_ctxt assm_ts neg_t
+      preprocess_formulas hol_ctxt nondef_assm_ts neg_t
     val got_all_user_axioms =
       got_all_mono_user_axioms andalso no_poly_user_axioms
 
@@ -672,7 +675,8 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
           got_all_user_axioms andalso none_true wfs andalso
           sound_finitizes andalso total_consts <> SOME true andalso
           codatatypes_ok
-        fun assms_prop () = Logic.mk_conjunction_list (neg_t :: assm_ts)
+        fun assms_prop () =
+          Logic.mk_conjunction_list (neg_t :: def_assm_ts @ nondef_assm_ts)
       in
         (print_t (fn () =>
              "% SZS status " ^
@@ -1047,7 +1051,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
 val timeout_bonus = seconds 1.0
 
 fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) mode i n
-                      step subst assm_ts orig_t =
+                      step subst def_assm_ts nondef_assm_ts orig_t =
   let
     val print_nt = if is_mode_nt mode then Output.urgent_message else K ()
     val print_t = if mode = TPTP then Output.urgent_message else K ()
@@ -1065,7 +1069,7 @@ fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) mode i n
           time_limit (if debug orelse is_none timeout then NONE
                       else SOME (Time.+ (the timeout, timeout_bonus)))
               (pick_them_nits_in_term deadline state params mode i n step subst
-                                      assm_ts) orig_t
+                                      def_assm_ts nondef_assm_ts) orig_t
           handle TOO_LARGE (_, details) =>
                  (print_t "% SZS status Unknown";
                   print_nt ("Limit reached: " ^ details ^ "."); unknown_outcome)
@@ -1108,7 +1112,7 @@ fun pick_nits_in_subgoal state params mode i step =
         val t = Logic.goal_params t i |> fst
         val assms = map term_of (Assumption.all_assms_of ctxt)
         val (subst, assms, t) = extract_fixed_frees ctxt (assms, t)
-      in pick_nits_in_term state params mode i n step subst assms t end
+      in pick_nits_in_term state params mode i n step subst [] assms t end
   end
 
 end;

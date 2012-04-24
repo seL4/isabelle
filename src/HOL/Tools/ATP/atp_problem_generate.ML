@@ -1207,19 +1207,6 @@ fun presimplify_term thy t =
   else
     t
 
-fun is_fun_equality (@{const_name HOL.eq},
-                     Type (_, [Type (@{type_name fun}, _), _])) = true
-  | is_fun_equality _ = false
-
-fun extensionalize_term ctxt t =
-  if exists_Const is_fun_equality t then
-    let val thy = Proof_Context.theory_of ctxt in
-      t |> cterm_of thy |> Meson.extensionalize_conv ctxt
-        |> prop_of |> Logic.dest_equals |> snd
-    end
-  else
-    t
-
 fun preprocess_abstractions_in_terms trans_lams facts =
   let
     val (facts, lambda_ts) =

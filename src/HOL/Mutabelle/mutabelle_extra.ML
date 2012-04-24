@@ -189,7 +189,7 @@ fun invoke_nitpick thy t =
     val ctxt = Proof_Context.init_global thy
     val state = Proof.init ctxt
     val (res, _) = Nitpick.pick_nits_in_term state
-      (Nitpick_Isar.default_params thy []) Nitpick.Normal 1 1 1 [] [] t
+      (Nitpick_Isar.default_params thy []) Nitpick.Normal 1 1 1 [] [] [] t
     val _ = Output.urgent_message ("Nitpick: " ^ res)
   in
     (rpair []) (case res of

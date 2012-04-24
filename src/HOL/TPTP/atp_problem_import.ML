@@ -45,9 +45,12 @@ fun read_tptp_file thy file_name =
                      ? Path.append (Path.explode "$PWD"))
     val ((_, _, problem), thy) =
       TPTP_Interpret.interpret_file true (Path.explode "$TPTP") path [] [] thy
+    val partitioned_problem =
+      List.partition (fn (_, role, _, _) => role = TPTP_Syntax.Role_Definition)
+                     problem
   in
     (exists (fn (_, role, _, _) => role = TPTP_Syntax.Role_Conjecture) problem,
-     map get_tptp_formula problem, thy)
+     pairself (map get_tptp_formula) partitioned_problem, Theory.checkpoint thy)
   end
 
 (** Isabelle (combination of provers) **)
@@ -59,8 +62,9 @@ fun isabelle_tptp_file timeout file_name = ()
 
 fun nitpick_tptp_file timeout file_name =
   let
-    val (falsify, ts, thy) = read_tptp_file @{theory} file_name
+    val (falsify, (defs, nondefs), thy) = read_tptp_file @{theory} file_name
     val ctxt = Proof_Context.init_global thy
+    val defs = defs |> map (ATP_Util.extensionalize_term ctxt)
     val state = Proof.init ctxt
     val params =
       [("card", "1\<emdash>100"),
@@ -82,8 +86,8 @@ fun nitpick_tptp_file timeout file_name =
     val step = 0
     val subst = []
   in
-    Nitpick.pick_nits_in_term state params Nitpick.TPTP i n step subst ts
-        (if falsify then @{prop False} else @{prop True}); ()
+    Nitpick.pick_nits_in_term state params Nitpick.TPTP i n step subst
+        defs nondefs (if falsify then @{prop False} else @{prop True}); ()
   end
 
 
@@ -99,13 +103,13 @@ fun print_szs_from_outcome falsify s =
 
 fun refute_tptp_file timeout file_name =
   let
-    val (falsify, ts, thy) = read_tptp_file @{theory} file_name
+    val (falsify, (defs, nondefs), thy) = read_tptp_file @{theory} file_name
     val ctxt = Proof_Context.init_global thy
     val params =
       [("maxtime", string_of_int timeout),
        ("maxvars", "100000")]
   in
-    Refute.refute_term ctxt params ts @{prop False}
+    Refute.refute_term ctxt params (defs @ nondefs) @{prop False}
     |> print_szs_from_outcome falsify
   end
 
