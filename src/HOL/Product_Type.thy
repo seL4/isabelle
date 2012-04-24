@@ -379,7 +379,7 @@ lemma split_weak_cong: "p = q \<Longrightarrow> split c p = split c q"
 lemma cond_split_eta: "(!!x y. f x y = g (x, y)) ==> (%(x, y). f x y) = g"
   by (simp add: split_eta)
 
-lemma split_paired_all: "(!!x. PROP P x) == (!!a b. PROP P (a, b))"
+lemma split_paired_all [no_atp]: "(!!x. PROP P x) == (!!a b. PROP P (a, b))"
 proof
   fix a b
   assume "!!x. PROP P x"
@@ -425,14 +425,14 @@ declaration {* fn _ =>
   Classical.map_cs (fn cs => cs addSbefore ("split_all_tac", split_all_tac))
 *}
 
-lemma split_paired_All [simp]: "(ALL x. P x) = (ALL a b. P (a, b))"
+lemma split_paired_All [simp, no_atp]: "(ALL x. P x) = (ALL a b. P (a, b))"
   -- {* @{text "[iff]"} is not a good idea because it makes @{text blast} loop *}
   by fast
 
-lemma split_paired_Ex [simp]: "(EX x. P x) = (EX a b. P (a, b))"
+lemma split_paired_Ex [simp, no_atp]: "(EX x. P x) = (EX a b. P (a, b))"
   by fast
 
-lemma split_paired_The: "(THE x. P x) = (THE (a, b). P (a, b))"
+lemma split_paired_The [no_atp]: "(THE x. P x) = (THE (a, b). P (a, b))"
   -- {* Can't be added to simpset: loops! *}
   by (simp add: split_eta)
 
@@ -970,11 +970,11 @@ lemma UN_Times_distrib:
   -- {* Suggested by Pierre Chartier *}
   by blast
 
-lemma split_paired_Ball_Sigma [simp,no_atp]:
+lemma split_paired_Ball_Sigma [simp, no_atp]:
     "(ALL z: Sigma A B. P z) = (ALL x:A. ALL y: B x. P(x,y))"
   by blast
 
-lemma split_paired_Bex_Sigma [simp,no_atp]:
+lemma split_paired_Bex_Sigma [simp, no_atp]:
     "(EX z: Sigma A B. P z) = (EX x:A. EX y: B x. P(x,y))"
   by blast
 
