@@ -383,7 +383,9 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
        (not (is_pure_typedef ctxt T) orelse is_univ_typedef ctxt T)) orelse
       is_number_type ctxt T orelse is_bit_type T
     fun is_type_actually_monotonic T =
-      formulas_monotonic hol_ctxt binarize T (nondef_ts, def_ts)
+      time_limit tac_timeout (formulas_monotonic hol_ctxt binarize T)
+                 (nondef_ts, def_ts)
+      handle TimeLimit.TimeOut => false
     fun is_type_kind_of_monotonic T =
       case triple_lookup (type_match thy) monos T of
         SOME (SOME false) => false
