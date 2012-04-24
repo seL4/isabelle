@@ -138,7 +138,7 @@ if (defined $be_quiet and $be_quiet ne "") {
 if ($output_log) { print "Mirabelle: $thy_file\n"; }
 
 my $result = system "\"$ENV{'ISABELLE_PROCESS'}\" " .
-  "-e 'use_thy \"$path/$new_thy_name\" handle _ => exit 1;\n' -q $mirabelle_logic" . $quiet;
+  "-e 'Unsynchronized.setmp quick_and_dirty true use_thy \"$path/$new_thy_name\" handle _ => exit 1;\n' -q $mirabelle_logic" . $quiet;
 
 if ($output_log) { print "Finished:  $thy_file\n"; }
 
