@@ -71,15 +71,10 @@ do
 done
 
 if [ "$PLATFORM" = x86-cygwin ]; then
-  for NAME in Isabelle.exe Cygwin-Terminal.bat
-  do
-    EXE="$ARCHIVE_DIR/contrib/x86-cygwin/$NAME"
-    [ ! -e "$EXE" ] && fail "Missing $NAME"
-    echo "$NAME"
-    cp "$EXE" "$ISABELLE_HOME/"
-    chmod +x "$ISABELLE_HOME/$NAME"
-  done
+  TAR="$ARCHIVE_DIR/contrib/x86-cygwin/Isabelle.tar"
+  [ -e "$TAR" ] || fail "Missing $TAR"
   rm -f "$ISABELLE_HOME/Isabelle"
+  tar -C "$ISABELLE_HOME" -xv -f "$TAR"
 fi
 
 
