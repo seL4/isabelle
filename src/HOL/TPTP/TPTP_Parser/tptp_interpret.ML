@@ -482,14 +482,6 @@ fun is_prod_typed thy config symb =
      | _ => false
    end
 
-(*Given a list of "'a option", apply an ('a -> 'b) function to each
-element s.t. the function is only applied if that element isn't NONE*)
-fun map_opt f xs =
-  map (fn x =>
-    if is_some x then
-       SOME (f (the x))
-    else NONE) xs
-
 (*
  Information needed to be carried around:
  - constant mapping: maps constant names to Isabelle terms with fully-qualified
@@ -625,7 +617,7 @@ and interpret_formula config language const_map var_types type_map tptp_fmla thy
         let
           val var_types' =
               ListPair.unzip bindings
-           |> (apsnd (map_opt (interpret_type config thy type_map)))
+           |> (apsnd ((map o Option.map) (interpret_type config thy type_map)))
            |> ListPair.zip
            |> List.rev
           fun fold_bind f =
