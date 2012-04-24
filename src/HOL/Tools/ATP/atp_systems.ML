@@ -303,8 +303,7 @@ val e_config : atp_config =
    known_failures =
      known_szs_status_failures @
      [(TimedOut, "Failure: Resource limit exceeded (time)"),
-      (TimedOut, "time limit exceeded"),
-      (OutOfResources, "# Cannot determine problem status")],
+      (TimedOut, "time limit exceeded")],
    conj_sym_kind = Hypothesis,
    prem_kind = Conjecture,
    best_slices = fn ctxt =>
