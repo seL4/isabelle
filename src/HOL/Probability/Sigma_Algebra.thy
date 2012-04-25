@@ -877,7 +877,7 @@ lemma measure_of_subset:
   "M \<subseteq> Pow \<Omega> \<Longrightarrow> M' \<subseteq> M \<Longrightarrow> sets (measure_of \<Omega> M' \<mu>) \<subseteq> sets (measure_of \<Omega> M \<mu>')"
   by (auto intro!: sigma_sets_subseteq)
 
-lemma in_extended_measure[intro, simp]: "M \<subseteq> Pow \<Omega> \<Longrightarrow> A \<in> M \<Longrightarrow> A \<in> sets (measure_of \<Omega> M \<mu>)"
+lemma in_measure_of[intro, simp]: "M \<subseteq> Pow \<Omega> \<Longrightarrow> A \<in> M \<Longrightarrow> A \<in> sets (measure_of \<Omega> M \<mu>)"
   by auto
 
 section {* Constructing simple @{typ "'a measure"} *}
@@ -1029,7 +1029,7 @@ qed
 lemma measurable_iff_measure_of:
   assumes "N \<subseteq> Pow \<Omega>" "f \<in> space M \<rightarrow> \<Omega>"
   shows "f \<in> measurable M (measure_of \<Omega> N \<mu>) \<longleftrightarrow> (\<forall>A\<in>N. f -` A \<inter> space M \<in> sets M)"
-  by (metis assms in_extended_measure measurable_measure_of assms measurable_sets)
+  by (metis assms in_measure_of measurable_measure_of assms measurable_sets)
 
 lemma measurable_cong:
   assumes "\<And> w. w \<in> space M \<Longrightarrow> f w = g w"
