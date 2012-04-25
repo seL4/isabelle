@@ -63,7 +63,10 @@ case "$TARGET" in
   x86-cygwin)
     OPTIONS=()
     ;;
-  x86-mingw)
+  x86-windows)
+    OPTIONS=()
+    ;;
+  x86_64-windows)
     OPTIONS=()
     ;;
   ppc-darwin | sparc-solaris | x86-solaris | x86-bsd)
