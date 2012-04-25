@@ -73,11 +73,13 @@ fun nitpick_tptp_file timeout file_name =
        ("max_threads", "1"),
        ("batch_size", "10"),
        ("falsify", if null conjs then "false" else "true"),
-       (* ("debug", "true"), *)
        ("verbose", "true"),
-       (* ("overlord", "true"), *)
+(*
+       ("debug", "true"),
+       ("overlord", "true"),
+*)
        ("show_consts", "true"),
-       ("format", "1000"),
+       ("format", "1"),
        ("max_potential", "0"),
        ("timeout", string_of_int timeout),
        ("tac_timeout", string_of_int ((timeout + 49) div 50))]
