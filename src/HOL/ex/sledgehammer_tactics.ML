@@ -22,7 +22,7 @@ struct
 
 open Sledgehammer_Filter
 
-fun run_atp override_params relevance_override i n ctxt goal =
+fun run_prover override_params relevance_override i n ctxt goal =
   let
     val chained_ths = [] (* a tactic has no chained ths *)
     val params as {provers, relevance_thresholds, max_relevant, slice, ...} =
@@ -73,7 +73,7 @@ fun sledgehammer_with_metis_tac ctxt override_params relevance_override i th =
       override_params @
       [("preplay_timeout", "0")]
   in
-    case run_atp override_params relevance_override i i ctxt th of
+    case run_prover override_params relevance_override i i ctxt th of
       SOME facts =>
       Metis_Tactic.metis_tac [] ATP_Problem_Generate.combs_or_liftingN ctxt
           (maps (thms_of_name ctxt) facts) i th
@@ -87,7 +87,7 @@ fun sledgehammer_as_oracle_tac ctxt override_params relevance_override i th =
       override_params @
       [("preplay_timeout", "0"),
        ("minimize", "false")]
-    val xs = run_atp override_params relevance_override i i ctxt th
+    val xs = run_prover override_params relevance_override i i ctxt th
   in if is_some xs then Skip_Proof.cheat_tac thy th else Seq.empty end
 
 end;
