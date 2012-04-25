@@ -85,23 +85,22 @@ fun nitpick_tptp_file timeout file_name =
     val subst = []
   in
     Nitpick.pick_nits_in_term state params Nitpick.TPTP i n step subst
-        defs nondefs (case conjs of conj :: _ => conj | _ => @{prop True});
+        defs nondefs (case conjs of conj :: _ => conj | [] => @{prop True});
     ()
   end
 
 
 (** Refute **)
 
-fun print_szs_from_outcome falsify s =
-  "% SZS status " ^
-  (if s = "genuine" then
-     if falsify then "CounterSatisfiable" else "Satisfiable"
-   else
-     "Unknown")
-  |> writeln
-
 fun refute_tptp_file timeout file_name =
   let
+    fun print_szs_from_outcome falsify s =
+      "% SZS status " ^
+      (if s = "genuine" then
+         if falsify then "CounterSatisfiable" else "Satisfiable"
+       else
+         "Unknown")
+      |> writeln
     val (conjs, (defs, nondefs), thy) = read_tptp_file @{theory} file_name
     val ctxt = Proof_Context.init_global thy
     val params =
@@ -109,32 +108,106 @@ fun refute_tptp_file timeout file_name =
        ("maxvars", "100000")]
   in
     Refute.refute_term ctxt params (defs @ nondefs)
-        (case conjs of conj :: _ => conj | _ => @{prop True})
+        (case conjs of conj :: _ => conj | [] => @{prop True})
     |> print_szs_from_outcome (not (null conjs))
   end
 
 
-(** Sledgehammer **)
+(** Sledgehammer and Isabelle (combination of provers) **)
+
+fun SOLVE_TIMEOUT seconds name tac st =
+  let
+    val result =
+      TimeLimit.timeLimit (Time.fromSeconds seconds)
+        (fn () => SINGLE (SOLVE tac) st) ()
+      handle TimeLimit.TimeOut => NONE
+        | ERROR _ => NONE
+  in
+    (case result of
+      NONE => (warning ("FAILURE: " ^ name); Seq.empty)
+    | SOME st' => (warning ("SUCCESS: " ^ name); Seq.single st'))
+  end
 
 fun apply_tactic_to_tptp_file tactic timeout file_name =
   let
     val (conjs, (defs, nondefs), thy) = read_tptp_file @{theory} file_name
     val ctxt = Proof_Context.init_global thy
+    val conj =
+      Logic.list_implies (defs @ nondefs,
+                          case conjs of conj :: _ => conj | [] => @{prop False})
   in
-    Goal.prove ctxt [] (defs @ nondefs) (hd conjs) (fn _ => tactic ctxt
+    case try (Goal.prove ctxt [] [] conj) (K (tactic ctxt timeout)) of
+      SOME _ =>
+      writeln ("% SZS status " ^
+               (if null conjs then "Unsatisfiable" else "Theorem"))
+    | NONE => writeln ("% SZS status Unknown")
   end
 
-val sledgehammer_tptp_file =
-  apply_tactic_to_tptp_file Sledgehammer_Tactics.sledgehammer_as_oracle_tac
+fun atp_tac ctxt timeout prover =
+  Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt
+      [
+(*
+       ("debug", "true"),
+       ("overlord", "true"),
+*)
+       ("provers", prover),
+       ("timeout", string_of_int timeout)]
+      Sledgehammer_Filter.no_relevance_override
 
+val cvc3N = "cvc3"
+val z3N = "z3"
+
+fun sledgehammer_tac ctxt timeout =
+  let
+    fun slice timeout prover =
+      SOLVE_TIMEOUT timeout prover (ALLGOALS (atp_tac ctxt timeout prover))
+  in
+    slice (timeout div 10) ATP_Systems.spassN
+    ORELSE
+    slice (timeout div 10) z3N
+    ORELSE
+    slice (timeout div 10) ATP_Systems.vampireN
+    ORELSE
+    slice (timeout div 10) ATP_Systems.eN
+    ORELSE
+    slice (timeout div 10) cvc3N
+    ORELSE
+    slice (timeout div 10) ATP_Systems.leo2N
+    ORELSE
+    slice timeout ATP_Systems.satallaxN
+  end
+
+val sledgehammer_tptp_file = apply_tactic_to_tptp_file sledgehammer_tac
 
 (** Isabelle (combination of provers) **)
 
-val isabelle_tac =
-  ...
+fun isabelle_tac ctxt timeout =
+  sledgehammer_tac ctxt (timeout div 2)
+  ORELSE
+  SOLVE_TIMEOUT (timeout div 10) "simp"
+      (ALLGOALS (asm_full_simp_tac (simpset_of ctxt)))
+  ORELSE
+  SOLVE_TIMEOUT (timeout div 10) "blast" (ALLGOALS (blast_tac ctxt))
+  ORELSE
+  SOLVE_TIMEOUT (timeout div 20) "auto+spass"
+      (auto_tac ctxt
+       THEN ALLGOALS (atp_tac ctxt (timeout div 20) ATP_Systems.spassN))
+  ORELSE
+  SOLVE_TIMEOUT (timeout div 20) "fast" (ALLGOALS (fast_tac ctxt))
+  ORELSE
+  SOLVE_TIMEOUT (timeout div 20) "best" (ALLGOALS (best_tac ctxt))
+  ORELSE
+  SOLVE_TIMEOUT (timeout div 20) "force" (ALLGOALS (force_tac ctxt))
+  ORELSE
+  SOLVE_TIMEOUT (timeout div 20) "arith" (ALLGOALS (Arith_Data.arith_tac ctxt))
+  ORELSE
+  SOLVE_TIMEOUT timeout "fastforce" (ALLGOALS (fast_force_tac ctxt))
+  ORELSE
+  SOLVE_TIMEOUT timeout "satallax"
+      (ALLGOALS (atp_tac ctxt timeout ATP_Systems.satallaxN))
 
-val isabelle_tptp_file =
-  ...
+val isabelle_tptp_file = apply_tactic_to_tptp_file isabelle_tac
+
 
 (** Translator between TPTP(-like) file formats **)
 
