@@ -564,21 +564,17 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_tables, skolems, ...})
            else if is_positive_existential polar quant_s then
              let
                val j = length (!skolems) + 1
-               val (js', (ss', Ts')) =
-                 js ~~ (ss ~~ Ts)
-                 |> filter (fn (j, _) => loose_bvar1 (t, j + 1))
-                 |> ListPair.unzip ||> ListPair.unzip
              in
-               if skolemizable andalso length js' <= skolem_depth then
+               if skolemizable andalso length js <= skolem_depth then
                  let
-                   val sko_s = skolem_prefix_for (length js') j ^ abs_s
-                   val _ = Unsynchronized.change skolems (cons (sko_s, ss'))
-                   val sko_t = list_comb (Const (sko_s, rev Ts' ---> abs_T),
-                                          map Bound (rev js'))
+                   val sko_s = skolem_prefix_for (length js) j ^ abs_s
+                   val _ = Unsynchronized.change skolems (cons (sko_s, ss))
+                   val sko_t = list_comb (Const (sko_s, rev Ts ---> abs_T),
+                                          map Bound (rev js))
                    val abs_t = Abs (abs_s, abs_T,
                                     aux ss Ts (incrs js) skolemizable polar t)
                  in
-                   if null js' then
+                   if null js then
                      s_betapply Ts (abs_t, sko_t)
                    else
                      Const (@{const_name Let}, abs_T --> quant_T) $ sko_t
