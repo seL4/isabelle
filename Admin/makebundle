@@ -75,6 +75,8 @@ if [ "$PLATFORM" = x86-cygwin ]; then
   [ -e "$TAR" ] || fail "Missing $TAR"
   rm -f "$ISABELLE_HOME/Isabelle"
   tar -C "$ISABELLE_HOME" -xv -f "$TAR"
+
+  mv "$ISABELLE_HOME/contrib"/polyml* "$ISABELLE_HOME/contrib/cygwin-1.7.9/usr/local/"
 fi
 
 
