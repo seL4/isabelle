@@ -49,7 +49,8 @@ sig
     -> Facts.ref * Attrib.src list -> ((string * stature) * thm) list
   val all_facts :
     Proof.context -> bool -> 'a Symtab.table -> bool -> thm list
-    -> thm list -> status Termtab.table -> (((unit -> string) * stature) * thm) list
+    -> thm list -> status Termtab.table
+    -> (((unit -> string) * stature) * thm) list
   val nearly_all_facts :
     Proof.context -> bool -> relevance_override -> thm list -> term list -> term
     -> (((unit -> string) * stature) * thm) list

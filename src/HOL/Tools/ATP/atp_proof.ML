@@ -36,8 +36,8 @@ sig
   type step_name = string * string list
 
   datatype 'a step =
-    Definition of step_name * 'a * 'a |
-    Inference of step_name * 'a * string * step_name list
+    Definition_Step of step_name * 'a * 'a |
+    Inference_Step of step_name * 'a * string * step_name list
 
   type 'a proof = ('a, 'a, ('a, 'a) ho_term) formula step list
 
@@ -207,13 +207,13 @@ fun step_name_ord p =
   end
 
 datatype 'a step =
-  Definition of step_name * 'a * 'a |
-  Inference of step_name * 'a * string * step_name list
+  Definition_Step of step_name * 'a * 'a |
+  Inference_Step of step_name * 'a * string * step_name list
 
 type 'a proof = ('a, 'a, ('a, 'a) ho_term) formula step list
 
-fun step_name (Definition (name, _, _)) = name
-  | step_name (Inference (name, _, _, _)) = name
+fun step_name (Definition_Step (name, _, _)) = name
+  | step_name (Inference_Step (name, _, _, _)) = name
 
 (**** PARSING OF TSTP FORMAT ****)
 
@@ -395,12 +395,12 @@ fun parse_tstp_line problem =
               "definition" =>
               (case phi of
                  AConn (AIff, [phi1 as AAtom _, phi2]) =>
-                 Definition (name, phi1, phi2)
+                 Definition_Step (name, phi1, phi2)
                | AAtom (ATerm ("equal", _)) =>
                  (* Vampire's equality proxy axiom *)
-                 Inference (name, phi, rule, map (rpair []) deps)
+                 Inference_Step (name, phi, rule, map (rpair []) deps)
                | _ => raise UNRECOGNIZED_ATP_PROOF ())
-            | _ => Inference (name, phi, rule, map (rpair []) deps)
+            | _ => Inference_Step (name, phi, rule, map (rpair []) deps)
           end)
 
 (**** PARSING OF SPASS OUTPUT ****)
@@ -453,13 +453,13 @@ fun parse_spass_line spass_names =
     -- Scan.option (Scan.this_string "derived from formulae "
                     |-- Scan.repeat (scan_general_id --| Scan.option ($$ " ")))
   >> (fn ((((num, rule), deps), u), names) =>
-         Inference ((num, resolve_spass_num names spass_names num), u, rule,
-                    map (swap o `(resolve_spass_num NONE spass_names)) deps))
+         Inference_Step ((num, resolve_spass_num names spass_names num), u,
+             rule, map (swap o `(resolve_spass_num NONE spass_names)) deps))
 
 (* Syntax: <name> *)
 fun parse_satallax_line x =
   (scan_general_id --| Scan.option ($$ " ")
-   >> (fn s => Inference ((s, [s]), dummy_phi, "", []))) x
+   >> (fn s => Inference_Step ((s, [s]), dummy_phi, "", []))) x
 
 fun parse_line problem spass_names =
   parse_tstp_line problem || parse_spass_line spass_names || parse_satallax_line
@@ -520,12 +520,12 @@ fun atp_proof_from_tstplike_proof _ _ "" = []
     |> sort (step_name_ord o pairself step_name)
 
 fun clean_up_dependencies _ [] = []
-  | clean_up_dependencies seen ((step as Definition (name, _, _)) :: steps) =
+  | clean_up_dependencies seen
+                          ((step as Definition_Step (name, _, _)) :: steps) =
     step :: clean_up_dependencies (name :: seen) steps
-  | clean_up_dependencies seen (Inference (name, u, rule, deps) :: steps) =
-    Inference (name, u, rule,
-               map_filter (fn dep => find_first (is_same_atp_step dep) seen)
-                          deps) ::
+  | clean_up_dependencies seen (Inference_Step (name, u, rule, deps) :: steps) =
+    Inference_Step (name, u, rule,
+        map_filter (fn dep => find_first (is_same_atp_step dep) seen) deps) ::
     clean_up_dependencies (name :: seen) steps
 
 fun clean_up_atp_proof_dependencies proof = clean_up_dependencies [] proof
@@ -537,11 +537,11 @@ fun map_term_names_in_formula f (AQuant (q, xs, phi)) =
   | map_term_names_in_formula f (AConn (c, phis)) =
     AConn (c, map (map_term_names_in_formula f) phis)
   | map_term_names_in_formula f (AAtom t) = AAtom (map_term_names_in_term f t)
-fun map_term_names_in_step f (Definition (name, phi1, phi2)) =
-    Definition (name, map_term_names_in_formula f phi1,
-                map_term_names_in_formula f phi2)
-  | map_term_names_in_step f (Inference (name, phi, rule, deps)) =
-    Inference (name, map_term_names_in_formula f phi, rule, deps)
+fun map_term_names_in_step f (Definition_Step (name, phi1, phi2)) =
+    Definition_Step (name, map_term_names_in_formula f phi1,
+                     map_term_names_in_formula f phi2)
+  | map_term_names_in_step f (Inference_Step (name, phi, rule, deps)) =
+    Inference_Step (name, map_term_names_in_formula f phi, rule, deps)
 fun map_term_names_in_atp_proof f = map (map_term_names_in_step f)
 
 fun nasty_name pool s = s |> Symtab.lookup pool |> the_default s
