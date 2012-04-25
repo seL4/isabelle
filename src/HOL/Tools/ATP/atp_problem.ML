@@ -117,7 +117,6 @@ sig
   val is_function_type : string ho_type -> bool
   val is_predicate_type : string ho_type -> bool
   val is_format_higher_order : atp_format -> bool
-  val is_format_typed : atp_format -> bool
   val lines_for_atp_problem :
     atp_format -> term_order -> (unit -> (string * int) list) -> string problem
     -> string list
