@@ -970,13 +970,8 @@ fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
                val u1' = aux table' false Neut u1
                val u2' = aux table' false Neut u2
                val R =
-                 if is_opt_rep (rep_of u2') orelse
-                    (pseudo_range_type T = bool_T andalso
-                     not (is_Cst False (unrepify_nut_in_nut table false Neut
-                                                            u1 u2))) then
-                   opt_rep ofs T R
-                 else
-                   unopt_rep R
+                 if is_opt_rep (rep_of u2') then opt_rep ofs T R
+                 else unopt_rep R
              in s_op2 Lambda T R u1' u2' end
            | _ => raise NUT ("Nitpick_Nut.choose_reps_in_nut.aux", [u]))
         | Op2 (oper, T, _, u1, u2) =>
