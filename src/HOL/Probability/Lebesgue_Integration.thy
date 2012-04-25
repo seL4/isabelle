@@ -32,16 +32,6 @@ proof -
     by (intro tendsto_add assms tendsto_divide tendsto_norm tendsto_diff) auto
 qed
 
-lemma measure_Union:
-  assumes "finite S" "S \<subseteq> sets M" "\<And>A B. A \<in> S \<Longrightarrow> B \<in> S \<Longrightarrow> A \<noteq> B \<Longrightarrow> A \<inter> B = {}"
-  shows "setsum (emeasure M) S = (emeasure M) (\<Union>S)"
-proof -
-  have "setsum (emeasure M) S = (emeasure M) (\<Union>i\<in>S. i)"
-    using assms by (intro setsum_emeasure[OF _ _ `finite S`]) (auto simp: disjoint_family_on_def)
-  also have "\<dots> = (emeasure M) (\<Union>S)" by (auto intro!: arg_cong[where f="emeasure M"])
-  finally show ?thesis .
-qed
-
 lemma measurable_sets2[intro]:
   assumes "f \<in> measurable M M'" "g \<in> measurable M M''"
   and "A \<in> sets M'" "B \<in> sets M''"
@@ -56,55 +46,6 @@ lemma incseq_Suc_iff: "incseq f \<longleftrightarrow> (\<forall>n. f n \<le> f (
 proof
   assume "\<forall>n. f n \<le> f (Suc n)" then show "incseq f" by (auto intro!: incseq_SucI)
 qed (auto simp: incseq_def)
-
-lemma borel_measurable_real_floor:
-  "(\<lambda>x::real. real \<lfloor>x\<rfloor>) \<in> borel_measurable borel"
-  unfolding borel_measurable_iff_ge
-proof (intro allI)
-  fix a :: real
-  { fix x have "a \<le> real \<lfloor>x\<rfloor> \<longleftrightarrow> real \<lceil>a\<rceil> \<le> x"
-      using le_floor_eq[of "\<lceil>a\<rceil>" x] ceiling_le_iff[of a "\<lfloor>x\<rfloor>"]
-      unfolding real_eq_of_int by simp }
-  then have "{w::real \<in> space borel. a \<le> real \<lfloor>w\<rfloor>} = {real \<lceil>a\<rceil>..}" by auto
-  then show "{w::real \<in> space borel. a \<le> real \<lfloor>w\<rfloor>} \<in> sets borel" by auto
-qed
-
-lemma borel_measurable_real_natfloor[intro, simp]:
-  assumes "f \<in> borel_measurable M"
-  shows "(\<lambda>x. real (natfloor (f x))) \<in> borel_measurable M"
-proof -
-  have "\<And>x. real (natfloor (f x)) = max 0 (real \<lfloor>f x\<rfloor>)"
-    by (auto simp: max_def natfloor_def)
-  with borel_measurable_max[OF measurable_comp[OF assms borel_measurable_real_floor] borel_measurable_const]
-  show ?thesis by (simp add: comp_def)
-qed
-
-lemma AE_not_in:
-  assumes N: "N \<in> null_sets M" shows "AE x in M. x \<notin> N"
-  using N by (rule AE_I') auto
-
-lemma sums_If_finite:
-  fixes f :: "nat \<Rightarrow> 'a::real_normed_vector"
-  assumes finite: "finite {r. P r}"
-  shows "(\<lambda>r. if P r then f r else 0) sums (\<Sum>r\<in>{r. P r}. f r)" (is "?F sums _")
-proof cases
-  assume "{r. P r} = {}" hence "\<And>r. \<not> P r" by auto
-  thus ?thesis by (simp add: sums_zero)
-next
-  assume not_empty: "{r. P r} \<noteq> {}"
-  have "?F sums (\<Sum>r = 0..< Suc (Max {r. P r}). ?F r)"
-    by (rule series_zero)
-       (auto simp add: Max_less_iff[OF finite not_empty] less_eq_Suc_le[symmetric])
-  also have "(\<Sum>r = 0..< Suc (Max {r. P r}). ?F r) = (\<Sum>r\<in>{r. P r}. f r)"
-    by (subst setsum_cases)
-       (auto intro!: setsum_cong simp: Max_ge_iff[OF finite not_empty] less_Suc_eq_le)
-  finally show ?thesis .
-qed
-
-lemma sums_single:
-  fixes f :: "nat \<Rightarrow> 'a::real_normed_vector"
-  shows "(\<lambda>r. if r = i then f r else 0) sums f i"
-  using sums_If_finite[of "\<lambda>r. r = i" f] by simp
 
 section "Simple function"
 
@@ -526,7 +467,7 @@ proof-
   { fix x assume "x \<in> space M"
     have "\<Union>(?sub (f x)) = (f -` {f x} \<inter> space M)" by auto
     with sets have "(emeasure M) (f -` {f x} \<inter> space M) = setsum (emeasure M) (?sub (f x))"
-      by (subst measure_Union) auto }
+      by (subst setsum_emeasure) (auto simp: disjoint_family_on_def) }
   hence "integral\<^isup>S M f = (\<Sum>(x,A)\<in>?SIGMA. x * (emeasure M) A)"
     unfolding simple_integral_def using f sets
     by (subst setsum_Sigma[symmetric])

@@ -120,6 +120,50 @@ lemma sums_iff:
   shows "f sums x \<longleftrightarrow> summable f \<and> (suminf f = x)"
   by (metis summable_sums sums_summable sums_unique)
 
+lemma sums_finite:
+  assumes [simp]: "finite N"
+  assumes f: "\<And>n. n \<notin> N \<Longrightarrow> f n = 0"
+  shows "f sums (\<Sum>n\<in>N. f n)"
+proof -
+  { fix n
+    have "setsum f {..<n + Suc (Max N)} = setsum f N"
+    proof cases
+      assume "N = {}"
+      with f have "f = (\<lambda>x. 0)" by auto
+      then show ?thesis by simp
+    next
+      assume [simp]: "N \<noteq> {}"
+      show ?thesis
+      proof (safe intro!: setsum_mono_zero_right f)
+        fix i assume "i \<in> N"
+        then have "i \<le> Max N" by simp
+        then show "i < n + Suc (Max N)" by simp
+      qed
+    qed }
+  note eq = this
+  show ?thesis unfolding sums_def
+    by (rule LIMSEQ_offset[of _ "Suc (Max N)"])
+       (simp add: eq atLeast0LessThan tendsto_const del: add_Suc_right)
+qed
+
+lemma suminf_finite:
+  fixes f :: "nat \<Rightarrow> 'a::{comm_monoid_add,t2_space}"
+  assumes N: "finite N" and f: "\<And>n. n \<notin> N \<Longrightarrow> f n = 0"
+  shows "suminf f = (\<Sum>n\<in>N. f n)"
+  using sums_finite[OF assms, THEN sums_unique] by simp
+
+lemma sums_If_finite_set:
+  "finite A \<Longrightarrow> (\<lambda>r. if r \<in> A then f r else 0 :: 'a::{comm_monoid_add,t2_space}) sums (\<Sum>r\<in>A. f r)"
+  using sums_finite[of A "(\<lambda>r. if r \<in> A then f r else 0)"] by simp
+
+lemma sums_If_finite:
+  "finite {r. P r} \<Longrightarrow> (\<lambda>r. if P r then f r else 0 :: 'a::{comm_monoid_add,t2_space}) sums (\<Sum>r | P r. f r)"
+  using sums_If_finite_set[of "{r. P r}" f] by simp
+
+lemma sums_single:
+  "(\<lambda>r. if r = i then f r else 0::'a::{comm_monoid_add,t2_space}) sums f i"
+  using sums_If_finite[of "\<lambda>r. r = i" f] by simp
+
 lemma sums_split_initial_segment:
   fixes f :: "nat \<Rightarrow> 'a::real_normed_vector"
   shows "f sums s ==> (\<lambda>n. f(n + k)) sums (s - (SUM i = 0..< k. f i))"

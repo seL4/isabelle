@@ -12,22 +12,6 @@ imports
   "~~/src/HOL/Multivariate_Analysis/Extended_Real_Limits"
 begin
 
-lemma suminf_eq_setsum:
-  fixes f :: "nat \<Rightarrow> 'a::{comm_monoid_add, t2_space}"
-  assumes "finite {i. f i \<noteq> 0}" (is "finite ?P")
-  shows "(\<Sum>i. f i) = (\<Sum>i | f i \<noteq> 0. f i)"
-proof cases
-  assume "?P \<noteq> {}"
-  have [dest!]: "\<And>i. Suc (Max ?P) \<le> i \<Longrightarrow> f i = 0"
-    using `finite ?P` `?P \<noteq> {}` by (auto simp: Suc_le_eq) 
-  have "(\<Sum>i. f i) = (\<Sum>i<Suc (Max ?P). f i)"
-    by (rule suminf_finite) auto
-  also have "\<dots> = (\<Sum>i | f i \<noteq> 0. f i)"
-    using `finite ?P` `?P \<noteq> {}`
-    by (intro setsum_mono_zero_right) (auto simp: less_Suc_eq_le)
-  finally show ?thesis .
-qed simp
-
 lemma suminf_cmult_indicator:
   fixes f :: "nat \<Rightarrow> ereal"
   assumes "disjoint_family A" "x \<in> A i" "\<And>i. 0 \<le> f i"
@@ -246,7 +230,7 @@ proof (rule countably_additiveI)
     using disj by (auto simp: disjoint_family_on_def)
 
   from fin_not_0 have "(\<Sum>i. \<mu> (F i)) = (\<Sum>i | \<mu> (F i) \<noteq> 0. \<mu> (F i))"
-    by (rule suminf_eq_setsum)
+    by (rule suminf_finite) auto
   also have "\<dots> = (\<Sum>i | F i \<noteq> {}. \<mu> (F i))"
     using fin_not_empty F_subset by (rule setsum_mono_zero_left) auto
   also have "\<dots> = \<mu> (\<Union>i\<in>{i. F i \<noteq> {}}. F i)"
@@ -790,6 +774,10 @@ lemma AE_iff_null_sets:
   "N \<in> sets M \<Longrightarrow> N \<in> null_sets M \<longleftrightarrow> (AE x in M. x \<notin> N)"
   using Int_absorb1[OF sets_into_space, of N M]
   by (subst AE_iff_null) (auto simp: Int_def[symmetric])
+
+lemma AE_not_in:
+  "N \<in> null_sets M \<Longrightarrow> AE x in M. x \<notin> N"
+  by (metis AE_iff_null_sets null_setsD2)
 
 lemma AE_iff_measurable:
   "N \<in> sets M \<Longrightarrow> {x\<in>space M. \<not> P x} = N \<Longrightarrow> (AE x in M. P x) \<longleftrightarrow> emeasure M N = 0"
@@ -1357,7 +1345,7 @@ proof (rule emeasure_measure_of_sigma)
           with finite_F have "finite {i. ?M (F i) \<noteq> 0} "
             by (simp add: fin_eq)
           then have "(\<Sum>i. ?M (F i)) = (\<Sum>i | ?M (F i) \<noteq> 0. ?M (F i))"
-            by (rule suminf_eq_setsum)
+            by (rule suminf_finite) auto
           also have "\<dots> = ereal (\<Sum>i | F i \<noteq> {}. card (F i))"
             using finite_F by simp
           also have "\<dots> = ereal (card (\<Union>i \<in> {i. F i \<noteq> {}}. F i))"

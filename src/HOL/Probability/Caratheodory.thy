@@ -357,7 +357,7 @@ lemma inf_measure_nonempty:
 proof -
   let ?A = "\<lambda>i::nat. (if i = 0 then b else {})"
   have "(\<Sum>i. f (?A i)) = (\<Sum>i<1::nat. f (?A i))"
-    by (rule suminf_finite) (simp add: f[unfolded positive_def])
+    by (rule suminf_finite) (simp_all add: f[unfolded positive_def])
   also have "... = f b"
     by simp
   finally show ?thesis using assms

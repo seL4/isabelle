@@ -11,9 +11,6 @@ begin
 lemma split_const: "(\<lambda>(i, j). c) = (\<lambda>_. c)"
   by auto
 
-lemma Pi_iff: "f \<in> Pi I X \<longleftrightarrow> (\<forall>i\<in>I. f i \<in> X i)"
-  unfolding Pi_def by auto
-
 abbreviation
   "Pi\<^isub>E A B \<equiv> Pi A B \<inter> extensional A"
 

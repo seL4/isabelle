@@ -1129,22 +1129,6 @@ proof (cases y)
     using assms real by (simp add: ereal_le_minus)
 qed (insert assms, auto)
 
-lemma sums_finite:
-  assumes "\<forall>N\<ge>n. f N = 0"
-  shows "f sums (\<Sum>N<n. f N)"
-proof -
-  { fix i have "(\<Sum>N<i + n. f N) = (\<Sum>N<n. f N)"
-      by (induct i) (insert assms, auto) }
-  note this[simp]
-  show ?thesis unfolding sums_def
-    by (rule LIMSEQ_offset[of _ n]) (auto simp add: atLeast0LessThan intro: tendsto_const)
-qed
-
-lemma suminf_finite:
-  fixes f :: "nat \<Rightarrow> 'a::{comm_monoid_add,t2_space}" assumes "\<forall>N\<ge>n. f N = 0"
-  shows "suminf f = (\<Sum>N<n. f N)"
-  using sums_finite[OF assms, THEN sums_unique] by simp
-
 lemma suminf_upper:
   fixes f :: "nat \<Rightarrow> ereal" assumes "\<And>n. 0 \<le> f n"
   shows "(\<Sum>n<N. f n) \<le> (\<Sum>n. f n)"
@@ -1293,5 +1277,14 @@ proof -
     apply (auto intro!: SUP_upper2)
     apply (subst SUP_commute) ..
 qed
+
+lemma suminf_setsum_ereal:
+  fixes f :: "_ \<Rightarrow> _ \<Rightarrow> ereal"
+  assumes nonneg: "\<And>i a. a \<in> A \<Longrightarrow> 0 \<le> f i a"
+  shows "(\<Sum>i. \<Sum>a\<in>A. f i a) = (\<Sum>a\<in>A. \<Sum>i. f i a)"
+proof cases
+  assume "finite A" from this nonneg show ?thesis
+    by induct (simp_all add: suminf_add_ereal setsum_nonneg)
+qed simp
 
 end

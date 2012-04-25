@@ -943,6 +943,28 @@ lemma borel_measurable_log[simp,intro]:
   using measurable_comp[OF f borel_measurable_borel_log[OF `1 < b`]]
   by (simp add: comp_def)
 
+lemma borel_measurable_real_floor:
+  "(\<lambda>x::real. real \<lfloor>x\<rfloor>) \<in> borel_measurable borel"
+  unfolding borel_measurable_iff_ge
+proof (intro allI)
+  fix a :: real
+  { fix x have "a \<le> real \<lfloor>x\<rfloor> \<longleftrightarrow> real \<lceil>a\<rceil> \<le> x"
+      using le_floor_eq[of "\<lceil>a\<rceil>" x] ceiling_le_iff[of a "\<lfloor>x\<rfloor>"]
+      unfolding real_eq_of_int by simp }
+  then have "{w::real \<in> space borel. a \<le> real \<lfloor>w\<rfloor>} = {real \<lceil>a\<rceil>..}" by auto
+  then show "{w::real \<in> space borel. a \<le> real \<lfloor>w\<rfloor>} \<in> sets borel" by auto
+qed
+
+lemma borel_measurable_real_natfloor[intro, simp]:
+  assumes "f \<in> borel_measurable M"
+  shows "(\<lambda>x. real (natfloor (f x))) \<in> borel_measurable M"
+proof -
+  have "\<And>x. real (natfloor (f x)) = max 0 (real \<lfloor>f x\<rfloor>)"
+    by (auto simp: max_def natfloor_def)
+  with borel_measurable_max[OF measurable_comp[OF assms borel_measurable_real_floor] borel_measurable_const]
+  show ?thesis by (simp add: comp_def)
+qed
+
 subsection "Borel space on the extended reals"
 
 lemma borel_measurable_ereal_borel:
