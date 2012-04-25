@@ -77,6 +77,10 @@ if [ "$PLATFORM" = x86-cygwin ]; then
   tar -C "$ISABELLE_HOME" -xv -f "$TAR"
 
   mv "$ISABELLE_HOME/contrib"/polyml* "$ISABELLE_HOME/contrib/cygwin-1.7.9/usr/local/"
+  (
+    cd "$ISABELLE_HOME/contrib/cygwin-1.7.9"
+    find usr/local/polyml-*/x86-cygwin | gzip > etc/setup/polyml.lst.gz
+  )
 fi
 
 
