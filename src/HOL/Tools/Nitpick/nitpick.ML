@@ -180,7 +180,7 @@ fun pretties_for_formulas _ _ [] = []
                (length ts downto 1) ts))]
 
 fun install_java_message () =
-  "Nitpick requires Java Development Kit 1.6/1.7 via ISABELLE_JDK_HOME setting."
+  "Nitpick requires Java Development Kit 1.6 via ISABELLE_JDK_HOME setting."
 fun install_kodkodi_message () =
   "Nitpick requires the external Java program Kodkodi. To install it, download \
   \the package from \"http://www21.in.tum.de/~blanchet/#software\" and add the \

@@ -20,7 +20,7 @@
     <cp>lib\classes\ext\scala-swing.jar</cp>
   </classPath>
   <jre>
-    <path>contrib\jdk-7u3_x86-cygwin\jdk1.7.0_03</path>
+    <path>contrib\jdk-6u31_x86-cygwin\jdk1.6.0_31</path>
     <minVersion></minVersion>
     <maxVersion></maxVersion>
     <jdkPreference>jdkOnly</jdkPreference>

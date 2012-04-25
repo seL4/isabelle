@@ -140,11 +140,14 @@ DVI_VIEWER=xdvi
 
 # The pdf file viewer
 case "$ISABELLE_PLATFORM" in
+  *-linux)
+    PDF_VIEWER="xdg-open"
+    ;;
   *-darwin)
     PDF_VIEWER="open -W -n"
     ;;
-  *)
-    PDF_VIEWER=evince
+  *-cygwin)
+    PDF_VIEWER="cygstart"
     ;;
 esac
 
