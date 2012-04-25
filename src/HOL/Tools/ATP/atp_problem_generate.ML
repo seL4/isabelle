@@ -563,18 +563,18 @@ datatype type_level =
   No_Types
 
 datatype type_enc =
-  Simple_Types of order * polymorphism * type_level |
+  Native of order * polymorphism * type_level |
   Guards of polymorphism * type_level |
   Tags of polymorphism * type_level
 
-fun is_type_enc_higher_order (Simple_Types (Higher_Order, _, _)) = true
+fun is_type_enc_higher_order (Native (Higher_Order, _, _)) = true
   | is_type_enc_higher_order _ = false
 
-fun polymorphism_of_type_enc (Simple_Types (_, poly, _)) = poly
+fun polymorphism_of_type_enc (Native (_, poly, _)) = poly
   | polymorphism_of_type_enc (Guards (poly, _)) = poly
   | polymorphism_of_type_enc (Tags (poly, _)) = poly
 
-fun level_of_type_enc (Simple_Types (_, _, level)) = level
+fun level_of_type_enc (Native (_, _, level)) = level
   | level_of_type_enc (Guards (_, level)) = level
   | level_of_type_enc (Tags (_, level)) = level
 
@@ -633,21 +633,21 @@ fun type_enc_from_string strictness s =
            ("native", (SOME poly, _)) =>
            (case (poly, level) of
               (Polymorphic, All_Types) =>
-              Simple_Types (First_Order, Polymorphic, All_Types)
+              Native (First_Order, Polymorphic, All_Types)
             | (Mangled_Monomorphic, _) =>
               if granularity_of_type_level level = All_Vars then
-                Simple_Types (First_Order, Mangled_Monomorphic, level)
+                Native (First_Order, Mangled_Monomorphic, level)
               else
                 raise Same.SAME
             | _ => raise Same.SAME)
          | ("native_higher", (SOME poly, _)) =>
            (case (poly, level) of
               (Polymorphic, All_Types) =>
-              Simple_Types (Higher_Order, Polymorphic, All_Types)
+              Native (Higher_Order, Polymorphic, All_Types)
             | (_, Noninf_Nonmono_Types _) => raise Same.SAME
             | (Mangled_Monomorphic, _) =>
               if granularity_of_type_level level = All_Vars then
-                Simple_Types (Higher_Order, Mangled_Monomorphic, level)
+                Native (Higher_Order, Mangled_Monomorphic, level)
               else
                 raise Same.SAME
             | _ => raise Same.SAME)
@@ -669,17 +669,16 @@ fun type_enc_from_string strictness s =
          | _ => raise Same.SAME)
   handle Same.SAME => error ("Unknown type encoding: " ^ quote s ^ ".")
 
-fun adjust_type_enc (THF (TPTP_Monomorphic, _, _))
-                    (Simple_Types (order, _, level)) =
-    Simple_Types (order, Mangled_Monomorphic, level)
+fun adjust_type_enc (THF (TPTP_Monomorphic, _, _)) (Native (order, _, level)) =
+    Native (order, Mangled_Monomorphic, level)
   | adjust_type_enc (THF _) type_enc = type_enc
-  | adjust_type_enc (TFF (TPTP_Monomorphic, _)) (Simple_Types (_, _, level)) =
-    Simple_Types (First_Order, Mangled_Monomorphic, level)
-  | adjust_type_enc (DFG DFG_Sorted) (Simple_Types (_, _, level)) =
-    Simple_Types (First_Order, Mangled_Monomorphic, level)
-  | adjust_type_enc (TFF _) (Simple_Types (_, poly, level)) =
-    Simple_Types (First_Order, poly, level)
-  | adjust_type_enc format (Simple_Types (_, poly, level)) =
+  | adjust_type_enc (TFF (TPTP_Monomorphic, _)) (Native (_, _, level)) =
+    Native (First_Order, Mangled_Monomorphic, level)
+  | adjust_type_enc (DFG DFG_Sorted) (Native (_, _, level)) =
+    Native (First_Order, Mangled_Monomorphic, level)
+  | adjust_type_enc (TFF _) (Native (_, poly, level)) =
+    Native (First_Order, poly, level)
+  | adjust_type_enc format (Native (_, poly, level)) =
     adjust_type_enc format (Guards (poly, level))
   | adjust_type_enc CNF_UEQ (type_enc as Guards stuff) =
     (if is_type_enc_fairly_sound type_enc then Tags else Guards) stuff
@@ -832,7 +831,7 @@ fun type_arg_policy monom_constrs type_enc s =
       if poly = Mangled_Monomorphic then Mangled_Type_Args
       else Explicit_Type_Args false
     else case type_enc of
-      Simple_Types (_, Polymorphic, _) => Explicit_Type_Args false
+      Native (_, Polymorphic, _) => Explicit_Type_Args false
     | Tags (_, All_Types) => No_Type_Args
     | _ =>
       let val level = level_of_type_enc type_enc in
@@ -870,7 +869,7 @@ fun add_sorts_on_tvar (TVar z) = generic_add_sorts_on_type z
 fun type_class_formula type_enc class arg =
   AAtom (ATerm (class, arg ::
       (case type_enc of
-         Simple_Types (First_Order, Polymorphic, _) =>
+         Native (First_Order, Polymorphic, _) =>
          if avoid_first_order_ghost_type_vars then [ATerm (TYPE_name, [arg])]
          else []
        | _ => [])))
@@ -1626,7 +1625,7 @@ val helper_table =
    (("If", true), @{thms if_True if_False True_or_False})]
   |> map (apsnd (map zero_var_indexes))
 
-fun atype_of_type_vars (Simple_Types (_, Polymorphic, _)) = SOME atype_of_types
+fun atype_of_type_vars (Native (_, Polymorphic, _)) = SOME atype_of_types
   | atype_of_type_vars _ = NONE
 
 fun bound_tvars type_enc sorts Ts =
@@ -1874,7 +1873,7 @@ fun mk_aterm format type_enc name T_args args =
 
 fun do_bound_type ctxt format mono type_enc =
   case type_enc of
-    Simple_Types (_, _, level) =>
+    Native (_, _, level) =>
     fused_type ctxt mono level 0
     #> ho_type_from_typ format type_enc false 0 #> SOME
   | _ => K NONE
@@ -2027,8 +2026,8 @@ fun formula_line_for_conjecture ctxt polym_constrs format mono type_enc
            |> close_formula_universally
            |> bound_tvars type_enc true atomic_types, NONE, [])
 
-fun type_enc_needs_free_types (Simple_Types (_, Polymorphic, _)) = true
-  | type_enc_needs_free_types (Simple_Types _) = false
+fun type_enc_needs_free_types (Native (_, Polymorphic, _)) = true
+  | type_enc_needs_free_types (Native _) = false
   | type_enc_needs_free_types _ = true
 
 fun formula_line_for_free_type j phi =
@@ -2060,8 +2059,7 @@ fun decl_line_for_class order s =
 
 fun decl_lines_for_classes type_enc classes =
   case type_enc of
-    Simple_Types (order, Polymorphic, _) =>
-    map (decl_line_for_class order) classes
+    Native (order, Polymorphic, _) => map (decl_line_for_class order) classes
   | _ => []
 
 fun sym_decl_table_for_facts thy format type_enc sym_tab
@@ -2127,10 +2125,10 @@ fun sym_decl_table_for_facts thy format type_enc sym_tab
        ? (fold (fold add_fact_syms) [conjs, facts]
           #> fold add_iterm_syms extra_tms
           #> (case type_enc of
-                Simple_Types (First_Order, Polymorphic, _) =>
+                Native (First_Order, Polymorphic, _) =>
                 if avoid_first_order_ghost_type_vars then add_TYPE_const ()
                 else I
-              | Simple_Types _ => I
+              | Native _ => I
               | _ => fold add_undefined_const (var_types ())))
   end
 
@@ -2249,7 +2247,7 @@ fun formula_line_for_tags_mono_type ctxt format mono type_enc T =
 
 fun problem_lines_for_mono_types ctxt format mono type_enc Ts =
   case type_enc of
-    Simple_Types _ => []
+    Native _ => []
   | Guards _ =>
     map (formula_line_for_guards_mono_type ctxt format mono type_enc) Ts
   | Tags _ => map (formula_line_for_tags_mono_type ctxt format mono type_enc) Ts
@@ -2372,7 +2370,7 @@ fun rationalize_decls thy (decls as decl :: (decls' as _ :: _)) =
 fun problem_lines_for_sym_decls ctxt format conj_sym_kind mono type_enc
                                 (s, decls) =
   case type_enc of
-    Simple_Types _ => [decl_line_for_sym ctxt format mono type_enc s (hd decls)]
+    Native _ => [decl_line_for_sym ctxt format mono type_enc s (hd decls)]
   | Guards (_, level) =>
     let
       val thy = Proof_Context.theory_of ctxt
@@ -2499,7 +2497,7 @@ fun default_type type_enc pred_sym s =
   let
     val ind =
       case type_enc of
-        Simple_Types _ =>
+        Native _ =>
         if String.isPrefix type_const_prefix s orelse
            String.isPrefix tfree_prefix s then
           atype_of_types
