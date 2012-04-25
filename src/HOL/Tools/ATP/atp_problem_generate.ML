@@ -1257,8 +1257,15 @@ fun make_formula ctxt type_enc eq_as_iff name stature kind t =
      atomic_types = atomic_Ts}
   end
 
+(* Satallax prefers "=" to "<=>" *)
+fun is_format_eq_as_iff FOF = true
+  | is_format_eq_as_iff (TFF _) = true
+  | is_format_eq_as_iff (DFG _) = true
+  | is_format_eq_as_iff _ = false
+
 fun make_fact ctxt format type_enc eq_as_iff ((name, stature), t) =
-  case t |> make_formula ctxt type_enc (eq_as_iff andalso format <> CNF) name
+  case t |> make_formula ctxt type_enc
+                         (eq_as_iff andalso is_format_eq_as_iff format) name
                          stature Axiom of
     formula as {iformula = AAtom (IConst ((s, _), _, _)), ...} =>
     if s = tptp_true then NONE else SOME formula
@@ -1274,7 +1281,8 @@ fun s_not_prop (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
 fun make_conjecture ctxt format type_enc =
   map (fn ((name, stature), (kind, t)) =>
           t |> kind = Conjecture ? s_not
-            |> make_formula ctxt type_enc (format <> CNF) name stature kind)
+            |> make_formula ctxt type_enc (is_format_eq_as_iff format) name
+                            stature kind)
 
 (** Finite and infinite type inference **)
 

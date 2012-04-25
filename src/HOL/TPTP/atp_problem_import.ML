@@ -21,6 +21,9 @@ open ATP_Util
 open ATP_Problem
 open ATP_Proof
 
+val debug = false
+val overlord = false
+
 
 (** TPTP parsing **)
 
@@ -70,10 +73,8 @@ fun nitpick_tptp_file timeout file_name =
        ("batch_size", "10"),
        ("falsify", if null conjs then "false" else "true"),
        ("verbose", "true"),
-(*
-       ("debug", "true"),
-       ("overlord", "true"),
-*)
+       ("debug", if debug then "true" else "false"),
+       ("overlord", if overlord then "true" else "false"),
        ("show_consts", "true"),
        ("format", "1"),
        ("max_potential", "0"),
@@ -138,11 +139,8 @@ val i = 1
 
 fun atp_tac ctxt timeout prover =
   Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt
-      [
-(*
-       ("debug", "true"),
-       ("overlord", "true"),
-*)
+      [("debug", if debug then "true" else "false"),
+       ("overlord", if overlord then "true" else "false"),
        ("provers", prover),
        ("timeout", string_of_int timeout)]
       {add = [], del = [], only = true} i
@@ -152,6 +150,8 @@ fun sledgehammer_tac ctxt timeout =
     fun slice timeout prover =
       SOLVE_TIMEOUT timeout prover (atp_tac ctxt timeout prover)
   in
+    slice timeout ATP_Systems.satallaxN
+    ORELSE
     slice (timeout div 10) ATP_Systems.spassN
     ORELSE
     slice (timeout div 10) z3N
@@ -163,8 +163,6 @@ fun sledgehammer_tac ctxt timeout =
     slice (timeout div 10) cvc3N
     ORELSE
     slice (timeout div 10) ATP_Systems.leo2N
-    ORELSE
-    slice timeout ATP_Systems.satallaxN
   end
 
 fun auto_etc_tac ctxt timeout =
@@ -185,9 +183,9 @@ fun auto_etc_tac ctxt timeout =
   ORELSE
   SOLVE_TIMEOUT timeout "fastforce" (fast_force_tac ctxt i)
 
-fun make_conj assms conjs =
-  (rev assms, case conjs of conj :: _ => conj | [] => @{prop False})
-  |> Logic.list_implies
+fun make_conj (defs, nondefs) conjs =
+  Logic.list_implies (rev defs @ rev nondefs,
+                      case conjs of conj :: _ => conj | [] => @{prop False})
 
 fun print_szs_from_success conjs success =
   writeln ("% SZS status " ^
@@ -198,8 +196,8 @@ fun print_szs_from_success conjs success =
 
 fun sledgehammer_tptp_file timeout file_name =
   let
-    val (conjs, (defs, nondefs), ctxt) = read_tptp_file @{theory} file_name
-    val conj = make_conj (defs @ nondefs) conjs
+    val (conjs, assms, ctxt) = read_tptp_file @{theory} file_name
+    val conj = make_conj assms conjs
   in
     can_tac ctxt (sledgehammer_tac ctxt timeout) conj
     |> print_szs_from_success conjs
@@ -207,8 +205,8 @@ fun sledgehammer_tptp_file timeout file_name =
 
 fun isabelle_tptp_file timeout file_name =
   let
-    val (conjs, (defs, nondefs), ctxt) = read_tptp_file @{theory} file_name
-    val conj = make_conj (defs @ nondefs) conjs
+    val (conjs, assms, ctxt) = read_tptp_file @{theory} file_name
+    val conj = make_conj assms conjs
   in
     (can_tac ctxt (sledgehammer_tac ctxt (timeout div 2)) conj orelse
      can_tac ctxt (auto_etc_tac ctxt (timeout div 2)) conj orelse
