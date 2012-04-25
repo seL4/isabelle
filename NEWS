@@ -693,143 +693,143 @@ measure count_space and point_measure is introduced. INCOMPATIBILITY.
   product_sigma_algebra
 
   Removed constants:
+  conditional_space
   distribution -> use distr measure, or distributed predicate
+  image_space
   joint_distribution -> use distr measure, or distributed predicate
+  pair_measure_generator
   product_prob_space.infprod_algebra -> use PiM
   subvimage
-  image_space
-  conditional_space
-  pair_measure_generator
 
   Replacement theorems:
-  sigma_algebra.measurable_sigma -> measurable_measure_of
-  measure_space.additive -> emeasure_additive
-  measure_space.measure_additive -> plus_emeasure
-  measure_space.measure_mono -> emeasure_mono
-  measure_space.measure_top -> emeasure_space
-  measure_space.measure_compl -> emeasure_compl
-  measure_space.measure_Diff -> emeasure_Diff
-  measure_space.measure_countable_increasing -> emeasure_countable_increasing
-  measure_space.continuity_from_below -> SUP_emeasure_incseq
-  measure_space.measure_incseq -> incseq_emeasure
-  measure_space.continuity_from_below_Lim -> Lim_emeasure_incseq
-  measure_space.measure_decseq -> decseq_emeasure
-  measure_space.continuity_from_above -> INF_emeasure_decseq
-  measure_space.measure_insert -> emeasure_insert
-  measure_space.measure_setsum -> setsum_emeasure
-  measure_space.measure_finite_singleton -> emeasure_eq_setsum_singleton
   finite_additivity_sufficient -> ring_of_sets.countably_additiveI_finite
-  measure_space.measure_setsum_split -> setsum_emeasure_cover
-  measure_space.measure_subadditive -> subadditive
-  measure_space.measure_subadditive_finite -> emeasure_subadditive_finite
-  measure_space.measure_eq_0 -> emeasure_eq_0
-  measure_space.measure_finitely_subadditive -> emeasure_subadditive_finite
-  measure_space.measure_countably_subadditive -> emeasure_subadditive_countably
-  measure_space.measure_UN_eq_0 -> emeasure_UN_eq_0
-  measure_unique_Int_stable -> measure_eqI_generator_eq
-  measure_space.measure_Diff_null_set -> emeasure_Diff_null_set
-  measure_space.measure_Un_null_set -> emeasure_Un_null_set
-  measure_space.almost_everywhere_def -> eventually_ae_filter
-  measure_space.almost_everywhere_vimage -> AE_distrD
-  measure_space.measure_space_vimage -> emeasure_distr
-  measure_space.AE_iff_null_set -> AE_iff_null
-  measure_space.real_measure_Union -> measure_Union
-  measure_space.real_measure_finite_Union -> measure_finite_Union
-  measure_space.real_measure_Diff -> measure_Diff
-  measure_space.real_measure_UNION -> measure_UNION
-  measure_space.real_measure_subadditive -> measure_subadditive
-  measure_space.real_measure_setsum_singleton -> measure_eq_setsum_singleton
-  measure_space.real_continuity_from_below -> Lim_measure_incseq
-  measure_space.continuity_from_above_Lim -> Lim_emeasure_decseq
-  measure_space.real_continuity_from_above -> Lim_measure_decseq
-  measure_space.real_measure_countably_subadditive -> measure_subadditive_countably
-  finite_measure.finite_measure -> finite_measure.emeasure_finite
+  finite_measure.empty_measure -> measure_empty
+  finite_measure.finite_continuity_from_above -> finite_measure.finite_Lim_measure_decseq
+  finite_measure.finite_continuity_from_below -> finite_measure.finite_Lim_measure_incseq
+  finite_measure.finite_measure_countably_subadditive -> finite_measure.finite_measure_subadditive_countably
   finite_measure.finite_measure_eq -> finite_measure.emeasure_eq_measure
+  finite_measure.finite_measure -> finite_measure.emeasure_finite
+  finite_measure.finite_measure_finite_singleton -> finite_measure.finite_measure_eq_setsum_singleton
   finite_measure.positive_measure' -> measure_nonneg
   finite_measure.real_measure -> finite_measure.emeasure_real
-  finite_measure.empty_measure -> measure_empty
-  finite_measure.finite_measure_countably_subadditive -> finite_measure.finite_measure_subadditive_countably
-  finite_measure.finite_measure_finite_singleton -> finite_measure.finite_measure_eq_setsum_singleton
-  finite_measure.finite_continuity_from_below -> finite_measure.finite_Lim_measure_incseq
-  finite_measure.finite_continuity_from_above -> finite_measure.finite_Lim_measure_decseq
-  measure_space.simple_integral_vimage -> simple_integral_distr
+  finite_product_prob_space.finite_measure_times -> finite_product_prob_space.finite_measure_PiM_emb
+  finite_product_sigma_algebra.in_P -> sets_PiM_I_finite
+  finite_product_sigma_algebra.P_empty -> space_PiM_empty, sets_PiM_empty
+  information_space.conditional_entropy_eq -> information_space.conditional_entropy_simple_distributed
+  information_space.conditional_entropy_positive -> information_space.conditional_entropy_nonneg_simple
+  information_space.conditional_mutual_information_eq_mutual_information -> information_space.conditional_mutual_information_eq_mutual_information_simple
+  information_space.conditional_mutual_information_generic_positive -> information_space.conditional_mutual_information_nonneg_simple
+  information_space.conditional_mutual_information_positive -> information_space.conditional_mutual_information_nonneg_simple
+  information_space.entropy_commute -> information_space.entropy_commute_simple
+  information_space.entropy_eq -> information_space.entropy_simple_distributed
+  information_space.entropy_generic_eq -> information_space.entropy_simple_distributed
+  information_space.entropy_positive -> information_space.entropy_nonneg_simple
+  information_space.entropy_uniform_max -> information_space.entropy_uniform
+  information_space.KL_eq_0_imp -> information_space.KL_eq_0_iff_eq
+  information_space.KL_eq_0 -> information_space.KL_same_eq_0
+  information_space.KL_ge_0 -> information_space.KL_nonneg
+  information_space.mutual_information_eq -> information_space.mutual_information_simple_distributed
+  information_space.mutual_information_positive -> information_space.mutual_information_nonneg_simple
+  Int_stable_cuboids -> Int_stable_atLeastAtMost
+  Int_stable_product_algebra_generator -> positive_integral
+  measure_preserving -> equality "distr M N f = N" "f : measurable M N"
+  measure_space.additive -> emeasure_additive
+  measure_space.AE_iff_null_set -> AE_iff_null
+  measure_space.almost_everywhere_def -> eventually_ae_filter
+  measure_space.almost_everywhere_vimage -> AE_distrD
+  measure_space.continuity_from_above -> INF_emeasure_decseq
+  measure_space.continuity_from_above_Lim -> Lim_emeasure_decseq
+  measure_space.continuity_from_below_Lim -> Lim_emeasure_incseq
+  measure_space.continuity_from_below -> SUP_emeasure_incseq
+  measure_space_density -> emeasure_density
+  measure_space.density_is_absolutely_continuous -> absolutely_continuousI_density
   measure_space.integrable_vimage -> integrable_distr
-  measure_space.positive_integral_translated_density -> positive_integral_density
   measure_space.integral_translated_density -> integral_density
   measure_space.integral_vimage -> integral_distr
-  measure_space_density -> emeasure_density
+  measure_space.measure_additive -> plus_emeasure
+  measure_space.measure_compl -> emeasure_compl
+  measure_space.measure_countable_increasing -> emeasure_countable_increasing
+  measure_space.measure_countably_subadditive -> emeasure_subadditive_countably
+  measure_space.measure_decseq -> decseq_emeasure
+  measure_space.measure_Diff -> emeasure_Diff
+  measure_space.measure_Diff_null_set -> emeasure_Diff_null_set
+  measure_space.measure_eq_0 -> emeasure_eq_0
+  measure_space.measure_finitely_subadditive -> emeasure_subadditive_finite
+  measure_space.measure_finite_singleton -> emeasure_eq_setsum_singleton
+  measure_space.measure_incseq -> incseq_emeasure
+  measure_space.measure_insert -> emeasure_insert
+  measure_space.measure_mono -> emeasure_mono
+  measure_space.measure_not_negative -> emeasure_not_MInf
+  measure_space.measure_preserving_Int_stable -> measure_eqI_generator_eq
+  measure_space.measure_setsum -> setsum_emeasure
+  measure_space.measure_setsum_split -> setsum_emeasure_cover
+  measure_space.measure_space_vimage -> emeasure_distr
+  measure_space.measure_subadditive_finite -> emeasure_subadditive_finite
+  measure_space.measure_subadditive -> subadditive
+  measure_space.measure_top -> emeasure_space
+  measure_space.measure_UN_eq_0 -> emeasure_UN_eq_0
+  measure_space.measure_Un_null_set -> emeasure_Un_null_set
+  measure_space.positive_integral_translated_density -> positive_integral_density
   measure_space.positive_integral_vimage -> positive_integral_distr
+  measure_space.real_continuity_from_above -> Lim_measure_decseq
+  measure_space.real_continuity_from_below -> Lim_measure_incseq
+  measure_space.real_measure_countably_subadditive -> measure_subadditive_countably
+  measure_space.real_measure_Diff -> measure_Diff
+  measure_space.real_measure_finite_Union -> measure_finite_Union
+  measure_space.real_measure_setsum_singleton -> measure_eq_setsum_singleton
+  measure_space.real_measure_subadditive -> measure_subadditive
+  measure_space.real_measure_Union -> measure_Union
+  measure_space.real_measure_UNION -> measure_UNION
   measure_space.simple_function_vimage -> simple_function_comp
   measure_space.simple_integral_vimage -> simple_integral_distr
+  measure_space.simple_integral_vimage -> simple_integral_distr
+  measure_unique_Int_stable -> measure_eqI_generator_eq
+  measure_unique_Int_stable_vimage -> measure_eqI_generator_eq
   pair_sigma_algebra.measurable_cut_fst -> sets_Pair1
   pair_sigma_algebra.measurable_cut_snd -> sets_Pair2
   pair_sigma_algebra.measurable_pair_image_fst -> measurable_Pair1
   pair_sigma_algebra.measurable_pair_image_snd -> measurable_Pair2
   pair_sigma_algebra.measurable_product_swap -> measurable_pair_swap_iff
-  pair_sigma_finite.measure_cut_measurable_fst -> pair_sigma_finite.measurable_emeasure_Pair1
-  pair_sigma_finite.measure_cut_measurable_snd -> pair_sigma_finite.measurable_emeasure_Pair2
-  measure_space.measure_not_negative -> emeasure_not_MInf
-  pair_sigma_finite.measure_preserving_swap -> pair_sigma_finite.distr_pair_swap
-  pair_sigma_finite.pair_measure_alt -> pair_sigma_finite.emeasure_pair_measure_alt
-  pair_sigma_finite.pair_measure_alt2 -> pair_sigma_finite.emeasure_pair_measure_alt2
-  pair_sigma_finite.pair_measure_times -> pair_sigma_finite.emeasure_pair_measure_Times
   pair_sigma_algebra.pair_sigma_algebra_measurable -> measurable_pair_swap
   pair_sigma_algebra.pair_sigma_algebra_swap_measurable -> measurable_pair_swap'
   pair_sigma_algebra.sets_swap -> sets_pair_swap
-  finite_product_sigma_algebra.in_P -> sets_PiM_I_finite
-  Int_stable_product_algebra_generator -> positive_integral
-  product_sigma_finite.measure_fold -> product_sigma_finite.distr_merge
-  product_sigma_finite.measure_preserving_component_singelton -> product_sigma_finite.distr_singleton
-  product_sigma_finite.measure_preserving_merge -> product_sigma_finite.distr_merge
-  finite_product_sigma_algebra.P_empty -> space_PiM_empty, sets_PiM_empty
-  product_algebra_generator_der -> prod_algebra_eq_finite
-  product_algebra_generator_into_space -> prod_algebra_sets_into_space
-  product_sigma_algebra.product_algebra_into_space -> space_closed
-  product_algebraE -> prod_algebraE_all
-  product_algebraI -> sets_PiM_I_finite
-  product_measure_exists -> product_sigma_finite.sigma_finite
-  sets_product_algebra -> sets_PiM
-  sigma_product_algebra_sigma_eq -> sigma_prod_algebra_sigma_eq
-  space_product_algebra -> space_PiM
-  Int_stable_cuboids -> Int_stable_atLeastAtMost
-  measure_space.density_is_absolutely_continuous -> absolutely_continuousI_density
-  sigma_finite_measure.RN_deriv_vimage -> sigma_finite_measure.RN_deriv_distr
-  prob_space_unique_Int_stable -> measure_eqI_prob_space
-  sigma_finite_measure.disjoint_sigma_finite -> sigma_finite_disjoint
+  pair_sigma_finite.measure_cut_measurable_fst -> pair_sigma_finite.measurable_emeasure_Pair1
+  pair_sigma_finite.measure_cut_measurable_snd -> pair_sigma_finite.measurable_emeasure_Pair2
+  pair_sigma_finite.measure_preserving_swap -> pair_sigma_finite.distr_pair_swap
+  pair_sigma_finite.pair_measure_alt2 -> pair_sigma_finite.emeasure_pair_measure_alt2
+  pair_sigma_finite.pair_measure_alt -> pair_sigma_finite.emeasure_pair_measure_alt
+  pair_sigma_finite.pair_measure_times -> pair_sigma_finite.emeasure_pair_measure_Times
+  prob_space.indep_distribution_eq_measure -> prob_space.indep_vars_iff_distr_eq_PiM
+  prob_space.indep_var_distributionD -> prob_space.indep_var_distribution_eq
   prob_space.measure_space_1 -> prob_space.emeasure_space_1
   prob_space.prob_space_vimage -> prob_space_distr
   prob_space.random_variable_restrict -> measurable_restrict
-  measure_preserving -> equality "distr M N f = N" "f : measurable M N"
-  measure_unique_Int_stable_vimage -> measure_eqI_generator_eq
-  measure_space.measure_preserving_Int_stable -> measure_eqI_generator_eq
+  prob_space_unique_Int_stable -> measure_eqI_prob_space
+  product_algebraE -> prod_algebraE_all
+  product_algebra_generator_der -> prod_algebra_eq_finite
+  product_algebra_generator_into_space -> prod_algebra_sets_into_space
+  product_algebraI -> sets_PiM_I_finite
+  product_measure_exists -> product_sigma_finite.sigma_finite
   product_prob_space.finite_index_eq_finite_product -> product_prob_space.sets_PiM_generator
   product_prob_space.finite_measure_infprod_emb_Pi -> product_prob_space.measure_PiM_emb
-  finite_product_prob_space.finite_measure_times -> finite_product_prob_space.finite_measure_PiM_emb
   product_prob_space.infprod_spec -> product_prob_space.emeasure_PiM_emb_not_empty
   product_prob_space.measurable_component -> measurable_component_singleton
   product_prob_space.measurable_emb -> measurable_prod_emb
   product_prob_space.measurable_into_infprod_algebra -> measurable_PiM_single
   product_prob_space.measurable_singleton_infprod -> measurable_component_singleton
   product_prob_space.measure_emb -> emeasure_prod_emb
-  sequence_space.measure_infprod -> sequence_space.measure_PiM_countable
   product_prob_space.measure_preserving_restrict -> product_prob_space.distr_restrict
-  prob_space.indep_distribution_eq_measure -> prob_space.indep_vars_iff_distr_eq_PiM
-  prob_space.indep_var_distributionD -> prob_space.indep_var_distribution_eq
-  conditional_entropy_positive -> conditional_entropy_nonneg_simple
-  conditional_entropy_eq -> conditional_entropy_simple_distributed
-  conditional_mutual_information_eq_mutual_information -> conditional_mutual_information_eq_mutual_information_simple
-  conditional_mutual_information_generic_positive -> conditional_mutual_information_nonneg_simple
-  conditional_mutual_information_positive -> conditional_mutual_information_nonneg_simple
-  entropy_commute -> entropy_commute_simple
-  entropy_eq -> entropy_simple_distributed
-  entropy_generic_eq -> entropy_simple_distributed
-  entropy_positive -> entropy_nonneg_simple
-  entropy_uniform_max -> entropy_uniform
-  KL_eq_0 -> KL_same_eq_0
-  KL_eq_0_imp -> KL_eq_0_iff_eq
-  KL_ge_0 -> KL_nonneg
-  mutual_information_eq -> mutual_information_simple_distributed
-  mutual_information_positive -> mutual_information_nonneg_simple
+  product_sigma_algebra.product_algebra_into_space -> space_closed
+  product_sigma_finite.measure_fold -> product_sigma_finite.distr_merge
+  product_sigma_finite.measure_preserving_component_singelton -> product_sigma_finite.distr_singleton
+  product_sigma_finite.measure_preserving_merge -> product_sigma_finite.distr_merge
+  sequence_space.measure_infprod -> sequence_space.measure_PiM_countable
+  sets_product_algebra -> sets_PiM
+  sigma_algebra.measurable_sigma -> measurable_measure_of
+  sigma_finite_measure.disjoint_sigma_finite -> sigma_finite_disjoint
+  sigma_finite_measure.RN_deriv_vimage -> sigma_finite_measure.RN_deriv_distr
+  sigma_product_algebra_sigma_eq -> sigma_prod_algebra_sigma_eq
+  space_product_algebra -> space_PiM
 
 * New "case_product" attribute to generate a case rule doing multiple
 case distinctions at the same time.  E.g.
