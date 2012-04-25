@@ -1231,7 +1231,7 @@ fun freeze_term t =
       | freeze t = t
   in t |> exists_subterm is_Var t ? freeze end
 
-fun presimp_prop ctxt t =
+fun presimp_prop ctxt type_enc t =
   let
     val thy = Proof_Context.theory_of ctxt
     val t = t |> Envir.beta_eta_contract
@@ -1240,7 +1240,7 @@ fun presimp_prop ctxt t =
     val need_trueprop = (fastype_of t = @{typ bool})
   in
     t |> need_trueprop ? HOLogic.mk_Trueprop
-      |> extensionalize_term ctxt
+      |> not (is_type_enc_higher_order type_enc) ? extensionalize_term ctxt
       |> presimplify_term thy
       |> HOLogic.dest_Trueprop
   end
@@ -1796,7 +1796,7 @@ fun translate_formulas ctxt prem_kind format type_enc lam_trans presimp hyp_ts
               (0 upto length hyp_ts)
     val ((conjs, facts), lam_facts) =
       (conjs, facts)
-      |> presimp ? pairself (map (apsnd (apsnd (presimp_prop ctxt))))
+      |> presimp ? pairself (map (apsnd (apsnd (presimp_prop ctxt type_enc))))
       |> (if lam_trans = no_lamsN then
             rpair []
           else
