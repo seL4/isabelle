@@ -24,7 +24,7 @@ text {* Sigma algebras are an elementary concept in measure
   subsets of the universe. A sigma algebra is such a set that has
   three very natural and desirable properties. *}
 
-subsection {* Algebras *}
+subsection {* Families of sets *}
 
 locale subset_class =
   fixes \<Omega> :: "'a set" and M :: "'a set set"
@@ -33,19 +33,84 @@ locale subset_class =
 lemma (in subset_class) sets_into_space: "x \<in> M \<Longrightarrow> x \<subseteq> \<Omega>"
   by (metis PowD contra_subsetD space_closed)
 
-locale ring_of_sets = subset_class +
-  assumes empty_sets [iff]: "{} \<in> M"
-     and  Diff [intro]: "\<And>a b. a \<in> M \<Longrightarrow> b \<in> M \<Longrightarrow> a - b \<in> M"
-     and  Un [intro]: "\<And>a b. a \<in> M \<Longrightarrow> b \<in> M \<Longrightarrow> a \<union> b \<in> M"
+subsection {* Semiring of sets *}
 
-lemma (in ring_of_sets) Int [intro]:
-  assumes a: "a \<in> M" and b: "b \<in> M" shows "a \<inter> b \<in> M"
-proof -
-  have "a \<inter> b = a - (a - b)"
-    by auto
-  then show "a \<inter> b \<in> M"
-    using a b by auto
+subsubsection {* Disjoint sets *}
+
+definition "disjoint A \<longleftrightarrow> (\<forall>a\<in>A. \<forall>b\<in>A. a \<noteq> b \<longrightarrow> a \<inter> b = {})"
+
+lemma disjointI:
+  "(\<And>a b. a \<in> A \<Longrightarrow> b \<in> A \<Longrightarrow> a \<noteq> b \<Longrightarrow> a \<inter> b = {}) \<Longrightarrow> disjoint A"
+  unfolding disjoint_def by auto
+
+lemma disjointD:
+  "disjoint A \<Longrightarrow> a \<in> A \<Longrightarrow> b \<in> A \<Longrightarrow> a \<noteq> b \<Longrightarrow> a \<inter> b = {}"
+  unfolding disjoint_def by auto
+
+lemma disjoint_empty[iff]: "disjoint {}"
+  by (auto simp: disjoint_def)
+
+lemma disjoint_union: 
+  assumes C: "disjoint C" and B: "disjoint B" and disj: "\<Union>C \<inter> \<Union>B = {}"
+  shows "disjoint (C \<union> B)"
+proof (rule disjointI)
+  fix c d assume sets: "c \<in> C \<union> B" "d \<in> C \<union> B" and "c \<noteq> d"
+  show "c \<inter> d = {}"
+  proof cases
+    assume "(c \<in> C \<and> d \<in> C) \<or> (c \<in> B \<and> d \<in> B)"
+    then show ?thesis
+    proof 
+      assume "c \<in> C \<and> d \<in> C" with `c \<noteq> d` C show "c \<inter> d = {}"
+        by (auto simp: disjoint_def)
+    next
+      assume "c \<in> B \<and> d \<in> B" with `c \<noteq> d` B show "c \<inter> d = {}"
+        by (auto simp: disjoint_def)
+    qed
+  next
+    assume "\<not> ((c \<in> C \<and> d \<in> C) \<or> (c \<in> B \<and> d \<in> B))"
+    with sets have "(c \<subseteq> \<Union>C \<and> d \<subseteq> \<Union>B) \<or> (c \<subseteq> \<Union>B \<and> d \<subseteq> \<Union>C)"
+      by auto
+    with disj show "c \<inter> d = {}" by auto
+  qed
 qed
+
+locale semiring_of_sets = subset_class +
+  assumes empty_sets[iff]: "{} \<in> M"
+  assumes Int[intro]: "\<And>a b. a \<in> M \<Longrightarrow> b \<in> M \<Longrightarrow> a \<inter> b \<in> M"
+  assumes Diff_cover:
+    "\<And>a b. a \<in> M \<Longrightarrow> b \<in> M \<Longrightarrow> \<exists>C\<subseteq>M. finite C \<and> disjoint C \<and> a - b = \<Union>C"
+
+lemma (in semiring_of_sets) finite_INT[intro]:
+  assumes "finite I" "I \<noteq> {}" "\<And>i. i \<in> I \<Longrightarrow> A i \<in> M"
+  shows "(\<Inter>i\<in>I. A i) \<in> M"
+  using assms by (induct rule: finite_ne_induct) auto
+
+lemma (in semiring_of_sets) Int_space_eq1 [simp]: "x \<in> M \<Longrightarrow> \<Omega> \<inter> x = x"
+  by (metis Int_absorb1 sets_into_space)
+
+lemma (in semiring_of_sets) Int_space_eq2 [simp]: "x \<in> M \<Longrightarrow> x \<inter> \<Omega> = x"
+  by (metis Int_absorb2 sets_into_space)
+
+lemma (in semiring_of_sets) sets_Collect_conj:
+  assumes "{x\<in>\<Omega>. P x} \<in> M" "{x\<in>\<Omega>. Q x} \<in> M"
+  shows "{x\<in>\<Omega>. Q x \<and> P x} \<in> M"
+proof -
+  have "{x\<in>\<Omega>. Q x \<and> P x} = {x\<in>\<Omega>. Q x} \<inter> {x\<in>\<Omega>. P x}"
+    by auto
+  with assms show ?thesis by auto
+qed
+
+lemma (in semiring_of_sets) sets_Collect_finite_All:
+  assumes "\<And>i. i \<in> S \<Longrightarrow> {x\<in>\<Omega>. P i x} \<in> M" "finite S" "S \<noteq> {}"
+  shows "{x\<in>\<Omega>. \<forall>i\<in>S. P i x} \<in> M"
+proof -
+  have "{x\<in>\<Omega>. \<forall>i\<in>S. P i x} = (\<Inter>i\<in>S. {x\<in>\<Omega>. P i x})"
+    using `S \<noteq> {}` by auto
+  with assms show ?thesis by auto
+qed
+
+locale ring_of_sets = semiring_of_sets +
+  assumes Un [intro]: "\<And>a b. a \<in> M \<Longrightarrow> b \<in> M \<Longrightarrow> a \<union> b \<in> M"
 
 lemma (in ring_of_sets) finite_Union [intro]:
   "finite X \<Longrightarrow> X \<subseteq> M \<Longrightarrow> Union X \<in> M"
@@ -56,10 +121,32 @@ lemma (in ring_of_sets) finite_UN[intro]:
   shows "(\<Union>i\<in>I. A i) \<in> M"
   using assms by induct auto
 
-lemma (in ring_of_sets) finite_INT[intro]:
-  assumes "finite I" "I \<noteq> {}" "\<And>i. i \<in> I \<Longrightarrow> A i \<in> M"
-  shows "(\<Inter>i\<in>I. A i) \<in> M"
-  using assms by (induct rule: finite_ne_induct) auto
+lemma (in ring_of_sets) Diff [intro]:
+  assumes "a \<in> M" "b \<in> M" shows "a - b \<in> M"
+  using Diff_cover[OF assms] by auto
+
+lemma ring_of_setsI:
+  assumes space_closed: "M \<subseteq> Pow \<Omega>"
+  assumes empty_sets[iff]: "{} \<in> M"
+  assumes Un[intro]: "\<And>a b. a \<in> M \<Longrightarrow> b \<in> M \<Longrightarrow> a \<union> b \<in> M"
+  assumes Diff[intro]: "\<And>a b. a \<in> M \<Longrightarrow> b \<in> M \<Longrightarrow> a - b \<in> M"
+  shows "ring_of_sets \<Omega> M"
+proof
+  fix a b assume ab: "a \<in> M" "b \<in> M"
+  from ab show "\<exists>C\<subseteq>M. finite C \<and> disjoint C \<and> a - b = \<Union>C"
+    by (intro exI[of _ "{a - b}"]) (auto simp: disjoint_def)
+  have "a \<inter> b = a - (a - b)" by auto
+  also have "\<dots> \<in> M" using ab by auto
+  finally show "a \<inter> b \<in> M" .
+qed fact+
+
+lemma ring_of_sets_iff: "ring_of_sets \<Omega> M \<longleftrightarrow> M \<subseteq> Pow \<Omega> \<and> {} \<in> M \<and> (\<forall>a\<in>M. \<forall>b\<in>M. a \<union> b \<in> M) \<and> (\<forall>a\<in>M. \<forall>b\<in>M. a - b \<in> M)"
+proof
+  assume "ring_of_sets \<Omega> M"
+  then interpret ring_of_sets \<Omega> M .
+  show "M \<subseteq> Pow \<Omega> \<and> {} \<in> M \<and> (\<forall>a\<in>M. \<forall>b\<in>M. a \<union> b \<in> M) \<and> (\<forall>a\<in>M. \<forall>b\<in>M. a - b \<in> M)"
+    using space_closed by auto
+qed (auto intro!: ring_of_setsI)
 
 lemma (in ring_of_sets) insert_in_sets:
   assumes "{x} \<in> M" "A \<in> M" shows "insert x A \<in> M"
@@ -68,36 +155,12 @@ proof -
   thus ?thesis by auto
 qed
 
-lemma (in ring_of_sets) Int_space_eq1 [simp]: "x \<in> M \<Longrightarrow> \<Omega> \<inter> x = x"
-  by (metis Int_absorb1 sets_into_space)
-
-lemma (in ring_of_sets) Int_space_eq2 [simp]: "x \<in> M \<Longrightarrow> x \<inter> \<Omega> = x"
-  by (metis Int_absorb2 sets_into_space)
-
-lemma (in ring_of_sets) sets_Collect_conj:
-  assumes "{x\<in>\<Omega>. P x} \<in> M" "{x\<in>\<Omega>. Q x} \<in> M"
-  shows "{x\<in>\<Omega>. Q x \<and> P x} \<in> M"
-proof -
-  have "{x\<in>\<Omega>. Q x \<and> P x} = {x\<in>\<Omega>. Q x} \<inter> {x\<in>\<Omega>. P x}"
-    by auto
-  with assms show ?thesis by auto
-qed
-
 lemma (in ring_of_sets) sets_Collect_disj:
   assumes "{x\<in>\<Omega>. P x} \<in> M" "{x\<in>\<Omega>. Q x} \<in> M"
   shows "{x\<in>\<Omega>. Q x \<or> P x} \<in> M"
 proof -
   have "{x\<in>\<Omega>. Q x \<or> P x} = {x\<in>\<Omega>. Q x} \<union> {x\<in>\<Omega>. P x}"
     by auto
-  with assms show ?thesis by auto
-qed
-
-lemma (in ring_of_sets) sets_Collect_finite_All:
-  assumes "\<And>i. i \<in> S \<Longrightarrow> {x\<in>\<Omega>. P i x} \<in> M" "finite S" "S \<noteq> {}"
-  shows "{x\<in>\<Omega>. \<forall>i\<in>S. P i x} \<in> M"
-proof -
-  have "{x\<in>\<Omega>. \<forall>i\<in>S. P i x} = (\<Inter>i\<in>S. {x\<in>\<Omega>. P i x})"
-    using `S \<noteq> {}` by auto
   with assms show ?thesis by auto
 qed
 
@@ -129,9 +192,10 @@ proof
   show ?Un using sets_into_space by auto
 next
   assume ?Un
-  show "algebra \<Omega> M"
-  proof
-    show \<Omega>: "M \<subseteq> Pow \<Omega>" "{} \<in> M" "\<Omega> \<in> M"
+  then have "\<Omega> \<in> M" by auto
+  interpret ring_of_sets \<Omega> M
+  proof (rule ring_of_setsI)
+    show \<Omega>: "M \<subseteq> Pow \<Omega>" "{} \<in> M"
       using `?Un` by auto
     fix a b assume a: "a \<in> M" and b: "b \<in> M"
     then show "a \<union> b \<in> M" using `?Un` by auto
@@ -140,6 +204,7 @@ next
     then show "a - b \<in> M"
       using a b  `?Un` by auto
   qed
+  show "algebra \<Omega> M" proof qed fact
 qed
 
 lemma algebra_iff_Int:
@@ -184,9 +249,8 @@ lemma (in algebra) sets_Collect_const:
   by (cases P) auto
 
 lemma algebra_single_set:
-  assumes "X \<subseteq> S"
-  shows "algebra S { {}, X, S - X, S }"
-  by default (insert `X \<subseteq> S`, auto)
+  "X \<subseteq> S \<Longrightarrow> algebra S { {}, X, S - X, S }"
+  by (auto simp: algebra_iff_Int)
 
 section {* Restricted algebras *}
 
@@ -195,7 +259,7 @@ abbreviation (in algebra)
 
 lemma (in algebra) restricted_algebra:
   assumes "A \<in> M" shows "algebra A (restricted_space A)"
-  using assms by unfold_locales auto
+  using assms by (auto simp: algebra_iff_Int)
 
 subsection {* Sigma Algebras *}
 
@@ -261,18 +325,18 @@ proof -
 qed
 
 lemma ring_of_sets_Pow: "ring_of_sets sp (Pow sp)"
-  by default auto
+  by (auto simp: ring_of_sets_iff)
 
 lemma algebra_Pow: "algebra sp (Pow sp)"
-  by default auto
-
-lemma sigma_algebra_Pow: "sigma_algebra sp (Pow sp)"
-  by default auto
+  by (auto simp: algebra_iff_Un)
 
 lemma sigma_algebra_iff:
   "sigma_algebra \<Omega> M \<longleftrightarrow>
     algebra \<Omega> M \<and> (\<forall>A. range A \<subseteq> M \<longrightarrow> (\<Union>i::nat. A i) \<in> M)"
   by (simp add: sigma_algebra_def sigma_algebra_axioms_def)
+
+lemma sigma_algebra_Pow: "sigma_algebra sp (Pow sp)"
+  by (auto simp: sigma_algebra_iff algebra_iff_Int)
 
 lemma (in sigma_algebra) sets_Collect_countable_All:
   assumes "\<And>i. {x\<in>\<Omega>. P i x} \<in> M"
@@ -451,6 +515,21 @@ proof
   fix x assume "x \<in> sigma_sets X A" then show "x \<in> sigma_sets X B"
     by induct (insert `A \<subseteq> B`, auto intro: sigma_sets.intros(2-))
 qed
+
+lemma sigma_sets_mono: assumes "A \<subseteq> sigma_sets X B" shows "sigma_sets X A \<subseteq> sigma_sets X B"
+proof
+  fix x assume "x \<in> sigma_sets X A" then show "x \<in> sigma_sets X B"
+    by induct (insert `A \<subseteq> sigma_sets X B`, auto intro: sigma_sets.intros(2-))
+qed
+
+lemma sigma_sets_mono': assumes "A \<subseteq> B" shows "sigma_sets X A \<subseteq> sigma_sets X B"
+proof
+  fix x assume "x \<in> sigma_sets X A" then show "x \<in> sigma_sets X B"
+    by induct (insert `A \<subseteq> B`, auto intro: sigma_sets.intros(2-))
+qed
+
+lemma sigma_sets_superset_generator: "A \<subseteq> sigma_sets X A"
+  by (auto intro: sigma_sets.Basic)
 
 lemma (in sigma_algebra) restriction_in_sets:
   fixes A :: "nat \<Rightarrow> 'a set"
@@ -762,6 +841,150 @@ proof (auto simp add: sigma_algebra_iff)
   thus "(\<Union>i::nat. A i) \<in> M" by (simp add: UN_disjointed_eq)
 qed
 
+lemma disjoint_family_on_disjoint_image:
+  "disjoint_family_on A I \<Longrightarrow> disjoint (A ` I)"
+  unfolding disjoint_family_on_def disjoint_def by force
+
+lemma disjoint_image_disjoint_family_on:
+  assumes d: "disjoint (A ` I)" and i: "inj_on A I"
+  shows "disjoint_family_on A I"
+  unfolding disjoint_family_on_def
+proof (intro ballI impI)
+  fix n m assume nm: "m \<in> I" "n \<in> I" and "n \<noteq> m"
+  with i[THEN inj_onD, of n m] show "A n \<inter> A m = {}"
+    by (intro disjointD[OF d]) auto
+qed
+
+section {* Ring generated by a semiring *}
+
+definition (in semiring_of_sets)
+  "generated_ring = { \<Union>C | C. C \<subseteq> M \<and> finite C \<and> disjoint C }"
+
+lemma (in semiring_of_sets) generated_ringE[elim?]:
+  assumes "a \<in> generated_ring"
+  obtains C where "finite C" "disjoint C" "C \<subseteq> M" "a = \<Union>C"
+  using assms unfolding generated_ring_def by auto
+
+lemma (in semiring_of_sets) generated_ringI[intro?]:
+  assumes "finite C" "disjoint C" "C \<subseteq> M" "a = \<Union>C"
+  shows "a \<in> generated_ring"
+  using assms unfolding generated_ring_def by auto
+
+lemma (in semiring_of_sets) generated_ringI_Basic:
+  "A \<in> M \<Longrightarrow> A \<in> generated_ring"
+  by (rule generated_ringI[of "{A}"]) (auto simp: disjoint_def)
+
+lemma (in semiring_of_sets) generated_ring_disjoint_Un[intro]:
+  assumes a: "a \<in> generated_ring" and b: "b \<in> generated_ring"
+  and "a \<inter> b = {}"
+  shows "a \<union> b \<in> generated_ring"
+proof -
+  from a guess Ca .. note Ca = this
+  from b guess Cb .. note Cb = this
+  show ?thesis
+  proof
+    show "disjoint (Ca \<union> Cb)"
+      using `a \<inter> b = {}` Ca Cb by (auto intro!: disjoint_union)
+  qed (insert Ca Cb, auto)
+qed
+
+lemma (in semiring_of_sets) generated_ring_empty: "{} \<in> generated_ring"
+  by (auto simp: generated_ring_def disjoint_def)
+
+lemma (in semiring_of_sets) generated_ring_disjoint_Union:
+  assumes "finite A" shows "A \<subseteq> generated_ring \<Longrightarrow> disjoint A \<Longrightarrow> \<Union>A \<in> generated_ring"
+  using assms by (induct A) (auto simp: disjoint_def intro!: generated_ring_disjoint_Un generated_ring_empty)
+
+lemma (in semiring_of_sets) generated_ring_disjoint_UNION:
+  "finite I \<Longrightarrow> disjoint (A ` I) \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> A i \<in> generated_ring) \<Longrightarrow> UNION I A \<in> generated_ring"
+  unfolding SUP_def by (intro generated_ring_disjoint_Union) auto
+
+lemma (in semiring_of_sets) generated_ring_Int:
+  assumes a: "a \<in> generated_ring" and b: "b \<in> generated_ring"
+  shows "a \<inter> b \<in> generated_ring"
+proof -
+  from a guess Ca .. note Ca = this
+  from b guess Cb .. note Cb = this
+  def C \<equiv> "(\<lambda>(a,b). a \<inter> b)` (Ca\<times>Cb)"
+  show ?thesis
+  proof
+    show "disjoint C"
+    proof (simp add: disjoint_def C_def, intro ballI impI)
+      fix a1 b1 a2 b2 assume sets: "a1 \<in> Ca" "b1 \<in> Cb" "a2 \<in> Ca" "b2 \<in> Cb"
+      assume "a1 \<inter> b1 \<noteq> a2 \<inter> b2"
+      then have "a1 \<noteq> a2 \<or> b1 \<noteq> b2" by auto
+      then show "(a1 \<inter> b1) \<inter> (a2 \<inter> b2) = {}"
+      proof
+        assume "a1 \<noteq> a2"
+        with sets Ca have "a1 \<inter> a2 = {}"
+          by (auto simp: disjoint_def)
+        then show ?thesis by auto
+      next
+        assume "b1 \<noteq> b2"
+        with sets Cb have "b1 \<inter> b2 = {}"
+          by (auto simp: disjoint_def)
+        then show ?thesis by auto
+      qed
+    qed
+  qed (insert Ca Cb, auto simp: C_def)
+qed
+
+lemma (in semiring_of_sets) generated_ring_Inter:
+  assumes "finite A" "A \<noteq> {}" shows "A \<subseteq> generated_ring \<Longrightarrow> \<Inter>A \<in> generated_ring"
+  using assms by (induct A rule: finite_ne_induct) (auto intro: generated_ring_Int)
+
+lemma (in semiring_of_sets) generated_ring_INTER:
+  "finite I \<Longrightarrow> I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> A i \<in> generated_ring) \<Longrightarrow> INTER I A \<in> generated_ring"
+  unfolding INF_def by (intro generated_ring_Inter) auto
+
+lemma (in semiring_of_sets) generating_ring:
+  "ring_of_sets \<Omega> generated_ring"
+proof (rule ring_of_setsI)
+  let ?R = generated_ring
+  show "?R \<subseteq> Pow \<Omega>"
+    using sets_into_space by (auto simp: generated_ring_def generated_ring_empty)
+  show "{} \<in> ?R" by (rule generated_ring_empty)
+
+  { fix a assume a: "a \<in> ?R" then guess Ca .. note Ca = this
+    fix b assume b: "b \<in> ?R" then guess Cb .. note Cb = this
+  
+    show "a - b \<in> ?R"
+    proof cases
+      assume "Cb = {}" with Cb `a \<in> ?R` show ?thesis
+        by simp
+    next
+      assume "Cb \<noteq> {}"
+      with Ca Cb have "a - b = (\<Union>a'\<in>Ca. \<Inter>b'\<in>Cb. a' - b')" by auto
+      also have "\<dots> \<in> ?R"
+      proof (intro generated_ring_INTER generated_ring_disjoint_UNION)
+        fix a b assume "a \<in> Ca" "b \<in> Cb"
+        with Ca Cb Diff_cover[of a b] show "a - b \<in> ?R"
+          by (auto simp add: generated_ring_def)
+      next
+        show "disjoint ((\<lambda>a'. \<Inter>b'\<in>Cb. a' - b')`Ca)"
+          using Ca by (auto simp add: disjoint_def `Cb \<noteq> {}`)
+      next
+        show "finite Ca" "finite Cb" "Cb \<noteq> {}" by fact+
+      qed
+      finally show "a - b \<in> ?R" .
+    qed }
+  note Diff = this
+
+  fix a b assume sets: "a \<in> ?R" "b \<in> ?R"
+  have "a \<union> b = (a - b) \<union> (a \<inter> b) \<union> (b - a)" by auto
+  also have "\<dots> \<in> ?R"
+    by (intro sets generated_ring_disjoint_Un generated_ring_Int Diff) auto
+  finally show "a \<union> b \<in> ?R" .
+qed
+
+lemma (in semiring_of_sets) sigma_sets_generated_ring_eq: "sigma_sets \<Omega> generated_ring = sigma_sets \<Omega> M"
+proof
+  interpret M: sigma_algebra \<Omega> "sigma_sets \<Omega> M"
+    using space_closed by (rule sigma_algebra_sigma_sets)
+  show "sigma_sets \<Omega> generated_ring \<subseteq> sigma_sets \<Omega> M"
+    by (blast intro!: sigma_sets_mono elim: generated_ringE)
+qed (auto intro!: generated_ringI_Basic sigma_sets_mono)
+
 section {* Measure type *}
 
 definition positive :: "'a set set \<Rightarrow> ('a set \<Rightarrow> ereal) \<Rightarrow> bool" where
@@ -777,7 +1000,7 @@ definition measure_space :: "'a set \<Rightarrow> 'a set set \<Rightarrow> ('a s
 typedef (open) 'a measure = "{(\<Omega>::'a set, A, \<mu>). (\<forall>a\<in>-A. \<mu> a = 0) \<and> measure_space \<Omega> A \<mu> }"
 proof
   have "sigma_algebra UNIV {{}, UNIV}"
-    proof qed auto
+    by (auto simp: sigma_algebra_iff2)
   then show "(UNIV, {{}, UNIV}, \<lambda>A. 0) \<in> {(\<Omega>, A, \<mu>). (\<forall>a\<in>-A. \<mu> a = 0) \<and> measure_space \<Omega> A \<mu>} "
     by (auto simp: measure_space_def positive_def countably_additive_def)
 qed

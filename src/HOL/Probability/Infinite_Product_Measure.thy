@@ -8,21 +8,6 @@ theory Infinite_Product_Measure
   imports Probability_Measure Caratheodory
 begin
 
-lemma sigma_sets_mono: assumes "A \<subseteq> sigma_sets X B" shows "sigma_sets X A \<subseteq> sigma_sets X B"
-proof
-  fix x assume "x \<in> sigma_sets X A" then show "x \<in> sigma_sets X B"
-    by induct (insert `A \<subseteq> sigma_sets X B`, auto intro: sigma_sets.intros)
-qed
-
-lemma sigma_sets_mono': assumes "A \<subseteq> B" shows "sigma_sets X A \<subseteq> sigma_sets X B"
-proof
-  fix x assume "x \<in> sigma_sets X A" then show "x \<in> sigma_sets X B"
-    by induct (insert `A \<subseteq> B`, auto intro: sigma_sets.intros)
-qed
-
-lemma sigma_sets_superset_generator: "A \<subseteq> sigma_sets X A"
-  by (auto intro: sigma_sets.Basic)
-
 lemma (in product_sigma_finite)
   assumes IJ: "I \<inter> J = {}" "finite I" "finite J" and A: "A \<in> sets (Pi\<^isub>M (I \<union> J) M)"
   shows emeasure_fold_integral:
@@ -187,7 +172,8 @@ lemma (in product_prob_space) generatorI':
 
 lemma (in product_prob_space) algebra_generator:
   assumes "I \<noteq> {}" shows "algebra (\<Pi>\<^isub>E i\<in>I. space (M i)) generator" (is "algebra ?\<Omega> ?G")
-proof
+  unfolding algebra_def algebra_axioms_def ring_of_sets_iff
+proof (intro conjI ballI)
   let ?G = generator
   show "?G \<subseteq> Pow ?\<Omega>"
     by (auto simp: generator_def prod_emb_def)

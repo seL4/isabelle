@@ -636,7 +636,7 @@ lemma null_setsI[intro]: "emeasure M A = 0 \<Longrightarrow> A \<in> sets M \<Lo
   unfolding null_sets_def by simp
 
 interpretation null_sets: ring_of_sets "space M" "null_sets M" for M
-proof
+proof (rule ring_of_setsI)
   show "null_sets M \<subseteq> Pow (space M)"
     using sets_into_space by auto
   show "{} \<in> null_sets M"

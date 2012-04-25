@@ -655,7 +655,7 @@ lemma measure_down:
   by (simp add: measure_space_def positive_def countably_additive_def)
      blast
 
-theorem (in ring_of_sets) caratheodory:
+theorem (in ring_of_sets) caratheodory':
   assumes posf: "positive M f" and ca: "countably_additive M f"
   shows "\<exists>\<mu> :: 'a set \<Rightarrow> ereal. (\<forall>s \<in> M. \<mu> s = f s) \<and> measure_space \<Omega> (sigma_sets \<Omega> M) \<mu>"
 proof -
@@ -828,8 +828,327 @@ lemma (in ring_of_sets) caratheodory_empty_continuous:
   assumes f: "positive M f" "additive M f" and fin: "\<And>A. A \<in> M \<Longrightarrow> f A \<noteq> \<infinity>"
   assumes cont: "\<And>A. range A \<subseteq> M \<Longrightarrow> decseq A \<Longrightarrow> (\<Inter>i. A i) = {} \<Longrightarrow> (\<lambda>i. f (A i)) ----> 0"
   shows "\<exists>\<mu> :: 'a set \<Rightarrow> ereal. (\<forall>s \<in> M. \<mu> s = f s) \<and> measure_space \<Omega> (sigma_sets \<Omega> M) \<mu>"
-proof (intro caratheodory empty_continuous_imp_countably_additive f)
+proof (intro caratheodory' empty_continuous_imp_countably_additive f)
   show "\<forall>A\<in>M. f A \<noteq> \<infinity>" using fin by auto
 qed (rule cont)
+
+section {* Volumes *}
+
+definition volume :: "'a set set \<Rightarrow> ('a set \<Rightarrow> ereal) \<Rightarrow> bool" where
+  "volume M f \<longleftrightarrow>
+  (f {} = 0) \<and> (\<forall>a\<in>M. 0 \<le> f a) \<and>
+  (\<forall>C\<subseteq>M. disjoint C \<longrightarrow> finite C \<longrightarrow> \<Union>C \<in> M \<longrightarrow> f (\<Union>C) = (\<Sum>c\<in>C. f c))"
+
+lemma volumeI:
+  assumes "f {} = 0"
+  assumes "\<And>a. a \<in> M \<Longrightarrow> 0 \<le> f a"
+  assumes "\<And>C. C \<subseteq> M \<Longrightarrow> disjoint C \<Longrightarrow> finite C \<Longrightarrow> \<Union>C \<in> M \<Longrightarrow> f (\<Union>C) = (\<Sum>c\<in>C. f c)"
+  shows "volume M f"
+  using assms by (auto simp: volume_def)
+
+lemma volume_positive:
+  "volume M f \<Longrightarrow> a \<in> M \<Longrightarrow> 0 \<le> f a"
+  by (auto simp: volume_def)
+
+lemma volume_empty:
+  "volume M f \<Longrightarrow> f {} = 0"
+  by (auto simp: volume_def)
+
+lemma volume_finite_additive:
+  assumes "volume M f" 
+  assumes A: "\<And>i. i \<in> I \<Longrightarrow> A i \<in> M" "disjoint_family_on A I" "finite I" "UNION I A \<in> M"
+  shows "f (UNION I A) = (\<Sum>i\<in>I. f (A i))"
+proof -
+  have "A`I \<subseteq> M" "disjoint (A`I)" "finite (A`I)" "\<Union>A`I \<in> M"
+    using A unfolding SUP_def by (auto simp: disjoint_family_on_disjoint_image)
+  with `volume M f` have "f (\<Union>A`I) = (\<Sum>a\<in>A`I. f a)"
+    unfolding volume_def by blast
+  also have "\<dots> = (\<Sum>i\<in>I. f (A i))"
+  proof (subst setsum_reindex_nonzero)
+    fix i j assume "i \<in> I" "j \<in> I" "i \<noteq> j" "A i = A j"
+    with `disjoint_family_on A I` have "A i = {}"
+      by (auto simp: disjoint_family_on_def)
+    then show "f (A i) = 0"
+      using volume_empty[OF `volume M f`] by simp
+  qed (auto intro: `finite I`)
+  finally show "f (UNION I A) = (\<Sum>i\<in>I. f (A i))"
+    by simp
+qed
+
+lemma (in ring_of_sets) volume_additiveI:
+  assumes pos: "\<And>a. a \<in> M \<Longrightarrow> 0 \<le> \<mu> a" 
+  assumes [simp]: "\<mu> {} = 0"
+  assumes add: "\<And>a b. a \<in> M \<Longrightarrow> b \<in> M \<Longrightarrow> a \<inter> b = {} \<Longrightarrow> \<mu> (a \<union> b) = \<mu> a + \<mu> b"
+  shows "volume M \<mu>"
+proof (unfold volume_def, safe)
+  fix C assume "finite C" "C \<subseteq> M" "disjoint C"
+  then show "\<mu> (\<Union>C) = setsum \<mu> C"
+  proof (induct C)
+    case (insert c C)
+    from insert(1,2,4,5) have "\<mu> (\<Union>insert c C) = \<mu> c + \<mu> (\<Union>C)"
+      by (auto intro!: add simp: disjoint_def)
+    with insert show ?case
+      by (simp add: disjoint_def)
+  qed simp
+qed fact+
+
+lemma (in semiring_of_sets) extend_volume:
+  assumes "volume M \<mu>"
+  shows "\<exists>\<mu>'. volume generated_ring \<mu>' \<and> (\<forall>a\<in>M. \<mu>' a = \<mu> a)"
+proof -
+  let ?R = generated_ring
+  have "\<forall>a\<in>?R. \<exists>m. \<exists>C\<subseteq>M. a = \<Union>C \<and> finite C \<and> disjoint C \<and> m = (\<Sum>c\<in>C. \<mu> c)"
+    by (auto simp: generated_ring_def)
+  from bchoice[OF this] guess \<mu>' .. note \<mu>'_spec = this
+  
+  { fix C assume C: "C \<subseteq> M" "finite C" "disjoint C"
+    fix D assume D: "D \<subseteq> M" "finite D" "disjoint D"
+    assume "\<Union>C = \<Union>D"
+    have "(\<Sum>d\<in>D. \<mu> d) = (\<Sum>d\<in>D. \<Sum>c\<in>C. \<mu> (c \<inter> d))"
+    proof (intro setsum_cong refl)
+      fix d assume "d \<in> D"
+      have Un_eq_d: "(\<Union>c\<in>C. c \<inter> d) = d"
+        using `d \<in> D` `\<Union>C = \<Union>D` by auto
+      moreover have "\<mu> (\<Union>c\<in>C. c \<inter> d) = (\<Sum>c\<in>C. \<mu> (c \<inter> d))"
+      proof (rule volume_finite_additive)
+        { fix c assume "c \<in> C" then show "c \<inter> d \<in> M"
+            using C D `d \<in> D` by auto }
+        show "(\<Union>a\<in>C. a \<inter> d) \<in> M"
+          unfolding Un_eq_d using `d \<in> D` D by auto
+        show "disjoint_family_on (\<lambda>a. a \<inter> d) C"
+          using `disjoint C` by (auto simp: disjoint_family_on_def disjoint_def)
+      qed fact+
+      ultimately show "\<mu> d = (\<Sum>c\<in>C. \<mu> (c \<inter> d))" by simp
+    qed }
+  note split_sum = this
+
+  { fix C assume C: "C \<subseteq> M" "finite C" "disjoint C"
+    fix D assume D: "D \<subseteq> M" "finite D" "disjoint D"
+    assume "\<Union>C = \<Union>D"
+    with split_sum[OF C D] split_sum[OF D C]
+    have "(\<Sum>d\<in>D. \<mu> d) = (\<Sum>c\<in>C. \<mu> c)"
+      by (simp, subst setsum_commute, simp add: ac_simps) }
+  note sum_eq = this
+
+  { fix C assume C: "C \<subseteq> M" "finite C" "disjoint C"
+    then have "\<Union>C \<in> ?R" by (auto simp: generated_ring_def)
+    with \<mu>'_spec[THEN bspec, of "\<Union>C"]
+    obtain D where
+      D: "D \<subseteq> M" "finite D" "disjoint D" "\<Union>C = \<Union>D" and "\<mu>' (\<Union>C) = (\<Sum>d\<in>D. \<mu> d)"
+      by blast
+    with sum_eq[OF C D] have "\<mu>' (\<Union>C) = (\<Sum>c\<in>C. \<mu> c)" by simp }
+  note \<mu>' = this
+
+  show ?thesis
+  proof (intro exI conjI ring_of_sets.volume_additiveI[OF generating_ring] ballI)
+    fix a assume "a \<in> M" with \<mu>'[of "{a}"] show "\<mu>' a = \<mu> a"
+      by (simp add: disjoint_def)
+  next
+    fix a assume "a \<in> ?R" then guess Ca .. note Ca = this
+    with \<mu>'[of Ca] `volume M \<mu>`[THEN volume_positive]
+    show "0 \<le> \<mu>' a"
+      by (auto intro!: setsum_nonneg)
+  next
+    show "\<mu>' {} = 0" using \<mu>'[of "{}"] by auto
+  next
+    fix a assume "a \<in> ?R" then guess Ca .. note Ca = this
+    fix b assume "b \<in> ?R" then guess Cb .. note Cb = this
+    assume "a \<inter> b = {}"
+    with Ca Cb have "Ca \<inter> Cb \<subseteq> {{}}" by auto
+    then have C_Int_cases: "Ca \<inter> Cb = {{}} \<or> Ca \<inter> Cb = {}" by auto
+
+    from `a \<inter> b = {}` have "\<mu>' (\<Union> (Ca \<union> Cb)) = (\<Sum>c\<in>Ca \<union> Cb. \<mu> c)"
+      using Ca Cb by (intro \<mu>') (auto intro!: disjoint_union)
+    also have "\<dots> = (\<Sum>c\<in>Ca \<union> Cb. \<mu> c) + (\<Sum>c\<in>Ca \<inter> Cb. \<mu> c)"
+      using C_Int_cases volume_empty[OF `volume M \<mu>`] by (elim disjE) simp_all
+    also have "\<dots> = (\<Sum>c\<in>Ca. \<mu> c) + (\<Sum>c\<in>Cb. \<mu> c)"
+      using Ca Cb by (simp add: setsum_Un_Int)
+    also have "\<dots> = \<mu>' a + \<mu>' b"
+      using Ca Cb by (simp add: \<mu>')
+    finally show "\<mu>' (a \<union> b) = \<mu>' a + \<mu>' b"
+      using Ca Cb by simp
+  qed
+qed
+
+section {* Caratheodory on semirings *}
+
+theorem (in semiring_of_sets) caratheodory:
+  assumes pos: "positive M \<mu>" and ca: "countably_additive M \<mu>"
+  shows "\<exists>\<mu>' :: 'a set \<Rightarrow> ereal. (\<forall>s \<in> M. \<mu>' s = \<mu> s) \<and> measure_space \<Omega> (sigma_sets \<Omega> M) \<mu>'"
+proof -
+  have "volume M \<mu>"
+  proof (rule volumeI)
+    { fix a assume "a \<in> M" then show "0 \<le> \<mu> a"
+        using pos unfolding positive_def by auto }
+    note p = this
+
+    fix C assume sets_C: "C \<subseteq> M" "\<Union>C \<in> M" and "disjoint C" "finite C"
+    have "\<exists>F'. bij_betw F' {..<card C} C"
+      by (rule finite_same_card_bij[OF _ `finite C`]) auto
+    then guess F' .. note F' = this
+    then have F': "C = F' ` {..< card C}" "inj_on F' {..< card C}"
+      by (auto simp: bij_betw_def)
+    { fix i j assume *: "i < card C" "j < card C" "i \<noteq> j"
+      with F' have "F' i \<in> C" "F' j \<in> C" "F' i \<noteq> F' j"
+        unfolding inj_on_def by auto
+      with `disjoint C`[THEN disjointD]
+      have "F' i \<inter> F' j = {}"
+        by auto }
+    note F'_disj = this
+    def F \<equiv> "\<lambda>i. if i < card C then F' i else {}"
+    then have "disjoint_family F"
+      using F'_disj by (auto simp: disjoint_family_on_def)
+    moreover from F' have "(\<Union>i. F i) = \<Union>C"
+      by (auto simp: F_def set_eq_iff split: split_if_asm)
+    moreover have sets_F: "\<And>i. F i \<in> M"
+      using F' sets_C by (auto simp: F_def)
+    moreover note sets_C
+    ultimately have "\<mu> (\<Union>C) = (\<Sum>i. \<mu> (F i))"
+      using ca[unfolded countably_additive_def, THEN spec, of F] by auto
+    also have "\<dots> = (\<Sum>i<card C. \<mu> (F' i))"
+    proof -
+      have "(\<lambda>i. if i \<in> {..< card C} then \<mu> (F' i) else 0) sums (\<Sum>i<card C. \<mu> (F' i))"
+        by (rule sums_If_finite_set) auto
+      also have "(\<lambda>i. if i \<in> {..< card C} then \<mu> (F' i) else 0) = (\<lambda>i. \<mu> (F i))"
+        using pos by (auto simp: positive_def F_def)
+      finally show "(\<Sum>i. \<mu> (F i)) = (\<Sum>i<card C. \<mu> (F' i))"
+        by (simp add: sums_iff)
+    qed
+    also have "\<dots> = (\<Sum>c\<in>C. \<mu> c)"
+      using F'(2) by (subst (2) F') (simp add: setsum_reindex)
+    finally show "\<mu> (\<Union>C) = (\<Sum>c\<in>C. \<mu> c)" .
+  next
+    show "\<mu> {} = 0"
+      using `positive M \<mu>` by (rule positiveD1)
+  qed
+  from extend_volume[OF this] obtain \<mu>_r where
+    V: "volume generated_ring \<mu>_r" "\<And>a. a \<in> M \<Longrightarrow> \<mu> a = \<mu>_r a"
+    by auto
+
+  interpret G: ring_of_sets \<Omega> generated_ring
+    by (rule generating_ring)
+
+  have pos: "positive generated_ring \<mu>_r"
+    using V unfolding positive_def by (auto simp: positive_def intro!: volume_positive volume_empty)
+
+  have "countably_additive generated_ring \<mu>_r"
+  proof (rule countably_additiveI)
+    fix A' :: "nat \<Rightarrow> 'a set" assume A': "range A' \<subseteq> generated_ring" "disjoint_family A'"
+      and Un_A: "(\<Union>i. A' i) \<in> generated_ring"
+
+    from generated_ringE[OF Un_A] guess C' . note C' = this
+
+    { fix c assume "c \<in> C'"
+      moreover def A \<equiv> "\<lambda>i. A' i \<inter> c"
+      ultimately have A: "range A \<subseteq> generated_ring" "disjoint_family A"
+        and Un_A: "(\<Union>i. A i) \<in> generated_ring"
+        using A' C'
+        by (auto intro!: G.Int G.finite_Union intro: generated_ringI_Basic simp: disjoint_family_on_def)
+      from A C' `c \<in> C'` have UN_eq: "(\<Union>i. A i) = c"
+        by (auto simp: A_def)
+
+      have "\<forall>i::nat. \<exists>f::nat \<Rightarrow> 'a set. \<mu>_r (A i) = (\<Sum>j. \<mu>_r (f j)) \<and> disjoint_family f \<and> \<Union>range f = A i \<and> (\<forall>j. f j \<in> M)"
+        (is "\<forall>i. ?P i")
+      proof
+        fix i
+        from A have Ai: "A i \<in> generated_ring" by auto
+        from generated_ringE[OF this] guess C . note C = this
+
+        have "\<exists>F'. bij_betw F' {..<card C} C"
+          by (rule finite_same_card_bij[OF _ `finite C`]) auto
+        then guess F .. note F = this
+        def f \<equiv> "\<lambda>i. if i < card C then F i else {}"
+        then have f: "bij_betw f {..< card C} C"
+          by (intro bij_betw_cong[THEN iffD1, OF _ F]) auto
+        with C have "\<forall>j. f j \<in> M"
+          by (auto simp: Pi_iff f_def dest!: bij_betw_imp_funcset)
+        moreover
+        from f C have d_f: "disjoint_family_on f {..<card C}"
+          by (intro disjoint_image_disjoint_family_on) (auto simp: bij_betw_def)
+        then have "disjoint_family f"
+          by (auto simp: disjoint_family_on_def f_def)
+        moreover
+        have Ai_eq: "A i = (\<Union> x<card C. f x)"
+          using f C Ai unfolding bij_betw_def by (simp add: Union_image_eq[symmetric])
+        then have "\<Union>range f = A i"
+          using f C Ai unfolding bij_betw_def by (auto simp: f_def)
+        moreover 
+        { have "(\<Sum>j. \<mu>_r (f j)) = (\<Sum>j. if j \<in> {..< card C} then \<mu>_r (f j) else 0)"
+            using volume_empty[OF V(1)] by (auto intro!: arg_cong[where f=suminf] simp: f_def)
+          also have "\<dots> = (\<Sum>j<card C. \<mu>_r (f j))"
+            by (rule sums_If_finite_set[THEN sums_unique, symmetric]) simp
+          also have "\<dots> = \<mu>_r (A i)"
+            using C f[THEN bij_betw_imp_funcset] unfolding Ai_eq
+            by (intro volume_finite_additive[OF V(1) _ d_f, symmetric])
+               (auto simp: Pi_iff Ai_eq intro: generated_ringI_Basic)
+          finally have "\<mu>_r (A i) = (\<Sum>j. \<mu>_r (f j))" .. }
+        ultimately show "?P i"
+          by blast
+      qed
+      from choice[OF this] guess f .. note f = this
+      then have UN_f_eq: "(\<Union>i. split f (prod_decode i)) = (\<Union>i. A i)"
+        unfolding UN_extend_simps surj_prod_decode by (auto simp: set_eq_iff)
+
+      have d: "disjoint_family (\<lambda>i. split f (prod_decode i))"
+        unfolding disjoint_family_on_def
+      proof (intro ballI impI)
+        fix m n :: nat assume "m \<noteq> n"
+        then have neq: "prod_decode m \<noteq> prod_decode n"
+          using inj_prod_decode[of UNIV] by (auto simp: inj_on_def)
+        show "split f (prod_decode m) \<inter> split f (prod_decode n) = {}"
+        proof cases
+          assume "fst (prod_decode m) = fst (prod_decode n)"
+          then show ?thesis
+            using neq f by (fastforce simp: disjoint_family_on_def)
+        next
+          assume neq: "fst (prod_decode m) \<noteq> fst (prod_decode n)"
+          have "split f (prod_decode m) \<subseteq> A (fst (prod_decode m))"
+            "split f (prod_decode n) \<subseteq> A (fst (prod_decode n))"
+            using f[THEN spec, of "fst (prod_decode m)"]
+            using f[THEN spec, of "fst (prod_decode n)"]
+            by (auto simp: set_eq_iff)
+          with f A neq show ?thesis
+            by (fastforce simp: disjoint_family_on_def subset_eq set_eq_iff)
+        qed
+      qed
+      from f have "(\<Sum>n. \<mu>_r (A n)) = (\<Sum>n. \<mu>_r (split f (prod_decode n)))"
+        by (intro suminf_ereal_2dimen[symmetric] positiveD2[OF pos] generated_ringI_Basic)
+         (auto split: prod.split)
+      also have "\<dots> = (\<Sum>n. \<mu> (split f (prod_decode n)))"
+        using f V(2) by (auto intro!: arg_cong[where f=suminf] split: prod.split)
+      also have "\<dots> = \<mu> (\<Union>i. split f (prod_decode i))"
+        using f `c \<in> C'` C'
+        by (intro ca[unfolded countably_additive_def, rule_format])
+           (auto split: prod.split simp: UN_f_eq d UN_eq)
+      finally have "(\<Sum>n. \<mu>_r (A' n \<inter> c)) = \<mu> c"
+        using UN_f_eq UN_eq by (simp add: A_def) }
+    note eq = this
+
+    have "(\<Sum>n. \<mu>_r (A' n)) = (\<Sum>n. \<Sum>c\<in>C'. \<mu>_r (A' n \<inter> c))"
+      using C' A' find_theorems "\<Union> _ ` _"
+      by (subst volume_finite_additive[symmetric, OF V(1)])
+         (auto simp: disjoint_def disjoint_family_on_def Union_image_eq[symmetric] simp del: Union_image_eq
+               intro!: G.Int G.finite_Union arg_cong[where f="\<lambda>X. suminf (\<lambda>i. \<mu>_r (X i))"] ext
+               intro: generated_ringI_Basic)
+    also have "\<dots> = (\<Sum>c\<in>C'. \<Sum>n. \<mu>_r (A' n \<inter> c))"
+      using C' A'
+      by (intro suminf_setsum_ereal positiveD2[OF pos] G.Int G.finite_Union)
+         (auto intro: generated_ringI_Basic)
+    also have "\<dots> = (\<Sum>c\<in>C'. \<mu>_r c)"
+      using eq V C' by (auto intro!: setsum_cong)
+    also have "\<dots> = \<mu>_r (\<Union>C')"
+      using C' Un_A
+      by (subst volume_finite_additive[symmetric, OF V(1)])
+         (auto simp: disjoint_family_on_def disjoint_def Union_image_eq[symmetric] simp del: Union_image_eq 
+               intro: generated_ringI_Basic)
+    finally show "(\<Sum>n. \<mu>_r (A' n)) = \<mu>_r (\<Union>i. A' i)"
+      using C' by simp
+  qed
+  from G.caratheodory'[OF `positive generated_ring \<mu>_r` `countably_additive generated_ring \<mu>_r`]
+  guess \<mu>' ..
+  with V show ?thesis
+    unfolding sigma_sets_generated_ring_eq
+    by (intro exI[of _ \<mu>']) (auto intro: generated_ringI_Basic)
+qed
 
 end
