@@ -667,6 +667,14 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
             ({free_names, sel_names, nonsel_names, rel_table, scope, ...}
              : problem_extension) =
       let
+        val _ =
+          print_t (fn () =>
+               "% SZS status " ^
+               (if genuine then
+                  if falsify then "CounterSatisfiable" else "Satisfiable"
+                else
+                  "Unknown") ^ "\n" ^
+               "% SZS output start FiniteModel")
         val (reconstructed_model, codatatypes_ok) =
           reconstruct_hol_model
               {show_datatypes = show_datatypes, show_skolems = show_skolems,
@@ -680,14 +688,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
         fun assms_prop () =
           Logic.mk_conjunction_list (neg_t :: def_assm_ts @ nondef_assm_ts)
       in
-        (print_t (fn () =>
-             "% SZS status " ^
-             (if genuine then
-                if falsify then "CounterSatisfiable" else "Satisfiable"
-              else
-                "Unknown") ^ "\n" ^
-             "% SZS output start FiniteModel");
-         pprint_a (Pretty.chunks
+        (pprint_a (Pretty.chunks
              [Pretty.blk (0,
                   (pstrs ((if mode = Auto_Try then "Auto " else "") ^
                           "Nitpick found a" ^
