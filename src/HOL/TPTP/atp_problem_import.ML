@@ -7,10 +7,10 @@ Import TPTP problems as Isabelle terms or goals.
 
 signature ATP_PROBLEM_IMPORT =
 sig
-  val isabelle_tptp_file : int -> string -> unit
   val nitpick_tptp_file : int -> string -> unit
   val refute_tptp_file : int -> string -> unit
   val sledgehammer_tptp_file : int -> string -> unit
+  val isabelle_tptp_file : int -> string -> unit
   val translate_tptp_file : string -> string -> string -> unit
 end;
 
@@ -48,11 +48,6 @@ fun read_tptp_file thy file_name =
     (map get_prop conjs, pairself (map get_prop) defs_and_nondefs,
      Theory.checkpoint thy)
   end
-
-(** Isabelle (combination of provers) **)
-
-fun isabelle_tptp_file timeout file_name = ()
-
 
 (** Nitpick (alias Nitrox) **)
 
@@ -121,8 +116,25 @@ fun refute_tptp_file timeout file_name =
 
 (** Sledgehammer **)
 
-fun sledgehammer_tptp_file timeout file_name = ()
+fun apply_tactic_to_tptp_file tactic timeout file_name =
+  let
+    val (conjs, (defs, nondefs), thy) = read_tptp_file @{theory} file_name
+    val ctxt = Proof_Context.init_global thy
+  in
+    Goal.prove ctxt [] (defs @ nondefs) (hd conjs) (fn _ => tactic ctxt
+  end
 
+val sledgehammer_tptp_file =
+  apply_tactic_to_tptp_file Sledgehammer_Tactics.sledgehammer_as_oracle_tac
+
+
+(** Isabelle (combination of provers) **)
+
+val isabelle_tac =
+  ...
+
+val isabelle_tptp_file =
+  ...
 
 (** Translator between TPTP(-like) file formats **)
 
