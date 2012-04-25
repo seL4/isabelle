@@ -362,7 +362,7 @@ val satallax_config : atp_config =
      [("% Higher-Order Unsat Core BEGIN", "% Higher-Order Unsat Core END")],
    known_failures = known_szs_status_failures,
    conj_sym_kind = Axiom,
-   prem_kind = Hypothesis,
+   prem_kind = Definition (* motivated by "isabelle tptp_sledgehammer" tool *),
    best_slices =
      (* FUDGE *)
      K [(1.0, (true, ((100, satallax_thf0, "mono_native_higher", keep_lamsN, false), "")))]}
