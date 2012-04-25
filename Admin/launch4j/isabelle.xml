@@ -26,4 +26,10 @@
     <jdkPreference>jdkOnly</jdkPreference>
     <opt>-Disabelle.home=&quot;%EXEDIR%&quot; -Dcygwin.root=&quot;%EXEDIR%\\contrib\\cygwin-1.7.9&quot;</opt>
   </jre>
+  <splash>
+    <file>isabelle.bmp</file>
+    <waitForWindow>false</waitForWindow>
+    <timeout>10</timeout>
+    <timeoutErr>false</timeoutErr>
+  </splash>
 </launch4jConfig>
