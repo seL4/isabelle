@@ -116,13 +116,67 @@ fun check_raw_types (provided_rty_name, rty_of_qty_name) qty_name =
   else
     ()
 
+fun zip_Tvars ctxt type_name rty_Tvars qty_Tvars =
+  case try (get_rel_quot_thm ctxt) type_name of
+    NONE => rty_Tvars ~~ qty_Tvars
+    | SOME rel_quot_thm =>
+      let 
+        fun quot_term_absT quot_term = 
+          let 
+            val (_, abs, _, _) = (dest_Quotient o HOLogic.dest_Trueprop) quot_term
+          in
+            fastype_of abs
+          end
+
+        fun equiv_univ_err ctxt ty_pat ty =
+          let
+            val ty_pat_str = Syntax.string_of_typ ctxt ty_pat
+            val ty_str = Syntax.string_of_typ ctxt ty
+          in
+            raise QUOT_THM_INTERNAL (Pretty.block
+              [Pretty.str ("The type " ^ quote ty_str),
+               Pretty.brk 1,
+               Pretty.str ("and the relator type pattern " ^ quote ty_pat_str),
+               Pretty.brk 1,
+               Pretty.str "don't unify."])
+          end
+
+        fun raw_match (TVar (v, S), T) subs =
+              (case Vartab.defined subs v of
+                false => Vartab.update_new (v, (S, T)) subs
+              | true => subs)
+          | raw_match (Type (_, Ts), Type (_, Us)) subs =
+              raw_matches (Ts, Us) subs
+          | raw_match _ subs = subs
+        and raw_matches (T :: Ts, U :: Us) subs = raw_matches (Ts, Us) (raw_match (T, U) subs)
+          | raw_matches _ subs = subs
+
+        val rty = Type (type_name, rty_Tvars)
+        val qty = Type (type_name, qty_Tvars)
+        val rel_quot_thm_concl = (Logic.strip_imp_concl o prop_of) rel_quot_thm
+        val schematic_rel_absT = quot_term_absT rel_quot_thm_concl;
+        val ctxt' = Variable.declare_typ schematic_rel_absT ctxt
+        val thy = Proof_Context.theory_of ctxt'
+        val absT = rty --> qty
+        val schematic_absT = Logic.type_map (singleton (Variable.polymorphic ctxt')) absT
+        val _ = Sign.typ_unify thy (schematic_rel_absT, schematic_absT) (Vartab.empty,0)
+          handle Type.TUNIFY => equiv_univ_err ctxt schematic_rel_absT schematic_absT
+        val subs = raw_match (schematic_rel_absT, absT) Vartab.empty
+        val rel_quot_thm_prems = (Logic.strip_imp_prems o prop_of) rel_quot_thm
+      in
+        map (dest_funT o 
+             Envir.subst_type subs o
+             quot_term_absT) 
+          rel_quot_thm_prems
+      end
+
 fun prove_schematic_quot_thm ctxt (rty, qty) =
   (case (rty, qty) of
     (Type (s, tys), Type (s', tys')) =>
       if s = s'
       then
         let
-          val args = map (prove_schematic_quot_thm ctxt) (tys ~~ tys')
+          val args = map (prove_schematic_quot_thm ctxt) (zip_Tvars ctxt s tys tys')
         in
           if forall is_id_quot args
           then
