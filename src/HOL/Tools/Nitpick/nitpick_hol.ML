@@ -1642,14 +1642,20 @@ fun unfold_defs_in_term
          let
            val j = mult * (HOLogic.dest_num t1)
                    |> T = nat_T ? Integer.max 0
-           val s = numeral_prefix ^ signed_string_of_int j
          in
-           if is_integer_like_type T then
-             if is_standard_datatype thy stds T then Const (s, T)
-             else funpow j (curry (op $) (suc_const T)) (zero_const T)
+           if j = 1 then
+             raise SAME ()
            else
-             do_term depth Ts (Const (@{const_name of_int}, int_T --> T)
-                               $ Const (s, int_T))
+             let
+               val s = numeral_prefix ^ signed_string_of_int j
+             in
+               if is_integer_like_type T then
+                 if is_standard_datatype thy stds T then Const (s, T)
+                 else funpow j (curry (op $) (suc_const T)) (zero_const T)
+               else
+                 do_term depth Ts (Const (@{const_name of_int}, int_T --> T)
+                                   $ Const (s, int_T))
+             end
          end
          handle TERM _ => raise SAME ()
        else
