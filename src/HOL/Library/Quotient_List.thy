@@ -178,7 +178,7 @@ lemma set_transfer [transfer_rule]:
 
 subsection {* Setup for lifting package *}
 
-lemma Quotient_list:
+lemma Quotient_list[quot_map]:
   assumes "Quotient R Abs Rep T"
   shows "Quotient (list_all2 R) (map Abs) (map Rep) (list_all2 T)"
 proof (unfold Quotient_alt_def, intro conjI allI impI)
@@ -198,8 +198,6 @@ next
     list_all2 T ys (map Abs ys) \<and> map Abs xs = map Abs ys"
     by (induct xs ys rule: list_induct2', simp_all, metis 3)
 qed
-
-declare [[map list = (list_all2, Quotient_list)]]
 
 lemma list_invariant_commute [invariant_commute]:
   "list_all2 (Lifting.invariant P) = Lifting.invariant (list_all P)"

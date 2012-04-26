@@ -92,15 +92,13 @@ lemma sum_case_transfer [transfer_rule]:
 
 subsection {* Setup for lifting package *}
 
-lemma Quotient_sum:
+lemma Quotient_sum[quot_map]:
   assumes "Quotient R1 Abs1 Rep1 T1"
   assumes "Quotient R2 Abs2 Rep2 T2"
   shows "Quotient (sum_rel R1 R2) (sum_map Abs1 Abs2)
     (sum_map Rep1 Rep2) (sum_rel T1 T2)"
   using assms unfolding Quotient_alt_def
   by (simp add: split_sum_all)
-
-declare [[map sum = (sum_rel, Quotient_sum)]]
 
 fun sum_pred :: "('a \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> 'a + 'b \<Rightarrow> bool"
 where

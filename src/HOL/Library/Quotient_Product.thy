@@ -84,14 +84,12 @@ lemma prod_rel_transfer [transfer_rule]:
 
 subsection {* Setup for lifting package *}
 
-lemma Quotient_prod:
+lemma Quotient_prod[quot_map]:
   assumes "Quotient R1 Abs1 Rep1 T1"
   assumes "Quotient R2 Abs2 Rep2 T2"
   shows "Quotient (prod_rel R1 R2) (map_pair Abs1 Abs2)
     (map_pair Rep1 Rep2) (prod_rel T1 T2)"
   using assms unfolding Quotient_alt_def by auto
-
-declare [[map prod = (prod_rel, Quotient_prod)]]
 
 definition prod_pred :: "('a \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
 where "prod_pred R1 R2 = (\<lambda>(a, b). R1 a \<and> R2 b)"

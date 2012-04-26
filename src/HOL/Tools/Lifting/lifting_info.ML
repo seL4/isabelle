@@ -6,7 +6,7 @@ Context data for the lifting package.
 
 signature LIFTING_INFO =
 sig
-  type quotmaps = {relmap: string, quot_thm: thm}
+  type quotmaps = {rel_quot_thm: thm}
   val lookup_quotmaps: Proof.context -> string -> quotmaps option
   val lookup_quotmaps_global: theory -> string -> quotmaps option
   val print_quotmaps: Proof.context -> unit
@@ -27,10 +27,12 @@ end;
 structure Lifting_Info: LIFTING_INFO =
 struct
 
+open Lifting_Util
+
 (** data containers **)
 
-(* info about map- and rel-functions for a type *)
-type quotmaps = {relmap: string, quot_thm: thm}
+(* info about Quotient map theorems *)
+type quotmaps = {rel_quot_thm: thm}
 
 structure Quotmaps = Generic_Data
 (
@@ -45,26 +47,28 @@ val lookup_quotmaps_global = Symtab.lookup o Quotmaps.get o Context.Theory
 
 (* FIXME export proper internal update operation!? *)
 
+fun add_quot_map rel_quot_thm ctxt = 
+  let
+    val rel_quot_thm_concl = (Logic.strip_imp_concl o prop_of) rel_quot_thm
+    val (_, abs, _, _) = (dest_Quotient o HOLogic.dest_Trueprop) rel_quot_thm_concl
+    val relatorT_name = (fst o dest_Type o fst o dest_funT o fastype_of) abs
+    val minfo = {rel_quot_thm = rel_quot_thm}
+  in
+    Quotmaps.map (Symtab.update (relatorT_name, minfo)) ctxt
+  end    
+
 val quotmaps_attribute_setup =
-  Attrib.setup @{binding map}
-    ((Args.type_name true --| Scan.lift @{keyword "="}) --
-      (Scan.lift @{keyword "("} |-- Args.const_proper true --| Scan.lift @{keyword ","} --
-        Attrib.thm --| Scan.lift @{keyword ")"}) >>
-      (fn (tyname, (relname, qthm)) =>
-        let val minfo = {relmap = relname, quot_thm = qthm}
-        in Thm.declaration_attribute (fn _ => Quotmaps.map (Symtab.update (tyname, minfo))) end))
-    "declaration of map information"
+  Attrib.setup @{binding quot_map} (Scan.succeed (Thm.declaration_attribute add_quot_map))
+    "declaration of the Quotient map theorem"
 
 fun print_quotmaps ctxt =
   let
-    fun prt_map (ty_name, {relmap, quot_thm}) =
+    fun prt_map (ty_name, {rel_quot_thm}) =
       Pretty.block (separate (Pretty.brk 2)
          [Pretty.str "type:", 
           Pretty.str ty_name,
-          Pretty.str "relation map:", 
-          Pretty.str relmap,
           Pretty.str "quot. theorem:", 
-          Syntax.pretty_term ctxt (prop_of quot_thm)])
+          Syntax.pretty_term ctxt (prop_of rel_quot_thm)])
   in
     map prt_map (Symtab.dest (Quotmaps.get (Context.Proof ctxt)))
     |> Pretty.big_list "maps for type constructors:"

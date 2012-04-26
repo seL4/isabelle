@@ -76,7 +76,7 @@ fun get_rel_quot_thm ctxt s =
     val thy = Proof_Context.theory_of ctxt
   in
     (case Lifting_Info.lookup_quotmaps ctxt s of
-      SOME map_data => Thm.transfer thy (#quot_thm map_data)
+      SOME map_data => Thm.transfer thy (#rel_quot_thm map_data)
     | NONE => raise QUOT_THM_INTERNAL (Pretty.block 
       [Pretty.str ("No relator for the type " ^ quote s), 
        Pretty.brk 1,
@@ -84,10 +84,6 @@ fun get_rel_quot_thm ctxt s =
   end
 
 fun is_id_quot thm = (prop_of thm = prop_of @{thm identity_quotient})
-
-fun dest_Quotient (Const (@{const_name Quotient}, _) $ rel $ abs $ rep $ cr)
-      = (rel, abs, rep, cr)
-  | dest_Quotient t = raise TERM ("dest_Quotient", [t])
 
 fun quot_thm_rel quot_thm =
   case (dest_Quotient o HOLogic.dest_Trueprop o prop_of) quot_thm of

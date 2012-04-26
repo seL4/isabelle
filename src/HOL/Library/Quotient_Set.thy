@@ -185,15 +185,13 @@ lemma finite_transfer [transfer_rule]:
 
 subsection {* Setup for lifting package *}
 
-lemma Quotient_set:
+lemma Quotient_set[quot_map]:
   assumes "Quotient R Abs Rep T"
   shows "Quotient (set_rel R) (image Abs) (image Rep) (set_rel T)"
   using assms unfolding Quotient_alt_def4
   apply (simp add: set_rel_OO set_rel_conversep)
   apply (simp add: set_rel_def, fast)
   done
-
-declare [[map set = (set_rel, Quotient_set)]]
 
 lemma set_invariant_commute [invariant_commute]:
   "set_rel (Lifting.invariant P) = Lifting.invariant (\<lambda>A. Ball A P)"

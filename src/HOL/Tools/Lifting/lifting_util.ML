@@ -8,6 +8,7 @@ signature LIFTING_UTIL =
 sig
   val MRSL: thm list * thm -> thm
   val Trueprop_conv: conv -> conv
+  val dest_Quotient: term -> term * term * term * term
 end;
 
 
@@ -22,5 +23,9 @@ fun Trueprop_conv cv ct =
   (case Thm.term_of ct of
     Const (@{const_name Trueprop}, _) $ _ => Conv.arg_conv cv ct
   | _ => raise CTERM ("Trueprop_conv", [ct]))
+
+fun dest_Quotient (Const (@{const_name Quotient}, _) $ rel $ abs $ rep $ cr)
+      = (rel, abs, rep, cr)
+  | dest_Quotient t = raise TERM ("dest_Quotient", [t])
 
 end;

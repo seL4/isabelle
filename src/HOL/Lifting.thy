@@ -360,7 +360,7 @@ use "Tools/Lifting/lifting_util.ML"
 use "Tools/Lifting/lifting_info.ML"
 setup Lifting_Info.setup
 
-declare [[map "fun" = (fun_rel, fun_quotient)]]
+declare fun_quotient[quot_map]
 
 use "Tools/Lifting/lifting_term.ML"
 

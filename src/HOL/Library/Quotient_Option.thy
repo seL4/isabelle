@@ -101,14 +101,12 @@ lemma option_bind_transfer [transfer_rule]:
 
 subsection {* Setup for lifting package *}
 
-lemma Quotient_option:
+lemma Quotient_option[quot_map]:
   assumes "Quotient R Abs Rep T"
   shows "Quotient (option_rel R) (Option.map Abs)
     (Option.map Rep) (option_rel T)"
   using assms unfolding Quotient_alt_def option_rel_unfold
   by (simp split: option.split)
-
-declare [[map option = (option_rel, Quotient_option)]]
 
 fun option_pred :: "('a \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> bool"
 where
