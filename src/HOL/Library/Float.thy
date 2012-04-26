@@ -130,6 +130,10 @@ qed
 lift_definition Float :: "int \<Rightarrow> int \<Rightarrow> float" is "\<lambda>(m::int) (e::int). m * 2 powr e" by simp
 declare Float.rep_eq[simp]
 
+lemma compute_real_of_float[code]:
+  "real_of_float (Float m e) = (if e \<ge> 0 then m * 2 ^ nat e else m / 2 ^ (nat (-e)))"
+by (simp add: real_of_float_def[symmetric] powr_int)
+
 code_datatype Float
 
 subsection {* Arithmetic operations on floating point numbers *}
