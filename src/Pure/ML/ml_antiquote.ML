@@ -88,8 +88,7 @@ val _ = Context.>> (Context.map_theory
   macro (Binding.name "note")
     (Args.context :|-- (fn ctxt =>
       Parse.and_list1' (Scan.lift (Args.opt_thm_name I "=") -- Attrib.thms
-        >> (fn ((a, srcs), ths) =>
-          ((a, map (Attrib.attribute (Proof_Context.theory_of ctxt)) srcs), [(ths, [])])))
+        >> (fn ((a, srcs), ths) => ((a, map (Attrib.attribute_cmd ctxt) srcs), [(ths, [])])))
       >> (fn args => #2 (Proof_Context.note_thmss "" args ctxt)))) #>
 
   value (Binding.name "ctyp") (Args.typ >> (fn T =>

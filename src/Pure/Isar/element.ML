@@ -485,16 +485,14 @@ fun init (Fixes fixes) = Context.map_proof (Proof_Context.add_fixes fixes #> #2)
   | init (Constrains _) = I
   | init (Assumes asms) = Context.map_proof (fn ctxt =>
       let
-        val asms' =
-          Attrib.map_specs (map (Attrib.attribute_i (Proof_Context.theory_of ctxt))) asms;
+        val asms' = Attrib.map_specs (map (Attrib.attribute ctxt)) asms;
         val (_, ctxt') = ctxt
           |> fold Variable.auto_fixes (maps (map #1 o #2) asms')
           |> Proof_Context.add_assms_i Assumption.assume_export asms';
       in ctxt' end)
   | init (Defines defs) = Context.map_proof (fn ctxt =>
       let
-        val defs' =
-          Attrib.map_specs (map (Attrib.attribute_i (Proof_Context.theory_of ctxt))) defs;
+        val defs' = Attrib.map_specs (map (Attrib.attribute ctxt)) defs;
         val asms = defs' |> map (fn ((name, atts), (t, ps)) =>
             let val ((c, _), t') = Local_Defs.cert_def ctxt t  (* FIXME adapt ps? *)
             in (t', ((Thm.def_binding_optional (Binding.name c) name, atts), [(t', ps)])) end);

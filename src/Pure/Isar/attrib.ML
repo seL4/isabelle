@@ -15,8 +15,10 @@ sig
   val intern_src: theory -> src -> src
   val pretty_attribs: Proof.context -> src list -> Pretty.T list
   val defined: theory -> string -> bool
-  val attribute: theory -> src -> attribute
-  val attribute_i: theory -> src -> attribute
+  val attribute: Proof.context -> src -> attribute
+  val attribute_global: theory -> src -> attribute
+  val attribute_cmd: Proof.context -> src -> attribute
+  val attribute_cmd_global: theory -> src -> attribute
   val map_specs: ('a list -> 'att list) ->
     (('c * 'a list) * 'b) list -> (('c * 'att list) * 'b) list
   val map_facts: ('a list -> 'att list) ->
@@ -120,18 +122,24 @@ fun pretty_attribs _ [] = []
 
 val defined = Symtab.defined o #2 o Attributes.get;
 
-fun attribute_i thy =
+fun attribute_generic context =
   let
+    val thy = Context.theory_of context;
     val (space, tab) = Attributes.get thy;
     fun attr src =
       let val ((name, _), pos) = Args.dest_src src in
         (case Symtab.lookup tab name of
           NONE => error ("Unknown attribute: " ^ quote name ^ Position.str_of pos)
-        | SOME (att, _) => (Position.report pos (Name_Space.markup space name); att src))
+        | SOME (att, _) =>
+            (Context_Position.report_generic context pos (Name_Space.markup space name); att src))
       end;
   in attr end;
 
-fun attribute thy = attribute_i thy o intern_src thy;
+val attribute = attribute_generic o Context.Proof;
+val attribute_global = attribute_generic o Context.Theory;
+
+fun attribute_cmd ctxt = attribute ctxt o intern_src (Proof_Context.theory_of ctxt);
+fun attribute_cmd_global thy = attribute_global thy o intern_src thy;
 
 
 (* attributed declarations *)
@@ -145,17 +153,17 @@ fun map_facts_refs f g = map_facts f #> map (apsnd (map (apfst g)));
 (* fact expressions *)
 
 fun global_notes kind facts thy = thy |>
-  Global_Theory.note_thmss kind (map_facts (map (attribute_i thy)) facts);
+  Global_Theory.note_thmss kind (map_facts (map (attribute_global thy)) facts);
 
 fun local_notes kind facts ctxt = ctxt |>
-  Proof_Context.note_thmss kind (map_facts (map (attribute_i (Proof_Context.theory_of ctxt))) facts);
+  Proof_Context.note_thmss kind (map_facts (map (attribute ctxt)) facts);
 
 fun generic_notes kind facts context = context |>
   Context.mapping_result (global_notes kind facts) (local_notes kind facts);
 
 fun eval_thms ctxt srcs = ctxt
   |> Proof_Context.note_thmss ""
-    (map_facts_refs (map (attribute (Proof_Context.theory_of ctxt))) (Proof_Context.get_fact ctxt)
+    (map_facts_refs (map (attribute_cmd ctxt)) (Proof_Context.get_fact ctxt)
       [((Binding.empty, []), srcs)])
   |> fst |> maps snd;
 
@@ -203,7 +211,7 @@ fun gen_thm pick = Scan.depend (fn context =>
   in
     Parse.$$$ "[" |-- Args.attribs (intern thy) --| Parse.$$$ "]" >> (fn srcs =>
       let
-        val atts = map (attribute_i thy) srcs;
+        val atts = map (attribute_generic context) srcs;
         val (th', context') = fold (uncurry o Thm.apply_attribute) atts (Drule.dummy_thm, context);
       in (context', pick "" [th']) end)
     ||
@@ -215,7 +223,7 @@ fun gen_thm pick = Scan.depend (fn context =>
     -- Args.opt_attribs (intern thy) >> (fn ((name, thmref, fact), srcs) =>
       let
         val ths = Facts.select thmref fact;
-        val atts = map (attribute_i thy) srcs;
+        val atts = map (attribute_generic context) srcs;
         val (ths', context') =
           fold_map (curry (fold (uncurry o Thm.apply_attribute) atts)) ths context;
       in (context', pick name ths') end)
@@ -240,7 +248,7 @@ val strict_eq_thm = op = o pairself Thm.rep_thm;
 fun apply_att src (context, th) =
   let
     val src1 = Args.assignable src;
-    val result = attribute_i (Context.theory_of context) src1 (context, th);
+    val result = attribute_generic context src1 (context, th);
     val src2 = Args.closure src1;
   in (src2, result) end;
 

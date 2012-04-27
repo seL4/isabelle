@@ -83,7 +83,7 @@ sig
   val apply: Method.text -> state -> state Seq.seq
   val apply_end: Method.text -> state -> state Seq.seq
   val local_goal: (context -> ((string * string) * (string * thm list) list) -> unit) ->
-    (theory -> 'a -> attribute) ->
+    (Proof.context -> 'a -> attribute) ->
     ('b list -> context -> (term list list * (context -> context)) * context) ->
     string -> Method.text option -> (thm list list -> state -> state) ->
     ((binding * 'a list) * 'b) list -> state -> state
@@ -400,7 +400,8 @@ fun goals st = map goalN (1 upto Thm.nprems_of st);
 fun no_goal_cases st = map (rpair NONE) (goals st);
 
 fun goal_cases st =
-  Rule_Cases.make_common (Thm.theory_of_thm st, Thm.prop_of st) (map (rpair [] o rpair []) (goals st));
+  Rule_Cases.make_common
+    (Thm.theory_of_thm st, Thm.prop_of st) (map (rpair [] o rpair []) (goals st));
 
 fun apply_method current_context meth state =
   let
@@ -612,13 +613,13 @@ local
 fun gen_assume asm prep_att exp args state =
   state
   |> assert_forward
-  |> map_context_result (asm exp (Attrib.map_specs (map (prep_att (theory_of state))) args))
+  |> map_context_result (asm exp (Attrib.map_specs (map (prep_att (context_of state))) args))
   |> these_factss [] |> #2;
 
 in
 
 val assm = gen_assume Proof_Context.add_assms_i (K I);
-val assm_cmd = gen_assume Proof_Context.add_assms Attrib.attribute;
+val assm_cmd = gen_assume Proof_Context.add_assms Attrib.attribute_cmd;
 val assume = assm Assumption.assume_export;
 val assume_cmd = assm_cmd Assumption.assume_export;
 val presume = assm Assumption.presume_export;
@@ -634,10 +635,8 @@ local
 fun gen_def prep_att prep_vars prep_binds args state =
   let
     val _ = assert_forward state;
-    val thy = theory_of state;
-
     val (raw_name_atts, (raw_vars, raw_rhss)) = args |> split_list ||> split_list;
-    val name_atts = map (apsnd (map (prep_att thy))) raw_name_atts;
+    val name_atts = map (apsnd (map (prep_att (context_of state)))) raw_name_atts;
   in
     state
     |> map_context_result (prep_vars (map (fn (x, mx) => (x, NONE, mx)) raw_vars))
@@ -651,7 +650,7 @@ fun gen_def prep_att prep_vars prep_binds args state =
 in
 
 val def = gen_def (K I) Proof_Context.cert_vars Proof_Context.match_bind_i;
-val def_cmd = gen_def Attrib.attribute Proof_Context.read_vars Proof_Context.match_bind;
+val def_cmd = gen_def Attrib.attribute_cmd Proof_Context.read_vars Proof_Context.match_bind;
 
 end;
 
@@ -683,10 +682,8 @@ local
 fun gen_thmss more_facts opt_chain opt_result prep_atts prep_fact args state =
   state
   |> assert_forward
-  |> map_context_result (Proof_Context.note_thmss ""
-    (Attrib.map_facts_refs
-      (map (prep_atts (theory_of state)))
-      (prep_fact (context_of state)) args))
+  |> map_context_result (fn ctxt => ctxt |> Proof_Context.note_thmss ""
+    (Attrib.map_facts_refs (map (prep_atts ctxt)) (prep_fact ctxt) args))
   |> these_factss (more_facts state)
   ||> opt_chain
   |> opt_result;
@@ -694,13 +691,15 @@ fun gen_thmss more_facts opt_chain opt_result prep_atts prep_fact args state =
 in
 
 val note_thmss = gen_thmss (K []) I #2 (K I) (K I);
-val note_thmss_cmd = gen_thmss (K []) I #2 Attrib.attribute Proof_Context.get_fact;
+val note_thmss_cmd = gen_thmss (K []) I #2 Attrib.attribute_cmd Proof_Context.get_fact;
 
 val from_thmss = gen_thmss (K []) chain #2 (K I) (K I) o no_binding;
-val from_thmss_cmd = gen_thmss (K []) chain #2 Attrib.attribute Proof_Context.get_fact o no_binding;
+val from_thmss_cmd =
+  gen_thmss (K []) chain #2 Attrib.attribute_cmd Proof_Context.get_fact o no_binding;
 
 val with_thmss = gen_thmss the_facts chain #2 (K I) (K I) o no_binding;
-val with_thmss_cmd = gen_thmss the_facts chain #2 Attrib.attribute Proof_Context.get_fact o no_binding;
+val with_thmss_cmd =
+  gen_thmss the_facts chain #2 Attrib.attribute_cmd Proof_Context.get_fact o no_binding;
 
 val local_results = gen_thmss (K []) I I (K I) (K I) o map (apsnd Thm.simple_fact);
 
@@ -715,9 +714,8 @@ fun gen_using f g prep_att prep_fact args state =
   state
   |> assert_backward
   |> map_context_result
-    (Proof_Context.note_thmss ""
-      (Attrib.map_facts_refs (map (prep_att (theory_of state))) (prep_fact (context_of state))
-        (no_binding args)))
+    (fn ctxt => ctxt |> Proof_Context.note_thmss ""
+      (Attrib.map_facts_refs (map (prep_att ctxt)) (prep_fact ctxt) (no_binding args)))
   |> (fn (named_facts, state') =>
     state' |> map_goal I (fn (statement, _, using, goal, before_qed, after_qed) =>
       let
@@ -732,9 +730,9 @@ val unfold_goals = Local_Defs.unfold_goals;
 in
 
 val using = gen_using append_using (K (K I)) (K I) (K I);
-val using_cmd = gen_using append_using (K (K I)) Attrib.attribute Proof_Context.get_fact;
+val using_cmd = gen_using append_using (K (K I)) Attrib.attribute_cmd Proof_Context.get_fact;
 val unfolding = gen_using unfold_using unfold_goals (K I) (K I);
-val unfolding_cmd = gen_using unfold_using unfold_goals Attrib.attribute Proof_Context.get_fact;
+val unfolding_cmd = gen_using unfold_using unfold_goals Attrib.attribute_cmd Proof_Context.get_fact;
 
 end;
 
@@ -748,7 +746,7 @@ fun qualified_binding a =
 
 fun gen_invoke_case prep_att (name, xs, raw_atts) state =
   let
-    val atts = map (prep_att (theory_of state)) raw_atts;
+    val atts = map (prep_att (context_of state)) raw_atts;
     val (asms, state') = state |> map_context_result (fn ctxt =>
       ctxt |> Proof_Context.apply_case (Proof_Context.get_case ctxt name xs));
     val assumptions = asms |> map (fn (a, ts) => ((qualified_binding a, atts), map (rpair []) ts));
@@ -762,7 +760,7 @@ fun gen_invoke_case prep_att (name, xs, raw_atts) state =
 in
 
 val invoke_case = gen_invoke_case (K I);
-val invoke_case_cmd = gen_invoke_case Attrib.attribute;
+val invoke_case_cmd = gen_invoke_case Attrib.attribute_cmd;
 
 end;
 
@@ -935,9 +933,8 @@ end;
 
 fun local_goal print_results prep_att prepp kind before_qed after_qed stmt state =
   let
-    val thy = theory_of state;
     val ((names, attss), propp) =
-      Attrib.map_specs (map (prep_att thy)) stmt |> split_list |>> split_list;
+      Attrib.map_specs (map (prep_att (context_of state))) stmt |> split_list |>> split_list;
 
     fun after_qed' results =
       local_results ((names ~~ attss) ~~ results)
@@ -1044,9 +1041,9 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
 in
 
 val have = gen_have (K I) Proof_Context.bind_propp_i;
-val have_cmd = gen_have Attrib.attribute Proof_Context.bind_propp;
+val have_cmd = gen_have Attrib.attribute_cmd Proof_Context.bind_propp;
 val show = gen_show (K I) Proof_Context.bind_propp_i;
-val show_cmd = gen_show Attrib.attribute Proof_Context.bind_propp;
+val show_cmd = gen_show Attrib.attribute_cmd Proof_Context.bind_propp;
 
 end;
 

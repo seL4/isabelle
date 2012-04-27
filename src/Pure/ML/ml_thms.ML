@@ -42,7 +42,7 @@ val _ =
 
           val i = serial ();
           val srcs = map (Attrib.intern_src thy) raw_srcs;
-          val _ = map (Attrib.attribute_i thy) srcs;
+          val _ = map (Attrib.attribute background) srcs;
           val (a, background') = background
             |> ML_Antiquote.variant "attributes" ||> put_attributes (i, srcs);
           val ml =
