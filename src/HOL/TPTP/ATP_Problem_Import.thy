@@ -15,4 +15,8 @@ ML {* Proofterm.proofs := 0 *}
 declare [[show_consts]] (* for Refute *)
 declare [[smt_oracle]]
 
+(*
+ML {* ATP_Problem_Import.isabelle_tptp_file 100 "$TPTP/Problems/PUZ/PUZ107^5.p" *}
+*)
+
 end
