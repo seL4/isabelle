@@ -1774,6 +1774,119 @@ This avoids re-doing basic definitions and proofs from the
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsection{Lifting package%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{HOL}{command}{setup\_lifting}\hypertarget{command.HOL.setup-lifting}{\hyperlink{command.HOL.setup-lifting}{\mbox{\isa{\isacommand{setup{\isaliteral{5F}{\isacharunderscore}}lifting}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}}\\
+    \indexdef{HOL}{command}{lift\_definition}\hypertarget{command.HOL.lift-definition}{\hyperlink{command.HOL.lift-definition}{\mbox{\isa{\isacommand{lift{\isaliteral{5F}{\isacharunderscore}}definition}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}\\
+    \indexdef{HOL}{command}{print\_quotmaps}\hypertarget{command.HOL.print-quotmaps}{\hyperlink{command.HOL.print-quotmaps}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotmaps}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}}\\
+    \indexdef{HOL}{command}{print\_quotients}\hypertarget{command.HOL.print-quotients}{\hyperlink{command.HOL.print-quotients}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotients}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}}\\
+    \indexdef{HOL}{attribute}{quot\_map}\hypertarget{attribute.HOL.quot-map}{\hyperlink{attribute.HOL.quot-map}{\mbox{\isa{quot{\isaliteral{5F}{\isacharunderscore}}map}}}} & : & \isa{attribute} \\
+    \indexdef{HOL}{attribute}{invariant\_commute}\hypertarget{attribute.HOL.invariant-commute}{\hyperlink{attribute.HOL.invariant-commute}{\mbox{\isa{invariant{\isaliteral{5F}{\isacharunderscore}}commute}}}} & : & \isa{attribute} \\
+  \end{matharray}
+
+  \begin{railoutput}
+\rail@begin{5}{}
+\rail@term{\hyperlink{command.HOL.setup-lifting}{\mbox{\isa{\isacommand{setup{\isaliteral{5F}{\isacharunderscore}}lifting}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@term{\isa{no{\isaliteral{5F}{\isacharunderscore}}abs{\isaliteral{5F}{\isacharunderscore}}code}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@cr{3}
+\rail@nont{\hyperlink{syntax.thmref}{\mbox{\isa{thmref}}}}[]
+\rail@bar
+\rail@nextbar{4}
+\rail@nont{\hyperlink{syntax.thmref}{\mbox{\isa{thmref}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
+
+  \begin{railoutput}
+\rail@begin{4}{}
+\rail@term{\hyperlink{command.HOL.lift-definition}{\mbox{\isa{\isacommand{lift{\isaliteral{5F}{\isacharunderscore}}definition}}}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.type}{\mbox{\isa{type}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.mixfix}{\mbox{\isa{mixfix}}}}[]
+\rail@endbar
+\rail@cr{3}
+\rail@term{\isa{is}}[]
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@end
+\end{railoutput}
+
+
+  \begin{description}
+
+  \item \hyperlink{command.HOL.setup-lifting}{\mbox{\isa{\isacommand{setup{\isaliteral{5F}{\isacharunderscore}}lifting}}}} Sets up the Lifting package to work with
+    a user-defined type. The user must provide either a quotient
+    theorem \isa{{\isaliteral{22}{\isachardoublequote}}Quotient\ R\ Abs\ Rep\ T{\isaliteral{22}{\isachardoublequote}}} or a type_definition theorem
+    \isa{{\isaliteral{22}{\isachardoublequote}}type{\isaliteral{5F}{\isacharunderscore}}definition\ Rep\ Abs\ A{\isaliteral{22}{\isachardoublequote}}}. 
+    The package configures
+    transfer rules for equality and quantifiers on the type, and sets
+    up the \indexdef{HOL}{command}{lift\_definition}\hypertarget{command.HOL.lift-definition}{\hyperlink{command.HOL.lift-definition}{\mbox{\isa{\isacommand{lift{\isaliteral{5F}{\isacharunderscore}}definition}}}}} command to work with the type. 
+    In the case of a quotient theorem,
+    an optional theorem \isa{{\isaliteral{22}{\isachardoublequote}}reflp\ R{\isaliteral{22}{\isachardoublequote}}} can be provided as a second argument.
+    This allows the package to generate stronger transfer rules.
+
+    \hyperlink{command.HOL.setup-lifting}{\mbox{\isa{\isacommand{setup{\isaliteral{5F}{\isacharunderscore}}lifting}}}} is called automatically if a quotient type
+    is defined by the command \hyperlink{command.HOL.quotient-type}{\mbox{\isa{\isacommand{quotient{\isaliteral{5F}{\isacharunderscore}}type}}}} from the Quotient package.
+
+    If \hyperlink{command.HOL.setup-lifting}{\mbox{\isa{\isacommand{setup{\isaliteral{5F}{\isacharunderscore}}lifting}}}} is called with a type_definition theorem, 
+    the abstract type implicitly defined by the theorem is declared as an abstract type in
+    the code generator. This allows \hyperlink{command.HOL.lift-definition}{\mbox{\isa{\isacommand{lift{\isaliteral{5F}{\isacharunderscore}}definition}}}} to register
+    (generated) code certificate theorems as abstract code equations in the code generator.
+    The option \isa{{\isaliteral{22}{\isachardoublequote}}no{\isaliteral{5F}{\isacharunderscore}}abs{\isaliteral{5F}{\isacharunderscore}}code{\isaliteral{22}{\isachardoublequote}}} of the command \hyperlink{command.HOL.setup-lifting}{\mbox{\isa{\isacommand{setup{\isaliteral{5F}{\isacharunderscore}}lifting}}}}
+    can turn off that behavior and causes that code certificate theorems generated 
+    by \hyperlink{command.HOL.lift-definition}{\mbox{\isa{\isacommand{lift{\isaliteral{5F}{\isacharunderscore}}definition}}}} are not registred as abstract code equations.
+
+  \item \hyperlink{command.HOL.lift-definition}{\mbox{\isa{\isacommand{lift{\isaliteral{5F}{\isacharunderscore}}definition}}}} \isa{{\isaliteral{22}{\isachardoublequote}}f\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\ is\ t{\isaliteral{22}{\isachardoublequote}}}  
+    Defines a new function \isa{f} with an abstract type \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}} in
+    terms of a corresponding operation \isa{t} on a representation type. 
+    The term \isa{t} doesn't have to be necessarily a constant but it can
+    be any term.
+
+    Users must discharge a respectfulness proof obligation when each
+    constant is defined. For a type copy, i.e. a typedef with \isa{UNIV},
+    the proof is discharged automatically. The obligation is
+    presented in a user-friendly, readable form. A respectfulness
+    theorem in the standard format \isa{f{\isaliteral{2E}{\isachardot}}rsp} and a transfer rule \isa{f{\isaliteral{2E}{\isachardot}}tranfer}
+    for the Transfer package are generated by the package.
+
+    Integration with code_abstype: For typedefs (e.g. subtypes
+    corresponding to a datatype invariant, such as dlist),
+    \hyperlink{command.HOL.lift-definition}{\mbox{\isa{\isacommand{lift{\isaliteral{5F}{\isacharunderscore}}definition}}}} 
+    generates a code certificate theorem \isa{f{\isaliteral{2E}{\isachardot}}rep{\isaliteral{5F}{\isacharunderscore}}eq} and sets up
+    code generation for each constant.
+
+  \item \hyperlink{command.HOL.print-quotmaps}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotmaps}}}} prints stored quotient map
+  theorems.
+
+  \item \hyperlink{command.HOL.print-quotients}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotients}}}} prints stored quotient theorems.
+
+  \item \hyperlink{attribute.HOL.quot-map}{\mbox{\isa{quot{\isaliteral{5F}{\isacharunderscore}}map}}} registers a quotient map theorem. For examples see
+    \verb|~~/src/HOL/Library/Quotient_List.thy| or other Quotient_*.thy files. 
+
+  \item \hyperlink{attribute.HOL.invariant-commute}{\mbox{\isa{invariant{\isaliteral{5F}{\isacharunderscore}}commute}}} registers a theorem which shows a relationship
+    between the constant \isa{Lifting{\isaliteral{2E}{\isachardot}}invariant} (used for internal encoding of proper subtypes) 
+    and a relator.
+    Such theorems allows the package to hide \isa{Lifting{\isaliteral{2E}{\isachardot}}invariant} from a user 
+    in a user-readable form of a respectfulness theorem. For examples see
+    \verb|~~/src/HOL/Library/Quotient_List.thy| or other Quotient_*.thy files.
+    
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsection{Quotient types%
 }
 \isamarkuptrue%
@@ -1782,8 +1895,8 @@ This avoids re-doing basic definitions and proofs from the
 \begin{matharray}{rcl}
     \indexdef{HOL}{command}{quotient\_type}\hypertarget{command.HOL.quotient-type}{\hyperlink{command.HOL.quotient-type}{\mbox{\isa{\isacommand{quotient{\isaliteral{5F}{\isacharunderscore}}type}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}\\
     \indexdef{HOL}{command}{quotient\_definition}\hypertarget{command.HOL.quotient-definition}{\hyperlink{command.HOL.quotient-definition}{\mbox{\isa{\isacommand{quotient{\isaliteral{5F}{\isacharunderscore}}definition}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}\\
-    \indexdef{HOL}{command}{print\_quotmaps}\hypertarget{command.HOL.print-quotmaps}{\hyperlink{command.HOL.print-quotmaps}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotmaps}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}}\\
-    \indexdef{HOL}{command}{print\_quotients}\hypertarget{command.HOL.print-quotients}{\hyperlink{command.HOL.print-quotients}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotients}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}}\\
+    \indexdef{HOL}{command}{print\_quotmapsQ3}\hypertarget{command.HOL.print-quotmapsQ3}{\hyperlink{command.HOL.print-quotmapsQ3}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotmapsQ{\isadigit{3}}}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}}\\
+    \indexdef{HOL}{command}{print\_quotientsQ3}\hypertarget{command.HOL.print-quotientsQ3}{\hyperlink{command.HOL.print-quotientsQ3}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotientsQ{\isadigit{3}}}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}}\\
     \indexdef{HOL}{command}{print\_quotconsts}\hypertarget{command.HOL.print-quotconsts}{\hyperlink{command.HOL.print-quotconsts}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotconsts}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}}\\
     \indexdef{HOL}{method}{lifting}\hypertarget{method.HOL.lifting}{\hyperlink{method.HOL.lifting}{\mbox{\isa{lifting}}}} & : & \isa{method} \\
     \indexdef{HOL}{method}{lifting\_setup}\hypertarget{method.HOL.lifting-setup}{\hyperlink{method.HOL.lifting-setup}{\mbox{\isa{lifting{\isaliteral{5F}{\isacharunderscore}}setup}}}} & : & \isa{method} \\
@@ -1903,10 +2016,10 @@ This avoids re-doing basic definitions and proofs from the
   \item \hyperlink{command.HOL.quotient-definition}{\mbox{\isa{\isacommand{quotient{\isaliteral{5F}{\isacharunderscore}}definition}}}} defines a constant on
   the quotient type.
 
-  \item \hyperlink{command.HOL.print-quotmaps}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotmaps}}}} prints quotient map
+  \item \hyperlink{command.HOL.print-quotmapsQ3}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotmapsQ{\isadigit{3}}}}}} prints quotient map
   functions.
 
-  \item \hyperlink{command.HOL.print-quotients}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotients}}}} prints quotients.
+  \item \hyperlink{command.HOL.print-quotientsQ3}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotientsQ{\isadigit{3}}}}}} prints quotients.
 
   \item \hyperlink{command.HOL.print-quotconsts}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotconsts}}}} prints quotient constants.
 
