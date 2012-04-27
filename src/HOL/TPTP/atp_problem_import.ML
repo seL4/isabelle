@@ -140,7 +140,8 @@ fun atp_tac ctxt override_params timeout prover =
         ("overlord", if overlord then "true" else "false"),
         ("provers", prover),
         ("timeout", string_of_int timeout)] @ override_params)
-      {add = [], del = [], only = true}
+      {add = [(Facts.named (Thm.derivation_name ext), [])],
+       del = [], only = true}
 
 fun sledgehammer_tac ctxt timeout i =
   let
@@ -207,8 +208,8 @@ fun isabelle_tptp_file thy timeout file_name =
       read_tptp_file thy (freeze_problem_consts thy) file_name
     val conj = make_conj assms conjs
   in
-    (can_tac ctxt (sledgehammer_tac ctxt (timeout div 2) 1) conj orelse
-     can_tac ctxt (auto_etc_tac ctxt (timeout div 2) 1) conj orelse
+    (can_tac ctxt (auto_etc_tac ctxt (timeout div 2) 1) conj orelse
+     can_tac ctxt (sledgehammer_tac ctxt (timeout div 2) 1) conj orelse
      can_tac ctxt (atp_tac ctxt [] timeout ATP_Systems.satallaxN 1) conj)
     |> print_szs_from_success conjs
   end
