@@ -186,6 +186,157 @@ INCOMPATIBILITY.
 
 * New type synonym 'a rel = ('a * 'a) set
 
+* New "case_product" attribute to generate a case rule doing multiple
+case distinctions at the same time.  E.g.
+
+  list.exhaust [case_product nat.exhaust]
+
+produces a rule which can be used to perform case distinction on both
+a list and a nat.
+
+* New Transfer package:
+
+  - transfer_rule attribute: Maintains a collection of transfer rules,
+    which relate constants at two different types. Transfer rules may
+    relate different type instances of the same polymorphic constant,
+    or they may relate an operation on a raw type to a corresponding
+    operation on an abstract type (quotient or subtype). For example:
+
+    ((A ===> B) ===> list_all2 A ===> list_all2 B) map map
+    (cr_int ===> cr_int ===> cr_int) (%(x,y) (u,v). (x+u, y+v)) plus_int
+
+  - transfer method: Replaces a subgoal on abstract types with an
+    equivalent subgoal on the corresponding raw types. Constants are
+    replaced with corresponding ones according to the transfer rules.
+    Goals are generalized over all free variables by default; this is
+    necessary for variables whose types changes, but can be overridden
+    for specific variables with e.g. 'transfer fixing: x y z'.  The
+    variant transfer' method allows replacing a subgoal with one that
+    is logically stronger (rather than equivalent).
+
+  - relator_eq attribute: Collects identity laws for relators of
+    various type constructors, e.g. "list_all2 (op =) = (op =)".  The
+    transfer method uses these lemmas to infer transfer rules for
+    non-polymorphic constants on the fly.
+
+  - transfer_prover method: Assists with proving a transfer rule for a
+    new constant, provided the constant is defined in terms of other
+    constants that already have transfer rules. It should be applied
+    after unfolding the constant definitions.
+
+  - HOL/ex/Transfer_Int_Nat.thy: Example theory demonstrating transfer
+    from type nat to type int.
+
+* New Lifting package:
+
+  - lift_definition command: Defines operations on an abstract type in
+    terms of a corresponding operation on a representation
+    type.  Example syntax:
+
+    lift_definition dlist_insert :: "'a => 'a dlist => 'a dlist"
+      is List.insert
+
+    Users must discharge a respectfulness proof obligation when each
+    constant is defined. (For a type copy, i.e. a typedef with UNIV,
+    the proof is discharged automatically.) The obligation is
+    presented in a user-friendly, readable form; a respectfulness
+    theorem in the standard format and a transfer rule are generated
+    by the package.
+
+  - Integration with code_abstype: For typedefs (e.g. subtypes
+    corresponding to a datatype invariant, such as dlist),
+    lift_definition generates a code certificate theorem and sets up
+    code generation for each constant.
+
+  - setup_lifting command: Sets up the Lifting package to work with a
+    user-defined type. The user must provide either a quotient theorem
+    or a type_definition theorem.  The package configures transfer
+    rules for equality and quantifiers on the type, and sets up the
+    lift_definition command to work with the type.
+
+  - Usage examples: See Quotient_Examples/Lift_DList.thy,
+    Quotient_Examples/Lift_RBT.thy, Word/Word.thy and
+    Library/Float.thy.
+
+* Quotient package:
+
+  - The 'quotient_type' command now supports a 'morphisms' option with
+    rep and abs functions, similar to typedef.
+
+  - 'quotient_type' sets up new types to work with the Lifting and
+    Transfer packages, as with 'setup_lifting'.
+
+  - The 'quotient_definition' command now requires the user to prove a
+    respectfulness property at the point where the constant is
+    defined, similar to lift_definition; INCOMPATIBILITY.
+
+  - Renamed predicate 'Quotient' to 'Quotient3', and renamed theorems
+    accordingly, INCOMPATIBILITY.
+
+* New diagnostic command 'find_unused_assms' to find potentially
+superfluous assumptions in theorems using Quickcheck.
+
+* Quickcheck:
+
+  - Quickcheck returns variable assignments as counterexamples, which
+    allows to reveal the underspecification of functions under test.
+    For example, refuting "hd xs = x", it presents the variable
+    assignment xs = [] and x = a1 as a counterexample, assuming that
+    any property is false whenever "hd []" occurs in it.
+
+    These counterexample are marked as potentially spurious, as
+    Quickcheck also returns "xs = []" as a counterexample to the
+    obvious theorem "hd xs = hd xs".
+
+    After finding a potentially spurious counterexample, Quickcheck
+    continues searching for genuine ones.
+
+    By default, Quickcheck shows potentially spurious and genuine
+    counterexamples. The option "genuine_only" sets quickcheck to only
+    show genuine counterexamples.
+
+  - The command 'quickcheck_generator' creates random and exhaustive
+    value generators for a given type and operations.
+
+    It generates values by using the operations as if they were
+    constructors of that type.
+
+  - Support for multisets.
+
+  - Added "use_subtype" options.
+
+  - Added "quickcheck_locale" configuration to specify how to process
+    conjectures in a locale context.
+
+* Nitpick:
+  - Fixed infinite loop caused by the 'peephole_optim' option and
+    affecting 'rat' and 'real'.
+
+* Sledgehammer:
+  - Integrated more tightly with SPASS, as described in the ITP 2012
+    paper "More SPASS with Isabelle".
+  - Made it try "smt" as a fallback if "metis" fails or times out.
+  - Added support for the following provers: Alt-Ergo (via Why3 and
+    TFF1), iProver, iProver-Eq.
+  - Replaced remote E-SInE with remote Satallax in the default setup.
+  - Sped up the minimizer.
+  - Added "lam_trans", "uncurry_aliases", and "minimize" options.
+  - Renamed "slicing" ("no_slicing") option to "slice" ("dont_slice").
+  - Renamed "sound" option to "strict".
+
+* Metis:
+  - Added possibility to specify lambda translations scheme as a
+    parenthesized argument (e.g., "by (metis (lifting) ...)").
+
+* SMT:
+  - Renamed "smt_fixed" option to "smt_read_only_certificates".
+
+* Command 'try0':
+  - Renamed from 'try_methods'. INCOMPATIBILITY.
+
+* New "eventually_elim" method as a generalized variant of the
+eventually_elim* rules. Supports structured proofs.
+
 * Typedef with implicit set definition is considered legacy.  Use
 "typedef (open)" form instead, which will eventually become the
 default.
@@ -597,15 +748,6 @@ instead.
   word_of_int_0_hom ~> word_0_wi
   word_of_int_1_hom ~> word_1_wi
 
-* New proof method "word_bitwise" for splitting machine word
-equalities and inequalities into logical circuits, defined in
-HOL/Word/WordBitwise.thy.  Supports addition, subtraction,
-multiplication, shifting by constants, bitwise operators and numeric
-constants.  Requires fixed-length word types, not 'a word.  Solves
-many standard word identies outright and converts more into first
-order problems amenable to blast or similar.  See also examples in
-HOL/Word/Examples/WordExamples.thy.
-
 * Clarified attribute "mono_set": pure declaration without modifying
 the result of the fact expression.
 
@@ -657,6 +799,15 @@ INCOMPATIBILITY, use the corresponding generic theorems instead.
   DERIV_nonneg_imp_nonincreasing ~> DERIV_nonneg_imp_nondecreasing
 
 * Theory Library/Multiset: Improved code generation of multisets.
+
+* Session HOL-Word: New proof method "word_bitwise" for splitting
+machine word equalities and inequalities into logical circuits,
+defined in HOL/Word/WordBitwise.thy.  Supports addition, subtraction,
+multiplication, shifting by constants, bitwise operators and numeric
+constants.  Requires fixed-length word types, not 'a word.  Solves
+many standard word identies outright and converts more into first
+order problems amenable to blast or similar.  See also examples in
+HOL/Word/Examples/WordExamples.thy.
 
 * Session HOL-Probability: Introduced the type "'a measure" to
 represent measures, this replaces the records 'a algebra and 'a
@@ -830,157 +981,6 @@ and point_measure is introduced.  INCOMPATIBILITY.
   sigma_finite_measure.RN_deriv_vimage -> sigma_finite_measure.RN_deriv_distr
   sigma_product_algebra_sigma_eq -> sigma_prod_algebra_sigma_eq
   space_product_algebra -> space_PiM
-
-* New "case_product" attribute to generate a case rule doing multiple
-case distinctions at the same time.  E.g.
-
-  list.exhaust [case_product nat.exhaust]
-
-produces a rule which can be used to perform case distinction on both
-a list and a nat.
-
-* New Transfer package:
-
-  - transfer_rule attribute: Maintains a collection of transfer rules,
-    which relate constants at two different types. Transfer rules may
-    relate different type instances of the same polymorphic constant,
-    or they may relate an operation on a raw type to a corresponding
-    operation on an abstract type (quotient or subtype). For example:
-
-    ((A ===> B) ===> list_all2 A ===> list_all2 B) map map
-    (cr_int ===> cr_int ===> cr_int) (%(x,y) (u,v). (x+u, y+v)) plus_int
-
-  - transfer method: Replaces a subgoal on abstract types with an
-    equivalent subgoal on the corresponding raw types. Constants are
-    replaced with corresponding ones according to the transfer rules.
-    Goals are generalized over all free variables by default; this is
-    necessary for variables whose types changes, but can be overridden
-    for specific variables with e.g. 'transfer fixing: x y z'.  The
-    variant transfer' method allows replacing a subgoal with one that
-    is logically stronger (rather than equivalent).
-
-  - relator_eq attribute: Collects identity laws for relators of
-    various type constructors, e.g. "list_all2 (op =) = (op =)".  The
-    transfer method uses these lemmas to infer transfer rules for
-    non-polymorphic constants on the fly.
-
-  - transfer_prover method: Assists with proving a transfer rule for a
-    new constant, provided the constant is defined in terms of other
-    constants that already have transfer rules. It should be applied
-    after unfolding the constant definitions.
-
-  - HOL/ex/Transfer_Int_Nat.thy: Example theory demonstrating transfer
-    from type nat to type int.
-
-* New Lifting package:
-
-  - lift_definition command: Defines operations on an abstract type in
-    terms of a corresponding operation on a representation
-    type.  Example syntax:
-
-    lift_definition dlist_insert :: "'a => 'a dlist => 'a dlist"
-      is List.insert
-
-    Users must discharge a respectfulness proof obligation when each
-    constant is defined. (For a type copy, i.e. a typedef with UNIV,
-    the proof is discharged automatically.) The obligation is
-    presented in a user-friendly, readable form; a respectfulness
-    theorem in the standard format and a transfer rule are generated
-    by the package.
-
-  - Integration with code_abstype: For typedefs (e.g. subtypes
-    corresponding to a datatype invariant, such as dlist),
-    lift_definition generates a code certificate theorem and sets up
-    code generation for each constant.
-
-  - setup_lifting command: Sets up the Lifting package to work with a
-    user-defined type. The user must provide either a quotient theorem
-    or a type_definition theorem.  The package configures transfer
-    rules for equality and quantifiers on the type, and sets up the
-    lift_definition command to work with the type.
-
-  - Usage examples: See Quotient_Examples/Lift_DList.thy,
-    Quotient_Examples/Lift_RBT.thy, Word/Word.thy and
-    Library/Float.thy.
-
-* Quotient package:
-
-  - The 'quotient_type' command now supports a 'morphisms' option with
-    rep and abs functions, similar to typedef.
-
-  - 'quotient_type' sets up new types to work with the Lifting and
-    Transfer packages, as with 'setup_lifting'.
-
-  - The 'quotient_definition' command now requires the user to prove a
-    respectfulness property at the point where the constant is
-    defined, similar to lift_definition; INCOMPATIBILITY.
-
-  - Renamed predicate 'Quotient' to 'Quotient3', and renamed theorems
-    accordingly, INCOMPATIBILITY.
-
-* New diagnostic command 'find_unused_assms' to find potentially
-superfluous assumptions in theorems using Quickcheck.
-
-* Quickcheck:
-
-  - Quickcheck returns variable assignments as counterexamples, which
-    allows to reveal the underspecification of functions under test.
-    For example, refuting "hd xs = x", it presents the variable
-    assignment xs = [] and x = a1 as a counterexample, assuming that
-    any property is false whenever "hd []" occurs in it.
-
-    These counterexample are marked as potentially spurious, as
-    Quickcheck also returns "xs = []" as a counterexample to the
-    obvious theorem "hd xs = hd xs".
-
-    After finding a potentially spurious counterexample, Quickcheck
-    continues searching for genuine ones.
-
-    By default, Quickcheck shows potentially spurious and genuine
-    counterexamples. The option "genuine_only" sets quickcheck to only
-    show genuine counterexamples.
-
-  - The command 'quickcheck_generator' creates random and exhaustive
-    value generators for a given type and operations.
-
-    It generates values by using the operations as if they were
-    constructors of that type.
-
-  - Support for multisets.
-
-  - Added "use_subtype" options.
-
-  - Added "quickcheck_locale" configuration to specify how to process
-    conjectures in a locale context.
-
-* Nitpick:
-  - Fixed infinite loop caused by the 'peephole_optim' option and
-    affecting 'rat' and 'real'.
-
-* Sledgehammer:
-  - Integrated more tightly with SPASS, as described in the ITP 2012
-    paper "More SPASS with Isabelle".
-  - Made it try "smt" as a fallback if "metis" fails or times out.
-  - Added support for the following provers: Alt-Ergo (via Why3 and
-    TFF1), iProver, iProver-Eq.
-  - Replaced remote E-SInE with remote Satallax in the default setup.
-  - Sped up the minimizer.
-  - Added "lam_trans", "uncurry_aliases", and "minimize" options.
-  - Renamed "slicing" ("no_slicing") option to "slice" ("dont_slice").
-  - Renamed "sound" option to "strict".
-
-* Metis:
-  - Added possibility to specify lambda translations scheme as a
-    parenthesized argument (e.g., "by (metis (lifting) ...)").
-
-* SMT:
-  - Renamed "smt_fixed" option to "smt_read_only_certificates".
-
-* Command 'try0':
-  - Renamed from 'try_methods'. INCOMPATIBILITY.
-
-* New "eventually_elim" method as a generalized variant of the
-eventually_elim* rules. Supports structured proofs.
 
 * HOL/TPTP: support to parse and import TPTP problems (all languages)
 into Isabelle/HOL.
