@@ -390,6 +390,8 @@ fun parse_tstp_line problem =
               | File_Source _ =>
                 ((num, find_formula_in_problem problem phi), "", [])
               | Inference_Source (rule, deps) => ((num, []), rule, deps)
+            fun mk_step () =
+              Inference_Step (name, phi, rule, map (rpair []) deps)
           in
             case role of
               "definition" =>
@@ -399,8 +401,8 @@ fun parse_tstp_line problem =
                | AAtom (ATerm ("equal", _)) =>
                  (* Vampire's equality proxy axiom *)
                  Inference_Step (name, phi, rule, map (rpair []) deps)
-               | _ => raise UNRECOGNIZED_ATP_PROOF ())
-            | _ => Inference_Step (name, phi, rule, map (rpair []) deps)
+               | _ => mk_step ())
+            | _ => mk_step ()
           end)
 
 (**** PARSING OF SPASS OUTPUT ****)
