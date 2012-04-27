@@ -101,8 +101,8 @@ use "Concurrent/cache.ML";
 use "name.ML";
 use "term.ML";
 use "context.ML";
-use "config.ML";
 use "context_position.ML";
+use "config.ML";
 
 
 (* inner syntax *)

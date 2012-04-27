@@ -22,9 +22,17 @@ end;
 structure Context_Position: CONTEXT_POSITION =
 struct
 
-val visible = Config.bool (Config.declare "Context_Position.visible" (K (Config.Bool true)));
-fun is_visible ctxt = Config.get ctxt visible;
-val set_visible = Config.put visible;
+structure Data = Generic_Data
+(
+  type T = bool option;
+  val empty: T = NONE;
+  val extend = I;
+  fun merge (x, y): T = if is_some x then x else y;
+);
+
+val is_visible_generic = the_default true o Data.get;
+val is_visible = is_visible_generic o Context.Proof;
+val set_visible = Context.proof_map o Data.put o SOME;
 val restore_visible = set_visible o is_visible;
 
 fun if_visible ctxt f x = if is_visible ctxt then f x else ();
@@ -35,7 +43,7 @@ fun is_visible_proof (Context.Proof ctxt) = is_visible ctxt
 fun if_visible_proof context f x = if is_visible_proof context then f x else ();
 
 fun report_generic context pos markup =
-  if Config.get_generic context visible then
+  if is_visible_generic context then
     Output.report (Position.reported_text pos markup "")
   else ();
 
