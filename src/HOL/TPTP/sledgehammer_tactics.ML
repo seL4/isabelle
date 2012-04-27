@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/sledgehammer_tactics.ML
+(*  Title:      HOL/TPTP/sledgehammer_tactics.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2010, 2011
 

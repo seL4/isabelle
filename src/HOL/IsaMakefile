@@ -1034,7 +1034,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy	\
   ex/Records.thy ex/ReflectionEx.thy ex/Refute_Examples.thy		\
   ex/SAT_Examples.thy ex/Serbian.thy ex/Set_Theory.thy			\
   ex/Simproc_Tests.thy ex/SVC_Oracle.thy		\
-  ex/sledgehammer_tactics.ML ex/Seq.thy ex/Sqrt.thy ex/Sqrt_Script.thy 	\
+  ex/Seq.thy ex/Sqrt.thy ex/Sqrt_Script.thy 	\
   ex/Sudoku.thy ex/Tarski.thy ex/Termination.thy ex/Transfer_Ex.thy	\
   ex/Transfer_Int_Nat.thy						\
   ex/Tree23.thy	ex/Unification.thy ex/While_Combinator_Example.thy	\
@@ -1153,7 +1153,8 @@ $(LOG)/HOL-TPTP.gz: $(OUT)/HOL \
   TPTP/TPTP_Parser/tptp_syntax.ML \
   TPTP/TPTP_Parser_Test.thy \
   TPTP/atp_problem_import.ML \
-  TPTP/atp_theory_export.ML
+  TPTP/atp_theory_export.ML \
+  TPTP/sledgehammer_tactics.ML
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL TPTP
 
 
@@ -1333,7 +1334,7 @@ $(LOG)/HOL-Mirabelle.gz: $(OUT)/HOL Mirabelle/Mirabelle_Test.thy \
   Mirabelle/Tools/mirabelle_refute.ML	\
   Mirabelle/Tools/mirabelle_sledgehammer.ML \
   Mirabelle/Tools/mirabelle_sledgehammer_filter.ML \
-  ex/sledgehammer_tactics.ML Mirabelle/lib/Tools/mirabelle \
+  TPTP/sledgehammer_tactics.ML Mirabelle/lib/Tools/mirabelle \
   Mirabelle/lib/scripts/mirabelle.pl Library/FrechetDeriv.thy \
   Library/Inner_Product.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Mirabelle

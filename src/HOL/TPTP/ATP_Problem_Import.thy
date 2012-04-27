@@ -3,10 +3,9 @@
 *)
 
 header {* ATP Problem Importer *}
-
 theory ATP_Problem_Import
 imports Complex_Main TPTP_Interpret
-uses "~~/src/HOL/ex/sledgehammer_tactics.ML"
+uses "sledgehammer_tactics.ML"
      "atp_problem_import.ML"
 begin
 
