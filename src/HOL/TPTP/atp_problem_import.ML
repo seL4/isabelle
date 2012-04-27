@@ -152,12 +152,12 @@ fun sledgehammer_tac ctxt timeout i =
                     (atp_tac ctxt overload_params timeout prover i)
   in
     slice [] 7 ATP_Systems.satallaxN
+    ORELSE slice [] 7 ATP_Systems.leo2N
     ORELSE slice [] 7 ATP_Systems.spassN
     ORELSE slice [] 7 z3N
     ORELSE slice [] 7 ATP_Systems.vampireN
     ORELSE slice [] 7 ATP_Systems.eN
     ORELSE slice [] 7 cvc3N
-    ORELSE slice [] 7 ATP_Systems.leo2N
   end
 
 fun auto_etc_tac ctxt timeout i =
