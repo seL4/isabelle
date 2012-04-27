@@ -9,8 +9,8 @@ Version information
 
 Installation
 
-   Isabelle work on the three main platform families: Linux, Mac OS X,
-   and Windows (via Cygwin).
+   Isabelle works on the three main platform families: Linux, Mac OS
+   X, and Windows (via Cygwin).
 
    Completely integrated bundles including the full Isabelle sources,
    documentation, add-on tools and precompiled logic images for
@@ -29,9 +29,9 @@ User interfaces
 
    The classic Isabelle user interface is Proof General by David
    Aspinall and others.  It is a generic Emacs interface for proof
-   assistants, including Isabelle.  Its most prominent feature is
-   script management, providing a metaphor of stepwise proof script
-   editing.
+   assistants, including Isabelle.  Its main feature is script
+   management, providing a metaphor of stepwise proof script editing
+   and partial locking of the buffer.
 
 Other sources of information
 
