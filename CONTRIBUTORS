@@ -7,17 +7,18 @@ Contributions to Isabelle2012
 -----------------------------
 
 * April 2012: Johannes Hölzl, TUM
-  Probability: Introduced type to represent measures instead of locales.
+  Probability: Introduced type to represent measures instead of
+  locales.
 
 * April 2012: Johannes Hölzl, Fabian Immler, TUM
   Float: Moved to Dyadic rationals to represent floating point numers.
 
-* April 2012: Thomas Sewell, NICTA
-    (based on work done with Sascha Boehme, TUM in 2010)
-  WordBitwise: logic/circuit expansion of bitvector equalities/inequalities.
+* April 2012: Thomas Sewell, NICTA and
+  2010: Sascha Boehme, TUM
+  Theory HOL/Word/WordBitwise: logic/circuit expansion of bitvector
+  equalities/inequalities.
 
-* March 2012: Christian Sternagel, Japan Advanced Institute of Science
-  and Technology
+* March 2012: Christian Sternagel, JAIST
   Consolidated theory of relation composition.
 
 * March 2012: Nik Sultana, University of Cambridge
@@ -31,11 +32,13 @@ Contributions to Isabelle2012
   (Re-)Introduction of the "set" type constructor.
 
 * 2012: Ondrej Kuncar, TUM
-  New package Lifting, various improvements and refinements to the Quotient package.
+  New package Lifting, various improvements and refinements to the
+  Quotient package.
 
 * 2011/2012: Jasmin Blanchette, TUM
   Various improvements to Sledgehammer, notably: tighter integration
-  with SPASS, support for more provers (Alt-Ergo, iProver, iProver-Eq).
+  with SPASS, support for more provers (Alt-Ergo, iProver,
+  iProver-Eq).
 
 * 2011/2012: Makarius Wenzel, Université Paris-Sud / LRI
   Various refinements of local theory infrastructure.
