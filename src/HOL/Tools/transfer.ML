@@ -10,6 +10,7 @@ sig
   val get_relator_eq: Proof.context -> thm list
   val transfer_add: attribute
   val transfer_del: attribute
+  val transfer_rule_of_term: Proof.context -> term -> thm
   val transfer_tac: bool -> Proof.context -> int -> tactic
   val transfer_prover_tac: Proof.context -> int -> tactic
   val setup: theory -> theory
@@ -193,6 +194,8 @@ fun transfer_tac equiv ctxt i =
     val start_rule = 
       if equiv then @{thm transfer_start} else @{thm transfer_start'}
     val rules = Data.get ctxt
+    (* allow unsolved subgoals only for standard transfer method, not for transfer' *)
+    val end_tac = if equiv then K all_tac else K no_tac
   in
     EVERY
       [rewrite_goal_tac pre_simps i THEN
@@ -201,7 +204,7 @@ fun transfer_tac equiv ctxt i =
          (rtac (transfer_rule_of_term ctxt (HOLogic.dest_Trueprop t))
            THEN_ALL_NEW
              (SOLVED' (REPEAT_ALL_NEW (resolve_tac rules))
-               ORELSE' eq_tac ctxt)) (i + 1)) i,
+               ORELSE' eq_tac ctxt ORELSE' end_tac)) (i + 1)) i,
        (* FIXME: rewrite_goal_tac does unwanted eta-contraction *)
        rewrite_goal_tac post_simps i,
        rtac @{thm _} i]
