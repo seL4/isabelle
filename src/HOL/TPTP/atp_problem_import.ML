@@ -103,7 +103,7 @@ fun refute_tptp_file timeout file_name =
          if falsify then "CounterSatisfiable" else "Satisfiable"
        else
          "Unknown")
-      |> writeln
+      |> Output.urgent_message
     val (conjs, (defs, nondefs), ctxt) = read_tptp_file @{theory} I file_name
     val params =
       [("maxtime", string_of_int timeout),
@@ -124,7 +124,8 @@ fun can_tac ctxt tactic conj = can (Goal.prove ctxt [] [] conj) (K tactic)
 
 fun SOLVE_TIMEOUT seconds name tac st =
   let
-    val _ = writeln ("running " ^ name ^ " for " ^ string_of_int seconds ^ " s")
+    val _ = Output.urgent_message ("running " ^ name ^ " for " ^
+                                   string_of_int seconds ^ " s")
     val result =
       TimeLimit.timeLimit (Time.fromSeconds seconds)
         (fn () => SINGLE (SOLVE tac) st) ()
@@ -132,56 +133,44 @@ fun SOLVE_TIMEOUT seconds name tac st =
         | ERROR _ => NONE
   in
     case result of
-      NONE => (writeln ("FAILURE: " ^ name); Seq.empty)
-    | SOME st' => (writeln ("SUCCESS: " ^ name); Seq.single st')
+      NONE => (Output.urgent_message ("FAILURE: " ^ name); Seq.empty)
+    | SOME st' => (Output.urgent_message ("SUCCESS: " ^ name); Seq.single st')
   end
 
-fun atp_tac ctxt timeout prover =
+fun atp_tac ctxt override_params timeout prover =
   Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt
-      [("debug", if debug then "true" else "false"),
-       ("overlord", if overlord then "true" else "false"),
-       ("provers", prover),
-       ("timeout", string_of_int timeout)]
+      ([("debug", if debug then "true" else "false"),
+        ("overlord", if overlord then "true" else "false"),
+        ("provers", prover),
+        ("timeout", string_of_int timeout)] @ override_params)
       {add = [], del = [], only = true}
 
 fun sledgehammer_tac ctxt timeout i =
   let
-    fun slice timeout prover =
-      SOLVE_TIMEOUT timeout prover (atp_tac ctxt timeout prover i)
+    fun slice overload_params fraq prover =
+      SOLVE_TIMEOUT (timeout div fraq) prover
+                    (atp_tac ctxt overload_params timeout prover i)
   in
-    slice (timeout div 10) ATP_Systems.satallaxN
-    ORELSE
-    slice (timeout div 10) ATP_Systems.spassN
-    ORELSE
-    slice (timeout div 10) z3N
-    ORELSE
-    slice (timeout div 10) ATP_Systems.vampireN
-    ORELSE
-    slice (timeout div 10) ATP_Systems.eN
-    ORELSE
-    slice (timeout div 10) cvc3N
-    ORELSE
-    slice (timeout div 10) ATP_Systems.leo2N
+    slice [] 7 ATP_Systems.satallaxN
+    ORELSE slice [] 7 ATP_Systems.spassN
+    ORELSE slice [] 7 z3N
+    ORELSE slice [] 7 ATP_Systems.vampireN
+    ORELSE slice [] 7 ATP_Systems.eN
+    ORELSE slice [] 7 cvc3N
+    ORELSE slice [] 7 ATP_Systems.leo2N
   end
 
 fun auto_etc_tac ctxt timeout i =
   SOLVE_TIMEOUT (timeout div 10) "simp" (asm_full_simp_tac (simpset_of ctxt) i)
-  ORELSE
-  SOLVE_TIMEOUT (timeout div 10) "blast" (blast_tac ctxt i)
-  ORELSE
-  SOLVE_TIMEOUT (timeout div 20) "auto+spass"
+  ORELSE SOLVE_TIMEOUT (timeout div 10) "blast" (blast_tac ctxt i)
+  ORELSE SOLVE_TIMEOUT (timeout div 20) "auto+spass"
       (auto_tac ctxt
-       THEN ALLGOALS (atp_tac ctxt (timeout div 20) ATP_Systems.spassN))
-  ORELSE
-  SOLVE_TIMEOUT (timeout div 20) "fast" (fast_tac ctxt i)
-  ORELSE
-  SOLVE_TIMEOUT (timeout div 20) "best" (best_tac ctxt i)
-  ORELSE
-  SOLVE_TIMEOUT (timeout div 20) "force" (force_tac ctxt i)
-  ORELSE
-  SOLVE_TIMEOUT (timeout div 20) "arith" (Arith_Data.arith_tac ctxt i)
-  ORELSE
-  SOLVE_TIMEOUT timeout "fastforce" (fast_force_tac ctxt i)
+       THEN ALLGOALS (atp_tac ctxt [] (timeout div 20) ATP_Systems.spassN))
+  ORELSE SOLVE_TIMEOUT (timeout div 20) "fast" (fast_tac ctxt i)
+  ORELSE SOLVE_TIMEOUT (timeout div 20) "best" (best_tac ctxt i)
+  ORELSE SOLVE_TIMEOUT (timeout div 20) "force" (force_tac ctxt i)
+  ORELSE SOLVE_TIMEOUT (timeout div 20) "arith" (Arith_Data.arith_tac ctxt i)
+  ORELSE SOLVE_TIMEOUT timeout "fastforce" (fast_force_tac ctxt i)
 
 val problem_const_prefix = Context.theory_name @{theory} ^ Long_Name.separator
 
@@ -200,11 +189,11 @@ fun make_conj (defs, nondefs) conjs =
                       case conjs of conj :: _ => conj | [] => @{prop False})
 
 fun print_szs_from_success conjs success =
-  writeln ("% SZS status " ^
-           (if success then
-              if null conjs then "Unsatisfiable" else "Theorem"
-            else
-              "% SZS status Unknown"))
+  Output.urgent_message ("% SZS status " ^
+                         (if success then
+                            if null conjs then "Unsatisfiable" else "Theorem"
+                          else
+                            "% SZS status Unknown"))
 
 fun sledgehammer_tptp_file timeout file_name =
   let
@@ -224,7 +213,7 @@ fun isabelle_tptp_file timeout file_name =
   in
     (can_tac ctxt (sledgehammer_tac ctxt (timeout div 2) 1) conj orelse
      can_tac ctxt (auto_etc_tac ctxt (timeout div 2) 1) conj orelse
-     can_tac ctxt (atp_tac ctxt timeout ATP_Systems.satallaxN 1) conj)
+     can_tac ctxt (atp_tac ctxt [] timeout ATP_Systems.satallaxN 1) conj)
     |> print_szs_from_success conjs
   end
 
