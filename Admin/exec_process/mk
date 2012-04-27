@@ -1,0 +1,3 @@
+#!/bin/bash
+
+cc exec_process.c -o exec_process

@@ -1,6 +1,6 @@
 /*  Author:     Makarius
 
-Bash process group invocation on Cygwin.
+Bash process group invocation.
 */
 
 #include <stdlib.h>
