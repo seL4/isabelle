@@ -71,7 +71,7 @@ fun nitpick_tptp_file timeout file_name =
        ("box", "false"),
        ("sat_solver", "smart"),
        ("max_threads", "1"),
-       ("batch_size", "10"),
+       ("batch_size", "5"),
        ("falsify", if null conjs then "false" else "true"),
        ("verbose", "true"),
        ("debug", if debug then "true" else "false"),
