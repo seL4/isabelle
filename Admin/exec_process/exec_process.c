@@ -11,7 +11,7 @@ Bash process group invocation.
 
 static void fail(const char *msg)
 {
-  printf("%s\n", msg);
+  fprintf(stderr, "%s\n", msg);
   exit(2);
 }
 
@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
   /* args */
 
   if (argc != 3) {
-    printf("Bad arguments\n");
+    fprintf(stderr, "Bad arguments\n");
     exit(1);
   }
   char *pid_name = argv[1];
