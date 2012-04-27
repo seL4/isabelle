@@ -27,7 +27,7 @@ shift
 for FILE in "$@"
 do
   echo "theory $SCRATCH imports \"$TPTP_HOME/ATP_Problem_Import\" begin \
-ML {* ATP_Problem_Import.sledgehammer_tptp_file ($TIMEOUT) \"$FILE\" *} end;" \
+ML {* ATP_Problem_Import.sledgehammer_tptp_file @{theory} ($TIMEOUT) \"$FILE\" *} end;" \
     > /tmp/$SCRATCH.thy
   "$ISABELLE_PROCESS" -e "use_thy \"/tmp/$SCRATCH\"; exit 1;"
 done

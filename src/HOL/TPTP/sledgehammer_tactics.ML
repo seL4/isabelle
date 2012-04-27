@@ -24,12 +24,12 @@ open Sledgehammer_Filter
 
 fun run_prover override_params relevance_override i n ctxt goal =
   let
+    val mode = Sledgehammer_Provers.Normal
     val chained_ths = [] (* a tactic has no chained ths *)
     val params as {provers, relevance_thresholds, max_relevant, slice, ...} =
       Sledgehammer_Isar.default_params ctxt override_params
     val name = hd provers
-    val prover =
-      Sledgehammer_Provers.get_prover ctxt Sledgehammer_Provers.Normal name
+    val prover = Sledgehammer_Provers.get_prover ctxt mode name
     val default_max_relevant =
       Sledgehammer_Provers.default_max_relevant_for_prover ctxt slice name
     val is_built_in_const =

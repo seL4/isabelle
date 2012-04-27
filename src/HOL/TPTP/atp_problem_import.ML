@@ -7,10 +7,10 @@ Import TPTP problems as Isabelle terms or goals.
 
 signature ATP_PROBLEM_IMPORT =
 sig
-  val nitpick_tptp_file : int -> string -> unit
-  val refute_tptp_file : int -> string -> unit
-  val sledgehammer_tptp_file : int -> string -> unit
-  val isabelle_tptp_file : int -> string -> unit
+  val nitpick_tptp_file : theory -> int -> string -> unit
+  val refute_tptp_file : theory -> int -> string -> unit
+  val sledgehammer_tptp_file : theory -> int -> string -> unit
+  val isabelle_tptp_file : theory -> int -> string -> unit
   val translate_tptp_file : string -> string -> string -> unit
 end;
 
@@ -59,9 +59,9 @@ fun read_tptp_file thy postproc file_name =
 fun aptrueprop f ((t0 as @{const Trueprop}) $ t1) = t0 $ f t1
   | aptrueprop f t = f t
 
-fun nitpick_tptp_file timeout file_name =
+fun nitpick_tptp_file thy timeout file_name =
   let
-    val (conjs, (defs, nondefs), ctxt) = read_tptp_file @{theory} I file_name
+    val (conjs, (defs, nondefs), ctxt) = read_tptp_file thy I file_name
     val thy = Proof_Context.theory_of ctxt
     val defs = defs |> map (ATP_Util.extensionalize_term ctxt
                             #> aptrueprop (open_form I))
@@ -95,7 +95,7 @@ fun nitpick_tptp_file timeout file_name =
 
 (** Refute **)
 
-fun refute_tptp_file timeout file_name =
+fun refute_tptp_file thy timeout file_name =
   let
     fun print_szs_from_outcome falsify s =
       "% SZS status " ^
@@ -104,7 +104,7 @@ fun refute_tptp_file timeout file_name =
        else
          "Unknown")
       |> Output.urgent_message
-    val (conjs, (defs, nondefs), ctxt) = read_tptp_file @{theory} I file_name
+    val (conjs, (defs, nondefs), ctxt) = read_tptp_file thy I file_name
     val params =
       [("maxtime", string_of_int timeout),
        ("maxvars", "100000")]
@@ -116,9 +116,6 @@ fun refute_tptp_file timeout file_name =
 
 
 (** Sledgehammer and Isabelle (combination of provers) **)
-
-val cvc3N = "cvc3"
-val z3N = "z3"
 
 fun can_tac ctxt tactic conj = can (Goal.prove ctxt [] [] conj) (K tactic)
 
@@ -149,40 +146,39 @@ fun sledgehammer_tac ctxt timeout i =
   let
     fun slice overload_params fraq prover =
       SOLVE_TIMEOUT (timeout div fraq) prover
-                    (atp_tac ctxt overload_params timeout prover i)
+                    (atp_tac ctxt overload_params (timeout div fraq) prover i)
   in
-    slice [] 7 ATP_Systems.satallaxN
-    ORELSE slice [] 7 ATP_Systems.leo2N
-    ORELSE slice [] 7 ATP_Systems.spassN
-    ORELSE slice [] 7 z3N
-    ORELSE slice [] 7 ATP_Systems.vampireN
-    ORELSE slice [] 7 ATP_Systems.eN
-    ORELSE slice [] 7 cvc3N
+    slice [] 5 ATP_Systems.satallaxN
+    ORELSE slice [] 5 ATP_Systems.leo2N
+    ORELSE slice [] 5 ATP_Systems.spassN
+    ORELSE slice [] 5 ATP_Systems.vampireN
+    ORELSE slice [] 5 ATP_Systems.eN
   end
 
 fun auto_etc_tac ctxt timeout i =
   SOLVE_TIMEOUT (timeout div 10) "simp" (asm_full_simp_tac (simpset_of ctxt) i)
   ORELSE SOLVE_TIMEOUT (timeout div 10) "blast" (blast_tac ctxt i)
-  ORELSE SOLVE_TIMEOUT (timeout div 20) "auto+spass"
+  ORELSE SOLVE_TIMEOUT (timeout div 5) "auto+spass"
       (auto_tac ctxt
-       THEN ALLGOALS (atp_tac ctxt [] (timeout div 20) ATP_Systems.spassN))
-  ORELSE SOLVE_TIMEOUT (timeout div 20) "fast" (fast_tac ctxt i)
-  ORELSE SOLVE_TIMEOUT (timeout div 20) "best" (best_tac ctxt i)
-  ORELSE SOLVE_TIMEOUT (timeout div 20) "force" (force_tac ctxt i)
-  ORELSE SOLVE_TIMEOUT (timeout div 20) "arith" (Arith_Data.arith_tac ctxt i)
+       THEN ALLGOALS (atp_tac ctxt [] (timeout div 5) ATP_Systems.spassN))
+  ORELSE SOLVE_TIMEOUT (timeout div 5) "smt" (SMT_Solver.smt_tac ctxt [] i)
+  ORELSE SOLVE_TIMEOUT (timeout div 10) "fast" (fast_tac ctxt i)
+  ORELSE SOLVE_TIMEOUT (timeout div 10) "best" (best_tac ctxt i)
+  ORELSE SOLVE_TIMEOUT (timeout div 10) "force" (force_tac ctxt i)
+  ORELSE SOLVE_TIMEOUT (timeout div 10) "arith" (Arith_Data.arith_tac ctxt i)
   ORELSE SOLVE_TIMEOUT timeout "fastforce" (fast_force_tac ctxt i)
 
-val problem_const_prefix = Context.theory_name @{theory} ^ Long_Name.separator
+fun problem_const_prefix thy = Context.theory_name thy ^ Long_Name.separator
 
 (* Isabelle's standard automatic tactics ("auto", etc.) are more eager to
    unfold "definitions" of free variables than of constants (cf. PUZ107^5). *)
-val freeze_problem_consts =
-  map_aterms (fn t as Const (s, T) =>
-                 if String.isPrefix problem_const_prefix s then
-                   Free (Long_Name.base_name s, T)
-                 else
-                   t
-               | t => t)
+fun freeze_problem_consts thy =
+  let val is_problem_const = String.isPrefix (problem_const_prefix thy) in
+    map_aterms (fn t as Const (s, T) =>
+                   if is_problem_const s then Free (Long_Name.base_name s, T)
+                   else t
+                 | t => t)
+  end
 
 fun make_conj (defs, nondefs) conjs =
   Logic.list_implies (rev defs @ rev nondefs,
@@ -193,22 +189,22 @@ fun print_szs_from_success conjs success =
                          (if success then
                             if null conjs then "Unsatisfiable" else "Theorem"
                           else
-                            "% SZS status Unknown"))
+                            "Unknown"))
 
-fun sledgehammer_tptp_file timeout file_name =
+fun sledgehammer_tptp_file thy timeout file_name =
   let
     val (conjs, assms, ctxt) =
-      read_tptp_file @{theory} freeze_problem_consts file_name
+      read_tptp_file thy (freeze_problem_consts thy) file_name
     val conj = make_conj assms conjs
   in
     can_tac ctxt (sledgehammer_tac ctxt timeout 1) conj
     |> print_szs_from_success conjs
   end
 
-fun isabelle_tptp_file timeout file_name =
+fun isabelle_tptp_file thy timeout file_name =
   let
     val (conjs, assms, ctxt) =
-      read_tptp_file @{theory} freeze_problem_consts file_name
+      read_tptp_file thy (freeze_problem_consts thy) file_name
     val conj = make_conj assms conjs
   in
     (can_tac ctxt (sledgehammer_tac ctxt (timeout div 2) 1) conj orelse
