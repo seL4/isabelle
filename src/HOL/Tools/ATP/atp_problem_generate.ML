@@ -1076,10 +1076,16 @@ fun introduce_proxies_in_iterm type_enc =
                if is_tptp_equal s andalso length args = 2 then
                  IConst (`I tptp_equal, T, [])
                else
-                 (* Use a proxy even for partially applied THF0 equality,
-                    because the LEO-II and Satallax parsers complain about not
-                    being able to infer the type of "=". *)
-                 IConst (proxy_base |>> prefix const_prefix, T, T_args)
+                 (* Eta-expand partially applied THF equality, because the
+                    LEO-II and Satallax parsers complain about not being able to
+                    infer the type of "=". *)
+                 let val i_T = domain_type T in
+                   IAbs ((`I "X", i_T),
+                         IAbs ((`I "Y", i_T),
+                               IApp (IApp (IConst (`I tptp_equal, T, []),
+                                           IConst (`I "X", i_T, [])),
+                                     IConst (`I "Y", i_T, []))))
+                 end
              | _ => IConst (name, T, [])
            else
              IConst (proxy_base |>> prefix const_prefix, T, T_args)
