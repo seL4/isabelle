@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+#
+# Multi-platform build script
+
+THIS="$(cd "$(dirname "$0")"; pwd)"
+PRG="$(basename "$0")"
+
+
+# diagnostics
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG TARGET"
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+# command line args
+
+[ "$#" -eq 0 ] && usage
+TARGET="$1"; shift
+
+[ "$#" -eq 0 ] || usage
+
+
+# main
+
+mkdir -p "$TARGET"
+
+case "$TARGET" in
+  x86_64-linux)
+    cc -m64 exec_process.c -o "$TARGET/exec_process"
+    ;;
+  x86-linux)
+    cc -m32 exec_process.c -o "$TARGET/exec_process"
+    ;;
+  x86-cygwin)
+    cc exec_process.c -o "$TARGET/exec_process.exe"
+    ;;
+  *)
+    cc exec_process.c -o "$TARGET/exec_process"
+    ;;
+esac
+
+
