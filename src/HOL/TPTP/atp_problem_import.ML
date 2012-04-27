@@ -69,7 +69,6 @@ fun nitpick_tptp_file thy timeout file_name =
     val params =
       [("card", "1\<emdash>100"),
        ("box", "false"),
-       ("sat_solver", "smart"),
        ("max_threads", "1"),
        ("batch_size", "5"),
        ("falsify", if null conjs then "false" else "true"),
@@ -134,6 +133,39 @@ fun SOLVE_TIMEOUT seconds name tac st =
     | SOME st' => (Output.urgent_message ("SUCCESS: " ^ name); Seq.single st')
   end
 
+fun nitpick_finite_oracle_tac ctxt timeout i th =
+  let
+    fun is_safe (Type (@{type_name fun}, Ts)) = forall is_safe Ts
+      | is_safe @{typ prop} = true
+      | is_safe @{typ bool} = true
+      | is_safe _ = false
+    val conj = Thm.term_of (Thm.cprem_of th i)
+  in
+    if exists_type (not o is_safe) conj then
+      Seq.empty
+    else
+      let
+        val thy = Proof_Context.theory_of ctxt
+        val state = Proof.init ctxt
+        val params =
+          [("box", "false"),
+           ("max_threads", "1"),
+           ("verbose", "true"),
+           ("debug", if debug then "true" else "false"),
+           ("overlord", if overlord then "true" else "false"),
+           ("max_potential", "0"),
+           ("timeout", string_of_int timeout)]
+          |> Nitpick_Isar.default_params thy
+        val i = 1
+        val n = 1
+        val step = 0
+        val subst = []
+        val (outcome, _) =
+          Nitpick.pick_nits_in_term state params Nitpick.Normal i n step subst
+                                    [] [] conj
+      in if outcome = "none" then Skip_Proof.cheat_tac thy th else Seq.empty end
+  end
+
 fun atp_tac ctxt override_params timeout prover =
   Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt
       ([("debug", if debug then "true" else "false"),
@@ -157,17 +189,20 @@ fun sledgehammer_tac ctxt timeout i =
   end
 
 fun auto_etc_tac ctxt timeout i =
-  SOLVE_TIMEOUT (timeout div 10) "simp" (asm_full_simp_tac (simpset_of ctxt) i)
+  SOLVE_TIMEOUT (timeout div 20) "nitpick"
+      (nitpick_finite_oracle_tac ctxt (timeout div 20) i)
+  ORELSE SOLVE_TIMEOUT (timeout div 10) "simp"
+      (asm_full_simp_tac (simpset_of ctxt) i)
   ORELSE SOLVE_TIMEOUT (timeout div 10) "blast" (blast_tac ctxt i)
   ORELSE SOLVE_TIMEOUT (timeout div 5) "auto+spass"
       (auto_tac ctxt
        THEN ALLGOALS (atp_tac ctxt [] (timeout div 5) ATP_Systems.spassN))
   ORELSE SOLVE_TIMEOUT (timeout div 5) "smt" (SMT_Solver.smt_tac ctxt [] i)
-  ORELSE SOLVE_TIMEOUT (timeout div 10) "fast" (fast_tac ctxt i)
-  ORELSE SOLVE_TIMEOUT (timeout div 10) "best" (best_tac ctxt i)
+  ORELSE SOLVE_TIMEOUT (timeout div 20) "fast" (fast_tac ctxt i)
+  ORELSE SOLVE_TIMEOUT (timeout div 20) "best" (best_tac ctxt i)
   ORELSE SOLVE_TIMEOUT (timeout div 10) "force" (force_tac ctxt i)
-  ORELSE SOLVE_TIMEOUT (timeout div 10) "arith" (Arith_Data.arith_tac ctxt i)
-  ORELSE SOLVE_TIMEOUT timeout "fastforce" (fast_force_tac ctxt i)
+  ORELSE SOLVE_TIMEOUT (timeout div 20) "arith" (Arith_Data.arith_tac ctxt i)
+  ORELSE SOLVE_TIMEOUT (timeout div 10) "fastforce" (fast_force_tac ctxt i)
 
 fun problem_const_prefix thy = Context.theory_name thy ^ Long_Name.separator
 
