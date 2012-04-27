@@ -7,7 +7,6 @@ Bash process group invocation on Cygwin.
 #include <stdio.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <process.h>
 
 
 static void fail(const char *msg)
@@ -52,8 +51,7 @@ int main(int argc, char *argv[])
   cmd_line[2] = script;
   cmd_line[3] = NULL;
 
-  int pid = spawnv(_P_NOWAIT, "/bin/bash", cmd_line);
-  if (pid == -1) fail("Bad process");
-  waitpid(pid);
+  execv("/bin/bash", cmd_line);
+  fail("Cannot exec process");
 }
 
