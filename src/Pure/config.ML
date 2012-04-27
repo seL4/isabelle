@@ -121,12 +121,15 @@ fun declare_generic {global} name default =
     fun update_value f context =
       Value.map (Inttab.update (id, type_check name f (get_value context))) context;
 
-    fun map_value f (context as Context.Proof _) =
+    fun map_value f (context as Context.Proof ctxt) =
           let val context' = update_value f context in
             if global andalso
+              Context_Position.is_visible ctxt andalso
               print_value (get_value (Context.Theory (Context.theory_of context'))) <>
                 print_value (get_value context')
-            then (warning ("Ignoring local change of global option " ^ quote name); context)
+            then
+              (Context_Position.if_visible ctxt warning
+                ("Ignoring local change of global option " ^ quote name); context)
             else context'
           end
       | map_value f context = update_value f context;
