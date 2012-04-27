@@ -42,14 +42,8 @@ lemma fun_rel_eq_rel:
 
 subsection {* Transfer method *}
 
-text {* Explicit tags for application, abstraction, and relation
-membership allow for backward proof methods. *}
-
-definition App :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
-  where "App f \<equiv> f"
-
-definition Abs :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
-  where "Abs f \<equiv> f"
+text {* Explicit tag for relation membership allows for
+  backward proof methods. *}
 
 definition Rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
   where "Rel r \<equiv> r"
@@ -87,15 +81,15 @@ lemma transfer_prover_start: "\<lbrakk>x = x'; Rel R x' y\<rbrakk> \<Longrightar
 lemma Rel_eq_refl: "Rel (op =) x x"
   unfolding Rel_def ..
 
-lemma Rel_App:
+lemma Rel_app:
   assumes "Rel (A ===> B) f g" and "Rel A x y"
-  shows "Rel B (App f x) (App g y)"
-  using assms unfolding Rel_def App_def fun_rel_def by fast
+  shows "Rel B (f x) (g y)"
+  using assms unfolding Rel_def fun_rel_def by fast
 
-lemma Rel_Abs:
+lemma Rel_abs:
   assumes "\<And>x y. Rel A x y \<Longrightarrow> Rel B (f x) (g y)"
-  shows "Rel (A ===> B) (Abs (\<lambda>x. f x)) (Abs (\<lambda>y. g y))"
-  using assms unfolding Rel_def Abs_def fun_rel_def by fast
+  shows "Rel (A ===> B) (\<lambda>x. f x) (\<lambda>y. g y)"
+  using assms unfolding Rel_def fun_rel_def by fast
 
 use "Tools/transfer.ML"
 
@@ -103,7 +97,7 @@ setup Transfer.setup
 
 declare fun_rel_eq [relator_eq]
 
-hide_const (open) App Abs Rel
+hide_const (open) Rel
 
 
 subsection {* Predicates on relations, i.e. ``class constraints'' *}
