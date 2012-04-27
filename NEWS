@@ -9,15 +9,16 @@ New in Isabelle2012 (May 2012)
 * Prover IDE (PIDE) improvements:
 
   - more robust Sledgehammer integration (as before the sledgehammer
-    command line needs to be typed into the source buffer)
+    command-line needs to be typed into the source buffer)
   - markup for bound variables
-  - markup for types of term variables (e.g. displayed as tooltips)
+  - markup for types of term variables (displayed as tooltips)
   - support for user-defined Isar commands within the running session
   - improved support for Unicode outside original 16bit range
     e.g. glyph for \<A> (thanks to jEdit 4.5.1)
 
-* Updated and extended reference manuals ("isar-ref" and
-"implementation"); reduced remaining material in old "ref" manual.
+* Forward declaration of outer syntax keywords within the theory
+header -- minor INCOMPATIBILITY for user-defined commands.  Allow new
+commands to be used in the same theory where defined.
 
 * Rule attributes in local theory declarations (e.g. locale or class)
 are now statically evaluated: the resulting theorem is stored instead
@@ -31,23 +32,12 @@ old-style "standard" after instantiation or composition of facts
 becomes obsolete.  Minor INCOMPATIBILITY, due to potential change of
 indices of schematic variables.
 
-* Renamed some inner syntax categories:
-
-    num ~> num_token
-    xnum ~> xnum_token
-    xstr ~> str_token
-
-Minor INCOMPATIBILITY.  Note that in practice "num_const" or
-"num_position" etc. are mainly used instead (which also include
-position information via constraints).
-
 * Simplified configuration options for syntax ambiguity: see
 "syntax_ambiguity_warning" and "syntax_ambiguity_limit" in isar-ref
 manual.  Minor INCOMPATIBILITY.
 
-* Forward declaration of outer syntax keywords within the theory
-header -- minor INCOMPATIBILITY for user-defined commands.  Allow new
-commands to be used in the same theory where defined.
+* Updated and extended reference manuals: "isar-ref" and
+"implementation"; reduced remaining material in old "ref" manual.
 
 
 *** Pure ***
@@ -93,6 +83,16 @@ order to accommodate newly introduced premises.)
 into the user context.  Minor INCOMPATIBILITY, may use the regular
 "def" result with attribute "abs_def" to imitate the old version.
 
+* Renamed some inner syntax categories:
+
+    num ~> num_token
+    xnum ~> xnum_token
+    xstr ~> str_token
+
+Minor INCOMPATIBILITY.  Note that in practice "num_const" or
+"num_position" etc. are mainly used instead (which also include
+position information via constraints).
+
 * Attribute "abs_def" turns an equation of the form "f x y == t" into
 "f == %x y. t", which ensures that "simp" or "unfold" steps always
 expand it.  This also works for object-logic equality.  (Formerly
@@ -131,13 +131,12 @@ distinct sorts used to be assigned accidentally.  For example:
 
 *** HOL ***
 
-* New tutorial "Programming and Proving in Isabelle/HOL" ("prog-prove").
-It completely supercedes "A Tutorial Introduction to Structured Isar Proofs",
-which has been removed. It supercedes "Isabelle/HOL, A Proof Assistant
-for Higher-Order Logic" as the recommended beginners tutorial
-but does not cover all of the material of that old tutorial.
-
-* Discontinued old Tutorial on Isar ("isar-overview");
+* New tutorial "Programming and Proving in Isabelle/HOL"
+("prog-prove").  It completely supersedes "A Tutorial Introduction to
+Structured Isar Proofs" ("isar-overview"), which has been removed.  It
+also supersedes "Isabelle/HOL, A Proof Assistant for Higher-Order
+Logic" as the recommended beginners tutorial, but does not cover all
+of the material of that old tutorial.
 
 * Type 'a set is now a proper type constructor (just as before
 Isabelle2008).  Definitions mem_def and Collect_def have disappeared.
