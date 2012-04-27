@@ -48,7 +48,7 @@ fun inductive_cases args thy =
   let
     val ctxt = Proof_Context.init_global thy;
     val facts = args |> map (fn ((name, srcs), props) =>
-      ((name, map (Attrib.attribute thy) srcs),
+      ((name, map (Attrib.attribute_cmd_global thy) srcs),
         map (Thm.no_attributes o single o smart_cases ctxt) props));
   in thy |> Global_Theory.note_thmss "" facts |> snd end;
 

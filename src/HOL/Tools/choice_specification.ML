@@ -202,7 +202,7 @@ fun process_spec axiomatic cos alt_props thy =
                              |> apfst undo_imps
                              |> apfst Drule.export_without_context
                              |-> Thm.theory_attributes
-                                (map (Attrib.attribute thy)
+                                (map (Attrib.attribute_cmd_global thy)
                                   (@{attributes [nitpick_choice_spec]} @ atts))
                              |> add_final
                              |> swap

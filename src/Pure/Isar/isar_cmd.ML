@@ -192,7 +192,8 @@ val add_axioms = fold (snd oo Specification.axiom_cmd);
 fun add_defs ((unchecked, overloaded), args) thy =
   thy |>
     (if unchecked then Global_Theory.add_defs_unchecked_cmd else Global_Theory.add_defs_cmd)
-      overloaded (map (fn ((b, ax), srcs) => ((b, ax), map (Attrib.attribute thy) srcs)) args)
+      overloaded
+      (map (fn ((b, ax), srcs) => ((b, ax), map (Attrib.attribute_cmd_global thy) srcs)) args)
   |> snd;
 
 

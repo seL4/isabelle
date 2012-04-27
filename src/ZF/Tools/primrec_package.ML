@@ -189,7 +189,7 @@ fun add_primrec_i args thy =
 
 fun add_primrec args thy =
   add_primrec_i (map (fn ((name, s), srcs) =>
-    ((name, Syntax.read_prop_global thy s), map (Attrib.attribute thy) srcs))
+    ((name, Syntax.read_prop_global thy s), map (Attrib.attribute_cmd_global thy) srcs))
     args) thy;
 
 

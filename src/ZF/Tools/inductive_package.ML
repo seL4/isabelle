@@ -558,7 +558,7 @@ fun add_inductive (srec_tms, sdom_sum) intr_srcs
     val read_terms = map (Syntax.parse_term ctxt #> Type.constraint Ind_Syntax.iT)
       #> Syntax.check_terms ctxt;
 
-    val intr_atts = map (map (Attrib.attribute thy) o snd) intr_srcs;
+    val intr_atts = map (map (Attrib.attribute_cmd_global thy) o snd) intr_srcs;
     val sintrs = map fst intr_srcs ~~ intr_atts;
     val rec_tms = read_terms srec_tms;
     val dom_sum = singleton read_terms sdom_sum;

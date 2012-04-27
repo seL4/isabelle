@@ -126,7 +126,7 @@ fun gen_obtain prep_att prep_vars prep_propp
     val (proppss, asms_ctxt) = prep_propp (map snd raw_asms) fix_ctxt;
     val ((_, bind_ctxt), _) = Proof_Context.bind_propp_i proppss asms_ctxt;
     val asm_props = maps (map fst) proppss;
-    val asms = map fst (Attrib.map_specs (map (prep_att thy)) raw_asms) ~~ proppss;
+    val asms = map fst (Attrib.map_specs (map (prep_att ctxt)) raw_asms) ~~ proppss;
 
     (*obtain parms*)
     val (Ts, parms_ctxt) = fold_map Proof_Context.inferred_param xs' asms_ctxt;
@@ -168,7 +168,7 @@ fun gen_obtain prep_att prep_vars prep_propp
 in
 
 val obtain = gen_obtain (K I) Proof_Context.cert_vars Proof_Context.cert_propp;
-val obtain_cmd = gen_obtain Attrib.attribute Proof_Context.read_vars Proof_Context.read_propp;
+val obtain_cmd = gen_obtain Attrib.attribute_cmd Proof_Context.read_vars Proof_Context.read_propp;
 
 end;
 

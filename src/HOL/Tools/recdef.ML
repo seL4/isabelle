@@ -220,7 +220,7 @@ fun gen_add_recdef tfl_fn prep_att prep_hints not_permissive raw_name R eq_srcs 
       |> Sign.parent_path;
   in (thy, result) end;
 
-val add_recdef = gen_add_recdef Tfl.define Attrib.attribute prepare_hints;
+val add_recdef = gen_add_recdef Tfl.define Attrib.attribute_cmd_global prepare_hints;
 fun add_recdef_i x y z w = gen_add_recdef Tfl.define_i (K I) prepare_hints_i x y z w ();
 
 
