@@ -1681,7 +1681,7 @@ fun should_specialize_helper type_enc t =
   level_of_type_enc type_enc <> No_Types andalso
   not (null (Term.hidden_polymorphism t))
 
-fun helper_facts_for_sym ctxt format type_enc (s, {types, ...} : sym_info) =
+fun add_helper_facts_for_sym ctxt format type_enc (s, {types, ...} : sym_info) =
   case unprefix_and_unascii const_prefix s of
     SOME mangled_s =>
     let
@@ -1705,20 +1705,20 @@ fun helper_facts_for_sym ctxt format type_enc (s, {types, ...} : sym_info) =
       val make_facts = map_filter (make_fact ctxt format type_enc false)
       val fairly_sound = is_type_enc_fairly_sound type_enc
     in
-      helper_table
-      |> maps (fn ((helper_s, needs_fairly_sound), ths) =>
-                  if helper_s <> unmangled_s orelse
-                     (needs_fairly_sound andalso not fairly_sound) then
-                    []
-                  else
-                    ths ~~ (1 upto length ths)
-                    |> maps (dub_and_inst needs_fairly_sound)
-                    |> make_facts)
+      fold (fn ((helper_s, needs_fairly_sound), ths) =>
+               if helper_s <> unmangled_s orelse
+                  (needs_fairly_sound andalso not fairly_sound) then
+                 I
+               else
+                 ths ~~ (1 upto length ths)
+                 |> maps (dub_and_inst needs_fairly_sound)
+                 |> make_facts
+                 |> union (op = o pairself #iformula))
+           helper_table
     end
-  | NONE => []
+  | NONE => I
 fun helper_facts_for_sym_table ctxt format type_enc sym_tab =
-  Symtab.fold_rev (append o helper_facts_for_sym ctxt format type_enc) sym_tab
-                  []
+  Symtab.fold_rev (add_helper_facts_for_sym ctxt format type_enc) sym_tab []
 
 (***************************************************************)
 (* Type Classes Present in the Axiom or Conjecture Clauses     *)
