@@ -36,10 +36,10 @@ TARGET="$1"; shift
 mkdir -p "$TARGET"
 
 case "$TARGET" in
-  x86_64-linux)
+  x86_64-linux | x86_64-darwin)
     cc -m64 exec_process.c -o "$TARGET/exec_process"
     ;;
-  x86-linux)
+  x86-linux | x86-darwin)
     cc -m32 exec_process.c -o "$TARGET/exec_process"
     ;;
   x86-cygwin)
