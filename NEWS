@@ -486,10 +486,9 @@ follows:
   unionwk_is_rbt -> rbt_unionwk_is_rbt
   unionwk_sorted -> rbt_unionwk_rbt_sorted
 
-* Theory HOL/Library/Float: Floating point numbers are now defined as a
-subset of the real numbers. All operations are defined using the
-lifing-framework and proofs use the transfer method.
-INCOMPATIBILITY.
+* Theory HOL/Library/Float: Floating point numbers are now defined as
+a subset of the real numbers.  All operations are defined using the
+lifing-framework and proofs use the transfer method.  INCOMPATIBILITY.
 
   Changed Operations:
   float_abs -> abs
@@ -598,13 +597,14 @@ instead.
   word_of_int_0_hom ~> word_0_wi
   word_of_int_1_hom ~> word_1_wi
 
-* New tactic "word_bitwise" for splitting machine word equalities and
-inequalities into logical circuits. Requires theory "WordBitwise" from HOL-Word
-session. Supports addition, subtraction, multiplication, shifting by
-constants, bitwise operators and numeric constants. Requires fixed-length word
-types, cannot operate on 'a word. Solves many standard word identies outright
-and converts more into first order problems amenable to blast or similar. See
-HOL/Word/WordBitwise.thy and examples in HOL/Word/Examples/WordExamples.thy.
+* New proof method "word_bitwise" for splitting machine word
+equalities and inequalities into logical circuits, defined in
+HOL/Word/WordBitwise.thy.  Supports addition, subtraction,
+multiplication, shifting by constants, bitwise operators and numeric
+constants.  Requires fixed-length word types, not 'a word.  Solves
+many standard word identies outright and converts more into first
+order problems amenable to blast or similar.  See also examples in
+HOL/Word/Examples/WordExamples.thy.
 
 * Clarified attribute "mono_set": pure declaration without modifying
 the result of the fact expression.
@@ -658,17 +658,18 @@ INCOMPATIBILITY, use the corresponding generic theorems instead.
 
 * Theory Library/Multiset: Improved code generation of multisets.
 
-* Session HOL-Probability: Introduced the type "'a measure" to represent
-measures, this replaces the records 'a algebra and 'a measure_space. The
-locales based on subset_class now have two locale-parameters the space
-\<Omega> and the set of measurables sets M. The product of probability spaces
-uses now the same constant as the finite product of sigma-finite measure
-spaces "PiM :: ('i => 'a) measure". Most constants are defined now
-outside of locales and gain an additional parameter, like null_sets,
-almost_eventually or \<mu>'. Measure space constructions for distributions
-and densities now got their own constants distr and density. Instead of
-using locales to describe measure spaces with a finite space, the
-measure count_space and point_measure is introduced. INCOMPATIBILITY.
+* Session HOL-Probability: Introduced the type "'a measure" to
+represent measures, this replaces the records 'a algebra and 'a
+measure_space.  The locales based on subset_class now have two
+locale-parameters the space \<Omega> and the set of measurables sets
+M.  The product of probability spaces uses now the same constant as
+the finite product of sigma-finite measure spaces "PiM :: ('i => 'a)
+measure".  Most constants are defined now outside of locales and gain
+an additional parameter, like null_sets, almost_eventually or \<mu>'.
+Measure space constructions for distributions and densities now got
+their own constants distr and density.  Instead of using locales to
+describe measure spaces with a finite space, the measure count_space
+and point_measure is introduced.  INCOMPATIBILITY.
 
   Renamed constants:
   measure -> emeasure
@@ -854,12 +855,12 @@ a list and a nat.
     replaced with corresponding ones according to the transfer rules.
     Goals are generalized over all free variables by default; this is
     necessary for variables whose types changes, but can be overridden
-    for specific variables with e.g. 'transfer fixing: x y z'.
-    The variant transfer' method allows replacing a subgoal with
-    one that is logically stronger (rather than equivalent).
+    for specific variables with e.g. 'transfer fixing: x y z'.  The
+    variant transfer' method allows replacing a subgoal with one that
+    is logically stronger (rather than equivalent).
 
   - relator_eq attribute: Collects identity laws for relators of
-    various type constructors, e.g. "list_all2 (op =) = (op =)". The
+    various type constructors, e.g. "list_all2 (op =) = (op =)".  The
     transfer method uses these lemmas to infer transfer rules for
     non-polymorphic constants on the fly.
 
@@ -874,8 +875,8 @@ a list and a nat.
 * New Lifting package:
 
   - lift_definition command: Defines operations on an abstract type in
-    terms of a corresponding operation on a representation type. Example
-    syntax:
+    terms of a corresponding operation on a representation
+    type.  Example syntax:
 
     lift_definition dlist_insert :: "'a => 'a dlist => 'a dlist"
       is List.insert
@@ -892,11 +893,11 @@ a list and a nat.
     lift_definition generates a code certificate theorem and sets up
     code generation for each constant.
 
-  - setup_lifting command: Sets up the Lifting package to work with
-    a user-defined type. The user must provide either a quotient
-    theorem or a type_definition theorem. The package configures
-    transfer rules for equality and quantifiers on the type, and sets
-    up the lift_definition command to work with the type.
+  - setup_lifting command: Sets up the Lifting package to work with a
+    user-defined type. The user must provide either a quotient theorem
+    or a type_definition theorem.  The package configures transfer
+    rules for equality and quantifiers on the type, and sets up the
+    lift_definition command to work with the type.
 
   - Usage examples: See Quotient_Examples/Lift_DList.thy,
     Quotient_Examples/Lift_RBT.thy, Word/Word.thy and
@@ -957,11 +958,11 @@ superfluous assumptions in theorems using Quickcheck.
     affecting 'rat' and 'real'.
 
 * Sledgehammer:
-  - Integrated more tightly with SPASS, as described in the ITP 2012 paper "More
-    SPASS with Isabelle".
+  - Integrated more tightly with SPASS, as described in the ITP 2012
+    paper "More SPASS with Isabelle".
   - Made it try "smt" as a fallback if "metis" fails or times out.
-  - Added support for the following provers: Alt-Ergo (via Why3 and TFF1),
-    iProver, iProver-Eq.
+  - Added support for the following provers: Alt-Ergo (via Why3 and
+    TFF1), iProver, iProver-Eq.
   - Replaced remote E-SInE with remote Satallax in the default setup.
   - Sped up the minimizer.
   - Added "lam_trans", "uncurry_aliases", and "minimize" options.
@@ -1058,11 +1059,11 @@ explicitly in shell environment, before Isabelle settings are
 evaluated.  Minor INCOMPATIBILITY: need to adapt Isabelle path where
 the generic user home was intended.
 
-* ISABELLE_JDK_HOME settings variable points to JDK with javac and jar
-(not just JRE).
-
 * ISABELLE_HOME_WINDOWS refers to ISABELLE_HOME in windows file name
 notation, which is useful for the jEdit file browser, for example.
+
+* ISABELLE_JDK_HOME settings variable points to JDK with javac and jar
+(not just JRE).
 
 
 
