@@ -1142,7 +1142,7 @@ HOL-TPTP: HOL $(LOG)/HOL-TPTP.gz
 $(LOG)/HOL-TPTP.gz: $(OUT)/HOL \
   TPTP/ATP_Problem_Import.thy \
   TPTP/ATP_Theory_Export.thy \
-  TPTP/CASC_Setup.thy \
+  TPTP/THF_Arith.thy \
   TPTP/ROOT.ML \
   TPTP/TPTP_Parser.thy \
   TPTP/TPTP_Parser/ml_yacc_lib.ML \
