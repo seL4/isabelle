@@ -122,22 +122,24 @@ fun pretty_attribs _ [] = []
 
 val defined = Symtab.defined o #2 o Attributes.get;
 
-fun attribute_global thy =
+fun attribute_generic context =
   let
+    val thy = Context.theory_of context;
     val (space, tab) = Attributes.get thy;
     fun attr src =
       let val ((name, _), pos) = Args.dest_src src in
         (case Symtab.lookup tab name of
           NONE => error ("Unknown attribute: " ^ quote name ^ Position.str_of pos)
-        | SOME (att, _) => (Position.report pos (Name_Space.markup space name); att src))
+        | SOME (att, _) =>
+            (Context_Position.report_generic context pos (Name_Space.markup space name); att src))
       end;
   in attr end;
 
-val attribute = attribute_global o Proof_Context.theory_of;
-val attribute_generic = attribute_global o Context.theory_of;
+val attribute = attribute_generic o Context.Proof;
+val attribute_global = attribute_generic o Context.Theory;
 
+fun attribute_cmd ctxt = attribute ctxt o intern_src (Proof_Context.theory_of ctxt);
 fun attribute_cmd_global thy = attribute_global thy o intern_src thy;
-val attribute_cmd = attribute_cmd_global o Proof_Context.theory_of;
 
 
 (* attributed declarations *)
