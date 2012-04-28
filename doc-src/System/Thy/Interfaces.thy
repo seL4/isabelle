@@ -21,7 +21,7 @@ Usage: tty [OPTIONS]
 \end{ttbox}
 
   The @{verbatim "-l"} option specifies the logic image.  The
-  @{verbatim "-m"} option specifies additional print modes.  The The
+  @{verbatim "-m"} option specifies additional print modes.  The
   @{verbatim "-p"} option specifies an alternative line editor (such
   as the @{executable_def rlwrap} wrapper for GNU readline); the
   fall-back is to use raw standard input.
@@ -71,6 +71,46 @@ text {*
   its fonts by different means.
 
   \end{description}
+*}
+
+
+section {* Isabelle/jEdit Prover IDE *}
+
+text {* The @{tool_def jedit} tool invokes a version of jEdit that has
+  been augmented with some components to provide a fully-featured
+  Prover IDE (based on Isabelle/Scala):
+\begin{ttbox}
+Usage: isabelle jedit [OPTIONS] [FILES ...]
+
+  Options are:
+    -J OPTION    add JVM runtime option (default JEDIT_JAVA_OPTIONS)
+    -b           build only
+    -d           enable debugger
+    -f           fresh build
+    -j OPTION    add jEdit runtime option (default JEDIT_OPTIONS)
+    -l NAME      logic image name (default ISABELLE_LOGIC)
+    -m MODE      add print mode for output
+
+Start jEdit with Isabelle plugin setup and opens theory FILES
+(default Scratch.thy).
+\end{ttbox}
+
+The @{verbatim "-J"} and @{verbatim "-j"} options allow to pass
+additional low-level options to the JVM or jEdit, respectively.  The
+defaults are provided by the Isabelle settings environment.
+
+The @{verbatim "-d"} option allows to connect to the runtime debugger
+of the JVM.  Note that the Scala Console of Isabelle/jEdit is more
+convenient in most practical situations.
+
+The @{verbatim "-b"} and @{verbatim "-f"} options control the
+self-build mechanism of Isabelle/jEdit.  This is only relevant for
+building from sources, which also requires an auxiliary @{verbatim
+jedit_build} component.  Official Isabelle releases already include a
+version of Isabelle/jEdit that is built properly.
+
+The @{verbatim "-l"} option specifies the logic image.  The
+@{verbatim "-m"} option specifies additional print modes.
 *}
 
 end
