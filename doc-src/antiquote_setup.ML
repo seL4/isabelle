@@ -149,7 +149,8 @@ fun thy_check intern defined ctxt =
   in defined thy o intern thy end;
 
 fun check_tool name =
-  File.exists (Path.append (Path.explode "~~/lib/Tools") (Path.basic name));
+  let val tool_dirs = map Path.explode ["~~/lib/Tools", "~~/src/Tools/jEdit/lib/Tools"]
+  in exists (fn dir => File.exists (Path.append dir (Path.basic name))) tool_dirs end;
 
 val arg = enclose "{" "}" o clean_string;
 

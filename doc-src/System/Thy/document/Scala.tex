@@ -1,0 +1,118 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Scala}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{theory}\isamarkupfalse%
+\ Scala\isanewline
+\isakeyword{imports}\ Base\isanewline
+\isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isamarkupchapter{Isabelle/Scala development tools%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Isabelle/ML and Isabelle/Scala are the two main language
+environments for Isabelle tool implementations.  There are some basic
+command-line tools to work with the underlying Java Virtual Machine,
+the Scala toplevel and compiler.  Note that Isabelle/jEdit
+(\secref{sec:tool-tty}) provides a Scala Console for interactive
+experimentation within the running application.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Java Runtime Environment within Isabelle \label{sec:tool-java}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The Isabelle \indexdef{}{tool}{java}\hypertarget{tool.java}{\hyperlink{tool.java}{\mbox{\isa{\isatt{java}}}}} utility is a direct wrapper for
+  the Java Runtime Environment, within the regular Isabelle settings
+  environment (\secref{sec:settings}).  The command line arguments are
+  that of the underlying Java version.  It is run in \verb|-server| mode if possible, to improve performance (at the cost of
+  extra startup time).
+
+  The \verb|java| executable is the one within \hyperlink{setting.ISABELLE-JDK-HOME}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}JDK{\isaliteral{5F}{\isacharunderscore}}HOME}}}}, according to the standard directory layout for
+  official JDK distributions.  The class loader is augmented such that
+  the name space of \verb|Isabelle/Pure.jar| is available,
+  which is the main Isabelle/Scala module.
+
+  For example, the following command-line invokes the main method of
+  class \verb|isabelle.GUI_Setup|, which opens a windows with
+  some diagnostic information about the Isabelle environment:
+\begin{alltt}
+  isabelle java isabelle.GUI_Setup
+\end{alltt}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Scala toplevel \label{sec:tool-scala}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The Isabelle \indexdef{}{tool}{scala}\hypertarget{tool.scala}{\hyperlink{tool.scala}{\mbox{\isa{\isatt{scala}}}}} utility is a direct wrapper for
+  the Scala toplevel; see also \hyperlink{tool.java}{\mbox{\isa{\isatt{java}}}} above.  The command line
+  arguments are that of the underlying Scala version.
+
+  This allows to interact with Isabelle/Scala in TTY mode like this:
+\begin{alltt}
+  isabelle scala
+  scala> isabelle.Isabelle_System.getenv("ISABELLE_HOME")
+  scala> isabelle.Isabelle_System.find_logics()
+\end{alltt}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Scala compiler \label{sec:tool-scalac}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The Isabelle \indexdef{}{tool}{scalac}\hypertarget{tool.scalac}{\hyperlink{tool.scalac}{\mbox{\isa{\isatt{scalac}}}}} utility is a direct wrapper
+  for the Scala compiler; see also \hyperlink{tool.scala}{\mbox{\isa{\isatt{scala}}}} above.  The command
+  line arguments are that of the underlying Scala version.
+
+  This allows to compile further Scala modules, depending on existing
+  Isabelle/Scala functionality.  The resulting class or jar files can
+  be added to the \hyperlink{setting.CLASSPATH}{\mbox{\isa{\isatt{CLASSPATH}}}} via the \verb|classpath|
+  Bash function that is provided by the Isabelle process environment.
+  Thus add-on components can register themselves in a modular manner,
+  see also \secref{sec:components}.
+
+  Note that jEdit (\secref{sec:tool-jedit}) has its own mechanisms for
+  adding plugin components, which needs special attention since
+  it overrides the standard Java class loader.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isanewline
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
