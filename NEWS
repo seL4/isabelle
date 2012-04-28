@@ -20,29 +20,6 @@ New in Isabelle2012 (May 2012)
 header -- minor INCOMPATIBILITY for user-defined commands.  Allow new
 commands to be used in the same theory where defined.
 
-* Rule attributes in local theory declarations (e.g. locale or class)
-are now statically evaluated: the resulting theorem is stored instead
-of the original expression.  INCOMPATIBILITY in rare situations, where
-the historic accident of dynamic re-evaluation in interpretations
-etc. was exploited.
-
-* Commands 'lemmas' and 'theorems' allow local variables using 'for'
-declaration, and results are standardized before being stored.  Thus
-old-style "standard" after instantiation or composition of facts
-becomes obsolete.  Minor INCOMPATIBILITY, due to potential change of
-indices of schematic variables.
-
-* Simplified configuration options for syntax ambiguity: see
-"syntax_ambiguity_warning" and "syntax_ambiguity_limit" in isar-ref
-manual.  Minor INCOMPATIBILITY.
-
-* Updated and extended reference manuals: "isar-ref",
-"implementation", "system"; reduced remaining material in old "ref"
-manual.
-
-
-*** Pure ***
-
 * Auxiliary contexts indicate block structure for specifications with
 additional parameters and assumptions.  Such unnamed contexts may be
 nested within other targets, like 'theory', 'locale', 'class',
@@ -75,6 +52,36 @@ the logical dependencies of locales and locale interpretation.
 See commands 'bundle', 'include', 'including' etc. in the isar-ref
 manual.
 
+* Commands 'lemmas' and 'theorems' allow local variables using 'for'
+declaration, and results are standardized before being stored.  Thus
+old-style "standard" after instantiation or composition of facts
+becomes obsolete.  Minor INCOMPATIBILITY, due to potential change of
+indices of schematic variables.
+
+* Rule attributes in local theory declarations (e.g. locale or class)
+are now statically evaluated: the resulting theorem is stored instead
+of the original expression.  INCOMPATIBILITY in rare situations, where
+the historic accident of dynamic re-evaluation in interpretations
+etc. was exploited.
+
+* New tutorial "Programming and Proving in Isabelle/HOL"
+("prog-prove").  It completely supersedes "A Tutorial Introduction to
+Structured Isar Proofs" ("isar-overview"), which has been removed.  It
+also supersedes "Isabelle/HOL, A Proof Assistant for Higher-Order
+Logic" as the recommended beginners tutorial, but does not cover all
+of the material of that old tutorial.
+
+* Updated and extended reference manuals: "isar-ref",
+"implementation", "system"; reduced remaining material in old "ref"
+manual.
+
+
+*** Pure ***
+
+* Discontinued old "prems" fact, which used to refer to the accidental
+collection of foundational premises in the context (already marked as
+legacy since Isabelle2011).
+
 * Rule composition via attribute "OF" (or ML functions OF/MRS) is more
 tolerant against multiple unifiers, as long as the final result is
 unique.  (As before, rules are composed in canonical right-to-left
@@ -94,14 +101,14 @@ Minor INCOMPATIBILITY.  Note that in practice "num_const" or
 "num_position" etc. are mainly used instead (which also include
 position information via constraints).
 
+* Simplified configuration options for syntax ambiguity: see
+"syntax_ambiguity_warning" and "syntax_ambiguity_limit" in isar-ref
+manual.  Minor INCOMPATIBILITY.
+
 * Attribute "abs_def" turns an equation of the form "f x y == t" into
 "f == %x y. t", which ensures that "simp" or "unfold" steps always
 expand it.  This also works for object-logic equality.  (Formerly
 undocumented feature.)
-
-* Discontinued old "prems" fact, which used to refer to the accidental
-collection of foundational premises in the context (already marked as
-legacy since Isabelle2011).
 
 * Obsolete command 'types' has been discontinued.  Use 'type_synonym'
 instead.  INCOMPATIBILITY.
@@ -131,13 +138,6 @@ distinct sorts used to be assigned accidentally.  For example:
 
 
 *** HOL ***
-
-* New tutorial "Programming and Proving in Isabelle/HOL"
-("prog-prove").  It completely supersedes "A Tutorial Introduction to
-Structured Isar Proofs" ("isar-overview"), which has been removed.  It
-also supersedes "Isabelle/HOL, A Proof Assistant for Higher-Order
-Logic" as the recommended beginners tutorial, but does not cover all
-of the material of that old tutorial.
 
 * Type 'a set is now a proper type constructor (just as before
 Isabelle2008).  Definitions mem_def and Collect_def have disappeared.
@@ -180,10 +180,10 @@ may require adaptations as follows:
 * Code generation by default implements sets as container type rather
 than predicates.  INCOMPATIBILITY.
 
-* New proof import from HOL Light: Faster, simpler, and more scalable.
-Requires a proof bundle, which is available as an external component.
-Discontinued old (and mostly dead) Importer for HOL4 and HOL Light.
-INCOMPATIBILITY.
+* HOL-Import: Re-implementation from scratch is faster, simpler, and
+more scalable.  Requires a proof bundle, which is available as an
+external component.  Discontinued old (and mostly dead) Importer for
+HOL4 and HOL Light.  INCOMPATIBILITY.
 
 * New type synonym 'a rel = ('a * 'a) set
 
