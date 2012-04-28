@@ -23,10 +23,13 @@
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-This manual describes Isabelle together with related tools and user
-  interfaces as seen from a system oriented view.  See also the
+This manual describes Isabelle together with related tools and
+  user interfaces as seen from a system oriented view.  See also the
   \emph{Isabelle/Isar Reference Manual}~\cite{isabelle-isar-ref} for
-  the actual Isabelle input language and related concepts.
+  the actual Isabelle input language and related concepts, and
+  \emph{The Isabelle/Isar Implementation
+  Manual}~\cite{isabelle-implementation} for the main concepts of the
+  underlying implementation in Isabelle/ML.
 
   \medskip The Isabelle system environment provides the following
   basic infrastructure to integrate tools smoothly.
@@ -37,15 +40,14 @@ This manual describes Isabelle together with related tools and user
   environment variables to all Isabelle executables (including tools
   and user interfaces).
 
-  \item The \emph{raw Isabelle process} (\indexref{}{executable}{isabelle-process}\hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isaliteral{2D}{\isacharminus}}process}}}}) runs logic sessions either interactively or in
+  \item The raw \emph{Isabelle process} (\indexref{}{executable}{isabelle-process}\hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isaliteral{2D}{\isacharminus}}process}}}}) runs logic sessions either interactively or in
   batch mode.  In particular, this view abstracts over the invocation
   of the actual ML system to be used.  Regular users rarely need to
   care about the low-level process.
 
-  \item The \emph{Isabelle tools wrapper} (\indexref{}{executable}{isabelle}\hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}})
-  provides a generic startup environment Isabelle related utilities,
-  user interfaces etc.  Such tools automatically benefit from the
-  settings mechanism.
+  \item The main \emph{Isabelle tools wrapper} (\indexref{}{executable}{isabelle}\hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}}) provides a generic startup environment Isabelle related
+  utilities, user interfaces etc.  Such tools automatically benefit
+  from the settings mechanism.
 
   \end{enumerate}%
 \end{isamarkuptext}%
@@ -63,8 +65,9 @@ The Isabelle system heavily depends on the \emph{settings
   though.  Isabelle employs a somewhat more sophisticated scheme of
   \emph{settings files} --- one for site-wide defaults, another for
   additional user-specific modifications.  With all configuration
-  variables in at most two places, this scheme is more maintainable
-  and user-friendly than global shell environment variables.
+  variables in clearly defined places, this scheme is more
+  maintainable and user-friendly than global shell environment
+  variables.
 
   In particular, we avoid the typical situation where prospective
   users of a software package are told to put several things into
@@ -167,11 +170,13 @@ This is a reference of common Isabelle settings variables. Note that
 
   \begin{description}
 
-  \item[\indexdef{}{setting}{USER\_HOME}\hypertarget{setting.USER-HOME}{\hyperlink{setting.USER-HOME}{\mbox{\isa{\isatt{USER{\isaliteral{5F}{\isacharunderscore}}HOME}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}] Is the
-  cross-platform user home directory.  On Unix systems this is usually
-  the same as \hyperlink{setting.HOME}{\mbox{\isa{\isatt{HOME}}}}, but on Windows it is the regular home
-  directory of the user, not the one of within the Cygwin root
-  file-system.
+  \item[\indexdef{}{setting}{USER\_HOME}\hypertarget{setting.USER-HOME}{\hyperlink{setting.USER-HOME}{\mbox{\isa{\isatt{USER{\isaliteral{5F}{\isacharunderscore}}HOME}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}] Is the cross-platform
+  user home directory.  On Unix systems this is usually the same as
+  \hyperlink{setting.HOME}{\mbox{\isa{\isatt{HOME}}}}, but on Windows it is the regular home directory of
+  the user, not the one of within the Cygwin root
+  file-system.\footnote{Cygwin itself offers another choice whether
+  its HOME should point to the \texttt{/home} directory tree or the
+  Windows user home.}
 
  \item[\indexdef{}{setting}{ISABELLE\_HOME}\hypertarget{setting.ISABELLE-HOME}{\hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}] is the location of the
   top-level Isabelle distribution directory. This is automatically
@@ -196,6 +201,10 @@ This is a reference of common Isabelle settings variables. Note that
   \item[\indexdef{}{setting}{ISABELLE\_PLATFORM64}\hypertarget{setting.ISABELLE-PLATFORM64}{\hyperlink{setting.ISABELLE-PLATFORM64}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}PLATFORM{\isadigit{6}}{\isadigit{4}}}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}] is similar to
   \hyperlink{setting.ISABELLE-PLATFORM}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}PLATFORM}}}} but refers to the proper 64 bit variant
   on a platform that supports this; the value is empty for 32 bit.
+  Note that the following bash expression (including the quotes)
+  prefers the 64 bit platform, if that is available:
+
+  \verb|"${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM}"|
 
   \item[\indexdef{}{setting}{ISABELLE\_PROCESS}\hypertarget{setting.ISABELLE-PROCESS}{\hyperlink{setting.ISABELLE-PROCESS}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}PROCESS}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}, \hyperlink{setting.ISABELLE-TOOL}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}TOOL}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}] are automatically set to the full path
   names of the \hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isaliteral{2D}{\isacharminus}}process}}}} and \hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}} executables, respectively.  Thus other tools and scripts
@@ -203,7 +212,7 @@ This is a reference of common Isabelle settings variables. Note that
   on the current search path of the shell.
   
   \item[\indexdef{}{setting}{ISABELLE\_IDENTIFIER}\hypertarget{setting.ISABELLE-IDENTIFIER}{\hyperlink{setting.ISABELLE-IDENTIFIER}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}IDENTIFIER}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}] refers
-  to the name of this Isabelle distribution, e.g.\ ``\verb|Isabelle2011|''.
+  to the name of this Isabelle distribution, e.g.\ ``\verb|Isabelle2012|''.
 
   \item[\indexdef{}{setting}{ML\_SYSTEM}\hypertarget{setting.ML-SYSTEM}{\hyperlink{setting.ML-SYSTEM}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}SYSTEM}}}}}, \indexdef{}{setting}{ML\_HOME}\hypertarget{setting.ML-HOME}{\hyperlink{setting.ML-HOME}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}HOME}}}}},
   \indexdef{}{setting}{ML\_OPTIONS}\hypertarget{setting.ML-OPTIONS}{\hyperlink{setting.ML-OPTIONS}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}OPTIONS}}}}}, \indexdef{}{setting}{ML\_PLATFORM}\hypertarget{setting.ML-PLATFORM}{\hyperlink{setting.ML-PLATFORM}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}PLATFORM}}}}}, \indexdef{}{setting}{ML\_IDENTIFIER}\hypertarget{setting.ML-IDENTIFIER}{\hyperlink{setting.ML-IDENTIFIER}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}IDENTIFIER}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}] specify the underlying ML system
@@ -215,6 +224,13 @@ This is a reference of common Isabelle settings variables. Note that
   binary format of ML heap images, which is useful for cross-platform
   installations.  The value of \hyperlink{setting.ML-IDENTIFIER}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}IDENTIFIER}}}} is
   automatically obtained by composing the values of \hyperlink{setting.ML-SYSTEM}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}SYSTEM}}}}, \hyperlink{setting.ML-PLATFORM}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}PLATFORM}}}} and the Isabelle version values.
+
+  \item[\indexdef{}{setting}{ISABELLE\_JDK\_HOME}\hypertarget{setting.ISABELLE-JDK-HOME}{\hyperlink{setting.ISABELLE-JDK-HOME}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}JDK{\isaliteral{5F}{\isacharunderscore}}HOME}}}}}] needs to point to a full JDK
+  (Java Development Kit) installation with \verb|javac| and
+  \verb|jar| executables.  This is essential for Isabelle/Scala
+  and other JVM-based tools to work properly.  Note that conventional
+  \verb|JAVA_HOME| usually points to the JRE (Java Runtime
+  Environment), not JDK.
   
   \item[\indexdef{}{setting}{ISABELLE\_PATH}\hypertarget{setting.ISABELLE-PATH}{\hyperlink{setting.ISABELLE-PATH}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}PATH}}}}}] is a list of directories
   (separated by colons) where Isabelle logic images may reside.  When
@@ -451,24 +467,24 @@ isabelle-process
 
   Usually \hyperlink{setting.ISABELLE-LOGIC}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}LOGIC}}}} refers to one of the standard
   logic images, which are read-only by default.  A writable session
-  --- based on \verb|FOL|, but output to \verb|Foo| (in the
+  --- based on \verb|HOL|, but output to \verb|Test| (in the
   directory specified by the \hyperlink{setting.ISABELLE-OUTPUT}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}OUTPUT}}}} setting) ---
   may be invoked as follows:
 \begin{ttbox}
-isabelle-process FOL Foo
+isabelle-process HOL Test
 \end{ttbox}
   Ending this session normally (e.g.\ by typing control-D) dumps the
-  whole ML system state into \verb|Foo|. Be prepared for several
-  tens of megabytes.
+  whole ML system state into \verb|Test| (be prepared for more
+  than 100\,MB):
 
-  The \verb|Foo| session may be continued later (still in
+  The \verb|Test| session may be continued later (still in
   writable state) by:
 \begin{ttbox}
-isabelle-process Foo
+isabelle-process Test
 \end{ttbox}
-  A read-only \verb|Foo| session may be started by:
+  A read-only \verb|Test| session may be started by:
 \begin{ttbox}
-isabelle-process -r Foo
+isabelle-process -r Test
 \end{ttbox}
 
   \medskip Note that manual session management like this does
@@ -476,10 +492,11 @@ isabelle-process -r Foo
   require the \hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} utility.
 
   \bigskip The next example demonstrates batch execution of Isabelle.
-  We retrieve the \verb|FOL| theory value from the theory loader
-  within ML:
+  We retrieve the \verb|Main| theory value from the theory loader
+  within ML (observe the delicate quoting rules for the Bash shell
+  vs.\ ML):
 \begin{ttbox}
-isabelle-process -e 'theory "FOL";' -q -r FOL
+isabelle-process -e 'Thy_Info.get_theory "Main";' -q -r HOL
 \end{ttbox}
   Note that the output text will be interspersed with additional junk
   messages by the ML runtime environment.  The \verb|-W| option
@@ -530,7 +547,7 @@ Show the list of available documentation of the current Isabelle
 
   View a certain document as follows:
 \begin{ttbox}
-  isabelle doc isar-ref
+  isabelle doc system
 \end{ttbox}
 
   Create an Isabelle session derived from HOL (see also

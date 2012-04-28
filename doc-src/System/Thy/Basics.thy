@@ -4,11 +4,13 @@ begin
 
 chapter {* The Isabelle system environment *}
 
-text {*
-  This manual describes Isabelle together with related tools and user
-  interfaces as seen from a system oriented view.  See also the
+text {* This manual describes Isabelle together with related tools and
+  user interfaces as seen from a system oriented view.  See also the
   \emph{Isabelle/Isar Reference Manual}~\cite{isabelle-isar-ref} for
-  the actual Isabelle input language and related concepts.
+  the actual Isabelle input language and related concepts, and
+  \emph{The Isabelle/Isar Implementation
+  Manual}~\cite{isabelle-implementation} for the main concepts of the
+  underlying implementation in Isabelle/ML.
 
   \medskip The Isabelle system environment provides the following
   basic infrastructure to integrate tools smoothly.
@@ -19,16 +21,16 @@ text {*
   environment variables to all Isabelle executables (including tools
   and user interfaces).
 
-  \item The \emph{raw Isabelle process} (@{executable_ref
+  \item The raw \emph{Isabelle process} (@{executable_ref
   "isabelle-process"}) runs logic sessions either interactively or in
   batch mode.  In particular, this view abstracts over the invocation
   of the actual ML system to be used.  Regular users rarely need to
   care about the low-level process.
 
-  \item The \emph{Isabelle tools wrapper} (@{executable_ref isabelle})
-  provides a generic startup environment Isabelle related utilities,
-  user interfaces etc.  Such tools automatically benefit from the
-  settings mechanism.
+  \item The main \emph{Isabelle tools wrapper} (@{executable_ref
+  isabelle}) provides a generic startup environment Isabelle related
+  utilities, user interfaces etc.  Such tools automatically benefit
+  from the settings mechanism.
 
   \end{enumerate}
 *}
@@ -45,8 +47,9 @@ text {*
   though.  Isabelle employs a somewhat more sophisticated scheme of
   \emph{settings files} --- one for site-wide defaults, another for
   additional user-specific modifications.  With all configuration
-  variables in at most two places, this scheme is more maintainable
-  and user-friendly than global shell environment variables.
+  variables in clearly defined places, this scheme is more
+  maintainable and user-friendly than global shell environment
+  variables.
 
   In particular, we avoid the typical situation where prospective
   users of a software package are told to put several things into
@@ -149,11 +152,13 @@ text {*
 
   \begin{description}
 
-  \item[@{setting_def USER_HOME}@{text "\<^sup>*"}] Is the
-  cross-platform user home directory.  On Unix systems this is usually
-  the same as @{setting HOME}, but on Windows it is the regular home
-  directory of the user, not the one of within the Cygwin root
-  file-system.
+  \item[@{setting_def USER_HOME}@{text "\<^sup>*"}] Is the cross-platform
+  user home directory.  On Unix systems this is usually the same as
+  @{setting HOME}, but on Windows it is the regular home directory of
+  the user, not the one of within the Cygwin root
+  file-system.\footnote{Cygwin itself offers another choice whether
+  its HOME should point to the \texttt{/home} directory tree or the
+  Windows user home.}
 
  \item[@{setting_def ISABELLE_HOME}@{text "\<^sup>*"}] is the location of the
   top-level Isabelle distribution directory. This is automatically
@@ -179,6 +184,10 @@ text {*
   \item[@{setting_def ISABELLE_PLATFORM64}@{text "\<^sup>*"}] is similar to
   @{setting ISABELLE_PLATFORM} but refers to the proper 64 bit variant
   on a platform that supports this; the value is empty for 32 bit.
+  Note that the following bash expression (including the quotes)
+  prefers the 64 bit platform, if that is available:
+
+  @{verbatim [display] "\"${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM}\""}
 
   \item[@{setting_def ISABELLE_PROCESS}@{text "\<^sup>*"}, @{setting
   ISABELLE_TOOL}@{text "\<^sup>*"}] are automatically set to the full path
@@ -189,7 +198,7 @@ text {*
   
   \item[@{setting_def ISABELLE_IDENTIFIER}@{text "\<^sup>*"}] refers
   to the name of this Isabelle distribution, e.g.\ ``@{verbatim
-  Isabelle2011}''.
+  Isabelle2012}''.
 
   \item[@{setting_def ML_SYSTEM}, @{setting_def ML_HOME},
   @{setting_def ML_OPTIONS}, @{setting_def ML_PLATFORM}, @{setting_def
@@ -205,6 +214,13 @@ text {*
   installations.  The value of @{setting ML_IDENTIFIER} is
   automatically obtained by composing the values of @{setting
   ML_SYSTEM}, @{setting ML_PLATFORM} and the Isabelle version values.
+
+  \item[@{setting_def ISABELLE_JDK_HOME}] needs to point to a full JDK
+  (Java Development Kit) installation with @{verbatim javac} and
+  @{verbatim jar} executables.  This is essential for Isabelle/Scala
+  and other JVM-based tools to work properly.  Note that conventional
+  @{verbatim JAVA_HOME} usually points to the JRE (Java Runtime
+  Environment), not JDK.
   
   \item[@{setting_def ISABELLE_PATH}] is a list of directories
   (separated by colons) where Isabelle logic images may reside.  When
@@ -438,24 +454,24 @@ isabelle-process
 
   Usually @{setting ISABELLE_LOGIC} refers to one of the standard
   logic images, which are read-only by default.  A writable session
-  --- based on @{verbatim FOL}, but output to @{verbatim Foo} (in the
+  --- based on @{verbatim HOL}, but output to @{verbatim Test} (in the
   directory specified by the @{setting ISABELLE_OUTPUT} setting) ---
   may be invoked as follows:
 \begin{ttbox}
-isabelle-process FOL Foo
+isabelle-process HOL Test
 \end{ttbox}
   Ending this session normally (e.g.\ by typing control-D) dumps the
-  whole ML system state into @{verbatim Foo}. Be prepared for several
-  tens of megabytes.
+  whole ML system state into @{verbatim Test} (be prepared for more
+  than 100\,MB):
 
-  The @{verbatim Foo} session may be continued later (still in
+  The @{verbatim Test} session may be continued later (still in
   writable state) by:
 \begin{ttbox}
-isabelle-process Foo
+isabelle-process Test
 \end{ttbox}
-  A read-only @{verbatim Foo} session may be started by:
+  A read-only @{verbatim Test} session may be started by:
 \begin{ttbox}
-isabelle-process -r Foo
+isabelle-process -r Test
 \end{ttbox}
 
   \medskip Note that manual session management like this does
@@ -463,10 +479,11 @@ isabelle-process -r Foo
   require the @{tool usedir} utility.
 
   \bigskip The next example demonstrates batch execution of Isabelle.
-  We retrieve the @{verbatim FOL} theory value from the theory loader
-  within ML:
+  We retrieve the @{verbatim Main} theory value from the theory loader
+  within ML (observe the delicate quoting rules for the Bash shell
+  vs.\ ML):
 \begin{ttbox}
-isabelle-process -e 'theory "FOL";' -q -r FOL
+isabelle-process -e 'Thy_Info.get_theory "Main";' -q -r HOL
 \end{ttbox}
   Note that the output text will be interspersed with additional junk
   messages by the ML runtime environment.  The @{verbatim "-W"} option
@@ -514,7 +531,7 @@ text {*
 
   View a certain document as follows:
 \begin{ttbox}
-  isabelle doc isar-ref
+  isabelle doc system
 \end{ttbox}
 
   Create an Isabelle session derived from HOL (see also
