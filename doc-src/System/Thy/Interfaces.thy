@@ -74,7 +74,7 @@ text {*
 *}
 
 
-section {* Isabelle/jEdit Prover IDE *}
+section {* Isabelle/jEdit Prover IDE \label{sec:tool-jedit} *}
 
 text {* The @{tool_def jedit} tool invokes a version of jEdit that has
   been augmented with some components to provide a fully-featured
@@ -95,6 +95,9 @@ Start jEdit with Isabelle plugin setup and opens theory FILES
 (default Scratch.thy).
 \end{ttbox}
 
+The @{verbatim "-l"} option specifies the logic image.  The
+@{verbatim "-m"} option specifies additional print modes.
+
 The @{verbatim "-J"} and @{verbatim "-j"} options allow to pass
 additional low-level options to the JVM or jEdit, respectively.  The
 defaults are provided by the Isabelle settings environment.
@@ -108,9 +111,6 @@ self-build mechanism of Isabelle/jEdit.  This is only relevant for
 building from sources, which also requires an auxiliary @{verbatim
 jedit_build} component.  Official Isabelle releases already include a
 version of Isabelle/jEdit that is built properly.
-
-The @{verbatim "-l"} option specifies the logic image.  The
-@{verbatim "-m"} option specifies additional print modes.
 *}
 
 end
