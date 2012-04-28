@@ -315,7 +315,7 @@ fun mk_dgraph D cs =
   |> fold (fn c => Term_Graph.new_node (c, ())) cs
   |> fold_product (fn c1 => fn c2 =>
      if is_none (get_chain D c1 c2 |> the_default NONE)
-     then Term_Graph.add_edge (c1, c2) else I)
+     then Term_Graph.add_edge (c2, c1) else I)
      cs cs
 
 fun ucomp_empty_tac T =
