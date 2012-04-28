@@ -73,6 +73,25 @@ Usage: doc [DOC]
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsection{Shell commands within the settings environment \label{sec:tool-env}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The \indexdef{}{tool}{env}\hypertarget{tool.env}{\hyperlink{tool.env}{\mbox{\isa{\isatt{env}}}}} utility is a direct wrapper for the
+  standard \verb|/usr/bin/env| command on POSIX systems,
+  running within the Isabelle settings environment
+  (\secref{sec:settings}).
+
+  The command-line arguments are that of the underlying version of
+  \verb|env|.  For example, the following invokes an instance of
+  the GNU Bash shell within the Isabelle environment:
+\begin{alltt}
+  isabelle env bash
+\end{alltt}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsection{Getting logic images%
 }
 \isamarkuptrue%

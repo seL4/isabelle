@@ -51,6 +51,22 @@ Usage: doc [DOC]
 *}
 
 
+section {* Shell commands within the settings environment \label{sec:tool-env} *}
+
+text {* The @{tool_def env} utility is a direct wrapper for the
+  standard @{verbatim "/usr/bin/env"} command on POSIX systems,
+  running within the Isabelle settings environment
+  (\secref{sec:settings}).
+
+  The command-line arguments are that of the underlying version of
+  @{verbatim env}.  For example, the following invokes an instance of
+  the GNU Bash shell within the Isabelle environment:
+\begin{alltt}
+  isabelle env bash
+\end{alltt}
+*}
+
+
 section {* Getting logic images *}
 
 text {*
