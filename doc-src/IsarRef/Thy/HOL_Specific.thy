@@ -1254,6 +1254,66 @@ text {*
   \end{description}
 *}
 
+section {* Transfer package *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{method_def (HOL) "transfer"} & : & @{text method} \\
+    @{method_def (HOL) "transfer'"} & : & @{text method} \\
+    @{method_def (HOL) "transfer_prover"} & : & @{text method} \\
+    @{attribute_def (HOL) "transfer_rule"} & : & @{text attribute} \\
+    @{attribute_def (HOL) "relator_eq"} & : & @{text attribute} \\
+  \end{matharray}
+
+  \begin{description}
+
+  \item @{method (HOL) "transfer"} method replaces the current subgoal
+    with a logically equivalent one that uses different types and
+    constants. The replacement of types and constants is guided by the
+    database of transfer rules. Goals are generalized over all free
+    variables by default; this is necessary for variables whose types
+    change, but can be overridden for specific variables with e.g.
+    @{text "transfer fixing: x y z"}.
+
+  \item @{method (HOL) "transfer'"} is a variant of @{method (HOL)
+    transfer} that allows replacing a subgoal with one that is
+    logically stronger (rather than equivalent). For example, a
+    subgoal involving equality on a quotient type could be replaced
+    with a subgoal involving equality (instead of the corresponding
+    equivalence relation) on the underlying raw type.
+
+  \item @{method (HOL) "transfer_prover"} method assists with proving
+    a transfer rule for a new constant, provided the constant is
+    defined in terms of other constants that already have transfer
+    rules. It should be applied after unfolding the constant
+    definitions.
+
+  \item @{attribute (HOL) "transfer_rule"} attribute maintains a
+    collection of transfer rules, which relate constants at two
+    different types. Typical transfer rules may relate different type
+    instances of the same polymorphic constant, or they may relate an
+    operation on a raw type to a corresponding operation on an
+    abstract type (quotient or subtype). For example:
+
+    @{text "((A ===> B) ===> list_all2 A ===> list_all2 B) map map"}\\
+    @{text "(cr_int ===> cr_int ===> cr_int) (\<lambda>(x,y) (u,v). (x+u, y+v)) plus"}
+
+    Lemmas involving predicates on relations can also be registered
+    using the same attribute. For example:
+
+    @{text "bi_unique A \<Longrightarrow> (list_all2 A ===> op =) distinct distinct"}\\
+    @{text "\<lbrakk>bi_unique A; bi_unique B\<rbrakk> \<Longrightarrow> bi_unique (prod_rel A B)"}
+
+  \item @{attribute (HOL) relator_eq} attribute collects identity laws
+    for relators of various type constructors, e.g. @{text "list_all2
+    (op =) = (op =)"}. The @{method (HOL) transfer} method uses these
+    lemmas to infer transfer rules for non-polymorphic constants on
+    the fly.
+
+  \end{description}
+
+*}
+
 section {* Lifting package *}
 
 text {*

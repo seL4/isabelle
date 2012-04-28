@@ -1774,6 +1774,66 @@ This avoids re-doing basic definitions and proofs from the
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsection{Transfer package%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{HOL}{method}{transfer}\hypertarget{method.HOL.transfer}{\hyperlink{method.HOL.transfer}{\mbox{\isa{transfer}}}} & : & \isa{method} \\
+    \indexdef{HOL}{method}{transfer'}\hypertarget{method.HOL.transfer'}{\hyperlink{method.HOL.transfer'}{\mbox{\isa{transfer{\isaliteral{27}{\isacharprime}}}}}} & : & \isa{method} \\
+    \indexdef{HOL}{method}{transfer\_prover}\hypertarget{method.HOL.transfer-prover}{\hyperlink{method.HOL.transfer-prover}{\mbox{\isa{transfer{\isaliteral{5F}{\isacharunderscore}}prover}}}} & : & \isa{method} \\
+    \indexdef{HOL}{attribute}{transfer\_rule}\hypertarget{attribute.HOL.transfer-rule}{\hyperlink{attribute.HOL.transfer-rule}{\mbox{\isa{transfer{\isaliteral{5F}{\isacharunderscore}}rule}}}} & : & \isa{attribute} \\
+    \indexdef{HOL}{attribute}{relator\_eq}\hypertarget{attribute.HOL.relator-eq}{\hyperlink{attribute.HOL.relator-eq}{\mbox{\isa{relator{\isaliteral{5F}{\isacharunderscore}}eq}}}} & : & \isa{attribute} \\
+  \end{matharray}
+
+  \begin{description}
+
+  \item \hyperlink{method.HOL.transfer}{\mbox{\isa{transfer}}} method replaces the current subgoal
+    with a logically equivalent one that uses different types and
+    constants. The replacement of types and constants is guided by the
+    database of transfer rules. Goals are generalized over all free
+    variables by default; this is necessary for variables whose types
+    change, but can be overridden for specific variables with e.g.
+    \isa{{\isaliteral{22}{\isachardoublequote}}transfer\ fixing{\isaliteral{3A}{\isacharcolon}}\ x\ y\ z{\isaliteral{22}{\isachardoublequote}}}.
+
+  \item \hyperlink{method.HOL.transfer'}{\mbox{\isa{transfer{\isaliteral{27}{\isacharprime}}}}} is a variant of \hyperlink{method.HOL.transfer}{\mbox{\isa{transfer}}} that allows replacing a subgoal with one that is
+    logically stronger (rather than equivalent). For example, a
+    subgoal involving equality on a quotient type could be replaced
+    with a subgoal involving equality (instead of the corresponding
+    equivalence relation) on the underlying raw type.
+
+  \item \hyperlink{method.HOL.transfer-prover}{\mbox{\isa{transfer{\isaliteral{5F}{\isacharunderscore}}prover}}} method assists with proving
+    a transfer rule for a new constant, provided the constant is
+    defined in terms of other constants that already have transfer
+    rules. It should be applied after unfolding the constant
+    definitions.
+
+  \item \hyperlink{attribute.HOL.transfer-rule}{\mbox{\isa{transfer{\isaliteral{5F}{\isacharunderscore}}rule}}} attribute maintains a
+    collection of transfer rules, which relate constants at two
+    different types. Typical transfer rules may relate different type
+    instances of the same polymorphic constant, or they may relate an
+    operation on a raw type to a corresponding operation on an
+    abstract type (quotient or subtype). For example:
+
+    \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}A\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3D}{\isacharequal}}{\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ B{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3D}{\isacharequal}}{\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ list{\isaliteral{5F}{\isacharunderscore}}all{\isadigit{2}}\ A\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3D}{\isacharequal}}{\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ list{\isaliteral{5F}{\isacharunderscore}}all{\isadigit{2}}\ B{\isaliteral{29}{\isacharparenright}}\ map\ map{\isaliteral{22}{\isachardoublequote}}}\\
+    \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}cr{\isaliteral{5F}{\isacharunderscore}}int\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3D}{\isacharequal}}{\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ cr{\isaliteral{5F}{\isacharunderscore}}int\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3D}{\isacharequal}}{\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ cr{\isaliteral{5F}{\isacharunderscore}}int{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}u{\isaliteral{2C}{\isacharcomma}}v{\isaliteral{29}{\isacharparenright}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2B}{\isacharplus}}u{\isaliteral{2C}{\isacharcomma}}\ y{\isaliteral{2B}{\isacharplus}}v{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ plus{\isaliteral{22}{\isachardoublequote}}}
+
+    Lemmas involving predicates on relations can also be registered
+    using the same attribute. For example:
+
+    \isa{{\isaliteral{22}{\isachardoublequote}}bi{\isaliteral{5F}{\isacharunderscore}}unique\ A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}list{\isaliteral{5F}{\isacharunderscore}}all{\isadigit{2}}\ A\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3D}{\isacharequal}}{\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ op\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{29}{\isacharparenright}}\ distinct\ distinct{\isaliteral{22}{\isachardoublequote}}}\\
+    \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}bi{\isaliteral{5F}{\isacharunderscore}}unique\ A{\isaliteral{3B}{\isacharsemicolon}}\ bi{\isaliteral{5F}{\isacharunderscore}}unique\ B{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ bi{\isaliteral{5F}{\isacharunderscore}}unique\ {\isaliteral{28}{\isacharparenleft}}prod{\isaliteral{5F}{\isacharunderscore}}rel\ A\ B{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}
+
+  \item \hyperlink{attribute.HOL.relator-eq}{\mbox{\isa{relator{\isaliteral{5F}{\isacharunderscore}}eq}}} attribute collects identity laws
+    for relators of various type constructors, e.g. \isa{{\isaliteral{22}{\isachardoublequote}}list{\isaliteral{5F}{\isacharunderscore}}all{\isadigit{2}}\ {\isaliteral{28}{\isacharparenleft}}op\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}op\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}. The \hyperlink{method.HOL.transfer}{\mbox{\isa{transfer}}} method uses these
+    lemmas to infer transfer rules for non-polymorphic constants on
+    the fly.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsection{Lifting package%
 }
 \isamarkuptrue%
