@@ -82,13 +82,13 @@ qed
 lemma defs_restrict:
   "defs c t |` (- lnames c) = t |` (- lnames c)"
 proof (induction c arbitrary: t)
-  case (Semi c1 c2)
+  case (Seq c1 c2)
   hence "defs c1 t |` (- lnames c1) = t |` (- lnames c1)" 
     by simp
   hence "defs c1 t |` (- lnames c1) |` (-lnames c2) = 
          t |` (- lnames c1) |` (-lnames c2)" by simp
   moreover
-  from Semi
+  from Seq
   have "defs c2 (defs c1 t) |` (- lnames c2) = 
         defs c1 t |` (- lnames c2)"
     by simp
@@ -121,9 +121,9 @@ next
   thus ?case
     by (clarsimp simp: aval_simp_const_N approx_def split: aexp.split)
 next
-  case (Semi c1 s1 s2 c2 s3)
-  have "approx (defs c1 t) s2" by (rule Semi.IH(1)[OF Semi.prems])
-  hence "approx (defs c2 (defs c1 t)) s3" by (rule Semi.IH(2))
+  case (Seq c1 s1 s2 c2 s3)
+  have "approx (defs c1 t) s2" by (rule Seq.IH(1)[OF Seq.prems])
+  hence "approx (defs c2 (defs c1 t)) s3" by (rule Seq.IH(2))
   thus ?case by simp
 next
   case (IfTrue b s c1 s')
@@ -155,15 +155,15 @@ proof (induction arbitrary: t rule: big_step_induct)
   case Assign
   thus ?case by (clarsimp simp: approx_def)
 next
-  case (Semi c1 s1 s2 c2 s3)
+  case (Seq c1 s1 s2 c2 s3)
   hence "approx (t |` (-lnames c2) |` (-lnames c1)) s1" 
     by (simp add: Int_commute)
   hence "approx (t |` (-lnames c2) |` (-lnames c1)) s2"
-    by (rule Semi)
+    by (rule Seq)
   hence "approx (t |` (-lnames c1) |` (-lnames c2)) s2"
     by (simp add: Int_commute)
   hence "approx (t |` (-lnames c1) |` (-lnames c2)) s3"
-    by (rule Semi)
+    by (rule Seq)
   thus ?case by simp
 next
   case (IfTrue b s c1 s' c2)
@@ -196,8 +196,8 @@ next
   case Assign
   show ?case by (simp add: equiv_up_to_def)
 next
-  case Semi 
-  thus ?case by (auto intro!: equiv_up_to_semi)
+  case Seq 
+  thus ?case by (auto intro!: equiv_up_to_seq)
 next
   case If
   thus ?case by (auto intro!: equiv_up_to_if_weak)
@@ -293,13 +293,13 @@ primrec bfold where
 lemma bdefs_restrict:
   "bdefs c t |` (- lnames c) = t |` (- lnames c)"
 proof (induction c arbitrary: t)
-  case (Semi c1 c2)
+  case (Seq c1 c2)
   hence "bdefs c1 t |` (- lnames c1) = t |` (- lnames c1)" 
     by simp
   hence "bdefs c1 t |` (- lnames c1) |` (-lnames c2) = 
          t |` (- lnames c1) |` (-lnames c2)" by simp
   moreover
-  from Semi
+  from Seq
   have "bdefs c2 (bdefs c1 t) |` (- lnames c2) = 
         bdefs c1 t |` (- lnames c2)"
     by simp
@@ -334,9 +334,9 @@ next
   thus ?case
     by (clarsimp simp: aval_simp_const_N approx_def split: aexp.split)
 next
-  case (Semi c1 s1 s2 c2 s3)
-  have "approx (bdefs c1 t) s2" by (rule Semi.IH(1)[OF Semi.prems])
-  hence "approx (bdefs c2 (bdefs c1 t)) s3" by (rule Semi.IH(2))
+  case (Seq c1 s1 s2 c2 s3)
+  have "approx (bdefs c1 t) s2" by (rule Seq.IH(1)[OF Seq.prems])
+  hence "approx (bdefs c2 (bdefs c1 t)) s3" by (rule Seq.IH(2))
   thus ?case by simp
 next
   case (IfTrue b s c1 s')
@@ -377,8 +377,8 @@ next
   case Assign
   thus ?case by (simp add: equiv_up_to_def)
 next
-  case Semi
-  thus ?case by (auto intro!: equiv_up_to_semi)           
+  case Seq
+  thus ?case by (auto intro!: equiv_up_to_seq)           
 next
   case (If b c1 c2)
   hence "approx t \<Turnstile> IF b THEN c1 ELSE c2 \<sim> 

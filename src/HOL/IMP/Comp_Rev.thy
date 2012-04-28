@@ -224,10 +224,10 @@ proof (induction c arbitrary: n)
 next
   case Assign thus ?case by simp
 next
-  case (Semi c1 c2)
-  from Semi.prems
+  case (Seq c1 c2)
+  from Seq.prems
   show ?case 
-    by (fastforce dest: Semi.IH [THEN subsetD])
+    by (fastforce dest: Seq.IH [THEN subsetD])
 next
   case (If b c1 c2)
   from If.prems
@@ -492,7 +492,7 @@ next
   thus ?case
     by simp (fastforce dest!: exec_n_split_full simp: exec_n_simps)
 next
-  case (Semi c1 c2)
+  case (Seq c1 c2)
   thus ?case by (fastforce dest!: exec_n_split_full)
 next
   case (If b c1 c2)

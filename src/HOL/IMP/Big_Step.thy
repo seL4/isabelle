@@ -10,7 +10,7 @@ inductive
 where
 Skip:    "(SKIP,s) \<Rightarrow> s" |
 Assign:  "(x ::= a,s) \<Rightarrow> s(x := aval a s)" |
-Semi:    "\<lbrakk> (c\<^isub>1,s\<^isub>1) \<Rightarrow> s\<^isub>2;  (c\<^isub>2,s\<^isub>2) \<Rightarrow> s\<^isub>3 \<rbrakk> \<Longrightarrow>
+Seq:     "\<lbrakk> (c\<^isub>1,s\<^isub>1) \<Rightarrow> s\<^isub>2;  (c\<^isub>2,s\<^isub>2) \<Rightarrow> s\<^isub>3 \<rbrakk> \<Longrightarrow>
           (c\<^isub>1;c\<^isub>2, s\<^isub>1) \<Rightarrow> s\<^isub>3" |
 
 IfTrue:  "\<lbrakk> bval b s;  (c\<^isub>1,s) \<Rightarrow> t \<rbrakk> \<Longrightarrow>
@@ -25,7 +25,7 @@ text_raw{*}\end{isaverbatimwrite}*}
 
 text_raw{*\begin{isaverbatimwrite}\newcommand{\BigStepEx}{% *}
 schematic_lemma ex: "(''x'' ::= N 5; ''y'' ::= V ''x'', s) \<Rightarrow> ?t"
-apply(rule Semi)
+apply(rule Seq)
 apply(rule Assign)
 apply simp
 apply(rule Assign)
@@ -89,8 +89,8 @@ Similarly for the other commands: *}
 
 inductive_cases AssignE[elim!]: "(x ::= a,s) \<Rightarrow> t"
 thm AssignE
-inductive_cases SemiE[elim!]: "(c1;c2,s1) \<Rightarrow> s3"
-thm SemiE
+inductive_cases SeqE[elim!]: "(c1;c2,s1) \<Rightarrow> s3"
+thm SeqE
 inductive_cases IfE[elim!]: "(IF b THEN c1 ELSE c2,s) \<Rightarrow> t"
 thm IfE
 
@@ -162,7 +162,7 @@ proof -
         "(c, s) \<Rightarrow> s'" and "(?w, s') \<Rightarrow> t" by auto
       -- "now we can build a derivation tree for the @{text IF}"
       -- "first, the body of the True-branch:"
-      hence "(c; ?w, s) \<Rightarrow> t" by (rule Semi)
+      hence "(c; ?w, s) \<Rightarrow> t" by (rule Seq)
       -- "then the whole @{text IF}"
       with `bval b s` have "(?iw, s) \<Rightarrow> t" by (rule IfTrue)
     }
@@ -184,7 +184,7 @@ proof -
     -- {* then this time only the @{text IfTrue} rule can have be used *}
     { assume "bval b s"
       with `(?iw, s) \<Rightarrow> t` have "(c; ?w, s) \<Rightarrow> t" by auto
-      -- "and for this, only the Semi-rule is applicable:"
+      -- "and for this, only the Seq-rule is applicable:"
       then obtain s' where
         "(c, s) \<Rightarrow> s'" and "(?w, s') \<Rightarrow> t" by auto
       -- "with this information, we can build a derivation tree for the @{text WHILE}"

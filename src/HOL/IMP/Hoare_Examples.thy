@@ -51,17 +51,17 @@ text{* Note that we deal with sequences of commands from right to left,
 pulling back the postcondition towards the precondition. *}
 
 lemma "\<turnstile> {\<lambda>s. 0 <= n} ''x'' ::= N 0; ''y'' ::= N 0; w n {\<lambda>s. s ''x'' = \<Sum> {1 .. n}}"
-apply(rule hoare.Semi)
+apply(rule hoare.Seq)
 prefer 2
 apply(rule While'
   [where P = "\<lambda>s. s ''x'' = \<Sum> {1..s ''y''} \<and> 0 \<le> s ''y'' \<and> s ''y'' \<le> n"])
-apply(rule Semi)
+apply(rule Seq)
 prefer 2
 apply(rule Assign)
 apply(rule Assign')
 apply(fastforce simp: atLeastAtMostPlus1_int_conv algebra_simps)
 apply(fastforce)
-apply(rule Semi)
+apply(rule Seq)
 prefer 2
 apply(rule Assign)
 apply(rule Assign')

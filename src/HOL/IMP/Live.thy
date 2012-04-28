@@ -54,11 +54,11 @@ next
   case Assign then show ?case
     by (auto simp: ball_Un)
 next
-  case (Semi c1 s1 s2 c2 s3 X t1)
-  from Semi.IH(1) Semi.prems obtain t2 where
+  case (Seq c1 s1 s2 c2 s3 X t1)
+  from Seq.IH(1) Seq.prems obtain t2 where
     t12: "(c1, t1) \<Rightarrow> t2" and s2t2: "s2 = t2 on L c2 X"
     by simp blast
-  from Semi.IH(2)[OF s2t2] obtain t3 where
+  from Seq.IH(2)[OF s2t2] obtain t3 where
     t23: "(c2, t2) \<Rightarrow> t3" and s3t3: "s3 = t3 on X"
     by auto
   show ?case using t12 t23 s3t3 by auto
@@ -118,11 +118,11 @@ next
   case Assign then show ?case
     by (auto simp: ball_Un)
 next
-  case (Semi c1 s1 s2 c2 s3 X t1)
-  from Semi.IH(1) Semi.prems obtain t2 where
+  case (Seq c1 s1 s2 c2 s3 X t1)
+  from Seq.IH(1) Seq.prems obtain t2 where
     t12: "(bury c1 (L c2 X), t1) \<Rightarrow> t2" and s2t2: "s2 = t2 on L c2 X"
     by simp blast
-  from Semi.IH(2)[OF s2t2] obtain t3 where
+  from Seq.IH(2)[OF s2t2] obtain t3 where
     t23: "(bury c2 X, t2) \<Rightarrow> t3" and s3t3: "s3 = t3 on X"
     by auto
   show ?case using t12 t23 s3t3 by auto
@@ -172,7 +172,7 @@ by (cases c) auto
 lemma Assign_bury[simp]: "x::=a = bury c X \<longleftrightarrow> c = x::=a & x : X"
 by (cases c) auto
 
-lemma Semi_bury[simp]: "bc\<^isub>1;bc\<^isub>2 = bury c X \<longleftrightarrow>
+lemma Seq_bury[simp]: "bc\<^isub>1;bc\<^isub>2 = bury c X \<longleftrightarrow>
   (EX c\<^isub>1 c\<^isub>2. c = c\<^isub>1;c\<^isub>2 & bc\<^isub>2 = bury c\<^isub>2 X & bc\<^isub>1 = bury c\<^isub>1 (L c\<^isub>2 X))"
 by (cases c) auto
 
@@ -194,11 +194,11 @@ next
   case Assign then show ?case
     by (auto simp: ball_Un)
 next
-  case (Semi bc1 s1 s2 bc2 s3 c X t1)
+  case (Seq bc1 s1 s2 bc2 s3 c X t1)
   then obtain c1 c2 where c: "c = c1;c2"
     and bc2: "bc2 = bury c2 X" and bc1: "bc1 = bury c1 (L c2 X)" by auto
-  note IH = Semi.hyps(2,4)
-  from IH(1)[OF bc1, of t1] Semi.prems c obtain t2 where
+  note IH = Seq.hyps(2,4)
+  from IH(1)[OF bc1, of t1] Seq.prems c obtain t2 where
     t12: "(c1, t1) \<Rightarrow> t2" and s2t2: "s2 = t2 on L c2 X" by auto
   from IH(2)[OF bc2 s2t2] obtain t3 where
     t23: "(c2, t2) \<Rightarrow> t3" and s3t3: "s3 = t3 on X"

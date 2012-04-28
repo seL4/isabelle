@@ -24,7 +24,7 @@ datatype
   com = SKIP 
       | Assign aexp aexp         ("_ ::= _" [61, 61] 61)
       | New    aexp aexp
-      | Semi   com  com          ("_;/ _"  [60, 61] 60)
+      | Seq    com  com          ("_;/ _"  [60, 61] 60)
       | If     bexp com com     ("(IF _/ THEN _/ ELSE _)"  [0, 0, 61] 61)
       | While  bexp com         ("(WHILE _/ DO _)"  [0, 61] 61)
 
@@ -34,7 +34,7 @@ where
 Skip:    "(SKIP,sn) \<Rightarrow> sn" |
 Assign:  "(lhs ::= a,s,n) \<Rightarrow> (s(aval lhs s := aval a s),n)" |
 New:     "(New lhs a,s,n) \<Rightarrow> (s(aval lhs s := n), n+aval a s)"  |
-Semi:    "\<lbrakk> (c\<^isub>1,sn\<^isub>1) \<Rightarrow> sn\<^isub>2;  (c\<^isub>2,sn\<^isub>2) \<Rightarrow> sn\<^isub>3 \<rbrakk> \<Longrightarrow>
+Seq:    "\<lbrakk> (c\<^isub>1,sn\<^isub>1) \<Rightarrow> sn\<^isub>2;  (c\<^isub>2,sn\<^isub>2) \<Rightarrow> sn\<^isub>3 \<rbrakk> \<Longrightarrow>
           (c\<^isub>1;c\<^isub>2, sn\<^isub>1) \<Rightarrow> sn\<^isub>3" |
 
 IfTrue:  "\<lbrakk> bval b s;  (c\<^isub>1,s,n) \<Rightarrow> tn \<rbrakk> \<Longrightarrow>

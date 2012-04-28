@@ -49,11 +49,11 @@ next
   case Assign then show ?case
     by (auto simp: ball_Un)
 next
-  case (Semi c1 s1 s2 c2 s3 X t1)
-  from Semi.IH(1) Semi.prems obtain t2 where
+  case (Seq c1 s1 s2 c2 s3 X t1)
+  from Seq.IH(1) Seq.prems obtain t2 where
     t12: "(c1, t1) \<Rightarrow> t2" and s2t2: "s2 = t2 on L c2 X"
     by simp blast
-  from Semi.IH(2)[OF s2t2] obtain t3 where
+  from Seq.IH(2)[OF s2t2] obtain t3 where
     t23: "(c2, t2) \<Rightarrow> t3" and s3t3: "s3 = t3 on X"
     by auto
   show ?case using t12 t23 s3t3 by auto

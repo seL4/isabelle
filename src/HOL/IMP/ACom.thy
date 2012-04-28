@@ -10,12 +10,12 @@ definition "show_state xs s = [(x,s x). x \<leftarrow> xs]"
 subsection "Annotated Commands"
 
 datatype 'a acom =
-  SKIP   'a                           ("SKIP {_}" 61) |
-  Assign vname aexp 'a                ("(_ ::= _/ {_})" [1000, 61, 0] 61) |
-  Semi   "('a acom)" "('a acom)"          ("_;//_"  [60, 61] 60) |
-  If     bexp "('a acom)" "('a acom)" 'a
+  SKIP 'a                           ("SKIP {_}" 61) |
+  Assign vname aexp 'a              ("(_ ::= _/ {_})" [1000, 61, 0] 61) |
+  Seq "('a acom)" "('a acom)"       ("_;//_"  [60, 61] 60) |
+  If bexp "('a acom)" "('a acom)" 'a
     ("(IF _/ THEN _/ ELSE _//{_})"  [0, 0, 61, 0] 61) |
-  While  'a bexp "('a acom)" 'a
+  While 'a bexp "('a acom)" 'a
     ("({_}//WHILE _/ DO (_)//{_})"  [0, 0, 61, 0] 61)
 
 fun post :: "'a acom \<Rightarrow>'a" where
@@ -72,7 +72,7 @@ lemma map_acom_Assign:
  "map_acom f c = x ::= e {S'} \<longleftrightarrow> (\<exists>S. c = x::=e {S} \<and> S' = f S)"
 by (cases c) auto
 
-lemma map_acom_Semi:
+lemma map_acom_Seq:
  "map_acom f c = c1';c2' \<longleftrightarrow>
  (\<exists>c1 c2. c = c1;c2 \<and> map_acom f c1 = c1' \<and> map_acom f c2 = c2')"
 by (cases c) auto
@@ -99,7 +99,7 @@ lemma strip_eq_Assign:
   "strip c = x::=e \<longleftrightarrow> (EX P. c = x::=e {P})"
 by (cases c) simp_all
 
-lemma strip_eq_Semi:
+lemma strip_eq_Seq:
   "strip c = c1;c2 \<longleftrightarrow> (EX d1 d2. c = d1;d2 & strip d1 = c1 & strip d2 = c2)"
 by (cases c) simp_all
 
@@ -119,7 +119,7 @@ by(induction C)(auto)
 
 lemma size_annos_same: "strip C1 = strip C2 \<Longrightarrow> size(annos C1) = size(annos C2)"
 apply(induct C2 arbitrary: C1)
-apply (auto simp: strip_eq_SKIP strip_eq_Assign strip_eq_Semi strip_eq_If strip_eq_While)
+apply (auto simp: strip_eq_SKIP strip_eq_Assign strip_eq_Seq strip_eq_If strip_eq_While)
 done
 
 lemmas size_annos_same2 = eqTrueI[OF size_annos_same]

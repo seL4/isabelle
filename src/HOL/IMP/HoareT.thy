@@ -20,7 +20,7 @@ inductive
 where
 Skip:  "\<turnstile>\<^sub>t {P} SKIP {P}" |
 Assign:  "\<turnstile>\<^sub>t {\<lambda>s. P(s[a/x])} x::=a {P}" |
-Semi: "\<lbrakk> \<turnstile>\<^sub>t {P\<^isub>1} c\<^isub>1 {P\<^isub>2}; \<turnstile>\<^sub>t {P\<^isub>2} c\<^isub>2 {P\<^isub>3} \<rbrakk> \<Longrightarrow> \<turnstile>\<^sub>t {P\<^isub>1} c\<^isub>1;c\<^isub>2 {P\<^isub>3}" |
+Seq: "\<lbrakk> \<turnstile>\<^sub>t {P\<^isub>1} c\<^isub>1 {P\<^isub>2}; \<turnstile>\<^sub>t {P\<^isub>2} c\<^isub>2 {P\<^isub>3} \<rbrakk> \<Longrightarrow> \<turnstile>\<^sub>t {P\<^isub>1} c\<^isub>1;c\<^isub>2 {P\<^isub>3}" |
 If: "\<lbrakk> \<turnstile>\<^sub>t {\<lambda>s. P s \<and> bval b s} c\<^isub>1 {Q}; \<turnstile>\<^sub>t {\<lambda>s. P s \<and> \<not> bval b s} c\<^isub>2 {Q} \<rbrakk>
   \<Longrightarrow> \<turnstile>\<^sub>t {P} IF b THEN c\<^isub>1 ELSE c\<^isub>2 {Q}" |
 While:
@@ -57,19 +57,19 @@ abbreviation "w n ==
   DO ( ''y'' ::= Plus (V ''y'') (N 1); ''x'' ::= Plus (V ''x'') (V ''y'') )"
 
 lemma "\<turnstile>\<^sub>t {\<lambda>s. 0 \<le> n} ''x'' ::= N 0; ''y'' ::= N 0; w n {\<lambda>s. s ''x'' = \<Sum>{1..n}}"
-apply(rule Semi)
+apply(rule Seq)
 prefer 2
 apply(rule While'
   [where P = "\<lambda>s. s ''x'' = \<Sum> {1..s ''y''} \<and> 0 \<le> s ''y'' \<and> s ''y'' \<le> n"
    and f = "\<lambda>s. nat (n - s ''y'')"])
-apply(rule Semi)
+apply(rule Seq)
 prefer 2
 apply(rule Assign)
 apply(rule Assign')
 apply (simp add: atLeastAtMostPlus1_int_conv algebra_simps)
 apply clarsimp
 apply fastforce
-apply(rule Semi)
+apply(rule Seq)
 prefer 2
 apply(rule Assign)
 apply(rule Assign')
@@ -182,7 +182,7 @@ proof (induction c arbitrary: Q)
 next
   case Assign show ?case by simp (blast intro:hoaret.Assign)
 next
-  case Semi thus ?case by simp (blast intro:hoaret.Semi)
+  case Seq thus ?case by simp (blast intro:hoaret.Seq)
 next
   case If thus ?case by simp (blast intro:hoaret.If hoaret.conseq)
 next

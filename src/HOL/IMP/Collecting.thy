@@ -30,7 +30,7 @@ by (cases c) auto
 lemma Assign_le: "x ::= e {S} \<le> c \<longleftrightarrow> (\<exists>S'. c = x ::= e {S'} \<and> S \<le> S')"
 by (cases c) auto
 
-lemma Semi_le: "c1;c2 \<le> c \<longleftrightarrow> (\<exists>c1' c2'. c = c1';c2' \<and> c1 \<le> c1' \<and> c2 \<le> c2')"
+lemma Seq_le: "c1;c2 \<le> c \<longleftrightarrow> (\<exists>c1' c2'. c = c1';c2' \<and> c1 \<le> c1' \<and> c2 \<le> c2')"
 by (cases c) auto
 
 lemma If_le: "IF b THEN c1 ELSE c2 {S} \<le> c \<longleftrightarrow>
@@ -52,7 +52,7 @@ next
 next
   case goal3 thus ?case
   apply(induct x y arbitrary: z rule: less_eq_acom.induct)
-  apply (auto intro: le_trans simp: SKIP_le Assign_le Semi_le If_le While_le)
+  apply (auto intro: le_trans simp: SKIP_le Assign_le Seq_le If_le While_le)
   done
 next
   case goal4 thus ?case
@@ -94,7 +94,7 @@ proof
   case goal1
   have "a:A \<Longrightarrow> lift Inter (strip a) A \<le> a"
   proof(induction a arbitrary: A)
-    case Semi from Semi.prems show ?case by(force intro!: Semi.IH)
+    case Seq from Seq.prems show ?case by(force intro!: Seq.IH)
   next
     case If from If.prems show ?case by(force intro!: If.IH)
   next
@@ -109,8 +109,8 @@ next
   next
     case Assign thus ?case by (force simp:Assign_le)
   next
-    case Semi from Semi.prems show ?case
-      by (force intro!: Semi.IH simp:Semi_le)
+    case Seq from Seq.prems show ?case
+      by (force intro!: Seq.IH simp:Seq_le)
   next
     case If from If.prems show ?case by (force simp: If_le intro!: If.IH)
   next
@@ -121,8 +121,8 @@ next
   case goal3
   have "strip(lift Inter i A) = i"
   proof(induction i arbitrary: A)
-    case Semi from Semi.prems show ?case
-      by (fastforce simp: strip_eq_Semi subset_iff intro!: Semi.IH)
+    case Seq from Seq.prems show ?case
+      by (fastforce simp: strip_eq_Seq subset_iff intro!: Seq.IH)
   next
     case If from If.prems show ?case
       by (fastforce intro!: If.IH simp: strip_eq_If)

@@ -12,7 +12,7 @@ None: "(c,None) \<Rightarrow> None" |
 Skip: "(SKIP,s) \<Rightarrow> s" |
 AssignNone: "aval a s = None \<Longrightarrow> (x ::= a, Some s) \<Rightarrow> None" |
 Assign: "aval a s = Some i \<Longrightarrow> (x ::= a, Some s) \<Rightarrow> Some(s(x := Some i))" |
-Semi:   "(c\<^isub>1,s\<^isub>1) \<Rightarrow> s\<^isub>2 \<Longrightarrow> (c\<^isub>2,s\<^isub>2) \<Rightarrow> s\<^isub>3 \<Longrightarrow> (c\<^isub>1;c\<^isub>2,s\<^isub>1) \<Rightarrow> s\<^isub>3" |
+Seq:    "(c\<^isub>1,s\<^isub>1) \<Rightarrow> s\<^isub>2 \<Longrightarrow> (c\<^isub>2,s\<^isub>2) \<Rightarrow> s\<^isub>3 \<Longrightarrow> (c\<^isub>1;c\<^isub>2,s\<^isub>1) \<Rightarrow> s\<^isub>3" |
 
 IfNone:  "bval b s = None \<Longrightarrow> (IF b THEN c\<^isub>1 ELSE c\<^isub>2,Some s) \<Rightarrow> None" |
 IfTrue:  "\<lbrakk> bval b s = Some True;  (c\<^isub>1,Some s) \<Rightarrow> s' \<rbrakk> \<Longrightarrow>

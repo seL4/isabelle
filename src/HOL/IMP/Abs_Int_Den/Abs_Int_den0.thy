@@ -44,7 +44,7 @@ next
   case Assign thus ?case
     by (auto simp: lookup_update aval'_sound)
 next
-  case Semi thus ?case by auto
+  case Seq thus ?case by auto
 next
   case If thus ?case
     by (metis AI.simps(4) IfE astate_in_rep_le join_ge1 join_ge2)

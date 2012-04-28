@@ -8,7 +8,7 @@ Skip:
   "l \<turnstile> SKIP"  |
 Assign:
   "\<lbrakk> sec x \<ge> sec_aexp a;  sec x \<ge> l \<rbrakk> \<Longrightarrow> l \<turnstile> x ::= a"  |
-Semi:
+Seq:
   "l \<turnstile> c\<^isub>1 \<Longrightarrow> l \<turnstile> c\<^isub>2 \<Longrightarrow> l \<turnstile> c\<^isub>1;c\<^isub>2"  |
 If:
   "\<lbrakk> max (sec_bexp b) l \<turnstile> c\<^isub>1;  max (sec_bexp b) l \<turnstile> c\<^isub>2 \<rbrakk>
@@ -37,7 +37,7 @@ proof(induction rule: big_step_induct)
 next
   case Assign thus ?case by auto
 next
-  case Semi thus ?case by auto
+  case Seq thus ?case by auto
 next
   case (IfTrue b s c1)
   hence "max (sec_bexp b) l \<turnstile> c1" by auto
@@ -60,7 +60,7 @@ lemma termi_if_non0: "l \<turnstile> c \<Longrightarrow> l \<noteq> 0 \<Longrigh
 apply(induction arbitrary: s rule: sec_type.induct)
 apply (metis big_step.Skip)
 apply (metis big_step.Assign)
-apply (metis big_step.Semi)
+apply (metis big_step.Seq)
 apply (metis IfFalse IfTrue le0 le_antisym le_maxI2)
 apply simp
 done
@@ -86,7 +86,7 @@ next
   qed
   ultimately show ?case by blast
 next
-  case Semi thus ?case by blast
+  case Seq thus ?case by blast
 next
   case (IfTrue b s c1 s' c2)
   have "sec_bexp b \<turnstile> c1" "sec_bexp b \<turnstile> c2" using IfTrue.prems by auto
@@ -175,7 +175,7 @@ Skip':
   "l \<turnstile>' SKIP"  |
 Assign':
   "\<lbrakk> sec x \<ge> sec_aexp a;  sec x \<ge> l \<rbrakk> \<Longrightarrow> l \<turnstile>' x ::= a"  |
-Semi':
+Seq':
   "l \<turnstile>' c\<^isub>1 \<Longrightarrow> l \<turnstile>' c\<^isub>2 \<Longrightarrow> l \<turnstile>' c\<^isub>1;c\<^isub>2"  |
 If':
   "\<lbrakk> sec_bexp b \<le> l;  l \<turnstile>' c\<^isub>1;  l \<turnstile>' c\<^isub>2 \<rbrakk> \<Longrightarrow> l \<turnstile>' IF b THEN c\<^isub>1 ELSE c\<^isub>2"  |
@@ -188,7 +188,7 @@ lemma "l \<turnstile> c \<Longrightarrow> l \<turnstile>' c"
 apply(induction rule: sec_type.induct)
 apply (metis Skip')
 apply (metis Assign')
-apply (metis Semi')
+apply (metis Seq')
 apply (metis min_max.inf_sup_ord(3) min_max.sup_absorb2 nat_le_linear If' anti_mono')
 by (metis While')
 
@@ -197,7 +197,7 @@ lemma "l \<turnstile>' c \<Longrightarrow> l \<turnstile> c"
 apply(induction rule: sec_type'.induct)
 apply (metis Skip)
 apply (metis Assign)
-apply (metis Semi)
+apply (metis Seq)
 apply (metis min_max.sup_absorb2 If)
 apply (metis While)
 by (metis anti_mono)

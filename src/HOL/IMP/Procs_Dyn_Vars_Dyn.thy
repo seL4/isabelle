@@ -10,7 +10,7 @@ inductive
 where
 Skip:    "pe \<turnstile> (SKIP,s) \<Rightarrow> s" |
 Assign:  "pe \<turnstile> (x ::= a,s) \<Rightarrow> s(x := aval a s)" |
-Semi:    "\<lbrakk> pe \<turnstile> (c\<^isub>1,s\<^isub>1) \<Rightarrow> s\<^isub>2;  pe \<turnstile> (c\<^isub>2,s\<^isub>2) \<Rightarrow> s\<^isub>3 \<rbrakk> \<Longrightarrow>
+Seq:     "\<lbrakk> pe \<turnstile> (c\<^isub>1,s\<^isub>1) \<Rightarrow> s\<^isub>2;  pe \<turnstile> (c\<^isub>2,s\<^isub>2) \<Rightarrow> s\<^isub>3 \<rbrakk> \<Longrightarrow>
           pe \<turnstile> (c\<^isub>1;c\<^isub>2, s\<^isub>1) \<Rightarrow> s\<^isub>3" |
 
 IfTrue:  "\<lbrakk> bval b s;  pe \<turnstile> (c\<^isub>1,s) \<Rightarrow> t \<rbrakk> \<Longrightarrow>

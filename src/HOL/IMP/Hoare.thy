@@ -19,8 +19,8 @@ Skip: "\<turnstile> {P} SKIP {P}"  |
 
 Assign:  "\<turnstile> {\<lambda>s. P(s[a/x])} x::=a {P}"  |
 
-Semi: "\<lbrakk> \<turnstile> {P} c\<^isub>1 {Q};  \<turnstile> {Q} c\<^isub>2 {R} \<rbrakk>
-       \<Longrightarrow> \<turnstile> {P} c\<^isub>1;c\<^isub>2 {R}"  |
+Seq: "\<lbrakk> \<turnstile> {P} c\<^isub>1 {Q};  \<turnstile> {Q} c\<^isub>2 {R} \<rbrakk>
+      \<Longrightarrow> \<turnstile> {P} c\<^isub>1;c\<^isub>2 {R}"  |
 
 If: "\<lbrakk> \<turnstile> {\<lambda>s. P s \<and> bval b s} c\<^isub>1 {Q};  \<turnstile> {\<lambda>s. P s \<and> \<not> bval b s} c\<^isub>2 {Q} \<rbrakk>
      \<Longrightarrow> \<turnstile> {P} IF b THEN c\<^isub>1 ELSE c\<^isub>2 {Q}"  |
@@ -31,9 +31,9 @@ While: "\<turnstile> {\<lambda>s. P s \<and> bval b s} c {P} \<Longrightarrow>
 conseq: "\<lbrakk> \<forall>s. P' s \<longrightarrow> P s;  \<turnstile> {P} c {Q};  \<forall>s. Q s \<longrightarrow> Q' s \<rbrakk>
         \<Longrightarrow> \<turnstile> {P'} c {Q'}"
 
-lemmas [simp] = hoare.Skip hoare.Assign hoare.Semi If
+lemmas [simp] = hoare.Skip hoare.Assign hoare.Seq If
 
-lemmas [intro!] = hoare.Skip hoare.Assign hoare.Semi hoare.If
+lemmas [intro!] = hoare.Skip hoare.Assign hoare.Seq hoare.If
 
 lemma strengthen_pre:
   "\<lbrakk> \<forall>s. P' s \<longrightarrow> P s;  \<turnstile> {P} c {Q} \<rbrakk> \<Longrightarrow> \<turnstile> {P'} c {Q}"

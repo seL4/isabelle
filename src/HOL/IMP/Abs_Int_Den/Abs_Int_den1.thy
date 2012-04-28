@@ -187,7 +187,7 @@ next
   case Assign thus ?case
     by (auto simp: lookup_update aval'_sound)
 next
-  case Semi thus ?case by fastforce
+  case Seq thus ?case by fastforce
 next
   case If thus ?case by (auto simp: in_rep_join_UpI bfilter_sound)
 next

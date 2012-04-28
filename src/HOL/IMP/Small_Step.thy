@@ -10,8 +10,8 @@ inductive
 where
 Assign:  "(x ::= a, s) \<rightarrow> (SKIP, s(x := aval a s))" |
 
-Semi1:   "(SKIP;c\<^isub>2,s) \<rightarrow> (c\<^isub>2,s)" |
-Semi2:   "(c\<^isub>1,s) \<rightarrow> (c\<^isub>1',s') \<Longrightarrow> (c\<^isub>1;c\<^isub>2,s) \<rightarrow> (c\<^isub>1';c\<^isub>2,s')" |
+Seq1:    "(SKIP;c\<^isub>2,s) \<rightarrow> (c\<^isub>2,s)" |
+Seq2:    "(c\<^isub>1,s) \<rightarrow> (c\<^isub>1',s') \<Longrightarrow> (c\<^isub>1;c\<^isub>2,s) \<rightarrow> (c\<^isub>1';c\<^isub>2,s')" |
 
 IfTrue:  "bval b s \<Longrightarrow> (IF b THEN c\<^isub>1 ELSE c\<^isub>2,s) \<rightarrow> (c\<^isub>1,s)" |
 IfFalse: "\<not>bval b s \<Longrightarrow> (IF b THEN c\<^isub>1 ELSE c\<^isub>2,s) \<rightarrow> (c\<^isub>2,s)" |
@@ -54,8 +54,8 @@ inductive_cases SkipE[elim!]: "(SKIP,s) \<rightarrow> ct"
 thm SkipE
 inductive_cases AssignE[elim!]: "(x::=a,s) \<rightarrow> ct"
 thm AssignE
-inductive_cases SemiE[elim]: "(c1;c2,s) \<rightarrow> ct"
-thm SemiE
+inductive_cases SeqE[elim]: "(c1;c2,s) \<rightarrow> ct"
+thm SeqE
 inductive_cases IfE[elim!]: "(IF b THEN c1 ELSE c2,s) \<rightarrow> ct"
 inductive_cases WhileE[elim]: "(WHILE b DO c, s) \<rightarrow> ct"
 
@@ -70,18 +70,18 @@ done
 
 subsection "Equivalence with big-step semantics"
 
-lemma star_semi2: "(c1,s) \<rightarrow>* (c1',s') \<Longrightarrow> (c1;c2,s) \<rightarrow>* (c1';c2,s')"
+lemma star_seq2: "(c1,s) \<rightarrow>* (c1',s') \<Longrightarrow> (c1;c2,s) \<rightarrow>* (c1';c2,s')"
 proof(induction rule: star_induct)
   case refl thus ?case by simp
 next
   case step
-  thus ?case by (metis Semi2 star.step)
+  thus ?case by (metis Seq2 star.step)
 qed
 
-lemma semi_comp:
+lemma seq_comp:
   "\<lbrakk> (c1,s1) \<rightarrow>* (SKIP,s2); (c2,s2) \<rightarrow>* (SKIP,s3) \<rbrakk>
    \<Longrightarrow> (c1;c2, s1) \<rightarrow>* (SKIP,s3)"
-by(blast intro: star.step star_semi2 star_trans)
+by(blast intro: star.step star_seq2 star_trans)
 
 text{* The following proof corresponds to one on the board where one would
 show chains of @{text "\<rightarrow>"} and @{text "\<rightarrow>*"} steps. *}
@@ -95,7 +95,7 @@ next
 next
   fix c1 c2 s1 s2 s3
   assume "(c1,s1) \<rightarrow>* (SKIP,s2)" and "(c2,s2) \<rightarrow>* (SKIP,s3)"
-  thus "(c1;c2, s1) \<rightarrow>* (SKIP,s3)" by (rule semi_comp)
+  thus "(c1;c2, s1) \<rightarrow>* (SKIP,s3)" by (rule seq_comp)
 next
   fix s::state and b c0 c1 t
   assume "bval b s"
@@ -126,7 +126,7 @@ next
   assume b: "bval b s"
   have "(?w,s) \<rightarrow> (?if, s)" by blast
   moreover have "(?if, s) \<rightarrow> (c; ?w, s)" by (simp add: b)
-  moreover have "(c; ?w,s) \<rightarrow>* (SKIP,t)" by(rule semi_comp[OF c w])
+  moreover have "(c; ?w,s) \<rightarrow>* (SKIP,t)" by(rule seq_comp[OF c w])
   ultimately show "(WHILE b DO c,s) \<rightarrow>* (SKIP,t)" by (metis star.simps)
 qed
 
@@ -137,7 +137,7 @@ proof (induction rule: big_step.induct)
 next
   case Assign show ?case by blast
 next
-  case Semi thus ?case by (blast intro: semi_comp)
+  case Seq thus ?case by (blast intro: seq_comp)
 next
   case IfTrue thus ?case by (blast intro: star.step)
 next
@@ -148,7 +148,7 @@ next
 next
   case WhileTrue
   thus ?case
-    by(metis While semi_comp small_step.IfTrue star.step[of small_step])
+    by(metis While seq_comp small_step.IfTrue star.step[of small_step])
 qed
 
 lemma small1_big_continue:

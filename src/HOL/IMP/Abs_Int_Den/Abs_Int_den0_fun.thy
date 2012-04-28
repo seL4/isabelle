@@ -160,7 +160,7 @@ proof(induction c arbitrary: s t S0)
 next
   case Assign thus ?case by (auto simp: aval'_sound)
 next
-  case Semi thus ?case by auto
+  case Seq thus ?case by auto
 next
   case If thus ?case by(auto simp: in_rep_join)
 next

@@ -70,7 +70,7 @@ lemma equiv_up_to_hoare_eq:
   by (rule equiv_up_to_hoare)
 
 
-lemma equiv_up_to_semi:
+lemma equiv_up_to_seq:
   "P \<Turnstile> c \<sim> c' \<Longrightarrow> Q \<Turnstile> d \<sim> d' \<Longrightarrow> \<Turnstile> {P} c {Q} \<Longrightarrow>
   P \<Turnstile> (c; d) \<sim> (c'; d')"
   by (clarsimp simp: equiv_up_to_def hoare_valid_def) blast

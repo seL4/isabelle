@@ -259,13 +259,13 @@ proof(induction arbitrary: stk rule: big_step_induct)
   case (Assign x a s)
   show ?case by (fastforce simp:fun_upd_def cong: if_cong)
 next
-  case (Semi c1 s1 s2 c2 s3)
+  case (Seq c1 s1 s2 c2 s3)
   let ?cc1 = "ccomp c1"  let ?cc2 = "ccomp c2"
   have "?cc1 @ ?cc2 \<turnstile> (0,s1,stk) \<rightarrow>* (isize ?cc1,s2,stk)"
-    using Semi.IH(1) by fastforce
+    using Seq.IH(1) by fastforce
   moreover
   have "?cc1 @ ?cc2 \<turnstile> (isize ?cc1,s2,stk) \<rightarrow>* (isize(?cc1 @ ?cc2),s3,stk)"
-    using Semi.IH(2) by fastforce
+    using Seq.IH(2) by fastforce
   ultimately show ?case by simp (blast intro: exec_trans)
 next
   case (WhileTrue b s1 c s2 s3)

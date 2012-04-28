@@ -22,7 +22,7 @@ datatype exp =
   Vassign string exp       ("(_ ::=/ _)" [1000,61] 62) |
   Fassign exp string exp   ("(_\<bullet>_ ::=/ _)" [63,0,62] 62) |
   Mcall exp string exp     ("(_\<bullet>/_<_>)" [63,0,0] 63) |
-  Semi exp exp             ("_;/ _" [61,60] 60) |
+  Seq exp exp              ("_;/ _" [61,60] 60) |
   If bexp exp exp          ("IF _/ THEN (2_)/ ELSE (2_)" [0,0,61] 61)
 and bexp = B bool | Not bexp | And bexp bexp | Eq exp exp
 
@@ -56,7 +56,7 @@ Mcall:
    me \<turnstile> (me m,ve,sn\<^isub>3) \<Rightarrow> (r,ve',sn\<^isub>4) \<rbrakk>
   \<Longrightarrow>
  me \<turnstile> (oe\<bullet>m<pe>,c\<^isub>1) \<Rightarrow> (r,ve\<^isub>3,sn\<^isub>4)" |
-Semi:
+Seq:
 "\<lbrakk> me \<turnstile> (e\<^isub>1,c\<^isub>1) \<Rightarrow> (r,c\<^isub>2);  me \<turnstile> (e\<^isub>2,c\<^isub>2) \<Rightarrow> c\<^isub>3 \<rbrakk> \<Longrightarrow>
  me \<turnstile> (e\<^isub>1; e\<^isub>2,c\<^isub>1) \<Rightarrow> c\<^isub>3" |
 IfTrue:

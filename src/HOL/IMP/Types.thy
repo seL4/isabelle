@@ -41,8 +41,8 @@ subsection "Syntax of Commands"
 
 datatype
   com = SKIP 
-      | Assign vname aexp        ("_ ::= _" [1000, 61] 61)
-      | Semi   com  com          ("_; _"  [60, 61] 60)
+      | Assign vname aexp       ("_ ::= _" [1000, 61] 61)
+      | Seq    com  com         ("_; _"  [60, 61] 60)
       | If     bexp com com     ("IF _ THEN _ ELSE _"  [0, 0, 61] 61)
       | While  bexp com         ("WHILE _ DO _"  [0, 61] 61)
 
@@ -54,8 +54,8 @@ inductive
 where
 Assign:  "taval a s v \<Longrightarrow> (x ::= a, s) \<rightarrow> (SKIP, s(x := v))" |
 
-Semi1:   "(SKIP;c,s) \<rightarrow> (c,s)" |
-Semi2:   "(c1,s) \<rightarrow> (c1',s') \<Longrightarrow> (c1;c2,s) \<rightarrow> (c1';c2,s')" |
+Seq1:   "(SKIP;c,s) \<rightarrow> (c,s)" |
+Seq2:   "(c1,s) \<rightarrow> (c1',s') \<Longrightarrow> (c1;c2,s) \<rightarrow> (c1';c2,s')" |
 
 IfTrue:  "tbval b s True \<Longrightarrow> (IF b THEN c1 ELSE c2,s) \<rightarrow> (c1,s)" |
 IfFalse: "tbval b s False \<Longrightarrow> (IF b THEN c1 ELSE c2,s) \<rightarrow> (c2,s)" |
@@ -93,7 +93,7 @@ Less_ty: "\<Gamma> \<turnstile> a1 : \<tau> \<Longrightarrow> \<Gamma> \<turnsti
 inductive ctyping :: "tyenv \<Rightarrow> com \<Rightarrow> bool" (infix "\<turnstile>" 50) where
 Skip_ty: "\<Gamma> \<turnstile> SKIP" |
 Assign_ty: "\<Gamma> \<turnstile> a : \<Gamma>(x) \<Longrightarrow> \<Gamma> \<turnstile> x ::= a" |
-Semi_ty: "\<Gamma> \<turnstile> c1 \<Longrightarrow> \<Gamma> \<turnstile> c2 \<Longrightarrow> \<Gamma> \<turnstile> c1;c2" |
+Seq_ty: "\<Gamma> \<turnstile> c1 \<Longrightarrow> \<Gamma> \<turnstile> c2 \<Longrightarrow> \<Gamma> \<turnstile> c1;c2" |
 If_ty: "\<Gamma> \<turnstile> b \<Longrightarrow> \<Gamma> \<turnstile> c1 \<Longrightarrow> \<Gamma> \<turnstile> c2 \<Longrightarrow> \<Gamma> \<turnstile> IF b THEN c1 ELSE c2" |
 While_ty: "\<Gamma> \<turnstile> b \<Longrightarrow> \<Gamma> \<turnstile> c \<Longrightarrow> \<Gamma> \<turnstile> WHILE b DO c"
 
@@ -164,7 +164,7 @@ next
   case Assign_ty 
   thus ?case by (metis Assign aprogress)
 next
-  case Semi_ty thus ?case by simp (metis Semi1 Semi2)
+  case Seq_ty thus ?case by simp (metis Seq1 Seq2)
 next
   case (If_ty \<Gamma> b c1 c2)
   then obtain bv where "tbval b s bv" by (metis bprogress)

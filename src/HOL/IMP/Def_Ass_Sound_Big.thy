@@ -16,7 +16,7 @@ proof (induction c "Some s" s' arbitrary: s A A' rule:big_step_induct)
   case AssignNone thus ?case
     by auto (metis aval_Some option.simps(3) subset_trans)
 next
-  case Semi thus ?case by auto metis
+  case Seq thus ?case by auto metis
 next
   case IfTrue thus ?case by auto blast
 next

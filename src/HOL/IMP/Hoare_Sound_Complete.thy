@@ -35,7 +35,7 @@ by (rule ext) (auto simp: wp_def)
 lemma wp_Ass[simp]: "wp (x::=a) Q = (\<lambda>s. Q(s[a/x]))"
 by (rule ext) (auto simp: wp_def)
 
-lemma wp_Semi[simp]: "wp (c\<^isub>1;c\<^isub>2) Q = wp c\<^isub>1 (wp c\<^isub>2 Q)"
+lemma wp_Seq[simp]: "wp (c\<^isub>1;c\<^isub>2) Q = wp c\<^isub>1 (wp c\<^isub>2 Q)"
 by (rule ext) (auto simp: wp_def)
 
 lemma wp_If[simp]:
@@ -60,7 +60,7 @@ subsection "Completeness"
 
 lemma wp_is_pre: "\<turnstile> {wp c Q} c {Q}"
 proof(induction c arbitrary: Q)
-  case Semi thus ?case by(auto intro: Semi)
+  case Seq thus ?case by(auto intro: Seq)
 next
   case (If b c1 c2)
   let ?If = "IF b THEN c1 ELSE c2"

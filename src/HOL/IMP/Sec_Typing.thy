@@ -10,7 +10,7 @@ Skip:
   "l \<turnstile> SKIP" |
 Assign:
   "\<lbrakk> sec x \<ge> sec_aexp a;  sec x \<ge> l \<rbrakk> \<Longrightarrow> l \<turnstile> x ::= a" |
-Semi:
+Seq:
   "\<lbrakk> l \<turnstile> c\<^isub>1;  l \<turnstile> c\<^isub>2 \<rbrakk> \<Longrightarrow> l \<turnstile> c\<^isub>1;c\<^isub>2" |
 If:
   "\<lbrakk> max (sec_bexp b) l \<turnstile> c\<^isub>1;  max (sec_bexp b) l \<turnstile> c\<^isub>2 \<rbrakk> \<Longrightarrow> l \<turnstile> IF b THEN c\<^isub>1 ELSE c\<^isub>2" |
@@ -44,7 +44,7 @@ proof(induction rule: big_step_induct)
 next
   case Assign thus ?case by auto
 next
-  case Semi thus ?case by auto
+  case Seq thus ?case by auto
 next
   case (IfTrue b s c1)
   hence "max (sec_bexp b) l \<turnstile> c1" by auto
@@ -85,7 +85,7 @@ next
     thus "s y = t y" using `s = t (\<le> l)` by simp
   qed
 next
-  case Semi thus ?case by blast
+  case Seq thus ?case by blast
 next
   case (IfTrue b s c1 s' c2)
   have "sec_bexp b \<turnstile> c1" "sec_bexp b \<turnstile> c2" using IfTrue.prems(2) by auto
@@ -186,7 +186,7 @@ Skip':
   "l \<turnstile>' SKIP" |
 Assign':
   "\<lbrakk> sec x \<ge> sec_aexp a; sec x \<ge> l \<rbrakk> \<Longrightarrow> l \<turnstile>' x ::= a" |
-Semi':
+Seq':
   "\<lbrakk> l \<turnstile>' c\<^isub>1;  l \<turnstile>' c\<^isub>2 \<rbrakk> \<Longrightarrow> l \<turnstile>' c\<^isub>1;c\<^isub>2" |
 If':
   "\<lbrakk> sec_bexp b \<le> l;  l \<turnstile>' c\<^isub>1;  l \<turnstile>' c\<^isub>2 \<rbrakk> \<Longrightarrow> l \<turnstile>' IF b THEN c\<^isub>1 ELSE c\<^isub>2" |
@@ -199,7 +199,7 @@ lemma sec_type_sec_type': "l \<turnstile> c \<Longrightarrow> l \<turnstile>' c"
 apply(induction rule: sec_type.induct)
 apply (metis Skip')
 apply (metis Assign')
-apply (metis Semi')
+apply (metis Seq')
 apply (metis min_max.inf_sup_ord(3) min_max.sup_absorb2 nat_le_linear If' anti_mono')
 by (metis less_or_eq_imp_le min_max.sup_absorb1 min_max.sup_absorb2 nat_le_linear While' anti_mono')
 
@@ -208,7 +208,7 @@ lemma sec_type'_sec_type: "l \<turnstile>' c \<Longrightarrow> l \<turnstile> c"
 apply(induction rule: sec_type'.induct)
 apply (metis Skip)
 apply (metis Assign)
-apply (metis Semi)
+apply (metis Seq)
 apply (metis min_max.sup_absorb2 If)
 apply (metis min_max.sup_absorb2 While)
 by (metis anti_mono)
@@ -220,7 +220,7 @@ Skip2:
   "\<turnstile> SKIP : l" |
 Assign2:
   "sec x \<ge> sec_aexp a \<Longrightarrow> \<turnstile> x ::= a : sec x" |
-Semi2:
+Seq2:
   "\<lbrakk> \<turnstile> c\<^isub>1 : l\<^isub>1;  \<turnstile> c\<^isub>2 : l\<^isub>2 \<rbrakk> \<Longrightarrow> \<turnstile> c\<^isub>1;c\<^isub>2 : min l\<^isub>1 l\<^isub>2 " |
 If2:
   "\<lbrakk> sec_bexp b \<le> min l\<^isub>1 l\<^isub>2;  \<turnstile> c\<^isub>1 : l\<^isub>1;  \<turnstile> c\<^isub>2 : l\<^isub>2 \<rbrakk>
@@ -233,7 +233,7 @@ lemma sec_type2_sec_type': "\<turnstile> c : l \<Longrightarrow> l \<turnstile>'
 apply(induction rule: sec_type2.induct)
 apply (metis Skip')
 apply (metis Assign' eq_imp_le)
-apply (metis Semi' anti_mono' min_max.inf.commute min_max.inf_le2)
+apply (metis Seq' anti_mono' min_max.inf.commute min_max.inf_le2)
 apply (metis If' anti_mono' min_max.inf_absorb2 min_max.le_iff_inf nat_le_linear)
 by (metis While')
 
@@ -241,7 +241,7 @@ lemma sec_type'_sec_type2: "l \<turnstile>' c \<Longrightarrow> \<exists> l' \<g
 apply(induction rule: sec_type'.induct)
 apply (metis Skip2 le_refl)
 apply (metis Assign2)
-apply (metis Semi2 min_max.inf_greatest)
+apply (metis Seq2 min_max.inf_greatest)
 apply (metis If2 inf_greatest inf_nat_def le_trans)
 apply (metis While2 le_trans)
 by (metis le_trans)

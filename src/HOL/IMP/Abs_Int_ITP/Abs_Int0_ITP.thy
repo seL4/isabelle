@@ -324,7 +324,7 @@ next
     by (fastforce simp: Assign_le  map_acom_Assign intro: aval'_sound in_gamma_update
       split: option.splits del:subsetD)
 next
-  case Semi thus ?case apply (auto simp: Semi_le map_acom_Semi)
+  case Seq thus ?case apply (auto simp: Seq_le map_acom_Seq)
     by (metis le_post post_map_acom)
 next
   case (If b c1 c2 P)

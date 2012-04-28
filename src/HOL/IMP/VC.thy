@@ -10,7 +10,7 @@ invariants. *}
 datatype acom =
   ASKIP |
   Aassign vname aexp     ("(_ ::= _)" [1000, 61] 61) |
-  Asemi   acom acom      ("_;/ _"  [60, 61] 60) |
+  Aseq   acom acom       ("_;/ _"  [60, 61] 60) |
   Aif bexp acom acom     ("(IF _/ THEN _/ ELSE _)"  [0, 0, 61] 61) |
   Awhile assn bexp acom  ("({_}/ WHILE _/ DO _)"  [0, 0, 61] 61)
 
@@ -19,7 +19,7 @@ text{* Weakest precondition from annotated commands: *}
 fun pre :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
 "pre ASKIP Q = Q" |
 "pre (Aassign x a) Q = (\<lambda>s. Q(s(x := aval a s)))" |
-"pre (Asemi c\<^isub>1 c\<^isub>2) Q = pre c\<^isub>1 (pre c\<^isub>2 Q)" |
+"pre (Aseq c\<^isub>1 c\<^isub>2) Q = pre c\<^isub>1 (pre c\<^isub>2 Q)" |
 "pre (Aif b c\<^isub>1 c\<^isub>2) Q =
   (\<lambda>s. (bval b s \<longrightarrow> pre c\<^isub>1 Q s) \<and>
        (\<not> bval b s \<longrightarrow> pre c\<^isub>2 Q s))" |
@@ -30,7 +30,7 @@ text{* Verification condition: *}
 fun vc :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
 "vc ASKIP Q = (\<lambda>s. True)" |
 "vc (Aassign x a) Q = (\<lambda>s. True)" |
-"vc (Asemi c\<^isub>1 c\<^isub>2) Q = (\<lambda>s. vc c\<^isub>1 (pre c\<^isub>2 Q) s \<and> vc c\<^isub>2 Q s)" |
+"vc (Aseq c\<^isub>1 c\<^isub>2) Q = (\<lambda>s. vc c\<^isub>1 (pre c\<^isub>2 Q) s \<and> vc c\<^isub>2 Q s)" |
 "vc (Aif b c\<^isub>1 c\<^isub>2) Q = (\<lambda>s. vc c\<^isub>1 Q s \<and> vc c\<^isub>2 Q s)" |
 "vc (Awhile I b c) Q =
   (\<lambda>s. (I s \<and> \<not> bval b s \<longrightarrow> Q s) \<and>
@@ -42,7 +42,7 @@ text{* Strip annotations: *}
 fun strip :: "acom \<Rightarrow> com" where
 "strip ASKIP = SKIP" |
 "strip (Aassign x a) = (x::=a)" |
-"strip (Asemi c\<^isub>1 c\<^isub>2) = (strip c\<^isub>1; strip c\<^isub>2)" |
+"strip (Aseq c\<^isub>1 c\<^isub>2) = (strip c\<^isub>1; strip c\<^isub>2)" |
 "strip (Aif b c\<^isub>1 c\<^isub>2) = (IF b THEN strip c\<^isub>1 ELSE strip c\<^isub>2)" |
 "strip (Awhile I b c) = (WHILE b DO strip c)"
 
@@ -73,13 +73,13 @@ subsection "Completeness"
 lemma pre_mono:
   "\<forall>s. P s \<longrightarrow> P' s \<Longrightarrow> pre c P s \<Longrightarrow> pre c P' s"
 proof (induction c arbitrary: P P' s)
-  case Asemi thus ?case by simp metis
+  case Aseq thus ?case by simp metis
 qed simp_all
 
 lemma vc_mono:
   "\<forall>s. P s \<longrightarrow> P' s \<Longrightarrow> vc c P s \<Longrightarrow> vc c P' s"
 proof(induction c arbitrary: P P')
-  case Asemi thus ?case by simp (metis pre_mono)
+  case Aseq thus ?case by simp (metis pre_mono)
 qed simp_all
 
 lemma vc_complete:
@@ -94,12 +94,12 @@ next
   show ?case (is "\<exists>ac. ?C ac")
   proof show "?C(Aassign x a)" by simp qed
 next
-  case (Semi P c1 Q c2 R)
-  from Semi.IH obtain ac1 where ih1: "?G P c1 Q ac1" by blast
-  from Semi.IH obtain ac2 where ih2: "?G Q c2 R ac2" by blast
+  case (Seq P c1 Q c2 R)
+  from Seq.IH obtain ac1 where ih1: "?G P c1 Q ac1" by blast
+  from Seq.IH obtain ac2 where ih2: "?G Q c2 R ac2" by blast
   show ?case (is "\<exists>ac. ?C ac")
   proof
-    show "?C(Asemi ac1 ac2)"
+    show "?C(Aseq ac1 ac2)"
       using ih1 ih2 by (fastforce elim!: pre_mono vc_mono)
   qed
 next
@@ -127,7 +127,7 @@ subsection "An Optimization"
 fun vcpre :: "acom \<Rightarrow> assn \<Rightarrow> assn \<times> assn" where
 "vcpre ASKIP Q = (\<lambda>s. True, Q)" |
 "vcpre (Aassign x a) Q = (\<lambda>s. True, \<lambda>s. Q(s[a/x]))" |
-"vcpre (Asemi c\<^isub>1 c\<^isub>2) Q =
+"vcpre (Aseq c\<^isub>1 c\<^isub>2) Q =
   (let (vc\<^isub>2,wp\<^isub>2) = vcpre c\<^isub>2 Q;
        (vc\<^isub>1,wp\<^isub>1) = vcpre c\<^isub>1 wp\<^isub>2
    in (\<lambda>s. vc\<^isub>1 s \<and> vc\<^isub>2 s, wp\<^isub>1))" |
