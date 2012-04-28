@@ -62,12 +62,13 @@ text {*
   interface} script.
 
   \item[@{setting_def XSYMBOL_INSTALLFONTS}] may contain a small shell
-  script to install the X11 fonts required for the X-Symbols mode of
-  Proof General.  This is only relevant if the X11 display server runs
-  on a different machine than the Emacs application, with a different
-  file-system view on the Proof General installation.  Under most
-  circumstances Proof General is able to refer to the font files that
-  are part of its distribution.
+  script to install the X11 fonts required for the old X-Symbols mode
+  of Proof General.  This is only relevant if the X11 display server
+  runs on a different machine than the Emacs application, with a
+  different file-system view on the Proof General installation.  Under
+  most circumstances Proof General 3.x is able to refer to the font
+  files that are part of its distribution, and Proof General 4.x finds
+  its fonts by different means.
 
   \end{description}
 *}

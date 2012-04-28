@@ -148,10 +148,10 @@ setup {* Sign.local_path *}
 (*>*)
 
 text {*
-  \noindent The X-Symbol package within Proof~General provides several
-  input methods to enter @{text \<oplus>} in the text.  If all fails one may
-  just type a named entity \verb,\,\verb,<oplus>, by hand; the
-  corresponding symbol will be displayed after further input.
+  \noindent Proof~General provides several input methods to enter
+  @{text \<oplus>} in the text.  If all fails one may just type a named
+  entity \verb,\,\verb,<oplus>, by hand; the corresponding symbol will
+  be displayed after further input.
 
   More flexible is to provide alternative syntax forms
   through the \bfindex{print mode} concept~\cite{isabelle-ref}.  By

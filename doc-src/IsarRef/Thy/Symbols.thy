@@ -14,8 +14,7 @@ text {*
   appropriate definitions of @{verbatim "\\"}@{verbatim isasym}@{text
   name} for each @{verbatim "\\"}@{verbatim "<"}@{text name}@{verbatim
   ">"} in the @{verbatim isabellesym.sty} file.  Most of these symbols
-  are displayed properly in Proof~General if used with the X-Symbol
-  package.
+  are displayed properly in Proof~General and Isabelle/jEdit.
 
   Moreover, any single symbol (or ASCII character) may be prefixed by
   @{verbatim "\\"}@{verbatim "<^sup>"}, for superscript and @{verbatim
