@@ -347,7 +347,7 @@ of some relation theorems:
 
   converse_def ~> converse_unfold
   rel_comp_def ~> relcomp_unfold
-  symp_def ~> (dropped, use symp_def and sym_def instead)
+  symp_def ~> (modified, use symp_def and sym_def instead)
   transp_def ~> transp_trans
   Domain_def ~> Domain_unfold
   Range_def ~> Domain_converse [symmetric]
