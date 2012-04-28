@@ -36,8 +36,9 @@ indices of schematic variables.
 "syntax_ambiguity_warning" and "syntax_ambiguity_limit" in isar-ref
 manual.  Minor INCOMPATIBILITY.
 
-* Updated and extended reference manuals: "isar-ref" and
-"implementation"; reduced remaining material in old "ref" manual.
+* Updated and extended reference manuals: "isar-ref",
+"implementation", "system"; reduced remaining material in old "ref"
+manual.
 
 
 *** Pure ***

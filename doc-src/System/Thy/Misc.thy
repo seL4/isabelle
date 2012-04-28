@@ -292,7 +292,7 @@ Usage: isabelle version [OPTIONS]
 \end{ttbox}
 
   \medskip The default is to output the full version string of the
-  Isabelle distribution, e.g.\ ``@{verbatim "Isabelle2011: January 2011"}.
+  Isabelle distribution, e.g.\ ``@{verbatim "Isabelle2012: May 2012"}.
 
   The @{verbatim "-i"} option produces a short identification derived
   from the Mercurial id of the @{setting ISABELLE_HOME} directory.
