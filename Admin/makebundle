@@ -81,6 +81,25 @@ if [ "$PLATFORM" = x86-cygwin ]; then
     cd "$ISABELLE_HOME/contrib/cygwin-1.7.9"
     find usr/local/polyml-*/x86-cygwin | gzip > etc/setup/polyml.lst.gz
   )
+
+  for NAME in ANNOUNCE README NEWS COPYRIGHT CONTRIBUTORS contrib/README
+  do
+    FILE="$ISABELLE_HOME/$NAME"
+    {
+      echo '<?xml version="1.0" encoding="utf-8" ?>'
+      echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'
+      echo '<html xmlns="http://www.w3.org/1999/xhtml">'
+      echo '<head>'
+      echo '<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>'
+      echo "<title>${NAME}</title>"
+      echo '</head>'
+      echo '<body>'
+      echo '<pre>'
+      perl -w -p -e "s/&/&amp;/g; s/</&lt;/g; s/>/&gt;/g; s/'/&apos;/g; s/\"/&quot;/g;" "$FILE"
+      echo '</pre>'
+      echo '</body>'
+    } > "${FILE}.html"
+  done
 fi
 
 
