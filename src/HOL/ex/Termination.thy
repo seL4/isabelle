@@ -229,4 +229,21 @@ where
 by pat_completeness auto
 termination by size_change -- {* requires Multiset *}
 
+definition negate :: "int \<Rightarrow> int"
+where "negate i = - i"
+
+function fun3 :: "int => nat"
+where
+  "fun3 i =
+  (if i < 0 then fun3 (negate i)
+   else if i = 0 then 0
+   else fun3 (i - 1))"
+by (pat_completeness) auto
+termination
+  apply size_change
+  apply (simp add: negate_def)
+  apply size_change
+  done
+
+
 end
