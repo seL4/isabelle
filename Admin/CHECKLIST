@@ -54,7 +54,9 @@ Packaging
 
 - makebundle (multiplatform);
 
-- hdiutil create -srcfolder DIR DMG (Mac OS);
+- Mac OS X: hdiutil create -srcfolder DIR DMG;
+
+- Windows: cat 7zsd_All.sfx sfx.txt Isabelle.7z > Isabelle.exe
 
 - makebin -l on fast machine, based on renamed bundle with deleted heaps;
 

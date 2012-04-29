@@ -1,0 +1,8 @@
+;!@Install@!UTF-8!
+GUIFlags="64"
+InstallPath="%UserDesktop%"
+BeginPrompt="Unpack Isabelle2012?"
+ExtractPathText="Target directory"
+ExtractTitle="Unpacking Isabelle2012 ..."
+Shortcut="Du,{%%T\Isabelle2012\Isabelle.exe},{},{},{},{},{%%T\Isabelle2012}"
+;!@InstallEnd@!
