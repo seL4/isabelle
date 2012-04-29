@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+#
+# Author: Jasmin Blanchette
+#
+# DESCRIPTION: Isabelle tactics for TPTP competitive division
+
+
+PRG="$(basename "$0")"
+
+function usage() {
+  echo
+  echo "Usage: isabelle $PRG TIMEOUT FILES"
+  echo
+  echo "  Runs a combination of Isabelle tactics on TPTP problems."
+  echo "  Each problem is allocated at most TIMEOUT seconds."
+  echo
+  exit 1
+}
+
+[ "$#" -eq 0 -o "$1" = "-?" ] && usage
+
+SCRATCH="Scratch_${PRG}_$$_${RANDOM}"
+
+TIMEOUT=$1
+shift
+
+for FILE in "$@"
+do
+  echo "theory $SCRATCH imports \"$TPTP_HOME/ATP_Problem_Import\" begin \
+ML {* ATP_Problem_Import.isabelle_comp_tptp_file @{theory} ($TIMEOUT) \"$FILE\" *} end;" \
+    > /tmp/$SCRATCH.thy
+  "$ISABELLE_PROCESS" -e "use_thy \"/tmp/$SCRATCH\"; exit 1;"
+done

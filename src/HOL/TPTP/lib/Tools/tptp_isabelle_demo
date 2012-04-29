@@ -2,7 +2,7 @@
 #
 # Author: Jasmin Blanchette
 #
-# DESCRIPTION: Isabelle tactics for TPTP
+# DESCRIPTION: Isabelle tactics for TPTP demo division
 
 
 PRG="$(basename "$0")"
@@ -27,7 +27,7 @@ shift
 for FILE in "$@"
 do
   echo "theory $SCRATCH imports \"$TPTP_HOME/ATP_Problem_Import\" begin \
-ML {* ATP_Problem_Import.isabelle_tptp_file @{theory} ($TIMEOUT) \"$FILE\" *} end;" \
+ML {* ATP_Problem_Import.isabelle_demo_tptp_file @{theory} ($TIMEOUT) \"$FILE\" *} end;" \
     > /tmp/$SCRATCH.thy
   "$ISABELLE_PROCESS" -e "use_thy \"/tmp/$SCRATCH\"; exit 1;"
 done

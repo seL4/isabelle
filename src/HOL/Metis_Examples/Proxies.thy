@@ -27,14 +27,14 @@ sledgehammer [expect = some] (inc_def plus_1_not_0)
 by (metis_exhaust inc_def plus_1_not_0)
 
 lemma "inc = (\<lambda>y. y + 1)"
-sledgehammer [expect = some] (inc_def)
+sledgehammer [expect = some]
 by (metis_exhaust inc_def)
 
 definition add_swap :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
 "add_swap = (\<lambda>x y. y + x)"
 
 lemma "add_swap m n = n + m"
-sledgehammer [expect = some] (add_swap_def)
+sledgehammer [expect = some]
 by (metis_exhaust add_swap_def)
 
 definition "A = {xs\<Colon>'a list. True}"

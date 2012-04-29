@@ -632,6 +632,10 @@ definition of_nat :: "nat \<Rightarrow> Target_Numeral.int" where
 
 hide_const (open) of_nat Nat
 
+lemma [code_unfold]:
+  "Int.nat (Target_Numeral.int_of k) = Target_Numeral.nat_of k"
+  by (simp add: nat_of_def)
+
 lemma int_of_nat [simp]:
   "Target_Numeral.int_of (Target_Numeral.of_nat n) = of_nat n"
   by (simp add: of_nat_def)

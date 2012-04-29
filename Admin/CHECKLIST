@@ -37,6 +37,9 @@ Checklist for official releases
 - test separate compilation of Isabelle/Scala PIDE sources:
     Admin/build jars_test
 
+- test Isabelle/jEdit:
+    print buffer
+
 - test contrib components:
     x86_64-linux without 32bit C/C++ libraries
     Mac OS X Leopard

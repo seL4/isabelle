@@ -10,7 +10,8 @@ sig
   val nitpick_tptp_file : theory -> int -> string -> unit
   val refute_tptp_file : theory -> int -> string -> unit
   val sledgehammer_tptp_file : theory -> int -> string -> unit
-  val isabelle_tptp_file : theory -> int -> string -> unit
+  val isabelle_demo_tptp_file : theory -> int -> string -> unit
+  val isabelle_comp_tptp_file : theory -> int -> string -> unit
   val translate_tptp_file : string -> string -> string -> unit
 end;
 
@@ -175,33 +176,44 @@ fun atp_tac ctxt override_params timeout prover =
       {add = [(Facts.named (Thm.derivation_name ext), [])],
        del = [], only = true}
 
-fun sledgehammer_tac ctxt timeout i =
+fun sledgehammer_tac demo ctxt timeout i =
   let
-    fun slice overload_params fraq prover =
-      SOLVE_TIMEOUT (timeout div fraq) prover
-                    (atp_tac ctxt overload_params (timeout div fraq) prover i)
+    val frac = if demo then 6 else 4
+    fun slice prover =
+      SOLVE_TIMEOUT (timeout div frac) prover
+                    (atp_tac ctxt [] (timeout div frac) prover i)
   in
-    slice [] 5 ATP_Systems.satallaxN
-    ORELSE slice [] 5 ATP_Systems.leo2N
-    ORELSE slice [] 5 ATP_Systems.spassN
-    ORELSE slice [] 5 ATP_Systems.vampireN
-    ORELSE slice [] 5 ATP_Systems.eN
+    (if demo then
+       slice ATP_Systems.satallaxN
+       ORELSE slice ATP_Systems.leo2N
+     else
+       no_tac)
+    ORELSE slice ATP_Systems.spassN
+    ORELSE slice ATP_Systems.vampireN
+    ORELSE slice ATP_Systems.eN
+    ORELSE slice ATP_Systems.z3_tptpN
   end
+
+fun smt_solver_tac solver ctxt =
+  let
+    val ctxt = ctxt |> Context.proof_map (SMT_Config.select_solver solver)
+  in SMT_Solver.smt_tac ctxt [] end
 
 fun auto_etc_tac ctxt timeout i =
   SOLVE_TIMEOUT (timeout div 20) "nitpick"
       (nitpick_finite_oracle_tac ctxt (timeout div 20) i)
-  ORELSE SOLVE_TIMEOUT (timeout div 10) "simp"
+  ORELSE SOLVE_TIMEOUT (timeout div 20) "simp"
       (asm_full_simp_tac (simpset_of ctxt) i)
   ORELSE SOLVE_TIMEOUT (timeout div 10) "blast" (blast_tac ctxt i)
   ORELSE SOLVE_TIMEOUT (timeout div 5) "auto+spass"
       (auto_tac ctxt
        THEN ALLGOALS (atp_tac ctxt [] (timeout div 5) ATP_Systems.spassN))
-  ORELSE SOLVE_TIMEOUT (timeout div 5) "smt" (SMT_Solver.smt_tac ctxt [] i)
+  ORELSE SOLVE_TIMEOUT (timeout div 10) "z3" (smt_solver_tac "z3" ctxt i)
+  ORELSE SOLVE_TIMEOUT (timeout div 10) "cvc3" (smt_solver_tac "cvc3" ctxt i)
   ORELSE SOLVE_TIMEOUT (timeout div 20) "fast" (fast_tac ctxt i)
   ORELSE SOLVE_TIMEOUT (timeout div 20) "best" (best_tac ctxt i)
   ORELSE SOLVE_TIMEOUT (timeout div 10) "force" (force_tac ctxt i)
-  ORELSE SOLVE_TIMEOUT (timeout div 20) "arith" (Arith_Data.arith_tac ctxt i)
+  ORELSE SOLVE_TIMEOUT (timeout div 10) "meson" (Meson.meson_tac ctxt [] i)
   ORELSE SOLVE_TIMEOUT (timeout div 10) "fastforce" (fast_force_tac ctxt i)
 
 fun problem_const_prefix thy = Context.theory_name thy ^ Long_Name.separator
@@ -233,21 +245,26 @@ fun sledgehammer_tptp_file thy timeout file_name =
       read_tptp_file thy (freeze_problem_consts thy) file_name
     val conj = make_conj assms conjs
   in
-    can_tac ctxt (sledgehammer_tac ctxt timeout 1) conj
+    can_tac ctxt (sledgehammer_tac true ctxt timeout 1) conj
     |> print_szs_from_success conjs
   end
 
-fun isabelle_tptp_file thy timeout file_name =
+fun isabelle_tptp_file demo thy timeout file_name =
   let
     val (conjs, assms, ctxt) =
       read_tptp_file thy (freeze_problem_consts thy) file_name
     val conj = make_conj assms conjs
+    val last_hope = if demo then ATP_Systems.satallaxN else ATP_Systems.spassN
   in
     (can_tac ctxt (auto_etc_tac ctxt (timeout div 2) 1) conj orelse
-     can_tac ctxt (sledgehammer_tac ctxt (timeout div 2) 1) conj orelse
-     can_tac ctxt (atp_tac ctxt [] timeout ATP_Systems.satallaxN 1) conj)
+     can_tac ctxt (sledgehammer_tac demo ctxt (timeout div 2) 1) conj orelse
+     can_tac ctxt (atp_tac ctxt [] timeout last_hope 1) conj)
     |> print_szs_from_success conjs
   end
+
+val isabelle_demo_tptp_file = isabelle_tptp_file true
+val isabelle_comp_tptp_file = isabelle_tptp_file false
+
 
 (** Translator between TPTP(-like) file formats **)
 
