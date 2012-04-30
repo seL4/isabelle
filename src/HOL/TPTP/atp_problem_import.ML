@@ -7,8 +7,18 @@ Import TPTP problems as Isabelle terms or goals.
 
 signature ATP_PROBLEM_IMPORT =
 sig
+  val read_tptp_file :
+    theory -> (term -> term) -> string
+    -> term list * (term list * term list) * Proof.context
   val nitpick_tptp_file : theory -> int -> string -> unit
   val refute_tptp_file : theory -> int -> string -> unit
+  val can_tac : Proof.context -> tactic -> term -> bool
+  val SOLVE_TIMEOUT :  int -> string -> tactic -> tactic
+  val atp_tac :
+    Proof.context -> (string * string) list -> int -> string -> int -> tactic
+  val smt_solver_tac : string -> Proof.context -> int -> tactic
+  val freeze_problem_consts : theory -> term -> term
+  val make_conj : term list * term list -> term list -> term
   val sledgehammer_tptp_file : theory -> int -> string -> unit
   val isabelle_demo_tptp_file : theory -> int -> string -> unit
   val isabelle_comp_tptp_file : theory -> int -> string -> unit
