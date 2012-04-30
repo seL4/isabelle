@@ -4483,7 +4483,7 @@ lemma sorted_list_of_set [simp]:
     \<and> distinct (sorted_list_of_set A)"
   by (induct A rule: finite_induct) (simp_all add: set_insort sorted_insort distinct_insort)
 
-lemma sorted_list_of_set_sort_remdups:
+lemma sorted_list_of_set_sort_remdups [code]:
   "sorted_list_of_set (set xs) = sort (remdups xs)"
 proof -
   interpret comp_fun_commute insort by (fact comp_fun_commute_insort)
