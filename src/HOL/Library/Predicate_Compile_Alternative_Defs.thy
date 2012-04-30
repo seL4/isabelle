@@ -29,15 +29,7 @@ section {* Bounded quantifiers *}
 declare Ball_def[code_pred_inline]
 declare Bex_def[code_pred_inline]
 
-section {* Set operations *}
-
-declare eq_reflection[OF empty_def, code_pred_inline]
-
-declare subset_iff[code_pred_inline]
-
-declare Int_def[code_pred_inline]
-declare eq_reflection[OF Un_def, code_pred_inline]
-declare eq_reflection[OF UNION_eq, code_pred_inline]
+section {* Operations on Predicates *}
 
 lemma Diff[code_pred_inline]:
   "(A - B) = (%x. A x \<and> \<not> B x)"
@@ -50,7 +42,6 @@ lemma subset_eq[code_pred_inline]:
 lemma set_equality[code_pred_inline]:
   "A = B \<longleftrightarrow> (\<forall>x. A x \<longrightarrow> B x) \<and> (\<forall>x. B x \<longrightarrow> A x)"
   by (auto simp add: fun_eq_iff)
-
 
 section {* Setup for Numerals *}
 
