@@ -46,6 +46,7 @@ sig
   val split_simp_tac: thm list -> (term -> int) -> int -> tactic
   val split_wrapper: string * (Proof.context -> wrapper)
 
+  val codegen: bool Config.T
   val updateN: string
   val ext_typeN: string
   val extN: string
@@ -209,6 +210,7 @@ val updacc_cong_idI = @{thm update_accessor_cong_assist_idI};
 val updacc_cong_triv = @{thm update_accessor_cong_assist_triv};
 val updacc_cong_from_eq = @{thm iso_tuple_update_accessor_cong_from_eq};
 
+val codegen = Attrib.setup_config_bool @{binding record_codegen} (K true);
 
 
 (** name components **)
@@ -1732,43 +1734,45 @@ fun ensure_sort_record (sort, mk_eq) ext_tyco vs extN Ts thy =
   end;
 
 fun add_code ext_tyco vs extT ext simps inject thy =
-  let
-    val eq =
-      HOLogic.mk_Trueprop (HOLogic.mk_eq
-        (Const (@{const_name HOL.equal}, extT --> extT --> HOLogic.boolT),
-         Const (@{const_name HOL.eq}, extT --> extT --> HOLogic.boolT)));
-    fun tac eq_def =
-      Class.intro_classes_tac []
-      THEN rewrite_goals_tac [Simpdata.mk_eq eq_def]
-      THEN ALLGOALS (rtac @{thm refl});
-    fun mk_eq thy eq_def =
-      Simplifier.rewrite_rule
-        [AxClass.unoverload thy (Thm.symmetric (Simpdata.mk_eq eq_def))] inject;
-    fun mk_eq_refl thy =
-      @{thm equal_refl}
-      |> Thm.instantiate
-        ([pairself (ctyp_of thy) (TVar (("'a", 0), @{sort equal}), Logic.varifyT_global extT)], [])
-      |> AxClass.unoverload thy;
-    val ensure_random_record = ensure_sort_record (@{sort random}, mk_random_eq);
-    val ensure_exhaustive_record =
-      ensure_sort_record (@{sort full_exhaustive}, mk_full_exhaustive_eq);
-  in
-    thy
-    |> Code.add_datatype [ext]
-    |> fold Code.add_default_eqn simps
-    |> Class.instantiation ([ext_tyco], vs, [HOLogic.class_equal])
-    |> `(fn lthy => Syntax.check_term lthy eq)
-    |-> (fn eq => Specification.definition
-          (NONE, (Attrib.empty_binding, eq)))
-    |-> (fn (_, (_, eq_def)) =>
-       Class.prove_instantiation_exit_result Morphism.thm
-          (fn _ => fn eq_def => tac eq_def) eq_def)
-    |-> (fn eq_def => fn thy =>
-          thy |> Code.del_eqn eq_def |> Code.add_default_eqn (mk_eq thy eq_def))
-    |> (fn thy => Code.add_nbe_default_eqn (mk_eq_refl thy) thy)
-    |> ensure_random_record ext_tyco vs (fst ext) (binder_types (snd ext))
-    |> ensure_exhaustive_record ext_tyco vs (fst ext) (binder_types (snd ext))
-  end;
+  if Config.get_global thy codegen then
+    let
+      val eq =
+        HOLogic.mk_Trueprop (HOLogic.mk_eq
+          (Const (@{const_name HOL.equal}, extT --> extT --> HOLogic.boolT),
+           Const (@{const_name HOL.eq}, extT --> extT --> HOLogic.boolT)));
+      fun tac eq_def =
+        Class.intro_classes_tac []
+        THEN rewrite_goals_tac [Simpdata.mk_eq eq_def]
+        THEN ALLGOALS (rtac @{thm refl});
+      fun mk_eq thy eq_def =
+        Simplifier.rewrite_rule
+          [AxClass.unoverload thy (Thm.symmetric (Simpdata.mk_eq eq_def))] inject;
+      fun mk_eq_refl thy =
+        @{thm equal_refl}
+        |> Thm.instantiate
+          ([pairself (ctyp_of thy) (TVar (("'a", 0), @{sort equal}), Logic.varifyT_global extT)], [])
+        |> AxClass.unoverload thy;
+      val ensure_random_record = ensure_sort_record (@{sort random}, mk_random_eq);
+      val ensure_exhaustive_record =
+        ensure_sort_record (@{sort full_exhaustive}, mk_full_exhaustive_eq);
+    in
+      thy
+      |> Code.add_datatype [ext]
+      |> fold Code.add_default_eqn simps
+      |> Class.instantiation ([ext_tyco], vs, [HOLogic.class_equal])
+      |> `(fn lthy => Syntax.check_term lthy eq)
+      |-> (fn eq => Specification.definition
+            (NONE, (Attrib.empty_binding, eq)))
+      |-> (fn (_, (_, eq_def)) =>
+         Class.prove_instantiation_exit_result Morphism.thm
+            (fn _ => fn eq_def => tac eq_def) eq_def)
+      |-> (fn eq_def => fn thy =>
+            thy |> Code.del_eqn eq_def |> Code.add_default_eqn (mk_eq thy eq_def))
+      |> (fn thy => Code.add_nbe_default_eqn (mk_eq_refl thy) thy)
+      |> ensure_random_record ext_tyco vs (fst ext) (binder_types (snd ext))
+      |> ensure_exhaustive_record ext_tyco vs (fst ext) (binder_types (snd ext))
+    end
+  else thy;
 
 
 (* definition *)

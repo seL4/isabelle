@@ -180,6 +180,9 @@ may require adaptations as follows:
 * Code generation by default implements sets as container type rather
 than predicates.  INCOMPATIBILITY.
 
+* Records: code generation can be switched off manually with 
+declare [[record_coden = false]]. Default remains true.
+
 * HOL-Import: Re-implementation from scratch is faster, simpler, and
 more scalable.  Requires a proof bundle, which is available as an
 external component.  Discontinued old (and mostly dead) Importer for

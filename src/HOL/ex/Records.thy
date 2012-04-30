@@ -324,4 +324,16 @@ subsection {* Some code generation *}
 
 export_code foo1 foo3 foo5 foo10 checking SML
 
+text {*
+  Code generation can also be switched off, for instance for very large records
+*}
+
+declare [[record_codegen = false]]
+
+record not_so_large_record =
+  bar520 :: nat
+  bar521 :: "nat * nat"
+
+declare [[record_codegen = true]]
+
 end
