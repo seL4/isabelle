@@ -9,6 +9,7 @@ sig
   val allow_existentials : bool Config.T
   val finite_functions : bool Config.T
   val overlord : bool Config.T
+  val ghc_options : string Config.T
   val active : bool Config.T
   datatype counterexample = Universal_Counterexample of (term * counterexample)
     | Existential_Counterexample of (term * counterexample) list
@@ -26,6 +27,7 @@ struct
 val allow_existentials = Attrib.setup_config_bool @{binding quickcheck_allow_existentials} (K true)
 val finite_functions = Attrib.setup_config_bool @{binding quickcheck_finite_functions} (K true)
 val overlord = Attrib.setup_config_bool @{binding quickcheck_narrowing_overlord} (K false)
+val ghc_options = Attrib.setup_config_string @{binding quickcheck_narrowing_ghc_options} (K "")
 
 (* partial_term_of instances *)
 
@@ -231,6 +233,7 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size)) ctxt
     fun excipit () =
       "Quickcheck ran out of time while testing at size " ^ string_of_int (!current_size)
     val tmp_prefix = "Quickcheck_Narrowing"
+    val ghc_options = Config.get ctxt ghc_options
     val with_tmp_dir =
       if Config.get ctxt overlord then with_overlord_dir else Isabelle_System.with_tmp_dir 
     fun run in_path = 
@@ -254,6 +257,7 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size)) ctxt
         val _ = File.write main_file main
         val executable = File.shell_path (Path.append in_path (Path.basic "isabelle_quickcheck_narrowing"))
         val cmd = "exec \"$ISABELLE_GHC\" " ^ Code_Haskell.language_params ^ " " ^
+          ghc_options ^ " " ^
           (space_implode " " (map File.shell_path [code_file, narrowing_engine_file, main_file])) ^
           " -o " ^ executable ^ ";"
         val (result, compilation_time) =
