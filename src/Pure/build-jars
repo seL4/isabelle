@@ -200,6 +200,8 @@ then
     fail "Failed to produce $TARGET"
 
   cp "$SCALA_HOME/lib/scala-swing.jar" "$SCALA_HOME/lib/scala-library.jar" "$TARGET_DIR/ext"
+  [ -e "$SCALA_HOME/lib/scala-actors.jar" ] && \
+    cp "$SCALA_HOME/lib/scala-actors.jar" "$TARGET_DIR/ext"
 
   popd >/dev/null
 

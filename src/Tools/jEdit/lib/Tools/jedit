@@ -167,12 +167,6 @@ JEDIT_JARS=(
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/js.jar"
 )
 
-SCALA_JARS=(
-  "$SCALA_HOME/lib/scala-compiler.jar"
-  "$SCALA_HOME/lib/scala-library.jar"
-  "$SCALA_HOME/lib/scala-swing.jar"
-)
-
 
 # target
 
