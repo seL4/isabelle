@@ -103,7 +103,7 @@ Isabelle/HOL is based on Higher-Order Logic, a polymorphic
   to elements of \isa{R}.  An important example is using
   bisimulation relations to formalise equivalence of processes and
   infinite data structures.
-  
+
   Both inductive and coinductive definitions are based on the
   Knaster-Tarski fixed-point theorem for complete lattices.  The
   collection of introduction rules given by the user determines a
@@ -229,7 +229,7 @@ A (co)inductive definition of \isa{R} provides the following
 
   \item \isa{R{\isaliteral{2E}{\isachardot}}simps} is the equation unrolling the fixpoint of the
   predicate one step.
- 
+
   \end{description}
 
   When several predicates \isa{{\isaliteral{22}{\isachardoublequote}}R\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ R\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} are
@@ -1520,7 +1520,7 @@ See \verb|~~/src/HOL/ex/Records.thy|, for example.%
   new types introduced by \hyperlink{command.typedef}{\mbox{\isa{\isacommand{typedef}}}} stay within the range
   of HOL models by construction.  Note that \indexref{}{command}{type\_synonym}\hyperlink{command.type-synonym}{\mbox{\isa{\isacommand{type{\isaliteral{5F}{\isacharunderscore}}synonym}}}} from Isabelle/Pure merely introduces syntactic
   abbreviations, without any logical significance.
-  
+
   \begin{railoutput}
 \rail@begin{2}{}
 \rail@term{\hyperlink{command.HOL.typedef}{\mbox{\isa{\isacommand{typedef}}}}}[]
@@ -1886,62 +1886,63 @@ This avoids re-doing basic definitions and proofs from the
 
   \begin{description}
 
-  \item \hyperlink{command.HOL.setup-lifting}{\mbox{\isa{\isacommand{setup{\isaliteral{5F}{\isacharunderscore}}lifting}}}} Sets up the Lifting package to work with
-    a user-defined type. The user must provide either a quotient
-    theorem \isa{{\isaliteral{22}{\isachardoublequote}}Quotient\ R\ Abs\ Rep\ T{\isaliteral{22}{\isachardoublequote}}} or a type_definition theorem
-    \isa{{\isaliteral{22}{\isachardoublequote}}type{\isaliteral{5F}{\isacharunderscore}}definition\ Rep\ Abs\ A{\isaliteral{22}{\isachardoublequote}}}. 
-    The package configures
-    transfer rules for equality and quantifiers on the type, and sets
-    up the \indexdef{HOL}{command}{lift\_definition}\hypertarget{command.HOL.lift-definition}{\hyperlink{command.HOL.lift-definition}{\mbox{\isa{\isacommand{lift{\isaliteral{5F}{\isacharunderscore}}definition}}}}} command to work with the type. 
-    In the case of a quotient theorem,
-    an optional theorem \isa{{\isaliteral{22}{\isachardoublequote}}reflp\ R{\isaliteral{22}{\isachardoublequote}}} can be provided as a second argument.
-    This allows the package to generate stronger transfer rules.
+  \item \hyperlink{command.HOL.setup-lifting}{\mbox{\isa{\isacommand{setup{\isaliteral{5F}{\isacharunderscore}}lifting}}}} Sets up the Lifting package
+    to work with a user-defined type. The user must provide either a
+    quotient theorem \isa{{\isaliteral{22}{\isachardoublequote}}Quotient\ R\ Abs\ Rep\ T{\isaliteral{22}{\isachardoublequote}}} or a
+    type_definition theorem \isa{{\isaliteral{22}{\isachardoublequote}}type{\isaliteral{5F}{\isacharunderscore}}definition\ Rep\ Abs\ A{\isaliteral{22}{\isachardoublequote}}}.  The
+    package configures transfer rules for equality and quantifiers on
+    the type, and sets up the \indexdef{HOL}{command}{lift\_definition}\hypertarget{command.HOL.lift-definition}{\hyperlink{command.HOL.lift-definition}{\mbox{\isa{\isacommand{lift{\isaliteral{5F}{\isacharunderscore}}definition}}}}}
+    command to work with the type.  In the case of a quotient theorem,
+    an optional theorem \isa{{\isaliteral{22}{\isachardoublequote}}reflp\ R{\isaliteral{22}{\isachardoublequote}}} can be provided as a second
+    argument.  This allows the package to generate stronger transfer
+    rules.
 
-    \hyperlink{command.HOL.setup-lifting}{\mbox{\isa{\isacommand{setup{\isaliteral{5F}{\isacharunderscore}}lifting}}}} is called automatically if a quotient type
-    is defined by the command \hyperlink{command.HOL.quotient-type}{\mbox{\isa{\isacommand{quotient{\isaliteral{5F}{\isacharunderscore}}type}}}} from the Quotient package.
+    \hyperlink{command.HOL.setup-lifting}{\mbox{\isa{\isacommand{setup{\isaliteral{5F}{\isacharunderscore}}lifting}}}} is called automatically if a
+    quotient type is defined by the command \hyperlink{command.HOL.quotient-type}{\mbox{\isa{\isacommand{quotient{\isaliteral{5F}{\isacharunderscore}}type}}}} from the Quotient package.
 
-    If \hyperlink{command.HOL.setup-lifting}{\mbox{\isa{\isacommand{setup{\isaliteral{5F}{\isacharunderscore}}lifting}}}} is called with a type_definition theorem, 
-    the abstract type implicitly defined by the theorem is declared as an abstract type in
-    the code generator. This allows \hyperlink{command.HOL.lift-definition}{\mbox{\isa{\isacommand{lift{\isaliteral{5F}{\isacharunderscore}}definition}}}} to register
-    (generated) code certificate theorems as abstract code equations in the code generator.
-    The option \isa{{\isaliteral{22}{\isachardoublequote}}no{\isaliteral{5F}{\isacharunderscore}}abs{\isaliteral{5F}{\isacharunderscore}}code{\isaliteral{22}{\isachardoublequote}}} of the command \hyperlink{command.HOL.setup-lifting}{\mbox{\isa{\isacommand{setup{\isaliteral{5F}{\isacharunderscore}}lifting}}}}
-    can turn off that behavior and causes that code certificate theorems generated 
-    by \hyperlink{command.HOL.lift-definition}{\mbox{\isa{\isacommand{lift{\isaliteral{5F}{\isacharunderscore}}definition}}}} are not registred as abstract code equations.
+    If \hyperlink{command.HOL.setup-lifting}{\mbox{\isa{\isacommand{setup{\isaliteral{5F}{\isacharunderscore}}lifting}}}} is called with a
+    type_definition theorem, the abstract type implicitly defined by
+    the theorem is declared as an abstract type in the code
+    generator. This allows \hyperlink{command.HOL.lift-definition}{\mbox{\isa{\isacommand{lift{\isaliteral{5F}{\isacharunderscore}}definition}}}} to
+    register (generated) code certificate theorems as abstract code
+    equations in the code generator.  The option \isa{{\isaliteral{22}{\isachardoublequote}}no{\isaliteral{5F}{\isacharunderscore}}abs{\isaliteral{5F}{\isacharunderscore}}code{\isaliteral{22}{\isachardoublequote}}}
+    of the command \hyperlink{command.HOL.setup-lifting}{\mbox{\isa{\isacommand{setup{\isaliteral{5F}{\isacharunderscore}}lifting}}}} can turn off that
+    behavior and causes that code certificate theorems generated by
+    \hyperlink{command.HOL.lift-definition}{\mbox{\isa{\isacommand{lift{\isaliteral{5F}{\isacharunderscore}}definition}}}} are not registred as abstract
+    code equations.
 
-  \item \hyperlink{command.HOL.lift-definition}{\mbox{\isa{\isacommand{lift{\isaliteral{5F}{\isacharunderscore}}definition}}}} \isa{{\isaliteral{22}{\isachardoublequote}}f\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\ is\ t{\isaliteral{22}{\isachardoublequote}}}  
-    Defines a new function \isa{f} with an abstract type \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}} in
-    terms of a corresponding operation \isa{t} on a representation type. 
-    The term \isa{t} doesn't have to be necessarily a constant but it can
-    be any term.
+  \item \hyperlink{command.HOL.lift-definition}{\mbox{\isa{\isacommand{lift{\isaliteral{5F}{\isacharunderscore}}definition}}}} \isa{{\isaliteral{22}{\isachardoublequote}}f\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\ is\ t{\isaliteral{22}{\isachardoublequote}}}
+    Defines a new function \isa{f} with an abstract type \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}}
+    in terms of a corresponding operation \isa{t} on a
+    representation type.  The term \isa{t} doesn't have to be
+    necessarily a constant but it can be any term.
 
     Users must discharge a respectfulness proof obligation when each
-    constant is defined. For a type copy, i.e. a typedef with \isa{UNIV},
-    the proof is discharged automatically. The obligation is
+    constant is defined. For a type copy, i.e. a typedef with \isa{UNIV}, the proof is discharged automatically. The obligation is
     presented in a user-friendly, readable form. A respectfulness
-    theorem in the standard format \isa{f{\isaliteral{2E}{\isachardot}}rsp} and a transfer rule \isa{f{\isaliteral{2E}{\isachardot}}tranfer}
-    for the Transfer package are generated by the package.
+    theorem in the standard format \isa{f{\isaliteral{2E}{\isachardot}}rsp} and a transfer rule
+    \isa{f{\isaliteral{2E}{\isachardot}}tranfer} for the Transfer package are generated by the
+    package.
 
     Integration with code_abstype: For typedefs (e.g. subtypes
-    corresponding to a datatype invariant, such as dlist),
-    \hyperlink{command.HOL.lift-definition}{\mbox{\isa{\isacommand{lift{\isaliteral{5F}{\isacharunderscore}}definition}}}} 
-    generates a code certificate theorem \isa{f{\isaliteral{2E}{\isachardot}}rep{\isaliteral{5F}{\isacharunderscore}}eq} and sets up
-    code generation for each constant.
+    corresponding to a datatype invariant, such as dlist), \hyperlink{command.HOL.lift-definition}{\mbox{\isa{\isacommand{lift{\isaliteral{5F}{\isacharunderscore}}definition}}}} generates a code certificate theorem
+    \isa{f{\isaliteral{2E}{\isachardot}}rep{\isaliteral{5F}{\isacharunderscore}}eq} and sets up code generation for each constant.
 
   \item \hyperlink{command.HOL.print-quotmaps}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotmaps}}}} prints stored quotient map
-  theorems.
+    theorems.
 
-  \item \hyperlink{command.HOL.print-quotients}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotients}}}} prints stored quotient theorems.
+  \item \hyperlink{command.HOL.print-quotients}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotients}}}} prints stored quotient
+    theorems.
 
-  \item \hyperlink{attribute.HOL.quot-map}{\mbox{\isa{quot{\isaliteral{5F}{\isacharunderscore}}map}}} registers a quotient map theorem. For examples see
-    \verb|~~/src/HOL/Library/Quotient_List.thy| or other Quotient_*.thy files. 
+  \item \hyperlink{attribute.HOL.quot-map}{\mbox{\isa{quot{\isaliteral{5F}{\isacharunderscore}}map}}} registers a quotient map
+    theorem. For examples see \verb|~~/src/HOL/Library/Quotient_List.thy| or other Quotient_*.thy
+    files.
 
-  \item \hyperlink{attribute.HOL.invariant-commute}{\mbox{\isa{invariant{\isaliteral{5F}{\isacharunderscore}}commute}}} registers a theorem which shows a relationship
-    between the constant \isa{Lifting{\isaliteral{2E}{\isachardot}}invariant} (used for internal encoding of proper subtypes) 
-    and a relator.
-    Such theorems allows the package to hide \isa{Lifting{\isaliteral{2E}{\isachardot}}invariant} from a user 
-    in a user-readable form of a respectfulness theorem. For examples see
-    \verb|~~/src/HOL/Library/Quotient_List.thy| or other Quotient_*.thy files.
-    
+  \item \hyperlink{attribute.HOL.invariant-commute}{\mbox{\isa{invariant{\isaliteral{5F}{\isacharunderscore}}commute}}} registers a theorem which
+    shows a relationship between the constant \isa{Lifting{\isaliteral{2E}{\isachardot}}invariant} (used for internal encoding of proper subtypes)
+    and a relator.  Such theorems allows the package to hide \isa{Lifting{\isaliteral{2E}{\isachardot}}invariant} from a user in a user-readable form of a
+    respectfulness theorem. For examples see \verb|~~/src/HOL/Library/Quotient_List.thy| or other Quotient_*.thy
+    files.
 
   \end{description}%
 \end{isamarkuptext}%
@@ -2667,7 +2668,7 @@ Identifying incorrect propositions usually involves evaluation of
     to search for a further genuine counterexample.
     For this option to be effective, the \isa{genuine{\isaliteral{5F}{\isacharunderscore}}only} option
     must be set to false.
-    
+
     \item[\isa{eval}] takes a term or a list of terms and evaluates
     these terms under the variable assignment found by quickcheck.
 
@@ -2681,10 +2682,10 @@ Identifying incorrect propositions usually involves evaluation of
     a locale context, i.e., they can be interpreted or expanded.
     The option is a whitespace-separated list of the two words
     \isa{interpret} and \isa{expand}. The list determines the
-    order they are employed. The default setting is to first use 
+    order they are employed. The default setting is to first use
     interpretations and then test the expanded conjecture.
     The option is only provided as attribute declaration, but not
-    as parameter to the command. 
+    as parameter to the command.
 
     \item[\isa{timeout}] sets the time limit in seconds.
 
@@ -2700,7 +2701,7 @@ Identifying incorrect propositions usually involves evaluation of
 
     \item[\isa{quiet}] if set quickcheck does not output anything
     while testing.
-    
+
     \item[\isa{verbose}] if set quickcheck informs about the current
     size and cardinality while testing.
 
@@ -3391,16 +3392,16 @@ For validation purposes, it is often useful to \emph{execute}
   \item \hyperlink{command.HOL.code-reflect}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}reflect}}}} without a ``\isa{{\isaliteral{22}{\isachardoublequote}}file{\isaliteral{22}{\isachardoublequote}}}''
   argument compiles code into the system runtime environment and
   modifies the code generator setup that future invocations of system
-  runtime code generation referring to one of the ``\isa{{\isaliteral{22}{\isachardoublequote}}datatypes{\isaliteral{22}{\isachardoublequote}}}'' or ``\isa{{\isaliteral{22}{\isachardoublequote}}functions{\isaliteral{22}{\isachardoublequote}}}'' entities use these precompiled
-  entities.  With a ``\isa{{\isaliteral{22}{\isachardoublequote}}file{\isaliteral{22}{\isachardoublequote}}}'' argument, the corresponding code
-  is generated into that specified file without modifying the code
-  generator setup.
+  runtime code generation referring to one of the ``\isa{{\isaliteral{22}{\isachardoublequote}}datatypes{\isaliteral{22}{\isachardoublequote}}}'' or ``\isa{{\isaliteral{22}{\isachardoublequote}}functions{\isaliteral{22}{\isachardoublequote}}}'' entities use these
+  precompiled entities.  With a ``\isa{{\isaliteral{22}{\isachardoublequote}}file{\isaliteral{22}{\isachardoublequote}}}'' argument, the
+  corresponding code is generated into that specified file without
+  modifying the code generator setup.
 
-  \item \hyperlink{command.HOL.code-pred}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}pred}}}} creates code equations for a predicate
-    given a set of introduction rules. Optional mode annotations determine
-    which arguments are supposed to be input or output. If alternative 
-    introduction rules are declared, one must prove a corresponding elimination
-    rule.
+  \item \hyperlink{command.HOL.code-pred}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}pred}}}} creates code equations for a
+    predicate given a set of introduction rules. Optional mode
+    annotations determine which arguments are supposed to be input or
+    output. If alternative introduction rules are declared, one must
+    prove a corresponding elimination rule.
 
   \end{description}%
 \end{isamarkuptext}%
