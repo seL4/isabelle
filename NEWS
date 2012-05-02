@@ -76,15 +76,6 @@ manual.
 
 *** Pure ***
 
-* Discontinued old "prems" fact, which used to refer to the accidental
-collection of foundational premises in the context (already marked as
-legacy since Isabelle2011).
-
-* Rule composition via attribute "OF" (or ML functions OF/MRS) is more
-tolerant against multiple unifiers, as long as the final result is
-unique.  (As before, rules are composed in canonical right-to-left
-order to accommodate newly introduced premises.)
-
 * Command 'definition' no longer exports the foundational "raw_def"
 into the user context.  Minor INCOMPATIBILITY, may use the regular
 "def" result with attribute "abs_def" to imitate the old version.
@@ -93,6 +84,20 @@ into the user context.  Minor INCOMPATIBILITY, may use the regular
 "f == %x y. t", which ensures that "simp" or "unfold" steps always
 expand it.  This also works for object-logic equality.  (Formerly
 undocumented feature.)
+
+* Sort constraints are now propagated in simultaneous statements, just
+like type constraints.  INCOMPATIBILITY in rare situations, where
+distinct sorts used to be assigned accidentally.  For example:
+
+  lemma "P (x::'a::foo)" and "Q (y::'a::bar)"  -- "now illegal"
+
+  lemma "P (x::'a)" and "Q (y::'a::bar)"
+    -- "now uniform 'a::bar instead of default sort for first occurrence (!)"
+
+* Rule composition via attribute "OF" (or ML functions OF/MRS) is more
+tolerant against multiple unifiers, as long as the final result is
+unique.  (As before, rules are composed in canonical right-to-left
+order to accommodate newly introduced premises.)
 
 * Renamed some inner syntax categories:
 
@@ -108,8 +113,8 @@ position information via constraints).
 "syntax_ambiguity_warning" and "syntax_ambiguity_limit" in isar-ref
 manual.  Minor INCOMPATIBILITY.
 
-* Obsolete command 'types' has been discontinued.  Use 'type_synonym'
-instead.  INCOMPATIBILITY.
+* Discontinued configuration option "syntax_positions": atomic terms
+in parse trees are always annotated by position constraints.
 
 * Old code generator for SML and its commands 'code_module',
 'code_library', 'consts_code', 'types_code' have been discontinued.
@@ -125,17 +130,12 @@ Use commands of the generic code generator instead.  INCOMPATIBILITY.
 
 INCOMPATIBILITY.
 
-* Sort constraints are now propagated in simultaneous statements, just
-like type constraints.  INCOMPATIBILITY in rare situations, where
-distinct sorts used to be assigned accidentally.  For example:
+* Obsolete 'types' command has been discontinued.  Use 'type_synonym'
+instead.  INCOMPATIBILITY.
 
-  lemma "P (x::'a::foo)" and "Q (y::'a::bar)"  -- "now illegal"
-
-  lemma "P (x::'a)" and "Q (y::'a::bar)"
-    -- "now uniform 'a::bar instead of default sort for first occurrence (!)"
-
-* Discontinued configuration option "syntax_positions": atomic terms
-in parse trees are always annotated by position constraints.
+* Discontinued old "prems" fact, which used to refer to the accidental
+collection of foundational premises in the context (already marked as
+legacy since Isabelle2011).
 
 
 *** HOL ***
@@ -183,17 +183,6 @@ user theories may require adaptations as follows:
 
   - Definitions and theorems using old constructors Pls/Min/Bit0/Bit1:
     Redefine using other integer operations.
-
-* Records: code generation can be switched off manually with 
-declare [[record_coden = false]].  Default remains true.
-
-* New "case_product" attribute to generate a case rule doing multiple
-case distinctions at the same time.  E.g.
-
-  list.exhaust [case_product nat.exhaust]
-
-produces a rule which can be used to perform case distinction on both
-a list and a nat.
 
 * Transfer: New package intended to generalize the existing
 "descending" method and related theorem attributes from the Quotient
@@ -336,14 +325,26 @@ parenthesized argument (e.g., "by (metis (lifting) ...)").
 
 * Command 'try0': Renamed from 'try_methods'. INCOMPATIBILITY.
 
+* New "case_product" attribute to generate a case rule doing multiple
+case distinctions at the same time.  E.g.
+
+  list.exhaust [case_product nat.exhaust]
+
+produces a rule which can be used to perform case distinction on both
+a list and a nat.
+
 * New "eventually_elim" method as a generalized variant of the
 eventually_elim* rules.  Supports structured proofs.
-
-* 'datatype' specifications allow explicit sort constraints.
 
 * Typedef with implicit set definition is considered legacy.  Use
 "typedef (open)" form instead, which will eventually become the
 default.
+
+* Record: code generation can be switched off manually with
+
+  declare [[record_coden = false]]  -- "default true"
+
+* Datatype: type parameters allow explicit sort constraints.
 
 * Concrete syntax for case expressions includes constraints for source
 positions, and thus produces Prover IDE markup for its bindings.
@@ -516,14 +517,60 @@ fold_conv_foldr and fold_rev.
 * Congruence rules Option.map_cong and Option.bind_cong for recursion
 through option types.
 
+* "Transitive_Closure.ntrancl": bounded transitive closure on
+relations.
+
+* Constant "Set.not_member" now qualified.  INCOMPATIBILITY.
+
+* Theory Int: Discontinued many legacy theorems specific to type int.
+INCOMPATIBILITY, use the corresponding generic theorems instead.
+
+  zminus_zminus ~> minus_minus
+  zminus_0 ~> minus_zero
+  zminus_zadd_distrib ~> minus_add_distrib
+  zadd_commute ~> add_commute
+  zadd_assoc ~> add_assoc
+  zadd_left_commute ~> add_left_commute
+  zadd_ac ~> add_ac
+  zmult_ac ~> mult_ac
+  zadd_0 ~> add_0_left
+  zadd_0_right ~> add_0_right
+  zadd_zminus_inverse2 ~> left_minus
+  zmult_zminus ~> mult_minus_left
+  zmult_commute ~> mult_commute
+  zmult_assoc ~> mult_assoc
+  zadd_zmult_distrib ~> left_distrib
+  zadd_zmult_distrib2 ~> right_distrib
+  zdiff_zmult_distrib ~> left_diff_distrib
+  zdiff_zmult_distrib2 ~> right_diff_distrib
+  zmult_1 ~> mult_1_left
+  zmult_1_right ~> mult_1_right
+  zle_refl ~> order_refl
+  zle_trans ~> order_trans
+  zle_antisym ~> order_antisym
+  zle_linear ~> linorder_linear
+  zless_linear ~> linorder_less_linear
+  zadd_left_mono ~> add_left_mono
+  zadd_strict_right_mono ~> add_strict_right_mono
+  zadd_zless_mono ~> add_less_le_mono
+  int_0_less_1 ~> zero_less_one
+  int_0_neq_1 ~> zero_neq_one
+  zless_le ~> less_le
+  zpower_zadd_distrib ~> power_add
+  zero_less_zpower_abs_iff ~> zero_less_power_abs_iff
+  zero_le_zpower_abs ~> zero_le_power_abs
+
+* Theory Deriv: Renamed
+
+  DERIV_nonneg_imp_nonincreasing ~> DERIV_nonneg_imp_nondecreasing
+
+* Theory Library/Multiset: Improved code generation of multisets.
+
 * Theory HOL/Library/Set_Algebras: Addition and multiplication on sets
 are expressed via type classes again. The special syntax
 \<oplus>/\<otimes> has been replaced by plain +/*. Removed constant
 setsum_set, which is now subsumed by Big_Operators.setsum.
 INCOMPATIBILITY.
-
-* New theory HOL/Library/DAList provides an abstract type for
-association lists with distinct keys.
 
 * Theory HOL/Library/Diagonalize has been removed. INCOMPATIBILITY,
 use theory HOL/Library/Nat_Bijection instead.
@@ -704,52 +751,8 @@ lifing-framework and proofs use the transfer method.  INCOMPATIBILITY.
   real_of_float_neg_exp, real_of_float_nge0_exp, round_down floor_fl,
   round_up, zero_le_float, zero_less_float
 
-* "Transitive_Closure.ntrancl": bounded transitive closure on
-relations.
-
-* Constant "Set.not_member" now qualified.  INCOMPATIBILITY.
-
-* Theory Int: Discontinued many legacy theorems specific to type int.
-INCOMPATIBILITY, use the corresponding generic theorems instead.
-
-  zminus_zminus ~> minus_minus
-  zminus_0 ~> minus_zero
-  zminus_zadd_distrib ~> minus_add_distrib
-  zadd_commute ~> add_commute
-  zadd_assoc ~> add_assoc
-  zadd_left_commute ~> add_left_commute
-  zadd_ac ~> add_ac
-  zmult_ac ~> mult_ac
-  zadd_0 ~> add_0_left
-  zadd_0_right ~> add_0_right
-  zadd_zminus_inverse2 ~> left_minus
-  zmult_zminus ~> mult_minus_left
-  zmult_commute ~> mult_commute
-  zmult_assoc ~> mult_assoc
-  zadd_zmult_distrib ~> left_distrib
-  zadd_zmult_distrib2 ~> right_distrib
-  zdiff_zmult_distrib ~> left_diff_distrib
-  zdiff_zmult_distrib2 ~> right_diff_distrib
-  zmult_1 ~> mult_1_left
-  zmult_1_right ~> mult_1_right
-  zle_refl ~> order_refl
-  zle_trans ~> order_trans
-  zle_antisym ~> order_antisym
-  zle_linear ~> linorder_linear
-  zless_linear ~> linorder_less_linear
-  zadd_left_mono ~> add_left_mono
-  zadd_strict_right_mono ~> add_strict_right_mono
-  zadd_zless_mono ~> add_less_le_mono
-  int_0_less_1 ~> zero_less_one
-  int_0_neq_1 ~> zero_neq_one
-  zless_le ~> less_le
-  zpower_zadd_distrib ~> power_add
-  zero_less_zpower_abs_iff ~> zero_less_power_abs_iff
-  zero_le_zpower_abs ~> zero_le_power_abs
-
-* Theory Deriv: Renamed
-
-  DERIV_nonneg_imp_nonincreasing ~> DERIV_nonneg_imp_nondecreasing
+* New theory HOL/Library/DAList provides an abstract type for
+association lists with distinct keys.
 
 * Session HOL-Import: Re-implementation from scratch is faster,
 simpler, and more scalable.  Requires a proof bundle, which is
@@ -802,8 +805,6 @@ instead.
   word_of_int_0_hom ~> word_0_wi
   word_of_int_1_hom ~> word_1_wi
 
-* Theory Library/Multiset: Improved code generation of multisets.
-
 * Session HOL-Word: New proof method "word_bitwise" for splitting
 machine word equalities and inequalities into logical circuits,
 defined in HOL/Word/WordBitwise.thy.  Supports addition, subtraction,
@@ -816,9 +817,9 @@ HOL/Word/Examples/WordExamples.thy.
 * Session HOL-Probability: Introduced the type "'a measure" to
 represent measures, this replaces the records 'a algebra and 'a
 measure_space.  The locales based on subset_class now have two
-locale-parameters the space \<Omega> and the set of measurable sets
-M.  The product of probability spaces uses now the same constant as
-the finite product of sigma-finite measure spaces "PiM :: ('i => 'a)
+locale-parameters the space \<Omega> and the set of measurable sets M.
+The product of probability spaces uses now the same constant as the
+finite product of sigma-finite measure spaces "PiM :: ('i => 'a)
 measure".  Most constants are defined now outside of locales and gain
 an additional parameter, like null_sets, almost_eventually or \<mu>'.
 Measure space constructions for distributions and densities now got
