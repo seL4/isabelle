@@ -198,7 +198,11 @@ case distinctions at the same time.  E.g.
 produces a rule which can be used to perform case distinction on both
 a list and a nat.
 
-* New Transfer package:
+* Transfer: New package intended to generalize the existing descending
+method and related theorem attributes from the Quotient package. (Not
+all functionality is implemented yet, but future development will
+focus on Transfer as an eventual replacement for the corresponding
+parts of the Quotient package.)
 
   - transfer_rule attribute: Maintains a collection of transfer rules,
     which relate constants at two different types. Transfer rules may
@@ -213,7 +217,7 @@ a list and a nat.
     equivalent subgoal on the corresponding raw types. Constants are
     replaced with corresponding ones according to the transfer rules.
     Goals are generalized over all free variables by default; this is
-    necessary for variables whose types changes, but can be overridden
+    necessary for variables whose types change, but can be overridden
     for specific variables with e.g. 'transfer fixing: x y z'.  The
     variant transfer' method allows replacing a subgoal with one that
     is logically stronger (rather than equivalent).
@@ -231,7 +235,8 @@ a list and a nat.
   - HOL/ex/Transfer_Int_Nat.thy: Example theory demonstrating transfer
     from type nat to type int.
 
-* New Lifting package:
+* Lifting: New package intended to generalize the quotient_definition
+facility of the Quotient package; designed to work with Transfer.
 
   - lift_definition command: Defines operations on an abstract type in
     terms of a corresponding operation on a representation
@@ -259,8 +264,8 @@ a list and a nat.
     lift_definition command to work with the type.
 
   - Usage examples: See Quotient_Examples/Lift_DList.thy,
-    Quotient_Examples/Lift_RBT.thy, Word/Word.thy and
-    Library/Float.thy.
+    Quotient_Examples/Lift_RBT.thy, Quotient_Examples/Lift_FSet.thy,
+    Word/Word.thy and Library/Float.thy.
 
 * Quotient package:
 
