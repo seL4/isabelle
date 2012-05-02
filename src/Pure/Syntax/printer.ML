@@ -191,8 +191,13 @@ fun pretty type_mode curried ctxt tabs trf token_trans markup_extern ast0 =
                 tabs trf token_trans markup_extern t @ Ts, args')
           end
       | synT m (String s :: symbs, args) =
-          let val (Ts, args') = synT m (symbs, args);
-          in (Pretty.marks_str (m, s) :: Ts, args') end
+          let
+            val (Ts, args') = synT m (symbs, args);
+            val T =
+              if exists Symbol.is_block_ctrl (Symbol.explode s)
+              then Pretty.str s
+              else Pretty.marks_str (m, s);
+          in (T :: Ts, args') end
       | synT m (Space s :: symbs, args) =
           let val (Ts, args') = synT m (symbs, args);
           in (Pretty.str s :: Ts, args') end
