@@ -8,8 +8,6 @@ signature LIFTING_SETUP =
 sig
   exception SETUP_LIFTING_INFR of string
 
-  val setup_lifting_infr: bool -> thm -> local_theory -> local_theory
-
   val setup_by_quotient: bool -> thm -> thm option -> local_theory -> local_theory
 
   val setup_by_typedef_thm: bool -> thm -> local_theory -> local_theory
@@ -92,6 +90,16 @@ fun setup_lifting_infr gen_abs_code quot_thm lthy =
       |> define_abs_type gen_abs_code quot_thm
   end
 
+(*
+  Sets up the Lifting package by a quotient theorem.
+
+  gen_abs_code - flag if an abstract type given by quot_thm should be registred 
+    as an abstract type in the code generator
+  quot_thm - a quotient theorem (Quotient R Abs Rep T)
+  maybe_reflp_thm - a theorem saying that a relation from quot_thm is reflexive
+    (in the form "reflp R")
+*)
+
 fun setup_by_quotient gen_abs_code quot_thm maybe_reflp_thm lthy =
   let
     val transfer_attr = Attrib.internal (K Transfer.transfer_add)
@@ -126,6 +134,14 @@ fun setup_by_quotient gen_abs_code quot_thm maybe_reflp_thm lthy =
         [quot_thm RS @{thm Quotient_rel_eq_transfer}])
       |> setup_lifting_infr gen_abs_code quot_thm
   end
+
+(*
+  Sets up the Lifting package by a typedef theorem.
+
+  gen_abs_code - flag if an abstract type given by typedef_thm should be registred 
+    as an abstract type in the code generator
+  typedef_thm - a typedef theorem (type_definition Rep Abs S)
+*)
 
 fun setup_by_typedef_thm gen_abs_code typedef_thm lthy =
   let

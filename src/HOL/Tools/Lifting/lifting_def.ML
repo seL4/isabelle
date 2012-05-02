@@ -98,6 +98,12 @@ exception CODE_CERT_GEN of string
 fun simplify_code_eq ctxt def_thm = 
   Local_Defs.unfold ctxt [@{thm o_def}, @{thm map_fun_def}, @{thm id_def}] def_thm
 
+(*
+  quot_thm - quotient theorem (Quotient R Abs Rep T).
+  returns: whether the Lifting package is capable to generate code for the abstract type
+    represented by quot_thm
+*)
+
 fun can_generate_code_cert quot_thm  =
   case Lifting_Term.quot_thm_rel quot_thm of
     Const (@{const_name HOL.eq}, _) => true
@@ -173,6 +179,16 @@ fun define_code code_eqn_thm_name def_thm rsp_thm (rty, qty) lthy =
   else 
     define_code_cert code_eqn_thm_name def_thm rsp_thm (rty, qty) lthy
 
+(*
+  Defines an operation on an abstract type in terms of a corresponding operation 
+    on a representation type.
+
+  var - a binding and a mixfix of the new constant being defined
+  qty - an abstract type of the new constant
+  rhs - a term representing the new constant on the raw level
+  rsp_thm - a respectfulness theorem in the internal form (like (R ===> R ===> R) f f),
+    i.e. "(Lifting_Term.equiv_relation (fastype_of rhs, qty)) $ rhs $ rhs"
+*)
 
 fun add_lift_def var qty rhs rsp_thm lthy =
   let
@@ -264,6 +280,13 @@ fun rename_to_tnames ctxt term =
   in
     rename term new_names
   end
+
+(*
+
+  lifting_definition command. It opens a proof of a corresponding respectfulness 
+  theorem in a user-friendly, readable form. Then add_lift_def is called internally.
+
+*)
 
 fun lift_def_cmd (raw_var, rhs_raw) lthy =
   let

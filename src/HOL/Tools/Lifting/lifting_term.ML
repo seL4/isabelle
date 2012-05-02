@@ -11,10 +11,7 @@ sig
 
   val prove_quot_thm: Proof.context -> typ * typ -> thm
 
-  val absrep_fun: Proof.context -> typ * typ -> term
-
-  (* Allows Nitpick to represent quotient types as single elements from raw type *)
-  (* val absrep_const_chk: Proof.context -> flag -> string -> term *)
+  val abs_fun: Proof.context -> typ * typ -> term
 
   val equiv_relation: Proof.context -> typ * typ -> term
 
@@ -31,13 +28,10 @@ open Lifting_Util
 
 infix 0 MRSL
 
-(* generation of the Quotient theorem  *)
-
 exception QUOT_THM_INTERNAL of Pretty.T
 exception QUOT_THM of typ * typ * Pretty.T
 exception CHECK_RTY of typ * typ
 
-(* matches a type pattern with a type *)
 fun match ctxt err ty_pat ty =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -84,6 +78,11 @@ fun get_rel_quot_thm ctxt s =
   end
 
 fun is_id_quot thm = (prop_of thm = prop_of @{thm identity_quotient})
+
+(*
+  quot_thm_rel, quot_thm_abs, quot_thm_rep and quot_thm_rty_qty - simple functions
+    for destructing quotient theorems (Quotient R Abs Rep T).
+*)
 
 fun quot_thm_rel quot_thm =
   case (dest_Quotient o HOLogic.dest_Trueprop o prop_of) quot_thm of
@@ -242,6 +241,13 @@ fun check_rty_type ctxt rty quot_thm =
     ()
   end
 
+(*
+  The function tries to prove that rty and qty form a quotient.
+
+  Returns: Quotient theorem; an abstract type of the theorem is exactly
+    qty, a representation type of the theorem is an instance of rty in general.
+*)
+
 fun prove_quot_thm ctxt (rty, qty) =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -252,7 +258,7 @@ fun prove_quot_thm ctxt (rty, qty) =
     quot_thm
   end
 
-fun absrep_fun ctxt (rty, qty) =
+fun abs_fun ctxt (rty, qty) =
   quot_thm_abs (prove_quot_thm ctxt (rty, qty))
 
 fun equiv_relation ctxt (rty, qty) =
