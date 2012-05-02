@@ -7,17 +7,17 @@
 
 PRG="$(basename "$0")"
 
-function print_action_names() {
-  TOOLS="$MIRABELLE_HOME/Tools/mirabelle_*.ML"
-  for TOOL in $TOOLS
+function print_action_names()
+{
+  for TOOL in "$MIRABELLE_HOME/Tools"/mirabelle_*.ML
   do
-    echo $TOOL | perl -w -p -e 's/.*mirabelle_(.*)\.ML/    $1/'
+    echo "$TOOL" | perl -w -p -e 's/.*mirabelle_(.*)\.ML/    $1/'
   done
 }
 
 function print_sledgehammer_options() {
-  grep -e "^val .*K =" $MIRABELLE_HOME/Tools/mirabelle_sledgehammer.ML \
-  | perl -w -p -e 's/val .*K *= *"(.*)" *\(\*(.*)\*\)/    $1$2/'
+  grep -e "^val .*K =" "$MIRABELLE_HOME/Tools/mirabelle_sledgehammer.ML" | \
+  perl -w -p -e 's/val .*K *= *"(.*)" *\(\*(.*)\*\)/    $1$2/'
 }
 
 function usage() {
@@ -106,6 +106,7 @@ fi
 mkdir -p "$MIRABELLE_OUTPUT_PATH"
 
 export MIRABELLE_OUTPUT_PATH
+
 
 ## main
 
