@@ -814,14 +814,14 @@ machine word equalities and inequalities into logical circuits,
 defined in HOL/Word/WordBitwise.thy.  Supports addition, subtraction,
 multiplication, shifting by constants, bitwise operators and numeric
 constants.  Requires fixed-length word types, not 'a word.  Solves
-many standard word identies outright and converts more into first
+many standard word identities outright and converts more into first
 order problems amenable to blast or similar.  See also examples in
 HOL/Word/Examples/WordExamples.thy.
 
 * Session HOL-Probability: Introduced the type "'a measure" to
 represent measures, this replaces the records 'a algebra and 'a
 measure_space.  The locales based on subset_class now have two
-locale-parameters the space \<Omega> and the set of measurables sets
+locale-parameters the space \<Omega> and the set of measurable sets
 M.  The product of probability spaces uses now the same constant as
 the finite product of sigma-finite measure spaces "PiM :: ('i => 'a)
 measure".  Most constants are defined now outside of locales and gain
