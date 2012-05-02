@@ -4,7 +4,7 @@
 
 ## global settings
 
-REPOS_NAME="isabelle"
+REPOS_NAME="isabelle-release"
 REPOS="${REPOS:-http://isabelle.in.tum.de/repos/${REPOS_NAME}}"
 DISTPREFIX="${DISTPREFIX:-$HOME/tmp/isadist}"
 
