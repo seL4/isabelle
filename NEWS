@@ -754,6 +754,9 @@ lifing-framework and proofs use the transfer method.  INCOMPATIBILITY.
 * New theory HOL/Library/DAList provides an abstract type for
 association lists with distinct keys.
 
+* Session HOL/IMP: Added new theory of abstract interpretation of
+annotated commands.
+
 * Session HOL-Import: Re-implementation from scratch is faster,
 simpler, and more scalable.  Requires a proof bundle, which is
 available as an external component.  Discontinued old (and mostly
