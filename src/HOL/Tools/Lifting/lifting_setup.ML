@@ -115,6 +115,8 @@ fun setup_by_quotient gen_abs_code quot_thm maybe_reflp_thm lthy =
           [[quot_thm, reflp_thm] MRSL @{thm Quotient_id_abs_transfer}])
         |> (snd oo Local_Theory.note) ((qualify "abs_induct", [induct_attr]),
           [[quot_thm, reflp_thm] MRSL @{thm Quotient_total_abs_induct}])
+        |> (snd oo Local_Theory.note) ((qualify "abs_eq_iff", []),
+          [[quot_thm, reflp_thm] MRSL @{thm Quotient_total_abs_eq_iff}])
       | NONE => lthy
         |> (snd oo Local_Theory.note) ((qualify "All_transfer", [transfer_attr]), 
           [quot_thm RS @{thm Quotient_All_transfer}])
