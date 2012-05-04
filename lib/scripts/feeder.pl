@@ -11,8 +11,6 @@
 
 # setup signal handlers
 
-sub hangup { exit(0); }
-$SIG{'HUP'} = "hangup";
 $SIG{'INT'} = "IGNORE";
 
 
