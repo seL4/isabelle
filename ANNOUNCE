@@ -3,10 +3,35 @@ To: isabelle-users@cl.cam.ac.uk
 
 Isabelle2012 is now available.
 
-This version significantly improves upon Isabelle2011-1, see the NEWS
-file in the distribution for more details.  Some notable changes are:
+This version introduces many changes and improvements over
+Isabelle2011-1, see the NEWS file in the distribution for more
+details.  Some highlights are:
 
-* FIXME
+* Improved Isabelle/jEdit Prover IDE (PIDE).
+
+* Support for block-structured specification contexts.
+
+* Discontinued old code generator.
+
+* Updated manuals: prog-prove, isar-ref, implementation, system.
+
+* HOL: type 'a set is proper type constructor again.
+
+* HOL: improved representation of numerals.
+
+* HOL: new transfer and lifting packages, improved quotient package.
+
+* HOL tool enhancements: Quickcheck, Nitpick, Sledgehammer.
+
+* HOL library enhancements, including HOL-Library and HOL-Probability.
+
+* HOL: more TPTP support.
+
+* Re-implementation of HOL-Import for HOL-Light.
+
+* ZF: some modernization of notation and proofs.
+
+* System integration: improved support of Windows platform.
 
 
 You may get Isabelle2012 from the following mirror sites:
