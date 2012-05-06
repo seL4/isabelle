@@ -5,14 +5,17 @@ no_document use_thys ["~~/src/HOL/Library/Lattice_Syntax", "../Number_Theory/Pri
 use_thys [
   "Basic_Logic",
   "Cantor",
-  "Peirce",
   "Drinker",
   "Expr_Compiler",
+  "Fibonacci",
   "Group",
-  "Summation",
+  "Group_Context",
+  "Group_Notepad",
+  "Hoare_Ex",
   "Knaster_Tarski",
   "Mutilated_Checkerboard",
-  "Puzzle",
   "Nested_Datatype",
-  "Hoare_Ex"
+  "Peirce",
+  "Puzzle",
+  "Summation"
 ];
