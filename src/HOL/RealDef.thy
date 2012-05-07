@@ -301,6 +301,44 @@ proof (rule cauchyI)
   thus "\<exists>k. \<forall>m\<ge>k. \<forall>n\<ge>k. \<bar>inverse (X m) - inverse (X n)\<bar> < r" ..
 qed
 
+lemma vanishes_diff_inverse:
+  assumes X: "cauchy X" "\<not> vanishes X"
+  assumes Y: "cauchy Y" "\<not> vanishes Y"
+  assumes XY: "vanishes (\<lambda>n. X n - Y n)"
+  shows "vanishes (\<lambda>n. inverse (X n) - inverse (Y n))"
+proof (rule vanishesI)
+  fix r :: rat assume r: "0 < r"
+  obtain a i where a: "0 < a" and i: "\<forall>n\<ge>i. a < \<bar>X n\<bar>"
+    using cauchy_not_vanishes [OF X] by fast
+  obtain b j where b: "0 < b" and j: "\<forall>n\<ge>j. b < \<bar>Y n\<bar>"
+    using cauchy_not_vanishes [OF Y] by fast
+  obtain s where s: "0 < s" and "inverse a * s * inverse b = r"
+  proof
+    show "0 < a * r * b"
+      using a r b by (simp add: mult_pos_pos)
+    show "inverse a * (a * r * b) * inverse b = r"
+      using a r b by simp
+  qed
+  obtain k where k: "\<forall>n\<ge>k. \<bar>X n - Y n\<bar> < s"
+    using vanishesD [OF XY s] ..
+  have "\<forall>n\<ge>max (max i j) k. \<bar>inverse (X n) - inverse (Y n)\<bar> < r"
+  proof (clarsimp)
+    fix n assume n: "i \<le> n" "j \<le> n" "k \<le> n"
+    have "X n \<noteq> 0" and "Y n \<noteq> 0"
+      using i j a b n by auto
+    hence "\<bar>inverse (X n) - inverse (Y n)\<bar> =
+        inverse \<bar>X n\<bar> * \<bar>X n - Y n\<bar> * inverse \<bar>Y n\<bar>"
+      by (simp add: inverse_diff_inverse abs_mult)
+    also have "\<dots> < inverse a * s * inverse b"
+      apply (intro mult_strict_mono' less_imp_inverse_less)
+      apply (simp_all add: a b i j k n mult_nonneg_nonneg)
+      done
+    also note `inverse a * s * inverse b = r`
+    finally show "\<bar>inverse (X n) - inverse (Y n)\<bar> < r" .
+  qed
+  thus "\<exists>k. \<forall>n\<ge>k. \<bar>inverse (X n) - inverse (Y n)\<bar> < r" ..
+qed
+
 subsection {* Equivalence relation on Cauchy sequences *}
 
 definition
@@ -449,44 +487,6 @@ next
     thus "vanishes (\<lambda>n. X n * Y n - X n * Z n)"
       by (simp add: right_diff_distrib)
   qed
-qed
-
-lemma vanishes_diff_inverse:
-  assumes X: "cauchy X" "\<not> vanishes X"
-  assumes Y: "cauchy Y" "\<not> vanishes Y"
-  assumes XY: "vanishes (\<lambda>n. X n - Y n)"
-  shows "vanishes (\<lambda>n. inverse (X n) - inverse (Y n))"
-proof (rule vanishesI)
-  fix r :: rat assume r: "0 < r"
-  obtain a i where a: "0 < a" and i: "\<forall>n\<ge>i. a < \<bar>X n\<bar>"
-    using cauchy_not_vanishes [OF X] by fast
-  obtain b j where b: "0 < b" and j: "\<forall>n\<ge>j. b < \<bar>Y n\<bar>"
-    using cauchy_not_vanishes [OF Y] by fast
-  obtain s where s: "0 < s" and "inverse a * s * inverse b = r"
-  proof
-    show "0 < a * r * b"
-      using a r b by (simp add: mult_pos_pos)
-    show "inverse a * (a * r * b) * inverse b = r"
-      using a r b by simp
-  qed
-  obtain k where k: "\<forall>n\<ge>k. \<bar>X n - Y n\<bar> < s"
-    using vanishesD [OF XY s] ..
-  have "\<forall>n\<ge>max (max i j) k. \<bar>inverse (X n) - inverse (Y n)\<bar> < r"
-  proof (clarsimp)
-    fix n assume n: "i \<le> n" "j \<le> n" "k \<le> n"
-    have "X n \<noteq> 0" and "Y n \<noteq> 0"
-      using i j a b n by auto
-    hence "\<bar>inverse (X n) - inverse (Y n)\<bar> =
-        inverse \<bar>X n\<bar> * \<bar>X n - Y n\<bar> * inverse \<bar>Y n\<bar>"
-      by (simp add: inverse_diff_inverse abs_mult)
-    also have "\<dots> < inverse a * s * inverse b"
-      apply (intro mult_strict_mono' less_imp_inverse_less)
-      apply (simp_all add: a b i j k n mult_nonneg_nonneg)
-      done
-    also note `inverse a * s * inverse b = r`
-    finally show "\<bar>inverse (X n) - inverse (Y n)\<bar> < r" .
-  qed
-  thus "\<exists>k. \<forall>n\<ge>k. \<bar>inverse (X n) - inverse (Y n)\<bar> < r" ..
 qed
 
 lemma inverse_respects_realrel:
