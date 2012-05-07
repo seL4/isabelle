@@ -34,7 +34,7 @@ definition add_swap :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
 "add_swap = (\<lambda>x y. y + x)"
 
 lemma "add_swap m n = n + m"
-sledgehammer [expect = some]
+sledgehammer [expect = some] (add_swap_def)
 by (metis_exhaust add_swap_def)
 
 definition "A = {xs\<Colon>'a list. True}"
