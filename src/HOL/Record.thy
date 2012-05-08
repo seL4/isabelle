@@ -400,7 +400,7 @@ lemma tuple_iso_tuple:
 lemma refl_conj_eq: "Q = R \<Longrightarrow> P \<and> Q \<longleftrightarrow> P \<and> R"
   by simp
 
-lemma iso_tuple_UNIV_I: "x \<in> UNIV \<equiv> True"
+lemma iso_tuple_UNIV_I [no_atp]: "x \<in> UNIV \<equiv> True"
   by simp
 
 lemma iso_tuple_True_simp: "(True \<Longrightarrow> PROP P) \<equiv> PROP P"
