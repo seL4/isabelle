@@ -423,6 +423,7 @@ def mutabelle_scheduler(env):
     """Scheduler for Mutabelle."""
     return schedule.age_scheduler(env, 'Isabelle', mutabelle_confs)
 
+
 # Judgement Day configurations
 
 judgement_day_provers = ('e', 'spass', 'vampire', 'z3', 'cvc3', 'yices')
