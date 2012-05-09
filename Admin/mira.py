@@ -274,25 +274,31 @@ def HOL_HOLCF(*args):
     """HOLCF image"""
     return build_isabelle_image('HOL/HOLCF', 'HOL', 'HOLCF', *args)
 
+settings64='''
+ML_PLATFORM=x86_64-linux
+ML_HOME="/home/polyml/polyml-5.4.1/x86_64-linux"
+ML_SYSTEM="polyml-5.4.1"
+'''
+
 @configuration(repos = [Isabelle], deps = [(Pure_64, [0])])
 def HOL_64(*args):
     """HOL image (64 bit)"""
-    return build_isabelle_image('HOL', 'Pure', 'HOL', *args, more_settings='ML_PLATFORM=x86_64-linux')
+    return build_isabelle_image('HOL', 'Pure', 'HOL', *args, more_settings=settings64)
 
 @configuration(repos = [Isabelle], deps = [(HOL_64, [0])])
 def HOL_HOLCF_64(*args):
     """HOL-HOLCF image (64 bit)"""
-    return build_isabelle_image('HOL/HOLCF', 'HOL', 'HOLCF', *args, more_settings='ML_PLATFORM=x86_64-linux')
+    return build_isabelle_image('HOL/HOLCF', 'HOL', 'HOLCF', *args, more_settings=settings64)
 
 @configuration(repos = [Isabelle], deps = [(HOL_64, [0])])
 def HOL_Nominal_64(*args):
     """HOL-Nominal image (64 bit)"""
-    return build_isabelle_image('HOL/Nominal', 'HOL', 'HOL-Nominal', *args, more_settings='ML_PLATFORM=x86_64-linux')
+    return build_isabelle_image('HOL/Nominal', 'HOL', 'HOL-Nominal', *args, more_settings=settings64)
 
 @configuration(repos = [Isabelle], deps = [(HOL_64, [0])])
 def HOL_Word_64(*args):
     """HOL-Word image (64 bit)"""
-    return build_isabelle_image('HOL/Word', 'HOL', 'HOL-Word', *args, more_settings='ML_PLATFORM=x86_64-linux')
+    return build_isabelle_image('HOL/Word', 'HOL', 'HOL-Word', *args, more_settings=settings64)
 
 @configuration(repos = [Isabelle], deps = [
     (HOL_64, [0]),
