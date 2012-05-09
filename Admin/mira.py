@@ -249,11 +249,6 @@ def Pure(*args):
     """Pure image"""
     return make_pure(*args)
 
-@configuration(repos = [Isabelle], deps = [])
-def Pure_64(*args):
-    """Pure image (64 bit)"""
-    return make_pure(*args, more_settings='ML_PLATFORM=x86_64-linux')
-
 @configuration(repos = [Isabelle], deps = [(Pure, [0])])
 def HOL(*args):
     """HOL image"""
@@ -279,6 +274,11 @@ ML_PLATFORM=x86_64-linux
 ML_HOME="/home/polyml/polyml-5.4.1/x86_64-linux"
 ML_SYSTEM="polyml-5.4.1"
 '''
+
+@configuration(repos = [Isabelle], deps = [])
+def Pure_64(*args):
+    """Pure image (64 bit)"""
+    return make_pure(*args, more_settings=settings64)
 
 @configuration(repos = [Isabelle], deps = [(Pure_64, [0])])
 def HOL_64(*args):
