@@ -341,159 +341,88 @@ qed
 
 subsection {* Equivalence relation on Cauchy sequences *}
 
-definition
-  realrel :: "((nat \<Rightarrow> rat) \<times> (nat \<Rightarrow> rat)) set"
-where
-  "realrel = {(X, Y). cauchy X \<and> cauchy Y \<and> vanishes (\<lambda>n. X n - Y n)}"
+definition realrel :: "(nat \<Rightarrow> rat) \<Rightarrow> (nat \<Rightarrow> rat) \<Rightarrow> bool"
+  where "realrel = (\<lambda>X Y. cauchy X \<and> cauchy Y \<and> vanishes (\<lambda>n. X n - Y n))"
 
-lemma refl_realrel: "refl_on {X. cauchy X} realrel"
-  unfolding realrel_def by (rule refl_onI, clarsimp, simp)
+lemma realrelI [intro?]:
+  assumes "cauchy X" and "cauchy Y" and "vanishes (\<lambda>n. X n - Y n)"
+  shows "realrel X Y"
+  using assms unfolding realrel_def by simp
 
-lemma sym_realrel: "sym realrel"
+lemma realrel_refl: "cauchy X \<Longrightarrow> realrel X X"
+  unfolding realrel_def by simp
+
+lemma symp_realrel: "symp realrel"
   unfolding realrel_def
-  by (rule symI, clarify, drule vanishes_minus, simp)
+  by (rule sympI, clarify, drule vanishes_minus, simp)
 
-lemma trans_realrel: "trans realrel"
+lemma transp_realrel: "transp realrel"
   unfolding realrel_def
-  apply (rule transI, clarify)
+  apply (rule transpI, clarify)
   apply (drule (1) vanishes_add)
   apply (simp add: algebra_simps)
   done
 
-lemma equiv_realrel: "equiv {X. cauchy X} realrel"
-  using refl_realrel sym_realrel trans_realrel
-  by (rule equivI)
+lemma part_equivp_realrel: "part_equivp realrel"
+  by (fast intro: part_equivpI symp_realrel transp_realrel
+    realrel_refl cauchy_const)
 
 subsection {* The field of real numbers *}
 
-typedef (open) real = "{X. cauchy X} // realrel"
-  by (fast intro: quotientI cauchy_const)
+quotient_type real = "nat \<Rightarrow> rat" / partial: realrel
+  morphisms rep_real Real
+  by (rule part_equivp_realrel)
 
-definition
-  Real :: "(nat \<Rightarrow> rat) \<Rightarrow> real"
-where
-  "Real X = Abs_real (realrel `` {X})"
+lemma cr_real_eq: "cr_real = (\<lambda>x y. cauchy x \<and> Real x = y)"
+  unfolding cr_real_def realrel_def by simp
 
-definition
-  real_case :: "((nat \<Rightarrow> rat) \<Rightarrow> 'a) \<Rightarrow> real \<Rightarrow> 'a"
-where
-  "real_case f x = (THE y. \<forall>X\<in>Rep_real x. y = f X)"
-
-lemma Real_induct [induct type: real]:
-  "(\<And>X. cauchy X \<Longrightarrow> P (Real X)) \<Longrightarrow> P x"
-  unfolding Real_def
-  apply (induct x)
-  apply (erule quotientE)
-  apply (simp)
-  done
-
-lemma real_case_1:
-  assumes f: "congruent realrel f"
-  assumes X: "cauchy X"
-  shows "real_case f (Real X) = f X"
-  unfolding real_case_def Real_def
-  apply (subst Abs_real_inverse)
-  apply (simp add: quotientI X)
-  apply (rule the_equality)
-  apply clarsimp
-  apply (erule congruentD [OF f])
-  apply (erule bspec)
-  apply simp
-  apply (rule refl_onD [OF refl_realrel])
-  apply (simp add: X)
-  done
-
-lemma real_case_2:
-  assumes f: "congruent2 realrel realrel f"
-  assumes X: "cauchy X" and Y: "cauchy Y"
-  shows "real_case (\<lambda>X. real_case (\<lambda>Y. f X Y) (Real Y)) (Real X) = f X Y"
- apply (subst real_case_1 [OF _ X])
-  apply (rule congruentI)
-  apply (subst real_case_1 [OF _ Y])
-   apply (rule congruent2_implies_congruent [OF equiv_realrel f])
-   apply (simp add: realrel_def)
-  apply (subst real_case_1 [OF _ Y])
-   apply (rule congruent2_implies_congruent [OF equiv_realrel f])
-   apply (simp add: realrel_def)
-  apply (erule congruent2D [OF f])
-  apply (rule refl_onD [OF refl_realrel])
-  apply (simp add: Y)
-  apply (rule real_case_1 [OF _ Y])
-  apply (rule congruent2_implies_congruent [OF equiv_realrel f])
-  apply (simp add: X)
-  done
+lemma Real_induct [induct type: real]: (* TODO: generate automatically *)
+  assumes "\<And>X. cauchy X \<Longrightarrow> P (Real X)" shows "P x"
+proof (induct x)
+  case (1 X)
+  hence "cauchy X" by (simp add: realrel_def)
+  thus "P (Real X)" by (rule assms)
+qed
 
 lemma eq_Real:
   "cauchy X \<Longrightarrow> cauchy Y \<Longrightarrow> Real X = Real Y \<longleftrightarrow> vanishes (\<lambda>n. X n - Y n)"
-  unfolding Real_def
-  apply (subst Abs_real_inject)
-  apply (simp add: quotientI)
-  apply (simp add: quotientI)
-  apply (simp add: eq_equiv_class_iff [OF equiv_realrel])
-  apply (simp add: realrel_def)
-  done
+  using real.rel_eq_transfer
+  unfolding cr_real_def fun_rel_def realrel_def by simp
 
-lemma add_respects2_realrel:
-  "(\<lambda>X Y. Real (\<lambda>n. X n + Y n)) respects2 realrel"
-proof (rule congruent2_commuteI [OF equiv_realrel, unfolded mem_Collect_eq])
-  fix X Y show "Real (\<lambda>n. X n + Y n) = Real (\<lambda>n. Y n + X n)"
-    by (simp add: add_commute)
-next
-  fix X assume X: "cauchy X"
-  fix Y Z assume "(Y, Z) \<in> realrel"
-  hence Y: "cauchy Y" and Z: "cauchy Z" and YZ: "vanishes (\<lambda>n. Y n - Z n)"
-    unfolding realrel_def by simp_all
-  show "Real (\<lambda>n. X n + Y n) = Real (\<lambda>n. X n + Z n)"
-  proof (rule eq_Real [THEN iffD2])
-    show "cauchy (\<lambda>n. X n + Y n)" using X Y by (rule cauchy_add)
-    show "cauchy (\<lambda>n. X n + Z n)" using X Z by (rule cauchy_add)
-    show "vanishes (\<lambda>n. (X n + Y n) - (X n + Z n))"
-      unfolding add_diff_add using YZ by simp
-  qed
-qed
+declare real.forall_transfer [transfer_rule del]
 
-lemma minus_respects_realrel:
-  "(\<lambda>X. Real (\<lambda>n. - X n)) respects realrel"
-proof (rule congruentI)
-  fix X Y assume "(X, Y) \<in> realrel"
-  hence X: "cauchy X" and Y: "cauchy Y" and XY: "vanishes (\<lambda>n. X n - Y n)"
-    unfolding realrel_def by simp_all
-  show "Real (\<lambda>n. - X n) = Real (\<lambda>n. - Y n)"
-  proof (rule eq_Real [THEN iffD2])
-    show "cauchy (\<lambda>n. - X n)" using X by (rule cauchy_minus)
-    show "cauchy (\<lambda>n. - Y n)" using Y by (rule cauchy_minus)
-    show "vanishes (\<lambda>n. (- X n) - (- Y n))"
-      unfolding minus_diff_minus using XY by (rule vanishes_minus)
-  qed
-qed
+lemma forall_real_transfer [transfer_rule]: (* TODO: generate automatically *)
+  "(fun_rel (fun_rel cr_real op =) op =)
+    (transfer_bforall cauchy) transfer_forall"
+  using Quotient_forall_transfer [OF Quotient_real]
+  by (simp add: realrel_def)
 
-lemma mult_respects2_realrel:
-  "(\<lambda>X Y. Real (\<lambda>n. X n * Y n)) respects2 realrel"
-proof (rule congruent2_commuteI [OF equiv_realrel, unfolded mem_Collect_eq])
-  fix X Y
-  show "Real (\<lambda>n. X n * Y n) = Real (\<lambda>n. Y n * X n)"
-    by (simp add: mult_commute)
-next
-  fix X assume X: "cauchy X"
-  fix Y Z assume "(Y, Z) \<in> realrel"
-  hence Y: "cauchy Y" and Z: "cauchy Z" and YZ: "vanishes (\<lambda>n. Y n - Z n)"
-    unfolding realrel_def by simp_all
-  show "Real (\<lambda>n. X n * Y n) = Real (\<lambda>n. X n * Z n)"
-  proof (rule eq_Real [THEN iffD2])
-    show "cauchy (\<lambda>n. X n * Y n)" using X Y by (rule cauchy_mult)
-    show "cauchy (\<lambda>n. X n * Z n)" using X Z by (rule cauchy_mult)
-    have "vanishes (\<lambda>n. X n * (Y n - Z n))"
-      by (intro vanishes_mult_bounded cauchy_imp_bounded X YZ)
-    thus "vanishes (\<lambda>n. X n * Y n - X n * Z n)"
-      by (simp add: right_diff_distrib)
-  qed
-qed
+instantiation real :: field_inverse_zero
+begin
 
-lemma inverse_respects_realrel:
-  "(\<lambda>X. if vanishes X then c else Real (\<lambda>n. inverse (X n))) respects realrel"
-    (is "?inv respects realrel")
-proof (rule congruentI)
-  fix X Y assume "(X, Y) \<in> realrel"
+lift_definition zero_real :: "real" is "\<lambda>n. 0"
+  by (simp add: realrel_refl)
+
+lift_definition one_real :: "real" is "\<lambda>n. 1"
+  by (simp add: realrel_refl)
+
+lift_definition plus_real :: "real \<Rightarrow> real \<Rightarrow> real" is "\<lambda>X Y n. X n + Y n"
+  unfolding realrel_def add_diff_add
+  by (simp only: cauchy_add vanishes_add simp_thms)
+
+lift_definition uminus_real :: "real \<Rightarrow> real" is "\<lambda>X n. - X n"
+  unfolding realrel_def minus_diff_minus
+  by (simp only: cauchy_minus vanishes_minus simp_thms)
+
+lift_definition times_real :: "real \<Rightarrow> real \<Rightarrow> real" is "\<lambda>X Y n. X n * Y n"
+  unfolding realrel_def mult_diff_mult
+  by (subst (4) mult_commute, simp only: cauchy_mult vanishes_add
+    vanishes_mult_bounded cauchy_imp_bounded simp_thms)
+
+lift_definition inverse_real :: "real \<Rightarrow> real"
+  is "\<lambda>X. if vanishes X then (\<lambda>n. 0) else (\<lambda>n. inverse (X n))"
+proof -
+  fix X Y assume "realrel X Y"
   hence X: "cauchy X" and Y: "cauchy Y" and XY: "vanishes (\<lambda>n. X n - Y n)"
     unfolding realrel_def by simp_all
   have "vanishes X \<longleftrightarrow> vanishes Y"
@@ -504,34 +433,13 @@ proof (rule congruentI)
     assume "vanishes Y"
     from vanishes_add [OF this XY] show "vanishes X" by simp
   qed
-  thus "?inv X = ?inv Y"
-    by (simp add: vanishes_diff_inverse eq_Real X Y XY)
+  thus "?thesis X Y"
+    unfolding realrel_def
+    by (simp add: vanishes_diff_inverse X Y XY)
 qed
-
-instantiation real :: field_inverse_zero
-begin
-
-definition
-  "0 = Real (\<lambda>n. 0)"
-
-definition
-  "1 = Real (\<lambda>n. 1)"
-
-definition
-  "x + y = real_case (\<lambda>X. real_case (\<lambda>Y. Real (\<lambda>n. X n + Y n)) y) x"
-
-definition
-  "- x = real_case (\<lambda>X. Real (\<lambda>n. - X n)) x"
 
 definition
   "x - y = (x::real) + - y"
-
-definition
-  "x * y = real_case (\<lambda>X. real_case (\<lambda>Y. Real (\<lambda>n. X n * Y n)) y) x"
-
-definition
-  "inverse =
-    real_case (\<lambda>X. if vanishes X then 0 else Real (\<lambda>n. inverse (X n)))"
 
 definition
   "x / y = (x::real) * inverse y"
@@ -539,14 +447,14 @@ definition
 lemma add_Real:
   assumes X: "cauchy X" and Y: "cauchy Y"
   shows "Real X + Real Y = Real (\<lambda>n. X n + Y n)"
-  unfolding plus_real_def
-  by (rule real_case_2 [OF add_respects2_realrel X Y])
+  using assms plus_real.transfer
+  unfolding cr_real_eq fun_rel_def by simp
 
 lemma minus_Real:
   assumes X: "cauchy X"
   shows "- Real X = Real (\<lambda>n. - X n)"
-  unfolding uminus_real_def
-  by (rule real_case_1 [OF minus_respects_realrel X])
+  using assms uminus_real.transfer
+  unfolding cr_real_eq fun_rel_def by simp
 
 lemma diff_Real:
   assumes X: "cauchy X" and Y: "cauchy Y"
@@ -557,47 +465,41 @@ lemma diff_Real:
 lemma mult_Real:
   assumes X: "cauchy X" and Y: "cauchy Y"
   shows "Real X * Real Y = Real (\<lambda>n. X n * Y n)"
-  unfolding times_real_def
-  by (rule real_case_2 [OF mult_respects2_realrel X Y])
+  using assms times_real.transfer
+  unfolding cr_real_eq fun_rel_def by simp
 
 lemma inverse_Real:
   assumes X: "cauchy X"
   shows "inverse (Real X) =
     (if vanishes X then 0 else Real (\<lambda>n. inverse (X n)))"
-  unfolding inverse_real_def
-  by (rule real_case_1 [OF inverse_respects_realrel X])
+  using assms inverse_real.transfer zero_real.transfer
+  unfolding cr_real_eq fun_rel_def by (simp split: split_if_asm, metis)
 
 instance proof
   fix a b c :: real
   show "a + b = b + a"
-    by (induct a, induct b) (simp add: add_Real add_ac)
+    by transfer (simp add: add_ac realrel_def)
   show "(a + b) + c = a + (b + c)"
-    by (induct a, induct b, induct c) (simp add: add_Real add_ac)
+    by transfer (simp add: add_ac realrel_def)
   show "0 + a = a"
-    unfolding zero_real_def
-    by (induct a) (simp add: add_Real)
+    by transfer (simp add: realrel_def)
   show "- a + a = 0"
-    unfolding zero_real_def
-    by (induct a) (simp add: minus_Real add_Real)
+    by transfer (simp add: realrel_def)
   show "a - b = a + - b"
     by (rule minus_real_def)
   show "(a * b) * c = a * (b * c)"
-    by (induct a, induct b, induct c) (simp add: mult_Real mult_ac)
+    by transfer (simp add: mult_ac realrel_def)
   show "a * b = b * a"
-    by (induct a, induct b) (simp add: mult_Real mult_ac)
+    by transfer (simp add: mult_ac realrel_def)
   show "1 * a = a"
-    unfolding one_real_def
-    by (induct a) (simp add: mult_Real)
+    by transfer (simp add: mult_ac realrel_def)
   show "(a + b) * c = a * c + b * c"
-    by (induct a, induct b, induct c)
-       (simp add: mult_Real add_Real algebra_simps)
+    by transfer (simp add: left_distrib realrel_def)
   show "(0\<Colon>real) \<noteq> (1\<Colon>real)"
-    unfolding zero_real_def one_real_def
-    by (simp add: eq_Real)
+    by transfer (simp add: realrel_def)
   show "a \<noteq> 0 \<Longrightarrow> inverse a * a = 1"
-    unfolding zero_real_def one_real_def
-    apply (induct a)
-    apply (simp add: eq_Real inverse_Real mult_Real)
+    apply transfer
+    apply (simp add: realrel_def)
     apply (rule vanishesI)
     apply (frule (1) cauchy_not_vanishes, clarify)
     apply (rule_tac x=k in exI, clarify)
@@ -606,66 +508,55 @@ instance proof
   show "a / b = a * inverse b"
     by (rule divide_real_def)
   show "inverse (0::real) = 0"
-    by (simp add: zero_real_def inverse_Real)
+    by transfer (simp add: realrel_def)
 qed
 
 end
 
 subsection {* Positive reals *}
 
-definition
-  positive :: "real \<Rightarrow> bool"
-where
-  "positive = real_case (\<lambda>X. \<exists>r>0. \<exists>k. \<forall>n\<ge>k. r < X n)"
-
-lemma bool_congruentI:
-  assumes sym: "sym r"
-  assumes P: "\<And>x y. (x, y) \<in> r \<Longrightarrow> P x \<Longrightarrow> P y"
-  shows "P respects r"
-apply (rule congruentI)
-apply (rule iffI)
-apply (erule (1) P)
-apply (erule (1) P [OF symD [OF sym]])
-done
-
-lemma positive_respects_realrel:
-  "(\<lambda>X. \<exists>r>0. \<exists>k. \<forall>n\<ge>k. r < X n) respects realrel"
-proof (rule bool_congruentI)
-  show "sym realrel" by (rule sym_realrel)
-next
-  fix X Y assume "(X, Y) \<in> realrel"
-  hence XY: "vanishes (\<lambda>n. X n - Y n)"
-    unfolding realrel_def by simp_all
-  assume "\<exists>r>0. \<exists>k. \<forall>n\<ge>k. r < X n"
-  then obtain r i where "0 < r" and i: "\<forall>n\<ge>i. r < X n"
-    by fast
-  obtain s t where s: "0 < s" and t: "0 < t" and r: "r = s + t"
-    using `0 < r` by (rule obtain_pos_sum)
-  obtain j where j: "\<forall>n\<ge>j. \<bar>X n - Y n\<bar> < s"
-    using vanishesD [OF XY s] ..
-  have "\<forall>n\<ge>max i j. t < Y n"
-  proof (clarsimp)
-    fix n assume n: "i \<le> n" "j \<le> n"
-    have "\<bar>X n - Y n\<bar> < s" and "r < X n"
-      using i j n by simp_all
-    thus "t < Y n" unfolding r by simp
-  qed
-  thus "\<exists>r>0. \<exists>k. \<forall>n\<ge>k. r < Y n" using t by fast
+lift_definition positive :: "real \<Rightarrow> bool"
+  is "\<lambda>X. \<exists>r>0. \<exists>k. \<forall>n\<ge>k. r < X n"
+proof -
+  { fix X Y
+    assume "realrel X Y"
+    hence XY: "vanishes (\<lambda>n. X n - Y n)"
+      unfolding realrel_def by simp_all
+    assume "\<exists>r>0. \<exists>k. \<forall>n\<ge>k. r < X n"
+    then obtain r i where "0 < r" and i: "\<forall>n\<ge>i. r < X n"
+      by fast
+    obtain s t where s: "0 < s" and t: "0 < t" and r: "r = s + t"
+      using `0 < r` by (rule obtain_pos_sum)
+    obtain j where j: "\<forall>n\<ge>j. \<bar>X n - Y n\<bar> < s"
+      using vanishesD [OF XY s] ..
+    have "\<forall>n\<ge>max i j. t < Y n"
+    proof (clarsimp)
+      fix n assume n: "i \<le> n" "j \<le> n"
+      have "\<bar>X n - Y n\<bar> < s" and "r < X n"
+        using i j n by simp_all
+      thus "t < Y n" unfolding r by simp
+    qed
+    hence "\<exists>r>0. \<exists>k. \<forall>n\<ge>k. r < Y n" using t by fast
+  } note 1 = this
+  fix X Y assume "realrel X Y"
+  hence "realrel X Y" and "realrel Y X"
+    using symp_realrel unfolding symp_def by auto
+  thus "?thesis X Y"
+    by (safe elim!: 1)
 qed
 
 lemma positive_Real:
   assumes X: "cauchy X"
   shows "positive (Real X) \<longleftrightarrow> (\<exists>r>0. \<exists>k. \<forall>n\<ge>k. r < X n)"
-unfolding positive_def
-by (rule real_case_1 [OF positive_respects_realrel X])
+  using assms positive.transfer
+  unfolding cr_real_eq fun_rel_def by simp
 
 lemma positive_zero: "\<not> positive 0"
-unfolding zero_real_def by (auto simp add: positive_Real)
+  by transfer auto
 
 lemma positive_add:
   "positive x \<Longrightarrow> positive y \<Longrightarrow> positive (x + y)"
-apply (induct x, induct y, rename_tac Y X)
-apply (simp add: add_Real positive_Real)
+apply transfer
 apply (clarify, rename_tac a b i j)
 apply (rule_tac x="a + b" in exI, simp)
 apply (rule_tac x="max i j" in exI, clarsimp)
@@ -674,8 +565,7 @@ done
 
 lemma positive_mult:
   "positive x \<Longrightarrow> positive y \<Longrightarrow> positive (x * y)"
-apply (induct x, induct y, rename_tac Y X)
-apply (simp add: mult_Real positive_Real)
+apply transfer
 apply (clarify, rename_tac a b i j)
 apply (rule_tac x="a * b" in exI, simp add: mult_pos_pos)
 apply (rule_tac x="max i j" in exI, clarsimp)
@@ -684,8 +574,8 @@ done
 
 lemma positive_minus:
   "\<not> positive x \<Longrightarrow> x \<noteq> 0 \<Longrightarrow> positive (- x)"
-apply (induct x, rename_tac X)
-apply (simp add: zero_real_def eq_Real minus_Real positive_Real)
+apply transfer
+apply (simp add: realrel_def)
 apply (drule (1) cauchy_not_vanishes_cases, safe, fast, fast)
 done
 
@@ -1034,11 +924,16 @@ qed
 
 subsection {* Hiding implementation details *}
 
-hide_const (open) vanishes cauchy positive Real real_case
+hide_const (open) vanishes cauchy positive Real
 
 declare Real_induct [induct del]
 declare Abs_real_induct [induct del]
 declare Abs_real_cases [cases del]
+
+lemmas [transfer_rule del] =
+  real.All_transfer real.Ex_transfer real.rel_eq_transfer forall_real_transfer
+  zero_real.transfer one_real.transfer plus_real.transfer uminus_real.transfer
+  times_real.transfer inverse_real.transfer positive.transfer
 
 subsection{*More Lemmas*}
 
