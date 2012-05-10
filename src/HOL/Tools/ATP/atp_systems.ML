@@ -340,7 +340,7 @@ val leo2_config : atp_config =
    prem_kind = Hypothesis,
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.667, (false, ((150, leo2_thf0, "mono_native_higher", keep_lamsN, false), sosN))),
+     [(0.667, (false, ((100, leo2_thf0, "mono_native_higher", keep_lamsN, false), sosN))),
       (0.333, (true, ((50, leo2_thf0, "mono_native_higher", keep_lamsN, false), no_sosN)))]
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
@@ -365,7 +365,7 @@ val satallax_config : atp_config =
    prem_kind = Definition (* motivated by "isabelle tptp_sledgehammer" tool *),
    best_slices =
      (* FUDGE *)
-     K [(1.0, (true, ((100, satallax_thf0, "mono_native_higher", keep_lamsN, false), "")))]}
+     K [(1.0, (true, ((75, satallax_thf0, "mono_native_higher", keep_lamsN, false), "")))]}
 
 val satallax = (satallaxN, fn () => satallax_config)
 
