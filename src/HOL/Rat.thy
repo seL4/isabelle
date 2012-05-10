@@ -400,199 +400,120 @@ lemma Fract_add_one: "n \<noteq> 0 ==> Fract (m + n) n = Fract m n + 1"
 
 subsubsection {* The ordered field of rational numbers *}
 
-instantiation rat :: linorder
-begin
-
-lift_definition less_eq_rat :: "rat \<Rightarrow> rat \<Rightarrow> bool"
-  is "\<lambda>x y. (fst x * snd y) * (snd x * snd y) \<le> (fst y * snd x) * (snd x * snd y)"
+lift_definition positive :: "rat \<Rightarrow> bool"
+  is "\<lambda>x. 0 < fst x * snd x"
 proof (clarsimp)
-  fix a b a' b' c d c' d'::int
-  assume neq: "b \<noteq> 0"  "b' \<noteq> 0"  "d \<noteq> 0"  "d' \<noteq> 0"
-  assume eq1: "a * b' = a' * b"
-  assume eq2: "c * d' = c' * d"
-
-  let ?le = "\<lambda>a b c d. ((a * d) * (b * d) \<le> (c * b) * (b * d))"
-  {
-    fix a b c d x :: int assume x: "x \<noteq> 0"
-    have "?le a b c d = ?le (a * x) (b * x) c d"
-    proof -
-      from x have "0 < x * x" by (auto simp add: zero_less_mult_iff)
-      hence "?le a b c d =
-        ((a * d) * (b * d) * (x * x) \<le> (c * b) * (b * d) * (x * x))"
-        by (simp add: mult_le_cancel_right)
-      also have "... = ?le (a * x) (b * x) c d"
-        by (simp add: mult_ac)
-      finally show ?thesis .
-    qed
-  } note le_factor = this
-  
-  let ?D = "b * d" and ?D' = "b' * d'"
-  from neq have D: "?D \<noteq> 0" by simp
-  from neq have "?D' \<noteq> 0" by simp
-  hence "?le a b c d = ?le (a * ?D') (b * ?D') c d"
-    by (rule le_factor)
-  also have "... = ((a * b') * ?D * ?D' * d * d' \<le> (c * d') * ?D * ?D' * b * b')" 
-    by (simp add: mult_ac)
-  also have "... = ((a' * b) * ?D * ?D' * d * d' \<le> (c' * d) * ?D * ?D' * b * b')"
-    by (simp only: eq1 eq2)
-  also have "... = ?le (a' * ?D) (b' * ?D) c' d'"
-    by (simp add: mult_ac)
-  also from D have "... = ?le a' b' c' d'"
-    by (rule le_factor [symmetric])
-  finally show "?le a b c d = ?le a' b' c' d'" .
+  fix a b c d :: int
+  assume "b \<noteq> 0" and "d \<noteq> 0" and "a * d = c * b"
+  hence "a * d * b * d = c * b * b * d"
+    by simp
+  hence "a * b * d\<twosuperior> = c * d * b\<twosuperior>"
+    unfolding power2_eq_square by (simp add: mult_ac)
+  hence "0 < a * b * d\<twosuperior> \<longleftrightarrow> 0 < c * d * b\<twosuperior>"
+    by simp
+  thus "0 < a * b \<longleftrightarrow> 0 < c * d"
+    using `b \<noteq> 0` and `d \<noteq> 0`
+    by (simp add: zero_less_mult_iff)
 qed
 
-lemma le_rat [simp]:
-  assumes "b \<noteq> 0" and "d \<noteq> 0"
-  shows "Fract a b \<le> Fract c d \<longleftrightarrow> (a * d) * (b * d) \<le> (c * b) * (b * d)"
-  using assms by transfer simp
+lemma positive_zero: "\<not> positive 0"
+  by transfer simp
+
+lemma positive_add:
+  "positive x \<Longrightarrow> positive y \<Longrightarrow> positive (x + y)"
+apply transfer
+apply (simp add: zero_less_mult_iff)
+apply (elim disjE, simp_all add: add_pos_pos add_neg_neg
+  mult_pos_pos mult_pos_neg mult_neg_pos mult_neg_neg)
+done
+
+lemma positive_mult:
+  "positive x \<Longrightarrow> positive y \<Longrightarrow> positive (x * y)"
+by transfer (drule (1) mult_pos_pos, simp add: mult_ac)
+
+lemma positive_minus:
+  "\<not> positive x \<Longrightarrow> x \<noteq> 0 \<Longrightarrow> positive (- x)"
+by transfer (force simp: neq_iff zero_less_mult_iff mult_less_0_iff)
+
+instantiation rat :: linordered_field_inverse_zero
+begin
 
 definition
-  less_rat_def: "z < (w::rat) \<longleftrightarrow> z \<le> w \<and> z \<noteq> w"
+  "x < y \<longleftrightarrow> positive (y - x)"
 
-lemma less_rat [simp]:
-  assumes "b \<noteq> 0" and "d \<noteq> 0"
-  shows "Fract a b < Fract c d \<longleftrightarrow> (a * d) * (b * d) < (c * b) * (b * d)"
-  using assms by (simp add: less_rat_def eq_rat order_less_le)
+definition
+  "x \<le> (y::rat) \<longleftrightarrow> x < y \<or> x = y"
+
+definition
+  "abs (a::rat) = (if a < 0 then - a else a)"
+
+definition
+  "sgn (a::rat) = (if a = 0 then 0 else if 0 < a then 1 else - 1)"
 
 instance proof
-  fix q r s :: rat
-  {
-    assume "q \<le> r" and "r \<le> s"
-    then show "q \<le> s" 
-    proof (induct q, induct r, induct s)
-      fix a b c d e f :: int
-      assume neq: "b > 0"  "d > 0"  "f > 0"
-      assume 1: "Fract a b \<le> Fract c d" and 2: "Fract c d \<le> Fract e f"
-      show "Fract a b \<le> Fract e f"
-      proof -
-        from neq obtain bb: "0 < b * b" and dd: "0 < d * d" and ff: "0 < f * f"
-          by (auto simp add: zero_less_mult_iff linorder_neq_iff)
-        have "(a * d) * (b * d) * (f * f) \<le> (c * b) * (b * d) * (f * f)"
-        proof -
-          from neq 1 have "(a * d) * (b * d) \<le> (c * b) * (b * d)"
-            by simp
-          with ff show ?thesis by (simp add: mult_le_cancel_right)
-        qed
-        also have "... = (c * f) * (d * f) * (b * b)" by algebra
-        also have "... \<le> (e * d) * (d * f) * (b * b)"
-        proof -
-          from neq 2 have "(c * f) * (d * f) \<le> (e * d) * (d * f)"
-            by simp
-          with bb show ?thesis by (simp add: mult_le_cancel_right)
-        qed
-        finally have "(a * f) * (b * f) * (d * d) \<le> e * b * (b * f) * (d * d)"
-          by (simp only: mult_ac)
-        with dd have "(a * f) * (b * f) \<le> (e * b) * (b * f)"
-          by (simp add: mult_le_cancel_right)
-        with neq show ?thesis by simp
-      qed
-    qed
-  next
-    assume "q \<le> r" and "r \<le> q"
-    then show "q = r"
-    proof (induct q, induct r)
-      fix a b c d :: int
-      assume neq: "b > 0"  "d > 0"
-      assume 1: "Fract a b \<le> Fract c d" and 2: "Fract c d \<le> Fract a b"
-      show "Fract a b = Fract c d"
-      proof -
-        from neq 1 have "(a * d) * (b * d) \<le> (c * b) * (b * d)"
-          by simp
-        also have "... \<le> (a * d) * (b * d)"
-        proof -
-          from neq 2 have "(c * b) * (d * b) \<le> (a * d) * (d * b)"
-            by simp
-          thus ?thesis by (simp only: mult_ac)
-        qed
-        finally have "(a * d) * (b * d) = (c * b) * (b * d)" .
-        moreover from neq have "b * d \<noteq> 0" by simp
-        ultimately have "a * d = c * b" by simp
-        with neq show ?thesis by (simp add: eq_rat)
-      qed
-    qed
-  next
-    show "q \<le> q"
-      by (induct q) simp
-    show "(q < r) = (q \<le> r \<and> \<not> r \<le> q)"
-      by (induct q, induct r) (auto simp add: le_less mult_commute)
-    show "q \<le> r \<or> r \<le> q"
-      by (induct q, induct r)
-         (simp add: mult_commute, rule linorder_linear)
-  }
+  fix a b c :: rat
+  show "\<bar>a\<bar> = (if a < 0 then - a else a)"
+    by (rule abs_rat_def)
+  show "a < b \<longleftrightarrow> a \<le> b \<and> \<not> b \<le> a"
+    unfolding less_eq_rat_def less_rat_def
+    by (auto, drule (1) positive_add, simp_all add: positive_zero)
+  show "a \<le> a"
+    unfolding less_eq_rat_def by simp
+  show "a \<le> b \<Longrightarrow> b \<le> c \<Longrightarrow> a \<le> c"
+    unfolding less_eq_rat_def less_rat_def
+    by (auto, drule (1) positive_add, simp add: algebra_simps)
+  show "a \<le> b \<Longrightarrow> b \<le> a \<Longrightarrow> a = b"
+    unfolding less_eq_rat_def less_rat_def
+    by (auto, drule (1) positive_add, simp add: positive_zero)
+  show "a \<le> b \<Longrightarrow> c + a \<le> c + b"
+    unfolding less_eq_rat_def less_rat_def by (auto simp: diff_minus)
+  show "sgn a = (if a = 0 then 0 else if 0 < a then 1 else - 1)"
+    by (rule sgn_rat_def)
+  show "a \<le> b \<or> b \<le> a"
+    unfolding less_eq_rat_def less_rat_def
+    by (auto dest!: positive_minus)
+  show "a < b \<Longrightarrow> 0 < c \<Longrightarrow> c * a < c * b"
+    unfolding less_rat_def
+    by (drule (1) positive_mult, simp add: algebra_simps)
 qed
 
 end
 
-instantiation rat :: "{distrib_lattice, abs_if, sgn_if}"
+instantiation rat :: distrib_lattice
 begin
 
 definition
-  abs_rat_def: "\<bar>q\<bar> = (if q < 0 then -q else (q::rat))"
+  "(inf :: rat \<Rightarrow> rat \<Rightarrow> rat) = min"
+
+definition
+  "(sup :: rat \<Rightarrow> rat \<Rightarrow> rat) = max"
+
+instance proof
+qed (auto simp add: inf_rat_def sup_rat_def min_max.sup_inf_distrib1)
+
+end
+
+lemma positive_rat: "positive (Fract a b) \<longleftrightarrow> 0 < a * b"
+  by transfer simp
+
+lemma less_rat [simp]:
+  assumes "b \<noteq> 0" and "d \<noteq> 0"
+  shows "Fract a b < Fract c d \<longleftrightarrow> (a * d) * (b * d) < (c * b) * (b * d)"
+  using assms unfolding less_rat_def
+  by (simp add: positive_rat algebra_simps)
+
+lemma le_rat [simp]:
+  assumes "b \<noteq> 0" and "d \<noteq> 0"
+  shows "Fract a b \<le> Fract c d \<longleftrightarrow> (a * d) * (b * d) \<le> (c * b) * (b * d)"
+  using assms unfolding le_less by (simp add: eq_rat)
 
 lemma abs_rat [simp, code]: "\<bar>Fract a b\<bar> = Fract \<bar>a\<bar> \<bar>b\<bar>"
   by (auto simp add: abs_rat_def zabs_def Zero_rat_def not_less le_less eq_rat zero_less_mult_iff)
-
-definition
-  sgn_rat_def: "sgn (q::rat) = (if q = 0 then 0 else if 0 < q then 1 else - 1)"
 
 lemma sgn_rat [simp, code]: "sgn (Fract a b) = of_int (sgn a * sgn b)"
   unfolding Fract_of_int_eq
   by (auto simp: zsgn_def sgn_rat_def Zero_rat_def eq_rat)
     (auto simp: rat_number_collapse not_less le_less zero_less_mult_iff)
-
-definition
-  "(inf \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat) = min"
-
-definition
-  "(sup \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat) = max"
-
-instance by intro_classes
-  (auto simp add: abs_rat_def sgn_rat_def min_max.sup_inf_distrib1 inf_rat_def sup_rat_def)
-
-end
-
-instance rat :: linordered_field_inverse_zero
-proof
-  fix q r s :: rat
-  show "q \<le> r ==> s + q \<le> s + r"
-  proof (induct q, induct r, induct s)
-    fix a b c d e f :: int
-    assume neq: "b > 0"  "d > 0"  "f > 0"
-    assume le: "Fract a b \<le> Fract c d"
-    show "Fract e f + Fract a b \<le> Fract e f + Fract c d"
-    proof -
-      let ?F = "f * f" from neq have F: "0 < ?F"
-        by (auto simp add: zero_less_mult_iff)
-      from neq le have "(a * d) * (b * d) \<le> (c * b) * (b * d)"
-        by simp
-      with F have "(a * d) * (b * d) * ?F * ?F \<le> (c * b) * (b * d) * ?F * ?F"
-        by (simp add: mult_le_cancel_right)
-      with neq show ?thesis by (simp add: mult_ac int_distrib)
-    qed
-  qed
-  show "q < r ==> 0 < s ==> s * q < s * r"
-  proof (induct q, induct r, induct s)
-    fix a b c d e f :: int
-    assume neq: "b > 0"  "d > 0"  "f > 0"
-    assume le: "Fract a b < Fract c d"
-    assume gt: "0 < Fract e f"
-    show "Fract e f * Fract a b < Fract e f * Fract c d"
-    proof -
-      let ?E = "e * f" and ?F = "f * f"
-      from neq gt have "0 < ?E"
-        by (auto simp add: Zero_rat_def order_less_le eq_rat)
-      moreover from neq have "0 < ?F"
-        by (auto simp add: zero_less_mult_iff)
-      moreover from neq le have "(a * d) * (b * d) < (c * b) * (b * d)"
-        by simp
-      ultimately have "(a * d) * (b * d) * ?E * ?F < (c * b) * (b * d) * ?E * ?F"
-        by (simp add: mult_less_cancel_right)
-      with neq show ?thesis
-        by (simp add: mult_ac)
-    qed
-  qed
-qed auto
 
 lemma Rat_induct_pos [case_names Fract, induct type: rat]:
   assumes step: "\<And>a b. 0 < b \<Longrightarrow> P (Fract a b)"
@@ -1194,13 +1115,13 @@ lemma "123.456 = -111.111 + 200 + 30 + 4 + 5/10 + 6/100 + (7/1000::rat)"
 by simp
 
 
-hide_const (open) normalize
+hide_const (open) normalize positive
 
 lemmas [transfer_rule del] =
   rat.All_transfer rat.Ex_transfer rat.rel_eq_transfer forall_rat_transfer
   Fract.transfer zero_rat.transfer one_rat.transfer plus_rat.transfer
   uminus_rat.transfer times_rat.transfer inverse_rat.transfer
-  less_eq_rat.transfer of_rat.transfer
+  positive.transfer of_rat.transfer
 
 text {* De-register @{text "rat"} as a quotient type: *}
 
