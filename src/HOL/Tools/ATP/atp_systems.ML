@@ -337,7 +337,7 @@ val leo2_config : atp_config =
      [(TimedOut, "CPU time limit exceeded, terminating"),
       (GaveUp, "No.of.Axioms")],
    conj_sym_kind = Axiom,
-   prem_kind = Definition (* motivated by "isabelle tptp_sledgehammer" tool *),
+   prem_kind = Hypothesis,
    best_slices = fn ctxt =>
      (* FUDGE *)
      [(0.667, (false, ((150, leo2_thf0, "mono_native_higher", keep_lamsN, false), sosN))),
