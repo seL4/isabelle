@@ -641,7 +641,7 @@ val remote_waldmeister =
        (Inappropriate, "****  Unexpected end of file."),
        (Crashed, "Unrecoverable Segmentation Fault")]
       Hypothesis Hypothesis
-      (K ((50, CNF_UEQ, "mono_tags??", combsN, false), "") (* FUDGE *))
+      (K ((50, CNF_UEQ, "raw_mono_tags??", combsN, false), "") (* FUDGE *))
 
 (* Setup *)
 
