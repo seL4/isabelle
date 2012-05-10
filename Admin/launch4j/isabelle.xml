@@ -15,12 +15,12 @@
   <icon>isabelle.ico</icon>
   <classPath>
     <mainClass>isabelle.Main</mainClass>
-    <cp>lib\classes\ext\Pure.jar</cp>
-    <cp>lib\classes\ext\scala-library.jar</cp>
-    <cp>lib\classes\ext\scala-swing.jar</cp>
+    <cp>%EXEDIR%\lib\classes\ext\Pure.jar</cp>
+    <cp>%EXEDIR%\lib\classes\ext\scala-library.jar</cp>
+    <cp>%EXEDIR%\lib\classes\ext\scala-swing.jar</cp>
   </classPath>
   <jre>
-    <path>contrib\jdk-6u31_x86-cygwin\jdk1.6.0_31</path>
+    <path>%EXEDIR%\contrib\jdk-6u31_x86-cygwin\jdk1.6.0_31</path>
     <minVersion></minVersion>
     <maxVersion></maxVersion>
     <jdkPreference>jdkOnly</jdkPreference>
