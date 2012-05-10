@@ -396,13 +396,13 @@ val built_in_consts =
    (@{const_name unknown}, 0),
    (@{const_name is_unknown}, 1),
    (@{const_name safe_The}, 1),
-   (@{const_name Frac}, 0),
-   (@{const_name norm_frac}, 0)]
+   (@{const_name Nitpick.Frac}, 0),
+   (@{const_name Nitpick.norm_frac}, 0)]
 val built_in_nat_consts =
   [(@{const_name Suc}, 0),
    (@{const_name nat}, 0),
-   (@{const_name nat_gcd}, 0),
-   (@{const_name nat_lcm}, 0)]
+   (@{const_name Nitpick.nat_gcd}, 0),
+   (@{const_name Nitpick.nat_lcm}, 0)]
 val built_in_typed_consts =
   [((@{const_name zero_class.zero}, int_T), 0),
    ((@{const_name one_class.one}, int_T), 0),
@@ -565,10 +565,13 @@ type typedef_info =
 fun typedef_info ctxt s =
   if is_frac_type ctxt (Type (s, [])) then
     SOME {abs_type = Type (s, []), rep_type = @{typ "int * int"},
-          Abs_name = @{const_name Abs_Frac}, Rep_name = @{const_name Rep_Frac},
-          set_def = NONE, prop_of_Rep = @{prop "Rep_Frac x \<in> Collect Frac"}
-                          |> Logic.varify_global,
-          set_name = @{const_name Frac}, Abs_inverse = NONE, Rep_inverse = NONE}
+          Abs_name = @{const_name Nitpick.Abs_Frac},
+          Rep_name = @{const_name Nitpick.Rep_Frac},
+          set_def = NONE,
+          prop_of_Rep = @{prop "Nitpick.Rep_Frac x \<in> Collect Nitpick.Frac"}
+                        |> Logic.varify_global,
+          set_name = @{const_name Nitpick.Frac}, Abs_inverse = NONE,
+          Rep_inverse = NONE}
   else case Typedef.get_info ctxt s of
     (* When several entries are returned, it shouldn't matter much which one
        we take (according to Florian Haftmann). *)
@@ -662,17 +665,19 @@ fun is_codatatype ctxt (Type (s, _)) =
     s |> AList.lookup (op =) (#codatatypes (Data.get (Context.Proof ctxt)))
       |> Option.map snd |> these |> null |> not
   | is_codatatype _ _ = false
+fun is_registered_type ctxt T = is_frac_type ctxt T orelse is_codatatype ctxt T
 fun is_real_quot_type ctxt (Type (s, _)) =
     is_some (Quotient_Info.lookup_quotients ctxt s)
   | is_real_quot_type _ _ = false
 fun is_quot_type ctxt T =
-    is_real_quot_type ctxt T andalso not (is_codatatype ctxt T)
+  is_real_quot_type ctxt T andalso not (is_registered_type ctxt T)
 fun is_pure_typedef ctxt (T as Type (s, _)) =
     let val thy = Proof_Context.theory_of ctxt in
-      is_typedef ctxt s andalso
-      not (is_real_datatype thy s orelse is_real_quot_type ctxt T orelse
-           is_codatatype ctxt T orelse is_record_type T orelse
-           is_integer_like_type T)
+      is_frac_type ctxt T orelse
+      (is_typedef ctxt s andalso
+       not (is_real_datatype thy s orelse is_real_quot_type ctxt T orelse
+            is_codatatype ctxt T orelse is_record_type T orelse
+            is_integer_like_type T))
     end
   | is_pure_typedef _ _ = false
 fun is_univ_typedef ctxt (Type (s, _)) =
@@ -700,7 +705,7 @@ fun is_univ_typedef ctxt (Type (s, _)) =
   | is_univ_typedef _ _ = false
 fun is_datatype ctxt stds (T as Type (s, _)) =
     let val thy = Proof_Context.theory_of ctxt in
-      (is_typedef ctxt s orelse is_codatatype ctxt T orelse
+      (is_typedef ctxt s orelse is_registered_type ctxt T orelse
        T = @{typ ind} orelse is_real_quot_type ctxt T) andalso
       not (is_basic_datatype thy stds s)
     end
@@ -742,12 +747,13 @@ fun is_rep_fun ctxt (s, Type (@{type_name fun}, [Type (s', _), _])) =
 fun is_quot_abs_fun ctxt (x as (_, Type (@{type_name fun},
                                          [_, abs_T as Type (s', _)]))) =
     try (Quotient_Term.absrep_const_chk ctxt Quotient_Term.AbsF) s'
-    = SOME (Const x) andalso not (is_codatatype ctxt abs_T)
+    = SOME (Const x) andalso not (is_registered_type ctxt abs_T)
   | is_quot_abs_fun _ _ = false
 fun is_quot_rep_fun ctxt (s, Type (@{type_name fun},
                                    [abs_T as Type (abs_s, _), _])) =
     (case try (Quotient_Term.absrep_const_chk ctxt Quotient_Term.RepF) abs_s of
-       SOME (Const (s', _)) => s = s' andalso not (is_codatatype ctxt abs_T)
+       SOME (Const (s', _)) =>
+       s = s' andalso not (is_registered_type ctxt abs_T)
      | NONE => false)
   | is_quot_rep_fun _ _ = false
 
@@ -801,9 +807,9 @@ fun is_constr_like ctxt (s, T) =
     (is_abs_fun ctxt x andalso is_pure_typedef ctxt (range_type T)) orelse
     is_coconstr ctxt x
   end
-fun is_stale_constr ctxt (x as (_, T)) =
-  is_codatatype ctxt (body_type T) andalso is_constr_like ctxt x andalso
-  not (is_coconstr ctxt x)
+fun is_stale_constr ctxt (x as (s, T)) =
+  is_registered_type ctxt (body_type T) andalso is_constr_like ctxt x andalso
+  not (s = @{const_name Nitpick.Abs_Frac} orelse is_coconstr ctxt x)
 fun is_constr ctxt stds (x as (_, T)) =
   let val thy = Proof_Context.theory_of ctxt in
     is_constr_like ctxt x andalso
@@ -919,7 +925,13 @@ fun uncached_datatype_constrs ({thy, ctxt, stds, ...} : hol_context)
                        s of
        SOME (_, xs' as (_ :: _)) => map (apsnd (repair_constr_type ctxt T)) xs'
      | _ =>
-       if is_datatype ctxt stds T then
+       if is_frac_type ctxt T then
+         case typedef_info ctxt s of
+           SOME {abs_type, rep_type, Abs_name, ...} =>
+           [(Abs_name,
+             varify_and_instantiate_type ctxt abs_type T rep_type --> T)]
+         | NONE => [] (* impossible *)
+       else if is_datatype ctxt stds T then
          case Datatype.get_info thy s of
            SOME {index, descr, ...} =>
            let

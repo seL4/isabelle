@@ -45,9 +45,10 @@ val may_use_binary_ints =
       | aux def (t1 $ t2) = aux def t1 andalso aux def t2
       | aux def (t as Const (s, _)) =
         (not def orelse t <> @{const Suc}) andalso
-        not (member (op =) [@{const_name Abs_Frac}, @{const_name Rep_Frac},
-                            @{const_name nat_gcd}, @{const_name nat_lcm},
-                            @{const_name Frac}, @{const_name norm_frac}] s)
+        not (member (op =)
+               [@{const_name Nitpick.Abs_Frac}, @{const_name Nitpick.Rep_Frac},
+                @{const_name Nitpick.nat_gcd}, @{const_name Nitpick.nat_lcm},
+                @{const_name Nitpick.Frac}, @{const_name Nitpick.norm_frac}] s)
       | aux def (Abs (_, _, t')) = aux def t'
       | aux _ _ = true
   in aux end
@@ -1061,10 +1062,12 @@ fun simplify_constrs_and_sels ctxt t =
         (t = t' andalso is_sel_like_and_no_discr s andalso
          sel_no_from_name s = n)
       | is_nth_sel_on _ _ _ = false
-    fun do_term (Const (@{const_name Rep_Frac}, _)
-                 $ (Const (@{const_name Abs_Frac}, _) $ t1)) [] = do_term t1 []
-      | do_term (Const (@{const_name Abs_Frac}, _)
-                 $ (Const (@{const_name Rep_Frac}, _) $ t1)) [] = do_term t1 []
+    fun do_term (Const (@{const_name Nitpick.Rep_Frac}, _)
+                 $ (Const (@{const_name Nitpick.Abs_Frac}, _) $ t1)) [] =
+        do_term t1 []
+      | do_term (Const (@{const_name Nitpick.Abs_Frac}, _)
+                 $ (Const (@{const_name Nitpick.Rep_Frac}, _) $ t1)) [] =
+        do_term t1 []
       | do_term (t1 $ t2) args = do_term t1 (do_term t2 [] :: args)
       | do_term (t as Const (x as (s, T))) (args as _ :: _) =
         ((if is_constr_like ctxt x then

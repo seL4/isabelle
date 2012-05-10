@@ -569,8 +569,8 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, ...}) eq =
             Op1 (Not, bool_T, Any, Op2 (Less, bool_T, Any, sub t2, sub t1))
           else
             do_apply t0 ts
-        | (Const (@{const_name nat_gcd}, T), []) => Cst (Gcd, T, Any)
-        | (Const (@{const_name nat_lcm}, T), []) => Cst (Lcm, T, Any)
+        | (Const (@{const_name Nitpick.nat_gcd}, T), []) => Cst (Gcd, T, Any)
+        | (Const (@{const_name Nitpick.nat_lcm}, T), []) => Cst (Lcm, T, Any)
         | (Const (x as (s as @{const_name uminus_class.uminus}, T)), []) =>
           if is_built_in_const thy stds x then
             let val num_T = domain_type T in
@@ -586,8 +586,9 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, ...}) eq =
         | (Const (@{const_name safe_The},
                   Type (@{type_name fun}, [_, T2])), [t1]) =>
           Op1 (SafeThe, T2, Any, sub t1)
-        | (Const (@{const_name Frac}, T), []) => Cst (Fracs, T, Any)
-        | (Const (@{const_name norm_frac}, T), []) => Cst (NormFrac, T, Any)
+        | (Const (@{const_name Nitpick.Frac}, T), []) => Cst (Fracs, T, Any)
+        | (Const (@{const_name Nitpick.norm_frac}, T), []) =>
+          Cst (NormFrac, T, Any)
         | (Const (@{const_name of_nat}, T as @{typ "nat => int"}), []) =>
           Cst (NatToInt, T, Any)
         | (Const (@{const_name of_nat},

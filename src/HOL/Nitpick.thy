@@ -72,6 +72,10 @@ lemma tranclp_unfold [nitpick_unfold, no_atp]:
 "tranclp r a b \<equiv> (a, b) \<in> trancl {(x, y). r x y}"
 by (simp add: trancl_def)
 
+lemma [nitpick_simp, no_atp]:
+"of_nat n = (if n = 0 then 0 else 1 + of_nat (n - 1))"
+by (case_tac n) auto
+
 definition prod :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set" where
 "prod A B = {(a, b). a \<in> A \<and> b \<in> B}"
 
@@ -93,7 +97,7 @@ inductive fold_graph' :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> '
 
 text {*
 The following lemmas are not strictly necessary but they help the
-\textit{special\_level} optimization.
+\textit{specialize} optimization.
 *}
 
 lemma The_psimp [nitpick_psimp, no_atp]:

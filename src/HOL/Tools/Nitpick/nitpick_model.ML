@@ -574,7 +574,7 @@ and reconstruct_term maybe_opt unfold pool
                     |> mk_tuple (HOLogic.mk_tupleT uncur_arg_Ts)
                     |> dest_n_tuple (length uncur_arg_Ts)
                 val t =
-                  if constr_s = @{const_name Abs_Frac} then
+                  if constr_s = @{const_name Nitpick.Abs_Frac} then
                     case ts of
                       [Const (@{const_name Pair}, _) $ t1 $ t2] =>
                       frac_from_term_pair (body_type T) t1 t2
