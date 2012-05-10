@@ -469,7 +469,7 @@ fun prove_eqs quiet_mode cs params intr_ts intrs
             fun list_ex ([], t) = t
               | list_ex ((a, T) :: vars, t) =
                   HOLogic.exists_const T $ Abs (a, T, list_ex (vars, t));
-            val conjs = map2 (curry HOLogic.mk_eq) frees us @ (map HOLogic.dest_Trueprop ts);
+            val conjs = map2 (curry HOLogic.mk_eq) frees us @ map HOLogic.dest_Trueprop ts;
           in
             list_ex (params', if null conjs then @{term True} else foldr1 HOLogic.mk_conj conjs)
           end;
@@ -479,26 +479,30 @@ fun prove_eqs quiet_mode cs params intr_ts intrs
           else foldr1 HOLogic.mk_disj (map mk_intr_conj c_intrs);
         val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
         fun prove_intr1 (i, _) = Subgoal.FOCUS_PREMS (fn {params, prems, ...} =>
-            let
-              val (prems', last_prem) = split_last prems;
-            in
-              EVERY1 (select_disj (length c_intrs) (i + 1)) THEN
-              EVERY (replicate (length params) (rtac @{thm exI} 1)) THEN
-              EVERY (map (fn prem => (rtac @{thm conjI} 1 THEN rtac prem 1)) prems') THEN
-              rtac last_prem 1
-            end) ctxt' 1;
+            EVERY1 (select_disj (length c_intrs) (i + 1)) THEN
+            EVERY (replicate (length params) (rtac @{thm exI} 1)) THEN
+            (if null prems then rtac @{thm TrueI} 1
+             else
+              let
+                val (prems', last_prem) = split_last prems;
+              in
+                EVERY (map (fn prem => (rtac @{thm conjI} 1 THEN rtac prem 1)) prems') THEN
+                rtac last_prem 1
+              end)) ctxt' 1;
         fun prove_intr2 (((_, _, us, _), ts, params'), intr) =
           EVERY (replicate (length params') (etac @{thm exE} 1)) THEN
-          EVERY (replicate (length ts + length us - 1) (etac @{thm conjE} 1)) THEN
-          Subgoal.FOCUS_PREMS (fn {params, prems, ...} =>
-            let
-              val (eqs, prems') = chop (length us) prems;
-              val rew_thms = map (fn th => th RS @{thm eq_reflection}) eqs;
-            in
-              rewrite_goal_tac rew_thms 1 THEN
-              rtac intr 1 THEN
-              EVERY (map (fn p => rtac p 1) prems')
-            end) ctxt' 1;
+          (if null ts andalso null us then rtac intr 1
+           else
+            EVERY (replicate (length ts + length us - 1) (etac @{thm conjE} 1)) THEN
+            Subgoal.FOCUS_PREMS (fn {params, prems, ...} =>
+              let
+                val (eqs, prems') = chop (length us) prems;
+                val rew_thms = map (fn th => th RS @{thm eq_reflection}) eqs;
+              in
+                rewrite_goal_tac rew_thms 1 THEN
+                rtac intr 1 THEN
+                EVERY (map (fn p => rtac p 1) prems')
+              end) ctxt' 1);
       in
         Skip_Proof.prove ctxt' [] [] eq (fn _ =>
           rtac @{thm iffI} 1 THEN etac (#1 elim) 1 THEN
