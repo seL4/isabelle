@@ -1162,7 +1162,7 @@ fun filter_type_args_in_iterm thy monom_constrs type_enc =
       | filt _ tm = tm
   in filt 0 end
 
-fun iformula_from_prop ctxt type_enc eq_as_iff =
+fun iformula_from_prop ctxt type_enc iff_for_eq =
   let
     val thy = Proof_Context.theory_of ctxt
     fun do_term bs t atomic_Ts =
@@ -1203,7 +1203,7 @@ fun iformula_from_prop ctxt type_enc eq_as_iff =
       | @{const HOL.implies} $ t1 $ t2 =>
         do_conn bs AImplies (Option.map not pos) t1 pos t2
       | Const (@{const_name HOL.eq}, Type (_, [@{typ bool}, _])) $ t1 $ t2 =>
-        if eq_as_iff then do_conn bs AIff NONE t1 NONE t2 else do_term bs t
+        if iff_for_eq then do_conn bs AIff NONE t1 NONE t2 else do_term bs t
       | _ => do_term bs t
   in do_formula [] end
 
@@ -1252,10 +1252,17 @@ fun presimp_prop ctxt type_enc t =
   end
   handle TERM _ => @{const True}
 
-fun make_formula ctxt type_enc eq_as_iff name stature kind t =
+(* Satallax prefers "=" to "<=>" (for definitions) and Metis (CNF) requires "="
+   for obscure technical reasons. *)
+fun should_use_iff_for_eq CNF _ = false
+  | should_use_iff_for_eq (THF _) format = not (is_type_enc_higher_order format)
+  | should_use_iff_for_eq _ _ = true
+
+fun make_formula ctxt format type_enc iff_for_eq name stature kind t =
   let
+    val iff_for_eq = iff_for_eq andalso should_use_iff_for_eq format type_enc
     val (iformula, atomic_Ts) =
-      iformula_from_prop ctxt type_enc eq_as_iff (SOME (kind <> Conjecture)) t
+      iformula_from_prop ctxt type_enc iff_for_eq (SOME (kind <> Conjecture)) t
                          []
       |>> close_iformula_universally
   in
@@ -1263,16 +1270,8 @@ fun make_formula ctxt type_enc eq_as_iff name stature kind t =
      atomic_types = atomic_Ts}
   end
 
-(* Satallax prefers "=" to "<=>" *)
-fun is_format_eq_as_iff FOF = true
-  | is_format_eq_as_iff (TFF _) = true
-  | is_format_eq_as_iff (DFG _) = true
-  | is_format_eq_as_iff _ = false
-
-fun make_fact ctxt format type_enc eq_as_iff ((name, stature), t) =
-  case t |> make_formula ctxt type_enc
-                         (eq_as_iff andalso is_format_eq_as_iff format) name
-                         stature Axiom of
+fun make_fact ctxt format type_enc iff_for_eq ((name, stature), t) =
+  case t |> make_formula ctxt format type_enc iff_for_eq name stature Axiom of
     formula as {iformula = AAtom (IConst ((s, _), _, _)), ...} =>
     if s = tptp_true then NONE else SOME formula
   | formula => SOME formula
@@ -1287,8 +1286,7 @@ fun s_not_prop (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
 fun make_conjecture ctxt format type_enc =
   map (fn ((name, stature), (kind, t)) =>
           t |> kind = Conjecture ? s_not
-            |> make_formula ctxt type_enc (is_format_eq_as_iff format) name
-                            stature kind)
+            |> make_formula ctxt format type_enc true name stature kind)
 
 (** Finite and infinite type inference **)
 
