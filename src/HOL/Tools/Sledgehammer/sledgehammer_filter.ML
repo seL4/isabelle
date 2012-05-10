@@ -190,10 +190,16 @@ fun scope_of_thm global assms chained_ths th =
   else if is_assum assms th then Assum
   else Local
 
+val may_be_induction =
+  exists_subterm (fn Var (_, Type (@{type_name fun}, [_, T])) =>
+                     body_type T = @{typ bool}
+                   | _ => false)
+
 fun status_of_thm css_table name th =
   (* FIXME: use structured name *)
-  if String.isSubstring ".induct" name orelse
-     String.isSubstring ".inducts" name then
+  if (String.isSubstring ".induct" name orelse
+      String.isSubstring ".inducts" name) andalso
+     may_be_induction (prop_of th) then
     Induction
   else case Termtab.lookup css_table (prop_of th) of
     SOME status => status

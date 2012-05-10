@@ -172,9 +172,6 @@ fun get_minimizing_prover ctxt mode name params minimize_command problem =
   get_prover ctxt mode name params minimize_command problem
   |> minimize ctxt mode name params problem
 
-fun is_induction_fact (Untranslated_Fact ((_, (_, Induction)), _)) = true
-  | is_induction_fact _ = false
-
 fun launch_prover (params as {debug, verbose, blocking, max_relevant, slice,
                               timeout, expect, ...})
         mode minimize_command only {state, goal, subgoal, subgoal_count, facts}
@@ -191,14 +188,13 @@ fun launch_prover (params as {debug, verbose, blocking, max_relevant, slice,
     fun desc () =
       prover_description ctxt params name num_facts subgoal subgoal_count goal
     val problem =
-      let
-        val filter_induction = filter_out is_induction_fact
-      in {state = state, goal = goal, subgoal = subgoal,
-         subgoal_count = subgoal_count, facts =
-          ((Sledgehammer_Provers.is_ho_atp ctxt name |> not) ? filter_induction)
-            facts
-          |> take num_facts}
-      end
+      {state = state, goal = goal, subgoal = subgoal,
+       subgoal_count = subgoal_count,
+       facts = facts
+               |> not (Sledgehammer_Provers.is_ho_atp ctxt name)
+                  ? filter_out (curry (op =) Induction o snd o snd o fst
+                                o untranslated_fact)
+               |> take num_facts}
     fun really_go () =
       problem
       |> get_minimizing_prover ctxt mode name params minimize_command
