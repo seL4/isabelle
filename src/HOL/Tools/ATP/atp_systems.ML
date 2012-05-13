@@ -325,20 +325,16 @@ val leo2_config : atp_config =
    required_vars = [],
    arguments =
      fn _ => fn _ => fn sos => fn timeout => fn _ =>
-        "--proofoutput 1 --timeout " ^ string_of_int (to_secs 1 timeout)
-        |> sos = sosN ? prefix "--sos ",
+        "--proofoutput 1 --timeout " ^ string_of_int (to_secs 1 timeout),
    proof_delims = tstp_proof_delims,
    known_failures =
      known_szs_status_failures @
      [(TimedOut, "CPU time limit exceeded, terminating"),
       (GaveUp, "No.of.Axioms")],
    prem_kind = Hypothesis,
-   best_slices = fn ctxt =>
+   best_slices =
      (* FUDGE *)
-     [(0.667, (false, ((100, leo2_thf0, "mono_native_higher", keep_lamsN, false), sosN))),
-      (0.333, (true, ((50, leo2_thf0, "mono_native_higher", keep_lamsN, false), no_sosN)))]
-     |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
-         else I)}
+     K [(1.0, (true, ((20, leo2_thf0, "mono_native_higher", keep_lamsN, false), "")))]}
 
 val leo2 = (leo2N, fn () => leo2_config)
 
@@ -359,7 +355,7 @@ val satallax_config : atp_config =
    prem_kind = Definition (* motivated by "isabelle tptp_sledgehammer" tool *),
    best_slices =
      (* FUDGE *)
-     K [(1.0, (true, ((75, satallax_thf0, "mono_native_higher", keep_lamsN, false), "")))]}
+     K [(1.0, (true, ((120, satallax_thf0, "mono_native_higher", keep_lamsN, false), "")))]}
 
 val satallax = (satallaxN, fn () => satallax_config)
 
