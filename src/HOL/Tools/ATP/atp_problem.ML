@@ -9,7 +9,7 @@ signature ATP_PROBLEM =
 sig
   datatype ('a, 'b) ho_term =
     ATerm of 'a * ('a, 'b) ho_term list |
-    AAbs of ('a * 'b) * ('a, 'b) ho_term
+    AAbs of (('a * 'b) * ('a, 'b) ho_term) * ('a, 'b) ho_term list
   datatype quantifier = AForall | AExists
   datatype connective = ANot | AAnd | AOr | AImplies | AIff
   datatype ('a, 'b, 'c) formula =
@@ -141,7 +141,7 @@ open ATP_Util
 
 datatype ('a, 'b) ho_term =
   ATerm of 'a * ('a, 'b) ho_term list |
-  AAbs of ('a * 'b) * ('a, 'b) ho_term
+  AAbs of (('a * 'b) * ('a, 'b) ho_term) * ('a, 'b) ho_term list
 datatype quantifier = AForall | AExists
 datatype connective = ANot | AAnd | AOr | AImplies | AIff
 datatype ('a, 'b, 'c) formula =
@@ -394,22 +394,26 @@ fun tptp_string_for_term _ (ATerm (s, [])) = s
        |> is_format_higher_order format ? enclose "(" ")"
      else case (s = tptp_ho_forall orelse s = tptp_ho_exists,
                 s = tptp_choice andalso is_format_with_choice format, ts) of
-       (true, _, [AAbs ((s', ty), tm)]) =>
+       (true, _, [AAbs (((s', ty), tm), [])]) =>
        (* Use syntactic sugar "!" and "?" instead of "!!" and "??" whenever
           possible, to work around LEO-II 1.2.8 parser limitation. *)
        tptp_string_for_formula format
            (AQuant (if s = tptp_ho_forall then AForall else AExists,
                     [(s', SOME ty)], AAtom tm))
-     | (_, true, [AAbs ((s', ty), tm)]) =>
+     | (_, true, [AAbs (((s', ty), tm), args)]) =>
        (* There is code in "ATP_Problem_Generate" to ensure that "Eps" is always
           applied to an abstraction. *)
-       tptp_choice ^ "[" ^ s' ^ " : " ^ string_for_type format ty ^ "]: " ^
-       tptp_string_for_term format tm ^ ""
-       |> enclose "(" ")"
+       tptp_string_for_app format
+           (tptp_choice ^ "[" ^ s' ^ " : " ^ string_for_type format ty ^ "]: " ^
+            tptp_string_for_term format tm ^ ""
+            |> enclose "(" ")")
+           (map (tptp_string_for_term format) args)
      | _ => tptp_string_for_app format s (map (tptp_string_for_term format) ts))
-  | tptp_string_for_term (format as THF _) (AAbs ((s, ty), tm)) =
-    "(^[" ^ s ^ " : " ^ string_for_type format ty ^ "]: " ^
-    tptp_string_for_term format tm ^ ")"
+  | tptp_string_for_term (format as THF _) (AAbs (((s, ty), tm), args)) =
+    tptp_string_for_app format
+        ("(^[" ^ s ^ " : " ^ string_for_type format ty ^ "]: " ^
+         tptp_string_for_term format tm ^ ")")
+        (map (tptp_string_for_term format) args)
   | tptp_string_for_term _ _ =
     raise Fail "unexpected term in first-order format"
 and tptp_string_for_formula format (AQuant (q, xs, phi)) =
@@ -809,8 +813,9 @@ fun nice_atp_problem readable_names format problem =
         pool_map nice_name names ##>> nice_type ty #>> ATyAbs
     fun nice_term (ATerm (name, ts)) =
         nice_name name ##>> pool_map nice_term ts #>> ATerm
-      | nice_term (AAbs ((name, ty), tm)) =
-        nice_name name ##>> nice_type ty ##>> nice_term tm #>> AAbs
+      | nice_term (AAbs (((name, ty), tm), args)) =
+        nice_name name ##>> nice_type ty ##>> nice_term tm
+        ##>> pool_map nice_term args #>> AAbs
     fun nice_formula (AQuant (q, xs, phi)) =
         pool_map nice_name (map fst xs)
         ##>> pool_map (fn NONE => pair NONE

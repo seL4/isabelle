@@ -919,8 +919,8 @@ fun add_term_vars bounds (ATerm (name as (s, _), tms)) =
      else
        I)
     #> fold (add_term_vars bounds) tms
-  | add_term_vars bounds (AAbs ((name, _), tm)) =
-    add_term_vars (name :: bounds) tm
+  | add_term_vars bounds (AAbs (((name, _), tm), args)) =
+    add_term_vars (name :: bounds) tm #> fold (add_term_vars bounds) args
 fun close_formula_universally phi = close_universally add_term_vars phi
 
 fun add_iterm_vars bounds (IApp (tm1, tm2)) =
@@ -1073,19 +1073,22 @@ fun introduce_proxies_in_iterm type_enc =
              | (false, "c_All") => tweak_ho_quant tptp_ho_forall T args
              | (false, "c_Ex") => tweak_ho_quant tptp_ho_exists T args
              | (false, s) =>
-               if is_tptp_equal s andalso length args = 2 then
-                 IConst (`I tptp_equal, T, [])
+               if is_tptp_equal s then
+                 if length args = 2 then
+                   IConst (`I tptp_equal, T, [])
+                 else
+                   (* Eta-expand partially applied THF equality, because the
+                      LEO-II and Satallax parsers complain about not being able to
+                      infer the type of "=". *)
+                   let val i_T = domain_type T in
+                     IAbs ((`I "Y", i_T),
+                           IAbs ((`I "Z", i_T),
+                                 IApp (IApp (IConst (`I tptp_equal, T, []),
+                                             IConst (`I "Y", i_T, [])),
+                                       IConst (`I "Z", i_T, []))))
+                   end
                else
-                 (* Eta-expand partially applied THF equality, because the
-                    LEO-II and Satallax parsers complain about not being able to
-                    infer the type of "=". *)
-                 let val i_T = domain_type T in
-                   IAbs ((`I "X", i_T),
-                         IAbs ((`I "Y", i_T),
-                               IApp (IApp (IConst (`I tptp_equal, T, []),
-                                           IConst (`I "X", i_T, [])),
-                                     IConst (`I "Y", i_T, []))))
-                 end
+                 IConst (name, T, [])
              | _ => IConst (name, T, [])
            else
              IConst (proxy_base |>> prefix const_prefix, T, T_args)
@@ -1908,16 +1911,6 @@ fun tag_with_type ctxt mono type_enc pos T tm =
        | _ => raise Fail "unexpected lambda-abstraction")
 and ho_term_from_iterm ctxt mono type_enc pos =
   let
-    fun beta_red bs (IApp (IAbs ((name, _), tm), tm')) =
-        beta_red ((name, beta_red bs tm') :: bs) tm
-      | beta_red bs (IApp tmp) = IApp (pairself (beta_red bs) tmp)
-      | beta_red bs (tm as IConst (name, _, _)) =
-        (case AList.lookup (op =) bs name of
-           SOME tm' => tm'
-         | NONE => tm)
-      | beta_red bs (IAbs ((name, T), tm)) =
-        IAbs ((name, T), beta_red (AList.delete (op =) name bs) tm)
-      | beta_red _ tm = tm
     fun term site u =
       let
         val (head, args) = strip_iterm_comb u
@@ -1936,8 +1929,8 @@ and ho_term_from_iterm ctxt mono type_enc pos =
             map (term Elsewhere) args |> mk_aterm type_enc name []
           | IAbs ((name, T), tm) =>
             if is_type_enc_higher_order type_enc then
-              AAbs ((name, ho_type_from_typ type_enc true 0 T),
-                    term Elsewhere tm)
+              AAbs (((name, ho_type_from_typ type_enc true 0 T),
+                     term Elsewhere tm), map (term Elsewhere) args)
             else
               raise Fail "unexpected lambda-abstraction"
           | IApp _ => raise Fail "impossible \"IApp\""
@@ -1948,7 +1941,7 @@ and ho_term_from_iterm ctxt mono type_enc pos =
         else
           t
       end
-  in term (Top_Level pos) o beta_red [] end
+  in term (Top_Level pos) end
 and formula_from_iformula ctxt polym_constrs mono type_enc should_guard_var =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -2538,7 +2531,8 @@ fun undeclared_syms_in_problem type_enc problem =
     fun do_term pred_sym (ATerm (name as (s, _), tms)) =
         do_sym name (fn _ => default_type type_enc pred_sym s (length tms))
         #> fold (do_term false) tms
-      | do_term _ (AAbs ((_, ty), tm)) = do_type ty #> do_term false tm
+      | do_term _ (AAbs (((_, ty), tm), args)) =
+        do_type ty #> do_term false tm #> fold (do_term false) args
     fun do_formula (AQuant (_, xs, phi)) =
         fold do_type (map_filter snd xs) #> do_formula phi
       | do_formula (AConn (_, phis)) = fold do_formula phis
@@ -2593,10 +2587,8 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
        normally the case for "metis" and the minimizer). *)
     val app_op_level =
       if length facts > app_op_and_predicator_threshold then
-        if polymorphism_of_type_enc type_enc = Polymorphic then
-          Min_App_Op
-        else
-          Sufficient_App_Op
+        if polymorphism_of_type_enc type_enc = Polymorphic then Min_App_Op
+        else Sufficient_App_Op
       else
         Sufficient_App_Op_And_Predicator
     val lam_trans =
@@ -2691,7 +2683,8 @@ fun atp_problem_selection_weights problem =
     fun add_term_weights weight (ATerm (s, tms)) =
         is_tptp_user_symbol s ? Symtab.default (s, weight)
         #> fold (add_term_weights weight) tms
-      | add_term_weights weight (AAbs (_, tm)) = add_term_weights weight tm
+      | add_term_weights weight (AAbs ((_, tm), args)) =
+        add_term_weights weight tm #> fold (add_term_weights weight) args
     fun add_line_weights weight (Formula (_, _, phi, _, _)) =
         formula_fold NONE (K (add_term_weights weight)) phi
       | add_line_weights _ _ = I
@@ -2764,7 +2757,8 @@ fun atp_problem_term_order_info problem =
           #> fold (add_term_deps head) args
         else
           I
-      | add_term_deps head (AAbs (_, tm)) = add_term_deps head tm
+      | add_term_deps head (AAbs ((_, tm), args)) =
+        add_term_deps head tm #> fold (add_term_deps head) args
     fun add_intro_deps pred (Formula (_, role, phi, _, info)) =
         if pred (role, info) then
           let val (hyps, concl) = strip_ahorn_etc phi in
