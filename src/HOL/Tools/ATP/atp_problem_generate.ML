@@ -1240,6 +1240,19 @@ fun freeze_term t =
       | freeze t = t
   in t |> exists_subterm is_Var t ? freeze end
 
+fun eta_reduce_def t =
+  case t of
+    Const (@{const_name HOL.eq}, _) $ lhs $ rhs =>
+    (case strip_comb lhs of
+       (c as Const (_, T), args) =>
+       if forall is_Var args andalso not (has_duplicates (op =) args) then
+         Const (@{const_name HOL.eq}, T --> T --> @{typ bool})
+         $ c $ fold_rev lambda args rhs
+       else
+         t
+     | _ => t)
+  | _ => t
+
 fun presimp_prop ctxt type_enc t =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -1247,9 +1260,11 @@ fun presimp_prop ctxt type_enc t =
               |> transform_elim_prop
               |> Object_Logic.atomize_term thy
     val need_trueprop = (fastype_of t = @{typ bool})
+    val is_ho = is_type_enc_higher_order type_enc
   in
-    t |> need_trueprop ? HOLogic.mk_Trueprop
-      |> not (is_type_enc_higher_order type_enc) ? extensionalize_term ctxt
+    t |> is_ho ? eta_reduce_def
+      |> need_trueprop ? HOLogic.mk_Trueprop
+      |> not is_ho ? extensionalize_term ctxt
       |> presimplify_term thy
       |> HOLogic.dest_Trueprop
   end
