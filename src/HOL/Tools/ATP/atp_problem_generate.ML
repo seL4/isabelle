@@ -100,8 +100,8 @@ sig
     Proof.context -> type_enc -> string -> term list -> term list * term list
   val factsN : string
   val prepare_atp_problem :
-    Proof.context -> atp_format -> formula_kind -> formula_kind -> type_enc
-    -> bool -> string -> bool -> bool -> bool -> term list -> term
+    Proof.context -> atp_format -> formula_kind -> type_enc -> bool -> string
+    -> bool -> bool -> bool -> term list -> term
     -> ((string * stature) * term) list
     -> string problem * string Symtab.table * (string * stature) list vector
        * (string * term) list * int Symtab.table
@@ -2284,15 +2284,14 @@ fun decl_line_for_sym ctxt mono type_enc s
                ? curry ATyAbs (map (tvar_name o fst o dest_TVar) T_args))
   end
 
-fun honor_conj_sym_kind in_conj conj_sym_kind =
-  if in_conj then (conj_sym_kind, conj_sym_kind = Conjecture ? mk_anot)
-  else (Axiom, I)
+fun honor_conj_sym_kind in_conj =
+  if in_conj then (Hypothesis, I) else (Axiom, I)
 
-fun formula_line_for_guards_sym_decl ctxt conj_sym_kind mono type_enc n s j
+fun formula_line_for_guards_sym_decl ctxt mono type_enc n s j
                                      (s', T_args, T, _, ary, in_conj) =
   let
     val thy = Proof_Context.theory_of ctxt
-    val (kind, maybe_negate) = honor_conj_sym_kind in_conj conj_sym_kind
+    val (kind, maybe_negate) = honor_conj_sym_kind in_conj
     val (arg_Ts, res_T) = chop_fun ary T
     val bound_names = 1 upto ary |> map (`I o make_bound_var o string_of_int)
     val bounds =
@@ -2326,7 +2325,7 @@ fun formula_line_for_guards_sym_decl ctxt conj_sym_kind mono type_enc n s j
              NONE, isabelle_info inductiveN helper_rank)
   end
 
-fun formula_lines_for_tags_sym_decl ctxt conj_sym_kind mono type_enc n s
+fun formula_lines_for_tags_sym_decl ctxt mono type_enc n s
         (j, (s', T_args, T, pred_sym, ary, in_conj)) =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -2335,7 +2334,7 @@ fun formula_lines_for_tags_sym_decl ctxt conj_sym_kind mono type_enc n s
     val ident_base =
       tags_sym_formula_prefix ^ s ^
       (if n > 1 then "_" ^ string_of_int j else "")
-    val (kind, maybe_negate) = honor_conj_sym_kind in_conj conj_sym_kind
+    val (kind, maybe_negate) = honor_conj_sym_kind in_conj
     val (arg_Ts, res_T) = chop_fun ary T
     val bound_names = 1 upto ary |> map (`I o make_bound_var o string_of_int)
     val bounds = bound_names |> map (fn name => ATerm (name, []))
@@ -2377,7 +2376,7 @@ fun rationalize_decls thy (decls as decl :: (decls' as _ :: _)) =
     end
   | rationalize_decls _ decls = decls
 
-fun problem_lines_for_sym_decls ctxt conj_sym_kind mono type_enc (s, decls) =
+fun problem_lines_for_sym_decls ctxt mono type_enc (s, decls) =
   case type_enc of
     Native _ => [decl_line_for_sym ctxt mono type_enc s (hd decls)]
   | Guards (_, level) =>
@@ -2390,8 +2389,7 @@ fun problem_lines_for_sym_decls ctxt conj_sym_kind mono type_enc (s, decls) =
                          o result_type_of_decl)
     in
       (0 upto length decls - 1, decls)
-      |-> map2 (formula_line_for_guards_sym_decl ctxt conj_sym_kind mono
-                                                 type_enc n s)
+      |-> map2 (formula_line_for_guards_sym_decl ctxt mono type_enc n s)
     end
   | Tags (_, level) =>
     if granularity_of_type_level level = All_Vars then
@@ -2399,30 +2397,26 @@ fun problem_lines_for_sym_decls ctxt conj_sym_kind mono type_enc (s, decls) =
     else
       let val n = length decls in
         (0 upto n - 1 ~~ decls)
-        |> maps (formula_lines_for_tags_sym_decl ctxt conj_sym_kind mono
-                                                 type_enc n s)
+        |> maps (formula_lines_for_tags_sym_decl ctxt mono type_enc n s)
       end
 
-fun problem_lines_for_sym_decl_table ctxt conj_sym_kind mono type_enc mono_Ts
-                                     sym_decl_tab =
+fun problem_lines_for_sym_decl_table ctxt mono type_enc mono_Ts sym_decl_tab =
   let
     val syms = sym_decl_tab |> Symtab.dest |> sort_wrt fst
     val mono_lines = problem_lines_for_mono_types ctxt mono type_enc mono_Ts
     val decl_lines =
-      fold_rev (append o problem_lines_for_sym_decls ctxt conj_sym_kind mono
-                             type_enc)
-               syms []
+      fold_rev (append o problem_lines_for_sym_decls ctxt mono type_enc) syms []
   in mono_lines @ decl_lines end
 
 fun pair_append (xs1, xs2) (ys1, ys2) = (xs1 @ ys1, xs2 @ ys2)
 
-fun do_uncurried_alias_lines_for_sym ctxt monom_constrs conj_sym_kind mono
-        type_enc sym_tab0 sym_tab base_s0 types in_conj =
+fun do_uncurried_alias_lines_for_sym ctxt monom_constrs mono type_enc sym_tab0
+                                     sym_tab base_s0 types in_conj =
   let
     fun do_alias ary =
       let
         val thy = Proof_Context.theory_of ctxt
-        val (kind, maybe_negate) = honor_conj_sym_kind in_conj conj_sym_kind
+        val (kind, maybe_negate) = honor_conj_sym_kind in_conj
         val base_name = base_s0 |> `(make_fixed_const (SOME type_enc))
         val T = case types of [T] => T | _ => robust_const_type thy base_s0
         val T_args = robust_const_typargs thy (base_s0, T)
@@ -2461,28 +2455,28 @@ fun do_uncurried_alias_lines_for_sym ctxt monom_constrs conj_sym_kind mono
             else pair_append (do_alias (ary - 1)))
       end
   in do_alias end
-fun uncurried_alias_lines_for_sym ctxt monom_constrs conj_sym_kind mono type_enc
-        sym_tab0 sym_tab (s, {min_ary, types, in_conj, ...} : sym_info) =
+fun uncurried_alias_lines_for_sym ctxt monom_constrs mono type_enc sym_tab0
+        sym_tab (s, {min_ary, types, in_conj, ...} : sym_info) =
   case unprefix_and_unascii const_prefix s of
     SOME mangled_s =>
     if String.isSubstring uncurried_alias_sep mangled_s then
       let
         val base_s0 = mangled_s |> unmangled_const_name |> hd |> invert_const
       in
-        do_uncurried_alias_lines_for_sym ctxt monom_constrs conj_sym_kind mono
-            type_enc sym_tab0 sym_tab base_s0 types in_conj min_ary
+        do_uncurried_alias_lines_for_sym ctxt monom_constrs mono type_enc
+            sym_tab0 sym_tab base_s0 types in_conj min_ary
       end
     else
       ([], [])
   | NONE => ([], [])
-fun uncurried_alias_lines_for_sym_table ctxt monom_constrs conj_sym_kind mono
-        type_enc uncurried_aliases sym_tab0 sym_tab =
+fun uncurried_alias_lines_for_sym_table ctxt monom_constrs mono type_enc
+                                        uncurried_aliases sym_tab0 sym_tab =
   ([], [])
   |> uncurried_aliases
      ? Symtab.fold_rev
            (pair_append
-            o uncurried_alias_lines_for_sym ctxt monom_constrs conj_sym_kind
-                  mono type_enc sym_tab0 sym_tab) sym_tab
+            o uncurried_alias_lines_for_sym ctxt monom_constrs mono type_enc
+                                            sym_tab0 sym_tab) sym_tab
 
 val implicit_declsN = "Should-be-implicit typings"
 val explicit_declsN = "Explicit typings"
@@ -2575,9 +2569,9 @@ fun all_constrs_of_polymorphic_datatypes thy =
 
 val app_op_and_predicator_threshold = 50
 
-fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
-                        lam_trans uncurried_aliases readable_names preproc
-                        hyp_ts concl_t facts =
+fun prepare_atp_problem ctxt format prem_kind type_enc exporter lam_trans
+                        uncurried_aliases readable_names preproc hyp_ts concl_t
+                        facts =
   let
     val thy = Proof_Context.theory_of ctxt
     val type_enc = type_enc |> adjust_type_enc format
@@ -2619,13 +2613,12 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
       helpers @ conjs @ facts |> monotonic_types_for_facts ctxt mono type_enc
     val class_decl_lines = decl_lines_for_classes type_enc classes
     val (uncurried_alias_eq_tms, uncurried_alias_eq_lines) =
-      uncurried_alias_lines_for_sym_table ctxt monom_constrs conj_sym_kind mono
-          type_enc uncurried_aliases sym_tab0 sym_tab
+      uncurried_alias_lines_for_sym_table ctxt monom_constrs mono type_enc
+                                          uncurried_aliases sym_tab0 sym_tab
     val sym_decl_lines =
       (conjs, helpers @ facts, uncurried_alias_eq_tms)
       |> sym_decl_table_for_facts thy type_enc sym_tab
-      |> problem_lines_for_sym_decl_table ctxt conj_sym_kind mono type_enc
-                                          mono_Ts
+      |> problem_lines_for_sym_decl_table ctxt mono type_enc mono_Ts
     val num_facts = length facts
     val fact_lines =
       map (formula_line_for_fact ctxt polym_constrs fact_prefix
