@@ -37,6 +37,7 @@ sig
   val axioms_of_ref_graph : ref_graph -> atom list -> atom list
   val tainted_atoms_of_ref_graph : ref_graph -> atom list -> atom list
   val sequents_of_ref_graph : ref_graph -> ref_sequent list
+  val string_of_ref_graph : ref_graph -> string
   val redirect_sequent : atom list -> atom -> ref_sequent -> direct_sequent
   val direct_graph : direct_sequent list -> direct_graph
   val redirect_graph : atom list -> atom list -> ref_graph -> direct_proof
@@ -89,6 +90,14 @@ fun tainted_atoms_of_ref_graph ref_graph = Atom_Graph.all_succs ref_graph
 fun sequents_of_ref_graph ref_graph =
   map (`(Atom_Graph.immediate_preds ref_graph))
       (filter_out (Atom_Graph.is_minimal ref_graph) (Atom_Graph.keys ref_graph))
+
+val string_of_context = map Atom.string_of #> space_implode ", "
+
+fun string_of_sequent (gamma, c) =
+  string_of_context gamma ^ " \<turnstile> " ^ Atom.string_of c
+
+val string_of_ref_graph =
+  sequents_of_ref_graph #> map string_of_sequent #> implode
 
 fun redirect_sequent tainted bot (gamma, c) =
   if member atom_eq tainted c then
