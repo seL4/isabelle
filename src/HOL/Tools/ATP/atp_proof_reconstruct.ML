@@ -299,9 +299,7 @@ val have_prefix = "f"
 fun raw_label_for_name (num, ss) =
   case resolve_conjecture ss of
     [j] => (conjecture_prefix, j)
-  | _ => case Int.fromString num of
-           SOME j => (raw_prefix, j)
-         | NONE => (raw_prefix ^ num, 0)
+  | _ => (raw_prefix ^ ascii_of num, 0)
 
 (**** INTERPRETATION OF TSTP SYNTAX TREES ****)
 
@@ -797,10 +795,12 @@ val relabel_proof =
 
 fun string_for_proof ctxt0 type_enc lam_trans i n =
   let
-    val ctxt =
-      ctxt0 |> Config.put show_free_types false
-            |> Config.put show_types true
-            |> Config.put show_sorts true
+    val ctxt = ctxt0
+(* FIXME: Implement proper handling of type constraints:
+      |> Config.put show_free_types false
+      |> Config.put show_types false
+      |> Config.put show_sorts false
+*)
     fun fix_print_mode f x =
       Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN)
                                (print_mode_value ())) f x
@@ -903,7 +903,8 @@ fun isar_proof_text ctxt isar_proof_requested
         fun prop_of_clause c =
           fold (curry s_disj) (map_filter (Symtab.lookup props o fst) c)
                @{term False}
-        fun label_of_clause c = (space_implode "___" (map fst c), 0)
+        fun label_of_clause [name] = raw_label_for_name name
+          | label_of_clause c = (space_implode "___" (map fst c), 0)
         fun maybe_show outer c =
           (outer andalso length c = 1 andalso subset (op =) (c, conjs))
           ? cons Show
