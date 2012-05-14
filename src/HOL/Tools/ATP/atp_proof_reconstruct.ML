@@ -593,7 +593,7 @@ fun is_same_inference _ (Definition_Step _) = false
 
 (* No "real" literals means only type information (tfree_tcs, clsrel, or
    clsarity). *)
-val is_only_type_information = curry (op aconv) @{term True}
+fun is_only_type_information t = t aconv @{term True}
 
 fun replace_one_dependency (old, new) dep =
   if is_same_atp_step dep old then new else [dep]
@@ -619,7 +619,7 @@ fun add_line _ (line as Definition_Step _) lines = line :: lines
         pre @ map (replace_dependencies_in_line (name', [name])) post
       | _ => raise Fail "unexpected inference"
     else if is_conjecture ss then
-      Inference_Step (name, s_not t, rule, []) :: lines
+      Inference_Step (name, t, rule, []) :: lines
     else
       map (replace_dependencies_in_line (name, [])) lines
   | add_line _ (Inference_Step (name, t, rule, deps)) lines =
@@ -635,6 +635,18 @@ fun add_line _ (line as Definition_Step _) lines = line :: lines
        Inference_Step (name, t', rule, deps) ::
        pre @ map (replace_dependencies_in_line (name', [name])) post
      | _ => raise Fail "unexpected inference"
+
+val repair_waldmeister_endgame =
+  let
+    fun do_tail (Inference_Step (name, t, rule, deps)) =
+        Inference_Step (name, s_not t, rule, deps)
+      | do_tail line = line
+    fun do_body [] = []
+      | do_body ((line as Inference_Step ((_, ss), _, _, _)) :: lines) =
+        if is_conjecture ss then map do_tail (line :: lines)
+        else line :: do_body lines
+      | do_body (line :: lines) = line :: do_body lines
+  in do_body end
 
 (* Recursively delete empty lines (type information) from the proof. *)
 fun add_nontrivial_line (line as Inference_Step (name, t, _, [])) lines =
@@ -864,6 +876,7 @@ fun isar_proof_text ctxt isar_proof_requested
           |> map_term_names_in_atp_proof repair_name
           |> decode_lines ctxt sym_tab
           |> rpair [] |-> fold_rev (add_line fact_names)
+          |> repair_waldmeister_endgame
           |> rpair [] |-> fold_rev add_nontrivial_line
           |> rpair (0, [])
           |-> fold_rev (add_desired_line isar_shrink_factor fact_names frees)
@@ -884,9 +897,9 @@ fun isar_proof_text ctxt isar_proof_requested
           |> fold (fn Definition_Step _ => I (* FIXME *)
                     | Inference_Step ((s, _), t, _, _) =>
                       Symtab.update_new (s,
-                          t |> member (op = o apsnd fst) tainted s ? s_not))
+                          t |> fold_rev forall_of (map Var (Term.add_vars t []))
+                            |> member (op = o apsnd fst) tainted s ? s_not))
                   atp_proof
-        (* FIXME: add "fold_rev forall_of (map Var (Term.add_vars t []))"? *)
         fun prop_of_clause c =
           fold (curry s_disj) (map_filter (Symtab.lookup props o fst) c)
                @{term False}
