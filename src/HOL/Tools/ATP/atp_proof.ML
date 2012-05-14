@@ -217,18 +217,9 @@ fun step_name (Definition_Step (name, _, _)) = name
 
 (**** PARSING OF TSTP FORMAT ****)
 
-(* FIXME: temporary hack *)
-fun repair_waldmeister_step_name s =
-  case space_explode "." s of
-    [a, b, c, d] =>
-    (case a of "0" => "X" | "1" => "Y" | _ => "Z" ^ a) ^
-    (if size b = 1 then "0" else "") ^ b ^ c ^ d
-  | _ => s
-
 (* Strings enclosed in single quotes (e.g., file names) *)
 val scan_general_id =
-  $$ "'" |-- Scan.repeat (~$$ "'") --| $$ "'"
-     >> implode >> repair_waldmeister_step_name
+  $$ "'" |-- Scan.repeat (~$$ "'") --| $$ "'" >> implode
   || Scan.repeat ($$ "$") -- Scan.many1 Symbol.is_letdig
      >> (fn (ss1, ss2) => implode ss1 ^ implode ss2)
 
@@ -252,7 +243,11 @@ datatype source =
 val dummy_phi = AAtom (ATerm ("", []))
 val dummy_inference = Inference_Source ("", [])
 
-fun parse_dependencies x = (skip_term ::: Scan.repeat ($$ "," |-- skip_term)) x
+(* "skip_term" is there to cope with Waldmeister nonsense such as
+   "theory(equality)". *)
+val parse_dependency = scan_general_id --| skip_term
+val parse_dependencies =
+  parse_dependency ::: Scan.repeat ($$ "," |-- parse_dependency)
 
 fun parse_source x =
   (Scan.this_string "file" |-- $$ "(" |-- scan_general_id --
