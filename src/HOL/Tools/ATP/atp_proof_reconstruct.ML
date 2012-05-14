@@ -897,7 +897,7 @@ fun isar_proof_text ctxt isar_proof_requested
           |> fold (fn Definition_Step _ => I (* FIXME *)
                     | Inference_Step ((s, _), t, _, _) =>
                       Symtab.update_new (s,
-                          t |> fold_rev forall_of (map Var (Term.add_vars t []))
+                          t |> fold forall_of (map Var (Term.add_vars t []))
                             |> member (op = o apsnd fst) tainted s ? s_not))
                   atp_proof
         fun prop_of_clause c =

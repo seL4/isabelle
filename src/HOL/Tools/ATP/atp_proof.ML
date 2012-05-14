@@ -341,25 +341,28 @@ fun is_same_term subst tm1 tm2 =
         | _ => NONE
   in SOME subst |> do_term_pair (tm1, tm2) |> is_some end
 
-fun is_same_formula subst (AQuant (q1, xs1, phi1)) (AQuant (q2, xs2, phi2)) =
+fun is_same_formula comm subst (AQuant (q1, xs1, phi1)) (AQuant (q2, xs2, phi2)) =
     q1 = q2 andalso length xs1 = length xs2 andalso
-    is_same_formula ((map fst xs1 ~~ map fst xs2) @ subst) phi1 phi2
-  | is_same_formula subst (AConn (c1, phis1)) (AConn (c2, phis2)) =
+    is_same_formula comm ((map fst xs1 ~~ map fst xs2) @ subst) phi1 phi2
+  | is_same_formula comm subst (AConn (c1, phis1)) (AConn (c2, phis2)) =
     c1 = c2 andalso length phis1 = length phis2 andalso
-    forall (uncurry (is_same_formula subst)) (phis1 ~~ phis2)
-  | is_same_formula subst (AAtom (ATerm ("equal", [tm11, tm12]))) (AAtom tm2) =
+    forall (uncurry (is_same_formula comm subst)) (phis1 ~~ phis2)
+  | is_same_formula comm subst (AAtom (ATerm ("equal", [tm11, tm12]))) (AAtom tm2) =
     is_same_term subst (ATerm ("equal", [tm11, tm12])) tm2 orelse
-    is_same_term subst (ATerm ("equal", [tm12, tm11])) tm2
-  | is_same_formula subst (AAtom tm1) (AAtom tm2) = is_same_term subst tm1 tm2
-  | is_same_formula _ _ _ = false
+    (comm andalso is_same_term subst (ATerm ("equal", [tm12, tm11])) tm2)
+  | is_same_formula _ subst (AAtom tm1) (AAtom tm2) = is_same_term subst tm1 tm2
+  | is_same_formula _ _ _ _ = false
 
 fun matching_formula_line_identifier phi (Formula (ident, _, phi', _, _)) =
-    if is_same_formula [] phi phi' then SOME ident else NONE
+    if is_same_formula true [] phi phi' then SOME (ident, phi') else NONE
   | matching_formula_line_identifier _ _ = NONE
 
 fun find_formula_in_problem problem phi =
   problem |> maps snd |> map_filter (matching_formula_line_identifier phi)
           |> try (single o hd) |> the_default []
+
+fun commute_eq (AAtom (ATerm (s, tms))) = AAtom (ATerm (s, rev tms))
+  | commute_eq t = raise Fail "expected equation"
 
 (* Syntax: (cnf|fof|tff|thf)\(<num>, <formula_role>,
             <formula> <extra_arguments>\).
@@ -372,19 +375,27 @@ fun parse_tstp_line problem =
     --| $$ ")" --| $$ "."
    >> (fn (((num, role), phi), deps) =>
           let
-            val (name, rule, deps) =
+            val ((name, phi), rule, deps) =
               (* Waldmeister isn't exactly helping. *)
               case deps of
                 File_Source (_, SOME s) =>
-                ((num,
-                  if s = waldmeister_conjecture then
-                    find_formula_in_problem problem (mk_anot phi)
-                  else
-                    [s |> perhaps (try (unprefix tofof_fact_prefix))]), "",
-                 [])
+                (if s = waldmeister_conjecture then
+                   case find_formula_in_problem problem (mk_anot phi) of
+                     (* Waldmeister hack: Get the original orientation of the
+                        equation to avoid confusing Isar. *)
+                     [(s, phi')] =>
+                     ((num, [s]),
+                      phi |> not (is_same_formula false [] phi phi')
+                             ? commute_eq)
+                   | _ => ((num, []), phi)
+                 else
+                   ((num, [s |> perhaps (try (unprefix tofof_fact_prefix))]),
+                    phi),
+                 "", [])
               | File_Source _ =>
-                ((num, find_formula_in_problem problem phi), "", [])
-              | Inference_Source (rule, deps) => ((num, []), rule, deps)
+                (((num, phi |> find_formula_in_problem problem |> map fst),
+                  phi), "", [])
+              | Inference_Source (rule, deps) => (((num, []), phi), rule, deps)
             fun mk_step () =
               Inference_Step (name, phi, rule, map (rpair []) deps)
           in
