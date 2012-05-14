@@ -176,6 +176,15 @@ lemma set_transfer [transfer_rule]:
   "(list_all2 A ===> set_rel A) set set"
   unfolding set_def by transfer_prover
 
+lemma lists_transfer [transfer_rule]:
+  "(set_rel A ===> set_rel (list_all2 A)) lists lists"
+  apply (rule fun_relI, rule set_relI)
+  apply (erule lists.induct, simp)
+  apply (simp only: set_rel_def list_all2_Cons1, metis lists.Cons)
+  apply (erule lists.induct, simp)
+  apply (simp only: set_rel_def list_all2_Cons2, metis lists.Cons)
+  done
+
 subsection {* Setup for lifting package *}
 
 lemma Quotient_list[quot_map]:
