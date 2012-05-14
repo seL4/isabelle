@@ -112,6 +112,11 @@ lemma Pow_transfer [transfer_rule]:
   apply (simp add: set_rel_def, fast)
   done
 
+lemma set_rel_transfer [transfer_rule]:
+  "((A ===> B ===> op =) ===> set_rel A ===> set_rel B ===> op =)
+    set_rel set_rel"
+  unfolding fun_rel_def set_rel_def by fast
+
 subsubsection {* Rules requiring bi-unique or bi-total relations *}
 
 lemma member_transfer [transfer_rule]:
