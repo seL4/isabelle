@@ -634,14 +634,16 @@ fun add_line _ (line as Definition_Step _) lines = line :: lines
        pre @ map (replace_dependencies_in_line (name', [name])) post
      | _ => raise Fail "unexpected inference"
 
+val waldmeister_conjecture_num = "1.0.0.0"
+
 val repair_waldmeister_endgame =
   let
     fun do_tail (Inference_Step (name, t, rule, deps)) =
         Inference_Step (name, s_not t, rule, deps)
       | do_tail line = line
     fun do_body [] = []
-      | do_body ((line as Inference_Step ((_, ss), _, _, _)) :: lines) =
-        if is_conjecture ss then map do_tail (line :: lines)
+      | do_body ((line as Inference_Step ((num, _), _, _, _)) :: lines) =
+        if num = waldmeister_conjecture_num then map do_tail (line :: lines)
         else line :: do_body lines
       | do_body (line :: lines) = line :: do_body lines
   in do_body end

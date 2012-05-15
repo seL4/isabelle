@@ -318,7 +318,7 @@ val parse_tstp_extra_arguments =
   Scan.optional ($$ "," |-- parse_source --| Scan.option ($$ "," |-- skip_term))
                 dummy_inference
 
-val waldmeister_conjecture = "conjecture_1"
+val waldmeister_conjecture_name = "conjecture_1"
 
 val tofof_fact_prefix = "fof_"
 
@@ -380,7 +380,7 @@ fun parse_tstp_line problem =
               (* Waldmeister isn't exactly helping. *)
               case deps of
                 File_Source (_, SOME s) =>
-                (if s = waldmeister_conjecture then
+                (if s = waldmeister_conjecture_name then
                    case find_formula_in_problem problem (mk_anot phi) of
                      (* Waldmeister hack: Get the original orientation of the
                         equation to avoid confusing Isar. *)
