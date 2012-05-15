@@ -1240,14 +1240,15 @@ fun freeze_term t =
       | freeze t = t
   in t |> exists_subterm is_Var t ? freeze end
 
-fun eta_reduce_def t =
+fun unextensionalize_def t =
   case t of
-    Const (@{const_name HOL.eq}, _) $ lhs $ rhs =>
+    @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ lhs $ rhs) =>
     (case strip_comb lhs of
        (c as Const (_, T), args) =>
        if forall is_Var args andalso not (has_duplicates (op =) args) then
-         Const (@{const_name HOL.eq}, T --> T --> @{typ bool})
-         $ c $ fold_rev lambda args rhs
+         @{const Trueprop}
+         $ (Const (@{const_name HOL.eq}, T --> T --> @{typ bool})
+            $ c $ fold_rev lambda args rhs)
        else
          t
      | _ => t)
@@ -1262,9 +1263,8 @@ fun presimp_prop ctxt type_enc t =
     val need_trueprop = (fastype_of t = @{typ bool})
     val is_ho = is_type_enc_higher_order type_enc
   in
-    t |> is_ho ? eta_reduce_def
-      |> need_trueprop ? HOLogic.mk_Trueprop
-      |> not is_ho ? extensionalize_term ctxt
+    t |> need_trueprop ? HOLogic.mk_Trueprop
+      |> (if is_ho then unextensionalize_def else extensionalize_term ctxt)
       |> presimplify_term thy
       |> HOLogic.dest_Trueprop
   end
@@ -1709,7 +1709,7 @@ fun add_helper_facts_for_sym ctxt format type_enc (s, {types, ...} : sym_info) =
         (if needs_fairly_sound then typed_helper_suffix
          else untyped_helper_suffix)
       fun dub_and_inst needs_fairly_sound (th, j) =
-        let val t = prop_of th in
+        let val t = th |> prop_of in
           if should_specialize_helper type_enc t then
             map (fn T => specialize_type thy (invert_const unmangled_s, T) t)
                 types
