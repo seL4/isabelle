@@ -347,8 +347,9 @@ fun is_same_formula comm subst (AQuant (q1, xs1, phi1)) (AQuant (q2, xs2, phi2))
   | is_same_formula comm subst (AConn (c1, phis1)) (AConn (c2, phis2)) =
     c1 = c2 andalso length phis1 = length phis2 andalso
     forall (uncurry (is_same_formula comm subst)) (phis1 ~~ phis2)
-  | is_same_formula comm subst (AAtom (ATerm ("equal", [tm11, tm12]))) (AAtom tm2) =
-    is_same_term subst (ATerm ("equal", [tm11, tm12])) tm2 orelse
+  | is_same_formula comm subst (AAtom (tm1 as ATerm ("equal", [tm11, tm12])))
+                    (AAtom tm2) =
+    is_same_term subst tm1 tm2 orelse
     (comm andalso is_same_term subst (ATerm ("equal", [tm12, tm11])) tm2)
   | is_same_formula _ subst (AAtom tm1) (AAtom tm2) = is_same_term subst tm1 tm2
   | is_same_formula _ _ _ _ = false
@@ -385,7 +386,7 @@ fun parse_tstp_line problem =
                         equation to avoid confusing Isar. *)
                      [(s, phi')] =>
                      ((num, [s]),
-                      phi |> not (is_same_formula false [] phi phi')
+                      phi |> not (is_same_formula false [] (mk_anot phi) phi')
                              ? commute_eq)
                    | _ => ((num, []), phi)
                  else
