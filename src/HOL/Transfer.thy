@@ -279,6 +279,14 @@ lemma nat_case_transfer [transfer_rule]:
   "(A ===> (op = ===> A) ===> op = ===> A) nat_case nat_case"
   unfolding fun_rel_def by (simp split: nat.split)
 
+lemma nat_rec_transfer [transfer_rule]:
+  "(A ===> (op = ===> A ===> A) ===> op = ===> A) nat_rec nat_rec"
+  unfolding fun_rel_def by (clarsimp, rename_tac n, induct_tac n, simp_all)
+
+lemma funpow_transfer [transfer_rule]:
+  "(op = ===> (A ===> A) ===> (A ===> A)) compow compow"
+  unfolding funpow_def by transfer_prover
+
 text {* Fallback rule for transferring universal quantifiers over
   correspondence relations that are not bi-total, and do not have
   custom transfer rules (e.g. relations between function types). *}
