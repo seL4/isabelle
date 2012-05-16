@@ -31,124 +31,6 @@ open Lifting_Util
 
 infix 0 MRSL
 
-fun get_body_types (Type ("fun", [_, U]), Type ("fun", [_, V])) = get_body_types (U, V)
-  | get_body_types (U, V)  = (U, V)
-
-fun get_binder_types (Type ("fun", [T, U]), Type ("fun", [V, W])) = (T, V) :: get_binder_types (U, W)
-  | get_binder_types _ = []
-
-fun unabs_def ctxt def = 
-  let
-    val (_, rhs) = Thm.dest_equals (cprop_of def)
-    fun dest_abs (Abs (var_name, T, _)) = (var_name, T)
-      | dest_abs tm = raise TERM("get_abs_var",[tm])
-    val (var_name, T) = dest_abs (term_of rhs)
-    val (new_var_names, ctxt') = Variable.variant_fixes [var_name] ctxt
-    val thy = Proof_Context.theory_of ctxt'
-    val refl_thm = Thm.reflexive (cterm_of thy (Free (hd new_var_names, T)))
-  in
-    Thm.combination def refl_thm |>
-    singleton (Proof_Context.export ctxt' ctxt)
-  end
-
-fun unabs_all_def ctxt def = 
-  let
-    val (_, rhs) = Thm.dest_equals (cprop_of def)
-    val xs = strip_abs_vars (term_of rhs)
-  in  
-    fold (K (unabs_def ctxt)) xs def
-  end
-
-val map_fun_unfolded = 
-  @{thm map_fun_def[abs_def]} |>
-  unabs_def @{context} |>
-  unabs_def @{context} |>
-  Local_Defs.unfold @{context} [@{thm comp_def}]
-
-fun unfold_fun_maps ctm =
-  let
-    fun unfold_conv ctm =
-      case (Thm.term_of ctm) of
-        Const (@{const_name "map_fun"}, _) $ _ $ _ => 
-          (Conv.arg_conv unfold_conv then_conv Conv.rewr_conv map_fun_unfolded) ctm
-        | _ => Conv.all_conv ctm
-    val try_beta_conv = Conv.try_conv (Thm.beta_conversion false)
-  in
-    (Conv.arg_conv (Conv.fun_conv unfold_conv then_conv try_beta_conv)) ctm
-  end
-
-fun prove_rel ctxt rsp_thm (rty, qty) =
-  let
-    val ty_args = get_binder_types (rty, qty)
-    fun disch_arg args_ty thm = 
-      let
-        val quot_thm = Quotient_Term.prove_quot_thm ctxt args_ty
-      in
-        [quot_thm, thm] MRSL @{thm apply_rspQ3''}
-      end
-  in
-    fold disch_arg ty_args rsp_thm
-  end
-
-exception CODE_CERT_GEN of string
-
-fun simplify_code_eq ctxt def_thm = 
-  Local_Defs.unfold ctxt [@{thm o_def}, @{thm map_fun_def}, @{thm id_def}] def_thm
-
-fun generate_code_cert ctxt def_thm rsp_thm (rty, qty) =
-  let
-    val quot_thm = Quotient_Term.prove_quot_thm ctxt (get_body_types (rty, qty))
-    val fun_rel = prove_rel ctxt rsp_thm (rty, qty)
-    val abs_rep_thm = [quot_thm, fun_rel] MRSL @{thm Quotient3_rep_abs}
-    val abs_rep_eq = 
-      case (HOLogic.dest_Trueprop o prop_of) fun_rel of
-        Const (@{const_name HOL.eq}, _) $ _ $ _ => abs_rep_thm
-        | Const (@{const_name Lifting.invariant}, _) $ _ $ _ $ _ => abs_rep_thm RS @{thm invariant_to_eq}
-        | _ => raise CODE_CERT_GEN "relation is neither equality nor invariant"
-    val unfolded_def = Conv.fconv_rule unfold_fun_maps def_thm
-    val unabs_def = unabs_all_def ctxt unfolded_def
-    val rep = (snd o Thm.dest_comb o snd o Thm.dest_comb o cprop_of) quot_thm
-    val rep_refl = Thm.reflexive rep RS @{thm meta_eq_to_obj_eq}
-    val repped_eq = [rep_refl, unabs_def RS @{thm meta_eq_to_obj_eq}] MRSL @{thm cong}
-    val code_cert = [repped_eq, abs_rep_eq] MRSL @{thm trans}
-  in
-    simplify_code_eq ctxt code_cert
-  end
-
-fun define_code_cert code_eqn_thm_name def_thm rsp_thm (rty, qty) lthy = 
-  let
-    val quot_thm = Quotient_Term.prove_quot_thm lthy (get_body_types (rty, qty))
-  in
-    if Quotient_Type.can_generate_code_cert quot_thm then
-      let
-        val code_cert = generate_code_cert lthy def_thm rsp_thm (rty, qty)
-        val add_abs_eqn_attribute = 
-          Thm.declaration_attribute (fn thm => Context.mapping (Code.add_abs_eqn thm) I)
-        val add_abs_eqn_attrib = Attrib.internal (K add_abs_eqn_attribute);
-      in
-        lthy
-          |> (snd oo Local_Theory.note) ((code_eqn_thm_name, [add_abs_eqn_attrib]), [code_cert])
-      end
-    else
-      lthy
-  end
-
-fun define_code_eq code_eqn_thm_name def_thm lthy =
-  let
-    val unfolded_def = Conv.fconv_rule unfold_fun_maps def_thm
-    val code_eq = unabs_all_def lthy unfolded_def
-    val simp_code_eq = simplify_code_eq lthy code_eq
-  in
-    lthy
-      |> (snd oo Local_Theory.note) ((code_eqn_thm_name, [Code.add_default_eqn_attrib]), [simp_code_eq])
-  end
-
-fun define_code code_eqn_thm_name def_thm rsp_thm (rty, qty) lthy =
-  if body_type rty = body_type qty then 
-    define_code_eq code_eqn_thm_name def_thm lthy
-  else 
-    define_code_cert code_eqn_thm_name def_thm rsp_thm (rty, qty) lthy
-
 (* The ML-interface for a quotient definition takes
    as argument:
 
@@ -193,7 +75,6 @@ fun add_quotient_def ((var, (name, atts)), (lhs, rhs)) rsp_thm lthy =
 
     val lhs_name = Binding.name_of (#1 var)
     val rsp_thm_name = qualify lhs_name "rsp"
-    val code_eqn_thm_name = qualify lhs_name "rep_eq"
     
     val lthy'' = lthy'
       |> Local_Theory.declaration {syntax = false, pervasive = true}
@@ -205,8 +86,6 @@ fun add_quotient_def ((var, (name, atts)), (lhs, rhs)) rsp_thm lthy =
       |> (snd oo Local_Theory.note) 
         ((rsp_thm_name, [Attrib.internal (K Quotient_Info.rsp_rules_add)]),
         [rsp_thm])
-      |> define_code code_eqn_thm_name def_thm rsp_thm (rty, qty)
-
   in
     (qconst_data, lthy'')
   end

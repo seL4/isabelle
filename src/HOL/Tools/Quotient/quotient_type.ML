@@ -6,8 +6,6 @@ Definition of a quotient type.
 
 signature QUOTIENT_TYPE =
 sig
-  val can_generate_code_cert: thm -> bool
-  
   val add_quotient_type: ((string list * binding * mixfix) * (typ * term * bool) * 
     ((binding * binding) option * bool)) * thm -> local_theory -> Quotient_Info.quotients * local_theory
 
@@ -79,26 +77,6 @@ fun typedef_quot_type_thm (rel, abs, rep, equiv_thm, typedef_info) lthy =
       (K (typedef_quot_type_tac equiv_thm typedef_info))
   end
    
-fun can_generate_code_cert quot_thm  =
-   case Quotient_Term.get_rel_from_quot_thm quot_thm of
-      Const (@{const_name HOL.eq}, _) => true
-      | Const (@{const_name Lifting.invariant}, _) $ _  => true
-      | _ => false
-
-fun define_abs_type quot_thm lthy =
-  if can_generate_code_cert quot_thm then
-    let
-      val abs_type_thm = quot_thm RS @{thm Quotient3_abs_rep}
-      val add_abstype_attribute = 
-          Thm.declaration_attribute (fn thm => Context.mapping (Code.add_abstype thm) I)
-        val add_abstype_attrib = Attrib.internal (K add_abstype_attribute);
-    in
-      lthy
-        |> (snd oo Local_Theory.note) ((Binding.empty, [add_abstype_attrib]), [abs_type_thm])
-    end
-  else
-    lthy
-
 open Lifting_Util
 
 infix 0 MRSL
@@ -169,7 +147,6 @@ fun init_quotient_infr gen_code quot_thm equiv_thm lthy =
       |> Local_Theory.declaration {syntax = false, pervasive = true}
         (fn phi => Quotient_Info.update_quotients qty_full_name (quot_info phi)
           #> Quotient_Info.update_abs_rep qty_full_name (abs_rep_info phi))
-      |> define_abs_type quot_thm
       |> setup_lifting_package gen_code quot_thm equiv_thm
   end
 
