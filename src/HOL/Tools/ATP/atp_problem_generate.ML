@@ -539,11 +539,14 @@ fun new_skolem_const_name s num_T_args =
   [new_skolem_const_prefix, s, string_of_int num_T_args]
   |> Long_Name.implode
 
+val alpha_to_beta = Logic.varifyT_global @{typ "'a => 'b"}
+val alpha_to_beta_to_alpha_to_beta = alpha_to_beta --> alpha_to_beta
+
 fun robust_const_type thy s =
   if s = app_op_name then
-    Logic.varifyT_global @{typ "('a => 'b) => 'a => 'b"}
+    alpha_to_beta_to_alpha_to_beta
   else if String.isPrefix lam_lifted_prefix s then
-    Logic.varifyT_global @{typ "'a => 'b"}
+    alpha_to_beta
   else
     (* Old Skolems throw a "TYPE" exception here, which will be caught. *)
     s |> Sign.the_const_type thy
@@ -929,6 +932,7 @@ fun add_iterm_vars bounds (IApp (tm1, tm2)) =
   | add_iterm_vars bounds (IVar (name, T)) =
     not (member (op =) bounds name) ? insert (op =) (name, SOME T)
   | add_iterm_vars bounds (IAbs (_, tm)) = add_iterm_vars bounds tm
+
 fun close_iformula_universally phi = close_universally add_iterm_vars phi
 
 val fused_infinite_type_name = "ATP.fused_inf" (* shouldn't clash *)
@@ -1442,7 +1446,7 @@ datatype app_op_level =
   Sufficient_App_Op_And_Predicator |
   Full_App_Op_And_Predicator
 
-fun sym_table_for_facts ctxt type_enc app_op_level conjs facts =
+fun add_iterm_syms_to_sym_table ctxt app_op_level conj_fact =
   let
     val thy = Proof_Context.theory_of ctxt
     fun consider_var_ary const_T var_T max_ary =
@@ -1478,80 +1482,85 @@ fun sym_table_for_facts ctxt type_enc app_op_level conjs facts =
         end
       else
         accum
-      fun add_iterm_syms conj_fact top_level tm
-                         (accum as ((bool_vars, fun_var_Ts), sym_tab)) =
-        let val (head, args) = strip_iterm_comb tm in
-          (case head of
-             IConst ((s, _), T, _) =>
-             if String.isPrefix bound_var_prefix s orelse
-                String.isPrefix all_bound_var_prefix s then
-               add_universal_var T accum
-             else if String.isPrefix exist_bound_var_prefix s then
-               accum
-             else
-               let val ary = length args in
-                 ((bool_vars, fun_var_Ts),
-                  case Symtab.lookup sym_tab s of
-                    SOME {pred_sym, min_ary, max_ary, types, in_conj} =>
-                    let
-                      val pred_sym =
-                        pred_sym andalso top_level andalso not bool_vars
-                      val types' = types |> insert_type thy I T
-                      val in_conj = in_conj orelse conj_fact
-                      val min_ary =
-                        if (app_op_level = Sufficient_App_Op orelse
-                            app_op_level = Sufficient_App_Op_And_Predicator)
-                           andalso not (pointer_eq (types', types)) then
-                          fold (consider_var_ary T) fun_var_Ts min_ary
-                        else
-                          min_ary
-                    in
-                      Symtab.update (s, {pred_sym = pred_sym,
-                                         min_ary = Int.min (ary, min_ary),
-                                         max_ary = Int.max (ary, max_ary),
-                                         types = types', in_conj = in_conj})
-                                    sym_tab
-                    end
-                  | NONE =>
-                    let
-                      val pred_sym = top_level andalso not bool_vars
-                      val ary =
-                        case unprefix_and_unascii const_prefix s of
-                          SOME s =>
-                          (if String.isSubstring uncurried_alias_sep s then
-                             ary
-                           else case try (robust_const_ary thy
-                                          o invert_const o hd
-                                          o unmangled_const_name) s of
-                             SOME ary0 => Int.min (ary0, ary)
-                           | NONE => ary)
-                        | NONE => ary
-                      val min_ary =
-                        case app_op_level of
-                          Min_App_Op => ary
-                        | Full_App_Op_And_Predicator => 0
-                        | _ => fold (consider_var_ary T) fun_var_Ts ary
-                    in
-                      Symtab.update_new (s,
-                          {pred_sym = pred_sym, min_ary = min_ary,
-                           max_ary = ary, types = [T], in_conj = conj_fact})
-                          sym_tab
-                    end)
-               end
-           | IVar (_, T) => add_universal_var T accum
-           | IAbs ((_, T), tm) =>
-             accum |> add_universal_var T |> add_iterm_syms conj_fact false tm
-           | _ => accum)
-          |> fold (add_iterm_syms conj_fact false) args
-        end
+    fun add_iterm_syms top_level tm
+                       (accum as ((bool_vars, fun_var_Ts), sym_tab)) =
+      let val (head, args) = strip_iterm_comb tm in
+        (case head of
+           IConst ((s, _), T, _) =>
+           if String.isPrefix bound_var_prefix s orelse
+              String.isPrefix all_bound_var_prefix s then
+             add_universal_var T accum
+           else if String.isPrefix exist_bound_var_prefix s then
+             accum
+           else
+             let val ary = length args in
+               ((bool_vars, fun_var_Ts),
+                case Symtab.lookup sym_tab s of
+                  SOME {pred_sym, min_ary, max_ary, types, in_conj} =>
+                  let
+                    val pred_sym =
+                      pred_sym andalso top_level andalso not bool_vars
+                    val types' = types |> insert_type thy I T
+                    val in_conj = in_conj orelse conj_fact
+                    val min_ary =
+                      if (app_op_level = Sufficient_App_Op orelse
+                          app_op_level = Sufficient_App_Op_And_Predicator)
+                         andalso not (pointer_eq (types', types)) then
+                        fold (consider_var_ary T) fun_var_Ts min_ary
+                      else
+                        min_ary
+                  in
+                    Symtab.update (s, {pred_sym = pred_sym,
+                                       min_ary = Int.min (ary, min_ary),
+                                       max_ary = Int.max (ary, max_ary),
+                                       types = types', in_conj = in_conj})
+                                  sym_tab
+                  end
+                | NONE =>
+                  let
+                    val pred_sym = top_level andalso not bool_vars
+                    val ary =
+                      case unprefix_and_unascii const_prefix s of
+                        SOME s =>
+                        (if String.isSubstring uncurried_alias_sep s then
+                           ary
+                         else case try (robust_const_ary thy
+                                        o invert_const o hd
+                                        o unmangled_const_name) s of
+                           SOME ary0 => Int.min (ary0, ary)
+                         | NONE => ary)
+                      | NONE => ary
+                    val min_ary =
+                      case app_op_level of
+                        Min_App_Op => ary
+                      | Full_App_Op_And_Predicator => 0
+                      | _ => fold (consider_var_ary T) fun_var_Ts ary
+                  in
+                    Symtab.update_new (s,
+                        {pred_sym = pred_sym, min_ary = min_ary,
+                         max_ary = ary, types = [T], in_conj = conj_fact})
+                        sym_tab
+                  end)
+             end
+         | IVar (_, T) => add_universal_var T accum
+         | IAbs ((_, T), tm) =>
+           accum |> add_universal_var T |> add_iterm_syms false tm
+         | _ => accum)
+        |> fold (add_iterm_syms false) args
+      end
+  in add_iterm_syms end
+
+fun sym_table_for_facts ctxt type_enc app_op_level conjs facts =
+  let
+    fun add_iterm_syms conj_fact =
+      add_iterm_syms_to_sym_table ctxt app_op_level conj_fact true
     fun add_fact_syms conj_fact =
-      K (add_iterm_syms conj_fact true) |> formula_fold NONE |> fact_lift
+      K (add_iterm_syms conj_fact) |> formula_fold NONE |> fact_lift
   in
     ((false, []), Symtab.empty)
     |> fold (add_fact_syms true) conjs
     |> fold (add_fact_syms false) facts
-    |> snd
-    |> fold Symtab.update (default_sym_tab_entries type_enc)
+    ||> fold Symtab.update (default_sym_tab_entries type_enc)
   end
 
 fun min_ary_of sym_tab s =
@@ -1637,6 +1646,8 @@ val helper_table =
    (("COMBC", false), @{thms Meson.COMBC_def}),
    (("COMBS", false), @{thms Meson.COMBS_def}),
    ((predicator_name, false), [not_ffalse, ftrue]),
+   (* FIXME: Metis doesn't like existentials in helpers *)
+   ((app_op_name, true), [@{lemma "EX x. ~ f x = g x | f = g" by blast}]),
    (("fFalse", false), [not_ffalse]),
    (("fFalse", true), @{thms True_or_False}),
    (("fTrue", false), [ftrue]),
@@ -1708,14 +1719,19 @@ fun add_helper_facts_for_sym ctxt format type_enc (s, {types, ...} : sym_info) =
         (if mangled_s = unmangled_s then "" else "_" ^ ascii_of mangled_s) ^
         (if needs_fairly_sound then typed_helper_suffix
          else untyped_helper_suffix)
-      fun dub_and_inst needs_fairly_sound (th, j) =
-        let val t = th |> prop_of in
-          if should_specialize_helper type_enc t then
-            map (fn T => specialize_type thy (invert_const unmangled_s, T) t)
-                types
-          else
-            [t]
-        end
+      fun specialize_helper t T =
+        if unmangled_s = app_op_name then
+          let
+            val tyenv =
+              Sign.typ_match thy (alpha_to_beta, domain_type T) Vartab.empty
+          in monomorphic_term tyenv t end
+        else
+          specialize_type thy (invert_const unmangled_s, T) t
+      fun dub_and_inst needs_fairly_sound (t, j) =
+        (if should_specialize_helper type_enc t then
+           map (specialize_helper t) types
+         else
+           [t])
         |> tag_list 1
         |> map (fn (k, t) => ((dub needs_fairly_sound j k, (Global, Def)), t))
       val make_facts = map_filter (make_fact ctxt format type_enc false)
@@ -1727,7 +1743,7 @@ fun add_helper_facts_for_sym ctxt format type_enc (s, {types, ...} : sym_info) =
                  I
                else
                  ths ~~ (1 upto length ths)
-                 |> maps (dub_and_inst needs_fairly_sound)
+                 |> maps (dub_and_inst needs_fairly_sound o apfst prop_of)
                  |> make_facts
                  |> union (op = o pairself #iformula))
            helper_table
@@ -1779,7 +1795,7 @@ fun extract_lambda_def (Const (@{const_name HOL.eq}, _) $ t $ u) =
       (head |> dest_Const |> fst,
        fold_rev (fn t as Var ((s, _), T) =>
                     (fn u => Abs (s, T, abstract_over (t, u)))
-                  | _ => raise Fail "expected Var") args u)
+                  | _ => raise Fail "expected \"Var\"") args u)
     end
   | extract_lambda_def _ = raise Fail "malformed lifted lambda"
 
@@ -2611,7 +2627,8 @@ fun prepare_atp_problem ctxt format prem_kind type_enc exporter lam_trans
          lifted) =
       translate_formulas ctxt prem_kind format type_enc lam_trans preproc hyp_ts
                          concl_t facts
-    val sym_tab0 = sym_table_for_facts ctxt type_enc app_op_level conjs facts
+    val (_, sym_tab0) =
+      sym_table_for_facts ctxt type_enc app_op_level conjs facts
     val mono = conjs @ facts |> mononotonicity_info_for_facts ctxt type_enc
     val (polym_constrs, monom_constrs) =
       all_constrs_of_polymorphic_datatypes thy
@@ -2620,16 +2637,21 @@ fun prepare_atp_problem ctxt format prem_kind type_enc exporter lam_trans
       firstorderize_fact thy monom_constrs type_enc sym_tab0
                          (uncurried_aliases andalso not in_helper)
     val (conjs, facts) = (conjs, facts) |> pairself (map (firstorderize false))
-    val sym_tab = sym_table_for_facts ctxt type_enc Min_App_Op conjs facts
+    val (ho_stuff, sym_tab) =
+      sym_table_for_facts ctxt type_enc Min_App_Op conjs facts
+    val (uncurried_alias_eq_tms, uncurried_alias_eq_lines) =
+      uncurried_alias_lines_for_sym_table ctxt monom_constrs mono type_enc
+                                          uncurried_aliases sym_tab0 sym_tab
+    val (_, sym_tab) =
+      (ho_stuff, sym_tab)
+      |> fold (add_iterm_syms_to_sym_table ctxt Min_App_Op false false)
+              uncurried_alias_eq_tms
     val helpers =
       sym_tab |> helper_facts_for_sym_table ctxt format type_enc
               |> map (firstorderize true)
     val mono_Ts =
       helpers @ conjs @ facts |> monotonic_types_for_facts ctxt mono type_enc
     val class_decl_lines = decl_lines_for_classes type_enc classes
-    val (uncurried_alias_eq_tms, uncurried_alias_eq_lines) =
-      uncurried_alias_lines_for_sym_table ctxt monom_constrs mono type_enc
-                                          uncurried_aliases sym_tab0 sym_tab
     val sym_decl_lines =
       (conjs, helpers @ facts, uncurried_alias_eq_tms)
       |> sym_decl_table_for_facts thy type_enc sym_tab
