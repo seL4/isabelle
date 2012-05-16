@@ -173,6 +173,11 @@ lemma reflpE:
   obtains "r x x"
   using assms by (auto dest: refl_onD simp add: reflp_def)
 
+lemma reflpD:
+  assumes "reflp r"
+  shows "r x x"
+  using assms by (auto elim: reflpE)
+
 lemma refl_on_Int: "refl_on A r ==> refl_on B s ==> refl_on (A \<inter> B) (r \<inter> s)"
   by (unfold refl_on_def) blast
 

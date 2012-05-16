@@ -36,8 +36,26 @@ fun define_cr_rel rep_fun lthy =
     (def_thm, lthy'')
   end
 
-fun define_abs_type gen_abs_code quot_thm lthy =
-  if gen_abs_code andalso Lifting_Def.can_generate_code_cert quot_thm then
+fun define_code_constr gen_code quot_thm lthy =
+  let
+    val abs = Lifting_Term.quot_thm_abs quot_thm
+    val abs_background = Morphism.term (Local_Theory.target_morphism lthy) abs
+  in
+    if gen_code andalso is_Const abs_background then
+      let
+        val (const_name, typ) = dest_Const abs_background
+        val fake_term = Logic.mk_type typ
+        val (fixed_fake_term, lthy') = yield_singleton(Variable.importT_terms) fake_term lthy
+        val fixed_type = Logic.dest_type fixed_fake_term
+      in  
+         Local_Theory.background_theory(Code.add_datatype [(const_name, fixed_type)]) lthy'
+      end
+    else
+      lthy
+  end
+
+fun define_abs_type gen_code quot_thm lthy =
+  if gen_code andalso Lifting_Def.can_generate_code_cert quot_thm then
     let
       val abs_type_thm = quot_thm RS @{thm Quotient_abs_rep}
       val add_abstype_attribute = 
@@ -76,31 +94,37 @@ fun quot_thm_sanity_check ctxt quot_thm =
                                                 @ (map Pretty.string_of errs)))
   end
 
-fun setup_lifting_infr gen_abs_code quot_thm lthy =
+fun setup_lifting_infr gen_code quot_thm maybe_reflp_thm lthy =
   let
     val _ = quot_thm_sanity_check lthy quot_thm
     val (_, qtyp) = Lifting_Term.quot_thm_rty_qty quot_thm
     val qty_full_name = (fst o dest_Type) qtyp
     val quotients = { quot_thm = quot_thm }
     fun quot_info phi = Lifting_Info.transform_quotients phi quotients
+    val lthy' = case maybe_reflp_thm of
+      SOME reflp_thm => lthy
+        |> (snd oo Local_Theory.note) ((Binding.empty, [Lifting_Info.add_reflp_preserve_rule_attrib]),
+              [reflp_thm])
+        |> define_code_constr gen_code quot_thm
+      | NONE => lthy
+        |> define_abs_type gen_code quot_thm
   in
-    lthy
+    lthy'
       |> Local_Theory.declaration {syntax = false, pervasive = true}
         (fn phi => Lifting_Info.update_quotients qty_full_name (quot_info phi))
-      |> define_abs_type gen_abs_code quot_thm
   end
 
 (*
   Sets up the Lifting package by a quotient theorem.
 
-  gen_abs_code - flag if an abstract type given by quot_thm should be registred 
+  gen_code - flag if an abstract type given by quot_thm should be registred 
     as an abstract type in the code generator
   quot_thm - a quotient theorem (Quotient R Abs Rep T)
   maybe_reflp_thm - a theorem saying that a relation from quot_thm is reflexive
     (in the form "reflp R")
 *)
 
-fun setup_by_quotient gen_abs_code quot_thm maybe_reflp_thm lthy =
+fun setup_by_quotient gen_code quot_thm maybe_reflp_thm lthy =
   let
     val transfer_attr = Attrib.internal (K Transfer.transfer_add)
     val (_, qty) = Lifting_Term.quot_thm_rty_qty quot_thm
@@ -117,8 +141,6 @@ fun setup_by_quotient gen_abs_code quot_thm maybe_reflp_thm lthy =
           [[quot_thm, reflp_thm] MRSL @{thm Quotient_total_abs_induct}])
         |> (snd oo Local_Theory.note) ((qualify "abs_eq_iff", []),
           [[quot_thm, reflp_thm] MRSL @{thm Quotient_total_abs_eq_iff}])
-        |> (snd oo Local_Theory.note) ((Binding.empty, [Lifting_Info.add_reflp_preserve_rule_attrib]),
-          [reflp_thm])
       | NONE => lthy
         |> (snd oo Local_Theory.note) ((qualify "All_transfer", [transfer_attr]), 
           [quot_thm RS @{thm Quotient_All_transfer}])
@@ -136,18 +158,18 @@ fun setup_by_quotient gen_abs_code quot_thm maybe_reflp_thm lthy =
         [quot_thm RS @{thm Quotient_right_total}])
       |> (snd oo Local_Theory.note) ((qualify "rel_eq_transfer", [transfer_attr]), 
         [quot_thm RS @{thm Quotient_rel_eq_transfer}])
-      |> setup_lifting_infr gen_abs_code quot_thm
+      |> setup_lifting_infr gen_code quot_thm maybe_reflp_thm
   end
 
 (*
   Sets up the Lifting package by a typedef theorem.
 
-  gen_abs_code - flag if an abstract type given by typedef_thm should be registred 
+  gen_code - flag if an abstract type given by typedef_thm should be registred 
     as an abstract type in the code generator
   typedef_thm - a typedef theorem (type_definition Rep Abs S)
 *)
 
-fun setup_by_typedef_thm gen_abs_code typedef_thm lthy =
+fun setup_by_typedef_thm gen_code typedef_thm lthy =
   let
     val transfer_attr = Attrib.internal (K Transfer.transfer_add)
     val (_ $ rep_fun $ _ $ typedef_set) = (HOLogic.dest_Trueprop o prop_of) typedef_thm
@@ -166,7 +188,7 @@ fun setup_by_typedef_thm gen_abs_code typedef_thm lthy =
     fun qualify suffix = Binding.qualified true suffix qty_name
     val simplify = Raw_Simplifier.rewrite_rule [mk_meta_eq @{thm mem_Collect_eq}]
 
-    val lthy'' = case typedef_set of
+    val (maybe_reflp_thm, lthy'') = case typedef_set of
       Const ("Orderings.top_class.top", _) => 
         let
           val equivp_thm = typedef_thm RS @{thm UNIV_typedef_to_equivp}
@@ -177,8 +199,7 @@ fun setup_by_typedef_thm gen_abs_code typedef_thm lthy =
               [[quot_thm, reflp_thm] MRSL @{thm Quotient_bi_total}])
             |> (snd oo Local_Theory.note) ((qualify "id_abs_transfer", [transfer_attr]), 
               [[quot_thm, reflp_thm] MRSL @{thm Quotient_id_abs_transfer}])
-            |> (snd oo Local_Theory.note) ((Binding.empty, [Lifting_Info.add_reflp_preserve_rule_attrib]),
-              [reflp_thm])
+            |> pair (SOME reflp_thm)
         end
       | _ => lthy'
         |> (snd oo Local_Theory.note) ((qualify "All_transfer", [transfer_attr]), 
@@ -187,6 +208,7 @@ fun setup_by_typedef_thm gen_abs_code typedef_thm lthy =
           [[typedef_thm, T_def] MRSL @{thm typedef_Ex_transfer}])
         |> (snd oo Local_Theory.note) ((qualify "forall_transfer", [transfer_attr]), 
           [simplify ([typedef_thm, T_def] MRSL @{thm typedef_forall_transfer})])
+        |> pair NONE
   in
     lthy''
       |> (snd oo Local_Theory.note) ((qualify "bi_unique", [transfer_attr]), 
@@ -197,10 +219,10 @@ fun setup_by_typedef_thm gen_abs_code typedef_thm lthy =
         [[quot_thm] MRSL @{thm Quotient_right_unique}])
       |> (snd oo Local_Theory.note) ((qualify "right_total", [transfer_attr]), 
         [[quot_thm] MRSL @{thm Quotient_right_total}])
-      |> setup_lifting_infr gen_abs_code quot_thm
+      |> setup_lifting_infr gen_code quot_thm maybe_reflp_thm
   end
 
-fun setup_lifting_cmd gen_abs_code xthm opt_reflp_xthm lthy =
+fun setup_lifting_cmd gen_code xthm opt_reflp_xthm lthy =
   let 
     val input_thm = singleton (Attrib.eval_thms lthy) xthm
     val input_term = (HOLogic.dest_Trueprop o prop_of) input_thm
@@ -223,14 +245,14 @@ fun setup_lifting_cmd gen_abs_code xthm opt_reflp_xthm lthy =
             val reflp_thm = singleton (Attrib.eval_thms lthy) reflp_xthm
             val _ = sanity_check_reflp_thm reflp_thm
           in
-            setup_by_quotient gen_abs_code input_thm (SOME reflp_thm) lthy
+            setup_by_quotient gen_code input_thm (SOME reflp_thm) lthy
           end
-        | NONE => setup_by_quotient gen_abs_code input_thm NONE lthy
+        | NONE => setup_by_quotient gen_code input_thm NONE lthy
 
     fun setup_typedef () = 
       case opt_reflp_xthm of
         SOME _ => error "The reflexivity theorem cannot be specified if the type_definition theorem is used."
-        | NONE => setup_by_typedef_thm gen_abs_code input_thm lthy
+        | NONE => setup_by_typedef_thm gen_code input_thm lthy
   in
     case input_term of
       (Const (@{const_name Quotient}, _) $ _ $ _ $ _ $ _) => setup_quotient ()
@@ -238,12 +260,12 @@ fun setup_lifting_cmd gen_abs_code xthm opt_reflp_xthm lthy =
       | _ => error "Unsupported type of a theorem. Only Quotient or type_definition are supported."
   end
 
-val opt_gen_abs_code =
-  Scan.optional (@{keyword "("} |-- Parse.!!! ((Parse.reserved "no_abs_code" >> K false) --| @{keyword ")"})) true
+val opt_gen_code =
+  Scan.optional (@{keyword "("} |-- Parse.!!! ((Parse.reserved "no_code" >> K false) --| @{keyword ")"})) true
 
 val _ = 
   Outer_Syntax.local_theory @{command_spec "setup_lifting"}
     "Setup lifting infrastructure" 
-      (opt_gen_abs_code -- Parse_Spec.xthm -- Scan.option Parse_Spec.xthm >> 
-        (fn ((gen_abs_code, xthm), opt_reflp_xthm) => setup_lifting_cmd gen_abs_code xthm opt_reflp_xthm))
+      (opt_gen_code -- Parse_Spec.xthm -- Scan.option Parse_Spec.xthm >> 
+        (fn ((gen_code, xthm), opt_reflp_xthm) => setup_lifting_cmd gen_code xthm opt_reflp_xthm))
 end;

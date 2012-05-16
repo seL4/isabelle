@@ -82,9 +82,30 @@ lemma Quotient_rep_abs: "R r r \<Longrightarrow> R (Rep (Abs r)) r"
   using a unfolding Quotient_def
   by blast
 
+lemma Quotient_rep_abs_fold_unmap: 
+  assumes "x' \<equiv> Abs x" and "R x x" and "Rep x' \<equiv> Rep' x'" 
+  shows "R (Rep' x') x"
+proof -
+  have "R (Rep x') x" using assms(1-2) Quotient_rep_abs by auto
+  then show ?thesis using assms(3) by simp
+qed
+
+lemma Quotient_Rep_eq:
+  assumes "x' \<equiv> Abs x" 
+  shows "Rep x' \<equiv> Rep x'"
+by simp
+
 lemma Quotient_rel_abs: "R r s \<Longrightarrow> Abs r = Abs s"
   using a unfolding Quotient_def
   by blast
+
+lemma Quotient_rel_abs2:
+  assumes "R (Rep x) y"
+  shows "x = Abs y"
+proof -
+  from assms have "Abs (Rep x) = Abs y" by (auto intro: Quotient_rel_abs)
+  then show ?thesis using assms(1) by (simp add: Quotient_abs_rep)
+qed
 
 lemma Quotient_symp: "symp R"
   using a unfolding Quotient_def using sympI by (metis (full_types))

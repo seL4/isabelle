@@ -26,6 +26,11 @@ lemma fun_relD:
   shows "B (f x) (g y)"
   using assms by (simp add: fun_rel_def)
 
+lemma fun_relD2:
+  assumes "(A ===> B) f g" and "A x x"
+  shows "B (f x) (g x)"
+  using assms unfolding fun_rel_def by auto
+
 lemma fun_relE:
   assumes "(A ===> B) f g" and "A x y"
   obtains "B (f x) (g y)"

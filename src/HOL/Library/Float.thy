@@ -19,7 +19,7 @@ defs (overloaded)
 lemma type_definition_float': "type_definition real float_of float"
   using type_definition_float unfolding real_of_float_def .
 
-setup_lifting (no_abs_code) type_definition_float'
+setup_lifting (no_code) type_definition_float'
 
 lemmas float_of_inject[simp]
 

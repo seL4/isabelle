@@ -81,6 +81,10 @@ proof -
     done
 qed
 
+text {* We can export code: *}
+
+export_code fnil fcons fappend fmap ffilter fset in SML
+
 text {* Note that the generated transfer rule contains a composition
   of relations. The transfer rule is not yet very useful in this form. *}
 
