@@ -362,6 +362,12 @@ fun add_pconst_to_table also_skolem (s, p) =
   if (not also_skolem andalso String.isPrefix skolem_prefix s) then I
   else Symtab.map_default (s, [p]) (insert (op =) p)
 
+(* Set constants tend to pull in too many irrelevant facts. We limit the damage
+   by treating them more or less as if they were built-in but add their
+   axiomatization at the end. *)
+val set_consts = [@{const_name Collect}, @{const_name Set.member}]
+val set_thms = @{thms Collect_mem_eq mem_Collect_eq}
+
 fun add_pconsts_in_term thy is_built_in_const also_skolems pos =
   let
     val flip = Option.map not
@@ -369,16 +375,19 @@ fun add_pconsts_in_term thy is_built_in_const also_skolems pos =
        each quantifiers that must necessarily be skolemized by the automatic
        prover, we introduce a fresh constant to simulate the effect of
        Skolemization. *)
-    fun do_const const x ts =
+    fun do_const const ext_arg (x as (s, _)) ts =
       let val (built_in, ts) = is_built_in_const x ts in
-        (not built_in
-         ? add_pconst_to_table also_skolems (rich_pconst thy const x))
-        #> fold (do_term false) ts
+        if member (op =) set_consts s then
+          fold (do_term ext_arg) ts
+        else
+          (not built_in
+           ? add_pconst_to_table also_skolems (rich_pconst thy const x))
+          #> fold (do_term false) ts
       end
     and do_term ext_arg t =
       case strip_comb t of
-        (Const x, ts) => do_const true x ts
-      | (Free x, ts) => do_const false x ts
+        (Const x, ts) => do_const true ext_arg x ts
+      | (Free x, ts) => do_const false ext_arg x ts
       | (Abs (_, T, t'), ts) =>
         ((null ts andalso not ext_arg)
          (* Since lambdas on the right-hand side of equalities are usually
@@ -750,6 +759,14 @@ fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
       ((facts |> filter (member Thm.eq_thm_prop ths o snd)) @
        (accepts |> filter_out (member Thm.eq_thm_prop ths o snd)))
       |> take max_relevant
+    fun uses_const s t =
+      fold_aterms (curry (fn (Const (s', _), false) => s' = s | (_, b) => b)) t
+                  false
+    fun uses_const_anywhere accepts s =
+      exists (uses_const s o prop_of o snd) accepts orelse
+      exists (uses_const s) (concl_t :: hyp_ts)
+    fun add_set_const_thms accepts =
+      exists (uses_const_anywhere accepts) set_consts ? append set_thms
     fun insert_into_facts accepts [] = accepts
       | insert_into_facts accepts ths =
         let
@@ -761,6 +778,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
         in bef @ add @ after end
     fun insert_special_facts accepts =
        [] |> could_benefit_from_ext is_built_in_const accepts ? cons @{thm ext}
+          |> add_set_const_thms accepts
           |> insert_into_facts accepts
   in
     facts |> map_filter (pair_consts_fact thy is_built_in_const fudge)
