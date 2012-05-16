@@ -417,10 +417,10 @@ val spass_new_config : atp_config =
       (0.1667, (false, ((500, DFG DFG_Sorted, "mono_native", liftingN, true), spass_new_H2SOS))),
       (0.1666, (false, ((50, DFG DFG_Sorted,  "mono_native", liftingN, true), spass_new_H2))),
       (0.1000, (false, ((250, DFG DFG_Sorted, "mono_native", combsN, true), spass_new_H2NuVS0))),
-      (0.1000, (false, ((100, DFG DFG_Sorted, "mono_native", combs_and_liftingN, true), spass_new_H2NuVS0))),
       (0.1000, (false, ((1000, DFG DFG_Sorted, "mono_native", liftingN, true), spass_new_H1SOS))),
       (0.1000, (false, ((150, DFG DFG_Sorted, "poly_guards??", liftingN, false), spass_new_H2NuVS0Red2))),
-      (0.1000, (false, ((300, DFG DFG_Sorted, "mono_native", combsN, true), spass_new_H2SOS)))]}
+      (0.1000, (false, ((300, DFG DFG_Sorted, "mono_native", combsN, true), spass_new_H2SOS))),
+      (0.1000, (false, ((100, DFG DFG_Sorted, "mono_native", combs_and_liftingN, true), spass_new_H2NuVS0)))]}
 
 val spass_new = (spass_newN, fn () => spass_new_config)
 
