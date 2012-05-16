@@ -153,7 +153,11 @@ fun zones_of 0 _ = []
 
 fun redirect_graph axioms tainted ref_graph =
   let
-    val [bot] = Atom_Graph.maximals ref_graph
+    val bot =
+      case Atom_Graph.maximals ref_graph of
+        [bot] => bot
+      | bots => raise Fail ("malformed refutation graph with " ^
+                            string_of_int (length bots) ^ " maximal nodes")
     val seqs =
       map (redirect_sequent tainted bot) (sequents_of_ref_graph ref_graph)
     val direct_graph = direct_graph seqs
