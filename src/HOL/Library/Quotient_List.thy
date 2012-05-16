@@ -37,7 +37,7 @@ next
     by (induct arbitrary: ys, simp, clarsimp simp add: list_all2_Cons1, fast)
 qed
 
-lemma list_reflp:
+lemma list_reflp[reflp_preserve]:
   assumes "reflp R"
   shows "reflp (list_all2 R)"
 proof (rule reflpI)

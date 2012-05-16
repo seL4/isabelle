@@ -100,6 +100,9 @@ end
 lemma identity_quotient: "Quotient (op =) id id (op =)"
 unfolding Quotient_def by simp 
 
+lemma reflp_equality: "reflp (op =)"
+by (auto intro: reflpI)
+
 text {* TODO: Use one of these alternatives as the real definition. *}
 
 lemma Quotient_alt_def:
@@ -364,6 +367,7 @@ use "Tools/Lifting/lifting_info.ML"
 setup Lifting_Info.setup
 
 declare fun_quotient[quot_map]
+declare reflp_equality[reflp_preserve]
 
 use "Tools/Lifting/lifting_term.ML"
 

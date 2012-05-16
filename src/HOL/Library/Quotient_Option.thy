@@ -46,7 +46,7 @@ lemma split_option_all: "(\<forall>x. P x) \<longleftrightarrow> P None \<and> (
 lemma split_option_ex: "(\<exists>x. P x) \<longleftrightarrow> P None \<or> (\<exists>x. P (Some x))"
   by (metis option.exhaust) (* TODO: move to Option.thy *)
 
-lemma option_reflp:
+lemma option_reflp[reflp_preserve]:
   "reflp R \<Longrightarrow> reflp (option_rel R)"
   unfolding reflp_def split_option_all by simp
 

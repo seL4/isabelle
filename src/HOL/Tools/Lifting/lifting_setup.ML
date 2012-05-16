@@ -117,6 +117,8 @@ fun setup_by_quotient gen_abs_code quot_thm maybe_reflp_thm lthy =
           [[quot_thm, reflp_thm] MRSL @{thm Quotient_total_abs_induct}])
         |> (snd oo Local_Theory.note) ((qualify "abs_eq_iff", []),
           [[quot_thm, reflp_thm] MRSL @{thm Quotient_total_abs_eq_iff}])
+        |> (snd oo Local_Theory.note) ((Binding.empty, [Lifting_Info.add_reflp_preserve_rule_attrib]),
+          [reflp_thm])
       | NONE => lthy
         |> (snd oo Local_Theory.note) ((qualify "All_transfer", [transfer_attr]), 
           [quot_thm RS @{thm Quotient_All_transfer}])
@@ -175,6 +177,8 @@ fun setup_by_typedef_thm gen_abs_code typedef_thm lthy =
               [[quot_thm, reflp_thm] MRSL @{thm Quotient_bi_total}])
             |> (snd oo Local_Theory.note) ((qualify "id_abs_transfer", [transfer_attr]), 
               [[quot_thm, reflp_thm] MRSL @{thm Quotient_id_abs_transfer}])
+            |> (snd oo Local_Theory.note) ((Binding.empty, [Lifting_Info.add_reflp_preserve_rule_attrib]),
+              [reflp_thm])
         end
       | _ => lthy'
         |> (snd oo Local_Theory.note) ((qualify "All_transfer", [transfer_attr]), 

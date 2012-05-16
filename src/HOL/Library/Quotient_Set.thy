@@ -34,7 +34,7 @@ lemma set_rel_OO: "set_rel (R OO S) = set_rel R OO set_rel S"
 lemma set_rel_eq [relator_eq]: "set_rel (op =) = (op =)"
   unfolding set_rel_def fun_eq_iff by auto
 
-lemma reflp_set_rel: "reflp R \<Longrightarrow> reflp (set_rel R)"
+lemma reflp_set_rel[reflp_preserve]: "reflp R \<Longrightarrow> reflp (set_rel R)"
   unfolding reflp_def set_rel_def by fast
 
 lemma symp_set_rel: "symp R \<Longrightarrow> symp (set_rel R)"

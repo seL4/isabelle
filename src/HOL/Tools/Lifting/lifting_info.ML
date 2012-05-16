@@ -20,6 +20,10 @@ sig
   val print_quotients: Proof.context -> unit
 
   val get_invariant_commute_rules: Proof.context -> thm list
+  
+  val get_reflp_preserve_rules: Proof.context -> thm list
+  val add_reflp_preserve_rule_attribute: attribute
+  val add_reflp_preserve_rule_attrib: Attrib.src
 
   val setup: theory -> theory
 end;
@@ -157,11 +161,22 @@ structure Invariant_Commute = Named_Thms
 
 fun get_invariant_commute_rules ctxt = map safe_mk_meta_eq (Invariant_Commute.get ctxt)
 
+structure Reflp_Preserve = Named_Thms
+(
+  val name = @{binding reflp_preserve}
+  val description = "theorems that a relator preserves a reflexivity property"
+)
+
+val get_reflp_preserve_rules = Reflp_Preserve.get
+val add_reflp_preserve_rule_attribute = Reflp_Preserve.add
+val add_reflp_preserve_rule_attrib = Attrib.internal (K add_reflp_preserve_rule_attribute)
+
 (* theory setup *)
 
 val setup =
   quotmaps_attribute_setup
   #> Invariant_Commute.setup
+  #> Reflp_Preserve.setup
 
 (* outer syntax commands *)
 
