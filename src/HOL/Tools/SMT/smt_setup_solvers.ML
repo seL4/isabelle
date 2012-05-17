@@ -143,7 +143,7 @@ local
     |> not (Config.get ctxt SMT_Config.oracle) ?
          append ["DISPLAY_PROOF=true","PROOF_MODE=2"]
 
-  fun z3_on_last_line solver_name lines =
+  fun z3_on_first_or_last_line solver_name lines =
     let
       fun junk l =
         if String.isPrefix "WARNING: Out of allocated virtual memory" l
@@ -152,9 +152,15 @@ local
           String.isPrefix "WARNING" l orelse
           String.isPrefix "ERROR" l orelse
           forall Symbol.is_ascii_blank (Symbol.explode l)
+      val lines = filter_out junk lines
+      fun outcome split =
+        the_default ("", []) (try split lines)
+        |>> outcome_of "unsat" "sat" "unknown" solver_name
     in
-      the_default ("", []) (try (swap o split_last) (filter_out junk lines))
-      |>> outcome_of "unsat" "sat" "unknown" solver_name
+      (* Starting with version 4.0, Z3 puts the outcome on the first line of the
+         output rather than on the last line. *)
+      outcome (fn lines => (hd lines, tl lines))
+      handle SMT_Failure.SMT _ => outcome (swap o split_last)
     end
 
   fun mk is_remote = {
@@ -165,7 +171,7 @@ local
     options = z3_options,
     default_max_relevant = 350 (* FUDGE *),
     supports_filter = true,
-    outcome = z3_on_last_line,
+    outcome = z3_on_first_or_last_line,
     cex_parser = SOME Z3_Model.parse_counterex,
     reconstruct = SOME Z3_Proof_Reconstruction.reconstruct }
 in
