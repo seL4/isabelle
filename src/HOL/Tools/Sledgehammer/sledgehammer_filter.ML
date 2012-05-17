@@ -366,7 +366,7 @@ fun add_pconst_to_table also_skolem (s, p) =
    by treating them more or less as if they were built-in but add their
    axiomatization at the end. *)
 val set_consts = [@{const_name Collect}, @{const_name Set.member}]
-val set_thms = @{thms Collect_mem_eq mem_Collect_eq}
+val set_thms = @{thms Collect_mem_eq mem_Collect_eq Collect_cong}
 
 fun add_pconsts_in_term thy is_built_in_const also_skolems pos =
   let
@@ -777,6 +777,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
                     |> chop special_fact_index
         in bef @ add @ after end
     fun insert_special_facts accepts =
+       (* FIXME: get rid of "ext" here once it is treated as a helper *)
        [] |> could_benefit_from_ext is_built_in_const accepts ? cons @{thm ext}
           |> add_set_const_thms accepts
           |> insert_into_facts accepts
