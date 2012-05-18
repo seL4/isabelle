@@ -1334,6 +1334,7 @@ $(LOG)/HOL-Mirabelle.gz: $(OUT)/HOL Mirabelle/Mirabelle_Test.thy \
   Mirabelle/Tools/mirabelle_refute.ML	\
   Mirabelle/Tools/mirabelle_sledgehammer.ML \
   Mirabelle/Tools/mirabelle_sledgehammer_filter.ML \
+  Mirabelle/Tools/mirabelle_try0.ML \
   TPTP/sledgehammer_tactics.ML Mirabelle/lib/Tools/mirabelle \
   Mirabelle/lib/scripts/mirabelle.pl Library/FrechetDeriv.thy \
   Library/Inner_Product.thy
