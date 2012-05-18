@@ -211,6 +211,8 @@ fun setup_by_typedef_thm gen_code typedef_thm lthy =
         |> pair NONE
   in
     lthy''
+      |> (snd oo Local_Theory.note) ((Binding.prefix_name "Quotient_" qty_name, []), 
+        [quot_thm])
       |> (snd oo Local_Theory.note) ((qualify "bi_unique", [transfer_attr]), 
         [[typedef_thm, T_def] MRSL @{thm typedef_bi_unique}])
       |> (snd oo Local_Theory.note) ((qualify "rep_transfer", [transfer_attr]), 
