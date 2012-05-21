@@ -24,6 +24,7 @@ sig
     TimedOut |
     Inappropriate |
     OutOfResources |
+    OldSPASS |
     NoPerl |
     NoLibwwwPerl |
     MalformedInput |
@@ -80,6 +81,7 @@ datatype failure =
   TimedOut |
   Inappropriate |
   OutOfResources |
+  OldSPASS |
   NoPerl |
   NoLibwwwPerl |
   MalformedInput |
@@ -131,6 +133,15 @@ fun string_for_failure Unprovable = "The generated problem is unprovable."
   | string_for_failure Inappropriate =
     "The generated problem lies outside the prover's scope."
   | string_for_failure OutOfResources = "The prover ran out of resources."
+  | string_for_failure OldSPASS =
+    "The version of SPASS you are using is obsolete. Please upgrade to \
+    \SPASS 3.8ds. To install it, download and extract the package \
+    \\"http://www21.in.tum.de/~blanchet/spass-3.8ds.tar.gz\" and add the \
+    \\"spass-3.8ds\" directory's absolute path to " ^
+    quote (Path.implode (Path.expand (Path.appends
+               (Path.variable "ISABELLE_HOME_USER" ::
+                map Path.basic ["etc", "components"])))) ^
+    " on a line of its own."
   | string_for_failure NoPerl = "Perl" ^ missing_message_tail
   | string_for_failure NoLibwwwPerl =
     "The Perl module \"libwww-perl\"" ^ missing_message_tail

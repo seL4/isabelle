@@ -374,7 +374,9 @@ val spass_old_config : atp_config =
    proof_delims = [("Here is a proof", "Formulae used in the proof")],
    known_failures =
      known_perl_failures @
-     [(GaveUp, "SPASS beiseite: Completion found"),
+     [(OldSPASS, "SPASS V 3.5"),
+      (OldSPASS, "SPASS V 3.7"),
+      (GaveUp, "SPASS beiseite: Completion found"),
       (TimedOut, "SPASS beiseite: Ran out of time"),
       (OutOfResources, "SPASS beiseite: Maximal number of loops exceeded"),
       (MalformedInput, "Undefined symbol"),
