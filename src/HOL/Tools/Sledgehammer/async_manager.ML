@@ -121,7 +121,7 @@ fun print_new_messages () =
   |> AList.group (op =)
   |> List.app (fn ((tool, work), workers) =>
                   tool ^ ": " ^
-                  implode_message (workers |> sort string_ord, work)
+                  implode_message (workers |> sort_distinct string_ord, work)
                   |> break_into_chunks
                   |> List.app Output.urgent_message)
 
