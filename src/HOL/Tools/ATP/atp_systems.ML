@@ -462,8 +462,8 @@ val vampire_config : atp_config =
    best_slices = fn ctxt =>
      (* FUDGE *)
      (if is_new_vampire_version () then
-        [(0.333, (false, ((150, vampire_tff0, "poly_guards??", combs_or_liftingN, false), sosN))),
-         (0.333, (false, ((500, vampire_tff0, "mono_native", combs_or_liftingN, false), sosN))),
+        [(0.333, (false, ((500, vampire_tff0, "mono_native", combs_or_liftingN, false), sosN))),
+         (0.333, (false, ((150, vampire_tff0, "poly_guards??", combs_or_liftingN, false), sosN))),
          (0.334, (true, ((50, vampire_tff0, "mono_native", combs_or_liftingN, false), no_sosN)))]
       else
         [(0.333, (false, ((150, FOF, "poly_guards??", combs_or_liftingN, false), sosN))),
