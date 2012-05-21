@@ -176,10 +176,10 @@ fun metis_axiom_from_atp type_enc clauses (Formula (ident, _, phi, _, _)) =
         case (String.isSuffix typed_helper_suffix ident,
               space_explode "_" ident) of
           (needs_fairly_sound, _ :: const :: j :: _) =>
-          nth ((const, needs_fairly_sound)
-               |> AList.lookup (op =) helper_table |> the)
+          nth (AList.lookup (op =) helper_table (const, needs_fairly_sound)
+               |> the)
               (the (Int.fromString j) - 1)
-          |> prepare_helper
+          |> snd |> prepare_helper
           |> Isa_Raw |> some
         | _ => raise Fail ("malformed helper identifier " ^ quote ident)
       else case try (unprefix fact_prefix) ident of
@@ -242,7 +242,7 @@ fun prepare_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
     *)
     val lam_trans = if lam_trans = combsN then no_lamsN else lam_trans
     val (atp_problem, _, _, lifted, sym_tab) =
-      prepare_atp_problem ctxt CNF Hypothesis type_enc false lam_trans false
+      prepare_atp_problem ctxt CNF Hypothesis type_enc Metis lam_trans false
                           false false [] @{prop False} props
     (*
     val _ = tracing ("ATP PROBLEM: " ^

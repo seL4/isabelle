@@ -15,7 +15,8 @@ sig
   val can_tac : Proof.context -> tactic -> term -> bool
   val SOLVE_TIMEOUT :  int -> string -> tactic -> tactic
   val atp_tac :
-    Proof.context -> (string * string) list -> int -> string -> int -> tactic
+    Proof.context -> int -> (string * string) list -> int -> string -> int
+    -> tactic
   val smt_solver_tac : string -> Proof.context -> int -> tactic
   val freeze_problem_consts : theory -> term -> term
   val make_conj : term list * term list -> term list -> term
@@ -177,31 +178,51 @@ fun nitpick_finite_oracle_tac ctxt timeout i th =
       in if outcome = "none" then Skip_Proof.cheat_tac thy th else Seq.empty end
   end
 
-fun atp_tac ctxt override_params timeout prover =
-  Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt
-      ([("debug", if debug then "true" else "false"),
-        ("overlord", if overlord then "true" else "false"),
-        ("provers", prover),
-        ("timeout", string_of_int timeout)] @ override_params)
-      {add = [(Facts.named (Thm.derivation_name ext), [])],
-       del = [], only = true}
+fun atp_tac ctxt aggressivity override_params timeout prover =
+  let
+    val ctxt =
+      ctxt |> Config.put Sledgehammer_Provers.aggressive (aggressivity > 0)
+  in
+    Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt
+        ([("debug", if debug then "true" else "false"),
+          ("overlord", if overlord then "true" else "false"),
+          ("provers", prover),
+          ("timeout", string_of_int timeout)] @
+         (if aggressivity > 0 then
+            [("type_enc",
+              if aggressivity = 1 then "mono_native" else "poly_guards??"),
+             ("slicing", "false")]
+          else
+            []) @
+         override_params)
+        {add = [(Facts.named (Thm.derivation_name ext), [])],
+         del = [], only = true}
+  end
 
 fun sledgehammer_tac demo ctxt timeout i =
   let
-    val frac = if demo then 6 else 4
-    fun slice prover =
-      SOLVE_TIMEOUT (timeout div frac) prover
-                    (atp_tac ctxt [] (timeout div frac) prover i)
+    val frac = if demo then 16 else 12
+    fun slice mult aggressivity prover =
+      SOLVE_TIMEOUT (mult * timeout div frac)
+          (prover ^
+           (if aggressivity > 0 then "(" ^ string_of_int aggressivity ^ ")"
+            else ""))
+          (atp_tac ctxt aggressivity [] (timeout div frac) prover i)
   in
-    (if demo then
-       slice ATP_Systems.satallaxN
-       ORELSE slice ATP_Systems.leo2N
-     else
-       no_tac)
-    ORELSE slice ATP_Systems.spassN
-    ORELSE slice ATP_Systems.vampireN
-    ORELSE slice ATP_Systems.eN
-    ORELSE slice ATP_Systems.z3_tptpN
+    slice 2 0 ATP_Systems.spassN
+    ORELSE slice 2 0 ATP_Systems.vampireN
+    ORELSE slice 2 0 ATP_Systems.eN
+    ORELSE slice 2 0 ATP_Systems.z3_tptpN
+    ORELSE slice 1 1 ATP_Systems.spassN
+    ORELSE slice 1 2 ATP_Systems.eN
+    ORELSE slice 1 1 ATP_Systems.vampireN
+    ORELSE slice 1 2 ATP_Systems.vampireN
+    ORELSE
+      (if demo then
+         slice 2 0 ATP_Systems.satallaxN
+         ORELSE slice 2 0 ATP_Systems.leo2N
+       else
+         no_tac)
   end
 
 fun smt_solver_tac solver ctxt =
@@ -212,15 +233,15 @@ fun smt_solver_tac solver ctxt =
 fun auto_etc_tac ctxt timeout i =
   SOLVE_TIMEOUT (timeout div 20) "nitpick"
       (nitpick_finite_oracle_tac ctxt (timeout div 20) i)
-  ORELSE SOLVE_TIMEOUT (timeout div 20) "simp"
+  ORELSE SOLVE_TIMEOUT (timeout div 10) "simp"
       (asm_full_simp_tac (simpset_of ctxt) i)
   ORELSE SOLVE_TIMEOUT (timeout div 10) "blast" (blast_tac ctxt i)
   ORELSE SOLVE_TIMEOUT (timeout div 5) "auto+spass"
       (auto_tac ctxt
-       THEN ALLGOALS (atp_tac ctxt [] (timeout div 5) ATP_Systems.spassN))
-  ORELSE SOLVE_TIMEOUT (timeout div 10) "z3" (smt_solver_tac "z3" ctxt i)
-  ORELSE SOLVE_TIMEOUT (timeout div 10) "cvc3" (smt_solver_tac "cvc3" ctxt i)
-  ORELSE SOLVE_TIMEOUT (timeout div 20) "fast" (fast_tac ctxt i)
+       THEN ALLGOALS (atp_tac ctxt 0 [] (timeout div 5) ATP_Systems.spassN))
+  ORELSE SOLVE_TIMEOUT (timeout div 10) "fast" (fast_tac ctxt i)
+  ORELSE SOLVE_TIMEOUT (timeout div 20) "z3" (smt_solver_tac "z3" ctxt i)
+  ORELSE SOLVE_TIMEOUT (timeout div 20) "cvc3" (smt_solver_tac "cvc3" ctxt i)
   ORELSE SOLVE_TIMEOUT (timeout div 20) "best" (best_tac ctxt i)
   ORELSE SOLVE_TIMEOUT (timeout div 10) "force" (force_tac ctxt i)
   ORELSE SOLVE_TIMEOUT (timeout div 10) "meson" (Meson.meson_tac ctxt [] i)
@@ -264,11 +285,11 @@ fun isabelle_tptp_file demo thy timeout file_name =
     val (conjs, assms, ctxt) =
       read_tptp_file thy (freeze_problem_consts thy) file_name
     val conj = make_conj assms conjs
-    val last_hope = if demo then ATP_Systems.satallaxN else ATP_Systems.spassN
+    val last_hope = if demo then ATP_Systems.satallaxN else ATP_Systems.vampireN
   in
     (can_tac ctxt (auto_etc_tac ctxt (timeout div 2) 1) conj orelse
      can_tac ctxt (sledgehammer_tac demo ctxt (timeout div 2) 1) conj orelse
-     can_tac ctxt (atp_tac ctxt [] timeout last_hope 1) conj)
+     can_tac ctxt (atp_tac ctxt 2 [] timeout last_hope 1) conj)
     |> print_szs_from_success conjs
   end
 

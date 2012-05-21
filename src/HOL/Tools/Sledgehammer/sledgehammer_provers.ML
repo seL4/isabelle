@@ -65,6 +65,7 @@ sig
 
   val dest_dir : string Config.T
   val problem_prefix : string Config.T
+  val aggressive : bool Config.T
   val atp_full_names : bool Config.T
   val smt_triggers : bool Config.T
   val smt_weights : bool Config.T
@@ -334,6 +335,8 @@ val dest_dir =
   Attrib.setup_config_string @{binding sledgehammer_dest_dir} (K "")
 val problem_prefix =
   Attrib.setup_config_string @{binding sledgehammer_problem_prefix} (K "prob")
+val aggressive =
+  Attrib.setup_config_bool @{binding sledgehammer_aggressive} (K false)
 
 (* In addition to being easier to read, readable names are often much shorter,
    especially if types are mangled in names. This makes a difference for some
@@ -589,6 +592,9 @@ fun run_atp mode name
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
+    val atp_mode =
+      if Config.get ctxt aggressive then Sledgehammer_Aggressive
+      else Sledgehammer
     val (_, hyp_ts, concl_t) = strip_subgoal ctxt goal subgoal
     val (dest_dir, problem_prefix) =
       if overlord then overlord_file_location_for_prover name
@@ -710,9 +716,9 @@ fun run_atp mode name
                     |> polymorphism_of_type_enc type_enc <> Polymorphic
                        ? monomorphize_facts
                     |> map (apsnd prop_of)
-                    |> prepare_atp_problem ctxt format prem_kind type_enc false
-                           lam_trans uncurried_aliases readable_names true
-                           hyp_ts concl_t
+                    |> prepare_atp_problem ctxt format prem_kind type_enc
+                                           atp_mode lam_trans uncurried_aliases
+                                           readable_names true hyp_ts concl_t
                 fun sel_weights () = atp_problem_selection_weights atp_problem
                 fun ord_info () = atp_problem_term_order_info atp_problem
                 val ord = effective_term_order ctxt name

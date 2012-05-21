@@ -363,7 +363,7 @@ fun find_formula_in_problem problem phi =
           |> try (single o hd) |> the_default []
 
 fun commute_eq (AAtom (ATerm (s, tms))) = AAtom (ATerm (s, rev tms))
-  | commute_eq t = raise Fail "expected equation"
+  | commute_eq _ = raise Fail "expected equation"
 
 (* Syntax: (cnf|fof|tff|thf)\(<num>, <formula_role>,
             <formula> <extra_arguments>\).

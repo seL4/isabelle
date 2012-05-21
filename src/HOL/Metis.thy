@@ -47,10 +47,13 @@ use "Tools/Metis/metis_tactic.ML"
 
 setup {* Metis_Tactic.setup *}
 
-hide_const (open) fFalse fTrue fNot fconj fdisj fimplies fequal select lambda
-hide_fact (open) fFalse_def fTrue_def fNot_def fconj_def fdisj_def fimplies_def
-    fequal_def select_def not_atomize atomize_not_select not_atomize_select
-    select_FalseI lambda_def eq_lambdaI
+hide_const (open) select fFalse fTrue fNot fComp fconj fdisj fimplies fequal
+    lambda
+hide_fact (open) select_def not_atomize atomize_not_select not_atomize_select
+    select_FalseI fFalse_def fTrue_def fNot_def fconj_def fdisj_def fimplies_def
+    fequal_def fTrue_ne_fFalse fNot_table fconj_table fdisj_table fimplies_table
+    fequal_table fAll_table fEx_table fNot_law fComp_law fconj_laws fdisj_laws
+    fimplies_laws fequal_laws fAll_law fEx_law lambda_def eq_lambdaI
 
 
 subsection {* Try0 *}

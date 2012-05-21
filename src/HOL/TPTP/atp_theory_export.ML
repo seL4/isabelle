@@ -183,8 +183,8 @@ fun generate_tptp_inference_file_for_theory ctxt thy format type_enc file_name =
       |> map (fn ((_, loc), th) =>
                  ((Thm.get_name_hint th, loc),
                    th |> prop_of |> mono ? monomorphize_term ctxt))
-      |> prepare_atp_problem ctxt format Axiom type_enc true combsN false false
-                             true [] @{prop False}
+      |> prepare_atp_problem ctxt format Axiom type_enc Exporter combsN false
+                             false true [] @{prop False}
       |> #1
     val atp_problem =
       atp_problem

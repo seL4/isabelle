@@ -15,6 +15,8 @@ sig
   type formula_kind = ATP_Problem.formula_kind
   type 'a problem = 'a ATP_Problem.problem
 
+  datatype mode = Metis | Sledgehammer | Sledgehammer_Aggressive | Exporter
+
   datatype scope = Global | Local | Assum | Chained
   datatype status =
     General | Induction | Intro | Inductive | Elim | Simp | Def
@@ -95,12 +97,12 @@ sig
     connective -> ('a, 'b, 'c) formula list -> ('a, 'b, 'c) formula
   val unmangled_const : string -> string * (string, 'b) ho_term list
   val unmangled_const_name : string -> string list
-  val helper_table : ((string * bool) * thm list) list
+  val helper_table : ((string * bool) * (status * thm) list) list
   val trans_lams_from_string :
     Proof.context -> type_enc -> string -> term list -> term list * term list
   val factsN : string
   val prepare_atp_problem :
-    Proof.context -> atp_format -> formula_kind -> type_enc -> bool -> string
+    Proof.context -> atp_format -> formula_kind -> type_enc -> mode -> string
     -> bool -> bool -> bool -> term list -> term
     -> ((string * stature) * term) list
     -> string problem * string Symtab.table * (string * stature) list vector
@@ -116,6 +118,8 @@ open ATP_Util
 open ATP_Problem
 
 type name = string * string
+
+datatype mode = Metis | Sledgehammer | Sledgehammer_Aggressive | Exporter
 
 datatype scope = Global | Local | Assum | Chained
 datatype status = General | Induction | Intro | Inductive | Elim | Simp | Def
@@ -1587,12 +1591,21 @@ fun is_pred_sym sym_tab s =
     pred_sym andalso min_ary = max_ary
   | NONE => false
 
-val app_op = `(make_fixed_const NONE) app_op_name
-val predicator_combconst =
+val fTrue_iconst =
+  IConst ((const_prefix ^ "fTrue", @{const_name ATP.fTrue}), @{typ bool}, [])
+val predicator_iconst =
   IConst (`(make_fixed_const NONE) predicator_name, @{typ "bool => bool"}, [])
 
+fun predicatify aggressive tm =
+  if aggressive then
+    IApp (IApp (IConst (`I tptp_equal, @{typ "bool => bool => bool"}, []), tm),
+          fTrue_iconst)
+  else
+    IApp (predicator_iconst, tm)
+
+val app_op = `(make_fixed_const NONE) app_op_name
+
 fun list_app head args = fold (curry (IApp o swap)) args head
-fun predicator tm = IApp (predicator_combconst, tm)
 
 fun mk_app_op type_enc head arg =
   let
@@ -1603,7 +1616,8 @@ fun mk_app_op type_enc head arg =
       |> mangle_type_args_in_iterm type_enc
   in list_app app [head, arg] end
 
-fun firstorderize_fact thy monom_constrs type_enc sym_tab uncurried_aliases =
+fun firstorderize_fact thy monom_constrs type_enc sym_tab uncurried_aliases
+                       aggressive =
   let
     fun do_app arg head = mk_app_op type_enc head arg
     fun list_app_ops head args = fold do_app args head
@@ -1625,8 +1639,8 @@ fun firstorderize_fact thy monom_constrs type_enc sym_tab uncurried_aliases =
     fun introduce_predicators tm =
       case strip_iterm_comb tm of
         (IConst ((s, _), _, _), _) =>
-        if is_pred_sym sym_tab s then tm else predicator tm
-      | _ => predicator tm
+        if is_pred_sym sym_tab s then tm else predicatify aggressive tm
+      | _ => predicatify aggressive tm
     val do_iterm =
       not (is_type_enc_higher_order type_enc)
       ? (introduce_app_ops #> introduce_predicators)
@@ -1639,45 +1653,75 @@ val not_ffalse = @{lemma "~ fFalse" by (unfold fFalse_def) fast}
 val ftrue = @{lemma "fTrue" by (unfold fTrue_def) fast}
 
 (* The Boolean indicates that a fairly sound type encoding is needed. *)
+val base_helper_table =
+  [(("COMBI", false), [(Def, @{thm Meson.COMBI_def})]),
+   (("COMBK", false), [(Def, @{thm Meson.COMBK_def})]),
+   (("COMBB", false), [(Def, @{thm Meson.COMBB_def})]),
+   (("COMBC", false), [(Def, @{thm Meson.COMBC_def})]),
+   (("COMBS", false), [(Def, @{thm Meson.COMBS_def})]),
+   ((predicator_name, false), [(General, not_ffalse), (General, ftrue)]),
+   (("fFalse", false), [(General, not_ffalse)]),
+   (("fFalse", true), [(General, @{thm True_or_False})]),
+   (("fTrue", false), [(General, ftrue)]),
+   (("fTrue", true), [(General, @{thm True_or_False})]),
+   (("If", true),
+    [(Def, @{thm if_True}), (Def, @{thm if_False}),
+     (General, @{thm True_or_False})])]
+
 val helper_table =
-  [(("COMBI", false), @{thms Meson.COMBI_def}),
-   (("COMBK", false), @{thms Meson.COMBK_def}),
-   (("COMBB", false), @{thms Meson.COMBB_def}),
-   (("COMBC", false), @{thms Meson.COMBC_def}),
-   (("COMBS", false), @{thms Meson.COMBS_def}),
-   ((predicator_name, false), [not_ffalse, ftrue]),
-   ((predicator_name, true), @{thms True_or_False}),
-(* FIXME: Metis doesn't like existentials in helpers
-   ((app_op_name, true), [@{lemma "EX x. ~ f x = g x | f = g" by blast}]),
-*)
-   (("fFalse", false), [not_ffalse]),
-   (("fFalse", true), @{thms True_or_False}),
-   (("fTrue", false), [ftrue]),
-   (("fTrue", true), @{thms True_or_False}),
-   (("fNot", false),
+  base_helper_table @
+  [(("fNot", false),
     @{thms fNot_def [THEN Meson.iff_to_disjD, THEN conjunct1]
-           fNot_def [THEN Meson.iff_to_disjD, THEN conjunct2]}),
+           fNot_def [THEN Meson.iff_to_disjD, THEN conjunct2]}
+    |> map (pair Def)),
    (("fconj", false),
     @{lemma "~ P | ~ Q | fconj P Q" "~ fconj P Q | P" "~ fconj P Q | Q"
-        by (unfold fconj_def) fast+}),
+        by (unfold fconj_def) fast+}
+    |> map (pair General)),
    (("fdisj", false),
     @{lemma "~ P | fdisj P Q" "~ Q | fdisj P Q" "~ fdisj P Q | P | Q"
-        by (unfold fdisj_def) fast+}),
+        by (unfold fdisj_def) fast+}
+    |> map (pair General)),
    (("fimplies", false),
     @{lemma "P | fimplies P Q" "~ Q | fimplies P Q" "~ fimplies P Q | ~ P | Q"
-        by (unfold fimplies_def) fast+}),
+        by (unfold fimplies_def) fast+}
+    |> map (pair General)),
    (("fequal", true),
     (* This is a lie: Higher-order equality doesn't need a sound type encoding.
        However, this is done so for backward compatibility: Including the
        equality helpers by default in Metis breaks a few existing proofs. *)
     @{thms fequal_def [THEN Meson.iff_to_disjD, THEN conjunct1]
-           fequal_def [THEN Meson.iff_to_disjD, THEN conjunct2]}),
+           fequal_def [THEN Meson.iff_to_disjD, THEN conjunct2]}
+    |> map (pair General)),
    (* Partial characterization of "fAll" and "fEx". A complete characterization
       would require the axiom of choice for replay with Metis. *)
-   (("fAll", false), [@{lemma "~ fAll P | P x" by (auto simp: fAll_def)}]),
-   (("fEx", false), [@{lemma "~ P x | fEx P" by (auto simp: fEx_def)}]),
-   (("If", true), @{thms if_True if_False True_or_False})]
-  |> map (apsnd (map zero_var_indexes))
+   (("fAll", false),
+    [(General, @{lemma "~ fAll P | P x" by (auto simp: fAll_def)})]),
+   (("fEx", false),
+    [(General, @{lemma "~ P x | fEx P" by (auto simp: fEx_def)})])]
+  |> map (apsnd (map (apsnd zero_var_indexes)))
+
+val aggressive_helper_table =
+  base_helper_table @
+  [((predicator_name, true),
+    @{thms True_or_False fTrue_ne_fFalse} |> map (pair General)),
+   ((app_op_name, true),
+    [(General, @{lemma "EX x. ~ f x = g x | f = g" by blast})]),
+   (("fconj", false),
+    @{thms fconj_table fconj_laws fdisj_laws} |> map (pair Def)),
+   (("fdisj", false),
+    @{thms fdisj_table fconj_laws fdisj_laws} |> map (pair Def)),
+   (("fimplies", false),
+    @{thms fimplies_table fconj_laws fdisj_laws fimplies_laws}
+    |> map (pair Def)),
+   (("fequal", false),
+    (@{thms fequal_table} |> map (pair Def)) @
+    (@{thms fequal_laws} |> map (pair General))),
+   (("fAll", false),
+    @{thms fAll_table fComp_law fAll_law fEx_law} |> map (pair Def)),
+   (("fEx", false),
+    @{thms fEx_table fComp_law fAll_law fEx_law} |> map (pair Def))]
+  |> map (apsnd (map (apsnd zero_var_indexes)))
 
 fun atype_of_type_vars (Native (_, Polymorphic, _)) = SOME atype_of_types
   | atype_of_type_vars _ = NONE
@@ -1705,19 +1749,22 @@ fun rank_of_fact_num n j = min_rank + (max_rank - min_rank) * j div n
 
 val type_tag = `(make_fixed_const NONE) type_tag_name
 
-fun should_specialize_helper type_enc t =
+fun could_specialize_helpers type_enc =
   polymorphism_of_type_enc type_enc <> Polymorphic andalso
-  level_of_type_enc type_enc <> No_Types andalso
+  level_of_type_enc type_enc <> No_Types
+fun should_specialize_helper type_enc t =
+  could_specialize_helpers type_enc andalso
   not (null (Term.hidden_polymorphism t))
 
-fun add_helper_facts_for_sym ctxt format type_enc (s, {types, ...} : sym_info) =
+fun add_helper_facts_for_sym ctxt format type_enc aggressive
+                             (s, {types, ...} : sym_info) =
   case unprefix_and_unascii const_prefix s of
     SOME mangled_s =>
     let
       val thy = Proof_Context.theory_of ctxt
       val unmangled_s = mangled_s |> unmangled_const_name |> hd
       fun dub needs_fairly_sound j k =
-        unmangled_s ^ "_" ^ string_of_int j ^ "_" ^ string_of_int k ^
+        ascii_of unmangled_s ^ "_" ^ string_of_int j ^ "_" ^ string_of_int k ^
         (if mangled_s = unmangled_s then "" else "_" ^ ascii_of mangled_s) ^
         (if needs_fairly_sound then typed_helper_suffix
          else untyped_helper_suffix)
@@ -1729,30 +1776,35 @@ fun add_helper_facts_for_sym ctxt format type_enc (s, {types, ...} : sym_info) =
           in monomorphic_term tyenv t end
         else
           specialize_type thy (invert_const unmangled_s, T) t
-      fun dub_and_inst needs_fairly_sound (t, j) =
+      fun dub_and_inst needs_fairly_sound ((status, t), j) =
         (if should_specialize_helper type_enc t then
-           map (specialize_helper t) types
+           map_filter (try (specialize_helper t)) types
          else
            [t])
         |> tag_list 1
-        |> map (fn (k, t) => ((dub needs_fairly_sound j k, (Global, Def)), t))
+        |> map (fn (k, t) =>
+                   ((dub needs_fairly_sound j k, (Global, status)), t))
       val make_facts = map_filter (make_fact ctxt format type_enc false)
       val fairly_sound = is_type_enc_fairly_sound type_enc
+      val could_specialize = could_specialize_helpers type_enc
     in
       fold (fn ((helper_s, needs_fairly_sound), ths) =>
-               if helper_s <> unmangled_s orelse
-                  (needs_fairly_sound andalso not fairly_sound) then
+               if (needs_fairly_sound andalso not fairly_sound) orelse
+                  (helper_s <> unmangled_s andalso
+                   (not aggressive orelse could_specialize)) then
                  I
                else
                  ths ~~ (1 upto length ths)
-                 |> maps (dub_and_inst needs_fairly_sound o apfst prop_of)
+                 |> maps (dub_and_inst needs_fairly_sound
+                          o apfst (apsnd prop_of))
                  |> make_facts
                  |> union (op = o pairself #iformula))
-           helper_table
+           (if aggressive then aggressive_helper_table else helper_table)
     end
   | NONE => I
-fun helper_facts_for_sym_table ctxt format type_enc sym_tab =
-  Symtab.fold_rev (add_helper_facts_for_sym ctxt format type_enc) sym_tab []
+fun helper_facts_for_sym_table ctxt format type_enc aggressive sym_tab =
+  Symtab.fold_rev (add_helper_facts_for_sym ctxt format type_enc aggressive)
+                  sym_tab []
 
 (***************************************************************)
 (* Type Classes Present in the Axiom or Conjecture Clauses     *)
@@ -2602,7 +2654,7 @@ fun all_constrs_of_polymorphic_datatypes thy =
 
 val app_op_and_predicator_threshold = 50
 
-fun prepare_atp_problem ctxt format prem_kind type_enc exporter lam_trans
+fun prepare_atp_problem ctxt format prem_kind type_enc mode lam_trans
                         uncurried_aliases readable_names preproc hyp_ts concl_t
                         facts =
   let
@@ -2613,11 +2665,16 @@ fun prepare_atp_problem ctxt format prem_kind type_enc exporter lam_trans
        ruin everything. Hence we do it only if there are few facts (which is
        normally the case for "metis" and the minimizer). *)
     val app_op_level =
-      if length facts > app_op_and_predicator_threshold then
+      if mode = Sledgehammer_Aggressive then
+        Full_App_Op_And_Predicator
+      else if length facts + length hyp_ts
+              > app_op_and_predicator_threshold then
         if polymorphism_of_type_enc type_enc = Polymorphic then Min_App_Op
         else Sufficient_App_Op
       else
         Sufficient_App_Op_And_Predicator
+    val exporter = (mode = Exporter)
+    val aggressive = (mode = Sledgehammer_Aggressive)
     val lam_trans =
       if lam_trans = keep_lamsN andalso
          not (is_type_enc_higher_order type_enc) then
@@ -2637,7 +2694,7 @@ fun prepare_atp_problem ctxt format prem_kind type_enc exporter lam_trans
       |>> map (make_fixed_const (SOME type_enc))
     fun firstorderize in_helper =
       firstorderize_fact thy monom_constrs type_enc sym_tab0
-                         (uncurried_aliases andalso not in_helper)
+          (uncurried_aliases andalso not in_helper) aggressive
     val (conjs, facts) = (conjs, facts) |> pairself (map (firstorderize false))
     val (ho_stuff, sym_tab) =
       sym_table_for_facts ctxt type_enc Min_App_Op conjs facts
@@ -2649,7 +2706,7 @@ fun prepare_atp_problem ctxt format prem_kind type_enc exporter lam_trans
       |> fold (add_iterm_syms_to_sym_table ctxt Min_App_Op false false)
               uncurried_alias_eq_tms
     val helpers =
-      sym_tab |> helper_facts_for_sym_table ctxt format type_enc
+      sym_tab |> helper_facts_for_sym_table ctxt format type_enc aggressive
               |> map (firstorderize true)
     val mono_Ts =
       helpers @ conjs @ facts |> monotonic_types_for_facts ctxt mono type_enc
