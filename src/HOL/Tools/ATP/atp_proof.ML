@@ -51,6 +51,7 @@ sig
     -> string * failure option
   val is_same_atp_step : step_name -> step_name -> bool
   val scan_general_id : string list -> string * string list
+  val satallax_unsat_coreN : string
   val parse_formula :
     string list -> (string, 'a, (string, 'a) ho_term) formula * string list
   val atp_proof_from_tstplike_proof :
@@ -465,10 +466,13 @@ fun parse_spass_line spass_names =
          Inference_Step ((num, resolve_spass_num names spass_names num), u,
              rule, map (swap o `(resolve_spass_num NONE spass_names)) deps))
 
+val satallax_unsat_coreN = "__satallax_unsat_core" (* arbitrary *)
+
 (* Syntax: <name> *)
 fun parse_satallax_line x =
   (scan_general_id --| Scan.option ($$ " ")
-   >> (fn s => Inference_Step ((s, [s]), dummy_phi, "", []))) x
+   >> (fn s => Inference_Step ((s, [s]), dummy_phi, satallax_unsat_coreN, [])))
+      x
 
 fun parse_line problem spass_names =
   parse_tstp_line problem || parse_spass_line spass_names || parse_satallax_line

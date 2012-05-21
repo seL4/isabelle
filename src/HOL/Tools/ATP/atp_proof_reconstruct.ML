@@ -198,11 +198,13 @@ fun ext_name ctxt =
   else
     isa_ext
 
-fun add_fact _ fact_names (Inference_Step ((_, ss), _, _, [])) =
-    union (op =) (resolve_fact fact_names ss)
-  | add_fact ctxt _ (Inference_Step (_, _, rule, _)) =
-    if rule = leo2_ext then insert (op =) (ext_name ctxt, (Global, General))
-    else I
+fun add_fact ctxt fact_names (Inference_Step ((_, ss), _, rule, deps)) =
+    (if rule = leo2_ext orelse rule = satallax_unsat_coreN then
+       insert (op =) (ext_name ctxt, (Global, General))
+     else
+       I)
+    #> (if null deps then union (op =) (resolve_fact fact_names ss)
+        else I)
   | add_fact _ _ _ = I
 
 fun used_facts_in_atp_proof ctxt fact_names atp_proof =
