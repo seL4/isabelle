@@ -99,7 +99,7 @@ fun add_quot_map rel_quot_thm ctxt =
     Quotmaps.map (Symtab.update (relatorT_name, minfo)) ctxt
   end    
 
-val quotmaps_attribute_setup =
+val quot_map_attribute_setup =
   Attrib.setup @{binding quot_map} (Scan.succeed (Thm.declaration_attribute add_quot_map))
     "declaration of the Quotient map theorem"
 
@@ -136,6 +136,22 @@ val lookup_quotients_global = Symtab.lookup o Quotients.get o Context.Theory
 
 fun update_quotients str qinfo = Quotients.map (Symtab.update (str, qinfo))
 
+fun delete_quotients quot_thm ctxt =
+  let
+    val (_, qtyp) = quot_thm_rty_qty quot_thm
+    val qty_full_name = (fst o dest_Type) qtyp
+    val symtab = Quotients.get ctxt
+    val maybe_stored_quot_thm = Symtab.lookup symtab qty_full_name
+  in
+    case maybe_stored_quot_thm of
+      SOME {quot_thm = stored_quot_thm} => 
+        if Thm.eq_thm_prop (stored_quot_thm, quot_thm) then
+          Quotients.map (Symtab.delete qty_full_name) ctxt
+        else
+          ctxt
+      | NONE => ctxt
+  end
+
 fun dest_quotients ctxt =  (* FIXME slightly expensive way to retrieve data *)
   map snd (Symtab.dest (Quotients.get (Context.Proof ctxt)))
 
@@ -152,6 +168,10 @@ fun print_quotients ctxt =
     |> Pretty.big_list "quotients:"
     |> Pretty.writeln
   end
+
+val quot_del_attribute_setup =
+  Attrib.setup @{binding quot_del} (Scan.succeed (Thm.declaration_attribute delete_quotients))
+    "deletes the Quotient theorem"
 
 structure Invariant_Commute = Named_Thms
 (
@@ -174,7 +194,8 @@ val add_reflp_preserve_rule_attrib = Attrib.internal (K add_reflp_preserve_rule_
 (* theory setup *)
 
 val setup =
-  quotmaps_attribute_setup
+  quot_map_attribute_setup
+  #> quot_del_attribute_setup
   #> Invariant_Commute.setup
   #> Reflp_Preserve.setup
 

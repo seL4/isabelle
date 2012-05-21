@@ -38,7 +38,7 @@ fun define_cr_rel rep_fun lthy =
 
 fun define_code_constr gen_code quot_thm lthy =
   let
-    val abs = Lifting_Term.quot_thm_abs quot_thm
+    val abs = quot_thm_abs quot_thm
     val abs_background = Morphism.term (Local_Theory.target_morphism lthy) abs
   in
     if gen_code andalso is_Const abs_background then
@@ -71,7 +71,7 @@ fun define_abs_type gen_code quot_thm lthy =
 fun quot_thm_sanity_check ctxt quot_thm =
   let
     val ((_, [quot_thm_fixed]), ctxt') = Variable.importT [quot_thm] ctxt 
-    val (rty, qty) = Lifting_Term.quot_thm_rty_qty quot_thm_fixed
+    val (rty, qty) = quot_thm_rty_qty quot_thm_fixed
     val rty_tfreesT = Term.add_tfree_namesT rty []
     val qty_tfreesT = Term.add_tfree_namesT qty []
     val extra_rty_tfrees =
@@ -97,7 +97,7 @@ fun quot_thm_sanity_check ctxt quot_thm =
 fun setup_lifting_infr gen_code quot_thm maybe_reflp_thm lthy =
   let
     val _ = quot_thm_sanity_check lthy quot_thm
-    val (_, qtyp) = Lifting_Term.quot_thm_rty_qty quot_thm
+    val (_, qtyp) = quot_thm_rty_qty quot_thm
     val qty_full_name = (fst o dest_Type) qtyp
     val quotients = { quot_thm = quot_thm }
     fun quot_info phi = Lifting_Info.transform_quotients phi quotients
@@ -127,7 +127,7 @@ fun setup_lifting_infr gen_code quot_thm maybe_reflp_thm lthy =
 fun setup_by_quotient gen_code quot_thm maybe_reflp_thm lthy =
   let
     val transfer_attr = Attrib.internal (K Transfer.transfer_add)
-    val (_, qty) = Lifting_Term.quot_thm_rty_qty quot_thm
+    val (_, qty) = quot_thm_rty_qty quot_thm
     val induct_attr = Attrib.internal (K (Induct.induct_type (fst (dest_Type qty))))
     val qty_name = (Binding.name o Long_Name.base_name o fst o dest_Type) qty
     fun qualify suffix = Binding.qualified true suffix qty_name
@@ -183,7 +183,7 @@ fun setup_by_typedef_thm gen_code typedef_thm lthy =
       | _ => 
         [typedef_thm, T_def] MRSL @{thm typedef_to_Quotient}
 
-    val (_, qty) = Lifting_Term.quot_thm_rty_qty quot_thm
+    val (_, qty) = quot_thm_rty_qty quot_thm
     val qty_name = (Binding.name o Long_Name.base_name o fst o dest_Type) qty
     fun qualify suffix = Binding.qualified true suffix qty_name
     val simplify = Raw_Simplifier.rewrite_rule [mk_meta_eq @{thm mem_Collect_eq}]

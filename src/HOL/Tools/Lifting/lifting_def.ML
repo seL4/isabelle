@@ -118,7 +118,7 @@ fun simplify_code_eq ctxt def_thm =
 *)
 
 fun can_generate_code_cert quot_thm  =
-  case Lifting_Term.quot_thm_rel quot_thm of
+  case quot_thm_rel quot_thm of
     Const (@{const_name HOL.eq}, _) => true
     | Const (@{const_name invariant}, _) $ _  => true
     | _ => false
@@ -136,7 +136,7 @@ fun generate_code_cert ctxt def_thm rsp_thm (rty, qty) =
         | _ => raise CODE_CERT_GEN "relation is neither equality nor invariant"
     val unfolded_def = Conv.fconv_rule (Conv.arg_conv unfold_fun_maps_beta) def_thm
     val unabs_def = unabs_all_def ctxt unfolded_def
-    val rep = (cterm_of thy o Lifting_Term.quot_thm_rep) quot_thm
+    val rep = (cterm_of thy o quot_thm_rep) quot_thm
     val rep_refl = Thm.reflexive rep RS @{thm meta_eq_to_obj_eq}
     val repped_eq = [rep_refl, unabs_def RS @{thm meta_eq_to_obj_eq}] MRSL @{thm cong}
     val code_cert = [repped_eq, abs_rep_eq] MRSL @{thm trans}
@@ -195,8 +195,8 @@ fun generate_abs_eq ctxt def_thm rsp_thm quot_thm =
 
     val abs_eq_with_assms =
       let
-        val (rty, qty) = Lifting_Term.quot_thm_rty_qty quot_thm
-        val rel = Lifting_Term.quot_thm_rel quot_thm
+        val (rty, qty) = quot_thm_rty_qty quot_thm
+        val rel = quot_thm_rel quot_thm
         val ty_args = get_binder_types_by_rel rel (rty, qty)
         val body_type = get_body_type_by_rel rel (rty, qty)
         val quot_ret_thm = Lifting_Term.prove_quot_thm ctxt body_type
@@ -248,7 +248,7 @@ fun define_code_using_rep_eq maybe_rep_eq_thm lthy =
 fun has_constr ctxt quot_thm =
   let
     val thy = Proof_Context.theory_of ctxt
-    val abs_fun = Lifting_Term.quot_thm_abs quot_thm
+    val abs_fun = quot_thm_abs quot_thm
   in
     if is_Const abs_fun then
       Code.is_constr thy ((fst o dest_Const) abs_fun)
@@ -259,7 +259,7 @@ fun has_constr ctxt quot_thm =
 fun has_abstr ctxt quot_thm =
   let
     val thy = Proof_Context.theory_of ctxt
-    val abs_fun = Lifting_Term.quot_thm_abs quot_thm
+    val abs_fun = quot_thm_abs quot_thm
   in
     if is_Const abs_fun then
       Code.is_abstr thy ((fst o dest_Const) abs_fun)
@@ -304,7 +304,7 @@ fun add_lift_def var qty rhs rsp_thm lthy =
   let
     val rty = fastype_of rhs
     val quot_thm = Lifting_Term.prove_quot_thm lthy (rty, qty)
-    val absrep_trm =  Lifting_Term.quot_thm_abs quot_thm
+    val absrep_trm =  quot_thm_abs quot_thm
     val rty_forced = (domain_type o fastype_of) absrep_trm
     val forced_rhs = force_rty_type lthy rty_forced rhs
     val lhs = Free (Binding.print (#1 var), qty)
