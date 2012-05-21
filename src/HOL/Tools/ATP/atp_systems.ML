@@ -50,8 +50,6 @@ sig
   val satallaxN : string
   val snarkN : string
   val spassN : string
-  val spass_oldN : string
-  val spass_newN : string
   val vampireN : string
   val waldmeisterN : string
   val z3_tptpN : string
@@ -142,8 +140,6 @@ val leo2N = "leo2"
 val satallaxN = "satallax"
 val snarkN = "snark"
 val spassN = "spass"
-val spass_oldN = "spass_old" (* for experiments *)
-val spass_newN = "spass_new" (* for experiments *)
 val vampireN = "vampire"
 val waldmeisterN = "waldmeister"
 val z3_tptpN = "z3_tptp"
@@ -370,7 +366,7 @@ fun is_new_spass_version () =
    "required_vars" and "script/spass"). *)
 val spass_old_config : atp_config =
   {exec = (["ISABELLE_ATP"], "scripts/spass"),
-   required_vars = [["SPASS_OLD_HOME", "SPASS_HOME"]],
+   required_vars = [["SPASS_HOME"]],
    arguments = fn _ => fn _ => fn sos => fn timeout => fn _ =>
      ("-Auto -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
       \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_secs 1 timeout))
@@ -392,8 +388,6 @@ val spass_old_config : atp_config =
       (0.333, (false, ((300, DFG DFG_Unsorted, "poly_tags??", liftingN, false), sosN))),
       (0.334, (false, ((50, DFG DFG_Unsorted, "mono_tags??", liftingN, false), no_sosN)))]
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single else I)}
-
-val spass_old = (spass_oldN, fn () => spass_old_config)
 
 val spass_new_H1SOS = "-Heuristic=1 -SOS"
 val spass_new_H2 = "-Heuristic=2"
@@ -421,8 +415,6 @@ val spass_new_config : atp_config =
       (0.1000, (false, ((150, DFG DFG_Sorted, "poly_guards??", liftingN, false), spass_new_H2NuVS0Red2))),
       (0.1000, (false, ((300, DFG DFG_Sorted, "mono_native", combsN, true), spass_new_H2SOS))),
       (0.1000, (false, ((100, DFG DFG_Sorted, "mono_native", combs_and_liftingN, true), spass_new_H2NuVS0)))]}
-
-val spass_new = (spass_newN, fn () => spass_new_config)
 
 val spass =
   (spassN, fn () => if is_new_spass_version () then spass_new_config
@@ -649,8 +641,7 @@ fun refresh_systems_on_tptp () =
 fun effective_term_order ctxt atp =
   let val ord = Config.get ctxt term_order in
     if ord = smartN then
-      if atp = spass_newN orelse
-         (atp = spassN andalso is_new_spass_version ()) then
+      if atp = spassN andalso is_new_spass_version () then
         {is_lpo = false, gen_weights = true, gen_prec = true, gen_simp = false}
       else
         {is_lpo = false, gen_weights = false, gen_prec = false,
@@ -665,10 +656,10 @@ fun effective_term_order ctxt atp =
   end
 
 val atps=
-  [alt_ergo, e, leo2, dummy_thf, satallax, spass_old, spass_new, spass,
-   vampire, z3_tptp, remote_e, remote_e_sine, remote_e_tofof, remote_iprover,
-   remote_iprover_eq, remote_leo2, remote_satallax, remote_vampire,
-   remote_z3_tptp, remote_snark, remote_waldmeister]
+  [alt_ergo, e, leo2, dummy_thf, satallax, spass, vampire, z3_tptp, remote_e,
+   remote_e_sine, remote_e_tofof, remote_iprover, remote_iprover_eq,
+   remote_leo2, remote_satallax, remote_vampire, remote_z3_tptp, remote_snark,
+   remote_waldmeister]
 
 val setup = fold add_atp atps
 
