@@ -1125,7 +1125,6 @@ lemmas [transfer_rule del] =
 
 text {* De-register @{text "rat"} as a quotient type: *}
 
-setup {* Context.theory_map (Lifting_Info.update_quotients @{type_name rat}
-  {quot_thm = @{thm identity_quotient [where 'a=rat]}}) *}
+declare Quotient_rat[quot_del]
 
 end
