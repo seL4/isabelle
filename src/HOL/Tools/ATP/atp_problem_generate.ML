@@ -1646,6 +1646,7 @@ val helper_table =
    (("COMBC", false), @{thms Meson.COMBC_def}),
    (("COMBS", false), @{thms Meson.COMBS_def}),
    ((predicator_name, false), [not_ffalse, ftrue]),
+   ((predicator_name, true), @{thms True_or_False}),
 (* FIXME: Metis doesn't like existentials in helpers
    ((app_op_name, true), [@{lemma "EX x. ~ f x = g x | f = g" by blast}]),
 *)
