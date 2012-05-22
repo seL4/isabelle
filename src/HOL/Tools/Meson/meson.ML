@@ -574,7 +574,7 @@ fun skolemize ctxt =
 
 exception NO_F_PATTERN of unit
 
-fun get_F_pattern t u =
+fun get_F_pattern T t u =
   let
     fun pat t u =
       let
@@ -593,11 +593,13 @@ fun get_F_pattern t u =
           end
       end
   in
-    (case pat t u of
-       (SOME T, p as _ $ _) => SOME (Abs (Name.uu, T, p))
-     | _ => NONE)
-    handle NO_F_PATTERN () => NONE
+    if T = @{typ bool} then
+      NONE
+    else case pat t u of
+      (SOME T, p as _ $ _) => SOME (Abs (Name.uu, T, p))
+    | _ => NONE
   end
+  handle NO_F_PATTERN () => NONE
 
 val ext_cong_neq = @{thm ext_cong_neq}
 val F_ext_cong_neq =
@@ -608,9 +610,10 @@ val F_ext_cong_neq =
 (* Strengthens "f g ~= f h" to "f g ~= f h & (EX x. g x ~= h x)". *)
 fun cong_extensionalize_thm thy th =
   case concl_of th of
-    @{const Trueprop} $ (@{const Not} $ (Const (@{const_name HOL.eq}, _)
-                                         $ (t as _ $ _) $ (u as _ $ _))) =>
-    (case get_F_pattern t u of
+    @{const Trueprop} $ (@{const Not}
+        $ (Const (@{const_name HOL.eq}, Type (_, [T, _]))
+           $ (t as _ $ _) $ (u as _ $ _))) =>
+    (case get_F_pattern T t u of
        SOME p =>
        let val inst = [pairself (cterm_of thy) (F_ext_cong_neq, p)] in
          th RS cterm_instantiate inst ext_cong_neq
