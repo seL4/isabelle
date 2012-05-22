@@ -75,7 +75,7 @@ fun nitpick_tptp_file thy timeout file_name =
   let
     val (conjs, (defs, nondefs), ctxt) = read_tptp_file thy I file_name
     val thy = Proof_Context.theory_of ctxt
-    val defs = defs |> map (ATP_Util.extensionalize_term ctxt
+    val defs = defs |> map (ATP_Util.abs_extensionalize_term ctxt
                             #> aptrueprop (open_form I))
     val state = Proof.init ctxt
     val params =
