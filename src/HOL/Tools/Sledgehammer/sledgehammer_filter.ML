@@ -391,8 +391,8 @@ fun add_pconsts_in_term thy is_built_in_const also_skolems pos =
       | (Abs (_, T, t'), ts) =>
         ((null ts andalso not ext_arg)
          (* Since lambdas on the right-hand side of equalities are usually
-            extensionalized later by "extensionalize_term", we don't penalize
-            them here. *)
+            extensionalized later by "abs_extensionalize_term", we don't
+            penalize them here. *)
          ? add_pconst_to_table true (abs_name, PType (order_of_type T + 1, [])))
         #> fold (do_term false) (t' :: ts)
       | (_, ts) => fold (do_term false) ts

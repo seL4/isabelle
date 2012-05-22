@@ -125,6 +125,12 @@ subsection {* Clausification helper *}
 lemma TruepropI: "P \<equiv> Q \<Longrightarrow> Trueprop P \<equiv> Trueprop Q"
 by simp
 
+lemma ext_cong_neq: "F g \<noteq> F h \<Longrightarrow> F g \<noteq> F h \<and> (\<exists>x. g x \<noteq> h x)"
+apply (erule contrapos_np)
+apply clarsimp
+apply (rule cong[where f = F])
+by auto
+
 
 text{* Combinator translation helpers *}
 
@@ -198,7 +204,7 @@ hide_const (open) COMBI COMBK COMBB COMBC COMBS skolem
 hide_fact (open) not_conjD not_disjD not_notD not_allD not_exD imp_to_disjD
     not_impD iff_to_disjD not_iffD not_refl_disj_D conj_exD1 conj_exD2 disj_exD
     disj_exD1 disj_exD2 disj_assoc disj_comm disj_FalseD1 disj_FalseD2 TruepropI
-    COMBI_def COMBK_def COMBB_def COMBC_def COMBS_def abs_I abs_K abs_B abs_C
-    abs_S skolem_def skolem_COMBK_iff skolem_COMBK_I skolem_COMBK_D
+    ext_cong_neq COMBI_def COMBK_def COMBB_def COMBC_def COMBS_def abs_I abs_K
+    abs_B abs_C abs_S skolem_def skolem_COMBK_iff skolem_COMBK_I skolem_COMBK_D
 
 end

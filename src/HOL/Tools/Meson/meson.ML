@@ -24,8 +24,8 @@ sig
   val choice_theorems : theory -> thm list
   val skolemize_with_choice_theorems : Proof.context -> thm list -> thm -> thm
   val skolemize : Proof.context -> thm -> thm
-  val extensionalize_conv : Proof.context -> conv
-  val extensionalize_theorem : Proof.context -> thm -> thm
+  val abs_extensionalize_conv : Proof.context -> conv
+  val abs_extensionalize_thm : Proof.context -> thm -> thm
   val make_clauses_unsorted: Proof.context -> thm list -> thm list
   val make_clauses: Proof.context -> thm list -> thm list
   val make_horns: thm list -> thm list
@@ -574,29 +574,47 @@ fun skolemize ctxt =
 (* Removes the lambdas from an equation of the form "t = (%x1 ... xn. u)". It
    would be desirable to do this symmetrically but there's at least one existing
    proof in "Tarski" that relies on the current behavior. *)
-fun extensionalize_conv ctxt ct =
+fun abs_extensionalize_conv ctxt ct =
   case term_of ct of
     Const (@{const_name HOL.eq}, _) $ _ $ Abs _ =>
     ct |> (Conv.rewr_conv @{thm fun_eq_iff [THEN eq_reflection]}
-           then_conv extensionalize_conv ctxt)
-  | _ $ _ => Conv.comb_conv (extensionalize_conv ctxt) ct
-  | Abs _ => Conv.abs_conv (extensionalize_conv o snd) ctxt ct
+           then_conv abs_extensionalize_conv ctxt)
+  | _ $ _ => Conv.comb_conv (abs_extensionalize_conv ctxt) ct
+  | Abs _ => Conv.abs_conv (abs_extensionalize_conv o snd) ctxt ct
   | _ => Conv.all_conv ct
 
-val extensionalize_theorem = Conv.fconv_rule o extensionalize_conv
+val abs_extensionalize_thm = Conv.fconv_rule o abs_extensionalize_conv
+
+(*
+(* Weakens negative occurrences of "f g = f h" to
+   "(ALL x. g x = h x) | f g = f h". *)
+fun cong_extensionalize_conv ctxt ct =
+  case term_of ct of
+    @{const Trueprop} $ (@{const Not} $ (Const (@{const_name HOL.eq}, _)
+                                         $ (t as _ $ _) $ (u as _ $ _))) =>
+    (case get_f_pattern t u of
+       SOME _ => Conv.all_conv ct
+     | NONE => Conv.all_conv ct)
+  | _ => Conv.all_conv ct
+
+val cong_extensionalize_thm = Conv.fconv_rule o cong_extensionalize_conv
+*)
+
+fun cong_extensionalize_thm ctxt = I (*###*)
 
 (* "RS" can fail if "unify_search_bound" is too small. *)
 fun try_skolemize_etc ctxt th =
-  (* Extensionalize "th", because that makes sense and that's what Sledgehammer
-     does, but also keep an unextensionalized version of "th" for backward
-     compatibility. *)
-  [th] |> insert Thm.eq_thm_prop (extensionalize_theorem ctxt th)
-       |> map_filter (fn th => th |> try (skolemize ctxt)
-                                  |> tap (fn NONE =>
-                                             trace_msg ctxt (fn () =>
-                                                 "Failed to skolemize " ^
-                                                  Display.string_of_thm ctxt th)
-                                           | _ => ()))
+  (* Extensionalize lambdas in "th", because that makes sense and that's what
+     Sledgehammer does, but also keep an unextensionalized version of "th" for
+     backward compatibility. *)
+  [th |> cong_extensionalize_thm ctxt]
+  |> insert Thm.eq_thm_prop (abs_extensionalize_thm ctxt th)
+  |> map_filter (fn th => th |> try (skolemize ctxt)
+                             |> tap (fn NONE =>
+                                        trace_msg ctxt (fn () =>
+                                            "Failed to skolemize " ^
+                                             Display.string_of_thm ctxt th)
+                                      | _ => ()))
 
 fun add_clauses ctxt th cls =
   let val ctxt0 = Variable.global_thm_context th

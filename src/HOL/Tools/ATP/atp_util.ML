@@ -36,7 +36,7 @@ sig
   val open_form : (string -> string) -> term -> term
   val monomorphic_term : Type.tyenv -> term -> term
   val eta_expand : typ list -> term -> int -> term
-  val extensionalize_term : Proof.context -> term -> term
+  val abs_extensionalize_term : Proof.context -> term -> term
   val transform_elim_prop : term -> term
   val specialize_type : theory -> (string * typ) -> term -> term
   val strip_subgoal :
@@ -302,10 +302,10 @@ fun is_fun_equality (@{const_name HOL.eq},
                      Type (_, [Type (@{type_name fun}, _), _])) = true
   | is_fun_equality _ = false
 
-fun extensionalize_term ctxt t =
+fun abs_extensionalize_term ctxt t =
   if exists_Const is_fun_equality t then
     let val thy = Proof_Context.theory_of ctxt in
-      t |> cterm_of thy |> Meson.extensionalize_conv ctxt
+      t |> cterm_of thy |> Meson.abs_extensionalize_conv ctxt
         |> prop_of |> Logic.dest_equals |> snd
     end
   else

@@ -309,8 +309,7 @@ fun nnf_axiom choice_ths new_skolemizer ax_no th ctxt =
          |> new_skolemizer ? forall_intr_vars
     val (th, ctxt) = Variable.import true [th] ctxt |>> snd |>> the_single
     val th = th |> Conv.fconv_rule Object_Logic.atomize
-                |> extensionalize_theorem ctxt
-                |> make_nnf ctxt
+                |> abs_extensionalize_thm ctxt |> make_nnf ctxt
   in
     if new_skolemizer then
       let
