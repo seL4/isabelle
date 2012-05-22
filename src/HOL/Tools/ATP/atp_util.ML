@@ -36,6 +36,7 @@ sig
   val open_form : (string -> string) -> term -> term
   val monomorphic_term : Type.tyenv -> term -> term
   val eta_expand : typ list -> term -> int -> term
+  val cong_extensionalize_term : theory -> term -> term
   val abs_extensionalize_term : Proof.context -> term -> term
   val transform_elim_prop : term -> term
   val specialize_type : theory -> (string * typ) -> term -> term
@@ -297,6 +298,14 @@ fun eta_expand _ t 0 = t
     fold_rev (fn T => fn t' => Abs ("x" ^ nat_subscript n, T, t'))
              (List.take (binder_types (fastype_of1 (Ts, t)), n))
              (list_comb (incr_boundvars n t, map Bound (n - 1 downto 0)))
+
+fun cong_extensionalize_term thy t =
+  if exists_Const (fn (s, _) => s = @{const_name Not}) t then
+    t |> Skip_Proof.make_thm thy
+      |> Meson.cong_extensionalize_thm thy
+      |> prop_of
+  else
+    t
 
 fun is_fun_equality (@{const_name HOL.eq},
                      Type (_, [Type (@{type_name fun}, _), _])) = true

@@ -24,6 +24,7 @@ sig
   val choice_theorems : theory -> thm list
   val skolemize_with_choice_theorems : Proof.context -> thm list -> thm -> thm
   val skolemize : Proof.context -> thm -> thm
+  val cong_extensionalize_thm : theory -> thm -> thm
   val abs_extensionalize_conv : Proof.context -> conv
   val abs_extensionalize_thm : Proof.context -> thm -> thm
   val make_clauses_unsorted: Proof.context -> thm list -> thm list
@@ -571,6 +572,52 @@ fun skolemize ctxt =
     skolemize_with_choice_theorems ctxt (choice_theorems thy)
   end
 
+exception NO_F_PATTERN of unit
+
+fun get_F_pattern t u =
+  let
+    fun pat t u =
+      let
+        val ((head1, args1), (head2, args2)) = (t, u) |> pairself strip_comb
+      in
+        if head1 = head2 then
+          let val pats = map2 pat args1 args2 in
+            case filter (is_some o fst) pats of
+              [(SOME T, _)] => (SOME T, list_comb (head1, map snd pats))
+            | [] => (NONE, t)
+            | _ => raise NO_F_PATTERN ()
+          end
+        else
+          let val T = fastype_of t in
+            if can dest_funT T then (SOME T, Bound 0) else raise NO_F_PATTERN ()
+          end
+      end
+  in
+    (case pat t u of
+       (SOME T, p as _ $ _) => SOME (Abs (Name.uu, T, p))
+     | _ => NONE)
+    handle NO_F_PATTERN () => NONE
+  end
+
+val ext_cong_neq = @{thm ext_cong_neq}
+val F_ext_cong_neq =
+  Term.add_vars (prop_of @{thm ext_cong_neq}) []
+  |> filter (fn ((s, _), _) => s = "F")
+  |> the_single |> Var
+
+(* Strengthens "f g ~= f h" to "f g ~= f h & (EX x. g x ~= h x)". *)
+fun cong_extensionalize_thm thy th =
+  case concl_of th of
+    @{const Trueprop} $ (@{const Not} $ (Const (@{const_name HOL.eq}, _)
+                                         $ (t as _ $ _) $ (u as _ $ _))) =>
+    (case get_F_pattern t u of
+       SOME p =>
+       let val inst = [pairself (cterm_of thy) (F_ext_cong_neq, p)] in
+         th RS cterm_instantiate inst ext_cong_neq
+       end
+     | NONE => th)
+  | _ => th
+
 (* Removes the lambdas from an equation of the form "t = (%x1 ... xn. u)". It
    would be desirable to do this symmetrically but there's at least one existing
    proof in "Tarski" that relies on the current behavior. *)
@@ -585,36 +632,24 @@ fun abs_extensionalize_conv ctxt ct =
 
 val abs_extensionalize_thm = Conv.fconv_rule o abs_extensionalize_conv
 
-(*
-(* Weakens negative occurrences of "f g = f h" to
-   "(ALL x. g x = h x) | f g = f h". *)
-fun cong_extensionalize_conv ctxt ct =
-  case term_of ct of
-    @{const Trueprop} $ (@{const Not} $ (Const (@{const_name HOL.eq}, _)
-                                         $ (t as _ $ _) $ (u as _ $ _))) =>
-    (case get_f_pattern t u of
-       SOME _ => Conv.all_conv ct
-     | NONE => Conv.all_conv ct)
-  | _ => Conv.all_conv ct
-
-val cong_extensionalize_thm = Conv.fconv_rule o cong_extensionalize_conv
-*)
-
-fun cong_extensionalize_thm ctxt = I (*###*)
-
 (* "RS" can fail if "unify_search_bound" is too small. *)
 fun try_skolemize_etc ctxt th =
-  (* Extensionalize lambdas in "th", because that makes sense and that's what
-     Sledgehammer does, but also keep an unextensionalized version of "th" for
-     backward compatibility. *)
-  [th |> cong_extensionalize_thm ctxt]
-  |> insert Thm.eq_thm_prop (abs_extensionalize_thm ctxt th)
-  |> map_filter (fn th => th |> try (skolemize ctxt)
-                             |> tap (fn NONE =>
-                                        trace_msg ctxt (fn () =>
-                                            "Failed to skolemize " ^
-                                             Display.string_of_thm ctxt th)
-                                      | _ => ()))
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val th = th |> cong_extensionalize_thm thy
+  in
+    [th]
+    (* Extensionalize lambdas in "th", because that makes sense and that's what
+       Sledgehammer does, but also keep an unextensionalized version of "th" for
+       backward compatibility. *)
+    |> insert Thm.eq_thm_prop (abs_extensionalize_thm ctxt th)
+    |> map_filter (fn th => th |> try (skolemize ctxt)
+                               |> tap (fn NONE =>
+                                          trace_msg ctxt (fn () =>
+                                              "Failed to skolemize " ^
+                                               Display.string_of_thm ctxt th)
+                                        | _ => ()))
+  end
 
 fun add_clauses ctxt th cls =
   let val ctxt0 = Variable.global_thm_context th

@@ -1272,7 +1272,8 @@ fun presimp_prop ctxt type_enc t =
     val is_ho = is_type_enc_higher_order type_enc
   in
     t |> need_trueprop ? HOLogic.mk_Trueprop
-      |> (if is_ho then unextensionalize_def else abs_extensionalize_term ctxt)
+      |> (if is_ho then unextensionalize_def
+          else cong_extensionalize_term thy #> abs_extensionalize_term ctxt)
       |> presimplify_term thy
       |> HOLogic.dest_Trueprop
   end
