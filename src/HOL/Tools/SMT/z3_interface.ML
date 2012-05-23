@@ -184,7 +184,8 @@ fun mk_update array index value =
   end
 
 val mk_uminus = Thm.apply (Thm.cterm_of @{theory} @{const uminus (int)})
-val mk_add = Thm.mk_binop (Thm.cterm_of @{theory} @{const plus (int)})
+val add = Thm.cterm_of @{theory} @{const plus (int)}
+val int0 = Numeral.mk_cnumber @{ctyp int} 0
 val mk_sub = Thm.mk_binop (Thm.cterm_of @{theory} @{const minus (int)})
 val mk_mul = Thm.mk_binop (Thm.cterm_of @{theory} @{const times (int)})
 val mk_div = Thm.mk_binop (Thm.cterm_of @{theory} @{const z3div})
@@ -211,7 +212,7 @@ fun mk_builtin_fun ctxt sym cts =
   | (Sym ("store", _), [ca, ck, cv]) => SOME (mk_update ca ck cv)
   | _ =>
     (case (sym, try (#T o Thm.rep_cterm o hd) cts, cts) of
-      (Sym ("+", _), SOME @{typ int}, [ct, cu]) => SOME (mk_add ct cu)
+      (Sym ("+", _), SOME @{typ int}, _) => SOME (mk_nary add int0 cts)
     | (Sym ("-", _), SOME @{typ int}, [ct]) => SOME (mk_uminus ct)
     | (Sym ("-", _), SOME @{typ int}, [ct, cu]) => SOME (mk_sub ct cu)
     | (Sym ("*", _), SOME @{typ int}, [ct, cu]) => SOME (mk_mul ct cu)
