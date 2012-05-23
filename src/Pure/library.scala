@@ -12,7 +12,7 @@ import java.lang.System
 import java.awt.Component
 import javax.swing.JOptionPane
 
-import scala.swing.ComboBox
+import scala.swing.{ComboBox, TextArea, ScrollPane}
 import scala.swing.event.SelectionChanged
 import scala.collection.mutable
 
@@ -129,6 +129,14 @@ object Library
 
 
   /* simple dialogs */
+
+  def scrollable_text(txt: String, width: Int = 76, editable: Boolean = false): ScrollPane =
+  {
+    val text = new TextArea(txt)
+    if (width > 0) text.columns = width
+    text.editable = editable
+    new ScrollPane(text)
+  }
 
   private def simple_dialog(kind: Int, default_title: String,
     parent: Component, title: String, message: Seq[Any])

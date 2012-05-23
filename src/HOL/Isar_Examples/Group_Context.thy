@@ -55,10 +55,10 @@ proof -
   finally show "x ** one = x" .
 qed
 
-lemma one_equality: "e ** x = x \<Longrightarrow> one = e"
+lemma one_equality:
+  assumes eq: "e ** x = x"
+  shows "one = e"
 proof -
-  fix e x
-  assume eq: "e ** x = x"
   have "one = x ** inverse x"
     by (simp only: right_inverse)
   also have "\<dots> = (e ** x) ** inverse x"
@@ -72,10 +72,10 @@ proof -
   finally show "one = e" .
 qed
 
-lemma inverse_equality: "x' ** x = one \<Longrightarrow> inverse x = x'"
+lemma inverse_equality:
+  assumes eq: "x' ** x = one"
+  shows "inverse x = x'"
 proof -
-  fix x x'
-  assume eq: "x' ** x = one"
   have "inverse x = one ** inverse x"
     by (simp only: left_one)
   also have "\<dots> = (x' ** x) ** inverse x"

@@ -21,11 +21,9 @@ object Main
       }
       catch { case exn: Throwable => (Exn.message(exn), 2) }
 
-    if (rc != 0) {
-      val text = new TextArea(out + "\nReturn code: " + rc)
-      text.editable = false
-      Library.dialog(null, "Isabelle", "Isabelle output", text)
-    }
+    if (rc != 0)
+      Library.dialog(null, "Isabelle", "Isabelle output",
+        Library.scrollable_text(out + "\nReturn code: " + rc))
 
     System.exit(rc)
   }

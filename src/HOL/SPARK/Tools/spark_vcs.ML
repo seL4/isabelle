@@ -1066,7 +1066,7 @@ fun set_vcs ({types, vars, consts, funs} : decls)
         Symtab.update ("true", (@{term True}, booleanN)),
         Name.context),
        thy |> Sign.add_path
-         (if prfx = "" then Long_Name.base_name ident else prfx)) |>
+         ((if prfx = "" then "" else prfx ^ "__") ^ Long_Name.base_name ident)) |>
       fold (add_type_def prfx) (items types) |>
       fold (snd oo add_const prfx) consts' |> (fn ids_thy as ((tab, _), _) =>
         ids_thy |>

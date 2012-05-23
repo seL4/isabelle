@@ -26,7 +26,7 @@ setup {*
 text{*
 
 \begin{abstract}
-This document lists the main types, functions and syntax provided by theory @{theory Main}. It is meant as a quick overview of what is available. The sophisticated class structure is only hinted at. For details see \url{http://isabelle.in.tum.de/dist/library/HOL/}.
+This document lists the main types, functions and syntax provided by theory @{theory Main}. It is meant as a quick overview of what is available. The sophisticated class structure is only hinted at. For details see \url{http://isabelle.in.tum.de/library/HOL/}.
 \end{abstract}
 
 \section{HOL}

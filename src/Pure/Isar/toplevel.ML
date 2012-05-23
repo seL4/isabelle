@@ -188,7 +188,7 @@ fun proof_position_of state =
   | _ => raise UNDEF);
 
 fun end_theory _ (State (NONE, SOME (Theory (Context.Theory thy, _)))) = thy
-  | end_theory pos (State (NONE, _)) = error ("Missing theory" ^ Position.str_of pos)
+  | end_theory pos (State (NONE, _)) = error ("Bad theory" ^ Position.str_of pos)
   | end_theory pos (State (SOME _, _)) = error ("Unfinished theory" ^ Position.str_of pos);
 
 

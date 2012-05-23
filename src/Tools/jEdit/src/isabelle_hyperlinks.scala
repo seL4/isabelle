@@ -40,7 +40,8 @@ class External_Hyperlink(start: Int, end: Int, line: Int, def_file: String, def_
   override def click(view: View) = {
     Isabelle_System.source_file(Path.explode(def_file)) match {
       case None =>
-        Library.error_dialog(view, "File not found", "Could not find source file " + def_file)
+        Library.error_dialog(view, "File not found",
+          Library.scrollable_text("Could not find source file " + def_file))
       case Some(file) =>
         jEdit.openFiles(view, file.getParent, Array(file.getName, "+line:" + def_line))
     }
