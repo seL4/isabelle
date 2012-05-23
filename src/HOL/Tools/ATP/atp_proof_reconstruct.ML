@@ -188,6 +188,8 @@ fun is_typed_helper_used_in_atp_proof atp_proof =
   is_axiom_used_in_proof is_typed_helper_name atp_proof
 
 val leo2_ext = "extcnf_equal_neg"
+val leo2_unfold_def = "unfold_def"
+
 val isa_ext = Thm.get_name_hint @{thm ext}
 val isa_short_ext = Long_Name.base_name isa_ext
 
@@ -198,17 +200,24 @@ fun ext_name ctxt =
   else
     isa_ext
 
+fun add_all_defs fact_names accum =
+  Vector.foldl (fn (facts, factss) =>
+                   filter (fn (_, (_, status)) => status = Def) facts @ factss)
+               accum fact_names
+
 fun add_fact ctxt fact_names (Inference_Step ((_, ss), _, rule, deps)) =
     (if rule = leo2_ext then
        insert (op =) (ext_name ctxt, (Global, General))
+     else if rule = leo2_unfold_def then
+       (* LEO 1.3.3 does not record definitions properly, leading to missing
+         dependencies in the TSTP proof. Remove the next line once this is
+         fixed. *)
+       add_all_defs fact_names
      else if rule = satallax_unsat_coreN then
        (fn [] =>
            (* Satallax doesn't include definitions in its unsatisfiable cores,
               so we assume the worst and include them all here. *)
-           Vector.foldl (fn (facts, factss) =>
-                            filter (fn (_, (_, status)) => status = Def) facts
-                            @ factss)
-                        [(ext_name ctxt, (Global, General))] fact_names
+           [(ext_name ctxt, (Global, General))] |> add_all_defs fact_names
          | facts => facts)
      else
        I)

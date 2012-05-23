@@ -337,11 +337,7 @@ val leo2_config : atp_config =
         "--proofoutput 1 --timeout " ^ string_of_int (to_secs 1 timeout),
    proof_delims = tstp_proof_delims,
    known_failures =
-     [(* LEO 1.3.3 does not record definitions properly, leading to missing
-         dependencies in the TSTP proof. Remove the next line once this is
-         fixed. *)
-      (ProofIncomplete, "_def,definition,"),
-      (TimedOut, "CPU time limit exceeded, terminating"),
+     [(TimedOut, "CPU time limit exceeded, terminating"),
       (GaveUp, "No.of.Axioms")] @
      known_szs_status_failures,
    prem_kind = Hypothesis,
