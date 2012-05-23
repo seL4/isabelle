@@ -481,6 +481,15 @@ fun run_sh prover_name prover type_enc strict max_relevant slice lam_trans
            | Fail "inappropriate" => failed ATP_Proof.Inappropriate
     val time_prover = run_time |> Time.toMilliseconds
     val msg = message (preplay ()) ^ message_tail
+    val (outcome, used_facts) =
+      (* Repair incomplete or missing proofs. Better do it here and not in
+         Sledgehammer, so that actual Sledgehammer users get a chance to report
+         the issue. FIXME: This is a temporary hack. *)
+      if outcome = SOME ATP_Proof.ProofIncomplete orelse
+         outcome = SOME ATP_Proof.ProofMissing then
+        (NONE, [])
+      else
+        (outcome, used_facts)
   in
     case outcome of
       NONE => (msg, SH_OK (time_isa, time_prover, used_facts))

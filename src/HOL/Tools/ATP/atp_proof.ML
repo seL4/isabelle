@@ -541,7 +541,7 @@ fun atp_proof_from_tstplike_proof _ _ "" = []
   | atp_proof_from_tstplike_proof problem output tstp =
     tstp ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
     |> parse_proof problem (extract_spass_name_vector output)
-    |> sort (step_name_ord o pairself step_name)
+    |> sort (step_name_ord o pairself step_name) (* FIXME: needed? *)
 
 fun clean_up_dependencies _ [] = []
   | clean_up_dependencies seen

@@ -305,9 +305,9 @@ val e_config : atp_config =
         "--cpu-limit=" ^ string_of_int (to_secs 2 timeout),
    proof_delims = tstp_proof_delims,
    known_failures =
-     known_szs_status_failures @
      [(TimedOut, "Failure: Resource limit exceeded (time)"),
-      (TimedOut, "time limit exceeded")],
+      (TimedOut, "time limit exceeded")] @
+     known_szs_status_failures,
    prem_kind = Conjecture,
    best_slices = fn ctxt =>
      let val heuristic = effective_e_selection_heuristic ctxt in
@@ -337,9 +337,13 @@ val leo2_config : atp_config =
         "--proofoutput 1 --timeout " ^ string_of_int (to_secs 1 timeout),
    proof_delims = tstp_proof_delims,
    known_failures =
-     known_szs_status_failures @
-     [(TimedOut, "CPU time limit exceeded, terminating"),
-      (GaveUp, "No.of.Axioms")],
+     [(* LEO 1.3.3 does not record definitions properly, leading to missing
+         dependencies in the TSTP proof. Remove the next line once this is
+         fixed. *)
+      (ProofIncomplete, "_def,definition,"),
+      (TimedOut, "CPU time limit exceeded, terminating"),
+      (GaveUp, "No.of.Axioms")] @
+     known_szs_status_failures,
    prem_kind = Hypothesis,
    best_slices =
      (* FUDGE *)
@@ -390,7 +394,6 @@ val spass_old_config : atp_config =
      |> sos = sosN ? prefix "-SOS=1 ",
    proof_delims = [("Here is a proof", "Formulae used in the proof")],
    known_failures =
-     known_perl_failures @
      [(OldSPASS, "SPASS V 3.5"),
       (OldSPASS, "SPASS V 3.7"),
       (GaveUp, "SPASS beiseite: Completion found"),
@@ -399,7 +402,8 @@ val spass_old_config : atp_config =
       (MalformedInput, "Undefined symbol"),
       (MalformedInput, "Free Variable"),
       (Unprovable, "No formulae and clauses found in input file"),
-      (InternalError, "Please report this error")],
+      (InternalError, "Please report this error")] @
+      known_perl_failures,
    prem_kind = Conjecture,
    best_slices = fn ctxt =>
      (* FUDGE *)
@@ -467,12 +471,12 @@ val vampire_config : atp_config =
       ("% SZS output start Refutation", "% SZS output end Refutation"),
       ("% SZS output start Proof", "% SZS output end Proof")],
    known_failures =
-     known_szs_status_failures @
      [(GaveUp, "UNPROVABLE"),
       (GaveUp, "CANNOT PROVE"),
       (Unprovable, "Satisfiability detected"),
       (Unprovable, "Termination reason: Satisfiable"),
-      (Interrupted, "Aborted by signal SIGINT")],
+      (Interrupted, "Aborted by signal SIGINT")] @
+     known_szs_status_failures,
    prem_kind = Conjecture,
    best_slices = fn ctxt =>
      (* FUDGE *)
