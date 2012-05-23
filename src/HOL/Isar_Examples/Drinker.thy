@@ -17,18 +17,18 @@ text {* Here is another example of classical reasoning: the Drinker's
 lemma de_Morgan:
   assumes "\<not> (\<forall>x. P x)"
   shows "\<exists>x. \<not> P x"
-  using assms
-proof (rule contrapos_np)
-  assume a: "\<not> (\<exists>x. \<not> P x)"
-  show "\<forall>x. P x"
+proof (rule classical)
+  assume "\<not> (\<exists>x. \<not> P x)"
+  have "\<forall>x. P x"
   proof
     fix x show "P x"
     proof (rule classical)
       assume "\<not> P x"
       then have "\<exists>x. \<not> P x" ..
-      with a show ?thesis by contradiction
+      with `\<not> (\<exists>x. \<not> P x)` show ?thesis by contradiction
     qed
   qed
+  with `\<not> (\<forall>x. P x)` show ?thesis ..
 qed
 
 theorem Drinker's_Principle: "\<exists>x. drunk x \<longrightarrow> (\<forall>x. drunk x)"
