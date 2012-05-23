@@ -118,13 +118,13 @@ lemma UnitF: "Unit <= HTT"
   by (simp add: subsetXH UnitXH HTT_rews)
 
 lemma BoolF: "Bool <= HTT"
-  by (fastsimp simp: subsetXH BoolXH iff: HTT_rews)
+  by (fastforce simp: subsetXH BoolXH iff: HTT_rews)
 
 lemma PlusF: "[| A <= HTT;  B <= HTT |] ==> A + B  <= HTT"
-  by (fastsimp simp: subsetXH PlusXH iff: HTT_rews)
+  by (fastforce simp: subsetXH PlusXH iff: HTT_rews)
 
 lemma SigmaF: "[| A <= HTT;  !!x. x:A ==> B(x) <= HTT |] ==> SUM x:A. B(x) <= HTT"
-  by (fastsimp simp: subsetXH SgXH HTT_rews)
+  by (fastforce simp: subsetXH SgXH HTT_rews)
 
 
 (*** Formation Rules for Recursive types - using coinduction these only need ***)
@@ -135,7 +135,7 @@ lemma "Nat <= HTT"
   apply (simp add: subsetXH)
   apply clarify
   apply (erule Nat_ind)
-   apply (fastsimp iff: HTT_rews)+
+   apply (fastforce iff: HTT_rews)+
   done
 
 lemma NatF: "Nat <= HTT"

@@ -209,18 +209,18 @@ lemma NatPR_wf: "Wfd(NatPR)"
   apply (unfold Wfd_def)
   apply clarify
   apply (tactic {* wfd_strengthen_tac @{context} "%x. x:Nat" 1 *})
-   apply (fastsimp iff: NatPRXH)
+   apply (fastforce iff: NatPRXH)
   apply (erule Nat_ind)
-   apply (fastsimp iff: NatPRXH)+
+   apply (fastforce iff: NatPRXH)+
   done
 
 lemma ListPR_wf: "Wfd(ListPR(A))"
   apply (unfold Wfd_def)
   apply clarify
   apply (tactic {* wfd_strengthen_tac @{context} "%x. x:List (A)" 1 *})
-   apply (fastsimp iff: ListPRXH)
+   apply (fastforce iff: ListPRXH)
   apply (erule List_ind)
-   apply (fastsimp iff: ListPRXH)+
+   apply (fastforce iff: ListPRXH)+
   done
 
 

@@ -349,7 +349,7 @@ lemma po_pair: "<a,b> [= <a',b'> <->  a [= a' & b [= b'"
 
 lemma po_lam: "lam x. f(x) [= lam x. f'(x) <-> (ALL x. f(x) [= f'(x))"
   apply (rule poXH [THEN iff_trans])
-  apply fastsimp
+  apply fastforce
   done
 
 lemmas ccl_porews = po_bot po_pair po_lam
