@@ -1297,11 +1297,26 @@ fun make_formula ctxt format type_enc iff_for_eq name stature kind t =
      atomic_types = atomic_Ts}
   end
 
-fun make_fact ctxt format type_enc iff_for_eq ((name, stature), t) =
-  case t |> make_formula ctxt format type_enc iff_for_eq name stature Axiom of
-    formula as {iformula = AAtom (IConst ((s, _), _, _)), ...} =>
-    if s = tptp_true then NONE else SOME formula
-  | formula => SOME formula
+fun is_legitimate_thf_def (Const (@{const_name HOL.eq}, _) $ t $ u) =
+    (is_Const t orelse is_Free t) andalso
+    not (exists_subterm (curry (op =) t) u)
+  | is_legitimate_thf_def _ = false
+
+fun make_fact ctxt format type_enc iff_for_eq
+              ((name, stature as (_, status)), t) =
+  let
+    val role =
+      if is_type_enc_higher_order type_enc andalso status = Def andalso
+         is_legitimate_thf_def t then
+        Definition
+      else
+        Axiom
+  in
+    case t |> make_formula ctxt format type_enc iff_for_eq name stature role of
+      formula as {iformula = AAtom (IConst ((s, _), _, _)), ...} =>
+      if s = tptp_true then NONE else SOME formula
+    | formula => SOME formula
+  end
 
 fun s_not_prop (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
   | s_not_prop _ = @{prop True} (* "t" is too meta for "metis" *)
@@ -2878,8 +2893,7 @@ fun atp_problem_term_order_info problem =
         else
           I
       | add_eq_deps _ _ = I
-    fun has_status status (_, info) =
-      extract_isabelle_status info = SOME status
+    fun has_status status (_, info) = extract_isabelle_status info = SOME status
     fun is_conj (role, _) = (role = Conjecture orelse role = Hypothesis)
     val graph =
       Graph.empty
