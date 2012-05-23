@@ -173,13 +173,11 @@ fun force_tac ctxt =
 
 (* basic combinations *)
 
-fun fast_simp_tac ctxt i =
-  let val _ = legacy_feature "Old name 'fastsimp' - use 'fastforce' instead"
-  in Classical.fast_tac (addss ctxt) i end;
-
 val fast_force_tac = Classical.fast_tac o addss;
 val slow_simp_tac = Classical.slow_tac o addss;
 val best_simp_tac = Classical.best_tac o addss;
+
+
 
 (** concrete syntax **)
 
@@ -221,7 +219,6 @@ val auto_method =
 
 val clasimp_setup =
   Attrib.setup @{binding iff} iff_att "declaration of Simplifier / Classical rules" #>
-  Method.setup @{binding fastsimp} (clasimp_method' fast_simp_tac) "combined fast and simp (legacy name)" #>
   Method.setup @{binding fastforce} (clasimp_method' fast_force_tac) "combined fast and simp" #>
   Method.setup @{binding slowsimp} (clasimp_method' slow_simp_tac) "combined slow and simp" #>
   Method.setup @{binding bestsimp} (clasimp_method' best_simp_tac) "combined best and simp" #>

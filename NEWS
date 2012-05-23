@@ -4,6 +4,12 @@ Isabelle NEWS -- history user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** General ***
+
+* Discontinued obsolete method fastsimp / tactic fast_simp_tac, which
+is called fastforce / fast_force_tac already since Isabelle2011-1.
+
+
 
 New in Isabelle2012 (May 2012)
 ------------------------------

@@ -1682,11 +1682,11 @@ The proof tools of the Classical Reasoner depend on
   search: it may, when backtracking from a failed proof attempt, undo
   even the step of proving a subgoal by assumption.
 
-  \item \hyperlink{method.fastforce}{\mbox{\isa{fastforce}}}, \hyperlink{method.slowsimp}{\mbox{\isa{slowsimp}}}, \hyperlink{method.bestsimp}{\mbox{\isa{bestsimp}}} are
-  like \hyperlink{method.fast}{\mbox{\isa{fast}}}, \hyperlink{method.slow}{\mbox{\isa{slow}}}, \hyperlink{method.best}{\mbox{\isa{best}}}, respectively,
-  but use the Simplifier as additional wrapper. The name \hyperlink{method.fastforce}{\mbox{\isa{fastforce}}},
-  as opposed to \isa{fastsimp}, reflects the behaviour of this popular
-  method better without requiring an understanding of its implementation.
+  \item \hyperlink{method.fastforce}{\mbox{\isa{fastforce}}}, \hyperlink{method.slowsimp}{\mbox{\isa{slowsimp}}}, \hyperlink{method.bestsimp}{\mbox{\isa{bestsimp}}}
+  are like \hyperlink{method.fast}{\mbox{\isa{fast}}}, \hyperlink{method.slow}{\mbox{\isa{slow}}}, \hyperlink{method.best}{\mbox{\isa{best}}},
+  respectively, but use the Simplifier as additional wrapper. The name
+  \hyperlink{method.fastforce}{\mbox{\isa{fastforce}}}, reflects the behaviour of this popular method
+  better without requiring an understanding of its implementation.
 
   \item \hyperlink{method.deepen}{\mbox{\isa{deepen}}} works by exhaustive search up to a certain
   depth.  The start depth is 4 (unless specified explicitly), and the
