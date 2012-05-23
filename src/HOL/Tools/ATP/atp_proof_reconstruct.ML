@@ -199,8 +199,17 @@ fun ext_name ctxt =
     isa_ext
 
 fun add_fact ctxt fact_names (Inference_Step ((_, ss), _, rule, deps)) =
-    (if rule = leo2_ext orelse rule = satallax_unsat_coreN then
+    (if rule = leo2_ext then
        insert (op =) (ext_name ctxt, (Global, General))
+     else if rule = satallax_unsat_coreN then
+       (fn [] =>
+           (* Satallax doesn't include definitions in its unsatisfiable cores,
+              so we assume the worst and include them all here. *)
+           Vector.foldl (fn (facts, factss) =>
+                            filter (fn (_, (_, status)) => status = Def) facts
+                            @ factss)
+                        [(ext_name ctxt, (Global, General))] fact_names
+         | facts => facts)
      else
        I)
     #> (if null deps then union (op =) (resolve_fact fact_names ss)
