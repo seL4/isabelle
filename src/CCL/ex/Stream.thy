@@ -33,7 +33,7 @@ lemma map_comp:
   apply safe
   apply (drule ListsXH [THEN iffD1])
   apply (tactic "EQgen_tac @{context} [] 1")
-   apply fastsimp
+   apply fastforce
   done
 
 (*** Mapping the identity function leaves a list unchanged ***)

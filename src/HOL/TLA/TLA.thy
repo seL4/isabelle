@@ -64,34 +64,39 @@ syntax (HTML output)
   "_EEx"     :: "[idts, lift] => lift"                ("(3\<exists>\<exists> _./ _)" [0,10] 10)
   "_AAll"    :: "[idts, lift] => lift"                ("(3\<forall>\<forall> _./ _)" [0,10] 10)
 
-axioms
+axiomatization where
   (* Definitions of derived operators *)
-  dmd_def:      "TEMP <>F  ==  TEMP ~[]~F"
-  boxInit:      "TEMP []F  ==  TEMP []Init F"
-  leadsto_def:  "TEMP F ~> G  ==  TEMP [](Init F --> <>G)"
-  stable_def:   "TEMP stable P  ==  TEMP []($P --> P$)"
-  WF_def:       "TEMP WF(A)_v  ==  TEMP <>[] Enabled(<A>_v) --> []<><A>_v"
-  SF_def:       "TEMP SF(A)_v  ==  TEMP []<> Enabled(<A>_v) --> []<><A>_v"
+  dmd_def:      "\<And>F. TEMP <>F  ==  TEMP ~[]~F"
+
+axiomatization where
+  boxInit:      "\<And>F. TEMP []F  ==  TEMP []Init F" and
+  leadsto_def:  "\<And>F G. TEMP F ~> G  ==  TEMP [](Init F --> <>G)" and
+  stable_def:   "\<And>P. TEMP stable P  ==  TEMP []($P --> P$)" and
+  WF_def:       "TEMP WF(A)_v  ==  TEMP <>[] Enabled(<A>_v) --> []<><A>_v" and
+  SF_def:       "TEMP SF(A)_v  ==  TEMP []<> Enabled(<A>_v) --> []<><A>_v" and
   aall_def:     "TEMP (AALL x. F x)  ==  TEMP ~ (EEX x. ~ F x)"
 
+axiomatization where
 (* Base axioms for raw TLA. *)
-  normalT:    "|- [](F --> G) --> ([]F --> []G)"    (* polymorphic *)
-  reflT:      "|- []F --> F"         (* F::temporal *)
-  transT:     "|- []F --> [][]F"     (* polymorphic *)
-  linT:       "|- <>F & <>G --> (<>(F & <>G)) | (<>(G & <>F))"
-  discT:      "|- [](F --> <>(~F & <>F)) --> (F --> []<>F)"
-  primeI:     "|- []P --> Init P`"
-  primeE:     "|- [](Init P --> []F) --> Init P` --> (F --> []F)"
-  indT:       "|- [](Init P & ~[]F --> Init P` & F) --> Init P --> []F"
-  allT:       "|- (ALL x. [](F x)) = ([](ALL x. F x))"
+  normalT:    "\<And>F G. |- [](F --> G) --> ([]F --> []G)" and    (* polymorphic *)
+  reflT:      "\<And>F. |- []F --> F" and         (* F::temporal *)
+  transT:     "\<And>F. |- []F --> [][]F" and     (* polymorphic *)
+  linT:       "\<And>F G. |- <>F & <>G --> (<>(F & <>G)) | (<>(G & <>F))" and
+  discT:      "\<And>F. |- [](F --> <>(~F & <>F)) --> (F --> []<>F)" and
+  primeI:     "\<And>P. |- []P --> Init P`" and
+  primeE:     "\<And>P F. |- [](Init P --> []F) --> Init P` --> (F --> []F)" and
+  indT:       "\<And>P F. |- [](Init P & ~[]F --> Init P` & F) --> Init P --> []F" and
+  allT:       "\<And>F. |- (ALL x. [](F x)) = ([](ALL x. F x))"
 
-  necT:       "|- F ==> |- []F"      (* polymorphic *)
+axiomatization where
+  necT:       "\<And>F. |- F ==> |- []F"      (* polymorphic *)
 
+axiomatization where
 (* Flexible quantification: refinement mappings, history variables *)
-  eexI:       "|- F x --> (EEX x. F x)"
+  eexI:       "|- F x --> (EEX x. F x)" and
   eexE:       "[| sigma |= (EEX x. F x); basevars vs;
                  (!!x. [| basevars (x, vs); sigma |= F x |] ==> (G sigma)::bool)
-              |] ==> G sigma"
+              |] ==> G sigma" and
   history:    "|- EEX h. Init(h = ha) & [](!x. $h = #x --> h` = hb x)"
 
 

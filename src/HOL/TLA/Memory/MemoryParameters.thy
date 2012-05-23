@@ -25,14 +25,14 @@ consts
   (* the initial value stored in each memory cell *)
   InitVal        :: "Vals"
 
-axioms
+axiomatization where
   (* basic assumptions about the above constants and predicates *)
-  BadArgNoMemVal:    "BadArg ~: MemVal"
-  MemFailNoMemVal:   "MemFailure ~: MemVal"
-  InitValMemVal:     "InitVal : MemVal"
-  NotAResultNotVal:  "NotAResult ~: MemVal"
-  NotAResultNotOK:   "NotAResult ~= OK"
-  NotAResultNotBA:   "NotAResult ~= BadArg"
+  BadArgNoMemVal:    "BadArg ~: MemVal" and
+  MemFailNoMemVal:   "MemFailure ~: MemVal" and
+  InitValMemVal:     "InitVal : MemVal" and
+  NotAResultNotVal:  "NotAResult ~: MemVal" and
+  NotAResultNotOK:   "NotAResult ~= OK" and
+  NotAResultNotBA:   "NotAResult ~= BadArg" and
   NotAResultNotMF:   "NotAResult ~= MemFailure"
 
 lemmas [simp] =

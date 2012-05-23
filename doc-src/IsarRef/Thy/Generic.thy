@@ -1094,11 +1094,11 @@ text {*
   search: it may, when backtracking from a failed proof attempt, undo
   even the step of proving a subgoal by assumption.
 
-  \item @{method fastforce}, @{method slowsimp}, @{method bestsimp} are
-  like @{method fast}, @{method slow}, @{method best}, respectively,
-  but use the Simplifier as additional wrapper. The name @{method fastforce},
-  as opposed to @{text fastsimp}, reflects the behaviour of this popular
-  method better without requiring an understanding of its implementation.
+  \item @{method fastforce}, @{method slowsimp}, @{method bestsimp}
+  are like @{method fast}, @{method slow}, @{method best},
+  respectively, but use the Simplifier as additional wrapper. The name
+  @{method fastforce}, reflects the behaviour of this popular method
+  better without requiring an understanding of its implementation.
 
   \item @{method deepen} works by exhaustive search up to a certain
   depth.  The start depth is 4 (unless specified explicitly), and the
