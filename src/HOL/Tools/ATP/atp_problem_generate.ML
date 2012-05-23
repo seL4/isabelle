@@ -12,7 +12,7 @@ sig
   type connective = ATP_Problem.connective
   type ('a, 'b, 'c) formula = ('a, 'b, 'c) ATP_Problem.formula
   type atp_format = ATP_Problem.atp_format
-  type formula_kind = ATP_Problem.formula_kind
+  type formula_role = ATP_Problem.formula_role
   type 'a problem = 'a ATP_Problem.problem
 
   datatype mode = Metis | Sledgehammer | Sledgehammer_Aggressive | Exporter
@@ -102,7 +102,7 @@ sig
     Proof.context -> type_enc -> string -> term list -> term list * term list
   val factsN : string
   val prepare_atp_problem :
-    Proof.context -> atp_format -> formula_kind -> type_enc -> mode -> string
+    Proof.context -> atp_format -> formula_role -> type_enc -> mode -> string
     -> bool -> bool -> bool -> term list -> term
     -> ((string * stature) * term) list
     -> string problem * string Symtab.table * (string * stature) list vector
@@ -267,7 +267,7 @@ val ascii_of = String.translate ascii_of_char
    thread. Also, the errors are impossible. *)
 val unascii_of =
   let
-    fun un rcs [] = String.implode(rev rcs)
+    fun un rcs [] = String.implode (rev rcs)
       | un rcs [#"_"] = un (#"_" :: rcs) [] (* ERROR *)
         (* Three types of _ escapes: __, _A to _P, _nnn *)
       | un rcs (#"_" :: #"_" :: cs) = un (#"_" :: rcs) cs
@@ -822,13 +822,13 @@ fun intentionalize_def (Const (@{const_name All}, _) $ Abs (_, _, t)) =
 type translated_formula =
   {name : string,
    stature : stature,
-   kind : formula_kind,
+   role : formula_role,
    iformula : (name, typ, iterm) formula,
    atomic_types : typ list}
 
-fun update_iformula f ({name, stature, kind, iformula, atomic_types}
+fun update_iformula f ({name, stature, role, iformula, atomic_types}
                        : translated_formula) =
-  {name = name, stature = stature, kind = kind, iformula = f iformula,
+  {name = name, stature = stature, role = role, iformula = f iformula,
    atomic_types = atomic_types} : translated_formula
 
 fun fact_lift f ({iformula, ...} : translated_formula) = f iformula
@@ -1230,7 +1230,7 @@ fun preprocess_abstractions_in_terms trans_lams facts =
   let
     val (facts, lambda_ts) =
       facts |> map (snd o snd) |> trans_lams
-            |>> map2 (fn (name, (kind, _)) => fn t => (name, (kind, t))) facts
+            |>> map2 (fn (name, (role, _)) => fn t => (name, (role, t))) facts
     val lam_facts =
       map2 (fn t => fn j =>
                ((lam_fact_prefix ^ Int.toString j, (Global, Def)), (Axiom, t)))
@@ -1285,15 +1285,15 @@ fun should_use_iff_for_eq CNF _ = false
   | should_use_iff_for_eq (THF _) format = not (is_type_enc_higher_order format)
   | should_use_iff_for_eq _ _ = true
 
-fun make_formula ctxt format type_enc iff_for_eq name stature kind t =
+fun make_formula ctxt format type_enc iff_for_eq name stature role t =
   let
     val iff_for_eq = iff_for_eq andalso should_use_iff_for_eq format type_enc
     val (iformula, atomic_Ts) =
-      iformula_from_prop ctxt type_enc iff_for_eq (SOME (kind <> Conjecture)) t
+      iformula_from_prop ctxt type_enc iff_for_eq (SOME (role <> Conjecture)) t
                          []
       |>> close_iformula_universally
   in
-    {name = name, stature = stature, kind = kind, iformula = iformula,
+    {name = name, stature = stature, role = role, iformula = iformula,
      atomic_types = atomic_Ts}
   end
 
@@ -1326,9 +1326,9 @@ fun s_not_prop (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
 *)
 
 fun make_conjecture ctxt format type_enc =
-  map (fn ((name, stature), (kind, t)) =>
-          t |> kind = Conjecture ? s_not
-            |> make_formula ctxt format type_enc true name stature kind)
+  map (fn ((name, stature), (role, t)) =>
+          t |> role = Conjecture ? s_not
+            |> make_formula ctxt format type_enc true name stature role)
 
 (** Finite and infinite type inference **)
 
@@ -1893,7 +1893,31 @@ fun trans_lams_from_string ctxt type_enc lam_trans =
   else
     error ("Unknown lambda translation scheme: " ^ quote lam_trans ^ ".")
 
-fun translate_formulas ctxt prem_kind format type_enc lam_trans presimp hyp_ts
+fun order_definitions facts =
+  let
+    fun add_consts (IApp (t, u)) = fold add_consts [t, u]
+      | add_consts (IAbs (_, t)) = add_consts t
+      | add_consts (IConst (name, _, _)) = insert (op =) name
+      | add_consts (IVar _) = I
+    fun consts_of_hs l_or_r (_, {iformula, ...} : translated_formula) =
+      case iformula of
+        AAtom (IApp (IApp (IConst _, t), u)) => add_consts (l_or_r (t, u)) []
+      | _ => []
+    (* Quadratic, but usually OK. *)
+    fun order [] [] = []
+      | order (fact :: skipped) [] = fact :: order [] skipped (* break cycle *)
+      | order skipped (fact :: facts) =
+        let val rhs_consts = consts_of_hs snd fact in
+          if exists (exists (member (op =) rhs_consts o the_single
+                     o consts_of_hs fst))
+                    [skipped, facts] then
+            order (fact :: skipped) facts
+          else
+            fact :: order [] (facts @ skipped)
+        end
+  in order [] facts end
+
+fun translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts
                        concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -1906,7 +1930,7 @@ fun translate_formulas ctxt prem_kind format type_enc lam_trans presimp hyp_ts
       |> map (fn t => if member (op aconv) fact_ts t then @{prop True} else t)
     val facts = facts |> map (apsnd (pair Axiom))
     val conjs =
-      map (pair prem_kind) hyp_ts @ [(Conjecture, s_not_prop concl_t)]
+      map (pair prem_role) hyp_ts @ [(Conjecture, s_not_prop concl_t)]
       |> map (apsnd freeze_term)
       |> map2 (pair o rpair (Local, General) o string_of_int)
               (0 upto length hyp_ts)
@@ -1925,7 +1949,9 @@ fun translate_formulas ctxt prem_kind format type_enc lam_trans presimp hyp_ts
       |> map_filter (fn (name, (_, t)) =>
                         make_fact ctxt format type_enc true (name, t)
                         |> Option.map (pair name))
-      |> ListPair.unzip
+      |> List.partition (fn (_, {role, ...}) => role = Definition)
+      |>> order_definitions
+      |> op @ |> ListPair.unzip
     val lifted = lam_facts |> map (extract_lambda_def o snd o snd)
     val lam_facts =
       lam_facts |> map_filter (make_fact ctxt format type_enc true o apsnd snd)
@@ -2086,8 +2112,8 @@ and formula_from_iformula ctxt polym_constrs mono type_enc should_guard_var =
    of monomorphization). The TPTP explicitly forbids name clashes, and some of
    the remote provers might care. *)
 fun formula_line_for_fact ctxt polym_constrs prefix encode freshen pos
-        mono type_enc rank (j, {name, stature, kind, iformula, atomic_types}) =
-  (prefix ^ (if freshen then string_of_int j ^ "_" else "") ^ encode name, kind,
+        mono type_enc rank (j, {name, stature, role, iformula, atomic_types}) =
+  (prefix ^ (if freshen then string_of_int j ^ "_" else "") ^ encode name, role,
    iformula
    |> formula_from_iformula ctxt polym_constrs mono type_enc
           should_guard_var_in_formula (if pos then SOME true else NONE)
@@ -2131,8 +2157,8 @@ fun formula_line_for_arity_clause type_enc
            NONE, isabelle_info inductiveN helper_rank)
 
 fun formula_line_for_conjecture ctxt polym_constrs mono type_enc
-        ({name, kind, iformula, atomic_types, ...} : translated_formula) =
-  Formula (conjecture_prefix ^ name, kind,
+        ({name, role, iformula, atomic_types, ...} : translated_formula) =
+  Formula (conjecture_prefix ^ name, role,
            iformula
            |> formula_from_iformula ctxt polym_constrs mono type_enc
                   should_guard_var_in_formula (SOME false)
@@ -2304,8 +2330,8 @@ fun add_iterm_mononotonicity_info _ _ (SOME false) _ mono = mono
     end
   | add_iterm_mononotonicity_info _ _ _ _ mono = mono
 fun add_fact_mononotonicity_info ctxt level
-        ({kind, iformula, ...} : translated_formula) =
-  formula_fold (SOME (kind <> Conjecture))
+        ({role, iformula, ...} : translated_formula) =
+  formula_fold (SOME (role <> Conjecture))
                (add_iterm_mononotonicity_info ctxt level) iformula
 fun mononotonicity_info_for_facts ctxt type_enc facts =
   let val level = level_of_type_enc type_enc in
@@ -2385,14 +2411,14 @@ fun decl_line_for_sym ctxt mono type_enc s
                ? curry ATyAbs (map (tvar_name o fst o dest_TVar) T_args))
   end
 
-fun honor_conj_sym_kind in_conj =
+fun honor_conj_sym_role in_conj =
   if in_conj then (Hypothesis, I) else (Axiom, I)
 
 fun formula_line_for_guards_sym_decl ctxt mono type_enc n s j
                                      (s', T_args, T, _, ary, in_conj) =
   let
     val thy = Proof_Context.theory_of ctxt
-    val (kind, maybe_negate) = honor_conj_sym_kind in_conj
+    val (role, maybe_negate) = honor_conj_sym_role in_conj
     val (arg_Ts, res_T) = chop_fun ary T
     val bound_names = 1 upto ary |> map (`I o make_bound_var o string_of_int)
     val bounds =
@@ -2413,7 +2439,7 @@ fun formula_line_for_guards_sym_decl ctxt mono type_enc n s j
         replicate ary NONE
   in
     Formula (guards_sym_formula_prefix ^ s ^
-             (if n > 1 then "_" ^ string_of_int j else ""), kind,
+             (if n > 1 then "_" ^ string_of_int j else ""), role,
              IConst ((s, s'), T, T_args)
              |> fold (curry (IApp o swap)) bounds
              |> type_guard_iterm type_enc res_T
@@ -2435,7 +2461,7 @@ fun formula_lines_for_tags_sym_decl ctxt mono type_enc n s
     val ident_base =
       tags_sym_formula_prefix ^ s ^
       (if n > 1 then "_" ^ string_of_int j else "")
-    val (kind, maybe_negate) = honor_conj_sym_kind in_conj
+    val (role, maybe_negate) = honor_conj_sym_role in_conj
     val (arg_Ts, res_T) = chop_fun ary T
     val bound_names = 1 upto ary |> map (`I o make_bound_var o string_of_int)
     val bounds = bound_names |> map (fn name => ATerm (name, []))
@@ -2455,7 +2481,7 @@ fun formula_lines_for_tags_sym_decl ctxt mono type_enc n s
             else
               bounds
         in
-          cons (Formula (ident_base ^ "_res", kind,
+          cons (Formula (ident_base ^ "_res", role,
                          eq (tag_with res_T (cst bounds)) (cst tagged_bounds),
                          NONE, isabelle_info defN helper_rank))
         end
@@ -2517,7 +2543,7 @@ fun do_uncurried_alias_lines_for_sym ctxt monom_constrs mono type_enc sym_tab0
     fun do_alias ary =
       let
         val thy = Proof_Context.theory_of ctxt
-        val (kind, maybe_negate) = honor_conj_sym_kind in_conj
+        val (role, maybe_negate) = honor_conj_sym_role in_conj
         val base_name = base_s0 |> `(make_fixed_const (SOME type_enc))
         val T = case types of [T] => T | _ => robust_const_type thy base_s0
         val T_args = robust_const_typargs thy (base_s0, T)
@@ -2550,7 +2576,7 @@ fun do_uncurried_alias_lines_for_sym ctxt monom_constrs mono type_enc sym_tab0
                      (ho_term_of tm1) (ho_term_of tm2)
       in
         ([tm1, tm2],
-         [Formula (uncurried_alias_eq_prefix ^ s2, kind, eq |> maybe_negate,
+         [Formula (uncurried_alias_eq_prefix ^ s2, role, eq |> maybe_negate,
                    NONE, isabelle_info defN helper_rank)])
         |> (if ary - 1 = base_ary orelse Symtab.defined sym_tab s1 then I
             else pair_append (do_alias (ary - 1)))
@@ -2670,7 +2696,7 @@ fun all_constrs_of_polymorphic_datatypes thy =
 
 val app_op_and_predicator_threshold = 50
 
-fun prepare_atp_problem ctxt format prem_kind type_enc mode lam_trans
+fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
                         uncurried_aliases readable_names preproc hyp_ts concl_t
                         facts =
   let
@@ -2700,7 +2726,7 @@ fun prepare_atp_problem ctxt format prem_kind type_enc mode lam_trans
         lam_trans
     val (fact_names, classes, conjs, facts, class_rel_clauses, arity_clauses,
          lifted) =
-      translate_formulas ctxt prem_kind format type_enc lam_trans preproc hyp_ts
+      translate_formulas ctxt prem_role format type_enc lam_trans preproc hyp_ts
                          concl_t facts
     val (_, sym_tab0) =
       sym_table_for_facts ctxt type_enc app_op_level conjs facts
