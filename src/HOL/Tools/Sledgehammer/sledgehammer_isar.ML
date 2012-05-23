@@ -88,8 +88,8 @@ val default_default_params =
    ("uncurried_aliases", "smart"),
    ("relevance_thresholds", "0.45 0.85"),
    ("max_relevant", "smart"),
-   ("max_mono_iters", "3"),
-   ("max_new_mono_instances", "200"),
+   ("max_mono_iters", "smart"),
+   ("max_new_mono_instances", "smart"),
    ("isar_proof", "false"),
    ("isar_shrink_factor", "1"),
    ("slice", "true"),
@@ -294,8 +294,9 @@ fun extract_params mode default_params override_params =
     val uncurried_aliases = lookup_option lookup_bool "uncurried_aliases"
     val relevance_thresholds = lookup_real_pair "relevance_thresholds"
     val max_relevant = lookup_option lookup_int "max_relevant"
-    val max_mono_iters = lookup_int "max_mono_iters"
-    val max_new_mono_instances = lookup_int "max_new_mono_instances"
+    val max_mono_iters = lookup_option lookup_int "max_mono_iters"
+    val max_new_mono_instances =
+      lookup_option lookup_int "max_new_mono_instances"
     val isar_proof = lookup_bool "isar_proof"
     val isar_shrink_factor = Int.max (1, lookup_int "isar_shrink_factor")
     val slice = mode <> Auto_Try andalso lookup_bool "slice"

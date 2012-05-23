@@ -30,8 +30,8 @@ sig
      uncurried_aliases: bool option,
      relevance_thresholds: real * real,
      max_relevant: int option,
-     max_mono_iters: int,
-     max_new_mono_instances: int,
+     max_mono_iters: int option,
+     max_new_mono_instances: int option,
      isar_proof: bool,
      isar_shrink_factor: int,
      slice: bool,
@@ -86,7 +86,7 @@ sig
   val is_reconstructor : string -> bool
   val is_atp : theory -> string -> bool
   val is_smt_prover : Proof.context -> string -> bool
-  val is_ho_atp: Proof.context -> string -> bool  
+  val is_ho_atp: Proof.context -> string -> bool
   val is_unit_equational_atp : Proof.context -> string -> bool
   val is_prover_supported : Proof.context -> string -> bool
   val is_prover_installed : Proof.context -> string -> bool
@@ -295,8 +295,8 @@ type params =
    uncurried_aliases: bool option,
    relevance_thresholds: real * real,
    max_relevant: int option,
-   max_mono_iters: int,
-   max_new_mono_instances: int,
+   max_mono_iters: int option,
+   max_new_mono_instances: int option,
    isar_proof: bool,
    isar_shrink_factor: int,
    slice: bool,
@@ -565,9 +565,11 @@ fun choose_minimize_command params minimize_command name preplay =
       | _ => (name, [])
   in minimize_command override_params name end
 
-fun repair_monomorph_context max_iters max_new_instances =
-  Config.put Monomorph.max_rounds max_iters
-  #> Config.put Monomorph.max_new_instances max_new_instances
+fun repair_monomorph_context max_iters best_max_iters max_new_instances
+                             best_max_new_instances =
+  Config.put Monomorph.max_rounds (max_iters |> the_default best_max_iters)
+  #> Config.put Monomorph.max_new_instances
+         (max_new_instances |> the_default best_max_new_instances)
   #> Config.put Monomorph.keep_partial_instances false
 
 fun suffix_for_mode Auto_Try = "_auto_try"
@@ -582,7 +584,8 @@ val atp_timeout_slack = seconds 1.0
 
 fun run_atp mode name
         ({exec, required_vars, arguments, proof_delims, known_failures,
-          prem_kind, best_slices, ...} : atp_config)
+          prem_kind, best_slices, best_max_mono_iters,
+          best_max_new_mono_instances, ...} : atp_config)
         (params as {debug, verbose, overlord, type_enc, strict, lam_trans,
                     uncurried_aliases, max_relevant, max_mono_iters,
                     max_new_mono_instances, isar_proof, isar_shrink_factor,
@@ -644,8 +647,9 @@ fun run_atp mode name
             fun monomorphize_facts facts =
               let
                 val ctxt =
-                  ctxt |> repair_monomorph_context max_mono_iters
-                                                   max_new_mono_instances
+                  ctxt
+                  |> repair_monomorph_context max_mono_iters best_max_mono_iters
+                          max_new_mono_instances best_max_new_mono_instances
                 (* pseudo-theorem involving the same constants as the subgoal *)
                 val subgoal_th =
                   Logic.list_implies (hyp_ts, concl_t)
@@ -923,7 +927,8 @@ fun smt_filter_loop ctxt name
         val state =
           state |> Proof.map_context
                        (repair_monomorph_context max_mono_iters
-                                                 max_new_mono_instances)
+                            default_max_mono_iters max_new_mono_instances
+                            default_max_new_mono_instances)
         val ms = timeout |> Time.toMilliseconds
         val slice_timeout =
           if slice < max_slices then

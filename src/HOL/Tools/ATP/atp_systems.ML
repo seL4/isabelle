@@ -24,8 +24,12 @@ sig
      known_failures : (failure * string) list,
      prem_kind : formula_kind,
      best_slices :
-       Proof.context -> (real * (bool * (slice_spec * string))) list}
+       Proof.context -> (real * (bool * (slice_spec * string))) list,
+     best_max_mono_iters : int,
+     best_max_new_mono_instances : int}
 
+  val default_max_mono_iters : int
+  val default_max_new_mono_instances : int
   val force_sos : bool Config.T
   val term_order : string Config.T
   val e_smartN : string
@@ -76,6 +80,9 @@ open ATP_Problem_Generate
 
 (* ATP configuration *)
 
+val default_max_mono_iters = 3 (* FUDGE *)
+val default_max_new_mono_instances = 200 (* FUDGE *)
+
 type slice_spec = int * atp_format * string * string * bool
 
 type atp_config =
@@ -88,7 +95,9 @@ type atp_config =
    proof_delims : (string * string) list,
    known_failures : (failure * string) list,
    prem_kind : formula_kind,
-   best_slices : Proof.context -> (real * (bool * (slice_spec * string))) list}
+   best_slices : Proof.context -> (real * (bool * (slice_spec * string))) list,
+   best_max_mono_iters : int,
+   best_max_new_mono_instances : int}
 
 (* "best_slices" must be found empirically, taking a wholistic approach since
    the ATPs are run in parallel. The "real" component gives the faction of the
@@ -193,7 +202,9 @@ val alt_ergo_config : atp_config =
    prem_kind = Hypothesis,
    best_slices = fn _ =>
      (* FUDGE *)
-     [(1.0, (false, ((100, alt_ergo_tff1, "poly_native", liftingN, false), "")))]}
+     [(1.0, (false, ((100, alt_ergo_tff1, "poly_native", liftingN, false), "")))],
+   best_max_mono_iters = default_max_mono_iters,
+   best_max_new_mono_instances = default_max_new_mono_instances}
 
 val alt_ergo = (alt_ergoN, fn () => alt_ergo_config)
 
@@ -307,7 +318,9 @@ val e_config : atp_config =
           (0.333, (true, ((1000, FOF, "mono_tags??", combsN, false), e_sym_offset_weightN)))]
        else
          [(1.0, (true, ((500, FOF, "mono_tags??", combsN, false), heuristic)))]
-     end}
+     end,
+   best_max_mono_iters = default_max_mono_iters,
+   best_max_new_mono_instances = default_max_new_mono_instances}
 
 val e = (eN, fn () => e_config)
 
@@ -330,7 +343,9 @@ val leo2_config : atp_config =
    prem_kind = Hypothesis,
    best_slices =
      (* FUDGE *)
-     K [(1.0, (true, ((20, leo2_thf0, "mono_native_higher", keep_lamsN, false), "")))]}
+     K [(1.0, (true, ((20, leo2_thf0, "mono_native_higher", keep_lamsN, false), "")))],
+   best_max_mono_iters = default_max_mono_iters - 1 (* FUDGE *),
+   best_max_new_mono_instances = default_max_new_mono_instances div 2 (* FUDGE *)}
 
 val leo2 = (leo2N, fn () => leo2_config)
 
@@ -351,7 +366,9 @@ val satallax_config : atp_config =
    prem_kind = Definition (* motivated by "isabelle tptp_sledgehammer" tool *),
    best_slices =
      (* FUDGE *)
-     K [(1.0, (true, ((120, satallax_thf0, "mono_native_higher", keep_lamsN, false), "")))]}
+     K [(1.0, (true, ((120, satallax_thf0, "mono_native_higher", keep_lamsN, false), "")))],
+   best_max_mono_iters = default_max_mono_iters - 1 (* FUDGE *),
+   best_max_new_mono_instances = default_max_new_mono_instances div 2 (* FUDGE *)}
 
 val satallax = (satallaxN, fn () => satallax_config)
 
@@ -389,7 +406,9 @@ val spass_old_config : atp_config =
      [(0.333, (false, ((150, DFG DFG_Unsorted, "mono_tags??", liftingN, false), sosN))),
       (0.333, (false, ((300, DFG DFG_Unsorted, "poly_tags??", liftingN, false), sosN))),
       (0.334, (false, ((50, DFG DFG_Unsorted, "mono_tags??", liftingN, false), no_sosN)))]
-     |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single else I)}
+     |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single else I),
+   best_max_mono_iters = default_max_mono_iters,
+   best_max_new_mono_instances = default_max_new_mono_instances}
 
 val spass_new_H1SOS = "-Heuristic=1 -SOS"
 val spass_new_H2LR0LT0 = "-Heuristic=2 -LR=0 -LT=0"
@@ -416,7 +435,9 @@ val spass_new_config : atp_config =
       (0.1000, (false, ((1000, DFG DFG_Sorted, "mono_native", liftingN, true), spass_new_H1SOS))),
       (0.1000, (false, ((150, DFG DFG_Sorted, "poly_guards??", liftingN, false), spass_new_H2NuVS0Red2))),
       (0.1000, (false, ((300, DFG DFG_Sorted, "mono_native", combsN, true), spass_new_H2SOS))),
-      (0.1000, (false, ((100, DFG DFG_Sorted, "mono_native", combs_and_liftingN, true), spass_new_H2NuVS0)))]}
+      (0.1000, (false, ((100, DFG DFG_Sorted, "mono_native", combs_and_liftingN, true), spass_new_H2NuVS0)))],
+   best_max_mono_iters = default_max_mono_iters,
+   best_max_new_mono_instances = default_max_new_mono_instances}
 
 val spass =
   (spassN, fn () => if is_new_spass_version () then spass_new_config
@@ -464,7 +485,9 @@ val vampire_config : atp_config =
          (0.333, (false, ((500, FOF, "mono_tags??", combs_or_liftingN, false), sosN))),
          (0.334, (true, ((50, FOF, "mono_guards??", combs_or_liftingN, false), no_sosN)))])
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
-         else I)}
+         else I),
+   best_max_mono_iters = default_max_mono_iters,
+   best_max_new_mono_instances = default_max_new_mono_instances}
 
 val vampire = (vampireN, fn () => vampire_config)
 
@@ -486,7 +509,9 @@ val z3_tptp_config : atp_config =
      K [(0.5, (false, ((250, z3_tff0, "mono_native", combsN, false), ""))),
         (0.25, (false, ((125, z3_tff0, "mono_native", combsN, false), ""))),
         (0.125, (false, ((62, z3_tff0, "mono_native", combsN, false), ""))),
-        (0.125, (false, ((31, z3_tff0, "mono_native", combsN, false), "")))]}
+        (0.125, (false, ((31, z3_tff0, "mono_native", combsN, false), "")))],
+   best_max_mono_iters = default_max_mono_iters,
+   best_max_new_mono_instances = default_max_new_mono_instances}
 
 val z3_tptp = (z3_tptpN, fn () => z3_tptp_config)
 
@@ -503,7 +528,9 @@ fun dummy_config format type_enc : atp_config =
    best_slices =
      K [(1.0, (false, ((200, format, type_enc,
                         if is_format_higher_order format then keep_lamsN
-                        else combsN, false), "")))]}
+                        else combsN, false), "")))],
+   best_max_mono_iters = default_max_mono_iters,
+   best_max_new_mono_instances = default_max_new_mono_instances}
 
 val dummy_thf_format = THF (TPTP_Polymorphic, TPTP_Explicit, THF_With_Choice)
 val dummy_thf_config = dummy_config dummy_thf_format "poly_native_higher"
@@ -561,7 +588,9 @@ fun remote_config system_name system_versions proof_delims known_failures
    proof_delims = union (op =) tstp_proof_delims proof_delims,
    known_failures = known_failures @ known_perl_failures @ known_says_failures,
    prem_kind = prem_kind,
-   best_slices = fn ctxt => [(1.0, (false, best_slice ctxt))]}
+   best_slices = fn ctxt => [(1.0, (false, best_slice ctxt))],
+   best_max_mono_iters = default_max_mono_iters,
+   best_max_new_mono_instances = default_max_new_mono_instances}
 
 fun remotify_config system_name system_versions best_slice
         ({proof_delims, known_failures, prem_kind, ...} : atp_config)
