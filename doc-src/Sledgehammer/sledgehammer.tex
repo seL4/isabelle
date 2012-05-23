@@ -766,8 +766,9 @@ seconds).
 \end{enum}
 
 Default values are indicated in curly brackets (\textrm{\{\}}). Boolean options
-have a negated counterpart (e.g., \textit{blocking} vs.\
-\textit{non\_blocking}). When setting them, ``= \textit{true\/}'' may be omitted.
+have a negative counterpart (e.g., \textit{blocking} vs.\
+\textit{non\_blocking}). When setting Boolean options or their negative
+counterparts, ``= \textit{true\/}'' may be omitted.
 
 \subsection{Mode of Operation}
 \label{mode-of-operation}
@@ -1183,23 +1184,27 @@ are relevant and 1 only theorems that refer to previously seen constants.
 \opdefault{max\_relevant}{smart\_int}{smart}
 Specifies the maximum number of facts that may be returned by the relevance
 filter. If the option is set to \textit{smart}, it is set to a value that was
-empirically found to be appropriate for the prover. A typical value would be
-250.
+empirically found to be appropriate for the prover. Typical values range between
+50 and 1000.
 
-\opdefault{max\_new\_mono\_instances}{int}{\upshape 200}
+\opdefault{max\_new\_mono\_instances}{int}{smart}
 Specifies the maximum number of monomorphic instances to generate beyond
 \textit{max\_relevant}. The higher this limit is, the more monomorphic instances
 are potentially generated. Whether monomorphization takes place depends on the
-type encoding used.
+type encoding used. If the option is set to \textit{smart}, it is set to a value
+that was empirically found to be appropriate for the prover. For most provers,
+this value is 200.
 
 \nopagebreak
 {\small See also \textit{type\_enc} (\S\ref{problem-encoding}).}
 
-\opdefault{max\_mono\_iters}{int}{\upshape 3}
+\opdefault{max\_mono\_iters}{int}{smart}
 Specifies the maximum number of iterations for the monomorphization fixpoint
 construction. The higher this limit is, the more monomorphic instances are
 potentially generated. Whether monomorphization takes place depends on the
-type encoding used.
+type encoding used. If the option is set to \textit{smart}, it is set to a value
+that was empirically found to be appropriate for the prover. For most provers,
+this value is 3.
 
 \nopagebreak
 {\small See also \textit{type\_enc} (\S\ref{problem-encoding}).}
