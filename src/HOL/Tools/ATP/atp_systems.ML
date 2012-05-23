@@ -9,7 +9,7 @@ signature ATP_SYSTEMS =
 sig
   type term_order = ATP_Problem.term_order
   type atp_format = ATP_Problem.atp_format
-  type formula_kind = ATP_Problem.formula_kind
+  type formula_role = ATP_Problem.formula_role
   type failure = ATP_Proof.failure
 
   type slice_spec = int * atp_format * string * string * bool
@@ -22,7 +22,7 @@ sig
           * (unit -> (string * real) list) -> string,
      proof_delims : (string * string) list,
      known_failures : (failure * string) list,
-     prem_kind : formula_kind,
+     prem_role : formula_role,
      best_slices :
        Proof.context -> (real * (bool * (slice_spec * string))) list,
      best_max_mono_iters : int,
@@ -60,7 +60,7 @@ sig
   val remote_prefix : string
   val remote_atp :
     string -> string -> string list -> (string * string) list
-    -> (failure * string) list -> formula_kind
+    -> (failure * string) list -> formula_role
     -> (Proof.context -> slice_spec * string) -> string * (unit -> atp_config)
   val add_atp : string * (unit -> atp_config) -> theory -> theory
   val get_atp : theory -> string -> (unit -> atp_config)
@@ -94,7 +94,7 @@ type atp_config =
         * (unit -> (string * real) list) -> string,
    proof_delims : (string * string) list,
    known_failures : (failure * string) list,
-   prem_kind : formula_kind,
+   prem_role : formula_role,
    best_slices : Proof.context -> (real * (bool * (slice_spec * string))) list,
    best_max_mono_iters : int,
    best_max_new_mono_instances : int}
@@ -199,7 +199,7 @@ val alt_ergo_config : atp_config =
      [(ProofMissing, ": Valid"),
       (TimedOut, ": Timeout"),
       (GaveUp, ": Unknown")],
-   prem_kind = Hypothesis,
+   prem_role = Hypothesis,
    best_slices = fn _ =>
      (* FUDGE *)
      [(1.0, (false, ((100, alt_ergo_tff1, "poly_native", liftingN, false), "")))],
@@ -308,7 +308,7 @@ val e_config : atp_config =
      [(TimedOut, "Failure: Resource limit exceeded (time)"),
       (TimedOut, "time limit exceeded")] @
      known_szs_status_failures,
-   prem_kind = Conjecture,
+   prem_role = Conjecture,
    best_slices = fn ctxt =>
      let val heuristic = effective_e_selection_heuristic ctxt in
        (* FUDGE *)
@@ -340,7 +340,7 @@ val leo2_config : atp_config =
      [(TimedOut, "CPU time limit exceeded, terminating"),
       (GaveUp, "No.of.Axioms")] @
      known_szs_status_failures,
-   prem_kind = Hypothesis,
+   prem_role = Hypothesis,
    best_slices =
      (* FUDGE *)
      K [(1.0, (true, ((20, leo2_thf0, "mono_native_higher", keep_lamsN, false), "")))],
@@ -363,7 +363,7 @@ val satallax_config : atp_config =
    proof_delims =
      [("% Higher-Order Unsat Core BEGIN", "% Higher-Order Unsat Core END")],
    known_failures = known_szs_status_failures,
-   prem_kind = Definition (* motivated by "isabelle tptp_sledgehammer" tool *),
+   prem_role = Definition (* motivated by "isabelle tptp_sledgehammer" tool *),
    best_slices =
      (* FUDGE *)
      K [(1.0, (true, ((120, satallax_thf0, "mono_native_higher", keep_lamsN, false), "")))],
@@ -400,7 +400,7 @@ val spass_old_config : atp_config =
       (Unprovable, "No formulae and clauses found in input file"),
       (InternalError, "Please report this error")] @
       known_perl_failures,
-   prem_kind = Conjecture,
+   prem_role = Conjecture,
    best_slices = fn ctxt =>
      (* FUDGE *)
      [(0.333, (false, ((150, DFG DFG_Unsorted, "mono_tags??", liftingN, false), sosN))),
@@ -425,7 +425,7 @@ val spass_new_config : atp_config =
      |> extra_options <> "" ? prefix (extra_options ^ " "),
    proof_delims = #proof_delims spass_old_config,
    known_failures = #known_failures spass_old_config,
-   prem_kind = #prem_kind spass_old_config,
+   prem_role = #prem_role spass_old_config,
    best_slices = fn _ =>
      (* FUDGE *)
      [(0.1667, (false, ((150, DFG DFG_Sorted, "mono_native", combsN, true), ""))),
@@ -473,7 +473,7 @@ val vampire_config : atp_config =
       (Unprovable, "Termination reason: Satisfiable"),
       (Interrupted, "Aborted by signal SIGINT")] @
      known_szs_status_failures,
-   prem_kind = Conjecture,
+   prem_role = Conjecture,
    best_slices = fn ctxt =>
      (* FUDGE *)
      (if is_new_vampire_version () then
@@ -503,7 +503,7 @@ val z3_tptp_config : atp_config =
      "MBQI=true -tptp -t:" ^ string_of_int (to_secs 1 timeout),
    proof_delims = [],
    known_failures = known_szs_status_failures,
-   prem_kind = Hypothesis,
+   prem_role = Hypothesis,
    best_slices =
      (* FUDGE *)
      K [(0.5, (false, ((250, z3_tff0, "mono_native", combsN, false), ""))),
@@ -524,7 +524,7 @@ fun dummy_config format type_enc : atp_config =
    arguments = K (K (K (K (K "")))),
    proof_delims = [],
    known_failures = known_szs_status_failures,
-   prem_kind = Hypothesis,
+   prem_role = Hypothesis,
    best_slices =
      K [(1.0, (false, ((200, format, type_enc,
                         if is_format_higher_order format then keep_lamsN
@@ -578,7 +578,7 @@ fun the_system name versions =
 val max_remote_secs = 240 (* give Geoff Sutcliffe's servers a break *)
 
 fun remote_config system_name system_versions proof_delims known_failures
-                  prem_kind best_slice : atp_config =
+                  prem_role best_slice : atp_config =
   {exec = (["ISABELLE_ATP"], "scripts/remote_atp"),
    required_vars = [],
    arguments = fn _ => fn _ => fn command => fn timeout => fn _ =>
@@ -587,22 +587,22 @@ fun remote_config system_name system_versions proof_delims known_failures
      "-t " ^ string_of_int (Int.min (max_remote_secs, to_secs 1 timeout)),
    proof_delims = union (op =) tstp_proof_delims proof_delims,
    known_failures = known_failures @ known_perl_failures @ known_says_failures,
-   prem_kind = prem_kind,
+   prem_role = prem_role,
    best_slices = fn ctxt => [(1.0, (false, best_slice ctxt))],
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
 
 fun remotify_config system_name system_versions best_slice
-        ({proof_delims, known_failures, prem_kind, ...} : atp_config)
+        ({proof_delims, known_failures, prem_role, ...} : atp_config)
         : atp_config =
   remote_config system_name system_versions proof_delims known_failures
-                prem_kind best_slice
+                prem_role best_slice
 
 fun remote_atp name system_name system_versions proof_delims known_failures
-               prem_kind best_slice =
+               prem_role best_slice =
   (remote_prefix ^ name,
    fn () => remote_config system_name system_versions proof_delims
-                          known_failures prem_kind best_slice)
+                          known_failures prem_role best_slice)
 fun remotify_atp (name, config) system_name system_versions best_slice =
   (remote_prefix ^ name,
    remotify_config system_name system_versions best_slice o config)

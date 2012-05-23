@@ -584,7 +584,7 @@ val atp_timeout_slack = seconds 1.0
 
 fun run_atp mode name
         ({exec, required_vars, arguments, proof_delims, known_failures,
-          prem_kind, best_slices, best_max_mono_iters,
+          prem_role, best_slices, best_max_mono_iters,
           best_max_new_mono_instances, ...} : atp_config)
         (params as {debug, verbose, overlord, type_enc, strict, lam_trans,
                     uncurried_aliases, max_relevant, max_mono_iters,
@@ -720,7 +720,7 @@ fun run_atp mode name
                     |> polymorphism_of_type_enc type_enc <> Polymorphic
                        ? monomorphize_facts
                     |> map (apsnd prop_of)
-                    |> prepare_atp_problem ctxt format prem_kind type_enc
+                    |> prepare_atp_problem ctxt format prem_role type_enc
                                            atp_mode lam_trans uncurried_aliases
                                            readable_names true hyp_ts concl_t
                 fun sel_weights () = atp_problem_selection_weights atp_problem

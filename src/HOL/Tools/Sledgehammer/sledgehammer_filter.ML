@@ -855,6 +855,7 @@ val exists_sledgehammer_const =
 (* FIXME: make more reliable *)
 val exists_low_level_class_const =
   exists_Const (fn (s, _) =>
+     s = @{const_name equal_class.equal} orelse
      String.isSubstring (Long_Name.separator ^ "class" ^ Long_Name.separator) s)
 
 fun is_metastrange_theorem th =

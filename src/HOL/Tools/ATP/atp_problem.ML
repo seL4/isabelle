@@ -41,10 +41,10 @@ sig
     THF of tptp_polymorphism * tptp_explicitness * thf_flavor |
     DFG of dfg_flavor
 
-  datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
+  datatype formula_role = Axiom | Definition | Lemma | Hypothesis | Conjecture
   datatype 'a problem_line =
     Decl of string * 'a * 'a ho_type |
-    Formula of string * formula_kind
+    Formula of string * formula_role
                * ('a, 'a ho_type, ('a, 'a ho_type) ho_term) formula
                * (string, string ho_type) ho_term option
                * (string, string ho_type) ho_term list
@@ -173,10 +173,10 @@ datatype atp_format =
   THF of tptp_polymorphism * tptp_explicitness * thf_flavor |
   DFG of dfg_flavor
 
-datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
+datatype formula_role = Axiom | Definition | Lemma | Hypothesis | Conjecture
 datatype 'a problem_line =
   Decl of string * 'a * 'a ho_type |
-  Formula of string * formula_kind
+  Formula of string * formula_role
              * ('a, 'a ho_type, ('a, 'a ho_type) ho_term) formula
              * (string, string ho_type) ho_term option
              * (string, string ho_type) ho_term list
@@ -310,11 +310,11 @@ fun is_format_typed (TFF _) = true
   | is_format_typed (DFG DFG_Sorted) = true
   | is_format_typed _ = false
 
-fun tptp_string_for_kind Axiom = "axiom"
-  | tptp_string_for_kind Definition = "definition"
-  | tptp_string_for_kind Lemma = "lemma"
-  | tptp_string_for_kind Hypothesis = "hypothesis"
-  | tptp_string_for_kind Conjecture = "conjecture"
+fun tptp_string_for_role Axiom = "axiom"
+  | tptp_string_for_role Definition = "definition"
+  | tptp_string_for_role Lemma = "lemma"
+  | tptp_string_for_role Hypothesis = "hypothesis"
+  | tptp_string_for_role Conjecture = "conjecture"
 
 fun tptp_string_for_app format func args =
   if is_format_higher_order format then
@@ -450,7 +450,7 @@ fun tptp_string_for_problem_line format (Decl (ident, sym, ty)) =
   | tptp_string_for_problem_line format
                                  (Formula (ident, kind, phi, source, _)) =
     tptp_string_for_format format ^ "(" ^ ident ^ ", " ^
-    tptp_string_for_kind kind ^ ",\n    (" ^
+    tptp_string_for_role kind ^ ",\n    (" ^
     tptp_string_for_formula format phi ^ ")" ^
     (case source of
        SOME tm => ", " ^ tptp_string_for_term format tm
