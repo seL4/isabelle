@@ -58,11 +58,13 @@ translations
   "s |= Enabled A"   <=   "_Enabled A s"
   "w |= unchanged f" <=   "_unchanged f w"
 
-axioms
-  unl_before:    "(ACT $v) (s,t) == v s"
-  unl_after:     "(ACT v$) (s,t) == v t"
+axiomatization where
+  unl_before:    "(ACT $v) (s,t) == v s" and
+  unl_after:     "(ACT v$) (s,t) == v t" and
 
   unchanged_def: "(s,t) |= unchanged v == (v t = v s)"
+
+defs
   square_def:    "ACT [A]_v == ACT (A | unchanged v)"
   angle_def:     "ACT <A>_v == ACT (A & ~ unchanged v)"
 

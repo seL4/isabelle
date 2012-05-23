@@ -28,11 +28,11 @@ consts
   IsLegalRcvArg  :: "rpcOp => bool"
   RPCRelayArg    :: "rpcOp => memOp"
 
-axioms
+axiomatization where
   (* RPCFailure is different from MemVals and exceptions *)
-  RFNoMemVal:        "RPCFailure ~: MemVal"
-  NotAResultNotRF:   "NotAResult ~= RPCFailure"
-  OKNotRF:           "OK ~= RPCFailure"
+  RFNoMemVal:        "RPCFailure ~: MemVal" and
+  NotAResultNotRF:   "NotAResult ~= RPCFailure" and
+  OKNotRF:           "OK ~= RPCFailure" and
   BANotRF:           "BadArg ~= RPCFailure"
 
 defs

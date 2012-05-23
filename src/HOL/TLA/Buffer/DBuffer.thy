@@ -8,35 +8,34 @@ theory DBuffer
 imports Buffer
 begin
 
-consts
+axiomatization
   (* implementation variables *)
-  inp  :: "nat stfun"
-  mid  :: "nat stfun"
-  out  :: "nat stfun"
-  q1   :: "nat list stfun"
-  q2   :: "nat list stfun"
-  qc   :: "nat list stfun"
+  inp  :: "nat stfun" and
+  mid  :: "nat stfun" and
+  out  :: "nat stfun" and
+  q1   :: "nat list stfun" and
+  q2   :: "nat list stfun" and
+  qc   :: "nat list stfun" and
 
-  DBInit :: stpred
-  DBEnq :: action
-  DBDeq :: action
-  DBPass :: action
-  DBNext :: action
+  DBInit :: stpred and
+  DBEnq :: action and
+  DBDeq :: action and
+  DBPass :: action and
+  DBNext :: action and
   DBuffer :: temporal
-
-axioms
-  DB_base:        "basevars (inp,mid,out,q1,q2)"
+where
+  DB_base:        "basevars (inp,mid,out,q1,q2)" and
 
   (* the concatenation of the two buffers *)
-  qc_def:         "PRED qc == PRED (q2 @ q1)"
+  qc_def:         "PRED qc == PRED (q2 @ q1)" and
 
-  DBInit_def:     "DBInit   == PRED (BInit inp q1 mid  &  BInit mid q2 out)"
-  DBEnq_def:      "DBEnq    == ACT  Enq inp q1 mid  &  unchanged (q2,out)"
-  DBDeq_def:      "DBDeq    == ACT  Deq mid q2 out  &  unchanged (inp,q1)"
+  DBInit_def:     "DBInit   == PRED (BInit inp q1 mid  &  BInit mid q2 out)" and
+  DBEnq_def:      "DBEnq    == ACT  Enq inp q1 mid  &  unchanged (q2,out)" and
+  DBDeq_def:      "DBDeq    == ACT  Deq mid q2 out  &  unchanged (inp,q1)" and
   DBPass_def:     "DBPass   == ACT  Deq inp q1 mid
                                  & (q2$ = $q2 @ [ mid$ ])
-                                 & (out$ = $out)"
-  DBNext_def:     "DBNext   == ACT  (DBEnq | DBDeq | DBPass)"
+                                 & (out$ = $out)" and
+  DBNext_def:     "DBNext   == ACT  (DBEnq | DBDeq | DBPass)" and
   DBuffer_def:    "DBuffer  == TEMP Init DBInit
                                  & [][DBNext]_(inp,mid,out,q1,q2)
                                  & WF(DBDeq)_(inp,mid,out,q1,q2)

@@ -11,72 +11,71 @@ begin
 (* program counter as an enumeration type *)
 datatype pcount = a | b | g
 
-consts
+axiomatization
   (* program variables *)
-  x :: "nat stfun"
-  y :: "nat stfun"
-  sem :: "nat stfun"
-  pc1 :: "pcount stfun"
-  pc2 :: "pcount stfun"
+  x :: "nat stfun" and
+  y :: "nat stfun" and
+  sem :: "nat stfun" and
+  pc1 :: "pcount stfun" and
+  pc2 :: "pcount stfun" and
 
   (* names of actions and predicates *)
-  M1 :: action
-  M2 :: action
-  N1 :: action
-  N2 :: action
-  alpha1 :: action
-  alpha2 :: action
-  beta1 :: action
-  beta2 :: action
-  gamma1 :: action
-  gamma2 :: action
-  InitPhi :: stpred
-  InitPsi :: stpred
-  PsiInv :: stpred
-  PsiInv1 :: stpred
-  PsiInv2 :: stpred
-  PsiInv3 :: stpred
+  M1 :: action and
+  M2 :: action and
+  N1 :: action and
+  N2 :: action and
+  alpha1 :: action and
+  alpha2 :: action and
+  beta1 :: action and
+  beta2 :: action and
+  gamma1 :: action and
+  gamma2 :: action and
+  InitPhi :: stpred and
+  InitPsi :: stpred and
+  PsiInv :: stpred and
+  PsiInv1 :: stpred and
+  PsiInv2 :: stpred and
+  PsiInv3 :: stpred and
 
   (* temporal formulas *)
-  Phi :: temporal
+  Phi :: temporal and
   Psi :: temporal
-
-axioms
+where
   (* the "base" variables, required to compute enabledness predicates *)
-  Inc_base:      "basevars (x, y, sem, pc1, pc2)"
+  Inc_base:      "basevars (x, y, sem, pc1, pc2)" and
 
   (* definitions for high-level program *)
-  InitPhi_def:   "InitPhi == PRED x = # 0 & y = # 0"
-  M1_def:        "M1      == ACT  x$ = Suc<$x> & y$ = $y"
-  M2_def:        "M2      == ACT  y$ = Suc<$y> & x$ = $x"
+  InitPhi_def:   "InitPhi == PRED x = # 0 & y = # 0" and
+  M1_def:        "M1      == ACT  x$ = Suc<$x> & y$ = $y" and
+  M2_def:        "M2      == ACT  y$ = Suc<$y> & x$ = $x" and
   Phi_def:       "Phi     == TEMP Init InitPhi & [][M1 | M2]_(x,y)
-                                 & WF(M1)_(x,y) & WF(M2)_(x,y)"
+                                 & WF(M1)_(x,y) & WF(M2)_(x,y)" and
 
   (* definitions for low-level program *)
   InitPsi_def:   "InitPsi == PRED pc1 = #a & pc2 = #a
-                                 & x = # 0 & y = # 0 & sem = # 1"
+                                 & x = # 0 & y = # 0 & sem = # 1" and
   alpha1_def:    "alpha1  == ACT  $pc1 = #a & pc1$ = #b & $sem = Suc<sem$>
-                                 & unchanged(x,y,pc2)"
+                                 & unchanged(x,y,pc2)" and
   alpha2_def:    "alpha2  == ACT  $pc2 = #a & pc2$ = #b & $sem = Suc<sem$>
-                                 & unchanged(x,y,pc1)"
+                                 & unchanged(x,y,pc1)" and
   beta1_def:     "beta1   == ACT  $pc1 = #b & pc1$ = #g & x$ = Suc<$x>
-                                 & unchanged(y,sem,pc2)"
+                                 & unchanged(y,sem,pc2)" and
   beta2_def:     "beta2   == ACT  $pc2 = #b & pc2$ = #g & y$ = Suc<$y>
-                                 & unchanged(x,sem,pc1)"
+                                 & unchanged(x,sem,pc1)" and
   gamma1_def:    "gamma1  == ACT  $pc1 = #g & pc1$ = #a & sem$ = Suc<$sem>
-                                 & unchanged(x,y,pc2)"
+                                 & unchanged(x,y,pc2)" and
   gamma2_def:    "gamma2  == ACT  $pc2 = #g & pc2$ = #a & sem$ = Suc<$sem>
-                                 & unchanged(x,y,pc1)"
-  N1_def:        "N1      == ACT  (alpha1 | beta1 | gamma1)"
-  N2_def:        "N2      == ACT  (alpha2 | beta2 | gamma2)"
+                                 & unchanged(x,y,pc1)" and
+  N1_def:        "N1      == ACT  (alpha1 | beta1 | gamma1)" and
+  N2_def:        "N2      == ACT  (alpha2 | beta2 | gamma2)" and
   Psi_def:       "Psi     == TEMP Init InitPsi
                                & [][N1 | N2]_(x,y,sem,pc1,pc2)
                                & SF(N1)_(x,y,sem,pc1,pc2)
-                               & SF(N2)_(x,y,sem,pc1,pc2)"
+                               & SF(N2)_(x,y,sem,pc1,pc2)" and
 
-  PsiInv1_def:  "PsiInv1  == PRED sem = # 1 & pc1 = #a & pc2 = #a"
-  PsiInv2_def:  "PsiInv2  == PRED sem = # 0 & pc1 = #a & (pc2 = #b | pc2 = #g)"
-  PsiInv3_def:  "PsiInv3  == PRED sem = # 0 & pc2 = #a & (pc1 = #b | pc1 = #g)"
+  PsiInv1_def:  "PsiInv1  == PRED sem = # 1 & pc1 = #a & pc2 = #a" and
+  PsiInv2_def:  "PsiInv2  == PRED sem = # 0 & pc1 = #a & (pc2 = #b | pc2 = #g)" and
+  PsiInv3_def:  "PsiInv3  == PRED sem = # 0 & pc2 = #a & (pc1 = #b | pc1 = #g)" and
   PsiInv_def:   "PsiInv   == PRED (PsiInv1 | PsiInv2 | PsiInv3)"
 
 
