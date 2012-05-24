@@ -23,7 +23,7 @@ then
 
   CLASSPATH="$(cygpath -i -u -p "$CLASSPATH")"
   function jvmpath() { cygpath -i -C UTF8 -w -p "$@"; }
-  THIS_CYGWIN="$(jvmpath "/")"
+  CYGWIN_ROOT="$(jvmpath "/")"
 else
   if [ -z "$USER_HOME" ]; then
     USER_HOME="$HOME"
