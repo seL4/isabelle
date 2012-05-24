@@ -6,7 +6,7 @@ Requirements for instantaneous build from sources
 
   (experimental support for JDK/OpenJDK 1.7, but not OpenJDK 1.6)
 
-* Scala 2.9.2 (or 2.8.2.final)
+* Scala 2.9.2
   http://www.scala-lang.org
 
   (experimental support for Scala 2.10.x milestones)

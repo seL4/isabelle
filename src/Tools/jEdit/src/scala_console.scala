@@ -17,7 +17,8 @@ import org.gjt.sp.jedit.MiscUtilities
 import java.lang.System
 import java.io.{File, OutputStream, Writer, PrintWriter}
 
-import scala.tools.nsc.{Interpreter, GenericRunnerSettings, NewLinePrintWriter, ConsoleWriter}
+import scala.tools.nsc.{GenericRunnerSettings, NewLinePrintWriter, ConsoleWriter}
+import scala.tools.nsc.interpreter.IMain
 import scala.collection.mutable
 
 
@@ -39,7 +40,7 @@ class Scala_Console extends Shell("Scala")
 
   /* global state -- owned by Swing thread */
 
-  private var interpreters = Map[Console, Interpreter]()
+  private var interpreters = Map[Console, IMain]()
 
   private var global_console: Console = null
   private var global_out: Output = null
@@ -103,7 +104,7 @@ class Scala_Console extends Shell("Scala")
     val settings = new GenericRunnerSettings(report_error)
     settings.classpath.value = reconstruct_classpath()
 
-    val interp = new Interpreter(settings, new PrintWriter(console_writer, true))
+    val interp = new IMain(settings, new PrintWriter(console_writer, true))
     {
       override def parentClassLoader = new JARClassLoader
     }
