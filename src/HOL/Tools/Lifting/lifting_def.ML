@@ -182,7 +182,7 @@ fun generate_abs_eq ctxt def_thm rsp_thm quot_thm =
         
         val fun_rel_meta_eq = mk_meta_eq @{thm fun_rel_eq}
         val conv = Conv.bottom_conv (K (Conv.try_conv (Conv.rewr_conv fun_rel_meta_eq))) ctxt
-        val rules = Lifting_Info.get_reflp_preserve_rules ctxt
+        val rules = Lifting_Info.get_reflexivity_rules ctxt
       in
         EVERY' [CSUBGOAL intro_reflp_tac, 
                 CONVERSION conv,

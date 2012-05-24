@@ -46,9 +46,15 @@ lemma split_sum_all: "(\<forall>x. P x) \<longleftrightarrow> (\<forall>x. P (In
 lemma split_sum_ex: "(\<exists>x. P x) \<longleftrightarrow> (\<exists>x. P (Inl x)) \<or> (\<exists>x. P (Inr x))"
   by (metis sum.exhaust) (* TODO: move to Sum_Type.thy *)
 
-lemma sum_reflp[reflp_preserve]:
+lemma sum_reflp[reflexivity_rule]:
   "reflp R1 \<Longrightarrow> reflp R2 \<Longrightarrow> reflp (sum_rel R1 R2)"
   unfolding reflp_def split_sum_all sum_rel.simps by fast
+
+lemma sum_left_total[reflexivity_rule]:
+  "left_total R1 \<Longrightarrow> left_total R2 \<Longrightarrow> left_total (sum_rel R1 R2)"
+  apply (intro left_totalI)
+  unfolding split_sum_ex 
+  by (case_tac x) (auto elim: left_totalE)
 
 lemma sum_symp:
   "symp R1 \<Longrightarrow> symp R2 \<Longrightarrow> symp (sum_rel R1 R2)"

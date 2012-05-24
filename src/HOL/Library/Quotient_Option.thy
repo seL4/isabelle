@@ -46,9 +46,15 @@ lemma split_option_all: "(\<forall>x. P x) \<longleftrightarrow> P None \<and> (
 lemma split_option_ex: "(\<exists>x. P x) \<longleftrightarrow> P None \<or> (\<exists>x. P (Some x))"
   by (metis option.exhaust) (* TODO: move to Option.thy *)
 
-lemma option_reflp[reflp_preserve]:
+lemma option_reflp[reflexivity_rule]:
   "reflp R \<Longrightarrow> reflp (option_rel R)"
   unfolding reflp_def split_option_all by simp
+
+lemma option_left_total[reflexivity_rule]:
+  "left_total R \<Longrightarrow> left_total (option_rel R)"
+  apply (intro left_totalI)
+  unfolding split_option_ex
+  by (case_tac x) (auto elim: left_totalE)
 
 lemma option_symp:
   "symp R \<Longrightarrow> symp (option_rel R)"

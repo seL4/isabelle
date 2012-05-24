@@ -103,8 +103,10 @@ fun setup_lifting_infr gen_code quot_thm maybe_reflp_thm lthy =
     fun quot_info phi = Lifting_Info.transform_quotients phi quotients
     val lthy' = case maybe_reflp_thm of
       SOME reflp_thm => lthy
-        |> (snd oo Local_Theory.note) ((Binding.empty, [Lifting_Info.add_reflp_preserve_rule_attrib]),
+        |> (snd oo Local_Theory.note) ((Binding.empty, [Lifting_Info.add_reflexivity_rule_attrib]),
               [reflp_thm])
+        |> (snd oo Local_Theory.note) ((Binding.empty, [Lifting_Info.add_reflexivity_rule_attrib]),
+              [[quot_thm, reflp_thm] MRSL @{thm Quotient_to_left_total}])
         |> define_code_constr gen_code quot_thm
       | NONE => lthy
         |> define_abs_type gen_code quot_thm

@@ -37,7 +37,7 @@ next
     by (induct arbitrary: ys, simp, clarsimp simp add: list_all2_Cons1, fast)
 qed
 
-lemma list_reflp[reflp_preserve]:
+lemma list_reflp[reflexivity_rule]:
   assumes "reflp R"
   shows "reflp (list_all2 R)"
 proof (rule reflpI)
@@ -46,6 +46,17 @@ proof (rule reflpI)
   show "list_all2 R xs xs"
     by (induct xs) (simp_all add: *)
 qed
+
+lemma list_left_total[reflexivity_rule]:
+  assumes "left_total R"
+  shows "left_total (list_all2 R)"
+proof (rule left_totalI)
+  from assms have *: "\<And>xs. \<exists>ys. R xs ys" by (rule left_totalE)
+  fix xs
+  show "\<exists> ys. list_all2 R xs ys"
+    by (induct xs) (simp_all add: * list_all2_Cons1)
+qed
+
 
 lemma list_symp:
   assumes "symp R"

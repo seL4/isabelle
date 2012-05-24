@@ -27,11 +27,17 @@ lemma prod_rel_eq [id_simps, relator_eq]:
   shows "prod_rel (op =) (op =) = (op =)"
   by (simp add: fun_eq_iff)
 
-lemma prod_reflp [reflp_preserve]:
+lemma prod_reflp [reflexivity_rule]:
   assumes "reflp R1"
   assumes "reflp R2"
   shows "reflp (prod_rel R1 R2)"
 using assms by (auto intro!: reflpI elim: reflpE)
+
+lemma prod_left_total [reflexivity_rule]:
+  assumes "left_total R1"
+  assumes "left_total R2"
+  shows "left_total (prod_rel R1 R2)"
+using assms by (auto intro!: left_totalI elim!: left_totalE)
 
 lemma prod_equivp [quot_equiv]:
   assumes "equivp R1"

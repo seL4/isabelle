@@ -121,9 +121,6 @@ end
 lemma identity_quotient: "Quotient (op =) id id (op =)"
 unfolding Quotient_def by simp 
 
-lemma reflp_equality: "reflp (op =)"
-by (auto intro: reflpI)
-
 text {* TODO: Use one of these alternatives as the real definition. *}
 
 lemma Quotient_alt_def:
@@ -380,6 +377,45 @@ lemma Quotient_to_transfer:
   shows "T c c'"
   using assms by (auto dest: Quotient_cr_rel)
 
+text {* Proving reflexivity *}
+
+definition left_total :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
+  where "left_total R \<longleftrightarrow> (\<forall>x. \<exists>y. R x y)"
+
+lemma left_totalI:
+  "(\<And>x. \<exists>y. R x y) \<Longrightarrow> left_total R"
+unfolding left_total_def by blast
+
+lemma left_totalE:
+  assumes "left_total R"
+  obtains "(\<And>x. \<exists>y. R x y)"
+using assms unfolding left_total_def by blast
+
+lemma Quotient_to_left_total:
+  assumes q: "Quotient R Abs Rep T"
+  and r_R: "reflp R"
+  shows "left_total T"
+using r_R Quotient_cr_rel[OF q] unfolding left_total_def by (auto elim: reflpE)
+
+lemma reflp_Quotient_composition:
+  assumes lt_R1: "left_total R1"
+  and r_R2: "reflp R2"
+  shows "reflp (R1 OO R2 OO R1\<inverse>\<inverse>)"
+using assms
+proof -
+  {
+    fix x
+    from lt_R1 obtain y where "R1 x y" unfolding left_total_def by blast
+    moreover then have "R1\<inverse>\<inverse> y x" by simp
+    moreover have "R2 y y" using r_R2 by (auto elim: reflpE)
+    ultimately have "(R1 OO R2 OO R1\<inverse>\<inverse>) x x" by auto
+  }
+  then show ?thesis by (auto intro: reflpI)
+qed
+
+lemma reflp_equality: "reflp (op =)"
+by (auto intro: reflpI)
+
 subsection {* ML setup *}
 
 use "Tools/Lifting/lifting_util.ML"
@@ -388,7 +424,7 @@ use "Tools/Lifting/lifting_info.ML"
 setup Lifting_Info.setup
 
 declare fun_quotient[quot_map]
-declare reflp_equality[reflp_preserve]
+lemmas [reflexivity_rule] = reflp_equality reflp_Quotient_composition
 
 use "Tools/Lifting/lifting_term.ML"
 

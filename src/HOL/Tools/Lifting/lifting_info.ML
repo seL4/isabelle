@@ -21,9 +21,9 @@ sig
 
   val get_invariant_commute_rules: Proof.context -> thm list
   
-  val get_reflp_preserve_rules: Proof.context -> thm list
-  val add_reflp_preserve_rule_attribute: attribute
-  val add_reflp_preserve_rule_attrib: Attrib.src
+  val get_reflexivity_rules: Proof.context -> thm list
+  val add_reflexivity_rule_attribute: attribute
+  val add_reflexivity_rule_attrib: Attrib.src
 
   val setup: theory -> theory
 end;
@@ -183,13 +183,13 @@ fun get_invariant_commute_rules ctxt = map safe_mk_meta_eq (Invariant_Commute.ge
 
 structure Reflp_Preserve = Named_Thms
 (
-  val name = @{binding reflp_preserve}
+  val name = @{binding reflexivity_rule}
   val description = "theorems that a relator preserves a reflexivity property"
 )
 
-val get_reflp_preserve_rules = Reflp_Preserve.get
-val add_reflp_preserve_rule_attribute = Reflp_Preserve.add
-val add_reflp_preserve_rule_attrib = Attrib.internal (K add_reflp_preserve_rule_attribute)
+val get_reflexivity_rules = Reflp_Preserve.get
+val add_reflexivity_rule_attribute = Reflp_Preserve.add
+val add_reflexivity_rule_attrib = Attrib.internal (K add_reflexivity_rule_attribute)
 
 (* theory setup *)
 
