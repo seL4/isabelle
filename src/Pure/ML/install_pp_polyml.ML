@@ -1,7 +1,7 @@
-(*  Title:      Pure/ML/install_pp_polyml-5.3.ML
+(*  Title:      Pure/ML/install_pp_polyml.ML
     Author:     Makarius
 
-Extra toplevel pretty-printing for Poly/ML 5.3.0.
+Extra toplevel pretty-printing for Poly/ML 5.3.0 or later.
 *)
 
 PolyML.addPrettyPrinter (fn depth => fn _ => fn str =>

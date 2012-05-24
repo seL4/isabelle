@@ -394,7 +394,7 @@ fun dest_list tab = maps (fn (key, xs) => map (pair key) xs) (dest tab);
 fun merge_list eq = join (fn _ => Library.merge eq);
 
 
-(* ML pretty-printing -- requires Poly/ML 5.3.0 or later *)
+(* ML pretty-printing *)
 
 val _ =
   PolyML.addPrettyPrinter (fn depth => fn pretty => fn tab =>

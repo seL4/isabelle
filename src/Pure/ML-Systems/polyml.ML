@@ -1,16 +1,10 @@
 (*  Title:      Pure/ML-Systems/polyml.ML
+    Author:     Makarius
 
-Compatibility wrapper for Poly/ML 5.3 and 5.4.
+Compatibility wrapper for Poly/ML 5.3.0 or later.
 *)
 
-open Thread;
-
-structure ML_Name_Space =
-struct
-  open PolyML.NameSpace;
-  type T = PolyML.NameSpace.nameSpace;
-  val global = PolyML.globalNameSpace;
-end;
+(* exceptions *)
 
 fun reraise exn =
   (case PolyML.exceptionLocation exn of
@@ -33,22 +27,104 @@ fun get_exn_serial exn =
     NONE => NONE
   | SOME i => if i >= 0 then NONE else SOME (~ i));
 
-use "ML-Systems/polyml_common.ML";
-use "ML-Systems/multithreading_polyml.ML";
-use "ML-Systems/unsynchronized.ML";
+exception Interrupt = SML90.Interrupt;
 
+use "General/exn.ML";
+
+
+(* multithreading *)
+
+val seconds = Time.fromReal;
+
+if List.exists (fn s => s = "SingleAssignment") (PolyML.Compiler.structureNames ())
+then ()
+else use "ML-Systems/single_assignment_polyml.ML";
+
+open Thread;
+use "ML-Systems/multithreading.ML";
+use "ML-Systems/multithreading_polyml.ML";
+
+use "ML-Systems/unsynchronized.ML";
 val _ = PolyML.Compiler.forgetValue "ref";
 val _ = PolyML.Compiler.forgetType "ref";
+
+
+(* pervasive environment *)
+
+fun op before (a, _: unit) = a;
+
+val _ = PolyML.Compiler.forgetValue "isSome";
+val _ = PolyML.Compiler.forgetValue "getOpt";
+val _ = PolyML.Compiler.forgetValue "valOf";
+val _ = PolyML.Compiler.forgetValue "foldl";
+val _ = PolyML.Compiler.forgetValue "foldr";
+val _ = PolyML.Compiler.forgetValue "print";
+val _ = PolyML.Compiler.forgetValue "explode";
+val _ = PolyML.Compiler.forgetValue "concat";
+
+val ord = SML90.ord;
+val chr = SML90.chr;
+val raw_explode = SML90.explode;
+val implode = SML90.implode;
+
+fun quit () = exit 0;
+
+
+(* ML system identification *)
+
+use "ML-Systems/ml_system.ML";
+
+
+(* ML runtime system *)
+
+val exception_trace = PolyML.exception_trace;
+val timing = PolyML.timing;
+val profiling = PolyML.profiling;
+
+fun profile 0 f x = f x
+  | profile n f x =
+      let
+        val _ = RunCall.run_call1 RuntimeCalls.POLY_SYS_profiler n;
+        val res = Exn.capture f x;
+        val _ = RunCall.run_call1 RuntimeCalls.POLY_SYS_profiler 0;
+      in Exn.release res end;
 
 val pointer_eq = PolyML.pointerEq;
 
 fun share_common_data () = PolyML.shareCommonData PolyML.rootFunction;
 
-use "ML-Systems/compiler_polyml-5.3.ML";
+
+(* ML compiler *)
+
+structure ML_Name_Space =
+struct
+  open PolyML.NameSpace;
+  type T = PolyML.NameSpace.nameSpace;
+  val global = PolyML.globalNameSpace;
+end;
+
+use "ML-Systems/use_context.ML";
+use "ML-Systems/compiler_polyml.ML";
+
 PolyML.Compiler.reportUnreferencedIds := true;
+PolyML.Compiler.printInAlphabeticalOrder := false;
+PolyML.Compiler.maxInlineSize := 80;
+
+fun ml_prompts p1 p2 = (PolyML.Compiler.prompt1 := p1; PolyML.Compiler.prompt2 := p2);
 
 
-(* toplevel pretty printing *)
+(* ML toplevel pretty printing *)
+
+use "ML-Systems/ml_pretty.ML";
+
+local
+  val depth = Unsynchronized.ref 10;
+in
+  fun get_print_depth () = ! depth;
+  fun print_depth n = (depth := n; PolyML.print_depth n);
+end;
+
+val error_depth = PolyML.error_depth;
 
 val pretty_ml =
   let
@@ -86,6 +162,4 @@ fun toplevel_pp context (_: string list) pp =
 
 val ml_make_string =
   "(fn x => Pretty.string_of (Pretty.from_ML (pretty_ml (PolyML.prettyRepresentation (x, get_print_depth ())))))";
-
-use "ML-Systems/ml_system.ML";
 
