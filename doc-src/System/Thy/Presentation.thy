@@ -465,12 +465,12 @@ Usage: usedir [OPTIONS] LOGIC NAME
   Build object-logic or run examples. Also creates browsing
   information (HTML etc.) according to settings.
 
-  ISABELLE_USEDIR_OPTIONS=
+  ISABELLE_USEDIR_OPTIONS=...
 
-  ML_PLATFORM=x86-linux
-  ML_HOME=/usr/local/polyml-5.2.1/x86-linux
-  ML_SYSTEM=polyml-5.2.1
-  ML_OPTIONS=-H 500
+  ML_PLATFORM=...
+  ML_HOME=...
+  ML_SYSTEM=...
+  ML_OPTIONS=...
 \end{ttbox}
 
   Note that the value of the @{setting_ref ISABELLE_USEDIR_OPTIONS}
