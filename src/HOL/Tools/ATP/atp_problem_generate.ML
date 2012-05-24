@@ -819,19 +819,18 @@ fun intentionalize_def (Const (@{const_name All}, _) $ Abs (_, _, t)) =
     in HOLogic.eq_const head_T $ head $ fold lam arg_Ts u end
   | intentionalize_def t = t
 
-type translated_formula =
+type ifact =
   {name : string,
    stature : stature,
    role : formula_role,
    iformula : (name, typ, iterm) formula,
    atomic_types : typ list}
 
-fun update_iformula f ({name, stature, role, iformula, atomic_types}
-                       : translated_formula) =
+fun update_iformula f ({name, stature, role, iformula, atomic_types} : ifact) =
   {name = name, stature = stature, role = role, iformula = f iformula,
-   atomic_types = atomic_types} : translated_formula
+   atomic_types = atomic_types} : ifact
 
-fun fact_lift f ({iformula, ...} : translated_formula) = f iformula
+fun ifact_lift f ({iformula, ...} : ifact) = f iformula
 
 fun insert_type thy get_T x xs =
   let val T = get_T x in
@@ -1327,8 +1326,17 @@ fun s_not_prop (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
 
 fun make_conjecture ctxt format type_enc =
   map (fn ((name, stature), (role, t)) =>
-          t |> role = Conjecture ? s_not
-            |> make_formula ctxt format type_enc true name stature role)
+          let
+            val role =
+              if is_type_enc_higher_order type_enc andalso
+                 role <> Conjecture andalso is_legitimate_thf_def t then
+                Definition
+              else
+                role
+          in
+            t |> role = Conjecture ? s_not
+              |> make_formula ctxt format type_enc true name stature role
+          end)
 
 (** Finite and infinite type inference **)
 
@@ -1575,7 +1583,7 @@ fun sym_table_for_facts ctxt type_enc app_op_level conjs facts =
     fun add_iterm_syms conj_fact =
       add_iterm_syms_to_sym_table ctxt app_op_level conj_fact true
     fun add_fact_syms conj_fact =
-      K (add_iterm_syms conj_fact) |> formula_fold NONE |> fact_lift
+      K (add_iterm_syms conj_fact) |> formula_fold NONE |> ifact_lift
   in
     ((false, []), Symtab.empty)
     |> fold (add_fact_syms true) conjs
@@ -1893,29 +1901,30 @@ fun trans_lams_from_string ctxt type_enc lam_trans =
   else
     error ("Unknown lambda translation scheme: " ^ quote lam_trans ^ ".")
 
-fun order_definitions facts =
+val pull_and_reorder_definitions =
   let
     fun add_consts (IApp (t, u)) = fold add_consts [t, u]
       | add_consts (IAbs (_, t)) = add_consts t
       | add_consts (IConst (name, _, _)) = insert (op =) name
       | add_consts (IVar _) = I
-    fun consts_of_hs l_or_r (_, {iformula, ...} : translated_formula) =
+    fun consts_of_hs l_or_r ({iformula, ...} : ifact) =
       case iformula of
         AAtom (IApp (IApp (IConst _, t), u)) => add_consts (l_or_r (t, u)) []
       | _ => []
     (* Quadratic, but usually OK. *)
-    fun order [] [] = []
-      | order (fact :: skipped) [] = fact :: order [] skipped (* break cycle *)
-      | order skipped (fact :: facts) =
+    fun reorder [] [] = []
+      | reorder (fact :: skipped) [] =
+        fact :: reorder [] skipped (* break cycle *)
+      | reorder skipped (fact :: facts) =
         let val rhs_consts = consts_of_hs snd fact in
           if exists (exists (member (op =) rhs_consts o the_single
                      o consts_of_hs fst))
                     [skipped, facts] then
-            order (fact :: skipped) facts
+            reorder (fact :: skipped) facts
           else
-            fact :: order [] (facts @ skipped)
+            fact :: reorder [] (facts @ skipped)
         end
-  in order [] facts end
+  in List.partition (curry (op =) Definition o #role) #>> reorder [] #> op @ end
 
 fun translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts
                        concl_t facts =
@@ -1943,15 +1952,15 @@ fun translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts
             op @
             #> preprocess_abstractions_in_terms trans_lams
             #>> chop (length conjs))
-    val conjs = conjs |> make_conjecture ctxt format type_enc
-    val (fact_names, facts) =
-      facts
-      |> map_filter (fn (name, (_, t)) =>
-                        make_fact ctxt format type_enc true (name, t)
-                        |> Option.map (pair name))
-      |> List.partition (fn (_, {role, ...}) => role = Definition)
-      |>> order_definitions
-      |> op @ |> ListPair.unzip
+    val conjs =
+      conjs |> make_conjecture ctxt format type_enc
+            |> pull_and_reorder_definitions
+    val facts =
+      facts |> map_filter (fn (name, (_, t)) =>
+                              make_fact ctxt format type_enc true (name, t))
+            |> pull_and_reorder_definitions
+    val fact_names =
+      facts |> map (fn {name, stature, ...} : ifact => (name, stature))
     val lifted = lam_facts |> map (extract_lambda_def o snd o snd)
     val lam_facts =
       lam_facts |> map_filter (make_fact ctxt format type_enc true o apsnd snd)
@@ -2157,7 +2166,7 @@ fun formula_line_for_arity_clause type_enc
            NONE, isabelle_info inductiveN helper_rank)
 
 fun formula_line_for_conjecture ctxt polym_constrs mono type_enc
-        ({name, role, iformula, atomic_types, ...} : translated_formula) =
+        ({name, role, iformula, atomic_types, ...} : ifact) =
   Formula (conjecture_prefix ^ name, role,
            iformula
            |> formula_from_iformula ctxt polym_constrs mono type_enc
@@ -2171,7 +2180,7 @@ fun type_enc_needs_free_types (Native (_, Polymorphic, _)) = true
 
 fun formula_line_for_free_type j phi =
   Formula (tfree_clause_prefix ^ string_of_int j, Hypothesis, phi, NONE, [])
-fun formula_lines_for_free_types type_enc (facts : translated_formula list) =
+fun formula_lines_for_free_types type_enc (facts : ifact list) =
   if type_enc_needs_free_types type_enc then
     let
       val phis =
@@ -2230,7 +2239,7 @@ fun sym_decl_table_for_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
          | _ => I)
         #> fold add_iterm_syms args
       end
-    val add_fact_syms = K add_iterm_syms |> formula_fold NONE |> fact_lift
+    val add_fact_syms = K add_iterm_syms |> formula_fold NONE |> ifact_lift
     fun add_formula_var_types (AQuant (_, xs, phi)) =
         fold (fn (_, SOME T) => insert_type thy I T | _ => I) xs
         #> add_formula_var_types phi
@@ -2239,7 +2248,7 @@ fun sym_decl_table_for_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
       | add_formula_var_types _ = I
     fun var_types () =
       if polymorphism_of_type_enc type_enc = Polymorphic then [tvar_a]
-      else fold (fact_lift add_formula_var_types) (conjs @ facts) []
+      else fold (ifact_lift add_formula_var_types) (conjs @ facts) []
     fun add_undefined_const T =
       let
         val (s, s') =
@@ -2329,8 +2338,7 @@ fun add_iterm_mononotonicity_info _ _ (SOME false) _ mono = mono
         mono
     end
   | add_iterm_mononotonicity_info _ _ _ _ mono = mono
-fun add_fact_mononotonicity_info ctxt level
-        ({role, iformula, ...} : translated_formula) =
+fun add_fact_mononotonicity_info ctxt level ({role, iformula, ...} : ifact) =
   formula_fold (SOME (role <> Conjecture))
                (add_iterm_mononotonicity_info ctxt level) iformula
 fun mononotonicity_info_for_facts ctxt type_enc facts =
@@ -2351,7 +2359,7 @@ fun add_iformula_monotonic_types ctxt mono type_enc =
     and add_term tm = add_type (ityp_of tm) #> add_args tm
   in formula_fold NONE (K add_term) end
 fun add_fact_monotonic_types ctxt mono type_enc =
-  add_iformula_monotonic_types ctxt mono type_enc |> fact_lift
+  add_iformula_monotonic_types ctxt mono type_enc |> ifact_lift
 fun monotonic_types_for_facts ctxt mono type_enc facts =
   let val level = level_of_type_enc type_enc in
     [] |> (polymorphism_of_type_enc type_enc = Polymorphic andalso
