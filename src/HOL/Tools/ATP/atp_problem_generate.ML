@@ -1247,20 +1247,6 @@ fun freeze_term t =
       | freeze t = t
   in t |> exists_subterm is_Var t ? freeze end
 
-fun unextensionalize_def t =
-  case t of
-    @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ lhs $ rhs) =>
-    (case strip_comb lhs of
-       (c as Const (_, T), args) =>
-       if forall is_Var args andalso not (has_duplicates (op =) args) then
-         @{const Trueprop}
-         $ (Const (@{const_name HOL.eq}, T --> T --> @{typ bool})
-            $ c $ fold_rev lambda args rhs)
-       else
-         t
-     | _ => t)
-  | _ => t
-
 fun presimp_prop ctxt type_enc t =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -1296,17 +1282,12 @@ fun make_formula ctxt format type_enc iff_for_eq name stature role t =
      atomic_types = atomic_Ts}
   end
 
-fun is_legitimate_thf_def (Const (@{const_name HOL.eq}, _) $ t $ u) =
-    (is_Const t orelse is_Free t) andalso
-    not (exists_subterm (curry (op =) t) u)
-  | is_legitimate_thf_def _ = false
-
 fun make_fact ctxt format type_enc iff_for_eq
               ((name, stature as (_, status)), t) =
   let
     val role =
       if is_type_enc_higher_order type_enc andalso status = Def andalso
-         is_legitimate_thf_def t then
+         is_legitimate_tptp_def t then
         Definition
       else
         Axiom
@@ -1329,7 +1310,7 @@ fun make_conjecture ctxt format type_enc =
           let
             val role =
               if is_type_enc_higher_order type_enc andalso
-                 role <> Conjecture andalso is_legitimate_thf_def t then
+                 role <> Conjecture andalso is_legitimate_tptp_def t then
                 Definition
               else
                 role
