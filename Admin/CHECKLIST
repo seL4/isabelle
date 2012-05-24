@@ -73,3 +73,9 @@ Final release stage
 - isatest@macbroy28:hg-isabelle/.hg/hgrc
 - isatest@macbroy28:devel-page/content/index.content
 
+
+Post-release
+============
+
+- update /home/isabelle and /home/isabelle/html-data
+
