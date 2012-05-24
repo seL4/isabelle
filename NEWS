@@ -10,6 +10,13 @@ New in this Isabelle version
 is called fastforce / fast_force_tac already since Isabelle2011-1.
 
 
+*** System ***
+
+* Discontinued support for Poly/ML 5.2.1, which was the last version
+without exception positions and advanced ML compiler/toplevel
+configuration.
+
+
 
 New in Isabelle2012 (May 2012)
 ------------------------------

@@ -1,7 +1,7 @@
 (*  Title:      Pure/ML-Systems/multithreading_polyml.ML
     Author:     Makarius
 
-Multithreading in Poly/ML 5.2.1 or later (cf. polyml/basis/Thread.sml).
+Multithreading in Poly/ML 5.3.0 or later (cf. polyml/basis/Thread.sml).
 *)
 
 signature MULTITHREADING_POLYML =

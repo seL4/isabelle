@@ -23,19 +23,15 @@ LOG = $(OUT)/log
 
 BOOTSTRAP_FILES = 					\
   General/exn.ML					\
-  ML-Systems/compiler_polyml-5.2.ML			\
-  ML-Systems/compiler_polyml-5.3.ML			\
+  ML-Systems/compiler_polyml.ML			\
   ML-Systems/ml_name_space.ML				\
   ML-Systems/ml_pretty.ML				\
   ML-Systems/ml_system.ML				\
   ML-Systems/multithreading.ML				\
   ML-Systems/multithreading_polyml.ML			\
   ML-Systems/overloading_smlnj.ML			\
-  ML-Systems/polyml-5.2.1.ML				\
   ML-Systems/polyml.ML					\
-  ML-Systems/polyml_common.ML				\
   ML-Systems/pp_dummy.ML				\
-  ML-Systems/pp_polyml.ML				\
   ML-Systems/proper_int.ML				\
   ML-Systems/single_assignment.ML			\
   ML-Systems/single_assignment_polyml.ML		\
@@ -144,11 +140,10 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   Isar/token.ML						\
   Isar/toplevel.ML					\
   Isar/typedecl.ML					\
-  ML/install_pp_polyml-5.3.ML				\
   ML/install_pp_polyml.ML				\
   ML/ml_antiquote.ML					\
   ML/ml_compiler.ML					\
-  ML/ml_compiler_polyml-5.3.ML				\
+  ML/ml_compiler_polyml.ML				\
   ML/ml_context.ML					\
   ML/ml_env.ML						\
   ML/ml_lex.ML						\

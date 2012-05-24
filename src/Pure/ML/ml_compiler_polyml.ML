@@ -1,4 +1,4 @@
-(*  Title:      Pure/ML/ml_compiler_polyml-5.3.ML
+(*  Title:      Pure/ML/ml_compiler_polyml.ML
     Author:     Makarius
 
 Advanced runtime compilation for Poly/ML 5.3.0 or later.

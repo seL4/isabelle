@@ -133,7 +133,7 @@ fun delete_after hook set = set |> map_set (fn (start, entries) =>
           in (start, entries') end)));
 
 
-(* ML pretty-printing -- requires Poly/ML 5.3.0 or later *)
+(* ML pretty-printing *)
 
 val _ =
   PolyML.addPrettyPrinter (fn depth => fn pretty => fn set =>
