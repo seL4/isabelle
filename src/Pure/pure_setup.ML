@@ -36,9 +36,7 @@ toplevel_pp ["SHA1", "digest"] "Pretty.str o quote o SHA1.rep";
 toplevel_pp ["Proof", "state"] "(fn _: Proof.state => Pretty.str \"<Proof.state>\")";
 toplevel_pp ["Toplevel", "state"] "Toplevel.pretty_abstract";
 
-if ML_System.name = "polyml-5.2.1"
-then use "ML/install_pp_polyml.ML"
-else if ML_System.is_polyml
+if ML_System.is_polyml
 then use "ML/install_pp_polyml-5.3.ML"
 else ();
 

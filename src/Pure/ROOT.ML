@@ -191,7 +191,7 @@ use "ML/ml_syntax.ML";
 use "ML/ml_env.ML";
 use "Isar/runtime.ML";
 use "ML/ml_compiler.ML";
-if ML_System.name = "polyml-5.2.1" orelse ML_System.is_smlnj then ()
+if ML_System.is_smlnj then ()
 else use "ML/ml_compiler_polyml-5.3.ML";
 use "ML/ml_context.ML";
 
