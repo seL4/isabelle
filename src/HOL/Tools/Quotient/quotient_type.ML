@@ -9,11 +9,11 @@ sig
   val add_quotient_type: ((string list * binding * mixfix) * (typ * term * bool) * 
     ((binding * binding) option * bool)) * thm -> local_theory -> Quotient_Info.quotients * local_theory
 
-  val quotient_type: ((string list * binding * mixfix) * (typ * term * bool) * 
-    ((binding * binding) option * bool)) list -> Proof.context -> Proof.state
+  val quotient_type: (string list * binding * mixfix) * (typ * term * bool) * 
+    ((binding * binding) option * bool) -> Proof.context -> Proof.state
 
-  val quotient_type_cmd: ((((((bool * string list) * binding) * mixfix) * string) * (bool * string)) *
-    (binding * binding) option) list -> Proof.context -> Proof.state
+  val quotient_type_cmd: (((((bool * string list) * binding) * mixfix) * string) * (bool * string)) *
+    (binding * binding) option -> Proof.context -> Proof.state
 end;
 
 structure Quotient_Type: QUOTIENT_TYPE =
@@ -290,11 +290,11 @@ fun map_check ctxt (_, (rty, _, _), _) =
  relations are equivalence relations
 *)
 
-fun quotient_type quot_list lthy =
+fun quotient_type quot lthy =
   let
     (* sanity check *)
-    val _ = List.app sanity_check quot_list
-    val _ = List.app (map_check lthy) quot_list
+    val _ = sanity_check quot
+    val _ = map_check lthy quot
 
     fun mk_goal (rty, rel, partial) =
       let
@@ -305,14 +305,14 @@ fun quotient_type quot_list lthy =
         HOLogic.mk_Trueprop (Const (const, equivp_ty) $ rel)
       end
 
-    val goals = map (mk_goal o #2) quot_list
+    val goal = (mk_goal o #2) quot
 
-    fun after_qed [thms] = fold (snd oo add_quotient_type) (quot_list ~~ thms)
+    fun after_qed [[thm]] = (snd oo add_quotient_type) (quot, thm)
   in
-    Proof.theorem NONE after_qed [map (rpair []) goals] lthy
+    Proof.theorem NONE after_qed [[(goal, [])]] lthy
   end
 
-fun quotient_type_cmd specs lthy =
+fun quotient_type_cmd spec lthy =
   let
     fun parse_spec ((((((gen_code, vs), qty_name), mx), rty_str), (partial, rel_str)), opt_morphs) lthy =
       let
@@ -327,7 +327,7 @@ fun quotient_type_cmd specs lthy =
         (((vs, qty_name, mx), (rty, rel, partial), (opt_morphs, gen_code)), tmp_lthy2)
       end
 
-    val (spec', _) = fold_map parse_spec specs lthy
+    val (spec', _) = parse_spec spec lthy
   in
     quotient_type spec' lthy
   end
@@ -338,12 +338,11 @@ val opt_gen_code =
 val partial = Scan.optional (Parse.reserved "partial" -- @{keyword ":"} >> K true) false
 
 val quotspec_parser =
-  Parse.and_list1
-    ((opt_gen_code -- Parse.type_args -- Parse.binding) --
+     (opt_gen_code -- Parse.type_args -- Parse.binding) --
       (* FIXME Parse.type_args_constrained and standard treatment of sort constraints *)
       Parse.opt_mixfix -- (@{keyword "="} |-- Parse.typ) --
         (@{keyword "/"} |-- (partial -- Parse.term))  --
-        Scan.option (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding)))
+        Scan.option (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding))
 
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "quotient_type"}
