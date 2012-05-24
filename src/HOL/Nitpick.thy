@@ -74,7 +74,7 @@ by (simp add: trancl_def)
 
 lemma [nitpick_simp, no_atp]:
 "of_nat n = (if n = 0 then 0 else 1 + of_nat (n - 1))"
-by (case_tac n) auto
+by (cases n) auto
 
 definition prod :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set" where
 "prod A B = {(a, b). a \<in> A \<and> b \<in> B}"
@@ -106,7 +106,7 @@ lemma The_psimp [nitpick_psimp, no_atp]:
 
 lemma Eps_psimp [nitpick_psimp, no_atp]:
 "\<lbrakk>P x; \<not> P y; Eps P = y\<rbrakk> \<Longrightarrow> Eps P = x"
-apply (case_tac "P (Eps P)")
+apply (cases "P (Eps P)")
  apply auto
 apply (erule contrapos_np)
 by (rule someI)
@@ -122,7 +122,7 @@ declare unit.cases [nitpick_simp del]
 lemma nat_case_unfold [nitpick_unfold, no_atp]:
 "nat_case x f n \<equiv> if n = 0 then x else f (n - 1)"
 apply (rule eq_reflection)
-by (case_tac n) auto
+by (cases n) auto
 
 declare nat.cases [nitpick_simp del]
 
@@ -130,7 +130,7 @@ lemma list_size_simp [nitpick_simp, no_atp]:
 "list_size f xs = (if xs = [] then 0
                    else Suc (f (hd xs) + list_size f (tl xs)))"
 "size xs = (if xs = [] then 0 else Suc (size (tl xs)))"
-by (case_tac xs) auto
+by (cases xs) auto
 
 text {*
 Auxiliary definitions used to provide an alternative representation for

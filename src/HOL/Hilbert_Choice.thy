@@ -443,7 +443,7 @@ proof-
   have "h ` A = B"
   proof safe
     fix a assume "a \<in> A"
-    thus "h a \<in> B" using SUB1 2 3 by (case_tac "a \<in> A'", auto)
+    thus "h a \<in> B" using SUB1 2 3 by (cases "a \<in> A'") auto
   next
     fix b assume *: "b \<in> B"
     show "b \<in> h ` A"

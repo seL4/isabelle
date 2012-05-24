@@ -831,7 +831,7 @@ lemma image_atLeastZeroLessThan_int: "0 \<le> u ==>
   done
 
 lemma finite_atLeastZeroLessThan_int: "finite {(0::int)..<u}"
-  apply (case_tac "0 \<le> u")
+  apply (cases "0 \<le> u")
   apply (subst image_atLeastZeroLessThan_int, assumption)
   apply (rule finite_imageI)
   apply auto
@@ -858,7 +858,7 @@ lemma finite_greaterThanLessThan_int [iff]: "finite {l<..<u::int}"
 subsubsection {* Cardinality *}
 
 lemma card_atLeastZeroLessThan_int: "card {(0::int)..<u} = nat u"
-  apply (case_tac "0 \<le> u")
+  apply (cases "0 \<le> u")
   apply (subst image_atLeastZeroLessThan_int, assumption)
   apply (subst card_image)
   apply (auto simp add: inj_on_def)

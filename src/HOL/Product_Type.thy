@@ -1028,7 +1028,10 @@ lemma insert_times_insert[simp]:
 by blast
 
 lemma vimage_Times: "f -` (A \<times> B) = ((fst \<circ> f) -` A) \<inter> ((snd \<circ> f) -` B)"
-  by (auto, case_tac "f x", auto)
+  apply auto
+  apply (case_tac "f x")
+  apply auto
+  done
 
 lemma swap_inj_on:
   "inj_on (\<lambda>(i, j). (j, i)) A"

@@ -820,12 +820,12 @@ qed
 
 lemma Least_Suc:
      "[| P n; ~ P 0 |] ==> (LEAST n. P n) = Suc (LEAST m. P(Suc m))"
-  apply (case_tac "n", auto)
+  apply (cases n, auto)
   apply (frule LeastI)
   apply (drule_tac P = "%x. P (Suc x) " in LeastI)
   apply (subgoal_tac " (LEAST x. P x) \<le> Suc (LEAST x. P (Suc x))")
   apply (erule_tac [2] Least_le)
-  apply (case_tac "LEAST x. P x", auto)
+  apply (cases "LEAST x. P x", auto)
   apply (drule_tac P = "%x. P (Suc x) " in Least_le)
   apply (blast intro: order_antisym)
   done
@@ -911,7 +911,7 @@ $P(n)$ is true for all $n\in\mathbb{N}$ if
 text{* A compact version without explicit base case: *}
 lemma infinite_descent:
   "\<lbrakk> !!n::nat. \<not> P n \<Longrightarrow>  \<exists>m<n. \<not>  P m \<rbrakk> \<Longrightarrow>  P n"
-by (induct n rule: less_induct, auto)
+by (induct n rule: less_induct) auto
 
 lemma infinite_descent0[case_names 0 smaller]: 
   "\<lbrakk> P 0; !!n. n>0 \<Longrightarrow> \<not> P n \<Longrightarrow> (\<exists>m::nat. m < n \<and> \<not>P m) \<rbrakk> \<Longrightarrow> P n"
@@ -1164,7 +1164,7 @@ lemma one_le_mult_iff [simp]: "(Suc 0 \<le> m * n) = (Suc 0 \<le> m & Suc 0 \<le
 
 lemma mult_less_cancel2 [simp]: "((m::nat) * k < n * k) = (0 < k & m < n)"
   apply (safe intro!: mult_less_mono1)
-  apply (case_tac k, auto)
+  apply (cases k, auto)
   apply (simp del: le_0_eq add: linorder_not_le [symmetric])
   apply (blast intro: mult_le_mono1)
   done
