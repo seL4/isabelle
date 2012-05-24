@@ -236,7 +236,7 @@ proof -
       assume "G \<turnstile> (x # xs) <=l b" "n < length (x # xs)"
       with IH
       show "G \<turnstile> ((x # xs) ! n) <=o (b ! n)"
-        by - (cases n, auto)
+        by (cases n) auto
     qed
   qed
   with a
@@ -258,7 +258,7 @@ proof (induct a)
     assume l: "length (l#ls) = length b"
     
     then obtain b' bs where b: "b = b'#bs"
-      by - (cases b, simp, simp add: neq_Nil_conv, rule that)
+      by (cases b) (simp, simp add: neq_Nil_conv, rule that)
 
     with f
     have "\<forall>n. n < length ls \<longrightarrow> (G \<turnstile> (ls!n) <=o (bs!n))"
@@ -289,7 +289,7 @@ proof -
       assume "length (l#ls) = length (b::ty err list)"
       with IH
       show "(G \<turnstile> ((l#ls)@x) <=l (b@y)) = ((G \<turnstile> (l#ls) <=l b) \<and> (G \<turnstile> x <=l y))"
-        by - (cases b, auto)
+        by (cases b) auto
     qed
   qed
   with l
@@ -355,7 +355,7 @@ proof (induct x)
     assume "G \<turnstile>a <=o b" "G \<turnstile> (l # ls) <=l y" "n < length y"
     with IH
     show "G \<turnstile> (l # ls)[n := a] <=l y[n := b]"
-      by - (cases n, auto simp add: sup_loc_Cons2 list_all2_Cons1)
+      by (cases n) (auto simp add: sup_loc_Cons2 list_all2_Cons1)
   qed
 qed
 
@@ -433,9 +433,9 @@ proof -
   proof (intro strip)
     fix n 
     assume n: "n < length a"
-    with G
+    with G(1)
     have "G \<turnstile> (a!n) <=o (b!n)"
-      by - (rule sup_loc_nth)
+      by (rule sup_loc_nth)
     also 
     from n G
     have "G \<turnstile> \<dots> <=o (c!n)"
