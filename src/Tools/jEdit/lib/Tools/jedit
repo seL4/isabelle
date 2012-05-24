@@ -233,7 +233,7 @@ then
       print qq,<MODE NAME="scala" FILE="scala.xml" FILE_NAME_GLOB="*.scala" />\n\n,; }
     print; }' dist/modes/catalog
 
-  cp -p -R -f "${JEDIT_JARS[@]}" "$SCALA_HOME/lib/scala-compiler.jar" dist/jars/. || failed
+  cp -p -R -f "${JEDIT_JARS[@]}" dist/jars/. || failed
   (
     for JAR in "$JEDIT_JAR" "${JEDIT_JARS[@]}" "$PURE_JAR" "$SCALA_HOME/lib/scala-compiler.jar"
     do
