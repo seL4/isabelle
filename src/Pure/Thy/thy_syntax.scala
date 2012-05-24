@@ -128,7 +128,8 @@ object Thy_Syntax
     edits: List[Document.Edit_Text])
     : (Outer_Syntax, List[Document.Node.Name], Document.Nodes, List[Document.Edit_Command]) =
   {
-    var rebuild_syntax = previous.is_init
+    var updated_imports = false
+    var updated_keywords = false
     var nodes = previous.nodes
     val doc_edits = new mutable.ListBuffer[Document.Edit_Command]
 
@@ -142,7 +143,8 @@ object Thy_Syntax
           }
         if (update_header) {
           val node1 = node.update_header(header)
-          rebuild_syntax = rebuild_syntax || (node.keywords != node1.keywords)
+          updated_imports = updated_imports || (node.imports != node1.imports)
+          updated_keywords = updated_keywords || (node.keywords != node1.keywords)
           nodes += (name -> node1)
           doc_edits += (name -> Document.Node.Header(header))
         }
@@ -150,12 +152,13 @@ object Thy_Syntax
     }
 
     val syntax =
-      if (rebuild_syntax)
+      if (previous.is_init || updated_keywords)
         (base_syntax /: nodes.entries)({ case (syn, (_, node)) => (syn /: node.keywords)(_ + _) })
       else previous.syntax
 
     val reparse =
-      if (rebuild_syntax) nodes.descendants(doc_edits.iterator.map(_._1).toList)
+      if (updated_imports || updated_keywords)
+        nodes.descendants(doc_edits.iterator.map(_._1).toList)
       else Nil
 
     (syntax, reparse, nodes, doc_edits.toList)
