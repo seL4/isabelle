@@ -1733,7 +1733,7 @@ fun unfold_defs_in_term
       | NONE =>
         let
           fun def_inline_threshold () =
-            if is_boolean_type (nth_range_type (length ts) T) andalso
+            if is_boolean_type (body_type T) andalso
                total_consts <> SOME true then
               def_inline_threshold_for_booleans
             else
