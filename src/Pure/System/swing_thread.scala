@@ -24,10 +24,11 @@ object Swing_Thread
 
   def now[A](body: => A): A =
   {
-    @volatile var result: Option[A] = None
-    if (SwingUtilities.isEventDispatchThread()) { result = Some(body) }
-    else SwingUtilities.invokeAndWait(new Runnable { def run = { result = Some(body) } })
-    result.get
+    @volatile var result: Option[Exn.Result[A]] = None
+    if (SwingUtilities.isEventDispatchThread()) { result = Some(Exn.capture(body)) }
+    else
+      SwingUtilities.invokeAndWait(new Runnable { def run = { result = Some(Exn.capture(body)) } })
+    Exn.release(result.get)
   }
 
   def future[A](body: => A): Future[A] =
