@@ -269,6 +269,27 @@ object Standard_System
       proc.destroy
     }
   }
+
+
+  /* cygwin_root */
+
+  def cygwin_root(): String =
+  {
+    val cygwin_root1 = System.getenv("CYGWIN_ROOT")
+    val cygwin_root2 = System.getProperty("cygwin.root")
+    val root =
+      if (cygwin_root1 != null && cygwin_root1 != "") cygwin_root1
+      else if (cygwin_root2 != null && cygwin_root2 != "") cygwin_root2
+      else error("Bad Cygwin installation: unknown root")
+
+    val root_file = new File(root)
+    if (!new File(root_file, "bin\\bash.exe").isFile ||
+        !new File(root_file, "bin\\env.exe").isFile ||
+        !new File(root_file, "bin\\tar.exe").isFile)
+      error("Bad Cygwin installation: " + quote(root))
+
+    root
+  }
 }
 
 
@@ -276,7 +297,7 @@ class Standard_System
 {
   /* platform_root */
 
-  val platform_root = if (Platform.is_windows) Cygwin.check_root() else "/"
+  val platform_root = if (Platform.is_windows) Standard_System.cygwin_root() else "/"
 
 
   /* jvm_path */

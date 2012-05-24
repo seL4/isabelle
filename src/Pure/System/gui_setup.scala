@@ -41,7 +41,7 @@ object GUI_Setup extends SwingApplication
 
     // values
     if (Platform.is_windows)
-      text.append("Cygwin root: " + Cygwin.check_root() + "\n")
+      text.append("Cygwin root: " + Standard_System.cygwin_root() + "\n")
     text.append("JVM name: " + Platform.jvm_name + "\n")
     text.append("JVM platform: " + Platform.jvm_platform + "\n")
     text.append("JVM home: " + java.lang.System.getProperty("java.home") + "\n")
