@@ -172,7 +172,7 @@ object Library
   class Zoom_Box(apply_factor: Int => Unit) extends ComboBox[String](
     List("50%", "70%", "85%", "100%", "125%", "150%", "175%", "200%", "300%", "400%"))
   {
-    val Factor = "([0-9]+)%?"r
+    val Factor = "([0-9]+)%?".r
     def parse(text: String): Int =
       text match {
         case Factor(s) =>

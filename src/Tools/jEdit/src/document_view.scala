@@ -329,7 +329,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
   /* text status overview left of scrollbar */
 
-  private val overview = new Text_Overview(this)
+  private object overview extends Text_Overview(this)
   {
     val delay_repaint =
       Swing_Thread.delay_first(Isabelle.session.update_delay) { repaint() }

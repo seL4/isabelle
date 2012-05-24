@@ -243,7 +243,7 @@ object Symbol
     private val symbols: List[(Symbol, Map[String, String])] =
       Map((
         for (decl <- split_lines(symbols_spec) if !empty.pattern.matcher(decl).matches)
-          yield read_decl(decl)): _*) toList
+          yield read_decl(decl)): _*).toList
 
 
     /* misc properties */
