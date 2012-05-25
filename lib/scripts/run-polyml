@@ -74,7 +74,7 @@ else
 fi
 
 "$ISABELLE_HOME/lib/scripts/feeder" -p -h "$MLTEXT" -t "$MLEXIT" $FEEDER_OPTS | \
-  { read FPID; "$POLY" -q $ML_OPTIONS; RC="$?"; kill -HUP "$FPID"; exit "$RC"; }
+  { read FPID; "$POLY" -q $ML_OPTIONS; RC="$?"; kill -TERM "$FPID"; exit "$RC"; }
 RC="$?"
 
 [ -n "$OUTFILE" -a -f "$OUTFILE" -a -n "$NOWRITE" ] && chmod -w "$OUTFILE"

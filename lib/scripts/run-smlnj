@@ -80,7 +80,7 @@ else
 fi
 
 "$ISABELLE_HOME/lib/scripts/feeder" -p -h "$MLTEXT" -t "$MLEXIT" $FEEDER_OPTS | \
-  { read FPID; "$SML" $ML_OPTIONS "$DB"; RC="$?"; kill -HUP "$FPID"; exit "$RC"; }
+  { read FPID; "$SML" $ML_OPTIONS "$DB"; RC="$?"; kill -TERM "$FPID"; exit "$RC"; }
 RC="$?"
 
 
