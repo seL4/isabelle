@@ -24,11 +24,12 @@ object Swing_Thread
 
   def now[A](body: => A): A =
   {
-    @volatile var result: Option[Exn.Result[A]] = None
-    if (SwingUtilities.isEventDispatchThread()) { result = Some(Exn.capture(body)) }
-    else
-      SwingUtilities.invokeAndWait(new Runnable { def run = { result = Some(Exn.capture(body)) } })
-    Exn.release(result.get)
+    if (SwingUtilities.isEventDispatchThread()) body
+    else {
+      lazy val result = { assert(); Exn.capture(body) }
+      SwingUtilities.invokeAndWait(new Runnable { def run = result })
+      Exn.release(result)
+    }
   }
 
   def future[A](body: => A): Future[A] =
