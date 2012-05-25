@@ -91,9 +91,8 @@ struct
   val writeln_fn = Unsynchronized.ref physical_writeln;
   val urgent_message_fn = Unsynchronized.ref (fn s => ! writeln_fn s);
   val tracing_fn = Unsynchronized.ref (fn s => ! writeln_fn s);
-  val warning_fn = Unsynchronized.ref (physical_stdout o suffix "\n" o prefix_lines "### ");
-  val error_fn =
-    Unsynchronized.ref (fn (_: serial, s) => physical_stdout (suffix "\n" (prefix_lines "*** " s)));
+  val warning_fn = Unsynchronized.ref (physical_writeln o prefix_lines "### ");
+  val error_fn = Unsynchronized.ref (fn (_: serial, s) => physical_writeln (prefix_lines "*** " s));
   val prompt_fn = Unsynchronized.ref physical_stdout;
   val status_fn = Unsynchronized.ref (fn _: output => ());
   val report_fn = Unsynchronized.ref (fn _: output => ());
