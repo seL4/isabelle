@@ -668,7 +668,7 @@ apply (tactic {* ALLGOALS (fn i =>
 apply (tactic {*ALLGOALS (eresolve_tac @{thms wt_elim_cases})*})
 apply (simp_all (no_asm_use) split del: split_if_asm)
 apply (erule_tac [12] V = "All ?P" in thin_rl) (* Call *)
-apply ((blast del: equalityCE dest: sym [THEN trans])+)
+apply (blast del: equalityCE dest: sym [THEN trans])+
 done
 
 (* unused *)
@@ -680,19 +680,11 @@ apply (rule single_valued_tys_lemma)
 apply (auto intro!: widen_antisym)
 done
 
-lemma typeof_empty_is_type [rule_format (no_asm)]: 
-  "typeof (\<lambda>a. None) v = Some T \<longrightarrow> is_type G T"
-apply (rule val.induct)
-apply           auto
-done
+lemma typeof_empty_is_type: "typeof (\<lambda>a. None) v = Some T \<Longrightarrow> is_type G T"
+  by (induct v) auto
 
 (* unused *)
-lemma typeof_is_type [rule_format (no_asm)]: 
- "(\<forall>a. v \<noteq> Addr a) \<longrightarrow> (\<exists>T. typeof dt v = Some T \<and> is_type G T)"
-apply (rule val.induct)
-prefer 5 
-apply     fast
-apply  (simp_all (no_asm))
-done
+lemma typeof_is_type: "(\<forall>a. v \<noteq> Addr a) \<Longrightarrow> \<exists>T. typeof dt v = Some T \<and> is_type G T"
+  by (induct v) auto
 
 end

@@ -38,49 +38,32 @@ done
 
 lemma nyinitcls_set_locals_cong [simp]: 
   "nyinitcls G (x,set_locals l s) = nyinitcls G (x,s)"
-apply (unfold nyinitcls_def)
-apply (simp (no_asm))
-done
+  by (simp add: nyinitcls_def)
 
 lemma nyinitcls_abrupt_cong [simp]: "nyinitcls G (f x, y) = nyinitcls G (x, y)"
-apply (unfold nyinitcls_def)
-apply (simp (no_asm))
-done
+  by (simp add: nyinitcls_def)
 
-lemma nyinitcls_abupd_cong [simp]:"!!s. nyinitcls G (abupd f s) = nyinitcls G s"
-apply (unfold nyinitcls_def)
-apply (simp (no_asm_simp) only: split_tupled_all)
-apply (simp (no_asm))
-done
+lemma nyinitcls_abupd_cong [simp]: "nyinitcls G (abupd f s) = nyinitcls G s"
+  by (simp add: nyinitcls_def)
 
 lemma card_nyinitcls_abrupt_congE [elim!]: 
-        "card (nyinitcls G (x, s)) \<le> n \<Longrightarrow> card (nyinitcls G (y, s)) \<le> n"
-apply (unfold nyinitcls_def)
-apply auto
-done
+  "card (nyinitcls G (x, s)) \<le> n \<Longrightarrow> card (nyinitcls G (y, s)) \<le> n"
+  unfolding nyinitcls_def by auto
 
 lemma nyinitcls_new_xcpt_var [simp]: 
-"nyinitcls G (new_xcpt_var vn s) = nyinitcls G s"
-apply (unfold nyinitcls_def)
-apply (induct_tac "s")
-apply (simp (no_asm))
-done
+  "nyinitcls G (new_xcpt_var vn s) = nyinitcls G s"
+  by (induct s) (simp_all add: nyinitcls_def)
 
 lemma nyinitcls_init_lvars [simp]: 
   "nyinitcls G ((init_lvars G C sig mode a' pvs) s) = nyinitcls G s"
-apply (induct_tac "s")
-apply (simp (no_asm) add: init_lvars_def2 split add: split_if)
-done
+  by (induct s) (simp add: init_lvars_def2 split add: split_if)
 
 lemma nyinitcls_emptyD: "\<lbrakk>nyinitcls G s = {}; is_class G C\<rbrakk> \<Longrightarrow> initd C s"
-apply (unfold nyinitcls_def)
-apply fast
-done
+  unfolding nyinitcls_def by fast
 
 lemma card_Suc_lemma: 
   "\<lbrakk>card (insert a A) \<le> Suc n; a\<notin>A; finite A\<rbrakk> \<Longrightarrow> card A \<le> n"
-apply clarsimp
-done
+  by auto
 
 lemma nyinitcls_le_SucD: 
 "\<lbrakk>card (nyinitcls G (x,s)) \<le> Suc n; \<not>inited C (globs s); class G C=Some y\<rbrakk> \<Longrightarrow> 
@@ -95,12 +78,10 @@ apply   (auto dest!: not_initedD elim!:
 done
 
 lemma inited_gext': "\<lbrakk>s\<le>|s';inited C (globs s)\<rbrakk> \<Longrightarrow> inited C (globs s')"
-by (rule inited_gext)
+  by (rule inited_gext)
 
 lemma nyinitcls_gext: "snd s\<le>|snd s' \<Longrightarrow> nyinitcls G s' \<subseteq> nyinitcls G s"
-apply (unfold nyinitcls_def)
-apply (force dest!: inited_gext')
-done
+  unfolding nyinitcls_def by (force dest!: inited_gext')
 
 lemma card_nyinitcls_gext: 
   "\<lbrakk>snd s\<le>|snd s'; card (nyinitcls G s) \<le> n\<rbrakk>\<Longrightarrow> card (nyinitcls G s') \<le> n"
@@ -161,19 +142,16 @@ done
 
 lemma MGF_res_eq_lemma [simp]: 
   "(\<forall>Y' Y s. Y = Y' \<and> P s \<longrightarrow> Q s) = (\<forall>s. P s \<longrightarrow> Q s)"
-apply auto
-done
+  by auto
 
 lemma MGFn_def2: 
 "G,A\<turnstile>{=:n} t\<succ> {G\<rightarrow>} = G,A\<turnstile>{\<doteq> \<and>. G\<turnstile>init\<le>n} 
                     t\<succ> {\<lambda>Y s' s. G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (Y,s')}"
-apply (unfold MGFn_def MGF_def)
-apply fast
-done
+  unfolding MGFn_def MGF_def by fast
 
 lemma MGF_MGFn_iff: 
 "G,(A::state triple set)\<turnstile>{\<doteq>} t\<succ> {G\<rightarrow>} = (\<forall>n. G,A\<turnstile>{=:n} t\<succ> {G\<rightarrow>})"
-apply (simp (no_asm_use) add: MGFn_def2 MGF_def)
+apply (simp add: MGFn_def2 MGF_def)
 apply safe
 apply  (erule_tac [2] All_init_leD)
 apply (erule conseq1)
