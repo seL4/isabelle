@@ -30,7 +30,8 @@ sig
 
   datatype tptp_polymorphism = TPTP_Monomorphic | TPTP_Polymorphic
   datatype tptp_explicitness = TPTP_Implicit | TPTP_Explicit
-  datatype thf_flavor = THF_Without_Choice | THF_With_Choice
+  datatype thf_choice = THF_Without_Choice | THF_With_Choice
+  datatype thf_defs = THF_Without_Defs | THF_With_Defs
   datatype dfg_flavor = DFG_Unsorted | DFG_Sorted
 
   datatype atp_format =
@@ -38,7 +39,7 @@ sig
     CNF_UEQ |
     FOF |
     TFF of tptp_polymorphism * tptp_explicitness |
-    THF of tptp_polymorphism * tptp_explicitness * thf_flavor |
+    THF of tptp_polymorphism * tptp_explicitness * thf_choice * thf_defs |
     DFG of dfg_flavor
 
   datatype formula_role = Axiom | Definition | Lemma | Hypothesis | Conjecture
@@ -162,7 +163,8 @@ type term_order =
 
 datatype tptp_polymorphism = TPTP_Monomorphic | TPTP_Polymorphic
 datatype tptp_explicitness = TPTP_Implicit | TPTP_Explicit
-datatype thf_flavor = THF_Without_Choice | THF_With_Choice
+datatype thf_choice = THF_Without_Choice | THF_With_Choice
+datatype thf_defs = THF_Without_Defs | THF_With_Defs
 datatype dfg_flavor = DFG_Unsorted | DFG_Sorted
 
 datatype atp_format =
@@ -170,7 +172,7 @@ datatype atp_format =
   CNF_UEQ |
   FOF |
   TFF of tptp_polymorphism * tptp_explicitness |
-  THF of tptp_polymorphism * tptp_explicitness * thf_flavor |
+  THF of tptp_polymorphism * tptp_explicitness * thf_choice * thf_defs |
   DFG of dfg_flavor
 
 datatype formula_role = Axiom | Definition | Lemma | Hypothesis | Conjecture
@@ -380,9 +382,6 @@ fun string_for_bound_var format (s, ty) =
    else
      "")
 
-fun is_format_with_choice (THF (_, _, THF_With_Choice)) = true
-  | is_format_with_choice _ = false
-
 fun tptp_string_for_term _ (ATerm (s, [])) = s
   | tptp_string_for_term format (ATerm (s, ts)) =
     (if s = tptp_empty_list then
@@ -392,8 +391,8 @@ fun tptp_string_for_term _ (ATerm (s, [])) = s
        space_implode (" " ^ tptp_equal ^ " ")
                      (map (tptp_string_for_term format) ts)
        |> is_format_higher_order format ? enclose "(" ")"
-     else case (s = tptp_ho_forall orelse s = tptp_ho_exists,
-                s = tptp_choice andalso is_format_with_choice format, ts) of
+     else case (s = tptp_ho_forall orelse s = tptp_ho_exists, s = tptp_choice,
+                ts) of
        (true, _, [AAbs (((s', ty), tm), [])]) =>
        (* Use syntactic sugar "!" and "?" instead of "!!" and "??" whenever
           possible, to work around LEO-II 1.2.8 parser limitation. *)

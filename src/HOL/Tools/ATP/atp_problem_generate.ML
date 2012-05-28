@@ -127,7 +127,7 @@ type stature = scope * status
 
 datatype order =
   First_Order |
-  Higher_Order of thf_flavor
+  Higher_Order of thf_choice
 datatype polymorphism = Polymorphic | Raw_Monomorphic | Mangled_Monomorphic
 datatype strictness = Strict | Non_Strict
 datatype granularity = All_Vars | Positively_Naked_Vars | Ghost_Type_Arg_Vars
@@ -686,12 +686,12 @@ fun adjust_order THF_Without_Choice (Higher_Order _) =
     Higher_Order THF_Without_Choice
   | adjust_order _ type_enc = type_enc
 
-fun adjust_type_enc (THF (TPTP_Polymorphic, _, flavor))
+fun adjust_type_enc (THF (TPTP_Polymorphic, _, choice, _))
                     (Native (order, poly, level)) =
-    Native (adjust_order flavor order, poly, level)
-  | adjust_type_enc (THF (TPTP_Monomorphic, _, flavor))
+    Native (adjust_order choice order, poly, level)
+  | adjust_type_enc (THF (TPTP_Monomorphic, _, choice, _))
                          (Native (order, _, level)) =
-    Native (adjust_order flavor order, Mangled_Monomorphic, level)
+    Native (adjust_order choice order, Mangled_Monomorphic, level)
   | adjust_type_enc (TFF (TPTP_Monomorphic, _)) (Native (_, _, level)) =
     Native (First_Order, Mangled_Monomorphic, level)
   | adjust_type_enc (DFG DFG_Sorted) (Native (_, _, level)) =
@@ -1282,11 +1282,14 @@ fun make_formula ctxt format type_enc iff_for_eq name stature role t =
      atomic_types = atomic_Ts}
   end
 
+fun is_format_with_defs (THF (_, _, _, THF_With_Defs)) = true
+  | is_format_with_defs _ = false
+
 fun make_fact ctxt format type_enc iff_for_eq
               ((name, stature as (_, status)), t) =
   let
     val role =
-      if is_type_enc_higher_order type_enc andalso status = Def andalso
+      if is_format_with_defs format andalso status = Def andalso
          is_legitimate_tptp_def t then
         Definition
       else
@@ -1309,7 +1312,7 @@ fun make_conjecture ctxt format type_enc =
   map (fn ((name, stature), (role, t)) =>
           let
             val role =
-              if is_type_enc_higher_order type_enc andalso
+              if is_format_with_defs format andalso
                  role <> Conjecture andalso is_legitimate_tptp_def t then
                 Definition
               else
@@ -2777,7 +2780,7 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
           | CNF_UEQ => filter_cnf_ueq_problem
           | FOF => I
           | TFF (_, TPTP_Implicit) => I
-          | THF (_, TPTP_Implicit, _) => I
+          | THF (_, TPTP_Implicit, _, _) => I
           | _ => declare_undeclared_syms_in_atp_problem type_enc)
     val (problem, pool) = problem |> nice_atp_problem readable_names format
     fun add_sym_ary (s, {min_ary, ...} : sym_info) =
