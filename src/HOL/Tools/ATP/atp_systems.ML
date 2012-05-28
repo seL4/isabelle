@@ -421,8 +421,8 @@ val spass = (spassN, fn () => spass_config)
 
 (* Vampire *)
 
-(* Vampire 1.8 has TFF support, but it's buggy and therefore disabled on
-   SystemOnTPTP. *)
+(* Vampire 1.8 has TFF support, but the support was buggy until revision
+   1435 (or shortly before). *)
 fun is_new_vampire_version () =
   string_ord (getenv "VAMPIRE_VERSION", "1.8") = GREATER
 
@@ -596,7 +596,7 @@ val remote_satallax =
   remotify_atp satallax "Satallax" ["2.3", "2.2", "2"]
       (K ((100, satallax_thf0, "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
 val remote_vampire =
-  remotify_atp vampire "Vampire" ["1.8"]
+  remotify_atp vampire "Vampire" ["2.5", "1.8"]
       (K ((250, vampire_tff0, "mono_native", combs_or_liftingN, false), "") (* FUDGE *))
 val remote_z3_tptp =
   remotify_atp z3_tptp "Z3" ["3.0"]
