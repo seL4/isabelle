@@ -205,7 +205,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
           print_def name (vs, ty) (filter (snd o snd) raw_eqs)
       | print_stmt (name, Code_Thingol.Datatype (_, (vs, cos))) =
           let
-            val tyvars = intro_tyvars vs reserved;
+            val tyvars = intro_tyvars (map (rpair []) vs) reserved;
             fun print_co ((co, _), []) =
                   concat [str "final", str "case", str "object", (str o deresolve) co,
                     str "extends", applify "[" "]" I NOBR ((str o deresolve) name)
@@ -217,11 +217,11 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
                       ["final", "case", "class", deresolve co]) vs_args)
                     (Name.invent_names (snd reserved) "a" tys),
                     str "extends",
-                    applify "[" "]" (str o lookup_tyvar tyvars o fst) NOBR
+                    applify "[" "]" (str o lookup_tyvar tyvars) NOBR
                       ((str o deresolve) name) vs
                   ];
           in
-            Pretty.chunks (applify "[" "]" (str o prefix "+" o lookup_tyvar tyvars o fst)
+            Pretty.chunks (applify "[" "]" (str o prefix "+" o lookup_tyvar tyvars)
               NOBR ((concat o map str) ["abstract", "sealed", "class", deresolve name]) vs
                 :: map print_co cos)
           end

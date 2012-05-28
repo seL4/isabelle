@@ -56,8 +56,8 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
          of NONE => print_tyco_expr tyvars fxy (deresolve tyco, tys)
           | SOME (_, print) => print (print_typ tyvars) fxy tys)
       | print_typ tyvars fxy (ITyVar v) = (str o lookup_var tyvars) v;
-    fun print_typdecl tyvars (vs, tycoexpr) =
-      Pretty.block (print_typcontext tyvars vs @| print_tyco_expr tyvars NOBR tycoexpr);
+    fun print_typdecl tyvars (tyco, vs) =
+      print_tyco_expr tyvars NOBR (tyco, map ITyVar vs);
     fun print_typscheme tyvars (vs, ty) =
       Pretty.block (print_typforall tyvars vs @ print_typcontext tyvars vs @| print_typ tyvars NOBR ty);
     fun print_term tyvars some_thm vars fxy (IConst c) =
@@ -163,20 +163,20 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
           end
       | print_stmt (name, Code_Thingol.Datatype (_, (vs, []))) =
           let
-            val tyvars = intro_vars (map fst vs) reserved;
+            val tyvars = intro_vars vs reserved;
           in
             semicolon [
               str "data",
-              print_typdecl tyvars (vs, (deresolve name, map (ITyVar o fst) vs))
+              print_typdecl tyvars (deresolve name, vs)
             ]
           end
       | print_stmt (name, Code_Thingol.Datatype (_, (vs, [((co, _), [ty])]))) =
           let
-            val tyvars = intro_vars (map fst vs) reserved;
+            val tyvars = intro_vars vs reserved;
           in
             semicolon (
               str "newtype"
-              :: print_typdecl tyvars (vs, (deresolve name, map (ITyVar o fst) vs))
+              :: print_typdecl tyvars (deresolve name, vs)
               :: str "="
               :: (str o deresolve) co
               :: print_typ tyvars BR ty
@@ -185,7 +185,7 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
           end
       | print_stmt (name, Code_Thingol.Datatype (_, (vs, co :: cos))) =
           let
-            val tyvars = intro_vars (map fst vs) reserved;
+            val tyvars = intro_vars vs reserved;
             fun print_co ((co, _), tys) =
               concat (
                 (str o deresolve) co
@@ -194,7 +194,7 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
           in
             semicolon (
               str "data"
-              :: print_typdecl tyvars (vs, (deresolve name, map (ITyVar o fst) vs))
+              :: print_typdecl tyvars (deresolve name, vs)
               :: str "="
               :: print_co co
               :: map ((fn p => Pretty.block [str "| ", p]) o print_co) cos

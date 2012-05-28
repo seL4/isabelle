@@ -36,7 +36,7 @@ datatype ml_stmt =
     ML_Exc of string * (typscheme * int)
   | ML_Val of ml_binding
   | ML_Funs of ml_binding list * string list
-  | ML_Datas of (string * ((vname * sort) list * ((string * vname list) * itype list) list)) list
+  | ML_Datas of (string * (vname list * ((string * vname list) * itype list) list)) list
   | ML_Class of string * (vname * ((class * string) list * (string * itype) list));
 
 fun print_product _ [] = NONE
@@ -167,7 +167,7 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
       in
         concat (
           str definer
-          :: print_tyco_expr (tyco, map (ITyVar o fst) vs)
+          :: print_tyco_expr (tyco, map ITyVar vs)
           :: str "="
           :: separate (str "|") (map print_co cos)
         )
@@ -273,7 +273,7 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
           end
      | print_stmt (ML_Datas [(tyco, (vs, []))]) =
           let
-            val ty_p = print_tyco_expr (tyco, map (ITyVar o fst) vs);
+            val ty_p = print_tyco_expr (tyco, map ITyVar vs);
           in
             pair
             [concat [str "type", ty_p]]
@@ -462,7 +462,7 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
       in
         concat (
           str definer
-          :: print_tyco_expr (tyco, map (ITyVar o fst) vs)
+          :: print_tyco_expr (tyco, map ITyVar vs)
           :: str "="
           :: separate (str "|") (map print_co cos)
         )
@@ -613,7 +613,7 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
           end
      | print_stmt (ML_Datas [(tyco, (vs, []))]) =
           let
-            val ty_p = print_tyco_expr (tyco, map (ITyVar o fst) vs);
+            val ty_p = print_tyco_expr (tyco, map ITyVar vs);
           in
             pair
             [concat [str "type", ty_p]]

@@ -71,7 +71,7 @@ sig
   datatype stmt =
       NoStmt
     | Fun of string * ((typscheme * ((iterm list * iterm) * (thm option * bool)) list) * thm option)
-    | Datatype of string * ((vname * sort) list *
+    | Datatype of string * (vname list *
         ((string * vname list (*type argument wrt. canonical order*)) * itype list) list)
     | Datatypecons of string * string
     | Class of class * (vname * ((class * string) list * (string * itype) list))
@@ -422,7 +422,7 @@ type typscheme = (vname * sort) list * itype;
 datatype stmt =
     NoStmt
   | Fun of string * ((typscheme * ((iterm list * iterm) * (thm option * bool)) list) * thm option)
-  | Datatype of string * ((vname * sort) list * ((string * vname list) * itype list) list)
+  | Datatype of string * (vname list * ((string * vname list) * itype list) list)
   | Datatypecons of string * string
   | Class of class * (vname * ((class * string) list * (string * itype) list))
   | Classrel of class * class
@@ -625,6 +625,7 @@ fun ensure_tyco thy algbr eqngr permissive tyco =
     val ((vs, cos), _) = Code.get_type thy tyco;
     val stmt_datatype =
       fold_map (translate_tyvar_sort thy algbr eqngr permissive) vs
+      #>> map fst
       ##>> fold_map (fn (c, (vs, tys)) =>
         ensure_const thy algbr eqngr permissive c
         ##>> pair (map (unprefix "'" o fst) vs)
