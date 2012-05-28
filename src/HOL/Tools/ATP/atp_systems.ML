@@ -379,23 +379,22 @@ val satallax = (satallaxN, fn () => satallax_config)
 
 (* SPASS *)
 
-fun is_new_spass_version () =
-  string_ord (getenv "SPASS_VERSION", "3.7") = GREATER orelse
-  getenv "SPASS_NEW_HOME" <> ""
+val spass_H1SOS = "-Heuristic=1 -SOS"
+val spass_H2LR0LT0 = "-Heuristic=2 -LR=0 -LT=0"
+val spass_H2SOS = "-Heuristic=2 -SOS"
+val spass_H2NuVS0 = "-Heuristic=2 -RNuV=1 -Sorts=0"
+val spass_H2NuVS0Red2 = "-Heuristic=2 -RNuV=1 -Sorts=0 -RFRew=2 -RBRew=2 -RTaut=2"
 
-(* TODO: Legacy: Remove after planned Isabelle2012 release (and don't forget
-   "required_vars" and "script/spass"). *)
-val spass_old_config : atp_config =
-  {exec = (["ISABELLE_ATP"], "scripts/spass"),
-   required_vars = [["SPASS_HOME"]],
-   arguments = fn _ => fn _ => fn sos => fn timeout => fn _ =>
-     ("-Auto -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
-      \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_secs 1 timeout))
-     |> sos = sosN ? prefix "-SOS=1 ",
+(* FIXME: Make "SPASS_NEW_HOME" legacy. *)
+val spass_config : atp_config =
+  {exec = (["SPASS_NEW_HOME", "SPASS_HOME"], "SPASS"),
+   required_vars = [],
+   arguments = fn _ => fn _ => fn extra_options => fn timeout => fn _ =>
+     ("-Isabelle=1 -TimeLimit=" ^ string_of_int (to_secs 1 timeout))
+     |> extra_options <> "" ? prefix (extra_options ^ " "),
    proof_delims = [("Here is a proof", "Formulae used in the proof")],
    known_failures =
-     [(OldSPASS, "SPASS V 3.5"),
-      (OldSPASS, "SPASS V 3.7"),
+     [(OldSPASS, "Unrecognized option Isabelle"),
       (GaveUp, "SPASS beiseite: Completion found"),
       (TimedOut, "SPASS beiseite: Ran out of time"),
       (OutOfResources, "SPASS beiseite: Maximal number of loops exceeded"),
@@ -405,47 +404,20 @@ val spass_old_config : atp_config =
       (InternalError, "Please report this error")] @
       known_perl_failures,
    prem_role = Conjecture,
-   best_slices = fn ctxt =>
-     (* FUDGE *)
-     [(0.333, (false, ((150, DFG DFG_Unsorted, "mono_tags??", liftingN, false), sosN))),
-      (0.333, (false, ((300, DFG DFG_Unsorted, "poly_tags??", liftingN, false), sosN))),
-      (0.334, (false, ((50, DFG DFG_Unsorted, "mono_tags??", liftingN, false), no_sosN)))]
-     |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single else I),
-   best_max_mono_iters = default_max_mono_iters,
-   best_max_new_mono_instances = default_max_new_mono_instances}
-
-val spass_new_H1SOS = "-Heuristic=1 -SOS"
-val spass_new_H2LR0LT0 = "-Heuristic=2 -LR=0 -LT=0"
-val spass_new_H2SOS = "-Heuristic=2 -SOS"
-val spass_new_H2NuVS0 = "-Heuristic=2 -RNuV=1 -Sorts=0"
-val spass_new_H2NuVS0Red2 =
-  "-Heuristic=2 -RNuV=1 -Sorts=0 -RFRew=2 -RBRew=2 -RTaut=2"
-
-val spass_new_config : atp_config =
-  {exec = (["SPASS_NEW_HOME", "SPASS_HOME"], "SPASS"),
-   required_vars = [],
-   arguments = fn _ => fn _ => fn extra_options => fn timeout => fn _ =>
-     ("-Isabelle=1 -TimeLimit=" ^ string_of_int (to_secs 1 timeout))
-     |> extra_options <> "" ? prefix (extra_options ^ " "),
-   proof_delims = #proof_delims spass_old_config,
-   known_failures = #known_failures spass_old_config,
-   prem_role = #prem_role spass_old_config,
    best_slices = fn _ =>
      (* FUDGE *)
      [(0.1667, (false, ((150, DFG DFG_Sorted, "mono_native", combsN, true), ""))),
-      (0.1667, (false, ((500, DFG DFG_Sorted, "mono_native", liftingN, true), spass_new_H2SOS))),
-      (0.1666, (false, ((50, DFG DFG_Sorted,  "mono_native", liftingN, true), spass_new_H2LR0LT0))),
-      (0.1000, (false, ((250, DFG DFG_Sorted, "mono_native", combsN, true), spass_new_H2NuVS0))),
-      (0.1000, (false, ((1000, DFG DFG_Sorted, "mono_native", liftingN, true), spass_new_H1SOS))),
-      (0.1000, (false, ((150, DFG DFG_Sorted, "poly_guards??", liftingN, false), spass_new_H2NuVS0Red2))),
-      (0.1000, (false, ((300, DFG DFG_Sorted, "mono_native", combsN, true), spass_new_H2SOS))),
-      (0.1000, (false, ((100, DFG DFG_Sorted, "mono_native", combs_and_liftingN, true), spass_new_H2NuVS0)))],
+      (0.1667, (false, ((500, DFG DFG_Sorted, "mono_native", liftingN, true), spass_H2SOS))),
+      (0.1666, (false, ((50, DFG DFG_Sorted,  "mono_native", liftingN, true), spass_H2LR0LT0))),
+      (0.1000, (false, ((250, DFG DFG_Sorted, "mono_native", combsN, true), spass_H2NuVS0))),
+      (0.1000, (false, ((1000, DFG DFG_Sorted, "mono_native", liftingN, true), spass_H1SOS))),
+      (0.1000, (false, ((150, DFG DFG_Sorted, "poly_guards??", liftingN, false), spass_H2NuVS0Red2))),
+      (0.1000, (false, ((300, DFG DFG_Sorted, "mono_native", combsN, true), spass_H2SOS))),
+      (0.1000, (false, ((100, DFG DFG_Sorted, "mono_native", combs_and_liftingN, true), spass_H2NuVS0)))],
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
 
-val spass =
-  (spassN, fn () => if is_new_spass_version () then spass_new_config
-                    else spass_old_config)
+val spass = (spassN, fn () => spass_config)
 
 (* Vampire *)
 
@@ -677,7 +649,7 @@ fun refresh_systems_on_tptp () =
 fun effective_term_order ctxt atp =
   let val ord = Config.get ctxt term_order in
     if ord = smartN then
-      if atp = spassN andalso is_new_spass_version () then
+      if atp = spassN then
         {is_lpo = false, gen_weights = true, gen_prec = true, gen_simp = false}
       else
         {is_lpo = false, gen_weights = false, gen_prec = false,

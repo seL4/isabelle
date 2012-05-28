@@ -452,30 +452,20 @@ fun parse_horn_clause x =
      -- Scan.repeat parse_decorated_atom
    >> (mk_horn o apfst (op @))) x
 
-fun resolve_spass_num (SOME names) _ _ = names
-  | resolve_spass_num NONE spass_names num =
-    case Int.fromString num of
-      SOME j => if j > 0 andalso j <= Vector.length spass_names then
-                  Vector.sub (spass_names, j - 1)
-                else
-                  []
-    | NONE => []
-
 val parse_spass_debug =
   Scan.option ($$ "(" |-- Scan.repeat (scan_general_id --| Scan.option ($$ ","))
                --| $$ ")")
 
 (* Syntax: <num>[0:<inference><annotations>] <atoms> || <atoms> -> <atoms>.
            derived from formulae <ident>* *)
-fun parse_spass_line spass_names =
-  parse_spass_debug |-- scan_general_id --| $$ "[" --| $$ "0" --| $$ ":"
-    -- Symbol.scan_id -- parse_spass_annotations --| $$ "]"
-    -- parse_horn_clause --| $$ "."
-    -- Scan.option (Scan.this_string "derived from formulae "
-                    |-- Scan.repeat (scan_general_id --| Scan.option ($$ " ")))
-  >> (fn ((((num, rule), deps), u), names) =>
-         Inference_Step ((num, resolve_spass_num names spass_names num), u,
-             rule, map (swap o `(resolve_spass_num NONE spass_names)) deps))
+fun parse_spass_line x =
+  (parse_spass_debug |-- scan_general_id --| $$ "[" --| $$ "0" --| $$ ":"
+     -- Symbol.scan_id -- parse_spass_annotations --| $$ "]"
+     -- parse_horn_clause --| $$ "."
+     -- Scan.option (Scan.this_string "derived from formulae "
+                     |-- Scan.repeat (scan_general_id --| Scan.option ($$ " ")))
+   >> (fn ((((num, rule), deps), u), names) =>
+          Inference_Step ((num, these names), u, rule, map (rpair []) deps))) x
 
 val satallax_unsat_coreN = "__satallax_unsat_core" (* arbitrary *)
 
@@ -485,62 +475,20 @@ fun parse_satallax_line x =
    >> (fn s => Inference_Step ((s, [s]), dummy_phi, satallax_unsat_coreN, [])))
       x
 
-fun parse_line problem spass_names =
-  parse_tstp_line problem || parse_spass_line spass_names || parse_satallax_line
-fun parse_proof problem spass_names tstp =
+fun parse_line problem =
+  parse_tstp_line problem || parse_spass_line || parse_satallax_line
+fun parse_proof problem tstp =
   tstp |> strip_spaces_except_between_idents
        |> raw_explode
        |> Scan.finite Symbol.stopper
               (Scan.error (!! (fn _ => raise UNRECOGNIZED_ATP_PROOF ())
-                              (Scan.repeat1 (parse_line problem spass_names))))
+                              (Scan.repeat1 (parse_line problem))))
        |> fst
-
-(** SPASS's FLOTTER hack **)
-
-(* This is a hack required for keeping track of facts after they have been
-   clausified by SPASS's FLOTTER preprocessor. The "ATP/scripts/spass" script is
-   also part of this hack. *)
-
-val set_ClauseFormulaRelationN = "set_ClauseFormulaRelation"
-
-fun extract_clause_sequence output =
-  let
-    val tokens_of = String.tokens (not o Char.isAlphaNum)
-    fun extract_num ("clause" :: (ss as _ :: _)) = Int.fromString (List.last ss)
-      | extract_num _ = NONE
-  in output |> split_lines |> map_filter (extract_num o tokens_of) end
-
-fun is_head_digit s = Char.isDigit (String.sub (s, 0))
-val scan_integer = Scan.many1 is_head_digit >> (the o Int.fromString o implode)
-
-val parse_clause_formula_pair =
-  $$ "(" |-- scan_integer --| $$ ","
-  -- (Symbol.scan_id ::: Scan.repeat ($$ "," |-- Symbol.scan_id)) --| $$ ")"
-  --| Scan.option ($$ ",")
-val parse_clause_formula_relation =
-  Scan.this_string set_ClauseFormulaRelationN |-- $$ "("
-  |-- Scan.repeat parse_clause_formula_pair
-val extract_clause_formula_relation =
-  Substring.full #> Substring.position set_ClauseFormulaRelationN
-  #> snd #> Substring.position "." #> fst #> Substring.string
-  #> raw_explode #> filter_out Symbol.is_blank #> parse_clause_formula_relation
-  #> fst
-
-fun extract_spass_name_vector output =
-  (if String.isSubstring set_ClauseFormulaRelationN output then
-     let
-       val num_seq = extract_clause_sequence output
-       val name_map = extract_clause_formula_relation output
-       val name_seq = num_seq |> map (these o AList.lookup (op =) name_map)
-     in name_seq end
-   else
-     [])
-  |> Vector.fromList
 
 fun atp_proof_from_tstplike_proof _ _ "" = []
   | atp_proof_from_tstplike_proof problem output tstp =
     tstp ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
-    |> parse_proof problem (extract_spass_name_vector output)
+    |> parse_proof problem
     |> sort (step_name_ord o pairself step_name) (* FIXME: needed? *)
 
 fun clean_up_dependencies _ [] = []

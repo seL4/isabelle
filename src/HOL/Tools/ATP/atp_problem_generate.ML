@@ -2759,8 +2759,7 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
       0 upto length helpers - 1 ~~ helpers
       |> map (formula_line_for_fact ctxt polym_constrs helper_prefix I false
                                     true mono type_enc (K default_rank))
-    (* Reordering these might confuse the proof reconstruction code or the SPASS
-       FLOTTER hack. *)
+    (* Reordering these might confuse the proof reconstruction code. *)
     val problem =
       [(explicit_declsN, class_decl_lines @ sym_decl_lines),
        (uncurried_alias_eqsN, uncurried_alias_eq_lines),
