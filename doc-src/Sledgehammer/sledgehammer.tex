@@ -203,12 +203,12 @@ manually, or found a Vampire executable somewhere (e.g.,
 \texttt{LEO2\_HOME}, \texttt{SATALLAX\_HOME}, \texttt{SPASS\_HOME}, or
 \texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{eproof},
 \texttt{leo}, \texttt{satallax}, \texttt{SPASS}, or \texttt{vampire} executable.
-Sledgehammer has been tested with E 1.0 to 1.4, LEO-II 1.2.9, Satallax 2.2 and~2.3,
-SPASS 3.5, 3.7, and 3.8ds, and Vampire 0.6, 1.0, and 1.8%
+Sledgehammer has been tested with E 1.0 to 1.4, LEO-II 1.3.4, Satallax 2.2, 2.3,
+and 2.4, SPASS 3.8ds, and Vampire 0.6, 1.0, and 1.8.%
 \footnote{Following the rewrite of Vampire, the counter for version numbers was
 reset to 0; hence the (new) Vampire versions 0.6, 1.0, and 1.8 are more recent
 than 9.0 or 11.5.}%
-. Since the ATPs' output formats are neither documented nor stable, other
+Since the ATPs' output formats are neither documented nor stable, other
 versions might not work well with Sledgehammer. Ideally,
 you should also set \texttt{E\_VERSION}, \texttt{LEO2\_VERSION},
 \texttt{SATALLAX\_VERSION}, \texttt{SPASS\_VERSION}, or
@@ -221,11 +221,11 @@ Yices or Z3 executable somewhere (e.g.,
 set the environment variable \texttt{CVC3\_\allowbreak SOLVER},
 \texttt{YICES\_SOLVER}, or \texttt{Z3\_SOLVER} to the complete path of
 the executable, \emph{including the file name}. Sledgehammer has been tested
-with Alt-Ergo 0.93, CVC3 2.2 and 2.4.1, Yices 1.0.28 and 1.0.33, and Z3 3.0 to 3.2.
-Since the SMT solvers' output formats are somewhat unstable, other
-versions of the solvers might not work well with Sledgehammer. Ideally,
+with Alt-Ergo 0.93, CVC3 2.2 and 2.4.1, Yices 1.0.28 and 1.0.33, and Z3 3.0,
+3.1, 3.2, and 4.0. Since the SMT solvers' output formats are somewhat unstable,
+other versions of the solvers might not work well with Sledgehammer. Ideally,
 also set \texttt{CVC3\_VERSION}, \texttt{YICES\_VERSION}, or
-\texttt{Z3\_VERSION} to the solver's version number (e.g., ``3.2'').
+\texttt{Z3\_VERSION} to the solver's version number (e.g., ``4.0'').
 \end{enum}
 \end{sloppy}
 
@@ -795,7 +795,7 @@ unidentified development version of Why3.
 Clark Barrett, Cesare Tinelli, and their colleagues \cite{cvc3}. To use CVC3,
 set the environment variable \texttt{CVC3\_SOLVER} to the complete path of the
 executable, including the file name, or install the prebuilt CVC3 package from
-\download. Sledgehammer has been tested with version 2.2.
+\download. Sledgehammer has been tested with version 2.2 and 2.4.1.
 
 \item[\labelitemi] \textbf{\textit{e}:} E is a first-order resolution prover
 developed by Stephan Schulz \cite{schulz-2002}. To use E, set the environment
@@ -827,15 +827,16 @@ prover developed by Christoph Weidenbach et al.\ \cite{weidenbach-et-al-2009}.
 To use SPASS, set the environment variable \texttt{SPASS\_HOME} to the directory
 that contains the \texttt{SPASS} executable and \texttt{SPASS\_VERSION} to the
 version number (e.g., ``3.8ds''), or install the prebuilt SPASS package from
-\download. Sledgehammer requires version 3.5 or above.
+\download. Sledgehammer requires version 3.8ds or above.
 
 \item[\labelitemi] \textbf{\textit{vampire}:} Vampire is a first-order resolution
 prover developed by Andrei Voronkov and his colleagues
 \cite{riazanov-voronkov-2002}. To use Vampire, set the environment variable
 \texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{vampire}
-executable and \texttt{VAMPIRE\_VERSION} to the version number (e.g., ``1.8'').
-Sledgehammer has been tested with versions 0.6, 1.0, and 1.8.
-Versions above 1.8 support the TPTP typed first-order format (TFF0).
+executable and \texttt{VAMPIRE\_VERSION} to the version number (e.g.,
+``1.8rev1435''). Sledgehammer has been tested with versions 0.6, 1.0, and 1.8.
+Versions strictly above 1.8 (e.g., ``1.8rev1435'') support the TPTP typed
+first-order format (TFF0).
 
 \item[\labelitemi] \textbf{\textit{yices}:} Yices is an SMT solver developed at
 SRI \cite{yices}. To use Yices, set the environment variable
@@ -846,7 +847,8 @@ file name. Sledgehammer has been tested with version 1.0.28.
 Microsoft Research \cite{z3}. To use Z3, set the environment variable
 \texttt{Z3\_SOLVER} to the complete path of the executable, including the file
 name, and set \texttt{Z3\_NON\_COMMERCIAL} to ``yes'' to confirm that you are a
-noncommercial user. Sledgehammer has been tested with versions 3.0 to 3.2.
+noncommercial user. Sledgehammer has been tested with versions 3.0, 3.1, 3.2,
+and 4.0.
 
 \item[\labelitemi] \textbf{\textit{z3\_tptp}:} This version of Z3 pretends to be
 an ATP, exploiting Z3's support for the TPTP untyped and typed first-order
@@ -898,7 +900,7 @@ TPTP typed first-order format (TFF0). The remote version of SNARK runs on
 Geoff Sutcliffe's Miami servers.
 
 \item[\labelitemi] \textbf{\textit{remote\_vampire}:} The remote version of
-Vampire runs on Geoff Sutcliffe's Miami servers. Version 1.8 is used.
+Vampire runs on Geoff Sutcliffe's Miami servers.
 
 \item[\labelitemi] \textbf{\textit{remote\_waldmeister}:} Waldmeister is a unit
 equality prover developed by Hillenbrand et al.\ \cite{waldmeister}. It can be
