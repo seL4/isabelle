@@ -1542,87 +1542,54 @@ unfolding fold_mset_def by blast
 context comp_fun_commute
 begin
 
+lemma fold_msetG_insertE_aux:
+  "fold_msetG f z A y \<Longrightarrow> a \<in># A \<Longrightarrow> \<exists>y'. y = f a y' \<and> fold_msetG f z (A - {#a#}) y'"
+proof (induct set: fold_msetG)
+  case (insertI A y x) show ?case
+  proof (cases "x = a")
+    assume "x = a" with insertI show ?case by auto
+  next
+    assume "x \<noteq> a"
+    then obtain y' where y: "y = f a y'" and y': "fold_msetG f z (A - {#a#}) y'"
+      using insertI by auto
+    have "f x y = f a (f x y')"
+      unfolding y by (rule fun_left_comm)
+    moreover have "fold_msetG f z (A + {#x#} - {#a#}) (f x y')"
+      using y' and `x \<noteq> a`
+      by (simp add: diff_union_swap [symmetric] fold_msetG.insertI)
+    ultimately show ?case by fast
+  qed
+qed simp
+
+lemma fold_msetG_insertE:
+  assumes "fold_msetG f z (A + {#x#}) v"
+  obtains y where "v = f x y" and "fold_msetG f z A y"
+using assms by (auto dest: fold_msetG_insertE_aux [where a=x])
+
 lemma fold_msetG_determ:
   "fold_msetG f z A x \<Longrightarrow> fold_msetG f z A y \<Longrightarrow> y = x"
-proof (induct arbitrary: x y z rule: full_multiset_induct)
-  case (less M x\<^isub>1 x\<^isub>2 Z)
-  have IH: "\<forall>A. A < M \<longrightarrow> 
-    (\<forall>x x' x''. fold_msetG f x'' A x \<longrightarrow> fold_msetG f x'' A x'
-               \<longrightarrow> x' = x)" by fact
-  have Mfoldx\<^isub>1: "fold_msetG f Z M x\<^isub>1" and Mfoldx\<^isub>2: "fold_msetG f Z M x\<^isub>2" by fact+
-  show ?case
-  proof (rule fold_msetG.cases [OF Mfoldx\<^isub>1])
-    assume "M = {#}" and "x\<^isub>1 = Z"
-    then show ?case using Mfoldx\<^isub>2 by auto 
-  next
-    fix B b u
-    assume "M = B + {#b#}" and "x\<^isub>1 = f b u" and Bu: "fold_msetG f Z B u"
-    then have MBb: "M = B + {#b#}" and x\<^isub>1: "x\<^isub>1 = f b u" by auto
-    show ?case
-    proof (rule fold_msetG.cases [OF Mfoldx\<^isub>2])
-      assume "M = {#}" "x\<^isub>2 = Z"
-      then show ?case using Mfoldx\<^isub>1 by auto
-    next
-      fix C c v
-      assume "M = C + {#c#}" and "x\<^isub>2 = f c v" and Cv: "fold_msetG f Z C v"
-      then have MCc: "M = C + {#c#}" and x\<^isub>2: "x\<^isub>2 = f c v" by auto
-      then have CsubM: "C < M" by simp
-      from MBb have BsubM: "B < M" by simp
-      show ?case
-      proof cases
-        assume *: "b = c"
-        then have "B = C" using MBb MCc by auto
-        with * show ?thesis using Bu Cv x\<^isub>1 x\<^isub>2 CsubM IH by auto
-      next
-        assume diff: "b \<noteq> c"
-        let ?D = "B - {#c#}"
-        have cinB: "c \<in># B" and binC: "b \<in># C" using MBb MCc diff
-          by (auto intro: insert_noteq_member dest: sym)
-        have "B - {#c#} < B" using cinB by (rule mset_less_diff_self)
-        then have DsubM: "?D < M" using BsubM by (blast intro: order_less_trans)
-        from MBb MCc have "B + {#b#} = C + {#c#}" by blast
-        then have [simp]: "B + {#b#} - {#c#} = C"
-          using MBb MCc binC cinB by auto
-        have B: "B = ?D + {#c#}" and C: "C = ?D + {#b#}"
-          using MBb MCc diff binC cinB
-          by (auto simp: multiset_add_sub_el_shuffle)
-        then obtain d where Dfoldd: "fold_msetG f Z ?D d"
-          using fold_msetG_nonempty by iprover
-        then have "fold_msetG f Z B (f c d)" using cinB
-          by (rule Diff1_fold_msetG)
-        then have "f c d = u" using IH BsubM Bu by blast
-        moreover 
-        have "fold_msetG f Z C (f b d)" using binC cinB diff Dfoldd
-          by (auto simp: multiset_add_sub_el_shuffle 
-            dest: fold_msetG.insertI [where x=b])
-        then have "f b d = v" using IH CsubM Cv by blast
-        ultimately show ?thesis using x\<^isub>1 x\<^isub>2
-          by (auto simp: fun_left_comm)
-      qed
-    qed
-  qed
-qed
-        
-lemma fold_mset_insert_aux:
-  "(fold_msetG f z (A + {#x#}) v) =
-    (\<exists>y. fold_msetG f z A y \<and> v = f x y)"
-apply (rule iffI)
- prefer 2
- apply blast
-apply (rule_tac A1=A and f1=f in fold_msetG_nonempty [THEN exE])
-apply (blast intro: fold_msetG_determ)
-done
+proof (induct arbitrary: y set: fold_msetG)
+  case (insertI A y x v)
+  from `fold_msetG f z (A + {#x#}) v`
+  obtain y' where "v = f x y'" and "fold_msetG f z A y'"
+    by (rule fold_msetG_insertE)
+  from `fold_msetG f z A y'` have "y' = y" by (rule insertI)
+  with `v = f x y'` show "v = f x y" by simp
+qed fast
 
 lemma fold_mset_equality: "fold_msetG f z A y \<Longrightarrow> fold_mset f z A = y"
 unfolding fold_mset_def by (blast intro: fold_msetG_determ)
 
+lemma fold_msetG_fold_mset: "fold_msetG f z A (fold_mset f z A)"
+proof -
+  from fold_msetG_nonempty fold_msetG_determ
+  have "\<exists>!x. fold_msetG f z A x" by (rule ex_ex1I)
+  then show ?thesis unfolding fold_mset_def by (rule theI')
+qed
+
 lemma fold_mset_insert:
   "fold_mset f z (A + {#x#}) = f x (fold_mset f z A)"
-apply (simp add: fold_mset_def fold_mset_insert_aux)
-apply (rule the_equality)
- apply (auto cong add: conj_cong 
-     simp add: fold_mset_def [symmetric] fold_mset_equality fold_msetG_nonempty)
-done
+by (intro fold_mset_equality fold_msetG.insertI fold_msetG_fold_mset)
 
 lemma fold_mset_commute: "f x (fold_mset f z A) = fold_mset f (f x z) A"
 by (induct A) (auto simp: fold_mset_insert fun_left_comm [of x])
