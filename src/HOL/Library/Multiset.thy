@@ -827,6 +827,9 @@ apply (induct N)
 apply (simp add: add_assoc [symmetric] image_mset_insert)
 done
 
+lemma set_of_image_mset [simp]: "set_of (image_mset f M) = image f (set_of M)"
+by (induct M) simp_all
+
 lemma size_image_mset [simp]: "size (image_mset f M) = size M"
 by (induct M) simp_all
 
