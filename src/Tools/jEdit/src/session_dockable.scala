@@ -64,6 +64,11 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   session_phase.border = new SoftBevelBorder(BevelBorder.LOWERED)
   session_phase.tooltip = "Prover status"
 
+  private def handle_phase(phase: Session.Phase)
+  {
+    Swing_Thread.later { session_phase.text = " " + phase.toString + " " }
+  }
+
   private val cancel = new Button("Cancel") {
     reactions += { case ButtonClicked(_) => Isabelle.cancel_execution() }
   }
@@ -173,8 +178,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
               if (text != syslog.text) syslog.text = text
             }
 
-        case phase: Session.Phase =>
-          Swing_Thread.later { session_phase.text = " " + phase.toString + " " }
+        case phase: Session.Phase => handle_phase(phase)
 
         case changed: Session.Commands_Changed => handle_update(Some(changed.nodes))
 
@@ -183,17 +187,22 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
     }
   }
 
-  override def init() {
+  override def init()
+  {
     Isabelle.session.syslog_messages += main_actor
     Isabelle.session.phase_changed += main_actor
+    handle_phase(Isabelle.session.phase)
     Isabelle.session.commands_changed += main_actor
+    handle_update()
   }
 
-  override def exit() {
+  override def exit()
+  {
     Isabelle.session.syslog_messages -= main_actor
     Isabelle.session.phase_changed -= main_actor
     Isabelle.session.commands_changed -= main_actor
   }
 
+  handle_phase(Isabelle.session.phase)
   handle_update()
 }
