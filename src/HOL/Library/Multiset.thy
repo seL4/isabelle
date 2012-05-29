@@ -79,7 +79,7 @@ subsection {* Representing multisets *}
 
 text {* Multiset enumeration *}
 
-instantiation multiset :: (type) "{zero, plus}"
+instantiation multiset :: (type) cancel_comm_monoid_add
 begin
 
 lift_definition zero_multiset :: "'a multiset" is "\<lambda>a. 0"
@@ -91,7 +91,8 @@ abbreviation Mempty :: "'a multiset" ("{#}") where
 lift_definition plus_multiset :: "'a multiset => 'a multiset => 'a multiset" is "\<lambda>M N. (\<lambda>a. M a + N a)"
 by (rule union_preserves_multiset)
 
-instance ..
+instance
+by default (transfer, simp add: fun_eq_iff)+
 
 end
 
@@ -117,9 +118,6 @@ subsubsection {* Union *}
 
 lemma count_union [simp]: "count (M + N) a = count M a + count N a"
   by (simp add: plus_multiset.rep_eq)
-
-instance multiset :: (type) cancel_comm_monoid_add
-  by default (simp_all add: multiset_eq_iff)
 
 
 subsubsection {* Difference *}
