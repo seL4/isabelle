@@ -563,4 +563,43 @@ oops
 
 declare [[quickcheck_full_support = true]]
 
+
+subsection {* Equality Optimisation *}
+
+lemma
+  "f x = y ==> y = (0 :: nat)"
+quickcheck
+oops
+
+lemma
+  "y = f x ==> y = (0 :: nat)"
+quickcheck
+oops
+
+lemma
+  "f y = zz # zzs ==> zz = (0 :: nat) \<and> zzs = []"
+quickcheck
+oops
+
+lemma
+  "f y = x # x' # xs ==> x = (0 :: nat) \<and> x' = 0 \<and> xs = []"
+quickcheck
+oops
+
+lemma
+  "x = f x \<Longrightarrow> x = (0 :: nat)"
+quickcheck
+oops
+
+lemma
+  "f y = x # x # xs ==> x = (0 :: nat) \<and> xs = []"
+quickcheck
+oops
+
+lemma
+  "m1 k = Some v \<Longrightarrow> (m1 ++ m2) k = Some v"
+quickcheck
+oops
+
+
 end

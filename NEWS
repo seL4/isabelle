@@ -17,6 +17,13 @@ without exception positions and advanced ML compiler/toplevel
 configuration.
 
 
+*** HOL ***
+
+* Quickcheck:
+
+  - added an optimisation for equality premises.
+    It is switched on by default, and can be switched off by setting
+    the configuration quickcheck_optimise_equality to false.    
 
 New in Isabelle2012 (May 2012)
 ------------------------------
