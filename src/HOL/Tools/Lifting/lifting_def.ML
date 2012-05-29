@@ -109,7 +109,7 @@ fun prove_rel ctxt rsp_thm (rty, qty) =
 exception CODE_CERT_GEN of string
 
 fun simplify_code_eq ctxt def_thm = 
-  Local_Defs.unfold ctxt [@{thm o_def}, @{thm map_fun_def}, @{thm id_def}] def_thm
+  Local_Defs.unfold ctxt [@{thm o_apply}, @{thm map_fun_def}, @{thm id_apply}] def_thm
 
 (*
   quot_thm - quotient theorem (Quotient R Abs Rep T).
