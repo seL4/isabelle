@@ -236,6 +236,8 @@ object Isabelle_Markup
   val STDERR = "stderr"
   val EXIT = "exit"
 
+  val Return_Code = new Properties.Int("return_code")
+
   val LEGACY = "legacy"
 
   val NO_REPORT = "no_report"

@@ -181,6 +181,7 @@ isabelle-output.dock-position=bottom
 isabelle-output.height=174
 isabelle-output.width=412
 isabelle-session.dock-position=bottom
+isabelle-readme.dock-position=bottom
 line-end.shortcut=END
 line-home.shortcut=HOME
 lookAndFeel=com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel

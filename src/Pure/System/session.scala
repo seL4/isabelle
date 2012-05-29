@@ -174,7 +174,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
 
   /* actor messages */
 
-  private case class Start(timeout: Time, args: List[String])
+  private case class Start(args: List[String])
   private case object Cancel_Execution
   private case class Edit(edits: List[Document.Edit_Text])
   private case class Change(
@@ -369,10 +369,12 @@ class Session(thy_load: Thy_Load = new Thy_Load)
         case Isabelle_Markup.Keyword_Decl(name) if output.is_protocol =>
           prover_syntax += name
 
+        case Isabelle_Markup.Return_Code(rc) if output.is_exit =>
+          if (rc == 0) phase = Session.Inactive
+          else phase = Session.Failed
+
         case _ =>
-          if (output.is_exit && phase == Session.Startup) phase = Session.Failed
-          else if (output.is_exit) phase = Session.Inactive
-          else if (output.is_init || output.is_stdout) { }
+          if (output.is_init || output.is_stdout) { }
           else bad_output(output)
       }
     }
@@ -387,10 +389,10 @@ class Session(thy_load: Thy_Load = new Thy_Load)
       receiveWithin(delay_commands_changed.flush_timeout) {
         case TIMEOUT => delay_commands_changed.flush()
 
-        case Start(timeout, args) if prover.isEmpty =>
+        case Start(args) if prover.isEmpty =>
           if (phase == Session.Inactive || phase == Session.Failed) {
             phase = Session.Startup
-            prover = Some(new Isabelle_Process(timeout, receiver.invoke _, args) with Protocol)
+            prover = Some(new Isabelle_Process(receiver.invoke _, args) with Protocol)
           }
 
         case Stop =>
@@ -444,10 +446,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
 
   /* actions */
 
-  def start(timeout: Time, args: List[String])
-  { session_actor ! Start(timeout, args) }
-
-  def start(args: List[String]) { start (Time.seconds(25), args) }
+  def start(args: List[String]) { session_actor ! Start(args) }
 
   def stop() { commands_changed_buffer !? Stop; change_parser !? Stop; session_actor !? Stop }
 

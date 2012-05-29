@@ -22,8 +22,10 @@ declare -a SOURCES=(
   "src/plugin.scala"
   "src/protocol_dockable.scala"
   "src/raw_output_dockable.scala"
+  "src/readme_dockable.scala"
   "src/scala_console.scala"
   "src/session_dockable.scala"
+  "src/syslog_dockable.scala"
   "src/text_area_painter.scala"
   "src/text_overview.scala"
   "src/token_markup.scala"
@@ -260,7 +262,7 @@ mkdir -p "$JEDIT_SETTINGS/DockableWindowManager"
 
 if [ ! -e "$JEDIT_SETTINGS/perspective.xml" ]; then
   cat > "$JEDIT_SETTINGS/DockableWindowManager/perspective-view0.xml" <<EOF
-<DOCKING LEFT="" TOP="" RIGHT="" BOTTOM="isabelle-session" LEFT_POS="0" TOP_POS="0" RIGHT_POS="250" BOTTOM_POS="250" />
+<DOCKING LEFT="" TOP="" RIGHT="" BOTTOM="isabelle-readme" LEFT_POS="0" TOP_POS="0" RIGHT_POS="250" BOTTOM_POS="250" />
 EOF
   cat > "$JEDIT_SETTINGS/perspective.xml" <<EOF
 <?xml version="1.0" encoding="UTF-8" ?>
