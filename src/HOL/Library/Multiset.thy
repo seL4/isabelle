@@ -547,67 +547,18 @@ apply (induct rule: finite_induct)
 apply (drule_tac a = a in mk_disjoint_insert, auto)
 done
 
-lemma rep_multiset_induct_aux:
-assumes 1: "P (\<lambda>a. (0::nat))"
-  and 2: "!!f b. f \<in> multiset ==> P f ==> P (f (b := f b + 1))"
-shows "\<forall>f. f \<in> multiset --> setsum f {x. f x \<noteq> 0} = n --> P f"
-apply (unfold multiset_def)
-apply (induct_tac n, simp, clarify)
- apply (subgoal_tac "f = (\<lambda>a.0)")
-  apply simp
-  apply (rule 1)
- apply (rule ext, force, clarify)
-apply (frule setsum_SucD, clarify)
-apply (rename_tac a)
-apply (subgoal_tac "finite {x. (f (a := f a - 1)) x > 0}")
- prefer 2
- apply (rule finite_subset)
-  prefer 2
-  apply assumption
- apply simp
- apply blast
-apply (subgoal_tac "f = (f (a := f a - 1))(a := (f (a := f a - 1)) a + 1)")
- prefer 2
- apply (rule ext)
- apply (simp (no_asm_simp))
- apply (erule ssubst, rule 2 [unfolded multiset_def], blast)
-apply (erule allE, erule impE, erule_tac [2] mp, blast)
-apply (simp (no_asm_simp) add: setsum_decr del: fun_upd_apply One_nat_def)
-apply (subgoal_tac "{x. x \<noteq> a --> f x \<noteq> 0} = {x. f x \<noteq> 0}")
- prefer 2
- apply blast
-apply (subgoal_tac "{x. x \<noteq> a \<and> f x \<noteq> 0} = {x. f x \<noteq> 0} - {a}")
- prefer 2
- apply blast
-apply (simp add: le_imp_diff_is_add setsum_diff1_nat cong: conj_cong)
-done
-
-theorem rep_multiset_induct:
-  "f \<in> multiset ==> P (\<lambda>a. 0) ==>
-    (!!f b. f \<in> multiset ==> P f ==> P (f (b := f b + 1))) ==> P f"
-using rep_multiset_induct_aux by blast
-
 theorem multiset_induct [case_names empty add, induct type: multiset]:
-assumes empty: "P {#}"
-  and add: "!!M x. P M ==> P (M + {#x#})"
-shows "P M"
-proof -
-  note defns = plus_multiset_def single_def zero_multiset_def
-  note add' = add [unfolded defns, simplified]
-  have aux: "\<And>a::'a. count (Abs_multiset (\<lambda>b. if b = a then 1 else 0)) =
-    (\<lambda>b. if b = a then 1 else 0)" by (simp add: Abs_multiset_inverse in_multiset) 
-  show ?thesis
-    apply (rule count_inverse [THEN subst])
-    apply (rule count [THEN rep_multiset_induct])
-     apply (rule empty [unfolded defns])
-    apply (subgoal_tac "f(b := f b + 1) = (\<lambda>a. f a + (if a=b then 1 else 0))")
-     prefer 2
-     apply (simp add: fun_eq_iff)
-    apply (erule ssubst)
-    apply (erule Abs_multiset_inverse [THEN subst])
-    apply (drule add')
-    apply (simp add: aux)
-    done
+  assumes empty: "P {#}"
+  assumes add: "\<And>M x. P M \<Longrightarrow> P (M + {#x#})"
+  shows "P M"
+proof (induct n \<equiv> "size M" arbitrary: M)
+  case 0 thus "P M" by (simp add: empty)
+next
+  case (Suc k)
+  obtain N x where "M = N + {#x#}"
+    using `Suc k = size M` [symmetric]
+    using size_eq_Suc_imp_eq_union by fast
+  with Suc add show "P M" by simp
 qed
 
 lemma multi_nonempty_split: "M \<noteq> {#} \<Longrightarrow> \<exists>A a. M = A + {#a#}"
@@ -617,20 +568,10 @@ lemma multiset_cases [cases type, case_names empty add]:
 assumes em:  "M = {#} \<Longrightarrow> P"
 assumes add: "\<And>N x. M = N + {#x#} \<Longrightarrow> P"
 shows "P"
-proof (cases "M = {#}")
-  assume "M = {#}" then show ?thesis using em by simp
-next
-  assume "M \<noteq> {#}"
-  then obtain M' m where "M = M' + {#m#}" 
-    by (blast dest: multi_nonempty_split)
-  then show ?thesis using add by simp
-qed
+using assms by (induct M) simp_all
 
 lemma multi_member_split: "x \<in># M \<Longrightarrow> \<exists>A. M = A + {#x#}"
-apply (cases M)
- apply simp
-apply (rule_tac x="M - {#x#}" in exI, simp)
-done
+by (rule_tac x="M - {#x#}" in exI, simp)
 
 lemma multi_drop_mem_not_eq: "c \<in># B \<Longrightarrow> B - {#c#} \<noteq> B"
 by (cases "B = {#}") (auto dest: multi_member_split)
