@@ -539,14 +539,6 @@ qed
 
 subsection {* Induction and case splits *}
 
-lemma setsum_decr:
-  "finite F ==> (0::nat) < f a ==>
-    setsum (f (a := f a - 1)) F = (if a\<in>F then setsum f F - 1 else setsum f F)"
-apply (induct rule: finite_induct)
- apply auto
-apply (drule_tac a = a in mk_disjoint_insert, auto)
-done
-
 theorem multiset_induct [case_names empty add, induct type: multiset]:
   assumes empty: "P {#}"
   assumes add: "\<And>M x. P M \<Longrightarrow> P (M + {#x#})"
