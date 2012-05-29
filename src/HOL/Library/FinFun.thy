@@ -417,15 +417,15 @@ qed
 lift_definition finfun_default :: "'a \<Rightarrow>\<^isub>f 'b \<Rightarrow> 'b"
 is "finfun_default_aux" ..
 
-lemma finite_finfun_default: "finite {a. finfun_apply f a \<noteq> finfun_default f}"
-apply transfer apply (erule finite_finfun_default_aux)
+lemma finfun_apply_transfer [transfer_rule]: 
+  "(fun_rel cr_finfun (fun_rel op = op =)) (\<lambda>f. f) finfun_apply"
 unfolding Rel_def fun_rel_def cr_finfun_def by simp
 
+lemma finite_finfun_default: "finite {a. finfun_apply f a \<noteq> finfun_default f}"
+by transfer (erule finite_finfun_default_aux)
+
 lemma finfun_default_const: "finfun_default ((\<lambda>\<^isup>f b) :: 'a \<Rightarrow>\<^isub>f 'b) = (if finite (UNIV :: 'a set) then undefined else b)"
-apply(transfer)
-apply(auto simp add: finfun_default_aux_infinite)
-apply(simp add: finfun_default_aux_def)
-done
+by(transfer)(auto simp add: finfun_default_aux_infinite finfun_default_aux_def)
 
 lemma finfun_default_update_const:
   "finfun_default (f(\<^sup>f a := b)) = finfun_default f"
