@@ -104,9 +104,10 @@ class Isabelle_Process(
     }
   }
 
-  private def output_message(kind: String, text: String)
+  private def exit_message(rc: Int)
   {
-    output_message(kind, Nil, List(XML.Text(Symbol.decode(text))))
+    output_message(Isabelle_Markup.EXIT, Isabelle_Markup.Return_Code(rc),
+      List(XML.Text("Return code: " + rc.toString)))
   }
 
 
@@ -172,7 +173,7 @@ class Isabelle_Process(
     if (startup_errors != "") system_output(startup_errors)
 
     if (startup_failed) {
-      output_message(Isabelle_Markup.EXIT, "Return code: 127")
+      exit_message(127)
       process.stdin.close
       Thread.sleep(300)
       terminate_process()
@@ -192,7 +193,7 @@ class Isabelle_Process(
       for ((thread, _) <- List(standard_input, stdout, stderr, command_input, message))
         thread.join
       system_output("process_manager terminated")
-      output_message(Isabelle_Markup.EXIT, "Return code: " + rc.toString)
+      exit_message(rc)
     }
     system_channel.accepted()
   }
@@ -263,7 +264,7 @@ class Isabelle_Process(
             else done = true
           }
           if (result.length > 0) {
-            output_message(markup, result.toString)
+            output_message(markup, Nil, List(XML.Text(Symbol.decode(result.toString))))
             result.length = 0
           }
           else {
