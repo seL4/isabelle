@@ -190,6 +190,7 @@ class Isabelle_Process(
 
       val rc = process_result.join
       system_output("process terminated")
+      close_input()
       for ((thread, _) <- List(standard_input, stdout, stderr, command_input, message))
         thread.join
       system_output("process_manager terminated")
@@ -205,7 +206,7 @@ class Isabelle_Process(
 
   def terminate()
   {
-    close()
+    close_input()
     system_output("Terminating Isabelle process")
     terminate_process()
   }
@@ -400,5 +401,5 @@ class Isabelle_Process(
     input_bytes(name, args.map(Standard_System.string_bytes): _*)
   }
 
-  def close(): Unit = { close(command_input); close(standard_input) }
+  def close_input(): Unit = { close(command_input); close(standard_input) }
 }
