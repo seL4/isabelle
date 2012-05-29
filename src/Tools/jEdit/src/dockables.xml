@@ -5,6 +5,9 @@
 	<DOCKABLE NAME="isabelle-session" MOVABLE="TRUE">
 		new isabelle.jedit.Session_Dockable(view, position);
 	</DOCKABLE>
+	<DOCKABLE NAME="isabelle-readme" MOVABLE="TRUE">
+		new isabelle.jedit.README_Dockable(view, position);
+	</DOCKABLE>
 	<DOCKABLE NAME="isabelle-output" MOVABLE="TRUE">
 		new isabelle.jedit.Output_Dockable(view, position);
 	</DOCKABLE>

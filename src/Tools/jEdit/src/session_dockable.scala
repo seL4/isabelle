@@ -26,12 +26,6 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
 {
   /* main tabs */
 
-  private val readme = new HTML_Panel("SansSerif", 14)
-  private val readme_path = Path.explode("$JEDIT_HOME/README.html")
-  readme.render_document(
-    Isabelle_System.platform_file_url(readme_path),
-    Isabelle_System.try_read(List(readme_path)))
-
   val status = new ListView(Nil: List[Document.Node.Name]) {
     listenTo(mouse.clicks)
     reactions += {
@@ -46,7 +40,6 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   private val syslog = new TextArea(Isabelle.session.current_syslog())
 
   private val tabs = new TabbedPane {
-    pages += new TabbedPane.Page("README", Component.wrap(readme))
     pages += new TabbedPane.Page("Theory Status", new ScrollPane(status))
     pages += new TabbedPane.Page("System Log", new ScrollPane(syslog))
 

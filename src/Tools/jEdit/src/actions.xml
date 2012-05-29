@@ -7,6 +7,11 @@
 			wm.addDockableWindow("isabelle-session");
 		</CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.readme-panel">
+		<CODE>
+			wm.addDockableWindow("isabelle-readme");
+		</CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.output-panel">
 		<CODE>
 			wm.addDockableWindow("isabelle-output");
