@@ -10,8 +10,7 @@ package isabelle.jedit
 import isabelle._
 
 import scala.actors.Actor._
-import scala.swing.{FlowPanel, Button, TextArea, Label, ListView, Alignment,
-  ScrollPane, TabbedPane, Component, Swing}
+import scala.swing.{FlowPanel, Button, TextArea, Label, ListView, Alignment, Component}
 import scala.swing.event.{ButtonClicked, MouseClicked, SelectionChanged}
 
 import java.lang.System
@@ -24,9 +23,9 @@ import org.gjt.sp.jedit.{View, jEdit}
 
 class Session_Dockable(view: View, position: String) extends Dockable(view: View, position: String)
 {
-  /* main tabs */
+  /* status */
 
-  val status = new ListView(Nil: List[Document.Node.Name]) {
+  private val status = new ListView(Nil: List[Document.Node.Name]) {
     listenTo(mouse.clicks)
     reactions += {
       case MouseClicked(_, point, _, clicks, _) if clicks == 2 =>
@@ -37,30 +36,12 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   status.peer.setLayoutOrientation(JList.VERTICAL_WRAP)
   status.selection.intervalMode = ListView.IntervalMode.Single
 
-  private val syslog = new TextArea(Isabelle.session.current_syslog())
-
-  private val tabs = new TabbedPane {
-    pages += new TabbedPane.Page("Theory Status", new ScrollPane(status))
-    pages += new TabbedPane.Page("System Log", new ScrollPane(syslog))
-
-    selection.index =
-    {
-      val index = Isabelle.Int_Property("session-panel.selection", 0)
-      if (index >= pages.length) 0 else index
-    }
-    listenTo(selection)
-    reactions += {
-      case SelectionChanged(_) =>
-        Isabelle.Int_Property("session-panel.selection") = selection.index
-    }
-  }
-
-  set_content(tabs)
+  set_content(status)
 
 
   /* controls */
 
-  val session_phase = new Label(Isabelle.session.phase.toString)
+  private val session_phase = new Label(Isabelle.session.phase.toString)
   session_phase.border = new SoftBevelBorder(BevelBorder.LOWERED)
   session_phase.tooltip = "Prover status"
 
@@ -171,13 +152,6 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   private val main_actor = actor {
     loop {
       react {
-        case output: Isabelle_Process.Output =>
-          if (output.is_syslog)
-            Swing_Thread.later {
-              val text = Isabelle.session.current_syslog()
-              if (text != syslog.text) syslog.text = text
-            }
-
         case phase: Session.Phase => handle_phase(phase)
 
         case changed: Session.Commands_Changed => handle_update(Some(changed.nodes))
@@ -189,20 +163,13 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
 
   override def init()
   {
-    Isabelle.session.syslog_messages += main_actor
-    Isabelle.session.phase_changed += main_actor
-    handle_phase(Isabelle.session.phase)
-    Isabelle.session.commands_changed += main_actor
-    handle_update()
+    Isabelle.session.phase_changed += main_actor; handle_phase(Isabelle.session.phase)
+    Isabelle.session.commands_changed += main_actor; handle_update()
   }
 
   override def exit()
   {
-    Isabelle.session.syslog_messages -= main_actor
     Isabelle.session.phase_changed -= main_actor
     Isabelle.session.commands_changed -= main_actor
   }
-
-  handle_phase(Isabelle.session.phase)
-  handle_update()
 }
