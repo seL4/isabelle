@@ -441,7 +441,8 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Library/Abstract_Rat.thy $(SRC)/Tools/Adhoc_Overloading.thy		\
   Library/AList.thy Library/AList_Mapping.thy 				\
   Library/BigO.thy Library/Binomial.thy 				\
-  Library/Bit.thy Library/Boolean_Algebra.thy Library/Cardinality.thy	\
+  Library/Bit.thy Library/Boolean_Algebra.thy Library/Card_Univ.thy	\
+  Library/Cardinality.thy						\
   Library/Char_nat.thy Library/Code_Char.thy Library/Code_Char_chr.thy	\
   Library/Code_Char_ord.thy Library/Code_Integer.thy			\
   Library/Code_Nat.thy Library/Code_Natural.thy				\
@@ -453,7 +454,8 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Library/Dlist.thy Library/Eval_Witness.thy				\
   Library/DAList.thy Library/Dlist.thy					\
   Library/Eval_Witness.thy						\
-  Library/Extended_Real.thy Library/Extended_Nat.thy Library/Float.thy	\
+  Library/Extended_Real.thy Library/Extended_Nat.thy			\
+  Library/FinFun.thy Library/Float.thy					\
   Library/Formal_Power_Series.thy Library/Fraction_Field.thy		\
   Library/FrechetDeriv.thy Library/FuncSet.thy				\
   Library/Function_Algebras.thy Library/Fundamental_Theorem_Algebra.thy	\
@@ -1020,7 +1022,8 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy	\
   ex/Case_Product.thy ex/Chinese.thy ex/Classical.thy			\
   ex/Code_Nat_examples.thy						\
   ex/Coercion_Examples.thy ex/Coherent.thy ex/Dedekind_Real.thy		\
-  ex/Eval_Examples.thy ex/Executable_Relation.thy ex/Fundefs.thy	\
+  ex/Eval_Examples.thy ex/Executable_Relation.thy 			\
+  ex/FinFunPred.thy ex/Fundefs.thy					\
   ex/Gauge_Integration.thy ex/Groebner_Examples.thy ex/Guess.thy	\
   ex/HarmonicSeries.thy ex/Hebrew.thy ex/Hex_Bin_Examples.thy		\
   ex/Higher_Order_Logic.thy ex/Iff_Oracle.thy ex/Induction_Schema.thy	\

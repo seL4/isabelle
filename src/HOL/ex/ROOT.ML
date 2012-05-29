@@ -11,7 +11,8 @@ no_document use_thys [
   "Normalization_by_Evaluation",
   "Hebrew",
   "Chinese",
-  "Serbian"
+  "Serbian",
+  "~~/src/HOL/Library/FinFun"
 ];
 
 use_thys [
@@ -70,7 +71,8 @@ use_thys [
   "List_to_Set_Comprehension_Examples",
   "Seq",
   "Simproc_Tests",
-  "Executable_Relation"
+  "Executable_Relation",
+  "FinFunPred"
 ];
 
 use_thy "SVC_Oracle";

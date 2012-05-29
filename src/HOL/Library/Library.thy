@@ -14,6 +14,7 @@ imports
   Countable
   Eval_Witness
   Extended_Nat
+  FinFun
   Float
   Formal_Power_Series
   Fraction_Field
