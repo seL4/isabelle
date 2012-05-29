@@ -682,6 +682,9 @@ by (induct x) auto
 lemma mem_set_multiset_eq: "x \<in> set xs = (x :# multiset_of xs)"
 by (induct xs) auto
 
+lemma size_multiset_of [simp]: "size (multiset_of xs) = length xs"
+  by (induct xs) simp_all
+
 lemma multiset_of_append [simp]:
   "multiset_of (xs @ ys) = multiset_of xs + multiset_of ys"
   by (induct xs arbitrary: ys) (auto simp: add_ac)
@@ -755,45 +758,12 @@ by (induct xs) (auto simp add: multiset_eq_iff)
 lemma multiset_of_eq_length:
   assumes "multiset_of xs = multiset_of ys"
   shows "length xs = length ys"
-using assms
-proof (induct xs arbitrary: ys)
-  case Nil then show ?case by simp
-next
-  case (Cons x xs)
-  then have "x \<in># multiset_of ys" by (simp add: union_single_eq_member)
-  then have "x \<in> set ys" by (simp add: in_multiset_in_set)
-  from Cons.prems [symmetric] have "multiset_of xs = multiset_of (remove1 x ys)"
-    by simp
-  with Cons.hyps have "length xs = length (remove1 x ys)" .
-  with `x \<in> set ys` show ?case
-    by (auto simp add: length_remove1 dest: length_pos_if_in_set)
-qed
+  using assms by (metis size_multiset_of)
 
 lemma multiset_of_eq_length_filter:
   assumes "multiset_of xs = multiset_of ys"
   shows "length (filter (\<lambda>x. z = x) xs) = length (filter (\<lambda>y. z = y) ys)"
-proof (cases "z \<in># multiset_of xs")
-  case False
-  moreover have "\<not> z \<in># multiset_of ys" using assms False by simp
-  ultimately show ?thesis by (simp add: count_multiset_of_length_filter)
-next
-  case True
-  moreover have "z \<in># multiset_of ys" using assms True by simp
-  show ?thesis using assms
-  proof (induct xs arbitrary: ys)
-    case Nil then show ?case by simp
-  next
-    case (Cons x xs)
-    from `multiset_of (x # xs) = multiset_of ys` [symmetric]
-      have *: "multiset_of xs = multiset_of (remove1 x ys)"
-      and "x \<in> set ys"
-      by (auto simp add: mem_set_multiset_eq)
-    from * have "length (filter (\<lambda>x. z = x) xs) = length (filter (\<lambda>y. z = y) (remove1 x ys))" by (rule Cons.hyps)
-    moreover from `x \<in> set ys` have "length (filter (\<lambda>y. x = y) ys) > 0" by (simp add: filter_empty_conv)
-    ultimately show ?case using `x \<in> set ys`
-      by (simp add: filter_remove1) (auto simp add: length_remove1)
-  qed
-qed
+  using assms by (metis count_multiset_of)
 
 lemma fold_multiset_equiv:
   assumes f: "\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> f x \<circ> f y = f y \<circ> f x"
