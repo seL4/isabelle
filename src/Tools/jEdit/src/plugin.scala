@@ -295,14 +295,13 @@ object Isabelle
 
   def start_session()
   {
-    val timeout = Time_Property("startup-timeout", Time.seconds(25)) max Time.seconds(5)
     val modes = space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE")).map("-m" + _)
     val logic = {
       val logic = Property("logic")
       if (logic != null && logic != "") logic
       else Isabelle.default_logic()
     }
-    session.start(timeout, modes ::: List(logic))
+    session.start(modes ::: List(logic))
   }
 
 

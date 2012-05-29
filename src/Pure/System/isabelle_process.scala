@@ -77,7 +77,6 @@ object Isabelle_Process
 
 
 class Isabelle_Process(
-    timeout: Time = Time.seconds(25),
     receiver: Isabelle_Process.Message => Unit = Console.println(_),
     args: List[String] = Nil)
 {
@@ -155,18 +154,18 @@ class Isabelle_Process(
   {
     val (startup_failed, startup_errors) =
     {
-      val expired = System.currentTimeMillis() + timeout.ms
-      val result = new StringBuilder(100)
-
       var finished: Option[Boolean] = None
-      while (finished.isEmpty && System.currentTimeMillis() <= expired) {
+      val result = new StringBuilder(100)
+      while (finished.isEmpty && (process.stderr.ready || !process_result.is_finished)) {
         while (finished.isEmpty && process.stderr.ready) {
-          val c = process.stderr.read
-          if (c == 2) finished = Some(true)
-          else result += c.toChar
+          try {
+            val c = process.stderr.read
+            if (c == 2) finished = Some(true)
+            else result += c.toChar
+          }
+          catch { case _: IOException => finished = Some(false) }
         }
-        if (process_result.is_finished) finished = Some(false)
-        else Thread.sleep(10)
+        Thread.sleep(10)
       }
       (finished.isEmpty || !finished.get, result.toString.trim)
     }
