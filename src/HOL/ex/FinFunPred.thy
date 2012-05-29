@@ -195,7 +195,7 @@ by (metis iso_finfun_le less_finfun_def less_fun_def)
 
 lemma iso_finfun_eq [code_unfold]:
   "A\<^sub>f = B\<^sub>f \<longleftrightarrow> A = B"
-by(simp add: expand_finfun_eq)
+by(simp only: expand_finfun_eq)
 
 lemma iso_finfun_sup [code_unfold]:
   "sup A\<^sub>f B\<^sub>f = (sup A B)\<^sub>f"
