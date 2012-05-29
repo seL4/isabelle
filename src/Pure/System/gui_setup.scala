@@ -55,7 +55,7 @@ object GUI_Setup extends SwingApplication
       val isabelle_home_windows = Isabelle_System.getenv("ISABELLE_HOME_WINDOWS")
       if (isabelle_home_windows != "")
         text.append("Isabelle home (Windows): " + isabelle_home_windows + "\n")
-      text.append("Isabelle jdk home: " + Isabelle_System.getenv("ISABELLE_JDK_HOME") + "\n")
+      text.append("Isabelle JDK home: " + Isabelle_System.getenv("ISABELLE_JDK_HOME") + "\n")
     }
     catch { case ERROR(msg) => text.append(msg + "\n") }
 
