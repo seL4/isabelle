@@ -20,7 +20,7 @@ definition [code del]: "(f\<Colon>'a \<Rightarrow>f 'b) < g \<longleftrightarrow
 instance ..
 
 lemma le_finfun_code [code]:
-  "f \<le> g \<longleftrightarrow> finfun_All ((\<lambda>(x, y). x \<le> y) \<circ>\<^isub>f (f, g)\<^sup>f)"
+  "f \<le> g \<longleftrightarrow> finfun_All ((\<lambda>(x, y). x \<le> y) \<circ>$ (f, g)\<^sup>f)"
 by(simp add: le_finfun_def finfun_All_All o_def)
 
 end
@@ -48,7 +48,7 @@ lemma top_finfun_apply [simp]: "op $ top = (\<lambda>_. top)"
 by(auto simp add: top_finfun_def)
 
 instantiation "finfun" :: (type, inf) inf begin
-definition [code]: "inf f g = (\<lambda>(x, y). inf x y) \<circ>\<^isub>f (f, g)\<^sup>f"
+definition [code]: "inf f g = (\<lambda>(x, y). inf x y) \<circ>$ (f, g)\<^sup>f"
 instance ..
 end
 
@@ -56,7 +56,7 @@ lemma inf_finfun_apply [simp]: "op $ (inf f g) = inf (op $ f) (op $ g)"
 by(auto simp add: inf_finfun_def o_def inf_fun_def)
 
 instantiation "finfun" :: (type, sup) sup begin
-definition [code]: "sup f g = (\<lambda>(x, y). sup x y) \<circ>\<^isub>f (f, g)\<^sup>f"
+definition [code]: "sup f g = (\<lambda>(x, y). sup x y) \<circ>$ (f, g)\<^sup>f"
 instance ..
 end
 
@@ -78,7 +78,7 @@ instance "finfun" :: (type, distrib_lattice) distrib_lattice
 by(intro_classes)(simp add: sup_finfun_def inf_finfun_def expand_finfun_eq o_def sup_inf_distrib1)
 
 instantiation "finfun" :: (type, minus) minus begin
-definition "f - g = split (op -) \<circ>\<^isub>f (f, g)\<^sup>f"
+definition "f - g = split (op -) \<circ>$ (f, g)\<^sup>f"
 instance ..
 end
 
@@ -86,7 +86,7 @@ lemma minus_finfun_apply [simp]: "op $ (f - g) = op $ f - op $ g"
 by(simp add: minus_finfun_def o_def fun_diff_def)
 
 instantiation "finfun" :: (type, uminus) uminus begin
-definition "- A = uminus \<circ>\<^isub>f A"
+definition "- A = uminus \<circ>$ A"
 instance ..
 end
 
@@ -250,7 +250,7 @@ lemma iso_finfun_Bex_Bex:
   "(\<exists>x. A $ x \<and> P x) \<longleftrightarrow> finfun_Bex A P"
 by(simp add: finfun_Bex_def)
 
-text {* Test replacement setup *}
+text {* Test code setup *}
 
 notepad begin
 have "inf ((\<lambda>_ :: nat. False)(1 := True, 2 := True)) ((\<lambda>_. True)(3 := False)) \<le> 
