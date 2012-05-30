@@ -6,193 +6,106 @@
 header {* The Integers as Equivalence Classes over Pairs of Natural Numbers *} 
 
 theory Int
-imports Equiv_Relations Wellfounded
+imports Equiv_Relations Wellfounded Quotient
 uses
   ("Tools/int_arith.ML")
 begin
 
-subsection {* The equivalence relation underlying the integers *}
+subsection {* Definition of integers as a quotient type *}
 
-definition intrel :: "((nat \<times> nat) \<times> (nat \<times> nat)) set" where
-  "intrel = {((x, y), (u, v)) | x y u v. x + v = u +y }"
+definition intrel :: "(nat \<times> nat) \<Rightarrow> (nat \<times> nat) \<Rightarrow> bool" where
+  "intrel = (\<lambda>(x, y) (u, v). x + v = u + y)"
 
-definition "Integ = UNIV//intrel"
+lemma intrel_iff [simp]: "intrel (x, y) (u, v) \<longleftrightarrow> x + v = u + y"
+  by (simp add: intrel_def)
 
-typedef (open) int = Integ
+quotient_type int = "nat \<times> nat" / "intrel"
   morphisms Rep_Integ Abs_Integ
-  unfolding Integ_def by (auto simp add: quotient_def)
+proof (rule equivpI)
+  show "reflp intrel"
+    unfolding reflp_def by auto
+  show "symp intrel"
+    unfolding symp_def by auto
+  show "transp intrel"
+    unfolding transp_def by auto
+qed
 
-instantiation int :: "{zero, one, plus, minus, uminus, times, ord, abs, sgn}"
+lemma eq_Abs_Integ [case_names Abs_Integ, cases type: int]:
+     "(!!x y. z = Abs_Integ (x, y) ==> P) ==> P"
+by (induct z) auto
+
+subsection {* Integers form a commutative ring *}
+
+instantiation int :: comm_ring_1
 begin
 
-definition
-  Zero_int_def: "0 = Abs_Integ (intrel `` {(0, 0)})"
+lift_definition zero_int :: "int" is "(0, 0)"
+  by simp
 
-definition
-  One_int_def: "1 = Abs_Integ (intrel `` {(1, 0)})"
+lift_definition one_int :: "int" is "(1, 0)"
+  by simp
 
-definition
-  add_int_def: "z + w = Abs_Integ
-    (\<Union>(x, y) \<in> Rep_Integ z. \<Union>(u, v) \<in> Rep_Integ w.
-      intrel `` {(x + u, y + v)})"
+lift_definition plus_int :: "int \<Rightarrow> int \<Rightarrow> int"
+  is "\<lambda>(x, y) (u, v). (x + u, y + v)"
+  by clarsimp
 
-definition
-  minus_int_def:
-    "- z = Abs_Integ (\<Union>(x, y) \<in> Rep_Integ z. intrel `` {(y, x)})"
+lift_definition uminus_int :: "int \<Rightarrow> int"
+  is "\<lambda>(x, y). (y, x)"
+  by clarsimp
 
-definition
-  diff_int_def:  "z - w = z + (-w \<Colon> int)"
+lift_definition minus_int :: "int \<Rightarrow> int \<Rightarrow> int"
+  is "\<lambda>(x, y) (u, v). (x + v, y + u)"
+  by clarsimp
 
-definition
-  mult_int_def: "z * w = Abs_Integ
-    (\<Union>(x, y) \<in> Rep_Integ z. \<Union>(u,v ) \<in> Rep_Integ w.
-      intrel `` {(x*u + y*v, x*v + y*u)})"
+lift_definition times_int :: "int \<Rightarrow> int \<Rightarrow> int"
+  is "\<lambda>(x, y) (u, v). (x*u + y*v, x*v + y*u)"
+proof (clarsimp)
+  fix s t u v w x y z :: nat
+  assume "s + v = u + t" and "w + z = y + x"
+  hence "(s + v) * w + (u + t) * x + u * (w + z) + v * (y + x)
+       = (u + t) * w + (s + v) * x + u * (y + x) + v * (w + z)"
+    by simp
+  thus "(s * w + t * x) + (u * z + v * y) = (u * y + v * z) + (s * x + t * w)"
+    by (simp add: algebra_simps)
+qed
 
-definition
-  le_int_def:
-   "z \<le> w \<longleftrightarrow> (\<exists>x y u v. x+v \<le> u+y \<and> (x, y) \<in> Rep_Integ z \<and> (u, v) \<in> Rep_Integ w)"
-
-definition
-  less_int_def: "(z\<Colon>int) < w \<longleftrightarrow> z \<le> w \<and> z \<noteq> w"
-
-definition
-  zabs_def: "\<bar>i\<Colon>int\<bar> = (if i < 0 then - i else i)"
-
-definition
-  zsgn_def: "sgn (i\<Colon>int) = (if i=0 then 0 else if 0<i then 1 else - 1)"
-
-instance ..
+instance
+  by default (transfer, clarsimp simp: algebra_simps)+
 
 end
-
-
-subsection{*Construction of the Integers*}
-
-lemma intrel_iff [simp]: "(((x,y),(u,v)) \<in> intrel) = (x+v = u+y)"
-by (simp add: intrel_def)
-
-lemma equiv_intrel: "equiv UNIV intrel"
-by (simp add: intrel_def equiv_def refl_on_def sym_def trans_def)
-
-text{*Reduces equality of equivalence classes to the @{term intrel} relation:
-  @{term "(intrel `` {x} = intrel `` {y}) = ((x,y) \<in> intrel)"} *}
-lemmas equiv_intrel_iff [simp] = eq_equiv_class_iff [OF equiv_intrel UNIV_I UNIV_I]
-
-text{*All equivalence classes belong to set of representatives*}
-lemma [simp]: "intrel``{(x,y)} \<in> Integ"
-by (auto simp add: Integ_def intrel_def quotient_def)
-
-text{*Reduces equality on abstractions to equality on representatives:
-  @{prop "\<lbrakk>x \<in> Integ; y \<in> Integ\<rbrakk> \<Longrightarrow> (Abs_Integ x = Abs_Integ y) = (x=y)"} *}
-declare Abs_Integ_inject [simp,no_atp]  Abs_Integ_inverse [simp,no_atp]
-
-text{*Case analysis on the representation of an integer as an equivalence
-      class of pairs of naturals.*}
-lemma eq_Abs_Integ [case_names Abs_Integ, cases type: int]:
-     "(!!x y. z = Abs_Integ(intrel``{(x,y)}) ==> P) ==> P"
-apply (rule Abs_Integ_cases [of z]) 
-apply (auto simp add: Integ_def quotient_def) 
-done
-
-
-subsection {* Arithmetic Operations *}
-
-lemma minus: "- Abs_Integ(intrel``{(x,y)}) = Abs_Integ(intrel `` {(y,x)})"
-proof -
-  have "(\<lambda>(x,y). intrel``{(y,x)}) respects intrel"
-    by (auto simp add: congruent_def)
-  thus ?thesis
-    by (simp add: minus_int_def UN_equiv_class [OF equiv_intrel])
-qed
-
-lemma add:
-     "Abs_Integ (intrel``{(x,y)}) + Abs_Integ (intrel``{(u,v)}) =
-      Abs_Integ (intrel``{(x+u, y+v)})"
-proof -
-  have "(\<lambda>z w. (\<lambda>(x,y). (\<lambda>(u,v). intrel `` {(x+u, y+v)}) w) z) 
-        respects2 intrel"
-    by (auto simp add: congruent2_def)
-  thus ?thesis
-    by (simp add: add_int_def UN_UN_split_split_eq
-                  UN_equiv_class2 [OF equiv_intrel equiv_intrel])
-qed
-
-text{*Congruence property for multiplication*}
-lemma mult_congruent2:
-     "(%p1 p2. (%(x,y). (%(u,v). intrel``{(x*u + y*v, x*v + y*u)}) p2) p1)
-      respects2 intrel"
-apply (rule equiv_intrel [THEN congruent2_commuteI])
- apply (force simp add: mult_ac, clarify) 
-apply (simp add: congruent_def mult_ac)  
-apply (rename_tac u v w x y z)
-apply (subgoal_tac "u*y + x*y = w*y + v*y  &  u*z + x*z = w*z + v*z")
-apply (simp add: mult_ac)
-apply (simp add: add_mult_distrib [symmetric])
-done
-
-lemma mult:
-     "Abs_Integ((intrel``{(x,y)})) * Abs_Integ((intrel``{(u,v)})) =
-      Abs_Integ(intrel `` {(x*u + y*v, x*v + y*u)})"
-by (simp add: mult_int_def UN_UN_split_split_eq mult_congruent2
-              UN_equiv_class2 [OF equiv_intrel equiv_intrel])
-
-text{*The integers form a @{text comm_ring_1}*}
-instance int :: comm_ring_1
-proof
-  fix i j k :: int
-  show "(i + j) + k = i + (j + k)"
-    by (cases i, cases j, cases k) (simp add: add add_assoc)
-  show "i + j = j + i" 
-    by (cases i, cases j) (simp add: add_ac add)
-  show "0 + i = i"
-    by (cases i) (simp add: Zero_int_def add)
-  show "- i + i = 0"
-    by (cases i) (simp add: Zero_int_def minus add)
-  show "i - j = i + - j"
-    by (simp add: diff_int_def)
-  show "(i * j) * k = i * (j * k)"
-    by (cases i, cases j, cases k) (simp add: mult algebra_simps)
-  show "i * j = j * i"
-    by (cases i, cases j) (simp add: mult algebra_simps)
-  show "1 * i = i"
-    by (cases i) (simp add: One_int_def mult)
-  show "(i + j) * k = i * k + j * k"
-    by (cases i, cases j, cases k) (simp add: add mult algebra_simps)
-  show "0 \<noteq> (1::int)"
-    by (simp add: Zero_int_def One_int_def)
-qed
 
 abbreviation int :: "nat \<Rightarrow> int" where
   "int \<equiv> of_nat"
 
-lemma int_def: "int m = Abs_Integ (intrel `` {(m, 0)})"
-by (induct m) (simp_all add: Zero_int_def One_int_def add)
+lemma int_def: "int n = Abs_Integ (n, 0)"
+  by (induct n, simp add: zero_int.abs_eq,
+    simp add: one_int.abs_eq plus_int.abs_eq)
 
+lemma int_transfer [transfer_rule]:
+  "(fun_rel (op =) cr_int) (\<lambda>n. (n, 0)) int"
+  unfolding fun_rel_def cr_int_def int_def by simp
 
-subsection {* The @{text "\<le>"} Ordering *}
+lemma int_diff_cases:
+  obtains (diff) m n where "z = int m - int n"
+  by transfer clarsimp
 
-lemma le:
-  "(Abs_Integ(intrel``{(x,y)}) \<le> Abs_Integ(intrel``{(u,v)})) = (x+v \<le> u+y)"
-by (force simp add: le_int_def)
+subsection {* Integers are totally ordered *}
 
-lemma less:
-  "(Abs_Integ(intrel``{(x,y)}) < Abs_Integ(intrel``{(u,v)})) = (x+v < u+y)"
-by (simp add: less_int_def le order_less_le)
+instantiation int :: linorder
+begin
 
-instance int :: linorder
-proof
-  fix i j k :: int
-  show antisym: "i \<le> j \<Longrightarrow> j \<le> i \<Longrightarrow> i = j"
-    by (cases i, cases j) (simp add: le)
-  show "(i < j) = (i \<le> j \<and> \<not> j \<le> i)"
-    by (auto simp add: less_int_def dest: antisym) 
-  show "i \<le> i"
-    by (cases i) (simp add: le)
-  show "i \<le> j \<Longrightarrow> j \<le> k \<Longrightarrow> i \<le> k"
-    by (cases i, cases j, cases k) (simp add: le)
-  show "i \<le> j \<or> j \<le> i"
-    by (cases i, cases j) (simp add: le linorder_linear)
-qed
+lift_definition less_eq_int :: "int \<Rightarrow> int \<Rightarrow> bool"
+  is "\<lambda>(x, y) (u, v). x + v \<le> u + y"
+  by auto
+
+lift_definition less_int :: "int \<Rightarrow> int \<Rightarrow> bool"
+  is "\<lambda>(x, y) (u, v). x + v < u + y"
+  by auto
+
+instance
+  by default (transfer, force)+
+
+end
 
 instantiation int :: distrib_lattice
 begin
@@ -209,13 +122,14 @@ instance
 
 end
 
+subsection {* Ordering properties of arithmetic operations *}
+
 instance int :: ordered_cancel_ab_semigroup_add
 proof
   fix i j k :: int
   show "i \<le> j \<Longrightarrow> k + i \<le> k + j"
-    by (cases i, cases j, cases k) (simp add: le add)
+    by transfer clarsimp
 qed
-
 
 text{*Strict Monotonicity of Multiplication*}
 
@@ -230,15 +144,15 @@ apply (simp_all add: add_strict_mono)
 done
 
 lemma zero_le_imp_eq_int: "(0::int) \<le> k ==> \<exists>n. k = int n"
-apply (cases k)
-apply (auto simp add: le add int_def Zero_int_def)
-apply (rule_tac x="x-y" in exI, simp)
+apply transfer
+apply clarsimp
+apply (rule_tac x="a - b" in exI, simp)
 done
 
 lemma zero_less_imp_eq_int: "(0::int) < k ==> \<exists>n>0. k = int n"
-apply (cases k)
-apply (simp add: less int_def Zero_int_def)
-apply (rule_tac x="x-y" in exI, simp)
+apply transfer
+apply clarsimp
+apply (rule_tac x="a - b" in exI, simp)
 done
 
 lemma zmult_zless_mono2: "[| i<j;  (0::int) < k |] ==> k*i < k*j"
@@ -247,8 +161,16 @@ apply (auto simp add: zmult_zless_mono2_lemma)
 done
 
 text{*The integers form an ordered integral domain*}
-instance int :: linordered_idom
-proof
+instantiation int :: linordered_idom
+begin
+
+definition
+  zabs_def: "\<bar>i\<Colon>int\<bar> = (if i < 0 then - i else i)"
+
+definition
+  zsgn_def: "sgn (i\<Colon>int) = (if i=0 then 0 else if 0<i then 1 else - 1)"
+
+instance proof
   fix i j k :: int
   show "i < j \<Longrightarrow> 0 < k \<Longrightarrow> k * i < k * j"
     by (rule zmult_zless_mono2)
@@ -258,17 +180,17 @@ proof
     by (simp only: zsgn_def)
 qed
 
+end
+
 lemma zless_imp_add1_zle: "w < z \<Longrightarrow> w + (1\<Colon>int) \<le> z"
-apply (cases w, cases z) 
-apply (simp add: less le add One_int_def)
-done
+  by transfer clarsimp
 
 lemma zless_iff_Suc_zadd:
   "(w \<Colon> int) < z \<longleftrightarrow> (\<exists>n. z = w + int (Suc n))"
-apply (cases z, cases w)
-apply (auto simp add: less add int_def)
-apply (rename_tac a b c d) 
-apply (rule_tac x="a+d - Suc(c+b)" in exI) 
+apply transfer
+apply auto
+apply (rename_tac a b c d)
+apply (rule_tac x="c+b - Suc(a+d)" in exI)
 apply arith
 done
 
@@ -285,37 +207,30 @@ subsection {* Embedding of the Integers into any @{text ring_1}: @{text of_int}*
 context ring_1
 begin
 
-definition of_int :: "int \<Rightarrow> 'a" where
-  "of_int z = the_elem (\<Union>(i, j) \<in> Rep_Integ z. { of_nat i - of_nat j })"
-
-lemma of_int: "of_int (Abs_Integ (intrel `` {(i,j)})) = of_nat i - of_nat j"
-proof -
-  have "(\<lambda>(i,j). { of_nat i - (of_nat j :: 'a) }) respects intrel"
-    by (auto simp add: congruent_def) (simp add: algebra_simps of_nat_add [symmetric]
-            del: of_nat_add) 
-  thus ?thesis
-    by (simp add: of_int_def UN_equiv_class [OF equiv_intrel])
-qed
+lift_definition of_int :: "int \<Rightarrow> 'a" is "\<lambda>(i, j). of_nat i - of_nat j"
+  by (clarsimp simp add: diff_eq_eq eq_diff_eq diff_add_eq
+    of_nat_add [symmetric] simp del: of_nat_add)
 
 lemma of_int_0 [simp]: "of_int 0 = 0"
-by (simp add: of_int Zero_int_def)
+by (simp add: of_int.abs_eq zero_int.abs_eq) (* FIXME: transfer *)
 
 lemma of_int_1 [simp]: "of_int 1 = 1"
-by (simp add: of_int One_int_def)
+by (simp add: of_int.abs_eq one_int.abs_eq) (* FIXME: transfer *)
 
 lemma of_int_add [simp]: "of_int (w+z) = of_int w + of_int z"
-by (cases w, cases z) (simp add: algebra_simps of_int add)
+(* FIXME: transfer *)
+by (cases w, cases z) (simp add: algebra_simps of_int.abs_eq plus_int.abs_eq)
 
 lemma of_int_minus [simp]: "of_int (-z) = - (of_int z)"
-by (cases z) (simp add: algebra_simps of_int minus)
+(* FIXME: transfer *)
+by (cases z) (simp add: algebra_simps of_int.abs_eq uminus_int.abs_eq)
 
 lemma of_int_diff [simp]: "of_int (w - z) = of_int w - of_int z"
 by (simp add: diff_minus Groups.diff_minus)
 
 lemma of_int_mult [simp]: "of_int (w*z) = of_int w * of_int z"
-apply (cases w, cases z)
-apply (simp add: algebra_simps of_int mult of_nat_mult)
-done
+by (cases w, cases z, (* FIXME: transfer *)
+  simp add: algebra_simps of_int.abs_eq times_int.abs_eq of_nat_mult)
 
 text{*Collapse nested embeddings*}
 lemma of_int_of_nat_eq [simp]: "of_int (int n) = of_nat n"
@@ -339,8 +254,9 @@ begin
 
 lemma of_int_eq_iff [simp]:
    "of_int w = of_int z \<longleftrightarrow> w = z"
+(* FIXME: transfer *)
 apply (cases w, cases z)
-apply (simp add: of_int)
+apply (simp add: of_int.abs_eq int.abs_eq_iff)
 apply (simp only: diff_eq_eq diff_add_eq eq_diff_eq)
 apply (simp only: of_nat_add [symmetric] of_nat_eq_iff)
 done
@@ -364,8 +280,9 @@ subclass ring_char_0 ..
 
 lemma of_int_le_iff [simp]:
   "of_int w \<le> of_int z \<longleftrightarrow> w \<le> z"
-  by (cases w, cases z)
-    (simp add: of_int le minus algebra_simps of_nat_add [symmetric] del: of_nat_add)
+  by (cases w, cases z) (* FIXME: transfer *)
+    (simp add: of_int.abs_eq less_eq_int.abs_eq
+      algebra_simps of_nat_add [symmetric] del: of_nat_add)
 
 lemma of_int_less_iff [simp]:
   "of_int w < of_int z \<longleftrightarrow> w < z"
@@ -392,39 +309,29 @@ end
 lemma of_int_eq_id [simp]: "of_int = id"
 proof
   fix z show "of_int z = id z"
-    by (cases z) (simp add: of_int add minus int_def diff_minus)
+    by (cases z rule: int_diff_cases, simp)
 qed
 
 
 subsection {* Magnitude of an Integer, as a Natural Number: @{text nat} *}
 
-definition nat :: "int \<Rightarrow> nat" where
-  "nat z = the_elem (\<Union>(x, y) \<in> Rep_Integ z. {x-y})"
-
-lemma nat: "nat (Abs_Integ (intrel``{(x,y)})) = x-y"
-proof -
-  have "(\<lambda>(x,y). {x-y}) respects intrel"
-    by (auto simp add: congruent_def)
-  thus ?thesis
-    by (simp add: nat_def UN_equiv_class [OF equiv_intrel])
-qed
+lift_definition nat :: "int \<Rightarrow> nat" is "\<lambda>(x, y). x - y"
+  by auto
 
 lemma nat_int [simp]: "nat (int n) = n"
-by (simp add: nat int_def)
+  by transfer simp
 
 lemma int_nat_eq [simp]: "int (nat z) = (if 0 \<le> z then z else 0)"
-by (cases z) (simp add: nat le int_def Zero_int_def)
+  by transfer clarsimp
 
 corollary nat_0_le: "0 \<le> z ==> int (nat z) = z"
 by simp
 
 lemma nat_le_0 [simp]: "z \<le> 0 ==> nat z = 0"
-by (cases z) (simp add: nat le Zero_int_def)
+  by transfer clarsimp
 
 lemma nat_le_eq_zle: "0 < w | 0 \<le> z ==> (nat w \<le> nat z) = (w\<le>z)"
-apply (cases w, cases z) 
-apply (simp add: nat le linorder_not_le [symmetric] Zero_int_def, arith)
-done
+  by transfer (clarsimp, arith)
 
 text{*An alternative condition is @{term "0 \<le> w"} *}
 corollary nat_mono_iff: "0 < z ==> (nat w < nat z) = (w < z)"
@@ -434,9 +341,7 @@ corollary nat_less_eq_zless: "0 \<le> w ==> (nat w < nat z) = (w<z)"
 by (simp add: nat_le_eq_zle linorder_not_le [symmetric]) 
 
 lemma zless_nat_conj [simp]: "(nat w < nat z) = (0 < z & w < z)"
-apply (cases w, cases z) 
-apply (simp add: nat le Zero_int_def linorder_not_le [symmetric], arith)
-done
+  by transfer (clarsimp, arith)
 
 lemma nonneg_eq_int:
   fixes z :: int
@@ -445,24 +350,22 @@ lemma nonneg_eq_int:
   using assms by (blast dest: nat_0_le sym)
 
 lemma nat_eq_iff: "(nat w = m) = (if 0 \<le> w then w = int m else m=0)"
-by (cases w) (simp add: nat le int_def Zero_int_def, arith)
+  by transfer (clarsimp simp add: le_imp_diff_is_add)
 
 corollary nat_eq_iff2: "(m = nat w) = (if 0 \<le> w then w = int m else m=0)"
 by (simp only: eq_commute [of m] nat_eq_iff)
 
 lemma nat_less_iff: "0 \<le> w ==> (nat w < m) = (w < of_nat m)"
-apply (cases w)
-apply (simp add: nat le int_def Zero_int_def linorder_not_le[symmetric], arith)
-done
+  by transfer (clarsimp, arith)
 
 lemma nat_le_iff: "nat x \<le> n \<longleftrightarrow> x \<le> int n"
-  by (cases x, simp add: nat le int_def le_diff_conv)
+  by transfer (clarsimp simp add: le_diff_conv)
 
 lemma nat_mono: "x \<le> y \<Longrightarrow> nat x \<le> nat y"
-  by (cases x, cases y, simp add: nat le)
+  by transfer auto
 
 lemma nat_0_iff[simp]: "nat(i::int) = 0 \<longleftrightarrow> i\<le>0"
-by(simp add: nat_eq_iff) arith
+  by transfer clarsimp
 
 lemma int_eq_iff: "(of_nat m = z) = (m = nat z & 0 \<le> z)"
 by (auto simp add: nat_eq_iff2)
@@ -472,25 +375,24 @@ by (insert zless_nat_conj [of 0], auto)
 
 lemma nat_add_distrib:
      "[| (0::int) \<le> z;  0 \<le> z' |] ==> nat (z+z') = nat z + nat z'"
-by (cases z, cases z') (simp add: nat add le Zero_int_def)
+  by transfer clarsimp
 
 lemma nat_diff_distrib:
      "[| (0::int) \<le> z';  z' \<le> z |] ==> nat (z-z') = nat z - nat z'"
-by (cases z, cases z')
-  (simp add: nat add minus diff_minus le Zero_int_def)
+  by transfer clarsimp
 
 lemma nat_zminus_int [simp]: "nat (- int n) = 0"
-by (simp add: int_def minus nat Zero_int_def) 
+  by transfer simp
 
 lemma zless_nat_eq_int_zless: "(m < nat z) = (int m < z)"
-by (cases z) (simp add: nat less int_def, arith)
+  by transfer (clarsimp simp add: less_diff_conv)
 
 context ring_1
 begin
 
 lemma of_nat_nat: "0 \<le> z \<Longrightarrow> of_nat (nat z) = of_int z"
-  by (cases z rule: eq_Abs_Integ)
-   (simp add: nat le of_int Zero_int_def of_nat_diff)
+  by (cases z rule: eq_Abs_Integ) (* FIXME: transfer *)
+   (simp add: nat.abs_eq less_eq_int.abs_eq of_int.abs_eq zero_int.abs_eq of_nat_diff)
 
 end
 
@@ -516,7 +418,7 @@ lemma not_zle_0_negative [simp]: "~ (0 \<le> - (int (Suc n)))"
 by (subst le_minus_iff, simp del: of_nat_Suc)
 
 lemma int_zle_neg: "(int n \<le> - int m) = (n = 0 & m = 0)"
-by (simp add: int_def le minus Zero_int_def)
+  by transfer simp
 
 lemma not_int_zless_negative [simp]: "~ (int n < - int m)"
 by (simp add: linorder_not_less)
@@ -550,9 +452,9 @@ lemma abs_split [arith_split,no_atp]:
 by (force dest: order_less_le_trans simp add: abs_if linorder_not_less)
 
 lemma negD: "x < 0 \<Longrightarrow> \<exists>n. x = - (int (Suc n))"
-apply (cases x)
-apply (auto simp add: le minus Zero_int_def int_def order_less_le)
-apply (rule_tac x="y - Suc x" in exI, arith)
+apply transfer
+apply clarsimp
+apply (rule_tac x="b - Suc a" in exI, arith)
 done
 
 
@@ -577,14 +479,6 @@ theorem int_of_nat_induct [case_names nonneg neg, induct type: int]:
 lemma nonneg_int_cases:
   assumes "0 \<le> k" obtains n where "k = int n"
   using assms by (cases k, simp, simp del: of_nat_Suc)
-
-text{*Contributed by Brian Huffman*}
-theorem int_diff_cases:
-  obtains (diff) m n where "z = int m - int n"
-apply (cases z rule: eq_Abs_Integ)
-apply (rule_tac m=x and n=y in diff)
-apply (simp add: int_def minus add diff_minus)
-done
 
 lemma Let_numeral [simp]: "Let (numeral v) f = f (numeral v)"
   -- {* Unfold all @{text let}s involving constants *}
@@ -871,7 +765,7 @@ by arith
 subsection{*The functions @{term nat} and @{term int}*}
 
 text{*Simplify the term @{term "w + - z"}*}
-lemmas diff_int_def_symmetric = diff_int_def [symmetric, simp]
+lemmas diff_int_def_symmetric = diff_def [where 'a=int, symmetric, simp]
 
 lemma nat_0 [simp]: "nat 0 = 0"
 by (simp add: nat_eq_iff)
@@ -1766,5 +1660,15 @@ lemma int_power:
   by (rule of_nat_power)
 
 lemmas zpower_int = int_power [symmetric]
+
+text {* De-register @{text "int"} as a quotient type: *}
+
+lemmas [transfer_rule del] =
+  int.id_abs_transfer int.rel_eq_transfer zero_int.transfer one_int.transfer
+  plus_int.transfer uminus_int.transfer minus_int.transfer times_int.transfer
+  int_transfer less_eq_int.transfer less_int.transfer of_int.transfer
+  nat.transfer
+
+declare Quotient_int [quot_del]
 
 end
