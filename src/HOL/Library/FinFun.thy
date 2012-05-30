@@ -278,35 +278,35 @@ qed
 
 subsection {* Kernel functions for type @{typ "'a \<Rightarrow>f 'b"} *}
 
-lift_definition finfun_const :: "'b \<Rightarrow> 'a \<Rightarrow>f 'b" ("\<lambda>\<^isup>f/ _" [0] 1)
+lift_definition finfun_const :: "'b \<Rightarrow> 'a \<Rightarrow>f 'b" ("K$/ _" [0] 1)
 is "\<lambda> b x. b" by (rule const_finfun)
 
-lift_definition finfun_update :: "'a \<Rightarrow>f 'b \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow>f 'b" ("_'(\<^sup>f/ _ := _')" [1000,0,0] 1000) is "fun_upd"
+lift_definition finfun_update :: "'a \<Rightarrow>f 'b \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow>f 'b" ("_'(_ $:= _')" [1000,0,0] 1000) is "fun_upd"
 by (simp add: fun_upd_finfun)
 
-lemma finfun_update_twist: "a \<noteq> a' \<Longrightarrow> f(\<^sup>f a := b)(\<^sup>f a' := b') = f(\<^sup>f a' := b')(\<^sup>f a := b)"
+lemma finfun_update_twist: "a \<noteq> a' \<Longrightarrow> f(a $:= b)(a' $:= b') = f(a' $:= b')(a $:= b)"
 by transfer (simp add: fun_upd_twist)
 
 lemma finfun_update_twice [simp]:
-  "finfun_update (finfun_update f a b) a b' = finfun_update f a b'"
+  "f(a $:= b)(a $:= b') = f(a $:= b')"
 by transfer simp
 
-lemma finfun_update_const_same: "(\<lambda>\<^isup>f b)(\<^sup>f a := b) = (\<lambda>\<^isup>f b)"
+lemma finfun_update_const_same: "(K$ b)(a $:= b) = (K$ b)"
 by transfer (simp add: fun_eq_iff)
 
 subsection {* Code generator setup *}
 
-definition finfun_update_code :: "'a \<Rightarrow>f 'b \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow>f 'b" ("_'(\<^sup>fc/ _ := _')" [1000,0,0] 1000)
+definition finfun_update_code :: "'a \<Rightarrow>f 'b \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow>f 'b"
 where [simp, code del]: "finfun_update_code = finfun_update"
 
 code_datatype finfun_const finfun_update_code
 
 lemma finfun_update_const_code [code]:
-  "(\<lambda>\<^isup>f b)(\<^sup>f a := b') = (if b = b' then (\<lambda>\<^isup>f b) else finfun_update_code (\<lambda>\<^isup>f b) a b')"
+  "(K$ b)(a $:= b') = (if b = b' then (K$ b) else finfun_update_code (K$ b) a b')"
 by(simp add: finfun_update_const_same)
 
 lemma finfun_update_update_code [code]:
-  "(finfun_update_code f a b)(\<^sup>f a' := b') = (if a = a' then f(\<^sup>f a := b') else finfun_update_code (f(\<^sup>f a' := b')) a b)"
+  "(finfun_update_code f a b)(a' $:= b') = (if a = a' then f(a $:= b') else finfun_update_code (f(a' $:= b')) a b)"
 by(simp add: finfun_update_twist)
 
 
@@ -316,29 +316,29 @@ quickcheck_generator finfun constructors: finfun_update_code, "finfun_const :: '
 
 subsection {* @{text "finfun_update"} as instance of @{text "comp_fun_commute"} *}
 
-interpretation finfun_update: comp_fun_commute "\<lambda>a f. f(\<^sup>f a :: 'a := b')"
+interpretation finfun_update: comp_fun_commute "\<lambda>a f. f(a :: 'a $:= b')"
   including finfun
 proof
   fix a a' :: 'a
-  show "(\<lambda>f. f(\<^sup>f a := b')) \<circ> (\<lambda>f. f(\<^sup>f a' := b')) = (\<lambda>f. f(\<^sup>f a' := b')) \<circ> (\<lambda>f. f(\<^sup>f a := b'))"
+  show "(\<lambda>f. f(a $:= b')) \<circ> (\<lambda>f. f(a' $:= b')) = (\<lambda>f. f(a' $:= b')) \<circ> (\<lambda>f. f(a $:= b'))"
   proof
     fix b
     have "(finfun_apply b)(a := b', a' := b') = (finfun_apply b)(a' := b', a := b')"
       by(cases "a = a'")(auto simp add: fun_upd_twist)
-    then have "b(\<^sup>f a := b')(\<^sup>f a' := b') = b(\<^sup>f a' := b')(\<^sup>f a := b')"
+    then have "b(a $:= b')(a' $:= b') = b(a' $:= b')(a $:= b')"
       by(auto simp add: finfun_update_def fun_upd_twist)
-    then show "((\<lambda>f. f(\<^sup>f a := b')) \<circ> (\<lambda>f. f(\<^sup>f a' := b'))) b = ((\<lambda>f. f(\<^sup>f a' := b')) \<circ> (\<lambda>f. f(\<^sup>f a := b'))) b"
+    then show "((\<lambda>f. f(a $:= b')) \<circ> (\<lambda>f. f(a' $:= b'))) b = ((\<lambda>f. f(a' $:= b')) \<circ> (\<lambda>f. f(a $:= b'))) b"
       by (simp add: fun_eq_iff)
   qed
 qed
 
 lemma fold_finfun_update_finite_univ:
   assumes fin: "finite (UNIV :: 'a set)"
-  shows "Finite_Set.fold (\<lambda>a f. f(\<^sup>f a := b')) (\<lambda>\<^isup>f b) (UNIV :: 'a set) = (\<lambda>\<^isup>f b')"
+  shows "Finite_Set.fold (\<lambda>a f. f(a $:= b')) (K$ b) (UNIV :: 'a set) = (K$ b')"
 proof -
   { fix A :: "'a set"
     from fin have "finite A" by(auto intro: finite_subset)
-    hence "Finite_Set.fold (\<lambda>a f. f(\<^sup>f a := b')) (\<lambda>\<^isup>f b) A = Abs_finfun (\<lambda>a. if a \<in> A then b' else b)"
+    hence "Finite_Set.fold (\<lambda>a f. f(a $:= b')) (K$ b) A = Abs_finfun (\<lambda>a. if a \<in> A then b' else b)"
     proof(induct)
       case (insert x F)
       have "(\<lambda>a. if a = x then b' else (if a \<in> F then b' else b)) = (\<lambda>a. if a = x \<or> a \<in> F then b' else b)"
@@ -427,15 +427,15 @@ unfolding Rel_def fun_rel_def cr_finfun_def by simp
 lemma finite_finfun_default: "finite {a. finfun_apply f a \<noteq> finfun_default f}"
 by transfer (erule finite_finfun_default_aux)
 
-lemma finfun_default_const: "finfun_default ((\<lambda>\<^isup>f b) :: 'a \<Rightarrow>f 'b) = (if finite (UNIV :: 'a set) then undefined else b)"
+lemma finfun_default_const: "finfun_default ((K$ b) :: 'a \<Rightarrow>f 'b) = (if finite (UNIV :: 'a set) then undefined else b)"
 by(transfer)(auto simp add: finfun_default_aux_infinite finfun_default_aux_def)
 
 lemma finfun_default_update_const:
-  "finfun_default (f(\<^sup>f a := b)) = finfun_default f"
+  "finfun_default (f(a $:= b)) = finfun_default f"
 by transfer (simp add: finfun_default_aux_update_const)
 
 lemma finfun_default_const_code [code]:
-  "finfun_default ((\<lambda>\<^isup>f c) :: ('a :: card_UNIV) \<Rightarrow>f 'b) = (if card_UNIV (TYPE('a)) = 0 then c else undefined)"
+  "finfun_default ((K$ c) :: ('a :: card_UNIV) \<Rightarrow>f 'b) = (if card_UNIV (TYPE('a)) = 0 then c else undefined)"
 by(simp add: finfun_default_const card_UNIV_eq_0_infinite_UNIV)
 
 lemma finfun_default_update_code [code]:
@@ -573,7 +573,7 @@ proof -
 qed
 
 lemma finfun_rec_upd [simp]:
-  "finfun_rec cnst upd (f(\<^sup>f a' := b')) = upd a' b' (finfun_rec cnst upd f)"
+  "finfun_rec cnst upd (f(a' $:= b')) = upd a' b' (finfun_rec cnst upd f)"
   including finfun
 proof -
   obtain b where b: "b = finfun_default f" by auto
@@ -637,15 +637,15 @@ proof -
       also note map_default_update_const[OF fing' a'ndomg' g'leg, of b]
       finally show ?thesis unfolding b'b domg[unfolded b'b] by(rule sym)
     qed
-    also have "The (?the (f(\<^sup>f a' := b'))) = ?g'"
+    also have "The (?the (f(a' $:= b'))) = ?g'"
     proof(rule the_equality)
-      from f y b b'b brang' fing' show "?the (f(\<^sup>f a' := b')) ?g'"
+      from f y b b'b brang' fing' show "?the (f(a' $:= b')) ?g'"
         by(auto simp del: fun_upd_apply simp add: finfun_update_def)
     next
       fix g'
-      assume "?the (f(\<^sup>f a' := b')) g'"
+      assume "?the (f(a' $:= b')) g'"
       hence fin': "finite (dom g')" and ran': "b \<notin> ran g'"
-        and eq: "f(\<^sup>f a' := b') = Abs_finfun (map_default b g')" 
+        and eq: "f(a' $:= b') = Abs_finfun (map_default b g')" 
         by(auto simp del: fun_upd_apply)
       from fin' fing' have "map_default b g' \<in> finfun" "map_default b ?g' \<in> finfun"
         by(blast intro: map_default_in_finfun)+
@@ -665,13 +665,14 @@ proof -
     from fing have fing': "finite (dom ?g')" by auto
     from bran b'b have bnrang': "b \<notin> ran ?g'" by(auto simp add: ran_def)
     have ffmg': "map_default b ?g' = y(a' := b')" by(auto intro: ext simp add: map_default_def restrict_map_def)
-    with f y have f_Abs: "f(\<^sup>f a' := b') = Abs_finfun (map_default b ?g')" by(auto simp add: finfun_update_def)
-    have g': "The (?the (f(\<^sup>f a' := b'))) = ?g'"
+    with f y have f_Abs: "f(a' $:= b') = Abs_finfun (map_default b ?g')" by(auto simp add: finfun_update_def)
+    have g': "The (?the (f(a' $:= b'))) = ?g'"
     proof (rule the_equality)
-      from fing' bnrang' f_Abs show "?the (f(\<^sup>f a' := b')) ?g'" by(auto simp add: finfun_update_def restrict_map_def)
+      from fing' bnrang' f_Abs show "?the (f(a' $:= b')) ?g'"
+        by(auto simp add: finfun_update_def restrict_map_def)
     next
-      fix g' assume "?the (f(\<^sup>f a' := b')) g'"
-      hence f': "f(\<^sup>f a' := b') = Abs_finfun (map_default b g')"
+      fix g' assume "?the (f(a' $:= b')) g'"
+      hence f': "f(a' $:= b') = Abs_finfun (map_default b g')"
         and fin': "finite (dom g')" and brang': "b \<notin> ran g'" by auto
       from fing' fin' have "map_default b ?g' \<in> finfun" "map_default b g' \<in> finfun"
         by(auto intro: map_default_in_finfun)
@@ -716,7 +717,8 @@ proof -
                                      unfolded this, OF fing'' a'ndomg'' g''leg]
         also have b': "b' = ?b' a'" by(auto simp add: map_default_def)
         from upd_left_comm upd_left_comm fing''
-        have "Finite_Set.fold (\<lambda>a. upd a (?b a)) (cnst b) (dom ?g'') = Finite_Set.fold (\<lambda>a. upd a (?b' a)) (cnst b) (dom ?g'')"
+        have "Finite_Set.fold (\<lambda>a. upd a (?b a)) (cnst b) (dom ?g'') =
+          Finite_Set.fold (\<lambda>a. upd a (?b' a)) (cnst b) (dom ?g'')"
           by(rule finite_rec_cong1)(auto simp add: restrict_map_def b'b map_default_def)
         with b' have "upd a' b' (Finite_Set.fold (\<lambda>a. upd a (?b a)) (cnst b) (dom ?g'')) =
                      upd a' (?b' a') (Finite_Set.fold (\<lambda>a. upd a (?b' a)) (cnst b) (dom ?g''))" by simp
@@ -740,18 +742,18 @@ locale finfun_rec_wf = finfun_rec_wf_aux +
 begin
 
 lemma finfun_rec_const [simp]: includes finfun shows
-  "finfun_rec cnst upd (\<lambda>\<^isup>f c) = cnst c"
+  "finfun_rec cnst upd (K$ c) = cnst c"
 proof(cases "finite (UNIV :: 'a set)")
   case False
-  hence "finfun_default ((\<lambda>\<^isup>f c) :: 'a \<Rightarrow>f 'b) = c" by(simp add: finfun_default_const)
-  moreover have "(THE g :: 'a \<rightharpoonup> 'b. (\<lambda>\<^isup>f c) = Abs_finfun (map_default c g) \<and> finite (dom g) \<and> c \<notin> ran g) = empty"
+  hence "finfun_default ((K$ c) :: 'a \<Rightarrow>f 'b) = c" by(simp add: finfun_default_const)
+  moreover have "(THE g :: 'a \<rightharpoonup> 'b. (K$ c) = Abs_finfun (map_default c g) \<and> finite (dom g) \<and> c \<notin> ran g) = empty"
   proof (rule the_equality)
-    show "(\<lambda>\<^isup>f c) = Abs_finfun (map_default c empty) \<and> finite (dom empty) \<and> c \<notin> ran empty"
+    show "(K$ c) = Abs_finfun (map_default c empty) \<and> finite (dom empty) \<and> c \<notin> ran empty"
       by(auto simp add: finfun_const_def)
   next
     fix g :: "'a \<rightharpoonup> 'b"
-    assume "(\<lambda>\<^isup>f c) = Abs_finfun (map_default c g) \<and> finite (dom g) \<and> c \<notin> ran g"
-    hence g: "(\<lambda>\<^isup>f c) = Abs_finfun (map_default c g)" and fin: "finite (dom g)" and ran: "c \<notin> ran g" by blast+
+    assume "(K$ c) = Abs_finfun (map_default c g) \<and> finite (dom g) \<and> c \<notin> ran g"
+    hence g: "(K$ c) = Abs_finfun (map_default c g)" and fin: "finite (dom g)" and ran: "c \<notin> ran g" by blast+
     from g map_default_in_finfun[OF fin, of c] have "map_default c g = (\<lambda>a. c)"
       by(simp add: finfun_const_def)
     moreover have "map_default c empty = (\<lambda>a. c)" by simp
@@ -760,8 +762,8 @@ proof(cases "finite (UNIV :: 'a set)")
   ultimately show ?thesis by(simp add: finfun_rec_def)
 next
   case True
-  hence default: "finfun_default ((\<lambda>\<^isup>f c) :: 'a \<Rightarrow>f 'b) = undefined" by(simp add: finfun_default_const)
-  let ?the = "\<lambda>g :: 'a \<rightharpoonup> 'b. (\<lambda>\<^isup>f c) = Abs_finfun (map_default undefined g) \<and> finite (dom g) \<and> undefined \<notin> ran g"
+  hence default: "finfun_default ((K$ c) :: 'a \<Rightarrow>f 'b) = undefined" by(simp add: finfun_default_const)
+  let ?the = "\<lambda>g :: 'a \<rightharpoonup> 'b. (K$ c) = Abs_finfun (map_default undefined g) \<and> finite (dom g) \<and> undefined \<notin> ran g"
   show ?thesis
   proof(cases "c = undefined")
     case True
@@ -771,7 +773,7 @@ next
     next
       fix g'
       assume "?the g'"
-      hence fg: "(\<lambda>\<^isup>f c) = Abs_finfun (map_default undefined g')"
+      hence fg: "(K$ c) = Abs_finfun (map_default undefined g')"
         and fin: "finite (dom g')" and g: "undefined \<notin> ran g'" by simp_all
       from fin have "map_default undefined g' \<in> finfun" by(rule map_default_in_finfun)
       with fg have "map_default undefined g' = (\<lambda>a. c)"
@@ -790,7 +792,7 @@ next
     next
       fix g' :: "'a \<rightharpoonup> 'b"
       assume "?the g'"
-      hence fg: "(\<lambda>\<^isup>f c) = Abs_finfun (map_default undefined g')"
+      hence fg: "(K$ c) = Abs_finfun (map_default undefined g')"
         and fin: "finite (dom g')" and g: "undefined \<notin> ran g'" by simp_all
       from fin have "map_default undefined g' \<in> finfun" by(rule map_default_in_finfun)
       with fg have "map_default undefined g' = (\<lambda>a. c)"
@@ -809,8 +811,8 @@ end
 subsection {* Weak induction rule and case analysis for FinFuns *}
 
 lemma finfun_weak_induct [consumes 0, case_names const update]:
-  assumes const: "\<And>b. P (\<lambda>\<^isup>f b)"
-  and update: "\<And>f a b. P f \<Longrightarrow> P (f(\<^sup>f a := b))"
+  assumes const: "\<And>b. P (K$ b)"
+  and update: "\<And>f a b. P f \<Longrightarrow> P (f(a $:= b))"
   shows "P x"
   including finfun
 proof(induct x rule: Abs_finfun_induct)
@@ -838,16 +840,16 @@ lemma finfun_exhaust_disj: "(\<exists>b. x = finfun_const b) \<or> (\<exists>f a
 by(induct x rule: finfun_weak_induct) blast+
 
 lemma finfun_exhaust:
-  obtains b where "x = (\<lambda>\<^isup>f b)"
-        | f a b where "x = f(\<^sup>f a := b)"
+  obtains b where "x = (K$ b)"
+        | f a b where "x = f(a $:= b)"
 by(atomize_elim)(rule finfun_exhaust_disj)
 
 lemma finfun_rec_unique:
   fixes f :: "'a \<Rightarrow>f 'b \<Rightarrow> 'c"
-  assumes c: "\<And>c. f (\<lambda>\<^isup>f c) = cnst c"
-  and u: "\<And>g a b. f (g(\<^sup>f a := b)) = upd g a b (f g)"
-  and c': "\<And>c. f' (\<lambda>\<^isup>f c) = cnst c"
-  and u': "\<And>g a b. f' (g(\<^sup>f a := b)) = upd g a b (f' g)"
+  assumes c: "\<And>c. f (K$ c) = cnst c"
+  and u: "\<And>g a b. f (g(a $:= b)) = upd g a b (f g)"
+  and c': "\<And>c. f' (K$ c) = cnst c"
+  and u': "\<And>g a b. f' (g(a $:= b)) = upd g a b (f' g)"
   shows "f = f'"
 proof
   fix g :: "'a \<Rightarrow>f 'b"
@@ -877,25 +879,25 @@ qed
 
 lemma finfun_apply_def: "op $ = (\<lambda>f a. finfun_rec (\<lambda>b. b) (\<lambda>a' b c. if (a = a') then b else c) f)"
 proof(rule finfun_rec_unique)
-  fix c show "op $ (\<lambda>\<^isup>f c) = (\<lambda>a. c)" by(simp add: finfun_const.rep_eq)
+  fix c show "op $ (K$ c) = (\<lambda>a. c)" by(simp add: finfun_const.rep_eq)
 next
-  fix g a b show "op $ g(\<^sup>f a := b) = (\<lambda>c. if c = a then b else g $ c)"
+  fix g a b show "op $ g(a $:= b) = (\<lambda>c. if c = a then b else g $ c)"
     by(auto simp add: finfun_update_def fun_upd_finfun Abs_finfun_inverse finfun_apply)
 qed auto
 
-lemma finfun_upd_apply: "f(\<^sup>fa := b) $ a' = (if a = a' then b else f $ a')"
+lemma finfun_upd_apply: "f(a $:= b) $ a' = (if a = a' then b else f $ a')"
   and finfun_upd_apply_code [code]: "(finfun_update_code f a b) $ a' = (if a = a' then b else f $ a')"
 by(simp_all add: finfun_apply_def)
 
-lemma finfun_const_apply [simp, code]: "(\<lambda>\<^isup>f b) $ a = b"
+lemma finfun_const_apply [simp, code]: "(K$ b) $ a = b"
 by(simp add: finfun_apply_def)
 
 lemma finfun_upd_apply_same [simp]:
-  "f(\<^sup>fa := b) $ a = b"
+  "f(a $:= b) $ a = b"
 by(simp add: finfun_upd_apply)
 
 lemma finfun_upd_apply_other [simp]:
-  "a \<noteq> a' \<Longrightarrow> f(\<^sup>fa := b) $ a' = f $ a'"
+  "a \<noteq> a' \<Longrightarrow> f(a $:= b) $ a' = f $ a'"
 by(simp add: finfun_upd_apply)
 
 lemma finfun_ext: "(\<And>a. f $ a = g $ a) \<Longrightarrow> f = g"
@@ -904,39 +906,39 @@ by(auto simp add: finfun_apply_inject[symmetric] simp del: finfun_apply_inject)
 lemma expand_finfun_eq: "(f = g) = (op $ f = op $ g)"
 by(auto intro: finfun_ext)
 
-lemma finfun_const_inject [simp]: "(\<lambda>\<^isup>f b) = (\<lambda>\<^isup>f b') \<equiv> b = b'"
+lemma finfun_const_inject [simp]: "(K$ b) = (K$ b') \<equiv> b = b'"
 by(simp add: expand_finfun_eq fun_eq_iff)
 
 lemma finfun_const_eq_update:
-  "((\<lambda>\<^isup>f b) = f(\<^sup>f a := b')) = (b = b' \<and> (\<forall>a'. a \<noteq> a' \<longrightarrow> f $ a' = b))"
+  "((K$ b) = f(a $:= b')) = (b = b' \<and> (\<forall>a'. a \<noteq> a' \<longrightarrow> f $ a' = b))"
 by(auto simp add: expand_finfun_eq fun_eq_iff finfun_upd_apply)
 
 subsection {* Function composition *}
 
 definition finfun_comp :: "('a \<Rightarrow> 'b) \<Rightarrow> 'c \<Rightarrow>f 'a \<Rightarrow> 'c \<Rightarrow>f 'b" (infixr "\<circ>\<^isub>f" 55)
-where [code del]: "g \<circ>\<^isub>f f  = finfun_rec (\<lambda>b. (\<lambda>\<^isup>f g b)) (\<lambda>a b c. c(\<^sup>f a := g b)) f"
+where [code del]: "g \<circ>\<^isub>f f  = finfun_rec (\<lambda>b. (K$ g b)) (\<lambda>a b c. c(a $:= g b)) f"
 
-interpretation finfun_comp_aux: finfun_rec_wf_aux "(\<lambda>b. (\<lambda>\<^isup>f g b))" "(\<lambda>a b c. c(\<^sup>f a := g b))"
+interpretation finfun_comp_aux: finfun_rec_wf_aux "(\<lambda>b. (K$ g b))" "(\<lambda>a b c. c(a $:= g b))"
 by(unfold_locales)(auto simp add: finfun_upd_apply intro: finfun_ext)
 
-interpretation finfun_comp: finfun_rec_wf "(\<lambda>b. (\<lambda>\<^isup>f g b))" "(\<lambda>a b c. c(\<^sup>f a := g b))"
+interpretation finfun_comp: finfun_rec_wf "(\<lambda>b. (K$ g b))" "(\<lambda>a b c. c(a $:= g b))"
 proof
   fix b' b :: 'a
   assume fin: "finite (UNIV :: 'c set)"
   { fix A :: "'c set"
     from fin have "finite A" by(auto intro: finite_subset)
-    hence "Finite_Set.fold (\<lambda>(a :: 'c) c. c(\<^sup>f a := g b')) (\<lambda>\<^isup>f g b) A =
+    hence "Finite_Set.fold (\<lambda>(a :: 'c) c. c(a $:= g b')) (K$ g b) A =
       Abs_finfun (\<lambda>a. if a \<in> A then g b' else g b)"
       by induct (simp_all add: finfun_const_def, auto simp add: finfun_update_def Abs_finfun_inverse_finite fun_upd_def Abs_finfun_inject_finite fun_eq_iff fin) }
-  from this[of UNIV] show "Finite_Set.fold (\<lambda>(a :: 'c) c. c(\<^sup>f a := g b')) (\<lambda>\<^isup>f g b) UNIV = (\<lambda>\<^isup>f g b')"
+  from this[of UNIV] show "Finite_Set.fold (\<lambda>(a :: 'c) c. c(a $:= g b')) (K$ g b) UNIV = (K$ g b')"
     by(simp add: finfun_const_def)
 qed
 
 lemma finfun_comp_const [simp, code]:
-  "g \<circ>\<^isub>f (\<lambda>\<^isup>f c) = (\<lambda>\<^isup>f g c)"
+  "g \<circ>\<^isub>f (K$ c) = (K$ g c)"
 by(simp add: finfun_comp_def)
 
-lemma finfun_comp_update [simp]: "g \<circ>\<^isub>f (f(\<^sup>f a := b)) = (g \<circ>\<^isub>f f)(\<^sup>f a := g b)"
+lemma finfun_comp_update [simp]: "g \<circ>\<^isub>f (f(a $:= b)) = (g \<circ>\<^isub>f f)(a $:= g b)"
   and finfun_comp_update_code [code]: "g \<circ>\<^isub>f (finfun_update_code f a b) = finfun_update_code (g \<circ>\<^isub>f f) a (g b)"
 by(simp_all add: finfun_comp_def)
 
@@ -947,7 +949,7 @@ by(induct f rule: finfun_weak_induct)(auto simp add: finfun_upd_apply)
 lemma finfun_comp_comp_collapse [simp]: "f \<circ>\<^isub>f g \<circ>\<^isub>f h = (f o g) \<circ>\<^isub>f h"
 by(induct h rule: finfun_weak_induct) simp_all
 
-lemma finfun_comp_const1 [simp]: "(\<lambda>x. c) \<circ>\<^isub>f f = (\<lambda>\<^isup>f c)"
+lemma finfun_comp_const1 [simp]: "(\<lambda>x. c) \<circ>\<^isub>f f = (K$ c)"
 by(induct f rule: finfun_weak_induct)(auto intro: finfun_ext simp add: finfun_upd_apply)
 
 lemma finfun_comp_id1 [simp]: "(\<lambda>x. x) \<circ>\<^isub>f f = f" "id \<circ>\<^isub>f f = f"
@@ -958,9 +960,9 @@ lemma finfun_comp_conv_comp: "g \<circ>\<^isub>f f = Abs_finfun (g \<circ> finfu
 proof -
   have "(\<lambda>f. g \<circ>\<^isub>f f) = (\<lambda>f. Abs_finfun (g \<circ> finfun_apply f))"
   proof(rule finfun_rec_unique)
-    { fix c show "Abs_finfun (g \<circ> op $ (\<lambda>\<^isup>f c)) = (\<lambda>\<^isup>f g c)"
+    { fix c show "Abs_finfun (g \<circ> op $ (K$ c)) = (K$ g c)"
         by(simp add: finfun_comp_def o_def)(simp add: finfun_const_def) }
-    { fix g' a b show "Abs_finfun (g \<circ> op $ g'(\<^sup>f a := b)) = (Abs_finfun (g \<circ> op $ g'))(\<^sup>f a := g b)"
+    { fix g' a b show "Abs_finfun (g \<circ> op $ g'(a $:= b)) = (Abs_finfun (g \<circ> op $ g'))(a $:= g b)"
       proof -
         obtain y where y: "y \<in> finfun" and g': "g' = Abs_finfun y" by(cases g')
         moreover hence "(g \<circ> op $ g') \<in> finfun" by(simp add: finfun_left_compose)
@@ -974,14 +976,14 @@ qed
 definition finfun_comp2 :: "'b \<Rightarrow>f 'c \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow>f 'c" (infixr "\<^sub>f\<circ>" 55)
 where [code del]: "finfun_comp2 g f = Abs_finfun (op $ g \<circ> f)"
 
-lemma finfun_comp2_const [code, simp]: "finfun_comp2 (\<lambda>\<^isup>f c) f = (\<lambda>\<^isup>f c)"
+lemma finfun_comp2_const [code, simp]: "finfun_comp2 (K$ c) f = (K$ c)"
   including finfun
 by(simp add: finfun_comp2_def finfun_const_def comp_def)
 
 lemma finfun_comp2_update:
   includes finfun
   assumes inj: "inj f"
-  shows "finfun_comp2 (g(\<^sup>f b := c)) f = (if b \<in> range f then (finfun_comp2 g f)(\<^sup>f inv f b := c) else finfun_comp2 g f)"
+  shows "finfun_comp2 (g(b $:= c)) f = (if b \<in> range f then (finfun_comp2 g f)(inv f b $:= c) else finfun_comp2 g f)"
 proof(cases "b \<in> range f")
   case True
   from inj have "\<And>x. (op $ g)(f x := c) \<circ> f = (op $ g \<circ> f)(x := c)" by(auto intro!: ext dest: injD)
@@ -997,15 +999,15 @@ subsection {* Universal quantification *}
 definition finfun_All_except :: "'a list \<Rightarrow> 'a \<Rightarrow>f bool \<Rightarrow> bool"
 where [code del]: "finfun_All_except A P \<equiv> \<forall>a. a \<in> set A \<or> P $ a"
 
-lemma finfun_All_except_const: "finfun_All_except A (\<lambda>\<^isup>f b) \<longleftrightarrow> b \<or> set A = UNIV"
+lemma finfun_All_except_const: "finfun_All_except A (K$ b) \<longleftrightarrow> b \<or> set A = UNIV"
 by(auto simp add: finfun_All_except_def)
 
 lemma finfun_All_except_const_finfun_UNIV_code [code]:
-  "finfun_All_except A (\<lambda>\<^isup>f b) = (b \<or> is_list_UNIV A)"
+  "finfun_All_except A (K$ b) = (b \<or> is_list_UNIV A)"
 by(simp add: finfun_All_except_const is_list_UNIV_iff)
 
 lemma finfun_All_except_update:
-  "finfun_All_except A f(\<^sup>f a := b) = ((a \<in> set A \<or> b) \<and> finfun_All_except (a # A) f)"
+  "finfun_All_except A f(a $:= b) = ((a \<in> set A \<or> b) \<and> finfun_All_except (a # A) f)"
 by(fastforce simp add: finfun_All_except_def finfun_upd_apply)
 
 lemma finfun_All_except_update_code [code]:
@@ -1016,10 +1018,10 @@ by(simp add: finfun_All_except_update)
 definition finfun_All :: "'a \<Rightarrow>f bool \<Rightarrow> bool"
 where "finfun_All = finfun_All_except []"
 
-lemma finfun_All_const [simp]: "finfun_All (\<lambda>\<^isup>f b) = b"
+lemma finfun_All_const [simp]: "finfun_All (K$ b) = b"
 by(simp add: finfun_All_def finfun_All_except_def)
 
-lemma finfun_All_update: "finfun_All f(\<^sup>f a := b) = (b \<and> finfun_All_except [a] f)"
+lemma finfun_All_update: "finfun_All f(a $:= b) = (b \<and> finfun_All_except [a] f)"
 by(simp add: finfun_All_def finfun_All_except_update)
 
 lemma finfun_All_All: "finfun_All P = All (op $ P)"
@@ -1032,34 +1034,34 @@ where "finfun_Ex P = Not (finfun_All (Not \<circ>\<^isub>f P))"
 lemma finfun_Ex_Ex: "finfun_Ex P = Ex (op $ P)"
 unfolding finfun_Ex_def finfun_All_All by simp
 
-lemma finfun_Ex_const [simp]: "finfun_Ex (\<lambda>\<^isup>f b) = b"
+lemma finfun_Ex_const [simp]: "finfun_Ex (K$ b) = b"
 by(simp add: finfun_Ex_def)
 
 
 subsection {* A diagonal operator for FinFuns *}
 
 definition finfun_Diag :: "'a \<Rightarrow>f 'b \<Rightarrow> 'a \<Rightarrow>f 'c \<Rightarrow> 'a \<Rightarrow>f ('b \<times> 'c)" ("(1'(_,/ _')\<^sup>f)" [0, 0] 1000)
-where [code del]: "finfun_Diag f g = finfun_rec (\<lambda>b. Pair b \<circ>\<^isub>f g) (\<lambda>a b c. c(\<^sup>f a := (b, g $ a))) f"
+where [code del]: "finfun_Diag f g = finfun_rec (\<lambda>b. Pair b \<circ>\<^isub>f g) (\<lambda>a b c. c(a $:= (b, g $ a))) f"
 
-interpretation finfun_Diag_aux: finfun_rec_wf_aux "\<lambda>b. Pair b \<circ>\<^isub>f g" "\<lambda>a b c. c(\<^sup>f a := (b, g $ a))"
+interpretation finfun_Diag_aux: finfun_rec_wf_aux "\<lambda>b. Pair b \<circ>\<^isub>f g" "\<lambda>a b c. c(a $:= (b, g $ a))"
 by(unfold_locales)(simp_all add: expand_finfun_eq fun_eq_iff finfun_upd_apply)
 
-interpretation finfun_Diag: finfun_rec_wf "\<lambda>b. Pair b \<circ>\<^isub>f g" "\<lambda>a b c. c(\<^sup>f a := (b, g $ a))"
+interpretation finfun_Diag: finfun_rec_wf "\<lambda>b. Pair b \<circ>\<^isub>f g" "\<lambda>a b c. c(a $:= (b, g $ a))"
 proof
   fix b' b :: 'a
   assume fin: "finite (UNIV :: 'c set)"
   { fix A :: "'c set"
-    interpret comp_fun_commute "\<lambda>a c. c(\<^sup>f a := (b', g $ a))" by(rule finfun_Diag_aux.upd_left_comm)
+    interpret comp_fun_commute "\<lambda>a c. c(a $:= (b', g $ a))" by(rule finfun_Diag_aux.upd_left_comm)
     from fin have "finite A" by(auto intro: finite_subset)
-    hence "Finite_Set.fold (\<lambda>a c. c(\<^sup>f a := (b', g $ a))) (Pair b \<circ>\<^isub>f g) A =
+    hence "Finite_Set.fold (\<lambda>a c. c(a $:= (b', g $ a))) (Pair b \<circ>\<^isub>f g) A =
       Abs_finfun (\<lambda>a. (if a \<in> A then b' else b, g $ a))"
       by(induct)(simp_all add: finfun_const_def finfun_comp_conv_comp o_def,
                  auto simp add: finfun_update_def Abs_finfun_inverse_finite fun_upd_def Abs_finfun_inject_finite fun_eq_iff fin) }
-  from this[of UNIV] show "Finite_Set.fold (\<lambda>a c. c(\<^sup>f a := (b', g $ a))) (Pair b \<circ>\<^isub>f g) UNIV = Pair b' \<circ>\<^isub>f g"
+  from this[of UNIV] show "Finite_Set.fold (\<lambda>a c. c(a $:= (b', g $ a))) (Pair b \<circ>\<^isub>f g) UNIV = Pair b' \<circ>\<^isub>f g"
     by(simp add: finfun_const_def finfun_comp_conv_comp o_def)
 qed
 
-lemma finfun_Diag_const1: "(\<lambda>\<^isup>f b, g)\<^sup>f = Pair b \<circ>\<^isub>f g"
+lemma finfun_Diag_const1: "(K$ b, g)\<^sup>f = Pair b \<circ>\<^isub>f g"
 by(simp add: finfun_Diag_def)
 
 text {*
@@ -1067,33 +1069,33 @@ text {*
 *}
 
 lemma finfun_Diag_const_code [code]:
-  "(\<lambda>\<^isup>f b, \<lambda>\<^isup>f c)\<^sup>f = (\<lambda>\<^isup>f (b, c))"
-  "(\<lambda>\<^isup>f b, g(\<^sup>fc a := c))\<^sup>f = (\<lambda>\<^isup>f b, g)\<^sup>f(\<^sup>fc a := (b, c))"
+  "(K$ b, K$ c)\<^sup>f = (K$ (b, c))"
+  "(K$ b, finfun_update_code g a c)\<^sup>f = finfun_update_code (K$ b, g)\<^sup>f a (b, c)"
 by(simp_all add: finfun_Diag_const1)
 
-lemma finfun_Diag_update1: "(f(\<^sup>f a := b), g)\<^sup>f = (f, g)\<^sup>f(\<^sup>f a := (b, g $ a))"
-  and finfun_Diag_update1_code [code]: "(finfun_update_code f a b, g)\<^sup>f = (f, g)\<^sup>f(\<^sup>f a := (b, g $ a))"
+lemma finfun_Diag_update1: "(f(a $:= b), g)\<^sup>f = (f, g)\<^sup>f(a $:= (b, g $ a))"
+  and finfun_Diag_update1_code [code]: "(finfun_update_code f a b, g)\<^sup>f = (f, g)\<^sup>f(a $:= (b, g $ a))"
 by(simp_all add: finfun_Diag_def)
 
-lemma finfun_Diag_const2: "(f, \<lambda>\<^isup>f c)\<^sup>f = (\<lambda>b. (b, c)) \<circ>\<^isub>f f"
+lemma finfun_Diag_const2: "(f, K$ c)\<^sup>f = (\<lambda>b. (b, c)) \<circ>\<^isub>f f"
 by(induct f rule: finfun_weak_induct)(auto intro!: finfun_ext simp add: finfun_upd_apply finfun_Diag_const1 finfun_Diag_update1)
 
-lemma finfun_Diag_update2: "(f, g(\<^sup>f a := c))\<^sup>f = (f, g)\<^sup>f(\<^sup>f a := (f $ a, c))"
+lemma finfun_Diag_update2: "(f, g(a $:= c))\<^sup>f = (f, g)\<^sup>f(a $:= (f $ a, c))"
 by(induct f rule: finfun_weak_induct)(auto intro!: finfun_ext simp add: finfun_upd_apply finfun_Diag_const1 finfun_Diag_update1)
 
-lemma finfun_Diag_const_const [simp]: "(\<lambda>\<^isup>f b, \<lambda>\<^isup>f c)\<^sup>f = (\<lambda>\<^isup>f (b, c))"
+lemma finfun_Diag_const_const [simp]: "(K$ b, K$ c)\<^sup>f = (K$ (b, c))"
 by(simp add: finfun_Diag_const1)
 
 lemma finfun_Diag_const_update:
-  "(\<lambda>\<^isup>f b, g(\<^sup>f a := c))\<^sup>f = (\<lambda>\<^isup>f b, g)\<^sup>f(\<^sup>f a := (b, c))"
+  "(K$ b, g(a $:= c))\<^sup>f = (K$ b, g)\<^sup>f(a $:= (b, c))"
 by(simp add: finfun_Diag_const1)
 
 lemma finfun_Diag_update_const:
-  "(f(\<^sup>f a := b), \<lambda>\<^isup>f c)\<^sup>f = (f, \<lambda>\<^isup>f c)\<^sup>f(\<^sup>f a := (b, c))"
+  "(f(a $:= b), K$ c)\<^sup>f = (f, K$ c)\<^sup>f(a $:= (b, c))"
 by(simp add: finfun_Diag_def)
 
 lemma finfun_Diag_update_update:
-  "(f(\<^sup>f a := b), g(\<^sup>f a' := c))\<^sup>f = (if a = a' then (f, g)\<^sup>f(\<^sup>f a := (b, c)) else (f, g)\<^sup>f(\<^sup>f a := (b, g $ a))(\<^sup>f a' := (f $ a', c)))"
+  "(f(a $:= b), g(a' $:= c))\<^sup>f = (if a = a' then (f, g)\<^sup>f(a $:= (b, c)) else (f, g)\<^sup>f(a $:= (b, g $ a))(a' $:= (f $ a', c)))"
 by(auto simp add: finfun_Diag_update1 finfun_Diag_update2)
 
 lemma finfun_Diag_apply [simp]: "op $ (f, g)\<^sup>f = (\<lambda>x. (f $ x, g $ x))"
@@ -1105,11 +1107,11 @@ lemma finfun_Diag_conv_Abs_finfun:
 proof -
   have "(\<lambda>f :: 'a \<Rightarrow>f 'b. (f, g)\<^sup>f) = (\<lambda>f. Abs_finfun ((\<lambda>x. (f $ x, g $ x))))"
   proof(rule finfun_rec_unique)
-    { fix c show "Abs_finfun (\<lambda>x. ((\<lambda>\<^isup>f c) $ x, g $ x)) = Pair c \<circ>\<^isub>f g"
+    { fix c show "Abs_finfun (\<lambda>x. ((K$ c) $ x, g $ x)) = Pair c \<circ>\<^isub>f g"
         by(simp add: finfun_comp_conv_comp o_def finfun_const_def) }
     { fix g' a b
-      show "Abs_finfun (\<lambda>x. (g'(\<^sup>f a := b) $ x, g $ x)) =
-            (Abs_finfun (\<lambda>x. (g' $ x, g $ x)))(\<^sup>f a := (b, g $ a))"
+      show "Abs_finfun (\<lambda>x. (g'(a $:= b) $ x, g $ x)) =
+            (Abs_finfun (\<lambda>x. (g' $ x, g $ x)))(a $:= (b, g $ a))"
         by(auto simp add: finfun_update_def fun_eq_iff simp del: fun_upd_apply) simp }
   qed(simp_all add: finfun_Diag_const1 finfun_Diag_update1)
   thus ?thesis by(auto simp add: fun_eq_iff)
@@ -1121,11 +1123,11 @@ by(auto simp add: expand_finfun_eq fun_eq_iff)
 definition finfun_fst :: "'a \<Rightarrow>f ('b \<times> 'c) \<Rightarrow> 'a \<Rightarrow>f 'b"
 where [code]: "finfun_fst f = fst \<circ>\<^isub>f f"
 
-lemma finfun_fst_const: "finfun_fst (\<lambda>\<^isup>f bc) = (\<lambda>\<^isup>f fst bc)"
+lemma finfun_fst_const: "finfun_fst (K$ bc) = (K$ fst bc)"
 by(simp add: finfun_fst_def)
 
-lemma finfun_fst_update: "finfun_fst (f(\<^sup>f a := bc)) = (finfun_fst f)(\<^sup>f a := fst bc)"
-  and finfun_fst_update_code: "finfun_fst (finfun_update_code f a bc) = (finfun_fst f)(\<^sup>f a := fst bc)"
+lemma finfun_fst_update: "finfun_fst (f(a $:= bc)) = (finfun_fst f)(a $:= fst bc)"
+  and finfun_fst_update_code: "finfun_fst (finfun_update_code f a bc) = (finfun_fst f)(a $:= fst bc)"
 by(simp_all add: finfun_fst_def)
 
 lemma finfun_fst_comp_conv: "finfun_fst (f \<circ>\<^isub>f g) = (fst \<circ> f) \<circ>\<^isub>f g"
@@ -1141,11 +1143,11 @@ by(simp add: finfun_fst_def [abs_def] finfun_comp_conv_comp)
 definition finfun_snd :: "'a \<Rightarrow>f ('b \<times> 'c) \<Rightarrow> 'a \<Rightarrow>f 'c"
 where [code]: "finfun_snd f = snd \<circ>\<^isub>f f"
 
-lemma finfun_snd_const: "finfun_snd (\<lambda>\<^isup>f bc) = (\<lambda>\<^isup>f snd bc)"
+lemma finfun_snd_const: "finfun_snd (K$ bc) = (K$ snd bc)"
 by(simp add: finfun_snd_def)
 
-lemma finfun_snd_update: "finfun_snd (f(\<^sup>f a := bc)) = (finfun_snd f)(\<^sup>f a := snd bc)"
-  and finfun_snd_update_code [code]: "finfun_snd (finfun_update_code f a bc) = (finfun_snd f)(\<^sup>f a := snd bc)"
+lemma finfun_snd_update: "finfun_snd (f(a $:= bc)) = (finfun_snd f)(a $:= snd bc)"
+  and finfun_snd_update_code [code]: "finfun_snd (finfun_update_code f a bc) = (finfun_snd f)(a $:= snd bc)"
 by(simp_all add: finfun_snd_def)
 
 lemma finfun_snd_comp_conv: "finfun_snd (f \<circ>\<^isub>f g) = (snd \<circ> f) \<circ>\<^isub>f g"
@@ -1165,14 +1167,14 @@ by(induct f rule: finfun_weak_induct)(simp_all add: finfun_fst_const finfun_snd_
 subsection {* Currying for FinFuns *}
 
 definition finfun_curry :: "('a \<times> 'b) \<Rightarrow>f 'c \<Rightarrow> 'a \<Rightarrow>f 'b \<Rightarrow>f 'c"
-where [code del]: "finfun_curry = finfun_rec (finfun_const \<circ> finfun_const) (\<lambda>(a, b) c f. f(\<^sup>f a := (f $ a)(\<^sup>f b := c)))"
+where [code del]: "finfun_curry = finfun_rec (finfun_const \<circ> finfun_const) (\<lambda>(a, b) c f. f(a $:= (f $ a)(b $:= c)))"
 
-interpretation finfun_curry_aux: finfun_rec_wf_aux "finfun_const \<circ> finfun_const" "\<lambda>(a, b) c f. f(\<^sup>f a := (f $ a)(\<^sup>f b := c))"
+interpretation finfun_curry_aux: finfun_rec_wf_aux "finfun_const \<circ> finfun_const" "\<lambda>(a, b) c f. f(a $:= (f $ a)(b $:= c))"
 apply(unfold_locales)
 apply(auto simp add: split_def finfun_update_twist finfun_upd_apply split_paired_all finfun_update_const_same)
 done
 
-interpretation finfun_curry: finfun_rec_wf "finfun_const \<circ> finfun_const" "\<lambda>(a, b) c f. f(\<^sup>f a := (f $ a)(\<^sup>f b := c))"
+interpretation finfun_curry: finfun_rec_wf "finfun_const \<circ> finfun_const" "\<lambda>(a, b) c f. f(a $:= (f $ a)(b $:= c))"
 proof(unfold_locales)
   fix b' b :: 'b
   assume fin: "finite (UNIV :: ('c \<times> 'a) set)"
@@ -1181,23 +1183,23 @@ proof(unfold_locales)
     by(fastforce dest: finite_cartesian_productD1 finite_cartesian_productD2)+
   note [simp] = Abs_finfun_inverse_finite[OF fin] Abs_finfun_inverse_finite[OF fin1] Abs_finfun_inverse_finite[OF fin2]
   { fix A :: "('c \<times> 'a) set"
-    interpret comp_fun_commute "\<lambda>a :: 'c \<times> 'a. (\<lambda>(a, b) c f. f(\<^sup>f a := (f $ a)(\<^sup>f b := c))) a b'"
+    interpret comp_fun_commute "\<lambda>a :: 'c \<times> 'a. (\<lambda>(a, b) c f. f(a $:= (f $ a)(b $:= c))) a b'"
       by(rule finfun_curry_aux.upd_left_comm)
     from fin have "finite A" by(auto intro: finite_subset)
-    hence "Finite_Set.fold (\<lambda>a :: 'c \<times> 'a. (\<lambda>(a, b) c f. f(\<^sup>f a := (f $ a)(\<^sup>f b := c))) a b') ((finfun_const \<circ> finfun_const) b) A = Abs_finfun (\<lambda>a. Abs_finfun (\<lambda>b''. if (a, b'') \<in> A then b' else b))"
+    hence "Finite_Set.fold (\<lambda>a :: 'c \<times> 'a. (\<lambda>(a, b) c f. f(a $:= (f $ a)(b $:= c))) a b') ((finfun_const \<circ> finfun_const) b) A = Abs_finfun (\<lambda>a. Abs_finfun (\<lambda>b''. if (a, b'') \<in> A then b' else b))"
       by induct (simp_all, auto simp add: finfun_update_def finfun_const_def split_def intro!: arg_cong[where f="Abs_finfun"] ext) }
   from this[of UNIV]
-  show "Finite_Set.fold (\<lambda>a :: 'c \<times> 'a. (\<lambda>(a, b) c f. f(\<^sup>f a := (f $ a)(\<^sup>f b := c))) a b') ((finfun_const \<circ> finfun_const) b) UNIV = (finfun_const \<circ> finfun_const) b'"
+  show "Finite_Set.fold (\<lambda>a :: 'c \<times> 'a. (\<lambda>(a, b) c f. f(a $:= (f $ a)(b $:= c))) a b') ((finfun_const \<circ> finfun_const) b) UNIV = (finfun_const \<circ> finfun_const) b'"
     by(simp add: finfun_const_def)
 qed
 
-lemma finfun_curry_const [simp, code]: "finfun_curry (\<lambda>\<^isup>f c) = (\<lambda>\<^isup>f \<lambda>\<^isup>f c)"
+lemma finfun_curry_const [simp, code]: "finfun_curry (K$ c) = (K$ K$ c)"
 by(simp add: finfun_curry_def)
 
 lemma finfun_curry_update [simp]:
-  "finfun_curry (f(\<^sup>f (a, b) := c)) = (finfun_curry f)(\<^sup>f a := (finfun_curry f $ a)(\<^sup>f b := c))"
+  "finfun_curry (f((a, b) $:= c)) = (finfun_curry f)(a $:= (finfun_curry f $ a)(b $:= c))"
   and finfun_curry_update_code [code]:
-  "finfun_curry (f(\<^sup>fc (a, b) := c)) = (finfun_curry f)(\<^sup>f a := (finfun_curry f $ a)(\<^sup>f b := c))"
+  "finfun_curry (finfun_update_code f (a, b) c) = (finfun_curry f)(a $:= (finfun_curry f $ a)(b $:= c))"
 by(simp_all add: finfun_curry_def)
 
 lemma finfun_Abs_finfun_curry: assumes fin: "f \<in> finfun"
@@ -1208,7 +1210,7 @@ proof -
   have "{a. \<exists>b. f (a, b) \<noteq> c} = fst ` {ab. f ab \<noteq> c}" by(force)
   hence "{a. curry f a \<noteq> (\<lambda>x. c)} = fst ` {ab. f ab \<noteq> c}"
     by(auto simp add: curry_def fun_eq_iff)
-  with fin c have "finite {a.  Abs_finfun (curry f a) \<noteq> (\<lambda>\<^isup>f c)}"
+  with fin c have "finite {a.  Abs_finfun (curry f a) \<noteq> (K$ c)}"
     by(simp add: finfun_const_def finfun_curry)
   thus ?thesis unfolding finfun_def by auto
 qed
@@ -1220,16 +1222,16 @@ lemma finfun_curry_conv_curry:
 proof -
   have "finfun_curry = (\<lambda>f :: ('a \<times> 'b) \<Rightarrow>f 'c. Abs_finfun (\<lambda>a. Abs_finfun (curry (finfun_apply f) a)))"
   proof(rule finfun_rec_unique)
-    fix c show "finfun_curry (\<lambda>\<^isup>f c) = (\<lambda>\<^isup>f \<lambda>\<^isup>f c)" by simp
+    fix c show "finfun_curry (K$ c) = (K$ K$ c)" by simp
     fix f a
-    show "finfun_curry (f(\<^sup>f a := c)) = (finfun_curry f)(\<^sup>f fst a := (finfun_curry f $ (fst a))(\<^sup>f snd a := c))"
+    show "finfun_curry (f(a $:= c)) = (finfun_curry f)(fst a $:= (finfun_curry f $ (fst a))(snd a $:= c))"
       by(cases a) simp
-    show "Abs_finfun (\<lambda>a. Abs_finfun (curry (finfun_apply (\<lambda>\<^isup>f c)) a)) = (\<lambda>\<^isup>f \<lambda>\<^isup>f c)"
+    show "Abs_finfun (\<lambda>a. Abs_finfun (curry (finfun_apply (K$ c)) a)) = (K$ K$ c)"
       by(simp add: finfun_curry_def finfun_const_def curry_def)
     fix g b
-    show "Abs_finfun (\<lambda>aa. Abs_finfun (curry (op $ g(\<^sup>f a := b)) aa)) =
-      (Abs_finfun (\<lambda>a. Abs_finfun (curry (op $ g) a)))(\<^sup>f
-      fst a := ((Abs_finfun (\<lambda>a. Abs_finfun (curry (op $ g) a))) $ (fst a))(\<^sup>f snd a := b))"
+    show "Abs_finfun (\<lambda>aa. Abs_finfun (curry (op $ g(a $:= b)) aa)) =
+      (Abs_finfun (\<lambda>a. Abs_finfun (curry (op $ g) a)))(
+      fst a $:= ((Abs_finfun (\<lambda>a. Abs_finfun (curry (op $ g) a))) $ (fst a))(snd a $:= b))"
       by(cases a)(auto intro!: ext arg_cong[where f=Abs_finfun] simp add: finfun_curry_def finfun_update_def finfun_Abs_finfun_curry)
   qed
   thus ?thesis by(auto simp add: fun_eq_iff)
@@ -1254,10 +1256,11 @@ subsection {* An operator that explicitly removes all redundant updates in the g
 definition finfun_clearjunk :: "'a \<Rightarrow>f 'b \<Rightarrow> 'a \<Rightarrow>f 'b"
 where [simp, code del]: "finfun_clearjunk = id"
 
-lemma finfun_clearjunk_const [code]: "finfun_clearjunk (\<lambda>\<^isup>f b) = (\<lambda>\<^isup>f b)"
+lemma finfun_clearjunk_const [code]: "finfun_clearjunk (K$ b) = (K$ b)"
 by simp
 
-lemma finfun_clearjunk_update [code]: "finfun_clearjunk (finfun_update_code f a b) = f(\<^sup>f a := b)"
+lemma finfun_clearjunk_update [code]: 
+  "finfun_clearjunk (finfun_update_code f a b) = f(a $:= b)"
 by simp
 
 subsection {* The domain of a FinFun as a FinFun *}
@@ -1266,7 +1269,7 @@ definition finfun_dom :: "('a \<Rightarrow>f 'b) \<Rightarrow> ('a \<Rightarrow>
 where [code del]: "finfun_dom f = Abs_finfun (\<lambda>a. f $ a \<noteq> finfun_default f)"
 
 lemma finfun_dom_const:
-  "finfun_dom ((\<lambda>\<^isup>f c) :: 'a \<Rightarrow>f 'b) = (\<lambda>\<^isup>f finite (UNIV :: 'a set) \<and> c \<noteq> undefined)"
+  "finfun_dom ((K$ c) :: 'a \<Rightarrow>f 'b) = (K$ finite (UNIV :: 'a set) \<and> c \<noteq> undefined)"
 unfolding finfun_dom_def finfun_default_const
 by(auto)(simp_all add: finfun_const_def)
 
@@ -1276,8 +1279,8 @@ text {*
 *}
 
 lemma finfun_dom_const_code [code]:
-  "finfun_dom ((\<lambda>\<^isup>f c) :: ('a :: card_UNIV) \<Rightarrow>f 'b) = 
-   (if card_UNIV (TYPE('a)) = 0 then (\<lambda>\<^isup>f False) else FinFun.code_abort (\<lambda>_. finfun_dom (\<lambda>\<^isup>f c)))"
+  "finfun_dom ((K$ c) :: ('a :: card_UNIV) \<Rightarrow>f 'b) = 
+   (if card_UNIV (TYPE('a)) = 0 then (K$ False) else FinFun.code_abort (\<lambda>_. finfun_dom (K$ c)))"
 unfolding card_UNIV_eq_0_infinite_UNIV
 by(simp add: finfun_dom_const)
 
@@ -1286,7 +1289,7 @@ using finite_finfun_default[of f]
 by(simp add: finfun_def exI[where x=False])
 
 lemma finfun_dom_update [simp]:
-  "finfun_dom (f(\<^sup>f a := b)) = (finfun_dom f)(\<^sup>f a := (b \<noteq> finfun_default f))"
+  "finfun_dom (f(a $:= b)) = (finfun_dom f)(a $:= (b \<noteq> finfun_default f))"
 including finfun unfolding finfun_dom_def finfun_update_def
 apply(simp add: finfun_default_update_const fun_upd_apply finfun_dom_finfunI)
 apply(fold finfun_update.rep_eq)
@@ -1305,7 +1308,7 @@ proof(induct f rule: finfun_weak_induct)
       (auto simp add: finfun_dom_const UNIV_def [symmetric] Set.empty_def [symmetric])
 next
   case (update f a b)
-  have "{x. finfun_dom f(\<^sup>f a := b) $ x} =
+  have "{x. finfun_dom f(a $:= b) $ x} =
     (if b = finfun_default f then {x. finfun_dom f $ x} - {a} else insert a {x. finfun_dom f $ x})"
     by (auto simp add: finfun_upd_apply split: split_if_asm)
   thus ?case using update by simp
@@ -1328,20 +1331,20 @@ proof -
   thus ?thesis1 ?thesis2 ?thesis3 by simp_all
 qed
 
-lemma finfun_const_False_conv_bot: "op $ (\<lambda>\<^isup>f False) = bot"
+lemma finfun_const_False_conv_bot: "op $ (K$ False) = bot"
 by auto
 
-lemma finfun_const_True_conv_top: "op $ (\<lambda>\<^isup>f True) = top"
+lemma finfun_const_True_conv_top: "op $ (K$ True) = top"
 by auto
 
 lemma finfun_to_list_const:
-  "finfun_to_list ((\<lambda>\<^isup>f c) :: ('a :: {linorder} \<Rightarrow>f 'b)) = 
+  "finfun_to_list ((K$ c) :: ('a :: {linorder} \<Rightarrow>f 'b)) = 
   (if \<not> finite (UNIV :: 'a set) \<or> c = undefined then [] else THE xs. set xs = UNIV \<and> sorted xs \<and> distinct xs)"
 by(auto simp add: finfun_to_list_def finfun_const_False_conv_bot finfun_const_True_conv_top finfun_dom_const)
 
 lemma finfun_to_list_const_code [code]:
-  "finfun_to_list ((\<lambda>\<^isup>f c) :: ('a :: {linorder, card_UNIV} \<Rightarrow>f 'b)) =
-   (if card_UNIV (TYPE('a)) = 0 then [] else FinFun.code_abort (\<lambda>_. finfun_to_list ((\<lambda>\<^isup>f c) :: ('a \<Rightarrow>f 'b))))"
+  "finfun_to_list ((K$ c) :: ('a :: {linorder, card_UNIV} \<Rightarrow>f 'b)) =
+   (if card_UNIV (TYPE('a)) = 0 then [] else FinFun.code_abort (\<lambda>_. finfun_to_list ((K$ c) :: ('a \<Rightarrow>f 'b))))"
 unfolding card_UNIV_eq_0_infinite_UNIV
 by(auto simp add: finfun_to_list_const)
 
@@ -1354,12 +1357,12 @@ lemma finfun_dom_conv:
 by(induct f rule: finfun_weak_induct)(auto simp add: finfun_dom_const finfun_default_const finfun_default_update_const finfun_upd_apply)
 
 lemma finfun_to_list_update:
-  "finfun_to_list (f(\<^sup>f a := b)) = 
+  "finfun_to_list (f(a $:= b)) = 
   (if b = finfun_default f then List.remove1 a (finfun_to_list f) else List.insort_insert a (finfun_to_list f))"
 proof(subst finfun_to_list_def, rule the_equality)
   fix xs
-  assume "set xs = {x. finfun_dom f(\<^sup>f a := b) $ x} \<and> sorted xs \<and> distinct xs"
-  hence eq: "set xs = {x. finfun_dom f(\<^sup>f a := b) $ x}"
+  assume "set xs = {x. finfun_dom f(a $:= b) $ x} \<and> sorted xs \<and> distinct xs"
+  hence eq: "set xs = {x. finfun_dom f(a $:= b) $ x}"
     and [simp]: "sorted xs" "distinct xs" by simp_all
   show "xs = (if b = finfun_default f then remove1 a (finfun_to_list f) else insort_insert a (finfun_to_list f))"
   proof(cases "b = finfun_default f")
@@ -1372,7 +1375,7 @@ proof(subst finfun_to_list_def, rule the_equality)
       proof(rule the_equality)
         have "set (insort_insert a xs) = insert a (set xs)" by(simp add: set_insort_insert)
         also note eq also
-        have "insert a {x. finfun_dom f(\<^sup>f a := b) $ x} = {x. finfun_dom f $ x}" using True
+        have "insert a {x. finfun_dom f(a $:= b) $ x} = {x. finfun_dom f $ x}" using True
           by(auto simp add: finfun_upd_apply split: split_if_asm)
         finally show 1: "set (insort_insert a xs) = {x. finfun_dom f $ x} \<and> sorted (insort_insert a xs) \<and> distinct (insort_insert a xs)"
           by(simp add: sorted_insort_insert distinct_insort_insert)
@@ -1385,7 +1388,7 @@ proof(subst finfun_to_list_def, rule the_equality)
     next
       case False
       hence "f $ a = b" by(auto simp add: finfun_dom_conv)
-      hence f: "f(\<^sup>f a := b) = f" by(simp add: expand_finfun_eq fun_eq_iff finfun_upd_apply)
+      hence f: "f(a $:= b) = f" by(simp add: expand_finfun_eq fun_eq_iff finfun_upd_apply)
       from eq have "finfun_to_list f = xs" unfolding f finfun_to_list_def
         by(auto elim: sorted_distinct_set_unique intro!: the_equality)
       with eq False show ?thesis unfolding f by(simp add: remove1_idem)
@@ -1398,7 +1401,7 @@ proof(subst finfun_to_list_def, rule the_equality)
       have "finfun_to_list f = xs"
         unfolding finfun_to_list_def
       proof(rule the_equality)
-        have "finfun_dom f = finfun_dom f(\<^sup>f a := b)" using False True
+        have "finfun_dom f = finfun_dom f(a $:= b)" using False True
           by(simp add: expand_finfun_eq fun_eq_iff finfun_upd_apply)
         with eq show 1: "set xs = {x. finfun_dom f $ x} \<and> sorted xs \<and> distinct xs"
           by(simp del: finfun_dom_update)
@@ -1415,7 +1418,7 @@ proof(subst finfun_to_list_def, rule the_equality)
       proof(rule the_equality)
         have "set (remove1 a xs) = set xs - {a}" by simp
         also note eq also
-        have "{x. finfun_dom f(\<^sup>f a := b) $ x} - {a} = {x. finfun_dom f $ x}" using False
+        have "{x. finfun_dom f(a $:= b) $ x} - {a} = {x. finfun_dom f $ x}" using False
           by(auto simp add: finfun_upd_apply split: split_if_asm)
         finally show 1: "set (remove1 a xs) = {x. finfun_dom f $ x} \<and> sorted (remove1 a xs) \<and> distinct (remove1 a xs)"
           by(simp add: sorted_remove1)
