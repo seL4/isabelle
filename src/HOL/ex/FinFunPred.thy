@@ -4,7 +4,7 @@ header {*
   Predicates modelled as FinFuns
 *}
 
-theory FinFunPred imports "~~/src/HOL/Library/FinFun" begin
+theory FinFunPred imports "~~/src/HOL/Library/FinFun_Syntax" begin
 
 text {* Instantiate FinFun predicates just like predicates *}
 

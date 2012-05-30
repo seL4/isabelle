@@ -12,7 +12,7 @@ no_document use_thys [
   "Hebrew",
   "Chinese",
   "Serbian",
-  "~~/src/HOL/Library/FinFun"
+  "~~/src/HOL/Library/FinFun_Syntax"
 ];
 
 use_thys [
