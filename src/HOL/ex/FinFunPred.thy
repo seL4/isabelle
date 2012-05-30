@@ -8,14 +8,14 @@ theory FinFunPred imports "~~/src/HOL/Library/FinFun" begin
 
 text {* Instantiate FinFun predicates just like predicates *}
 
-type_synonym 'a pred\<^isub>f = "'a \<Rightarrow>\<^isub>f bool"
+type_synonym 'a pred\<^isub>f = "'a \<Rightarrow>f bool"
 
 instantiation "finfun" :: (type, ord) ord
 begin
 
 definition le_finfun_def [code del]: "f \<le> g \<longleftrightarrow> (\<forall>x. f\<^sub>f x \<le> g\<^sub>f x)"
 
-definition [code del]: "(f\<Colon>'a \<Rightarrow>\<^isub>f 'b) < g \<longleftrightarrow> f \<le> g \<and> \<not> f \<ge> g"
+definition [code del]: "(f\<Colon>'a \<Rightarrow>f 'b) < g \<longleftrightarrow> f \<le> g \<and> \<not> f \<ge> g"
 
 instance ..
 
