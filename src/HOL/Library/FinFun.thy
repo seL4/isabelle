@@ -1045,8 +1045,8 @@ by(simp add: finfun_Ex_def)
 
 subsection {* A diagonal operator for FinFuns *}
 
-definition finfun_Diag :: "'a \<Rightarrow>f 'b \<Rightarrow> 'a \<Rightarrow>f 'c \<Rightarrow> 'a \<Rightarrow>f ('b \<times> 'c)" ("(1'(_,/ _')\<^sup>f)" [0, 0] 1000)
-where [code del]: "finfun_Diag f g = finfun_rec (\<lambda>b. Pair b \<circ>$ g) (\<lambda>a b c. c(a $:= (b, g $ a))) f"
+definition finfun_Diag :: "'a \<Rightarrow>f 'b \<Rightarrow> 'a \<Rightarrow>f 'c \<Rightarrow> 'a \<Rightarrow>f ('b \<times> 'c)" ("(1'($_,/ _$'))" [0, 0] 1000)
+where [code del]: "($f, g$) = finfun_rec (\<lambda>b. Pair b \<circ>$ g) (\<lambda>a b c. c(a $:= (b, g $ a))) f"
 
 interpretation finfun_Diag_aux: finfun_rec_wf_aux "\<lambda>b. Pair b \<circ>$ g" "\<lambda>a b c. c(a $:= (b, g $ a))"
 by(unfold_locales)(simp_all add: expand_finfun_eq fun_eq_iff finfun_upd_apply)
@@ -1066,51 +1066,51 @@ proof
     by(simp add: finfun_const_def finfun_comp_conv_comp o_def)
 qed
 
-lemma finfun_Diag_const1: "(K$ b, g)\<^sup>f = Pair b \<circ>$ g"
+lemma finfun_Diag_const1: "($K$ b, g$) = Pair b \<circ>$ g"
 by(simp add: finfun_Diag_def)
 
 text {*
-  Do not use @{thm finfun_Diag_const1} for the code generator because @{term "Pair b"} is injective, i.e. if @{term g} is free of redundant updates, there is no need to check for redundant updates as is done for @{text "\<circ>\<^isub>f"}.
+  Do not use @{thm finfun_Diag_const1} for the code generator because @{term "Pair b"} is injective, i.e. if @{term g} is free of redundant updates, there is no need to check for redundant updates as is done for @{term "op \<circ>$"}.
 *}
 
 lemma finfun_Diag_const_code [code]:
-  "(K$ b, K$ c)\<^sup>f = (K$ (b, c))"
-  "(K$ b, finfun_update_code g a c)\<^sup>f = finfun_update_code (K$ b, g)\<^sup>f a (b, c)"
+  "($K$ b, K$ c$) = (K$ (b, c))"
+  "($K$ b, finfun_update_code g a c$) = finfun_update_code ($K$ b, g$) a (b, c)"
 by(simp_all add: finfun_Diag_const1)
 
-lemma finfun_Diag_update1: "(f(a $:= b), g)\<^sup>f = (f, g)\<^sup>f(a $:= (b, g $ a))"
-  and finfun_Diag_update1_code [code]: "(finfun_update_code f a b, g)\<^sup>f = (f, g)\<^sup>f(a $:= (b, g $ a))"
+lemma finfun_Diag_update1: "($f(a $:= b), g$) = ($f, g$)(a $:= (b, g $ a))"
+  and finfun_Diag_update1_code [code]: "($finfun_update_code f a b, g$) = ($f, g$)(a $:= (b, g $ a))"
 by(simp_all add: finfun_Diag_def)
 
-lemma finfun_Diag_const2: "(f, K$ c)\<^sup>f = (\<lambda>b. (b, c)) \<circ>$ f"
+lemma finfun_Diag_const2: "($f, K$ c$) = (\<lambda>b. (b, c)) \<circ>$ f"
 by(induct f rule: finfun_weak_induct)(auto intro!: finfun_ext simp add: finfun_upd_apply finfun_Diag_const1 finfun_Diag_update1)
 
-lemma finfun_Diag_update2: "(f, g(a $:= c))\<^sup>f = (f, g)\<^sup>f(a $:= (f $ a, c))"
+lemma finfun_Diag_update2: "($f, g(a $:= c)$) = ($f, g$)(a $:= (f $ a, c))"
 by(induct f rule: finfun_weak_induct)(auto intro!: finfun_ext simp add: finfun_upd_apply finfun_Diag_const1 finfun_Diag_update1)
 
-lemma finfun_Diag_const_const [simp]: "(K$ b, K$ c)\<^sup>f = (K$ (b, c))"
+lemma finfun_Diag_const_const [simp]: "($K$ b, K$ c$) = (K$ (b, c))"
 by(simp add: finfun_Diag_const1)
 
 lemma finfun_Diag_const_update:
-  "(K$ b, g(a $:= c))\<^sup>f = (K$ b, g)\<^sup>f(a $:= (b, c))"
+  "($K$ b, g(a $:= c)$) = ($K$ b, g$)(a $:= (b, c))"
 by(simp add: finfun_Diag_const1)
 
 lemma finfun_Diag_update_const:
-  "(f(a $:= b), K$ c)\<^sup>f = (f, K$ c)\<^sup>f(a $:= (b, c))"
+  "($f(a $:= b), K$ c$) = ($f, K$ c$)(a $:= (b, c))"
 by(simp add: finfun_Diag_def)
 
 lemma finfun_Diag_update_update:
-  "(f(a $:= b), g(a' $:= c))\<^sup>f = (if a = a' then (f, g)\<^sup>f(a $:= (b, c)) else (f, g)\<^sup>f(a $:= (b, g $ a))(a' $:= (f $ a', c)))"
+  "($f(a $:= b), g(a' $:= c)$) = (if a = a' then ($f, g$)(a $:= (b, c)) else ($f, g$)(a $:= (b, g $ a))(a' $:= (f $ a', c)))"
 by(auto simp add: finfun_Diag_update1 finfun_Diag_update2)
 
-lemma finfun_Diag_apply [simp]: "op $ (f, g)\<^sup>f = (\<lambda>x. (f $ x, g $ x))"
+lemma finfun_Diag_apply [simp]: "op $ ($f, g$) = (\<lambda>x. (f $ x, g $ x))"
 by(induct f rule: finfun_weak_induct)(auto simp add: finfun_Diag_const1 finfun_Diag_update1 finfun_upd_apply)
 
 lemma finfun_Diag_conv_Abs_finfun:
-  "(f, g)\<^sup>f = Abs_finfun ((\<lambda>x. (f $ x, g $ x)))"
+  "($f, g$) = Abs_finfun ((\<lambda>x. (f $ x, g $ x)))"
   including finfun
 proof -
-  have "(\<lambda>f :: 'a \<Rightarrow>f 'b. (f, g)\<^sup>f) = (\<lambda>f. Abs_finfun ((\<lambda>x. (f $ x, g $ x))))"
+  have "(\<lambda>f :: 'a \<Rightarrow>f 'b. ($f, g$)) = (\<lambda>f. Abs_finfun ((\<lambda>x. (f $ x, g $ x))))"
   proof(rule finfun_rec_unique)
     { fix c show "Abs_finfun (\<lambda>x. ((K$ c) $ x, g $ x)) = Pair c \<circ>$ g"
         by(simp add: finfun_comp_conv_comp o_def finfun_const_def) }
@@ -1122,7 +1122,7 @@ proof -
   thus ?thesis by(auto simp add: fun_eq_iff)
 qed
 
-lemma finfun_Diag_eq: "(f, g)\<^sup>f = (f', g')\<^sup>f \<longleftrightarrow> f = f' \<and> g = g'"
+lemma finfun_Diag_eq: "($f, g$) = ($f', g'$) \<longleftrightarrow> f = f' \<and> g = g'"
 by(auto simp add: expand_finfun_eq fun_eq_iff)
 
 definition finfun_fst :: "'a \<Rightarrow>f ('b \<times> 'c) \<Rightarrow> 'a \<Rightarrow>f 'b"
@@ -1138,7 +1138,7 @@ by(simp_all add: finfun_fst_def)
 lemma finfun_fst_comp_conv: "finfun_fst (f \<circ>$ g) = (fst \<circ> f) \<circ>$ g"
 by(simp add: finfun_fst_def)
 
-lemma finfun_fst_conv [simp]: "finfun_fst (f, g)\<^sup>f = f"
+lemma finfun_fst_conv [simp]: "finfun_fst ($f, g$) = f"
 by(induct f rule: finfun_weak_induct)(simp_all add: finfun_Diag_const1 finfun_fst_comp_conv o_def finfun_Diag_update1 finfun_fst_update)
 
 lemma finfun_fst_conv_Abs_finfun: "finfun_fst = (\<lambda>f. Abs_finfun (fst \<circ> op $ f))"
@@ -1158,7 +1158,7 @@ by(simp_all add: finfun_snd_def)
 lemma finfun_snd_comp_conv: "finfun_snd (f \<circ>$ g) = (snd \<circ> f) \<circ>$ g"
 by(simp add: finfun_snd_def)
 
-lemma finfun_snd_conv [simp]: "finfun_snd (f, g)\<^sup>f = g"
+lemma finfun_snd_conv [simp]: "finfun_snd ($f, g$) = g"
 apply(induct f rule: finfun_weak_induct)
 apply(auto simp add: finfun_Diag_const1 finfun_snd_comp_conv o_def finfun_Diag_update1 finfun_snd_update finfun_upd_apply intro: finfun_ext)
 done
@@ -1166,7 +1166,7 @@ done
 lemma finfun_snd_conv_Abs_finfun: "finfun_snd = (\<lambda>f. Abs_finfun (snd \<circ> op $ f))"
 by(simp add: finfun_snd_def [abs_def] finfun_comp_conv_comp)
 
-lemma finfun_Diag_collapse [simp]: "(finfun_fst f, finfun_snd f)\<^sup>f = f"
+lemma finfun_Diag_collapse [simp]: "($finfun_fst f, finfun_snd f$) = f"
 by(induct f rule: finfun_weak_induct)(simp_all add: finfun_fst_const finfun_snd_const finfun_fst_update finfun_snd_update finfun_Diag_update_update)
 
 subsection {* Currying for FinFuns *}
@@ -1244,11 +1244,11 @@ qed
 
 subsection {* Executable equality for FinFuns *}
 
-lemma eq_finfun_All_ext: "(f = g) \<longleftrightarrow> finfun_All ((\<lambda>(x, y). x = y) \<circ>$ (f, g)\<^sup>f)"
+lemma eq_finfun_All_ext: "(f = g) \<longleftrightarrow> finfun_All ((\<lambda>(x, y). x = y) \<circ>$ ($f, g$))"
 by(simp add: expand_finfun_eq fun_eq_iff finfun_All_All o_def)
 
 instantiation finfun :: ("{card_UNIV,equal}",equal) equal begin
-definition eq_finfun_def [code]: "HOL.equal f g \<longleftrightarrow> finfun_All ((\<lambda>(x, y). x = y) \<circ>$ (f, g)\<^sup>f)"
+definition eq_finfun_def [code]: "HOL.equal f g \<longleftrightarrow> finfun_All ((\<lambda>(x, y). x = y) \<circ>$ ($f, g$))"
 instance by(intro_classes)(simp add: eq_finfun_All_ext eq_finfun_def)
 end
 
