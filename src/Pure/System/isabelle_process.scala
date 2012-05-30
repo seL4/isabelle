@@ -77,7 +77,6 @@ object Isabelle_Process
 
 
 class Isabelle_Process(
-    timeout: Time = Time.seconds(25),
     receiver: Isabelle_Process.Message => Unit = Console.println(_),
     args: List[String] = Nil)
 {
@@ -104,9 +103,10 @@ class Isabelle_Process(
     }
   }
 
-  private def output_message(kind: String, text: String)
+  private def exit_message(rc: Int)
   {
-    output_message(kind, Nil, List(XML.Text(Symbol.decode(text))))
+    output_message(Isabelle_Markup.EXIT, Isabelle_Markup.Return_Code(rc),
+      List(XML.Text("Return code: " + rc.toString)))
   }
 
 
@@ -154,25 +154,25 @@ class Isabelle_Process(
   {
     val (startup_failed, startup_errors) =
     {
-      val expired = System.currentTimeMillis() + timeout.ms
-      val result = new StringBuilder(100)
-
       var finished: Option[Boolean] = None
-      while (finished.isEmpty && System.currentTimeMillis() <= expired) {
+      val result = new StringBuilder(100)
+      while (finished.isEmpty && (process.stderr.ready || !process_result.is_finished)) {
         while (finished.isEmpty && process.stderr.ready) {
-          val c = process.stderr.read
-          if (c == 2) finished = Some(true)
-          else result += c.toChar
+          try {
+            val c = process.stderr.read
+            if (c == 2) finished = Some(true)
+            else result += c.toChar
+          }
+          catch { case _: IOException => finished = Some(false) }
         }
-        if (process_result.is_finished) finished = Some(false)
-        else Thread.sleep(10)
+        Thread.sleep(10)
       }
       (finished.isEmpty || !finished.get, result.toString.trim)
     }
     if (startup_errors != "") system_output(startup_errors)
 
     if (startup_failed) {
-      output_message(Isabelle_Markup.EXIT, "Return code: 127")
+      exit_message(127)
       process.stdin.close
       Thread.sleep(300)
       terminate_process()
@@ -189,10 +189,11 @@ class Isabelle_Process(
 
       val rc = process_result.join
       system_output("process terminated")
+      close_input()
       for ((thread, _) <- List(standard_input, stdout, stderr, command_input, message))
         thread.join
       system_output("process_manager terminated")
-      output_message(Isabelle_Markup.EXIT, "Return code: " + rc.toString)
+      exit_message(rc)
     }
     system_channel.accepted()
   }
@@ -204,7 +205,7 @@ class Isabelle_Process(
 
   def terminate()
   {
-    close()
+    close_input()
     system_output("Terminating Isabelle process")
     terminate_process()
   }
@@ -263,7 +264,7 @@ class Isabelle_Process(
             else done = true
           }
           if (result.length > 0) {
-            output_message(markup, result.toString)
+            output_message(markup, Nil, List(XML.Text(Symbol.decode(result.toString))))
             result.length = 0
           }
           else {
@@ -399,5 +400,5 @@ class Isabelle_Process(
     input_bytes(name, args.map(Standard_System.string_bytes): _*)
   }
 
-  def close(): Unit = { close(command_input); close(standard_input) }
+  def close_input(): Unit = { close(command_input); close(standard_input) }
 }

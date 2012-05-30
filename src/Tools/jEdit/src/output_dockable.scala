@@ -133,6 +133,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     Isabelle.session.global_settings += main_actor
     Isabelle.session.commands_changed += main_actor
     Isabelle.session.caret_focus += main_actor
+    handle_update()
   }
 
   override def exit()
@@ -178,6 +179,4 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private val controls = new FlowPanel(FlowPanel.Alignment.Right)(zoom, tracing, auto_update, update)
   add(controls.peer, BorderLayout.NORTH)
-
-  handle_update()
 }

@@ -295,14 +295,13 @@ object Isabelle
 
   def start_session()
   {
-    val timeout = Time_Property("startup-timeout", Time.seconds(25)) max Time.seconds(5)
     val modes = space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE")).map("-m" + _)
     val logic = {
       val logic = Property("logic")
       if (logic != null && logic != "") logic
       else Isabelle.default_logic()
     }
-    session.start(timeout, modes ::: List(logic))
+    session.start(modes ::: List(logic))
   }
 
 
@@ -388,9 +387,8 @@ class Plugin extends EBPlugin
           phase match {
             case Session.Failed =>
               Swing_Thread.later {
-                Library.error_dialog(jEdit.getActiveView,
-                  "Failed to start Isabelle process",
-                    Library.scrollable_text(Isabelle.session.current_syslog()))
+                Library.error_dialog(jEdit.getActiveView, "Prover process failure",
+                    "Isabelle Syslog", Library.scrollable_text(Isabelle.session.current_syslog()))
               }
 
             case Session.Ready =>

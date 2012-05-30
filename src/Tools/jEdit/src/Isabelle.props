@@ -33,7 +33,6 @@ options.isabelle.tooltip-margin.title=Tooltip Margin
 options.isabelle.tooltip-margin=60
 options.isabelle.tooltip-dismiss-delay.title=Tooltip Dismiss Delay (global)
 options.isabelle.tooltip-dismiss-delay=8.0
-options.isabelle.startup-timeout=25.0
 options.isabelle.auto-start.title=Auto Start
 options.isabelle.auto-start=true
 
@@ -51,17 +50,21 @@ isabelle.input-bold.shortcut=C+e RIGHT
 
 #menu actions
 plugin.isabelle.jedit.Plugin.menu.label=Isabelle
-plugin.isabelle.jedit.Plugin.menu=isabelle.session-panel isabelle.output-panel isabelle.raw-output-panel isabelle.protocol-panel
+plugin.isabelle.jedit.Plugin.menu=isabelle.session-panel isabelle.output-panel isabelle.raw-output-panel isabelle.protocol-panel isabelle.readme-panel isabelle.syslog-panel
 isabelle.session-panel.label=Prover Session panel
 isabelle.output-panel.label=Output panel
 isabelle.raw-output-panel.label=Raw Output panel
 isabelle.protocol-panel.label=Protocol panel
+isabelle.readme-panel.label=README panel
+isabelle.syslog-panel.label=Syslog panel
 
 #dockables
 isabelle-session.title=Prover Session
 isabelle-output.title=Output
 isabelle-raw-output.title=Raw Output
 isabelle-protocol.title=Protocol
+isabelle-readme.title=README
+isabelle-syslog.title=Syslog
 
 #SideKick
 sidekick.parser.isabelle.label=Isabelle
