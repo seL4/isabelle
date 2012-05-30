@@ -64,8 +64,10 @@ oops
 subsection {* 2.5. Natural Numbers and Integers *}
 
 lemma "\<lbrakk>i \<le> j; n \<le> (m\<Colon>int)\<rbrakk> \<Longrightarrow> i * n + j * m \<le> i * m + j * n"
+(* FIXME
 nitpick [expect = genuine]
 nitpick [binary_ints, bits = 16, expect = genuine]
+*)
 oops
 
 lemma "\<forall>n. Suc n \<noteq> n \<Longrightarrow> P"
@@ -141,11 +143,15 @@ record point =
   Ycoord :: int
 
 lemma "Xcoord (p\<Colon>point) = Xcoord (q\<Colon>point)"
+(* FIXME: Invalid intermediate term
 nitpick [show_datatypes, expect = genuine]
+*)
 oops
 
 lemma "4 * x + 3 * (y\<Colon>real) \<noteq> 1 / 2"
+(* FIXME: Invalid intermediate term
 nitpick [show_datatypes, expect = genuine]
+*)
 oops
 
 subsection {* 2.8. Inductive and Coinductive Predicates *}

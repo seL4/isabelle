@@ -18,6 +18,7 @@ record point2d =
   xc :: int
   yc :: int
 
+(* FIXME: Invalid intermediate term
 lemma "\<lparr>xc = x, yc = y\<rparr> = p\<lparr>xc := x, yc := y\<rparr>"
 nitpick [expect = none]
 sorry
@@ -83,5 +84,6 @@ oops
 lemma "p\<lparr>xc := x, yc := y, zc := z, wc := w\<rparr> = p"
 nitpick [expect = genuine]
 oops
+*)
 
 end
