@@ -870,11 +870,7 @@ by arith
 
 subsection{*The functions @{term nat} and @{term int}*}
 
-text{*Simplify the terms @{term "int 0"}, @{term "int(Suc 0)"} and
-  @{term "w + - z"}*}
-declare Zero_int_def [symmetric, simp]
-declare One_int_def [symmetric, simp]
-
+text{*Simplify the term @{term "w + - z"}*}
 lemmas diff_int_def_symmetric = diff_int_def [symmetric, simp]
 
 lemma nat_0 [simp]: "nat 0 = 0"
