@@ -60,33 +60,6 @@ qed
 
 end
 
-lemma card_Compl:
-  "finite A \<Longrightarrow> card (- A) = card (UNIV :: 'a set) - card (A :: 'a set)"
-by (metis Compl_eq_Diff_UNIV card_Diff_subset top_greatest)
-
-lemma eq_coset_set_code [code]:
-  fixes xs ys :: "'a :: card_UNIV list"
-  defines "rhs \<equiv> 
-  let n = card_UNIV TYPE('a)
-  in if n = 0 then False else 
-        let xs' = remdups xs; ys' = remdups ys 
-        in length xs' + length ys' = n \<and> list_all (\<lambda>y. \<not> List.member ys' y) xs' \<and> list_all (\<lambda>x. \<not> List.member xs' x) ys'"
-  shows "HOL.eq (List.coset xs) (set ys) \<longleftrightarrow> rhs" (is ?thesis1)
-  and "HOL.eq (set ys) (List.coset xs) \<longleftrightarrow> rhs" (is ?thesis2)
-proof -
-  show ?thesis1 (is "?lhs \<longleftrightarrow> ?rhs")
-  proof
-    assume ?lhs thus ?rhs
-      by(auto simp add: rhs_def Let_def List.member_def list_all_iff card_set[symmetric] card_Un_Int[where A="set xs" and B="- set xs"] card_UNIV Compl_partition card_gt_0_iff dest: sym)(metis finite_compl finite_set)
-  next
-    assume ?rhs
-    moreover have "\<lbrakk> \<forall>y\<in>set xs. y \<notin> set ys; \<forall>x\<in>set ys. x \<notin> set xs \<rbrakk> \<Longrightarrow> set xs \<inter> set ys = {}" by blast
-    ultimately show ?lhs
-      by(auto simp add: rhs_def Let_def List.member_def list_all_iff card_set[symmetric] card_UNIV card_gt_0_iff card_Un_Int[where A="set xs" and B="set ys"] dest: card_eq_UNIV_imp_eq_UNIV split: split_if_asm)
-  qed
-  thus ?thesis2 by blast
-qed
-
 subsection {* Instantiations for @{text "card_UNIV"} *}
 
 subsubsection {* @{typ "nat"} *}
@@ -316,5 +289,45 @@ instance proof
 qed
 
 end
+
+subsection {* Code setup for equality on sets *}
+
+definition eq_set :: "'a :: card_UNIV set \<Rightarrow> 'a :: card_UNIV set \<Rightarrow> bool"
+where [simp, code del]: "eq_set = op ="
+
+lemmas [code_unfold] = eq_set_def[symmetric]
+
+lemma card_Compl:
+  "finite A \<Longrightarrow> card (- A) = card (UNIV :: 'a set) - card (A :: 'a set)"
+by (metis Compl_eq_Diff_UNIV card_Diff_subset top_greatest)
+
+lemma eq_set_code [code]:
+  fixes xs ys :: "'a :: card_UNIV list"
+  defines "rhs \<equiv> 
+  let n = card_UNIV TYPE('a)
+  in if n = 0 then False else 
+        let xs' = remdups xs; ys' = remdups ys 
+        in length xs' + length ys' = n \<and> (\<forall>x \<in> set xs'. x \<notin> set ys') \<and> (\<forall>y \<in> set ys'. y \<notin> set xs')"
+  shows "eq_set (List.coset xs) (set ys) \<longleftrightarrow> rhs" (is ?thesis1)
+  and "eq_set (set ys) (List.coset xs) \<longleftrightarrow> rhs" (is ?thesis2)
+  and "eq_set (set xs) (set ys) \<longleftrightarrow> (\<forall>x \<in> set xs. x \<in> set ys) \<and> (\<forall>y \<in> set ys. y \<in> set xs)" (is ?thesis3)
+  and "eq_set (List.coset xs) (List.coset ys) \<longleftrightarrow> (\<forall>x \<in> set xs. x \<in> set ys) \<and> (\<forall>y \<in> set ys. y \<in> set xs)" (is ?thesis4)
+proof -
+  show ?thesis1 (is "?lhs \<longleftrightarrow> ?rhs")
+  proof
+    assume ?lhs thus ?rhs
+      by(auto simp add: rhs_def Let_def card_set[symmetric] card_Un_Int[where A="set xs" and B="- set xs"] card_UNIV Compl_partition card_gt_0_iff dest: sym)(metis finite_compl finite_set)
+  next
+    assume ?rhs
+    moreover have "\<lbrakk> \<forall>y\<in>set xs. y \<notin> set ys; \<forall>x\<in>set ys. x \<notin> set xs \<rbrakk> \<Longrightarrow> set xs \<inter> set ys = {}" by blast
+    ultimately show ?lhs
+      by(auto simp add: rhs_def Let_def  card_set[symmetric] card_UNIV card_gt_0_iff card_Un_Int[where A="set xs" and B="set ys"] dest: card_eq_UNIV_imp_eq_UNIV split: split_if_asm)
+  qed
+  thus ?thesis2 unfolding eq_set_def by blast
+  show ?thesis3 ?thesis4 unfolding eq_set_def List.coset_def by blast+
+qed
+
+(* test code setup *)
+value [code] "List.coset [True] = set [False] \<and> set [] = List.coset [True, False]"
 
 end
