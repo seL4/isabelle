@@ -195,7 +195,7 @@ lemma "\<exists>B. (\<forall>x \<in> B. x \<le> (0::int))"
        apply (metis all_not_in_conv)
       apply (metis all_not_in_conv)
      apply (metis mem_Collect_eq)
-    apply (metis less_int_def singleton_iff)
+    apply (metis less_le singleton_iff)
    apply (metis mem_Collect_eq)
   apply (metis mem_Collect_eq)
  apply (metis all_not_in_conv)
