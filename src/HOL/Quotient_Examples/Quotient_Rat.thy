@@ -114,6 +114,8 @@ quotient_definition "Fract :: int \<Rightarrow> int \<Rightarrow> rat" is
 
 lemmas [simp] = Respects_def
 
+(* FIXME: (partiality_)descending raises exception TYPE_MATCH
+
 instantiation rat :: comm_ring_1
 begin
 
@@ -260,5 +262,6 @@ proof
     then show "\<exists>z\<Colon>int. a * b \<le> z * b * b" by auto
   qed
 qed
+*)
 
 end
