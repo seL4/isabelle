@@ -441,8 +441,7 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Library/Abstract_Rat.thy $(SRC)/Tools/Adhoc_Overloading.thy		\
   Library/AList.thy Library/AList_Mapping.thy 				\
   Library/BigO.thy Library/Binomial.thy 				\
-  Library/Bit.thy Library/Boolean_Algebra.thy Library/Card_Univ.thy	\
-  Library/Cardinality.thy						\
+  Library/Bit.thy Library/Boolean_Algebra.thy Library/Cardinality.thy	\
   Library/Char_nat.thy Library/Code_Char.thy Library/Code_Char_chr.thy	\
   Library/Code_Char_ord.thy Library/Code_Integer.thy			\
   Library/Code_Nat.thy Library/Code_Natural.thy				\

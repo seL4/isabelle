@@ -3,7 +3,7 @@
 header {* Almost everywhere constant functions *}
 
 theory FinFun
-imports Card_Univ
+imports Cardinality
 begin
 
 text {*
