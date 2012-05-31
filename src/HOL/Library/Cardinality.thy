@@ -161,7 +161,7 @@ subsubsection {* @{typ "int"} *}
 
 instantiation int :: card_UNIV begin
 
-definition "card_UNIV_class.card_UNIV = (\<lambda>a :: int itself. 0)"
+definition "card_UNIV = (\<lambda>a :: int itself. 0)"
 
 instance proof
   fix x :: "int itself"
@@ -175,7 +175,7 @@ subsubsection {* @{typ "'a list"} *}
 
 instantiation list :: (type) card_UNIV begin
 
-definition "card_UNIV_class.card_UNIV = (\<lambda>a :: 'a list itself. 0)"
+definition "card_UNIV = (\<lambda>a :: 'a list itself. 0)"
 
 instance proof
   fix x :: "'a list itself"
@@ -187,13 +187,9 @@ end
 
 subsubsection {* @{typ "unit"} *}
 
-lemma card_UNIV_unit: "card (UNIV :: unit set) = 1"
-  unfolding UNIV_unit by simp
-
 instantiation unit :: card_UNIV begin
 
-definition card_UNIV_unit_def: 
-  "card_UNIV_class.card_UNIV = (\<lambda>a :: unit itself. 1)"
+definition "card_UNIV = (\<lambda>a :: unit itself. 1)"
 
 instance proof
   fix x :: "unit itself"
@@ -205,13 +201,9 @@ end
 
 subsubsection {* @{typ "bool"} *}
 
-lemma card_UNIV_bool: "card (UNIV :: bool set) = 2"
-  unfolding UNIV_bool by simp
-
 instantiation bool :: card_UNIV begin
 
-definition card_UNIV_bool_def: 
-  "card_UNIV_class.card_UNIV = (\<lambda>a :: bool itself. 2)"
+definition "card_UNIV = (\<lambda>a :: bool itself. 2)"
 
 instance proof
   fix x :: "bool itself"
@@ -235,8 +227,7 @@ qed
 
 instantiation char :: card_UNIV begin
 
-definition card_UNIV_char_def: 
-  "card_UNIV_class.card_UNIV = (\<lambda>a :: char itself. 256)"
+definition "card_UNIV_class.card_UNIV = (\<lambda>a :: char itself. 256)"
 
 instance proof
   fix x :: "char itself"
@@ -250,13 +241,12 @@ subsubsection {* @{typ "'a \<times> 'b"} *}
 
 instantiation prod :: (card_UNIV, card_UNIV) card_UNIV begin
 
-definition card_UNIV_product_def: 
-  "card_UNIV_class.card_UNIV = (\<lambda>a :: ('a \<times> 'b) itself. card_UNIV (TYPE('a)) * card_UNIV (TYPE('b)))"
+definition "card_UNIV = (\<lambda>a :: ('a \<times> 'b) itself. card_UNIV (TYPE('a)) * card_UNIV (TYPE('b)))"
 
 instance proof
   fix x :: "('a \<times> 'b) itself"
   show "card_UNIV x = card (UNIV :: ('a \<times> 'b) set)"
-    by(simp add: card_UNIV_product_def card_UNIV UNIV_Times_UNIV[symmetric] card_cartesian_product del: UNIV_Times_UNIV)
+    by(simp add: card_UNIV_prod_def card_UNIV UNIV_Times_UNIV[symmetric] card_cartesian_product del: UNIV_Times_UNIV)
 qed
 
 end
@@ -265,9 +255,9 @@ subsubsection {* @{typ "'a + 'b"} *}
 
 instantiation sum :: (card_UNIV, card_UNIV) card_UNIV begin
 
-definition card_UNIV_sum_def: 
-  "card_UNIV_class.card_UNIV = (\<lambda>a :: ('a + 'b) itself. let ca = card_UNIV (TYPE('a)); cb = card_UNIV (TYPE('b))
-                           in if ca \<noteq> 0 \<and> cb \<noteq> 0 then ca + cb else 0)"
+definition "card_UNIV_class.card_UNIV = (\<lambda>a :: ('a + 'b) itself. 
+  let ca = card_UNIV (TYPE('a)); cb = card_UNIV (TYPE('b))
+  in if ca \<noteq> 0 \<and> cb \<noteq> 0 then ca + cb else 0)"
 
 instance proof
   fix x :: "('a + 'b) itself"
@@ -281,9 +271,9 @@ subsubsection {* @{typ "'a \<Rightarrow> 'b"} *}
 
 instantiation "fun" :: (card_UNIV, card_UNIV) card_UNIV begin
 
-definition card_UNIV_fun_def: 
-  "card_UNIV_class.card_UNIV = (\<lambda>a :: ('a \<Rightarrow> 'b) itself. let ca = card_UNIV (TYPE('a)); cb = card_UNIV (TYPE('b))
-                           in if ca \<noteq> 0 \<and> cb \<noteq> 0 \<or> cb = 1 then cb ^ ca else 0)"
+definition "card_UNIV = 
+  (\<lambda>a :: ('a \<Rightarrow> 'b) itself. let ca = card_UNIV (TYPE('a)); cb = card_UNIV (TYPE('b))
+                            in if ca \<noteq> 0 \<and> cb \<noteq> 0 \<or> cb = 1 then cb ^ ca else 0)"
 
 instance proof
   fix x :: "('a \<Rightarrow> 'b) itself"
@@ -354,9 +344,7 @@ subsubsection {* @{typ "'a option"} *}
 instantiation option :: (card_UNIV) card_UNIV
 begin
 
-definition card_UNIV_option_def: 
-  "card_UNIV_class.card_UNIV = (\<lambda>a :: 'a option itself. let c = card_UNIV (TYPE('a))
-                           in if c \<noteq> 0 then Suc c else 0)"
+definition "card_UNIV = (\<lambda>a :: 'a option itself. let c = card_UNIV (TYPE('a)) in if c \<noteq> 0 then Suc c else 0)"
 
 instance proof
   fix x :: "'a option itself"
