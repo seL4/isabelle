@@ -146,71 +146,36 @@ subsection {* Instantiations for @{text "card_UNIV"} *}
 subsubsection {* @{typ "nat"} *}
 
 instantiation nat :: card_UNIV begin
-
 definition "card_UNIV_class.card_UNIV = (\<lambda>a :: nat itself. 0)"
-
-instance proof
-  fix x :: "nat itself"
-  show "card_UNIV x = card (UNIV :: nat set)"
-    unfolding card_UNIV_nat_def by simp
-qed
-
+instance by intro_classes (simp add: card_UNIV_nat_def)
 end
 
 subsubsection {* @{typ "int"} *}
 
 instantiation int :: card_UNIV begin
-
 definition "card_UNIV = (\<lambda>a :: int itself. 0)"
-
-instance proof
-  fix x :: "int itself"
-  show "card_UNIV x = card (UNIV :: int set)"
-    unfolding card_UNIV_int_def by(simp add: infinite_UNIV_int)
-qed
-
+instance by intro_classes (simp add: card_UNIV_int_def infinite_UNIV_int)
 end
 
 subsubsection {* @{typ "'a list"} *}
 
 instantiation list :: (type) card_UNIV begin
-
 definition "card_UNIV = (\<lambda>a :: 'a list itself. 0)"
-
-instance proof
-  fix x :: "'a list itself"
-  show "card_UNIV x = card (UNIV :: 'a list set)"
-    unfolding card_UNIV_list_def by(simp add: infinite_UNIV_listI)
-qed
-
+instance by intro_classes (simp add: card_UNIV_list_def infinite_UNIV_listI)
 end
 
 subsubsection {* @{typ "unit"} *}
 
 instantiation unit :: card_UNIV begin
-
 definition "card_UNIV = (\<lambda>a :: unit itself. 1)"
-
-instance proof
-  fix x :: "unit itself"
-  show "card_UNIV x = card (UNIV :: unit set)"
-    by(simp add: card_UNIV_unit_def card_UNIV_unit)
-qed
-
+instance by intro_classes (simp add: card_UNIV_unit_def card_UNIV_unit)
 end
 
 subsubsection {* @{typ "bool"} *}
 
 instantiation bool :: card_UNIV begin
-
 definition "card_UNIV = (\<lambda>a :: bool itself. 2)"
-
-instance proof
-  fix x :: "bool itself"
-  show "card_UNIV x = card (UNIV :: bool set)"
-    by(simp add: card_UNIV_bool_def card_UNIV_bool)
-qed
-
+instance by(intro_classes)(simp add: card_UNIV_bool_def card_UNIV_bool)
 end
 
 subsubsection {* @{typ "char"} *}
@@ -226,45 +191,26 @@ proof -
 qed
 
 instantiation char :: card_UNIV begin
-
 definition "card_UNIV_class.card_UNIV = (\<lambda>a :: char itself. 256)"
-
-instance proof
-  fix x :: "char itself"
-  show "card_UNIV x = card (UNIV :: char set)"
-    by(simp add: card_UNIV_char_def card_UNIV_char)
-qed
-
+instance by intro_classes (simp add: card_UNIV_char_def card_UNIV_char)
 end
 
 subsubsection {* @{typ "'a \<times> 'b"} *}
 
 instantiation prod :: (card_UNIV, card_UNIV) card_UNIV begin
-
 definition "card_UNIV = (\<lambda>a :: ('a \<times> 'b) itself. card_UNIV (TYPE('a)) * card_UNIV (TYPE('b)))"
-
-instance proof
-  fix x :: "('a \<times> 'b) itself"
-  show "card_UNIV x = card (UNIV :: ('a \<times> 'b) set)"
-    by(simp add: card_UNIV_prod_def card_UNIV UNIV_Times_UNIV[symmetric] card_cartesian_product del: UNIV_Times_UNIV)
-qed
-
+instance 
+  by intro_classes (simp add: card_UNIV_prod_def card_UNIV UNIV_Times_UNIV[symmetric] card_cartesian_product del: UNIV_Times_UNIV)
 end
 
 subsubsection {* @{typ "'a + 'b"} *}
 
 instantiation sum :: (card_UNIV, card_UNIV) card_UNIV begin
-
 definition "card_UNIV_class.card_UNIV = (\<lambda>a :: ('a + 'b) itself. 
   let ca = card_UNIV (TYPE('a)); cb = card_UNIV (TYPE('b))
   in if ca \<noteq> 0 \<and> cb \<noteq> 0 then ca + cb else 0)"
-
-instance proof
-  fix x :: "('a + 'b) itself"
-  show "card_UNIV x = card (UNIV :: ('a + 'b) set)"
-    by (auto simp add: card_UNIV_sum_def card_UNIV card_eq_0_iff UNIV_Plus_UNIV[symmetric] finite_Plus_iff Let_def card_Plus simp del: UNIV_Plus_UNIV dest!: card_ge_0_finite)
-qed
-
+instance
+  by intro_classes (auto simp add: card_UNIV_sum_def card_UNIV card_eq_0_iff UNIV_Plus_UNIV[symmetric] finite_Plus_iff Let_def card_Plus simp del: UNIV_Plus_UNIV dest!: card_ge_0_finite)
 end
 
 subsubsection {* @{typ "'a \<Rightarrow> 'b"} *}
@@ -295,7 +241,7 @@ instance proof
     proof(rule UNIV_eq_I)
       fix f :: "'a \<Rightarrow> 'b"
       from as have "f = the \<circ> map_of (zip as (map f as))"
-        by(auto simp add: map_of_zip_map intro: ext)
+        by(auto simp add: map_of_zip_map)
       thus "f \<in> set ?xs" using bs by(auto simp add: set_n_lists)
     qed
     moreover have "distinct ?xs" unfolding distinct_map
@@ -329,7 +275,7 @@ instance proof
       { fix y
         have "x y \<in> UNIV" ..
         hence "x y = b" unfolding b by simp }
-      thus "x \<in> {\<lambda>x. b}" by(auto intro: ext)
+      thus "x \<in> {\<lambda>x. b}" by(auto)
     qed
     have "card (UNIV :: ('a \<Rightarrow> 'b) set) = Suc 0" unfolding eq by simp }
   ultimately show "card_UNIV x = card (UNIV :: ('a \<Rightarrow> 'b) set)"
@@ -349,8 +295,7 @@ definition "card_UNIV = (\<lambda>a :: 'a option itself. let c = card_UNIV (TYPE
 instance proof
   fix x :: "'a option itself"
   show "card_UNIV x = card (UNIV :: 'a option set)"
-    unfolding UNIV_option_conv
-    by(auto simp add: card_UNIV_option_def card_UNIV card_eq_0_iff Let_def intro: inj_Some dest: finite_imageD)
+    by(auto simp add: UNIV_option_conv card_UNIV_option_def card_UNIV card_eq_0_iff Let_def intro: inj_Some dest: finite_imageD)
       (subst card_insert_disjoint, auto simp add: card_eq_0_iff card_image inj_Some intro: finite_imageI card_ge_0_finite)
 qed
 
