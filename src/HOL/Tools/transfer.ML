@@ -25,14 +25,17 @@ structure Data = Generic_Data
 (
   type T =
     { transfer_raw : thm Item_Net.T,
+      known_frees : (string * typ) list,
       relator_eq : thm Item_Net.T }
   val empty =
     { transfer_raw = Thm.full_rules,
+      known_frees = [],
       relator_eq = Thm.full_rules }
   val extend = I
-  fun merge ({transfer_raw = t1, relator_eq = r1},
-             {transfer_raw = t2, relator_eq = r2}) =
+  fun merge ({transfer_raw = t1, known_frees = k1, relator_eq = r1},
+             {transfer_raw = t2, known_frees = k2, relator_eq = r2}) =
     { transfer_raw = Item_Net.merge (t1, t2),
+      known_frees = Library.merge (op =) (k1, k2),
       relator_eq = Item_Net.merge (r1, r2) }
 )
 
@@ -43,13 +46,22 @@ fun get_relator_eq ctxt = ctxt
 fun get_transfer_raw ctxt = ctxt
   |> (Item_Net.content o #transfer_raw o Data.get o Context.Proof)
 
-fun map_transfer_raw f {transfer_raw, relator_eq} =
-  { transfer_raw = f transfer_raw, relator_eq = relator_eq }
+fun get_known_frees ctxt = ctxt
+  |> (#known_frees o Data.get o Context.Proof)
 
-fun map_relator_eq f {transfer_raw, relator_eq} =
-  { transfer_raw = transfer_raw, relator_eq = f relator_eq }
+fun map_data f1 f2 f3 {transfer_raw, known_frees, relator_eq} =
+  { transfer_raw = f1 transfer_raw,
+    known_frees = f2 known_frees,
+    relator_eq = f3 relator_eq }
 
-fun add_transfer_thm thm = Data.map (map_transfer_raw (Item_Net.update thm))
+fun map_transfer_raw f = map_data f I I
+fun map_known_frees f = map_data I f I
+fun map_relator_eq f = map_data I I f
+
+fun add_transfer_thm thm = Data.map
+  (map_transfer_raw (Item_Net.update thm) o
+   map_known_frees (Term.add_frees (Thm.concl_of thm)))
+
 fun del_transfer_thm thm = Data.map (map_transfer_raw (Item_Net.remove thm))
 
 val relator_eq_setup =
@@ -115,6 +127,7 @@ val post_simps =
 
 fun gen_frees_tac keepers ctxt = SUBGOAL (fn (t, i) =>
   let
+    val keepers = keepers @ get_known_frees ctxt
     val vs = rev (Term.add_frees t [])
     val vs' = filter_out (member (op =) keepers) vs
   in
