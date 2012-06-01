@@ -19,20 +19,52 @@ end
 structure Transfer : TRANSFER =
 struct
 
-structure Data = Named_Thms
+(** Theory Data **)
+
+structure Data = Generic_Data
 (
-  val name = @{binding transfer_raw}
-  val description = "raw transfer rule for transfer method"
+  type T =
+    { transfer_raw : thm Item_Net.T,
+      relator_eq : thm Item_Net.T }
+  val empty =
+    { transfer_raw = Thm.full_rules,
+      relator_eq = Thm.full_rules }
+  val extend = I
+  fun merge ({transfer_raw = t1, relator_eq = r1},
+             {transfer_raw = t2, relator_eq = r2}) =
+    { transfer_raw = Item_Net.merge (t1, t2),
+      relator_eq = Item_Net.merge (r1, r2) }
 )
 
-structure Relator_Eq = Named_Thms
-(
-  val name = @{binding relator_eq}
-  val description = "relator equality rule (used by transfer method)"
-)
+fun get_relator_eq ctxt = ctxt
+  |> (Item_Net.content o #relator_eq o Data.get o Context.Proof)
+  |> map (Thm.symmetric o mk_meta_eq)
 
-fun get_relator_eq ctxt =
-  map (Thm.symmetric o mk_meta_eq) (Relator_Eq.get ctxt)
+fun get_transfer_raw ctxt = ctxt
+  |> (Item_Net.content o #transfer_raw o Data.get o Context.Proof)
+
+fun map_transfer_raw f {transfer_raw, relator_eq} =
+  { transfer_raw = f transfer_raw, relator_eq = relator_eq }
+
+fun map_relator_eq f {transfer_raw, relator_eq} =
+  { transfer_raw = transfer_raw, relator_eq = f relator_eq }
+
+fun add_transfer_thm thm = Data.map (map_transfer_raw (Item_Net.update thm))
+fun del_transfer_thm thm = Data.map (map_transfer_raw (Item_Net.remove thm))
+
+val relator_eq_setup =
+  let
+    val name = @{binding relator_eq}
+    fun add_thm thm = Data.map (map_relator_eq (Item_Net.update thm))
+    fun del_thm thm = Data.map (map_relator_eq (Item_Net.remove thm))
+    val add = Thm.declaration_attribute add_thm
+    val del = Thm.declaration_attribute del_thm
+    val text = "declaration of relator equality rule (used by transfer method)"
+    val content = Item_Net.content o #relator_eq o Data.get
+  in
+    Attrib.setup name (Attrib.add_del add del) text
+    #> Global_Theory.add_thms_dynamic (name, content)
+  end
 
 (** Conversions **)
 
@@ -193,7 +225,7 @@ fun transfer_tac equiv ctxt i =
     val pre_simps = @{thms transfer_forall_eq transfer_implies_eq}
     val start_rule = 
       if equiv then @{thm transfer_start} else @{thm transfer_start'}
-    val rules = Data.get ctxt
+    val rules = get_transfer_raw ctxt
     (* allow unsolved subgoals only for standard transfer method, not for transfer' *)
     val end_tac = if equiv then K all_tac else K no_tac
   in
@@ -214,7 +246,7 @@ fun transfer_prover_tac ctxt = SUBGOAL (fn (t, i) =>
   let
     val rhs = (snd o Term.dest_comb o HOLogic.dest_Trueprop) t
     val rule1 = transfer_rule_of_term ctxt rhs
-    val rules = Data.get ctxt
+    val rules = get_transfer_raw ctxt
   in
     EVERY
       [CONVERSION prep_conv i,
@@ -245,10 +277,10 @@ val transfer_prover_method : (Proof.context -> Method.method) context_parser =
 val prep_rule = Conv.fconv_rule prep_conv
 
 val transfer_add =
-  Thm.declaration_attribute (Data.add_thm o prep_rule)
+  Thm.declaration_attribute (add_transfer_thm o prep_rule)
 
 val transfer_del =
-  Thm.declaration_attribute (Data.del_thm o prep_rule)
+  Thm.declaration_attribute (del_transfer_thm o prep_rule)
 
 val transfer_attribute =
   Attrib.add_del transfer_add transfer_del
@@ -256,10 +288,11 @@ val transfer_attribute =
 (* Theory setup *)
 
 val setup =
-  Data.setup
-  #> Relator_Eq.setup
+  relator_eq_setup
   #> Attrib.setup @{binding transfer_rule} transfer_attribute
      "transfer rule for transfer method"
+  #> Global_Theory.add_thms_dynamic
+     (@{binding transfer_raw}, Item_Net.content o #transfer_raw o Data.get)
   #> Method.setup @{binding transfer} (transfer_method true)
      "generic theorem transfer method"
   #> Method.setup @{binding transfer'} (transfer_method false)
