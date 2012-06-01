@@ -57,7 +57,8 @@ fun run_command name args =
     NONE => error ("Undefined Isabelle process command " ^ quote name)
   | SOME cmd =>
       (Runtime.debugging cmd args handle exn =>
-        error ("Isabelle process protocol failure: " ^ name ^ "\n" ^ ML_Compiler.exn_message exn)));
+        error ("Isabelle process protocol failure: " ^ quote name ^ "\n" ^
+          ML_Compiler.exn_message exn)));
 
 end;
 
