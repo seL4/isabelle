@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/set_comprehension_pointfree.ML
+(*  Title:      HOL/ex/set_comprehension_pointfree.ML
     Author:     Felix Kuperjans, Lukas Bulwahn, TU Muenchen
 
 Simproc for rewriting set comprehensions to pointfree expressions.
