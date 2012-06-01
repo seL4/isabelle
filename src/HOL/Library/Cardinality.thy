@@ -27,6 +27,9 @@ qed
 lemma (in type_definition) card: "card (UNIV :: 'b set) = card A"
   by (simp add: univ card_image inj_on_def Abs_inject)
 
+lemma finite_range_Some: "finite (range (Some :: 'a \<Rightarrow> 'a option)) = finite (UNIV :: 'a set)"
+by(auto dest: finite_imageD intro: inj_Some)
+
 
 subsection {* Cardinalities of types *}
 
@@ -47,23 +50,104 @@ lemma card_unit [simp]: "CARD(unit) = 1"
 lemma card_prod [simp]: "CARD('a \<times> 'b) = CARD('a) * CARD('b)"
   unfolding UNIV_Times_UNIV [symmetric] by (simp only: card_cartesian_product)
 
+lemma card_UNIV_sum: "CARD('a + 'b) = (if CARD('a) \<noteq> 0 \<and> CARD('b) \<noteq> 0 then CARD('a) + CARD('b) else 0)"
+unfolding UNIV_Plus_UNIV[symmetric]
+by(auto simp add: card_eq_0_iff card_Plus simp del: UNIV_Plus_UNIV)
+
 lemma card_sum [simp]: "CARD('a + 'b) = CARD('a::finite) + CARD('b::finite)"
-  unfolding UNIV_Plus_UNIV [symmetric] by (simp only: finite card_Plus)
+by(simp add: card_UNIV_sum)
+
+lemma card_UNIV_option: "CARD('a option) = (if CARD('a) = 0 then 0 else CARD('a) + 1)"
+proof -
+  have "(None :: 'a option) \<notin> range Some" by clarsimp
+  thus ?thesis
+    by(simp add: UNIV_option_conv card_eq_0_iff finite_range_Some card_insert_disjoint card_image)
+qed
 
 lemma card_option [simp]: "CARD('a option) = Suc CARD('a::finite)"
-  unfolding UNIV_option_conv
-  apply (subgoal_tac "(None::'a option) \<notin> range Some")
-  apply (simp add: card_image)
-  apply fast
-  done
+by(simp add: card_UNIV_option)
+
+lemma card_UNIV_set: "CARD('a set) = (if CARD('a) = 0 then 0 else 2 ^ CARD('a))"
+by(simp add: Pow_UNIV[symmetric] card_eq_0_iff card_Pow del: Pow_UNIV)
 
 lemma card_set [simp]: "CARD('a set) = 2 ^ CARD('a::finite)"
-  unfolding Pow_UNIV [symmetric]
-  by (simp only: card_Pow finite)
+by(simp add: card_UNIV_set)
 
 lemma card_nat [simp]: "CARD(nat) = 0"
   by (simp add: card_eq_0_iff)
 
+lemma card_fun: "CARD('a \<Rightarrow> 'b) = (if CARD('a) \<noteq> 0 \<and> CARD('b) \<noteq> 0 \<or> CARD('b) = 1 then CARD('b) ^ CARD('a) else 0)"
+proof -
+  {  assume "0 < CARD('a)" and "0 < CARD('b)"
+    hence fina: "finite (UNIV :: 'a set)" and finb: "finite (UNIV :: 'b set)"
+      by(simp_all only: card_ge_0_finite)
+    from finite_distinct_list[OF finb] obtain bs 
+      where bs: "set bs = (UNIV :: 'b set)" and distb: "distinct bs" by blast
+    from finite_distinct_list[OF fina] obtain as
+      where as: "set as = (UNIV :: 'a set)" and dista: "distinct as" by blast
+    have cb: "CARD('b) = length bs"
+      unfolding bs[symmetric] distinct_card[OF distb] ..
+    have ca: "CARD('a) = length as"
+      unfolding as[symmetric] distinct_card[OF dista] ..
+    let ?xs = "map (\<lambda>ys. the o map_of (zip as ys)) (Enum.n_lists (length as) bs)"
+    have "UNIV = set ?xs"
+    proof(rule UNIV_eq_I)
+      fix f :: "'a \<Rightarrow> 'b"
+      from as have "f = the \<circ> map_of (zip as (map f as))"
+        by(auto simp add: map_of_zip_map)
+      thus "f \<in> set ?xs" using bs by(auto simp add: set_n_lists)
+    qed
+    moreover have "distinct ?xs" unfolding distinct_map
+    proof(intro conjI distinct_n_lists distb inj_onI)
+      fix xs ys :: "'b list"
+      assume xs: "xs \<in> set (Enum.n_lists (length as) bs)"
+        and ys: "ys \<in> set (Enum.n_lists (length as) bs)"
+        and eq: "the \<circ> map_of (zip as xs) = the \<circ> map_of (zip as ys)"
+      from xs ys have [simp]: "length xs = length as" "length ys = length as"
+        by(simp_all add: length_n_lists_elem)
+      have "map_of (zip as xs) = map_of (zip as ys)"
+      proof
+        fix x
+        from as bs have "\<exists>y. map_of (zip as xs) x = Some y" "\<exists>y. map_of (zip as ys) x = Some y"
+          by(simp_all add: map_of_zip_is_Some[symmetric])
+        with eq show "map_of (zip as xs) x = map_of (zip as ys) x"
+          by(auto dest: fun_cong[where x=x])
+      qed
+      with dista show "xs = ys" by(simp add: map_of_zip_inject)
+    qed
+    hence "card (set ?xs) = length ?xs" by(simp only: distinct_card)
+    moreover have "length ?xs = length bs ^ length as" by(simp add: length_n_lists)
+    ultimately have "CARD('a \<Rightarrow> 'b) = CARD('b) ^ CARD('a)" using cb ca by simp }
+  moreover {
+    assume cb: "CARD('b) = 1"
+    then obtain b where b: "UNIV = {b :: 'b}" by(auto simp add: card_Suc_eq)
+    have eq: "UNIV = {\<lambda>x :: 'a. b ::'b}"
+    proof(rule UNIV_eq_I)
+      fix x :: "'a \<Rightarrow> 'b"
+      { fix y
+        have "x y \<in> UNIV" ..
+        hence "x y = b" unfolding b by simp }
+      thus "x \<in> {\<lambda>x. b}" by(auto)
+    qed
+    have "CARD('a \<Rightarrow> 'b) = 1" unfolding eq by simp }
+  ultimately show ?thesis
+    by(auto simp del: One_nat_def)(auto simp add: card_eq_0_iff dest: finite_fun_UNIVD2 finite_fun_UNIVD1)
+qed
+
+lemma card_nibble: "CARD(nibble) = 16"
+unfolding UNIV_nibble by simp
+
+lemma card_UNIV_char: "CARD(char) = 256"
+proof -
+  have "inj (\<lambda>(x, y). Char x y)" by(auto intro: injI)
+  thus ?thesis unfolding UNIV_char by(simp add: card_image card_nibble)
+qed
+
+lemma card_literal: "CARD(String.literal) = 0"
+proof -
+  have "inj STR" by(auto intro: injI)
+  thus ?thesis by(simp add: type_definition.univ[OF type_definition_literal] card_image infinite_UNIV_listI)
+qed
 
 subsection {* Classes with at least 1 and 2  *}
 
@@ -97,10 +181,6 @@ lemma is_list_UNIV_iff: "is_list_UNIV xs \<longleftrightarrow> set xs = UNIV"
 by(auto simp add: is_list_UNIV_def Let_def card_eq_0_iff List.card_set[symmetric] 
    dest: subst[where P="finite", OF _ finite_set] card_eq_UNIV_imp_eq_UNIV)
 
-lemma card_UNIV_eq_0_is_list_UNIV_False:
-  "CARD('a) = 0 \<Longrightarrow> is_list_UNIV = (\<lambda>xs :: 'a list. False)"
-by(simp add: is_list_UNIV_def[abs_def])
-
 class card_UNIV = 
   fixes card_UNIV :: "'a itself \<Rightarrow> nat"
   assumes card_UNIV: "card_UNIV x = CARD('a)"
@@ -108,164 +188,119 @@ class card_UNIV =
 lemma card_UNIV_code [code_unfold]: "CARD('a :: card_UNIV) = card_UNIV TYPE('a)"
 by(simp add: card_UNIV)
 
-subsection {* Instantiations for @{text "card_UNIV"} *}
+lemma finite_UNIV_conv_card_UNIV [code_unfold]:
+  "finite (UNIV :: 'a :: card_UNIV set) \<longleftrightarrow> card_UNIV TYPE('a) > 0"
+by(simp add: card_UNIV card_gt_0_iff)
 
-subsubsection {* @{typ "nat"} *}
+subsection {* Instantiations for @{text "card_UNIV"} *}
 
 instantiation nat :: card_UNIV begin
 definition "card_UNIV_class.card_UNIV = (\<lambda>a :: nat itself. 0)"
 instance by intro_classes (simp add: card_UNIV_nat_def)
 end
 
-subsubsection {* @{typ "int"} *}
-
 instantiation int :: card_UNIV begin
 definition "card_UNIV = (\<lambda>a :: int itself. 0)"
 instance by intro_classes (simp add: card_UNIV_int_def infinite_UNIV_int)
 end
 
-subsubsection {* @{typ "'a list"} *}
-
+print_classes
 instantiation list :: (type) card_UNIV begin
 definition "card_UNIV = (\<lambda>a :: 'a list itself. 0)"
 instance by intro_classes (simp add: card_UNIV_list_def infinite_UNIV_listI)
 end
-
-subsubsection {* @{typ "unit"} *}
 
 instantiation unit :: card_UNIV begin
 definition "card_UNIV = (\<lambda>a :: unit itself. 1)"
 instance by intro_classes (simp add: card_UNIV_unit_def card_UNIV_unit)
 end
 
-subsubsection {* @{typ "bool"} *}
-
 instantiation bool :: card_UNIV begin
 definition "card_UNIV = (\<lambda>a :: bool itself. 2)"
 instance by(intro_classes)(simp add: card_UNIV_bool_def card_UNIV_bool)
 end
-
-subsubsection {* @{typ "char"} *}
-
-lemma card_UNIV_char: "card (UNIV :: char set) = 256"
-proof -
-  from enum_distinct
-  have "card (set (Enum.enum :: char list)) = length (Enum.enum :: char list)"
-    by (rule distinct_card)
-  also have "set Enum.enum = (UNIV :: char set)" by (auto intro: in_enum)
-  also note enum_chars
-  finally show ?thesis by (simp add: chars_def)
-qed
 
 instantiation char :: card_UNIV begin
 definition "card_UNIV_class.card_UNIV = (\<lambda>a :: char itself. 256)"
 instance by intro_classes (simp add: card_UNIV_char_def card_UNIV_char)
 end
 
-subsubsection {* @{typ "'a \<times> 'b"} *}
-
 instantiation prod :: (card_UNIV, card_UNIV) card_UNIV begin
 definition "card_UNIV = (\<lambda>a :: ('a \<times> 'b) itself. card_UNIV (TYPE('a)) * card_UNIV (TYPE('b)))"
-instance 
-  by intro_classes (simp add: card_UNIV_prod_def card_UNIV UNIV_Times_UNIV[symmetric] card_cartesian_product del: UNIV_Times_UNIV)
+instance by intro_classes (simp add: card_UNIV_prod_def card_UNIV)
 end
-
-subsubsection {* @{typ "'a + 'b"} *}
 
 instantiation sum :: (card_UNIV, card_UNIV) card_UNIV begin
-definition "card_UNIV_class.card_UNIV = (\<lambda>a :: ('a + 'b) itself. 
+definition "card_UNIV = (\<lambda>a :: ('a + 'b) itself. 
   let ca = card_UNIV (TYPE('a)); cb = card_UNIV (TYPE('b))
   in if ca \<noteq> 0 \<and> cb \<noteq> 0 then ca + cb else 0)"
-instance
-  by intro_classes (auto simp add: card_UNIV_sum_def card_UNIV card_eq_0_iff UNIV_Plus_UNIV[symmetric] finite_Plus_iff Let_def card_Plus simp del: UNIV_Plus_UNIV dest!: card_ge_0_finite)
+instance by intro_classes (auto simp add: card_UNIV_sum_def card_UNIV card_UNIV_sum)
 end
-
-subsubsection {* @{typ "'a \<Rightarrow> 'b"} *}
 
 instantiation "fun" :: (card_UNIV, card_UNIV) card_UNIV begin
-
-definition "card_UNIV = 
-  (\<lambda>a :: ('a \<Rightarrow> 'b) itself. let ca = card_UNIV (TYPE('a)); cb = card_UNIV (TYPE('b))
-                            in if ca \<noteq> 0 \<and> cb \<noteq> 0 \<or> cb = 1 then cb ^ ca else 0)"
-
-instance proof
-  fix x :: "('a \<Rightarrow> 'b) itself"
-
-  { assume "0 < card (UNIV :: 'a set)"
-    and "0 < card (UNIV :: 'b set)"
-    hence fina: "finite (UNIV :: 'a set)" and finb: "finite (UNIV :: 'b set)"
-      by(simp_all only: card_ge_0_finite)
-    from finite_distinct_list[OF finb] obtain bs 
-      where bs: "set bs = (UNIV :: 'b set)" and distb: "distinct bs" by blast
-    from finite_distinct_list[OF fina] obtain as
-      where as: "set as = (UNIV :: 'a set)" and dista: "distinct as" by blast
-    have cb: "card (UNIV :: 'b set) = length bs"
-      unfolding bs[symmetric] distinct_card[OF distb] ..
-    have ca: "card (UNIV :: 'a set) = length as"
-      unfolding as[symmetric] distinct_card[OF dista] ..
-    let ?xs = "map (\<lambda>ys. the o map_of (zip as ys)) (Enum.n_lists (length as) bs)"
-    have "UNIV = set ?xs"
-    proof(rule UNIV_eq_I)
-      fix f :: "'a \<Rightarrow> 'b"
-      from as have "f = the \<circ> map_of (zip as (map f as))"
-        by(auto simp add: map_of_zip_map)
-      thus "f \<in> set ?xs" using bs by(auto simp add: set_n_lists)
-    qed
-    moreover have "distinct ?xs" unfolding distinct_map
-    proof(intro conjI distinct_n_lists distb inj_onI)
-      fix xs ys :: "'b list"
-      assume xs: "xs \<in> set (Enum.n_lists (length as) bs)"
-        and ys: "ys \<in> set (Enum.n_lists (length as) bs)"
-        and eq: "the \<circ> map_of (zip as xs) = the \<circ> map_of (zip as ys)"
-      from xs ys have [simp]: "length xs = length as" "length ys = length as"
-        by(simp_all add: length_n_lists_elem)
-      have "map_of (zip as xs) = map_of (zip as ys)"
-      proof
-        fix x
-        from as bs have "\<exists>y. map_of (zip as xs) x = Some y" "\<exists>y. map_of (zip as ys) x = Some y"
-          by(simp_all add: map_of_zip_is_Some[symmetric])
-        with eq show "map_of (zip as xs) x = map_of (zip as ys) x"
-          by(auto dest: fun_cong[where x=x])
-      qed
-      with dista show "xs = ys" by(simp add: map_of_zip_inject)
-    qed
-    hence "card (set ?xs) = length ?xs" by(simp only: distinct_card)
-    moreover have "length ?xs = length bs ^ length as" by(simp add: length_n_lists)
-    ultimately have "card (UNIV :: ('a \<Rightarrow> 'b) set) = card (UNIV :: 'b set) ^ card (UNIV :: 'a set)"
-      using cb ca by simp }
-  moreover {
-    assume cb: "card (UNIV :: 'b set) = Suc 0"
-    then obtain b where b: "UNIV = {b :: 'b}" by(auto simp add: card_Suc_eq)
-    have eq: "UNIV = {\<lambda>x :: 'a. b ::'b}"
-    proof(rule UNIV_eq_I)
-      fix x :: "'a \<Rightarrow> 'b"
-      { fix y
-        have "x y \<in> UNIV" ..
-        hence "x y = b" unfolding b by simp }
-      thus "x \<in> {\<lambda>x. b}" by(auto)
-    qed
-    have "card (UNIV :: ('a \<Rightarrow> 'b) set) = Suc 0" unfolding eq by simp }
-  ultimately show "card_UNIV x = card (UNIV :: ('a \<Rightarrow> 'b) set)"
-    unfolding card_UNIV_fun_def card_UNIV Let_def
-    by(auto simp del: One_nat_def)(auto simp add: card_eq_0_iff dest: finite_fun_UNIVD2 finite_fun_UNIVD1)
-qed
-
+definition "card_UNIV = (\<lambda>a :: ('a \<Rightarrow> 'b) itself. 
+  let ca = card_UNIV (TYPE('a)); cb = card_UNIV (TYPE('b))
+  in if ca \<noteq> 0 \<and> cb \<noteq> 0 \<or> cb = 1 then cb ^ ca else 0)"
+instance by intro_classes (simp add: card_UNIV_fun_def card_UNIV Let_def card_fun)
 end
 
-subsubsection {* @{typ "'a option"} *}
+instantiation option :: (card_UNIV) card_UNIV begin
+definition "card_UNIV = (\<lambda>a :: 'a option itself. 
+  let c = card_UNIV (TYPE('a)) in if c \<noteq> 0 then Suc c else 0)"
+instance by intro_classes (simp add: card_UNIV_option_def card_UNIV card_UNIV_option)
+end
 
-instantiation option :: (card_UNIV) card_UNIV
-begin
+instantiation String.literal :: card_UNIV begin
+definition "card_UNIV = (\<lambda>a :: String.literal itself. 0)"
+instance by intro_classes (simp add: card_UNIV_literal_def card_literal)
+end
 
-definition "card_UNIV = (\<lambda>a :: 'a option itself. let c = card_UNIV (TYPE('a)) in if c \<noteq> 0 then Suc c else 0)"
+instantiation set :: (card_UNIV) card_UNIV begin
+definition "card_UNIV = (\<lambda>a :: 'a set itself.
+  let c = card_UNIV (TYPE('a)) in if c = 0 then 0 else 2 ^ c)"
+instance by intro_classes (simp add: card_UNIV_set_def card_UNIV_set card_UNIV)
+end
 
-instance proof
-  fix x :: "'a option itself"
-  show "card_UNIV x = card (UNIV :: 'a option set)"
-    by(auto simp add: UNIV_option_conv card_UNIV_option_def card_UNIV card_eq_0_iff Let_def intro: inj_Some dest: finite_imageD)
-      (subst card_insert_disjoint, auto simp add: card_eq_0_iff card_image inj_Some intro: finite_imageI card_ge_0_finite)
-qed
 
+lemma UNIV_finite_1: "UNIV = set [finite_1.a\<^isub>1]"
+by(auto intro: finite_1.exhaust)
+
+lemma UNIV_finite_2: "UNIV = set [finite_2.a\<^isub>1, finite_2.a\<^isub>2]"
+by(auto intro: finite_2.exhaust)
+
+lemma UNIV_finite_3: "UNIV = set [finite_3.a\<^isub>1, finite_3.a\<^isub>2, finite_3.a\<^isub>3]"
+by(auto intro: finite_3.exhaust)
+
+lemma UNIV_finite_4: "UNIV = set [finite_4.a\<^isub>1, finite_4.a\<^isub>2, finite_4.a\<^isub>3, finite_4.a\<^isub>4]"
+by(auto intro: finite_4.exhaust)
+
+lemma UNIV_finite_5:
+  "UNIV = set [finite_5.a\<^isub>1, finite_5.a\<^isub>2, finite_5.a\<^isub>3, finite_5.a\<^isub>4, finite_5.a\<^isub>5]"
+by(auto intro: finite_5.exhaust)
+
+instantiation Enum.finite_1 :: card_UNIV begin
+definition "card_UNIV = (\<lambda>a :: Enum.finite_1 itself. 1)"
+instance by intro_classes (simp add: UNIV_finite_1 card_UNIV_finite_1_def)
+end
+
+instantiation Enum.finite_2 :: card_UNIV begin
+definition "card_UNIV = (\<lambda>a :: Enum.finite_2 itself. 2)"
+instance by intro_classes (simp add: UNIV_finite_2 card_UNIV_finite_2_def)
+end
+
+instantiation Enum.finite_3 :: card_UNIV begin
+definition "card_UNIV = (\<lambda>a :: Enum.finite_3 itself. 3)"
+instance by intro_classes (simp add: UNIV_finite_3 card_UNIV_finite_3_def)
+end
+
+instantiation Enum.finite_4 :: card_UNIV begin
+definition "card_UNIV = (\<lambda>a :: Enum.finite_4 itself. 4)"
+instance by intro_classes (simp add: UNIV_finite_4 card_UNIV_finite_4_def)
+end
+
+instantiation Enum.finite_5 :: card_UNIV begin
+definition "card_UNIV = (\<lambda>a :: Enum.finite_5 itself. 5)"
+instance by intro_classes (simp add: UNIV_finite_5 card_UNIV_finite_5_def)
 end
 
 subsection {* Code setup for equality on sets *}
