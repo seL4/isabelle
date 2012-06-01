@@ -2081,7 +2081,7 @@ proof -
   ultimately show "finite (UNIV :: 'b set)" by simp
 qed
 
-lemma card_UNIV_unit: "card (UNIV :: unit set) = 1"
+lemma card_UNIV_unit [simp]: "card (UNIV :: unit set) = 1"
   unfolding UNIV_unit by simp
 
 lemma card_UNIV_bool [simp]: "card (UNIV :: bool set) = 2"

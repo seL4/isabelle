@@ -41,9 +41,6 @@ typed_print_translation (advanced) {*
   in [(@{const_syntax card}, card_univ_tr')] end
 *}
 
-lemma card_unit [simp]: "CARD(unit) = 1"
-  unfolding UNIV_unit by simp
-
 lemma card_prod [simp]: "CARD('a \<times> 'b) = CARD('a::finite) * CARD('b::finite)"
   unfolding UNIV_Times_UNIV [symmetric] by (simp only: card_cartesian_product)
 

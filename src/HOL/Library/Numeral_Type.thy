@@ -31,7 +31,7 @@ lemma card_num0 [simp]: "CARD (num0) = 0"
 
 lemma card_num1 [simp]: "CARD(num1) = 1"
   unfolding type_definition.card [OF type_definition_num1]
-  by (simp only: card_unit)
+  by (simp only: card_UNIV_unit)
 
 lemma card_bit0 [simp]: "CARD('a bit0) = 2 * CARD('a::finite)"
   unfolding type_definition.card [OF type_definition_bit0]
