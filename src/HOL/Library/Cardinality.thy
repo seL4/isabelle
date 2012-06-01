@@ -204,7 +204,6 @@ definition "card_UNIV = (\<lambda>a :: int itself. 0)"
 instance by intro_classes (simp add: card_UNIV_int_def infinite_UNIV_int)
 end
 
-print_classes
 instantiation list :: (type) card_UNIV begin
 definition "card_UNIV = (\<lambda>a :: 'a list itself. 0)"
 instance by intro_classes (simp add: card_UNIV_list_def infinite_UNIV_listI)
@@ -303,19 +302,49 @@ definition "card_UNIV = (\<lambda>a :: Enum.finite_5 itself. 5)"
 instance by intro_classes (simp add: UNIV_finite_5 card_UNIV_finite_5_def)
 end
 
-subsection {* Code setup for equality on sets *}
-
-definition eq_set :: "'a :: card_UNIV set \<Rightarrow> 'a :: card_UNIV set \<Rightarrow> bool"
-where [simp, code del]: "eq_set = op ="
-
-lemmas [code_unfold] = eq_set_def[symmetric]
+subsection {* Code setup for sets *}
 
 lemma card_Compl:
   "finite A \<Longrightarrow> card (- A) = card (UNIV :: 'a set) - card (A :: 'a set)"
 by (metis Compl_eq_Diff_UNIV card_Diff_subset top_greatest)
 
+context fixes xs :: "'a :: card_UNIV list"
+begin
+
+definition card' :: "'a set \<Rightarrow> nat" 
+where [simp, code del, code_abbrev]: "card' = card"
+
+lemma card'_code [code]:
+  "card' (set xs) = length (remdups xs)"
+  "card' (List.coset xs) =  card_UNIV TYPE('a) - length (remdups xs)"
+by(simp_all add: List.card_set card_Compl card_UNIV)
+
+lemma card'_UNIV [code_unfold]: "card' (UNIV :: 'a :: card_UNIV set) = card_UNIV TYPE('a)"
+by(simp add: card_UNIV)
+
+definition finite' :: "'a set \<Rightarrow> bool"
+where [simp, code del, code_abbrev]: "finite' = finite"
+
+lemma finite'_code [code]:
+  "finite' (set xs) \<longleftrightarrow> True"
+  "finite' (List.coset xs) \<longleftrightarrow> CARD('a) > 0"
+by(simp_all add: card_gt_0_iff)
+
+definition subset' :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
+where [simp, code del, code_abbrev]: "subset' = op \<subseteq>"
+
+lemma subset'_code [code]:
+  "subset' A (List.coset ys) \<longleftrightarrow> (\<forall>y \<in> set ys. y \<notin> A)"
+  "subset' (set ys) B \<longleftrightarrow> (\<forall>y \<in> set ys. y \<in> B)"
+  "subset' (List.coset xs) (set ys) \<longleftrightarrow> (let n = CARD('a) in n > 0 \<and> card(set (xs @ ys)) = n)"
+by(auto simp add: Let_def card_gt_0_iff dest: card_eq_UNIV_imp_eq_UNIV intro: arg_cong[where f=card])
+  (metis finite_compl finite_set rev_finite_subset)
+
+definition eq_set :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
+where [simp, code del, code_abbrev]: "eq_set = op ="
+
 lemma eq_set_code [code]:
-  fixes xs ys :: "'a :: card_UNIV list"
+  fixes ys
   defines "rhs \<equiv> 
   let n = CARD('a)
   in if n = 0 then False else 
@@ -340,7 +369,13 @@ proof -
   show ?thesis3 ?thesis4 unfolding eq_set_def List.coset_def by blast+
 qed
 
-(* test code setup *)
-value [code] "List.coset [True] = set [False] \<and> set [] = List.coset [True, False]"
+end
+
+notepad begin (* test code setup *)
+have "List.coset [True] = set [False] \<and> List.coset [] \<subseteq> List.set [True, False] \<and> finite (List.coset [True])"
+  by eval
+end
+
+hide_const (open) card' finite' subset' eq_set
 
 end
