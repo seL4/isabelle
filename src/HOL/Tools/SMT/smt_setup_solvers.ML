@@ -63,7 +63,7 @@ local
 
   fun mk is_remote = {
     name = make_name is_remote "cvc3",
-    class = SMTLIB_Interface.smtlibC,
+    class = K SMTLIB_Interface.smtlibC,
     avail = make_avail is_remote "CVC3",
     command = make_command is_remote "CVC3",
     options = cvc3_options,
@@ -85,7 +85,7 @@ end
 
 fun yices () = {
   name = "yices",
-  class = SMTLIB_Interface.smtlibC,
+  class = K SMTLIB_Interface.smtlibC,
   avail = make_local_avail "YICES",
   command = make_local_command "YICES",
   options = (fn ctxt => [
@@ -163,9 +163,16 @@ local
       handle SMT_Failure.SMT _ => outcome (swap o split_last)
     end
 
+  val with_extensions =
+    Attrib.setup_config_bool @{binding z3_with_extensions} (K true)
+
+  fun select_class ctxt =
+    if Config.get ctxt with_extensions then Z3_Interface.smtlib_z3C
+    else SMTLIB_Interface.smtlibC
+
   fun mk is_remote = {
     name = make_name is_remote "z3",
-    class = Z3_Interface.smtlib_z3C,
+    class = select_class,
     avail = make_avail is_remote "Z3",
     command = z3_make_command is_remote "Z3",
     options = z3_options,

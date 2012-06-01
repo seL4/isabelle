@@ -1034,14 +1034,16 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy	\
   ex/PER.thy ex/PresburgerEx.thy ex/Primrec.thy				\
   ex/Quicksort.thy ex/ROOT.ML						\
   ex/Records.thy ex/ReflectionEx.thy ex/Refute_Examples.thy		\
-  ex/SAT_Examples.thy ex/Serbian.thy ex/Set_Theory.thy			\
-  ex/Simproc_Tests.thy ex/SVC_Oracle.thy		\
-  ex/Seq.thy ex/Sqrt.thy ex/Sqrt_Script.thy 	\
+  ex/SAT_Examples.thy ex/Serbian.thy 					\
+  ex/Set_Comprehension_Pointfree_Tests.thy ex/Set_Theory.thy		\
+  ex/Simproc_Tests.thy ex/SVC_Oracle.thy				\
+  ex/Seq.thy ex/Sqrt.thy ex/Sqrt_Script.thy 				\
   ex/Sudoku.thy ex/Tarski.thy ex/Termination.thy ex/Transfer_Ex.thy	\
   ex/Transfer_Int_Nat.thy						\
   ex/Tree23.thy	ex/Unification.thy ex/While_Combinator_Example.thy	\
   ex/document/root.bib ex/document/root.tex ex/svc_funcs.ML		\
-  ex/svc_test.thy ../Tools/interpretation_with_defs.ML
+  ex/svc_test.thy ../Tools/interpretation_with_defs.ML			\
+  ex/set_comprehension_pointfree.ML
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL ex
 
 

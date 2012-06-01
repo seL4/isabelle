@@ -1760,7 +1760,7 @@ proof-
     hence "norm (a + x) \<le> b + norm a" using norm_triangle_ineq[of a x] b by auto
   }
   thus ?thesis unfolding bounded_pos using norm_ge_zero[of a] b(1) using add_strict_increasing[of b 0 "norm a"]
-    by (auto intro!: add exI[of _ "b + norm a"])
+    by (auto intro!: exI[of _ "b + norm a"])
 qed
 
 

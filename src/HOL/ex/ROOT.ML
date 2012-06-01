@@ -72,7 +72,8 @@ use_thys [
   "Seq",
   "Simproc_Tests",
   "Executable_Relation",
-  "FinFunPred"
+  "FinFunPred",
+  "Set_Comprehension_Pointfree_Tests"
 ];
 
 use_thy "SVC_Oracle";

@@ -10,7 +10,7 @@ sig
   datatype outcome = Unsat | Sat | Unknown
   type solver_config = {
     name: string,
-    class: SMT_Utils.class,
+    class: Proof.context -> SMT_Utils.class,
     avail: unit -> bool,
     command: unit -> string list,
     options: Proof.context -> string list,
@@ -146,7 +146,7 @@ datatype outcome = Unsat | Sat | Unknown
 
 type solver_config = {
   name: string,
-  class: SMT_Utils.class,
+  class: Proof.context -> SMT_Utils.class,
   avail: unit -> bool,
   command: unit -> string list,
   options: Proof.context -> string list,

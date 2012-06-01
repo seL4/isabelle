@@ -9,7 +9,7 @@ sig
   (*solver*)
   type solver_info = {
     name: string,
-    class: SMT_Utils.class,
+    class: Proof.context -> SMT_Utils.class,
     avail: unit -> bool,
     options: Proof.context -> string list }
   val add_solver: solver_info -> Context.generic -> Context.generic
@@ -61,7 +61,7 @@ struct
 
 type solver_info = {
   name: string,
-  class: SMT_Utils.class,
+  class: Proof.context -> SMT_Utils.class,
   avail: unit -> bool,
   options: Proof.context -> string list }
 
@@ -131,7 +131,8 @@ fun solver_info_of default select ctxt =
   | (_, NONE) => default ())
 
 fun solver_class_of ctxt =
-  solver_info_of no_solver_err (#class o fst o the) ctxt
+  let fun class_of ({class, ...}: solver_info, _) = class ctxt
+  in solver_info_of no_solver_err (class_of o the) ctxt end
 
 fun solver_options_of ctxt =
   let
