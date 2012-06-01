@@ -88,58 +88,25 @@ lemma one_less_int_card: "1 < int CARD('a::card2)"
 
 subsection {* A type class for computing the cardinality of types *}
 
-class card_UNIV = 
-  fixes card_UNIV :: "'a itself \<Rightarrow> nat"
-  assumes card_UNIV: "card_UNIV x = card (UNIV :: 'a set)"
-begin
-
-lemma card_UNIV_neq_0_finite_UNIV:
-  "card_UNIV x \<noteq> 0 \<longleftrightarrow> finite (UNIV :: 'a set)"
-by(simp add: card_UNIV card_eq_0_iff)
-
-lemma card_UNIV_ge_0_finite_UNIV:
-  "card_UNIV x > 0 \<longleftrightarrow> finite (UNIV :: 'a set)"
-by(auto simp add: card_UNIV intro: card_ge_0_finite finite_UNIV_card_ge_0)
-
-lemma card_UNIV_eq_0_infinite_UNIV:
-  "card_UNIV x = 0 \<longleftrightarrow> \<not> finite (UNIV :: 'a set)"
-by(simp add: card_UNIV card_eq_0_iff)
-
 definition is_list_UNIV :: "'a list \<Rightarrow> bool"
-where "is_list_UNIV xs = (let c = card_UNIV (TYPE('a)) in if c = 0 then False else size (remdups xs) = c)"
+where "is_list_UNIV xs = (let c = CARD('a) in if c = 0 then False else size (remdups xs) = c)"
 
-lemma is_list_UNIV_iff: fixes xs :: "'a list"
-  shows "is_list_UNIV xs \<longleftrightarrow> set xs = UNIV"
-proof
-  assume "is_list_UNIV xs"
-  hence c: "card_UNIV (TYPE('a)) > 0" and xs: "size (remdups xs) = card_UNIV (TYPE('a))"
-    unfolding is_list_UNIV_def by(simp_all add: Let_def split: split_if_asm)
-  from c have fin: "finite (UNIV :: 'a set)" by(auto simp add: card_UNIV_ge_0_finite_UNIV)
-  have "card (set (remdups xs)) = size (remdups xs)" by(subst distinct_card) auto
-  also note set_remdups
-  finally show "set xs = UNIV" using fin unfolding xs card_UNIV by-(rule card_eq_UNIV_imp_eq_UNIV)
-next
-  assume xs: "set xs = UNIV"
-  from finite_set[of xs] have fin: "finite (UNIV :: 'a set)" unfolding xs .
-  hence "card_UNIV (TYPE ('a)) \<noteq> 0" unfolding card_UNIV_neq_0_finite_UNIV .
-  moreover have "size (remdups xs) = card (set (remdups xs))"
-    by(subst distinct_card) auto
-  ultimately show "is_list_UNIV xs" using xs by(simp add: is_list_UNIV_def Let_def card_UNIV)
-qed
+lemmas [code_unfold] = is_list_UNIV_def[abs_def]
+
+lemma is_list_UNIV_iff: "is_list_UNIV xs \<longleftrightarrow> set xs = UNIV"
+by(auto simp add: is_list_UNIV_def Let_def card_eq_0_iff List.card_set[symmetric] 
+   dest: subst[where P="finite", OF _ finite_set] card_eq_UNIV_imp_eq_UNIV)
 
 lemma card_UNIV_eq_0_is_list_UNIV_False:
-  assumes cU0: "card_UNIV x = 0"
-  shows "is_list_UNIV = (\<lambda>xs. False)"
-proof(rule ext)
-  fix xs :: "'a list"
-  from cU0 have "\<not> finite (UNIV :: 'a set)"
-    by(auto simp only: card_UNIV_eq_0_infinite_UNIV)
-  moreover have "finite (set xs)" by(rule finite_set)
-  ultimately have "(UNIV :: 'a set) \<noteq> set xs" by(auto simp del: finite_set)
-  thus "is_list_UNIV xs = False" unfolding is_list_UNIV_iff by simp
-qed
+  "CARD('a) = 0 \<Longrightarrow> is_list_UNIV = (\<lambda>xs :: 'a list. False)"
+by(simp add: is_list_UNIV_def[abs_def])
 
-end
+class card_UNIV = 
+  fixes card_UNIV :: "'a itself \<Rightarrow> nat"
+  assumes card_UNIV: "card_UNIV x = CARD('a)"
+
+lemma card_UNIV_code [code_unfold]: "CARD('a :: card_UNIV) = card_UNIV TYPE('a)"
+by(simp add: card_UNIV)
 
 subsection {* Instantiations for @{text "card_UNIV"} *}
 
@@ -315,7 +282,7 @@ by (metis Compl_eq_Diff_UNIV card_Diff_subset top_greatest)
 lemma eq_set_code [code]:
   fixes xs ys :: "'a :: card_UNIV list"
   defines "rhs \<equiv> 
-  let n = card_UNIV TYPE('a)
+  let n = CARD('a)
   in if n = 0 then False else 
         let xs' = remdups xs; ys' = remdups ys 
         in length xs' + length ys' = n \<and> (\<forall>x \<in> set xs'. x \<notin> set ys') \<and> (\<forall>y \<in> set ys'. y \<notin> set xs')"

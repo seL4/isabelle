@@ -435,8 +435,8 @@ lemma finfun_default_update_const:
 by transfer (simp add: finfun_default_aux_update_const)
 
 lemma finfun_default_const_code [code]:
-  "finfun_default ((K$ c) :: ('a :: card_UNIV) \<Rightarrow>f 'b) = (if card_UNIV (TYPE('a)) = 0 then c else undefined)"
-by(simp add: finfun_default_const card_UNIV_eq_0_infinite_UNIV)
+  "finfun_default ((K$ c) :: 'a \<Rightarrow>f 'b) = (if CARD('a) = 0 then c else undefined)"
+by(simp add: finfun_default_const)
 
 lemma finfun_default_update_code [code]:
   "finfun_default (finfun_update_code f a b) = finfun_default f"
@@ -1285,9 +1285,8 @@ text {*
 
 lemma finfun_dom_const_code [code]:
   "finfun_dom ((K$ c) :: ('a :: card_UNIV) \<Rightarrow>f 'b) = 
-   (if card_UNIV (TYPE('a)) = 0 then (K$ False) else FinFun.code_abort (\<lambda>_. finfun_dom (K$ c)))"
-unfolding card_UNIV_eq_0_infinite_UNIV
-by(simp add: finfun_dom_const)
+   (if CARD('a) = 0 then (K$ False) else FinFun.code_abort (\<lambda>_. finfun_dom (K$ c)))"
+by(simp add: finfun_dom_const card_UNIV card_eq_0_iff)
 
 lemma finfun_dom_finfunI: "(\<lambda>a. f $ a \<noteq> finfun_default f) \<in> finfun"
 using finite_finfun_default[of f]
@@ -1349,9 +1348,8 @@ by(auto simp add: finfun_to_list_def finfun_const_False_conv_bot finfun_const_Tr
 
 lemma finfun_to_list_const_code [code]:
   "finfun_to_list ((K$ c) :: ('a :: {linorder, card_UNIV} \<Rightarrow>f 'b)) =
-   (if card_UNIV (TYPE('a)) = 0 then [] else FinFun.code_abort (\<lambda>_. finfun_to_list ((K$ c) :: ('a \<Rightarrow>f 'b))))"
-unfolding card_UNIV_eq_0_infinite_UNIV
-by(auto simp add: finfun_to_list_const)
+   (if CARD('a) = 0 then [] else FinFun.code_abort (\<lambda>_. finfun_to_list ((K$ c) :: ('a \<Rightarrow>f 'b))))"
+by(auto simp add: finfun_to_list_const card_UNIV card_eq_0_iff)
 
 lemma remove1_insort_insert_same:
   "x \<notin> set xs \<Longrightarrow> remove1 x (insort_insert x xs) = xs"

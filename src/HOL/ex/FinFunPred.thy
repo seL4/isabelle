@@ -258,4 +258,11 @@ have "inf ((\<lambda>_ :: nat. False)(1 := True, 2 := True)) ((\<lambda>_. True)
   by eval
 end
 
+declare iso_finfun_Ball_Ball[code_unfold]
+notepad begin
+have "(\<forall>x. ((\<lambda>_ :: nat. False)(1 := True, 2 := True)) x \<longrightarrow> x < 3)"
+  by eval
+end
+declare iso_finfun_Ball_Ball[code_unfold del]
+
 end
