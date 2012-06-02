@@ -7,7 +7,7 @@ header {* Tests for the set comprehension to pointfree simproc *}
 
 theory Set_Comprehension_Pointfree_Tests
 imports Main
-uses "~~/src/HOL/ex/set_comprehension_pointfree.ML"
+uses "set_comprehension_pointfree.ML"
 begin
 
 simproc_setup finite_Collect ("finite (Collect P)") = {* Set_Comprehension_Pointfree.simproc *}
