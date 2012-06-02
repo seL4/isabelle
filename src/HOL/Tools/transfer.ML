@@ -26,16 +26,22 @@ structure Data = Generic_Data
   type T =
     { transfer_raw : thm Item_Net.T,
       known_frees : (string * typ) list,
+      compound_rhs : unit Net.net,
       relator_eq : thm Item_Net.T }
   val empty =
     { transfer_raw = Thm.full_rules,
       known_frees = [],
+      compound_rhs = Net.empty,
       relator_eq = Thm.full_rules }
   val extend = I
-  fun merge ({transfer_raw = t1, known_frees = k1, relator_eq = r1},
-             {transfer_raw = t2, known_frees = k2, relator_eq = r2}) =
+  fun merge
+    ( { transfer_raw = t1, known_frees = k1,
+        compound_rhs = c1, relator_eq = r1},
+      { transfer_raw = t2, known_frees = k2,
+        compound_rhs = c2, relator_eq = r2}) =
     { transfer_raw = Item_Net.merge (t1, t2),
       known_frees = Library.merge (op =) (k1, k2),
+      compound_rhs = Net.merge (K true) (c1, c2),
       relator_eq = Item_Net.merge (r1, r2) }
 )
 
@@ -49,17 +55,27 @@ fun get_transfer_raw ctxt = ctxt
 fun get_known_frees ctxt = ctxt
   |> (#known_frees o Data.get o Context.Proof)
 
-fun map_data f1 f2 f3 {transfer_raw, known_frees, relator_eq} =
+fun get_compound_rhs ctxt = ctxt
+  |> (#compound_rhs o Data.get o Context.Proof)
+
+fun map_data f1 f2 f3 f4
+  { transfer_raw, known_frees, compound_rhs, relator_eq } =
   { transfer_raw = f1 transfer_raw,
     known_frees = f2 known_frees,
-    relator_eq = f3 relator_eq }
+    compound_rhs = f3 compound_rhs,
+    relator_eq = f4 relator_eq }
 
-fun map_transfer_raw f = map_data f I I
-fun map_known_frees f = map_data I f I
-fun map_relator_eq f = map_data I I f
+fun map_transfer_raw f = map_data f I I I
+fun map_known_frees f = map_data I f I I
+fun map_compound_rhs f = map_data I I f I
+fun map_relator_eq f = map_data I I I f
 
 fun add_transfer_thm thm = Data.map
   (map_transfer_raw (Item_Net.update thm) o
+   map_compound_rhs
+     (case HOLogic.dest_Trueprop (Thm.concl_of thm) of
+        _ $ _ $ (rhs as (_ $ _)) => Net.insert_term (K true) (rhs, ())
+      | _ => I) o
    map_known_frees (Term.add_frees (Thm.concl_of thm)))
 
 fun del_transfer_thm thm = Data.map (map_transfer_raw (Item_Net.remove thm))
@@ -134,28 +150,6 @@ fun gen_frees_tac keepers ctxt = SUBGOAL (fn (t, i) =>
     Induct.arbitrary_tac ctxt 0 vs' i
   end)
 
-(* create a lambda term of the same shape as the given term *)
-fun skeleton (Bound i) ctxt = (Bound i, ctxt)
-  | skeleton (Abs (x, _, t)) ctxt =
-      let
-        val (t', ctxt) = skeleton t ctxt
-      in
-        (Abs (x, dummyT, t'), ctxt)
-      end
-  | skeleton (t $ u) ctxt =
-      let
-        val (t', ctxt) = skeleton t ctxt
-        val (u', ctxt) = skeleton u ctxt
-      in
-        (t' $ u', ctxt)
-      end
-  | skeleton _ ctxt =
-      let
-        val (c, ctxt) = yield_singleton Variable.variant_fixes "a" ctxt
-      in
-        (Free (c, dummyT), ctxt)
-      end
-
 fun mk_relT (T, U) = T --> U --> HOLogic.boolT
 
 fun mk_Rel t =
@@ -222,6 +216,31 @@ fun transfer_rule_of_terms ctxt tab t u =
 
 fun transfer_rule_of_term ctxt t =
   let
+    val compound_rhs = get_compound_rhs ctxt
+    val is_rhs = not o null o Net.unify_term compound_rhs
+    fun dummy ctxt =
+      let
+        val (c, ctxt) = yield_singleton Variable.variant_fixes "a" ctxt
+      in
+        (Free (c, dummyT), ctxt)
+      end
+    (* create a lambda term of the same shape as the given term *)
+    fun skeleton (Bound i) ctxt = (Bound i, ctxt)
+      | skeleton (Abs (x, _, t)) ctxt =
+        let
+          val (t', ctxt) = skeleton t ctxt
+        in
+          (Abs (x, dummyT, t'), ctxt)
+        end
+      | skeleton (tu as (t $ u)) ctxt =
+        if is_rhs tu then dummy ctxt else
+        let
+          val (t', ctxt) = skeleton t ctxt
+          val (u', ctxt) = skeleton u ctxt
+        in
+          (t' $ u', ctxt)
+        end
+      | skeleton _ ctxt = dummy ctxt
     val s = skeleton t ctxt |> fst |> Syntax.check_term ctxt |>
       map_types (map_type_tfree (fn (a, _) => TFree (a, HOLogic.typeS)))
     val frees = map fst (Term.add_frees s [])

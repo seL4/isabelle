@@ -212,25 +212,22 @@ lift_definition of_int :: "int \<Rightarrow> 'a" is "\<lambda>(i, j). of_nat i -
     of_nat_add [symmetric] simp del: of_nat_add)
 
 lemma of_int_0 [simp]: "of_int 0 = 0"
-by (simp add: of_int.abs_eq zero_int.abs_eq) (* FIXME: transfer *)
+  by transfer simp
 
 lemma of_int_1 [simp]: "of_int 1 = 1"
-by (simp add: of_int.abs_eq one_int.abs_eq) (* FIXME: transfer *)
+  by transfer simp
 
 lemma of_int_add [simp]: "of_int (w+z) = of_int w + of_int z"
-(* FIXME: transfer *)
-by (cases w, cases z) (simp add: algebra_simps of_int.abs_eq plus_int.abs_eq)
+  by transfer (clarsimp simp add: algebra_simps)
 
 lemma of_int_minus [simp]: "of_int (-z) = - (of_int z)"
-(* FIXME: transfer *)
-by (cases z) (simp add: algebra_simps of_int.abs_eq uminus_int.abs_eq)
+  by (transfer fixing: uminus) clarsimp
 
 lemma of_int_diff [simp]: "of_int (w - z) = of_int w - of_int z"
 by (simp add: diff_minus Groups.diff_minus)
 
 lemma of_int_mult [simp]: "of_int (w*z) = of_int w * of_int z"
-by (cases w, cases z, (* FIXME: transfer *)
-  simp add: algebra_simps of_int.abs_eq times_int.abs_eq of_nat_mult)
+  by (transfer fixing: times) (clarsimp simp add: algebra_simps of_nat_mult)
 
 text{*Collapse nested embeddings*}
 lemma of_int_of_nat_eq [simp]: "of_int (int n) = of_nat n"
@@ -254,12 +251,8 @@ begin
 
 lemma of_int_eq_iff [simp]:
    "of_int w = of_int z \<longleftrightarrow> w = z"
-(* FIXME: transfer *)
-apply (cases w, cases z)
-apply (simp add: of_int.abs_eq int.abs_eq_iff)
-apply (simp only: diff_eq_eq diff_add_eq eq_diff_eq)
-apply (simp only: of_nat_add [symmetric] of_nat_eq_iff)
-done
+  by transfer (clarsimp simp add: algebra_simps
+    of_nat_add [symmetric] simp del: of_nat_add)
 
 text{*Special cases where either operand is zero*}
 lemma of_int_eq_0_iff [simp]:
@@ -280,9 +273,8 @@ subclass ring_char_0 ..
 
 lemma of_int_le_iff [simp]:
   "of_int w \<le> of_int z \<longleftrightarrow> w \<le> z"
-  by (cases w, cases z) (* FIXME: transfer *)
-    (simp add: of_int.abs_eq less_eq_int.abs_eq
-      algebra_simps of_nat_add [symmetric] del: of_nat_add)
+  by (transfer fixing: less_eq) (clarsimp simp add: algebra_simps
+    of_nat_add [symmetric] simp del: of_nat_add)
 
 lemma of_int_less_iff [simp]:
   "of_int w < of_int z \<longleftrightarrow> w < z"
@@ -391,8 +383,7 @@ context ring_1
 begin
 
 lemma of_nat_nat: "0 \<le> z \<Longrightarrow> of_nat (nat z) = of_int z"
-  by (cases z rule: eq_Abs_Integ) (* FIXME: transfer *)
-   (simp add: nat.abs_eq less_eq_int.abs_eq of_int.abs_eq zero_int.abs_eq of_nat_diff)
+  by transfer (clarsimp simp add: of_nat_diff)
 
 end
 
