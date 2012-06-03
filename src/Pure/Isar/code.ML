@@ -637,6 +637,9 @@ fun check_abstype_cert thy proto_thm =
       then error ("Is a class parameter: " ^ string_of_const thy c) else ()) (abs, rep);
     val _ = check_decl_ty thy (abs, raw_ty);
     val _ = check_decl_ty thy (rep, rep_ty);
+    val _ = if length (binder_types raw_ty) = 1
+      then ()
+      else bad "Bad type for abstract constructor";
     val _ = (fst o dest_Var) param
       handle TERM _ => bad "Not an abstype certificate";
     val _ = if param = rhs then () else bad "Not an abstype certificate";
