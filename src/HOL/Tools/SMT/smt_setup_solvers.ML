@@ -11,6 +11,7 @@ sig
     Z3_Non_Commercial_Accepted |
     Z3_Non_Commercial_Declined
   val z3_non_commercial: unit -> z3_non_commercial
+  val z3_with_extensions: bool Config.T
   val setup: theory -> theory
 end
 
@@ -133,6 +134,9 @@ fun if_z3_non_commercial f =
 end
 
 
+val z3_with_extensions =
+  Attrib.setup_config_bool @{binding z3_with_extensions} (K false)
+
 local
   fun z3_make_command is_remote name () =
     if_z3_non_commercial (make_command is_remote name)
@@ -163,11 +167,8 @@ local
       handle SMT_Failure.SMT _ => outcome (swap o split_last)
     end
 
-  val with_extensions =
-    Attrib.setup_config_bool @{binding z3_with_extensions} (K true)
-
   fun select_class ctxt =
-    if Config.get ctxt with_extensions then Z3_Interface.smtlib_z3C
+    if Config.get ctxt z3_with_extensions then Z3_Interface.smtlib_z3C
     else SMTLIB_Interface.smtlibC
 
   fun mk is_remote = {

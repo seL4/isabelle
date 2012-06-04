@@ -25,6 +25,12 @@ configuration.
     It is switched on by default, and can be switched off by setting
     the configuration quickcheck_optimise_equality to false.    
 
+* The SMT solver Z3 has now by default a restricted set of directly
+supported features. For the full set of features (div/mod, nonlinear
+arithmetic, datatypes/records) with potential proof reconstruction
+failures, enable the configuration option "z3_with_extensions".
+Minor INCOMPATIBILITY.
+
 New in Isabelle2012 (May 2012)
 ------------------------------
 

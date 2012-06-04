@@ -2319,7 +2319,7 @@ proof- have lem:"\<And>a b i (j::'b). \<And>g f::'a \<Rightarrow> 'b. (f has_int
   note ab = conjunctD2[OF this[unfolded Un_subset_iff]]
   guess w1 using B(2)[OF ab(1)] .. note w1=conjunctD2[OF this]
   guess w2 using B(4)[OF ab(2)] .. note w2=conjunctD2[OF this]
-  have *:"\<And>w1 w2 j i::real .\<bar>w1 - i\<bar> < (i - j) / 3 \<Longrightarrow> \<bar>w2 - j\<bar> < (i - j) / 3 \<Longrightarrow> w1 \<le> w2 \<Longrightarrow> False" by smt
+  have *:"\<And>w1 w2 j i::real .\<bar>w1 - i\<bar> < (i - j) / 3 \<Longrightarrow> \<bar>w2 - j\<bar> < (i - j) / 3 \<Longrightarrow> w1 \<le> w2 \<Longrightarrow> False" using [[z3_with_extensions]] by smt
   note le_less_trans[OF component_le_norm[of _ k]] note this[OF w1(2)] this[OF w2(2)] moreover
   have "w1$$k \<le> w2$$k" apply(rule lem[OF w1(1) w2(1)]) using assms by auto ultimately
   show False unfolding euclidean_simps by(rule *) qed
@@ -3050,7 +3050,7 @@ proof(induct "card s" arbitrary:s rule:nat_less_induct)
       hence "d \<in> {a..b}" using s(2)[OF k(1)] unfolding k by auto note di = this[unfolded mem_interval,THEN spec[where x=i]]
       hence xyi:"y$$i \<noteq> x$$i" unfolding y_def unfolding i xi euclidean_lambda_beta'[OF i(2)] if_P[OF refl]
         apply(cases) apply(subst if_P,assumption) unfolding if_not_P not_le using as(2)
-        using assms(2)[unfolded content_eq_0] using i(2) by smt+ 
+        using assms(2)[unfolded content_eq_0] using i(2) using [[z3_with_extensions]] by smt+
       thus "y \<noteq> x" unfolding euclidean_eq[where 'a='a] using i by auto
       have *:"{..<DIM('a)} = insert i ({..<DIM('a)} - {i})" using i by auto
       have "norm (y - x) < e + setsum (\<lambda>i. 0) {..<DIM('a)}" apply(rule le_less_trans[OF norm_le_l1])
@@ -4236,7 +4236,7 @@ proof- have "\<And>a b. (\<lambda>x. if x \<in> s then f x else 0) integrable_on
     proof- fix a b c d::"'n::ordered_euclidean_space" assume as:"ball 0 (max B1 B2) \<subseteq> {a..b}" "ball 0 (max B1 B2) \<subseteq> {c..d}"
       have **:"ball 0 B1 \<subseteq> ball (0::'n::ordered_euclidean_space) (max B1 B2)" "ball 0 B2 \<subseteq> ball (0::'n::ordered_euclidean_space) (max B1 B2)" by auto
       have *:"\<And>ga gc ha hc fa fc::real. abs(ga - i) < e / 3 \<and> abs(gc - i) < e / 3 \<and> abs(ha - j) < e / 3 \<and>
-        abs(hc - j) < e / 3 \<and> abs(i - j) < e / 3 \<and> ga \<le> fa \<and> fa \<le> ha \<and> gc \<le> fc \<and> fc \<le> hc\<Longrightarrow> abs(fa - fc) < e" by smt
+        abs(hc - j) < e / 3 \<and> abs(i - j) < e / 3 \<and> ga \<le> fa \<and> fa \<le> ha \<and> gc \<le> fc \<and> fc \<le> hc\<Longrightarrow> abs(fa - fc) < e" using [[z3_with_extensions]] by smt
       show "norm (integral {a..b} (\<lambda>x. if x \<in> s then f x else 0) - integral {c..d} (\<lambda>x. if x \<in> s then f x else 0)) < e"
         unfolding real_norm_def apply(rule *, safe) unfolding real_norm_def[THEN sym]
         apply(rule B1(2),rule order_trans,rule **,rule as(1)) 

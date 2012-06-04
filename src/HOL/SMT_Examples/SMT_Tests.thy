@@ -315,6 +315,7 @@ lemma
   "(3::nat) div 3 = 1"
   "(x::nat) div 3 \<le> x"
   "(x div 3 = x) = (x = 0)"
+  using [[z3_with_extensions]]
   by smt+
 
 lemma
@@ -329,11 +330,13 @@ lemma
   "(3::nat) mod 3 = 0"
   "x mod 3 < 3"
   "(x mod 3 = x) = (x < 3)"
+  using [[z3_with_extensions]]
   by smt+
 
 lemma
   "(x::nat) = x div 1 * 1 + x mod 1"
   "x = x div 3 * 3 + x mod 3"
+  using [[z3_with_extensions]]
   by smt+
 
 lemma
@@ -447,6 +450,7 @@ lemma
   "(-1::int) div -3 = 0"
   "(-3::int) div -3 = 1"
   "(-5::int) div -3 = 1"
+  using [[z3_with_extensions]]
   by smt+
 
 lemma
@@ -476,11 +480,13 @@ lemma
   "(-5::int) mod -3 = -2"
   "x mod 3 < 3"
   "(x mod 3 = x) \<longrightarrow> (x < 3)"
+  using [[z3_with_extensions]]
   by smt+
 
 lemma
   "(x::int) = x div 1 * 1 + x mod 1"
   "x = x div 3 * 3 + x mod 3"
+  using [[z3_with_extensions]]
   by smt+
 
 lemma
@@ -585,6 +591,7 @@ lemma
   "(x::real) / 1 = x"
   "x > 0 \<longrightarrow> x / 3 < x"
   "x < 0 \<longrightarrow> x / 3 > x"
+  using [[z3_with_extensions]]
   by smt+
 
 lemma
@@ -592,6 +599,7 @@ lemma
   "(x * 3) / 3 = x"
   "x > 0 \<longrightarrow> 2 * x / 3 < x"
   "x < 0 \<longrightarrow> 2 * x / 3 > x"
+  using [[z3_with_extensions]]
   by smt+
 
 lemma
@@ -793,7 +801,7 @@ lemma
   "(fst (x, y) = snd (x, y)) = (x = y)"
   "(fst p = snd p) = (p = (snd p, fst p))"
   using fst_conv snd_conv pair_collapse
-  using [[smt_datatypes, smt_oracle]]
+  using [[smt_datatypes, smt_oracle, z3_with_extensions]]
   by smt+
 
 lemma
@@ -807,14 +815,14 @@ lemma
   "hd (tl [x, y, z]) = y"
   "tl (tl [x, y, z]) = [z]"
   using hd.simps tl.simps(2)
-  using [[smt_datatypes, smt_oracle]]
+  using [[smt_datatypes, smt_oracle, z3_with_extensions]]
   by smt+
 
 lemma
   "fst (hd [(a, b)]) = a"
   "snd (hd [(a, b)]) = b"
   using fst_conv snd_conv pair_collapse hd.simps tl.simps(2)
-  using [[smt_datatypes, smt_oracle]]
+  using [[smt_datatypes, smt_oracle, z3_with_extensions]]
   by smt+
 
 
@@ -826,7 +834,7 @@ lemma
   "cx p1 \<noteq> cx p2 \<longrightarrow> p1 \<noteq> p2"
   "cy p1 \<noteq> cy p2 \<longrightarrow> p1 \<noteq> p2"
   using point.simps
-  using [[smt_datatypes, smt_oracle]]
+  using [[smt_datatypes, smt_oracle, z3_with_extensions]]
   using [[z3_options="AUTO_CONFIG=false"]]
   by smt+
 
@@ -839,7 +847,7 @@ lemma
   "p = \<lparr> cx = 3, cy = 4 \<rparr> \<longrightarrow> p \<lparr> cx := 3 \<rparr> \<lparr> cy := 4 \<rparr> = p"
   "p = \<lparr> cx = 3, cy = 4 \<rparr> \<longrightarrow> p \<lparr> cy := 4 \<rparr> \<lparr> cx := 3 \<rparr> = p"
   using point.simps
-  using [[smt_datatypes, smt_oracle]]
+  using [[smt_datatypes, smt_oracle, z3_with_extensions]]
   using [[z3_options="AUTO_CONFIG=false"]]
   by smt+
 
@@ -848,7 +856,7 @@ lemma
   "cx (p \<lparr> cy := a \<rparr>) = cx p"
   "p \<lparr> cx := 3 \<rparr> \<lparr> cy := 4 \<rparr> = p \<lparr> cy := 4 \<rparr> \<lparr> cx := 3 \<rparr>"
   using point.simps
-  using [[smt_datatypes, smt_oracle]]
+  using [[smt_datatypes, smt_oracle, z3_with_extensions]]
   using [[z3_options="AUTO_CONFIG=false"]]
   by smt+
 
@@ -860,7 +868,7 @@ lemma
   "cy p1 \<noteq> cy p2 \<longrightarrow> p1 \<noteq> p2"
   "black p1 \<noteq> black p2 \<longrightarrow> p1 \<noteq> p2"
   using point.simps bw_point.simps
-  using [[smt_datatypes, smt_oracle]]
+  using [[smt_datatypes, smt_oracle, z3_with_extensions]]
   by smt+
 
 lemma
@@ -877,7 +885,7 @@ lemma
   "p = \<lparr> cx = 3, cy = 4, black = True \<rparr> \<longrightarrow>
      p \<lparr> black := True \<rparr> \<lparr> cx := 3 \<rparr> \<lparr> cy := 4 \<rparr> = p"
   using point.simps bw_point.simps
-  using [[smt_datatypes, smt_oracle]]
+  using [[smt_datatypes, smt_oracle, z3_with_extensions]]
   using [[z3_options="AUTO_CONFIG=false"]]
   by smt+
 
@@ -891,7 +899,7 @@ lemma
   "p \<lparr> cx := 3 \<rparr> \<lparr> cy := 4 \<rparr> \<lparr> black := True \<rparr> =
      p \<lparr> black := True \<rparr> \<lparr> cy := 4 \<rparr> \<lparr> cx := 3 \<rparr>"
   using point.simps bw_point.simps
-  using [[smt_datatypes, smt_oracle]]
+  using [[smt_datatypes, smt_oracle, z3_with_extensions]]
   using [[z3_options="AUTO_CONFIG=false"]]
   by smt
 
@@ -905,7 +913,7 @@ lemma
   "nplus n1 n1 = n2"
   "nplus n1 n2 = n3"
   using n1_def n2_def n3_def nplus_def
-  using [[smt_datatypes, smt_oracle]]
+  using [[smt_datatypes, smt_oracle, z3_with_extensions]]
   using [[z3_options="AUTO_CONFIG=false"]]
   by smt+
 
