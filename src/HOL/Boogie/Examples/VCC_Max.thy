@@ -50,6 +50,7 @@ boogie_open (quiet) "VCC_Max.b2i"
 declare [[smt_certificates = "VCC_Max.certs"]]
 declare [[smt_read_only_certificates = true]]
 declare [[smt_oracle = false]]
+declare [[z3_with_extensions = true]]
 
 boogie_status
 

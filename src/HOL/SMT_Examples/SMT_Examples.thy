@@ -327,9 +327,13 @@ lemma "\<lbrakk> x3 = abs x2 - x1; x4 = abs x3 - x2; x5 = abs x4 - x3;
 
 lemma "let P = 2 * x + 1 > x + (x::real) in P \<or> False \<or> P" by smt
 
-lemma "x + (let y = x mod 2 in 2 * y + 1) \<ge> x + (1::int)" by smt
+lemma "x + (let y = x mod 2 in 2 * y + 1) \<ge> x + (1::int)"
+  using [[z3_with_extensions]]
+  by smt
 
-lemma "x + (let y = x mod 2 in y + y) < x + (3::int)" by smt
+lemma "x + (let y = x mod 2 in y + y) < x + (3::int)"
+  using [[z3_with_extensions]]
+  by smt
 
 lemma
   assumes "x \<noteq> (0::real)"
@@ -339,7 +343,7 @@ lemma
 lemma
   assumes "(n + m) mod 2 = 0" and "n mod 4 = 3"
   shows "n mod 2 = 1 & m mod 2 = (1::int)"
-  using assms by smt
+  using assms [[z3_with_extensions]] by smt
 
 
 
@@ -393,18 +397,21 @@ lemma "\<forall>(a::int) b::int. 0 < b \<or> b < 1" by smt
 subsection {* Non-linear arithmetic over integers and reals *}
 
 lemma "a > (0::int) \<Longrightarrow> a*b > 0 \<Longrightarrow> b > 0"
-  using [[smt_oracle=true]]
+  using [[smt_oracle, z3_with_extensions]]
   by smt
 
 lemma  "(a::int) * (x + 1 + y) = a * x + a * (y + 1)"
+  using [[z3_with_extensions]]
   by smt
 
 lemma "((x::real) * (1 + y) - x * (1 - y)) = (2 * x * y)"
+  using [[z3_with_extensions]]
   by smt
 
 lemma
   "(U::int) + (1 + p) * (b + e) + p * d =
    U + (2 * (1 + p) * (b + e) + (1 + p) * d + d * p) - (1 + p) * (b + d + e)"
+  using [[z3_with_extensions]]
   by smt
 
 lemma [z3_rule]:
@@ -413,7 +420,9 @@ lemma [z3_rule]:
   shows False
   using assms by (metis mult_le_0_iff)
 
-lemma "x * y \<le> (0 :: int) \<Longrightarrow> x \<le> 0 \<or> y \<le> 0" by smt
+lemma "x * y \<le> (0 :: int) \<Longrightarrow> x \<le> 0 \<or> y \<le> 0"
+  using [[z3_with_extensions]]
+  by smt
 
 
 
@@ -498,6 +507,7 @@ lemma
     eval_dioph ks (map (\<lambda>x. x div 2) xs) =
       (l - eval_dioph ks (map (\<lambda>x. x mod 2) xs)) div 2)"
   using [[smt_oracle=true]] (*FIXME*)
+  using [[z3_with_extensions]]
   by (smt eval_dioph_mod[where n=2] eval_dioph_div_mult[where n=2])
 
 
