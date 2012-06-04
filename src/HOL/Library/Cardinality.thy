@@ -170,9 +170,7 @@ lemma one_less_int_card: "1 < int CARD('a::card2)"
 subsection {* A type class for computing the cardinality of types *}
 
 definition is_list_UNIV :: "'a list \<Rightarrow> bool"
-where "is_list_UNIV xs = (let c = CARD('a) in if c = 0 then False else size (remdups xs) = c)"
-
-lemmas [code_unfold] = is_list_UNIV_def[abs_def]
+where [code del]: "is_list_UNIV xs = (let c = CARD('a) in if c = 0 then False else size (remdups xs) = c)"
 
 lemma is_list_UNIV_iff: "is_list_UNIV xs \<longleftrightarrow> set xs = UNIV"
 by(auto simp add: is_list_UNIV_def Let_def card_eq_0_iff List.card_set[symmetric] 
@@ -184,6 +182,11 @@ class card_UNIV =
 
 lemma card_UNIV_code [code_unfold]: "CARD('a :: card_UNIV) = card_UNIV TYPE('a)"
 by(simp add: card_UNIV)
+
+lemma is_list_UNIV_code [code]:
+  "is_list_UNIV (xs :: 'a list) = 
+  (let c = CARD('a :: card_UNIV) in if c = 0 then False else size (remdups xs) = c)"
+by(rule is_list_UNIV_def)
 
 lemma finite_UNIV_conv_card_UNIV [code_unfold]:
   "finite (UNIV :: 'a :: card_UNIV set) \<longleftrightarrow> card_UNIV TYPE('a) > 0"

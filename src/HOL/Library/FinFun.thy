@@ -435,7 +435,7 @@ lemma finfun_default_update_const:
 by transfer (simp add: finfun_default_aux_update_const)
 
 lemma finfun_default_const_code [code]:
-  "finfun_default ((K$ c) :: 'a \<Rightarrow>f 'b) = (if CARD('a) = 0 then c else undefined)"
+  "finfun_default ((K$ c) :: 'a :: card_UNIV \<Rightarrow>f 'b) = (if CARD('a) = 0 then c else undefined)"
 by(simp add: finfun_default_const)
 
 lemma finfun_default_update_code [code]:
