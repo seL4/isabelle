@@ -610,7 +610,7 @@ code_reserved Scala Heap Ref Array
 code_type Heap (Scala "Unit/ =>/ _")
 code_const bind (Scala "Heap.bind")
 code_const return (Scala "('_: Unit)/ =>/ _")
-code_const Heap_Monad.raise' (Scala "!error((_))")
+code_const Heap_Monad.raise' (Scala "!sys.error((_))")
 
 
 subsubsection {* Target variants with less units *}

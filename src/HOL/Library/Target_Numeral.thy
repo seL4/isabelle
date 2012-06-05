@@ -465,7 +465,7 @@ code_const Target_Numeral.sub
   (SML "!(raise/ Fail/ \"sub\")")
   (OCaml "failwith/ \"sub\"")
   (Haskell "error/ \"sub\"")
-  (Scala "!error(\"sub\")")
+  (Scala "!sys.error(\"sub\")")
 
 code_const "times :: Target_Numeral.int \<Rightarrow> _ \<Rightarrow> _"
   (SML "IntInf.* ((_), (_))")

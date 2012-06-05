@@ -111,7 +111,7 @@ code_const Int.sub
   (SML "!(raise/ Fail/ \"sub\")")
   (OCaml "failwith/ \"sub\"")
   (Haskell "error/ \"sub\"")
-  (Scala "!error(\"sub\")")
+  (Scala "!sys.error(\"sub\")")
 
 code_const "op * \<Colon> int \<Rightarrow> int \<Rightarrow> int"
   (SML "IntInf.* ((_), (_))")

@@ -228,7 +228,7 @@ code_const Code_Nat.sub
   (SML "!(raise/ Fail/ \"sub\")")
   (OCaml "failwith/ \"sub\"")
   (Haskell "error/ \"sub\"")
-  (Scala "!error(\"sub\")")
+  (Scala "!sys.error(\"sub\")")
 
 code_const "times \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"
   (SML "IntInf.*/ ((_),/ (_))")
@@ -269,7 +269,7 @@ code_const Num.num_of_nat
   (SML "!(raise/ Fail/ \"num'_of'_nat\")")
   (OCaml "failwith/ \"num'_of'_nat\"")
   (Haskell "error/ \"num'_of'_nat\"")
-  (Scala "!error(\"num'_of'_nat\")")
+  (Scala "!sys.error(\"num'_of'_nat\")")
 
 
 subsection {* Evaluation *}

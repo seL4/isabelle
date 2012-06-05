@@ -491,7 +491,7 @@ code_instance array :: HOL.equal (Haskell -)
 text {* Scala *}
 
 code_type array (Scala "!collection.mutable.ArraySeq[_]")
-code_const Array (Scala "!error(\"bare Array\")")
+code_const Array (Scala "!sys.error(\"bare Array\")")
 code_const Array.new' (Scala "('_: Unit)/ => / Array.alloc((_))((_))")
 code_const Array.make' (Scala "('_: Unit)/ =>/ Array.make((_))((_))")
 code_const Array.len' (Scala "('_: Unit)/ =>/ Array.len((_))")

@@ -101,7 +101,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
     and print_bind tyvars some_thm fxy p =
       gen_print_bind (print_term tyvars true) some_thm fxy p
     and print_case tyvars some_thm vars fxy { clauses = [], ... } =
-          (brackify fxy o Pretty.breaks o map str) ["error(\"empty case\")"]
+          (brackify fxy o Pretty.breaks o map str) ["sys.error(\"empty case\")"]
       | print_case tyvars some_thm vars fxy (case_expr as { clauses = [_], ... }) =
           let
             val (bind :: binds, body) = Code_Thingol.unfold_let (ICase case_expr);
@@ -155,7 +155,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
             val vars = intro_vars params reserved;
           in
             concat [print_defhead tyvars vars name vs params tys ty',
-              str ("error(\"" ^ name ^ "\")")]
+              str ("sys.error(\"" ^ name ^ "\")")]
           end
       | print_def name (vs, ty) eqs =
           let
@@ -439,7 +439,7 @@ val setup =
       "true", "type", "val", "var", "while", "with", "yield"
     ]
   #> fold (Code_Target.add_reserved target) [
-      "apply", "error", "scala", "BigInt", "Nil", "List"
+      "apply", "sys", "scala", "BigInt", "Nil", "List"
     ];
 
 end; (*struct*)
