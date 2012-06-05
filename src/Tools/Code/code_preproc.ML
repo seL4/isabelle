@@ -14,7 +14,6 @@ sig
   val del_functrans: string -> theory -> theory
   val simple_functrans: (theory -> thm list -> thm list option)
     -> theory -> (thm * bool) list -> (thm * bool) list option
-  val preprocess_functrans: theory -> (thm * bool) list -> (thm * bool) list
   val print_codeproc: theory -> unit
 
   type code_algebra
@@ -124,15 +123,6 @@ fun no_variables_conv conv ct =
 
 fun trans_conv_rule conv thm = Thm.transitive thm ((conv o Thm.rhs_of) thm);
 
-fun eqn_conv conv ct =
-  let
-    fun lhs_conv ct = if can Thm.dest_comb ct
-      then Conv.combination_conv lhs_conv conv ct
-      else Conv.all_conv ct;
-  in Conv.combination_conv (Conv.arg_conv lhs_conv) conv ct end;
-
-val rewrite_eqn = Conv.fconv_rule o eqn_conv o Simplifier.rewrite;
-
 fun term_of_conv thy conv =
   Thm.cterm_of thy
   #> conv
@@ -147,22 +137,6 @@ fun term_of_conv_resubst thy conv t =
       | _ => I) t [];
     val resubst = curry (Term.betapplys o swap) all_vars;
   in (resubst, term_of_conv thy conv (fold_rev lambda all_vars t)) end;
-
-
-fun preprocess_functrans thy = 
-  let
-    val functrans = (map (fn (_, (_, f)) => f thy) o #functrans
-      o the_thmproc) thy;
-  in perhaps (perhaps_loop (perhaps_apply functrans)) end;
-
-fun preprocess thy =
-  let
-    val ctxt = Proof_Context.init_global thy;
-    val pre = (Simplifier.global_context thy o #pre o the_thmproc) thy;
-  in
-    preprocess_functrans thy
-    #> (map o apfst) (singleton (Variable.trade (K (map (rewrite_eqn pre))) ctxt)) 
-  end;
 
 fun preprocess_conv thy =
   let
@@ -285,7 +259,10 @@ fun obtain_eqns thy eqngr c =
   case try (Graph.get_node eqngr) c
    of SOME (lhs, cert) => ((lhs, []), cert)
     | NONE => let
-        val cert = Code.get_cert thy (preprocess thy) c;
+        val functrans = (map (fn (_, (_, f)) => f thy)
+          o #functrans o the_thmproc) thy;
+        val pre = (Simplifier.global_context thy o #pre o the_thmproc) thy;
+        val cert = Code.get_cert thy { functrans = functrans, ss = pre } c;
         val (lhs, rhss) = Code.typargs_deps_of_cert thy cert;
       in ((lhs, rhss), cert) end;
 

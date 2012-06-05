@@ -661,30 +661,30 @@ lemma [code abstract]:
   by (simp add: Target_Numeral.int_eq_iff)
 
 lemma [code abstract]:
-  "Target_Numeral.of_nat (m + n) = Target_Numeral.of_nat m + Target_Numeral.of_nat n"
+  "Target_Numeral.of_nat (m + n) = of_nat m + of_nat n"
   by (simp add: Target_Numeral.int_eq_iff)
 
 lemma [code abstract]:
-  "Target_Numeral.of_nat (Code_Nat.dup n) = Target_Numeral.dup (Target_Numeral.of_nat n)"
+  "Target_Numeral.of_nat (Code_Nat.dup n) = Target_Numeral.dup (of_nat n)"
   by (simp add: Target_Numeral.int_eq_iff Code_Nat.dup_def)
 
 lemma [code, code del]:
   "Code_Nat.sub = Code_Nat.sub" ..
 
 lemma [code abstract]:
-  "Target_Numeral.of_nat (m - n) = max 0 (Target_Numeral.of_nat m - Target_Numeral.of_nat n)"
+  "Target_Numeral.of_nat (m - n) = max 0 (of_nat m - of_nat n)"
   by (simp add: Target_Numeral.int_eq_iff)
 
 lemma [code abstract]:
-  "Target_Numeral.of_nat (m * n) = Target_Numeral.of_nat m * Target_Numeral.of_nat n"
+  "Target_Numeral.of_nat (m * n) = of_nat m * of_nat n"
   by (simp add: Target_Numeral.int_eq_iff of_nat_mult)
 
 lemma [code abstract]:
-  "Target_Numeral.of_nat (m div n) = Target_Numeral.of_nat m div Target_Numeral.of_nat n"
+  "Target_Numeral.of_nat (m div n) = of_nat m div of_nat n"
   by (simp add: Target_Numeral.int_eq_iff zdiv_int)
 
 lemma [code abstract]:
-  "Target_Numeral.of_nat (m mod n) = Target_Numeral.of_nat m mod Target_Numeral.of_nat n"
+  "Target_Numeral.of_nat (m mod n) = of_nat m mod of_nat n"
   by (simp add: Target_Numeral.int_eq_iff zmod_int)
 
 lemma [code]:
@@ -704,7 +704,7 @@ lemma [code]:
   by (simp add: less_int_def)
 
 lemma num_of_nat_code [code]:
-  "num_of_nat = Target_Numeral.num_of_int \<circ> Target_Numeral.of_nat"
+  "num_of_nat = Target_Numeral.num_of_int \<circ> of_nat"
   by (simp add: fun_eq_iff num_of_int_def of_nat_def)
 
 lemma (in semiring_1) of_nat_code:
