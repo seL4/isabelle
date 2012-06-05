@@ -567,6 +567,9 @@ fun translation_error thy permissive some_thm msg sub_msg =
         | NONE => "");
     in error (msg ^ err_thm ^ ":\n" ^ sub_msg) end;
 
+fun maybe_permissive f prgrm =
+  f prgrm |>> SOME handle PERMISSIVE () => (NONE, prgrm);
+
 fun not_wellsorted thy permissive some_thm ty sort e =
   let
     val err_class = Sorts.class_error (Context.pretty_global thy) e;
@@ -577,6 +580,10 @@ fun not_wellsorted thy permissive some_thm ty sort e =
     translation_error thy permissive some_thm "Wellsortedness error"
       (err_typ ^ "\n" ^ err_class)
   end;
+
+fun undefineds thy (dep, (naming, program)) =
+  (map_filter (lookup_const naming) (Code.undefineds thy),
+    (dep, (naming, program)));
 
 
 (* inference of type annotations for disambiguation with type classes *)
@@ -750,9 +757,9 @@ and translate_eqn thy algbr eqngr permissive ((args, (rhs, some_abs)), (some_thm
   fold_map (translate_term thy algbr eqngr permissive some_thm) args
   ##>> translate_term thy algbr eqngr permissive some_thm (rhs, some_abs)
   #>> rpair (some_thm, proper)
-and translate_eqns thy algbr eqngr permissive eqns prgrm =
-  prgrm |> fold_map (translate_eqn thy algbr eqngr permissive) eqns
-    handle PERMISSIVE () => ([], prgrm)
+and translate_eqns thy algbr eqngr permissive eqns =
+  maybe_permissive (fold_map (translate_eqn thy algbr eqngr permissive) eqns)
+  #>> these
 and translate_const thy algbr eqngr permissive some_thm ((c, ty), some_abs) =
   let
     val _ = if (case some_abs of NONE => true | SOME abs => not (c = abs))
@@ -790,12 +797,10 @@ and translate_case thy algbr eqngr permissive some_thm (num_args, (t_pos, case_p
     val constrs =
       if null case_pats then []
       else map_filter I (map2 mk_constr case_pats (nth_drop t_pos ts));
-    fun casify naming constrs ty t_app ts =
+    fun casify undefineds constrs ty t_app ts =
       let
-        val undefineds = map_filter (lookup_const naming) (Code.undefineds thy);
         fun collapse_clause vs_map ts body =
-          let
-          in case body
+          case body
            of IConst { name = c, ... } => if member (op =) undefineds c
                 then []
                 else [(ts, body)]
@@ -808,8 +813,7 @@ and translate_case thy algbr eqngr permissive some_thm (num_args, (t_pos, case_p
                         (nth_map i (K pat') ts) body') clauses
                   | NONE => [(ts, body)]
                 else [(ts, body)]
-            | _ => [(ts, body)]
-          end;
+            | _ => [(ts, body)];
         fun mk_clause mk tys t =
           let
             val (vs, body) = unfold_abs_eta tys t;
@@ -831,8 +835,9 @@ and translate_case thy algbr eqngr permissive some_thm (num_args, (t_pos, case_p
       #>> rpair n) constrs
     ##>> translate_typ thy algbr eqngr permissive ty
     ##>> fold_map (translate_term thy algbr eqngr permissive some_thm o rpair NONE) ts
-    #-> (fn (((t, constrs), ty), ts) =>
-      `(fn (_, (naming, _)) => casify naming constrs ty t ts))
+    ##>> undefineds thy
+    #>> (fn ((((t, constrs), ty), ts), undefineds) =>
+      casify undefineds constrs ty t ts)
   end
 and translate_app_case thy algbr eqngr permissive some_thm (case_scheme as (num_args, _)) ((c, ty), ts) =
   if length ts < num_args then
