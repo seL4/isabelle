@@ -69,11 +69,11 @@ fun add_code number_of negative print target thy =
   let
     fun dest_numeral one' bit0' bit1' thm t =
       let
-        fun dest_bit (IConst (c, _)) = if c = bit0' then 0
+        fun dest_bit (IConst { name = c, ... }) = if c = bit0' then 0
               else if c = bit1' then 1
               else Code_Printer.eqn_error thm "Illegal numeral expression: illegal bit"
           | dest_bit _ = Code_Printer.eqn_error thm "Illegal numeral expression: illegal bit";
-        fun dest_num (IConst (c, _)) = if c = one' then 1
+        fun dest_num (IConst { name = c, ... }) = if c = one' then 1
               else Code_Printer.eqn_error thm "Illegal numeral expression: illegal leading digit"
           | dest_num (t1 `$ t2) = 2 * dest_num t2 + dest_bit t1
           | dest_num _ = Code_Printer.eqn_error thm "Illegal numeral expression: illegal term";

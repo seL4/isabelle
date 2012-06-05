@@ -633,8 +633,12 @@ fun imp_program naming =
     (*assumption: dummy values are not relevant for serialization*)
     val (unitt, unitT) = case lookup_const naming @{const_name Unity}
      of SOME unit' =>
-        let val unitT = the (lookup_tyco naming @{type_name unit}) `%% []
-        in (IConst (unit', ((([], []), ([], unitT)), false)), unitT) end
+          let
+            val unitT = the (lookup_tyco naming @{type_name unit}) `%% []
+          in
+            (IConst { name = unit', typargs = [], dicts = [], dom = [],
+              range = unitT, annotate = false }, unitT)
+          end
       | NONE => error ("Must include " ^ @{const_name Unity} ^ " in generated constants.");
     fun dest_abs ((v, ty) `|=> t, _) = ((v, ty), t)
       | dest_abs (t, ty) =
@@ -643,21 +647,21 @@ fun imp_program naming =
             val v = singleton (Name.variant_list vs) "x";
             val ty' = (hd o fst o unfold_fun) ty;
           in ((SOME v, ty'), t `$ IVar (SOME v)) end;
-    fun force (t as IConst (c, _) `$ t') = if is_return c
+    fun force (t as IConst { name = c, ... } `$ t') = if is_return c
           then t' else t `$ unitt
       | force t = t `$ unitt;
     fun tr_bind'' [(t1, _), (t2, ty2)] =
       let
         val ((v, ty), t) = dest_abs (t2, ty2);
-      in ICase (((force t1, ty), [(IVar v, tr_bind' t)]), dummy_case_term) end
+      in ICase { term = force t1, typ = ty, clauses = [(IVar v, tr_bind' t)], primitive = dummy_case_term } end
     and tr_bind' t = case unfold_app t
-     of (IConst (c, ((_, (ty1 :: ty2 :: _, _)), _)), [x1, x2]) => if is_bind c
+     of (IConst { name = c, dom = ty1 :: ty2 :: _, ... }, [x1, x2]) => if is_bind c
           then tr_bind'' [(x1, ty1), (x2, ty2)]
           else force t
       | _ => force t;
-    fun imp_monad_bind'' ts = (SOME dummy_name, unitT) `|=> ICase (((IVar (SOME dummy_name), unitT),
-      [(unitt, tr_bind'' ts)]), dummy_case_term)
-    fun imp_monad_bind' (const as (c, ((_, (tys, _)), _))) ts = if is_bind c then case (ts, tys)
+    fun imp_monad_bind'' ts = (SOME dummy_name, unitT) `|=>
+      ICase { term = IVar (SOME dummy_name), typ = unitT, clauses = [(unitt, tr_bind'' ts)], primitive = dummy_case_term }
+    fun imp_monad_bind' (const as { name = c, dom = dom, ... }) ts = if is_bind c then case (ts, dom)
        of ([t1, t2], ty1 :: ty2 :: _) => imp_monad_bind'' [(t1, ty1), (t2, ty2)]
         | ([t1, t2, t3], ty1 :: ty2 :: _) => imp_monad_bind'' [(t1, ty1), (t2, ty2)] `$ t3
         | (ts, _) => imp_monad_bind (eta_expand 2 (const, ts))
@@ -668,10 +672,9 @@ fun imp_program naming =
          of (IConst const, ts) => imp_monad_bind' const ts
           | (t, ts) => imp_monad_bind t `$$ map imp_monad_bind ts)
       | imp_monad_bind (v_ty `|=> t) = v_ty `|=> imp_monad_bind t
-      | imp_monad_bind (ICase (((t, ty), pats), t0)) = ICase
-          (((imp_monad_bind t, ty),
-            (map o pairself) imp_monad_bind pats),
-              imp_monad_bind t0);
+      | imp_monad_bind (ICase { term = t, typ = ty, clauses = clauses, primitive = t0 }) =
+          ICase { term = imp_monad_bind t, typ = ty,
+            clauses = (map o pairself) imp_monad_bind clauses, primitive = imp_monad_bind t0 };
 
   in (Graph.map o K o map_terms_stmt) imp_monad_bind end;
 
@@ -688,3 +691,4 @@ end
 hide_const (open) Heap heap guard raise' fold_map
 
 end
+

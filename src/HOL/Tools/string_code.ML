@@ -23,13 +23,13 @@ fun decode_char nibbles' tt =
       | decode _ ~1 = NONE
       | decode n m = SOME (chr (n * 16 + m));
   in case tt
-   of (IConst (c1, _), IConst (c2, _)) => decode (idx c1) (idx c2)
+   of (IConst { name = c1, ... }, IConst { name = c2, ... }) => decode (idx c1) (idx c2)
     | _ => NONE
   end;
    
 fun implode_string char' nibbles' mk_char mk_string ts =
   let
-    fun implode_char (IConst (c, _) `$ t1 `$ t2) =
+    fun implode_char (IConst { name = c, ... } `$ t1 `$ t2) =
           if c = char' then decode_char nibbles' (t1, t2) else NONE
       | implode_char _ = NONE;
     val ts' = map_filter implode_char ts;
