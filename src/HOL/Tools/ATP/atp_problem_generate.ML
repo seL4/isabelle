@@ -1308,8 +1308,10 @@ fun s_not_prop (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
 fun make_conjecture ctxt format type_enc =
   map (fn ((name, stature), (role, t)) =>
           let
+            (* FIXME: The commented-out code is a hack to get decent performance
+               out of LEO-II on the TPTP THF benchmarks. *)
             val role =
-              if is_format_with_defs format andalso
+              if (* is_format_with_defs format andalso *)
                  role <> Conjecture andalso is_legitimate_tptp_def t then
                 Definition
               else
