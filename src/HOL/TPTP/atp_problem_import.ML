@@ -212,7 +212,7 @@ fun sledgehammer_tac demo ctxt timeout i =
           (prover ^
            (if aggressivity > 0 then "(" ^ string_of_int aggressivity ^ ")"
             else ""))
-          (atp_tac ctxt aggressivity [] (timeout div frac) prover i)
+          (atp_tac ctxt aggressivity [] (mult * timeout div frac) prover i)
   in
     slice 2 0 ATP_Systems.spassN
     ORELSE slice 2 0 ATP_Systems.vampireN
