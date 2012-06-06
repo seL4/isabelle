@@ -1872,9 +1872,8 @@ val pull_and_reorder_definitions =
         fact :: reorder [] skipped (* break cycle *)
       | reorder skipped (fact :: facts) =
         let val rhs_consts = consts_of_hs snd fact in
-          if exists (exists (member (op =) rhs_consts o the_single
-                     o consts_of_hs fst))
-                    [skipped, facts] then
+          if exists (exists (exists (member (op =) rhs_consts)
+                     o consts_of_hs fst)) [skipped, facts] then
             reorder (fact :: skipped) facts
           else
             fact :: reorder [] (facts @ skipped)
@@ -2649,8 +2648,7 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
     val lam_trans =
       if lam_trans = keep_lamsN andalso
          not (is_type_enc_higher_order type_enc) then
-        error ("Lambda translation scheme incompatible with first-order \
-               \encoding.")
+        liftingN
       else
         lam_trans
     val (fact_names, classes, conjs, facts, class_rel_clauses, arity_clauses,
@@ -2717,10 +2715,8 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
     fun add_sym_ary (s, {min_ary, ...} : sym_info) =
       min_ary > 0 ? Symtab.insert (op =) (s, min_ary)
   in
-    (problem,
-     case pool of SOME the_pool => snd the_pool | NONE => Symtab.empty,
-     fact_names |> Vector.fromList,
-     lifted,
+    (problem, pool |> Option.map snd |> the_default Symtab.empty,
+     fact_names |> Vector.fromList, lifted,
      Symtab.empty |> Symtab.fold add_sym_ary sym_tab)
   end
 
