@@ -1302,11 +1302,8 @@ fun make_fact ctxt format type_enc iff_for_eq
   end
 
 fun s_not_prop (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
-  | s_not_prop _ = @{prop True} (* "t" is too meta for "metis" *)
-(*
   | s_not_prop (@{const "==>"} $ t $ @{prop False}) = t
   | s_not_prop t = @{const "==>"} $ t $ @{prop False}
-*)
 
 fun make_conjecture ctxt format type_enc =
   map (fn ((name, stature), (role, t)) =>
