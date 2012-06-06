@@ -1971,7 +1971,7 @@ fun is_var_positively_naked_in_term _ (SOME false) _ accum = accum
     accum orelse (is_tptp_equal s andalso member (op =) tms (ATerm (name, [])))
   | is_var_positively_naked_in_term _ _ _ _ = true
 
-fun is_var_ghost_type_arg_in_term thy polym_constrs name pos tm accum =
+fun is_var_ghost_type_arg_in_term thy name pos tm accum =
   is_var_positively_naked_in_term name pos tm accum orelse
   let
     val var = ATerm (name, [])
@@ -1979,33 +1979,25 @@ fun is_var_ghost_type_arg_in_term thy polym_constrs name pos tm accum =
       | is_nasty_in_term (ATerm ((s, _), tms)) =
         let
           val ary = length tms
-          val polym_constr = member (op =) polym_constrs s
           val cover = type_arg_cover thy s ary
         in
-          exists (fn (j, tm) =>
-                     if polym_constr then
-                       member (op =) cover j andalso
-                       (tm = var orelse is_nasty_in_term tm)
-                     else
-                       tm = var andalso member (op =) cover j)
-                 (0 upto ary - 1 ~~ tms)
-          orelse (not polym_constr andalso exists is_nasty_in_term tms)
+          exists (fn (j, tm) => tm = var andalso member (op =) cover j)
+                 (0 upto ary - 1 ~~ tms) orelse
+          exists is_nasty_in_term tms
         end
       | is_nasty_in_term _ = true
   in is_nasty_in_term tm end
 
-fun should_guard_var_in_formula thy polym_constrs level pos phi (SOME true)
-                                name =
+fun should_guard_var_in_formula thy level pos phi (SOME true) name =
     (case granularity_of_type_level level of
        All_Vars => true
      | Positively_Naked_Vars =>
        formula_fold pos (is_var_positively_naked_in_term name) phi false
      | Ghost_Type_Arg_Vars =>
-       formula_fold pos (is_var_ghost_type_arg_in_term thy polym_constrs name)
-                    phi false)
-  | should_guard_var_in_formula _ _ _ _ _ _ _ = true
+       formula_fold pos (is_var_ghost_type_arg_in_term thy name) phi false)
+  | should_guard_var_in_formula _ _ _ _ _ _ = true
 
-fun always_guard_var_in_formula _ _ _ _ _ _ _ = true
+fun always_guard_var_in_formula _ _ _ _ _ _ = true
 
 fun should_generate_tag_bound_decl _ _ _ (SOME true) _ = false
   | should_generate_tag_bound_decl ctxt mono (Tags (_, level)) _ T =
@@ -2061,15 +2053,14 @@ and ho_term_from_iterm ctxt mono type_enc pos =
           t
       end
   in term (Top_Level pos) end
-and formula_from_iformula ctxt polym_constrs mono type_enc should_guard_var =
+and formula_from_iformula ctxt mono type_enc should_guard_var =
   let
     val thy = Proof_Context.theory_of ctxt
     val level = level_of_type_enc type_enc
     val do_term = ho_term_from_iterm ctxt mono type_enc
     fun do_out_of_bound_type pos phi universal (name, T) =
       if should_guard_type ctxt mono type_enc
-             (fn () => should_guard_var thy polym_constrs level pos phi
-                                        universal name) T then
+             (fn () => should_guard_var thy level pos phi universal name) T then
         IVar (name, T)
         |> type_guard_iterm type_enc T
         |> do_term pos |> AAtom |> SOME
@@ -2103,12 +2094,12 @@ and formula_from_iformula ctxt polym_constrs mono type_enc should_guard_var =
 (* Each fact is given a unique fact number to avoid name clashes (e.g., because
    of monomorphization). The TPTP explicitly forbids name clashes, and some of
    the remote provers might care. *)
-fun formula_line_for_fact ctxt polym_constrs prefix encode freshen pos
-        mono type_enc rank (j, {name, stature, role, iformula, atomic_types}) =
+fun formula_line_for_fact ctxt prefix encode freshen pos mono type_enc rank
+                          (j, {name, stature, role, iformula, atomic_types}) =
   (prefix ^ (if freshen then string_of_int j ^ "_" else "") ^ encode name, role,
    iformula
-   |> formula_from_iformula ctxt polym_constrs mono type_enc
-          should_guard_var_in_formula (if pos then SOME true else NONE)
+   |> formula_from_iformula ctxt mono type_enc should_guard_var_in_formula
+                            (if pos then SOME true else NONE)
    |> close_formula_universally
    |> bound_tvars type_enc true atomic_types,
    NONE,
@@ -2148,11 +2139,11 @@ fun formula_line_for_arity_clause type_enc
                   (map (rpair (atype_of_type_vars type_enc)) (#3 concl_atom)),
            NONE, isabelle_info inductiveN helper_rank)
 
-fun formula_line_for_conjecture ctxt polym_constrs mono type_enc
+fun formula_line_for_conjecture ctxt mono type_enc
         ({name, role, iformula, atomic_types, ...} : ifact) =
   Formula (conjecture_prefix ^ name, role,
            iformula
-           |> formula_from_iformula ctxt polym_constrs mono type_enc
+           |> formula_from_iformula ctxt mono type_enc
                   should_guard_var_in_formula (SOME false)
            |> close_formula_universally
            |> bound_tvars type_enc true atomic_types, NONE, [])
@@ -2358,7 +2349,7 @@ fun formula_line_for_guards_mono_type ctxt mono type_enc T =
            IConst (`make_bound_var "X", T, [])
            |> type_guard_iterm type_enc T
            |> AAtom
-           |> formula_from_iformula ctxt [] mono type_enc
+           |> formula_from_iformula ctxt mono type_enc
                                     always_guard_var_in_formula (SOME true)
            |> close_formula_universally
            |> bound_tvars type_enc true (atomic_types_of T),
@@ -2429,7 +2420,7 @@ fun formula_line_for_guards_sym_decl ctxt mono type_enc n s j
              |> fold (curry (IApp o swap)) bounds
              |> type_guard_iterm type_enc res_T
              |> AAtom |> mk_aquant AForall (bound_names ~~ bound_Ts)
-             |> formula_from_iformula ctxt [] mono type_enc
+             |> formula_from_iformula ctxt mono type_enc
                                       always_guard_var_in_formula (SOME true)
              |> close_formula_universally
              |> bound_tvars type_enc (n > 1) (atomic_types_of T)
@@ -2716,7 +2707,7 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
     val (_, sym_tab0) =
       sym_table_for_facts ctxt type_enc app_op_level conjs facts
     val mono = conjs @ facts |> mononotonicity_info_for_facts ctxt type_enc
-    val (polym_constrs, monom_constrs) =
+    val (_, monom_constrs) =
       all_constrs_of_polymorphic_datatypes thy
       |>> map (make_fixed_const (SOME type_enc))
     fun firstorderize in_helper =
@@ -2744,14 +2735,13 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
       |> problem_lines_for_sym_decl_table ctxt mono type_enc mono_Ts
     val num_facts = length facts
     val fact_lines =
-      map (formula_line_for_fact ctxt polym_constrs fact_prefix
-               ascii_of (not exporter) (not exporter) mono type_enc
-               (rank_of_fact_num num_facts))
+      map (formula_line_for_fact ctxt fact_prefix ascii_of (not exporter)
+               (not exporter) mono type_enc (rank_of_fact_num num_facts))
           (0 upto num_facts - 1 ~~ facts)
     val helper_lines =
       0 upto length helpers - 1 ~~ helpers
-      |> map (formula_line_for_fact ctxt polym_constrs helper_prefix I false
-                                    true mono type_enc (K default_rank))
+      |> map (formula_line_for_fact ctxt helper_prefix I false true mono
+                                    type_enc (K default_rank))
     (* Reordering these might confuse the proof reconstruction code. *)
     val problem =
       [(explicit_declsN, class_decl_lines @ sym_decl_lines),
@@ -2762,9 +2752,7 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
        (aritiesN, map (formula_line_for_arity_clause type_enc) arity_clauses),
        (helpersN, helper_lines),
        (free_typesN, formula_lines_for_free_types type_enc (facts @ conjs)),
-       (conjsN,
-        map (formula_line_for_conjecture ctxt polym_constrs mono type_enc)
-                                         conjs)]
+       (conjsN, map (formula_line_for_conjecture ctxt mono type_enc) conjs)]
     val problem =
       problem
       |> (case format of
