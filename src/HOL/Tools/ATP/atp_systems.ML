@@ -337,7 +337,10 @@ val leo2_config : atp_config =
    required_vars = [],
    arguments =
      fn _ => fn _ => fn _ => fn timeout => fn _ =>
-        "--proofoutput 1 --timeout " ^ string_of_int (to_secs 1 timeout),
+        "--foatp e --atp e=\"$E_HOME\"/eprover \
+        \--atp epclextract=\"$E_HOME\"/epclextract \
+        \--proofoutput 1 --timeout " ^
+        string_of_int (to_secs 1 timeout),
    proof_delims = tstp_proof_delims,
    known_failures =
      [(TimedOut, "CPU time limit exceeded, terminating"),
