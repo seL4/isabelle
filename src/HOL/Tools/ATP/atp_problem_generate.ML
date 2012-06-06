@@ -28,7 +28,6 @@ sig
   datatype type_level =
     All_Types |
     Noninf_Nonmono_Types of strictness * granularity |
-    Fin_Nonmono_Types of granularity |
     Const_Arg_Types |
     No_Types
   type type_enc
@@ -89,8 +88,7 @@ sig
   val is_type_enc_higher_order : type_enc -> bool
   val polymorphism_of_type_enc : type_enc -> polymorphism
   val level_of_type_enc : type_enc -> type_level
-  val is_type_enc_quasi_sound : type_enc -> bool
-  val is_type_enc_fairly_sound : type_enc -> bool
+  val is_type_enc_sound : type_enc -> bool
   val type_enc_from_string : strictness -> string -> type_enc
   val adjust_type_enc : atp_format -> type_enc -> type_enc
   val mk_aconns :
@@ -134,7 +132,6 @@ datatype granularity = All_Vars | Positively_Naked_Vars | Ghost_Type_Arg_Vars
 datatype type_level =
   All_Types |
   Noninf_Nonmono_Types of strictness * granularity |
-  Fin_Nonmono_Types of granularity |
   Const_Arg_Types |
   No_Types
 
@@ -157,20 +154,14 @@ fun level_of_type_enc (Native (_, _, level)) = level
   | level_of_type_enc (Tags (_, level)) = level
 
 fun granularity_of_type_level (Noninf_Nonmono_Types (_, grain)) = grain
-  | granularity_of_type_level (Fin_Nonmono_Types grain) = grain
   | granularity_of_type_level _ = All_Vars
 
-fun is_type_level_quasi_sound All_Types = true
-  | is_type_level_quasi_sound (Noninf_Nonmono_Types _) = true
-  | is_type_level_quasi_sound _ = false
-val is_type_enc_quasi_sound = is_type_level_quasi_sound o level_of_type_enc
-
-fun is_type_level_fairly_sound (Fin_Nonmono_Types _) = true
-  | is_type_level_fairly_sound level = is_type_level_quasi_sound level
-val is_type_enc_fairly_sound = is_type_level_fairly_sound o level_of_type_enc
+fun is_type_level_sound All_Types = true
+  | is_type_level_sound (Noninf_Nonmono_Types _) = true
+  | is_type_level_sound _ = false
+val is_type_enc_sound = is_type_level_sound o level_of_type_enc
 
 fun is_type_level_monotonicity_based (Noninf_Nonmono_Types _) = true
-  | is_type_level_monotonicity_based (Fin_Nonmono_Types _) = true
   | is_type_level_monotonicity_based _ = false
 
 val no_lamsN = "no_lams" (* used internally; undocumented *)
@@ -607,10 +598,8 @@ fun iterm_from_term thy type_enc bs (P $ Q) =
         iterm_from_term thy type_enc ((s, (name, T)) :: bs) t
     in (IAbs ((name, T), tm), union (op =) atomic_Ts (atomic_types_of T)) end
 
-(* "_query", "_bang", and "_at" are for the ASCII-challenged Metis and
-   Mirabelle. *)
+(* "_query" and "_at" are for the ASCII-challenged Metis and Mirabelle. *)
 val queries = ["?", "_query"]
-val bangs = ["!", "_bang"]
 val ats = ["@", "_at"]
 
 fun try_unsuffixes ss s =
@@ -638,7 +627,6 @@ fun type_enc_from_string strictness s =
          SOME s => (SOME Mangled_Monomorphic, s)
        | NONE => (NONE, s))
   ||> (pair All_Types
-       |> try_nonmono Fin_Nonmono_Types bangs
        |> try_nonmono (curry Noninf_Nonmono_Types strictness) queries)
   |> (fn (poly, (level, core)) =>
          case (core, (poly, level)) of
@@ -701,7 +689,7 @@ fun adjust_type_enc (THF (TPTP_Polymorphic, _, choice, _))
   | adjust_type_enc format (Native (_, poly, level)) =
     adjust_type_enc format (Guards (poly, level))
   | adjust_type_enc CNF_UEQ (type_enc as Guards stuff) =
-    (if is_type_enc_fairly_sound type_enc then Tags else Guards) stuff
+    (if is_type_enc_sound type_enc then Tags else Guards) stuff
   | adjust_type_enc _ type_enc = type_enc
 
 fun is_fol_term t =
@@ -1381,16 +1369,6 @@ fun should_encode_type _ (_ : monotonicity_info) All_Types _ = true
              is_type_kind_of_surely_infinite ctxt strictness surely_infinite_Ts
                                              T)))
     end
-  | should_encode_type ctxt {surely_finite_Ts, maybe_infinite_Ts,
-                             maybe_nonmono_Ts, ...}
-                       (Fin_Nonmono_Types grain) T =
-    let val thy = Proof_Context.theory_of ctxt in
-      grain = Ghost_Type_Arg_Vars orelse
-      (exists (type_intersect thy T) maybe_nonmono_Ts andalso
-       (exists (type_generalization thy T) surely_finite_Ts orelse
-        (not (member (type_equiv thy) maybe_infinite_Ts T) andalso
-         is_type_surely_finite ctxt T)))
-    end
   | should_encode_type _ _ _ _ = false
 
 fun should_guard_type ctxt mono (Guards (_, level)) should_guard_var T =
@@ -1767,11 +1745,10 @@ fun add_helper_facts_for_sym ctxt format type_enc aggressive
     let
       val thy = Proof_Context.theory_of ctxt
       val unmangled_s = mangled_s |> unmangled_const_name |> hd
-      fun dub needs_fairly_sound j k =
+      fun dub needs_sound j k =
         ascii_of unmangled_s ^ "_" ^ string_of_int j ^ "_" ^ string_of_int k ^
         (if mangled_s = unmangled_s then "" else "_" ^ ascii_of mangled_s) ^
-        (if needs_fairly_sound then typed_helper_suffix
-         else untyped_helper_suffix)
+        (if needs_sound then typed_helper_suffix else untyped_helper_suffix)
       fun specialize_helper t T =
         if unmangled_s = app_op_name then
           let
@@ -1780,27 +1757,25 @@ fun add_helper_facts_for_sym ctxt format type_enc aggressive
           in monomorphic_term tyenv t end
         else
           specialize_type thy (invert_const unmangled_s, T) t
-      fun dub_and_inst needs_fairly_sound ((status, t), j) =
+      fun dub_and_inst needs_sound ((status, t), j) =
         (if should_specialize_helper type_enc t then
            map_filter (try (specialize_helper t)) types
          else
            [t])
         |> tag_list 1
-        |> map (fn (k, t) =>
-                   ((dub needs_fairly_sound j k, (Global, status)), t))
+        |> map (fn (k, t) => ((dub needs_sound j k, (Global, status)), t))
       val make_facts = map_filter (make_fact ctxt format type_enc false)
-      val fairly_sound = is_type_enc_fairly_sound type_enc
+      val sound = is_type_enc_sound type_enc
       val could_specialize = could_specialize_helpers type_enc
     in
-      fold (fn ((helper_s, needs_fairly_sound), ths) =>
-               if (needs_fairly_sound andalso not fairly_sound) orelse
+      fold (fn ((helper_s, needs_sound), ths) =>
+               if (needs_sound andalso not sound) orelse
                   (helper_s <> unmangled_s andalso
                    (not aggressive orelse could_specialize)) then
                  I
                else
                  ths ~~ (1 upto length ths)
-                 |> maps (dub_and_inst needs_fairly_sound
-                          o apfst (apsnd prop_of))
+                 |> maps (dub_and_inst needs_sound o apfst (apsnd prop_of))
                  |> make_facts
                  |> union (op = o pairself #iformula))
            (if aggressive then aggressive_helper_table else helper_table)
@@ -2239,7 +2214,7 @@ fun sym_decl_table_for_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
       end
   in
     Symtab.empty
-    |> is_type_enc_fairly_sound type_enc
+    |> is_type_enc_sound type_enc
        ? (fold (fold add_fact_syms) [conjs, facts]
           #> fold add_iterm_syms extra_tms
           #> (case type_enc of
@@ -2288,22 +2263,6 @@ fun add_iterm_mononotonicity_info _ _ (SOME false) _ mono = mono
              maybe_infinite_Ts = maybe_infinite_Ts,
              surely_infinite_Ts = surely_infinite_Ts,
              maybe_nonmono_Ts = maybe_nonmono_Ts |> insert_type thy I T}
-        | Fin_Nonmono_Types _ =>
-          if exists (type_instance thy T) surely_finite_Ts orelse
-             member (type_equiv thy) maybe_infinite_Ts T then
-            mono
-          else if is_type_surely_finite ctxt T then
-            {maybe_finite_Ts = maybe_finite_Ts,
-             surely_finite_Ts = surely_finite_Ts |> insert_type thy I T,
-             maybe_infinite_Ts = maybe_infinite_Ts,
-             surely_infinite_Ts = surely_infinite_Ts,
-             maybe_nonmono_Ts = maybe_nonmono_Ts |> insert_type thy I T}
-          else
-            {maybe_finite_Ts = maybe_finite_Ts,
-             surely_finite_Ts = surely_finite_Ts,
-             maybe_infinite_Ts = maybe_infinite_Ts |> insert (type_equiv thy) T,
-             surely_infinite_Ts = surely_infinite_Ts,
-             maybe_nonmono_Ts = maybe_nonmono_Ts}
         | _ => mono
       else
         mono
