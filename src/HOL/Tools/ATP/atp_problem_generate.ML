@@ -860,7 +860,7 @@ fun type_arg_policy monom_constrs type_enc s =
         else if poly = Mangled_Monomorphic then
           Mangled_Type_Args
         else if member (op =) monom_constrs s andalso
-                granularity_of_type_level level = Positively_Naked_Vars then
+                granularity_of_type_level level <> Ghost_Type_Arg_Vars then
           No_Type_Args
         else
           Explicit_Type_Args
