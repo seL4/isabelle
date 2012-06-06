@@ -21,8 +21,8 @@ sig
   val freeze_problem_consts : theory -> term -> term
   val make_conj : term list * term list -> term list -> term
   val sledgehammer_tptp_file : theory -> int -> string -> unit
-  val isabelle_demo_tptp_file : theory -> int -> string -> unit
-  val isabelle_comp_tptp_file : theory -> int -> string -> unit
+  val isabelle_tptp_file : theory -> int -> string -> unit
+  val isabelle_hot_tptp_file : theory -> int -> string -> unit
   val translate_tptp_file : string -> string -> string -> unit
 end;
 
@@ -285,7 +285,7 @@ fun sledgehammer_tptp_file thy timeout file_name =
     |> print_szs_from_success conjs
   end
 
-fun isabelle_tptp_file demo thy timeout file_name =
+fun generic_isabelle_tptp_file demo thy timeout file_name =
   let
     val (conjs, assms, ctxt) =
       read_tptp_file thy (freeze_problem_consts thy) file_name
@@ -300,8 +300,8 @@ fun isabelle_tptp_file demo thy timeout file_name =
     |> print_szs_from_success conjs
   end
 
-val isabelle_demo_tptp_file = isabelle_tptp_file true
-val isabelle_comp_tptp_file = isabelle_tptp_file false
+val isabelle_tptp_file = generic_isabelle_tptp_file false
+val isabelle_hot_tptp_file = generic_isabelle_tptp_file true
 
 
 (** Translator between TPTP(-like) file formats **)
