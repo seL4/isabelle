@@ -27,8 +27,8 @@ sig
   datatype granularity = All_Vars | Positively_Naked_Vars | Ghost_Type_Arg_Vars
   datatype type_level =
     All_Types |
-    Noninf_Nonmono_Types of strictness * granularity |
-    Const_Arg_Types |
+    Nonmono_Types of strictness * granularity |
+    Const_Types of bool (* "?" *) |
     No_Types
   type type_enc
 
@@ -131,8 +131,8 @@ datatype strictness = Strict | Non_Strict
 datatype granularity = All_Vars | Positively_Naked_Vars | Ghost_Type_Arg_Vars
 datatype type_level =
   All_Types |
-  Noninf_Nonmono_Types of strictness * granularity |
-  Const_Arg_Types |
+  Nonmono_Types of strictness * granularity |
+  Const_Types of bool |
   No_Types
 
 datatype type_enc =
@@ -153,15 +153,15 @@ fun level_of_type_enc (Native (_, _, level)) = level
   | level_of_type_enc (Guards (_, level)) = level
   | level_of_type_enc (Tags (_, level)) = level
 
-fun granularity_of_type_level (Noninf_Nonmono_Types (_, grain)) = grain
+fun granularity_of_type_level (Nonmono_Types (_, grain)) = grain
   | granularity_of_type_level _ = All_Vars
 
 fun is_type_level_sound All_Types = true
-  | is_type_level_sound (Noninf_Nonmono_Types _) = true
+  | is_type_level_sound (Nonmono_Types _) = true
   | is_type_level_sound _ = false
 val is_type_enc_sound = is_type_level_sound o level_of_type_enc
 
-fun is_type_level_monotonicity_based (Noninf_Nonmono_Types _) = true
+fun is_type_level_monotonicity_based (Nonmono_Types _) = true
   | is_type_level_monotonicity_based _ = false
 
 val no_lamsN = "no_lams" (* used internally; undocumented *)
@@ -605,17 +605,6 @@ val ats = ["@", "_at"]
 fun try_unsuffixes ss s =
   fold (fn s' => fn NONE => try (unsuffix s') s | some => some) ss NONE
 
-fun try_nonmono constr suffixes fallback s =
-  case try_unsuffixes suffixes s of
-    SOME s =>
-    (case try_unsuffixes suffixes s of
-       SOME s => (constr Positively_Naked_Vars, s)
-     | NONE =>
-       case try_unsuffixes ats s of
-         SOME s => (constr Ghost_Type_Arg_Vars, s)
-       | NONE => (constr All_Vars, s))
-  | NONE => fallback s
-
 fun type_enc_from_string strictness s =
   (case try (unprefix "poly_") s of
      SOME s => (SOME Polymorphic, s)
@@ -626,8 +615,16 @@ fun type_enc_from_string strictness s =
        case try (unprefix "mono_") s of
          SOME s => (SOME Mangled_Monomorphic, s)
        | NONE => (NONE, s))
-  ||> (pair All_Types
-       |> try_nonmono (curry Noninf_Nonmono_Types strictness) queries)
+  ||> (fn s =>
+          case try_unsuffixes queries s of
+          SOME s =>
+          (case try_unsuffixes queries s of
+             SOME s => (Nonmono_Types (strictness, Positively_Naked_Vars), s)
+           | NONE =>
+             case try_unsuffixes ats s of
+               SOME s => (Nonmono_Types (strictness, Ghost_Type_Arg_Vars), s)
+             | NONE => (Nonmono_Types (strictness, All_Vars), s))
+         | NONE => (All_Types, s))
   |> (fn (poly, (level, core)) =>
          case (core, (poly, level)) of
            ("native", (SOME poly, _)) =>
@@ -644,7 +641,7 @@ fun type_enc_from_string strictness s =
            (case (poly, level) of
               (Polymorphic, All_Types) =>
               Native (Higher_Order THF_With_Choice, Polymorphic, All_Types)
-            | (_, Noninf_Nonmono_Types _) => raise Same.SAME
+            | (_, Nonmono_Types _) => raise Same.SAME
             | (Mangled_Monomorphic, _) =>
               if granularity_of_type_level level = All_Vars then
                 Native (Higher_Order THF_With_Choice, Mangled_Monomorphic,
@@ -664,7 +661,10 @@ fun type_enc_from_string strictness s =
            else
              Tags (poly, level)
          | ("args", (SOME poly, All_Types (* naja *))) =>
-           Guards (poly, Const_Arg_Types)
+           Guards (poly, Const_Types false)
+         | ("args", (SOME poly, Nonmono_Types (_, All_Vars) (* naja *))) =>
+           if poly = Mangled_Monomorphic then raise Same.SAME
+           else Guards (poly, Const_Types true)
          | ("erased", (NONE, All_Types (* naja *))) =>
            Guards (Polymorphic, No_Types)
          | _ => raise Same.SAME)
@@ -844,14 +844,14 @@ fun type_arg_policy constrs type_enc s =
     | _ =>
       let val level = level_of_type_enc type_enc in
         if level = No_Types orelse s = @{const_name HOL.eq} orelse
-           (s = app_op_name andalso level = Const_Arg_Types) then
+           (case level of Const_Types _ => s = app_op_name | _ => false) then
           No_Type_Args
         else if poly = Mangled_Monomorphic then
           Mangled_Type_Args
         else if level = All_Types orelse
                 granularity_of_type_level level = Ghost_Type_Arg_Vars then
           Noninferable_Type_Args
-        else if member (op =) constrs s then
+        else if member (op =) constrs s andalso level <> Const_Types false then
           Constr_Type_Args
         else
           All_Type_Args
@@ -1360,7 +1360,7 @@ fun is_type_kind_of_surely_infinite ctxt strictness cached_Ts T =
 fun should_encode_type _ (_ : monotonicity_info) All_Types _ = true
   | should_encode_type ctxt {maybe_finite_Ts, surely_infinite_Ts,
                              maybe_nonmono_Ts, ...}
-                       (Noninf_Nonmono_Types (strictness, grain)) T =
+                       (Nonmono_Types (strictness, grain)) T =
     let val thy = Proof_Context.theory_of ctxt in
       grain = Ghost_Type_Arg_Vars orelse
       (exists (type_intersect thy T) maybe_nonmono_Ts andalso
@@ -2232,7 +2232,7 @@ fun default_mono level =
    maybe_infinite_Ts = known_infinite_types,
    surely_infinite_Ts =
      case level of
-       Noninf_Nonmono_Types (Strict, _) => []
+       Nonmono_Types (Strict, _) => []
      | _ => known_infinite_types,
    maybe_nonmono_Ts = [@{typ bool}]}
 
@@ -2246,7 +2246,7 @@ fun add_iterm_mononotonicity_info _ _ (SOME false) _ mono = mono
     let val thy = Proof_Context.theory_of ctxt in
       if is_tptp_equal s andalso exists is_maybe_universal_var [tm1, tm2] then
         case level of
-          Noninf_Nonmono_Types (strictness, _) =>
+          Nonmono_Types (strictness, _) =>
           if exists (type_instance thy T) surely_infinite_Ts orelse
              member (type_equiv thy) maybe_finite_Ts T then
             mono
