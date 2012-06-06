@@ -27,7 +27,7 @@ val type_encs =
    "poly_guards",
    "poly_guards?",
    "poly_guards??",
-   (* "poly_guards@?", *)
+   "poly_guards@?",
    "poly_tags",
    "poly_tags?",
    "poly_tags??",
@@ -73,8 +73,8 @@ text {* Miscellaneous tests *}
 lemma "x = y \<Longrightarrow> y = x"
 by metis_exhaust
 
-lemma "[a] = [1 + 1] \<Longrightarrow> a = 1 + (1::int)"
-by (metis_exhaust last.simps)
+lemma "[a] = [Suc 0] \<Longrightarrow> a = 1"
+by (metis_exhaust last.simps One_nat_def)
 
 lemma "map Suc [0] = [Suc 0]"
 by (metis_exhaust map.simps)
@@ -90,7 +90,7 @@ definition "null xs = (xs = [])"
 lemma "P (null xs) \<Longrightarrow> null xs \<Longrightarrow> xs = []"
 by (metis_exhaust null_def)
 
-lemma "(0::nat) + 0 = 0"
+lemma "(0\<Colon>nat) + 0 = 0"
 by (metis_exhaust add_0_left)
 
 end
