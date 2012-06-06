@@ -183,8 +183,8 @@ val keep_lamsN = "keep_lams"
 val lam_liftingN = "lam_lifting" (* legacy *)
 
 (* It's still unclear whether all TFF1 implementations will support type
-   signatures such as "!>[A : $tType] : $o", with ghost type variables. *)
-val avoid_first_order_ghost_type_vars = false
+   signatures such as "!>[A : $tType] : $o", with phantom type variables. *)
+val avoid_first_order_phantom_type_vars = false
 
 val bound_var_prefix = "B_"
 val all_bound_var_prefix = "A_"
@@ -889,7 +889,7 @@ fun type_class_formula type_enc class arg =
   AAtom (ATerm (class, arg ::
       (case type_enc of
          Native (First_Order, Polymorphic, _) =>
-         if avoid_first_order_ghost_type_vars then [ATerm (TYPE_name, [arg])]
+         if avoid_first_order_phantom_type_vars then [ATerm (TYPE_name, [arg])]
          else []
        | _ => [])))
 fun formulas_for_types type_enc add_sorts_on_typ Ts =
@@ -1331,16 +1331,16 @@ fun tvar_footprint thy s ary =
    | NONE => [])
   handle TYPE _ => []
 
-fun ghost_type_args thy s ary =
+fun type_arg_cover thy s ary =
   if is_tptp_equal s then
     0 upto ary - 1
   else
     let
       val footprint = tvar_footprint thy s ary
       val eq = (s = @{const_name HOL.eq})
-      fun ghosts _ [] = []
-        | ghosts seen ((i, tvars) :: args) =
-          ghosts (union (op =) seen tvars) args
+      fun cover _ [] = []
+        | cover seen ((i, tvars) :: args) =
+          cover (union (op =) seen tvars) args
           |> (eq orelse exists (fn tvar => not (member (op =) seen tvar)) tvars)
              ? cons i
     in
@@ -1349,7 +1349,7 @@ fun ghost_type_args thy s ary =
       else
         0 upto length footprint - 1 ~~ footprint
         |> sort (rev_order o list_ord Term_Ord.indexname_ord o pairself snd)
-        |> ghosts []
+        |> cover []
     end
 
 type monotonicity_info =
@@ -1980,14 +1980,14 @@ fun is_var_ghost_type_arg_in_term thy polym_constrs name pos tm accum =
         let
           val ary = length tms
           val polym_constr = member (op =) polym_constrs s
-          val ghosts = ghost_type_args thy s ary
+          val cover = type_arg_cover thy s ary
         in
           exists (fn (j, tm) =>
                      if polym_constr then
-                       member (op =) ghosts j andalso
+                       member (op =) cover j andalso
                        (tm = var orelse is_nasty_in_term tm)
                      else
-                       tm = var andalso member (op =) ghosts j)
+                       tm = var andalso member (op =) cover j)
                  (0 upto ary - 1 ~~ tms)
           orelse (not polym_constr andalso exists is_nasty_in_term tms)
         end
@@ -2001,8 +2001,8 @@ fun should_guard_var_in_formula thy polym_constrs level pos phi (SOME true)
      | Positively_Naked_Vars =>
        formula_fold pos (is_var_positively_naked_in_term name) phi false
      | Ghost_Type_Arg_Vars =>
-       formula_fold pos (is_var_ghost_type_arg_in_term thy polym_constrs name) phi
-                    false)
+       formula_fold pos (is_var_ghost_type_arg_in_term thy polym_constrs name)
+                    phi false)
   | should_guard_var_in_formula _ _ _ _ _ _ _ = true
 
 fun always_guard_var_in_formula _ _ _ _ _ _ _ = true
@@ -2180,7 +2180,7 @@ fun decl_line_for_class order s =
     Decl (sym_decl_prefix ^ s, name,
           if order = First_Order then
             ATyAbs ([tvar_a_name],
-                    if avoid_first_order_ghost_type_vars then
+                    if avoid_first_order_phantom_type_vars then
                       AFun (a_itself_atype, bool_atype)
                     else
                       bool_atype)
@@ -2256,7 +2256,7 @@ fun sym_decl_table_for_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
           #> fold add_iterm_syms extra_tms
           #> (case type_enc of
                 Native (First_Order, Polymorphic, _) =>
-                if avoid_first_order_ghost_type_vars then add_TYPE_const ()
+                if avoid_first_order_phantom_type_vars then add_TYPE_const ()
                 else I
               | Native _ => I
               | _ => fold add_undefined_const (var_types ())))
@@ -2416,16 +2416,10 @@ fun formula_line_for_guards_sym_decl ctxt mono type_enc n s j
       bound_names ~~ arg_Ts |> map (fn (name, T) => IConst (name, T, []))
     val bound_Ts =
       if exists (curry (op =) dummyT) T_args then
-        case level_of_type_enc type_enc of
-          All_Types => map SOME arg_Ts
-        | level =>
-          if granularity_of_type_level level = Ghost_Type_Arg_Vars then
-            let val ghosts = ghost_type_args thy s ary in
-              map2 (fn j => if member (op =) ghosts j then SOME else K NONE)
-                   (0 upto ary - 1) arg_Ts
-            end
-          else
-            replicate ary NONE
+        let val cover = type_arg_cover thy s ary in
+          map2 (fn j => if member (op =) cover j then SOME else K NONE)
+               (0 upto ary - 1) arg_Ts
+        end
       else
         replicate ary NONE
   in
@@ -2465,8 +2459,8 @@ fun formula_lines_for_tags_sym_decl ctxt mono type_enc n s
         let
           val tagged_bounds =
             if grain = Ghost_Type_Arg_Vars then
-              let val ghosts = ghost_type_args thy s ary in
-                map2 (fn (j, arg_T) => member (op =) ghosts j ? tag_with arg_T)
+              let val cover = type_arg_cover thy s ary in
+                map2 (fn (j, arg_T) => member (op =) cover j ? tag_with arg_T)
                      (0 upto ary - 1 ~~ arg_Ts) bounds
               end
             else
