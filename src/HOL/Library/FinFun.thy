@@ -906,6 +906,9 @@ by(auto simp add: finfun_apply_inject[symmetric] simp del: finfun_apply_inject)
 lemma expand_finfun_eq: "(f = g) = (op $ f = op $ g)"
 by(auto intro: finfun_ext)
 
+lemma finfun_upd_triv [simp]: "f(x $:= f $ x) = f"
+by(simp add: expand_finfun_eq fun_eq_iff finfun_upd_apply)
+
 lemma finfun_const_inject [simp]: "(K$ b) = (K$ b') \<equiv> b = b'"
 by(simp add: expand_finfun_eq fun_eq_iff)
 
