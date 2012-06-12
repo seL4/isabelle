@@ -18,19 +18,18 @@ sig
       Dict of string list * plain_dict
   and plain_dict = 
       Dict_Const of string * dict list list
-    | Dict_Var of vname * (int * int)
+    | Dict_Var of vname * (int * int);
   datatype itype =
       `%% of string * itype list
     | ITyVar of vname;
-  type const = string * (((itype list * dict list list) * (itype list * itype)) * bool)
-    (* (f [T1..Tn] {dicts} (_::S1) .. (_::Sm)) :: S =^= (f, ((([T1..Tn], dicts), ([S1..Sm], S)), ambiguous)) *)
+  type const = { name: string, typargs: itype list, dicts: dict list list,
+    dom: itype list, range: itype, annotate: bool };
   datatype iterm =
       IConst of const
     | IVar of vname option
     | `$ of iterm * iterm
     | `|=> of (vname option * itype) * iterm
-    | ICase of ((iterm * itype) * (iterm * iterm) list) * iterm;
-        (*((term, type), [(selector pattern, body term )]), primitive term)*)
+    | ICase of { term: iterm, typ: itype, clauses: (iterm * iterm) list, primitive: iterm };
   val `$$ : iterm * iterm list -> iterm;
   val `|==> : (vname option * itype) list * iterm -> iterm;
   type typscheme = (vname * sort) list * itype;
@@ -77,10 +76,10 @@ sig
     | Class of class * (vname * ((class * string) list * (string * itype) list))
     | Classrel of class * class
     | Classparam of string * class
-    | Classinst of (class * (string * (vname * sort) list) (*class and arity*))
-          * ((class * (string * (string * dict list list))) list (*super instances*)
-        * (((string * const) * (thm * bool)) list (*class parameter instances*)
-          * ((string * const) * (thm * bool)) list (*super class parameter instances*)))
+    | Classinst of { class: string, tyco: string, vs: (vname * sort) list,
+        superinsts: (class * (string * (string * dict list list))) list,
+        inst_params: ((string * const) * (thm * bool)) list,
+        superinst_params: ((string * const) * (thm * bool)) list };
   type program = stmt Graph.T
   val empty_funs: program -> string list
   val map_terms_bottom_up: (iterm -> iterm) -> iterm -> iterm
@@ -126,7 +125,7 @@ fun unfoldr dest x =
   case dest x
    of NONE => ([], x)
     | SOME (x1, x2) =>
-        let val (xs', x') = unfoldr dest x2 in (x1::xs', x') end;
+        let val (xs', x') = unfoldr dest x2 in (x1 :: xs', x') end;
 
 
 (** language core - types, terms **)
@@ -137,21 +136,21 @@ datatype dict =
     Dict of string list * plain_dict
 and plain_dict = 
     Dict_Const of string * dict list list
-  | Dict_Var of vname * (int * int)
+  | Dict_Var of vname * (int * int);
 
 datatype itype =
     `%% of string * itype list
   | ITyVar of vname;
 
-type const = string * (((itype list * dict list list) *
-  (itype list (*types of arguments*) * itype (*result type*))) * bool (*requires type annotation*))
+type const = { name: string, typargs: itype list, dicts: dict list list,
+  dom: itype list, range: itype, annotate: bool };
 
 datatype iterm =
     IConst of const
   | IVar of vname option
   | `$ of iterm * iterm
   | `|=> of (vname option * itype) * iterm
-  | ICase of ((iterm * itype) * (iterm * iterm) list) * iterm;
+  | ICase of { term: iterm, typ: itype, clauses: (iterm * iterm) list, primitive: iterm };
     (*see also signature*)
 
 fun is_IVar (IVar _) = true
@@ -172,7 +171,7 @@ val unfold_abs = unfoldr
     | _ => NONE);
 
 val split_let = 
-  (fn ICase (((td, ty), [(p, t)]), _) => SOME (((p, ty), td), t)
+  (fn ICase { term = t, typ = ty, clauses = [(p, body)], ... } => SOME (((p, ty), t), body)
     | _ => NONE);
 
 val unfold_let = unfoldr split_let;
@@ -188,16 +187,16 @@ fun fold_constexprs f =
       | fold' (IVar _) = I
       | fold' (t1 `$ t2) = fold' t1 #> fold' t2
       | fold' (_ `|=> t) = fold' t
-      | fold' (ICase (((t, _), ds), _)) = fold' t
-          #> fold (fn (pat, body) => fold' pat #> fold' body) ds
+      | fold' (ICase { term = t, clauses = clauses, ... }) = fold' t
+          #> fold (fn (p, body) => fold' p #> fold' body) clauses
   in fold' end;
 
-val add_constnames = fold_constexprs (fn (c, _) => insert (op =) c);
+val add_constnames = fold_constexprs (fn { name = c, ... } => insert (op =) c);
 
 fun add_tycos (tyco `%% tys) = insert (op =) tyco #> fold add_tycos tys
   | add_tycos (ITyVar _) = I;
 
-val add_tyconames = fold_constexprs (fn (_, (((tys, _), _), _)) => fold add_tycos tys);
+val add_tyconames = fold_constexprs (fn { typargs = tys, ... } => fold add_tycos tys);
 
 fun fold_varnames f =
   let
@@ -209,7 +208,7 @@ fun fold_varnames f =
           | fold_term vs (t1 `$ t2) = fold_term vs t1 #> fold_term vs t2
           | fold_term vs ((SOME v, _) `|=> t) = fold_term (insert (op =) v vs) t
           | fold_term vs ((NONE, _) `|=> t) = fold_term vs t
-          | fold_term vs (ICase (((t, _), ds), _)) = fold_term vs t #> fold (fold_case vs) ds
+          | fold_term vs (ICase { term = t, clauses = clauses, ... }) = fold_term vs t #> fold (fold_case vs) clauses
         and fold_case vs (p, t) = fold_term (add p vs) t;
       in fold_term [] end;
     fun add t = fold_aux add (insert (op =)) t;
@@ -219,9 +218,9 @@ fun exists_var t v = fold_varnames (fn w => fn b => v = w orelse b) t false;
 
 fun split_pat_abs ((NONE, ty) `|=> t) = SOME ((IVar NONE, ty), t)
   | split_pat_abs ((SOME v, ty) `|=> t) = SOME (case t
-     of ICase (((IVar (SOME w), _), [(p, t')]), _) =>
-          if v = w andalso (exists_var p v orelse not (exists_var t' v))
-          then ((p, ty), t')
+     of ICase { term = IVar (SOME w), clauses = [(p, body)], ... } =>
+          if v = w andalso (exists_var p v orelse not (exists_var body v))
+          then ((p, ty), body)
           else ((IVar (SOME v), ty), t)
       | _ => ((IVar (SOME v), ty), t))
   | split_pat_abs _ = NONE;
@@ -239,27 +238,27 @@ fun unfold_abs_eta [] t = ([], t)
         val vs_tys = (map o apfst) SOME (Name.invent_names ctxt "a" tys);
       in (vs_tys, t `$$ map (IVar o fst) vs_tys) end;
 
-fun eta_expand k (c as (name, ((_, (tys, _)), _)), ts) =
+fun eta_expand k (const as { name = c, dom = tys, ... }, ts) =
   let
     val j = length ts;
     val l = k - j;
     val _ = if l > length tys
-      then error ("Impossible eta-expansion for constant " ^ quote name) else ();
+      then error ("Impossible eta-expansion for constant " ^ quote c) else ();
     val ctxt = (fold o fold_varnames) Name.declare ts Name.context;
     val vs_tys = (map o apfst) SOME
       (Name.invent_names ctxt "a" ((take l o drop j) tys));
-  in vs_tys `|==> IConst c `$$ ts @ map (IVar o fst) vs_tys end;
+  in vs_tys `|==> IConst const `$$ ts @ map (IVar o fst) vs_tys end;
 
 fun contains_dict_var t =
   let
     fun cont_dict (Dict (_, d)) = cont_plain_dict d
     and cont_plain_dict (Dict_Const (_, dss)) = (exists o exists) cont_dict dss
       | cont_plain_dict (Dict_Var _) = true;
-    fun cont_term (IConst (_, (((_, dss), _), _))) = (exists o exists) cont_dict dss
+    fun cont_term (IConst { dicts = dss, ... }) = (exists o exists) cont_dict dss
       | cont_term (IVar _) = false
       | cont_term (t1 `$ t2) = cont_term t1 orelse cont_term t2
       | cont_term (_ `|=> t) = cont_term t
-      | cont_term (ICase (_, t)) = cont_term t;
+      | cont_term (ICase { primitive = t, ... }) = cont_term t;
   in cont_term t end;
 
 
@@ -427,11 +426,10 @@ datatype stmt =
   | Class of class * (vname * ((class * string) list * (string * itype) list))
   | Classrel of class * class
   | Classparam of string * class
-  | Classinst of (class * (string * (vname * sort) list))
-        * ((class * (string * (string * dict list list))) list
-      * (((string * const) * (thm * bool)) list
-        * ((string * const) * (thm * bool)) list))
-      (*see also signature*);
+  | Classinst of { class: string, tyco: string, vs: (vname * sort) list,
+      superinsts: (class * (string * (string * dict list list))) list,
+      inst_params: ((string * const) * (thm * bool)) list,
+      superinst_params: ((string * const) * (thm * bool)) list };
 
 type program = stmt Graph.T;
 
@@ -444,9 +442,10 @@ fun map_terms_bottom_up f (t as IConst _) = f t
       (map_terms_bottom_up f t1 `$ map_terms_bottom_up f t2)
   | map_terms_bottom_up f ((v, ty) `|=> t) = f
       ((v, ty) `|=> map_terms_bottom_up f t)
-  | map_terms_bottom_up f (ICase (((t, ty), ps), t0)) = f
-      (ICase (((map_terms_bottom_up f t, ty), (map o pairself)
-        (map_terms_bottom_up f) ps), map_terms_bottom_up f t0));
+  | map_terms_bottom_up f (ICase { term = t, typ = ty, clauses = clauses, primitive = t0 }) = f
+      (ICase { term = map_terms_bottom_up f t, typ = ty,
+        clauses = (map o pairself) (map_terms_bottom_up f) clauses,
+        primitive = map_terms_bottom_up f t0 });
 
 fun map_classparam_instances_as_term f =
   (map o apfst o apsnd) (fn const => case f (IConst const) of IConst const' => const')
@@ -459,8 +458,11 @@ fun map_terms_stmt f NoStmt = NoStmt
   | map_terms_stmt f (stmt as Class _) = stmt
   | map_terms_stmt f (stmt as Classrel _) = stmt
   | map_terms_stmt f (stmt as Classparam _) = stmt
-  | map_terms_stmt f (Classinst (arity, (super_instances, classparam_instances))) =
-      Classinst (arity, (super_instances, (pairself o map_classparam_instances_as_term) f classparam_instances));
+  | map_terms_stmt f (Classinst { class, tyco, vs, superinsts,
+      inst_params, superinst_params }) =
+        Classinst { class = class, tyco = tyco, vs = vs, superinsts = superinsts,
+          inst_params = map_classparam_instances_as_term f inst_params,
+          superinst_params = map_classparam_instances_as_term f superinst_params };
 
 fun is_cons program name = case Graph.get_node program name
  of Datatypecons _ => true
@@ -484,7 +486,7 @@ fun labelled_name thy program name =
           quote (Proof_Context.extern_class ctxt sub ^ " < " ^ Proof_Context.extern_class ctxt super)
         end
     | Classparam (c, _) => quote (Code.string_of_const thy c)
-    | Classinst ((class, (tyco, _)), _) =>
+    | Classinst { class, tyco, ... } =>
         let
           val Class (class, _) = Graph.get_node program class;
           val Datatype (tyco, _) = Graph.get_node program tyco;
@@ -565,6 +567,9 @@ fun translation_error thy permissive some_thm msg sub_msg =
         | NONE => "");
     in error (msg ^ err_thm ^ ":\n" ^ sub_msg) end;
 
+fun maybe_permissive f prgrm =
+  f prgrm |>> SOME handle PERMISSIVE () => (NONE, prgrm);
+
 fun not_wellsorted thy permissive some_thm ty sort e =
   let
     val err_class = Sorts.class_error (Context.pretty_global thy) e;
@@ -575,6 +580,10 @@ fun not_wellsorted thy permissive some_thm ty sort e =
     translation_error thy permissive some_thm "Wellsortedness error"
       (err_typ ^ "\n" ^ err_class)
   end;
+
+fun undefineds thy (dep, (naming, program)) =
+  (map_filter (lookup_const naming) (Code.undefineds thy),
+    (dep, (naming, program)));
 
 
 (* inference of type annotations for disambiguation with type classes *)
@@ -678,9 +687,9 @@ and ensure_classrel thy algbr eqngr permissive (sub_class, super_class) =
 and ensure_inst thy (algbr as (_, algebra)) eqngr permissive (class, tyco) =
   let
     val super_classes = (Sorts.minimize_sort algebra o Sorts.super_classes algebra) class;
-    val these_classparams = these o try (#params o AxClass.get_info thy);
-    val classparams = these_classparams class;
-    val further_classparams = maps these_classparams
+    val these_class_params = these o try (#params o AxClass.get_info thy);
+    val class_params = these_class_params class;
+    val superclass_params = maps these_class_params
       ((Sorts.complete_sort algebra o Sorts.super_classes algebra) class);
     val vs = Name.invent_names Name.context "'a" (Sorts.mg_domain algebra tyco [class]);
     val sorts' = Sorts.mg_domain (Sign.classes_of thy) tyco [class];
@@ -710,12 +719,11 @@ and ensure_inst thy (algbr as (_, algebra)) eqngr permissive (class, tyco) =
       ##>> ensure_tyco thy algbr eqngr permissive tyco
       ##>> fold_map (translate_tyvar_sort thy algbr eqngr permissive) vs
       ##>> fold_map translate_super_instance super_classes
-      ##>> fold_map translate_classparam_instance classparams
-      ##>> fold_map translate_classparam_instance further_classparams
-      #>> (fn (((((class, tyco), arity_args), super_instances),
-        classparam_instances), further_classparam_instances) =>
-          Classinst ((class, (tyco, arity_args)), (super_instances,
-            (classparam_instances, further_classparam_instances))));
+      ##>> fold_map translate_classparam_instance class_params
+      ##>> fold_map translate_classparam_instance superclass_params
+      #>> (fn (((((class, tyco), vs), superinsts), inst_params), superinst_params) =>
+          Classinst { class = class, tyco = tyco, vs = vs,
+            superinsts = superinsts, inst_params = inst_params, superinst_params = superinst_params });
   in ensure_stmt lookup_instance (declare_instance thy) stmt_inst (class, tyco) end
 and translate_typ thy algbr eqngr permissive (TFree (v, _)) =
       pair (ITyVar (unprefix "'" v))
@@ -749,9 +757,9 @@ and translate_eqn thy algbr eqngr permissive ((args, (rhs, some_abs)), (some_thm
   fold_map (translate_term thy algbr eqngr permissive some_thm) args
   ##>> translate_term thy algbr eqngr permissive some_thm (rhs, some_abs)
   #>> rpair (some_thm, proper)
-and translate_eqns thy algbr eqngr permissive eqns prgrm =
-  prgrm |> fold_map (translate_eqn thy algbr eqngr permissive) eqns
-    handle PERMISSIVE () => ([], prgrm)
+and translate_eqns thy algbr eqngr permissive eqns =
+  maybe_permissive (fold_map (translate_eqn thy algbr eqngr permissive) eqns)
+  #>> these
 and translate_const thy algbr eqngr permissive some_thm ((c, ty), some_abs) =
   let
     val _ = if (case some_abs of NONE => true | SOME abs => not (c = abs))
@@ -759,17 +767,18 @@ and translate_const thy algbr eqngr permissive some_thm ((c, ty), some_abs) =
         then translation_error thy permissive some_thm
           "Abstraction violation" ("constant " ^ Code.string_of_const thy c)
       else ()
-    val (annotate, ty') = dest_tagged_type ty
-    val arg_typs = Sign.const_typargs thy (c, ty');
+    val (annotate, ty') = dest_tagged_type ty;
+    val typargs = Sign.const_typargs thy (c, ty');
     val sorts = Code_Preproc.sortargs eqngr c;
-    val (function_typs, body_typ) = Term.strip_type ty';
+    val (dom, range) = Term.strip_type ty';
   in
     ensure_const thy algbr eqngr permissive c
-    ##>> fold_map (translate_typ thy algbr eqngr permissive) arg_typs
-    ##>> fold_map (translate_dicts thy algbr eqngr permissive some_thm) (arg_typs ~~ sorts)
-    ##>> fold_map (translate_typ thy algbr eqngr permissive) (body_typ :: function_typs)
-    #>> (fn (((c, arg_typs), dss), body_typ :: function_typs) =>
-      IConst (c, (((arg_typs, dss), (function_typs, body_typ)), annotate)))
+    ##>> fold_map (translate_typ thy algbr eqngr permissive) typargs
+    ##>> fold_map (translate_dicts thy algbr eqngr permissive some_thm) (typargs ~~ sorts)
+    ##>> fold_map (translate_typ thy algbr eqngr permissive) (range :: dom)
+    #>> (fn (((c, typargs), dss), range :: dom) =>
+      IConst { name = c, typargs = typargs, dicts = dss,
+        dom = dom, range = range, annotate = annotate })
   end
 and translate_app_const thy algbr eqngr permissive some_thm ((c_ty, ts), some_abs) =
   translate_const thy algbr eqngr permissive some_thm (c_ty, some_abs)
@@ -788,26 +797,23 @@ and translate_case thy algbr eqngr permissive some_thm (num_args, (t_pos, case_p
     val constrs =
       if null case_pats then []
       else map_filter I (map2 mk_constr case_pats (nth_drop t_pos ts));
-    fun casify naming constrs ty ts =
+    fun casify undefineds constrs ty t_app ts =
       let
-        val undefineds = map_filter (lookup_const naming) (Code.undefineds thy);
         fun collapse_clause vs_map ts body =
-          let
-          in case body
-           of IConst (c, _) => if member (op =) undefineds c
+          case body
+           of IConst { name = c, ... } => if member (op =) undefineds c
                 then []
                 else [(ts, body)]
-            | ICase (((IVar (SOME v), _), subclauses), _) =>
+            | ICase { term = IVar (SOME v), clauses = clauses, ... } =>
                 if forall (fn (pat', body') => exists_var pat' v
-                  orelse not (exists_var body' v)) subclauses
+                  orelse not (exists_var body' v)) clauses
                 then case AList.lookup (op =) vs_map v
                  of SOME i => maps (fn (pat', body') =>
                       collapse_clause (AList.delete (op =) v vs_map)
-                        (nth_map i (K pat') ts) body') subclauses
+                        (nth_map i (K pat') ts) body') clauses
                   | NONE => [(ts, body)]
                 else [(ts, body)]
-            | _ => [(ts, body)]
-          end;
+            | _ => [(ts, body)];
         fun mk_clause mk tys t =
           let
             val (vs, body) = unfold_abs_eta tys t;
@@ -818,19 +824,20 @@ and translate_case thy algbr eqngr permissive some_thm (num_args, (t_pos, case_p
         val ts_clause = nth_drop t_pos ts;
         val clauses = if null case_pats
           then mk_clause (fn ([t], body) => (t, body)) [ty] (the_single ts_clause)
-          else maps (fn ((constr as IConst (_, ((_, (tys, _)), _)), n), t) =>
+          else maps (fn ((constr as IConst { dom = tys, ... }, n), t) =>
             mk_clause (fn (ts, body) => (constr `$$ ts, body)) (take n tys) t)
               (constrs ~~ (map_filter (fn (NONE, _) => NONE | (SOME _, t) => SOME t)
                 (case_pats ~~ ts_clause)));
-      in ((t, ty), clauses) end;
+      in ICase { term = t, typ = ty, clauses = clauses, primitive = t_app `$$ ts } end;
   in
     translate_const thy algbr eqngr permissive some_thm (c_ty, NONE)
     ##>> fold_map (fn (constr, n) => translate_const thy algbr eqngr permissive some_thm (constr, NONE)
       #>> rpair n) constrs
     ##>> translate_typ thy algbr eqngr permissive ty
     ##>> fold_map (translate_term thy algbr eqngr permissive some_thm o rpair NONE) ts
-    #-> (fn (((t, constrs), ty), ts) =>
-      `(fn (_, (naming, _)) => ICase (casify naming constrs ty ts, t `$$ ts)))
+    ##>> undefineds thy
+    #>> (fn ((((t, constrs), ty), ts), undefineds) =>
+      casify undefineds constrs ty t ts)
   end
 and translate_app_case thy algbr eqngr permissive some_thm (case_scheme as (num_args, _)) ((c, ty), ts) =
   if length ts < num_args then

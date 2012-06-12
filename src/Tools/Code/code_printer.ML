@@ -315,7 +315,7 @@ fun activate_const_syntax thy literals c (plain_const_syntax s) naming =
       |-> (fn cs' => pair (Complex_const_syntax (n, f literals cs')));
 
 fun gen_print_app print_app_expr print_term const_syntax some_thm vars fxy
-    (app as ((c, ((_, (arg_tys, _)), _)), ts)) =
+    (app as ({ name = c, dom, ... }, ts)) =
   case const_syntax c of
     NONE => brackify fxy (print_app_expr some_thm vars app)
   | SOME (Plain_const_syntax (_, s)) =>
@@ -323,7 +323,7 @@ fun gen_print_app print_app_expr print_term const_syntax some_thm vars fxy
   | SOME (Complex_const_syntax (k, print)) =>
       let
         fun print' fxy ts =
-          print (print_term some_thm) some_thm vars fxy (ts ~~ take k arg_tys);
+          print (print_term some_thm) some_thm vars fxy (ts ~~ take k dom);
       in
         if k = length ts
         then print' fxy ts

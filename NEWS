@@ -31,6 +31,10 @@ arithmetic, datatypes/records) with potential proof reconstruction
 failures, enable the configuration option "z3_with_extensions".
 Minor INCOMPATIBILITY.
 
+* Sledgehammer:
+
+  - Rationalized type encodings ("type_enc" option).
+
 New in Isabelle2012 (May 2012)
 ------------------------------
 

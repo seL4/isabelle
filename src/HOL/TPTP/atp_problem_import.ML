@@ -21,8 +21,8 @@ sig
   val freeze_problem_consts : theory -> term -> term
   val make_conj : term list * term list -> term list -> term
   val sledgehammer_tptp_file : theory -> int -> string -> unit
-  val isabelle_demo_tptp_file : theory -> int -> string -> unit
-  val isabelle_comp_tptp_file : theory -> int -> string -> unit
+  val isabelle_tptp_file : theory -> int -> string -> unit
+  val isabelle_hot_tptp_file : theory -> int -> string -> unit
   val translate_tptp_file : string -> string -> string -> unit
 end;
 
@@ -212,7 +212,7 @@ fun sledgehammer_tac demo ctxt timeout i =
           (prover ^
            (if aggressivity > 0 then "(" ^ string_of_int aggressivity ^ ")"
             else ""))
-          (atp_tac ctxt aggressivity [] (timeout div frac) prover i)
+          (atp_tac ctxt aggressivity [] (mult * timeout div frac) prover i)
   in
     slice 2 0 ATP_Systems.spassN
     ORELSE slice 2 0 ATP_Systems.vampireN
@@ -285,21 +285,23 @@ fun sledgehammer_tptp_file thy timeout file_name =
     |> print_szs_from_success conjs
   end
 
-fun isabelle_tptp_file demo thy timeout file_name =
+fun generic_isabelle_tptp_file demo thy timeout file_name =
   let
     val (conjs, assms, ctxt) =
       read_tptp_file thy (freeze_problem_consts thy) file_name
     val conj = make_conj assms conjs
-    val last_hope = if demo then ATP_Systems.satallaxN else ATP_Systems.vampireN
+    val (last_hope_atp, last_hope_aggressive) =
+      if demo then (ATP_Systems.satallaxN, 0) else (ATP_Systems.vampireN, 2)
   in
     (can_tac ctxt (auto_etc_tac ctxt (timeout div 2) 1) conj orelse
      can_tac ctxt (sledgehammer_tac demo ctxt (timeout div 2) 1) conj orelse
-     can_tac ctxt (atp_tac ctxt 2 [] timeout last_hope 1) conj)
+     can_tac ctxt (SOLVE_TIMEOUT timeout (last_hope_atp ^ "(*)")
+         (atp_tac ctxt last_hope_aggressive [] timeout last_hope_atp 1)) conj)
     |> print_szs_from_success conjs
   end
 
-val isabelle_demo_tptp_file = isabelle_tptp_file true
-val isabelle_comp_tptp_file = isabelle_tptp_file false
+val isabelle_tptp_file = generic_isabelle_tptp_file false
+val isabelle_hot_tptp_file = generic_isabelle_tptp_file true
 
 
 (** Translator between TPTP(-like) file formats **)

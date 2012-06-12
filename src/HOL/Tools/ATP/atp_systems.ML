@@ -337,7 +337,10 @@ val leo2_config : atp_config =
    required_vars = [],
    arguments =
      fn _ => fn _ => fn _ => fn timeout => fn _ =>
-        "--proofoutput 1 --timeout " ^ string_of_int (to_secs 1 timeout),
+        "--foatp e --atp e=\"$E_HOME\"/eprover \
+        \--atp epclextract=\"$E_HOME\"/epclextract \
+        \--proofoutput 1 --timeout " ^
+        string_of_int (to_secs 1 timeout),
    proof_delims = tstp_proof_delims,
    known_failures =
      [(TimedOut, "CPU time limit exceeded, terminating"),
@@ -346,7 +349,7 @@ val leo2_config : atp_config =
    prem_role = Hypothesis,
    best_slices =
      (* FUDGE *)
-     K [(1.0, (true, ((20, leo2_thf0, "mono_native_higher", keep_lamsN, false), "")))],
+     K [(1.0, (true, ((40, leo2_thf0, "mono_native_higher", keep_lamsN, false), "")))],
    best_max_mono_iters = default_max_mono_iters - 1 (* FUDGE *),
    best_max_new_mono_instances = default_max_new_mono_instances div 2 (* FUDGE *)}
 
@@ -596,7 +599,7 @@ val remote_satallax =
   remotify_atp satallax "Satallax" ["2.3", "2.2", "2"]
       (K ((100, satallax_thf0, "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
 val remote_vampire =
-  remotify_atp vampire "Vampire" ["2.5", "1.8"]
+  remotify_atp vampire "Vampire" ["2.6", "2.5", "1.8"]
       (K ((250, vampire_tff0, "mono_native", combs_or_liftingN, false), "") (* FUDGE *))
 val remote_z3_tptp =
   remotify_atp z3_tptp "Z3" ["3.0"]

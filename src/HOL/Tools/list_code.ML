@@ -20,14 +20,14 @@ open Basic_Code_Thingol;
 
 fun implode_list nil' cons' t =
   let
-    fun dest_cons (IConst (c, _) `$ t1 `$ t2) =
+    fun dest_cons (IConst { name = c, ... } `$ t1 `$ t2) =
           if c = cons'
           then SOME (t1, t2)
           else NONE
       | dest_cons _ = NONE;
     val (ts, t') = Code_Thingol.unfoldr dest_cons t;
   in case t'
-   of IConst (c, _) => if c = nil' then SOME ts else NONE
+   of IConst { name = c, ... } => if c = nil' then SOME ts else NONE
     | _ => NONE
   end;
 

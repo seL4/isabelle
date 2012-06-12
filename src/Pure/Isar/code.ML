@@ -65,7 +65,8 @@ sig
   val get_type_of_constr_or_abstr: theory -> string -> (string * bool) option
   val is_constr: theory -> string -> bool
   val is_abstr: theory -> string -> bool
-  val get_cert: theory -> ((thm * bool) list -> (thm * bool) list) -> string -> cert
+  val get_cert: theory -> { functrans: ((thm * bool) list -> (thm * bool) list option) list,
+    ss: simpset } -> string -> cert
   val get_case_scheme: theory -> string -> (int * (int * string option list)) option
   val get_case_cong: theory -> string -> thm option
   val undefineds: theory -> string list
@@ -854,23 +855,39 @@ fun retrieve_raw thy c =
   |> Option.map (snd o fst)
   |> the_default empty_fun_spec
 
-fun get_cert thy f c = case retrieve_raw thy c
- of Default (_, eqns_lazy) => Lazy.force eqns_lazy
-      |> (map o apfst) (Thm.transfer thy)
-      |> f
-      |> (map o apfst) (AxClass.unoverload thy)
-      |> cert_of_eqns thy c
-  | Eqns eqns => eqns
-      |> (map o apfst) (Thm.transfer thy)
-      |> f
-      |> (map o apfst) (AxClass.unoverload thy)
-      |> cert_of_eqns thy c
-  | Proj (_, tyco) =>
-      cert_of_proj thy c tyco
-  | Abstr (abs_thm, tyco) => abs_thm
-      |> Thm.transfer thy
-      |> AxClass.unoverload thy
-      |> cert_of_abs thy tyco c;
+fun eqn_conv conv ct =
+  let
+    fun lhs_conv ct = if can Thm.dest_comb ct
+      then Conv.combination_conv lhs_conv conv ct
+      else Conv.all_conv ct;
+  in Conv.combination_conv (Conv.arg_conv lhs_conv) conv ct end;
+
+fun rewrite_eqn thy conv ss =
+  let
+    val ctxt = Proof_Context.init_global thy;
+    val rewrite = Conv.fconv_rule (conv (Simplifier.rewrite ss));
+  in singleton (Variable.trade (K (map rewrite)) ctxt) end;
+
+fun cert_of_eqns_preprocess thy functrans ss c =
+  (map o apfst) (Thm.transfer thy)
+  #> perhaps (perhaps_loop (perhaps_apply functrans))
+  #> (map o apfst) (rewrite_eqn thy eqn_conv ss) 
+  #> (map o apfst) (AxClass.unoverload thy)
+  #> cert_of_eqns thy c;
+
+fun get_cert thy { functrans, ss } c =
+  case retrieve_raw thy c
+   of Default (_, eqns_lazy) => Lazy.force eqns_lazy
+        |> cert_of_eqns_preprocess thy functrans ss c
+    | Eqns eqns => eqns
+        |> cert_of_eqns_preprocess thy functrans ss c
+    | Proj (_, tyco) =>
+        cert_of_proj thy c tyco
+    | Abstr (abs_thm, tyco) => abs_thm
+        |> Thm.transfer thy
+        |> rewrite_eqn thy Conv.arg_conv ss
+        |> AxClass.unoverload thy
+        |> cert_of_abs thy tyco c;
 
 
 (* cases *)

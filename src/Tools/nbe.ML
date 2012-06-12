@@ -314,13 +314,13 @@ fun assemble_eqnss idx_of deps eqnss =
           let
             val (t', ts) = Code_Thingol.unfold_app t
           in of_iapp match_cont t' (fold_rev (cons o of_iterm NONE) ts []) end
-        and of_iapp match_cont (IConst (c, (((_, dss), _), _))) ts = constapp c dss ts
+        and of_iapp match_cont (IConst { name = c, dicts = dss, ... }) ts = constapp c dss ts
           | of_iapp match_cont (IVar v) ts = nbe_apps (nbe_bound_optional v) ts
           | of_iapp match_cont ((v, _) `|=> t) ts =
               nbe_apps (nbe_abss 1 (ml_abs (ml_list [nbe_bound_optional v]) (of_iterm NONE t))) ts
-          | of_iapp match_cont (ICase (((t, _), cs), t0)) ts =
+          | of_iapp match_cont (ICase { term = t, clauses = clauses, primitive = t0, ... }) ts =
               nbe_apps (ml_cases (of_iterm NONE t)
-                (map (fn (p, t) => (of_iterm NONE p, of_iterm match_cont t)) cs
+                (map (fn (p, t) => (of_iterm NONE p, of_iterm match_cont t)) clauses
                   @ [("_", case match_cont of SOME s => s | NONE => of_iterm NONE t0)])) ts
       in of_iterm end;
 
@@ -345,7 +345,7 @@ fun assemble_eqnss idx_of deps eqnss =
               |> subst_vars t1
               ||>> subst_vars t2
               |>> (op `$)
-          | subst_vars (ICase (_, t)) samepairs = subst_vars t samepairs;
+          | subst_vars (ICase { primitive = t, ... }) samepairs = subst_vars t samepairs;
         val (args', _) = fold_map subst_vars args samepairs;
       in (samepairs, args') end;
 
@@ -410,6 +410,10 @@ fun compile_eqnss thy nbe_program raw_deps [] = []
 
 (* extract equations from statements *)
 
+fun dummy_const c dss =
+  IConst { name = c, typargs = [], dicts = dss,
+    dom = [], range = ITyVar "", annotate = false };
+
 fun eqns_of_stmt (_, Code_Thingol.Fun (_, ((_, []), _))) =
       []
   | eqns_of_stmt (const, Code_Thingol.Fun (_, (((vs, _), eqns), _))) =
@@ -424,17 +428,17 @@ fun eqns_of_stmt (_, Code_Thingol.Fun (_, ((_, []), _))) =
         val params = Name.invent Name.context "d" (length names);
         fun mk (k, name) =
           (name, ([(v, [])],
-            [([IConst (class, ((([], []), ([], ITyVar "")), false)) `$$ map (IVar o SOME) params],
+            [([dummy_const class [] `$$ map (IVar o SOME) params],
               IVar (SOME (nth params k)))]));
       in map_index mk names end
   | eqns_of_stmt (_, Code_Thingol.Classrel _) =
       []
   | eqns_of_stmt (_, Code_Thingol.Classparam _) =
       []
-  | eqns_of_stmt (inst, Code_Thingol.Classinst ((class, (_, arity_args)), (super_instances, (classparam_instances, _)))) =
-      [(inst, (arity_args, [([], IConst (class, ((([], []), ([], ITyVar "")), false)) `$$
-        map (fn (_, (_, (inst, dss))) => IConst (inst, ((([], dss), ([], ITyVar "")), false))) super_instances
-        @ map (IConst o snd o fst) classparam_instances)]))];
+  | eqns_of_stmt (inst, Code_Thingol.Classinst { class, vs, superinsts, inst_params, ... }) =
+      [(inst, (vs, [([], dummy_const class [] `$$
+        map (fn (_, (_, (inst, dss))) => dummy_const inst dss) superinsts
+        @ map (IConst o snd o fst) inst_params)]))];
 
 
 (* compile whole programs *)

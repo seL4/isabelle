@@ -60,8 +60,8 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
       print_tyco_expr tyvars NOBR (tyco, map ITyVar vs);
     fun print_typscheme tyvars (vs, ty) =
       Pretty.block (print_typforall tyvars vs @ print_typcontext tyvars vs @| print_typ tyvars NOBR ty);
-    fun print_term tyvars some_thm vars fxy (IConst c) =
-          print_app tyvars some_thm vars fxy (c, [])
+    fun print_term tyvars some_thm vars fxy (IConst const) =
+          print_app tyvars some_thm vars fxy (const, [])
       | print_term tyvars some_thm vars fxy (t as (t1 `$ t2)) =
           (case Code_Thingol.unfold_const_app t
            of SOME app => print_app tyvars some_thm vars fxy app
@@ -79,15 +79,15 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
             val (binds, t') = Code_Thingol.unfold_pat_abs t;
             val (ps, vars') = fold_map (print_bind tyvars some_thm BR o fst) binds vars;
           in brackets (str "\\" :: ps @ str "->" @@ print_term tyvars some_thm vars' NOBR t') end
-      | print_term tyvars some_thm vars fxy (ICase (cases as (_, t0))) =
-          (case Code_Thingol.unfold_const_app t0
-           of SOME (c_ts as ((c, _), _)) => if is_none (const_syntax c)
-                then print_case tyvars some_thm vars fxy cases
-                else print_app tyvars some_thm vars fxy c_ts
-            | NONE => print_case tyvars some_thm vars fxy cases)
-    and print_app_expr tyvars some_thm vars ((c, ((_, (arg_tys, result_ty)), annotate)), ts) =
+      | print_term tyvars some_thm vars fxy (ICase case_expr) =
+          (case Code_Thingol.unfold_const_app (#primitive case_expr)
+           of SOME (app as ({ name = c, ... }, _)) => if is_none (const_syntax c)
+                then print_case tyvars some_thm vars fxy case_expr
+                else print_app tyvars some_thm vars fxy app
+            | NONE => print_case tyvars some_thm vars fxy case_expr)
+    and print_app_expr tyvars some_thm vars ({ name = c, dom, range, annotate, ... }, ts) =
       let
-        val ty = Library.foldr (fn (ty1, ty2) => Code_Thingol.fun_tyco `%% [ty1, ty2]) (arg_tys, result_ty)
+        val ty = Library.foldr (fn (ty1, ty2) => Code_Thingol.fun_tyco `%% [ty1, ty2]) (dom, range)
         val printed_const =
           if annotate then
             brackets [(str o deresolve) c, str "::", print_typ tyvars NOBR ty]
@@ -98,9 +98,11 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
       end
     and print_app tyvars = gen_print_app (print_app_expr tyvars) (print_term tyvars) const_syntax
     and print_bind tyvars some_thm fxy p = gen_print_bind (print_term tyvars) some_thm fxy p
-    and print_case tyvars some_thm vars fxy (cases as ((_, [_]), _)) =
+    and print_case tyvars some_thm vars fxy { clauses = [], ... } =
+          (brackify fxy o Pretty.breaks o map str) ["error", "\"empty case\""]
+      | print_case tyvars some_thm vars fxy (case_expr as { clauses = [_], ... }) =
           let
-            val (binds, body) = Code_Thingol.unfold_let (ICase cases);
+            val (binds, body) = Code_Thingol.unfold_let (ICase case_expr);
             fun print_match ((pat, _), t) vars =
               vars
               |> print_bind tyvars some_thm BR pat
@@ -110,7 +112,7 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
             ps
             (concat [str "}", str "in", print_term tyvars some_thm vars' NOBR body])
           end
-      | print_case tyvars some_thm vars fxy (((t, ty), clauses as _ :: _), _) =
+      | print_case tyvars some_thm vars fxy { term = t, typ = ty, clauses = clauses as _ :: _, ... } =
           let
             fun print_select (pat, body) =
               let
@@ -119,9 +121,7 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
           in Pretty.block_enclose
             (concat [str "(case", print_term tyvars some_thm vars NOBR t, str "of", str "{"], str "})")
             (map print_select clauses)
-          end
-      | print_case tyvars some_thm vars fxy ((_, []), _) =
-          (brackify fxy o Pretty.breaks o map str) ["error", "\"empty case\""];
+          end;
     fun print_stmt (name, Code_Thingol.Fun (_, (((vs, ty), raw_eqs), _))) =
           let
             val tyvars = intro_vars (map fst vs) reserved;
@@ -221,7 +221,7 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
               str "};"
             ) (map print_classparam classparams)
           end
-      | print_stmt (_, Code_Thingol.Classinst ((class, (tyco, vs)), (_, (classparam_instances, _)))) =
+      | print_stmt (_, Code_Thingol.Classinst { class, tyco, vs, inst_params, ... }) =
           let
             val tyvars = intro_vars (map fst vs) reserved;
             fun requires_args classparam = case const_syntax classparam
@@ -237,14 +237,15 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
                     ]
                 | SOME k =>
                     let
-                      val (c, ((_, tys), _)) = const;
+                      val { name = c, dom, range, ... } = const;
                       val (vs, rhs) = (apfst o map) fst
                         (Code_Thingol.unfold_abs (Code_Thingol.eta_expand k (const, [])));
                       val s = if (is_some o const_syntax) c
                         then NONE else (SOME o Long_Name.base_name o deresolve) c;
                       val vars = reserved
                         |> intro_vars (map_filter I (s :: vs));
-                      val lhs = IConst (classparam, ((([], []), tys), false)) `$$ map IVar vs;
+                      val lhs = IConst { name = classparam, typargs = [],
+                        dicts = [], dom = dom, range = range, annotate = false } `$$ map IVar vs;
                         (*dictionaries are not relevant at this late stage,
                           and these consts never need type annotations for disambiguation *)
                     in
@@ -264,7 +265,7 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
                 str " where {"
               ],
               str "};"
-            ) (map print_classparam_instance classparam_instances)
+            ) (map print_classparam_instance inst_params)
           end;
   in print_stmt end;
 
@@ -407,7 +408,7 @@ fun pretty_haskell_monad c_bind =
      of SOME ((pat, ty), t') =>
           SOME ((SOME ((pat, ty), true), t1), t')
       | NONE => NONE;
-    fun dest_monad c_bind_name (IConst (c, _) `$ t1 `$ t2) =
+    fun dest_monad c_bind_name (IConst { name = c, ... } `$ t1 `$ t2) =
           if c = c_bind_name then dest_bind t1 t2
           else NONE
       | dest_monad _ t = case Code_Thingol.split_let t

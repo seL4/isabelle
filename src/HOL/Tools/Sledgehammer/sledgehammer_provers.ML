@@ -679,7 +679,7 @@ fun run_atp mode name
                 val soundness = if strict then Strict else Non_Strict
                 val type_enc =
                   type_enc |> choose_type_enc soundness best_type_enc format
-                val fairly_sound = is_type_enc_fairly_sound type_enc
+                val sound = is_type_enc_sound type_enc
                 val real_ms = Real.fromInt o Time.toMilliseconds
                 val slice_timeout =
                   ((real_ms time_left
@@ -714,7 +714,7 @@ fun run_atp mode name
                   else
                     facts
                     |> map untranslated_fact
-                    |> not fairly_sound
+                    |> not sound
                        ? filter_out (is_dangerous_prop ctxt o prop_of o snd)
                     |> take num_facts
                     |> polymorphism_of_type_enc type_enc <> Polymorphic
@@ -764,11 +764,8 @@ fun run_atp mode name
                        SOME facts =>
                        let
                          val failure =
-                           if null facts then
-                             ProofIncomplete
-                           else
-                             UnsoundProof (is_type_enc_quasi_sound type_enc,
-                                           facts)
+                           if null facts then ProofIncomplete
+                           else UnsoundProof (is_type_enc_sound type_enc, facts)
                        in
                          if debug then
                            (warning (string_for_failure failure); NONE)

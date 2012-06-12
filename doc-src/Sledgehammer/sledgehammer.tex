@@ -1030,19 +1030,19 @@ applications of curried functions in ATP problems.
 \opdefault{type\_enc}{string}{smart}
 Specifies the type encoding to use in ATP problems. Some of the type encodings
 are unsound, meaning that they can give rise to spurious proofs
-(unreconstructible using \textit{metis}). The supported type encodings are
+(unreconstructible using \textit{metis}). The type encodings are
 listed below, with an indication of their soundness in parentheses.
-An asterisk (*) means that the encoding is slightly incomplete for
+An asterisk (*) indicates that the encoding is slightly incomplete for
 reconstruction with \textit{metis}, unless the \emph{strict} option (described
 below) is enabled.
 
 \begin{enum}
-\item[\labelitemi] \textbf{\textit{erased} (very unsound):} No type information is
+\item[\labelitemi] \textbf{\textit{erased} (unsound):} No type information is
 supplied to the ATP, not even to resolve overloading. Types are simply erased.
 
 \item[\labelitemi] \textbf{\textit{poly\_guards} (sound):} Types are encoded using
 a predicate \const{g}$(\tau, t)$ that guards bound
-variables. Constants are annotated with their types, supplied as additional
+variables. Constants are annotated with their types, supplied as extra
 arguments, to resolve overloading.
 
 \item[\labelitemi] \textbf{\textit{poly\_tags} (sound):} Each term and subterm is
@@ -1051,7 +1051,7 @@ tagged with its type using a function $\const{t\/}(\tau, t)$.
 \item[\labelitemi] \textbf{\textit{poly\_args} (unsound):}
 Like for \textit{poly\_guards} constants are annotated with their types to
 resolve overloading, but otherwise no type information is encoded. This
-coincides with the default encoding used by the \textit{metis} command.
+is the default encoding used by the \textit{metis} command.
 
 \item[\labelitemi]
 \textbf{%
@@ -1086,7 +1086,7 @@ falls back on \textit{mono\_native} or \textit{mono\_guards}. The problem is
 monomorphized.
 
 \item[\labelitemi] \textbf{\textit{poly\_native} (sound):} Exploits native
-polymorphic first-order types if the prover supports the TFF1 syntax; otherwise,
+first-order polymorphic types if the prover supports the TFF1 syntax; otherwise,
 falls back on \textit{mono\_native}.
 
 \item[\labelitemi]
@@ -1120,37 +1120,8 @@ Alternative versions of the `\hbox{??}' encodings. As argument to the
 \textit{metis} proof method, the `\hbox{@?}' suffix is replaced by
 \hbox{``\textit{\_at\_query\/}''}.
 
-\item[\labelitemi]
-\textbf{%
-\textit{poly\_guards}!, \textit{poly\_tags}!, \textit{raw\_mono\_guards}!, \\
-\textit{raw\_mono\_tags}!, \textit{mono\_guards}!, \textit{mono\_tags}!, \\
-\textit{mono\_native}!, \textit{mono\_native\_higher}! (mildly unsound):} \\
-The type encodings \textit{poly\_guards}, \textit{poly\_tags},
-\textit{raw\_mono\_guards}, \textit{raw\_mono\_tags}, \textit{mono\_guards},
-\textit{mono\_tags}, \textit{mono\_native}, and \textit{mono\_native\_higher}
-also admit a mildly unsound (but very efficient) variant identified by an
-exclamation mark (`\hbox{!}') that detects and erases erases all types except
-those that are clearly finite (e.g., \textit{bool}). (For \textit{mono\_native}
-and \textit{mono\_native\_higher}, the types are not actually erased but rather
-replaced by a shared uniform type of individuals.) As argument to the
-\textit{metis} proof method, the exclamation mark is replaced by the suffix
-\hbox{``\textit{\_bang\/}''}.
-
-\item[\labelitemi]
-\textbf{%
-\textit{poly\_guards}!!, \textit{poly\_tags}!!, \textit{raw\_mono\_guards}!!, \\
-\textit{raw\_mono\_tags}!!, \textit{mono\_guards}!!, \textit{mono\_tags}!! \\
-(mildly unsound):} \\
-Even lighter versions of the `\hbox{!}' encodings. As argument to the
-\textit{metis} proof method, the `\hbox{!!}' suffix is replaced by
-\hbox{``\textit{\_bang\_bang\/}''}.
-
-\item[\labelitemi]
-\textbf{%
-\textit{poly\_guards}@!, \textit{raw\_mono\_guards}@! (mildly unsound):} \\
-Alternative versions of the `\hbox{!!}' encodings. As argument to the
-\textit{metis} proof method, the `\hbox{@!}' suffix is replaced by
-\hbox{``\textit{\_at\_bang\/}''}.
+\item[\labelitemi] \textbf{\textit{poly\_args}?, \textit{raw\_mono\_args}? (unsound):} \\
+Lighter versions of \textit{poly\_args} and \textit{raw\_mono\_args}.
 
 \item[\labelitemi] \textbf{\textit{smart}:} The actual encoding used depends on
 the ATP and should be the most efficient sound encoding for that ATP.

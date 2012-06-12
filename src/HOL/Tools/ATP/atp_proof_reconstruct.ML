@@ -201,9 +201,11 @@ fun ext_name ctxt =
     isa_ext
 
 fun add_all_defs fact_names accum =
-  Vector.foldl (fn (facts, factss) =>
-                   filter (fn (_, (_, status)) => status = Def) facts @ factss)
-               accum fact_names
+  Vector.foldl
+      (fn (facts, facts') =>
+          union (op =) (filter (fn (_, (_, status)) => status = Def) facts)
+                facts')
+      accum fact_names
 
 fun add_fact ctxt fact_names (Inference_Step ((_, ss), _, rule, deps)) =
     (if rule = leo2_ext then

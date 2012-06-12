@@ -38,8 +38,7 @@ fun n_facts names =
   let val n = length names in
     string_of_int n ^ " fact" ^ plural_s n ^
     (if n > 0 then
-       ": " ^ (names |> map fst |> sort_distinct string_ord
-                     |> space_implode " ")
+       ": " ^ (names |> map fst |> sort string_ord |> space_implode " ")
      else
        "")
   end

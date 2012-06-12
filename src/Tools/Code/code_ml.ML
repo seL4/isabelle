@@ -28,9 +28,10 @@ val target_OCaml = "OCaml";
 
 datatype ml_binding =
     ML_Function of string * (typscheme * ((iterm list * iterm) * (thm option * bool)) list)
-  | ML_Instance of string * ((class * (string * (vname * sort) list))
-        * ((class * (string * (string * dict list list))) list
-      * (((string * const) * (thm * bool)) list * ((string * const) * (thm * bool)) list)));
+  | ML_Instance of string * { class: string, tyco: string, vs: (vname * sort) list,
+        superinsts: (class * (string * (string * dict list list))) list,
+        inst_params: ((string * const) * (thm * bool)) list,
+        superinst_params: ((string * const) * (thm * bool)) list };
 
 datatype ml_stmt =
     ML_Exc of string * (typscheme * int)
@@ -83,15 +84,15 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
     and print_dicts is_pseudo_fun = tuplify (print_dict is_pseudo_fun);
     val print_dict_args = map_filter (fn (v, sort) => print_dicts (K false) BR
       (map_index (fn (i, _) => Dict ([], Dict_Var (v, (i, length sort)))) sort));
-    fun print_term is_pseudo_fun some_thm vars fxy (IConst c) =
-          print_app is_pseudo_fun some_thm vars fxy (c, [])
+    fun print_term is_pseudo_fun some_thm vars fxy (IConst const) =
+          print_app is_pseudo_fun some_thm vars fxy (const, [])
       | print_term is_pseudo_fun some_thm vars fxy (IVar NONE) =
           str "_"
       | print_term is_pseudo_fun some_thm vars fxy (IVar (SOME v)) =
           str (lookup_var vars v)
       | print_term is_pseudo_fun some_thm vars fxy (t as t1 `$ t2) =
           (case Code_Thingol.unfold_const_app t
-           of SOME c_ts => print_app is_pseudo_fun some_thm vars fxy c_ts
+           of SOME app => print_app is_pseudo_fun some_thm vars fxy app
             | NONE => brackify fxy [print_term is_pseudo_fun some_thm vars NOBR t1,
                 print_term is_pseudo_fun some_thm vars BR t2])
       | print_term is_pseudo_fun some_thm vars fxy (t as _ `|=> _) =
@@ -102,15 +103,15 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
               #>> (fn p => concat [str "fn", p, str "=>"]);
             val (ps, vars') = fold_map print_abs binds vars;
           in brackets (ps @ [print_term is_pseudo_fun some_thm vars' NOBR t']) end
-      | print_term is_pseudo_fun some_thm vars fxy (ICase (cases as (_, t0))) =
-          (case Code_Thingol.unfold_const_app t0
-           of SOME (c_ts as ((c, _), _)) => if is_none (const_syntax c)
-                then print_case is_pseudo_fun some_thm vars fxy cases
-                else print_app is_pseudo_fun some_thm vars fxy c_ts
-            | NONE => print_case is_pseudo_fun some_thm vars fxy cases)
-    and print_app_expr is_pseudo_fun some_thm vars (app as ((c, (((_, iss), (arg_tys, _)), _)), ts)) =
+      | print_term is_pseudo_fun some_thm vars fxy (ICase case_expr) =
+          (case Code_Thingol.unfold_const_app (#primitive case_expr)
+           of SOME (app as ({ name = c, ... }, _)) => if is_none (const_syntax c)
+                then print_case is_pseudo_fun some_thm vars fxy case_expr
+                else print_app is_pseudo_fun some_thm vars fxy app
+            | NONE => print_case is_pseudo_fun some_thm vars fxy case_expr)
+    and print_app_expr is_pseudo_fun some_thm vars (app as ({ name = c, dicts = dss, dom = dom, ... }, ts)) =
       if is_cons c then
-        let val k = length arg_tys in
+        let val k = length dom in
           if k < 2 orelse length ts = k
           then (str o deresolve) c
             :: the_list (tuplify (print_term is_pseudo_fun some_thm vars) BR ts)
@@ -118,14 +119,16 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
         end
       else if is_pseudo_fun c
         then (str o deresolve) c @@ str "()"
-      else (str o deresolve) c :: map_filter (print_dicts is_pseudo_fun BR) iss
+      else (str o deresolve) c :: map_filter (print_dicts is_pseudo_fun BR) dss
         @ map (print_term is_pseudo_fun some_thm vars BR) ts
     and print_app is_pseudo_fun some_thm vars = gen_print_app (print_app_expr is_pseudo_fun)
       (print_term is_pseudo_fun) const_syntax some_thm vars
     and print_bind is_pseudo_fun = gen_print_bind (print_term is_pseudo_fun)
-    and print_case is_pseudo_fun some_thm vars fxy (cases as ((_, [_]), _)) =
+    and print_case is_pseudo_fun some_thm vars fxy { clauses = [], ... } =
+          (concat o map str) ["raise", "Fail", "\"empty case\""]
+      | print_case is_pseudo_fun some_thm vars fxy (case_expr as { clauses = [_], ... }) =
           let
-            val (binds, body) = Code_Thingol.unfold_let (ICase cases);
+            val (binds, body) = Code_Thingol.unfold_let (ICase case_expr);
             fun print_match ((pat, _), t) vars =
               vars
               |> print_bind is_pseudo_fun some_thm NOBR pat
@@ -139,7 +142,7 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
               str "end"
             ]
           end
-      | print_case is_pseudo_fun some_thm vars fxy (((t, ty), clause :: clauses), _) =
+      | print_case is_pseudo_fun some_thm vars fxy { term = t, typ = ty, clauses = clause :: clauses, ... } =
           let
             fun print_select delim (pat, body) =
               let
@@ -154,9 +157,7 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
               :: print_select "of" clause
               :: map (print_select "|") clauses
             )
-          end
-      | print_case is_pseudo_fun some_thm vars fxy ((_, []), _) =
-          (concat o map str) ["raise", "Fail", "\"empty case\""];
+          end;
     fun print_val_decl print_typscheme (name, typscheme) = concat
       [str "val", str (deresolve name), str ":", print_typscheme typscheme];
     fun print_datatype_decl definer (tyco, (vs, cos)) =
@@ -206,7 +207,7 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
             ))
           end
       | print_def is_pseudo_fun _ definer
-          (ML_Instance (inst, ((class, (tyco, vs)), (super_instances, (classparam_instances, _))))) =
+          (ML_Instance (inst, { class, tyco, vs, superinsts, inst_params, ... })) =
           let
             fun print_super_instance (_, (classrel, x)) =
               concat [
@@ -230,8 +231,8 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
                   else print_dict_args vs)
               @ str "="
               :: enum "," "{" "}"
-                (map print_super_instance super_instances
-                  @ map print_classparam_instance classparam_instances)
+                (map print_super_instance superinsts
+                  @ map print_classparam_instance inst_params)
               :: str ":"
               @@ print_tyco_expr (class, [tyco `%% map (ITyVar o fst) vs])
             ))
@@ -386,15 +387,15 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
     and print_dicts is_pseudo_fun = tuplify (print_dict is_pseudo_fun);
     val print_dict_args = map_filter (fn (v, sort) => print_dicts (K false) BR
       (map_index (fn (i, _) => Dict ([], Dict_Var (v, (i, length sort)))) sort));
-    fun print_term is_pseudo_fun some_thm vars fxy (IConst c) =
-          print_app is_pseudo_fun some_thm vars fxy (c, [])
+    fun print_term is_pseudo_fun some_thm vars fxy (IConst const) =
+          print_app is_pseudo_fun some_thm vars fxy (const, [])
       | print_term is_pseudo_fun some_thm vars fxy (IVar NONE) =
           str "_"
       | print_term is_pseudo_fun some_thm vars fxy (IVar (SOME v)) =
           str (lookup_var vars v)
       | print_term is_pseudo_fun some_thm vars fxy (t as t1 `$ t2) =
           (case Code_Thingol.unfold_const_app t
-           of SOME c_ts => print_app is_pseudo_fun some_thm vars fxy c_ts
+           of SOME app => print_app is_pseudo_fun some_thm vars fxy app
             | NONE => brackify fxy [print_term is_pseudo_fun some_thm vars NOBR t1,
                 print_term is_pseudo_fun some_thm vars BR t2])
       | print_term is_pseudo_fun some_thm vars fxy (t as _ `|=> _) =
@@ -402,15 +403,15 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
             val (binds, t') = Code_Thingol.unfold_pat_abs t;
             val (ps, vars') = fold_map (print_bind is_pseudo_fun some_thm BR o fst) binds vars;
           in brackets (str "fun" :: ps @ str "->" @@ print_term is_pseudo_fun some_thm vars' NOBR t') end
-      | print_term is_pseudo_fun some_thm vars fxy (ICase (cases as (_, t0))) =
-          (case Code_Thingol.unfold_const_app t0
-           of SOME (c_ts as ((c, _), _)) => if is_none (const_syntax c)
-                then print_case is_pseudo_fun some_thm vars fxy cases
-                else print_app is_pseudo_fun some_thm vars fxy c_ts
-            | NONE => print_case is_pseudo_fun some_thm vars fxy cases)
-    and print_app_expr is_pseudo_fun some_thm vars (app as ((c, (((_, iss), (tys, _)), _)), ts)) =
+      | print_term is_pseudo_fun some_thm vars fxy (ICase case_expr) =
+          (case Code_Thingol.unfold_const_app (#primitive case_expr)
+           of SOME (app as ({ name = c, ... }, _)) => if is_none (const_syntax c)
+                then print_case is_pseudo_fun some_thm vars fxy case_expr
+                else print_app is_pseudo_fun some_thm vars fxy app
+            | NONE => print_case is_pseudo_fun some_thm vars fxy case_expr)
+    and print_app_expr is_pseudo_fun some_thm vars (app as ({ name = c, dicts = dss, dom = dom, ... }, ts)) =
       if is_cons c then
-        let val k = length tys in
+        let val k = length dom in
           if length ts = k
           then (str o deresolve) c
             :: the_list (tuplify (print_term is_pseudo_fun some_thm vars) BR ts)
@@ -418,14 +419,16 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
         end
       else if is_pseudo_fun c
         then (str o deresolve) c @@ str "()"
-      else (str o deresolve) c :: map_filter (print_dicts is_pseudo_fun BR) iss
+      else (str o deresolve) c :: map_filter (print_dicts is_pseudo_fun BR) dss
         @ map (print_term is_pseudo_fun some_thm vars BR) ts
     and print_app is_pseudo_fun some_thm vars = gen_print_app (print_app_expr is_pseudo_fun)
       (print_term is_pseudo_fun) const_syntax some_thm vars
     and print_bind is_pseudo_fun = gen_print_bind (print_term is_pseudo_fun)
-    and print_case is_pseudo_fun some_thm vars fxy (cases as ((_, [_]), _)) =
+    and print_case is_pseudo_fun some_thm vars fxy { clauses = [], ... } =
+          (concat o map str) ["failwith", "\"empty case\""]
+      | print_case is_pseudo_fun some_thm vars fxy (case_expr as { clauses = [_], ... }) =
           let
-            val (binds, body) = Code_Thingol.unfold_let (ICase cases);
+            val (binds, body) = Code_Thingol.unfold_let (ICase case_expr);
             fun print_let ((pat, _), t) vars =
               vars
               |> print_bind is_pseudo_fun some_thm NOBR pat
@@ -436,7 +439,7 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
             brackify_block fxy (Pretty.chunks ps) []
               (print_term is_pseudo_fun some_thm vars' NOBR body)
           end
-      | print_case is_pseudo_fun some_thm vars fxy (((t, ty), clause :: clauses), _) =
+      | print_case is_pseudo_fun some_thm vars fxy { term = t, typ = ty, clauses = clause :: clauses, ... } =
           let
             fun print_select delim (pat, body) =
               let
@@ -449,9 +452,7 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
               :: print_select "with" clause
               :: map (print_select "|") clauses
             )
-          end
-      | print_case is_pseudo_fun some_thm vars fxy ((_, []), _) =
-          (concat o map str) ["failwith", "\"empty case\""];
+          end;
     fun print_val_decl print_typscheme (name, typscheme) = concat
       [str "val", str (deresolve name), str ":", print_typscheme typscheme];
     fun print_datatype_decl definer (tyco, (vs, cos)) =
@@ -546,7 +547,7 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
             ))
           end
       | print_def is_pseudo_fun _ definer
-            (ML_Instance (inst, ((class, (tyco, vs)), (super_instances, (classparam_instances, _))))) =
+          (ML_Instance (inst, { class, tyco, vs, superinsts, inst_params, ... })) =
           let
             fun print_super_instance (_, (classrel, x)) =
               concat [
@@ -570,8 +571,8 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
                   else print_dict_args vs)
               @ str "="
               @@ brackets [
-                enum_default "()" ";" "{" "}" (map print_super_instance super_instances
-                  @ map print_classparam_instance classparam_instances),
+                enum_default "()" ";" "{" "}" (map print_super_instance superinsts
+                  @ map print_classparam_instance inst_params),
                 str ":",
                 print_tyco_expr (class, [tyco `%% map (ITyVar o fst) vs])
               ]
@@ -731,7 +732,7 @@ fun ml_program_of_program labelled_name reserved module_alias program =
                 | _ => (eqs, NONE)
               else (eqs, NONE)
           in (ML_Function (name, (tysm, eqs')), some_value_name) end
-      | ml_binding_of_stmt (name, Code_Thingol.Classinst (stmt as ((_, (_, vs)), _))) =
+      | ml_binding_of_stmt (name, Code_Thingol.Classinst (stmt as { vs, ... })) =
           (ML_Instance (name, stmt), if forall (null o snd) vs then SOME (name, false) else NONE)
       | ml_binding_of_stmt (name, _) =
           error ("Binding block containing illegal statement: " ^ labelled_name name)
