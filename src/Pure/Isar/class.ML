@@ -73,6 +73,10 @@ datatype class_data = Class_Data of {
   defs: thm list,
   operations: (string * (class * (typ * term))) list
 
+  (* n.b.
+    params = logical parameters of class
+    operations = operations participating in user-space type system
+  *)
 };
 
 fun make_class_data ((consts, base_sort, base_morph, export_morph, assm_intro, of_class, axiom),
