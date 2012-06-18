@@ -77,7 +77,7 @@ fun locale_foundation ta (((b, U), mx), (b_def, rhs)) params =
 fun class_foundation (ta as Target {target, ...}) (((b, U), mx), (b_def, rhs)) params =
   Generic_Target.background_foundation (((b, U), NoSyn), (b_def, rhs)) params
   #-> (fn (lhs, def) => locale_const ta Syntax.mode_default ((b, NoSyn), lhs)
-    #> Class.const target ((b, mx), (#1 params, lhs))
+    #> Class.const target ((b, mx), (#1 params, #2 params, lhs))
     #> pair (lhs, def));
 
 fun target_foundation (ta as Target {is_locale, is_class, ...}) =

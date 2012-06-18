@@ -17,7 +17,7 @@ sig
   val print_classes: Proof.context -> unit
   val init: class -> theory -> Proof.context
   val begin: class list -> sort -> Proof.context -> Proof.context
-  val const: class -> (binding * mixfix) * (term list * term) -> local_theory -> local_theory
+  val const: class -> (binding * mixfix) * (term list * term list * term) -> local_theory -> local_theory
   val abbrev: class -> Syntax.mode -> (binding * mixfix) * term -> local_theory -> local_theory
   val redeclare_operations: theory -> sort -> Proof.context -> Proof.context
   val class_prefix: string -> string
@@ -322,15 +322,19 @@ fun target_extension f class lthy =
   |> Local_Theory.map_contexts
       (K (synchronize_class_syntax [class] (base_sort (Proof_Context.theory_of lthy) class)));
 
-fun target_const class ((c, mx), (type_params, dict)) thy =
+fun target_const class ((c, mx), (type_params, term_params, dict)) thy =
   let
     val morph = morphism thy class;
+    val class_params = map fst (these_params thy [class]);
+    val additional_params =
+      subtract (fn (v, Free (w, _)) => v = w | _ => false) class_params term_params;
+    val context_params = map (Morphism.term morph) (type_params @ additional_params);
     val b = Morphism.binding morph c;
     val b_def = Morphism.binding morph (Binding.suffix_name "_dict" b);
     val c' = Sign.full_name thy b;
     val dict' = Morphism.term morph dict;
-    val ty' = map Term.fastype_of type_params ---> Term.fastype_of dict';
-    val def_eq = Logic.mk_equals (list_comb (Const (c', ty'), type_params), dict')
+    val ty' = map Term.fastype_of context_params ---> Term.fastype_of dict';
+    val def_eq = Logic.mk_equals (list_comb (Const (c', ty'), context_params), dict')
       |> map_types Type.strip_sorts;
   in
     thy
@@ -340,7 +344,7 @@ fun target_const class ((c, mx), (type_params, dict)) thy =
     |>> apsnd Thm.varifyT_global
     |-> (fn (_, def_thm) => Global_Theory.store_thm (b_def, def_thm)
       #> snd
-      #> null type_params ? register_operation class (c', (dict', SOME (Thm.symmetric def_thm))))
+      #> null context_params ? register_operation class (c', (dict', SOME (Thm.symmetric def_thm))))
     |> Sign.add_const_constraint (c', SOME ty')
   end;
 
