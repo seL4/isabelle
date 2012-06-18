@@ -1062,9 +1062,121 @@ text {* The inner syntax engine of Isabelle provides separate
 
 subsection {* Abstract syntax trees *}
 
-text {*
-  FIXME
+text {* The ML datatype @{ML_type Ast.ast} explicitly represents the
+  intermediate AST format that is used for syntax rewriting
+  (\secref{sec:syn-trans}).  It is defined in ML as follows:
+  \begin{ttbox}
+  datatype ast =
+    Constant of string |
+    Variable of string |
+    Appl of ast list
+  \end{ttbox}
+
+  An AST is either an atom (constant or variable) or a list of (at
+  least two) subtrees.  Occasional diagnostic output of ASTs uses
+  notation that resembles S-expression of LISP.  Constant atoms are
+  shown as quoted strings, variable atoms as non-quoted strings and
+  applications as a parenthesized list of subtrees.  For example, the
+  AST
+  @{ML [display] "Ast.Appl
+  [Ast.Constant \"_abs\", Ast.Variable \"x\", Ast.Variable \"t\"]"}
+  is pretty-printed as @{verbatim "(\"_abs\" x t)"}.  Note that
+  @{verbatim "()"} and @{verbatim "(x)"} are excluded as ASTs, because
+  they have too few subtrees.
+
+  \medskip AST application is merely a pro-forma mechanism to indicate
+  certain syntactic structures.  Thus @{verbatim "(c a b)"} could mean
+  either term application or type application, depending on the
+  syntactic context.
+
+  Nested application like @{verbatim "((\"_abs\" x t) u)"} is also
+  possible, but ASTs are definitely first-order: the syntax constant
+  @{verbatim "\"_abs\""} does not bind the @{verbatim x} in any way.
+  Proper bindings are introduced in later stages of the term syntax,
+  where @{verbatim "(\"_abs\" x t)"} becomes an @{ML Abs} node and
+  occurrences of @{verbatim x} in @{verbatim t} are replaced by bound
+  variables (represented as de-Bruijn indices).
 *}
+
+
+subsubsection {* Ast constants versus variables *}
+
+text {* Depending on the situation --- input syntax, output syntax,
+  translation patterns --- the distinction of atomic asts as @{ML
+  Ast.Constant} versus @{ML Ast.Variable} serves slightly different
+  purposes.
+
+  Input syntax of a term such as @{text "f a b = c"} does not yet
+  indicate the scopes of atomic entities @{text "f, a, b, c"}: they
+  could be global constants or local variables, even bound ones
+  depending on the context of the term.  @{ML Ast.Variable} leaves
+  this choice still open: later syntax layers (or translation
+  functions) may capture such a variable to determine its role
+  specifically, to make it a constant, bound variable, free variable
+  etc.  In contrast, syntax translations that introduce already known
+  constants would rather do it via @{ML Ast.Constant} to prevent
+  accidental re-interpretation later on.
+
+  Output syntax turns term constants into @{ML Ast.Constant} and
+  variables (free or schematic) into @{ML Ast.Variable}.  This
+  information is precise when printing fully formal @{text "\<lambda>"}-terms.
+
+  In AST translation patterns (\secref{sec:syn-trans}) the system
+  guesses from the current theory context which atoms should be
+  treated as constant versus variable for the matching process.
+  Sometimes this needs to be indicated more explicitly using @{text
+  "CONST c"} inside the term language.  It is also possible to use
+  @{command syntax} declarations (without mixfix annotation) to
+  enforce that certain unqualified names are always treated as
+  constant within the syntax machinery.
+
+  \medskip For ASTs that represent the language of types or sorts, the
+  situation is much simpler, since the concrete syntax already
+  distinguishes type variables from type constants (constructors).  So
+  @{text "('a, 'b) foo"} corresponds to an AST application of some
+  constant for @{text foo} and variable arguments for @{text "'a"} and
+  @{text "'b"}.  Note that the postfix application is merely a feature
+  of the concrete syntax, while in the AST the constructor occurs in
+  head position.  *}
+
+
+subsubsection {* Authentic syntax names *}
+
+text {* Naming constant entities within ASTs is another delicate
+  issue.  Unqualified names are looked up in the name space tables in
+  the last stage of parsing, after all translations have been applied.
+  Since syntax transformations do not know about this later name
+  resolution yet, there can be surprises in boundary cases.
+
+  \emph{Authentic syntax names} for @{ML Ast.Constant} avoid this
+  problem: the fully-qualified constant name with a special prefix for
+  its formal category (@{text "class"}, @{text "type"}, @{text
+  "const"}, @{text "fixed"}) represents the information faithfully
+  within the untyped AST format.  Accidental overlap with free or
+  bound variables is excluded as well.  Authentic syntax names work
+  implicitly in the following situations:
+
+  \begin{itemize}
+
+  \item Input of term constants (or fixed variables) that are
+  introduced by concrete syntax via @{command notation}: the
+  correspondence of a particular grammar production to some known term
+  entity is preserved.
+
+  \item Input type constants (constructors) and type classes ---
+  thanks to explicit syntactic distinction independently on the
+  context.
+
+  \item Output of term constants, type constants, type classes ---
+  this information is already available from the internal term to be
+  printed.
+
+  \end{itemize}
+
+  In other words, syntax transformations that operate on input terms
+  written as prefix applications are difficult to achieve.  Luckily,
+  this case rarely occurs in practice, because syntax forms to be
+  translated usually correspond to some bits of concrete notation. *}
 
 
 subsection {* Raw syntax and translations \label{sec:syn-trans} *}

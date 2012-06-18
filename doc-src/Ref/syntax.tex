@@ -8,50 +8,6 @@
 \newcommand\Appl[1]{\ttfct{Appl}\,[#1]}
 \index{syntax!transformations|(}
 
-\section{Abstract syntax trees} \label{sec:asts}
-\index{ASTs|(}
-
-Abstract syntax trees are an intermediate form between the raw parse trees
-and the typed $\lambda$-terms.  An \AST{} is either an atom (constant or
-variable) or a list of {\em at least two\/} subtrees.  Internally, they
-have type \mltydx{Syntax.ast}: \index{*Constant} \index{*Variable}
-\index{*Appl}
-\begin{ttbox}
-datatype ast = Constant of string
-             | Variable of string
-             | Appl of ast list
-\end{ttbox}
-%
-Isabelle uses an S-expression syntax for abstract syntax trees.  Constant
-atoms are shown as quoted strings, variable atoms as non-quoted strings and
-applications as a parenthesised list of subtrees.  For example, the \AST
-\begin{ttbox}
-Appl [Constant "_constrain",
-      Appl [Constant "_abs", Variable "x", Variable "t"],
-      Appl [Constant "fun", Variable "'a", Variable "'b"]]
-\end{ttbox}
-is shown as {\tt ("_constrain" ("_abs" x t) ("fun" 'a 'b))}.
-Both {\tt ()} and {\tt (f)} are illegal because they have too few
-subtrees.
-
-The resemblance to Lisp's S-expressions is intentional, but there are two
-kinds of atomic symbols: $\Constant x$ and $\Variable x$.  Do not take the
-names {\tt Constant} and {\tt Variable} too literally; in the later
-translation to terms, $\Variable x$ may become a constant, free or bound
-variable, even a type constructor or class name; the actual outcome depends
-on the context.
-
-Similarly, you can think of ${\tt (} f~x@1~\ldots~x@n{\tt )}$ as the
-application of~$f$ to the arguments $x@1, \ldots, x@n$.  But the kind of
-application is determined later by context; it could be a type constructor
-applied to types.
-
-Forms like {\tt (("_abs" x $t$) $u$)} are legal, but \AST{}s are
-first-order: the {\tt "_abs"} does not bind the {\tt x} in any way.  Later
-at the term level, {\tt ("_abs" x $t$)} will become an {\tt Abs} node and
-occurrences of {\tt x} in $t$ will be replaced by bound variables (the term
-constructor \ttindex{Bound}).
-
 
 \section{Transforming parse trees to ASTs}\label{sec:astofpt}
 \index{ASTs!made from parse trees}
