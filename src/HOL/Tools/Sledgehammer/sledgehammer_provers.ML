@@ -764,8 +764,7 @@ fun run_atp mode name
                        SOME facts =>
                        let
                          val failure =
-                           if null facts then ProofIncomplete
-                           else UnsoundProof (is_type_enc_sound type_enc, facts)
+                           UnsoundProof (is_type_enc_sound type_enc, facts)
                        in
                          if debug then
                            (warning (string_for_failure failure); NONE)
