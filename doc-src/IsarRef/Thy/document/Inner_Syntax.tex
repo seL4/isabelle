@@ -41,8 +41,7 @@ The inner syntax of Isabelle provides concrete notation for
   Further details of the syntax engine involves the classical
   distinction of lexical language versus context-free grammar (see
   \secref{sec:pure-syntax}), and various mechanisms for \emph{syntax
-  translations} --- either as rewrite systems on first-order ASTs
-  (\secref{sec:syn-trans}) or ML functions on ASTs or \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}{\isaliteral{22}{\isachardoublequote}}}-terms that represent parse trees (\secref{sec:tr-funs}).%
+  transformations} (see \secref{sec:syntax-transformations}).%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1185,7 +1184,71 @@ The priority grammar of the \isa{{\isaliteral{22}{\isachardoublequote}}Pure{\isa
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsection{Raw syntax and translations \label{sec:syn-trans}%
+\isamarkupsection{Syntax transformations \label{sec:syntax-transformations}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The inner syntax engine of Isabelle provides separate
+  mechanisms to transform parse trees either as rewrite systems on
+  first-order ASTs (\secref{sec:syn-trans}), or ML functions on ASTs
+  or syntactic \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}{\isaliteral{22}{\isachardoublequote}}}-terms (\secref{sec:tr-funs}).  This works
+  both for parsing and printing, as outlined in
+  \figref{fig:parse-print}.
+
+  \begin{figure}[htbp]
+  \begin{center}
+  \begin{tabular}{cl}
+  string          & \\
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F776E3E}{\isasymdown}}{\isaliteral{22}{\isachardoublequote}}}     & lexer + parser \\
+  parse tree      & \\
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F776E3E}{\isasymdown}}{\isaliteral{22}{\isachardoublequote}}}     & parse AST translation \\
+  AST             & \\
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F776E3E}{\isasymdown}}{\isaliteral{22}{\isachardoublequote}}}     & AST rewriting (macros) \\
+  AST             & \\
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F776E3E}{\isasymdown}}{\isaliteral{22}{\isachardoublequote}}}     & parse translation \\
+  --- pre-term ---    & \\
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F776E3E}{\isasymdown}}{\isaliteral{22}{\isachardoublequote}}}     & print translation \\
+  AST             & \\
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F776E3E}{\isasymdown}}{\isaliteral{22}{\isachardoublequote}}}     & AST rewriting (macros) \\
+  AST             & \\
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F776E3E}{\isasymdown}}{\isaliteral{22}{\isachardoublequote}}}     & print AST translation \\
+  string          &
+  \end{tabular}
+  \end{center}
+  \caption{Parsing and printing with translations}\label{fig:parse-print}
+  \end{figure}
+
+  These intermediate syntax tree formats eventually lead to a pre-term
+  with all names and binding scopes resolved, but most type
+  information still missing.  Explicit type constraints might be given by
+  the user, or implicit position information by the system --- both
+  needs to be passed-through carefully by syntax transformations.
+
+  Pre-terms are further processed by the so-called \emph{check} and
+  \emph{unckeck} phases that are intertwined with type-inference (see
+  also \cite{isabelle-implementation}).  The latter allows to operate
+  on higher-order abstract syntax with proper binding and type
+  information already available.
+
+  As a rule of thumb, anything that manipulates bindings of variables
+  or constants needs to be implemented as syntax transformation (see
+  below).  Anything else is better done via check/uncheck: a prominent
+  example application is the \hyperlink{command.abbreviation}{\mbox{\isa{\isacommand{abbreviation}}}} concept of
+  Isabelle/Pure.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Abstract syntax trees%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+FIXME%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Raw syntax and translations \label{sec:syn-trans}%
 }
 \isamarkuptrue%
 %
@@ -1374,7 +1437,7 @@ The priority grammar of the \isa{{\isaliteral{22}{\isachardoublequote}}Pure{\isa
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsection{Syntax translation functions \label{sec:tr-funs}%
+\isamarkupsubsection{Syntax translation functions \label{sec:tr-funs}%
 }
 \isamarkuptrue%
 %

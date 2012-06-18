@@ -24,9 +24,7 @@ text {* The inner syntax of Isabelle provides concrete notation for
   Further details of the syntax engine involves the classical
   distinction of lexical language versus context-free grammar (see
   \secref{sec:pure-syntax}), and various mechanisms for \emph{syntax
-  translations} --- either as rewrite systems on first-order ASTs
-  (\secref{sec:syn-trans}) or ML functions on ASTs or @{text
-  "\<lambda>"}-terms that represent parse trees (\secref{sec:tr-funs}).
+  transformations} (see \secref{sec:syntax-transformations}).
 *}
 
 
@@ -1011,7 +1009,65 @@ text {*
 *}
 
 
-section {* Raw syntax and translations \label{sec:syn-trans} *}
+section {* Syntax transformations \label{sec:syntax-transformations} *}
+
+text {* The inner syntax engine of Isabelle provides separate
+  mechanisms to transform parse trees either as rewrite systems on
+  first-order ASTs (\secref{sec:syn-trans}), or ML functions on ASTs
+  or syntactic @{text "\<lambda>"}-terms (\secref{sec:tr-funs}).  This works
+  both for parsing and printing, as outlined in
+  \figref{fig:parse-print}.
+
+  \begin{figure}[htbp]
+  \begin{center}
+  \begin{tabular}{cl}
+  string          & \\
+  @{text "\<down>"}     & lexer + parser \\
+  parse tree      & \\
+  @{text "\<down>"}     & parse AST translation \\
+  AST             & \\
+  @{text "\<down>"}     & AST rewriting (macros) \\
+  AST             & \\
+  @{text "\<down>"}     & parse translation \\
+  --- pre-term ---    & \\
+  @{text "\<down>"}     & print translation \\
+  AST             & \\
+  @{text "\<down>"}     & AST rewriting (macros) \\
+  AST             & \\
+  @{text "\<down>"}     & print AST translation \\
+  string          &
+  \end{tabular}
+  \end{center}
+  \caption{Parsing and printing with translations}\label{fig:parse-print}
+  \end{figure}
+
+  These intermediate syntax tree formats eventually lead to a pre-term
+  with all names and binding scopes resolved, but most type
+  information still missing.  Explicit type constraints might be given by
+  the user, or implicit position information by the system --- both
+  needs to be passed-through carefully by syntax transformations.
+
+  Pre-terms are further processed by the so-called \emph{check} and
+  \emph{unckeck} phases that are intertwined with type-inference (see
+  also \cite{isabelle-implementation}).  The latter allows to operate
+  on higher-order abstract syntax with proper binding and type
+  information already available.
+
+  As a rule of thumb, anything that manipulates bindings of variables
+  or constants needs to be implemented as syntax transformation (see
+  below).  Anything else is better done via check/uncheck: a prominent
+  example application is the @{command abbreviation} concept of
+  Isabelle/Pure. *}
+
+
+subsection {* Abstract syntax trees *}
+
+text {*
+  FIXME
+*}
+
+
+subsection {* Raw syntax and translations \label{sec:syn-trans} *}
 
 text {*
   \begin{matharray}{rcl}
@@ -1140,7 +1196,7 @@ text {*
 *}
 
 
-section {* Syntax translation functions \label{sec:tr-funs} *}
+subsection {* Syntax translation functions \label{sec:tr-funs} *}
 
 text {*
   \begin{matharray}{rcl}

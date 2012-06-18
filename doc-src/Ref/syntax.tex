@@ -8,48 +8,8 @@
 \newcommand\Appl[1]{\ttfct{Appl}\,[#1]}
 \index{syntax!transformations|(}
 
-This chapter is intended for experienced Isabelle users who need to define
-macros or code their own translation functions.  It describes the
-transformations between parse trees, abstract syntax trees and terms.
-
-
 \section{Abstract syntax trees} \label{sec:asts}
 \index{ASTs|(}
-
-The parser, given a token list from the lexer, applies productions to yield
-a parse tree\index{parse trees}.  By applying some internal transformations
-the parse tree becomes an abstract syntax tree, or \AST{}.  Macro
-expansion, further translations and finally type inference yields a
-well-typed term.  The printing process is the reverse, except for some
-subtleties to be discussed later.
-
-Figure~\ref{fig:parse_print} outlines the parsing and printing process.
-Much of the complexity is due to the macro mechanism.  Using macros, you
-can specify most forms of concrete syntax without writing any \ML{} code.
-
-\begin{figure}
-\begin{center}
-\begin{tabular}{cl}
-string          & \\
-$\downarrow$    & lexer, parser \\
-parse tree      & \\
-$\downarrow$    & parse \AST{} translation \\
-\AST{}             & \\
-$\downarrow$    & \AST{} rewriting (macros) \\
-\AST{}             & \\
-$\downarrow$    & parse translation, type inference \\
---- well-typed term --- & \\
-$\downarrow$    & print translation \\
-\AST{}             & \\
-$\downarrow$    & \AST{} rewriting (macros) \\
-\AST{}             & \\
-$\downarrow$    & print \AST{} translation \\
-string          &
-\end{tabular}
-
-\end{center}
-\caption{Parsing and printing}\label{fig:parse_print}
-\end{figure}
 
 Abstract syntax trees are an intermediate form between the raw parse trees
 and the typed $\lambda$-terms.  An \AST{} is either an atom (constant or
