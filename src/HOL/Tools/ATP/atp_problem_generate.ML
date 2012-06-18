@@ -1339,8 +1339,6 @@ fun type_arg_cover thy s ary =
 
 type monotonicity_info =
   {maybe_finite_Ts : typ list,
-   surely_finite_Ts : typ list,
-   maybe_infinite_Ts : typ list,
    surely_infinite_Ts : typ list,
    maybe_nonmono_Ts : typ list}
 
@@ -2228,8 +2226,6 @@ fun sym_decl_table_for_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
 (* We add "bool" in case the helper "True_or_False" is included later. *)
 fun default_mono level =
   {maybe_finite_Ts = [@{typ bool}],
-   surely_finite_Ts = [@{typ bool}],
-   maybe_infinite_Ts = known_infinite_types,
    surely_infinite_Ts =
      case level of
        Nonmono_Types (Strict, _) => []
@@ -2241,8 +2237,7 @@ fun default_mono level =
 fun add_iterm_mononotonicity_info _ _ (SOME false) _ mono = mono
   | add_iterm_mononotonicity_info ctxt level _
         (IApp (IApp (IConst ((s, _), Type (_, [T, _]), _), tm1), tm2))
-        (mono as {maybe_finite_Ts, surely_finite_Ts, maybe_infinite_Ts,
-                  surely_infinite_Ts, maybe_nonmono_Ts}) =
+        (mono as {maybe_finite_Ts, surely_infinite_Ts, maybe_nonmono_Ts}) =
     let val thy = Proof_Context.theory_of ctxt in
       if is_tptp_equal s andalso exists is_maybe_universal_var [tm1, tm2] then
         case level of
@@ -2253,14 +2248,10 @@ fun add_iterm_mononotonicity_info _ _ (SOME false) _ mono = mono
           else if is_type_kind_of_surely_infinite ctxt strictness
                                                   surely_infinite_Ts T then
             {maybe_finite_Ts = maybe_finite_Ts,
-             surely_finite_Ts = surely_finite_Ts,
-             maybe_infinite_Ts = maybe_infinite_Ts,
              surely_infinite_Ts = surely_infinite_Ts |> insert_type thy I T,
              maybe_nonmono_Ts = maybe_nonmono_Ts}
           else
             {maybe_finite_Ts = maybe_finite_Ts |> insert (type_equiv thy) T,
-             surely_finite_Ts = surely_finite_Ts,
-             maybe_infinite_Ts = maybe_infinite_Ts,
              surely_infinite_Ts = surely_infinite_Ts,
              maybe_nonmono_Ts = maybe_nonmono_Ts |> insert_type thy I T}
         | _ => mono
