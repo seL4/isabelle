@@ -2224,13 +2224,13 @@ fun sym_decl_table_for_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
   end
 
 (* We add "bool" in case the helper "True_or_False" is included later. *)
-fun default_mono level =
+fun default_mono level aggressive =
   {maybe_finite_Ts = [@{typ bool}],
    surely_infinite_Ts =
      case level of
        Nonmono_Types (Strict, _) => []
      | _ => known_infinite_types,
-   maybe_nonmono_Ts = [@{typ bool}]}
+   maybe_nonmono_Ts = [if aggressive then tvar_a else @{typ bool}]}
 
 (* This inference is described in section 2.3 of Claessen et al.'s "Sorting it
    out with monotonicity" paper presented at CADE 2011. *)
@@ -2262,9 +2262,9 @@ fun add_iterm_mononotonicity_info _ _ (SOME false) _ mono = mono
 fun add_fact_mononotonicity_info ctxt level ({role, iformula, ...} : ifact) =
   formula_fold (SOME (role <> Conjecture))
                (add_iterm_mononotonicity_info ctxt level) iformula
-fun mononotonicity_info_for_facts ctxt type_enc facts =
+fun mononotonicity_info_for_facts ctxt type_enc aggressive facts =
   let val level = level_of_type_enc type_enc in
-    default_mono level
+    default_mono level aggressive
     |> is_type_level_monotonicity_based level
        ? fold (add_fact_mononotonicity_info ctxt level) facts
   end
@@ -2648,7 +2648,8 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
                          concl_t facts
     val (_, sym_tab0) =
       sym_table_for_facts ctxt type_enc app_op_level conjs facts
-    val mono = conjs @ facts |> mononotonicity_info_for_facts ctxt type_enc
+    val mono =
+      conjs @ facts |> mononotonicity_info_for_facts ctxt type_enc aggressive
     val constrs = all_constrs_of_polymorphic_datatypes thy
     fun firstorderize in_helper =
       firstorderize_fact thy constrs type_enc sym_tab0
