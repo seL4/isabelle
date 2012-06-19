@@ -1182,13 +1182,15 @@ text {* Naming constant entities within ASTs is another delicate
 subsection {* Raw syntax and translations \label{sec:syn-trans} *}
 
 text {*
-  \begin{matharray}{rcl}
+  \begin{tabular}{rcll}
     @{command_def "nonterminal"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "syntax"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "no_syntax"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "translations"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "no_translations"} & : & @{text "theory \<rightarrow> theory"} \\
-  \end{matharray}
+    @{attribute_def syntax_ast_trace} & : & @{text attribute} & default @{text false} \\
+    @{attribute_def syntax_ast_stats} & : & @{text attribute} & default @{text false} \\
+  \end{tabular}
 
   Unlike mixfix notation for existing formal entities
   (\secref{sec:notation}), raw syntax declarations provide full access
@@ -1324,6 +1326,11 @@ text {*
   translation rules, which are interpreted in the same manner as for
   @{command "translations"} above.
 
+  \item @{attribute syntax_ast_trace} and @{attribute
+  syntax_ast_stats} control diagnostic output in the AST normalization
+  process, when translation rules are applied to concrete input or
+  output.
+
   \end{description}
 
   Raw syntax and translations provides a slightly more low-level
@@ -1346,6 +1353,79 @@ text {*
   List} in Isabelle/HOL.
 
   \end{itemize}
+*}
+
+subsubsection {* Applying translation rules *}
+
+text {* As a term is being parsed or printed, an AST is generated as
+  an intermediate form according to \figref{fig:parse-print}.  The AST
+  is normalized by applying translation rules in the manner of a
+  first-order term rewriting system.  We first examine how a single
+  rule is applied.
+
+  Let @{text "t"} be the abstract syntax tree to be normalized and
+  @{text "(lhs, rhs)"} some translation rule.  A subtree @{text "u"}
+  of @{text "t"} is called \emph{redex} if it is an instance of @{text
+  "lhs"}; in this case the pattern @{text "lhs"} is said to match the
+  object @{text "u"}.  A redex matched by @{text "lhs"} may be
+  replaced by the corresponding instance of @{text "rhs"}, thus
+  \emph{rewriting} the AST @{text "t"}.  Matching requires some notion
+  of \emph{place-holders} in rule patterns: @{ML Ast.Variable} serves
+  this purpose.
+
+  More precisely, the matching of the object @{text "u"} against the
+  pattern @{text "lhs"} is performed as follows:
+
+  \begin{itemize}
+
+  \item Objects of the form @{ML Ast.Variable}~@{text "x"} or @{ML
+  Ast.Constant}~@{text "x"} are matched by pattern @{ML
+  Ast.Constant}~@{text "x"}.  Thus all atomic ASTs in the object are
+  treated as (potential) constants, and a successful match makes them
+  actual constants even before name space resolution (see also
+  \secref{sec:ast}).
+
+  \item Object @{text "u"} is matched by pattern @{ML
+  Ast.Variable}~@{text "x"}, binding @{text "x"} to @{text "u"}.
+
+  \item Object @{ML Ast.Appl}~@{text "us"} is matched by @{ML
+  Ast.Appl}~@{text "ts"} if @{text "us"} and @{text "ts"} have the
+  same length and each corresponding subtree matches.
+
+  \item In every other case, matching fails.
+
+  \end{itemize}
+
+  A successful match yields a substitution that is applied to @{text
+  "rhs"}, generating the instance that replaces @{text "u"}.
+
+  Normalizing an AST involves repeatedly applying translation rules
+  until none are applicable.  This works yoyo-like: top-down,
+  bottom-up, top-down, etc.  At each subtree position, rules are
+  chosen in order of appearance in the theory definitions.
+
+  The configuration options @{attribute syntax_ast_trace} and
+  @{attribute syntax_ast_stats} might help understand this process
+  and diagnose problems.
+
+  \begin{warn}
+  If syntax translation rules work incorrectly, the output of
+  @{command print_syntax} with its \emph{rules} sections reveals the
+  actual internal forms of AST pattern, without potentially confusing
+  concrete syntax.  Recall that AST constants appear as quoted strings
+  and variables without quotes.
+  \end{warn}
+
+  \begin{warn}
+  If @{attribute_ref eta_contract} is set to @{text "true"}, terms
+  will be @{text "\<eta>"}-contracted \emph{before} the AST rewriter sees
+  them.  Thus some abstraction nodes needed for print rules to match
+  may vanish.  For example, @{text "Ball A (\<lambda>x. P x)"} would contract
+  to @{text "Ball A P"} and the standard print rule would fail to
+  apply.  This problem can be avoided by hand-written ML translation
+  functions (see also \secref{sec:tr-funs}), which is in fact the same
+  mechanism used in built-in @{keyword "binder"} declarations.
+  \end{warn}
 *}
 
 

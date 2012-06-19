@@ -1373,13 +1373,15 @@ Naming constant entities within ASTs is another delicate
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-\begin{matharray}{rcl}
+\begin{tabular}{rcll}
     \indexdef{}{command}{nonterminal}\hypertarget{command.nonterminal}{\hyperlink{command.nonterminal}{\mbox{\isa{\isacommand{nonterminal}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{command}{syntax}\hypertarget{command.syntax}{\hyperlink{command.syntax}{\mbox{\isa{\isacommand{syntax}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{command}{no\_syntax}\hypertarget{command.no-syntax}{\hyperlink{command.no-syntax}{\mbox{\isa{\isacommand{no{\isaliteral{5F}{\isacharunderscore}}syntax}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{command}{translations}\hypertarget{command.translations}{\hyperlink{command.translations}{\mbox{\isa{\isacommand{translations}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{command}{no\_translations}\hypertarget{command.no-translations}{\hyperlink{command.no-translations}{\mbox{\isa{\isacommand{no{\isaliteral{5F}{\isacharunderscore}}translations}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
-  \end{matharray}
+    \indexdef{}{attribute}{syntax\_ast\_trace}\hypertarget{attribute.syntax-ast-trace}{\hyperlink{attribute.syntax-ast-trace}{\mbox{\isa{syntax{\isaliteral{5F}{\isacharunderscore}}ast{\isaliteral{5F}{\isacharunderscore}}trace}}}} & : & \isa{attribute} & default \isa{false} \\
+    \indexdef{}{attribute}{syntax\_ast\_stats}\hypertarget{attribute.syntax-ast-stats}{\hyperlink{attribute.syntax-ast-stats}{\mbox{\isa{syntax{\isaliteral{5F}{\isacharunderscore}}ast{\isaliteral{5F}{\isacharunderscore}}stats}}}} & : & \isa{attribute} & default \isa{false} \\
+  \end{tabular}
 
   Unlike mixfix notation for existing formal entities
   (\secref{sec:notation}), raw syntax declarations provide full access
@@ -1572,6 +1574,10 @@ Naming constant entities within ASTs is another delicate
   translation rules, which are interpreted in the same manner as for
   \hyperlink{command.translations}{\mbox{\isa{\isacommand{translations}}}} above.
 
+  \item \hyperlink{attribute.syntax-ast-trace}{\mbox{\isa{syntax{\isaliteral{5F}{\isacharunderscore}}ast{\isaliteral{5F}{\isacharunderscore}}trace}}} and \hyperlink{attribute.syntax-ast-stats}{\mbox{\isa{syntax{\isaliteral{5F}{\isacharunderscore}}ast{\isaliteral{5F}{\isacharunderscore}}stats}}} control diagnostic output in the AST normalization
+  process, when translation rules are applied to concrete input or
+  output.
+
   \end{description}
 
   Raw syntax and translations provides a slightly more low-level
@@ -1592,6 +1598,77 @@ Naming constant entities within ASTs is another delicate
   comprehension \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5B}{\isacharbrackleft}}x\ {\isaliteral{5C3C6C6566746172726F773E}{\isasymleftarrow}}\ xs\ {\isaliteral{2E}{\isachardot}}\ P{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}} as defined in theory \isa{List} in Isabelle/HOL.
 
   \end{itemize}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Applying translation rules%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+As a term is being parsed or printed, an AST is generated as
+  an intermediate form according to \figref{fig:parse-print}.  The AST
+  is normalized by applying translation rules in the manner of a
+  first-order term rewriting system.  We first examine how a single
+  rule is applied.
+
+  Let \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{22}{\isachardoublequote}}} be the abstract syntax tree to be normalized and
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}lhs{\isaliteral{2C}{\isacharcomma}}\ rhs{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} some translation rule.  A subtree \isa{{\isaliteral{22}{\isachardoublequote}}u{\isaliteral{22}{\isachardoublequote}}}
+  of \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{22}{\isachardoublequote}}} is called \emph{redex} if it is an instance of \isa{{\isaliteral{22}{\isachardoublequote}}lhs{\isaliteral{22}{\isachardoublequote}}}; in this case the pattern \isa{{\isaliteral{22}{\isachardoublequote}}lhs{\isaliteral{22}{\isachardoublequote}}} is said to match the
+  object \isa{{\isaliteral{22}{\isachardoublequote}}u{\isaliteral{22}{\isachardoublequote}}}.  A redex matched by \isa{{\isaliteral{22}{\isachardoublequote}}lhs{\isaliteral{22}{\isachardoublequote}}} may be
+  replaced by the corresponding instance of \isa{{\isaliteral{22}{\isachardoublequote}}rhs{\isaliteral{22}{\isachardoublequote}}}, thus
+  \emph{rewriting} the AST \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{22}{\isachardoublequote}}}.  Matching requires some notion
+  of \emph{place-holders} in rule patterns: \verb|Ast.Variable| serves
+  this purpose.
+
+  More precisely, the matching of the object \isa{{\isaliteral{22}{\isachardoublequote}}u{\isaliteral{22}{\isachardoublequote}}} against the
+  pattern \isa{{\isaliteral{22}{\isachardoublequote}}lhs{\isaliteral{22}{\isachardoublequote}}} is performed as follows:
+
+  \begin{itemize}
+
+  \item Objects of the form \verb|Ast.Variable|~\isa{{\isaliteral{22}{\isachardoublequote}}x{\isaliteral{22}{\isachardoublequote}}} or \verb|Ast.Constant|~\isa{{\isaliteral{22}{\isachardoublequote}}x{\isaliteral{22}{\isachardoublequote}}} are matched by pattern \verb|Ast.Constant|~\isa{{\isaliteral{22}{\isachardoublequote}}x{\isaliteral{22}{\isachardoublequote}}}.  Thus all atomic ASTs in the object are
+  treated as (potential) constants, and a successful match makes them
+  actual constants even before name space resolution (see also
+  \secref{sec:ast}).
+
+  \item Object \isa{{\isaliteral{22}{\isachardoublequote}}u{\isaliteral{22}{\isachardoublequote}}} is matched by pattern \verb|Ast.Variable|~\isa{{\isaliteral{22}{\isachardoublequote}}x{\isaliteral{22}{\isachardoublequote}}}, binding \isa{{\isaliteral{22}{\isachardoublequote}}x{\isaliteral{22}{\isachardoublequote}}} to \isa{{\isaliteral{22}{\isachardoublequote}}u{\isaliteral{22}{\isachardoublequote}}}.
+
+  \item Object \verb|Ast.Appl|~\isa{{\isaliteral{22}{\isachardoublequote}}us{\isaliteral{22}{\isachardoublequote}}} is matched by \verb|Ast.Appl|~\isa{{\isaliteral{22}{\isachardoublequote}}ts{\isaliteral{22}{\isachardoublequote}}} if \isa{{\isaliteral{22}{\isachardoublequote}}us{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}ts{\isaliteral{22}{\isachardoublequote}}} have the
+  same length and each corresponding subtree matches.
+
+  \item In every other case, matching fails.
+
+  \end{itemize}
+
+  A successful match yields a substitution that is applied to \isa{{\isaliteral{22}{\isachardoublequote}}rhs{\isaliteral{22}{\isachardoublequote}}}, generating the instance that replaces \isa{{\isaliteral{22}{\isachardoublequote}}u{\isaliteral{22}{\isachardoublequote}}}.
+
+  Normalizing an AST involves repeatedly applying translation rules
+  until none are applicable.  This works yoyo-like: top-down,
+  bottom-up, top-down, etc.  At each subtree position, rules are
+  chosen in order of appearance in the theory definitions.
+
+  The configuration options \hyperlink{attribute.syntax-ast-trace}{\mbox{\isa{syntax{\isaliteral{5F}{\isacharunderscore}}ast{\isaliteral{5F}{\isacharunderscore}}trace}}} and
+  \hyperlink{attribute.syntax-ast-stats}{\mbox{\isa{syntax{\isaliteral{5F}{\isacharunderscore}}ast{\isaliteral{5F}{\isacharunderscore}}stats}}} might help understand this process
+  and diagnose problems.
+
+  \begin{warn}
+  If syntax translation rules work incorrectly, the output of
+  \hyperlink{command.print-syntax}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}syntax}}}} with its \emph{rules} sections reveals the
+  actual internal forms of AST pattern, without potentially confusing
+  concrete syntax.  Recall that AST constants appear as quoted strings
+  and variables without quotes.
+  \end{warn}
+
+  \begin{warn}
+  If \indexref{}{attribute}{eta\_contract}\hyperlink{attribute.eta-contract}{\mbox{\isa{eta{\isaliteral{5F}{\isacharunderscore}}contract}}} is set to \isa{{\isaliteral{22}{\isachardoublequote}}true{\isaliteral{22}{\isachardoublequote}}}, terms
+  will be \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6574613E}{\isasymeta}}{\isaliteral{22}{\isachardoublequote}}}-contracted \emph{before} the AST rewriter sees
+  them.  Thus some abstraction nodes needed for print rules to match
+  may vanish.  For example, \isa{{\isaliteral{22}{\isachardoublequote}}Ball\ A\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ P\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} would contract
+  to \isa{{\isaliteral{22}{\isachardoublequote}}Ball\ A\ P{\isaliteral{22}{\isachardoublequote}}} and the standard print rule would fail to
+  apply.  This problem can be avoided by hand-written ML translation
+  functions (see also \secref{sec:tr-funs}), which is in fact the same
+  mechanism used in built-in \hyperlink{keyword.binder}{\mbox{\isa{\isakeyword{binder}}}} declarations.
+  \end{warn}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
