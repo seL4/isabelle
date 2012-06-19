@@ -239,86 +239,12 @@ by a slash~({\tt/}) to allow a line break.
 \section{Macros: syntactic rewriting} \label{sec:macros}
 \index{macros|(}\index{rewriting!syntactic|(}
 
-Figure~\ref{fig:set_trans} defines a fragment of first-order logic and
-set theory.\footnote{This and the following theories are complete
-  working examples, though they specify only syntax, no axioms.  The
-  file {\tt ZF/ZF.thy} presents a full set theory definition,
-  including many macro rules.} Theory {\tt SetSyntax} declares
-constants for set comprehension ({\tt Collect}), replacement ({\tt
-  Replace}) and bounded universal quantification ({\tt Ball}).  Each
-of these binds some variables.  Without additional syntax we should
-have to write $\forall x \in A.  P$ as {\tt Ball(A,\%x.P)}, and
-similarly for the others.
-
-\begin{figure}
-\begin{ttbox}
-SetSyntax = Pure +
-types
-  i o
-arities
-  i, o :: logic
-consts
-  Trueprop      :: o => prop                ("_" 5)
-  Collect       :: [i, i => o] => i
-  Replace       :: [i, [i, i] => o] => i
-  Ball          :: [i, i => o] => o
-syntax
-  "{\at}Collect"    :: [idt, i, o] => i         ("(1{\ttlbrace}_:_./ _{\ttrbrace})")
-  "{\at}Replace"    :: [idt, idt, i, o] => i    ("(1{\ttlbrace}_./ _:_, _{\ttrbrace})")
-  "{\at}Ball"       :: [idt, i, o] => o         ("(3ALL _:_./ _)" 10)
-translations
-  "{\ttlbrace}x:A. P{\ttrbrace}"    == "Collect(A, \%x. P)"
-  "{\ttlbrace}y. x:A, Q{\ttrbrace}" == "Replace(A, \%x y. Q)"
-  "ALL x:A. P"  == "Ball(A, \%x. P)"
-end
-\end{ttbox}
-\caption{Macro example: set theory}\label{fig:set_trans}
-\end{figure}
-
-The theory specifies a variable-binding syntax through additional productions
-that have mixfix declarations.  Each non-copy production must specify some
-constant, which is used for building \AST{}s. \index{constants!syntactic} The
-additional constants are decorated with {\tt\at} to stress their purely
-syntactic purpose; they may not occur within the final well-typed terms,
-being declared as {\tt syntax} rather than {\tt consts}.
-
-The translations cause the replacement of external forms by internal forms
-after parsing, and vice versa before printing of terms.  As a specification
-of the set theory notation, they should be largely self-explanatory.  The
-syntactic constants, {\tt\at Collect}, {\tt\at Replace} and {\tt\at Ball},
-appear implicitly in the macro rules via their mixfix forms.
-
-Macros can define variable-binding syntax because they operate on \AST{}s,
-which have no inbuilt notion of bound variable.  The macro variables {\tt
-  x} and~{\tt y} have type~{\tt idt} and therefore range over identifiers,
-in this case bound variables.  The macro variables {\tt P} and~{\tt Q}
-range over formulae containing bound variable occurrences.
-
-Other applications of the macro system can be less straightforward, and
-there are peculiarities.  The rest of this section will describe in detail
-how Isabelle macros are preprocessed and applied.
-
-
 \subsection{Specifying macros}
 
-For theory~{\tt SetSyntax} of Fig.~\ref{fig:set_trans} these are
-\begin{ttbox}
-parse_rules:
-  ("{\at}Collect" x A P)  ->  ("Collect" A ("_abs" x P))
-  ("{\at}Replace" y x A Q)  ->  ("Replace" A ("_abs" x ("_abs" y Q)))
-  ("{\at}Ball" x A P)  ->  ("Ball" A ("_abs" x P))
-print_rules:
-  ("Collect" A ("_abs" x P))  ->  ("{\at}Collect" x A P)
-  ("Replace" A ("_abs" x ("_abs" y Q)))  ->  ("{\at}Replace" y x A Q)
-  ("Ball" A ("_abs" x P))  ->  ("{\at}Ball" x A P)
-\end{ttbox}
-
 \begin{warn}
-  Avoid choosing variable names that have previously been used as
-  constants, types or type classes; the {\tt consts} section in the output
-  of {\tt print_syntax} lists all such names.  If a macro rule works
-  incorrectly, inspect its internal form as shown above, recalling that
-  constants appear as quoted strings and variables without quotes.
+If a macro rule works incorrectly, inspect its internal form as
+shown above, recalling that constants appear as quoted strings and
+variables without quotes.
 \end{warn}
 
 \begin{warn}
@@ -392,22 +318,6 @@ constructors become {\tt Constant}s; see \S\ref{sec:asts}.  Thus \AST{}s may
 contain a messy mixture of {\tt Variable}s and {\tt Constant}s.  This is
 insignificant at macro level because matching treats them alike.
 
-Because of this behaviour, different kinds of atoms with the same name are
-indistinguishable, which may make some rules prone to misbehaviour.  Example:
-\begin{ttbox}
-types
-  Nil
-consts
-  Nil     :: 'a list
-syntax
-  "[]"    :: 'a list    ("[]")
-translations
-  "[]"    == "Nil"
-\end{ttbox}
-The term {\tt Nil} will be printed as {\tt []}, just as expected.
-The term \verb|%Nil.t| will be printed as \verb|%[].t|, which might not be
-expected!  Guess how type~{\tt Nil} is printed?
-
 Normalizing an \AST{} involves repeatedly applying macro rules until none are
 applicable.  Macro rules are chosen in order of appearance in the theory
 definitions.  You can watch the normalization of \AST{}s during parsing and
@@ -415,125 +325,6 @@ printing by setting \ttindex{Syntax.trace_ast} to {\tt true}.\index{tracing!of
   macros} The information displayed when tracing includes the \AST{} before
 normalization ({\tt pre}), redexes with results ({\tt rewrote}), the normal
 form finally reached ({\tt post}) and some statistics ({\tt normalize}).
-
-\subsection{Example: the syntax of finite sets}
-\index{examples!of macros}
-
-This example demonstrates the use of recursive macros to implement a
-convenient notation for finite sets.
-\begin{ttbox}
-FinSyntax = SetSyntax +
-types
-  is
-syntax
-  ""            :: i => is                  ("_")
-  "{\at}Enum"       :: [i, is] => is            ("_,/ _")
-consts
-  empty         :: i                        ("{\ttlbrace}{\ttrbrace}")
-  insert        :: [i, i] => i
-syntax
-  "{\at}Finset"     :: is => i                  ("{\ttlbrace}(_){\ttrbrace}")
-translations
-  "{\ttlbrace}x, xs{\ttrbrace}"     == "insert(x, {\ttlbrace}xs{\ttrbrace})"
-  "{\ttlbrace}x{\ttrbrace}"         == "insert(x, {\ttlbrace}{\ttrbrace})"
-end
-\end{ttbox}
-Finite sets are internally built up by {\tt empty} and {\tt insert}.  The
-declarations above specify \verb|{x, y, z}| as the external representation
-of
-\begin{ttbox}
-insert(x, insert(y, insert(z, empty)))
-\end{ttbox}
-The nonterminal symbol~\ndx{is} stands for one or more objects of type~{\tt
-  i} separated by commas.  The mixfix declaration \hbox{\verb|"_,/ _"|}
-allows a line break after the comma for \rmindex{pretty printing}; if no
-line break is required then a space is printed instead.
-
-The nonterminal is declared as the type~{\tt is}, but with no {\tt arities}
-declaration.  Hence {\tt is} is not a logical type and may be used safely as
-a new nonterminal for custom syntax.  The nonterminal~{\tt is} can later be
-re-used for other enumerations of type~{\tt i} like lists or tuples.  If we
-had needed polymorphic enumerations, we could have used the predefined
-nonterminal symbol \ndx{args} and skipped this part altogether.
-
-Next follows {\tt empty}, which is already equipped with its syntax
-\verb|{}|, and {\tt insert} without concrete syntax.  The syntactic
-constant {\tt\at Finset} provides concrete syntax for enumerations of~{\tt
-  i} enclosed in curly braces.  Remember that a pair of parentheses, as in
-\verb|"{(_)}"|, specifies a block of indentation for pretty printing.
-
-The translations may look strange at first.  Macro rules are best
-understood in their internal forms:
-\begin{ttbox}
-parse_rules:
-  ("{\at}Finset" ("{\at}Enum" x xs))  ->  ("insert" x ("{\at}Finset" xs))
-  ("{\at}Finset" x)  ->  ("insert" x "empty")
-print_rules:
-  ("insert" x ("{\at}Finset" xs))  ->  ("{\at}Finset" ("{\at}Enum" x xs))
-  ("insert" x "empty")  ->  ("{\at}Finset" x)
-\end{ttbox}
-This shows that \verb|{x,xs}| indeed matches any set enumeration of at least
-two elements, binding the first to {\tt x} and the rest to {\tt xs}.
-Likewise, \verb|{xs}| and \verb|{x}| represent any set enumeration.
-The parse rules only work in the order given.
-
-\begin{warn}
-  The \AST{} rewriter cannot distinguish constants from variables and looks
-  only for names of atoms.  Thus the names of {\tt Constant}s occurring in
-  the (internal) left-hand side of translation rules should be regarded as
-  \rmindex{reserved words}.  Choose non-identifiers like {\tt\at Finset} or
-  sufficiently long and strange names.  If a bound variable's name gets
-  rewritten, the result will be incorrect; for example, the term
-\begin{ttbox}
-\%empty insert. insert(x, empty)
-\end{ttbox}
-\par\noindent is incorrectly printed as \verb|%empty insert. {x}|.
-\end{warn}
-
-
-\subsection{Example: a parse macro for dependent types}\label{prod_trans}
-\index{examples!of macros}
-
-As stated earlier, a macro rule may not introduce new {\tt Variable}s on
-the right-hand side.  Something like \verb|"K(B)" => "%x.B"| is illegal;
-if allowed, it could cause variable capture.  In such cases you usually
-must fall back on translation functions.  But a trick can make things
-readable in some cases: {\em calling\/} translation functions by parse
-macros:
-\begin{ttbox}
-ProdSyntax = SetSyntax +
-consts
-  Pi            :: [i, i => i] => i
-syntax
-  "{\at}PROD"       :: [idt, i, i] => i       ("(3PROD _:_./ _)" 10)
-  "{\at}->"         :: [i, i] => i            ("(_ ->/ _)" [51, 50] 50)
-\ttbreak
-translations
-  "PROD x:A. B" => "Pi(A, \%x. B)"
-  "A -> B"      => "Pi(A, _K(B))"
-end
-ML
-  val print_translation = [("Pi", dependent_tr' ("{\at}PROD", "{\at}->"))];
-\end{ttbox}
-
-Here {\tt Pi} is a logical constant for constructing general products.
-Two external forms exist: the general case {\tt PROD x:A.B} and the
-function space {\tt A -> B}, which abbreviates \verb|Pi(A, %x.B)| when {\tt B}
-does not depend on~{\tt x}.
-
-The second parse macro introduces {\tt _K(B)}, which later becomes
-\verb|%x.B| due to a parse translation associated with \cdx{_K}.
-Unfortunately there is no such trick for printing, so we have to add a {\tt
-ML} section for the print translation \ttindex{dependent_tr'}.
-
-Recall that identifiers with a leading {\tt _} are allowed in translation
-rules, but not in ordinary terms.  Thus we can create \AST{}s containing
-names that are not directly expressible.
-
-The parse translation for {\tt _K} is already installed in Pure, and the
-function {\tt dependent_tr'} is exported by the syntax module for public use.
-See \S\ref{sec:tr_funs} below for more of the arcane lore of translation
-functions.  \index{macros|)}\index{rewriting!syntactic|)}
 
 
 \section{Translation functions} \label{sec:tr_funs}
@@ -629,79 +420,6 @@ term, all {\tt Constant}s become {\tt Const}s, as described in
 Printing starts with a well-typed term and all the constants are known.  So
 all logical constants and type constructors may invoke print translations.
 These, and macros, may introduce further constants.
-
-
-\subsection{Example: a print translation for dependent types}
-\index{examples!of translations}\indexbold{*dependent_tr'}
-
-Let us continue the dependent type example (page~\pageref{prod_trans}) by
-examining the parse translation for~\cdx{_K} and the print translation
-{\tt dependent_tr'}, which are both built-in.  By convention, parse
-translations have names ending with {\tt _tr} and print translations have
-names ending with {\tt _tr'}.  Search for such names in the Isabelle
-sources to locate more examples.
-
-Here is the parse translation for {\tt _K}:
-\begin{ttbox}
-fun k_tr [t] = Abs ("x", dummyT, incr_boundvars 1 t)
-  | k_tr ts = raise TERM ("k_tr", ts);
-\end{ttbox}
-If {\tt k_tr} is called with exactly one argument~$t$, it creates a new
-{\tt Abs} node with a body derived from $t$.  Since terms given to parse
-translations are not yet typed, the type of the bound variable in the new
-{\tt Abs} is simply {\tt dummyT}.  The function increments all {\tt Bound}
-nodes referring to outer abstractions by calling \ttindex{incr_boundvars},
-a basic term manipulation function defined in {\tt Pure/term.ML}.
-
-Here is the print translation for dependent types:
-\begin{ttbox}
-fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
-      if 0 mem (loose_bnos B) then
-        let val (x', B') = Syntax.variant_abs' (x, dummyT, B) in
-          list_comb
-            (Const (q,dummyT) $
-             Syntax.mark_boundT (x',{\thinspace}T) $ A $ B', ts)
-        end
-      else list_comb (Const (r, dummyT) $ A $ B, ts)
-  | dependent_tr' _ _ = raise Match;
-\end{ttbox}
-The argument {\tt (q,{\thinspace}r)} is supplied to the curried function {\tt
-  dependent_tr'} by a partial application during its installation.
-For example, we could set up print translations for both {\tt Pi} and
-{\tt Sigma} by including
-\begin{ttbox}\index{*ML section}
-val print_translation =
-  [("Pi",    dependent_tr' ("{\at}PROD", "{\at}->")),
-   ("Sigma", dependent_tr' ("{\at}SUM", "{\at}*"))];
-\end{ttbox}
-within the {\tt ML} section.  The first of these transforms ${\tt
-  Pi}(A, \mtt{Abs}(x, T, B))$ into $\hbox{\tt{\at}PROD}(x', A, B')$ or
-$\hbox{\tt{\at}->}(A, B)$, choosing the latter form if $B$ does not
-depend on~$x$.  It checks this using \ttindex{loose_bnos}, yet another
-function from {\tt Pure/term.ML}.  Note that $x'$ is a version of $x$
-renamed away from all names in $B$, and $B'$ is the body $B$ with {\tt
-  Bound} nodes referring to the {\tt Abs} node replaced by
-$\ttfct{Free} (x', \mtt{dummyT})$ (but marked as representing a bound
-variable).
-
-We must be careful with types here.  While types of {\tt Const}s are
-ignored, type constraints may be printed for some {\tt Free}s and
-{\tt Var}s if \ttindex{show_types} is set to {\tt true}.  Variables of type
-\ttindex{dummyT} are never printed with constraint, though.  The line
-\begin{ttbox}
-        let val (x', B') = Syntax.variant_abs' (x, dummyT, B);
-\end{ttbox}\index{*Syntax.variant_abs'}
-replaces bound variable occurrences in~$B$ by the free variable $x'$ with
-type {\tt dummyT}.  Only the binding occurrence of~$x'$ is given the
-correct type~{\tt T}, so this is the only place where a type
-constraint might appear.
-
-Also note that we are responsible to mark free identifiers that
-actually represent bound variables.  This is achieved by
-\ttindex{Syntax.variant_abs'} and \ttindex{Syntax.mark_boundT} above.
-Failing to do so may cause these names to be printed in the wrong
-style.  \index{translations|)} \index{syntax!transformations|)}
-
 
 %%% Local Variables: 
 %%% mode: latex
