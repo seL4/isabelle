@@ -1239,7 +1239,7 @@ The inner syntax engine of Isabelle provides separate
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Abstract syntax trees%
+\isamarkupsubsection{Abstract syntax trees \label{sec:ast}%
 }
 \isamarkuptrue%
 %
@@ -1283,7 +1283,7 @@ Ast.Appl
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsubsection{Ast constants versus variables%
+\isamarkupsubsubsection{AST constants versus variables%
 }
 \isamarkuptrue%
 %
@@ -1383,12 +1383,12 @@ Naming constant entities within ASTs is another delicate
 
   Unlike mixfix notation for existing formal entities
   (\secref{sec:notation}), raw syntax declarations provide full access
-  to the priority grammar of the inner syntax.  This includes
-  additional syntactic categories (via \hyperlink{command.nonterminal}{\mbox{\isa{\isacommand{nonterminal}}}}) and
-  free-form grammar productions (via \hyperlink{command.syntax}{\mbox{\isa{\isacommand{syntax}}}}).  Additional
-  syntax translations (or macros, via \hyperlink{command.translations}{\mbox{\isa{\isacommand{translations}}}}) are
-  required to turn resulting parse trees into proper representations
-  of formal entities again.
+  to the priority grammar of the inner syntax, without any sanity
+  checks.  This includes additional syntactic categories (via
+  \hyperlink{command.nonterminal}{\mbox{\isa{\isacommand{nonterminal}}}}) and free-form grammar productions (via
+  \hyperlink{command.syntax}{\mbox{\isa{\isacommand{syntax}}}}).  Additional syntax translations (or macros, via
+  \hyperlink{command.translations}{\mbox{\isa{\isacommand{translations}}}}) are required to turn resulting parse trees
+  into proper representations of formal entities again.
 
   \begin{railoutput}
 \rail@begin{2}{}
@@ -1525,10 +1525,48 @@ Naming constant entities within ASTs is another delicate
   are interpreted in the same manner as for \hyperlink{command.syntax}{\mbox{\isa{\isacommand{syntax}}}} above.
 
   \item \hyperlink{command.translations}{\mbox{\isa{\isacommand{translations}}}}~\isa{rules} specifies syntactic
-  translation rules (i.e.\ macros): parse~/ print rules (\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C72696768746C656674686172706F6F6E733E}{\isasymrightleftharpoons}}{\isaliteral{22}{\isachardoublequote}}}),
-  parse rules (\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7269676874686172706F6F6E75703E}{\isasymrightharpoonup}}{\isaliteral{22}{\isachardoublequote}}}), or print rules (\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C656674686172706F6F6E646F776E3E}{\isasymleftharpoondown}}{\isaliteral{22}{\isachardoublequote}}}).
+  translation rules (i.e.\ macros) as first-order rewrite rules on
+  ASTs (see also \secref{sec:ast}).  The theory context maintains two
+  independent lists translation rules: parse rules (\verb|=>|
+  or \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7269676874686172706F6F6E75703E}{\isasymrightharpoonup}}{\isaliteral{22}{\isachardoublequote}}}) and print rules (\verb|<=| or \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C656674686172706F6F6E646F776E3E}{\isasymleftharpoondown}}{\isaliteral{22}{\isachardoublequote}}}).
+  For convenience, both can be specified simultaneously as parse~/
+  print rules (\verb|==| or \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C72696768746C656674686172706F6F6E733E}{\isasymrightleftharpoons}}{\isaliteral{22}{\isachardoublequote}}}).
+
   Translation patterns may be prefixed by the syntactic category to be
-  used for parsing; the default is \isa{logic}.
+  used for parsing; the default is \isa{logic} which means that
+  regular term syntax is used.  Both sides of the syntax translation
+  rule undergo parsing and parse AST translations
+  \secref{sec:tr-funs}, in order to perform some fundamental
+  normalization like \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x\ y{\isaliteral{2E}{\isachardot}}\ b\ {\isaliteral{5C3C6C65616473746F3E}{\isasymleadsto}}\ {\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}y{\isaliteral{2E}{\isachardot}}\ b{\isaliteral{22}{\isachardoublequote}}}, but other AST
+  translation rules are \emph{not} applied recursively here.
+
+  When processing AST patterns, the inner syntax lexer runs in a
+  different mode that allows identifiers to start with underscore.
+  This accommodates the usual naming convention for auxiliary syntax
+  constants --- those that do not have a logical counter part --- by
+  allowing to specify arbitrary AST applications within the term
+  syntax, independently of the corresponding concrete syntax.
+
+  Atomic ASTs are distinguished as \verb|Ast.Constant| versus \verb|Ast.Variable| as follows: a qualified name or syntax constant
+  declared via \hyperlink{command.syntax}{\mbox{\isa{\isacommand{syntax}}}}, or parse tree head of concrete
+  notation becomes \verb|Ast.Constant|, anything else \verb|Ast.Variable|.  Note that \isa{CONST} and \isa{XCONST} within
+  the term language (\secref{sec:pure-grammar}) allow to enforce
+  treatment as constants.
+
+  AST rewrite rules \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}lhs{\isaliteral{2C}{\isacharcomma}}\ rhs{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} need to obey the following
+  side-conditions:
+
+  \begin{itemize}
+
+  \item Rules must be left linear: \isa{{\isaliteral{22}{\isachardoublequote}}lhs{\isaliteral{22}{\isachardoublequote}}} must not contain
+  repeated variables.\footnote{The deeper reason for this is that AST
+  equality is not well-defined: different occurrences of the ``same''
+  AST could be decorated differently by accidental type-constraints or
+  source position information, for example.}
+
+  \item Every variable in \isa{{\isaliteral{22}{\isachardoublequote}}rhs{\isaliteral{22}{\isachardoublequote}}} must also occur in \isa{{\isaliteral{22}{\isachardoublequote}}lhs{\isaliteral{22}{\isachardoublequote}}}.
+
+  \end{itemize}
 
   \item \hyperlink{command.no-translations}{\mbox{\isa{\isacommand{no{\isaliteral{5F}{\isacharunderscore}}translations}}}}~\isa{rules} removes syntactic
   translation rules, which are interpreted in the same manner as for

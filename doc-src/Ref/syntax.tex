@@ -239,23 +239,6 @@ by a slash~({\tt/}) to allow a line break.
 \section{Macros: syntactic rewriting} \label{sec:macros}
 \index{macros|(}\index{rewriting!syntactic|(}
 
-Mixfix declarations alone can handle situations where there is a direct
-connection between the concrete syntax and the underlying term.  Sometimes
-we require a more elaborate concrete syntax, such as quantifiers and list
-notation.  Isabelle's {\bf macros} and {\bf translation functions} can
-perform translations such as
-\begin{center}\tt
-  \begin{tabular}{r@{$\quad\protect\rightleftharpoons\quad$}l}
-    ALL x:A.P   & Ball(A, \%x.P)        \\ \relax
-    [x, y, z]   & Cons(x, Cons(y, Cons(z, Nil)))
-  \end{tabular}
-\end{center}
-Translation functions (see \S\ref{sec:tr_funs}) must be coded in ML; they
-are the most powerful translation mechanism but are difficult to read or
-write.  Macros are specified by first-order rewriting systems that operate
-on abstract syntax trees.  They are usually easy to read and write, and can
-express all but the most obscure translations.
-
 Figure~\ref{fig:set_trans} defines a fragment of first-order logic and
 set theory.\footnote{This and the following theories are complete
   working examples, though they specify only syntax, no axioms.  The
@@ -317,50 +300,8 @@ how Isabelle macros are preprocessed and applied.
 
 
 \subsection{Specifying macros}
-Macros are basically rewrite rules on \AST{}s.  But unlike other macro
-systems found in programming languages, Isabelle's macros work in both
-directions.  Therefore a syntax contains two lists of rewrites: one for
-parsing and one for printing.
 
-\index{*translations section}
-The {\tt translations} section specifies macros.  The syntax for a macro is
-\[ (root)\; string \quad
-   \left\{\begin{array}[c]{c} \mtt{=>} \\ \mtt{<=} \\ \mtt{==} \end{array}
-   \right\} \quad
-   (root)\; string
-\]
-%
-This specifies a parse rule ({\tt =>}), a print rule ({\tt <=}), or both
-({\tt ==}).  The two strings specify the left and right-hand sides of the
-macro rule.  The $(root)$ specification is optional; it specifies the
-nonterminal for parsing the $string$ and if omitted defaults to {\tt
-  logic}.  \AST{} rewrite rules $(l, r)$ must obey certain conditions:
-\begin{itemize}
-\item Rules must be left linear: $l$ must not contain repeated variables.
-
-\item Every variable in~$r$ must also occur in~$l$.
-\end{itemize}
-
-Macro rules may refer to any syntax from the parent theories.  They
-may also refer to anything defined before the current {\tt
-  translations} section --- including any mixfix declarations.
-
-Upon declaration, both sides of the macro rule undergo parsing and parse
-\AST{} translations (see \S\ref{sec:asts}), but do not themselves undergo
-macro expansion.  The lexer runs in a different mode that additionally
-accepts identifiers of the form $\_~letter~quasiletter^*$ (like {\tt _idt},
-{\tt _K}).  Thus, a constant whose name starts with an underscore can
-appear in macro rules but not in ordinary terms.
-
-Some atoms of the macro rule's \AST{} are designated as constants for
-matching.  These are all names that have been declared as classes, types or
-constants (logical and syntactic).
-
-The result of this preprocessing is two lists of macro rules, each
-stored as a pair of \AST{}s.  They can be viewed using {\tt
-  print_syntax} (sections \ttindex{parse_rules} and
-\ttindex{print_rules}).  For theory~{\tt SetSyntax} of
-Fig.~\ref{fig:set_trans} these are
+For theory~{\tt SetSyntax} of Fig.~\ref{fig:set_trans} these are
 \begin{ttbox}
 parse_rules:
   ("{\at}Collect" x A P)  ->  ("Collect" A ("_abs" x P))

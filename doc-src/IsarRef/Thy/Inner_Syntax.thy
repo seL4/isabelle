@@ -1060,7 +1060,7 @@ text {* The inner syntax engine of Isabelle provides separate
   Isabelle/Pure. *}
 
 
-subsection {* Abstract syntax trees *}
+subsection {* Abstract syntax trees \label{sec:ast} *}
 
 text {* The ML datatype @{ML_type Ast.ast} explicitly represents the
   intermediate AST format that is used for syntax rewriting
@@ -1099,7 +1099,7 @@ text {* The ML datatype @{ML_type Ast.ast} explicitly represents the
 *}
 
 
-subsubsection {* Ast constants versus variables *}
+subsubsection {* AST constants versus variables *}
 
 text {* Depending on the situation --- input syntax, output syntax,
   translation patterns --- the distinction of atomic asts as @{ML
@@ -1192,12 +1192,12 @@ text {*
 
   Unlike mixfix notation for existing formal entities
   (\secref{sec:notation}), raw syntax declarations provide full access
-  to the priority grammar of the inner syntax.  This includes
-  additional syntactic categories (via @{command nonterminal}) and
-  free-form grammar productions (via @{command syntax}).  Additional
-  syntax translations (or macros, via @{command translations}) are
-  required to turn resulting parse trees into proper representations
-  of formal entities again.
+  to the priority grammar of the inner syntax, without any sanity
+  checks.  This includes additional syntactic categories (via
+  @{command nonterminal}) and free-form grammar productions (via
+  @{command syntax}).  Additional syntax translations (or macros, via
+  @{command translations}) are required to turn resulting parse trees
+  into proper representations of formal entities again.
 
   @{rail "
     @@{command nonterminal} (@{syntax name} + @'and')
@@ -1274,10 +1274,51 @@ text {*
   are interpreted in the same manner as for @{command "syntax"} above.
 
   \item @{command "translations"}~@{text rules} specifies syntactic
-  translation rules (i.e.\ macros): parse~/ print rules (@{text "\<rightleftharpoons>"}),
-  parse rules (@{text "\<rightharpoonup>"}), or print rules (@{text "\<leftharpoondown>"}).
+  translation rules (i.e.\ macros) as first-order rewrite rules on
+  ASTs (see also \secref{sec:ast}).  The theory context maintains two
+  independent lists translation rules: parse rules (@{verbatim "=>"}
+  or @{text "\<rightharpoonup>"}) and print rules (@{verbatim "<="} or @{text "\<leftharpoondown>"}).
+  For convenience, both can be specified simultaneously as parse~/
+  print rules (@{verbatim "=="} or @{text "\<rightleftharpoons>"}).
+
   Translation patterns may be prefixed by the syntactic category to be
-  used for parsing; the default is @{text logic}.
+  used for parsing; the default is @{text logic} which means that
+  regular term syntax is used.  Both sides of the syntax translation
+  rule undergo parsing and parse AST translations
+  \secref{sec:tr-funs}, in order to perform some fundamental
+  normalization like @{text "\<lambda>x y. b \<leadsto> \<lambda>x. \<lambda>y. b"}, but other AST
+  translation rules are \emph{not} applied recursively here.
+
+  When processing AST patterns, the inner syntax lexer runs in a
+  different mode that allows identifiers to start with underscore.
+  This accommodates the usual naming convention for auxiliary syntax
+  constants --- those that do not have a logical counter part --- by
+  allowing to specify arbitrary AST applications within the term
+  syntax, independently of the corresponding concrete syntax.
+
+  Atomic ASTs are distinguished as @{ML Ast.Constant} versus @{ML
+  Ast.Variable} as follows: a qualified name or syntax constant
+  declared via @{command syntax}, or parse tree head of concrete
+  notation becomes @{ML Ast.Constant}, anything else @{ML
+  Ast.Variable}.  Note that @{text CONST} and @{text XCONST} within
+  the term language (\secref{sec:pure-grammar}) allow to enforce
+  treatment as constants.
+
+  AST rewrite rules @{text "(lhs, rhs)"} need to obey the following
+  side-conditions:
+
+  \begin{itemize}
+
+  \item Rules must be left linear: @{text "lhs"} must not contain
+  repeated variables.\footnote{The deeper reason for this is that AST
+  equality is not well-defined: different occurrences of the ``same''
+  AST could be decorated differently by accidental type-constraints or
+  source position information, for example.}
+
+  \item Every variable in @{text "rhs"} must also occur in @{text
+  "lhs"}.
+
+  \end{itemize}
 
   \item @{command "no_translations"}~@{text rules} removes syntactic
   translation rules, which are interpreted in the same manner as for
