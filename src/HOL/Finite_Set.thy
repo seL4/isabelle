@@ -7,6 +7,7 @@ header {* Finite sets *}
 
 theory Finite_Set
 imports Option Power
+uses ("Tools/set_comprehension_pointfree.ML")
 begin
 
 subsection {* Predicate for finite sets *}
@@ -15,6 +16,12 @@ inductive finite :: "'a set \<Rightarrow> bool"
   where
     emptyI [simp, intro!]: "finite {}"
   | insertI [simp, intro!]: "finite A \<Longrightarrow> finite (insert a A)"
+
+use "Tools/set_comprehension_pointfree.ML"
+
+simproc_setup finite_Collect ("finite (Collect P)") =
+  {* Set_Comprehension_Pointfree.simproc *}
+
 
 lemma finite_induct [case_names empty insert, induct set: finite]:
   -- {* Discharging @{text "x \<notin> F"} entails extra work. *}

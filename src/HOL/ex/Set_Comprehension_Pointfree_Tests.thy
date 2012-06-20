@@ -7,11 +7,7 @@ header {* Tests for the set comprehension to pointfree simproc *}
 
 theory Set_Comprehension_Pointfree_Tests
 imports Main
-uses "set_comprehension_pointfree.ML"
 begin
-
-simproc_setup finite_Collect ("finite (Collect P)") =
-  {* Set_Comprehension_Pointfree.simproc *}
 
 lemma
   "finite {p. EX x. p = (x, x)}"
