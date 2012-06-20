@@ -1653,7 +1653,7 @@ As a term is being parsed or printed, an AST is generated as
 
   \begin{warn}
   If syntax translation rules work incorrectly, the output of
-  \hyperlink{command.print-syntax}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}syntax}}}} with its \emph{rules} sections reveals the
+  \indexref{}{command}{print\_syntax}\hyperlink{command.print-syntax}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}syntax}}}} with its \emph{rules} sections reveals the
   actual internal forms of AST pattern, without potentially confusing
   concrete syntax.  Recall that AST constants appear as quoted strings
   and variables without quotes.
@@ -1685,6 +1685,10 @@ As a term is being parsed or printed, an AST is generated as
     \indexdef{}{command}{print\_ast\_translation}\hypertarget{command.print-ast-translation}{\hyperlink{command.print-ast-translation}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}ast{\isaliteral{5F}{\isacharunderscore}}translation}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
+  Syntax translation functions written in ML admit almost arbitrary
+  manipulations of inner syntax, at the expense of some complexity and
+  obscurity in the implementation.
+
   \begin{railoutput}
 \rail@begin{5}{}
 \rail@bar
@@ -1709,43 +1713,88 @@ As a term is being parsed or printed, an AST is generated as
 \end{railoutput}
 
 
-  Syntax translation functions written in ML admit almost arbitrary
-  manipulations of Isabelle's inner syntax.  Any of the above commands
-  have a single \hyperlink{syntax.text}{\mbox{\isa{text}}} argument that refers to an ML
-  expression of appropriate type, which are as follows by default:
+  Any of the above commands have a single \hyperlink{syntax.text}{\mbox{\isa{text}}} argument that
+  refers to an ML expression of appropriate type, which are as follows
+  by default:
 
-%FIXME proper antiquotations
-\begin{ttbox}
-val parse_ast_translation   : (string * (ast list -> ast)) list
-val parse_translation       : (string * (term list -> term)) list
-val print_translation       : (string * (term list -> term)) list
-val typed_print_translation : (string * (typ -> term list -> term)) list
-val print_ast_translation   : (string * (ast list -> ast)) list
-\end{ttbox}
+  \medskip
+  {\small
+  \begin{tabular}{ll}
+  \hyperlink{command.parse-ast-translation}{\mbox{\isa{\isacommand{parse{\isaliteral{5F}{\isacharunderscore}}ast{\isaliteral{5F}{\isacharunderscore}}translation}}}} & : \verb|(string * (Ast.ast list -> Ast.ast)) list| \\
+  \hyperlink{command.parse-translation}{\mbox{\isa{\isacommand{parse{\isaliteral{5F}{\isacharunderscore}}translation}}}} & : \verb|(string * (term list -> term)) list| \\
+  \hyperlink{command.print-translation}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}translation}}}} & : \verb|(string * (term list -> term)) list| \\
+  \hyperlink{command.typed-print-translation}{\mbox{\isa{\isacommand{typed{\isaliteral{5F}{\isacharunderscore}}print{\isaliteral{5F}{\isacharunderscore}}translation}}}} & : \verb|(string * (typ -> term list -> term)) list| \\
+  \hyperlink{command.print-ast-translation}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}ast{\isaliteral{5F}{\isacharunderscore}}translation}}}} & : \verb|(string * (Ast.ast list -> Ast.ast)) list| \\
+  \end{tabular}}
+  \medskip
 
-  If the \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}advanced{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} option is given, the corresponding
-  translation functions may depend on the current theory or proof
-  context.  This allows to implement advanced syntax mechanisms, as
-  translations functions may refer to specific theory declarations or
-  auxiliary proof data.
+  The argument list consist of \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}c{\isaliteral{2C}{\isacharcomma}}\ tr{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} pairs, where \isa{{\isaliteral{22}{\isachardoublequote}}c{\isaliteral{22}{\isachardoublequote}}} is the syntax name of the syntax constant, term constant or
+  type constructor involved, and \isa{{\isaliteral{22}{\isachardoublequote}}tr{\isaliteral{22}{\isachardoublequote}}} a function that
+  translates a syntax form \isa{{\isaliteral{22}{\isachardoublequote}}c\ args{\isaliteral{22}{\isachardoublequote}}} into \isa{{\isaliteral{22}{\isachardoublequote}}tr\ args{\isaliteral{22}{\isachardoublequote}}}.
+  For print translations, the naming convention for such functions is
+  \isa{{\isaliteral{22}{\isachardoublequote}}tr{\isaliteral{27}{\isacharprime}}{\isaliteral{22}{\isachardoublequote}}} instead of \isa{{\isaliteral{22}{\isachardoublequote}}tr{\isaliteral{22}{\isachardoublequote}}}.
 
-%FIXME proper antiquotations
-\begin{ttbox}
-val parse_ast_translation:
-  (string * (Proof.context -> ast list -> ast)) list
-val parse_translation:
-  (string * (Proof.context -> term list -> term)) list
-val print_translation:
-  (string * (Proof.context -> term list -> term)) list
-val typed_print_translation:
-  (string * (Proof.context -> typ -> term list -> term)) list
-val print_ast_translation:
-  (string * (Proof.context -> ast list -> ast)) list
-\end{ttbox}
+  The \indexref{}{command}{print\_syntax}\hyperlink{command.print-syntax}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}syntax}}}} command displays the sets of names
+  associated with the translation functions of a theory under \isa{{\isaliteral{22}{\isachardoublequote}}parse{\isaliteral{5F}{\isacharunderscore}}ast{\isaliteral{5F}{\isacharunderscore}}translation{\isaliteral{22}{\isachardoublequote}}} etc.
 
-  \medskip See also the chapter on ``Syntax Transformations'' in old
-  \cite{isabelle-ref} for further details on translations on parse
-  trees.%
+  If the \verb|(|\hyperlink{keyword.advanced}{\mbox{\isa{\isakeyword{advanced}}}}\verb|)| option is
+  given, the corresponding translation functions depend on the current
+  theory or proof context as additional argument.  This allows to
+  implement advanced syntax mechanisms, as translations functions may
+  refer to specific theory declarations or auxiliary proof data.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{The translation strategy%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The different kinds of translation functions are called during
+  the transformations between parse trees, ASTs and syntactic terms
+  (cf.\ \figref{fig:parse-print}).  Whenever a combination of the form
+  \isa{{\isaliteral{22}{\isachardoublequote}}c\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} is encountered, and a translation function
+  \isa{{\isaliteral{22}{\isachardoublequote}}f{\isaliteral{22}{\isachardoublequote}}} of appropriate kind is declared for \isa{{\isaliteral{22}{\isachardoublequote}}c{\isaliteral{22}{\isachardoublequote}}}, the
+  result is produced by evaluation of \isa{{\isaliteral{22}{\isachardoublequote}}f\ {\isaliteral{5B}{\isacharbrackleft}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}} in ML.
+
+  For AST translations, the arguments \isa{{\isaliteral{22}{\isachardoublequote}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} are ASTs.  A
+  combination has the form \verb|Ast.Constant|~\isa{{\isaliteral{22}{\isachardoublequote}}c{\isaliteral{22}{\isachardoublequote}}} or \verb|Ast.Appl|~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{22}{\isachardoublequote}}}\verb|Ast.Constant|~\isa{{\isaliteral{22}{\isachardoublequote}}c{\isaliteral{2C}{\isacharcomma}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}}.
+  For term translations, the arguments are terms and a combination has
+  the form \verb|Const|~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}c{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} or \verb|Const|~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}c{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{24}{\isachardollar}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{24}{\isachardollar}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{24}{\isachardollar}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}}.  Terms allow more sophisticated transformations
+  than ASTs do, typically involving abstractions and bound
+  variables. \emph{Typed} print translations may even peek at the type
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{22}{\isachardoublequote}}} of the constant they are invoked on.
+
+  Regardless of whether they act on ASTs or terms, translation
+  functions called during the parsing process differ from those for
+  printing in their overall behaviour:
+
+  \begin{description}
+
+  \item [Parse translations] are applied bottom-up.  The arguments are
+  already in translated form.  The translations must not fail;
+  exceptions trigger an error message.  There may be at most one
+  function associated with any syntactic name.
+
+  \item [Print translations] are applied top-down.  They are supplied
+  with arguments that are partly still in internal form.  The result
+  again undergoes translation; therefore a print translation should
+  not introduce as head the very constant that invoked it.  The
+  function may raise exception \verb|Match| to indicate failure; in
+  this event it has no effect.  Multiple functions associated with
+  some syntactic name are tried in the order of declaration in the
+  theory.
+
+  \end{description}
+
+  Only constant atoms --- constructor \verb|Ast.Constant| for ASTs and
+  \verb|Const| for terms --- can invoke translation functions.  This
+  means that parse translations can only be associated with parse tree
+  heads of concrete syntax, or syntactic constants introduced via
+  other translations.  For plain identifiers within the term language,
+  the status of constant versus variable is not yet know during
+  parsing.  This is in contrast to print translations, where constants
+  are explicitly known from the given term in its fully internal form.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

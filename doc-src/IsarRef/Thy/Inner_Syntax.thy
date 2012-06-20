@@ -1410,7 +1410,7 @@ text {* As a term is being parsed or printed, an AST is generated as
 
   \begin{warn}
   If syntax translation rules work incorrectly, the output of
-  @{command print_syntax} with its \emph{rules} sections reveals the
+  @{command_ref print_syntax} with its \emph{rules} sections reveals the
   actual internal forms of AST pattern, without potentially confusing
   concrete syntax.  Recall that AST constants appear as quoted strings
   and variables without quotes.
@@ -1440,49 +1440,98 @@ text {*
     @{command_def "print_ast_translation"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
+  Syntax translation functions written in ML admit almost arbitrary
+  manipulations of inner syntax, at the expense of some complexity and
+  obscurity in the implementation.
+
   @{rail "
   ( @@{command parse_ast_translation} | @@{command parse_translation} |
     @@{command print_translation} | @@{command typed_print_translation} |
     @@{command print_ast_translation}) ('(' @'advanced' ')')? @{syntax text}
   "}
 
-  Syntax translation functions written in ML admit almost arbitrary
-  manipulations of Isabelle's inner syntax.  Any of the above commands
-  have a single @{syntax text} argument that refers to an ML
-  expression of appropriate type, which are as follows by default:
+  Any of the above commands have a single @{syntax text} argument that
+  refers to an ML expression of appropriate type, which are as follows
+  by default:
 
-%FIXME proper antiquotations
-\begin{ttbox}
-val parse_ast_translation   : (string * (ast list -> ast)) list
-val parse_translation       : (string * (term list -> term)) list
-val print_translation       : (string * (term list -> term)) list
-val typed_print_translation : (string * (typ -> term list -> term)) list
-val print_ast_translation   : (string * (ast list -> ast)) list
-\end{ttbox}
+  \medskip
+  {\small
+  \begin{tabular}{ll}
+  @{command parse_ast_translation} & : @{ML_type "(string * (Ast.ast list -> Ast.ast)) list"} \\
+  @{command parse_translation} & : @{ML_type "(string * (term list -> term)) list"} \\
+  @{command print_translation} & : @{ML_type "(string * (term list -> term)) list"} \\
+  @{command typed_print_translation} & : @{ML_type "(string * (typ -> term list -> term)) list"} \\
+  @{command print_ast_translation} & : @{ML_type "(string * (Ast.ast list -> Ast.ast)) list"} \\
+  \end{tabular}}
+  \medskip
 
-  If the @{text "(advanced)"} option is given, the corresponding
-  translation functions may depend on the current theory or proof
-  context.  This allows to implement advanced syntax mechanisms, as
-  translations functions may refer to specific theory declarations or
-  auxiliary proof data.
+  The argument list consist of @{text "(c, tr)"} pairs, where @{text
+  "c"} is the syntax name of the syntax constant, term constant or
+  type constructor involved, and @{text "tr"} a function that
+  translates a syntax form @{text "c args"} into @{text "tr args"}.
+  For print translations, the naming convention for such functions is
+  @{text "tr'"} instead of @{text "tr"}.
 
-%FIXME proper antiquotations
-\begin{ttbox}
-val parse_ast_translation:
-  (string * (Proof.context -> ast list -> ast)) list
-val parse_translation:
-  (string * (Proof.context -> term list -> term)) list
-val print_translation:
-  (string * (Proof.context -> term list -> term)) list
-val typed_print_translation:
-  (string * (Proof.context -> typ -> term list -> term)) list
-val print_ast_translation:
-  (string * (Proof.context -> ast list -> ast)) list
-\end{ttbox}
+  The @{command_ref print_syntax} command displays the sets of names
+  associated with the translation functions of a theory under @{text
+  "parse_ast_translation"} etc.
 
-  \medskip See also the chapter on ``Syntax Transformations'' in old
-  \cite{isabelle-ref} for further details on translations on parse
-  trees.
+  If the @{verbatim "("}@{keyword "advanced"}@{verbatim ")"} option is
+  given, the corresponding translation functions depend on the current
+  theory or proof context as additional argument.  This allows to
+  implement advanced syntax mechanisms, as translations functions may
+  refer to specific theory declarations or auxiliary proof data.
+*}
+
+subsubsection {* The translation strategy *}
+
+text {* The different kinds of translation functions are called during
+  the transformations between parse trees, ASTs and syntactic terms
+  (cf.\ \figref{fig:parse-print}).  Whenever a combination of the form
+  @{text "c x\<^sub>1 \<dots> x\<^sub>n"} is encountered, and a translation function
+  @{text "f"} of appropriate kind is declared for @{text "c"}, the
+  result is produced by evaluation of @{text "f [x\<^sub>1, \<dots>, x\<^sub>n]"} in ML.
+
+  For AST translations, the arguments @{text "x\<^sub>1, \<dots>, x\<^sub>n"} are ASTs.  A
+  combination has the form @{ML "Ast.Constant"}~@{text "c"} or @{ML
+  "Ast.Appl"}~@{text "["}@{ML Ast.Constant}~@{text "c, x\<^sub>1, \<dots>, x\<^sub>n]"}.
+  For term translations, the arguments are terms and a combination has
+  the form @{ML Const}~@{text "(c, \<tau>)"} or @{ML Const}~@{text "(c, \<tau>)
+  $ x\<^sub>1 $ \<dots> $ x\<^sub>n"}.  Terms allow more sophisticated transformations
+  than ASTs do, typically involving abstractions and bound
+  variables. \emph{Typed} print translations may even peek at the type
+  @{text "\<tau>"} of the constant they are invoked on.
+
+  Regardless of whether they act on ASTs or terms, translation
+  functions called during the parsing process differ from those for
+  printing in their overall behaviour:
+
+  \begin{description}
+
+  \item [Parse translations] are applied bottom-up.  The arguments are
+  already in translated form.  The translations must not fail;
+  exceptions trigger an error message.  There may be at most one
+  function associated with any syntactic name.
+
+  \item [Print translations] are applied top-down.  They are supplied
+  with arguments that are partly still in internal form.  The result
+  again undergoes translation; therefore a print translation should
+  not introduce as head the very constant that invoked it.  The
+  function may raise exception @{ML Match} to indicate failure; in
+  this event it has no effect.  Multiple functions associated with
+  some syntactic name are tried in the order of declaration in the
+  theory.
+
+  \end{description}
+
+  Only constant atoms --- constructor @{ML Ast.Constant} for ASTs and
+  @{ML Const} for terms --- can invoke translation functions.  This
+  means that parse translations can only be associated with parse tree
+  heads of concrete syntax, or syntactic constants introduced via
+  other translations.  For plain identifiers within the term language,
+  the status of constant versus variable is not yet know during
+  parsing.  This is in contrast to print translations, where constants
+  are explicitly known from the given term in its fully internal form.
 *}
 
 end
