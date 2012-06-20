@@ -160,31 +160,4 @@ text %mlref {*
   \end{description}
 *}
 
-
-section {* Syntax translations *}
-
-text FIXME
-
-text %mlantiq {*
-  \begin{matharray}{rcl}
-  @{ML_antiquotation_def "class_syntax"} & : & @{text ML_antiquotation} \\
-  @{ML_antiquotation_def "type_syntax"} & : & @{text ML_antiquotation} \\
-  @{ML_antiquotation_def "const_syntax"} & : & @{text ML_antiquotation} \\
-  @{ML_antiquotation_def "syntax_const"} & : & @{text ML_antiquotation} \\
-  \end{matharray}
-
-  @{rail "
-  (@@{ML_antiquotation class_syntax} |
-   @@{ML_antiquotation type_syntax} |
-   @@{ML_antiquotation const_syntax} |
-   @@{ML_antiquotation syntax_const}) name
-  "}
-
-  \begin{description}
-
-  \item FIXME
-
-  \end{description}
-*}
-
 end

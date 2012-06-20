@@ -1683,6 +1683,10 @@ As a term is being parsed or printed, an AST is generated as
     \indexdef{}{command}{print\_translation}\hypertarget{command.print-translation}{\hyperlink{command.print-translation}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}translation}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{command}{typed\_print\_translation}\hypertarget{command.typed-print-translation}{\hyperlink{command.typed-print-translation}{\mbox{\isa{\isacommand{typed{\isaliteral{5F}{\isacharunderscore}}print{\isaliteral{5F}{\isacharunderscore}}translation}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{command}{print\_ast\_translation}\hypertarget{command.print-ast-translation}{\hyperlink{command.print-ast-translation}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}ast{\isaliteral{5F}{\isacharunderscore}}translation}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{ML antiquotation}{class\_syntax}\hypertarget{ML antiquotation.class-syntax}{\hyperlink{ML antiquotation.class-syntax}{\mbox{\isa{class{\isaliteral{5F}{\isacharunderscore}}syntax}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
+    \indexdef{}{ML antiquotation}{type\_syntax}\hypertarget{ML antiquotation.type-syntax}{\hyperlink{ML antiquotation.type-syntax}{\mbox{\isa{type{\isaliteral{5F}{\isacharunderscore}}syntax}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
+    \indexdef{}{ML antiquotation}{const\_syntax}\hypertarget{ML antiquotation.const-syntax}{\hyperlink{ML antiquotation.const-syntax}{\mbox{\isa{const{\isaliteral{5F}{\isacharunderscore}}syntax}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
+    \indexdef{}{ML antiquotation}{syntax\_const}\hypertarget{ML antiquotation.syntax-const}{\hyperlink{ML antiquotation.syntax-const}{\mbox{\isa{syntax{\isaliteral{5F}{\isacharunderscore}}const}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
   \end{matharray}
 
   Syntax translation functions written in ML admit almost arbitrary
@@ -1710,15 +1714,30 @@ As a term is being parsed or printed, an AST is generated as
 \rail@endbar
 \rail@nont{\hyperlink{syntax.text}{\mbox{\isa{text}}}}[]
 \rail@end
+\rail@begin{4}{}
+\rail@bar
+\rail@term{\hyperlink{ML antiquotation.class-syntax}{\mbox{\isa{class{\isaliteral{5F}{\isacharunderscore}}syntax}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{ML antiquotation.type-syntax}{\mbox{\isa{type{\isaliteral{5F}{\isacharunderscore}}syntax}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{ML antiquotation.const-syntax}{\mbox{\isa{const{\isaliteral{5F}{\isacharunderscore}}syntax}}}}[]
+\rail@nextbar{3}
+\rail@term{\hyperlink{ML antiquotation.syntax-const}{\mbox{\isa{syntax{\isaliteral{5F}{\isacharunderscore}}const}}}}[]
+\rail@endbar
+\rail@nont{\isa{name}}[]
+\rail@end
 \end{railoutput}
 
 
-  Any of the above commands have a single \hyperlink{syntax.text}{\mbox{\isa{text}}} argument that
-  refers to an ML expression of appropriate type, which are as follows
-  by default:
+  \begin{description}
+
+  \item \hyperlink{command.parse-translation}{\mbox{\isa{\isacommand{parse{\isaliteral{5F}{\isacharunderscore}}translation}}}} etc. declare syntax translation
+  functions to the theory.  Any of these commands have a single
+  \hyperlink{syntax.text}{\mbox{\isa{text}}} argument that refers to an ML expression of
+  appropriate type, which are as follows by default:
 
   \medskip
-  {\small
+  {\footnotesize
   \begin{tabular}{ll}
   \hyperlink{command.parse-ast-translation}{\mbox{\isa{\isacommand{parse{\isaliteral{5F}{\isacharunderscore}}ast{\isaliteral{5F}{\isacharunderscore}}translation}}}} & : \verb|(string * (Ast.ast list -> Ast.ast)) list| \\
   \hyperlink{command.parse-translation}{\mbox{\isa{\isacommand{parse{\isaliteral{5F}{\isacharunderscore}}translation}}}} & : \verb|(string * (term list -> term)) list| \\
@@ -1741,7 +1760,23 @@ As a term is being parsed or printed, an AST is generated as
   given, the corresponding translation functions depend on the current
   theory or proof context as additional argument.  This allows to
   implement advanced syntax mechanisms, as translations functions may
-  refer to specific theory declarations or auxiliary proof data.%
+  refer to specific theory declarations or auxiliary proof data.
+
+  \item \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}class{\isaliteral{5F}{\isacharunderscore}}syntax\ c{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}type{\isaliteral{5F}{\isacharunderscore}}syntax\ c{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequote}}},
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}const{\isaliteral{5F}{\isacharunderscore}}syntax\ c{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequote}}} inline the authentic syntax name of the
+  given formal entities into the ML source.  This is the
+  fully-qualified logical name prefixed by a special marker to
+  indicate its kind: thus different logical name spaces are properly
+  distinguished within parse trees.
+
+  \item \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}const{\isaliteral{5F}{\isacharunderscore}}syntax\ c{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequote}}} inlines the name \isa{{\isaliteral{22}{\isachardoublequote}}c{\isaliteral{22}{\isachardoublequote}}} of
+  the given syntax constant, having checked that it has been declared
+  via some \hyperlink{command.syntax}{\mbox{\isa{\isacommand{syntax}}}} commands within the theory context.  Note
+  that the usual naming convention makes syntax constants start with
+  underscore, to reduce the chance of accidental clashes with other
+  names occurring in parse trees (unqualified constants etc.).
+
+  \end{description}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

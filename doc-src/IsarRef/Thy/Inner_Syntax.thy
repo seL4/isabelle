@@ -1438,6 +1438,10 @@ text {*
     @{command_def "print_translation"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "typed_print_translation"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "print_ast_translation"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{ML_antiquotation_def "class_syntax"} & : & @{text ML_antiquotation} \\
+    @{ML_antiquotation_def "type_syntax"} & : & @{text ML_antiquotation} \\
+    @{ML_antiquotation_def "const_syntax"} & : & @{text ML_antiquotation} \\
+    @{ML_antiquotation_def "syntax_const"} & : & @{text ML_antiquotation} \\
   \end{matharray}
 
   Syntax translation functions written in ML admit almost arbitrary
@@ -1448,14 +1452,22 @@ text {*
   ( @@{command parse_ast_translation} | @@{command parse_translation} |
     @@{command print_translation} | @@{command typed_print_translation} |
     @@{command print_ast_translation}) ('(' @'advanced' ')')? @{syntax text}
+  ;
+  (@@{ML_antiquotation class_syntax} |
+   @@{ML_antiquotation type_syntax} |
+   @@{ML_antiquotation const_syntax} |
+   @@{ML_antiquotation syntax_const}) name
   "}
 
-  Any of the above commands have a single @{syntax text} argument that
-  refers to an ML expression of appropriate type, which are as follows
-  by default:
+  \begin{description}
+
+  \item @{command parse_translation} etc. declare syntax translation
+  functions to the theory.  Any of these commands have a single
+  @{syntax text} argument that refers to an ML expression of
+  appropriate type, which are as follows by default:
 
   \medskip
-  {\small
+  {\footnotesize
   \begin{tabular}{ll}
   @{command parse_ast_translation} & : @{ML_type "(string * (Ast.ast list -> Ast.ast)) list"} \\
   @{command parse_translation} & : @{ML_type "(string * (term list -> term)) list"} \\
@@ -1481,7 +1493,24 @@ text {*
   theory or proof context as additional argument.  This allows to
   implement advanced syntax mechanisms, as translations functions may
   refer to specific theory declarations or auxiliary proof data.
+
+  \item @{text "@{class_syntax c}"}, @{text "@{type_syntax c}"},
+  @{text "@{const_syntax c}"} inline the authentic syntax name of the
+  given formal entities into the ML source.  This is the
+  fully-qualified logical name prefixed by a special marker to
+  indicate its kind: thus different logical name spaces are properly
+  distinguished within parse trees.
+
+  \item @{text "@{const_syntax c}"} inlines the name @{text "c"} of
+  the given syntax constant, having checked that it has been declared
+  via some @{command syntax} commands within the theory context.  Note
+  that the usual naming convention makes syntax constants start with
+  underscore, to reduce the chance of accidental clashes with other
+  names occurring in parse trees (unqualified constants etc.).
+
+  \end{description}
 *}
+
 
 subsubsection {* The translation strategy *}
 
