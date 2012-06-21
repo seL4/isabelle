@@ -19,6 +19,8 @@ configuration.
 
 *** HOL ***
 
+* Simproc for rewriting set comprehensions into pointfree expressions
+
 * Quickcheck:
 
   - added an optimisation for equality premises.
