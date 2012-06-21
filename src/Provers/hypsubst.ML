@@ -2,7 +2,7 @@
     Authors:    Martin D Coen, Tobias Nipkow and Lawrence C Paulson
     Copyright   1995  University of Cambridge
 
-Basic equational reasoning: hyp_subst_tac and methods "hypsubst", "subst".
+Basic equational reasoning: hyp_subst_tac and methods "hypsubst", "simplesubst".
 
 Tactic to substitute using (at least) the assumption x=t in the rest
 of the subgoal, and to delete (at least) that assumption.  Original

@@ -259,6 +259,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/rewrite_hol_proof.ML \
   Tools/sat_funcs.ML \
   Tools/sat_solver.ML \
+  Tools/set_comprehension_pointfree.ML \
   Tools/split_rule.ML \
   Tools/try0.ML \
   Tools/typedef.ML \
@@ -1042,8 +1043,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy	\
   ex/Transfer_Int_Nat.thy						\
   ex/Tree23.thy	ex/Unification.thy ex/While_Combinator_Example.thy	\
   ex/document/root.bib ex/document/root.tex ex/svc_funcs.ML		\
-  ex/svc_test.thy ../Tools/interpretation_with_defs.ML			\
-  ex/set_comprehension_pointfree.ML
+  ex/svc_test.thy ../Tools/interpretation_with_defs.ML
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL ex
 
 
