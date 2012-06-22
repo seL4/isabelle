@@ -376,7 +376,7 @@ end;
 
   fun init_conv ctxt =
    Simplifier.rewrite (Simplifier.context ctxt
-     (HOL_basic_ss addsimps ([(*@{thm vec_0}, @{thm vec_1},*) @{thm dist_norm}, @{thm diff_0_right}, @{thm right_minus}, @{thm diff_self}, @{thm norm_zero}] @ @{thms arithmetic_simps} @ @{thms norm_pths})))
+     (HOL_basic_ss addsimps ([(*@{thm vec_0}, @{thm vec_1},*) @{thm dist_norm}, @{thm right_minus}, @{thm diff_self}, @{thm norm_zero}] @ @{thms arithmetic_simps} @ @{thms norm_pths})))
    then_conv Numeral_Simprocs.field_comp_conv
    then_conv nnf_conv
 

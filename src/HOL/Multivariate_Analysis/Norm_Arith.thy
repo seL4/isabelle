@@ -108,10 +108,6 @@ lemmas arithmetic_simps =
   arith_simps
   add_numeral_special
   add_neg_numeral_special
-  add_0_left
-  add_0_right
-  mult_zero_left
-  mult_zero_right
   mult_1_left
   mult_1_right
 
