@@ -32,10 +32,10 @@ def prepare_isabelle_repository(loc_isabelle, loc_contrib, loc_dependency_heaps,
         raise IOError('Bad file: %s' % loc_contrib)
     subprocess.check_call(['ln', '-s', loc_contrib, '%s/contrib' % loc_isabelle])
 
-    contributed_components = path.join(loc_isabelle, 'Admin', 'contributed_components')
-    if path.exists(contributed_components):
+    components = path.join(loc_isabelle, 'Admin', 'components.common')
+    if path.exists(components):
         components = []
-        for component in util.readfile_lines(contributed_components):
+        for component in util.readfile_lines(components):
             loc_component = path.join(loc_isabelle, component)
             if path.exists(loc_component):
                 components.append(loc_component)
