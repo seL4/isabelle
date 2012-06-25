@@ -20,7 +20,7 @@ inductive finite :: "'a set \<Rightarrow> bool"
 use "Tools/set_comprehension_pointfree.ML"
 
 simproc_setup finite_Collect ("finite (Collect P)") =
-  {* Set_Comprehension_Pointfree.simproc *}
+  {* K Set_Comprehension_Pointfree.simproc *}
 
 
 lemma finite_induct [case_names empty insert, induct set: finite]:

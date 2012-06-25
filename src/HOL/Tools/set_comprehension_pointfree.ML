@@ -1,13 +1,13 @@
-(*  Title:      HOL/ex/set_comprehension_pointfree.ML
+(*  Title:      HOL/Tools/set_comprehension_pointfree.ML
     Author:     Felix Kuperjans, Lukas Bulwahn, TU Muenchen
-                Rafal Kolanski, NICTA
+    Author:     Rafal Kolanski, NICTA
 
 Simproc for rewriting set comprehensions to pointfree expressions.
 *)
 
 signature SET_COMPREHENSION_POINTFREE =
 sig
-  val simproc : morphism -> simpset -> cterm -> thm option
+  val simproc : simpset -> cterm -> thm option
   val rewrite_term : term -> term option
   val conv : Proof.context -> term -> thm option
 end
@@ -141,7 +141,7 @@ fun conv ctxt t =
 
 (* simproc *)
 
-fun simproc _ ss redex =
+fun simproc ss redex =
   let
     val ctxt = Simplifier.the_context ss
     val _ $ set_compr = term_of redex
