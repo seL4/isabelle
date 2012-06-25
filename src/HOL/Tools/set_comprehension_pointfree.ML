@@ -7,8 +7,10 @@ Simproc for rewriting set comprehensions to pointfree expressions.
 
 signature SET_COMPREHENSION_POINTFREE =
 sig
+  val code_simproc : morphism -> simpset -> cterm -> thm option
   val simproc : morphism -> simpset -> cterm -> thm option
   val rewrite_term : term -> term option
+  (* FIXME: function conv is not a conversion, i.e. of type cterm -> thm, MAYBE rename *)
   val conv : Proof.context -> term -> thm option
 end
 
@@ -141,6 +143,16 @@ fun conv ctxt t =
 
 (* simproc *)
 
+fun base_simproc _ ss redex =
+  let
+    val ctxt = Simplifier.the_context ss
+    val set_compr = term_of redex
+  in
+    conv ctxt set_compr
+    |> Option.map (fn thm => thm RS @{thm eq_reflection})
+  end;
+
+(* FIXME: turn into generic simproc for many predicates, i.e., remove hard-coded finite! *)
 fun simproc _ ss redex =
   let
     val ctxt = Simplifier.the_context ss
@@ -149,6 +161,16 @@ fun simproc _ ss redex =
     conv ctxt set_compr
     |> Option.map (fn thm =>
          thm RS @{thm arg_cong[of _ _ finite]} RS @{thm eq_reflection})
+  end;
+
+fun code_simproc morphism ss redex =
+  let
+    val prep_thm = Raw_Simplifier.rewrite false @{thms eq_equal[symmetric]} redex
+  in
+    case base_simproc morphism ss (Thm.rhs_of prep_thm) of
+      SOME rewr_thm => SOME (transitive_thm OF [transitive_thm OF [prep_thm, rewr_thm],
+        Raw_Simplifier.rewrite false @{thms eq_equal} (Thm.rhs_of rewr_thm)])
+    | NONE => NONE
   end;
 
 end;
