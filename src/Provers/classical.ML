@@ -907,7 +907,7 @@ end;
 
 (* contradiction method *)
 
-val contradiction = Method.rule [Data.not_elim, Data.not_elim COMP Drule.swap_prems_rl];
+val contradiction = Method.rule [Data.not_elim, Drule.rotate_prems 1 Data.not_elim];
 
 
 (* automatic methods *)

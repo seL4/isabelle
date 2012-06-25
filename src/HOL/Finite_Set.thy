@@ -21,13 +21,13 @@ inductive finite :: "'a set \<Rightarrow> bool"
 use "Tools/set_comprehension_pointfree.ML"
 
 simproc_setup finite_Collect ("finite (Collect P)") =
-  {* Set_Comprehension_Pointfree.simproc *}
+  {* K Set_Comprehension_Pointfree.simproc *}
 
 (* FIXME: move to Set theory*)
 setup {*
   Code_Preproc.map_pre (fn ss => ss addsimprocs
     [Raw_Simplifier.make_simproc {name = "set comprehension", lhss = [@{cpat "Collect ?P"}],
-    proc = Set_Comprehension_Pointfree.code_simproc, identifier = []}])
+    proc = K Set_Comprehension_Pointfree.code_simproc, identifier = []}])
 *}
 
 lemma finite_induct [case_names empty insert, induct set: finite]:
@@ -872,7 +872,7 @@ proof -
     case (insert x F) then show ?case apply -
     apply (simp add: subset_insert_iff, clarify)
     apply (subgoal_tac "finite C")
-      prefer 2 apply (blast dest: finite_subset [COMP swap_prems_rl])
+      prefer 2 apply (blast dest: finite_subset [rotated])
     apply (subgoal_tac "C = insert x (C - {x})")
       prefer 2 apply blast
     apply (erule ssubst)
@@ -1524,7 +1524,7 @@ proof -
   apply - apply (erule finite_induct) apply simp
   apply (simp add: subset_insert_iff, clarify)
   apply (subgoal_tac "finite C")
-  prefer 2 apply (blast dest: finite_subset [COMP swap_prems_rl])
+  prefer 2 apply (blast dest: finite_subset [rotated])
   apply (subgoal_tac "C = insert x (C - {x})")
   prefer 2 apply blast
   apply (erule ssubst)

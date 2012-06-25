@@ -511,7 +511,7 @@ unfolding path_connected_component proof(clarify)
   hence "path_component (S i) x z" and "path_component (S j) z y"
     using assms by (simp_all add: path_connected_component)
   hence "path_component (\<Union>i\<in>A. S i) x z" and "path_component (\<Union>i\<in>A. S i) z y"
-    using *(1,3) by (auto elim!: path_component_of_subset [COMP swap_prems_rl])
+    using *(1,3) by (auto elim!: path_component_of_subset [rotated])
   thus "path_component (\<Union>i\<in>A. S i) x y"
     by (rule path_component_trans)
 qed

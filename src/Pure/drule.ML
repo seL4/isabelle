@@ -105,7 +105,6 @@ sig
   val incr_indexes2: thm -> thm -> thm -> thm
   val triv_forall_equality: thm
   val distinct_prems_rl: thm
-  val swap_prems_rl: thm
   val equal_intr_rule: thm
   val equal_elim_rule1: thm
   val equal_elim_rule2: thm
@@ -563,24 +562,6 @@ val distinct_prems_rl =
   in
     store_standard_thm_open (Binding.name "distinct_prems_rl")
       (implies_intr_list [AAB, A] (implies_elim_list (Thm.assume AAB) [Thm.assume A, Thm.assume A]))
-  end;
-
-(* (PROP ?PhiA ==> PROP ?PhiB ==> PROP ?Psi) ==>
-   (PROP ?PhiB ==> PROP ?PhiA ==> PROP ?Psi)
-   `thm COMP swap_prems_rl' swaps the first two premises of `thm'
-*)
-val swap_prems_rl =
-  let
-    val cmajor = read_prop "PhiA ==> PhiB ==> Psi";
-    val major = Thm.assume cmajor;
-    val cminor1 = read_prop "PhiA";
-    val minor1 = Thm.assume cminor1;
-    val cminor2 = read_prop "PhiB";
-    val minor2 = Thm.assume cminor2;
-  in
-    store_standard_thm_open (Binding.name "swap_prems_rl")
-      (Thm.implies_intr cmajor (Thm.implies_intr cminor2 (Thm.implies_intr cminor1
-        (Thm.implies_elim (Thm.implies_elim major minor1) minor2))))
   end;
 
 (* [| PROP ?phi ==> PROP ?psi; PROP ?psi ==> PROP ?phi |]
