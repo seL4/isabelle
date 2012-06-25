@@ -784,9 +784,13 @@ code_const enum_the (Eval "(fn p => raise Match)")
 
 subsection {* Further operations on finite types *}
 
-lemma [code]:
+lemma Collect_code[code]:
   "Collect P = set (filter P enum)"
 by (auto simp add: enum_UNIV)
+
+lemma [code]:
+  "Id = image (%x. (x, x)) (set Enum.enum)"
+by (auto intro: imageI in_enum)
 
 lemma tranclp_unfold [code, no_atp]:
   "tranclp r a b \<equiv> (a, b) \<in> trancl {(x, y). r x y}"
