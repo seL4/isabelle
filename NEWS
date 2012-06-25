@@ -9,6 +9,9 @@ New in this Isabelle version
 * Discontinued obsolete method fastsimp / tactic fast_simp_tac, which
 is called fastforce / fast_force_tac already since Isabelle2011-1.
 
+* Updated and extended "isar-ref" manual, reduced remaining material
+in old "ref" manual.
+
 
 *** System ***
 
@@ -36,6 +39,8 @@ Minor INCOMPATIBILITY.
 * Sledgehammer:
 
   - Rationalized type encodings ("type_enc" option).
+
+
 
 New in Isabelle2012 (May 2012)
 ------------------------------
