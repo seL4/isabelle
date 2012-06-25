@@ -4208,7 +4208,7 @@ apply (clarify, rename_tac l2 r2)
 apply (rule_tac x="(l1, l2)" in rev_bexI, simp)
 apply (rule_tac x="r1 \<circ> r2" in exI)
 apply (rule conjI, simp add: subseq_def)
-apply (drule_tac r=r2 in lim_subseq [COMP swap_prems_rl], assumption)
+apply (drule_tac r=r2 in lim_subseq [rotated], assumption)
 apply (drule (1) tendsto_Pair) back
 apply (simp add: o_def)
 done

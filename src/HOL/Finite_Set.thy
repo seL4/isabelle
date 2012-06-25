@@ -865,7 +865,7 @@ proof -
     case (insert x F) then show ?case apply -
     apply (simp add: subset_insert_iff, clarify)
     apply (subgoal_tac "finite C")
-      prefer 2 apply (blast dest: finite_subset [COMP swap_prems_rl])
+      prefer 2 apply (blast dest: finite_subset [rotated])
     apply (subgoal_tac "C = insert x (C - {x})")
       prefer 2 apply blast
     apply (erule ssubst)
@@ -1517,7 +1517,7 @@ proof -
   apply - apply (erule finite_induct) apply simp
   apply (simp add: subset_insert_iff, clarify)
   apply (subgoal_tac "finite C")
-  prefer 2 apply (blast dest: finite_subset [COMP swap_prems_rl])
+  prefer 2 apply (blast dest: finite_subset [rotated])
   apply (subgoal_tac "C = insert x (C - {x})")
   prefer 2 apply blast
   apply (erule ssubst)
