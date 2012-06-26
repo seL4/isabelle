@@ -8,8 +8,12 @@
 function init_component_liberal
 {
   local LOCATION="$1"
-  [[ -d "${LOCATION}" ]] || echo "Warning: no component found in ${LOCATION}" && return
-  init_component "${LOCATION}"
+  if [[ -d "${LOCATION}" ]]
+  then
+    init_component "${LOCATION}"
+  else
+    echo "Warning: no component found in ${LOCATION}"
+  fi
 }
 
 while { unset REPLY; read -r; test "$?" = 0 -o -n "${REPLY}"; }
