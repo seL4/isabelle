@@ -2567,33 +2567,20 @@ val free_typesN = "Type variables"
    symbols (with "$i" as the type of individuals), but some provers (e.g.,
    SNARK) require explicit declarations. The situation is similar for THF. *)
 
-fun default_type type_enc pred_sym s =
+fun default_type pred_sym s =
   let
-    val ind =
-      case type_enc of
-        Native _ =>
-        (* ### FIXME: get rid of that, and move to "atp_problem.ML" *)
-        if String.isPrefix type_const_prefix s orelse
-           String.isPrefix tfree_prefix s then
-          atype_of_types
-        else
-          individual_atype
-      | _ => individual_atype
-    fun typ 0 0 = if pred_sym then bool_atype else ind
-      | typ 0 tm_ary = AFun (ind, typ 0 (tm_ary - 1))
+    fun typ 0 0 = if pred_sym then bool_atype else individual_atype
+      | typ 0 tm_ary = AFun (individual_atype, typ 0 (tm_ary - 1))
       | typ ty_ary tm_ary = APi (replicate ty_ary tvar_a_name, typ 0 tm_ary)
   in typ end
 
 fun nary_type_constr_type n =
   funpow n (curry AFun atype_of_types) atype_of_types
 
-fun undeclared_syms_in_problem type_enc problem =
+fun undeclared_syms_in_problem problem =
   let
     fun do_sym (name as (s, _)) ty =
-      if is_tptp_user_symbol s then
-        Symtab.default (s, (name, ty))
-      else
-        I
+      if is_tptp_user_symbol s then Symtab.default (s, (name, ty)) else I
     fun do_type (AType (name, tys)) =
         do_sym name (fn () => nary_type_constr_type (length tys))
         #> fold do_type tys
@@ -2601,7 +2588,7 @@ fun undeclared_syms_in_problem type_enc problem =
       | do_type (APi (_, ty)) = do_type ty
     fun do_term pred_sym (ATerm ((name as (s, _), tys), tms)) =
         do_sym name
-            (fn _ => default_type type_enc pred_sym s (length tys) (length tms))
+            (fn _ => default_type pred_sym s (length tys) (length tms))
         #> fold do_type tys #> fold (do_term false) tms
       | do_term _ (AAbs (((_, ty), tm), args)) =
         do_type ty #> do_term false tm #> fold (do_term false) args
@@ -2619,13 +2606,13 @@ fun undeclared_syms_in_problem type_enc problem =
     |> fold (fold do_problem_line o snd) problem
   end
 
-fun declare_undeclared_syms_in_atp_problem type_enc problem =
+fun declare_undeclared_syms_in_atp_problem problem =
   let
     val decls =
       Symtab.fold (fn (_, (("", ""), _)) => I (* already declared *)
                     | (s, (sym, ty)) =>
                       cons (Decl (type_decl_prefix ^ s, sym, ty ())))
-                  (undeclared_syms_in_problem type_enc problem) []
+                  (undeclared_syms_in_problem problem) []
   in (implicit_declsN, decls) :: problem end
 
 fun exists_subdtype P =
@@ -2726,14 +2713,13 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
        (free_typesN, formula_lines_for_free_types type_enc (facts @ conjs)),
        (conjsN, map (formula_line_for_conjecture ctxt mono type_enc) conjs)]
     val problem =
-      problem
-      |> (case format of
-            CNF => ensure_cnf_problem
-          | CNF_UEQ => filter_cnf_ueq_problem
-          | FOF => I
-          | TFF (_, TPTP_Implicit) => I
-          | THF (_, TPTP_Implicit, _, _) => I
-          | _ => declare_undeclared_syms_in_atp_problem type_enc)
+      problem |> (case format of
+                    CNF => ensure_cnf_problem
+                  | CNF_UEQ => filter_cnf_ueq_problem
+                  | FOF => I
+                  | TFF (_, TPTP_Implicit) => I
+                  | THF (_, TPTP_Implicit, _, _) => I
+                  | _ => declare_undeclared_syms_in_atp_problem)
     val (problem, pool) = problem |> nice_atp_problem readable_names format
     fun add_sym_ary (s, {min_ary, ...} : sym_info) =
       min_ary > 0 ? Symtab.insert (op =) (s, min_ary)
