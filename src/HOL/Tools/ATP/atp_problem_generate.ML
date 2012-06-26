@@ -181,7 +181,7 @@ val combsN = "combs"
 val combs_and_liftingN = "combs_and_lifting"
 val combs_or_liftingN = "combs_or_lifting"
 val keep_lamsN = "keep_lams"
-val lam_liftingN = "lam_lifting" (* legacy *)
+val lam_liftingN = "lam_lifting" (* legacy FIXME: remove *)
 
 val bound_var_prefix = "B_"
 val all_bound_var_prefix = "A_"
@@ -1012,8 +1012,6 @@ fun add_iterm_vars bounds (IApp (tm1, tm2)) =
     not (member (op =) bounds name) ? insert (op =) (name, SOME T)
   | add_iterm_vars bounds (IAbs (_, tm)) = add_iterm_vars bounds tm
 
-fun close_iformula_universally phi = close_universally add_iterm_vars phi
-
 fun aliased_uncurried ary (s, s') =
   (s ^ ascii_of_uncurried_alias_sep ^ string_of_int ary, s' ^ string_of_int ary)
 fun unaliased_uncurried (s, s') =
@@ -1279,7 +1277,7 @@ fun make_formula ctxt format type_enc iff_for_eq name stature role t =
     val (iformula, atomic_Ts) =
       iformula_from_prop ctxt type_enc iff_for_eq (SOME (role <> Conjecture)) t
                          []
-      |>> close_iformula_universally
+      |>> close_universally add_iterm_vars
   in
     {name = name, stature = stature, role = role, iformula = iformula,
      atomic_types = atomic_Ts}
