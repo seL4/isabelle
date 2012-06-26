@@ -23,7 +23,7 @@ val ctxt = @{context}
 ML {*
 if do_it then
   "/tmp/axs_tc_native.dfg"
-  |> generate_tptp_inference_file_for_theory ctxt thy (DFG With_Type_Classes)
+  |> generate_tptp_inference_file_for_theory ctxt thy (DFG Polymorphic)
                                              "tc_native"
 else
   ()
@@ -39,16 +39,9 @@ else
 
 ML {*
 if do_it then
-  "/tmp/infs_poly_tags.tptp"
-  |> generate_tptp_inference_file_for_theory ctxt thy FOF "poly_tags"
-else
-  ()
-*}
-
-ML {*
-if do_it then
-  "/tmp/infs_poly_tags_uniform.tptp"
-  |> generate_tptp_inference_file_for_theory ctxt thy FOF "poly_tags_uniform"
+  "/tmp/infs_poly_tags_query_query.tptp"
+  |> generate_tptp_inference_file_for_theory ctxt thy FOF
+                                             "poly_tags_query_query"
 else
   ()
 *}
