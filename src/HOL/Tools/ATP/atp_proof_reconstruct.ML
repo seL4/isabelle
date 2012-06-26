@@ -331,7 +331,7 @@ exception SAME of unit
 
 (* Type variables are given the basic sort "HOL.type". Some will later be
    constrained by information from type literals, or by type inference. *)
-fun typ_from_atp ctxt (u as ATerm (a, us)) =
+fun typ_from_atp ctxt (u as ATerm ((a, _), us)) =
   let val Ts = map (typ_from_atp ctxt) us in
     case unprefix_and_unascii type_const_prefix a of
       SOME b => Type (invert_const b, Ts)
@@ -351,7 +351,7 @@ fun typ_from_atp ctxt (u as ATerm (a, us)) =
 
 (* Type class literal applied to a type. Returns triple of polarity, class,
    type. *)
-fun type_constraint_from_term ctxt (u as ATerm (a, us)) =
+fun type_constraint_from_term ctxt (u as ATerm ((a, _), us)) =
   case (unprefix_and_unascii class_prefix a, map (typ_from_atp ctxt) us) of
     (SOME b, [T]) => (b, T)
   | _ => raise HO_TERM [u]
@@ -404,7 +404,7 @@ fun term_from_atp ctxt textual sym_tab =
     val var_index = if textual then 0 else 1
     fun do_term extra_ts opt_T u =
       case u of
-        ATerm (s, us) =>
+        ATerm ((s, _), us) =>
         if String.isPrefix native_type_prefix s then
           @{const True} (* ignore TPTP type information *)
         else if s = tptp_equal then
@@ -492,7 +492,7 @@ fun term_from_atp ctxt textual sym_tab =
           in list_comb (t, ts) end
   in do_term [] end
 
-fun term_from_atom ctxt textual sym_tab pos (u as ATerm (s, _)) =
+fun term_from_atom ctxt textual sym_tab pos (u as ATerm ((s, _), _)) =
   if String.isPrefix class_prefix s then
     add_type_constraint pos (type_constraint_from_term ctxt u)
     #> pair @{const True}

@@ -8,7 +8,7 @@ Abstract representation of ATP problems and TPTP syntax.
 signature ATP_PROBLEM =
 sig
   datatype ('a, 'b) ho_term =
-    ATerm of 'a * ('a, 'b) ho_term list |
+    ATerm of ('a * 'b list) * ('a, 'b) ho_term list |
     AAbs of (('a * 'b) * ('a, 'b) ho_term) * ('a, 'b) ho_term list
   datatype quantifier = AForall | AExists
   datatype connective = ANot | AAnd | AOr | AImplies | AIff
@@ -140,7 +140,7 @@ open ATP_Util
 (** ATP problem **)
 
 datatype ('a, 'b) ho_term =
-  ATerm of 'a * ('a, 'b) ho_term list |
+  ATerm of ('a * 'b list) * ('a, 'b) ho_term list |
   AAbs of (('a * 'b) * ('a, 'b) ho_term) * ('a, 'b) ho_term list
 datatype quantifier = AForall | AExists
 datatype connective = ANot | AAnd | AOr | AImplies | AIff
@@ -230,17 +230,17 @@ val default_term_order_weight = 1
 (* Currently, only SPASS 3.8ds can process Isabelle metainformation. *)
 fun isabelle_info status rank =
   [] |> rank <> default_rank
-        ? cons (ATerm (isabelle_info_prefix ^ rankN,
-                       [ATerm (string_of_int rank, [])]))
-     |> status <> "" ? cons (ATerm (isabelle_info_prefix ^ status, []))
+        ? cons (ATerm ((isabelle_info_prefix ^ rankN, []),
+                       [ATerm ((string_of_int rank, []), [])]))
+     |> status <> "" ? cons (ATerm ((isabelle_info_prefix ^ status, []), []))
 
-fun extract_isabelle_status (ATerm (s, []) :: _) =
+fun extract_isabelle_status (ATerm ((s, []), []) :: _) =
     try (unprefix isabelle_info_prefix) s
   | extract_isabelle_status _ = NONE
 
 fun extract_isabelle_rank (tms as _ :: _) =
     (case List.last tms of
-       ATerm (_, [ATerm (rank, [])]) => the (Int.fromString rank)
+       ATerm ((_, []), [ATerm ((rank, []), [])]) => the (Int.fromString rank)
      | _ => default_rank)
   | extract_isabelle_rank _ = default_rank
 
@@ -379,8 +379,9 @@ fun string_for_bound_var format (s, ty) =
    else
      "")
 
-fun tptp_string_for_term _ (ATerm (s, [])) = s
-  | tptp_string_for_term format (ATerm (s, ts)) =
+fun tptp_string_for_term _ (ATerm ((s, []), [])) = s
+  | tptp_string_for_term _ (ATerm ((s, tys), [])) = s (* ### FIXME *)
+  | tptp_string_for_term format (ATerm ((s, tys), ts)) = (* ### FIXME *)
     (if s = tptp_empty_list then
        (* used for lists in the optional "source" field of a derivation *)
        "[" ^ commas (map (tptp_string_for_term format) ts) ^ "]"
@@ -418,7 +419,7 @@ and tptp_string_for_formula format (AQuant (q, xs, phi)) =
     tptp_string_for_formula format phi
     |> enclose "(" ")"
   | tptp_string_for_formula format
-        (AConn (ANot, [AAtom (ATerm ("=" (* tptp_equal *), ts))])) =
+        (AConn (ANot, [AAtom (ATerm (("=" (* tptp_equal *), []), ts))])) =
     space_implode (" " ^ tptp_not_infix ^ tptp_equal ^ " ")
                   (map (tptp_string_for_term format) ts)
     |> is_format_higher_order format ? enclose "(" ")"
@@ -475,11 +476,12 @@ fun dfg_string_for_formula poly gen_simp info =
         | NONE => s
       else
         s
-    fun str_for_term top_level (ATerm (s, tms)) =
+    fun str_for_term top_level (ATerm ((s, tys), tms)) =
         (if is_tptp_equal s then "equal" |> suffix_tag top_level
          else if s = tptp_true then "true"
          else if s = tptp_false then "false"
          else s) ^
+        (if null tys then "" else "<...>") (* ### FIXME *) ^
         (if null tms then ""
          else "(" ^ commas (map (str_for_term false) tms) ^ ")")
       | str_for_term _ _ = raise Fail "unexpected term in first-order format"
@@ -597,13 +599,14 @@ fun lines_for_atp_problem format ord ord_info problem =
 fun is_problem_line_negated (Formula (_, _, AConn (ANot, _), _, _)) = true
   | is_problem_line_negated _ = false
 
-fun is_problem_line_cnf_ueq (Formula (_, _, AAtom (ATerm ((s, _), _)), _, _)) =
+fun is_problem_line_cnf_ueq
+        (Formula (_, _, AAtom (ATerm (((s, _), _), _)), _, _)) =
     is_tptp_equal s
   | is_problem_line_cnf_ueq _ = false
 
-fun open_conjecture_term (ATerm ((s, s'), tms)) =
-    ATerm (if is_tptp_variable s then (s |> Name.desymbolize false, s')
-           else (s, s'), tms |> map open_conjecture_term)
+fun open_conjecture_term (ATerm (((s, s'), tys), tms)) =
+    ATerm ((if is_tptp_variable s then (s |> Name.desymbolize false, s')
+            else (s, s'), tys), tms |> map open_conjecture_term)
   | open_conjecture_term _ = raise Fail "unexpected higher-order term"
 fun open_formula conj =
   let
@@ -797,8 +800,9 @@ fun nice_atp_problem readable_names format problem =
       | nice_type (AFun (ty1, ty2)) = nice_type ty1 ##>> nice_type ty2 #>> AFun
       | nice_type (ATyAbs (names, ty)) =
         pool_map nice_name names ##>> nice_type ty #>> ATyAbs
-    fun nice_term (ATerm (name, ts)) =
-        nice_name name ##>> pool_map nice_term ts #>> ATerm
+    fun nice_term (ATerm ((name, tys), ts)) =
+        nice_name name ##>> pool_map nice_type tys ##>> pool_map nice_term ts
+        #>> ATerm
       | nice_term (AAbs (((name, ty), tm), args)) =
         nice_name name ##>> nice_type ty ##>> nice_term tm
         ##>> pool_map nice_term args #>> AAbs

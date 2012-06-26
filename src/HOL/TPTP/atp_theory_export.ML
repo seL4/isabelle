@@ -97,10 +97,11 @@ fun generate_tptp_graph_file_for_theory ctxt thy file_name =
 
 fun inference_term [] = NONE
   | inference_term ss =
-    ATerm ("inference",
-           [ATerm ("isabelle", []),
-            ATerm (tptp_empty_list, []),
-            ATerm (tptp_empty_list, map (fn s => ATerm (s, [])) ss)])
+    ATerm (("inference", []),
+           [ATerm (("isabelle", []), []),
+            ATerm ((tptp_empty_list, []), []),
+            ATerm ((tptp_empty_list, []),
+            map (fn s => ATerm ((s, []), [])) ss)])
     |> SOME
 fun inference infers ident =
   these (AList.lookup (op =) infers ident) |> inference_term

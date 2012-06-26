@@ -138,7 +138,7 @@ val proxy_defs = map (fst o snd o snd) proxy_table
 val prepare_helper =
   Meson.make_meta_clause #> rewrite_rule (map safe_mk_meta_eq proxy_defs)
 
-fun metis_term_from_atp type_enc (ATerm (s, tms)) =
+fun metis_term_from_atp type_enc (ATerm ((s, []), tms)) =
   if is_tptp_variable s then
     Metis_Term.Var (Metis_Name.fromString s)
   else

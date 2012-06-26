@@ -889,15 +889,15 @@ fun add_sorts_on_tvar (TVar z) = generic_add_sorts_on_type z
   | add_sorts_on_tvar _ = I
 
 fun type_class_formula type_enc class arg =
-  AAtom (ATerm (class, arg ::
+  AAtom (ATerm ((class, []), arg ::
       (case type_enc of
          Native (First_Order, Raw_Polymorphic Without_Phantom_Type_Vars, _) =>
-         [ATerm (TYPE_name, [arg])]
+         [ATerm ((TYPE_name, []), [arg])]
        | _ => [])))
 fun formulas_for_types type_enc add_sorts_on_typ Ts =
   [] |> level_of_type_enc type_enc <> No_Types ? fold add_sorts_on_typ Ts
      |> map (fn (class, name) =>
-                type_class_formula type_enc class (ATerm (name, [])))
+                type_class_formula type_enc class (ATerm ((name, []), [])))
 
 fun mk_aconns c phis =
   let val (phis', phi') = split_last phis in
@@ -919,7 +919,7 @@ fun close_universally add_term_vars phi =
       | add_formula_vars bounds (AAtom tm) = add_term_vars bounds tm
   in mk_aquant AForall (add_formula_vars [] phi []) phi end
 
-fun add_term_vars bounds (ATerm (name as (s, _), tms)) =
+fun add_term_vars bounds (ATerm ((name as (s, _), _), tms)) =
     (if is_tptp_variable s andalso
         not (String.isPrefix tvar_prefix s) andalso
         not (member (op =) bounds name) then
@@ -948,17 +948,17 @@ fun tvar_name (x as (s, _)) = (make_schematic_type_var x, s)
 fun ho_term_from_typ type_enc =
   let
     fun term (Type (s, Ts)) =
-      ATerm (case (is_type_enc_higher_order type_enc, s) of
-               (true, @{type_name bool}) => `I tptp_bool_type
-             | (true, @{type_name fun}) => `I tptp_fun_type
-             | _ => if s = fused_infinite_type_name andalso
-                       is_type_enc_native type_enc then
-                      `I tptp_individual_type
-                    else
-                      `make_fixed_type_const s,
-             map term Ts)
-    | term (TFree (s, _)) = ATerm (`make_fixed_type_var s, [])
-    | term (TVar (x, _)) = ATerm (tvar_name x, [])
+      ATerm ((case (is_type_enc_higher_order type_enc, s) of
+                (true, @{type_name bool}) => `I tptp_bool_type
+              | (true, @{type_name fun}) => `I tptp_fun_type
+              | _ => if s = fused_infinite_type_name andalso
+                        is_type_enc_native type_enc then
+                       `I tptp_individual_type
+                     else
+                       `make_fixed_type_const s,
+              []), map term Ts)
+    | term (TFree (s, _)) = ATerm ((`make_fixed_type_var s, []), [])
+    | term (TVar (x, _)) = ATerm ((tvar_name x, []), [])
   in term end
 
 fun ho_term_for_type_arg type_enc T =
@@ -970,8 +970,9 @@ val mangled_type_sep = "\001"
 
 val ascii_of_uncurried_alias_sep = ascii_of uncurried_alias_sep
 
-fun generic_mangled_type_name f (ATerm (name, [])) = f name
-  | generic_mangled_type_name f (ATerm (name, tys)) =
+(* ### FIXME: insane *)
+fun generic_mangled_type_name f (ATerm ((name, _), [])) = f name
+  | generic_mangled_type_name f (ATerm ((name, _), tys)) =
     f name ^ "(" ^ space_implode "," (map (generic_mangled_type_name f) tys)
     ^ ")"
   | generic_mangled_type_name _ _ = raise Fail "unexpected type abstraction"
@@ -991,7 +992,8 @@ fun ho_type_from_ho_term type_enc pred_sym ary =
     fun to_mangled_atype ty =
       AType ((make_native_type (generic_mangled_type_name fst ty),
               generic_mangled_type_name snd ty), [])
-    fun to_poly_atype (ATerm (name, tys)) = AType (name, map to_poly_atype tys)
+    fun to_poly_atype (ATerm ((name, []), tys)) =
+        AType (name, map to_poly_atype tys)
       | to_poly_atype _ = raise Fail "unexpected type abstraction"
     val to_atype =
       if is_type_enc_polymorphic type_enc then to_poly_atype
@@ -1000,7 +1002,7 @@ fun ho_type_from_ho_term type_enc pred_sym ary =
     fun to_fo 0 ty = if pred_sym then bool_atype else to_atype ty
       | to_fo ary (ATerm (_, tys)) = to_afun to_atype (to_fo (ary - 1)) tys
       | to_fo _ _ = raise Fail "unexpected type abstraction"
-    fun to_ho (ty as ATerm ((s, _), tys)) =
+    fun to_ho (ty as ATerm (((s, _), []), tys)) =
         if s = tptp_fun_type then to_afun to_ho to_ho tys else to_atype ty
       | to_ho _ = raise Fail "unexpected type abstraction"
   in if is_type_enc_higher_order type_enc then to_ho else to_fo ary end
@@ -1033,7 +1035,7 @@ val parse_mangled_ident =
 fun parse_mangled_type x =
   (parse_mangled_ident
    -- Scan.optional ($$ "(" |-- Scan.optional parse_mangled_types [] --| $$ ")")
-                    [] >> ATerm) x
+                    [] >> (ATerm o apfst (rpair []))) x
 and parse_mangled_types x =
   (parse_mangled_type ::: Scan.repeat ($$ "," |-- parse_mangled_type)) x
 
@@ -1731,7 +1733,7 @@ fun bound_tvars type_enc sorts Ts =
 
 fun eq_formula type_enc atomic_Ts bounds pred_sym tm1 tm2 =
   (if pred_sym then AConn (AIff, [AAtom tm1, AAtom tm2])
-   else AAtom (ATerm (`I tptp_equal, [tm1, tm2])))
+   else AAtom (ATerm ((`I tptp_equal, []), [tm1, tm2])))
   |> mk_aquant AForall bounds
   |> close_formula_universally
   |> bound_tvars type_enc true atomic_Ts
@@ -1951,16 +1953,17 @@ fun type_guard_iterm type_enc T tm =
         |> mangle_type_args_in_iterm type_enc, tm)
 
 fun is_var_positively_naked_in_term _ (SOME false) _ accum = accum
-  | is_var_positively_naked_in_term name _ (ATerm ((s, _), tms)) accum =
-    accum orelse (is_tptp_equal s andalso member (op =) tms (ATerm (name, [])))
+  | is_var_positively_naked_in_term name _ (ATerm (((s, _), _), tms)) accum =
+    accum orelse
+    (is_tptp_equal s andalso member (op =) tms (ATerm ((name, []), [])))
   | is_var_positively_naked_in_term _ _ _ _ = true
 
 fun is_var_positively_naked_or_undercover_in_term thy name pos tm accum =
   is_var_positively_naked_in_term name pos tm accum orelse
   let
-    val var = ATerm (name, [])
+    val var = ATerm ((name, []), [])
     fun is_undercover (ATerm (_, [])) = false
-      | is_undercover (ATerm ((s, _), tms)) =
+      | is_undercover (ATerm (((s, _), _), tms)) =
         let
           val ary = length tms
           val cover = type_arg_cover thy s ary
@@ -1991,7 +1994,11 @@ fun should_generate_tag_bound_decl _ _ _ (SOME true) _ = false
   | should_generate_tag_bound_decl _ _ _ _ _ = false
 
 fun mk_aterm type_enc name T_args args =
-  ATerm (name, map_filter (ho_term_for_type_arg type_enc) T_args @ args)
+(* ### FIXME
+  if is_type_enc_polymorphic type_enc then
+    ATerm ((name, map (ho_type_from_typ type_enc false 0) T_args), args)
+  else *)
+    ATerm ((name, []), map_filter (ho_term_for_type_arg type_enc) T_args @ args)
 
 fun do_bound_type ctxt mono type_enc =
   case type_enc of
@@ -2003,7 +2010,7 @@ fun tag_with_type ctxt mono type_enc pos T tm =
   IConst (type_tag, T --> T, [T])
   |> mangle_type_args_in_iterm type_enc
   |> ho_term_from_iterm ctxt mono type_enc pos
-  |> (fn ATerm (s, tms) => ATerm (s, tms @ [tm])
+  |> (fn ATerm ((s, tys), tms) => ATerm ((s, tys), tms @ [tm])
        | _ => raise Fail "unexpected lambda-abstraction")
 and ho_term_from_iterm ctxt mono type_enc pos =
   let
@@ -2051,9 +2058,9 @@ and formula_from_iformula ctxt mono type_enc should_guard_var =
         |> do_term pos |> AAtom |> SOME
       else if should_generate_tag_bound_decl ctxt mono type_enc universal T then
         let
-          val var = ATerm (name, [])
+          val var = ATerm ((name, []), [])
           val tagged_var = tag_with_type ctxt mono type_enc pos T var
-        in SOME (AAtom (ATerm (`I tptp_equal, [tagged_var, var]))) end
+        in SOME (AAtom (ATerm ((`I tptp_equal, []), [tagged_var, var]))) end
       else
         NONE
     fun do_formula pos (AQuant (q, xs, phi)) =
@@ -2101,7 +2108,7 @@ fun formula_line_for_fact ctxt prefix encode freshen pos mono type_enc rank
 
 fun formula_line_for_class_rel_clause type_enc
         ({name, subclass, superclass, ...} : class_rel_clause) =
-  let val ty_arg = ATerm (tvar_a_name, []) in
+  let val ty_arg = ATerm ((tvar_a_name, []), []) in
     Formula (class_rel_clause_prefix ^ ascii_of name, Axiom,
              AConn (AImplies,
                     [type_class_formula type_enc subclass ty_arg,
@@ -2112,7 +2119,7 @@ fun formula_line_for_class_rel_clause type_enc
   end
 
 fun formula_from_arity_atom type_enc (class, t, args) =
-  ATerm (t, map (fn arg => ATerm (arg, [])) args)
+  ATerm ((t, []), map (fn arg => ATerm ((arg, []), [])) args)
   |> type_class_formula type_enc class
 
 fun formula_line_for_arity_clause type_enc
@@ -2318,7 +2325,7 @@ fun formula_line_for_guards_mono_type ctxt mono type_enc T =
            NONE, isabelle_info inductiveN helper_rank)
 
 fun formula_line_for_tags_mono_type ctxt mono type_enc T =
-  let val x_var = ATerm (`make_bound_var "X", []) in
+  let val x_var = ATerm ((`make_bound_var "X", []), []) in
     Formula (tags_sym_formula_prefix ^
              ascii_of (mangled_type type_enc T),
              Axiom,
@@ -2402,7 +2409,7 @@ fun formula_lines_for_tags_sym_decl ctxt mono type_enc n s
     val (role, maybe_negate) = honor_conj_sym_role in_conj
     val (arg_Ts, res_T) = chop_fun ary T
     val bound_names = 1 upto ary |> map (`I o make_bound_var o string_of_int)
-    val bounds = bound_names |> map (fn name => ATerm (name, []))
+    val bounds = bound_names |> map (fn name => ATerm ((name, []), []))
     val cst = mk_aterm type_enc (s, s') T_args
     val eq = maybe_negate oo eq_formula type_enc (atomic_types_of T) [] pred_sym
     val should_encode = should_encode_type ctxt mono level
@@ -2586,9 +2593,9 @@ fun undeclared_syms_in_problem type_enc problem =
         #> fold do_type tys
       | do_type (AFun (ty1, ty2)) = do_type ty1 #> do_type ty2
       | do_type (ATyAbs (_, ty)) = do_type ty
-    fun do_term pred_sym (ATerm (name as (s, _), tms)) =
+    fun do_term pred_sym (ATerm ((name as (s, _), tys), tms)) =
         do_sym name (fn _ => default_type type_enc pred_sym s (length tms))
-        #> fold (do_term false) tms
+        #> fold do_type tys #> fold (do_term false) tms
       | do_term _ (AAbs (((_, ty), tm), args)) =
         do_type ty #> do_term false tm #> fold (do_term false) args
     fun do_formula (AQuant (_, xs, phi)) =
@@ -2738,7 +2745,7 @@ val type_info_default_weight = 0.8
 (* Weights are from 0.0 (most important) to 1.0 (least important). *)
 fun atp_problem_selection_weights problem =
   let
-    fun add_term_weights weight (ATerm (s, tms)) =
+    fun add_term_weights weight (ATerm ((s, _), tms)) =
         is_tptp_user_symbol s ? Symtab.default (s, weight)
         #> fold (add_term_weights weight) tms
       | add_term_weights weight (AAbs ((_, tm), args)) =
@@ -2778,11 +2785,11 @@ fun may_be_app s args = String.isPrefix app_op_name s andalso length args = 2
 fun may_be_predicator s =
   member (op =) [predicator_name, prefixed_predicator_name] s
 
-fun strip_predicator (tm as ATerm (s, [tm'])) =
+fun strip_predicator (tm as ATerm ((s, _), [tm'])) =
     if may_be_predicator s then tm' else tm
   | strip_predicator tm = tm
 
-fun make_head_roll (ATerm (s, tms)) =
+fun make_head_roll (ATerm ((s, _), tms)) =
     if may_be_app s tms then make_head_roll (hd tms) ||> append (tl tms)
     else (s, tms)
   | make_head_roll _ = ("", [])
@@ -2809,7 +2816,7 @@ fun atp_problem_term_order_info problem =
       Graph.default_node (s, ())
       #> Graph.default_node (s', ())
       #> Graph.add_edge_acyclic (s, s')
-    fun add_term_deps head (ATerm (s, args)) =
+    fun add_term_deps head (ATerm ((s, _), args)) =
         if is_tptp_user_symbol head then
           (if is_tptp_user_symbol s then perhaps (try (add_edge s head)) else I)
           #> fold (add_term_deps head) args
@@ -2827,7 +2834,7 @@ fun atp_problem_term_order_info problem =
         else
           I
       | add_intro_deps _ _ = I
-    fun add_atom_eq_deps (SOME true) (ATerm (s, [lhs as _, rhs])) =
+    fun add_atom_eq_deps (SOME true) (ATerm ((s, _), [lhs as _, rhs])) =
         if is_tptp_equal s then
           case make_head_roll lhs of
             (head, args as _ :: _) => fold (add_term_deps head) (rhs :: args)

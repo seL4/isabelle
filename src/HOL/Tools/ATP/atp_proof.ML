@@ -54,7 +54,8 @@ sig
   val scan_general_id : string list -> string * string list
   val satallax_unsat_coreN : string
   val parse_formula :
-    string list -> (string, 'a, (string, 'a) ho_term) formula * string list
+    string list
+    -> (string, 'a, (string, 'a) ho_term) formula * string list
   val atp_proof_from_tstplike_proof : string problem -> string -> string proof
   val clean_up_atp_proof_dependencies : string proof -> string proof
   val map_term_names_in_atp_proof :
@@ -251,7 +252,7 @@ datatype source =
   File_Source of string * string option |
   Inference_Source of string * string list
 
-val dummy_phi = AAtom (ATerm ("", []))
+val dummy_phi = AAtom (ATerm (("", []), []))
 val dummy_inference = Inference_Source ("", [])
 
 (* "skip_term" is there to cope with Waldmeister nonsense such as
@@ -271,7 +272,7 @@ fun parse_source x =
    || skip_term >> K dummy_inference) x
 
 fun list_app (f, args) =
-  fold (fn arg => fn f => ATerm (tptp_app, [f, arg])) args f
+  fold (fn arg => fn f => ATerm ((tptp_app, []), [f, arg])) args f
 
 (* We currently ignore TFF and THF types. *)
 fun parse_type_stuff x =
@@ -280,7 +281,7 @@ and parse_arg x =
   ($$ "(" |-- parse_term --| $$ ")" --| parse_type_stuff
    || scan_general_id --| parse_type_stuff
         -- Scan.optional ($$ "(" |-- parse_terms --| $$ ")") []
-      >> ATerm) x
+      >> (ATerm o apfst (rpair []))) x
 and parse_term x =
   (parse_arg -- Scan.repeat ($$ tptp_app |-- parse_arg) >> list_app) x
 and parse_terms x =
@@ -291,7 +292,7 @@ fun parse_atom x =
                               -- parse_term)
    >> (fn (u1, NONE) => AAtom u1
         | (u1, SOME (neg, u2)) =>
-          AAtom (ATerm ("equal", [u1, u2])) |> is_some neg ? mk_anot)) x
+          AAtom (ATerm (("equal", []), [u1, u2])) |> is_some neg ? mk_anot)) x
 
 (* TPTP formulas are fully parenthesized, so we don't need to worry about
    operator precedence. *)
@@ -323,7 +324,7 @@ and parse_quantified_formula x =
    --| $$ "[" -- parse_terms --| $$ "]" --| $$ ":" -- parse_literal
    >> (fn ((q, ts), phi) =>
           (* We ignore TFF and THF types for now. *)
-          AQuant (q, map (fn ATerm (s, _) => (s, NONE)) ts, phi))) x
+          AQuant (q, map (fn ATerm ((s, []), _) => (s, NONE)) ts, phi))) x
 
 val parse_tstp_extra_arguments =
   Scan.optional ($$ "," |-- parse_source --| Scan.option ($$ "," |-- skip_term))
@@ -336,7 +337,7 @@ val tofof_fact_prefix = "fof_"
 fun is_same_term subst tm1 tm2 =
   let
     fun do_term_pair _ NONE = NONE
-      | do_term_pair (ATerm (s1, tm1), ATerm (s2, tm2)) (SOME subst) =
+      | do_term_pair (ATerm ((s1, _), tm1), ATerm ((s2, _), tm2)) (SOME subst) =
         case pairself is_tptp_variable (s1, s2) of
           (true, true) =>
           (case AList.lookup (op =) subst s1 of
@@ -358,10 +359,10 @@ fun is_same_formula comm subst (AQuant (q1, xs1, phi1)) (AQuant (q2, xs2, phi2))
   | is_same_formula comm subst (AConn (c1, phis1)) (AConn (c2, phis2)) =
     c1 = c2 andalso length phis1 = length phis2 andalso
     forall (uncurry (is_same_formula comm subst)) (phis1 ~~ phis2)
-  | is_same_formula comm subst (AAtom (tm1 as ATerm ("equal", [tm11, tm12])))
-                    (AAtom tm2) =
+  | is_same_formula comm subst
+        (AAtom (tm1 as ATerm (("equal", []), [tm11, tm12]))) (AAtom tm2) =
     is_same_term subst tm1 tm2 orelse
-    (comm andalso is_same_term subst (ATerm ("equal", [tm12, tm11])) tm2)
+    (comm andalso is_same_term subst (ATerm (("equal", []), [tm12, tm11])) tm2)
   | is_same_formula _ subst (AAtom tm1) (AAtom tm2) = is_same_term subst tm1 tm2
   | is_same_formula _ _ _ _ = false
 
@@ -373,7 +374,7 @@ fun find_formula_in_problem problem phi =
   problem |> maps snd |> map_filter (matching_formula_line_identifier phi)
           |> try (single o hd) |> the_default []
 
-fun commute_eq (AAtom (ATerm (s, tms))) = AAtom (ATerm (s, rev tms))
+fun commute_eq (AAtom (ATerm ((s, []), tms))) = AAtom (ATerm ((s, []), rev tms))
   | commute_eq _ = raise Fail "expected equation"
 
 (* Syntax: (cnf|fof|tff|thf)\(<num>, <formula_role>,
@@ -416,7 +417,7 @@ fun parse_tstp_line problem =
               (case phi of
                  AConn (AIff, [phi1 as AAtom _, phi2]) =>
                  Definition_Step (name, phi1, phi2)
-               | AAtom (ATerm ("equal", _)) =>
+               | AAtom (ATerm (("equal", []), _)) =>
                  (* Vampire's equality proxy axiom *)
                  Inference_Step (name, phi, rule, map (rpair []) deps)
                | _ => mk_step ())
@@ -438,7 +439,7 @@ val parse_spass_annotations =
 fun parse_decorated_atom x =
   (parse_atom --| Scan.repeat ($$ "*" || $$ "+" || $$ " ")) x
 
-fun mk_horn ([], []) = AAtom (ATerm ("c_False", []))
+fun mk_horn ([], []) = AAtom (ATerm (("c_False", []), []))
   | mk_horn ([], pos_lits) = foldr1 (uncurry (mk_aconn AOr)) pos_lits
   | mk_horn (neg_lits, []) = mk_anot (foldr1 (uncurry (mk_aconn AAnd)) neg_lits)
   | mk_horn (neg_lits, pos_lits) =
@@ -501,8 +502,8 @@ fun clean_up_dependencies _ [] = []
 
 fun clean_up_atp_proof_dependencies proof = clean_up_dependencies [] proof
 
-fun map_term_names_in_term f (ATerm (s, ts)) =
-  ATerm (f s, map (map_term_names_in_term f) ts)
+fun map_term_names_in_term f (ATerm ((s, tys), ts)) =
+  ATerm ((f s, tys), map (map_term_names_in_term f) ts)
 fun map_term_names_in_formula f (AQuant (q, xs, phi)) =
     AQuant (q, xs, map_term_names_in_formula f phi)
   | map_term_names_in_formula f (AConn (c, phis)) =

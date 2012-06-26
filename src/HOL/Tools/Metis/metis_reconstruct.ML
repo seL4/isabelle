@@ -42,9 +42,10 @@ fun atp_name_from_metis type_enc s =
   | _ => (s, false)
 fun atp_term_from_metis type_enc (Metis_Term.Fn (s, tms)) =
     let val (s, swap) = atp_name_from_metis type_enc (Metis_Name.toString s) in
-      ATerm (s, tms |> map (atp_term_from_metis type_enc) |> swap ? rev)
+      ATerm ((s, []), tms |> map (atp_term_from_metis type_enc) |> swap ? rev)
     end
-  | atp_term_from_metis _ (Metis_Term.Var s) = ATerm (Metis_Name.toString s, [])
+  | atp_term_from_metis _ (Metis_Term.Var s) =
+    ATerm ((Metis_Name.toString s, []), [])
 
 fun hol_term_from_metis ctxt type_enc sym_tab =
   atp_term_from_metis type_enc #> term_from_atp ctxt false sym_tab NONE
@@ -52,7 +53,7 @@ fun hol_term_from_metis ctxt type_enc sym_tab =
 fun atp_literal_from_metis type_enc (pos, atom) =
   atom |> Metis_Term.Fn |> atp_term_from_metis type_enc
        |> AAtom |> not pos ? mk_anot
-fun atp_clause_from_metis _ [] = AAtom (ATerm (tptp_false, []))
+fun atp_clause_from_metis _ [] = AAtom (ATerm ((tptp_false, []), []))
   | atp_clause_from_metis type_enc lits =
     lits |> map (atp_literal_from_metis type_enc) |> mk_aconns AOr
 
