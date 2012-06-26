@@ -878,24 +878,27 @@ fun type_arg_policy constrs type_enc s =
 val fused_infinite_type_name = "ATP.fused_inf" (* shouldn't clash *)
 val fused_infinite_type = Type (fused_infinite_type_name, [])
 
-fun ho_term_from_typ type_enc =
+fun raw_ho_type_from_typ type_enc =
   let
     fun term (Type (s, Ts)) =
-      ATerm ((case (is_type_enc_higher_order type_enc, s) of
-                (true, @{type_name bool}) => `I tptp_bool_type
-              | (true, @{type_name fun}) => `I tptp_fun_type
-              | _ => if s = fused_infinite_type_name andalso
-                        is_type_enc_native type_enc then
-                       `I tptp_individual_type
-                     else
-                       `make_fixed_type_const s,
-              []), map term Ts)
-    | term (TFree (s, _)) = ATerm ((`make_tfree s, []), [])
-    | term (TVar (x, _)) = ATerm ((tvar_name x, []), [])
+      AType (case (is_type_enc_higher_order type_enc, s) of
+               (true, @{type_name bool}) => `I tptp_bool_type
+             | (true, @{type_name fun}) => `I tptp_fun_type
+             | _ => if s = fused_infinite_type_name andalso
+                       is_type_enc_native type_enc then
+                      `I tptp_individual_type
+                    else
+                      `make_fixed_type_const s,
+             map term Ts)
+    | term (TFree (s, _)) = AType (`make_tfree s, [])
+    | term (TVar (x, _)) = AType (tvar_name x, [])
   in term end
 
-fun ho_term_for_type_arg type_enc T =
-  if T = dummyT then NONE else SOME (ho_term_from_typ type_enc T)
+fun ho_term_from_ho_type (AType (name, tys)) = ATerm ((name, []), map ho_term_from_ho_type tys)
+  | ho_term_from_ho_type _ = raise Fail "unexpected type"
+
+fun ho_type_for_type_arg type_enc T =
+  if T = dummyT then NONE else SOME (raw_ho_type_from_typ type_enc T)
 
 (* This shouldn't clash with anything else. *)
 val uncurried_alias_sep = "\000"
@@ -903,15 +906,14 @@ val mangled_type_sep = "\001"
 
 val ascii_of_uncurried_alias_sep = ascii_of uncurried_alias_sep
 
-(* ### FIXME: insane *)
-fun generic_mangled_type_name f (ATerm ((name, _), [])) = f name
-  | generic_mangled_type_name f (ATerm ((name, _), tys)) =
+fun generic_mangled_type_name f (AType (name, [])) = f name
+  | generic_mangled_type_name f (AType (name, tys)) =
     f name ^ "(" ^ space_implode "," (map (generic_mangled_type_name f) tys)
     ^ ")"
-  | generic_mangled_type_name _ _ = raise Fail "unexpected type abstraction"
+  | generic_mangled_type_name _ _ = raise Fail "unexpected type"
 
 fun mangled_type type_enc =
-  generic_mangled_type_name fst o ho_term_from_typ type_enc
+  generic_mangled_type_name fst o raw_ho_type_from_typ type_enc
 
 fun make_native_type s =
   if s = tptp_bool_type orelse s = tptp_fun_type orelse
@@ -920,29 +922,29 @@ fun make_native_type s =
   else
     native_type_prefix ^ ascii_of s
 
-fun ho_type_from_ho_term type_enc pred_sym ary =
+fun native_ho_type_from_raw_ho_type type_enc pred_sym ary =
   let
     fun to_mangled_atype ty =
       AType ((make_native_type (generic_mangled_type_name fst ty),
               generic_mangled_type_name snd ty), [])
-    fun to_poly_atype (ATerm ((name, []), tys)) =
+    fun to_poly_atype (AType (name, tys)) =
         AType (name, map to_poly_atype tys)
-      | to_poly_atype _ = raise Fail "unexpected type abstraction"
+      | to_poly_atype _ = raise Fail "unexpected type"
     val to_atype =
       if is_type_enc_polymorphic type_enc then to_poly_atype
       else to_mangled_atype
     fun to_afun f1 f2 tys = AFun (f1 (hd tys), f2 (nth tys 1))
     fun to_fo 0 ty = if pred_sym then bool_atype else to_atype ty
-      | to_fo ary (ATerm (_, tys)) = to_afun to_atype (to_fo (ary - 1)) tys
-      | to_fo _ _ = raise Fail "unexpected type abstraction"
-    fun to_ho (ty as ATerm (((s, _), []), tys)) =
+      | to_fo ary (AType (_, tys)) = to_afun to_atype (to_fo (ary - 1)) tys
+      | to_fo _ _ = raise Fail "unexpected type"
+    fun to_ho (ty as AType ((s, _), tys)) =
         if s = tptp_fun_type then to_afun to_ho to_ho tys else to_atype ty
-      | to_ho _ = raise Fail "unexpected type abstraction"
+      | to_ho _ = raise Fail "unexpected type"
   in if is_type_enc_higher_order type_enc then to_ho else to_fo ary end
 
-fun ho_type_from_typ type_enc pred_sym ary =
-  ho_type_from_ho_term type_enc pred_sym ary
-  o ho_term_from_typ type_enc
+fun native_ho_type_from_typ type_enc pred_sym ary =
+  native_ho_type_from_raw_ho_type type_enc pred_sym ary
+  o raw_ho_type_from_typ type_enc
 
 (* Make atoms for sorted type variables. *)
 fun generic_add_sorts_on_type _ [] = I
@@ -956,9 +958,10 @@ fun add_sorts_on_tvar (T as TVar (_, S)) = generic_add_sorts_on_type T S
 
 fun process_type_args type_enc T_args =
   if is_type_enc_native type_enc then
-    (map (ho_type_from_typ type_enc false 0) T_args, [])
+    (map (native_ho_type_from_typ type_enc false 0) T_args, [])
   else
-    ([], map_filter (ho_term_for_type_arg type_enc) T_args)
+    ([], map_filter (Option.map ho_term_from_ho_type
+                     o ho_type_for_type_arg type_enc) T_args)
 
 fun type_class_atom type_enc (class, T) =
   let
@@ -1040,7 +1043,7 @@ fun raw_mangled_const_name type_name ty_args (s, s') =
                ty_args ""
   in (s ^ type_suffix fst ascii_of, s' ^ type_suffix snd I) end
 fun mangled_const_name type_enc =
-  map_filter (ho_term_for_type_arg type_enc)
+  map_filter (ho_type_for_type_arg type_enc)
   #> raw_mangled_const_name generic_mangled_type_name
 
 val parse_mangled_ident =
@@ -2014,7 +2017,8 @@ fun mk_aterm type_enc name T_args args =
 fun do_bound_type ctxt mono type_enc =
   case type_enc of
     Native (_, _, level) =>
-    fused_type ctxt mono level 0 #> ho_type_from_typ type_enc false 0 #> SOME
+    fused_type ctxt mono level 0 #> native_ho_type_from_typ type_enc false 0
+    #> SOME
   | _ => K NONE
 
 fun tag_with_type ctxt mono type_enc pos T tm =
@@ -2043,7 +2047,7 @@ and ho_term_from_iterm ctxt mono type_enc pos =
             map (term Elsewhere) args |> mk_aterm type_enc name []
           | IAbs ((name, T), tm) =>
             if is_type_enc_higher_order type_enc then
-              AAbs (((name, ho_type_from_typ type_enc true (* FIXME? why "true"? *) 0 T),
+              AAbs (((name, native_ho_type_from_typ type_enc true 0 T), (* FIXME? why "true"? *)
                      term Elsewhere tm), map (term Elsewhere) args)
             else
               raise Fail "unexpected lambda-abstraction"
@@ -2075,7 +2079,7 @@ and formula_from_iformula ctxt mono type_enc should_guard_var =
       else
         NONE
     fun do_formula pos (ATyQuant (q, xs, phi)) =
-        ATyQuant (q, map (apfst (ho_type_from_typ type_enc false 0)) xs,
+        ATyQuant (q, map (apfst (native_ho_type_from_typ type_enc false 0)) xs,
                   do_formula pos phi)
       | do_formula pos (AQuant (q, xs, phi)) =
         let
@@ -2358,7 +2362,7 @@ fun decl_line_for_sym ctxt mono type_enc s
   in
     Sym_Decl (sym_decl_prefix ^ s, (s, s'),
               T |> fused_type ctxt mono (level_of_type_enc type_enc) ary
-                |> ho_type_from_typ type_enc pred_sym ary
+                |> native_ho_type_from_typ type_enc pred_sym ary
                 |> not (null T_args)
                    ? curry APi (map (tvar_name o fst o dest_TVar) T_args))
   end
