@@ -409,14 +409,14 @@ val spass_config : atp_config =
    prem_role = Conjecture,
    best_slices = fn _ =>
      (* FUDGE *)
-     [(0.1667, (false, ((150, DFG DFG_Sorted, "mono_native", combsN, true), ""))),
-      (0.1667, (false, ((500, DFG DFG_Sorted, "mono_native", liftingN, true), spass_H2SOS))),
-      (0.1666, (false, ((50, DFG DFG_Sorted,  "mono_native", liftingN, true), spass_H2LR0LT0))),
-      (0.1000, (false, ((250, DFG DFG_Sorted, "mono_native", combsN, true), spass_H2NuVS0))),
-      (0.1000, (false, ((1000, DFG DFG_Sorted, "mono_native", liftingN, true), spass_H1SOS))),
-      (0.1000, (false, ((150, DFG DFG_Sorted, "poly_guards??", liftingN, false), spass_H2NuVS0Red2))),
-      (0.1000, (false, ((300, DFG DFG_Sorted, "mono_native", combsN, true), spass_H2SOS))),
-      (0.1000, (false, ((100, DFG DFG_Sorted, "mono_native", combs_and_liftingN, true), spass_H2NuVS0)))],
+     [(0.1667, (false, ((150, DFG, "mono_native", combsN, true), ""))),
+      (0.1667, (false, ((500, DFG, "mono_native", liftingN, true), spass_H2SOS))),
+      (0.1666, (false, ((50, DFG,  "mono_native", liftingN, true), spass_H2LR0LT0))),
+      (0.1000, (false, ((250, DFG, "mono_native", combsN, true), spass_H2NuVS0))),
+      (0.1000, (false, ((1000, DFG, "mono_native", liftingN, true), spass_H1SOS))),
+      (0.1000, (false, ((150, DFG, "poly_guards??", liftingN, false), spass_H2NuVS0Red2))),
+      (0.1000, (false, ((300, DFG, "mono_native", combsN, true), spass_H2SOS))),
+      (0.1000, (false, ((100, DFG, "mono_native", combs_and_liftingN, true), spass_H2NuVS0)))],
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
 

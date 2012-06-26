@@ -118,7 +118,7 @@ fun run_some_atp ctxt format problem =
   let
     val thy = Proof_Context.theory_of ctxt
     val prob_file = File.tmp_path (Path.explode "prob")
-    val atp = case format of DFG _ => spassN | _ => eN
+    val atp = if format = DFG then spassN else eN
     val {exec, arguments, proof_delims, known_failures, ...} =
       get_atp thy atp ()
     val ord = effective_term_order ctxt atp
@@ -213,7 +213,7 @@ fun generate_tptp_inference_file_for_theory ctxt thy format type_enc file_name =
     val name_ord = int_ord o pairself (the o Symtab.lookup order_tab)
     val atp_problem =
       atp_problem
-      |> (case format of DFG _ => I | _ => add_inferences_to_problem infers)
+      |> (format <> DFG ? add_inferences_to_problem infers)
       |> order_problem_facts name_ord
     val ord = effective_term_order ctxt eN (* dummy *)
     val ss = lines_for_atp_problem format ord (K []) atp_problem

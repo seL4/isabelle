@@ -32,7 +32,6 @@ sig
   datatype tptp_explicitness = TPTP_Implicit | TPTP_Explicit
   datatype thf_choice = THF_Without_Choice | THF_With_Choice
   datatype thf_defs = THF_Without_Defs | THF_With_Defs
-  datatype dfg_flavor = DFG_Unsorted | DFG_Sorted
 
   datatype atp_format =
     CNF |
@@ -40,7 +39,7 @@ sig
     FOF |
     TFF of tptp_polymorphism * tptp_explicitness |
     THF of tptp_polymorphism * tptp_explicitness * thf_choice * thf_defs |
-    DFG of dfg_flavor
+    DFG
 
   datatype formula_role = Axiom | Definition | Lemma | Hypothesis | Conjecture
   datatype 'a problem_line =
@@ -165,7 +164,6 @@ datatype tptp_polymorphism = TPTP_Monomorphic | TPTP_Polymorphic
 datatype tptp_explicitness = TPTP_Implicit | TPTP_Explicit
 datatype thf_choice = THF_Without_Choice | THF_With_Choice
 datatype thf_defs = THF_Without_Defs | THF_With_Defs
-datatype dfg_flavor = DFG_Unsorted | DFG_Sorted
 
 datatype atp_format =
   CNF |
@@ -173,7 +171,7 @@ datatype atp_format =
   FOF |
   TFF of tptp_polymorphism * tptp_explicitness |
   THF of tptp_polymorphism * tptp_explicitness * thf_choice * thf_defs |
-  DFG of dfg_flavor
+  DFG
 
 datatype formula_role = Axiom | Definition | Lemma | Hypothesis | Conjecture
 datatype 'a problem_line =
@@ -229,8 +227,7 @@ val minimum_rank = 0
 val default_rank = 1000
 val default_term_order_weight = 1
 
-(* Currently, only newer versions of SPASS, with sorted DFG format support, can
-   process Isabelle metainformation. *)
+(* Currently, only SPASS 3.8ds can process Isabelle metainformation. *)
 fun isabelle_info status rank =
   [] |> rank <> default_rank
         ? cons (ATerm (isabelle_info_prefix ^ rankN,
@@ -309,7 +306,7 @@ fun is_format_higher_order (THF _) = true
   | is_format_higher_order _ = false
 fun is_format_typed (TFF _) = true
   | is_format_typed (THF _) = true
-  | is_format_typed (DFG DFG_Sorted) = true
+  | is_format_typed DFG = true
   | is_format_typed _ = false
 
 fun tptp_string_for_role Axiom = "axiom"
@@ -339,7 +336,7 @@ val dfg_individual_type = "iii" (* cannot clash *)
 
 fun str_for_type format ty =
   let
-    val dfg = (format = DFG DFG_Sorted)
+    val dfg = (format = DFG)
     fun str _ (AType (s, [])) =
         if dfg andalso s = tptp_individual_type then dfg_individual_type else s
       | str _ (AType (s, tys)) =
@@ -441,7 +438,7 @@ fun tptp_string_for_format CNF = tptp_cnf
   | tptp_string_for_format FOF = tptp_fof
   | tptp_string_for_format (TFF _) = tptp_tff
   | tptp_string_for_format (THF _) = tptp_thf
-  | tptp_string_for_format (DFG _) = raise Fail "non-TPTP format"
+  | tptp_string_for_format DFG = raise Fail "non-TPTP format"
 
 fun tptp_string_for_problem_line format (Decl (ident, sym, ty)) =
     tptp_string_for_format format ^ "(" ^ ident ^ ", type,\n    " ^ sym ^
@@ -467,10 +464,10 @@ fun arity_of_type (AFun (_, ty)) = 1 + arity_of_type ty
 fun binder_atypes (AFun (ty1, ty2)) = ty1 :: binder_atypes ty2
   | binder_atypes _ = []
 
-fun dfg_string_for_formula gen_simp flavor info =
+fun dfg_string_for_formula gen_simp info =
   let
     fun suffix_tag top_level s =
-      if flavor = DFG_Sorted andalso top_level then
+      if top_level then
         case extract_isabelle_status info of
           SOME s' => if s' = defN then s ^ ":lt"
                      else if s' = simpN andalso gen_simp then s ^ ":lr"
@@ -495,7 +492,7 @@ fun dfg_string_for_formula gen_simp flavor info =
       | str_for_conn top_level AIff = "equiv" |> suffix_tag top_level
     fun str_for_formula top_level (AQuant (q, xs, phi)) =
         str_for_quant q ^ "(" ^ "[" ^
-        commas (map (string_for_bound_var (DFG flavor)) xs) ^ "], " ^
+        commas (map (string_for_bound_var DFG) xs) ^ "], " ^
         str_for_formula top_level phi ^ ")"
       | str_for_formula top_level (AConn (c, phis)) =
         str_for_conn top_level c ^ "(" ^
@@ -506,26 +503,19 @@ fun dfg_string_for_formula gen_simp flavor info =
 fun maybe_enclose bef aft "" = "% " ^ bef ^ aft
   | maybe_enclose bef aft s = bef ^ s ^ aft
 
-fun dfg_lines flavor {is_lpo, gen_weights, gen_prec, gen_simp} ord_info
-              problem =
+fun dfg_lines {is_lpo, gen_weights, gen_prec, gen_simp} ord_info problem =
   let
-    val sorted = (flavor = DFG_Sorted)
-    val format = DFG flavor
     fun spair (sym, k) = "(" ^ sym ^ ", " ^ string_of_int k ^ ")"
     fun ary sym = curry spair sym o arity_of_type
     fun fun_typ sym ty =
-      "function(" ^ sym ^ ", " ^ string_for_type format ty ^ ")."
+      "function(" ^ sym ^ ", " ^ string_for_type DFG ty ^ ")."
     fun pred_typ sym ty =
       "predicate(" ^
-      commas (sym :: map (string_for_type format) (binder_atypes ty)) ^ ")."
+      commas (sym :: map (string_for_type DFG) (binder_atypes ty)) ^ ")."
     fun formula pred (Formula (ident, kind, phi, _, info)) =
         if pred kind then
-          let
-            val rank =
-              if flavor = DFG_Sorted then extract_isabelle_rank info
-              else default_rank
-          in
-            "formula(" ^ dfg_string_for_formula gen_simp flavor info phi ^
+          let val rank = extract_isabelle_rank info in
+            "formula(" ^ dfg_string_for_formula gen_simp info phi ^
             ", " ^ ident ^
             (if rank = default_rank then "" else ", " ^ string_of_int rank) ^
             ")." |> SOME
@@ -544,31 +534,28 @@ fun dfg_lines flavor {is_lpo, gen_weights, gen_prec, gen_simp} ord_info
                if is_predicate_type ty then SOME (ary sym ty) else NONE
              | _ => NONE)
       |> flat |> commas |> maybe_enclose "predicates [" "]."
-    fun sorts () =
+    val sorts =
       filt (fn Decl (_, sym, AType (s, [])) =>
                if s = tptp_type_of_types then SOME sym else NONE
              | _ => NONE) @ [[dfg_individual_type]]
       |> flat |> commas |> maybe_enclose "sorts [" "]."
-    val ord_info =
-      if sorted andalso (gen_weights orelse gen_prec) then ord_info () else []
-    fun do_term_order_weights () =
+    val ord_info = if gen_weights orelse gen_prec then ord_info () else []
+    val do_term_order_weights =
       (if gen_weights then ord_info else [])
       |> map spair |> commas |> maybe_enclose "weights [" "]."
-    val syms =
-      [func_aries, pred_aries] @
-      (if sorted then [do_term_order_weights (), sorts ()] else [])
-    fun func_sigs () =
+    val syms = [func_aries, pred_aries, do_term_order_weights, sorts]
+    val func_sigs =
       filt (fn Decl (_, sym, ty) =>
                if is_function_type ty then SOME (fun_typ sym ty) else NONE
              | _ => NONE)
       |> flat
-    fun pred_sigs () =
+    val pred_sigs =
       filt (fn Decl (_, sym, ty) =>
                if is_nontrivial_predicate_type ty then SOME (pred_typ sym ty)
                else NONE
              | _ => NONE)
       |> flat
-    val decls = if sorted then func_sigs () @ pred_sigs () else []
+    val decls = func_sigs @ pred_sigs
     val axioms =
       filt (formula (curry (op <>) Conjecture)) |> separate [""] |> flat
     val conjs =
@@ -600,9 +587,7 @@ fun dfg_lines flavor {is_lpo, gen_weights, gen_prec, gen_simp} ord_info
 fun lines_for_atp_problem format ord ord_info problem =
   "% This file was generated by Isabelle (most likely Sledgehammer)\n\
   \% " ^ timestamp () ^ "\n" ::
-  (case format of
-     DFG flavor => dfg_lines flavor ord ord_info
-   | _ => tptp_lines format) problem
+  (if format = DFG then dfg_lines ord ord_info else tptp_lines format) problem
 
 
 (** CNF (Metis) and CNF UEQ (Waldmeister) **)
@@ -802,7 +787,7 @@ fun nice_atp_problem readable_names format problem =
     val avoid_clash =
       case format of
         TFF (TPTP_Polymorphic, _) => avoid_clash_with_alt_ergo_type_vars
-      | DFG _ => avoid_clash_with_dfg_keywords
+      | DFG => avoid_clash_with_dfg_keywords
       | _ => I
     val nice_name = nice_name avoid_clash
     fun nice_type (AType (name, tys)) =

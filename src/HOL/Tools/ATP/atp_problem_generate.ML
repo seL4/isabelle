@@ -682,7 +682,7 @@ fun adjust_type_enc (THF (TPTP_Polymorphic, _, choice, _))
     Native (adjust_order choice order, Mangled_Monomorphic, level)
   | adjust_type_enc (TFF (TPTP_Monomorphic, _)) (Native (_, _, level)) =
     Native (First_Order, Mangled_Monomorphic, level)
-  | adjust_type_enc (DFG DFG_Sorted) (Native (_, _, level)) =
+  | adjust_type_enc DFG (Native (_, _, level)) =
     Native (First_Order, Mangled_Monomorphic, level)
   | adjust_type_enc (TFF _) (Native (_, poly, level)) =
     Native (First_Order, poly, level)
