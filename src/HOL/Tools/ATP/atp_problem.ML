@@ -29,7 +29,7 @@ sig
      gen_prec : bool,
      gen_simp : bool}
 
-  datatype polymorphism = Monomorphic | Polymorphic | Type_Classes
+  datatype polymorphism = Monomorphic | Polymorphic
   datatype tptp_explicitness = TPTP_Implicit | TPTP_Explicit
   datatype thf_choice = THF_Without_Choice | THF_With_Choice
   datatype thf_defs = THF_Without_Defs | THF_With_Defs
@@ -44,7 +44,8 @@ sig
 
   datatype formula_role = Axiom | Definition | Lemma | Hypothesis | Conjecture
   datatype 'a problem_line =
-    Type_Decl of string * 'a * int |
+    Subclass_Decl of 'a * 'a list |
+    Type_Decl of string * 'a * int * 'a list |
     Sym_Decl of string * 'a * 'a ho_type |
     Formula of string * formula_role
                * ('a, 'a ho_type, ('a, 'a ho_type) ho_term, 'a) formula
@@ -124,7 +125,7 @@ sig
     (string * string) problem -> (string * string) problem
   val filter_cnf_ueq_problem :
     (string * string) problem -> (string * string) problem
-  val declared_types_and_syms_in_problem : 'a problem -> 'a list * 'a list
+  val declared_in_problem : 'a problem -> 'a list * 'a list
   val nice_atp_problem :
     bool -> atp_format -> ('a * (string * string) problem_line list) list
     -> ('a * string problem_line list) list
@@ -161,7 +162,7 @@ type term_order =
    gen_prec : bool,
    gen_simp : bool}
 
-datatype polymorphism = Monomorphic | Polymorphic | Type_Classes
+datatype polymorphism = Monomorphic | Polymorphic
 datatype tptp_explicitness = TPTP_Implicit | TPTP_Explicit
 datatype thf_choice = THF_Without_Choice | THF_With_Choice
 datatype thf_defs = THF_Without_Defs | THF_With_Defs
@@ -176,7 +177,8 @@ datatype atp_format =
 
 datatype formula_role = Axiom | Definition | Lemma | Hypothesis | Conjecture
 datatype 'a problem_line =
-  Type_Decl of string * 'a * int |
+  Subclass_Decl of 'a * 'a list |
+  Type_Decl of string * 'a * int * 'a list |
   Sym_Decl of string * 'a * 'a ho_type |
   Formula of string * formula_role
              * ('a, 'a ho_type, ('a, 'a ho_type) ho_term, 'a) formula
@@ -462,14 +464,13 @@ val atype_of_types = AType (tptp_type_of_types, [])
 fun nary_type_constr_type n =
   funpow n (curry AFun atype_of_types) atype_of_types
 
-fun tptp_string_for_problem_line format (Type_Decl (ident, sym, ary)) =
-    tptp_string_for_problem_line format
+fun tptp_string_for_line format (Type_Decl (ident, sym, ary, _)) =
+    tptp_string_for_line format
         (Sym_Decl (ident, sym, nary_type_constr_type ary))
-  | tptp_string_for_problem_line format (Sym_Decl (ident, sym, ty)) =
+  | tptp_string_for_line format (Sym_Decl (ident, sym, ty)) =
     tptp_string_for_format format ^ "(" ^ ident ^ ", type,\n    " ^ sym ^
     " : " ^ string_for_type format ty ^ ").\n"
-  | tptp_string_for_problem_line format
-                                 (Formula (ident, kind, phi, source, _)) =
+  | tptp_string_for_line format (Formula (ident, kind, phi, source, _)) =
     tptp_string_for_format format ^ "(" ^ ident ^ ", " ^
     tptp_string_for_role kind ^ ",\n    (" ^
     tptp_string_for_formula format phi ^ ")" ^
@@ -481,7 +482,7 @@ fun tptp_lines format =
   maps (fn (_, []) => []
          | (heading, lines) =>
            "\n% " ^ heading ^ " (" ^ string_of_int (length lines) ^ ")\n" ::
-           map (tptp_string_for_problem_line format) lines)
+           map (tptp_string_for_line format) lines)
 
 fun arity_of_type (APi (tys, ty)) =
     arity_of_type ty |>> Integer.add (length tys)
@@ -575,8 +576,8 @@ fun dfg_lines poly {is_lpo, gen_weights, gen_prec, gen_simp} ord_info problem =
              | _ => NONE)
       |> flat |> commas |> maybe_enclose "predicates [" "]."
     val sorts =
-      filt (fn Type_Decl (_, sym, ary) => SOME (ty_ary ary sym) | _ => NONE) @
-      [[ty_ary 0 dfg_individual_type]]
+      filt (fn Type_Decl (_, sym, ary, _) => SOME (ty_ary ary sym)
+             | _ => NONE) @ [[ty_ary 0 dfg_individual_type]]
       |> flat |> commas |> maybe_enclose "sorts [" "]."
     val ord_info = if gen_weights orelse gen_prec then ord_info () else []
     val do_term_order_weights =
@@ -634,13 +635,12 @@ fun lines_for_atp_problem format ord ord_info problem =
 
 (** CNF (Metis) and CNF UEQ (Waldmeister) **)
 
-fun is_problem_line_negated (Formula (_, _, AConn (ANot, _), _, _)) = true
-  | is_problem_line_negated _ = false
+fun is_line_negated (Formula (_, _, AConn (ANot, _), _, _)) = true
+  | is_line_negated _ = false
 
-fun is_problem_line_cnf_ueq
-        (Formula (_, _, AAtom (ATerm (((s, _), _), _)), _, _)) =
+fun is_line_cnf_ueq (Formula (_, _, AAtom (ATerm (((s, _), _), _)), _, _)) =
     is_tptp_equal s
-  | is_problem_line_cnf_ueq _ = false
+  | is_line_cnf_ueq _ = false
 
 fun open_conjecture_term (ATerm (((s, s'), tys), tms)) =
     ATerm ((if is_tptp_variable s then (s |> Name.desymbolize false, s')
@@ -699,31 +699,29 @@ fun clausify_formula_line (Formula (ident, kind, phi, source, info)) =
     end
   | clausify_formula_line _ = []
 
-fun ensure_cnf_problem_line line =
+fun ensure_cnf_line line =
   line |> open_formula_line |> negate_conjecture_line |> clausify_formula_line
 
-fun ensure_cnf_problem problem =
-  problem |> map (apsnd (maps ensure_cnf_problem_line))
+fun ensure_cnf_problem problem = problem |> map (apsnd (maps ensure_cnf_line))
 
 fun filter_cnf_ueq_problem problem =
   problem
-  |> map (apsnd (map open_formula_line
-                 #> filter is_problem_line_cnf_ueq
+  |> map (apsnd (map open_formula_line #> filter is_line_cnf_ueq
                  #> map negate_conjecture_line))
   |> (fn problem =>
          let
            val lines = problem |> maps snd
-           val conjs = lines |> filter is_problem_line_negated
+           val conjs = lines |> filter is_line_negated
          in if length conjs = 1 andalso conjs <> lines then problem else [] end)
 
 
 (** Symbol declarations **)
 
-fun add_declared_syms_in_problem_line (Type_Decl (_, sym, _)) = apfst (cons sym)
-  | add_declared_syms_in_problem_line (Sym_Decl (_, sym, _)) = apsnd (cons sym)
-  | add_declared_syms_in_problem_line _ = I
-fun declared_types_and_syms_in_problem problem =
-  fold (fold add_declared_syms_in_problem_line o snd) problem ([], [])
+fun add_declared_in_line (Type_Decl (_, ty, _, _)) = apfst (cons ty)
+  | add_declared_in_line (Sym_Decl (_, sym, _)) = apsnd (cons sym)
+  | add_declared_in_line _ = I
+fun declared_in_problem problem =
+  fold (fold add_declared_in_line o snd) problem ([], [])
 
 (** Nice names **)
 
@@ -858,16 +856,17 @@ fun nice_atp_problem readable_names format problem =
       | nice_formula (AConn (c, phis)) =
         pool_map nice_formula phis #>> curry AConn c
       | nice_formula (AAtom tm) = nice_term tm #>> AAtom
-    fun nice_problem_line (Type_Decl (ident, sym, ary)) =
-        nice_name sym #>> (fn sym => Type_Decl (ident, sym, ary))
-      | nice_problem_line (Sym_Decl (ident, sym, ty)) =
+    fun nice_line (Type_Decl (ident, sym, ary, sorts)) =
+        nice_name sym ##>> pool_map nice_name sorts
+        #>> (fn (sym, sorts) => Type_Decl (ident, sym, ary, sorts))
+      | nice_line (Sym_Decl (ident, sym, ty)) =
         nice_name sym ##>> nice_type ty
         #>> (fn (sym, ty) => Sym_Decl (ident, sym, ty))
-      | nice_problem_line (Formula (ident, kind, phi, source, info)) =
+      | nice_line (Formula (ident, kind, phi, source, info)) =
         nice_formula phi #>> (fn phi => Formula (ident, kind, phi, source, info))
     fun nice_problem problem =
       pool_map (fn (heading, lines) =>
-                   pool_map nice_problem_line lines #>> pair heading) problem
+                   pool_map nice_line lines #>> pair heading) problem
   in nice_problem problem empty_pool end
 
 end;

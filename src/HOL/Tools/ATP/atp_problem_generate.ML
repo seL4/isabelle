@@ -2344,7 +2344,7 @@ fun formula_line_for_tags_mono_type ctxt mono type_enc T =
              NONE, isabelle_info defN helper_rank)
   end
 
-fun problem_lines_for_mono_types ctxt mono type_enc Ts =
+fun lines_for_mono_types ctxt mono type_enc Ts =
   case type_enc of
     Native _ => []
   | Guards _ => map (formula_line_for_guards_mono_type ctxt mono type_enc) Ts
@@ -2458,7 +2458,7 @@ fun rationalize_decls thy (decls as decl :: (decls' as _ :: _)) =
     end
   | rationalize_decls _ decls = decls
 
-fun problem_lines_for_sym_decls ctxt mono type_enc (s, decls) =
+fun lines_for_sym_decls ctxt mono type_enc (s, decls) =
   case type_enc of
     Native _ => [decl_line_for_sym ctxt mono type_enc s (hd decls)]
   | Guards (_, level) =>
@@ -2482,12 +2482,12 @@ fun problem_lines_for_sym_decls ctxt mono type_enc (s, decls) =
         |> maps (formula_lines_for_tags_sym_decl ctxt mono type_enc n s)
       end
 
-fun problem_lines_for_sym_decl_table ctxt mono type_enc mono_Ts sym_decl_tab =
+fun lines_for_sym_decl_table ctxt mono type_enc mono_Ts sym_decl_tab =
   let
     val syms = sym_decl_tab |> Symtab.dest |> sort_wrt fst
-    val mono_lines = problem_lines_for_mono_types ctxt mono type_enc mono_Ts
+    val mono_lines = lines_for_mono_types ctxt mono type_enc mono_Ts
     val decl_lines =
-      fold_rev (append o problem_lines_for_sym_decls ctxt mono type_enc) syms []
+      fold_rev (append o lines_for_sym_decls ctxt mono type_enc) syms []
   in mono_lines @ decl_lines end
 
 fun pair_append (xs1, xs2) (ys1, ys2) = (xs1 @ ys1, xs2 @ ys2)
@@ -2580,7 +2580,7 @@ fun default_type pred_sym s =
       | typ ty_ary tm_ary = APi (replicate ty_ary tvar_a_name, typ 0 tm_ary)
   in typ end
 
-fun undeclared_types_and_syms_in_problem problem =
+fun undeclared_in_problem problem =
   let
     fun do_sym (name as (s, _)) value =
       if is_tptp_user_symbol s then Symtab.default (s, (name, value)) else I
@@ -2599,24 +2599,24 @@ fun undeclared_types_and_syms_in_problem problem =
         fold do_type (map_filter snd xs) #> do_formula phi
       | do_formula (AConn (_, phis)) = fold do_formula phis
       | do_formula (AAtom tm) = do_term true tm
-    fun do_problem_line (Type_Decl _) = I
-      | do_problem_line (Sym_Decl (_, _, ty)) = do_type ty
-      | do_problem_line (Formula (_, _, phi, _, _)) = do_formula phi
-    val (tys, syms) = declared_types_and_syms_in_problem problem
+    fun do_line (Type_Decl _) = I
+      | do_line (Sym_Decl (_, _, ty)) = do_type ty
+      | do_line (Formula (_, _, phi, _, _)) = do_formula phi
+    val (tys, syms) = declared_in_problem problem
   in
     (Symtab.empty, Symtab.empty)
     |>> fold (fn (s, _) => Symtab.default (s, (("", ""), 0))) tys
     ||> fold (fn (s, _) => Symtab.default (s, (("", ""), K tvar_a_atype))) syms
-    |> fold (fold do_problem_line o snd) problem
+    |> fold (fold do_line o snd) problem
   end
 
-fun declare_undeclared_types_and_syms_in_atp_problem problem =
+fun declare_undeclared_in_atp_problem problem =
   let
-    val (types, syms) = undeclared_types_and_syms_in_problem problem
+    val (types, syms) = undeclared_in_problem problem
     val decls =
       Symtab.fold (fn (_, (("", ""), _)) => I (* already declared *)
                     | (s, (sym, ary)) =>
-                      cons (Type_Decl (type_decl_prefix ^ s, sym, ary)))
+                      cons (Type_Decl (type_decl_prefix ^ s, sym, ary, []))) (* ### FIXME *)
                   types [] @
       Symtab.fold (fn (_, (("", ""), _)) => I (* already declared *)
                     | (s, (sym, ty)) =>
@@ -2699,14 +2699,18 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
     val sym_decl_lines =
       (conjs, helpers @ facts, uncurried_alias_eq_tms)
       |> sym_decl_table_for_facts thy type_enc sym_tab
-      |> problem_lines_for_sym_decl_table ctxt mono type_enc mono_Ts
+      |> lines_for_sym_decl_table ctxt mono type_enc mono_Ts
     val num_facts = length facts
     val fact_lines =
       map (formula_line_for_fact ctxt fact_prefix ascii_of (not exporter)
                (not exporter) mono type_enc (rank_of_fact_num num_facts))
           (0 upto num_facts - 1 ~~ facts)
-    val class_rel_lines =
-      map (formula_line_for_class_rel_clause type_enc) class_rel_clauses
+    val (class_rel_lines, arity_lines) =
+      if polymorphism_of_type_enc type_enc = Type_Class_Polymorphic then
+        ([], [])
+      else
+        (map (formula_line_for_class_rel_clause type_enc) class_rel_clauses,
+         map (formula_line_for_arity_clause type_enc) arity_clauses)
     val helper_lines =
       0 upto length helpers - 1 ~~ helpers
       |> map (formula_line_for_fact ctxt helper_prefix I false true mono
@@ -2717,7 +2721,7 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
        (uncurried_alias_eqsN, uncurried_alias_eq_lines),
        (factsN, fact_lines),
        (class_relsN, class_rel_lines),
-       (aritiesN, map (formula_line_for_arity_clause type_enc) arity_clauses),
+       (aritiesN, arity_lines),
        (helpersN, helper_lines),
        (free_typesN, formula_lines_for_free_types type_enc (facts @ conjs)),
        (conjsN, map (formula_line_for_conjecture ctxt mono type_enc) conjs)]
@@ -2728,7 +2732,7 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
                   | FOF => I
                   | TFF (_, TPTP_Implicit) => I
                   | THF (_, TPTP_Implicit, _, _) => I
-                  | _ => declare_undeclared_types_and_syms_in_atp_problem)
+                  | _ => declare_undeclared_in_atp_problem)
     val (problem, pool) = problem |> nice_atp_problem readable_names format
     fun add_sym_ary (s, {min_ary, ...} : sym_info) =
       min_ary > 0 ? Symtab.insert (op =) (s, min_ary)

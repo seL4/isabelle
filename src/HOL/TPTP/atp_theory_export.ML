@@ -112,7 +112,7 @@ fun add_inferences_to_problem_line infers
 fun add_inferences_to_problem infers =
   map (apsnd (map (add_inferences_to_problem_line infers)))
 
-fun ident_of_problem_line (Type_Decl (ident, _, _)) = ident
+fun ident_of_problem_line (Type_Decl (ident, _, _, _)) = ident
   | ident_of_problem_line (Sym_Decl (ident, _, _)) = ident
   | ident_of_problem_line (Formula (ident, _, _, _, _)) = ident
 
