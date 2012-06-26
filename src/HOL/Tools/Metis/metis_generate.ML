@@ -211,7 +211,7 @@ fun eliminate_lam_wrappers (Const (@{const_name Metis.lambda}, _) $ t) =
 fun prepare_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
   let
     val (conj_clauses, fact_clauses) =
-      if polymorphism_of_type_enc type_enc = Raw_Polymorphic then
+      if is_type_enc_polymorphic type_enc then
         (conj_clauses, fact_clauses)
       else
         conj_clauses @ fact_clauses

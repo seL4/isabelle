@@ -54,6 +54,7 @@ sig
   val satallaxN : string
   val snarkN : string
   val spassN : string
+  val spass_polyN : string
   val vampireN : string
   val waldmeisterN : string
   val z3_tptpN : string
@@ -149,6 +150,7 @@ val leo2N = "leo2"
 val satallaxN = "satallax"
 val snarkN = "snark"
 val spassN = "spass"
+val spass_polyN = "spass_poly"
 val vampireN = "vampire"
 val waldmeisterN = "waldmeister"
 val z3_tptpN = "z3_tptp"
@@ -409,14 +411,14 @@ val spass_config : atp_config =
    prem_role = Conjecture,
    best_slices = fn _ =>
      (* FUDGE *)
-     [(0.1667, (false, ((150, DFG, "mono_native", combsN, true), ""))),
-      (0.1667, (false, ((500, DFG, "mono_native", liftingN, true), spass_H2SOS))),
-      (0.1666, (false, ((50, DFG,  "mono_native", liftingN, true), spass_H2LR0LT0))),
-      (0.1000, (false, ((250, DFG, "mono_native", combsN, true), spass_H2NuVS0))),
-      (0.1000, (false, ((1000, DFG, "mono_native", liftingN, true), spass_H1SOS))),
-      (0.1000, (false, ((150, DFG, "poly_guards??", liftingN, false), spass_H2NuVS0Red2))),
-      (0.1000, (false, ((300, DFG, "mono_native", combsN, true), spass_H2SOS))),
-      (0.1000, (false, ((100, DFG, "mono_native", combs_and_liftingN, true), spass_H2NuVS0)))],
+     [(0.1667, (false, ((150, DFG Monomorphic, "mono_native", combsN, true), ""))),
+      (0.1667, (false, ((500, DFG Monomorphic, "mono_native", liftingN, true), spass_H2SOS))),
+      (0.1666, (false, ((50, DFG Monomorphic,  "mono_native", liftingN, true), spass_H2LR0LT0))),
+      (0.1000, (false, ((250, DFG Monomorphic, "mono_native", combsN, true), spass_H2NuVS0))),
+      (0.1000, (false, ((1000, DFG Monomorphic, "mono_native", liftingN, true), spass_H1SOS))),
+      (0.1000, (false, ((150, DFG Monomorphic, "poly_guards??", liftingN, false), spass_H2NuVS0Red2))),
+      (0.1000, (false, ((300, DFG Monomorphic, "mono_native", combsN, true), spass_H2SOS))),
+      (0.1000, (false, ((100, DFG Monomorphic, "mono_native", combs_and_liftingN, true), spass_H2NuVS0)))],
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
 
@@ -495,7 +497,7 @@ val z3_tptp_config : atp_config =
 val z3_tptp = (z3_tptpN, fn () => z3_tptp_config)
 
 
-(* Not really a prover: Experimental Polymorphic TFF and THF output *)
+(* Not really a prover: Experimental Polymorphic THF and DFG output *)
 
 fun dummy_config format type_enc : atp_config =
   {exec = (["ISABELLE_ATP"], "scripts/dummy_atp"),
@@ -516,6 +518,9 @@ val dummy_thf_format =
 val dummy_thf_config = dummy_config dummy_thf_format "poly_native_higher"
 val dummy_thf = (dummy_thfN, fn () => dummy_thf_config)
 
+val spass_poly_format = DFG Polymorphic
+val spass_poly_config = dummy_config spass_poly_format "tc_native"
+val spass_poly = (spass_polyN, fn () => spass_poly_config)
 
 (* Remote ATP invocation via SystemOnTPTP *)
 
@@ -667,8 +672,8 @@ fun effective_term_order ctxt atp =
   end
 
 val atps=
-  [alt_ergo, e, leo2, dummy_thf, satallax, spass, vampire, z3_tptp, remote_e,
-   remote_e_sine, remote_e_tofof, remote_iprover, remote_iprover_eq,
+  [alt_ergo, e, leo2, satallax, spass, spass_poly, vampire, z3_tptp, dummy_thf,
+   remote_e, remote_e_sine, remote_e_tofof, remote_iprover, remote_iprover_eq,
    remote_leo2, remote_satallax, remote_vampire, remote_z3_tptp, remote_snark,
    remote_waldmeister]
 

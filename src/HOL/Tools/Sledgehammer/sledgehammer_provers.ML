@@ -717,7 +717,7 @@ fun run_atp mode name
                     |> not sound
                        ? filter_out (is_dangerous_prop ctxt o prop_of o snd)
                     |> take num_facts
-                    |> polymorphism_of_type_enc type_enc <> Raw_Polymorphic
+                    |> not (is_type_enc_polymorphic type_enc)
                        ? monomorphize_facts
                     |> map (apsnd prop_of)
                     |> prepare_atp_problem ctxt format prem_role type_enc
