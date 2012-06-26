@@ -15,7 +15,7 @@ sig
   type formula_role = ATP_Problem.formula_role
   type 'a problem = 'a ATP_Problem.problem
 
-  datatype mode = Metis | Sledgehammer | Sledgehammer_Aggressive | Exporter
+  datatype mode = Metis | Sledgehammer | Sledgehammer_Completish | Exporter
 
   datatype scope = Global | Local | Assum | Chained
   datatype status =
@@ -116,7 +116,7 @@ struct
 open ATP_Util
 open ATP_Problem
 
-datatype mode = Metis | Sledgehammer | Sledgehammer_Aggressive | Exporter
+datatype mode = Metis | Sledgehammer | Sledgehammer_Completish | Exporter
 
 datatype scope = Global | Local | Assum | Chained
 datatype status = General | Induction | Intro | Inductive | Elim | Simp | Def
@@ -1594,8 +1594,8 @@ val fTrue_iconst =
 val predicator_iconst =
   IConst (`(make_fixed_const NONE) predicator_name, @{typ "bool => bool"}, [])
 
-fun predicatify aggressive tm =
-  if aggressive then
+fun predicatify completish tm =
+  if completish then
     IApp (IApp (IConst (`I tptp_equal, @{typ "bool => bool => bool"}, []), tm),
           fTrue_iconst)
   else
@@ -1615,7 +1615,7 @@ fun mk_app_op type_enc head arg =
   in list_app app [head, arg] end
 
 fun firstorderize_fact thy constrs type_enc sym_tab uncurried_aliases
-                       aggressive =
+                       completish =
   let
     fun do_app arg head = mk_app_op type_enc head arg
     fun list_app_ops head args = fold do_app args head
@@ -1637,8 +1637,8 @@ fun firstorderize_fact thy constrs type_enc sym_tab uncurried_aliases
     fun introduce_predicators tm =
       case strip_iterm_comb tm of
         (IConst ((s, _), _, _), _) =>
-        if is_pred_sym sym_tab s then tm else predicatify aggressive tm
-      | _ => predicatify aggressive tm
+        if is_pred_sym sym_tab s then tm else predicatify completish tm
+      | _ => predicatify completish tm
     val do_iterm =
       not (is_type_enc_higher_order type_enc)
       ? (introduce_app_ops #> introduce_predicators)
@@ -1699,7 +1699,7 @@ val helper_table =
     [(General, @{lemma "~ P x | fEx P" by (auto simp: fEx_def)})])]
   |> map (apsnd (map (apsnd zero_var_indexes)))
 
-val aggressive_helper_table =
+val completish_helper_table =
   base_helper_table @
   [((predicator_name, true),
     @{thms True_or_False fTrue_ne_fFalse} |> map (pair General)),
@@ -1761,7 +1761,7 @@ fun should_specialize_helper type_enc t =
   could_specialize_helpers type_enc andalso
   not (null (Term.hidden_polymorphism t))
 
-fun add_helper_facts_for_sym ctxt format type_enc aggressive
+fun add_helper_facts_for_sym ctxt format type_enc completish
                              (s, {types, ...} : sym_info) =
   case unprefix_and_unascii const_prefix s of
     SOME mangled_s =>
@@ -1794,18 +1794,18 @@ fun add_helper_facts_for_sym ctxt format type_enc aggressive
       fold (fn ((helper_s, needs_sound), ths) =>
                if (needs_sound andalso not sound) orelse
                   (helper_s <> unmangled_s andalso
-                   (not aggressive orelse could_specialize)) then
+                   (not completish orelse could_specialize)) then
                  I
                else
                  ths ~~ (1 upto length ths)
                  |> maps (dub_and_inst needs_sound o apfst (apsnd prop_of))
                  |> make_facts
                  |> union (op = o pairself #iformula))
-           (if aggressive then aggressive_helper_table else helper_table)
+           (if completish then completish_helper_table else helper_table)
     end
   | NONE => I
-fun helper_facts_for_sym_table ctxt format type_enc aggressive sym_tab =
-  Symtab.fold_rev (add_helper_facts_for_sym ctxt format type_enc aggressive)
+fun helper_facts_for_sym_table ctxt format type_enc completish sym_tab =
+  Symtab.fold_rev (add_helper_facts_for_sym ctxt format type_enc completish)
                   sym_tab []
 
 (***************************************************************)
@@ -2253,13 +2253,13 @@ fun sym_decl_table_for_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
   end
 
 (* We add "bool" in case the helper "True_or_False" is included later. *)
-fun default_mono level aggressive =
+fun default_mono level completish =
   {maybe_finite_Ts = [@{typ bool}],
    surely_infinite_Ts =
      case level of
        Nonmono_Types (Strict, _) => []
      | _ => known_infinite_types,
-   maybe_nonmono_Ts = [if aggressive then tvar_a else @{typ bool}]}
+   maybe_nonmono_Ts = [if completish then tvar_a else @{typ bool}]}
 
 (* This inference is described in section 2.3 of Claessen et al.'s "Sorting it
    out with monotonicity" paper presented at CADE 2011. *)
@@ -2291,9 +2291,9 @@ fun add_iterm_mononotonicity_info _ _ (SOME false) _ mono = mono
 fun add_fact_mononotonicity_info ctxt level ({role, iformula, ...} : ifact) =
   formula_fold (SOME (role <> Conjecture))
                (add_iterm_mononotonicity_info ctxt level) iformula
-fun mononotonicity_info_for_facts ctxt type_enc aggressive facts =
+fun mononotonicity_info_for_facts ctxt type_enc completish facts =
   let val level = level_of_type_enc type_enc in
-    default_mono level aggressive
+    default_mono level completish
     |> is_type_level_monotonicity_based level
        ? fold (add_fact_mononotonicity_info ctxt level) facts
   end
@@ -2655,7 +2655,7 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
        ruin everything. Hence we do it only if there are few facts (which is
        normally the case for "metis" and the minimizer). *)
     val app_op_level =
-      if mode = Sledgehammer_Aggressive then
+      if mode = Sledgehammer_Completish then
         Full_App_Op_And_Predicator
       else if length facts + length hyp_ts
               > app_op_and_predicator_threshold then
@@ -2664,7 +2664,7 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
       else
         Sufficient_App_Op_And_Predicator
     val exporter = (mode = Exporter)
-    val aggressive = (mode = Sledgehammer_Aggressive)
+    val completish = (mode = Sledgehammer_Completish)
     val lam_trans =
       if lam_trans = keep_lamsN andalso
          not (is_type_enc_higher_order type_enc) then
@@ -2678,11 +2678,11 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
     val (_, sym_tab0) =
       sym_table_for_facts ctxt type_enc app_op_level conjs facts
     val mono =
-      conjs @ facts |> mononotonicity_info_for_facts ctxt type_enc aggressive
+      conjs @ facts |> mononotonicity_info_for_facts ctxt type_enc completish
     val constrs = all_constrs_of_polymorphic_datatypes thy
     fun firstorderize in_helper =
       firstorderize_fact thy constrs type_enc sym_tab0
-          (uncurried_aliases andalso not in_helper) aggressive
+          (uncurried_aliases andalso not in_helper) completish
     val (conjs, facts) = (conjs, facts) |> pairself (map (firstorderize false))
     val (ho_stuff, sym_tab) =
       sym_table_for_facts ctxt type_enc Min_App_Op conjs facts
@@ -2694,7 +2694,7 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
       |> fold (add_iterm_syms_to_sym_table ctxt Min_App_Op false false)
               uncurried_alias_eq_tms
     val helpers =
-      sym_tab |> helper_facts_for_sym_table ctxt format type_enc aggressive
+      sym_tab |> helper_facts_for_sym_table ctxt format type_enc completish
               |> map (firstorderize true)
     val mono_Ts =
       helpers @ conjs @ facts |> monotonic_types_for_facts ctxt mono type_enc

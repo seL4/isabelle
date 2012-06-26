@@ -183,19 +183,19 @@ fun nitpick_finite_oracle_tac ctxt timeout i th =
       in if outcome = "none" then Skip_Proof.cheat_tac thy th else Seq.empty end
   end
 
-fun atp_tac ctxt aggressivity override_params timeout prover =
+fun atp_tac ctxt completeness override_params timeout prover =
   let
     val ctxt =
-      ctxt |> Config.put Sledgehammer_Provers.aggressive (aggressivity > 0)
+      ctxt |> Config.put Sledgehammer_Provers.completish (completeness > 0)
   in
     Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt
         ([("debug", if debug then "true" else "false"),
           ("overlord", if overlord then "true" else "false"),
           ("provers", prover),
           ("timeout", string_of_int timeout)] @
-         (if aggressivity > 0 then
+         (if completeness > 0 then
             [("type_enc",
-              if aggressivity = 1 then "mono_native" else "poly_guards??"),
+              if completeness = 1 then "mono_native" else "poly_guards??"),
              ("slicing", "false")]
           else
             []) @
@@ -207,12 +207,12 @@ fun atp_tac ctxt aggressivity override_params timeout prover =
 fun sledgehammer_tac demo ctxt timeout i =
   let
     val frac = if demo then 16 else 12
-    fun slice mult aggressivity prover =
+    fun slice mult completeness prover =
       SOLVE_TIMEOUT (mult * timeout div frac)
           (prover ^
-           (if aggressivity > 0 then "(" ^ string_of_int aggressivity ^ ")"
+           (if completeness > 0 then "(" ^ string_of_int completeness ^ ")"
             else ""))
-          (atp_tac ctxt aggressivity [] (mult * timeout div frac) prover i)
+          (atp_tac ctxt completeness [] (mult * timeout div frac) prover i)
   in
     slice 2 0 ATP_Systems.spassN
     ORELSE slice 2 0 ATP_Systems.vampireN
@@ -290,13 +290,13 @@ fun generic_isabelle_tptp_file demo thy timeout file_name =
     val (conjs, assms, ctxt) =
       read_tptp_file thy (freeze_problem_consts thy) file_name
     val conj = make_conj assms conjs
-    val (last_hope_atp, last_hope_aggressive) =
+    val (last_hope_atp, last_hope_completeness) =
       if demo then (ATP_Systems.satallaxN, 0) else (ATP_Systems.vampireN, 2)
   in
     (can_tac ctxt (auto_etc_tac ctxt (timeout div 2) 1) conj orelse
      can_tac ctxt (sledgehammer_tac demo ctxt (timeout div 2) 1) conj orelse
      can_tac ctxt (SOLVE_TIMEOUT timeout (last_hope_atp ^ "(*)")
-         (atp_tac ctxt last_hope_aggressive [] timeout last_hope_atp 1)) conj)
+         (atp_tac ctxt last_hope_completeness [] timeout last_hope_atp 1)) conj)
     |> print_szs_from_success conjs
   end
 

@@ -492,11 +492,14 @@ fun arity_of_type (APi (tys, ty)) =
 fun string_of_arity (0, n) = string_of_int n
   | string_of_arity (m, n) = string_of_int m ^ "+" ^ string_of_int n
 
+val dfg_class_inter = space_implode " & "
+
 fun dfg_string_for_formula poly gen_simp info =
   let
     val str_for_typ = string_for_type (DFG poly)
     fun str_for_bound_typ (ty, []) = str_for_typ ty
-      | str_for_bound_typ (ty, cls) = str_for_typ ty ^ " : " ^ commas cls
+      | str_for_bound_typ (ty, cls) =
+        str_for_typ ty ^ " : " ^ dfg_class_inter cls
     fun suffix_tag top_level s =
       if top_level then
         case extract_isabelle_status info of
@@ -554,7 +557,7 @@ fun dfg_lines poly {is_lpo, gen_weights, gen_prec, gen_simp} ord_info problem =
           |>> (fn [] => [] | ty_vars => ["[" ^ commas ty_vars ^ "]"])
       in "predicate(" ^ commas (sym :: ty_vars @ map str_for_typ tys) ^ ")." end
     fun str_for_bound_tvar (ty, []) = ty
-      | str_for_bound_tvar (ty, cls) = ty ^ " : " ^ commas cls
+      | str_for_bound_tvar (ty, cls) = ty ^ " : " ^ dfg_class_inter cls
     fun sort_decl xs ty cl =
       "sort(" ^
       (if null xs then ""

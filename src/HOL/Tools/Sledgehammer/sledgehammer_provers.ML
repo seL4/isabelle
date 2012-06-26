@@ -65,7 +65,7 @@ sig
 
   val dest_dir : string Config.T
   val problem_prefix : string Config.T
-  val aggressive : bool Config.T
+  val completish : bool Config.T
   val atp_full_names : bool Config.T
   val smt_triggers : bool Config.T
   val smt_weights : bool Config.T
@@ -335,8 +335,8 @@ val dest_dir =
   Attrib.setup_config_string @{binding sledgehammer_dest_dir} (K "")
 val problem_prefix =
   Attrib.setup_config_string @{binding sledgehammer_problem_prefix} (K "prob")
-val aggressive =
-  Attrib.setup_config_bool @{binding sledgehammer_aggressive} (K false)
+val completish =
+  Attrib.setup_config_bool @{binding sledgehammer_completish} (K false)
 
 (* In addition to being easier to read, readable names are often much shorter,
    especially if types are mangled in names. This makes a difference for some
@@ -596,7 +596,7 @@ fun run_atp mode name
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
     val atp_mode =
-      if Config.get ctxt aggressive then Sledgehammer_Aggressive
+      if Config.get ctxt completish then Sledgehammer_Completish
       else Sledgehammer
     val (_, hyp_ts, concl_t) = strip_subgoal ctxt goal subgoal
     val (dest_dir, problem_prefix) =
