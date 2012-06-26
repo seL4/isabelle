@@ -9,7 +9,7 @@ Proof reconstruction from ATP proofs.
 signature ATP_PROOF_RECONSTRUCT =
 sig
   type ('a, 'b) ho_term = ('a, 'b) ATP_Problem.ho_term
-  type ('a, 'b, 'c) formula = ('a, 'b, 'c) ATP_Problem.formula
+  type ('a, 'b, 'c, 'd) formula = ('a, 'b, 'c, 'd) ATP_Problem.formula
   type 'a proof = 'a ATP_Proof.proof
   type stature = ATP_Problem_Generate.stature
 
@@ -60,7 +60,7 @@ sig
     -> (string, string) ho_term -> term
   val prop_from_atp :
     Proof.context -> bool -> int Symtab.table
-    -> (string, string, (string, string) ho_term) formula -> term
+    -> (string, string, (string, string) ho_term, string) formula -> term
   val isar_proof_text :
     Proof.context -> bool -> isar_params -> one_line_params -> string
   val proof_text :
@@ -326,7 +326,8 @@ fun raw_label_for_name (num, ss) =
 (**** INTERPRETATION OF TSTP SYNTAX TREES ****)
 
 exception HO_TERM of (string, string) ho_term list
-exception FORMULA of (string, string, (string, string) ho_term) formula list
+exception FORMULA of
+    (string, string, (string, string) ho_term, string) formula list
 exception SAME of unit
 
 (* Type variables are given the basic sort "HOL.type". Some will later be

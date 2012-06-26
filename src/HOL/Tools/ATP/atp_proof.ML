@@ -9,7 +9,7 @@ Abstract representation of ATP proofs and TSTP/SPASS syntax.
 signature ATP_PROOF =
 sig
   type ('a, 'b) ho_term = ('a, 'b) ATP_Problem.ho_term
-  type ('a, 'b, 'c) formula = ('a, 'b, 'c) ATP_Problem.formula
+  type ('a, 'b, 'c, 'd) formula = ('a, 'b, 'c, 'd) ATP_Problem.formula
   type 'a problem = 'a ATP_Problem.problem
 
   exception UNRECOGNIZED_ATP_PROOF of unit
@@ -40,7 +40,7 @@ sig
     Definition_Step of step_name * 'a * 'a |
     Inference_Step of step_name * 'a * string * step_name list
 
-  type 'a proof = ('a, 'a, ('a, 'a) ho_term) formula step list
+  type 'a proof = ('a, 'a, ('a, 'a) ho_term, 'a) formula step list
 
   val short_output : bool -> string -> string
   val string_for_failure : failure -> string
@@ -55,7 +55,7 @@ sig
   val satallax_unsat_coreN : string
   val parse_formula :
     string list
-    -> (string, 'a, (string, 'a) ho_term) formula * string list
+    -> (string, 'a, (string, 'a) ho_term, string) formula * string list
   val atp_proof_from_tstplike_proof : string problem -> string -> string proof
   val clean_up_atp_proof_dependencies : string proof -> string proof
   val map_term_names_in_atp_proof :
@@ -222,7 +222,7 @@ datatype 'a step =
   Definition_Step of step_name * 'a * 'a |
   Inference_Step of step_name * 'a * string * step_name list
 
-type 'a proof = ('a, 'a, ('a, 'a) ho_term) formula step list
+type 'a proof = ('a, 'a, ('a, 'a) ho_term, 'a) formula step list
 
 fun step_name (Definition_Step (name, _, _)) = name
   | step_name (Inference_Step (name, _, _, _)) = name

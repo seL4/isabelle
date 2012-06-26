@@ -12,10 +12,10 @@ sig
     AAbs of (('a * 'b) * ('a, 'b) ho_term) * ('a, 'b) ho_term list
   datatype quantifier = AForall | AExists
   datatype connective = ANot | AAnd | AOr | AImplies | AIff
-  datatype ('a, 'b, 'c) formula =
-    ATyQuant of quantifier * 'b list * ('a, 'b, 'c) formula |
-    AQuant of quantifier * ('a * 'b option) list * ('a, 'b, 'c) formula |
-    AConn of connective * ('a, 'b, 'c) formula list |
+  datatype ('a, 'b, 'c, 'd) formula =
+    ATyQuant of quantifier * ('b * 'd list) list * ('a, 'b, 'c, 'd) formula |
+    AQuant of quantifier * ('a * 'b option) list * ('a, 'b, 'c, 'd) formula |
+    AConn of connective * ('a, 'b, 'c, 'd) formula list |
     AAtom of 'c
 
   datatype 'a ho_type =
@@ -46,7 +46,7 @@ sig
   datatype 'a problem_line =
     Decl of string * 'a * 'a ho_type |
     Formula of string * formula_role
-               * ('a, 'a ho_type, ('a, 'a ho_type) ho_term) formula
+               * ('a, 'a ho_type, ('a, 'a ho_type) ho_term, 'a) formula
                * (string, string ho_type) ho_term option
                * (string, string ho_type) ho_term list
   type 'a problem = (string * 'a problem_line list) list
@@ -101,20 +101,21 @@ sig
   val atype_of_types : (string * string) ho_type
   val bool_atype : (string * string) ho_type
   val individual_atype : (string * string) ho_type
-  val mk_anot : ('a, 'b, 'c) formula -> ('a, 'b, 'c) formula
+  val mk_anot : ('a, 'b, 'c, 'd) formula -> ('a, 'b, 'c, 'd) formula
   val mk_aconn :
-    connective -> ('a, 'b, 'c) formula -> ('a, 'b, 'c) formula
-    -> ('a, 'b, 'c) formula
+    connective -> ('a, 'b, 'c, 'd) formula -> ('a, 'b, 'c, 'd) formula
+    -> ('a, 'b, 'c, 'd) formula
   val aconn_fold :
     bool option -> (bool option -> 'a -> 'b -> 'b) -> connective * 'a list
     -> 'b -> 'b
   val aconn_map :
-    bool option -> (bool option -> 'a -> ('b, 'c, 'd) formula)
-    -> connective * 'a list -> ('b, 'c, 'd) formula
+    bool option -> (bool option -> 'a -> ('b, 'c, 'd, 'e) formula)
+    -> connective * 'a list -> ('b, 'c, 'd, 'e) formula
   val formula_fold :
-    bool option -> (bool option -> 'c -> 'd -> 'd) -> ('a, 'b, 'c) formula
-    -> 'd -> 'd
-  val formula_map : ('c -> 'd) -> ('a, 'b, 'c) formula -> ('a, 'b, 'd) formula
+    bool option -> (bool option -> 'c -> 'e -> 'e) -> ('a, 'b, 'c, 'd) formula
+    -> 'e -> 'e
+  val formula_map :
+    ('c -> 'e) -> ('a, 'b, 'c, 'd) formula -> ('a, 'b, 'e, 'd) formula
   val is_function_type : string ho_type -> bool
   val is_predicate_type : string ho_type -> bool
   val is_format_higher_order : atp_format -> bool
@@ -145,10 +146,10 @@ datatype ('a, 'b) ho_term =
   AAbs of (('a * 'b) * ('a, 'b) ho_term) * ('a, 'b) ho_term list
 datatype quantifier = AForall | AExists
 datatype connective = ANot | AAnd | AOr | AImplies | AIff
-datatype ('a, 'b, 'c) formula =
-  ATyQuant of quantifier * 'b list * ('a, 'b, 'c) formula |
-  AQuant of quantifier * ('a * 'b option) list * ('a, 'b, 'c) formula |
-  AConn of connective * ('a, 'b, 'c) formula list |
+datatype ('a, 'b, 'c, 'd) formula =
+  ATyQuant of quantifier * ('b * 'd list) list * ('a, 'b, 'c, 'd) formula |
+  AQuant of quantifier * ('a * 'b option) list * ('a, 'b, 'c, 'd) formula |
+  AConn of connective * ('a, 'b, 'c, 'd) formula list |
   AAtom of 'c
 
 datatype 'a ho_type =
@@ -179,7 +180,7 @@ datatype formula_role = Axiom | Definition | Lemma | Hypothesis | Conjecture
 datatype 'a problem_line =
   Decl of string * 'a * 'a ho_type |
   Formula of string * formula_role
-             * ('a, 'a ho_type, ('a, 'a ho_type) ho_term) formula
+             * ('a, 'a ho_type, ('a, 'a ho_type) ho_term, 'a) formula
              * (string, string ho_type) ho_term option
              * (string, string ho_type) ho_term list
 type 'a problem = (string * 'a problem_line list) list
@@ -429,7 +430,8 @@ fun tptp_string_for_term _ (ATerm ((s, []), [])) = s
     raise Fail "unexpected term in first-order format"
 and tptp_string_for_formula format (ATyQuant (q, xs, phi)) =
     tptp_string_for_quantifier q ^
-    "[" ^ commas (map (suffix_type_of_types o string_for_type format) xs) ^
+    "[" ^
+    commas (map (suffix_type_of_types o string_for_type format o fst) xs) ^
     "]: " ^ tptp_string_for_formula format phi
     |> enclose "(" ")"
   | tptp_string_for_formula format (AQuant (q, xs, phi)) =
@@ -520,7 +522,7 @@ fun dfg_string_for_formula poly gen_simp info =
       | str_for_conn _ AImplies = "implies"
       | str_for_conn top_level AIff = "equiv" |> suffix_tag top_level
     fun str_for_formula top_level (ATyQuant (q, xs, phi)) =
-        str_for_quant q ^ "_sorts([" ^ commas (map str_for_typ xs) ^
+        str_for_quant q ^ "_sorts([" ^ commas (map (str_for_typ o fst) xs) ^
         "], " ^ str_for_formula top_level phi ^ ")"
       | str_for_formula top_level (AQuant (q, xs, phi)) =
         str_for_quant q ^ "([" ^
@@ -847,8 +849,9 @@ fun nice_atp_problem readable_names format problem =
         nice_name name ##>> nice_type ty ##>> nice_term tm
         ##>> pool_map nice_term args #>> AAbs
     fun nice_formula (ATyQuant (q, xs, phi)) =
-        pool_map nice_type xs ##>> nice_formula phi
-        #>> (fn (xs, phi) => ATyQuant (q, xs, phi))
+        pool_map nice_type (map fst xs)
+        ##>> pool_map (pool_map nice_name) (map snd xs) ##>> nice_formula phi
+        #>> (fn ((tys, sorts), phi) => ATyQuant (q, tys ~~ sorts, phi))
       | nice_formula (AQuant (q, xs, phi)) =
         pool_map nice_name (map fst xs)
         ##>> pool_map (fn NONE => pair NONE

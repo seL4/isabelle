@@ -10,7 +10,7 @@ signature ATP_PROBLEM_GENERATE =
 sig
   type ('a, 'b) ho_term = ('a, 'b) ATP_Problem.ho_term
   type connective = ATP_Problem.connective
-  type ('a, 'b, 'c) formula = ('a, 'b, 'c) ATP_Problem.formula
+  type ('a, 'b, 'c, 'd) formula = ('a, 'b, 'c, 'd) ATP_Problem.formula
   type atp_format = ATP_Problem.atp_format
   type formula_role = ATP_Problem.formula_role
   type 'a problem = 'a ATP_Problem.problem
@@ -91,7 +91,7 @@ sig
   val type_enc_from_string : strictness -> string -> type_enc
   val adjust_type_enc : atp_format -> type_enc -> type_enc
   val mk_aconns :
-    connective -> ('a, 'b, 'c) formula list -> ('a, 'b, 'c) formula
+    connective -> ('a, 'b, 'c, 'd) formula list -> ('a, 'b, 'c, 'd) formula
   val unmangled_const : string -> string * (string, 'b) ho_term list
   val unmangled_const_name : string -> string list
   val helper_table : ((string * bool) * (status * thm) list) list
@@ -113,8 +113,6 @@ struct
 
 open ATP_Util
 open ATP_Problem
-
-type name = string * string
 
 datatype mode = Metis | Sledgehammer | Sledgehammer_Aggressive | Exporter
 
@@ -512,10 +510,10 @@ fun make_class_rel_clauses thy subs supers =
 
 (* intermediate terms *)
 datatype iterm =
-  IConst of name * typ * typ list |
-  IVar of name * typ |
+  IConst of (string * string) * typ * typ list |
+  IVar of (string * string) * typ |
   IApp of iterm * iterm |
-  IAbs of (name * typ) * iterm
+  IAbs of ((string * string) * typ) * iterm
 
 fun ityp_of (IConst (_, T, _)) = T
   | ityp_of (IVar (_, T)) = T
@@ -829,7 +827,7 @@ type ifact =
   {name : string,
    stature : stature,
    role : formula_role,
-   iformula : (name, typ, iterm) formula,
+   iformula : (string * string, typ, iterm, string * string) formula,
    atomic_types : typ list}
 
 fun update_iformula f ({name, stature, role, iformula, atomic_types} : ifact) =
@@ -1741,7 +1739,8 @@ fun bound_tvars type_enc sorts Ts =
     (sorts ? mk_ahorn (formulas_for_types type_enc add_sorts_on_tvar Ts))
     #> (if is_type_enc_native type_enc then
           mk_atyquant AForall
-                      (map (fn TVar (x, _) => AType (tvar_name x, [])) Ts)
+              (map (fn TVar (x, S) =>
+                       (AType (tvar_name x, []), map (`make_type_class) S)) Ts)
         else
           mk_aquant AForall (map (fn TVar (x, _) => (tvar_name x, NONE)) Ts))
 
@@ -2076,7 +2075,7 @@ and formula_from_iformula ctxt mono type_enc should_guard_var =
       else
         NONE
     fun do_formula pos (ATyQuant (q, xs, phi)) =
-        ATyQuant (q, map (ho_type_from_typ type_enc false 0) xs,
+        ATyQuant (q, map (apfst (ho_type_from_typ type_enc false 0)) xs,
                   do_formula pos phi)
       | do_formula pos (AQuant (q, xs, phi)) =
         let
@@ -2573,6 +2572,7 @@ fun default_type type_enc pred_sym s =
     val ind =
       case type_enc of
         Native _ =>
+        (* ### FIXME: get rid of that, and move to "atp_problem.ML" *)
         if String.isPrefix type_const_prefix s orelse
            String.isPrefix tfree_prefix s then
           atype_of_types
