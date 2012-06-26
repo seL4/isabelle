@@ -652,25 +652,31 @@ fun type_enc_from_string strictness s =
                         level)
               else
                 raise Same.SAME
-            | (Raw_Monomorphic, _) => raise Same.SAME
-            | (poly, All_Types) =>
-              Native (Higher_Order THF_With_Choice, poly, All_Types))
+            | (poly as Raw_Polymorphic _, All_Types) =>
+              Native (Higher_Order THF_With_Choice, poly, All_Types)
+            | _ => raise Same.SAME)
          | ("guards", (SOME poly, _)) =>
-           if poly = Mangled_Monomorphic andalso
-              granularity_of_type_level level = Undercover_Vars then
+           if (poly = Mangled_Monomorphic andalso
+               granularity_of_type_level level = Undercover_Vars) orelse
+              poly = Type_Class_Polymorphic then
              raise Same.SAME
            else
              Guards (poly, level)
          | ("tags", (SOME poly, _)) =>
-           if granularity_of_type_level level = Undercover_Vars then
+           if granularity_of_type_level level = Undercover_Vars orelse
+              poly = Type_Class_Polymorphic then
              raise Same.SAME
            else
              Tags (poly, level)
          | ("args", (SOME poly, All_Types (* naja *))) =>
-           Guards (poly, Const_Types false)
+           if poly = Type_Class_Polymorphic then raise Same.SAME
+           else Guards (poly, Const_Types false)
          | ("args", (SOME poly, Nonmono_Types (_, All_Vars) (* naja *))) =>
-           if poly = Mangled_Monomorphic then raise Same.SAME
-           else Guards (poly, Const_Types true)
+           if poly = Mangled_Monomorphic orelse
+              poly = Type_Class_Polymorphic then
+             raise Same.SAME
+           else
+             Guards (poly, Const_Types true)
          | ("erased", (NONE, All_Types (* naja *))) =>
            Guards (Raw_Polymorphic With_Phantom_Type_Vars, No_Types)
          | _ => raise Same.SAME)
@@ -680,9 +686,13 @@ fun adjust_order THF_Without_Choice (Higher_Order _) =
     Higher_Order THF_Without_Choice
   | adjust_order _ type_enc = type_enc
 
+fun no_type_classes Type_Class_Polymorphic =
+    Raw_Polymorphic With_Phantom_Type_Vars
+  | no_type_classes poly = poly
+
 fun adjust_type_enc (THF (Polymorphic, _, choice, _))
                     (Native (order, poly, level)) =
-    Native (adjust_order choice order, poly, level)
+    Native (adjust_order choice order, no_type_classes poly, level)
   | adjust_type_enc (THF (Monomorphic, _, choice, _))
                          (Native (order, _, level)) =
     Native (adjust_order choice order, Mangled_Monomorphic, level)
@@ -693,9 +703,9 @@ fun adjust_type_enc (THF (Polymorphic, _, choice, _))
   | adjust_type_enc (DFG Monomorphic) (Native (_, _, level)) =
     Native (First_Order, Mangled_Monomorphic, level)
   | adjust_type_enc (TFF _) (Native (_, poly, level)) =
-    Native (First_Order, poly, level)
+    Native (First_Order, no_type_classes poly, level)
   | adjust_type_enc format (Native (_, poly, level)) =
-    adjust_type_enc format (Guards (poly, level))
+    adjust_type_enc format (Guards (no_type_classes poly, level))
   | adjust_type_enc CNF_UEQ (type_enc as Guards stuff) =
     (if is_type_enc_sound type_enc then Tags else Guards) stuff
   | adjust_type_enc _ type_enc = type_enc
