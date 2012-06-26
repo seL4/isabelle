@@ -1739,12 +1739,17 @@ fun bound_tvars type_enc sorts Ts =
   case filter is_TVar Ts of
     [] => I
   | Ts =>
-    (sorts ? mk_ahorn (formulas_for_types type_enc add_sorts_on_tvar Ts))
-    #> (if is_type_enc_native type_enc then
-          mk_atyquant AForall
-              (map (fn TVar (x, S) =>
-                       (AType (tvar_name x, []), map (`make_type_class) S)) Ts)
-        else
+    ((sorts andalso polymorphism_of_type_enc type_enc <> Type_Class_Polymorphic)
+       ? mk_ahorn (formulas_for_types type_enc add_sorts_on_tvar Ts))
+    #> (case type_enc of
+          Native (_, poly, _) =>
+          mk_atyquant AForall (map (fn TVar (x, S) =>
+                                       (AType (tvar_name x, []),
+                                        if poly = Type_Class_Polymorphic then
+                                          map (`make_type_class) S
+                                        else
+                                          [])) Ts)
+        | _ =>
           mk_aquant AForall (map (fn TVar (x, _) => (tvar_name x, NONE)) Ts))
 
 fun eq_formula type_enc atomic_Ts bounds pred_sym tm1 tm2 =

@@ -494,6 +494,8 @@ fun string_of_arity (0, n) = string_of_int n
 fun dfg_string_for_formula poly gen_simp info =
   let
     val str_for_typ = string_for_type (DFG poly)
+    fun str_for_bound_typ (ty, []) = str_for_typ ty
+      | str_for_bound_typ (ty, sorts) = str_for_typ ty ^ " : " ^ commas sorts
     fun suffix_tag top_level s =
       if top_level then
         case extract_isabelle_status info of
@@ -521,7 +523,7 @@ fun dfg_string_for_formula poly gen_simp info =
       | str_for_conn _ AImplies = "implies"
       | str_for_conn top_level AIff = "equiv" |> suffix_tag top_level
     fun str_for_formula top_level (ATyQuant (q, xs, phi)) =
-        str_for_quant q ^ "_sorts([" ^ commas (map (str_for_typ o fst) xs) ^
+        str_for_quant q ^ "_sorts([" ^ commas (map str_for_bound_typ xs) ^
         "], " ^ str_for_formula top_level phi ^ ")"
       | str_for_formula top_level (AQuant (q, xs, phi)) =
         str_for_quant q ^ "([" ^
@@ -546,7 +548,6 @@ fun dfg_lines poly {is_lpo, gen_weights, gen_prec, gen_simp} ord_info problem =
     fun fun_typ sym ty = "function(" ^ sym ^ ", " ^ str_for_typ ty ^ ")."
     fun pred_typ sym ty =
       let
-        val ((ty_vars, tys), _) = strip_atype ty
         val (ty_vars, tys) =
           strip_atype ty |> fst
           |>> (fn [] => [] | ty_vars => ["[" ^ commas ty_vars ^ "]"])
