@@ -2163,15 +2163,12 @@ fun formula_lines_for_free_types type_enc (facts : ifact list) =
 
 fun decl_line_for_class order phantoms s =
   let val name as (s, _) = `make_type_class s in
-    Decl (sym_decl_prefix ^ s, name,
-          if order = First_Order then
-            APi ([tvar_a_name],
-                 if phantoms = Without_Phantom_Type_Vars then
-                   AFun (a_itself_atype, bool_atype)
-                 else
-                   bool_atype)
-          else
-            AFun (atype_of_types, bool_atype))
+    Sym_Decl (sym_decl_prefix ^ s, name,
+              APi ([tvar_a_name],
+                   if phantoms = Without_Phantom_Type_Vars then
+                     AFun (a_itself_atype, bool_atype)
+                   else
+                     bool_atype))
   end
 
 fun decl_lines_for_classes type_enc classes =
@@ -2359,11 +2356,11 @@ fun decl_line_for_sym ctxt mono type_enc s
         in (T, robust_const_typargs thy (s', T)) end
       | NONE => raise Fail "unexpected type arguments"
   in
-    Decl (sym_decl_prefix ^ s, (s, s'),
-          T |> fused_type ctxt mono (level_of_type_enc type_enc) ary
-            |> ho_type_from_typ type_enc pred_sym ary
-            |> not (null T_args)
-               ? curry APi (map (tvar_name o fst o dest_TVar) T_args))
+    Sym_Decl (sym_decl_prefix ^ s, (s, s'),
+              T |> fused_type ctxt mono (level_of_type_enc type_enc) ary
+                |> ho_type_from_typ type_enc pred_sym ary
+                |> not (null T_args)
+                   ? curry APi (map (tvar_name o fst o dest_TVar) T_args))
   end
 
 fun honor_conj_sym_role in_conj =
@@ -2574,21 +2571,17 @@ fun default_type pred_sym s =
       | typ ty_ary tm_ary = APi (replicate ty_ary tvar_a_name, typ 0 tm_ary)
   in typ end
 
-fun nary_type_constr_type n =
-  funpow n (curry AFun atype_of_types) atype_of_types
-
-fun undeclared_syms_in_problem problem =
+fun undeclared_types_and_syms_in_problem problem =
   let
-    fun do_sym (name as (s, _)) ty =
-      if is_tptp_user_symbol s then Symtab.default (s, (name, ty)) else I
+    fun do_sym (name as (s, _)) value =
+      if is_tptp_user_symbol s then Symtab.default (s, (name, value)) else I
     fun do_type (AType (name, tys)) =
-        do_sym name (fn () => nary_type_constr_type (length tys))
-        #> fold do_type tys
+        apfst (do_sym name (length tys)) #> fold do_type tys
       | do_type (AFun (ty1, ty2)) = do_type ty1 #> do_type ty2
       | do_type (APi (_, ty)) = do_type ty
     fun do_term pred_sym (ATerm ((name as (s, _), tys), tms)) =
-        do_sym name
-            (fn _ => default_type pred_sym s (length tys) (length tms))
+        apsnd (do_sym name
+                   (fn _ => default_type pred_sym s (length tys) (length tms)))
         #> fold do_type tys #> fold (do_term false) tms
       | do_term _ (AAbs (((_, ty), tm), args)) =
         do_type ty #> do_term false tm #> fold (do_term false) args
@@ -2597,22 +2590,29 @@ fun undeclared_syms_in_problem problem =
         fold do_type (map_filter snd xs) #> do_formula phi
       | do_formula (AConn (_, phis)) = fold do_formula phis
       | do_formula (AAtom tm) = do_term true tm
-    fun do_problem_line (Decl (_, _, ty)) = do_type ty
+    fun do_problem_line (Type_Decl _) = I
+      | do_problem_line (Sym_Decl (_, _, ty)) = do_type ty
       | do_problem_line (Formula (_, _, phi, _, _)) = do_formula phi
+    val (tys, syms) = declared_types_and_syms_in_problem problem
   in
-    Symtab.empty
-    |> fold (fn (s, _) => Symtab.default (s, (("", ""), K tvar_a_atype)))
-            (declared_syms_in_problem problem)
+    (Symtab.empty, Symtab.empty)
+    |>> fold (fn (s, _) => Symtab.default (s, (("", ""), 0))) tys
+    ||> fold (fn (s, _) => Symtab.default (s, (("", ""), K tvar_a_atype))) syms
     |> fold (fold do_problem_line o snd) problem
   end
 
-fun declare_undeclared_syms_in_atp_problem problem =
+fun declare_undeclared_types_and_syms_in_atp_problem problem =
   let
+    val (types, syms) = undeclared_types_and_syms_in_problem problem
     val decls =
       Symtab.fold (fn (_, (("", ""), _)) => I (* already declared *)
+                    | (s, (sym, ary)) =>
+                      cons (Type_Decl (type_decl_prefix ^ s, sym, ary)))
+                  types [] @
+      Symtab.fold (fn (_, (("", ""), _)) => I (* already declared *)
                     | (s, (sym, ty)) =>
-                      cons (Decl (type_decl_prefix ^ s, sym, ty ())))
-                  (undeclared_syms_in_problem problem) []
+                      cons (Sym_Decl (type_decl_prefix ^ s, sym, ty ())))
+                  syms []
   in (implicit_declsN, decls) :: problem end
 
 fun exists_subdtype P =
@@ -2719,7 +2719,7 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
                   | FOF => I
                   | TFF (_, TPTP_Implicit) => I
                   | THF (_, TPTP_Implicit, _, _) => I
-                  | _ => declare_undeclared_syms_in_atp_problem)
+                  | _ => declare_undeclared_types_and_syms_in_atp_problem)
     val (problem, pool) = problem |> nice_atp_problem readable_names format
     fun add_sym_ary (s, {min_ary, ...} : sym_info) =
       min_ary > 0 ? Symtab.insert (op =) (s, min_ary)
