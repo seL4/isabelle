@@ -45,8 +45,9 @@ sig
   datatype formula_role = Axiom | Definition | Lemma | Hypothesis | Conjecture
   datatype 'a problem_line =
     Class_Decl of string * 'a * 'a list |
-    Type_Decl of string * 'a * int * 'a list |
+    Type_Decl of string * 'a * int |
     Sym_Decl of string * 'a * 'a ho_type |
+    Class_Memb of string * ('a * 'a list) list * 'a ho_type * 'a |
     Formula of string * formula_role
                * ('a, 'a ho_type, ('a, 'a ho_type) ho_term, 'a) formula
                * (string, string ho_type) ho_term option
@@ -178,8 +179,9 @@ datatype atp_format =
 datatype formula_role = Axiom | Definition | Lemma | Hypothesis | Conjecture
 datatype 'a problem_line =
   Class_Decl of string * 'a * 'a list |
-  Type_Decl of string * 'a * int * 'a list |
+  Type_Decl of string * 'a * int |
   Sym_Decl of string * 'a * 'a ho_type |
+  Class_Memb of string * ('a * 'a list) list * 'a ho_type * 'a |
   Formula of string * formula_role
              * ('a, 'a ho_type, ('a, 'a ho_type) ho_term, 'a) formula
              * (string, string ho_type) ho_term option
@@ -463,7 +465,7 @@ val atype_of_types = AType (tptp_type_of_types, [])
 
 fun nary_type_decl_type n = funpow n (curry AFun atype_of_types) atype_of_types
 
-fun tptp_string_for_line format (Type_Decl (ident, ty, ary, _)) =
+fun tptp_string_for_line format (Type_Decl (ident, ty, ary)) =
     tptp_string_for_line format (Sym_Decl (ident, ty, nary_type_decl_type ary))
   | tptp_string_for_line format (Sym_Decl (ident, sym, ty)) =
     tptp_string_for_format format ^ "(" ^ ident ^ ", type,\n    " ^ sym ^
@@ -551,6 +553,14 @@ fun dfg_lines poly {is_lpo, gen_weights, gen_prec, gen_simp} ord_info problem =
           strip_atype ty |> fst
           |>> (fn [] => [] | ty_vars => ["[" ^ commas ty_vars ^ "]"])
       in "predicate(" ^ commas (sym :: ty_vars @ map str_for_typ tys) ^ ")." end
+    fun str_for_bound_tvar (ty, []) = ty
+      | str_for_bound_tvar (ty, cls) = ty ^ " : " ^ commas cls
+    fun sort_decl xs ty cl =
+      "sort(" ^
+      (if null xs then ""
+       else "[" ^ commas (map str_for_bound_tvar xs) ^ "], ") ^
+      str_for_typ ty ^ ", " ^ cl ^ ")."
+    fun subclass_of sub super = "subclass(" ^ sub ^ ", " ^ super ^ ")."
     fun formula pred (Formula (ident, kind, phi, _, info)) =
         if pred kind then
           let val rank = extract_isabelle_rank info in
@@ -574,8 +584,8 @@ fun dfg_lines poly {is_lpo, gen_weights, gen_prec, gen_simp} ord_info problem =
              | _ => NONE)
       |> flat |> commas |> maybe_enclose "predicates [" "]."
     val sorts =
-      filt (fn Type_Decl (_, ty, ary, _) => SOME (ty_ary ary ty)
-             | _ => NONE) @ [[ty_ary 0 dfg_individual_type]]
+      filt (fn Type_Decl (_, ty, ary) => SOME (ty_ary ary ty) | _ => NONE) @
+      [[ty_ary 0 dfg_individual_type]]
       |> flat |> commas |> maybe_enclose "sorts [" "]."
     val classes =
       filt (fn Class_Decl (_, cl, _) => SOME cl | _ => NONE)
@@ -586,18 +596,23 @@ fun dfg_lines poly {is_lpo, gen_weights, gen_prec, gen_simp} ord_info problem =
       |> map (spair o apsnd string_of_int) |> commas
       |> maybe_enclose "weights [" "]."
     val syms = [func_aries, pred_aries, do_term_order_weights, sorts, classes]
-    val func_sigs =
+    val func_decls =
       filt (fn Sym_Decl (_, sym, ty) =>
                if is_function_atype ty then SOME (fun_typ sym ty) else NONE
-             | _ => NONE)
-      |> flat
-    val pred_sigs =
+             | _ => NONE) |> flat
+    val pred_decls =
       filt (fn Sym_Decl (_, sym, ty) =>
                if is_nontrivial_predicate_atype ty then SOME (pred_typ sym ty)
                else NONE
-             | _ => NONE)
-      |> flat
-    val decls = func_sigs @ pred_sigs
+             | _ => NONE) |> flat
+    val sort_decls =
+      filt (fn Class_Memb (_, xs, ty, cl) => SOME (sort_decl xs ty cl)
+             | _ => NONE) |> flat
+    val subclass_decls =
+      filt (fn Class_Decl (_, sub, supers) =>
+               SOME (map (subclass_of sub) supers)
+             | _ => NONE) |> flat |> flat
+    val decls = func_decls @ pred_decls @ sort_decls @ subclass_decls
     val axioms =
       filt (formula (curry (op <>) Conjecture)) |> separate [""] |> flat
     val conjs =
@@ -719,7 +734,7 @@ fun filter_cnf_ueq_problem problem =
 (** Symbol declarations **)
 
 fun add_declared_in_line (Class_Decl (_, cl, _)) = apfst (apfst (cons cl))
-  | add_declared_in_line (Type_Decl (_, ty, _, _)) = apfst (apsnd (cons ty))
+  | add_declared_in_line (Type_Decl (_, ty, _)) = apfst (apsnd (cons ty))
   | add_declared_in_line (Sym_Decl (_, sym, _)) = apsnd (cons sym)
   | add_declared_in_line _ = I
 fun declared_in_atp_problem problem =
@@ -847,7 +862,8 @@ fun nice_atp_problem readable_names format problem =
         ##>> pool_map nice_term args #>> AAbs
     fun nice_formula (ATyQuant (q, xs, phi)) =
         pool_map nice_type (map fst xs)
-        ##>> pool_map (pool_map nice_name) (map snd xs) ##>> nice_formula phi
+        ##>> pool_map (pool_map nice_name) (map snd xs)
+        ##>> nice_formula phi
         #>> (fn ((tys, cls), phi) => ATyQuant (q, tys ~~ cls, phi))
       | nice_formula (AQuant (q, xs, phi)) =
         pool_map nice_name (map fst xs)
@@ -861,14 +877,20 @@ fun nice_atp_problem readable_names format problem =
     fun nice_line (Class_Decl (ident, cl, cls)) =
         nice_name cl ##>> pool_map nice_name cls
         #>> (fn (cl, cls) => Class_Decl (ident, cl, cls))
-      | nice_line (Type_Decl (ident, ty, ary, cls)) =
-        nice_name ty ##>> pool_map nice_name cls
-        #>> (fn (ty, cls) => Type_Decl (ident, ty, ary, cls))
+      | nice_line (Type_Decl (ident, ty, ary)) =
+        nice_name ty #>> (fn ty => Type_Decl (ident, ty, ary))
       | nice_line (Sym_Decl (ident, sym, ty)) =
         nice_name sym ##>> nice_type ty
         #>> (fn (sym, ty) => Sym_Decl (ident, sym, ty))
+      | nice_line (Class_Memb (ident, xs, ty, cl)) =
+        pool_map nice_name (map fst xs)
+        ##>> pool_map (pool_map nice_name) (map snd xs)
+        ##>> nice_type ty ##>> nice_name cl
+        #>> (fn (((tys, cls), ty), cl) =>
+                Class_Memb (ident, tys ~~ cls, ty, cl))
       | nice_line (Formula (ident, kind, phi, source, info)) =
-        nice_formula phi #>> (fn phi => Formula (ident, kind, phi, source, info))
+        nice_formula phi
+        #>> (fn phi => Formula (ident, kind, phi, source, info))
     fun nice_problem problem =
       pool_map (fn (heading, lines) =>
                    pool_map nice_line lines #>> pair heading) problem

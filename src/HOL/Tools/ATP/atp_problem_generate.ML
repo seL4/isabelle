@@ -53,15 +53,17 @@ sig
   val old_skolem_const_prefix : string
   val new_skolem_const_prefix : string
   val combinator_prefix : string
+  val class_decl_prefix : string
   val type_decl_prefix : string
   val sym_decl_prefix : string
+  val class_memb_prefix : string
   val guards_sym_formula_prefix : string
   val tags_sym_formula_prefix : string
   val fact_prefix : string
   val conjecture_prefix : string
   val helper_prefix : string
-  val class_rel_clause_prefix : string
-  val arity_clause_prefix : string
+  val subclass_prefix : string
+  val tcon_clause_prefix : string
   val tfree_clause_prefix : string
   val lam_fact_prefix : string
   val typed_helper_suffix : string
@@ -207,16 +209,18 @@ val new_skolem_const_prefix = skolem_const_prefix ^ "n"
 
 val combinator_prefix = "COMB"
 
+val class_decl_prefix = "cl_"
 val type_decl_prefix = "ty_"
 val sym_decl_prefix = "sy_"
+val class_memb_prefix = "clmb_"
 val guards_sym_formula_prefix = "gsy_"
 val tags_sym_formula_prefix = "tsy_"
 val uncurried_alias_eq_prefix = "unc_"
 val fact_prefix = "fact_"
 val conjecture_prefix = "conj_"
 val helper_prefix = "help_"
-val class_rel_clause_prefix = "clar_"
-val arity_clause_prefix = "arity_"
+val subclass_prefix = "subcl_"
+val tcon_clause_prefix = "tcon_"
 val tfree_clause_prefix = "tfree_"
 
 val lam_fact_prefix = "ATP.lambda_"
@@ -357,9 +361,9 @@ fun make_exist_bound_var x = exist_bound_var_prefix ^ ascii_of x
 fun make_schematic_var v = schematic_var_prefix ^ ascii_of_indexname v
 fun make_fixed_var x = fixed_var_prefix ^ ascii_of x
 
-fun make_tvar (s, i) = tvar_prefix ^ (ascii_of_indexname (unprefix "'" s, i))
-fun make_tfree s = tfree_prefix ^ (ascii_of (unprefix "'" s))
-fun tvar_name (x as (s, _)) = (make_tvar x, s)
+fun make_tvar (s, i) = tvar_prefix ^ ascii_of_indexname (unprefix "'" s, i)
+fun make_tfree s = tfree_prefix ^ ascii_of (unprefix "'" s)
+fun tvar_name ((x as (s, _)), _) = (make_tvar x, s)
 
 (* "HOL.eq" and choice are mapped to the ATP's equivalents *)
 local
@@ -374,7 +378,7 @@ end
 
 fun make_fixed_type_const c = type_const_prefix ^ lookup_const c
 
-fun make_type_class clas = class_prefix ^ ascii_of clas
+fun make_class clas = class_prefix ^ ascii_of clas
 
 fun new_skolem_var_name_from_const s =
   let val ss = s |> space_explode Long_Name.separator in
@@ -406,8 +410,9 @@ val add_schematic_consts_of =
 fun atp_schematic_consts_of t = add_schematic_consts_of t Symtab.empty
 
 val tvar_a_str = "'a"
-val tvar_a = TVar ((tvar_a_str, 0), HOLogic.typeS)
-val tvar_a_name = tvar_name (tvar_a_str, 0)
+val tvar_a_z = ((tvar_a_str, 0), HOLogic.typeS)
+val tvar_a = TVar tvar_a_z
+val tvar_a_name = tvar_name tvar_a_z
 val itself_name = `make_fixed_type_const @{type_name itself}
 val TYPE_name = `(make_fixed_const NONE) @{const_name TYPE}
 val tvar_a_atype = AType (tvar_a_name, [])
@@ -415,92 +420,77 @@ val a_itself_atype = AType (itself_name, [tvar_a_atype])
 
 (** Definitions and functions for FOL clauses and formulas for TPTP **)
 
-(** Isabelle arities **)
+(** Type class membership **)
 
-val type_class = the_single @{sort type}
+(* In our data structures, [] exceptionally refers to the top class, not to
+   the empty class. *)
 
-type arity_clause =
-  {name : string,
-   prems : (string * typ) list,
-   concl : string * typ}
+val class_of_types = the_single @{sort type}
 
-fun add_prem_atom T = fold (fn s => s <> type_class ? cons (s, T))
+fun normalize_classes cls = if member (op =) cls class_of_types then [] else cls
 
-(* Arity of type constructor "tcon :: (arg1, ..., argN) res" *)
-fun make_axiom_arity_clause (tc, name, (class, args)) =
+(* Arity of type constructor "s :: (arg1, ..., argN) res" *)
+fun make_axiom_tcon_clause (s, name, (cl, args)) =
   let
+    val args = args |> map normalize_classes
     val tvars =
-      map (fn j => TVar ((tvar_a_str, j), @{sort HOL.type}))
-          (1 upto length args)
-  in
-    {name = name, prems = fold (uncurry add_prem_atom) (tvars ~~ args) [],
-     concl = (class, Type (tc, tvars))}
-  end
+      1 upto length args |> map (fn j => TVar ((tvar_a_str, j), @{sort type}))
+  in (name, args ~~ tvars, (cl, Type (s, tvars))) end
 
 (* Generate all pairs (tycon, class, sorts) such that tycon belongs to class in
    theory thy provided its arguments have the corresponding sorts. *)
-fun type_class_pairs thy tycons classes =
+fun class_pairs thy tycons cls =
   let
     val alg = Sign.classes_of thy
     fun domain_sorts tycon = Sorts.mg_domain alg tycon o single
-    fun add_class tycon class =
-      cons (class, domain_sorts tycon class)
+    fun add_class tycon cl =
+      cons (cl, domain_sorts tycon cl)
       handle Sorts.CLASS_ERROR _ => I
-    fun try_classes tycon = (tycon, fold (add_class tycon) classes [])
+    fun try_classes tycon = (tycon, fold (add_class tycon) cls [])
   in map try_classes tycons end
 
 (* Proving one (tycon, class) membership may require proving others, so
    iterate. *)
-fun iter_type_class_pairs _ _ [] = ([], [])
-  | iter_type_class_pairs thy tycons classes =
+fun all_class_pairs _ _ [] = ([], [])
+  | all_class_pairs thy tycons cls =
     let
       fun maybe_insert_class s =
-        (s <> type_class andalso not (member (op =) classes s))
+        (s <> class_of_types andalso not (member (op =) cls s))
         ? insert (op =) s
-      val cpairs = type_class_pairs thy tycons classes
-      val newclasses =
-        [] |> fold (fold (fold (fold maybe_insert_class) o snd) o snd) cpairs
-      val (classes', cpairs') = iter_type_class_pairs thy tycons newclasses
-    in (classes' @ classes, union (op =) cpairs' cpairs) end
+      val pairs = class_pairs thy tycons cls
+      val new_cls =
+        [] |> fold (fold (fold (fold maybe_insert_class) o snd) o snd) pairs
+      val (cls', pairs') = all_class_pairs thy tycons new_cls
+    in (cls' @ cls, union (op =) pairs' pairs) end
 
-fun arity_clause _ _ (_, []) = []
-  | arity_clause seen n (tcons, ("HOL.type", _) :: ars) =
-    arity_clause seen n (tcons, ars) (* ignore *)
-  | arity_clause seen n (tcons, (ar as (class, _)) :: ars) =
-    if member (op =) seen class then
-      (* multiple arities for the same (tycon, class) pair *)
-      make_axiom_arity_clause (tcons,
-          lookup_const tcons ^ "___" ^ ascii_of class ^ "_" ^ string_of_int n,
+fun tcon_clause _ _ (_, []) = []
+  | tcon_clause seen n (tcons, (ar as (cl, _)) :: ars) =
+    if cl = class_of_types then
+      tcon_clause seen n (tcons, ars)
+    else if member (op =) seen cl then
+      (* multiple clauses for the same (tycon, cl) pair *)
+      make_axiom_tcon_clause (tcons,
+          lookup_const tcons ^ "___" ^ ascii_of cl ^ "_" ^ string_of_int n,
           ar) ::
-      arity_clause seen (n + 1) (tcons, ars)
+      tcon_clause seen (n + 1) (tcons, ars)
     else
-      make_axiom_arity_clause (tcons, lookup_const tcons ^ "___" ^
-                               ascii_of class, ar) ::
-      arity_clause (class :: seen) n (tcons, ars)
+      make_axiom_tcon_clause (tcons, lookup_const tcons ^ "___" ^ ascii_of cl,
+                              ar) ::
+      tcon_clause (cl :: seen) n (tcons, ars)
 
-fun make_arity_clauses thy tycons =
-  iter_type_class_pairs thy tycons ##> maps (arity_clause [] 1)
+fun make_tcon_clauses thy tycons =
+  all_class_pairs thy tycons ##> maps (tcon_clause [] 1)
 
 
 (** Isabelle class relations **)
 
-type class_rel_clause =
-  {name : string,
-   subclass : string,
-   superclass : string}
-
-(* Generate all pairs (sub, super) such that sub is a proper subclass of super
-   in theory "thy". *)
-fun class_pairs thy subs supers =
+(* Generate a list ("sub", "supers") such that "sub" is a proper subclass of all
+   "supers". *)
+fun make_subclass_pairs thy subs supers =
   let
-    val class_less = Sorts.class_less (Sign.classes_of thy)
-    fun add_super sub super = class_less (sub, super) ? cons (sub, super)
-    fun add_supers sub = fold (add_super sub) supers
-  in fold add_supers subs [] end
-
-fun make_class_rel_clause (sub, super) =
-  {name = sub ^ "_" ^ super, subclass = sub, superclass = super}
-fun make_class_rel_clauses thy = map make_class_rel_clause oo class_pairs thy
+    val class_less = curry (Sorts.class_less (Sign.classes_of thy))
+    fun supers_of sub = (sub, filter (class_less sub) supers)
+  in map supers_of subs |> filter_out (null o snd) end
 
 (* intermediate terms *)
 datatype iterm =
@@ -885,7 +875,7 @@ fun raw_ho_type_from_typ type_enc =
                       `make_fixed_type_const s,
              map term Ts)
     | term (TFree (s, _)) = AType (`make_tfree s, [])
-    | term (TVar (x, _)) = AType (tvar_name x, [])
+    | term (TVar z) = AType (tvar_name z, [])
   in term end
 
 fun ho_term_from_ho_type (AType (name, tys)) = ATerm ((name, []), map ho_term_from_ho_type tys)
@@ -944,7 +934,7 @@ fun native_ho_type_from_typ type_enc pred_sym ary =
 fun generic_add_sorts_on_type _ [] = I
   | generic_add_sorts_on_type T (s :: ss) =
     generic_add_sorts_on_type T ss
-    #> (if s = the_single @{sort HOL.type} then I else insert (op =) (s, T))
+    #> (if s = the_single @{sort type} then I else insert (op =) (s, T))
 fun add_sorts_on_tfree (T as TFree (_, S)) = generic_add_sorts_on_type T S
   | add_sorts_on_tfree _ = I
 fun add_sorts_on_tvar (T as TVar (_, S)) = generic_add_sorts_on_type T S
@@ -957,9 +947,9 @@ fun process_type_args type_enc T_args =
     ([], map_filter (Option.map ho_term_from_ho_type
                      o ho_type_for_type_arg type_enc) T_args)
 
-fun type_class_atom type_enc (class, T) =
+fun class_atom type_enc (cl, T) =
   let
-    val class = `make_type_class class
+    val cl = `make_class cl
     val (ty_args, tm_args) = process_type_args type_enc [T]
     val tm_args =
       tm_args @
@@ -967,12 +957,15 @@ fun type_class_atom type_enc (class, T) =
          Native (First_Order, Raw_Polymorphic Without_Phantom_Type_Vars, _) =>
          [ATerm ((TYPE_name, ty_args), [])]
        | _ => [])
-  in AAtom (ATerm ((class, ty_args), tm_args)) end
-fun formulas_for_types type_enc add_sorts_on_typ Ts =
+  in AAtom (ATerm ((cl, ty_args), tm_args)) end
+
+fun class_atoms type_enc (cls, T) =
+  map (fn cl => class_atom type_enc (cl, T)) cls
+
+fun class_membs_for_types type_enc add_sorts_on_typ Ts =
   [] |> (polymorphism_of_type_enc type_enc <> Type_Class_Polymorphic andalso
          level_of_type_enc type_enc <> No_Types)
         ? fold add_sorts_on_typ Ts
-     |> map (type_class_atom type_enc)
 
 fun mk_aconns c = split_last #> uncurry (fold_rev (mk_aconn c))
 
@@ -1732,17 +1725,19 @@ fun bound_tvars type_enc sorts Ts =
   case filter is_TVar Ts of
     [] => I
   | Ts =>
-    (sorts ? mk_ahorn (formulas_for_types type_enc add_sorts_on_tvar Ts))
+    (sorts ? mk_ahorn (Ts |> class_membs_for_types type_enc add_sorts_on_tvar
+                          |> map (class_atom type_enc)))
     #> (case type_enc of
           Native (_, poly, _) =>
-          mk_atyquant AForall (map (fn TVar (x, S) =>
-                                       (AType (tvar_name x, []),
-                                        if poly = Type_Class_Polymorphic then
-                                          map (`make_type_class) S
-                                        else
-                                          [])) Ts)
+          mk_atyquant AForall
+              (map (fn TVar (z as (_, S)) =>
+                       (AType (tvar_name z, []),
+                        if poly = Type_Class_Polymorphic then
+                          map (`make_class) (normalize_classes S)
+                        else
+                          [])) Ts)
         | _ =>
-          mk_aquant AForall (map (fn TVar (x, _) => (tvar_name x, NONE)) Ts))
+          mk_aquant AForall (map (fn TVar z => (tvar_name z, NONE)) Ts))
 
 fun eq_formula type_enc atomic_Ts bounds pred_sym tm1 tm2 =
   (if pred_sym then AConn (AIff, [AAtom tm1, AAtom tm2])
@@ -1819,15 +1814,12 @@ fun helper_facts_for_sym_table ctxt format type_enc aggressive sym_tab =
 
 fun set_insert (x, s) = Symtab.update (x, ()) s
 
-fun add_classes (sorts, cset) = List.foldl set_insert cset (flat sorts)
-
-(* Remove this trivial type class (FIXME: similar code elsewhere) *)
-fun delete_type cset = Symtab.delete_safe (the_single @{sort HOL.type}) cset
+fun add_classes (cls, cset) = List.foldl set_insert cset (flat cls)
 
 fun classes_of_terms get_Ts =
   map (map snd o get_Ts)
-  #> List.foldl add_classes Symtab.empty
-  #> delete_type #> Symtab.keys
+  #> List.foldl add_classes Symtab.empty #> Symtab.delete_safe class_of_types
+  #> Symtab.keys
 
 val tfree_classes_of_terms = classes_of_terms Misc_Legacy.term_tfrees
 val tvar_classes_of_terms = classes_of_terms Misc_Legacy.term_tvars
@@ -1950,13 +1942,13 @@ fun translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts
     val subs = tfree_classes_of_terms all_ts
     val supers = tvar_classes_of_terms all_ts
     val tycons = type_constrs_of_terms thy all_ts
-    val (supers, arity_clauses) =
+    val (supers, tcon_clauses) =
       if level_of_type_enc type_enc = No_Types then ([], [])
-      else make_arity_clauses thy tycons supers
-    val class_rel_clauses = make_class_rel_clauses thy subs supers
+      else make_tcon_clauses thy tycons supers
+    val subclass_pairs = make_subclass_pairs thy subs supers
   in
     (fact_names |> map single, union (op =) subs supers, conjs,
-     facts @ lam_facts, class_rel_clauses, arity_clauses, lifted)
+     facts @ lam_facts, subclass_pairs, tcon_clauses, lifted)
   end
 
 val type_guard = `(make_fixed_const NONE) type_guard_name
@@ -2121,26 +2113,33 @@ fun formula_line_for_fact ctxt prefix encode freshen pos mono type_enc rank
    end)
   |> Formula
 
-fun formula_line_for_class_rel_clause type_enc
-        ({name, subclass, superclass, ...} : class_rel_clause) =
-  Formula (class_rel_clause_prefix ^ ascii_of name, Axiom,
+fun formula_lines_for_subclass type_enc sub super =
+  Formula (subclass_prefix ^ ascii_of sub ^ "___" ^ ascii_of super, Axiom,
            AConn (AImplies,
-                  [type_class_atom type_enc (subclass, tvar_a),
-                   type_class_atom type_enc (superclass, tvar_a)])
+                  [sub, super] |> map (fn s => class_atom type_enc (s, tvar_a)))
            |> bound_tvars type_enc false [tvar_a],
            NONE, isabelle_info inductiveN helper_rank)
 
-fun formula_line_for_arity_clause type_enc
-        ({name, prems, concl} : arity_clause) =
-  let
-    val atomic_Ts = fold (fold_atyps (insert (op =)) o snd) (concl :: prems) []
-  in
-    Formula (arity_clause_prefix ^ name, Axiom,
-             mk_ahorn (map (type_class_atom type_enc) prems)
-                      (type_class_atom type_enc concl)
-             |> bound_tvars type_enc true atomic_Ts,
+fun formula_lines_for_subclass_pair type_enc (sub, supers) =
+  if polymorphism_of_type_enc type_enc = Type_Class_Polymorphic then
+    [Class_Decl (class_decl_prefix ^ ascii_of sub, `make_class sub,
+                 map (`make_class) supers)]
+  else
+    map (formula_lines_for_subclass type_enc sub) supers
+
+fun formula_line_for_tcon_clause type_enc (name, prems, (cl, T)) =
+  if polymorphism_of_type_enc type_enc = Type_Class_Polymorphic then
+    Class_Memb (class_memb_prefix ^ name,
+                map (fn (cls, T) =>
+                        (T |> dest_TVar |> tvar_name, map (`make_class) cls))
+                    prems,
+                native_ho_type_from_typ type_enc false 0 T, `make_class cl)
+  else
+    Formula (tcon_clause_prefix ^ name, Axiom,
+             mk_ahorn (maps (class_atoms type_enc) prems)
+                      (class_atom type_enc (cl, T))
+             |> bound_tvars type_enc true (snd (dest_Type T)),
              NONE, isabelle_info inductiveN helper_rank)
-  end
 
 fun formula_line_for_conjecture ctxt mono type_enc
         ({name, role, iformula, atomic_types, ...} : ifact) =
@@ -2153,17 +2152,23 @@ fun formula_line_for_conjecture ctxt mono type_enc
 
 fun formula_lines_for_free_types type_enc (facts : ifact list) =
   let
-    fun line j phi =
-      Formula (tfree_clause_prefix ^ string_of_int j, Hypothesis, phi, NONE, [])
-    val phis =
+    fun line j (cl, T) =
+      if polymorphism_of_type_enc type_enc = Type_Class_Polymorphic then
+        Class_Memb (class_memb_prefix ^ string_of_int j, [],
+                    native_ho_type_from_typ type_enc false 0 T,
+                    `make_class cl)
+      else
+        Formula (tfree_clause_prefix ^ string_of_int j, Hypothesis,
+                 class_atom type_enc (cl, T), NONE, [])
+    val membs =
       fold (union (op =)) (map #atomic_types facts) []
-      |> formulas_for_types type_enc add_sorts_on_tfree
-  in map2 line (0 upto length phis - 1) phis end
+      |> class_membs_for_types type_enc add_sorts_on_tfree
+  in map2 line (0 upto length membs - 1) membs end
 
 (** Symbol declarations **)
 
 fun decl_line_for_class phantoms s =
-  let val name as (s, _) = `make_type_class s in
+  let val name as (s, _) = `make_class s in
     Sym_Decl (sym_decl_prefix ^ s, name,
               APi ([tvar_a_name],
                    if phantoms = Without_Phantom_Type_Vars then
@@ -2361,7 +2366,7 @@ fun decl_line_for_sym ctxt mono type_enc s
               T |> fused_type ctxt mono (level_of_type_enc type_enc) ary
                 |> native_ho_type_from_typ type_enc pred_sym ary
                 |> not (null T_args)
-                   ? curry APi (map (tvar_name o fst o dest_TVar) T_args))
+                   ? curry APi (map (tvar_name o dest_TVar) T_args))
   end
 
 fun honor_conj_sym_role in_conj =
@@ -2555,11 +2560,11 @@ val implicit_declsN = "Should-be-implicit typings"
 val explicit_declsN = "Explicit typings"
 val uncurried_alias_eqsN = "Uncurried aliases"
 val factsN = "Relevant facts"
-val class_relsN = "Class relationships"
-val aritiesN = "Arities"
+val subclassesN = "Subclasses"
+val tconsN = "Type constructors"
 val helpersN = "Helper facts"
 val conjsN = "Conjectures"
-val free_typesN = "Type variables"
+val free_typesN = "Free types"
 
 (* TFF allows implicit declarations of types, function symbols, and predicate
    symbols (with "$i" as the type of individuals), but some provers (e.g.,
@@ -2576,6 +2581,7 @@ fun undeclared_in_problem problem =
   let
     fun do_sym (name as (s, _)) value =
       if is_tptp_user_symbol s then Symtab.default (s, (name, value)) else I
+    fun do_class name = apfst (apfst (do_sym name ()))
     fun do_type (AType (name, tys)) =
         apfst (apsnd (do_sym name (length tys))) #> fold do_type tys
       | do_type (AFun (ty1, ty2)) = do_type ty1 #> do_type ty2
@@ -2587,15 +2593,17 @@ fun undeclared_in_problem problem =
       | do_term _ (AAbs (((_, ty), tm), args)) =
         do_type ty #> do_term false tm #> fold (do_term false) args
     fun do_formula (ATyQuant (_, xs, phi)) =
-        fold (do_type o fst) xs
-        #> fold (fold (fn name => apfst (apfst (do_sym name ()))) o snd) xs
+        fold (do_type o fst) xs #> fold (fold do_class o snd) xs
         #> do_formula phi
       | do_formula (AQuant (_, xs, phi)) =
         fold do_type (map_filter snd xs) #> do_formula phi
       | do_formula (AConn (_, phis)) = fold do_formula phis
       | do_formula (AAtom tm) = do_term true tm
-    fun do_line (Type_Decl _) = I
+    fun do_line (Class_Decl (_, _, cls)) = fold do_class cls
+      | do_line (Type_Decl _) = I
       | do_line (Sym_Decl (_, _, ty)) = do_type ty
+      | do_line (Class_Memb (_, xs, ty, cl)) =
+        fold (fold do_class o snd) xs #> do_type ty #> do_class cl
       | do_line (Formula (_, _, phi, _, _)) = do_formula phi
     val ((cls, tys), syms) = declared_in_atp_problem problem
   in
@@ -2611,16 +2619,16 @@ fun declare_undeclared_in_problem heading problem =
     val ((cls, tys), syms) = undeclared_in_problem problem
     val decls =
       Symtab.fold (fn (_, (("", ""), _)) => I (* already declared *)
-                    | (s, (sym, ())) =>
-                      cons (Class_Decl (type_decl_prefix ^ s, sym, [])))
+                    | (s, (cls, ())) =>
+                      cons (Class_Decl (class_decl_prefix ^ s, cls, [])))
                   cls [] @
       Symtab.fold (fn (_, (("", ""), _)) => I (* already declared *)
-                    | (s, (sym, ary)) =>
-                      cons (Type_Decl (type_decl_prefix ^ s, sym, ary, [])))
+                    | (s, (ty, ary)) =>
+                      cons (Type_Decl (type_decl_prefix ^ s, ty, ary)))
                   tys [] @
       Symtab.fold (fn (_, (("", ""), _)) => I (* already declared *)
                     | (s, (sym, ty)) =>
-                      cons (Sym_Decl (type_decl_prefix ^ s, sym, ty ())))
+                      cons (Sym_Decl (sym_decl_prefix ^ s, sym, ty ())))
                   syms []
   in (heading, decls) :: problem end
 
@@ -2663,7 +2671,7 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
         liftingN
       else
         lam_trans
-    val (fact_names, classes, conjs, facts, class_rel_clauses, arity_clauses,
+    val (fact_names, classes, conjs, facts, subclass_pairs, tcon_clauses,
          lifted) =
       translate_formulas ctxt prem_role format type_enc lam_trans preproc hyp_ts
                          concl_t facts
@@ -2700,15 +2708,10 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
       map (formula_line_for_fact ctxt fact_prefix ascii_of (not exporter)
                (not exporter) mono type_enc (rank_of_fact_num num_facts))
           (0 upto num_facts - 1 ~~ facts)
-    val (class_rel_lines, arity_lines, free_type_lines) =
-      if polymorphism_of_type_enc type_enc = Type_Class_Polymorphic then
-        ([],
-         [],
-         [])
-      else
-        (map (formula_line_for_class_rel_clause type_enc) class_rel_clauses,
-         map (formula_line_for_arity_clause type_enc) arity_clauses,
-         formula_lines_for_free_types type_enc (facts @ conjs))
+    val subclass_lines =
+      maps (formula_lines_for_subclass_pair type_enc) subclass_pairs
+    val tcon_lines = map (formula_line_for_tcon_clause type_enc) tcon_clauses
+    val free_type_lines = formula_lines_for_free_types type_enc (facts @ conjs)
     val helper_lines =
       0 upto length helpers - 1 ~~ helpers
       |> map (formula_line_for_fact ctxt helper_prefix I false true mono
@@ -2718,8 +2721,8 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
       [(explicit_declsN, class_decl_lines @ sym_decl_lines),
        (uncurried_alias_eqsN, uncurried_alias_eq_lines),
        (factsN, fact_lines),
-       (class_relsN, class_rel_lines),
-       (aritiesN, arity_lines),
+       (subclassesN, subclass_lines),
+       (tconsN, tcon_lines),
        (helpersN, helper_lines),
        (free_typesN, free_type_lines),
        (conjsN, map (formula_line_for_conjecture ctxt mono type_enc) conjs)]
@@ -2780,7 +2783,7 @@ fun atp_problem_selection_weights problem =
     |> add_conjectures_weights (get free_typesN @ get conjsN)
     |> add_facts_weights (get factsN)
     |> fold (fold (add_line_weights type_info_default_weight) o get)
-            [explicit_declsN, class_relsN, aritiesN]
+            [explicit_declsN, subclassesN, tconsN]
     |> Symtab.dest
     |> sort (prod_ord Real.compare string_ord o pairself swap)
   end
