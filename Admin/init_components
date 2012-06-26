@@ -12,7 +12,7 @@ function init_component_liberal
   then
     init_component "${LOCATION}"
   else
-    echo "Warning: no component found in ${LOCATION}"
+    echo "Warning: no component found in ${LOCATION}" >&2
   fi
 }
 
