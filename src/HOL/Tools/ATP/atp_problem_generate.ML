@@ -27,7 +27,7 @@ sig
   datatype type_level =
     All_Types |
     Nonmono_Types of strictness * granularity |
-    Const_Types of bool (* "?" *) |
+    Const_Types of bool |
     No_Types
   type type_enc
 
@@ -609,11 +609,11 @@ fun type_enc_from_string strictness s =
           SOME s =>
           (case try_unsuffixes queries s of
              SOME s => (Nonmono_Types (strictness, Positively_Naked_Vars), s)
-           | NONE =>
-             case try_unsuffixes ats s of
-               SOME s => (Nonmono_Types (strictness, Undercover_Vars), s)
-             | NONE => (Nonmono_Types (strictness, All_Vars), s))
-         | NONE => (All_Types, s))
+           | NONE => (Nonmono_Types (strictness, All_Vars), s))
+         | NONE =>
+           (case try_unsuffixes ats s of
+              SOME s => (Nonmono_Types (strictness, Undercover_Vars), s)
+            | NONE => (All_Types, s)))
   |> (fn (poly, (level, core)) =>
          case (core, (poly, level)) of
            ("native", (SOME poly, _)) =>
@@ -645,7 +645,8 @@ fun type_enc_from_string strictness s =
            else
              Guards (poly, level)
          | ("tags", (SOME poly, _)) =>
-           if granularity_of_type_level level = Undercover_Vars orelse
+           if (poly = Mangled_Monomorphic andalso
+               granularity_of_type_level level = Undercover_Vars) orelse
               poly = Type_Class_Polymorphic then
              raise Same.SAME
            else
@@ -830,8 +831,9 @@ fun insert_type thy get_T x xs =
 datatype type_arg_policy =
   Mangled_Type_Args |
   All_Type_Args |
-  Noninferable_Type_Args |
-  Constr_Type_Args |
+  Not_Input_Type_Args |
+  Only_In_Or_Output_Type_Args |
+  Constr_Input_Type_Args |
   No_Type_Args
 
 fun type_arg_policy constrs type_enc s =
@@ -849,11 +851,14 @@ fun type_arg_policy constrs type_enc s =
           No_Type_Args
         else if poly = Mangled_Monomorphic then
           Mangled_Type_Args
-        else if level = All_Types orelse
-                granularity_of_type_level level = Undercover_Vars then
-          Noninferable_Type_Args
+        else if level = All_Types then
+          Not_Input_Type_Args
+        else if granularity_of_type_level level = Undercover_Vars then
+          case type_enc of
+            Tags _ => Only_In_Or_Output_Type_Args
+          | _ => Not_Input_Type_Args
         else if member (op =) constrs s andalso level <> Const_Types false then
-          Constr_Type_Args
+          Constr_Input_Type_Args
         else
           All_Type_Args
       end
@@ -1136,15 +1141,21 @@ fun chop_fun 0 T = ([], T)
     chop_fun (n - 1) ran_T |>> cons dom_T
   | chop_fun _ T = ([], T)
 
-fun infer_type_args _ _ _ _ [] = []
-  | infer_type_args maybe_not thy s binders_of T_args =
+fun filter_type_args _ _ _ _ [] = []
+  | filter_type_args keep thy s strip_ty T_args =
     let
       val U = robust_const_type thy s
-      val arg_U_vars = fold Term.add_tvarsT (binders_of U) []
-      fun filt (U, T) =
-        if maybe_not (member (op =) arg_U_vars (dest_TVar U)) then dummyT else T
+      val (binder_Us, body_U) = strip_ty U
+      val in_U_vars = fold Term.add_tvarsT binder_Us []
+      val out_U_vars = Term.add_tvarsT body_U []
+      fun filt (U_var, T) =
+        if keep (member (op =) in_U_vars U_var,
+                 member (op =) out_U_vars U_var) then
+          T
+        else
+          dummyT
       val U_args = (s, U) |> robust_const_typargs thy
-    in map filt (U_args ~~ T_args) end
+    in map (filt o apfst dest_TVar) (U_args ~~ T_args) end
     handle TYPE _ => T_args
 
 fun filter_type_args_in_const _ _ _ _ _ [] = []
@@ -1158,9 +1169,12 @@ fun filter_type_args_in_const _ _ _ _ _ [] = []
         case type_arg_policy constrs type_enc s'' of
           Mangled_Type_Args => raise Fail "unexpected (un)mangled symbol"
         | All_Type_Args => T_args
-        | Noninferable_Type_Args =>
-          infer_type_args I thy s'' (fst o chop_fun ary) T_args
-        | Constr_Type_Args => infer_type_args not thy s'' binder_types T_args
+        | Not_Input_Type_Args =>
+          filter_type_args (not o fst) thy s'' (chop_fun ary) T_args
+        | Only_In_Or_Output_Type_Args =>
+          filter_type_args (op <>) thy s'' (chop_fun ary) T_args
+        | Constr_Input_Type_Args =>
+          filter_type_args fst thy s'' strip_type T_args
         | No_Type_Args => []
       end
 fun filter_type_args_in_iterm thy constrs type_enc =
@@ -1398,16 +1412,22 @@ fun is_maybe_universal_var (IConst ((s, _), _, _)) =
 datatype site =
   Top_Level of bool option |
   Eq_Arg of bool option |
+  Arg of string * int * int |
   Elsewhere
 
 fun should_tag_with_type _ _ _ (Top_Level _) _ _ = false
   | should_tag_with_type ctxt mono (Tags (_, level)) site u T =
-    if granularity_of_type_level level = All_Vars then
-      should_encode_type ctxt mono level T
-    else
-      (case (site, is_maybe_universal_var u) of
-         (Eq_Arg _, true) => should_encode_type ctxt mono level T
-       | _ => false)
+    let val thy = Proof_Context.theory_of ctxt in
+      case granularity_of_type_level level of
+        All_Vars => should_encode_type ctxt mono level T
+      | grain =>
+        (case (site, is_maybe_universal_var u) of
+           (Eq_Arg _, true) => should_encode_type ctxt mono level T
+         | (Arg (s, j, ary), true) =>
+           grain = Undercover_Vars andalso
+           member (op =) (type_arg_cover thy s ary) j
+         | _ => false)
+    end
   | should_tag_with_type _ _ _ _ _ _ = false
 
 fun fused_type ctxt mono level =
@@ -2028,8 +2048,13 @@ and ho_term_from_iterm ctxt mono type_enc pos =
           case head of
             IConst (name as (s, _), _, T_args) =>
             let
-              val arg_site = if is_tptp_equal s then Eq_Arg pos else Elsewhere
-            in map (term arg_site) args |> mk_aterm type_enc name T_args end
+              val ary = length args
+              fun arg_site j =
+                if is_tptp_equal s then Eq_Arg pos else Arg (s, j, ary)
+            in
+              map2 (fn j => term (arg_site j)) (0 upto ary - 1) args
+              |> mk_aterm type_enc name T_args
+            end
           | IVar (name, _) =>
             map (term Elsewhere) args |> mk_aterm type_enc name []
           | IAbs ((name, T), tm) =>
@@ -2091,8 +2116,8 @@ and formula_from_iformula ctxt mono type_enc should_guard_var =
 (* Each fact is given a unique fact number to avoid name clashes (e.g., because
    of monomorphization). The TPTP explicitly forbids name clashes, and some of
    the remote provers might care. *)
-fun formula_line_for_fact ctxt prefix encode freshen pos mono type_enc rank
-                          (j, {name, stature, role, iformula, atomic_types}) =
+fun line_for_fact ctxt prefix encode freshen pos mono type_enc rank
+                  (j, {name, stature, role, iformula, atomic_types}) =
   (prefix ^ (if freshen then string_of_int j ^ "_" else "") ^ encode name, role,
    iformula
    |> formula_from_iformula ctxt mono type_enc should_guard_var_in_formula
@@ -2111,21 +2136,21 @@ fun formula_line_for_fact ctxt prefix encode freshen pos mono type_enc rank
    end)
   |> Formula
 
-fun formula_lines_for_subclass type_enc sub super =
+fun lines_for_subclass type_enc sub super =
   Formula (subclass_prefix ^ ascii_of sub ^ "___" ^ ascii_of super, Axiom,
            AConn (AImplies,
                   [sub, super] |> map (fn s => class_atom type_enc (s, tvar_a)))
            |> bound_tvars type_enc false [tvar_a],
            NONE, isabelle_info inductiveN helper_rank)
 
-fun formula_lines_for_subclass_pair type_enc (sub, supers) =
+fun lines_for_subclass_pair type_enc (sub, supers) =
   if polymorphism_of_type_enc type_enc = Type_Class_Polymorphic then
     [Class_Decl (class_decl_prefix ^ ascii_of sub, `make_class sub,
                  map (`make_class) supers)]
   else
-    map (formula_lines_for_subclass type_enc sub) supers
+    map (lines_for_subclass type_enc sub) supers
 
-fun formula_line_for_tcon_clause type_enc (name, prems, (cl, T)) =
+fun line_for_tcon_clause type_enc (name, prems, (cl, T)) =
   if polymorphism_of_type_enc type_enc = Type_Class_Polymorphic then
     Class_Memb (class_memb_prefix ^ name,
                 map (fn (cls, T) =>
@@ -2139,8 +2164,8 @@ fun formula_line_for_tcon_clause type_enc (name, prems, (cl, T)) =
              |> bound_tvars type_enc true (snd (dest_Type T)),
              NONE, isabelle_info inductiveN helper_rank)
 
-fun formula_line_for_conjecture ctxt mono type_enc
-        ({name, role, iformula, atomic_types, ...} : ifact) =
+fun line_for_conjecture ctxt mono type_enc
+                        ({name, role, iformula, atomic_types, ...} : ifact) =
   Formula (conjecture_prefix ^ name, role,
            iformula
            |> formula_from_iformula ctxt mono type_enc
@@ -2148,7 +2173,7 @@ fun formula_line_for_conjecture ctxt mono type_enc
            |> close_formula_universally
            |> bound_tvars type_enc true atomic_types, NONE, [])
 
-fun formula_lines_for_free_types type_enc (facts : ifact list) =
+fun lines_for_free_types type_enc (facts : ifact list) =
   let
     fun line j (cl, T) =
       if polymorphism_of_type_enc type_enc = Type_Class_Polymorphic then
@@ -2316,7 +2341,7 @@ fun monotonic_types_for_facts ctxt mono type_enc facts =
           ? fold (add_fact_monotonic_types ctxt mono type_enc) facts
   end
 
-fun formula_line_for_guards_mono_type ctxt mono type_enc T =
+fun line_for_guards_mono_type ctxt mono type_enc T =
   Formula (guards_sym_formula_prefix ^
            ascii_of (mangled_type type_enc T),
            Axiom,
@@ -2329,7 +2354,7 @@ fun formula_line_for_guards_mono_type ctxt mono type_enc T =
            |> bound_tvars type_enc true (atomic_types_of T),
            NONE, isabelle_info inductiveN helper_rank)
 
-fun formula_line_for_tags_mono_type ctxt mono type_enc T =
+fun line_for_tags_mono_type ctxt mono type_enc T =
   let val x_var = ATerm ((`make_bound_var "X", []), []) in
     Formula (tags_sym_formula_prefix ^
              ascii_of (mangled_type type_enc T),
@@ -2342,8 +2367,8 @@ fun formula_line_for_tags_mono_type ctxt mono type_enc T =
 fun lines_for_mono_types ctxt mono type_enc Ts =
   case type_enc of
     Native _ => []
-  | Guards _ => map (formula_line_for_guards_mono_type ctxt mono type_enc) Ts
-  | Tags _ => map (formula_line_for_tags_mono_type ctxt mono type_enc) Ts
+  | Guards _ => map (line_for_guards_mono_type ctxt mono type_enc) Ts
+  | Tags _ => map (line_for_tags_mono_type ctxt mono type_enc) Ts
 
 fun decl_line_for_sym ctxt mono type_enc s
                       (s', T_args, T, pred_sym, ary, _) =
@@ -2370,8 +2395,8 @@ fun decl_line_for_sym ctxt mono type_enc s
 fun honor_conj_sym_role in_conj =
   if in_conj then (Hypothesis, I) else (Axiom, I)
 
-fun formula_line_for_guards_sym_decl ctxt mono type_enc n s j
-                                     (s', T_args, T, _, ary, in_conj) =
+fun line_for_guards_sym_decl ctxt mono type_enc n s j
+                             (s', T_args, T, _, ary, in_conj) =
   let
     val thy = Proof_Context.theory_of ctxt
     val (role, maybe_negate) = honor_conj_sym_role in_conj
@@ -2402,8 +2427,8 @@ fun formula_line_for_guards_sym_decl ctxt mono type_enc n s j
              NONE, isabelle_info inductiveN helper_rank)
   end
 
-fun formula_lines_for_tags_sym_decl ctxt mono type_enc n s
-        (j, (s', T_args, T, pred_sym, ary, in_conj)) =
+fun lines_for_tags_sym_decl ctxt mono type_enc n s
+                            (j, (s', T_args, T, pred_sym, ary, in_conj)) =
   let
     val thy = Proof_Context.theory_of ctxt
     val level = level_of_type_enc type_enc
@@ -2466,7 +2491,7 @@ fun lines_for_sym_decls ctxt mono type_enc (s, decls) =
                          o result_type_of_decl)
     in
       (0 upto length decls - 1, decls)
-      |-> map2 (formula_line_for_guards_sym_decl ctxt mono type_enc n s)
+      |-> map2 (line_for_guards_sym_decl ctxt mono type_enc n s)
     end
   | Tags (_, level) =>
     if granularity_of_type_level level = All_Vars then
@@ -2474,7 +2499,7 @@ fun lines_for_sym_decls ctxt mono type_enc (s, decls) =
     else
       let val n = length decls in
         (0 upto n - 1 ~~ decls)
-        |> maps (formula_lines_for_tags_sym_decl ctxt mono type_enc n s)
+        |> maps (lines_for_tags_sym_decl ctxt mono type_enc n s)
       end
 
 fun lines_for_sym_decl_table ctxt mono type_enc mono_Ts sym_decl_tab =
@@ -2703,17 +2728,17 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
       |> lines_for_sym_decl_table ctxt mono type_enc mono_Ts
     val num_facts = length facts
     val fact_lines =
-      map (formula_line_for_fact ctxt fact_prefix ascii_of (not exporter)
+      map (line_for_fact ctxt fact_prefix ascii_of (not exporter)
                (not exporter) mono type_enc (rank_of_fact_num num_facts))
           (0 upto num_facts - 1 ~~ facts)
-    val subclass_lines =
-      maps (formula_lines_for_subclass_pair type_enc) subclass_pairs
-    val tcon_lines = map (formula_line_for_tcon_clause type_enc) tcon_clauses
-    val free_type_lines = formula_lines_for_free_types type_enc (facts @ conjs)
+    val subclass_lines = maps (lines_for_subclass_pair type_enc) subclass_pairs
+    val tcon_lines = map (line_for_tcon_clause type_enc) tcon_clauses
     val helper_lines =
       0 upto length helpers - 1 ~~ helpers
-      |> map (formula_line_for_fact ctxt helper_prefix I false true mono
-                                    type_enc (K default_rank))
+      |> map (line_for_fact ctxt helper_prefix I false true mono type_enc
+                            (K default_rank))
+    val free_type_lines = lines_for_free_types type_enc (facts @ conjs)
+    val conj_lines = map (line_for_conjecture ctxt mono type_enc) conjs
     (* Reordering these might confuse the proof reconstruction code. *)
     val problem =
       [(explicit_declsN, class_decl_lines @ sym_decl_lines),
@@ -2723,7 +2748,7 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
        (tconsN, tcon_lines),
        (helpersN, helper_lines),
        (free_typesN, free_type_lines),
-       (conjsN, map (formula_line_for_conjecture ctxt mono type_enc) conjs)]
+       (conjsN, conj_lines)]
     val problem =
       problem |> (case format of
                     CNF => ensure_cnf_problem
