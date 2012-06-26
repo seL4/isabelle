@@ -717,7 +717,7 @@ fun run_atp mode name
                     |> not sound
                        ? filter_out (is_dangerous_prop ctxt o prop_of o snd)
                     |> take num_facts
-                    |> polymorphism_of_type_enc type_enc <> Polymorphic
+                    |> polymorphism_of_type_enc type_enc <> Raw_Polymorphic
                        ? monomorphize_facts
                     |> map (apsnd prop_of)
                     |> prepare_atp_problem ctxt format prem_role type_enc
@@ -750,7 +750,7 @@ fun run_atp mode name
                          (accum,
                           extract_tstplike_proof_and_outcome verbose complete
                               proof_delims known_failures output
-                          |>> atp_proof_from_tstplike_proof atp_problem output
+                          |>> atp_proof_from_tstplike_proof atp_problem
                           handle UNRECOGNIZED_ATP_PROOF () =>
                                  ([], SOME ProofIncomplete)))
                   handle TimeLimit.TimeOut =>

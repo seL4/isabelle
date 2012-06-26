@@ -185,7 +185,7 @@ val term_order =
 
 (* Alt-Ergo *)
 
-val alt_ergo_tff1 = TFF (TPTP_Polymorphic, TPTP_Explicit)
+val alt_ergo_tff1 = TFF (Polymorphic, TPTP_Explicit)
 
 val alt_ergo_config : atp_config =
   {exec = (["WHY3_HOME"], "why3"),
@@ -330,7 +330,7 @@ val e = (eN, fn () => e_config)
 (* LEO-II supports definitions, but it performs significantly better on our
    benchmarks when they are not used. *)
 val leo2_thf0 =
-  THF (TPTP_Monomorphic, TPTP_Explicit, THF_Without_Choice, THF_Without_Defs)
+  THF (Monomorphic, TPTP_Explicit, THF_Without_Choice, THF_Without_Defs)
 
 val leo2_config : atp_config =
   {exec = (["LEO2_HOME"], "leo"),
@@ -359,7 +359,7 @@ val leo2 = (leo2N, fn () => leo2_config)
 (* Satallax *)
 
 val satallax_thf0 =
-  THF (TPTP_Monomorphic, TPTP_Explicit, THF_With_Choice, THF_With_Defs)
+  THF (Monomorphic, TPTP_Explicit, THF_With_Choice, THF_With_Defs)
 
 val satallax_config : atp_config =
   {exec = (["SATALLAX_HOME"], "satallax"),
@@ -429,7 +429,7 @@ val spass = (spassN, fn () => spass_config)
 fun is_new_vampire_version () =
   string_ord (getenv "VAMPIRE_VERSION", "1.8") = GREATER
 
-val vampire_tff0 = TFF (TPTP_Monomorphic, TPTP_Implicit)
+val vampire_tff0 = TFF (Monomorphic, TPTP_Implicit)
 
 val vampire_config : atp_config =
   {exec = (["VAMPIRE_HOME"], "vampire"),
@@ -473,7 +473,7 @@ val vampire = (vampireN, fn () => vampire_config)
 
 (* Z3 with TPTP syntax *)
 
-val z3_tff0 = TFF (TPTP_Monomorphic, TPTP_Implicit)
+val z3_tff0 = TFF (Monomorphic, TPTP_Implicit)
 
 val z3_tptp_config : atp_config =
   {exec = (["Z3_HOME"], "z3"),
@@ -512,7 +512,7 @@ fun dummy_config format type_enc : atp_config =
    best_max_new_mono_instances = default_max_new_mono_instances}
 
 val dummy_thf_format =
-  THF (TPTP_Polymorphic, TPTP_Explicit, THF_With_Choice, THF_With_Defs)
+  THF (Polymorphic, TPTP_Explicit, THF_With_Choice, THF_With_Defs)
 val dummy_thf_config = dummy_config dummy_thf_format "poly_native_higher"
 val dummy_thf = (dummy_thfN, fn () => dummy_thf_config)
 
@@ -587,7 +587,7 @@ fun remotify_atp (name, config) system_name system_versions best_slice =
   (remote_prefix ^ name,
    remotify_config system_name system_versions best_slice o config)
 
-val explicit_tff0 = TFF (TPTP_Monomorphic, TPTP_Explicit)
+val explicit_tff0 = TFF (Monomorphic, TPTP_Explicit)
 
 val remote_e =
   remotify_atp e "EP" ["1.0", "1.1", "1.2"]

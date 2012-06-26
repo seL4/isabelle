@@ -28,7 +28,7 @@ sig
      gen_prec : bool,
      gen_simp : bool}
 
-  datatype tptp_polymorphism = TPTP_Monomorphic | TPTP_Polymorphic
+  datatype polymorphism = Monomorphic | Polymorphic
   datatype tptp_explicitness = TPTP_Implicit | TPTP_Explicit
   datatype thf_choice = THF_Without_Choice | THF_With_Choice
   datatype thf_defs = THF_Without_Defs | THF_With_Defs
@@ -37,8 +37,8 @@ sig
     CNF |
     CNF_UEQ |
     FOF |
-    TFF of tptp_polymorphism * tptp_explicitness |
-    THF of tptp_polymorphism * tptp_explicitness * thf_choice * thf_defs |
+    TFF of polymorphism * tptp_explicitness |
+    THF of polymorphism * tptp_explicitness * thf_choice * thf_defs |
     DFG
 
   datatype formula_role = Axiom | Definition | Lemma | Hypothesis | Conjecture
@@ -160,7 +160,7 @@ type term_order =
    gen_prec : bool,
    gen_simp : bool}
 
-datatype tptp_polymorphism = TPTP_Monomorphic | TPTP_Polymorphic
+datatype polymorphism = Monomorphic | Polymorphic
 datatype tptp_explicitness = TPTP_Implicit | TPTP_Explicit
 datatype thf_choice = THF_Without_Choice | THF_With_Choice
 datatype thf_defs = THF_Without_Defs | THF_With_Defs
@@ -169,8 +169,8 @@ datatype atp_format =
   CNF |
   CNF_UEQ |
   FOF |
-  TFF of tptp_polymorphism * tptp_explicitness |
-  THF of tptp_polymorphism * tptp_explicitness * thf_choice * thf_defs |
+  TFF of polymorphism * tptp_explicitness |
+  THF of polymorphism * tptp_explicitness * thf_choice * thf_defs |
   DFG
 
 datatype formula_role = Axiom | Definition | Lemma | Hypothesis | Conjecture
@@ -786,7 +786,7 @@ fun nice_atp_problem readable_names format problem =
       if readable_names then SOME (Symtab.empty, Symtab.empty) else NONE
     val avoid_clash =
       case format of
-        TFF (TPTP_Polymorphic, _) => avoid_clash_with_alt_ergo_type_vars
+        TFF (Polymorphic, _) => avoid_clash_with_alt_ergo_type_vars
       | DFG => avoid_clash_with_dfg_keywords
       | _ => I
     val nice_name = nice_name avoid_clash

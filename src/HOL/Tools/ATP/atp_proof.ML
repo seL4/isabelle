@@ -55,8 +55,7 @@ sig
   val satallax_unsat_coreN : string
   val parse_formula :
     string list -> (string, 'a, (string, 'a) ho_term) formula * string list
-  val atp_proof_from_tstplike_proof :
-    string problem -> string -> string -> string proof
+  val atp_proof_from_tstplike_proof : string problem -> string -> string proof
   val clean_up_atp_proof_dependencies : string proof -> string proof
   val map_term_names_in_atp_proof :
     (string -> string) -> string proof -> string proof
@@ -485,8 +484,8 @@ fun parse_proof problem tstp =
                               (Scan.repeat1 (parse_line problem))))
        |> fst
 
-fun atp_proof_from_tstplike_proof _ _ "" = []
-  | atp_proof_from_tstplike_proof problem output tstp =
+fun atp_proof_from_tstplike_proof _ "" = []
+  | atp_proof_from_tstplike_proof problem tstp =
     tstp ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
     |> parse_proof problem
     |> sort (step_name_ord o pairself step_name) (* FIXME: needed? *)
