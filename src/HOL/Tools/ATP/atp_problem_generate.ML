@@ -437,25 +437,6 @@ fun make_axiom_arity_clause (tc, name, (class, args)) =
      concl = (class, Type (tc, tvars))}
   end
 
-fun arity_clause _ _ (_, []) = []
-  | arity_clause seen n (tcons, ("HOL.type", _) :: ars) =  (* ignore *)
-    arity_clause seen n (tcons, ars)
-  | arity_clause seen n (tcons, (ar as (class, _)) :: ars) =
-    if member (op =) seen class then
-      (* multiple arities for the same (tycon, class) pair *)
-      make_axiom_arity_clause (tcons,
-          lookup_const tcons ^ "___" ^ ascii_of class ^ "_" ^ string_of_int n,
-          ar) ::
-      arity_clause seen (n + 1) (tcons, ars)
-    else
-      make_axiom_arity_clause (tcons, lookup_const tcons ^ "___" ^
-                               ascii_of class, ar) ::
-      arity_clause (class :: seen) n (tcons, ars)
-
-fun multi_arity_clause [] = []
-  | multi_arity_clause ((tcons, ars) :: tc_arlists) =
-    arity_clause [] 1 (tcons, ars) @ multi_arity_clause tc_arlists
-
 (* Generate all pairs (tycon, class, sorts) such that tycon belongs to class in
    theory thy provided its arguments have the corresponding sorts. *)
 fun type_class_pairs thy tycons classes =
@@ -468,21 +449,37 @@ fun type_class_pairs thy tycons classes =
     fun try_classes tycon = (tycon, fold (add_class tycon) classes [])
   in map try_classes tycons end
 
-(*Proving one (tycon, class) membership may require proving others, so iterate.*)
+(* Proving one (tycon, class) membership may require proving others, so
+   iterate. *)
 fun iter_type_class_pairs _ _ [] = ([], [])
   | iter_type_class_pairs thy tycons classes =
-      let
-        fun maybe_insert_class s =
-          (s <> type_class andalso not (member (op =) classes s))
-          ? insert (op =) s
-        val cpairs = type_class_pairs thy tycons classes
-        val newclasses =
-          [] |> fold (fold (fold (fold maybe_insert_class) o snd) o snd) cpairs
-        val (classes', cpairs') = iter_type_class_pairs thy tycons newclasses
-      in (classes' @ classes, union (op =) cpairs' cpairs) end
+    let
+      fun maybe_insert_class s =
+        (s <> type_class andalso not (member (op =) classes s))
+        ? insert (op =) s
+      val cpairs = type_class_pairs thy tycons classes
+      val newclasses =
+        [] |> fold (fold (fold (fold maybe_insert_class) o snd) o snd) cpairs
+      val (classes', cpairs') = iter_type_class_pairs thy tycons newclasses
+    in (classes' @ classes, union (op =) cpairs' cpairs) end
+
+fun arity_clause _ _ (_, []) = []
+  | arity_clause seen n (tcons, ("HOL.type", _) :: ars) =
+    arity_clause seen n (tcons, ars) (* ignore *)
+  | arity_clause seen n (tcons, (ar as (class, _)) :: ars) =
+    if member (op =) seen class then
+      (* multiple arities for the same (tycon, class) pair *)
+      make_axiom_arity_clause (tcons,
+          lookup_const tcons ^ "___" ^ ascii_of class ^ "_" ^ string_of_int n,
+          ar) ::
+      arity_clause seen (n + 1) (tcons, ars)
+    else
+      make_axiom_arity_clause (tcons, lookup_const tcons ^ "___" ^
+                               ascii_of class, ar) ::
+      arity_clause (class :: seen) n (tcons, ars)
 
 fun make_arity_clauses thy tycons =
-  iter_type_class_pairs thy tycons ##> multi_arity_clause
+  iter_type_class_pairs thy tycons ##> maps (arity_clause [] 1)
 
 
 (** Isabelle class relations **)
@@ -494,19 +491,16 @@ type class_rel_clause =
 
 (* Generate all pairs (sub, super) such that sub is a proper subclass of super
    in theory "thy". *)
-fun class_pairs _ [] _ = []
-  | class_pairs thy subs supers =
-      let
-        val class_less = Sorts.class_less (Sign.classes_of thy)
-        fun add_super sub super = class_less (sub, super) ? cons (sub, super)
-        fun add_supers sub = fold (add_super sub) supers
-      in fold add_supers subs [] end
+fun class_pairs thy subs supers =
+  let
+    val class_less = Sorts.class_less (Sign.classes_of thy)
+    fun add_super sub super = class_less (sub, super) ? cons (sub, super)
+    fun add_supers sub = fold (add_super sub) supers
+  in fold add_supers subs [] end
 
 fun make_class_rel_clause (sub, super) =
   {name = sub ^ "_" ^ super, subclass = sub, superclass = super}
-
-fun make_class_rel_clauses thy subs supers =
-  map make_class_rel_clause (class_pairs thy subs supers)
+fun make_class_rel_clauses thy = map make_class_rel_clause oo class_pairs thy
 
 (* intermediate terms *)
 datatype iterm =
@@ -975,13 +969,12 @@ fun type_class_atom type_enc (class, T) =
        | _ => [])
   in AAtom (ATerm ((class, ty_args), tm_args)) end
 fun formulas_for_types type_enc add_sorts_on_typ Ts =
-  [] |> level_of_type_enc type_enc <> No_Types ? fold add_sorts_on_typ Ts
+  [] |> (polymorphism_of_type_enc type_enc <> Type_Class_Polymorphic andalso
+         level_of_type_enc type_enc <> No_Types)
+        ? fold add_sorts_on_typ Ts
      |> map (type_class_atom type_enc)
 
-fun mk_aconns c phis =
-  let val (phis', phi') = split_last phis in
-    fold_rev (mk_aconn c) phis' phi'
-  end
+fun mk_aconns c = split_last #> uncurry (fold_rev (mk_aconn c))
 
 fun mk_ahorn [] phi = phi
   | mk_ahorn phis psi = AConn (AImplies, [mk_aconns AAnd phis, psi])
@@ -1739,8 +1732,7 @@ fun bound_tvars type_enc sorts Ts =
   case filter is_TVar Ts of
     [] => I
   | Ts =>
-    ((sorts andalso polymorphism_of_type_enc type_enc <> Type_Class_Polymorphic)
-       ? mk_ahorn (formulas_for_types type_enc add_sorts_on_tvar Ts))
+    (sorts ? mk_ahorn (formulas_for_types type_enc add_sorts_on_tvar Ts))
     #> (case type_enc of
           Native (_, poly, _) =>
           mk_atyquant AForall (map (fn TVar (x, S) =>
@@ -2170,7 +2162,7 @@ fun formula_lines_for_free_types type_enc (facts : ifact list) =
 
 (** Symbol declarations **)
 
-fun decl_line_for_class order phantoms s =
+fun decl_line_for_class phantoms s =
   let val name as (s, _) = `make_type_class s in
     Sym_Decl (sym_decl_prefix ^ s, name,
               APi ([tvar_a_name],
@@ -2182,8 +2174,8 @@ fun decl_line_for_class order phantoms s =
 
 fun decl_lines_for_classes type_enc classes =
   case type_enc of
-    Native (order, Raw_Polymorphic phantoms, _) =>
-    map (decl_line_for_class order phantoms) classes
+    Native (_, Raw_Polymorphic phantoms, _) =>
+    map (decl_line_for_class phantoms) classes
   | _ => []
 
 fun sym_decl_table_for_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
@@ -2573,7 +2565,7 @@ val free_typesN = "Type variables"
    symbols (with "$i" as the type of individuals), but some provers (e.g.,
    SNARK) require explicit declarations. The situation is similar for THF. *)
 
-fun default_type pred_sym s =
+fun default_type pred_sym =
   let
     fun typ 0 0 = if pred_sym then bool_atype else individual_atype
       | typ 0 tm_ary = AFun (individual_atype, typ 0 (tm_ary - 1))
@@ -2585,16 +2577,19 @@ fun undeclared_in_problem problem =
     fun do_sym (name as (s, _)) value =
       if is_tptp_user_symbol s then Symtab.default (s, (name, value)) else I
     fun do_type (AType (name, tys)) =
-        apfst (do_sym name (length tys)) #> fold do_type tys
+        apfst (apsnd (do_sym name (length tys))) #> fold do_type tys
       | do_type (AFun (ty1, ty2)) = do_type ty1 #> do_type ty2
       | do_type (APi (_, ty)) = do_type ty
-    fun do_term pred_sym (ATerm ((name as (s, _), tys), tms)) =
+    fun do_term pred_sym (ATerm ((name, tys), tms)) =
         apsnd (do_sym name
-                   (fn _ => default_type pred_sym s (length tys) (length tms)))
+                   (fn _ => default_type pred_sym (length tys) (length tms)))
         #> fold do_type tys #> fold (do_term false) tms
       | do_term _ (AAbs (((_, ty), tm), args)) =
         do_type ty #> do_term false tm #> fold (do_term false) args
-    fun do_formula (ATyQuant (_, _, phi)) = do_formula phi
+    fun do_formula (ATyQuant (_, xs, phi)) =
+        fold (do_type o fst) xs
+        #> fold (fold (fn name => apfst (apfst (do_sym name ()))) o snd) xs
+        #> do_formula phi
       | do_formula (AQuant (_, xs, phi)) =
         fold do_type (map_filter snd xs) #> do_formula phi
       | do_formula (AConn (_, phis)) = fold do_formula phis
@@ -2602,36 +2597,36 @@ fun undeclared_in_problem problem =
     fun do_line (Type_Decl _) = I
       | do_line (Sym_Decl (_, _, ty)) = do_type ty
       | do_line (Formula (_, _, phi, _, _)) = do_formula phi
-    val (tys, syms) = declared_in_problem problem
+    val ((cls, tys), syms) = declared_in_atp_problem problem
   in
-    (Symtab.empty, Symtab.empty)
-    |>> fold (fn (s, _) => Symtab.default (s, (("", ""), 0))) tys
+    ((Symtab.empty, Symtab.empty), Symtab.empty)
+    |>> apfst (fold (fn (s, _) => Symtab.default (s, (("", ""), ()))) cls)
+    |>> apsnd (fold (fn (s, _) => Symtab.default (s, (("", ""), 0))) tys)
     ||> fold (fn (s, _) => Symtab.default (s, (("", ""), K tvar_a_atype))) syms
     |> fold (fold do_line o snd) problem
   end
 
-fun declare_undeclared_in_atp_problem problem =
+fun declare_undeclared_in_problem heading problem =
   let
-    val (types, syms) = undeclared_in_problem problem
+    val ((cls, tys), syms) = undeclared_in_problem problem
     val decls =
       Symtab.fold (fn (_, (("", ""), _)) => I (* already declared *)
+                    | (s, (sym, ())) =>
+                      cons (Class_Decl (type_decl_prefix ^ s, sym, [])))
+                  cls [] @
+      Symtab.fold (fn (_, (("", ""), _)) => I (* already declared *)
                     | (s, (sym, ary)) =>
-                      cons (Type_Decl (type_decl_prefix ^ s, sym, ary, []))) (* ### FIXME *)
-                  types [] @
+                      cons (Type_Decl (type_decl_prefix ^ s, sym, ary, [])))
+                  tys [] @
       Symtab.fold (fn (_, (("", ""), _)) => I (* already declared *)
                     | (s, (sym, ty)) =>
                       cons (Sym_Decl (type_decl_prefix ^ s, sym, ty ())))
                   syms []
-  in (implicit_declsN, decls) :: problem end
+  in (heading, decls) :: problem end
 
-fun exists_subdtype P =
-  let
-    fun ex U = P U orelse
-      (case U of Datatype.DtType (_, Us) => exists ex Us | _ => false)
-  in ex end
-
-val is_poly_constr =
-  exists_subdtype (fn Datatype.DtTFree _ => true | _ => false)
+fun is_poly_constr (Datatype.DtTFree _) = true
+  | is_poly_constr (Datatype.DtType (_, Us)) = exists is_poly_constr Us
+  | is_poly_constr _ = false
 
 fun all_constrs_of_polymorphic_datatypes thy =
   Symtab.fold (snd #> #descr #> maps (#3 o snd)
@@ -2705,12 +2700,15 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
       map (formula_line_for_fact ctxt fact_prefix ascii_of (not exporter)
                (not exporter) mono type_enc (rank_of_fact_num num_facts))
           (0 upto num_facts - 1 ~~ facts)
-    val (class_rel_lines, arity_lines) =
+    val (class_rel_lines, arity_lines, free_type_lines) =
       if polymorphism_of_type_enc type_enc = Type_Class_Polymorphic then
-        ([], [])
+        ([],
+         [],
+         [])
       else
         (map (formula_line_for_class_rel_clause type_enc) class_rel_clauses,
-         map (formula_line_for_arity_clause type_enc) arity_clauses)
+         map (formula_line_for_arity_clause type_enc) arity_clauses,
+         formula_lines_for_free_types type_enc (facts @ conjs))
     val helper_lines =
       0 upto length helpers - 1 ~~ helpers
       |> map (formula_line_for_fact ctxt helper_prefix I false true mono
@@ -2723,7 +2721,7 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
        (class_relsN, class_rel_lines),
        (aritiesN, arity_lines),
        (helpersN, helper_lines),
-       (free_typesN, formula_lines_for_free_types type_enc (facts @ conjs)),
+       (free_typesN, free_type_lines),
        (conjsN, map (formula_line_for_conjecture ctxt mono type_enc) conjs)]
     val problem =
       problem |> (case format of
@@ -2732,7 +2730,7 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
                   | FOF => I
                   | TFF (_, TPTP_Implicit) => I
                   | THF (_, TPTP_Implicit, _, _) => I
-                  | _ => declare_undeclared_in_atp_problem)
+                  | _ => declare_undeclared_in_problem implicit_declsN)
     val (problem, pool) = problem |> nice_atp_problem readable_names format
     fun add_sym_ary (s, {min_ary, ...} : sym_info) =
       min_ary > 0 ? Symtab.insert (op =) (s, min_ary)

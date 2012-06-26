@@ -44,7 +44,7 @@ sig
 
   datatype formula_role = Axiom | Definition | Lemma | Hypothesis | Conjecture
   datatype 'a problem_line =
-    Subclass_Decl of 'a * 'a list |
+    Class_Decl of string * 'a * 'a list |
     Type_Decl of string * 'a * int * 'a list |
     Sym_Decl of string * 'a * 'a ho_type |
     Formula of string * formula_role
@@ -125,7 +125,7 @@ sig
     (string * string) problem -> (string * string) problem
   val filter_cnf_ueq_problem :
     (string * string) problem -> (string * string) problem
-  val declared_in_problem : 'a problem -> 'a list * 'a list
+  val declared_in_atp_problem : 'a problem -> ('a list * 'a list) * 'a list
   val nice_atp_problem :
     bool -> atp_format -> ('a * (string * string) problem_line list) list
     -> ('a * string problem_line list) list
@@ -177,7 +177,7 @@ datatype atp_format =
 
 datatype formula_role = Axiom | Definition | Lemma | Hypothesis | Conjecture
 datatype 'a problem_line =
-  Subclass_Decl of 'a * 'a list |
+  Class_Decl of string * 'a * 'a list |
   Type_Decl of string * 'a * int * 'a list |
   Sym_Decl of string * 'a * 'a ho_type |
   Formula of string * formula_role
@@ -461,12 +461,10 @@ fun tptp_string_for_format CNF = tptp_cnf
 
 val atype_of_types = AType (tptp_type_of_types, [])
 
-fun nary_type_constr_type n =
-  funpow n (curry AFun atype_of_types) atype_of_types
+fun nary_type_decl_type n = funpow n (curry AFun atype_of_types) atype_of_types
 
-fun tptp_string_for_line format (Type_Decl (ident, sym, ary, _)) =
-    tptp_string_for_line format
-        (Sym_Decl (ident, sym, nary_type_constr_type ary))
+fun tptp_string_for_line format (Type_Decl (ident, ty, ary, _)) =
+    tptp_string_for_line format (Sym_Decl (ident, ty, nary_type_decl_type ary))
   | tptp_string_for_line format (Sym_Decl (ident, sym, ty)) =
     tptp_string_for_format format ^ "(" ^ ident ^ ", type,\n    " ^ sym ^
     " : " ^ string_for_type format ty ^ ").\n"
@@ -496,7 +494,7 @@ fun dfg_string_for_formula poly gen_simp info =
   let
     val str_for_typ = string_for_type (DFG poly)
     fun str_for_bound_typ (ty, []) = str_for_typ ty
-      | str_for_bound_typ (ty, sorts) = str_for_typ ty ^ " : " ^ commas sorts
+      | str_for_bound_typ (ty, cls) = str_for_typ ty ^ " : " ^ commas cls
     fun suffix_tag top_level s =
       if top_level then
         case extract_isabelle_status info of
@@ -544,8 +542,8 @@ fun dfg_lines poly {is_lpo, gen_weights, gen_prec, gen_simp} ord_info problem =
     val str_for_typ = string_for_type (DFG poly)
     fun spair (s, s') = "(" ^ s ^ ", " ^ s' ^ ")"
     fun tm_ary sym ty = spair (sym, string_of_arity (arity_of_type ty))
-    fun ty_ary 0 sym = sym
-      | ty_ary n sym = "(" ^ sym ^ ", " ^ string_of_int n ^ ")"
+    fun ty_ary 0 ty = ty
+      | ty_ary n ty = "(" ^ ty ^ ", " ^ string_of_int n ^ ")"
     fun fun_typ sym ty = "function(" ^ sym ^ ", " ^ str_for_typ ty ^ ")."
     fun pred_typ sym ty =
       let
@@ -576,15 +574,18 @@ fun dfg_lines poly {is_lpo, gen_weights, gen_prec, gen_simp} ord_info problem =
              | _ => NONE)
       |> flat |> commas |> maybe_enclose "predicates [" "]."
     val sorts =
-      filt (fn Type_Decl (_, sym, ary, _) => SOME (ty_ary ary sym)
+      filt (fn Type_Decl (_, ty, ary, _) => SOME (ty_ary ary ty)
              | _ => NONE) @ [[ty_ary 0 dfg_individual_type]]
       |> flat |> commas |> maybe_enclose "sorts [" "]."
+    val classes =
+      filt (fn Class_Decl (_, cl, _) => SOME cl | _ => NONE)
+      |> flat |> commas |> maybe_enclose "classes [" "]."
     val ord_info = if gen_weights orelse gen_prec then ord_info () else []
     val do_term_order_weights =
       (if gen_weights then ord_info else [])
       |> map (spair o apsnd string_of_int) |> commas
       |> maybe_enclose "weights [" "]."
-    val syms = [func_aries, pred_aries, do_term_order_weights, sorts]
+    val syms = [func_aries, pred_aries, do_term_order_weights, sorts, classes]
     val func_sigs =
       filt (fn Sym_Decl (_, sym, ty) =>
                if is_function_atype ty then SOME (fun_typ sym ty) else NONE
@@ -717,11 +718,12 @@ fun filter_cnf_ueq_problem problem =
 
 (** Symbol declarations **)
 
-fun add_declared_in_line (Type_Decl (_, ty, _, _)) = apfst (cons ty)
+fun add_declared_in_line (Class_Decl (_, cl, _)) = apfst (apfst (cons cl))
+  | add_declared_in_line (Type_Decl (_, ty, _, _)) = apfst (apsnd (cons ty))
   | add_declared_in_line (Sym_Decl (_, sym, _)) = apsnd (cons sym)
   | add_declared_in_line _ = I
-fun declared_in_problem problem =
-  fold (fold add_declared_in_line o snd) problem ([], [])
+fun declared_in_atp_problem problem =
+  fold (fold add_declared_in_line o snd) problem (([], []), [])
 
 (** Nice names **)
 
@@ -846,7 +848,7 @@ fun nice_atp_problem readable_names format problem =
     fun nice_formula (ATyQuant (q, xs, phi)) =
         pool_map nice_type (map fst xs)
         ##>> pool_map (pool_map nice_name) (map snd xs) ##>> nice_formula phi
-        #>> (fn ((tys, sorts), phi) => ATyQuant (q, tys ~~ sorts, phi))
+        #>> (fn ((tys, cls), phi) => ATyQuant (q, tys ~~ cls, phi))
       | nice_formula (AQuant (q, xs, phi)) =
         pool_map nice_name (map fst xs)
         ##>> pool_map (fn NONE => pair NONE
@@ -856,9 +858,12 @@ fun nice_atp_problem readable_names format problem =
       | nice_formula (AConn (c, phis)) =
         pool_map nice_formula phis #>> curry AConn c
       | nice_formula (AAtom tm) = nice_term tm #>> AAtom
-    fun nice_line (Type_Decl (ident, sym, ary, sorts)) =
-        nice_name sym ##>> pool_map nice_name sorts
-        #>> (fn (sym, sorts) => Type_Decl (ident, sym, ary, sorts))
+    fun nice_line (Class_Decl (ident, cl, cls)) =
+        nice_name cl ##>> pool_map nice_name cls
+        #>> (fn (cl, cls) => Class_Decl (ident, cl, cls))
+      | nice_line (Type_Decl (ident, ty, ary, cls)) =
+        nice_name ty ##>> pool_map nice_name cls
+        #>> (fn (ty, cls) => Type_Decl (ident, ty, ary, cls))
       | nice_line (Sym_Decl (ident, sym, ty)) =
         nice_name sym ##>> nice_type ty
         #>> (fn (sym, ty) => Sym_Decl (ident, sym, ty))

@@ -22,8 +22,9 @@ val ctxt = @{context}
 
 ML {*
 if do_it then
-  "/tmp/axs_mono_native.dfg"
-  |> generate_tptp_inference_file_for_theory ctxt thy DFG "mono_native"
+  "/tmp/axs_tc_native.dfg"
+  |> generate_tptp_inference_file_for_theory ctxt thy (DFG With_Type_Classes)
+                                             "tc_native"
 else
   ()
 *}
