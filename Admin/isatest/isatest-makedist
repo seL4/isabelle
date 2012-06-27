@@ -98,12 +98,12 @@ rm -f $RUNNING/*
 
 ## spawn test runs
 
-$SSH macbroy21 "$MAKEALL $HOME/settings/at-poly-test"
+$SSH lxbroy2 "$MAKEALL $HOME/settings/at-poly-test"
 # give test some time to copy settings and start
 sleep 15
-$SSH macbroy27 "$MAKEALL $HOME/settings/at-poly; $MAKEALL $HOME/settings/at-poly-e"
+$SSH lxbroy3 "$MAKEALL -l HOL HOL-Library $HOME/settings/at-sml-dev-e"
 sleep 15
-$SSH macbroy22 "$MAKEALL -l HOL HOL-Library $HOME/settings/at-sml-dev-e"
+$SSH macbroy23 "$MAKEALL $HOME/settings/at-poly; $MAKEALL $HOME/settings/at-poly-e"
 sleep 15
 $SSH macbroy24 "$MAKEALL $HOME/settings/at64-poly"
 sleep 15

@@ -99,6 +99,11 @@ case $HOSTNAME in
         NICE=""
         ;;
 
+    lxbroy[234])
+        MFLAGS="-k -j 2"
+        NICE=""
+        ;;
+
     *)
         MFLAGS="-k"
         # be nice by default

@@ -28,7 +28,7 @@ ns441@cam.ac.uk"
 
 LOGPREFIX=$HOME/log
 MASTERLOG=$LOGPREFIX/isatest.log
-LOGSERVER=macbroy27.informatik.tu-muenchen.de
+LOGSERVER=lxbroy2.informatik.tu-muenchen.de
 
 ERRORDIR=$HOME/var
 ERRORLOG=$ERRORDIR/error.log
