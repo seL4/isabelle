@@ -1888,6 +1888,8 @@ text {*
 
     \item[@{text eval}] takes a term or a list of terms and evaluates
     these terms under the variable assignment found by quickcheck.
+    This option is currently only supported by the default
+    (exhaustive) tester.
 
     \item[@{text iterations}] sets how many sets of assignments are
     generated for each particular size.
