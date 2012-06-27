@@ -1,0 +1,10 @@
+# -*- shell-script -*- :mode=shellscript:
+
+case "$ISABELLE_PLATFORM" in
+  *-darwin)
+    ISABELLE_JDK_HOME="$(/usr/libexec/java_home -v 1.6)"
+    ;;
+  *)
+    ISABELLE_JDK_HOME="$COMPONENT/${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM}/jdk1.6.0_31"
+    ;;
+esac
