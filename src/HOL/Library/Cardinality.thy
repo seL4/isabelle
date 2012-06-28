@@ -5,7 +5,7 @@
 header {* Cardinality of types *}
 
 theory Cardinality
-imports "~~/src/HOL/Main"
+imports Phantom_Type
 begin
 
 subsection {* Preliminary lemmas *}
@@ -176,11 +176,14 @@ lemma is_list_UNIV_iff: "is_list_UNIV xs \<longleftrightarrow> set xs = UNIV"
 by(auto simp add: is_list_UNIV_def Let_def card_eq_0_iff List.card_set[symmetric] 
    dest: subst[where P="finite", OF _ finite_set] card_eq_UNIV_imp_eq_UNIV)
 
-class card_UNIV = 
-  fixes card_UNIV :: "'a itself \<Rightarrow> nat"
-  assumes card_UNIV: "card_UNIV x = CARD('a)"
+type_synonym 'a card_UNIV = "('a, nat) phantom"
 
-lemma card_UNIV_code [code_unfold]: "CARD('a :: card_UNIV) = card_UNIV TYPE('a)"
+class card_UNIV = 
+  fixes card_UNIV :: "'a card_UNIV"
+  assumes card_UNIV: "card_UNIV = Phantom('a) CARD('a)"
+
+lemma card_UNIV_code [code_unfold]: 
+  "CARD('a :: card_UNIV) = of_phantom (card_UNIV :: 'a card_UNIV)"
 by(simp add: card_UNIV)
 
 lemma is_list_UNIV_code [code]:
@@ -189,74 +192,78 @@ lemma is_list_UNIV_code [code]:
 by(rule is_list_UNIV_def)
 
 lemma finite_UNIV_conv_card_UNIV [code_unfold]:
-  "finite (UNIV :: 'a :: card_UNIV set) \<longleftrightarrow> card_UNIV TYPE('a) > 0"
+  "finite (UNIV :: 'a :: card_UNIV set) \<longleftrightarrow> 
+  of_phantom (card_UNIV :: 'a card_UNIV) > 0"
 by(simp add: card_UNIV card_gt_0_iff)
 
 subsection {* Instantiations for @{text "card_UNIV"} *}
 
 instantiation nat :: card_UNIV begin
-definition "card_UNIV_class.card_UNIV = (\<lambda>a :: nat itself. 0)"
+definition "card_UNIV = Phantom(nat) 0"
 instance by intro_classes (simp add: card_UNIV_nat_def)
 end
 
 instantiation int :: card_UNIV begin
-definition "card_UNIV = (\<lambda>a :: int itself. 0)"
+definition "card_UNIV = Phantom(int) 0"
 instance by intro_classes (simp add: card_UNIV_int_def infinite_UNIV_int)
 end
 
 instantiation list :: (type) card_UNIV begin
-definition "card_UNIV = (\<lambda>a :: 'a list itself. 0)"
+definition "card_UNIV = Phantom('a list) 0"
 instance by intro_classes (simp add: card_UNIV_list_def infinite_UNIV_listI)
 end
 
 instantiation unit :: card_UNIV begin
-definition "card_UNIV = (\<lambda>a :: unit itself. 1)"
+definition "card_UNIV = Phantom(unit) 1"
 instance by intro_classes (simp add: card_UNIV_unit_def card_UNIV_unit)
 end
 
 instantiation bool :: card_UNIV begin
-definition "card_UNIV = (\<lambda>a :: bool itself. 2)"
+definition "card_UNIV = Phantom(bool) 2"
 instance by(intro_classes)(simp add: card_UNIV_bool_def card_UNIV_bool)
 end
 
 instantiation char :: card_UNIV begin
-definition "card_UNIV_class.card_UNIV = (\<lambda>a :: char itself. 256)"
+definition "card_UNIV = Phantom(char) 256"
 instance by intro_classes (simp add: card_UNIV_char_def card_UNIV_char)
 end
 
 instantiation prod :: (card_UNIV, card_UNIV) card_UNIV begin
-definition "card_UNIV = (\<lambda>a :: ('a \<times> 'b) itself. card_UNIV (TYPE('a)) * card_UNIV (TYPE('b)))"
+definition "card_UNIV = 
+  Phantom('a \<times> 'b) (of_phantom (card_UNIV :: 'a card_UNIV) * of_phantom (card_UNIV :: 'b card_UNIV))"
 instance by intro_classes (simp add: card_UNIV_prod_def card_UNIV)
 end
 
 instantiation sum :: (card_UNIV, card_UNIV) card_UNIV begin
-definition "card_UNIV = (\<lambda>a :: ('a + 'b) itself. 
-  let ca = card_UNIV (TYPE('a)); cb = card_UNIV (TYPE('b))
-  in if ca \<noteq> 0 \<and> cb \<noteq> 0 then ca + cb else 0)"
+definition "card_UNIV = Phantom('a + 'b)
+  (let ca = of_phantom (card_UNIV :: 'a card_UNIV); 
+       cb = of_phantom (card_UNIV :: 'b card_UNIV)
+   in if ca \<noteq> 0 \<and> cb \<noteq> 0 then ca + cb else 0)"
 instance by intro_classes (auto simp add: card_UNIV_sum_def card_UNIV card_UNIV_sum)
 end
 
 instantiation "fun" :: (card_UNIV, card_UNIV) card_UNIV begin
-definition "card_UNIV = (\<lambda>a :: ('a \<Rightarrow> 'b) itself. 
-  let ca = card_UNIV (TYPE('a)); cb = card_UNIV (TYPE('b))
-  in if ca \<noteq> 0 \<and> cb \<noteq> 0 \<or> cb = 1 then cb ^ ca else 0)"
+definition "card_UNIV = Phantom('a \<Rightarrow> 'b)
+  (let ca = of_phantom (card_UNIV :: 'a card_UNIV);
+       cb = of_phantom (card_UNIV :: 'b card_UNIV)
+   in if ca \<noteq> 0 \<and> cb \<noteq> 0 \<or> cb = 1 then cb ^ ca else 0)"
 instance by intro_classes (simp add: card_UNIV_fun_def card_UNIV Let_def card_fun)
 end
 
 instantiation option :: (card_UNIV) card_UNIV begin
-definition "card_UNIV = (\<lambda>a :: 'a option itself. 
-  let c = card_UNIV (TYPE('a)) in if c \<noteq> 0 then Suc c else 0)"
+definition "card_UNIV = Phantom('a option)
+  (let c = of_phantom (card_UNIV :: 'a card_UNIV) in if c \<noteq> 0 then Suc c else 0)"
 instance by intro_classes (simp add: card_UNIV_option_def card_UNIV card_UNIV_option)
 end
 
 instantiation String.literal :: card_UNIV begin
-definition "card_UNIV = (\<lambda>a :: String.literal itself. 0)"
+definition "card_UNIV = Phantom(String.literal) 0"
 instance by intro_classes (simp add: card_UNIV_literal_def card_literal)
 end
 
 instantiation set :: (card_UNIV) card_UNIV begin
-definition "card_UNIV = (\<lambda>a :: 'a set itself.
-  let c = card_UNIV (TYPE('a)) in if c = 0 then 0 else 2 ^ c)"
+definition "card_UNIV = Phantom('a set)
+  (let c = of_phantom (card_UNIV :: 'a card_UNIV) in if c = 0 then 0 else 2 ^ c)"
 instance by intro_classes (simp add: card_UNIV_set_def card_UNIV_set card_UNIV)
 end
 
@@ -278,27 +285,27 @@ lemma UNIV_finite_5:
 by(auto intro: finite_5.exhaust)
 
 instantiation Enum.finite_1 :: card_UNIV begin
-definition "card_UNIV = (\<lambda>a :: Enum.finite_1 itself. 1)"
+definition "card_UNIV = Phantom(Enum.finite_1) 1"
 instance by intro_classes (simp add: UNIV_finite_1 card_UNIV_finite_1_def)
 end
 
 instantiation Enum.finite_2 :: card_UNIV begin
-definition "card_UNIV = (\<lambda>a :: Enum.finite_2 itself. 2)"
+definition "card_UNIV = Phantom(Enum.finite_2) 2"
 instance by intro_classes (simp add: UNIV_finite_2 card_UNIV_finite_2_def)
 end
 
 instantiation Enum.finite_3 :: card_UNIV begin
-definition "card_UNIV = (\<lambda>a :: Enum.finite_3 itself. 3)"
+definition "card_UNIV = Phantom(Enum.finite_3) 3"
 instance by intro_classes (simp add: UNIV_finite_3 card_UNIV_finite_3_def)
 end
 
 instantiation Enum.finite_4 :: card_UNIV begin
-definition "card_UNIV = (\<lambda>a :: Enum.finite_4 itself. 4)"
+definition "card_UNIV = Phantom(Enum.finite_4) 4"
 instance by intro_classes (simp add: UNIV_finite_4 card_UNIV_finite_4_def)
 end
 
 instantiation Enum.finite_5 :: card_UNIV begin
-definition "card_UNIV = (\<lambda>a :: Enum.finite_5 itself. 5)"
+definition "card_UNIV = Phantom(Enum.finite_5) 5"
 instance by intro_classes (simp add: UNIV_finite_5 card_UNIV_finite_5_def)
 end
 
@@ -316,10 +323,11 @@ where [simp, code del, code_abbrev]: "card' = card"
 
 lemma card'_code [code]:
   "card' (set xs) = length (remdups xs)"
-  "card' (List.coset xs) =  card_UNIV TYPE('a) - length (remdups xs)"
+  "card' (List.coset xs) = of_phantom (card_UNIV :: 'a card_UNIV) - length (remdups xs)"
 by(simp_all add: List.card_set card_Compl card_UNIV)
 
-lemma card'_UNIV [code_unfold]: "card' (UNIV :: 'a :: card_UNIV set) = card_UNIV TYPE('a)"
+lemma card'_UNIV [code_unfold]: 
+  "card' (UNIV :: 'a :: card_UNIV set) = of_phantom (card_UNIV :: 'a card_UNIV)"
 by(simp add: card_UNIV)
 
 definition finite' :: "'a set \<Rightarrow> bool"
