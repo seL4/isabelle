@@ -208,6 +208,12 @@ definition "card_UNIV = Phantom(int) 0"
 instance by intro_classes (simp add: card_UNIV_int_def infinite_UNIV_int)
 end
 
+instantiation code_numeral :: card_UNIV begin
+definition "card_UNIV = Phantom(code_numeral) 0"
+instance 
+  by(intro_classes)(auto simp add: card_UNIV_code_numeral_def type_definition.univ[OF type_definition_code_numeral] card_eq_0_iff dest!: finite_imageD intro: inj_onI)
+end
+
 instantiation list :: (type) card_UNIV begin
 definition "card_UNIV = Phantom('a list) 0"
 instance by intro_classes (simp add: card_UNIV_list_def infinite_UNIV_listI)
@@ -221,6 +227,11 @@ end
 instantiation bool :: card_UNIV begin
 definition "card_UNIV = Phantom(bool) 2"
 instance by(intro_classes)(simp add: card_UNIV_bool_def card_UNIV_bool)
+end
+
+instantiation nibble :: card_UNIV begin
+definition "card_UNIV = Phantom(nibble) 16"
+instance by(intro_classes)(simp add: card_UNIV_nibble_def card_nibble)
 end
 
 instantiation char :: card_UNIV begin
