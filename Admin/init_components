@@ -16,14 +16,11 @@ function init_component_liberal
   fi
 }
 
-for COMPONENTS_FILE in "${ISABELLE_HOME}/Admin/components" "${ISABELLE_HOME}/Admin/components.${ML_PLATFORM}"
+while { unset REPLY; read -r; test "$?" = 0 -o -n "${REPLY}"; }
 do
-  while { unset REPLY; read -r; test "$?" = 0 -o -n "${REPLY}"; }
-  do
-    case "${REPLY}" in
-      \#* | "") ;;
-      /*) init_component_liberal "${REPLY}" ;;
-      *) init_component_liberal "${COMPONENT}/${REPLY}" ;;
-    esac
-  done < "${COMPONENTS_FILE}"
-done
+  case "${REPLY}" in
+    \#* | "") ;;
+    /*) init_component_liberal "${REPLY}" ;;
+    *) init_component_liberal "${COMPONENT}/${REPLY}" ;;
+  esac
+done < "${ISABELLE_HOME}/Admin/components"
