@@ -95,7 +95,7 @@ shift 3
 
 case `uname` in
 	Linux)  for F in $@; do ATTACH="$ATTACH -a $F"; done
-		cat "$BODY" | mail -Ssmtp=mailbroy.informatik.tu-muenchen.de -s "$SUBJECT" $ATTACH "$TO"
+		cat "$BODY" | mail -s "$SUBJECT" $ATTACH "$TO"
 		;;
 	SunOS)
 		print_body "$SUBJECT" "$BODY" $@ | mail -t "$TO"
