@@ -20,6 +20,7 @@ sig
   val optimise_equality : bool Config.T
   val quickcheck_pretty : bool Config.T
   val setup_exhaustive_datatype_interpretation : theory -> theory
+  val setup_bounded_forall_datatype_interpretation : theory -> theory
   val setup: theory -> theory
   
   val instantiate_full_exhaustive_datatype : Datatype_Aux.config -> Datatype_Aux.descr ->
@@ -563,6 +564,11 @@ val test_goals =
 
 val setup_exhaustive_datatype_interpretation =
   Quickcheck_Common.datatype_interpretation (@{sort exhaustive}, instantiate_exhaustive_datatype)
+
+val setup_bounded_forall_datatype_interpretation =
+  Datatype.interpretation (Quickcheck_Common.ensure_sort
+    (((@{sort type}, @{sort type}), @{sort bounded_forall}),
+    (Datatype.the_descr, instantiate_bounded_forall_datatype)))
 
 val active = Attrib.setup_config_bool @{binding quickcheck_exhaustive_active} (K true);
 
