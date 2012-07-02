@@ -64,4 +64,14 @@ schematic_lemma (* check interaction with schematics *)
    = finite ((\<lambda>(a:: ?'A, b :: ?'B). Pair_Rep a b) ` (UNIV \<times> UNIV))"
   by simp
 
+lemma
+  assumes "finite S" shows "finite {(a,b,c,d). ([a, b], [c, d]) : S}"
+proof -
+  have eq: "{(a,b,c,d). ([a, b], [c, d]) : S} = ((%(a, b, c, d). ([a, b], [c, d])) -` S)"
+   unfolding vimage_def by (auto split: prod.split)  (* to be proved with the simproc *)
+  from `finite S` show ?thesis
+    unfolding eq by (auto intro!: finite_vimageI simp add: inj_on_def)
+    (* to be automated with further rules and automation *)
+qed
+
 end
