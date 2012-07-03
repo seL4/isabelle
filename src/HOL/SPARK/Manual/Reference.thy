@@ -67,8 +67,9 @@ Initiates the proof of the VC with the given name. Similar to the standard
 must be followed by a sequence of proof commands. The command introduces the
 hypotheses \texttt{H1} \dots \texttt{H$n$}, as well as the identifiers
 \texttt{?C1} \dots \texttt{?C$m$} corresponding to the conclusions of the VC.
-@{rail "@'spark_end'"}
-Closes the current verification environment. All VCs must have been proved,
+@{rail "@'spark_end' '(incomplete)'?"}
+Closes the current verification environment. Unless the \texttt{incomplete}
+option is given, all VCs must have been proved,
 otherwise the command issues an error message. As a side effect, the command
 generates a proof review (\texttt{*.prv}) file to inform POGS of the proved
 VCs.

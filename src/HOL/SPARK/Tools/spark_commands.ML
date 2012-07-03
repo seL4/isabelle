@@ -44,7 +44,7 @@ fun add_spark_type_cmd (s, (raw_typ, cmap)) thy =
   SPARK_VCs.add_type (s, (Syntax.read_typ_global thy raw_typ, cmap)) thy;
 
 fun get_vc thy vc_name =
-  (case SPARK_VCs.lookup_vc thy vc_name of
+  (case SPARK_VCs.lookup_vc thy false vc_name of
     SOME (ctxt, (_, proved, ctxt', stmt)) =>
       if is_some proved then
         error ("The verification condition " ^
@@ -71,7 +71,7 @@ fun show_status (p, f) = Toplevel.no_timing o Toplevel.keep (fn state =>
   let
     val thy = Toplevel.theory_of state;
 
-    val (context, defs, vcs) = SPARK_VCs.get_vcs thy;
+    val (context, defs, vcs) = SPARK_VCs.get_vcs thy true;
 
     val vcs' = AList.coalesce (op =) (map_filter
       (fn (name, (trace, status, ctxt, stmt)) =>
@@ -144,7 +144,9 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_spec "spark_end"}
     "close the current SPARK environment"
-    (Scan.succeed (Toplevel.theory SPARK_VCs.close));
+    (Scan.optional (@{keyword "("} |-- Parse.!!!
+         (Parse.reserved "incomplete" --| @{keyword ")"}) >> K true) false >>
+       (Toplevel.theory o SPARK_VCs.close));
 
 val setup = Theory.at_end (fn thy =>
   let

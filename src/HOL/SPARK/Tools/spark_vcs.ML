@@ -13,13 +13,13 @@ sig
     string * ((string list * string) option * 'a) ->
     theory -> theory
   val add_type: string * (typ * (string * string) list) -> theory -> theory
-  val lookup_vc: theory -> string -> (Element.context_i list *
+  val lookup_vc: theory -> bool -> string -> (Element.context_i list *
     (string * thm list option * Element.context_i * Element.statement_i)) option
-  val get_vcs: theory ->
+  val get_vcs: theory -> bool ->
     Element.context_i list * (binding * thm) list * (string *
     (string * thm list option * Element.context_i * Element.statement_i)) list
   val mark_proved: string -> thm list -> theory -> theory
-  val close: theory -> theory
+  val close: bool -> theory -> theory
   val is_closed: theory -> bool
 end;
 
@@ -756,9 +756,23 @@ fun check_pfuns_types thy prfx funs =
 
 (** the VC store **)
 
-fun err_vcs names = error (Pretty.string_of
-  (Pretty.big_list "The following verification conditions have not been proved:"
-    (map Pretty.str names)))
+fun pp_vcs msg vcs = Pretty.big_list msg (map (Pretty.str o fst) vcs);
+
+fun pp_open_vcs [] = Pretty.str "All verification conditions have been proved."
+  | pp_open_vcs vcs = pp_vcs
+      "The following verification conditions remain to be proved:" vcs;
+
+fun partition_vcs vcs = VCtab.fold_rev
+  (fn (name, (trace, SOME thms, ps, cs)) =>
+        apfst (cons (name, (trace, thms, ps, cs)))
+    | (name, (trace, NONE, ps, cs)) =>
+        apsnd (cons (name, (trace, ps, cs))))
+  vcs ([], []);
+
+fun insert_break prt = Pretty.blk (0, [Pretty.fbrk, prt]);
+
+fun print_open_vcs f vcs =
+  (Pretty.writeln (f (pp_open_vcs (snd (partition_vcs vcs)))); vcs);
 
 fun set_env ctxt defs types funs ids vcs path prefix thy = VCs.map (fn
     {pfuns, type_map, env = NONE} =>
@@ -767,7 +781,7 @@ fun set_env ctxt defs types funs ids vcs path prefix thy = VCs.map (fn
        env = SOME
          {ctxt = ctxt, defs = defs, types = types, funs = funs,
           pfuns = check_pfuns_types thy prefix funs pfuns,
-          ids = ids, proving = false, vcs = vcs, path = path,
+          ids = ids, proving = false, vcs = print_open_vcs I vcs, path = path,
           prefix = prefix}}
   | _ => err_unfinished ()) thy;
 
@@ -775,7 +789,7 @@ fun mk_pat s = (case Int.fromString s of
     SOME i => [HOLogic.mk_Trueprop (Var (("C", i), HOLogic.boolT))]
   | NONE => error ("Bad conclusion identifier: C" ^ s));
 
-fun mk_vc thy prfx types pfuns ids (tr, proved, ps, cs) =
+fun mk_vc thy prfx types pfuns ids name_concl (tr, proved, ps, cs) =
   let val prop_of =
     HOLogic.mk_Trueprop o fst o term_of_expr thy prfx types pfuns ids
   in
@@ -783,7 +797,9 @@ fun mk_vc thy prfx types pfuns ids (tr, proved, ps, cs) =
      Element.Assumes (map (fn (s', e) =>
        ((Binding.name ("H" ^ s'), []), [(prop_of e, [])])) ps),
      Element.Shows (map (fn (s', e) =>
-       (Attrib.empty_binding, [(prop_of e, mk_pat s')])) cs))
+       (if name_concl then (Binding.name ("C" ^ s'), [])
+        else Attrib.empty_binding,
+        [(prop_of e, mk_pat s')])) cs))
   end;
 
 fun fold_vcs f vcs =
@@ -898,25 +914,28 @@ fun add_type (s, (T as Type (tyname, Ts), cmap)) thy =
 
 val is_closed = is_none o #env o VCs.get;
 
-fun lookup_vc thy name =
+fun lookup_vc thy name_concl name =
   (case VCs.get thy of
     {env = SOME {vcs, types, funs, pfuns, ids, ctxt, prefix, ...}, ...} =>
       (case VCtab.lookup vcs name of
          SOME vc =>
            let val (pfuns', ctxt', ids') =
              declare_missing_pfuns thy prefix funs pfuns vcs ids
-           in SOME (ctxt @ [ctxt'], mk_vc thy prefix types pfuns' ids' vc) end
+           in
+             SOME (ctxt @ [ctxt'],
+               mk_vc thy prefix types pfuns' ids' name_concl vc)
+           end
        | NONE => NONE)
   | _ => NONE);
 
-fun get_vcs thy = (case VCs.get thy of
+fun get_vcs thy name_concl = (case VCs.get thy of
     {env = SOME {vcs, types, funs, pfuns, ids, ctxt, defs, prefix, ...}, ...} =>
       let val (pfuns', ctxt', ids') =
         declare_missing_pfuns thy prefix funs pfuns vcs ids
       in
         (ctxt @ [ctxt'], defs,
          VCtab.dest vcs |>
-         map (apsnd (mk_vc thy prefix types pfuns' ids')))
+         map (apsnd (mk_vc thy prefix types pfuns' ids' name_concl)))
       end
   | _ => ([], [], []));
 
@@ -930,25 +949,34 @@ fun mark_proved name thms = VCs.map (fn
          types = types, funs = funs, pfuns = pfuns_env,
          ids = ids,
          proving = true,
-         vcs = VCtab.map_entry name (fn (trace, _, ps, cs) =>
-           (trace, SOME thms, ps, cs)) vcs,
+         vcs = print_open_vcs insert_break (VCtab.map_entry name
+           (fn (trace, _, ps, cs) => (trace, SOME thms, ps, cs)) vcs),
          path = path,
          prefix = prefix}}
   | x => x);
 
-fun close thy =
+fun close incomplete thy =
   thy |>
   VCs.map (fn
       {pfuns, type_map, env = SOME {vcs, path, ...}} =>
-        (case VCtab.fold_rev (fn vc as (_, (_, p, _, _)) =>
-             (if is_some p then apfst else apsnd) (cons vc)) vcs ([], []) of
-           (proved, []) =>
-             (Thm.join_proofs (maps (the o #2 o snd) proved);
-              File.write (Path.ext "prv" path)
-                (implode (map (fn (s, _) => snd (strip_number s) ^
-                   " -- proved by " ^ Distribution.version ^ "\n") proved));
-              {pfuns = pfuns, type_map = type_map, env = NONE})
-         | (_, unproved) => err_vcs (map fst unproved))
+        let
+          val (proved, unproved) = partition_vcs vcs;
+          val _ = Thm.join_proofs (maps (#2 o snd) proved);
+          val (proved', proved'') = List.partition (fn (_, (_, thms, _, _)) =>
+            exists (#oracle o Thm.status_of) thms) proved
+        in
+          (if null unproved then ()
+           else (if incomplete then warning else error)
+             (Pretty.string_of (pp_open_vcs unproved));
+           if null proved' then ()
+           else warning (Pretty.string_of (pp_vcs
+             "The following VCs are not marked as proved \
+             \because their proofs contain oracles:" proved'));
+           File.write (Path.ext "prv" path)
+             (implode (map (fn (s, _) => snd (strip_number s) ^
+                " -- proved by " ^ Distribution.version ^ "\n") proved''));
+           {pfuns = pfuns, type_map = type_map, env = NONE})
+        end
     | _ => error "No SPARK environment is currently open") |>
   Sign.parent_path;
 

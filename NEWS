@@ -13,6 +13,12 @@ is called fastforce / fast_force_tac already since Isabelle2011-1.
 in old "ref" manual.
 
 
+*** Document preparation ***
+
+* Default for \<euro> is now based on eurosym package, instead of
+slightly exotic babel/greek.
+
+
 *** System ***
 
 * Discontinued support for Poly/ML 5.2.1, which was the last version
