@@ -32,18 +32,6 @@ def prepare_isabelle_repository(loc_isabelle, loc_contrib, loc_dependency_heaps,
         raise IOError('Bad file: %s' % loc_contrib)
     subprocess.check_call(['ln', '-s', loc_contrib, '%s/contrib' % loc_isabelle])
 
-    components_registry = path.join(loc_isabelle, 'Admin', 'components')
-    if path.exists(components_registry):
-        components = []
-        for component in util.readfile_lines(components_registry):
-            loc_component = path.join(loc_isabelle, component)
-            if path.exists(loc_component):
-                components.append(loc_component)
-        writer = open(path.join(loc_isabelle, 'etc', 'components'), 'a')
-        for component in components:
-            writer.write(component + '\n')
-        writer.close()
-
     # provide existing dependencies
     if loc_dependency_heaps:
         isabelle_path = loc_dependency_heaps + '/$ISABELLE_IDENTIFIER:$ISABELLE_OUTPUT'
@@ -60,6 +48,8 @@ ISABELLE_PATH="%s"
 ISABELLE_USEDIR_OPTIONS="%s"
 
 Z3_NON_COMMERCIAL="yes"
+
+source "${ISABELLE_HOME}/Admin/init_components"
 
 %s
 ''' % (isabelle_path, usedir_options, more_settings)
