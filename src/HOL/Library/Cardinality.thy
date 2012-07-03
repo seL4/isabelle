@@ -30,6 +30,12 @@ lemma (in type_definition) card: "card (UNIV :: 'b set) = card A"
 lemma finite_range_Some: "finite (range (Some :: 'a \<Rightarrow> 'a option)) = finite (UNIV :: 'a set)"
 by(auto dest: finite_imageD intro: inj_Some)
 
+lemma infinite_literal: "\<not> finite (UNIV :: String.literal set)"
+proof -
+  have "inj STR" by(auto intro: injI)
+  thus ?thesis
+    by(auto simp add: type_definition.univ[OF type_definition_literal] infinite_UNIV_listI dest: finite_imageD)
+qed
 
 subsection {* Cardinalities of types *}
 
@@ -131,6 +137,18 @@ proof -
     by(auto simp del: One_nat_def)(auto simp add: card_eq_0_iff dest: finite_fun_UNIVD2 finite_fun_UNIVD1)
 qed
 
+corollary finite_UNIV_fun:
+  "finite (UNIV :: ('a \<Rightarrow> 'b) set) \<longleftrightarrow>
+   finite (UNIV :: 'a set) \<and> finite (UNIV :: 'b set) \<or> CARD('b) = 1"
+  (is "?lhs \<longleftrightarrow> ?rhs")
+proof -
+  have "?lhs \<longleftrightarrow> CARD('a \<Rightarrow> 'b) > 0" by(simp add: card_gt_0_iff)
+  also have "\<dots> \<longleftrightarrow> CARD('a) > 0 \<and> CARD('b) > 0 \<or> CARD('b) = 1"
+    by(simp add: card_fun)
+  also have "\<dots> = ?rhs" by(simp add: card_gt_0_iff)
+  finally show ?thesis .
+qed
+
 lemma card_nibble: "CARD(nibble) = 16"
 unfolding UNIV_nibble by simp
 
@@ -141,10 +159,7 @@ proof -
 qed
 
 lemma card_literal: "CARD(String.literal) = 0"
-proof -
-  have "inj STR" by(auto intro: injI)
-  thus ?thesis by(simp add: type_definition.univ[OF type_definition_literal] card_image infinite_UNIV_listI)
-qed
+by(simp add: card_eq_0_iff infinite_literal)
 
 subsection {* Classes with at least 1 and 2  *}
 
@@ -167,6 +182,20 @@ lemma one_less_card: "Suc 0 < CARD('a::card2)"
 lemma one_less_int_card: "1 < int CARD('a::card2)"
   using one_less_card [where 'a='a] by simp
 
+
+subsection {* A type class for deciding finiteness of types *}
+
+type_synonym 'a finite_UNIV = "('a, bool) phantom"
+
+class finite_UNIV = 
+  fixes finite_UNIV :: "('a, bool) phantom"
+  assumes finite_UNIV: "finite_UNIV = Phantom('a) (finite (UNIV :: 'a set))"
+
+lemma finite_UNIV_code [code_unfold]:
+  "finite (UNIV :: 'a :: finite_UNIV set)
+  \<longleftrightarrow> of_phantom (finite_UNIV :: 'a finite_UNIV)"
+by(simp add: finite_UNIV)
+
 subsection {* A type class for computing the cardinality of types *}
 
 definition is_list_UNIV :: "'a list \<Rightarrow> bool"
@@ -178,7 +207,7 @@ by(auto simp add: is_list_UNIV_def Let_def card_eq_0_iff List.card_set[symmetric
 
 type_synonym 'a card_UNIV = "('a, nat) phantom"
 
-class card_UNIV = 
+class card_UNIV = finite_UNIV +
   fixes card_UNIV :: "'a card_UNIV"
   assumes card_UNIV: "card_UNIV = Phantom('a) CARD('a)"
 
@@ -191,58 +220,74 @@ lemma is_list_UNIV_code [code]:
   (let c = CARD('a :: card_UNIV) in if c = 0 then False else size (remdups xs) = c)"
 by(rule is_list_UNIV_def)
 
-lemma finite_UNIV_conv_card_UNIV [code_unfold]:
-  "finite (UNIV :: 'a :: card_UNIV set) \<longleftrightarrow> 
-  of_phantom (card_UNIV :: 'a card_UNIV) > 0"
-by(simp add: card_UNIV card_gt_0_iff)
-
 subsection {* Instantiations for @{text "card_UNIV"} *}
 
 instantiation nat :: card_UNIV begin
+definition "finite_UNIV = Phantom(nat) False"
 definition "card_UNIV = Phantom(nat) 0"
-instance by intro_classes (simp add: card_UNIV_nat_def)
+instance by intro_classes (simp_all add: finite_UNIV_nat_def card_UNIV_nat_def)
 end
 
 instantiation int :: card_UNIV begin
+definition "finite_UNIV = Phantom(int) False"
 definition "card_UNIV = Phantom(int) 0"
-instance by intro_classes (simp add: card_UNIV_int_def infinite_UNIV_int)
+instance by intro_classes (simp_all add: card_UNIV_int_def finite_UNIV_int_def infinite_UNIV_int)
 end
 
 instantiation code_numeral :: card_UNIV begin
+definition "finite_UNIV = Phantom(code_numeral) False"
 definition "card_UNIV = Phantom(code_numeral) 0"
-instance 
-  by(intro_classes)(auto simp add: card_UNIV_code_numeral_def type_definition.univ[OF type_definition_code_numeral] card_eq_0_iff dest!: finite_imageD intro: inj_onI)
+instance
+  by(intro_classes)(auto simp add: card_UNIV_code_numeral_def finite_UNIV_code_numeral_def type_definition.univ[OF type_definition_code_numeral] card_eq_0_iff dest!: finite_imageD intro: inj_onI)
 end
 
 instantiation list :: (type) card_UNIV begin
+definition "finite_UNIV = Phantom('a list) False"
 definition "card_UNIV = Phantom('a list) 0"
-instance by intro_classes (simp add: card_UNIV_list_def infinite_UNIV_listI)
+instance by intro_classes (simp_all add: card_UNIV_list_def finite_UNIV_list_def infinite_UNIV_listI)
 end
 
 instantiation unit :: card_UNIV begin
+definition "finite_UNIV = Phantom(unit) True"
 definition "card_UNIV = Phantom(unit) 1"
-instance by intro_classes (simp add: card_UNIV_unit_def card_UNIV_unit)
+instance by intro_classes (simp_all add: card_UNIV_unit_def finite_UNIV_unit_def)
 end
 
 instantiation bool :: card_UNIV begin
+definition "finite_UNIV = Phantom(bool) True"
 definition "card_UNIV = Phantom(bool) 2"
-instance by(intro_classes)(simp add: card_UNIV_bool_def card_UNIV_bool)
+instance by(intro_classes)(simp_all add: card_UNIV_bool_def finite_UNIV_bool_def)
 end
 
 instantiation nibble :: card_UNIV begin
+definition "finite_UNIV = Phantom(nibble) True"
 definition "card_UNIV = Phantom(nibble) 16"
-instance by(intro_classes)(simp add: card_UNIV_nibble_def card_nibble)
+instance by(intro_classes)(simp_all add: card_UNIV_nibble_def card_nibble finite_UNIV_nibble_def)
 end
 
 instantiation char :: card_UNIV begin
+definition "finite_UNIV = Phantom(char) True"
 definition "card_UNIV = Phantom(char) 256"
-instance by intro_classes (simp add: card_UNIV_char_def card_UNIV_char)
+instance by intro_classes (simp_all add: card_UNIV_char_def card_UNIV_char finite_UNIV_char_def)
+end
+
+instantiation prod :: (finite_UNIV, finite_UNIV) finite_UNIV begin
+definition "finite_UNIV = Phantom('a \<times> 'b) 
+  (of_phantom (finite_UNIV :: 'a finite_UNIV) \<and> of_phantom (finite_UNIV :: 'b finite_UNIV))"
+instance by intro_classes (simp add: finite_UNIV_prod_def finite_UNIV finite_prod)
 end
 
 instantiation prod :: (card_UNIV, card_UNIV) card_UNIV begin
-definition "card_UNIV = 
-  Phantom('a \<times> 'b) (of_phantom (card_UNIV :: 'a card_UNIV) * of_phantom (card_UNIV :: 'b card_UNIV))"
+definition "card_UNIV = Phantom('a \<times> 'b) 
+  (of_phantom (card_UNIV :: 'a card_UNIV) * of_phantom (card_UNIV :: 'b card_UNIV))"
 instance by intro_classes (simp add: card_UNIV_prod_def card_UNIV)
+end
+
+instantiation sum :: (finite_UNIV, finite_UNIV) finite_UNIV begin
+definition "finite_UNIV = Phantom('a + 'b)
+  (of_phantom (finite_UNIV :: 'a finite_UNIV) \<and> of_phantom (finite_UNIV :: 'b finite_UNIV))"
+instance
+  by intro_classes (simp add: UNIV_Plus_UNIV[symmetric] finite_UNIV_sum_def finite_UNIV del: UNIV_Plus_UNIV)
 end
 
 instantiation sum :: (card_UNIV, card_UNIV) card_UNIV begin
@@ -253,12 +298,25 @@ definition "card_UNIV = Phantom('a + 'b)
 instance by intro_classes (auto simp add: card_UNIV_sum_def card_UNIV card_UNIV_sum)
 end
 
+instantiation "fun" :: (finite_UNIV, card_UNIV) finite_UNIV begin
+definition "finite_UNIV = Phantom('a \<Rightarrow> 'b)
+  (let cb = of_phantom (card_UNIV :: 'b card_UNIV)
+   in cb = 1 \<or> of_phantom (finite_UNIV :: 'a finite_UNIV) \<and> cb \<noteq> 0)"
+instance
+  by intro_classes (auto simp add: finite_UNIV_fun_def Let_def card_UNIV finite_UNIV finite_UNIV_fun card_gt_0_iff)
+end
+
 instantiation "fun" :: (card_UNIV, card_UNIV) card_UNIV begin
 definition "card_UNIV = Phantom('a \<Rightarrow> 'b)
   (let ca = of_phantom (card_UNIV :: 'a card_UNIV);
        cb = of_phantom (card_UNIV :: 'b card_UNIV)
    in if ca \<noteq> 0 \<and> cb \<noteq> 0 \<or> cb = 1 then cb ^ ca else 0)"
 instance by intro_classes (simp add: card_UNIV_fun_def card_UNIV Let_def card_fun)
+end
+
+instantiation option :: (finite_UNIV) finite_UNIV begin
+definition "finite_UNIV = Phantom('a option) (of_phantom (finite_UNIV :: 'a finite_UNIV))"
+instance by intro_classes (simp add: finite_UNIV_option_def finite_UNIV)
 end
 
 instantiation option :: (card_UNIV) card_UNIV begin
@@ -268,8 +326,15 @@ instance by intro_classes (simp add: card_UNIV_option_def card_UNIV card_UNIV_op
 end
 
 instantiation String.literal :: card_UNIV begin
+definition "finite_UNIV = Phantom(String.literal) False"
 definition "card_UNIV = Phantom(String.literal) 0"
-instance by intro_classes (simp add: card_UNIV_literal_def card_literal)
+instance
+  by intro_classes (simp_all add: card_UNIV_literal_def finite_UNIV_literal_def infinite_literal card_literal)
+end
+
+instantiation set :: (finite_UNIV) finite_UNIV begin
+definition "finite_UNIV = Phantom('a set) (of_phantom (finite_UNIV :: 'a finite_UNIV))"
+instance by intro_classes (simp add: finite_UNIV_set_def finite_UNIV Finite_Set.finite_set)
 end
 
 instantiation set :: (card_UNIV) card_UNIV begin
@@ -277,7 +342,6 @@ definition "card_UNIV = Phantom('a set)
   (let c = of_phantom (card_UNIV :: 'a card_UNIV) in if c = 0 then 0 else 2 ^ c)"
 instance by intro_classes (simp add: card_UNIV_set_def card_UNIV_set card_UNIV)
 end
-
 
 lemma UNIV_finite_1: "UNIV = set [finite_1.a\<^isub>1]"
 by(auto intro: finite_1.exhaust)
@@ -296,28 +360,38 @@ lemma UNIV_finite_5:
 by(auto intro: finite_5.exhaust)
 
 instantiation Enum.finite_1 :: card_UNIV begin
+definition "finite_UNIV = Phantom(Enum.finite_1) True"
 definition "card_UNIV = Phantom(Enum.finite_1) 1"
-instance by intro_classes (simp add: UNIV_finite_1 card_UNIV_finite_1_def)
+instance
+  by intro_classes (simp_all add: UNIV_finite_1 card_UNIV_finite_1_def finite_UNIV_finite_1_def)
 end
 
 instantiation Enum.finite_2 :: card_UNIV begin
+definition "finite_UNIV = Phantom(Enum.finite_2) True"
 definition "card_UNIV = Phantom(Enum.finite_2) 2"
-instance by intro_classes (simp add: UNIV_finite_2 card_UNIV_finite_2_def)
+instance
+  by intro_classes (simp_all add: UNIV_finite_2 card_UNIV_finite_2_def finite_UNIV_finite_2_def)
 end
 
 instantiation Enum.finite_3 :: card_UNIV begin
+definition "finite_UNIV = Phantom(Enum.finite_3) True"
 definition "card_UNIV = Phantom(Enum.finite_3) 3"
-instance by intro_classes (simp add: UNIV_finite_3 card_UNIV_finite_3_def)
+instance
+  by intro_classes (simp_all add: UNIV_finite_3 card_UNIV_finite_3_def finite_UNIV_finite_3_def)
 end
 
 instantiation Enum.finite_4 :: card_UNIV begin
+definition "finite_UNIV = Phantom(Enum.finite_4) True"
 definition "card_UNIV = Phantom(Enum.finite_4) 4"
-instance by intro_classes (simp add: UNIV_finite_4 card_UNIV_finite_4_def)
+instance
+  by intro_classes (simp_all add: UNIV_finite_4 card_UNIV_finite_4_def finite_UNIV_finite_4_def)
 end
 
 instantiation Enum.finite_5 :: card_UNIV begin
+definition "finite_UNIV = Phantom(Enum.finite_5) True"
 definition "card_UNIV = Phantom(Enum.finite_5) 5"
-instance by intro_classes (simp add: UNIV_finite_5 card_UNIV_finite_5_def)
+instance
+  by intro_classes (simp_all add: UNIV_finite_5 card_UNIV_finite_5_def finite_UNIV_finite_5_def)
 end
 
 subsection {* Code setup for sets *}
@@ -346,8 +420,8 @@ where [simp, code del, code_abbrev]: "finite' = finite"
 
 lemma finite'_code [code]:
   "finite' (set xs) \<longleftrightarrow> True"
-  "finite' (List.coset xs) \<longleftrightarrow> CARD('a) > 0"
-by(simp_all add: card_gt_0_iff)
+  "finite' (List.coset xs) \<longleftrightarrow> of_phantom (finite_UNIV :: 'a finite_UNIV)"
+by(simp_all add: card_gt_0_iff finite_UNIV)
 
 definition subset' :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
 where [simp, code del, code_abbrev]: "subset' = op \<subseteq>"

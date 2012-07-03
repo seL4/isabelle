@@ -404,6 +404,11 @@ proof -
     by (auto simp add: finite_conv_nat_seg_image)
 qed
 
+lemma finite_prod: 
+  "finite (UNIV :: ('a \<times> 'b) set) \<longleftrightarrow> finite (UNIV :: 'a set) \<and> finite (UNIV :: 'b set)"
+by(auto simp add: UNIV_Times_UNIV[symmetric] simp del: UNIV_Times_UNIV 
+   dest: finite_cartesian_productD1 finite_cartesian_productD2)
+
 lemma finite_Pow_iff [iff]:
   "finite (Pow A) \<longleftrightarrow> finite A"
 proof
@@ -419,6 +424,9 @@ qed
 corollary finite_Collect_subsets [simp, intro]:
   "finite A \<Longrightarrow> finite {B. B \<subseteq> A}"
   by (simp add: Pow_def [symmetric])
+
+lemma finite_set: "finite (UNIV :: 'a set set) \<longleftrightarrow> finite (UNIV :: 'a set)"
+by(simp only: finite_Pow_iff Pow_UNIV[symmetric])
 
 lemma finite_UnionD: "finite(\<Union>A) \<Longrightarrow> finite A"
   by (blast intro: finite_subset [OF subset_Pow_Union])
