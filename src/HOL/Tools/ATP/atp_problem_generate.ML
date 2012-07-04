@@ -18,16 +18,17 @@ sig
   datatype mode = Metis | Sledgehammer | Sledgehammer_Completish | Exporter
 
   datatype scope = Global | Local | Assum | Chained
-  datatype status =
-    General | Induction | Intro | Inductive | Elim | Simp | Def
+  datatype status = General | Induction | Intro | Inductive | Elim | Simp | Def
   type stature = scope * status
 
   datatype strictness = Strict | Non_Strict
-  datatype granularity = All_Vars | Positively_Naked_Vars | Undercover_Vars
+  datatype uniformity = Uniform | Non_Uniform
+  datatype constr_optim = With_Constr_Optim | Without_Constr_Optim
   datatype type_level =
     All_Types |
-    Nonmono_Types of strictness * granularity |
-    Const_Types of bool |
+    Nonmono_Types of strictness * uniformity |
+    Undercover_Types |
+    Const_Types of constr_optim |
     No_Types
   type type_enc
 
@@ -132,11 +133,13 @@ datatype polymorphism =
   Raw_Monomorphic |
   Mangled_Monomorphic
 datatype strictness = Strict | Non_Strict
-datatype granularity = All_Vars | Positively_Naked_Vars | Undercover_Vars
+datatype uniformity = Uniform | Non_Uniform
+datatype constr_optim = With_Constr_Optim | Without_Constr_Optim
 datatype type_level =
   All_Types |
-  Nonmono_Types of strictness * granularity |
-  Const_Types of bool |
+  Nonmono_Types of strictness * uniformity |
+  Undercover_Types |
+  Const_Types of constr_optim |
   No_Types
 
 datatype type_enc =
@@ -163,12 +166,13 @@ fun level_of_type_enc (Native (_, _, level)) = level
   | level_of_type_enc (Guards (_, level)) = level
   | level_of_type_enc (Tags (_, level)) = level
 
-fun granularity_of_type_level (Nonmono_Types (_, grain)) = grain
-  | granularity_of_type_level _ = All_Vars
+fun is_type_level_uniform (Nonmono_Types (_, Non_Uniform)) = false
+  | is_type_level_uniform Undercover_Types = false
+  | is_type_level_uniform _ = true
 
-fun is_type_level_sound All_Types = true
-  | is_type_level_sound (Nonmono_Types _) = true
-  | is_type_level_sound _ = false
+fun is_type_level_sound (Const_Types _) = false
+  | is_type_level_sound No_Types = false
+  | is_type_level_sound _ = true
 val is_type_enc_sound = is_type_level_sound o level_of_type_enc
 
 fun is_type_level_monotonicity_based (Nonmono_Types _) = true
@@ -608,18 +612,18 @@ fun type_enc_from_string strictness s =
           case try_unsuffixes queries s of
           SOME s =>
           (case try_unsuffixes queries s of
-             SOME s => (Nonmono_Types (strictness, Positively_Naked_Vars), s)
-           | NONE => (Nonmono_Types (strictness, All_Vars), s))
+             SOME s => (Nonmono_Types (strictness, Non_Uniform), s)
+           | NONE => (Nonmono_Types (strictness, Uniform), s))
          | NONE =>
            (case try_unsuffixes ats s of
-              SOME s => (Nonmono_Types (strictness, Undercover_Vars), s)
+              SOME s => (Undercover_Types, s)
             | NONE => (All_Types, s)))
   |> (fn (poly, (level, core)) =>
          case (core, (poly, level)) of
            ("native", (SOME poly, _)) =>
            (case (poly, level) of
               (Mangled_Monomorphic, _) =>
-              if granularity_of_type_level level = All_Vars then
+              if is_type_level_uniform level then
                 Native (First_Order, Mangled_Monomorphic, level)
               else
                 raise Same.SAME
@@ -628,8 +632,9 @@ fun type_enc_from_string strictness s =
          | ("native_higher", (SOME poly, _)) =>
            (case (poly, level) of
               (_, Nonmono_Types _) => raise Same.SAME
+            | (_, Undercover_Types) => raise Same.SAME
             | (Mangled_Monomorphic, _) =>
-              if granularity_of_type_level level = All_Vars then
+              if is_type_level_uniform level then
                 Native (Higher_Order THF_With_Choice, Mangled_Monomorphic,
                         level)
               else
@@ -639,27 +644,27 @@ fun type_enc_from_string strictness s =
             | _ => raise Same.SAME)
          | ("guards", (SOME poly, _)) =>
            if (poly = Mangled_Monomorphic andalso
-               granularity_of_type_level level = Undercover_Vars) orelse
+               level = Undercover_Types) orelse
               poly = Type_Class_Polymorphic then
              raise Same.SAME
            else
              Guards (poly, level)
          | ("tags", (SOME poly, _)) =>
            if (poly = Mangled_Monomorphic andalso
-               granularity_of_type_level level = Undercover_Vars) orelse
+               level = Undercover_Types) orelse
               poly = Type_Class_Polymorphic then
              raise Same.SAME
            else
              Tags (poly, level)
          | ("args", (SOME poly, All_Types (* naja *))) =>
            if poly = Type_Class_Polymorphic then raise Same.SAME
-           else Guards (poly, Const_Types false)
-         | ("args", (SOME poly, Nonmono_Types (_, All_Vars) (* naja *))) =>
+           else Guards (poly, Const_Types Without_Constr_Optim)
+         | ("args", (SOME poly, Nonmono_Types (_, Uniform) (* naja *))) =>
            if poly = Mangled_Monomorphic orelse
               poly = Type_Class_Polymorphic then
              raise Same.SAME
            else
-             Guards (poly, Const_Types true)
+             Guards (poly, Const_Types With_Constr_Optim)
          | ("erased", (NONE, All_Types (* naja *))) =>
            Guards (Raw_Polymorphic With_Phantom_Type_Vars, No_Types)
          | _ => raise Same.SAME)
@@ -853,11 +858,12 @@ fun type_arg_policy constrs type_enc s =
           Mangled_Type_Args
         else if level = All_Types then
           Not_Input_Type_Args
-        else if granularity_of_type_level level = Undercover_Vars then
+        else if level = Undercover_Types then
           case type_enc of
             Tags _ => Only_In_Or_Output_Type_Args
           | _ => Not_Input_Type_Args
-        else if member (op =) constrs s andalso level <> Const_Types false then
+        else if member (op =) constrs s andalso
+                level <> Const_Types Without_Constr_Optim then
           Constr_Input_Type_Args
         else
           All_Type_Args
@@ -1388,15 +1394,15 @@ fun is_type_kind_of_surely_infinite ctxt strictness cached_Ts T =
 fun should_encode_type _ (_ : monotonicity_info) All_Types _ = true
   | should_encode_type ctxt {maybe_finite_Ts, surely_infinite_Ts,
                              maybe_nonmono_Ts, ...}
-                       (Nonmono_Types (strictness, grain)) T =
+                       (Nonmono_Types (strictness, _)) T =
     let val thy = Proof_Context.theory_of ctxt in
-      grain = Undercover_Vars orelse
       (exists (type_intersect thy T) maybe_nonmono_Ts andalso
        not (exists (type_instance thy T) surely_infinite_Ts orelse
             (not (member (type_equiv thy) maybe_finite_Ts T) andalso
              is_type_kind_of_surely_infinite ctxt strictness surely_infinite_Ts
                                              T)))
     end
+  | should_encode_type _ _ Undercover_Types _ = true
   | should_encode_type _ _ _ _ = false
 
 fun should_guard_type ctxt mono (Guards (_, level)) should_guard_var T =
@@ -1418,15 +1424,17 @@ datatype site =
 fun should_tag_with_type _ _ _ (Top_Level _) _ _ = false
   | should_tag_with_type ctxt mono (Tags (_, level)) site u T =
     let val thy = Proof_Context.theory_of ctxt in
-      case granularity_of_type_level level of
-        All_Vars => should_encode_type ctxt mono level T
-      | grain =>
+      case level of
+        Nonmono_Types (_, Non_Uniform) =>
         (case (site, is_maybe_universal_var u) of
            (Eq_Arg _, true) => should_encode_type ctxt mono level T
-         | (Arg (s, j, ary), true) =>
-           grain = Undercover_Vars andalso
-           member (op =) (type_arg_cover thy s ary) j
          | _ => false)
+      | Undercover_Types =>
+        (case (site, is_maybe_universal_var u) of
+           (Eq_Arg _, true) => true
+         | (Arg (s, j, ary), true) => member (op =) (type_arg_cover thy s ary) j
+         | _ => false)
+      | _ => should_encode_type ctxt mono level T
     end
   | should_tag_with_type _ _ _ _ _ _ = false
 
@@ -1999,20 +2007,22 @@ fun is_var_positively_naked_or_undercover_in_term thy name pos tm accum =
   in is_undercover tm end
 
 fun should_guard_var_in_formula thy level pos phi (SOME true) name =
-    (case granularity_of_type_level level of
-       All_Vars => true
-     | Positively_Naked_Vars =>
+    (case level of
+       All_Types => true
+     | Nonmono_Types (_, Uniform) => true
+     | Nonmono_Types (_, Non_Uniform) =>
        formula_fold pos (is_var_positively_naked_in_term name) phi false
-     | Undercover_Vars =>
+     | Undercover_Types =>
        formula_fold pos (is_var_positively_naked_or_undercover_in_term thy name)
-                    phi false)
+                    phi false
+     | _ => false)
   | should_guard_var_in_formula _ _ _ _ _ _ = true
 
 fun always_guard_var_in_formula _ _ _ _ _ _ = true
 
 fun should_generate_tag_bound_decl _ _ _ (SOME true) _ = false
   | should_generate_tag_bound_decl ctxt mono (Tags (_, level)) _ T =
-    granularity_of_type_level level <> All_Vars andalso
+    not (is_type_level_uniform level) andalso
     should_encode_type ctxt mono level T
   | should_generate_tag_bound_decl _ _ _ _ _ = false
 
@@ -2336,8 +2346,7 @@ fun add_fact_monotonic_types ctxt mono type_enc =
 fun monotonic_types_for_facts ctxt mono type_enc facts =
   let val level = level_of_type_enc type_enc in
     [] |> (is_type_enc_polymorphic type_enc andalso
-           is_type_level_monotonicity_based level andalso
-           granularity_of_type_level level <> Undercover_Vars)
+           is_type_level_monotonicity_based level)
           ? fold (add_fact_monotonic_types ctxt mono type_enc) facts
   end
 
@@ -2432,8 +2441,7 @@ fun lines_for_tags_sym_decl ctxt mono type_enc n s
   let
     val thy = Proof_Context.theory_of ctxt
     val level = level_of_type_enc type_enc
-    val grain = granularity_of_type_level level
-    val ident_base =
+    val ident =
       tags_sym_formula_prefix ^ s ^
       (if n > 1 then "_" ^ string_of_int j else "")
     val (role, maybe_negate) = honor_conj_sym_role in_conj
@@ -2448,7 +2456,7 @@ fun lines_for_tags_sym_decl ctxt mono type_enc n s
       if should_encode res_T then
         let
           val tagged_bounds =
-            if grain = Undercover_Vars then
+            if level = Undercover_Types then
               let val cover = type_arg_cover thy s ary in
                 map2 (fn (j, arg_T) => member (op =) cover j ? tag_with arg_T)
                      (0 upto ary - 1 ~~ arg_Ts) bounds
@@ -2456,7 +2464,7 @@ fun lines_for_tags_sym_decl ctxt mono type_enc n s
             else
               bounds
         in
-          cons (Formula (ident_base ^ "_res", role,
+          cons (Formula (ident, role,
                          eq (tag_with res_T (cst bounds)) (cst tagged_bounds),
                          NONE, isabelle_info defN helper_rank))
         end
@@ -2494,7 +2502,7 @@ fun lines_for_sym_decls ctxt mono type_enc (s, decls) =
       |-> map2 (line_for_guards_sym_decl ctxt mono type_enc n s)
     end
   | Tags (_, level) =>
-    if granularity_of_type_level level = All_Vars then
+    if is_type_level_uniform level then
       []
     else
       let val n = length decls in
