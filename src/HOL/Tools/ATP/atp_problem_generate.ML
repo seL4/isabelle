@@ -1352,9 +1352,9 @@ fun tvar_footprint thy s ary =
    | NONE => [])
   handle TYPE _ => []
 
-fun type_arg_cover thy s ary =
+fun type_arg_cover thy pos s ary =
   if is_tptp_equal s then
-    0 upto ary - 1
+    if pos = SOME false then [] else 0 upto ary - 1
   else
     let
       val footprint = tvar_footprint thy s ary
@@ -1431,8 +1431,9 @@ fun should_tag_with_type _ _ _ (Top_Level _) _ _ = false
          | _ => false)
       | Undercover_Types =>
         (case (site, is_maybe_universal_var u) of
-           (Eq_Arg _, true) => true
-         | (Arg (s, j, ary), true) => member (op =) (type_arg_cover thy s ary) j
+           (Eq_Arg pos, true) => pos <> SOME false
+         | (Arg (s, j, ary), true) =>
+           member (op =) (type_arg_cover thy NONE s ary) j
          | _ => false)
       | _ => should_encode_type ctxt mono level T
     end
@@ -1989,15 +1990,15 @@ fun is_var_positively_naked_in_term _ (SOME false) _ accum = accum
     (is_tptp_equal s andalso member (op =) tms (ATerm ((name, []), [])))
   | is_var_positively_naked_in_term _ _ _ _ = true
 
-fun is_var_positively_naked_or_undercover_in_term thy name pos tm accum =
-  is_var_positively_naked_in_term name pos tm accum orelse
+fun is_var_undercover_in_term thy name pos tm accum =
+  accum orelse
   let
     val var = ATerm ((name, []), [])
     fun is_undercover (ATerm (_, [])) = false
       | is_undercover (ATerm (((s, _), _), tms)) =
         let
           val ary = length tms
-          val cover = type_arg_cover thy s ary
+          val cover = type_arg_cover thy pos s ary
         in
           exists (fn (j, tm) => tm = var andalso member (op =) cover j)
                  (0 upto ary - 1 ~~ tms) orelse
@@ -2013,8 +2014,7 @@ fun should_guard_var_in_formula thy level pos phi (SOME true) name =
      | Nonmono_Types (_, Non_Uniform) =>
        formula_fold pos (is_var_positively_naked_in_term name) phi false
      | Undercover_Types =>
-       formula_fold pos (is_var_positively_naked_or_undercover_in_term thy name)
-                    phi false
+       formula_fold pos (is_var_undercover_in_term thy name) phi false
      | _ => false)
   | should_guard_var_in_formula _ _ _ _ _ _ = true
 
@@ -2420,7 +2420,7 @@ fun line_for_guards_sym_decl ctxt mono type_enc n s j
       bound_names ~~ arg_Ts |> map (fn (name, T) => IConst (name, T, []))
     val bound_Ts =
       if exists (curry (op =) dummyT) T_args then
-        let val cover = type_arg_cover thy s ary in
+        let val cover = type_arg_cover thy NONE s ary in
           map2 (fn j => if member (op =) cover j then SOME else K NONE)
                (0 upto ary - 1) arg_Ts
         end
@@ -2462,7 +2462,7 @@ fun lines_for_tags_sym_decl ctxt mono type_enc n s
         let
           val tagged_bounds =
             if level = Undercover_Types then
-              let val cover = type_arg_cover thy s ary in
+              let val cover = type_arg_cover thy NONE s ary in
                 map2 (fn (j, arg_T) => member (op =) cover j ? tag_with arg_T)
                      (0 upto ary - 1 ~~ arg_Ts) bounds
               end
