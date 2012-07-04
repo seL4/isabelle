@@ -2184,19 +2184,24 @@ fun line_for_conjecture ctxt mono type_enc
            |> bound_tvars type_enc true atomic_types, NONE, [])
 
 fun lines_for_free_types type_enc (facts : ifact list) =
-  let
-    fun line j (cl, T) =
-      if polymorphism_of_type_enc type_enc = Type_Class_Polymorphic then
-        Class_Memb (class_memb_prefix ^ string_of_int j, [],
-                    native_ho_type_from_typ type_enc false 0 T,
-                    `make_class cl)
-      else
-        Formula (tfree_clause_prefix ^ string_of_int j, Hypothesis,
-                 class_atom type_enc (cl, T), NONE, [])
-    val membs =
-      fold (union (op =)) (map #atomic_types facts) []
-      |> class_membs_for_types type_enc add_sorts_on_tfree
-  in map2 line (0 upto length membs - 1) membs end
+  if is_type_enc_polymorphic type_enc then
+    let
+      val type_classes =
+        (polymorphism_of_type_enc type_enc = Type_Class_Polymorphic)
+      fun line j (cl, T) =
+        if type_classes then
+          Class_Memb (class_memb_prefix ^ string_of_int j, [],
+                      native_ho_type_from_typ type_enc false 0 T,
+                      `make_class cl)
+        else
+          Formula (tfree_clause_prefix ^ string_of_int j, Hypothesis,
+                   class_atom type_enc (cl, T), NONE, [])
+      val membs =
+        fold (union (op =)) (map #atomic_types facts) []
+        |> class_membs_for_types type_enc add_sorts_on_tfree
+    in map2 line (0 upto length membs - 1) membs end
+  else
+    []
 
 (** Symbol declarations **)
 
