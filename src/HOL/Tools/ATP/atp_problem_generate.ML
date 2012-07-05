@@ -835,38 +835,56 @@ fun insert_type thy get_T x xs =
     else x :: filter_out (type_generalization thy T o get_T) xs
   end
 
-(* The Booleans indicate whether all type arguments should be kept. *)
-datatype type_arg_policy =
-  All_Type_Args |
-  Noninfer_Type_Args |
-  Constr_Infer_Type_Args |
-  No_Type_Args
+fun chop_fun 0 T = ([], T)
+  | chop_fun n (Type (@{type_name fun}, [dom_T, ran_T])) =
+    chop_fun (n - 1) ran_T |>> cons dom_T
+  | chop_fun _ T = ([], T)
 
-fun type_arg_policy constrs type_enc s =
+fun filter_type_args thy constrs type_enc s ary T_args =
   let val poly = polymorphism_of_type_enc type_enc in
     if s = type_tag_name then (* ### FIXME: why not "type_guard_name" as well? *)
-      All_Type_Args
+      T_args
     else case type_enc of
-      Native (_, Raw_Polymorphic _, _) => All_Type_Args
-    | Native (_, Type_Class_Polymorphic, _) => All_Type_Args
+      Native (_, Raw_Polymorphic _, _) => T_args
+    | Native (_, Type_Class_Polymorphic, _) => T_args
     | _ =>
-      let val level = level_of_type_enc type_enc in
+      let
+        fun gen_type_args _ _ [] = []
+          | gen_type_args keep strip_ty T_args =
+            let
+              val U = robust_const_type thy s
+              val (binder_Us, body_U) = strip_ty U
+              val in_U_vars = fold Term.add_tvarsT binder_Us []
+              val out_U_vars = Term.add_tvarsT body_U []
+              fun filt (U_var, T) =
+                if keep (member (op =) in_U_vars U_var,
+                         member (op =) out_U_vars U_var) then
+                  T
+                else
+                  dummyT
+              val U_args = (s, U) |> robust_const_typargs thy
+            in map (filt o apfst dest_TVar) (U_args ~~ T_args) end
+            handle TYPE _ => T_args
+        val noninfer_type_args = gen_type_args (not o fst) (chop_fun ary)
+        val constr_infer_type_args = gen_type_args fst strip_type
+        val level = level_of_type_enc type_enc
+      in
         if level = No_Types orelse s = @{const_name HOL.eq} orelse
            (case level of Const_Types _ => s = app_op_name | _ => false) then
-          No_Type_Args
+          []
         else if poly = Mangled_Monomorphic then
-          All_Type_Args
+          T_args
         else if level = All_Types then
           case type_enc of
-            Guards _ => Noninfer_Type_Args
-          | Tags _ => No_Type_Args
+            Guards _ => noninfer_type_args T_args
+          | Tags _ => []
         else if level = Undercover_Types then
-          Noninfer_Type_Args
+          noninfer_type_args T_args
         else if member (op =) constrs s andalso
                 level <> Const_Types Without_Constr_Optim then
-          Constr_Infer_Type_Args
+          constr_infer_type_args T_args
         else
-          All_Type_Args
+          T_args
       end
   end
 
@@ -1143,28 +1161,6 @@ fun mangle_type_args_in_iterm type_enc =
   else
     I
 
-fun chop_fun 0 T = ([], T)
-  | chop_fun n (Type (@{type_name fun}, [dom_T, ran_T])) =
-    chop_fun (n - 1) ran_T |>> cons dom_T
-  | chop_fun _ T = ([], T)
-
-fun filter_type_args _ _ _ _ [] = []
-  | filter_type_args keep thy s strip_ty T_args =
-    let
-      val U = robust_const_type thy s
-      val (binder_Us, body_U) = strip_ty U
-      val in_U_vars = fold Term.add_tvarsT binder_Us []
-      val out_U_vars = Term.add_tvarsT body_U []
-      fun filt (U_var, T) =
-        if keep (member (op =) in_U_vars U_var,
-                 member (op =) out_U_vars U_var) then
-          T
-        else
-          dummyT
-      val U_args = (s, U) |> robust_const_typargs thy
-    in map (filt o apfst dest_TVar) (U_args ~~ T_args) end
-    handle TYPE _ => T_args
-
 fun filter_type_args_in_const _ _ _ _ _ [] = []
   | filter_type_args_in_const thy constrs type_enc ary s T_args =
     case unprefix_and_unascii const_prefix s of
@@ -1172,15 +1168,7 @@ fun filter_type_args_in_const _ _ _ _ _ [] = []
       if level_of_type_enc type_enc = No_Types orelse s = tptp_choice then []
       else T_args
     | SOME s'' =>
-      let val s'' = invert_const s'' in
-        case type_arg_policy constrs type_enc s'' of
-          All_Type_Args => T_args
-        | Noninfer_Type_Args =>
-          filter_type_args (not o fst) thy s'' (chop_fun ary) T_args
-        | Constr_Infer_Type_Args =>
-          filter_type_args fst thy s'' strip_type T_args
-        | No_Type_Args => []
-      end
+      filter_type_args thy constrs type_enc (invert_const s'') ary T_args
 fun filter_type_args_in_iterm thy constrs type_enc =
   let
     fun filt ary (IApp (tm1, tm2)) = IApp (filt (ary + 1) tm1, filt 0 tm2)
