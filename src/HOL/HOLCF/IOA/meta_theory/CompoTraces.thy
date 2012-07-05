@@ -64,7 +64,10 @@ par_traces_def:
 axiomatization where
 
 finiteR_mksch:
-  "Finite (mksch A B$tr$x$y) --> Finite tr"
+  "Finite (mksch A B$tr$x$y) \<Longrightarrow> Finite tr"
+
+lemma finiteR_mksch': "\<not> Finite tr \<Longrightarrow> \<not> Finite (mksch A B$tr$x$y)"
+  by (blast intro: finiteR_mksch)
 
 
 declaration {* fn _ => Simplifier.map_ss (Simplifier.set_mksym (K (K NONE))) *}
@@ -507,7 +510,7 @@ apply fast
 apply (subgoal_tac "schA=UU")
 apply (simp (no_asm_simp))
 (* first side: mksch = UU *)
-apply (auto intro!: ForallQFilterPUU finiteR_mksch [THEN mp, COMP rev_contrapos] ForallBnAmksch)[1]
+apply (auto intro!: ForallQFilterPUU finiteR_mksch' ForallBnAmksch)[1]
 (* schA = UU *)
 apply (erule_tac A = "A" in LastActExtimplUU)
 apply (simp (no_asm_simp))
@@ -726,7 +729,7 @@ apply fast
 apply (subgoal_tac "schB=UU")
 apply (simp (no_asm_simp))
 (* first side: mksch = UU *)
-apply (force intro!: ForallQFilterPUU finiteR_mksch [THEN mp, COMP rev_contrapos] ForallAnBmksch)
+apply (force intro!: ForallQFilterPUU finiteR_mksch' ForallAnBmksch)
 (* schA = UU *)
 apply (erule_tac A = "B" in LastActExtimplUU)
 apply (simp (no_asm_simp))

@@ -651,7 +651,7 @@ lemmas ForallnPFilterPUU = ForallnPFilterPUU1 [THEN mp, OF conjI]
 
 (* inverse of ForallnPFilterPnil *)
 
-lemma FilternPnilForallP1: "!! ys . Filter P$ys = nil -->
+lemma FilternPnilForallP [rule_format]: "Filter P$ys = nil -->
    (Forall (%x. ~P x) ys & Finite ys)"
 apply (rule_tac x="ys" in Seq_induct)
 (* adm *)
@@ -663,27 +663,32 @@ apply simp
 apply simp
 done
 
-lemmas FilternPnilForallP = FilternPnilForallP1 [THEN mp]
 
-(* inverse of ForallnPFilterPUU. proved apply 2 lemmas because of adm problems *)
-
-lemma FilterUU_nFinite_lemma1: "Finite ys ==> Filter P$ys ~= UU"
-apply (erule Seq_Finite_ind, simp_all)
-done
-
-lemma FilterUU_nFinite_lemma2: "~ Forall (%x. ~P x) ys --> Filter P$ys ~= UU"
-apply (rule_tac x="ys" in Seq_induct)
-apply (simp add: Forall_def sforall_def)
-apply simp_all
-done
+(* inverse of ForallnPFilterPUU *)
 
 lemma FilternPUUForallP:
-  "Filter P$ys = UU ==> (Forall (%x. ~P x) ys  & ~Finite ys)"
-apply (rule conjI)
-apply (cut_tac FilterUU_nFinite_lemma2 [THEN mp, COMP rev_contrapos])
-apply auto
-apply (blast dest!: FilterUU_nFinite_lemma1)
-done
+  assumes "Filter P$ys = UU"
+  shows "Forall (%x. ~P x) ys  & ~Finite ys"
+proof
+  show "Forall (%x. ~P x) ys"
+  proof (rule classical)
+    assume "\<not> ?thesis"
+    then have "Filter P$ys ~= UU"
+      apply (rule rev_mp)
+      apply (induct ys rule: Seq_induct)
+      apply (simp add: Forall_def sforall_def)
+      apply simp_all
+      done
+    with assms show ?thesis by contradiction
+  qed
+  show "~ Finite ys"
+  proof
+    assume "Finite ys"
+    then have "Filter P$ys ~= UU"
+      by (rule Seq_Finite_ind) simp_all
+    with assms show False by contradiction
+  qed
+qed
 
 
 lemma ForallQFilterPnil:
