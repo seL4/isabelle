@@ -25,7 +25,7 @@ object Main
       Library.dialog(null, "Isabelle", "Isabelle output",
         Library.scrollable_text(out + "\nReturn code: " + rc))
 
-    System.exit(rc)
+    sys.exit(rc)
   }
 }
 

@@ -2344,7 +2344,10 @@ lemma leao:
   fixes x' :: "'a::len0 word"
   shows "(w' = (x' AND y')) \<Longrightarrow> (x' = (x' OR w'))" by auto 
 
-lemmas word_ao_equiv = leao [COMP leoa [COMP iffI]]
+lemma word_ao_equiv:
+  fixes w w' :: "'a::len0 word"
+  shows "(w = w OR w') = (w' = w AND w')"
+  by (auto intro: leoa leao)
 
 lemma le_word_or2: "x <= x OR (y::'a::len0 word)"
   unfolding word_le_def uint_or

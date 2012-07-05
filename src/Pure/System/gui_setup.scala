@@ -62,7 +62,7 @@ object GUI_Setup extends SwingApplication
     // reactions
     listenTo(ok)
     reactions += {
-      case ButtonClicked(`ok`) => System.exit(0)
+      case ButtonClicked(`ok`) => sys.exit(0)
     }
   }
 }
