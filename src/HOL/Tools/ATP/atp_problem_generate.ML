@@ -837,7 +837,6 @@ datatype type_arg_policy =
   Mangled_Type_Args |
   All_Type_Args |
   Not_Input_Type_Args |
-  Only_In_Or_Output_Type_Args |
   Constr_Input_Type_Args |
   No_Type_Args
 
@@ -856,12 +855,8 @@ fun type_arg_policy constrs type_enc s =
           No_Type_Args
         else if poly = Mangled_Monomorphic then
           Mangled_Type_Args
-        else if level = All_Types then
+        else if level = All_Types orelse level = Undercover_Types then
           Not_Input_Type_Args
-        else if level = Undercover_Types then
-          case type_enc of
-            Tags _ => Only_In_Or_Output_Type_Args
-          | _ => Not_Input_Type_Args
         else if member (op =) constrs s andalso
                 level <> Const_Types Without_Constr_Optim then
           Constr_Input_Type_Args
@@ -1177,8 +1172,6 @@ fun filter_type_args_in_const _ _ _ _ _ [] = []
         | All_Type_Args => T_args
         | Not_Input_Type_Args =>
           filter_type_args (not o fst) thy s'' (chop_fun ary) T_args
-        | Only_In_Or_Output_Type_Args =>
-          filter_type_args (op <>) thy s'' (chop_fun ary) T_args
         | Constr_Input_Type_Args =>
           filter_type_args fst thy s'' strip_type T_args
         | No_Type_Args => []
@@ -1344,20 +1337,27 @@ fun make_conjecture ctxt format type_enc =
 
 (** Finite and infinite type inference **)
 
-fun tvar_footprint thy s ary =
+fun tvar_footprint thy body s ary =
   (case unprefix_and_unascii const_prefix s of
      SOME s =>
-     s |> invert_const |> robust_const_type thy |> chop_fun ary |> fst
-       |> map (fn T => Term.add_tvarsT T [] |> map fst)
+     let
+       val (binder_Ts, body_T) =
+         s |> invert_const |> robust_const_type thy |> chop_fun ary
+       fun tvars_of T =
+         [] |> Term.add_tvarsT T
+            |> (fn Ts => if body then Ts
+                         else subtract (op =) (Term.add_tvarsT body_T []) Ts)
+            |> map fst
+     in binder_Ts |> map tvars_of end
    | NONE => [])
   handle TYPE _ => []
 
-fun type_arg_cover thy pos s ary =
+fun type_arg_cover thy pos body s ary =
   if is_tptp_equal s then
     if pos = SOME false then [] else 0 upto ary - 1
   else
     let
-      val footprint = tvar_footprint thy s ary
+      val footprint = tvar_footprint thy body s ary
       val eq = (s = @{const_name HOL.eq})
       fun cover _ [] = []
         | cover seen ((i, tvars) :: args) =
@@ -1433,7 +1433,7 @@ fun should_tag_with_type _ _ _ (Top_Level _) _ _ = false
         (case (site, is_maybe_universal_var u) of
            (Eq_Arg pos, true) => pos <> SOME false
          | (Arg (s, j, ary), true) =>
-           member (op =) (type_arg_cover thy NONE s ary) j
+           member (op =) (type_arg_cover thy NONE true s ary) j
          | _ => false)
       | _ => should_encode_type ctxt mono level T
     end
@@ -1998,7 +1998,7 @@ fun is_var_undercover_in_term thy name pos tm accum =
       | is_undercover (ATerm (((s, _), _), tms)) =
         let
           val ary = length tms
-          val cover = type_arg_cover thy pos s ary
+          val cover = type_arg_cover thy pos true s ary
         in
           exists (fn (j, tm) => tm = var andalso member (op =) cover j)
                  (0 upto ary - 1 ~~ tms) orelse
@@ -2420,7 +2420,7 @@ fun line_for_guards_sym_decl ctxt mono type_enc n s j
       bound_names ~~ arg_Ts |> map (fn (name, T) => IConst (name, T, []))
     val bound_Ts =
       if exists (curry (op =) dummyT) T_args then
-        let val cover = type_arg_cover thy NONE s ary in
+        let val cover = type_arg_cover thy NONE true s ary in
           map2 (fn j => if member (op =) cover j then SOME else K NONE)
                (0 upto ary - 1) arg_Ts
         end
@@ -2460,17 +2460,20 @@ fun lines_for_tags_sym_decl ctxt mono type_enc n s
     val add_formula_for_res =
       if should_encode res_T then
         let
-          val tagged_bounds =
+          val (lhs, rhs) =
             if level = Undercover_Types then
-              let val cover = type_arg_cover thy NONE s ary in
-                map2 (fn (j, arg_T) => member (op =) cover j ? tag_with arg_T)
-                     (0 upto ary - 1 ~~ arg_Ts) bounds
-              end
+              let
+                val lhs_cover = type_arg_cover thy NONE false s ary
+                val rhs_cover = type_arg_cover thy NONE true s ary
+                fun maybe_tag cover (j, arg_T) =
+                  member (op =) cover j ? tag_with arg_T
+                fun covered_bounds cover =
+                  map2 (maybe_tag cover) (0 upto ary - 1 ~~ arg_Ts) bounds
+              in (lhs_cover, rhs_cover) |> pairself (covered_bounds #> cst) end
             else
-              bounds
+              `I (cst bounds)
         in
-          cons (Formula (ident, role,
-                         eq (tag_with res_T (cst bounds)) (cst tagged_bounds),
+          cons (Formula (ident, role, eq (tag_with res_T lhs) rhs,
                          NONE, isabelle_info defN helper_rank))
         end
       else
