@@ -404,14 +404,6 @@ lemma not_sym: "t ~= s ==> s ~= t"
 lemma eq_neq_eq_imp_neq: "[| x = a ; a ~= b; b = y |] ==> x ~= y"
   by (erule subst, erule ssubst, assumption)
 
-(*still used in HOLCF*)
-lemma rev_contrapos:
-  assumes pq: "P ==> Q"
-      and nq: "~Q"
-  shows "~P"
-apply (rule nq [THEN contrapos_nn])
-apply (erule pq)
-done
 
 subsubsection {*Existential quantifier*}
 
