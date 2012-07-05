@@ -220,6 +220,6 @@ ISABELLE_SYMBOLS="$ISABELLE_HOME/etc/symbols:$ISABELLE_HOME_USER/etc/symbols"
 #GLPK_PATH=glpsol
 
 # Misc programming languages
-#ISABELLE_GHC="/usr/local/ghc/$ISABELLE_PLATFORM/ghc"
-#ISABELLE_OCAML="/usr/local/ocaml/$ISABELLE_PLATFORM/ocaml"
-#ISABELLE_SWIPL="/usr/local/swipl/$ISABELLE_PLATFORM/swipl"
+#ISABELLE_GHC="/usr/bin/ghc"
+#ISABELLE_OCAML="/usr/bin/ocaml"
+#ISABELLE_SWIPL="/usr/bin/swipl"
