@@ -313,7 +313,7 @@ def Distribution(env, case, paths, dep_paths, playground):
     """Build of distribution"""
     ## FIXME This is rudimentary; study Admin/CHECKLIST to complete this configuration accordingly
     isabelle_home = paths[0]
-    (return_code, log) = env.run_process(path.join(isabelle_home, 'Admin', 'makedist'),
+    (return_code, log) = env.run_process(path.join(isabelle_home, 'Admin', 'Release', 'makedist'),
       REPOS = repositories.get(Isabelle).local_path, DISTPREFIX = os.getcwd())
     return (return_code == 0, '', ## FIXME might add summary here
       {}, {'log': log}, None) ## FIXME might add proper result here

@@ -17,7 +17,7 @@ Checklist for official releases
 
 - check ANNOUNCE, README, NEWS, COPYRIGHT, CONTRIBUTORS;
 
-- check Admin/contributed_components;
+- check Admin/components;
 
 - check funny base directory, e.g. "Test 中国";
 
