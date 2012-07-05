@@ -20,7 +20,7 @@ imports
   Fraction_Field
   FrechetDeriv
   FuncSet
-  Function_Algebras
+  Function_Division
   Fundamental_Theorem_Algebra
   Indicator_Function
   Infinite_Set

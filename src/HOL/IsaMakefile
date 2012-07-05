@@ -458,7 +458,8 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Library/FinFun.thy Library/FinFun_Syntax.thy Library/Float.thy	\
   Library/Formal_Power_Series.thy Library/Fraction_Field.thy		\
   Library/FrechetDeriv.thy Library/FuncSet.thy				\
-  Library/Function_Algebras.thy Library/Fundamental_Theorem_Algebra.thy	\
+  Library/Function_Algebras.thy Library/Function_Division.thy		\
+  Library/Fundamental_Theorem_Algebra.thy				\
   Library/Glbs.thy Library/Indicator_Function.thy			\
   Library/Infinite_Set.thy Library/Inner_Product.thy			\
   Library/Kleene_Algebra.thy Library/LaTeXsugar.thy			\
