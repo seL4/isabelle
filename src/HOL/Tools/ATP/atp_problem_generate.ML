@@ -162,6 +162,9 @@ fun is_type_enc_polymorphic type_enc =
   | Type_Class_Polymorphic => true
   | _ => false
 
+fun is_type_enc_mangling type_enc =
+  polymorphism_of_type_enc type_enc = Mangled_Monomorphic
+
 fun level_of_type_enc (Native (_, _, level)) = level
   | level_of_type_enc (Guards (_, level)) = level
   | level_of_type_enc (Tags (_, level)) = level
@@ -834,7 +837,6 @@ fun insert_type thy get_T x xs =
 
 (* The Booleans indicate whether all type arguments should be kept. *)
 datatype type_arg_policy =
-  Mangled_Type_Args | (* ### TODO: get rid of this *)
   All_Type_Args |
   Noninfer_Type_Args |
   Constr_Infer_Type_Args |
@@ -842,8 +844,8 @@ datatype type_arg_policy =
 
 fun type_arg_policy constrs type_enc s =
   let val poly = polymorphism_of_type_enc type_enc in
-    if s = type_tag_name then
-      if poly = Mangled_Monomorphic then Mangled_Type_Args else All_Type_Args
+    if s = type_tag_name then (* ### FIXME: why not "type_guard_name" as well? *)
+      All_Type_Args
     else case type_enc of
       Native (_, Raw_Polymorphic _, _) => All_Type_Args
     | Native (_, Type_Class_Polymorphic, _) => All_Type_Args
@@ -853,7 +855,7 @@ fun type_arg_policy constrs type_enc s =
            (case level of Const_Types _ => s = app_op_name | _ => false) then
           No_Type_Args
         else if poly = Mangled_Monomorphic then
-          Mangled_Type_Args
+          All_Type_Args
         else if level = All_Types then
           case type_enc of
             Guards _ => Noninfer_Type_Args
@@ -1123,11 +1125,12 @@ fun mangle_type_args_in_const type_enc (name as (s, _)) T_args =
   case unprefix_and_unascii const_prefix s of
     NONE => (name, T_args)
   | SOME s'' =>
-    case type_arg_policy [] type_enc (invert_const s'') of
-      Mangled_Type_Args => (mangled_const_name type_enc T_args name, [])
-    | _ => (name, T_args)
+    if is_type_enc_mangling type_enc then
+      (mangled_const_name type_enc T_args name, [])
+    else
+      (name, T_args)
 fun mangle_type_args_in_iterm type_enc =
-  if polymorphism_of_type_enc type_enc = Mangled_Monomorphic then
+  if is_type_enc_mangling type_enc then
     let
       fun mangle (IApp (tm1, tm2)) = IApp (mangle tm1, mangle tm2)
         | mangle (tm as IConst (_, _, [])) = tm
@@ -1171,8 +1174,7 @@ fun filter_type_args_in_const _ _ _ _ _ [] = []
     | SOME s'' =>
       let val s'' = invert_const s'' in
         case type_arg_policy constrs type_enc s'' of
-          Mangled_Type_Args => raise Fail "unexpected (un)mangled symbol"
-        | All_Type_Args => T_args
+          All_Type_Args => T_args
         | Noninfer_Type_Args =>
           filter_type_args (not o fst) thy s'' (chop_fun ary) T_args
         | Constr_Infer_Type_Args =>
@@ -2260,9 +2262,7 @@ fun sym_decl_table_for_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
         (* FIXME: make sure type arguments are filtered / clean up code *)
         val (s, s') =
           `(make_fixed_const NONE) @{const_name undefined}
-          |> (case type_arg_policy [] type_enc @{const_name undefined} of
-                Mangled_Type_Args => mangled_const_name type_enc [T]
-              | _ => I)
+          |> (is_type_enc_mangling type_enc ? mangled_const_name type_enc [T])
       in
         Symtab.map_default (s, [])
                            (insert_type thy #3 (s', [T], T, false, 0, false))
