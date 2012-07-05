@@ -1140,13 +1140,10 @@ fun introduce_proxies_in_iterm type_enc =
   in intro true [] end
 
 fun mangle_type_args_in_const type_enc (name as (s, _)) T_args =
-  case unprefix_and_unascii const_prefix s of
-    NONE => (name, T_args)
-  | SOME s'' =>
-    if is_type_enc_mangling type_enc then
-      (mangled_const_name type_enc T_args name, [])
-    else
-      (name, T_args)
+  if String.isPrefix const_prefix s andalso is_type_enc_mangling type_enc then
+    (mangled_const_name type_enc T_args name, [])
+  else
+    (name, T_args)
 fun mangle_type_args_in_iterm type_enc =
   if is_type_enc_mangling type_enc then
     let
@@ -1380,7 +1377,7 @@ fun is_type_kind_of_surely_infinite ctxt strictness cached_Ts T =
    models in first-order logic (via Löwenheim-Skolem). *)
 
 fun should_encode_type ctxt {maybe_finite_Ts, surely_infinite_Ts,
-                             maybe_nonmono_Ts, ...}
+                             maybe_nonmono_Ts}
                        (Nonmono_Types (strictness, _)) T =
     let val thy = Proof_Context.theory_of ctxt in
       (exists (type_intersect thy T) maybe_nonmono_Ts andalso
