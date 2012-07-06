@@ -22,22 +22,10 @@ operators like COMP, INCR_COMP, COMP_INCR, which need to be applied
 with some care where this is really required.
 
 
-*** Document preparation ***
-
-* Default for \<euro> is now based on eurosym package, instead of
-slightly exotic babel/greek.
-
-
-*** System ***
-
-* Discontinued support for Poly/ML 5.2.1, which was the last version
-without exception positions and advanced ML compiler/toplevel
-configuration.
-
-
 *** HOL ***
 
-* Simproc for rewriting set comprehensions into pointfree expressions
+* Simproc "finite_Collect" rewrites set comprehensions into pointfree
+expressions.
 
 * Quickcheck:
 
@@ -54,6 +42,19 @@ Minor INCOMPATIBILITY.
 * Sledgehammer:
 
   - Rationalized type encodings ("type_enc" option).
+
+
+*** Document preparation ***
+
+* Default for \<euro> is now based on eurosym package, instead of
+slightly exotic babel/greek.
+
+
+*** System ***
+
+* Discontinued support for Poly/ML 5.2.1, which was the last version
+without exception positions and advanced ML compiler/toplevel
+configuration.
 
 
 
