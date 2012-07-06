@@ -172,10 +172,6 @@ PROOFGENERAL_HOME="$(choosefrom \
 PROOFGENERAL_OPTIONS=""
 #PROOFGENERAL_OPTIONS="-m no_brackets -m no_type_brackets"
 
-# Automatic setup of remote fonts
-#XSYMBOL_INSTALLFONTS="xset fp+ tcp/isafonts.informatik.tu-muenchen.de:7200"
-XSYMBOL_INSTALLFONTS=""
-
 
 ###
 ### Rendering information
