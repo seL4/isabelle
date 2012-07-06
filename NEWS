@@ -13,6 +13,15 @@ is called fastforce / fast_force_tac already since Isabelle2011-1.
 in old "ref" manual.
 
 
+*** Pure ***
+
+* Discontinued obsolete attribute "COMP".  Potential INCOMPATIBILITY,
+use regular rule composition via "OF" / "THEN", or explicit proof
+structure instead.  Note that Isabelle/ML provides a variety of
+operators like COMP, INCR_COMP, COMP_INCR, which need to be applied
+with some care where this is really required.
+
+
 *** Document preparation ***
 
 * Default for \<euro> is now based on eurosym package, instead of

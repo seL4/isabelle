@@ -320,10 +320,6 @@ fun internal att = Args.src (("Pure.attribute", [Token.mk_attribute att]), Posit
 
 (* rule composition *)
 
-val COMP_att =
-  Scan.lift (Scan.optional (Args.bracks Parse.nat) 1) -- thm
-    >> (fn (i, B) => Thm.rule_attribute (fn _ => fn A => Drule.compose_single (A, i, B)));
-
 val THEN_att =
   Scan.lift (Scan.optional (Args.bracks Parse.nat) 1) -- thm
     >> (fn (i, B) => Thm.rule_attribute (fn _ => fn A => A RSN (i, B)));
@@ -388,7 +384,6 @@ val _ = Context.>> (Context.map_theory
   setup (Binding.name "tagged") (Scan.lift (Args.name -- Args.name) >> Thm.tag) "tagged theorem" #>
   setup (Binding.name "untagged") (Scan.lift Args.name >> Thm.untag) "untagged theorem" #>
   setup (Binding.name "kind") (Scan.lift Args.name >> Thm.kind) "theorem kind" #>
-  setup (Binding.name "COMP") COMP_att "direct composition with rules (no lifting)" #>
   setup (Binding.name "THEN") THEN_att "resolution with rule" #>
   setup (Binding.name "OF") OF_att "rule applied to facts" #>
   setup (Binding.name "rename_abs") (Scan.lift rename_abs)

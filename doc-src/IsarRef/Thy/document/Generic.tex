@@ -215,7 +215,6 @@ For historical reasons, some tools cannot take the full proof
     \indexdef{}{attribute}{tagged}\hypertarget{attribute.tagged}{\hyperlink{attribute.tagged}{\mbox{\isa{tagged}}}} & : & \isa{attribute} \\
     \indexdef{}{attribute}{untagged}\hypertarget{attribute.untagged}{\hyperlink{attribute.untagged}{\mbox{\isa{untagged}}}} & : & \isa{attribute} \\[0.5ex]
     \indexdef{}{attribute}{THEN}\hypertarget{attribute.THEN}{\hyperlink{attribute.THEN}{\mbox{\isa{THEN}}}} & : & \isa{attribute} \\
-    \indexdef{}{attribute}{COMP}\hypertarget{attribute.COMP}{\hyperlink{attribute.COMP}{\mbox{\isa{COMP}}}} & : & \isa{attribute} \\[0.5ex]
     \indexdef{}{attribute}{unfolded}\hypertarget{attribute.unfolded}{\hyperlink{attribute.unfolded}{\mbox{\isa{unfolded}}}} & : & \isa{attribute} \\
     \indexdef{}{attribute}{folded}\hypertarget{attribute.folded}{\hyperlink{attribute.folded}{\mbox{\isa{folded}}}} & : & \isa{attribute} \\
     \indexdef{}{attribute}{abs\_def}\hypertarget{attribute.abs-def}{\hyperlink{attribute.abs-def}{\mbox{\isa{abs{\isaliteral{5F}{\isacharunderscore}}def}}}} & : & \isa{attribute} \\[0.5ex]
@@ -236,11 +235,7 @@ For historical reasons, some tools cannot take the full proof
 \rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
 \rail@end
 \rail@begin{2}{}
-\rail@bar
 \rail@term{\hyperlink{attribute.THEN}{\mbox{\isa{THEN}}}}[]
-\rail@nextbar{1}
-\rail@term{\hyperlink{attribute.COMP}{\mbox{\isa{COMP}}}}[]
-\rail@endbar
 \rail@bar
 \rail@nextbar{1}
 \rail@term{\isa{{\isaliteral{5B}{\isacharbrackleft}}}}[]
@@ -274,12 +269,10 @@ For historical reasons, some tools cannot take the full proof
   The first string is considered the tag name, the second its value.
   Note that \hyperlink{attribute.untagged}{\mbox{\isa{untagged}}} removes any tags of the same name.
 
-  \item \hyperlink{attribute.THEN}{\mbox{\isa{THEN}}}~\isa{a} and \hyperlink{attribute.COMP}{\mbox{\isa{COMP}}}~\isa{a}
-  compose rules by resolution.  \hyperlink{attribute.THEN}{\mbox{\isa{THEN}}} resolves with the
-  first premise of \isa{a} (an alternative position may be also
-  specified); the \hyperlink{attribute.COMP}{\mbox{\isa{COMP}}} version skips the automatic
-  lifting process that is normally intended (cf.\ \verb|RS| and
-  \verb|COMP| in \cite{isabelle-implementation}).
+  \item \hyperlink{attribute.THEN}{\mbox{\isa{THEN}}}~\isa{a} composes rules by resolution; it
+  resolves with the first premise of \isa{a} (an alternative
+  position may be also specified).  See also \verb|RS| in
+  \cite{isabelle-implementation}.
   
   \item \hyperlink{attribute.unfolded}{\mbox{\isa{unfolded}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ a\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} and \hyperlink{attribute.folded}{\mbox{\isa{folded}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ a\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} expand and fold back again the given
   definitions throughout a rule.

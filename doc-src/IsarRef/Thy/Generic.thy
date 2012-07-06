@@ -127,7 +127,6 @@ text {*
     @{attribute_def tagged} & : & @{text attribute} \\
     @{attribute_def untagged} & : & @{text attribute} \\[0.5ex]
     @{attribute_def THEN} & : & @{text attribute} \\
-    @{attribute_def COMP} & : & @{text attribute} \\[0.5ex]
     @{attribute_def unfolded} & : & @{text attribute} \\
     @{attribute_def folded} & : & @{text attribute} \\
     @{attribute_def abs_def} & : & @{text attribute} \\[0.5ex]
@@ -142,7 +141,7 @@ text {*
     ;
     @@{attribute untagged} @{syntax name}
     ;
-    (@@{attribute THEN} | @@{attribute COMP}) ('[' @{syntax nat} ']')? @{syntax thmref}
+    @@{attribute THEN} ('[' @{syntax nat} ']')? @{syntax thmref}
     ;
     (@@{attribute unfolded} | @@{attribute folded}) @{syntax thmrefs}
     ;
@@ -157,12 +156,10 @@ text {*
   The first string is considered the tag name, the second its value.
   Note that @{attribute untagged} removes any tags of the same name.
 
-  \item @{attribute THEN}~@{text a} and @{attribute COMP}~@{text a}
-  compose rules by resolution.  @{attribute THEN} resolves with the
-  first premise of @{text a} (an alternative position may be also
-  specified); the @{attribute COMP} version skips the automatic
-  lifting process that is normally intended (cf.\ @{ML_op "RS"} and
-  @{ML_op "COMP"} in \cite{isabelle-implementation}).
+  \item @{attribute THEN}~@{text a} composes rules by resolution; it
+  resolves with the first premise of @{text a} (an alternative
+  position may be also specified).  See also @{ML_op "RS"} in
+  \cite{isabelle-implementation}.
   
   \item @{attribute unfolded}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} and @{attribute
   folded}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} expand and fold back again the given
