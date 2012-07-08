@@ -98,6 +98,7 @@ log "dist build successful, elapsed time $ELAPSED."
 
 ## clean up var/running
 rm -f $RUNNING/*
+mkdir -p $RUNNING
 
 ## spawn test runs
 
