@@ -55,7 +55,9 @@ rm -rf $DISTPREFIX >> $DISTLOG 2>&1
 
 echo "### cleaning up old isabelle-* directories" >> $DISTLOG 2>&1
 rm -rf $HOME/isabelle-*
-ssh atbroy102 "rm -rf /home/isatest/isabelle-cygwin-poly-e"
+
+# on ice until there is a working cygwin platform again:
+# ssh atbroy102 "rm -rf /home/isatest/isabelle-cygwin-poly-e"
 
 echo "### building distribution"  >> $DISTLOG 2>&1
 mkdir -p $DISTPREFIX
@@ -85,8 +87,9 @@ $TAR xvzf $ISABELLE_DIST >> $DISTLOG 2>&1
 ln -sf $(basename $ISABELLE_DIST .tar.gz) Isabelle
 cp Isabelle/etc/settings Isabelle/etc/settings.orig
 
-ssh atbroy102 "rm -rf /home/isatest/isadist && mkdir -p /home/isatest/isadist" && \
-rsync -a "$HOME/isadist/." atbroy102:/home/isatest/isadist/.
+# on ice until there is a working cygwin platform again:
+# ssh atbroy102 "rm -rf /home/isatest/isadist && mkdir -p /home/isatest/isadist" && \
+# rsync -a "$HOME/isadist/." atbroy102:/home/isatest/isadist/.
 
 echo ------------------- prepared test successfully --- `date` --- $HOSTNAME >> $DISTLOG 2>&1
 
@@ -114,8 +117,10 @@ sleep 15
 $SSH macbroy6 "$MAKEALL $HOME/settings/mac-poly64-M2"
 sleep 15
 $SSH macbroy30 "sleep 10800; $MAKEALL $HOME/settings/mac-poly-M2"
-sleep 15
-$SSH atbroy102 "$MAKEALL $HOME/settings/cygwin-poly-e"
+# sleep 15
+# on ice until there is a working cygwin platform again:
+# $SSH atbroy102 "$MAKEALL $HOME/settings/cygwin-poly-e"
+
 #sleep 15
 #$SSH atbroy51 "$HOME/admin/isatest/isatest-annomaly"
 
