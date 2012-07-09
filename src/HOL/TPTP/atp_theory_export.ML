@@ -129,24 +129,36 @@ fun generate_mash_accessibility_file_for_theory thy file_name =
     val _ = List.app (do_thy o snd) thy_ths
   in () end
 
-(* TODO: Add types, subterms, intro/dest/elim/simp status *)
+(* TODO: Add types, subterms *)
 fun generate_mash_feature_file_for_theory ctxt thy file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val axioms = Theory.all_axioms_of thy |> map fst
-    fun do_thm th =
+    val facts = facts_of thy
+    fun do_fact ((_, (_, status)), th) =
       let
+        val is_boring =
+          String.isSubstring Sledgehammer_Filter.pseudo_skolem_prefix
         val name = Thm.get_name_hint th
         val features =
-          (if member (op =) axioms name then ["axiom"] else []) @
           map (prefix const_prefix o escape_meta)
               (interesting_const_names ctxt (Thm.prop_of th))
-          |> (fn [] => ["likely_tautology"] | features => features)
+          |> (fn features =>
+                 features |> forall is_boring features
+                             ? cons "likely_tautology")
+          |> (member (op =) axioms name ? cons "axiom")
+          |> (case status of
+                General => I
+              | Induction => cons "induction"
+              | Intro => cons "intro"
+              | Inductive => cons "inductive"
+              | Elim => cons "elim"
+              | Simp => cons "simp"
+              | Def => cons "def")
         val s = fact_name_of name ^ ": " ^ space_implode " " features ^ "\n"
       in File.append path s end
-    val ths = facts_of thy |> map snd
-    val _ = List.app do_thm ths
+    val _ = List.app do_fact facts
   in () end
 
 fun generate_mash_dependency_file_for_theory thy file_name =
