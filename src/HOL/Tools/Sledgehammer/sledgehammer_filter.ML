@@ -39,6 +39,8 @@ sig
   val trace : bool Config.T
   val ignore_no_atp : bool Config.T
   val instantiate_inducts : bool Config.T
+  val pseudo_abs_name : string
+  val pseudo_skolem_prefix : string
   val no_relevance_override : relevance_override
   val const_names_in_fact :
     theory -> (string * typ -> term list -> bool * term list) -> term
@@ -108,8 +110,8 @@ type relevance_override =
 val no_relevance_override = {add = [], del = [], only = false}
 
 val sledgehammer_prefix = "Sledgehammer" ^ Long_Name.separator
-val abs_name = sledgehammer_prefix ^ "abs"
-val skolem_prefix = sledgehammer_prefix ^ "sko"
+val pseudo_abs_name = sledgehammer_prefix ^ "abs"
+val pseudo_skolem_prefix = sledgehammer_prefix ^ "sko"
 val theory_const_suffix = Long_Name.separator ^ " 1"
 
 (* unfolding these can yield really huge terms *)
@@ -359,7 +361,7 @@ fun string_for_hyper_pconst (s, ps) =
 (* Add a pconstant to the table, but a [] entry means a standard
    connective, which we ignore.*)
 fun add_pconst_to_table also_skolem (s, p) =
-  if (not also_skolem andalso String.isPrefix skolem_prefix s) then I
+  if (not also_skolem andalso String.isPrefix pseudo_skolem_prefix s) then I
   else Symtab.map_default (s, [p]) (insert (op =) p)
 
 (* Set constants tend to pull in too many irrelevant facts. We limit the damage
@@ -393,14 +395,15 @@ fun add_pconsts_in_term thy is_built_in_const also_skolems pos =
          (* Since lambdas on the right-hand side of equalities are usually
             extensionalized later by "abs_extensionalize_term", we don't
             penalize them here. *)
-         ? add_pconst_to_table true (abs_name, PType (order_of_type T + 1, [])))
+         ? add_pconst_to_table true (pseudo_abs_name,
+                                     PType (order_of_type T + 1, [])))
         #> fold (do_term false) (t' :: ts)
       | (_, ts) => fold (do_term false) ts
     fun do_quantifier will_surely_be_skolemized abs_T body_t =
       do_formula pos body_t
       #> (if also_skolems andalso will_surely_be_skolemized then
-            add_pconst_to_table true
-                (Misc_Legacy.gensym skolem_prefix, PType (order_of_type abs_T, []))
+            add_pconst_to_table true (pseudo_skolem_prefix ^ serial_string (),
+                                      PType (order_of_type abs_T, []))
           else
             I)
     and do_term_or_formula ext_arg T =
@@ -529,9 +532,9 @@ fun multiplier_for_const_name local_const_multiplier s =
 fun generic_pconst_weight local_const_multiplier abs_weight skolem_weight
                           theory_const_weight chained_const_weight weight_for f
                           const_tab chained_const_tab (c as (s, PType (m, _))) =
-  if s = abs_name then
+  if s = pseudo_abs_name then
     abs_weight
-  else if String.isPrefix skolem_prefix s then
+  else if String.isPrefix pseudo_skolem_prefix s then
     skolem_weight
   else if String.isSuffix theory_const_suffix s then
     theory_const_weight
@@ -571,7 +574,7 @@ fun stature_bonus ({intro_bonus, ...} : relevance_fudge) (_, Intro) =
   | stature_bonus _ _ = 0.0
 
 fun is_odd_const_name s =
-  s = abs_name orelse String.isPrefix skolem_prefix s orelse
+  s = pseudo_abs_name orelse String.isPrefix pseudo_skolem_prefix s orelse
   String.isSuffix theory_const_suffix s
 
 fun fact_weight fudge stature const_tab relevant_consts chained_consts
