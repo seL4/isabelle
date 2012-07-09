@@ -1502,6 +1502,7 @@ HOL-Quickcheck_Examples: HOL $(LOG)/HOL-Quickcheck_Examples.gz
 $(LOG)/HOL-Quickcheck_Examples.gz: $(OUT)/HOL				\
   Quickcheck_Examples/Completeness.thy					\
   Quickcheck_Examples/Find_Unused_Assms_Examples.thy			\
+  Quickcheck_Examples/Hotel_Example.thy					\
   Quickcheck_Examples/Quickcheck_Examples.thy				\
   Quickcheck_Examples/Quickcheck_Interfaces.thy				\
   Quickcheck_Examples/Quickcheck_Lattice_Examples.thy			\

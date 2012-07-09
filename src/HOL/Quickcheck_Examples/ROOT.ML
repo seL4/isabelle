@@ -3,7 +3,8 @@ use_thys [
   "Quickcheck_Examples",
   "Quickcheck_Lattice_Examples",
   "Completeness",
-  "Quickcheck_Interfaces"
+  "Quickcheck_Interfaces",
+  "Hotel_Example"
 ];
 
 if getenv "ISABELLE_GHC" = "" then ()
