@@ -12,10 +12,12 @@ sig
 
   val theorems_mentioned_in_proof_term :
     string list option -> thm -> string list
-  val generate_mash_accessibility_file_for_theory : theory -> string -> unit
-  val generate_mash_feature_file_for_theory :
-    Proof.context -> theory -> string -> unit
-  val generate_mash_dependency_file_for_theory : theory -> string -> unit
+  val generate_mash_accessibility_file_for_theory :
+    theory -> bool -> string -> unit
+  val generate_mash_feature_file_for_theory : theory -> bool -> string -> unit
+  val generate_mash_dependency_file_for_theory :
+    theory -> bool -> string -> unit
+  val generate_mash_problem_file_for_theory : theory -> string -> unit
   val generate_tptp_inference_file_for_theory :
     Proof.context -> theory -> atp_format -> string -> string -> unit
 end;
@@ -43,6 +45,12 @@ val escape_meta = String.translate escape_meta_char
 
 val fact_name_of = escape_meta
 val thy_name_of = escape_meta
+val const_name_of = prefix const_prefix o escape_meta
+val type_name_of = prefix type_const_prefix o escape_meta
+
+val thy_name_of_thm = theory_of_thm #> Context.theory_name
+
+fun has_thy thy th = (Context.theory_name thy = thy_name_of_thm th)
 
 fun facts_of thy =
   let val ctxt = Proof_Context.init_global thy in
@@ -86,11 +94,21 @@ fun theorems_mentioned_in_proof_term all_names th =
          |> map fact_name_of
   in names end
 
-fun interesting_const_names ctxt =
-  let val thy = Proof_Context.theory_of ctxt in
+fun interesting_const_names thy =
+  let val ctxt = Proof_Context.init_global thy in
     Sledgehammer_Filter.const_names_in_fact thy
         (Sledgehammer_Provers.is_built_in_const_for_prover ctxt eN)
+    #> map const_name_of
   end
+
+fun interesting_type_names t =
+  let
+    val bad = [@{type_name prop}, @{type_name bool}, @{type_name fun}]
+    fun maybe_add_type (Type (s, Ts)) =
+        (not (member (op =) bad s) ? insert (op =) s)
+        #> fold maybe_add_type Ts
+      | maybe_add_type _ = I
+  in [] |> fold_types maybe_add_type t |> map type_name_of end
 
 fun theory_ord p =
   if Theory.eq_thy p then EQUAL
@@ -98,11 +116,25 @@ fun theory_ord p =
   else if Theory.subthy (swap p) then GREATER
   else EQUAL
 
-fun generate_mash_accessibility_file_for_theory thy file_name =
+val thm_ord = theory_ord o pairself theory_of_thm
+
+fun parent_thms thy_ths thy =
+  Theory.parents_of thy
+  |> map (thy_name_of o Context.theory_name)
+  |> map_filter (AList.lookup (op =) thy_ths)
+  |> map List.last
+  |> map (fact_name_of o Thm.get_name_hint)
+
+val thms_by_thy =
+  map (snd #> `thy_name_of_thm)
+  #> AList.group (op =)
+  #> sort (thm_ord o pairself (hd o snd))
+  #> map (apsnd (sort thm_ord))
+
+fun generate_mash_accessibility_file_for_theory thy include_thy file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
-    val thy_name_of_thm = theory_of_thm #> Context.theory_name
     fun do_thm th prevs =
       let
         val s = th ^ ": " ^ space_implode " " prevs ^ "\n"
@@ -110,19 +142,12 @@ fun generate_mash_accessibility_file_for_theory thy file_name =
       in [th] end
     val thy_ths =
       facts_of thy
-      |> map (snd #> `thy_name_of_thm)
-      |> AList.group (op =)
-      |> sort (theory_ord o pairself (theory_of_thm o hd o snd))
-      |> map (apsnd (sort (theory_ord o pairself theory_of_thm)))
+      |> not include_thy ? filter_out (has_thy thy o snd)
+      |> thms_by_thy
     fun do_thy ths =
       let
         val thy = theory_of_thm (hd ths)
-        val parents =
-          Theory.parents_of thy
-          |> map (thy_name_of o Context.theory_name)
-          |> map_filter (AList.lookup (op =) thy_ths)
-          |> map List.last
-          |> map (fact_name_of o Thm.get_name_hint)
+        val parents = parent_thms thy_ths thy
         val ths = ths |> map (fact_name_of o Thm.get_name_hint)
         val _ = fold do_thm ths parents
       in () end
@@ -130,50 +155,90 @@ fun generate_mash_accessibility_file_for_theory thy file_name =
   in () end
 
 (* TODO: Add types, subterms *)
-fun generate_mash_feature_file_for_theory ctxt thy file_name =
+fun features_of thy (status, th) =
+  let
+    val is_skolem =
+      String.isSubstring Sledgehammer_Filter.pseudo_skolem_prefix
+    fun fix_abs s =
+      if String.isSubstring Sledgehammer_Filter.pseudo_abs_name s then "abs"
+      else s
+    val prop = Thm.prop_of th
+  in
+    interesting_const_names thy prop @ interesting_type_names prop
+    |> (fn features =>
+           case List.partition is_skolem features of
+             (_, []) => ["likely_tautology"]
+           | ([], features) => features
+           | (_, features) => "skolem" :: features)
+    |> map fix_abs
+    |> (case status of
+          General => I
+        | Induction => cons "induction"
+        | Intro => cons "intro"
+        | Inductive => cons "inductive"
+        | Elim => cons "elim"
+        | Simp => cons "simp"
+        | Def => cons "def")
+  end
+
+fun generate_mash_feature_file_for_theory thy include_thy file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
-    val axioms = Theory.all_axioms_of thy |> map fst
-    val facts = facts_of thy
+    val facts = facts_of thy |> not include_thy ? filter_out (has_thy thy o snd)
     fun do_fact ((_, (_, status)), th) =
       let
-        val is_boring =
-          String.isSubstring Sledgehammer_Filter.pseudo_skolem_prefix
         val name = Thm.get_name_hint th
-        val features =
-          map (prefix const_prefix o escape_meta)
-              (interesting_const_names ctxt (Thm.prop_of th))
-          |> (fn features =>
-                 features |> forall is_boring features
-                             ? cons "likely_tautology")
-          |> (member (op =) axioms name ? cons "axiom")
-          |> (case status of
-                General => I
-              | Induction => cons "induction"
-              | Intro => cons "intro"
-              | Inductive => cons "inductive"
-              | Elim => cons "elim"
-              | Simp => cons "simp"
-              | Def => cons "def")
-        val s = fact_name_of name ^ ": " ^ space_implode " " features ^ "\n"
+        val feats = features_of thy (status, th)
+        val s = fact_name_of name ^ ": " ^ space_implode " " feats ^ "\n"
       in File.append path s end
     val _ = List.app do_fact facts
   in () end
 
-fun generate_mash_dependency_file_for_theory thy file_name =
+val dependencies_of = theorems_mentioned_in_proof_term o SOME
+
+fun generate_mash_dependency_file_for_theory thy include_thy file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
-    val ths = facts_of thy |> map snd
+    val ths =
+      facts_of thy |> not include_thy ? filter_out (has_thy thy o snd)
+                   |> map snd
     val all_names = map Thm.get_name_hint ths
     fun do_thm th =
       let
         val name = Thm.get_name_hint th
-        val ths = theorems_mentioned_in_proof_term (SOME all_names) th
-        val s = fact_name_of name ^ ": " ^ space_implode " " ths ^ "\n"
+        val deps = dependencies_of all_names th
+        val s = fact_name_of name ^ ": " ^ space_implode " " deps ^ "\n"
       in File.append path s end
     val _ = List.app do_thm ths
+  in () end
+
+fun generate_mash_problem_file_for_theory thy file_name =
+  let
+    val path = file_name |> Path.explode
+    val _ = File.write path ""
+    val facts = facts_of thy
+    val (new_facts, old_facts) =
+      facts |> List.partition (has_thy thy o snd)
+            |>> sort (thm_ord o pairself snd)
+    val all_names = map (Thm.get_name_hint o snd) facts
+    fun do_fact ((_, (_, status)), th) prevs =
+      let
+        val name = Thm.get_name_hint th
+        val feats = features_of thy (status, th)
+        val deps = dependencies_of all_names th
+        val th = fact_name_of name
+        val s =
+          th ^ ": " ^
+          space_implode " " prevs ^ "; " ^
+          space_implode " " feats ^ "; " ^
+          space_implode " " deps ^ "\n"
+        val _ = File.append path s
+      in [th] end
+    val thy_ths = old_facts |> thms_by_thy
+    val parents = parent_thms thy_ths thy
+    val _ = fold do_fact new_facts parents
   in () end
 
 fun inference_term [] = NONE
