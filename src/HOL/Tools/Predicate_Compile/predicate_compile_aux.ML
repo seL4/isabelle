@@ -679,7 +679,8 @@ val non_random_compilations = [Pred, Depth_Limited, DSeq, Annotated]
 
 
 val random_compilations = [Random, Depth_Limited_Random,
-  Pos_Random_DSeq, Neg_Random_DSeq, New_Pos_Random_DSeq, New_Neg_Random_DSeq, Pos_Generator_CPS]
+  Pos_Random_DSeq, Neg_Random_DSeq, New_Pos_Random_DSeq, New_Neg_Random_DSeq,
+  Pos_Generator_CPS, Neg_Generator_CPS]
 
 (* datastructures and setup for generic compilation *)
 
