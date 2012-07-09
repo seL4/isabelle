@@ -28,8 +28,6 @@ open ATP_Proof
 open ATP_Problem_Generate
 open ATP_Systems
 
-val thy_prefix = "$"
-
 fun stringN_of_int 0 _ = ""
   | stringN_of_int k n =
     stringN_of_int (k - 1) (n div 10) ^ string_of_int (n mod 10)
@@ -40,19 +38,19 @@ fun escape_meta_char c =
     String.str c
   else
     (* fixed width, in case more digits follow *)
-    "_" ^ stringN_of_int 3 (Char.ord c)
+    "~" ^ stringN_of_int 3 (Char.ord c)
 val escape_meta = String.translate escape_meta_char
 
 val fact_name_of = escape_meta
-val thy_name_of = prefix thy_prefix o escape_meta
+val thy_name_of = escape_meta
 
 fun facts_of thy =
   let val ctxt = Proof_Context.init_global thy in
-    Sledgehammer_Filter.all_facts ctxt false
-        Symtab.empty true [] []
+    Sledgehammer_Filter.all_facts ctxt false Symtab.empty true [] []
         (Sledgehammer_Filter.clasimpset_rule_table_of ctxt)
     |> filter (curry (op =) @{typ bool} o fastype_of
                o Object_Logic.atomize_term thy o prop_of o snd)
+    |> rev
   end
 
 (* FIXME: Similar yet different code in "mirabelle.ML". The code here has a few
@@ -104,30 +102,31 @@ fun generate_mash_accessibility_file_for_theory thy file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
-    fun do_thm parents th seen =
+    val thy_name_of_thm = theory_of_thm #> Context.theory_name
+    fun do_thm th prevs =
       let
-        val s = th ^ ": " ^ space_implode " " (parents @ seen) ^ "\n"
+        val s = th ^ ": " ^ space_implode " " prevs ^ "\n"
         val _ = File.append path s
-      in seen @ [th] end
-    fun do_thy (name, ths) =
+      in [th] end
+    val thy_ths =
+      facts_of thy
+      |> map (snd #> `thy_name_of_thm)
+      |> AList.group (op =)
+      |> sort (theory_ord o pairself (theory_of_thm o hd o snd))
+      |> map (apsnd (sort (theory_ord o pairself theory_of_thm)))
+    fun do_thy ths =
       let
-        val ths = sort (theory_ord o pairself theory_of_thm) ths
         val thy = theory_of_thm (hd ths)
         val parents =
-          if Context.theory_name thy = Context.theory_name @{theory HOL} then []
-          else map (thy_name_of o Context.theory_name) (Theory.parents_of thy)
-        val ths = map (fact_name_of o Thm.get_name_hint) ths
-        val s =
-          thy_name_of name ^ ": " ^ space_implode " " (parents @ ths) ^ " \n"
-        val _ = File.append path s
-        val _ = fold (do_thm parents) ths []
+          Theory.parents_of thy
+          |> map (thy_name_of o Context.theory_name)
+          |> map_filter (AList.lookup (op =) thy_ths)
+          |> map List.last
+          |> map (fact_name_of o Thm.get_name_hint)
+        val ths = ths |> map (fact_name_of o Thm.get_name_hint)
+        val _ = fold do_thm ths parents
       in () end
-    val thy_name_of_thm = theory_of_thm #> Context.theory_name
-    val thy_ths =
-      facts_of thy |> map (snd #> `thy_name_of_thm)
-                   |> AList.group (op =)
-                   |> sort (theory_ord o pairself (theory_of_thm o hd o snd))
-    val _ = List.app do_thy thy_ths
+    val _ = List.app (do_thy o snd) thy_ths
   in () end
 
 (* TODO: Add types, subterms, intro/dest/elim/simp status *)
