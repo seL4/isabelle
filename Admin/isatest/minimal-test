@@ -15,7 +15,6 @@ LOGDIR="$HOME/log"
 LOG="$LOGDIR/test-${DATE}-${HOST}.log"
 
 TEST_NAME="minimal-test"
-PUBLISH_TEST="/home/isabelle-repository/repos/testtool/publish_test.py"
 
 
 ## diagnostics
@@ -48,12 +47,8 @@ IDENT="$(hg parent --template "{node|short}")"
 ) > "$LOG" 2>&1
 
 if [ "$?" -eq 0 ]; then
-  [ -x "$PUBLISH_TEST" ] && \
-    "$PUBLISH_TEST" -r "$IDENT" -s SUCCESS -a log "$LOG" -n "$TEST_NAME"
   gzip -f "$LOG"
 else
-  [ -x "$PUBLISH_TEST" ] && \
-    "$PUBLISH_TEST" -r "$IDENT" -s FAIL -a log "$LOG" -n "$TEST_NAME"
   fail "Minimal test failed, see $LOG"
 fi
 
