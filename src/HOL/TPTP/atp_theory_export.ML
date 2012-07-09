@@ -252,9 +252,10 @@ val known_tautologies =
    @{thm Bex_def}, @{thm If_def}]
 
 fun is_likely_tautology thy th =
-  member Thm.eq_thm_prop known_tautologies th orelse
-  th |> prop_of |> raw_interesting_const_names thy
-     |> forall (is_skolem orf is_abs)
+  (member Thm.eq_thm_prop known_tautologies th orelse
+   th |> prop_of |> raw_interesting_const_names thy
+      |> forall (is_skolem orf is_abs)) andalso
+  not (Thm.eq_thm_prop (@{thm ext}, th))
 
 fun generate_mash_dependency_file_for_theory thy include_thy file_name =
   let
