@@ -15,8 +15,8 @@ open ATP_Theory_Export;
 *}
 
 ML {*
-val do_it = true (* false ### *); (* switch to "true" to generate the files *)
-val thy = @{theory Nat}; (* @{theory Complex_Main}; ### *)
+val do_it = false; (* switch to "true" to generate the files *)
+val thy = @{theory Complex_Main};
 val ctxt = @{context}
 *}
 
