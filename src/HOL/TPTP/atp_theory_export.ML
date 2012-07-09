@@ -2,8 +2,8 @@
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2011
 
-Export Isabelle theories as first-order TPTP inferences, exploiting
-Sledgehammer's translation.
+Export Isabelle theories as MaSh (Machine-learning for Sledgehammer) or as
+first-order TPTP inferences.
 *)
 
 signature ATP_THEORY_EXPORT =
@@ -12,8 +12,10 @@ sig
 
   val theorems_mentioned_in_proof_term :
     string list option -> thm -> string list
-  val generate_tptp_graph_file_for_theory :
+  val generate_mash_accessibility_file_for_theory : theory -> string -> unit
+  val generate_mash_feature_file_for_theory :
     Proof.context -> theory -> string -> unit
+  val generate_mash_dependency_file_for_theory : theory -> string -> unit
   val generate_tptp_inference_file_for_theory :
     Proof.context -> theory -> atp_format -> string -> string -> unit
 end;
@@ -26,7 +28,23 @@ open ATP_Proof
 open ATP_Problem_Generate
 open ATP_Systems
 
-val fact_name_of = prefix fact_prefix o ascii_of
+val thy_prefix = "$"
+
+fun stringN_of_int 0 _ = ""
+  | stringN_of_int k n =
+    stringN_of_int (k - 1) (n div 10) ^ string_of_int (n mod 10)
+
+fun escape_meta_char c =
+  if Char.isAlphaNum c orelse c = #"_" orelse c = #"." orelse c = #"(" orelse
+     c = #")" then
+    String.str c
+  else
+    (* fixed width, in case more digits follow *)
+    "_" ^ stringN_of_int 3 (Char.ord c)
+val escape_meta = String.translate escape_meta_char
+
+val fact_name_of = escape_meta
+val thy_name_of = prefix thy_prefix o escape_meta
 
 fun facts_of thy =
   let val ctxt = Proof_Context.init_global thy in
@@ -40,7 +58,7 @@ fun facts_of thy =
 (* FIXME: Similar yet different code in "mirabelle.ML". The code here has a few
    fixes that seem to be missing over there; or maybe the two code portions are
    not doing the same? *)
-fun fold_body_thms thm_name all_names f =
+fun fold_body_thms thm_name f =
   let
     fun app n (PBody {thms, ...}) =
       thms |> fold (fn (_, (name, prop, body)) => fn x =>
@@ -48,11 +66,9 @@ fun fold_body_thms thm_name all_names f =
           val body' = Future.join body
           val n' =
             n + (if name = "" orelse
-                    (is_some all_names andalso
-                     not (member (op =) (the all_names) name)) orelse
                     (* uncommon case where the proved theorem occurs twice
                        (e.g., "Transitive_Closure.trancl_into_trancl") *)
-                    n = 1 andalso name = thm_name then
+                    (n = 1 andalso name = thm_name) then
                    0
                  else
                    1)
@@ -60,12 +76,15 @@ fun fold_body_thms thm_name all_names f =
         in (x' |> n = 1 ? f (name, prop, body')) end)
   in fold (app 0) end
 
-fun theorems_mentioned_in_proof_term all_names thm =
+fun theorems_mentioned_in_proof_term all_names th =
   let
-    fun collect (s, _, _) = if s <> "" then insert (op =) s else I
+    val is_name_ok =
+      case all_names of
+        SOME names => member (op =) names
+      | NONE => (fn s => s <> "" andalso not (String.isPrefix "Pure." s))
+    fun collect (s, _, _) = is_name_ok s ? insert (op =) s
     val names =
-      [] |> fold_body_thms (Thm.get_name_hint thm) all_names collect
-                           [Thm.proof_body_of thm]
+      [] |> fold_body_thms (Thm.get_name_hint th) collect [Thm.proof_body_of th]
          |> map fact_name_of
   in names end
 
@@ -75,24 +94,75 @@ fun interesting_const_names ctxt =
         (Sledgehammer_Provers.is_built_in_const_for_prover ctxt eN)
   end
 
-fun generate_tptp_graph_file_for_theory ctxt thy file_name =
+fun theory_ord p =
+  if Theory.eq_thy p then EQUAL
+  else if Theory.subthy p then LESS
+  else if Theory.subthy (swap p) then GREATER
+  else EQUAL
+
+fun generate_mash_accessibility_file_for_theory thy file_name =
+  let
+    val path = file_name |> Path.explode
+    val _ = File.write path ""
+    fun do_thm parents th seen =
+      let
+        val s = th ^ ": " ^ space_implode " " (parents @ seen) ^ "\n"
+        val _ = File.append path s
+      in seen @ [th] end
+    fun do_thy (name, ths) =
+      let
+        val ths = sort (theory_ord o pairself theory_of_thm) ths
+        val thy = theory_of_thm (hd ths)
+        val parents =
+          if Context.theory_name thy = Context.theory_name @{theory HOL} then []
+          else map (thy_name_of o Context.theory_name) (Theory.parents_of thy)
+        val ths = map (fact_name_of o Thm.get_name_hint) ths
+        val s =
+          thy_name_of name ^ ": " ^ space_implode " " (parents @ ths) ^ " \n"
+        val _ = File.append path s
+        val _ = fold (do_thm parents) ths []
+      in () end
+    val thy_name_of_thm = theory_of_thm #> Context.theory_name
+    val thy_ths =
+      facts_of thy |> map (snd #> `thy_name_of_thm)
+                   |> AList.group (op =)
+                   |> sort (theory_ord o pairself (theory_of_thm o hd o snd))
+    val _ = List.app do_thy thy_ths
+  in () end
+
+(* TODO: Add types, subterms, intro/dest/elim/simp status *)
+fun generate_mash_feature_file_for_theory ctxt thy file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val axioms = Theory.all_axioms_of thy |> map fst
-    fun do_thm thm =
+    fun do_thm th =
       let
-        val name = Thm.get_name_hint thm
-        val s =
-          "[" ^ Thm.legacy_get_kind thm ^ "] " ^
-          (if member (op =) axioms name then "A" else "T") ^ " " ^
-          prefix fact_prefix (ascii_of name) ^ ": " ^
-          commas (theorems_mentioned_in_proof_term NONE thm) ^ "; " ^
-          commas (map (prefix const_prefix o ascii_of)
-                      (interesting_const_names ctxt (Thm.prop_of thm))) ^ " \n"
+        val name = Thm.get_name_hint th
+        val features =
+          (if member (op =) axioms name then ["axiom"] else []) @
+          map (prefix const_prefix o escape_meta)
+              (interesting_const_names ctxt (Thm.prop_of th))
+          |> (fn [] => ["likely_tautology"] | features => features)
+        val s = fact_name_of name ^ ": " ^ space_implode " " features ^ "\n"
       in File.append path s end
-    val thms = facts_of thy |> map snd
-    val _ = map do_thm thms
+    val ths = facts_of thy |> map snd
+    val _ = List.app do_thm ths
+  in () end
+
+fun generate_mash_dependency_file_for_theory thy file_name =
+  let
+    val path = file_name |> Path.explode
+    val _ = File.write path ""
+    val ths = facts_of thy |> map snd
+    val all_names = map Thm.get_name_hint ths
+    fun do_thm th =
+      let
+        val name = Thm.get_name_hint th
+        val ths = theorems_mentioned_in_proof_term (SOME all_names) th
+        val s = fact_name_of name ^ ": " ^ space_implode " " ths ^ "\n"
+      in File.append path s end
+    val _ = List.app do_thm ths
   in () end
 
 fun inference_term [] = NONE
@@ -128,8 +198,9 @@ fun run_some_atp ctxt format problem =
     val ord = effective_term_order ctxt atp
     val _ = problem |> lines_for_atp_problem format ord (K [])
                     |> File.write_list prob_file
+    val path = getenv (List.last (fst exec)) ^ "/" ^ snd exec
     val command =
-      File.shell_path (Path.explode (getenv (hd (fst exec)) ^ "/" ^ snd exec)) ^
+      File.shell_path (Path.explode path) ^
       " " ^ arguments ctxt false "" (seconds 1.0) (ord, K [], K []) ^ " " ^
       File.shell_path prob_file
   in

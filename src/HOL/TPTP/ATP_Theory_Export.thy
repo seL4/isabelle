@@ -5,7 +5,7 @@
 header {* ATP Theory Exporter *}
 
 theory ATP_Theory_Export
-imports Complex_Main
+imports (* Complex_Main *) "~~/src/HOL/Sledgehammer2d" (* ### *)
 uses "atp_theory_export.ML"
 begin
 
@@ -15,24 +15,40 @@ open ATP_Theory_Export;
 *}
 
 ML {*
-val do_it = false; (* switch to "true" to generate the files *)
-val thy = @{theory Complex_Main};
+val do_it = true (* false ### *); (* switch to "true" to generate the files *)
+val thy = @{theory Groups}; (* @{theory Complex_Main}; ### *)
 val ctxt = @{context}
 *}
 
 ML {*
 if do_it then
-  "/tmp/axs_tc_native.dfg"
-  |> generate_tptp_inference_file_for_theory ctxt thy (DFG Polymorphic)
-                                             "tc_native"
+  "/tmp/mash_accessibility.out"
+  |> generate_mash_accessibility_file_for_theory thy
 else
   ()
 *}
 
 ML {*
 if do_it then
-  "/tmp/infs_poly_guards.tptp"
-  |> generate_tptp_inference_file_for_theory ctxt thy FOF "poly_guards"
+  "/tmp/mash_features.out"
+  |> generate_mash_feature_file_for_theory ctxt thy
+else
+  ()
+*}
+
+ML {*
+if do_it then
+  "/tmp/mash_dependencies.out"
+  |> generate_mash_dependency_file_for_theory thy
+else
+   ()
+*}
+
+ML {*
+if do_it then
+  "/tmp/infs_poly_guards_query_query.tptp"
+  |> generate_tptp_inference_file_for_theory ctxt thy FOF
+                                             "poly_guards_query_query"
 else
   ()
 *}
@@ -48,7 +64,9 @@ else
 
 ML {*
 if do_it then
-  "/tmp/graph.out" |> generate_tptp_graph_file_for_theory ctxt thy
+  "/tmp/axs_tc_native.dfg"
+  |> generate_tptp_inference_file_for_theory ctxt thy (DFG Polymorphic)
+                                             "tc_native"
 else
   ()
 *}
