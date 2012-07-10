@@ -100,31 +100,29 @@ fun theorems_mentioned_in_proof_term all_names th =
          |> map fact_name_of
   in names end
 
-fun interesting_terms_types_and_classes thy term_max_depth type_max_depth t =
+fun interesting_terms_types_and_classes term_max_depth type_max_depth t =
   let
-    val ctxt = Proof_Context.init_global thy
     val bad_types = [@{type_name prop}, @{type_name bool}, @{type_name fun}]
     val bad_consts = atp_widely_irrelevant_consts
     val add_classes =
       subtract (op =) @{sort type} #> map class_name_of #> union (op =)
-    fun add_type (Type (s, Ts)) =
+    fun do_add_type (Type (s, Ts)) =
         (not (member (op =) bad_types s) ? insert (op =) (type_name_of s))
-        #> fold add_type Ts
-      | add_type (TFree (_, S)) = add_classes S
-      | add_type (TVar (_, S)) = add_classes S
+        #> fold do_add_type Ts
+      | do_add_type (TFree (_, S)) = add_classes S
+      | do_add_type (TVar (_, S)) = add_classes S
+    fun add_type T = type_max_depth >= 0 ? do_add_type T
     fun mk_app s args =
       if member (op <>) args "?" then s ^ "(" ^ space_implode "," args ^ ")"
       else s
-    fun patternify 0 t = "?"
+    fun patternify ~1 _ = "?"
       | patternify depth t =
         case strip_comb t of
           (Const (s, _), args) =>
           mk_app (const_name_of s) (map (patternify (depth - 1)) args)
         | _ => "?"
-    fun add_term_patterns depth t =
-      if depth < 0 then
-        I
-      else
+    fun add_term_patterns ~1 _ = I
+      | add_term_patterns depth t =
         insert (op =) (patternify depth t)
         #> add_term_patterns (depth - 1) t
     val add_term = add_term_patterns term_max_depth
@@ -224,17 +222,17 @@ fun is_fo_term thy t =
          has_bool_arg_const t orelse exists_Const (higher_inst_const thy) t)
   end
 
-val is_abs = String.isSubstring Sledgehammer_Filter.pseudo_abs_name
+fun is_exists (s, _) = (s = @{const_name Ex} orelse s = @{const_name Ex1})
 
 val max_depth = 1
 
-(* TODO: Add types, subterms *)
 fun features_of thy (status, th) =
-  let val prop = Thm.prop_of th in
+  let val t = Thm.prop_of th in
     thy_name_of (thy_name_of_thm th) ::
-    interesting_terms_types_and_classes thy max_depth max_depth prop
-    (* ### skolem and "abs" *)
-    |> not (is_fo_term thy prop) ? cons "ho"
+    interesting_terms_types_and_classes max_depth max_depth t
+    |> not (has_no_lambdas t) ? cons "lambdas"
+    |> exists_Const is_exists t ? cons "skolems"
+    |> not (is_fo_term thy t) ? cons "ho"
     |> (case status of
           General => I
         | Induction => cons "induction"
@@ -265,9 +263,9 @@ val known_tautologies =
   [@{thm All_def}, @{thm Ex_def}, @{thm Ex1_def}, @{thm Ball_def},
    @{thm Bex_def}, @{thm If_def}]
 
-fun is_likely_tautology thy th =
+fun is_likely_tautology th =
   (member Thm.eq_thm_prop known_tautologies th orelse
-   th |> prop_of |> interesting_terms_types_and_classes thy 0 ~1 |> null) andalso
+   th |> prop_of |> interesting_terms_types_and_classes 0 ~1 |> null) andalso
   not (Thm.eq_thm_prop (@{thm ext}, th))
 
 fun generate_mash_dependency_file_for_theory thy include_thy file_name =
@@ -278,7 +276,7 @@ fun generate_mash_dependency_file_for_theory thy include_thy file_name =
       facts_of thy |> not include_thy ? filter_out (has_thy thy o snd)
                    |> map snd
     val all_names =
-      ths |> filter_out (is_likely_tautology thy) |> map Thm.get_name_hint
+      ths |> filter_out is_likely_tautology |> map Thm.get_name_hint
     fun do_thm th =
       let
         val name = Thm.get_name_hint th
@@ -298,7 +296,7 @@ fun generate_mash_problem_file_for_theory thy file_name =
             |>> sort (thm_ord o pairself snd)
     val ths = facts |> map snd
     val all_names =
-      ths |> filter_out (is_likely_tautology thy) |> map Thm.get_name_hint
+      ths |> filter_out is_likely_tautology |> map Thm.get_name_hint
     fun do_fact ((_, (_, status)), th) prevs =
       let
         val name = Thm.get_name_hint th
@@ -418,7 +416,7 @@ fun generate_tptp_inference_file_for_theory ctxt thy format type_enc file_name =
       |> map (apsnd (filter_out (is_problem_line_tautology ctxt format)))
     val ths = facts |> map snd
     val all_names =
-      ths |> filter_out (is_likely_tautology thy) |> map Thm.get_name_hint
+      ths |> filter_out is_likely_tautology |> map Thm.get_name_hint
     val infers =
       facts |> map (fn (_, th) =>
                        (fact_name_of (Thm.get_name_hint th),
