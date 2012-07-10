@@ -37,7 +37,7 @@ fun stringN_of_int 0 _ = ""
 
 fun escape_meta_char c =
   if Char.isAlphaNum c orelse c = #"_" orelse c = #"." orelse c = #"(" orelse
-     c = #")" then
+     c = #")" orelse c = #"?" orelse c = #"," then
     String.str c
   else if c = #"'" then
     "~"
@@ -100,28 +100,46 @@ fun theorems_mentioned_in_proof_term all_names th =
          |> map fact_name_of
   in names end
 
-fun raw_interesting_const_names thy =
-  let val ctxt = Proof_Context.init_global thy in
-    Sledgehammer_Filter.const_names_in_fact thy
-        (Sledgehammer_Provers.is_built_in_const_for_prover ctxt eN)
-  end
-
-fun interesting_const_names thy =
-  raw_interesting_const_names thy
-  #> map const_name_of
-  #> sort_distinct string_ord
-
-fun interesting_type_and_class_names t =
+fun interesting_terms_types_and_classes thy term_max_depth type_max_depth t =
   let
-    val bad = [@{type_name prop}, @{type_name bool}, @{type_name fun}]
+    val ctxt = Proof_Context.init_global thy
+    val bad_types = [@{type_name prop}, @{type_name bool}, @{type_name fun}]
+    val bad_consts = atp_widely_irrelevant_consts
     val add_classes =
       subtract (op =) @{sort type} #> map class_name_of #> union (op =)
-    fun maybe_add_type (Type (s, Ts)) =
-        (not (member (op =) bad s) ? insert (op =) (type_name_of s))
-        #> fold maybe_add_type Ts
-      | maybe_add_type (TFree (_, S)) = add_classes S
-      | maybe_add_type (TVar (_, S)) = add_classes S
-  in [] |> fold_types maybe_add_type t end
+    fun add_type (Type (s, Ts)) =
+        (not (member (op =) bad_types s) ? insert (op =) (type_name_of s))
+        #> fold add_type Ts
+      | add_type (TFree (_, S)) = add_classes S
+      | add_type (TVar (_, S)) = add_classes S
+    fun mk_app s args =
+      if member (op <>) args "?" then s ^ "(" ^ space_implode "," args ^ ")"
+      else s
+    fun patternify 0 t = "?"
+      | patternify depth t =
+        case strip_comb t of
+          (Const (s, _), args) =>
+          mk_app (const_name_of s) (map (patternify (depth - 1)) args)
+        | _ => "?"
+    fun add_term_patterns depth t =
+      if depth < 0 then
+        I
+      else
+        insert (op =) (patternify depth t)
+        #> add_term_patterns (depth - 1) t
+    val add_term = add_term_patterns term_max_depth
+    fun add_patterns t =
+      let val (head, args) = strip_comb t in
+        (case head of
+           Const (s, T) =>
+           not (member (op =) bad_consts s) ? (add_term t #> add_type T)
+         | Free (_, T) => add_type T
+         | Var (_, T) => add_type T
+         | Abs (_, T, body) => add_type T #> add_patterns body
+         | _ => I)
+        #> fold add_patterns args
+      end
+  in [] |> add_patterns t |> sort string_ord end
 
 fun theory_ord p =
   if Theory.eq_thy p then EQUAL
@@ -206,23 +224,16 @@ fun is_fo_term thy t =
          has_bool_arg_const t orelse exists_Const (higher_inst_const thy) t)
   end
 
-val is_skolem = String.isSubstring Sledgehammer_Filter.pseudo_skolem_prefix
 val is_abs = String.isSubstring Sledgehammer_Filter.pseudo_abs_name
+
+val max_depth = 1
 
 (* TODO: Add types, subterms *)
 fun features_of thy (status, th) =
   let val prop = Thm.prop_of th in
     thy_name_of (thy_name_of_thm th) ::
-    interesting_const_names thy prop @
-    interesting_type_and_class_names prop
-    |> (fn feats =>
-           case List.partition is_skolem feats of
-             ([], feats) => feats
-           | (_, feats) => "skolem" :: feats)
-    |> (fn feats =>
-           case List.partition is_abs feats of
-             ([], feats) => feats
-           | (_, feats) => "abs" :: feats)
+    interesting_terms_types_and_classes thy max_depth max_depth prop
+    (* ### skolem and "abs" *)
     |> not (is_fo_term thy prop) ? cons "ho"
     |> (case status of
           General => I
@@ -256,8 +267,7 @@ val known_tautologies =
 
 fun is_likely_tautology thy th =
   (member Thm.eq_thm_prop known_tautologies th orelse
-   th |> prop_of |> raw_interesting_const_names thy
-      |> forall (is_skolem orf is_abs)) andalso
+   th |> prop_of |> interesting_terms_types_and_classes thy 0 ~1 |> null) andalso
   not (Thm.eq_thm_prop (@{thm ext}, th))
 
 fun generate_mash_dependency_file_for_theory thy include_thy file_name =
