@@ -4,7 +4,8 @@ use_thys [
   "Quickcheck_Lattice_Examples",
   "Completeness",
   "Quickcheck_Interfaces",
-  "Hotel_Example"
+  "Hotel_Example",
+  "Needham_Schroeder_No_Attacker_Example"
 ];
 
 if getenv "ISABELLE_GHC" = "" then ()
