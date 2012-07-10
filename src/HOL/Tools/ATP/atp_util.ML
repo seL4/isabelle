@@ -192,6 +192,7 @@ fun tiny_card_of_type ctxt sound assigns default_card T =
            | (k1, k2) =>
              if k1 >= max orelse k2 >= max then max
              else Int.min (max, Integer.pow k2 k1))
+        | Type (@{type_name set}, [T']) => aux slack avoid (T' --> @{typ bool})
         | @{typ prop} => 2
         | @{typ bool} => 2 (* optimization *)
         | @{typ nat} => 0 (* optimization *)
