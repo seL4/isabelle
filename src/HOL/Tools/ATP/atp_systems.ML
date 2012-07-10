@@ -213,7 +213,8 @@ val alt_ergo = (alt_ergoN, fn () => alt_ergo_config)
 
 (* E *)
 
-fun is_new_e_version () = (string_ord (getenv "E_VERSION", "1.2") = GREATER)
+fun is_recent_e_version () = (string_ord (getenv "E_VERSION", "1.3") <> LESS)
+fun is_new_e_version () = (string_ord (getenv "E_VERSION", "1.6") <> LESS)
 
 val tstp_proof_delims =
   [("# SZS output start CNFRefutation.", "# SZS output end CNFRefutation"),
@@ -289,23 +290,35 @@ fun e_term_order_info_arguments false false _ = ""
        else "")
     end
 
-fun effective_e_selection_heuristic ctxt =
-  if is_new_e_version () then Config.get ctxt e_selection_heuristic else e_autoN
+fun e_shell_level_argument full_proof =
+  if is_new_e_version () then
+    " --pcl-shell-level=" ^ (if full_proof then "0" else "2")
+  else
+    ""
 
-fun e_kbo () = if is_new_e_version () then "KBO6" else "KBO"
+fun effective_e_selection_heuristic ctxt =
+  if is_recent_e_version () then Config.get ctxt e_selection_heuristic
+  else e_autoN
+
+fun e_kbo () = if is_recent_e_version () then "KBO6" else "KBO"
 
 val e_config : atp_config =
   {exec = (["E_HOME"], "eproof"),
    required_vars = [],
    arguments =
-     fn ctxt => fn _ => fn heuristic => fn timeout =>
+     fn ctxt => fn full_proof => fn heuristic => fn timeout =>
         fn ({is_lpo, gen_weights, gen_prec, ...}, ord_info, sel_weights) =>
         "--tstp-in --tstp-out --output-level=5 --silent " ^
         e_selection_weight_arguments ctxt heuristic sel_weights ^ " " ^
         e_term_order_info_arguments gen_weights gen_prec ord_info ^ " " ^
         "--term-ordering=" ^ (if is_lpo then "LPO4" else e_kbo ()) ^ " " ^
-        "--cpu-limit=" ^ string_of_int (to_secs 2 timeout),
-   proof_delims = tstp_proof_delims,
+        "--cpu-limit=" ^ string_of_int (to_secs 2 timeout) ^
+        e_shell_level_argument full_proof,
+   proof_delims =
+     (* work-around for bug in "epclextract" version 1.6 *)
+     ("# SZS status Theorem\n# SZS output start Saturation.",
+      "# SZS output end Saturation.") ::
+     tstp_proof_delims,
    known_failures =
      [(TimedOut, "Failure: Resource limit exceeded (time)"),
       (TimedOut, "time limit exceeded")] @
