@@ -2496,8 +2496,7 @@ fun lines_for_sym_decl_table ctxt mono type_enc mono_Ts sym_decl_tab =
   let
     val syms = sym_decl_tab |> Symtab.dest |> sort_wrt fst
     val mono_lines = lines_for_mono_types ctxt mono type_enc mono_Ts
-    val decl_lines =
-      fold_rev (append o lines_for_sym_decls ctxt mono type_enc) syms []
+    val decl_lines = maps (lines_for_sym_decls ctxt mono type_enc) syms
   in mono_lines @ decl_lines end
 
 fun pair_append (xs1, xs2) (ys1, ys2) = (xs1 @ ys1, xs2 @ ys2)

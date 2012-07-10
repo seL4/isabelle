@@ -131,7 +131,7 @@ val string_from_time = string_from_ext_time o pair false
 fun type_instance thy T T' = Sign.typ_instance thy (T, T')
 fun type_generalization thy T T' = Sign.typ_instance thy (T', T)
 fun type_intersect thy T T' =
-  can (Sign.typ_unify thy (T, Logic.incr_tvar (maxidx_of_typ T + 1) T'))
+  can (Sign.typ_unify thy (Logic.incr_tvar (maxidx_of_typ T' + 1) T, T'))
       (Vartab.empty, 0)
 val type_equiv = Sign.typ_equiv
 
