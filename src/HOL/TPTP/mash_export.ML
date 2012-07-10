@@ -14,10 +14,16 @@ sig
   val theory_ord : theory * theory -> order
   val thm_ord : thm * thm -> order
   val dependencies_of : string list -> thm -> string list
+  val meng_paulson_facts :
+    Proof.context -> string -> int -> real * real -> thm -> int
+    -> (((unit -> string) * stature) * thm) list
+    -> ((string * stature) * thm) list
   val generate_mash_accessibility : theory -> bool -> string -> unit
   val generate_mash_features : theory -> bool -> string -> unit
   val generate_mash_dependencies : theory -> bool -> string -> unit
   val generate_mash_commands : theory -> string -> unit
+  val generate_meng_paulson_suggestions :
+    Proof.context -> theory -> string -> unit
 end;
 
 structure MaSh_Export : MASH_EXPORT =
@@ -192,6 +198,32 @@ fun features_of thy (status, th) =
 val dependencies_of =
   map fact_name_of oo theorems_mentioned_in_proof_term o SOME
 
+val freezeT = Type.legacy_freeze_type
+
+fun freeze (t $ u) = freeze t $ freeze u
+  | freeze (Abs (s, T, t)) = Abs (s, freezeT T, freeze t)
+  | freeze (Var ((s, _), T)) = Free (s, freezeT T)
+  | freeze (Const (s, T)) = Const (s, freezeT T)
+  | freeze (Free (s, T)) = Free (s, freezeT T)
+  | freeze t = t
+
+val goal_of_thm = prop_of #> freeze #> cterm_of thy #> Goal.init
+
+fun meng_paulson_facts ctxt prover_name max_relevant relevance_thresholds
+                       goal i =
+  let
+    val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal i
+    val is_built_in_const =
+      Sledgehammer_Provers.is_built_in_const_for_prover ctxt prover_name
+    val relevance_fudge =
+      Sledgehammer_Provers.relevance_fudge_for_prover ctxt prover_name
+    val relevance_override = {add = [], del = [], only = false}
+  in
+    Sledgehammer_Filter.relevant_facts ctxt relevance_thresholds
+        max_relevant is_built_in_const relevance_fudge relevance_override []
+        hyp_ts concl_t
+  end
+
 fun generate_mash_accessibility thy include_thy file_name =
   let
     val path = file_name |> Path.explode
@@ -210,10 +242,8 @@ fun generate_mash_accessibility thy include_thy file_name =
         val thy = theory_of_thm (hd ths)
         val parents = parent_thms thy_ths thy
         val ths = ths |> map (fact_name_of o Thm.get_name_hint)
-        val _ = fold do_thm ths parents
-      in () end
-    val _ = List.app (do_thy o snd) thy_ths
-  in () end
+      in fold do_thm ths parents; () end
+  in List.app (do_thy o snd) thy_ths end
 
 fun generate_mash_features thy include_thy file_name =
   let
@@ -228,8 +258,7 @@ fun generate_mash_features thy include_thy file_name =
         val feats = features_of thy (status, th)
         val s = fact_name_of name ^ ": " ^ space_implode " " feats ^ "\n"
       in File.append path s end
-    val _ = List.app do_fact facts
-  in () end
+  in List.app do_fact facts end
 
 fun generate_mash_dependencies thy include_thy file_name =
   let
@@ -246,8 +275,7 @@ fun generate_mash_dependencies thy include_thy file_name =
         val deps = dependencies_of all_names th
         val s = fact_name_of name ^ ": " ^ space_implode " " deps ^ "\n"
       in File.append path s end
-    val _ = List.app do_thm ths
-  in () end
+  in List.app do_thm ths end
 
 fun generate_mash_commands thy file_name =
   let
@@ -274,7 +302,38 @@ fun generate_mash_commands thy file_name =
       in [name] end
     val thy_ths = old_facts |> thms_by_thy
     val parents = parent_thms thy_ths thy
-    val _ = fold do_fact new_facts parents
-  in () end
+  in fold do_fact new_facts parents; () end
+
+fun generate_meng_paulson_suggestions ctxt thy file_name =
+  let
+    val {provers, max_relevant, relevance_thresholds, ...} =
+      Sledgehammer_Isar.default_params ctxt []
+    val prover_name = hd provers
+    val path = file_name |> Path.explode
+    val _ = File.write path ""
+    val facts = non_tautological_facts_of thy
+    val (new_facts, old_facts) =
+      facts |> List.partition (has_thy thy o snd)
+            |>> sort (thm_ord o pairself snd)
+    val i = 1
+    fun do_fact (fact as (_, th)) old_facts =
+      let
+        val name = Thm.get_name_hint th
+        val goal = goal_of_thm th
+        val kind = Thm.legacy_get_kind th
+        val _ =
+          if kind <> "" then
+            let
+              val suggs =
+                old_facts
+                |> meng_paulson_facts ctxt prover_name (the max_relevant)
+                                      relevance_thresholds goal i
+                |> map (fact_name_of o Thm.get_name_hint o snd)
+              val s = fact_name_of name ^ ": " ^ space_implode " " suggs ^ "\n"
+            in File.append path s end
+          else
+            ()
+      in fact :: old_facts end
+  in fold do_fact new_facts old_facts; () end
 
 end;

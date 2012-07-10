@@ -9,13 +9,20 @@ imports ATP_Theory_Export
 uses "mash_export.ML"
 begin
 
+sledgehammer_params [provers = e, max_relevant = 500]
+
 ML {*
 open MaSh_Export
 *}
 
 ML {*
-val do_it = false (* switch to "true" to generate the files *)
+val do_it = false (* switch to "true" to generate the files *);
 val thy = @{theory List}
+*}
+
+ML {*
+if do_it then generate_meng_paulson_suggestions @{context} thy "/tmp/mash_meng_paulson_suggestions"
+else ()
 *}
 
 ML {*
@@ -36,10 +43,6 @@ else ()
 ML {*
 if do_it then generate_mash_dependencies thy false "/tmp/mash_dependencies"
 else ()
-*}
-
-ML {*
-find_index (curry (op =) 22) [0, 0, 9, 1, 2, 3]
 *}
 
 end

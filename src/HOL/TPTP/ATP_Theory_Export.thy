@@ -5,7 +5,7 @@
 header {* ATP Theory Exporter *}
 
 theory ATP_Theory_Export
-imports "~~/src/HOL/Sledgehammer2d" (*###*) Complex_Main
+imports Complex_Main
 uses "atp_theory_export.ML"
 begin
 
@@ -16,7 +16,7 @@ open ATP_Theory_Export;
 
 ML {*
 val do_it = false; (* switch to "true" to generate the files *)
-val thy = @{theory Complex_Main};
+val thy = @{theory};
 val ctxt = @{context}
 *}
 
