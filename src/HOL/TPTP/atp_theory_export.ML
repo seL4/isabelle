@@ -37,7 +37,7 @@ fun stringN_of_int 0 _ = ""
 
 fun escape_meta_char c =
   if Char.isAlphaNum c orelse c = #"_" orelse c = #"." orelse c = #"(" orelse
-     c = #")" orelse c = #"?" orelse c = #"," then
+     c = #")" orelse c = #"," then
     String.str c
   else if c = #"'" then
     "~"
@@ -104,14 +104,14 @@ fun interesting_terms_types_and_classes term_max_depth type_max_depth t =
       | do_add_type (TVar (_, S)) = add_classes S
     fun add_type T = type_max_depth >= 0 ? do_add_type T
     fun mk_app s args =
-      if member (op <>) args "?" then s ^ "(" ^ space_implode "," args ^ ")"
+      if member (op <>) args "" then s ^ "(" ^ space_implode "," args ^ ")"
       else s
-    fun patternify ~1 _ = "?"
+    fun patternify ~1 _ = ""
       | patternify depth t =
         case strip_comb t of
           (Const (s, _), args) =>
           mk_app (const_name_of s) (map (patternify (depth - 1)) args)
-        | _ => "?"
+        | _ => ""
     fun add_term_patterns ~1 _ = I
       | add_term_patterns depth t =
         insert (op =) (patternify depth t)
@@ -130,13 +130,8 @@ fun interesting_terms_types_and_classes term_max_depth type_max_depth t =
       end
   in [] |> add_patterns t |> sort string_ord end
 
-val known_tautologies =
-  [@{thm All_def}, @{thm Ex_def}, @{thm Ex1_def}, @{thm Ball_def},
-   @{thm Bex_def}, @{thm If_def}]
-
 fun is_likely_tautology th =
-  (member Thm.eq_thm_prop known_tautologies th orelse
-   th |> prop_of |> interesting_terms_types_and_classes 0 ~1 |> null) andalso
+  null (interesting_terms_types_and_classes 0 ~1 (prop_of th)) andalso
   not (Thm.eq_thm_prop (@{thm ext}, th))
 
 fun is_too_meta thy th =
@@ -302,14 +297,14 @@ fun generate_mash_problem_file_for_theory thy file_name =
         val name = Thm.get_name_hint th
         val feats = features_of thy (status, th)
         val deps = dependencies_of all_names th
-        val th = fact_name_of name
-        val s =
-          th ^ ": " ^
-          space_implode " " prevs ^ "; " ^
-          space_implode " " feats ^ "; " ^
-          space_implode " " deps ^ "\n"
-        val _ = File.append path s
-      in [th] end
+        val kind = Thm.legacy_get_kind th
+        val name = fact_name_of name
+        val core =
+          name ^ ": " ^ space_implode " " prevs ^ "; " ^ space_implode " " feats
+        val query = if kind <> "" then "? " ^ core ^ "\n" else ""
+        val update = "! " ^ core ^ "; " ^ space_implode " " deps ^ "\n"
+        val _ = File.append path (query ^ update)
+      in [name] end
     val thy_ths = old_facts |> thms_by_thy
     val parents = parent_thms thy_ths thy
     val _ = fold do_fact new_facts parents
