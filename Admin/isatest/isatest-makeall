@@ -10,8 +10,6 @@
 # max time until test is aborted (in sec)
 MAXTIME=28800
 
-PUBLISH_TEST="$HOME/home/isabelle-repository/repos/testtool/publish_test.py"
-
 ## diagnostics
 
 PRG="$(basename "$0")"
@@ -178,16 +176,10 @@ for SETTINGS in $@; do
     then
         # test log and cleanup
         echo ------------------- test successful --- `date` --- $HOSTNAME >> $TESTLOG 2>&1
-        if [ -x $PUBLISH_TEST ]; then
-            $PUBLISH_TEST -r $IDENT -s "SUCCESS" -a log $TESTLOG -n Makeall_isatest_$SHORT
-        fi
         gzip -f $TESTLOG
     else
         # test log
         echo ------------------- test FAILED --- `date` --- $HOSTNAME >> $TESTLOG 2>&1
-        if [ -x $PUBLISH_TEST ]; then
-             $PUBLISH_TEST -r $IDENT -s "FAIL" -a log $TESTLOG -n Makeall_isatest_$SHORT
-        fi
 
         # error log
         echo "Test for platform ${SHORT} failed. Log file attached." >> $ERRORLOG
