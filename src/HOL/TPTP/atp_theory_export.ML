@@ -58,15 +58,6 @@ val thy_name_of_thm = theory_of_thm #> Context.theory_name
 
 fun has_thy thy th = (Context.theory_name thy = thy_name_of_thm th)
 
-fun facts_of thy =
-  let val ctxt = Proof_Context.init_global thy in
-    Sledgehammer_Filter.all_facts ctxt false Symtab.empty true [] []
-        (Sledgehammer_Filter.clasimpset_rule_table_of ctxt)
-    |> filter (curry (op =) @{typ bool} o fastype_of
-               o Object_Logic.atomize_term thy o prop_of o snd)
-    |> rev
-  end
-
 (* FIXME: Similar yet different code in "mirabelle.ML". The code here has a few
    fixes that seem to be missing over there; or maybe the two code portions are
    not doing the same? *)
@@ -138,6 +129,26 @@ fun interesting_terms_types_and_classes term_max_depth type_max_depth t =
         #> fold add_patterns args
       end
   in [] |> add_patterns t |> sort string_ord end
+
+val known_tautologies =
+  [@{thm All_def}, @{thm Ex_def}, @{thm Ex1_def}, @{thm Ball_def},
+   @{thm Bex_def}, @{thm If_def}]
+
+fun is_likely_tautology th =
+  (member Thm.eq_thm_prop known_tautologies th orelse
+   th |> prop_of |> interesting_terms_types_and_classes 0 ~1 |> null) andalso
+  not (Thm.eq_thm_prop (@{thm ext}, th))
+
+fun is_too_meta thy th =
+  fastype_of (Object_Logic.atomize_term thy (prop_of th)) <> @{typ bool}
+
+fun facts_of thy =
+  let val ctxt = Proof_Context.init_global thy in
+    Sledgehammer_Filter.all_facts ctxt false Symtab.empty true [] []
+        (Sledgehammer_Filter.clasimpset_rule_table_of ctxt)
+    |> filter_out ((is_likely_tautology orf is_too_meta thy) o snd)
+    |> rev
+  end
 
 fun theory_ord p =
   if Theory.eq_thy p then EQUAL
@@ -259,15 +270,6 @@ fun generate_mash_feature_file_for_theory thy include_thy file_name =
 
 val dependencies_of = theorems_mentioned_in_proof_term o SOME
 
-val known_tautologies =
-  [@{thm All_def}, @{thm Ex_def}, @{thm Ex1_def}, @{thm Ball_def},
-   @{thm Bex_def}, @{thm If_def}]
-
-fun is_likely_tautology th =
-  (member Thm.eq_thm_prop known_tautologies th orelse
-   th |> prop_of |> interesting_terms_types_and_classes 0 ~1 |> null) andalso
-  not (Thm.eq_thm_prop (@{thm ext}, th))
-
 fun generate_mash_dependency_file_for_theory thy include_thy file_name =
   let
     val path = file_name |> Path.explode
@@ -275,8 +277,7 @@ fun generate_mash_dependency_file_for_theory thy include_thy file_name =
     val ths =
       facts_of thy |> not include_thy ? filter_out (has_thy thy o snd)
                    |> map snd
-    val all_names =
-      ths |> filter_out is_likely_tautology |> map Thm.get_name_hint
+    val all_names = ths |> map Thm.get_name_hint
     fun do_thm th =
       let
         val name = Thm.get_name_hint th
@@ -295,8 +296,7 @@ fun generate_mash_problem_file_for_theory thy file_name =
       facts |> List.partition (has_thy thy o snd)
             |>> sort (thm_ord o pairself snd)
     val ths = facts |> map snd
-    val all_names =
-      ths |> filter_out is_likely_tautology |> map Thm.get_name_hint
+    val all_names = ths |> map Thm.get_name_hint
     fun do_fact ((_, (_, status)), th) prevs =
       let
         val name = Thm.get_name_hint th
@@ -415,8 +415,7 @@ fun generate_tptp_inference_file_for_theory ctxt thy format type_enc file_name =
       atp_problem
       |> map (apsnd (filter_out (is_problem_line_tautology ctxt format)))
     val ths = facts |> map snd
-    val all_names =
-      ths |> filter_out is_likely_tautology |> map Thm.get_name_hint
+    val all_names = ths |> map Thm.get_name_hint
     val infers =
       facts |> map (fn (_, th) =>
                        (fact_name_of (Thm.get_name_hint th),
