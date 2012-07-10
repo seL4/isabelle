@@ -53,6 +53,10 @@ sig
     Proof.context -> bool -> 'a Symtab.table -> bool -> thm list
     -> thm list -> status Termtab.table
     -> (((unit -> string) * stature) * thm) list
+  val maybe_instantiate_inducts :
+    Proof.context -> term list -> term -> (((unit -> string) * 'a) * thm) list
+    -> (((unit -> string) * 'a) * thm) list
+  val maybe_filter_no_atps : Proof.context -> ('a * thm) list -> ('a * thm) list
   val nearly_all_facts :
     Proof.context -> bool -> relevance_override -> thm list -> term list -> term
     -> (((unit -> string) * stature) * thm) list
@@ -959,19 +963,29 @@ fun all_facts ctxt ho_atp reserved exporter add_ths chained_ths css_table =
 fun external_frees t =
   [] |> Term.add_frees t |> filter_out (can Name.dest_internal o fst)
 
+fun maybe_instantiate_inducts ctxt hyp_ts concl_t =
+  if Config.get ctxt instantiate_inducts then
+    let
+      val thy = Proof_Context.theory_of ctxt
+      val ind_stmt =
+        (hyp_ts |> filter_out (null o external_frees), concl_t)
+        |> Logic.list_implies |> Object_Logic.atomize_term thy
+      val ind_stmt_xs = external_frees ind_stmt
+    in maps (instantiate_if_induct_rule ctxt ind_stmt ind_stmt_xs) end
+  else
+    I
+
+fun maybe_filter_no_atps ctxt =
+  not (Config.get ctxt ignore_no_atp) ? filter_out (No_ATPs.member ctxt o snd)
+
 fun nearly_all_facts ctxt ho_atp ({add, only, ...} : relevance_override)
                      chained_ths hyp_ts concl_t =
   if only andalso null add then
     []
   else
     let
-      val thy = Proof_Context.theory_of ctxt
       val reserved = reserved_isar_keyword_table ()
       val add_ths = Attrib.eval_thms ctxt add
-      val ind_stmt =
-        (hyp_ts |> filter_out (null o external_frees), concl_t)
-        |> Logic.list_implies |> Object_Logic.atomize_term thy
-      val ind_stmt_xs = external_frees ind_stmt
       val css_table = clasimpset_rule_table_of ctxt
     in
       (if only then
@@ -979,10 +993,8 @@ fun nearly_all_facts ctxt ho_atp ({add, only, ...} : relevance_override)
                o fact_from_ref ctxt reserved chained_ths css_table) add
        else
          all_facts ctxt ho_atp reserved false add_ths chained_ths css_table)
-      |> Config.get ctxt instantiate_inducts
-         ? maps (instantiate_if_induct_rule ctxt ind_stmt ind_stmt_xs)
-      |> (not (Config.get ctxt ignore_no_atp) andalso not only)
-         ? filter_out (No_ATPs.member ctxt o snd)
+      |> maybe_instantiate_inducts ctxt hyp_ts concl_t
+      |> not only ? maybe_filter_no_atps ctxt
       |> uniquify
     end
 
