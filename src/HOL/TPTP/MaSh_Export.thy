@@ -14,41 +14,32 @@ open MaSh_Export
 *}
 
 ML {*
-val do_it = false; (* switch to "true" to generate the files *)
-val thy = @{theory List};
-val ctxt = @{context}
+val do_it = false (* switch to "true" to generate the files *)
+val thy = @{theory List}
 *}
 
 ML {*
-if do_it then
-  "/tmp/mash_sample_problem.out"
-  |> generate_mash_problem_file_for_theory thy
-else
-  ()
+if do_it then generate_mash_commands thy "/tmp/mash_commands"
+else ()
 *}
 
 ML {*
-if do_it then
-  "/tmp/mash_features.out"
-  |> generate_mash_feature_file_for_theory thy false
-else
-  ()
+if do_it then generate_mash_features thy false "/tmp/mash_features"
+else ()
 *}
 
 ML {*
-if do_it then
-  "/tmp/mash_accessibility.out"
-  |> generate_mash_accessibility_file_for_theory thy false
-else
-  ()
+if do_it then generate_mash_accessibility thy false "/tmp/mash_accessibility"
+else ()
 *}
 
 ML {*
-if do_it then
-  "/tmp/mash_dependencies.out"
-  |> generate_mash_dependency_file_for_theory thy false
-else
-   ()
+if do_it then generate_mash_dependencies thy false "/tmp/mash_dependencies"
+else ()
+*}
+
+ML {*
+find_index (curry (op =) 22) [0, 0, 9, 1, 2, 3]
 *}
 
 end

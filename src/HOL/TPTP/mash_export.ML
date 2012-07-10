@@ -7,12 +7,17 @@ Export Isabelle theory information for MaSh (Machine-learning for Sledgehammer).
 
 signature MASH_EXPORT =
 sig
-  val generate_mash_accessibility_file_for_theory :
-    theory -> bool -> string -> unit
-  val generate_mash_feature_file_for_theory : theory -> bool -> string -> unit
-  val generate_mash_dependency_file_for_theory :
-    theory -> bool -> string -> unit
-  val generate_mash_problem_file_for_theory : theory -> string -> unit
+  type stature = ATP_Problem_Generate.stature
+
+  val non_tautological_facts_of :
+    theory -> (((unit -> string) * stature) * thm) list
+  val theory_ord : theory * theory -> order
+  val thm_ord : thm * thm -> order
+  val dependencies_of : string list -> thm -> string list
+  val generate_mash_accessibility : theory -> bool -> string -> unit
+  val generate_mash_features : theory -> bool -> string -> unit
+  val generate_mash_dependencies : theory -> bool -> string -> unit
+  val generate_mash_commands : theory -> string -> unit
 end;
 
 structure MaSh_Export : MASH_EXPORT =
@@ -29,8 +34,6 @@ fun escape_meta_char c =
   if Char.isAlphaNum c orelse c = #"_" orelse c = #"." orelse c = #"(" orelse
      c = #")" orelse c = #"," then
     String.str c
-  else if c = #"'" then
-    "~"
   else
     (* fixed width, in case more digits follow *)
     "\\" ^ stringN_of_int 3 (Char.ord c)
@@ -189,7 +192,7 @@ fun features_of thy (status, th) =
 val dependencies_of =
   map fact_name_of oo theorems_mentioned_in_proof_term o SOME
 
-fun generate_mash_accessibility_file_for_theory thy include_thy file_name =
+fun generate_mash_accessibility thy include_thy file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
@@ -212,7 +215,7 @@ fun generate_mash_accessibility_file_for_theory thy include_thy file_name =
     val _ = List.app (do_thy o snd) thy_ths
   in () end
 
-fun generate_mash_feature_file_for_theory thy include_thy file_name =
+fun generate_mash_features thy include_thy file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
@@ -228,7 +231,7 @@ fun generate_mash_feature_file_for_theory thy include_thy file_name =
     val _ = List.app do_fact facts
   in () end
 
-fun generate_mash_dependency_file_for_theory thy include_thy file_name =
+fun generate_mash_dependencies thy include_thy file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
@@ -246,7 +249,7 @@ fun generate_mash_dependency_file_for_theory thy include_thy file_name =
     val _ = List.app do_thm ths
   in () end
 
-fun generate_mash_problem_file_for_theory thy file_name =
+fun generate_mash_commands thy file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""

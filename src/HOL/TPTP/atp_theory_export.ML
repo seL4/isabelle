@@ -63,6 +63,7 @@ fun all_facts_of_theory thy =
   let val ctxt = Proof_Context.init_global thy in
     Sledgehammer_Filter.all_facts ctxt false Symtab.empty true [] []
         (Sledgehammer_Filter.clasimpset_rule_table_of ctxt)
+    |> rev (* try to restore the original order of facts, for MaSh *)
   end
 
 fun inference_term [] = NONE
