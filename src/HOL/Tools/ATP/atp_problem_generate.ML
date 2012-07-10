@@ -86,6 +86,7 @@ sig
   val unproxify_const : string -> string
   val new_skolem_var_name_from_const : string -> string
   val atp_irrelevant_consts : string list
+  val atp_widely_irrelevant_consts : string list
   val atp_schematic_consts_of : term -> typ list Symtab.table
   val is_type_enc_higher_order : type_enc -> bool
   val is_type_enc_polymorphic : type_enc -> bool
@@ -399,7 +400,7 @@ val atp_irrelevant_consts =
    @{const_name conj}, @{const_name disj}, @{const_name implies},
    @{const_name HOL.eq}, @{const_name If}, @{const_name Let}]
 
-val atp_monomorph_bad_consts =
+val atp_widely_irrelevant_consts =
   atp_irrelevant_consts @
   (* These are ignored anyway by the relevance filter (unless they appear in
      higher-order places) but not by the monomorphizer. *)
@@ -411,7 +412,7 @@ fun add_schematic_const (x as (_, T)) =
   Monomorph.typ_has_tvars T ? Symtab.insert_list (op =) x
 val add_schematic_consts_of =
   Term.fold_aterms (fn Const (x as (s, _)) =>
-                       not (member (op =) atp_monomorph_bad_consts s)
+                       not (member (op =) atp_widely_irrelevant_consts s)
                        ? add_schematic_const x
                       | _ => I)
 fun atp_schematic_consts_of t = add_schematic_consts_of t Symtab.empty

@@ -446,8 +446,15 @@ fun add_pconsts_in_term thy is_built_in_const also_skolems pos =
       | _ => do_term false t
   in do_formula pos end
 
-(*Inserts a dummy "constant" referring to the theory name, so that relevance
-  takes the given theory into account.*)
+fun pconsts_in_fact thy is_built_in_const t =
+  Symtab.fold (fn (s, pss) => fold (cons o pair s) pss)
+              (Symtab.empty |> add_pconsts_in_term thy is_built_in_const true
+                                                   (SOME true) t) []
+
+val const_names_in_fact = map fst ooo pconsts_in_fact
+
+(* Inserts a dummy "constant" referring to the theory name, so that relevance
+   takes the given theory into account. *)
 fun theory_constify ({theory_const_rel_weight, theory_const_irrel_weight, ...}
                      : relevance_fudge) thy_name t =
   if exists (curry (op <) 0.0) [theory_const_rel_weight,
@@ -458,6 +465,13 @@ fun theory_constify ({theory_const_rel_weight, theory_const_irrel_weight, ...}
 
 fun theory_const_prop_of fudge th =
   theory_constify fudge (Context.theory_name (theory_of_thm th)) (prop_of th)
+
+fun pair_consts_fact thy is_built_in_const fudge fact =
+  case fact |> snd |> theory_const_prop_of fudge
+            |> pconsts_in_fact thy is_built_in_const of
+    [] => NONE
+  | consts => SOME ((fact, consts), NONE)
+
 
 (**** Constant / Type Frequencies ****)
 
@@ -596,19 +610,6 @@ fun fact_weight fudge stature const_tab relevant_consts chained_consts
                    o irrel_pconst_weight fudge const_tab chained_consts) irrel
         val res = rel_weight / (rel_weight + irrel_weight)
       in if Real.isFinite res then res else 0.0 end
-
-fun pconsts_in_fact thy is_built_in_const t =
-  Symtab.fold (fn (s, pss) => fold (cons o pair s) pss)
-              (Symtab.empty |> add_pconsts_in_term thy is_built_in_const true
-                                                   (SOME true) t) []
-
-fun pair_consts_fact thy is_built_in_const fudge fact =
-  case fact |> snd |> theory_const_prop_of fudge
-            |> pconsts_in_fact thy is_built_in_const of
-    [] => NONE
-  | consts => SOME ((fact, consts), NONE)
-
-val const_names_in_fact = map fst ooo pconsts_in_fact
 
 type annotated_thm =
   (((unit -> string) * stature) * thm) * (string * ptype) list
