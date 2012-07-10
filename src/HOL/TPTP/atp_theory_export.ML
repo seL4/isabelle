@@ -46,8 +46,10 @@ fun escape_meta_char c =
     "\\" ^ stringN_of_int 3 (Char.ord c)
 val escape_meta = String.translate escape_meta_char
 
+val thy_prefix = "y_"
+
 val fact_name_of = escape_meta
-val thy_name_of = escape_meta
+val thy_name_of = prefix thy_prefix o escape_meta
 val const_name_of = prefix const_prefix o escape_meta
 val type_name_of = prefix type_const_prefix o escape_meta
 val class_name_of = prefix class_prefix o escape_meta
@@ -131,7 +133,7 @@ val thm_ord = theory_ord o pairself theory_of_thm
 
 fun parent_thms thy_ths thy =
   Theory.parents_of thy
-  |> map (thy_name_of o Context.theory_name)
+  |> map Context.theory_name
   |> map_filter (AList.lookup (op =) thy_ths)
   |> map List.last
   |> map (fact_name_of o Thm.get_name_hint)
@@ -210,6 +212,7 @@ val is_abs = String.isSubstring Sledgehammer_Filter.pseudo_abs_name
 (* TODO: Add types, subterms *)
 fun features_of thy (status, th) =
   let val prop = Thm.prop_of th in
+    thy_name_of (thy_name_of_thm th) ::
     interesting_const_names thy prop @
     interesting_type_and_class_names prop
     |> (fn feats =>

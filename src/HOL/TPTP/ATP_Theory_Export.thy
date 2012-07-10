@@ -15,8 +15,8 @@ open ATP_Theory_Export;
 *}
 
 ML {*
-val do_it = false; (* switch to "true" to generate the files *)
-val thy = @{theory Complex_Main};
+val do_it = true (* ### *); (* switch to "true" to generate the files *)
+val thy = @{theory Nat};
 val ctxt = @{context}
 *}
 
@@ -33,16 +33,16 @@ else
 
 ML {*
 if do_it then
-  "/tmp/mash_accessibility.out"
-  |> generate_mash_accessibility_file_for_theory thy false
+  "/tmp/mash_features.out"
+  |> generate_mash_feature_file_for_theory thy false
 else
   ()
 *}
 
 ML {*
 if do_it then
-  "/tmp/mash_features.out"
-  |> generate_mash_feature_file_for_theory thy false
+  "/tmp/mash_accessibility.out"
+  |> generate_mash_accessibility_file_for_theory thy false
 else
   ()
 *}
