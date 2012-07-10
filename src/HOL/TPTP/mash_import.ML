@@ -40,7 +40,7 @@ fun freeze (t $ u) = freeze t $ freeze u
 val prover_name = ATP_Systems.spassN
 val max_relevant = 40
 val slack_max_relevant = 2 * max_relevant
-val timeout = 2
+val timeout = 5
 
 fun import_and_evaluate_mash_suggestions ctxt thy file_name =
   let
@@ -48,6 +48,7 @@ fun import_and_evaluate_mash_suggestions ctxt thy file_name =
       Sledgehammer_Isar.default_params ctxt
          [("strict", "true"),
           ("slice", "false"),
+          ("type_enc", "poly_guards??"),
           ("timeout", string_of_int timeout),
           ("preplay_timeout", "0"),
           ("minimize", "true")]
@@ -81,9 +82,10 @@ fun import_and_evaluate_mash_suggestions ctxt thy file_name =
       end
     fun find_sugg facts sugg =
       find_first (fn (_, th) => Thm.get_name_hint th = sugg) facts
-    fun sugg_facts facts =
+    fun sugg_facts hyp_ts concl_t facts =
       map_filter (find_sugg facts o of_fact_name)
       #> take slack_max_relevant
+      #> Sledgehammer_Filter.maybe_instantiate_inducts ctxt hyp_ts concl_t
       #> map (apfst (apfst (fn name => name ())))
     fun hybrid_facts fs1 fs2 =
       let
@@ -95,9 +97,7 @@ fun import_and_evaluate_mash_suggestions ctxt thy file_name =
         fun score_of f = score_in f fs1 + score_in f fs2
       in
         union fact_eq fs1 fs2
-        |> map (`score_of)
-        |> sort (int_ord o pairself fst)
-        |> map snd
+        |> map (`score_of) |> sort (int_ord o pairself fst) |> map snd
         |> take max_relevant
       end
     fun with_index facts s =
@@ -123,10 +123,11 @@ fun import_and_evaluate_mash_suggestions ctxt thy file_name =
           | NONE => error ("No fact called \"" ^ name ^ "\"")
         val deps = dependencies_of all_names th
         val goal = th |> prop_of |> freeze |> cterm_of thy |> Goal.init
+        val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal i
         val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
-        val deps_facts = sugg_facts facts deps
+        val deps_facts = sugg_facts hyp_ts concl_t facts deps
         val meng_facts = meng_facts goal facts
-        val mash_facts = sugg_facts facts suggs
+        val mash_facts = sugg_facts hyp_ts concl_t facts suggs
         val hybrid_facts = hybrid_facts meng_facts mash_facts
         val deps_res = run_sh deps_facts goal
         val meng_res = run_sh meng_facts goal

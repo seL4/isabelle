@@ -5,7 +5,7 @@
 header {* ATP Theory Exporter *}
 
 theory ATP_Theory_Export
-imports Complex_Main
+imports "~~/src/HOL/Sledgehammer2d" (*###*) Complex_Main
 uses "atp_theory_export.ML"
 begin
 

@@ -9,6 +9,8 @@ imports MaSh_Export
 uses "mash_import.ML"
 begin
 
+declare [[sledgehammer_instantiate_inducts]]
+
 ML {*
 open MaSh_Import
 *}
