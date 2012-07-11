@@ -14,6 +14,7 @@ sig
   val theory_ord : theory * theory -> order
   val thm_ord : thm * thm -> order
   val dependencies_of : string list -> thm -> string list
+  val goal_of_thm : thm -> thm
   val meng_paulson_facts :
     Proof.context -> string -> int -> real * real -> thm -> int
     -> (((unit -> string) * stature) * thm) list

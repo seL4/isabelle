@@ -15,6 +15,8 @@ end;
 structure MaSh_Import : MASH_IMPORT =
 struct
 
+open MaSh_Export
+
 val unescape_meta =
   let
     fun un accum [] = String.implode (rev accum)
@@ -63,16 +65,15 @@ fun import_and_evaluate_mash_suggestions ctxt thy file_name =
     fun with_index facts s =
       (find_index (fn ((s', _), _) => s = s') facts + 1, s)
     fun index_string (j, s) = s ^ "@" ^ string_of_int j
-    fun print_result label facts {outcome, run_time, used_facts, ...} =
-      tracing ("  " ^ label ^ ": " ^
-               (if is_none outcome then
-                  "Success (" ^ ATP_Util.string_from_time run_time ^ "): " ^
-                  space_implode " "
-                      (used_facts |> map (with_index facts o fst)
-                                  |> sort (int_ord o pairself fst)
-                                  |> map index_string)
-                else
-                  "Failure: " ^ space_implode " " (map (fst o fst) facts) ))
+    fun str_of_res label facts {outcome, run_time, used_facts, ...} =
+      "  " ^ label ^ ": " ^
+      (if is_none outcome then
+         "Success (" ^ ATP_Util.string_from_time run_time ^ "): " ^
+         space_implode " " (used_facts |> map (with_index facts o fst)
+                                       |> sort (int_ord o pairself fst)
+                                       |> map index_string)
+       else
+         "Failure: " ^ space_implode " " (map (fst o fst) facts))
     fun run_sh heading facts goal =
       let
         val problem =
@@ -81,14 +82,11 @@ fun import_and_evaluate_mash_suggestions ctxt thy file_name =
         val prover =
           Sledgehammer_Run.get_minimizing_prover ctxt
               Sledgehammer_Provers.Normal prover_name
-      in
-        prover params (K (K (K ""))) problem
-        |> tap (print_result heading facts)
-      end
+        val res as {outcome, ...} = prover params (K (K (K ""))) problem
+      in (str_of_res heading facts res, is_none outcome) end
     fun solve_goal name suggs =
       let
         val name = of_fact_name name
-        val _ = tracing ("Goal: " ^ name)
         val th =
           case find_first (fn (_, th) => Thm.get_name_hint th = name) facts of
             SOME (_, th) => th
@@ -104,12 +102,12 @@ fun import_and_evaluate_mash_suggestions ctxt thy file_name =
               i facts
         val mash_facts = sugg_facts hyp_ts concl_t facts suggs
         val hybrid_facts = hybrid_facts meng_facts mash_facts
+        val (dep_s, dep_ok) = run_sh "Dependencies" deps_facts goal
+        val (meng_s, meng_ok) = run_sh "Meng & Paulson" meng_facts goal
+        val (mash_s, mash_ok) = run_sh "MaSh" mash_facts goal
+        val (hybrid_s, hybrid_ok) = run_sh "Hybrid" hybrid_facts goal
       in
-        run_sh "Dependencies" deps_facts goal;
-        run_sh "Meng & Paulson" meng_facts goal;
-        run_sh "MaSh" mash_facts goal;
-        run_sh "Hybrid" hybrid_facts goal;
-        ()
+        tracing (cat_lines ["Goal: ", name, dep_s, meng_s, mash_s, hybrid_s])
       end
     val explode_suggs = space_explode " " #> filter_out (curry (op =) "")
     fun do_line line =
