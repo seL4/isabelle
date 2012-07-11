@@ -21,15 +21,16 @@ sig
   val fact_from_ref :
     Proof.context -> unit Symtab.table -> thm list -> status Termtab.table
     -> Facts.ref * Attrib.src list -> ((string * stature) * thm) list
-  val all_facts :
-    Proof.context -> bool -> 'a Symtab.table -> bool -> thm list
-    -> thm list -> status Termtab.table
-    -> (((unit -> string) * stature) * thm) list
   val clasimpset_rule_table_of : Proof.context -> status Termtab.table
   val maybe_instantiate_inducts :
     Proof.context -> term list -> term -> (((unit -> string) * 'a) * thm) list
     -> (((unit -> string) * 'a) * thm) list
   val maybe_filter_no_atps : Proof.context -> ('a * thm) list -> ('a * thm) list
+  val all_facts :
+    Proof.context -> bool -> 'a Symtab.table -> bool -> thm list
+    -> thm list -> status Termtab.table
+    -> (((unit -> string) * stature) * thm) list
+  val all_facts_of : theory -> (((unit -> string) * stature) * thm) list
   val nearly_all_facts :
     Proof.context -> bool -> relevance_override -> thm list -> term list -> term
     -> (((unit -> string) * stature) * thm) list
@@ -240,77 +241,6 @@ fun close_form t =
           (Term.add_vars t [] |> sort_wrt (fst o fst))
   |> fst
 
-fun all_facts ctxt ho_atp reserved exporter add_ths chained_ths css_table =
-  let
-    val thy = Proof_Context.theory_of ctxt
-    val global_facts = Global_Theory.facts_of thy
-    val local_facts = Proof_Context.facts_of ctxt
-    val named_locals = local_facts |> Facts.dest_static []
-    val assms = Assumption.all_assms_of ctxt
-    fun is_good_unnamed_local th =
-      not (Thm.has_name_hint th) andalso
-      forall (fn (_, ths) => not (member Thm.eq_thm_prop ths th)) named_locals
-    val unnamed_locals =
-      union Thm.eq_thm_prop (Facts.props local_facts) chained_ths
-      |> filter is_good_unnamed_local |> map (pair "" o single)
-    val full_space =
-      Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts)
-    fun add_facts global foldx facts =
-      foldx (fn (name0, ths) =>
-        if not exporter andalso name0 <> "" andalso
-           forall (not o member Thm.eq_thm_prop add_ths) ths andalso
-           (Facts.is_concealed facts name0 orelse
-            (not (Config.get ctxt ignore_no_atp) andalso
-             is_package_def name0) orelse
-            exists (fn s => String.isSuffix s name0)
-                   (multi_base_blacklist ctxt ho_atp)) then
-          I
-        else
-          let
-            val multi = length ths > 1
-            val backquote_thm =
-              backquote o hackish_string_for_term ctxt o close_form o prop_of
-            fun check_thms a =
-              case try (Proof_Context.get_thms ctxt) a of
-                NONE => false
-              | SOME ths' => eq_list Thm.eq_thm_prop (ths, ths')
-          in
-            pair 1
-            #> fold (fn th => fn (j, (multis, unis)) =>
-                        (j + 1,
-                         if not (member Thm.eq_thm_prop add_ths th) andalso
-                            is_theorem_bad_for_atps ho_atp exporter th then
-                           (multis, unis)
-                         else
-                           let
-                             val new =
-                               (((fn () =>
-                                 if name0 = "" then
-                                   th |> backquote_thm
-                                 else
-                                   [Facts.extern ctxt facts name0,
-                                    Name_Space.extern ctxt full_space name0,
-                                    name0]
-                                   |> find_first check_thms
-                                   |> (fn SOME name =>
-                                          make_name reserved multi j name
-                                        | NONE => "")),
-                                stature_of_thm global assms chained_ths
-                                               css_table name0 th), th)
-                           in
-                             if multi then (new :: multis, unis)
-                             else (multis, new :: unis)
-                           end)) ths
-            #> snd
-          end)
-  in
-    (* The single-name theorems go after the multiple-name ones, so that single
-       names are preferred when both are available. *)
-    ([], []) |> add_facts false fold local_facts (unnamed_locals @ named_locals)
-             |> add_facts true Facts.fold_static global_facts global_facts
-             |> op @
-  end
-
 fun clasimpset_rule_table_of ctxt =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -415,6 +345,84 @@ fun maybe_instantiate_inducts ctxt hyp_ts concl_t =
 
 fun maybe_filter_no_atps ctxt =
   not (Config.get ctxt ignore_no_atp) ? filter_out (No_ATPs.member ctxt o snd)
+
+fun all_facts ctxt ho_atp reserved exporter add_ths chained_ths css_table =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val global_facts = Global_Theory.facts_of thy
+    val local_facts = Proof_Context.facts_of ctxt
+    val named_locals = local_facts |> Facts.dest_static []
+    val assms = Assumption.all_assms_of ctxt
+    fun is_good_unnamed_local th =
+      not (Thm.has_name_hint th) andalso
+      forall (fn (_, ths) => not (member Thm.eq_thm_prop ths th)) named_locals
+    val unnamed_locals =
+      union Thm.eq_thm_prop (Facts.props local_facts) chained_ths
+      |> filter is_good_unnamed_local |> map (pair "" o single)
+    val full_space =
+      Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts)
+    fun add_facts global foldx facts =
+      foldx (fn (name0, ths) =>
+        if not exporter andalso name0 <> "" andalso
+           forall (not o member Thm.eq_thm_prop add_ths) ths andalso
+           (Facts.is_concealed facts name0 orelse
+            (not (Config.get ctxt ignore_no_atp) andalso
+             is_package_def name0) orelse
+            exists (fn s => String.isSuffix s name0)
+                   (multi_base_blacklist ctxt ho_atp)) then
+          I
+        else
+          let
+            val multi = length ths > 1
+            val backquote_thm =
+              backquote o hackish_string_for_term ctxt o close_form o prop_of
+            fun check_thms a =
+              case try (Proof_Context.get_thms ctxt) a of
+                NONE => false
+              | SOME ths' => eq_list Thm.eq_thm_prop (ths, ths')
+          in
+            pair 1
+            #> fold (fn th => fn (j, (multis, unis)) =>
+                        (j + 1,
+                         if not (member Thm.eq_thm_prop add_ths th) andalso
+                            is_theorem_bad_for_atps ho_atp exporter th then
+                           (multis, unis)
+                         else
+                           let
+                             val new =
+                               (((fn () =>
+                                 if name0 = "" then
+                                   th |> backquote_thm
+                                 else
+                                   [Facts.extern ctxt facts name0,
+                                    Name_Space.extern ctxt full_space name0,
+                                    name0]
+                                   |> find_first check_thms
+                                   |> (fn SOME name =>
+                                          make_name reserved multi j name
+                                        | NONE => "")),
+                                stature_of_thm global assms chained_ths
+                                               css_table name0 th), th)
+                           in
+                             if multi then (new :: multis, unis)
+                             else (multis, new :: unis)
+                           end)) ths
+            #> snd
+          end)
+  in
+    (* The single-name theorems go after the multiple-name ones, so that single
+       names are preferred when both are available. *)
+    ([], []) |> add_facts false fold local_facts (unnamed_locals @ named_locals)
+             |> add_facts true Facts.fold_static global_facts global_facts
+             |> op @
+  end
+
+fun all_facts_of thy =
+  let val ctxt = Proof_Context.init_global thy in
+    all_facts ctxt false Symtab.empty true [] []
+              (clasimpset_rule_table_of ctxt)
+    |> rev (* try to restore the original order of facts, for MaSh *)
+  end
 
 fun nearly_all_facts ctxt ho_atp ({add, only, ...} : relevance_override)
                      chained_ths hyp_ts concl_t =

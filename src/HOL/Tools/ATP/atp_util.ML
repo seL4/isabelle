@@ -9,6 +9,7 @@ sig
   val timestamp : unit -> string
   val hash_string : string -> int
   val hash_term : term -> int
+  val stringN_of_int : int -> int -> string
   val strip_spaces : bool -> (char -> bool) -> string -> string
   val strip_spaces_except_between_idents : string -> string
   val nat_subscript : int -> string
@@ -64,6 +65,10 @@ fun hashw_term (t1 $ t2) = hashw (hashw_term t1, hashw_term t2)
 
 fun hash_string s = Word.toInt (hashw_string (s, 0w0))
 val hash_term = Word.toInt o hashw_term
+
+fun stringN_of_int 0 _ = ""
+  | stringN_of_int k n =
+    stringN_of_int (k - 1) (n div 10) ^ string_of_int (n mod 10)
 
 fun strip_spaces skip_comments is_evil =
   let

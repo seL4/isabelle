@@ -252,10 +252,6 @@ val prefixed_type_tag_name = const_prefix ^ type_tag_name
   Other characters go to _nnn where nnn is the decimal ASCII code.*)
 val upper_a_minus_space = Char.ord #"A" - Char.ord #" "
 
-fun stringN_of_int 0 _ = ""
-  | stringN_of_int k n =
-    stringN_of_int (k - 1) (n div 10) ^ string_of_int (n mod 10)
-
 fun ascii_of_char c =
   if Char.isAlphaNum c then
     String.str c

@@ -8,11 +8,7 @@ Export Isabelle theories as first-order TPTP inferences.
 signature ATP_THEORY_EXPORT =
 sig
   type atp_format = ATP_Problem.atp_format
-  type stature = Sledgehammer_Filter.stature
 
-  val theorems_mentioned_in_proof_term :
-    string list option -> thm -> string list
-  val all_facts_of_theory : theory -> (((unit -> string) * stature) * thm) list
   val generate_atp_inference_file_for_theory :
     Proof.context -> theory -> atp_format -> string -> string -> unit
 end;
@@ -26,45 +22,6 @@ open ATP_Problem_Generate
 open ATP_Systems
 
 val fact_name_of = prefix fact_prefix o ascii_of
-
-(* FIXME: Similar yet different code in "mirabelle.ML". The code here has a few
-   fixes that seem to be missing over there; or maybe the two code portions are
-   not doing the same? *)
-fun fold_body_thms thm_name f =
-  let
-    fun app n (PBody {thms, ...}) =
-      thms |> fold (fn (_, (name, prop, body)) => fn x =>
-        let
-          val body' = Future.join body
-          val n' =
-            n + (if name = "" orelse
-                    (* uncommon case where the proved theorem occurs twice
-                       (e.g., "Transitive_Closure.trancl_into_trancl") *)
-                    (n = 1 andalso name = thm_name) then
-                   0
-                 else
-                   1)
-          val x' = x |> n' <= 1 ? app n' body'
-        in (x' |> n = 1 ? f (name, prop, body')) end)
-  in fold (app 0) end
-
-fun theorems_mentioned_in_proof_term all_names th =
-  let
-    val is_name_ok =
-      case all_names of
-        SOME names => member (op =) names
-      | NONE => (fn s => s <> "" andalso not (String.isPrefix "Pure." s))
-    fun collect (s, _, _) = is_name_ok s ? insert (op =) s
-    val names =
-      [] |> fold_body_thms (Thm.get_name_hint th) collect [Thm.proof_body_of th]
-  in names end
-
-fun all_facts_of_theory thy =
-  let val ctxt = Proof_Context.init_global thy in
-    Sledgehammer_Fact.all_facts ctxt false Symtab.empty true [] []
-        (Sledgehammer_Fact.clasimpset_rule_table_of ctxt)
-    |> rev (* try to restore the original order of facts, for MaSh *)
-  end
 
 fun inference_term [] = NONE
   | inference_term ss =
@@ -153,7 +110,7 @@ fun generate_atp_inference_file_for_theory ctxt thy format type_enc file_name =
     val mono = not (is_type_enc_polymorphic type_enc)
     val path = file_name |> Path.explode
     val _ = File.write path ""
-    val facts = all_facts_of_theory thy
+    val facts = Sledgehammer_Fact.all_facts_of thy
     val atp_problem =
       facts
       |> map (fn ((_, loc), th) =>
@@ -170,7 +127,7 @@ fun generate_atp_inference_file_for_theory ctxt thy format type_enc file_name =
     val infers =
       facts |> map (fn (_, th) =>
                        (fact_name_of (Thm.get_name_hint th),
-                        th |> theorems_mentioned_in_proof_term (SOME all_names)
+                        th |> Sledgehammer_Util.thms_in_proof (SOME all_names)
                            |> map fact_name_of))
     val all_atp_problem_names =
       atp_problem |> maps (map ident_of_problem_line o snd)

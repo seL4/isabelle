@@ -16,13 +16,14 @@ open MaSh_Import
 *}
 
 ML {*
-val do_it = true (* switch to "true" to generate the files *);
-val thy = @{theory List}
+val do_it = false (* switch to "true" to generate the files *);
+val thy = @{theory List};
+val params = Sledgehammer_Isar.default_params @{context} []
 *}
 
 ML {*
 if do_it then
-  import_and_evaluate_mash_suggestions @{context} thy "/tmp/mash_suggestions_list"
+  import_and_evaluate_mash_suggestions @{context} params thy "/tmp/mash_suggestions_list"
 else
   ()
 *}

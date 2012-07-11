@@ -8,13 +8,16 @@ evaluate them.
 
 signature MASH_IMPORT =
 sig
+  type params = Sledgehammer_Provers.params
+
   val import_and_evaluate_mash_suggestions :
-    Proof.context -> theory -> string -> unit
+    Proof.context -> params -> theory -> string -> unit
 end;
 
 structure MaSh_Import : MASH_IMPORT =
 struct
 
+open Sledgehammer_Filter_MaSh
 open MaSh_Export
 
 val unescape_meta =
@@ -30,26 +33,26 @@ val unescape_meta =
 
 val of_fact_name = unescape_meta
 
-val depN = "Dependencies"
-val mengN = "Meng & Paulson"
+val isaN = "Isabelle"
+val iterN = "Iterative"
 val mashN = "MaSh"
-val meng_mashN = "M&P+MaSh"
+val iter_mashN = "Iter+MaSh"
 
 val max_relevant_slack = 2
 
-fun import_and_evaluate_mash_suggestions ctxt thy file_name =
+fun import_and_evaluate_mash_suggestions ctxt params thy file_name =
   let
     val {provers, max_relevant, slice, type_enc, lam_trans, timeout, ...} =
       Sledgehammer_Isar.default_params ctxt []
     val prover_name = hd provers
     val path = file_name |> Path.explode
     val lines = path |> File.read_lines
-    val facts = non_tautological_facts_of thy
+    val facts = all_non_tautological_facts_of thy
     val all_names = facts |> map (Thm.get_name_hint o snd)
-    val meng_ok = Unsynchronized.ref 0
+    val iter_ok = Unsynchronized.ref 0
     val mash_ok = Unsynchronized.ref 0
-    val meng_mash_ok = Unsynchronized.ref 0
-    val dep_ok = Unsynchronized.ref 0
+    val iter_mash_ok = Unsynchronized.ref 0
+    val isa_ok = Unsynchronized.ref 0
     fun find_sugg facts sugg =
       find_first (fn (_, th) => Thm.get_name_hint th = sugg) facts
     fun sugg_facts hyp_ts concl_t facts =
@@ -57,7 +60,7 @@ fun import_and_evaluate_mash_suggestions ctxt thy file_name =
       #> take (max_relevant_slack * the max_relevant)
       #> Sledgehammer_Fact.maybe_instantiate_inducts ctxt hyp_ts concl_t
       #> map (apfst (apfst (fn name => name ())))
-    fun meng_mash_facts fs1 fs2 =
+    fun iter_mash_facts fs1 fs2 =
       let
         val fact_eq = (op =) o pairself fst
         fun score_in f fs =
@@ -92,10 +95,10 @@ fun import_and_evaluate_mash_suggestions ctxt thy file_name =
                 |> tag_list 1
                 |> map index_string
                 |> space_implode " "))
-    fun run_sh ok heading facts goal =
+    fun prove ok heading facts goal =
       let
         val facts = facts |> take (the max_relevant)
-        val res as {outcome, ...} = run_sledgehammer ctxt facts goal
+        val res as {outcome, ...} = run_prover ctxt params facts goal
         val _ = if is_none outcome then ok := !ok + 1 else ()
       in str_of_res heading facts res end
     fun solve_goal j name suggs =
@@ -105,23 +108,23 @@ fun import_and_evaluate_mash_suggestions ctxt thy file_name =
           case find_first (fn (_, th) => Thm.get_name_hint th = name) facts of
             SOME (_, th) => th
           | NONE => error ("No fact called \"" ^ name ^ "\"")
-        val deps = dependencies_of all_names th
+        val isa_deps = isabelle_dependencies_of all_names th
         val goal = goal_of_thm thy th
         val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
         val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
-        val deps_facts = sugg_facts hyp_ts concl_t facts deps
-        val meng_facts =
-          meng_paulson_facts ctxt (max_relevant_slack * the max_relevant) goal
-                             facts
+        val isa_facts = sugg_facts hyp_ts concl_t facts isa_deps
+        val iter_facts =
+          iter_facts ctxt params (max_relevant_slack * the max_relevant) goal
+                     facts
         val mash_facts = sugg_facts hyp_ts concl_t facts suggs
-        val meng_mash_facts = meng_mash_facts meng_facts mash_facts
-        val meng_s = run_sh meng_ok mengN meng_facts goal
-        val mash_s = run_sh mash_ok mashN mash_facts goal
-        val meng_mash_s = run_sh meng_mash_ok meng_mashN meng_mash_facts goal
-        val dep_s = run_sh dep_ok depN deps_facts goal
+        val iter_mash_facts = iter_mash_facts iter_facts mash_facts
+        val iter_s = prove iter_ok iterN iter_facts goal
+        val mash_s = prove mash_ok mashN mash_facts goal
+        val iter_mash_s = prove iter_mash_ok iter_mashN iter_mash_facts goal
+        val isa_s = prove isa_ok isaN isa_facts goal
       in
-        ["Goal " ^ string_of_int j ^ ": " ^ name, meng_s, mash_s, meng_mash_s,
-         dep_s]
+        ["Goal " ^ string_of_int j ^ ": " ^ name, iter_s, mash_s, iter_mash_s,
+         isa_s]
         |> cat_lines |> tracing
       end
     val explode_suggs = space_explode " " #> filter_out (curry (op =) "")
@@ -145,10 +148,10 @@ fun import_and_evaluate_mash_suggestions ctxt thy file_name =
     tracing ("Options: " ^ commas options);
     List.app do_line (tag_list 1 lines);
     ["Successes (of " ^ string_of_int n ^ " goals)",
-     total_of mengN meng_ok n,
+     total_of iterN iter_ok n,
      total_of mashN mash_ok n,
-     total_of meng_mashN meng_mash_ok n,
-     total_of depN dep_ok n]
+     total_of iter_mashN iter_mash_ok n,
+     total_of isaN isa_ok n]
     |> cat_lines |> tracing
   end
 

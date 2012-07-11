@@ -14,17 +14,19 @@ sledgehammer_params
    lam_trans = combs_and_lifting, timeout = 5, dont_preplay, minimize]
 
 ML {*
+open Sledgehammer_Filter_MaSh
 open MaSh_Export
 *}
 
 ML {*
 val do_it = false (* switch to "true" to generate the files *);
-val thy = @{theory Nat}
+val thy = @{theory Nat};
+val params = Sledgehammer_Isar.default_params @{context} []
 *}
 
 ML {*
 if do_it then
-  generate_atp_dependencies @{context} thy false "/tmp/mash_atp_dependencies"
+  generate_accessibility thy false "/tmp/mash_accessibility"
 else
   ()
 *}
@@ -38,13 +40,6 @@ else
 
 ML {*
 if do_it then
-  generate_accessibility thy false "/tmp/mash_accessibility"
-else
-  ()
-*}
-
-ML {*
-if do_it then
   generate_isa_dependencies thy false "/tmp/mash_isa_dependencies"
 else
   ()
@@ -52,7 +47,7 @@ else
 
 ML {*
 if do_it then
-  generate_atp_dependencies @{context} thy false "/tmp/mash_atp_dependencies"
+  generate_atp_dependencies @{context} params thy false "/tmp/mash_atp_dependencies"
 else
   ()
 *}
@@ -66,7 +61,7 @@ else
 
 ML {*
 if do_it then
-  generate_meng_paulson_suggestions @{context} thy 500 "/tmp/mash_meng_paulson_suggestions"
+  generate_iter_suggestions @{context} params thy 500 "/tmp/mash_iter_suggestions"
 else
   ()
 *}
