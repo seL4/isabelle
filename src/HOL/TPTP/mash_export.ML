@@ -8,6 +8,7 @@ Export Isabelle theory information for MaSh (Machine-learning for Sledgehammer).
 signature MASH_EXPORT =
 sig
   type stature = ATP_Problem_Generate.stature
+  type prover_result = Sledgehammer_Provers.prover_result
 
   val non_tautological_facts_of :
     theory -> (((unit -> string) * stature) * thm) list
@@ -16,15 +17,18 @@ sig
   val dependencies_of : string list -> thm -> string list
   val goal_of_thm : thm -> thm
   val meng_paulson_facts :
-    Proof.context -> string -> int -> real * real -> thm -> int
-    -> (((unit -> string) * stature) * thm) list
+    Proof.context -> int -> thm -> (((unit -> string) * stature) * thm) list
     -> ((string * stature) * thm) list
-  val generate_mash_accessibility : theory -> bool -> string -> unit
-  val generate_mash_features : theory -> bool -> string -> unit
-  val generate_mash_dependencies : theory -> bool -> string -> unit
-  val generate_mash_commands : theory -> string -> unit
+  val run_sledgehammer :
+    Proof.context -> ((string * stature) * thm) list -> thm -> prover_result
+  val generate_accessibility : theory -> bool -> string -> unit
+  val generate_features : theory -> bool -> string -> unit
+  val generate_isa_dependencies : theory -> bool -> string -> unit
+  val generate_atp_dependencies :
+    Proof.context -> theory -> bool -> string -> unit
+  val generate_commands : theory -> string -> unit
   val generate_meng_paulson_suggestions :
-    Proof.context -> theory -> string -> unit
+    Proof.context -> theory -> int -> string -> unit
 end;
 
 structure MaSh_Export : MASH_EXPORT =
@@ -32,6 +36,8 @@ struct
 
 open ATP_Problem_Generate
 open ATP_Util
+
+type prover_result = Sledgehammer_Provers.prover_result
 
 fun stringN_of_int 0 _ = ""
   | stringN_of_int k n =
@@ -105,13 +111,11 @@ fun interesting_terms_types_and_classes term_max_depth type_max_depth t =
   let
     val bad_types = [@{type_name prop}, @{type_name bool}, @{type_name fun}]
     val bad_consts = atp_widely_irrelevant_consts
-    val add_classes =
-      subtract (op =) @{sort type} #> map class_name_of #> union (op =)
     fun do_add_type (Type (s, Ts)) =
         (not (member (op =) bad_types s) ? insert (op =) (type_name_of s))
         #> fold do_add_type Ts
-      | do_add_type (TFree (_, S)) = add_classes S
-      | do_add_type (TVar (_, S)) = add_classes S
+      | do_add_type (TFree (_, S)) = union (op =) (map class_name_of S)
+      | do_add_type (TVar (_, S)) = union (op =) (map class_name_of S)
     fun add_type T = type_max_depth >= 0 ? do_add_type T
     fun mk_app s args =
       if member (op <>) args "" then s ^ "(" ^ space_implode "," args ^ ")"
@@ -211,10 +215,12 @@ fun freeze (t $ u) = freeze t $ freeze u
 
 val goal_of_thm = prop_of #> freeze #> cterm_of thy #> Goal.init
 
-fun meng_paulson_facts ctxt prover_name max_relevant relevance_thresholds
-                       goal i =
+fun meng_paulson_facts ctxt max_relevant goal =
   let
-    val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal i
+    val {provers, relevance_thresholds, ...} =
+      Sledgehammer_Isar.default_params ctxt []
+    val prover_name = hd provers
+    val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
     val is_built_in_const =
       Sledgehammer_Provers.is_built_in_const_for_prover ctxt prover_name
     val relevance_fudge =
@@ -226,7 +232,18 @@ fun meng_paulson_facts ctxt prover_name max_relevant relevance_thresholds
         hyp_ts concl_t
   end
 
-fun generate_mash_accessibility thy include_thy file_name =
+fun run_sledgehammer ctxt facts goal =
+  let
+    val params as {provers, ...} = Sledgehammer_Isar.default_params ctxt []
+    val problem =
+      {state = Proof.init ctxt, goal = goal, subgoal = 1, subgoal_count = 1,
+       facts = facts |> map Sledgehammer_Provers.Untranslated_Fact}
+    val prover =
+      Sledgehammer_Run.get_minimizing_prover ctxt
+          Sledgehammer_Provers.Normal (hd provers)
+  in prover params (K (K (K ""))) problem end
+
+fun generate_accessibility thy include_thy file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
@@ -247,7 +264,7 @@ fun generate_mash_accessibility thy include_thy file_name =
       in fold do_thm ths parents; () end
   in List.app (do_thy o snd) thy_ths end
 
-fun generate_mash_features thy include_thy file_name =
+fun generate_features thy include_thy file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
@@ -262,7 +279,7 @@ fun generate_mash_features thy include_thy file_name =
       in File.append path s end
   in List.app do_fact facts end
 
-fun generate_mash_dependencies thy include_thy file_name =
+fun generate_isa_dependencies thy include_thy file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
@@ -279,7 +296,35 @@ fun generate_mash_dependencies thy include_thy file_name =
       in File.append path s end
   in List.app do_thm ths end
 
-fun generate_mash_commands thy file_name =
+fun generate_atp_dependencies ctxt thy include_thy file_name =
+  let
+    val {max_relevant, ...} = Sledgehammer_Isar.default_params ctxt []
+    val path = file_name |> Path.explode
+    val _ = File.write path ""
+    val facts =
+      non_tautological_facts_of thy
+      |> not include_thy ? filter_out (has_thy thy o snd)
+    val ths = facts |> map snd
+    val all_names = ths |> map Thm.get_name_hint
+    fun do_thm th =
+      let
+        val name = Thm.get_name_hint th
+        val goal = goal_of_thm th
+        val facts =
+          facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
+                |> meng_paulson_facts ctxt (the max_relevant) goal
+                |> map (fn ((_, stature), th) =>
+                           ((th |> Thm.get_name_hint |> fact_name_of, stature),
+                            th))
+        val deps =
+          case run_sledgehammer ctxt facts goal of
+            {outcome = NONE, used_facts, ...} => used_facts |> map fst
+          | _ => dependencies_of all_names th
+        val s = fact_name_of name ^ ": " ^ space_implode " " deps ^ "\n"
+      in File.append path s end
+  in List.app do_thm ths end
+
+fun generate_commands thy file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
@@ -306,18 +351,14 @@ fun generate_mash_commands thy file_name =
     val parents = parent_thms thy_ths thy
   in fold do_fact new_facts parents; () end
 
-fun generate_meng_paulson_suggestions ctxt thy file_name =
+fun generate_meng_paulson_suggestions ctxt thy max_relevant file_name =
   let
-    val {provers, max_relevant, relevance_thresholds, ...} =
-      Sledgehammer_Isar.default_params ctxt []
-    val prover_name = hd provers
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val facts = non_tautological_facts_of thy
     val (new_facts, old_facts) =
       facts |> List.partition (has_thy thy o snd)
             |>> sort (thm_ord o pairself snd)
-    val i = 1
     fun do_fact (fact as (_, th)) old_facts =
       let
         val name = Thm.get_name_hint th
@@ -327,10 +368,8 @@ fun generate_meng_paulson_suggestions ctxt thy file_name =
           if kind <> "" then
             let
               val suggs =
-                old_facts
-                |> meng_paulson_facts ctxt prover_name (the max_relevant)
-                                      relevance_thresholds goal i
-                |> map (fact_name_of o Thm.get_name_hint o snd)
+                old_facts |> meng_paulson_facts ctxt max_relevant goal
+                          |> map (fact_name_of o fst o fst)
               val s = fact_name_of name ^ ": " ^ space_implode " " suggs ^ "\n"
             in File.append path s end
           else
