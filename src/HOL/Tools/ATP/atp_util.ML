@@ -131,7 +131,7 @@ val string_from_time = string_from_ext_time o pair false
 fun type_instance thy T T' = Sign.typ_instance thy (T, T')
 fun type_generalization thy T T' = Sign.typ_instance thy (T', T)
 fun type_intersect thy T T' =
-  can (Sign.typ_unify thy (T, Logic.incr_tvar (maxidx_of_typ T + 1) T'))
+  can (Sign.typ_unify thy (Logic.incr_tvar (maxidx_of_typ T' + 1) T, T'))
       (Vartab.empty, 0)
 val type_equiv = Sign.typ_equiv
 
@@ -192,6 +192,7 @@ fun tiny_card_of_type ctxt sound assigns default_card T =
            | (k1, k2) =>
              if k1 >= max orelse k2 >= max then max
              else Int.min (max, Integer.pow k2 k1))
+        | Type (@{type_name set}, [T']) => aux slack avoid (T' --> @{typ bool})
         | @{typ prop} => 2
         | @{typ bool} => 2 (* optimization *)
         | @{typ nat} => 0 (* optimization *)

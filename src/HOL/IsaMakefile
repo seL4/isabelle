@@ -1147,8 +1147,10 @@ HOL-TPTP: HOL $(LOG)/HOL-TPTP.gz
 $(LOG)/HOL-TPTP.gz: $(OUT)/HOL \
   TPTP/ATP_Problem_Import.thy \
   TPTP/ATP_Theory_Export.thy \
-  TPTP/THF_Arith.thy \
+  TPTP/MaSh_Export.thy \
+  TPTP/MaSh_Import.thy \
   TPTP/ROOT.ML \
+  TPTP/THF_Arith.thy \
   TPTP/TPTP_Parser.thy \
   TPTP/TPTP_Parser/ml_yacc_lib.ML \
   TPTP/TPTP_Parser/tptp_interpret.ML \
@@ -1159,6 +1161,8 @@ $(LOG)/HOL-TPTP.gz: $(OUT)/HOL \
   TPTP/TPTP_Parser_Test.thy \
   TPTP/atp_problem_import.ML \
   TPTP/atp_theory_export.ML \
+  TPTP/mash_export.ML \
+  TPTP/mash_import.ML \
   TPTP/sledgehammer_tactics.ML
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL TPTP
 

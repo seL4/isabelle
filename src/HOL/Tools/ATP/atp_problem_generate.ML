@@ -86,6 +86,7 @@ sig
   val unproxify_const : string -> string
   val new_skolem_var_name_from_const : string -> string
   val atp_irrelevant_consts : string list
+  val atp_widely_irrelevant_consts : string list
   val atp_schematic_consts_of : term -> typ list Symtab.table
   val is_type_enc_higher_order : type_enc -> bool
   val is_type_enc_polymorphic : type_enc -> bool
@@ -93,6 +94,7 @@ sig
   val is_type_enc_sound : type_enc -> bool
   val type_enc_from_string : strictness -> string -> type_enc
   val adjust_type_enc : atp_format -> type_enc -> type_enc
+  val has_no_lambdas : term -> bool
   val mk_aconns :
     connective -> ('a, 'b, 'c, 'd) formula list -> ('a, 'b, 'c, 'd) formula
   val unmangled_const : string -> string * (string, 'b) ho_term list
@@ -399,7 +401,7 @@ val atp_irrelevant_consts =
    @{const_name conj}, @{const_name disj}, @{const_name implies},
    @{const_name HOL.eq}, @{const_name If}, @{const_name Let}]
 
-val atp_monomorph_bad_consts =
+val atp_widely_irrelevant_consts =
   atp_irrelevant_consts @
   (* These are ignored anyway by the relevance filter (unless they appear in
      higher-order places) but not by the monomorphizer. *)
@@ -411,7 +413,7 @@ fun add_schematic_const (x as (_, T)) =
   Monomorph.typ_has_tvars T ? Symtab.insert_list (op =) x
 val add_schematic_consts_of =
   Term.fold_aterms (fn Const (x as (s, _)) =>
-                       not (member (op =) atp_monomorph_bad_consts s)
+                       not (member (op =) atp_widely_irrelevant_consts s)
                        ? add_schematic_const x
                       | _ => I)
 fun atp_schematic_consts_of t = add_schematic_consts_of t Symtab.empty
@@ -701,22 +703,22 @@ fun adjust_type_enc (THF (Polymorphic, _, choice, _))
     (if is_type_enc_sound type_enc then Tags else Guards) stuff
   | adjust_type_enc _ type_enc = type_enc
 
-fun is_fol_term t =
+fun has_no_lambdas t =
   case t of
-    @{const Not} $ t1 => is_fol_term t1
-  | Const (@{const_name All}, _) $ Abs (_, _, t') => is_fol_term t'
-  | Const (@{const_name All}, _) $ t1 => is_fol_term t1
-  | Const (@{const_name Ex}, _) $ Abs (_, _, t') => is_fol_term t'
-  | Const (@{const_name Ex}, _) $ t1 => is_fol_term t1
-  | @{const HOL.conj} $ t1 $ t2 => is_fol_term t1 andalso is_fol_term t2
-  | @{const HOL.disj} $ t1 $ t2 => is_fol_term t1 andalso is_fol_term t2
-  | @{const HOL.implies} $ t1 $ t2 => is_fol_term t1 andalso is_fol_term t2
+    @{const Not} $ t1 => has_no_lambdas t1
+  | Const (@{const_name All}, _) $ Abs (_, _, t') => has_no_lambdas t'
+  | Const (@{const_name All}, _) $ t1 => has_no_lambdas t1
+  | Const (@{const_name Ex}, _) $ Abs (_, _, t') => has_no_lambdas t'
+  | Const (@{const_name Ex}, _) $ t1 => has_no_lambdas t1
+  | @{const HOL.conj} $ t1 $ t2 => has_no_lambdas t1 andalso has_no_lambdas t2
+  | @{const HOL.disj} $ t1 $ t2 => has_no_lambdas t1 andalso has_no_lambdas t2
+  | @{const HOL.implies} $ t1 $ t2 => has_no_lambdas t1 andalso has_no_lambdas t2
   | Const (@{const_name HOL.eq}, Type (_, [@{typ bool}, _])) $ t1 $ t2 =>
-    is_fol_term t1 andalso is_fol_term t2
+    has_no_lambdas t1 andalso has_no_lambdas t2
   | _ => not (exists_subterm (fn Abs _ => true | _ => false) t)
 
 fun simple_translate_lambdas do_lambdas ctxt t =
-  if is_fol_term t then
+  if has_no_lambdas t then
     t
   else
     let
@@ -2494,8 +2496,7 @@ fun lines_for_sym_decl_table ctxt mono type_enc mono_Ts sym_decl_tab =
   let
     val syms = sym_decl_tab |> Symtab.dest |> sort_wrt fst
     val mono_lines = lines_for_mono_types ctxt mono type_enc mono_Ts
-    val decl_lines =
-      fold_rev (append o lines_for_sym_decls ctxt mono type_enc) syms []
+    val decl_lines = maps (lines_for_sym_decls ctxt mono type_enc) syms
   in mono_lines @ decl_lines end
 
 fun pair_append (xs1, xs2) (ys1, ys2) = (xs1 @ ys1, xs2 @ ys2)
