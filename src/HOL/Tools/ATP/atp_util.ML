@@ -130,9 +130,20 @@ val string_from_time = string_from_ext_time o pair false
 
 fun type_instance thy T T' = Sign.typ_instance thy (T, T')
 fun type_generalization thy T T' = Sign.typ_instance thy (T', T)
-fun type_intersect thy T T' =
-  can (Sign.typ_unify thy (Logic.incr_tvar (maxidx_of_typ T' + 1) T, T'))
-      (Vartab.empty, 0)
+
+fun type_intersect _ (TVar _) _ = true
+  | type_intersect _ _ (TVar _) = true
+  | type_intersect thy T T' =
+    let
+      val tvars = Term.add_tvar_namesT T []
+      val tvars' = Term.add_tvar_namesT T' []
+      val T =
+        if exists (member (op =) tvars') tvars then
+          T |> Logic.incr_tvar (maxidx_of_typ T' + 1)
+        else
+          T
+    in can (Sign.typ_unify thy (T, T')) (Vartab.empty, 0) end
+
 val type_equiv = Sign.typ_equiv
 
 fun varify_type ctxt T =

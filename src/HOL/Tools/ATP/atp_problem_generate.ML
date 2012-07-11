@@ -419,7 +419,7 @@ val add_schematic_consts_of =
 fun atp_schematic_consts_of t = add_schematic_consts_of t Symtab.empty
 
 val tvar_a_str = "'a"
-val tvar_a_z = ((tvar_a_str, 0), HOLogic.typeS)
+val tvar_a_z = ((tvar_a_str, 100 (* arbitrary *)), HOLogic.typeS)
 val tvar_a = TVar tvar_a_z
 val tvar_a_name = tvar_name tvar_a_z
 val itself_name = `make_fixed_type_const @{type_name itself}
