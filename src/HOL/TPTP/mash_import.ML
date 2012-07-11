@@ -30,11 +30,17 @@ val unescape_meta =
 
 val of_fact_name = unescape_meta
 
+val depN = "Dependencies"
+val mengN = "Meng & Paulson"
+val mashN = "MaSh"
+val meng_mashN = "M&P+MaSh"
+
 val max_relevant_slack = 2
 
 fun import_and_evaluate_mash_suggestions ctxt thy file_name =
   let
-    val params as {provers, max_relevant, relevance_thresholds, ...} =
+    val params as {provers, max_relevant, relevance_thresholds,
+                   slice, type_enc, lam_trans, timeout, ...} =
       Sledgehammer_Isar.default_params ctxt []
     val prover_name = hd provers
     val path = file_name |> Path.explode
@@ -42,6 +48,10 @@ fun import_and_evaluate_mash_suggestions ctxt thy file_name =
     val facts = non_tautological_facts_of thy
     val all_names = facts |> map (Thm.get_name_hint o snd)
     val i = 1
+    val meng_ok = Unsynchronized.ref 0
+    val mash_ok = Unsynchronized.ref 0
+    val meng_mash_ok = Unsynchronized.ref 0
+    val dep_ok = Unsynchronized.ref 0
     fun find_sugg facts sugg =
       find_first (fn (_, th) => Thm.get_name_hint th = sugg) facts
     fun sugg_facts hyp_ts concl_t facts =
@@ -49,7 +59,7 @@ fun import_and_evaluate_mash_suggestions ctxt thy file_name =
       #> take (max_relevant_slack * the max_relevant)
       #> Sledgehammer_Filter.maybe_instantiate_inducts ctxt hyp_ts concl_t
       #> map (apfst (apfst (fn name => name ())))
-    fun hybrid_facts fs1 fs2 =
+    fun meng_mash_facts fs1 fs2 =
       let
         val fact_eq = (op =) o pairself fst
         fun score_in f fs =
@@ -69,22 +79,33 @@ fun import_and_evaluate_mash_suggestions ctxt thy file_name =
       "  " ^ label ^ ": " ^
       (if is_none outcome then
          "Success (" ^ ATP_Util.string_from_time run_time ^ "): " ^
-         space_implode " " (used_facts |> map (with_index facts o fst)
-                                       |> sort (int_ord o pairself fst)
-                                       |> map index_string)
+         (used_facts |> map (with_index facts o fst)
+                     |> sort (int_ord o pairself fst)
+                     |> map index_string
+                     |> space_implode " ") ^
+         (if length facts < the max_relevant then
+            " (of " ^ string_of_int (length facts) ^ ")"
+          else
+            "")
        else
-         "Failure: " ^ space_implode " " (map (fst o fst) facts))
-    fun run_sh heading facts goal =
+         "Failure: " ^
+         (facts |> map (fst o fst)
+                |> tag_list 1
+                |> map index_string
+                |> space_implode " "))
+    fun run_sh ok heading facts goal =
       let
         val problem =
           {state = Proof.init ctxt, goal = goal, subgoal = i, subgoal_count = 1,
-           facts = facts |> map Sledgehammer_Provers.Untranslated_Fact}
+           facts = facts |> take (the max_relevant)
+                         |> map Sledgehammer_Provers.Untranslated_Fact}
         val prover =
           Sledgehammer_Run.get_minimizing_prover ctxt
               Sledgehammer_Provers.Normal prover_name
         val res as {outcome, ...} = prover params (K (K (K ""))) problem
-      in (str_of_res heading facts res, is_none outcome) end
-    fun solve_goal name suggs =
+        val _ = if is_none outcome then ok := !ok + 1 else ()
+      in str_of_res heading facts res end
+    fun solve_goal j name suggs =
       let
         val name = of_fact_name name
         val th =
@@ -101,19 +122,42 @@ fun import_and_evaluate_mash_suggestions ctxt thy file_name =
               (max_relevant_slack * the max_relevant) relevance_thresholds goal
               i facts
         val mash_facts = sugg_facts hyp_ts concl_t facts suggs
-        val hybrid_facts = hybrid_facts meng_facts mash_facts
-        val (dep_s, dep_ok) = run_sh "Dependencies" deps_facts goal
-        val (meng_s, meng_ok) = run_sh "Meng & Paulson" meng_facts goal
-        val (mash_s, mash_ok) = run_sh "MaSh" mash_facts goal
-        val (hybrid_s, hybrid_ok) = run_sh "Hybrid" hybrid_facts goal
+        val meng_mash_facts = meng_mash_facts meng_facts mash_facts
+        val meng_s = run_sh meng_ok mengN meng_facts goal
+        val mash_s = run_sh mash_ok mashN mash_facts goal
+        val meng_mash_s = run_sh meng_mash_ok meng_mashN meng_mash_facts goal
+        val dep_s = run_sh dep_ok depN deps_facts goal
       in
-        tracing (cat_lines ["Goal: ", name, dep_s, meng_s, mash_s, hybrid_s])
+        ["Goal " ^ string_of_int j ^ ": " ^ name, meng_s, mash_s, meng_mash_s,
+         dep_s]
+        |> cat_lines |> tracing
       end
     val explode_suggs = space_explode " " #> filter_out (curry (op =) "")
-    fun do_line line =
+    fun do_line (j, line) =
       case space_explode ":" line of
-        [goal_name, suggs] => solve_goal goal_name (explode_suggs suggs)
+        [goal_name, suggs] => solve_goal j goal_name (explode_suggs suggs)
       | _ => ()
-  in List.app do_line lines end
+    fun total_of heading ok n =
+      " " ^ heading ^ ": " ^ string_of_int (!ok) ^ " (" ^
+      Real.fmt (StringCvt.FIX (SOME 1))
+               (100.0 * Real.fromInt (!ok) / Real.fromInt n) ^ "%)"
+    val inst_inducts = Config.get ctxt Sledgehammer_Filter.instantiate_inducts
+    val params =
+      [prover_name, string_of_int (the max_relevant) ^ " facts",
+       "slice" |> not slice ? prefix "dont_", the_default "smart" type_enc,
+       the_default "smart" lam_trans, ATP_Util.string_from_time timeout,
+       "instantiate_inducts" |> not inst_inducts ? prefix "dont_"]
+    val n = length lines
+  in
+    tracing " * * *";
+    tracing ("Options: " ^ commas params);
+    List.app do_line (tag_list 1 lines);
+    ["Successes (of " ^ string_of_int n ^ " goals)",
+     total_of mengN meng_ok n,
+     total_of mashN mash_ok n,
+     total_of meng_mashN meng_mash_ok n,
+     total_of depN dep_ok n]
+    |> cat_lines |> tracing
+  end
 
 end;
