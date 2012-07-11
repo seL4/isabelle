@@ -1503,7 +1503,10 @@ $(LOG)/HOL-Quickcheck_Examples.gz: $(OUT)/HOL				\
   Quickcheck_Examples/Completeness.thy					\
   Quickcheck_Examples/Find_Unused_Assms_Examples.thy			\
   Quickcheck_Examples/Hotel_Example.thy					\
+  Quickcheck_Examples/Needham_Schroeder_Base.thy			\
   Quickcheck_Examples/Needham_Schroeder_No_Attacker_Example.thy		\
+  Quickcheck_Examples/Needham_Schroeder_Guided_Attacker_Example.thy	\
+  Quickcheck_Examples/Needham_Schroeder_Unguided_Attacker_Example.thy	\
   Quickcheck_Examples/Quickcheck_Examples.thy				\
   Quickcheck_Examples/Quickcheck_Interfaces.thy				\
   Quickcheck_Examples/Quickcheck_Lattice_Examples.thy			\
