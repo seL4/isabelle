@@ -18,15 +18,15 @@ open MaSh_Export
 *}
 
 ML {*
+val do_it = true (* switch to "true" to generate the files *);
+val thy = @{theory Nat}
+*}
+
+ML {*
 if do_it then
   generate_atp_dependencies @{context} thy false "/tmp/mash_atp_dependencies"
 else
   ()
-*}
-
-ML {*
-val do_it = true (* switch to "true" to generate the files *);
-val thy = @{theory Nat}
 *}
 
 ML {*

@@ -201,8 +201,10 @@ fun features_of thy (status, th) =
         | Def => cons "def")
   end
 
-val dependencies_of =
-  map fact_name_of oo theorems_mentioned_in_proof_term o SOME
+fun dependencies_of all_facts =
+  theorems_mentioned_in_proof_term (SOME all_facts)
+  #> map fact_name_of
+  #> sort string_ord
 
 val freezeT = Type.legacy_freeze_type
 
@@ -306,20 +308,30 @@ fun generate_atp_dependencies ctxt thy include_thy file_name =
       |> not include_thy ? filter_out (has_thy thy o snd)
     val ths = facts |> map snd
     val all_names = ths |> map Thm.get_name_hint
+    fun is_dep dep (_, th) = fact_name_of (Thm.get_name_hint th) = dep
+    fun add_isa_dep facts dep accum =
+      if exists (is_dep dep) accum then
+        accum
+      else case find_first (is_dep dep) facts of
+        SOME ((name, status), th) => accum @ [((name (), status), th)]
+      | NONE => accum (* shouldn't happen *)
+    fun fix_name ((_, stature), th) =
+      ((th |> Thm.get_name_hint |> fact_name_of, stature), th)
     fun do_thm th =
       let
         val name = Thm.get_name_hint th
         val goal = goal_of_thm th
+        val isa_deps = dependencies_of all_names th
+        val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
         val facts =
-          facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
-                |> meng_paulson_facts ctxt (the max_relevant) goal
-                |> map (fn ((_, stature), th) =>
-                           ((th |> Thm.get_name_hint |> fact_name_of, stature),
-                            th))
+          facts |> meng_paulson_facts ctxt (the max_relevant) goal
+                |> fold (add_isa_dep facts) isa_deps
+                |> map fix_name
         val deps =
           case run_sledgehammer ctxt facts goal of
-            {outcome = NONE, used_facts, ...} => used_facts |> map fst
-          | _ => dependencies_of all_names th
+            {outcome = NONE, used_facts, ...} =>
+            used_facts |> map fst |> sort string_ord
+          | _ => isa_deps
         val s = fact_name_of name ^ ": " ^ space_implode " " deps ^ "\n"
       in File.append path s end
   in List.app do_thm ths end
@@ -370,6 +382,7 @@ fun generate_meng_paulson_suggestions ctxt thy max_relevant file_name =
               val suggs =
                 old_facts |> meng_paulson_facts ctxt max_relevant goal
                           |> map (fact_name_of o fst o fst)
+                          |> sort string_ord
               val s = fact_name_of name ^ ": " ^ space_implode " " suggs ^ "\n"
             in File.append path s end
           else
