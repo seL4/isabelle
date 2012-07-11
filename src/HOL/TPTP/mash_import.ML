@@ -55,7 +55,7 @@ fun import_and_evaluate_mash_suggestions ctxt thy file_name =
     fun sugg_facts hyp_ts concl_t facts =
       map_filter (find_sugg facts o of_fact_name)
       #> take (max_relevant_slack * the max_relevant)
-      #> Sledgehammer_Filter.maybe_instantiate_inducts ctxt hyp_ts concl_t
+      #> Sledgehammer_Fact.maybe_instantiate_inducts ctxt hyp_ts concl_t
       #> map (apfst (apfst (fn name => name ())))
     fun meng_mash_facts fs1 fs2 =
       let
@@ -106,7 +106,7 @@ fun import_and_evaluate_mash_suggestions ctxt thy file_name =
             SOME (_, th) => th
           | NONE => error ("No fact called \"" ^ name ^ "\"")
         val deps = dependencies_of all_names th
-        val goal = goal_of_thm th
+        val goal = goal_of_thm thy th
         val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
         val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
         val deps_facts = sugg_facts hyp_ts concl_t facts deps
@@ -133,7 +133,7 @@ fun import_and_evaluate_mash_suggestions ctxt thy file_name =
       " " ^ heading ^ ": " ^ string_of_int (!ok) ^ " (" ^
       Real.fmt (StringCvt.FIX (SOME 1))
                (100.0 * Real.fromInt (!ok) / Real.fromInt n) ^ "%)"
-    val inst_inducts = Config.get ctxt Sledgehammer_Filter.instantiate_inducts
+    val inst_inducts = Config.get ctxt Sledgehammer_Fact.instantiate_inducts
     val options =
       [prover_name, string_of_int (the max_relevant) ^ " facts",
        "slice" |> not slice ? prefix "dont_", the_default "smart" type_enc,

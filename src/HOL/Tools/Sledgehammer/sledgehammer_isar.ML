@@ -23,7 +23,7 @@ open ATP_Systems
 open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 open Sledgehammer_Util
-open Sledgehammer_Filter
+open Sledgehammer_Fact
 open Sledgehammer_Provers
 open Sledgehammer_Minimize
 open Sledgehammer_Run

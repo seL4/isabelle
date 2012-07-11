@@ -9,14 +9,19 @@ signature SLEDGEHAMMER_MINIMIZE =
 sig
   type stature = ATP_Problem_Generate.stature
   type play = ATP_Proof_Reconstruct.play
+  type mode = Sledgehammer_Provers.mode
   type params = Sledgehammer_Provers.params
+  type prover = Sledgehammer_Provers.prover
 
   val binary_min_facts : int Config.T
+  val auto_minimize_min_facts : int Config.T
+  val auto_minimize_max_time : real Config.T
   val minimize_facts :
     string -> params -> bool -> int -> int -> Proof.state
     -> ((string * stature) * thm list) list
     -> ((string * stature) * thm list) list option
        * ((unit -> play) * (play -> string) * string)
+  val get_minimizing_prover : Proof.context -> mode -> string -> prover
   val run_minimize :
     params -> int -> (Facts.ref * Attrib.src list) list -> Proof.state -> unit
 end;
@@ -29,7 +34,7 @@ open ATP_Proof
 open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 open Sledgehammer_Util
-open Sledgehammer_Filter
+open Sledgehammer_Fact
 open Sledgehammer_Provers
 
 (* wrapper for calling external prover *)
@@ -107,6 +112,12 @@ fun new_timeout timeout run_time =
 val binary_min_facts =
   Attrib.setup_config_int @{binding sledgehammer_minimize_binary_min_facts}
                           (K 20)
+val auto_minimize_min_facts =
+  Attrib.setup_config_int @{binding sledgehammer_auto_minimize_min_facts}
+      (fn generic => Config.get_generic generic binary_min_facts)
+val auto_minimize_max_time =
+  Attrib.setup_config_real @{binding sledgehammer_auto_minimize_max_time}
+                           (K 5.0)
 
 fun linear_minimize test timeout result xs =
   let
@@ -211,6 +222,106 @@ fun minimize_facts prover_name (params as {timeout, ...}) silent i n state
     handle ERROR msg =>
            (NONE, (K (Failed_to_Play plain_metis), fn _ => "Error: " ^ msg, ""))
   end
+
+fun adjust_reconstructor_params override_params
+        ({debug, verbose, overlord, blocking, provers, type_enc, strict,
+         lam_trans, uncurried_aliases, relevance_thresholds, max_relevant,
+         max_mono_iters, max_new_mono_instances, isar_proof, isar_shrink_factor,
+         slice, minimize, timeout, preplay_timeout, expect} : params) =
+  let
+    fun lookup_override name default_value =
+      case AList.lookup (op =) override_params name of
+        SOME [s] => SOME s
+      | _ => default_value
+    (* Only those options that reconstructors are interested in are considered
+       here. *)
+    val type_enc = lookup_override "type_enc" type_enc
+    val lam_trans = lookup_override "lam_trans" lam_trans
+  in
+    {debug = debug, verbose = verbose, overlord = overlord, blocking = blocking,
+     provers = provers, type_enc = type_enc, strict = strict,
+     lam_trans = lam_trans, uncurried_aliases = uncurried_aliases,
+     max_relevant = max_relevant, relevance_thresholds = relevance_thresholds,
+     max_mono_iters = max_mono_iters,
+     max_new_mono_instances = max_new_mono_instances, isar_proof = isar_proof,
+     isar_shrink_factor = isar_shrink_factor, slice = slice,
+     minimize = minimize, timeout = timeout, preplay_timeout = preplay_timeout,
+     expect = expect}
+  end
+
+fun minimize ctxt mode name
+             (params as {debug, verbose, isar_proof, minimize, ...})
+             ({state, subgoal, subgoal_count, facts, ...} : prover_problem)
+             (result as {outcome, used_facts, run_time, preplay, message,
+                         message_tail} : prover_result) =
+  if is_some outcome orelse null used_facts then
+    result
+  else
+    let
+      val num_facts = length used_facts
+      val ((perhaps_minimize, (minimize_name, params)), preplay) =
+        if mode = Normal then
+          if num_facts >= Config.get ctxt auto_minimize_min_facts then
+            ((true, (name, params)), preplay)
+          else
+            let
+              fun can_min_fast_enough time =
+                0.001
+                * Real.fromInt ((num_facts + 1) * Time.toMilliseconds time)
+                <= Config.get ctxt auto_minimize_max_time
+              fun prover_fast_enough () = can_min_fast_enough run_time
+            in
+              if isar_proof then
+                ((prover_fast_enough (), (name, params)), preplay)
+              else
+                let val preplay = preplay () in
+                  (case preplay of
+                     Played (reconstr, timeout) =>
+                     if can_min_fast_enough timeout then
+                       (true, extract_reconstructor params reconstr
+                              ||> (fn override_params =>
+                                      adjust_reconstructor_params
+                                          override_params params))
+                     else
+                       (prover_fast_enough (), (name, params))
+                   | _ => (prover_fast_enough (), (name, params)),
+                   K preplay)
+                end
+            end
+        else
+          ((false, (name, params)), preplay)
+      val minimize = minimize |> the_default perhaps_minimize
+      val (used_facts, (preplay, message, _)) =
+        if minimize then
+          minimize_facts minimize_name params (not verbose) subgoal
+                         subgoal_count state
+                         (filter_used_facts used_facts
+                              (map (apsnd single o untranslated_fact) facts))
+          |>> Option.map (map fst)
+        else
+          (SOME used_facts, (preplay, message, ""))
+    in
+      case used_facts of
+        SOME used_facts =>
+        (if debug andalso not (null used_facts) then
+           facts ~~ (0 upto length facts - 1)
+           |> map (fn (fact, j) => fact |> untranslated_fact |> apsnd (K j))
+           |> filter_used_facts used_facts
+           |> map (fn ((name, _), j) => name ^ "@" ^ string_of_int j)
+           |> commas
+           |> enclose ("Fact" ^ plural_s (length facts) ^ " in " ^ quote name ^
+                       " proof (of " ^ string_of_int (length facts) ^ "): ") "."
+           |> Output.urgent_message
+         else
+           ();
+         {outcome = NONE, used_facts = used_facts, run_time = run_time,
+          preplay = preplay, message = message, message_tail = message_tail})
+      | NONE => result
+    end
+
+fun get_minimizing_prover ctxt mode name params minimize_command problem =
+  get_prover ctxt mode name params minimize_command problem
+  |> minimize ctxt mode name params problem
 
 fun run_minimize (params as {provers, ...}) i refs state =
   let

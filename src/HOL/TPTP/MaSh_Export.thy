@@ -18,7 +18,7 @@ open MaSh_Export
 *}
 
 ML {*
-val do_it = true (* switch to "true" to generate the files *);
+val do_it = false (* switch to "true" to generate the files *);
 val thy = @{theory Nat}
 *}
 

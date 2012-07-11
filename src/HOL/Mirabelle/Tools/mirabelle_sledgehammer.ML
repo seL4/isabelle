@@ -365,7 +365,7 @@ fun get_prover ctxt args =
       hd (#provers (Sledgehammer_Isar.default_params ctxt []))
       handle List.Empty => error "No ATP available."
     fun get_prover name =
-      (name, Sledgehammer_Run.get_minimizing_prover ctxt
+      (name, Sledgehammer_Minimize.get_minimizing_prover ctxt
                 Sledgehammer_Provers.Normal name)
   in
     (case AList.lookup (op =) args proverK of
@@ -465,7 +465,7 @@ fun run_sh prover_name prover type_enc strict max_relevant slice lam_trans
                 else raise Fail "inappropriate"
         val ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover_name
         val facts =
-          Sledgehammer_Filter.nearly_all_facts ctxt ho_atp relevance_override
+          Sledgehammer_Fact.nearly_all_facts ctxt ho_atp relevance_override
             chained_ths hyp_ts concl_t
           |> filter (is_appropriate_prop o prop_of o snd)
           |> Sledgehammer_Filter.relevant_facts ctxt relevance_thresholds

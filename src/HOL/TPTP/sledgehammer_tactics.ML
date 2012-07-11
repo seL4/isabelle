@@ -39,8 +39,8 @@ fun run_prover override_params relevance_override i n ctxt goal =
     val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal i
     val ho_atp = exists (Sledgehammer_Provers.is_ho_atp ctxt) provers
     val facts =
-      Sledgehammer_Filter.nearly_all_facts ctxt ho_atp relevance_override
-                                           chained_ths hyp_ts concl_t
+      Sledgehammer_Fact.nearly_all_facts ctxt ho_atp relevance_override
+                                         chained_ths hyp_ts concl_t
       |> Sledgehammer_Filter.relevant_facts ctxt relevance_thresholds
              (the_default default_max_relevant max_relevant) is_built_in_const
              relevance_fudge relevance_override chained_ths hyp_ts concl_t

@@ -8,6 +8,7 @@ Sledgehammer's iterative relevance filter.
 signature SLEDGEHAMMER_FILTER_ITER =
 sig
   type stature = ATP_Problem_Generate.stature
+  type relevance_override = Sledgehammer_Fact.relevance_override
 
   type relevance_fudge =
     {local_const_multiplier : real,
@@ -30,14 +31,7 @@ sig
      threshold_divisor : real,
      ridiculous_threshold : real}
 
-  type relevance_override =
-    {add : (Facts.ref * Attrib.src list) list,
-     del : (Facts.ref * Attrib.src list) list,
-     only : bool}
-
   val trace : bool Config.T
-  val ignore_no_atp : bool Config.T
-  val instantiate_inducts : bool Config.T
   val pseudo_abs_name : string
   val pseudo_skolem_prefix : string
   val const_names_in_fact :
@@ -55,16 +49,11 @@ structure Sledgehammer_Filter_Iter : SLEDGEHAMMER_FILTER_ITER =
 struct
 
 open ATP_Problem_Generate
+open Sledgehammer_Fact
 
 val trace =
   Attrib.setup_config_bool @{binding sledgehammer_filter_trace} (K false)
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
-
-(* experimental features *)
-val ignore_no_atp =
-  Attrib.setup_config_bool @{binding sledgehammer_ignore_no_atp} (K false)
-val instantiate_inducts =
-  Attrib.setup_config_bool @{binding sledgehammer_instantiate_inducts} (K false)
 
 type relevance_fudge =
   {local_const_multiplier : real,
@@ -86,11 +75,6 @@ type relevance_fudge =
    max_imperfect_exp : real,
    threshold_divisor : real,
    ridiculous_threshold : real}
-
-type relevance_override =
-  {add : (Facts.ref * Attrib.src list) list,
-   del : (Facts.ref * Attrib.src list) list,
-   only : bool}
 
 val sledgehammer_prefix = "Sledgehammer" ^ Long_Name.separator
 val pseudo_abs_name = sledgehammer_prefix ^ "abs"

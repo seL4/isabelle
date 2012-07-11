@@ -15,7 +15,7 @@ sig
   val theory_ord : theory * theory -> order
   val thm_ord : thm * thm -> order
   val dependencies_of : string list -> thm -> string list
-  val goal_of_thm : thm -> thm
+  val goal_of_thm : theory -> thm -> thm
   val meng_paulson_facts :
     Proof.context -> int -> thm -> (((unit -> string) * stature) * thm) list
     -> ((string * stature) * thm) list
@@ -34,8 +34,9 @@ end;
 structure MaSh_Export : MASH_EXPORT =
 struct
 
-open ATP_Problem_Generate
 open ATP_Util
+open ATP_Problem_Generate
+open ATP_Theory_Export
 
 type prover_result = Sledgehammer_Provers.prover_result
 
@@ -215,7 +216,7 @@ fun freeze (t $ u) = freeze t $ freeze u
   | freeze (Free (s, T)) = Free (s, freezeT T)
   | freeze t = t
 
-val goal_of_thm = prop_of #> freeze #> cterm_of thy #> Goal.init
+fun goal_of_thm thy = prop_of #> freeze #> cterm_of thy #> Goal.init
 
 fun meng_paulson_facts ctxt max_relevant goal =
   let
@@ -241,7 +242,7 @@ fun run_sledgehammer ctxt facts goal =
       {state = Proof.init ctxt, goal = goal, subgoal = 1, subgoal_count = 1,
        facts = facts |> map Sledgehammer_Provers.Untranslated_Fact}
     val prover =
-      Sledgehammer_Run.get_minimizing_prover ctxt
+      Sledgehammer_Minimize.get_minimizing_prover ctxt
           Sledgehammer_Provers.Normal (hd provers)
   in prover params (K (K (K ""))) problem end
 
@@ -320,18 +321,25 @@ fun generate_atp_dependencies ctxt thy include_thy file_name =
     fun do_thm th =
       let
         val name = Thm.get_name_hint th
-        val goal = goal_of_thm th
-        val isa_deps = dependencies_of all_names th
-        val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
-        val facts =
-          facts |> meng_paulson_facts ctxt (the max_relevant) goal
-                |> fold (add_isa_dep facts) isa_deps
-                |> map fix_name
+        val goal = goal_of_thm thy th
         val deps =
-          case run_sledgehammer ctxt facts goal of
-            {outcome = NONE, used_facts, ...} =>
-            used_facts |> map fst |> sort string_ord
-          | _ => isa_deps
+          case dependencies_of all_names th of
+            [] => []
+          | isa_dep as [_] => isa_dep (* can hardly beat that *)
+          | isa_deps =>
+            let
+              val facts =
+                facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
+              val facts =
+                facts |> meng_paulson_facts ctxt (the max_relevant) goal
+                      |> fold (add_isa_dep facts) isa_deps
+                      |> map fix_name
+            in
+              case run_sledgehammer ctxt facts goal of
+                {outcome = NONE, used_facts, ...} =>
+                used_facts |> map fst |> sort string_ord
+              | _ => isa_deps
+            end
         val s = fact_name_of name ^ ": " ^ space_implode " " deps ^ "\n"
       in File.append path s end
   in List.app do_thm ths end
@@ -374,7 +382,7 @@ fun generate_meng_paulson_suggestions ctxt thy max_relevant file_name =
     fun do_fact (fact as (_, th)) old_facts =
       let
         val name = Thm.get_name_hint th
-        val goal = goal_of_thm th
+        val goal = goal_of_thm thy th
         val kind = Thm.legacy_get_kind th
         val _ =
           if kind <> "" then

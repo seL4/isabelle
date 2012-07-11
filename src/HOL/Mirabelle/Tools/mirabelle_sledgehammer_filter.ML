@@ -131,8 +131,8 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
          val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal subgoal
          val ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover
          val facts =
-          Sledgehammer_Filter.nearly_all_facts ctxt ho_atp relevance_override
-                                               chained_ths hyp_ts concl_t
+          Sledgehammer_Fact.nearly_all_facts ctxt ho_atp relevance_override
+                                             chained_ths hyp_ts concl_t
           |> filter (is_appropriate_prop o prop_of o snd)
           |> Sledgehammer_Filter.relevant_facts ctxt relevance_thresholds
                  (the_default default_max_relevant max_relevant)

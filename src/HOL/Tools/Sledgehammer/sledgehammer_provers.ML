@@ -14,7 +14,7 @@ sig
   type reconstructor = ATP_Proof_Reconstruct.reconstructor
   type play = ATP_Proof_Reconstruct.play
   type minimize_command = ATP_Proof_Reconstruct.minimize_command
-  type relevance_fudge = Sledgehammer_Filter.relevance_fudge
+  type relevance_fudge = Sledgehammer_Filter_Iter.relevance_fudge
 
   datatype mode = Auto_Try | Try | Normal | Auto_Minimize | Minimize
 
@@ -124,7 +124,7 @@ open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 open Metis_Tactic
 open Sledgehammer_Util
-open Sledgehammer_Filter
+open Sledgehammer_Filter_Iter
 
 (** The Sledgehammer **)
 
