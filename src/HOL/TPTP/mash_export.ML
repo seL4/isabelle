@@ -179,6 +179,7 @@ fun is_exists (s, _) = (s = @{const_name Ex} orelse s = @{const_name Ex1})
 
 val max_depth = 1
 
+(* TODO: Generate type classes for types? *)
 fun features_of thy (status, th) =
   let val t = Thm.prop_of th in
     thy_name_of (thy_name_of_thm th) ::
