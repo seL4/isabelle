@@ -427,7 +427,7 @@ subsubsection {* The identity relation *}
 
 definition Id :: "'a rel"
 where
-  "Id = {p. \<exists>x. p = (x, x)}"
+  [code del]: "Id = {p. \<exists>x. p = (x, x)}"
 
 lemma IdI [intro]: "(a, a) : Id"
   by (simp add: Id_def)

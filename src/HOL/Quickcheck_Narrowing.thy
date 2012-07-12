@@ -138,10 +138,6 @@ definition div_mod :: "code_int \<Rightarrow> code_int \<Rightarrow> code_int \<
   [code del]: "div_mod n m = (n div m, n mod m)"
 
 lemma [code]:
-  "div_mod n m = (if m = 0 then (0, n) else (n div m, n mod m))"
-  unfolding div_mod_def by auto
-
-lemma [code]:
   "n div m = fst (div_mod n m)"
   unfolding div_mod_def by simp
 
