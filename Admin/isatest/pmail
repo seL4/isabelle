@@ -57,10 +57,12 @@ function print_body()
 {
     local SUBJECT=$1
     local BODY=$2
-    shift 2
+    local TO=$3
+    shift 3
 
     cat <<EOF
 Subject: $SUBJECT
+To: $TO
 Mime-Version: 1.0
 Content-Type: multipart/mixed; boundary="$MIME_BOUNDARY"
 
@@ -93,11 +95,17 @@ shift 3
 
 [ -r "$BODY" ] || fail "could not read $BODY"
 
-case `uname` in
-	Linux)  for F in $@; do ATTACH="$ATTACH -a $F"; done
+case `hostname` in
+	lxbroy*)
+		print_body "$SUBJECT" "$BODY" "$TO" $@ | sendmail "$TO"
+		;;
+	macbroy*)  for F in $@; do ATTACH="$ATTACH -a $F"; done
 		cat "$BODY" | mail -s "$SUBJECT" $ATTACH "$TO"
 		;;
-	SunOS)
-		print_body "$SUBJECT" "$BODY" $@ | mail -t "$TO"
+	sunbroy*)
+		print_body "$SUBJECT" "$BODY" "$TO" $@ | mail -t "$TO"
+		;;
+	*)
+		fail "unknown host/platform"
 		;;
 esac
