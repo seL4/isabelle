@@ -190,4 +190,4 @@ lemma
 quickcheck[narrowing, size = 7, expect = counterexample]
 oops
 
-ebd
+end
