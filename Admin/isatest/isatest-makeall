@@ -10,6 +10,7 @@
 # max time until test is aborted (in sec)
 MAXTIME=28800
 
+
 ## diagnostics
 
 PRG="$(basename "$0")"
@@ -35,6 +36,7 @@ function fail()
   exit 2
 }
 
+
 ## main
 
 # argument checking
@@ -47,61 +49,17 @@ function fail()
 TARGETS=all
 
 # make file flags and nice setup for different target platforms
+MFLAGS="-k"
+NICE="nice"
 case $HOSTNAME in
-    atbroy51)
-        MFLAGS="-k -j 2"
+    macbroy2 | macbroy6 | macbroy30)
         NICE=""
         ;;
-
-    atbroy98)
-        MFLAGS="-k"
-        NICE=""
-        ;;
-
-    atbroy31)
-        MFLAGS="-k -j 2"
-        ;;
-  
-    macbroy2)
-        MFLAGS="-k"
-        NICE=""
-        ;;
-
-    macbroy6)
-        MFLAGS="-k"
-        NICE=""
-        ;;
-
-    macbroy22)
-        MFLAGS="-k"
-        NICE=""
-        ;;
-
-    macbroy27 | macbroy28)
-        MFLAGS="-k -j 2"
-        NICE="nice"
-        ;;
-
-    macbroy2[0-9])
-        MFLAGS="-k -j 2"
-        NICE=""
-        ;;
-
-    macbroy30)
-        MFLAGS="-k"
-        NICE=""
-        ;;
-
     lxbroy[234])
         MFLAGS="-k -j 2"
         NICE=""
         ;;
 
-    *)
-        MFLAGS="-k"
-        # be nice by default
-        NICE=nice
-        ;;
 esac
 
 ISABELLE_TOOL="$DISTPREFIX/Isabelle/bin/isabelle"
@@ -129,6 +87,7 @@ fi
 
 IDENT=$(cat "$DISTPREFIX/ISABELLE_IDENT")
 
+
 # main test loop
 
 log "starting [$@]"
@@ -142,13 +101,13 @@ for SETTINGS in $@; do
     DATE=$(date "+%Y-%m-%d")
     SHORT=${SETTINGS##*/}
 
-	if [ "${SHORT%-e}" == "$SHORT" ]; then
-		# normal test
-    	TESTLOG=$LOGPREFIX/isatest-makeall-$SHORT-$DATE-$HOSTNAME.log
- 	else
-	 	# experimental test
-		TESTLOG=$LOGPREFIX/isatest-makeall-$SHORT-$DATE-$HOSTNAME-e.log
-	fi
+    if [ "${SHORT%-e}" == "$SHORT" ]; then
+        # normal test
+        TESTLOG=$LOGPREFIX/isatest-makeall-$SHORT-$DATE-$HOSTNAME.log
+    else
+        # experimental test
+        TESTLOG=$LOGPREFIX/isatest-makeall-$SHORT-$DATE-$HOSTNAME-e.log
+    fi
 
     # the test
 
@@ -199,4 +158,3 @@ else
     exit 1
 fi
 
-# end
