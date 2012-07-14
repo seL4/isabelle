@@ -58,11 +58,6 @@ case $HOSTNAME in
         NICE=""
         ;;
 
-    atbroy102)
-        MFLAGS="-k"
-        NICE=""
-        ;;
-
     atbroy31)
         MFLAGS="-k -j 2"
         ;;
