@@ -502,9 +502,18 @@ fun change_arg banned ({j, t, T}, args) : flarg list =
 
 
 (*Sort the arguments to create assignments if possible:
-  create eta-terms like ?g(B.1,B.0) *)
-fun arg_less ({t = Bound i1, ...}, {t = Bound i2, ...}) = (i2 < i1)
-  | arg_less (_: flarg, _: flarg) = false;
+  create eta-terms like ?g B.1 B.0*)
+local
+  fun less_arg ({t = Bound i1, ...}, {t = Bound i2, ...}) = (i2 < i1)
+    | less_arg (_: flarg, _: flarg) = false;
+
+  fun ins_arg x [] = [x]
+    | ins_arg x (y :: ys) =
+        if less_arg (y, x) then y :: ins_arg x ys else x :: y :: ys;
+in
+  fun sort_args [] = []
+    | sort_args (x :: xs) = ins_arg x (sort_args xs);
+end;
 
 (*Test whether the new term would be eta-equivalent to a variable --
   if so then there is no point in creating a new variable*)
@@ -519,7 +528,7 @@ fun clean_term banned (env,t) =
     val (Var (v, T), ts) = strip_comb t;
     val (Ts, U) = strip_type env T
     and js = length ts - 1  downto 0;
-    val args = sort (make_ord arg_less) (List.foldr (change_arg banned) [] (flexargs (js, ts, Ts)))
+    val args = sort_args (List.foldr (change_arg banned) [] (flexargs (js, ts, Ts)))
     val ts' = map #t args;
   in
     if decreasing (length Ts) args then (env, (list_comb (Var (v, T), ts')))

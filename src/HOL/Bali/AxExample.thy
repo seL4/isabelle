@@ -83,7 +83,7 @@ apply   (tactic "ax_tac 1")
 apply   (tactic "ax_tac 1" (* AVar *))
 prefer 2
 apply    (rule ax_subst_Val_allI)
-apply    (tactic {* inst1_tac @{context} "P'" "\<lambda>u a. Normal (?PP a\<leftarrow>?x) u" *})
+apply    (tactic {* inst1_tac @{context} "P'" "\<lambda>a. Normal (?PP a\<leftarrow>?x)" *})
 apply    (simp del: avar_def2 peek_and_def2)
 apply    (tactic "ax_tac 1")
 apply   (tactic "ax_tac 1")
@@ -137,7 +137,7 @@ apply     fastforce
 prefer 4
 apply    (rule ax_derivs.Done [THEN conseq1],force)
 apply   (rule ax_subst_Val_allI)
-apply   (tactic {* inst1_tac @{context} "P'" "\<lambda>u a. Normal (?PP a\<leftarrow>?x) u" *})
+apply   (tactic {* inst1_tac @{context} "P'" "\<lambda>a. Normal (?PP a\<leftarrow>?x)" *})
 apply   (simp (no_asm) del: peek_and_def2 heap_free_def2 normal_def2 o_apply)
 apply   (tactic "ax_tac 1")
 prefer 2
@@ -161,7 +161,7 @@ apply (tactic "ax_tac 1")
 apply (tactic "ax_tac 1")
 defer
 apply  (rule ax_subst_Var_allI)
-apply  (tactic {* inst1_tac @{context} "P'" "\<lambda>u vf. Normal (?PP vf \<and>. ?p) u" *})
+apply  (tactic {* inst1_tac @{context} "P'" "\<lambda>vf. Normal (?PP vf \<and>. ?p)" *})
 apply  (simp (no_asm) del: split_paired_All peek_and_def2 initd_def2 heap_free_def2 normal_def2)
 apply  (tactic "ax_tac 1" (* NewC *))
 apply  (tactic "ax_tac 1" (* ax_Alloc *))
