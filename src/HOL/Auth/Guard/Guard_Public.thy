@@ -5,7 +5,7 @@
 Lemmas on guarded messages for public protocols.
 *)
 
-theory Guard_Public imports Guard Public Extensions begin
+theory Guard_Public imports Guard "../Public" Extensions begin
 
 subsection{*Extensions to Theory @{text Public}*}
 
