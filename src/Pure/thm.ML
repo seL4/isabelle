@@ -1562,7 +1562,7 @@ fun rename_bvs [] _ _ _ _ = K I
 
 (*Function to rename bounds/unknowns in the argument, lifted over B*)
 fun rename_bvars dpairs =
-  rename_bvs (List.foldr Term.match_bvars [] dpairs) dpairs;
+  rename_bvs (fold_rev Term.match_bvars dpairs []) dpairs;
 
 
 (*** RESOLUTION ***)

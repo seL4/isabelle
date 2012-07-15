@@ -273,11 +273,11 @@ fun head_norm_dpair thy (env, (rbinder, t, u)) : dpair * Envir.env =
   Does not even identify Vars in dpairs such as ?a =?= ?b; an attempt to
     do so caused numerous problems with no compensating advantage.
 *)
-fun SIMPL0 thy (dp0, (env,flexflex,flexrigid)) : Envir.env * dpair list * dpair list =
+fun SIMPL0 thy dp0 (env,flexflex,flexrigid) : Envir.env * dpair list * dpair list =
   let
     val (dp as (rbinder, t, u), env) = head_norm_dpair thy (env, dp0);
     fun SIMRANDS (f $ t, g $ u, env) =
-          SIMPL0 thy ((rbinder, t, u), SIMRANDS (f, g, env))
+          SIMPL0 thy (rbinder, t, u) (SIMRANDS (f, g, env))
       | SIMRANDS (t as _$_, _, _) =
           raise TERM ("SIMPL: operands mismatch", [t, u])
       | SIMRANDS (t, u as _ $ _, _) =
@@ -318,7 +318,7 @@ fun changed (env, f $ _) = changed (env, f)
   Clever would be to re-do just the affected dpairs*)
 fun SIMPL thy (env,dpairs) : Envir.env * dpair list * dpair list =
   let
-    val all as (env', flexflex, flexrigid) = List.foldr (SIMPL0 thy) (env, [], []) dpairs;
+    val all as (env', flexflex, flexrigid) = fold_rev (SIMPL0 thy) dpairs (env, [], []);
     val dps = flexrigid @ flexflex;
   in
     if exists (fn (_, t, u) => changed (env', t) orelse changed (env', u)) dps
@@ -496,7 +496,7 @@ fun change_bnos banned =
   in change 0 end;
 
 (*Change indices, delete the argument if it contains a banned Bound*)
-fun change_arg banned ({j, t, T}, args) : flarg list =
+fun change_arg banned {j, t, T} args : flarg list =
   if rigid_bound (0, banned) t then args  (*delete argument!*)
   else {j = j, t = change_bnos banned t, T = T} :: args;
 
@@ -528,7 +528,7 @@ fun clean_term banned (env,t) =
     val (Var (v, T), ts) = strip_comb t;
     val (Ts, U) = strip_type env T
     and js = length ts - 1  downto 0;
-    val args = sort_args (List.foldr (change_arg banned) [] (flexargs (js, ts, Ts)))
+    val args = sort_args (fold_rev (change_arg banned) (flexargs (js, ts, Ts)) [])
     val ts' = map #t args;
   in
     if decreasing (length Ts) args then (env, (list_comb (Var (v, T), ts')))
@@ -579,7 +579,7 @@ fun clean_ffpair thy ((rbinder, t, u), (env, tpairs)) =
   eliminates trivial tpairs like t=t, as well as repeated ones
   trivial tpairs can easily escape SIMPL:  ?A=t, ?A=?B, ?B=t gives t=t
   Resulting tpairs MAY NOT be in normal form:  assignments may occur here.*)
-fun add_ffpair thy ((rbinder,t0,u0), (env,tpairs)) : Envir.env * (term * term) list =
+fun add_ffpair thy (rbinder,t0,u0) (env,tpairs) : Envir.env * (term * term) list =
   let
     val t = Envir.norm_term env t0
     and u = Envir.norm_term env u0;
@@ -627,7 +627,7 @@ fun hounifiers (thy, env, tus : (term * term) list) : (Envir.env * (term * term)
             SIMPL thy (env, dpairs));
         in
           (case flexrigid of
-            [] => SOME (List.foldr (add_ffpair thy) (env', []) flexflex, reseq)
+            [] => SOME (fold_rev (add_ffpair thy) flexflex (env', []), reseq)
           | dp :: frigid' =>
               if tdepth > search_bnd then
                 (warning "Unification bound exceeded"; Seq.pull reseq)
@@ -664,7 +664,7 @@ fun var_head_of (env,t) : indexname * typ =
   Unlike Huet (1975), does not smash together all variables of same type --
     requires more work yet gives a less general unifier (fewer variables).
   Handles ?f(t1...rm) with ?f(u1...um) to avoid multiple updates. *)
-fun smash_flexflex1 ((t, u), env) : Envir.env =
+fun smash_flexflex1 (t, u) env : Envir.env =
   let
     val vT as (v, T) = var_head_of (env, t)
     and wU as (w, U) = var_head_of (env, u);
@@ -678,7 +678,7 @@ fun smash_flexflex1 ((t, u), env) : Envir.env =
 
 (*Smash all flex-flexpairs.  Should allow selection of pairs by a predicate?*)
 fun smash_flexflex (env, tpairs) : Envir.env =
-  List.foldr smash_flexflex1 env tpairs;
+  fold_rev smash_flexflex1 tpairs env;
 
 (*Returns unifiers with no remaining disagreement pairs*)
 fun smash_unifiers thy tus env =
