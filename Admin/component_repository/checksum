@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+#
+# Author: Alexander Krauss
+#
+# Computes and validates checksums for the Isabelle component repository
+
+THIS="$(cd $(dirname "$0"); pwd)"
+
+function usage()
+{
+  echo
+  echo "Usage: $0 [OPTIONS] [DIR]"
+  echo
+  echo "  Options are:"
+  echo "    -u           update the recorded checksums in the repository"
+  echo "    -c           compare the actual checksums with the recorded ones"
+  echo
+  echo "  Compute the checksums of components in DIR (default '/home/isabelle/components')"
+  echo "  and synchronize them with the Isabelle repository."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+# options
+
+UPDATE=""
+CHECK=""
+COMPONENTS_DIR="/home/isabelle/components"
+
+while getopts "uc" OPT
+do
+  case "$OPT" in
+    u)
+      UPDATE=true
+      ;;
+    c)
+      CHECK=true
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+[ -n "$UPDATE" ] || [ -n "$CHECK" ] || usage
+
+# args
+
+[ "$#" -ge 1 ] && { COMPONENTS_DIR="$1"; shift; }
+[ "$#" -ne 0 ] && usage
+
+
+## compute checksums
+
+CHECKSUM_FILE="$THIS/components.sha1"
+CHECKSUM_TMP="$THIS/components.sha1.tmp"
+
+cd "$COMPONENTS_DIR"
+sha1sum *.tar.gz > "$CHECKSUM_TMP"
+
+[ -n "$UPDATE" ] && mv "$CHECKSUM_TMP" "$CHECKSUM_FILE"
+[ -n "$CHECK" ] && (diff "$CHECKSUM_FILE" "$CHECKSUM_TMP" || fail "Integrity error")
