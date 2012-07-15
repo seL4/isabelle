@@ -147,7 +147,7 @@ sig
   val aconv_untyped: term * term -> bool
   val could_unify: term * term -> bool
   val strip_abs_eta: int -> term -> (string * typ) list * term
-  val match_bvars: (term * term) * (string * string) list -> (string * string) list
+  val match_bvars: (term * term) -> (string * string) list -> (string * string) list
   val map_abs_vars: (string -> string) -> term -> term
   val rename_abs: term -> term -> term -> term option
   val is_open: term -> bool
@@ -611,7 +611,7 @@ fun match_bvs(Abs(x,_,s),Abs(y,_,t), al) =
   | match_bvs(_,_,al) = al;
 
 (* strip abstractions created by parameters *)
-fun match_bvars((s,t),al) = match_bvs(strip_abs_body s, strip_abs_body t, al);
+fun match_bvars (s,t) al = match_bvs(strip_abs_body s, strip_abs_body t, al);
 
 fun map_abs_vars f (t $ u) = map_abs_vars f t $ map_abs_vars f u
   | map_abs_vars f (Abs (a, T, t)) = Abs (f a, T, map_abs_vars f t)

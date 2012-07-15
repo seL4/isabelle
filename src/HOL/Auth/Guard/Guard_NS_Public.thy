@@ -158,7 +158,10 @@ apply (drule no_Nonce_NS1_NS2, auto)
 apply (case_tac "NBa=NB", clarify)
 apply (drule Guard_Nonce_analz, simp+)
 apply (drule Says_imp_knows_Spy)+
-by (drule_tac A=Aa and A'=A in NB_is_uniq, auto)
+apply (drule_tac A=Aa and A'=A in NB_is_uniq)
+apply auto[1]
+apply (auto simp add: guard.No_Nonce)
+done
 
 subsection{*Agents' Authentication*}
 

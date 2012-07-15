@@ -255,9 +255,9 @@ val QUIET_BREADTH_FIRST = gen_BREADTH_FIRST (K ());
 *)
 
 (*Insertion into priority queue of states, marked with level *)
-fun insert_with_level (lnth: int*int*thm, []) = [lnth]
-  | insert_with_level ((l,m,th), (l',n,th')::nths) =
-      if  n<m then (l',n,th') :: insert_with_level ((l,m,th), nths)
+fun insert_with_level (lnth: int*int*thm) [] = [lnth]
+  | insert_with_level (l,m,th) ((l',n,th') :: nths) =
+      if  n<m then (l',n,th') :: insert_with_level (l,m,th) nths
       else if  n=m andalso Thm.eq_thm(th,th')
               then (l',n,th')::nths
               else (l,m,th)::(l',n,th')::nths;
@@ -274,7 +274,7 @@ fun THEN_ASTAR tac0 (satp, costf) tac1 =
       let fun cost thm = (level, costf level thm, thm)
       in (case  List.partition satp news  of
             ([],nonsats)
-                 => next (List.foldr insert_with_level nprfs (map cost nonsats))
+                 => next (fold_rev (insert_with_level o cost) nonsats nprfs)
           | (sats,_)  => some_of_list sats)
       end and
       next []  = NONE
