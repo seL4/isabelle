@@ -932,29 +932,55 @@ fun list_ord elem_ord (xs, ys) =
 
 (* sorting *)
 
-(*quicksort -- stable, i.e. does not reorder equal elements*)
-fun quicksort unique ord =
+(*stable mergesort -- preserves order of equal elements*)
+fun mergesort unique ord =
   let
-    fun qsort [] = []
-      | qsort (xs as [_]) = xs
-      | qsort (xs as [x, y]) =
+    fun merge (xs as x :: xs') (ys as y :: ys') =
           (case ord (x, y) of
-            LESS => xs
-          | EQUAL => if unique then [x] else xs
-          | GREATER => [y, x])
-      | qsort xs =
-          let val (lts, eqs, gts) = part (nth xs (length xs div 2)) xs
-          in qsort lts @ eqs @ qsort gts end
-    and part _ [] = ([], [], [])
-      | part pivot (x :: xs) = add (ord (x, pivot)) x (part pivot xs)
-    and add LESS x (lts, eqs, gts) = (x :: lts, eqs, gts)
-      | add EQUAL x (lts, [], gts) = (lts, [x], gts)
-      | add EQUAL x (res as (lts, eqs, gts)) = if unique then res else (lts, x :: eqs, gts)
-      | add GREATER x (lts, eqs, gts) = (lts, eqs, x :: gts);
-  in qsort end;
+            LESS => x :: merge xs' ys
+          | EQUAL =>
+              if unique then merge xs ys'
+              else x :: merge xs' ys
+          | GREATER => y :: merge xs ys')
+      | merge [] ys = ys
+      | merge xs [] = xs;
 
-fun sort ord = quicksort false ord;
-fun sort_distinct ord = quicksort true ord;
+    fun merge_all [xs] = xs
+      | merge_all xss = merge_all (merge_pairs xss)
+    and merge_pairs (xs :: ys :: xss) = merge xs ys :: merge_pairs xss
+      | merge_pairs xss = xss;
+
+    fun runs (x :: y :: xs) =
+          (case ord (x, y) of
+             LESS => ascending y [x] xs
+           | EQUAL =>
+               if unique then runs (x :: xs)
+               else ascending y [x] xs
+           | GREATER => descending y [x] xs)
+      | runs xs = [xs]
+
+    and ascending x xs (zs as y :: ys) =
+          (case ord (x, y) of
+             LESS => ascending y (x :: xs) ys
+           | EQUAL =>
+               if unique then ascending x xs ys
+               else ascending y (x :: xs) ys
+           | GREATER => rev (x :: xs) :: runs zs)
+      | ascending x xs [] = [rev (x :: xs)]
+
+    and descending x xs (zs as y :: ys) =
+          (case ord (x, y) of
+             GREATER => descending y (x :: xs) ys
+           | EQUAL =>
+               if unique then descending x xs ys
+               else (x :: xs) :: runs zs
+           | LESS => (x :: xs) :: runs zs)
+      | descending x xs [] = [x :: xs];
+
+  in merge_all o runs end;
+
+fun sort ord = mergesort false ord;
+fun sort_distinct ord = mergesort true ord;
 
 val sort_strings = sort string_ord;
 fun sort_wrt key xs = sort (string_ord o pairself key) xs;
