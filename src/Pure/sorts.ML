@@ -48,6 +48,7 @@ sig
   type class_error
   val class_error: Context.pretty -> class_error -> string
   exception CLASS_ERROR of class_error
+  val has_instance: algebra -> string -> sort -> bool
   val mg_domain: algebra -> string -> sort -> sort list   (*exception CLASS_ERROR*)
   val meet_sort: algebra -> typ * sort
     -> sort Vartab.table -> sort Vartab.table   (*exception CLASS_ERROR*)
@@ -337,13 +338,16 @@ fun class_error pp =
 exception CLASS_ERROR of class_error;
 
 
-(* mg_domain *)
+(* instances *)
+
+fun has_instance algebra a =
+  forall (AList.defined (op =) (Symtab.lookup_list (arities_of algebra) a));
 
 fun mg_domain algebra a S =
   let
-    val arities = arities_of algebra;
+    val ars = Symtab.lookup_list (arities_of algebra) a;
     fun dom c =
-      (case AList.lookup (op =) (Symtab.lookup_list arities a) c of
+      (case AList.lookup (op =) ars c of
         NONE => raise CLASS_ERROR (No_Arity (a, c))
       | SOME Ss => Ss);
     fun dom_inter c Ss = ListPair.map (inter_sort algebra) (dom c, Ss);

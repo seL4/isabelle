@@ -60,8 +60,8 @@ fun add_partial_term_of tyco raw_vs thy =
 
 fun ensure_partial_term_of (tyco, (raw_vs, _)) thy =
   let
-    val need_inst = not (can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort partial_term_of})
-      andalso can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort typerep};
+    val need_inst = not (Sorts.has_instance (Sign.classes_of thy) tyco @{sort partial_term_of})
+      andalso Sorts.has_instance (Sign.classes_of thy) tyco @{sort typerep};
   in if need_inst then add_partial_term_of tyco raw_vs thy else thy end;
 
 
@@ -111,7 +111,7 @@ fun add_partial_term_of_code tyco raw_vs raw_cs thy =
 
 fun ensure_partial_term_of_code (tyco, (raw_vs, cs)) thy =
   let
-    val has_inst = can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort partial_term_of};
+    val has_inst = Sorts.has_instance (Sign.classes_of thy) tyco @{sort partial_term_of};
   in if has_inst then add_partial_term_of_code tyco raw_vs cs thy else thy end;
 
 

@@ -449,7 +449,7 @@ fun ensure_sort (((sort_vs, aux_sort), sort), (the_descr, instantiate)) config r
       (Datatype_Aux.interpret_construction descr vs constr)
     val insts = insts_of sort  { atyp = single, dtyp = (K o K o K) [] }
       @ insts_of aux_sort { atyp = K [], dtyp = K o K }
-    val has_inst = exists (fn tyco => can (Sorts.mg_domain algebra tyco) sort) tycos;
+    val has_inst = exists (fn tyco => Sorts.has_instance algebra tyco sort) tycos;
   in if has_inst then thy
     else case perhaps_constrain thy insts vs
      of SOME constrain => instantiate config descr

@@ -1722,7 +1722,7 @@ fun instantiate_sort_record (sort, mk_eq) tyco vs extN Ts thy =
 fun ensure_sort_record (sort, mk_eq) ext_tyco vs extN Ts thy =
   let
     val algebra = Sign.classes_of thy;
-    val has_inst = can (Sorts.mg_domain algebra ext_tyco) sort;
+    val has_inst = Sorts.has_instance algebra ext_tyco sort;
   in
     if has_inst then thy
     else

@@ -64,8 +64,8 @@ fun add_typerep tyco thy =
   end;
 
 fun ensure_typerep tyco thy =
-  if not (can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort typerep})
-    andalso can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort type}
+  if not (Sorts.has_instance (Sign.classes_of thy) tyco @{sort typerep})
+    andalso Sorts.has_instance (Sign.classes_of thy) tyco @{sort type}
   then add_typerep tyco thy else thy;
 
 in

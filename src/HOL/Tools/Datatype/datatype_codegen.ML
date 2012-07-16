@@ -139,7 +139,7 @@ fun add_all_code config tycos thy =
     val certs = map (mk_case_cert thy) tycos;
     val tycos_eq =
       filter_out
-        (fn tyco => can (Sorts.mg_domain (Sign.classes_of thy) tyco) [HOLogic.class_equal]) tycos;
+        (fn tyco => Sorts.has_instance (Sign.classes_of thy) tyco [HOLogic.class_equal]) tycos;
   in
     if null css then thy
     else
