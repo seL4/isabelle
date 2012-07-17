@@ -11,7 +11,7 @@ import scala.swing.TextArea
 
 object Main
 {
-  def main(args: Array[String]) =
+  def main(args: Array[String])
   {
     val (out, rc) =
       try {
