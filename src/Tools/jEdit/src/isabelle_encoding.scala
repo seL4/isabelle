@@ -16,7 +16,7 @@ import java.nio.charset.{Charset, CodingErrorAction}
 import java.io.{InputStream, OutputStream, Reader, Writer, InputStreamReader, OutputStreamWriter,
   CharArrayReader, ByteArrayOutputStream}
 
-import scala.io.{Codec, Source, BufferedSource}
+import scala.io.{Codec, BufferedSource}
 
 
 object Isabelle_Encoding

@@ -6,7 +6,6 @@ Detecting and recoding Isabelle symbols.
 
 package isabelle
 
-import scala.io.Source
 import scala.collection.mutable
 import scala.util.matching.Regex
 

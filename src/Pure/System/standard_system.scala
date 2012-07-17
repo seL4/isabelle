@@ -16,7 +16,7 @@ import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOu
   File, FileFilter, IOException}
 import java.nio.charset.Charset
 
-import scala.io.{Source, Codec}
+import scala.io.Codec
 import scala.util.matching.Regex
 import scala.collection.mutable
 
