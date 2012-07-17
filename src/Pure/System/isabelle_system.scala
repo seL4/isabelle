@@ -78,7 +78,7 @@ object Isabelle_System
               if (rc != 0) error(output)
 
               val entries =
-                (for (entry <- Source.fromFile(dump).mkString split "\0" if entry != "") yield {
+                (for (entry <- Standard_System.read_file(dump) split "\0" if entry != "") yield {
                   val i = entry.indexOf('=')
                   if (i <= 0) (entry -> "")
                   else (entry.substring(0, i) -> entry.substring(i + 1))
@@ -132,8 +132,7 @@ object Isabelle_System
     for {
       path <- paths
       file = platform_file(path) if file.isFile
-      c <- (Source.fromFile(file) ++ Iterator.single('\n'))
-    } buf.append(c)
+    } { buf.append(Standard_System.read_file(file)); buf.append('\n') }
     buf.toString
   }
 
