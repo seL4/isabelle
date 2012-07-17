@@ -39,6 +39,7 @@ declare -a SOURCES=(
   PIDE/text.scala
   PIDE/xml.scala
   PIDE/yxml.scala
+  System/build.scala
   System/event_bus.scala
   System/gui_setup.scala
   System/invoke_scala.scala
