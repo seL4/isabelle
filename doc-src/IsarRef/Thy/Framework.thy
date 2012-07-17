@@ -405,7 +405,7 @@ text {*
   @{text "(A \<and> B \<Longrightarrow> B) \<Longrightarrow> (A \<and> B \<Longrightarrow> A) \<Longrightarrow> #\<dots>"} & @{text "(resolution B \<Longrightarrow> A \<Longrightarrow> B \<and> A)"} \\
   @{text "(A \<and> B \<Longrightarrow> A \<and> B) \<Longrightarrow> (A \<and> B \<Longrightarrow> A) \<Longrightarrow> #\<dots>"} & @{text "(resolution A \<and> B \<Longrightarrow> B)"} \\
   @{text "(A \<and> B \<Longrightarrow> A) \<Longrightarrow> #\<dots>"} & @{text "(assumption)"} \\
-  @{text "(A \<and> B \<Longrightarrow> B \<and> A) \<Longrightarrow> #\<dots>"} & @{text "(resolution A \<and> B \<Longrightarrow> A)"} \\
+  @{text "(A \<and> B \<Longrightarrow> A \<and> B) \<Longrightarrow> #\<dots>"} & @{text "(resolution A \<and> B \<Longrightarrow> A)"} \\
   @{text "#\<dots>"} & @{text "(assumption)"} \\
   @{text "A \<and> B \<Longrightarrow> B \<and> A"} & @{text "(finish)"} \\
   \end{tabular}
