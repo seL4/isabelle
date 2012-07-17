@@ -19,7 +19,7 @@ subsection {* Catching Match exceptions *}
 axiomatization catch_match :: "'a => 'a => 'a"
 
 code_const catch_match 
-  (Quickcheck "(_) handle Match => _")
+  (Quickcheck "((_) handle Match => _)")
 
 subsection {* The @{text random} class *}
 

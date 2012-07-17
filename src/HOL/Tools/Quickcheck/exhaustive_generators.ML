@@ -332,8 +332,8 @@ fun mk_test_term lookup mk_closure mk_if mk_let none_t return ctxt =
                 val dummy_var = Free (singleton
                   (Variable.variant_frees ctxt (concl :: assms @ vars)) ("dummy", T))
                 val new_assms = map HOLogic.mk_eq (vars ~~ args)
-                val cont_t = mk_smart_test_term' concl (union (op =) varnames bound_vars)
-                  (new_assms @ assms) genuine
+                val bound_vars' = union (op =) (vars_of lhs) (union (op =) varnames bound_vars)
+                val cont_t = mk_smart_test_term' concl bound_vars' (new_assms @ assms) genuine
               in
                 (vars_of lhs, Datatype_Case.make_case ctxt Datatype_Case.Quiet [] lhs
                   [(list_comb (constr, vars), cont_t), (dummy_var, none_t)])
