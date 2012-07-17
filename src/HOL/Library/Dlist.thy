@@ -180,9 +180,11 @@ subsection {* Functorial structure *}
 enriched_type map: map
   by (simp_all add: List.map.id remdups_map_remdups fun_eq_iff dlist_eq_iff)
 
+
 subsection {* Quickcheck generators *}
 
 quickcheck_generator dlist predicate: distinct constructors: empty, insert
+
 
 hide_const (open) member fold foldr empty insert remove map filter null member length fold
 
