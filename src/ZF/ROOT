@@ -1,0 +1,148 @@
+session ZF in "." = FOL +
+  name ZF
+  description {*
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   1995  University of Cambridge
+
+    Zermelo-Fraenkel Set Theory on top of classical First-Order Logic.
+
+    This theory is the work of Martin Coen, Philippe Noel and Lawrence Paulson.
+  *}
+  options [document_graph]
+  theories Main Main_ZFC
+  files "document/root.tex"
+
+session AC = ZF +
+  description {*
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   1995  University of Cambridge
+
+    Proofs of AC-equivalences, due to Krzysztof Grabczewski.
+  *}
+  options [document_graph]
+  theories WO6_WO1 WO1_WO7 AC7_AC9 WO1_AC AC15_WO6
+    WO2_AC16 AC16_WO4 AC17_AC1 AC18_AC19 DC
+  files "document/root.tex" "document/root.bib"
+
+session Coind = ZF +
+  description {*
+    Author:     Jacob Frost, Cambridge University Computer Laboratory
+    Copyright   1995  University of Cambridge
+
+    Coind -- A Coinduction Example.
+
+    Based upon the article
+        Robin Milner and Mads Tofte,
+        Co-induction in Relational Semantics,
+        Theoretical Computer Science 87 (1991), pages 209-220.
+
+    Written up as
+        Jacob Frost, A Case Study of Co_induction in Isabelle
+        Report, Computer Lab, University of Cambridge (1995).
+  *}
+  theories ECR
+
+session Constructible = ZF +
+  description {* Inner Models, Absoluteness and Consistency Proofs. *}
+  options [document_graph]
+  theories DPow_absolute AC_in_L Rank_Separation
+  files "document/root.tex" "document/root.bib"
+
+session IMP = ZF +
+  description {*
+    Author:     Heiko Loetzbeyer & Robert Sandner, TUM
+    Copyright   1994 TUM
+
+    Formalization of the denotational and operational semantics of a
+    simple while-language, including an equivalence proof.
+
+    The whole development essentially formalizes/transcribes
+    chapters 2 and 5 of
+
+    Glynn Winskel. The Formal Semantics of Programming Languages.
+    MIT Press, 1993.
+  *}
+  theories Equiv
+  files "document/root.tex" "document/root.bib"
+
+session Induct = ZF +
+  description {*
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   2001  University of Cambridge
+
+    Inductive definitions.
+  *}
+  theories
+    (** Datatypes **)
+    Datatypes       (*sample datatypes*)
+    Binary_Trees    (*binary trees*)
+    Term            (*recursion over the list functor*)
+    Ntree           (*variable-branching trees; function demo*)
+    Tree_Forest     (*mutual recursion*)
+    Brouwer         (*Infinite-branching trees*)
+    Mutil           (*mutilated chess board*)
+
+    (*by Sidi Ehmety: Multisets.  A parent is FoldSet, the "fold" function for
+    finite sets*)
+    Multiset
+    Rmap            (*mapping a relation over a list*)
+    PropLog         (*completeness of propositional logic*)
+
+    (*two Coq examples by Christine Paulin-Mohring*)
+    ListN
+    Acc
+
+    Comb            (*Combinatory Logic example*)
+    Primrec         (*Primitive recursive functions*)
+  files "document/root.tex"
+
+session Resid = ZF +
+  description {*
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   1995  University of Cambridge
+
+    Residuals -- a proof of the Church-Rosser Theorem for the
+    untyped lambda-calculus.
+
+    By Ole Rasmussen, following the Coq proof given in
+
+    Gerard Huet.  Residual Theory in Lambda-Calculus: A Formal Development.
+    J. Functional Programming 4(3) 1994, 371-394.
+  *}
+  theories Confluence
+
+session UNITY = ZF +
+  description {*
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   1998  University of Cambridge
+
+    ZF/UNITY proofs.
+  *}
+  theories
+    (*Simple examples: no composition*)
+    Mutex
+
+    (*Basic meta-theory*)
+    Guar
+
+    (*Prefix relation; the Allocator example*)
+    Distributor Merge ClientImpl AllocImpl
+
+session ex = ZF +
+  description {*
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   1993  University of Cambridge
+
+    Miscellaneous examples for Zermelo-Fraenkel Set Theory.
+  *}
+  theories
+    misc
+    Ring             (*abstract algebra*)
+    Commutation      (*abstract Church-Rosser theory*)
+    Primes           (*GCD theory*)
+    NatSum           (*Summing integers, squares, cubes, etc.*)
+    Ramsey           (*Simple form of Ramsey's theorem*)
+    Limit            (*Inverse limit construction of domains*)
+    BinEx            (*Binary integer arithmetic*)
+    LList CoUnit     (*CoDatatypes*)
+

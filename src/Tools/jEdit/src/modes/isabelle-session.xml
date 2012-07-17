@@ -21,21 +21,22 @@
       <BEGIN>{*</BEGIN>
       <END>*}</END>
     </SPAN>
-    <SPAN TYPE="LITERAL1">
+    <SPAN TYPE="LITERAL2">
       <BEGIN>`</BEGIN>
       <END>`</END>
     </SPAN>
-    <SPAN TYPE="LITERAL3">
+    <SPAN TYPE="LITERAL1">
       <BEGIN>"</BEGIN>
       <END>"</END>
     </SPAN>
     <KEYWORDS>
       <KEYWORD1>session</KEYWORD1>
-      <KEYWORD2>parent</KEYWORD2>
-      <KEYWORD2>imports</KEYWORD2>
-      <KEYWORD2>uses</KEYWORD2>
+      <KEYWORD2>in</KEYWORD2>
+      <KEYWORD2>name</KEYWORD2>
+      <KEYWORD2>description</KEYWORD2>
+      <KEYWORD2>files</KEYWORD2>
       <KEYWORD2>options</KEYWORD2>
-      <KEYWORD2>dependencies</KEYWORD2>
+      <KEYWORD2>theories</KEYWORD2>
     </KEYWORDS>
   </RULES>
 </MODE>

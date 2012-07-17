@@ -56,5 +56,24 @@ object Build
 
     rc
   }
+
+
+  /* session information */
+
+  case class Session_Info(
+    val dir: Path,
+    val text: String)
+
+  val ROOT_NAME = "ROOT"
+
+  def find_sessions(): List[Session_Info] =
+  {
+    for {
+      dir <- Isabelle_System.components()
+      root = Isabelle_System.platform_file(dir + Path.basic(ROOT_NAME))
+      if root.isFile
+    }
+    yield Session_Info(dir, Standard_System.read_file(root))
+  }
 }
 

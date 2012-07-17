@@ -1,0 +1,27 @@
+session FOL in "." = Pure +
+  name FOL
+  description "First-Order Logic with Natural Deduction"
+  options [proofs = 2]
+  theories FOL
+  files "document/root.tex"
+
+session ex = FOL +
+  theories
+    First_Order_Logic
+    Natural_Numbers
+    Intro
+    Nat
+    Nat_Class
+    Foundation
+    Prolog
+    Intuitionistic
+    Propositional_Int
+    Quantifiers_Int
+    Classical
+    Propositional_Cla
+    Quantifiers_Cla
+    Miniscope
+    If
+  theories [document = false] "Locale_Test/Locale_Test"
+  files "document/root.tex"
+
