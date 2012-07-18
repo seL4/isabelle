@@ -26,6 +26,10 @@ val meshN = "Mesh"
 
 val max_facts_slack = 2
 
+val all_names =
+  filter_out (is_likely_tautology orf is_too_meta)
+  #> map (rpair () o Thm.get_name_hint) #> Symtab.make
+
 fun evaluate_mash_suggestions ctxt params thy file_name =
   let
     val {provers, max_facts, slice, type_enc, lam_trans, timeout, ...} =
@@ -36,10 +40,7 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
     val lines = path |> File.read_lines
     val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
     val facts = all_facts_of thy css_table
-    val all_names =
-      facts |> map snd
-            |> filter_out (is_likely_tautology orf is_too_meta)
-            |> map Thm.get_name_hint
+    val all_names = all_names (facts |> map snd)
     val iter_ok = Unsynchronized.ref 0
     val mash_ok = Unsynchronized.ref 0
     val mesh_ok = Unsynchronized.ref 0

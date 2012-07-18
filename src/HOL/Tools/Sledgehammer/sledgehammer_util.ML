@@ -13,7 +13,7 @@ sig
   val parse_time_option : string -> string -> Time.time option
   val subgoal_count : Proof.state -> int
   val reserved_isar_keyword_table : unit -> unit Symtab.table
-  val thms_in_proof : string list option -> thm -> string list
+  val thms_in_proof : unit Symtab.table option -> thm -> string list
 end;
 
 structure Sledgehammer_Util : SLEDGEHAMMER_UTIL =
@@ -63,28 +63,24 @@ fun reserved_isar_keyword_table () =
 fun fold_body_thms thm_name f =
   let
     fun app n (PBody {thms, ...}) =
-      thms |> fold (fn (_, (name, prop, body)) => fn x =>
-        let
-          val body' = Future.join body
-          val n' =
-            n + (if name = "" orelse
-                    (* uncommon case where the proved theorem occurs twice
-                       (e.g., "Transitive_Closure.trancl_into_trancl") *)
-                    (n = 1 andalso name = thm_name) then
-                   0
-                 else
-                   1)
-          val x' = x |> n' <= 1 ? app n' body'
-        in (x' |> n = 1 ? f (name, prop, body')) end)
+      thms |> fold (fn (_, (name, _, body)) => fn accum =>
+          let
+            (* The second disjunct caters for the uncommon case where the proved
+               theorem occurs in its own proof (e.g.,
+               "Transitive_Closure.trancl_into_trancl"). *)
+            val no_name = (name = "" orelse (n = 1 andalso name = thm_name))
+            val accum =
+              accum |> (if n = 1 andalso not no_name then f name else I)
+            val n = n + (if no_name then 0 else 1)
+          in accum |> (if n <= 1 then app n (Future.join body) else I) end)
   in fold (app 0) end
 
 fun thms_in_proof all_names th =
   let
-    val is_name_ok =
+    val collect =
       case all_names of
-        SOME names => member (op =) names
-      | NONE => (fn s => s <> "" andalso not (String.isPrefix "Pure." s))
-    fun collect (s, _, _) = is_name_ok s ? insert (op =) s
+        SOME names => (fn s => Symtab.defined names s ? insert (op =) s)
+      | NONE => insert (op =)
     val names =
       [] |> fold_body_thms (Thm.get_name_hint th) collect [Thm.proof_body_of th]
   in names end

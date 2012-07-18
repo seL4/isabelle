@@ -26,7 +26,30 @@ open Sledgehammer_Fact
 open Sledgehammer_Filter_Iter
 open Sledgehammer_Filter_MaSh
 
+fun thy_map_from_facts ths =
+  ths |> sort (thm_ord o swap o pairself snd)
+      |> map (snd #> `(theory_of_thm #> Context.theory_name))
+      |> AList.coalesce (op =)
+      |> map (apsnd (map Thm.get_name_hint))
+
+fun has_thy thy th =
+  Context.theory_name thy = Context.theory_name (theory_of_thm th)
+
+fun parent_facts thy thy_map =
+  let
+    fun add_last thy =
+      case AList.lookup (op =) thy_map (Context.theory_name thy) of
+        SOME (last_fact :: _) => insert (op =) last_fact
+      | _ => add_parent thy
+    and add_parent thy = fold add_last (Theory.parents_of thy)
+  in add_parent thy [] end
+
+val thy_name_of_fact = hd o Long_Name.explode
 fun thy_of_fact thy = Context.this_theory thy o thy_name_of_fact
+
+val all_names =
+  filter_out (is_likely_tautology orf is_too_meta)
+  #> map (rpair () o Thm.get_name_hint) #> Symtab.make
 
 fun generate_accessibility thy include_thy file_name =
   let
@@ -72,9 +95,7 @@ fun generate_isa_dependencies thy include_thy file_name =
       all_facts_of thy Termtab.empty
       |> not include_thy ? filter_out (has_thy thy o snd)
       |> map snd
-    val all_names =
-      ths |> filter_out (is_likely_tautology orf is_too_meta)
-          |> map Thm.get_name_hint
+    val all_names = all_names ths
     fun do_thm th =
       let
         val name = Thm.get_name_hint th
@@ -92,9 +113,7 @@ fun generate_atp_dependencies ctxt (params as {provers, max_facts, ...}) thy
       all_facts_of thy Termtab.empty
       |> not include_thy ? filter_out (has_thy thy o snd)
     val ths = facts |> map snd
-    val all_names =
-      ths |> filter_out (is_likely_tautology orf is_too_meta)
-          |> map Thm.get_name_hint
+    val all_names = all_names ths
     fun is_dep dep (_, th) = Thm.get_name_hint th = dep
     fun add_isa_dep facts dep accum =
       if exists (is_dep dep) accum then
@@ -142,9 +161,7 @@ fun generate_commands ctxt thy file_name =
       facts |> List.partition (has_thy thy o snd)
             |>> sort (thm_ord o pairself snd)
     val ths = facts |> map snd
-    val all_names =
-      ths |> filter_out (is_likely_tautology orf is_too_meta)
-          |> map Thm.get_name_hint
+    val all_names = all_names ths
     fun do_fact ((_, (_, status)), th) prevs =
       let
         val name = Thm.get_name_hint th

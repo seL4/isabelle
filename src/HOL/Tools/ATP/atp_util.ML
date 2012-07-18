@@ -12,6 +12,7 @@ sig
   val stringN_of_int : int -> int -> string
   val strip_spaces : bool -> (char -> bool) -> string -> string
   val strip_spaces_except_between_idents : string -> string
+  val elide_string : int -> string -> string
   val nat_subscript : int -> string
   val unyxml : string -> string
   val maybe_quote : string -> string
@@ -105,6 +106,13 @@ fun strip_spaces skip_comments is_evil =
 
 fun is_ident_char c = Char.isAlphaNum c orelse c = #"_"
 val strip_spaces_except_between_idents = strip_spaces true is_ident_char
+
+fun elide_string threshold s =
+  if size s > threshold then
+    String.extract (s, 0, SOME (threshold div 2 - 5)) ^ " ...... " ^
+    String.extract (s, size s - (threshold + 1) div 2 + 6, NONE)
+  else
+    s
 
 val subscript = implode o map (prefix "\<^isub>") o raw_explode  (* FIXME Symbol.explode (?) *)
 fun nat_subscript n =

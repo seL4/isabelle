@@ -134,7 +134,7 @@ fun generate_atp_inference_file_for_theory ctxt thy format type_enc file_name =
       atp_problem
       |> map (apsnd (filter_out (is_problem_line_tautology ctxt format)))
     val ths = facts |> map snd
-    val all_names = ths |> map Thm.get_name_hint
+    val all_names = ths |> map (rpair () o Thm.get_name_hint) |> Symtab.make
     val infers =
       facts |> map (fn (_, th) =>
                        (fact_name_of (Thm.get_name_hint th),

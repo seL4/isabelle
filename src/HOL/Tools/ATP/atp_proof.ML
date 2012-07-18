@@ -91,12 +91,6 @@ datatype failure =
   InternalError |
   UnknownError of string
 
-fun elide_string threshold s =
-  if size s > threshold then
-    String.extract (s, 0, SOME (threshold div 2 - 5)) ^ " ...... " ^
-    String.extract (s, size s - (threshold + 1) div 2 + 6, NONE)
-  else
-    s
 fun short_output verbose output =
   if verbose then
     if output = "" then "No details available" else elide_string 1000 output
