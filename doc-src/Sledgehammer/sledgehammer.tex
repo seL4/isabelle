@@ -358,10 +358,10 @@ remote\_vampire\/}''). For convenience, you can omit ``\textit{provers}~=''
 and simply write the prover names as a space-separated list (e.g., ``\textit{e
 spass remote\_vampire\/}'').
 
-\item[\labelitemi] \textbf{\textit{max\_relevant}} (\S\ref{relevance-filter})
+\item[\labelitemi] \textbf{\textit{max\_facts}} (\S\ref{relevance-filter})
 specifies the maximum number of facts that should be passed to the provers. By
-default, the value is prover-dependent but varies between about 150 and 1000. If
-the provers time out, you can try lowering this value to, say, 100 or 50 and see
+default, the value is prover-dependent but varies between about 50 and 1000. If
+the provers time out, you can try lowering this value to, say, 25 or 50 and see
 if that helps.
 
 \item[\labelitemi] \textbf{\textit{isar\_proof}} (\S\ref{output-format}) specifies
@@ -409,7 +409,7 @@ actual facts using \textit{debug} (\S\ref{output-format}).
 
 Sledgehammer is good at finding short proofs combining a handful of existing
 lemmas. If you are looking for longer proofs, you must typically restrict the
-number of facts, by setting the \textit{max\_relevant} option
+number of facts, by setting the \textit{max\_facts} option
 (\S\ref{relevance-filter}) to, say, 25 or 50.
 
 You can also influence which facts are actually selected in a number of ways. If
@@ -1147,7 +1147,13 @@ deliberately set to an unsound encoding.
 \label{relevance-filter}
 
 \begin{enum}
-\opdefault{relevance\_thresholds}{float\_pair}{\upshape 0.45~0.85}
+\opdefault{max\_facts}{smart\_int}{smart}
+Specifies the maximum number of facts that may be returned by the relevance
+filter. If the option is set to \textit{smart}, it is set to a value that was
+empirically found to be appropriate for the prover. Typical values range between
+50 and 1000.
+
+\opdefault{fact\_thresholds}{float\_pair}{\upshape 0.45~0.85}
 Specifies the thresholds above which facts are considered relevant by the
 relevance filter. The first threshold is used for the first iteration of the
 relevance filter and the second threshold is used for the last iteration (if it
@@ -1155,15 +1161,9 @@ is reached). The effective threshold is quadratically interpolated for the other
 iterations. Each threshold ranges from 0 to 1, where 0 means that all theorems
 are relevant and 1 only theorems that refer to previously seen constants.
 
-\opdefault{max\_relevant}{smart\_int}{smart}
-Specifies the maximum number of facts that may be returned by the relevance
-filter. If the option is set to \textit{smart}, it is set to a value that was
-empirically found to be appropriate for the prover. Typical values range between
-50 and 1000.
-
 \opdefault{max\_new\_mono\_instances}{int}{smart}
 Specifies the maximum number of monomorphic instances to generate beyond
-\textit{max\_relevant}. The higher this limit is, the more monomorphic instances
+\textit{max\_facts}. The higher this limit is, the more monomorphic instances
 are potentially generated. Whether monomorphization takes place depends on the
 type encoding used. If the option is set to \textit{smart}, it is set to a value
 that was empirically found to be appropriate for the prover. For most provers,

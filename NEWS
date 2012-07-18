@@ -42,6 +42,9 @@ Minor INCOMPATIBILITY.
 * Sledgehammer:
 
   - Rationalized type encodings ("type_enc" option).
+  - Renamed options:
+      max_relevant ~> max_facts
+      relevance_thresholds ~> fact_thresholds
 
 
 *** Document preparation ***
