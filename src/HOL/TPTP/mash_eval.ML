@@ -31,7 +31,7 @@ val unescape_meta =
 
 val of_fact_name = unescape_meta
 
-val isaN = "Isa"
+val isarN = "Isa"
 val iterN = "Iter"
 val mashN = "MaSh"
 val meshN = "Mesh"
@@ -51,7 +51,7 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
     val iter_ok = Unsynchronized.ref 0
     val mash_ok = Unsynchronized.ref 0
     val mesh_ok = Unsynchronized.ref 0
-    val isa_ok = Unsynchronized.ref 0
+    val isar_ok = Unsynchronized.ref 0
     fun find_sugg facts sugg =
       find_first (fn (_, th) => Thm.get_name_hint th = sugg) facts
     fun sugg_facts hyp_ts concl_t facts =
@@ -108,11 +108,11 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
           case find_first (fn (_, th) => Thm.get_name_hint th = name) facts of
             SOME (_, th) => th
           | NONE => error ("No fact called \"" ^ name ^ "\"")
-        val isa_deps = isabelle_dependencies_of all_names th
+        val isar_deps = isabelle_dependencies_of all_names th
         val goal = goal_of_thm thy th
         val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
         val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
-        val isa_facts = sugg_facts hyp_ts concl_t facts isa_deps
+        val isar_facts = sugg_facts hyp_ts concl_t facts isar_deps
         val iter_facts =
           Sledgehammer_Filter_Iter.iterative_relevant_facts ctxt params
               prover_name (max_facts_slack * the max_facts) NONE hyp_ts concl_t
@@ -122,9 +122,10 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
         val iter_s = prove iter_ok iterN iter_facts goal
         val mash_s = prove mash_ok mashN mash_facts goal
         val mesh_s = prove mesh_ok meshN mesh_facts goal
-        val isa_s = prove isa_ok isaN isa_facts goal
+        val isar_s = prove isar_ok isarN isar_facts goal
       in
-        ["Goal " ^ string_of_int j ^ ": " ^ name, iter_s, mash_s, mesh_s, isa_s]
+        ["Goal " ^ string_of_int j ^ ": " ^ name, iter_s, mash_s, mesh_s,
+         isar_s]
         |> cat_lines |> tracing
       end
     val explode_suggs = space_explode " " #> filter_out (curry (op =) "")
@@ -151,7 +152,7 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
      total_of iterN iter_ok n,
      total_of mashN mash_ok n,
      total_of meshN mesh_ok n,
-     total_of isaN isa_ok n]
+     total_of isarN isar_ok n]
     |> cat_lines |> tracing
   end
 

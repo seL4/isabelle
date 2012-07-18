@@ -38,9 +38,10 @@ fun generate_commands ctxt thy file_name =
         val kind = Thm.legacy_get_kind th
         val name = fact_name_of name
         val core =
-          name ^ ": " ^ space_implode " " prevs ^ "; " ^ space_implode " " feats
+          space_implode " " prevs ^ "; " ^ space_implode " " feats
         val query = if kind <> "" then "? " ^ core ^ "\n" else ""
-        val update = "! " ^ core ^ "; " ^ space_implode " " deps ^ "\n"
+        val update =
+          "! " ^ name ^ ": " ^ core ^ "; " ^ space_implode " " deps ^ "\n"
         val _ = File.append path (query ^ update)
       in [name] end
     val thy_ths = old_facts |> thms_by_thy
