@@ -12,7 +12,6 @@ sig
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time_option : string -> string -> Time.time option
   val subgoal_count : Proof.state -> int
-  val normalize_chained_theorems : thm list -> thm list
   val reserved_isar_keyword_table : unit -> unit Symtab.table
   val thms_in_proof : string list option -> thm -> string list
 end;
@@ -55,11 +54,8 @@ fun parse_time_option _ "none" = NONE
 
 val subgoal_count = Try.subgoal_count
 
-val normalize_chained_theorems =
-  maps (fn th => insert Thm.eq_thm_prop (zero_var_indexes th) [th])
 fun reserved_isar_keyword_table () =
-  Keyword.dest () |-> union (op =)
-  |> map (rpair ()) |> Symtab.make
+  Keyword.dest () |-> union (op =) |> map (rpair ()) |> Symtab.make
 
 (* FIXME: Similar yet different code in "mirabelle.ML". The code here has a few
    fixes that seem to be missing over there; or maybe the two code portions are

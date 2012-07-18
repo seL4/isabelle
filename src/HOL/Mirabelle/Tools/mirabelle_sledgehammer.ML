@@ -461,12 +461,11 @@ fun run_sh prover_name prover type_enc strict max_relevant slice lam_trans
         val ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover_name
         val facts =
           Sledgehammer_Fact.nearly_all_facts ctxt ho_atp
-              Sledgehammer_Fact.no_relevance_override chained_ths hyp_ts concl_t
+              Sledgehammer_Fact.no_fact_override chained_ths hyp_ts concl_t
           |> filter (is_appropriate_prop o prop_of o snd)
           |> Sledgehammer_Filter_MaSh.relevant_facts ctxt params prover_name
                  (the_default default_max_relevant max_relevant)
-                 Sledgehammer_Fact.no_relevance_override chained_ths hyp_ts
-                 concl_t
+                 Sledgehammer_Fact.no_fact_override hyp_ts concl_t
         val problem =
           {state = st', goal = goal, subgoal = i,
            subgoal_count = Sledgehammer_Util.subgoal_count st,
@@ -628,13 +627,13 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
           #> fst
         val thms = named_thms |> maps snd
         val facts = named_thms |> map (ref_of_str o fst o fst)
-        val relevance_override = {add = facts, del = [], only = true}
+        val fact_override = {add = facts, del = [], only = true}
         fun my_timeout time_slice =
           timeout |> Time.toReal |> curry Real.* time_slice |> Time.fromReal
         fun sledge_tac time_slice prover type_enc =
           Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt
-            (override_params prover type_enc (my_timeout time_slice))
-            relevance_override
+              (override_params prover type_enc (my_timeout time_slice))
+              fact_override
       in
         if !reconstructor = "sledgehammer_tac" then
           sledge_tac 0.2 ATP_Systems.z3_tptpN "mono_native"

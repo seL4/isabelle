@@ -129,12 +129,11 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
          val ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover
          val facts =
            Sledgehammer_Fact.nearly_all_facts ctxt ho_atp
-               Sledgehammer_Fact.no_relevance_override chained_ths hyp_ts concl_t
+               Sledgehammer_Fact.no_fact_override chained_ths hyp_ts concl_t
            |> filter (is_appropriate_prop o prop_of o snd)
            |> Sledgehammer_Filter_Iter.iterative_relevant_facts ctxt params
                   default_prover (the_default default_max_relevant max_relevant)
-                  (SOME relevance_fudge) Sledgehammer_Fact.no_relevance_override
-                  chained_ths hyp_ts concl_t
+                  (SOME relevance_fudge) hyp_ts concl_t
             |> map ((fn name => name ()) o fst o fst)
          val (found_facts, lost_facts) =
            flat proofs |> sort_distinct string_ord

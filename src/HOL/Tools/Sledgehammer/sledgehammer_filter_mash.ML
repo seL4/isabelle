@@ -9,7 +9,7 @@ sig
   type status = ATP_Problem_Generate.status
   type stature = ATP_Problem_Generate.stature
   type params = Sledgehammer_Provers.params
-  type relevance_override = Sledgehammer_Fact.relevance_override
+  type fact_override = Sledgehammer_Fact.fact_override
   type relevance_fudge = Sledgehammer_Provers.relevance_fudge
   type prover_result = Sledgehammer_Provers.prover_result
 
@@ -24,10 +24,6 @@ sig
   val features_of : theory -> status * thm -> string list
   val isabelle_dependencies_of : string list -> thm -> string list
   val goal_of_thm : theory -> thm -> thm
-  val iter_facts :
-    Proof.context -> params -> int -> thm
-    -> (((unit -> string) * stature) * thm) list
-    -> (((unit -> string) * stature) * thm) list
   val run_prover :
     Proof.context -> params -> (((unit -> string) * stature) * thm) list -> thm
     -> prover_result
@@ -45,8 +41,8 @@ sig
   val learn_proof : theory -> term -> thm list -> unit
 
   val relevant_facts :
-    Proof.context -> params -> string -> int -> relevance_override -> thm list
-    -> term list -> term -> (((unit -> string) * stature) * thm) list
+    Proof.context -> params -> string -> int -> fact_override -> term list
+    -> term -> (((unit -> string) * stature) * thm) list
     -> (((unit -> string) * stature) * thm) list
 end;
 
@@ -79,8 +75,6 @@ fun mash_suggest fact (access, feats) =
 
 
 (*** Isabelle helpers ***)
-
-val fact_name_of = prefix fact_prefix o ascii_of
 
 fun escape_meta_char c =
   if Char.isAlphaNum c orelse c = #"_" orelse c = #"." orelse c = #"(" orelse
@@ -255,12 +249,6 @@ fun freeze (t $ u) = freeze t $ freeze u
 
 fun goal_of_thm thy = prop_of #> freeze #> cterm_of thy #> Goal.init
 
-fun iter_facts ctxt (params as {provers, ...}) max_relevant goal =
-  let val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1 in
-    iterative_relevant_facts ctxt params (hd provers) max_relevant NONE
-                             no_relevance_override [] hyp_ts concl_t
-  end
-
 fun run_prover ctxt (params as {provers, ...}) facts goal =
   let
     val problem =
@@ -325,7 +313,7 @@ fun generate_isa_dependencies thy include_thy file_name =
       in File.append path s end
   in List.app do_thm ths end
 
-fun generate_atp_dependencies ctxt (params as {max_relevant, ...}) thy
+fun generate_atp_dependencies ctxt (params as {provers, max_relevant, ...}) thy
                               include_thy file_name =
   let
     val path = file_name |> Path.explode
@@ -348,6 +336,7 @@ fun generate_atp_dependencies ctxt (params as {max_relevant, ...}) thy
       let
         val name = Thm.get_name_hint th
         val goal = goal_of_thm thy th
+        val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
         val deps =
           case isabelle_dependencies_of all_names th of
             [] => []
@@ -357,7 +346,8 @@ fun generate_atp_dependencies ctxt (params as {max_relevant, ...}) thy
               val facts =
                 facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
               val facts =
-                facts |> iter_facts ctxt params (the max_relevant) goal
+                facts |> iterative_relevant_facts ctxt params (hd provers)
+                             (the max_relevant) NONE hyp_ts concl_t
                       |> fold (add_isa_dep facts) isa_deps
                       |> map fix_name
             in
@@ -385,12 +375,11 @@ fun can_learn_thy thy =
 fun learn_thy thy timeout =
   ()
 
-fun learn_proof thy t thms =
+fun learn_proof thy t ths =
   ()
 
 fun relevant_facts ctxt params prover max_relevant
-                   (override as {add, only, ...}) chained_ths hyp_ts concl_t
-                   facts =
+        ({add, only, ...} : fact_override) hyp_ts concl_t facts =
   if only then
     facts
   else if max_relevant <= 0 then
@@ -398,13 +387,13 @@ fun relevant_facts ctxt params prover max_relevant
   else
     let
       val add_ths = Attrib.eval_thms ctxt add
-      fun prepend_facts ths facts =
+      fun prepend_facts ths accepts =
         ((facts |> filter (member Thm.eq_thm_prop ths o snd)) @
-         (facts |> filter_out (member Thm.eq_thm_prop ths o snd)))
+         (accepts |> filter_out (member Thm.eq_thm_prop ths o snd)))
         |> take max_relevant
     in
-      iterative_relevant_facts ctxt params prover max_relevant NONE override
-                               chained_ths hyp_ts concl_t facts
+      iterative_relevant_facts ctxt params prover max_relevant NONE
+                               hyp_ts concl_t facts
       |> not (null add_ths) ? prepend_facts add_ths
     end
 

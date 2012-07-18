@@ -45,18 +45,14 @@ val _ =
 
 (** Sledgehammer commands **)
 
-fun add_relevance_override ns : relevance_override =
-  {add = ns, del = [], only = false}
-fun del_relevance_override ns : relevance_override =
-  {add = [], del = ns, only = false}
-fun only_relevance_override ns : relevance_override =
-  {add = ns, del = [], only = true}
-fun merge_relevance_override_pairwise (r1 : relevance_override)
-                                      (r2 : relevance_override) =
+fun add_fact_override ns : fact_override = {add = ns, del = [], only = false}
+fun del_fact_override ns : fact_override = {add = [], del = ns, only = false}
+fun only_fact_override ns : fact_override = {add = ns, del = [], only = true}
+fun merge_fact_override_pairwise (r1 : fact_override) (r2 : fact_override) =
   {add = #add r1 @ #add r2, del = #del r1 @ #del r2,
    only = #only r1 andalso #only r2}
-fun merge_relevance_overrides rs =
-  fold merge_relevance_override_pairwise rs (only_relevance_override [])
+fun merge_fact_overrides rs =
+  fold merge_fact_override_pairwise rs (only_fact_override [])
 
 (*** parameters ***)
 
@@ -350,7 +346,7 @@ fun minimize_command override_params i more_override_params prover_name
     (if i = 1 then "" else " " ^ string_of_int i)
   end
 
-fun hammer_away override_params subcommand opt_i relevance_override state =
+fun hammer_away override_params subcommand opt_i fact_override state =
   let
     val ctxt = Proof.context_of state
     val override_params = override_params |> map (normalize_raw_param ctxt)
@@ -358,7 +354,7 @@ fun hammer_away override_params subcommand opt_i relevance_override state =
     if subcommand = runN then
       let val i = the_default 1 opt_i in
         run_sledgehammer (get_params Normal ctxt override_params) Normal i
-                         relevance_override (minimize_command override_params i)
+                         fact_override (minimize_command override_params i)
                          state
         |> K ()
       end
@@ -366,7 +362,7 @@ fun hammer_away override_params subcommand opt_i relevance_override state =
       run_minimize (get_params Minimize ctxt
                                (("provers", [default_minimize_prover]) ::
                                 override_params))
-                   (the_default 1 opt_i) (#add relevance_override) state
+                   (the_default 1 opt_i) (#add fact_override) state
     else if subcommand = messagesN then
       messages opt_i
     else if subcommand = supported_proversN then
@@ -381,8 +377,8 @@ fun hammer_away override_params subcommand opt_i relevance_override state =
       error ("Unknown subcommand: " ^ quote subcommand ^ ".")
   end
 
-fun sledgehammer_trans (((subcommand, params), relevance_override), opt_i) =
-  Toplevel.keep (hammer_away params subcommand opt_i relevance_override
+fun sledgehammer_trans (((subcommand, params), fact_override), opt_i) =
+  Toplevel.keep (hammer_away params subcommand opt_i fact_override
                  o Toplevel.proof_of)
 
 fun string_for_raw_param (name, value) = name ^ " = " ^ implode_param value
@@ -410,19 +406,19 @@ val parse_params = Scan.optional (Args.bracks (Parse.list parse_param)) []
 val parse_fact_refs =
   Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) Parse_Spec.xthm)
 val parse_relevance_chunk =
-  (Args.add |-- Args.colon |-- parse_fact_refs >> add_relevance_override)
-  || (Args.del |-- Args.colon |-- parse_fact_refs >> del_relevance_override)
-  || (parse_fact_refs >> only_relevance_override)
-val parse_relevance_override =
+  (Args.add |-- Args.colon |-- parse_fact_refs >> add_fact_override)
+  || (Args.del |-- Args.colon |-- parse_fact_refs >> del_fact_override)
+  || (parse_fact_refs >> only_fact_override)
+val parse_fact_override =
   Scan.optional (Args.parens (Scan.repeat parse_relevance_chunk
-                              >> merge_relevance_overrides))
-                no_relevance_override
+                              >> merge_fact_overrides))
+                no_fact_override
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "sledgehammer"}
     "search for first-order proof using automatic theorem provers"
     ((Scan.optional Parse.short_ident runN -- parse_params
-      -- parse_relevance_override -- Scan.option Parse.nat) #>> sledgehammer_trans)
+      -- parse_fact_override -- Scan.option Parse.nat) #>> sledgehammer_trans)
 val _ =
   Outer_Syntax.command @{command_spec "sledgehammer_params"}
     "set and display the default parameters for Sledgehammer"
@@ -434,7 +430,7 @@ fun try_sledgehammer auto state =
     val mode = if auto then Auto_Try else Try
     val i = 1
   in
-    run_sledgehammer (get_params mode ctxt []) mode i no_relevance_override
+    run_sledgehammer (get_params mode ctxt []) mode i no_fact_override
                      (minimize_command [] i) state
   end
 

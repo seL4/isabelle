@@ -114,8 +114,9 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
         val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
         val isa_facts = sugg_facts hyp_ts concl_t facts isa_deps
         val iter_facts =
-          iter_facts ctxt params (max_relevant_slack * the max_relevant) goal
-                     facts
+          Sledgehammer_Filter_Iter.iterative_relevant_facts ctxt params
+              prover_name (max_relevant_slack * the max_relevant) NONE hyp_ts
+              concl_t facts
         val mash_facts = sugg_facts hyp_ts concl_t facts suggs
         val iter_mash_facts = hybrid_facts (iter_facts, mash_facts)
         val iter_s = prove iter_ok iterN iter_facts goal

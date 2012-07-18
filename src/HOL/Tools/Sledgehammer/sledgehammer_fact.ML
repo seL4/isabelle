@@ -10,14 +10,14 @@ sig
   type status = ATP_Problem_Generate.status
   type stature = ATP_Problem_Generate.stature
 
-  type relevance_override =
+  type fact_override =
     {add : (Facts.ref * Attrib.src list) list,
      del : (Facts.ref * Attrib.src list) list,
      only : bool}
 
   val ignore_no_atp : bool Config.T
   val instantiate_inducts : bool Config.T
-  val no_relevance_override : relevance_override
+  val no_fact_override : fact_override
   val fact_from_ref :
     Proof.context -> unit Symtab.table -> thm list -> status Termtab.table
     -> Facts.ref * Attrib.src list -> ((string * stature) * thm) list
@@ -32,7 +32,7 @@ sig
     -> (((unit -> string) * stature) * thm) list
   val all_facts_of : theory -> (((unit -> string) * stature) * thm) list
   val nearly_all_facts :
-    Proof.context -> bool -> relevance_override -> thm list -> term list -> term
+    Proof.context -> bool -> fact_override -> thm list -> term list -> term
     -> (((unit -> string) * stature) * thm) list
 end;
 
@@ -43,7 +43,7 @@ open ATP_Problem_Generate
 open Metis_Tactic
 open Sledgehammer_Util
 
-type relevance_override =
+type fact_override =
   {add : (Facts.ref * Attrib.src list) list,
    del : (Facts.ref * Attrib.src list) list,
    only : bool}
@@ -56,7 +56,7 @@ val ignore_no_atp =
 val instantiate_inducts =
   Attrib.setup_config_bool @{binding sledgehammer_instantiate_inducts} (K false)
 
-val no_relevance_override = {add = [], del = [], only = false}
+val no_fact_override = {add = [], del = [], only = false}
 
 fun needs_quoting reserved s =
   Symtab.defined reserved s orelse
@@ -424,23 +424,27 @@ fun all_facts_of thy =
     |> rev (* try to restore the original order of facts, for MaSh *)
   end
 
-fun nearly_all_facts ctxt ho_atp ({add, only, ...} : relevance_override)
-                     chained_ths hyp_ts concl_t =
+fun nearly_all_facts ctxt ho_atp {add, del, only} chained_ths hyp_ts concl_t =
   if only andalso null add then
     []
   else
     let
+      val chained_ths =
+        chained_ths
+        |> maps (fn th => insert Thm.eq_thm_prop (zero_var_indexes th) [th])
       val reserved = reserved_isar_keyword_table ()
-      val add_ths = Attrib.eval_thms ctxt add
       val css_table = clasimpset_rule_table_of ctxt
     in
       (if only then
          maps (map (fn ((name, stature), th) => ((K name, stature), th))
                o fact_from_ref ctxt reserved chained_ths css_table) add
        else
-         all_facts ctxt ho_atp reserved false add_ths chained_ths css_table)
+         let val (add, del) = pairself (Attrib.eval_thms ctxt) (add, del) in
+           all_facts ctxt ho_atp reserved false add chained_ths css_table
+           |> filter_out (member Thm.eq_thm_prop del o snd)
+           |> maybe_filter_no_atps ctxt
+         end)
       |> maybe_instantiate_inducts ctxt hyp_ts concl_t
-      |> not only ? maybe_filter_no_atps ctxt
       |> uniquify
     end
 

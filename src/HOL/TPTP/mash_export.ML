@@ -46,7 +46,8 @@ fun generate_commands thy file_name =
     val parents = parent_thms thy_ths thy
   in fold do_fact new_facts parents; () end
 
-fun generate_iter_suggestions ctxt params thy max_relevant file_name =
+fun generate_iter_suggestions ctxt (params as {provers, ...}) thy max_relevant
+                              file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
@@ -58,14 +59,17 @@ fun generate_iter_suggestions ctxt params thy max_relevant file_name =
       let
         val name = Thm.get_name_hint th
         val goal = goal_of_thm thy th
+        val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
         val kind = Thm.legacy_get_kind th
         val _ =
           if kind <> "" then
             let
               val suggs =
-                old_facts |> iter_facts ctxt params max_relevant goal
-                          |> map (fn ((name, _), _) => fact_name_of (name ()))
-                          |> sort string_ord
+                old_facts
+                |> Sledgehammer_Filter_Iter.iterative_relevant_facts ctxt params
+                                (hd provers) max_relevant NONE hyp_ts concl_t
+                |> map (fn ((name, _), _) => fact_name_of (name ()))
+                |> sort string_ord
               val s = fact_name_of name ^ ": " ^ space_implode " " suggs ^ "\n"
             in File.append path s end
           else

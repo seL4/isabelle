@@ -8,7 +8,6 @@ Sledgehammer's iterative relevance filter.
 signature SLEDGEHAMMER_FILTER_ITER =
 sig
   type stature = ATP_Problem_Generate.stature
-  type relevance_override = Sledgehammer_Fact.relevance_override
   type params = Sledgehammer_Provers.params
   type relevance_fudge = Sledgehammer_Provers.relevance_fudge
 
@@ -20,8 +19,7 @@ sig
     -> string list
   val iterative_relevant_facts :
     Proof.context -> params -> string -> int -> relevance_fudge option
-    -> relevance_override -> thm list -> term list -> term
-    -> (((unit -> string) * stature) * thm) list
+    -> term list -> term -> (((unit -> string) * stature) * thm) list
     -> (((unit -> string) * stature) * thm) list
 end;
 
@@ -29,7 +27,6 @@ structure Sledgehammer_Filter_Iter : SLEDGEHAMMER_FILTER_ITER =
 struct
 
 open ATP_Problem_Generate
-open Sledgehammer_Fact
 open Sledgehammer_Provers
 
 val trace =
@@ -397,12 +394,15 @@ fun could_benefit_from_ext is_built_in_const facts =
 val special_fact_index = 75
 
 fun relevance_filter ctxt thres0 decay max_relevant is_built_in_const
-        (fudge as {threshold_divisor, ridiculous_threshold, ...})
-        ({del, ...} : relevance_override) facts chained_ts hyp_ts concl_t =
+        (fudge as {threshold_divisor, ridiculous_threshold, ...}) facts hyp_ts
+        concl_t =
   let
     val thy = Proof_Context.theory_of ctxt
     val const_tab = fold (count_fact_consts thy fudge) facts Symtab.empty
     val add_pconsts = add_pconsts_in_term thy is_built_in_const false o SOME
+    val chained_ts =
+      facts |> map_filter (fn ((_, (Chained, _)), th) => SOME (prop_of th)
+                            | _ => NONE)
     val chained_const_tab = Symtab.empty |> fold (add_pconsts true) chained_ts
     val goal_const_tab =
       Symtab.empty |> fold (add_pconsts true) hyp_ts
@@ -410,8 +410,6 @@ fun relevance_filter ctxt thres0 decay max_relevant is_built_in_const
       |> (fn tab => if Symtab.is_empty tab then chained_const_tab else tab)
       |> fold (if_empty_replace_with_scope thy is_built_in_const facts)
               [Chained, Assum, Local]
-    val del_ths = Attrib.eval_thms ctxt del
-    val facts = facts |> filter_out (member Thm.eq_thm_prop del_ths o snd)
     fun iter j remaining_max thres rel_const_tab hopeless hopeful =
       let
         fun relevant [] _ [] =
@@ -515,7 +513,7 @@ fun relevance_filter ctxt thres0 decay max_relevant is_built_in_const
 
 fun iterative_relevant_facts ctxt
         ({relevance_thresholds = (thres0, thres1), ...} : params) prover
-        max_relevant fudge override chained_ths hyp_ts concl_t facts =
+        max_relevant fudge hyp_ts concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
     val is_built_in_const =
@@ -535,7 +533,7 @@ fun iterative_relevant_facts ctxt
        []
      else
        relevance_filter ctxt thres0 decay max_relevant is_built_in_const
-           fudge override facts (chained_ths |> map prop_of) hyp_ts
+           fudge facts hyp_ts
            (concl_t |> theory_constify fudge (Context.theory_name thy)))
   end
 

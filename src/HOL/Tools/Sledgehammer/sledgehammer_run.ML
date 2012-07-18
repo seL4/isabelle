@@ -9,7 +9,7 @@ Sledgehammer's heart.
 signature SLEDGEHAMMER_RUN =
 sig
   type minimize_command = ATP_Proof_Reconstruct.minimize_command
-  type relevance_override = Sledgehammer_Fact.relevance_override
+  type fact_override = Sledgehammer_Fact.fact_override
   type mode = Sledgehammer_Provers.mode
   type params = Sledgehammer_Provers.params
 
@@ -18,7 +18,7 @@ sig
   val timeoutN : string
   val unknownN : string
   val run_sledgehammer :
-    params -> mode -> int -> relevance_override
+    params -> mode -> int -> fact_override
     -> ((string * string list) list -> string -> minimize_command)
     -> Proof.state -> bool * (string * Proof.state)
 end;
@@ -157,7 +157,7 @@ val auto_try_max_relevant_divisor = 2 (* FUDGE *)
 
 fun run_sledgehammer (params as {debug, verbose, blocking, provers,
                                  max_relevant, slice, ...})
-        mode i (relevance_override as {only, ...}) minimize_command state =
+        mode i (fact_override as {only, ...}) minimize_command state =
   if null provers then
     error "No prover is set."
   else case subgoal_count state of
@@ -170,12 +170,10 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
         state |> Proof.map_context (Config.put SMT_Config.verbose debug)
       val ctxt = Proof.context_of state
       val {facts = chained_ths, goal, ...} = Proof.goal state
-      val chained_ths = chained_ths |> normalize_chained_theorems
       val (_, hyp_ts, concl_t) = strip_subgoal ctxt goal i
       val ho_atp = exists (Sledgehammer_Provers.is_ho_atp ctxt) provers
       val facts =
-        nearly_all_facts ctxt ho_atp relevance_override chained_ths hyp_ts
-                         concl_t
+        nearly_all_facts ctxt ho_atp fact_override chained_ths hyp_ts concl_t
       val _ = () |> not blocking ? kill_provers
       val _ = case find_first (not o is_prover_supported ctxt) provers of
                 SOME name => error ("No such prover: " ^ name ^ ".")
@@ -224,7 +222,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
                 SOME is_app => filter (is_app o prop_of o snd)
               | NONE => I)
           |> relevant_facts ctxt params (hd provers) max_max_relevant
-                            relevance_override chained_ths hyp_ts concl_t
+                            fact_override hyp_ts concl_t
           |> map (apfst (apfst (fn name => name ())))
           |> tap (fn facts =>
                      if debug then
