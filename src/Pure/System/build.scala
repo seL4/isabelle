@@ -60,11 +60,72 @@ object Build
 
   /* session information */
 
-  case class Session_Info(
-    val dir: Path,
-    val text: String)
-
   val ROOT_NAME = "ROOT"
+
+  type Options = List[(String, Option[String])]
+
+  case class Session_Info(
+    dir: Path,
+    name: String,
+    path: String,
+    parent: String,
+    alt_name: Option[String],
+    description: String,
+    options: Options,
+    theories: List[(Options, String)],
+    files: List[String])
+
+  private object Parser extends Parse.Parser
+  {
+    val SESSION = "session"
+    val IN = "in"
+    val NAME = "name"
+    val DESCRIPTION = "description"
+    val OPTIONS = "options"
+    val THEORIES = "theories"
+    val FILES = "files"
+
+    val syntax =
+      Outer_Syntax.empty + "(" + ")" + "+" + "," + "=" + "[" + "]" +
+        SESSION + IN + NAME + DESCRIPTION + OPTIONS + THEORIES + FILES
+
+    val session_info: Parser[Session_Info] =
+    {
+      val session_name = atom("session name", _.is_name)
+      val theory_name = atom("theory name", _.is_name)
+      val file_name = atom("file name", _.is_name)
+
+      val option =
+        name ~ opt(keyword("=") ~! name ^^ { case _ ~ x => x }) ^^ { case x ~ y => (x, y) }
+      val options: Parser[Options] =
+        keyword("[") ~> repsep(option, keyword(",")) <~ keyword("]")
+
+      val theories =
+        keyword(THEORIES) ~! ((options | success(Nil)) ~ rep1(theory_name)) ^^
+          { case _ ~ (x ~ y) => (x, y) }
+
+      ((keyword(SESSION) ~! session_name) ^^ { case _ ~ x => x }) ~
+        (opt(keyword(IN) ~! string ^^ { case _ ~ x => x })) ~
+        (keyword("=") ~> session_name <~ keyword("+")) ~
+        (opt(keyword(NAME) ~! session_name ^^ { case _ ~ x => x })) ~
+        (keyword(DESCRIPTION) ~! text ^^ { case _ ~ x => x } | success("")) ~
+        (keyword(OPTIONS) ~! options ^^ { case _ ~ x => x } | success(Nil)) ~
+        rep(theories) ~
+        (keyword(FILES) ~! rep1(file_name) ^^ { case _ ~ x => x } | success(Nil)) ^^
+          { case a ~ b ~ c ~ d ~ e ~ f ~ g ~ h =>
+            Session_Info(Path.current, a, b getOrElse a, c, d, e, f,
+              g.map({ case (x, ys) => ys.map(y => (x, y)) }).flatten, h) }
+    }
+
+    def parse_entries(source: CharSequence): List[Session_Info] =
+    {
+      val in = Token.reader(syntax.scan(source))
+      parse_all(rep(session_info), in) match {
+        case Success(result, _) => result
+        case bad => error(bad.toString)
+      }
+    }
+  }
 
   def find_sessions(): List[Session_Info] =
   {
@@ -72,8 +133,8 @@ object Build
       dir <- Isabelle_System.components()
       root = Isabelle_System.platform_file(dir + Path.basic(ROOT_NAME))
       if root.isFile
-    }
-    yield Session_Info(dir, Standard_System.read_file(root))
+      entry <- Parser.parse_entries(Standard_System.read_file(root))
+    } yield entry.copy(dir = dir)
   }
 }
 
