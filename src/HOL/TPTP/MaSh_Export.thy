@@ -14,7 +14,6 @@ sledgehammer_params
    lam_trans = combs_and_lifting, timeout = 5, dont_preplay, minimize]
 
 ML {*
-open Sledgehammer_Filter_MaSh
 open MaSh_Export
 *}
 
@@ -26,7 +25,7 @@ val params = Sledgehammer_Isar.default_params @{context} []
 
 ML {*
 if do_it then
-  generate_accessibility @{context} thy false "/tmp/mash_accessibility"
+  generate_accessibility thy false "/tmp/mash_accessibility"
 else
   ()
 *}
@@ -40,7 +39,7 @@ else
 
 ML {*
 if do_it then
-  generate_isa_dependencies @{context} thy false "/tmp/mash_isa_dependencies"
+  generate_isa_dependencies thy false "/tmp/mash_isa_dependencies"
 else
   ()
 *}
