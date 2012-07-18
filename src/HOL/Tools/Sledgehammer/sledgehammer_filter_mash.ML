@@ -22,7 +22,7 @@ sig
   val thms_by_thy : ('a * thm) list -> (string * thm list) list
   val has_thy : theory -> thm -> bool
   val parent_facts : (string * thm list) list -> theory -> string list
-  val features_of : theory -> status * thm -> string list
+  val features_of : theory -> status -> term list -> string list
   val isabelle_dependencies_of : string list -> thm -> string list
   val goal_of_thm : theory -> thm -> thm
   val run_prover : Proof.context -> params -> fact list -> thm -> prover_result
@@ -32,10 +32,14 @@ sig
     Proof.context -> theory -> bool -> string -> unit
   val generate_atp_dependencies :
     Proof.context -> params -> theory -> bool -> string -> unit
+  val mash_RESET : unit -> unit
+  val mash_ADD : string -> string list -> string list -> string list -> unit
+  val mash_DEL : string list -> string list -> unit
+  val mash_SUGGEST : string list -> string list -> string list
   val mash_reset : unit -> unit
   val mash_can_suggest_facts : unit -> bool
   val mash_suggest_facts :
-    theory -> params -> string -> int -> term list -> term -> fact list
+    Proof.context -> params -> string -> int -> term list -> term -> fact list
     -> fact list * fact list
   val mash_can_learn_thy : theory -> bool
   val mash_learn_thy : theory -> real -> unit
@@ -59,25 +63,11 @@ val mash_dir = "mash"
 val model_file = "model"
 val state_file = "state"
 
-fun mash_path file = getenv "ISABELLE_HOME_USER" ^ "/" ^ mash_dir ^ "/" ^ file
+fun mk_path file =
+  getenv "ISABELLE_HOME_USER" ^ "/" ^ mash_dir ^ "/" ^ file
+  |> Path.explode
 
-
-(*** Low-level communication with MaSh ***)
-
-fun mash_RESET () =
-  warning "MaSh RESET"
-
-fun mash_ADD fact access feats deps =
-  warning ("MaSh ADD " ^ fact ^ ": " ^ space_implode " " access ^ "; " ^
-           space_implode " " feats ^ "; " ^ space_implode " " deps)
-
-fun mash_DEL fact =
-  warning ("MaSh DEL " ^ fact)
-
-fun mash_SUGGEST access feats =
-  warning ("MaSh SUGGEST " ^ space_implode " " access ^ "; " ^
-           space_implode " " feats)
-
+val fresh_fact_prefix = Long_Name.separator
 
 (*** Isabelle helpers ***)
 
@@ -145,7 +135,7 @@ fun is_fo_term thy t =
 
 end
 
-fun interesting_terms_types_and_classes term_max_depth type_max_depth t =
+fun interesting_terms_types_and_classes term_max_depth type_max_depth ts =
   let
     val bad_types = [@{type_name prop}, @{type_name bool}, @{type_name fun}]
     val bad_consts = atp_widely_irrelevant_consts
@@ -180,10 +170,10 @@ fun interesting_terms_types_and_classes term_max_depth type_max_depth t =
          | _ => I)
         #> fold add_patterns args
       end
-  in [] |> add_patterns t |> sort string_ord end
+  in [] |> fold add_patterns ts |> sort string_ord end
 
 fun is_likely_tautology th =
-  null (interesting_terms_types_and_classes 0 ~1 (prop_of th)) andalso
+  null (interesting_terms_types_and_classes 0 ~1 [prop_of th]) andalso
   not (Thm.eq_thm_prop (@{thm ext}, th))
 
 fun is_too_meta thy th =
@@ -227,22 +217,20 @@ val term_max_depth = 1
 val type_max_depth = 1
 
 (* TODO: Generate type classes for types? *)
-fun features_of thy (status, th) =
-  let val t = Thm.prop_of th in
-    thy_name_of (thy_name_of_thm th) ::
-    interesting_terms_types_and_classes term_max_depth type_max_depth t
-    |> not (has_no_lambdas t) ? cons "lambdas"
-    |> exists_Const is_exists t ? cons "skolems"
-    |> not (is_fo_term thy t) ? cons "ho"
-    |> (case status of
-          General => I
-        | Induction => cons "induction"
-        | Intro => cons "intro"
-        | Inductive => cons "inductive"
-        | Elim => cons "elim"
-        | Simp => cons "simp"
-        | Def => cons "def")
-  end
+fun features_of thy status ts =
+  thy_name_of (Context.theory_name thy) ::
+  interesting_terms_types_and_classes term_max_depth type_max_depth ts
+  |> exists (not o is_lambda_free) ts ? cons "lambdas"
+  |> exists (exists_Const is_exists) ts ? cons "skolems"
+  |> exists (not o is_fo_term thy) ts ? cons "ho"
+  |> (case status of
+        General => I
+      | Induction => cons "induction"
+      | Intro => cons "intro"
+      | Inductive => cons "inductive"
+      | Elim => cons "elim"
+      | Simp => cons "simp"
+      | Def => cons "def")
 
 fun isabelle_dependencies_of all_facts =
   thms_in_proof (SOME all_facts)
@@ -303,7 +291,7 @@ fun generate_features ctxt thy include_thy file_name =
     fun do_fact ((_, (_, status)), th) =
       let
         val name = Thm.get_name_hint th
-        val feats = features_of thy (status, th)
+        val feats = features_of (theory_of_thm th) status [prop_of th]
         val s = fact_name_of name ^ ": " ^ space_implode " " feats ^ "\n"
       in File.append path s end
   in List.app do_fact facts end
@@ -375,68 +363,106 @@ fun generate_atp_dependencies ctxt (params as {provers, max_facts, ...}) thy
   in List.app do_thm ths end
 
 
+(*** Low-level communication with MaSh ***)
+
+fun mash_RESET () = (warning "MaSh RESET"; File.rm (mk_path model_file))
+
+fun mash_ADD fact access feats deps =
+  warning ("MaSh ADD " ^ fact ^ ": " ^ space_implode " " access ^ "; " ^
+           space_implode " " feats ^ "; " ^ space_implode " " deps)
+
+fun mash_DEL facts feats =
+  warning ("MaSh DEL " ^ space_implode " " facts ^ "; " ^
+           space_implode " " feats)
+
+fun mash_SUGGEST access feats =
+  (warning ("MaSh SUGGEST " ^ space_implode " " access ^ "; " ^
+            space_implode " " feats);
+   [])
+
+
 (*** High-level communication with MaSh ***)
 
 type mash_state =
-  {completed_thys : unit Symtab.table,
+  {fresh : int,
+   completed_thys : unit Symtab.table,
    thy_facts : string list Symtab.table}
 
 val mash_zero =
-  {completed_thys = Symtab.empty,
+  {fresh = 0,
+   completed_thys = Symtab.empty,
    thy_facts = Symtab.empty}
 
 local
 
 fun mash_load (state as (true, _)) = state
   | mash_load _ =
-    (true,
-     case mash_path state_file |> Path.explode |> File.read_lines of
-       [] => mash_zero
-     | comp_line :: facts_lines =>
-       let
-         fun comp_thys_of_line comp_line =
-           Symtab.make (comp_line |> space_explode " " |> map (rpair ()))
-         fun add_facts_line line =
-           case space_explode " " line of
-             thy :: facts => Symtab.update_new (thy, facts)
-           | _ => I (* shouldn't happen *)
-       in
-         {completed_thys = comp_thys_of_line comp_line,
-          thy_facts = fold add_facts_line facts_lines Symtab.empty}
-       end)
+    let
+      val path = mk_path state_file
+      val _ = Isabelle_System.mkdir (path |> Path.dir)
+    in
+      (true,
+       case try File.read_lines path of
+         SOME (fresh_line :: comp_line :: facts_lines) =>
+         let
+           fun comp_thys_of_line comp_line =
+             Symtab.make (comp_line |> space_explode " " |> map (rpair ()))
+           fun add_facts_line line =
+             case space_explode " " line of
+               thy :: facts => Symtab.update_new (thy, facts)
+             | _ => I (* shouldn't happen *)
+         in
+           {fresh = Int.fromString fresh_line |> the_default 0,
+            completed_thys = comp_thys_of_line comp_line,
+            thy_facts = fold add_facts_line facts_lines Symtab.empty}
+         end
+       | _ => mash_zero)
+    end
 
-fun mash_save ({completed_thys, thy_facts} : mash_state) =
+fun mash_save ({fresh, completed_thys, thy_facts} : mash_state) =
   let
-    val path = mash_path state_file |> Path.explode
+    val path = mk_path state_file
     val comp_line = (completed_thys |> Symtab.keys |> space_implode " ") ^ "\n"
     fun fact_line_for (thy, facts) = space_implode " " (thy :: facts) ^ "\n"
   in
-    File.write path comp_line;
+    File.write path (string_of_int fresh ^ "\n" ^ comp_line);
     Symtab.fold (fn thy_fact => fn () =>
                     File.append path (fact_line_for thy_fact)) thy_facts
   end
 
-val state =
-  Synchronized.var "Sledgehammer_Filter_MaSh.state" (false, mash_zero)
+val global_state =
+  Synchronized.var "Sledgehammer_Filter_MaSh.global_state" (false, mash_zero)
 
 in
 
 fun mash_change f =
-  Synchronized.change state (apsnd (tap mash_save o f) o mash_load)
+  Synchronized.change global_state (mash_load ##> (f #> tap mash_save))
 
-fun mash_value () = Synchronized.change_result state (`snd o mash_load)
+fun mash_peek f = Synchronized.change global_state (mash_load ##> tap f)
+
+fun mash_value () = Synchronized.change_result global_state (mash_load #> `snd)
+
+fun mash_reset () =
+  Synchronized.change global_state (fn _ =>
+      (mash_RESET (); File.rm (mk_path state_file); (true, mash_zero)))
 
 end
-
-fun mash_reset () = mash_change (fn _ => (mash_RESET (); mash_zero))
 
 fun mash_can_suggest_facts () =
   not (Symtab.is_empty (#thy_facts (mash_value ())))
 
+fun accessibility_of thy thy_facts =
+  let
+    val _ = 0
+  in
+    [] (*###*)
+  end
+
 fun mash_suggest_facts ctxt params prover max_facts hyp_ts concl_t facts =
   let
-    val access = []
-    val feats = []
+    val thy = Proof_Context.theory_of ctxt
+    val access = accessibility_of thy (#thy_facts (mash_value ()))
+    val feats = features_of thy General (concl_t :: hyp_ts)
     val suggs = mash_SUGGEST access feats
   in (facts, []) end
 
@@ -445,14 +471,20 @@ fun mash_can_learn_thy thy =
                       (Context.theory_name thy))
 
 fun mash_learn_thy thy timeout = ()
+(* ### *)
 
-fun mash_learn_proof thy t ths = ()
-(*###
-  let
-  in
-    mash_ADD
-  end
-*)
+fun mash_learn_proof thy t ths =
+  mash_change (fn {fresh, completed_thys, thy_facts} =>
+    let
+      val fact = fresh_fact_prefix ^ string_of_int fresh
+      val access = accessibility_of thy thy_facts
+      val feats = features_of thy General [t]
+      val deps = ths |> map (fact_name_of o Thm.get_name_hint)
+    in
+      mash_ADD fact access feats deps;
+      {fresh = fresh + 1, completed_thys = completed_thys,
+       thy_facts = thy_facts}
+    end)
 
 fun relevant_facts ctxt params prover max_facts
         ({add, only, ...} : fact_override) hyp_ts concl_t facts =
@@ -472,7 +504,7 @@ fun relevant_facts ctxt params prover max_facts
                                  concl_t facts
       val (mash_facts, mash_rejected) =
         mash_suggest_facts ctxt params prover max_facts hyp_ts concl_t facts
-      val mesh_facts = iter_facts
+      val mesh_facts = iter_facts (* ### *)
     in
       mesh_facts
       |> not (null add_ths) ? prepend_facts add_ths

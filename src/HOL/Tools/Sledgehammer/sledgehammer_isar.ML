@@ -39,12 +39,6 @@ val refresh_tptpN = "refresh_tptp"
 val mash_resetN = "mash_reset"
 val mash_learnN = "mash_learn"
 
-(* experimental *)
-val mash_RESET_N = "mash_RESET"
-val mash_ADD_N = "mash_ADD"
-val mash_DEL_N = "mash_DEL"
-val mash_SUGGEST_N = "mash_SUGGEST"
-
 val auto = Unsynchronized.ref false
 
 val _ =
@@ -386,14 +380,6 @@ fun hammer_away override_params subcommand opt_i fact_override state =
     else if subcommand = mash_resetN then
       mash_reset ()
     else if subcommand = mash_learnN then
-      () (* TODO: implement *)
-    else if subcommand = mash_RESET_N then
-      () (* TODO: implement *)
-    else if subcommand = mash_ADD_N then
-      () (* TODO: implement *)
-    else if subcommand = mash_DEL_N then
-      () (* TODO: implement *)
-    else if subcommand = mash_SUGGEST_N then
       () (* TODO: implement *)
     else
       error ("Unknown subcommand: " ^ quote subcommand ^ ".")

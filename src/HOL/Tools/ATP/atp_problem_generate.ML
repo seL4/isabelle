@@ -94,7 +94,7 @@ sig
   val is_type_enc_sound : type_enc -> bool
   val type_enc_from_string : strictness -> string -> type_enc
   val adjust_type_enc : atp_format -> type_enc -> type_enc
-  val has_no_lambdas : term -> bool
+  val is_lambda_free : term -> bool
   val mk_aconns :
     connective -> ('a, 'b, 'c, 'd) formula list -> ('a, 'b, 'c, 'd) formula
   val unmangled_const : string -> string * (string, 'b) ho_term list
@@ -699,22 +699,22 @@ fun adjust_type_enc (THF (Polymorphic, _, choice, _))
     (if is_type_enc_sound type_enc then Tags else Guards) stuff
   | adjust_type_enc _ type_enc = type_enc
 
-fun has_no_lambdas t =
+fun is_lambda_free t =
   case t of
-    @{const Not} $ t1 => has_no_lambdas t1
-  | Const (@{const_name All}, _) $ Abs (_, _, t') => has_no_lambdas t'
-  | Const (@{const_name All}, _) $ t1 => has_no_lambdas t1
-  | Const (@{const_name Ex}, _) $ Abs (_, _, t') => has_no_lambdas t'
-  | Const (@{const_name Ex}, _) $ t1 => has_no_lambdas t1
-  | @{const HOL.conj} $ t1 $ t2 => has_no_lambdas t1 andalso has_no_lambdas t2
-  | @{const HOL.disj} $ t1 $ t2 => has_no_lambdas t1 andalso has_no_lambdas t2
-  | @{const HOL.implies} $ t1 $ t2 => has_no_lambdas t1 andalso has_no_lambdas t2
+    @{const Not} $ t1 => is_lambda_free t1
+  | Const (@{const_name All}, _) $ Abs (_, _, t') => is_lambda_free t'
+  | Const (@{const_name All}, _) $ t1 => is_lambda_free t1
+  | Const (@{const_name Ex}, _) $ Abs (_, _, t') => is_lambda_free t'
+  | Const (@{const_name Ex}, _) $ t1 => is_lambda_free t1
+  | @{const HOL.conj} $ t1 $ t2 => is_lambda_free t1 andalso is_lambda_free t2
+  | @{const HOL.disj} $ t1 $ t2 => is_lambda_free t1 andalso is_lambda_free t2
+  | @{const HOL.implies} $ t1 $ t2 => is_lambda_free t1 andalso is_lambda_free t2
   | Const (@{const_name HOL.eq}, Type (_, [@{typ bool}, _])) $ t1 $ t2 =>
-    has_no_lambdas t1 andalso has_no_lambdas t2
+    is_lambda_free t1 andalso is_lambda_free t2
   | _ => not (exists_subterm (fn Abs _ => true | _ => false) t)
 
 fun simple_translate_lambdas do_lambdas ctxt t =
-  if has_no_lambdas t then
+  if is_lambda_free t then
     t
   else
     let

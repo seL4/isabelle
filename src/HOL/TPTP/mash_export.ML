@@ -33,7 +33,7 @@ fun generate_commands ctxt thy file_name =
     fun do_fact ((_, (_, status)), th) prevs =
       let
         val name = Thm.get_name_hint th
-        val feats = features_of thy (status, th)
+        val feats = features_of thy status [prop_of th]
         val deps = isabelle_dependencies_of all_names th
         val kind = Thm.legacy_get_kind th
         val name = fact_name_of name
