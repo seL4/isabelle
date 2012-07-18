@@ -87,6 +87,7 @@ sig
   val new_skolem_var_name_from_const : string -> string
   val atp_logical_consts : string list
   val atp_irrelevant_consts : string list
+  val atp_widely_irrelevant_consts : string list
   val atp_schematic_consts_of : term -> typ list Symtab.table
   val is_type_enc_higher_order : type_enc -> bool
   val is_type_enc_polymorphic : type_enc -> bool

@@ -13,7 +13,7 @@ sig
   val generate_features :
     Proof.context -> string -> theory -> bool -> string -> unit
   val generate_isa_dependencies :
-    Proof.context -> string -> theory -> bool -> string -> unit
+    theory -> bool -> string -> unit
   val generate_prover_dependencies :
     Proof.context -> params -> theory -> bool -> string -> unit
   val generate_commands : Proof.context -> string -> theory -> string -> unit
@@ -49,8 +49,8 @@ fun parent_facts thy thy_map =
 val thy_name_of_fact = hd o Long_Name.explode
 fun thy_of_fact thy = Context.this_theory thy o thy_name_of_fact
 
-fun all_names ctxt prover =
-  filter_out (is_likely_tautology ctxt prover orf is_too_meta)
+val all_names =
+  filter_out (is_likely_tautology_or_too_meta)
   #> map (rpair () o Thm.get_name_hint) #> Symtab.make
 
 fun generate_accessibility thy include_thy file_name =
@@ -90,7 +90,7 @@ fun generate_features ctxt prover thy include_thy file_name =
       in File.append path s end
   in List.app do_fact facts end
 
-fun generate_isa_dependencies ctxt prover thy include_thy file_name =
+fun generate_isa_dependencies thy include_thy file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
@@ -98,7 +98,7 @@ fun generate_isa_dependencies ctxt prover thy include_thy file_name =
       all_facts_of thy Termtab.empty
       |> not include_thy ? filter_out (has_thy thy o snd)
       |> map snd
-    val all_names = all_names ctxt prover ths
+    val all_names = all_names ths
     fun do_thm th =
       let
         val name = Thm.get_name_hint th
@@ -117,7 +117,7 @@ fun generate_prover_dependencies ctxt (params as {provers, max_facts, ...}) thy
       all_facts_of thy Termtab.empty
       |> not include_thy ? filter_out (has_thy thy o snd)
     val ths = facts |> map snd
-    val all_names = all_names ctxt prover ths
+    val all_names = all_names ths
     fun is_dep dep (_, th) = Thm.get_name_hint th = dep
     fun add_isa_dep facts dep accum =
       if exists (is_dep dep) accum then
@@ -165,7 +165,7 @@ fun generate_commands ctxt prover thy file_name =
       facts |> List.partition (has_thy thy o snd)
             |>> sort (thm_ord o pairself snd)
     val ths = facts |> map snd
-    val all_names = all_names ctxt prover ths
+    val all_names = all_names ths
     fun do_fact ((_, (_, status)), th) prevs =
       let
         val name = Thm.get_name_hint th

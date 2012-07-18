@@ -28,8 +28,7 @@ sig
   val suggested_facts : string list -> ('a * thm) list -> ('a * thm) list
   val mesh_facts :
     int -> (('a * thm) list * ('a * thm) list) list -> ('a * thm) list
-  val is_likely_tautology : Proof.context -> string -> thm -> bool
-  val is_too_meta : thm -> bool
+  val is_likely_tautology_or_too_meta : thm -> bool
   val theory_ord : theory * theory -> order
   val thm_ord : thm * thm -> order
   val features_of :
@@ -201,6 +200,37 @@ fun is_fo_term thy t =
 
 end
 
+fun is_likely_tautology_or_too_meta th =
+  let
+    val is_boring_const = member (op =) atp_widely_irrelevant_consts
+    fun is_boring_bool t =
+      not (exists_Const (not o is_boring_const o fst) t) orelse
+      exists_type (exists_subtype (curry (op =) @{typ prop})) t
+    fun is_boring_prop (@{const Trueprop} $ t) = is_boring_bool t
+      | is_boring_prop (@{const "==>"} $ t $ u) =
+        is_boring_prop t andalso is_boring_prop u
+      | is_boring_prop (Const (@{const_name all}, _) $ (Abs (_, _, t)) $ u) =
+        is_boring_prop t andalso is_boring_prop u
+      | is_boring_prop (Const (@{const_name "=="}, _) $ t $ u) =
+        is_boring_bool t andalso is_boring_bool u
+      | is_boring_prop _ = true
+  in
+    is_boring_prop (prop_of th) andalso not (Thm.eq_thm_prop (@{thm ext}, th))
+  end
+
+fun theory_ord p =
+  if Theory.eq_thy p then
+    EQUAL
+  else if Theory.subthy p then
+    LESS
+  else if Theory.subthy (swap p) then
+    GREATER
+  else case int_ord (pairself (length o Theory.ancestors_of) p) of
+    EQUAL => string_ord (pairself Context.theory_name p)
+  | order => order
+
+val thm_ord = theory_ord o pairself theory_of_thm
+
 fun interesting_terms_types_and_classes ctxt prover term_max_depth
                                         type_max_depth ts =
   let
@@ -242,28 +272,6 @@ fun interesting_terms_types_and_classes ctxt prover term_max_depth
         #> fold add_patterns args
       end
   in [] |> fold add_patterns ts |> sort string_ord end
-
-fun is_likely_tautology ctxt prover th =
-  null (interesting_terms_types_and_classes ctxt prover 0 ~1 [prop_of th])
-  andalso not (Thm.eq_thm_prop (@{thm ext}, th))
-
-(* ### FIXME: optimize *)
-fun is_too_meta th =
-  fastype_of (Object_Logic.atomize_term (theory_of_thm th) (prop_of th))
-  <> @{typ bool}
-
-fun theory_ord p =
-  if Theory.eq_thy p then
-    EQUAL
-  else if Theory.subthy p then
-    LESS
-  else if Theory.subthy (swap p) then
-    GREATER
-  else case int_ord (pairself (length o Theory.ancestors_of) p) of
-    EQUAL => string_ord (pairself Context.theory_name p)
-  | order => order
-
-val thm_ord = theory_ord o pairself theory_of_thm
 
 fun is_exists (s, _) = (s = @{const_name Ex} orelse s = @{const_name Ex1})
 
@@ -545,13 +553,18 @@ fun mash_learn_thy ctxt ({provers, verbose, overlord, ...} : params) thy timeout
                    facts =
   let
     val timer = Timer.startRealTimer ()
+fun check_timer s =
+  tracing ("*** " ^ s ^ " " ^ PolyML.makestring (Timer.checkRealTimer timer))
     val prover = hd provers
     fun timed_out frac =
       Time.> (Timer.checkRealTimer timer, time_mult frac timeout)
+val _ = check_timer "begin" (*###*)
     val {fact_graph, ...} = mash_get ctxt
+val _ = check_timer " got" (*###*)
     val new_facts =
       facts |> filter_out (is_fact_in_graph fact_graph)
             |> sort (thm_ord o pairself snd)
+val _ = check_timer " new facts" (*###*)
   in
     if null new_facts then
       ""
@@ -559,9 +572,10 @@ fun mash_learn_thy ctxt ({provers, verbose, overlord, ...} : params) thy timeout
       let
         val ths = facts |> map snd
         val all_names =
-          ths |> filter_out (is_likely_tautology ctxt prover orf is_too_meta)
+          ths |> filter_out is_likely_tautology_or_too_meta
               |> map (rpair () o Thm.get_name_hint)
               |> Symtab.make
+val _ = check_timer " all names" (*###*)
         fun do_fact _ (accum as (_, true)) = accum
           | do_fact ((_, (_, status)), th) ((parents, upds), false) =
             let
@@ -571,8 +585,10 @@ fun mash_learn_thy ctxt ({provers, verbose, overlord, ...} : params) thy timeout
               val upd = (name, parents, feats, deps)
             in (([name], upd :: upds), timed_out pass1_learn_timeout_factor) end
         val parents = parents_wrt_facts ctxt facts fact_graph
+val _ = check_timer " parents" (*###*)
         val ((_, upds), _) =
           ((parents, []), false) |> fold do_fact new_facts |>> apsnd rev
+val _ = check_timer " did facts" (*###*)
         val n = length upds
         fun trans {thys, fact_graph} =
           let
@@ -580,8 +596,10 @@ fun mash_learn_thy ctxt ({provers, verbose, overlord, ...} : params) thy timeout
               if Graph.is_empty fact_graph then mash_INIT else mash_ADD
             val (upds, fact_graph) =
               ([], fact_graph) |> fold (update_fact_graph ctxt) upds
+val _ = check_timer " updated" (*###*)
           in
             (mash_INIT_or_ADD ctxt overlord (rev upds);
+check_timer " inited/added" (*###*);
              {thys = thys |> add_thys_for thy,
               fact_graph = fact_graph})
           end
