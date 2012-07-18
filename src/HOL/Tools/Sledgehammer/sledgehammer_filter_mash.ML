@@ -280,13 +280,13 @@ fun mash_RESET () = (warning "MaSh RESET"; File.rm (mk_path model_file))
 
 val mash_ADD =
   let
-    fun add_fact (fact, access, feats, deps) =
+    fun add_record (fact, access, feats, deps) =
       let
         val s =
           escape_meta fact ^ ": " ^ escape_metas access ^ "; " ^
           escape_metas feats ^ "; " ^ escape_metas deps
       in warning ("MaSh ADD " ^ s) end
-  in List.app add_fact end
+  in List.app add_record end
 
 fun mash_DEL facts feats =
   warning ("MaSh DEL " ^ escape_metas facts ^ "; " ^ escape_metas feats)
@@ -350,8 +350,8 @@ val global_state =
 
 in
 
-fun mash_set state =
-  Synchronized.change global_state (K (true, state |> tap mash_save))
+fun mash_set f =
+  Synchronized.change global_state (fn _ => (true, f () |> tap mash_save))
 
 fun mash_change f =
   Synchronized.change global_state (mash_load ##> (f #> tap mash_save))
@@ -395,22 +395,20 @@ fun mash_learn_thy ctxt timeout =
       facts |> List.partition is_old ||> sort (thm_ord o pairself snd)
     val ths = facts |> map snd
     val all_names = ths |> map Thm.get_name_hint
-    fun do_fact ((_, (_, status)), th) prevs =
+    fun do_fact ((_, (_, status)), th) (prevs, records) =
       let
         val name = Thm.get_name_hint th
         val feats = features_of thy status [prop_of th]
         val deps = isabelle_dependencies_of all_names th
-        val kind = Thm.legacy_get_kind th
-        val s =
-          "! " ^ escape_meta name ^ ": " ^ escape_metas prevs ^ "; " ^
-          escape_metas feats ^ "; " ^ escape_metas deps ^ "\n"
-      in [name] end
+        val record = (name, prevs, feats, deps)
+      in ([name], record :: records) end
     val thy_facts = old_facts |> thy_facts_from_thms
     val parents = parent_facts thy thy_facts
+    val (_, records) = (parents, []) |> fold_rev do_fact new_facts
   in
-    fold do_fact new_facts parents;
-    mash_set {fresh = fresh, completed_thys = completed_thys,
-              thy_facts = thy_facts}
+    mash_set (fn () => (mash_ADD records;
+                        {fresh = fresh, completed_thys = completed_thys,
+                         thy_facts = thy_facts}))
   end
 
 (* ###
