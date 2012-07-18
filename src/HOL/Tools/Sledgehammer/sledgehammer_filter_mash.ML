@@ -44,7 +44,7 @@ sig
     -> fact list * fact list
   val mash_can_learn_thy : Proof.context -> theory -> bool
   val mash_learn_thy : Proof.context -> theory -> real -> unit
-  val mash_learn_proof : Proof.context -> term -> thm list -> unit
+  val mash_learn_proof : Proof.context -> theory -> term -> thm list -> unit
   val relevant_facts :
     Proof.context -> params -> string -> int -> fact_override -> term list
     -> term -> fact list -> fact list
@@ -64,14 +64,10 @@ val trace =
   Attrib.setup_config_bool @{binding sledgehammer_filter_mash_trace} (K false)
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 
-val mash_dir = "mash"
-val model_file = "model"
-val state_file = "state"
-
-fun mk_path file =
-  getenv "ISABELLE_HOME_USER" ^ "/" ^ mash_dir ^ "/" ^ file
-  |> Path.explode
-
+fun mash_dir () =
+  getenv "ISABELLE_HOME_USER" ^ "/mash"
+  |> tap (fn dir => Isabelle_System.mkdir (Path.explode dir))
+fun mash_state_path () = mash_dir () ^ "/state" |> Path.explode
 
 (*** Isabelle helpers ***)
 
@@ -283,17 +279,38 @@ val thy_name_of_fact = hd o Long_Name.explode
 (*** Low-level communication with MaSh ***)
 
 fun mash_RESET ctxt =
-  (trace_msg ctxt (K "MaSh RESET"); File.write (mk_path model_file) "")
+  let val path = mash_dir () |> Path.explode in
+    trace_msg ctxt (K "MaSh RESET");
+    File.fold_dir (fn file => fn () =>
+                      File.rm (Path.append path (Path.basic file)))
+                  path ()
+  end
 
-fun mash_ADD ctxt =
-  let
-    fun add_record (fact, access, feats, deps) =
-      let
-        val s =
-          escape_meta fact ^ ": " ^ escape_metas access ^ "; " ^
-          escape_metas feats ^ "; " ^ escape_metas deps
-      in trace_msg ctxt (fn () => "MaSh ADD " ^ s) end
-  in List.app add_record end
+fun mash_ADD _ [] = ()
+  | mash_ADD ctxt records =
+    let
+      val temp_dir = getenv "ISABELLE_TMP"
+      val serial = serial_string ()
+      val cmd_file = temp_dir ^ "/mash_commands." ^ serial
+      val cmd_path = Path.explode cmd_file
+      val pred_file = temp_dir ^ "/mash_preds." ^ serial
+      val log_file = temp_dir ^ "/mash_log." ^ serial
+      val _ = File.write cmd_path ""
+      val _ =
+        trace_msg ctxt (fn () =>
+            "MaSh ADD " ^ space_implode " " (map #1 records))
+      fun append_record (fact, access, feats, deps) =
+        "! " ^ escape_meta fact ^ ": " ^ escape_metas access ^ "; " ^
+        escape_metas feats ^ "; " ^ escape_metas deps ^ "\n"
+        |> File.append cmd_path
+      val command =
+        getenv "MASH_HOME" ^ "/mash.py --inputFile " ^ cmd_file ^
+        " --outputDir " ^ mash_dir () ^ " --predictions " ^ pred_file ^
+        " --log " ^ log_file ^ " --saveModel > /dev/null"
+      val _ = trace_msg ctxt (fn () => "Run: " ^ command)
+      val _ = List.app append_record records
+      val _ = Isabelle_System.bash command
+    in () end
 
 fun mash_DEL ctxt facts feats =
   trace_msg ctxt (fn () =>
@@ -319,10 +336,7 @@ local
 
 fun mash_load (state as (true, _)) = state
   | mash_load _ =
-    let
-      val path = mk_path state_file
-      val _ = Isabelle_System.mkdir (path |> Path.dir)
-    in
+    let val path = mash_state_path () in
       (true,
        case try File.read_lines path of
          SOME (dirty_line :: facts_lines) =>
@@ -342,7 +356,7 @@ fun mash_load (state as (true, _)) = state
 
 fun mash_save ({dirty_thys, thy_facts} : mash_state) =
   let
-    val path = mk_path state_file
+    val path = mash_state_path ()
     val dirty_line = (escape_metas (Symtab.keys dirty_thys)) ^ "\n"
     fun fact_line_for (thy, facts) = escape_metas (thy :: facts) ^ "\n"
   in
@@ -363,7 +377,7 @@ fun mash_get () = Synchronized.change_result global_state (mash_load #> `snd)
 
 fun mash_reset ctxt =
   Synchronized.change global_state (fn _ =>
-      (mash_RESET ctxt; File.write (mk_path state_file) "";
+      (mash_RESET ctxt; File.write (mash_state_path ()) "";
        (true, empty_state)))
 
 end
@@ -430,32 +444,30 @@ fun mash_learn_thy ctxt thy timeout =
             val record = (name, prevs, feats, deps)
           in ([name], record :: records) end
         val parents = parent_facts thy thy_facts
-        val (_, records) = (parents, []) |> fold_rev do_fact new_facts
+        val (_, records) = (parents, []) |> fold do_fact new_facts
         val new_thy_facts = new_facts |> thy_facts_from_thms
         fun trans {dirty_thys, thy_facts} =
-          (mash_ADD ctxt records;
+          (mash_ADD ctxt (rev records);
            {dirty_thys = dirty_thys,
             thy_facts = thy_facts |> add_thy_facts_from_thys new_thy_facts})
       in mash_map trans end
   end
 
-fun mash_learn_proof ctxt t ths =
-  let val thy = Proof_Context.theory_of ctxt in
-    mash_map (fn state as {dirty_thys, thy_facts} =>
-      let val deps = ths |> map Thm.get_name_hint in
-        if forall (is_fact_in_thy_facts thy_facts) deps then
-          let
-            val fact = ATP_Util.timestamp () (* should be fairly fresh *)
-            val access = accessibility_of thy thy_facts
-            val feats = features_of thy General [t]
-          in
-            mash_ADD ctxt [(fact, access, feats, deps)];
-            {dirty_thys = dirty_thys, thy_facts = thy_facts}
-          end
-        else
-          state
-      end)
-  end
+fun mash_learn_proof ctxt thy t ths =
+  mash_map (fn state as {dirty_thys, thy_facts} =>
+    let val deps = ths |> map Thm.get_name_hint in
+      if forall (is_fact_in_thy_facts thy_facts) deps then
+        let
+          val fact = ATP_Util.timestamp () (* should be fairly fresh *)
+          val access = accessibility_of thy thy_facts
+          val feats = features_of thy General [t]
+        in
+          mash_ADD ctxt [(fact, access, feats, deps)];
+          {dirty_thys = dirty_thys, thy_facts = thy_facts}
+        end
+      else
+        state
+    end)
 
 fun relevant_facts ctxt params prover max_facts
         ({add, only, ...} : fact_override) hyp_ts concl_t facts =
