@@ -50,7 +50,11 @@ fun run_some_atp ctxt format problem =
   let
     val thy = Proof_Context.theory_of ctxt
     val prob_file = File.tmp_path (Path.explode "prob")
-    val atp = case format of DFG _ => spassN | _ => eN
+    val atp =
+      case format of
+        DFG Polymorphic => spass_polyN
+      | DFG Monomorphic => spassN
+      | _ => eN
     val {exec, arguments, proof_delims, known_failures, ...} =
       get_atp thy atp ()
     val ord = effective_term_order ctxt atp

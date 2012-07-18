@@ -26,6 +26,7 @@ open Sledgehammer_Util
 open Sledgehammer_Fact
 open Sledgehammer_Provers
 open Sledgehammer_Minimize
+open Sledgehammer_Filter_MaSh
 open Sledgehammer_Run
 
 val runN = "run"
@@ -35,6 +36,14 @@ val supported_proversN = "supported_provers"
 val running_proversN = "running_provers"
 val kill_proversN = "kill_provers"
 val refresh_tptpN = "refresh_tptp"
+val mash_resetN = "mash_reset"
+val mash_learnN = "mash_learn"
+
+(* experimental *)
+val mash_RESET_N = "mash_RESET"
+val mash_ADD_N = "mash_ADD"
+val mash_DEL_N = "mash_DEL"
+val mash_SUGGEST_N = "mash_SUGGEST"
 
 val auto = Unsynchronized.ref false
 
@@ -374,6 +383,18 @@ fun hammer_away override_params subcommand opt_i fact_override state =
       kill_provers ()
     else if subcommand = refresh_tptpN then
       refresh_systems_on_tptp ()
+    else if subcommand = mash_resetN then
+      mash_reset ()
+    else if subcommand = mash_learnN then
+      () (* TODO: implement *)
+    else if subcommand = mash_RESET_N then
+      () (* TODO: implement *)
+    else if subcommand = mash_ADD_N then
+      () (* TODO: implement *)
+    else if subcommand = mash_DEL_N then
+      () (* TODO: implement *)
+    else if subcommand = mash_SUGGEST_N then
+      () (* TODO: implement *)
     else
       error ("Unknown subcommand: " ^ quote subcommand ^ ".")
   end

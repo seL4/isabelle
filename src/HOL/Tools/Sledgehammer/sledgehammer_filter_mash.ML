@@ -55,21 +55,27 @@ open Sledgehammer_Fact
 open Sledgehammer_Filter_Iter
 open Sledgehammer_Provers
 
+val mash_dir = "mash"
+val model_file = "model"
+val state_file = "state"
+
+fun mash_path file = getenv "ISABELLE_HOME_USER" ^ "/" ^ mash_dir ^ "/" ^ file
+
 
 (*** Low-level communication with MaSh ***)
 
 fun mash_RESET () =
-  tracing "MaSh RESET"
+  warning "MaSh RESET"
 
-fun mash_ADD fact (access, feats, deps) =
-  tracing ("MaSh ADD " ^ fact ^ ": " ^ space_implode " " access ^ "; " ^
+fun mash_ADD fact access feats deps =
+  warning ("MaSh ADD " ^ fact ^ ": " ^ space_implode " " access ^ "; " ^
            space_implode " " feats ^ "; " ^ space_implode " " deps)
 
 fun mash_DEL fact =
-  tracing ("MaSh DEL " ^ fact)
+  warning ("MaSh DEL " ^ fact)
 
-fun mash_SUGGEST fact (access, feats) =
-  tracing ("MaSh SUGGEST " ^ fact ^ ": " ^ space_implode " " access ^ "; " ^
+fun mash_SUGGEST access feats =
+  warning ("MaSh SUGGEST " ^ space_implode " " access ^ "; " ^
            space_implode " " feats)
 
 
@@ -371,18 +377,82 @@ fun generate_atp_dependencies ctxt (params as {provers, max_facts, ...}) thy
 
 (*** High-level communication with MaSh ***)
 
-fun mash_reset () = ()
+type mash_state =
+  {completed_thys : unit Symtab.table,
+   thy_facts : string list Symtab.table}
 
-fun mash_can_suggest_facts () = true
+val mash_zero =
+  {completed_thys = Symtab.empty,
+   thy_facts = Symtab.empty}
+
+local
+
+fun mash_load (state as (true, _)) = state
+  | mash_load _ =
+    (true,
+     case mash_path state_file |> Path.explode |> File.read_lines of
+       [] => mash_zero
+     | comp_line :: facts_lines =>
+       let
+         fun comp_thys_of_line comp_line =
+           Symtab.make (comp_line |> space_explode " " |> map (rpair ()))
+         fun add_facts_line line =
+           case space_explode " " line of
+             thy :: facts => Symtab.update_new (thy, facts)
+           | _ => I (* shouldn't happen *)
+       in
+         {completed_thys = comp_thys_of_line comp_line,
+          thy_facts = fold add_facts_line facts_lines Symtab.empty}
+       end)
+
+fun mash_save ({completed_thys, thy_facts} : mash_state) =
+  let
+    val path = mash_path state_file |> Path.explode
+    val comp_line = (completed_thys |> Symtab.keys |> space_implode " ") ^ "\n"
+    fun fact_line_for (thy, facts) = space_implode " " (thy :: facts) ^ "\n"
+  in
+    File.write path comp_line;
+    Symtab.fold (fn thy_fact => fn () =>
+                    File.append path (fact_line_for thy_fact)) thy_facts
+  end
+
+val state =
+  Synchronized.var "Sledgehammer_Filter_MaSh.state" (false, mash_zero)
+
+in
+
+fun mash_change f =
+  Synchronized.change state (apsnd (tap mash_save o f) o mash_load)
+
+fun mash_value () = Synchronized.change_result state (`snd o mash_load)
+
+end
+
+fun mash_reset () = mash_change (fn _ => (mash_RESET (); mash_zero))
+
+fun mash_can_suggest_facts () =
+  not (Symtab.is_empty (#thy_facts (mash_value ())))
 
 fun mash_suggest_facts ctxt params prover max_facts hyp_ts concl_t facts =
-  (facts, [])
+  let
+    val access = []
+    val feats = []
+    val suggs = mash_SUGGEST access feats
+  in (facts, []) end
 
-fun mash_can_learn_thy thy = true
+fun mash_can_learn_thy thy =
+  not (Symtab.defined (#completed_thys (mash_value ()))
+                      (Context.theory_name thy))
 
 fun mash_learn_thy thy timeout = ()
 
 fun mash_learn_proof thy t ths = ()
+(*###
+  let
+  in
+    mash_ADD
+  end
+*)
 
 fun relevant_facts ctxt params prover max_facts
         ({add, only, ...} : fact_override) hyp_ts concl_t facts =

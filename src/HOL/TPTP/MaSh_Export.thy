@@ -5,7 +5,7 @@
 header {* MaSh Exporter *}
 
 theory MaSh_Export
-imports Complex_Main
+imports (* ### Complex_Main *) "~~/src/HOL/Sledgehammer2d"
 uses "mash_export.ML"
 begin
 

@@ -5,7 +5,7 @@
 header {* MaSh Evaluation Driver *}
 
 theory MaSh_Eval
-imports Complex_Main
+imports (* ### Complex_Main *) "~~/src/HOL/Sledgehammer2d"
 uses "mash_eval.ML"
 begin
 
@@ -20,14 +20,14 @@ open MaSh_Eval
 *}
 
 ML {*
-val do_it = false (* switch to "true" to generate the files *);
-val thy = @{theory List};
+val do_it = true (* switch to "true" to generate the files *);
+val thy = @{theory Nat};
 val params = Sledgehammer_Isar.default_params @{context} []
 *}
 
 ML {*
 if do_it then
-  evaluate_mash_suggestions @{context} params thy "/tmp/mash_suggestions_list"
+  evaluate_mash_suggestions @{context} params thy "/Users/blanchet/tum/mash/mash/results/natNB200ATP-15.pred"
 else
   ()
 *}
