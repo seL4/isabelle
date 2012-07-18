@@ -186,10 +186,11 @@ fun theory_ord p =
 
 val thm_ord = theory_ord o pairself theory_of_thm
 
+val bad_types = [@{type_name prop}, @{type_name bool}, @{type_name fun}]
+
 fun interesting_terms_types_and_classes ctxt prover term_max_depth
                                         type_max_depth ts =
   let
-    val bad_types = [@{type_name prop}, @{type_name bool}, @{type_name fun}]
     fun is_bad_const (x as (s, _)) args =
       member (op =) atp_logical_consts s orelse
       fst (is_built_in_const_for_prover ctxt prover x args)
@@ -226,7 +227,7 @@ fun interesting_terms_types_and_classes ctxt prover term_max_depth
          | _ => I)
         #> fold add_patterns args
       end
-  in [] |> fold add_patterns ts |> sort string_ord end
+  in [] |> fold add_patterns ts end
 
 fun is_exists (s, _) = (s = @{const_name Ex} orelse s = @{const_name Ex1})
 
@@ -249,8 +250,7 @@ fun features_of ctxt prover thy status ts =
       | Simp => cons "simp"
       | Def => cons "def")
 
-fun isabelle_dependencies_of all_facts =
-  thms_in_proof (SOME all_facts) #> sort string_ord
+fun isabelle_dependencies_of all_facts = thms_in_proof (SOME all_facts)
 
 val freezeT = Type.legacy_freeze_type
 
@@ -507,18 +507,13 @@ fun mash_learn_thy ctxt ({provers, verbose, overlord, ...} : params) thy timeout
                    facts =
   let
     val timer = Timer.startRealTimer ()
-fun check_timer s =
-  tracing ("*** " ^ s ^ " " ^ PolyML.makestring (Timer.checkRealTimer timer))
     val prover = hd provers
     fun timed_out frac =
       Time.> (Timer.checkRealTimer timer, time_mult frac timeout)
-val _ = check_timer "begin" (*###*)
     val {fact_graph, ...} = mash_get ctxt
-val _ = check_timer " got" (*###*)
     val new_facts =
       facts |> filter_out (is_fact_in_graph fact_graph)
             |> sort (thm_ord o pairself snd)
-val _ = check_timer " new facts" (*###*)
   in
     if null new_facts then
       ""
@@ -529,7 +524,6 @@ val _ = check_timer " new facts" (*###*)
           ths |> filter_out is_likely_tautology_or_too_meta
               |> map (rpair () o Thm.get_name_hint)
               |> Symtab.make
-val _ = check_timer " all names" (*###*)
         fun do_fact _ (accum as (_, true)) = accum
           | do_fact ((_, (_, status)), th) ((parents, upds), false) =
             let
@@ -539,10 +533,8 @@ val _ = check_timer " all names" (*###*)
               val upd = (name, parents, feats, deps)
             in (([name], upd :: upds), timed_out pass1_learn_timeout_factor) end
         val parents = parents_wrt_facts ctxt facts fact_graph
-val _ = check_timer " parents" (*###*)
         val ((_, upds), _) =
           ((parents, []), false) |> fold do_fact new_facts |>> apsnd rev
-val _ = check_timer " did facts" (*###*)
         val n = length upds
         fun trans {thys, fact_graph} =
           let
@@ -550,10 +542,8 @@ val _ = check_timer " did facts" (*###*)
               if Graph.is_empty fact_graph then mash_INIT else mash_ADD
             val (upds, fact_graph) =
               ([], fact_graph) |> fold (update_fact_graph ctxt) upds
-val _ = check_timer " updated" (*###*)
           in
             (mash_INIT_or_ADD ctxt overlord (rev upds);
-check_timer " inited/added" (*###*);
              {thys = thys |> add_thys_for thy,
               fact_graph = fact_graph})
           end
