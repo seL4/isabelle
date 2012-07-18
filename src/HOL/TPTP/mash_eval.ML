@@ -18,17 +18,6 @@ struct
 
 open Sledgehammer_Filter_MaSh
 
-val unescape_meta =
-  let
-    fun un accum [] = String.implode (rev accum)
-      | un accum (#"\\" :: d1 :: d2 :: d3 :: cs) =
-        (case Int.fromString (String.implode [d1, d2, d3]) of
-           SOME n => un (Char.chr n :: accum) cs
-         | NONE => "" (* error *))
-      | un _ (#"\\" :: _) = "" (* error *)
-      | un accum (c :: cs) = un (c :: accum) cs
-  in un [] o String.explode end
-
 val isarN = "Isa"
 val iterN = "Iter"
 val mashN = "MaSh"
