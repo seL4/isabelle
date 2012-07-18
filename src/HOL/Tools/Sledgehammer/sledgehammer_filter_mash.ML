@@ -155,51 +155,6 @@ val const_name_of = prefix const_prefix
 val type_name_of = prefix type_const_prefix
 val class_name_of = prefix class_prefix
 
-local
-
-fun has_bool @{typ bool} = true
-  | has_bool (Type (_, Ts)) = exists has_bool Ts
-  | has_bool _ = false
-
-fun has_fun (Type (@{type_name fun}, _)) = true
-  | has_fun (Type (_, Ts)) = exists has_fun Ts
-  | has_fun _ = false
-
-val is_conn = member (op =)
-  [@{const_name Trueprop}, @{const_name HOL.conj}, @{const_name HOL.disj},
-   @{const_name HOL.implies}, @{const_name Not},
-   @{const_name All}, @{const_name Ex}, @{const_name Ball}, @{const_name Bex},
-   @{const_name HOL.eq}]
-
-val has_bool_arg_const =
-  exists_Const (fn (c, T) =>
-                   not (is_conn c) andalso exists has_bool (binder_types T))
-
-fun higher_inst_const thy (s, T) =
-  case binder_types T of
-    [] => false
-  | Ts => length (binder_types (Sign.the_const_type thy s)) <> length Ts
-  handle TYPE _ => false
-
-val binders = [@{const_name All}, @{const_name Ex}]
-
-in
-
-fun is_fo_term thy t =
-  let
-    val t =
-      t |> Envir.beta_eta_contract
-        |> transform_elim_prop
-        |> Object_Logic.atomize_term thy
-  in
-    Term.is_first_order binders t andalso
-    not (exists_subterm (fn Var (_, T) => has_bool T orelse has_fun T
-                          | _ => false) t orelse
-         has_bool_arg_const t orelse exists_Const (higher_inst_const thy) t)
-  end
-
-end
-
 fun is_likely_tautology_or_too_meta th =
   let
     val is_boring_const = member (op =) atp_widely_irrelevant_consts
@@ -285,7 +240,6 @@ fun features_of ctxt prover thy status ts =
                                       ts
   |> exists (not o is_lambda_free) ts ? cons "lambdas"
   |> exists (exists_Const is_exists) ts ? cons "skolems"
-  |> exists (not o is_fo_term thy) ts ? cons "ho"
   |> (case status of
         General => I
       | Induction => cons "induction"
