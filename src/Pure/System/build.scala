@@ -166,6 +166,11 @@ object Build
         val full_name =
           if (entry.reset) entry.name
           else parent.name + "-" + entry.name
+
+        if (entry.name == "") error("Bad session name")
+        if (infos.exists(_.name == full_name))
+          error("Duplicate session name: " + quote(full_name))
+
         val path =
           entry.path match {
             case Some(p) => Path.explode(p)
@@ -175,6 +180,7 @@ object Build
         val info =
           Session_Info(dir + path, full_name, entry.parent, entry.description,
             entry.options, thys, entry.files)
+
         infos += info
       }
       catch {
