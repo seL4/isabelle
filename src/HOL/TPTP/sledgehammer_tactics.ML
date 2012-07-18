@@ -7,7 +7,7 @@ Sledgehammer as a tactic.
 
 signature SLEDGEHAMMER_TACTICS =
 sig
-  type relevance_override = Sledgehammer_Filter.relevance_override
+  type relevance_override = Sledgehammer_Fact.relevance_override
 
   val sledgehammer_with_metis_tac :
     Proof.context -> (string * string) list -> relevance_override -> int
@@ -20,7 +20,7 @@ end;
 structure Sledgehammer_Tactics : SLEDGEHAMMER_TACTICS =
 struct
 
-open Sledgehammer_Filter
+open Sledgehammer_Fact
 
 fun run_prover override_params relevance_override i n ctxt goal =
   let
@@ -41,7 +41,7 @@ fun run_prover override_params relevance_override i n ctxt goal =
     val facts =
       Sledgehammer_Fact.nearly_all_facts ctxt ho_atp relevance_override
                                          chained_ths hyp_ts concl_t
-      |> Sledgehammer_Filter.relevant_facts ctxt relevance_thresholds
+      |> Sledgehammer_Filter_MaSh.relevant_facts ctxt relevance_thresholds
              (the_default default_max_relevant max_relevant) is_built_in_const
              relevance_fudge relevance_override chained_ths hyp_ts concl_t
     val problem =
