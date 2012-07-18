@@ -33,10 +33,12 @@ val runN = "run"
 val minN = "min"
 val messagesN = "messages"
 val supported_proversN = "supported_provers"
-val running_proversN = "running_provers"
 val kill_proversN = "kill_provers"
+val running_proversN = "running_provers"
+val kill_learnersN = "kill_learners"
+val running_learnersN = "running_learners"
+val unlearnN = "unlearn"
 val refresh_tptpN = "refresh_tptp"
-val reset_mashN = "reset_mash"
 
 val auto = Unsynchronized.ref false
 
@@ -374,14 +376,18 @@ fun hammer_away override_params subcommand opt_i fact_override state =
       messages opt_i
     else if subcommand = supported_proversN then
       supported_provers ctxt
-    else if subcommand = running_proversN then
-      running_provers ()
     else if subcommand = kill_proversN then
       kill_provers ()
+    else if subcommand = running_proversN then
+      running_provers ()
+    else if subcommand = kill_learnersN then
+      kill_learners ()
+    else if subcommand = running_learnersN then
+      running_learners ()
+    else if subcommand = unlearnN then
+      mash_reset ctxt
     else if subcommand = refresh_tptpN then
       refresh_systems_on_tptp ()
-    else if subcommand = reset_mashN then
-      mash_reset ctxt
     else
       error ("Unknown subcommand: " ^ quote subcommand ^ ".")
   end

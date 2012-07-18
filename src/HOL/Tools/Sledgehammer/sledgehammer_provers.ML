@@ -99,7 +99,7 @@ sig
   val smt_slice_fact_frac : real Config.T
   val smt_slice_time_frac : real Config.T
   val smt_slice_min_secs : int Config.T
-  val das_tool : string
+  val SledgehammerN : string
   val plain_metis : reconstructor
   val select_smt_solver : string -> Proof.context -> Proof.context
   val extract_reconstructor :
@@ -153,7 +153,7 @@ datatype mode = Auto_Try | Try | Normal | Auto_Minimize | Minimize
 
 (* Identifier that distinguishes Sledgehammer from other tools that could use
    "Async_Manager". *)
-val das_tool = "Sledgehammer"
+val SledgehammerN = "Sledgehammer"
 
 val reconstructor_names = [metisN, smtN]
 val plain_metis = Metis (hd partial_type_encs, combsN)
@@ -298,9 +298,9 @@ fun supported_provers ctxt =
                            commas (local_provers @ remote_provers) ^ ".")
   end
 
-fun kill_provers () = Async_Manager.kill_threads das_tool "prover"
-fun running_provers () = Async_Manager.running_threads das_tool "prover"
-val messages = Async_Manager.thread_messages das_tool "prover"
+fun kill_provers () = Async_Manager.kill_threads SledgehammerN "prover"
+fun running_provers () = Async_Manager.running_threads SledgehammerN "prover"
+val messages = Async_Manager.thread_messages SledgehammerN "prover"
 
 
 (** problems, results, ATPs, etc. **)

@@ -15,6 +15,7 @@ sig
   type prover_result = Sledgehammer_Provers.prover_result
 
   val trace : bool Config.T
+  val MaShN : string
   val meshN : string
   val iterN : string
   val mashN : string
@@ -51,12 +52,15 @@ sig
   val mash_suggest_facts :
     Proof.context -> params -> string -> int -> term list -> term -> fact list
     -> fact list
-  val mash_learn_thy : Proof.context -> params -> theory -> Time.time -> unit
+  val mash_learn_thy :
+    Proof.context -> params -> theory -> Time.time -> fact list -> string
   val mash_learn_proof :
     Proof.context -> params -> term -> thm list -> fact list -> unit
   val relevant_facts :
     Proof.context -> params -> string -> int -> fact_override -> term list
     -> term -> fact list -> fact list
+  val kill_learners : unit -> unit
+  val running_learners : unit -> unit
 end;
 
 structure Sledgehammer_Filter_MaSh : SLEDGEHAMMER_FILTER_MASH =
@@ -73,6 +77,8 @@ open Sledgehammer_Minimize
 val trace =
   Attrib.setup_config_bool @{binding sledgehammer_filter_mash_trace} (K false)
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
+
+val MaShN = "MaSh"
 
 val meshN = "mesh"
 val iterN = "iter"
@@ -481,8 +487,6 @@ fun mash_suggest_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
   let
     val thy = Proof_Context.theory_of ctxt
     val fact_graph = #fact_graph (mash_get ())
-val _ = warning (PolyML.makestring (length (fact_graph |> Graph.keys), length (fact_graph |> Graph.maximals),
-length (fact_graph |> Graph.minimals))) (*###*)
     val parents = parents_wrt_facts facts fact_graph
     val feats = features_of ctxt prover thy General (concl_t :: hyp_ts)
     val suggs =
@@ -509,34 +513,23 @@ fun update_fact_graph ctxt (name, parents, feats, deps) (upds, graph) =
   in ((name, parents, feats, deps) :: upds, graph) end
 
 val pass1_learn_timeout_factor = 0.5
-val pass2_learn_timeout_factor = 10.0
 
 (* The timeout is understood in a very slack fashion. *)
-fun mash_learn_thy ctxt ({provers, verbose, overlord, ...} : params) thy
-                   timeout =
+fun mash_learn_thy ctxt ({provers, verbose, overlord, ...} : params) thy timeout
+                   facts =
   let
     val timer = Timer.startRealTimer ()
     val prover = hd provers
     fun timed_out frac =
       Time.> (Timer.checkRealTimer timer, time_mult frac timeout)
-    val css_table = clasimpset_rule_table_of ctxt
-    val facts = all_facts_of thy css_table
     val {fact_graph, ...} = mash_get ()
     fun is_old (_, th) = can (Graph.get_node fact_graph) (Thm.get_name_hint th)
     val new_facts = facts |> filter_out is_old |> sort (thm_ord o pairself snd)
   in
     if null new_facts then
-      ()
+      ""
     else
       let
-        val n = length new_facts
-        val _ =
-          if verbose then
-            "MaShing " ^ string_of_int n ^ " fact" ^ plural_s n ^
-            " (advisory timeout: " ^ string_from_time timeout ^ ")..."
-            |> Output.urgent_message
-          else
-            ()
         val ths = facts |> map snd
         val all_names =
           ths |> filter_out (is_likely_tautology ctxt prover orf is_too_meta)
@@ -566,22 +559,15 @@ fun mash_learn_thy ctxt ({provers, verbose, overlord, ...} : params) thy
               fact_graph = fact_graph})
           end
       in
-        TimeLimit.timeLimit (time_mult pass2_learn_timeout_factor timeout)
-                            mash_map trans
-        handle TimeLimit.TimeOut =>
-               (if verbose then
-                  "MaSh timed out trying to learn " ^ string_of_int n ^
-                  " fact" ^ plural_s n ^ " in " ^
-                  string_from_time (Timer.checkRealTimer timer) ^ "."
-                  |> Output.urgent_message
-                else
-                  ());
-        (if verbose then
-           "MaSh learned " ^ string_of_int n ^ " fact" ^ plural_s n ^ " in " ^
-           string_from_time (Timer.checkRealTimer timer) ^ "."
-           |> Output.urgent_message
-         else
-           ())
+        mash_map trans;
+        if verbose then
+          "Processed " ^ string_of_int n ^ " proof" ^ plural_s n ^
+          (if verbose then
+             " in " ^ string_from_time (Timer.checkRealTimer timer)
+           else
+             "") ^ "."
+        else
+          ""
       end
   end
 
@@ -623,19 +609,23 @@ fun relevant_facts ctxt (params as {fact_filter, timeout, ...}) prover max_facts
     let
       val thy = Proof_Context.theory_of ctxt
       fun maybe_learn can_suggest =
-        if Time.toSeconds timeout >= min_secs_for_learning then
-          if Multithreading.enabled () then
-            let
-              val factor =
-                if can_suggest then short_learn_timeout_factor
-                else long_learn_timeout_factor
-            in
-              Future.fork (fn () => mash_learn_thy ctxt params thy
-                                        (time_mult factor timeout)); ()
-            end
-          else
-            mash_learn_thy ctxt params thy
-                           (time_mult short_learn_timeout_factor timeout)
+        if Async_Manager.has_running_threads MaShN orelse null facts then
+          ()
+        else if Time.toSeconds timeout >= min_secs_for_learning then
+          let
+            val factor =
+              if can_suggest then short_learn_timeout_factor
+              else long_learn_timeout_factor
+            val soft_timeout = time_mult factor timeout
+            val hard_timeout = time_mult 2.0 soft_timeout
+            val birth_time = Time.now ()
+            val death_time = Time.+ (birth_time, hard_timeout)
+            val desc = ("machine learner for Sledgehammer", "")
+          in
+            Async_Manager.launch MaShN birth_time death_time desc
+                (fn () =>
+                    (true, mash_learn_thy ctxt params thy soft_timeout facts))
+          end
         else
           ()
       val fact_filter =
@@ -666,5 +656,8 @@ fun relevant_facts ctxt (params as {fact_filter, timeout, ...}) prover max_facts
       mesh_facts max_facts mess
       |> not (null add_ths) ? prepend_facts add_ths
     end
+
+fun kill_learners () = Async_Manager.kill_threads MaShN "learner"
+fun running_learners () = Async_Manager.running_threads MaShN "learner"
 
 end;

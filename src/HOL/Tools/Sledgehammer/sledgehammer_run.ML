@@ -53,7 +53,7 @@ fun max_outcome_code codes =
 
 fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i
                        n goal =
-  (name,
+  (quote name,
    (if verbose then
       " with " ^ string_of_int num_facts ^ " fact" ^ plural_s num_facts
     else
@@ -141,7 +141,7 @@ fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
         (outcome_code, state)
       end
     else
-      (Async_Manager.launch das_tool birth_time death_time (desc ())
+      (Async_Manager.launch SledgehammerN birth_time death_time (desc ())
                             ((fn (outcome_code, message) =>
                                  (verbose orelse outcome_code = someN,
                                   message ())) o go);
