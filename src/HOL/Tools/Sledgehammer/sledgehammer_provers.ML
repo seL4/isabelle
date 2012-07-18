@@ -628,6 +628,8 @@ fun suffix_for_mode Auto_Try = "_auto_try"
    Linux appears to be the only ATP that does not honor its time limit. *)
 val atp_timeout_slack = seconds 1.0
 
+val mono_max_privileged_facts = 10
+
 fun run_atp mode name
         ({exec, required_vars, arguments, proof_delims, known_failures,
           prem_role, best_slices, best_max_mono_iters,
@@ -701,7 +703,7 @@ fun run_atp mode name
                   Logic.list_implies (hyp_ts, concl_t)
                   |> Skip_Proof.make_thm thy
                 val rths =
-                  facts |> chop (length facts div 4)
+                  facts |> chop mono_max_privileged_facts
                         |>> map (pair 1 o snd)
                         ||> map (pair 2 o snd)
                         |> op @
