@@ -18,7 +18,6 @@ structure MaSh_Import : MASH_IMPORT =
 struct
 
 open Sledgehammer_Filter_MaSh
-open MaSh_Export
 
 val unescape_meta =
   let
