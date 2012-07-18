@@ -73,9 +73,8 @@ object Build
   case class Session_Info(
     dir: Path,
     name: String,
-    path: String,
+    reset_name: Boolean,
     parent: String,
-    alt_name: Option[String],
     description: String,
     options: Options,
     theories: List[(Options, String)],
@@ -85,21 +84,19 @@ object Build
   {
     val SESSION = "session"
     val IN = "in"
-    val NAME = "name"
     val DESCRIPTION = "description"
     val OPTIONS = "options"
     val THEORIES = "theories"
     val FILES = "files"
 
     val syntax =
-      Outer_Syntax.empty + "(" + ")" + "+" + "," + "=" + "[" + "]" +
-        SESSION + IN + NAME + DESCRIPTION + OPTIONS + THEORIES + FILES
+      Outer_Syntax.empty + "!" + "(" + ")" + "+" + "," + "=" + "[" + "]" +
+        SESSION + IN + DESCRIPTION + OPTIONS + THEORIES + FILES
 
     def session_info(dir: Path): Parser[Session_Info] =
     {
       val session_name = atom("session name", _.is_name)
       val theory_name = atom("theory name", _.is_name)
-      val file_name = atom("file name", _.is_name)
 
       val option =
         name ~ opt(keyword("=") ~! name ^^ { case _ ~ x => x }) ^^ { case x ~ y => (x, y) }
@@ -111,16 +108,17 @@ object Build
           { case _ ~ (x ~ y) => (x, y) }
 
       ((keyword(SESSION) ~! session_name) ^^ { case _ ~ x => x }) ~
-        (opt(keyword(IN) ~! string ^^ { case _ ~ x => x })) ~
+        (keyword("!") ^^^ true | success(false)) ~
+        (opt(keyword(IN) ~! string ^^ { case _ ~ x => Path.explode(x) })) ~
         (keyword("=") ~> session_name <~ keyword("+")) ~
-        (opt(keyword(NAME) ~! session_name ^^ { case _ ~ x => x })) ~
         (keyword(DESCRIPTION) ~! text ^^ { case _ ~ x => x } | success("")) ~
         (keyword(OPTIONS) ~! options ^^ { case _ ~ x => x } | success(Nil)) ~
         rep(theories) ~
-        (keyword(FILES) ~! rep1(file_name) ^^ { case _ ~ x => x } | success(Nil)) ^^
+        (keyword(FILES) ~! rep1(path) ^^ { case _ ~ x => x } | success(Nil)) ^^
           { case a ~ b ~ c ~ d ~ e ~ f ~ g ~ h =>
-            Session_Info(dir, a, b getOrElse a, c, d, e, f,
-              g.map({ case (x, ys) => ys.map(y => (x, y)) }).flatten, h) }
+              val dir1 = dir + c.getOrElse(Path.basic(a))
+              val thys = g.map({ case (x, ys) => ys.map(y => (x, y)) }).flatten
+              Session_Info(dir1, a, b, d, e, f, thys, h) }
     }
 
     def parse_entries(dir: Path, root: File): List[Session_Info] =

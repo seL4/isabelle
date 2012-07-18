@@ -1,5 +1,4 @@
-session FOL in "." = Pure +
-  name FOL
+session FOL! in "." = Pure +
   description "First-Order Logic with Natural Deduction"
   options [proofs = 2]
   theories FOL
