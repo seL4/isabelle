@@ -38,7 +38,7 @@ sig
   val nth_combination : (int * int) list -> int -> int list
   val all_combinations : (int * int) list -> int list list
   val all_permutations : 'a list -> 'a list list
-  val batch_list : int -> 'a list -> 'a list list
+  val chunk_list : int -> 'a list -> 'a list list
   val chunk_list_unevenly : int list -> 'a list -> 'a list list
   val map3 : ('a -> 'b -> 'c -> 'd) -> 'a list -> 'b list -> 'c list -> 'd list
   val double_lookup :
@@ -192,15 +192,12 @@ fun all_permutations [] = [[]]
     maps (fn j => map (cons (nth xs j)) (all_permutations (nth_drop j xs)))
          (index_seq 0 (length xs))
 
-fun batch_list _ [] = []
-  | batch_list k xs =
-    if length xs <= k then [xs]
-    else List.take (xs, k) :: batch_list k (List.drop (xs, k))
+val chunk_list = ATP_Util.chunk_list
 
 fun chunk_list_unevenly _ [] = []
-  | chunk_list_unevenly [] ys = map single ys
-  | chunk_list_unevenly (k :: ks) ys =
-    let val (ys1, ys2) = chop k ys in ys1 :: chunk_list_unevenly ks ys2 end
+  | chunk_list_unevenly [] xs = map single xs
+  | chunk_list_unevenly (k :: ks) xs =
+    let val (xs1, xs2) = chop k xs in xs1 :: chunk_list_unevenly ks xs2 end
 
 fun map3 _ [] [] [] = []
   | map3 f (x :: xs) (y :: ys) (z :: zs) = f x y z :: map3 f xs ys zs

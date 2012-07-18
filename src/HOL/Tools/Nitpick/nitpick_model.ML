@@ -619,7 +619,7 @@ and reconstruct_term maybe_opt unfold pool
         make_fun_or_set true T T1 T2 T'
             (map (fn j => term_for_atom seen T1 T1 j k) (index_seq 0 k))
             (map (term_for_rep true seen T2 T2 R o single)
-                 (batch_list (arity_of_rep R) js))
+                 (chunk_list (arity_of_rep R) js))
       end
     and term_for_rep _ seen T T' (R as Atom (k, j0)) [[j]] =
         if j >= j0 andalso j < j0 + k then term_for_atom seen T T' (j - j0) k

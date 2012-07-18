@@ -1038,7 +1038,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
           run_batches (j + 1) n (if max_genuine > 0 then batches else []) z
         end
 
-    val batches = batch_list batch_size (!scopes)
+    val batches = chunk_list batch_size (!scopes)
     val outcome_code =
       run_batches 0 (length batches) batches
                   (false, max_potential, max_genuine, 0)

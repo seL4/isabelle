@@ -1111,7 +1111,7 @@ fun shape_tuple (T as Type (@{type_name prod}, [T1, T2])) (R as Struct [R1, R2])
     end
   | shape_tuple T (R as Vect (k, R')) us =
     Tuple (T, R, map (shape_tuple (pseudo_range_type T) R')
-                     (batch_list (length us div k) us))
+                     (chunk_list (length us div k) us))
   | shape_tuple T _ [u] =
     if type_of u = T then u else raise NUT ("Nitpick_Nut.shape_tuple", [u])
   | shape_tuple _ _ us = raise NUT ("Nitpick_Nut.shape_tuple", us)

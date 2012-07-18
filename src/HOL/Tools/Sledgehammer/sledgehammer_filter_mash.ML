@@ -313,9 +313,11 @@ fun run_prover_for_mash ctxt params prover facts goal =
 
 (*** Low-level communication with MaSh ***)
 
-fun write_file write file =
+fun write_file (xs, f) file =
   let val path = Path.explode file in
-    File.write path ""; write (File.append path)
+    File.write path "";
+    xs |> chunk_list 500
+       |> List.app (File.append path o space_implode "" o map f)
   end
 
 fun mash_info overlord =
@@ -331,8 +333,8 @@ fun run_mash ctxt (temp_dir, serial) core =
       " --log " ^ log_file ^ " " ^ core ^ " 2>&1 > " ^ err_file
   in
     trace_msg ctxt (fn () => "Running " ^ command);
-    write_file (K ()) log_file;
-    write_file (K ()) err_file;
+    write_file ([], K "") log_file;
+    write_file ([], K "") err_file;
     Isabelle_System.bash command; ()
   end
 
@@ -354,7 +356,7 @@ fun run_mash_commands ctxt overlord save max_suggs write_cmds read_suggs =
     val sugg_file = temp_dir ^ "/mash_suggs" ^ serial
     val cmd_file = temp_dir ^ "/mash_commands" ^ serial
   in
-    write_file (K ()) sugg_file;
+    write_file ([], K "") sugg_file;
     write_file write_cmds cmd_file;
     run_mash ctxt info
              ("--inputFile " ^ cmd_file ^ " --predictions " ^ sugg_file ^
@@ -385,22 +387,19 @@ fun mash_INIT ctxt _ [] = mash_RESET ctxt
   | mash_INIT ctxt overlord upds =
     (trace_msg ctxt (fn () => "MaSh INIT " ^
          elide_string 1000 (space_implode " " (map #1 upds)));
-     run_mash_init ctxt overlord
-         (fn append => List.app (append o init_str_of_update #2) upds)
-         (fn append => List.app (append o init_str_of_update #3) upds)
-         (fn append => List.app (append o init_str_of_update #4) upds))
+     run_mash_init ctxt overlord (upds, init_str_of_update #2)
+                   (upds, init_str_of_update #3) (upds, init_str_of_update #4))
 
 fun mash_ADD _ _ [] = ()
   | mash_ADD ctxt overlord upds =
     (trace_msg ctxt (fn () => "MaSh ADD " ^
          elide_string 1000 (space_implode " " (map #1 upds)));
-     run_mash_commands ctxt overlord true 0
-         (fn append => List.app (append o str_of_update) upds) (K ()))
+     run_mash_commands ctxt overlord true 0 (upds, str_of_update) (K ()))
 
 fun mash_QUERY ctxt overlord max_suggs (query as (_, feats)) =
   (trace_msg ctxt (fn () => "MaSh QUERY " ^ space_implode " " feats);
    run_mash_commands ctxt overlord false max_suggs
-       (fn append => append (str_of_query query))
+       ([query], str_of_query)
        (fn suggs => snd (extract_query (List.last (suggs ()))))
    handle List.Empty => [])
 
