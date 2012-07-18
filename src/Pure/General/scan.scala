@@ -12,7 +12,7 @@ import scala.collection.immutable.PagedSeq
 import scala.util.parsing.input.{OffsetPosition, Position => InputPosition, Reader}
 import scala.util.parsing.combinator.RegexParsers
 
-import java.io.{File, InputStream, BufferedInputStream, FileInputStream}
+import java.io.{File, BufferedInputStream, FileInputStream}
 
 
 object Scan
