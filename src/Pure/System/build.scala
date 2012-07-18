@@ -7,6 +7,9 @@ Build and manage Isabelle sessions.
 package isabelle
 
 
+import java.io.File
+
+
 object Build
 {
   /* command line entry point */
@@ -23,24 +26,27 @@ object Build
 
   def main(args: Array[String])
   {
-    def bad_args()
-    {
-      java.lang.System.err.println("Bad arguments: " + args.toString)
-      sys.exit(2)
-    }
+    def bad_args(): Nothing = error("Bad arguments: " + args.toString)
 
-    args.toList match {
-      case Bool(all_sessions) :: Bool(build_images) :: Bool(list_only) :: rest =>
-        rest.indexWhere(_ == "\n") match {
-          case -1 => bad_args()
-          case i =>
-            val (options, rest1) = rest.splitAt(i)
-            val sessions = rest1.tail
-            val rc = build(all_sessions, build_images, list_only, options, sessions)
-            sys.exit(rc)
+    val rc =
+      try {
+        args.toList match {
+          case Bool(all_sessions) :: Bool(build_images) :: Bool(list_only) :: rest =>
+            rest.indexWhere(_ == "\n") match {
+              case -1 => bad_args()
+              case i =>
+                val (options, rest1) = rest.splitAt(i)
+                val sessions = rest1.tail
+                build(all_sessions, build_images, list_only, options, sessions)
+            }
+          case _ => bad_args()
         }
-      case _ => bad_args()
-    }
+      }
+      catch {
+        case exn: Throwable => java.lang.System.err.println(Exn.message(exn)); 2
+      }
+
+    sys.exit(rc)
   }
 
 
@@ -49,12 +55,12 @@ object Build
   def build(all_sessions: Boolean, build_images: Boolean, list_only: Boolean,
     options: List[String], sessions: List[String]): Int =
   {
-    val rc = 1
-
     println("options = " + options.toString)
     println("sessions = " + sessions.toString)
 
-    rc
+    find_sessions() foreach println
+
+    0
   }
 
 
@@ -89,7 +95,7 @@ object Build
       Outer_Syntax.empty + "(" + ")" + "+" + "," + "=" + "[" + "]" +
         SESSION + IN + NAME + DESCRIPTION + OPTIONS + THEORIES + FILES
 
-    val session_info: Parser[Session_Info] =
+    def session_info(dir: Path): Parser[Session_Info] =
     {
       val session_name = atom("session name", _.is_name)
       val theory_name = atom("theory name", _.is_name)
@@ -113,14 +119,14 @@ object Build
         rep(theories) ~
         (keyword(FILES) ~! rep1(file_name) ^^ { case _ ~ x => x } | success(Nil)) ^^
           { case a ~ b ~ c ~ d ~ e ~ f ~ g ~ h =>
-            Session_Info(Path.current, a, b getOrElse a, c, d, e, f,
+            Session_Info(dir, a, b getOrElse a, c, d, e, f,
               g.map({ case (x, ys) => ys.map(y => (x, y)) }).flatten, h) }
     }
 
-    def parse_entries(source: CharSequence): List[Session_Info] =
+    def parse_entries(dir: Path, root: File): List[Session_Info] =
     {
-      val in = Token.reader(syntax.scan(source))
-      parse_all(rep(session_info), in) match {
+      val toks = syntax.scan(Standard_System.read_file(root))
+      parse_all(rep(session_info(dir)), Token.reader(toks, root.toString)) match {
         case Success(result, _) => result
         case bad => error(bad.toString)
       }
@@ -133,8 +139,8 @@ object Build
       dir <- Isabelle_System.components()
       root = Isabelle_System.platform_file(dir + Path.basic(ROOT_NAME))
       if root.isFile
-      entry <- Parser.parse_entries(Standard_System.read_file(root))
-    } yield entry.copy(dir = dir)
+      entry <- Parser.parse_entries(dir, root)
+    } yield entry
   }
 }
 

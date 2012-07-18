@@ -34,30 +34,33 @@ object Token
 
   /* token reader */
 
-  class Line_Position(val line: Int) extends scala.util.parsing.input.Position
+  class Position(val line: Int, val file: String) extends scala.util.parsing.input.Position
   {
     def column = 0
     def lineContents = ""
-    override def toString = line.toString
+    override def toString =
+      if (file == "") ("line " + line.toString)
+      else ("line " + line.toString + " of " + quote(file))
 
-    def advance(token: Token): Line_Position =
+    def advance(token: Token): Position =
     {
       var n = 0
       for (c <- token.content if c == '\n') n += 1
-      if (n == 0) this else new Line_Position(line + n)
+      if (n == 0) this else new Position(line + n, file)
     }
   }
 
   abstract class Reader extends scala.util.parsing.input.Reader[Token]
 
-  private class Token_Reader(tokens: List[Token], val pos: Line_Position) extends Reader
+  private class Token_Reader(tokens: List[Token], val pos: Position) extends Reader
   {
     def first = tokens.head
     def rest = new Token_Reader(tokens.tail, pos.advance(first))
     def atEnd = tokens.isEmpty
   }
 
-  def reader(tokens: List[Token]): Reader = new Token_Reader(tokens, new Line_Position(1))
+  def reader(tokens: List[Token], file: String = ""): Reader =
+    new Token_Reader(tokens, new Position(1, file))
 }
 
 
