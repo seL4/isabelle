@@ -30,14 +30,14 @@ sig
   val generate_isa_dependencies : theory -> bool -> string -> unit
   val generate_atp_dependencies :
     Proof.context -> params -> theory -> bool -> string -> unit
-
-  val reset : unit -> unit
-  val can_suggest_facts : unit -> bool
-(* ###  val suggest_facts : ... *)
-  val can_learn_thy : theory -> bool
-  val learn_thy : theory -> real -> unit
-  val learn_proof : theory -> term -> thm list -> unit
-
+  val mash_reset : unit -> unit
+  val mash_can_suggest_facts : unit -> bool
+  val mash_suggest_facts :
+    theory -> params -> string -> int -> term list -> term -> fact list
+    -> fact list * fact list
+  val mash_can_learn_thy : theory -> bool
+  val mash_learn_thy : theory -> real -> unit
+  val mash_learn_proof : theory -> term -> thm list -> unit
   val relevant_facts :
     Proof.context -> params -> string -> int -> fact_override -> term list
     -> term -> fact list -> fact list
@@ -56,17 +56,17 @@ open Sledgehammer_Provers
 
 (*** Low-level communication with MaSh ***)
 
-fun mash_reset () =
+fun mash_RESET () =
   tracing "MaSh RESET"
 
-fun mash_add fact (access, feats, deps) =
+fun mash_ADD fact (access, feats, deps) =
   tracing ("MaSh ADD " ^ fact ^ ": " ^ space_implode " " access ^ "; " ^
            space_implode " " feats ^ "; " ^ space_implode " " deps)
 
-fun mash_del fact =
+fun mash_DEL fact =
   tracing ("MaSh DEL " ^ fact)
 
-fun mash_suggest fact (access, feats) =
+fun mash_SUGGEST fact (access, feats) =
   tracing ("MaSh SUGGEST " ^ fact ^ ": " ^ space_implode " " access ^ "; " ^
            space_implode " " feats)
 
@@ -365,18 +365,21 @@ fun generate_atp_dependencies ctxt (params as {provers, max_facts, ...}) thy
 
 (*** High-level communication with MaSh ***)
 
-fun reset () = ()
+fun mash_reset () = ()
 
-fun can_suggest_facts () = true
+fun mash_can_suggest_facts () = true
 
-fun can_learn_thy thy = true
+fun mash_suggest_facts ctxt params prover max_facts hyp_ts concl_t facts =
+  (facts, [])
 
-fun learn_thy thy timeout = ()
+fun mash_can_learn_thy thy = true
 
-fun learn_proof thy t ths = ()
+fun mash_learn_thy thy timeout = ()
+
+fun mash_learn_proof thy t ths = ()
 
 fun relevant_facts ctxt params prover max_facts
-                   ({add, only, ...} : fact_override) hyp_ts concl_t facts =
+        ({add, only, ...} : fact_override) hyp_ts concl_t facts =
   if only then
     facts
   else if max_facts <= 0 then
@@ -388,10 +391,14 @@ fun relevant_facts ctxt params prover max_facts
         ((facts |> filter (member Thm.eq_thm_prop ths o snd)) @
          (accepts |> filter_out (member Thm.eq_thm_prop ths o snd)))
         |> take max_facts
+      val iter_facts =
+        iterative_relevant_facts ctxt params prover max_facts NONE hyp_ts
+                                 concl_t facts
+      val (mash_facts, mash_rejected) =
+        mash_suggest_facts ctxt params prover max_facts hyp_ts concl_t facts
+      val mesh_facts = iter_facts
     in
-      facts
-      |> iterative_relevant_facts ctxt params prover max_facts NONE hyp_ts
-                                  concl_t
+      mesh_facts
       |> not (null add_ths) ? prepend_facts add_ths
     end
 

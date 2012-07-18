@@ -34,7 +34,7 @@ val of_fact_name = unescape_meta
 val isaN = "Isa"
 val iterN = "Iter"
 val mashN = "MaSh"
-val iter_mashN = "Iter+MaSh"
+val meshN = "Mesh"
 
 val max_facts_slack = 2
 
@@ -49,7 +49,7 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
     val all_names = facts |> map (Thm.get_name_hint o snd)
     val iter_ok = Unsynchronized.ref 0
     val mash_ok = Unsynchronized.ref 0
-    val iter_mash_ok = Unsynchronized.ref 0
+    val mesh_ok = Unsynchronized.ref 0
     val isa_ok = Unsynchronized.ref 0
     fun find_sugg facts sugg =
       find_first (fn (_, th) => Thm.get_name_hint th = sugg) facts
@@ -57,7 +57,7 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
       map_filter (find_sugg facts o of_fact_name)
       #> take (max_facts_slack * the max_facts)
       #> Sledgehammer_Fact.maybe_instantiate_inducts ctxt hyp_ts concl_t
-    fun hybrid_facts fsp =
+    fun mesh_facts fsp =
       let
         val (fs1, fs2) =
           fsp |> pairself (map (apfst (apfst (fn name => name ()))))
@@ -117,14 +117,13 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
               prover_name (max_facts_slack * the max_facts) NONE hyp_ts concl_t
               facts
         val mash_facts = sugg_facts hyp_ts concl_t facts suggs
-        val iter_mash_facts = hybrid_facts (iter_facts, mash_facts)
+        val mesh_facts = mesh_facts (iter_facts, mash_facts)
         val iter_s = prove iter_ok iterN iter_facts goal
         val mash_s = prove mash_ok mashN mash_facts goal
-        val iter_mash_s = prove iter_mash_ok iter_mashN iter_mash_facts goal
+        val mesh_s = prove mesh_ok meshN mesh_facts goal
         val isa_s = prove isa_ok isaN isa_facts goal
       in
-        ["Goal " ^ string_of_int j ^ ": " ^ name, iter_s, mash_s, iter_mash_s,
-         isa_s]
+        ["Goal " ^ string_of_int j ^ ": " ^ name, iter_s, mash_s, mesh_s, isa_s]
         |> cat_lines |> tracing
       end
     val explode_suggs = space_explode " " #> filter_out (curry (op =) "")
@@ -150,7 +149,7 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
     ["Successes (of " ^ string_of_int n ^ " goals)",
      total_of iterN iter_ok n,
      total_of mashN mash_ok n,
-     total_of iter_mashN iter_mash_ok n,
+     total_of meshN mesh_ok n,
      total_of isaN isa_ok n]
     |> cat_lines |> tracing
   end

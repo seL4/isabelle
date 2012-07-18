@@ -28,9 +28,6 @@ sig
     Proof.context -> term list -> term -> (((unit -> string) * 'a) * thm) list
     -> (((unit -> string) * 'a) * thm) list
   val maybe_filter_no_atps : Proof.context -> ('a * thm) list -> ('a * thm) list
-  val all_facts :
-    Proof.context -> bool -> 'a Symtab.table -> bool -> thm list -> thm list
-    -> status Termtab.table -> fact list
   val all_facts_of : theory -> fact list
   val nearly_all_facts :
     Proof.context -> bool -> fact_override -> thm list -> term list -> term
