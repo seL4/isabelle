@@ -46,15 +46,21 @@ fun ident_of_problem_line (Class_Decl (ident, _, _)) = ident
   | ident_of_problem_line (Class_Memb (ident, _, _, _)) = ident
   | ident_of_problem_line (Formula (ident, _, _, _, _)) = ident
 
+fun atp_for_format (THF (Polymorphic, _, _, _)) = dummy_thfN
+  | atp_for_format (THF (Monomorphic, _, _, _)) = satallaxN
+  | atp_for_format (DFG Polymorphic) = spass_polyN
+  | atp_for_format (DFG Monomorphic) = spassN
+  | atp_for_format (TFF (Polymorphic, _)) = alt_ergoN
+  | atp_for_format (TFF (Monomorphic, _)) = vampireN
+  | atp_for_format FOF = eN
+  | atp_for_format CNF_UEQ = waldmeisterN
+  | atp_for_format CNF = eN
+
 fun run_some_atp ctxt format problem =
   let
     val thy = Proof_Context.theory_of ctxt
     val prob_file = File.tmp_path (Path.explode "prob")
-    val atp =
-      case format of
-        DFG Polymorphic => spass_polyN
-      | DFG Monomorphic => spassN
-      | _ => eN
+    val atp = atp_for_format format
     val {exec, arguments, proof_delims, known_failures, ...} =
       get_atp thy atp ()
     val ord = effective_term_order ctxt atp
@@ -107,13 +113,14 @@ fun monomorphize_term ctxt t =
     handle TYPE _ => @{prop True}
   end
 
-fun all_non_tautological_facts_of thy css_table =
+fun all_non_tautological_facts_of ctxt prover thy css_table =
   Sledgehammer_Fact.all_facts_of thy css_table
-  |> filter_out ((Sledgehammer_Filter_MaSh.is_likely_tautology orf
+  |> filter_out ((Sledgehammer_Filter_MaSh.is_likely_tautology ctxt prover orf
                   Sledgehammer_Filter_MaSh.is_too_meta) o snd)
 
 fun generate_atp_inference_file_for_theory ctxt thy format type_enc file_name =
   let
+    val atp = atp_for_format format
     val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
     val type_enc =
       type_enc |> type_enc_from_string Strict
@@ -121,7 +128,7 @@ fun generate_atp_inference_file_for_theory ctxt thy format type_enc file_name =
     val mono = not (is_type_enc_polymorphic type_enc)
     val path = file_name |> Path.explode
     val _ = File.write path ""
-    val facts = all_non_tautological_facts_of thy css_table
+    val facts = all_non_tautological_facts_of ctxt atp thy css_table
     val atp_problem =
       facts
       |> map (fn ((_, loc), th) =>

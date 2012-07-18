@@ -9,6 +9,7 @@ sig
   val plural_s : int -> string
   val serial_commas : string -> string list -> string list
   val simplify_spaces : string -> string
+  val time_mult : real -> Time.time -> Time.time
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time_option : string -> string -> Time.time option
   val subgoal_count : Proof.state -> int
@@ -25,6 +26,9 @@ fun plural_s n = if n = 1 then "" else "s"
 
 val serial_commas = Try.serial_commas
 val simplify_spaces = strip_spaces false (K true)
+
+fun time_mult k t =
+  Time.fromMilliseconds (Real.ceil (k * Real.fromInt (Time.toMilliseconds t)))
 
 fun parse_bool_option option name s =
   (case s of

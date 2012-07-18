@@ -26,14 +26,16 @@ sig
   val extract_query : string -> string * string list
   val suggested_facts : string list -> fact list -> fact list
   val mesh_facts : int -> (fact list * int option) list -> fact list
-  val is_likely_tautology : thm -> bool
+  val is_likely_tautology : Proof.context -> string -> thm -> bool
   val is_too_meta : thm -> bool
   val theory_ord : theory * theory -> order
   val thm_ord : thm * thm -> order
-  val features_of : theory -> status -> term list -> string list
+  val features_of :
+    Proof.context -> string -> theory -> status -> term list -> string list
   val isabelle_dependencies_of : unit Symtab.table -> thm -> string list
   val goal_of_thm : theory -> thm -> thm
-  val run_prover : Proof.context -> params -> fact list -> thm -> prover_result
+  val run_prover :
+    Proof.context -> params -> string -> fact list -> thm -> prover_result
   val mash_RESET : Proof.context -> unit
   val mash_INIT :
     Proof.context -> bool
@@ -42,13 +44,14 @@ sig
     Proof.context -> bool
     -> (string * string list * string list * string list) list -> unit
   val mash_QUERY :
-    Proof.context -> bool -> string list * string list -> string list
+    Proof.context -> bool -> int -> string list * string list -> string list
   val mash_reset : Proof.context -> unit
-  val mash_can_suggest_facts : Proof.context -> bool
+  val mash_could_suggest_facts : unit -> bool
+  val mash_can_suggest_facts : unit -> bool
   val mash_suggest_facts :
-    Proof.context -> params -> string -> term list -> term -> fact list
+    Proof.context -> params -> string -> int -> term list -> term -> fact list
     -> fact list
-  val mash_learn_thy : Proof.context -> params -> theory -> real -> unit
+  val mash_learn_thy : Proof.context -> params -> theory -> Time.time -> unit
   val mash_learn_proof :
     Proof.context -> params -> term -> thm list -> fact list -> unit
   val relevant_facts :
@@ -65,6 +68,7 @@ open Sledgehammer_Util
 open Sledgehammer_Fact
 open Sledgehammer_Filter_Iter
 open Sledgehammer_Provers
+open Sledgehammer_Minimize
 
 val trace =
   Attrib.setup_config_bool @{binding sledgehammer_filter_mash_trace} (K false)
@@ -186,10 +190,13 @@ fun is_fo_term thy t =
 
 end
 
-fun interesting_terms_types_and_classes term_max_depth type_max_depth ts =
+fun interesting_terms_types_and_classes ctxt prover term_max_depth
+                                        type_max_depth ts =
   let
     val bad_types = [@{type_name prop}, @{type_name bool}, @{type_name fun}]
-    val bad_consts = atp_widely_irrelevant_consts
+    fun is_bad_const (x as (s, _)) args =
+      member (op =) atp_logical_consts s orelse
+      fst (is_built_in_const_for_prover ctxt prover x args)
     fun add_classes @{sort type} = I
       | add_classes S = union (op =) (map class_name_of S)
     fun do_add_type (Type (s, Ts)) =
@@ -215,8 +222,8 @@ fun interesting_terms_types_and_classes term_max_depth type_max_depth ts =
     fun add_patterns t =
       let val (head, args) = strip_comb t in
         (case head of
-           Const (s, T) =>
-           not (member (op =) bad_consts s) ? (add_term t #> add_type T)
+           Const (x as (_, T)) =>
+           not (is_bad_const x args) ? (add_term t #> add_type T)
          | Free (_, T) => add_type T
          | Var (_, T) => add_type T
          | Abs (_, T, body) => add_type T #> add_patterns body
@@ -225,9 +232,9 @@ fun interesting_terms_types_and_classes term_max_depth type_max_depth ts =
       end
   in [] |> fold add_patterns ts |> sort string_ord end
 
-fun is_likely_tautology th =
-  null (interesting_terms_types_and_classes 0 ~1 [prop_of th]) andalso
-  not (Thm.eq_thm_prop (@{thm ext}, th))
+fun is_likely_tautology ctxt prover th =
+  null (interesting_terms_types_and_classes ctxt prover 0 ~1 [prop_of th])
+  andalso not (Thm.eq_thm_prop (@{thm ext}, th))
 
 (* ### FIXME: optimize *)
 fun is_too_meta th =
@@ -253,9 +260,10 @@ val term_max_depth = 1
 val type_max_depth = 1
 
 (* TODO: Generate type classes for types? *)
-fun features_of thy status ts =
+fun features_of ctxt prover thy status ts =
   thy_feature_name_of (Context.theory_name thy) ::
-  interesting_terms_types_and_classes term_max_depth type_max_depth ts
+  interesting_terms_types_and_classes ctxt prover term_max_depth type_max_depth
+                                      ts
   |> exists (not o is_lambda_free) ts ? cons "lambdas"
   |> exists (exists_Const is_exists) ts ? cons "skolems"
   |> exists (not o is_fo_term thy) ts ? cons "ho"
@@ -282,21 +290,22 @@ fun freeze (t $ u) = freeze t $ freeze u
 
 fun goal_of_thm thy = prop_of #> freeze #> cterm_of thy #> Goal.init
 
-fun run_prover ctxt (params as {provers, ...}) facts goal =
+fun run_prover ctxt params prover facts goal =
   let
     val problem =
       {state = Proof.init ctxt, goal = goal, subgoal = 1, subgoal_count = 1,
        facts = facts |> map (apfst (apfst (fn name => name ())))
-                     |> map Sledgehammer_Provers.Untranslated_Fact}
-    val prover =
-      Sledgehammer_Minimize.get_minimizing_prover ctxt
-          Sledgehammer_Provers.Normal (hd provers)
+                     |> map Untranslated_Fact}
+    val prover = get_minimizing_prover ctxt Normal prover
   in prover params (K (K (K ""))) problem end
 
 
 (*** Low-level communication with MaSh ***)
 
-val max_preds = 500
+fun write_file write file =
+  let val path = Path.explode file in
+    File.write path ""; write (File.append path)
+  end
 
 fun mash_info overlord =
   if overlord then (getenv "ISABELLE_HOME_USER", "")
@@ -311,12 +320,9 @@ fun run_mash ctxt (temp_dir, serial) core =
       " --log " ^ log_file ^ " " ^ core ^ " 2>&1 > " ^ err_file
   in
     trace_msg ctxt (fn () => "Running " ^ command);
+    write_file (K ()) log_file;
+    write_file (K ()) err_file;
     Isabelle_System.bash command; ()
-  end
-
-fun write_file write file =
-  let val path = Path.explode file in
-    File.write path ""; write (File.append path)
   end
 
 fun run_mash_init ctxt overlord write_access write_feats write_deps =
@@ -331,18 +337,19 @@ fun run_mash_init ctxt overlord write_access write_feats write_deps =
     run_mash ctxt info ("--init --inputDir " ^ in_dir)
   end
 
-fun run_mash_commands ctxt overlord save write_cmds read_preds =
+fun run_mash_commands ctxt overlord save max_suggs write_cmds read_suggs =
   let
     val info as (temp_dir, serial) = mash_info overlord
+    val sugg_file = temp_dir ^ "/mash_suggs" ^ serial
     val cmd_file = temp_dir ^ "/mash_commands" ^ serial
-    val pred_file = temp_dir ^ "/mash_preds" ^ serial
   in
+    write_file (K ()) sugg_file;
     write_file write_cmds cmd_file;
     run_mash ctxt info
-             ("--inputFile " ^ cmd_file ^ " --predictions " ^ pred_file ^
-              " --numberOfPredictions " ^ string_of_int max_preds ^
+             ("--inputFile " ^ cmd_file ^ " --predictions " ^ sugg_file ^
+              " --numberOfPredictions " ^ string_of_int max_suggs ^
               (if save then " --saveModel" else ""));
-    read_preds (fn () => File.read_lines (Path.explode pred_file))
+    read_suggs (fn () => File.read_lines (Path.explode sugg_file))
   end
 
 fun str_of_update (name, parents, feats, deps) =
@@ -376,14 +383,14 @@ fun mash_ADD _ _ [] = ()
   | mash_ADD ctxt overlord upds =
     (trace_msg ctxt (fn () => "MaSh ADD " ^
          elide_string 1000 (space_implode " " (map #1 upds)));
-     run_mash_commands ctxt overlord true
+     run_mash_commands ctxt overlord true 0
          (fn append => List.app (append o str_of_update) upds) (K ()))
 
-fun mash_QUERY ctxt overlord (query as (_, feats)) =
+fun mash_QUERY ctxt overlord max_suggs (query as (_, feats)) =
   (trace_msg ctxt (fn () => "MaSh QUERY " ^ space_implode " " feats);
-   run_mash_commands ctxt overlord false
+   run_mash_commands ctxt overlord false max_suggs
        (fn append => append (str_of_query query))
-       (fn preds => snd (extract_query (List.last (preds ()))))
+       (fn suggs => snd (extract_query (List.last (suggs ()))))
    handle List.Empty => [])
 
 
@@ -423,8 +430,9 @@ fun mash_save ({thys, fact_graph, ...} : mash_state) =
   let
     val path = mash_state_path ()
     val thys = Symtab.dest thys
-    fun line_for_thys comp = AList.find (op =) thys comp |> escape_metas
-    fun fact_line_for name parents = name :: parents |> escape_metas
+    val line_for_thys = escape_metas o AList.find (op =) thys
+    fun fact_line_for name parents =
+      escape_meta name ^ ": " ^ escape_metas parents
     val append_fact = File.append path o suffix "\n" oo fact_line_for
   in
     File.write path (line_for_thys true ^ "\n" ^ line_for_thys false ^ "\n");
@@ -450,24 +458,35 @@ fun mash_reset ctxt =
 
 end
 
-fun mash_can_suggest_facts (_ : Proof.context) =
-  mash_home () <> "" andalso not (Graph.is_empty (#fact_graph (mash_get ())))
+fun mash_could_suggest_facts () = mash_home () <> ""
+fun mash_can_suggest_facts () = not (Graph.is_empty (#fact_graph (mash_get ())))
 
-fun parents_wrt facts fact_graph =
+fun parents_wrt_facts facts fact_graph =
   let
+    val graph_facts = Symtab.make (map (rpair ()) (Graph.keys fact_graph))
     val facts =
-      Symtab.empty
-      |> fold (fn (_, th) => Symtab.update (Thm.get_name_hint th, ())) facts
+      [] |> fold (cons o Thm.get_name_hint o snd) facts
+         |> filter (Symtab.defined graph_facts)
+         |> Graph.all_preds fact_graph
+    val facts = Symtab.empty |> fold (fn name => Symtab.update (name, ())) facts
   in fact_graph |> Graph.restrict (Symtab.defined facts) |> Graph.maximals end
 
-fun mash_suggest_facts ctxt ({overlord, ...} : params) prover hyp_ts concl_t
-                       facts =
+(* Generate more suggestions than requested, because some might be thrown out
+   later for various reasons and "meshing" gives better results with some
+   slack. *)
+fun max_suggs_of max_facts = max_facts + Int.min (200, max_facts)
+
+fun mash_suggest_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
+                       concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
     val fact_graph = #fact_graph (mash_get ())
-    val parents = parents_wrt facts fact_graph
-    val feats = features_of thy General (concl_t :: hyp_ts)
-    val suggs = mash_QUERY ctxt overlord (parents, feats)
+val _ = warning (PolyML.makestring (length (fact_graph |> Graph.keys), length (fact_graph |> Graph.maximals),
+length (fact_graph |> Graph.minimals))) (*###*)
+    val parents = parents_wrt_facts facts fact_graph
+    val feats = features_of ctxt prover thy General (concl_t :: hyp_ts)
+    val suggs =
+      mash_QUERY ctxt overlord (max_suggs_of max_facts) (parents, feats)
   in suggested_facts suggs facts end
 
 fun add_thys_for thy =
@@ -489,9 +508,18 @@ fun update_fact_graph ctxt (name, parents, feats, deps) (upds, graph) =
     val (deps, graph) = ([], graph) |> fold maybe_add_from deps
   in ((name, parents, feats, deps) :: upds, graph) end
 
-fun mash_learn_thy ctxt ({overlord, ...} : params) thy timeout =
+val pass1_learn_timeout_factor = 0.5
+val pass2_learn_timeout_factor = 10.0
+
+(* The timeout is understood in a very slack fashion. *)
+fun mash_learn_thy ctxt ({provers, verbose, overlord, ...} : params) thy
+                   timeout =
   let
-    val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
+    val timer = Timer.startRealTimer ()
+    val prover = hd provers
+    fun timed_out frac =
+      Time.> (Timer.checkRealTimer timer, time_mult frac timeout)
+    val css_table = clasimpset_rule_table_of ctxt
     val facts = all_facts_of thy css_table
     val {fact_graph, ...} = mash_get ()
     fun is_old (_, th) = can (Graph.get_node fact_graph) (Thm.get_name_hint th)
@@ -501,20 +529,31 @@ fun mash_learn_thy ctxt ({overlord, ...} : params) thy timeout =
       ()
     else
       let
+        val n = length new_facts
+        val _ =
+          if verbose then
+            "MaShing " ^ string_of_int n ^ " fact" ^ plural_s n ^
+            " (advisory timeout: " ^ string_from_time timeout ^ ")..."
+            |> Output.urgent_message
+          else
+            ()
         val ths = facts |> map snd
         val all_names =
-          ths |> filter_out (is_likely_tautology orf is_too_meta)
+          ths |> filter_out (is_likely_tautology ctxt prover orf is_too_meta)
               |> map (rpair () o Thm.get_name_hint)
               |> Symtab.make
-        fun do_fact ((_, (_, status)), th) (parents, upds) =
-          let
-            val name = Thm.get_name_hint th
-            val feats = features_of thy status [prop_of th]
-            val deps = isabelle_dependencies_of all_names th
-            val upd = (name, parents, feats, deps)
-          in ([name], upd :: upds) end
-        val parents = parents_wrt facts fact_graph
-        val (_, upds) = (parents, []) |> fold do_fact new_facts ||> rev
+        fun do_fact _ (accum as (_, true)) = accum
+          | do_fact ((_, (_, status)), th) ((parents, upds), false) =
+            let
+              val name = Thm.get_name_hint th
+              val feats = features_of ctxt prover thy status [prop_of th]
+              val deps = isabelle_dependencies_of all_names th
+              val upd = (name, parents, feats, deps)
+            in (([name], upd :: upds), timed_out pass1_learn_timeout_factor) end
+        val parents = parents_wrt_facts facts fact_graph
+        val ((_, upds), _) =
+          ((parents, []), false) |> fold do_fact new_facts |>> apsnd rev
+        val n = length upds
         fun trans {thys, fact_graph} =
           let
             val mash_INIT_or_ADD =
@@ -526,19 +565,37 @@ fun mash_learn_thy ctxt ({overlord, ...} : params) thy timeout =
              {thys = thys |> add_thys_for thy,
               fact_graph = fact_graph})
           end
-      in mash_map trans end
+      in
+        TimeLimit.timeLimit (time_mult pass2_learn_timeout_factor timeout)
+                            mash_map trans
+        handle TimeLimit.TimeOut =>
+               (if verbose then
+                  "MaSh timed out trying to learn " ^ string_of_int n ^
+                  " fact" ^ plural_s n ^ " in " ^
+                  string_from_time (Timer.checkRealTimer timer) ^ "."
+                  |> Output.urgent_message
+                else
+                  ());
+        (if verbose then
+           "MaSh learned " ^ string_of_int n ^ " fact" ^ plural_s n ^ " in " ^
+           string_from_time (Timer.checkRealTimer timer) ^ "."
+           |> Output.urgent_message
+         else
+           ())
+      end
   end
 
-fun mash_learn_proof ctxt ({overlord, ...} : params) t used_ths facts =
+fun mash_learn_proof ctxt ({provers, overlord, ...} : params) t used_ths facts =
   let
     val thy = Proof_Context.theory_of ctxt
-    val name = ATP_Util.timestamp () (* should be fairly fresh *)
-    val feats = features_of thy General [t]
+    val prover = hd provers
+    val name = ATP_Util.timestamp () ^ serial_string () (* fresh enough *)
+    val feats = features_of ctxt prover thy General [t]
     val deps = used_ths |> map Thm.get_name_hint
   in
     mash_map (fn {thys, fact_graph} =>
         let
-          val parents = parents_wrt facts fact_graph
+          val parents = parents_wrt_facts facts fact_graph
           val upds = [(name, parents, feats, deps)]
           val (upds, fact_graph) =
             ([], fact_graph) |> fold (update_fact_graph ctxt) upds
@@ -548,7 +605,13 @@ fun mash_learn_proof ctxt ({overlord, ...} : params) t used_ths facts =
         end)
   end
 
-fun relevant_facts ctxt (params as {fact_filter, ...}) prover max_facts
+(* The threshold should be large enough so that MaSh doesn't kick in for Auto
+   Sledgehammer and Try. *)
+val min_secs_for_learning = 15
+val short_learn_timeout_factor = 0.2
+val long_learn_timeout_factor = 4.0
+
+fun relevant_facts ctxt (params as {fact_filter, timeout, ...}) prover max_facts
         ({add, only, ...} : fact_override) hyp_ts concl_t facts =
   if not (subset (op =) (the_list fact_filter, fact_filters)) then
     error ("Unknown fact filter: " ^ quote (the fact_filter) ^ ".")
@@ -558,10 +621,32 @@ fun relevant_facts ctxt (params as {fact_filter, ...}) prover max_facts
     []
   else
     let
+      val thy = Proof_Context.theory_of ctxt
+      fun maybe_learn can_suggest =
+        if Time.toSeconds timeout >= min_secs_for_learning then
+          if Multithreading.enabled () then
+            let
+              val factor =
+                if can_suggest then short_learn_timeout_factor
+                else long_learn_timeout_factor
+            in
+              Future.fork (fn () => mash_learn_thy ctxt params thy
+                                        (time_mult factor timeout)); ()
+            end
+          else
+            mash_learn_thy ctxt params thy
+                           (time_mult short_learn_timeout_factor timeout)
+        else
+          ()
       val fact_filter =
         case fact_filter of
-          SOME ff => ff
-        | NONE => if mash_can_suggest_facts ctxt then meshN else iterN
+          SOME ff =>
+          (if ff <> iterN then maybe_learn (mash_can_suggest_facts ()) else ();
+           ff)
+        | NONE =>
+          if mash_can_suggest_facts () then (maybe_learn true; meshN)
+          else if mash_could_suggest_facts () then (maybe_learn false; iterN)
+          else iterN
       val add_ths = Attrib.eval_thms ctxt add
       fun prepend_facts ths accepts =
         ((facts |> filter (member Thm.eq_thm_prop ths o snd)) @
@@ -572,7 +657,8 @@ fun relevant_facts ctxt (params as {fact_filter, ...}) prover max_facts
                                  concl_t facts
         |> (fn facts => (facts, SOME (length facts)))
       fun mash () =
-        (facts |> mash_suggest_facts ctxt params prover hyp_ts concl_t, NONE)
+        (mash_suggest_facts ctxt params prover max_facts hyp_ts concl_t facts,
+         NONE)
       val mess =
         [] |> (if fact_filter <> mashN then cons (iter ()) else I)
            |> (if fact_filter <> iterN then cons (mash ()) else I)
