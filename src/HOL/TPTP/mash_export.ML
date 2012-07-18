@@ -64,7 +64,7 @@ fun generate_iter_suggestions ctxt params thy max_relevant file_name =
             let
               val suggs =
                 old_facts |> iter_facts ctxt params max_relevant goal
-                          |> map (fact_name_of o fst o fst)
+                          |> map (fn ((name, _), _) => fact_name_of (name ()))
                           |> sort string_ord
               val s = fact_name_of name ^ ": " ^ space_implode " " suggs ^ "\n"
             in File.append path s end

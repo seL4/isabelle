@@ -470,7 +470,8 @@ fun run_sh prover_name prover type_enc strict max_relevant slice lam_trans
         val problem =
           {state = st', goal = goal, subgoal = i,
            subgoal_count = Sledgehammer_Util.subgoal_count st,
-           facts = facts |> map Sledgehammer_Provers.Untranslated_Fact}
+           facts = facts |> map (apfst (apfst (fn name => name ())))
+                         |> map Sledgehammer_Provers.Untranslated_Fact}
       in prover params (K (K (K ""))) problem end)) ()
       handle TimeLimit.TimeOut => failed ATP_Proof.TimedOut
            | Fail "inappropriate" => failed ATP_Proof.Inappropriate

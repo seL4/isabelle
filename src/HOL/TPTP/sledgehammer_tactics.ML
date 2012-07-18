@@ -42,7 +42,8 @@ fun run_prover override_params relevance_override i n ctxt goal =
              chained_ths hyp_ts concl_t
     val problem =
       {state = Proof.init ctxt, goal = goal, subgoal = i, subgoal_count = n,
-       facts = map Sledgehammer_Provers.Untranslated_Fact facts}
+       facts = facts |> map (apfst (apfst (fn name => name ())))
+                     |> map Sledgehammer_Provers.Untranslated_Fact}
   in
     (case prover params (K (K (K ""))) problem of
       {outcome = NONE, used_facts, ...} => used_facts |> map fst |> SOME

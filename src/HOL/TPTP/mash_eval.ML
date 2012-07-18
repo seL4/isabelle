@@ -57,9 +57,10 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
       map_filter (find_sugg facts o of_fact_name)
       #> take (max_relevant_slack * the max_relevant)
       #> Sledgehammer_Fact.maybe_instantiate_inducts ctxt hyp_ts concl_t
-      #> map (apfst (apfst (fn name => name ())))
-    fun iter_mash_facts fs1 fs2 =
+    fun hybrid_facts fsp =
       let
+        val (fs1, fs2) =
+          fsp |> pairself (map (apfst (apfst (fn name => name ()))))
         val fact_eq = (op =) o pairself fst
         fun score_in f fs =
           case find_index (curry fact_eq f) fs of
@@ -70,29 +71,30 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
         union fact_eq fs1 fs2
         |> map (`score_of) |> sort (int_ord o pairself fst) |> map snd
         |> take (the max_relevant)
+        |> map (apfst (apfst K))
       end
-    fun with_index facts s =
-      (find_index (fn ((s', _), _) => s = s') facts + 1, s)
+    fun with_index facts s = (find_index (curry (op =) s) facts + 1, s)
     fun index_string (j, s) = s ^ "@" ^ string_of_int j
     fun str_of_res label facts {outcome, run_time, used_facts, ...} =
-      "  " ^ label ^ ": " ^
-      (if is_none outcome then
-         "Success (" ^ ATP_Util.string_from_time run_time ^ "): " ^
-         (used_facts |> map (with_index facts o fst)
-                     |> sort (int_ord o pairself fst)
-                     |> map index_string
-                     |> space_implode " ") ^
-         (if length facts < the max_relevant then
-            " (of " ^ string_of_int (length facts) ^ ")"
-          else
-            "")
-       else
-         "Failure: " ^
-         (facts |> map (fst o fst)
-                |> take (the max_relevant)
-                |> tag_list 1
-                |> map index_string
-                |> space_implode " "))
+      let val facts = facts |> map (fn ((name, _), _) => name ()) in
+        "  " ^ label ^ ": " ^
+        (if is_none outcome then
+           "Success (" ^ ATP_Util.string_from_time run_time ^ "): " ^
+           (used_facts |> map (with_index facts o fst)
+                       |> sort (int_ord o pairself fst)
+                       |> map index_string
+                       |> space_implode " ") ^
+           (if length facts < the max_relevant then
+              " (of " ^ string_of_int (length facts) ^ ")"
+            else
+              "")
+         else
+           "Failure: " ^
+           (facts |> take (the max_relevant)
+                  |> tag_list 1
+                  |> map index_string
+                  |> space_implode " "))
+      end
     fun prove ok heading facts goal =
       let
         val facts = facts |> take (the max_relevant)
@@ -115,7 +117,7 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
           iter_facts ctxt params (max_relevant_slack * the max_relevant) goal
                      facts
         val mash_facts = sugg_facts hyp_ts concl_t facts suggs
-        val iter_mash_facts = iter_mash_facts iter_facts mash_facts
+        val iter_mash_facts = hybrid_facts (iter_facts, mash_facts)
         val iter_s = prove iter_ok iterN iter_facts goal
         val mash_s = prove mash_ok mashN mash_facts goal
         val iter_mash_s = prove iter_mash_ok iter_mashN iter_mash_facts goal

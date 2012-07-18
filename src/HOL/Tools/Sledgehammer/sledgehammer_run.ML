@@ -225,6 +225,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
               | NONE => I)
           |> relevant_facts ctxt params (hd provers) max_max_relevant
                             relevance_override chained_ths hyp_ts concl_t
+          |> map (apfst (apfst (fn name => name ())))
           |> tap (fn facts =>
                      if debug then
                        label ^ plural_s (length provers) ^ ": " ^

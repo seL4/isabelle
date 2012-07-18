@@ -22,7 +22,7 @@ sig
     Proof.context -> params -> string -> int -> relevance_fudge option
     -> relevance_override -> thm list -> term list -> term
     -> (((unit -> string) * stature) * thm) list
-    -> ((string * stature) * thm) list
+    -> (((unit -> string) * stature) * thm) list
 end;
 
 structure Sledgehammer_Filter_Iter : SLEDGEHAMMER_FILTER_ITER =
@@ -537,7 +537,6 @@ fun iterative_relevant_facts ctxt
        relevance_filter ctxt thres0 decay max_relevant is_built_in_const
            fudge override facts (chained_ths |> map prop_of) hyp_ts
            (concl_t |> theory_constify fudge (Context.theory_name thy)))
-    |> map (apfst (apfst (fn f => f ())))
   end
 
 end;

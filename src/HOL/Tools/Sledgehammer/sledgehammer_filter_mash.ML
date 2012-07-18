@@ -27,9 +27,9 @@ sig
   val iter_facts :
     Proof.context -> params -> int -> thm
     -> (((unit -> string) * stature) * thm) list
-    -> ((string * stature) * thm) list
+    -> (((unit -> string) * stature) * thm) list
   val run_prover :
-    Proof.context -> params -> ((string * stature) * thm) list -> thm
+    Proof.context -> params -> (((unit -> string) * stature) * thm) list -> thm
     -> prover_result
   val generate_accessibility : theory -> bool -> string -> unit
   val generate_features : theory -> bool -> string -> unit
@@ -47,7 +47,7 @@ sig
   val relevant_facts :
     Proof.context -> params -> string -> int -> relevance_override -> thm list
     -> term list -> term -> (((unit -> string) * stature) * thm) list
-    -> ((string * stature) * thm) list
+    -> (((unit -> string) * stature) * thm) list
 end;
 
 structure Sledgehammer_Filter_MaSh : SLEDGEHAMMER_FILTER_MASH =
@@ -265,7 +265,8 @@ fun run_prover ctxt (params as {provers, ...}) facts goal =
   let
     val problem =
       {state = Proof.init ctxt, goal = goal, subgoal = 1, subgoal_count = 1,
-       facts = facts |> map Sledgehammer_Provers.Untranslated_Fact}
+       facts = facts |> map (apfst (apfst (fn name => name ())))
+                     |> map Sledgehammer_Provers.Untranslated_Fact}
     val prover =
       Sledgehammer_Minimize.get_minimizing_prover ctxt
           Sledgehammer_Provers.Normal (hd provers)
@@ -339,10 +340,10 @@ fun generate_atp_dependencies ctxt (params as {max_relevant, ...}) thy
       if exists (is_dep dep) accum then
         accum
       else case find_first (is_dep dep) facts of
-        SOME ((name, status), th) => accum @ [((name (), status), th)]
+        SOME ((name, status), th) => accum @ [((name, status), th)]
       | NONE => accum (* shouldn't happen *)
     fun fix_name ((_, stature), th) =
-      ((th |> Thm.get_name_hint |> fact_name_of, stature), th)
+      ((fn () => th |> Thm.get_name_hint |> fact_name_of, stature), th)
     fun do_thm th =
       let
         val name = Thm.get_name_hint th
@@ -391,7 +392,7 @@ fun relevant_facts ctxt params prover max_relevant
                    (override as {add, only, ...}) chained_ths hyp_ts concl_t
                    facts =
   if only then
-    facts |> map (apfst (apfst (fn f => f ()))) (* ###*)
+    facts
   else if max_relevant <= 0 then
     []
   else
