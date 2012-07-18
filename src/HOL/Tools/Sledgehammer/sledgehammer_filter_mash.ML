@@ -92,6 +92,7 @@ fun mash_state_dir () =
   |> tap (Isabelle_System.mkdir o Path.explode)
 fun mash_state_path () = mash_state_dir () ^ "/state" |> Path.explode
 
+
 (*** Isabelle helpers ***)
 
 fun meta_char c =
@@ -121,9 +122,11 @@ fun extract_query line =
     [goal_name, suggs] => (unescape_meta goal_name, unescape_metas suggs)
   | _ => ("", [])
 
-fun find_suggested facts sugg =
-  find_first (fn (_, th) => Thm.get_name_hint th = sugg) facts
-fun suggested_facts suggs facts = map_filter (find_suggested facts) suggs
+fun suggested_facts suggs facts =
+  let
+    fun add_fact (fact as (_, th)) = Symtab.default (Thm.get_name_hint th, fact)
+    val tab = Symtab.empty |> fold add_fact facts
+  in map_filter (Symtab.lookup tab) suggs end
 
 (* Ad hoc score function roughly based on Blanchette's Ringberg 2011 data. *)
 fun score x = Math.pow (1.5, 15.5 - 0.05 * Real.fromInt x) + 15.0
@@ -454,16 +457,26 @@ fun mash_can_suggest_facts ctxt =
 
 fun parents_wrt_facts ctxt facts fact_graph =
   let
-    val graph_facts = Symtab.make (map (rpair ()) (Graph.keys fact_graph))
-    val facts =
-      try_graph ctxt "when computing ancestor facts" [] (fn () =>
-          [] |> fold (cons o Thm.get_name_hint o snd) facts
-             |> filter (Symtab.defined graph_facts)
-             |> Graph.all_preds fact_graph)
-    val facts = Symtab.empty |> fold (fn name => Symtab.update (name, ())) facts
+    val facts = [] |> fold (cons o Thm.get_name_hint o snd) facts
+    val tab = Symtab.empty |> fold (fn name => Symtab.update (name, ())) facts
+    val maxs = Graph.maximals fact_graph
   in
-    try_graph ctxt "when computing parent facts" [] (fn () =>
-        fact_graph |> Graph.restrict (Symtab.defined facts) |> Graph.maximals)
+    if forall (Symtab.defined tab) maxs then
+      maxs
+    else
+      let
+        val graph_facts = Symtab.make (map (rpair ()) (Graph.keys fact_graph))
+        val ancestors =
+          try_graph ctxt "when computing ancestor facts" [] (fn () =>
+              facts |> filter (Symtab.defined graph_facts)
+                    |> Graph.all_preds fact_graph)
+        val ancestors =
+          Symtab.empty |> fold (fn name => Symtab.update (name, ())) ancestors
+      in
+        try_graph ctxt "when computing parent facts" [] (fn () =>
+            fact_graph |> Graph.restrict (Symtab.defined ancestors)
+                       |> Graph.maximals)
+      end
   end
 
 (* Generate more suggestions than requested, because some might be thrown out
@@ -477,15 +490,23 @@ fun is_fact_in_graph fact_graph (_, th) =
 fun mash_suggest_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
                        concl_t facts =
   let
+val timer = Timer.startRealTimer ()
     val thy = Proof_Context.theory_of ctxt
+val _ = tracing ("A1: " ^ PolyML.makestring (Timer.checkRealTimer timer)) (*###*)
     val fact_graph = #fact_graph (mash_get ctxt)
+val _ = tracing ("A2: " ^ PolyML.makestring (Timer.checkRealTimer timer)) (*###*)
     val parents = parents_wrt_facts ctxt facts fact_graph
+val _ = tracing ("A3: " ^ PolyML.makestring (Timer.checkRealTimer timer)) (*###*)
     val feats = features_of ctxt prover thy General (concl_t :: hyp_ts)
+val _ = tracing ("A4: " ^ PolyML.makestring (Timer.checkRealTimer timer)) (*###*)
     val suggs =
       if Graph.is_empty fact_graph then []
       else mash_QUERY ctxt overlord (max_suggs_of max_facts) (parents, feats)
+val _ = tracing ("A5: " ^ PolyML.makestring (Timer.checkRealTimer timer)) (*###*)
     val selected = facts |> suggested_facts suggs
+val _ = tracing ("A6: " ^ PolyML.makestring (Timer.checkRealTimer timer)) (*###*)
     val unknown = facts |> filter_out (is_fact_in_graph fact_graph)
+val _ = tracing ("END: " ^ PolyML.makestring (Timer.checkRealTimer timer)) (*###*)
   in (selected, unknown) end
 
 fun add_thys_for thy =
