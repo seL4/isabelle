@@ -22,6 +22,7 @@ val minimize_timeoutK = "minimize_timeout" (*=TIME: timeout for each minimizatio
 val reconstructorK = "reconstructor" (*=NAME: how to reconstruct proofs (ie. using metis/smt)*)
 val metis_ftK = "metis_ft" (*: apply metis with fully-typed encoding to the theorems found by sledgehammer*)
 
+val max_factsK = "max_facts" (*=NUM: max. relevant clauses to use*)
 val max_relevantK = "max_relevant" (*=NUM: max. relevant clauses to use*)
 val max_callsK = "max_calls" (*=NUM: max. no. of calls to sledgehammer*)
 val preplay_timeoutK = "preplay_timeout" (*=TIME: timeout for finding reconstructed proof*)
@@ -53,7 +54,7 @@ val lam_trans_default = "smart"
 val uncurried_aliases_default = "smart"
 val type_enc_default = "smart"
 val strict_default = "false"
-val max_relevant_default = "smart"
+val max_facts_default = "smart"
 val slice_default = "true"
 val max_calls_default = "10000000"
 val trivial_default = "false"
@@ -398,7 +399,7 @@ datatype sh_result =
   SH_FAIL of int * int |
   SH_ERROR
 
-fun run_sh prover_name prover type_enc strict max_relevant slice lam_trans
+fun run_sh prover_name prover type_enc strict max_facts slice lam_trans
         uncurried_aliases e_selection_heuristic term_order force_sos
         hard_timeout timeout preplay_timeout sh_minimizeLST
         max_new_mono_instancesLST max_mono_itersLST dir pos st =
@@ -423,23 +424,22 @@ fun run_sh prover_name prover type_enc strict max_relevant slice lam_trans
                   term_order |> the_default I)
             #> (Option.map (Config.put ATP_Systems.force_sos)
                   force_sos |> the_default I))
-    val params as {max_relevant, slice, ...} =
+    val params as {max_facts, slice, ...} =
       Sledgehammer_Isar.default_params ctxt
          ([("verbose", "true"),
            ("type_enc", type_enc),
            ("strict", strict),
            ("lam_trans", lam_trans |> the_default lam_trans_default),
            ("uncurried_aliases", uncurried_aliases |> the_default uncurried_aliases_default),
-           ("max_relevant", max_relevant),
+           ("max_facts", max_facts),
            ("slice", slice),
            ("timeout", string_of_int timeout),
            ("preplay_timeout", preplay_timeout)]
           |> sh_minimizeLST (*don't confuse the two minimization flags*)
           |> max_new_mono_instancesLST
           |> max_mono_itersLST)
-    val default_max_relevant =
-      Sledgehammer_Provers.default_max_relevant_for_prover ctxt slice
-        prover_name
+    val default_max_facts =
+      Sledgehammer_Provers.default_max_facts_for_prover ctxt slice prover_name
     val is_appropriate_prop =
       Sledgehammer_Provers.is_appropriate_prop_for_prover ctxt prover_name
     val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal i
@@ -464,7 +464,7 @@ fun run_sh prover_name prover type_enc strict max_relevant slice lam_trans
               Sledgehammer_Fact.no_fact_override chained_ths hyp_ts concl_t
           |> filter (is_appropriate_prop o prop_of o snd)
           |> Sledgehammer_Filter_MaSh.relevant_facts ctxt params prover_name
-                 (the_default default_max_relevant max_relevant)
+                 (the_default default_max_facts max_facts)
                  Sledgehammer_Fact.no_fact_override hyp_ts concl_t
         val problem =
           {state = st', goal = goal, subgoal = i,
@@ -507,7 +507,12 @@ fun run_sledgehammer trivial args reconstructor named_thms id
     val (prover_name, prover) = get_prover (Proof.context_of st) args
     val type_enc = AList.lookup (op =) args type_encK |> the_default type_enc_default
     val strict = AList.lookup (op =) args strictK |> the_default strict_default
-    val max_relevant = AList.lookup (op =) args max_relevantK |> the_default max_relevant_default
+    val max_facts =
+      case AList.lookup (op =) args max_factsK of
+        SOME max => max
+      | NONE => case AList.lookup (op =) args max_relevantK of
+                  SOME max => max
+                | NONE => max_facts_default
     val slice = AList.lookup (op =) args sliceK |> the_default slice_default
     val lam_trans = AList.lookup (op =) args lam_transK
     val uncurried_aliases = AList.lookup (op =) args uncurried_aliasesK
@@ -527,7 +532,7 @@ fun run_sledgehammer trivial args reconstructor named_thms id
     val max_mono_itersLST = available_parameter args max_mono_itersK max_mono_itersK
     val hard_timeout = SOME (2 * timeout)
     val (msg, result) =
-      run_sh prover_name prover type_enc strict max_relevant slice lam_trans
+      run_sh prover_name prover type_enc strict max_facts slice lam_trans
         uncurried_aliases e_selection_heuristic term_order force_sos
         hard_timeout timeout preplay_timeout sh_minimizeLST
         max_new_mono_instancesLST max_mono_itersLST dir pos st
@@ -611,7 +616,7 @@ fun run_minimize args reconstructor named_thms id
 
 fun override_params prover type_enc timeout =
   [("provers", prover),
-   ("max_relevant", "0"),
+   ("max_facts", "0"),
    ("type_enc", type_enc),
    ("strict", "true"),
    ("slice", "false"),

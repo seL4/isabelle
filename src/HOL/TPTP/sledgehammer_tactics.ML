@@ -23,20 +23,20 @@ open Sledgehammer_Fact
 fun run_prover override_params fact_override i n ctxt goal =
   let
     val mode = Sledgehammer_Provers.Normal
-    val params as {provers, max_relevant, slice, ...} =
+    val params as {provers, max_facts, slice, ...} =
       Sledgehammer_Isar.default_params ctxt override_params
     val name = hd provers
     val prover = Sledgehammer_Provers.get_prover ctxt mode name
-    val default_max_relevant =
-      Sledgehammer_Provers.default_max_relevant_for_prover ctxt slice name
+    val default_max_facts =
+      Sledgehammer_Provers.default_max_facts_for_prover ctxt slice name
     val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal i
     val ho_atp = exists (Sledgehammer_Provers.is_ho_atp ctxt) provers
     val facts =
       Sledgehammer_Fact.nearly_all_facts ctxt ho_atp fact_override []
                                          hyp_ts concl_t
       |> Sledgehammer_Filter_MaSh.relevant_facts ctxt params name
-             (the_default default_max_relevant max_relevant) fact_override
-             hyp_ts concl_t
+             (the_default default_max_facts max_facts) fact_override hyp_ts
+             concl_t
     val problem =
       {state = Proof.init ctxt, goal = goal, subgoal = i, subgoal_count = n,
        facts = facts |> map (apfst (apfst (fn name => name ())))

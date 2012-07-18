@@ -313,7 +313,7 @@ fun generate_isa_dependencies thy include_thy file_name =
       in File.append path s end
   in List.app do_thm ths end
 
-fun generate_atp_dependencies ctxt (params as {provers, max_relevant, ...}) thy
+fun generate_atp_dependencies ctxt (params as {provers, max_facts, ...}) thy
                               include_thy file_name =
   let
     val path = file_name |> Path.explode
@@ -347,7 +347,7 @@ fun generate_atp_dependencies ctxt (params as {provers, max_relevant, ...}) thy
                 facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
               val facts =
                 facts |> iterative_relevant_facts ctxt params (hd provers)
-                             (the max_relevant) NONE hyp_ts concl_t
+                             (the max_facts) NONE hyp_ts concl_t
                       |> fold (add_isa_dep facts) isa_deps
                       |> map fix_name
             in
@@ -378,11 +378,11 @@ fun learn_thy thy timeout =
 fun learn_proof thy t ths =
   ()
 
-fun relevant_facts ctxt params prover max_relevant
-        ({add, only, ...} : fact_override) hyp_ts concl_t facts =
+fun relevant_facts ctxt params prover max_facts
+                   ({add, only, ...} : fact_override) hyp_ts concl_t facts =
   if only then
     facts
-  else if max_relevant <= 0 then
+  else if max_facts <= 0 then
     []
   else
     let
@@ -390,10 +390,11 @@ fun relevant_facts ctxt params prover max_relevant
       fun prepend_facts ths accepts =
         ((facts |> filter (member Thm.eq_thm_prop ths o snd)) @
          (accepts |> filter_out (member Thm.eq_thm_prop ths o snd)))
-        |> take max_relevant
+        |> take max_facts
     in
-      iterative_relevant_facts ctxt params prover max_relevant NONE
-                               hyp_ts concl_t facts
+      facts
+      |> iterative_relevant_facts ctxt params prover max_facts NONE hyp_ts
+                                  concl_t
       |> not (null add_ths) ? prepend_facts add_ths
     end
 

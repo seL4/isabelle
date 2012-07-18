@@ -113,11 +113,10 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
          val {context = ctxt, facts = chained_ths, goal} = Proof.goal pre
          val prover = AList.lookup (op =) args "prover"
                       |> the_default default_prover
-         val params as {max_relevant, slice, ...} =
+         val params as {max_facts, slice, ...} =
            Sledgehammer_Isar.default_params ctxt args
-         val default_max_relevant =
-           Sledgehammer_Provers.default_max_relevant_for_prover ctxt slice
-                                                                prover
+         val default_max_facts =
+           Sledgehammer_Provers.default_max_facts_for_prover ctxt slice prover
          val is_appropriate_prop =
            Sledgehammer_Provers.is_appropriate_prop_for_prover ctxt
                default_prover
@@ -132,7 +131,7 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
                Sledgehammer_Fact.no_fact_override chained_ths hyp_ts concl_t
            |> filter (is_appropriate_prop o prop_of o snd)
            |> Sledgehammer_Filter_Iter.iterative_relevant_facts ctxt params
-                  default_prover (the_default default_max_relevant max_relevant)
+                  default_prover (the_default default_max_facts max_facts)
                   (SOME relevance_fudge) hyp_ts concl_t
             |> map ((fn name => name ()) o fst o fst)
          val (found_facts, lost_facts) =

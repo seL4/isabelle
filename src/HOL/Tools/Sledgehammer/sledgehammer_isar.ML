@@ -82,8 +82,8 @@ val default_default_params =
    ("strict", "false"),
    ("lam_trans", "smart"),
    ("uncurried_aliases", "smart"),
-   ("relevance_thresholds", "0.45 0.85"),
-   ("max_relevant", "smart"),
+   ("fact_thresholds", "0.45 0.85"),
+   ("max_facts", "smart"),
    ("max_mono_iters", "smart"),
    ("max_new_mono_instances", "smart"),
    ("isar_proof", "false"),
@@ -93,7 +93,8 @@ val default_default_params =
    ("preplay_timeout", "3")]
 
 val alias_params =
-  [("prover", ("provers", [])),
+  [("prover", ("provers", [])), (* legacy *)
+   ("max_relevant", ("max_facts", [])), (* legacy *)
    ("dont_preplay", ("preplay_timeout", ["0"]))]
 val negated_alias_params =
   [("no_debug", "debug"),
@@ -288,8 +289,8 @@ fun extract_params mode default_params override_params =
     val strict = mode = Auto_Try orelse lookup_bool "strict"
     val lam_trans = lookup_option lookup_string "lam_trans"
     val uncurried_aliases = lookup_option lookup_bool "uncurried_aliases"
-    val relevance_thresholds = lookup_real_pair "relevance_thresholds"
-    val max_relevant = lookup_option lookup_int "max_relevant"
+    val fact_thresholds = lookup_real_pair "fact_thresholds"
+    val max_facts = lookup_option lookup_int "max_facts"
     val max_mono_iters = lookup_option lookup_int "max_mono_iters"
     val max_new_mono_instances =
       lookup_option lookup_int "max_new_mono_instances"
@@ -308,7 +309,7 @@ fun extract_params mode default_params override_params =
     {debug = debug, verbose = verbose, overlord = overlord, blocking = blocking,
      provers = provers, type_enc = type_enc, strict = strict,
      lam_trans = lam_trans, uncurried_aliases = uncurried_aliases,
-     relevance_thresholds = relevance_thresholds, max_relevant = max_relevant,
+     fact_thresholds = fact_thresholds, max_facts = max_facts,
      max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances,  isar_proof = isar_proof,
      isar_shrink_factor = isar_shrink_factor, slice = slice,
@@ -405,12 +406,12 @@ val parse_param = parse_key -- Scan.optional (@{keyword "="} |-- parse_value) []
 val parse_params = Scan.optional (Args.bracks (Parse.list parse_param)) []
 val parse_fact_refs =
   Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) Parse_Spec.xthm)
-val parse_relevance_chunk =
+val parse_fact_override_chunk =
   (Args.add |-- Args.colon |-- parse_fact_refs >> add_fact_override)
   || (Args.del |-- Args.colon |-- parse_fact_refs >> del_fact_override)
   || (parse_fact_refs >> only_fact_override)
 val parse_fact_override =
-  Scan.optional (Args.parens (Scan.repeat parse_relevance_chunk
+  Scan.optional (Args.parens (Scan.repeat parse_fact_override_chunk
                               >> merge_fact_overrides))
                 no_fact_override
 

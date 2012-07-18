@@ -36,11 +36,11 @@ val iterN = "Iter"
 val mashN = "MaSh"
 val iter_mashN = "Iter+MaSh"
 
-val max_relevant_slack = 2
+val max_facts_slack = 2
 
 fun evaluate_mash_suggestions ctxt params thy file_name =
   let
-    val {provers, max_relevant, slice, type_enc, lam_trans, timeout, ...} =
+    val {provers, max_facts, slice, type_enc, lam_trans, timeout, ...} =
       Sledgehammer_Isar.default_params ctxt []
     val prover_name = hd provers
     val path = file_name |> Path.explode
@@ -55,7 +55,7 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
       find_first (fn (_, th) => Thm.get_name_hint th = sugg) facts
     fun sugg_facts hyp_ts concl_t facts =
       map_filter (find_sugg facts o of_fact_name)
-      #> take (max_relevant_slack * the max_relevant)
+      #> take (max_facts_slack * the max_facts)
       #> Sledgehammer_Fact.maybe_instantiate_inducts ctxt hyp_ts concl_t
     fun hybrid_facts fsp =
       let
@@ -70,7 +70,7 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
       in
         union fact_eq fs1 fs2
         |> map (`score_of) |> sort (int_ord o pairself fst) |> map snd
-        |> take (the max_relevant)
+        |> take (the max_facts)
         |> map (apfst (apfst K))
       end
     fun with_index facts s = (find_index (curry (op =) s) facts + 1, s)
@@ -84,20 +84,19 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
                        |> sort (int_ord o pairself fst)
                        |> map index_string
                        |> space_implode " ") ^
-           (if length facts < the max_relevant then
+           (if length facts < the max_facts then
               " (of " ^ string_of_int (length facts) ^ ")"
             else
               "")
          else
            "Failure: " ^
-           (facts |> take (the max_relevant)
-                  |> tag_list 1
+           (facts |> take (the max_facts) |> tag_list 1
                   |> map index_string
                   |> space_implode " "))
       end
     fun prove ok heading facts goal =
       let
-        val facts = facts |> take (the max_relevant)
+        val facts = facts |> take (the max_facts)
         val res as {outcome, ...} = run_prover ctxt params facts goal
         val _ = if is_none outcome then ok := !ok + 1 else ()
       in str_of_res heading facts res end
@@ -115,8 +114,8 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
         val isa_facts = sugg_facts hyp_ts concl_t facts isa_deps
         val iter_facts =
           Sledgehammer_Filter_Iter.iterative_relevant_facts ctxt params
-              prover_name (max_relevant_slack * the max_relevant) NONE hyp_ts
-              concl_t facts
+              prover_name (max_facts_slack * the max_facts) NONE hyp_ts concl_t
+              facts
         val mash_facts = sugg_facts hyp_ts concl_t facts suggs
         val iter_mash_facts = hybrid_facts (iter_facts, mash_facts)
         val iter_s = prove iter_ok iterN iter_facts goal
@@ -139,7 +138,7 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
                (100.0 * Real.fromInt (!ok) / Real.fromInt n) ^ "%)"
     val inst_inducts = Config.get ctxt Sledgehammer_Fact.instantiate_inducts
     val options =
-      [prover_name, string_of_int (the max_relevant) ^ " facts",
+      [prover_name, string_of_int (the max_facts) ^ " facts",
        "slice" |> not slice ? prefix "dont_", the_default "smart" type_enc,
        the_default "smart" lam_trans, ATP_Util.string_from_time timeout,
        "instantiate_inducts" |> not inst_inducts ? prefix "dont_"]

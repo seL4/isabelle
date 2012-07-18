@@ -27,8 +27,8 @@ sig
      strict: bool,
      lam_trans: string option,
      uncurried_aliases: bool option,
-     relevance_thresholds: real * real,
-     max_relevant: int option,
+     fact_thresholds: real * real,
+     max_facts: int option,
      max_mono_iters: int option,
      max_new_mono_instances: int option,
      isar_proof: bool,
@@ -110,7 +110,7 @@ sig
   val is_unit_equational_atp : Proof.context -> string -> bool
   val is_prover_supported : Proof.context -> string -> bool
   val is_prover_installed : Proof.context -> string -> bool
-  val default_max_relevant_for_prover : Proof.context -> bool -> string -> int
+  val default_max_facts_for_prover : Proof.context -> bool -> string -> int
   val is_unit_equality : term -> bool
   val is_appropriate_prop_for_prover : Proof.context -> string -> term -> bool
   val is_built_in_const_for_prover :
@@ -188,12 +188,12 @@ fun is_prover_installed ctxt =
 fun get_slices slice slices =
   (0 upto length slices - 1) ~~ slices |> not slice ? (List.last #> single)
 
-val reconstructor_default_max_relevant = 20
+val reconstructor_default_max_facts = 20
 
-fun default_max_relevant_for_prover ctxt slice name =
+fun default_max_facts_for_prover ctxt slice name =
   let val thy = Proof_Context.theory_of ctxt in
     if is_reconstructor name then
-      reconstructor_default_max_relevant
+      reconstructor_default_max_facts
     else if is_atp thy name then
       fold (Integer.max o #1 o fst o snd o snd o snd)
            (get_slices slice (#best_slices (get_atp thy name ()) ctxt)) 0
@@ -314,8 +314,8 @@ type params =
    strict: bool,
    lam_trans: string option,
    uncurried_aliases: bool option,
-   relevance_thresholds: real * real,
-   max_relevant: int option,
+   fact_thresholds: real * real,
+   max_facts: int option,
    max_mono_iters: int option,
    max_new_mono_instances: int option,
    isar_proof: bool,
@@ -629,7 +629,7 @@ fun run_atp mode name
           prem_role, best_slices, best_max_mono_iters,
           best_max_new_mono_instances, ...} : atp_config)
         (params as {debug, verbose, overlord, type_enc, strict, lam_trans,
-                    uncurried_aliases, max_relevant, max_mono_iters,
+                    uncurried_aliases, max_facts, max_mono_iters,
                     max_new_mono_instances, isar_proof, isar_shrink_factor,
                     slice, timeout, preplay_timeout, ...})
         minimize_command
@@ -711,13 +711,12 @@ fun run_atp mode name
               end
             fun run_slice time_left (cache_key, cache_value)
                     (slice, (time_frac, (complete,
-                        (key as (best_max_relevant, format, best_type_enc,
+                        (key as (best_max_facts, format, best_type_enc,
                                  best_lam_trans, best_uncurried_aliases),
                                  extra)))) =
               let
                 val num_facts =
-                  length facts |> is_none max_relevant
-                                  ? Integer.min best_max_relevant
+                  length facts |> is_none max_facts ? Integer.min best_max_facts
                 val soundness = if strict then Strict else Non_Strict
                 val type_enc =
                   type_enc |> choose_type_enc soundness best_type_enc format

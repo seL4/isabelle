@@ -62,7 +62,7 @@ fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i
    (if blocking then "."
     else "\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i))))
 
-fun launch_prover (params as {debug, verbose, blocking, max_relevant, slice,
+fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
                               timeout, expect, ...})
         mode minimize_command only {state, goal, subgoal, subgoal_count, facts}
         name =
@@ -71,10 +71,9 @@ fun launch_prover (params as {debug, verbose, blocking, max_relevant, slice,
     val hard_timeout = Time.+ (timeout, timeout)
     val birth_time = Time.now ()
     val death_time = Time.+ (birth_time, hard_timeout)
-    val max_relevant =
-      max_relevant
-      |> the_default (default_max_relevant_for_prover ctxt slice name)
-    val num_facts = length facts |> not only ? Integer.min max_relevant
+    val max_facts =
+      max_facts |> the_default (default_max_facts_for_prover ctxt slice name)
+    val num_facts = length facts |> not only ? Integer.min max_facts
     fun desc () =
       prover_description ctxt params name num_facts subgoal subgoal_count goal
     val problem =
@@ -153,10 +152,10 @@ fun class_of_smt_solver ctxt name =
   ctxt |> select_smt_solver name
        |> SMT_Config.solver_class_of |> SMT_Utils.string_of_class
 
-val auto_try_max_relevant_divisor = 2 (* FUDGE *)
+val auto_try_max_facts_divisor = 2 (* FUDGE *)
 
-fun run_sledgehammer (params as {debug, verbose, blocking, provers,
-                                 max_relevant, slice, ...})
+fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
+                                 slice, ...})
         mode i (fact_override as {only, ...}) minimize_command state =
   if null provers then
     error "No prover is set."
@@ -207,22 +206,20 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
         end
       fun get_facts label is_appropriate_prop provers =
         let
-          val max_max_relevant =
-            case max_relevant of
+          val max_max_facts =
+            case max_facts of
               SOME n => n
             | NONE =>
-              0 |> fold (Integer.max
-                         o default_max_relevant_for_prover ctxt slice)
+              0 |> fold (Integer.max o default_max_facts_for_prover ctxt slice)
                         provers
-                |> mode = Auto_Try
-                   ? (fn n => n div auto_try_max_relevant_divisor)
+                |> mode = Auto_Try ? (fn n => n div auto_try_max_facts_divisor)
         in
           facts
           |> (case is_appropriate_prop of
                 SOME is_app => filter (is_app o prop_of o snd)
               | NONE => I)
-          |> relevant_facts ctxt params (hd provers) max_max_relevant
-                            fact_override hyp_ts concl_t
+          |> relevant_facts ctxt params (hd provers) max_max_facts fact_override
+                            hyp_ts concl_t
           |> map (apfst (apfst (fn name => name ())))
           |> tap (fn facts =>
                      if debug then
