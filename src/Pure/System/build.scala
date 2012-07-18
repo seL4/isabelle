@@ -15,64 +15,6 @@ import scala.annotation.tailrec
 
 object Build
 {
-  /* command line entry point */
-
-  private object Bool
-  {
-    def unapply(s: String): Option[Boolean] =
-      s match {
-        case "true" => Some(true)
-        case "false" => Some(false)
-        case _ => None
-      }
-  }
-
-  private object Chunks
-  {
-    private def chunks(list: List[String]): List[List[String]] =
-      list.indexWhere(_ == "\n") match {
-        case -1 => List(list)
-        case i =>
-          val (chunk, rest) = list.splitAt(i)
-          chunk :: chunks(rest.tail)
-      }
-    def unapplySeq(list: List[String]): Option[List[List[String]]] = Some(chunks(list))
-  }
-
-  def main(args: Array[String])
-  {
-    val rc =
-      try {
-        args.toList match {
-          case Bool(all_sessions) :: Bool(build_images) :: Bool(list_only) ::
-            Chunks(more_dirs, options, sessions) =>
-              build(all_sessions, build_images, list_only,
-                more_dirs.map(Path.explode), options, sessions)
-          case _ => error("Bad arguments:\n" + cat_lines(args))
-        }
-      }
-      catch {
-        case exn: Throwable => java.lang.System.err.println(Exn.message(exn)); 2
-      }
-    sys.exit(rc)
-  }
-
-
-  /* build */
-
-  def build(all_sessions: Boolean, build_images: Boolean, list_only: Boolean,
-    more_dirs: List[Path], options: List[String], sessions: List[String]): Int =
-  {
-    println("more_dirs = " + more_dirs.toString)
-    println("options = " + options.toString)
-    println("sessions = " + sessions.toString)
-
-    find_sessions(more_dirs) foreach println
-
-    0
-  }
-
-
   /** session information **/
 
   type Options = List[(String, Option[String])]
@@ -152,7 +94,7 @@ object Build
   }
 
 
-  /* find session */
+  /* find sessions */
 
   def find_sessions(more_dirs: List[Path]): List[Session_Info] =
   {
@@ -198,6 +140,66 @@ object Build
       }
     }
     infos.toList
+  }
+
+
+
+  /** build **/
+
+  def build(all_sessions: Boolean, build_images: Boolean, list_only: Boolean,
+    more_dirs: List[Path], options: List[String], sessions: List[String]): Int =
+  {
+    println("more_dirs = " + more_dirs.toString)
+    println("options = " + options.toString)
+    println("sessions = " + sessions.toString)
+
+    find_sessions(more_dirs) foreach println
+
+    0
+  }
+
+
+
+  /** command line entry point **/
+
+  private object Bool
+  {
+    def unapply(s: String): Option[Boolean] =
+      s match {
+        case "true" => Some(true)
+        case "false" => Some(false)
+        case _ => None
+      }
+  }
+
+  private object Chunks
+  {
+    private def chunks(list: List[String]): List[List[String]] =
+      list.indexWhere(_ == "\n") match {
+        case -1 => List(list)
+        case i =>
+          val (chunk, rest) = list.splitAt(i)
+          chunk :: chunks(rest.tail)
+      }
+    def unapplySeq(list: List[String]): Option[List[List[String]]] = Some(chunks(list))
+  }
+
+  def main(args: Array[String])
+  {
+    val rc =
+      try {
+        args.toList match {
+          case Bool(all_sessions) :: Bool(build_images) :: Bool(list_only) ::
+            Chunks(more_dirs, options, sessions) =>
+              build(all_sessions, build_images, list_only,
+                more_dirs.map(Path.explode), options, sessions)
+          case _ => error("Bad arguments:\n" + cat_lines(args))
+        }
+      }
+      catch {
+        case exn: Throwable => java.lang.System.err.println(Exn.message(exn)); 2
+      }
+    sys.exit(rc)
   }
 }
 
