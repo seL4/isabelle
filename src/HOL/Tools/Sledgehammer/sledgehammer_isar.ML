@@ -388,7 +388,7 @@ fun hammer_away override_params subcommand opt_i fact_override state =
     else if subcommand = running_learnersN then
       running_learners ()
     else if subcommand = unlearnN then
-      mash_reset ctxt
+      mash_unlearn ctxt
     else if subcommand = refresh_tptpN then
       refresh_systems_on_tptp ()
     else

@@ -439,9 +439,9 @@ fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css_table chained_ths
            all_facts ctxt ho_atp reserved add chained_ths css_table
            |> filter_out (member Thm.eq_thm_prop del o snd)
            |> maybe_filter_no_atps ctxt
+           |> uniquify
          end)
       |> maybe_instantiate_inducts ctxt hyp_ts concl_t
-      |> uniquify
     end
 
 end;
