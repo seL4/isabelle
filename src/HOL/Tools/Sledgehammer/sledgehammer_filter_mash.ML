@@ -300,12 +300,12 @@ fun mash_SUGGEST access feats =
 
 type mash_state =
   {fresh : int,
-   completed_thys : unit Symtab.table,
+   dirty_thys : unit Symtab.table,
    thy_facts : string list Symtab.table}
 
 val empty_state =
   {fresh = 0,
-   completed_thys = Symtab.empty,
+   dirty_thys = Symtab.empty,
    thy_facts = Symtab.empty}
 
 local
@@ -318,29 +318,29 @@ fun mash_load (state as (true, _)) = state
     in
       (true,
        case try File.read_lines path of
-         SOME (fresh_line :: comp_line :: facts_lines) =>
+         SOME (fresh_line :: dirty_line :: facts_lines) =>
          let
-           fun comp_thys_of_line comp_line =
-             Symtab.make (comp_line |> space_explode " " |> map (rpair ()))
+           fun dirty_thys_of_line line =
+             Symtab.make (line |> space_explode " " |> map (rpair ()))
            fun add_facts_line line =
              case space_explode " " line of
                thy :: facts => Symtab.update_new (thy, facts)
              | _ => I (* shouldn't happen *)
          in
            {fresh = Int.fromString fresh_line |> the_default 0,
-            completed_thys = comp_thys_of_line comp_line,
+            dirty_thys = dirty_thys_of_line dirty_line,
             thy_facts = fold add_facts_line facts_lines Symtab.empty}
          end
        | _ => empty_state)
     end
 
-fun mash_save ({fresh, completed_thys, thy_facts} : mash_state) =
+fun mash_save ({fresh, dirty_thys, thy_facts} : mash_state) =
   let
     val path = mk_path state_file
-    val comp_line = (completed_thys |> Symtab.keys |> escape_metas) ^ "\n"
+    val dirty_line = (dirty_thys |> Symtab.keys |> escape_metas) ^ "\n"
     fun fact_line_for (thy, facts) = escape_metas (thy :: facts) ^ "\n"
   in
-    File.write path (string_of_int fresh ^ "\n" ^ comp_line);
+    File.write path (string_of_int fresh ^ "\n" ^ dirty_line);
     Symtab.fold (fn thy_fact => fn () =>
                     File.append path (fact_line_for thy_fact)) thy_facts
   end
@@ -350,10 +350,7 @@ val global_state =
 
 in
 
-fun mash_set f =
-  Synchronized.change global_state (fn _ => (true, f () |> tap mash_save))
-
-fun mash_change f =
+fun mash_map f =
   Synchronized.change global_state (mash_load ##> (f #> tap mash_save))
 
 fun mash_peek f = Synchronized.change global_state (mash_load ##> tap f)
@@ -377,19 +374,39 @@ fun mash_suggest_facts ctxt params prover max_facts hyp_ts concl_t facts =
   in (facts, []) end
 
 fun mash_can_learn_thy thy =
-  not (Symtab.defined (#completed_thys (mash_get ())) (Context.theory_name thy))
+  not (Symtab.defined (#dirty_thys (mash_get ())) (Context.theory_name thy))
 
 fun is_fact_in_thy_facts thy_facts fact =
   case Symtab.lookup thy_facts (thy_name_of_fact fact) of
     SOME facts => member (op =) facts fact
   | NONE => false
 
+fun zip_facts news [] = news
+  | zip_facts [] olds = olds
+  | zip_facts (new :: news) (old :: olds) =
+    if new = old then
+      new :: zip_facts news olds
+    else if member (op =) news old then
+      old :: zip_facts (filter_out (curry (op =) old) news) olds
+    else if member (op =) olds new then
+      new :: zip_facts news (filter_out (curry (op =) new) olds)
+    else
+      new :: old :: zip_facts news olds
+
+fun add_thy_facts_from_thys new old =
+  let
+    fun add_thy (thy, new_facts) =
+      case Symtab.lookup old thy of
+        SOME old_facts => Symtab.update (thy, zip_facts old_facts new_facts)
+      | NONE => Symtab.update_new (thy, new_facts)
+  in old |> Symtab.fold add_thy new end
+
 fun mash_learn_thy ctxt timeout =
   let
     val thy = Proof_Context.theory_of ctxt
     val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
     val facts = all_non_tautological_facts_of thy css_table
-    val {fresh, completed_thys, thy_facts} = mash_get ()
+    val {thy_facts, ...} = mash_get ()
     fun is_old (_, th) = is_fact_in_thy_facts thy_facts (Thm.get_name_hint th)
     val (old_facts, new_facts) =
       facts |> List.partition is_old ||> sort (thm_ord o pairself snd)
@@ -402,14 +419,14 @@ fun mash_learn_thy ctxt timeout =
         val deps = isabelle_dependencies_of all_names th
         val record = (name, prevs, feats, deps)
       in ([name], record :: records) end
-    val thy_facts = old_facts |> thy_facts_from_thms
     val parents = parent_facts thy thy_facts
     val (_, records) = (parents, []) |> fold_rev do_fact new_facts
-  in
-    mash_set (fn () => (mash_ADD records;
-                        {fresh = fresh, completed_thys = completed_thys,
-                         thy_facts = thy_facts}))
-  end
+    val new_thy_facts = new_facts |> thy_facts_from_thms
+    fun trans {fresh, dirty_thys, thy_facts} =
+      (mash_ADD records;
+       {fresh = fresh, dirty_thys = dirty_thys,
+        thy_facts = thy_facts |> add_thy_facts_from_thys new_thy_facts})
+  in mash_map trans end
 
 (* ###
 fun compute_accessibility thy thy_facts =
@@ -424,7 +441,7 @@ fun compute_accessibility thy thy_facts =
 *)
 
 fun mash_learn_proof thy t ths =
-  mash_change (fn state as {fresh, completed_thys, thy_facts} =>
+  mash_map (fn state as {fresh, dirty_thys, thy_facts} =>
     let val deps = ths |> map Thm.get_name_hint in
       if forall (is_fact_in_thy_facts thy_facts) deps then
         let
@@ -433,8 +450,7 @@ fun mash_learn_proof thy t ths =
           val feats = features_of thy General [t]
         in
           mash_ADD [(fact, access, feats, deps)];
-          {fresh = fresh + 1, completed_thys = completed_thys,
-           thy_facts = thy_facts}
+          {fresh = fresh + 1, dirty_thys = dirty_thys, thy_facts = thy_facts}
         end
       else
         state
