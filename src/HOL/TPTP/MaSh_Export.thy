@@ -5,7 +5,7 @@
 header {* MaSh Exporter *}
 
 theory MaSh_Export
-imports (* ### Complex_Main *) "~~/src/HOL/Sledgehammer2d"
+imports Complex_Main
 uses "mash_export.ML"
 begin
 
@@ -18,9 +18,10 @@ open MaSh_Export
 *}
 
 ML {*
-val do_it = false (* switch to "true" to generate the files *);
-val thy = @{theory List};
-val params = Sledgehammer_Isar.default_params @{context} []
+val do_it = false (* switch to "true" to generate the files *)
+val thy = @{theory List}
+val params as {provers, ...} = Sledgehammer_Isar.default_params @{context} []
+val prover = hd provers
 *}
 
 ML {*
@@ -32,14 +33,28 @@ else
 
 ML {*
 if do_it then
-  generate_features @{context} thy false "/tmp/mash_features"
+  generate_features @{context} prover thy false "/tmp/mash_features"
 else
   ()
 *}
 
 ML {*
 if do_it then
-  generate_isa_dependencies thy false "/tmp/mash_isa_dependencies"
+  generate_isar_dependencies thy false "/tmp/mash_dependencies"
+else
+  ()
+*}
+
+ML {*
+if do_it then
+  generate_commands @{context} prover thy "/tmp/mash_commands"
+else
+  ()
+*}
+
+ML {*
+if do_it then
+  generate_iter_suggestions @{context} params thy 500 "/tmp/mash_iter_suggestions"
 else
   ()
 *}
@@ -51,18 +66,5 @@ else
   ()
 *}
 
-ML {*
-if do_it then
-  generate_commands @{context} thy "/tmp/mash_commands"
-else
-  ()
-*}
-
-ML {*
-if do_it then
-  generate_iter_suggestions @{context} params thy 500 "/tmp/mash_iter_suggestions"
-else
-  ()
-*}
 
 end

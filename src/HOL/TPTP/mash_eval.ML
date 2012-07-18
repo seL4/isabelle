@@ -27,7 +27,7 @@ val meshN = "Mesh"
 val max_facts_slack = 2
 
 val all_names =
-  filter_out (is_likely_tautology_or_too_meta)
+  filter_out is_likely_tautology_or_too_meta
   #> map (rpair () o Thm.get_name_hint) #> Symtab.make
 
 fun evaluate_mash_suggestions ctxt params thy file_name =
