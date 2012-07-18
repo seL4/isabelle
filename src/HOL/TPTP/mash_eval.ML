@@ -41,24 +41,8 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
     val isar_ok = Unsynchronized.ref 0
     fun sugg_facts hyp_ts concl_t suggs =
       suggested_facts suggs
-      #> take (max_facts_slack * the max_facts)
-      #> Sledgehammer_Fact.maybe_instantiate_inducts ctxt hyp_ts concl_t
-    fun mesh_facts fsp =
-      let
-        val (fs1, fs2) =
-          fsp |> pairself (map (apfst (apfst (fn name => name ()))))
-        val fact_eq = (op =) o pairself fst
-        fun score_in f fs =
-          case find_index (curry fact_eq f) fs of
-            ~1 => length fs
-          | j => j
-        fun score_of f = score_in f fs1 + score_in f fs2
-      in
-        union fact_eq fs1 fs2
-        |> map (`score_of) |> sort (int_ord o pairself fst) |> map snd
-        |> take (the max_facts)
-        |> map (apfst (apfst K))
-      end
+      #> chop (max_facts_slack * the max_facts)
+      #>> Sledgehammer_Fact.maybe_instantiate_inducts ctxt hyp_ts concl_t
     fun with_index facts s = (find_index (curry (op =) s) facts + 1, s)
     fun index_string (j, s) = s ^ "@" ^ string_of_int j
     fun str_of_res label facts {outcome, run_time, used_facts, ...} =
@@ -97,13 +81,15 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
         val goal = goal_of_thm thy th
         val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
         val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
-        val isar_facts = facts |> sugg_facts hyp_ts concl_t isar_deps
+        val (isar_facts, _) = facts |> sugg_facts hyp_ts concl_t isar_deps
         val iter_facts =
           Sledgehammer_Filter_Iter.iterative_relevant_facts ctxt params
               prover_name (max_facts_slack * the max_facts) NONE hyp_ts concl_t
               facts
-        val mash_facts = facts |> sugg_facts hyp_ts concl_t suggs
-        val mesh_facts = mesh_facts (iter_facts, mash_facts)
+        val (mash_facts, mash_rejects) =
+          facts |> sugg_facts hyp_ts concl_t suggs
+        val mesh_facts =
+          mesh_facts (the max_facts) iter_facts mash_facts mash_rejects
         val iter_s = prove iter_ok iterN iter_facts goal
         val mash_s = prove mash_ok mashN mash_facts goal
         val mesh_s = prove mesh_ok meshN mesh_facts goal

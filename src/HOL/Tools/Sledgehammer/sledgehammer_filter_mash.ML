@@ -20,12 +20,13 @@ sig
   val unescape_meta : string -> string
   val unescape_metas : string -> string list
   val extract_query : string -> string * string list
-  val suggested_facts : string list -> ('a * thm) list -> ('a * thm) list
+  val suggested_facts : string list -> fact list -> fact list
+  val mesh_facts : int -> fact list -> fact list -> fact list -> fact list
   val all_non_tautological_facts_of :
     theory -> status Termtab.table -> fact list
   val theory_ord : theory * theory -> order
   val thm_ord : thm * thm -> order
-  val thy_facts_from_thms : ('a * thm) list -> string list Symtab.table
+  val thy_facts_from_thms : fact list -> string list Symtab.table
   val has_thy : theory -> thm -> bool
   val parent_facts : theory -> string list Symtab.table -> string list
   val features_of : theory -> status -> term list -> string list
@@ -99,11 +100,28 @@ val explode_suggs =
 fun extract_query line =
   case space_explode ":" line of
     [goal_name, suggs] => (unescape_meta goal_name, explode_suggs suggs)
-  | _ => ("", explode_suggs line)
+  | _ => ("", [])
 
 fun find_suggested facts sugg =
   find_first (fn (_, th) => Thm.get_name_hint th = sugg) facts
 fun suggested_facts suggs facts = map_filter (find_suggested facts) suggs
+
+fun mesh_facts max_facts iter_facts mash_facts mash_rejects =
+  let
+    val fact_eq = Thm.eq_thm o pairself snd
+    val num_iter = length iter_facts
+    val num_mash = length mash_facts
+    fun score_in f fs n =
+      case find_index (curry fact_eq f) fs of
+        ~1 => length fs
+      | j => j
+    fun score_of fact =
+      score_in fact iter_facts num_iter + score_in fact mash_facts num_mash
+  in
+    union fact_eq iter_facts mash_facts
+    |> map (`score_of) |> sort (int_ord o pairself fst) |> map snd
+    |> take max_facts
+  end
 
 val thy_feature_prefix = "y_"
 
@@ -506,12 +524,11 @@ fun relevant_facts ctxt params prover max_facts
       val iter_facts =
         iterative_relevant_facts ctxt params prover max_facts NONE hyp_ts
                                  concl_t facts
-      val (mash_facts, mash_antifacts) =
+      val (mash_facts, mash_rejects) =
         facts |> mash_suggest_facts ctxt params prover hyp_ts concl_t
               |> chop max_facts
-      val mesh_facts = iter_facts (* ### *)
     in
-      mesh_facts
+      mesh_facts max_facts iter_facts mash_facts mash_rejects
       |> not (null add_ths) ? prepend_facts add_ths
     end
 
