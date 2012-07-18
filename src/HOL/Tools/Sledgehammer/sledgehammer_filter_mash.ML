@@ -125,12 +125,12 @@ fun find_suggested facts sugg =
   find_first (fn (_, th) => Thm.get_name_hint th = sugg) facts
 fun suggested_facts suggs facts = map_filter (find_suggested facts) suggs
 
-val scale_factor = 1000
-
-fun scaled_powX x = Integer.pow 8 x
+(* Ad hoc score function roughly based on Blanchette's Ringberg 2011 data. *)
+fun score x = Math.pow (1.5, 15.5 - 0.05 * Real.fromInt x) + 15.0
 
 fun sum_sq_avg [] = 0
-  | sum_sq_avg xs = fold (Integer.add o scaled_powX) xs 0 div (length xs)
+  | sum_sq_avg xs =
+    Real.ceil (100000.0 * fold (curry (op +) o score) xs 0.0) div length xs
 
 fun mesh_facts max_facts [(selected, unknown)] =
     take max_facts selected @ take (max_facts - length selected) unknown
@@ -141,15 +141,13 @@ fun mesh_facts max_facts [(selected, unknown)] =
       fun score_in fact ((sel_len, sels), unks) =
         case find_index (curry fact_eq fact) sels of
           ~1 => (case find_index (curry fact_eq fact) unks of
-                   ~1 => SOME 0
+                   ~1 => SOME sel_len
                  | _ => NONE)
-        | j => SOME (scale_factor * (sel_len - j) div sel_len)
+        | j => SOME j
       fun score_of fact = mess |> map_filter (score_in fact) |> sum_sq_avg
       val facts = fold (union fact_eq o take max_facts o snd o fst) mess []
     in
       facts |> map (`score_of) |> sort (int_ord o swap o pairself fst)
-|> tap (List.app (fn (score, (_, th)) => tracing ("score: " ^ string_of_int score ^ " " ^ Thm.get_name_hint th))
-)
             |> map snd |> take max_facts
     end
 
