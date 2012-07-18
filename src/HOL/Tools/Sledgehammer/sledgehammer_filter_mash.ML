@@ -14,8 +14,11 @@ sig
   type relevance_fudge = Sledgehammer_Provers.relevance_fudge
   type prover_result = Sledgehammer_Provers.prover_result
 
+  val trace : bool Config.T
   val escape_meta : string -> string
   val escape_metas : string list -> string
+  val unescape_meta : string -> string
+  val unescape_metas : string -> string list
   val all_non_tautological_facts_of :
     theory -> status Termtab.table -> fact list
   val theory_ord : theory * theory -> order
@@ -28,18 +31,20 @@ sig
   val goal_of_thm : theory -> thm -> thm
   val run_prover : Proof.context -> params -> fact list -> thm -> prover_result
   val thy_name_of_fact : string -> string
-  val mash_RESET : unit -> unit
-  val mash_ADD : (string * string list * string list * string list) list -> unit
-  val mash_DEL : string list -> string list -> unit
-  val mash_SUGGEST : string list -> string list -> string list
-  val mash_reset : unit -> unit
-  val mash_can_suggest_facts : unit -> bool
+  val mash_RESET : Proof.context -> unit
+  val mash_ADD :
+    Proof.context -> (string * string list * string list * string list) list
+    -> unit
+  val mash_DEL : Proof.context -> string list -> string list -> unit
+  val mash_SUGGEST : Proof.context -> string list -> string list -> string list
+  val mash_reset : Proof.context -> unit
+  val mash_can_suggest_facts : Proof.context -> bool
   val mash_suggest_facts :
     Proof.context -> params -> string -> int -> term list -> term -> fact list
     -> fact list * fact list
-  val mash_can_learn_thy : theory -> bool
-  val mash_learn_thy : Proof.context -> real -> unit
-  val mash_learn_proof : theory -> term -> thm list -> unit
+  val mash_can_learn_thy : Proof.context -> theory -> bool
+  val mash_learn_thy : Proof.context -> theory -> real -> unit
+  val mash_learn_proof : Proof.context -> term -> thm list -> unit
   val relevant_facts :
     Proof.context -> params -> string -> int -> fact_override -> term list
     -> term -> fact list -> fact list
@@ -55,6 +60,10 @@ open Sledgehammer_Fact
 open Sledgehammer_Filter_Iter
 open Sledgehammer_Provers
 
+val trace =
+  Attrib.setup_config_bool @{binding sledgehammer_filter_mash_trace} (K false)
+fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
+
 val mash_dir = "mash"
 val model_file = "model"
 val state_file = "state"
@@ -63,11 +72,10 @@ fun mk_path file =
   getenv "ISABELLE_HOME_USER" ^ "/" ^ mash_dir ^ "/" ^ file
   |> Path.explode
 
-val fresh_fact_prefix = Long_Name.separator
 
 (*** Isabelle helpers ***)
 
-fun escape_meta_char c =
+fun meta_char c =
   if Char.isAlphaNum c orelse c = #"_" orelse c = #"." orelse c = #"(" orelse
      c = #")" orelse c = #"," then
     String.str c
@@ -75,8 +83,18 @@ fun escape_meta_char c =
     (* fixed width, in case more digits follow *)
     "\\" ^ stringN_of_int 3 (Char.ord c)
 
-val escape_meta = String.translate escape_meta_char
+fun unmeta_chars accum [] = String.implode (rev accum)
+  | unmeta_chars accum (#"\\" :: d1 :: d2 :: d3 :: cs) =
+    (case Int.fromString (String.implode [d1, d2, d3]) of
+       SOME n => unmeta_chars (Char.chr n :: accum) cs
+     | NONE => "" (* error *))
+  | unmeta_chars _ (#"\\" :: _) = "" (* error *)
+  | unmeta_chars accum (c :: cs) = unmeta_chars (c :: accum) cs
+
+val escape_meta = String.translate meta_char
 val escape_metas = map escape_meta #> space_implode " "
+val unescape_meta = unmeta_chars [] o String.explode
+val unescape_metas = map unescape_meta o space_explode " "
 
 val thy_feature_prefix = "y_"
 
@@ -254,18 +272,6 @@ fun run_prover ctxt (params as {provers, ...}) facts goal =
           Sledgehammer_Provers.Normal (hd provers)
   in prover params (K (K (K ""))) problem end
 
-(* ###
-fun compute_accessibility thy thy_facts =
-  let
-    fun add_facts (f :: fs) prevs = (f, prevs) :: add_facts fs [th]
-    fun add_thy facts =
-      let
-        val thy = theory_of_thm (hd facts)
-        val parents = parent_facts thy_facts thy
-      in add_facts facts parents end
-  in fold (add_thy o snd) thy_facts end
-*)
-
 fun accessibility_of thy thy_facts =
   case Symtab.lookup thy_facts (Context.theory_name thy) of
     SOME (fact :: _) => [fact]
@@ -276,36 +282,37 @@ val thy_name_of_fact = hd o Long_Name.explode
 
 (*** Low-level communication with MaSh ***)
 
-fun mash_RESET () = (warning "MaSh RESET"; File.rm (mk_path model_file))
+fun mash_RESET ctxt =
+  (trace_msg ctxt (K "MaSh RESET"); File.write (mk_path model_file) "")
 
-val mash_ADD =
+fun mash_ADD ctxt =
   let
     fun add_record (fact, access, feats, deps) =
       let
         val s =
           escape_meta fact ^ ": " ^ escape_metas access ^ "; " ^
           escape_metas feats ^ "; " ^ escape_metas deps
-      in warning ("MaSh ADD " ^ s) end
+      in trace_msg ctxt (fn () => "MaSh ADD " ^ s) end
   in List.app add_record end
 
-fun mash_DEL facts feats =
-  warning ("MaSh DEL " ^ escape_metas facts ^ "; " ^ escape_metas feats)
+fun mash_DEL ctxt facts feats =
+  trace_msg ctxt (fn () =>
+      "MaSh DEL " ^ escape_metas facts ^ "; " ^ escape_metas feats)
 
-fun mash_SUGGEST access feats =
-  (warning ("MaSh SUGGEST " ^ escape_metas access ^ "; " ^ escape_metas feats);
+fun mash_SUGGEST ctxt access feats =
+  (trace_msg ctxt (fn () =>
+       "MaSh SUGGEST " ^ escape_metas access ^ "; " ^ escape_metas feats);
    [])
 
 
 (*** High-level communication with MaSh ***)
 
 type mash_state =
-  {fresh : int,
-   dirty_thys : unit Symtab.table,
+  {dirty_thys : unit Symtab.table,
    thy_facts : string list Symtab.table}
 
 val empty_state =
-  {fresh = 0,
-   dirty_thys = Symtab.empty,
+  {dirty_thys = Symtab.empty,
    thy_facts = Symtab.empty}
 
 local
@@ -318,31 +325,30 @@ fun mash_load (state as (true, _)) = state
     in
       (true,
        case try File.read_lines path of
-         SOME (fresh_line :: dirty_line :: facts_lines) =>
+         SOME (dirty_line :: facts_lines) =>
          let
            fun dirty_thys_of_line line =
-             Symtab.make (line |> space_explode " " |> map (rpair ()))
+             Symtab.make (line |> unescape_metas |> map (rpair ()))
            fun add_facts_line line =
-             case space_explode " " line of
+             case unescape_metas line of
                thy :: facts => Symtab.update_new (thy, facts)
              | _ => I (* shouldn't happen *)
          in
-           {fresh = Int.fromString fresh_line |> the_default 0,
-            dirty_thys = dirty_thys_of_line dirty_line,
+           {dirty_thys = dirty_thys_of_line dirty_line,
             thy_facts = fold add_facts_line facts_lines Symtab.empty}
          end
        | _ => empty_state)
     end
 
-fun mash_save ({fresh, dirty_thys, thy_facts} : mash_state) =
+fun mash_save ({dirty_thys, thy_facts} : mash_state) =
   let
     val path = mk_path state_file
-    val dirty_line = (dirty_thys |> Symtab.keys |> escape_metas) ^ "\n"
+    val dirty_line = (escape_metas (Symtab.keys dirty_thys)) ^ "\n"
     fun fact_line_for (thy, facts) = escape_metas (thy :: facts) ^ "\n"
   in
-    File.write path (string_of_int fresh ^ "\n" ^ dirty_line);
+    File.write path dirty_line;
     Symtab.fold (fn thy_fact => fn () =>
-                    File.append path (fact_line_for thy_fact)) thy_facts
+                    File.append path (fact_line_for thy_fact)) thy_facts ()
   end
 
 val global_state =
@@ -353,27 +359,27 @@ in
 fun mash_map f =
   Synchronized.change global_state (mash_load ##> (f #> tap mash_save))
 
-fun mash_peek f = Synchronized.change global_state (mash_load ##> tap f)
-
 fun mash_get () = Synchronized.change_result global_state (mash_load #> `snd)
 
-fun mash_reset () =
+fun mash_reset ctxt =
   Synchronized.change global_state (fn _ =>
-      (mash_RESET (); File.rm (mk_path state_file); (true, empty_state)))
+      (mash_RESET ctxt; File.write (mk_path state_file) "";
+       (true, empty_state)))
 
 end
 
-fun mash_can_suggest_facts () = not (Symtab.is_empty (#thy_facts (mash_get ())))
+fun mash_can_suggest_facts (_ : Proof.context) =
+  not (Symtab.is_empty (#thy_facts (mash_get ())))
 
 fun mash_suggest_facts ctxt params prover max_facts hyp_ts concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
     val access = accessibility_of thy (#thy_facts (mash_get ()))
     val feats = features_of thy General (concl_t :: hyp_ts)
-    val suggs = mash_SUGGEST access feats
+    val suggs = mash_SUGGEST ctxt access feats
   in (facts, []) end
 
-fun mash_can_learn_thy thy =
+fun mash_can_learn_thy (_ : Proof.context) thy =
   not (Symtab.defined (#dirty_thys (mash_get ())) (Context.theory_name thy))
 
 fun is_fact_in_thy_facts thy_facts fact =
@@ -401,60 +407,55 @@ fun add_thy_facts_from_thys new old =
       | NONE => Symtab.update_new (thy, new_facts)
   in old |> Symtab.fold add_thy new end
 
-fun mash_learn_thy ctxt timeout =
+fun mash_learn_thy ctxt thy timeout =
   let
-    val thy = Proof_Context.theory_of ctxt
     val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
     val facts = all_non_tautological_facts_of thy css_table
     val {thy_facts, ...} = mash_get ()
     fun is_old (_, th) = is_fact_in_thy_facts thy_facts (Thm.get_name_hint th)
     val (old_facts, new_facts) =
       facts |> List.partition is_old ||> sort (thm_ord o pairself snd)
-    val ths = facts |> map snd
-    val all_names = ths |> map Thm.get_name_hint
-    fun do_fact ((_, (_, status)), th) (prevs, records) =
+  in
+    if null new_facts then
+      ()
+    else
       let
-        val name = Thm.get_name_hint th
-        val feats = features_of thy status [prop_of th]
-        val deps = isabelle_dependencies_of all_names th
-        val record = (name, prevs, feats, deps)
-      in ([name], record :: records) end
-    val parents = parent_facts thy thy_facts
-    val (_, records) = (parents, []) |> fold_rev do_fact new_facts
-    val new_thy_facts = new_facts |> thy_facts_from_thms
-    fun trans {fresh, dirty_thys, thy_facts} =
-      (mash_ADD records;
-       {fresh = fresh, dirty_thys = dirty_thys,
-        thy_facts = thy_facts |> add_thy_facts_from_thys new_thy_facts})
-  in mash_map trans end
+        val ths = facts |> map snd
+        val all_names = ths |> map Thm.get_name_hint
+        fun do_fact ((_, (_, status)), th) (prevs, records) =
+          let
+            val name = Thm.get_name_hint th
+            val feats = features_of thy status [prop_of th]
+            val deps = isabelle_dependencies_of all_names th
+            val record = (name, prevs, feats, deps)
+          in ([name], record :: records) end
+        val parents = parent_facts thy thy_facts
+        val (_, records) = (parents, []) |> fold_rev do_fact new_facts
+        val new_thy_facts = new_facts |> thy_facts_from_thms
+        fun trans {dirty_thys, thy_facts} =
+          (mash_ADD ctxt records;
+           {dirty_thys = dirty_thys,
+            thy_facts = thy_facts |> add_thy_facts_from_thys new_thy_facts})
+      in mash_map trans end
+  end
 
-(* ###
-fun compute_accessibility thy thy_facts =
-  let
-    fun add_facts (f :: fs) prevs = (f, prevs) :: add_facts fs [th]
-    fun add_thy facts =
-      let
-        val thy = theory_of_thm (hd facts)
-        val parents = parent_facts thy_facts thy
-      in add_facts facts parents end
-  in fold (add_thy o snd) thy_facts end
-*)
-
-fun mash_learn_proof thy t ths =
-  mash_map (fn state as {fresh, dirty_thys, thy_facts} =>
-    let val deps = ths |> map Thm.get_name_hint in
-      if forall (is_fact_in_thy_facts thy_facts) deps then
-        let
-          val fact = fresh_fact_prefix ^ string_of_int fresh
-          val access = accessibility_of thy thy_facts
-          val feats = features_of thy General [t]
-        in
-          mash_ADD [(fact, access, feats, deps)];
-          {fresh = fresh + 1, dirty_thys = dirty_thys, thy_facts = thy_facts}
-        end
-      else
-        state
-    end)
+fun mash_learn_proof ctxt t ths =
+  let val thy = Proof_Context.theory_of ctxt in
+    mash_map (fn state as {dirty_thys, thy_facts} =>
+      let val deps = ths |> map Thm.get_name_hint in
+        if forall (is_fact_in_thy_facts thy_facts) deps then
+          let
+            val fact = ATP_Util.timestamp () (* should be fairly fresh *)
+            val access = accessibility_of thy thy_facts
+            val feats = features_of thy General [t]
+          in
+            mash_ADD ctxt [(fact, access, feats, deps)];
+            {dirty_thys = dirty_thys, thy_facts = thy_facts}
+          end
+        else
+          state
+      end)
+  end
 
 fun relevant_facts ctxt params prover max_facts
         ({add, only, ...} : fact_override) hyp_ts concl_t facts =

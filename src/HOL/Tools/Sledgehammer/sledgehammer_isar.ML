@@ -36,8 +36,7 @@ val supported_proversN = "supported_provers"
 val running_proversN = "running_provers"
 val kill_proversN = "kill_provers"
 val refresh_tptpN = "refresh_tptp"
-val mash_resetN = "mash_reset"
-val mash_learnN = "mash_learn"
+val reset_mashN = "reset_mash"
 
 val auto = Unsynchronized.ref false
 
@@ -377,10 +376,8 @@ fun hammer_away override_params subcommand opt_i fact_override state =
       kill_provers ()
     else if subcommand = refresh_tptpN then
       refresh_systems_on_tptp ()
-    else if subcommand = mash_resetN then
-      mash_reset ()
-    else if subcommand = mash_learnN then
-      () (* TODO: implement *)
+    else if subcommand = reset_mashN then
+      mash_reset ctxt
     else
       error ("Unknown subcommand: " ^ quote subcommand ^ ".")
   end

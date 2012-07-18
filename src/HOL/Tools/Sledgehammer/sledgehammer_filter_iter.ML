@@ -31,7 +31,7 @@ open Sledgehammer_Fact
 open Sledgehammer_Provers
 
 val trace =
-  Attrib.setup_config_bool @{binding sledgehammer_filter_trace} (K false)
+  Attrib.setup_config_bool @{binding sledgehammer_filter_iter_trace} (K false)
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 
 val sledgehammer_prefix = "Sledgehammer" ^ Long_Name.separator
