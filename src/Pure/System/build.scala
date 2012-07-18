@@ -10,6 +10,7 @@ package isabelle
 import java.io.File
 
 import scala.collection.mutable
+import scala.annotation.tailrec
 
 
 object Build
@@ -26,28 +27,33 @@ object Build
       }
   }
 
+  private object Chunks
+  {
+    private def chunks(list: List[String]): List[List[String]] =
+      list.indexWhere(_ == "\n") match {
+        case -1 => List(list)
+        case i =>
+          val (chunk, rest) = list.splitAt(i)
+          chunk :: chunks(rest.tail)
+      }
+    def unapplySeq(list: List[String]): Option[List[List[String]]] = Some(chunks(list))
+  }
+
   def main(args: Array[String])
   {
-    def bad_args(): Nothing = error("Bad arguments: " + args.toString)
-
     val rc =
       try {
         args.toList match {
-          case Bool(all_sessions) :: Bool(build_images) :: Bool(list_only) :: rest =>
-            rest.indexWhere(_ == "\n") match {
-              case -1 => bad_args()
-              case i =>
-                val (options, rest1) = rest.splitAt(i)
-                val sessions = rest1.tail
-                build(all_sessions, build_images, list_only, options, sessions)
-            }
-          case _ => bad_args()
+          case Bool(all_sessions) :: Bool(build_images) :: Bool(list_only) ::
+            Chunks(more_dirs, options, sessions) =>
+              build(all_sessions, build_images, list_only,
+                more_dirs.map(Path.explode), options, sessions)
+          case _ => error("Bad arguments:\n" + cat_lines(args))
         }
       }
       catch {
         case exn: Throwable => java.lang.System.err.println(Exn.message(exn)); 2
       }
-
     sys.exit(rc)
   }
 
@@ -55,12 +61,13 @@ object Build
   /* build */
 
   def build(all_sessions: Boolean, build_images: Boolean, list_only: Boolean,
-    options: List[String], sessions: List[String]): Int =
+    more_dirs: List[Path], options: List[String], sessions: List[String]): Int =
   {
+    println("more_dirs = " + more_dirs.toString)
     println("options = " + options.toString)
     println("sessions = " + sessions.toString)
 
-    find_sessions() foreach println
+    find_sessions(more_dirs) foreach println
 
     0
   }
@@ -147,14 +154,15 @@ object Build
 
   /* find session */
 
-  def find_sessions(more_dirs: List[Path] = Nil): List[Session_Info] =
+  def find_sessions(more_dirs: List[Path]): List[Session_Info] =
   {
     val infos = new mutable.ListBuffer[Session_Info]
     infos += pure_info
 
     for {
-      dir <- Isabelle_System.components() ++ more_dirs
+      (dir, strict) <- Isabelle_System.components().map((_, false)) ++ more_dirs.map((_, true))
       root = Isabelle_System.platform_file(dir + Path.basic(ROOT_NAME))
+      _ = (strict && !root.isFile && error("Bad session root file: " + quote(root.toString)))
       if root.isFile
       entry <- Parser.parse_entries(root)
     }

@@ -17,6 +17,7 @@ function usage()
   echo "  Options are:"
   echo "    -a           all sessions"
   echo "    -b           build target images"
+  echo "    -d DIR       additional session directory with ROOT file"
   echo "    -l           list sessions only"
   echo "    -o OPTION    override session configuration OPTION (via NAME=VAL or NAME)"
   echo
@@ -44,9 +45,10 @@ ALL_SESSIONS=false
 BUILD_IMAGES=false
 LIST_ONLY=false
 
+declare -a MORE_DIRS=()
 eval "declare -a BUILD_OPTIONS=($ISABELLE_BUILD_OPTIONS)"
 
-while getopts "ablo:" OPT
+while getopts "abd:lo:" OPT
 do
   case "$OPT" in
     a)
@@ -54,6 +56,9 @@ do
       ;;
     b)
       BUILD_IMAGES="true"
+      ;;
+    d)
+      MORE_DIRS["${#MORE_DIRS[@]}"]="$OPTARG"
       ;;
     l)
       LIST_ONLY="true"
@@ -75,4 +80,5 @@ shift $(($OPTIND - 1))
 [ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
 
 exec "$ISABELLE_TOOL" java isabelle.Build \
-  "$ALL_SESSIONS" "$BUILD_IMAGES" "$LIST_ONLY" "${BUILD_OPTIONS[@]}" $'\n' "$@"
+  "$ALL_SESSIONS" "$BUILD_IMAGES" "$LIST_ONLY" \
+  "${MORE_DIRS[@]}" $'\n' "${BUILD_OPTIONS[@]}" $'\n' "$@"
