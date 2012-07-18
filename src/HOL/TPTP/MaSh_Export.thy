@@ -20,7 +20,7 @@ open MaSh_Export
 
 ML {*
 val do_it = false (* switch to "true" to generate the files *);
-val thy = @{theory Nat};
+val thy = @{theory List};
 val params = Sledgehammer_Isar.default_params @{context} []
 *}
 

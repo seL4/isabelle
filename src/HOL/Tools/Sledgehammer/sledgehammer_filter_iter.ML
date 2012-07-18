@@ -8,6 +8,7 @@ Sledgehammer's iterative relevance filter.
 signature SLEDGEHAMMER_FILTER_ITER =
 sig
   type stature = ATP_Problem_Generate.stature
+  type fact = Sledgehammer_Fact.fact
   type params = Sledgehammer_Provers.params
   type relevance_fudge = Sledgehammer_Provers.relevance_fudge
 
@@ -19,14 +20,14 @@ sig
     -> string list
   val iterative_relevant_facts :
     Proof.context -> params -> string -> int -> relevance_fudge option
-    -> term list -> term -> (((unit -> string) * stature) * thm) list
-    -> (((unit -> string) * stature) * thm) list
+    -> term list -> term -> fact list -> fact list
 end;
 
 structure Sledgehammer_Filter_Iter : SLEDGEHAMMER_FILTER_ITER =
 struct
 
 open ATP_Problem_Generate
+open Sledgehammer_Fact
 open Sledgehammer_Provers
 
 val trace =
@@ -333,12 +334,9 @@ fun fact_weight fudge stature const_tab relevant_consts chained_consts
         val res = rel_weight / (rel_weight + irrel_weight)
       in if Real.isFinite res then res else 0.0 end
 
-type annotated_thm =
-  (((unit -> string) * stature) * thm) * (string * ptype) list
-
 fun take_most_relevant ctxt max_facts remaining_max
         ({max_imperfect, max_imperfect_exp, ...} : relevance_fudge)
-        (candidates : (annotated_thm * real) list) =
+        (candidates : ((fact * (string * ptype) list) * real) list) =
   let
     val max_imperfect =
       Real.ceil (Math.pow (max_imperfect,

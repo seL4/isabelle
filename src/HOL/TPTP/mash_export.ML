@@ -43,7 +43,7 @@ fun generate_commands thy file_name =
         val _ = File.append path (query ^ update)
       in [name] end
     val thy_ths = old_facts |> thms_by_thy
-    val parents = parent_thms thy_ths thy
+    val parents = parent_facts thy_ths thy
   in fold do_fact new_facts parents; () end
 
 fun generate_iter_suggestions ctxt (params as {provers, ...}) thy max_relevant

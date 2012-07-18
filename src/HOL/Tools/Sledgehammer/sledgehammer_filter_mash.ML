@@ -8,25 +8,23 @@ signature SLEDGEHAMMER_FILTER_MASH =
 sig
   type status = ATP_Problem_Generate.status
   type stature = ATP_Problem_Generate.stature
-  type params = Sledgehammer_Provers.params
+  type fact = Sledgehammer_Fact.fact
   type fact_override = Sledgehammer_Fact.fact_override
+  type params = Sledgehammer_Provers.params
   type relevance_fudge = Sledgehammer_Provers.relevance_fudge
   type prover_result = Sledgehammer_Provers.prover_result
 
   val fact_name_of : string -> string
-  val all_non_tautological_facts_of :
-    theory -> (((unit -> string) * stature) * thm) list
+  val all_non_tautological_facts_of : theory -> fact list
   val theory_ord : theory * theory -> order
   val thm_ord : thm * thm -> order
   val thms_by_thy : ('a * thm) list -> (string * thm list) list
   val has_thy : theory -> thm -> bool
-  val parent_thms : (string * thm list) list -> theory -> string list
+  val parent_facts : (string * thm list) list -> theory -> string list
   val features_of : theory -> status * thm -> string list
   val isabelle_dependencies_of : string list -> thm -> string list
   val goal_of_thm : theory -> thm -> thm
-  val run_prover :
-    Proof.context -> params -> (((unit -> string) * stature) * thm) list -> thm
-    -> prover_result
+  val run_prover : Proof.context -> params -> fact list -> thm -> prover_result
   val generate_accessibility : theory -> bool -> string -> unit
   val generate_features : theory -> bool -> string -> unit
   val generate_isa_dependencies : theory -> bool -> string -> unit
@@ -42,8 +40,7 @@ sig
 
   val relevant_facts :
     Proof.context -> params -> string -> int -> fact_override -> term list
-    -> term -> (((unit -> string) * stature) * thm) list
-    -> (((unit -> string) * stature) * thm) list
+    -> term -> fact list -> fact list
 end;
 
 structure Sledgehammer_Filter_MaSh : SLEDGEHAMMER_FILTER_MASH =
@@ -205,11 +202,15 @@ fun thms_by_thy ths =
 
 fun has_thy thy th = (Context.theory_name thy = thy_name_of_thm th)
 
-fun parent_thms thy_ths thy =
-  Theory.parents_of thy
-  |> map Context.theory_name
-  |> map_filter (AList.lookup (op =) thy_ths)
-  |> map List.last
+fun add_last_thms thy_ths thy =
+  case AList.lookup (op =) thy_ths (Context.theory_name thy) of
+    SOME (ths as _ :: _) => insert Thm.eq_thm (List.last ths)
+  | _ => add_parent_thms thy_ths thy
+and add_parent_thms thy_ths thy =
+  fold (add_last_thms thy_ths) (Theory.parents_of thy)
+
+fun parent_facts thy_ths thy =
+  add_parent_thms thy_ths thy []
   |> map (fact_name_of o Thm.get_name_hint)
 
 fun is_exists (s, _) = (s = @{const_name Ex} orelse s = @{const_name Ex1})
@@ -276,7 +277,7 @@ fun generate_accessibility thy include_thy file_name =
     fun do_thy ths =
       let
         val thy = theory_of_thm (hd ths)
-        val parents = parent_thms thy_ths thy
+        val parents = parent_facts thy_ths thy
         val ths = ths |> map (fact_name_of o Thm.get_name_hint)
       in fold do_thm ths parents; () end
   in List.app (do_thy o snd) thy_ths end

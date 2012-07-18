@@ -10,6 +10,8 @@ sig
   type status = ATP_Problem_Generate.status
   type stature = ATP_Problem_Generate.stature
 
+  type fact = ((unit -> string) * stature) * thm
+
   type fact_override =
     {add : (Facts.ref * Attrib.src list) list,
      del : (Facts.ref * Attrib.src list) list,
@@ -27,13 +29,12 @@ sig
     -> (((unit -> string) * 'a) * thm) list
   val maybe_filter_no_atps : Proof.context -> ('a * thm) list -> ('a * thm) list
   val all_facts :
-    Proof.context -> bool -> 'a Symtab.table -> bool -> thm list
-    -> thm list -> status Termtab.table
-    -> (((unit -> string) * stature) * thm) list
-  val all_facts_of : theory -> (((unit -> string) * stature) * thm) list
+    Proof.context -> bool -> 'a Symtab.table -> bool -> thm list -> thm list
+    -> status Termtab.table -> fact list
+  val all_facts_of : theory -> fact list
   val nearly_all_facts :
     Proof.context -> bool -> fact_override -> thm list -> term list -> term
-    -> (((unit -> string) * stature) * thm) list
+    -> fact list
 end;
 
 structure Sledgehammer_Fact : SLEDGEHAMMER_FACT =
@@ -42,6 +43,8 @@ struct
 open ATP_Problem_Generate
 open Metis_Tactic
 open Sledgehammer_Util
+
+type fact = ((unit -> string) * stature) * thm
 
 type fact_override =
   {add : (Facts.ref * Attrib.src list) list,
