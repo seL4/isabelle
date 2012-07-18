@@ -29,8 +29,6 @@ val unescape_meta =
       | un accum (c :: cs) = un (c :: accum) cs
   in un [] o String.explode end
 
-val of_fact_name = unescape_meta
-
 val isarN = "Isa"
 val iterN = "Iter"
 val mashN = "MaSh"
@@ -55,7 +53,7 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
     fun find_sugg facts sugg =
       find_first (fn (_, th) => Thm.get_name_hint th = sugg) facts
     fun sugg_facts hyp_ts concl_t facts =
-      map_filter (find_sugg facts o of_fact_name)
+      map_filter (find_sugg facts)
       #> take (max_facts_slack * the max_facts)
       #> Sledgehammer_Fact.maybe_instantiate_inducts ctxt hyp_ts concl_t
     fun mesh_facts fsp =
@@ -103,7 +101,6 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
       in str_of_res heading facts res end
     fun solve_goal j name suggs =
       let
-        val name = of_fact_name name
         val th =
           case find_first (fn (_, th) => Thm.get_name_hint th = name) facts of
             SOME (_, th) => th
@@ -128,10 +125,12 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
          isar_s]
         |> cat_lines |> tracing
       end
-    val explode_suggs = space_explode " " #> filter_out (curry (op =) "")
+    val explode_suggs =
+      space_explode " " #> filter_out (curry (op =) "") #> map unescape_meta
     fun do_line (j, line) =
       case space_explode ":" line of
-        [goal_name, suggs] => solve_goal j goal_name (explode_suggs suggs)
+        [goal_name, suggs] =>
+        solve_goal j (unescape_meta goal_name) (explode_suggs suggs)
       | _ => ()
     fun total_of heading ok n =
       " " ^ heading ^ ": " ^ string_of_int (!ok) ^ " (" ^

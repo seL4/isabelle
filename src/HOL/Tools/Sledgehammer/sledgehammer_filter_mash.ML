@@ -14,14 +14,15 @@ sig
   type relevance_fudge = Sledgehammer_Provers.relevance_fudge
   type prover_result = Sledgehammer_Provers.prover_result
 
-  val fact_name_of : string -> string
+  val escape_meta : string -> string
+  val escape_metas : string list -> string
   val all_non_tautological_facts_of :
     theory -> status Termtab.table -> fact list
   val theory_ord : theory * theory -> order
   val thm_ord : thm * thm -> order
-  val thms_by_thy : ('a * thm) list -> (string * thm list) list
+  val thy_facts_from_thms : ('a * thm) list -> string list Symtab.table
   val has_thy : theory -> thm -> bool
-  val parent_facts : (string * thm list) list -> theory -> string list
+  val parent_facts : theory -> string list Symtab.table -> string list
   val features_of : theory -> status -> term list -> string list
   val isabelle_dependencies_of : string list -> thm -> string list
   val goal_of_thm : theory -> thm -> thm
@@ -80,16 +81,14 @@ fun escape_meta_char c =
     "\\" ^ stringN_of_int 3 (Char.ord c)
 
 val escape_meta = String.translate escape_meta_char
+val escape_metas = map escape_meta #> space_implode " "
 
-val thy_prefix = "y_"
+val thy_feature_prefix = "y_"
 
-val fact_name_of = escape_meta
-val thy_name_of = prefix thy_prefix o escape_meta
-val const_name_of = prefix const_prefix o escape_meta
-val type_name_of = prefix type_const_prefix o escape_meta
-val class_name_of = prefix class_prefix o escape_meta
-
-val thy_name_of_thm = theory_of_thm #> Context.theory_name
+val thy_feature_name_of = prefix thy_feature_prefix
+val const_name_of = prefix const_prefix
+val type_name_of = prefix type_const_prefix
+val class_name_of = prefix class_prefix
 
 local
 
@@ -191,25 +190,26 @@ fun theory_ord p =
 
 val thm_ord = theory_ord o pairself theory_of_thm
 
-fun thms_by_thy ths =
-  ths |> map (snd #> `thy_name_of_thm)
+(* ### FIXME: optimize *)
+fun thy_facts_from_thms ths =
+  ths |> map (snd #> `(theory_of_thm #> Context.theory_name))
       |> AList.group (op =)
       |> sort (int_ord o pairself (length o Theory.ancestors_of o theory_of_thm
                                    o hd o snd))
-      |> map (apsnd (sort thm_ord))
+      |> map (apsnd (sort (rev_order o thm_ord) #> map Thm.get_name_hint))
+      |> Symtab.make
 
-fun has_thy thy th = (Context.theory_name thy = thy_name_of_thm th)
+fun has_thy thy th =
+  Context.theory_name thy = Context.theory_name (theory_of_thm th)
 
-fun add_last_thms thy_ths thy =
-  case AList.lookup (op =) thy_ths (Context.theory_name thy) of
-    SOME (ths as _ :: _) => insert Thm.eq_thm (List.last ths)
-  | _ => add_parent_thms thy_ths thy
-and add_parent_thms thy_ths thy =
-  fold (add_last_thms thy_ths) (Theory.parents_of thy)
-
-fun parent_facts thy_ths thy =
-  add_parent_thms thy_ths thy []
-  |> map (fact_name_of o Thm.get_name_hint)
+fun parent_facts thy thy_facts =
+  let
+    fun add_last thy =
+      case Symtab.lookup thy_facts (Context.theory_name thy) of
+        SOME (last_fact :: _) => insert (op =) last_fact
+      | _ => add_parent thy
+    and add_parent thy = fold add_last (Theory.parents_of thy)
+  in add_parent thy [] end
 
 fun is_exists (s, _) = (s = @{const_name Ex} orelse s = @{const_name Ex1})
 
@@ -218,7 +218,7 @@ val type_max_depth = 1
 
 (* TODO: Generate type classes for types? *)
 fun features_of thy status ts =
-  thy_name_of (Context.theory_name thy) ::
+  thy_feature_name_of (Context.theory_name thy) ::
   interesting_terms_types_and_classes term_max_depth type_max_depth ts
   |> exists (not o is_lambda_free) ts ? cons "lambdas"
   |> exists (exists_Const is_exists) ts ? cons "skolems"
@@ -233,8 +233,7 @@ fun features_of thy status ts =
       | Def => cons "def")
 
 fun isabelle_dependencies_of all_facts =
-  thms_in_proof (SOME all_facts)
-  #> map fact_name_of #> sort string_ord
+  thms_in_proof (SOME all_facts) #> sort string_ord
 
 val freezeT = Type.legacy_freeze_type
 
@@ -258,27 +257,45 @@ fun run_prover ctxt (params as {provers, ...}) facts goal =
           Sledgehammer_Provers.Normal (hd provers)
   in prover params (K (K (K ""))) problem end
 
+(* ###
+fun compute_accessibility thy thy_facts =
+  let
+    fun add_facts (f :: fs) prevs = (f, prevs) :: add_facts fs [th]
+    fun add_thy facts =
+      let
+        val thy = theory_of_thm (hd facts)
+        val parents = parent_facts thy_facts thy
+      in add_thms facts parents end
+  in fold (add_thy o snd) thy_facts end
+*)
+
+fun accessibility_of thy thy_facts =
+  case Symtab.lookup thy_facts (Context.theory_name thy) of
+    SOME (fact :: _) => [fact]
+  | _ => parent_facts thy thy_facts
+
+fun theory_of_fact thy fact =
+  Context.this_theory thy (hd (Long_Name.explode fact))
+
 fun generate_accessibility ctxt thy include_thy file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
-    val css_table = clasimpset_rule_table_of ctxt
-    fun do_thm th prevs =
+    fun do_fact fact prevs =
       let
-        val s = th ^ ": " ^ space_implode " " prevs ^ "\n"
+        val s = escape_meta fact ^ ": " ^ escape_metas prevs ^ "\n"
         val _ = File.append path s
-      in [th] end
-    val thy_ths =
-      all_non_tautological_facts_of thy css_table
+      in [fact] end
+    val thy_facts =
+      all_non_tautological_facts_of thy Termtab.empty
       |> not include_thy ? filter_out (has_thy thy o snd)
-      |> thms_by_thy
-    fun do_thy ths =
+      |> thy_facts_from_thms
+    fun do_thy facts =
       let
-        val thy = theory_of_thm (hd ths)
-        val parents = parent_facts thy_ths thy
-        val ths = ths |> map (fact_name_of o Thm.get_name_hint)
-      in fold do_thm ths parents; () end
-  in List.app (do_thy o snd) thy_ths end
+        val thy = theory_of_fact thy (hd facts)
+        val parents = parent_facts thy thy_facts
+      in fold do_fact facts parents; () end
+  in Symtab.fold (fn (_, facts) => K (do_thy facts)) thy_facts () end
 
 fun generate_features ctxt thy include_thy file_name =
   let
@@ -292,7 +309,7 @@ fun generate_features ctxt thy include_thy file_name =
       let
         val name = Thm.get_name_hint th
         val feats = features_of (theory_of_thm th) status [prop_of th]
-        val s = fact_name_of name ^ ": " ^ space_implode " " feats ^ "\n"
+        val s = escape_meta name ^ ": " ^ escape_metas feats ^ "\n"
       in File.append path s end
   in List.app do_fact facts end
 
@@ -300,9 +317,8 @@ fun generate_isa_dependencies ctxt thy include_thy file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
-    val css_table = clasimpset_rule_table_of ctxt
     val ths =
-      all_non_tautological_facts_of thy css_table
+      all_non_tautological_facts_of thy Termtab.empty
       |> not include_thy ? filter_out (has_thy thy o snd)
       |> map snd
     val all_names = ths |> map Thm.get_name_hint
@@ -310,7 +326,7 @@ fun generate_isa_dependencies ctxt thy include_thy file_name =
       let
         val name = Thm.get_name_hint th
         val deps = isabelle_dependencies_of all_names th
-        val s = fact_name_of name ^ ": " ^ space_implode " " deps ^ "\n"
+        val s = escape_meta name ^ ": " ^ escape_metas deps ^ "\n"
       in File.append path s end
   in List.app do_thm ths end
 
@@ -319,13 +335,12 @@ fun generate_atp_dependencies ctxt (params as {provers, max_facts, ...}) thy
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
-    val css_table = clasimpset_rule_table_of ctxt
     val facts =
-      all_non_tautological_facts_of thy css_table
+      all_non_tautological_facts_of thy Termtab.empty
       |> not include_thy ? filter_out (has_thy thy o snd)
     val ths = facts |> map snd
     val all_names = ths |> map Thm.get_name_hint
-    fun is_dep dep (_, th) = fact_name_of (Thm.get_name_hint th) = dep
+    fun is_dep dep (_, th) = Thm.get_name_hint th = dep
     fun add_isa_dep facts dep accum =
       if exists (is_dep dep) accum then
         accum
@@ -333,7 +348,7 @@ fun generate_atp_dependencies ctxt (params as {provers, max_facts, ...}) thy
         SOME ((name, status), th) => accum @ [((name, status), th)]
       | NONE => accum (* shouldn't happen *)
     fun fix_name ((_, stature), th) =
-      ((fn () => th |> Thm.get_name_hint |> fact_name_of, stature), th)
+      ((fn () => th |> Thm.get_name_hint, stature), th)
     fun do_thm th =
       let
         val name = Thm.get_name_hint th
@@ -358,7 +373,7 @@ fun generate_atp_dependencies ctxt (params as {provers, max_facts, ...}) thy
                 used_facts |> map fst |> sort string_ord
               | _ => isa_deps
             end
-        val s = fact_name_of name ^ ": " ^ space_implode " " deps ^ "\n"
+        val s = escape_meta name ^ ": " ^ escape_metas deps ^ "\n"
       in File.append path s end
   in List.app do_thm ths end
 
@@ -368,16 +383,14 @@ fun generate_atp_dependencies ctxt (params as {provers, max_facts, ...}) thy
 fun mash_RESET () = (warning "MaSh RESET"; File.rm (mk_path model_file))
 
 fun mash_ADD fact access feats deps =
-  warning ("MaSh ADD " ^ fact ^ ": " ^ space_implode " " access ^ "; " ^
-           space_implode " " feats ^ "; " ^ space_implode " " deps)
+  warning ("MaSh ADD " ^ fact ^ ": " ^ escape_metas access ^ "; " ^
+           escape_metas feats ^ "; " ^ escape_metas deps)
 
 fun mash_DEL facts feats =
-  warning ("MaSh DEL " ^ space_implode " " facts ^ "; " ^
-           space_implode " " feats)
+  warning ("MaSh DEL " ^ escape_metas facts ^ "; " ^ escape_metas feats)
 
 fun mash_SUGGEST access feats =
-  (warning ("MaSh SUGGEST " ^ space_implode " " access ^ "; " ^
-            space_implode " " feats);
+  (warning ("MaSh SUGGEST " ^ escape_metas access ^ "; " ^ escape_metas feats);
    [])
 
 
@@ -422,8 +435,8 @@ fun mash_load (state as (true, _)) = state
 fun mash_save ({fresh, completed_thys, thy_facts} : mash_state) =
   let
     val path = mk_path state_file
-    val comp_line = (completed_thys |> Symtab.keys |> space_implode " ") ^ "\n"
-    fun fact_line_for (thy, facts) = space_implode " " (thy :: facts) ^ "\n"
+    val comp_line = (completed_thys |> Symtab.keys |> escape_metas) ^ "\n"
+    fun fact_line_for (thy, facts) = escape_metas (thy :: facts) ^ "\n"
   in
     File.write path (string_of_int fresh ^ "\n" ^ comp_line);
     Symtab.fold (fn thy_fact => fn () =>
@@ -451,13 +464,6 @@ end
 fun mash_can_suggest_facts () =
   not (Symtab.is_empty (#thy_facts (mash_value ())))
 
-fun accessibility_of thy thy_facts =
-  let
-    val _ = 0
-  in
-    [] (*###*)
-  end
-
 fun mash_suggest_facts ctxt params prover max_facts hyp_ts concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -479,7 +485,7 @@ fun mash_learn_proof thy t ths =
       val fact = fresh_fact_prefix ^ string_of_int fresh
       val access = accessibility_of thy thy_facts
       val feats = features_of thy General [t]
-      val deps = ths |> map (fact_name_of o Thm.get_name_hint)
+      val deps = ths |> map Thm.get_name_hint
     in
       mash_ADD fact access feats deps;
       {fresh = fresh + 1, completed_thys = completed_thys,

@@ -36,16 +36,16 @@ fun generate_commands ctxt thy file_name =
         val feats = features_of thy status [prop_of th]
         val deps = isabelle_dependencies_of all_names th
         val kind = Thm.legacy_get_kind th
-        val name = fact_name_of name
         val core =
           space_implode " " prevs ^ "; " ^ space_implode " " feats
         val query = if kind <> "" then "? " ^ core ^ "\n" else ""
         val update =
-          "! " ^ name ^ ": " ^ core ^ "; " ^ space_implode " " deps ^ "\n"
+          "! " ^ escape_meta name ^ ": " ^ core ^ "; " ^
+          space_implode " " deps ^ "\n"
         val _ = File.append path (query ^ update)
       in [name] end
-    val thy_ths = old_facts |> thms_by_thy
-    val parents = parent_facts thy_ths thy
+    val thy_facts = old_facts |> thy_facts_from_thms
+    val parents = parent_facts thy thy_facts
   in fold do_fact new_facts parents; () end
 
 fun generate_iter_suggestions ctxt (params as {provers, ...}) thy max_relevant
@@ -71,9 +71,9 @@ fun generate_iter_suggestions ctxt (params as {provers, ...}) thy max_relevant
                 old_facts
                 |> Sledgehammer_Filter_Iter.iterative_relevant_facts ctxt params
                                 (hd provers) max_relevant NONE hyp_ts concl_t
-                |> map (fn ((name, _), _) => fact_name_of (name ()))
+                |> map (fn ((name, _), _) => name ())
                 |> sort string_ord
-              val s = fact_name_of name ^ ": " ^ space_implode " " suggs ^ "\n"
+              val s = escape_meta name ^ ": " ^ escape_metas suggs ^ "\n"
             in File.append path s end
           else
             ()
