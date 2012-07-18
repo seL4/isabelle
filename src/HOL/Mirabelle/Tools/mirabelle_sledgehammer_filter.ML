@@ -113,7 +113,7 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
          val {context = ctxt, facts = chained_ths, goal} = Proof.goal pre
          val prover = AList.lookup (op =) args "prover"
                       |> the_default default_prover
-         val {relevance_thresholds, max_relevant, slice, ...} =
+         val params as {max_relevant, slice, ...} =
            Sledgehammer_Isar.default_params ctxt args
          val default_max_relevant =
            Sledgehammer_Provers.default_max_relevant_for_prover ctxt slice
@@ -121,22 +121,19 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
          val is_appropriate_prop =
            Sledgehammer_Provers.is_appropriate_prop_for_prover ctxt
                default_prover
-         val is_built_in_const =
-           Sledgehammer_Provers.is_built_in_const_for_prover ctxt default_prover
          val relevance_fudge =
            extract_relevance_fudge args
                (Sledgehammer_Provers.relevance_fudge_for_prover ctxt prover)
-         val relevance_override = {add = [], del = [], only = false}
          val subgoal = 1
          val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal subgoal
          val ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover
          val facts =
-          Sledgehammer_Fact.nearly_all_facts ctxt ho_atp relevance_override
-                                             chained_ths hyp_ts concl_t
+          Sledgehammer_Fact.nearly_all_facts ctxt ho_atp
+              Sledgehammer_Fact.no_relevance_override chained_ths hyp_ts concl_t
           |> filter (is_appropriate_prop o prop_of o snd)
-          |> Sledgehammer_Filter.relevant_facts ctxt relevance_thresholds
-                 (the_default default_max_relevant max_relevant)
-                 is_built_in_const relevance_fudge relevance_override
+          |> Sledgehammer_Filter_Iter.iterative_relevant_facts ctxt params
+                 default_prover (the_default default_max_relevant max_relevant)
+                 (SOME relevance_fudge) Sledgehammer_Fact.no_relevance_override
                  chained_ths hyp_ts concl_t
            |> map (fst o fst)
          val (found_facts, lost_facts) =

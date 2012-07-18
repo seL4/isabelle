@@ -9,7 +9,7 @@ Sledgehammer's heart.
 signature SLEDGEHAMMER_RUN =
 sig
   type minimize_command = ATP_Proof_Reconstruct.minimize_command
-  type relevance_override = Sledgehammer_Filter.relevance_override
+  type relevance_override = Sledgehammer_Fact.relevance_override
   type mode = Sledgehammer_Provers.mode
   type params = Sledgehammer_Provers.params
 
@@ -33,7 +33,7 @@ open Sledgehammer_Util
 open Sledgehammer_Fact
 open Sledgehammer_Provers
 open Sledgehammer_Minimize
-open Sledgehammer_Filter
+open Sledgehammer_Filter_MaSh
 
 val someN = "some"
 val noneN = "none"
@@ -156,8 +156,7 @@ fun class_of_smt_solver ctxt name =
 val auto_try_max_relevant_divisor = 2 (* FUDGE *)
 
 fun run_sledgehammer (params as {debug, verbose, blocking, provers,
-                                 relevance_thresholds, max_relevant, slice,
-                                 ...})
+                                 max_relevant, slice, ...})
         mode i (relevance_override as {only, ...}) minimize_command state =
   if null provers then
     error "No prover is set."
@@ -208,7 +207,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
                    (launch problem #> fst)
             |> max_outcome_code |> rpair state
         end
-      fun get_facts label is_appropriate_prop relevance_fudge provers =
+      fun get_facts label is_appropriate_prop provers =
         let
           val max_max_relevant =
             case max_relevant of
@@ -219,16 +218,13 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
                         provers
                 |> mode = Auto_Try
                    ? (fn n => n div auto_try_max_relevant_divisor)
-          val is_built_in_const =
-            is_built_in_const_for_prover ctxt (hd provers)
         in
           facts
           |> (case is_appropriate_prop of
                 SOME is_app => filter (is_app o prop_of o snd)
               | NONE => I)
-          |> relevant_facts ctxt relevance_thresholds max_max_relevant
-                            is_built_in_const relevance_fudge relevance_override
-                            chained_ths hyp_ts concl_t
+          |> relevant_facts ctxt params (hd provers) max_max_relevant
+                            relevance_override chained_ths hyp_ts concl_t
           |> tap (fn facts =>
                      if debug then
                        label ^ plural_s (length provers) ^ ": " ^
@@ -255,15 +251,14 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
              ();
            accum)
         else
-          launch_provers state
-              (get_facts label is_appropriate_prop atp_relevance_fudge o K atps)
-              (K (Untranslated_Fact o fst)) atps
+          launch_provers state (get_facts label is_appropriate_prop o K atps)
+                         (K (Untranslated_Fact o fst)) atps
       fun launch_smts accum =
         if null smts then
           accum
         else
           let
-            val facts = get_facts "SMT solver" NONE smt_relevance_fudge smts
+            val facts = get_facts "SMT solver" NONE smts
             val weight = SMT_Weighted_Fact oo weight_smt_fact ctxt
           in
             smts |> map (`(class_of_smt_solver ctxt))

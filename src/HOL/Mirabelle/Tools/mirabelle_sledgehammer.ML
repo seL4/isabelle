@@ -423,7 +423,7 @@ fun run_sh prover_name prover type_enc strict max_relevant slice lam_trans
                   term_order |> the_default I)
             #> (Option.map (Config.put ATP_Systems.force_sos)
                   force_sos |> the_default I))
-    val params as {relevance_thresholds, max_relevant, slice, ...} =
+    val params as {max_relevant, slice, ...} =
       Sledgehammer_Isar.default_params ctxt
          ([("verbose", "true"),
            ("type_enc", type_enc),
@@ -442,11 +442,6 @@ fun run_sh prover_name prover type_enc strict max_relevant slice lam_trans
         prover_name
     val is_appropriate_prop =
       Sledgehammer_Provers.is_appropriate_prop_for_prover ctxt prover_name
-    val is_built_in_const =
-      Sledgehammer_Provers.is_built_in_const_for_prover ctxt prover_name
-    val relevance_fudge =
-      Sledgehammer_Provers.relevance_fudge_for_prover ctxt prover_name
-    val relevance_override = {add = [], del = [], only = false}
     val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal i
     val time_limit =
       (case hard_timeout of
@@ -465,13 +460,13 @@ fun run_sh prover_name prover type_enc strict max_relevant slice lam_trans
                 else raise Fail "inappropriate"
         val ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover_name
         val facts =
-          Sledgehammer_Fact.nearly_all_facts ctxt ho_atp relevance_override
-            chained_ths hyp_ts concl_t
+          Sledgehammer_Fact.nearly_all_facts ctxt ho_atp
+              Sledgehammer_Fact.no_relevance_override chained_ths hyp_ts concl_t
           |> filter (is_appropriate_prop o prop_of o snd)
-          |> Sledgehammer_Filter.relevant_facts ctxt relevance_thresholds
+          |> Sledgehammer_Filter_MaSh.relevant_facts ctxt params prover_name
                  (the_default default_max_relevant max_relevant)
-                 is_built_in_const relevance_fudge relevance_override
-                 chained_ths hyp_ts concl_t
+                 Sledgehammer_Fact.no_relevance_override chained_ths hyp_ts
+                 concl_t
         val problem =
           {state = st', goal = goal, subgoal = i,
            subgoal_count = Sledgehammer_Util.subgoal_count st,

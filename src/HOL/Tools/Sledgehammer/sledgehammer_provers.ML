@@ -14,7 +14,6 @@ sig
   type reconstructor = ATP_Proof_Reconstruct.reconstructor
   type play = ATP_Proof_Reconstruct.play
   type minimize_command = ATP_Proof_Reconstruct.minimize_command
-  type relevance_fudge = Sledgehammer_Filter_Iter.relevance_fudge
 
   datatype mode = Auto_Try | Try | Normal | Auto_Minimize | Minimize
 
@@ -39,6 +38,27 @@ sig
      timeout: Time.time,
      preplay_timeout: Time.time,
      expect: string}
+
+  type relevance_fudge =
+    {local_const_multiplier : real,
+     worse_irrel_freq : real,
+     higher_order_irrel_weight : real,
+     abs_rel_weight : real,
+     abs_irrel_weight : real,
+     skolem_irrel_weight : real,
+     theory_const_rel_weight : real,
+     theory_const_irrel_weight : real,
+     chained_const_irrel_weight : real,
+     intro_bonus : real,
+     elim_bonus : real,
+     simp_bonus : real,
+     local_bonus : real,
+     assum_bonus : real,
+     chained_bonus : real,
+     max_imperfect : real,
+     max_imperfect_exp : real,
+     threshold_divisor : real,
+     ridiculous_threshold : real}
 
   datatype prover_fact =
     Untranslated_Fact of (string * stature) * thm |
@@ -124,7 +144,7 @@ open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 open Metis_Tactic
 open Sledgehammer_Util
-open Sledgehammer_Filter_Iter
+
 
 (** The Sledgehammer **)
 
@@ -281,6 +301,7 @@ fun kill_provers () = Async_Manager.kill_threads das_tool "prover"
 fun running_provers () = Async_Manager.running_threads das_tool "prover"
 val messages = Async_Manager.thread_messages das_tool "prover"
 
+
 (** problems, results, ATPs, etc. **)
 
 type params =
@@ -304,6 +325,27 @@ type params =
    timeout: Time.time,
    preplay_timeout: Time.time,
    expect: string}
+
+type relevance_fudge =
+  {local_const_multiplier : real,
+   worse_irrel_freq : real,
+   higher_order_irrel_weight : real,
+   abs_rel_weight : real,
+   abs_irrel_weight : real,
+   skolem_irrel_weight : real,
+   theory_const_rel_weight : real,
+   theory_const_irrel_weight : real,
+   chained_const_irrel_weight : real,
+   intro_bonus : real,
+   elim_bonus : real,
+   simp_bonus : real,
+   local_bonus : real,
+   assum_bonus : real,
+   chained_bonus : real,
+   max_imperfect : real,
+   max_imperfect_exp : real,
+   threshold_divisor : real,
+   ridiculous_threshold : real}
 
 datatype prover_fact =
   Untranslated_Fact of (string * stature) * thm |

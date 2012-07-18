@@ -9,6 +9,8 @@ sig
   type status = ATP_Problem_Generate.status
   type stature = ATP_Problem_Generate.stature
   type params = Sledgehammer_Provers.params
+  type relevance_override = Sledgehammer_Fact.relevance_override
+  type relevance_fudge = Sledgehammer_Provers.relevance_fudge
   type prover_result = Sledgehammer_Provers.prover_result
 
   val fact_name_of : string -> string
@@ -36,10 +38,16 @@ sig
     Proof.context -> params -> theory -> bool -> string -> unit
 
   val reset : unit -> unit
-  val can_suggest : unit -> bool
+  val can_suggest_facts : unit -> bool
+(* ###  val suggest_facts : ... *)
   val can_learn_thy : theory -> bool
   val learn_thy : theory -> real -> unit
   val learn_proof : theory -> term -> thm list -> unit
+
+  val relevant_facts :
+    Proof.context -> params -> string -> int -> relevance_override -> thm list
+    -> term list -> term -> (((unit -> string) * stature) * thm) list
+    -> ((string * stature) * thm) list
 end;
 
 structure Sledgehammer_Filter_MaSh : SLEDGEHAMMER_FILTER_MASH =
@@ -247,20 +255,10 @@ fun freeze (t $ u) = freeze t $ freeze u
 
 fun goal_of_thm thy = prop_of #> freeze #> cterm_of thy #> Goal.init
 
-fun iter_facts ctxt ({provers, relevance_thresholds, ...} : params) max_relevant
-               goal =
-  let
-    val prover_name = hd provers
-    val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
-    val is_built_in_const =
-      Sledgehammer_Provers.is_built_in_const_for_prover ctxt prover_name
-    val relevance_fudge =
-      Sledgehammer_Provers.relevance_fudge_for_prover ctxt prover_name
-    val relevance_override = {add = [], del = [], only = false}
-  in
-    iterative_relevant_facts ctxt relevance_thresholds max_relevant
-                             is_built_in_const relevance_fudge
-                             relevance_override [] hyp_ts concl_t
+fun iter_facts ctxt (params as {provers, ...}) max_relevant goal =
+  let val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1 in
+    iterative_relevant_facts ctxt params (hd provers) max_relevant NONE
+                             no_relevance_override [] hyp_ts concl_t
   end
 
 fun run_prover ctxt (params as {provers, ...}) facts goal =
@@ -377,7 +375,7 @@ fun generate_atp_dependencies ctxt (params as {max_relevant, ...}) thy
 fun reset () =
   ()
 
-fun can_suggest () =
+fun can_suggest_facts () =
   true
 
 fun can_learn_thy thy =
@@ -386,7 +384,27 @@ fun can_learn_thy thy =
 fun learn_thy thy timeout =
   ()
 
-fun learn_proof theory t thms =
+fun learn_proof thy t thms =
   ()
+
+fun relevant_facts ctxt params prover max_relevant
+                   (override as {add, only, ...}) chained_ths hyp_ts concl_t
+                   facts =
+  if only then
+    facts |> map (apfst (apfst (fn f => f ()))) (* ###*)
+  else if max_relevant <= 0 then
+    []
+  else
+    let
+      val add_ths = Attrib.eval_thms ctxt add
+      fun prepend_facts ths facts =
+        ((facts |> filter (member Thm.eq_thm_prop ths o snd)) @
+         (facts |> filter_out (member Thm.eq_thm_prop ths o snd)))
+        |> take max_relevant
+    in
+      iterative_relevant_facts ctxt params prover max_relevant NONE override
+                               chained_ths hyp_ts concl_t facts
+      |> not (null add_ths) ? prepend_facts add_ths
+    end
 
 end;
