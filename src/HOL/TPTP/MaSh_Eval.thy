@@ -1,12 +1,12 @@
-(*  Title:      HOL/TPTP/MaSh_Import.thy
+(*  Title:      HOL/TPTP/MaSh_Eval.thy
     Author:     Jasmin Blanchette, TU Muenchen
 *)
 
-header {* MaSh Importer *}
+header {* MaSh Evaluation Driver *}
 
-theory MaSh_Import
-imports MaSh_Export
-uses "mash_import.ML"
+theory MaSh_Eval
+imports Complex_Main
+uses "mash_eval.ML"
 begin
 
 sledgehammer_params
@@ -16,7 +16,7 @@ sledgehammer_params
 declare [[sledgehammer_instantiate_inducts]]
 
 ML {*
-open MaSh_Import
+open MaSh_Eval
 *}
 
 ML {*
@@ -27,7 +27,7 @@ val params = Sledgehammer_Isar.default_params @{context} []
 
 ML {*
 if do_it then
-  import_and_evaluate_mash_suggestions @{context} params thy "/tmp/mash_suggestions_list"
+  evaluate_mash_suggestions @{context} params thy "/tmp/mash_suggestions_list"
 else
   ()
 *}

@@ -1,20 +1,19 @@
-(*  Title:      HOL/TPTP/mash_import.ML
+(*  Title:      HOL/TPTP/mash_eval.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012
 
-Import proof suggestions from MaSh (Machine-learning for Sledgehammer) and
-evaluate them.
+Evaluate proof suggestions from MaSh (Machine-learning for Sledgehammer).
 *)
 
-signature MASH_IMPORT =
+signature MASH_EVAL =
 sig
   type params = Sledgehammer_Provers.params
 
-  val import_and_evaluate_mash_suggestions :
+  val evaluate_mash_suggestions :
     Proof.context -> params -> theory -> string -> unit
 end;
 
-structure MaSh_Import : MASH_IMPORT =
+structure MaSh_Eval : MASH_EVAL =
 struct
 
 open Sledgehammer_Filter_MaSh
@@ -32,14 +31,14 @@ val unescape_meta =
 
 val of_fact_name = unescape_meta
 
-val isaN = "Isabelle"
-val iterN = "Iterative"
+val isaN = "Isa"
+val iterN = "Iter"
 val mashN = "MaSh"
 val iter_mashN = "Iter+MaSh"
 
 val max_relevant_slack = 2
 
-fun import_and_evaluate_mash_suggestions ctxt params thy file_name =
+fun evaluate_mash_suggestions ctxt params thy file_name =
   let
     val {provers, max_relevant, slice, type_enc, lam_trans, timeout, ...} =
       Sledgehammer_Isar.default_params ctxt []
