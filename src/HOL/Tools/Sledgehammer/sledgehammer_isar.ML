@@ -86,6 +86,7 @@ val default_default_params =
    ("strict", "false"),
    ("lam_trans", "smart"),
    ("uncurried_aliases", "smart"),
+   ("learn", "true"),
    ("fact_filter", "smart"),
    ("max_facts", "smart"),
    ("fact_thresholds", "0.45 0.85"),
@@ -108,6 +109,7 @@ val negated_alias_params =
    ("non_blocking", "blocking"),
    ("non_strict", "strict"),
    ("no_uncurried_aliases", "uncurried_aliases"),
+   ("dont_learn", "learn"),
    ("no_isar_proof", "isar_proof"),
    ("dont_slice", "slice"),
    ("dont_minimize", "minimize")]
@@ -296,6 +298,7 @@ fun extract_params mode default_params override_params =
     val strict = mode = Auto_Try orelse lookup_bool "strict"
     val lam_trans = lookup_option lookup_string "lam_trans"
     val uncurried_aliases = lookup_option lookup_bool "uncurried_aliases"
+    val learn = lookup_bool "learn"
     val fact_filter = lookup_option lookup_string "fact_filter"
     val max_facts = lookup_option lookup_int "max_facts"
     val fact_thresholds = lookup_real_pair "fact_thresholds"
@@ -317,7 +320,7 @@ fun extract_params mode default_params override_params =
     {debug = debug, verbose = verbose, overlord = overlord, blocking = blocking,
      provers = provers, type_enc = type_enc, strict = strict,
      lam_trans = lam_trans, uncurried_aliases = uncurried_aliases,
-     fact_filter = fact_filter, max_facts = max_facts,
+     learn = learn, fact_filter = fact_filter, max_facts = max_facts,
      fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances,  isar_proof = isar_proof,
      isar_shrink_factor = isar_shrink_factor, slice = slice,
@@ -371,7 +374,7 @@ fun hammer_away override_params subcommand opt_i fact_override state =
       run_minimize (get_params Minimize ctxt
                                (("provers", [default_minimize_prover]) ::
                                 override_params))
-                   (the_default 1 opt_i) (#add fact_override) state
+                   (K ()) (the_default 1 opt_i) (#add fact_override) state
     else if subcommand = messagesN then
       messages opt_i
     else if subcommand = supported_proversN then

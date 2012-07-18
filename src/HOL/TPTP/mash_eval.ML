@@ -90,7 +90,8 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
               facts
               |> Sledgehammer_Fact.maybe_instantiate_inducts ctxt hyp_ts concl_t
               |> take (the max_facts)
-            val res as {outcome, ...} = run_prover ctxt params prover facts goal
+            val res as {outcome, ...} =
+              run_prover_for_mash ctxt params prover facts goal
             val _ = if is_none outcome then ok := !ok + 1 else ()
           in str_of_res heading facts res end
         val iter_s = prove iter_ok iterN iter_facts

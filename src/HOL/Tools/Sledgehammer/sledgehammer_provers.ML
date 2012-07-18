@@ -18,27 +18,28 @@ sig
   datatype mode = Auto_Try | Try | Normal | Auto_Minimize | Minimize
 
   type params =
-    {debug: bool,
-     verbose: bool,
-     overlord: bool,
-     blocking: bool,
-     provers: string list,
-     type_enc: string option,
-     strict: bool,
-     lam_trans: string option,
-     uncurried_aliases: bool option,
-     fact_filter: string option,
-     max_facts: int option,
-     fact_thresholds: real * real,
-     max_mono_iters: int option,
-     max_new_mono_instances: int option,
-     isar_proof: bool,
-     isar_shrink_factor: int,
-     slice: bool,
-     minimize: bool option,
-     timeout: Time.time,
-     preplay_timeout: Time.time,
-     expect: string}
+    {debug : bool,
+     verbose : bool,
+     overlord : bool,
+     blocking : bool,
+     provers : string list,
+     type_enc : string option,
+     strict : bool,
+     lam_trans : string option,
+     uncurried_aliases : bool option,
+     learn : bool,
+     fact_filter : string option,
+     max_facts : int option,
+     fact_thresholds : real * real,
+     max_mono_iters : int option,
+     max_new_mono_instances : int option,
+     isar_proof : bool,
+     isar_shrink_factor : int,
+     slice : bool,
+     minimize : bool option,
+     timeout : Time.time,
+     preplay_timeout : Time.time,
+     expect : string}
 
   type relevance_fudge =
     {local_const_multiplier : real,
@@ -66,19 +67,19 @@ sig
     SMT_Weighted_Fact of (string * stature) * (int option * thm)
 
   type prover_problem =
-    {state: Proof.state,
-     goal: thm,
-     subgoal: int,
-     subgoal_count: int,
-     facts: prover_fact list}
+    {state : Proof.state,
+     goal : thm,
+     subgoal : int,
+     subgoal_count : int,
+     facts : prover_fact list}
 
   type prover_result =
-    {outcome: failure option,
-     used_facts: (string * stature) list,
-     run_time: Time.time,
-     preplay: unit -> play,
-     message: play -> string,
-     message_tail: string}
+    {outcome : failure option,
+     used_facts : (string * stature) list,
+     run_time : Time.time,
+     preplay : unit -> play,
+     message : play -> string,
+     message_tail : string}
 
   type prover =
     params -> ((string * string list) list -> string -> minimize_command)
@@ -306,27 +307,28 @@ val messages = Async_Manager.thread_messages SledgehammerN "prover"
 (** problems, results, ATPs, etc. **)
 
 type params =
-  {debug: bool,
-   verbose: bool,
-   overlord: bool,
-   blocking: bool,
-   provers: string list,
-   type_enc: string option,
-   strict: bool,
-   lam_trans: string option,
-   uncurried_aliases: bool option,
-   fact_filter: string option,
-   max_facts: int option,
-   fact_thresholds: real * real,
-   max_mono_iters: int option,
-   max_new_mono_instances: int option,
-   isar_proof: bool,
-   isar_shrink_factor: int,
-   slice: bool,
-   minimize: bool option,
-   timeout: Time.time,
-   preplay_timeout: Time.time,
-   expect: string}
+  {debug : bool,
+   verbose : bool,
+   overlord : bool,
+   blocking : bool,
+   provers : string list,
+   type_enc : string option,
+   strict : bool,
+   lam_trans : string option,
+   uncurried_aliases : bool option,
+   learn : bool,
+   fact_filter : string option,
+   max_facts : int option,
+   fact_thresholds : real * real,
+   max_mono_iters : int option,
+   max_new_mono_instances : int option,
+   isar_proof : bool,
+   isar_shrink_factor : int,
+   slice : bool,
+   minimize : bool option,
+   timeout : Time.time,
+   preplay_timeout : Time.time,
+   expect : string}
 
 type relevance_fudge =
   {local_const_multiplier : real,
@@ -354,19 +356,19 @@ datatype prover_fact =
   SMT_Weighted_Fact of (string * stature) * (int option * thm)
 
 type prover_problem =
-  {state: Proof.state,
-   goal: thm,
-   subgoal: int,
-   subgoal_count: int,
-   facts: prover_fact list}
+  {state : Proof.state,
+   goal : thm,
+   subgoal : int,
+   subgoal_count : int,
+   facts : prover_fact list}
 
 type prover_result =
-  {outcome: failure option,
-   used_facts: (string * stature) list,
-   run_time: Time.time,
-   preplay: unit -> play,
-   message: play -> string,
-   message_tail: string}
+  {outcome : failure option,
+   used_facts : (string * stature) list,
+   run_time : Time.time,
+   preplay : unit -> play,
+   message : play -> string,
+   message_tail : string}
 
 type prover =
   params -> ((string * string list) list -> string -> minimize_command)

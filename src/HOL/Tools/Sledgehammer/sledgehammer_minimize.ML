@@ -17,13 +17,15 @@ sig
   val auto_minimize_min_facts : int Config.T
   val auto_minimize_max_time : real Config.T
   val minimize_facts :
-    string -> params -> bool -> int -> int -> Proof.state
+    (thm list -> unit) -> string -> params -> bool -> int -> int -> Proof.state
     -> ((string * stature) * thm list) list
     -> ((string * stature) * thm list) list option
        * ((unit -> play) * (play -> string) * string)
-  val get_minimizing_prover : Proof.context -> mode -> string -> prover
+  val get_minimizing_prover :
+    Proof.context -> mode -> (thm list -> unit) -> string -> prover
   val run_minimize :
-    params -> int -> (Facts.ref * Attrib.src list) list -> Proof.state -> unit
+    params -> (thm list -> unit) -> int -> (Facts.ref * Attrib.src list) list
+    -> Proof.state -> unit
 end;
 
 structure Sledgehammer_Minimize : SLEDGEHAMMER_MINIMIZE =
@@ -68,7 +70,7 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
       {debug = debug, verbose = verbose, overlord = overlord, blocking = true,
        provers = provers, type_enc = type_enc, strict = strict,
        lam_trans = lam_trans, uncurried_aliases = uncurried_aliases,
-       fact_filter = NONE, max_facts = SOME (length facts),
+       learn = false, fact_filter = NONE, max_facts = SOME (length facts),
        fact_thresholds = (1.01, 1.01), max_mono_iters = max_mono_iters,
        max_new_mono_instances = max_new_mono_instances, isar_proof = isar_proof,
        isar_shrink_factor = isar_shrink_factor, slice = false,
@@ -181,8 +183,8 @@ fun binary_minimize test timeout result xs =
     | p => p
   end
 
-fun minimize_facts prover_name (params as {timeout, ...}) silent i n state
-                   facts =
+fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
+                   i n state facts =
   let
     val ctxt = Proof.context_of state
     val prover =
@@ -202,13 +204,16 @@ fun minimize_facts prover_name (params as {timeout, ...}) silent i n state
              linear_minimize
          val (min_facts, {preplay, message, message_tail, ...}) =
            min test (new_timeout timeout run_time) result facts
-         val _ = print silent (fn () => cat_lines
-           ["Minimized to " ^ n_facts (map fst min_facts)] ^
-            (case min_facts |> filter (fn ((_, (sc, _)), _) => sc = Chained)
-                            |> length of
-               0 => ""
-             | n => "\n(including " ^ string_of_int n ^ " chained)") ^ ".")
-       in (SOME min_facts, (preplay, message, message_tail)) end
+       in
+         print silent (fn () => cat_lines
+             ["Minimized to " ^ n_facts (map fst min_facts)] ^
+              (case min_facts |> filter (fn ((_, (sc, _)), _) => sc = Chained)
+                              |> length of
+                 0 => ""
+               | n => "\n(including " ^ string_of_int n ^ " chained)") ^ ".");
+         (if learn then do_learn (maps snd min_facts) else ());
+         (SOME min_facts, (preplay, message, message_tail))
+       end
      | {outcome = SOME TimedOut, preplay, ...} =>
        (NONE,
         (preplay,
@@ -225,9 +230,10 @@ fun minimize_facts prover_name (params as {timeout, ...}) silent i n state
 
 fun adjust_reconstructor_params override_params
         ({debug, verbose, overlord, blocking, provers, type_enc, strict,
-         lam_trans, uncurried_aliases, fact_filter, max_facts, fact_thresholds,
-         max_mono_iters, max_new_mono_instances, isar_proof, isar_shrink_factor,
-         slice, minimize, timeout, preplay_timeout, expect} : params) =
+         lam_trans, uncurried_aliases, learn, fact_filter, max_facts,
+         fact_thresholds, max_mono_iters, max_new_mono_instances, isar_proof,
+         isar_shrink_factor, slice, minimize, timeout, preplay_timeout, expect}
+         : params) =
   let
     fun lookup_override name default_value =
       case AList.lookup (op =) override_params name of
@@ -241,7 +247,7 @@ fun adjust_reconstructor_params override_params
     {debug = debug, verbose = verbose, overlord = overlord, blocking = blocking,
      provers = provers, type_enc = type_enc, strict = strict,
      lam_trans = lam_trans, uncurried_aliases = uncurried_aliases,
-     fact_filter = fact_filter, max_facts = max_facts,
+     learn = learn, fact_filter = fact_filter, max_facts = max_facts,
      fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances, isar_proof = isar_proof,
      isar_shrink_factor = isar_shrink_factor, slice = slice,
@@ -249,7 +255,7 @@ fun adjust_reconstructor_params override_params
      expect = expect}
   end
 
-fun minimize ctxt mode name
+fun minimize ctxt mode do_learn name
              (params as {debug, verbose, isar_proof, minimize, ...})
              ({state, subgoal, subgoal_count, facts, ...} : prover_problem)
              (result as {outcome, used_facts, run_time, preplay, message,
@@ -293,7 +299,7 @@ fun minimize ctxt mode name
       val minimize = minimize |> the_default perhaps_minimize
       val (used_facts, (preplay, message, _)) =
         if minimize then
-          minimize_facts minimize_name params (not verbose) subgoal
+          minimize_facts do_learn minimize_name params (not verbose) subgoal
                          subgoal_count state
                          (filter_used_facts used_facts
                               (map (apsnd single o untranslated_fact) facts))
@@ -319,11 +325,12 @@ fun minimize ctxt mode name
       | NONE => result
     end
 
-fun get_minimizing_prover ctxt mode name params minimize_command problem =
+fun get_minimizing_prover ctxt mode do_learn name params minimize_command
+                          problem =
   get_prover ctxt mode name params minimize_command problem
-  |> minimize ctxt mode name params problem
+  |> minimize ctxt mode do_learn name params problem
 
-fun run_minimize (params as {provers, ...}) i refs state =
+fun run_minimize (params as {provers, ...}) do_learn i refs state =
   let
     val ctxt = Proof.context_of state
     val reserved = reserved_isar_keyword_table ()
@@ -339,7 +346,7 @@ fun run_minimize (params as {provers, ...}) i refs state =
              [] => error "No prover is set."
            | prover :: _ =>
              (kill_provers ();
-              minimize_facts prover params false i n state facts
+              minimize_facts do_learn prover params false i n state facts
               |> (fn (_, (preplay, message, message_tail)) =>
                      message (preplay ()) ^ message_tail
                      |> Output.urgent_message))

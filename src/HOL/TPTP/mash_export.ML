@@ -146,7 +146,7 @@ fun generate_prover_dependencies ctxt (params as {provers, max_facts, ...}) thy
                       |> fold (add_isa_dep facts) isa_deps
                       |> map fix_name
             in
-              case run_prover ctxt params prover facts goal of
+              case run_prover_for_mash ctxt params prover facts goal of
                 {outcome = NONE, used_facts, ...} =>
                 used_facts |> map fst |> sort string_ord
               | _ => isa_deps
