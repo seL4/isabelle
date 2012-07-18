@@ -432,17 +432,20 @@ fun mash_load _ (state as (true, _)) = state
          SOME (comp_thys :: incomp_thys :: fact_lines) =>
          let
            fun add_thy comp thy = Symtab.update (thy, comp)
+           fun add_edge_to name parent =
+             Graph.default_node (parent, ())
+             #> Graph.add_edge (parent, name)
            fun add_fact_line line =
              case extract_query line of
                ("", _) => I (* shouldn't happen *)
              | (name, parents) =>
                Graph.default_node (name, ())
-               #> fold (fn par => Graph.add_edge (par, name)) parents
+               #> fold (add_edge_to name) parents
            val thys =
              Symtab.empty |> fold (add_thy true) (unescape_metas comp_thys)
                           |> fold (add_thy false) (unescape_metas incomp_thys)
            val fact_graph =
-             try_graph ctxt "loading state file" Graph.empty (fn () =>
+             try_graph ctxt "loading state" Graph.empty (fn () =>
                  Graph.empty |> fold add_fact_line fact_lines)
          in {thys = thys, fact_graph = fact_graph} end
        | _ => empty_state)
