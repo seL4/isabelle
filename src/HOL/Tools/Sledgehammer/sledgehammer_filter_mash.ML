@@ -21,7 +21,7 @@ sig
   val unescape_metas : string -> string list
   val extract_query : string -> string * string list
   val suggested_facts : string list -> fact list -> fact list
-  val mesh_facts : int -> fact list -> fact list -> fact list -> fact list
+  val mesh_facts : int -> (fact list * int option) list -> fact list
   val all_non_tautological_facts_of :
     theory -> status Termtab.table -> fact list
   val theory_ord : theory * theory -> order
@@ -106,21 +106,22 @@ fun find_suggested facts sugg =
   find_first (fn (_, th) => Thm.get_name_hint th = sugg) facts
 fun suggested_facts suggs facts = map_filter (find_suggested facts) suggs
 
-fun mesh_facts max_facts iter_facts mash_facts mash_rejects =
+fun sum_avg n xs =
+  fold (Integer.add o Integer.mult n) xs 0 div (length xs)
+
+fun mesh_facts max_facts mess =
   let
+    val n = length mess
     val fact_eq = Thm.eq_thm o pairself snd
-    val num_iter = length iter_facts
-    val num_mash = length mash_facts
-    fun score_in f fs n =
-      case find_index (curry fact_eq f) fs of
-        ~1 => length fs
-      | j => j
-    fun score_of fact =
-      score_in fact iter_facts num_iter + score_in fact mash_facts num_mash
+    fun score_in fact (facts, def) =
+      case find_index (curry fact_eq fact) facts of
+        ~1 => def
+      | j => SOME j
+    fun score_of fact = mess |> map_filter (score_in fact) |> sum_avg n
+    val facts = fold (union fact_eq o take max_facts o fst) mess []
   in
-    union fact_eq iter_facts mash_facts
-    |> map (`score_of) |> sort (int_ord o pairself fst) |> map snd
-    |> take max_facts
+    facts |> map (`score_of) |> sort (int_ord o pairself fst) |> map snd
+          |> take max_facts
   end
 
 val thy_feature_prefix = "y_"
@@ -320,8 +321,8 @@ fun run_mash ctxt save write_cmds read_preds =
     val command =
       getenv "MASH_HOME" ^ "/mash.py --inputFile " ^ cmd_file ^
       " --outputDir " ^ mash_dir () ^ " --predictions " ^ pred_file ^
-      " --log " ^ log_file ^ (if save then " --saveModel" else "") ^
-      " > /dev/null"
+      " --log " ^ log_file ^ " --numberOfPredictions 1000" ^
+      (if save then " --saveModel" else "") ^ " > /dev/null"
     val _ = File.write cmd_path ""
     val _ = write_cmds (File.append cmd_path)
     val _ = trace_msg ctxt (fn () => "  running " ^ command)
@@ -524,11 +525,11 @@ fun relevant_facts ctxt params prover max_facts
       val iter_facts =
         iterative_relevant_facts ctxt params prover max_facts NONE hyp_ts
                                  concl_t facts
-      val (mash_facts, mash_rejects) =
+      val mash_facts =
         facts |> mash_suggest_facts ctxt params prover hyp_ts concl_t
-              |> chop max_facts
+      val mess = [(iter_facts, SOME (length iter_facts)), (mash_facts, NONE)]
     in
-      mesh_facts max_facts iter_facts mash_facts mash_rejects
+      mesh_facts max_facts mess
       |> not (null add_ths) ? prepend_facts add_ths
     end
 
