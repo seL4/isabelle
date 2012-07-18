@@ -8,8 +8,8 @@ TPTP-related extensions.
 
 use_thys [
   "ATP_Theory_Export",
+  "MaSh_Eval",
   "MaSh_Export",
-  "MaSh_Import",
   "TPTP_Interpret",
   "THF_Arith"
 ];

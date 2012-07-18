@@ -215,13 +215,14 @@ fun parent_facts thy_ths thy =
 
 fun is_exists (s, _) = (s = @{const_name Ex} orelse s = @{const_name Ex1})
 
-val max_depth = 1
+val term_max_depth = 1
+val type_max_depth = 1
 
 (* TODO: Generate type classes for types? *)
 fun features_of thy (status, th) =
   let val t = Thm.prop_of th in
     thy_name_of (thy_name_of_thm th) ::
-    interesting_terms_types_and_classes max_depth max_depth t
+    interesting_terms_types_and_classes term_max_depth type_max_depth t
     |> not (has_no_lambdas t) ? cons "lambdas"
     |> exists_Const is_exists t ? cons "skolems"
     |> not (is_fo_term thy t) ? cons "ho"
@@ -364,20 +365,15 @@ fun generate_atp_dependencies ctxt (params as {provers, max_facts, ...}) thy
 
 (*** High-level communication with MaSh ***)
 
-fun reset () =
-  ()
+fun reset () = ()
 
-fun can_suggest_facts () =
-  true
+fun can_suggest_facts () = true
 
-fun can_learn_thy thy =
-  true
+fun can_learn_thy thy = true
 
-fun learn_thy thy timeout =
-  ()
+fun learn_thy thy timeout = ()
 
-fun learn_proof thy t ths =
-  ()
+fun learn_proof thy t ths = ()
 
 fun relevant_facts ctxt params prover max_facts
                    ({add, only, ...} : fact_override) hyp_ts concl_t facts =
