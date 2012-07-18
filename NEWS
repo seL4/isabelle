@@ -372,7 +372,6 @@ and affecting 'rat' and 'real'.
   - Made it try "smt" as a fallback if "metis" fails or times out.
   - Added support for the following provers: Alt-Ergo (via Why3 and
     TFF1), iProver, iProver-Eq.
-  - Replaced remote E-SInE with remote Satallax in the default setup.
   - Sped up the minimizer.
   - Added "lam_trans", "uncurry_aliases", and "minimize" options.
   - Renamed "slicing" ("no_slicing") option to "slice" ("dont_slice").
