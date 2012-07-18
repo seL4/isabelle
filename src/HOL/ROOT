@@ -1,0 +1,40 @@
+session HOL! in "." = Pure +
+  description {* Classical Higher-order Logic *}
+  options [document_graph]
+  theories Complex_Main
+  files "document/root.tex" "document/root.bib"
+
+session "HOL-Base"! in "." = Pure +
+  description {* Raw HOL base, with minimal tools *}
+  options [document = false]
+  theories HOL
+
+session "HOL-Plain"! in "." = Pure +
+  description {* HOL side-entry after bootstrap of many tools and packages *}
+  options [document = false]
+  theories Plain
+
+session "HOL-Main"! in "." = Pure +
+  description {* HOL side-entry for Main only, without Complex_Main *}
+  options [document = false]
+  theories Main
+
+session "HOL-Proofs"! in "." = Pure +
+  description {* HOL-Main with proof terms *}
+  options [document = false, proofs = 2, parallel_proofs = false]
+  theories Main
+
+session HOLCF! = HOL +
+  description {*
+    Author:     Franz Regensburger
+    Author:     Brian Huffman
+
+    HOLCF -- a semantic extension of HOL by the LCF logic.
+  *}
+  options [document_graph]
+  theories [document = false]
+    "~~/src/HOL/Library/Nat_Bijection"
+    "~~/src/HOL/Library/Countable"
+  theories Plain_HOLCF Fixrec HOLCF
+  files "document/root.tex"
+
