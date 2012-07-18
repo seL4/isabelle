@@ -81,8 +81,8 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
         val iter_facts =
           Sledgehammer_Filter_Iter.iterative_relevant_facts ctxt params
               prover slack_max_facts NONE hyp_ts concl_t facts
-        val mash_facts = suggested_facts suggs facts
-        val mess = [(iter_facts, SOME (length iter_facts)), (mash_facts, NONE)]
+        val mash_facts = facts |> suggested_facts suggs
+        val mess = [(iter_facts, []), (mash_facts, [])]
         val mesh_facts = mesh_facts slack_max_facts mess
         fun prove ok heading facts =
           let

@@ -26,7 +26,7 @@ sig
   val unescape_metas : string -> string list
   val extract_query : string -> string * string list
   val suggested_facts : string list -> fact list -> fact list
-  val mesh_facts : int -> (fact list * int option) list -> fact list
+  val mesh_facts : int -> (fact list * fact list) list -> fact list
   val is_likely_tautology : Proof.context -> string -> thm -> bool
   val is_too_meta : thm -> bool
   val theory_ord : theory * theory -> order
@@ -51,7 +51,7 @@ sig
   val mash_can_suggest_facts : unit -> bool
   val mash_suggest_facts :
     Proof.context -> params -> string -> int -> term list -> term -> fact list
-    -> fact list
+    -> fact list * fact list
   val mash_learn_thy :
     Proof.context -> params -> theory -> Time.time -> fact list -> string
   val mash_learn_proof :
@@ -125,20 +125,24 @@ fun find_suggested facts sugg =
   find_first (fn (_, th) => Thm.get_name_hint th = sugg) facts
 fun suggested_facts suggs facts = map_filter (find_suggested facts) suggs
 
-fun sum_avg n xs =
-  fold (Integer.add o Integer.mult n) xs 0 div (length xs)
+fun sum_avg _ [] = 1000000000 (* big number *)
+  | sum_avg n xs = fold (Integer.add o Integer.mult n) xs 0 div (length xs)
 
-fun mesh_facts max_facts [(facts, _)] = facts |> take max_facts
+fun mesh_facts max_facts [(selected, unknown)] =
+    take max_facts selected @ take (max_facts - length selected) unknown
   | mesh_facts max_facts mess =
     let
+      val mess = mess |> map (apfst (`length))
       val n = length mess
       val fact_eq = Thm.eq_thm o pairself snd
-      fun score_in fact (facts, def) =
-        case find_index (curry fact_eq fact) facts of
-          ~1 => def
+      fun score_in fact ((sel_len, sels), unks) =
+        case find_index (curry fact_eq fact) sels of
+          ~1 => (case find_index (curry fact_eq fact) unks of
+                   ~1 => SOME sel_len
+                 | _ => NONE)
         | j => SOME j
       fun score_of fact = mess |> map_filter (score_in fact) |> sum_avg n
-      val facts = fold (union fact_eq o take max_facts o fst) mess []
+      val facts = fold (union fact_eq o take max_facts o snd o fst) mess []
     in
       facts |> map (`score_of) |> sort (int_ord o pairself fst) |> map snd
             |> take max_facts
@@ -482,6 +486,9 @@ fun parents_wrt_facts facts fact_graph =
    slack. *)
 fun max_suggs_of max_facts = max_facts + Int.min (200, max_facts)
 
+fun is_fact_in_graph fact_graph (_, th) =
+  can (Graph.get_node fact_graph) (Thm.get_name_hint th)
+
 fun mash_suggest_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
                        concl_t facts =
   let
@@ -490,8 +497,11 @@ fun mash_suggest_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
     val parents = parents_wrt_facts facts fact_graph
     val feats = features_of ctxt prover thy General (concl_t :: hyp_ts)
     val suggs =
-      mash_QUERY ctxt overlord (max_suggs_of max_facts) (parents, feats)
-  in suggested_facts suggs facts end
+      if Graph.is_empty fact_graph then []
+      else mash_QUERY ctxt overlord (max_suggs_of max_facts) (parents, feats)
+    val selected = facts |> suggested_facts suggs
+    val unknown = facts |> filter_out (is_fact_in_graph fact_graph)
+  in (selected, unknown) end
 
 fun add_thys_for thy =
   let fun add comp thy = Symtab.update (Context.theory_name thy, comp) in
@@ -523,8 +533,9 @@ fun mash_learn_thy ctxt ({provers, verbose, overlord, ...} : params) thy timeout
     fun timed_out frac =
       Time.> (Timer.checkRealTimer timer, time_mult frac timeout)
     val {fact_graph, ...} = mash_get ()
-    fun is_old (_, th) = can (Graph.get_node fact_graph) (Thm.get_name_hint th)
-    val new_facts = facts |> filter_out is_old |> sort (thm_ord o pairself snd)
+    val new_facts =
+      facts |> filter_out (is_fact_in_graph fact_graph)
+            |> sort (thm_ord o pairself snd)
   in
     if null new_facts then
       ""
@@ -645,12 +656,10 @@ fun relevant_facts ctxt (params as {fact_filter, timeout, ...}) prover max_facts
       fun iter () =
         iterative_relevant_facts ctxt params prover max_facts NONE hyp_ts
                                  concl_t facts
-        |> (fn facts => (facts, SOME (length facts)))
       fun mash () =
-        (mash_suggest_facts ctxt params prover max_facts hyp_ts concl_t facts,
-         NONE)
+        mash_suggest_facts ctxt params prover max_facts hyp_ts concl_t facts
       val mess =
-        [] |> (if fact_filter <> mashN then cons (iter ()) else I)
+        [] |> (if fact_filter <> mashN then cons (iter (), []) else I)
            |> (if fact_filter <> iterN then cons (mash ()) else I)
     in
       mesh_facts max_facts mess
