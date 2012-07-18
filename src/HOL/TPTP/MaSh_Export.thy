@@ -5,7 +5,7 @@
 header {* MaSh Exporter *}
 
 theory MaSh_Export
-imports ATP_Theory_Export
+imports Complex_Main
 uses "mash_export.ML"
 begin
 
