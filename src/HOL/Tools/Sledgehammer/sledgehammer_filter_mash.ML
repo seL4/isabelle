@@ -15,6 +15,10 @@ sig
   type prover_result = Sledgehammer_Provers.prover_result
 
   val trace : bool Config.T
+  val meshN : string
+  val iterN : string
+  val mashN : string
+  val fact_filters : string list
   val escape_meta : string -> string
   val escape_metas : string list -> string
   val unescape_meta : string -> string
@@ -67,10 +71,17 @@ val trace =
   Attrib.setup_config_bool @{binding sledgehammer_filter_mash_trace} (K false)
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 
-fun mash_dir () =
+val meshN = "mesh"
+val iterN = "iter"
+val mashN = "mash"
+
+val fact_filters = [meshN, iterN, mashN]
+
+fun mash_home () = getenv "MASH_HOME"
+fun mash_state_dir () =
   getenv "ISABELLE_HOME_USER" ^ "/mash"
   |> tap (fn dir => Isabelle_System.mkdir (Path.explode dir))
-fun mash_state_path () = mash_dir () ^ "/state" |> Path.explode
+fun mash_state_path () = mash_state_dir () ^ "/state" |> Path.explode
 
 (*** Isabelle helpers ***)
 
@@ -109,20 +120,21 @@ fun suggested_facts suggs facts = map_filter (find_suggested facts) suggs
 fun sum_avg n xs =
   fold (Integer.add o Integer.mult n) xs 0 div (length xs)
 
-fun mesh_facts max_facts mess =
-  let
-    val n = length mess
-    val fact_eq = Thm.eq_thm o pairself snd
-    fun score_in fact (facts, def) =
-      case find_index (curry fact_eq fact) facts of
-        ~1 => def
-      | j => SOME j
-    fun score_of fact = mess |> map_filter (score_in fact) |> sum_avg n
-    val facts = fold (union fact_eq o take max_facts o fst) mess []
-  in
-    facts |> map (`score_of) |> sort (int_ord o pairself fst) |> map snd
-          |> take max_facts
-  end
+fun mesh_facts max_facts [(facts, _)] = facts |> take max_facts
+  | mesh_facts max_facts mess =
+    let
+      val n = length mess
+      val fact_eq = Thm.eq_thm o pairself snd
+      fun score_in fact (facts, def) =
+        case find_index (curry fact_eq fact) facts of
+          ~1 => def
+        | j => SOME j
+      fun score_of fact = mess |> map_filter (score_in fact) |> sum_avg n
+      val facts = fold (union fact_eq o take max_facts o fst) mess []
+    in
+      facts |> map (`score_of) |> sort (int_ord o pairself fst) |> map snd
+            |> take max_facts
+    end
 
 val thy_feature_prefix = "y_"
 
@@ -319,10 +331,10 @@ fun run_mash ctxt save write_cmds read_preds =
     val pred_file = temp_dir ^ "/mash_preds." ^ serial
     val log_file = temp_dir ^ "/mash_log." ^ serial
     val command =
-      getenv "MASH_HOME" ^ "/mash.py --inputFile " ^ cmd_file ^
-      " --outputDir " ^ mash_dir () ^ " --predictions " ^ pred_file ^
+      mash_home () ^ "/mash.py --quiet --inputFile " ^ cmd_file ^
+      " --outputDir " ^ mash_state_dir () ^ " --predictions " ^ pred_file ^
       " --log " ^ log_file ^ " --numberOfPredictions 1000" ^
-      (if save then " --saveModel" else "") ^ " > /dev/null"
+      (if save then " --saveModel" else "")
     val _ = File.write cmd_path ""
     val _ = write_cmds (File.append cmd_path)
     val _ = trace_msg ctxt (fn () => "  running " ^ command)
@@ -337,7 +349,7 @@ fun str_of_query (access, feats) =
   "? " ^ escape_metas access ^ "; " ^ escape_metas feats
 
 fun mash_RESET ctxt =
-  let val path = mash_dir () |> Path.explode in
+  let val path = mash_state_dir () |> Path.explode in
     trace_msg ctxt (K "MaSh RESET");
     File.fold_dir (fn file => fn () =>
                       File.rm (Path.append path (Path.basic file)))
@@ -355,7 +367,7 @@ fun mash_DEL ctxt facts feats =
       "MaSh DEL " ^ escape_metas facts ^ "; " ^ escape_metas feats)
 
 fun mash_QUERY ctxt (query as (_, feats)) =
-  (trace_msg ctxt (fn () => "MaSh SUGGEST " ^ space_implode " " feats);
+  (trace_msg ctxt (fn () => "MaSh QUERY " ^ space_implode " " feats);
    run_mash ctxt false (fn append => append (str_of_query query))
                  (fn preds => snd (extract_query (List.last (preds ()))))
    handle List.Empty => [])
@@ -509,25 +521,34 @@ fun mash_learn_proof ctxt thy t ths =
         state
     end)
 
-fun relevant_facts ctxt params prover max_facts
+fun relevant_facts ctxt (params as {fact_filter, ...}) prover max_facts
         ({add, only, ...} : fact_override) hyp_ts concl_t facts =
-  if only then
+  if not (subset (op =) (the_list fact_filter, fact_filters)) then
+    error ("Unknown fact filter: " ^ quote (the fact_filter) ^ ".")
+  else if only then
     facts
   else if max_facts <= 0 then
     []
   else
     let
+      val fact_filter =
+        case fact_filter of
+          SOME ff => ff
+        | NONE => if mash_home () = "" then iterN else meshN
       val add_ths = Attrib.eval_thms ctxt add
       fun prepend_facts ths accepts =
         ((facts |> filter (member Thm.eq_thm_prop ths o snd)) @
          (accepts |> filter_out (member Thm.eq_thm_prop ths o snd)))
         |> take max_facts
-      val iter_facts =
+      fun iter () =
         iterative_relevant_facts ctxt params prover max_facts NONE hyp_ts
                                  concl_t facts
-      val mash_facts =
-        facts |> mash_suggest_facts ctxt params prover hyp_ts concl_t
-      val mess = [(iter_facts, SOME (length iter_facts)), (mash_facts, NONE)]
+        |> (fn facts => (facts, SOME (length facts)))
+      fun mash () =
+        (facts |> mash_suggest_facts ctxt params prover hyp_ts concl_t, NONE)
+      val mess =
+        [] |> (if fact_filter <> mashN then cons (iter ()) else I)
+           |> (if fact_filter <> iterN then cons (mash ()) else I)
     in
       mesh_facts max_facts mess
       |> not (null add_ths) ? prepend_facts add_ths

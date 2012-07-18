@@ -84,8 +84,9 @@ val default_default_params =
    ("strict", "false"),
    ("lam_trans", "smart"),
    ("uncurried_aliases", "smart"),
-   ("fact_thresholds", "0.45 0.85"),
+   ("fact_filter", "smart"),
    ("max_facts", "smart"),
+   ("fact_thresholds", "0.45 0.85"),
    ("max_mono_iters", "smart"),
    ("max_new_mono_instances", "smart"),
    ("isar_proof", "false"),
@@ -147,8 +148,8 @@ fun unalias_raw_param (name, value) =
 
 val any_type_enc = type_enc_from_string Strict "erased"
 
-(* "provers =", "type_enc =", and "lam_trans" can be omitted. For the last two,
-   this is a secret feature. *)
+(* "provers =", "type_enc =", "lam_trans =", and "fact_filter =" can be omitted.
+   For the last three, this is a secret feature. *)
 fun normalize_raw_param ctxt =
   unalias_raw_param
   #> (fn (name, value) =>
@@ -161,6 +162,8 @@ fun normalize_raw_param ctxt =
          else if can (trans_lams_from_string ctxt any_type_enc) name andalso
                  null value then
            ("lam_trans", [name])
+         else if member (op =) fact_filters name then
+           ("fact_filter", [name])
          else
            error ("Unknown parameter: " ^ quote name ^ "."))
 
@@ -291,8 +294,9 @@ fun extract_params mode default_params override_params =
     val strict = mode = Auto_Try orelse lookup_bool "strict"
     val lam_trans = lookup_option lookup_string "lam_trans"
     val uncurried_aliases = lookup_option lookup_bool "uncurried_aliases"
-    val fact_thresholds = lookup_real_pair "fact_thresholds"
+    val fact_filter = lookup_option lookup_string "fact_filter"
     val max_facts = lookup_option lookup_int "max_facts"
+    val fact_thresholds = lookup_real_pair "fact_thresholds"
     val max_mono_iters = lookup_option lookup_int "max_mono_iters"
     val max_new_mono_instances =
       lookup_option lookup_int "max_new_mono_instances"
@@ -311,8 +315,8 @@ fun extract_params mode default_params override_params =
     {debug = debug, verbose = verbose, overlord = overlord, blocking = blocking,
      provers = provers, type_enc = type_enc, strict = strict,
      lam_trans = lam_trans, uncurried_aliases = uncurried_aliases,
-     fact_thresholds = fact_thresholds, max_facts = max_facts,
-     max_mono_iters = max_mono_iters,
+     fact_filter = fact_filter, max_facts = max_facts,
+     fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances,  isar_proof = isar_proof,
      isar_shrink_factor = isar_shrink_factor, slice = slice,
      minimize = minimize, timeout = timeout, preplay_timeout = preplay_timeout,

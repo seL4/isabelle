@@ -68,8 +68,8 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
       {debug = debug, verbose = verbose, overlord = overlord, blocking = true,
        provers = provers, type_enc = type_enc, strict = strict,
        lam_trans = lam_trans, uncurried_aliases = uncurried_aliases,
-       fact_thresholds = (1.01, 1.01), max_facts = SOME (length facts),
-       max_mono_iters = max_mono_iters,
+       fact_filter = NONE, max_facts = SOME (length facts),
+       fact_thresholds = (1.01, 1.01), max_mono_iters = max_mono_iters,
        max_new_mono_instances = max_new_mono_instances, isar_proof = isar_proof,
        isar_shrink_factor = isar_shrink_factor, slice = false,
        minimize = SOME false, timeout = timeout,
@@ -225,7 +225,7 @@ fun minimize_facts prover_name (params as {timeout, ...}) silent i n state
 
 fun adjust_reconstructor_params override_params
         ({debug, verbose, overlord, blocking, provers, type_enc, strict,
-         lam_trans, uncurried_aliases, fact_thresholds, max_facts,
+         lam_trans, uncurried_aliases, fact_filter, max_facts, fact_thresholds,
          max_mono_iters, max_new_mono_instances, isar_proof, isar_shrink_factor,
          slice, minimize, timeout, preplay_timeout, expect} : params) =
   let
@@ -241,8 +241,8 @@ fun adjust_reconstructor_params override_params
     {debug = debug, verbose = verbose, overlord = overlord, blocking = blocking,
      provers = provers, type_enc = type_enc, strict = strict,
      lam_trans = lam_trans, uncurried_aliases = uncurried_aliases,
-     max_facts = max_facts, fact_thresholds = fact_thresholds,
-     max_mono_iters = max_mono_iters,
+     fact_filter = fact_filter, max_facts = max_facts,
+     fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances, isar_proof = isar_proof,
      isar_shrink_factor = isar_shrink_factor, slice = slice,
      minimize = minimize, timeout = timeout, preplay_timeout = preplay_timeout,
