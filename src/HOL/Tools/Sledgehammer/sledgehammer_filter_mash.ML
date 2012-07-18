@@ -15,7 +15,8 @@ sig
   type prover_result = Sledgehammer_Provers.prover_result
 
   val fact_name_of : string -> string
-  val all_non_tautological_facts_of : theory -> fact list
+  val all_non_tautological_facts_of :
+    theory -> status Termtab.table -> fact list
   val theory_ord : theory * theory -> order
   val thm_ord : thm * thm -> order
   val thms_by_thy : ('a * thm) list -> (string * thm list) list
@@ -25,9 +26,10 @@ sig
   val isabelle_dependencies_of : string list -> thm -> string list
   val goal_of_thm : theory -> thm -> thm
   val run_prover : Proof.context -> params -> fact list -> thm -> prover_result
-  val generate_accessibility : theory -> bool -> string -> unit
-  val generate_features : theory -> bool -> string -> unit
-  val generate_isa_dependencies : theory -> bool -> string -> unit
+  val generate_accessibility : Proof.context -> theory -> bool -> string -> unit
+  val generate_features : Proof.context -> theory -> bool -> string -> unit
+  val generate_isa_dependencies :
+    Proof.context -> theory -> bool -> string -> unit
   val generate_atp_dependencies :
     Proof.context -> params -> theory -> bool -> string -> unit
   val mash_reset : unit -> unit
@@ -181,8 +183,8 @@ fun is_likely_tautology th =
 fun is_too_meta thy th =
   fastype_of (Object_Logic.atomize_term thy (prop_of th)) <> @{typ bool}
 
-fun all_non_tautological_facts_of thy =
-  all_facts_of thy
+fun all_non_tautological_facts_of thy css_table =
+  all_facts_of thy css_table
   |> filter_out ((is_likely_tautology orf is_too_meta thy) o snd)
 
 fun theory_ord p =
@@ -262,17 +264,18 @@ fun run_prover ctxt (params as {provers, ...}) facts goal =
           Sledgehammer_Provers.Normal (hd provers)
   in prover params (K (K (K ""))) problem end
 
-fun generate_accessibility thy include_thy file_name =
+fun generate_accessibility ctxt thy include_thy file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
+    val css_table = clasimpset_rule_table_of ctxt
     fun do_thm th prevs =
       let
         val s = th ^ ": " ^ space_implode " " prevs ^ "\n"
         val _ = File.append path s
       in [th] end
     val thy_ths =
-      all_non_tautological_facts_of thy
+      all_non_tautological_facts_of thy css_table
       |> not include_thy ? filter_out (has_thy thy o snd)
       |> thms_by_thy
     fun do_thy ths =
@@ -283,12 +286,13 @@ fun generate_accessibility thy include_thy file_name =
       in fold do_thm ths parents; () end
   in List.app (do_thy o snd) thy_ths end
 
-fun generate_features thy include_thy file_name =
+fun generate_features ctxt thy include_thy file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
+    val css_table = clasimpset_rule_table_of ctxt
     val facts =
-      all_non_tautological_facts_of thy
+      all_non_tautological_facts_of thy css_table
       |> not include_thy ? filter_out (has_thy thy o snd)
     fun do_fact ((_, (_, status)), th) =
       let
@@ -298,12 +302,13 @@ fun generate_features thy include_thy file_name =
       in File.append path s end
   in List.app do_fact facts end
 
-fun generate_isa_dependencies thy include_thy file_name =
+fun generate_isa_dependencies ctxt thy include_thy file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
+    val css_table = clasimpset_rule_table_of ctxt
     val ths =
-      all_non_tautological_facts_of thy
+      all_non_tautological_facts_of thy css_table
       |> not include_thy ? filter_out (has_thy thy o snd)
       |> map snd
     val all_names = ths |> map Thm.get_name_hint
@@ -320,8 +325,9 @@ fun generate_atp_dependencies ctxt (params as {provers, max_facts, ...}) thy
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
+    val css_table = clasimpset_rule_table_of ctxt
     val facts =
-      all_non_tautological_facts_of thy
+      all_non_tautological_facts_of thy css_table
       |> not include_thy ? filter_out (has_thy thy o snd)
     val ths = facts |> map snd
     val all_names = ths |> map Thm.get_name_hint

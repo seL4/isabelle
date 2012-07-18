@@ -171,8 +171,11 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
       val {facts = chained_ths, goal, ...} = Proof.goal state
       val (_, hyp_ts, concl_t) = strip_subgoal ctxt goal i
       val ho_atp = exists (Sledgehammer_Provers.is_ho_atp ctxt) provers
+      val reserved = reserved_isar_keyword_table ()
+      val css_table = clasimpset_rule_table_of ctxt
       val facts =
-        nearly_all_facts ctxt ho_atp fact_override chained_ths hyp_ts concl_t
+        nearly_all_facts ctxt ho_atp fact_override reserved css_table
+                         chained_ths hyp_ts concl_t
       val _ = () |> not blocking ? kill_provers
       val _ = case find_first (not o is_prover_supported ctxt) provers of
                 SOME name => error ("No such prover: " ^ name ^ ".")

@@ -459,9 +459,12 @@ fun run_sh prover_name prover type_enc strict max_facts slice lam_trans
         val _ = if is_appropriate_prop concl_t then ()
                 else raise Fail "inappropriate"
         val ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover_name
+        val reserved = Sledgehammer_Util.reserved_isar_keyword_table ()
+        val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
         val facts =
           Sledgehammer_Fact.nearly_all_facts ctxt ho_atp
-              Sledgehammer_Fact.no_fact_override chained_ths hyp_ts concl_t
+              Sledgehammer_Fact.no_fact_override reserved css_table chained_ths
+              hyp_ts concl_t
           |> filter (is_appropriate_prop o prop_of o snd)
           |> Sledgehammer_Filter_MaSh.relevant_facts ctxt params prover_name
                  (the_default default_max_facts max_facts)

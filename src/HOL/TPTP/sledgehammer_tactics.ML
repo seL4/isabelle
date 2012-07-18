@@ -18,29 +18,34 @@ end;
 structure Sledgehammer_Tactics : SLEDGEHAMMER_TACTICS =
 struct
 
+open Sledgehammer_Util
 open Sledgehammer_Fact
+open Sledgehammer_Provers
+open Sledgehammer_Filter_MaSh
+open Sledgehammer_Isar
 
 fun run_prover override_params fact_override i n ctxt goal =
   let
-    val mode = Sledgehammer_Provers.Normal
+    val mode = Normal
     val params as {provers, max_facts, slice, ...} =
-      Sledgehammer_Isar.default_params ctxt override_params
+      default_params ctxt override_params
     val name = hd provers
-    val prover = Sledgehammer_Provers.get_prover ctxt mode name
-    val default_max_facts =
-      Sledgehammer_Provers.default_max_facts_for_prover ctxt slice name
+    val prover = get_prover ctxt mode name
+    val default_max_facts = default_max_facts_for_prover ctxt slice name
     val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal i
-    val ho_atp = exists (Sledgehammer_Provers.is_ho_atp ctxt) provers
+    val ho_atp = exists (is_ho_atp ctxt) provers
+    val reserved = reserved_isar_keyword_table ()
+    val css_table = clasimpset_rule_table_of ctxt
     val facts =
-      Sledgehammer_Fact.nearly_all_facts ctxt ho_atp fact_override []
-                                         hyp_ts concl_t
-      |> Sledgehammer_Filter_MaSh.relevant_facts ctxt params name
+      nearly_all_facts ctxt ho_atp fact_override reserved css_table [] hyp_ts
+                       concl_t
+      |> relevant_facts ctxt params name
              (the_default default_max_facts max_facts) fact_override hyp_ts
              concl_t
     val problem =
       {state = Proof.init ctxt, goal = goal, subgoal = i, subgoal_count = n,
        facts = facts |> map (apfst (apfst (fn name => name ())))
-                     |> map Sledgehammer_Provers.Untranslated_Fact}
+                     |> map Untranslated_Fact}
   in
     (case prover params (K (K (K ""))) problem of
       {outcome = NONE, used_facts, ...} => used_facts |> map fst |> SOME

@@ -9,7 +9,7 @@ signature MASH_EXPORT =
 sig
   type params = Sledgehammer_Provers.params
 
-  val generate_commands : theory -> string -> unit
+  val generate_commands : Proof.context -> theory -> string -> unit
   val generate_iter_suggestions :
     Proof.context -> params -> theory -> int -> string -> unit
 end;
@@ -19,11 +19,12 @@ struct
 
 open Sledgehammer_Filter_MaSh
 
-fun generate_commands thy file_name =
+fun generate_commands ctxt thy file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
-    val facts = all_non_tautological_facts_of thy
+    val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
+    val facts = all_non_tautological_facts_of thy css_table
     val (new_facts, old_facts) =
       facts |> List.partition (has_thy thy o snd)
             |>> sort (thm_ord o pairself snd)
@@ -51,7 +52,8 @@ fun generate_iter_suggestions ctxt (params as {provers, ...}) thy max_relevant
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
-    val facts = all_non_tautological_facts_of thy
+    val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
+    val facts = all_non_tautological_facts_of thy css_table
     val (new_facts, old_facts) =
       facts |> List.partition (has_thy thy o snd)
             |>> sort (thm_ord o pairself snd)

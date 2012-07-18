@@ -28,10 +28,10 @@ sig
     Proof.context -> term list -> term -> (((unit -> string) * 'a) * thm) list
     -> (((unit -> string) * 'a) * thm) list
   val maybe_filter_no_atps : Proof.context -> ('a * thm) list -> ('a * thm) list
-  val all_facts_of : theory -> fact list
+  val all_facts_of : theory -> status Termtab.table -> fact list
   val nearly_all_facts :
-    Proof.context -> bool -> fact_override -> thm list -> term list -> term
-    -> fact list
+    Proof.context -> bool -> fact_override -> unit Symtab.table
+    -> status Termtab.table -> thm list -> term list -> term -> fact list
 end;
 
 structure Sledgehammer_Fact : SLEDGEHAMMER_FACT =
@@ -417,14 +417,14 @@ fun all_facts ctxt ho_atp reserved exporter add_ths chained_ths css_table =
              |> op @
   end
 
-fun all_facts_of thy =
+fun all_facts_of thy css_table =
   let val ctxt = Proof_Context.init_global thy in
-    all_facts ctxt false Symtab.empty true [] []
-              (clasimpset_rule_table_of ctxt)
+    all_facts ctxt false Symtab.empty true [] [] css_table
     |> rev (* try to restore the original order of facts, for MaSh *)
   end
 
-fun nearly_all_facts ctxt ho_atp {add, del, only} chained_ths hyp_ts concl_t =
+fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css_table chained_ths
+                     hyp_ts concl_t =
   if only andalso null add then
     []
   else
@@ -432,8 +432,6 @@ fun nearly_all_facts ctxt ho_atp {add, del, only} chained_ths hyp_ts concl_t =
       val chained_ths =
         chained_ths
         |> maps (fn th => insert Thm.eq_thm_prop (zero_var_indexes th) [th])
-      val reserved = reserved_isar_keyword_table ()
-      val css_table = clasimpset_rule_table_of ctxt
     in
       (if only then
          maps (map (fn ((name, stature), th) => ((K name, stature), th))

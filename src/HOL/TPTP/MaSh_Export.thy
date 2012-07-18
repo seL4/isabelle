@@ -26,21 +26,21 @@ val params = Sledgehammer_Isar.default_params @{context} []
 
 ML {*
 if do_it then
-  generate_accessibility thy false "/tmp/mash_accessibility"
+  generate_accessibility @{context} thy false "/tmp/mash_accessibility"
 else
   ()
 *}
 
 ML {*
 if do_it then
-  generate_features thy false "/tmp/mash_features"
+  generate_features @{context} thy false "/tmp/mash_features"
 else
   ()
 *}
 
 ML {*
 if do_it then
-  generate_isa_dependencies thy false "/tmp/mash_isa_dependencies"
+  generate_isa_dependencies @{context} thy false "/tmp/mash_isa_dependencies"
 else
   ()
 *}
@@ -54,7 +54,7 @@ else
 
 ML {*
 if do_it then
-  generate_commands thy "/tmp/mash_commands"
+  generate_commands @{context} thy "/tmp/mash_commands"
 else
   ()
 *}
