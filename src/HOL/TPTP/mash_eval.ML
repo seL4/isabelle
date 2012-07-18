@@ -16,9 +16,10 @@ end;
 structure MaSh_Eval : MASH_EVAL =
 struct
 
+open Sledgehammer_Fact
 open Sledgehammer_Filter_MaSh
 
-val isarN = "Isa"
+val isarN = "Isar"
 val iterN = "Iter"
 val mashN = "MaSh"
 val meshN = "Mesh"
@@ -34,8 +35,11 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
     val path = file_name |> Path.explode
     val lines = path |> File.read_lines
     val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
-    val facts = all_non_tautological_facts_of thy css_table
-    val all_names = facts |> map (Thm.get_name_hint o snd)
+    val facts = all_facts_of thy css_table
+    val all_names =
+      facts |> map snd
+            |> filter_out (is_likely_tautology orf is_too_meta)
+            |> map Thm.get_name_hint
     val iter_ok = Unsynchronized.ref 0
     val mash_ok = Unsynchronized.ref 0
     val mesh_ok = Unsynchronized.ref 0

@@ -107,15 +107,21 @@ fun monomorphize_term ctxt t =
     handle TYPE _ => @{prop True}
   end
 
+fun all_non_tautological_facts_of thy css_table =
+  Sledgehammer_Fact.all_facts_of thy css_table
+  |> filter_out ((Sledgehammer_Filter_MaSh.is_likely_tautology orf
+                  Sledgehammer_Filter_MaSh.is_too_meta) o snd)
+
 fun generate_atp_inference_file_for_theory ctxt thy format type_enc file_name =
   let
     val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
-    val type_enc = type_enc |> type_enc_from_string Strict
-                            |> adjust_type_enc format
+    val type_enc =
+      type_enc |> type_enc_from_string Strict
+               |> adjust_type_enc format
     val mono = not (is_type_enc_polymorphic type_enc)
     val path = file_name |> Path.explode
     val _ = File.write path ""
-    val facts = Sledgehammer_Fact.all_facts_of thy css_table
+    val facts = all_non_tautological_facts_of thy css_table
     val atp_problem =
       facts
       |> map (fn ((_, loc), th) =>

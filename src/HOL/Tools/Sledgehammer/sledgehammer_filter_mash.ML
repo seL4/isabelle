@@ -26,13 +26,13 @@ sig
   val extract_query : string -> string * string list
   val suggested_facts : string list -> fact list -> fact list
   val mesh_facts : int -> (fact list * int option) list -> fact list
-  val all_non_tautological_facts_of :
-    theory -> status Termtab.table -> fact list
+  val is_likely_tautology : thm -> bool
+  val is_too_meta : thm -> bool
   val theory_ord : theory * theory -> order
   val thm_ord : thm * thm -> order
-  val thy_facts_from_thms : fact list -> string list Symtab.table
+  val thy_map_from_facts : fact list -> (string * string list) list
   val has_thy : theory -> thm -> bool
-  val parent_facts : theory -> string list Symtab.table -> string list
+  val parent_facts : theory -> (string * string list) list -> string list
   val features_of : theory -> status -> term list -> string list
   val isabelle_dependencies_of : string list -> thm -> string list
   val goal_of_thm : theory -> thm -> thm
@@ -49,7 +49,6 @@ sig
   val mash_suggest_facts :
     Proof.context -> params -> string -> term list -> term -> fact list
     -> fact list
-  val mash_can_learn_thy : Proof.context -> theory -> bool
   val mash_learn_thy : Proof.context -> theory -> real -> unit
   val mash_learn_proof : Proof.context -> theory -> term -> thm list -> unit
   val relevant_facts :
@@ -103,14 +102,13 @@ fun unmeta_chars accum [] = String.implode (rev accum)
 
 val escape_meta = String.translate meta_char
 val escape_metas = map escape_meta #> space_implode " "
-val unescape_meta = unmeta_chars [] o String.explode
-val unescape_metas = map unescape_meta o space_explode " "
-
-val explode_suggs =
+val unescape_meta = String.explode #> unmeta_chars []
+val unescape_metas =
   space_explode " " #> filter_out (curry (op =) "") #> map unescape_meta
+
 fun extract_query line =
   case space_explode ":" line of
-    [goal_name, suggs] => (unescape_meta goal_name, explode_suggs suggs)
+    [goal_name, suggs] => (unescape_meta goal_name, unescape_metas suggs)
   | _ => ("", [])
 
 fun find_suggested facts sugg =
@@ -230,37 +228,37 @@ fun is_likely_tautology th =
   null (interesting_terms_types_and_classes 0 ~1 [prop_of th]) andalso
   not (Thm.eq_thm_prop (@{thm ext}, th))
 
-fun is_too_meta thy th =
-  fastype_of (Object_Logic.atomize_term thy (prop_of th)) <> @{typ bool}
-
-fun all_non_tautological_facts_of thy css_table =
-  all_facts_of thy css_table
-  |> filter_out ((is_likely_tautology orf is_too_meta thy) o snd)
+(* ### FIXME: optimize *)
+fun is_too_meta th =
+  fastype_of (Object_Logic.atomize_term (theory_of_thm th) (prop_of th))
+  <> @{typ bool}
 
 fun theory_ord p =
-  if Theory.eq_thy p then EQUAL
-  else if Theory.subthy p then LESS
-  else if Theory.subthy (swap p) then GREATER
-  else EQUAL
+  if Theory.eq_thy p then
+    EQUAL
+  else if Theory.subthy p then
+    LESS
+  else if Theory.subthy (swap p) then
+    GREATER
+  else case int_ord (pairself (length o Theory.ancestors_of) p) of
+    EQUAL => string_ord (pairself Context.theory_name p)
+  | order => order
 
 val thm_ord = theory_ord o pairself theory_of_thm
 
-(* ### FIXME: optimize *)
-fun thy_facts_from_thms ths =
-  ths |> map (snd #> `(theory_of_thm #> Context.theory_name))
-      |> AList.group (op =)
-      |> sort (int_ord o pairself (length o Theory.ancestors_of o theory_of_thm
-                                   o hd o snd))
-      |> map (apsnd (sort (rev_order o thm_ord) #> map Thm.get_name_hint))
-      |> Symtab.make
+fun thy_map_from_facts ths =
+  ths |> sort (thm_ord o swap o pairself snd)
+      |> map (snd #> `(theory_of_thm #> Context.theory_name))
+      |> AList.coalesce (op =)
+      |> map (apsnd (map Thm.get_name_hint))
 
 fun has_thy thy th =
   Context.theory_name thy = Context.theory_name (theory_of_thm th)
 
-fun parent_facts thy thy_facts =
+fun parent_facts thy thy_map =
   let
     fun add_last thy =
-      case Symtab.lookup thy_facts (Context.theory_name thy) of
+      case AList.lookup (op =) thy_map (Context.theory_name thy) of
         SOME (last_fact :: _) => insert (op =) last_fact
       | _ => add_parent thy
     and add_parent thy = fold add_last (Theory.parents_of thy)
@@ -312,10 +310,10 @@ fun run_prover ctxt (params as {provers, ...}) facts goal =
           Sledgehammer_Provers.Normal (hd provers)
   in prover params (K (K (K ""))) problem end
 
-fun accessibility_of thy thy_facts =
-  case Symtab.lookup thy_facts (Context.theory_name thy) of
+fun accessibility_of thy thy_map =
+  case AList.lookup (op =) thy_map (Context.theory_name thy) of
     SOME (fact :: _) => [fact]
-  | _ => parent_facts thy thy_facts
+  | _ => parent_facts thy thy_map
 
 val thy_name_of_fact = hd o Long_Name.explode
 
@@ -376,12 +374,10 @@ fun mash_QUERY ctxt (query as (_, feats)) =
 (*** High-level communication with MaSh ***)
 
 type mash_state =
-  {dirty_thys : unit Symtab.table,
-   thy_facts : string list Symtab.table}
+  {dirty_thys : string list,
+   thy_map : (string * string list) list}
 
-val empty_state =
-  {dirty_thys = Symtab.empty,
-   thy_facts = Symtab.empty}
+val empty_state = {dirty_thys = [], thy_map = []}
 
 local
 
@@ -392,28 +388,25 @@ fun mash_load (state as (true, _)) = state
        case try File.read_lines path of
          SOME (dirty_line :: facts_lines) =>
          let
-           fun dirty_thys_of_line line =
-             Symtab.make (line |> unescape_metas |> map (rpair ()))
            fun add_facts_line line =
              case unescape_metas line of
-               thy :: facts => Symtab.update_new (thy, facts)
+               thy :: facts => cons (thy, facts)
              | _ => I (* shouldn't happen *)
          in
-           {dirty_thys = dirty_thys_of_line dirty_line,
-            thy_facts = fold add_facts_line facts_lines Symtab.empty}
+           {dirty_thys = unescape_metas dirty_line,
+            thy_map = fold_rev add_facts_line facts_lines []}
          end
        | _ => empty_state)
     end
 
-fun mash_save ({dirty_thys, thy_facts} : mash_state) =
+fun mash_save ({dirty_thys, thy_map} : mash_state) =
   let
     val path = mash_state_path ()
-    val dirty_line = (escape_metas (Symtab.keys dirty_thys)) ^ "\n"
+    val dirty_line = escape_metas dirty_thys ^ "\n"
     fun fact_line_for (thy, facts) = escape_metas (thy :: facts) ^ "\n"
   in
     File.write path dirty_line;
-    Symtab.fold (fn thy_fact => fn () =>
-                    File.append path (fact_line_for thy_fact)) thy_facts ()
+    List.app (File.append path o fact_line_for) thy_map
   end
 
 val global_state =
@@ -434,22 +427,19 @@ fun mash_reset ctxt =
 end
 
 fun mash_can_suggest_facts (_ : Proof.context) =
-  not (Symtab.is_empty (#thy_facts (mash_get ())))
+  mash_home () <> "" andalso not (null (#thy_map (mash_get ())))
 
 fun mash_suggest_facts ctxt params prover hyp_ts concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
-    val thy_facts = #thy_facts (mash_get ())
-    val access = accessibility_of thy thy_facts
+    val thy_map = #thy_map (mash_get ())
+    val access = accessibility_of thy thy_map
     val feats = features_of thy General (concl_t :: hyp_ts)
     val suggs = mash_QUERY ctxt (access, feats)
   in suggested_facts suggs facts end
 
-fun mash_can_learn_thy (_ : Proof.context) thy =
-  not (Symtab.defined (#dirty_thys (mash_get ())) (Context.theory_name thy))
-
-fun is_fact_in_thy_facts thy_facts fact =
-  case Symtab.lookup thy_facts (thy_name_of_fact fact) of
+fun is_fact_in_thy_map thy_map fact =
+  case AList.lookup (op =) thy_map (thy_name_of_fact fact) of
     SOME facts => member (op =) facts fact
   | NONE => false
 
@@ -465,20 +455,22 @@ fun zip_facts news [] = news
     else
       new :: old :: zip_facts news olds
 
-fun add_thy_facts_from_thys new old =
-  let
-    fun add_thy (thy, new_facts) =
-      case Symtab.lookup old thy of
-        SOME old_facts => Symtab.update (thy, zip_facts old_facts new_facts)
-      | NONE => Symtab.update_new (thy, new_facts)
-  in old |> Symtab.fold add_thy new end
+fun add_thy_map_from_thys [] old = old
+  | add_thy_map_from_thys new old =
+    let
+      fun add_thy (thy, new_facts) =
+        case AList.lookup (op =) old thy of
+          SOME old_facts =>
+          AList.update (op =) (thy, zip_facts old_facts new_facts)
+        | NONE => cons (thy, new_facts)
+    in old |> fold add_thy new end
 
 fun mash_learn_thy ctxt thy timeout =
   let
     val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
-    val facts = all_non_tautological_facts_of thy css_table
-    val {thy_facts, ...} = mash_get ()
-    fun is_old (_, th) = is_fact_in_thy_facts thy_facts (Thm.get_name_hint th)
+    val facts = all_facts_of thy css_table
+    val {thy_map, ...} = mash_get ()
+    fun is_old (_, th) = is_fact_in_thy_map thy_map (Thm.get_name_hint th)
     val (old_facts, new_facts) =
       facts |> List.partition is_old ||> sort (thm_ord o pairself snd)
   in
@@ -487,7 +479,9 @@ fun mash_learn_thy ctxt thy timeout =
     else
       let
         val ths = facts |> map snd
-        val all_names = ths |> map Thm.get_name_hint
+        val all_names =
+          ths |> filter_out (is_likely_tautology orf is_too_meta)
+              |> map Thm.get_name_hint
         fun do_fact ((_, (_, status)), th) (prevs, upds) =
           let
             val name = Thm.get_name_hint th
@@ -495,27 +489,27 @@ fun mash_learn_thy ctxt thy timeout =
             val deps = isabelle_dependencies_of all_names th
             val upd = (name, prevs, feats, deps)
           in ([name], upd :: upds) end
-        val parents = parent_facts thy thy_facts
+        val parents = parent_facts thy thy_map
         val (_, upds) = (parents, []) |> fold do_fact new_facts
-        val new_thy_facts = new_facts |> thy_facts_from_thms
-        fun trans {dirty_thys, thy_facts} =
+        val new_thy_map = new_facts |> thy_map_from_facts
+        fun trans {dirty_thys, thy_map} =
           (mash_ADD ctxt (rev upds);
            {dirty_thys = dirty_thys,
-            thy_facts = thy_facts |> add_thy_facts_from_thys new_thy_facts})
+            thy_map = thy_map |> add_thy_map_from_thys new_thy_map})
       in mash_map trans end
   end
 
 fun mash_learn_proof ctxt thy t ths =
-  mash_map (fn state as {dirty_thys, thy_facts} =>
+  mash_map (fn state as {dirty_thys, thy_map} =>
     let val deps = ths |> map Thm.get_name_hint in
-      if forall (is_fact_in_thy_facts thy_facts) deps then
+      if forall (is_fact_in_thy_map thy_map) deps then
         let
           val fact = ATP_Util.timestamp () (* should be fairly fresh *)
-          val access = accessibility_of thy thy_facts
+          val access = accessibility_of thy thy_map
           val feats = features_of thy General [t]
         in
           mash_ADD ctxt [(fact, access, feats, deps)];
-          {dirty_thys = dirty_thys, thy_facts = thy_facts}
+          {dirty_thys = dirty_thys, thy_map = thy_map}
         end
       else
         state
@@ -534,7 +528,7 @@ fun relevant_facts ctxt (params as {fact_filter, ...}) prover max_facts
       val fact_filter =
         case fact_filter of
           SOME ff => ff
-        | NONE => if mash_home () = "" then iterN else meshN
+        | NONE => if mash_can_suggest_facts ctxt then meshN else iterN
       val add_ths = Attrib.eval_thms ctxt add
       fun prepend_facts ths accepts =
         ((facts |> filter (member Thm.eq_thm_prop ths o snd)) @

@@ -37,16 +37,16 @@ fun generate_accessibility thy include_thy file_name =
         val s = escape_meta fact ^ ": " ^ escape_metas prevs ^ "\n"
         val _ = File.append path s
       in [fact] end
-    val thy_facts =
-      all_non_tautological_facts_of thy Termtab.empty
+    val thy_map =
+      all_facts_of thy Termtab.empty
       |> not include_thy ? filter_out (has_thy thy o snd)
-      |> thy_facts_from_thms
+      |> thy_map_from_facts
     fun do_thy facts =
       let
         val thy = thy_of_fact thy (hd facts)
-        val parents = parent_facts thy thy_facts
+        val parents = parent_facts thy thy_map
       in fold do_fact facts parents; () end
-  in Symtab.fold (fn (_, facts) => K (do_thy facts)) thy_facts () end
+  in fold_rev (fn (_, facts) => K (do_thy facts)) thy_map () end
 
 fun generate_features ctxt thy include_thy file_name =
   let
@@ -54,7 +54,7 @@ fun generate_features ctxt thy include_thy file_name =
     val _ = File.write path ""
     val css_table = clasimpset_rule_table_of ctxt
     val facts =
-      all_non_tautological_facts_of thy css_table
+      all_facts_of thy css_table
       |> not include_thy ? filter_out (has_thy thy o snd)
     fun do_fact ((_, (_, status)), th) =
       let
@@ -69,10 +69,12 @@ fun generate_isa_dependencies thy include_thy file_name =
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val ths =
-      all_non_tautological_facts_of thy Termtab.empty
+      all_facts_of thy Termtab.empty
       |> not include_thy ? filter_out (has_thy thy o snd)
       |> map snd
-    val all_names = ths |> map Thm.get_name_hint
+    val all_names =
+      ths |> filter_out (is_likely_tautology orf is_too_meta)
+          |> map Thm.get_name_hint
     fun do_thm th =
       let
         val name = Thm.get_name_hint th
@@ -87,10 +89,12 @@ fun generate_atp_dependencies ctxt (params as {provers, max_facts, ...}) thy
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val facts =
-      all_non_tautological_facts_of thy Termtab.empty
+      all_facts_of thy Termtab.empty
       |> not include_thy ? filter_out (has_thy thy o snd)
     val ths = facts |> map snd
-    val all_names = ths |> map Thm.get_name_hint
+    val all_names =
+      ths |> filter_out (is_likely_tautology orf is_too_meta)
+          |> map Thm.get_name_hint
     fun is_dep dep (_, th) = Thm.get_name_hint th = dep
     fun add_isa_dep facts dep accum =
       if exists (is_dep dep) accum then
@@ -133,12 +137,14 @@ fun generate_commands ctxt thy file_name =
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
-    val facts = all_non_tautological_facts_of thy css_table
+    val facts = all_facts_of thy css_table
     val (new_facts, old_facts) =
       facts |> List.partition (has_thy thy o snd)
             |>> sort (thm_ord o pairself snd)
     val ths = facts |> map snd
-    val all_names = ths |> map Thm.get_name_hint
+    val all_names =
+      ths |> filter_out (is_likely_tautology orf is_too_meta)
+          |> map Thm.get_name_hint
     fun do_fact ((_, (_, status)), th) prevs =
       let
         val name = Thm.get_name_hint th
@@ -152,8 +158,8 @@ fun generate_commands ctxt thy file_name =
           escape_metas deps ^ "\n"
         val _ = File.append path (query ^ update)
       in [name] end
-    val thy_facts = old_facts |> thy_facts_from_thms
-    val parents = parent_facts thy thy_facts
+    val thy_map = old_facts |> thy_map_from_facts
+    val parents = parent_facts thy thy_map
   in fold do_fact new_facts parents; () end
 
 fun generate_iter_suggestions ctxt (params as {provers, ...}) thy max_relevant
@@ -162,7 +168,7 @@ fun generate_iter_suggestions ctxt (params as {provers, ...}) thy max_relevant
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
-    val facts = all_non_tautological_facts_of thy css_table
+    val facts = all_facts_of thy css_table
     val (new_facts, old_facts) =
       facts |> List.partition (has_thy thy o snd)
             |>> sort (thm_ord o pairself snd)
