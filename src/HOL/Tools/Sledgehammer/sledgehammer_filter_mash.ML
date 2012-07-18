@@ -125,27 +125,32 @@ fun find_suggested facts sugg =
   find_first (fn (_, th) => Thm.get_name_hint th = sugg) facts
 fun suggested_facts suggs facts = map_filter (find_suggested facts) suggs
 
-fun sum_avg _ [] = 1000000000 (* big number *)
-  | sum_avg n xs = fold (Integer.add o Integer.mult n) xs 0 div (length xs)
+val scale_factor = 1000
+
+fun scaled_powX x = Integer.pow 8 x
+
+fun sum_sq_avg [] = 0
+  | sum_sq_avg xs = fold (Integer.add o scaled_powX) xs 0 div (length xs)
 
 fun mesh_facts max_facts [(selected, unknown)] =
     take max_facts selected @ take (max_facts - length selected) unknown
   | mesh_facts max_facts mess =
     let
       val mess = mess |> map (apfst (`length))
-      val n = length mess
       val fact_eq = Thm.eq_thm o pairself snd
       fun score_in fact ((sel_len, sels), unks) =
         case find_index (curry fact_eq fact) sels of
           ~1 => (case find_index (curry fact_eq fact) unks of
-                   ~1 => SOME sel_len
+                   ~1 => SOME 0
                  | _ => NONE)
-        | j => SOME j
-      fun score_of fact = mess |> map_filter (score_in fact) |> sum_avg n
+        | j => SOME (scale_factor * (sel_len - j) div sel_len)
+      fun score_of fact = mess |> map_filter (score_in fact) |> sum_sq_avg
       val facts = fold (union fact_eq o take max_facts o snd o fst) mess []
     in
-      facts |> map (`score_of) |> sort (int_ord o pairself fst) |> map snd
-            |> take max_facts
+      facts |> map (`score_of) |> sort (int_ord o swap o pairself fst)
+|> tap (List.app (fn (score, (_, th)) => tracing ("score: " ^ string_of_int score ^ " " ^ Thm.get_name_hint th))
+)
+            |> map snd |> take max_facts
     end
 
 val thy_feature_prefix = "y_"
