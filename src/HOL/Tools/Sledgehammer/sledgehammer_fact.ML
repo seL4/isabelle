@@ -204,14 +204,13 @@ fun is_that_fact th =
   andalso exists_subterm (fn Free (s, _) => s = Name.skolem Auto_Bind.thesisN
                            | _ => false) (prop_of th)
 
-fun is_theorem_bad_for_atps ho_atp exporter thm =
+fun is_theorem_bad_for_atps ho_atp thm =
   is_metastrange_theorem thm orelse
-  (not exporter andalso
-   let val t = prop_of thm in
-     is_formula_too_complex ho_atp t orelse exists_type type_has_top_sort t orelse
-     exists_sledgehammer_const t orelse exists_low_level_class_const t orelse
-     is_that_fact thm
-   end)
+  let val t = prop_of thm in
+    is_formula_too_complex ho_atp t orelse exists_type type_has_top_sort t orelse
+    exists_sledgehammer_const t orelse exists_low_level_class_const t orelse
+    is_that_fact thm
+  end
 
 fun hackish_string_for_term ctxt t =
   Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN)
@@ -346,7 +345,7 @@ fun maybe_instantiate_inducts ctxt hyp_ts concl_t =
 fun maybe_filter_no_atps ctxt =
   not (Config.get ctxt ignore_no_atp) ? filter_out (No_ATPs.member ctxt o snd)
 
-fun all_facts ctxt ho_atp reserved exporter add_ths chained_ths css_table =
+fun all_facts ctxt ho_atp reserved add_ths chained_ths css_table =
   let
     val thy = Proof_Context.theory_of ctxt
     val global_facts = Global_Theory.facts_of thy
@@ -363,9 +362,10 @@ fun all_facts ctxt ho_atp reserved exporter add_ths chained_ths css_table =
       Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts)
     fun add_facts global foldx facts =
       foldx (fn (name0, ths) =>
-        if not exporter andalso name0 <> "" andalso
+        if name0 <> "" andalso
            forall (not o member Thm.eq_thm_prop add_ths) ths andalso
            (Facts.is_concealed facts name0 orelse
+            not (can (Proof_Context.get_thms ctxt) name0) orelse
             (not (Config.get ctxt ignore_no_atp) andalso
              is_package_def name0) orelse
             exists (fn s => String.isSuffix s name0)
@@ -385,24 +385,22 @@ fun all_facts ctxt ho_atp reserved exporter add_ths chained_ths css_table =
             #> fold (fn th => fn (j, (multis, unis)) =>
                         (j + 1,
                          if not (member Thm.eq_thm_prop add_ths th) andalso
-                            is_theorem_bad_for_atps ho_atp exporter th then
+                            is_theorem_bad_for_atps ho_atp th then
                            (multis, unis)
                          else
                            let
                              val new =
                                (((fn () =>
-                                 if name0 = "" then
-                                   th |> backquote_thm
-                                 else
-                                   [Facts.extern ctxt facts name0,
-                                    Name_Space.extern ctxt full_space name0,
-                                    name0]
-                                   |> find_first check_thms
-                                   |> (fn SOME name =>
-                                          make_name reserved multi j name
-                                        | NONE => "")),
-                                stature_of_thm global assms chained_ths
-                                               css_table name0 th), th)
+                                     if name0 = "" then
+                                       th |> backquote_thm
+                                     else
+                                       [Facts.extern ctxt facts name0,
+                                        Name_Space.extern ctxt full_space name0]
+                                       |> find_first check_thms
+                                       |> the_default name0
+                                       |> make_name reserved multi j),
+                                  stature_of_thm global assms chained_ths
+                                                 css_table name0 th), th)
                            in
                              if multi then (new :: multis, unis)
                              else (multis, new :: unis)
@@ -419,7 +417,7 @@ fun all_facts ctxt ho_atp reserved exporter add_ths chained_ths css_table =
 
 fun all_facts_of thy css_table =
   let val ctxt = Proof_Context.init_global thy in
-    all_facts ctxt false Symtab.empty true [] [] css_table
+    all_facts ctxt false Symtab.empty [] [] css_table
     |> rev (* try to restore the original order of facts, for MaSh *)
   end
 
@@ -438,7 +436,7 @@ fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css_table chained_ths
                o fact_from_ref ctxt reserved chained_ths css_table) add
        else
          let val (add, del) = pairself (Attrib.eval_thms ctxt) (add, del) in
-           all_facts ctxt ho_atp reserved false add chained_ths css_table
+           all_facts ctxt ho_atp reserved add chained_ths css_table
            |> filter_out (member Thm.eq_thm_prop del o snd)
            |> maybe_filter_no_atps ctxt
          end)

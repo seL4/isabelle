@@ -564,7 +564,7 @@ fun mash_learn_proof ctxt ({provers, overlord, ...} : params) t facts used_ths =
   let
     val thy = Proof_Context.theory_of ctxt
     val prover = hd provers
-    val name = ATP_Util.timestamp () ^ serial_string () (* fresh enough *)
+    val name = ATP_Util.timestamp () ^ " " ^ serial_string () (* fresh enough *)
     val feats = features_of ctxt prover thy General [t]
     val deps = used_ths |> map Thm.get_name_hint
   in
@@ -583,8 +583,7 @@ fun mash_learn_proof ctxt ({provers, overlord, ...} : params) t facts used_ths =
 (* The threshold should be large enough so that MaSh doesn't kick in for Auto
    Sledgehammer and Try. *)
 val min_secs_for_learning = 15
-val short_learn_timeout_factor = 0.2
-val long_learn_timeout_factor = 4.0
+val learn_timeout_factor = 2.0
 
 fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
         max_facts ({add, only, ...} : fact_override) hyp_ts concl_t facts =
@@ -597,16 +596,13 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
   else
     let
       val thy = Proof_Context.theory_of ctxt
-      fun maybe_learn can_suggest =
+      fun maybe_learn () =
         if not learn orelse Async_Manager.has_running_threads MaShN then
           ()
         else if Time.toSeconds timeout >= min_secs_for_learning then
           let
-            val factor =
-              if can_suggest then short_learn_timeout_factor
-              else long_learn_timeout_factor
-            val soft_timeout = time_mult factor timeout
-            val hard_timeout = time_mult 2.0 soft_timeout
+            val soft_timeout = time_mult learn_timeout_factor timeout
+            val hard_timeout = time_mult 4.0 soft_timeout
             val birth_time = Time.now ()
             val death_time = Time.+ (birth_time, hard_timeout)
             val desc = ("machine learner for Sledgehammer", "")
@@ -619,12 +615,10 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
           ()
       val fact_filter =
         case fact_filter of
-          SOME ff =>
-          (if ff <> iterN then maybe_learn (mash_can_suggest_facts ctxt)
-           else (); ff)
+          SOME ff => (() |> ff <> iterN ? maybe_learn; ff)
         | NONE =>
-          if mash_can_suggest_facts ctxt then (maybe_learn true; meshN)
-          else if mash_could_suggest_facts () then (maybe_learn false; iterN)
+          if mash_can_suggest_facts ctxt then (maybe_learn (); meshN)
+          else if mash_could_suggest_facts () then (maybe_learn (); iterN)
           else iterN
       val add_ths = Attrib.eval_thms ctxt add
       fun prepend_facts ths accepts =
