@@ -73,19 +73,19 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
   /*nodes reachable from xs -- topologically sorted for acyclic graphs*/
   def reachable(next: Key => Keys, xs: List[Key]): (List[List[Key]], Keys) =
   {
-    def reach(reached: (List[Key], Keys), x: Key): (List[Key], Keys) =
+    def reach(x: Key, reached: (List[Key], Keys)): (List[Key], Keys) =
     {
       val (rs, r_set) = reached
       if (r_set(x)) reached
       else {
-        val (rs1, r_set1) = ((rs, r_set + x) /: next(x))(reach)
+        val (rs1, r_set1) = (next(x) :\ (rs, r_set + x))(reach)
         (x :: rs1, r_set1)
       }
     }
     def reachs(reached: (List[List[Key]], Keys), x: Key): (List[List[Key]], Keys) =
     {
       val (rss, r_set) = reached
-      val (rs, r_set1) = reach((Nil, r_set), x)
+      val (rs, r_set1) = reach(x, (Nil, r_set))
       (rs :: rss, r_set1)
     }
     ((List.empty[List[Key]], empty_keys) /: xs)(reachs)

@@ -26,7 +26,7 @@ object Build
       object Ordering extends scala.math.Ordering[Key]
       {
         def compare(key1: Key, key2: Key): Int =
-          key2.order compare key1.order match {
+          key1.order compare key2.order match {
             case 0 => key1.name compare key2.name
             case ord => ord
           }
