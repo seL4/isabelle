@@ -15,6 +15,11 @@ in old "ref" manual.
 
 *** Pure ***
 
+* Command "export_code": relative file names are interpreted
+relatively to master directory of current theory rather than
+the rather arbitrary current working directory.
+INCOMPATIBILITY.
+
 * Discontinued obsolete attribute "COMP".  Potential INCOMPATIBILITY,
 use regular rule composition via "OF" / "THEN", or explicit proof
 structure instead.  Note that Isabelle/ML provides a variety of

@@ -373,10 +373,13 @@ fun invoke_serializer thy target some_width module_name args naming program name
 fun assert_module_name "" = error ("Empty module name not allowed.")
   | assert_module_name module_name = module_name;
 
+fun using_master_directory thy = Option.map (Path.append (Thy_Load.master_directory thy));
+
 in
 
 fun export_code_for thy some_path target some_width module_name args =
-  export some_path ooo invoke_serializer thy target some_width module_name args;
+  export (using_master_directory thy some_path)
+  ooo invoke_serializer thy target some_width module_name args;
 
 fun produce_code_for thy target some_width module_name args =
   let
