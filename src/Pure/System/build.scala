@@ -83,8 +83,6 @@ object Build
 
   /* parsing */
 
-  val ROOT_NAME = "ROOT"
-
   private case class Session_Entry(
     name: String,
     reset: Boolean,
@@ -147,18 +145,9 @@ object Build
 
   /* find sessions */
 
-  def find_sessions(more_dirs: List[Path]): Session.Queue =
+  private def sessions_root(dir: Path, root: File, sessions: Session.Queue): Session.Queue =
   {
-    var sessions = Session.Queue.empty
-
-    for {
-      (dir, strict) <- Isabelle_System.components().map((_, false)) ++ more_dirs.map((_, true))
-      root = Isabelle_System.platform_file(dir + Path.basic(ROOT_NAME))
-      _ = (strict && !root.isFile && error("Bad session root file: " + quote(root.toString)))
-      if root.isFile
-      entry <- Parser.parse_entries(root)
-    }
-    {
+    (sessions /: Parser.parse_entries(root))((sessions1, entry) =>
       try {
         if (entry.name == "") error("Bad session name")
 
@@ -169,7 +158,7 @@ object Build
           }
           else
             entry.parent match {
-              case Some(parent_name) if sessions.defined(parent_name) =>
+              case Some(parent_name) if sessions1.defined(parent_name) =>
                 if (entry.reset) entry.name
                 else parent_name + "-" + entry.name
               case _ => error("Bad parent session")
@@ -185,14 +174,52 @@ object Build
         val info = Session.Info(dir + path, entry.description, entry.options,
           entry.theories.map({ case (x, ys) => ys.map(y => (x, y)) }).flatten, entry.files)
 
-        sessions += (key, info, entry.parent)
+        sessions1 + (key, info, entry.parent)
       }
       catch {
         case ERROR(msg) =>
           error(msg + "\nThe error(s) above occurred in session entry " +
             quote(entry.name) + " (file " + quote(root.toString) + ")")
+      })
+  }
+
+  private def sessions_dir(strict: Boolean, dir: Path, sessions: Session.Queue): Session.Queue =
+  {
+    val root = Isabelle_System.platform_file(dir + Path.basic("ROOT"))
+    if (root.isFile) sessions_root(dir, root, sessions)
+    else if (strict) error("Bad session root file: " + quote(root.toString))
+    else sessions
+  }
+
+  private def sessions_catalog(dir: Path, catalog: File, sessions: Session.Queue): Session.Queue =
+  {
+    val dirs = split_lines(Standard_System.read_file(catalog)).filter(_ != "")
+    (sessions /: dirs)((sessions1, dir1) =>
+      try {
+        val dir2 = dir + Path.explode(dir1)
+        if (Isabelle_System.platform_file(dir2).isDirectory) sessions_dir(true, dir2, sessions1)
+        else error("Bad session directory: " + dir2.toString)
       }
+      catch {
+        case ERROR(msg) =>
+          error(msg + "\nThe error(s) above occurred in session catalog " + quote(catalog.toString))
+      })
+  }
+
+  def find_sessions(more_dirs: List[Path]): Session.Queue =
+  {
+    var sessions = Session.Queue.empty
+
+    for (dir <- Isabelle_System.components()) {
+      sessions = sessions_dir(false, dir, sessions)
+
+      val catalog = Isabelle_System.platform_file(dir + Path.explode("etc/sessions"))
+      if (catalog.isFile)
+        sessions = sessions_catalog(dir, catalog, sessions)
     }
+
+    for (dir <- more_dirs) sessions = sessions_dir(true, dir, sessions)
+
     sessions
   }
 
