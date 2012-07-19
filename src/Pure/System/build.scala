@@ -162,16 +162,6 @@ object Build
 
   /** command line entry point **/
 
-  private object Bool
-  {
-    def unapply(s: String): Option[Boolean] =
-      s match {
-        case "true" => Some(true)
-        case "false" => Some(false)
-        case _ => None
-      }
-  }
-
   private object Chunks
   {
     private def chunks(list: List[String]): List[List[String]] =
@@ -189,7 +179,10 @@ object Build
     val rc =
       try {
         args.toList match {
-          case Bool(all_sessions) :: Bool(build_images) :: Bool(list_only) ::
+          case
+            Properties.Value.Boolean(all_sessions) ::
+            Properties.Value.Boolean(build_images) ::
+            Properties.Value.Boolean(list_only) ::
             Chunks(more_dirs, options, sessions) =>
               build(all_sessions, build_images, list_only,
                 more_dirs.map(Path.explode), options, sessions)
