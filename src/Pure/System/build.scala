@@ -193,7 +193,9 @@ object Build
 
   private def sessions_catalog(dir: Path, catalog: File, sessions: Session.Queue): Session.Queue =
   {
-    val dirs = split_lines(Standard_System.read_file(catalog)).filter(_ != "")
+    val dirs =
+      split_lines(Standard_System.read_file(catalog)).
+        filterNot(line => line == "" || line.startsWith("#"))
     (sessions /: dirs)((sessions1, dir1) =>
       try {
         val dir2 = dir + Path.explode(dir1)
