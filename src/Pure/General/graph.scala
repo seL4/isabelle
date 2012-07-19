@@ -14,9 +14,9 @@ import scala.annotation.tailrec
 
 object Graph
 {
-  class Duplicate[Key](x: Key) extends Exception
-  class Undefined[Key](x: Key) extends Exception
-  class Cycles[Key](cycles: List[List[Key]]) extends Exception
+  class Duplicate[Key](val key: Key) extends Exception
+  class Undefined[Key](val key: Key) extends Exception
+  class Cycles[Key](val cycles: List[List[Key]]) extends Exception
 
   def empty[Key, A](implicit ord: Ordering[Key]): Graph[Key, A] =
     new Graph[Key, A](SortedMap.empty(ord))
@@ -209,7 +209,7 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
       }
     }
 
-  def add_deps_cyclic(y: Key, xs: List[Key]): Graph[Key, A] =
+  def add_deps_acyclic(y: Key, xs: List[Key]): Graph[Key, A] =
     (this /: xs)(_.add_edge_acyclic(_, y))
 
   def topological_order: List[Key] = all_succs(minimals)
