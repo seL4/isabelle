@@ -159,40 +159,22 @@ object Build
   }
 
 
-
-  /** command line entry point **/
-
-  private object Chunks
-  {
-    private def chunks(list: List[String]): List[List[String]] =
-      list.indexWhere(_ == "\n") match {
-        case -1 => List(list)
-        case i =>
-          val (chunk, rest) = list.splitAt(i)
-          chunk :: chunks(rest.tail)
-      }
-    def unapplySeq(list: List[String]): Option[List[List[String]]] = Some(chunks(list))
-  }
+  /* command line entry point */
 
   def main(args: Array[String])
   {
-    val rc =
-      try {
-        args.toList match {
-          case
-            Properties.Value.Boolean(all_sessions) ::
-            Properties.Value.Boolean(build_images) ::
-            Properties.Value.Boolean(list_only) ::
-            Chunks(more_dirs, options, sessions) =>
-              build(all_sessions, build_images, list_only,
-                more_dirs.map(Path.explode), options, sessions)
-          case _ => error("Bad arguments:\n" + cat_lines(args))
-        }
+    Command_Line.tool {
+      args.toList match {
+        case
+          Properties.Value.Boolean(all_sessions) ::
+          Properties.Value.Boolean(build_images) ::
+          Properties.Value.Boolean(list_only) ::
+          Command_Line.Chunks(more_dirs, options, sessions) =>
+            build(all_sessions, build_images, list_only,
+              more_dirs.map(Path.explode), options, sessions)
+        case _ => error("Bad arguments:\n" + cat_lines(args))
       }
-      catch {
-        case exn: Throwable => java.lang.System.err.println(Exn.message(exn)); 2
-      }
-    sys.exit(rc)
+    }
   }
 }
 
