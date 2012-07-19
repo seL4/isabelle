@@ -245,7 +245,6 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/abel_cancel.ML \
   Tools/arith_data.ML \
   Tools/cnf_funcs.ML \
-  Tools/dseq.ML \
   Tools/enriched_type.ML \
   Tools/inductive.ML \
   Tools/inductive_realizer.ML \

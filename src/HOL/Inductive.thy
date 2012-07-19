@@ -12,7 +12,6 @@ keywords
   "rep_datatype" :: thy_goal and
   "primrec" :: thy_decl
 uses
-  "Tools/dseq.ML"
   ("Tools/inductive.ML")
   ("Tools/Datatype/datatype_aux.ML")
   ("Tools/Datatype/datatype_prop.ML")
