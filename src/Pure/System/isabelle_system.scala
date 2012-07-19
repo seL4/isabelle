@@ -160,22 +160,26 @@ object Isabelle_System
 
   /* plain execute */
 
-  def execute(redirect: Boolean, args: String*): Process =
+  def execute_env(cwd: File, env: Map[String, String], redirect: Boolean, args: String*): Process =
   {
     val cmdline =
       if (Platform.is_windows) List(standard_system.platform_root + "\\bin\\env.exe") ++ args
       else args
-    Standard_System.raw_execute(null, settings, redirect, cmdline: _*)
+    val env1 = if (env == null) settings else settings ++ env
+    Standard_System.raw_execute(cwd, env1, redirect, cmdline: _*)
   }
+
+  def execute(redirect: Boolean, args: String*): Process =
+    execute_env(null, null, redirect, args: _*)
 
 
   /* managed process */
 
-  class Managed_Process(redirect: Boolean, args: String*)
+  class Managed_Process(cwd: File, env: Map[String, String], redirect: Boolean, args: String*)
   {
     private val params =
       List(standard_path(Path.explode("~~/lib/scripts/process")), "group", "-", "no_script")
-    private val proc = execute(redirect, (params ++ args):_*)
+    private val proc = execute_env(cwd, env, redirect, (params ++ args):_*)
 
 
     // channels
@@ -238,11 +242,11 @@ object Isabelle_System
 
   /* bash */
 
-  def bash(script: String): (String, String, Int) =
+  def bash_env(cwd: File, env: Map[String, String], script: String): (String, String, Int) =
   {
     Standard_System.with_tmp_file("isabelle_script") { script_file =>
       Standard_System.write_file(script_file, script)
-      val proc = new Managed_Process(false, "bash", posix_path(script_file.getPath))
+      val proc = new Managed_Process(cwd, env, false, "bash", posix_path(script_file.getPath))
 
       proc.stdin.close
       val stdout = Simple_Thread.future("bash_stdout") { Standard_System.slurp(proc.stdout) }
@@ -254,6 +258,8 @@ object Isabelle_System
       (stdout.join, stderr.join, rc)
     }
   }
+
+  def bash(script: String): (String, String, Int) = bash_env(null, null, script)
 
 
   /* system tools */
