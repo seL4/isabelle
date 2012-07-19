@@ -40,6 +40,7 @@ declare -a SOURCES=(
   PIDE/xml.scala
   PIDE/yxml.scala
   System/build.scala
+  System/command_line.scala
   System/event_bus.scala
   System/gui_setup.scala
   System/invoke_scala.scala

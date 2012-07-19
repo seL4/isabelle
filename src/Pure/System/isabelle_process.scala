@@ -137,11 +137,11 @@ class Isabelle_Process(
       val cmdline =
         Isabelle_System.getenv_strict("ISABELLE_PROCESS") ::
           (system_channel.isabelle_args ::: args)
-      new Isabelle_System.Managed_Process(false, cmdline: _*)
+      new Isabelle_System.Managed_Process(null, null, false, cmdline: _*)
     }
     catch { case e: IOException => system_channel.accepted(); throw(e) }
 
-  val process_result =
+  val (_, process_result) =
     Simple_Thread.future("process_result") { process.join }
 
   private def terminate_process()

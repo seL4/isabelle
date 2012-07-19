@@ -144,7 +144,7 @@ fun reachable next xs =
   let
     fun reach x (rs, R) =
       if Keys.member R x then (rs, R)
-      else Keys.fold reach (next x) (rs, Keys.insert x R) |>> cons x;
+      else Keys.fold_rev reach (next x) (rs, Keys.insert x R) |>> cons x;
     fun reachs x (rss, R) =
       reach x ([], R) |>> (fn rs => rs :: rss);
   in fold reachs xs ([], Keys.empty) end;

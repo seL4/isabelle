@@ -130,7 +130,7 @@ object Library
 
   /* simple dialogs */
 
-  def scrollable_text(txt: String, width: Int = 76, editable: Boolean = false): ScrollPane =
+  def scrollable_text(txt: String, width: Int = 80, editable: Boolean = false): ScrollPane =
   {
     val text = new TextArea(txt)
     if (width > 0) text.columns = width

@@ -14,9 +14,9 @@ import scala.annotation.tailrec
 
 object Graph
 {
-  class Duplicate[Key](x: Key) extends Exception
-  class Undefined[Key](x: Key) extends Exception
-  class Cycles[Key](cycles: List[List[Key]]) extends Exception
+  class Duplicate[Key](val key: Key) extends Exception
+  class Undefined[Key](val key: Key) extends Exception
+  class Cycles[Key](val cycles: List[List[Key]]) extends Exception
 
   def empty[Key, A](implicit ord: Ordering[Key]): Graph[Key, A] =
     new Graph[Key, A](SortedMap.empty(ord))
@@ -73,19 +73,19 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
   /*nodes reachable from xs -- topologically sorted for acyclic graphs*/
   def reachable(next: Key => Keys, xs: List[Key]): (List[List[Key]], Keys) =
   {
-    def reach(reached: (List[Key], Keys), x: Key): (List[Key], Keys) =
+    def reach(x: Key, reached: (List[Key], Keys)): (List[Key], Keys) =
     {
       val (rs, r_set) = reached
       if (r_set(x)) reached
       else {
-        val (rs1, r_set1) = ((rs, r_set + x) /: next(x))(reach)
+        val (rs1, r_set1) = (next(x) :\ (rs, r_set + x))(reach)
         (x :: rs1, r_set1)
       }
     }
     def reachs(reached: (List[List[Key]], Keys), x: Key): (List[List[Key]], Keys) =
     {
       val (rss, r_set) = reached
-      val (rs, r_set1) = reach((Nil, r_set), x)
+      val (rs, r_set1) = reach(x, (Nil, r_set))
       (rs :: rss, r_set1)
     }
     ((List.empty[List[Key]], empty_keys) /: xs)(reachs)
@@ -209,7 +209,7 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
       }
     }
 
-  def add_deps_cyclic(y: Key, xs: List[Key]): Graph[Key, A] =
+  def add_deps_acyclic(y: Key, xs: List[Key]): Graph[Key, A] =
     (this /: xs)(_.add_edge_acyclic(_, y))
 
   def topological_order: List[Key] = all_succs(minimals)
