@@ -249,8 +249,8 @@ object Isabelle_System
       val proc = new Managed_Process(cwd, env, false, "bash", posix_path(script_file.getPath))
 
       proc.stdin.close
-      val stdout = Simple_Thread.future("bash_stdout") { Standard_System.slurp(proc.stdout) }
-      val stderr = Simple_Thread.future("bash_stderr") { Standard_System.slurp(proc.stderr) }
+      val (_, stdout) = Simple_Thread.future("bash_stdout") { Standard_System.slurp(proc.stdout) }
+      val (_, stderr) = Simple_Thread.future("bash_stderr") { Standard_System.slurp(proc.stderr) }
 
       val rc =
         try { proc.join }
@@ -260,6 +260,17 @@ object Isabelle_System
   }
 
   def bash(script: String): (String, String, Int) = bash_env(null, null, script)
+
+  class Bash_Job(cwd: File, env: Map[String, String], script: String)
+  {
+    private val (thread, result) = Simple_Thread.future("bash_job") { bash_env(cwd, env, script) }
+
+    def terminate: Unit = thread.interrupt
+    def is_finished: Boolean = result.is_finished
+    def join: (String, String, Int) = result.join
+
+    override def toString: String = if (is_finished) join._3.toString else "<running>"
+  }
 
 
   /* system tools */

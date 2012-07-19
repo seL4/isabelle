@@ -141,7 +141,7 @@ class Isabelle_Process(
     }
     catch { case e: IOException => system_channel.accepted(); throw(e) }
 
-  val process_result =
+  val (_, process_result) =
     Simple_Thread.future("process_result") { process.join }
 
   private def terminate_process()

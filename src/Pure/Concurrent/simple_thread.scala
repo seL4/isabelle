@@ -30,11 +30,11 @@ object Simple_Thread
 
   /* future result via thread */
 
-  def future[A](name: String = "", daemon: Boolean = false)(body: => A): Future[A] =
+  def future[A](name: String = "", daemon: Boolean = false)(body: => A): (Thread, Future[A]) =
   {
     val result = Future.promise[A]
-    fork(name, daemon) { result.fulfill_result(Exn.capture(body)) }
-    result
+    val thread = fork(name, daemon) { result.fulfill_result(Exn.capture(body)) }
+    (thread, result)
   }
 
 
