@@ -123,6 +123,27 @@ object Standard_System
     finally { writer.close }
   }
 
+  def eq_file(file1: File, file2: File): Boolean =
+    file1.getCanonicalPath == file2.getCanonicalPath  // FIXME prefer java.nio.file.Files.isSameFile of Java 1.7
+
+  def copy_file(src: File, dst: File) =
+    if (!eq_file(src, dst)) {
+      val in = new FileInputStream(src)
+      try {
+        val out = new FileOutputStream(dst)
+        try {
+          val buf = new Array[Byte](65536)
+          var m = 0
+          do {
+            m = in.read(buf, 0, buf.length)
+            if (m != -1) out.write(buf, 0, m)
+          } while (m != -1)
+        }
+        finally { out.close }
+      }
+      finally { in.close }
+    }
+
   def with_tmp_file[A](prefix: String)(body: File => A): A =
   {
     val file = File.createTempFile(prefix, null)
