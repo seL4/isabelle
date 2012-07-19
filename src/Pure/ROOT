@@ -1,0 +1,24 @@
+session RAW in "." =
+  files
+    "General/exn.ML"
+    "ML-Systems/compiler_polyml.ML"
+    "ML-Systems/ml_name_space.ML"
+    "ML-Systems/ml_pretty.ML"
+    "ML-Systems/ml_system.ML"
+    "ML-Systems/multithreading.ML"
+    "ML-Systems/multithreading_polyml.ML"
+    "ML-Systems/overloading_smlnj.ML"
+    "ML-Systems/polyml.ML"
+    "ML-Systems/pp_dummy.ML"
+    "ML-Systems/proper_int.ML"
+    "ML-Systems/single_assignment.ML"
+    "ML-Systems/single_assignment_polyml.ML"
+    "ML-Systems/smlnj.ML"
+    "ML-Systems/thread_dummy.ML"
+    "ML-Systems/universal.ML"
+    "ML-Systems/unsynchronized.ML"
+    "ML-Systems/use_context.ML"
+
+session Pure in "." =
+  files "ROOT.ML"  (* FIXME *)
+

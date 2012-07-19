@@ -22,14 +22,11 @@ object Build
   case class Session_Info(
     dir: Path,
     name: String,
-    parent: String,
+    parent: Option[String],
     description: String,
     options: Options,
     theories: List[(Options, String)],
     files: List[String])
-
-  private val pure_info =
-    Session_Info(Path.current, "Pure", "", "", Nil, List((Nil, "Pure")), Nil)
 
 
   /* parsing */
@@ -40,7 +37,7 @@ object Build
     name: String,
     reset: Boolean,
     path: Option[String],
-    parent: String,
+    parent: Option[String],
     description: String,
     options: Options,
     theories: List[(Options, List[String])],
@@ -75,10 +72,10 @@ object Build
       ((keyword(SESSION) ~! session_name) ^^ { case _ ~ x => x }) ~
         (keyword("!") ^^^ true | success(false)) ~
         (opt(keyword(IN) ~! string ^^ { case _ ~ x => x })) ~
-        (keyword("=") ~> session_name <~ keyword("+")) ~
+        (keyword("=") ~> opt(session_name <~ keyword("+"))) ~
         (keyword(DESCRIPTION) ~! text ^^ { case _ ~ x => x } | success("")) ~
         (keyword(OPTIONS) ~! options ^^ { case _ ~ x => x } | success(Nil)) ~
-        rep1(theories) ~
+        rep(theories) ~
         (keyword(FILES) ~! rep1(path) ^^ { case _ ~ x => x } | success(Nil)) ^^
           { case a ~ b ~ c ~ d ~ e ~ f ~ g ~ h => Session_Entry(a, b, c, d, e, f, g, h) }
     }
@@ -99,7 +96,6 @@ object Build
   def find_sessions(more_dirs: List[Path]): List[Session_Info] =
   {
     val infos = new mutable.ListBuffer[Session_Info]
-    infos += pure_info
 
     for {
       (dir, strict) <- Isabelle_System.components().map((_, false)) ++ more_dirs.map((_, true))
@@ -110,16 +106,23 @@ object Build
     }
     {
       try {
-        val parent =
-          infos.find(_.name == entry.parent) getOrElse
-           error("Unknown parent session: " + quote(entry.parent))
-        val full_name =
-          if (entry.reset) entry.name
-          else parent.name + "-" + entry.name
-
         if (entry.name == "") error("Bad session name")
-        if (infos.exists(_.name == full_name))
-          error("Duplicate session name: " + quote(full_name))
+
+        val full_name =
+          if (entry.name == "RAW" || entry.name == "Pure") {
+            if (entry.parent.isDefined) error("Illegal parent session")
+            else entry.name
+          }
+          else
+            entry.parent match {
+              case None => error("Missing parent session")
+              case Some(parent) =>
+                val parent_info =
+                  infos.find(_.name == parent) getOrElse
+                   error("Undefined parent session: " + quote(parent))
+                if (entry.reset) entry.name
+                else parent_info.name + "-" + entry.name
+            }
 
         val path =
           entry.path match {
@@ -131,6 +134,8 @@ object Build
           Session_Info(dir + path, full_name, entry.parent, entry.description,
             entry.options, thys, entry.files)
 
+        if (infos.exists(_.name == full_name))
+          error("Duplicate session: " + quote(full_name))
         infos += info
       }
       catch {
