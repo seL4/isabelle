@@ -40,15 +40,10 @@ object Build
 
     sealed case class Info(
       dir: Path,
-      key: Key,
-      parent: Option[String],
       description: String,
       options: Options,
       theories: List[(Options, String)],
       files: List[String])
-    {
-      def name: String = key.name
-    }
 
     object Queue
     {
@@ -59,19 +54,17 @@ object Build
       keys: Map[String, Key] = Map.empty,
       graph: Graph[Key, Info] = Graph.empty(Key.Ordering))
     {
-      def lookup(name: String): Option[Info] =
-        keys.get(name).map(graph.get_node(_))
+      def defined(name: String): Boolean = keys.isDefinedAt(name)
 
-      def + (info: Info): Queue =
+      def + (key: Key, info: Info, parent: Option[String]): Queue =
       {
         val keys1 =
-          if (keys.isDefinedAt(info.name)) error("Duplicate session: " + quote(info.name))
-          else keys + (info.name -> info.key)
+          if (defined(key.name)) error("Duplicate session: " + quote(key.name))
+          else keys + (key.name -> key)
 
         val graph1 =
           try {
-            graph.new_node(info.key, info).
-              add_deps_acyclic(info.key, info.parent.toList.map(keys(_)))
+            graph.new_node(key, info).add_deps_acyclic(key, parent.toList.map(keys(_)))
           }
           catch {
             case exn: Graph.Cycles[_] =>
@@ -82,8 +75,8 @@ object Build
         new Queue(keys1, graph1)
       }
 
-      def topological_order: List[Info] =
-        graph.topological_order.map(graph.get_node(_))
+      def topological_order: List[(Key, Info)] =
+        graph.topological_order.map(key => (key, graph.get_node(key)))
     }
   }
 
@@ -176,13 +169,10 @@ object Build
           }
           else
             entry.parent match {
-              case None => error("Missing parent session")
-              case Some(parent) =>
-                val parent_info =
-                  sessions.lookup(parent) getOrElse
-                    error("Undefined parent session: " + quote(parent))
+              case Some(parent_name) if sessions.defined(parent_name) =>
                 if (entry.reset) entry.name
-                else parent_info.name + "-" + entry.name
+                else parent_name + "-" + entry.name
+              case _ => error("Bad parent session")
             }
 
         val path =
@@ -190,12 +180,12 @@ object Build
             case Some(p) => Path.explode(p)
             case None => Path.basic(entry.name)
           }
-        val thys = entry.theories.map({ case (x, ys) => ys.map(y => (x, y)) }).flatten
-        val info =
-          Session.Info(dir + path, Session.Key(full_name, entry.order),
-            entry.parent, entry.description, entry.options, thys, entry.files)
 
-        sessions += info
+        val key = Session.Key(full_name, entry.order)
+        val info = Session.Info(dir + path, entry.description, entry.options,
+          entry.theories.map({ case (x, ys) => ys.map(y => (x, y)) }).flatten, entry.files)
+
+        sessions += (key, info, entry.parent)
       }
       catch {
         case ERROR(msg) =>
@@ -217,8 +207,8 @@ object Build
     println("options = " + options.toString)
     println("sessions = " + sessions.toString)
 
-    for (info <- find_sessions(more_dirs).topological_order)
-      println(info.name + " in " + info.dir)
+    for ((key, info) <- find_sessions(more_dirs).topological_order)
+      println(key.name + " in " + info.dir)
 
     0
   }
