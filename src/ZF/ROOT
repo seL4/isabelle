@@ -1,4 +1,4 @@
-session ZF! in "." = FOL +
+session ZF! (10) in "." = FOL +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge

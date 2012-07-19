@@ -19,14 +19,73 @@ object Build
 
   type Options = List[(String, Option[String])]
 
-  case class Session_Info(
-    dir: Path,
-    name: String,
-    parent: Option[String],
-    description: String,
-    options: Options,
-    theories: List[(Options, String)],
-    files: List[String])
+  object Session
+  {
+    object Key
+    {
+      object Ordering extends scala.math.Ordering[Key]
+      {
+        def compare(key1: Key, key2: Key): Int =
+          key2.order compare key1.order match {
+            case 0 => key1.name compare key2.name
+            case ord => ord
+          }
+      }
+    }
+
+    sealed case class Key(name: String, order: Int)
+    {
+      override def toString: String = name
+    }
+
+    sealed case class Info(
+      dir: Path,
+      key: Key,
+      parent: Option[String],
+      description: String,
+      options: Options,
+      theories: List[(Options, String)],
+      files: List[String])
+    {
+      def name: String = key.name
+    }
+
+    object Queue
+    {
+      val empty: Queue = new Queue()
+    }
+
+    final class Queue private(
+      keys: Map[String, Key] = Map.empty,
+      graph: Graph[Key, Info] = Graph.empty(Key.Ordering))
+    {
+      def lookup(name: String): Option[Info] =
+        keys.get(name).map(graph.get_node(_))
+
+      def + (info: Info): Queue =
+      {
+        val keys1 =
+          if (keys.isDefinedAt(info.name)) error("Duplicate session: " + quote(info.name))
+          else keys + (info.name -> info.key)
+
+        val graph1 =
+          try {
+            graph.new_node(info.key, info).
+              add_deps_acyclic(info.key, info.parent.toList.map(keys(_)))
+          }
+          catch {
+            case exn: Graph.Cycles[_] =>
+              error(cat_lines(exn.cycles.map(cycle =>
+                "Cyclic session dependency of " +
+                  cycle.map(key => quote(key.toString)).mkString(" via "))))
+          }
+        new Queue(keys1, graph1)
+      }
+
+      def topological_order: List[Info] =
+        graph.topological_order.map(graph.get_node(_))
+    }
+  }
 
 
   /* parsing */
@@ -36,6 +95,7 @@ object Build
   private case class Session_Entry(
     name: String,
     reset: Boolean,
+    order: Int,
     path: Option[String],
     parent: Option[String],
     description: String,
@@ -71,13 +131,14 @@ object Build
 
       ((keyword(SESSION) ~! session_name) ^^ { case _ ~ x => x }) ~
         (keyword("!") ^^^ true | success(false)) ~
+        (keyword("(") ~! (nat <~ keyword(")")) ^^ { case _ ~ x => x } | success(Integer.MAX_VALUE)) ~
         (opt(keyword(IN) ~! string ^^ { case _ ~ x => x })) ~
         (keyword("=") ~> opt(session_name <~ keyword("+"))) ~
         (keyword(DESCRIPTION) ~! text ^^ { case _ ~ x => x } | success("")) ~
         (keyword(OPTIONS) ~! options ^^ { case _ ~ x => x } | success(Nil)) ~
         rep(theories) ~
         (keyword(FILES) ~! rep1(path) ^^ { case _ ~ x => x } | success(Nil)) ^^
-          { case a ~ b ~ c ~ d ~ e ~ f ~ g ~ h => Session_Entry(a, b, c, d, e, f, g, h) }
+          { case a ~ b ~ c ~ d ~ e ~ f ~ g ~ h ~ i => Session_Entry(a, b, c, d, e, f, g, h, i) }
     }
 
     def parse_entries(root: File): List[Session_Entry] =
@@ -93,9 +154,9 @@ object Build
 
   /* find sessions */
 
-  def find_sessions(more_dirs: List[Path]): List[Session_Info] =
+  def find_sessions(more_dirs: List[Path]): Session.Queue =
   {
-    val infos = new mutable.ListBuffer[Session_Info]
+    var sessions = Session.Queue.empty
 
     for {
       (dir, strict) <- Isabelle_System.components().map((_, false)) ++ more_dirs.map((_, true))
@@ -118,8 +179,8 @@ object Build
               case None => error("Missing parent session")
               case Some(parent) =>
                 val parent_info =
-                  infos.find(_.name == parent) getOrElse
-                   error("Undefined parent session: " + quote(parent))
+                  sessions.lookup(parent) getOrElse
+                    error("Undefined parent session: " + quote(parent))
                 if (entry.reset) entry.name
                 else parent_info.name + "-" + entry.name
             }
@@ -131,12 +192,10 @@ object Build
           }
         val thys = entry.theories.map({ case (x, ys) => ys.map(y => (x, y)) }).flatten
         val info =
-          Session_Info(dir + path, full_name, entry.parent, entry.description,
-            entry.options, thys, entry.files)
+          Session.Info(dir + path, Session.Key(full_name, entry.order),
+            entry.parent, entry.description, entry.options, thys, entry.files)
 
-        if (infos.exists(_.name == full_name))
-          error("Duplicate session: " + quote(full_name))
-        infos += info
+        sessions += info
       }
       catch {
         case ERROR(msg) =>
@@ -144,7 +203,7 @@ object Build
             quote(entry.name) + " (file " + quote(root.toString) + ")")
       }
     }
-    infos.toList
+    sessions
   }
 
 
@@ -158,7 +217,8 @@ object Build
     println("options = " + options.toString)
     println("sessions = " + sessions.toString)
 
-    find_sessions(more_dirs) foreach println
+    for (info <- find_sessions(more_dirs).topological_order)
+      println(info.name + " in " + info.dir)
 
     0
   }
