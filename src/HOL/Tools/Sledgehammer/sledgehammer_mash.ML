@@ -63,7 +63,8 @@ sig
   val mash_learn_facts :
     Proof.context -> params -> string -> bool -> bool -> Time.time -> fact list
     -> string
-  val mash_learn : Proof.context -> params -> bool -> unit
+  val mash_learn :
+    Proof.context -> params -> fact_override -> thm list -> bool -> unit
   val relevant_facts :
     Proof.context -> params -> string -> int -> fact_override -> term list
     -> term -> fact list -> fact list
@@ -116,14 +117,14 @@ fun meta_char c =
     String.str c
   else
     (* fixed width, in case more digits follow *)
-    "$" ^ stringN_of_int 3 (Char.ord c)
+    "%" ^ stringN_of_int 3 (Char.ord c)
 
 fun unmeta_chars accum [] = String.implode (rev accum)
-  | unmeta_chars accum (#"$" :: d1 :: d2 :: d3 :: cs) =
+  | unmeta_chars accum (#"%" :: d1 :: d2 :: d3 :: cs) =
     (case Int.fromString (String.implode [d1, d2, d3]) of
        SOME n => unmeta_chars (Char.chr n :: accum) cs
      | NONE => "" (* error *))
-  | unmeta_chars _ (#"$" :: _) = "" (* error *)
+  | unmeta_chars _ (#"%" :: _) = "" (* error *)
   | unmeta_chars accum (c :: cs) = unmeta_chars (c :: accum) cs
 
 val escape_meta = String.translate meta_char
@@ -193,12 +194,10 @@ fun mesh_facts max_facts [(selected, unknown)] =
             |> map snd |> take max_facts
     end
 
-val thy_feature_prefix = "y_"
-
-val thy_feature_name_of = prefix thy_feature_prefix
-val const_name_of = prefix const_prefix
-val type_name_of = prefix type_const_prefix
-val class_name_of = prefix class_prefix
+val thy_feature_name_of = prefix "y"
+val const_name_of = prefix "c"
+val type_name_of = prefix "t"
+val class_name_of = prefix "s"
 
 fun is_likely_tautology_or_too_meta th =
   let
@@ -723,10 +722,13 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, timeout, ...})
       end
   end
 
-fun mash_learn ctxt (params as {provers, ...}) atp =
+fun mash_learn ctxt (params as {provers, ...}) fact_override chained_ths atp =
   let
     val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
-    val facts = all_facts_of ctxt css_table
+    val ctxt = ctxt |> Config.put instantiate_inducts false
+    val facts =
+      nearly_all_facts ctxt false fact_override Symtab.empty css_table
+                       chained_ths [] @{prop True}
   in
      mash_learn_facts ctxt params (hd provers) false atp infinite_timeout facts
      |> Output.urgent_message

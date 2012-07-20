@@ -372,6 +372,7 @@ fun hammer_away override_params subcommand opt_i fact_override state =
       end
     else if subcommand = minN then
       let
+        val ctxt = ctxt |> Config.put instantiate_inducts false
         val i = the_default 1 opt_i
         val params as {provers, ...} =
           get_params Minimize ctxt (("provers", [default_minimize_prover]) ::
@@ -403,8 +404,9 @@ fun hammer_away override_params subcommand opt_i fact_override state =
                             override_params @
                             [("slice", ["false"]),
                              ("minimize", ["true"]),
-                             ("preplay_timeout", ["0"])])))
-           (subcommand = learn_atpN orelse subcommand = relearn_atpN)
+                             ("preplay_timeout", ["0"])]))
+                  fact_override (#facts (Proof.goal state))
+                  (subcommand = learn_atpN orelse subcommand = relearn_atpN))
     else if subcommand = kill_learnersN then
       kill_learners ()
     else if subcommand = running_learnersN then
