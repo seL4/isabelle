@@ -23,7 +23,7 @@ struct
 val remote_prefix = "remote_"
 fun make_name is_remote name = name |> is_remote ? prefix remote_prefix
 
-fun make_local_avail name () = getenv (name ^ "_INSTALLED") = "yes"
+fun make_local_avail name () = getenv (name ^ "_SOLVER") <> ""
 fun make_remote_avail name () = getenv (name ^ "_REMOTE_SOLVER") <> ""
 fun make_avail is_remote name =
   if is_remote then make_remote_avail name
