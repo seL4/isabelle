@@ -14,8 +14,7 @@ sig
 
   type slice_spec = int * atp_format * string * string * bool
   type atp_config =
-    {exec : string list * string,
-     required_vars : string list list,
+    {exec : string list * string list,
      arguments :
        Proof.context -> bool -> string -> Time.time
        -> term_order * (unit -> (string * int) list)
@@ -87,8 +86,7 @@ val default_max_new_mono_instances = 200 (* FUDGE *)
 type slice_spec = int * atp_format * string * string * bool
 
 type atp_config =
-  {exec : string list * string,
-   required_vars : string list list,
+  {exec : string list * string list,
    arguments :
      Proof.context -> bool -> string -> Time.time
      -> term_order * (unit -> (string * int) list)
@@ -190,8 +188,7 @@ val term_order =
 val alt_ergo_tff1 = TFF (Polymorphic, TPTP_Explicit)
 
 val alt_ergo_config : atp_config =
-  {exec = (["WHY3_HOME"], "why3"),
-   required_vars = [],
+  {exec = (["WHY3_HOME"], ["why3"]),
    arguments =
      fn _ => fn _ => fn _ => fn timeout => fn _ =>
         "--format tff1 --prover alt-ergo --timelimit " ^
@@ -263,7 +260,7 @@ fun e_selection_weight_arguments ctxt heuristic sel_weights =
     \--prefer-initial-clauses -winvfreqrank -c1 -Ginvfreqconjmax -F1 \
     \--delete-bad-limit=150000000 -WSelectMaxLComplexAvoidPosPred -H'(4*" ^
     e_selection_heuristic_case heuristic "FunWeight" "SymOffsetWeight" ^
-    "(SimulateSOS, " ^
+    "(SimulateSOS," ^
     (e_selection_heuristic_case heuristic
          e_default_fun_weight e_default_sym_offs_weight
      |> Config.get ctxt |> Real.ceil |> signed_string_of_int) ^
@@ -303,8 +300,7 @@ fun effective_e_selection_heuristic ctxt =
 fun e_kbo () = if is_recent_e_version () then "KBO6" else "KBO"
 
 val e_config : atp_config =
-  {exec = (["E_HOME"], "eproof"),
-   required_vars = [],
+  {exec = (["E_HOME"], ["eproof_ram", "eproof"]),
    arguments =
      fn ctxt => fn full_proof => fn heuristic => fn timeout =>
         fn ({is_lpo, gen_weights, gen_prec, ...}, ord_info, sel_weights) =>
@@ -314,11 +310,7 @@ val e_config : atp_config =
         "--term-ordering=" ^ (if is_lpo then "LPO4" else e_kbo ()) ^ " " ^
         "--cpu-limit=" ^ string_of_int (to_secs 2 timeout) ^
         e_shell_level_argument full_proof,
-   proof_delims =
-     (* work-around for bug in "epclextract" version 1.6 *)
-     ("# SZS status Theorem\n# SZS output start Saturation.",
-      "# SZS output end Saturation.") ::
-     tstp_proof_delims,
+   proof_delims = tstp_proof_delims,
    known_failures =
      [(TimedOut, "Failure: Resource limit exceeded (time)"),
       (TimedOut, "time limit exceeded")] @
@@ -348,8 +340,7 @@ val leo2_thf0 =
   THF (Monomorphic, TPTP_Explicit, THF_Without_Choice, THF_Without_Defs)
 
 val leo2_config : atp_config =
-  {exec = (["LEO2_HOME"], "leo"),
-   required_vars = [],
+  {exec = (["LEO2_HOME"], ["leo"]),
    arguments =
      fn _ => fn _ => fn _ => fn timeout => fn _ =>
         "--foatp e --atp e=\"$E_HOME\"/eprover \
@@ -377,8 +368,7 @@ val satallax_thf0 =
   THF (Monomorphic, TPTP_Explicit, THF_With_Choice, THF_With_Defs)
 
 val satallax_config : atp_config =
-  {exec = (["SATALLAX_HOME"], "satallax"),
-   required_vars = [],
+  {exec = (["SATALLAX_HOME"], ["satallax"]),
    arguments =
      fn _ => fn _ => fn _ => fn timeout => fn _ =>
         "-p hocore -t " ^ string_of_int (to_secs 1 timeout),
@@ -405,8 +395,7 @@ val spass_H2NuVS0Red2 = "-Heuristic=2 -RNuV=1 -Sorts=0 -RFRew=2 -RBRew=2 -RTaut=
 
 (* FIXME: Make "SPASS_NEW_HOME" legacy. *)
 val spass_config : atp_config =
-  {exec = (["SPASS_NEW_HOME", "SPASS_HOME"], "SPASS"),
-   required_vars = [],
+  {exec = (["SPASS_NEW_HOME", "SPASS_HOME"], ["SPASS"]),
    arguments = fn _ => fn _ => fn extra_options => fn timeout => fn _ =>
      ("-Isabelle=1 -TimeLimit=" ^ string_of_int (to_secs 1 timeout))
      |> extra_options <> "" ? prefix (extra_options ^ " "),
@@ -447,8 +436,7 @@ fun is_new_vampire_version () =
 val vampire_tff0 = TFF (Monomorphic, TPTP_Implicit)
 
 val vampire_config : atp_config =
-  {exec = (["VAMPIRE_HOME"], "vampire"),
-   required_vars = [],
+  {exec = (["VAMPIRE_HOME"], ["vampire"]),
    arguments = fn _ => fn _ => fn sos => fn timeout => fn _ =>
      "--mode casc -t " ^ string_of_int (to_secs 1 timeout) ^
      " --proof tptp --output_axiom_names on\
@@ -491,8 +479,7 @@ val vampire = (vampireN, fn () => vampire_config)
 val z3_tff0 = TFF (Monomorphic, TPTP_Implicit)
 
 val z3_tptp_config : atp_config =
-  {exec = (["Z3_HOME"], "z3"),
-   required_vars = [],
+  {exec = (["Z3_HOME"], ["z3"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn _ =>
      "MBQI=true -tptp -t:" ^ string_of_int (to_secs 1 timeout),
    proof_delims = [],
@@ -513,8 +500,7 @@ val z3_tptp = (z3_tptpN, fn () => z3_tptp_config)
 (* Not really a prover: Experimental Polymorphic THF and DFG output *)
 
 fun dummy_config format type_enc : atp_config =
-  {exec = (["ISABELLE_ATP"], "scripts/dummy_atp"),
-   required_vars = [],
+  {exec = (["ISABELLE_ATP"], ["scripts/dummy_atp"]),
    arguments = K (K (K (K (K "")))),
    proof_delims = [],
    known_failures = known_szs_status_failures,
@@ -577,8 +563,7 @@ val max_remote_secs = 240 (* give Geoff Sutcliffe's servers a break *)
 
 fun remote_config system_name system_versions proof_delims known_failures
                   prem_role best_slice : atp_config =
-  {exec = (["ISABELLE_ATP"], "scripts/remote_atp"),
-   required_vars = [],
+  {exec = (["ISABELLE_ATP"], ["scripts/remote_atp"]),
    arguments = fn _ => fn _ => fn command => fn timeout => fn _ =>
      (if command <> "" then "-c " ^ quote command ^ " " else "") ^
      "-s " ^ the_system system_name system_versions ^ " " ^
@@ -660,8 +645,8 @@ fun get_atp thy name =
 val supported_atps = Symtab.keys o Data.get
 
 fun is_atp_installed thy name =
-  let val {exec, required_vars, ...} = get_atp thy name () in
-    forall (exists (fn var => getenv var <> "")) (fst exec :: required_vars)
+  let val {exec, ...} = get_atp thy name () in
+    exists (fn var => getenv var <> "") (fst exec)
   end
 
 fun refresh_systems_on_tptp () =

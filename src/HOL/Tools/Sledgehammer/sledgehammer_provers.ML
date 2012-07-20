@@ -631,9 +631,8 @@ val atp_timeout_slack = seconds 1.0
 val mono_max_privileged_facts = 10
 
 fun run_atp mode name
-        ({exec, required_vars, arguments, proof_delims, known_failures,
-          prem_role, best_slices, best_max_mono_iters,
-          best_max_new_mono_instances, ...} : atp_config)
+        ({exec, arguments, proof_delims, known_failures, prem_role, best_slices,
+          best_max_mono_iters, best_max_new_mono_instances, ...} : atp_config)
         (params as {debug, verbose, overlord, type_enc, strict, lam_trans,
                     uncurried_aliases, max_facts, max_mono_iters,
                     max_new_mono_instances, isar_proof, isar_shrink_factor,
@@ -660,9 +659,17 @@ fun run_atp mode name
         Path.append (Path.explode dest_dir) problem_file_name
       else
         error ("No such directory: " ^ quote dest_dir ^ ".")
-    val command =
+    val command0 =
       case find_first (fn var => getenv var <> "") (fst exec) of
-        SOME var => Path.explode (getenv var ^ "/" ^ snd exec)
+        SOME var =>
+        let
+          val pref = getenv var ^ "/"
+          val paths = map (Path.explode o prefix pref) (snd exec)
+        in
+          case find_first File.exists paths of
+            SOME path => path
+          | NONE => error ("Bad executable: " ^ Path.print (hd paths) ^ ".")
+        end
       | NONE => error ("The environment variable " ^ quote (hd (fst exec)) ^
                        " is not set.")
     fun split_time s =
@@ -680,179 +687,162 @@ fun run_atp mode name
           raw_explode #> Scan.read Symbol.stopper time #> the_default 0
       in (output, as_time t |> Time.fromMilliseconds) end
     fun run_on prob_file =
-      case find_first (forall (fn var => getenv var = ""))
-                      (fst exec :: required_vars) of
-        SOME home_vars =>
-        error ("The environment variable " ^ quote (hd home_vars) ^
-               " is not set.")
-      | NONE =>
-        if File.exists command then
+      let
+        (* If slicing is disabled, we expand the last slice to fill the entire
+           time available. *)
+        val actual_slices = get_slices slice (best_slices ctxt)
+        val num_actual_slices = length actual_slices
+        fun monomorphize_facts facts =
           let
-            (* If slicing is disabled, we expand the last slice to fill the
-               entire time available. *)
-            val actual_slices = get_slices slice (best_slices ctxt)
-            val num_actual_slices = length actual_slices
-            fun monomorphize_facts facts =
-              let
-                val ctxt =
-                  ctxt
-                  |> repair_monomorph_context max_mono_iters best_max_mono_iters
-                          max_new_mono_instances best_max_new_mono_instances
-                (* pseudo-theorem involving the same constants as the subgoal *)
-                val subgoal_th =
-                  Logic.list_implies (hyp_ts, concl_t)
-                  |> Skip_Proof.make_thm thy
-                val rths =
-                  facts |> chop mono_max_privileged_facts
-                        |>> map (pair 1 o snd)
-                        ||> map (pair 2 o snd)
-                        |> op @
-                        |> cons (0, subgoal_th)
-              in
-                Monomorph.monomorph atp_schematic_consts_of rths ctxt
-                |> fst |> tl
-                |> curry ListPair.zip (map fst facts)
-                |> maps (fn (name, rths) =>
-                            map (pair name o zero_var_indexes o snd) rths)
-              end
-            fun run_slice time_left (cache_key, cache_value)
-                    (slice, (time_frac, (complete,
-                        (key as (best_max_facts, format, best_type_enc,
-                                 best_lam_trans, best_uncurried_aliases),
-                                 extra)))) =
-              let
-                val num_facts =
-                  length facts |> is_none max_facts ? Integer.min best_max_facts
-                val soundness = if strict then Strict else Non_Strict
-                val type_enc =
-                  type_enc |> choose_type_enc soundness best_type_enc format
-                val sound = is_type_enc_sound type_enc
-                val real_ms = Real.fromInt o Time.toMilliseconds
-                val slice_timeout =
-                  ((real_ms time_left
-                    |> (if slice < num_actual_slices - 1 then
-                          curry Real.min (time_frac * real_ms timeout)
-                        else
-                          I))
-                   * 0.001) |> seconds
-                val generous_slice_timeout =
-                  Time.+ (slice_timeout, atp_timeout_slack)
-                val _ =
-                  if debug then
-                    quote name ^ " slice #" ^ string_of_int (slice + 1) ^
-                    " with " ^ string_of_int num_facts ^ " fact" ^
-                    plural_s num_facts ^ " for " ^
-                    string_from_time slice_timeout ^ "..."
-                    |> Output.urgent_message
-                  else
-                    ()
-                val readable_names = not (Config.get ctxt atp_full_names)
-                val lam_trans =
-                  case lam_trans of
-                    SOME s => s
-                  | NONE => best_lam_trans
-                val uncurried_aliases =
-                  case uncurried_aliases of
-                    SOME b => b
-                  | NONE => best_uncurried_aliases
-                val value as (atp_problem, _, fact_names, _, _) =
-                  if cache_key = SOME key then
-                    cache_value
-                  else
-                    facts
-                    |> map untranslated_fact
-                    |> not sound
-                       ? filter_out (is_dangerous_prop ctxt o prop_of o snd)
-                    |> take num_facts
-                    |> not (is_type_enc_polymorphic type_enc)
-                       ? monomorphize_facts
-                    |> map (apsnd prop_of)
-                    |> prepare_atp_problem ctxt format prem_role type_enc
-                                           atp_mode lam_trans uncurried_aliases
-                                           readable_names true hyp_ts concl_t
-                fun sel_weights () = atp_problem_selection_weights atp_problem
-                fun ord_info () = atp_problem_term_order_info atp_problem
-                val ord = effective_term_order ctxt name
-                val full_proof = debug orelse isar_proof
-                val args = arguments ctxt full_proof extra slice_timeout
-                                     (ord, ord_info, sel_weights)
-                val command =
-                  File.shell_path command ^ " " ^ args ^ " " ^
-                  File.shell_path prob_file
-                  |> enclose "TIMEFORMAT='%3R'; { time " " ; } 2>&1"
-                val _ =
-                  atp_problem
-                  |> lines_for_atp_problem format ord ord_info
-                  |> cons ("% " ^ command ^ "\n")
-                  |> File.write_list prob_file
-                val ((output, run_time), (atp_proof, outcome)) =
-                  TimeLimit.timeLimit generous_slice_timeout
-                                      Isabelle_System.bash_output command
-                  |>> (if overlord then
-                         prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n")
-                       else
-                         I)
-                  |> fst |> split_time
-                  |> (fn accum as (output, _) =>
-                         (accum,
-                          extract_tstplike_proof_and_outcome verbose complete
-                              proof_delims known_failures output
-                          |>> atp_proof_from_tstplike_proof atp_problem
-                          handle UNRECOGNIZED_ATP_PROOF () =>
-                                 ([], SOME ProofIncomplete)))
-                  handle TimeLimit.TimeOut =>
-                         (("", slice_timeout), ([], SOME TimedOut))
-                val outcome =
-                  case outcome of
-                    NONE =>
-                    (case used_facts_in_unsound_atp_proof ctxt fact_names
-                                                          atp_proof
-                          |> Option.map (sort string_ord) of
-                       SOME facts =>
-                       let
-                         val failure =
-                           UnsoundProof (is_type_enc_sound type_enc, facts)
-                       in
-                         if debug then
-                           (warning (string_for_failure failure); NONE)
-                         else
-                           SOME failure
-                       end
-                     | NONE => NONE)
-                  | _ => outcome
-              in ((SOME key, value), (output, run_time, atp_proof, outcome)) end
-            val timer = Timer.startRealTimer ()
-            fun maybe_run_slice slice
-                    (result as (cache, (_, run_time0, _, SOME _))) =
-                let
-                  val time_left = Time.- (timeout, Timer.checkRealTimer timer)
-                in
-                  if Time.<= (time_left, Time.zeroTime) then
-                    result
-                  else
-                    run_slice time_left cache slice
-                    |> (fn (cache, (output, run_time, atp_proof, outcome)) =>
-                           (cache, (output, Time.+ (run_time0, run_time),
-                                    atp_proof, outcome)))
-                end
-              | maybe_run_slice _ result = result
+            val ctxt =
+              ctxt
+              |> repair_monomorph_context max_mono_iters best_max_mono_iters
+                      max_new_mono_instances best_max_new_mono_instances
+            (* pseudo-theorem involving the same constants as the subgoal *)
+            val subgoal_th =
+              Logic.list_implies (hyp_ts, concl_t) |> Skip_Proof.make_thm thy
+            val rths =
+              facts |> chop mono_max_privileged_facts
+                    |>> map (pair 1 o snd)
+                    ||> map (pair 2 o snd)
+                    |> op @
+                    |> cons (0, subgoal_th)
           in
-            ((NONE, ([], Symtab.empty, Vector.fromList [], [], Symtab.empty)),
-             ("", Time.zeroTime, [], SOME InternalError))
-            |> fold maybe_run_slice actual_slices
+            Monomorph.monomorph atp_schematic_consts_of rths ctxt |> fst |> tl
+            |> curry ListPair.zip (map fst facts)
+            |> maps (fn (name, rths) =>
+                        map (pair name o zero_var_indexes o snd) rths)
           end
-        else
-          error ("Bad executable: " ^ Path.print command)
+        fun run_slice time_left (cache_key, cache_value)
+                (slice, (time_frac, (complete,
+                     (key as (best_max_facts, format, best_type_enc,
+                              best_lam_trans, best_uncurried_aliases),
+                      extra)))) =
+          let
+            val num_facts =
+              length facts |> is_none max_facts ? Integer.min best_max_facts
+            val soundness = if strict then Strict else Non_Strict
+            val type_enc =
+              type_enc |> choose_type_enc soundness best_type_enc format
+            val sound = is_type_enc_sound type_enc
+            val real_ms = Real.fromInt o Time.toMilliseconds
+            val slice_timeout =
+              ((real_ms time_left
+                |> (if slice < num_actual_slices - 1 then
+                      curry Real.min (time_frac * real_ms timeout)
+                    else
+                      I))
+               * 0.001) |> seconds
+            val generous_slice_timeout =
+              Time.+ (slice_timeout, atp_timeout_slack)
+            val _ =
+              if debug then
+                quote name ^ " slice #" ^ string_of_int (slice + 1) ^
+                " with " ^ string_of_int num_facts ^ " fact" ^
+                plural_s num_facts ^ " for " ^
+                string_from_time slice_timeout ^ "..."
+                |> Output.urgent_message
+              else
+                ()
+            val readable_names = not (Config.get ctxt atp_full_names)
+            val lam_trans =
+              case lam_trans of
+                SOME s => s
+              | NONE => best_lam_trans
+            val uncurried_aliases =
+              case uncurried_aliases of
+                SOME b => b
+              | NONE => best_uncurried_aliases
+            val value as (atp_problem, _, fact_names, _, _) =
+              if cache_key = SOME key then
+                cache_value
+              else
+                facts
+                |> map untranslated_fact
+                |> not sound
+                   ? filter_out (is_dangerous_prop ctxt o prop_of o snd)
+                |> take num_facts
+                |> not (is_type_enc_polymorphic type_enc) ? monomorphize_facts
+                |> map (apsnd prop_of)
+                |> prepare_atp_problem ctxt format prem_role type_enc atp_mode
+                                       lam_trans uncurried_aliases
+                                       readable_names true hyp_ts concl_t
+            fun sel_weights () = atp_problem_selection_weights atp_problem
+            fun ord_info () = atp_problem_term_order_info atp_problem
+            val ord = effective_term_order ctxt name
+            val full_proof = debug orelse isar_proof
+            val args = arguments ctxt full_proof extra slice_timeout
+                                 (ord, ord_info, sel_weights)
+            val command =
+              File.shell_path command0 ^ " " ^ args ^ " " ^
+              File.shell_path prob_file
+              |> enclose "TIMEFORMAT='%3R'; { time " " ; } 2>&1"
+            val _ =
+              atp_problem
+              |> lines_for_atp_problem format ord ord_info
+              |> cons ("% " ^ command ^ "\n")
+              |> File.write_list prob_file
+            val ((output, run_time), (atp_proof, outcome)) =
+              TimeLimit.timeLimit generous_slice_timeout
+                                  Isabelle_System.bash_output command
+              |>> (if overlord then
+                     prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n")
+                   else
+                     I)
+              |> fst |> split_time
+              |> (fn accum as (output, _) =>
+                     (accum,
+                      extract_tstplike_proof_and_outcome verbose complete
+                          proof_delims known_failures output
+                      |>> atp_proof_from_tstplike_proof atp_problem
+                      handle UNRECOGNIZED_ATP_PROOF () =>
+                             ([], SOME ProofIncomplete)))
+              handle TimeLimit.TimeOut =>
+                     (("", slice_timeout), ([], SOME TimedOut))
+            val outcome =
+              case outcome of
+                NONE =>
+                (case used_facts_in_unsound_atp_proof ctxt fact_names atp_proof
+                      |> Option.map (sort string_ord) of
+                   SOME facts =>
+                   let
+                     val failure =
+                       UnsoundProof (is_type_enc_sound type_enc, facts)
+                   in
+                     if debug then (warning (string_for_failure failure); NONE)
+                     else SOME failure
+                   end
+                 | NONE => NONE)
+              | _ => outcome
+          in ((SOME key, value), (output, run_time, atp_proof, outcome)) end
+        val timer = Timer.startRealTimer ()
+        fun maybe_run_slice slice
+                (result as (cache, (_, run_time0, _, SOME _))) =
+            let
+              val time_left = Time.- (timeout, Timer.checkRealTimer timer)
+            in
+              if Time.<= (time_left, Time.zeroTime) then
+                result
+              else
+                run_slice time_left cache slice
+                |> (fn (cache, (output, run_time, atp_proof, outcome)) =>
+                       (cache, (output, Time.+ (run_time0, run_time),
+                                atp_proof, outcome)))
+            end
+          | maybe_run_slice _ result = result
+      in
+        ((NONE, ([], Symtab.empty, Vector.fromList [], [], Symtab.empty)),
+         ("", Time.zeroTime, [], SOME InternalError))
+        |> fold maybe_run_slice actual_slices
+      end
 
     (* If the problem file has not been exported, remove it; otherwise, export
        the proof file too. *)
     fun cleanup prob_file =
       if dest_dir = "" then try File.rm prob_file else NONE
     fun export prob_file (_, (output, _, _, _)) =
-      if dest_dir = "" then
-        ()
-      else
-        File.write (Path.explode (Path.implode prob_file ^ "_proof")) output
+      if dest_dir = "" then ()
+      else File.write (Path.explode (Path.implode prob_file ^ "_proof")) output
     val ((_, (_, pool, fact_names, _, sym_tab)),
          (output, run_time, atp_proof, outcome)) =
       with_path cleanup export run_on problem_path_name
