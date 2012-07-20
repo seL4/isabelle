@@ -102,7 +102,7 @@ fun generate_isar_dependencies thy include_thy file_name =
     fun do_thm th =
       let
         val name = nickname_of th
-        val deps = isar_dependencies_of all_names th
+        val deps = isar_dependencies_of all_names th |> these
         val s = escape_meta name ^ ": " ^ escape_metas deps ^ "\n"
       in File.append path s end
   in List.app do_thm ths end
@@ -122,7 +122,9 @@ fun generate_atp_dependencies ctxt (params as {provers, ...}) thy include_thy
       let
         val name = nickname_of th
         val deps =
-          atp_dependencies_of ctxt params prover false facts all_names th
+          case atp_dependencies_of ctxt params prover 0 facts all_names th of
+            SOME deps => deps
+          | NONE => isar_dependencies_of all_names th |> these
         val s = escape_meta name ^ ": " ^ escape_metas deps ^ "\n"
       in File.append path s end
   in List.app do_thm ths end
@@ -142,7 +144,7 @@ fun generate_commands ctxt prover thy file_name =
       let
         val name = nickname_of th
         val feats = features_of ctxt prover thy stature [prop_of th]
-        val deps = isar_dependencies_of all_names th
+        val deps = isar_dependencies_of all_names th |> these
         val kind = Thm.legacy_get_kind th
         val core = escape_metas prevs ^ "; " ^ escape_metas feats
         val query = if kind <> "" then "? " ^ core ^ "\n" else ""
