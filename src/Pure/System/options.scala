@@ -89,7 +89,7 @@ final class Options private(options: Map[String, Options.Opt] = Map.empty)
   private def check_name(name: String): Options.Opt =
     options.get(name) match {
       case Some(opt) => opt
-      case None => error("Undeclared option " + quote(name))
+      case None => error("Unknown option " + quote(name))
     }
 
   private def check_type(name: String, typ: Options.Type): Options.Opt =
@@ -115,8 +115,6 @@ final class Options private(options: Map[String, Options.Opt] = Map.empty)
     val opt = check_type(name, typ)
     new Options(options + (name -> opt.copy(value = value)))
   }
-
-
 
 
   /* external declare and define */
@@ -149,6 +147,17 @@ final class Options private(options: Map[String, Options.Opt] = Map.empty)
       case Options.String => result.string(name); ()
     }
     result
+  }
+
+  def define_simple(str: String): Options =
+  {
+    str.indexOf('=') match {
+      case -1 =>
+        val opt = check_name(str)
+        if (opt.typ == Options.Bool) define(str, "true")
+        else error("Missing value for option " + quote(str) + " : " + opt.typ.print)
+      case i => define(str.substring(0, i), str.substring(i + 1))
+    }
   }
 
 

@@ -257,6 +257,8 @@ object Build
   {
     val full_queue = find_sessions(more_dirs)
 
+    val build_options = (Options.init() /: options)(_.define_simple(_))
+
     sessions.filter(name => !full_queue.defined(name)) match {
       case Nil =>
       case bad => error("Undefined session(s): " + commas_quote(bad))
