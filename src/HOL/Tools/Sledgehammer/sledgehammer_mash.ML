@@ -688,7 +688,8 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
         case fact_filter of
           SOME ff => (() |> ff <> mepoN ? maybe_learn; ff)
         | NONE =>
-          if mash_can_suggest_facts ctxt then (maybe_learn (); meshN)
+          if is_smt_prover ctxt prover then mepoN
+          else if mash_can_suggest_facts ctxt then (maybe_learn (); meshN)
           else if mash_could_suggest_facts () then (maybe_learn (); mepoN)
           else mepoN
       val add_ths = Attrib.eval_thms ctxt add
