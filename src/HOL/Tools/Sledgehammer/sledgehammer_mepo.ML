@@ -21,7 +21,7 @@ sig
   val mepo_suggested_facts :
     Proof.context -> params -> string -> int -> relevance_fudge option
     -> term list -> term -> fact list -> fact list
-  val weight_mepo_facts : fact list -> (fact * real) list
+  val weight_mepo_facts : ('a * thm) list -> (('a * thm) * real) list
 end;
 
 structure Sledgehammer_MePo : SLEDGEHAMMER_MEPO =

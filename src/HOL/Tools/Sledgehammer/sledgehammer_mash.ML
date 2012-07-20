@@ -613,7 +613,11 @@ fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
     val suggs =
       if Graph.is_empty fact_G then []
       else mash_QUERY ctxt overlord (max_suggs_of max_facts) (parents, feats)
-    val selected = facts |> suggested_facts suggs
+    val selected =
+      facts |> suggested_facts suggs
+            (* The weights currently returned by "mash.py" are too extreme to
+               make any sense. *)
+            |> map fst |> weight_mepo_facts
     val unknown = facts |> filter_out (is_fact_in_graph fact_G)
   in (selected, unknown) end
 
@@ -653,7 +657,7 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
           val feats = features_of ctxt prover thy (Local, General) [t]
           val deps = used_ths |> map nickname_of
           val {fact_G} = mash_get ctxt
-          val parents = timeit (fn () => maximal_in_graph fact_G facts)
+          val parents = maximal_in_graph fact_G facts
         in
           mash_ADD ctxt overlord [(name, parents, feats, deps)]; (true, "")
         end)
