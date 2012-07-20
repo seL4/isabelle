@@ -151,8 +151,8 @@ fun unalias_raw_param (name, value) =
 
 val any_type_enc = type_enc_from_string Strict "erased"
 
-(* "provers =", "type_enc =", "lam_trans =", and "fact_filter =" can be omitted.
-   For the last three, this is a secret feature. *)
+(* "provers =", "type_enc =", "lam_trans =", "fact_filter =", and "max_facts ="
+   can be omitted. For the last four, this is a secret feature. *)
 fun normalize_raw_param ctxt =
   unalias_raw_param
   #> (fn (name, value) =>
@@ -167,8 +167,9 @@ fun normalize_raw_param ctxt =
            ("lam_trans", [name])
          else if member (op =) fact_filters name then
            ("fact_filter", [name])
-         else
-           error ("Unknown parameter: " ^ quote name ^ "."))
+         else case Int.fromString name of
+           SOME n => ("max_facts", [name])
+         | NONE => error ("Unknown parameter: " ^ quote name ^ "."))
 
 
 (* Ensures that type encodings such as "mono_native?" and "poly_guards!!" are
