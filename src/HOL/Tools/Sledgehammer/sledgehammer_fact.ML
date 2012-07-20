@@ -238,10 +238,12 @@ fun close_form t =
           (Term.add_vars t [] |> sort_wrt (fst o fst))
   |> fst
 
-fun backquote_thm th =
-  th |> prop_of |> close_form
-     |> hackish_string_for_term (theory_of_thm th)
-     |> backquote
+fun backquote_term thy t =
+  t |> close_form
+    |> hackish_string_for_term thy
+    |> backquote
+
+fun backquote_thm th = backquote_term (theory_of_thm th) (prop_of th)
 
 fun clasimpset_rule_table_of ctxt =
   let

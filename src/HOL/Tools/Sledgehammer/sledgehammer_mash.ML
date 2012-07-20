@@ -472,9 +472,9 @@ fun try_graph ctxt when def f =
                 "Internal error when " ^ when ^ ":\n" ^
                 ML_Compiler.exn_message exn); def)
 
-type mash_state = {fact_graph : unit Graph.T}
+type mash_state = {fact_G : unit Graph.T}
 
-val empty_state = {fact_graph = Graph.empty}
+val empty_state = {fact_G = Graph.empty}
 
 local
 
@@ -496,25 +496,25 @@ fun load _ (state as (true, _)) = state
              | (name, parents) =>
                Graph.default_node (name, ())
                #> fold (add_edge_to name) parents
-           val fact_graph =
+           val fact_G =
              try_graph ctxt "loading state" Graph.empty (fn () =>
                  Graph.empty |> version' = version
                                 ? fold add_fact_line fact_lines)
-         in {fact_graph = fact_graph} end
+         in {fact_G = fact_G} end
        | _ => empty_state)
     end
 
-fun save {fact_graph} =
+fun save {fact_G} =
   let
     val path = mash_state_path ()
     fun fact_line_for name parents =
       escape_meta name ^ ": " ^ escape_metas parents
     val append_fact = File.append path o suffix "\n" oo fact_line_for
+    fun append_entry (name, ((), (parents, _))) () =
+      append_fact name (Graph.Keys.dest parents)
   in
     File.write path (version ^ "\n");
-    Graph.fold (fn (name, ((), (parents, _))) => fn () =>
-                   append_fact name (Graph.Keys.dest parents))
-        fact_graph ()
+    Graph.fold append_entry fact_G ()
   end
 
 val global_state =
@@ -535,45 +535,52 @@ fun mash_unlearn ctxt =
 end
 
 fun mash_could_suggest_facts () = mash_home () <> ""
-fun mash_can_suggest_facts ctxt =
-  not (Graph.is_empty (#fact_graph (mash_get ctxt)))
+fun mash_can_suggest_facts ctxt = not (Graph.is_empty (#fact_G (mash_get ctxt)))
 
-fun parents_wrt_facts facts fact_graph =
+fun queue_of xs = Queue.empty |> fold Queue.enqueue xs
+
+fun max_facts_in_graph fact_G facts =
   let
     val facts = [] |> fold (cons o nickname_of o snd) facts
     val tab = Symtab.empty |> fold (fn name => Symtab.update (name, ())) facts
-    fun insert_not_seen seen name =
-      not (member (op =) seen name) ? insert (op =) name
-    fun parents_of _ parents [] = parents
-      | parents_of seen parents (name :: names) =
-        if Symtab.defined tab name then
-          parents_of (name :: seen) (name :: parents) names
-        else
-          parents_of (name :: seen) parents
-                     (Graph.Keys.fold (insert_not_seen seen)
-                                      (Graph.imm_preds fact_graph name) names)
-  in parents_of [] [] (Graph.maximals fact_graph) end
+    fun enqueue_new seen name =
+      not (member (op =) seen name) ? Queue.enqueue name
+    fun find_maxes seen maxs names =
+        case try Queue.dequeue names of
+          NONE => maxs
+        | SOME (name, names) =>
+          if Symtab.defined tab name then
+            let
+              fun no_path x y = not (member (op =) (Graph.all_preds fact_G [y]) x)
+              val maxs = maxs |> filter (fn max => no_path max name)
+              val maxs = maxs |> forall (no_path name) maxs ? cons name
+            in find_maxes (name :: seen) maxs names end
+          else
+            find_maxes (name :: seen) maxs
+                       (Graph.Keys.fold (enqueue_new seen)
+                                        (Graph.imm_preds fact_G name) names)
+  in find_maxes [] [] (queue_of (Graph.maximals fact_G)) end
 
 (* Generate more suggestions than requested, because some might be thrown out
    later for various reasons and "meshing" gives better results with some
    slack. *)
 fun max_suggs_of max_facts = max_facts + Int.min (200, max_facts)
 
-fun is_fact_in_graph fact_graph (_, th) =
-  can (Graph.get_node fact_graph) (nickname_of th)
+fun is_fact_in_graph fact_G (_, th) =
+  can (Graph.get_node fact_G) (nickname_of th)
 
 fun mash_suggest_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
                        concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
-    val fact_graph = #fact_graph (mash_get ctxt)
-    val parents = parents_wrt_facts facts fact_graph
+    val fact_G = #fact_G (mash_get ctxt)
+    val parents = max_facts_in_graph fact_G facts
     val feats = features_of ctxt prover thy (Local, General) (concl_t :: hyp_ts)
     val suggs =
-      if Graph.is_empty fact_graph then []
+      if Graph.is_empty fact_G then []
       else mash_QUERY ctxt overlord (max_suggs_of max_facts) (parents, feats)
     val selected = facts |> suggested_facts suggs
-    val unknown = facts |> filter_out (is_fact_in_graph fact_graph)
+    val unknown = facts |> filter_out (is_fact_in_graph fact_G)
   in (selected, unknown) end
 
 fun update_fact_graph ctxt (name, parents, feats, deps) (upds, graph) =
@@ -596,6 +603,10 @@ fun launch_thread timeout task =
     val desc = ("machine learner for Sledgehammer", "")
   in Async_Manager.launch MaShN birth_time death_time desc task end
 
+fun freshish_name () =
+  Date.fmt ".%Y_%m_%d_%H_%M_%S__" (Date.fromTimeLocal (Time.now ())) ^
+  serial_string ()
+
 fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
                      used_ths =
   if is_smt_prover ctxt prover then
@@ -605,18 +616,17 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
         (fn () =>
             let
               val thy = Proof_Context.theory_of ctxt
-              val name = timestamp () ^ " " ^ serial_string () (* freshish *)
+              val name = freshish_name ()
               val feats = features_of ctxt prover thy (Local, General) [t]
               val deps = used_ths |> map nickname_of
             in
-              mash_map ctxt (fn {fact_graph} =>
+              mash_map ctxt (fn {fact_G} =>
                   let
-                    val parents = parents_wrt_facts facts fact_graph
+                    val parents = max_facts_in_graph fact_G facts
                     val upds = [(name, parents, feats, deps)]
-                    val (upds, fact_graph) =
-                      ([], fact_graph) |> fold (update_fact_graph ctxt) upds
-                  in
-                    mash_ADD ctxt overlord upds; {fact_graph = fact_graph}
+                    val (upds, fact_G) =
+                      ([], fact_G) |> fold (update_fact_graph ctxt) upds
+                  in mash_ADD ctxt overlord upds; {fact_G = fact_G}
                   end);
               (true, "")
             end)
@@ -636,10 +646,10 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, timeout, ...})
     val timer = Timer.startRealTimer ()
     fun next_commit_time () =
       Time.+ (Timer.checkRealTimer timer, commit_timeout)
-    val {fact_graph} = mash_get ctxt
-    val new_facts =
-      facts |> filter_out (is_fact_in_graph fact_graph)
-            |> sort (thm_ord o pairself snd)
+    val {fact_G} = mash_get ctxt
+    val (old_facts, new_facts) =
+      facts |> List.partition (is_fact_in_graph fact_G)
+            ||> sort (thm_ord o pairself snd)
     val num_new_facts = length new_facts
   in
     (if not auto then
@@ -654,7 +664,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, timeout, ...})
      else
        "")
     |> Output.urgent_message;
-    if null new_facts then
+    if num_new_facts = 0 then
       if not auto then
         "Nothing to learn.\n\nHint: Try " ^ sendback relearn_isarN ^ " or " ^
         sendback relearn_atpN ^ " to learn from scratch."
@@ -662,17 +672,21 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, timeout, ...})
         ""
     else
       let
-        val ths = facts |> map snd
+        val last_th = new_facts |> List.last |> snd
+        (* crude approximation *)
+        val ancestors =
+          old_facts |> filter (fn (_, th) => thm_ord (th, last_th) <> GREATER)
         val all_names =
-          ths |> filter_out is_likely_tautology_or_too_meta
-              |> map (rpair () o nickname_of)
-              |> Symtab.make
+          facts |> map snd
+                |> filter_out is_likely_tautology_or_too_meta
+                |> map (rpair () o nickname_of)
+                |> Symtab.make
         fun do_commit [] state = state
-          | do_commit upds {fact_graph} =
+          | do_commit upds {fact_G} =
             let
-              val (upds, fact_graph) =
-                ([], fact_graph) |> fold (update_fact_graph ctxt) upds
-            in mash_ADD ctxt overlord (rev upds); {fact_graph = fact_graph} end
+              val (upds, fact_G) =
+                ([], fact_G) |> fold (update_fact_graph ctxt) upds
+            in mash_ADD ctxt overlord (rev upds); {fact_G = fact_G} end
         fun trim_deps deps = if length deps > max_dependencies then [] else deps
         fun commit last upds =
           (if debug andalso not auto then Output.urgent_message "Committing..."
@@ -708,7 +722,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, timeout, ...})
               val timed_out =
                 Time.> (Timer.checkRealTimer timer, learn_timeout)
             in (upds, ([name], n, next_commit, timed_out)) end
-        val parents = parents_wrt_facts facts fact_graph
+        val parents = max_facts_in_graph fact_G ancestors
         val (upds, (_, n, _, _)) =
           ([], (parents, 0, next_commit_time (), false))
           |> fold do_fact new_facts

@@ -167,9 +167,10 @@ fun normalize_raw_param ctxt =
            ("lam_trans", [name])
          else if member (op =) fact_filters name then
            ("fact_filter", [name])
-         else case Int.fromString name of
-           SOME n => ("max_facts", [name])
-         | NONE => error ("Unknown parameter: " ^ quote name ^ "."))
+         else if can Int.fromString name then
+           ("max_facts", [name])
+         else
+           error ("Unknown parameter: " ^ quote name ^ "."))
 
 
 (* Ensures that type encodings such as "mono_native?" and "poly_guards!!" are
@@ -375,7 +376,7 @@ fun hammer_away override_params subcommand opt_i fact_override state =
       let
         val ctxt = ctxt |> Config.put instantiate_inducts false
         val i = the_default 1 opt_i
-        val params as {provers, ...} =
+        val params =
           get_params Minimize ctxt (("provers", [default_minimize_prover]) ::
                                     override_params)
         val goal = prop_of (#goal (Proof.goal state))
