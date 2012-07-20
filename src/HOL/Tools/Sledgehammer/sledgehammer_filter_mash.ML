@@ -25,6 +25,7 @@ sig
   val unescape_meta : string -> string
   val unescape_metas : string -> string list
   val extract_query : string -> string * string list
+  val nickname_of : thm -> string
   val suggested_facts : string list -> ('a * thm) list -> ('a * thm) list
   val mesh_facts :
     int -> (('a * thm) list * ('a * thm) list) list -> ('a * thm) list
@@ -122,9 +123,30 @@ fun extract_query line =
     [goal_name, suggs] => (unescape_meta goal_name, unescape_metas suggs)
   | _ => ("", [])
 
+fun parent_of_local_thm th =
+  let
+    val thy = th |> Thm.theory_of_thm
+    val facts = thy |> Global_Theory.facts_of
+    val space = facts |> Facts.space_of
+    fun id_of s = #id (Name_Space.the_entry space s)
+    fun max_id (s', _) (s, id) =
+      let val id' = id_of s' in if id > id' then (s, id) else (s', id') end
+  in ("", ~1) |> Facts.fold_static max_id facts |> fst end
+
+val local_prefix = "local" ^ Long_Name.separator
+
+fun nickname_of th =
+  let val hint = Thm.get_name_hint th in
+    (* FIXME: There must be a better way to detect local facts. *)
+    case try (unprefix local_prefix) hint of
+      SOME suff =>
+      parent_of_local_thm th ^ Long_Name.separator ^ Long_Name.separator ^ suff
+    | NONE => hint
+  end
+
 fun suggested_facts suggs facts =
   let
-    fun add_fact (fact as (_, th)) = Symtab.default (Thm.get_name_hint th, fact)
+    fun add_fact (fact as (_, th)) = Symtab.default (nickname_of th, fact)
     val tab = Symtab.empty |> fold add_fact facts
   in map_filter (Symtab.lookup tab) suggs end
 
@@ -468,11 +490,11 @@ fun mash_can_suggest_facts ctxt =
 
 fun parents_wrt_facts facts fact_graph =
   let
-    val facts = [] |> fold (cons o Thm.get_name_hint o snd) facts
+    val facts = [] |> fold (cons o nickname_of o snd) facts
     val tab = Symtab.empty |> fold (fn name => Symtab.update (name, ())) facts
     fun insert_not_seen seen name =
       not (member (op =) seen name) ? insert (op =) name
-    fun parents_of seen parents [] = parents
+    fun parents_of _ parents [] = parents
       | parents_of seen parents (name :: names) =
         if Symtab.defined tab name then
           parents_of (name :: seen) (name :: parents) names
@@ -488,7 +510,7 @@ fun parents_wrt_facts facts fact_graph =
 fun max_suggs_of max_facts = max_facts + Int.min (200, max_facts)
 
 fun is_fact_in_graph fact_graph (_, th) =
-  can (Graph.get_node fact_graph) (Thm.get_name_hint th)
+  can (Graph.get_node fact_graph) (nickname_of th)
 
 fun mash_suggest_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
                        concl_t facts =
@@ -545,13 +567,13 @@ fun mash_learn_thy ctxt ({provers, verbose, overlord, ...} : params) thy timeout
         val ths = facts |> map snd
         val all_names =
           ths |> filter_out is_likely_tautology_or_too_meta
-              |> map (rpair () o Thm.get_name_hint)
+              |> map (rpair () o nickname_of)
               |> Symtab.make
         fun trim_deps deps = if length deps > max_dependencies then [] else deps
         fun do_fact _ (accum as (_, true)) = accum
           | do_fact ((_, (_, status)), th) ((parents, upds), false) =
             let
-              val name = Thm.get_name_hint th
+              val name = nickname_of th
               val feats =
                 features_of ctxt prover (theory_of_thm th) status [prop_of th]
               val deps = isabelle_dependencies_of all_names th |> trim_deps
@@ -591,7 +613,7 @@ fun mash_learn_proof ctxt ({provers, overlord, ...} : params) t facts used_ths =
     val prover = hd provers
     val name = ATP_Util.timestamp () ^ " " ^ serial_string () (* fresh enough *)
     val feats = features_of ctxt prover thy General [t]
-    val deps = used_ths |> map Thm.get_name_hint
+    val deps = used_ths |> map nickname_of
   in
     mash_map ctxt (fn {thys, fact_graph} =>
         let

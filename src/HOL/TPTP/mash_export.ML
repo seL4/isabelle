@@ -32,7 +32,7 @@ fun thy_map_from_facts ths =
   ths |> sort (thm_ord o swap o pairself snd)
       |> map (snd #> `(theory_of_thm #> Context.theory_name))
       |> AList.coalesce (op =)
-      |> map (apsnd (map Thm.get_name_hint))
+      |> map (apsnd (map nickname_of))
 
 fun has_thy thy th =
   Context.theory_name thy = Context.theory_name (theory_of_thm th)
@@ -51,7 +51,7 @@ fun thy_of_fact thy = Context.this_theory thy o thy_name_of_fact
 
 val all_names =
   filter_out is_likely_tautology_or_too_meta
-  #> map (rpair () o Thm.get_name_hint) #> Symtab.make
+  #> map (rpair () o nickname_of) #> Symtab.make
 
 fun generate_accessibility thy include_thy file_name =
   let
@@ -83,7 +83,7 @@ fun generate_features ctxt prover thy include_thy file_name =
       |> not include_thy ? filter_out (has_thy thy o snd)
     fun do_fact ((_, (_, status)), th) =
       let
-        val name = Thm.get_name_hint th
+        val name = nickname_of th
         val feats =
           features_of ctxt prover (theory_of_thm th) status [prop_of th]
         val s = escape_meta name ^ ": " ^ escape_metas feats ^ "\n"
@@ -101,7 +101,7 @@ fun generate_isar_dependencies thy include_thy file_name =
     val all_names = all_names ths
     fun do_thm th =
       let
-        val name = Thm.get_name_hint th
+        val name = nickname_of th
         val deps = isabelle_dependencies_of all_names th
         val s = escape_meta name ^ ": " ^ escape_metas deps ^ "\n"
       in File.append path s end
@@ -118,18 +118,17 @@ fun generate_atp_dependencies ctxt (params as {provers, max_facts, ...}) thy
       |> not include_thy ? filter_out (has_thy thy o snd)
     val ths = facts |> map snd
     val all_names = all_names ths
-    fun is_dep dep (_, th) = Thm.get_name_hint th = dep
+    fun is_dep dep (_, th) = nickname_of th = dep
     fun add_isar_dep facts dep accum =
       if exists (is_dep dep) accum then
         accum
       else case find_first (is_dep dep) facts of
         SOME ((name, status), th) => accum @ [((name, status), th)]
       | NONE => accum (* shouldn't happen *)
-    fun fix_name ((_, stature), th) =
-      ((fn () => th |> Thm.get_name_hint, stature), th)
+    fun fix_name ((_, stature), th) = ((fn () => nickname_of th, stature), th)
     fun do_thm th =
       let
-        val name = Thm.get_name_hint th
+        val name = nickname_of th
         val goal = goal_of_thm thy th
         val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
         val deps =
@@ -168,7 +167,7 @@ fun generate_commands ctxt prover thy file_name =
     val all_names = all_names ths
     fun do_fact ((_, (_, status)), th) prevs =
       let
-        val name = Thm.get_name_hint th
+        val name = nickname_of th
         val feats = features_of ctxt prover thy status [prop_of th]
         val deps = isabelle_dependencies_of all_names th
         val kind = Thm.legacy_get_kind th
@@ -196,7 +195,7 @@ fun generate_iter_suggestions ctxt (params as {provers, ...}) thy max_relevant
             |>> sort (thm_ord o pairself snd)
     fun do_fact (fact as (_, th)) old_facts =
       let
-        val name = Thm.get_name_hint th
+        val name = nickname_of th
         val goal = goal_of_thm thy th
         val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
         val kind = Thm.legacy_get_kind th

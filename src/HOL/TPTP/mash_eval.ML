@@ -28,7 +28,7 @@ val max_facts_slack = 2
 
 val all_names =
   filter_out is_likely_tautology_or_too_meta
-  #> map (rpair () o Thm.get_name_hint) #> Symtab.make
+  #> map (rpair () o nickname_of) #> Symtab.make
 
 fun evaluate_mash_suggestions ctxt params thy file_name =
   let
@@ -70,7 +70,7 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
       let
         val (name, suggs) = extract_query line
         val th =
-          case find_first (fn (_, th) => Thm.get_name_hint th = name) facts of
+          case find_first (fn (_, th) => nickname_of th = name) facts of
             SOME (_, th) => th
           | NONE => error ("No fact called \"" ^ name ^ "\"")
         val goal = goal_of_thm thy th
