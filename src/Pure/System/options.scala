@@ -149,13 +149,20 @@ final class Options private(options: Map[String, Options.Opt] = Map.empty)
     result
   }
 
+  def define(name: String, opt_value: Option[String]): Options =
+  {
+    val opt = check_name(name)
+    opt_value match {
+      case Some(value) => define(name, value)
+      case None if opt.typ == Options.Bool => define(name, "true")
+      case None => error("Missing value for option " + quote(name) + " : " + opt.typ.print)
+    }
+  }
+
   def define_simple(str: String): Options =
   {
     str.indexOf('=') match {
-      case -1 =>
-        val opt = check_name(str)
-        if (opt.typ == Options.Bool) define(str, "true")
-        else error("Missing value for option " + quote(str) + " : " + opt.typ.print)
+      case -1 => define(str, None)
       case i => define(str.substring(0, i), str.substring(i + 1))
     }
   }
