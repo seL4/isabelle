@@ -51,8 +51,7 @@ object Options
 
     def parse_entries(file: JFile): List[Options => Options] =
     {
-      val toks = syntax.scan(Standard_System.read_file(file))
-      parse_all(rep(entry), Token.reader(toks, file.toString)) match {
+      parse_all(rep(entry), Token.reader(syntax.scan(File.read(file)), file.toString)) match {
         case Success(result, _) => result
         case bad => error(bad.toString)
       }

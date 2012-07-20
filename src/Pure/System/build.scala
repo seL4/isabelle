@@ -142,7 +142,7 @@ object Build
 
     def parse_entries(root: JFile): List[Session_Entry] =
     {
-      val toks = syntax.scan(Standard_System.read_file(root))
+      val toks = syntax.scan(File.read(root))
       parse_all(rep(session_entry), Token.reader(toks, root.toString)) match {
         case Success(result, _) => result
         case bad => error(bad.toString)
@@ -207,8 +207,7 @@ object Build
   private def sessions_catalog(dir: Path, catalog: JFile, queue: Session.Queue): Session.Queue =
   {
     val dirs =
-      split_lines(Standard_System.read_file(catalog)).
-        filterNot(line => line == "" || line.startsWith("#"))
+      split_lines(File.read(catalog)).filterNot(line => line == "" || line.startsWith("#"))
     (queue /: dirs)((queue1, dir1) =>
       try {
         val dir2 = dir + Path.explode(dir1)
@@ -275,15 +274,12 @@ object Build
       !Path.explode("$ISABELLE_BROWSER_INFO/index.html").file.isFile)
     {
       Path.explode("$ISABELLE_BROWSER_INFO").file.mkdirs()
-      Standard_System.copy_file(Path.explode("$ISABELLE_HOME/lib/logo/isabelle.gif").file,
-        Path.explode("$ISABELLE_BROWSER_INFO/isabelle.gif").file)
-      Standard_System.write_file(Path.explode("$ISABELLE_BROWSER_INFO/index.html").file,
-        Standard_System.read_file(
-          Path.explode("$ISABELLE_HOME/lib/html/library_index_header.template").file) +
-        Standard_System.read_file(
-          Path.explode("$ISABELLE_HOME/lib/html/library_index_content.template").file) +
-        Standard_System.read_file(
-          Path.explode("$ISABELLE_HOME/lib/html/library_index_footer.template").file))
+      File.copy(Path.explode("$ISABELLE_HOME/lib/logo/isabelle.gif"),
+        Path.explode("$ISABELLE_BROWSER_INFO/isabelle.gif"))
+      File.write(Path.explode("$ISABELLE_BROWSER_INFO/index.html"),
+        File.read(Path.explode("$ISABELLE_HOME/lib/html/library_index_header.template")) +
+        File.read(Path.explode("$ISABELLE_HOME/lib/html/library_index_content.template")) +
+        File.read(Path.explode("$ISABELLE_HOME/lib/html/library_index_footer.template")))
     }
 
     // prepare log dir
@@ -304,10 +300,10 @@ object Build
 
           val log = log_dir + Path.basic(key.name)
           if (rc == 0) {
-            Standard_System.write_file(log.ext("gz").file, out, true)
+            File.write_zip(log.ext("gz"), out)
           }
           else {
-            Standard_System.write_file(log.file, out)
+            File.write(log, out)
             echo(key.name + " FAILED")
             echo("(see also " + log.file + ")")
             val lines = split_lines(out)

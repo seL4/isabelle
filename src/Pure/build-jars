@@ -14,6 +14,7 @@ declare -a SOURCES=(
   Concurrent/simple_thread.scala
   Concurrent/volatile.scala
   General/exn.scala
+  General/file.scala
   General/graph.scala
   General/linear_set.scala
   General/path.scala

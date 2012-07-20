@@ -11,15 +11,11 @@ import java.lang.System
 import java.util.regex.Pattern
 import java.util.Locale
 import java.net.URL
-import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOutputStream,
-  BufferedInputStream, InputStream, FileInputStream, BufferedReader, InputStreamReader,
-  File => JFile, FileFilter, IOException}
+import java.io.{File => JFile}
 import java.nio.charset.Charset
-import java.util.zip.GZIPOutputStream
 
 import scala.io.Codec
 import scala.util.matching.Regex
-import scala.collection.mutable
 
 
 object Standard_System
@@ -100,74 +96,6 @@ object Standard_System
   }
 
 
-  /* basic file operations */
-
-  def slurp(reader: BufferedReader): String =
-  {
-    val output = new StringBuilder(100)
-    var c = -1
-    while ({ c = reader.read; c != -1 }) output += c.toChar
-    reader.close
-    output.toString
-  }
-
-  def slurp(stream: InputStream): String =
-    slurp(new BufferedReader(new InputStreamReader(stream, charset)))
-
-  def read_file(file: JFile): String = slurp(new FileInputStream(file))
-
-  def write_file(file: JFile, text: CharSequence, zip: Boolean = false)
-  {
-    val stream1 = new FileOutputStream(file)
-    val stream2 = if (zip) new GZIPOutputStream(new BufferedOutputStream(stream1)) else stream1
-    val writer = new BufferedWriter(new OutputStreamWriter(stream2, charset))
-    try { writer.append(text) }
-    finally { writer.close }
-  }
-
-  def eq_file(file1: JFile, file2: JFile): Boolean =
-    file1.getCanonicalPath == file2.getCanonicalPath  // FIXME prefer java.nio.file.Files.isSameFile of Java 1.7
-
-  def copy_file(src: JFile, dst: JFile) =
-    if (!eq_file(src, dst)) {
-      val in = new FileInputStream(src)
-      try {
-        val out = new FileOutputStream(dst)
-        try {
-          val buf = new Array[Byte](65536)
-          var m = 0
-          do {
-            m = in.read(buf, 0, buf.length)
-            if (m != -1) out.write(buf, 0, m)
-          } while (m != -1)
-        }
-        finally { out.close }
-      }
-      finally { in.close }
-    }
-
-  def with_tmp_file[A](prefix: String)(body: JFile => A): A =
-  {
-    val file = JFile.createTempFile(prefix, null)
-    file.deleteOnExit
-    try { body(file) } finally { file.delete }
-  }
-
-  // FIXME handle (potentially cyclic) directory graph
-  def find_files(start: JFile, ok: JFile => Boolean): List[JFile] =
-  {
-    val files = new mutable.ListBuffer[JFile]
-    val filter = new FileFilter { def accept(entry: JFile) = entry.isDirectory || ok(entry) }
-    def find_entry(entry: JFile)
-    {
-      if (ok(entry)) files += entry
-      if (entry.isDirectory) entry.listFiles(filter).foreach(find_entry)
-    }
-    find_entry(start)
-    files.toList
-  }
-
-
   /* shell processes */
 
   def raw_execute(cwd: JFile, env: Map[String, String], redirect: Boolean, args: String*): Process =
@@ -188,7 +116,7 @@ object Standard_System
   def process_output(proc: Process): (String, Int) =
   {
     proc.getOutputStream.close
-    val output = slurp(proc.getInputStream)
+    val output = File.read(proc.getInputStream)
     val rc =
       try { proc.waitFor }
       finally {

@@ -68,7 +68,7 @@ object Isabelle_System
               case Some(path) => path
             }
 
-          Standard_System.with_tmp_file("settings") { dump =>
+          File.with_tmp_file("settings") { dump =>
               val shell_prefix =
                 if (Platform.is_windows) List(standard_system.platform_root + "\\bin\\bash", "-l")
                 else Nil
@@ -78,7 +78,7 @@ object Isabelle_System
               if (rc != 0) error(output)
 
               val entries =
-                (for (entry <- Standard_System.read_file(dump) split "\0" if entry != "") yield {
+                (for (entry <- File.read(dump) split "\0" if entry != "") yield {
                   val i = entry.indexOf('=')
                   if (i <= 0) (entry -> "")
                   else (entry.substring(0, i) -> entry.substring(i + 1))
@@ -132,7 +132,7 @@ object Isabelle_System
     for {
       path <- paths
       file = platform_file(path) if file.isFile
-    } { buf.append(Standard_System.read_file(file)); buf.append('\n') }
+    } { buf.append(File.read(file)); buf.append('\n') }
     buf.toString
   }
 
@@ -243,13 +243,13 @@ object Isabelle_System
 
   def bash_env(cwd: JFile, env: Map[String, String], script: String): (String, String, Int) =
   {
-    Standard_System.with_tmp_file("isabelle_script") { script_file =>
-      Standard_System.write_file(script_file, script)
+    File.with_tmp_file("isabelle_script") { script_file =>
+      File.write(script_file, script)
       val proc = new Managed_Process(cwd, env, false, "bash", posix_path(script_file.getPath))
 
       proc.stdin.close
-      val (_, stdout) = Simple_Thread.future("bash_stdout") { Standard_System.slurp(proc.stdout) }
-      val (_, stderr) = Simple_Thread.future("bash_stderr") { Standard_System.slurp(proc.stderr) }
+      val (_, stdout) = Simple_Thread.future("bash_stdout") { File.read(proc.stdout) }
+      val (_, stderr) = Simple_Thread.future("bash_stderr") { File.read(proc.stderr) }
 
       val rc =
         try { proc.join }
