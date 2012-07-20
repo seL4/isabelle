@@ -75,6 +75,14 @@ object Build
         new Queue(keys1, graph1)
       }
 
+      def required(names: List[String]): Queue =
+      {
+        val req = graph.all_preds(names.map(keys(_))).map(_.name).toSet
+        val keys1 = keys -- keys.keySet.filter(name => !req(name))
+        val graph1 = graph.restrict(key => keys1.isDefinedAt(key.name))
+        new Queue(keys1, graph1)
+      }
+
       def topological_order: List[(Key, Info)] =
         graph.topological_order.map(key => (key, graph.get_node(key)))
     }
@@ -145,20 +153,25 @@ object Build
 
   /* find sessions */
 
-  private def sessions_root(dir: Path, root: File, sessions: Session.Queue): Session.Queue =
+  private val ROOT = Path.explode("ROOT")
+  private val SESSIONS = Path.explode("etc/sessions")
+
+  private def is_pure(name: String): Boolean = name == "RAW" || name == "Pure"
+
+  private def sessions_root(dir: Path, root: File, queue: Session.Queue): Session.Queue =
   {
-    (sessions /: Parser.parse_entries(root))((sessions1, entry) =>
+    (queue /: Parser.parse_entries(root))((queue1, entry) =>
       try {
         if (entry.name == "") error("Bad session name")
 
         val full_name =
-          if (entry.name == "RAW" || entry.name == "Pure") {
+          if (is_pure(entry.name)) {
             if (entry.parent.isDefined) error("Illegal parent session")
             else entry.name
           }
           else
             entry.parent match {
-              case Some(parent_name) if sessions1.defined(parent_name) =>
+              case Some(parent_name) if queue1.defined(parent_name) =>
                 if (entry.reset) entry.name
                 else parent_name + "-" + entry.name
               case _ => error("Bad parent session")
@@ -174,32 +187,32 @@ object Build
         val info = Session.Info(dir + path, entry.description, entry.options,
           entry.theories.map({ case (x, ys) => ys.map(y => (x, y)) }).flatten, entry.files)
 
-        sessions1 + (key, info, entry.parent)
+        queue1 + (key, info, entry.parent)
       }
       catch {
         case ERROR(msg) =>
           error(msg + "\nThe error(s) above occurred in session entry " +
-            quote(entry.name) + " (file " + quote(root.toString) + ")")
+            quote(entry.name) + Position.str_of(Position.file(root)))
       })
   }
 
-  private def sessions_dir(strict: Boolean, dir: Path, sessions: Session.Queue): Session.Queue =
+  private def sessions_dir(strict: Boolean, dir: Path, queue: Session.Queue): Session.Queue =
   {
-    val root = Isabelle_System.platform_file(dir + Path.basic("ROOT"))
-    if (root.isFile) sessions_root(dir, root, sessions)
+    val root = (dir + ROOT).file
+    if (root.isFile) sessions_root(dir, root, queue)
     else if (strict) error("Bad session root file: " + quote(root.toString))
-    else sessions
+    else queue
   }
 
-  private def sessions_catalog(dir: Path, catalog: File, sessions: Session.Queue): Session.Queue =
+  private def sessions_catalog(dir: Path, catalog: File, queue: Session.Queue): Session.Queue =
   {
     val dirs =
       split_lines(Standard_System.read_file(catalog)).
         filterNot(line => line == "" || line.startsWith("#"))
-    (sessions /: dirs)((sessions1, dir1) =>
+    (queue /: dirs)((queue1, dir1) =>
       try {
         val dir2 = dir + Path.explode(dir1)
-        if (Isabelle_System.platform_file(dir2).isDirectory) sessions_dir(true, dir2, sessions1)
+        if (dir2.file.isDirectory) sessions_dir(true, dir2, queue1)
         else error("Bad session directory: " + dir2.toString)
       }
       catch {
@@ -210,36 +223,101 @@ object Build
 
   def find_sessions(more_dirs: List[Path]): Session.Queue =
   {
-    var sessions = Session.Queue.empty
+    var queue = Session.Queue.empty
 
     for (dir <- Isabelle_System.components()) {
-      sessions = sessions_dir(false, dir, sessions)
+      queue = sessions_dir(false, dir, queue)
 
-      val catalog = Isabelle_System.platform_file(dir + Path.explode("etc/sessions"))
+      val catalog = (dir + SESSIONS).file
       if (catalog.isFile)
-        sessions = sessions_catalog(dir, catalog, sessions)
+        queue = sessions_catalog(dir, catalog, queue)
     }
 
-    for (dir <- more_dirs) sessions = sessions_dir(true, dir, sessions)
+    for (dir <- more_dirs) queue = sessions_dir(true, dir, queue)
 
-    sessions
+    queue
   }
 
 
 
   /** build **/
 
+  private def echo(msg: String) { java.lang.System.out.println(msg) }
+  private def echo_n(msg: String) { java.lang.System.out.print(msg) }
+
+  private def build_job(build_images: Boolean,  // FIXME
+    key: Session.Key, info: Session.Info): Isabelle_System.Bash_Job =
+  {
+    val cwd = info.dir.file
+    val script =
+      if (is_pure(key.name)) "./build " + (if (build_images) "-b " else "") + key.name
+      else """echo "Bad session" >&2; exit 2"""
+    new Isabelle_System.Bash_Job(cwd, null, script)
+  }
+
   def build(all_sessions: Boolean, build_images: Boolean, list_only: Boolean,
     more_dirs: List[Path], options: List[String], sessions: List[String]): Int =
   {
-    println("more_dirs = " + more_dirs.toString)
-    println("options = " + options.toString)
-    println("sessions = " + sessions.toString)
+    val full_queue = find_sessions(more_dirs)
+    val build_options = (Options.init() /: options)(_.define_simple(_))
 
-    for ((key, info) <- find_sessions(more_dirs).topological_order)
-      println(key.name + " in " + info.dir)
+    sessions.filter(name => !full_queue.defined(name)) match {
+      case Nil =>
+      case bad => error("Undefined session(s): " + commas_quote(bad))
+    }
 
-    0
+    val required_queue =
+      if (all_sessions) full_queue
+      else full_queue.required(sessions)
+
+    // prepare browser info dir
+    if (build_options.bool("browser_info") &&
+      !Path.explode("$ISABELLE_BROWSER_INFO/index.html").file.isFile)
+    {
+      Path.explode("$ISABELLE_BROWSER_INFO").file.mkdirs()
+      Standard_System.copy_file(Path.explode("$ISABELLE_HOME/lib/logo/isabelle.gif").file,
+        Path.explode("$ISABELLE_BROWSER_INFO/isabelle.gif").file)
+      Standard_System.write_file(Path.explode("$ISABELLE_BROWSER_INFO/index.html").file,
+        Standard_System.read_file(
+          Path.explode("$ISABELLE_HOME/lib/html/library_index_header.template").file) +
+        Standard_System.read_file(
+          Path.explode("$ISABELLE_HOME/lib/html/library_index_content.template").file) +
+        Standard_System.read_file(
+          Path.explode("$ISABELLE_HOME/lib/html/library_index_footer.template").file))
+    }
+
+    // prepare log dir
+    val log_dir = Path.explode("$ISABELLE_OUTPUT/log")
+    log_dir.file.mkdirs()
+
+    // run jobs
+    val rcs =
+      for ((key, info) <- required_queue.topological_order) yield
+      {
+        if (list_only) { echo(key.name + " in " + info.dir); 0 }
+        else {
+          if (build_images) echo("Building " + key.name + "...")
+          else echo("Running " + key.name + "...")
+
+          val (out, err, rc) = build_job(build_images, key, info).join
+          echo_n(err)
+
+          val log = log_dir + Path.basic(key.name)
+          if (rc == 0) {
+            Standard_System.write_file(log.ext("gz").file, out, true)
+          }
+          else {
+            Standard_System.write_file(log.file, out)
+            echo(key.name + " FAILED")
+            echo("(see also " + log.file + ")")
+            val lines = split_lines(out)
+            val tail = lines.drop(lines.length - 20 max 0)
+            echo("\n" + cat_lines(tail))
+          }
+          rc
+        }
+      }
+    (0 /: rcs)(_ max _)
   }
 
 

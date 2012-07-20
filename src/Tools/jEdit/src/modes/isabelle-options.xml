@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!DOCTYPE MODE SYSTEM "xmode.dtd">
+
+<!-- Isabelle options mode -->
+<MODE>
+  <PROPS>
+    <PROPERTY NAME="commentStart" VALUE="(*"/>
+    <PROPERTY NAME="commentEnd" VALUE="*)"/>
+    <PROPERTY NAME="noWordSep" VALUE="_'.?"/>
+    <PROPERTY NAME="unalignedOpenBrackets" VALUE="(" />
+    <PROPERTY NAME="unalignedCloseBrackets" VALUE=")" />
+    <PROPERTY NAME="tabSize" VALUE="2" />
+    <PROPERTY NAME="indentSize" VALUE="2" />
+  </PROPS>
+  <RULES IGNORE_CASE="FALSE" HIGHLIGHT_DIGITS="FALSE" ESCAPE="\">
+    <SPAN TYPE="COMMENT1">
+      <BEGIN>(*</BEGIN>
+      <END>*)</END>
+    </SPAN>
+    <SPAN TYPE="COMMENT3">
+      <BEGIN>{*</BEGIN>
+      <END>*}</END>
+    </SPAN>
+    <SPAN TYPE="LITERAL2">
+      <BEGIN>`</BEGIN>
+      <END>`</END>
+    </SPAN>
+    <SPAN TYPE="LITERAL1">
+      <BEGIN>"</BEGIN>
+      <END>"</END>
+    </SPAN>
+    <KEYWORDS>
+      <KEYWORD1>declare</KEYWORD1>
+      <KEYWORD2>define</KEYWORD2>
+    </KEYWORDS>
+  </RULES>
+</MODE>

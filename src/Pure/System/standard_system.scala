@@ -15,6 +15,7 @@ import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOu
   BufferedInputStream, InputStream, FileInputStream, BufferedReader, InputStreamReader,
   File, FileFilter, IOException}
 import java.nio.charset.Charset
+import java.util.zip.GZIPOutputStream
 
 import scala.io.Codec
 import scala.util.matching.Regex
@@ -115,13 +116,35 @@ object Standard_System
 
   def read_file(file: File): String = slurp(new FileInputStream(file))
 
-  def write_file(file: File, text: CharSequence)
+  def write_file(file: File, text: CharSequence, zip: Boolean = false)
   {
-    val writer =
-      new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), charset))
+    val stream1 = new FileOutputStream(file)
+    val stream2 = if (zip) new GZIPOutputStream(new BufferedOutputStream(stream1)) else stream1
+    val writer = new BufferedWriter(new OutputStreamWriter(stream2, charset))
     try { writer.append(text) }
     finally { writer.close }
   }
+
+  def eq_file(file1: File, file2: File): Boolean =
+    file1.getCanonicalPath == file2.getCanonicalPath  // FIXME prefer java.nio.file.Files.isSameFile of Java 1.7
+
+  def copy_file(src: File, dst: File) =
+    if (!eq_file(src, dst)) {
+      val in = new FileInputStream(src)
+      try {
+        val out = new FileOutputStream(dst)
+        try {
+          val buf = new Array[Byte](65536)
+          var m = 0
+          do {
+            m = in.read(buf, 0, buf.length)
+            if (m != -1) out.write(buf, 0, m)
+          } while (m != -1)
+        }
+        finally { out.close }
+      }
+      finally { in.close }
+    }
 
   def with_tmp_file[A](prefix: String)(body: File => A): A =
   {
