@@ -1009,8 +1009,8 @@ and \textit{dont\_preplay} (\S\ref{timeouts}).}
 Specifies whether Sledgehammer should put its temporary files in
 \texttt{\$ISA\-BELLE\_\allowbreak HOME\_\allowbreak USER}, which is useful for
 debugging Sledgehammer but also unsafe if several instances of the tool are run
-simultaneously. The files are identified by the prefix \texttt{prob\_}; you may
-safely remove them after Sledgehammer has run.
+simultaneously. The files are identified by the prefixes \texttt{prob\_} and
+\texttt{mash\_}; you may safely remove them after Sledgehammer has run.
 
 \nopagebreak
 {\small See also \textit{debug} (\S\ref{output-format}).}
@@ -1032,6 +1032,7 @@ The memoryful MaSh machine learner. MaSh relies on the external program
 \texttt{mash}, which can be obtained from the author at \authoremail. To install
 it, set the environment variable \texttt{MASH\_HOME} to the directory that
 contains the \texttt{mash} executable.
+Persistent data is stored in the \texttt{\$ISABELLE\_HOME\_USER/mash} directory.
 
 \item[\labelitemi] \textbf{\textit{mesh}:} A combination of MePo and MaSh.
 
