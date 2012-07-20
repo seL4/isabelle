@@ -38,9 +38,6 @@ sig
   val run_prover_for_mash :
     Proof.context -> params -> string -> fact list -> thm -> prover_result
   val mash_CLEAR : Proof.context -> unit
-  val mash_INIT :
-    Proof.context -> bool
-    -> (string * string list * string list * string list) list -> unit
   val mash_ADD :
     Proof.context -> bool
     -> (string * string list * string list * string list) list -> unit
@@ -341,22 +338,6 @@ fun run_mash ctxt overlord (temp_dir, serial) async core =
     if not async then trace_msg ctxt (K "Done") else ()
   end
 
-(* TODO: Eliminate code once "mash.py" handles sequences of ADD commands as fast
-   as a single INIT. *)
-fun run_mash_init ctxt overlord write_access write_feats write_deps =
-  let
-    val info as (temp_dir, serial) = mash_info overlord
-    val in_dir = temp_dir ^ "/mash_init" ^ serial
-                 |> tap (Path.explode #> Isabelle_System.mkdir)
-  in
-    write_file write_access (in_dir ^ "/mash_accessibility");
-    write_file write_feats (in_dir ^ "/mash_features");
-    write_file write_deps (in_dir ^ "/mash_dependencies");
-    run_mash ctxt overlord info false
-             ("--init --inputDir " ^ in_dir ^
-              and_rm_files overlord " -r" [in_dir])
-  end
-
 fun run_mash_commands ctxt overlord save max_suggs write_cmds read_suggs =
   let
     val info as (temp_dir, serial) = mash_info overlord
@@ -380,9 +361,6 @@ fun str_of_update (name, parents, feats, deps) =
 fun str_of_query (parents, feats) =
   "? " ^ escape_metas parents ^ "; " ^ escape_metas feats
 
-fun init_str_of_update get (upd as (name, _, _, _)) =
-  escape_meta name ^ ": " ^ escape_metas (get upd) ^ "\n"
-
 fun mash_CLEAR ctxt =
   let val path = mash_state_dir () |> Path.explode in
     trace_msg ctxt (K "MaSh CLEAR");
@@ -390,13 +368,6 @@ fun mash_CLEAR ctxt =
                       File.rm (Path.append path (Path.basic file)))
                   path ()
   end
-
-fun mash_INIT ctxt _ [] = mash_CLEAR ctxt
-  | mash_INIT ctxt overlord upds =
-    (trace_msg ctxt (fn () => "MaSh INIT " ^
-         elide_string 1000 (space_implode " " (map #1 upds)));
-     run_mash_init ctxt overlord (upds, init_str_of_update #2)
-                   (upds, init_str_of_update #3) (upds, init_str_of_update #4))
 
 fun mash_ADD _ _ [] = ()
   | mash_ADD ctxt overlord upds =
@@ -627,12 +598,10 @@ fun mash_learn_thy ctxt ({provers, verbose, overlord, ...} : params) thy timeout
         val n = length upds
         fun trans {thys, fact_graph} =
           let
-            val mash_INIT_or_ADD =
-              if Graph.is_empty fact_graph then mash_INIT else mash_ADD
             val (upds, fact_graph) =
               ([], fact_graph) |> fold (update_fact_graph ctxt) upds
           in
-            (mash_INIT_or_ADD ctxt overlord (rev upds);
+            (mash_ADD ctxt overlord (rev upds);
              {thys = thys |> add_thys_for thy, fact_graph = fact_graph})
           end
       in
