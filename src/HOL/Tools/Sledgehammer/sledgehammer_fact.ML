@@ -85,10 +85,10 @@ fun is_rec_def (@{const Trueprop} $ t) = is_rec_def t
   | is_rec_def _ = false
 
 fun is_assum assms th = exists (fn ct => prop_of th aconv term_of ct) assms
-fun is_chained chained_ths = member Thm.eq_thm_prop chained_ths
+fun is_chained chained = member Thm.eq_thm_prop chained
 
-fun scope_of_thm global assms chained_ths th =
-  if is_chained chained_ths th then Chained
+fun scope_of_thm global assms chained th =
+  if is_chained chained th then Chained
   else if global then Global
   else if is_assum assms th then Assum
   else Local
@@ -98,20 +98,20 @@ val may_be_induction =
                      body_type T = @{typ bool}
                    | _ => false)
 
-fun status_of_thm css_table name th =
+fun status_of_thm css name th =
   (* FIXME: use structured name *)
   if (String.isSubstring ".induct" name orelse
       String.isSubstring ".inducts" name) andalso
      may_be_induction (prop_of th) then
     Induction
-  else case Termtab.lookup css_table (prop_of th) of
+  else case Termtab.lookup css (prop_of th) of
     SOME status => status
   | NONE => General
 
-fun stature_of_thm global assms chained_ths css_table name th =
-  (scope_of_thm global assms chained_ths th, status_of_thm css_table name th)
+fun stature_of_thm global assms chained css name th =
+  (scope_of_thm global assms chained th, status_of_thm css name th)
 
-fun fact_from_ref ctxt reserved chained_ths css_table (xthm as (xref, args)) =
+fun fact_from_ref ctxt reserved chained css (xthm as (xref, args)) =
   let
     val ths = Attrib.eval_thms ctxt [xthm]
     val bracket =
@@ -127,15 +127,12 @@ fun fact_from_ref ctxt reserved chained_ths css_table (xthm as (xref, args)) =
         make_name reserved true
                  (nth (maps (explode_interval (length ths)) intervals) j) name ^
         bracket
-  in
-    (ths, (0, []))
-    |-> fold (fn th => fn (j, rest) =>
-                 let val name = nth_name j in
-                   (j + 1, ((name, stature_of_thm false [] chained_ths
-                                             css_table name th), th) :: rest)
-                 end)
-    |> snd
-  end
+    fun add_nth th (j, rest) =
+      let val name = nth_name j in
+        (j + 1, ((name, stature_of_thm false [] chained css name th), th)
+                :: rest)
+      end
+  in (0, []) |> fold add_nth ths |> snd end
 
 (* Reject theorems with names like "List.filter.filter_list_def" or
   "Accessible_Part.acc.defs", as these are definitions arising from packages. *)
@@ -352,7 +349,7 @@ fun maybe_instantiate_inducts ctxt hyp_ts concl_t =
 fun maybe_filter_no_atps ctxt =
   not (Config.get ctxt ignore_no_atp) ? filter_out (No_ATPs.member ctxt o snd)
 
-fun all_facts ctxt ho_atp reserved add_ths chained_ths css_table =
+fun all_facts ctxt ho_atp reserved add_ths chained css =
   let
     val thy = Proof_Context.theory_of ctxt
     val global_facts = Global_Theory.facts_of thy
@@ -363,7 +360,7 @@ fun all_facts ctxt ho_atp reserved add_ths chained_ths css_table =
       not (Thm.has_name_hint th) andalso
       forall (fn (_, ths) => not (member Thm.eq_thm_prop ths th)) named_locals
     val unnamed_locals =
-      union Thm.eq_thm_prop (Facts.props local_facts) chained_ths
+      union Thm.eq_thm_prop (Facts.props local_facts) chained
       |> filter is_good_unnamed_local |> map (pair "" o single)
     val full_space =
       Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts)
@@ -404,8 +401,8 @@ fun all_facts ctxt ho_atp reserved add_ths chained_ths css_table =
                                        |> find_first check_thms
                                        |> the_default name0
                                        |> make_name reserved multi j),
-                                  stature_of_thm global assms chained_ths
-                                                 css_table name0 th), th)
+                                  stature_of_thm global assms chained css name0
+                                                 th), th)
                            in
                              if multi then (new :: multis, unis)
                              else (multis, new :: unis)
@@ -420,26 +417,26 @@ fun all_facts ctxt ho_atp reserved add_ths chained_ths css_table =
              |> op @
   end
 
-fun all_facts_of ctxt css_table =
-  all_facts ctxt false Symtab.empty [] [] css_table
-  |> rev (* try to restore the original order of facts, for MaSh *)
+fun all_facts_of ctxt css =
+  all_facts ctxt false Symtab.empty [] [] css
+  |> rev (* partly restore the original order of facts, for MaSh *)
 
-fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css_table chained_ths
-                     hyp_ts concl_t =
+fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css chained hyp_ts
+                     concl_t =
   if only andalso null add then
     []
   else
     let
-      val chained_ths =
-        chained_ths
+      val chained =
+        chained
         |> maps (fn th => insert Thm.eq_thm_prop (zero_var_indexes th) [th])
     in
       (if only then
          maps (map (fn ((name, stature), th) => ((K name, stature), th))
-               o fact_from_ref ctxt reserved chained_ths css_table) add
+               o fact_from_ref ctxt reserved chained css) add
        else
          let val (add, del) = pairself (Attrib.eval_thms ctxt) (add, del) in
-           all_facts ctxt ho_atp reserved add chained_ths css_table
+           all_facts ctxt ho_atp reserved add chained css
            |> filter_out (member Thm.eq_thm_prop del o snd)
            |> maybe_filter_no_atps ctxt
            |> uniquify

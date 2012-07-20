@@ -654,7 +654,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, timeout, ...})
     if null new_facts then
       if not auto then
         "Nothing to learn.\n\nHint: Try " ^ sendback relearn_isarN ^ " or " ^
-        sendback relearn_atpN ^ "  to learn from scratch."
+        sendback relearn_atpN ^ " to learn from scratch."
       else
         ""
     else
@@ -722,13 +722,13 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, timeout, ...})
       end
   end
 
-fun mash_learn ctxt (params as {provers, ...}) fact_override chained_ths atp =
+fun mash_learn ctxt (params as {provers, ...}) fact_override chained atp =
   let
-    val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
+    val css = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
     val ctxt = ctxt |> Config.put instantiate_inducts false
     val facts =
-      nearly_all_facts ctxt false fact_override Symtab.empty css_table
-                       chained_ths [] @{prop True}
+      nearly_all_facts ctxt false fact_override Symtab.empty css chained []
+                       @{prop True}
   in
      mash_learn_facts ctxt params (hd provers) false atp infinite_timeout facts
      |> Output.urgent_message
