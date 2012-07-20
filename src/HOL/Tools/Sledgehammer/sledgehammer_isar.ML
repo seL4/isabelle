@@ -29,6 +29,10 @@ open Sledgehammer_Minimize
 open Sledgehammer_MaSh
 open Sledgehammer_Run
 
+val cvc3N = "cvc3"
+val yicesN = "yices"
+val z3N = "z3"
+
 val runN = "run"
 val minN = "min"
 val messagesN = "messages"
@@ -220,10 +224,9 @@ fun avoid_too_many_threads _ _ [] = []
 val max_default_remote_threads = 4
 
 (* The first ATP of the list is used by Auto Sledgehammer. Because of the low
-   timeout, it makes sense to put SPASS first. *)
+   timeout, it makes sense to put E first. *)
 fun default_provers_param_value ctxt =
-  [spassN, eN, vampireN, SMT_Solver.solver_name_of ctxt, e_sineN,
-   waldmeisterN]
+  [eN, spassN, vampireN, z3N, e_sineN, waldmeisterN, yicesN, cvc3N]
   |> map_filter (remotify_prover_if_not_installed ctxt)
   |> avoid_too_many_threads ctxt (Multithreading.max_threads_value (),
                                   max_default_remote_threads)

@@ -106,10 +106,10 @@ The supported ATPs are E \cite{schulz-2002}, E-SInE \cite{sine}, E-ToFoF
 SNARK \cite{snark}, SPASS \cite{weidenbach-et-al-2009}, Vampire
 \cite{riazanov-voronkov-2002}, and Waldmeister \cite{waldmeister}. The ATPs are
 run either locally or remotely via the System\-On\-TPTP web service
-\cite{sutcliffe-2000}. In addition to the ATPs, the SMT solvers Z3 \cite{z3} is
-used by default, and you can tell Sledgehammer to try Alt-Ergo \cite{alt-ergo},
-CVC3 \cite{cvc3}, and Yices \cite{yices} as well; these are run either locally
-or (for CVC3 and Z3) on a server at the TU M\"unchen.
+\cite{sutcliffe-2000}. In addition to the ATPs, a selection of the SMT solvers
+CVC3 \cite{cvc3}, Yices \cite{yices}, and Z3 \cite{z3} are run by default, and
+you can tell Sledgehammer to try Alt-Ergo \cite{alt-ergo} as well; these are run
+either locally or (for CVC3 and Z3) on a server at the TU M\"unchen.
 
 The problem passed to the automatic provers consists of your current goal
 together with a heuristic selection of hundreds of facts (theorems) from the
@@ -161,11 +161,10 @@ Vampire, and Waldmeister are available remotely via System\-On\-TPTP
 \cite{sutcliffe-2000}. If you want better performance, you should at least
 install E and SPASS locally.
 
-Among the SMT solvers, Alt-Ergo, CVC3, Yices, and Z3 can be run locally, and
-CVC3 and Z3 can be run remotely on a TU M\"unchen server. If you want better
-performance and get the ability to replay proofs that rely on the \emph{smt}
-proof method without an Internet connection, you should at least install Z3
-locally.
+The SMT solvers Alt-Ergo, CVC3, Yices, and Z3 can be run locally, and CVC3 and
+Z3 can be run remotely on a TU M\"unchen server. If you want better performance
+and get the ability to replay proofs that rely on the \emph{smt} proof method
+without an Internet connection, you should at least have Z3 locally installed.
 
 There are three main ways to install automatic provers on your machine:
 
@@ -220,12 +219,16 @@ Yices or Z3 executable somewhere (e.g.,
 \url{http://research.microsoft.com/en-us/um/redmond/projects/z3/download.html}),
 set the environment variable \texttt{CVC3\_\allowbreak SOLVER},
 \texttt{YICES\_SOLVER}, or \texttt{Z3\_SOLVER} to the complete path of
-the executable, \emph{including the file name}. Sledgehammer has been tested
-with Alt-Ergo 0.93, CVC3 2.2 and 2.4.1, Yices 1.0.28 and 1.0.33, and Z3 3.0,
-3.1, 3.2, and 4.0. Since the SMT solvers' output formats are somewhat unstable,
-other versions of the solvers might not work well with Sledgehammer. Ideally,
-also set \texttt{CVC3\_VERSION}, \texttt{YICES\_VERSION}, or
-\texttt{Z3\_VERSION} to the solver's version number (e.g., ``4.0'').
+the executable, \emph{including the file name};
+for Alt-Ergo, set the
+environment variable \texttt{WHY3\_HOME} to the directory that contains the
+\texttt{why3} executable.
+Sledgehammer has been tested with Alt-Ergo 0.93 and 0.94, CVC3 2.2 and 2.4.1,
+Yices 1.0.28 and 1.0.33, and Z3 3.0 to 4.0. Since the SMT solvers' output
+formats are somewhat unstable, other versions of the solvers might not work well
+with Sledgehammer. Ideally, also set \texttt{CVC3\_VERSION},
+\texttt{YICES\_VERSION}, or \texttt{Z3\_VERSION} to the solver's version number
+(e.g., ``4.0'').
 \end{enum}
 \end{sloppy}
 
@@ -472,8 +475,8 @@ obtain a step-by-step Isar proof where each step is justified by \textit{metis}.
 Since the steps are fairly small, \textit{metis} is more likely to be able to
 replay them.
 
-\item[\labelitemi] Try the \textit{smt} proof method instead of \textit{metis}. It
-is usually stronger, but you need to either have Z3 available to replay the
+\item[\labelitemi] Try the \textit{smt} proof method instead of \textit{metis}.
+It is usually stronger, but you need to either have Z3 available to replay the
 proofs, trust the SMT solver, or use certificates. See the documentation in the
 \emph{SMT} theory (\texttt{\$ISABELLE\_HOME/src/HOL/SMT.thy}) for details.
 
@@ -970,12 +973,11 @@ point).
 with TPTP syntax'' runs on Geoff Sutcliffe's Miami servers.
 \end{enum}
 
-By default, Sledgehammer runs E, E-SInE, SPASS, Vampire, Z3 (or whatever
-the SMT module's \textit{smt\_solver} configuration option is set to), and (if
-appropriate) Waldmeister in parallel---either locally or remotely, depending on
-the number of processor cores available. For historical reasons, the default
-value of this option can be overridden using the option ``Sledgehammer:
-Provers'' in Proof General's ``Isabelle'' menu.
+By default, Sledgehammer runs a selection of CVC3, E, E-SInE, SPASS, Vampire,
+Yices, Z3, and (if appropriate) Waldmeister in parallel---either locally or
+remotely, depending on the number of processor cores available. For historical
+reasons, the default value of this option can be overridden using the option
+``Sledgehammer: Provers'' in Proof General's ``Isabelle'' menu.
 
 It is generally a good idea to run several provers in parallel. Running E,
 SPASS, and Vampire for 5~seconds yields a similar success rate to running the
