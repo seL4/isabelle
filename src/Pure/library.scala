@@ -100,7 +100,7 @@ object Library
 
   def quote(s: String): String = "\"" + s + "\""
   def commas(ss: Iterable[String]): String = ss.iterator.mkString(", ")
-  def commas_quote(ss: Iterable[String]): String = ss.iterator.mkString("\"", ", ", "\"")
+  def commas_quote(ss: Iterable[String]): String = ss.iterator.map(quote).mkString(", ")
 
 
   /* reverse CharSequence */
