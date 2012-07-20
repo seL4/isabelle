@@ -230,6 +230,7 @@ then
   perl -i -e 'while (<>) {
     if (m/NAME="javacc"/) {
       print qq,<MODE NAME="isabelle" FILE="isabelle.xml" FILE_NAME_GLOB="*.thy"/>\n\n,;
+      print qq,<MODE NAME="isabelle-options" FILE="isabelle-options.xml"/>\n\n,;
       print qq,<MODE NAME="isabelle-session" FILE="isabelle-session.xml" FILE_NAME_GLOB="ROOT"/>\n\n,; }
     elsif (m/NAME="scheme"/) {
       print qq,<MODE NAME="scala" FILE="scala.xml" FILE_NAME_GLOB="*.scala" />\n\n,; }
