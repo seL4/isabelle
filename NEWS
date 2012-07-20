@@ -46,6 +46,8 @@ Minor INCOMPATIBILITY.
 
 * Sledgehammer:
 
+  - Added MaSh relevance filter based on machine-learning; see the
+    Sledgehammer manual for details.
   - Rationalized type encodings ("type_enc" option).
   - Renamed options:
       max_relevant ~> max_facts
