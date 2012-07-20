@@ -12,7 +12,7 @@ import scala.collection.mutable
 import scala.util.parsing.input.{Reader, CharSequenceReader}
 import scala.util.matching.Regex
 
-import java.io.File
+import java.io.{File => JFile}
 
 
 object Thy_Header extends Parse.Parser
@@ -102,7 +102,7 @@ object Thy_Header extends Parse.Parser
   def read(source: CharSequence): Thy_Header =
     read(new CharSequenceReader(source))
 
-  def read(file: File): Thy_Header =
+  def read(file: JFile): Thy_Header =
   {
     val reader = Scan.byte_reader(file)
     try { read(reader).map(Standard_System.decode_permissive_utf8) }

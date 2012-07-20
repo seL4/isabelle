@@ -10,7 +10,7 @@ package isabelle
 import java.lang.System
 import java.util.regex.Pattern
 import java.util.Locale
-import java.io.{InputStream, OutputStream, File, BufferedReader, InputStreamReader,
+import java.io.{InputStream, OutputStream, File => JFile, BufferedReader, InputStreamReader,
   BufferedWriter, OutputStreamWriter, IOException}
 import java.awt.{GraphicsEnvironment, Font}
 import java.awt.font.TextAttribute
@@ -68,7 +68,7 @@ object Isabelle_System
               case Some(path) => path
             }
 
-          Standard_System.with_tmp_file("settings") { dump =>
+          File.with_tmp_file("settings") { dump =>
               val shell_prefix =
                 if (Platform.is_windows) List(standard_system.platform_root + "\\bin\\bash", "-l")
                 else Nil
@@ -78,7 +78,7 @@ object Isabelle_System
               if (rc != 0) error(output)
 
               val entries =
-                (for (entry <- Standard_System.read_file(dump) split "\0" if entry != "") yield {
+                (for (entry <- File.read(dump) split "\0" if entry != "") yield {
                   val i = entry.indexOf('=')
                   if (i <= 0) (entry -> "")
                   else (entry.substring(0, i) -> entry.substring(i + 1))
@@ -109,7 +109,7 @@ object Isabelle_System
   def standard_path(path: Path): String = path.expand.implode
 
   def platform_path(path: Path): String = standard_system.jvm_path(standard_path(path))
-  def platform_file(path: Path): File = new File(platform_path(path))
+  def platform_file(path: Path): JFile = new JFile(platform_path(path))
 
   def platform_file_url(raw_path: Path): String =
   {
@@ -132,16 +132,16 @@ object Isabelle_System
     for {
       path <- paths
       file = platform_file(path) if file.isFile
-    } { buf.append(Standard_System.read_file(file)); buf.append('\n') }
+    } { buf.append(File.read(file)); buf.append('\n') }
     buf.toString
   }
 
 
   /* source files */
 
-  private def try_file(file: File) = if (file.isFile) Some(file) else None
+  private def try_file(file: JFile) = if (file.isFile) Some(file) else None
 
-  def source_file(path: Path): Option[File] =
+  def source_file(path: Path): Option[JFile] =
   {
     if (path.is_absolute || path.is_current)
       try_file(platform_file(path))
@@ -159,7 +159,7 @@ object Isabelle_System
 
   /* plain execute */
 
-  def execute_env(cwd: File, env: Map[String, String], redirect: Boolean, args: String*): Process =
+  def execute_env(cwd: JFile, env: Map[String, String], redirect: Boolean, args: String*): Process =
   {
     val cmdline =
       if (Platform.is_windows) List(standard_system.platform_root + "\\bin\\env.exe") ++ args
@@ -174,7 +174,7 @@ object Isabelle_System
 
   /* managed process */
 
-  class Managed_Process(cwd: File, env: Map[String, String], redirect: Boolean, args: String*)
+  class Managed_Process(cwd: JFile, env: Map[String, String], redirect: Boolean, args: String*)
   {
     private val params =
       List(standard_path(Path.explode("~~/lib/scripts/process")), "group", "-", "no_script")
@@ -241,15 +241,15 @@ object Isabelle_System
 
   /* bash */
 
-  def bash_env(cwd: File, env: Map[String, String], script: String): (String, String, Int) =
+  def bash_env(cwd: JFile, env: Map[String, String], script: String): (String, String, Int) =
   {
-    Standard_System.with_tmp_file("isabelle_script") { script_file =>
-      Standard_System.write_file(script_file, script)
+    File.with_tmp_file("isabelle_script") { script_file =>
+      File.write(script_file, script)
       val proc = new Managed_Process(cwd, env, false, "bash", posix_path(script_file.getPath))
 
       proc.stdin.close
-      val (_, stdout) = Simple_Thread.future("bash_stdout") { Standard_System.slurp(proc.stdout) }
-      val (_, stderr) = Simple_Thread.future("bash_stderr") { Standard_System.slurp(proc.stderr) }
+      val (_, stdout) = Simple_Thread.future("bash_stdout") { File.read(proc.stdout) }
+      val (_, stderr) = Simple_Thread.future("bash_stderr") { File.read(proc.stderr) }
 
       val rc =
         try { proc.join }
@@ -260,7 +260,7 @@ object Isabelle_System
 
   def bash(script: String): (String, String, Int) = bash_env(null, null, script)
 
-  class Bash_Job(cwd: File, env: Map[String, String], script: String)
+  class Bash_Job(cwd: JFile, env: Map[String, String], script: String)
   {
     private val (thread, result) = Simple_Thread.future("bash_job") { bash_env(cwd, env, script) }
 

@@ -7,6 +7,9 @@ Position properties.
 package isabelle
 
 
+import java.io.{File => JFile}
+
+
 object Position
 {
   type T = Properties.T
@@ -17,8 +20,8 @@ object Position
   val File = new Properties.String(Isabelle_Markup.FILE)
   val Id = new Properties.Long(Isabelle_Markup.ID)
 
-  def file(f: java.io.File): T = File(Isabelle_System.posix_path(f.toString))
-  def line_file(i: Int, f: java.io.File): T = Line(i) ::: file(f)
+  def file(f: JFile): T = File(Isabelle_System.posix_path(f.toString))
+  def line_file(i: Int, f: JFile): T = Line(i) ::: file(f)
 
   object Range
   {
