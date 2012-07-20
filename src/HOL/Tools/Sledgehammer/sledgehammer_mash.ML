@@ -54,7 +54,8 @@ sig
     Proof.context -> params -> string -> int -> term list -> term
     -> ('a * thm) list -> ('a * thm) list * ('a * thm) list
   val mash_learn_proof :
-    Proof.context -> params -> term -> ('a * thm) list -> thm list -> unit
+    Proof.context -> params -> string -> term -> ('a * thm) list -> thm list
+    -> unit
   val mash_learn_thy :
     Proof.context -> params -> theory -> Time.time -> fact list -> string
   val mash_learn : Proof.context -> params -> unit
@@ -547,31 +548,46 @@ fun update_fact_graph ctxt (name, parents, feats, deps) (upds, graph) =
     val (deps, graph) = ([], graph) |> fold maybe_add_from deps
   in ((name, parents, feats, deps) :: upds, graph) end
 
-val pass1_learn_timeout_factor = 0.5
+val learn_timeout_slack = 2.0
 
-fun mash_learn_proof ctxt ({provers, overlord, ...} : params) t facts used_ths =
+fun launch_thread timeout task =
   let
-    val thy = Proof_Context.theory_of ctxt
-    val prover = hd provers
-    val name = ATP_Util.timestamp () ^ " " ^ serial_string () (* fresh enough *)
-    val feats = features_of ctxt prover thy General [t]
-    val deps = used_ths |> map nickname_of
-  in
-    mash_map ctxt (fn {thys, fact_graph} =>
-        let
-          val parents = parents_wrt_facts facts fact_graph
-          val upds = [(name, parents, feats, deps)]
-          val (upds, fact_graph) =
-            ([], fact_graph) |> fold (update_fact_graph ctxt) upds
-        in
-          mash_ADD ctxt overlord upds;
-          {thys = thys, fact_graph = fact_graph}
-        end)
-  end
+    val hard_timeout = time_mult learn_timeout_slack timeout
+    val birth_time = Time.now ()
+    val death_time = Time.+ (birth_time, hard_timeout)
+    val desc = ("machine learner for Sledgehammer", "")
+  in Async_Manager.launch MaShN birth_time death_time desc task end
+
+fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
+                     used_ths =
+  if is_smt_prover ctxt prover then
+    ()
+  else
+    launch_thread timeout
+        (fn () =>
+            let
+              val thy = Proof_Context.theory_of ctxt
+              val name = timestamp () ^ " " ^ serial_string () (* freshish *)
+              val feats = features_of ctxt prover thy General [t]
+              val deps = used_ths |> map nickname_of
+            in
+              mash_map ctxt (fn {thys, fact_graph} =>
+                  let
+                    val parents = parents_wrt_facts facts fact_graph
+                    val upds = [(name, parents, feats, deps)]
+                    val (upds, fact_graph) =
+                      ([], fact_graph) |> fold (update_fact_graph ctxt) upds
+                  in
+                    mash_ADD ctxt overlord upds;
+                    {thys = thys, fact_graph = fact_graph}
+                  end);
+              (true, "")
+            end)
 
 (* Too many dependencies is a sign that a decision procedure is at work. There
    isn't much too learn from such proofs. *)
 val max_dependencies = 10
+val pass1_learn_timeout_factor = 0.75
 
 (* The timeout is understood in a very slack fashion. *)
 fun mash_learn_thy ctxt ({provers, verbose, overlord, ...} : params) thy timeout
@@ -647,7 +663,6 @@ fun mash_learn ctxt params =
 (* The threshold should be large enough so that MaSh doesn't kick in for Auto
    Sledgehammer and Try. *)
 val min_secs_for_learning = 15
-val learn_timeout_factor = 2.0
 
 fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
         max_facts ({add, only, ...} : fact_override) hyp_ts concl_t facts =
@@ -661,19 +676,11 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
     let
       val thy = Proof_Context.theory_of ctxt
       fun maybe_learn () =
-        if not learn orelse Async_Manager.has_running_threads MaShN then
-          ()
-        else if Time.toSeconds timeout >= min_secs_for_learning then
-          let
-            val soft_timeout = time_mult learn_timeout_factor timeout
-            val hard_timeout = time_mult 4.0 soft_timeout
-            val birth_time = Time.now ()
-            val death_time = Time.+ (birth_time, hard_timeout)
-            val desc = ("machine learner for Sledgehammer", "")
-          in
-            Async_Manager.launch MaShN birth_time death_time desc
-                (fn () =>
-                    (true, mash_learn_thy ctxt params thy soft_timeout facts))
+        if learn andalso not (Async_Manager.has_running_threads MaShN) andalso
+           Time.toSeconds timeout >= min_secs_for_learning then
+          let val timeout = time_mult learn_timeout_slack timeout in
+            launch_thread timeout
+                (fn () => (true, mash_learn_thy ctxt params thy timeout facts))
           end
         else
           ()

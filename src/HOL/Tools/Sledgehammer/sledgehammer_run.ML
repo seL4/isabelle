@@ -87,7 +87,7 @@ fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
     fun really_go () =
       problem
       |> get_minimizing_prover ctxt mode
-             (mash_learn_proof ctxt params (prop_of goal)
+             (mash_learn_proof ctxt params name (prop_of goal)
                                (map untranslated_fact facts))
              name params minimize_command
       |> (fn {outcome, preplay, message, message_tail, ...} =>

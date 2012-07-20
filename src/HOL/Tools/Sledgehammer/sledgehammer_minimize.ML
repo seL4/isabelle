@@ -255,11 +255,11 @@ fun adjust_reconstructor_params override_params
      expect = expect}
   end
 
-fun minimize ctxt mode do_learn name
-             (params as {debug, verbose, isar_proof, minimize, ...})
-             ({state, subgoal, subgoal_count, facts, ...} : prover_problem)
-             (result as {outcome, used_facts, run_time, preplay, message,
-                         message_tail} : prover_result) =
+fun maybe_minimize ctxt mode do_learn name
+        (params as {debug, verbose, isar_proof, minimize, ...})
+        ({state, subgoal, subgoal_count, facts, ...} : prover_problem)
+        (result as {outcome, used_facts, run_time, preplay, message,
+                    message_tail} : prover_result) =
   if is_some outcome orelse null used_facts then
     result
   else
@@ -328,7 +328,7 @@ fun minimize ctxt mode do_learn name
 fun get_minimizing_prover ctxt mode do_learn name params minimize_command
                           problem =
   get_prover ctxt mode name params minimize_command problem
-  |> minimize ctxt mode do_learn name params problem
+  |> maybe_minimize ctxt mode do_learn name params problem
 
 fun run_minimize (params as {provers, ...}) do_learn i refs state =
   let

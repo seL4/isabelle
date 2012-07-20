@@ -372,10 +372,16 @@ fun hammer_away override_params subcommand opt_i fact_override state =
         |> K ()
       end
     else if subcommand = minN then
-      run_minimize (get_params Minimize ctxt
-                               (("provers", [default_minimize_prover]) ::
-                                override_params))
-                   (K ()) (the_default 1 opt_i) (#add fact_override) state
+      let
+        val i = the_default 1 opt_i
+        val params as {provers, ...} =
+          get_params Minimize ctxt (("provers", [default_minimize_prover]) ::
+                                    override_params)
+        val goal = prop_of (#goal (Proof.goal state))
+        val facts = nearly_all_facts ctxt false fact_override Symtab.empty
+                                     Termtab.empty [] [] goal
+        val do_learn = mash_learn_proof ctxt params (hd provers) goal facts
+      in run_minimize params do_learn i (#add fact_override) state end
     else if subcommand = messagesN then
       messages opt_i
     else if subcommand = supported_proversN then
@@ -389,7 +395,7 @@ fun hammer_away override_params subcommand opt_i fact_override state =
     else if subcommand = learnN orelse subcommand = relearnN then
       (if subcommand = relearnN then mash_unlearn ctxt else ();
        mash_learn ctxt (get_params Normal ctxt
-                                   (("verbose", ["true"]) :: override_params)))
+                                   (override_params @ [("verbose", ["true"])])))
     else if subcommand = kill_learnersN then
       kill_learners ()
     else if subcommand = running_learnersN then
