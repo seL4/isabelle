@@ -299,7 +299,8 @@ fun maybe_minimize ctxt mode do_learn name
       val minimize = minimize |> the_default perhaps_minimize
       val (used_facts, (preplay, message, _)) =
         if minimize then
-          minimize_facts do_learn minimize_name params (not verbose) subgoal
+          minimize_facts do_learn minimize_name params
+                         (mode <> Normal orelse not verbose) subgoal
                          subgoal_count state
                          (filter_used_facts used_facts
                               (map (apsnd single o untranslated_fact) facts))

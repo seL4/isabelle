@@ -75,7 +75,7 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
           | NONE => error ("No fact called \"" ^ name ^ "\"")
         val goal = goal_of_thm thy th
         val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
-        val isar_deps = isabelle_dependencies_of all_names th
+        val isar_deps = isar_dependencies_of all_names th
         val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
         val mepo_facts =
           Sledgehammer_MePo.iterative_relevant_facts ctxt params prover

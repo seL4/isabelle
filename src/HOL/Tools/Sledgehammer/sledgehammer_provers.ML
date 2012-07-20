@@ -15,7 +15,7 @@ sig
   type play = ATP_Proof_Reconstruct.play
   type minimize_command = ATP_Proof_Reconstruct.minimize_command
 
-  datatype mode = Auto_Try | Try | Normal | Auto_Minimize | Minimize
+  datatype mode = Auto_Try | Try | Normal | MaSh | Auto_Minimize | Minimize
 
   type params =
     {debug : bool,
@@ -150,7 +150,7 @@ open Sledgehammer_Util
 
 (** The Sledgehammer **)
 
-datatype mode = Auto_Try | Try | Normal | Auto_Minimize | Minimize
+datatype mode = Auto_Try | Try | Normal | MaSh | Auto_Minimize | Minimize
 
 (* Identifier that distinguishes Sledgehammer from other tools that could use
    "Async_Manager". *)
@@ -621,6 +621,7 @@ fun repair_monomorph_context max_iters best_max_iters max_new_instances
 fun suffix_for_mode Auto_Try = "_auto_try"
   | suffix_for_mode Try = "_try"
   | suffix_for_mode Normal = ""
+  | suffix_for_mode MaSh = "_mash"
   | suffix_for_mode Auto_Minimize = "_auto_min"
   | suffix_for_mode Minimize = "_min"
 

@@ -102,13 +102,13 @@ fun generate_isar_dependencies thy include_thy file_name =
     fun do_thm th =
       let
         val name = nickname_of th
-        val deps = isabelle_dependencies_of all_names th
+        val deps = isar_dependencies_of all_names th
         val s = escape_meta name ^ ": " ^ escape_metas deps ^ "\n"
       in File.append path s end
   in List.app do_thm ths end
 
-fun generate_atp_dependencies ctxt (params as {provers, max_facts, ...}) thy
-                              include_thy file_name =
+fun generate_atp_dependencies ctxt (params as {provers, ...}) thy include_thy
+                              file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
@@ -118,38 +118,11 @@ fun generate_atp_dependencies ctxt (params as {provers, max_facts, ...}) thy
       |> not include_thy ? filter_out (has_thy thy o snd)
     val ths = facts |> map snd
     val all_names = all_names ths
-    fun is_dep dep (_, th) = nickname_of th = dep
-    fun add_isar_dep facts dep accum =
-      if exists (is_dep dep) accum then
-        accum
-      else case find_first (is_dep dep) facts of
-        SOME ((name, status), th) => accum @ [((name, status), th)]
-      | NONE => accum (* shouldn't happen *)
-    fun fix_name ((_, stature), th) = ((fn () => nickname_of th, stature), th)
     fun do_thm th =
       let
         val name = nickname_of th
-        val goal = goal_of_thm thy th
-        val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
         val deps =
-          case isabelle_dependencies_of all_names th of
-            [] => []
-          | isar_dep as [_] => isar_dep (* can hardly beat that *)
-          | isar_deps =>
-            let
-              val facts =
-                facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
-              val facts =
-                facts |> iterative_relevant_facts ctxt params prover
-                             (the max_facts) NONE hyp_ts concl_t
-                      |> fold (add_isar_dep facts) isar_deps
-                      |> map fix_name
-            in
-              case run_prover_for_mash ctxt params prover facts goal of
-                {outcome = NONE, used_facts, ...} =>
-                used_facts |> map fst |> sort string_ord
-              | _ => isar_deps
-            end
+          atp_dependencies_of ctxt params prover false facts all_names th
         val s = escape_meta name ^ ": " ^ escape_metas deps ^ "\n"
       in File.append path s end
   in List.app do_thm ths end
@@ -169,7 +142,7 @@ fun generate_commands ctxt prover thy file_name =
       let
         val name = nickname_of th
         val feats = features_of ctxt prover thy stature [prop_of th]
-        val deps = isabelle_dependencies_of all_names th
+        val deps = isar_dependencies_of all_names th
         val kind = Thm.legacy_get_kind th
         val core = escape_metas prevs ^ "; " ^ escape_metas feats
         val query = if kind <> "" then "? " ^ core ^ "\n" else ""
@@ -207,7 +180,6 @@ fun generate_mepo_suggestions ctxt (params as {provers, ...}) thy max_relevant
                 |> Sledgehammer_MePo.iterative_relevant_facts ctxt params prover
                        max_relevant NONE hyp_ts concl_t
                 |> map (fn ((name, _), _) => name ())
-                |> sort string_ord
               val s = escape_meta name ^ ": " ^ escape_metas suggs ^ "\n"
             in File.append path s end
           else

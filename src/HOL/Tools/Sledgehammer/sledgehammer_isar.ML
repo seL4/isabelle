@@ -35,9 +35,6 @@ val messagesN = "messages"
 val supported_proversN = "supported_provers"
 val kill_proversN = "kill_provers"
 val running_proversN = "running_provers"
-val unlearnN = "unlearn"
-val learnN = "learn"
-val relearnN = "relearn"
 val kill_learnersN = "kill_learners"
 val running_learnersN = "running_learners"
 val refresh_tptpN = "refresh_tptp"
@@ -353,11 +350,13 @@ fun minimize_command override_params i more_override_params prover_name
       |> (if prover_name = default_minimize_prover then I else cons prover_name)
       |> space_implode ", "
   in
-    "sledgehammer" ^ " " ^ minN ^
+    sledgehammerN ^ " " ^ minN ^
     (if params = "" then "" else enclose " [" "]" params) ^
     " (" ^ space_implode " " fact_names ^ ")" ^
     (if i = 1 then "" else " " ^ string_of_int i)
   end
+
+val default_learn_atp_timeout = 0.5
 
 fun hammer_away override_params subcommand opt_i fact_override state =
   let
@@ -392,10 +391,20 @@ fun hammer_away override_params subcommand opt_i fact_override state =
       running_provers ()
     else if subcommand = unlearnN then
       mash_unlearn ctxt
-    else if subcommand = learnN orelse subcommand = relearnN then
-      (if subcommand = relearnN then mash_unlearn ctxt else ();
+    else if subcommand = learn_isarN orelse subcommand = learn_atpN orelse
+            subcommand = relearn_isarN orelse subcommand = relearn_atpN then
+      (if subcommand = relearn_isarN orelse subcommand = relearn_atpN then
+         mash_unlearn ctxt
+       else
+         ();
        mash_learn ctxt (get_params Normal ctxt
-                                   (override_params @ [("verbose", ["true"])])))
+                           (("timeout",
+                             [string_of_real default_learn_atp_timeout]) ::
+                            override_params @
+                            [("slice", ["false"]),
+                             ("minimize", ["true"]),
+                             ("preplay_timeout", ["0"])])))
+           (subcommand = learn_atpN orelse subcommand = relearn_atpN)
     else if subcommand = kill_learnersN then
       kill_learners ()
     else if subcommand = running_learnersN then
@@ -463,6 +472,6 @@ fun try_sledgehammer auto state =
                      (minimize_command [] i) state
   end
 
-val setup = Try.register_tool ("sledgehammer", (40, auto, try_sledgehammer))
+val setup = Try.register_tool (sledgehammerN, (40, auto, try_sledgehammer))
 
 end;

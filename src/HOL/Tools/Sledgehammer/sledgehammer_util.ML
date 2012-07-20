@@ -6,6 +6,7 @@ General-purpose functions used by the Sledgehammer modules.
 
 signature SLEDGEHAMMER_UTIL =
 sig
+  val sledgehammerN : string
   val plural_s : int -> string
   val serial_commas : string -> string list -> string list
   val simplify_spaces : string -> string
@@ -22,6 +23,8 @@ structure Sledgehammer_Util : SLEDGEHAMMER_UTIL =
 struct
 
 open ATP_Util
+
+val sledgehammerN = "sledgehammer"
 
 fun plural_s n = if n = 1 then "" else "s"
 

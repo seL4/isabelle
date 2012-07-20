@@ -18,6 +18,11 @@ sig
   val mepoN : string
   val mashN : string
   val meshN : string
+  val unlearnN : string
+  val learn_isarN : string
+  val learn_atpN : string
+  val relearn_isarN : string
+  val relearn_atpN : string
   val fact_filters : string list
   val escape_meta : string -> string
   val escape_metas : string list -> string
@@ -31,12 +36,15 @@ sig
   val is_likely_tautology_or_too_meta : thm -> bool
   val theory_ord : theory * theory -> order
   val thm_ord : thm * thm -> order
-  val features_of :
-    Proof.context -> string -> theory -> stature -> term list -> string list
-  val isabelle_dependencies_of : unit Symtab.table -> thm -> string list
   val goal_of_thm : theory -> thm -> thm
   val run_prover_for_mash :
     Proof.context -> params -> string -> fact list -> thm -> prover_result
+  val features_of :
+    Proof.context -> string -> theory -> stature -> term list -> string list
+  val isar_dependencies_of : unit Symtab.table -> thm -> string list
+  val atp_dependencies_of :
+    Proof.context -> params -> string -> bool -> fact list -> unit Symtab.table
+    -> thm -> string list
   val mash_CLEAR : Proof.context -> unit
   val mash_ADD :
     Proof.context -> bool
@@ -53,8 +61,9 @@ sig
     Proof.context -> params -> string -> term -> ('a * thm) list -> thm list
     -> unit
   val mash_learn_facts :
-    Proof.context -> params -> Time.time -> fact list -> string
-  val mash_learn : Proof.context -> params -> unit
+    Proof.context -> params -> string -> bool -> bool -> Time.time -> fact list
+    -> string
+  val mash_learn : Proof.context -> params -> bool -> unit
   val relevant_facts :
     Proof.context -> params -> string -> int -> fact_override -> term list
     -> term -> fact list -> fact list
@@ -84,6 +93,12 @@ val mashN = "mash"
 val meshN = "mesh"
 
 val fact_filters = [meshN, mepoN, mashN]
+
+val unlearnN = "unlearn"
+val learn_isarN = "learn_isar"
+val learn_atpN = "learn_atp"
+val relearn_isarN = "relearn_isar"
+val relearn_atpN = "relearn_atp"
 
 fun mash_home () = getenv "MASH_HOME"
 fun mash_state_dir () =
@@ -212,6 +227,28 @@ fun theory_ord p =
 
 val thm_ord = theory_ord o pairself theory_of_thm
 
+val freezeT = Type.legacy_freeze_type
+
+fun freeze (t $ u) = freeze t $ freeze u
+  | freeze (Abs (s, T, t)) = Abs (s, freezeT T, freeze t)
+  | freeze (Var ((s, _), T)) = Free (s, freezeT T)
+  | freeze (Const (s, T)) = Const (s, freezeT T)
+  | freeze (Free (s, T)) = Free (s, freezeT T)
+  | freeze t = t
+
+fun goal_of_thm thy = prop_of #> freeze #> cterm_of thy #> Goal.init
+
+fun run_prover_for_mash ctxt params prover facts goal =
+  let
+    val problem =
+      {state = Proof.init ctxt, goal = goal, subgoal = 1, subgoal_count = 1,
+       facts = facts |> map (apfst (apfst (fn name => name ())))
+                     |> map Untranslated_Fact}
+  in
+    get_minimizing_prover ctxt MaSh (K ()) prover params (K (K (K "")))
+                          problem
+  end
+
 val bad_types = [@{type_name prop}, @{type_name bool}, @{type_name fun}]
 
 fun interesting_terms_types_and_classes ctxt prover term_max_depth
@@ -277,27 +314,57 @@ fun features_of ctxt prover thy (scope, status) ts =
       | Simp => cons "simp"
       | Def => cons "def")
 
-fun isabelle_dependencies_of all_facts = thms_in_proof (SOME all_facts)
+fun isar_dependencies_of all_facts = thms_in_proof (SOME all_facts)
 
-val freezeT = Type.legacy_freeze_type
+val atp_dep_default_max_fact = 50
 
-fun freeze (t $ u) = freeze t $ freeze u
-  | freeze (Abs (s, T, t)) = Abs (s, freezeT T, freeze t)
-  | freeze (Var ((s, _), T)) = Free (s, freezeT T)
-  | freeze (Const (s, T)) = Const (s, freezeT T)
-  | freeze (Free (s, T)) = Free (s, freezeT T)
-  | freeze t = t
-
-fun goal_of_thm thy = prop_of #> freeze #> cterm_of thy #> Goal.init
-
-fun run_prover_for_mash ctxt params prover facts goal =
-  let
-    val problem =
-      {state = Proof.init ctxt, goal = goal, subgoal = 1, subgoal_count = 1,
-       facts = facts |> map (apfst (apfst (fn name => name ())))
-                     |> map Untranslated_Fact}
-    val prover = get_minimizing_prover ctxt Normal (K ()) prover
-  in prover params (K (K (K ""))) problem end
+fun atp_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover auto
+                        facts all_names th =
+  case isar_dependencies_of all_names th of
+    [] => []
+  | isar_deps =>
+    let
+      val thy = Proof_Context.theory_of ctxt
+      val goal = goal_of_thm thy th
+      val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
+      val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
+      fun fix_name ((_, stature), th) = ((fn () => nickname_of th, stature), th)
+      fun is_dep dep (_, th) = nickname_of th = dep
+      fun add_isar_dep facts dep accum =
+        if exists (is_dep dep) accum then
+          accum
+        else case find_first (is_dep dep) facts of
+          SOME ((name, status), th) => accum @ [((name, status), th)]
+        | NONE => accum (* shouldn't happen *)
+      val facts =
+        facts |> iterative_relevant_facts ctxt params prover
+                     (max_facts |> the_default atp_dep_default_max_fact) NONE
+                     hyp_ts concl_t
+              |> fold (add_isar_dep facts) isar_deps
+              |> map fix_name
+    in
+      if verbose andalso not auto then
+        let val num_facts = length facts in
+          "MaSh: " ^ quote prover ^ " on " ^ quote (nickname_of th) ^
+          " with " ^ string_of_int num_facts ^ " fact" ^ plural_s num_facts ^
+          "."
+          |> Output.urgent_message
+        end
+      else
+        ();
+      case run_prover_for_mash ctxt params prover facts goal of
+        {outcome = NONE, used_facts, ...} =>
+        (if verbose andalso not auto then
+           let val num_facts = length used_facts in
+             "Found proof with " ^ string_of_int num_facts ^ " fact" ^
+             plural_s num_facts ^ "."
+             |> Output.urgent_message
+           end
+         else
+           ();
+         used_facts |> map fst)
+      | _ => isar_deps
+    end
 
 
 (*** Low-level communication with MaSh ***)
@@ -390,9 +457,19 @@ fun try_graph ctxt when def f =
   handle Graph.CYCLES (cycle :: _) =>
          (trace_msg ctxt (fn () =>
               "Cycle involving " ^ commas cycle ^ " when " ^ when); def)
+       | Graph.DUP name =>
+         (trace_msg ctxt (fn () =>
+              "Duplicate fact " ^ quote name ^ " when " ^ when); def)
        | Graph.UNDEF name =>
          (trace_msg ctxt (fn () =>
               "Unknown fact " ^ quote name ^ " when " ^ when); def)
+       | exn =>
+         if Exn.is_interrupt exn then
+           reraise exn
+         else
+           (trace_msg ctxt (fn () =>
+                "Internal error when " ^ when ^ ":\n" ^
+                ML_Compiler.exn_message exn); def)
 
 type mash_state = {fact_graph : unit Graph.T}
 
@@ -544,26 +621,41 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
               (true, "")
             end)
 
+fun sendback sub =
+  Markup.markup Isabelle_Markup.sendback (sledgehammerN ^ " " ^ sub)
+
 (* Too many dependencies is a sign that a decision procedure is at work. There
    isn't much too learn from such proofs. *)
 val max_dependencies = 10
-val pass1_learn_timeout_factor = 0.75
+val commit_timeout = seconds 30.0
 
 (* The timeout is understood in a very slack fashion. *)
-fun mash_learn_facts ctxt ({provers, verbose, overlord, ...} : params) timeout
-                     facts =
+fun mash_learn_facts ctxt (params as {debug, verbose, overlord, timeout, ...})
+                     prover auto atp learn_timeout facts =
   let
     val timer = Timer.startRealTimer ()
-    val prover = hd provers
-    fun timed_out frac =
-      Time.> (Timer.checkRealTimer timer, time_mult frac timeout)
+    fun next_commit_time () =
+      Time.+ (Timer.checkRealTimer timer, commit_timeout)
     val {fact_graph} = mash_get ctxt
     val new_facts =
       facts |> filter_out (is_fact_in_graph fact_graph)
             |> sort (thm_ord o pairself snd)
+    val num_new_facts = length new_facts
   in
+    "MaShing" ^
+    (if not auto then
+       " " ^ string_of_int num_new_facts ^ " fact" ^
+       plural_s num_new_facts ^
+       (if atp then " (ATP timeout: " ^ string_from_time timeout ^ ")" else "")
+     else
+       "") ^ "..."
+    |> Output.urgent_message;
     if null new_facts then
-      ""
+      if verbose orelse not auto then
+        "Nothing to learn.\n\nHint: Try " ^ sendback relearn_isarN ^ " or " ^
+        sendback relearn_atpN ^ "  to learn from scratch."
+      else
+        ""
     else
       let
         val ths = facts |> map snd
@@ -571,28 +663,53 @@ fun mash_learn_facts ctxt ({provers, verbose, overlord, ...} : params) timeout
           ths |> filter_out is_likely_tautology_or_too_meta
               |> map (rpair () o nickname_of)
               |> Symtab.make
+        fun do_commit [] state = state
+          | do_commit upds {fact_graph} =
+            let
+              val (upds, fact_graph) =
+                ([], fact_graph) |> fold (update_fact_graph ctxt) upds
+            in mash_ADD ctxt overlord (rev upds); {fact_graph = fact_graph} end
         fun trim_deps deps = if length deps > max_dependencies then [] else deps
-        fun do_fact _ (accum as (_, true)) = accum
-          | do_fact ((_, stature), th) ((parents, upds), false) =
+        fun commit last upds =
+          (if debug andalso not auto then Output.urgent_message "Committing..."
+           else ();
+           mash_map ctxt (do_commit (rev upds));
+           if not last andalso not auto then
+             let val num_upds = length upds in
+               "Processed " ^ string_of_int num_upds ^ " fact" ^
+               plural_s num_upds ^ " in the last " ^
+               string_from_time commit_timeout ^ "."
+               |> Output.urgent_message
+             end
+           else
+             ())
+        fun do_fact _ (accum as (_, (_, _, _, true))) = accum
+          | do_fact ((_, stature), th)
+                    (upds, (parents, n, next_commit, false)) =
             let
               val name = nickname_of th
               val feats =
                 features_of ctxt prover (theory_of_thm th) stature [prop_of th]
-              val deps = isabelle_dependencies_of all_names th |> trim_deps
-              val upd = (name, parents, feats, deps)
-            in (([name], upd :: upds), timed_out pass1_learn_timeout_factor) end
+              val deps =
+                (if atp then atp_dependencies_of ctxt params prover auto facts
+                 else isar_dependencies_of) all_names th
+                |> trim_deps
+              val upds = (name, parents, feats, deps) :: upds
+              val (upds, next_commit) =
+                if Time.> (Timer.checkRealTimer timer, next_commit) then
+                  (commit false upds; ([], next_commit_time ()))
+                else
+                  (upds, next_commit)
+              val timed_out =
+                Time.> (Timer.checkRealTimer timer, learn_timeout)
+            in (upds, ([name], n + 1, next_commit, timed_out)) end
         val parents = parents_wrt_facts facts fact_graph
-        val ((_, upds), _) =
-          ((parents, []), false) |> fold do_fact new_facts |>> apsnd rev
-        val n = length upds
-        fun trans {fact_graph} =
-          let
-            val (upds, fact_graph) =
-              ([], fact_graph) |> fold (update_fact_graph ctxt) upds
-          in (mash_ADD ctxt overlord (rev upds); {fact_graph = fact_graph}) end
+        val (upds, (_, n, _, _)) =
+          ([], (parents, 0, next_commit_time (), false))
+          |> fold do_fact new_facts
       in
-        mash_map ctxt trans;
-        if verbose then
+        commit true upds;
+        if verbose orelse not auto then
           "Learned " ^ string_of_int n ^ " proof" ^ plural_s n ^
           (if verbose then
              " in " ^ string_from_time (Timer.checkRealTimer timer)
@@ -603,15 +720,13 @@ fun mash_learn_facts ctxt ({provers, verbose, overlord, ...} : params) timeout
       end
   end
 
-fun mash_learn ctxt params =
+fun mash_learn ctxt (params as {provers, ...}) atp =
   let
     val thy = Proof_Context.theory_of ctxt
-    val _ = Output.urgent_message "MaShing..."
     val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
     val facts = all_facts_of thy css_table
   in
-     mash_learn_facts ctxt params infinite_timeout facts
-     |> (fn "" => "Learned nothing." | msg => msg)
+     mash_learn_facts ctxt params (hd provers) false atp infinite_timeout facts
      |> Output.urgent_message
   end
 
@@ -634,7 +749,8 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
            Time.toSeconds timeout >= min_secs_for_learning then
           let val timeout = time_mult learn_timeout_slack timeout in
             launch_thread timeout
-                (fn () => (true, mash_learn_facts ctxt params timeout facts))
+                (fn () => (true, mash_learn_facts ctxt params prover true false
+                                                  timeout facts))
           end
         else
           ()
