@@ -6,7 +6,6 @@ Sledgehammer's machine-learning-based relevance filter (MaSh).
 
 signature SLEDGEHAMMER_MASH =
 sig
-  type status = ATP_Problem_Generate.status
   type stature = ATP_Problem_Generate.stature
   type fact = Sledgehammer_Fact.fact
   type fact_override = Sledgehammer_Fact.fact_override
@@ -33,7 +32,7 @@ sig
   val theory_ord : theory * theory -> order
   val thm_ord : thm * thm -> order
   val features_of :
-    Proof.context -> string -> theory -> status -> term list -> string list
+    Proof.context -> string -> theory -> stature -> term list -> string list
   val isabelle_dependencies_of : unit Symtab.table -> thm -> string list
   val goal_of_thm : theory -> thm -> thm
   val run_prover_for_mash :
@@ -265,12 +264,13 @@ val term_max_depth = 1
 val type_max_depth = 1
 
 (* TODO: Generate type classes for types? *)
-fun features_of ctxt prover thy status ts =
+fun features_of ctxt prover thy (scope, status) ts =
   thy_feature_name_of (Context.theory_name thy) ::
   interesting_terms_types_and_classes ctxt prover term_max_depth type_max_depth
                                       ts
   |> forall is_lambda_free ts ? cons "no_lams"
   |> forall (not o exists_Const is_exists) ts ? cons "no_skos"
+  |> scope <> Global ? cons "local"
   |> (case status of
         General => I
       | Induction => cons "induction"
@@ -525,7 +525,7 @@ fun mash_suggest_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
     val thy = Proof_Context.theory_of ctxt
     val fact_graph = #fact_graph (mash_get ctxt)
     val parents = parents_wrt_facts facts fact_graph
-    val feats = features_of ctxt prover thy General (concl_t :: hyp_ts)
+    val feats = features_of ctxt prover thy (Local, General) (concl_t :: hyp_ts)
     val suggs =
       if Graph.is_empty fact_graph then []
       else mash_QUERY ctxt overlord (max_suggs_of max_facts) (parents, feats)
@@ -568,7 +568,7 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
             let
               val thy = Proof_Context.theory_of ctxt
               val name = timestamp () ^ " " ^ serial_string () (* freshish *)
-              val feats = features_of ctxt prover thy General [t]
+              val feats = features_of ctxt prover thy (Local, General) [t]
               val deps = used_ths |> map nickname_of
             in
               mash_map ctxt (fn {thys, fact_graph} =>
@@ -613,11 +613,11 @@ fun mash_learn_thy ctxt ({provers, verbose, overlord, ...} : params) thy timeout
               |> Symtab.make
         fun trim_deps deps = if length deps > max_dependencies then [] else deps
         fun do_fact _ (accum as (_, true)) = accum
-          | do_fact ((_, (_, status)), th) ((parents, upds), false) =
+          | do_fact ((_, stature), th) ((parents, upds), false) =
             let
               val name = nickname_of th
               val feats =
-                features_of ctxt prover (theory_of_thm th) status [prop_of th]
+                features_of ctxt prover (theory_of_thm th) stature [prop_of th]
               val deps = isabelle_dependencies_of all_names th |> trim_deps
               val upd = (name, parents, feats, deps)
             in (([name], upd :: upds), timed_out pass1_learn_timeout_factor) end

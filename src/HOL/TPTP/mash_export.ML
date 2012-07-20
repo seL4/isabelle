@@ -81,11 +81,11 @@ fun generate_features ctxt prover thy include_thy file_name =
     val facts =
       all_facts_of thy css_table
       |> not include_thy ? filter_out (has_thy thy o snd)
-    fun do_fact ((_, (_, status)), th) =
+    fun do_fact ((_, stature), th) =
       let
         val name = nickname_of th
         val feats =
-          features_of ctxt prover (theory_of_thm th) status [prop_of th]
+          features_of ctxt prover (theory_of_thm th) stature [prop_of th]
         val s = escape_meta name ^ ": " ^ escape_metas feats ^ "\n"
       in File.append path s end
   in List.app do_fact facts end
@@ -165,10 +165,10 @@ fun generate_commands ctxt prover thy file_name =
             |>> sort (thm_ord o pairself snd)
     val ths = facts |> map snd
     val all_names = all_names ths
-    fun do_fact ((_, (_, status)), th) prevs =
+    fun do_fact ((_, stature), th) prevs =
       let
         val name = nickname_of th
-        val feats = features_of ctxt prover thy status [prop_of th]
+        val feats = features_of ctxt prover thy stature [prop_of th]
         val deps = isabelle_dependencies_of all_names th
         val kind = Thm.legacy_get_kind th
         val core = escape_metas prevs ^ "; " ^ escape_metas feats
