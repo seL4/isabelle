@@ -675,16 +675,35 @@ time until timeout.
 \item[\labelitemi] \textbf{\textit{kill\_provers}:} Terminates all running
 automatic provers.
 
-\item[\labelitemi] \textbf{\textit{unlearn}:} Resets the MaSh machine learner,
-erasing any persistent state.
+\item[\labelitemi] \textbf{\textit{refresh\_tptp}:} Refreshes the list of remote
+ATPs available at System\-On\-TPTP \cite{sutcliffe-2000}.
+\end{enum}
 
-\item[\labelitemi] \textbf{\textit{learn}:} Invokes the MaSh machine learner on
-the current theory to process all the available facts. This happens
-automatically at Sledgehammer invocations if the \textit{learn} option
-(\S\ref{relevance-filter}) is enabled.
+In addition, the following subcommands provide fine control over machine
+learning with MaSh:
 
-\item[\labelitemi] \textbf{\textit{relearn}:} Same as \textit{unlearn} followed
-by \textit{learn}.
+\begin{enum}
+\item[\labelitemi] \textbf{\textit{unlearn}:} Resets MaSh, erasing any
+persistent state.
+
+\item[\labelitemi] \textbf{\textit{learn\_isar}:} Invokes MaSh on the current
+theory to process all the available facts, learning from their Isabelle/Isar
+proofs. This happens automatically at Sledgehammer invocations if the
+\textit{learn} option (\S\ref{relevance-filter}) is enabled.
+
+\item[\labelitemi] \textbf{\textit{learn\_atp}:} Invokes MaSh on the current
+theory to process all the available facts, learning from ATP-generated proofs.
+The ATP to use and its timeout can be set using the
+\textit{prover} (\S\ref{mode-of-operation}) and \textit{timeout}
+(\S\ref{timeouts}) options. It is recommended to perform learning using an
+efficient first-order ATP (such as E, SPASS, and Vampire) as opposed to a
+higher-order ATP or an SMT solver.
+
+\item[\labelitemi] \textbf{\textit{relearn\_isar}:} Same as \textit{unlearn}
+followed by \textit{learn\_isar}.
+
+\item[\labelitemi] \textbf{\textit{relearn\_atp}:} Same as \textit{unlearn}
+followed by \textit{learn\_atp}.
 
 \item[\labelitemi] \textbf{\textit{running\_learners}:} Prints information about
 currently running machine learners, including elapsed runtime and remaining
@@ -692,9 +711,6 @@ time until timeout.
 
 \item[\labelitemi] \textbf{\textit{kill\_learners}:} Terminates all running
 machine learners.
-
-\item[\labelitemi] \textbf{\textit{refresh\_tptp}:} Refreshes the list of remote
-ATPs available at System\-On\-TPTP \cite{sutcliffe-2000}.
 \end{enum}
 
 Sledgehammer's behavior can be influenced by various \qty{options}, which can be
@@ -756,9 +772,9 @@ The supported $\lambda$ translation schemes are \textit{hide\_lams},
 All the untyped type encodings listed in \S\ref{problem-encoding} are supported.
 For convenience, the following aliases are provided:
 \begin{enum}
-\item[\labelitemi] \textbf{\textit{full\_types}:} Synonym for \textit{poly\_guards\_query}.
-\item[\labelitemi] \textbf{\textit{partial\_types}:} Synonym for \textit{poly\_args}.
-\item[\labelitemi] \textbf{\textit{no\_types}:} Synonym for \textit{erased}.
+\item[\labelitemi] \textbf{\textit{full\_types}:} Alias for \textit{poly\_guards\_query}.
+\item[\labelitemi] \textbf{\textit{partial\_types}:} Alias for \textit{poly\_args}.
+\item[\labelitemi] \textbf{\textit{no\_types}:} Alias for \textit{erased}.
 \end{enum}
 
 \section{Option Reference}
