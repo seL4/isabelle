@@ -30,7 +30,7 @@ class Scala_Console extends Shell("Scala")
   {
     def find_jars(start: String): List[String] =
       if (start != null)
-        Standard_System.find_files(new JFile(start),
+        File.find_files(new JFile(start),
           entry => entry.isFile && entry.getName.endsWith(".jar")).map(_.getAbsolutePath)
       else Nil
     val path = find_jars(jEdit.getSettingsDirectory) ::: find_jars(jEdit.getJEditHome)
