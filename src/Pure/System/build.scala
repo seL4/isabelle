@@ -192,7 +192,7 @@ object Build
       catch {
         case ERROR(msg) =>
           error(msg + "\nThe error(s) above occurred in session entry " +
-            quote(entry.name) + " (file " + quote(root.toString) + ")")
+            quote(entry.name) + Position.str_of(Position.file(root)))
       })
   }
 

@@ -17,6 +17,9 @@ object Position
   val File = new Properties.String(Isabelle_Markup.FILE)
   val Id = new Properties.Long(Isabelle_Markup.ID)
 
+  def file(f: java.io.File): T = File(Isabelle_System.posix_path(f.toString))
+  def line_file(i: Int, f: java.io.File): T = Line(i) ::: file(f)
+
   object Range
   {
     def apply(range: Text.Range): T = Offset(range.start) ++ Offset(range.stop)
@@ -47,4 +50,13 @@ object Position
   def purge(props: T): T =
     for ((x, y) <- props if !Isabelle_Markup.POSITION_PROPERTIES(x))
       yield (if (purge_pos.isDefinedAt(x)) (purge_pos(x), y) else (x, y))
+
+
+  def str_of(props: T): String =
+    (Line.unapply(props), File.unapply(props)) match {
+      case (Some(i), None) => " (line " + i.toString + ")"
+      case (Some(i), Some(name)) => " (line " + i.toString + " of " + quote(name) + ")"
+      case (None, Some(name)) => " (file " + quote(name) + ")"
+      case _ => ""
+    }
 }

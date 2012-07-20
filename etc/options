@@ -1,24 +1,24 @@
 (* :mode=isabelle-options: *)
 
-declare browser_info : bool
+declare browser_info : bool = false
 
-declare document : bool               define document = true
-declare document_format : string      define document_format = pdf
-declare document_variants : string    define document_variants = document
-declare document_graph : bool
+declare document : bool = true
+declare document_format : string = pdf
+declare document_variants : string = document
+declare document_graph : bool = false
 
-declare threads_limit : int
-declare threads_trace : bool
-declare parallel_proofs : bool        define parallel_proofs = true
-declare parallel_proofs_threshold : int
+declare threads_limit : int = 1
+declare threads_trace : int = 0
+declare parallel_proofs : int = 1
+declare parallel_proofs_threshold : int = 100
 
-declare print_mode : string
+declare print_mode : string = ""
 
-declare proofs : bool
-declare quick_and_dirty : bool
+declare proofs : int = 0
+declare quick_and_dirty : bool = false
 
-declare timing : bool
-declare verbose : bool
+declare timing : bool = false
+declare verbose : bool = false
 
-declare condition : string
+declare condition : string = ""
 

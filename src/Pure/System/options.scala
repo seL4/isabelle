@@ -15,14 +15,13 @@ object Options
   abstract class Type
   {
     def print: String = toString.toLowerCase
-    def init: String
   }
-  case object Bool extends Type { def init = "false" }
-  case object Int extends Type { def init = "0" }
-  case object Real extends Type { def init = "0.0" }
-  case object String extends Type { def init = "" }
+  case object Bool extends Type
+  case object Int extends Type
+  case object Real extends Type
+  case object String extends Type
 
-  case class Opt(typ: Type, description: String, value: String)
+  case class Opt(typ: Type, value: String, description: String)
 
   val empty: Options = new Options()
 
@@ -42,12 +41,12 @@ object Options
       val option_type = atom("option type", _.is_ident)
       val option_value = atom("option value", tok => tok.is_name || tok.is_float)
 
-      keyword(DECLARE) ~! (option_name ~ keyword(":") ~ option_type ~ opt(text)) ^^
-        { case _ ~ (x ~ _ ~ y ~ z) => (options: Options) =>
-            options.declare(x, y, z.getOrElse("")) } |
+      keyword(DECLARE) ~! (option_name ~ keyword(":") ~ option_type ~
+      keyword("=") ~ option_value ~ opt(text)) ^^
+        { case _ ~ (a ~ _ ~ b ~ _ ~ c ~ d) =>
+            (options: Options) => options.declare(a, b, c, d.getOrElse("")) } |
       keyword(DEFINE) ~! (option_name ~ keyword("=") ~ option_value) ^^
-        { case _ ~ (x ~ _ ~ y) => (options: Options) =>
-            options.define(x, y) }
+        { case _ ~ (a ~ _ ~ b) => (options: Options) => options.define(a, b) }
     }
 
     def parse_entries(file: File): List[Options => Options] =
@@ -72,7 +71,7 @@ object Options
       entry <- Parser.parse_entries(file)
     } {
       try { options = entry(options) }
-      catch { case ERROR(msg) => error(msg + " (file " + quote(file.toString) + ")") }
+      catch { case ERROR(msg) => error(msg + Position.str_of(Position.file(file))) }
     }
     options
   }
@@ -84,7 +83,7 @@ final class Options private(options: Map[String, Options.Opt] = Map.empty)
   override def toString: String = options.iterator.mkString("Options (", ",", ")")
 
 
-  /* basic operations */
+  /* check */
 
   private def check_name(name: String): Options.Opt =
     options.get(name) match {
@@ -99,6 +98,15 @@ final class Options private(options: Map[String, Options.Opt] = Map.empty)
     else error("Ill-typed option " + quote(name) + " : " + opt.typ.print + " vs. " + typ.print)
   }
 
+
+  /* basic operations */
+
+  private def put[A](name: String, typ: Options.Type, value: String): Options =
+  {
+    val opt = check_type(name, typ)
+    new Options(options + (name -> opt.copy(value = value)))
+  }
+
   private def get[A](name: String, typ: Options.Type, parse: String => Option[A]): A =
   {
     val opt = check_type(name, typ)
@@ -107,63 +115,6 @@ final class Options private(options: Map[String, Options.Opt] = Map.empty)
       case None =>
         error("Malformed value for option " + quote(name) +
           " : " + typ.print + " =\n" + quote(opt.value))
-    }
-  }
-
-  private def put[A](name: String, typ: Options.Type, value: String): Options =
-  {
-    val opt = check_type(name, typ)
-    new Options(options + (name -> opt.copy(value = value)))
-  }
-
-
-  /* external declare and define */
-
-  def declare(name: String, typ_name: String, description: String = ""): Options =
-  {
-    options.get(name) match {
-      case Some(_) => error("Duplicate declaration of option " + quote(name))
-      case None =>
-        val typ =
-          typ_name match {
-            case "bool" => Options.Bool
-            case "int" => Options.Int
-            case "real" => Options.Real
-            case "string" => Options.String
-            case _ => error("Malformed type for option " + quote(name) + " : " + quote(typ_name))
-          }
-        new Options(options + (name -> Options.Opt(typ, description, typ.init)))
-    }
-  }
-
-  def define(name: String, value: String): Options =
-  {
-    val opt = check_name(name)
-    val result = new Options(options + (name -> opt.copy(value = value)))
-    opt.typ match {
-      case Options.Bool => result.bool(name); ()
-      case Options.Int => result.int(name); ()
-      case Options.Real => result.real(name); ()
-      case Options.String => result.string(name); ()
-    }
-    result
-  }
-
-  def define(name: String, opt_value: Option[String]): Options =
-  {
-    val opt = check_name(name)
-    opt_value match {
-      case Some(value) => define(name, value)
-      case None if opt.typ == Options.Bool => define(name, "true")
-      case None => error("Missing value for option " + quote(name) + " : " + opt.typ.print)
-    }
-  }
-
-  def define_simple(str: String): Options =
-  {
-    str.indexOf('=') match {
-      case -1 => define(str, None)
-      case i => define(str.substring(0, i), str.substring(i + 1))
     }
   }
 
@@ -195,5 +146,60 @@ final class Options private(options: Map[String, Options.Opt] = Map.empty)
   {
     def apply(name: String): String = get(name, Options.String, s => Some(s))
     def update(name: String, x: String): Options = put(name, Options.String, x)
+  }
+
+
+  /* external declare and define */
+
+  private def check_value(name: String): Options =
+  {
+    val opt = check_name(name)
+    opt.typ match {
+      case Options.Bool => bool(name); this
+      case Options.Int => int(name); this
+      case Options.Real => real(name); this
+      case Options.String => string(name); this
+    }
+  }
+
+  def declare(name: String, typ_name: String, value: String, description: String = ""): Options =
+  {
+    options.get(name) match {
+      case Some(_) => error("Duplicate declaration of option " + quote(name))
+      case None =>
+        val typ =
+          typ_name match {
+            case "bool" => Options.Bool
+            case "int" => Options.Int
+            case "real" => Options.Real
+            case "string" => Options.String
+            case _ => error("Malformed type for option " + quote(name) + " : " + quote(typ_name))
+          }
+        (new Options(options + (name -> Options.Opt(typ, value, description)))).check_value(name)
+    }
+  }
+
+  def define(name: String, value: String): Options =
+  {
+    val opt = check_name(name)
+    (new Options(options + (name -> opt.copy(value = value)))).check_value(name)
+  }
+
+  def define(name: String, opt_value: Option[String]): Options =
+  {
+    val opt = check_name(name)
+    opt_value match {
+      case Some(value) => define(name, value)
+      case None if opt.typ == Options.Bool => define(name, "true")
+      case None => error("Missing value for option " + quote(name) + " : " + opt.typ.print)
+    }
+  }
+
+  def define_simple(str: String): Options =
+  {
+    str.indexOf('=') match {
+      case -1 => define(str, None)
+      case i => define(str.substring(0, i), str.substring(i + 1))
+    }
   }
 }
