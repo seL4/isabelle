@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# build - build Isabelle/ML
+#
+# Requires proper Isabelle settings environment.
+
+
+## diagnostics
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG TARGET"
+  echo
+  echo "  Build Isabelle/ML TARGET: RAW or Pure"
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+[ -z "$ISABELLE_HOME" ] && fail "Missing Isabelle settings environment"
+
+
+## process command line
+
+TARGET="Pure"
+[ "$#" -ge 1 ] && { TARGET="$1"; shift; }
+[ "$TARGET" = RAW -o "$TARGET" = Pure ] || fail "Bad target: \"$TARGET\""
+
+[ "$#" -eq 0 ] || usage
+
+
+## main
+
+# get compatibility file
+
+ML_SYSTEM_BASE=$(echo "$ML_SYSTEM" | cut -f1 -d-)
+[ -z "$ML_SYSTEM" ] && fail "Missing ML_SYSTEM settings!"
+
+COMPAT=""
+[ -f "ML-Systems/${ML_SYSTEM_BASE}.ML" ] && COMPAT="ML-Systems/${ML_SYSTEM_BASE}.ML"
+[ -f "ML-Systems/${ML_SYSTEM}.ML" ] && COMPAT="ML-Systems/${ML_SYSTEM}.ML"
+[ -z "$COMPAT" ] && fail "Missing compatibility file for ML system \"$ML_SYSTEM\"!"
+
+
+# run isabelle
+
+. "$ISABELLE_HOME/lib/scripts/timestart.bash"
+
+echo "Building $TARGET ..." >&2
+
+if [ "$TARGET" = RAW ]; then
+  "$ISABELLE_PROCESS" \
+    -e "use\"$COMPAT\" handle _ => exit 1;" \
+    -e "structure Isar = struct fun main () = () end;" \
+    -e "ml_prompts \"ML> \" \"ML# \";" \
+    -q -w RAW_ML_SYSTEM RAW
+  RC="$?"
+else
+  "$ISABELLE_PROCESS" \
+    -e "(use\"$COMPAT\"; use\"ROOT.ML\") handle _ => exit 1;" \
+    -e "ml_prompts \"ML> \" \"ML# \";" \
+    -f -q -w RAW_ML_SYSTEM Pure
+  RC="$?"
+fi
+
+. "$ISABELLE_HOME/lib/scripts/timestop.bash"
+
+if [ "$RC" -eq 0 ]; then
+  echo "Finished $TARGET ($TIMES_REPORT)" >&2
+else
+  echo "$TARGET FAILED" >&2
+fi
+
+exit "$RC"
