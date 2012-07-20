@@ -314,21 +314,29 @@ fun mash_info overlord =
   if overlord then (getenv "ISABELLE_HOME_USER", "")
   else (getenv "ISABELLE_TMP", serial_string ())
 
-fun run_mash ctxt overlord (temp_dir, serial) core =
+fun and_rm_files overlord flags files =
+  if overlord then
+    ""
+  else
+    " && rm -f" ^ flags ^ " -- " ^
+    space_implode " " (map File.shell_quote files)
+
+fun run_mash ctxt overlord (temp_dir, serial) async core =
   let
     val log_file = temp_dir ^ "/mash_log" ^ serial
     val err_file = temp_dir ^ "/mash_err" ^ serial
     val command =
-      mash_home () ^ "/mash.py --quiet --outputDir " ^ mash_state_dir () ^
-      " --log " ^ log_file ^ " " ^ core ^ " 2>&1 > " ^ err_file
+      "(" ^ mash_home () ^ "/mash --quiet --outputDir " ^ mash_state_dir () ^
+      " --log " ^ log_file ^ " " ^ core ^ ") 2>&1 > " ^ err_file ^
+      and_rm_files overlord "" [log_file, err_file] ^
+      (if async then " &" else "")
   in
-    trace_msg ctxt (fn () => "Running " ^ command);
+    trace_msg ctxt (fn () =>
+        (if async then "Launching " else "Running ") ^ command);
     write_file ([], K "") log_file;
     write_file ([], K "") err_file;
     Isabelle_System.bash command;
-    if overlord then ()
-    else (map (File.rm o Path.explode) [log_file, err_file]; ());
-    trace_msg ctxt (K "Done")
+    if not async then trace_msg ctxt (K "Done") else ()
   end
 
 (* TODO: Eliminate code once "mash.py" handles sequences of ADD commands as fast
@@ -337,18 +345,17 @@ fun run_mash_init ctxt overlord write_access write_feats write_deps =
   let
     val info as (temp_dir, serial) = mash_info overlord
     val in_dir = temp_dir ^ "/mash_init" ^ serial
-    val in_dir_path = in_dir |> Path.explode |> tap Isabelle_System.mkdir
+                 |> tap (Path.explode #> Isabelle_System.mkdir)
   in
     write_file write_access (in_dir ^ "/mash_accessibility");
     write_file write_feats (in_dir ^ "/mash_features");
     write_file write_deps (in_dir ^ "/mash_dependencies");
-    run_mash ctxt overlord info ("--init --inputDir " ^ in_dir);
-    (* FIXME: temporary hack *)
-    if overlord then ()
-    else (Isabelle_System.bash ("rm -r -f " ^ File.shell_path in_dir_path); ())
+    run_mash ctxt overlord info true
+             ("--init --inputDir " ^ in_dir ^
+              and_rm_files overlord " -r" [in_dir])
   end
 
-fun run_mash_commands ctxt overlord save max_suggs write_cmds read_suggs =
+fun run_mash_commands ctxt overlord async save max_suggs write_cmds read_suggs =
   let
     val info as (temp_dir, serial) = mash_info overlord
     val sugg_file = temp_dir ^ "/mash_suggs" ^ serial
@@ -356,14 +363,12 @@ fun run_mash_commands ctxt overlord save max_suggs write_cmds read_suggs =
   in
     write_file ([], K "") sugg_file;
     write_file write_cmds cmd_file;
-    run_mash ctxt overlord info
+    run_mash ctxt overlord info async
              ("--inputFile " ^ cmd_file ^ " --predictions " ^ sugg_file ^
               " --numberOfPredictions " ^ string_of_int max_suggs ^
-              (if save then " --saveModel" else ""));
+              (if save then " --saveModel" else "") ^
+              (and_rm_files overlord "" [sugg_file, cmd_file]));
     read_suggs (fn () => File.read_lines (Path.explode sugg_file))
-    |> tap (fn _ =>
-               if overlord then ()
-               else (map (File.rm o Path.explode) [sugg_file, cmd_file]; ()))
   end
 
 fun str_of_update (name, parents, feats, deps) =
@@ -395,11 +400,11 @@ fun mash_ADD _ _ [] = ()
   | mash_ADD ctxt overlord upds =
     (trace_msg ctxt (fn () => "MaSh ADD " ^
          elide_string 1000 (space_implode " " (map #1 upds)));
-     run_mash_commands ctxt overlord true 0 (upds, str_of_update) (K ()))
+     run_mash_commands ctxt overlord true true 0 (upds, str_of_update) (K ()))
 
 fun mash_QUERY ctxt overlord max_suggs (query as (_, feats)) =
   (trace_msg ctxt (fn () => "MaSh QUERY " ^ space_implode " " feats);
-   run_mash_commands ctxt overlord false max_suggs
+   run_mash_commands ctxt overlord false false max_suggs
        ([query], str_of_query)
        (fn suggs => snd (extract_query (List.last (suggs ()))))
    handle List.Empty => [])
