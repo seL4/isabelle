@@ -51,7 +51,6 @@ declare -a SOURCES=(
   System/options.scala
   System/platform.scala
   System/session.scala
-  System/session_manager.scala
   System/standard_system.scala
   System/swing_thread.scala
   System/system_channel.scala
