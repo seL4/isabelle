@@ -23,6 +23,7 @@ sig
   val fact_from_ref :
     Proof.context -> unit Symtab.table -> thm list -> status Termtab.table
     -> Facts.ref * Attrib.src list -> ((string * stature) * thm) list
+  val is_likely_tautology_or_too_meta : thm -> bool
   val backquote_thm : thm -> string
   val clasimpset_rule_table_of : Proof.context -> status Termtab.table
   val maybe_instantiate_inducts :
@@ -208,6 +209,24 @@ fun is_theorem_bad_for_atps ho_atp thm =
     is_formula_too_complex ho_atp t orelse exists_type type_has_top_sort t orelse
     exists_sledgehammer_const t orelse exists_low_level_class_const t orelse
     is_that_fact thm
+  end
+
+fun is_likely_tautology_or_too_meta th =
+  let
+    val is_boring_const = member (op =) atp_widely_irrelevant_consts
+    fun is_boring_bool t =
+      not (exists_Const (not o is_boring_const o fst) t) orelse
+      exists_type (exists_subtype (curry (op =) @{typ prop})) t
+    fun is_boring_prop (@{const Trueprop} $ t) = is_boring_bool t
+      | is_boring_prop (@{const "==>"} $ t $ u) =
+        is_boring_prop t andalso is_boring_prop u
+      | is_boring_prop (Const (@{const_name all}, _) $ (Abs (_, _, t)) $ u) =
+        is_boring_prop t andalso is_boring_prop u
+      | is_boring_prop (Const (@{const_name "=="}, _) $ t $ u) =
+        is_boring_bool t andalso is_boring_bool u
+      | is_boring_prop _ = true
+  in
+    is_boring_prop (prop_of th) andalso not (Thm.eq_thm_prop (@{thm ext}, th))
   end
 
 fun hackish_string_for_term thy t =
@@ -439,6 +458,7 @@ fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css chained hyp_ts
        else
          let val (add, del) = pairself (Attrib.eval_thms ctxt) (add, del) in
            all_facts ctxt ho_atp reserved add chained css
+           |> filter_out (is_likely_tautology_or_too_meta o snd)
            |> filter_out (member Thm.eq_thm_prop del o snd)
            |> maybe_filter_no_atps ctxt
            |> uniquify

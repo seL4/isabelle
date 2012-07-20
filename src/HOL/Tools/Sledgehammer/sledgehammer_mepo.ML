@@ -18,9 +18,10 @@ sig
   val const_names_in_fact :
     theory -> (string * typ -> term list -> bool * term list) -> term
     -> string list
-  val iterative_relevant_facts :
+  val mepo_suggested_facts :
     Proof.context -> params -> string -> int -> relevance_fudge option
     -> term list -> term -> fact list -> fact list
+  val weight_mepo_facts : fact list -> (fact * real) list
 end;
 
 structure Sledgehammer_MePo : SLEDGEHAMMER_MEPO =
@@ -508,7 +509,7 @@ fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
                       "Total relevant: " ^ string_of_int (length accepts)))
   end
 
-fun iterative_relevant_facts ctxt
+fun mepo_suggested_facts ctxt
         ({fact_thresholds = (thres0, thres1), ...} : params) prover
         max_facts fudge hyp_ts concl_t facts =
   let
@@ -533,5 +534,12 @@ fun iterative_relevant_facts ctxt
            facts hyp_ts
            (concl_t |> theory_constify fudge (Context.theory_name thy)))
   end
+
+(* Ad hoc score function roughly based on Blanchette's Ringberg 2011 data. *)
+fun weight_of_fact rank =
+  Math.pow (1.5, 15.5 - 0.05 * Real.fromInt rank) + 15.0
+
+fun weight_mepo_facts facts =
+  facts ~~ map weight_of_fact (0 upto length facts - 1)
 
 end;

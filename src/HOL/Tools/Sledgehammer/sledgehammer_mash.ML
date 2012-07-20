@@ -28,12 +28,12 @@ sig
   val escape_metas : string list -> string
   val unescape_meta : string -> string
   val unescape_metas : string -> string list
-  val extract_query : string -> string * string list
+  val extract_query : string -> string * (string * real) list
   val nickname_of : thm -> string
-  val suggested_facts : string list -> ('a * thm) list -> ('a * thm) list
+  val suggested_facts :
+    (string * 'a) list -> ('b * thm) list -> (('b * thm) * 'a) list
   val mesh_facts :
-    int -> (('a * thm) list * ('a * thm) list) list -> ('a * thm) list
-  val is_likely_tautology_or_too_meta : thm -> bool
+    int -> ((('a * thm) * real) list * ('a * thm) list) list -> ('a * thm) list
   val theory_ord : theory * theory -> order
   val thm_ord : thm * thm -> order
   val goal_of_thm : theory -> thm -> thm
@@ -52,13 +52,14 @@ sig
   val mash_REPROVE :
     Proof.context -> bool -> (string * string list) list -> unit
   val mash_QUERY :
-    Proof.context -> bool -> int -> string list * string list -> string list
+    Proof.context -> bool -> int -> string list * string list
+    -> (string * real) list
   val mash_unlearn : Proof.context -> unit
   val mash_could_suggest_facts : unit -> bool
   val mash_can_suggest_facts : Proof.context -> bool
-  val mash_suggest_facts :
+  val mash_suggested_facts :
     Proof.context -> params -> string -> int -> term list -> term
-    -> ('a * thm) list -> ('a * thm) list * ('a * thm) list
+    -> ('a * thm) list -> (('a * thm) * real) list * ('a * thm) list
   val mash_learn_proof :
     Proof.context -> params -> string -> term -> ('a * thm) list -> thm list
     -> unit
@@ -132,9 +133,22 @@ val unescape_meta = String.explode #> unmeta_chars []
 val unescape_metas =
   space_explode " " #> filter_out (curry (op =) "") #> map unescape_meta
 
+fun extract_node line =
+  case space_explode ":" line of
+    [name, parents] => (unescape_meta name, unescape_metas parents)
+  | _ => ("", [])
+
+fun extract_suggestion sugg =
+  case space_explode "=" sugg of
+    [name, weight] =>
+    SOME (unescape_meta name, Real.fromString weight |> the_default 0.0)
+  | _ => NONE
+
 fun extract_query line =
   case space_explode ":" line of
-    [goal_name, suggs] => (unescape_meta goal_name, unescape_metas suggs)
+    [goal, suggs] =>
+    (unescape_meta goal,
+     map_filter extract_suggestion (space_explode " " suggs))
   | _ => ("", [])
 
 fun parent_of_local_thm th =
@@ -165,31 +179,35 @@ fun suggested_facts suggs facts =
   let
     fun add_fact (fact as (_, th)) = Symtab.default (nickname_of th, fact)
     val tab = Symtab.empty |> fold add_fact facts
-  in map_filter (Symtab.lookup tab) suggs end
+    fun find_sugg (name, weight) =
+      Symtab.lookup tab name |> Option.map (rpair weight)
+  in map_filter find_sugg suggs end
 
-(* Ad hoc score function roughly based on Blanchette's Ringberg 2011 data. *)
-fun score x = Math.pow (1.5, 15.5 - 0.05 * Real.fromInt x) + 15.0
+fun sum_avg [] = 0
+  | sum_avg xs = Real.ceil (100000.0 * fold (curry (op +)) xs 0.0) div length xs
 
-fun sum_sq_avg [] = 0
-  | sum_sq_avg xs =
-    Real.ceil (100000.0 * fold (curry (op +) o score) xs 0.0) div length xs
+fun normalize_scores [] = []
+  | normalize_scores ((fact, score) :: tail) =
+    (fact, 1.0) :: map (apsnd (curry Real.* (1.0 / score))) tail
 
-fun mesh_facts max_facts [(selected, unknown)] =
-    take max_facts selected @ take (max_facts - length selected) unknown
+fun mesh_facts max_facts [(sels, unks)] =
+    map fst (take max_facts sels) @ take (max_facts - length sels) unks
   | mesh_facts max_facts mess =
     let
-      val mess = mess |> map (apfst (`length))
+      val mess = mess |> map (apfst (normalize_scores #> `length))
       val fact_eq = Thm.eq_thm o pairself snd
+      fun score_at sels = try (nth sels) #> Option.map snd
       fun score_in fact ((sel_len, sels), unks) =
-        case find_index (curry fact_eq fact) sels of
+        case find_index (curry fact_eq fact o fst) sels of
           ~1 => (case find_index (curry fact_eq fact) unks of
-                   ~1 => SOME sel_len
+                   ~1 => score_at sels sel_len
                  | _ => NONE)
-        | j => SOME j
-      fun score_of fact = mess |> map_filter (score_in fact) |> sum_sq_avg
-      val facts = fold (union fact_eq o take max_facts o snd o fst) mess []
+        | rank => score_at sels rank
+      fun weight_of fact = mess |> map_filter (score_in fact) |> sum_avg
+      val facts =
+        fold (union fact_eq o map fst o take max_facts o snd o fst) mess []
     in
-      facts |> map (`score_of) |> sort (int_ord o swap o pairself fst)
+      facts |> map (`weight_of) |> sort (int_ord o swap o pairself fst)
             |> map snd |> take max_facts
     end
 
@@ -197,24 +215,6 @@ val thy_feature_name_of = prefix "y"
 val const_name_of = prefix "c"
 val type_name_of = prefix "t"
 val class_name_of = prefix "s"
-
-fun is_likely_tautology_or_too_meta th =
-  let
-    val is_boring_const = member (op =) atp_widely_irrelevant_consts
-    fun is_boring_bool t =
-      not (exists_Const (not o is_boring_const o fst) t) orelse
-      exists_type (exists_subtype (curry (op =) @{typ prop})) t
-    fun is_boring_prop (@{const Trueprop} $ t) = is_boring_bool t
-      | is_boring_prop (@{const "==>"} $ t $ u) =
-        is_boring_prop t andalso is_boring_prop u
-      | is_boring_prop (Const (@{const_name all}, _) $ (Abs (_, _, t)) $ u) =
-        is_boring_prop t andalso is_boring_prop u
-      | is_boring_prop (Const (@{const_name "=="}, _) $ t $ u) =
-        is_boring_bool t andalso is_boring_bool u
-      | is_boring_prop _ = true
-  in
-    is_boring_prop (prop_of th) andalso not (Thm.eq_thm_prop (@{thm ext}, th))
-  end
 
 fun theory_ord p =
   if Theory.eq_thy p then
@@ -280,10 +280,11 @@ fun interesting_terms_types_and_classes ctxt prover term_max_depth
           if is_bad_const x args then ""
           else mk_app (const_name_of s) (map (patternify (depth - 1)) args)
         | _ => ""
+    fun add_pattern depth t =
+      case patternify depth t of "" => I | s => insert (op =) s
     fun add_term_patterns ~1 _ = I
       | add_term_patterns depth t =
-        insert (op =) (patternify depth t)
-        #> add_term_patterns (depth - 1) t
+        add_pattern depth t #> add_term_patterns (depth - 1) t
     val add_term = add_term_patterns term_max_depth
     fun add_patterns t =
       let val (head, args) = strip_comb t in
@@ -327,8 +328,8 @@ val atp_dependency_default_max_fact = 50
 fun trim_dependencies deps =
   if length deps <= max_dependencies then SOME deps else NONE
 
-fun isar_dependencies_of all_facts =
-  thms_in_proof (SOME all_facts) #> trim_dependencies
+fun isar_dependencies_of all_names =
+  thms_in_proof (SOME all_names) #> trim_dependencies
 
 fun atp_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
                         auto_level facts all_names th =
@@ -349,7 +350,7 @@ fun atp_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
           SOME ((name, status), th) => accum @ [((name, status), th)]
         | NONE => accum (* shouldn't happen *)
       val facts =
-        facts |> iterative_relevant_facts ctxt params prover
+        facts |> mepo_suggested_facts ctxt params prover
                      (max_facts |> the_default atp_dependency_default_max_fact)
                      NONE hyp_ts concl_t
               |> fold (add_isar_dep facts) (these isar_deps)
@@ -432,7 +433,7 @@ fun str_of_reprove (name, deps) =
   "p " ^ escape_meta name ^ ": " ^ escape_metas deps ^ "\n"
 
 fun str_of_query (parents, feats) =
-  "? " ^ escape_metas parents ^ "; " ^ escape_metas feats
+  "? " ^ escape_metas parents ^ "; " ^ escape_metas feats ^ "\n"
 
 fun mash_CLEAR ctxt =
   let val path = mash_model_dir () |> Path.explode in
@@ -487,6 +488,13 @@ fun try_graph ctxt when def f =
                 "Internal error when " ^ when ^ ":\n" ^
                 ML_Compiler.exn_message exn); def)
 
+fun graph_info G =
+  string_of_int (length (Graph.keys G)) ^ " node(s), " ^
+  string_of_int (fold (Integer.add o length o snd) (Graph.dest G) 0) ^
+  " edge(s), " ^
+  string_of_int (length (Graph.minimals G)) ^ " minimal, " ^
+  string_of_int (length (Graph.maximals G)) ^ " maximal"
+
 type mash_state = {fact_G : unit Graph.T}
 
 val empty_state = {fact_G = Graph.empty}
@@ -500,26 +508,27 @@ fun load _ (state as (true, _)) = state
     let val path = mash_state_path () in
       (true,
        case try File.read_lines path of
-         SOME (version' :: fact_lines) =>
+         SOME (version' :: node_lines) =>
          let
            fun add_edge_to name parent =
-             Graph.default_node (parent, ())
-             #> Graph.add_edge (parent, name)
-           fun add_fact_line line =
-             case extract_query line of
+             Graph.default_node (parent, ()) #> Graph.add_edge (parent, name)
+           fun add_node line =
+             case extract_node line of
                ("", _) => I (* shouldn't happen *)
              | (name, parents) =>
-               Graph.default_node (name, ())
-               #> fold (add_edge_to name) parents
+               Graph.default_node (name, ()) #> fold (add_edge_to name) parents
            val fact_G =
              try_graph ctxt "loading state" Graph.empty (fn () =>
-                 Graph.empty |> version' = version
-                                ? fold add_fact_line fact_lines)
-         in {fact_G = fact_G} end
+                 Graph.empty |> version' = version ? fold add_node node_lines)
+         in
+           trace_msg ctxt (fn () =>
+               "Loaded fact graph (" ^ graph_info fact_G ^ ")");
+           {fact_G = fact_G}
+         end
        | _ => empty_state)
     end
 
-fun save {fact_G} =
+fun save ctxt {fact_G} =
   let
     val path = mash_state_path ()
     fun fact_line_for name parents =
@@ -529,7 +538,8 @@ fun save {fact_G} =
       append_fact name (Graph.Keys.dest parents)
   in
     File.write path (version ^ "\n");
-    Graph.fold append_entry fact_G ()
+    Graph.fold append_entry fact_G ();
+    trace_msg ctxt (fn () => "Saved fact graph (" ^ graph_info fact_G ^ ")")
   end
 
 val global_state =
@@ -538,7 +548,7 @@ val global_state =
 in
 
 fun mash_map ctxt f =
-  Synchronized.change global_state (load ctxt ##> (f #> tap save))
+  Synchronized.change global_state (load ctxt ##> (f #> tap (save ctxt)))
 
 fun mash_get ctxt =
   Synchronized.change_result global_state (load ctxt #> `snd)
@@ -567,9 +577,11 @@ fun max_facts_in_graph fact_G facts =
         if Symtab.defined tab name then
           let
             val new = (Graph.all_preds fact_G [name], name)
-            fun not_ancestor (_, x) (yp, _) = not (member (op =) yp x)
-            val maxs = maxs |> filter (fn max => not_ancestor max new)
-            val maxs = maxs |> forall (not_ancestor new) maxs ? cons new
+            fun is_ancestor (_, x) (yp, _) = member (op =) yp x
+            val maxs = maxs |> filter (fn max => not (is_ancestor max new))
+            val maxs =
+              if exists (is_ancestor new) maxs then maxs
+              else new :: filter_out (fn max => is_ancestor max new) maxs
           in find_maxes (name :: seen) maxs names end
         else
           find_maxes (name :: seen) maxs
@@ -585,8 +597,8 @@ fun max_suggs_of max_facts = max_facts + Int.min (200, max_facts)
 fun is_fact_in_graph fact_G (_, th) =
   can (Graph.get_node fact_G) (nickname_of th)
 
-fun mash_suggest_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
-                       concl_t facts =
+fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
+                         concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
     val fact_G = #fact_G (mash_get ctxt)
@@ -756,13 +768,13 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
             n
           else
             let
-              fun score_of (_, th) =
+              fun priority_of (_, th) =
                 random_range 0 (1000 * max_dependencies)
                 - 500 * (th |> isar_dependencies_of all_names
                             |> Option.map length
                             |> the_default max_dependencies)
               val old_facts =
-                old_facts |> map (`score_of)
+                old_facts |> map (`priority_of)
                           |> sort (int_ord o pairself fst)
                           |> map snd
               val (reps, (n, _, _)) =
@@ -850,13 +862,14 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
         ((facts |> filter (member Thm.eq_thm_prop ths o snd)) @
          (accepts |> filter_out (member Thm.eq_thm_prop ths o snd)))
         |> take max_facts
-      fun iter () =
-        iterative_relevant_facts ctxt params prover max_facts NONE hyp_ts
-                                 concl_t facts
+      fun mepo () =
+        facts |> mepo_suggested_facts ctxt params prover max_facts NONE hyp_ts
+                                      concl_t
+              |> weight_mepo_facts
       fun mash () =
-        mash_suggest_facts ctxt params prover max_facts hyp_ts concl_t facts
+        mash_suggested_facts ctxt params prover max_facts hyp_ts concl_t facts
       val mess =
-        [] |> (if fact_filter <> mashN then cons (iter (), []) else I)
+        [] |> (if fact_filter <> mashN then cons (mepo (), []) else I)
            |> (if fact_filter <> mepoN then cons (mash ()) else I)
     in
       mesh_facts max_facts mess

@@ -218,7 +218,7 @@ fun avoid_too_many_threads _ _ [] = []
       val max_local_and_remote =
         max_local_and_remote
         |> (if String.isPrefix remote_prefix prover then apsnd else apfst)
-              (Integer.add ~1)
+               (Integer.add ~1)
     in prover :: avoid_too_many_threads ctxt max_local_and_remote provers end
 
 val max_default_remote_threads = 4

@@ -78,26 +78,28 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
         val isar_deps = isar_dependencies_of all_names th |> these
         val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
         val mepo_facts =
-          Sledgehammer_MePo.iterative_relevant_facts ctxt params prover
+          Sledgehammer_MePo.mepo_suggested_facts ctxt params prover
               slack_max_facts NONE hyp_ts concl_t facts
-        val mash_facts = facts |> suggested_facts suggs
+          |> Sledgehammer_MePo.weight_mepo_facts
+        val mash_facts = suggested_facts suggs facts
         val mess = [(mepo_facts, []), (mash_facts, [])]
         val mesh_facts = mesh_facts slack_max_facts mess
-        val isar_facts = suggested_facts isar_deps facts
-        fun prove ok heading facts =
+        val isar_facts = suggested_facts (map (rpair 1.0) isar_deps) facts
+        fun prove ok heading get facts =
           let
             val facts =
-              facts
-              |> Sledgehammer_Fact.maybe_instantiate_inducts ctxt hyp_ts concl_t
-              |> take (the max_facts)
+              facts |> map get
+                    |> Sledgehammer_Fact.maybe_instantiate_inducts ctxt hyp_ts
+                                                                   concl_t
+                    |> take (the max_facts)
             val res as {outcome, ...} =
               run_prover_for_mash ctxt params prover facts goal
             val _ = if is_none outcome then ok := !ok + 1 else ()
           in str_of_res heading facts res end
-        val mepo_s = prove mepo_ok MePoN mepo_facts
-        val mash_s = prove mash_ok MaShN mash_facts
-        val mesh_s = prove mesh_ok MeshN mesh_facts
-        val isar_s = prove isar_ok IsarN isar_facts
+        val mepo_s = prove mepo_ok MePoN fst mepo_facts
+        val mash_s = prove mash_ok MaShN fst mash_facts
+        val mesh_s = prove mesh_ok MeshN I mesh_facts
+        val isar_s = prove isar_ok IsarN fst isar_facts
       in
         ["Goal " ^ string_of_int j ^ ": " ^ name, mepo_s, mash_s, mesh_s,
          isar_s]
