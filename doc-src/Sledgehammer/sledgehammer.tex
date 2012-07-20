@@ -152,7 +152,7 @@ directed to the author at \authoremail.
 \section{Installation}
 \label{installation}
 
-Sledgehammer is part of Isabelle, so you don't need to install it. However, it
+Sledgehammer is part of Isabelle, so you do not need to install it. However, it
 relies on third-party automatic provers (ATPs and SMT solvers).
 
 Among the ATPs, E, LEO-II, Satallax, SPASS, and Vampire can be run locally; in
@@ -301,10 +301,9 @@ available, some of the provers might be missing or present with a
 \textit{remote\_} prefix. Waldmeister is run only for unit equational problems,
 where the goal's conclusion is a (universally quantified) equation.
 
-For each successful prover, Sledgehammer gives a one-liner proof that uses
-the \textit{metis} or \textit{smt} proof method. Approximate timings are shown
-in parentheses, indicating how fast the call is. You can click the proof to
-insert it into the theory text.
+For each successful prover, Sledgehammer gives a one-liner \textit{metis} or
+\textit{smt} method call. Rough timings are shown in parentheses, indicating how
+fast the call is. You can click the proof to insert it into the theory text.
 
 In addition, you can ask Sledgehammer for an Isar text proof by passing the
 \textit{isar\_proof} option (\S\ref{output-format}):
@@ -386,21 +385,40 @@ to force Sledgehammer to run only with $\textit{my\_facts}$.
 \label{frequently-asked-questions}
 
 This sections answers frequently (and infrequently) asked questions about
-Sledgehammer. It is a good idea to skim over it now even if you don't have any
+Sledgehammer. It is a good idea to skim over it now even if you do not have any
 questions at this stage. And if you have any further questions not listed here,
 send them to the author at \authoremail.
 
 \point{Which facts are passed to the automatic provers?}
 
-The relevance filter assigns a score to every available fact (lemma, theorem,
-definition, or axiom) based upon how many constants that fact shares with the
-conjecture. This process iterates to include facts relevant to those just
-accepted, but with a decay factor to ensure termination. The constants are
-weighted to give unusual ones greater significance. The relevance filter copes
-best when the conjecture contains some unusual constants; if all the constants
-are common, it is unable to discriminate among the hundreds of facts that are
-picked up. The relevance filter is also memoryless: It has no information about
-how many times a particular fact has been used in a proof, and it cannot learn.
+Sledgehammer heuristically selects a few hundred relevant lemmas from the
+currently loaded libraries. The component that performs this selection is
+called \emph{relevance filter}.
+
+\begin{enum}
+\item[\labelitemi]
+The traditional relevance filter, called \emph{MePo}, assigns a score to every
+available fact (lemma, theorem, definition, or axiom) based upon how many
+constants that fact shares with the conjecture. This process iterates to include
+facts relevant to those just accepted. The constants are weighted to give
+unusual ones greater significance. MePo copes best when the conjecture contains
+some unusual constants; if all the constants are common, it is unable to
+discriminate among the hundreds of facts that are picked up. The filter is also
+memoryless: It has no information about how many times a particular fact has
+been used in a proof, and it cannot learn.
+
+\item[\labelitemi]
+An experimental, memoryful alternative to MePo is \emph{MaSh}
+(\underline{Ma}chine Learner for \underline{S}ledge\underline{h}ammer). It
+relies on an external tool called \texttt{mash} that applies machine learning to
+the problem of finding relevant facts.
+
+\item[\labelitemi] The \emph{Mesh} filter combines MePo and MaSh.
+\end{enum}
+
+The default is either MePo or Mesh, depending on whether \texttt{mash} is
+installed and what class of provers the target prover belongs to
+(\S\ref{relevance-filter}).
 
 The number of facts included in a problem varies from prover to prover, since
 some provers get overwhelmed more easily than others. You can show the number of
@@ -599,9 +617,10 @@ want to report this to the Isabelle developers.
 \point{Auto can solve it---why not Sledgehammer?}
 
 Problems can be easy for \textit{auto} and difficult for automatic provers, but
-the reverse is also true, so don't be discouraged if your first attempts fail.
+the reverse is also true, so do not be discouraged if your first attempts fail.
 Because the system refers to all theorems known to Isabelle, it is particularly
-suitable when your goal has a short proof from lemmas that you don't know about.
+suitable when your goal has a short proof from lemmas that you do not know
+about.
 
 \point{Why are there so many options?}
 
@@ -654,6 +673,24 @@ time until timeout.
 
 \item[\labelitemi] \textbf{\textit{kill\_provers}:} Terminates all running
 automatic provers.
+
+\item[\labelitemi] \textbf{\textit{unlearn}:} Resets the MaSh machine learner,
+erasing any persistent state.
+
+\item[\labelitemi] \textbf{\textit{learn}:} Invokes the MaSh machine learner on
+the current theory to process all the available facts. This happens
+automatically at Sledgehammer invocations if the \textit{learn} option
+(\S\ref{relevance-filter}) is enabled.
+
+\item[\labelitemi] \textbf{\textit{relearn}:} Same as \textit{unlearn} followed
+by \textit{learn}.
+
+\item[\labelitemi] \textbf{\textit{running\_learners}:} Prints information about
+currently running machine learners, including elapsed runtime and remaining
+time until timeout.
+
+\item[\labelitemi] \textbf{\textit{kill\_learners}:} Terminates all running
+machine learners.
 
 \item[\labelitemi] \textbf{\textit{refresh\_tptp}:} Refreshes the list of remote
 ATPs available at System\-On\-TPTP \cite{sutcliffe-2000}.
@@ -978,6 +1015,47 @@ safely remove them after Sledgehammer has run.
 {\small See also \textit{debug} (\S\ref{output-format}).}
 \end{enum}
 
+\subsection{Relevance Filter}
+\label{relevance-filter}
+
+\begin{enum}
+\opdefault{max\_facts}{smart\_int}{smart}
+Specifies the maximum number of facts that may be returned by the relevance
+filter. If the option is set to \textit{smart}, it is set to a value that was
+empirically found to be appropriate for the prover. Typical values range between
+50 and 1000.
+
+\opdefault{fact\_thresholds}{float\_pair}{\upshape 0.45~0.85}
+Specifies the thresholds above which facts are considered relevant by the
+relevance filter. The first threshold is used for the first iteration of the
+relevance filter and the second threshold is used for the last iteration (if it
+is reached). The effective threshold is quadratically interpolated for the other
+iterations. Each threshold ranges from 0 to 1, where 0 means that all theorems
+are relevant and 1 only theorems that refer to previously seen constants.
+
+\opdefault{max\_new\_mono\_instances}{int}{smart}
+Specifies the maximum number of monomorphic instances to generate beyond
+\textit{max\_facts}. The higher this limit is, the more monomorphic instances
+are potentially generated. Whether monomorphization takes place depends on the
+type encoding used. If the option is set to \textit{smart}, it is set to a value
+that was empirically found to be appropriate for the prover. For most provers,
+this value is 200.
+
+\nopagebreak
+{\small See also \textit{type\_enc} (\S\ref{problem-encoding}).}
+
+\opdefault{max\_mono\_iters}{int}{smart}
+Specifies the maximum number of iterations for the monomorphization fixpoint
+construction. The higher this limit is, the more monomorphic instances are
+potentially generated. Whether monomorphization takes place depends on the
+type encoding used. If the option is set to \textit{smart}, it is set to a value
+that was empirically found to be appropriate for the prover. For most provers,
+this value is 3.
+
+\nopagebreak
+{\small See also \textit{type\_enc} (\S\ref{problem-encoding}).}
+\end{enum}
+
 \subsection{Problem Encoding}
 \label{problem-encoding}
 
@@ -1141,47 +1219,6 @@ sound type encodings marked with an asterisk (*) above are made complete
 for reconstruction with \textit{metis}, at the cost of some clutter in the
 generated problems. This option has no effect if \textit{type\_enc} is
 deliberately set to an unsound encoding.
-\end{enum}
-
-\subsection{Relevance Filter}
-\label{relevance-filter}
-
-\begin{enum}
-\opdefault{max\_facts}{smart\_int}{smart}
-Specifies the maximum number of facts that may be returned by the relevance
-filter. If the option is set to \textit{smart}, it is set to a value that was
-empirically found to be appropriate for the prover. Typical values range between
-50 and 1000.
-
-\opdefault{fact\_thresholds}{float\_pair}{\upshape 0.45~0.85}
-Specifies the thresholds above which facts are considered relevant by the
-relevance filter. The first threshold is used for the first iteration of the
-relevance filter and the second threshold is used for the last iteration (if it
-is reached). The effective threshold is quadratically interpolated for the other
-iterations. Each threshold ranges from 0 to 1, where 0 means that all theorems
-are relevant and 1 only theorems that refer to previously seen constants.
-
-\opdefault{max\_new\_mono\_instances}{int}{smart}
-Specifies the maximum number of monomorphic instances to generate beyond
-\textit{max\_facts}. The higher this limit is, the more monomorphic instances
-are potentially generated. Whether monomorphization takes place depends on the
-type encoding used. If the option is set to \textit{smart}, it is set to a value
-that was empirically found to be appropriate for the prover. For most provers,
-this value is 200.
-
-\nopagebreak
-{\small See also \textit{type\_enc} (\S\ref{problem-encoding}).}
-
-\opdefault{max\_mono\_iters}{int}{smart}
-Specifies the maximum number of iterations for the monomorphization fixpoint
-construction. The higher this limit is, the more monomorphic instances are
-potentially generated. Whether monomorphization takes place depends on the
-type encoding used. If the option is set to \textit{smart}, it is set to a value
-that was empirically found to be appropriate for the prover. For most provers,
-this value is 3.
-
-\nopagebreak
-{\small See also \textit{type\_enc} (\S\ref{problem-encoding}).}
 \end{enum}
 
 \subsection{Output Format}
