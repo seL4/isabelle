@@ -10,13 +10,13 @@ uses "atp_theory_export.ML"
 begin
 
 ML {*
-open ATP_Problem;
-open ATP_Theory_Export;
+open ATP_Problem
+open ATP_Theory_Export
 *}
 
 ML {*
-val do_it = false; (* switch to "true" to generate the files *)
-val thy = @{theory List};
+val do_it = false (* switch to "true" to generate the files *)
+val thy = @{theory List}
 val ctxt = @{context}
 *}
 
