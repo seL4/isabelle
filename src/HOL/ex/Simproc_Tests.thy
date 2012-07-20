@@ -5,14 +5,14 @@
 header {* Testing of arithmetic simprocs *}
 
 theory Simproc_Tests
-imports (*Main*) "../Numeral_Simprocs"
+imports Main
 begin
 
 text {*
-  This theory tests the various simprocs defined in
-  @{file "~~/src/HOL/Numeral_Simprocs.thy"}. Many of the tests
-  are derived from commented-out code originally found in
-  @{file "~~/src/HOL/Tools/numeral_simprocs.ML"}.
+  This theory tests the various simprocs defined in @{file
+  "~~/src/HOL/Nat.thy"} and @{file "~~/src/HOL/Numeral_Simprocs.thy"}.
+  Many of the tests are derived from commented-out code originally
+  found in @{file "~~/src/HOL/Tools/numeral_simprocs.ML"}.
 *}
 
 subsection {* ML bindings *}
@@ -20,6 +20,29 @@ subsection {* ML bindings *}
 ML {*
   fun test ps = CHANGED (asm_simp_tac (HOL_basic_ss addsimprocs ps) 1)
 *}
+
+subsection {* Cancellation simprocs from @{text Nat.thy} *}
+
+notepad begin
+  fix a b c d :: nat
+  {
+    assume "b = Suc c" have "a + b = Suc (c + a)"
+      by (tactic {* test [nth Nat_Arith.nat_cancel_sums 0] *}) fact
+  next
+    assume "b < Suc c" have "a + b < Suc (c + a)"
+      by (tactic {* test [nth Nat_Arith.nat_cancel_sums 1] *}) fact
+  next
+    assume "b \<le> Suc c" have "a + b \<le> Suc (c + a)"
+      by (tactic {* test [nth Nat_Arith.nat_cancel_sums 2] *}) fact
+  next
+    assume "b - Suc c = d" have "a + b - Suc (c + a) = d"
+      by (tactic {* test [nth Nat_Arith.nat_cancel_sums 3] *}) fact
+  }
+end
+
+schematic_lemma "\<And>(y::?'b::size). size (?x::?'a::size) \<le> size y + size ?x"
+  by (tactic {* test [nth Nat_Arith.nat_cancel_sums 2] *}) (rule le0)
+(* TODO: test more simprocs with schematic variables *)
 
 subsection {* Abelian group cancellation simprocs *}
 

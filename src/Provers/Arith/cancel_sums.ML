@@ -13,12 +13,12 @@ sig
   (*abstract syntax*)
   val mk_sum: term list -> term
   val dest_sum: term -> term list
+  val mk_plus: term * term -> term
   val mk_bal: term * term -> term
   val dest_bal: term -> term * term
   (*rules*)
-  val prove_conv: tactic -> (simpset -> tactic) -> simpset -> term * term -> thm
   val norm_tac: simpset -> tactic            (*AC0 etc.*)
-  val uncancel_tac: cterm -> tactic          (*apply A ~~ B  ==  x + A ~~ x + B*)
+  val cancel_rule: thm                       (* x + A ~~ x + B == A ~~ B *)
 end;
 
 signature CANCEL_SUMS =
@@ -46,14 +46,6 @@ fun cancel ts [] vs = (ts, [], vs)
       | GREATER => cons2 u (cancel (t :: ts) us vs));
 
 
-(* uncancel *)
-
-fun uncancel_sums_tac _ [] = all_tac
-  | uncancel_sums_tac thy (t :: ts) =
-      Data.uncancel_tac (Thm.cterm_of thy t) THEN
-      uncancel_sums_tac thy ts;
-
-
 (* the simplification procedure *)
 
 fun proc ss t =
@@ -66,9 +58,21 @@ fun proc ss t =
         val (ts', us', vs) = cancel ts us [];
       in
         if null vs then NONE
-        else SOME
-          (Data.prove_conv (uncancel_sums_tac thy vs) Data.norm_tac ss
-            (t, Data.mk_bal (Data.mk_sum ts', Data.mk_sum us')))
+        else
+          let
+            val cert = Thm.cterm_of thy
+            val t' = Data.mk_sum ts'
+            val u' = Data.mk_sum us'
+            val v = Data.mk_sum vs
+            val t1 = Data.mk_bal (Data.mk_plus (v, t'), Data.mk_plus (v, u'))
+            val t2 = Data.mk_bal (t', u')
+            val goal1 = Thm.cterm_of thy (Logic.mk_equals (t, t1))
+            val goal2 = Thm.cterm_of thy (Logic.mk_equals (t1, t2))
+            val thm1 = Goal.prove_internal [] goal1 (K (Data.norm_tac ss))
+            val thm2 = Goal.prove_internal [] goal2 (K (rtac Data.cancel_rule 1))
+          in
+            SOME (Thm.transitive thm1 thm2)
+          end
       end);
 
 end;

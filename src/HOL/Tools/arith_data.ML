@@ -112,7 +112,8 @@ fun prove_conv2 expand_tac norm_tac ss tu = (* FIXME avoid Drule.export_without_
 
 fun simp_all_tac rules =
   let val ss0 = HOL_ss addsimps rules
-  in fn ss => ALLGOALS (simp_tac (Simplifier.inherit_context ss ss0)) end;
+      val safe_simp_tac = generic_simp_tac true (false, false, false)
+  in fn ss => ALLGOALS (safe_simp_tac (Simplifier.inherit_context ss ss0)) end;
 
 fun simplify_meta_eq rules =
   let val ss0 = HOL_basic_ss addsimps rules |> Simplifier.add_eqcong @{thm eq_cong2}

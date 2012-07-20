@@ -49,13 +49,11 @@ structure CommonCancelSums =
 struct
   val mk_sum = mk_norm_sum;
   val dest_sum = dest_sum;
-  val prove_conv = Arith_Data.prove_conv2;
+  val mk_plus = HOLogic.mk_binop @{const_name Groups.plus};
   val norm_tac1 = Arith_Data.simp_all_tac [@{thm add_Suc}, @{thm add_Suc_right},
     @{thm Nat.add_0}, @{thm Nat.add_0_right}];
   val norm_tac2 = Arith_Data.simp_all_tac @{thms add_ac};
   fun norm_tac ss = norm_tac1 ss THEN norm_tac2 ss;
-  fun gen_uncancel_tac rule = let val rule' = rule RS @{thm subst_equals}
-    in fn ct => rtac (instantiate' [] [NONE, SOME ct] rule') 1 end;
 end;
 
 structure EqCancelSums = CancelSumsFun
@@ -63,7 +61,7 @@ structure EqCancelSums = CancelSumsFun
   open CommonCancelSums;
   val mk_bal = HOLogic.mk_eq;
   val dest_bal = HOLogic.dest_bin @{const_name HOL.eq} HOLogic.natT;
-  val uncancel_tac = gen_uncancel_tac @{thm "nat_add_left_cancel"};
+  val cancel_rule = mk_meta_eq @{thm nat_add_left_cancel};
 end);
 
 structure LessCancelSums = CancelSumsFun
@@ -71,7 +69,7 @@ structure LessCancelSums = CancelSumsFun
   open CommonCancelSums;
   val mk_bal = HOLogic.mk_binrel @{const_name Orderings.less};
   val dest_bal = HOLogic.dest_bin @{const_name Orderings.less} HOLogic.natT;
-  val uncancel_tac = gen_uncancel_tac @{thm "nat_add_left_cancel_less"};
+  val cancel_rule = mk_meta_eq @{thm nat_add_left_cancel_less};
 end);
 
 structure LeCancelSums = CancelSumsFun
@@ -79,7 +77,7 @@ structure LeCancelSums = CancelSumsFun
   open CommonCancelSums;
   val mk_bal = HOLogic.mk_binrel @{const_name Orderings.less_eq};
   val dest_bal = HOLogic.dest_bin @{const_name Orderings.less_eq} HOLogic.natT;
-  val uncancel_tac = gen_uncancel_tac @{thm "nat_add_left_cancel_le"};
+  val cancel_rule = mk_meta_eq @{thm nat_add_left_cancel_le};
 end);
 
 structure DiffCancelSums = CancelSumsFun
@@ -87,7 +85,7 @@ structure DiffCancelSums = CancelSumsFun
   open CommonCancelSums;
   val mk_bal = HOLogic.mk_binop @{const_name Groups.minus};
   val dest_bal = HOLogic.dest_bin @{const_name Groups.minus} HOLogic.natT;
-  val uncancel_tac = gen_uncancel_tac @{thm "diff_cancel"};
+  val cancel_rule = mk_meta_eq @{thm diff_cancel};
 end);
 
 val nat_cancel_sums_add =
