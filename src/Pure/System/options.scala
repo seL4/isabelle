@@ -66,7 +66,7 @@ object Options
     var options = empty
     for {
       dir <- Isabelle_System.components()
-      file = Isabelle_System.platform_file(dir + OPTIONS)
+      file = (dir + OPTIONS).file
       if file.isFile
       entry <- Parser.parse_entries(file)
     } {

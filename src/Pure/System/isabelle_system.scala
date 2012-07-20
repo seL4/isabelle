@@ -146,10 +146,9 @@ object Isabelle_System
     if (path.is_absolute || path.is_current)
       try_file(platform_file(path))
     else {
-      val pure_file = platform_file(Path.explode("~~/src/Pure") + path)
+      val pure_file = (Path.explode("~~/src/Pure") + path).file
       if (pure_file.isFile) Some(pure_file)
-      else if (getenv("ML_SOURCES") != "")
-        try_file(platform_file(Path.explode("$ML_SOURCES") + path))
+      else if (getenv("ML_SOURCES") != "") try_file((Path.explode("$ML_SOURCES") + path).file)
       else None
     }
   }
@@ -278,7 +277,7 @@ object Isabelle_System
   def isabelle_tool(name: String, args: String*): (String, Int) =
   {
     Path.split(getenv_strict("ISABELLE_TOOLS")).find { dir =>
-      val file = platform_file(dir + Path.basic(name))
+      val file = (dir + Path.basic(name)).file
       try {
         file.isFile && file.canRead && file.canExecute &&
           !name.endsWith("~") && !name.endsWith(".orig")
@@ -309,7 +308,7 @@ object Isabelle_System
     val ml_ident = getenv_strict("ML_IDENTIFIER")
     val logics = new mutable.ListBuffer[String]
     for (dir <- Path.split(getenv_strict("ISABELLE_PATH"))) {
-      val files = platform_file(dir + Path.explode(ml_ident)).listFiles()
+      val files = (dir + Path.explode(ml_ident)).file.listFiles()
       if (files != null) {
         for (file <- files if file.isFile) logics += file.getName
       }
@@ -327,6 +326,6 @@ object Isabelle_System
   {
     val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
     for (font <- Path.split(getenv_strict("ISABELLE_FONTS")))
-      ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, platform_file(font)))
+      ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, font.file))
   }
 }

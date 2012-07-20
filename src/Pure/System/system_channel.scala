@@ -47,8 +47,7 @@ private class Fifo_Channel extends System_Channel
   }
 
   private def rm_fifo(fifo: String): Boolean =
-    Isabelle_System.platform_file(
-      Path.explode(if (Platform.is_windows) fifo + ".lnk" else fifo)).delete
+    Path.explode(if (Platform.is_windows) fifo + ".lnk" else fifo).file.delete
 
   private def fifo_input_stream(fifo: String): InputStream =
   {

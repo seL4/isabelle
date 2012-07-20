@@ -8,6 +8,8 @@ roots (e.g. //foo) and variables (e.g. $BAR).
 package isabelle
 
 
+import java.io.File
+
 import scala.util.matching.Regex
 
 
@@ -162,4 +164,9 @@ final class Path private(private val elems: List[Path.Elem]) // reversed element
 
     new Path(Path.norm_elems(elems.map(eval).flatten))
   }
+
+
+  /* platform file */
+
+  def file: File = Isabelle_System.platform_file(this)
 }

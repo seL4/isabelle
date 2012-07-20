@@ -198,7 +198,7 @@ object Build
 
   private def sessions_dir(strict: Boolean, dir: Path, queue: Session.Queue): Session.Queue =
   {
-    val root = Isabelle_System.platform_file(dir + ROOT)
+    val root = (dir + ROOT).file
     if (root.isFile) sessions_root(dir, root, queue)
     else if (strict) error("Bad session root file: " + quote(root.toString))
     else queue
@@ -212,7 +212,7 @@ object Build
     (queue /: dirs)((queue1, dir1) =>
       try {
         val dir2 = dir + Path.explode(dir1)
-        if (Isabelle_System.platform_file(dir2).isDirectory) sessions_dir(true, dir2, queue1)
+        if (dir2.file.isDirectory) sessions_dir(true, dir2, queue1)
         else error("Bad session directory: " + dir2.toString)
       }
       catch {
@@ -228,7 +228,7 @@ object Build
     for (dir <- Isabelle_System.components()) {
       queue = sessions_dir(false, dir, queue)
 
-      val catalog = Isabelle_System.platform_file(dir + SESSIONS)
+      val catalog = (dir + SESSIONS).file
       if (catalog.isFile)
         queue = sessions_catalog(dir, catalog, queue)
     }
@@ -242,12 +242,15 @@ object Build
 
   /** build **/
 
+  private def echo(msg: String) { java.lang.System.out.println(msg) }
+  private def echo_n(msg: String) { java.lang.System.out.print(msg) }
+
   private def build_job(build_images: Boolean,  // FIXME
     key: Session.Key, info: Session.Info): Isabelle_System.Bash_Job =
   {
-    val cwd = Isabelle_System.platform_file(info.dir)
+    val cwd = info.dir.file
     val script =
-      if (is_pure(key.name)) "./build " + key.name
+      if (is_pure(key.name)) "./build " + (if (build_images) "-b " else "") + key.name
       else """echo "Bad session" >&2; exit 2"""
     new Isabelle_System.Bash_Job(cwd, null, script)
   }
@@ -256,7 +259,6 @@ object Build
     more_dirs: List[Path], options: List[String], sessions: List[String]): Int =
   {
     val full_queue = find_sessions(more_dirs)
-
     val build_options = (Options.init() /: options)(_.define_simple(_))
 
     sessions.filter(name => !full_queue.defined(name)) match {
@@ -268,15 +270,54 @@ object Build
       if (all_sessions) full_queue
       else full_queue.required(sessions)
 
-    for ((key, info) <- required_queue.topological_order) {
-      if (list_only) println(key.name + " in " + info.dir)
-      else {
-        val (out, err, rc) = build_job(build_images, key, info).join
-        java.lang.System.err.print(err)
-      }
+    // prepare browser info dir
+    if (build_options.bool("browser_info") &&
+      !Path.explode("$ISABELLE_BROWSER_INFO/index.html").file.isFile)
+    {
+      Path.explode("$ISABELLE_BROWSER_INFO").file.mkdirs()
+      Standard_System.copy_file(Path.explode("$ISABELLE_HOME/lib/logo/isabelle.gif").file,
+        Path.explode("$ISABELLE_BROWSER_INFO/isabelle.gif").file)
+      Standard_System.write_file(Path.explode("$ISABELLE_BROWSER_INFO/index.html").file,
+        Standard_System.read_file(
+          Path.explode("$ISABELLE_HOME/lib/html/library_index_header.template").file) +
+        Standard_System.read_file(
+          Path.explode("$ISABELLE_HOME/lib/html/library_index_content.template").file) +
+        Standard_System.read_file(
+          Path.explode("$ISABELLE_HOME/lib/html/library_index_footer.template").file))
     }
 
-    0
+    // prepare log dir
+    val log_dir = Path.explode("$ISABELLE_OUTPUT/log")
+    log_dir.file.mkdirs()
+
+    // run jobs
+    val rcs =
+      for ((key, info) <- required_queue.topological_order) yield
+      {
+        if (list_only) { echo(key.name + " in " + info.dir); 0 }
+        else {
+          if (build_images) echo("Building " + key.name + "...")
+          else echo("Running " + key.name + "...")
+
+          val (out, err, rc) = build_job(build_images, key, info).join
+          echo_n(err)
+
+          val log = log_dir + Path.basic(key.name)
+          if (rc == 0) {
+            Standard_System.write_file(log.ext("gz").file, out, true)
+          }
+          else {
+            Standard_System.write_file(log.file, out)
+            echo(key.name + " FAILED")
+            echo("(see also " + log.file + ")")
+            val lines = split_lines(out)
+            val tail = lines.drop(lines.length - 20 max 0)
+            echo("\n" + cat_lines(tail))
+          }
+          rc
+        }
+      }
+    (0 /: rcs)(_ max _)
   }
 
 
