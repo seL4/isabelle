@@ -54,7 +54,7 @@ else
 
 ML {*
 if do_it then
-  generate_iter_suggestions @{context} params thy 500 "/tmp/mash_iter_suggestions"
+  generate_mepo_suggestions @{context} params thy 500 "/tmp/mash_mepo_suggestions"
 else
   ()
 *}

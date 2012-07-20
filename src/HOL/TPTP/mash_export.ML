@@ -17,7 +17,7 @@ sig
   val generate_atp_dependencies :
     Proof.context -> params -> theory -> bool -> string -> unit
   val generate_commands : Proof.context -> string -> theory -> string -> unit
-  val generate_iter_suggestions :
+  val generate_mepo_suggestions :
     Proof.context -> params -> theory -> int -> string -> unit
 end;
 
@@ -182,7 +182,7 @@ fun generate_commands ctxt prover thy file_name =
     val parents = parent_facts thy thy_map
   in fold do_fact new_facts parents; () end
 
-fun generate_iter_suggestions ctxt (params as {provers, ...}) thy max_relevant
+fun generate_mepo_suggestions ctxt (params as {provers, ...}) thy max_relevant
                               file_name =
   let
     val path = file_name |> Path.explode

@@ -19,10 +19,10 @@ struct
 open Sledgehammer_Fact
 open Sledgehammer_Filter_MaSh
 
-val isarN = "Isar"
-val iterN = "Iter"
-val mashN = "MaSh"
-val meshN = "Mesh"
+val MePoN = "MePo"
+val MaShN = "MaSh"
+val MeshN = "Mesh"
+val IsarN = "Isar"
 
 val max_facts_slack = 2
 
@@ -41,7 +41,7 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
     val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
     val facts = all_facts_of thy css_table
     val all_names = all_names (facts |> map snd)
-    val iter_ok = Unsynchronized.ref 0
+    val mepo_ok = Unsynchronized.ref 0
     val mash_ok = Unsynchronized.ref 0
     val mesh_ok = Unsynchronized.ref 0
     val isar_ok = Unsynchronized.ref 0
@@ -77,13 +77,13 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
         val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
         val isar_deps = isabelle_dependencies_of all_names th
         val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
-        val isar_facts = suggested_facts isar_deps facts
-        val iter_facts =
+        val mepo_facts =
           Sledgehammer_Filter_Iter.iterative_relevant_facts ctxt params
               prover slack_max_facts NONE hyp_ts concl_t facts
         val mash_facts = facts |> suggested_facts suggs
-        val mess = [(iter_facts, []), (mash_facts, [])]
+        val mess = [(mepo_facts, []), (mash_facts, [])]
         val mesh_facts = mesh_facts slack_max_facts mess
+        val isar_facts = suggested_facts isar_deps facts
         fun prove ok heading facts =
           let
             val facts =
@@ -94,17 +94,17 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
               run_prover_for_mash ctxt params prover facts goal
             val _ = if is_none outcome then ok := !ok + 1 else ()
           in str_of_res heading facts res end
-        val iter_s = prove iter_ok iterN iter_facts
-        val mash_s = prove mash_ok mashN mash_facts
-        val mesh_s = prove mesh_ok meshN mesh_facts
-        val isar_s = prove isar_ok isarN isar_facts
+        val mepo_s = prove mepo_ok MePoN mepo_facts
+        val mash_s = prove mash_ok MaShN mash_facts
+        val mesh_s = prove mesh_ok MeshN mesh_facts
+        val isar_s = prove isar_ok IsarN isar_facts
       in
-        ["Goal " ^ string_of_int j ^ ": " ^ name, iter_s, mash_s, mesh_s,
+        ["Goal " ^ string_of_int j ^ ": " ^ name, mepo_s, mash_s, mesh_s,
          isar_s]
         |> cat_lines |> tracing
       end
     fun total_of heading ok n =
-      " " ^ heading ^ ": " ^ string_of_int (!ok) ^ " (" ^
+      "  " ^ heading ^ ": " ^ string_of_int (!ok) ^ " (" ^
       Real.fmt (StringCvt.FIX (SOME 1))
                (100.0 * Real.fromInt (!ok) / Real.fromInt n) ^ "%)"
     val inst_inducts = Config.get ctxt Sledgehammer_Fact.instantiate_inducts
@@ -119,10 +119,10 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
     tracing ("Options: " ^ commas options);
     List.app solve_goal (tag_list 1 lines);
     ["Successes (of " ^ string_of_int n ^ " goals)",
-     total_of iterN iter_ok n,
-     total_of mashN mash_ok n,
-     total_of meshN mesh_ok n,
-     total_of isarN isar_ok n]
+     total_of MePoN mepo_ok n,
+     total_of MaShN mash_ok n,
+     total_of MeshN mesh_ok n,
+     total_of IsarN isar_ok n]
     |> cat_lines |> tracing
   end
 

@@ -16,9 +16,9 @@ sig
 
   val trace : bool Config.T
   val MaShN : string
-  val meshN : string
-  val iterN : string
+  val mepoN : string
   val mashN : string
+  val meshN : string
   val fact_filters : string list
   val escape_meta : string -> string
   val escape_metas : string list -> string
@@ -81,11 +81,11 @@ fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 
 val MaShN = "MaSh"
 
-val meshN = "mesh"
-val iterN = "iter"
+val mepoN = "mepo"
 val mashN = "mash"
+val meshN = "mesh"
 
-val fact_filters = [meshN, iterN, mashN]
+val fact_filters = [meshN, mepoN, mashN]
 
 fun mash_home () = getenv "MASH_HOME"
 fun mash_state_dir () =
@@ -662,11 +662,11 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
           ()
       val fact_filter =
         case fact_filter of
-          SOME ff => (() |> ff <> iterN ? maybe_learn; ff)
+          SOME ff => (() |> ff <> mepoN ? maybe_learn; ff)
         | NONE =>
           if mash_can_suggest_facts ctxt then (maybe_learn (); meshN)
-          else if mash_could_suggest_facts () then (maybe_learn (); iterN)
-          else iterN
+          else if mash_could_suggest_facts () then (maybe_learn (); mepoN)
+          else mepoN
       val add_ths = Attrib.eval_thms ctxt add
       fun prepend_facts ths accepts =
         ((facts |> filter (member Thm.eq_thm_prop ths o snd)) @
@@ -679,7 +679,7 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
         mash_suggest_facts ctxt params prover max_facts hyp_ts concl_t facts
       val mess =
         [] |> (if fact_filter <> mashN then cons (iter (), []) else I)
-           |> (if fact_filter <> iterN then cons (mash ()) else I)
+           |> (if fact_filter <> mepoN then cons (mash ()) else I)
     in
       mesh_facts max_facts mess
       |> not (null add_ths) ? prepend_facts add_ths
