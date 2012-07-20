@@ -470,16 +470,17 @@ fun parents_wrt_facts facts fact_graph =
   let
     val facts = [] |> fold (cons o Thm.get_name_hint o snd) facts
     val tab = Symtab.empty |> fold (fn name => Symtab.update (name, ())) facts
-    fun insert_not_parent parents name =
-      not (member (op =) parents name) ? insert (op =) name
-    fun parents_of parents [] = parents
-      | parents_of parents (name :: names) =
+    fun insert_not_seen seen name =
+      not (member (op =) seen name) ? insert (op =) name
+    fun parents_of seen parents [] = parents
+      | parents_of seen parents (name :: names) =
         if Symtab.defined tab name then
-          parents_of (name :: parents) names
+          parents_of (name :: seen) (name :: parents) names
         else
-          parents_of parents (Graph.Keys.fold (insert_not_parent parents)
-                                  (Graph.imm_preds fact_graph name) names)
-  in parents_of [] (Graph.maximals fact_graph) end
+          parents_of (name :: seen) parents
+                     (Graph.Keys.fold (insert_not_seen seen)
+                                      (Graph.imm_preds fact_graph name) names)
+  in parents_of [] [] (Graph.maximals fact_graph) end
 
 (* Generate more suggestions than requested, because some might be thrown out
    later for various reasons and "meshing" gives better results with some
