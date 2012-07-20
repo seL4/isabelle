@@ -156,6 +156,8 @@ object Build
   private val ROOT = Path.explode("ROOT")
   private val SESSIONS = Path.explode("etc/sessions")
 
+  private def is_pure(name: String): Boolean = name == "RAW" || name == "Pure"
+
   private def sessions_root(dir: Path, root: File, queue: Session.Queue): Session.Queue =
   {
     (queue /: Parser.parse_entries(root))((queue1, entry) =>
@@ -163,7 +165,7 @@ object Build
         if (entry.name == "") error("Bad session name")
 
         val full_name =
-          if (entry.name == "RAW" || entry.name == "Pure") {
+          if (is_pure(entry.name)) {
             if (entry.parent.isDefined) error("Illegal parent session")
             else entry.name
           }
@@ -240,6 +242,16 @@ object Build
 
   /** build **/
 
+  private def build_job(build_images: Boolean,  // FIXME
+    key: Session.Key, info: Session.Info): Isabelle_System.Bash_Job =
+  {
+    val cwd = Isabelle_System.platform_file(info.dir)
+    val script =
+      if (is_pure(key.name)) "./build " + key.name
+      else """echo "Bad session" >&2; exit 2"""
+    new Isabelle_System.Bash_Job(cwd, null, script)
+  }
+
   def build(all_sessions: Boolean, build_images: Boolean, list_only: Boolean,
     more_dirs: List[Path], options: List[String], sessions: List[String]): Int =
   {
@@ -254,8 +266,13 @@ object Build
       if (all_sessions) full_queue
       else full_queue.required(sessions)
 
-    for ((key, info) <- required_queue.topological_order)
-      println(key.name + " in " + info.dir)
+    for ((key, info) <- required_queue.topological_order) {
+      if (list_only) println(key.name + " in " + info.dir)
+      else {
+        val (out, err, rc) = build_job(build_images, key, info).join
+        java.lang.System.err.print(err)
+      }
+    }
 
     0
   }
