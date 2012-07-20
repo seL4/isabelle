@@ -17,7 +17,7 @@ structure MaSh_Eval : MASH_EVAL =
 struct
 
 open Sledgehammer_Fact
-open Sledgehammer_Filter_MaSh
+open Sledgehammer_MaSh
 
 val MePoN = "MePo"
 val MaShN = "MaSh"
@@ -78,8 +78,8 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
         val isar_deps = isabelle_dependencies_of all_names th
         val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
         val mepo_facts =
-          Sledgehammer_Filter_Iter.iterative_relevant_facts ctxt params
-              prover slack_max_facts NONE hyp_ts concl_t facts
+          Sledgehammer_MePo.iterative_relevant_facts ctxt params prover
+              slack_max_facts NONE hyp_ts concl_t facts
         val mash_facts = facts |> suggested_facts suggs
         val mess = [(mepo_facts, []), (mash_facts, [])]
         val mesh_facts = mesh_facts slack_max_facts mess

@@ -25,8 +25,8 @@ structure MaSh_Export : MASH_EXPORT =
 struct
 
 open Sledgehammer_Fact
-open Sledgehammer_Filter_Iter
-open Sledgehammer_Filter_MaSh
+open Sledgehammer_MePo
+open Sledgehammer_MaSh
 
 fun thy_map_from_facts ths =
   ths |> sort (thm_ord o swap o pairself snd)
@@ -204,8 +204,8 @@ fun generate_mepo_suggestions ctxt (params as {provers, ...}) thy max_relevant
             let
               val suggs =
                 old_facts
-                |> Sledgehammer_Filter_Iter.iterative_relevant_facts ctxt params
-                                prover max_relevant NONE hyp_ts concl_t
+                |> Sledgehammer_MePo.iterative_relevant_facts ctxt params prover
+                       max_relevant NONE hyp_ts concl_t
                 |> map (fn ((name, _), _) => name ())
                 |> sort string_ord
               val s = escape_meta name ^ ": " ^ escape_metas suggs ^ "\n"

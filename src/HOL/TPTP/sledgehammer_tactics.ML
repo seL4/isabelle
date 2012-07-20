@@ -21,7 +21,7 @@ struct
 open Sledgehammer_Util
 open Sledgehammer_Fact
 open Sledgehammer_Provers
-open Sledgehammer_Filter_MaSh
+open Sledgehammer_MaSh
 open Sledgehammer_Isar
 
 fun run_prover override_params fact_override i n ctxt goal =

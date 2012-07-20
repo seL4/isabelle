@@ -5,7 +5,7 @@
 Sledgehammer's iterative relevance filter (MePo = Meng-Paulson).
 *)
 
-signature SLEDGEHAMMER_FILTER_ITER =
+signature SLEDGEHAMMER_MEPO =
 sig
   type stature = ATP_Problem_Generate.stature
   type fact = Sledgehammer_Fact.fact
@@ -23,7 +23,7 @@ sig
     -> term list -> term -> fact list -> fact list
 end;
 
-structure Sledgehammer_Filter_Iter : SLEDGEHAMMER_FILTER_ITER =
+structure Sledgehammer_MePo : SLEDGEHAMMER_MEPO =
 struct
 
 open ATP_Problem_Generate

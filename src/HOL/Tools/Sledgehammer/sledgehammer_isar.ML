@@ -26,7 +26,7 @@ open Sledgehammer_Util
 open Sledgehammer_Fact
 open Sledgehammer_Provers
 open Sledgehammer_Minimize
-open Sledgehammer_Filter_MaSh
+open Sledgehammer_MaSh
 open Sledgehammer_Run
 
 val runN = "run"

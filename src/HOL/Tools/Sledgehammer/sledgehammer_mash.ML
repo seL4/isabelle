@@ -4,7 +4,7 @@
 Sledgehammer's machine-learning-based relevance filter (MaSh).
 *)
 
-signature SLEDGEHAMMER_FILTER_MASH =
+signature SLEDGEHAMMER_MASH =
 sig
   type status = ATP_Problem_Generate.status
   type stature = ATP_Problem_Generate.stature
@@ -64,16 +64,16 @@ sig
   val running_learners : unit -> unit
 end;
 
-structure Sledgehammer_Filter_MaSh : SLEDGEHAMMER_FILTER_MASH =
+structure Sledgehammer_MaSh : SLEDGEHAMMER_MASH =
 struct
 
 open ATP_Util
 open ATP_Problem_Generate
 open Sledgehammer_Util
 open Sledgehammer_Fact
-open Sledgehammer_Filter_Iter
 open Sledgehammer_Provers
 open Sledgehammer_Minimize
+open Sledgehammer_MePo
 
 val trace =
   Attrib.setup_config_bool @{binding sledgehammer_mash_trace} (K false)
@@ -467,7 +467,7 @@ fun mash_save ({thys, fact_graph, ...} : mash_state) =
   end
 
 val global_state =
-  Synchronized.var "Sledgehammer_Filter_MaSh.global_state" (false, empty_state)
+  Synchronized.var "Sledgehammer_MaSh.global_state" (false, empty_state)
 
 in
 

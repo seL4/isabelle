@@ -466,7 +466,7 @@ fun run_sh prover_name prover type_enc strict max_facts slice lam_trans
               Sledgehammer_Fact.no_fact_override reserved css_table chained_ths
               hyp_ts concl_t
           |> filter (is_appropriate_prop o prop_of o snd)
-          |> Sledgehammer_Filter_MaSh.relevant_facts ctxt params prover_name
+          |> Sledgehammer_MaSh.relevant_facts ctxt params prover_name
                  (the_default default_max_facts max_facts)
                  Sledgehammer_Fact.no_fact_override hyp_ts concl_t
         val problem =

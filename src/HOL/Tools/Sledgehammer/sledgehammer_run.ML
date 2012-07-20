@@ -33,7 +33,7 @@ open Sledgehammer_Util
 open Sledgehammer_Fact
 open Sledgehammer_Provers
 open Sledgehammer_Minimize
-open Sledgehammer_Filter_MaSh
+open Sledgehammer_MaSh
 
 val someN = "some"
 val noneN = "none"
