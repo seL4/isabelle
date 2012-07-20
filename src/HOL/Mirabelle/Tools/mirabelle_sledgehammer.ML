@@ -367,7 +367,7 @@ fun get_prover ctxt args =
       handle List.Empty => error "No ATP available."
     fun get_prover name =
       (name, Sledgehammer_Minimize.get_minimizing_prover ctxt
-                Sledgehammer_Provers.Normal (K ()) name)
+                Sledgehammer_Provers.Normal (K (K ())) name)
   in
     (case AList.lookup (op =) args proverK of
       SOME name => get_prover name
@@ -597,7 +597,7 @@ fun run_minimize args reconstructor named_thms id
       |> max_new_mono_instancesLST
       |> max_mono_itersLST)
     val minimize =
-      Sledgehammer_Minimize.minimize_facts (K ()) prover_name params
+      Sledgehammer_Minimize.minimize_facts (K (K ())) prover_name params
           true 1 (Sledgehammer_Util.subgoal_count st)
     val _ = log separator
     val (used_facts, (preplay, message, message_tail)) =

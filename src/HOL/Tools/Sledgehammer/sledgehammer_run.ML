@@ -93,12 +93,12 @@ fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
       |> enclose ("Fact" ^ plural_s (length facts) ^ " in " ^ quote name ^
                   " proof (of " ^ string_of_int (length facts) ^ "): ") "."
       |> Output.urgent_message
+    fun learn prover =
+       mash_learn_proof ctxt params prover (prop_of goal)
+                        (map untranslated_fact facts)
     fun really_go () =
       problem
-      |> get_minimizing_prover ctxt mode
-             (mash_learn_proof ctxt params name (prop_of goal)
-                               (map untranslated_fact facts))
-             name params minimize_command
+      |> get_minimizing_prover ctxt mode learn name params minimize_command
       |> verbose ? tap (fn {outcome = NONE, used_facts as _ :: _, ...} =>
                            print_used_facts used_facts
                          | _ => ())

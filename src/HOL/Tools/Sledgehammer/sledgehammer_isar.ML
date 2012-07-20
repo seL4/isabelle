@@ -381,8 +381,8 @@ fun hammer_away override_params subcommand opt_i fact_override state =
         val goal = prop_of (#goal (Proof.goal state))
         val facts = nearly_all_facts ctxt false fact_override Symtab.empty
                                      Termtab.empty [] [] goal
-        val do_learn = mash_learn_proof ctxt params (hd provers) goal facts
-      in run_minimize params do_learn i (#add fact_override) state end
+        fun learn prover = mash_learn_proof ctxt params prover goal facts
+      in run_minimize params learn i (#add fact_override) state end
     else if subcommand = messagesN then
       messages opt_i
     else if subcommand = supported_proversN then
