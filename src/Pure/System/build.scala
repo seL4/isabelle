@@ -75,6 +75,14 @@ object Build
         new Queue(keys1, graph1)
       }
 
+      def required(names: List[String]): Queue =
+      {
+        val req = graph.all_preds(names.map(keys(_))).map(_.name).toSet
+        val keys1 = keys -- keys.keySet.filter(name => !req(name))
+        val graph1 = graph.restrict(key => keys1.isDefinedAt(key.name))
+        new Queue(keys1, graph1)
+      }
+
       def topological_order: List[(Key, Info)] =
         graph.topological_order.map(key => (key, graph.get_node(key)))
     }
@@ -235,11 +243,18 @@ object Build
   def build(all_sessions: Boolean, build_images: Boolean, list_only: Boolean,
     more_dirs: List[Path], options: List[String], sessions: List[String]): Int =
   {
-    println("more_dirs = " + more_dirs.toString)
-    println("options = " + options.toString)
-    println("sessions = " + sessions.toString)
+    val full_queue = find_sessions(more_dirs)
 
-    for ((key, info) <- find_sessions(more_dirs).topological_order)
+    sessions.filter(name => !full_queue.defined(name)) match {
+      case Nil =>
+      case bad => error("Undefined session(s): " + commas_quote(bad))
+    }
+
+    val required_queue =
+      if (all_sessions) full_queue
+      else full_queue.required(sessions)
+
+    for ((key, info) <- required_queue.topological_order)
       println(key.name + " in " + info.dir)
 
     0
