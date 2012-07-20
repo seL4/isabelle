@@ -12,7 +12,7 @@ import scala.collection.immutable.PagedSeq
 import scala.util.parsing.input.{OffsetPosition, Position => InputPosition, Reader}
 import scala.util.parsing.combinator.RegexParsers
 
-import java.io.{File, BufferedInputStream, FileInputStream}
+import java.io.{File => JFile, BufferedInputStream, FileInputStream}
 
 
 object Scan
@@ -422,7 +422,7 @@ object Scan
 
   abstract class Byte_Reader extends Reader[Char] { def close: Unit }
 
-  def byte_reader(file: File): Byte_Reader =
+  def byte_reader(file: JFile): Byte_Reader =
   {
     val stream = new BufferedInputStream(new FileInputStream(file))
     val seq = new PagedSeq(

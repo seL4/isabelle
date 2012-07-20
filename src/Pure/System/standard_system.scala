@@ -13,7 +13,7 @@ import java.util.Locale
 import java.net.URL
 import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOutputStream,
   BufferedInputStream, InputStream, FileInputStream, BufferedReader, InputStreamReader,
-  File, FileFilter, IOException}
+  File => JFile, FileFilter, IOException}
 import java.nio.charset.Charset
 import java.util.zip.GZIPOutputStream
 
@@ -114,9 +114,9 @@ object Standard_System
   def slurp(stream: InputStream): String =
     slurp(new BufferedReader(new InputStreamReader(stream, charset)))
 
-  def read_file(file: File): String = slurp(new FileInputStream(file))
+  def read_file(file: JFile): String = slurp(new FileInputStream(file))
 
-  def write_file(file: File, text: CharSequence, zip: Boolean = false)
+  def write_file(file: JFile, text: CharSequence, zip: Boolean = false)
   {
     val stream1 = new FileOutputStream(file)
     val stream2 = if (zip) new GZIPOutputStream(new BufferedOutputStream(stream1)) else stream1
@@ -125,10 +125,10 @@ object Standard_System
     finally { writer.close }
   }
 
-  def eq_file(file1: File, file2: File): Boolean =
+  def eq_file(file1: JFile, file2: JFile): Boolean =
     file1.getCanonicalPath == file2.getCanonicalPath  // FIXME prefer java.nio.file.Files.isSameFile of Java 1.7
 
-  def copy_file(src: File, dst: File) =
+  def copy_file(src: JFile, dst: JFile) =
     if (!eq_file(src, dst)) {
       val in = new FileInputStream(src)
       try {
@@ -146,19 +146,19 @@ object Standard_System
       finally { in.close }
     }
 
-  def with_tmp_file[A](prefix: String)(body: File => A): A =
+  def with_tmp_file[A](prefix: String)(body: JFile => A): A =
   {
-    val file = File.createTempFile(prefix, null)
+    val file = JFile.createTempFile(prefix, null)
     file.deleteOnExit
     try { body(file) } finally { file.delete }
   }
 
   // FIXME handle (potentially cyclic) directory graph
-  def find_files(start: File, ok: File => Boolean): List[File] =
+  def find_files(start: JFile, ok: JFile => Boolean): List[JFile] =
   {
-    val files = new mutable.ListBuffer[File]
-    val filter = new FileFilter { def accept(entry: File) = entry.isDirectory || ok(entry) }
-    def find_entry(entry: File)
+    val files = new mutable.ListBuffer[JFile]
+    val filter = new FileFilter { def accept(entry: JFile) = entry.isDirectory || ok(entry) }
+    def find_entry(entry: JFile)
     {
       if (ok(entry)) files += entry
       if (entry.isDirectory) entry.listFiles(filter).foreach(find_entry)
@@ -170,7 +170,7 @@ object Standard_System
 
   /* shell processes */
 
-  def raw_execute(cwd: File, env: Map[String, String], redirect: Boolean, args: String*): Process =
+  def raw_execute(cwd: JFile, env: Map[String, String], redirect: Boolean, args: String*): Process =
   {
     val cmdline = new java.util.LinkedList[String]
     for (s <- args) cmdline.add(s)
@@ -200,7 +200,7 @@ object Standard_System
     (output, rc)
   }
 
-  def raw_exec(cwd: File, env: Map[String, String], redirect: Boolean, args: String*)
+  def raw_exec(cwd: JFile, env: Map[String, String], redirect: Boolean, args: String*)
     : (String, Int) = process_output(raw_execute(cwd, env, redirect, args: _*))
 
 
@@ -215,10 +215,10 @@ object Standard_System
       else if (cygwin_root2 != null && cygwin_root2 != "") cygwin_root2
       else error("Bad Cygwin installation: unknown root")
 
-    val root_file = new File(root)
-    if (!new File(root_file, "bin\\bash.exe").isFile ||
-        !new File(root_file, "bin\\env.exe").isFile ||
-        !new File(root_file, "bin\\tar.exe").isFile)
+    val root_file = new JFile(root)
+    if (!new JFile(root_file, "bin\\bash.exe").isFile ||
+        !new JFile(root_file, "bin\\env.exe").isFile ||
+        !new JFile(root_file, "bin\\tar.exe").isFile)
       error("Bad Cygwin installation: " + quote(root))
 
     root
@@ -244,11 +244,11 @@ class Standard_System
       val rest =
         posix_path match {
           case Cygdrive(drive, rest) =>
-            result_path ++= (drive.toUpperCase(Locale.ENGLISH) + ":" + File.separator)
+            result_path ++= (drive.toUpperCase(Locale.ENGLISH) + ":" + JFile.separator)
             rest
           case Named_Root(root, rest) =>
-            result_path ++= File.separator
-            result_path ++= File.separator
+            result_path ++= JFile.separator
+            result_path ++= JFile.separator
             result_path ++= root
             rest
           case path if path.startsWith("/") =>
@@ -258,8 +258,8 @@ class Standard_System
         }
       for (p <- space_explode('/', rest) if p != "") {
         val len = result_path.length
-        if (len > 0 && result_path(len - 1) != File.separatorChar)
-          result_path += File.separatorChar
+        if (len > 0 && result_path(len - 1) != JFile.separatorChar)
+          result_path += JFile.separatorChar
         result_path ++= p
       }
       result_path.toString
@@ -292,11 +292,11 @@ class Standard_System
   def this_jdk_home(): String =
   {
     val java_home = System.getProperty("java.home")
-    val home = new File(java_home)
+    val home = new JFile(java_home)
     val parent = home.getParent
     val jdk_home =
       if (home.getName == "jre" && parent != null &&
-          (new File(new File(parent, "bin"), "javac")).exists) parent
+          (new JFile(new JFile(parent, "bin"), "javac")).exists) parent
       else java_home
     posix_path(jdk_home)
   }

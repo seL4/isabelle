@@ -7,7 +7,7 @@ Primitives for loading theory files.
 package isabelle
 
 
-import java.io.File
+import java.io.{File => JFile}
 
 
 
@@ -31,7 +31,7 @@ class Thy_Load
 
   def read_header(name: Document.Node.Name): Thy_Header =
   {
-    val file = new File(name.node)
+    val file = new JFile(name.node)
     if (!file.exists || !file.isFile) error("No such file: " + quote(file.toString))
     Thy_Header.read(file)
   }

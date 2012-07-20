@@ -7,7 +7,7 @@ Stand-alone options with external string representation.
 package isabelle
 
 
-import java.io.File
+import java.io.{File => JFile}
 
 
 object Options
@@ -49,7 +49,7 @@ object Options
         { case _ ~ (a ~ _ ~ b) => (options: Options) => options.define(a, b) }
     }
 
-    def parse_entries(file: File): List[Options => Options] =
+    def parse_entries(file: JFile): List[Options => Options] =
     {
       val toks = syntax.scan(Standard_System.read_file(file))
       parse_all(rep(entry), Token.reader(toks, file.toString)) match {

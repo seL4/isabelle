@@ -8,7 +8,7 @@ Digest strings according to SHA-1 (see RFC 3174).
 package isabelle
 
 
-import java.io.{File, FileInputStream}
+import java.io.{File => JFile, FileInputStream}
 import java.security.MessageDigest
 
 
@@ -30,7 +30,7 @@ object SHA1
     Digest(result.toString)
   }
 
-  def digest(file: File): Digest =
+  def digest(file: JFile): Digest =
   {
     val stream = new FileInputStream(file)
     val digest = MessageDigest.getInstance("SHA")

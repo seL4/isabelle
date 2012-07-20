@@ -8,7 +8,8 @@ named pipes or sockets.
 package isabelle
 
 
-import java.io.{InputStream, OutputStream, File, FileInputStream, FileOutputStream, IOException}
+import java.io.{InputStream, OutputStream, File => JFile, FileInputStream,
+  FileOutputStream, IOException}
 import java.net.{ServerSocket, InetAddress}
 
 

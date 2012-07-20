@@ -9,7 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.io.{File, IOException}
+import java.io.{File => JFile, IOException}
 import javax.swing.text.Segment
 
 import org.gjt.sp.jedit.io.{VFS, FileVFS, VFSFile, VFSManager}
@@ -65,7 +65,7 @@ class JEdit_Thy_Load extends Thy_Load
         case None => None
       }
     } getOrElse {
-      val file = new File(name.node)  // FIXME load URL via jEdit VFS (!?)
+      val file = new JFile(name.node)  // FIXME load URL via jEdit VFS (!?)
       if (!file.exists || !file.isFile) error("No such file: " + quote(file.toString))
       Thy_Header.read(file)
     }

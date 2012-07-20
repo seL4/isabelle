@@ -7,7 +7,7 @@ Build and manage Isabelle sessions.
 package isabelle
 
 
-import java.io.File
+import java.io.{File => JFile}
 
 import scala.collection.mutable
 import scala.annotation.tailrec
@@ -140,7 +140,7 @@ object Build
           { case a ~ b ~ c ~ d ~ e ~ f ~ g ~ h ~ i => Session_Entry(a, b, c, d, e, f, g, h, i) }
     }
 
-    def parse_entries(root: File): List[Session_Entry] =
+    def parse_entries(root: JFile): List[Session_Entry] =
     {
       val toks = syntax.scan(Standard_System.read_file(root))
       parse_all(rep(session_entry), Token.reader(toks, root.toString)) match {
@@ -158,7 +158,7 @@ object Build
 
   private def is_pure(name: String): Boolean = name == "RAW" || name == "Pure"
 
-  private def sessions_root(dir: Path, root: File, queue: Session.Queue): Session.Queue =
+  private def sessions_root(dir: Path, root: JFile, queue: Session.Queue): Session.Queue =
   {
     (queue /: Parser.parse_entries(root))((queue1, entry) =>
       try {
@@ -204,7 +204,7 @@ object Build
     else queue
   }
 
-  private def sessions_catalog(dir: Path, catalog: File, queue: Session.Queue): Session.Queue =
+  private def sessions_catalog(dir: Path, catalog: JFile, queue: Session.Queue): Session.Queue =
   {
     val dirs =
       split_lines(Standard_System.read_file(catalog)).
