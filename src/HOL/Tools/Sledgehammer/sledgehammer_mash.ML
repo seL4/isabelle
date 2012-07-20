@@ -254,11 +254,14 @@ fun run_prover_for_mash ctxt params prover facts goal =
 
 val bad_types = [@{type_name prop}, @{type_name bool}, @{type_name fun}]
 
+val logical_consts =
+  [@{const_name prop}, @{const_name Pure.conjunction}] @ atp_logical_consts
+
 fun interesting_terms_types_and_classes ctxt prover term_max_depth
                                         type_max_depth ts =
   let
     fun is_bad_const (x as (s, _)) args =
-      member (op =) atp_logical_consts s orelse
+      member (op =) logical_consts s orelse
       fst (is_built_in_const_for_prover ctxt prover x args)
     fun add_classes @{sort type} = I
       | add_classes S = union (op =) (map class_name_of S)
@@ -274,8 +277,9 @@ fun interesting_terms_types_and_classes ctxt prover term_max_depth
     fun patternify ~1 _ = ""
       | patternify depth t =
         case strip_comb t of
-          (Const (s, _), args) =>
-          mk_app (const_name_of s) (map (patternify (depth - 1)) args)
+          (Const (x as (s, _)), args) =>
+          if is_bad_const x args then ""
+          else mk_app (const_name_of s) (map (patternify (depth - 1)) args)
         | _ => ""
     fun add_term_patterns ~1 _ = I
       | add_term_patterns depth t =
@@ -285,8 +289,7 @@ fun interesting_terms_types_and_classes ctxt prover term_max_depth
     fun add_patterns t =
       let val (head, args) = strip_comb t in
         (case head of
-           Const (x as (_, T)) =>
-           not (is_bad_const x args) ? (add_term t #> add_type T)
+           Const (_, T) => add_term t #> add_type T
          | Free (_, T) => add_type T
          | Var (_, T) => add_type T
          | Abs (_, T, body) => add_type T #> add_patterns body
