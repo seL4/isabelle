@@ -35,9 +35,11 @@ val messagesN = "messages"
 val supported_proversN = "supported_provers"
 val kill_proversN = "kill_provers"
 val running_proversN = "running_provers"
+val unlearnN = "unlearn"
+val learnN = "learn"
+val relearnN = "relearn"
 val kill_learnersN = "kill_learners"
 val running_learnersN = "running_learners"
-val unlearnN = "unlearn"
 val refresh_tptpN = "refresh_tptp"
 
 val auto = Unsynchronized.ref false
@@ -245,8 +247,7 @@ fun default_raw_params ctxt =
                          end)]
   end
 
-val infinity_time_in_secs = 60 * 60 * 24 * 365
-val the_timeout = the_default (Time.fromSeconds infinity_time_in_secs)
+val the_timeout = the_default infinite_timeout
 
 fun extract_params mode default_params override_params =
   let
@@ -383,12 +384,16 @@ fun hammer_away override_params subcommand opt_i fact_override state =
       kill_provers ()
     else if subcommand = running_proversN then
       running_provers ()
+    else if subcommand = unlearnN then
+      mash_unlearn ctxt
+    else if subcommand = learnN orelse subcommand = relearnN then
+      (if subcommand = relearnN then mash_unlearn ctxt else ();
+       mash_learn ctxt (get_params Normal ctxt
+                                   (("verbose", ["true"]) :: override_params)))
     else if subcommand = kill_learnersN then
       kill_learners ()
     else if subcommand = running_learnersN then
       running_learners ()
-    else if subcommand = unlearnN then
-      mash_unlearn ctxt
     else if subcommand = refresh_tptpN then
       refresh_systems_on_tptp ()
     else

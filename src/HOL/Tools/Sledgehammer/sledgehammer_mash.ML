@@ -53,10 +53,11 @@ sig
   val mash_suggest_facts :
     Proof.context -> params -> string -> int -> term list -> term
     -> ('a * thm) list -> ('a * thm) list * ('a * thm) list
-  val mash_learn_thy :
-    Proof.context -> params -> theory -> Time.time -> fact list -> string
   val mash_learn_proof :
     Proof.context -> params -> term -> ('a * thm) list -> thm list -> unit
+  val mash_learn_thy :
+    Proof.context -> params -> theory -> Time.time -> fact list -> string
+  val mash_learn : Proof.context -> params -> unit
   val relevant_facts :
     Proof.context -> params -> string -> int -> fact_override -> term list
     -> term -> fact list -> fact list
@@ -350,12 +351,12 @@ fun run_mash_init ctxt overlord write_access write_feats write_deps =
     write_file write_access (in_dir ^ "/mash_accessibility");
     write_file write_feats (in_dir ^ "/mash_features");
     write_file write_deps (in_dir ^ "/mash_dependencies");
-    run_mash ctxt overlord info true
+    run_mash ctxt overlord info false
              ("--init --inputDir " ^ in_dir ^
               and_rm_files overlord " -r" [in_dir])
   end
 
-fun run_mash_commands ctxt overlord async save max_suggs write_cmds read_suggs =
+fun run_mash_commands ctxt overlord save max_suggs write_cmds read_suggs =
   let
     val info as (temp_dir, serial) = mash_info overlord
     val sugg_file = temp_dir ^ "/mash_suggs" ^ serial
@@ -363,7 +364,7 @@ fun run_mash_commands ctxt overlord async save max_suggs write_cmds read_suggs =
   in
     write_file ([], K "") sugg_file;
     write_file write_cmds cmd_file;
-    run_mash ctxt overlord info async
+    run_mash ctxt overlord info false
              ("--inputFile " ^ cmd_file ^ " --predictions " ^ sugg_file ^
               " --numberOfPredictions " ^ string_of_int max_suggs ^
               (if save then " --saveModel" else "") ^
@@ -400,11 +401,11 @@ fun mash_ADD _ _ [] = ()
   | mash_ADD ctxt overlord upds =
     (trace_msg ctxt (fn () => "MaSh ADD " ^
          elide_string 1000 (space_implode " " (map #1 upds)));
-     run_mash_commands ctxt overlord true true 0 (upds, str_of_update) (K ()))
+     run_mash_commands ctxt overlord true 0 (upds, str_of_update) (K ()))
 
 fun mash_QUERY ctxt overlord max_suggs (query as (_, feats)) =
   (trace_msg ctxt (fn () => "MaSh QUERY " ^ space_implode " " feats);
-   run_mash_commands ctxt overlord false false max_suggs
+   run_mash_commands ctxt overlord false  max_suggs
        ([query], str_of_query)
        (fn suggs => snd (extract_query (List.last (suggs ()))))
    handle List.Empty => [])
@@ -548,6 +549,26 @@ fun update_fact_graph ctxt (name, parents, feats, deps) (upds, graph) =
 
 val pass1_learn_timeout_factor = 0.5
 
+fun mash_learn_proof ctxt ({provers, overlord, ...} : params) t facts used_ths =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val prover = hd provers
+    val name = ATP_Util.timestamp () ^ " " ^ serial_string () (* fresh enough *)
+    val feats = features_of ctxt prover thy General [t]
+    val deps = used_ths |> map nickname_of
+  in
+    mash_map ctxt (fn {thys, fact_graph} =>
+        let
+          val parents = parents_wrt_facts facts fact_graph
+          val upds = [(name, parents, feats, deps)]
+          val (upds, fact_graph) =
+            ([], fact_graph) |> fold (update_fact_graph ctxt) upds
+        in
+          mash_ADD ctxt overlord upds;
+          {thys = thys, fact_graph = fact_graph}
+        end)
+  end
+
 (* Too many dependencies is a sign that a decision procedure is at work. There
    isn't much too learn from such proofs. *)
 val max_dependencies = 10
@@ -596,13 +617,12 @@ fun mash_learn_thy ctxt ({provers, verbose, overlord, ...} : params) thy timeout
               ([], fact_graph) |> fold (update_fact_graph ctxt) upds
           in
             (mash_INIT_or_ADD ctxt overlord (rev upds);
-             {thys = thys |> add_thys_for thy,
-              fact_graph = fact_graph})
+             {thys = thys |> add_thys_for thy, fact_graph = fact_graph})
           end
       in
         mash_map ctxt trans;
         if verbose then
-          "Processed " ^ string_of_int n ^ " proof" ^ plural_s n ^
+          "Learned " ^ string_of_int n ^ " proof" ^ plural_s n ^
           (if verbose then
              " in " ^ string_from_time (Timer.checkRealTimer timer)
            else
@@ -612,24 +632,16 @@ fun mash_learn_thy ctxt ({provers, verbose, overlord, ...} : params) thy timeout
       end
   end
 
-fun mash_learn_proof ctxt ({provers, overlord, ...} : params) t facts used_ths =
+fun mash_learn ctxt params =
   let
     val thy = Proof_Context.theory_of ctxt
-    val prover = hd provers
-    val name = ATP_Util.timestamp () ^ " " ^ serial_string () (* fresh enough *)
-    val feats = features_of ctxt prover thy General [t]
-    val deps = used_ths |> map nickname_of
+    val _ = Output.urgent_message "MaShing..."
+    val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
+    val facts = all_facts_of thy css_table
   in
-    mash_map ctxt (fn {thys, fact_graph} =>
-        let
-          val parents = parents_wrt_facts facts fact_graph
-          val upds = [(name, parents, feats, deps)]
-          val (upds, fact_graph) =
-            ([], fact_graph) |> fold (update_fact_graph ctxt) upds
-        in
-          mash_ADD ctxt overlord upds;
-          {thys = thys, fact_graph = fact_graph}
-        end)
+     mash_learn_thy ctxt params thy infinite_timeout facts
+     |> (fn "" => "Learned nothing." | msg => msg)
+     |> Output.urgent_message
   end
 
 (* The threshold should be large enough so that MaSh doesn't kick in for Auto
