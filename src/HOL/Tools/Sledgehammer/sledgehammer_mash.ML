@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_filter_mash.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_mash.ML
     Author:     Jasmin Blanchette, TU Muenchen
 
 Sledgehammer's machine-learning-based relevance filter (MaSh).
@@ -76,7 +76,7 @@ open Sledgehammer_Provers
 open Sledgehammer_Minimize
 
 val trace =
-  Attrib.setup_config_bool @{binding sledgehammer_filter_mash_trace} (K false)
+  Attrib.setup_config_bool @{binding sledgehammer_mash_trace} (K false)
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 
 val MaShN = "MaSh"

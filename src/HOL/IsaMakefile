@@ -371,8 +371,8 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/semiring_normalizer.ML \
   Tools/Sledgehammer/async_manager.ML \
   Tools/Sledgehammer/sledgehammer_fact.ML \
-  Tools/Sledgehammer/sledgehammer_filter_iter.ML \
-  Tools/Sledgehammer/sledgehammer_filter_mash.ML \
+  Tools/Sledgehammer/sledgehammer_mash.ML \
+  Tools/Sledgehammer/sledgehammer_mepo.ML \
   Tools/Sledgehammer/sledgehammer_minimize.ML \
   Tools/Sledgehammer/sledgehammer_isar.ML \
   Tools/Sledgehammer/sledgehammer_provers.ML \

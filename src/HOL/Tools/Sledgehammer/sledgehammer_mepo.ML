@@ -1,8 +1,8 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_filter_iter.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_mepo.ML
     Author:     Jia Meng, Cambridge University Computer Laboratory and NICTA
     Author:     Jasmin Blanchette, TU Muenchen
 
-Sledgehammer's iterative relevance filter.
+Sledgehammer's iterative relevance filter (MePo = Meng-Paulson).
 *)
 
 signature SLEDGEHAMMER_FILTER_ITER =
