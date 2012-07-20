@@ -546,19 +546,20 @@ fun max_facts_in_graph fact_G facts =
     fun enqueue_new seen name =
       not (member (op =) seen name) ? Queue.enqueue name
     fun find_maxes seen maxs names =
-        case try Queue.dequeue names of
-          NONE => maxs
-        | SOME (name, names) =>
-          if Symtab.defined tab name then
-            let
-              fun no_path x y = not (member (op =) (Graph.all_preds fact_G [y]) x)
-              val maxs = maxs |> filter (fn max => no_path max name)
-              val maxs = maxs |> forall (no_path name) maxs ? cons name
-            in find_maxes (name :: seen) maxs names end
-          else
-            find_maxes (name :: seen) maxs
-                       (Graph.Keys.fold (enqueue_new seen)
-                                        (Graph.imm_preds fact_G name) names)
+      case try Queue.dequeue names of
+        NONE => map snd maxs
+      | SOME (name, names) =>
+        if Symtab.defined tab name then
+          let
+            val new = (Graph.all_preds fact_G [name], name)
+            fun not_ancestor (_, x) (yp, _) = not (member (op =) yp x)
+            val maxs = maxs |> filter (fn max => not_ancestor max new)
+            val maxs = maxs |> forall (not_ancestor new) maxs ? cons new
+          in find_maxes (name :: seen) maxs names end
+        else
+          find_maxes (name :: seen) maxs
+                     (Graph.Keys.fold (enqueue_new seen)
+                                      (Graph.imm_preds fact_G name) names)
   in find_maxes [] [] (queue_of (Graph.maximals fact_G)) end
 
 (* Generate more suggestions than requested, because some might be thrown out
