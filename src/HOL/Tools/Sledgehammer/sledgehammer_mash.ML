@@ -613,24 +613,17 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
   if is_smt_prover ctxt prover then
     ()
   else
-    launch_thread timeout
-        (fn () =>
-            let
-              val thy = Proof_Context.theory_of ctxt
-              val name = freshish_name ()
-              val feats = features_of ctxt prover thy (Local, General) [t]
-              val deps = used_ths |> map nickname_of
-            in
-              mash_map ctxt (fn {fact_G} =>
-                  let
-                    val parents = max_facts_in_graph fact_G facts
-                    val upds = [(name, parents, feats, deps)]
-                    val (upds, fact_G) =
-                      ([], fact_G) |> fold (update_fact_graph ctxt) upds
-                  in mash_ADD ctxt overlord upds; {fact_G = fact_G}
-                  end);
-              (true, "")
-            end)
+    launch_thread timeout (fn () =>
+        let
+          val thy = Proof_Context.theory_of ctxt
+          val name = freshish_name ()
+          val feats = features_of ctxt prover thy (Local, General) [t]
+          val deps = used_ths |> map nickname_of
+          val {fact_G} = mash_get ctxt
+          val parents = max_facts_in_graph fact_G facts
+        in
+          mash_ADD ctxt overlord [(name, parents, feats, deps)]; (true, "")
+        end)
 
 fun sendback sub =
   Markup.markup Isabelle_Markup.sendback (sledgehammerN ^ " " ^ sub)
