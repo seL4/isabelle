@@ -64,8 +64,8 @@ fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i
 
 fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
                               timeout, expect, ...})
-        mode minimize_command only {state, goal, subgoal, subgoal_count, facts}
-        name =
+                  mode minimize_command only learn
+                  {state, goal, subgoal, subgoal_count, facts} name =
   let
     val ctxt = Proof.context_of state
     val hard_timeout = Time.+ (timeout, timeout)
@@ -93,9 +93,6 @@ fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
       |> enclose ("Fact" ^ plural_s (length facts) ^ " in " ^ quote name ^
                   " proof (of " ^ string_of_int (length facts) ^ "): ") "."
       |> Output.urgent_message
-    fun learn prover =
-       mash_learn_proof ctxt params prover (prop_of goal)
-                        (map untranslated_fact facts)
     fun really_go () =
       problem
       |> get_minimizing_prover ctxt mode learn name params minimize_command
@@ -188,7 +185,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
       val ho_atp = exists (Sledgehammer_Provers.is_ho_atp ctxt) provers
       val reserved = reserved_isar_keyword_table ()
       val css = clasimpset_rule_table_of ctxt
-      val facts =
+      val all_facts =
         nearly_all_facts ctxt ho_atp fact_override reserved css chained hyp_ts
                          concl_t
       val _ = () |> not blocking ? kill_provers
@@ -208,7 +205,9 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
           val problem =
             {state = state, goal = goal, subgoal = i, subgoal_count = n,
              facts = facts}
-          val launch = launch_prover params mode minimize_command only
+          fun learn prover =
+            mash_learn_proof ctxt params prover (prop_of goal) all_facts
+          val launch = launch_prover params mode minimize_command only learn
         in
           if mode = Auto_Try orelse mode = Try then
             (unknownN, state)
@@ -232,7 +231,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
                         provers
                 |> mode = Auto_Try ? (fn n => n div auto_try_max_facts_divisor)
         in
-          facts
+          all_facts
           |> (case is_appropriate_prop of
                 SOME is_app => filter (is_app o prop_of o snd)
               | NONE => I)
