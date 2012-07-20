@@ -101,9 +101,10 @@ val relearn_isarN = "relearn_isar"
 val relearn_atpN = "relearn_atp"
 
 fun mash_home () = getenv "MASH_HOME"
-fun mash_state_dir () =
+fun mash_model_dir () =
   getenv "ISABELLE_HOME_USER" ^ "/mash"
   |> tap (Isabelle_System.mkdir o Path.explode)
+val mash_state_dir = mash_model_dir
 fun mash_state_path () = mash_state_dir () ^ "/state" |> Path.explode
 
 
@@ -115,14 +116,14 @@ fun meta_char c =
     String.str c
   else
     (* fixed width, in case more digits follow *)
-    "\\" ^ stringN_of_int 3 (Char.ord c)
+    "$" ^ stringN_of_int 3 (Char.ord c)
 
 fun unmeta_chars accum [] = String.implode (rev accum)
-  | unmeta_chars accum (#"\\" :: d1 :: d2 :: d3 :: cs) =
+  | unmeta_chars accum (#"$" :: d1 :: d2 :: d3 :: cs) =
     (case Int.fromString (String.implode [d1, d2, d3]) of
        SOME n => unmeta_chars (Char.chr n :: accum) cs
      | NONE => "" (* error *))
-  | unmeta_chars _ (#"\\" :: _) = "" (* error *)
+  | unmeta_chars _ (#"$" :: _) = "" (* error *)
   | unmeta_chars accum (c :: cs) = unmeta_chars (c :: accum) cs
 
 val escape_meta = String.translate meta_char
@@ -149,13 +150,16 @@ fun parent_of_local_thm th =
 val local_prefix = "local" ^ Long_Name.separator
 
 fun nickname_of th =
-  let val hint = Thm.get_name_hint th in
-    (* FIXME: There must be a better way to detect local facts. *)
-    case try (unprefix local_prefix) hint of
-      SOME suff =>
-      parent_of_local_thm th ^ Long_Name.separator ^ Long_Name.separator ^ suff
-    | NONE => hint
-  end
+  if Thm.has_name_hint th then
+    let val hint = Thm.get_name_hint th in
+      (* FIXME: There must be a better way to detect local facts. *)
+      case try (unprefix local_prefix) hint of
+        SOME suf =>
+        parent_of_local_thm th ^ Long_Name.separator ^ Long_Name.separator ^ suf
+      | NONE => hint
+    end
+  else
+    backquote_thm th
 
 fun suggested_facts suggs facts =
   let
@@ -369,56 +373,47 @@ fun atp_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover auto
 
 (*** Low-level communication with MaSh ***)
 
+(* more friendly than "try o File.rm" for those who keep the files open in their
+   text editor *)
+fun wipe_out file = File.write file ""
+
 fun write_file (xs, f) file =
   let val path = Path.explode file in
-    File.write path "";
+    wipe_out path;
     xs |> chunk_list 500
        |> List.app (File.append path o space_implode "" o map f)
   end
 
-fun mash_info overlord =
-  if overlord then (getenv "ISABELLE_HOME_USER", "")
-  else (getenv "ISABELLE_TMP", serial_string ())
-
-fun and_rm_files overlord flags files =
-  if overlord then
-    ""
-  else
-    " && rm -f" ^ flags ^ " -- " ^
-    space_implode " " (map File.shell_quote files)
-
-fun run_mash ctxt overlord (temp_dir, serial) async core =
+fun run_mash_tool ctxt overlord save max_suggs write_cmds read_suggs =
   let
-    val log_file = temp_dir ^ "/mash_log" ^ serial
+    val (temp_dir, serial) =
+      if overlord then (getenv "ISABELLE_HOME_USER", "")
+      else (getenv "ISABELLE_TMP", serial_string ())
+    val log_file = if overlord then temp_dir ^ "/mash_log" else "/dev/null"
     val err_file = temp_dir ^ "/mash_err" ^ serial
-    val command =
-      "(" ^ mash_home () ^ "/mash --quiet --outputDir " ^ mash_state_dir () ^
-      " --log " ^ log_file ^ " " ^ core ^ ") 2>&1 > " ^ err_file ^
-      and_rm_files overlord "" [log_file, err_file] ^
-      (if async then " &" else "")
-  in
-    trace_msg ctxt (fn () =>
-        (if async then "Launching " else "Running ") ^ command);
-    write_file ([], K "") log_file;
-    write_file ([], K "") err_file;
-    Isabelle_System.bash command;
-    if not async then trace_msg ctxt (K "Done") else ()
-  end
-
-fun run_mash_commands ctxt overlord save max_suggs write_cmds read_suggs =
-  let
-    val info as (temp_dir, serial) = mash_info overlord
     val sugg_file = temp_dir ^ "/mash_suggs" ^ serial
     val cmd_file = temp_dir ^ "/mash_commands" ^ serial
+    val core =
+      "--inputFile " ^ cmd_file ^ " --predictions " ^ sugg_file ^
+      " --numberOfPredictions " ^ string_of_int max_suggs ^
+      (if save then " --saveModel" else "")
+    val command =
+      mash_home () ^ "/mash --quiet --outputDir " ^ mash_model_dir () ^
+      " --log " ^ log_file ^ " " ^ core ^ " >& " ^ err_file
   in
     write_file ([], K "") sugg_file;
     write_file write_cmds cmd_file;
-    run_mash ctxt overlord info false
-             ("--inputFile " ^ cmd_file ^ " --predictions " ^ sugg_file ^
-              " --numberOfPredictions " ^ string_of_int max_suggs ^
-              (if save then " --saveModel" else "") ^
-              (and_rm_files overlord "" [sugg_file, cmd_file]));
-    read_suggs (fn () => File.read_lines (Path.explode sugg_file))
+    trace_msg ctxt (fn () => "Running " ^ command);
+    Isabelle_System.bash command;
+    read_suggs (fn () => try File.read_lines (Path.explode sugg_file) |> these)
+    |> tap (fn _ => trace_msg ctxt (fn () =>
+           case try File.read (Path.explode err_file) of
+             NONE => "Done"
+           | SOME "" => "Done"
+           | SOME s => "Error: " ^ elide_string 1000 s))
+    |> not overlord
+       ? tap (fn _ => List.app (wipe_out o Path.explode)
+                               [err_file, sugg_file, cmd_file])
   end
 
 fun str_of_update (name, parents, feats, deps) =
@@ -429,24 +424,28 @@ fun str_of_query (parents, feats) =
   "? " ^ escape_metas parents ^ "; " ^ escape_metas feats
 
 fun mash_CLEAR ctxt =
-  let val path = mash_state_dir () |> Path.explode in
+  let val path = mash_model_dir () |> Path.explode in
     trace_msg ctxt (K "MaSh CLEAR");
-    File.fold_dir (fn file => fn () =>
-                      File.rm (Path.append path (Path.basic file)))
-                  path ()
+    File.fold_dir (fn file => fn _ =>
+                      try File.rm (Path.append path (Path.basic file)))
+                  path NONE;
+    ()
   end
 
 fun mash_ADD _ _ [] = ()
   | mash_ADD ctxt overlord upds =
     (trace_msg ctxt (fn () => "MaSh ADD " ^
          elide_string 1000 (space_implode " " (map #1 upds)));
-     run_mash_commands ctxt overlord true 0 (upds, str_of_update) (K ()))
+     run_mash_tool ctxt overlord true 0 (upds, str_of_update) (K ()))
 
 fun mash_QUERY ctxt overlord max_suggs (query as (_, feats)) =
   (trace_msg ctxt (fn () => "MaSh QUERY " ^ space_implode " " feats);
-   run_mash_commands ctxt overlord false  max_suggs
+   run_mash_tool ctxt overlord false max_suggs
        ([query], str_of_query)
-       (fn suggs => snd (extract_query (List.last (suggs ()))))
+       (fn suggs =>
+           case suggs () of
+             [] => []
+           | suggs => snd (extract_query (List.last suggs)))
    handle List.Empty => [])
 
 
@@ -529,8 +528,7 @@ fun mash_get ctxt =
 
 fun mash_unlearn ctxt =
   Synchronized.change global_state (fn _ =>
-      (mash_CLEAR ctxt; File.write (mash_state_path ()) "";
-       (true, empty_state)))
+      (mash_CLEAR ctxt; wipe_out (mash_state_path ()); (true, empty_state)))
 
 end
 
@@ -642,16 +640,20 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, timeout, ...})
             |> sort (thm_ord o pairself snd)
     val num_new_facts = length new_facts
   in
-    "MaShing" ^
     (if not auto then
-       " " ^ string_of_int num_new_facts ^ " fact" ^
-       plural_s num_new_facts ^
-       (if atp then " (ATP timeout: " ^ string_from_time timeout ^ ")" else "")
+       "MaShing" ^
+       (if not auto then
+          " " ^ string_of_int num_new_facts ^ " fact" ^
+          plural_s num_new_facts ^
+          (if atp then " (ATP timeout: " ^ string_from_time timeout ^ ")"
+           else "")
+        else
+          "") ^ "..."
      else
-       "") ^ "..."
+       "")
     |> Output.urgent_message;
     if null new_facts then
-      if verbose orelse not auto then
+      if not auto then
         "Nothing to learn.\n\nHint: Try " ^ sendback relearn_isarN ^ " or " ^
         sendback relearn_atpN ^ "  to learn from scratch."
       else
@@ -694,6 +696,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, timeout, ...})
                 (if atp then atp_dependencies_of ctxt params prover auto facts
                  else isar_dependencies_of) all_names th
                 |> trim_deps
+              val n = n |> not (null deps) ? Integer.add 1
               val upds = (name, parents, feats, deps) :: upds
               val (upds, next_commit) =
                 if Time.> (Timer.checkRealTimer timer, next_commit) then
@@ -702,7 +705,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, timeout, ...})
                   (upds, next_commit)
               val timed_out =
                 Time.> (Timer.checkRealTimer timer, learn_timeout)
-            in (upds, ([name], n + 1, next_commit, timed_out)) end
+            in (upds, ([name], n, next_commit, timed_out)) end
         val parents = parents_wrt_facts facts fact_graph
         val (upds, (_, n, _, _)) =
           ([], (parents, 0, next_commit_time (), false))
@@ -710,7 +713,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, timeout, ...})
       in
         commit true upds;
         if verbose orelse not auto then
-          "Learned " ^ string_of_int n ^ " proof" ^ plural_s n ^
+          "Learned " ^ string_of_int n ^ " nontrivial proof" ^ plural_s n ^
           (if verbose then
              " in " ^ string_from_time (Timer.checkRealTimer timer)
            else
@@ -722,9 +725,8 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, timeout, ...})
 
 fun mash_learn ctxt (params as {provers, ...}) atp =
   let
-    val thy = Proof_Context.theory_of ctxt
     val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
-    val facts = all_facts_of thy css_table
+    val facts = all_facts_of ctxt css_table
   in
      mash_learn_facts ctxt params (hd provers) false atp infinite_timeout facts
      |> Output.urgent_message

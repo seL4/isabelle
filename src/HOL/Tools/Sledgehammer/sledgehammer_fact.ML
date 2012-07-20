@@ -23,12 +23,13 @@ sig
   val fact_from_ref :
     Proof.context -> unit Symtab.table -> thm list -> status Termtab.table
     -> Facts.ref * Attrib.src list -> ((string * stature) * thm) list
+  val backquote_thm : thm -> string
   val clasimpset_rule_table_of : Proof.context -> status Termtab.table
   val maybe_instantiate_inducts :
     Proof.context -> term list -> term -> (((unit -> string) * 'a) * thm) list
     -> (((unit -> string) * 'a) * thm) list
   val maybe_filter_no_atps : Proof.context -> ('a * thm) list -> ('a * thm) list
-  val all_facts_of : theory -> status Termtab.table -> fact list
+  val all_facts_of : Proof.context -> status Termtab.table -> fact list
   val nearly_all_facts :
     Proof.context -> bool -> fact_override -> unit Symtab.table
     -> status Termtab.table -> thm list -> term list -> term -> fact list
@@ -212,9 +213,9 @@ fun is_theorem_bad_for_atps ho_atp thm =
     is_that_fact thm
   end
 
-fun hackish_string_for_term ctxt t =
+fun hackish_string_for_term thy t =
   Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN)
-                   (print_mode_value ())) (Syntax.string_of_term ctxt) t
+                   (print_mode_value ())) (Syntax.string_of_term_global thy) t
   |> String.translate (fn c => if Char.isPrint c then str c else "")
   |> simplify_spaces
 
@@ -239,6 +240,11 @@ fun close_form t =
               end)
           (Term.add_vars t [] |> sort_wrt (fst o fst))
   |> fst
+
+fun backquote_thm th =
+  th |> prop_of |> close_form
+     |> hackish_string_for_term (theory_of_thm th)
+     |> backquote
 
 fun clasimpset_rule_table_of ctxt =
   let
@@ -302,13 +308,14 @@ fun struct_induct_rule_on th =
 
 fun instantiate_induct_rule ctxt concl_prop p_name ((name, stature), th) ind_x =
   let
+    val thy = Proof_Context.theory_of ctxt
     fun varify_noninducts (t as Free (s, T)) =
         if (s, T) = ind_x orelse can dest_funT T then t else Var ((s, 0), T)
       | varify_noninducts t = t
     val p_inst =
       concl_prop |> map_aterms varify_noninducts |> close_form
                  |> lambda (Free ind_x)
-                 |> hackish_string_for_term ctxt
+                 |> hackish_string_for_term thy
   in
     ((fn () => name () ^ "[where " ^ p_name ^ " = " ^ quote p_inst ^ "]",
       stature), th |> read_instantiate ctxt [((p_name, 0), p_inst)])
@@ -374,8 +381,6 @@ fun all_facts ctxt ho_atp reserved add_ths chained_ths css_table =
         else
           let
             val multi = length ths > 1
-            val backquote_thm =
-              backquote o hackish_string_for_term ctxt o close_form o prop_of
             fun check_thms a =
               case try (Proof_Context.get_thms ctxt) a of
                 NONE => false
@@ -392,7 +397,7 @@ fun all_facts ctxt ho_atp reserved add_ths chained_ths css_table =
                              val new =
                                (((fn () =>
                                      if name0 = "" then
-                                       th |> backquote_thm
+                                       backquote_thm th
                                      else
                                        [Facts.extern ctxt facts name0,
                                         Name_Space.extern ctxt full_space name0]
@@ -415,11 +420,9 @@ fun all_facts ctxt ho_atp reserved add_ths chained_ths css_table =
              |> op @
   end
 
-fun all_facts_of thy css_table =
-  let val ctxt = Proof_Context.init_global thy in
-    all_facts ctxt false Symtab.empty [] [] css_table
-    |> rev (* try to restore the original order of facts, for MaSh *)
-  end
+fun all_facts_of ctxt css_table =
+  all_facts ctxt false Symtab.empty [] [] css_table
+  |> rev (* try to restore the original order of facts, for MaSh *)
 
 fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css_table chained_ths
                      hyp_ts concl_t =

@@ -256,7 +256,7 @@ fun adjust_reconstructor_params override_params
   end
 
 fun maybe_minimize ctxt mode do_learn name
-        (params as {debug, verbose, isar_proof, minimize, ...})
+        (params as {verbose, isar_proof, minimize, ...})
         ({state, subgoal, subgoal_count, facts, ...} : prover_problem)
         (result as {outcome, used_facts, run_time, preplay, message,
                     message_tail} : prover_result) =
@@ -310,19 +310,8 @@ fun maybe_minimize ctxt mode do_learn name
     in
       case used_facts of
         SOME used_facts =>
-        (if debug andalso not (null used_facts) then
-           tag_list 1 facts
-           |> map (fn (j, fact) => fact |> untranslated_fact |> apsnd (K j))
-           |> filter_used_facts used_facts
-           |> map (fn ((name, _), j) => name ^ "@" ^ string_of_int j)
-           |> commas
-           |> enclose ("Fact" ^ plural_s (length facts) ^ " in " ^ quote name ^
-                       " proof (of " ^ string_of_int (length facts) ^ "): ") "."
-           |> Output.urgent_message
-         else
-           ();
-         {outcome = NONE, used_facts = used_facts, run_time = run_time,
-          preplay = preplay, message = message, message_tail = message_tail})
+        {outcome = NONE, used_facts = used_facts, run_time = run_time,
+         preplay = preplay, message = message, message_tail = message_tail}
       | NONE => result
     end
 

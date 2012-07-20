@@ -84,12 +84,24 @@ fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
                   ? filter_out (curry (op =) Induction o snd o snd o fst
                                 o untranslated_fact)
                |> take num_facts}
+    fun print_used_facts used_facts =
+      tag_list 1 facts
+      |> map (fn (j, fact) => fact |> untranslated_fact |> apsnd (K j))
+      |> filter_used_facts used_facts
+      |> map (fn ((name, _), j) => name ^ "@" ^ string_of_int j)
+      |> commas
+      |> enclose ("Fact" ^ plural_s (length facts) ^ " in " ^ quote name ^
+                  " proof (of " ^ string_of_int (length facts) ^ "): ") "."
+      |> Output.urgent_message
     fun really_go () =
       problem
       |> get_minimizing_prover ctxt mode
              (mash_learn_proof ctxt params name (prop_of goal)
                                (map untranslated_fact facts))
              name params minimize_command
+      |> verbose ? tap (fn {outcome = NONE, used_facts as _ :: _, ...} =>
+                           print_used_facts used_facts
+                         | _ => ())
       |> (fn {outcome, preplay, message, message_tail, ...} =>
              (if outcome = SOME ATP_Proof.TimedOut then timeoutN
               else if is_some outcome then noneN
@@ -228,7 +240,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
                             hyp_ts concl_t
           |> map (apfst (apfst (fn name => name ())))
           |> tap (fn facts =>
-                     if debug then
+                     if verbose then
                        label ^ plural_s (length provers) ^ ": " ^
                        (if null facts then
                           "Found no relevant facts."

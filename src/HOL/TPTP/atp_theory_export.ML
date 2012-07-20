@@ -114,7 +114,7 @@ fun monomorphize_term ctxt t =
   end
 
 fun all_non_tautological_facts_of thy css_table =
-  Sledgehammer_Fact.all_facts_of thy css_table
+  Sledgehammer_Fact.all_facts_of (Proof_Context.init_global thy) css_table
   |> filter_out (Sledgehammer_MaSh.is_likely_tautology_or_too_meta o snd)
 
 fun generate_atp_inference_file_for_theory ctxt thy format type_enc file_name =
