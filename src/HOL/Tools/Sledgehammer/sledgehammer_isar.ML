@@ -323,7 +323,7 @@ fun extract_params mode default_params override_params =
      lam_trans = lam_trans, uncurried_aliases = uncurried_aliases,
      learn = learn, fact_filter = fact_filter, max_facts = max_facts,
      fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
-     max_new_mono_instances = max_new_mono_instances,  isar_proof = isar_proof,
+     max_new_mono_instances = max_new_mono_instances, isar_proof = isar_proof,
      isar_shrink_factor = isar_shrink_factor, slice = slice,
      minimize = minimize, timeout = timeout, preplay_timeout = preplay_timeout,
      expect = expect}

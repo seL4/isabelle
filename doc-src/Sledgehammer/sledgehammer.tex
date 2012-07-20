@@ -397,15 +397,16 @@ called \emph{relevance filter}.
 
 \begin{enum}
 \item[\labelitemi]
-The traditional relevance filter, called \emph{MePo}, assigns a score to every
-available fact (lemma, theorem, definition, or axiom) based upon how many
-constants that fact shares with the conjecture. This process iterates to include
-facts relevant to those just accepted. The constants are weighted to give
-unusual ones greater significance. MePo copes best when the conjecture contains
-some unusual constants; if all the constants are common, it is unable to
-discriminate among the hundreds of facts that are picked up. The filter is also
-memoryless: It has no information about how many times a particular fact has
-been used in a proof, and it cannot learn.
+The traditional relevance filter, called \emph{MePo}
+(\underline{Me}ng--\underline{Pau}lson), assigns a score to every available fact
+(lemma, theorem, definition, or axiom) based upon how many constants that fact
+shares with the conjecture. This process iterates to include facts relevant to
+those just accepted. The constants are weighted to give unusual ones greater
+significance. MePo copes best when the conjecture contains some unusual
+constants; if all the constants are common, it is unable to discriminate among
+the hundreds of facts that are picked up. The filter is also memoryless: It has
+no information about how many times a particular fact has been used in a proof,
+and it cannot learn.
 
 \item[\labelitemi]
 An experimental, memoryful alternative to MePo is \emph{MaSh}
@@ -1019,6 +1020,25 @@ safely remove them after Sledgehammer has run.
 \label{relevance-filter}
 
 \begin{enum}
+\opdefault{fact\_filter}{string}{smart}
+Specifies the relevance filter to use. The following filters are available:
+
+\begin{enum}
+\item[\labelitemi] \textbf{\textit{mepo}:}
+The traditional memoryless MePo relevance filter.
+
+\item[\labelitemi] \textbf{\textit{mash}:}
+The memoryful MaSh machine learner. MaSh relies on the external program
+\texttt{mash}, which can be obtained from the author at \authoremail. To install
+it, set the environment variable \texttt{MASH\_HOME} to the directory that
+contains the \texttt{mash} executable.
+
+\item[\labelitemi] \textbf{\textit{mesh}:} A combination of MePo and MaSh.
+
+\item[\labelitemi] \textbf{\textit{smart}:} Use Mesh if \texttt{mash} is
+installed and the target prover is an ATP; otherwise, use MePo.
+\end{enum}
+
 \opdefault{max\_facts}{smart\_int}{smart}
 Specifies the maximum number of facts that may be returned by the relevance
 filter. If the option is set to \textit{smart}, it is set to a value that was
@@ -1032,6 +1052,11 @@ relevance filter and the second threshold is used for the last iteration (if it
 is reached). The effective threshold is quadratically interpolated for the other
 iterations. Each threshold ranges from 0 to 1, where 0 means that all theorems
 are relevant and 1 only theorems that refer to previously seen constants.
+
+\optrue{learn}{dont\_learn}
+Specifies whether MaSh should be run automatically by Sledgehammer to learn the
+available theories (and hence provide more accurate results). Learning only
+takes place if \texttt{mash} is installed.
 
 \opdefault{max\_new\_mono\_instances}{int}{smart}
 Specifies the maximum number of monomorphic instances to generate beyond
