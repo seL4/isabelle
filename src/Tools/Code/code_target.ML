@@ -373,7 +373,8 @@ fun invoke_serializer thy target some_width module_name args naming program name
 fun assert_module_name "" = error ("Empty module name not allowed.")
   | assert_module_name module_name = module_name;
 
-fun using_master_directory thy = Option.map (Path.append (Thy_Load.master_directory thy));
+fun using_master_directory thy =
+  Option.map (Path.append (File.pwd ()) o Path.append (Thy_Load.master_directory thy));
 
 in
 
