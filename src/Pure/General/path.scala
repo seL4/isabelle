@@ -29,7 +29,8 @@ object Path
   private def check_elem(s: String): String =
     if (s == "" || s == "~" || s == "~~") err_elem("Illegal", s)
     else
-      s.iterator.filter(c => c == '/' || c == '\\' || c == '$' || c == ':').toList match {
+      s.iterator.filter(c =>
+          c == '/' || c == '\\' || c == '$' || c == ':' || c == '"' || c == '\'').toList match {
         case Nil => s
         case bads =>
           err_elem ("Illegal character(s) " + commas_quote(bads.map(_.toString)) + " in", s)
