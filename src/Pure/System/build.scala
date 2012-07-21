@@ -57,6 +57,8 @@ object Build
     {
       def defined(name: String): Boolean = keys.isDefinedAt(name)
 
+      def is_inner(name: String): Boolean = !graph.is_maximal(keys(name))
+
       def + (key: Key, info: Info): Queue =
       {
         val keys1 =
@@ -222,7 +224,8 @@ object Build
       })
   }
 
-  def find_sessions(more_dirs: List[Path]): Session.Queue =
+  def find_sessions(all_sessions: Boolean, sessions: List[String],
+    more_dirs: List[Path]): Session.Queue =
   {
     var queue = Session.Queue.empty
 
@@ -236,7 +239,12 @@ object Build
 
     for (dir <- more_dirs) queue = sessions_dir(true, dir, queue)
 
-    queue
+    sessions.filter(name => !queue.defined(name)) match {
+      case Nil =>
+      case bad => error("Undefined session(s): " + commas_quote(bad))
+    }
+
+    if (all_sessions) queue else queue.required(sessions)
   }
 
 
@@ -261,19 +269,19 @@ object Build
     def join: (String, String, Int) = { val rc = result.join; args_file.delete; rc }
   }
 
-  private def build_job(build_images: Boolean, name: String, info: Session.Info): Build_Job =
+  private def build_job(save: Boolean, name: String, info: Session.Info): Build_Job =
   {
     val parent = info.parent.getOrElse("")
 
     val cwd = info.dir.file
     val env = Map("INPUT" -> parent, "TARGET" -> name)
     val script =
-      if (is_pure(name)) "./build " + (if (build_images) "-b " else "") + name
+      if (is_pure(name)) "./build " + (if (save) "-b " else "") + name
       else {
         """
         . "$ISABELLE_HOME/lib/scripts/timestart.bash"
         """ +
-          (if (build_images)
+          (if (save)
             """ "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -q -w "$INPUT" "$TARGET" """
           else
             """ "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -r -q "$INPUT" """) +
@@ -294,28 +302,20 @@ object Build
       import XML.Encode._
       def symbol_string: T[String] = (s => string(Symbol.encode(s)))
       pair(bool, pair(symbol_string, pair(symbol_string, list(symbol_string))))(
-        build_images, (parent, (name, info.theories.map(_._2).flatten)))
+        save, (parent, (name, info.theories.map(_._2).flatten)))
     }
     new Build_Job(cwd, env, script, YXML.string_of_body(args_xml))
   }
 
   def build(all_sessions: Boolean, build_images: Boolean, list_only: Boolean,
-    more_dirs: List[Path], options: List[String], sessions: List[String]): Int =
+    more_dirs: List[Path], more_options: List[String], sessions: List[String]): Int =
   {
-    val full_queue = find_sessions(more_dirs)
-    val build_options = (Options.init() /: options)(_.define_simple(_))
+    val options = (Options.init() /: more_options)(_.define_simple(_))
+    val queue = find_sessions(all_sessions, sessions, more_dirs)
 
-    sessions.filter(name => !full_queue.defined(name)) match {
-      case Nil =>
-      case bad => error("Undefined session(s): " + commas_quote(bad))
-    }
-
-    val required_queue =
-      if (all_sessions) full_queue
-      else full_queue.required(sessions)
 
     // prepare browser info dir
-    if (build_options.bool("browser_info") &&
+    if (options.bool("browser_info") &&
       !Path.explode("$ISABELLE_BROWSER_INFO/index.html").file.isFile)
     {
       Path.explode("$ISABELLE_BROWSER_INFO").file.mkdirs()
@@ -333,23 +333,25 @@ object Build
 
     // run jobs
     val rcs =
-      for ((key, info) <- required_queue.topological_order) yield
+      for ((key, info) <- queue.topological_order) yield
       {
-        if (list_only) { echo(key.name + " in " + info.dir); 0 }
-        else {
-          if (build_images) echo("Building " + key.name + " ...")
-          else echo("Running " + key.name + " ...")
+        val name = key.name
 
-          val (out, err, rc) = build_job(build_images, key.name, info).join
+        if (list_only) { echo(name + " in " + info.dir); 0 }
+        else {
+          val save = build_images || queue.is_inner(name)
+          echo((if (save) "Building " else "Running ") + name + " ...")
+
+          val (out, err, rc) = build_job(save, name, info).join
           echo_n(err)
 
-          val log = log_dir + Path.basic(key.name)
+          val log = log_dir + Path.basic(name)
           if (rc == 0) {
             File.write_zip(log.ext("gz"), out)
           }
           else {
             File.write(log, out)
-            echo(key.name + " FAILED")
+            echo(name + " FAILED")
             echo("(see also " + log.file + ")")
             val lines = split_lines(out)
             val tail = lines.drop(lines.length - 20 max 0)

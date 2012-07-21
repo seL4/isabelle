@@ -14,7 +14,7 @@ struct
 
 fun build args_file =
   let
-    val (build_images, (parent, (name, theories))) =
+    val (save, (parent, (name, theories))) =
       File.read (Path.explode args_file) |> YXML.parse_body |>
         let open XML.Decode in pair bool (pair string (pair string (list string))) end;
 
@@ -22,7 +22,7 @@ fun build args_file =
     val _ = Thy_Info.use_thys theories;
     val _ = Session.finish ();
 
-    val _ = if build_images then () else quit ();
+    val _ = if save then () else quit ();
   in () end
   handle exn => (Output.error_msg (ML_Compiler.exn_message exn); exit 1);
 
