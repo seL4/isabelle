@@ -70,9 +70,19 @@ val implode = SML90.implode;
 fun quit () = exit 0;
 
 
-(* ML system identification *)
+(* ML system operations *)
 
 use "ML-Systems/ml_system.ML";
+
+structure ML_System =
+struct
+
+open ML_System;
+
+fun share_common_data () = PolyML.shareCommonData PolyML.rootFunction;
+val save_state = PolyML.SaveState.saveState;
+
+end;
 
 
 (* ML runtime system *)
@@ -90,8 +100,6 @@ fun profile 0 f x = f x
       in Exn.release res end;
 
 val pointer_eq = PolyML.pointerEq;
-
-fun share_common_data () = PolyML.shareCommonData PolyML.rootFunction;
 
 
 (* ML compiler *)

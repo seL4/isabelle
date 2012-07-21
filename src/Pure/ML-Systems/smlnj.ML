@@ -29,8 +29,6 @@ val seconds = Time.fromReal;
 CM.autoload "$smlnj/init/init.cmi";
 val pointer_eq = InlineT.ptreql;
 
-fun share_common_data () = ();
-
 
 (* restore old-style character / string functions *)
 
@@ -162,5 +160,19 @@ end;
 
 use "ML-Systems/unsynchronized.ML";
 
+
+(* ML system operations *)
+
 use "ML-Systems/ml_system.ML";
+
+structure ML_System =
+struct
+
+open ML_System;
+
+fun save_state name =
+  if SMLofNJ.exportML name then ()
+  else OS.FileSys.rename {old = name ^ "." ^ platform, new = name};
+
+end;
 
