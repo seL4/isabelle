@@ -17,10 +17,10 @@ object Build
 {
   /** session information **/
 
-  type Options = List[(String, Option[String])]
-
   object Session
   {
+    /* Key */
+
     object Key
     {
       object Ordering extends scala.math.Ordering[Key]
@@ -38,13 +38,24 @@ object Build
       override def toString: String = name
     }
 
+
+    /* Info */
+
+    sealed abstract class Status
+    case object Pending extends Status
+    case object Running extends Status
+
     sealed case class Info(
       dir: Path,
       parent: Option[String],
       description: String,
       options: Options,
-      theories: List[(Options, List[String])],
-      files: List[String])
+      theories: List[(Options, List[Path])],
+      files: List[Path],
+      status: Status = Pending)
+
+
+    /* Queue */
 
     object Queue
     {
@@ -101,8 +112,8 @@ object Build
     path: Option[String],
     parent: Option[String],
     description: String,
-    options: Options,
-    theories: List[(Options, List[String])],
+    options: List[Options.Spec],
+    theories: List[(List[Options.Spec], List[String])],
     files: List[String])
 
   private object Parser extends Parse.Parser
@@ -161,7 +172,8 @@ object Build
 
   private def is_pure(name: String): Boolean = name == "RAW" || name == "Pure"
 
-  private def sessions_root(dir: Path, root: JFile, queue: Session.Queue): Session.Queue =
+  private def sessions_root(options: Options, dir: Path, root: JFile, queue: Session.Queue)
+    : Session.Queue =
   {
     (queue /: Parser.parse_entries(root))((queue1, entry) =>
       try {
@@ -187,9 +199,13 @@ object Build
           }
 
         val key = Session.Key(full_name, entry.order)
+
+        val theories =
+          entry.theories.map({ case (opts, thys) => (options ++ opts, thys.map(Path.explode(_))) })
+        val files = entry.files.map(Path.explode(_))
         val info =
           Session.Info(dir + path, entry.parent,
-            entry.description, entry.options, entry.theories, entry.files)
+            entry.description, options ++ entry.options, theories, files)
 
         queue1 + (key, info)
       }
@@ -200,22 +216,24 @@ object Build
       })
   }
 
-  private def sessions_dir(strict: Boolean, dir: Path, queue: Session.Queue): Session.Queue =
+  private def sessions_dir(options: Options, strict: Boolean, dir: Path, queue: Session.Queue)
+    : Session.Queue =
   {
     val root = (dir + ROOT).file
-    if (root.isFile) sessions_root(dir, root, queue)
+    if (root.isFile) sessions_root(options, dir, root, queue)
     else if (strict) error("Bad session root file: " + quote(root.toString))
     else queue
   }
 
-  private def sessions_catalog(dir: Path, catalog: JFile, queue: Session.Queue): Session.Queue =
+  private def sessions_catalog(options: Options, dir: Path, catalog: JFile, queue: Session.Queue)
+    : Session.Queue =
   {
     val dirs =
       split_lines(File.read(catalog)).filterNot(line => line == "" || line.startsWith("#"))
     (queue /: dirs)((queue1, dir1) =>
       try {
         val dir2 = dir + Path.explode(dir1)
-        if (dir2.file.isDirectory) sessions_dir(true, dir2, queue1)
+        if (dir2.file.isDirectory) sessions_dir(options, true, dir2, queue1)
         else error("Bad session directory: " + dir2.toString)
       }
       catch {
@@ -224,20 +242,20 @@ object Build
       })
   }
 
-  def find_sessions(all_sessions: Boolean, sessions: List[String],
+  def find_sessions(options: Options, all_sessions: Boolean, sessions: List[String],
     more_dirs: List[Path]): Session.Queue =
   {
     var queue = Session.Queue.empty
 
     for (dir <- Isabelle_System.components()) {
-      queue = sessions_dir(false, dir, queue)
+      queue = sessions_dir(options, false, dir, queue)
 
       val catalog = (dir + SESSIONS).file
       if (catalog.isFile)
-        queue = sessions_catalog(dir, catalog, queue)
+        queue = sessions_catalog(options, dir, catalog, queue)
     }
 
-    for (dir <- more_dirs) queue = sessions_dir(true, dir, queue)
+    for (dir <- more_dirs) queue = sessions_dir(options, true, dir, queue)
 
     sessions.filter(name => !queue.defined(name)) match {
       case Nil =>
@@ -300,9 +318,8 @@ object Build
     val args_xml =
     {
       import XML.Encode._
-      def symbol_string: T[String] = (s => string(Symbol.encode(s)))
-      pair(bool, pair(symbol_string, pair(symbol_string, list(symbol_string))))(
-        save, (parent, (name, info.theories.map(_._2).flatten)))
+      pair(bool, pair(string, pair(string, list(string))))(
+        save, (parent, (name, info.theories.map(_._2).flatten.map(_.implode))))
     }
     new Build_Job(cwd, env, script, YXML.string_of_body(args_xml))
   }
@@ -311,7 +328,7 @@ object Build
     more_dirs: List[Path], more_options: List[String], sessions: List[String]): Int =
   {
     val options = (Options.init() /: more_options)(_.define_simple(_))
-    val queue = find_sessions(all_sessions, sessions, more_dirs)
+    val queue = find_sessions(options, all_sessions, sessions, more_dirs)
 
 
     // prepare browser info dir

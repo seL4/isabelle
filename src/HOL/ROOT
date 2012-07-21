@@ -21,7 +21,7 @@ session "HOL-Main"! in "." = Pure +
 
 session "HOL-Proofs"! (2) in "." = Pure +
   description {* HOL-Main with proof terms *}
-  options [document = false, proofs = 2, parallel_proofs = false]
+  options [document = false, proofs = 2, parallel_proofs = 0]
   theories Main
 
 session HOLCF! (3) = HOL +
