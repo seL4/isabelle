@@ -189,6 +189,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   Syntax/syntax_trans.ML				\
   Syntax/term_position.ML				\
   System/invoke_scala.ML				\
+  System/build.ML					\
   System/isabelle_process.ML				\
   System/isabelle_system.ML				\
   System/isar.ML					\

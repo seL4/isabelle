@@ -260,17 +260,6 @@ object Isabelle_System
 
   def bash(script: String): (String, String, Int) = bash_env(null, null, script)
 
-  class Bash_Job(cwd: JFile, env: Map[String, String], script: String)
-  {
-    private val (thread, result) = Simple_Thread.future("bash_job") { bash_env(cwd, env, script) }
-
-    def terminate: Unit = thread.interrupt
-    def is_finished: Boolean = result.is_finished
-    def join: (String, String, Int) = result.join
-
-    override def toString: String = if (is_finished) join._3.toString else "<running>"
-  }
-
 
   /* system tools */
 

@@ -40,9 +40,10 @@ object Build
 
     sealed case class Info(
       dir: Path,
+      parent: Option[String],
       description: String,
       options: Options,
-      theories: List[(Options, String)],
+      theories: List[(Options, List[String])],
       files: List[String])
 
     object Queue
@@ -56,7 +57,7 @@ object Build
     {
       def defined(name: String): Boolean = keys.isDefinedAt(name)
 
-      def + (key: Key, info: Info, parent: Option[String]): Queue =
+      def + (key: Key, info: Info): Queue =
       {
         val keys1 =
           if (defined(key.name)) error("Duplicate session: " + quote(key.name))
@@ -64,7 +65,7 @@ object Build
 
         val graph1 =
           try {
-            graph.new_node(key, info).add_deps_acyclic(key, parent.toList.map(keys(_)))
+            graph.new_node(key, info).add_deps_acyclic(key, info.parent.toList.map(keys(_)))
           }
           catch {
             case exn: Graph.Cycles[_] =>
@@ -184,10 +185,11 @@ object Build
           }
 
         val key = Session.Key(full_name, entry.order)
-        val info = Session.Info(dir + path, entry.description, entry.options,
-          entry.theories.map({ case (x, ys) => ys.map(y => (x, y)) }).flatten, entry.files)
+        val info =
+          Session.Info(dir + path, entry.parent,
+            entry.description, entry.options, entry.theories, entry.files)
 
-        queue1 + (key, info, entry.parent)
+        queue1 + (key, info)
       }
       catch {
         case ERROR(msg) =>
@@ -244,14 +246,57 @@ object Build
   private def echo(msg: String) { java.lang.System.out.println(msg) }
   private def echo_n(msg: String) { java.lang.System.out.print(msg) }
 
-  private def build_job(build_images: Boolean,  // FIXME
-    key: Session.Key, info: Session.Info): Isabelle_System.Bash_Job =
+  class Build_Job(cwd: JFile, env: Map[String, String], script: String, args: String)
   {
+    private val args_file = File.tmp_file("args")
+    private val env1 = env + ("ARGS_FILE" -> Isabelle_System.posix_path(args_file.getPath))
+    File.write(args_file, args)
+
+    private val (thread, result) = Simple_Thread.future("build_job") {
+      Isabelle_System.bash_env(cwd, env1, script)
+    }
+
+    def terminate: Unit = thread.interrupt
+    def is_finished: Boolean = result.is_finished
+    def join: (String, String, Int) = { val rc = result.join; args_file.delete; rc }
+  }
+
+  private def build_job(build_images: Boolean, name: String, info: Session.Info): Build_Job =
+  {
+    val parent = info.parent.getOrElse("")
+
     val cwd = info.dir.file
+    val env = Map("INPUT" -> parent, "TARGET" -> name)
     val script =
-      if (is_pure(key.name)) "./build " + (if (build_images) "-b " else "") + key.name
-      else """echo "Bad session" >&2; exit 2"""
-    new Isabelle_System.Bash_Job(cwd, null, script)
+      if (is_pure(name)) "./build " + (if (build_images) "-b " else "") + name
+      else {
+        """
+        . "$ISABELLE_HOME/lib/scripts/timestart.bash"
+        """ +
+          (if (build_images)
+            """ "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -q -w "$INPUT" "$TARGET" """
+          else
+            """ "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -r -q "$INPUT" """) +
+        """
+        RC="$?"
+
+        . "$ISABELLE_HOME/lib/scripts/timestop.bash"
+
+        if [ "$RC" -eq 0 ]; then
+          echo "Finished $TARGET ($TIMES_REPORT)" >&2
+        fi
+
+        exit "$RC"
+        """
+      }
+    val args_xml =
+    {
+      import XML.Encode._
+      def symbol_string: T[String] = (s => string(Symbol.encode(s)))
+      pair(bool, pair(symbol_string, pair(symbol_string, list(symbol_string))))(
+        build_images, (parent, (name, info.theories.map(_._2).flatten)))
+    }
+    new Build_Job(cwd, env, script, YXML.string_of_body(args_xml))
   }
 
   def build(all_sessions: Boolean, build_images: Boolean, list_only: Boolean,
@@ -292,10 +337,10 @@ object Build
       {
         if (list_only) { echo(key.name + " in " + info.dir); 0 }
         else {
-          if (build_images) echo("Building " + key.name + "...")
-          else echo("Running " + key.name + "...")
+          if (build_images) echo("Building " + key.name + " ...")
+          else echo("Running " + key.name + " ...")
 
-          val (out, err, rc) = build_job(build_images, key, info).join
+          val (out, err, rc) = build_job(build_images, key.name, info).join
           echo_n(err)
 
           val log = log_dir + Path.basic(key.name)

@@ -9,6 +9,7 @@ sig
   val id: unit -> string list
   val name: unit -> string
   val welcome: unit -> string
+  val init: bool -> string -> string -> unit
   val use_dir: string -> string -> bool -> string list -> bool -> bool ->
     string -> bool -> string list -> string -> string -> bool * string ->
     string -> int -> bool -> bool -> int -> int -> int -> int -> unit

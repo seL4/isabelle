@@ -83,10 +83,16 @@ object File
 
   /* misc */
 
-  def with_tmp_file[A](prefix: String)(body: JFile => A): A =
+  def tmp_file(prefix: String): JFile =
   {
     val file = JFile.createTempFile(prefix, null)
     file.deleteOnExit
+    file
+  }
+
+  def with_tmp_file[A](prefix: String)(body: JFile => A): A =
+  {
+    val file = tmp_file(prefix)
     try { body(file) } finally { file.delete }
   }
 
