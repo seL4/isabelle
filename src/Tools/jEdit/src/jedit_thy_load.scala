@@ -17,7 +17,7 @@ import org.gjt.sp.jedit.MiscUtilities
 import org.gjt.sp.jedit.View
 
 
-class JEdit_Thy_Load extends Thy_Load
+class JEdit_Thy_Load extends Thy_Load()
 {
   override def append(dir: String, source_path: Path): String =
   {

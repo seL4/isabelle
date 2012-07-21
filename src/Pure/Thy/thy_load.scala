@@ -10,12 +10,17 @@ package isabelle
 import java.io.{File => JFile}
 
 
+object Thy_Load
+{
+  def thy_path(path: Path): Path = path.ext("thy")
+}
 
-class Thy_Load
+
+class Thy_Load(preloaded: Set[String] = Set.empty)
 {
   /* loaded theories provided by prover */
 
-  private var loaded_theories: Set[String] = Set()
+  private var loaded_theories: Set[String] = preloaded
 
   def register_thy(thy_name: String): Unit =
     synchronized { loaded_theories += thy_name }
@@ -39,15 +44,13 @@ class Thy_Load
 
   /* theory files */
 
-  def thy_path(path: Path): Path = path.ext("thy")
-
   private def import_name(dir: String, s: String): Document.Node.Name =
   {
     val theory = Thy_Header.base_name(s)
     if (is_loaded(theory)) Document.Node.Name(theory, "", theory)
     else {
       val path = Path.explode(s)
-      val node = append(dir, thy_path(path))
+      val node = append(dir, Thy_Load.thy_path(path))
       val dir1 = append(dir, path.dir)
       Document.Node.Name(node, dir1, theory)
     }
@@ -60,7 +63,8 @@ class Thy_Load
     // FIXME val uses = header.uses.map(p => (append(name.dir, Path.explode(p._1)), p._2))
     val uses = header.uses
     if (name.theory != name1)
-      error("Bad file name " + thy_path(Path.basic(name.theory)) + " for theory " + quote(name1))
+      error("Bad file name " + Thy_Load.thy_path(Path.basic(name.theory)) +
+        " for theory " + quote(name1))
     Document.Node.Deps(imports, header.keywords, uses)
   }
 

@@ -97,8 +97,8 @@ object Build
         new Queue(keys1, graph1)
       }
 
-      def topological_order: List[(Key, Info)] =
-        graph.topological_order.map(key => (key, graph.get_node(key)))
+      def topological_order: List[(String, Info)] =
+        graph.topological_order.map(key => (key.name, graph.get_node(key)))
     }
   }
 
@@ -266,6 +266,44 @@ object Build
   }
 
 
+  /* dependencies */
+
+  sealed case class Node(
+    loaded_theories: Set[String],
+    sources: List[Path])
+
+  def dependencies(queue: Session.Queue): Map[String, Node] =
+    (Map.empty[String, Node] /: queue.topological_order)(
+      { case (deps, (name, info)) =>
+          val preloaded =
+            info.parent match {
+              case None => Set.empty[String]
+              case Some(parent) => deps(parent).loaded_theories
+            }
+          val thy_info = new Thy_Info(new Thy_Load(preloaded))
+
+          val thy_deps =
+            thy_info.dependencies(
+              info.theories.map(_._2).flatten.
+                map(thy => Document.Node.Name(info.dir + Thy_Load.thy_path(thy))))
+
+          val loaded_theories = preloaded ++ thy_deps.map(_._1.theory)
+          val sources =
+            thy_deps.map({ case (n, h) =>
+              val thy = Path.explode(n.node).expand
+              val uses =
+                h match {
+                  case Exn.Res(d) =>
+                    d.uses.map(p => (Path.explode(n.dir) + Path.explode(p._1)).expand)
+                  case _ => Nil
+                }
+              thy :: uses
+            }).flatten ::: info.files.map(file => info.dir + file)
+
+          deps + (name -> Node(loaded_theories, sources))
+      })
+
+
 
   /** build **/
 
@@ -350,10 +388,8 @@ object Build
 
     // run jobs
     val rcs =
-      for ((key, info) <- queue.topological_order) yield
+      for ((name, info) <- queue.topological_order) yield
       {
-        val name = key.name
-
         if (list_only) { echo(name + " in " + info.dir); 0 }
         else {
           val save = build_images || queue.is_inner(name)
