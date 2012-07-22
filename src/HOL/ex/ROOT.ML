@@ -73,7 +73,8 @@ use_thys [
   "Simproc_Tests",
   "Executable_Relation",
   "FinFunPred",
-  "Set_Comprehension_Pointfree_Tests"
+  "Set_Comprehension_Pointfree_Tests",
+  "Parallel_Example"
 ];
 
 use_thy "SVC_Oracle";

@@ -12,6 +12,7 @@ imports
   ContNotDenum
   Convex
   Countable
+  Debug
   Dlist
   Eval_Witness
   Extended_Nat
@@ -37,6 +38,7 @@ imports
   Old_Recdef
   OptionalSugar
   Option_ord
+  Parallel
   Permutation
   Permutations
   Poly_Deriv

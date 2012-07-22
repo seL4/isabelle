@@ -452,6 +452,7 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Tools/Predicate_Compile/code_prolog.ML Library/ContNotDenum.thy	\
   Library/Continuity.thy						\
   Library/Convex.thy Library/Countable.thy				\
+  Library/Debug.thy							\
   Library/Dlist.thy Library/Eval_Witness.thy				\
   Library/DAList.thy Library/Dlist.thy					\
   Library/Eval_Witness.thy						\
@@ -470,6 +471,7 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Library/Multiset.thy Library/Nat_Bijection.thy			\
   Library/Numeral_Type.thy Library/Old_Recdef.thy			\
   Library/OptionalSugar.thy Library/Order_Relation.thy			\
+  Library/Parallel.thy							\
   Library/Permutation.thy Library/Permutations.thy			\
   Library/Phantom_Type.thy Library/Poly_Deriv.thy			\
   Library/Polynomial.thy Library/Predicate_Compile_Quickcheck.thy	\
@@ -1034,6 +1036,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy	\
   ex/LocaleTest2.thy ex/MT.thy ex/MergeSort.thy ex/Meson_Test.thy	\
   ex/MonoidGroup.thy ex/Multiquote.thy ex/NatSum.thy			\
   ex/Normalization_by_Evaluation.thy ex/Numeral_Representation.thy	\
+  ex/Parallel_Example.thy						\
   ex/PER.thy ex/PresburgerEx.thy ex/Primrec.thy				\
   ex/Quicksort.thy ex/ROOT.ML						\
   ex/Records.thy ex/ReflectionEx.thy ex/Refute_Examples.thy		\
