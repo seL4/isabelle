@@ -12,18 +12,23 @@ import java.io.{File => JFile}
 
 object Options
 {
-  abstract class Type
+  type Spec = (String, Option[String])
+
+  val empty: Options = new Options()
+
+
+  /* representation */
+
+  sealed abstract class Type
   {
     def print: String = toString.toLowerCase
   }
-  case object Bool extends Type
-  case object Int extends Type
-  case object Real extends Type
-  case object String extends Type
+  private case object Bool extends Type
+  private case object Int extends Type
+  private case object Real extends Type
+  private case object String extends Type
 
   case class Opt(typ: Type, value: String, description: String)
-
-  val empty: Options = new Options()
 
 
   /* parsing */
@@ -58,7 +63,7 @@ object Options
     }
   }
 
-  val OPTIONS = Path.explode("etc/options")
+  private val OPTIONS = Path.explode("etc/options")
 
   def init(): Options =
   {
@@ -193,6 +198,9 @@ final class Options private(options: Map[String, Options.Opt] = Map.empty)
       case None => error("Missing value for option " + quote(name) + " : " + opt.typ.print)
     }
   }
+
+  def ++ (specs: List[Options.Spec]): Options =
+    (this /: specs)({ case (x, (y, z)) => x.define(y, z) })
 
   def define_simple(str: String): Options =
   {

@@ -18,8 +18,10 @@ function usage()
   echo "    -a           all sessions"
   echo "    -b           build target images"
   echo "    -d DIR       additional session directory with ROOT file"
+  echo "    -j INT       maximum number of jobs (default 1)"
   echo "    -l           list sessions only"
   echo "    -o OPTION    override session configuration OPTION (via NAME=VAL or NAME)"
+  echo "    -v           verbose"
   echo
   echo "  Build and manage Isabelle sessions, depending on implicit"
   echo "  ISABELLE_BUILD_OPTIONS=\"$ISABELLE_BUILD_OPTIONS\""
@@ -38,17 +40,24 @@ function fail()
   exit 2
 }
 
+function check_number()
+{
+  [ -n "$1" -a -z "$(echo "$1" | tr -d '[0-9]')" ] || fail "Bad number: \"$1\""
+}
+
 
 ## process command line
 
 ALL_SESSIONS=false
 BUILD_IMAGES=false
+MAX_JOBS=1
 LIST_ONLY=false
+VERBOSE=false
 
 declare -a MORE_DIRS=()
 eval "declare -a BUILD_OPTIONS=($ISABELLE_BUILD_OPTIONS)"
 
-while getopts "abd:lo:" OPT
+while getopts "abd:j:lo:v" OPT
 do
   case "$OPT" in
     a)
@@ -60,11 +69,18 @@ do
     d)
       MORE_DIRS["${#MORE_DIRS[@]}"]="$OPTARG"
       ;;
+    j)
+      check_number "$OPTARG"
+      MAX_JOBS="$OPTARG"
+      ;;
     l)
       LIST_ONLY="true"
       ;;
     o)
       BUILD_OPTIONS["${#BUILD_OPTIONS[@]}"]="$OPTARG"
+      ;;
+    v)
+      VERBOSE="true"
       ;;
     \?)
       usage
@@ -80,5 +96,5 @@ shift $(($OPTIND - 1))
 [ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
 
 exec "$ISABELLE_TOOL" java isabelle.Build \
-  "$ALL_SESSIONS" "$BUILD_IMAGES" "$LIST_ONLY" \
+  "$ALL_SESSIONS" "$BUILD_IMAGES" "$MAX_JOBS" "$LIST_ONLY" "$VERBOSE" \
   "${MORE_DIRS[@]}" $'\n' "${BUILD_OPTIONS[@]}" $'\n' "$@"

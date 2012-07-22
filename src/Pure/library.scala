@@ -62,6 +62,10 @@ object Library
 
   def split_lines(str: String): List[String] = space_explode('\n', str)
 
+  def trim_line(str: String): String =
+    if (str.endsWith("\n")) str.substring(0, str.length - 1)
+    else str
+
 
   /* iterate over chunks (cf. space_explode) */
 

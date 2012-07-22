@@ -20,5 +20,6 @@ session RAW in "." =
     "ML-Systems/use_context.ML"
 
 session Pure in "." =
+  theories Pure
   files "ROOT.ML"  (* FIXME *)
 

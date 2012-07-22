@@ -37,7 +37,7 @@ object Session
 }
 
 
-class Session(thy_load: Thy_Load = new Thy_Load)
+class Session(thy_load: Thy_Load = new Thy_Load())
 {
   /* global flags */
 
