@@ -48,6 +48,8 @@ object SHA1
     make_result(digest)
   }
 
+  def digest(path: Path): Digest = digest(path.file)
+
   def digest(bytes: Array[Byte]): Digest =
   {
     val digest = MessageDigest.getInstance("SHA")

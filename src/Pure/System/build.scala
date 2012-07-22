@@ -52,6 +52,7 @@ object Build
       options: Options,
       theories: List[(Options, List[Path])],
       files: List[Path],
+      digest: SHA1.Digest,
       status: Status = Pending)
 
 
@@ -203,9 +204,11 @@ object Build
         val theories =
           entry.theories.map({ case (opts, thys) => (options ++ opts, thys.map(Path.explode(_))) })
         val files = entry.files.map(Path.explode(_))
+        val digest = SHA1.digest((full_name, entry.parent, entry.options, entry.theories).toString)
+
         val info =
           Session.Info(dir + path, entry.parent,
-            entry.description, options ++ entry.options, theories, files)
+            entry.description, options ++ entry.options, theories, files, digest)
 
         queue1 + (key, info)
       }
@@ -270,10 +273,15 @@ object Build
 
   sealed case class Node(
     loaded_theories: Set[String],
-    sources: List[Path])
+    sources: List[(Path, SHA1.Digest)])
 
-  def dependencies(queue: Session.Queue): Map[String, Node] =
-    (Map.empty[String, Node] /: queue.topological_order)(
+  sealed case class Deps(deps: Map[String, Node])
+  {
+    def sources(name: String): List[(Path, SHA1.Digest)] = deps(name).sources
+  }
+
+  def dependencies(queue: Session.Queue): Deps =
+    Deps((Map.empty[String, Node] /: queue.topological_order)(
       { case (deps, (name, info)) =>
           val preloaded =
             info.parent match {
@@ -288,7 +296,8 @@ object Build
                 map(thy => Document.Node.Name(info.dir + Thy_Load.thy_path(thy))))
 
           val loaded_theories = preloaded ++ thy_deps.map(_._1.theory)
-          val sources =
+
+          val all_files =
             thy_deps.map({ case (n, h) =>
               val thy = Path.explode(n.node).expand
               val uses =
@@ -299,9 +308,10 @@ object Build
                 }
               thy :: uses
             }).flatten ::: info.files.map(file => info.dir + file)
+          val sources = all_files.par.map(p => (p, SHA1.digest(p))).toList
 
           deps + (name -> Node(loaded_theories, sources))
-      })
+      }))
 
 
 
@@ -367,6 +377,7 @@ object Build
   {
     val options = (Options.init() /: more_options)(_.define_simple(_))
     val queue = find_sessions(options, all_sessions, sessions, more_dirs)
+    val deps = dependencies(queue)
 
 
     // prepare browser info dir
@@ -400,7 +411,10 @@ object Build
 
           val log = log_dir + Path.basic(name)
           if (rc == 0) {
-            File.write_zip(log.ext("gz"), out)
+            val sources =
+              (info.digest :: deps.sources(name).map(_._2)).map(_.toString).sorted
+                .mkString("sources: ", " ", "\n")
+            File.write_zip(log.ext("gz"), sources + out)
           }
           else {
             File.write(log, out)
