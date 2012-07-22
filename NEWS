@@ -29,6 +29,9 @@ with some care where this is really required.
 
 *** HOL ***
 
+* Library/Debug.thy and Library/Parallel.thy: debugging and parallel
+execution for code generated towards Isabelle/ML.
+
 * Simproc "finite_Collect" rewrites set comprehensions into pointfree
 expressions.
 
