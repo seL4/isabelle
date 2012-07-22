@@ -41,10 +41,6 @@ object Build
 
     /* Info */
 
-    sealed abstract class Status
-    case object Pending extends Status
-    case object Running extends Status
-
     sealed case class Info(
       dir: Path,
       parent: Option[String],
@@ -52,8 +48,7 @@ object Build
       options: Options,
       theories: List[(Options, List[Path])],
       files: List[Path],
-      digest: SHA1.Digest,
-      status: Status = Pending)
+      digest: SHA1.Digest)
 
 
     /* Queue */
@@ -269,6 +264,9 @@ object Build
   }
 
 
+
+  /** build **/
+
   /* dependencies */
 
   sealed case class Node(
@@ -314,28 +312,23 @@ object Build
       }))
 
 
+  /* jobs */
 
-  /** build **/
-
-  private def echo(msg: String) { java.lang.System.out.println(msg) }
-  private def echo_n(msg: String) { java.lang.System.out.print(msg) }
-
-  class Build_Job(cwd: JFile, env: Map[String, String], script: String, args: String)
+  private class Job(cwd: JFile, env: Map[String, String], script: String, args: String)
   {
     private val args_file = File.tmp_file("args")
     private val env1 = env + ("ARGS_FILE" -> Isabelle_System.posix_path(args_file.getPath))
     File.write(args_file, args)
 
-    private val (thread, result) = Simple_Thread.future("build_job") {
-      Isabelle_System.bash_env(cwd, env1, script)
-    }
+    private val (thread, result) =
+      Simple_Thread.future("build") { Isabelle_System.bash_env(cwd, env1, script) }
 
     def terminate: Unit = thread.interrupt
     def is_finished: Boolean = result.is_finished
     def join: (String, String, Int) = { val rc = result.join; args_file.delete; rc }
   }
 
-  private def build_job(save: Boolean, name: String, info: Session.Info): Build_Job =
+  private def start_job(save: Boolean, name: String, info: Session.Info): Job =
   {
     val parent = info.parent.getOrElse("")
 
@@ -369,8 +362,14 @@ object Build
       pair(bool, pair(string, pair(string, list(string))))(
         save, (parent, (name, info.theories.map(_._2).flatten.map(_.implode))))
     }
-    new Build_Job(cwd, env, script, YXML.string_of_body(args_xml))
+    new Job(cwd, env, script, YXML.string_of_body(args_xml))
   }
+
+
+  /* Scala entry point */
+
+  private def echo(msg: String) { java.lang.System.out.println(msg) }
+  private def echo_n(msg: String) { java.lang.System.out.print(msg) }
 
   def build(all_sessions: Boolean, build_images: Boolean, list_only: Boolean,
     more_dirs: List[Path], more_options: List[String], sessions: List[String]): Int =
@@ -397,7 +396,7 @@ object Build
     val log_dir = Path.explode("$ISABELLE_OUTPUT/log")
     log_dir.file.mkdirs()
 
-    // run jobs
+
     val rcs =
       for ((name, info) <- queue.topological_order) yield
       {
@@ -406,7 +405,7 @@ object Build
           val save = build_images || queue.is_inner(name)
           echo((if (save) "Building " else "Running ") + name + " ...")
 
-          val (out, err, rc) = build_job(save, name, info).join
+          val (out, err, rc) = start_job(save, name, info).join
           echo_n(err)
 
           val log = log_dir + Path.basic(name)
