@@ -62,8 +62,10 @@ object Build
       keys: Map[String, Key] = Map.empty,
       graph: Graph[Key, Info] = Graph.empty(Key.Ordering))
     {
-      def defined(name: String): Boolean = keys.isDefinedAt(name)
+      def is_empty: Boolean = graph.is_empty
 
+      def apply(name: String): Info = graph.get_node(keys(name))
+      def defined(name: String): Boolean = keys.isDefinedAt(name)
       def is_inner(name: String): Boolean = !graph.is_maximal(keys(name))
 
       def + (key: Key, info: Info): Queue =
@@ -85,12 +87,22 @@ object Build
         new Queue(keys1, graph1)
       }
 
+      def - (name: String): Queue = new Queue(keys - name, graph.del_node(keys(name)))
+
       def required(names: List[String]): Queue =
       {
         val req = graph.all_preds(names.map(keys(_))).map(_.name).toSet
         val keys1 = keys -- keys.keySet.filter(name => !req(name))
         val graph1 = graph.restrict(key => keys1.isDefinedAt(key.name))
         new Queue(keys1, graph1)
+      }
+
+      def dequeue(skip: String => Boolean): Option[(String, Info)] =
+      {
+        val it = graph.entries.dropWhile(
+          { case (key, (_, (deps, _))) => !deps.isEmpty || skip(key.name) })
+        if (it.hasNext) { val (key, (info, _)) = it.next; Some((key.name, info)) }
+        else None
       }
 
       def topological_order: List[(String, Info)] =
@@ -325,7 +337,7 @@ object Build
 
     def terminate: Unit = thread.interrupt
     def is_finished: Boolean = result.is_finished
-    def join: (String, String, Int) = { val rc = result.join; args_file.delete; rc }
+    def join: (String, String, Int) = { val res = result.join; args_file.delete; res }
   }
 
   private def start_job(save: Boolean, name: String, info: Session.Info): Job =
@@ -366,12 +378,13 @@ object Build
   }
 
 
-  /* Scala entry point */
+  /* build */
 
   private def echo(msg: String) { java.lang.System.out.println(msg) }
-  private def echo_n(msg: String) { java.lang.System.out.print(msg) }
+  private def sleep(): Unit = Thread.sleep(500)
 
-  def build(all_sessions: Boolean, build_images: Boolean, list_only: Boolean,
+  def build(all_sessions: Boolean, build_images: Boolean, max_jobs: Int,
+    list_only: Boolean, verbose: Boolean,
     more_dirs: List[Path], more_options: List[String], sessions: List[String]): Int =
   {
     val options = (Options.init() /: more_options)(_.define_simple(_))
@@ -396,37 +409,60 @@ object Build
     val log_dir = Path.explode("$ISABELLE_OUTPUT/log")
     log_dir.file.mkdirs()
 
+    // scheduler loop
+    @tailrec def loop(
+      pending: Session.Queue,
+      running: Map[String, Job],
+      results: Map[String, Int]): Map[String, Int] =
+    {
+      if (pending.is_empty) results
+      else if (running.exists({ case (_, job) => job.is_finished })) {
+        val (name, job) = running.find({ case (_, job) => job.is_finished }).get
 
-    val rcs =
-      for ((name, info) <- queue.topological_order) yield
-      {
-        if (list_only) { echo(name + " in " + info.dir); 0 }
+        val (out, err, rc) = job.join
+        echo(Library.trim_line(err))
+
+        val log = log_dir + Path.basic(name)
+        if (rc == 0) {
+          val sources =
+            (queue(name).digest :: deps.sources(name).map(_._2)).map(_.toString).sorted
+              .mkString("sources: ", " ", "\n")
+          File.write_zip(log.ext("gz"), sources + out)
+        }
         else {
-          val save = build_images || queue.is_inner(name)
-          echo((if (save) "Building " else "Running ") + name + " ...")
-
-          val (out, err, rc) = start_job(save, name, info).join
-          echo_n(err)
-
-          val log = log_dir + Path.basic(name)
-          if (rc == 0) {
-            val sources =
-              (info.digest :: deps.sources(name).map(_._2)).map(_.toString).sorted
-                .mkString("sources: ", " ", "\n")
-            File.write_zip(log.ext("gz"), sources + out)
-          }
-          else {
-            File.write(log, out)
-            echo(name + " FAILED")
-            echo("(see also " + log.file + ")")
-            val lines = split_lines(out)
-            val tail = lines.drop(lines.length - 20 max 0)
-            echo("\n" + cat_lines(tail))
-          }
-          rc
+          File.write(log, out)
+          echo(name + " FAILED")
+          echo("(see also " + log.file + ")")
+          val lines = split_lines(out)
+          val tail = lines.drop(lines.length - 20 max 0)
+          echo("\n" + cat_lines(tail))
+        }
+        loop(pending - name, running - name, results + (name -> rc))
+      }
+      else if (running.size < (max_jobs max 1)) {
+        pending.dequeue(running.isDefinedAt(_)) match {
+          case Some((name, info)) =>
+            if (list_only) {
+              echo(name + " in " + info.dir)
+              loop(pending - name, running, results + (name -> 0))
+            }
+            else if (info.parent.map(results(_)).forall(_ == 0)) {
+              val save = build_images || queue.is_inner(name)
+              echo((if (save) "Building " else "Running ") + name + " ...")
+              val job = start_job(save, name, info)
+              loop(pending, running + (name -> job), results)
+            }
+            else {
+              echo(name + " CANCELLED")
+              loop(pending - name, running, results + (name -> 1))
+            }
+          case None => sleep(); loop(pending, running, results)
         }
       }
-    (0 /: rcs)(_ max _)
+      else { sleep(); loop(pending, running, results) }
+    }
+
+    (0 /: loop(queue, Map.empty, Map.empty))({ case (rc1, (_, rc2)) => rc1 max rc2 })
   }
 
 
@@ -439,9 +475,11 @@ object Build
         case
           Properties.Value.Boolean(all_sessions) ::
           Properties.Value.Boolean(build_images) ::
+          Properties.Value.Int(max_jobs) ::
           Properties.Value.Boolean(list_only) ::
+          Properties.Value.Boolean(verbose) ::
           Command_Line.Chunks(more_dirs, options, sessions) =>
-            build(all_sessions, build_images, list_only,
+            build(all_sessions, build_images, max_jobs, list_only, verbose,
               more_dirs.map(Path.explode), options, sessions)
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }
