@@ -10,7 +10,7 @@ sig
   val name: unit -> string
   val welcome: unit -> string
   val init: bool -> string -> string -> unit
-  val use_dir: string -> string -> bool -> string list -> bool -> bool ->
+  val use_dir: string -> string -> bool -> string list -> bool -> bool -> string ->
     string -> bool -> string list -> string -> string -> bool * string ->
     string -> int -> bool -> bool -> int -> int -> int -> int -> unit
   val finish: unit -> unit
@@ -94,12 +94,12 @@ fun get_rpath rpath =
 fun dumping (_, "") = NONE
   | dumping (cp, path) = SOME (cp, Path.explode path);
 
-fun use_dir item root build modes reset info doc doc_graph doc_variants parent
+fun use_dir item root build modes reset info info_path doc doc_graph doc_variants parent
     name dump rpath level timing verbose max_threads trace_threads
     parallel_proofs parallel_proofs_threshold =
   ((fn () =>
      (init reset parent name;
-      Present.init build info doc doc_graph doc_variants (path ()) name
+      Present.init build info info_path doc doc_graph doc_variants (path ()) name
         (dumping dump) (get_rpath rpath) verbose (map Thy_Info.get_theory (Thy_Info.get_names ()));
       if timing then
         let

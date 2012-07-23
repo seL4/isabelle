@@ -17,7 +17,7 @@ sig
    path: string, parents: string list} list -> Path.T -> unit
   val display_graph: {name: string, ID: string, dir: string, unfold: bool,
    path: string, parents: string list} list -> unit
-  val init: bool -> bool -> string -> bool -> string list -> string list ->
+  val init: bool -> bool -> string -> string -> bool -> string list -> string list ->
     string -> (bool * Path.T) option -> Url.T option * bool -> bool ->
     theory list -> unit  (*not thread-safe!*)
   val finish: unit -> unit  (*not thread-safe!*)
@@ -33,8 +33,6 @@ struct
 
 
 (** paths **)
-
-val output_path = Path.variable "ISABELLE_BROWSER_INFO";
 
 val tex_ext = Path.ext "tex";
 val tex_path = tex_ext o Path.basic;
@@ -275,7 +273,7 @@ fun read_variants strs =
 
 fun name_of_session elems = space_implode "/" ("Isabelle" :: elems);
 
-fun init build info doc doc_graph doc_variants path name dump_prefix
+fun init build info info_path doc doc_graph doc_variants path name dump_prefix
     (remote_path, first_time) verbose thys =
   if not build andalso not info andalso doc = "" andalso is_none dump_prefix then
     (browser_info := empty_browser_info; session_info := NONE)
@@ -284,7 +282,7 @@ fun init build info doc doc_graph doc_variants path name dump_prefix
       val parent_name = name_of_session (take (length path - 1) path);
       val session_name = name_of_session path;
       val sess_prefix = Path.make path;
-      val html_prefix = Path.append (Path.expand output_path) sess_prefix;
+      val html_prefix = Path.append (Path.expand (Path.explode info_path)) sess_prefix;
 
       val documents =
         if doc = "" then []
