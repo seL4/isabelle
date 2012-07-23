@@ -11,7 +11,7 @@ begin
 
 sledgehammer_params
   [provers = e, max_relevant = 40, strict, dont_slice, type_enc = poly_guards??,
-   lam_trans = combs_and_lifting, timeout = 5, dont_preplay, minimize]
+   lam_trans = combs_and_lifting, timeout = 1, dont_preplay, minimize]
 
 ML {*
 open MaSh_Export
@@ -65,6 +65,5 @@ if do_it then
 else
   ()
 *}
-
 
 end
