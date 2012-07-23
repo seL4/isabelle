@@ -320,7 +320,7 @@ val max_dependencies = 20
 val atp_dependency_default_max_fact = 50
 
 (* "type_definition_xxx" facts are characterized by their use of "CollectI". *)
-val typedef_sig = [@{thm CollectI} |> nickname_of]
+val typedef_deps = [@{thm CollectI} |> nickname_of]
 
 (* "Rep_xxx_inject", "Abs_xxx_inverse", etc., are derived using these facts. *)
 val typedef_ths =
@@ -332,15 +332,24 @@ val typedef_ths =
          type_definition.Abs_image}
   |> map nickname_of
 
-fun trim_dependencies deps =
-  if length deps > max_dependencies orelse deps = typedef_sig orelse
-     exists (member (op =) typedef_ths) deps then
+fun is_size_def [dep] th =
+    (case first_field ".recs" dep of
+       SOME (pref, _) =>
+       (case first_field ".size" (nickname_of th) of
+          SOME (pref', _) => pref = pref'
+        | NONE => false)
+     | NONE => false)
+  | is_size_def _ _ = false
+
+fun trim_dependencies th deps =
+  if length deps > max_dependencies orelse deps = typedef_deps orelse
+     exists (member (op =) typedef_ths) deps orelse is_size_def deps th then
     NONE
   else
     SOME deps
 
-fun isar_dependencies_of all_names =
-  thms_in_proof (SOME all_names) #> trim_dependencies
+fun isar_dependencies_of all_names th =
+  th |> thms_in_proof (SOME all_names) |> trim_dependencies th
 
 fun atp_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
                         auto_level facts all_names th =
@@ -386,7 +395,7 @@ fun atp_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
            end
          else
            ();
-         used_facts |> map fst |> trim_dependencies)
+         used_facts |> map fst |> trim_dependencies th)
       | _ => NONE
     end
 
