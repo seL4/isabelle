@@ -340,20 +340,20 @@ object Build
     def join: (String, String, Int) = { val res = result.join; args_file.delete; res }
   }
 
-  private def start_job(save: Boolean, name: String, info: Session.Info): Job =
+  private def start_job(name: String, info: Session.Info, output: Option[String]): Job =
   {
     val parent = info.parent.getOrElse("")
 
     val cwd = info.dir.file
-    val env = Map("INPUT" -> parent, "TARGET" -> name)
+    val env = Map("INPUT" -> parent, "TARGET" -> name, "OUTPUT" -> output.getOrElse(""))
     val script =
-      if (is_pure(name)) "./build " + (if (save) "-b " else "") + name
+      if (is_pure(name)) "./build " + name + " \"$OUTPUT\""
       else {
         """
         . "$ISABELLE_HOME/lib/scripts/timestart.bash"
         """ +
-          (if (save)
-            """ "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -q -w "$INPUT" "$TARGET" """
+          (if (output.isDefined)
+            """ "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -q -w "$INPUT" "$OUTPUT" """
           else
             """ "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -r -q "$INPUT" """) +
         """
@@ -372,7 +372,7 @@ object Build
     {
       import XML.Encode._
       pair(bool, pair(string, pair(string, list(string))))(
-        save, (parent, (name, info.theories.map(_._2).flatten.map(_.implode))))
+        output.isDefined, (parent, (name, info.theories.map(_._2).flatten.map(_.implode))))
     }
     new Job(cwd, env, script, YXML.string_of_body(args_xml))
   }
@@ -384,29 +384,31 @@ object Build
   private def sleep(): Unit = Thread.sleep(500)
 
   def build(all_sessions: Boolean, build_images: Boolean, max_jobs: Int,
-    list_only: Boolean, verbose: Boolean,
+    list_only: Boolean, system_mode: Boolean, verbose: Boolean,
     more_dirs: List[Path], more_options: List[String], sessions: List[String]): Int =
   {
     val options = (Options.init() /: more_options)(_.define_simple(_))
     val queue = find_sessions(options, all_sessions, sessions, more_dirs)
     val deps = dependencies(queue)
 
+    val (output_dir, browser_info) =
+      if (system_mode) (Path.explode("~~/heaps/$ML_IDENTIFIER"), Path.explode("~~/browser_info"))
+      else (Path.explode("$ISABELLE_OUTPUT"), Path.explode("$ISABELLE_BROWSER_INFO"))
 
     // prepare browser info dir
-    if (options.bool("browser_info") &&
-      !Path.explode("$ISABELLE_BROWSER_INFO/index.html").file.isFile)
+    if (options.bool("browser_info") && !(browser_info + Path.explode("index.html")).file.isFile)
     {
-      Path.explode("$ISABELLE_BROWSER_INFO").file.mkdirs()
-      File.copy(Path.explode("$ISABELLE_HOME/lib/logo/isabelle.gif"),
-        Path.explode("$ISABELLE_BROWSER_INFO/isabelle.gif"))
-      File.write(Path.explode("$ISABELLE_BROWSER_INFO/index.html"),
-        File.read(Path.explode("$ISABELLE_HOME/lib/html/library_index_header.template")) +
-        File.read(Path.explode("$ISABELLE_HOME/lib/html/library_index_content.template")) +
-        File.read(Path.explode("$ISABELLE_HOME/lib/html/library_index_footer.template")))
+      browser_info.file.mkdirs()
+      File.copy(Path.explode("~~/lib/logo/isabelle.gif"),
+        browser_info + Path.explode("isabelle.gif"))
+      File.write(browser_info + Path.explode("index.html"),
+        File.read(Path.explode("~~/lib/html/library_index_header.template")) +
+        File.read(Path.explode("~~/lib/html/library_index_content.template")) +
+        File.read(Path.explode("~~/lib/html/library_index_footer.template")))
     }
 
     // prepare log dir
-    val log_dir = Path.explode("$ISABELLE_OUTPUT/log")
+    val log_dir = output_dir + Path.explode("log")
     log_dir.file.mkdirs()
 
     // scheduler loop
@@ -447,9 +449,12 @@ object Build
               loop(pending - name, running, results + (name -> 0))
             }
             else if (info.parent.map(results(_)).forall(_ == 0)) {
-              val save = build_images || queue.is_inner(name)
-              echo((if (save) "Building " else "Running ") + name + " ...")
-              val job = start_job(save, name, info)
+              val output =
+                if (build_images || queue.is_inner(name))
+                  Some(Isabelle_System.standard_path(output_dir + Path.basic(name)))
+                else None
+              echo((if (output.isDefined) "Building " else "Running ") + name + " ...")
+              val job = start_job(name, info, output)
               loop(pending, running + (name -> job), results)
             }
             else {
@@ -477,10 +482,11 @@ object Build
           Properties.Value.Boolean(build_images) ::
           Properties.Value.Int(max_jobs) ::
           Properties.Value.Boolean(list_only) ::
+          Properties.Value.Boolean(system_mode) ::
           Properties.Value.Boolean(verbose) ::
           Command_Line.Chunks(more_dirs, options, sessions) =>
-            build(all_sessions, build_images, max_jobs, list_only, verbose,
-              more_dirs.map(Path.explode), options, sessions)
+            build(all_sessions, build_images, max_jobs, list_only, system_mode,
+              verbose, more_dirs.map(Path.explode), options, sessions)
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }
     }

@@ -59,7 +59,7 @@ sig
   val mash_can_suggest_facts : Proof.context -> bool
   val mash_suggested_facts :
     Proof.context -> params -> string -> int -> term list -> term
-    -> ('a * thm) list -> (('a * thm) * real) list * ('a * thm) list
+    -> fact list -> (fact * real) list * fact list
   val mash_learn_proof :
     Proof.context -> params -> string -> term -> ('a * thm) list -> thm list
     -> unit
@@ -106,7 +106,7 @@ fun mash_model_dir () =
   getenv "ISABELLE_HOME_USER" ^ "/mash"
   |> tap (Isabelle_System.mkdir o Path.explode)
 val mash_state_dir = mash_model_dir
-fun mash_state_path () = mash_state_dir () ^ "/state" |> Path.explode
+fun mash_state_file () = mash_state_dir () ^ "/state"
 
 
 (*** Isabelle helpers ***)
@@ -312,25 +312,44 @@ fun features_of ctxt prover thy (scope, status) ts =
   |> forall is_lambda_free ts ? cons "no_lams"
   |> forall (not o exists_Const is_exists) ts ? cons "no_skos"
   |> scope <> Global ? cons "local"
-  |> (case status of
-        General => I
-      | Induction => cons "induction"
-      | Intro => cons "intro"
-      | Inductive => cons "inductive"
-      | Elim => cons "elim"
-      | Simp => cons "simp"
-      | Def => cons "def")
+  |> (case string_of_status status of "" => I | s => cons s)
 
 (* Too many dependencies is a sign that a decision procedure is at work. There
    isn't much too learn from such proofs. *)
-val max_dependencies = 10
+val max_dependencies = 20
 val atp_dependency_default_max_fact = 50
 
-fun trim_dependencies deps =
-  if length deps <= max_dependencies then SOME deps else NONE
+(* "type_definition_xxx" facts are characterized by their use of "CollectI". *)
+val typedef_deps = [@{thm CollectI} |> nickname_of]
 
-fun isar_dependencies_of all_names =
-  thms_in_proof (SOME all_names) #> trim_dependencies
+(* "Rep_xxx_inject", "Abs_xxx_inverse", etc., are derived using these facts. *)
+val typedef_ths =
+  @{thms type_definition.Abs_inverse type_definition.Rep_inverse
+         type_definition.Rep type_definition.Rep_inject
+         type_definition.Abs_inject type_definition.Rep_cases
+         type_definition.Abs_cases type_definition.Rep_induct
+         type_definition.Abs_induct type_definition.Rep_range
+         type_definition.Abs_image}
+  |> map nickname_of
+
+fun is_size_def [dep] th =
+    (case first_field ".recs" dep of
+       SOME (pref, _) =>
+       (case first_field ".size" (nickname_of th) of
+          SOME (pref', _) => pref = pref'
+        | NONE => false)
+     | NONE => false)
+  | is_size_def _ _ = false
+
+fun trim_dependencies th deps =
+  if length deps > max_dependencies orelse deps = typedef_deps orelse
+     exists (member (op =) typedef_ths) deps orelse is_size_def deps th then
+    NONE
+  else
+    SOME deps
+
+fun isar_dependencies_of all_names th =
+  th |> thms_in_proof (SOME all_names) |> trim_dependencies th
 
 fun atp_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
                         auto_level facts all_names th =
@@ -376,7 +395,7 @@ fun atp_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
            end
          else
            ();
-         used_facts |> map fst |> trim_dependencies)
+         used_facts |> map fst |> trim_dependencies th)
       | _ => NONE
     end
 
@@ -385,11 +404,11 @@ fun atp_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
 
 (* more friendly than "try o File.rm" for those who keep the files open in their
    text editor *)
-fun wipe_out file = File.write file ""
+fun wipe_out_file file = File.write (Path.explode file) ""
 
-fun write_file (xs, f) file =
+fun write_file heading (xs, f) file =
   let val path = Path.explode file in
-    wipe_out path;
+    File.write path heading;
     xs |> chunk_list 500
        |> List.app (File.append path o space_implode "" o map f)
   end
@@ -411,8 +430,8 @@ fun run_mash_tool ctxt overlord save max_suggs write_cmds read_suggs =
       mash_home () ^ "/mash --quiet --outputDir " ^ mash_model_dir () ^
       " --log " ^ log_file ^ " " ^ core ^ " >& " ^ err_file
   in
-    write_file ([], K "") sugg_file;
-    write_file write_cmds cmd_file;
+    write_file "" ([], K "") sugg_file;
+    write_file "" write_cmds cmd_file;
     trace_msg ctxt (fn () => "Running " ^ command);
     Isabelle_System.bash command;
     read_suggs (fn () => try File.read_lines (Path.explode sugg_file) |> these)
@@ -422,8 +441,7 @@ fun run_mash_tool ctxt overlord save max_suggs write_cmds read_suggs =
            | SOME "" => "Done"
            | SOME s => "Error: " ^ elide_string 1000 s))
     |> not overlord
-       ? tap (fn _ => List.app (wipe_out o Path.explode)
-                               [err_file, sugg_file, cmd_file])
+       ? tap (fn _ => List.app wipe_out_file [err_file, sugg_file, cmd_file])
   end
 
 fun str_of_add (name, parents, feats, deps) =
@@ -506,7 +524,7 @@ val version = "*** MaSh 0.0 ***"
 
 fun load _ (state as (true, _)) = state
   | load ctxt _ =
-    let val path = mash_state_path () in
+    let val path = mash_state_file () |> Path.explode in
       (true,
        case try File.read_lines path of
          SOME (version' :: node_lines) =>
@@ -531,15 +549,13 @@ fun load _ (state as (true, _)) = state
 
 fun save ctxt {fact_G} =
   let
-    val path = mash_state_path ()
-    fun fact_line_for name parents =
-      escape_meta name ^ ": " ^ escape_metas parents
-    val append_fact = File.append path o suffix "\n" oo fact_line_for
-    fun append_entry (name, ((), (parents, _))) () =
-      append_fact name (Graph.Keys.dest parents)
+    fun str_of_entry (name, parents) =
+      escape_meta name ^ ": " ^ escape_metas parents ^ "\n"
+    fun append_entry (name, ((), (parents, _))) =
+      cons (name, Graph.Keys.dest parents)
+    val entries = [] |> Graph.fold append_entry fact_G
   in
-    File.write path (version ^ "\n");
-    Graph.fold append_entry fact_G ();
+    write_file (version ^ "\n") (entries, str_of_entry) (mash_state_file ());
     trace_msg ctxt (fn () => "Saved fact graph (" ^ graph_info fact_G ^ ")")
   end
 
@@ -551,12 +567,17 @@ in
 fun mash_map ctxt f =
   Synchronized.change global_state (load ctxt ##> (f #> tap (save ctxt)))
 
+fun mash_peek ctxt f =
+  Synchronized.change_result global_state (load ctxt #> `snd #>> f)
+
 fun mash_get ctxt =
   Synchronized.change_result global_state (load ctxt #> `snd)
 
 fun mash_unlearn ctxt =
   Synchronized.change global_state (fn _ =>
-      (mash_CLEAR ctxt; wipe_out (mash_state_path ()); (true, empty_state)))
+      (mash_CLEAR ctxt;
+       wipe_out_file (mash_state_file ());
+       (true, empty_state)))
 
 end
 
@@ -598,28 +619,43 @@ fun maximal_in_graph fact_G facts =
 (* Generate more suggestions than requested, because some might be thrown out
    later for various reasons and "meshing" gives better results with some
    slack. *)
-fun max_suggs_of max_facts = max_facts + Int.min (200, max_facts)
+fun max_suggs_of max_facts = max_facts + Int.min (50, max_facts)
 
 fun is_fact_in_graph fact_G (_, th) =
   can (Graph.get_node fact_G) (nickname_of th)
+
+fun interleave 0 _ _ = []
+  | interleave n [] ys = take n ys
+  | interleave n xs [] = take n xs
+  | interleave 1 (x :: _) _ = [x]
+  | interleave n (x :: xs) (y :: ys) = x :: y :: interleave (n - 2) xs ys
 
 fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
                          concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
-    val fact_G = #fact_G (mash_get ctxt)
-    val parents = maximal_in_graph fact_G facts
-    val feats = features_of ctxt prover thy (Local, General) (concl_t :: hyp_ts)
-    val suggs =
-      if Graph.is_empty fact_G then []
-      else mash_QUERY ctxt overlord (max_suggs_of max_facts) (parents, feats)
-    val selected =
+    val (fact_G, suggs) =
+      mash_peek ctxt (fn {fact_G} =>
+          if Graph.is_empty fact_G then
+            (fact_G, [])
+          else
+            let
+              val parents = maximal_in_graph fact_G facts
+              val feats =
+                features_of ctxt prover thy (Local, General) (concl_t :: hyp_ts)
+            in
+              (fact_G, mash_QUERY ctxt overlord (max_suggs_of max_facts)
+                                  (parents, feats))
+            end)
+    val sels =
       facts |> suggested_facts suggs
             (* The weights currently returned by "mash.py" are too extreme to
                make any sense. *)
-            |> map fst |> weight_mepo_facts
-    val unknown = facts |> filter_out (is_fact_in_graph fact_G)
-  in (selected, unknown) end
+            |> map fst
+    val (unk_global, unk_local) =
+      facts |> filter_out (is_fact_in_graph fact_G)
+            |> List.partition (fn ((_, (scope, _)), _) => scope = Global)
+  in (interleave max_facts unk_local sels |> weight_mepo_facts, unk_global) end
 
 fun add_to_fact_graph ctxt (name, parents, feats, deps) (adds, graph) =
   let
@@ -638,7 +674,7 @@ fun launch_thread timeout task =
     val hard_timeout = time_mult learn_timeout_slack timeout
     val birth_time = Time.now ()
     val death_time = Time.+ (birth_time, hard_timeout)
-    val desc = ("machine learner for Sledgehammer", "")
+    val desc = ("Machine learner for Sledgehammer", "")
   in Async_Manager.launch MaShN birth_time death_time desc task end
 
 fun freshish_name () =
@@ -656,11 +692,21 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
           val name = freshish_name ()
           val feats = features_of ctxt prover thy (Local, General) [t]
           val deps = used_ths |> map nickname_of
-          val {fact_G} = mash_get ctxt
-          val parents = maximal_in_graph fact_G facts
         in
-          mash_ADD ctxt overlord [(name, parents, feats, deps)]; (true, "")
+          mash_peek ctxt (fn {fact_G} =>
+              let val parents = maximal_in_graph fact_G facts in
+                mash_ADD ctxt overlord [(name, parents, feats, deps)]
+              end);
+          (true, "")
         end)
+
+val evil_theories =
+  ["Code_Evaluation", "DSequence", "Enum", "Lazy_Sequence", "Nitpick",
+   "New_DSequence", "New_Random_Sequence", "Quickcheck",
+   "Quickcheck_Exhaustive", "Quickcheck_Narrowing", "Random_Sequence", "SMT"]
+
+fun fact_has_evil_theory (_, th) =
+  member (op =) evil_theories (Context.theory_name (theory_of_thm th))
 
 fun sendback sub =
   Markup.markup Isabelle_Markup.sendback (sledgehammerN ^ " " ^ sub)
@@ -676,7 +722,8 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
       Time.+ (Timer.checkRealTimer timer, commit_timeout)
     val {fact_G} = mash_get ctxt
     val (old_facts, new_facts) =
-      facts |> List.partition (is_fact_in_graph fact_G)
+      facts |> filter_out fact_has_evil_theory
+            |> List.partition (is_fact_in_graph fact_G)
             ||> sort (thm_ord o pairself snd)
   in
     if null new_facts andalso (not atp orelse null old_facts) then
@@ -691,15 +738,14 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
     else
       let
         val all_names =
-          facts |> map snd
-                |> filter_out is_likely_tautology_or_too_meta
-                |> map (rpair () o nickname_of)
-                |> Symtab.make
-        val deps_of =
-          if atp then
-            atp_dependencies_of ctxt params prover auto_level facts all_names
+          facts |> map snd |> map (rpair () o nickname_of) |> Symtab.make
+        fun deps_of status th =
+          if status = Non_Rec_Def orelse status = Rec_Def then
+            SOME []
+          else if atp then
+            atp_dependencies_of ctxt params prover auto_level facts all_names th
           else
-            isar_dependencies_of all_names
+            isar_dependencies_of all_names th
         fun do_commit [] [] state = state
           | do_commit adds reps {fact_G} =
             let
@@ -727,13 +773,13 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
            else
              ())
         fun learn_new_fact _ (accum as (_, (_, _, _, true))) = accum
-          | learn_new_fact ((_, stature), th)
+          | learn_new_fact ((_, stature as (_, status)), th)
                            (adds, (parents, n, next_commit, _)) =
             let
               val name = nickname_of th
               val feats =
                 features_of ctxt prover (theory_of_thm th) stature [prop_of th]
-              val deps = deps_of th |> these
+              val deps = deps_of status th |> these
               val n = n |> not (null deps) ? Integer.add 1
               val adds = (name, parents, feats, deps) :: adds
               val (adds, next_commit) =
@@ -759,11 +805,12 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
                 |> fold learn_new_fact new_facts
             in commit true adds []; n end
         fun relearn_old_fact _ (accum as (_, (_, _, true))) = accum
-          | relearn_old_fact (_, th) (reps, (n, next_commit, _)) =
+          | relearn_old_fact ((_, (_, status)), th)
+                             (reps, (n, next_commit, _)) =
             let
               val name = nickname_of th
               val (n, reps) =
-                case deps_of th of
+                case deps_of status th of
                   SOME deps => (n + 1, (name, deps) :: reps)
                 | NONE => (n, reps)
               val (reps, next_commit) =
@@ -774,7 +821,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
               val timed_out = Time.> (Timer.checkRealTimer timer, learn_timeout)
             in (reps, (n, next_commit, timed_out)) end
         val n =
-          if null old_facts then
+          if not atp orelse null old_facts then
             n
           else
             let

@@ -492,8 +492,8 @@ def judgement_day_scheduler(env):
 
 smlnj_settings = '''
 ML_SYSTEM=smlnj
-ML_HOME="/home/smlnj/110.72/bin"
-ML_OPTIONS="@SMLdebug=/dev/null @SMLalloc=256"
+ML_HOME="/home/smlnj/110.74/bin"
+ML_OPTIONS="@SMLdebug=/dev/null @SMLalloc=1024"
 ML_PLATFORM=$(eval $("$ML_HOME/.arch-n-opsys" 2>/dev/null); echo "$HEAP_SUFFIX")
 '''
 

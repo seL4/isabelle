@@ -12,12 +12,7 @@
 function usage()
 {
   echo
-  echo "Usage: $PRG [OPTIONS] TARGET"
-  echo
-  echo "  Options are:"
-  echo "    -b           build target images"
-  echo
-  echo "  Build Isabelle/ML TARGET: RAW or Pure"
+  echo "Usage: $PRG TARGET OUTPUT"
   echo
   exit 1
 }
@@ -33,32 +28,14 @@ function fail()
 
 ## process command line
 
-# options
-
-BUILD_IMAGES=false
-
-while getopts "b" OPT
-do
-  case "$OPT" in
-    b)
-      BUILD_IMAGES="true"
-      ;;
-    \?)
-      usage
-      ;;
-  esac
-done
-
-shift $(($OPTIND - 1))
-
-
 # args
 
-TARGET="Pure"
-[ "$#" -ge 1 ] && { TARGET="$1"; shift; }
-[ "$TARGET" = RAW -o "$TARGET" = Pure ] || fail "Bad target: \"$TARGET\""
-
-[ "$#" -eq 0 ] || usage
+if [ "$#" -eq 2 ]; then
+  TARGET="$1"; shift
+  OUTPUT="$1"; shift
+else
+  usage
+fi
 
 
 ## main
@@ -79,7 +56,7 @@ COMPAT=""
 . "$ISABELLE_HOME/lib/scripts/timestart.bash"
 
 if [ "$TARGET" = RAW ]; then
-  if [ "$BUILD_IMAGES" = false ]; then
+  if [ -z "$OUTPUT" ]; then
     "$ISABELLE_PROCESS" \
       -e "use\"$COMPAT\" handle _ => OS.Process.exit OS.Process.failure;" \
       -q RAW_ML_SYSTEM
@@ -88,10 +65,10 @@ if [ "$TARGET" = RAW ]; then
       -e "use\"$COMPAT\" handle _ => OS.Process.exit OS.Process.failure;" \
       -e "structure Isar = struct fun main () = () end;" \
       -e "ml_prompts \"ML> \" \"ML# \";" \
-      -q -w RAW_ML_SYSTEM RAW
+      -q -w RAW_ML_SYSTEM "$OUTPUT"
   fi
 else
-  if [ "$BUILD_IMAGES" = false ]; then
+  if [ -z "$OUTPUT" ]; then
     "$ISABELLE_PROCESS" \
       -e "(use\"$COMPAT\"; use\"ROOT.ML\") handle _ => OS.Process.exit OS.Process.failure;" \
       -q RAW_ML_SYSTEM
@@ -99,7 +76,7 @@ else
     "$ISABELLE_PROCESS" \
       -e "(use\"$COMPAT\"; use\"ROOT.ML\") handle _ => OS.Process.exit OS.Process.failure;" \
       -e "ml_prompts \"ML> \" \"ML# \";" \
-      -f -q -w RAW_ML_SYSTEM Pure
+      -f -q -w RAW_ML_SYSTEM "$OUTPUT"
   fi
 fi
 

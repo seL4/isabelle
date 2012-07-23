@@ -29,7 +29,7 @@ open Sledgehammer_Minimize
 open Sledgehammer_MaSh
 open Sledgehammer_Run
 
-val cvc3N = "cvc3"
+(* val cvc3N = "cvc3" *)
 val yicesN = "yices"
 val z3N = "z3"
 
@@ -226,7 +226,7 @@ val max_default_remote_threads = 4
 (* The first ATP of the list is used by Auto Sledgehammer. Because of the low
    timeout, it makes sense to put E first. *)
 fun default_provers_param_value ctxt =
-  [eN, spassN, vampireN, z3N, e_sineN, waldmeisterN, yicesN, cvc3N]
+  [eN, spassN, vampireN, z3N, e_sineN, waldmeisterN, yicesN]
   |> map_filter (remotify_prover_if_not_installed ctxt)
   |> avoid_too_many_threads ctxt (Multithreading.max_threads_value (),
                                   max_default_remote_threads)
@@ -404,11 +404,11 @@ fun hammer_away override_params subcommand opt_i fact_override state =
        else
          ();
        mash_learn ctxt (get_params Normal ctxt
-                           (("timeout",
-                             [string_of_real default_learn_atp_timeout]) ::
+                           ([("timeout",
+                              [string_of_real default_learn_atp_timeout]),
+                             ("slice", ["false"])] @
                             override_params @
-                            [("slice", ["false"]),
-                             ("minimize", ["true"]),
+                            [("minimize", ["true"]),
                              ("preplay_timeout", ["0"])]))
                   fact_override (#facts (Proof.goal state))
                   (subcommand = learn_atpN orelse subcommand = relearn_atpN))

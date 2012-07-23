@@ -21,6 +21,7 @@ function usage()
   echo "    -j INT       maximum number of jobs (default 1)"
   echo "    -l           list sessions only"
   echo "    -o OPTION    override session configuration OPTION (via NAME=VAL or NAME)"
+  echo "    -s           system build mode: produce output in ISABELLE_HOME"
   echo "    -v           verbose"
   echo
   echo "  Build and manage Isabelle sessions, depending on implicit"
@@ -52,12 +53,13 @@ ALL_SESSIONS=false
 BUILD_IMAGES=false
 MAX_JOBS=1
 LIST_ONLY=false
+SYSTEM_MODE=false
 VERBOSE=false
 
 declare -a MORE_DIRS=()
 eval "declare -a BUILD_OPTIONS=($ISABELLE_BUILD_OPTIONS)"
 
-while getopts "abd:j:lo:v" OPT
+while getopts "abd:j:lo:sv" OPT
 do
   case "$OPT" in
     a)
@@ -79,6 +81,9 @@ do
     o)
       BUILD_OPTIONS["${#BUILD_OPTIONS[@]}"]="$OPTARG"
       ;;
+    s)
+      SYSTEM_MODE="true"
+      ;;
     v)
       VERBOSE="true"
       ;;
@@ -96,5 +101,5 @@ shift $(($OPTIND - 1))
 [ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
 
 exec "$ISABELLE_TOOL" java isabelle.Build \
-  "$ALL_SESSIONS" "$BUILD_IMAGES" "$MAX_JOBS" "$LIST_ONLY" "$VERBOSE" \
+  "$ALL_SESSIONS" "$BUILD_IMAGES" "$MAX_JOBS" "$LIST_ONLY" "$SYSTEM_MODE" "$VERBOSE" \
   "${MORE_DIRS[@]}" $'\n' "${BUILD_OPTIONS[@]}" $'\n' "$@"

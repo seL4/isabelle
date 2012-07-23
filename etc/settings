@@ -45,7 +45,7 @@ ML_SOURCES="$ML_HOME/../src"
 # Standard ML of New Jersey (slow!)
 #ML_SYSTEM=smlnj-110
 #ML_HOME="/usr/local/smlnj/bin"
-#ML_OPTIONS="@SMLdebug=/dev/null @SMLalloc=256"
+#ML_OPTIONS="@SMLdebug=/dev/null @SMLalloc=1024"
 #ML_PLATFORM=$(eval $("$ML_HOME/.arch-n-opsys" 2>/dev/null); echo "$HEAP_SUFFIX")
 #SMLNJ_CYGWIN_RUNTIME=1
 
@@ -93,7 +93,11 @@ ISABELLE_EPSTOPDF="epstopdf"
 ###
 
 # The place for user configuration, heap files, etc.
-ISABELLE_HOME_USER="$USER_HOME/.isabelle/${ISABELLE_IDENTIFIER:-.}"
+if [ -z "ISABELLE_IDENTIFIER" ]; then
+  ISABELLE_HOME_USER="$USER_HOME/.isabelle"
+else
+  ISABELLE_HOME_USER="$USER_HOME/.isabelle/$ISABELLE_IDENTIFIER"
+fi
 
 # Where to look for isabelle tools (multiple dirs separated by ':').
 ISABELLE_TOOLS="$ISABELLE_HOME/lib/Tools"
