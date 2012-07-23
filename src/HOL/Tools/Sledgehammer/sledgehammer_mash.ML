@@ -551,6 +551,9 @@ in
 fun mash_map ctxt f =
   Synchronized.change global_state (load ctxt ##> (f #> tap (save ctxt)))
 
+fun mash_peek ctxt f =
+  Synchronized.change_result global_state (load ctxt #> `snd #>> f)
+
 fun mash_get ctxt =
   Synchronized.change_result global_state (load ctxt #> `snd)
 
@@ -598,7 +601,7 @@ fun maximal_in_graph fact_G facts =
 (* Generate more suggestions than requested, because some might be thrown out
    later for various reasons and "meshing" gives better results with some
    slack. *)
-fun max_suggs_of max_facts = max_facts + Int.min (200, max_facts)
+fun max_suggs_of max_facts = max_facts + Int.min (50, max_facts)
 
 fun is_fact_in_graph fact_G (_, th) =
   can (Graph.get_node fact_G) (nickname_of th)
@@ -607,12 +610,19 @@ fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
                          concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
-    val fact_G = #fact_G (mash_get ctxt)
-    val parents = maximal_in_graph fact_G facts
-    val feats = features_of ctxt prover thy (Local, General) (concl_t :: hyp_ts)
-    val suggs =
-      if Graph.is_empty fact_G then []
-      else mash_QUERY ctxt overlord (max_suggs_of max_facts) (parents, feats)
+    val (fact_G, suggs) =
+      mash_peek ctxt (fn {fact_G} =>
+          if Graph.is_empty fact_G then
+            (fact_G, [])
+          else
+            let
+              val parents = maximal_in_graph fact_G facts
+              val feats =
+                features_of ctxt prover thy (Local, General) (concl_t :: hyp_ts)
+            in
+              (fact_G, mash_QUERY ctxt overlord (max_suggs_of max_facts)
+                                  (parents, feats))
+            end)
     val selected =
       facts |> suggested_facts suggs
             (* The weights currently returned by "mash.py" are too extreme to
@@ -656,10 +666,12 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
           val name = freshish_name ()
           val feats = features_of ctxt prover thy (Local, General) [t]
           val deps = used_ths |> map nickname_of
-          val {fact_G} = mash_get ctxt
-          val parents = maximal_in_graph fact_G facts
         in
-          mash_ADD ctxt overlord [(name, parents, feats, deps)]; (true, "")
+          mash_peek ctxt (fn {fact_G} =>
+              let val parents = maximal_in_graph fact_G facts in
+                mash_ADD ctxt overlord [(name, parents, feats, deps)]
+              end);
+          (true, "")
         end)
 
 fun sendback sub =
