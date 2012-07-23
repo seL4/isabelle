@@ -18,7 +18,9 @@ sig
   datatype mode = Metis | Sledgehammer | Sledgehammer_Completish | Exporter
 
   datatype scope = Global | Local | Assum | Chained
-  datatype status = General | Induction | Intro | Inductive | Elim | Simp | Def
+  datatype status =
+    General | Induction | Intro | Inductive | Elim | Simp | Non_Rec_Def |
+    Rec_Def
   type stature = scope * status
 
   datatype strictness = Strict | Non_Strict
@@ -103,6 +105,7 @@ sig
   val helper_table : ((string * bool) * (status * thm) list) list
   val trans_lams_from_string :
     Proof.context -> type_enc -> string -> term list -> term list * term list
+  val string_of_status : status -> string
   val factsN : string
   val prepare_atp_problem :
     Proof.context -> atp_format -> formula_role -> type_enc -> mode -> string
@@ -123,7 +126,8 @@ open ATP_Problem
 datatype mode = Metis | Sledgehammer | Sledgehammer_Completish | Exporter
 
 datatype scope = Global | Local | Assum | Chained
-datatype status = General | Induction | Intro | Inductive | Elim | Simp | Def
+datatype status =
+  General | Induction | Intro | Inductive | Elim | Simp | Non_Rec_Def | Rec_Def
 type stature = scope * status
 
 datatype order =
@@ -1236,7 +1240,8 @@ fun preprocess_abstractions_in_terms trans_lams facts =
             |>> map2 (fn (name, (role, _)) => fn t => (name, (role, t))) facts
     val lam_facts =
       map2 (fn t => fn j =>
-               ((lam_fact_prefix ^ Int.toString j, (Global, Def)), (Axiom, t)))
+               ((lam_fact_prefix ^ Int.toString j,
+                 (Global, Non_Rec_Def)), (Axiom, t)))
            lambda_ts (1 upto length lambda_ts)
   in (facts, lam_facts) end
 
@@ -1293,7 +1298,7 @@ fun make_fact ctxt format type_enc iff_for_eq
               ((name, stature as (_, status)), t) =
   let
     val role =
-      if is_format_with_defs format andalso status = Def andalso
+      if is_format_with_defs format andalso status = Non_Rec_Def andalso
          is_legitimate_tptp_def t then
         Definition
       else
@@ -1664,18 +1669,18 @@ val ftrue = @{lemma "fTrue" by (unfold fTrue_def) fast}
 
 (* The Boolean indicates that a fairly sound type encoding is needed. *)
 val base_helper_table =
-  [(("COMBI", false), [(Def, @{thm Meson.COMBI_def})]),
-   (("COMBK", false), [(Def, @{thm Meson.COMBK_def})]),
-   (("COMBB", false), [(Def, @{thm Meson.COMBB_def})]),
-   (("COMBC", false), [(Def, @{thm Meson.COMBC_def})]),
-   (("COMBS", false), [(Def, @{thm Meson.COMBS_def})]),
+  [(("COMBI", false), [(Non_Rec_Def, @{thm Meson.COMBI_def})]),
+   (("COMBK", false), [(Non_Rec_Def, @{thm Meson.COMBK_def})]),
+   (("COMBB", false), [(Non_Rec_Def, @{thm Meson.COMBB_def})]),
+   (("COMBC", false), [(Non_Rec_Def, @{thm Meson.COMBC_def})]),
+   (("COMBS", false), [(Non_Rec_Def, @{thm Meson.COMBS_def})]),
    ((predicator_name, false), [(General, not_ffalse), (General, ftrue)]),
    (("fFalse", false), [(General, not_ffalse)]),
    (("fFalse", true), [(General, @{thm True_or_False})]),
    (("fTrue", false), [(General, ftrue)]),
    (("fTrue", true), [(General, @{thm True_or_False})]),
    (("If", true),
-    [(Def, @{thm if_True}), (Def, @{thm if_False}),
+    [(Non_Rec_Def, @{thm if_True}), (Non_Rec_Def, @{thm if_False}),
      (General, @{thm True_or_False})])]
 
 val helper_table =
@@ -1683,7 +1688,7 @@ val helper_table =
   [(("fNot", false),
     @{thms fNot_def [THEN Meson.iff_to_disjD, THEN conjunct1]
            fNot_def [THEN Meson.iff_to_disjD, THEN conjunct2]}
-    |> map (pair Def)),
+    |> map (pair Non_Rec_Def)),
    (("fconj", false),
     @{lemma "~ P | ~ Q | fconj P Q" "~ fconj P Q | P" "~ fconj P Q | Q"
         by (unfold fconj_def) fast+}
@@ -1718,19 +1723,19 @@ val completish_helper_table =
    ((app_op_name, true),
     [(General, @{lemma "EX x. ~ f x = g x | f = g" by blast})]),
    (("fconj", false),
-    @{thms fconj_table fconj_laws fdisj_laws} |> map (pair Def)),
+    @{thms fconj_table fconj_laws fdisj_laws} |> map (pair Non_Rec_Def)),
    (("fdisj", false),
-    @{thms fdisj_table fconj_laws fdisj_laws} |> map (pair Def)),
+    @{thms fdisj_table fconj_laws fdisj_laws} |> map (pair Non_Rec_Def)),
    (("fimplies", false),
     @{thms fimplies_table fconj_laws fdisj_laws fimplies_laws}
-    |> map (pair Def)),
+    |> map (pair Non_Rec_Def)),
    (("fequal", false),
-    (@{thms fequal_table} |> map (pair Def)) @
+    (@{thms fequal_table} |> map (pair Non_Rec_Def)) @
     (@{thms fequal_laws} |> map (pair General))),
    (("fAll", false),
-    @{thms fAll_table fComp_law fAll_law fEx_law} |> map (pair Def)),
+    @{thms fAll_table fComp_law fAll_law fEx_law} |> map (pair Non_Rec_Def)),
    (("fEx", false),
-    @{thms fEx_table fComp_law fAll_law fEx_law} |> map (pair Def))]
+    @{thms fEx_table fComp_law fAll_law fEx_law} |> map (pair Non_Rec_Def))]
   |> map (apsnd (map (apsnd zero_var_indexes)))
 
 fun bound_tvars type_enc sorts Ts =
@@ -2104,28 +2109,29 @@ and formula_from_iformula ctxt mono type_enc should_guard_var =
       | do_formula pos (AAtom tm) = AAtom (do_term pos tm)
   in do_formula end
 
+fun string_of_status General = ""
+  | string_of_status Induction = inductionN
+  | string_of_status Intro = introN
+  | string_of_status Inductive = inductiveN
+  | string_of_status Elim = elimN
+  | string_of_status Simp = simpN
+  | string_of_status Non_Rec_Def = non_rec_defN
+  | string_of_status Rec_Def = rec_defN
+
 (* Each fact is given a unique fact number to avoid name clashes (e.g., because
    of monomorphization). The TPTP explicitly forbids name clashes, and some of
    the remote provers might care. *)
 fun line_for_fact ctxt prefix encode freshen pos mono type_enc rank
-                  (j, {name, stature, role, iformula, atomic_types}) =
-  (prefix ^ (if freshen then string_of_int j ^ "_" else "") ^ encode name, role,
-   iformula
-   |> formula_from_iformula ctxt mono type_enc should_guard_var_in_formula
-                            (if pos then SOME true else NONE)
-   |> close_formula_universally
-   |> bound_tvars type_enc true atomic_types,
-   NONE,
-   let val rank = rank j in
-     case snd stature of
-       Intro => isabelle_info introN rank
-     | Inductive => isabelle_info inductiveN rank
-     | Elim => isabelle_info elimN rank
-     | Simp => isabelle_info simpN rank
-     | Def => isabelle_info defN rank
-     | _ => isabelle_info "" rank
-   end)
-  |> Formula
+        (j, {name, stature = (_, status), role, iformula, atomic_types}) =
+  Formula (prefix ^ (if freshen then string_of_int j ^ "_" else "") ^
+           encode name,
+           role,
+           iformula
+           |> formula_from_iformula ctxt mono type_enc
+                  should_guard_var_in_formula (if pos then SOME true else NONE)
+           |> close_formula_universally
+           |> bound_tvars type_enc true atomic_types,
+           NONE, isabelle_info (string_of_status status) (rank j))
 
 fun lines_for_subclass type_enc sub super =
   Formula (subclass_prefix ^ ascii_of sub ^ "___" ^ ascii_of super, Axiom,
@@ -2355,7 +2361,7 @@ fun line_for_tags_mono_type ctxt mono type_enc T =
              Axiom,
              eq_formula type_enc (atomic_types_of T) [] false
                   (tag_with_type ctxt mono type_enc NONE T x_var) x_var,
-             NONE, isabelle_info defN helper_rank)
+             NONE, isabelle_info non_rec_defN helper_rank)
   end
 
 fun lines_for_mono_types ctxt mono type_enc Ts =
@@ -2438,7 +2444,7 @@ fun lines_for_tags_sym_decl ctxt mono type_enc n s
     val tag_with = tag_with_type ctxt mono type_enc NONE
     fun formula c =
       [Formula (ident, role, eq (tag_with res_T c) c, NONE, isabelle_info
-                defN helper_rank)]
+                non_rec_defN helper_rank)]
   in
     if pred_sym orelse not (should_encode_type ctxt mono level res_T) then
       []
@@ -2538,7 +2544,7 @@ fun do_uncurried_alias_lines_for_sym ctxt constrs mono type_enc sym_tab0 sym_tab
       in
         ([tm1, tm2],
          [Formula (uncurried_alias_eq_prefix ^ s2, role, eq |> maybe_negate,
-                   NONE, isabelle_info defN helper_rank)])
+                   NONE, isabelle_info non_rec_defN helper_rank)])
         |> (if ary - 1 = base_ary orelse Symtab.defined sym_tab s1 then I
             else pair_append (do_alias (ary - 1)))
       end
@@ -2878,8 +2884,9 @@ fun atp_problem_term_order_info problem =
     fun is_conj (role, _) = (role = Conjecture orelse role = Hypothesis)
     val graph =
       Graph.empty
-      |> fold (fold (add_eq_deps (has_status defN)) o snd) problem
-      |> fold (fold (add_eq_deps (has_status simpN orf is_conj)) o snd) problem
+      |> fold (fold (add_eq_deps (has_status non_rec_defN)) o snd) problem
+      |> fold (fold (add_eq_deps (has_status rec_defN orf has_status simpN
+                                  orf is_conj)) o snd) problem
       |> fold (fold (add_intro_deps (has_status inductiveN)) o snd) problem
       |> fold (fold (add_intro_deps (has_status introN)) o snd) problem
     fun next_weight w = if w + w <= max_term_order_weight then w + w else w + 1

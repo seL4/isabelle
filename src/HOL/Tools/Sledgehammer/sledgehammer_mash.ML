@@ -312,22 +312,32 @@ fun features_of ctxt prover thy (scope, status) ts =
   |> forall is_lambda_free ts ? cons "no_lams"
   |> forall (not o exists_Const is_exists) ts ? cons "no_skos"
   |> scope <> Global ? cons "local"
-  |> (case status of
-        General => I
-      | Induction => cons "induction"
-      | Intro => cons "intro"
-      | Inductive => cons "inductive"
-      | Elim => cons "elim"
-      | Simp => cons "simp"
-      | Def => cons "def")
+  |> (case string_of_status status of "" => I | s => cons s)
 
 (* Too many dependencies is a sign that a decision procedure is at work. There
    isn't much too learn from such proofs. *)
-val max_dependencies = 10
+val max_dependencies = 15
 val atp_dependency_default_max_fact = 50
 
+(* "type_definition_xxx" facts are characterized by their use of "CollectI". *)
+val typedef_sig = [@{thm CollectI} |> nickname_of]
+
+(* "Rep_xxx_inject", "Abs_xxx_inverse", etc., are derived using these facts. *)
+val typedef_ths =
+  @{thms type_definition.Abs_inverse type_definition.Rep_inverse
+         type_definition.Rep type_definition.Rep_inject
+         type_definition.Abs_inject type_definition.Rep_cases
+         type_definition.Abs_cases type_definition.Rep_induct
+         type_definition.Abs_induct type_definition.Rep_range
+         type_definition.Abs_image}
+  |> map nickname_of
+
 fun trim_dependencies deps =
-  if length deps <= max_dependencies then SOME deps else NONE
+  if length deps > max_dependencies orelse deps = typedef_sig orelse
+     exists (member (op =) typedef_ths) deps then
+    NONE
+  else
+    SOME deps
 
 fun isar_dependencies_of all_names =
   thms_in_proof (SOME all_names) #> trim_dependencies
@@ -708,10 +718,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
     else
       let
         val all_names =
-          facts |> map snd
-                |> filter_out is_likely_tautology_or_too_meta
-                |> map (rpair () o nickname_of)
-                |> Symtab.make
+          facts |> map snd |> map (rpair () o nickname_of) |> Symtab.make
         val deps_of =
           if atp then
             atp_dependencies_of ctxt params prover auto_level facts all_names

@@ -200,10 +200,11 @@ fun ext_name ctxt =
   else
     isa_ext
 
-fun add_all_defs fact_names accum =
+fun add_non_rec_defs fact_names accum =
   Vector.foldl
       (fn (facts, facts') =>
-          union (op =) (filter (fn (_, (_, status)) => status = Def) facts)
+          union (op =)
+                (filter (fn (_, (_, status)) => status = Non_Rec_Def) facts)
                 facts')
       accum fact_names
 
@@ -214,12 +215,12 @@ fun add_fact ctxt fact_names (Inference_Step ((_, ss), _, rule, deps)) =
        (* LEO 1.3.3 does not record definitions properly, leading to missing
          dependencies in the TSTP proof. Remove the next line once this is
          fixed. *)
-       add_all_defs fact_names
+       add_non_rec_defs fact_names
      else if rule = satallax_unsat_coreN then
        (fn [] =>
            (* Satallax doesn't include definitions in its unsatisfiable cores,
               so we assume the worst and include them all here. *)
-           [(ext_name ctxt, (Global, General))] |> add_all_defs fact_names
+           [(ext_name ctxt, (Global, General))] |> add_non_rec_defs fact_names
          | facts => facts)
      else
        I)

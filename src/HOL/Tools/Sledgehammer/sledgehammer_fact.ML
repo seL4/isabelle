@@ -23,7 +23,6 @@ sig
   val fact_from_ref :
     Proof.context -> unit Symtab.table -> thm list -> status Termtab.table
     -> Facts.ref * Attrib.src list -> ((string * stature) * thm) list
-  val is_likely_tautology_or_too_meta : thm -> bool
   val backquote_thm : thm -> string
   val clasimpset_rule_table_of : Proof.context -> status Termtab.table
   val maybe_instantiate_inducts :
@@ -50,7 +49,8 @@ type fact_override =
    del : (Facts.ref * Attrib.src list) list,
    only : bool}
 
-val sledgehammer_prefix = "Sledgehammer" ^ Long_Name.separator
+val sledgehammer_prefixes =
+  ["ATP", "Meson", "Metis", "Sledgehammer"] |> map (suffix Long_Name.separator)
 
 (* experimental features *)
 val ignore_no_atp =
@@ -182,9 +182,9 @@ fun is_formula_too_complex ho_atp t =
   apply_depth t > max_apply_depth orelse
   (not ho_atp andalso formula_has_too_many_lambdas [] t)
 
-(* FIXME: Extend to "Meson" and "Metis" *)
 val exists_sledgehammer_const =
-  exists_Const (fn (s, _) => String.isPrefix sledgehammer_prefix s)
+  exists_Const (fn (s, _) =>
+      exists (fn pref => String.isPrefix pref s) sledgehammer_prefixes)
 
 (* FIXME: make more reliable *)
 val exists_low_level_class_const =
@@ -192,24 +192,10 @@ val exists_low_level_class_const =
      s = @{const_name equal_class.equal} orelse
      String.isSubstring (Long_Name.separator ^ "class" ^ Long_Name.separator) s)
 
-fun is_metastrange_theorem th =
-  case head_of (concl_of th) of
-    Const (s, _) => (s <> @{const_name Trueprop} andalso
-                     s <> @{const_name "=="})
-  | _ => false
-
 fun is_that_fact th =
   String.isSuffix (Long_Name.separator ^ Obtain.thatN) (Thm.get_name_hint th)
   andalso exists_subterm (fn Free (s, _) => s = Name.skolem Auto_Bind.thesisN
                            | _ => false) (prop_of th)
-
-fun is_theorem_bad_for_atps ho_atp thm =
-  is_metastrange_theorem thm orelse
-  let val t = prop_of thm in
-    is_formula_too_complex ho_atp t orelse exists_type type_has_top_sort t orelse
-    exists_sledgehammer_const t orelse exists_low_level_class_const t orelse
-    is_that_fact thm
-  end
 
 fun is_likely_tautology_or_too_meta th =
   let
@@ -227,6 +213,15 @@ fun is_likely_tautology_or_too_meta th =
       | is_boring_prop _ = true
   in
     is_boring_prop (prop_of th) andalso not (Thm.eq_thm_prop (@{thm ext}, th))
+  end
+
+fun is_theorem_bad_for_atps ho_atp th =
+  is_likely_tautology_or_too_meta th orelse
+  let val t = prop_of th in
+    is_formula_too_complex ho_atp t orelse
+    exists_type type_has_top_sort t orelse
+    exists_sledgehammer_const t orelse exists_low_level_class_const t orelse
+    is_that_fact th
   end
 
 fun hackish_string_for_term thy t =
@@ -299,8 +294,8 @@ fun clasimpset_rule_table_of ctxt =
             |> maps (snd o snd)
   in
     Termtab.empty |> add Simp [atomize] snd simps
-                  |> add Simp [] I rec_defs
-                  |> add Def [] I nonrec_defs
+                  |> add Rec_Def [] I rec_defs
+                  |> add Non_Rec_Def [] I nonrec_defs
 (* Add once it is used:
                   |> add Elim [] I elims
 *)
@@ -458,7 +453,6 @@ fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css chained hyp_ts
        else
          let val (add, del) = pairself (Attrib.eval_thms ctxt) (add, del) in
            all_facts ctxt ho_atp reserved add chained css
-           |> filter_out (is_likely_tautology_or_too_meta o snd)
            |> filter_out (member Thm.eq_thm_prop del o snd)
            |> maybe_filter_no_atps ctxt
            |> uniquify

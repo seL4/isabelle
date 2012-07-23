@@ -49,9 +49,7 @@ fun parent_facts thy thy_map =
 val thy_name_of_fact = hd o Long_Name.explode
 fun thy_of_fact thy = Context.this_theory thy o thy_name_of_fact
 
-val all_names =
-  filter_out is_likely_tautology_or_too_meta
-  #> map (rpair () o nickname_of) #> Symtab.make
+val all_names = map (rpair () o nickname_of) #> Symtab.make
 
 fun generate_accessibility thy include_thy file_name =
   let

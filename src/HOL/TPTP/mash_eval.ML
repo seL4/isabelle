@@ -26,9 +26,7 @@ val IsarN = "Isar"
 
 val max_facts_slack = 2
 
-val all_names =
-  filter_out is_likely_tautology_or_too_meta
-  #> map (rpair () o nickname_of) #> Symtab.make
+val all_names = map (rpair () o nickname_of) #> Symtab.make
 
 fun evaluate_mash_suggestions ctxt params thy file_name =
   let
