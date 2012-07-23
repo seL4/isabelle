@@ -163,8 +163,7 @@ function init_component ()
   esac
 
   if [ ! -d "$COMPONENT" ]; then
-    echo >&2 "Missing Isabelle component directory: \"$COMPONENT\""
-    exit 2
+    echo >&2 "### Missing Isabelle component: \"$COMPONENT\""
   elif [ -z "$ISABELLE_COMPONENTS" ]; then
     ISABELLE_COMPONENTS="$COMPONENT"
   else
