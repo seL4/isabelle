@@ -93,7 +93,11 @@ ISABELLE_EPSTOPDF="epstopdf"
 ###
 
 # The place for user configuration, heap files, etc.
-ISABELLE_HOME_USER="$USER_HOME/.isabelle/${ISABELLE_IDENTIFIER:-.}"
+if [ -z "ISABELLE_IDENTIFIER" ]; then
+  ISABELLE_HOME_USER="$USER_HOME/.isabelle"
+else
+  ISABELLE_HOME_USER="$USER_HOME/.isabelle/$ISABELLE_IDENTIFIER"
+fi
 
 # Where to look for isabelle tools (multiple dirs separated by ':').
 ISABELLE_TOOLS="$ISABELLE_HOME/lib/Tools"
