@@ -4,15 +4,15 @@
 
 THIS="$(cd "$(dirname "$0")"; pwd)"
 
-PLATYPUS_APP="/Applications/Platypus-4.0/Platypus.app"
 COCOADIALOG_APP="/Applications/CocoaDialog.app"
 
-"$PLATYPUS_APP/Contents/Resources/platypus" \
+/usr/local/bin/platypus \
   -a Isabelle -u Isabelle \
   -I "de.tum.in.isabelle" \
   -i "$THIS/../isabelle.icns" \
   -p /bin/bash \
-  -c "$THIS/script" \
+  -R \
   -o None \
   -f "$COCOADIALOG_APP" \
+  "$THIS/script" \
   "$PWD/Isabelle.app"
