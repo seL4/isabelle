@@ -624,9 +624,11 @@ fun max_suggs_of max_facts = max_facts + Int.min (50, max_facts)
 fun is_fact_in_graph fact_G (_, th) =
   can (Graph.get_node fact_G) (nickname_of th)
 
-fun interleave [] ys = ys
-  | interleave xs [] = xs
-  | interleave (x :: xs) (y :: ys) = x :: y :: interleave xs ys
+fun interleave 0 _ _ = []
+  | interleave n [] ys = take n ys
+  | interleave n xs [] = take n xs
+  | interleave 1 (x :: _) _ = [x]
+  | interleave n (x :: xs) (y :: ys) = x :: y :: interleave (n - 2) xs ys
 
 fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
                          concl_t facts =
@@ -652,8 +654,8 @@ fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
             |> map fst
     val (unk_global, unk_local) =
       facts |> filter_out (is_fact_in_graph fact_G)
-            |> List.partition (fn ((_, (loc, _)), _) => loc = Global)
-  in (interleave unk_local sels |> weight_mepo_facts, unk_global) end
+            |> List.partition (fn ((_, (scope, _)), _) => scope = Global)
+  in (interleave max_facts unk_local sels |> weight_mepo_facts, unk_global) end
 
 fun add_to_fact_graph ctxt (name, parents, feats, deps) (adds, graph) =
   let
@@ -672,7 +674,7 @@ fun launch_thread timeout task =
     val hard_timeout = time_mult learn_timeout_slack timeout
     val birth_time = Time.now ()
     val death_time = Time.+ (birth_time, hard_timeout)
-    val desc = ("machine learner for Sledgehammer", "")
+    val desc = ("Machine learner for Sledgehammer", "")
   in Async_Manager.launch MaShN birth_time death_time desc task end
 
 fun freshish_name () =
