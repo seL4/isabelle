@@ -719,11 +719,13 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
       let
         val all_names =
           facts |> map snd |> map (rpair () o nickname_of) |> Symtab.make
-        val deps_of =
-          if atp then
-            atp_dependencies_of ctxt params prover auto_level facts all_names
+        fun deps_of status th =
+          if status = Non_Rec_Def orelse status = Rec_Def then
+            SOME []
+          else if atp then
+            atp_dependencies_of ctxt params prover auto_level facts all_names th
           else
-            isar_dependencies_of all_names
+            isar_dependencies_of all_names th
         fun do_commit [] [] state = state
           | do_commit adds reps {fact_G} =
             let
@@ -751,13 +753,13 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
            else
              ())
         fun learn_new_fact _ (accum as (_, (_, _, _, true))) = accum
-          | learn_new_fact ((_, stature), th)
+          | learn_new_fact ((_, stature as (_, status)), th)
                            (adds, (parents, n, next_commit, _)) =
             let
               val name = nickname_of th
               val feats =
                 features_of ctxt prover (theory_of_thm th) stature [prop_of th]
-              val deps = deps_of th |> these
+              val deps = deps_of status th |> these
               val n = n |> not (null deps) ? Integer.add 1
               val adds = (name, parents, feats, deps) :: adds
               val (adds, next_commit) =
@@ -783,11 +785,12 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
                 |> fold learn_new_fact new_facts
             in commit true adds []; n end
         fun relearn_old_fact _ (accum as (_, (_, _, true))) = accum
-          | relearn_old_fact (_, th) (reps, (n, next_commit, _)) =
+          | relearn_old_fact ((_, (_, status)), th)
+                             (reps, (n, next_commit, _)) =
             let
               val name = nickname_of th
               val (n, reps) =
-                case deps_of th of
+                case deps_of status th of
                   SOME deps => (n + 1, (name, deps) :: reps)
                 | NONE => (n, reps)
               val (reps, next_commit) =
