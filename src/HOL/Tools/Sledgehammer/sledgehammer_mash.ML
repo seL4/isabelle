@@ -59,7 +59,7 @@ sig
   val mash_can_suggest_facts : Proof.context -> bool
   val mash_suggested_facts :
     Proof.context -> params -> string -> int -> term list -> term
-    -> ('a * thm) list -> (('a * thm) * real) list * ('a * thm) list
+    -> fact list -> (fact * real) list * fact list
   val mash_learn_proof :
     Proof.context -> params -> string -> term -> ('a * thm) list -> thm list
     -> unit
@@ -606,6 +606,10 @@ fun max_suggs_of max_facts = max_facts + Int.min (50, max_facts)
 fun is_fact_in_graph fact_G (_, th) =
   can (Graph.get_node fact_G) (nickname_of th)
 
+fun interleave [] ys = ys
+  | interleave xs [] = xs
+  | interleave (x :: xs) (y :: ys) = x :: y :: interleave xs ys
+
 fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
                          concl_t facts =
   let
@@ -623,13 +627,15 @@ fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
               (fact_G, mash_QUERY ctxt overlord (max_suggs_of max_facts)
                                   (parents, feats))
             end)
-    val selected =
+    val sels =
       facts |> suggested_facts suggs
             (* The weights currently returned by "mash.py" are too extreme to
                make any sense. *)
-            |> map fst |> weight_mepo_facts
-    val unknown = facts |> filter_out (is_fact_in_graph fact_G)
-  in (selected, unknown) end
+            |> map fst
+    val (unk_global, unk_local) =
+      facts |> filter_out (is_fact_in_graph fact_G)
+            |> List.partition (fn ((_, (loc, _)), _) => loc = Global)
+  in (interleave unk_local sels |> weight_mepo_facts, unk_global) end
 
 fun add_to_fact_graph ctxt (name, parents, feats, deps) (adds, graph) =
   let
