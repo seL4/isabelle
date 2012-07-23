@@ -4,17 +4,17 @@
 #
 # NOTE: The ML system or JVM may have their own idea about the platform!
 
-ISABELLE_PLATFORM="unknown-platform"
+ISABELLE_PLATFORM32=""
 ISABELLE_PLATFORM64=""
 
 case $(uname -s) in
   Linux)
     case $(uname -m) in
       i?86)
-        ISABELLE_PLATFORM=x86-linux
+        ISABELLE_PLATFORM32=x86-linux
         ;;
       x86_64)
-        ISABELLE_PLATFORM=x86-linux
+        ISABELLE_PLATFORM32=x86-linux
         ISABELLE_PLATFORM64=x86_64-linux
         ;;
     esac
@@ -22,47 +22,32 @@ case $(uname -s) in
   Darwin)
     case $(uname -m) in
       i?86)
-        ISABELLE_PLATFORM=x86-darwin
+        ISABELLE_PLATFORM32=x86-darwin
         if [ "$(sysctl -n hw.optional.x86_64 2>/dev/null)" = 1 ]; then
           ISABELLE_PLATFORM64=x86_64-darwin
         fi
         ;;
       x86_64)
-        ISABELLE_PLATFORM=x86-darwin
+        ISABELLE_PLATFORM32=x86-darwin
         ISABELLE_PLATFORM64=x86_64-darwin
-        ;;
-      Power* | power* | ppc)
-        ISABELLE_PLATFORM=ppc-darwin
         ;;
     esac
     ;;
   CYGWIN_NT*)
     case $(uname -m) in
       i?86 | x86_64)
-        ISABELLE_PLATFORM=x86-cygwin
-        ;;
-    esac
-    ;;
-  SunOS)
-    case $(uname -r) in
-      5.*)
-        case $(uname -p) in
-          sparc)
-            ISABELLE_PLATFORM=sparc-solaris
-            ;;
-          i?86 | x86_64)
-            ISABELLE_PLATFORM=x86-solaris
-            ;;
-        esac
+        ISABELLE_PLATFORM32=x86-cygwin
         ;;
     esac
     ;;
   *BSD)
     case $(uname -m) in
       i?86 | x86_64)
-        ISABELLE_PLATFORM=x86-linux
+        ISABELLE_PLATFORM32=x86-linux  #cf. BSD Linux Binary Compatibility
         ;;
     esac
     ;;
 esac
+
+ISABELLE_PLATFORM="$ISABELLE_PLATFORM32"
 
