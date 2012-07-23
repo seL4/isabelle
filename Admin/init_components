@@ -5,22 +5,11 @@
 # init_components - bash source script to initialize components
 # as specified in the Admin directory
 
-function init_component_liberal
-{
-  local LOCATION="$1"
-  if [[ -d "${LOCATION}" ]]
-  then
-    init_component "${LOCATION}"
-  else
-    echo "Warning: no component found in ${LOCATION}" >&2
-  fi
-}
-
-while { unset REPLY; read -r; test "$?" = 0 -o -n "${REPLY}"; }
+while { unset REPLY; read -r; test "$?" = 0 -o -n "$REPLY"; }
 do
-  case "${REPLY}" in
+  case "$REPLY" in
     \#* | "") ;;
-    /*) init_component_liberal "${REPLY}" ;;
-    *) init_component_liberal "${COMPONENT}/${REPLY}" ;;
+    /*) init_component "$REPLY" ;;
+    *) init_component "$COMPONENT/$REPLY" ;;
   esac
-done < "${ISABELLE_HOME}/Admin/components"
+done < "$ISABELLE_HOME/Admin/components"
