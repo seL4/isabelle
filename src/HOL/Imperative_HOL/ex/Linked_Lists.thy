@@ -5,7 +5,7 @@
 header {* Linked Lists by ML references *}
 
 theory Linked_Lists
-imports "../Imperative_HOL" Code_Integer
+imports "../Imperative_HOL" "~~/src/HOL/Library/Code_Integer"
 begin
 
 section {* Definition of Linked Lists *}
@@ -1003,3 +1003,4 @@ ML {* @{code test_3} () *}
 export_code test_1 test_2 test_3 checking SML SML_imp OCaml? OCaml_imp? Haskell? Scala? Scala_imp?
 
 end
+
