@@ -1067,8 +1067,13 @@ fun sort_defs _ _ _ _ [] sdefs = rev sdefs
        | NONE => error ("Bad definitions: " ^ rulenames defs));
 
 fun set_vcs ({types, vars, consts, funs} : decls)
-      (rules, _) ((_, ident), vcs) path prfx thy =
+      (rules, _) ((_, ident), vcs) path opt_prfx thy =
   let
+    val prfx' =
+      if opt_prfx = "" then
+        space_implode "__" (Long_Name.explode (Long_Name.qualifier ident))
+      else opt_prfx;
+    val prfx = to_lower prfx';
     val {pfuns, ...} = VCs.get thy;
     val (defs, rules') = partition_opt dest_def rules;
     val consts' =
@@ -1094,7 +1099,7 @@ fun set_vcs ({types, vars, consts, funs} : decls)
         Symtab.update ("true", (@{term True}, booleanN)),
         Name.context),
        thy |> Sign.add_path
-         ((if prfx = "" then "" else prfx ^ "__") ^ Long_Name.base_name ident)) |>
+         ((if prfx' = "" then "" else prfx' ^ "__") ^ Long_Name.base_name ident)) |>
       fold (add_type_def prfx) (items types) |>
       fold (snd oo add_const prfx) consts' |> (fn ids_thy as ((tab, _), _) =>
         ids_thy |>
