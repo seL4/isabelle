@@ -162,7 +162,7 @@ code_const nat
 text {* For Haskell and Scala, things are slightly different again. *}
 
 code_const int and nat
-  (Haskell "toInteger" and "fromInteger")
+  (Haskell "Prelude.toInteger" and "Prelude.fromInteger")
   (Scala "!_.as'_BigInt" and "Nat")
 
 text {* Alternativ implementation for @{const of_nat} *}
@@ -189,14 +189,14 @@ text {* Conversion from and to code numerals *}
 code_const Code_Numeral.of_nat
   (SML "IntInf.toInt")
   (OCaml "_")
-  (Haskell "!(fromInteger/ ./ toInteger)")
+  (Haskell "!(Prelude.fromInteger/ ./ Prelude.toInteger)")
   (Scala "!Natural(_.as'_BigInt)")
   (Eval "_")
 
 code_const Code_Numeral.nat_of
   (SML "IntInf.fromInt")
   (OCaml "_")
-  (Haskell "!(fromInteger/ ./ toInteger)")
+  (Haskell "!(Prelude.fromInteger/ ./ Prelude.toInteger)")
   (Scala "!Nat(_.as'_BigInt)")
   (Eval "_")
 

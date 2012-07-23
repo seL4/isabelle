@@ -303,6 +303,27 @@ fun haskell_program_of_program labelled_name module_alias module_prefix reserved
         modify_stmt = fn stmt => if select_stmt stmt then SOME stmt else NONE }
   end;
 
+val prelude_import_operators = [
+  "==", "/=", "<", "<=", ">=", ">", "+", "-", "*", "/", "**", ">>=", ">>", "=<<", "&&", "||", "^", "^^", ".", "$", "$!", "++", "!!"
+];
+
+val prelude_import_unqualified = [
+  "Eq",
+  "error",
+  "id",
+  "return",
+  "not",
+  "fst", "snd",
+  "map", "filter", "concat", "concatMap", "reverse", "zip", "null", "takeWhile", "dropWhile", "all", "any",
+  "Integer", "negate", "abs", "divMod",
+  "String"
+];
+
+val prelude_import_unqualified_constr = [
+  ("Bool", ["True", "False"]),
+  ("Maybe", ["Nothing", "Just"])
+];
+
 fun serialize_haskell module_prefix string_classes { labelled_name, reserved_syms,
     includes, module_alias, class_syntax, tyco_syntax, const_syntax } program =
   let
@@ -331,23 +352,28 @@ fun serialize_haskell module_prefix string_classes { labelled_name, reserved_sym
       deresolve (if string_classes then deriving_show else K false);
 
     (* print modules *)
-    val import_includes_ps =
-      map (fn (name, _) => str ("import qualified " ^ name ^ ";")) includes;
     fun print_module_frame module_name ps =
       (module_name, Pretty.chunks2 (
         str ("module " ^ module_name ^ " where {")
         :: ps
         @| str "}"
       ));
+    fun print_qualified_import module_name = semicolon [str "import qualified", str module_name];
+    val import_common_ps =
+      enclose "import Prelude (" ");" (commas (map str
+        (map (Library.enclose "(" ")") prelude_import_operators @ prelude_import_unqualified)
+          @ map (fn (tyco, constrs) => (enclose (tyco ^ "(") ")" o commas o map str) constrs) prelude_import_unqualified_constr))
+      :: print_qualified_import "Prelude"
+      :: map (print_qualified_import o fst) includes;
     fun print_module module_name (gr, imports) =
       let
-        val deresolve = deresolver module_name
+        val deresolve = deresolver module_name;
         fun print_import module_name = (semicolon o map str) ["import qualified", module_name];
-        val import_ps = import_includes_ps @ map (print_import o fst) imports;
-        fun print_stmt' gr name = case Graph.get_node gr name
+        val import_ps = import_common_ps @ map (print_qualified_import o fst) imports;
+        fun print_stmt' name = case Graph.get_node gr name
          of (_, NONE) => NONE
           | (_, SOME stmt) => SOME (markup_stmt name (print_stmt deresolve (name, stmt)));
-        val body_ps = map_filter (print_stmt' gr) ((flat o rev o Graph.strong_conn) gr);
+        val body_ps = map_filter print_stmt' ((flat o rev o Graph.strong_conn) gr);
       in
         print_module_frame module_name
           ((if null import_ps then [] else [Pretty.chunks import_ps]) @ body_ps)
@@ -472,55 +498,8 @@ val setup =
       "import", "default", "forall", "let", "in", "class", "qualified", "data",
       "newtype", "instance", "if", "then", "else", "type", "as", "do", "module"
     ]
-  #> fold (Code_Target.add_reserved target) [
-      "Prelude", "Main", "Bool", "Maybe", "Either", "Ordering", "Char", "String", "Int",
-      "Integer", "Float", "Double", "Rational", "IO", "Eq", "Ord", "Enum", "Bounded",
-      "Num", "Real", "Integral", "Fractional", "Floating", "RealFloat", "Monad", "Functor",
-      "AlreadyExists", "ArithException", "ArrayException", "AssertionFailed", "AsyncException",
-      "BlockedOnDeadMVar", "Deadlock", "Denormal", "DivideByZero", "DotNetException", "DynException",
-      "Dynamic", "EOF", "EQ", "EmptyRec", "ErrorCall", "ExitException", "ExitFailure",
-      "ExitSuccess", "False", "GT", "HeapOverflow",
-      "IOError", "IOException", "IllegalOperation",
-      "IndexOutOfBounds", "Just", "Key", "LT", "Left", "LossOfPrecision", "NoMethodError",
-      "NoSuchThing", "NonTermination", "Nothing", "Obj", "OtherError", "Overflow",
-      "PatternMatchFail", "PermissionDenied", "ProtocolError", "RecConError", "RecSelError",
-      "RecUpdError", "ResourceBusy", "ResourceExhausted", "Right", "StackOverflow",
-      "ThreadKilled", "True", "TyCon", "TypeRep", "UndefinedElement", "Underflow",
-      "UnsupportedOperation", "UserError", "abs", "absReal", "acos", "acosh", "all",
-      "and", "any", "appendFile", "asTypeOf", "asciiTab", "asin", "asinh", "atan",
-      "atan2", "atanh", "basicIORun", "blockIO", "boundedEnumFrom", "boundedEnumFromThen",
-      "boundedEnumFromThenTo", "boundedEnumFromTo", "boundedPred", "boundedSucc", "break",
-      "catch", "catchException", "ceiling", "compare", "concat", "concatMap", "const",
-      "cos", "cosh", "curry", "cycle", "decodeFloat", "denominator", "div", "divMod",
-      "doubleToRatio", "doubleToRational", "drop", "dropWhile", "either", "elem",
-      "emptyRec", "encodeFloat", "enumFrom", "enumFromThen", "enumFromThenTo",
-      "enumFromTo", "error", "even", "exp", "exponent", "fail", "filter", "flip",
-      "floatDigits", "floatProperFraction", "floatRadix", "floatRange", "floatToRational",
-      "floor", "fmap", "foldl", "foldl'", "foldl1", "foldr", "foldr1", "fromDouble",
-      "fromEnum", "fromEnum_0", "fromInt", "fromInteger", "fromIntegral", "fromObj",
-      "fromRational", "fst", "gcd", "getChar", "getContents", "getLine", "head",
-      "id", "inRange", "index", "init", "intToRatio", "interact", "ioError", "isAlpha",
-      "isAlphaNum", "isDenormalized", "isDigit", "isHexDigit", "isIEEE", "isInfinite",
-      "isLower", "isNaN", "isNegativeZero", "isOctDigit", "isSpace", "isUpper", "iterate", "iterate'",
-      "last", "lcm", "length", "lex", "lexDigits", "lexLitChar", "lexmatch", "lines", "log",
-      "logBase", "lookup", "loop", "map", "mapM", "mapM_", "max", "maxBound", "maximum",
-      "maybe", "min", "minBound", "minimum", "mod", "negate", "nonnull", "not", "notElem",
-      "null", "numerator", "numericEnumFrom", "numericEnumFromThen", "numericEnumFromThenTo",
-      "numericEnumFromTo", "odd", "or", "otherwise", "pi", "pred", 
-      "print", "product", "properFraction", "protectEsc", "putChar", "putStr", "putStrLn",
-      "quot", "quotRem", "range", "rangeSize", "rationalToDouble", "rationalToFloat",
-      "rationalToRealFloat", "read", "readDec", "readField", "readFieldName", "readFile",
-      "readFloat", "readHex", "readIO", "readInt", "readList", "readLitChar", "readLn",
-      "readOct", "readParen", "readSigned", "reads", "readsPrec", "realFloatToRational",
-      "realToFrac", "recip", "reduce", "rem", "repeat", "replicate", "return", "reverse",
-      "round", "scaleFloat", "scanl", "scanl1", "scanr", "scanr1", "seq", "sequence",
-      "sequence_", "show", "showChar", "showException", "showField", "showList",
-      "showLitChar", "showParen", "showString", "shows", "showsPrec", "significand",
-      "signum", "signumReal", "sin", "sinh", "snd", "span", "splitAt", "sqrt", "subtract",
-      "succ", "sum", "tail", "take", "takeWhile", "takeWhile1", "tan", "tanh", "threadToIOResult",
-      "throw", "toEnum", "toInt", "toInteger", "toObj", "toRational", "truncate", "uncurry",
-      "undefined", "unlines", "unsafeCoerce", "unsafeIndex", "unsafeRangeSize", "until", "unwords",
-      "unzip", "unzip3", "userError", "words", "writeFile", "zip", "zip3", "zipWith", "zipWith3"
-    ] (*due to weird handling of ':', we can't do anything else than to import *all* prelude symbols*);
+  #> fold (Code_Target.add_reserved target) prelude_import_unqualified
+  #> fold (Code_Target.add_reserved target o fst) prelude_import_unqualified_constr
+  #> fold (fold (Code_Target.add_reserved target) o snd) prelude_import_unqualified_constr;
 
 end; (*struct*)

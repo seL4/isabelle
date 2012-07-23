@@ -11,7 +11,7 @@ begin
 code_type char
   (SML "char")
   (OCaml "char")
-  (Haskell "Char")
+  (Haskell "Prelude.Char")
   (Scala "Char")
 
 setup {*
@@ -57,8 +57,5 @@ code_const explode
   (OCaml "!(let s = _ in let rec exp i l = if i < 0 then l else exp (i - 1) (String.get s i :: l) in exp (String.length s - 1) [])")
   (Haskell "_")
   (Scala "!(_.toList)")
-
-
-(*declare Quickcheck_Exhaustive.char.bounded_forall_char.simps [code del]*)
 
 end

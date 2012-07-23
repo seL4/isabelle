@@ -15,6 +15,9 @@ in old "ref" manual.
 
 *** Pure ***
 
+* Code generation for Haskell: restrict unqualified imports from
+Haskell Prelude to a small set of fundamental operations.
+
 * Command "export_code": relative file names are interpreted
 relatively to master directory of current theory rather than
 the rather arbitrary current working directory.

@@ -298,7 +298,7 @@ code_const "plus \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> 
 code_const "minus \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
   (SML "Int.max/ (0 : int,/ Int.-/ ((_),/ (_)))")
   (OCaml "Big'_int.max'_big'_int/ Big'_int.zero'_big'_int/ (Big'_int.sub'_big'_int/ _/ _)")
-  (Haskell "max/ (0 :: Integer)/ (_/ -/ _)")
+  (Haskell "Prelude.max/ (0 :: Integer)/ (_/ -/ _)")
   (Scala "!(_/ -/ _).max(0)")
   (Eval "Integer.max/ 0/ (_/ -/ _)")
 
