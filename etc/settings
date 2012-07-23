@@ -45,7 +45,7 @@ ML_SOURCES="$ML_HOME/../src"
 # Standard ML of New Jersey (slow!)
 #ML_SYSTEM=smlnj-110
 #ML_HOME="/usr/local/smlnj/bin"
-#ML_OPTIONS="@SMLdebug=/dev/null @SMLalloc=256"
+#ML_OPTIONS="@SMLdebug=/dev/null @SMLalloc=1024"
 #ML_PLATFORM=$(eval $("$ML_HOME/.arch-n-opsys" 2>/dev/null); echo "$HEAP_SUFFIX")
 #SMLNJ_CYGWIN_RUNTIME=1
 
