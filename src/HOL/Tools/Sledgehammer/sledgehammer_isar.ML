@@ -29,7 +29,7 @@ open Sledgehammer_Minimize
 open Sledgehammer_MaSh
 open Sledgehammer_Run
 
-val cvc3N = "cvc3"
+(* val cvc3N = "cvc3" *)
 val yicesN = "yices"
 val z3N = "z3"
 

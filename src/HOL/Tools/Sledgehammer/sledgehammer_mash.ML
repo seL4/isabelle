@@ -774,7 +774,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
               val timed_out = Time.> (Timer.checkRealTimer timer, learn_timeout)
             in (reps, (n, next_commit, timed_out)) end
         val n =
-          if null old_facts then
+          if not atp orelse null old_facts then
             n
           else
             let
