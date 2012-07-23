@@ -45,11 +45,7 @@ struct
 
 val platform_path = Path.implode o Path.expand;
 
-fun shell_quote s =
-  if exists_string (fn c => c = "'") s then
-    error ("Illegal single quote in path specification: " ^ quote s)
-  else enclose "'" "'" s;
-
+val shell_quote = enclose "'" "'";
 val shell_path = shell_quote o platform_path;
 
 
