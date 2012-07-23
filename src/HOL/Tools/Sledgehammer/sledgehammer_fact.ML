@@ -49,9 +49,6 @@ type fact_override =
    del : (Facts.ref * Attrib.src list) list,
    only : bool}
 
-val sledgehammer_prefixes =
-  ["ATP", "Meson", "Metis", "Sledgehammer"] |> map (suffix Long_Name.separator)
-
 (* experimental features *)
 val ignore_no_atp =
   Attrib.setup_config_bool @{binding sledgehammer_ignore_no_atp} (K false)
@@ -147,10 +144,11 @@ fun is_package_def a =
 fun multi_base_blacklist ctxt ho_atp =
   ["defs", "select_defs", "update_defs", "split", "splits", "split_asm",
    "cases", "ext_cases", "eq.simps", "eq.refl", "nchotomy", "case_cong",
-   "weak_case_cong"]
+   "weak_case_cong", "nibble_pair_of_char_simps", "nibble.simps",
+   "nibble.distinct"]
   |> not (ho_atp orelse (Config.get ctxt instantiate_inducts)) ?
         append ["induct", "inducts"]
-  |> map (prefix ".")
+  |> map (prefix Long_Name.separator)
 
 val max_lambda_nesting = 3 (*only applies if not ho_atp*)
 
@@ -181,6 +179,11 @@ fun apply_depth (f $ t) = Int.max (apply_depth f, apply_depth t + 1)
 fun is_formula_too_complex ho_atp t =
   apply_depth t > max_apply_depth orelse
   (not ho_atp andalso formula_has_too_many_lambdas [] t)
+
+(* These theories contain auxiliary facts that could positively confuse
+   Sledgehammer if they were included. *)
+val sledgehammer_prefixes =
+  ["ATP", "Meson", "Metis", "Sledgehammer"] |> map (suffix Long_Name.separator)
 
 val exists_sledgehammer_const =
   exists_Const (fn (s, _) =>

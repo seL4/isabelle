@@ -316,7 +316,7 @@ fun features_of ctxt prover thy (scope, status) ts =
 
 (* Too many dependencies is a sign that a decision procedure is at work. There
    isn't much too learn from such proofs. *)
-val max_dependencies = 15
+val max_dependencies = 20
 val atp_dependency_default_max_fact = 50
 
 (* "type_definition_xxx" facts are characterized by their use of "CollectI". *)
@@ -689,6 +689,14 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
           (true, "")
         end)
 
+val evil_theories =
+  ["Code_Evaluation", "DSequence", "Enum", "Lazy_Sequence", "Nitpick",
+   "New_DSequence", "New_Random_Sequence", "Quickcheck",
+   "Quickcheck_Exhaustive", "Quickcheck_Narrowing", "Random_Sequence", "SMT"]
+
+fun fact_has_evil_theory (_, th) =
+  member (op =) evil_theories (Context.theory_name (theory_of_thm th))
+
 fun sendback sub =
   Markup.markup Isabelle_Markup.sendback (sledgehammerN ^ " " ^ sub)
 
@@ -703,7 +711,8 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
       Time.+ (Timer.checkRealTimer timer, commit_timeout)
     val {fact_G} = mash_get ctxt
     val (old_facts, new_facts) =
-      facts |> List.partition (is_fact_in_graph fact_G)
+      facts |> filter_out fact_has_evil_theory
+            |> List.partition (is_fact_in_graph fact_G)
             ||> sort (thm_ord o pairself snd)
   in
     if null new_facts andalso (not atp orelse null old_facts) then
