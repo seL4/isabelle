@@ -42,6 +42,7 @@ object Build
     /* Info */
 
     sealed case class Info(
+      base_name: String,
       dir: Path,
       parent: Option[String],
       description: String,
@@ -214,7 +215,7 @@ object Build
         val digest = SHA1.digest((full_name, entry.parent, entry.options, entry.theories).toString)
 
         val info =
-          Session.Info(dir + path, entry.parent,
+          Session.Info(entry.name, dir + path, entry.parent,
             entry.description, options ++ entry.options, theories, files, digest)
 
         queue1 + (key, info)
@@ -340,7 +341,8 @@ object Build
     def join: (String, String, Int) = { val res = result.join; args_file.delete; res }
   }
 
-  private def start_job(name: String, info: Session.Info, output: Option[String]): Job =
+  private def start_job(name: String, info: Session.Info, output: Option[String],
+    options: Options, verbose: Boolean, browser_info: Path): Job =
   {
     val parent = info.parent.getOrElse("")
 
@@ -371,8 +373,10 @@ object Build
     val args_xml =
     {
       import XML.Encode._
-      pair(bool, pair(string, pair(string, list(string))))(
-        output.isDefined, (parent, (name, info.theories.map(_._2).flatten.map(_.implode))))
+          pair(bool, pair(Options.encode, pair(bool, pair(Path.encode, pair(string,
+            pair(string, pair(string, list(pair(Options.encode, list(Path.encode))))))))))(
+          (output.isDefined, (options, (verbose, (browser_info, (parent,
+            (name, (info.base_name, info.theories))))))))
     }
     new Job(cwd, env, script, YXML.string_of_body(args_xml))
   }
@@ -454,7 +458,7 @@ object Build
                   Some(Isabelle_System.standard_path(output_dir + Path.basic(name)))
                 else None
               echo((if (output.isDefined) "Building " else "Running ") + name + " ...")
-              val job = start_job(name, info, output)
+              val job = start_job(name, info, output, options, verbose, browser_info)
               loop(pending, running + (name -> job), results)
             }
             else {

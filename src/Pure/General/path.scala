@@ -98,6 +98,11 @@ object Path
 
   def split(str: String): List[Path] =
     space_explode(':', str).filterNot(_.isEmpty).map(explode)
+
+
+  /* encode */
+
+  val encode: XML.Encode.T[Path] = (path => XML.Encode.string(path.implode))
 }
 
 

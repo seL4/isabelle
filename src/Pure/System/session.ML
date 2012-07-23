@@ -9,11 +9,13 @@ sig
   val id: unit -> string list
   val name: unit -> string
   val welcome: unit -> string
-  val init: bool -> string -> string -> unit
+  val finish: unit -> unit
+  val init: bool -> bool -> bool -> string -> string -> bool -> string list ->
+    string -> string -> bool * string -> string -> bool -> unit
+  val with_timing: string -> bool -> ('a -> 'b) -> 'a -> 'b
   val use_dir: string -> string -> bool -> string list -> bool -> bool -> string ->
     string -> bool -> string list -> string -> string -> bool * string ->
     string -> int -> bool -> bool -> int -> int -> int -> int -> unit
-  val finish: unit -> unit
 end;
 
 structure Session: SESSION =
@@ -63,9 +65,9 @@ fun add_path reset s =
   end;
 
 
-(* init *)
+(* init_name *)
 
-fun init reset parent name =
+fun init_name reset parent name =
   if not (member (op =) (! session) parent) orelse not (! session_finished) then
     error ("Unfinished parent session " ^ quote parent ^ " for " ^ quote name)
   else (add_path reset name; session_finished := false);
@@ -94,26 +96,31 @@ fun get_rpath rpath =
 fun dumping (_, "") = NONE
   | dumping (cp, path) = SOME (cp, Path.explode path);
 
+fun with_timing _ false f x = f x
+  | with_timing item true f x =
+      let
+        val start = Timing.start ();
+        val y = f x;
+        val timing = Timing.result start;
+        val factor = Time.toReal (#cpu timing) / Time.toReal (#elapsed timing)
+          |> Real.fmt (StringCvt.FIX (SOME 2));
+        val _ =
+          Output.physical_stderr ("Timing " ^ item ^ " (" ^
+            string_of_int (Multithreading.max_threads_value ()) ^ " threads, " ^
+            Timing.message timing ^ ", factor " ^ factor ^ ")\n");
+      in y end;
+
+fun init build reset info info_path doc doc_graph doc_variants parent name dump rpath verbose =
+ (init_name reset parent name;
+  Present.init build info info_path doc doc_graph doc_variants (path ()) name
+    (dumping dump) (get_rpath rpath) verbose (map Thy_Info.get_theory (Thy_Info.get_names ())));
+
 fun use_dir item root build modes reset info info_path doc doc_graph doc_variants parent
     name dump rpath level timing verbose max_threads trace_threads
     parallel_proofs parallel_proofs_threshold =
   ((fn () =>
-     (init reset parent name;
-      Present.init build info info_path doc doc_graph doc_variants (path ()) name
-        (dumping dump) (get_rpath rpath) verbose (map Thy_Info.get_theory (Thy_Info.get_names ()));
-      if timing then
-        let
-          val start = Timing.start ();
-          val _ = use root;
-          val timing = Timing.result start;
-          val factor = Time.toReal (#cpu timing) / Time.toReal (#elapsed timing)
-            |> Real.fmt (StringCvt.FIX (SOME 2));
-          val _ =
-            Output.physical_stderr ("Timing " ^ item ^ " (" ^
-              string_of_int (Multithreading.max_threads_value ()) ^ " threads, " ^
-              Timing.message timing ^ ", factor " ^ factor ^ ")\n");
-        in () end
-      else use root;
+     (init build reset info info_path doc doc_graph doc_variants parent name dump rpath verbose;
+      with_timing item timing use root;
       finish ()))
     |> Unsynchronized.setmp Proofterm.proofs level
     |> Unsynchronized.setmp print_mode (modes @ print_mode_value ())

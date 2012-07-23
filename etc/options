@@ -6,6 +6,7 @@ declare document : bool = true
 declare document_format : string = pdf
 declare document_variants : string = document
 declare document_graph : bool = false
+declare document_dump : string = ""
 
 declare threads_limit : int = 1
 declare threads_trace : int = 0
@@ -18,7 +19,6 @@ declare proofs : int = 0
 declare quick_and_dirty : bool = false
 
 declare timing : bool = false
-declare verbose : bool = false
 
 declare condition : string = ""
 

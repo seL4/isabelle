@@ -79,6 +79,11 @@ object Options
     }
     options
   }
+
+
+  /* encode */
+
+  val encode: XML.Encode.T[Options] = (options => options.encode)
 }
 
 
