@@ -162,12 +162,11 @@ fun term_has_too_many_lambdas max (t1 $ t2) =
 
 (* Don't count nested lambdas at the level of formulas, since they are
    quantifiers. *)
-fun formula_has_too_many_lambdas true _ _ = false (*i.e. ho_atp*)
-  | formula_has_too_many_lambdas _ Ts (Abs (_, T, t)) =
-      formula_has_too_many_lambdas false (T :: Ts) t
-  | formula_has_too_many_lambdas _ Ts t =
+fun formula_has_too_many_lambdas Ts (Abs (_, T, t)) =
+    formula_has_too_many_lambdas (T :: Ts) t
+  | formula_has_too_many_lambdas Ts t =
     if member (op =) [HOLogic.boolT, propT] (fastype_of1 (Ts, t)) then
-      exists (formula_has_too_many_lambdas false Ts) (#2 (strip_comb t))
+      exists (formula_has_too_many_lambdas Ts) (#2 (strip_comb t))
     else
       term_has_too_many_lambdas max_lambda_nesting t
 
@@ -180,7 +179,8 @@ fun apply_depth (f $ t) = Int.max (apply_depth f, apply_depth t + 1)
   | apply_depth _ = 0
 
 fun is_formula_too_complex ho_atp t =
-  apply_depth t > max_apply_depth orelse formula_has_too_many_lambdas ho_atp [] t
+  apply_depth t > max_apply_depth orelse
+  (not ho_atp andalso formula_has_too_many_lambdas [] t)
 
 (* FIXME: Extend to "Meson" and "Metis" *)
 val exists_sledgehammer_const =
