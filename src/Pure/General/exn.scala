@@ -32,7 +32,12 @@ object Exn
   private val runtime_exception = Class.forName("java.lang.RuntimeException")
 
   def message(exn: Throwable): String =
-    if (exn.getClass == runtime_exception) {
+    if (exn.isInstanceOf[java.io.IOException]) {
+      val msg = exn.getMessage
+      if (msg == null) "I/O error"
+      else "I/O error: " + msg
+    }
+    else if (exn.getClass == runtime_exception) {
       val msg = exn.getMessage
       if (msg == null) "Error" else msg
     }
