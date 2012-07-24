@@ -621,7 +621,6 @@ session SMT_Examples = "HOL-Word" +
 session "HOL-Boogie"! in "Boogie" = "HOL-Word" +
   options [document = false]
   theories Boogie
-  (* FIXME files!?! *)
 
 session Examples in "Boogie/Examples" = "HOL-Boogie" +
   options [document = false]
@@ -631,8 +630,11 @@ session Examples in "Boogie/Examples" = "HOL-Boogie" +
     Boogie_Dijkstra
     VCC_Max
   files
+    "Boogie_Dijkstra.b2i"
     "Boogie_Dijkstra.certs"
+    "Boogie_Max.b2i"
     "Boogie_Max.certs"
+    "VCC_Max.b2i"
     "VCC_Max.certs"
 
 session "HOL-SPARK"! in "SPARK" = "HOL-Word" +
