@@ -1,0 +1,16 @@
+session LCF! in "." = Pure +
+  description {*
+    Author:     Tobias Nipkow
+    Copyright   1992  University of Cambridge
+  *}
+  theories LCF
+
+session ex = LCF +
+  description {*
+    Author:     Tobias Nipkow
+    Copyright   1991  University of Cambridge
+
+    Some examples from Lawrence Paulson's book Logic and Computation.
+  *}
+  theories Ex1 Ex2 Ex3 Ex4
+

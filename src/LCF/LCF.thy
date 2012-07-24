@@ -6,7 +6,7 @@
 header {* LCF on top of First-Order Logic *}
 
 theory LCF
-imports FOL
+imports "~~/src/FOL/FOL"
 begin
 
 text {* This theory is based on Lawrence Paulson's book Logic and Computation. *}

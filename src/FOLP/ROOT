@@ -1,0 +1,30 @@
+session FOLP! in "." = Pure +
+  description {*
+    Author:     Martin Coen, Cambridge University Computer Laboratory
+    Copyright   1993  University of Cambridge
+
+    Modifed version of FOL that contains proof terms.
+
+    Presence of unknown proof term means that matching does not behave as expected.
+  *}
+  theories FOLP
+
+session ex = FOLP +
+  description {*
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   1992  University of Cambridge
+
+    Examples for First-Order Logic.
+  *}
+  theories
+    Intro
+    Nat
+    Foundation
+    If
+    Intuitionistic
+    Classical
+    Propositional_Int
+    Quantifiers_Int
+    Propositional_Cla
+    Quantifiers_Cla
+

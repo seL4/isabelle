@@ -1,0 +1,18 @@
+session Sequents! in "." = Pure +
+  description {*
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   1991  University of Cambridge
+
+    Classical Sequent Calculus based on Pure Isabelle.
+  *}
+  theories LK ILL ILL_predlog Washing Modal0 T S4 S43
+
+session LK = Sequents +
+  description {*
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   1992  University of Cambridge
+
+    Examples for Classical Logic.
+  *}
+  theories Propositional Quantifiers Hard_Quantifiers Nat
+
