@@ -6,7 +6,7 @@
 header{*Zermelo-Fraenkel Set Theory*}
 
 theory ZF
-imports FOL
+imports "~~/src/FOL/FOL"
 begin
 
 declare [[eta_contract = false]]

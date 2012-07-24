@@ -116,7 +116,7 @@ object Build
 
   private case class Session_Entry(
     name: String,
-    reset: Boolean,
+    this_name: Boolean,
     order: Int,
     path: Option[String],
     parent: Option[String],
@@ -196,7 +196,7 @@ object Build
           else
             entry.parent match {
               case Some(parent_name) if queue1.defined(parent_name) =>
-                if (entry.reset) entry.name
+                if (entry.this_name) entry.name
                 else parent_name + "-" + entry.name
               case _ => error("Bad parent session")
             }

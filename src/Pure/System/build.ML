@@ -35,15 +35,12 @@ fun build args_file =
         end;
 
     val _ =
-      Session.init
-        save
-        false (* FIXME reset!? *)
+      Session.init save false
         (Options.bool options "browser_info") browser_info
         (Options.string options "document")
         (Options.bool options "document_graph")
         (space_explode "," (Options.string options "document_variants"))
-        parent
-        base_name
+        parent base_name
         (true (* FIXME copy document/ files on Scala side!? *),
           Options.string options "document_dump")
         ""
