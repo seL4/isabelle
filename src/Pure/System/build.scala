@@ -283,6 +283,10 @@ object Build
 
   /** build **/
 
+  private def echo(msg: String) { java.lang.System.out.println(msg) }
+  private def sleep(): Unit = Thread.sleep(500)
+
+
   /* dependencies */
 
   sealed case class Node(
@@ -294,7 +298,7 @@ object Build
     def sources(name: String): List[(Path, SHA1.Digest)] = deps(name).sources
   }
 
-  def dependencies(queue: Session.Queue): Deps =
+  def dependencies(verbose: Boolean, queue: Session.Queue): Deps =
     Deps((Map.empty[String, Node] /: queue.topological_order)(
       { case (deps, (name, info)) =>
           val preloaded =
@@ -303,6 +307,8 @@ object Build
               case Some(parent) => deps(parent).loaded_theories
             }
           val thy_info = new Thy_Info(new Thy_Load(preloaded))
+
+          if (verbose) echo("Checking " + name)
 
           val thy_deps =
             thy_info.dependencies(
@@ -322,7 +328,7 @@ object Build
                 }
               thy :: uses
             }).flatten ::: info.files.map(file => info.dir + file)
-          val sources = all_files.par.map(p => (p, SHA1.digest(p))).toList
+          val sources = all_files.map(p => (p, SHA1.digest(p)))
 
           deps + (name -> Node(loaded_theories, sources))
       }))
@@ -399,16 +405,13 @@ object Build
 
   /* build */
 
-  private def echo(msg: String) { java.lang.System.out.println(msg) }
-  private def sleep(): Unit = Thread.sleep(500)
-
   def build(all_sessions: Boolean, build_images: Boolean, max_jobs: Int,
     no_build: Boolean, system_mode: Boolean, timing: Boolean, verbose: Boolean,
     more_dirs: List[Path], more_options: List[String], sessions: List[String]): Int =
   {
     val options = (Options.init() /: more_options)(_.define_simple(_))
     val queue = find_sessions(options, all_sessions, sessions, more_dirs)
-    val deps = dependencies(queue)
+    val deps = dependencies(verbose, queue)
 
     val (output_dir, browser_info) =
       if (system_mode) (Path.explode("~~/heaps/$ML_IDENTIFIER"), Path.explode("~~/browser_info"))
