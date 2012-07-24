@@ -34,7 +34,7 @@ fun use_theories (options, thys) =
       [] => use_thys options thys
     | conds =>
         Output.physical_stderr ("Ignoring theories " ^ commas_quote thys ^
-          " (missing " ^ commas conds ^ ")\n"))
+          " (undefined " ^ commas conds ^ ")\n"))
   end;
 
 in
