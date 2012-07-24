@@ -474,7 +474,13 @@ object Build
       else { sleep(); loop(pending, running, results) }
     }
 
-    (0 /: loop(queue, Map.empty, Map.empty))({ case (rc1, (_, rc2)) => rc1 max rc2 })
+    val results = loop(queue, Map.empty, Map.empty)
+    val rc = (0 /: results)({ case (rc1, (_, rc2)) => rc1 max rc2 })
+    if (rc != 0) {
+      val unfinished = (for ((name, r) <- results.iterator if r != 0) yield name).toList.sorted
+      echo("Unfinished session(s): " + commas(unfinished))
+    }
+    rc
   }
 
 
