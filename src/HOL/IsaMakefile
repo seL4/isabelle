@@ -57,6 +57,7 @@ test: \
   HOL-Mutabelle \
   HOL-NanoJava \
   HOL-Nitpick_Examples \
+  HOL-NSA-Examples \
   HOL-Number_Theory \
   HOL-Old_Number_Theory \
   HOL-Quotient_Examples \

@@ -23,10 +23,10 @@ definition
   choicefun :: "'a set => 'a" where
   "choicefun E = (@x. \<exists>X \<in> Pow(E) -{{}}. x : X)"
 
-consts injf_max :: "nat => ('a::{order} set) => 'a"
-primrec
+primrec injf_max :: "nat => ('a::{order} set) => 'a"
+where
   injf_max_zero: "injf_max 0 E = choicefun E"
-  injf_max_Suc:  "injf_max (Suc n) E = choicefun({e. e:E & injf_max n E < e})"
+| injf_max_Suc:  "injf_max (Suc n) E = choicefun({e. e:E & injf_max n E < e})"
 
 
 lemma dvd_by_all: "\<forall>M. \<exists>N. 0 < N & (\<forall>m. 0 < m & (m::nat) <= M --> m dvd N)"
