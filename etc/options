@@ -4,19 +4,19 @@ declare browser_info : bool = false
 declare browser_info_remote : string = ""
 
 declare document : string = ""
-declare document_variants : string = document
+declare document_variants : string = "outline=/proof,/ML"
 declare document_graph : bool = false
 declare document_dump : string = ""
 declare no_document : bool = false
 
-declare threads : int = 1
+declare threads : int = 0
 declare threads_trace : int = 0
-declare parallel_proofs : int = 1
+declare parallel_proofs : int = 2
 declare parallel_proofs_threshold : int = 100
 
 declare print_mode : string = ""
 
-declare proofs : int = 0
+declare proofs : int = 1
 declare quick_and_dirty : bool = false
 
 declare condition : string = ""

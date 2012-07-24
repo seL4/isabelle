@@ -67,10 +67,14 @@ ISABELLE_LINE_EDITOR=""
 
 
 ###
-### Batch sessions (cf. isabelle usedir)
+### Batch sessions
 ###
 
+#cf. isabelle usedir
 ISABELLE_USEDIR_OPTIONS="-M max -p 1 -q 2 -v true -V outline=/proof,/ML"
+
+#cf. isabelle build
+ISABELLE_BUILD_OPTIONS=""
 
 
 ###
