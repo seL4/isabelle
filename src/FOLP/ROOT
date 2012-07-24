@@ -7,6 +7,7 @@ session FOLP! in "." = Pure +
 
     Presence of unknown proof term means that matching does not behave as expected.
   *}
+  options [document = false]
   theories FOLP
 
 session ex = FOLP +
@@ -16,6 +17,7 @@ session ex = FOLP +
 
     Examples for First-Order Logic.
   *}
+  options [document = false]
   theories
     Intro
     Nat

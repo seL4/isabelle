@@ -3,6 +3,7 @@ session CTT! in "." = Pure +
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
   *}
+  options [document = false]
   theories Main
 
 session ex = CTT +
@@ -12,4 +13,5 @@ session ex = CTT +
 
     Examples for Constructive Type Theory.
   *}
+  options [document = false]
   theories Typechecking Elimination Equality Synthesis

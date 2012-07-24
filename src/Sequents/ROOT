@@ -5,7 +5,16 @@ session Sequents! in "." = Pure +
 
     Classical Sequent Calculus based on Pure Isabelle.
   *}
-  theories LK ILL ILL_predlog Washing Modal0 T S4 S43
+  options [document = false]
+  theories
+    LK
+    ILL
+    ILL_predlog
+    Washing
+    Modal0
+    T
+    S4
+    S43
 
 session LK = Sequents +
   description {*
@@ -14,5 +23,10 @@ session LK = Sequents +
 
     Examples for Classical Logic.
   *}
-  theories Propositional Quantifiers Hard_Quantifiers Nat
+  options [document = false]
+  theories
+    Propositional
+    Quantifiers
+    Hard_Quantifiers
+    Nat
 

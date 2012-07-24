@@ -8,6 +8,7 @@ session CCL! in "." = Pure +
     A computational logic for an untyped functional language with
     evaluation to weak head-normal form.
   *}
+  options [document = false]
   theories Wfd Fix
 
 session ex = CCL +
@@ -17,5 +18,6 @@ session ex = CCL +
 
     Examples for Classical Computational Logic.
   *}
+  options [document = false]
   theories Nat List Stream Flag
 

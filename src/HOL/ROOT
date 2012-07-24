@@ -114,6 +114,7 @@ session IMPP = HOL +
     Author:     David von Oheimb
     Copyright   1999 TUM
   *}
+  options [document = false]
   theories EvenOdd
 
 session Import = HOL +
@@ -122,6 +123,7 @@ session Import = HOL +
   theories [condition = HOL_LIGHT_BUNDLE] HOL_Light_Import
 
 session Number_Theory = HOL +
+  options [document = false]
   theories Number_Theory
 
 session Old_Number_Theory = HOL +
@@ -160,6 +162,7 @@ session Metis_Examples = HOL +
 
     Testing Metis and Sledgehammer.
   *}
+  options [document = false]
   theories
     Abstraction
     Big_O
@@ -176,6 +179,7 @@ session Nitpick_Examples = HOL +
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2009
   *}
+  options [document = false]
   theories [quick_and_dirty] Nitpick_Examples
 
 session Algebra = HOL +
@@ -286,10 +290,11 @@ session Imperative_HOL = HOL +
   files "document/root.bib" "document/root.tex"
 
 session Decision_Procs = HOL +
+  options [document = false]
   theories Decision_Procs
 
 session ex in "Proofs/ex" = "HOL-Proofs" +
-  options [proofs = 2, parallel_proofs = 0]
+  options [document = false, proofs = 2, parallel_proofs = 0]
   theories Hilbert_Classical
 
 session Extraction in "Proofs/Extraction" = "HOL-Proofs" +
@@ -324,6 +329,7 @@ session Prolog = HOL +
   description {*
     Author:   David von Oheimb (based on a lecture on Lambda Prolog by Nadathur)
   *}
+  options [document = false]
   theories Test Type
 
 session MicroJava = HOL +
@@ -375,6 +381,7 @@ session IOA = HOL +
     year=1995}
     ftp://ftp.informatik.tu-muenchen.de/local/lehrstuhl/nipkow/tacas.dvi.gz
   *}
+  options [document = false]
   theories Solve
 
 session Lattice = HOL +
@@ -509,15 +516,19 @@ session Matrix_LP = HOL +
 
 session TLA! = HOL +
   description {* The Temporal Logic of Actions *}
+  options [document = false]
   theories TLA
 
 session Inc in "TLA/Inc" = TLA +
+  options [document = false]
   theories Inc
 
 session Buffer in "TLA/Buffer" = TLA +
+  options [document = false]
   theories DBuffer
 
 session Memory in "TLA/Memory" = TLA +
+  options [document = false]
   theories MemoryImplementation
 
 session TPTP = HOL +
@@ -528,6 +539,7 @@ session TPTP = HOL +
 
     TPTP-related extensions.
   *}
+  options [document = false]
   theories
     ATP_Theory_Export
     MaSh_Eval
@@ -559,9 +571,11 @@ session "HOL-Probability"! in "Probability" = "HOL-Multivariate_Analysis" +
   files "document/root.tex"
 
 session Nominal = HOL +
+  options [document = false]
   theories Nominal
 
 session Examples in "Nominal/Examples" = "HOL-Nominal" +
+  options [document = false]
   theories Nominal_Examples
   theories [quick_and_dirty] VC_Condition
 
@@ -571,6 +585,7 @@ session Word = HOL +
   files "document/root.bib" "document/root.tex"
 
 session Examples in "Word/Examples" = "HOL-Word" +
+  options [document = false]
   theories WordExamples
 
 session Statespace = HOL +
@@ -583,16 +598,18 @@ session NSA = HOL +
   files "document/root.tex"
 
 session Examples in "NSA/Examples" = "HOL-NSA" +
+  options [document = false]
   theories NSPrimes
 
 session Mirabelle = HOL +
+  options [document = false]
   theories Mirabelle_Test
 (* FIXME
 	@cd Library; $(ISABELLE_TOOL) mirabelle -q arith Inner_Product.thy # some arbitrary small test case
 *)
 
 session SMT_Examples = "HOL-Word" +
-  options [quick_and_dirty]
+  options [document = false, quick_and_dirty]
   theories
     SMT_Tests
     SMT_Examples
@@ -602,10 +619,12 @@ session SMT_Examples = "HOL-Word" +
     "SMT_Tests.certs"
 
 session "HOL-Boogie"! in "Boogie" = "HOL-Word" +
+  options [document = false]
   theories Boogie
   (* FIXME files!?! *)
 
 session Examples in "Boogie/Examples" = "HOL-Boogie" +
+  options [document = false]
   theories
     Boogie_Max_Stepwise
     Boogie_Max
@@ -617,9 +636,11 @@ session Examples in "Boogie/Examples" = "HOL-Boogie" +
     "VCC_Max.certs"
 
 session "HOL-SPARK"! in "SPARK" = "HOL-Word" +
+  options [document = false]
   theories SPARK
 
 session Examples in "SPARK/Examples" = "HOL-SPARK" +
+  options [document = false]
   theories
     "Gcd/Greatest_Common_Divisor"
 
@@ -705,15 +726,18 @@ session Manual in "SPARK/Manual" = "HOL-SPARK" +
     "simple_greatest_common_divisor/g_c_d.siv"
 
 session Mutabelle = HOL +
+  options [document = false]
   theories MutabelleExtra
 
 session Quickcheck_Examples = HOL +
+  options [document = false]
   theories Quickcheck_Examples  (* FIXME *)
 
 session Quotient_Examples = HOL +
   description {*
     Author:     Cezary Kaliszyk and Christian Urban
   *}
+  options [document = false]
   theories
     DList
     FSet
@@ -727,6 +751,7 @@ session Quotient_Examples = HOL +
     Lift_DList
 
 session Predicate_Compile_Examples = HOL +
+  options [document = false]
   theories  (* FIXME *)
     Examples
     Predicate_Compile_Tests
@@ -757,14 +782,17 @@ session Tutorial in "HOLCF/Tutorial" = HOLCF +
   files "document/root.tex"
 
 session Library in "HOLCF/Library" = HOLCF +
+  options [document = false]
   theories HOLCF_Library
 
 session IMP in "HOLCF/IMP" = HOLCF +
+  options [document = false]
   theories HoareEx
   files "document/root.tex"
 
 session ex in "HOLCF/ex" = HOLCF +
   description {* Misc HOLCF examples *}
+  options [document = false]
   theories
     Dnat
     Dagstuhl
@@ -779,6 +807,7 @@ session ex in "HOLCF/ex" = HOLCF +
     Pattern_Match
 
 session FOCUS in "HOLCF/FOCUS" = HOLCF +
+  options [document = false]
   theories
     Fstreams
     FOCUS
@@ -790,6 +819,7 @@ session IOA! in "HOLCF/IOA" = HOLCF +
 
     Formalization of a semantic model of I/O-Automata.
   *}
+  options [document = false]
   theories "meta_theory/Abstraction"
 
 session ABP in "HOLCF/IOA/ABP" = IOA +
@@ -798,6 +828,7 @@ session ABP in "HOLCF/IOA/ABP" = IOA +
 
     The Alternating Bit Protocol performed in I/O-Automata.
   *}
+  options [document = false]
   theories Correctness
 
 session NTP in "HOLCF/IOA/NTP" = IOA +
@@ -807,6 +838,7 @@ session NTP in "HOLCF/IOA/NTP" = IOA +
     A network transmission protocol, performed in the
     I/O automata formalization by Olaf Mueller.
   *}
+  options [document = false]
   theories Correctness
 
 session Storage in "HOLCF/IOA/Storage" = IOA +
@@ -815,18 +847,21 @@ session Storage in "HOLCF/IOA/Storage" = IOA +
 
     Memory storage case study.
   *}
+  options [document = false]
   theories Correctness
 
 session ex in "HOLCF/IOA/ex" = IOA +
   description {*
     Author:     Olaf Mueller
   *}
+  options [document = false]
   theories
     TrivEx
     TrivEx2
 
 session Datatype_Benchmark = HOL +
   description {* Some rather large datatype examples (from John Harrison). *}
+  options [document = false]
   theories [condition = ISABELLE_BENCHMARK]
     (* FIXME Toplevel.timing := true; *)
     Brackin
@@ -836,8 +871,8 @@ session Datatype_Benchmark = HOL +
 
 session Record_Benchmark = HOL +
   description {* Some benchmark on large record. *}
+  options [document = false]
   theories [condition = ISABELLE_BENCHMARK]
     (* FIXME Toplevel.timing := true; *)
     Record_Benchmark
-
 

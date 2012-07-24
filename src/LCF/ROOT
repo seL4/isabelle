@@ -3,6 +3,7 @@ session LCF! in "." = Pure +
     Author:     Tobias Nipkow
     Copyright   1992  University of Cambridge
   *}
+  options [document = false]
   theories LCF
 
 session ex = LCF +
@@ -12,5 +13,10 @@ session ex = LCF +
 
     Some examples from Lawrence Paulson's book Logic and Computation.
   *}
-  theories Ex1 Ex2 Ex3 Ex4
+  options [document = false]
+  theories
+    Ex1
+    Ex2
+    Ex3
+    Ex4
 
