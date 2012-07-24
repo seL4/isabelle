@@ -142,7 +142,6 @@ object Build
     val session_entry: Parser[Session_Entry] =
     {
       val session_name = atom("session name", _.is_name)
-      val theory_name = atom("theory name", _.is_name)
 
       val option =
         name ~ opt(keyword("=") ~! name ^^ { case _ ~ x => x }) ^^ { case x ~ y => (x, y) }

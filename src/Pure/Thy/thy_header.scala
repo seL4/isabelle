@@ -46,7 +46,6 @@ object Thy_Header extends Parse.Parser
   val header: Parser[Thy_Header] =
   {
     val file_name = atom("file name", _.is_name)
-    val theory_name = atom("theory name", _.is_name)
 
     val keyword_kind =
       atom("outer syntax keyword kind", _.is_name) ~ tags ^^ { case x ~ y => (x, y) }
