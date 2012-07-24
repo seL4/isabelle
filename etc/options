@@ -1,6 +1,7 @@
 (* :mode=isabelle-options: *)
 
 declare browser_info : bool = false
+declare browser_info_remote : string = ""
 
 declare document : string = ""
 declare document_variants : string = document

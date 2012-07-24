@@ -43,7 +43,7 @@ fun build args_file =
         parent base_name
         (true (* FIXME copy document/ files on Scala side!? *),
           Options.string options "document_dump")
-        ""
+        (Options.string options "browser_info_remote")
         verbose;
 
     val _ = Session.with_timing name timing (List.app (uncurry use_theories)) theories;
