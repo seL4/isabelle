@@ -451,8 +451,8 @@ object Build
       else if (running.size < (max_jobs max 1)) {
         pending.dequeue(running.isDefinedAt(_)) match {
           case Some((name, info)) =>
-            if (no_build && verbose) {
-              echo(name + " in " + info.dir)
+            if (no_build) {
+              if (verbose) echo(name + " in " + info.dir)
               loop(pending - name, running, results + (name -> 0))
             }
             else if (info.parent.map(results(_)).forall(_ == 0)) {
