@@ -41,7 +41,7 @@ in
 
 fun build args_file =
   let
-    val (save, (options, (timing, (verbose, (browser_info, (parent,
+    val (save, (options, (timing, (verbose, (browser_info, (parent_base_name,
         (name, (base_name, theories)))))))) =
       File.read (Path.explode args_file) |> YXML.parse_body |>
         let open XML.Decode in
@@ -55,7 +55,7 @@ fun build args_file =
         (Options.string options "document")
         (Options.bool options "document_graph")
         (space_explode ":" (Options.string options "document_variants"))
-        parent base_name
+        parent_base_name base_name
         (not (Options.bool options "document_dump_only"), Options.string options "document_dump")
         (Options.string options "browser_info_remote")
         verbose;

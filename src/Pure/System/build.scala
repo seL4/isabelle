@@ -45,6 +45,7 @@ object Build
       base_name: String,
       dir: Path,
       parent: Option[String],
+      parent_base_name: Option[String],
       description: String,
       options: Options,
       theories: List[(Options, List[Path])],
@@ -188,16 +189,19 @@ object Build
       try {
         if (entry.name == "") error("Bad session name")
 
-        val full_name =
+        val (full_name, parent_base_name) =
           if (is_pure(entry.name)) {
             if (entry.parent.isDefined) error("Illegal parent session")
-            else entry.name
+            else (entry.name, None: Option[String])
           }
           else
             entry.parent match {
               case Some(parent_name) if queue1.defined(parent_name) =>
-                if (entry.this_name) entry.name
-                else parent_name + "-" + entry.name
+                val full_name =
+                  if (entry.this_name) entry.name
+                  else parent_name + "-" + entry.name
+                val parent_base_name = Some(queue1(parent_name).base_name)
+                (full_name, parent_base_name)
               case _ => error("Bad parent session")
             }
 
@@ -218,7 +222,7 @@ object Build
         val digest = SHA1.digest((full_name, entry.parent, entry.options, entry.theories).toString)
 
         val info =
-          Session.Info(entry.name, dir + path, entry.parent,
+          Session.Info(entry.name, dir + path, entry.parent, parent_base_name,
             entry.description, session_options, theories, files, digest)
 
         queue1 + (key, info)
@@ -366,6 +370,7 @@ object Build
     }
 
     val parent = info.parent.getOrElse("")
+    val parent_base_name = info.parent_base_name.getOrElse("")
 
     val cwd = info.dir.file
     val env = Map("INPUT" -> parent, "TARGET" -> name, "OUTPUT" -> output.getOrElse(""))
@@ -396,7 +401,7 @@ object Build
       import XML.Encode._
           pair(bool, pair(Options.encode, pair(bool, pair(bool, pair(Path.encode, pair(string,
             pair(string, pair(string, list(pair(Options.encode, list(Path.encode)))))))))))(
-          (output.isDefined, (options, (timing, (verbose, (browser_info, (parent,
+          (output.isDefined, (options, (timing, (verbose, (browser_info, (parent_base_name,
             (name, (info.base_name, info.theories)))))))))
     }
     new Job(cwd, env, script, YXML.string_of_body(args_xml))
@@ -455,7 +460,6 @@ object Build
         pending.dequeue(running.isDefinedAt(_)) match {
           case Some((name, info)) =>
             if (no_build) {
-              if (verbose) echo(name + " in " + info.dir)
               loop(pending - name, running, results + (name -> 0))
             }
             else if (info.parent.map(results(_)).forall(_ == 0)) {
