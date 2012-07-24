@@ -9,6 +9,17 @@
 
 PRG="$(basename "$0")"
 
+function show_settings()
+{
+  local PREFIX="$1"
+  echo "${PREFIX}ISABELLE_BUILD_OPTIONS=\"$ISABELLE_BUILD_OPTIONS\""
+  echo
+  echo "${PREFIX}ML_PLATFORM=\"$ML_PLATFORM\""
+  echo "${PREFIX}ML_HOME=\"$ML_HOME\""
+  echo "${PREFIX}ML_SYSTEM=\"$ML_SYSTEM\""
+  echo "${PREFIX}ML_OPTIONS=\"$ML_OPTIONS\""
+}
+
 function usage()
 {
   echo
@@ -26,12 +37,7 @@ function usage()
   echo "    -v           verbose"
   echo
   echo "  Build and manage Isabelle sessions, depending on implicit"
-  echo "  ISABELLE_BUILD_OPTIONS=\"$ISABELLE_BUILD_OPTIONS\""
-  echo
-  echo "  ML_PLATFORM=\"$ML_PLATFORM\""
-  echo "  ML_HOME=\"$ML_HOME\""
-  echo "  ML_SYSTEM=\"$ML_SYSTEM\""
-  echo "  ML_OPTIONS=\"$ML_OPTIONS\""
+  show_settings "  "
   echo
   exit 1
 }
@@ -105,6 +111,26 @@ shift $(($OPTIND - 1))
 
 [ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
 
-exec "$ISABELLE_TOOL" java isabelle.Build \
+if [ "$NO_BUILD" = false ]; then
+  echo "Started at $(date) ($ML_IDENTIFIER on $(hostname))"
+
+  if [ "$VERBOSE" = true ]; then
+    show_settings ""
+    echo
+  fi
+  . "$ISABELLE_HOME/lib/scripts/timestart.bash"
+fi
+
+"$ISABELLE_TOOL" java isabelle.Build \
   "$ALL_SESSIONS" "$BUILD_IMAGES" "$MAX_JOBS" "$NO_BUILD" "$SYSTEM_MODE" "$TIMING" \
   "$VERBOSE" "${MORE_DIRS[@]}" $'\n' "${BUILD_OPTIONS[@]}" $'\n' "$@"
+RC="$?"
+
+if [ "$NO_BUILD" = false ]; then
+  echo -n "Finished at "; date
+
+  . "$ISABELLE_HOME/lib/scripts/timestop.bash"
+  echo "$TIMES_REPORT"
+fi
+
+exit "$RC"
