@@ -22,7 +22,8 @@ fun use_theories name options =
     |> Unsynchronized.setmp Goal.parallel_proofs_threshold
         (Options.int options "parallel_proofs_threshold")
     |> Unsynchronized.setmp Multithreading.trace (Options.int options "threads_trace")
-    |> Unsynchronized.setmp Multithreading.max_threads (Options.int options "threads_limit");
+    |> Unsynchronized.setmp Multithreading.max_threads (Options.int options "threads_limit")
+    |> Options.bool options "no_document" ? Present.no_document;
 
 fun build args_file =
   let
@@ -38,7 +39,7 @@ fun build args_file =
         save
         false (* FIXME reset!? *)
         (Options.bool options "browser_info") browser_info
-        (Options.string options "document_format")   (* FIXME dependent on "document" (!?) *)
+        (Options.string options "document")
         (Options.bool options "document_graph")
         (space_explode "," (Options.string options "document_variants"))
         parent

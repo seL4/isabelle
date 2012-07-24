@@ -2,11 +2,11 @@
 
 declare browser_info : bool = false
 
-declare document : bool = true
-declare document_format : string = pdf
+declare document : string = ""
 declare document_variants : string = document
 declare document_graph : bool = false
 declare document_dump : string = ""
+declare no_document : bool = false
 
 declare threads_limit : int = 1
 declare threads_trace : int = 0
