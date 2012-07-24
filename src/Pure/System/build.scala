@@ -331,7 +331,12 @@ object Build
                 }
               thy :: uses
             }).flatten ::: info.files.map(file => info.dir + file)
-          val sources = all_files.map(p => (p, SHA1.digest(p)))
+          val sources =
+            try { all_files.map(p => (p, SHA1.digest(p))) }
+            catch {
+              case ERROR(msg) =>
+                error(msg + "\nThe error(s) above occurred in session " + quote(name))
+            }
 
           deps + (name -> Node(loaded_theories, sources))
       }))
