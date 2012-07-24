@@ -19,7 +19,7 @@ session "HOL-Main"! in "." = Pure +
   options [document = false]
   theories Main
 
-session "HOL-Proofs"! (2) in "." = Pure +
+session "HOL-Proofs"! (4) in "." = Pure +
   description {* HOL-Main with proof terms *}
   options [document = false, proofs = 2, parallel_proofs = 0]
   theories Main
@@ -570,7 +570,7 @@ session "HOL-Probability"! in "Probability" = "HOL-Multivariate_Analysis" +
     "ex/Koepf_Duermuth_Countermeasure"
   files "document/root.tex"
 
-session Nominal = HOL +
+session Nominal (2) = HOL +
   options [document = false]
   theories Nominal
 
