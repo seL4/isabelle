@@ -1,7 +1,7 @@
 (* Author: Tobias Nipkow *)
 
 theory Abs_Int2_ITP
-imports Abs_Int1_ITP Vars
+imports Abs_Int1_ITP "../Vars"
 begin
 
 instantiation prod :: (preord,preord) preord
