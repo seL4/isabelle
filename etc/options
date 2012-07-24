@@ -22,3 +22,9 @@ declare quick_and_dirty : bool = false
 
 declare condition : string = ""
 
+declare show_question_marks : bool = true
+
+declare names_long : bool = false
+declare names_short : bool = false
+declare names_unique : bool = true
+

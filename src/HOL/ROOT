@@ -693,7 +693,7 @@ session Examples in "SPARK/Examples" = "HOL-SPARK" +
     "RIPEMD-160/rmd/s_r.siv"
 
 session Manual in "SPARK/Manual" = "HOL-SPARK" +
-  (* FIXME Printer.show_question_marks_default := false; *)
+  options [show_question_marks = false]
   theories
     Example_Verification
     VC_Principles

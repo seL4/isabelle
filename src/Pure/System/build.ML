@@ -26,7 +26,12 @@ fun use_thys options =
     |> Unsynchronized.setmp Multithreading.max_threads (Options.int options "threads")
     |> (case Options.string options "document" of "" => true | "false" => true | _ => false) ?
         Present.no_document
-    |> Unsynchronized.setmp quick_and_dirty (Options.bool options "quick_and_dirty");
+    |> Unsynchronized.setmp quick_and_dirty (Options.bool options "quick_and_dirty")
+    |> Unsynchronized.setmp Printer.show_question_marks_default
+        (Options.bool options "show_question_marks")
+    |> Unsynchronized.setmp Name_Space.names_long_default (Options.bool options "names_long")
+    |> Unsynchronized.setmp Name_Space.names_short_default (Options.bool options "names_short")
+    |> Unsynchronized.setmp Name_Space.names_unique_default (Options.bool options "names_unique");
 
 fun use_theories (options, thys) =
   let val condition = space_explode "," (Options.string options "condition") in
