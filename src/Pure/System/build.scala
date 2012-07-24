@@ -209,14 +209,17 @@ object Build
 
         val key = Session.Key(full_name, entry.order)
 
+        val session_options = options ++ entry.options
+
         val theories =
-          entry.theories.map({ case (opts, thys) => (options ++ opts, thys.map(Path.explode(_))) })
+          entry.theories.map({ case (opts, thys) =>
+            (session_options ++ opts, thys.map(Path.explode(_))) })
         val files = entry.files.map(Path.explode(_))
         val digest = SHA1.digest((full_name, entry.parent, entry.options, entry.theories).toString)
 
         val info =
           Session.Info(entry.name, dir + path, entry.parent,
-            entry.description, options ++ entry.options, theories, files, digest)
+            entry.description, session_options, theories, files, digest)
 
         queue1 + (key, info)
       }
@@ -344,6 +347,18 @@ object Build
   private def start_job(name: String, info: Session.Info, output: Option[String],
     options: Options, timing: Boolean, verbose: Boolean, browser_info: Path): Job =
   {
+    // global browser info dir
+    if (options.bool("browser_info") && !(browser_info + Path.explode("index.html")).file.isFile)
+    {
+      browser_info.file.mkdirs()
+      File.copy(Path.explode("~~/lib/logo/isabelle.gif"),
+        browser_info + Path.explode("isabelle.gif"))
+      File.write(browser_info + Path.explode("index.html"),
+        File.read(Path.explode("~~/lib/html/library_index_header.template")) +
+        File.read(Path.explode("~~/lib/html/library_index_content.template")) +
+        File.read(Path.explode("~~/lib/html/library_index_footer.template")))
+    }
+
     val parent = info.parent.getOrElse("")
 
     val cwd = info.dir.file
@@ -399,18 +414,6 @@ object Build
       if (system_mode) (Path.explode("~~/heaps/$ML_IDENTIFIER"), Path.explode("~~/browser_info"))
       else (Path.explode("$ISABELLE_OUTPUT"), Path.explode("$ISABELLE_BROWSER_INFO"))
 
-    // prepare browser info dir
-    if (options.bool("browser_info") && !(browser_info + Path.explode("index.html")).file.isFile)
-    {
-      browser_info.file.mkdirs()
-      File.copy(Path.explode("~~/lib/logo/isabelle.gif"),
-        browser_info + Path.explode("isabelle.gif"))
-      File.write(browser_info + Path.explode("index.html"),
-        File.read(Path.explode("~~/lib/html/library_index_header.template")) +
-        File.read(Path.explode("~~/lib/html/library_index_content.template")) +
-        File.read(Path.explode("~~/lib/html/library_index_footer.template")))
-    }
-
     // prepare log dir
     val log_dir = output_dir + Path.explode("log")
     log_dir.file.mkdirs()
@@ -458,7 +461,7 @@ object Build
                   Some(Isabelle_System.standard_path(output_dir + Path.basic(name)))
                 else None
               echo((if (output.isDefined) "Building " else "Running ") + name + " ...")
-              val job = start_job(name, info, output, options, timing, verbose, browser_info)
+              val job = start_job(name, info, output, info.options, timing, verbose, browser_info)
               loop(pending, running + (name -> job), results)
             }
             else {

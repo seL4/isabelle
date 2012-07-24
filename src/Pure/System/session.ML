@@ -112,8 +112,9 @@ fun with_timing _ false f x = f x
 
 fun init build reset info info_path doc doc_graph doc_variants parent name dump rpath verbose =
  (init_name reset parent name;
-  Present.init build info info_path doc doc_graph doc_variants (path ()) name
-    (dumping dump) (get_rpath rpath) verbose (map Thy_Info.get_theory (Thy_Info.get_names ())));
+  Present.init build info info_path (if doc = "false" then "" else doc) doc_graph doc_variants
+    (path ()) name (dumping dump) (get_rpath rpath) verbose
+    (map Thy_Info.get_theory (Thy_Info.get_names ())));
 
 fun use_dir item root build modes reset info info_path doc doc_graph doc_variants parent
     name dump rpath level timing verbose max_threads trace_threads
