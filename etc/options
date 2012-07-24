@@ -7,6 +7,7 @@ declare document : string = ""
 declare document_variants : string = "outline=/proof,/ML"
 declare document_graph : bool = false
 declare document_dump : string = ""
+declare document_dump_only : bool = false
 declare no_document : bool = false
 
 declare threads : int = 0

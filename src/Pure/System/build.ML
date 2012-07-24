@@ -55,14 +55,11 @@ fun build args_file =
         (Options.bool options "document_graph")
         (space_explode ":" (Options.string options "document_variants"))
         parent base_name
-        (true (* FIXME copy document/ files on Scala side!? *),
-          Options.string options "document_dump")
+        (not (Options.bool options "document_dump_only"), Options.string options "document_dump")
         (Options.string options "browser_info_remote")
         verbose;
-
     val _ = Session.with_timing name timing (List.app use_theories) theories;
     val _ = Session.finish ();
-
     val _ = if save then () else quit ();
   in () end
   handle exn => (Output.error_msg (ML_Compiler.exn_message exn); exit 1);
