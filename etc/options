@@ -18,7 +18,5 @@ declare print_mode : string = ""
 declare proofs : int = 0
 declare quick_and_dirty : bool = false
 
-declare timing : bool = false
-
 declare condition : string = ""
 

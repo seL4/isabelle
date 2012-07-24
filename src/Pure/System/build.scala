@@ -342,7 +342,7 @@ object Build
   }
 
   private def start_job(name: String, info: Session.Info, output: Option[String],
-    options: Options, verbose: Boolean, browser_info: Path): Job =
+    options: Options, timing: Boolean, verbose: Boolean, browser_info: Path): Job =
   {
     val parent = info.parent.getOrElse("")
 
@@ -373,10 +373,10 @@ object Build
     val args_xml =
     {
       import XML.Encode._
-          pair(bool, pair(Options.encode, pair(bool, pair(Path.encode, pair(string,
-            pair(string, pair(string, list(pair(Options.encode, list(Path.encode))))))))))(
-          (output.isDefined, (options, (verbose, (browser_info, (parent,
-            (name, (info.base_name, info.theories))))))))
+          pair(bool, pair(Options.encode, pair(bool, pair(bool, pair(Path.encode, pair(string,
+            pair(string, pair(string, list(pair(Options.encode, list(Path.encode)))))))))))(
+          (output.isDefined, (options, (timing, (verbose, (browser_info, (parent,
+            (name, (info.base_name, info.theories)))))))))
     }
     new Job(cwd, env, script, YXML.string_of_body(args_xml))
   }
@@ -388,7 +388,7 @@ object Build
   private def sleep(): Unit = Thread.sleep(500)
 
   def build(all_sessions: Boolean, build_images: Boolean, max_jobs: Int,
-    list_only: Boolean, system_mode: Boolean, verbose: Boolean,
+    list_only: Boolean, system_mode: Boolean, timing: Boolean, verbose: Boolean,
     more_dirs: List[Path], more_options: List[String], sessions: List[String]): Int =
   {
     val options = (Options.init() /: more_options)(_.define_simple(_))
@@ -458,7 +458,7 @@ object Build
                   Some(Isabelle_System.standard_path(output_dir + Path.basic(name)))
                 else None
               echo((if (output.isDefined) "Building " else "Running ") + name + " ...")
-              val job = start_job(name, info, output, options, verbose, browser_info)
+              val job = start_job(name, info, output, options, timing, verbose, browser_info)
               loop(pending, running + (name -> job), results)
             }
             else {
@@ -487,9 +487,10 @@ object Build
           Properties.Value.Int(max_jobs) ::
           Properties.Value.Boolean(list_only) ::
           Properties.Value.Boolean(system_mode) ::
+          Properties.Value.Boolean(timing) ::
           Properties.Value.Boolean(verbose) ::
           Command_Line.Chunks(more_dirs, options, sessions) =>
-            build(all_sessions, build_images, max_jobs, list_only, system_mode,
+            build(all_sessions, build_images, max_jobs, list_only, system_mode, timing,
               verbose, more_dirs.map(Path.explode), options, sessions)
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }

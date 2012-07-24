@@ -12,9 +12,8 @@ end;
 structure Build: BUILD =
 struct
 
-fun use_theories name options =
+fun use_theories options =
   Thy_Info.use_thys
-    |> Session.with_timing name (Options.bool options "timing")
     |> Unsynchronized.setmp Proofterm.proofs (Options.int options "proofs")
     |> Unsynchronized.setmp print_mode
         (space_explode "," (Options.string options "print_mode") @ print_mode_value ())
@@ -27,11 +26,12 @@ fun use_theories name options =
 
 fun build args_file =
   let
-    val (save, (options, (verbose, (browser_info, (parent, (name, (base_name, theories))))))) =
+    val (save, (options, (timing, (verbose, (browser_info, (parent,
+        (name, (base_name, theories)))))))) =
       File.read (Path.explode args_file) |> YXML.parse_body |>
         let open XML.Decode in
-          pair bool (pair Options.decode (pair bool (pair string (pair string
-            (pair string (pair string ((list (pair Options.decode (list string))))))))))
+          pair bool (pair Options.decode (pair bool (pair bool (pair string (pair string
+            (pair string (pair string ((list (pair Options.decode (list string)))))))))))
         end;
 
     val _ =
@@ -49,7 +49,7 @@ fun build args_file =
         ""
         verbose;
 
-    val _ = List.app (uncurry (use_theories name)) theories;
+    val _ = List.app (uncurry (use_theories |> Session.with_timing name timing)) theories;
     val _ = Session.finish ();
 
     val _ = if save then () else quit ();
