@@ -6,22 +6,22 @@ session HOL! (1) in "." = Pure +
 
 session "HOL-Base"! in "." = Pure +
   description {* Raw HOL base, with minimal tools *}
-  options [no_document]
+  options [document = false]
   theories HOL
 
 session "HOL-Plain"! in "." = Pure +
   description {* HOL side-entry after bootstrap of many tools and packages *}
-  options [no_document]
+  options [document = false]
   theories Plain
 
 session "HOL-Main"! in "." = Pure +
   description {* HOL side-entry for Main only, without Complex_Main *}
-  options [no_document]
+  options [document = false]
   theories Main
 
 session "HOL-Proofs"! (2) in "." = Pure +
   description {* HOL-Main with proof terms *}
-  options [no_document, proofs = 2, parallel_proofs = 0]
+  options [document = false, proofs = 2, parallel_proofs = 0]
   theories Main
 
 session HOLCF! (3) = HOL +
@@ -32,7 +32,7 @@ session HOLCF! (3) = HOL +
     HOLCF -- a semantic extension of HOL by the LCF logic.
   *}
   options [document_graph]
-  theories [no_document]
+  theories [document = false]
     "~~/src/HOL/Library/Nat_Bijection"
     "~~/src/HOL/Library/Countable"
   theories Plain_HOLCF Fixrec HOLCF

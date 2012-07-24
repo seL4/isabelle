@@ -24,7 +24,8 @@ fun use_thys options =
         (Options.int options "parallel_proofs_threshold")
     |> Unsynchronized.setmp Multithreading.trace (Options.int options "threads_trace")
     |> Unsynchronized.setmp Multithreading.max_threads (Options.int options "threads")
-    |> Options.bool options "no_document" ? Present.no_document
+    |> (case Options.string options "document" of "" => false | "false" => false | _ => true) ?
+        Present.no_document
     |> Unsynchronized.setmp quick_and_dirty (Options.bool options "quick_and_dirty");
 
 fun use_theories (options, thys) =

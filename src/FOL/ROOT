@@ -21,6 +21,6 @@ session ex = FOL +
     Quantifiers_Cla
     Miniscope
     If
-  theories [no_document] "Locale_Test/Locale_Test"
+  theories [document = false] "Locale_Test/Locale_Test"
   files "document/root.tex"
 
