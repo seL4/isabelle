@@ -862,8 +862,7 @@ session ex in "HOLCF/IOA/ex" = IOA +
 session Datatype_Benchmark = HOL +
   description {* Some rather large datatype examples (from John Harrison). *}
   options [document = false]
-  theories [condition = ISABELLE_BENCHMARK]
-    (* FIXME Toplevel.timing := true; *)
+  theories [condition = ISABELLE_BENCHMARK, timing]
     Brackin
     Instructions
     SML
@@ -872,7 +871,6 @@ session Datatype_Benchmark = HOL +
 session Record_Benchmark = HOL +
   description {* Some benchmark on large record. *}
   options [document = false]
-  theories [condition = ISABELLE_BENCHMARK]
-    (* FIXME Toplevel.timing := true; *)
+  theories [condition = ISABELLE_BENCHMARK, timing]
     Record_Benchmark
 

@@ -31,7 +31,8 @@ fun use_thys options =
         (Options.bool options "show_question_marks")
     |> Unsynchronized.setmp Name_Space.names_long_default (Options.bool options "names_long")
     |> Unsynchronized.setmp Name_Space.names_short_default (Options.bool options "names_short")
-    |> Unsynchronized.setmp Name_Space.names_unique_default (Options.bool options "names_unique");
+    |> Unsynchronized.setmp Name_Space.names_unique_default (Options.bool options "names_unique")
+    |> Unsynchronized.setmp Toplevel.timing (Options.bool options "timing");
 
 fun use_theories (options, thys) =
   let val condition = space_explode "," (Options.string options "condition") in

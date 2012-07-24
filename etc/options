@@ -28,3 +28,5 @@ declare names_long : bool = false
 declare names_short : bool = false
 declare names_unique : bool = true
 
+declare timing : bool = false
+
