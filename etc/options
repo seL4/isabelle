@@ -8,7 +8,7 @@ declare document_graph : bool = false
 declare document_dump : string = ""
 declare no_document : bool = false
 
-declare threads_limit : int = 1
+declare threads : int = 1
 declare threads_trace : int = 0
 declare parallel_proofs : int = 1
 declare parallel_proofs_threshold : int = 100
