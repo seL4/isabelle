@@ -37,10 +37,10 @@ object File
 
   /* write */
 
-  private def write_file(file: JFile, text: CharSequence, zip: Boolean)
+  private def write_file(file: JFile, text: CharSequence, gzip: Boolean)
   {
     val stream1 = new FileOutputStream(file)
-    val stream2 = if (zip) new GZIPOutputStream(new BufferedOutputStream(stream1)) else stream1
+    val stream2 = if (gzip) new GZIPOutputStream(new BufferedOutputStream(stream1)) else stream1
     val writer = new BufferedWriter(new OutputStreamWriter(stream2, Standard_System.charset))
     try { writer.append(text) }
     finally { writer.close }
@@ -49,8 +49,8 @@ object File
   def write(file: JFile, text: CharSequence): Unit = write_file(file, text, false)
   def write(path: Path, text: CharSequence): Unit = write(path.file, text)
 
-  def write_zip(file: JFile, text: CharSequence): Unit = write_file(file, text, true)
-  def write_zip(path: Path, text: CharSequence): Unit = write_zip(path.file, text)
+  def write_gzip(file: JFile, text: CharSequence): Unit = write_file(file, text, true)
+  def write_gzip(path: Path, text: CharSequence): Unit = write_gzip(path.file, text)
 
 
   /* copy */

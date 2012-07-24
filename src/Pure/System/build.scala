@@ -7,7 +7,9 @@ Build and manage Isabelle sessions.
 package isabelle
 
 
-import java.io.{File => JFile}
+import java.io.{File => JFile, BufferedInputStream, FileInputStream,
+  BufferedReader, InputStreamReader, IOException}
+import java.util.zip.GZIPInputStream
 
 import scala.collection.mutable
 import scala.annotation.tailrec
@@ -301,6 +303,18 @@ object Build
     def sources(name: String): List[(Path, SHA1.Digest)] = deps(name).sources
   }
 
+  private def read_deps(file: JFile): List[String] =
+    if (file.isFile) {
+      val stream = new GZIPInputStream (new BufferedInputStream(new FileInputStream(file)))
+      val reader = new BufferedReader(new InputStreamReader(stream, Standard_System.charset))
+      try {
+        List(reader.readLine).filter(_.startsWith("sources:")) :::
+        List(reader.readLine).filter(_.startsWith("heap:"))
+      }
+      finally { reader.close }
+    }
+    else Nil
+
   def dependencies(verbose: Boolean, queue: Session.Queue): Deps =
     Deps((Map.empty[String, Node] /: queue.topological_order)(
       { case (deps, (name, info)) =>
@@ -344,7 +358,8 @@ object Build
 
   /* jobs */
 
-  private class Job(cwd: JFile, env: Map[String, String], script: String, args: String)
+  private class Job(cwd: JFile, env: Map[String, String], script: String, args: String,
+    val output_path: Option[Path])
   {
     private val args_file = File.tmp_file("args")
     private val env1 = env + ("ARGS_FILE" -> Isabelle_System.posix_path(args_file.getPath))
@@ -358,7 +373,7 @@ object Build
     def join: (String, String, Int) = { val res = result.join; args_file.delete; res }
   }
 
-  private def start_job(name: String, info: Session.Info, output: Option[String],
+  private def start_job(name: String, info: Session.Info, output_path: Option[Path],
     options: Options, timing: Boolean, verbose: Boolean, browser_info: Path): Job =
   {
     // global browser info dir
@@ -376,15 +391,18 @@ object Build
     val parent = info.parent.getOrElse("")
     val parent_base_name = info.parent_base_name.getOrElse("")
 
+    val output =
+      output_path match { case Some(p) => Isabelle_System.standard_path(p) case None => "" }
+
     val cwd = info.dir.file
-    val env = Map("INPUT" -> parent, "TARGET" -> name, "OUTPUT" -> output.getOrElse(""))
+    val env = Map("INPUT" -> parent, "TARGET" -> name, "OUTPUT" -> output)
     val script =
       if (is_pure(name)) "./build " + name + " \"$OUTPUT\""
       else {
         """
         . "$ISABELLE_HOME/lib/scripts/timestart.bash"
         """ +
-          (if (output.isDefined)
+          (if (output_path.isDefined)
             """ "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -q -w "$INPUT" "$OUTPUT" """
           else
             """ "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -r -q "$INPUT" """) +
@@ -405,10 +423,10 @@ object Build
       import XML.Encode._
           pair(bool, pair(Options.encode, pair(bool, pair(bool, pair(Path.encode, pair(string,
             pair(string, pair(string, list(pair(Options.encode, list(Path.encode)))))))))))(
-          (output.isDefined, (options, (timing, (verbose, (browser_info, (parent_base_name,
+          (output_path.isDefined, (options, (timing, (verbose, (browser_info, (parent_base_name,
             (name, (info.base_name, info.theories)))))))))
     }
-    new Job(cwd, env, script, YXML.string_of_body(args_xml))
+    new Job(cwd, env, script, YXML.string_of_body(args_xml), output_path)
   }
 
 
@@ -448,7 +466,13 @@ object Build
           val sources =
             (queue(name).digest :: deps.sources(name).map(_._2)).map(_.toString).sorted
               .mkString("sources: ", " ", "\n")
-          File.write_zip(log.ext("gz"), sources + out)
+          val heap =
+            job.output_path.map(_.file) match {
+              case Some(file) =>
+                "heap: " + file.length.toString + " " + file.lastModified.toString + "\n"
+              case None => ""
+            }
+          File.write_gzip(log.ext("gz"), sources + heap + out)
         }
         else {
           File.write(log, out)
@@ -469,7 +493,7 @@ object Build
             else if (info.parent.map(results(_)).forall(_ == 0)) {
               val output =
                 if (build_images || queue.is_inner(name))
-                  Some(Isabelle_System.standard_path(output_dir + Path.basic(name)))
+                  Some(output_dir + Path.basic(name))
                 else None
               echo((if (output.isDefined) "Building " else "Running ") + name + " ...")
               val job = start_job(name, info, output, info.options, timing, verbose, browser_info)
