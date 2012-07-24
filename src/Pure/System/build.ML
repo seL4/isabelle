@@ -12,7 +12,9 @@ end;
 structure Build: BUILD =
 struct
 
-fun use_theories options =
+local
+
+fun use_thys options =
   Thy_Info.use_thys
     |> Unsynchronized.setmp Proofterm.proofs (Options.int options "proofs")
     |> Unsynchronized.setmp print_mode
@@ -24,6 +26,17 @@ fun use_theories options =
     |> Unsynchronized.setmp Multithreading.max_threads (Options.int options "threads")
     |> Options.bool options "no_document" ? Present.no_document
     |> Unsynchronized.setmp quick_and_dirty (Options.bool options "quick_and_dirty");
+
+fun use_theories (options, thys) =
+  let val condition = space_explode "," (Options.string options "condition") in
+    (case filter_out (can getenv_strict) condition of
+      [] => use_thys options thys
+    | conds =>
+        Output.physical_stderr ("Ignoring theories " ^ commas_quote thys ^
+          " (missing " ^ commas conds ^ ")\n"))
+  end;
+
+in
 
 fun build args_file =
   let
@@ -47,11 +60,13 @@ fun build args_file =
         (Options.string options "browser_info_remote")
         verbose;
 
-    val _ = Session.with_timing name timing (List.app (uncurry use_theories)) theories;
+    val _ = Session.with_timing name timing (List.app use_theories) theories;
     val _ = Session.finish ();
 
     val _ = if save then () else quit ();
   in () end
   handle exn => (Output.error_msg (ML_Compiler.exn_message exn); exit 1);
+
+end;
 
 end;
