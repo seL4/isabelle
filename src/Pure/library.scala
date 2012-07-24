@@ -24,11 +24,7 @@ object Library
   object ERROR
   {
     def apply(message: String): Throwable = new RuntimeException(message)
-    def unapply(exn: Throwable): Option[String] =
-      exn match {
-        case e: RuntimeException => Some(Exn.message(e))
-        case _ => None
-      }
+    def unapply(exn: Throwable): Option[String] = Exn.user_message(exn)
   }
 
   def error(message: String): Nothing = throw ERROR(message)

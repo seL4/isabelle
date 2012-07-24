@@ -51,6 +51,10 @@ function isabelle ()
 
 #platform
 source "$ISABELLE_HOME/lib/scripts/isabelle-platform"
+if [ -z "$ISABELLE_PLATFORM" ]; then
+  echo 1>&2 "Failed to determine hardware and operating system type!"
+  exit 2
+fi
 
 #Isabelle distribution identifier -- filled in automatically!
 ISABELLE_ID=""

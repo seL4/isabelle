@@ -1,7 +1,7 @@
 (* Author:     Johannes Hoelzl <hoelzl@in.tum.de> 2009 *)
 
 theory Approximation_Ex
-imports Complex_Main "~~/src/HOL/Decision_Procs/Approximation"
+imports Complex_Main "../Approximation"
 begin
 
 text {*

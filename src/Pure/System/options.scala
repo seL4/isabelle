@@ -79,6 +79,11 @@ object Options
     }
     options
   }
+
+
+  /* encode */
+
+  val encode: XML.Encode.T[Options] = (options => options.encode)
 }
 
 
@@ -177,7 +182,7 @@ final class Options private(options: Map[String, Options.Opt] = Map.empty)
             case "int" => Options.Int
             case "real" => Options.Real
             case "string" => Options.String
-            case _ => error("Malformed type for option " + quote(name) + " : " + quote(typ_name))
+            case _ => error("Unknown type for option " + quote(name) + " : " + quote(typ_name))
           }
         (new Options(options + (name -> Options.Opt(typ, value, description)))).check_value(name)
     }
@@ -208,5 +213,15 @@ final class Options private(options: Map[String, Options.Opt] = Map.empty)
       case -1 => define(str, None)
       case i => define(str.substring(0, i), str.substring(i + 1))
     }
+  }
+
+
+  /* encode */
+
+  def encode: XML.Body =
+  {
+    import XML.Encode.{string => str, _}
+    list(triple(str, str, str))(
+      options.toList.map({ case (name, opt) => (name, opt.typ.print, opt.value) }))
   }
 }

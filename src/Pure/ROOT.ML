@@ -103,6 +103,7 @@ use "term.ML";
 use "context.ML";
 use "context_position.ML";
 use "config.ML";
+use "System/options.ML";
 
 
 (* inner syntax *)

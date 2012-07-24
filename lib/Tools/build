@@ -9,6 +9,17 @@
 
 PRG="$(basename "$0")"
 
+function show_settings()
+{
+  local PREFIX="$1"
+  echo "${PREFIX}ISABELLE_BUILD_OPTIONS=\"$ISABELLE_BUILD_OPTIONS\""
+  echo
+  echo "${PREFIX}ML_PLATFORM=\"$ML_PLATFORM\""
+  echo "${PREFIX}ML_HOME=\"$ML_HOME\""
+  echo "${PREFIX}ML_SYSTEM=\"$ML_SYSTEM\""
+  echo "${PREFIX}ML_OPTIONS=\"$ML_OPTIONS\""
+}
+
 function usage()
 {
   echo
@@ -19,18 +30,14 @@ function usage()
   echo "    -b           build target images"
   echo "    -d DIR       additional session directory with ROOT file"
   echo "    -j INT       maximum number of jobs (default 1)"
-  echo "    -l           list sessions only"
+  echo "    -n           no build -- test dependencies only"
   echo "    -o OPTION    override session configuration OPTION (via NAME=VAL or NAME)"
   echo "    -s           system build mode: produce output in ISABELLE_HOME"
+  echo "    -t           inner session timing"
   echo "    -v           verbose"
   echo
   echo "  Build and manage Isabelle sessions, depending on implicit"
-  echo "  ISABELLE_BUILD_OPTIONS=\"$ISABELLE_BUILD_OPTIONS\""
-  echo
-  echo "  ML_PLATFORM=\"$ML_PLATFORM\""
-  echo "  ML_HOME=\"$ML_HOME\""
-  echo "  ML_SYSTEM=\"$ML_SYSTEM\""
-  echo "  ML_OPTIONS=\"$ML_OPTIONS\""
+  show_settings "  "
   echo
   exit 1
 }
@@ -52,14 +59,15 @@ function check_number()
 ALL_SESSIONS=false
 BUILD_IMAGES=false
 MAX_JOBS=1
-LIST_ONLY=false
+NO_BUILD=false
 SYSTEM_MODE=false
+TIMING=false
 VERBOSE=false
 
 declare -a MORE_DIRS=()
 eval "declare -a BUILD_OPTIONS=($ISABELLE_BUILD_OPTIONS)"
 
-while getopts "abd:j:lo:sv" OPT
+while getopts "abd:j:no:stv" OPT
 do
   case "$OPT" in
     a)
@@ -75,14 +83,17 @@ do
       check_number "$OPTARG"
       MAX_JOBS="$OPTARG"
       ;;
-    l)
-      LIST_ONLY="true"
+    n)
+      NO_BUILD="true"
       ;;
     o)
       BUILD_OPTIONS["${#BUILD_OPTIONS[@]}"]="$OPTARG"
       ;;
     s)
       SYSTEM_MODE="true"
+      ;;
+    t)
+      TIMING="true"
       ;;
     v)
       VERBOSE="true"
@@ -100,6 +111,26 @@ shift $(($OPTIND - 1))
 
 [ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
 
-exec "$ISABELLE_TOOL" java isabelle.Build \
-  "$ALL_SESSIONS" "$BUILD_IMAGES" "$MAX_JOBS" "$LIST_ONLY" "$SYSTEM_MODE" "$VERBOSE" \
-  "${MORE_DIRS[@]}" $'\n' "${BUILD_OPTIONS[@]}" $'\n' "$@"
+if [ "$NO_BUILD" = false ]; then
+  echo "Started at $(date) ($ML_IDENTIFIER on $(hostname))"
+
+  if [ "$VERBOSE" = true ]; then
+    show_settings ""
+    echo
+  fi
+  . "$ISABELLE_HOME/lib/scripts/timestart.bash"
+fi
+
+"$ISABELLE_TOOL" java isabelle.Build \
+  "$ALL_SESSIONS" "$BUILD_IMAGES" "$MAX_JOBS" "$NO_BUILD" "$SYSTEM_MODE" "$TIMING" \
+  "$VERBOSE" "${MORE_DIRS[@]}" $'\n' "${BUILD_OPTIONS[@]}" $'\n' "$@"
+RC="$?"
+
+if [ "$NO_BUILD" = false ]; then
+  echo -n "Finished at "; date
+
+  . "$ISABELLE_HOME/lib/scripts/timestop.bash"
+  echo "$TIMES_REPORT"
+fi
+
+exit "$RC"

@@ -3,7 +3,7 @@
 header {* Some examples demonstrating the comm-ring method *}
 
 theory Commutative_Ring_Ex
-imports Commutative_Ring
+imports "../Commutative_Ring"
 begin
 
 lemma "4*(x::int)^5*y^3*x^2*3 + x*z + 3^5 = 12*x^7*y^3 + z*x + 243"

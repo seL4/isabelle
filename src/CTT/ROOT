@@ -1,0 +1,17 @@
+session CTT! in "." = Pure +
+  description {*
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   1991  University of Cambridge
+  *}
+  options [document = false]
+  theories Main
+
+session ex = CTT +
+  description {*
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   1991  University of Cambridge
+
+    Examples for Constructive Type Theory.
+  *}
+  options [document = false]
+  theories Typechecking Elimination Equality Synthesis

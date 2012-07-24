@@ -42,8 +42,10 @@ object Build
     /* Info */
 
     sealed case class Info(
+      base_name: String,
       dir: Path,
       parent: Option[String],
+      parent_base_name: Option[String],
       description: String,
       options: Options,
       theories: List[(Options, List[Path])],
@@ -115,7 +117,7 @@ object Build
 
   private case class Session_Entry(
     name: String,
-    reset: Boolean,
+    this_name: Boolean,
     order: Int,
     path: Option[String],
     parent: Option[String],
@@ -140,7 +142,6 @@ object Build
     val session_entry: Parser[Session_Entry] =
     {
       val session_name = atom("session name", _.is_name)
-      val theory_name = atom("theory name", _.is_name)
 
       val option =
         name ~ opt(keyword("=") ~! name ^^ { case _ ~ x => x }) ^^ { case x ~ y => (x, y) }
@@ -187,16 +188,19 @@ object Build
       try {
         if (entry.name == "") error("Bad session name")
 
-        val full_name =
+        val (full_name, parent_base_name) =
           if (is_pure(entry.name)) {
             if (entry.parent.isDefined) error("Illegal parent session")
-            else entry.name
+            else (entry.name, None: Option[String])
           }
           else
             entry.parent match {
               case Some(parent_name) if queue1.defined(parent_name) =>
-                if (entry.reset) entry.name
-                else parent_name + "-" + entry.name
+                val full_name =
+                  if (entry.this_name) entry.name
+                  else parent_name + "-" + entry.name
+                val parent_base_name = Some(queue1(parent_name).base_name)
+                (full_name, parent_base_name)
               case _ => error("Bad parent session")
             }
 
@@ -208,14 +212,17 @@ object Build
 
         val key = Session.Key(full_name, entry.order)
 
+        val session_options = options ++ entry.options
+
         val theories =
-          entry.theories.map({ case (opts, thys) => (options ++ opts, thys.map(Path.explode(_))) })
+          entry.theories.map({ case (opts, thys) =>
+            (session_options ++ opts, thys.map(Path.explode(_))) })
         val files = entry.files.map(Path.explode(_))
         val digest = SHA1.digest((full_name, entry.parent, entry.options, entry.theories).toString)
 
         val info =
-          Session.Info(dir + path, entry.parent,
-            entry.description, options ++ entry.options, theories, files, digest)
+          Session.Info(entry.name, dir + path, entry.parent, parent_base_name,
+            entry.description, session_options, theories, files, digest)
 
         queue1 + (key, info)
       }
@@ -279,6 +286,10 @@ object Build
 
   /** build **/
 
+  private def echo(msg: String) { java.lang.System.out.println(msg) }
+  private def sleep(): Unit = Thread.sleep(500)
+
+
   /* dependencies */
 
   sealed case class Node(
@@ -290,7 +301,7 @@ object Build
     def sources(name: String): List[(Path, SHA1.Digest)] = deps(name).sources
   }
 
-  def dependencies(queue: Session.Queue): Deps =
+  def dependencies(verbose: Boolean, queue: Session.Queue): Deps =
     Deps((Map.empty[String, Node] /: queue.topological_order)(
       { case (deps, (name, info)) =>
           val preloaded =
@@ -299,6 +310,8 @@ object Build
               case Some(parent) => deps(parent).loaded_theories
             }
           val thy_info = new Thy_Info(new Thy_Load(preloaded))
+
+          if (verbose) echo("Checking " + name)
 
           val thy_deps =
             thy_info.dependencies(
@@ -318,7 +331,12 @@ object Build
                 }
               thy :: uses
             }).flatten ::: info.files.map(file => info.dir + file)
-          val sources = all_files.par.map(p => (p, SHA1.digest(p))).toList
+          val sources =
+            try { all_files.map(p => (p, SHA1.digest(p))) }
+            catch {
+              case ERROR(msg) =>
+                error(msg + "\nThe error(s) above occurred in session " + quote(name))
+            }
 
           deps + (name -> Node(loaded_theories, sources))
       }))
@@ -340,9 +358,23 @@ object Build
     def join: (String, String, Int) = { val res = result.join; args_file.delete; res }
   }
 
-  private def start_job(name: String, info: Session.Info, output: Option[String]): Job =
+  private def start_job(name: String, info: Session.Info, output: Option[String],
+    options: Options, timing: Boolean, verbose: Boolean, browser_info: Path): Job =
   {
+    // global browser info dir
+    if (options.bool("browser_info") && !(browser_info + Path.explode("index.html")).file.isFile)
+    {
+      browser_info.file.mkdirs()
+      File.copy(Path.explode("~~/lib/logo/isabelle.gif"),
+        browser_info + Path.explode("isabelle.gif"))
+      File.write(browser_info + Path.explode("index.html"),
+        File.read(Path.explode("~~/lib/html/library_index_header.template")) +
+        File.read(Path.explode("~~/lib/html/library_index_content.template")) +
+        File.read(Path.explode("~~/lib/html/library_index_footer.template")))
+    }
+
     val parent = info.parent.getOrElse("")
+    val parent_base_name = info.parent_base_name.getOrElse("")
 
     val cwd = info.dir.file
     val env = Map("INPUT" -> parent, "TARGET" -> name, "OUTPUT" -> output.getOrElse(""))
@@ -371,8 +403,10 @@ object Build
     val args_xml =
     {
       import XML.Encode._
-      pair(bool, pair(string, pair(string, list(string))))(
-        output.isDefined, (parent, (name, info.theories.map(_._2).flatten.map(_.implode))))
+          pair(bool, pair(Options.encode, pair(bool, pair(bool, pair(Path.encode, pair(string,
+            pair(string, pair(string, list(pair(Options.encode, list(Path.encode)))))))))))(
+          (output.isDefined, (options, (timing, (verbose, (browser_info, (parent_base_name,
+            (name, (info.base_name, info.theories)))))))))
     }
     new Job(cwd, env, script, YXML.string_of_body(args_xml))
   }
@@ -380,32 +414,17 @@ object Build
 
   /* build */
 
-  private def echo(msg: String) { java.lang.System.out.println(msg) }
-  private def sleep(): Unit = Thread.sleep(500)
-
   def build(all_sessions: Boolean, build_images: Boolean, max_jobs: Int,
-    list_only: Boolean, system_mode: Boolean, verbose: Boolean,
+    no_build: Boolean, system_mode: Boolean, timing: Boolean, verbose: Boolean,
     more_dirs: List[Path], more_options: List[String], sessions: List[String]): Int =
   {
     val options = (Options.init() /: more_options)(_.define_simple(_))
     val queue = find_sessions(options, all_sessions, sessions, more_dirs)
-    val deps = dependencies(queue)
+    val deps = dependencies(verbose, queue)
 
     val (output_dir, browser_info) =
       if (system_mode) (Path.explode("~~/heaps/$ML_IDENTIFIER"), Path.explode("~~/browser_info"))
       else (Path.explode("$ISABELLE_OUTPUT"), Path.explode("$ISABELLE_BROWSER_INFO"))
-
-    // prepare browser info dir
-    if (options.bool("browser_info") && !(browser_info + Path.explode("index.html")).file.isFile)
-    {
-      browser_info.file.mkdirs()
-      File.copy(Path.explode("~~/lib/logo/isabelle.gif"),
-        browser_info + Path.explode("isabelle.gif"))
-      File.write(browser_info + Path.explode("index.html"),
-        File.read(Path.explode("~~/lib/html/library_index_header.template")) +
-        File.read(Path.explode("~~/lib/html/library_index_content.template")) +
-        File.read(Path.explode("~~/lib/html/library_index_footer.template")))
-    }
 
     // prepare log dir
     val log_dir = output_dir + Path.explode("log")
@@ -444,8 +463,7 @@ object Build
       else if (running.size < (max_jobs max 1)) {
         pending.dequeue(running.isDefinedAt(_)) match {
           case Some((name, info)) =>
-            if (list_only) {
-              echo(name + " in " + info.dir)
+            if (no_build) {
               loop(pending - name, running, results + (name -> 0))
             }
             else if (info.parent.map(results(_)).forall(_ == 0)) {
@@ -454,7 +472,7 @@ object Build
                   Some(Isabelle_System.standard_path(output_dir + Path.basic(name)))
                 else None
               echo((if (output.isDefined) "Building " else "Running ") + name + " ...")
-              val job = start_job(name, info, output)
+              val job = start_job(name, info, output, info.options, timing, verbose, browser_info)
               loop(pending, running + (name -> job), results)
             }
             else {
@@ -467,7 +485,13 @@ object Build
       else { sleep(); loop(pending, running, results) }
     }
 
-    (0 /: loop(queue, Map.empty, Map.empty))({ case (rc1, (_, rc2)) => rc1 max rc2 })
+    val results = loop(queue, Map.empty, Map.empty)
+    val rc = (0 /: results)({ case (rc1, (_, rc2)) => rc1 max rc2 })
+    if (rc != 0) {
+      val unfinished = (for ((name, r) <- results.iterator if r != 0) yield name).toList.sorted
+      echo("Unfinished session(s): " + commas(unfinished))
+    }
+    rc
   }
 
 
@@ -481,11 +505,12 @@ object Build
           Properties.Value.Boolean(all_sessions) ::
           Properties.Value.Boolean(build_images) ::
           Properties.Value.Int(max_jobs) ::
-          Properties.Value.Boolean(list_only) ::
+          Properties.Value.Boolean(no_build) ::
           Properties.Value.Boolean(system_mode) ::
+          Properties.Value.Boolean(timing) ::
           Properties.Value.Boolean(verbose) ::
           Command_Line.Chunks(more_dirs, options, sessions) =>
-            build(all_sessions, build_images, max_jobs, list_only, system_mode,
+            build(all_sessions, build_images, max_jobs, no_build, system_mode, timing,
               verbose, more_dirs.map(Path.explode), options, sessions)
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }

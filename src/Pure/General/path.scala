@@ -96,8 +96,16 @@ object Path
     new Path(norm_elems(explode_elems(raw_elems) ++ roots))
   }
 
+  def is_ok(str: String): Boolean =
+    try { explode(str); true } catch { case ERROR(_) => false }
+
   def split(str: String): List[Path] =
     space_explode(':', str).filterNot(_.isEmpty).map(explode)
+
+
+  /* encode */
+
+  val encode: XML.Encode.T[Path] = (path => XML.Encode.string(path.implode))
 }
 
 
