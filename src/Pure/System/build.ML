@@ -49,7 +49,7 @@ fun build args_file =
         ""
         verbose;
 
-    val _ = List.app (uncurry (use_theories |> Session.with_timing name timing)) theories;
+    val _ = Session.with_timing name timing (List.app (uncurry use_theories)) theories;
     val _ = Session.finish ();
 
     val _ = if save then () else quit ();
