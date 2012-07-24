@@ -403,7 +403,7 @@ object Build
   private def sleep(): Unit = Thread.sleep(500)
 
   def build(all_sessions: Boolean, build_images: Boolean, max_jobs: Int,
-    list_only: Boolean, system_mode: Boolean, timing: Boolean, verbose: Boolean,
+    no_build: Boolean, system_mode: Boolean, timing: Boolean, verbose: Boolean,
     more_dirs: List[Path], more_options: List[String], sessions: List[String]): Int =
   {
     val options = (Options.init() /: more_options)(_.define_simple(_))
@@ -451,7 +451,7 @@ object Build
       else if (running.size < (max_jobs max 1)) {
         pending.dequeue(running.isDefinedAt(_)) match {
           case Some((name, info)) =>
-            if (list_only) {
+            if (no_build && verbose) {
               echo(name + " in " + info.dir)
               loop(pending - name, running, results + (name -> 0))
             }
@@ -488,12 +488,12 @@ object Build
           Properties.Value.Boolean(all_sessions) ::
           Properties.Value.Boolean(build_images) ::
           Properties.Value.Int(max_jobs) ::
-          Properties.Value.Boolean(list_only) ::
+          Properties.Value.Boolean(no_build) ::
           Properties.Value.Boolean(system_mode) ::
           Properties.Value.Boolean(timing) ::
           Properties.Value.Boolean(verbose) ::
           Command_Line.Chunks(more_dirs, options, sessions) =>
-            build(all_sessions, build_images, max_jobs, list_only, system_mode, timing,
+            build(all_sessions, build_images, max_jobs, no_build, system_mode, timing,
               verbose, more_dirs.map(Path.explode), options, sessions)
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }
