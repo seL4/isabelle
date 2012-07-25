@@ -121,7 +121,7 @@ $(LOG)/HOL-Fun.gz: $(OUT)/HOL Fun/ROOT.ML Fun/fun0.thy
 
 HOL-Advanced: HOL $(LOG)/HOL-Advanced.gz
 
-$(LOG)/HOL-Advanced.gz: $(OUT)/HOL Advanced/simp.thy Advanced/ROOT.ML
+$(LOG)/HOL-Advanced.gz: $(OUT)/HOL Advanced/simp2.thy Advanced/ROOT.ML
 	$(USEDIR) Advanced
 	@rm -f Advanced/document/isabelle.sty
 	@rm -f Advanced/document/isabellesym.sty
