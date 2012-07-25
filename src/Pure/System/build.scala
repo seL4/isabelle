@@ -292,7 +292,7 @@ object Build
   private def sleep(): Unit = Thread.sleep(500)
 
 
-  /* dependencies */
+  /* source dependencies */
 
   sealed case class Node(
     loaded_theories: Set[String],
@@ -300,20 +300,8 @@ object Build
 
   sealed case class Deps(deps: Map[String, Node])
   {
-    def sources(name: String): List[(Path, SHA1.Digest)] = deps(name).sources
+    def sources(name: String): List[SHA1.Digest] = deps(name).sources.map(_._2)
   }
-
-  private def read_deps(file: JFile): List[String] =
-    if (file.isFile) {
-      val stream = new GZIPInputStream (new BufferedInputStream(new FileInputStream(file)))
-      val reader = new BufferedReader(new InputStreamReader(stream, Standard_System.charset))
-      try {
-        List(reader.readLine).filter(_.startsWith("sources:")) :::
-        List(reader.readLine).filter(_.startsWith("heap:"))
-      }
-      finally { reader.close }
-    }
-    else Nil
 
   def dependencies(verbose: Boolean, queue: Session.Queue): Deps =
     Deps((Map.empty[String, Node] /: queue.topological_order)(
@@ -430,6 +418,42 @@ object Build
   }
 
 
+  /* log files and corresponding heaps */
+
+  val LOG = Path.explode("log")
+  def log(name: String): Path = LOG + Path.basic(name)
+  def log_gz(name: String): Path = log(name).ext("gz")
+
+  def sources_stamp(digests: List[SHA1.Digest]): String =
+    digests.map(_.toString).sorted.mkString("sources: ", " ", "")
+
+  def heap_stamp(output: Option[Path]): String =
+  {
+    "heap: " +
+      (output match {
+        case Some(path) =>
+          val file = path.file
+          if (file.isFile) file.length.toString + " " + file.lastModified.toString
+          else "-"
+        case None => "-"
+      })
+  }
+
+  def check_stamps(dir: Path, name: String): Option[(String, Boolean)] =
+  {
+    val file = (dir + log_gz(name)).file
+    if (file.isFile) {
+      val stream = new GZIPInputStream (new BufferedInputStream(new FileInputStream(file)))
+      val reader = new BufferedReader(new InputStreamReader(stream, Standard_System.charset))
+      val (s, h) = try { (reader.readLine, reader.readLine) } finally { reader.close }
+      if (s != null && s.startsWith("sources: ") && h != null && h.startsWith("heap: ") &&
+          h == heap_stamp(Some(dir + Path.basic(name)))) Some((s, h != "heap: -"))
+      else None
+    }
+    else None
+  }
+
+
   /* build */
 
   def build(all_sessions: Boolean, build_images: Boolean, max_jobs: Int,
@@ -440,13 +464,22 @@ object Build
     val queue = find_sessions(options, all_sessions, sessions, more_dirs)
     val deps = dependencies(verbose, queue)
 
-    val (output_dir, browser_info) =
-      if (system_mode) (Path.explode("~~/heaps/$ML_IDENTIFIER"), Path.explode("~~/browser_info"))
-      else (Path.explode("$ISABELLE_OUTPUT"), Path.explode("$ISABELLE_BROWSER_INFO"))
+    def make_stamp(name: String): String =
+      sources_stamp(queue(name).digest :: deps.sources(name))
+
+    val (input_dirs, output_dir, browser_info) =
+      if (system_mode) {
+        val output_dir = Path.explode("~~/heaps/$ML_IDENTIFIER")
+        (List(output_dir), output_dir, Path.explode("~~/browser_info"))
+      }
+      else {
+        val output_dir = Path.explode("$ISABELLE_OUTPUT")
+        (output_dir :: Isabelle_System.find_logics_dirs(), output_dir,
+         Path.explode("$ISABELLE_BROWSER_INFO"))
+      }
 
     // prepare log dir
-    val log_dir = output_dir + Path.explode("log")
-    log_dir.file.mkdirs()
+    (output_dir + LOG).file.mkdirs()
 
     // scheduler loop
     @tailrec def loop(
@@ -455,46 +488,51 @@ object Build
       results: Map[String, Int]): Map[String, Int] =
     {
       if (pending.is_empty) results
-      else if (running.exists({ case (_, job) => job.is_finished })) {
+      else if (running.exists({ case (_, job) => job.is_finished }))
+      { // finish job
         val (name, job) = running.find({ case (_, job) => job.is_finished }).get
 
         val (out, err, rc) = job.join
         echo(Library.trim_line(err))
 
-        val log = log_dir + Path.basic(name)
         if (rc == 0) {
-          val sources =
-            (queue(name).digest :: deps.sources(name).map(_._2)).map(_.toString).sorted
-              .mkString("sources: ", " ", "\n")
-          val heap =
-            job.output_path.map(_.file) match {
-              case Some(file) =>
-                "heap: " + file.length.toString + " " + file.lastModified.toString + "\n"
-              case None => ""
-            }
-          File.write_gzip(log.ext("gz"), sources + heap + out)
+          val sources = make_stamp(name)
+          val heap = heap_stamp(job.output_path)
+          File.write_gzip(output_dir + log_gz(name), sources + "\n" + heap + "\n" + out)
         }
         else {
-          File.write(log, out)
+          File.write(output_dir + log(name), out)
           echo(name + " FAILED")
-          echo("(see also " + log.file + ")")
+          echo("(see also " + log(name).file.toString + ")")
           val lines = split_lines(out)
           val tail = lines.drop(lines.length - 20 max 0)
           echo("\n" + cat_lines(tail))
         }
         loop(pending - name, running - name, results + (name -> rc))
       }
-      else if (running.size < (max_jobs max 1)) {
+      else if (running.size < (max_jobs max 1))
+      { // check/start next job
         pending.dequeue(running.isDefinedAt(_)) match {
           case Some((name, info)) =>
-            if (no_build) {
-              loop(pending - name, running, results + (name -> 0))
+            val output =
+              if (build_images || queue.is_inner(name))
+                Some(output_dir + Path.basic(name))
+              else None
+
+            val current =
+            {
+              input_dirs.find(dir => (dir + log_gz(name)).file.isFile) match {
+                case Some(dir) =>
+                  check_stamps(dir, name) match {
+                    case Some((s, h)) => s == make_stamp(name) && (h || output.isEmpty)
+                    case None => false
+                  }
+                case None => false
+              }
             }
+            if (current || no_build)
+              loop(pending - name, running, results + (name -> (if (current) 0 else 1)))
             else if (info.parent.map(results(_)).forall(_ == 0)) {
-              val output =
-                if (build_images || queue.is_inner(name))
-                  Some(output_dir + Path.basic(name))
-                else None
               echo((if (output.isDefined) "Building " else "Running ") + name + " ...")
               val job = start_job(name, info, output, info.options, timing, verbose, browser_info)
               loop(pending, running + (name -> job), results)
@@ -511,7 +549,7 @@ object Build
 
     val results = loop(queue, Map.empty, Map.empty)
     val rc = (0 /: results)({ case (rc1, (_, rc2)) => rc1 max rc2 })
-    if (rc != 0) {
+    if (rc != 0 && (verbose || !no_build)) {
       val unfinished = (for ((name, r) <- results.iterator if r != 0) yield name).toList.sorted
       echo("Unfinished session(s): " + commas(unfinished))
     }
