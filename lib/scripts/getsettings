@@ -211,6 +211,16 @@ export JAVA_HOME="$ISABELLE_JDK_HOME"
 
 ISABELLE_OUTPUT="$ISABELLE_OUTPUT/$ML_IDENTIFIER"
 
+#build condition etc.
+case "$ML_SYSTEM" in
+  polyml*)
+    ISABELLE_POLYML="true"
+    ;;
+  *)
+    ISABELLE_POLYML=""
+    ;;
+esac
+
 set +o allexport
 
 fi
