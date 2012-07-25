@@ -14,6 +14,10 @@ struct
 
 local
 
+fun no_document options =
+  (case Options.string options "document" of "" => true | "false" => true | _ => false) andalso
+  (Options.string options "document_dump" = "");
+
 fun use_thys options =
   Thy_Info.use_thys
     |> Unsynchronized.setmp Proofterm.proofs (Options.int options "proofs")
@@ -24,8 +28,7 @@ fun use_thys options =
         (Options.int options "parallel_proofs_threshold")
     |> Unsynchronized.setmp Multithreading.trace (Options.int options "threads_trace")
     |> Unsynchronized.setmp Multithreading.max_threads (Options.int options "threads")
-    |> (case Options.string options "document" of "" => true | "false" => true | _ => false) ?
-        Present.no_document
+    |> no_document options ? Present.no_document
     |> Unsynchronized.setmp quick_and_dirty (Options.bool options "quick_and_dirty")
     |> Unsynchronized.setmp Printer.show_question_marks_default
         (Options.bool options "show_question_marks")
