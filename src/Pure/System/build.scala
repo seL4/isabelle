@@ -420,14 +420,14 @@ object Build
 
   /* log files and corresponding heaps */
 
-  val LOG = Path.explode("log")
-  def log(name: String): Path = LOG + Path.basic(name)
-  def log_gz(name: String): Path = log(name).ext("gz")
+  private val LOG = Path.explode("log")
+  private def log(name: String): Path = LOG + Path.basic(name)
+  private def log_gz(name: String): Path = log(name).ext("gz")
 
-  def sources_stamp(digests: List[SHA1.Digest]): String =
+  private def sources_stamp(digests: List[SHA1.Digest]): String =
     digests.map(_.toString).sorted.mkString("sources: ", " ", "")
 
-  def heap_stamp(output: Option[Path]): String =
+  private def heap_stamp(output: Option[Path]): String =
   {
     "heap: " +
       (output match {
@@ -439,7 +439,7 @@ object Build
       })
   }
 
-  def check_stamps(dir: Path, name: String): Option[(String, Boolean)] =
+  private def check_stamps(dir: Path, name: String): Option[(String, Boolean)] =
   {
     val file = (dir + log_gz(name)).file
     if (file.isFile) {
