@@ -233,14 +233,28 @@ changesets that are meant to be published at some point.
 Building a repository version of Isabelle
 -----------------------------------------
 
-Compared to a proper distribution or development snapshot, it is
-relatively hard to build from the raw repository version.  Essential
-contributing components are missing and need to be reconstructed by
-running the Admin/build script by hand.  Afterwards the main Isabelle
-system and logic images can be compiled via the toplevel ./build
-script.  Note that the repository lacks some textual version
-identifiers in the sources and scripts; this implies some changed
-behavior when processing settings etc.
+A proper Isabelle distribution contains many add-on components that
+are important for practical use.  Some extra configuration is required
+to approximate this system integration from a bare-bones repository
+snapshot; see also its directory Admin/ (which is absent in official
+releases).
 
-There is no guarantee that the NEWS file is up to date at an arbitrary
-point in history.
+  (1) Admin/components lists potentially relevant components, with
+    explicit version information for the given repository version.
+    For example, this allows to bisect over Mercurial history while
+    the contributing components change accordingly.
+
+  (2) Admin/init_components is a bash script that can be sourced in
+    $ISABELLE_HOME_USER/etc/settings to initialize components listed
+    in Admin/components and present in $ISABELLE_HOME_USER/contrib/.
+
+  (3) http://isabelle.in.tum.de/components/ provides tar.gz archives
+    of many components, excluding some non-free ones (which are also
+    not part of Isabelle releases).
+
+Also note that the repository lacks some textual version identifiers
+in the sources and scripts; this implies some changed behavior when
+processing settings etc. -- especially the location of
+$ISABELLE_HOME_USER provided by the system.
+
+The isabelle build tool allows to build logic images.
