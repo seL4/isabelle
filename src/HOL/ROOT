@@ -290,7 +290,7 @@ session Imperative_HOL = HOL +
   files "document/root.bib" "document/root.tex"
 
 session Decision_Procs = HOL +
-  options [document = false]
+  options [condition = ISABELLE_POLYML, document = false]
   theories Decision_Procs
 
 session ex in "Proofs/ex" = "HOL-Proofs" +
@@ -299,7 +299,7 @@ session ex in "Proofs/ex" = "HOL-Proofs" +
 
 session Extraction in "Proofs/Extraction" = "HOL-Proofs" +
   description {* Examples for program extraction in Higher-Order Logic *}
-  options [proofs = 2, parallel_proofs = 0]
+  options [condition = ISABELLE_POLYML, proofs = 2, parallel_proofs = 0]
   theories [document = false]
     "~~/src/HOL/Library/Efficient_Nat"
     "~~/src/HOL/Library/Monad_Syntax"
@@ -395,6 +395,7 @@ session Lattice = HOL +
 
 session ex = HOL +
   description {* Miscellaneous examples for Higher-Order Logic. *}
+  options [condition = ISABELLE_POLYML]
   theories [document = false]
     "~~/src/HOL/Library/State_Monad"
     Code_Nat_examples
@@ -559,7 +560,7 @@ session Multivariate_Analysis = HOL +
     "document/root.tex"
 
 session "HOL-Probability"! in "Probability" = "HOL-Multivariate_Analysis" +
-  options [document_graph]
+  options [condition = ISABELLE_POLYML, document_graph]
   theories [document = false]
     "~~/src/HOL/Library/Countable"
     "~~/src/HOL/Multivariate_Analysis/Extended_Real_Limits"
@@ -575,7 +576,7 @@ session Nominal (2) = HOL +
   theories Nominal
 
 session Examples in "Nominal/Examples" = "HOL-Nominal" +
-  options [document = false]
+  options [condition = ISABELLE_POLYML, document = false]
   theories Nominal_Examples
   theories [quick_and_dirty] VC_Condition
 
