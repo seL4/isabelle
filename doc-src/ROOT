@@ -1,0 +1,116 @@
+session Classes! in "Classes/Thy" = HOL +
+  options [browser_info = false, document = false, document_dump = document, document_dump_only]
+  theories [document = false] Setup
+  theories Classes
+
+session Codegen! in "Codegen/Thy" = "HOL-Library" +
+  options [browser_info = false, document = false, document_dump = document, document_dump_only,
+    print_mode = "no_brackets,iff"]
+  theories [document = false] Setup
+  theories
+    Introduction
+    Foundations
+    Refinement
+    Inductive_Predicate
+    Evaluation
+    Adaptation
+    Further
+
+session Functions! in "Functions/Thy" = HOL +
+  options [browser_info = false, document = false, document_dump = document, document_dump_only]
+  theories Functions
+
+session IsarImplementation! in "IsarImplementation/Thy" = HOL +
+  options [browser_info = false, document = false, document_dump = document, document_dump_only]
+  theories
+    Eq
+    Integration
+    Isar
+    Local_Theory
+    Logic
+    ML
+    Prelim
+    Proof
+    Syntax
+    Tactic
+
+session IsarRef in "IsarRef/Thy" = HOL +
+  options [browser_info = false, document = false, document_dump = document, document_dump_only,
+    quick_and_dirty]
+  theories
+    Preface
+    Synopsis
+    Framework
+    First_Order_Logic
+    Outer_Syntax
+    Document_Preparation
+    Spec
+    Proof
+    Inner_Syntax
+    Misc
+    Generic
+    HOL_Specific
+    Quick_Reference
+    Symbols
+    ML_Tactic
+
+session IsarRef in "IsarRef/Thy" = HOLCF +
+  options [browser_info = false, document = false, document_dump = document, document_dump_only,
+    quick_and_dirty]
+  theories HOLCF_Specific
+
+session IsarRef in "IsarRef/Thy" = ZF +
+  options [browser_info = false, document = false, document_dump = document, document_dump_only,
+    quick_and_dirty]
+  theories ZF_Specific
+
+session LaTeXsugar! in "LaTeXsugar/Sugar" = HOL +
+  options [browser_info = false, document = false, document_dump = document, document_dump_only,
+    threads = 1]  (* FIXME *)
+  theories [document_dump = ""]
+    "~~/src/HOL/Library/LaTeXsugar"
+    "~~/src/HOL/Library/OptionalSugar"
+  theories Sugar
+
+session Locales! in "Locales/Locales" = HOL +
+  options [browser_info = false, document = false, document_dump = document, document_dump_only]
+  theories
+    Examples1
+    Examples2
+    Examples3
+
+session Main! in "Main/Docs" = HOL +
+  options [browser_info = false, document = false, document_dump = document, document_dump_only]
+  theories Main_Doc
+
+session ProgProve! in "ProgProve/Thys" = HOL +
+  options [browser_info = false, document = false, document_dump = document, document_dump_only,
+    show_question_marks = false]
+  theories
+    Basics
+    Bool_nat_list
+    MyList
+    Types_and_funs
+    Logic
+    Isar
+
+session System! in "System/Thy" = Pure +
+  options [browser_info = false, document = false, document_dump = document, document_dump_only]
+  theories
+    Basics
+    Interfaces
+    Scala
+    Presentation
+    Misc
+
+(* session Tutorial in "Tutorial" = HOL + FIXME *)
+
+session examples in "ZF" = ZF +
+  options [browser_info = false, document = false, document_dump = document, document_dump_only,
+    print_mode = "brackets"]
+  theories
+    IFOL_examples
+    FOL_examples
+    ZF_examples
+    If
+
