@@ -292,18 +292,17 @@ object Isabelle_System
 
   /* find logics */
 
-  def find_logics(): List[String] =
+  def find_logics_dirs(): List[Path] =
   {
-    val ml_ident = getenv_strict("ML_IDENTIFIER")
-    val logics = new mutable.ListBuffer[String]
-    for (dir <- Path.split(getenv_strict("ISABELLE_PATH"))) {
-      val files = (dir + Path.explode(ml_ident)).file.listFiles()
-      if (files != null) {
-        for (file <- files if file.isFile) logics += file.getName
-      }
-    }
-    logics.toList.sorted
+    val ml_ident = Path.explode("$ML_IDENTIFIER").expand
+    Path.split(getenv_strict("ISABELLE_PATH")).map(_ + ml_ident)
   }
+
+  def find_logics(): List[String] =
+    (for {
+      dir <- find_logics_dirs()
+      files = dir.file.listFiles() if files != null
+      file <- files.toList if file.isFile } yield file.getName).sorted
 
 
   /* fonts */
