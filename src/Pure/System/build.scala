@@ -320,7 +320,7 @@ object Build
   /* jobs */
 
   private class Job(cwd: JFile, env: Map[String, String], script: String, args: String,
-    val output_path: Option[Path])
+    output: Path, do_output: Boolean)
   {
     private val args_file = File.tmp_file("args")
     private val env1 = env + ("ARGS_FILE" -> Isabelle_System.posix_path(args_file.getPath))
@@ -332,9 +332,10 @@ object Build
     def terminate: Unit = thread.interrupt
     def is_finished: Boolean = result.is_finished
     def join: (String, String, Int) = { val res = result.join; args_file.delete; res }
+    def output_path: Option[Path] = if (do_output) Some(output) else None
   }
 
-  private def start_job(name: String, info: Session.Info, output_path: Option[Path],
+  private def start_job(name: String, info: Session.Info, output: Path, do_output: Boolean,
     options: Options, timing: Boolean, verbose: Boolean, browser_info: Path): Job =
   {
     // global browser info dir
@@ -352,21 +353,26 @@ object Build
     val parent = info.parent.getOrElse("")
     val parent_base_name = info.parent_base_name.getOrElse("")
 
-    val output =
-      output_path match { case Some(p) => Isabelle_System.standard_path(p) case None => "" }
-
     val cwd = info.dir.file
-    val env = Map("INPUT" -> parent, "TARGET" -> name, "OUTPUT" -> output)
+    val env =
+      Map("INPUT" -> parent, "TARGET" -> name, "OUTPUT" -> Isabelle_System.standard_path(output))
     val script =
-      if (is_pure(name)) "./build " + name + " \"$OUTPUT\""
+      if (is_pure(name)) {
+        if (do_output) "./build " + name + " \"$OUTPUT\""
+        else """ rm -f "$OUTPUT"; ./build """ + name
+      }
       else {
         """
         . "$ISABELLE_HOME/lib/scripts/timestart.bash"
         """ +
-          (if (output_path.isDefined)
-            """ "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -q -w "$INPUT" "$OUTPUT" """
+          (if (do_output)
+            """
+            "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -q -w "$INPUT" "$OUTPUT"
+            """
           else
-            """ "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -r -q "$INPUT" """) +
+            """
+            rm -f "$OUTPUT"; "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -r -q "$INPUT"
+            """) +
         """
         RC="$?"
 
@@ -384,10 +390,10 @@ object Build
       import XML.Encode._
           pair(bool, pair(Options.encode, pair(bool, pair(bool, pair(Path.encode, pair(string,
             pair(string, pair(string, list(pair(Options.encode, list(Path.encode)))))))))))(
-          (output_path.isDefined, (options, (timing, (verbose, (browser_info, (parent_base_name,
+          (do_output, (options, (timing, (verbose, (browser_info, (parent_base_name,
             (name, (info.base_name, info.theories)))))))))
     }
-    new Job(cwd, env, script, YXML.string_of_body(args_xml), output_path)
+    new Job(cwd, env, script, YXML.string_of_body(args_xml), output, do_output)
   }
 
 
@@ -431,7 +437,7 @@ object Build
 
   def build(
     all_sessions: Boolean = false,
-    build_images: Boolean = false,
+    build_heap: Boolean = false,
     more_dirs: List[Path] = Nil,
     session_groups: List[String] = Nil,
     max_jobs: Int = 1,
@@ -496,17 +502,15 @@ object Build
       { // check/start next job
         pending.dequeue(running.isDefinedAt(_)) match {
           case Some((name, info)) =>
-            val output =
-              if (build_images || queue.is_inner(name))
-                Some(output_dir + Path.basic(name))
-              else None
+            val output = output_dir + Path.basic(name)
+            val do_output = build_heap || queue.is_inner(name)
 
             val current =
             {
               input_dirs.find(dir => (dir + log_gz(name)).file.isFile) match {
                 case Some(dir) =>
                   check_stamps(dir, name) match {
-                    case Some((s, h)) => s == make_stamp(name) && (h || output.isEmpty)
+                    case Some((s, h)) => s == make_stamp(name) && (h || !do_output)
                     case None => false
                   }
                 case None => false
@@ -515,8 +519,9 @@ object Build
             if (current || no_build)
               loop(pending - name, running, results + (name -> (if (current) 0 else 1)))
             else if (info.parent.map(results(_)).forall(_ == 0)) {
-              echo((if (output.isDefined) "Building " else "Running ") + name + " ...")
-              val job = start_job(name, info, output, info.options, timing, verbose, browser_info)
+              echo((if (do_output) "Building " else "Running ") + name + " ...")
+              val job =
+                start_job(name, info, output, do_output, info.options, timing, verbose, browser_info)
               loop(pending, running + (name -> job), results)
             }
             else {
@@ -547,14 +552,14 @@ object Build
       args.toList match {
         case
           Properties.Value.Boolean(all_sessions) ::
-          Properties.Value.Boolean(build_images) ::
+          Properties.Value.Boolean(build_heap) ::
           Properties.Value.Int(max_jobs) ::
           Properties.Value.Boolean(no_build) ::
           Properties.Value.Boolean(system_mode) ::
           Properties.Value.Boolean(timing) ::
           Properties.Value.Boolean(verbose) ::
           Command_Line.Chunks(more_dirs, session_groups, build_options, sessions) =>
-            build(all_sessions, build_images, more_dirs.map(Path.explode), session_groups,
+            build(all_sessions, build_heap, more_dirs.map(Path.explode), session_groups,
               max_jobs, no_build, build_options, system_mode, timing, verbose, sessions)
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }

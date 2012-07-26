@@ -50,7 +50,7 @@ in
 
 fun build args_file =
   let
-    val (save, (options, (timing, (verbose, (browser_info, (parent_base_name,
+    val (do_output, (options, (timing, (verbose, (browser_info, (parent_base_name,
         (name, (base_name, theories)))))))) =
       File.read (Path.explode args_file) |> YXML.parse_body |>
         let open XML.Decode in
@@ -59,7 +59,7 @@ fun build args_file =
         end;
 
     val _ =
-      Session.init save false
+      Session.init do_output false
         (Options.bool options "browser_info") browser_info
         (Options.string options "document")
         (Options.bool options "document_graph")
@@ -70,7 +70,7 @@ fun build args_file =
         verbose;
     val _ = Session.with_timing name timing (List.app use_theories) theories;
     val _ = Session.finish ();
-    val _ = if save then () else quit ();
+    val _ = if do_output then () else quit ();
   in () end
   handle exn => (Output.error_msg (ML_Compiler.exn_message exn); exit 1);
 

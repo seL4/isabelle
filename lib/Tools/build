@@ -27,7 +27,7 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -a           all sessions"
-  echo "    -b           build target images"
+  echo "    -b           build heap images"
   echo "    -d DIR       include session directory with ROOT file"
   echo "    -g NAME      include session group NAME"
   echo "    -j INT       maximum number of jobs (default 1)"
@@ -58,7 +58,7 @@ function check_number()
 ## process command line
 
 ALL_SESSIONS=false
-BUILD_IMAGES=false
+BUILD_HEAP=false
 declare -a MORE_DIRS=()
 declare -a SESSION_GROUPS=()
 MAX_JOBS=1
@@ -75,7 +75,7 @@ do
       ALL_SESSIONS="true"
       ;;
     b)
-      BUILD_IMAGES="true"
+      BUILD_HEAP="true"
       ;;
     d)
       MORE_DIRS["${#MORE_DIRS[@]}"]="$OPTARG"
@@ -126,7 +126,7 @@ if [ "$NO_BUILD" = false ]; then
 fi
 
 "$ISABELLE_TOOL" java isabelle.Build \
-  "$ALL_SESSIONS" "$BUILD_IMAGES" "$MAX_JOBS" "$NO_BUILD" "$SYSTEM_MODE" "$TIMING" "$VERBOSE" \
+  "$ALL_SESSIONS" "$BUILD_HEAP" "$MAX_JOBS" "$NO_BUILD" "$SYSTEM_MODE" "$TIMING" "$VERBOSE" \
   "${MORE_DIRS[@]}" $'\n' "${SESSION_GROUPS[@]}" $'\n' "${BUILD_OPTIONS[@]}" $'\n' "$@"
 RC="$?"
 
