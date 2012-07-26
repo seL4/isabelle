@@ -115,7 +115,65 @@ session System! (doc) in "System/Thy" = Pure +
     Presentation
     Misc
 
-(* session Tutorial (doc) in "Tutorial" = HOL + FIXME *)
+session Tutorial (doc) in "TutorialI" = HOL +
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex",
+    print_mode = "brackets", threads = 1 (* FIXME *)]
+  theories [thy_output_indent = 5]
+    "ToyList/ToyList"
+    "Ifexpr/Ifexpr"
+    "CodeGen/CodeGen"
+    "Trie/Trie"
+    "Datatype/ABexpr"
+    "Datatype/unfoldnested"
+    "Datatype/Nested"
+    "Datatype/Fundata"
+    "Fun/fun0"
+    "Advanced/simp2"
+    "CTL/PDL"
+    "CTL/CTL"
+    "CTL/CTLind"
+    "Inductive/Even"
+    "Inductive/Mutual"
+    "Inductive/Star"
+    "Inductive/AB"
+    "Inductive/Advanced"
+    "Misc/Tree"
+    "Misc/Tree2"
+    "Misc/Plus"
+    "Misc/case_exprs"
+    "Misc/fakenat"
+    "Misc/natsum"
+    "Misc/pairs2"
+    "Misc/Option2"
+    "Misc/types"
+    "Misc/prime_def"
+    "Misc/simp"
+    "Misc/Itrev"
+    "Misc/AdvancedInd"
+    "Misc/appendix"
+  theories
+    "Protocol/NS_Public"
+    "Documents/Documents"
+  theories [document_dump = ""]
+    "Types/Setup"
+  theories
+    "Types/Numbers"
+    "Types/Pairs"
+    "Types/Records"
+    "Types/Typedefs"
+    "Types/Overloading"
+    "Types/Axioms"
+    "Rules/Basic"
+    "Rules/Blast"
+    "Rules/Force"
+    "Rules/Forward"
+    "Rules/Tacticals"
+    "Rules/find2"
+    "Sets/Examples"
+    "Sets/Functions"
+    "Sets/Relations"
+    "Sets/Recur"
 
 session examples (doc) in "ZF" = ZF +
   options [browser_info = false, document = false,
