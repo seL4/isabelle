@@ -115,7 +115,7 @@ fun init build reset info info_path doc doc_graph doc_variants parent name doc_d
 
 local
 
-fun doc_dump (cp, dump) = (if cp then "all" else "tex+sty", dump);
+fun doc_dump (cp, dump) = (dump, if cp then "all" else "tex+sty");
 
 in
 
