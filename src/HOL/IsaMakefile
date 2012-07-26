@@ -1513,10 +1513,6 @@ $(LOG)/HOL-Quickcheck_Examples.gz: $(OUT)/HOL				\
   Quickcheck_Examples/ROOT.ML						\
   Quickcheck_Examples/Completeness.thy					\
   Quickcheck_Examples/Hotel_Example.thy					\
-  Quickcheck_Examples/Needham_Schroeder_Base.thy			\
-  Quickcheck_Examples/Needham_Schroeder_No_Attacker_Example.thy		\
-  Quickcheck_Examples/Needham_Schroeder_Guided_Attacker_Example.thy	\
-  Quickcheck_Examples/Needham_Schroeder_Unguided_Attacker_Example.thy	\
   Quickcheck_Examples/Quickcheck_Examples.thy				\
   Quickcheck_Examples/Quickcheck_Interfaces.thy				\
   Quickcheck_Examples/Quickcheck_Lattice_Examples.thy			\
@@ -1823,6 +1819,10 @@ HOL-Quickcheck_Benchmark: HOL $(LOG)/HOL-Quickcheck_Benchmark.gz
 
 $(LOG)/HOL-Quickcheck_Benchmark.gz: $(OUT)/HOL				\
   Quickcheck_Benchmark/ROOT.ML						\
+  Quickcheck_Benchmark/Needham_Schroeder_Base.thy			\
+  Quickcheck_Benchmark/Needham_Schroeder_No_Attacker_Example.thy	\
+  Quickcheck_Benchmark/Needham_Schroeder_Guided_Attacker_Example.thy	\
+  Quickcheck_Benchmark/Needham_Schroeder_Unguided_Attacker_Example.thy	\
   Quickcheck_Benchmark/Find_Unused_Assms_Examples.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Quickcheck_Benchmark
 

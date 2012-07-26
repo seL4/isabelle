@@ -1,5 +1,5 @@
 theory Needham_Schroeder_No_Attacker_Example
-imports Main "~~/src/HOL/Library/Predicate_Compile_Quickcheck"
+imports Needham_Schroeder_Base
 begin
 
 inductive_set ns_public :: "event list set"

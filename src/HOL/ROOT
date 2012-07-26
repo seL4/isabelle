@@ -740,8 +740,11 @@ session Quickcheck_Examples = HOL +
     Quickcheck_Narrowing_Examples
 
 session Quickcheck_Benchmark = HOL +
-  theories [condition = ISABELLE_BENCHMARK]
-    Find_Unused_Assms_Examples  (* FIXME more *)
+  theories [condition = ISABELLE_BENCHMARK, quick_and_dirty]
+    Find_Unused_Assms_Examples
+    Needham_Schroeder_No_Attacker_Example
+    Needham_Schroeder_Guided_Attacker_Example
+    Needham_Schroeder_Unguided_Attacker_Example (* FIXME more *)
 
 session Quotient_Examples = HOL +
   description {*
