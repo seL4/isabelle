@@ -1,13 +1,12 @@
 (* :mode=isabelle-options: *)
 
 declare browser_info : bool = false
-declare browser_info_remote : string = ""
 
 declare document : string = ""
 declare document_variants : string = "outline=/proof,/ML"
 declare document_graph : bool = false
 declare document_dump : string = ""
-declare document_dump_only : bool = false
+declare document_dump_mode : string = "all"
 declare no_document : bool = false
 
 declare threads : int = 0
@@ -27,6 +26,14 @@ declare show_question_marks : bool = true
 declare names_long : bool = false
 declare names_short : bool = false
 declare names_unique : bool = true
+
+declare pretty_margin : int = 76
+
+declare thy_output_display : bool = false
+declare thy_output_quotes : bool = false
+declare thy_output_indent : int = 0
+declare thy_output_source : bool = false
+declare thy_output_break : bool = false
 
 declare timing : bool = false
 

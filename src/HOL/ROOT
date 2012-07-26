@@ -1,4 +1,4 @@
-session HOL! (1) in "." = Pure +
+session HOL! (main) in "." = Pure +
   description {* Classical Higher-order Logic *}
   options [document_graph]
   theories Complex_Main
@@ -19,8 +19,8 @@ session "HOL-Main"! in "." = Pure +
   options [document = false]
   theories Main
 
-session "HOL-Proofs"! (4) in "." = Pure +
-  description {* HOL-Main with proof terms *}
+session "HOL-Proofs"! in "." = Pure +
+  description {* HOL-Main with explicit proof terms *}
   options [document = false, proofs = 2, parallel_proofs = 0]
   theories Main
 
@@ -571,7 +571,7 @@ session "HOL-Probability"! in "Probability" = "HOL-Multivariate_Analysis" +
     "ex/Koepf_Duermuth_Countermeasure"
   files "document/root.tex"
 
-session Nominal (2) = HOL +
+session Nominal (main) = HOL +
   options [document = false]
   theories Nominal
 
@@ -760,7 +760,7 @@ session Predicate_Compile_Examples = HOL +
     Predicate_Compile_Tests
     Specialisation_Examples
 
-session HOLCF! (3) = HOL +
+session HOLCF! (main) = HOL +
   description {*
     Author:     Franz Regensburger
     Author:     Brian Huffman

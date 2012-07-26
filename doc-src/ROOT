@@ -1,10 +1,12 @@
-session Classes! in "Classes/Thy" = HOL +
-  options [browser_info = false, document = false, document_dump = document, document_dump_only]
+session Classes! (doc) in "Classes/Thy" = HOL +
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex"]
   theories [document = false] Setup
   theories Classes
 
-session Codegen! in "Codegen/Thy" = "HOL-Library" +
-  options [browser_info = false, document = false, document_dump = document, document_dump_only,
+session Codegen! (doc) in "Codegen/Thy" = "HOL-Library" +
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex",
     print_mode = "no_brackets,iff"]
   theories [document = false] Setup
   theories
@@ -16,12 +18,14 @@ session Codegen! in "Codegen/Thy" = "HOL-Library" +
     Adaptation
     Further
 
-session Functions! in "Functions/Thy" = HOL +
-  options [browser_info = false, document = false, document_dump = document, document_dump_only]
+session Functions! (doc) in "Functions/Thy" = HOL +
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex"]
   theories Functions
 
-session IsarImplementation! in "IsarImplementation/Thy" = HOL +
-  options [browser_info = false, document = false, document_dump = document, document_dump_only]
+session IsarImplementation! (doc) in "IsarImplementation/Thy" = HOL +
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex"]
   theories
     Eq
     Integration
@@ -34,8 +38,9 @@ session IsarImplementation! in "IsarImplementation/Thy" = HOL +
     Syntax
     Tactic
 
-session IsarRef in "IsarRef/Thy" = HOL +
-  options [browser_info = false, document = false, document_dump = document, document_dump_only,
+session IsarRef (doc) in "IsarRef/Thy" = HOL +
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex",
     quick_and_dirty]
   theories
     Preface
@@ -54,37 +59,43 @@ session IsarRef in "IsarRef/Thy" = HOL +
     Symbols
     ML_Tactic
 
-session IsarRef in "IsarRef/Thy" = HOLCF +
-  options [browser_info = false, document = false, document_dump = document, document_dump_only,
+session IsarRef (doc) in "IsarRef/Thy" = HOLCF +
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex",
     quick_and_dirty]
   theories HOLCF_Specific
 
-session IsarRef in "IsarRef/Thy" = ZF +
-  options [browser_info = false, document = false, document_dump = document, document_dump_only,
+session IsarRef (doc) in "IsarRef/Thy" = ZF +
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex",
     quick_and_dirty]
   theories ZF_Specific
 
-session LaTeXsugar! in "LaTeXsugar/Sugar" = HOL +
-  options [browser_info = false, document = false, document_dump = document, document_dump_only,
+session LaTeXsugar! (doc) in "LaTeXsugar/Sugar" = HOL +
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex",
     threads = 1]  (* FIXME *)
   theories [document_dump = ""]
     "~~/src/HOL/Library/LaTeXsugar"
     "~~/src/HOL/Library/OptionalSugar"
   theories Sugar
 
-session Locales! in "Locales/Locales" = HOL +
-  options [browser_info = false, document = false, document_dump = document, document_dump_only]
+session Locales! (doc) in "Locales/Locales" = HOL +
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex"]
   theories
     Examples1
     Examples2
     Examples3
 
-session Main! in "Main/Docs" = HOL +
-  options [browser_info = false, document = false, document_dump = document, document_dump_only]
+session Main! (doc) in "Main/Docs" = HOL +
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex"]
   theories Main_Doc
 
-session ProgProve! in "ProgProve/Thys" = HOL +
-  options [browser_info = false, document = false, document_dump = document, document_dump_only,
+session ProgProve! (doc) in "ProgProve/Thys" = HOL +
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex",
     show_question_marks = false]
   theories
     Basics
@@ -94,8 +105,9 @@ session ProgProve! in "ProgProve/Thys" = HOL +
     Logic
     Isar
 
-session System! in "System/Thy" = Pure +
-  options [browser_info = false, document = false, document_dump = document, document_dump_only]
+session System! (doc) in "System/Thy" = Pure +
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex"]
   theories
     Basics
     Interfaces
@@ -103,10 +115,69 @@ session System! in "System/Thy" = Pure +
     Presentation
     Misc
 
-(* session Tutorial in "Tutorial" = HOL + FIXME *)
+session Tutorial (doc) in "TutorialI" = HOL +
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex",
+    print_mode = "brackets", threads = 1 (* FIXME *)]
+  theories [thy_output_indent = 5]
+    "ToyList/ToyList"
+    "Ifexpr/Ifexpr"
+    "CodeGen/CodeGen"
+    "Trie/Trie"
+    "Datatype/ABexpr"
+    "Datatype/unfoldnested"
+    "Datatype/Nested"
+    "Datatype/Fundata"
+    "Fun/fun0"
+    "Advanced/simp2"
+    "CTL/PDL"
+    "CTL/CTL"
+    "CTL/CTLind"
+    "Inductive/Even"
+    "Inductive/Mutual"
+    "Inductive/Star"
+    "Inductive/AB"
+    "Inductive/Advanced"
+    "Misc/Tree"
+    "Misc/Tree2"
+    "Misc/Plus"
+    "Misc/case_exprs"
+    "Misc/fakenat"
+    "Misc/natsum"
+    "Misc/pairs2"
+    "Misc/Option2"
+    "Misc/types"
+    "Misc/prime_def"
+    "Misc/simp"
+    "Misc/Itrev"
+    "Misc/AdvancedInd"
+    "Misc/appendix"
+  theories
+    "Protocol/NS_Public"
+    "Documents/Documents"
+  theories [document_dump = ""]
+    "Types/Setup"
+  theories
+    "Types/Numbers"
+    "Types/Pairs"
+    "Types/Records"
+    "Types/Typedefs"
+    "Types/Overloading"
+    "Types/Axioms"
+    "Rules/Basic"
+    "Rules/Blast"
+    "Rules/Force"
+    "Rules/Forward"
+    "Rules/Tacticals"
+    "Rules/find2"
+    "Sets/Examples"
+    "Sets/Functions"
+    "Sets/Relations"
+    "Sets/Recur"
 
-session examples in "ZF" = ZF +
-  options [browser_info = false, document = false, document_dump = document, document_dump_only,
+session examples (doc) in "ZF" = ZF +
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex",
     print_mode = "brackets"]
   theories
     IFOL_examples

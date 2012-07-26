@@ -12,7 +12,7 @@
 function usage()
 {
   echo
-  echo "Usage: $PRG TARGET OUTPUT"
+  echo "Usage: $PRG TARGET [OUTPUT]"
   echo
   exit 1
 }
@@ -30,7 +30,10 @@ function fail()
 
 # args
 
-if [ "$#" -eq 2 ]; then
+if [ "$#" -eq 1 ]; then
+  TARGET="$1"; shift
+  OUTPUT=""; shift
+elif [ "$#" -eq 2 ]; then
   TARGET="$1"; shift
   OUTPUT="$1"; shift
 else

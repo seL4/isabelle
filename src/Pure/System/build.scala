@@ -21,30 +21,11 @@ object Build
 
   object Session
   {
-    /* Key */
-
-    object Key
-    {
-      object Ordering extends scala.math.Ordering[Key]
-      {
-        def compare(key1: Key, key2: Key): Int =
-          key1.order compare key2.order match {
-            case 0 => key1.name compare key2.name
-            case ord => ord
-          }
-      }
-    }
-
-    sealed case class Key(name: String, order: Int)
-    {
-      override def toString: String = name
-    }
-
-
     /* Info */
 
     sealed case class Info(
       base_name: String,
+      groups: List[String],
       dir: Path,
       parent: Option[String],
       parent_base_name: Option[String],
@@ -62,55 +43,49 @@ object Build
       val empty: Queue = new Queue()
     }
 
-    final class Queue private(
-      keys: Map[String, Key] = Map.empty,
-      graph: Graph[Key, Info] = Graph.empty(Key.Ordering))
+    final class Queue private(graph: Graph[String, Info] = Graph.string)
+      extends PartialFunction[String, Info]
     {
+      def apply(name: String): Info = graph.get_node(name)
+      def isDefinedAt(name: String): Boolean = graph.defined(name)
+
+      def is_inner(name: String): Boolean = !graph.is_maximal(name)
+
       def is_empty: Boolean = graph.is_empty
 
-      def apply(name: String): Info = graph.get_node(keys(name))
-      def defined(name: String): Boolean = keys.isDefinedAt(name)
-      def is_inner(name: String): Boolean = !graph.is_maximal(keys(name))
-
-      def + (key: Key, info: Info): Queue =
-      {
-        val keys1 =
-          if (defined(key.name)) error("Duplicate session: " + quote(key.name))
-          else keys + (key.name -> key)
-
-        val graph1 =
-          try {
-            graph.new_node(key, info).add_deps_acyclic(key, info.parent.toList.map(keys(_)))
-          }
+      def + (name: String, info: Info): Queue =
+        new Queue(
+          try { graph.new_node(name, info).add_deps_acyclic(name, info.parent.toList) }
           catch {
+            case _: Graph.Duplicate[_] => error("Duplicate session: " + quote(name))
             case exn: Graph.Cycles[_] =>
               error(cat_lines(exn.cycles.map(cycle =>
                 "Cyclic session dependency of " +
-                  cycle.map(key => quote(key.toString)).mkString(" via "))))
-          }
-        new Queue(keys1, graph1)
-      }
+                  cycle.map(c => quote(c.toString)).mkString(" via "))))
+          })
 
-      def - (name: String): Queue = new Queue(keys - name, graph.del_node(keys(name)))
+      def - (name: String): Queue = new Queue(graph.del_node(name))
 
-      def required(names: List[String]): Queue =
+      def required(groups: List[String], names: List[String]): Queue =
       {
-        val req = graph.all_preds(names.map(keys(_))).map(_.name).toSet
-        val keys1 = keys -- keys.keySet.filter(name => !req(name))
-        val graph1 = graph.restrict(key => keys1.isDefinedAt(key.name))
-        new Queue(keys1, graph1)
+        val selected_group = groups.toSet
+        val selected_name = names.toSet
+        val selected =
+          graph.keys.filter(name =>
+            selected_name(name) || apply(name).groups.exists(selected_group)).toList
+        new Queue(graph.restrict(graph.all_preds(selected).toSet))
       }
 
       def dequeue(skip: String => Boolean): Option[(String, Info)] =
       {
         val it = graph.entries.dropWhile(
-          { case (key, (_, (deps, _))) => !deps.isEmpty || skip(key.name) })
-        if (it.hasNext) { val (key, (info, _)) = it.next; Some((key.name, info)) }
+          { case (name, (_, (deps, _))) => !deps.isEmpty || skip(name) })
+        if (it.hasNext) { val (name, (info, _)) = it.next; Some((name, info)) }
         else None
       }
 
       def topological_order: List[(String, Info)] =
-        graph.topological_order.map(key => (key.name, graph.get_node(key)))
+        graph.topological_order.map(name => (name, graph.get_node(name)))
     }
   }
 
@@ -120,7 +95,7 @@ object Build
   private case class Session_Entry(
     name: String,
     this_name: Boolean,
-    order: Int,
+    groups: List[String],
     path: Option[String],
     parent: Option[String],
     description: String,
@@ -155,7 +130,7 @@ object Build
 
       ((keyword(SESSION) ~! session_name) ^^ { case _ ~ x => x }) ~
         (keyword("!") ^^^ true | success(false)) ~
-        (keyword("(") ~! (nat <~ keyword(")")) ^^ { case _ ~ x => x } | success(Integer.MAX_VALUE)) ~
+        (keyword("(") ~! (rep1(name) <~ keyword(")")) ^^ { case _ ~ x => x } | success(Nil)) ~
         (opt(keyword(IN) ~! string ^^ { case _ ~ x => x })) ~
         (keyword("=") ~> opt(session_name <~ keyword("+"))) ~
         (keyword(DESCRIPTION) ~! text ^^ { case _ ~ x => x } | success("")) ~
@@ -197,7 +172,7 @@ object Build
           }
           else
             entry.parent match {
-              case Some(parent_name) if queue1.defined(parent_name) =>
+              case Some(parent_name) if queue1.isDefinedAt(parent_name) =>
                 val full_name =
                   if (entry.this_name) entry.name
                   else parent_name + "-" + entry.name
@@ -212,8 +187,6 @@ object Build
             case None => Path.basic(entry.name)
           }
 
-        val key = Session.Key(full_name, entry.order)
-
         val session_options = options ++ entry.options
 
         val theories =
@@ -223,10 +196,10 @@ object Build
         val digest = SHA1.digest((full_name, entry.parent, entry.options, entry.theories).toString)
 
         val info =
-          Session.Info(entry.name, dir + path, entry.parent, parent_base_name,
+          Session.Info(entry.name, entry.groups, dir + path, entry.parent, parent_base_name,
             entry.description, session_options, theories, files, digest)
 
-        queue1 + (key, info)
+        queue1 + (full_name, info)
       }
       catch {
         case ERROR(msg) =>
@@ -261,8 +234,8 @@ object Build
       })
   }
 
-  def find_sessions(options: Options, all_sessions: Boolean, sessions: List[String],
-    more_dirs: List[Path]): Session.Queue =
+  def find_sessions(options: Options, more_dirs: List[Path],
+    all_sessions: Boolean, session_groups: List[String], sessions: List[String]): Session.Queue =
   {
     var queue = Session.Queue.empty
 
@@ -276,12 +249,12 @@ object Build
 
     for (dir <- more_dirs) queue = sessions_dir(options, true, dir, queue)
 
-    sessions.filter(name => !queue.defined(name)) match {
+    sessions.filter(name => !queue.isDefinedAt(name)) match {
       case Nil =>
       case bad => error("Undefined session(s): " + commas_quote(bad))
     }
 
-    if (all_sessions) queue else queue.required(sessions)
+    if (all_sessions) queue else queue.required(session_groups, sessions)
   }
 
 
@@ -347,7 +320,7 @@ object Build
   /* jobs */
 
   private class Job(cwd: JFile, env: Map[String, String], script: String, args: String,
-    val output_path: Option[Path])
+    output: Path, do_output: Boolean)
   {
     private val args_file = File.tmp_file("args")
     private val env1 = env + ("ARGS_FILE" -> Isabelle_System.posix_path(args_file.getPath))
@@ -359,9 +332,10 @@ object Build
     def terminate: Unit = thread.interrupt
     def is_finished: Boolean = result.is_finished
     def join: (String, String, Int) = { val res = result.join; args_file.delete; res }
+    def output_path: Option[Path] = if (do_output) Some(output) else None
   }
 
-  private def start_job(name: String, info: Session.Info, output_path: Option[Path],
+  private def start_job(name: String, info: Session.Info, output: Path, do_output: Boolean,
     options: Options, timing: Boolean, verbose: Boolean, browser_info: Path): Job =
   {
     // global browser info dir
@@ -379,21 +353,26 @@ object Build
     val parent = info.parent.getOrElse("")
     val parent_base_name = info.parent_base_name.getOrElse("")
 
-    val output =
-      output_path match { case Some(p) => Isabelle_System.standard_path(p) case None => "" }
-
     val cwd = info.dir.file
-    val env = Map("INPUT" -> parent, "TARGET" -> name, "OUTPUT" -> output)
+    val env =
+      Map("INPUT" -> parent, "TARGET" -> name, "OUTPUT" -> Isabelle_System.standard_path(output))
     val script =
-      if (is_pure(name)) "./build " + name + " \"$OUTPUT\""
+      if (is_pure(name)) {
+        if (do_output) "./build " + name + " \"$OUTPUT\""
+        else """ rm -f "$OUTPUT"; ./build """ + name
+      }
       else {
         """
         . "$ISABELLE_HOME/lib/scripts/timestart.bash"
         """ +
-          (if (output_path.isDefined)
-            """ "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -q -w "$INPUT" "$OUTPUT" """
+          (if (do_output)
+            """
+            "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -q -w "$INPUT" "$OUTPUT"
+            """
           else
-            """ "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -r -q "$INPUT" """) +
+            """
+            rm -f "$OUTPUT"; "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -r -q "$INPUT"
+            """) +
         """
         RC="$?"
 
@@ -411,10 +390,10 @@ object Build
       import XML.Encode._
           pair(bool, pair(Options.encode, pair(bool, pair(bool, pair(Path.encode, pair(string,
             pair(string, pair(string, list(pair(Options.encode, list(Path.encode)))))))))))(
-          (output_path.isDefined, (options, (timing, (verbose, (browser_info, (parent_base_name,
+          (do_output, (options, (timing, (verbose, (browser_info, (parent_base_name,
             (name, (info.base_name, info.theories)))))))))
     }
-    new Job(cwd, env, script, YXML.string_of_body(args_xml), output_path)
+    new Job(cwd, env, script, YXML.string_of_body(args_xml), output, do_output)
   }
 
 
@@ -456,12 +435,21 @@ object Build
 
   /* build */
 
-  def build(all_sessions: Boolean, build_images: Boolean, max_jobs: Int,
-    no_build: Boolean, system_mode: Boolean, timing: Boolean, verbose: Boolean,
-    more_dirs: List[Path], more_options: List[String], sessions: List[String]): Int =
+  def build(
+    all_sessions: Boolean = false,
+    build_heap: Boolean = false,
+    more_dirs: List[Path] = Nil,
+    session_groups: List[String] = Nil,
+    max_jobs: Int = 1,
+    no_build: Boolean = false,
+    build_options: List[String] = Nil,
+    system_mode: Boolean = false,
+    timing: Boolean = false,
+    verbose: Boolean = false,
+    sessions: List[String] = Nil): Int =
   {
-    val options = (Options.init() /: more_options)(_.define_simple(_))
-    val queue = find_sessions(options, all_sessions, sessions, more_dirs)
+    val options = (Options.init() /: build_options)(_.define_simple(_))
+    val queue = find_sessions(options, more_dirs, all_sessions, session_groups, sessions)
     val deps = dependencies(verbose, queue)
 
     def make_stamp(name: String): String =
@@ -514,27 +502,29 @@ object Build
       { // check/start next job
         pending.dequeue(running.isDefinedAt(_)) match {
           case Some((name, info)) =>
-            val output =
-              if (build_images || queue.is_inner(name))
-                Some(output_dir + Path.basic(name))
-              else None
+            val parents_ok = info.parent.map(results(_)).forall(_ == 0)
 
-            val current =
+            val output = output_dir + Path.basic(name)
+            val do_output = build_heap || queue.is_inner(name)
+
+            val all_current =
             {
               input_dirs.find(dir => (dir + log_gz(name)).file.isFile) match {
                 case Some(dir) =>
                   check_stamps(dir, name) match {
-                    case Some((s, h)) => s == make_stamp(name) && (h || output.isEmpty)
+                    case Some((s, h)) => s == make_stamp(name) && (h || !do_output)
                     case None => false
                   }
                 case None => false
               }
-            }
-            if (current || no_build)
-              loop(pending - name, running, results + (name -> (if (current) 0 else 1)))
-            else if (info.parent.map(results(_)).forall(_ == 0)) {
-              echo((if (output.isDefined) "Building " else "Running ") + name + " ...")
-              val job = start_job(name, info, output, info.options, timing, verbose, browser_info)
+            } && parents_ok
+
+            if (all_current || no_build)
+              loop(pending - name, running, results + (name -> (if (all_current) 0 else 1)))
+            else if (parents_ok) {
+              echo((if (do_output) "Building " else "Running ") + name + " ...")
+              val job =
+                start_job(name, info, output, do_output, info.options, timing, verbose, browser_info)
               loop(pending, running + (name -> job), results)
             }
             else {
@@ -565,15 +555,15 @@ object Build
       args.toList match {
         case
           Properties.Value.Boolean(all_sessions) ::
-          Properties.Value.Boolean(build_images) ::
+          Properties.Value.Boolean(build_heap) ::
           Properties.Value.Int(max_jobs) ::
           Properties.Value.Boolean(no_build) ::
           Properties.Value.Boolean(system_mode) ::
           Properties.Value.Boolean(timing) ::
           Properties.Value.Boolean(verbose) ::
-          Command_Line.Chunks(more_dirs, options, sessions) =>
-            build(all_sessions, build_images, max_jobs, no_build, system_mode, timing,
-              verbose, more_dirs.map(Path.explode), options, sessions)
+          Command_Line.Chunks(more_dirs, session_groups, build_options, sessions) =>
+            build(all_sessions, build_heap, more_dirs.map(Path.explode), session_groups,
+              max_jobs, no_build, build_options, system_mode, timing, verbose, sessions)
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }
     }

@@ -11,7 +11,7 @@ sig
   val welcome: unit -> string
   val finish: unit -> unit
   val init: bool -> bool -> bool -> string -> string -> bool -> string list ->
-    string -> string -> bool * string -> string -> bool -> unit
+    string -> string -> string * string -> string -> bool -> unit
   val with_timing: string -> bool -> ('a -> 'b) -> 'a -> 'b
   val use_dir: string -> string -> bool -> string list -> bool -> bool -> string ->
     string -> bool -> string list -> string -> string -> bool * string ->
@@ -85,17 +85,6 @@ fun finish () =
 
 (* use_dir *)
 
-fun get_rpath rpath =
-  (if rpath = "" then () else
-     if is_some (! remote_path) then
-       error "Path for remote theory browsing information may only be set once"
-     else
-       remote_path := SOME (Url.explode rpath);
-   (! remote_path, rpath <> ""));
-
-fun dumping (_, "") = NONE
-  | dumping (cp, path) = SOME (cp, Path.explode path);
-
 fun with_timing _ false f x = f x
   | with_timing item true f x =
       let
@@ -110,17 +99,32 @@ fun with_timing _ false f x = f x
             Timing.message timing ^ ", factor " ^ factor ^ ")\n");
       in y end;
 
-fun init build reset info info_path doc doc_graph doc_variants parent name dump rpath verbose =
+fun get_rpath rpath =
+  (if rpath = "" then () else
+     if is_some (! remote_path) then
+       error "Path for remote theory browsing information may only be set once"
+     else
+       remote_path := SOME (Url.explode rpath);
+   (! remote_path, rpath <> ""));
+
+fun init build reset info info_path doc doc_graph doc_variants parent name doc_dump rpath verbose =
  (init_name reset parent name;
   Present.init build info info_path (if doc = "false" then "" else doc) doc_graph doc_variants
-    (path ()) name (dumping dump) (get_rpath rpath) verbose
+    (path ()) name doc_dump (get_rpath rpath) verbose
     (map Thy_Info.get_theory (Thy_Info.get_names ())));
+
+local
+
+fun doc_dump (cp, dump) = (dump, if cp then "all" else "tex+sty");
+
+in
 
 fun use_dir item root build modes reset info info_path doc doc_graph doc_variants parent
     name dump rpath level timing verbose max_threads trace_threads
     parallel_proofs parallel_proofs_threshold =
   ((fn () =>
-     (init build reset info info_path doc doc_graph doc_variants parent name dump rpath verbose;
+     (init build reset info info_path doc doc_graph doc_variants parent name
+        (doc_dump dump) rpath verbose;
       with_timing item timing use root;
       finish ()))
     |> Unsynchronized.setmp Proofterm.proofs level
@@ -132,5 +136,7 @@ fun use_dir item root build modes reset info info_path doc doc_graph doc_variant
       (if Multithreading.available then max_threads
        else (if max_threads = 1 then () else warning "Multithreading support unavailable"; 1))) ()
   handle exn => (Output.error_msg (ML_Compiler.exn_message exn); exit 1);
+
+end;
 
 end;

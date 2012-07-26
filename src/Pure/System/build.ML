@@ -35,6 +35,12 @@ fun use_thys options =
     |> Unsynchronized.setmp Name_Space.names_long_default (Options.bool options "names_long")
     |> Unsynchronized.setmp Name_Space.names_short_default (Options.bool options "names_short")
     |> Unsynchronized.setmp Name_Space.names_unique_default (Options.bool options "names_unique")
+    |> Unsynchronized.setmp Thy_Output.display_default (Options.bool options "thy_output_display")
+    |> Unsynchronized.setmp Thy_Output.quotes_default (Options.bool options "thy_output_quotes")
+    |> Unsynchronized.setmp Thy_Output.indent_default (Options.int options "thy_output_indent")
+    |> Unsynchronized.setmp Thy_Output.source_default (Options.bool options "thy_output_source")
+    |> Unsynchronized.setmp Thy_Output.break_default (Options.bool options "thy_output_break")
+    |> Unsynchronized.setmp Pretty.margin_default (Options.int options "pretty_margin")
     |> Unsynchronized.setmp Toplevel.timing (Options.bool options "timing");
 
 fun use_theories (options, thys) =
@@ -42,7 +48,7 @@ fun use_theories (options, thys) =
     (case filter_out (can getenv_strict) condition of
       [] => use_thys options thys
     | conds =>
-        Output.physical_stderr ("Ignoring theories " ^ commas_quote thys ^
+        Output.physical_stderr ("Skipping theories " ^ commas_quote thys ^
           " (undefined " ^ commas conds ^ ")\n"))
   end;
 
@@ -50,7 +56,7 @@ in
 
 fun build args_file =
   let
-    val (save, (options, (timing, (verbose, (browser_info, (parent_base_name,
+    val (do_output, (options, (timing, (verbose, (browser_info, (parent_base_name,
         (name, (base_name, theories)))))))) =
       File.read (Path.explode args_file) |> YXML.parse_body |>
         let open XML.Decode in
@@ -59,18 +65,17 @@ fun build args_file =
         end;
 
     val _ =
-      Session.init save false
+      Session.init do_output false
         (Options.bool options "browser_info") browser_info
         (Options.string options "document")
         (Options.bool options "document_graph")
         (space_explode ":" (Options.string options "document_variants"))
         parent_base_name base_name
-        (not (Options.bool options "document_dump_only"), Options.string options "document_dump")
-        (Options.string options "browser_info_remote")
-        verbose;
+        (Options.string options "document_dump", Options.string options "document_dump_mode")
+        "" verbose;
     val _ = Session.with_timing name timing (List.app use_theories) theories;
     val _ = Session.finish ();
-    val _ = if save then () else quit ();
+    val _ = if do_output then () else quit ();
   in () end
   handle exn => (Output.error_msg (ML_Compiler.exn_message exn); exit 1);
 

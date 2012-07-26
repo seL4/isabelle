@@ -30,7 +30,7 @@ the offending datatypes, here @{text list}. The result for @{text term}
 would be something like
 \medskip
 
-\input{Datatype/document/unfoldnested.tex}
+\input{document/unfoldnested.tex}
 \medskip
 
 \noindent
