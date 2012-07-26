@@ -25,6 +25,7 @@ object Build
 
     sealed case class Info(
       base_name: String,
+      groups: List[String],
       dir: Path,
       parent: Option[String],
       parent_base_name: Option[String],
@@ -65,8 +66,15 @@ object Build
 
       def - (name: String): Queue = new Queue(graph.del_node(name))
 
-      def required(names: List[String]): Queue =
-        new Queue(graph.restrict(graph.all_preds(names).toSet))
+      def required(groups: List[String], names: List[String]): Queue =
+      {
+        val selected_group = groups.toSet
+        val selected_name = names.toSet
+        val selected =
+          graph.keys.filter(name =>
+            selected_name(name) || apply(name).groups.exists(selected_group)).toList
+        new Queue(graph.restrict(graph.all_preds(selected).toSet))
+      }
 
       def dequeue(skip: String => Boolean): Option[(String, Info)] =
       {
@@ -87,6 +95,7 @@ object Build
   private case class Session_Entry(
     name: String,
     this_name: Boolean,
+    groups: List[String],
     path: Option[String],
     parent: Option[String],
     description: String,
@@ -121,13 +130,14 @@ object Build
 
       ((keyword(SESSION) ~! session_name) ^^ { case _ ~ x => x }) ~
         (keyword("!") ^^^ true | success(false)) ~
+        (keyword("(") ~! (rep1(name) <~ keyword(")")) ^^ { case _ ~ x => x } | success(Nil)) ~
         (opt(keyword(IN) ~! string ^^ { case _ ~ x => x })) ~
         (keyword("=") ~> opt(session_name <~ keyword("+"))) ~
         (keyword(DESCRIPTION) ~! text ^^ { case _ ~ x => x } | success("")) ~
         (keyword(OPTIONS) ~! options ^^ { case _ ~ x => x } | success(Nil)) ~
         rep(theories) ~
         (keyword(FILES) ~! rep1(path) ^^ { case _ ~ x => x } | success(Nil)) ^^
-          { case a ~ b ~ c ~ d ~ e ~ f ~ g ~ h => Session_Entry(a, b, c, d, e, f, g, h) }
+          { case a ~ b ~ c ~ d ~ e ~ f ~ g ~ h ~ i => Session_Entry(a, b, c, d, e, f, g, h, i) }
     }
 
     def parse_entries(root: JFile): List[Session_Entry] =
@@ -186,7 +196,7 @@ object Build
         val digest = SHA1.digest((full_name, entry.parent, entry.options, entry.theories).toString)
 
         val info =
-          Session.Info(entry.name, dir + path, entry.parent, parent_base_name,
+          Session.Info(entry.name, entry.groups, dir + path, entry.parent, parent_base_name,
             entry.description, session_options, theories, files, digest)
 
         queue1 + (full_name, info)
@@ -224,8 +234,8 @@ object Build
       })
   }
 
-  def find_sessions(options: Options, all_sessions: Boolean, sessions: List[String],
-    more_dirs: List[Path]): Session.Queue =
+  def find_sessions(options: Options, more_dirs: List[Path],
+    all_sessions: Boolean, session_groups: List[String], sessions: List[String]): Session.Queue =
   {
     var queue = Session.Queue.empty
 
@@ -244,7 +254,7 @@ object Build
       case bad => error("Undefined session(s): " + commas_quote(bad))
     }
 
-    if (all_sessions) queue else queue.required(sessions)
+    if (all_sessions) queue else queue.required(session_groups, sessions)
   }
 
 
@@ -419,12 +429,21 @@ object Build
 
   /* build */
 
-  def build(all_sessions: Boolean, build_images: Boolean, max_jobs: Int,
-    no_build: Boolean, system_mode: Boolean, timing: Boolean, verbose: Boolean,
-    more_dirs: List[Path], more_options: List[String], sessions: List[String]): Int =
+  def build(
+    all_sessions: Boolean = false,
+    build_images: Boolean = false,
+    more_dirs: List[Path] = Nil,
+    session_groups: List[String] = Nil,
+    max_jobs: Int = 1,
+    no_build: Boolean = false,
+    build_options: List[String] = Nil,
+    system_mode: Boolean = false,
+    timing: Boolean = false,
+    verbose: Boolean = false,
+    sessions: List[String] = Nil): Int =
   {
-    val options = (Options.init() /: more_options)(_.define_simple(_))
-    val queue = find_sessions(options, all_sessions, sessions, more_dirs)
+    val options = (Options.init() /: build_options)(_.define_simple(_))
+    val queue = find_sessions(options, more_dirs, all_sessions, session_groups, sessions)
     val deps = dependencies(verbose, queue)
 
     def make_stamp(name: String): String =
@@ -534,9 +553,9 @@ object Build
           Properties.Value.Boolean(system_mode) ::
           Properties.Value.Boolean(timing) ::
           Properties.Value.Boolean(verbose) ::
-          Command_Line.Chunks(more_dirs, options, sessions) =>
-            build(all_sessions, build_images, max_jobs, no_build, system_mode, timing,
-              verbose, more_dirs.map(Path.explode), options, sessions)
+          Command_Line.Chunks(more_dirs, session_groups, build_options, sessions) =>
+            build(all_sessions, build_images, more_dirs.map(Path.explode), session_groups,
+              max_jobs, no_build, build_options, system_mode, timing, verbose, sessions)
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }
     }
