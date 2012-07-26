@@ -39,6 +39,7 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
   /* graphs */
 
   def is_empty: Boolean = rep.isEmpty
+  def defined(x: Key): Boolean = rep.isDefinedAt(x)
 
   def entries: Iterator[(Key, Entry)] = rep.iterator
   def keys: Iterator[Key] = entries.map(_._1)
@@ -155,8 +156,7 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
   /* edge operations */
 
   def is_edge(x: Key, y: Key): Boolean =
-    try { imm_succs(x)(y) }
-    catch { case _: Graph.Undefined[_] => false }
+    defined(x) && defined(y) && imm_succs(x)(y)
 
   def add_edge(x: Key, y: Key): Graph[Key, A] =
     if (is_edge(x, y)) this
