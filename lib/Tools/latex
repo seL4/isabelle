@@ -62,8 +62,8 @@ FILE="root.tex"
 
 # root file
 
-DIR=$(dirname "$FILE")
-FILEBASE=$(basename "$FILE" .tex)
+DIR="$(dirname "$FILE")"
+FILEBASE="$(basename "$FILE" .tex)"
 [ "$DIR" = . ] || FILEBASE="$DIR/$FILEBASE"
 
 function check_root () { [ -f "$FILEBASE.tex" ] || fail "Bad file '$FILE'"; }
