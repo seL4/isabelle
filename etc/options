@@ -27,6 +27,8 @@ declare names_long : bool = false
 declare names_short : bool = false
 declare names_unique : bool = true
 
+declare pretty_margin : int = 76
+
 declare thy_output_display : bool = false
 declare thy_output_quotes : bool = false
 declare thy_output_indent : int = 0

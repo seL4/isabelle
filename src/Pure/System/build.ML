@@ -40,6 +40,7 @@ fun use_thys options =
     |> Unsynchronized.setmp Thy_Output.indent_default (Options.int options "thy_output_indent")
     |> Unsynchronized.setmp Thy_Output.source_default (Options.bool options "thy_output_source")
     |> Unsynchronized.setmp Thy_Output.break_default (Options.bool options "thy_output_break")
+    |> Unsynchronized.setmp Pretty.margin_default (Options.int options "pretty_margin")
     |> Unsynchronized.setmp Toplevel.timing (Options.bool options "timing");
 
 fun use_theories (options, thys) =
