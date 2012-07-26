@@ -77,12 +77,13 @@ fun do_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode
   if mode <> Auto_Try orelse run_if_auto_try then
     let val attrs = attrs_text attrs quad in
       do_generic timeout_opt
-                 (name ^ (if all_goals andalso
-                             nprems_of (#goal (Proof.goal st)) > 1 then
-                            "[1]"
-                          else
-                            "") ^
-                  attrs) I (#goal o Proof.goal)
+                 (name ^ attrs ^
+                  (if all_goals andalso
+                      nprems_of (#goal (Proof.goal st)) > 1 then
+                     " [1]"
+                   else
+                     ""))
+                 I (#goal o Proof.goal)
                  (apply_named_method_on_first_goal (name ^ attrs)
                                                    (Proof.theory_of st)) st
     end
