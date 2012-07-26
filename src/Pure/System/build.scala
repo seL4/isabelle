@@ -502,10 +502,12 @@ object Build
       { // check/start next job
         pending.dequeue(running.isDefinedAt(_)) match {
           case Some((name, info)) =>
+            val parents_ok = info.parent.map(results(_)).forall(_ == 0)
+
             val output = output_dir + Path.basic(name)
             val do_output = build_heap || queue.is_inner(name)
 
-            val current =
+            val all_current =
             {
               input_dirs.find(dir => (dir + log_gz(name)).file.isFile) match {
                 case Some(dir) =>
@@ -515,10 +517,11 @@ object Build
                   }
                 case None => false
               }
-            }
-            if (current || no_build)
-              loop(pending - name, running, results + (name -> (if (current) 0 else 1)))
-            else if (info.parent.map(results(_)).forall(_ == 0)) {
+            } && parents_ok
+
+            if (all_current || no_build)
+              loop(pending - name, running, results + (name -> (if (all_current) 0 else 1)))
+            else if (parents_ok) {
               echo((if (do_output) "Building " else "Running ") + name + " ...")
               val job =
                 start_job(name, info, output, do_output, info.options, timing, verbose, browser_info)
