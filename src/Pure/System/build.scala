@@ -473,7 +473,7 @@ object Build
     @tailrec def loop(
       pending: Session.Queue,
       running: Map[String, Job],
-      results: Map[String, Int]): Map[String, Int] =
+      results: Map[String, (Boolean, Int)]): Map[String, (Boolean, Int)] =
     {
       if (pending.is_empty) results
       else if (running.exists({ case (_, job) => job.is_finished }))
@@ -496,18 +496,20 @@ object Build
           val tail = lines.drop(lines.length - 20 max 0)
           echo("\n" + cat_lines(tail))
         }
-        loop(pending - name, running - name, results + (name -> rc))
+        loop(pending - name, running - name, results + (name -> (false, rc)))
       }
       else if (running.size < (max_jobs max 1))
       { // check/start next job
         pending.dequeue(running.isDefinedAt(_)) match {
           case Some((name, info)) =>
-            val parents_ok = info.parent.map(results(_)).forall(_ == 0)
+            val parent_result = info.parent.map(results(_))
+            val parent_current = parent_result.forall(_._1)
+            val parent_ok = parent_result.forall(_._2 == 0)
 
             val output = output_dir + Path.basic(name)
             val do_output = build_heap || queue.is_inner(name)
 
-            val all_current =
+            val current =
             {
               input_dirs.find(dir => (dir + log_gz(name)).file.isFile) match {
                 case Some(dir) =>
@@ -517,11 +519,14 @@ object Build
                   }
                 case None => false
               }
-            } && parents_ok
+            }
+            val all_current = current && parent_current
 
-            if (all_current || no_build)
-              loop(pending - name, running, results + (name -> (if (all_current) 0 else 1)))
-            else if (parents_ok) {
+            if (all_current)
+              loop(pending - name, running, results + (name -> (true, 0)))
+            else if (no_build)
+              loop(pending - name, running, results + (name -> (false, 1)))
+            else if (parent_ok) {
               echo((if (do_output) "Building " else "Running ") + name + " ...")
               val job =
                 start_job(name, info, output, do_output, info.options, timing, verbose, browser_info)
@@ -529,7 +534,7 @@ object Build
             }
             else {
               echo(name + " CANCELLED")
-              loop(pending - name, running, results + (name -> 1))
+              loop(pending - name, running, results + (name -> (false, 1)))
             }
           case None => sleep(); loop(pending, running, results)
         }
@@ -538,7 +543,7 @@ object Build
     }
 
     val results = loop(queue, Map.empty, Map.empty)
-    val rc = (0 /: results)({ case (rc1, (_, rc2)) => rc1 max rc2 })
+    val rc = (0 /: results)({ case (rc1, (_, (_, rc2))) => rc1 max rc2 })
     if (rc != 0 && (verbose || !no_build)) {
       val unfinished = (for ((name, r) <- results.iterator if r != 0) yield name).toList.sorted
       echo("Unfinished session(s): " + commas(unfinished))
