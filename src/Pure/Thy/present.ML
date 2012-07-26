@@ -18,7 +18,7 @@ sig
   val display_graph: {name: string, ID: string, dir: string, unfold: bool,
    path: string, parents: string list} list -> unit
   val init: bool -> bool -> string -> string -> bool -> string list -> string list ->
-    string -> (bool * Path.T) option -> Url.T option * bool -> bool ->
+    string -> string * string -> Url.T option * bool -> bool ->
     theory list -> unit  (*not thread-safe!*)
   val finish: unit -> unit  (*not thread-safe!*)
   val init_theory: string -> unit
@@ -210,15 +210,15 @@ fun add_html_source name txt = change_theory_info name (fn (tex_source, html_sou
 type session_info =
   {name: string, parent: string, session: string, path: string list, html_prefix: Path.T,
     info: bool, doc_format: string, doc_graph: bool, documents: (string * string) list,
-    dump_prefix: (bool * Path.T) option, remote_path: Url.T option, verbose: bool,
+    doc_dump: (string * string), remote_path: Url.T option, verbose: bool,
     readme: Path.T option};
 
 fun make_session_info
   (name, parent, session, path, html_prefix, info, doc_format, doc_graph, documents,
-    dump_prefix, remote_path, verbose, readme) =
+    doc_dump, remote_path, verbose, readme) =
   {name = name, parent = parent, session = session, path = path, html_prefix = html_prefix,
     info = info, doc_format = doc_format, doc_graph = doc_graph, documents = documents,
-    dump_prefix = dump_prefix, remote_path = remote_path, verbose = verbose,
+    doc_dump = doc_dump, remote_path = remote_path, verbose = verbose,
     readme = readme}: session_info;
 
 
@@ -273,9 +273,9 @@ fun read_variants strs =
 
 fun name_of_session elems = space_implode "/" ("Isabelle" :: elems);
 
-fun init build info info_path doc doc_graph doc_variants path name dump_prefix
-    (remote_path, first_time) verbose thys =
-  if not build andalso not info andalso doc = "" andalso is_none dump_prefix then
+fun init build info info_path doc doc_graph doc_variants path name
+    (doc_dump as (dump_prefix, _)) (remote_path, first_time) verbose thys =
+  if not build andalso not info andalso doc = "" andalso dump_prefix = "" then
     (browser_info := empty_browser_info; session_info := NONE)
   else
     let
@@ -309,7 +309,7 @@ fun init build info info_path doc doc_graph doc_variants path name dump_prefix
     in
       session_info :=
         SOME (make_session_info (name, parent_name, session_name, path, html_prefix,
-          info, doc, doc_graph, documents, dump_prefix, remote_path, verbose, readme));
+          info, doc, doc_graph, documents, doc_dump, remote_path, verbose, readme));
       browser_info := init_browser_info remote_path path thys;
       add_html_index (0, index_text)
     end;
@@ -360,32 +360,34 @@ fun write_tex_index tex_index path =
 
 fun finish () =
   session_default () (fn {name, info, html_prefix, doc_format,
-    doc_graph, documents, dump_prefix, path, verbose, readme, ...} =>
+    doc_graph, documents, doc_dump = (dump_prefix, dump_mode), path, verbose, readme, ...} =>
   let
     val {theories, files, tex_index, html_index, graph} = ! browser_info;
     val thys = Symtab.dest theories;
     val parent_html_prefix = Path.append html_prefix Path.parent;
 
-    fun finish_tex path (a, {tex_source, ...}: theory_info) = write_tex tex_source a path;
     fun finish_html (a, {html, ...}: theory_info) =
       File.write_buffer (Path.append html_prefix (html_path a)) (Buffer.add HTML.end_document html);
 
     val sorted_graph = sorted_index graph;
     val opt_graphs =
-      if doc_graph andalso (not (null documents) orelse is_some dump_prefix) then
+      if doc_graph andalso (not (null documents) orelse dump_prefix <> "") then
         SOME (isabelle_browser sorted_graph)
       else NONE;
 
-    fun prepare_sources cp path =
-     (Isabelle_System.mkdirs path;
-      if cp then Isabelle_System.copy_dir document_path path else ();
-      Isabelle_System.isabelle_tool "latex"
-        ("-o sty " ^ File.shell_path (Path.append path (Path.basic "root.tex")));
+    fun prepare_sources doc_dir doc_mode =
+     (Isabelle_System.mkdirs doc_dir;
+      if doc_mode = "all" then Isabelle_System.copy_dir document_path doc_dir
+      else if doc_mode = "tex+sty" then
+        ignore (Isabelle_System.isabelle_tool "latex"
+          ("-o sty " ^ File.shell_path (Path.append doc_dir (Path.basic "root.tex"))))
+      else if doc_mode = "tex" then ()
+      else error ("Illegal document dump mode: " ^ quote doc_mode);
       (case opt_graphs of NONE => () | SOME (pdf, eps) =>
-        (File.write (Path.append path graph_pdf_path) pdf;
-          File.write (Path.append path graph_eps_path) eps));
-      write_tex_index tex_index path;
-      List.app (finish_tex path) thys);
+        (File.write (Path.append doc_dir graph_pdf_path) pdf;
+          File.write (Path.append doc_dir graph_eps_path) eps));
+      write_tex_index tex_index doc_dir;
+      List.app (fn (a, {tex_source, ...}) => write_tex tex_source a doc_dir) thys);
     val _ =
       if info then
        (Isabelle_System.mkdirs (Path.append html_prefix session_path);
@@ -407,16 +409,22 @@ fun finish () =
       else ();
 
     val _ =
-      (case dump_prefix of NONE => () | SOME (cp, path) =>
-       (prepare_sources cp path;
-        if verbose then Output.physical_stderr ("Document sources at " ^ show_path path ^ "\n")
-        else ()));
+      if dump_prefix = "" then ()
+      else
+        let
+          val path = Path.explode dump_prefix;
+          val _ = prepare_sources path dump_mode;
+        in
+          if verbose then
+            Output.physical_stderr ("Document sources at " ^ show_path path ^ "\n")
+          else ()
+        end;
 
     val doc_paths =
       documents |> Par_List.map (fn (name, tags) =>
         let
           val path = Path.append html_prefix (Path.basic name);
-          val _ = prepare_sources true path;
+          val _ = prepare_sources path "all";
         in isabelle_document true doc_format name tags path html_prefix end);
     val _ =
       if verbose then

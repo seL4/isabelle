@@ -1,10 +1,12 @@
 session Classes! (doc) in "Classes/Thy" = HOL +
-  options [browser_info = false, document = false, document_dump = document, document_dump_only]
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex"]
   theories [document = false] Setup
   theories Classes
 
 session Codegen! (doc) in "Codegen/Thy" = "HOL-Library" +
-  options [browser_info = false, document = false, document_dump = document, document_dump_only,
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex",
     print_mode = "no_brackets,iff"]
   theories [document = false] Setup
   theories
@@ -17,11 +19,13 @@ session Codegen! (doc) in "Codegen/Thy" = "HOL-Library" +
     Further
 
 session Functions! (doc) in "Functions/Thy" = HOL +
-  options [browser_info = false, document = false, document_dump = document, document_dump_only]
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex"]
   theories Functions
 
 session IsarImplementation! (doc) in "IsarImplementation/Thy" = HOL +
-  options [browser_info = false, document = false, document_dump = document, document_dump_only]
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex"]
   theories
     Eq
     Integration
@@ -35,7 +39,8 @@ session IsarImplementation! (doc) in "IsarImplementation/Thy" = HOL +
     Tactic
 
 session IsarRef (doc) in "IsarRef/Thy" = HOL +
-  options [browser_info = false, document = false, document_dump = document, document_dump_only,
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex",
     quick_and_dirty]
   theories
     Preface
@@ -55,17 +60,20 @@ session IsarRef (doc) in "IsarRef/Thy" = HOL +
     ML_Tactic
 
 session IsarRef (doc) in "IsarRef/Thy" = HOLCF +
-  options [browser_info = false, document = false, document_dump = document, document_dump_only,
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex",
     quick_and_dirty]
   theories HOLCF_Specific
 
 session IsarRef (doc) in "IsarRef/Thy" = ZF +
-  options [browser_info = false, document = false, document_dump = document, document_dump_only,
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex",
     quick_and_dirty]
   theories ZF_Specific
 
 session LaTeXsugar! (doc) in "LaTeXsugar/Sugar" = HOL +
-  options [browser_info = false, document = false, document_dump = document, document_dump_only,
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex",
     threads = 1]  (* FIXME *)
   theories [document_dump = ""]
     "~~/src/HOL/Library/LaTeXsugar"
@@ -73,18 +81,21 @@ session LaTeXsugar! (doc) in "LaTeXsugar/Sugar" = HOL +
   theories Sugar
 
 session Locales! (doc) in "Locales/Locales" = HOL +
-  options [browser_info = false, document = false, document_dump = document, document_dump_only]
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex"]
   theories
     Examples1
     Examples2
     Examples3
 
 session Main! (doc) in "Main/Docs" = HOL +
-  options [browser_info = false, document = false, document_dump = document, document_dump_only]
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex"]
   theories Main_Doc
 
 session ProgProve! (doc) in "ProgProve/Thys" = HOL +
-  options [browser_info = false, document = false, document_dump = document, document_dump_only,
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex",
     show_question_marks = false]
   theories
     Basics
@@ -95,7 +106,8 @@ session ProgProve! (doc) in "ProgProve/Thys" = HOL +
     Isar
 
 session System! (doc) in "System/Thy" = Pure +
-  options [browser_info = false, document = false, document_dump = document, document_dump_only]
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex"]
   theories
     Basics
     Interfaces
@@ -106,7 +118,8 @@ session System! (doc) in "System/Thy" = Pure +
 (* session Tutorial (doc) in "Tutorial" = HOL + FIXME *)
 
 session examples (doc) in "ZF" = ZF +
-  options [browser_info = false, document = false, document_dump = document, document_dump_only,
+  options [browser_info = false, document = false,
+    document_dump = document, document_dump_mode = "tex",
     print_mode = "brackets"]
   theories
     IFOL_examples
