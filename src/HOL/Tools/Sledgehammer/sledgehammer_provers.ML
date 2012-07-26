@@ -775,9 +775,9 @@ fun run_atp mode name
             val args = arguments ctxt full_proof extra slice_timeout
                                  (ord, ord_info, sel_weights)
             val command =
-              File.shell_path command0 ^ " " ^ args ^ " " ^
-              File.shell_path prob_file
-              |> enclose "TIMEFORMAT='%3R'; { time " " ; } 2>&1"
+              "(exec 2>&1; " ^ File.shell_path command0 ^ " " ^ args ^ " " ^
+              File.shell_path prob_file ^ ")"
+              |> enclose "TIMEFORMAT='%3R'; { time " " ; }"
             val _ =
               atp_problem
               |> lines_for_atp_problem format ord ord_info
