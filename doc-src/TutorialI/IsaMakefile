@@ -4,9 +4,7 @@
 
 ## targets
 
-default: HOL-ToyList HOL-Ifexpr HOL-CodeGen HOL-Trie HOL-Datatype HOL-Fun HOL-Fun \
-  HOL-Advanced HOL-Rules HOL-Sets HOL-CTL HOL-Inductive  HOL-Types HOL-Misc \
-  HOL-Protocol HOL-Documents
+default: HOL-Tutorial HOL-ToyList2
 images:
 test:
 all: default
@@ -18,7 +16,7 @@ SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
 OPTIONS = -m brackets -i true -d "" -D document -M 1
-USEDIR = @$(ISABELLE_TOOL) usedir $(OPTIONS) $(OUT)/HOL
+USEDIR = @$(ISABELLE_TOOL) usedir $(OPTIONS)
 
 
 ## HOL
@@ -27,218 +25,42 @@ HOL:
 	@cd $(SRC)/HOL; $(ISABELLE_TOOL) make HOL
 
 
+## HOL-Tutorial
 
-## HOL-Ifexpr
+HOL-Tutorial: HOL $(LOG)/HOL-Tutorial.gz
 
-HOL-Ifexpr: HOL $(LOG)/HOL-Ifexpr.gz
+$(LOG)/HOL-Tutorial.gz: $(OUT)/HOL ROOT.ML Ifexpr/Ifexpr.thy		\
+  ToyList2/ToyList.thy CodeGen/CodeGen.thy Datatype/ABexpr.thy		\
+  Datatype/Nested.thy Datatype/unfoldnested.thy Datatype/Fundata.thy	\
+  Trie/Trie.thy Fun/fun0.thy Advanced/simp2.thy Rules/Basic.thy		\
+  Rules/Blast.thy Rules/Force.thy Rules/Primes.thy Rules/Forward.thy	\
+  Rules/Tacticals.thy Rules/find2.thy Sets/Examples.thy			\
+  Sets/Functions.thy Sets/Recur.thy Sets/Relations.thy CTL/Base.thy	\
+  CTL/PDL.thy CTL/CTL.thy CTL/CTLind.thy Inductive/Even.thy		\
+  Inductive/Mutual.thy Inductive/Star.thy Inductive/AB.thy		\
+  Inductive/Advanced.thy Types/Numbers.thy Types/Pairs.thy		\
+  Types/Records.thy Types/Typedefs.thy Types/Overloading.thy		\
+  Types/Axioms.thy Misc/Tree.thy Misc/Tree2.thy Misc/Plus.thy		\
+  Misc/fakenat.thy Misc/natsum.thy Misc/pairs.thy Misc/Option2.thy	\
+  Misc/types.thy Misc/prime_def.thy Misc/case_exprs.thy Misc/simp.thy	\
+  Misc/Itrev.thy Misc/AdvancedInd.thy Misc/appendix.thy			\
+  Protocol/Message.thy Protocol/Event.thy Protocol/Public.thy		\
+  Protocol/NS_Public.thy Documents/Documents.thy
+	$(USEDIR) -s Tutorial $(OUT)/HOL .
 
-$(LOG)/HOL-Ifexpr.gz: $(OUT)/HOL Ifexpr/Ifexpr.thy Ifexpr/ROOT.ML
-	$(USEDIR) Ifexpr
-	@rm -f Ifexpr/document/isabelle.sty
-	@rm -f Ifexpr/document/isabellesym.sty
-	@rm -f Ifexpr/document/pdfsetup.sty
-	@rm -f Ifexpr/document/session.tex
-	@rm -f tutorial.dvi
 
-## HOL-ToyList
+## HOL-ToyList2
 
-HOL-ToyList: HOL $(LOG)/HOL-ToyList.gz $(LOG)/HOL-ToyList2.gz
+HOL-ToyList2: HOL $(LOG)/HOL-ToyList2.gz
 
 ToyList2/ToyList.thy: ToyList2/ToyList1 ToyList2/ToyList2
 	cat ToyList2/ToyList1 ToyList2/ToyList2 > ToyList2/ToyList.thy
 
-$(LOG)/HOL-ToyList2.gz: $(OUT)/HOL ToyList2/ToyList.thy ToyList2/ROOT.ML
-	$(USEDIR) ToyList2
-	@rm -f ToyList2/document/isabelle.sty
-	@rm -f ToyList2/document/isabellesym.sty
-	@rm -f ToyList2/document/pdfsetup.sty
-	@rm -f ToyList2/document/session.tex
-	@rm -f tutorial.dvi
+$(LOG)/HOL-ToyList2.gz: $(OUT)/HOL ToyList2/ROOT.ML
+	$(USEDIR) $(OUT)/HOL ToyList2
 
-$(LOG)/HOL-ToyList.gz: $(OUT)/HOL ToyList/ToyList.thy ToyList/ROOT.ML
-	$(USEDIR) ToyList
-	@rm -f ToyList/document/isabelle.sty
-	@rm -f ToyList/document/isabellesym.sty
-	@rm -f ToyList/document/pdfsetup.sty
-	@rm -f ToyList/document/session.tex
-	@rm -f tutorial.dvi
-
-## HOL-CodeGen
-
-HOL-CodeGen: HOL $(LOG)/HOL-CodeGen.gz
-
-$(LOG)/HOL-CodeGen.gz: $(OUT)/HOL CodeGen/ROOT.ML CodeGen/CodeGen.thy
-	$(USEDIR) CodeGen
-	@rm -f CodeGen/document/isabelle.sty
-	@rm -f CodeGen/document/isabellesym.sty
-	@rm -f CodeGen/document/pdfsetup.sty
-	@rm -f CodeGen/document/session.tex
-	@rm -f tutorial.dvi
-
-
-## HOL-Datatype
-
-HOL-Datatype: HOL $(LOG)/HOL-Datatype.gz
-
-$(LOG)/HOL-Datatype.gz: $(OUT)/HOL Datatype/ROOT.ML Datatype/ABexpr.thy \
-  Datatype/Nested.thy Datatype/unfoldnested.thy \
-  Datatype/Fundata.thy
-	$(USEDIR) Datatype
-	@rm -f Datatype/document/isabelle.sty
-	@rm -f Datatype/document/isabellesym.sty
-	@rm -f Datatype/document/pdfsetup.sty
-	@rm -f Datatype/document/session.tex
-	@rm -f tutorial.dvi
-
-
-## HOL-Trie
-
-HOL-Trie: HOL $(LOG)/HOL-Trie.gz
-
-$(LOG)/HOL-Trie.gz: $(OUT)/HOL Trie/ROOT.ML Trie/Trie.thy
-	$(USEDIR) Trie
-	@rm -f Trie/document/isabelle.sty
-	@rm -f Trie/document/isabellesym.sty
-	@rm -f Trie/document/pdfsetup.sty
-	@rm -f Trie/document/session.tex
-	@rm -f tutorial.dvi
-
-
-## HOL-Fun
-
-HOL-Fun: HOL $(LOG)/HOL-Fun.gz
-
-$(LOG)/HOL-Fun.gz: $(OUT)/HOL Fun/ROOT.ML Fun/fun0.thy
-	$(USEDIR) Fun
-	@rm -f Fun/document/isabelle.sty
-	@rm -f Fun/document/isabellesym.sty
-	@rm -f Fun/document/pdfsetup.sty
-	@rm -f Fun/document/session.tex
-	@rm -f tutorial.dvi
-
-
-## HOL-Advanced
-
-HOL-Advanced: HOL $(LOG)/HOL-Advanced.gz
-
-$(LOG)/HOL-Advanced.gz: $(OUT)/HOL Advanced/simp2.thy Advanced/ROOT.ML
-	$(USEDIR) Advanced
-	@rm -f Advanced/document/isabelle.sty
-	@rm -f Advanced/document/isabellesym.sty
-	@rm -f Advanced/document/pdfsetup.sty
-	@rm -f Advanced/document/session.tex
-	@rm -f tutorial.dvi
-
-## HOL-Rules
-
-HOL-Rules: HOL $(LOG)/HOL-Rules.gz
-
-$(LOG)/HOL-Rules.gz: $(OUT)/HOL Rules/Basic.thy \
-	Rules/Blast.thy Rules/Force.thy Rules/Primes.thy Rules/Forward.thy \
-	Rules/Tacticals.thy Rules/find2.thy Rules/ROOT.ML 
-	@$(USEDIR) Rules
-	@rm -f Rules/document/isabelle.sty
-	@rm -f Rules/document/isabellesym.sty
-	@rm -f Rules/document/pdfsetup.sty
-	@rm -f Rules/document/session.tex
-	@rm -f tutorial.dvi
-
-## HOL-Sets
-
-HOL-Sets: HOL $(LOG)/HOL-Sets.gz
-
-$(LOG)/HOL-Sets.gz: $(OUT)/HOL Sets/Examples.thy Sets/Functions.thy \
-	Sets/Recur.thy Sets/Relations.thy Sets/ROOT.ML
-	@$(USEDIR) Sets
-	@rm -f Sets/document/isabelle.sty
-	@rm -f Sets/document/isabellesym.sty
-	@rm -f Sets/document/pdfsetup.sty
-	@rm -f Sets/document/session.tex
-	@rm -f tutorial.dvi
-
-## HOL-CTL
-
-HOL-CTL: HOL $(LOG)/HOL-CTL.gz
-
-$(LOG)/HOL-CTL.gz: $(OUT)/HOL CTL/Base.thy CTL/PDL.thy CTL/CTL.thy CTL/CTLind.thy CTL/ROOT.ML
-	$(USEDIR) CTL
-	@rm -f CTL/document/isabelle.sty
-	@rm -f CTL/document/isabellesym.sty
-	@rm -f CTL/document/pdfsetup.sty
-	@rm -f CTL/document/session.tex
-	@rm -f tutorial.dvi
-
-## HOL-Inductive
-
-HOL-Inductive: HOL $(LOG)/HOL-Inductive.gz
-
-$(LOG)/HOL-Inductive.gz: $(OUT)/HOL Inductive/ROOT.ML \
-  Inductive/Even.thy Inductive/Mutual.thy Inductive/Star.thy Inductive/AB.thy \
-  Inductive/Advanced.thy
-	$(USEDIR) Inductive
-	@rm -f Inductive/document/isabelle.sty
-	@rm -f Inductive/document/isabellesym.sty
-	@rm -f Inductive/document/pdfsetup.sty
-	@rm -f Inductive/document/session.tex
-	@rm -f tutorial.dvi
-
-## HOL-Types
-
-HOL-Types: HOL $(LOG)/HOL-Types.gz
-
-$(LOG)/HOL-Types.gz: $(OUT)/HOL Types/ROOT.ML \
-  Types/Numbers.thy Types/Pairs.thy Types/Records.thy Types/Typedefs.thy \
-  Types/Overloading.thy Types/Axioms.thy
-	$(USEDIR) Types
-	@rm -f Types/document/isabelle.sty
-	@rm -f Types/document/isabellesym.sty
-	@rm -f Types/document/pdfsetup.sty
-	@rm -f Types/document/session.tex
-	@rm -f tutorial.dvi
-
-## HOL-Misc
-
-HOL-Misc: HOL $(LOG)/HOL-Misc.gz
-
-$(LOG)/HOL-Misc.gz: $(OUT)/HOL Misc/ROOT.ML Misc/Tree.thy Misc/Tree2.thy \
-  Misc/Plus.thy Misc/fakenat.thy Misc/natsum.thy Misc/pairs.thy \
-  Misc/Option2.thy Misc/types.thy Misc/prime_def.thy Misc/case_exprs.thy \
-  Misc/simp.thy Misc/Itrev.thy Misc/AdvancedInd.thy Misc/appendix.thy
-	$(USEDIR) Misc
-	@rm -f Misc/document/isabelle.sty
-	@rm -f Misc/document/isabellesym.sty
-	@rm -f Misc/document/pdfsetup.sty
-	@rm -f Misc/document/session.tex
-	@rm -f tutorial.dvi
-
-
-## HOL-Protocol
-
-HOL-Protocol: HOL $(LOG)/HOL-Protocol.gz
-
-$(LOG)/HOL-Protocol.gz: $(OUT)/HOL Protocol/ROOT.ML  \
-  Protocol/Message.thy Protocol/Event.thy \
-  Protocol/Public.thy Protocol/NS_Public.thy    
-	$(USEDIR) Protocol
-	@rm -f Protocol/document/isabelle.sty
-	@rm -f Protocol/document/isabellesym.sty
-	@rm -f Protocol/document/pdfsetup.sty
-	@rm -f Protocol/document/session.tex
-	@rm -f tutorial.dvi
-
-## HOL-Documents
-
-HOL-Documents: HOL $(LOG)/HOL-Documents.gz
-
-$(LOG)/HOL-Documents.gz: $(OUT)/HOL Documents/Documents.thy Documents/ROOT.ML
-	$(USEDIR) Documents
-	@rm -f Documents/document/isabelle.sty
-	@rm -f Documents/document/isabellesym.sty
-	@rm -f Documents/document/pdfsetup.sty
-	@rm -f Documents/document/session.tex
-	@rm -f tutorial.dvi
 
 ## clean
 
 clean:
-	@rm -f tutorial.dvi $(LOG)/HOL-Ifexpr.gz $(LOG)/HOL-CodeGen.gz $(LOG)/HOL-Misc.gz $(LOG)/HOL-ToyList.gz $(LOG)/HOL-ToyList2.gz $(LOG)/HOL-Trie.gz $(LOG)/HOL-Datatype.gz $(LOG)/HOL-Fun.gz $(LOG)/HOL-Advanced.gz $(LOG)/HOL-Rules.gz $(LOG)/HOL-Sets.gz $(LOG)/HOL-CTL.gz $(LOG)/HOL-Inductive.gz $(LOG)/HOL-Types.gz $(LOG)/HOL-Protocol.gz $(LOG)/HOL-Documents.gz Rules/document/*.tex Sets/document/*.tex
+	@rm -f tutorial.dvi $(LOG)/HOL-Tutorial.gz $(LOG)/HOL-ToyList2.gz
