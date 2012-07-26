@@ -66,8 +66,7 @@ fun build args_file =
         (space_explode ":" (Options.string options "document_variants"))
         parent_base_name base_name
         (not (Options.bool options "document_dump_only"), Options.string options "document_dump")
-        (Options.string options "browser_info_remote")
-        verbose;
+        "" verbose;
     val _ = Session.with_timing name timing (List.app use_theories) theories;
     val _ = Session.finish ();
     val _ = if do_output then () else quit ();
