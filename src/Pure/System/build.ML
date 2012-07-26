@@ -42,7 +42,7 @@ fun use_theories (options, thys) =
     (case filter_out (can getenv_strict) condition of
       [] => use_thys options thys
     | conds =>
-        Output.physical_stderr ("Ignoring theories " ^ commas_quote thys ^
+        Output.physical_stderr ("Skipping theories " ^ commas_quote thys ^
           " (undefined " ^ commas conds ^ ")\n"))
   end;
 

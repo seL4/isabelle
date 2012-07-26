@@ -19,7 +19,7 @@ session "HOL-Main"! in "." = Pure +
   options [document = false]
   theories Main
 
-session "HOL-Proofs"! (main) in "." = Pure +
+session "HOL-Proofs"! in "." = Pure +
   description {* HOL-Main with explicit proof terms *}
   options [document = false, proofs = 2, parallel_proofs = 0]
   theories Main
