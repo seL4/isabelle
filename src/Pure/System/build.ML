@@ -35,6 +35,11 @@ fun use_thys options =
     |> Unsynchronized.setmp Name_Space.names_long_default (Options.bool options "names_long")
     |> Unsynchronized.setmp Name_Space.names_short_default (Options.bool options "names_short")
     |> Unsynchronized.setmp Name_Space.names_unique_default (Options.bool options "names_unique")
+    |> Unsynchronized.setmp Thy_Output.display_default (Options.bool options "thy_output_display")
+    |> Unsynchronized.setmp Thy_Output.quotes_default (Options.bool options "thy_output_quotes")
+    |> Unsynchronized.setmp Thy_Output.indent_default (Options.int options "thy_output_indent")
+    |> Unsynchronized.setmp Thy_Output.source_default (Options.bool options "thy_output_source")
+    |> Unsynchronized.setmp Thy_Output.break_default (Options.bool options "thy_output_break")
     |> Unsynchronized.setmp Toplevel.timing (Options.bool options "timing");
 
 fun use_theories (options, thys) =

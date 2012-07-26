@@ -27,5 +27,11 @@ declare names_long : bool = false
 declare names_short : bool = false
 declare names_unique : bool = true
 
+declare thy_output_display : bool = false
+declare thy_output_quotes : bool = false
+declare thy_output_indent : int = 0
+declare thy_output_source : bool = false
+declare thy_output_break : bool = false
+
 declare timing : bool = false
 
