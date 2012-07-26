@@ -162,20 +162,21 @@ fun normalize_raw_param ctxt =
   #> (fn (name, value) =>
          if is_known_raw_param name then
            (name, value)
-         else if is_prover_list ctxt name andalso null value then
-           ("provers", [name])
-         else if can (type_enc_from_string Strict) name andalso null value then
-           ("type_enc", [name])
-         else if can (trans_lams_from_string ctxt any_type_enc) name andalso
-                 null value then
-           ("lam_trans", [name])
-         else if member (op =) fact_filters name then
-           ("fact_filter", [name])
-         else if can Int.fromString name then
-           ("max_facts", [name])
+         else if null value then
+           if is_prover_list ctxt name then
+             ("provers", [name])
+           else if can (type_enc_from_string Strict) name then
+             ("type_enc", [name])
+           else if can (trans_lams_from_string ctxt any_type_enc) name then
+             ("lam_trans", [name])
+           else if member (op =) fact_filters name then
+             ("fact_filter", [name])
+           else if is_some (Int.fromString name) then
+             ("max_facts", [name])
+           else
+             error ("Unknown parameter: " ^ quote name ^ ".")
          else
            error ("Unknown parameter: " ^ quote name ^ "."))
-
 
 (* Ensures that type encodings such as "mono_native?" and "poly_guards!!" are
    read correctly. *)
