@@ -21,26 +21,6 @@ object Build
 
   object Session
   {
-    /* Key */
-
-    object Key
-    {
-      object Ordering extends scala.math.Ordering[Key]
-      {
-        def compare(key1: Key, key2: Key): Int =
-          key1.order compare key2.order match {
-            case 0 => key1.name compare key2.name
-            case ord => ord
-          }
-      }
-    }
-
-    sealed case class Key(name: String, order: Int)
-    {
-      override def toString: String = name
-    }
-
-
     /* Info */
 
     sealed case class Info(
@@ -62,55 +42,42 @@ object Build
       val empty: Queue = new Queue()
     }
 
-    final class Queue private(
-      keys: Map[String, Key] = Map.empty,
-      graph: Graph[Key, Info] = Graph.empty(Key.Ordering))
+    final class Queue private(graph: Graph[String, Info] = Graph.string)
+      extends PartialFunction[String, Info]
     {
+      def apply(name: String): Info = graph.get_node(name)
+      def isDefinedAt(name: String): Boolean = graph.defined(name)
+
+      def is_inner(name: String): Boolean = !graph.is_maximal(name)
+
       def is_empty: Boolean = graph.is_empty
 
-      def apply(name: String): Info = graph.get_node(keys(name))
-      def defined(name: String): Boolean = keys.isDefinedAt(name)
-      def is_inner(name: String): Boolean = !graph.is_maximal(keys(name))
-
-      def + (key: Key, info: Info): Queue =
-      {
-        val keys1 =
-          if (defined(key.name)) error("Duplicate session: " + quote(key.name))
-          else keys + (key.name -> key)
-
-        val graph1 =
-          try {
-            graph.new_node(key, info).add_deps_acyclic(key, info.parent.toList.map(keys(_)))
-          }
+      def + (name: String, info: Info): Queue =
+        new Queue(
+          try { graph.new_node(name, info).add_deps_acyclic(name, info.parent.toList) }
           catch {
+            case _: Graph.Duplicate[_] => error("Duplicate session: " + quote(name))
             case exn: Graph.Cycles[_] =>
               error(cat_lines(exn.cycles.map(cycle =>
                 "Cyclic session dependency of " +
-                  cycle.map(key => quote(key.toString)).mkString(" via "))))
-          }
-        new Queue(keys1, graph1)
-      }
+                  cycle.map(c => quote(c.toString)).mkString(" via "))))
+          })
 
-      def - (name: String): Queue = new Queue(keys - name, graph.del_node(keys(name)))
+      def - (name: String): Queue = new Queue(graph.del_node(name))
 
       def required(names: List[String]): Queue =
-      {
-        val req = graph.all_preds(names.map(keys(_))).map(_.name).toSet
-        val keys1 = keys -- keys.keySet.filter(name => !req(name))
-        val graph1 = graph.restrict(key => keys1.isDefinedAt(key.name))
-        new Queue(keys1, graph1)
-      }
+        new Queue(graph.restrict(graph.all_preds(names).toSet))
 
       def dequeue(skip: String => Boolean): Option[(String, Info)] =
       {
         val it = graph.entries.dropWhile(
-          { case (key, (_, (deps, _))) => !deps.isEmpty || skip(key.name) })
-        if (it.hasNext) { val (key, (info, _)) = it.next; Some((key.name, info)) }
+          { case (name, (_, (deps, _))) => !deps.isEmpty || skip(name) })
+        if (it.hasNext) { val (name, (info, _)) = it.next; Some((name, info)) }
         else None
       }
 
       def topological_order: List[(String, Info)] =
-        graph.topological_order.map(key => (key.name, graph.get_node(key)))
+        graph.topological_order.map(name => (name, graph.get_node(name)))
     }
   }
 
@@ -120,7 +87,6 @@ object Build
   private case class Session_Entry(
     name: String,
     this_name: Boolean,
-    order: Int,
     path: Option[String],
     parent: Option[String],
     description: String,
@@ -155,14 +121,13 @@ object Build
 
       ((keyword(SESSION) ~! session_name) ^^ { case _ ~ x => x }) ~
         (keyword("!") ^^^ true | success(false)) ~
-        (keyword("(") ~! (nat <~ keyword(")")) ^^ { case _ ~ x => x } | success(Integer.MAX_VALUE)) ~
         (opt(keyword(IN) ~! string ^^ { case _ ~ x => x })) ~
         (keyword("=") ~> opt(session_name <~ keyword("+"))) ~
         (keyword(DESCRIPTION) ~! text ^^ { case _ ~ x => x } | success("")) ~
         (keyword(OPTIONS) ~! options ^^ { case _ ~ x => x } | success(Nil)) ~
         rep(theories) ~
         (keyword(FILES) ~! rep1(path) ^^ { case _ ~ x => x } | success(Nil)) ^^
-          { case a ~ b ~ c ~ d ~ e ~ f ~ g ~ h ~ i => Session_Entry(a, b, c, d, e, f, g, h, i) }
+          { case a ~ b ~ c ~ d ~ e ~ f ~ g ~ h => Session_Entry(a, b, c, d, e, f, g, h) }
     }
 
     def parse_entries(root: JFile): List[Session_Entry] =
@@ -197,7 +162,7 @@ object Build
           }
           else
             entry.parent match {
-              case Some(parent_name) if queue1.defined(parent_name) =>
+              case Some(parent_name) if queue1.isDefinedAt(parent_name) =>
                 val full_name =
                   if (entry.this_name) entry.name
                   else parent_name + "-" + entry.name
@@ -212,8 +177,6 @@ object Build
             case None => Path.basic(entry.name)
           }
 
-        val key = Session.Key(full_name, entry.order)
-
         val session_options = options ++ entry.options
 
         val theories =
@@ -226,7 +189,7 @@ object Build
           Session.Info(entry.name, dir + path, entry.parent, parent_base_name,
             entry.description, session_options, theories, files, digest)
 
-        queue1 + (key, info)
+        queue1 + (full_name, info)
       }
       catch {
         case ERROR(msg) =>
@@ -276,7 +239,7 @@ object Build
 
     for (dir <- more_dirs) queue = sessions_dir(options, true, dir, queue)
 
-    sessions.filter(name => !queue.defined(name)) match {
+    sessions.filter(name => !queue.isDefinedAt(name)) match {
       case Nil =>
       case bad => error("Undefined session(s): " + commas_quote(bad))
     }
