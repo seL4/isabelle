@@ -16,7 +16,7 @@ sig
     theory -> bool -> string -> unit
   val generate_atp_dependencies :
     Proof.context -> params -> theory -> bool -> string -> unit
-  val generate_commands : Proof.context -> string -> theory -> string -> unit
+  val generate_commands : Proof.context -> params -> theory -> string -> unit
   val generate_mepo_suggestions :
     Proof.context -> params -> theory -> int -> string -> unit
 end;
@@ -50,6 +50,11 @@ val thy_name_of_fact = hd o Long_Name.explode
 fun thy_of_fact thy = Context.this_theory thy o thy_name_of_fact
 
 val all_names = map (rpair () o nickname_of) #> Symtab.make
+
+fun smart_dependencies_of ctxt params prover facts all_names th =
+  case atp_dependencies_of ctxt params prover 0 facts all_names th of
+    SOME deps => deps
+  | NONE => isar_dependencies_of all_names th |> these
 
 fun generate_accessibility thy include_thy file_name =
   let
@@ -119,18 +124,16 @@ fun generate_atp_dependencies ctxt (params as {provers, ...}) thy include_thy
     fun do_thm th =
       let
         val name = nickname_of th
-        val deps =
-          case atp_dependencies_of ctxt params prover 0 facts all_names th of
-            SOME deps => deps
-          | NONE => isar_dependencies_of all_names th |> these
+        val deps = smart_dependencies_of ctxt params prover facts all_names th
         val s = escape_meta name ^ ": " ^ escape_metas deps ^ "\n"
       in File.append path s end
   in List.app do_thm ths end
 
-fun generate_commands ctxt prover thy file_name =
+fun generate_commands ctxt (params as {provers, ...}) thy file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
+    val prover = hd provers
     val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
     val facts = all_facts_of (Proof_Context.init_global thy) css_table
     val (new_facts, old_facts) =
@@ -142,13 +145,13 @@ fun generate_commands ctxt prover thy file_name =
       let
         val name = nickname_of th
         val feats = features_of ctxt prover thy stature [prop_of th]
-        val deps = isar_dependencies_of all_names th |> these
+        val deps = smart_dependencies_of ctxt params prover facts all_names th
         val kind = Thm.legacy_get_kind th
-        val core = escape_metas prevs ^ "; " ^ escape_metas feats
+        val core =
+          escape_meta name ^ ": " ^ escape_metas prevs ^ "; " ^
+          escape_metas feats
         val query = if kind <> "" then "? " ^ core ^ "\n" else ""
-        val update =
-          "! " ^ escape_meta name ^ ": " ^ core ^ "; " ^
-          escape_metas deps ^ "\n"
+        val update = "! " ^ core ^ "; " ^ escape_metas deps ^ "\n"
         val _ = File.append path (query ^ update)
       in [name] end
     val thy_map = old_facts |> thy_map_from_facts

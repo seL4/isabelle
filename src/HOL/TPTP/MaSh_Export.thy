@@ -23,7 +23,6 @@ val thy = @{theory List}
 val params as {provers, ...} = Sledgehammer_Isar.default_params @{context} []
 val prover = hd provers
 *}
-
 ML {*
 if do_it then
   generate_accessibility thy false "/tmp/mash_accessibility"
@@ -47,7 +46,7 @@ else
 
 ML {*
 if do_it then
-  generate_commands @{context} prover thy "/tmp/mash_commands"
+  generate_commands @{context} params thy "/tmp/mash_commands"
 else
   ()
 *}
