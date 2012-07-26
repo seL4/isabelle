@@ -41,7 +41,7 @@ $(LOG)/HOL-Tutorial.gz: $(OUT)/HOL ROOT.ML Ifexpr/Ifexpr.thy		\
   Inductive/Advanced.thy Types/Numbers.thy Types/Pairs.thy		\
   Types/Records.thy Types/Typedefs.thy Types/Overloading.thy		\
   Types/Axioms.thy Misc/Tree.thy Misc/Tree2.thy Misc/Plus.thy		\
-  Misc/fakenat.thy Misc/natsum.thy Misc/pairs.thy Misc/Option2.thy	\
+  Misc/fakenat.thy Misc/natsum.thy Misc/pairs2.thy Misc/Option2.thy	\
   Misc/types.thy Misc/prime_def.thy Misc/case_exprs.thy Misc/simp.thy	\
   Misc/Itrev.thy Misc/AdvancedInd.thy Misc/appendix.thy			\
   Protocol/Message.thy Protocol/Event.thy Protocol/Public.thy		\

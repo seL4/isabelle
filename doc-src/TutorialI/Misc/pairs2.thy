@@ -1,22 +1,7 @@
-%
-\begin{isabellebody}%
-\def\isabellecontext{pairs}%
-%
-\isadelimtheory
-%
-\endisadelimtheory
-%
-\isatagtheory
-%
-\endisatagtheory
-{\isafoldtheory}%
-%
-\isadelimtheory
-%
-\endisadelimtheory
-%
-\begin{isamarkuptext}%
-\label{sec:pairs}\index{pairs and tuples}
+(*<*)
+theory pairs2 imports Main begin;
+(*>*)
+text{*\label{sec:pairs}\index{pairs and tuples}
 HOL also has ordered pairs: \isa{($a@1$,$a@2$)} is of type $\tau@1$
 \indexboldpos{\isasymtimes}{$Isatype} $\tau@2$ provided each $a@i$ is of type
 $\tau@i$. The functions \cdx{fst} and
@@ -34,8 +19,8 @@ There is also the type \tydx{unit}, which contains exactly one
 element denoted by~\cdx{()}.  This type can be viewed
 as a degenerate product with 0 components.
 \item
-Products, like type \isa{nat}, are datatypes, which means
-in particular that \isa{induct{\isaliteral{5F}{\isacharunderscore}}tac} and \isa{case{\isaliteral{5F}{\isacharunderscore}}tac} are applicable to
+Products, like type @{typ nat}, are datatypes, which means
+in particular that @{text induct_tac} and @{text case_tac} are applicable to
 terms of product type.
 Both split the term into a number of variables corresponding to the tuple structure
 (up to 7 components).
@@ -43,24 +28,8 @@ Both split the term into a number of variables corresponding to the tuple struct
 Tuples with more than two or three components become unwieldy;
 records are preferable.
 \end{itemize}
-For more information on pairs and records see Chapter~\ref{ch:more-types}.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimtheory
-%
-\endisadelimtheory
-%
-\isatagtheory
-%
-\endisatagtheory
-{\isafoldtheory}%
-%
-\isadelimtheory
-%
-\endisadelimtheory
-\end{isabellebody}%
-%%% Local Variables:
-%%% mode: latex
-%%% TeX-master: "root"
-%%% End:
+For more information on pairs and records see Chapter~\ref{ch:more-types}.
+*}
+(*<*)
+end
+(*>*)

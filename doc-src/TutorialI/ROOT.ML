@@ -33,7 +33,7 @@ use_thy "Misc/Plus";
 use_thy "Misc/case_exprs";
 use_thy "Misc/fakenat";
 use_thy "Misc/natsum";
-use_thy "Misc/pairs";
+use_thy "Misc/pairs2";
 use_thy "Misc/Option2";
 use_thy "Misc/types";
 use_thy "Misc/prime_def";
