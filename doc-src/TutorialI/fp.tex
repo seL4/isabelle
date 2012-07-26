@@ -32,7 +32,7 @@ We will now examine it line by line.
 \end{figure}
 
 \index{*ToyList example|(}
-{\makeatother\medskip\input{ToyList/document/ToyList.tex}}
+{\makeatother\medskip\input{document/ToyList.tex}}
 
 The complete proof script is shown in Fig.\ts\ref{fig:ToyList-proofs}. The
 concatenation of Figs.\ts\ref{fig:ToyList} and~\ref{fig:ToyList-proofs}
@@ -203,12 +203,12 @@ A more general method for defining total recursive functions is introduced in
 {\S}\ref{sec:fun}.
 
 \begin{exercise}\label{ex:Tree}
-\input{Misc/document/Tree.tex}%
+\input{document/Tree.tex}%
 \end{exercise}
 
-\input{Misc/document/case_exprs.tex}
+\input{document/case_exprs.tex}
 
-\input{Ifexpr/document/Ifexpr.tex}
+\input{document/Ifexpr.tex}
 \index{datatypes|)}
 
 
@@ -222,18 +222,18 @@ cases.
 \label{sec:nat}\index{natural numbers}%
 \index{linear arithmetic|(}
 
-\input{Misc/document/fakenat.tex}\medskip
-\input{Misc/document/natsum.tex}
+\input{document/fakenat.tex}\medskip
+\input{document/natsum.tex}
 
 \index{linear arithmetic|)}
 
 
 \subsection{Pairs}
-\input{Misc/document/pairs.tex}
+\input{document/pairs.tex}
 
 \subsection{Datatype {\tt\slshape option}}
 \label{sec:option}
-\input{Misc/document/Option2.tex}
+\input{document/Option2.tex}
 
 \section{Definitions}
 \label{sec:Definitions}
@@ -252,9 +252,9 @@ Type synonyms are similar to those found in ML\@. They are created by a
 \commdx{type\protect\_synonym} command:
 
 \medskip
-\input{Misc/document/types.tex}
+\input{document/types.tex}
 
-\input{Misc/document/prime_def.tex}
+\input{document/prime_def.tex}
 
 
 \section{The Definitional Approach}
@@ -331,19 +331,19 @@ procedures that go beyond mere rewrite rules.  New simplification procedures
 can be coded and installed, but they are definitely not a matter for this
 tutorial. 
 
-\input{Misc/document/simp.tex}
+\input{document/simp.tex}
 
 \index{simplification|)}
 
-\input{Misc/document/Itrev.tex}
+\input{document/Itrev.tex}
 \begin{exercise}
-\input{Misc/document/Plus.tex}%
+\input{document/Plus.tex}%
 \end{exercise}
 \begin{exercise}
-\input{Misc/document/Tree2.tex}%
+\input{document/Tree2.tex}%
 \end{exercise}
 
-\input{CodeGen/document/CodeGen.tex}
+\input{document/CodeGen.tex}
 
 
 \section{Advanced Datatypes}
@@ -360,12 +360,12 @@ data structure.
 \subsection{Mutual Recursion}
 \label{sec:datatype-mut-rec}
 
-\input{Datatype/document/ABexpr.tex}
+\input{document/ABexpr.tex}
 
 \subsection{Nested Recursion}
 \label{sec:nested-datatype}
 
-{\makeatother\input{Datatype/document/Nested.tex}}
+{\makeatother\input{document/Nested.tex}}
 
 
 \subsection{The Limits of Nested Recursion}
@@ -392,7 +392,7 @@ is ruled out but the following example of a potentially
 infinitely branching tree is accepted:
 \smallskip
 
-\input{Datatype/document/Fundata.tex}
+\input{document/Fundata.tex}
 
 If you need nested recursion on the left of a function arrow, there are
 alternatives to pure HOL\@.  In the Logic for Computable Functions 
@@ -462,7 +462,7 @@ Proper tries associate some value with each string. Since the
 information is stored only in the final node associated with the string, many
 nodes do not carry any value. This distinction is modeled with the help
 of the predefined datatype \isa{option} (see {\S}\ref{sec:option}).
-\input{Trie/document/Trie.tex}
+\input{document/Trie.tex}
 \index{tries|)}
 
 \section{Total Recursive Functions: \isacommand{fun}}
@@ -479,6 +479,6 @@ termination automatically. More advanced function definitions, including user
 supplied termination proofs, nested recursion and partiality, are discussed
 in a separate tutorial~\cite{isabelle-function}.
 
-\input{Fun/document/fun0.tex}
+\input{document/fun0.tex}
 
 \index{fun@\isacommand {fun} (command)|)}\index{functions!total|)}

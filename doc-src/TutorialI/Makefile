@@ -13,16 +13,15 @@ SEDINDEX = ./isa-index
 NAME = tutorial
 FILES = tutorial.tex basics.tex fp.tex appendix.tex			\
 	Advanced/advanced.tex CTL/ctl.tex Inductive/inductive.tex	\
-	Inductive/document/AB.tex Inductive/document/Advanced.tex	\
-	Inductive/document/Even.tex Inductive/document/Mutual.tex	\
-	Inductive/document/Star.tex Protocol/protocol.tex		\
-	Protocol/document/Event.tex Protocol/document/Message.tex	\
-	Protocol/document/Public.tex Protocol/document/NS_Public.tex	\
-	Rules/rules.tex Sets/sets.tex Types/numerics.tex		\
-	Types/types.tex Types/document/Overloading.tex \
-	Types/document/Axioms.tex Documents/documents.tex Misc/document/appendix.tex ../iman.sty	\
-	../ttbox.sty ../extra.sty ../../lib/texinputs/isabelle.sty ../../lib/texinputs/isabellesym.sty	\
-	../pdfsetup.sty
+	document/AB.tex document/Advanced.tex document/Even.tex		\
+	document/Mutual.tex document/Star.tex Protocol/protocol.tex	\
+	document/Event.tex document/Message.tex document/Public.tex	\
+	document/NS_Public.tex Rules/rules.tex Sets/sets.tex		\
+	Types/numerics.tex Types/types.tex document/Overloading.tex	\
+	document/Axioms.tex Documents/documents.tex			\
+	document/appendix.tex ../iman.sty ../ttbox.sty ../extra.sty	\
+	../../lib/texinputs/isabelle.sty				\
+	../../lib/texinputs/isabellesym.sty ../pdfsetup.sty
 
 dvi: $(NAME).dvi
 
