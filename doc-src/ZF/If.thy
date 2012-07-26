@@ -5,7 +5,7 @@
 First-Order Logic: the 'if' example.
 *)
 
-theory If imports FOL begin
+theory If imports "~~/src/FOL/FOL" begin
 
 definition "if" :: "[o,o,o]=>o" where
   "if(P,Q,R) == P&Q | ~P&R"

@@ -1,6 +1,6 @@
 header{*Examples of Classical Reasoning*}
 
-theory FOL_examples imports FOL begin
+theory FOL_examples imports "~~/src/FOL/FOL" begin
 
 lemma "EX y. ALL x. P(y)-->P(x)"
   --{* @{subgoals[display,indent=0,margin=65]} *}
