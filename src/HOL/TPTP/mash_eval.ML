@@ -36,8 +36,9 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
     val slack_max_facts = max_facts_slack * the max_facts
     val path = file_name |> Path.explode
     val lines = path |> File.read_lines
-    val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
-    val facts = all_facts_of (Proof_Context.init_global thy) css_table
+    val css = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
+    val facts =
+      all_facts (Proof_Context.init_global thy) false Symtab.empty [] [] css
     val all_names = all_names (facts |> map snd)
     val mepo_ok = Unsynchronized.ref 0
     val mash_ok = Unsynchronized.ref 0
@@ -70,7 +71,7 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
         val th =
           case find_first (fn (_, th) => nickname_of th = name) facts of
             SOME (_, th) => th
-          | NONE => error ("No fact called \"" ^ name ^ "\"")
+          | NONE => error ("No fact called \"" ^ name ^ "\".")
         val goal = goal_of_thm thy th
         val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
         val isar_deps = isar_dependencies_of all_names th |> these

@@ -9,11 +9,11 @@ signature MASH_EXPORT =
 sig
   type params = Sledgehammer_Provers.params
 
-  val generate_accessibility : theory -> bool -> string -> unit
+  val generate_accessibility : Proof.context -> theory -> bool -> string -> unit
   val generate_features :
     Proof.context -> string -> theory -> bool -> string -> unit
   val generate_isar_dependencies :
-    theory -> bool -> string -> unit
+    Proof.context -> theory -> bool -> string -> unit
   val generate_atp_dependencies :
     Proof.context -> params -> theory -> bool -> string -> unit
   val generate_commands : Proof.context -> params -> theory -> string -> unit
@@ -56,7 +56,7 @@ fun smart_dependencies_of ctxt params prover facts all_names th =
     SOME deps => deps
   | NONE => isar_dependencies_of all_names th |> these
 
-fun generate_accessibility thy include_thy file_name =
+fun generate_accessibility ctxt thy include_thy file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
@@ -65,24 +65,25 @@ fun generate_accessibility thy include_thy file_name =
         val s = escape_meta fact ^ ": " ^ escape_metas prevs ^ "\n"
         val _ = File.append path s
       in [fact] end
+    val css = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
     val thy_map =
-      all_facts_of (Proof_Context.init_global thy) Termtab.empty
+      all_facts ctxt false Symtab.empty [] [] css
       |> not include_thy ? filter_out (has_thy thy o snd)
       |> thy_map_from_facts
     fun do_thy facts =
       let
         val thy = thy_of_fact thy (hd facts)
         val parents = parent_facts thy thy_map
-      in fold do_fact facts parents; () end
+      in fold_rev do_fact facts parents; () end
   in fold_rev (fn (_, facts) => fn () => do_thy facts) thy_map () end
 
 fun generate_features ctxt prover thy include_thy file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
-    val css_table = clasimpset_rule_table_of ctxt
+    val css = clasimpset_rule_table_of ctxt
     val facts =
-      all_facts_of (Proof_Context.init_global thy) css_table
+      all_facts (Proof_Context.init_global thy) false Symtab.empty [] [] css
       |> not include_thy ? filter_out (has_thy thy o snd)
     fun do_fact ((_, stature), th) =
       let
@@ -93,12 +94,13 @@ fun generate_features ctxt prover thy include_thy file_name =
       in File.append path s end
   in List.app do_fact facts end
 
-fun generate_isar_dependencies thy include_thy file_name =
+fun generate_isar_dependencies ctxt thy include_thy file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
+    val css = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
     val ths =
-      all_facts_of (Proof_Context.init_global thy) Termtab.empty
+      all_facts (Proof_Context.init_global thy) false Symtab.empty [] [] css
       |> not include_thy ? filter_out (has_thy thy o snd)
       |> map snd
     val all_names = all_names ths
@@ -116,8 +118,9 @@ fun generate_atp_dependencies ctxt (params as {provers, ...}) thy include_thy
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val prover = hd provers
+    val css = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
     val facts =
-      all_facts_of (Proof_Context.init_global thy) Termtab.empty
+      all_facts (Proof_Context.init_global thy) false Symtab.empty [] [] css
       |> not include_thy ? filter_out (has_thy thy o snd)
     val ths = facts |> map snd
     val all_names = all_names ths
@@ -134,8 +137,9 @@ fun generate_commands ctxt (params as {provers, ...}) thy file_name =
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val prover = hd provers
-    val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
-    val facts = all_facts_of (Proof_Context.init_global thy) css_table
+    val css = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
+    val facts =
+      all_facts (Proof_Context.init_global thy) false Symtab.empty [] [] css
     val (new_facts, old_facts) =
       facts |> List.partition (has_thy thy o snd)
             |>> sort (thm_ord o pairself snd)
@@ -164,8 +168,9 @@ fun generate_mepo_suggestions ctxt (params as {provers, ...}) thy max_relevant
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val prover = hd provers
-    val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
-    val facts = all_facts_of (Proof_Context.init_global thy) css_table
+    val css = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
+    val facts =
+      all_facts (Proof_Context.init_global thy) false Symtab.empty [] [] css
     val (new_facts, old_facts) =
       facts |> List.partition (has_thy thy o snd)
             |>> sort (thm_ord o pairself snd)

@@ -29,7 +29,9 @@ sig
     Proof.context -> term list -> term -> (((unit -> string) * 'a) * thm) list
     -> (((unit -> string) * 'a) * thm) list
   val maybe_filter_no_atps : Proof.context -> ('a * thm) list -> ('a * thm) list
-  val all_facts_of : Proof.context -> status Termtab.table -> fact list
+  val all_facts :
+    Proof.context -> bool -> unit Symtab.table -> thm list -> thm list
+    -> status Termtab.table -> fact list
   val nearly_all_facts :
     Proof.context -> bool -> fact_override -> unit Symtab.table
     -> status Termtab.table -> thm list -> term list -> term -> fact list
@@ -435,10 +437,6 @@ fun all_facts ctxt ho_atp reserved add_ths chained css =
              |> add_facts true Facts.fold_static global_facts global_facts
              |> op @
   end
-
-fun all_facts_of ctxt css =
-  all_facts ctxt false Symtab.empty [] [] css
-  |> rev (* partly restore the original order of facts, for MaSh *)
 
 fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css chained hyp_ts
                      concl_t =

@@ -123,7 +123,8 @@ fun generate_atp_inference_file_for_theory ctxt thy format type_enc file_name =
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val facts =
-      Sledgehammer_Fact.all_facts_of (Proof_Context.init_global thy) css_table
+      Sledgehammer_Fact.all_facts (Proof_Context.init_global thy) false
+                                  Symtab.empty [] [] css_table
     val atp_problem =
       facts
       |> map (fn ((_, loc), th) =>
