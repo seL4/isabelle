@@ -481,9 +481,11 @@ object Build
             if (rc == 0) {
               val sources = make_stamp(name)
               val heap = heap_stamp(job.output_path)
+              (output_dir + log(name)).file.delete
               File.write_gzip(output_dir + log_gz(name), sources + "\n" + heap + "\n" + out)
             }
             else {
+              (output_dir + log_gz(name)).file.delete
               File.write(output_dir + log(name), out)
               echo(name + " FAILED")
               echo("(see also " + log(name).file.toString + ")")
