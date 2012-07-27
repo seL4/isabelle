@@ -378,8 +378,8 @@ fun init_theory imports node =
     (* FIXME provide files via Scala layer, not master_dir *)
     val (dir, header) = get_header node;
     val master_dir =
-      (case Url.explode dir of
-        Url.File path => path
+      (case try Url.explode dir of
+        SOME (Url.File path) => path
       | _ => Path.current);
     val parents =
       #imports header |> map (fn import =>
