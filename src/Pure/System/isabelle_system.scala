@@ -129,10 +129,10 @@ object Isabelle_System
   def try_read(paths: Seq[Path]): String =
   {
     val buf = new StringBuilder
-    for {
-      path <- paths
-      file = platform_file(path) if file.isFile
-    } { buf.append(File.read(file)); buf.append('\n') }
+    for (path <- paths if path.is_file) {
+      buf.append(File.read(path))
+      buf.append('\n')
+    }
     buf.toString
   }
 

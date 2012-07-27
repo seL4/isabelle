@@ -20,9 +20,6 @@ object Position
   val File = new Properties.String(Isabelle_Markup.FILE)
   val Id = new Properties.Long(Isabelle_Markup.ID)
 
-  def file(f: JFile): T = File(Isabelle_System.posix_path(f.toString))
-  def line_file(i: Int, f: JFile): T = Line(i) ::: file(f)
-
   object Range
   {
     def apply(range: Text.Range): T = Offset(range.start) ++ Offset(range.stop)

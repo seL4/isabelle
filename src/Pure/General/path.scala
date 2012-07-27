@@ -175,7 +175,14 @@ final class Path private(private val elems: List[Path.Elem]) // reversed element
   }
 
 
+  /* source position */
+
+  def position: Position.T = Position.File(implode)
+
+
   /* platform file */
 
   def file: JFile = Isabelle_System.platform_file(this)
+  def is_file: Boolean = file.isFile
+  def is_dir: Boolean = file.isDirectory
 }

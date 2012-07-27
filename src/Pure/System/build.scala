@@ -7,7 +7,7 @@ Build and manage Isabelle sessions.
 package isabelle
 
 
-import java.io.{File => JFile, BufferedInputStream, FileInputStream,
+import java.io.{BufferedInputStream, FileInputStream,
   BufferedReader, InputStreamReader, IOException}
 import java.util.zip.GZIPInputStream
 
@@ -138,10 +138,10 @@ object Build
           { case a ~ b ~ c ~ d ~ e ~ f ~ g ~ h ~ i => Session_Entry(a, b, c, d, e, f, g, h, i) }
     }
 
-    def parse_entries(root: JFile): List[Session_Entry] =
+    def parse_entries(root: Path): List[Session_Entry] =
     {
       val toks = syntax.scan(File.read(root))
-      parse_all(rep(session_entry), Token.reader(toks, root.toString)) match {
+      parse_all(rep(session_entry), Token.reader(toks, root.implode)) match {
         case Success(result, _) => result
         case bad => error(bad.toString)
       }
@@ -156,7 +156,7 @@ object Build
 
   private def is_pure(name: String): Boolean = name == "RAW" || name == "Pure"
 
-  private def sessions_root(options: Options, dir: Path, root: JFile, queue: Session.Queue)
+  private def sessions_root(options: Options, dir: Path, root: Path, queue: Session.Queue)
     : Session.Queue =
   {
     (queue /: Parser.parse_entries(root))((queue1, entry) =>
@@ -202,20 +202,20 @@ object Build
       catch {
         case ERROR(msg) =>
           error(msg + "\nThe error(s) above occurred in session entry " +
-            quote(entry.base_name) + Position.str_of(Position.file(root)))
+            quote(entry.base_name) + Position.str_of(root.position))
       })
   }
 
   private def sessions_dir(options: Options, strict: Boolean, dir: Path, queue: Session.Queue)
     : Session.Queue =
   {
-    val root = (dir + ROOT).file
-    if (root.isFile) sessions_root(options, dir, root, queue)
-    else if (strict) error("Bad session root file: " + quote(root.toString))
+    val root = dir + ROOT
+    if (root.is_file) sessions_root(options, dir, root, queue)
+    else if (strict) error("Bad session root file: " + root.toString)
     else queue
   }
 
-  private def sessions_catalog(options: Options, dir: Path, catalog: JFile, queue: Session.Queue)
+  private def sessions_catalog(options: Options, dir: Path, catalog: Path, queue: Session.Queue)
     : Session.Queue =
   {
     val dirs =
@@ -223,12 +223,12 @@ object Build
     (queue /: dirs)((queue1, dir1) =>
       try {
         val dir2 = dir + Path.explode(dir1)
-        if (dir2.file.isDirectory) sessions_dir(options, true, dir2, queue1)
+        if (dir2.is_dir) sessions_dir(options, true, dir2, queue1)
         else error("Bad session directory: " + dir2.toString)
       }
       catch {
         case ERROR(msg) =>
-          error(msg + "\nThe error(s) above occurred in session catalog " + quote(catalog.toString))
+          error(msg + "\nThe error(s) above occurred in session catalog " + catalog.toString)
       })
   }
 
@@ -240,9 +240,8 @@ object Build
     for (dir <- Isabelle_System.components()) {
       queue = sessions_dir(options, false, dir, queue)
 
-      val catalog = (dir + SESSIONS).file
-      if (catalog.isFile)
-        queue = sessions_catalog(options, dir, catalog, queue)
+      val catalog = dir + SESSIONS
+      if (catalog.is_file) queue = sessions_catalog(options, dir, catalog, queue)
     }
 
     for (dir <- more_dirs) queue = sessions_dir(options, true, dir, queue)
@@ -317,7 +316,7 @@ object Build
 
   /* jobs */
 
-  private class Job(cwd: JFile, env: Map[String, String], script: String, args: String,
+  private class Job(dir: Path, env: Map[String, String], script: String, args: String,
     output: Path, do_output: Boolean)
   {
     private val args_file = File.tmp_file("args")
@@ -325,7 +324,7 @@ object Build
     File.write(args_file, args)
 
     private val (thread, result) =
-      Simple_Thread.future("build") { Isabelle_System.bash_env(cwd, env1, script) }
+      Simple_Thread.future("build") { Isabelle_System.bash_env(dir.file, env1, script) }
 
     def terminate: Unit = thread.interrupt
     def is_finished: Boolean = result.is_finished
@@ -337,7 +336,7 @@ object Build
     options: Options, verbose: Boolean, browser_info: Path): Job =
   {
     // global browser info dir
-    if (options.bool("browser_info") && !(browser_info + Path.explode("index.html")).file.isFile)
+    if (options.bool("browser_info") && !(browser_info + Path.explode("index.html")).is_file)
     {
       browser_info.file.mkdirs()
       File.copy(Path.explode("~~/lib/logo/isabelle.gif"),
@@ -350,7 +349,6 @@ object Build
 
     val parent = info.parent.getOrElse("")
 
-    val cwd = info.dir.file
     val env =
       Map("INPUT" -> parent, "TARGET" -> name, "OUTPUT" -> Isabelle_System.standard_path(output))
     val script =
@@ -390,7 +388,7 @@ object Build
           (do_output, (options, (verbose, (browser_info, (parent,
             (name, info.theories)))))))
     }
-    new Job(cwd, env, script, YXML.string_of_body(args_xml), output, do_output)
+    new Job(info.dir, env, script, YXML.string_of_body(args_xml), output, do_output)
   }
 
 
@@ -508,7 +506,7 @@ object Build
 
                 val current =
                 {
-                  input_dirs.find(dir => (dir + log_gz(name)).file.isFile) match {
+                  input_dirs.find(dir => (dir + log_gz(name)).is_file) match {
                     case Some(dir) =>
                       check_stamps(dir, name) match {
                         case Some((s, h)) => s == make_stamp(name) && (h || !do_output)

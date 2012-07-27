@@ -7,9 +7,6 @@ Stand-alone options with external string representation.
 package isabelle
 
 
-import java.io.{File => JFile}
-
-
 object Options
 {
   type Spec = (String, Option[String])
@@ -54,9 +51,9 @@ object Options
         { case _ ~ (a ~ _ ~ b) => (options: Options) => options.define(a, b) }
     }
 
-    def parse_entries(file: JFile): List[Options => Options] =
+    def parse_entries(file: Path): List[Options => Options] =
     {
-      parse_all(rep(entry), Token.reader(syntax.scan(File.read(file)), file.toString)) match {
+      parse_all(rep(entry), Token.reader(syntax.scan(File.read(file)), file.implode)) match {
         case Success(result, _) => result
         case bad => error(bad.toString)
       }
@@ -70,12 +67,11 @@ object Options
     var options = empty
     for {
       dir <- Isabelle_System.components()
-      file = (dir + OPTIONS).file
-      if file.isFile
+      file = dir + OPTIONS if file.is_file
       entry <- Parser.parse_entries(file)
     } {
       try { options = entry(options) }
-      catch { case ERROR(msg) => error(msg + Position.str_of(Position.file(file))) }
+      catch { case ERROR(msg) => error(msg + Position.str_of(file.position)) }
     }
     options
   }
