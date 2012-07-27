@@ -132,7 +132,8 @@ local
 in
   fun beta_of_def thy def_thm =
       let
-        val (con, lam) = Logic.dest_equals (concl_of def_thm)
+        val (con, lam) =
+          Logic.dest_equals (Logic.unvarify_global (concl_of def_thm))
         val (args, rhs) = arglist lam
         val lhs = list_ccomb (con, args)
         val goal = mk_equals (lhs, rhs)
