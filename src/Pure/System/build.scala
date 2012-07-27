@@ -542,7 +542,8 @@ object Build
     val results = loop(queue, Map.empty, Map.empty)
     val rc = (0 /: results)({ case (rc1, (_, (_, rc2))) => rc1 max rc2 })
     if (rc != 0 && (verbose || !no_build)) {
-      val unfinished = (for ((name, r) <- results.iterator if r != 0) yield name).toList.sorted
+      val unfinished =
+        (for ((name, (_, r)) <- results.iterator if r != 0) yield name).toList.sorted
       echo("Unfinished session(s): " + commas(unfinished))
     }
     rc
