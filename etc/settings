@@ -97,7 +97,7 @@ ISABELLE_EPSTOPDF="epstopdf"
 ###
 
 # The place for user configuration, heap files, etc.
-if [ -z "ISABELLE_IDENTIFIER" ]; then
+if [ -z "$ISABELLE_IDENTIFIER" ]; then
   ISABELLE_HOME_USER="$USER_HOME/.isabelle"
 else
   ISABELLE_HOME_USER="$USER_HOME/.isabelle/$ISABELLE_IDENTIFIER"
