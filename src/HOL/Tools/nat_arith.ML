@@ -10,39 +10,10 @@ sig
   val cancel_eq_conv: conv
   val cancel_le_conv: conv
   val cancel_less_conv: conv
-  (* legacy functions: *)
-  val mk_sum: term list -> term
-  val mk_norm_sum: term list -> term
-  val dest_sum: term -> term list
 end;
 
 structure Nat_Arith: NAT_ARITH =
 struct
-
-(** abstract syntax of structure nat: 0, Suc, + **)
-
-val mk_plus = HOLogic.mk_binop @{const_name Groups.plus};
-val dest_plus = HOLogic.dest_bin @{const_name Groups.plus} HOLogic.natT;
-
-fun mk_sum [] = HOLogic.zero
-  | mk_sum [t] = t
-  | mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
-
-(*normal form of sums: Suc (... (Suc (a + (b + ...))))*)
-fun mk_norm_sum ts =
-  let val (ones, sums) = List.partition (equal HOLogic.Suc_zero) ts in
-    funpow (length ones) HOLogic.mk_Suc (mk_sum sums)
-  end;
-
-fun dest_sum tm =
-  if HOLogic.is_zero tm then []
-  else
-    (case try HOLogic.dest_Suc tm of
-      SOME t => HOLogic.Suc_zero :: dest_sum t
-    | NONE =>
-        (case try dest_plus tm of
-          SOME (t, u) => dest_sum t @ dest_sum u
-        | NONE => [tm]));
 
 val add1 = @{lemma "(A::'a::comm_monoid_add) == k + a ==> A + b == k + (a + b)"
       by (simp only: add_ac)}

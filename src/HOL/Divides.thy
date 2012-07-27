@@ -693,8 +693,20 @@ structure Cancel_Div_Mod_Nat = Cancel_Div_Mod
   val div_name = @{const_name div};
   val mod_name = @{const_name mod};
   val mk_binop = HOLogic.mk_binop;
-  val mk_sum = Nat_Arith.mk_sum;
-  val dest_sum = Nat_Arith.dest_sum;
+  val mk_plus = HOLogic.mk_binop @{const_name Groups.plus};
+  val dest_plus = HOLogic.dest_bin @{const_name Groups.plus} HOLogic.natT;
+  fun mk_sum [] = HOLogic.zero
+    | mk_sum [t] = t
+    | mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
+  fun dest_sum tm =
+    if HOLogic.is_zero tm then []
+    else
+      (case try HOLogic.dest_Suc tm of
+        SOME t => HOLogic.Suc_zero :: dest_sum t
+      | NONE =>
+          (case try dest_plus tm of
+            SOME (t, u) => dest_sum t @ dest_sum u
+          | NONE => [tm]));
 
   val div_mod_eqs = map mk_meta_eq [@{thm div_mod_equality}, @{thm div_mod_equality2}];
 
