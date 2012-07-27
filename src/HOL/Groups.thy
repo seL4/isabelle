@@ -6,7 +6,7 @@ header {* Groups, also combined with orderings *}
 
 theory Groups
 imports Orderings
-uses ("Tools/abel_cancel.ML")
+uses ("Tools/group_cancel.ML")
 begin
 
 subsection {* Fact collections *}
@@ -472,6 +472,9 @@ by (simp add: diff_minus add_ac)
 lemma diff_eq_0_iff_eq [simp, no_atp]: "a - b = 0 \<longleftrightarrow> a = b"
   by (rule right_minus_eq)
 
+lemma add_diff_cancel_left: "(c + a) - (c + b) = a - b"
+  by (simp add: diff_minus add_ac)
+
 end
 
 
@@ -827,15 +830,22 @@ lemma diff_eq_diff_less_eq:
 
 end
 
-use "Tools/abel_cancel.ML"
+use "Tools/group_cancel.ML"
 
-simproc_setup abel_cancel_sum
-  ("a + b::'a::ab_group_add" | "a - b::'a::ab_group_add") =
-  {* fn phi => Abel_Cancel.sum_proc *}
+simproc_setup group_cancel_add ("a + b::'a::ab_group_add") =
+  {* fn phi => fn ss => try Group_Cancel.cancel_add_conv *}
 
-simproc_setup abel_cancel_relation
-  ("a < (b::'a::ordered_ab_group_add)" | "a \<le> (b::'a::ordered_ab_group_add)" | "c = (d::'b::ab_group_add)") =
-  {* fn phi => Abel_Cancel.rel_proc *}
+simproc_setup group_cancel_diff ("a - b::'a::ab_group_add") =
+  {* fn phi => fn ss => try Group_Cancel.cancel_diff_conv *}
+
+simproc_setup group_cancel_eq ("a = (b::'a::ab_group_add)") =
+  {* fn phi => fn ss => try Group_Cancel.cancel_eq_conv *}
+
+simproc_setup group_cancel_le ("a \<le> (b::'a::ordered_ab_group_add)") =
+  {* fn phi => fn ss => try Group_Cancel.cancel_le_conv *}
+
+simproc_setup group_cancel_less ("a < (b::'a::ordered_ab_group_add)") =
+  {* fn phi => fn ss => try Group_Cancel.cancel_less_conv *}
 
 class linordered_ab_semigroup_add =
   linorder + ordered_ab_semigroup_add

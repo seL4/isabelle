@@ -50,13 +50,13 @@ notepad begin
   fix a b c u :: "'a::ab_group_add"
   {
     assume "(a + 0) - (b + 0) = u" have "(a + c) - (b + c) = u"
-      by (tactic {* test [@{simproc abel_cancel_sum}] *}) fact
+      by (tactic {* test [@{simproc group_cancel_diff}] *}) fact
   next
     assume "a + 0 = b + 0" have "a + c = b + c"
-      by (tactic {* test [@{simproc abel_cancel_relation}] *}) fact
+      by (tactic {* test [@{simproc group_cancel_eq}] *}) fact
   }
 end
-(* TODO: more tests for Groups.abel_cancel_{sum,relation} *)
+(* TODO: more tests for Groups.group_cancel_{add,diff,eq,less,le} *)
 
 subsection {* @{text int_combine_numerals} *}
 

@@ -245,10 +245,10 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/Metis/metis_generate.ML \
   Tools/Metis/metis_reconstruct.ML \
   Tools/Metis/metis_tactic.ML \
-  Tools/abel_cancel.ML \
   Tools/arith_data.ML \
   Tools/cnf_funcs.ML \
   Tools/enriched_type.ML \
+  Tools/group_cancel.ML \
   Tools/inductive.ML \
   Tools/inductive_realizer.ML \
   Tools/inductive_set.ML \
