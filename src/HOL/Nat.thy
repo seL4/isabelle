@@ -11,7 +11,6 @@ theory Nat
 imports Inductive Typedef Fun Fields
 uses
   "~~/src/Tools/rat.ML"
-  "~~/src/Provers/Arith/cancel_sums.ML"
   "Tools/arith_data.ML"
   ("Tools/nat_arith.ML")
   "~~/src/Provers/Arith/fast_lin_arith.ML"
@@ -1497,19 +1496,19 @@ use "Tools/nat_arith.ML"
 
 simproc_setup nateq_cancel_sums
   ("(l::nat) + m = n" | "(l::nat) = m + n" | "Suc m = n" | "m = Suc n") =
-  {* fn phi => Nat_Arith.nateq_cancel_sums *}
+  {* fn phi => fn ss => try Nat_Arith.cancel_eq_conv *}
 
 simproc_setup natless_cancel_sums
   ("(l::nat) + m < n" | "(l::nat) < m + n" | "Suc m < n" | "m < Suc n") =
-  {* fn phi => Nat_Arith.natless_cancel_sums *}
+  {* fn phi => fn ss => try Nat_Arith.cancel_less_conv *}
 
 simproc_setup natle_cancel_sums
   ("(l::nat) + m \<le> n" | "(l::nat) \<le> m + n" | "Suc m \<le> n" | "m \<le> Suc n") =
-  {* fn phi => Nat_Arith.natle_cancel_sums *}
+  {* fn phi => fn ss => try Nat_Arith.cancel_le_conv *}
 
 simproc_setup natdiff_cancel_sums
   ("(l::nat) + m - n" | "(l::nat) - (m + n)" | "Suc m - n" | "m - Suc n") =
-  {* fn phi => Nat_Arith.natdiff_cancel_sums *}
+  {* fn phi => fn ss => try Nat_Arith.cancel_diff_conv *}
 
 use "Tools/lin_arith.ML"
 setup {* Lin_Arith.global_setup *}

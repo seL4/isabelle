@@ -171,7 +171,6 @@ $(OUT)/HOL-Base: base.ML $(BASE_DEPENDENCIES)
 
 PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   $(SRC)/Provers/Arith/cancel_div_mod.ML \
-  $(SRC)/Provers/Arith/cancel_sums.ML \
   $(SRC)/Provers/Arith/fast_lin_arith.ML \
   $(SRC)/Provers/order.ML \
   $(SRC)/Provers/trancl.ML \
