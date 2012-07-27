@@ -26,10 +26,10 @@ function usage()
   echo "Usage: isabelle $PRG [OPTIONS] [SESSIONS ...]"
   echo
   echo "  Options are:"
-  echo "    -a           include all sessions"
+  echo "    -a           select all sessions"
   echo "    -b           build heap images"
   echo "    -d DIR       include session directory with ROOT file"
-  echo "    -g NAME      include session group NAME"
+  echo "    -g NAME      select session group NAME"
   echo "    -j INT       maximum number of jobs (default 1)"
   echo "    -n           no build -- test dependencies only"
   echo "    -o OPTION    override session configuration OPTION (via NAME=VAL or NAME)"
