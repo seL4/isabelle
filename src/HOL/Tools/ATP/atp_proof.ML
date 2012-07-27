@@ -52,7 +52,8 @@ sig
     -> string * failure option
   val is_same_atp_step : step_name -> step_name -> bool
   val scan_general_id : string list -> string * string list
-  val satallax_unsat_coreN : string
+  val satallax_coreN : string
+  val z3_tptp_coreN : string
   val parse_formula :
     string list
     -> (string, 'a, (string, 'a) ho_term, string) formula * string list
@@ -154,7 +155,7 @@ fun string_for_failure Unprovable = "The generated problem is unprovable."
 fun extract_delimited (begin_delim, end_delim) output =
   output |> first_field begin_delim |> the |> snd
          |> first_field end_delim |> the |> fst
-         |> first_field "\n" |> the |> snd
+         |> perhaps (try (first_field "\n" #> the #> snd))
   handle Option.Option => ""
 
 val tstp_important_message_delims =
@@ -461,16 +462,23 @@ fun parse_spass_line x =
    >> (fn ((((num, rule), deps), u), names) =>
           Inference_Step ((num, these names), u, rule, map (rpair []) deps))) x
 
-val satallax_unsat_coreN = "__satallax_unsat_core" (* arbitrary *)
+val satallax_coreN = "__satallax_core" (* arbitrary *)
+val z3_tptp_coreN = "__z3_tptp_core" (* arbitrary *)
+
+(* Syntax: core(<name>,[<name>,...,<name>]). *)
+fun parse_z3_tptp_line x =
+  (scan_general_id --| $$ "," --| $$ "[" -- parse_dependencies --| $$ "]"
+   >> (fn (name, names) =>
+          Inference_Step (("", name :: names), dummy_phi, z3_tptp_coreN, []))) x
 
 (* Syntax: <name> *)
 fun parse_satallax_line x =
   (scan_general_id --| Scan.option ($$ " ")
-   >> (fn s => Inference_Step ((s, [s]), dummy_phi, satallax_unsat_coreN, [])))
-      x
+   >> (fn s => Inference_Step ((s, [s]), dummy_phi, satallax_coreN, []))) x
 
 fun parse_line problem =
-  parse_tstp_line problem || parse_spass_line || parse_satallax_line
+  parse_tstp_line problem || parse_spass_line || parse_z3_tptp_line
+  || parse_satallax_line
 fun parse_proof problem tstp =
   tstp |> strip_spaces_except_between_idents
        |> raw_explode

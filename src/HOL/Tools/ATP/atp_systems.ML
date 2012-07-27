@@ -481,8 +481,9 @@ val z3_tff0 = TFF (Monomorphic, TPTP_Implicit)
 val z3_tptp_config : atp_config =
   {exec = (["Z3_HOME"], ["z3"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn _ =>
-     "MBQI=true -tptp -t:" ^ string_of_int (to_secs 1 timeout),
-   proof_delims = [],
+     "MBQI=true DISPLAY_UNSAT_CORE=true -tptp -t:" ^
+     string_of_int (to_secs 1 timeout),
+   proof_delims = [("\ncore(", ").")],
    known_failures = known_szs_status_failures,
    prem_role = Hypothesis,
    best_slices =

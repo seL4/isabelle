@@ -216,7 +216,7 @@ fun add_fact ctxt fact_names (Inference_Step ((_, ss), _, rule, deps)) =
          dependencies in the TSTP proof. Remove the next line once this is
          fixed. *)
        add_non_rec_defs fact_names
-     else if rule = satallax_unsat_coreN then
+     else if rule = satallax_coreN then
        (fn [] =>
            (* Satallax doesn't include definitions in its unsatisfiable cores,
               so we assume the worst and include them all here. *)
