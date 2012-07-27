@@ -6791,7 +6791,7 @@ next
     apply(force)
     apply(rule exists_fresh'(1)[OF fs_name1])
     apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(P,Ax y c,M{x2:=<c>.Ax y c},M{x2:=<c>.Ax y c}{y:=<c>.P},
-                                        M'{x2:=<c>.Ax y c},M'{x2:=<c>.Ax y c}{y:=<c>.P},x1,x2,x3,y,x)")
+                                        M'{x2:=<c>.Ax y c},M'{x2:=<c>.Ax y c}{y:=<c>.P},x1,x2,y,x)")
     apply(erule exE, simp only: fresh_prod)
     apply(erule conjE)+
     apply(simp only: fresh_fun_simp_ImpL)
