@@ -92,7 +92,7 @@ class HTML_Panel(initial_font_family: String, initial_font_size: Int) extends Ht
 <head>
 <style media="all" type="text/css">
 """ +
-  Isabelle_System.try_read(Path.split(Isabelle_System.getenv_strict("JEDIT_STYLE_SHEETS")))
+  File.try_read(Path.split(Isabelle_System.getenv_strict("JEDIT_STYLE_SHEETS")))
 
   private val template_tail =
 """

@@ -124,19 +124,6 @@ object Isabelle_System
   def posix_path(jvm_path: String): String = standard_system.posix_path(jvm_path)
 
 
-  /* try_read */
-
-  def try_read(paths: Seq[Path]): String =
-  {
-    val buf = new StringBuilder
-    for (path <- paths if path.is_file) {
-      buf.append(File.read(path))
-      buf.append('\n')
-    }
-    buf.toString
-  }
-
-
   /* source files */
 
   private def try_file(file: JFile) = if (file.isFile) Some(file) else None
