@@ -1494,7 +1494,22 @@ lemma subst_equals:
 setup Arith_Data.setup
 
 use "Tools/nat_arith.ML"
-declaration {* K Nat_Arith.setup *}
+
+simproc_setup nateq_cancel_sums
+  ("(l::nat) + m = n" | "(l::nat) = m + n" | "Suc m = n" | "m = Suc n") =
+  {* fn phi => Nat_Arith.nateq_cancel_sums *}
+
+simproc_setup natless_cancel_sums
+  ("(l::nat) + m < n" | "(l::nat) < m + n" | "Suc m < n" | "m < Suc n") =
+  {* fn phi => Nat_Arith.natless_cancel_sums *}
+
+simproc_setup natle_cancel_sums
+  ("(l::nat) + m \<le> n" | "(l::nat) \<le> m + n" | "Suc m \<le> n" | "m \<le> Suc n") =
+  {* fn phi => Nat_Arith.natle_cancel_sums *}
+
+simproc_setup natdiff_cancel_sums
+  ("(l::nat) + m - n" | "(l::nat) - (m + n)" | "Suc m - n" | "m - Suc n") =
+  {* fn phi => Nat_Arith.natdiff_cancel_sums *}
 
 use "Tools/lin_arith.ML"
 setup {* Lin_Arith.global_setup *}

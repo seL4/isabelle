@@ -8,10 +8,10 @@ sig
   val mk_sum: term list -> term
   val mk_norm_sum: term list -> term
   val dest_sum: term -> term list
-
-  val nat_cancel_sums_add: simproc list
-  val nat_cancel_sums: simproc list
-  val setup: Context.generic -> Context.generic
+  val nateq_cancel_sums: simpset -> cterm -> thm option
+  val natless_cancel_sums: simpset -> cterm -> thm option
+  val natle_cancel_sums: simpset -> cterm -> thm option
+  val natdiff_cancel_sums: simpset -> cterm -> thm option
 end;
 
 structure Nat_Arith: NAT_ARITH =
@@ -88,23 +88,9 @@ structure DiffCancelSums = CancelSumsFun
   val cancel_rule = mk_meta_eq @{thm diff_cancel};
 end);
 
-val nat_cancel_sums_add =
-  [Simplifier.simproc_global @{theory} "nateq_cancel_sums"
-     ["(l::nat) + m = n", "(l::nat) = m + n", "Suc m = n", "m = Suc n"]
-     (K EqCancelSums.proc),
-   Simplifier.simproc_global @{theory} "natless_cancel_sums"
-     ["(l::nat) + m < n", "(l::nat) < m + n", "Suc m < n", "m < Suc n"]
-     (K LessCancelSums.proc),
-   Simplifier.simproc_global @{theory} "natle_cancel_sums"
-     ["(l::nat) + m <= n", "(l::nat) <= m + n", "Suc m <= n", "m <= Suc n"]
-     (K LeCancelSums.proc)];
-
-val nat_cancel_sums = nat_cancel_sums_add @
-  [Simplifier.simproc_global @{theory} "natdiff_cancel_sums"
-    ["((l::nat) + m) - n", "(l::nat) - (m + n)", "Suc m - n", "m - Suc n"]
-    (K DiffCancelSums.proc)];
-
-val setup =
-  Simplifier.map_ss (fn ss => ss addsimprocs nat_cancel_sums);
+fun nateq_cancel_sums ss = EqCancelSums.proc ss o Thm.term_of
+fun natless_cancel_sums ss = LessCancelSums.proc ss o Thm.term_of
+fun natle_cancel_sums ss = LeCancelSums.proc ss o Thm.term_of
+fun natdiff_cancel_sums ss = DiffCancelSums.proc ss o Thm.term_of
 
 end;

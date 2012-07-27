@@ -27,21 +27,21 @@ notepad begin
   fix a b c d :: nat
   {
     assume "b = Suc c" have "a + b = Suc (c + a)"
-      by (tactic {* test [nth Nat_Arith.nat_cancel_sums 0] *}) fact
+      by (tactic {* test [@{simproc nateq_cancel_sums}] *}) fact
   next
     assume "b < Suc c" have "a + b < Suc (c + a)"
-      by (tactic {* test [nth Nat_Arith.nat_cancel_sums 1] *}) fact
+      by (tactic {* test [@{simproc natless_cancel_sums}] *}) fact
   next
     assume "b \<le> Suc c" have "a + b \<le> Suc (c + a)"
-      by (tactic {* test [nth Nat_Arith.nat_cancel_sums 2] *}) fact
+      by (tactic {* test [@{simproc natle_cancel_sums}] *}) fact
   next
     assume "b - Suc c = d" have "a + b - Suc (c + a) = d"
-      by (tactic {* test [nth Nat_Arith.nat_cancel_sums 3] *}) fact
+      by (tactic {* test [@{simproc natdiff_cancel_sums}] *}) fact
   }
 end
 
 schematic_lemma "\<And>(y::?'b::size). size (?x::?'a::size) \<le> size y + size ?x"
-  by (tactic {* test [nth Nat_Arith.nat_cancel_sums 2] *}) (rule le0)
+  by (tactic {* test [@{simproc natle_cancel_sums}] *}) (rule le0)
 (* TODO: test more simprocs with schematic variables *)
 
 subsection {* Abelian group cancellation simprocs *}

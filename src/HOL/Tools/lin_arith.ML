@@ -815,7 +815,9 @@ val init_arith_data =
                    @{simproc group_cancel_eq}, @{simproc group_cancel_le},
                    @{simproc group_cancel_less}]
        (*abel_cancel helps it work in abstract algebraic domains*)
-      addsimprocs Nat_Arith.nat_cancel_sums_add
+      addsimprocs [@{simproc nateq_cancel_sums},
+                   @{simproc natless_cancel_sums},
+                   @{simproc natle_cancel_sums}]
       |> Simplifier.add_cong @{thm if_weak_cong},
     number_of = number_of}) #>
   add_discrete_type @{type_name nat};
