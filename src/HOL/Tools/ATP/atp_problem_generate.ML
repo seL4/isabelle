@@ -2659,7 +2659,7 @@ fun all_constrs_of_polymorphic_datatypes thy =
                             ? append (map fst cs)))
                (Datatype.get_all thy) []
 
-val app_op_and_predicator_threshold = 50
+val app_op_and_predicator_threshold = 45
 
 fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
                         uncurried_aliases readable_names preproc hyp_ts concl_t

@@ -644,12 +644,11 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
               fact_override
       in
         if !reconstructor = "sledgehammer_tac" then
-          sledge_tac 0.2 ATP_Systems.z3_tptpN "mono_native"
-          ORELSE' sledge_tac 0.2 ATP_Systems.eN "mono_guards??"
-          ORELSE' sledge_tac 0.2 ATP_Systems.vampireN "mono_guards??"
-          ORELSE' sledge_tac 0.2 ATP_Systems.spassN "poly_tags"
-          ORELSE' Metis_Tactic.metis_tac [] ATP_Problem_Generate.combsN
-            ctxt thms
+          sledge_tac 0.2 ATP_Systems.vampireN "mono_native"
+          ORELSE' sledge_tac 0.2 ATP_Systems.eN "poly_guards??"
+          ORELSE' sledge_tac 0.2 ATP_Systems.spassN "mono_native"
+          ORELSE' sledge_tac 0.2 ATP_Systems.z3_tptpN "poly_tags??"
+          ORELSE' SMT_Solver.smt_tac ctxt thms
         else if !reconstructor = "smt" then
           SMT_Solver.smt_tac ctxt thms
         else if full then

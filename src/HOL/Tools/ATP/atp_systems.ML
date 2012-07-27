@@ -420,7 +420,7 @@ val spass_config : atp_config =
       (0.1000, (false, ((1000, DFG Monomorphic, "mono_native", liftingN, true), spass_H1SOS))),
       (0.1000, (false, ((150, DFG Monomorphic, "poly_guards??", liftingN, false), spass_H2NuVS0Red2))),
       (0.1000, (false, ((300, DFG Monomorphic, "mono_native", combsN, true), spass_H2SOS))),
-      (0.1000, (false, ((100, DFG Monomorphic, "mono_native", combs_and_liftingN, true), spass_H2NuVS0)))],
+      (0.1000, (false, ((100, DFG Monomorphic, "mono_native", combs_and_liftingN, true), "")))],
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
 
