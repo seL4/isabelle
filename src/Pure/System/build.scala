@@ -28,7 +28,6 @@ object Build
       groups: List[String],
       dir: Path,
       parent: Option[String],
-      parent_base_name: Option[String],
       description: String,
       options: Options,
       theories: List[(Options, List[Path])],
@@ -165,10 +164,10 @@ object Build
       try {
         if (entry.name == "") error("Bad session name")
 
-        val (full_name, parent_base_name) =
+        val full_name =
           if (is_pure(entry.name)) {
             if (entry.parent.isDefined) error("Illegal parent session")
-            else (entry.name, None: Option[String])
+            else entry.name
           }
           else
             entry.parent match {
@@ -176,8 +175,7 @@ object Build
                 val full_name =
                   if (entry.this_name) entry.name
                   else parent_name + "-" + entry.name
-                val parent_base_name = Some(queue1(parent_name).base_name)
-                (full_name, parent_base_name)
+                full_name
               case _ => error("Bad parent session")
             }
 
@@ -196,7 +194,7 @@ object Build
         val digest = SHA1.digest((full_name, entry.parent, entry.options, entry.theories).toString)
 
         val info =
-          Session.Info(entry.name, entry.groups, dir + path, entry.parent, parent_base_name,
+          Session.Info(entry.name, entry.groups, dir + path, entry.parent,
             entry.description, session_options, theories, files, digest)
 
         queue1 + (full_name, info)
@@ -351,7 +349,6 @@ object Build
     }
 
     val parent = info.parent.getOrElse("")
-    val parent_base_name = info.parent_base_name.getOrElse("")
 
     val cwd = info.dir.file
     val env =
@@ -389,9 +386,9 @@ object Build
     {
       import XML.Encode._
           pair(bool, pair(Options.encode, pair(bool, pair(bool, pair(Path.encode, pair(string,
-            pair(string, pair(string, list(pair(Options.encode, list(Path.encode)))))))))))(
-          (do_output, (options, (timing, (verbose, (browser_info, (parent_base_name,
-            (name, (info.base_name, info.theories)))))))))
+            pair(string, list(pair(Options.encode, list(Path.encode))))))))))(
+          (do_output, (options, (timing, (verbose, (browser_info, (parent,
+            (name, info.theories))))))))
     }
     new Job(cwd, env, script, YXML.string_of_body(args_xml), output, do_output)
   }

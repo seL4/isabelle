@@ -56,12 +56,12 @@ in
 
 fun build args_file =
   let
-    val (do_output, (options, (timing, (verbose, (browser_info, (parent_base_name,
-        (name, (base_name, theories)))))))) =
+    val (do_output, (options, (timing, (verbose, (browser_info, (parent_name,
+        (name, theories))))))) =
       File.read (Path.explode args_file) |> YXML.parse_body |>
         let open XML.Decode in
           pair bool (pair Options.decode (pair bool (pair bool (pair string (pair string
-            (pair string (pair string ((list (pair Options.decode (list string)))))))))))
+            (pair string ((list (pair Options.decode (list string))))))))))
         end;
 
     val _ =
@@ -70,7 +70,7 @@ fun build args_file =
         (Options.string options "document")
         (Options.bool options "document_graph")
         (space_explode ":" (Options.string options "document_variants"))
-        parent_base_name base_name
+        parent_name name
         (Options.string options "document_dump", Options.string options "document_dump_mode")
         "" verbose;
     val _ = Session.with_timing name timing (List.app use_theories) theories;
