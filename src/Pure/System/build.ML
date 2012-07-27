@@ -71,7 +71,8 @@ fun build args_file =
         (Options.bool options "document_graph")
         (space_explode ":" (Options.string options "document_variants"))
         parent_name name
-        (Options.string options "document_dump", Options.string options "document_dump_mode")
+        (Options.string options "document_dump",
+          Present.dump_mode (Options.string options "document_dump_mode"))
         "" verbose;
     val _ = Session.with_timing name timing (List.app use_theories) theories;
     val _ = Session.finish ();

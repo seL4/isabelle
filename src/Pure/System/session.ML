@@ -11,7 +11,7 @@ sig
   val welcome: unit -> string
   val finish: unit -> unit
   val init: bool -> bool -> bool -> string -> string -> bool -> string list ->
-    string -> string -> string * string -> string -> bool -> unit
+    string -> string -> string * Present.dump_mode -> string -> bool -> unit
   val with_timing: string -> bool -> ('a -> 'b) -> 'a -> 'b
   val use_dir: string -> string -> bool -> string list -> bool -> bool -> string ->
     string -> bool -> string list -> string -> string -> bool * string ->
@@ -112,7 +112,7 @@ fun init build reset info info_path doc doc_graph doc_variants parent name doc_d
 
 local
 
-fun doc_dump (cp, dump) = (dump, if cp then "all" else "tex+sty");
+fun doc_dump (cp, dump) = (dump, if cp then Present.Dump_all else Present.Dump_tex_sty);
 
 in
 
