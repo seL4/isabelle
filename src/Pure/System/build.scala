@@ -472,70 +472,71 @@ object Build
       results: Map[String, (Boolean, Int)]): Map[String, (Boolean, Int)] =
     {
       if (pending.is_empty) results
-      else if (running.exists({ case (_, job) => job.is_finished }))
-      { // finish job
-        val (name, job) = running.find({ case (_, job) => job.is_finished }).get
+      else
+        running.find({ case (_, job) => job.is_finished }) match {
+          case Some((name, job)) =>
+            // finish job
 
-        val (out, err, rc) = job.join
-        echo(Library.trim_line(err))
+            val (out, err, rc) = job.join
+            echo(Library.trim_line(err))
 
-        if (rc == 0) {
-          val sources = make_stamp(name)
-          val heap = heap_stamp(job.output_path)
-          File.write_gzip(output_dir + log_gz(name), sources + "\n" + heap + "\n" + out)
-        }
-        else {
-          File.write(output_dir + log(name), out)
-          echo(name + " FAILED")
-          echo("(see also " + log(name).file.toString + ")")
-          val lines = split_lines(out)
-          val tail = lines.drop(lines.length - 20 max 0)
-          echo("\n" + cat_lines(tail))
-        }
-        loop(pending - name, running - name, results + (name -> (false, rc)))
-      }
-      else if (running.size < (max_jobs max 1))
-      { // check/start next job
-        pending.dequeue(running.isDefinedAt(_)) match {
-          case Some((name, info)) =>
-            val parent_result = info.parent.map(results(_))
-            val parent_current = parent_result.forall(_._1)
-            val parent_ok = parent_result.forall(_._2 == 0)
-
-            val output = output_dir + Path.basic(name)
-            val do_output = build_heap || queue.is_inner(name)
-
-            val current =
-            {
-              input_dirs.find(dir => (dir + log_gz(name)).file.isFile) match {
-                case Some(dir) =>
-                  check_stamps(dir, name) match {
-                    case Some((s, h)) => s == make_stamp(name) && (h || !do_output)
-                    case None => false
-                  }
-                case None => false
-              }
-            }
-            val all_current = current && parent_current
-
-            if (all_current)
-              loop(pending - name, running, results + (name -> (true, 0)))
-            else if (no_build)
-              loop(pending - name, running, results + (name -> (false, 1)))
-            else if (parent_ok) {
-              echo((if (do_output) "Building " else "Running ") + name + " ...")
-              val job =
-                start_job(name, info, output, do_output, info.options, verbose, browser_info)
-              loop(pending, running + (name -> job), results)
+            if (rc == 0) {
+              val sources = make_stamp(name)
+              val heap = heap_stamp(job.output_path)
+              File.write_gzip(output_dir + log_gz(name), sources + "\n" + heap + "\n" + out)
             }
             else {
-              echo(name + " CANCELLED")
-              loop(pending - name, running, results + (name -> (false, 1)))
+              File.write(output_dir + log(name), out)
+              echo(name + " FAILED")
+              echo("(see also " + log(name).file.toString + ")")
+              val lines = split_lines(out)
+              val tail = lines.drop(lines.length - 20 max 0)
+              echo("\n" + cat_lines(tail))
+            }
+            loop(pending - name, running - name, results + (name -> (false, rc)))
+
+          case None if (running.size < (max_jobs max 1)) =>
+            // check/start next job
+            pending.dequeue(running.isDefinedAt(_)) match {
+              case Some((name, info)) =>
+                val parent_result = info.parent.map(results(_))
+                val parent_current = parent_result.forall(_._1)
+                val parent_ok = parent_result.forall(_._2 == 0)
+
+                val output = output_dir + Path.basic(name)
+                val do_output = build_heap || queue.is_inner(name)
+
+                val current =
+                {
+                  input_dirs.find(dir => (dir + log_gz(name)).file.isFile) match {
+                    case Some(dir) =>
+                      check_stamps(dir, name) match {
+                        case Some((s, h)) => s == make_stamp(name) && (h || !do_output)
+                        case None => false
+                      }
+                    case None => false
+                  }
+                }
+                val all_current = current && parent_current
+
+                if (all_current)
+                  loop(pending - name, running, results + (name -> (true, 0)))
+                else if (no_build)
+                  loop(pending - name, running, results + (name -> (false, 1)))
+                else if (parent_ok) {
+                  echo((if (do_output) "Building " else "Running ") + name + " ...")
+                  val job =
+                    start_job(name, info, output, do_output, info.options, verbose, browser_info)
+                  loop(pending, running + (name -> job), results)
+                }
+                else {
+                  echo(name + " CANCELLED")
+                  loop(pending - name, running, results + (name -> (false, 1)))
+                }
+              case None => sleep(); loop(pending, running, results)
             }
           case None => sleep(); loop(pending, running, results)
         }
-      }
-      else { sleep(); loop(pending, running, results) }
     }
 
     val results = loop(queue, Map.empty, Map.empty)
