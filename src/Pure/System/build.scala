@@ -7,7 +7,7 @@ Build and manage Isabelle sessions.
 package isabelle
 
 
-import java.io.{File => JFile, BufferedInputStream, FileInputStream,
+import java.io.{BufferedInputStream, FileInputStream,
   BufferedReader, InputStreamReader, IOException}
 import java.util.zip.GZIPInputStream
 
@@ -24,16 +24,14 @@ object Build
     /* Info */
 
     sealed case class Info(
-      base_name: String,
       groups: List[String],
       dir: Path,
       parent: Option[String],
-      parent_base_name: Option[String],
       description: String,
       options: Options,
       theories: List[(Options, List[Path])],
       files: List[Path],
-      digest: SHA1.Digest)
+      entry_digest: SHA1.Digest)
 
 
     /* Queue */
@@ -93,7 +91,7 @@ object Build
   /* parsing */
 
   private case class Session_Entry(
-    name: String,
+    base_name: String,
     this_name: Boolean,
     groups: List[String],
     path: Option[String],
@@ -140,10 +138,10 @@ object Build
           { case a ~ b ~ c ~ d ~ e ~ f ~ g ~ h ~ i => Session_Entry(a, b, c, d, e, f, g, h, i) }
     }
 
-    def parse_entries(root: JFile): List[Session_Entry] =
+    def parse_entries(root: Path): List[Session_Entry] =
     {
       val toks = syntax.scan(File.read(root))
-      parse_all(rep(session_entry), Token.reader(toks, root.toString)) match {
+      parse_all(rep(session_entry), Token.reader(toks, root.implode)) match {
         case Success(result, _) => result
         case bad => error(bad.toString)
       }
@@ -158,33 +156,32 @@ object Build
 
   private def is_pure(name: String): Boolean = name == "RAW" || name == "Pure"
 
-  private def sessions_root(options: Options, dir: Path, root: JFile, queue: Session.Queue)
+  private def sessions_root(options: Options, dir: Path, root: Path, queue: Session.Queue)
     : Session.Queue =
   {
     (queue /: Parser.parse_entries(root))((queue1, entry) =>
       try {
-        if (entry.name == "") error("Bad session name")
+        if (entry.base_name == "") error("Bad session name")
 
-        val (full_name, parent_base_name) =
-          if (is_pure(entry.name)) {
+        val full_name =
+          if (is_pure(entry.base_name)) {
             if (entry.parent.isDefined) error("Illegal parent session")
-            else (entry.name, None: Option[String])
+            else entry.base_name
           }
           else
             entry.parent match {
               case Some(parent_name) if queue1.isDefinedAt(parent_name) =>
                 val full_name =
-                  if (entry.this_name) entry.name
-                  else parent_name + "-" + entry.name
-                val parent_base_name = Some(queue1(parent_name).base_name)
-                (full_name, parent_base_name)
+                  if (entry.this_name) entry.base_name
+                  else parent_name + "-" + entry.base_name
+                full_name
               case _ => error("Bad parent session")
             }
 
         val path =
           entry.path match {
             case Some(p) => Path.explode(p)
-            case None => Path.basic(entry.name)
+            case None => Path.basic(entry.base_name)
           }
 
         val session_options = options ++ entry.options
@@ -193,31 +190,32 @@ object Build
           entry.theories.map({ case (opts, thys) =>
             (session_options ++ opts, thys.map(Path.explode(_))) })
         val files = entry.files.map(Path.explode(_))
-        val digest = SHA1.digest((full_name, entry.parent, entry.options, entry.theories).toString)
+        val entry_digest =
+          SHA1.digest((full_name, entry.parent, entry.options, entry.theories).toString)
 
         val info =
-          Session.Info(entry.name, entry.groups, dir + path, entry.parent, parent_base_name,
-            entry.description, session_options, theories, files, digest)
+          Session.Info(entry.groups, dir + path, entry.parent, entry.description,
+            session_options, theories, files, entry_digest)
 
         queue1 + (full_name, info)
       }
       catch {
         case ERROR(msg) =>
           error(msg + "\nThe error(s) above occurred in session entry " +
-            quote(entry.name) + Position.str_of(Position.file(root)))
+            quote(entry.base_name) + Position.str_of(root.position))
       })
   }
 
   private def sessions_dir(options: Options, strict: Boolean, dir: Path, queue: Session.Queue)
     : Session.Queue =
   {
-    val root = (dir + ROOT).file
-    if (root.isFile) sessions_root(options, dir, root, queue)
-    else if (strict) error("Bad session root file: " + quote(root.toString))
+    val root = dir + ROOT
+    if (root.is_file) sessions_root(options, dir, root, queue)
+    else if (strict) error("Bad session root file: " + root.toString)
     else queue
   }
 
-  private def sessions_catalog(options: Options, dir: Path, catalog: JFile, queue: Session.Queue)
+  private def sessions_catalog(options: Options, dir: Path, catalog: Path, queue: Session.Queue)
     : Session.Queue =
   {
     val dirs =
@@ -225,12 +223,12 @@ object Build
     (queue /: dirs)((queue1, dir1) =>
       try {
         val dir2 = dir + Path.explode(dir1)
-        if (dir2.file.isDirectory) sessions_dir(options, true, dir2, queue1)
+        if (dir2.is_dir) sessions_dir(options, true, dir2, queue1)
         else error("Bad session directory: " + dir2.toString)
       }
       catch {
         case ERROR(msg) =>
-          error(msg + "\nThe error(s) above occurred in session catalog " + quote(catalog.toString))
+          error(msg + "\nThe error(s) above occurred in session catalog " + catalog.toString)
       })
   }
 
@@ -242,9 +240,8 @@ object Build
     for (dir <- Isabelle_System.components()) {
       queue = sessions_dir(options, false, dir, queue)
 
-      val catalog = (dir + SESSIONS).file
-      if (catalog.isFile)
-        queue = sessions_catalog(options, dir, catalog, queue)
+      val catalog = dir + SESSIONS
+      if (catalog.is_file) queue = sessions_catalog(options, dir, catalog, queue)
     }
 
     for (dir <- more_dirs) queue = sessions_dir(options, true, dir, queue)
@@ -286,7 +283,7 @@ object Build
             }
           val thy_info = new Thy_Info(new Thy_Load(preloaded))
 
-          if (verbose) echo("Checking " + name)
+          if (verbose) echo("Checking " + name + " ...")
 
           val thy_deps =
             thy_info.dependencies(
@@ -319,7 +316,7 @@ object Build
 
   /* jobs */
 
-  private class Job(cwd: JFile, env: Map[String, String], script: String, args: String,
+  private class Job(dir: Path, env: Map[String, String], script: String, args: String,
     output: Path, do_output: Boolean)
   {
     private val args_file = File.tmp_file("args")
@@ -327,7 +324,7 @@ object Build
     File.write(args_file, args)
 
     private val (thread, result) =
-      Simple_Thread.future("build") { Isabelle_System.bash_env(cwd, env1, script) }
+      Simple_Thread.future("build") { Isabelle_System.bash_env(dir.file, env1, script) }
 
     def terminate: Unit = thread.interrupt
     def is_finished: Boolean = result.is_finished
@@ -336,10 +333,10 @@ object Build
   }
 
   private def start_job(name: String, info: Session.Info, output: Path, do_output: Boolean,
-    options: Options, timing: Boolean, verbose: Boolean, browser_info: Path): Job =
+    options: Options, verbose: Boolean, browser_info: Path): Job =
   {
     // global browser info dir
-    if (options.bool("browser_info") && !(browser_info + Path.explode("index.html")).file.isFile)
+    if (options.bool("browser_info") && !(browser_info + Path.explode("index.html")).is_file)
     {
       browser_info.file.mkdirs()
       File.copy(Path.explode("~~/lib/logo/isabelle.gif"),
@@ -351,9 +348,7 @@ object Build
     }
 
     val parent = info.parent.getOrElse("")
-    val parent_base_name = info.parent_base_name.getOrElse("")
 
-    val cwd = info.dir.file
     val env =
       Map("INPUT" -> parent, "TARGET" -> name, "OUTPUT" -> Isabelle_System.standard_path(output))
     val script =
@@ -388,12 +383,12 @@ object Build
     val args_xml =
     {
       import XML.Encode._
-          pair(bool, pair(Options.encode, pair(bool, pair(bool, pair(Path.encode, pair(string,
-            pair(string, pair(string, list(pair(Options.encode, list(Path.encode)))))))))))(
-          (do_output, (options, (timing, (verbose, (browser_info, (parent_base_name,
-            (name, (info.base_name, info.theories)))))))))
+          pair(bool, pair(Options.encode, pair(bool, pair(Path.encode, pair(string,
+            pair(string, list(pair(Options.encode, list(Path.encode)))))))))(
+          (do_output, (options, (verbose, (browser_info, (parent,
+            (name, info.theories)))))))
     }
-    new Job(cwd, env, script, YXML.string_of_body(args_xml), output, do_output)
+    new Job(info.dir, env, script, YXML.string_of_body(args_xml), output, do_output)
   }
 
 
@@ -444,7 +439,6 @@ object Build
     no_build: Boolean = false,
     build_options: List[String] = Nil,
     system_mode: Boolean = false,
-    timing: Boolean = false,
     verbose: Boolean = false,
     sessions: List[String] = Nil): Int =
   {
@@ -453,7 +447,7 @@ object Build
     val deps = dependencies(verbose, queue)
 
     def make_stamp(name: String): String =
-      sources_stamp(queue(name).digest :: deps.sources(name))
+      sources_stamp(queue(name).entry_digest :: deps.sources(name))
 
     val (input_dirs, output_dir, browser_info) =
       if (system_mode) {
@@ -476,76 +470,80 @@ object Build
       results: Map[String, (Boolean, Int)]): Map[String, (Boolean, Int)] =
     {
       if (pending.is_empty) results
-      else if (running.exists({ case (_, job) => job.is_finished }))
-      { // finish job
-        val (name, job) = running.find({ case (_, job) => job.is_finished }).get
+      else
+        running.find({ case (_, job) => job.is_finished }) match {
+          case Some((name, job)) =>
+            // finish job
 
-        val (out, err, rc) = job.join
-        echo(Library.trim_line(err))
+            val (out, err, rc) = job.join
+            echo(Library.trim_line(err))
 
-        if (rc == 0) {
-          val sources = make_stamp(name)
-          val heap = heap_stamp(job.output_path)
-          File.write_gzip(output_dir + log_gz(name), sources + "\n" + heap + "\n" + out)
-        }
-        else {
-          File.write(output_dir + log(name), out)
-          echo(name + " FAILED")
-          echo("(see also " + log(name).file.toString + ")")
-          val lines = split_lines(out)
-          val tail = lines.drop(lines.length - 20 max 0)
-          echo("\n" + cat_lines(tail))
-        }
-        loop(pending - name, running - name, results + (name -> (false, rc)))
-      }
-      else if (running.size < (max_jobs max 1))
-      { // check/start next job
-        pending.dequeue(running.isDefinedAt(_)) match {
-          case Some((name, info)) =>
-            val parent_result = info.parent.map(results(_))
-            val parent_current = parent_result.forall(_._1)
-            val parent_ok = parent_result.forall(_._2 == 0)
-
-            val output = output_dir + Path.basic(name)
-            val do_output = build_heap || queue.is_inner(name)
-
-            val current =
-            {
-              input_dirs.find(dir => (dir + log_gz(name)).file.isFile) match {
-                case Some(dir) =>
-                  check_stamps(dir, name) match {
-                    case Some((s, h)) => s == make_stamp(name) && (h || !do_output)
-                    case None => false
-                  }
-                case None => false
-              }
-            }
-            val all_current = current && parent_current
-
-            if (all_current)
-              loop(pending - name, running, results + (name -> (true, 0)))
-            else if (no_build)
-              loop(pending - name, running, results + (name -> (false, 1)))
-            else if (parent_ok) {
-              echo((if (do_output) "Building " else "Running ") + name + " ...")
-              val job =
-                start_job(name, info, output, do_output, info.options, timing, verbose, browser_info)
-              loop(pending, running + (name -> job), results)
+            if (rc == 0) {
+              val sources = make_stamp(name)
+              val heap = heap_stamp(job.output_path)
+              (output_dir + log(name)).file.delete
+              File.write_gzip(output_dir + log_gz(name), sources + "\n" + heap + "\n" + out)
             }
             else {
-              echo(name + " CANCELLED")
-              loop(pending - name, running, results + (name -> (false, 1)))
+              (output_dir + log_gz(name)).file.delete
+              File.write(output_dir + log(name), out)
+              echo(name + " FAILED")
+              echo("(see also " + log(name).file.toString + ")")
+              val lines = split_lines(out)
+              val tail = lines.drop(lines.length - 20 max 0)
+              echo("\n" + cat_lines(tail))
+            }
+            loop(pending - name, running - name, results + (name -> (false, rc)))
+
+          case None if (running.size < (max_jobs max 1)) =>
+            // check/start next job
+            pending.dequeue(running.isDefinedAt(_)) match {
+              case Some((name, info)) =>
+                val parent_result = info.parent.map(results(_))
+                val parent_current = parent_result.forall(_._1)
+                val parent_ok = parent_result.forall(_._2 == 0)
+
+                val output = output_dir + Path.basic(name)
+                val do_output = build_heap || queue.is_inner(name)
+
+                val current =
+                {
+                  input_dirs.find(dir => (dir + log_gz(name)).is_file) match {
+                    case Some(dir) =>
+                      check_stamps(dir, name) match {
+                        case Some((s, h)) => s == make_stamp(name) && (h || !do_output)
+                        case None => false
+                      }
+                    case None => false
+                  }
+                }
+                val all_current = current && parent_current
+
+                if (all_current)
+                  loop(pending - name, running, results + (name -> (true, 0)))
+                else if (no_build)
+                  loop(pending - name, running, results + (name -> (false, 1)))
+                else if (parent_ok) {
+                  echo((if (do_output) "Building " else "Running ") + name + " ...")
+                  val job =
+                    start_job(name, info, output, do_output, info.options, verbose, browser_info)
+                  loop(pending, running + (name -> job), results)
+                }
+                else {
+                  echo(name + " CANCELLED")
+                  loop(pending - name, running, results + (name -> (false, 1)))
+                }
+              case None => sleep(); loop(pending, running, results)
             }
           case None => sleep(); loop(pending, running, results)
         }
-      }
-      else { sleep(); loop(pending, running, results) }
     }
 
     val results = loop(queue, Map.empty, Map.empty)
     val rc = (0 /: results)({ case (rc1, (_, (_, rc2))) => rc1 max rc2 })
     if (rc != 0 && (verbose || !no_build)) {
-      val unfinished = (for ((name, r) <- results.iterator if r != 0) yield name).toList.sorted
+      val unfinished =
+        (for ((name, (_, r)) <- results.iterator if r != 0) yield name).toList.sorted
       echo("Unfinished session(s): " + commas(unfinished))
     }
     rc
@@ -564,11 +562,10 @@ object Build
           Properties.Value.Int(max_jobs) ::
           Properties.Value.Boolean(no_build) ::
           Properties.Value.Boolean(system_mode) ::
-          Properties.Value.Boolean(timing) ::
           Properties.Value.Boolean(verbose) ::
           Command_Line.Chunks(more_dirs, session_groups, build_options, sessions) =>
             build(all_sessions, build_heap, more_dirs.map(Path.explode), session_groups,
-              max_jobs, no_build, build_options, system_mode, timing, verbose, sessions)
+              max_jobs, no_build, build_options, system_mode, verbose, sessions)
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }
     }

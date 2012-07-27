@@ -35,6 +35,19 @@ object File
   def read(path: Path): String = read(path.file)
 
 
+  /* try_read */
+
+  def try_read(paths: Seq[Path]): String =
+  {
+    val buf = new StringBuilder
+    for (path <- paths if path.is_file) {
+      buf.append(read(path))
+      buf.append('\n')
+    }
+    buf.toString
+  }
+
+
   /* write */
 
   private def write_file(file: JFile, text: CharSequence, gzip: Boolean)

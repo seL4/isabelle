@@ -17,8 +17,10 @@ sig
    path: string, parents: string list} list -> Path.T -> unit
   val display_graph: {name: string, ID: string, dir: string, unfold: bool,
    path: string, parents: string list} list -> unit
+  datatype dump_mode = Dump_all | Dump_tex | Dump_tex_sty
+  val dump_mode: string -> dump_mode
   val init: bool -> bool -> string -> string -> bool -> string list -> string list ->
-    string -> string * string -> Url.T option * bool -> bool ->
+    string -> string * dump_mode -> Url.T option * bool -> bool ->
     theory list -> unit  (*not thread-safe!*)
   val finish: unit -> unit  (*not thread-safe!*)
   val init_theory: string -> unit
@@ -207,10 +209,18 @@ fun add_html_source name txt = change_theory_info name (fn (tex_source, html_sou
 
 (* session_info *)
 
+datatype dump_mode = Dump_all | Dump_tex | Dump_tex_sty;
+
+fun dump_mode "all" = Dump_all
+  | dump_mode "tex" = Dump_tex
+  | dump_mode "tex+sty" = Dump_tex_sty
+  | dump_mode s =
+      error ("Illegal document dump mode: " ^ quote s ^ " (expected \"all\", \"tex\", \"tex+sty\")");
+
 type session_info =
   {name: string, parent: string, session: string, path: string list, html_prefix: Path.T,
     info: bool, doc_format: string, doc_graph: bool, documents: (string * string) list,
-    doc_dump: (string * string), remote_path: Url.T option, verbose: bool,
+    doc_dump: (string * dump_mode), remote_path: Url.T option, verbose: bool,
     readme: Path.T option};
 
 fun make_session_info
@@ -377,12 +387,12 @@ fun finish () =
 
     fun prepare_sources doc_dir doc_mode =
      (Isabelle_System.mkdirs doc_dir;
-      if doc_mode = "all" then Isabelle_System.copy_dir document_path doc_dir
-      else if doc_mode = "tex+sty" then
-        ignore (Isabelle_System.isabelle_tool "latex"
-          ("-o sty " ^ File.shell_path (Path.append doc_dir (Path.basic "root.tex"))))
-      else if doc_mode = "tex" then ()
-      else error ("Illegal document dump mode: " ^ quote doc_mode);
+      (case doc_mode of
+        Dump_all => Isabelle_System.copy_dir document_path doc_dir
+      | Dump_tex_sty =>
+          ignore (Isabelle_System.isabelle_tool "latex"
+            ("-o sty " ^ File.shell_path (Path.append doc_dir (Path.basic "root.tex"))))
+      | Dump_tex => ());
       (case opt_graphs of NONE => () | SOME (pdf, eps) =>
         (File.write (Path.append doc_dir graph_pdf_path) pdf;
           File.write (Path.append doc_dir graph_eps_path) eps));
@@ -424,7 +434,7 @@ fun finish () =
       documents |> Par_List.map (fn (name, tags) =>
         let
           val path = Path.append html_prefix (Path.basic name);
-          val _ = prepare_sources path "all";
+          val _ = prepare_sources path Dump_all;
         in isabelle_document true doc_format name tags path html_prefix end);
     val _ =
       if verbose then

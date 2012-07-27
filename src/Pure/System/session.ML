@@ -11,7 +11,7 @@ sig
   val welcome: unit -> string
   val finish: unit -> unit
   val init: bool -> bool -> bool -> string -> string -> bool -> string list ->
-    string -> string -> string * string -> string -> bool -> unit
+    string -> string -> string * Present.dump_mode -> string -> bool -> unit
   val with_timing: string -> bool -> ('a -> 'b) -> 'a -> 'b
   val use_dir: string -> string -> bool -> string list -> bool -> bool -> string ->
     string -> bool -> string list -> string -> string -> bool * string ->
@@ -21,24 +21,21 @@ end;
 structure Session: SESSION =
 struct
 
-
 (* session state *)
 
 val session = Unsynchronized.ref ([Context.PureN]: string list);
-val session_path = Unsynchronized.ref ([]: string list);
 val session_finished = Unsynchronized.ref false;
-val remote_path = Unsynchronized.ref (NONE: Url.T option);
+
+fun id () = ! session;
+fun name () = "Isabelle/" ^ List.last (! session);
 
 
 (* access path *)
 
-fun id () = ! session;
+val session_path = Unsynchronized.ref ([]: string list);
+val remote_path = Unsynchronized.ref (NONE: Url.T option);
+
 fun path () = ! session_path;
-
-fun str_of [] = Context.PureN
-  | str_of elems = space_implode "/" elems;
-
-fun name () = "Isabelle/" ^ str_of (path ());
 
 
 (* welcome *)
@@ -61,7 +58,7 @@ fun add_path reset s =
   let val sess = ! session @ [s] in
     (case duplicates (op =) sess of
       [] => (session := sess; session_path := ((if reset then [] else ! session_path) @ [s]))
-    | dups => error ("Duplicate session identifiers " ^ commas_quote dups ^ " in " ^ str_of sess))
+    | dups => error ("Duplicate session identifiers " ^ commas_quote dups))
   end;
 
 
@@ -115,7 +112,7 @@ fun init build reset info info_path doc doc_graph doc_variants parent name doc_d
 
 local
 
-fun doc_dump (cp, dump) = (dump, if cp then "all" else "tex+sty");
+fun doc_dump (cp, dump) = (dump, if cp then Present.Dump_all else Present.Dump_tex_sty);
 
 in
 
