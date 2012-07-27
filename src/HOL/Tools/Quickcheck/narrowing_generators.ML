@@ -223,7 +223,7 @@ fun elapsed_time description e =
   let val ({elapsed, ...}, result) = Timing.timing e ()
   in (result, (description, Time.toMilliseconds elapsed)) end
   
-fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size)) ctxt cookie (code, value_name) =
+fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size)) ctxt cookie (code_modules, value_name) =
   let
     val ((is_genuine, counterexample_of), (get, put, put_ml)) = cookie
     fun message s = if quiet then () else Output.urgent_message s
@@ -238,31 +238,34 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size)) ctxt
       if Config.get ctxt overlord then with_overlord_dir else Isabelle_System.with_tmp_dir 
     fun run in_path = 
       let
-        val code_file = Path.append in_path (Path.basic "Generated_Code.hs")
-        val narrowing_engine_file = Path.append in_path (Path.basic "Narrowing_Engine.hs")
-        val main_file = Path.append in_path (Path.basic "Main.hs")
+        fun mk_code_file name = Path.append in_path (Path.basic (name ^ ".hs"))
+        val generatedN = Code_Target.generatedN
+        val includes = AList.delete (op =) generatedN code_modules |> (map o apfst) mk_code_file;
+        val code = the (AList.lookup (op =) code_modules generatedN)
+        val code_file = mk_code_file generatedN
+        val narrowing_engine_file = mk_code_file "Narrowing_Engine"
+        val main_file = mk_code_file "Main"
         val main = "module Main where {\n\n" ^
           "import System.IO;\n" ^
           "import System.Environment;\n" ^
           "import Narrowing_Engine;\n" ^
-          "import Generated_Code;\n\n" ^
+          "import " ^ generatedN ^ " ;\n\n" ^
           "main = getArgs >>= \\[potential, size] -> " ^
-          "Narrowing_Engine.depthCheck (read potential) (read size) (Generated_Code.value ())\n\n" ^
+          "Narrowing_Engine.depthCheck (read potential) (read size) (" ^ generatedN ^ ".value ())\n\n" ^
           "}\n"
         val code' = code
           |> unsuffix "}\n"
           |> suffix "data Typerep = Typerep String [Typerep];\n\n}\n" (* FIXME *)
-        val _ = File.write code_file code'
-        val _ = File.write narrowing_engine_file
-          (if contains_existentials then pnf_narrowing_engine else narrowing_engine)
-        val _ = File.write main_file main
+        val _ = map (uncurry File.write) (includes @
+          [(narrowing_engine_file, if contains_existentials then pnf_narrowing_engine else narrowing_engine),
+           (code_file, code'), (main_file, main)])
         val executable = File.shell_path (Path.append in_path (Path.basic "isabelle_quickcheck_narrowing"))
         val cmd = "exec \"$ISABELLE_GHC\" " ^ Code_Haskell.language_params ^ " " ^
           ghc_options ^ " " ^
-          (space_implode " " (map File.shell_path [code_file, narrowing_engine_file, main_file])) ^
+          (space_implode " " (map File.shell_path (map fst includes @ [code_file, narrowing_engine_file, main_file]))) ^
           " -o " ^ executable ^ ";"
         val (result, compilation_time) =
-          elapsed_time "Haskell compilation" (fn () => Isabelle_System.bash cmd) 
+          elapsed_time "Haskell compilation" (fn () => Isabelle_System.bash cmd)
         val _ = Quickcheck.add_timing compilation_time current_result
         fun haskell_string_of_bool v = if v then "True" else "False"
         val _ = if Isabelle_System.bash cmd <> 0 then error "Compilation with GHC failed" else ()
@@ -314,7 +317,7 @@ fun dynamic_value_strict opts cookie thy postproc t =
     val ctxt = Proof_Context.init_global thy
     fun evaluator naming program ((_, vs_ty), t) deps =
       Exn.interruptible_capture (value opts ctxt cookie)
-        (Code_Target.evaluator thy target naming program deps (vs_ty, t));    
+        (Code_Target.evaluator thy target naming program deps (vs_ty, t));
   in Exn.release (Code_Thingol.dynamic_value thy (Exn.map_result o postproc) evaluator t) end;
 
 (** counterexample generator **)

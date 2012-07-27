@@ -281,9 +281,10 @@ code_const "Code_Evaluation.term_of \<Colon> nat \<Rightarrow> term"
   (SML "HOLogic.mk'_number/ HOLogic.natT")
 
 text {*
-  FIXME -- Evaluation with @{text "Quickcheck_Narrowing"} does not work, as
-  @{text "code_module"} is very aggressive leading to bad Haskell code.
-  Therefore, we simply deactivate the narrowing-based quickcheck from here on.
+  Evaluation with @{text "Quickcheck_Narrowing"} does not work yet,
+  since a couple of questions how to perform evaluations in Haskell are not that
+  clear yet.  Therefore, we simply deactivate the narrowing-based quickcheck
+  from here on.
 *}
 
 declare [[quickcheck_narrowing_active = false]] 

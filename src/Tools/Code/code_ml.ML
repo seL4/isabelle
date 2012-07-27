@@ -811,8 +811,9 @@ fun serialize_ml print_ml_module print_ml_stmt with_signatures
         lift_markup = apsnd } ml_program));
     fun write width NONE = writeln o format [] width
       | write width (SOME p) = File.write p o format [] width;
+    fun prepare names width p = ([("", format names width p)], try (deresolver []));
   in
-    Code_Target.serialization write (rpair (try (deresolver [])) ooo format) p
+    Code_Target.serialization write prepare p
   end;
 
 val serializer_sml : Code_Target.serializer =

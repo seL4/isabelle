@@ -13,7 +13,7 @@ sig
   val export_code_for: theory -> Path.T option -> string -> int option -> string -> Token.T list
     -> Code_Thingol.naming -> Code_Thingol.program -> string list -> unit
   val produce_code_for: theory -> string -> int option -> string -> Token.T list
-    -> Code_Thingol.naming -> Code_Thingol.program -> string list -> string * string option list
+    -> Code_Thingol.naming -> Code_Thingol.program -> string list -> (string * string) list * string option list
   val present_code_for: theory -> string -> int option -> string -> Token.T list
     -> Code_Thingol.naming -> Code_Thingol.program -> string list * string list -> string
   val check_code_for: theory -> string -> bool -> Token.T list
@@ -22,15 +22,16 @@ sig
   val export_code: theory -> string list
     -> (((string * string) * Path.T option) * Token.T list) list -> unit
   val produce_code: theory -> string list
-    -> string -> int option -> string -> Token.T list -> string * string option list
+    -> string -> int option -> string -> Token.T list -> (string * string) list * string option list
   val present_code: theory -> string list -> (Code_Thingol.naming -> string list)
     -> string -> int option -> string -> Token.T list -> string
   val check_code: theory -> string list
     -> ((string * bool) * Token.T list) list -> unit
 
+  val generatedN: string
   val evaluator: theory -> string -> Code_Thingol.naming -> Code_Thingol.program
     -> string list -> ((string * class list) list * Code_Thingol.itype) * Code_Thingol.iterm
-    -> string * string
+    -> (string * string) list * string
 
   type serializer
   type literals = Code_Printer.literals
@@ -45,7 +46,7 @@ sig
   type serialization
   val parse_args: 'a parser -> Token.T list -> 'a
   val serialization: (int -> Path.T option -> 'a -> unit)
-    -> (string list -> int -> 'a -> string * (string -> string option))
+    -> (string list -> int -> 'a -> (string * string) list * (string -> string option))
     -> 'a -> serialization
   val set_default_code_width: int -> theory -> theory
 
@@ -77,7 +78,7 @@ type const_syntax = Code_Printer.const_syntax;
 (** abstract nonsense **)
 
 datatype destination = Export of Path.T option | Produce | Present of string list;
-type serialization = int -> destination -> (string * (string -> string option)) option;
+type serialization = int -> destination -> ((string * string) list * (string -> string option)) option;
 
 fun serialization output _ content width (Export some_path) =
       (output width some_path content; NONE)
@@ -85,12 +86,12 @@ fun serialization output _ content width (Export some_path) =
       string [] width content |> SOME
   | serialization _ string content width (Present stmt_names) =
      string stmt_names width content
-     |> apfst (Pretty.output (SOME width) o Pretty.str)
+     |> (apfst o map o apsnd) (Pretty.output (SOME width) o Pretty.str)
      |> SOME;
 
 fun export some_path f = (f (Export some_path); ());
 fun produce f = the (f Produce);
-fun present stmt_names f = fst (the (f (Present stmt_names)));
+fun present stmt_names f = space_implode "\n\n" (map snd (fst (the (f (Present stmt_names)))));
 
 
 (** theory data **)
@@ -378,6 +379,8 @@ fun using_master_directory thy =
 
 in
 
+val generatedN = "Generated_Code";
+
 fun export_code_for thy some_path target some_width module_name args =
   export (using_master_directory thy some_path)
   ooo invoke_serializer thy target some_width module_name args;
@@ -398,15 +401,14 @@ fun present_code_for thy target some_width module_name args =
 
 fun check_code_for thy target strict args naming program names_cs =
   let
-    val module_name = "Generated_Code";
     val { env_var, make_destination, make_command } =
       (#check o the_fundamental thy) target;
     fun ext_check p =
       let
         val destination = make_destination p;
         val _ = export (SOME destination) (invoke_serializer thy target (SOME 80)
-          module_name args naming program names_cs);
-        val cmd = make_command module_name;
+          generatedN args naming program names_cs);
+        val cmd = make_command generatedN;
       in
         if Isabelle_System.bash ("cd " ^ File.shell_path p ^ " && " ^ cmd ^ " 2>&1") <> 0
         then error ("Code check failed for " ^ target ^ ": " ^ cmd)
@@ -439,7 +441,7 @@ fun evaluation mounted_serializer prepared_program consts ((vs, ty), t) =
 fun evaluator thy target naming program consts =
   let
     val (mounted_serializer, prepared_program) = mount_serializer thy
-      target NONE "Generated_Code" [] naming program consts;
+      target NONE generatedN [] naming program consts;
   in evaluation mounted_serializer prepared_program consts end;
 
 end; (* local *)

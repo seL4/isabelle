@@ -87,7 +87,9 @@ fun reject_vars thy t =
     val ctxt = Proof_Context.init_global thy;
   in ((Sign.no_frees ctxt o Sign.no_vars ctxt o map_types (K dummyT)) t; t) end;
 
-fun obtain_evaluator thy some_target = Code_Target.evaluator thy (the_default target some_target);
+fun obtain_evaluator thy some_target naming program consts expr =
+  Code_Target.evaluator thy (the_default target some_target) naming program consts expr
+  |> apfst (fn ml_modules => space_implode "\n\n" (map snd ml_modules));
 
 fun evaluation cookie thy evaluator vs_t args =
   let
@@ -192,9 +194,10 @@ fun evaluation_code thy module_name tycos consts =
     val ctxt = Proof_Context.init_global thy;
     val (consts', (naming, program)) = Code_Thingol.consts_program thy false consts;
     val tycos' = map (the o Code_Thingol.lookup_tyco naming) tycos;
-    val (ml_code, target_names) =
+    val (ml_modules, target_names) =
       Code_Target.produce_code_for thy
         target NONE module_name [] naming program (consts' @ tycos');
+    val ml_code = space_implode "\n\n" (map snd ml_modules);
     val (consts'', tycos'') = chop (length consts') target_names;
     val consts_map = map2 (fn const =>
       fn NONE =>
