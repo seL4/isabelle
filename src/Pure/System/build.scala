@@ -284,7 +284,7 @@ object Build
             }
           val thy_info = new Thy_Info(new Thy_Load(preloaded))
 
-          if (verbose) echo("Checking " + name)
+          if (verbose) echo("Checking " + name + " ...")
 
           val thy_deps =
             thy_info.dependencies(

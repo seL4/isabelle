@@ -26,7 +26,7 @@ function usage()
   echo "Usage: isabelle $PRG [OPTIONS] [SESSIONS ...]"
   echo
   echo "  Options are:"
-  echo "    -a           all sessions"
+  echo "    -a           include all sessions"
   echo "    -b           build heap images"
   echo "    -d DIR       include session directory with ROOT file"
   echo "    -g NAME      include session group NAME"
