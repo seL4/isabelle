@@ -2405,13 +2405,14 @@ fun line_for_guards_sym_decl ctxt mono type_enc n s j
     val bounds =
       bound_names ~~ arg_Ts |> map (fn (name, T) => IConst (name, T, []))
     val bound_Ts =
-      if exists (curry (op =) dummyT) T_args then
+      case level_of_type_enc type_enc of
+        All_Types => if null T_args then replicate ary NONE else map SOME arg_Ts
+      | Undercover_Types =>
         let val cover = type_arg_cover thy NONE s ary in
           map2 (fn j => if member (op =) cover j then SOME else K NONE)
                (0 upto ary - 1) arg_Ts
         end
-      else
-        replicate ary NONE
+      | _ => replicate ary NONE
   in
     Formula (guards_sym_formula_prefix ^ s ^
              (if n > 1 then "_" ^ string_of_int j else ""), role,
