@@ -24,7 +24,6 @@ object Build
     /* Info */
 
     sealed case class Info(
-      base_name: String,
       groups: List[String],
       dir: Path,
       parent: Option[String],
@@ -32,7 +31,7 @@ object Build
       options: Options,
       theories: List[(Options, List[Path])],
       files: List[Path],
-      digest: SHA1.Digest)
+      entry_digest: SHA1.Digest)
 
 
     /* Queue */
@@ -92,7 +91,7 @@ object Build
   /* parsing */
 
   private case class Session_Entry(
-    name: String,
+    base_name: String,
     this_name: Boolean,
     groups: List[String],
     path: Option[String],
@@ -162,19 +161,19 @@ object Build
   {
     (queue /: Parser.parse_entries(root))((queue1, entry) =>
       try {
-        if (entry.name == "") error("Bad session name")
+        if (entry.base_name == "") error("Bad session name")
 
         val full_name =
-          if (is_pure(entry.name)) {
+          if (is_pure(entry.base_name)) {
             if (entry.parent.isDefined) error("Illegal parent session")
-            else entry.name
+            else entry.base_name
           }
           else
             entry.parent match {
               case Some(parent_name) if queue1.isDefinedAt(parent_name) =>
                 val full_name =
-                  if (entry.this_name) entry.name
-                  else parent_name + "-" + entry.name
+                  if (entry.this_name) entry.base_name
+                  else parent_name + "-" + entry.base_name
                 full_name
               case _ => error("Bad parent session")
             }
@@ -182,7 +181,7 @@ object Build
         val path =
           entry.path match {
             case Some(p) => Path.explode(p)
-            case None => Path.basic(entry.name)
+            case None => Path.basic(entry.base_name)
           }
 
         val session_options = options ++ entry.options
@@ -191,18 +190,19 @@ object Build
           entry.theories.map({ case (opts, thys) =>
             (session_options ++ opts, thys.map(Path.explode(_))) })
         val files = entry.files.map(Path.explode(_))
-        val digest = SHA1.digest((full_name, entry.parent, entry.options, entry.theories).toString)
+        val entry_digest =
+          SHA1.digest((full_name, entry.parent, entry.options, entry.theories).toString)
 
         val info =
-          Session.Info(entry.name, entry.groups, dir + path, entry.parent,
-            entry.description, session_options, theories, files, digest)
+          Session.Info(entry.groups, dir + path, entry.parent, entry.description,
+            session_options, theories, files, entry_digest)
 
         queue1 + (full_name, info)
       }
       catch {
         case ERROR(msg) =>
           error(msg + "\nThe error(s) above occurred in session entry " +
-            quote(entry.name) + Position.str_of(Position.file(root)))
+            quote(entry.base_name) + Position.str_of(Position.file(root)))
       })
   }
 
@@ -450,7 +450,7 @@ object Build
     val deps = dependencies(verbose, queue)
 
     def make_stamp(name: String): String =
-      sources_stamp(queue(name).digest :: deps.sources(name))
+      sources_stamp(queue(name).entry_digest :: deps.sources(name))
 
     val (input_dirs, output_dir, browser_info) =
       if (system_mode) {
