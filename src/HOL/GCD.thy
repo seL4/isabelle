@@ -610,8 +610,8 @@ lemma coprime_int: "coprime (a::int) b \<longleftrightarrow>
   apply (erule subst)
   apply (rule iffI)
   apply force
-  apply (drule_tac x = "abs e" in exI)
-  apply (case_tac "e >= 0")
+  apply (drule_tac x = "abs ?e" in exI)
+  apply (case_tac "(?e::int) >= 0")
   apply force
   apply force
 done
