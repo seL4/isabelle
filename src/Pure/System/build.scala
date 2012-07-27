@@ -334,7 +334,7 @@ object Build
   }
 
   private def start_job(name: String, info: Session.Info, output: Path, do_output: Boolean,
-    options: Options, timing: Boolean, verbose: Boolean, browser_info: Path): Job =
+    options: Options, verbose: Boolean, browser_info: Path): Job =
   {
     // global browser info dir
     if (options.bool("browser_info") && !(browser_info + Path.explode("index.html")).file.isFile)
@@ -385,10 +385,10 @@ object Build
     val args_xml =
     {
       import XML.Encode._
-          pair(bool, pair(Options.encode, pair(bool, pair(bool, pair(Path.encode, pair(string,
-            pair(string, list(pair(Options.encode, list(Path.encode))))))))))(
-          (do_output, (options, (timing, (verbose, (browser_info, (parent,
-            (name, info.theories))))))))
+          pair(bool, pair(Options.encode, pair(bool, pair(Path.encode, pair(string,
+            pair(string, list(pair(Options.encode, list(Path.encode)))))))))(
+          (do_output, (options, (verbose, (browser_info, (parent,
+            (name, info.theories)))))))
     }
     new Job(cwd, env, script, YXML.string_of_body(args_xml), output, do_output)
   }
@@ -441,7 +441,6 @@ object Build
     no_build: Boolean = false,
     build_options: List[String] = Nil,
     system_mode: Boolean = false,
-    timing: Boolean = false,
     verbose: Boolean = false,
     sessions: List[String] = Nil): Int =
   {
@@ -526,7 +525,7 @@ object Build
             else if (parent_ok) {
               echo((if (do_output) "Building " else "Running ") + name + " ...")
               val job =
-                start_job(name, info, output, do_output, info.options, timing, verbose, browser_info)
+                start_job(name, info, output, do_output, info.options, verbose, browser_info)
               loop(pending, running + (name -> job), results)
             }
             else {
@@ -561,11 +560,10 @@ object Build
           Properties.Value.Int(max_jobs) ::
           Properties.Value.Boolean(no_build) ::
           Properties.Value.Boolean(system_mode) ::
-          Properties.Value.Boolean(timing) ::
           Properties.Value.Boolean(verbose) ::
           Command_Line.Chunks(more_dirs, session_groups, build_options, sessions) =>
             build(all_sessions, build_heap, more_dirs.map(Path.explode), session_groups,
-              max_jobs, no_build, build_options, system_mode, timing, verbose, sessions)
+              max_jobs, no_build, build_options, system_mode, verbose, sessions)
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }
     }

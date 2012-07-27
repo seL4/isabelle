@@ -34,7 +34,6 @@ function usage()
   echo "    -n           no build -- test dependencies only"
   echo "    -o OPTION    override session configuration OPTION (via NAME=VAL or NAME)"
   echo "    -s           system build mode: produce output in ISABELLE_HOME"
-  echo "    -t           inner session timing"
   echo "    -v           verbose"
   echo
   echo "  Build and manage Isabelle sessions, depending on implicit"
@@ -65,10 +64,9 @@ MAX_JOBS=1
 NO_BUILD=false
 eval "declare -a BUILD_OPTIONS=($ISABELLE_BUILD_OPTIONS)"
 SYSTEM_MODE=false
-TIMING=false
 VERBOSE=false
 
-while getopts "abd:g:j:no:stv" OPT
+while getopts "abd:g:j:no:sv" OPT
 do
   case "$OPT" in
     a)
@@ -95,9 +93,6 @@ do
       ;;
     s)
       SYSTEM_MODE="true"
-      ;;
-    t)
-      TIMING="true"
       ;;
     v)
       VERBOSE="true"
@@ -126,7 +121,7 @@ if [ "$NO_BUILD" = false ]; then
 fi
 
 "$ISABELLE_TOOL" java isabelle.Build \
-  "$ALL_SESSIONS" "$BUILD_HEAP" "$MAX_JOBS" "$NO_BUILD" "$SYSTEM_MODE" "$TIMING" "$VERBOSE" \
+  "$ALL_SESSIONS" "$BUILD_HEAP" "$MAX_JOBS" "$NO_BUILD" "$SYSTEM_MODE" "$VERBOSE" \
   "${MORE_DIRS[@]}" $'\n' "${SESSION_GROUPS[@]}" $'\n' "${BUILD_OPTIONS[@]}" $'\n' "$@"
 RC="$?"
 
