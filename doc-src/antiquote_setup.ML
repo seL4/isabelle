@@ -204,7 +204,7 @@ val entity_setup =
     "" "antiquotation" #>
   entity_antiqs (thy_check Thy_Output.intern_option Thy_Output.defined_option)
     "" "antiquotation option" #>
-  entity_antiqs (fn _ => fn name => is_some (OS.Process.getEnv name)) "isatt" "setting" #>
+  entity_antiqs no_check "isatt" "setting" #>
   entity_antiqs no_check "" "inference" #>
   entity_antiqs no_check "isatt" "executable" #>
   entity_antiqs (K check_tool) "isatt" "tool" #>
