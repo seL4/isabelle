@@ -267,7 +267,7 @@ done
 lemma hoare_lemma19:
   "(ALL k. (b1::'a->tr)$(iterate k$g$x)=TT) ==> b1$(UU::'a) = UU | (ALL y. b1$(y::'a)=TT)"
 apply (rule flat_codom)
-apply (rule_tac t = "x1" in iterate_0 [THEN subst])
+apply (rule_tac t = "x" in iterate_0 [THEN subst])
 apply (erule spec)
 done
 
