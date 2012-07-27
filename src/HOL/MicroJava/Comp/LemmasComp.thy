@@ -369,9 +369,6 @@ apply (drule_tac x=D' in spec) apply (drule_tac x=rT' in spec) apply (drule mp)
 prefer 2 apply assumption
 apply (simp add: comp_method [of G D])
 apply (erule exE)+
-apply (subgoal_tac "z =(fst z, fst (snd z), snd (snd z))")
-apply (rule exI)
-apply (simp)
 apply (simp add: split_paired_all)
 apply (intro strip)
 apply (simp add: comp_method)

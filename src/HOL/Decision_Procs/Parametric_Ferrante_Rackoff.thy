@@ -1051,7 +1051,7 @@ lemma neq_nb: "tmbound0 t \<Longrightarrow> bound0 (neq t)"
 
 lemma simplt_nb[simp]:   assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
   shows "tmbound0 t \<Longrightarrow> bound0 (simplt t)"
-  using split0 [of "simptm t" vs bs]
+  using split0 [of "simptm t" "vs::'a list" bs]
 proof(simp add: simplt_def Let_def split_def)
   assume nb: "tmbound0 t"
   hence nb': "tmbound0 (simptm t)" by simp
@@ -1068,7 +1068,7 @@ qed
 
 lemma simple_nb[simp]:   assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
   shows "tmbound0 t \<Longrightarrow> bound0 (simple t)"
-  using split0 [of "simptm t" vs bs]
+  using split0 [of "simptm t" "vs::'a list" bs]
 proof(simp add: simple_def Let_def split_def)
   assume nb: "tmbound0 t"
   hence nb': "tmbound0 (simptm t)" by simp
@@ -1085,7 +1085,7 @@ qed
 
 lemma simpeq_nb[simp]:   assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
   shows "tmbound0 t \<Longrightarrow> bound0 (simpeq t)"
-  using split0 [of "simptm t" vs bs]
+  using split0 [of "simptm t" "vs::'a list" bs]
 proof(simp add: simpeq_def Let_def split_def)
   assume nb: "tmbound0 t"
   hence nb': "tmbound0 (simptm t)" by simp
@@ -1102,7 +1102,7 @@ qed
 
 lemma simpneq_nb[simp]:   assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
   shows "tmbound0 t \<Longrightarrow> bound0 (simpneq t)"
-  using split0 [of "simptm t" vs bs]
+  using split0 [of "simptm t" "vs::'a list" bs]
 proof(simp add: simpneq_def Let_def split_def)
   assume nb: "tmbound0 t"
   hence nb': "tmbound0 (simptm t)" by simp
