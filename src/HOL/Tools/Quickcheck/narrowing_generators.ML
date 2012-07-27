@@ -249,8 +249,9 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size)) ctxt
           "main = getArgs >>= \\[potential, size] -> " ^
           "Narrowing_Engine.depthCheck (read potential) (read size) (Generated_Code.value ())\n\n" ^
           "}\n"
-        val code' = prefix "module Generated_Code where {\n\ndata Typerep = Typerep String [Typerep];\n"
-          (unprefix "module Generated_Code where {" code)
+        val code' = code
+          |> unsuffix "}\n"
+          |> suffix "data Typerep = Typerep String [Typerep];\n\n}\n" (* FIXME *)
         val _ = File.write code_file code'
         val _ = File.write narrowing_engine_file
           (if contains_existentials then pnf_narrowing_engine else narrowing_engine)

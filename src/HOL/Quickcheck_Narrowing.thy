@@ -165,7 +165,7 @@ setup {* fold (Numeral.add_code @{const_name Num}
   false Code_Printer.literal_numeral) ["Haskell_Quickcheck"]  *}
 
 code_type code_int
-  (Haskell_Quickcheck "Int")
+  (Haskell_Quickcheck "Prelude.Int")
 
 code_const "0 \<Colon> code_int"
   (Haskell_Quickcheck "0")
@@ -222,7 +222,7 @@ code_const error (Haskell_Quickcheck "error")
 
 consts toEnum :: "code_int => char"
 
-code_const toEnum (Haskell_Quickcheck "toEnum")
+code_const toEnum (Haskell_Quickcheck "Prelude.toEnum")
 
 consts marker :: "char"
 
