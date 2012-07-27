@@ -237,17 +237,9 @@ val parse_bool_option = Sledgehammer_Util.parse_bool_option
 val parse_time_option = Sledgehammer_Util.parse_time_option
 val string_from_time = ATP_Util.string_from_time
 
-val i_subscript = implode o map (prefix "\<^isub>") o raw_explode  (* FIXME Symbol.explode (?) *)
-fun be_subscript s = "\<^bsub>" ^ s ^ "\<^esub>"
+val i_subscript = implode o map (prefix "\<^isub>") o Symbol.explode
 fun nat_subscript n =
-  let val s = signed_string_of_int n in
-    if print_mode_active Symbol.xsymbolsN then
-      (* cheap trick to ensure proper alphanumeric ordering for one- and
-         two-digit numbers *)
-      (if n <= 9 then be_subscript else i_subscript) s
-    else
-      s
-  end
+  n |> signed_string_of_int |> print_mode_active Symbol.xsymbolsN ? i_subscript
 
 fun flip_polarity Pos = Neg
   | flip_polarity Neg = Pos
