@@ -73,8 +73,7 @@ session IsarRef (doc) in "IsarRef/Thy" = ZF +
 
 session LaTeXsugar! (doc) in "LaTeXsugar/Sugar" = HOL +
   options [browser_info = false, document = false,
-    document_dump = document, document_dump_mode = "tex",
-    threads = 1]  (* FIXME *)
+    document_dump = document, document_dump_mode = "tex"]
   theories [document_dump = ""]
     "~~/src/HOL/Library/LaTeXsugar"
     "~~/src/HOL/Library/OptionalSugar"
