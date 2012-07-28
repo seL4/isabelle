@@ -17,7 +17,7 @@ function usage()
   echo "    -p NAME      line editor program name"
   echo "                 (default ISABELLE_LINE_EDITOR=\"$ISABELLE_LINE_EDITOR\")"
   echo
-  echo "  Run Isabelle process with plain tty interaction, and optional line editor."
+  echo "  Run Isabelle process with plain tty interaction and line editor."
   echo
   exit 1
 }
