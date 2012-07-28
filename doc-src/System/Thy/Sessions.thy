@@ -21,8 +21,8 @@ text {* Session specifications reside in files called @{verbatim ROOT}
   syntax diagram below; each ROOT file may contain multiple session
   specifications like this.
 
-  Note that Isabelle/jEdit \secref{sec:tool-jedit} includes a simple
-  editing mode for session ROOT files.
+  Isabelle/jEdit (\secref{sec:tool-jedit}) includes a simple editing
+  mode @{verbatim "isabelle-root"} for session ROOT files.
 
   @{rail "
     @{syntax_def session_entry}: @'session' spec '=' (@{syntax name} '+')? body
@@ -126,10 +126,9 @@ text {* See @{file "~~/src/HOL/ROOT"} for a diversity of practically
 section {* System build options \label{sec:system-options} *}
 
 text {* See @{file "~~/etc/options"} for the main defaults provided by
-  the Isabelle distribution.
-
-  Note that Isabelle/jEdit \secref{sec:tool-jedit} includes a simple
-  editing mode @{verbatim "isabelle-options"} for this file-format.
+  the Isabelle distribution.  Isabelle/jEdit (\secref{sec:tool-jedit})
+  includes a simple editing mode @{verbatim "isabelle-options"} for
+  this file-format.
 *}
 
 
