@@ -6,8 +6,12 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* July 2012: Makarius Wenzel, Université Paris-Sud / LRI
+  Advanced support for Isabelle sessions and build management, notably
+  "isabelle build".
+
 * June 2012: Felix Kuperjans, Lukas Bulwahn, TUM and Rafal Kolanski, NICTA
-  Simproc for rewriting set comprehensions into pointfree expressions
+  Simproc for rewriting set comprehensions into pointfree expressions.
 
 
 Contributions to Isabelle2012

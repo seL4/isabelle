@@ -68,6 +68,11 @@ slightly exotic babel/greek.
 
 *** System ***
 
+* Advanced support for Isabelle sessions and build management, see
+"system" manual for the chapter of that name, especially the "isabelle
+build" tool and its examples.  Eventual INCOMPATIBILITY, as isabelle
+usedir / make / makeall are rendered obsolete.
+
 * Discontinued support for Poly/ML 5.2.1, which was the last version
 without exception positions and advanced ML compiler/toplevel
 configuration.
