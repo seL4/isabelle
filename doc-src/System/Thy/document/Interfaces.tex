@@ -131,6 +131,195 @@ Usage: isabelle tty [OPTIONS]
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsection{Theory graph browser \label{sec:browse}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The Isabelle graph browser is a general tool for visualizing
+  dependency graphs.  Certain nodes of the graph (i.e.\ theories) can
+  be grouped together in ``directories'', whose contents may be
+  hidden, thus enabling the user to collapse irrelevant portions of
+  information.  The browser is written in Java, it can be used both as
+  a stand-alone application and as an applet.  Note that the option
+  \verb|-g| of \verb|isabelle| \indexref{}{tool}{usedir}\hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} creates
+  graph presentations in batch mode for inclusion in session
+  documents.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Invoking the graph browser%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The stand-alone version of the graph browser is wrapped up as an
+  Isabelle tool called \indexdef{}{tool}{browser}\hypertarget{tool.browser}{\hyperlink{tool.browser}{\mbox{\isa{\isatt{browser}}}}}:
+
+\begin{ttbox}
+Usage: browser [OPTIONS] [GRAPHFILE]
+
+  Options are:
+    -b           Admin/build only
+    -c           cleanup -- remove GRAPHFILE after use
+    -o FILE      output to FILE (ps, eps, pdf)
+\end{ttbox}
+  When no filename is specified, the browser automatically changes to
+  the directory \hyperlink{setting.ISABELLE-BROWSER-INFO}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}BROWSER{\isaliteral{5F}{\isacharunderscore}}INFO}}}}.
+
+  \medskip The \verb|-b| option indicates that this is for
+  administrative build only, i.e.\ no browser popup if no files are
+  given.
+
+  The \verb|-c| option causes the input file to be removed
+  after use.
+
+  The \verb|-o| option indicates batch-mode operation, with the
+  output written to the indicated file; note that \verb|pdf|
+  produces an \verb|eps| copy as well.
+
+  \medskip The applet version of the browser is part of the standard
+  WWW theory presentation, see the link ``theory dependencies'' within
+  each session index.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Using the graph browser%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The browser's main window, which is shown in
+  \figref{fig:browserwindow}, consists of two sub-windows.  In the
+  left sub-window, the directory tree is displayed. The graph itself
+  is displayed in the right sub-window.
+
+  \begin{figure}[ht]
+  \includegraphics[width=\textwidth]{browser_screenshot}
+  \caption{\label{fig:browserwindow} Browser main window}
+  \end{figure}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{The directory tree window%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+We describe the usage of the directory browser and the meaning of
+  the different items in the browser window.
+
+  \begin{itemize}
+
+  \item A red arrow before a directory name indicates that the
+  directory is currently ``folded'', i.e.~the nodes in this directory
+  are collapsed to one single node. In the right sub-window, the names
+  of nodes corresponding to folded directories are enclosed in square
+  brackets and displayed in red color.
+
+  \item A green downward arrow before a directory name indicates that
+  the directory is currently ``unfolded''. It can be folded by
+  clicking on the directory name.  Clicking on the name for a second
+  time unfolds the directory again.  Alternatively, a directory can
+  also be unfolded by clicking on the corresponding node in the right
+  sub-window.
+
+  \item Blue arrows stand before ordinary node names. When clicking on
+  such a name (i.e.\ that of a theory), the graph display window
+  focuses to the corresponding node. Double clicking invokes a text
+  viewer window in which the contents of the theory file are
+  displayed.
+
+  \end{itemize}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{The graph display window%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+When pointing on an ordinary node, an upward and a downward arrow is
+  shown.  Initially, both of these arrows are green. Clicking on the
+  upward or downward arrow collapses all predecessor or successor
+  nodes, respectively. The arrow's color then changes to red,
+  indicating that the predecessor or successor nodes are currently
+  collapsed. The node corresponding to the collapsed nodes has the
+  name ``\verb|[....]|''. To uncollapse the nodes again, simply
+  click on the red arrow or on the node with the name ``\verb|[....]|''. Similar to the directory browser, the contents of
+  theory files can be displayed by double clicking on the
+  corresponding node.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{The ``File'' menu%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Due to Java Applet security restrictions this menu is only available
+  in the full application version. The meaning of the menu items is as
+  follows:
+
+  \begin{description}
+
+  \item[Open \dots] Open a new graph file.
+
+  \item[Export to PostScript] Outputs the current graph in Postscript
+  format, appropriately scaled to fit on one single sheet of A4 paper.
+  The resulting file can be printed directly.
+
+  \item[Export to EPS] Outputs the current graph in Encapsulated
+  Postscript format. The resulting file can be included in other
+  documents.
+
+  \item[Quit] Quit the graph browser.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Syntax of graph definition files%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+A graph definition file has the following syntax:
+
+  \begin{center}\small
+  \begin{tabular}{rcl}
+    \isa{graph} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3D}{\isacharequal}}{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{7B}{\isacharbraceleft}}\ vertex{\isaliteral{22}{\isachardoublequote}}}~\verb|;|~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{2B}{\isacharplus}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \isa{vertex} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3D}{\isacharequal}}{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}vertex{\isaliteral{5F}{\isacharunderscore}}name\ vertex{\isaliteral{5F}{\isacharunderscore}}ID\ dir{\isaliteral{5F}{\isacharunderscore}}name\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{22}{\isachardoublequote}}}~\verb|+|~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5D}{\isacharbrackright}}\ path\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{22}{\isachardoublequote}}}~\verb|<|~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{7C}{\isacharbar}}{\isaliteral{22}{\isachardoublequote}}}~\verb|>|~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{7B}{\isacharbraceleft}}\ vertex{\isaliteral{5F}{\isacharunderscore}}ID\ {\isaliteral{7D}{\isacharbraceright}}{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}
+  \end{tabular}
+  \end{center}
+
+  The meaning of the items in a vertex description is as follows:
+
+  \begin{description}
+
+  \item[\isa{vertex{\isaliteral{5F}{\isacharunderscore}}name}] The name of the vertex.
+
+  \item[\isa{vertex{\isaliteral{5F}{\isacharunderscore}}ID}] The vertex identifier. Note that there may
+  be several vertices with equal names, whereas identifiers must be
+  unique.
+
+  \item[\isa{dir{\isaliteral{5F}{\isacharunderscore}}name}] The name of the ``directory'' the vertex
+  should be placed in.  A ``\verb|+|'' sign after \isa{dir{\isaliteral{5F}{\isacharunderscore}}name} indicates that the nodes in the directory are initially
+  visible. Directories are initially invisible by default.
+
+  \item[\isa{path}] The path of the corresponding theory file. This
+  is specified relatively to the path of the graph definition file.
+
+  \item[List of successor/predecessor nodes] A ``\verb|<|''
+  sign before the list means that successor nodes are listed, a
+  ``\verb|>|'' sign means that predecessor nodes are listed. If
+  neither ``\verb|<|'' nor ``\verb|>|'' is found, the
+  browser assumes that successor nodes are listed.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isadelimtheory
 %
 \endisadelimtheory
