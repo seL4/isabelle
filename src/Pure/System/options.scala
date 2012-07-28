@@ -35,7 +35,7 @@ object Options
     val DECLARE = "declare"
     val DEFINE = "define"
 
-    val syntax = Outer_Syntax.empty + ":" + "=" + DECLARE + DEFINE
+    val syntax = Outer_Syntax.empty + ":" + "=" + "--" + DECLARE + DEFINE
 
     val entry: Parser[Options => Options] =
     {
@@ -44,9 +44,8 @@ object Options
       val option_value = atom("option value", tok => tok.is_name || tok.is_float)
 
       keyword(DECLARE) ~! (option_name ~ keyword(":") ~ option_type ~
-      keyword("=") ~ option_value ~ opt(text)) ^^
-        { case _ ~ (a ~ _ ~ b ~ _ ~ c ~ d) =>
-            (options: Options) => options.declare(a, b, c, d.getOrElse("")) } |
+      keyword("=") ~ option_value ~ (keyword("--") ~! text ^^ { case _ ~ x => x } | success(""))) ^^
+        { case _ ~ (a ~ _ ~ b ~ _ ~ c ~ d) => (options: Options) => options.declare(a, b, c, d) } |
       keyword(DEFINE) ~! (option_name ~ keyword("=") ~ option_value) ^^
         { case _ ~ (a ~ _ ~ b) => (options: Options) => options.define(a, b) }
     }

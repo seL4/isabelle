@@ -115,14 +115,22 @@ text {* Session specifications reside in files called @{verbatim ROOT}
   again.
 
   \end{description}
+*}
 
-  Plenty of examples may be found in the Isabelle distribution, such
-  as in @{file "~~/src/HOL/ROOT"}.  *}
+subsubsection {* Examples *}
+
+text {* See @{file "~~/src/HOL/ROOT"} for a diversity of practically
+  relevant situations. *}
 
 
 section {* System build options \label{sec:system-options} *}
 
-text {* FIXME *}
+text {* See @{file "~~/etc/options"} for the main defaults provided by
+  the Isabelle distribution.
+
+  Note that Isabelle/jEdit \secref{sec:tool-jedit} includes a simple
+  editing mode @{verbatim "isabelle-options"} for this file-format.
+*}
 
 
 section {* Invoking the build process \label{sec:tool-build} *}
