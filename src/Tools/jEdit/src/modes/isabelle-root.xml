@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE MODE SYSTEM "xmode.dtd">
 
-<!-- Isabelle session mode -->
+<!-- Isabelle session root mode -->
 <MODE>
   <PROPS>
     <PROPERTY NAME="commentStart" VALUE="(*"/>
