@@ -73,6 +73,11 @@ slightly exotic babel/greek.
 build" tool and its examples.  Eventual INCOMPATIBILITY, as isabelle
 usedir / make / makeall are rendered obsolete.
 
+* Discontinued obsolete Isabelle/build script, it is superseded by the
+regular isabelle build tool.  For example:
+
+  isabelle build -s -b HOLCF
+
 * Discontinued support for Poly/ML 5.2.1, which was the last version
 without exception positions and advanced ML compiler/toplevel
 configuration.
