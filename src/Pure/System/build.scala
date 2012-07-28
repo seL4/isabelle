@@ -270,6 +270,7 @@ object Build
 
   sealed case class Deps(deps: Map[String, Node])
   {
+    def is_empty: Boolean = deps.isEmpty
     def sources(name: String): List[SHA1.Digest] = deps(name).sources.map(_._2)
   }
 
@@ -283,7 +284,12 @@ object Build
             }
           val thy_info = new Thy_Info(new Thy_Load(preloaded))
 
-          if (verbose) echo("Checking " + name + " ...")
+          if (verbose) {
+            val groups =
+              if (info.groups.isEmpty) ""
+              else info.groups.mkString(" (", " ", ")")
+            echo("Checking " + name + groups + " ...")
+          }
 
           val thy_deps =
             thy_info.dependencies(
@@ -539,7 +545,13 @@ object Build
         }
     }
 
-    val results = loop(queue, Map.empty, Map.empty)
+    val results =
+      if (deps.is_empty) {
+        echo("### Nothing to build")
+        Map.empty
+      }
+      else loop(queue, Map.empty, Map.empty)
+
     val rc = (0 /: results)({ case (rc1, (_, (_, rc2))) => rc1 max rc2 })
     if (rc != 0 && (verbose || !no_build)) {
       val unfinished =
