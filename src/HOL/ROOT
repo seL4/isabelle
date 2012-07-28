@@ -605,9 +605,9 @@ session Examples in "NSA/Examples" = "HOL-NSA" +
 session Mirabelle = HOL +
   options [document = false]
   theories Mirabelle_Test
-(* FIXME
-	@cd Library; $(ISABELLE_TOOL) mirabelle -q arith Inner_Product.thy # some arbitrary small test case
-*)
+
+session ex in "Mirabelle/ex" = "HOL-Mirabelle" +
+  theories Ex
 
 session SMT_Examples = "HOL-Word" +
   options [document = false, quick_and_dirty]
