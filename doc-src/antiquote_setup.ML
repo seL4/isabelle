@@ -205,6 +205,7 @@ val entity_setup =
   entity_antiqs (thy_check Thy_Output.intern_option Thy_Output.defined_option)
     "" "antiquotation option" #>
   entity_antiqs no_check "isatt" "setting" #>
+  entity_antiqs no_check "isatt" "system option" #>
   entity_antiqs no_check "" "inference" #>
   entity_antiqs no_check "isatt" "executable" #>
   entity_antiqs (K check_tool) "isatt" "tool" #>

@@ -30,7 +30,7 @@ function usage()
   echo "    -b           build heap images"
   echo "    -d DIR       include session directory with ROOT file"
   echo "    -g NAME      select session group NAME"
-  echo "    -j INT       maximum number of jobs (default 1)"
+  echo "    -j INT       maximum number of parallel jobs (default 1)"
   echo "    -n           no build -- test dependencies only"
   echo "    -o OPTION    override session configuration OPTION (via NAME=VAL or NAME)"
   echo "    -s           system build mode: produce output in ISABELLE_HOME"

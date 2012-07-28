@@ -111,8 +111,9 @@ session System! (doc) in "System/Thy" = Pure +
   theories
     Basics
     Interfaces
-    Scala
+    Sessions
     Presentation
+    Scala
     Misc
 
 session Tutorial (doc) in "TutorialI" = HOL +

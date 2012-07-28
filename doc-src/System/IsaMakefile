@@ -23,7 +23,7 @@ Pure-System: $(LOG)/Pure-System.gz
 
 $(LOG)/Pure-System.gz: Thy/ROOT.ML ../antiquote_setup.ML Thy/Base.thy	\
   Thy/Basics.thy Thy/Misc.thy Thy/Interfaces.thy Thy/Presentation.thy	\
-  Thy/Scala.thy
+  Thy/Scala.thy Thy/Sessions.thy
 	@$(USEDIR) -s System Pure Thy
 	@rm -f Thy/document/isabelle.sty Thy/document/isabellesym.sty \
 	 Thy/document/pdfsetup.sty Thy/document/session.tex
