@@ -72,6 +72,11 @@ slightly exotic babel/greek.
 without exception positions and advanced ML compiler/toplevel
 configuration.
 
+* Discontinued special treatment of Proof General -- no longer guess
+PROOFGENERAL_HOME based on accidental file-system layout.  Minor
+INCOMPATIBILITY: provide PROOFGENERAL_HOME and PROOFGENERAL_OPTIONS
+settings manually, or use a Proof General version that has been
+bundled as Isabelle component.
 
 
 New in Isabelle2012 (May 2012)

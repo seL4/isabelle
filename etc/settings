@@ -165,23 +165,6 @@ PRINT_COMMAND=lp
 
 
 ###
-### Proof General / Emacs
-###
-
-# Proof General home, look in a variety of places
-PROOFGENERAL_HOME="$(choosefrom \
-  "$ISABELLE_HOME/contrib/ProofGeneral" \
-  "$ISABELLE_HOME/../ProofGeneral" \
-  "/usr/local/ProofGeneral" \
-  "/usr/share/ProofGeneral" \
-  "/opt/ProofGeneral" \
-  "")"
-
-PROOFGENERAL_OPTIONS=""
-#PROOFGENERAL_OPTIONS="-m no_brackets -m no_type_brackets"
-
-
-###
 ### Rendering information
 ###
 
