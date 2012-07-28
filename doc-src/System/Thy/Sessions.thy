@@ -194,7 +194,7 @@ text {* The @{tool_def build} utility invokes the build process for
   \texttt{ROOT} file and an additional catalog file @{verbatim
   "etc/sessions"} with further sub-directories (list of lines).  Note
   that a single \texttt{ROOT} file usually defines many sessions;
-  catalogs are are only required for extra scalability and modularity
+  catalogs are only required for extra scalability and modularity
   of large libraries.
 
   \medskip The subset of sessions to be managed is selected via
