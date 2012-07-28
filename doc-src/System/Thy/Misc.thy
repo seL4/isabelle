@@ -74,7 +74,7 @@ text {*
   specified in @{setting ISABELLE_PATH}, looking for Isabelle logic
   images. Its usage is:
 \begin{ttbox}
-Usage: findlogics
+Usage: isabelle findlogics
 
   Collect heap file names from ISABELLE_PATH.
 \end{ttbox}

@@ -259,7 +259,6 @@ text {*
   The @{tool_def usedir} utility builds object-logic images, or runs
   example sessions based on existing logics. Its usage is:
 \begin{ttbox}
-
 Usage: usedir [OPTIONS] LOGIC NAME
 
   Options are:
