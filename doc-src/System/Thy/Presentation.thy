@@ -80,8 +80,8 @@ text {*
   The easiest way to let Isabelle generate theory browsing information
   for existing sessions is to append ``@{verbatim "-i true"}'' to the
   @{setting_ref ISABELLE_USEDIR_OPTIONS} before invoking @{verbatim
-  isabelle} @{tool make} (or @{file "$ISABELLE_HOME/build"}).  For
-  example, add something like this to your Isabelle settings file
+  isabelle} @{tool make}.  For example, add something like this to
+  your Isabelle settings file
 
 \begin{ttbox}
 ISABELLE_USEDIR_OPTIONS="-i true"
