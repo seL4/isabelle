@@ -72,7 +72,8 @@ fun cancel_conv rule ct =
     val rconv = move_to_front rpath
     val conv1 = Conv.combination_conv (Conv.arg_conv lconv) rconv
     val conv = conv1 then_conv Conv.rewr_conv rule
-  in conv ct handle Cancel => raise CTERM ("no_conversion", []) end
+  in conv ct end
+    handle Cancel => raise CTERM ("no_conversion", [])
 
 val cancel_diff_conv = cancel_conv (mk_meta_eq @{thm add_diff_cancel_left})
 val cancel_eq_conv = cancel_conv (mk_meta_eq @{thm add_left_cancel})
