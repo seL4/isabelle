@@ -2,9 +2,30 @@ theory Sessions
 imports Base
 begin
 
-chapter {* Isabelle sessions and build management *}
+chapter {* Isabelle sessions and build management \label{ch:session} *}
 
-text {* FIXME *}
+text {* An Isabelle \emph{session} consists of a collection of related
+  theories that are associated with an optional formal document (see
+  also \chref{ch:present}).  There is also a notion of persistent
+  \emph{heap image} to capture the state of a session, similar to
+  object-code in compiled programming languages.
+
+  Thus the concept of session resembles that of a ``project'' in
+  common IDE environments, but our specific name emphasizes the
+  connection to interactive theorem proving: the session wraps-up the
+  results of user-interaction with the prover in a persistent form.
+
+  \medskip Application sessions are built on a given parent session.
+  The resulting hierarchy eventually leads to some major object-logic
+  session, notably @{text "HOL"}, which itself is based on @{text
+  "Pure"} as the common root.
+
+  Processing sessions may take considerable time.  The tools for
+  Isabelle build management help to organize this efficiently,
+  including support for parallel build jobs --- in addition to the
+  multithreaded theory and proof checking that is already provided by
+  the prover process.
+*}
 
 section {* Session ROOT specifications \label{sec:session-root} *}
 
