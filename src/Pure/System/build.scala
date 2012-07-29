@@ -440,6 +440,7 @@ object Build
     all_sessions: Boolean = false,
     build_heap: Boolean = false,
     more_dirs: List[Path] = Nil,
+    fresh_build: Boolean,
     session_groups: List[String] = Nil,
     max_jobs: Int = 1,
     no_build: Boolean = false,
@@ -523,7 +524,7 @@ object Build
                     case None => false
                   }
                 }
-                val all_current = current && parent_current
+                val all_current = current && parent_current && !fresh_build
 
                 if (all_current)
                   loop(pending - name, running, results + (name -> (true, 0)))
@@ -571,13 +572,14 @@ object Build
         case
           Properties.Value.Boolean(all_sessions) ::
           Properties.Value.Boolean(build_heap) ::
+          Properties.Value.Boolean(fresh_build) ::
           Properties.Value.Int(max_jobs) ::
           Properties.Value.Boolean(no_build) ::
           Properties.Value.Boolean(system_mode) ::
           Properties.Value.Boolean(verbose) ::
           Command_Line.Chunks(more_dirs, session_groups, build_options, sessions) =>
-            build(all_sessions, build_heap, more_dirs.map(Path.explode), session_groups,
-              max_jobs, no_build, build_options, system_mode, verbose, sessions)
+            build(all_sessions, build_heap, more_dirs.map(Path.explode), fresh_build,
+              session_groups, max_jobs, no_build, build_options, system_mode, verbose, sessions)
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }
     }
