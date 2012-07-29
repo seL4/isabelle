@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+#
+# Author: Florian Haftmann
+#
+# DESCRIPTION: Download and unpack components from central component store
+
+shopt -s -o errexit
+shopt -s -o nounset
+
+THIS="$(basename "$0")"
+HERE="$(cd $(dirname "$0"); cd "$(pwd -P)"; pwd)"
+
+trap 'echo "Error in ${THIS}" >&2' ERR
+
+function fail {
+  echo "$1" >&2
+  exit 1
+}
+
+ISABELLE_HOME_USER="$(isabelle getenv -b ISABELLE_HOME_USER)"
+: ${TMP:='/tmp'}
+REMOTE='http://isabelle.in.tum.de/components'
+LOCAL="${ISABELLE_HOME_USER}/contrib"
+SUFFIX='.tar.gz'
+
+for COMPONENT in "$@"
+do
+  COMPONENT_ARCHIVE="${COMPONENT}.tar.gz"
+  wget -nd --directory-prefix="${TMP}" "${REMOTE}/${COMPONENT_ARCHIVE}"
+  tar -xzv -f "${TMP}/${COMPONENT_ARCHIVE}" -C "${LOCAL}"
+  rm "${TMP}/${COMPONENT_ARCHIVE}"
+  echo
+done
