@@ -115,13 +115,11 @@ shift $(($OPTIND - 1))
 
 [ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
 
-if [ "$NO_BUILD" = false ]; then
+if [ "$NO_BUILD" = false -a "$VERBOSE" = true ]; then
   echo "Started at $(date) ($ML_IDENTIFIER on $(hostname))"
 
-  if [ "$VERBOSE" = true ]; then
-    show_settings ""
-    echo
-  fi
+  show_settings ""
+  echo
   . "$ISABELLE_HOME/lib/scripts/timestart.bash"
 fi
 
@@ -131,7 +129,7 @@ fi
   "${MORE_DIRS[@]}" $'\n' "${SESSION_GROUPS[@]}" $'\n' "${BUILD_OPTIONS[@]}" $'\n' "$@"
 RC="$?"
 
-if [ "$NO_BUILD" = false ]; then
+if [ "$NO_BUILD" = false -a "$VERBOSE" = true ]; then
   echo -n "Finished at "; date
 
   . "$ISABELLE_HOME/lib/scripts/timestop.bash"
