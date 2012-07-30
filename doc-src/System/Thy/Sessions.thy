@@ -5,27 +5,27 @@ begin
 chapter {* Isabelle sessions and build management \label{ch:session} *}
 
 text {* An Isabelle \emph{session} consists of a collection of related
-  theories that are associated with an optional formal document (see
-  also \chref{ch:present}).  There is also a notion of persistent
-  \emph{heap image} to capture the state of a session, similar to
-  object-code in compiled programming languages.
+  theories that may be associated with formal documents (see also
+  \chref{ch:present}).  There is also a notion of \emph{persistent
+  heap} image to capture the state of a session, similar to
+  object-code in compiled programming languages.  Thus the concept of
+  session resembles that of a ``project'' in common IDE environments,
+  but the specific name emphasizes the connection to interactive
+  theorem proving: the session wraps-up the results of
+  user-interaction with the prover in a persistent form.
 
-  Thus the concept of session resembles that of a ``project'' in
-  common IDE environments, but our specific name emphasizes the
-  connection to interactive theorem proving: the session wraps-up the
-  results of user-interaction with the prover in a persistent form.
+  Application sessions are built on a given parent session, which may
+  be built recursively on other parents.  Following this path in the
+  hierarchy eventually leads to some major object-logic session like
+  @{text "HOL"}, which itself is based on @{text "Pure"} as the common
+  root of all sessions.
 
-  \medskip Application sessions are built on a given parent session.
-  The resulting hierarchy eventually leads to some major object-logic
-  session, notably @{text "HOL"}, which itself is based on @{text
-  "Pure"} as the common root.
+  Processing sessions may take considerable time.  Isabelle build
+  management helps to organize this efficiently.  This includes
+  support for parallel build jobs, in addition to the multithreaded
+  theory and proof checking that is already provided by the prover
+  process itself.  *}
 
-  Processing sessions may take considerable time.  The tools for
-  Isabelle build management help to organize this efficiently,
-  including support for parallel build jobs --- in addition to the
-  multithreaded theory and proof checking that is already provided by
-  the prover process.
-*}
 
 section {* Session ROOT specifications \label{sec:session-root} *}
 
@@ -93,9 +93,9 @@ text {* Session specifications reside in files called @{verbatim ROOT}
   collection of groups where the new session is a member.  Group names
   are uninterpreted and merely follow certain conventions.  For
   example, the Isabelle distribution tags some important sessions by
-  the group name @{text "main"}.  Other projects may invent their own
-  conventions, which requires some care to avoid clashes within this
-  unchecked name space.
+  the group name called ``@{text "main"}''.  Other projects may invent
+  their own conventions, but this requires some care to avoid clashes
+  within this unchecked name space.
 
   \item \isakeyword{session}~@{text "A"}~\isakeyword{in}~@{text "dir"}
   specifies an explicit directory for this session.  By default,
@@ -115,21 +115,21 @@ text {* Session specifications reside in files called @{verbatim ROOT}
   annotation for this session.
 
   \item \isakeyword{options}~@{text "[x = a, y = b, z]"} defines
-  separate options that are used when processing this session, but
-  \emph{without} propagation to child sessions; see also
-  \secref{sec:system-options}.  Note that @{text "z"} abbreviates
-  @{text "z = true"} for Boolean options.
+  separate options (\secref{sec:system-options}) that are used when
+  processing this session, but \emph{without} propagation to child
+  sessions.  Note that @{text "z"} abbreviates @{text "z = true"} for
+  Boolean options.
 
   \item \isakeyword{theories}~@{text "options names"} specifies a
   block of theories that are processed within an environment that is
-  augmented further by the given options, in addition to the global
-  session options given before.  Any number of blocks of
-  \isakeyword{theories} may be given.  Options are only active for
-  each \isakeyword{theories} block separately.
+  augmented by the given options, in addition to the global session
+  options given before.  Any number of blocks of \isakeyword{theories}
+  may be given.  Options are only active for each
+  \isakeyword{theories} block separately.
 
   \item \isakeyword{files}~@{text "files"} lists additional source
-  files that are somehow involved in the processing of this session.
-  This should cover anything outside the formal content of the theory
+  files that are involved in the processing of this session.  This
+  should cover anything outside the formal content of the theory
   sources, say some auxiliary {\TeX} files that are required for
   document processing.  In contrast, files that are specified in
   formal theory headers as @{keyword "uses"} need not be declared
@@ -199,24 +199,24 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   catalogs are only required for extra scalability and modularity
   of large libraries.
 
-  \medskip The subset of sessions to be managed is selected via
+  \medskip The subset of sessions to be managed is determined via
   individual @{text "SESSIONS"} given as command-line arguments, or
-  session groups that are specified via one or more options @{verbatim
+  session groups that are given via one or more options @{verbatim
   "-g"}~@{text "NAME"}.  Option @{verbatim "-a"} selects all sessions.
-  The build tool takes the hierarchy of sessions into account: the
-  selected set of sessions is completed by including all ancestors
-  according to the dependency structure.
+  The build tool takes session dependencies into account: the set of
+  selected sessions is completed by including all ancestors.
 
-  \medskip The build process depends on additional options that are
-  passed to the prover session eventually, see also
-  (\secref{sec:system-options}).  The settings variable @{setting_ref
-  ISABELLE_BUILD_OPTIONS} allows to provide additional defaults.
-  Moreover, the environment of system build options may be augmented
-  on the command line via @{verbatim "-o"}~@{text "NAME=VALUE"} or
-  @{verbatim "-o"}~@{text "NAME"}, which abbreviates @{verbatim
-  "-o"}~@{text "NAME=true"} for Boolean options.  Multiple occurrences
-  of @{verbatim "-o"} on the command-line are applied in the given
-  order.
+  \medskip The build process depends on additional options
+  (\secref{sec:system-options}) that are passed to the prover
+  eventually.  The settings variable @{setting_ref
+  ISABELLE_BUILD_OPTIONS} allows to provide additional defaults, e.g.\
+  \texttt{ISABELLE_BUILD_OPTIONS="document=pdf threads=4"}. Moreover,
+  the environment of system build options may be augmented on the
+  command line via @{verbatim "-o"}~@{text "name"}@{verbatim
+  "="}@{text "value"} or @{verbatim "-o"}~@{text "name"}, which
+  abbreviates @{verbatim "-o"}~@{text "name"}@{verbatim"=true"} for
+  Boolean options.  Multiple occurrences of @{verbatim "-o"} on the
+  command-line are applied in the given order.
 
   \medskip Option @{verbatim "-b"} ensures that heap images are
   produced for all selected sessions.  By default, images are only
@@ -232,9 +232,9 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   sessions.
 
   \medskip Option @{verbatim "-j"} specifies the maximum number of
-  parallel build jobs (prover processes).  Note that each process is
-  subject to a separate limit of parallel threads, cf.\ system option
-  @{system_option_ref threads}.
+  parallel build jobs (prover processes).  Each prover process is
+  subject to a separate limit of parallel worker threads, cf.\ system
+  option @{system_option_ref threads}.
 
   \medskip Option @{verbatim "-s"} enables \emph{system mode}, which
   means that resulting heap images and log files are stored in
@@ -253,8 +253,7 @@ text {*
 isabelle build -b HOLCF
 \end{ttbox}
 
-  \smallskip Build the main group of logic images (as determined by
-  the session ROOT specifications of the Isabelle distribution):
+  \smallskip Build the main group of logic images:
 \begin{ttbox}
 isabelle build -b -g main
 \end{ttbox}
@@ -271,8 +270,8 @@ isabelle build -a -n -v
 isabelle build -a -o browser_info -o document=pdf
 \end{ttbox}
 
-  \smallskip Build all sessions with a maximum of 8 prover processes
-  and 4 threads each (on a machine with many cores):
+  \smallskip Build all sessions with a maximum of 8 parallel prover
+  processes and 4 worker threads each (on a machine with many cores):
 \begin{ttbox}
 isabelle build -a -j8 -o threads=4
 \end{ttbox}
