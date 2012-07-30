@@ -52,7 +52,6 @@ function usage()
   echo "    -J OPTION    add JVM runtime option"
   echo "                 (default JEDIT_JAVA_OPTIONS=$JEDIT_JAVA_OPTIONS)"
   echo "    -b           build only"
-  echo "    -d           enable debugger"
   echo "    -f           fresh build"
   echo "    -j OPTION    add jEdit runtime option"
   echo "                 (default JEDIT_OPTIONS=$JEDIT_OPTIONS)"
@@ -97,10 +96,6 @@ function getoptions()
         ;;
       b)
         BUILD_ONLY=true
-        ;;
-      d)
-        JAVA_ARGS["${#JAVA_ARGS[@]}"]="-Xdebug"
-        JAVA_ARGS["${#JAVA_ARGS[@]}"]="-Xrunjdwp:transport=dt_socket,server=y,suspend=n"
         ;;
       f)
         BUILD_JARS="jars_fresh"

@@ -27,16 +27,15 @@
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The \indexdef{}{tool}{jedit}\hypertarget{tool.jedit}{\hyperlink{tool.jedit}{\mbox{\isa{\isatool{jedit}}}}} tool invokes a version of jEdit that has
-  been augmented with some components to provide a fully-featured
-  Prover IDE (based on Isabelle/Scala):
-\begin{ttbox}
-Usage: isabelle jedit [OPTIONS] [FILES ...]
+The \indexdef{}{tool}{jedit}\hypertarget{tool.jedit}{\hyperlink{tool.jedit}{\mbox{\isa{\isatool{jedit}}}}} tool invokes a version of
+  jEdit\footnote{\url{http://www.jedit.org/}} that has been augmented
+  with some components to provide a fully-featured Prover IDE:
+\begin{ttbox} Usage: isabelle jedit [OPTIONS]
+  [FILES ...]
 
   Options are:
     -J OPTION    add JVM runtime option (default JEDIT_JAVA_OPTIONS)
     -b           build only
-    -d           enable debugger
     -f           fresh build
     -j OPTION    add jEdit runtime option (default JEDIT_OPTIONS)
     -l NAME      logic image name (default ISABELLE_LOGIC)
@@ -51,16 +50,15 @@ Start jEdit with Isabelle plugin setup and opens theory FILES
 
   The \verb|-J| and \verb|-j| options allow to pass
   additional low-level options to the JVM or jEdit, respectively.  The
-  defaults are provided by the Isabelle settings environment.
-
-  The \verb|-d| option allows to connect to the runtime
-  debugger of the JVM.  Note that the Scala Console of Isabelle/jEdit
-  is more convenient in most practical situations.
+  defaults are provided by the Isabelle settings environment
+  (\secref{sec:settings}).
 
   The \verb|-b| and \verb|-f| options control the
   self-build mechanism of Isabelle/jEdit.  This is only relevant for
-  building from sources, which also requires an auxiliary \verb|jedit_build| component.  Official Isabelle releases already include
-  a version of Isabelle/jEdit that is built properly.%
+  building from sources, which also requires an auxiliary \verb|jedit_build|
+  component.\footnote{\url{http://isabelle.in.tum.de/components}} Note
+  that official Isabelle releases already include a version of
+  Isabelle/jEdit that is built properly.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -70,11 +68,11 @@ Start jEdit with Isabelle plugin setup and opens theory FILES
 %
 \begin{isamarkuptext}%
 The \indexdef{}{tool}{emacs}\hypertarget{tool.emacs}{\hyperlink{tool.emacs}{\mbox{\isa{\isatool{emacs}}}}} tool invokes a version of Emacs and
-  Proof General \cite{proofgeneral} within the regular Isabelle
-  settings environment (\secref{sec:settings}).  This is more
-  convenient than starting Emacs separately, loading the Proof General
-  lisp files, and then attempting to start Isabelle with dynamic
-  \hyperlink{setting.PATH}{\mbox{\isa{\isatt{PATH}}}} lookup etc.
+  Proof General\footnote{http://proofgeneral.inf.ed.ac.uk/} within the
+  regular Isabelle settings environment (\secref{sec:settings}).  This
+  is more convenient than starting Emacs separately, loading the Proof
+  General LISP files, and then attempting to start Isabelle with
+  dynamic \hyperlink{setting.PATH}{\mbox{\isa{\isatt{PATH}}}} lookup etc.
 
   The actual interface script is part of the Proof General
   distribution; its usage depends on the particular version.  There
@@ -123,11 +121,10 @@ Usage: isabelle tty [OPTIONS]
   as the \indexdef{}{executable}{rlwrap}\hypertarget{executable.rlwrap}{\hyperlink{executable.rlwrap}{\mbox{\isa{\isatt{rlwrap}}}}} wrapper for GNU readline); the
   fall-back is to use raw standard input.
 
-  Regular interaction is via the standard Isabelle/Isar toplevel loop.
-  The Isar command \hyperlink{command.exit}{\mbox{\isa{\isacommand{exit}}}} drops out into the bare-bones ML
-  system, which is occasionally useful for debugging of the Isar
-  infrastructure itself.  Invoking \verb|Isar.loop|~\verb|();|
-  in ML will return to the Isar toplevel.%
+  Regular interaction works via the standard Isabelle/Isar toplevel
+  loop.  The Isar command \hyperlink{command.exit}{\mbox{\isa{\isacommand{exit}}}} drops out into the
+  bare-bones ML system, which is occasionally useful for debugging of
+  the Isar infrastructure itself.  Invoking \verb|Isar.loop|~\verb|();| in ML will return to the Isar toplevel.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
