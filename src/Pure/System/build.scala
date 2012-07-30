@@ -64,14 +64,27 @@ object Build
 
       def - (name: String): Queue = new Queue(graph.del_node(name))
 
-      def required(groups: List[String], names: List[String]): Queue =
+      def required(all_sessions: Boolean, session_groups: List[String], sessions: List[String])
+        : (List[String], Queue) =
       {
-        val selected_group = groups.toSet
-        val selected_name = names.toSet
+        sessions.filterNot(isDefinedAt(_)) match {
+          case Nil =>
+          case bad => error("Undefined session(s): " + commas_quote(bad))
+        }
+
         val selected =
-          graph.keys.filter(name =>
-            selected_name(name) || apply(name).groups.exists(selected_group)).toList
-        new Queue(graph.restrict(graph.all_preds(selected).toSet))
+        {
+          if (all_sessions) graph.keys.toList
+          else {
+            val sel_group = session_groups.toSet
+            val sel = sessions.toSet
+              graph.keys.toList.filter(name =>
+                sel(name) || apply(name).groups.exists(sel_group)).toList
+          }
+        }
+        val descendants = graph.all_succs(selected)
+        val queue1 = new Queue(graph.restrict(graph.all_preds(selected).toSet))
+        (descendants, queue1)
       }
 
       def dequeue(skip: String => Boolean): Option[(String, Info)] =
@@ -83,7 +96,7 @@ object Build
       }
 
       def topological_order: List[(String, Info)] =
-        graph.topological_order.map(name => (name, graph.get_node(name)))
+        graph.topological_order.map(name => (name, apply(name)))
     }
   }
 
@@ -232,8 +245,7 @@ object Build
       })
   }
 
-  def find_sessions(options: Options, more_dirs: List[Path],
-    all_sessions: Boolean, session_groups: List[String], sessions: List[String]): Session.Queue =
+  def find_sessions(options: Options, more_dirs: List[Path]): Session.Queue =
   {
     var queue = Session.Queue.empty
 
@@ -246,12 +258,7 @@ object Build
 
     for (dir <- more_dirs) queue = sessions_dir(options, true, dir, queue)
 
-    sessions.filter(name => !queue.isDefinedAt(name)) match {
-      case Nil =>
-      case bad => error("Undefined session(s): " + commas_quote(bad))
-    }
-
-    if (all_sessions) queue else queue.required(session_groups, sessions)
+    queue
   }
 
 
@@ -439,8 +446,8 @@ object Build
   def build(
     all_sessions: Boolean = false,
     build_heap: Boolean = false,
+    clean_build: Boolean = false,
     more_dirs: List[Path] = Nil,
-    fresh_build: Boolean,
     session_groups: List[String] = Nil,
     max_jobs: Int = 1,
     no_build: Boolean = false,
@@ -450,7 +457,8 @@ object Build
     sessions: List[String] = Nil): Int =
   {
     val options = (Options.init() /: build_options)(_.define_simple(_))
-    val queue = find_sessions(options, more_dirs, all_sessions, session_groups, sessions)
+    val (descendants, queue) =
+      find_sessions(options, more_dirs).required(all_sessions, session_groups, sessions)
     val deps = dependencies(verbose, queue)
 
     def make_stamp(name: String): String =
@@ -469,6 +477,16 @@ object Build
 
     // prepare log dir
     (output_dir + LOG).file.mkdirs()
+
+    // optional cleanup
+    if (clean_build) {
+      for (name <- descendants) {
+        val files =
+          List(Path.basic(name), log(name), log_gz(name)).map(output_dir + _).filter(_.is_file)
+        if (!files.isEmpty) echo("Cleaning " + name + " ...")
+        if (!files.forall(p => p.file.delete)) echo(name + " FAILED to delete")
+      }
+    }
 
     // scheduler loop
     @tailrec def loop(
@@ -524,7 +542,7 @@ object Build
                     case None => false
                   }
                 }
-                val all_current = current && parent_current && !fresh_build
+                val all_current = current && parent_current
 
                 if (all_current)
                   loop(pending - name, running, results + (name -> (true, 0)))
@@ -572,13 +590,13 @@ object Build
         case
           Properties.Value.Boolean(all_sessions) ::
           Properties.Value.Boolean(build_heap) ::
-          Properties.Value.Boolean(fresh_build) ::
+          Properties.Value.Boolean(clean_build) ::
           Properties.Value.Int(max_jobs) ::
           Properties.Value.Boolean(no_build) ::
           Properties.Value.Boolean(system_mode) ::
           Properties.Value.Boolean(verbose) ::
           Command_Line.Chunks(more_dirs, session_groups, build_options, sessions) =>
-            build(all_sessions, build_heap, more_dirs.map(Path.explode), fresh_build,
+            build(all_sessions, build_heap, clean_build, more_dirs.map(Path.explode),
               session_groups, max_jobs, no_build, build_options, system_mode, verbose, sessions)
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }

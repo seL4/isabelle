@@ -167,8 +167,8 @@ text {* The @{tool_def build} utility invokes the build process for
   Options are:
     -a           select all sessions
     -b           build heap images
+    -c           clean build
     -d DIR       include session directory with ROOT file
-    -f           fresh build
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs (default 1)
     -n           no build -- test dependencies only
@@ -222,8 +222,13 @@ text {* The @{tool_def build} utility invokes the build process for
   saved for inner nodes of the hierarchy of sessions, as required for
   other sessions to continue later on.
 
-  \medskip Option @{verbatim "-f"} ensures a fresh build, even if all
-  results are up-to-date wrt.\ the current set of sources.
+  \medskip Option @{verbatim "-c"} cleans all descendants of the
+  selected sessions before performing the specified build operation.
+
+  \medskip Option @{verbatim "-n"} omits the actual build process
+  after the preparatory stage (including optional cleanup).  Note that
+  the return code always indicates the status of the set of selected
+  sessions.
 
   \medskip Option @{verbatim "-j"} specifies the maximum number of
   parallel build jobs (prover processes).  Note that each process is
@@ -236,10 +241,6 @@ text {* The @{tool_def build} utility invokes the build process for
   @{setting ISABELLE_OUTPUT} (which is normally in @{setting
   ISABELLE_HOME_USER}, i.e.\ the user's home directory).
 
-  \medskip Option @{verbatim "-n"} omits the actual build process
-  after performing all dependency checks.  The return code indicates
-  the status of the set of selected sessions.
-
   \medskip Option @{verbatim "-v"} enables verbose mode.
 *}
 
@@ -251,29 +252,39 @@ text {*
 isabelle build -b HOLCF
 \end{ttbox}
 
-  Build the main group of logic images (as determined by the session
-  ROOT specifications of the Isabelle distribution):
+  \smallskip Build the main group of logic images (as determined by
+  the session ROOT specifications of the Isabelle distribution):
 \begin{ttbox}
 isabelle build -b -g main
 \end{ttbox}
 
-  Provide a general overview of the status of all Isabelle sessions,
-  without building anything:
+  \smallskip Provide a general overview of the status of all Isabelle
+  sessions, without building anything:
 \begin{ttbox}
 isabelle build -a -n -v
 \end{ttbox}
 
-  Build all sessions with HTML browser info and PDF document
-  preparation:
+  \smallskip Build all sessions with HTML browser info and PDF
+  document preparation:
 \begin{ttbox}
 isabelle build -a -o browser_info -o document=pdf
 \end{ttbox}
 
-  Build all sessions with a maximum of 8 prover processes and 4
-  threads each (on a machine with many cores):
-
+  \smallskip Build all sessions with a maximum of 8 prover processes
+  and 4 threads each (on a machine with many cores):
 \begin{ttbox}
 isabelle build -a -j8 -o threads=4
+\end{ttbox}
+
+  \smallskip Build some session images with cleanup of their
+  descendants, while retaining their ancestry:
+\begin{ttbox}
+isabelle build -b -c HOL-Boogie HOL-SPARK
+\end{ttbox}
+
+  \smallskip Clean all sessions without building anything:
+\begin{ttbox}
+isabelle build -a -n -c
 \end{ttbox}
 *}
 
