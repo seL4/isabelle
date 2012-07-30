@@ -28,6 +28,7 @@ function usage()
   echo "  Options are:"
   echo "    -a           select all sessions"
   echo "    -b           build heap images"
+  echo "    -c           clean build"
   echo "    -d DIR       include session directory with ROOT file"
   echo "    -g NAME      select session group NAME"
   echo "    -j INT       maximum number of parallel jobs (default 1)"
@@ -58,6 +59,7 @@ function check_number()
 
 ALL_SESSIONS=false
 BUILD_HEAP=false
+CLEAN_BUILD=false
 declare -a MORE_DIRS=()
 declare -a SESSION_GROUPS=()
 MAX_JOBS=1
@@ -66,7 +68,7 @@ eval "declare -a BUILD_OPTIONS=($ISABELLE_BUILD_OPTIONS)"
 SYSTEM_MODE=false
 VERBOSE=false
 
-while getopts "abd:g:j:no:sv" OPT
+while getopts "abcd:g:j:no:sv" OPT
 do
   case "$OPT" in
     a)
@@ -74,6 +76,9 @@ do
       ;;
     b)
       BUILD_HEAP="true"
+      ;;
+    c)
+      CLEAN_BUILD="true"
       ;;
     d)
       MORE_DIRS["${#MORE_DIRS[@]}"]="$OPTARG"
@@ -121,7 +126,8 @@ if [ "$NO_BUILD" = false ]; then
 fi
 
 "$ISABELLE_TOOL" java isabelle.Build \
-  "$ALL_SESSIONS" "$BUILD_HEAP" "$MAX_JOBS" "$NO_BUILD" "$SYSTEM_MODE" "$VERBOSE" \
+  "$ALL_SESSIONS" "$BUILD_HEAP" "$CLEAN_BUILD" "$MAX_JOBS" \
+  "$NO_BUILD" "$SYSTEM_MODE" "$VERBOSE" \
   "${MORE_DIRS[@]}" $'\n' "${SESSION_GROUPS[@]}" $'\n' "${BUILD_OPTIONS[@]}" $'\n' "$@"
 RC="$?"
 
