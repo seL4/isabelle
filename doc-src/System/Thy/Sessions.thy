@@ -168,7 +168,6 @@ text {* The @{tool_def build} utility invokes the build process for
     -a           select all sessions
     -b           build heap images
     -d DIR       include session directory with ROOT file
-    -f           fresh build
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs (default 1)
     -n           no build -- test dependencies only
@@ -221,9 +220,6 @@ text {* The @{tool_def build} utility invokes the build process for
   produced for all selected sessions.  By default, images are only
   saved for inner nodes of the hierarchy of sessions, as required for
   other sessions to continue later on.
-
-  \medskip Option @{verbatim "-f"} ensures a fresh build, even if all
-  results are up-to-date wrt.\ the current set of sources.
 
   \medskip Option @{verbatim "-j"} specifies the maximum number of
   parallel build jobs (prover processes).  Note that each process is
