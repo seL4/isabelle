@@ -118,7 +118,7 @@ session System! (doc) in "System/Thy" = Pure +
 session Tutorial (doc) in "TutorialI" = HOL +
   options [browser_info = false, document = false,
     document_dump = document, document_dump_mode = "tex",
-    print_mode = "brackets", threads = 1 (* FIXME *)]
+    print_mode = "brackets"]
   theories [thy_output_indent = 5]
     "ToyList/ToyList"
     "Ifexpr/Ifexpr"
@@ -157,7 +157,7 @@ session Tutorial (doc) in "TutorialI" = HOL +
     "Documents/Documents"
   theories [document_dump = ""]
     "Types/Setup"
-  theories
+  theories [pretty_margin = 64, thy_output_indent = 0]
     "Types/Numbers"
     "Types/Pairs"
     "Types/Records"
@@ -167,6 +167,8 @@ session Tutorial (doc) in "TutorialI" = HOL +
     "Rules/Basic"
     "Rules/Blast"
     "Rules/Force"
+  theories [pretty_margin = 64, thy_output_indent = 5]
+    "Rules/Primes"
     "Rules/Forward"
     "Rules/Tacticals"
     "Rules/find2"

@@ -1,7 +1,5 @@
 theory Recur imports Main begin
 
-ML "Pretty.margin_default := 64"
-
 
 text{*
 @{thm[display] mono_def[no_vars]}

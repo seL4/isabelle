@@ -8,10 +8,6 @@ fun gcd :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
   "gcd m n = (if n=0 then m else gcd n (m mod n))"
 
 
-ML "Pretty.margin_default := 64"
-declare [[thy_output_indent = 5]]  (*that is, Doc/TutorialI/settings.ML*)
-
-
 text {*Now in Basic.thy!
 @{thm[display]"dvd_def"}
 \rulename{dvd_def}

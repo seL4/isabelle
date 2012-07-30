@@ -1,7 +1,5 @@
 theory Functions imports Main begin
 
-ML "Pretty.margin_default := 64"
-
 
 text{*
 @{thm[display] id_def[no_vars]}

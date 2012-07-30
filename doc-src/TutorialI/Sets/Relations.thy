@@ -1,7 +1,5 @@
 theory Relations imports Main begin
 
-ML "Pretty.margin_default := 64"
-
 (*Id is only used in UNITY*)
 (*refl, antisym,trans,univalent,\<dots> ho hum*)
 
