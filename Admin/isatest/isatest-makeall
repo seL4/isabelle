@@ -2,7 +2,7 @@
 #
 # Author: Gerwin Klein, TU Muenchen
 #
-# DESCRIPTION: Run isabelle makeall from specified distribution and settings.
+# DESCRIPTION: Run isabelle build from specified distribution and settings.
 
 ## global settings
 . ~/admin/isatest/isatest-settings
@@ -18,14 +18,14 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: $PRG [-l logic targets] settings1 [settings2 ...]"
+  echo "Usage: $PRG [-l targets] settings1 [settings2 ...]"
   echo
-  echo "  Runs isabelle makeall for specified settings."
+  echo "  Runs isabelle build for specified settings."
   echo "  Leaves messages in ${ERRORLOG} and ${LOGPREFIX} if it fails."
   echo
   echo "Examples:"
   echo "  $PRG ~/settings/at-poly ~/settings/at-sml"
-  echo "  $PRG -l HOL \"HOL-Library HOL-Bali\" ~/settings/at-poly"
+  echo "  $PRG -l \"HOL-Library HOL-Bali\" ~/settings/at-poly"
   exit 1
 }
 
@@ -46,43 +46,32 @@ function fail()
 
 [ -d $DISTPREFIX ] || fail "$DISTPREFIX is not a directory."
 
-TARGETS=all
-
-# make file flags and nice setup for different target platforms
-MFLAGS="-k"
+# build args and nice setup for different target platforms
+BUILD_ARGS="-v"
 NICE="nice"
 case $HOSTNAME in
     macbroy2 | macbroy6 | macbroy30)
         NICE=""
         ;;
     lxbroy[234])
-        MFLAGS="-k -j 2"
+        BUILD_ARGS="$BUILD_ARGS -j 2"
         NICE=""
         ;;
 
 esac
 
 ISABELLE_TOOL="$DISTPREFIX/Isabelle/bin/isabelle"
-
 [ -x $ISABELLE_TOOL ] || fail "Cannot run $ISABELLE_TOOL"
+
+ISABELLE_HOME="$($ISABELLE_TOOL getenv -b ISABELLE_HOME)"
 
 if [ "$1" = "-l" ]; then
   shift
-  [ "$#" -lt "3" ] && usage
-  LOGIC="$1"
-  TARGETS="$2"
-  shift 2
-  ISABELLE_HOME="$($ISABELLE_TOOL getenv -b ISABELLE_HOME)"
-  if [ "$LOGIC" = "." ]; then
-    DIR="."
-    TOOL="$ISABELLE_TOOL makeall $MFLAGS $TARGETS"
-  else
-    DIR="$ISABELLE_HOME/src/$LOGIC"
-    TOOL="$ISABELLE_TOOL make $MFLAGS $TARGETS"
-  fi
+  [ "$#" -lt 2 ] && usage
+  BUILD_ARGS="$BUILD_ARGS $1"
+  shift
 else
-  DIR="."
-  TOOL="$ISABELLE_TOOL makeall $MFLAGS $TARGETS"
+  BUILD_ARGS="$BUILD_ARGS -a"
 fi
 
 IDENT=$(cat "$DISTPREFIX/ISABELLE_IDENT")
@@ -124,7 +113,7 @@ for SETTINGS in $@; do
 
     cp $DISTPREFIX/Isabelle/etc/settings.orig $DISTPREFIX/Isabelle/etc/settings
     cat $SETTINGS >> $DISTPREFIX/Isabelle/etc/settings
-    (ulimit -t $MAXTIME; cd $DIR; $NICE $TOOL >> $TESTLOG 2>&1)
+    (ulimit -t $MAXTIME; $NICE "$ISABELLE_TOOL" build $BUILD_ARGS >> $TESTLOG 2>&1)
 
     if [ $? -eq 0 ]
     then

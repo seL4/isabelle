@@ -60,7 +60,7 @@ rm -rf $HOME/isabelle-*
 
 echo "### building distribution"  >> $DISTLOG 2>&1
 mkdir -p $DISTPREFIX
-$MAKEDIST -j "/home/isabelle/contrib_devel/jedit_build-20120414" >> $DISTLOG 2>&1
+$MAKEDIST -D -j "/home/isabelle/contrib_devel/jedit_build-20120414" >> $DISTLOG 2>&1
 
 if [ $? -ne 0 ]
 then
@@ -105,13 +105,13 @@ $SSH lxbroy2 "
 sleep 15
 $SSH lxbroy3 "
   $MAKEALL $HOME/settings/at64-poly;
-  $MAKEALL -l HOL HOL-Library $HOME/settings/at-sml-dev-e"
+  $MAKEALL -l HOL-Library $HOME/settings/at-sml-dev-e"
 sleep 15
 $SSH macbroy23 "$MAKEALL $HOME/settings/at-poly-e"
 sleep 15
 $SSH macbroy2 "
-  $MAKEALL -l . full $HOME/settings/mac-poly64-M4;
-  $MAKEALL -l . full $HOME/settings/mac-poly64-M8;
+  env ISABELLE_BENCHMARK=true $MAKEALL $HOME/settings/mac-poly64-M4;
+  env ISABELLE_BENCHMARK=true $MAKEALL $HOME/settings/mac-poly64-M8;
   $MAKEALL $HOME/settings/mac-poly-M4;
   $MAKEALL $HOME/settings/mac-poly-M8"
 sleep 15
