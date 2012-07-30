@@ -77,7 +77,8 @@ object Parse
     /* wrappers */
 
     def parse[T](p: Parser[T], in: Token.Reader): ParseResult[T] = p(in)
-    def parse_all[T](p: Parser[T], in: Token.Reader): ParseResult[T] = parse(phrase(p), in)
+    def parse_all[T](p: Parser[T], in: Token.Reader): ParseResult[T] =
+      parse(p <~ eof, in)
   }
 }
 
