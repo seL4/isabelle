@@ -177,6 +177,10 @@ session Tutorial (doc) in "TutorialI" = HOL +
     "Sets/Relations"
     "Sets/Recur"
 
+session ToyList2 (doc) in "TutorialI/ToyList2" = HOL +
+  options [browser_info = false, document = false, print_mode = "brackets"]
+  theories ToyList
+
 session examples (doc) in "ZF" = ZF +
   options [browser_info = false, document = false,
     document_dump = document, document_dump_mode = "tex",

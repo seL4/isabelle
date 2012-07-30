@@ -23,9 +23,13 @@ FILES = tutorial.tex basics.tex fp.tex appendix.tex			\
 	../../lib/texinputs/isabelle.sty				\
 	../../lib/texinputs/isabellesym.sty ../pdfsetup.sty
 
+ToyList2/ToyList.thy: ToyList2/ToyList1 ToyList2/ToyList2
+	cat ToyList2/ToyList1 ToyList2/ToyList2 > ToyList2/ToyList.thy
+
+
 dvi: $(NAME).dvi
 
-$(NAME).dvi: $(FILES) isabelle_hol.eps typedef.ps
+$(NAME).dvi: $(FILES) isabelle_hol.eps typedef.ps ToyList2/ToyList.thy
 	$(LATEX) $(NAME)
 	$(BIBTEX) $(NAME)
 	$(LATEX) $(NAME)
@@ -35,7 +39,7 @@ $(NAME).dvi: $(FILES) isabelle_hol.eps typedef.ps
 
 pdf: $(NAME).pdf
 
-$(NAME).pdf: $(FILES) isabelle_hol.pdf typedef.pdf
+$(NAME).pdf: $(FILES) isabelle_hol.pdf typedef.pdf ToyList2/ToyList.thy
 	$(PDFLATEX) $(NAME)
 	$(BIBTEX) $(NAME)
 	$(PDFLATEX) $(NAME)
