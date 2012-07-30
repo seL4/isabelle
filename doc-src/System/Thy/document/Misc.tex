@@ -33,10 +33,10 @@ Subsequently we describe various Isabelle related utilities, given
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The \indexdef{}{tool}{display}\hypertarget{tool.display}{\hyperlink{tool.display}{\mbox{\isa{\isatt{display}}}}} utility displays documents in DVI or PDF
+The \indexdef{}{tool}{display}\hypertarget{tool.display}{\hyperlink{tool.display}{\mbox{\isa{\isatool{display}}}}} tool displays documents in DVI or PDF
   format:
 \begin{ttbox}
-Usage: display [OPTIONS] FILE
+Usage: isabelle display [OPTIONS] FILE
 
   Options are:
     -c           cleanup -- remove FILE after use
@@ -55,9 +55,9 @@ Usage: display [OPTIONS] FILE
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The \indexdef{}{tool}{doc}\hypertarget{tool.doc}{\hyperlink{tool.doc}{\mbox{\isa{\isatt{doc}}}}} utility displays online documentation:
+The \indexdef{}{tool}{doc}\hypertarget{tool.doc}{\hyperlink{tool.doc}{\mbox{\isa{\isatool{doc}}}}} tool displays online documentation:
 \begin{ttbox}
-Usage: doc [DOC]
+Usage: isabelle doc [DOC]
 
   View Isabelle documentation DOC, or show list of available documents.
 \end{ttbox}
@@ -78,10 +78,9 @@ Usage: doc [DOC]
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The \indexdef{}{tool}{env}\hypertarget{tool.env}{\hyperlink{tool.env}{\mbox{\isa{\isatt{env}}}}} utility is a direct wrapper for the
-  standard \verb|/usr/bin/env| command on POSIX systems,
-  running within the Isabelle settings environment
-  (\secref{sec:settings}).
+The \indexdef{}{tool}{env}\hypertarget{tool.env}{\hyperlink{tool.env}{\mbox{\isa{\isatool{env}}}}} tool is a direct wrapper for the standard
+  \verb|/usr/bin/env| command on POSIX systems, running within
+  the Isabelle settings environment (\secref{sec:settings}).
 
   The command-line arguments are that of the underlying version of
   \verb|env|.  For example, the following invokes an instance of
@@ -97,7 +96,7 @@ The \indexdef{}{tool}{env}\hypertarget{tool.env}{\hyperlink{tool.env}{\mbox{\isa
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The \indexdef{}{tool}{findlogics}\hypertarget{tool.findlogics}{\hyperlink{tool.findlogics}{\mbox{\isa{\isatt{findlogics}}}}} utility traverses all directories
+The \indexdef{}{tool}{findlogics}\hypertarget{tool.findlogics}{\hyperlink{tool.findlogics}{\mbox{\isa{\isatool{findlogics}}}}} tool traverses all directories
   specified in \hyperlink{setting.ISABELLE-PATH}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}PATH}}}}, looking for Isabelle logic
   images. Its usage is:
 \begin{ttbox}
@@ -120,9 +119,9 @@ Usage: isabelle findlogics
 \begin{isamarkuptext}%
 The Isabelle settings environment --- as provided by the
   site-default and user-specific settings files --- can be inspected
-  with the \indexdef{}{tool}{getenv}\hypertarget{tool.getenv}{\hyperlink{tool.getenv}{\mbox{\isa{\isatt{getenv}}}}} utility:
+  with the \indexdef{}{tool}{getenv}\hypertarget{tool.getenv}{\hyperlink{tool.getenv}{\mbox{\isa{\isatool{getenv}}}}} tool:
 \begin{ttbox}
-Usage: getenv [OPTIONS] [VARNAMES ...]
+Usage: isabelle getenv [OPTIONS] [VARNAMES ...]
 
   Options are:
     -a           display complete environment
@@ -182,12 +181,12 @@ ISABELLE_OUTPUT="\$ISABELLE_HOME_USER/heaps"
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-By default, the main Isabelle binaries (\hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}}
-  etc.)  are just run from their location within the distribution
-  directory, probably indirectly by the shell through its \hyperlink{setting.PATH}{\mbox{\isa{\isatt{PATH}}}}.  Other schemes of installation are supported by the
-  \indexdef{}{tool}{install}\hypertarget{tool.install}{\hyperlink{tool.install}{\mbox{\isa{\isatt{install}}}}} utility:
+By default, the main Isabelle binaries (\hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}} etc.)  are just run from their location within the
+  distribution directory, probably indirectly by the shell through its
+  \hyperlink{setting.PATH}{\mbox{\isa{\isatt{PATH}}}}.  Other schemes of installation are supported by the
+  \indexdef{}{tool}{install}\hypertarget{tool.install}{\hyperlink{tool.install}{\mbox{\isa{\isatool{install}}}}} tool:
 \begin{ttbox}
-Usage: install [OPTIONS]
+Usage: isabelle install [OPTIONS]
 
   Options are:
     -d DISTDIR   use DISTDIR as Isabelle distribution
@@ -218,10 +217,10 @@ Usage: install [OPTIONS]
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The \indexdef{}{tool}{logo}\hypertarget{tool.logo}{\hyperlink{tool.logo}{\mbox{\isa{\isatt{logo}}}}} utility creates any instance of the generic
+The \indexdef{}{tool}{logo}\hypertarget{tool.logo}{\hyperlink{tool.logo}{\mbox{\isa{\isatool{logo}}}}} tool creates any instance of the generic
   Isabelle logo as an Encapsuled Postscript file (EPS):
 \begin{ttbox}
-Usage: logo [OPTIONS] NAME
+Usage: isabelle logo [OPTIONS] NAME
 
   Create instance NAME of the Isabelle logo (as EPS).
 
@@ -230,7 +229,8 @@ Usage: logo [OPTIONS] NAME
     -q           quiet mode
 \end{ttbox}
   You are encouraged to use this to create a derived logo for your
-  Isabelle project.  For example, \verb|isabelle| \hyperlink{tool.logo}{\mbox{\isa{\isatt{logo}}}}~\verb|Bali| creates \verb|isabelle_bali.eps|.%
+  Isabelle project.  For example, \hyperlink{tool.logo}{\mbox{\isa{\isatool{logo}}}}~\verb|Bali|
+  creates \verb|isabelle_bali.eps|.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -239,10 +239,10 @@ Usage: logo [OPTIONS] NAME
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The Isabelle \indexdef{}{tool}{make}\hypertarget{tool.make}{\hyperlink{tool.make}{\mbox{\isa{\isatt{make}}}}} utility is a very simple wrapper for
+The \indexdef{}{tool}{make}\hypertarget{tool.make}{\hyperlink{tool.make}{\mbox{\isa{\isatool{make}}}}} tool is a very simple wrapper for
   ordinary Unix \hyperlink{executable.make}{\mbox{\isa{\isatt{make}}}}:
 \begin{ttbox}
-Usage: make [ARGS ...]
+Usage: isabelle make [ARGS ...]
 
   Compile the logic in current directory using IsaMakefile.
   ARGS are directly passed to the system make program.
@@ -251,7 +251,7 @@ Usage: make [ARGS ...]
   Note that the Isabelle settings environment is also active. Thus one
   may refer to its values within the \verb|IsaMakefile|, e.g.\
   \verb|$(ISABELLE_OUTPUT)|. Furthermore, programs started from
-  the make file also inherit this environment.  Typically, \verb|IsaMakefile|s defer the real work to the \indexref{}{tool}{usedir}\hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} utility.
+  the make file also inherit this environment.  Typically, \verb|IsaMakefile|s defer the real work to \indexref{}{tool}{usedir}\hyperlink{tool.usedir}{\mbox{\isa{\isatool{usedir}}}}.
 
   \medskip The basic \verb|IsaMakefile| convention is that the
   default target builds the actual logic, including its parents if
@@ -278,17 +278,17 @@ Refer to the \verb|IsaMakefile|s of the Isabelle distribution's
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The \indexdef{}{tool}{makeall}\hypertarget{tool.makeall}{\hyperlink{tool.makeall}{\mbox{\isa{\isatt{makeall}}}}} utility applies Isabelle make to any
+The \indexdef{}{tool}{makeall}\hypertarget{tool.makeall}{\hyperlink{tool.makeall}{\mbox{\isa{\isatool{makeall}}}}} tool applies Isabelle make to any
   Isabelle component (cf.\ \secref{sec:components}) that contains an
   \verb|IsaMakefile|:
 \begin{ttbox}
-Usage: makeall [ARGS ...]
+Usage: isabelle makeall [ARGS ...]
 
   Apply isabelle make to all components with IsaMakefile (passing ARGS).
 \end{ttbox}
 
   The arguments \verb|ARGS| are just passed verbatim to each
-  \hyperlink{tool.make}{\mbox{\isa{\isatt{make}}}} invocation.%
+  \hyperlink{tool.make}{\mbox{\isa{\isatool{make}}}} invocation.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -297,9 +297,9 @@ Usage: makeall [ARGS ...]
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The \indexdef{}{tool}{print}\hypertarget{tool.print}{\hyperlink{tool.print}{\mbox{\isa{\isatt{print}}}}} utility prints documents:
+The \indexdef{}{tool}{print}\hypertarget{tool.print}{\hyperlink{tool.print}{\mbox{\isa{\isatool{print}}}}} tool prints documents:
 \begin{ttbox}
-Usage: print [OPTIONS] FILE
+Usage: isabelle print [OPTIONS] FILE
 
   Options are:
     -c           cleanup -- remove FILE after use
@@ -317,13 +317,13 @@ Usage: print [OPTIONS] FILE
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The \indexdef{}{tool}{unsymbolize}\hypertarget{tool.unsymbolize}{\hyperlink{tool.unsymbolize}{\mbox{\isa{\isatt{unsymbolize}}}}} utility tunes Isabelle theory sources to
+The \indexdef{}{tool}{unsymbolize}\hypertarget{tool.unsymbolize}{\hyperlink{tool.unsymbolize}{\mbox{\isa{\isatool{unsymbolize}}}}} tool tunes Isabelle theory sources to
   improve readability for plain ASCII output (e.g.\ in email
-  communication).  Most notably, \hyperlink{tool.unsymbolize}{\mbox{\isa{\isatt{unsymbolize}}}} replaces awkward
+  communication).  Most notably, \hyperlink{tool.unsymbolize}{\mbox{\isa{\isatool{unsymbolize}}}} replaces awkward
   arrow symbols such as \verb|\|\verb|<Longrightarrow>|
   by \verb|==>|.
 \begin{ttbox}
-Usage: unsymbolize [FILES|DIRS...]
+Usage: isabelle unsymbolize [FILES|DIRS...]
 
   Recursively find .thy/.ML files, removing unreadable symbol names.
   Note: this is an ad-hoc script; there is no systematic way to replace
@@ -339,7 +339,7 @@ Usage: unsymbolize [FILES|DIRS...]
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The \indexdef{}{tool}{version}\hypertarget{tool.version}{\hyperlink{tool.version}{\mbox{\isa{\isatt{version}}}}} utility displays Isabelle version information:
+The \indexdef{}{tool}{version}\hypertarget{tool.version}{\hyperlink{tool.version}{\mbox{\isa{\isatool{version}}}}} tool displays Isabelle version information:
 \begin{ttbox}
 Usage: isabelle version [OPTIONS]
 
@@ -362,7 +362,7 @@ Usage: isabelle version [OPTIONS]
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The \indexdef{}{tool}{yxml}\hypertarget{tool.yxml}{\hyperlink{tool.yxml}{\mbox{\isa{\isatt{yxml}}}}} tool converts a standard XML document (stdin)
+The \indexdef{}{tool}{yxml}\hypertarget{tool.yxml}{\hyperlink{tool.yxml}{\mbox{\isa{\isatool{yxml}}}}} tool converts a standard XML document (stdin)
   to the much simpler and more efficient YXML format of Isabelle
   (stdout).  The YXML format is defined as follows.
 

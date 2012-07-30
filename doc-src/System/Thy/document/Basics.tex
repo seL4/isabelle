@@ -100,7 +100,7 @@ Isabelle executables need to be run within a proper settings
   You should not try to set \hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME}}}} manually. Also
   note that the Isabelle executables either have to be run from their
   original location in the distribution directory, or via the
-  executable objects created by the \hyperlink{tool.install}{\mbox{\isa{\isatt{install}}}} utility.  Symbolic
+  executable objects created by the \hyperlink{tool.install}{\mbox{\isa{\isatool{install}}}} tool.  Symbolic
   links are admissible, but a plain copy of the \verb|$ISABELLE_HOME/bin| files will not work!
 
   \item The file \verb|$ISABELLE_HOME/etc/settings| is run as a
@@ -153,8 +153,8 @@ Isabelle executables need to be run within a proper settings
   \end{itemize}
 
   \medskip Note that the settings environment may be inspected with
-  the Isabelle tool \hyperlink{tool.getenv}{\mbox{\isa{\isatt{getenv}}}}.  This might help to figure out the
-  effect of complex settings scripts.%
+  the \hyperlink{tool.getenv}{\mbox{\isa{\isatool{getenv}}}} tool.  This might help to figure out the effect
+  of complex settings scripts.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -251,11 +251,11 @@ This is a reference of common Isabelle settings variables. Note that
   \verb|HOL|.
   
   \item[\indexdef{}{setting}{ISABELLE\_LINE\_EDITOR}\hypertarget{setting.ISABELLE-LINE-EDITOR}{\hyperlink{setting.ISABELLE-LINE-EDITOR}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}LINE{\isaliteral{5F}{\isacharunderscore}}EDITOR}}}}}] specifies the default
-  line editor for the \indexref{}{tool}{tty}\hyperlink{tool.tty}{\mbox{\isa{\isatt{tty}}}} interface.
+  line editor for the \indexref{}{tool}{tty}\hyperlink{tool.tty}{\mbox{\isa{\isatool{tty}}}} interface.
 
   \item[\indexdef{}{setting}{ISABELLE\_USEDIR\_OPTIONS}\hypertarget{setting.ISABELLE-USEDIR-OPTIONS}{\hyperlink{setting.ISABELLE-USEDIR-OPTIONS}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}USEDIR{\isaliteral{5F}{\isacharunderscore}}OPTIONS}}}}}] is implicitly prefixed
-  to the command line of any \indexref{}{tool}{usedir}\hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} invocation. This
-  typically contains compilation options for object-logics --- \hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} is the basic utility for managing logic sessions (cf.\ the
+  to the command line of any \indexref{}{tool}{usedir}\hyperlink{tool.usedir}{\mbox{\isa{\isatool{usedir}}}} invocation. This
+  typically contains compilation options for object-logics --- \hyperlink{tool.usedir}{\mbox{\isa{\isatool{usedir}}}} is the basic tool for managing logic sessions (cf.\ the
   \verb|IsaMakefile|s in the distribution).
 
   \item[\indexdef{}{setting}{ISABELLE\_LATEX}\hypertarget{setting.ISABELLE-LATEX}{\hyperlink{setting.ISABELLE-LATEX}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}LATEX}}}}}, \indexdef{}{setting}{ISABELLE\_PDFLATEX}\hypertarget{setting.ISABELLE-PDFLATEX}{\hyperlink{setting.ISABELLE-PDFLATEX}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}PDFLATEX}}}}}, \indexdef{}{setting}{ISABELLE\_BIBTEX}\hypertarget{setting.ISABELLE-BIBTEX}{\hyperlink{setting.ISABELLE-BIBTEX}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}BIBTEX}}}}}, \indexdef{}{setting}{ISABELLE\_DVIPS}\hypertarget{setting.ISABELLE-DVIPS}{\hyperlink{setting.ISABELLE-DVIPS}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}DVIPS}}}}}] refer to {\LaTeX} related tools for Isabelle
@@ -489,7 +489,7 @@ isabelle-process -r Test
 
   \medskip Note that manual session management like this does
   \emph{not} provide proper setup for theory presentation.  This would
-  require the \hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} utility.
+  require \hyperlink{tool.usedir}{\mbox{\isa{\isatool{usedir}}}}.
 
   \bigskip The next example demonstrates batch execution of Isabelle.
   We retrieve the \verb|Main| theory value from the theory loader

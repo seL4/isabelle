@@ -14,8 +14,8 @@ experimentation within the running application. *}
 
 section {* Java Runtime Environment within Isabelle \label{sec:tool-java} *}
 
-text {* The Isabelle @{tool_def java} utility is a direct wrapper for
-  the Java Runtime Environment, within the regular Isabelle settings
+text {* The @{tool_def java} tool is a direct wrapper for the Java
+  Runtime Environment, within the regular Isabelle settings
   environment (\secref{sec:settings}).  The command line arguments are
   that of the underlying Java version.  It is run in @{verbatim
   "-server"} mode if possible, to improve performance (at the cost of
@@ -38,9 +38,9 @@ text {* The Isabelle @{tool_def java} utility is a direct wrapper for
 
 section {* Scala toplevel \label{sec:tool-scala} *}
 
-text {* The Isabelle @{tool_def scala} utility is a direct wrapper for
-  the Scala toplevel; see also @{tool java} above.  The command line
-  arguments are that of the underlying Scala version.
+text {* The @{tool_def scala} tool is a direct wrapper for the Scala
+  toplevel; see also @{tool java} above.  The command line arguments
+  are that of the underlying Scala version.
 
   This allows to interact with Isabelle/Scala in TTY mode like this:
 \begin{alltt}
@@ -53,9 +53,9 @@ text {* The Isabelle @{tool_def scala} utility is a direct wrapper for
 
 section {* Scala compiler \label{sec:tool-scalac} *}
 
-text {* The Isabelle @{tool_def scalac} utility is a direct wrapper
-  for the Scala compiler; see also @{tool scala} above.  The command
-  line arguments are that of the underlying Scala version.
+text {* The @{tool_def scalac} tool is a direct wrapper for the Scala
+  compiler; see also @{tool scala} above.  The command line arguments
+  are that of the underlying Scala version.
 
   This allows to compile further Scala modules, depending on existing
   Isabelle/Scala functionality.  The resulting class or jar files can

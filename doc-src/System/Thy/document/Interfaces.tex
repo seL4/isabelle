@@ -27,7 +27,7 @@
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The \indexdef{}{tool}{jedit}\hypertarget{tool.jedit}{\hyperlink{tool.jedit}{\mbox{\isa{\isatt{jedit}}}}} tool invokes a version of jEdit that has
+The \indexdef{}{tool}{jedit}\hypertarget{tool.jedit}{\hyperlink{tool.jedit}{\mbox{\isa{\isatool{jedit}}}}} tool invokes a version of jEdit that has
   been augmented with some components to provide a fully-featured
   Prover IDE (based on Isabelle/Scala):
 \begin{ttbox}
@@ -69,7 +69,7 @@ Start jEdit with Isabelle plugin setup and opens theory FILES
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The \indexdef{}{tool}{emacs}\hypertarget{tool.emacs}{\hyperlink{tool.emacs}{\mbox{\isa{\isatt{emacs}}}}} tool invokes a version of Emacs and
+The \indexdef{}{tool}{emacs}\hypertarget{tool.emacs}{\hyperlink{tool.emacs}{\mbox{\isa{\isatool{emacs}}}}} tool invokes a version of Emacs and
   Proof General \cite{proofgeneral} within the regular Isabelle
   settings environment (\secref{sec:settings}).  This is more
   convenient than starting Emacs separately, loading the Proof General
@@ -104,7 +104,7 @@ The \indexdef{}{tool}{emacs}\hypertarget{tool.emacs}{\hyperlink{tool.emacs}{\mbo
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The \indexdef{}{tool}{tty}\hypertarget{tool.tty}{\hyperlink{tool.tty}{\mbox{\isa{\isatt{tty}}}}} tool runs the Isabelle process interactively
+The \indexdef{}{tool}{tty}\hypertarget{tool.tty}{\hyperlink{tool.tty}{\mbox{\isa{\isatool{tty}}}}} tool runs the Isabelle process interactively
   within a plain terminal session:
 \begin{ttbox}
 Usage: isabelle tty [OPTIONS]
@@ -142,9 +142,8 @@ The Isabelle graph browser is a general tool for visualizing
   hidden, thus enabling the user to collapse irrelevant portions of
   information.  The browser is written in Java, it can be used both as
   a stand-alone application and as an applet.  Note that the option
-  \verb|-g| of \verb|isabelle| \indexref{}{tool}{usedir}\hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} creates
-  graph presentations in batch mode for inclusion in session
-  documents.%
+  \verb|-g| of \indexref{}{tool}{usedir}\hyperlink{tool.usedir}{\mbox{\isa{\isatool{usedir}}}} creates graph presentations
+  in batch mode for inclusion in session documents.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -153,11 +152,10 @@ The Isabelle graph browser is a general tool for visualizing
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The stand-alone version of the graph browser is wrapped up as an
-  Isabelle tool called \indexdef{}{tool}{browser}\hypertarget{tool.browser}{\hyperlink{tool.browser}{\mbox{\isa{\isatt{browser}}}}}:
-
+The stand-alone version of the graph browser is wrapped up as
+  \indexdef{}{tool}{browser}\hypertarget{tool.browser}{\hyperlink{tool.browser}{\mbox{\isa{\isatool{browser}}}}}:
 \begin{ttbox}
-Usage: browser [OPTIONS] [GRAPHFILE]
+Usage: isabelle browser [OPTIONS] [GRAPHFILE]
 
   Options are:
     -b           Admin/build only

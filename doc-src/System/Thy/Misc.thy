@@ -12,11 +12,10 @@ text {*
 
 section {* Displaying documents *}
 
-text {*
-  The @{tool_def display} utility displays documents in DVI or PDF
+text {* The @{tool_def display} tool displays documents in DVI or PDF
   format:
 \begin{ttbox}
-Usage: display [OPTIONS] FILE
+Usage: isabelle display [OPTIONS] FILE
 
   Options are:
     -c           cleanup -- remove FILE after use
@@ -33,9 +32,9 @@ Usage: display [OPTIONS] FILE
 section {* Viewing documentation \label{sec:tool-doc} *}
 
 text {*
-  The @{tool_def doc} utility displays online documentation:
+  The @{tool_def doc} tool displays online documentation:
 \begin{ttbox}
-Usage: doc [DOC]
+Usage: isabelle doc [DOC]
 
   View Isabelle documentation DOC, or show list of available documents.
 \end{ttbox}
@@ -53,10 +52,9 @@ Usage: doc [DOC]
 
 section {* Shell commands within the settings environment \label{sec:tool-env} *}
 
-text {* The @{tool_def env} utility is a direct wrapper for the
-  standard @{verbatim "/usr/bin/env"} command on POSIX systems,
-  running within the Isabelle settings environment
-  (\secref{sec:settings}).
+text {* The @{tool_def env} tool is a direct wrapper for the standard
+  @{verbatim "/usr/bin/env"} command on POSIX systems, running within
+  the Isabelle settings environment (\secref{sec:settings}).
 
   The command-line arguments are that of the underlying version of
   @{verbatim env}.  For example, the following invokes an instance of
@@ -69,8 +67,7 @@ text {* The @{tool_def env} utility is a direct wrapper for the
 
 section {* Getting logic images *}
 
-text {*
-  The @{tool_def findlogics} utility traverses all directories
+text {* The @{tool_def findlogics} tool traverses all directories
   specified in @{setting ISABELLE_PATH}, looking for Isabelle logic
   images. Its usage is:
 \begin{ttbox}
@@ -89,12 +86,11 @@ Usage: isabelle findlogics
 
 section {* Inspecting the settings environment \label{sec:tool-getenv} *}
 
-text {*
-  The Isabelle settings environment --- as provided by the
+text {* The Isabelle settings environment --- as provided by the
   site-default and user-specific settings files --- can be inspected
-  with the @{tool_def getenv} utility:
+  with the @{tool_def getenv} tool:
 \begin{ttbox}
-Usage: getenv [OPTIONS] [VARNAMES ...]
+Usage: isabelle getenv [OPTIONS] [VARNAMES ...]
 
   Options are:
     -a           display complete environment
@@ -150,14 +146,13 @@ ISABELLE_OUTPUT="\$ISABELLE_HOME_USER/heaps"
 
 section {* Installing standalone Isabelle executables \label{sec:tool-install} *}
 
-text {*
-  By default, the main Isabelle binaries (@{executable "isabelle"}
-  etc.)  are just run from their location within the distribution
-  directory, probably indirectly by the shell through its @{setting
-  PATH}.  Other schemes of installation are supported by the
-  @{tool_def install} utility:
+text {* By default, the main Isabelle binaries (@{executable
+  "isabelle"} etc.)  are just run from their location within the
+  distribution directory, probably indirectly by the shell through its
+  @{setting PATH}.  Other schemes of installation are supported by the
+  @{tool_def install} tool:
 \begin{ttbox}
-Usage: install [OPTIONS]
+Usage: isabelle install [OPTIONS]
 
   Options are:
     -d DISTDIR   use DISTDIR as Isabelle distribution
@@ -185,11 +180,10 @@ Usage: install [OPTIONS]
 
 section {* Creating instances of the Isabelle logo *}
 
-text {*
-  The @{tool_def logo} utility creates any instance of the generic
+text {* The @{tool_def logo} tool creates any instance of the generic
   Isabelle logo as an Encapsuled Postscript file (EPS):
 \begin{ttbox}
-Usage: logo [OPTIONS] NAME
+Usage: isabelle logo [OPTIONS] NAME
 
   Create instance NAME of the Isabelle logo (as EPS).
 
@@ -198,18 +192,16 @@ Usage: logo [OPTIONS] NAME
     -q           quiet mode
 \end{ttbox}
   You are encouraged to use this to create a derived logo for your
-  Isabelle project.  For example, @{verbatim isabelle} @{tool
-  logo}~@{verbatim Bali} creates @{verbatim isabelle_bali.eps}.
-*}
+  Isabelle project.  For example, @{tool logo}~@{verbatim Bali}
+  creates @{verbatim isabelle_bali.eps}.  *}
 
 
 section {* Isabelle's version of make \label{sec:tool-make} *}
 
-text {*
-  The Isabelle @{tool_def make} utility is a very simple wrapper for
+text {* The @{tool_def make} tool is a very simple wrapper for
   ordinary Unix @{executable make}:
 \begin{ttbox}
-Usage: make [ARGS ...]
+Usage: isabelle make [ARGS ...]
 
   Compile the logic in current directory using IsaMakefile.
   ARGS are directly passed to the system make program.
@@ -219,7 +211,7 @@ Usage: make [ARGS ...]
   may refer to its values within the @{verbatim IsaMakefile}, e.g.\
   @{verbatim "$(ISABELLE_OUTPUT)"}. Furthermore, programs started from
   the make file also inherit this environment.  Typically, @{verbatim
-  IsaMakefile}s defer the real work to the @{tool_ref usedir} utility.
+  IsaMakefile}s defer the real work to @{tool_ref usedir}.
 
   \medskip The basic @{verbatim IsaMakefile} convention is that the
   default target builds the actual logic, including its parents if
@@ -241,11 +233,11 @@ text {*
 
 section {* Make all logics *}
 
-text {* The @{tool_def makeall} utility applies Isabelle make to any
+text {* The @{tool_def makeall} tool applies Isabelle make to any
   Isabelle component (cf.\ \secref{sec:components}) that contains an
   @{verbatim IsaMakefile}:
 \begin{ttbox}
-Usage: makeall [ARGS ...]
+Usage: isabelle makeall [ARGS ...]
 
   Apply isabelle make to all components with IsaMakefile (passing ARGS).
 \end{ttbox}
@@ -258,9 +250,9 @@ Usage: makeall [ARGS ...]
 section {* Printing documents *}
 
 text {*
-  The @{tool_def print} utility prints documents:
+  The @{tool_def print} tool prints documents:
 \begin{ttbox}
-Usage: print [OPTIONS] FILE
+Usage: isabelle print [OPTIONS] FILE
 
   Options are:
     -c           cleanup -- remove FILE after use
@@ -277,13 +269,13 @@ Usage: print [OPTIONS] FILE
 section {* Remove awkward symbol names from theory sources *}
 
 text {*
-  The @{tool_def unsymbolize} utility tunes Isabelle theory sources to
+  The @{tool_def unsymbolize} tool tunes Isabelle theory sources to
   improve readability for plain ASCII output (e.g.\ in email
   communication).  Most notably, @{tool unsymbolize} replaces awkward
   arrow symbols such as @{verbatim "\\"}@{verbatim "<Longrightarrow>"}
   by @{verbatim "==>"}.
 \begin{ttbox}
-Usage: unsymbolize [FILES|DIRS...]
+Usage: isabelle unsymbolize [FILES|DIRS...]
 
   Recursively find .thy/.ML files, removing unreadable symbol names.
   Note: this is an ad-hoc script; there is no systematic way to replace
@@ -297,7 +289,7 @@ Usage: unsymbolize [FILES|DIRS...]
 section {* Output the version identifier of the Isabelle distribution *}
 
 text {*
-  The @{tool_def version} utility displays Isabelle version information:
+  The @{tool_def version} tool displays Isabelle version information:
 \begin{ttbox}
 Usage: isabelle version [OPTIONS]
 

@@ -80,7 +80,7 @@ text {* Isabelle executables need to be run within a proper settings
   You should not try to set @{setting ISABELLE_HOME} manually. Also
   note that the Isabelle executables either have to be run from their
   original location in the distribution directory, or via the
-  executable objects created by the @{tool install} utility.  Symbolic
+  executable objects created by the @{tool install} tool.  Symbolic
   links are admissible, but a plain copy of the @{file
   "$ISABELLE_HOME/bin"} files will not work!
 
@@ -137,12 +137,11 @@ text {* Isabelle executables need to be run within a proper settings
   \end{itemize}
 
   \medskip Note that the settings environment may be inspected with
-  the Isabelle tool @{tool getenv}.  This might help to figure out the
-  effect of complex settings scripts.
-*}
+  the @{tool getenv} tool.  This might help to figure out the effect
+  of complex settings scripts.  *}
 
 
-subsection{* Common variables *}
+subsection {* Common variables *}
 
 text {*
   This is a reference of common Isabelle settings variables. Note that
@@ -246,7 +245,7 @@ text {*
   \item[@{setting_def ISABELLE_USEDIR_OPTIONS}] is implicitly prefixed
   to the command line of any @{tool_ref usedir} invocation. This
   typically contains compilation options for object-logics --- @{tool
-  usedir} is the basic utility for managing logic sessions (cf.\ the
+  usedir} is the basic tool for managing logic sessions (cf.\ the
   @{verbatim IsaMakefile}s in the distribution).
 
   \item[@{setting_def ISABELLE_LATEX}, @{setting_def
@@ -476,7 +475,7 @@ isabelle-process -r Test
 
   \medskip Note that manual session management like this does
   \emph{not} provide proper setup for theory presentation.  This would
-  require the @{tool usedir} utility.
+  require @{tool usedir}.
 
   \bigskip The next example demonstrates batch execution of Isabelle.
   We retrieve the @{verbatim Main} theory value from the theory loader

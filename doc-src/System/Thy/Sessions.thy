@@ -155,14 +155,15 @@ text {* See @{file "~~/etc/options"} for the main defaults provided by
 
 section {* Invoking the build process \label{sec:tool-build} *}
 
-text {* The @{tool_def build} utility invokes the build process for
+text {* The @{tool_def build} tool invokes the build process for
   Isabelle sessions.  It manages dependencies between sessions,
   related sources of theories and auxiliary files, and target heap
   images.  Accordingly, it runs instances of the prover process with
   optional document preparation.  Its command-line usage
   is:\footnote{Isabelle/Scala provides the same functionality via
   \texttt{isabelle.Build.build}.}
-\begin{ttbox} Usage: isabelle build [OPTIONS] [SESSIONS ...]
+\begin{ttbox}
+Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   Options are:
     -a           select all sessions

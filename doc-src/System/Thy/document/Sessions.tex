@@ -265,14 +265,15 @@ See \verb|~~/etc/options| for the main defaults provided by
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The \indexdef{}{tool}{build}\hypertarget{tool.build}{\hyperlink{tool.build}{\mbox{\isa{\isatt{build}}}}} utility invokes the build process for
+The \indexdef{}{tool}{build}\hypertarget{tool.build}{\hyperlink{tool.build}{\mbox{\isa{\isatool{build}}}}} tool invokes the build process for
   Isabelle sessions.  It manages dependencies between sessions,
   related sources of theories and auxiliary files, and target heap
   images.  Accordingly, it runs instances of the prover process with
   optional document preparation.  Its command-line usage
   is:\footnote{Isabelle/Scala provides the same functionality via
   \texttt{isabelle.Build.build}.}
-\begin{ttbox} Usage: isabelle build [OPTIONS] [SESSIONS ...]
+\begin{ttbox}
+Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   Options are:
     -a           select all sessions

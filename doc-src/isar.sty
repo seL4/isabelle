@@ -5,6 +5,7 @@
 \newcommand{\indexref}[3]{\ifthenelse{\equal{}{#1}}{\index{#3 (#2)}}{\index{#3 (#1\ #2)}}}
 
 \newcommand{\isatt}[1]{{\def\isacharminus{-}\def\isacharunderscore{\_}\tt #1}}
+\newcommand{\isatool}[1]{{\def\isacharminus{-}\def\isacharunderscore{\_}\tt isabelle #1}}
 
 \newcommand{\indexoutertoken}[1]{\indexdef{}{syntax}{#1}}
 \newcommand{\indexouternonterm}[1]{\indexdef{}{syntax}{#1}}

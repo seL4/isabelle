@@ -115,19 +115,16 @@ text {* The Isabelle graph browser is a general tool for visualizing
   hidden, thus enabling the user to collapse irrelevant portions of
   information.  The browser is written in Java, it can be used both as
   a stand-alone application and as an applet.  Note that the option
-  @{verbatim "-g"} of @{verbatim isabelle} @{tool_ref usedir} creates
-  graph presentations in batch mode for inclusion in session
-  documents.  *}
+  @{verbatim "-g"} of @{tool_ref usedir} creates graph presentations
+  in batch mode for inclusion in session documents.  *}
 
 
 subsection {* Invoking the graph browser *}
 
-text {*
-  The stand-alone version of the graph browser is wrapped up as an
-  Isabelle tool called @{tool_def browser}:
-
+text {* The stand-alone version of the graph browser is wrapped up as
+  @{tool_def browser}:
 \begin{ttbox}
-Usage: browser [OPTIONS] [GRAPHFILE]
+Usage: isabelle browser [OPTIONS] [GRAPHFILE]
 
   Options are:
     -b           Admin/build only
