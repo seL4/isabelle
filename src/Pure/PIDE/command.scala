@@ -128,7 +128,7 @@ final class Command private(
 
   def is_defined: Boolean = id != Document.no_id
 
-  val is_ignored: Boolean = span.forall(_.is_ignored)
+  val is_ignored: Boolean = !span.exists(_.is_proper)
   val is_malformed: Boolean = !is_ignored && (!span.head.is_command || span.exists(_.is_unparsed))
   def is_command: Boolean = !is_ignored && !is_malformed
 

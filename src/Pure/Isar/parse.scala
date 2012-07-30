@@ -7,6 +7,7 @@ Generic parsers for Isabelle/Isar outer syntax.
 package isabelle
 
 import scala.util.parsing.combinator.Parsers
+import scala.annotation.tailrec
 
 
 object Parse
@@ -17,10 +18,10 @@ object Parse
   {
     type Elem = Token
 
-    def filter_proper = true
+    def filter_proper: Boolean = true
 
-    private def proper(in: Input): Input =
-      if (in.atEnd || !in.first.is_ignored || !filter_proper) in
+    @tailrec private def proper(in: Input): Input =
+      if (!filter_proper || in.atEnd || in.first.is_proper) in
       else proper(in.rest)
 
     def token(s: String, pred: Elem => Boolean): Parser[Elem] = new Parser[Elem]
