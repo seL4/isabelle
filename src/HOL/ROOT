@@ -736,6 +736,8 @@ session Quickcheck_Examples = HOL +
   options [document = false]
   theories
     Quickcheck_Examples (* FIXME more *)
+  theories [condition = ISABELLE_GHC]
+    Quickcheck_Narrowing_Examples
 
 session Quickcheck_Benchmark = HOL +
   theories [condition = ISABELLE_BENCHMARK]
