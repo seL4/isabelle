@@ -74,6 +74,7 @@ sealed case class Token(val kind: Token.Kind.Value, val source: String)
     kind == Token.Kind.VERBATIM ||
     kind == Token.Kind.COMMENT
   def is_ident: Boolean = kind == Token.Kind.IDENT
+  def is_sym_ident: Boolean = kind == Token.Kind.SYM_IDENT
   def is_string: Boolean = kind == Token.Kind.STRING
   def is_nat: Boolean = kind == Token.Kind.NAT
   def is_float: Boolean = kind == Token.Kind.FLOAT

@@ -60,7 +60,9 @@ text {* Session specifications reside in files called @{verbatim ROOT}
     ;
     options: @'options' opts
     ;
-    opts: '[' ( (@{syntax name} '=' @{syntax name} | @{syntax name}) + ',' ) ']'
+    opts: '[' ( (@{syntax name} '=' value | @{syntax name}) + ',' ) ']'
+    ;
+    value: @{syntax name} | @{syntax real}
     ;
     theories: @'theories' opts? ( @{syntax name} + )
     ;

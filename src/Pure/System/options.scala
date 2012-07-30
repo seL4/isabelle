@@ -41,7 +41,11 @@ object Options
     {
       val option_name = atom("option name", _.is_xname)
       val option_type = atom("option type", _.is_ident)
-      val option_value = atom("option value", tok => tok.is_name || tok.is_float)
+
+      val option_value =
+        opt(token("-", tok => tok.is_sym_ident && tok.content == "-")) ~ atom("nat", _.is_nat) ^^
+          { case s ~ n => if (s.isDefined) "-" + n else n } |
+        atom("option value", tok => tok.is_name || tok.is_float)
 
       keyword(DECLARE) ~! (option_name ~ keyword(":") ~ option_type ~
       keyword("=") ~ option_value ~ (keyword("--") ~! text ^^ { case _ ~ x => x } | success(""))) ^^
