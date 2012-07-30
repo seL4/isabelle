@@ -23,6 +23,7 @@ function usage()
 Usage: $PRG [OPTIONS] [VERSION]
 
   Options are:
+    -D                 retain doc-src component
     -j JEDIT_BUILD     build Isabelle/jEdit via given jedit_build component
     -r RELEASE         proper release with name"
 
@@ -46,12 +47,16 @@ function fail()
 
 # options
 
+RETAIN_DOC_SRC=""
 RELEASE=""
 ISABELLE_JEDIT_BUILD_HOME=""
 
-while getopts "j:r:" OPT
+while getopts "Dj:r:" OPT
 do
   case "$OPT" in
+    D)
+      RETAIN_DOC_SRC=true
+      ;;
     j)
       ISABELLE_JEDIT_BUILD_HOME="$OPTARG"
       ;;
@@ -147,6 +152,10 @@ find . -print | xargs chmod -f u+rw
 
 perl -pi -e 's/^(ISABELLE_SCALA_BUILD_OPTIONS=")/$1-optimise /,' etc/settings
 
+if [ -n "$RETAIN_DOC_SRC" ]; then
+  cp -a doc-src doc-src.orig
+fi
+
 ./Admin/build all || fail "Failed to build distribution"
 
 if [ -n "$ISABELLE_JEDIT_BUILD_HOME" ]; then
@@ -164,6 +173,10 @@ mv -f $MOVE doc
 rm doc/Isa-logics.eps
 rm doc/adaptation.dvi doc/adaptation.pdf doc/architecture.dvi doc/architecture.pdf
 rm -rf doc-src
+
+if [ -n "$RETAIN_DOC_SRC" ]; then
+  mv doc-src.orig doc-src
+fi
 
 mkdir -p contrib
 cat >contrib/README <<EOF
