@@ -8,7 +8,7 @@ package isabelle
 
 
 import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOutputStream,
-  InputStream, FileInputStream, BufferedReader, InputStreamReader, File => JFile, FileFilter}
+  InputStream, FileInputStream, BufferedReader, InputStreamReader, File => JFile}
 import java.util.zip.GZIPOutputStream
 
 import scala.collection.mutable
@@ -16,6 +16,23 @@ import scala.collection.mutable
 
 object File
 {
+  /* directory content */
+
+  def read_dir(dir: Path): List[String] =
+  {
+    if (!dir.is_dir) error("Bad directory: " + dir.toString)
+    val files = dir.file.listFiles
+    if (files == null) Nil
+    else files.toList.map(_.getName)
+  }
+
+  def find_files(dir: Path): Stream[Path] =
+    read_dir(dir).toStream.map(name => {
+      val path = dir + Path.basic(name)
+      path #:: (if (path.is_dir) find_files(path) else Stream.empty)
+    }).flatten
+
+
   /* read */
 
   def read(reader: BufferedReader): String =
@@ -94,7 +111,7 @@ object File
   def copy(path1: Path, path2: Path): Unit = copy(path1.file, path2.file)
 
 
-  /* misc */
+  /* tmp files */
 
   def tmp_file(prefix: String): JFile =
   {
@@ -107,20 +124,6 @@ object File
   {
     val file = tmp_file(prefix)
     try { body(file) } finally { file.delete }
-  }
-
-  // FIXME handle (potentially cyclic) directory graph
-  def find_files(start: JFile, ok: JFile => Boolean): List[JFile] =
-  {
-    val files = new mutable.ListBuffer[JFile]
-    val filter = new FileFilter { def accept(entry: JFile) = entry.isDirectory || ok(entry) }
-    def find_entry(entry: JFile)
-    {
-      if (ok(entry)) files += entry
-      if (entry.isDirectory) entry.listFiles(filter).foreach(find_entry)
-    }
-    find_entry(start)
-    files.toList
   }
 }
 

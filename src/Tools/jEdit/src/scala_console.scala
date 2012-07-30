@@ -15,7 +15,7 @@ import org.gjt.sp.jedit.{jEdit, JARClassLoader}
 import org.gjt.sp.jedit.MiscUtilities
 
 import java.lang.System
-import java.io.{File => JFile, OutputStream, Writer, PrintWriter}
+import java.io.{File => JFile, FileFilter, OutputStream, Writer, PrintWriter}
 
 import scala.tools.nsc.{GenericRunnerSettings, NewLinePrintWriter, ConsoleWriter}
 import scala.tools.nsc.interpreter.IMain
@@ -28,9 +28,22 @@ class Scala_Console extends Shell("Scala")
 
   private def reconstruct_classpath(): String =
   {
+    def find_files(start: JFile, ok: JFile => Boolean = _ => true): List[JFile] =
+    {
+      val files = new mutable.ListBuffer[JFile]
+      val filter = new FileFilter { def accept(entry: JFile) = entry.isDirectory || ok(entry) }
+      def find_entry(entry: JFile)
+      {
+        if (ok(entry)) files += entry
+        if (entry.isDirectory) entry.listFiles(filter).foreach(find_entry)
+      }
+      find_entry(start)
+      files.toList
+    }
+
     def find_jars(start: String): List[String] =
       if (start != null)
-        File.find_files(new JFile(start),
+        find_files(new JFile(start),
           entry => entry.isFile && entry.getName.endsWith(".jar")).map(_.getAbsolutePath)
       else Nil
     val path = find_jars(jEdit.getSettingsDirectory) ::: find_jars(jEdit.getJEditHome)
