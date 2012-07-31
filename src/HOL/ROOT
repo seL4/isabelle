@@ -153,7 +153,7 @@ session Hoare_Parallel = HOL +
 
 session Codegenerator_Test = "HOL-Library" +
   options [document = false, document_graph = false, browser_info = false]
-  theories Generate Generate_Pretty
+  theories Generate Generate_Pretty RBT_Set_Test
 
 session Metis_Examples = HOL +
   description {*
