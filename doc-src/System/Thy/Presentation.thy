@@ -339,13 +339,19 @@ text {*
   document is equivalent to ``@{verbatim
   "document=theory,proof,ML"}'', which means that all theory begin/end
   commands, proof body texts, and ML code will be presented
-  faithfully.  An alternative variant ``@{verbatim
-  "outline=/proof/ML"}'' would fold proof and ML parts, replacing the
-  original text by a short place-holder.  The form ``@{text
-  name}@{verbatim "=-"},'' means to remove document @{text name} from
-  the list of variants to be processed.  Any number of @{verbatim
-  "-V"} options may be given; later declarations have precedence over
-  earlier ones.
+  faithfully.
+
+  An alternative variant ``@{verbatim "outline=/proof/ML"}'' would
+  fold proof and ML parts, replacing the original text by a short
+  place-holder.  The form ``@{text name}@{verbatim "=-"},'' means to
+  remove document @{text name} from the list of variants to be
+  processed.  Any number of @{verbatim "-V"} options may be given;
+  later declarations have precedence over earlier ones.
+
+  Some document variant @{text name} may use an alternative {\LaTeX}
+  entry point called @{verbatim "document/root_"}@{text
+  "name"}@{verbatim ".tex"} if that file exists; otherwise the common
+  @{verbatim "document/root.tex"} is used.
 
   \medskip The @{verbatim "-g"} option produces images of the theory
   dependency graph (cf.\ \secref{sec:browse}) for inclusion in the

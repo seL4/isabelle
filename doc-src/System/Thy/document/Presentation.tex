@@ -358,10 +358,18 @@ Basically, there are two different modes of operation: \emph{build
   variants, consisting of name/tags pairs (cf.\ options \verb|-n| and \verb|-t| of \indexref{}{tool}{document}\hyperlink{tool.document}{\mbox{\isa{\isatool{document}}}}).  The standard
   document is equivalent to ``\verb|document=theory,proof,ML|'', which means that all theory begin/end
   commands, proof body texts, and ML code will be presented
-  faithfully.  An alternative variant ``\verb|outline=/proof/ML|'' would fold proof and ML parts, replacing the
-  original text by a short place-holder.  The form ``\isa{name}\verb|=-|,'' means to remove document \isa{name} from
-  the list of variants to be processed.  Any number of \verb|-V| options may be given; later declarations have precedence over
-  earlier ones.
+  faithfully.
+
+  An alternative variant ``\verb|outline=/proof/ML|'' would
+  fold proof and ML parts, replacing the original text by a short
+  place-holder.  The form ``\isa{name}\verb|=-|,'' means to
+  remove document \isa{name} from the list of variants to be
+  processed.  Any number of \verb|-V| options may be given;
+  later declarations have precedence over earlier ones.
+
+  Some document variant \isa{name} may use an alternative {\LaTeX}
+  entry point called \verb|document/root_|\isa{{\isaliteral{22}{\isachardoublequote}}name{\isaliteral{22}{\isachardoublequote}}}\verb|.tex| if that file exists; otherwise the common
+  \verb|document/root.tex| is used.
 
   \medskip The \verb|-g| option produces images of the theory
   dependency graph (cf.\ \secref{sec:browse}) for inclusion in the
