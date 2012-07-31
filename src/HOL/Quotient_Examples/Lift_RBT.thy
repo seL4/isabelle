@@ -69,7 +69,13 @@ by simp
 lift_definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'c \<Rightarrow> 'c"  is RBT_Impl.fold 
 by simp
 
-export_code lookup empty insert delete entries keys bulkload map_entry map fold in SML
+lift_definition union :: "('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" is "rbt_union"
+by (simp add: rbt_union_is_rbt)
+
+lift_definition foldi :: "('c \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a :: linorder, 'b) rbt \<Rightarrow> 'c \<Rightarrow> 'c"
+  is RBT_Impl.foldi by simp
+
+export_code lookup empty insert delete entries keys bulkload map_entry map fold union foldi in SML
 
 subsection {* Derived operations *}
 
@@ -155,5 +161,30 @@ lemma distinct_keys [iff]:
   "distinct (keys t)"
   by transfer (simp add: RBT_Impl.keys_def distinct_entries)
 
+lemma finite_dom_lookup [simp, intro!]: "finite (dom (lookup t))"
+  by transfer simp
+
+lemma lookup_union: "lookup (union s t) = lookup s ++ lookup t"
+  by transfer (simp add: rbt_lookup_rbt_union)
+
+lemma lookup_in_tree: "(lookup t k = Some v) = ((k, v) \<in> set (entries t))"
+  by transfer (simp add: rbt_lookup_in_tree)
+
+lemma keys_entries: "(k \<in> set (keys t)) = (\<exists>v. (k, v) \<in> set (entries t))"
+  by transfer (simp add: keys_entries)
+
+lemma fold_def_alt:
+  "fold f t = List.fold (prod_case f) (entries t)"
+  by transfer (auto simp: RBT_Impl.fold_def)
+
+lemma distinct_entries: "distinct (List.map fst (entries t))"
+  by transfer (simp add: distinct_entries)
+
+lemma non_empty_keys: "t \<noteq> Lift_RBT.empty \<Longrightarrow> keys t \<noteq> []"
+  by transfer (simp add: non_empty_rbt_keys)
+
+lemma keys_def_alt:
+  "keys t = List.map fst (entries t)"
+  by transfer (simp add: RBT_Impl.keys_def)
 
 end

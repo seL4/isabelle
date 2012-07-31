@@ -62,6 +62,9 @@ lemma keys_entries:
   "k \<in> set (keys t) \<longleftrightarrow> (\<exists>v. (k, v) \<in> set (entries t))"
   by (auto intro: entry_in_tree_keys) (auto simp add: keys_def)
 
+lemma non_empty_rbt_keys: 
+  "t \<noteq> rbt.Empty \<Longrightarrow> keys t \<noteq> []"
+  by (cases t) simp_all
 
 subsubsection {* Search tree properties *}
 
@@ -120,6 +123,11 @@ lemma distinct_entries:
 by (induct t) 
   (force simp: sorted_append sorted_Cons rbt_ord_props 
       dest!: entry_in_tree_keys)+
+
+lemma distinct_keys:
+  "rbt_sorted t \<Longrightarrow> distinct (keys t)"
+  by (simp add: distinct_entries keys_def)
+
 
 subsubsection {* Tree lookup *}
 
@@ -1059,7 +1067,7 @@ next
     qed
   qed
 
-  from Branch have is_rbt: "is_rbt (RBT_Impl.rbt_union (RBT_Impl.rbt_insert k v s) l)"
+  from Branch have is_rbt: "is_rbt (rbt_union (rbt_insert k v s) l)"
     by (auto intro: rbt_union_is_rbt rbt_insert_is_rbt)
   with Branch have IHs:
     "rbt_lookup (rbt_union (rbt_union (rbt_insert k v s) l) r) = rbt_lookup (rbt_union (rbt_insert k v s) l) ++ rbt_lookup r"
@@ -1148,6 +1156,20 @@ lemma fold_simps [simp, code]:
   "fold f (Branch c lt k v rt) = fold f rt \<circ> f k v \<circ> fold f lt"
   by (simp_all add: fold_def fun_eq_iff)
 
+(* fold with continuation predicate *)
+
+fun foldi :: "('c \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a :: linorder, 'b) rbt \<Rightarrow> 'c \<Rightarrow> 'c" 
+  where
+  "foldi c f Empty s = s" |
+  "foldi c f (Branch col l k v r) s = (
+    if (c s) then
+      let s' = foldi c f l s in
+        if (c s') then
+          foldi c f r (f k v s')
+        else s'
+    else 
+      s
+  )"
 
 subsection {* Bulkloading a tree *}
 
