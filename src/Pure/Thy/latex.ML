@@ -33,8 +33,11 @@ struct
 (* literal text *)
 
 local
-  val hex = Int.fmt StringCvt.HEX;
-  fun hex_byte c = hex (ord c div 16) ^ hex (ord c mod 16);
+  fun hex_nibble i =
+    if i < 10 then string_of_int i
+    else chr (ord "A" + i - 10);
+
+  fun hex_byte c = hex_nibble (ord c div 16) ^ hex_nibble (ord c mod 16);
 in
 
 fun literal txt = "\\isaliteral{" ^ translate_string hex_byte txt ^ "}";
