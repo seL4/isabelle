@@ -697,6 +697,18 @@ proof -
   then show ?thesis by simp
 qed
 
+text{* Other properties of @{const fold}: *}
+
+lemma fold_image:
+  assumes "finite A" and "inj_on g A"
+  shows "fold f x (g ` A) = fold (f \<circ> g) x A"
+using assms
+proof induction
+  case (insert a F)
+    interpret comp_fun_commute "\<lambda>x. f (g x)" by default (simp add: comp_fun_commute)
+    from insert show ?case by auto
+qed (simp)
+
 end
 
 text{* A simplified version for idempotent functions: *}
@@ -776,6 +788,90 @@ proof -
   from `finite A` have "fold Set.remove B A = B - A" by (induct A arbitrary: B) auto
   then show ?thesis ..
 qed
+
+definition filter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set" 
+  where "filter P A = fold (\<lambda>x A'. if P x then Set.insert x A' else A') {} A"
+
+lemma comp_fun_commute_filter_fold: "comp_fun_commute (\<lambda>x A'. if P x then Set.insert x A' else A')"
+proof - 
+  interpret comp_fun_idem Set.insert by (fact comp_fun_idem_insert)
+  show ?thesis by default (auto simp: fun_eq_iff)
+qed
+
+lemma inter_filter:     
+  assumes "finite B"
+  shows "A \<inter> B = filter (\<lambda>x. x \<in> A) B"
+using assms 
+by (induct B) (auto simp: filter_def comp_fun_commute.fold_insert[OF comp_fun_commute_filter_fold])
+
+lemma project_filter:
+  assumes "finite A"
+  shows "Set.project P A = filter P A"
+using assms
+by (induct A) 
+  (auto simp add: filter_def project_def comp_fun_commute.fold_insert[OF comp_fun_commute_filter_fold])
+
+lemma image_fold_insert:
+  assumes "finite A"
+  shows "image f A = fold (\<lambda>k A. Set.insert (f k) A) {} A"
+using assms
+proof -
+  interpret comp_fun_commute "\<lambda>k A. Set.insert (f k) A" by default auto
+  show ?thesis using assms by (induct A) auto
+qed
+
+lemma Ball_fold:
+  assumes "finite A"
+  shows "Ball A P = fold (\<lambda>k s. s \<and> P k) True A"
+using assms
+proof -
+  interpret comp_fun_commute "\<lambda>k s. s \<and> P k" by default auto
+  show ?thesis using assms by (induct A) auto
+qed
+
+lemma Bex_fold:
+  assumes "finite A"
+  shows "Bex A P = fold (\<lambda>k s. s \<or> P k) False A"
+using assms
+proof -
+  interpret comp_fun_commute "\<lambda>k s. s \<or> P k" by default auto
+  show ?thesis using assms by (induct A) auto
+qed
+
+lemma comp_fun_commute_Pow_fold: 
+  "comp_fun_commute (\<lambda>x A. A \<union> Set.insert x ` A)" 
+  by (clarsimp simp: fun_eq_iff comp_fun_commute_def) blast
+
+lemma Pow_fold:
+  assumes "finite A"
+  shows "Pow A = fold (\<lambda>x A. A \<union> Set.insert x ` A) {{}} A"
+using assms
+proof -
+  interpret comp_fun_commute "\<lambda>x A. A \<union> Set.insert x ` A" by (rule comp_fun_commute_Pow_fold)
+  show ?thesis using assms by (induct A) (auto simp: Pow_insert)
+qed
+
+lemma fold_union_pair:
+  assumes "finite B"
+  shows "(\<Union>y\<in>B. {(x, y)}) \<union> A = fold (\<lambda>y. Set.insert (x, y)) A B"
+proof -
+  interpret comp_fun_commute "\<lambda>y. Set.insert (x, y)" by default auto
+  show ?thesis using assms  by (induct B arbitrary: A) simp_all
+qed
+
+lemma comp_fun_commute_product_fold: 
+  assumes "finite B"
+  shows "comp_fun_commute (\<lambda>x A. fold (\<lambda>y. Set.insert (x, y)) A B)" 
+by default (auto simp: fold_union_pair[symmetric] assms)
+
+lemma product_fold:
+  assumes "finite A"
+  assumes "finite B"
+  shows "A \<times> B = fold (\<lambda>x A. fold (\<lambda>y. Set.insert (x, y)) A B) {} A"
+using assms unfolding Sigma_def 
+by (induct A) 
+  (simp_all add: comp_fun_commute.fold_insert[OF comp_fun_commute_product_fold] fold_union_pair)
+
 
 context complete_lattice
 begin
@@ -2303,6 +2399,6 @@ proof
     by simp
 qed
 
-hide_const (open) Finite_Set.fold
+hide_const (open) Finite_Set.fold Finite_Set.filter
 
 end

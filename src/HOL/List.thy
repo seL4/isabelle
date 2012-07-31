@@ -2458,6 +2458,28 @@ lemma (in comp_fun_commute) fold_set_fold_remdups:
   "Finite_Set.fold f y (set xs) = fold f (remdups xs) y"
   by (rule sym, induct xs arbitrary: y) (simp_all add: fold_fun_comm insert_absorb)
 
+lemma (in ab_semigroup_mult) fold1_distinct_set_fold:
+  assumes "xs \<noteq> []"
+  assumes d: "distinct xs"
+  shows "Finite_Set.fold1 times (set xs) = List.fold times (tl xs) (hd xs)"
+proof -
+  interpret comp_fun_commute times by (fact comp_fun_commute)
+  from assms obtain y ys where xs: "xs = y # ys"
+    by (cases xs) auto
+  then have *: "y \<notin> set ys" using assms by simp
+  from xs d have **: "remdups ys = ys"  by safe (induct ys, auto)
+  show ?thesis
+  proof (cases "set ys = {}")
+    case True with xs show ?thesis by simp
+  next
+    case False
+    then have "fold1 times (Set.insert y (set ys)) = Finite_Set.fold times y (set ys)"
+      by (simp_all add: fold1_eq_fold *)
+    with xs show ?thesis
+      by (simp add: fold_set_fold_remdups **)
+  qed
+qed
+
 lemma (in comp_fun_idem) fold_set_fold:
   "Finite_Set.fold f y (set xs) = fold f xs y"
   by (rule sym, induct xs arbitrary: y) (simp_all add: fold_fun_comm)
