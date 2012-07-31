@@ -1,9 +1,10 @@
-(* Author: Florian Haftmann, TU Muenchen *)
+(*  Title:      HOL/Library/RBT.thy
+    Author:     Lukas Bulwahn and Ondrej Kuncar
+*)
 
-header {* Abstract type of Red-Black Trees *}
+header {* Abstract type of RBT trees *}
 
-(*<*)
-theory RBT
+theory RBT 
 imports Main RBT_Impl
 begin
 
@@ -11,8 +12,9 @@ subsection {* Type definition *}
 
 typedef (open) ('a, 'b) rbt = "{t :: ('a\<Colon>linorder, 'b) RBT_Impl.rbt. is_rbt t}"
   morphisms impl_of RBT
-proof
-  show "RBT_Impl.Empty \<in> {t. is_rbt t}" by simp
+proof -
+  have "RBT_Impl.Empty \<in> ?rbt" by simp
+  then show ?thesis ..
 qed
 
 lemma rbt_eq_iff:
@@ -31,63 +33,45 @@ lemma RBT_impl_of [simp, code abstype]:
   "RBT (impl_of t) = t"
   by (simp add: impl_of_inverse)
 
-
 subsection {* Primitive operations *}
 
-definition lookup :: "('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'a \<rightharpoonup> 'b" where
-  [code]: "lookup t = rbt_lookup (impl_of t)"
+setup_lifting type_definition_rbt
 
-definition empty :: "('a\<Colon>linorder, 'b) rbt" where
-  "empty = RBT RBT_Impl.Empty"
+lift_definition lookup :: "('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'a \<rightharpoonup> 'b" is "rbt_lookup" 
+by simp
 
-lemma impl_of_empty [code abstract]:
-  "impl_of empty = RBT_Impl.Empty"
-  by (simp add: empty_def RBT_inverse)
+lift_definition empty :: "('a\<Colon>linorder, 'b) rbt" is RBT_Impl.Empty 
+by (simp add: empty_def)
 
-definition insert :: "'a\<Colon>linorder \<Rightarrow> 'b \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" where
-  "insert k v t = RBT (rbt_insert k v (impl_of t))"
+lift_definition insert :: "'a\<Colon>linorder \<Rightarrow> 'b \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" is "rbt_insert" 
+by simp
 
-lemma impl_of_insert [code abstract]:
-  "impl_of (insert k v t) = rbt_insert k v (impl_of t)"
-  by (simp add: insert_def RBT_inverse)
+lift_definition delete :: "'a\<Colon>linorder \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" is "rbt_delete" 
+by simp
 
-definition delete :: "'a\<Colon>linorder \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" where
-  "delete k t = RBT (rbt_delete k (impl_of t))"
+lift_definition entries :: "('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a \<times> 'b) list" is RBT_Impl.entries
+by simp
 
-lemma impl_of_delete [code abstract]:
-  "impl_of (delete k t) = rbt_delete k (impl_of t)"
-  by (simp add: delete_def RBT_inverse)
+lift_definition keys :: "('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'a list" is RBT_Impl.keys 
+by simp
 
-definition entries :: "('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a \<times> 'b) list" where
-  [code]: "entries t = RBT_Impl.entries (impl_of t)"
+lift_definition bulkload :: "('a\<Colon>linorder \<times> 'b) list \<Rightarrow> ('a, 'b) rbt" is "rbt_bulkload" 
+by simp
 
-definition keys :: "('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'a list" where
-  [code]: "keys t = RBT_Impl.keys (impl_of t)"
+lift_definition map_entry :: "'a \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a, 'b) rbt" is rbt_map_entry 
+by simp
 
-definition bulkload :: "('a\<Colon>linorder \<times> 'b) list \<Rightarrow> ('a, 'b) rbt" where
-  "bulkload xs = RBT (rbt_bulkload xs)"
+lift_definition map :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a, 'b) rbt" is RBT_Impl.map
+by simp
 
-lemma impl_of_bulkload [code abstract]:
-  "impl_of (bulkload xs) = rbt_bulkload xs"
-  by (simp add: bulkload_def RBT_inverse)
+lift_definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'c \<Rightarrow> 'c"  is RBT_Impl.fold 
+by simp
 
-definition map_entry :: "'a \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a, 'b) rbt" where
-  "map_entry k f t = RBT (rbt_map_entry k f (impl_of t))"
+lift_definition union :: "('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" is "rbt_union"
+by (simp add: rbt_union_is_rbt)
 
-lemma impl_of_map_entry [code abstract]:
-  "impl_of (map_entry k f t) = rbt_map_entry k f (impl_of t)"
-  by (simp add: map_entry_def RBT_inverse)
-
-definition map :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a, 'b) rbt" where
-  "map f t = RBT (RBT_Impl.map f (impl_of t))"
-
-lemma impl_of_map [code abstract]:
-  "impl_of (map f t) = RBT_Impl.map f (impl_of t)"
-  by (simp add: map_def RBT_inverse)
-
-definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'c \<Rightarrow> 'c" where
-  [code]: "fold f t = RBT_Impl.fold f (impl_of t)"
-
+lift_definition foldi :: "('c \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a :: linorder, 'b) rbt \<Rightarrow> 'c \<Rightarrow> 'c"
+  is RBT_Impl.foldi by simp
 
 subsection {* Derived operations *}
 
@@ -103,15 +87,15 @@ lemma lookup_RBT:
 
 lemma lookup_impl_of:
   "rbt_lookup (impl_of t) = lookup t"
-  by (simp add: lookup_def)
+  by transfer (rule refl)
 
 lemma entries_impl_of:
   "RBT_Impl.entries (impl_of t) = entries t"
-  by (simp add: entries_def)
+  by transfer (rule refl)
 
 lemma keys_impl_of:
   "RBT_Impl.keys (impl_of t) = keys t"
-  by (simp add: keys_def)
+  by transfer (rule refl)
 
 lemma lookup_empty [simp]:
   "lookup empty = Map.empty"
@@ -119,39 +103,43 @@ lemma lookup_empty [simp]:
 
 lemma lookup_insert [simp]:
   "lookup (insert k v t) = (lookup t)(k \<mapsto> v)"
-  by (simp add: insert_def lookup_RBT rbt_lookup_rbt_insert lookup_impl_of)
+  by transfer (rule rbt_lookup_rbt_insert)
 
 lemma lookup_delete [simp]:
   "lookup (delete k t) = (lookup t)(k := None)"
-  by (simp add: delete_def lookup_RBT rbt_lookup_rbt_delete lookup_impl_of restrict_complement_singleton_eq)
+  by transfer (simp add: rbt_lookup_rbt_delete restrict_complement_singleton_eq)
 
 lemma map_of_entries [simp]:
   "map_of (entries t) = lookup t"
-  by (simp add: entries_def map_of_entries lookup_impl_of)
+  by transfer (simp add: map_of_entries)
 
 lemma entries_lookup:
   "entries t1 = entries t2 \<longleftrightarrow> lookup t1 = lookup t2"
-  by (simp add: entries_def lookup_def entries_rbt_lookup)
+  by transfer (simp add: entries_rbt_lookup)
 
 lemma lookup_bulkload [simp]:
   "lookup (bulkload xs) = map_of xs"
-  by (simp add: bulkload_def lookup_RBT rbt_lookup_rbt_bulkload)
+  by transfer (rule rbt_lookup_rbt_bulkload)
 
 lemma lookup_map_entry [simp]:
   "lookup (map_entry k f t) = (lookup t)(k := Option.map f (lookup t k))"
-  by (simp add: map_entry_def lookup_RBT rbt_lookup_rbt_map_entry lookup_impl_of)
+  by transfer (rule rbt_lookup_rbt_map_entry)
 
 lemma lookup_map [simp]:
   "lookup (map f t) k = Option.map (f k) (lookup t k)"
-  by (simp add: map_def lookup_RBT rbt_lookup_map lookup_impl_of)
+  by transfer (rule rbt_lookup_map)
 
 lemma fold_fold:
   "fold f t = List.fold (prod_case f) (entries t)"
-  by (simp add: fold_def fun_eq_iff RBT_Impl.fold_def entries_impl_of)
+  by transfer (rule RBT_Impl.fold_def)
+
+lemma impl_of_empty:
+  "impl_of empty = RBT_Impl.Empty"
+  by transfer (rule refl)
 
 lemma is_empty_empty [simp]:
   "is_empty t \<longleftrightarrow> t = empty"
-  by (simp add: rbt_eq_iff is_empty_def impl_of_empty split: rbt.split)
+  unfolding is_empty_def by transfer (simp split: rbt.split)
 
 lemma RBT_lookup_empty [simp]: (*FIXME*)
   "rbt_lookup t = Map.empty \<longleftrightarrow> t = RBT_Impl.Empty"
@@ -159,15 +147,41 @@ lemma RBT_lookup_empty [simp]: (*FIXME*)
 
 lemma lookup_empty_empty [simp]:
   "lookup t = Map.empty \<longleftrightarrow> t = empty"
-  by (cases t) (simp add: empty_def lookup_def RBT_inject RBT_inverse)
+  by transfer (rule RBT_lookup_empty)
 
 lemma sorted_keys [iff]:
   "sorted (keys t)"
-  by (simp add: keys_def RBT_Impl.keys_def rbt_sorted_entries)
+  by transfer (simp add: RBT_Impl.keys_def rbt_sorted_entries)
 
 lemma distinct_keys [iff]:
   "distinct (keys t)"
-  by (simp add: keys_def RBT_Impl.keys_def distinct_entries)
+  by transfer (simp add: RBT_Impl.keys_def distinct_entries)
+
+lemma finite_dom_lookup [simp, intro!]: "finite (dom (lookup t))"
+  by transfer simp
+
+lemma lookup_union: "lookup (union s t) = lookup s ++ lookup t"
+  by transfer (simp add: rbt_lookup_rbt_union)
+
+lemma lookup_in_tree: "(lookup t k = Some v) = ((k, v) \<in> set (entries t))"
+  by transfer (simp add: rbt_lookup_in_tree)
+
+lemma keys_entries: "(k \<in> set (keys t)) = (\<exists>v. (k, v) \<in> set (entries t))"
+  by transfer (simp add: keys_entries)
+
+lemma fold_def_alt:
+  "fold f t = List.fold (prod_case f) (entries t)"
+  by transfer (auto simp: RBT_Impl.fold_def)
+
+lemma distinct_entries: "distinct (List.map fst (entries t))"
+  by transfer (simp add: distinct_entries)
+
+lemma non_empty_keys: "t \<noteq> empty \<Longrightarrow> keys t \<noteq> []"
+  by transfer (simp add: non_empty_rbt_keys)
+
+lemma keys_def_alt:
+  "keys t = List.map fst (entries t)"
+  by transfer (simp add: RBT_Impl.keys_def)
 
 subsection {* Quickcheck generators *}
 
