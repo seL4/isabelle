@@ -1041,5 +1041,83 @@ lemma Powp_Pow_eq [pred_set_conv]: "Powp (\<lambda>x. x \<in> A) = (\<lambda>x. 
 
 lemmas Powp_mono [mono] = Pow_mono [to_pred]
 
+subsubsection {* Expressing relation operations via @{const Finite_Set.fold} *}
+
+lemma Id_on_fold:
+  assumes "finite A"
+  shows "Id_on A = Finite_Set.fold (\<lambda>x. Set.insert (Pair x x)) {} A"
+proof -
+  interpret comp_fun_commute "\<lambda>x. Set.insert (Pair x x)" by default auto
+  show ?thesis using assms unfolding Id_on_def by (induct A) simp_all
+qed
+
+lemma comp_fun_commute_Image_fold:
+  "comp_fun_commute (\<lambda>(x,y) A. if x \<in> S then Set.insert y A else A)"
+proof -
+  interpret comp_fun_idem Set.insert
+      by (fact comp_fun_idem_insert)
+  show ?thesis 
+  by default (auto simp add: fun_eq_iff comp_fun_commute split:prod.split)
+qed
+
+lemma Image_fold:
+  assumes "finite R"
+  shows "R `` S = Finite_Set.fold (\<lambda>(x,y) A. if x \<in> S then Set.insert y A else A) {} R"
+proof -
+  interpret comp_fun_commute "(\<lambda>(x,y) A. if x \<in> S then Set.insert y A else A)" 
+    by (rule comp_fun_commute_Image_fold)
+  have *: "\<And>x F. Set.insert x F `` S = (if fst x \<in> S then Set.insert (snd x) (F `` S) else (F `` S))"
+    by (auto intro: rev_ImageI)
+  show ?thesis using assms by (induct R) (auto simp: *)
+qed
+
+lemma insert_relcomp_union_fold:
+  assumes "finite S"
+  shows "{x} O S \<union> X = Finite_Set.fold (\<lambda>(w,z) A'. if snd x = w then Set.insert (fst x,z) A' else A') X S"
+proof -
+  interpret comp_fun_commute "\<lambda>(w,z) A'. if snd x = w then Set.insert (fst x,z) A' else A'"
+  proof - 
+    interpret comp_fun_idem Set.insert by (fact comp_fun_idem_insert)
+    show "comp_fun_commute (\<lambda>(w,z) A'. if snd x = w then Set.insert (fst x,z) A' else A')"
+    by default (auto simp add: fun_eq_iff split:prod.split)
+  qed
+  have *: "{x} O S = {(x', z). x' = fst x \<and> (snd x,z) \<in> S}" by (auto simp: relcomp_unfold intro!: exI)
+  show ?thesis unfolding *
+  using `finite S` by (induct S) (auto split: prod.split)
+qed
+
+lemma insert_relcomp_fold:
+  assumes "finite S"
+  shows "Set.insert x R O S = 
+    Finite_Set.fold (\<lambda>(w,z) A'. if snd x = w then Set.insert (fst x,z) A' else A') (R O S) S"
+proof -
+  have "Set.insert x R O S = ({x} O S) \<union> (R O S)" by auto
+  then show ?thesis by (auto simp: insert_relcomp_union_fold[OF assms])
+qed
+
+lemma comp_fun_commute_relcomp_fold:
+  assumes "finite S"
+  shows "comp_fun_commute (\<lambda>(x,y) A. 
+    Finite_Set.fold (\<lambda>(w,z) A'. if y = w then Set.insert (x,z) A' else A') A S)"
+proof -
+  have *: "\<And>a b A. 
+    Finite_Set.fold (\<lambda>(w, z) A'. if b = w then Set.insert (a, z) A' else A') A S = {(a,b)} O S \<union> A"
+    by (auto simp: insert_relcomp_union_fold[OF assms] cong: if_cong)
+  show ?thesis by default (auto simp: *)
+qed
+
+lemma relcomp_fold:
+  assumes "finite R"
+  assumes "finite S"
+  shows "R O S = Finite_Set.fold 
+    (\<lambda>(x,y) A. Finite_Set.fold (\<lambda>(w,z) A'. if y = w then Set.insert (x,z) A' else A') A S) {} R"
+proof -
+  show ?thesis using assms by (induct R) 
+    (auto simp: comp_fun_commute.fold_insert comp_fun_commute_relcomp_fold insert_relcomp_fold 
+      cong: if_cong)
+qed
+
+
+
 end
 
