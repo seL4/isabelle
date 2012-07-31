@@ -513,7 +513,7 @@ object Build
               (output_dir + log_gz(name)).file.delete
               File.write(output_dir + log(name), out)
               echo(name + " FAILED")
-              echo("(see also " + log(name).file.toString + ")")
+              echo("(see also " + (output_dir + log(name)).file.toString + ")")
               val lines = split_lines(out)
               val tail = lines.drop(lines.length - 20 max 0)
               echo("\n" + cat_lines(tail))
