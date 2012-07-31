@@ -85,7 +85,10 @@ case "$OUTFORMAT" in
 esac
 
 
-# tagged region markup
+# document variants
+
+ROOT_NAME="root_$NAME"
+[ ! -f "$DIR/$ROOT_NAME.tex" ] && ROOT_NAME="root"
 
 function prep_tags ()
 {
@@ -117,10 +120,10 @@ function pre_latex ()
 {
   local FMT="$1"
   [ -n "$CLEAN" ] && rm -f *.aux *.out *.ind *.idx *.ilg *.bbl *.blg *.log
-  "$ISABELLE_TOOL" latex -o sty && \
-  "$ISABELLE_TOOL" latex -o "$FMT" && \
-  { [ ! -f root.bib ] || "$ISABELLE_TOOL" latex -o bbl; } && \
-  { [ ! -f root.idx ] || "$ISABELLE_TOOL" latex -o idx; } && \
+  "$ISABELLE_TOOL" latex -o sty "$ROOT_NAME.tex" && \
+  "$ISABELLE_TOOL" latex -o "$FMT" "$ROOT_NAME.tex" && \
+  { [ ! -f root.bib -a ! -f "$ROOT_NAME.bib" ] || "$ISABELLE_TOOL" latex -o bbl "$ROOT_NAME.tex"; } && \
+  { [ ! -f root.idx -a ! -f "$ROOT_NAME.idx" ] || "$ISABELLE_TOOL" latex -o idx "$ROOT_NAME.tex"; } && \
   "$ISABELLE_TOOL" latex -o "$FMT"
 }
 
@@ -136,16 +139,16 @@ function pre_latex ()
     RC="$?"
   elif [ "$OUTFORMAT" = pdf ]; then
     pre_latex pdf && \
-    "$ISABELLE_TOOL" latex -o pdf
+    "$ISABELLE_TOOL" latex -o pdf "$ROOT_NAME.tex"
     RC="$?"
   else
     pre_latex dvi && \
-    "$ISABELLE_TOOL" latex -o "$OUTFORMAT"
+    "$ISABELLE_TOOL" latex -o "$OUTFORMAT" "$ROOT_NAME.tex"
     RC="$?"
   fi
 
-  if [ "$RC" -eq 0 -a -f "root.$OUTFORMAT" ]; then
-    cp -f "root.$OUTFORMAT" "../$NAME.$OUTFORMAT"
+  if [ "$RC" -eq 0 -a -f "$ROOT_NAME.$OUTFORMAT" ]; then
+    cp -f "$ROOT_NAME.$OUTFORMAT" "../$NAME.$OUTFORMAT"
   fi
 
   exit "$RC"

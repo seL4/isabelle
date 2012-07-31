@@ -65,6 +65,10 @@ Minor INCOMPATIBILITY.
 * Default for \<euro> is now based on eurosym package, instead of
 slightly exotic babel/greek.
 
+* Document variant NAME may use different LaTeX entry point
+document/root_NAME.tex if that file exists, instead of the common
+document/root.tex.
+
 
 *** System ***
 
