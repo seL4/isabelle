@@ -758,7 +758,6 @@ session Quotient_Examples = HOL +
     Quotient_Message
     Lift_FSet
     Lift_Set
-    Lift_RBT
     Lift_Fun
     Quotient_Rat
     Lift_DList
