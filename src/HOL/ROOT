@@ -515,20 +515,20 @@ session Matrix_LP = HOL +
   theories Cplex
   files "document/root.tex"
 
-session TLA! = HOL +
+session TLA = HOL +
   description {* The Temporal Logic of Actions *}
   options [document = false]
   theories TLA
 
-session Inc in "TLA/Inc" = TLA +
+session Inc in "TLA/Inc" = "HOL-TLA" +
   options [document = false]
   theories Inc
 
-session Buffer in "TLA/Buffer" = TLA +
+session Buffer in "TLA/Buffer" = "HOL-TLA" +
   options [document = false]
   theories DBuffer
 
-session Memory in "TLA/Memory" = TLA +
+session Memory in "TLA/Memory" = "HOL-TLA" +
   options [document = false]
   theories MemoryImplementation
 
