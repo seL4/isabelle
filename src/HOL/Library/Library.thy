@@ -55,6 +55,7 @@ imports
   Ramsey
   Reflection
   RBT_Mapping
+  (* RBT_Set *) (* not included because it breaks Codegenerator_Test/Generate*.thy *)
   Saturated
   Set_Algebras
   State_Monad
