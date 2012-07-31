@@ -46,7 +46,7 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
     val isar_ok = Unsynchronized.ref 0
     fun with_index facts s = (find_index (curry (op =) s) facts + 1, s)
     fun index_string (j, s) = s ^ "@" ^ string_of_int j
-    fun str_of_res label facts {outcome, run_time, used_facts, ...} =
+    fun str_of_res label facts ({outcome, run_time, used_facts, ...}: Sledgehammer_Provers.prover_result) =
       let val facts = facts |> map (fn ((name, _), _) => name ()) in
         "  " ^ label ^ ": " ^
         (if is_none outcome then
