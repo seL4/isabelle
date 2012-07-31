@@ -560,7 +560,7 @@ session Multivariate_Analysis = HOL +
     "document/root.tex"
 
 session "HOL-Probability"! in "Probability" = "HOL-Multivariate_Analysis" +
-  options [condition = ISABELLE_POLYML, document_graph]
+  options [document_graph]
   theories [document = false]
     "~~/src/HOL/Library/Countable"
     "~~/src/HOL/Multivariate_Analysis/Extended_Real_Limits"
