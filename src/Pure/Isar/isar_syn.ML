@@ -7,38 +7,6 @@ Isar/Pure outer syntax.
 structure Isar_Syn: sig end =
 struct
 
-(** keywords **)
-
-val _ = Context.>> (Context.map_theory
-  (fold (fn name => (Keyword.define (name, NONE); Thy_Header.declare_keyword (name, NONE)))
-   ["!!", "!", "%", "(", ")", "+", ",", "--", ":", "::", ";", "<", "<=",
-    "=", "==", "=>", "?", "[", "\\<equiv>", "\\<leftharpoondown>",
-    "\\<rightharpoonup>", "\\<rightleftharpoons>", "\\<subseteq>", "]",
-    "advanced", "and", "assumes", "attach", "begin", "binder",
-    "constrains", "defines", "fixes", "for", "identifier", "if",
-    "imports", "in", "includes", "infix", "infixl", "infixr", "is", "keywords",
-    "notes", "obtains", "open", "output", "overloaded", "pervasive",
-    "shows", "structure", "unchecked", "uses", "where", "|"]));
-
-
-
-(** init and exit **)
-
-val _ =
-  Outer_Syntax.command ("theory", Keyword.tag_theory Keyword.thy_begin) "begin theory context"
-    (Thy_Header.args >> (fn header =>
-      Toplevel.print o
-        Toplevel.init_theory
-          (fn () => Thy_Info.toplevel_begin_theory (Thy_Load.get_master_path ()) header)));
-
-val _ =
-  Outer_Syntax.command ("end", Keyword.tag_theory Keyword.thy_end) "end context"
-    (Scan.succeed
-      (Toplevel.exit o Toplevel.end_local_theory o Toplevel.close_target o
-        Toplevel.end_proof (K Proof.end_notepad)));
-
-
-
 (** markup commands **)
 
 val _ =
@@ -109,13 +77,13 @@ val _ =
 
 val _ =
   Outer_Syntax.command ("classes", Keyword.thy_decl) "declare type classes"
-    (Scan.repeat1 (Parse.binding -- Scan.optional ((Parse.$$$ "\\<subseteq>" || Parse.$$$ "<") |--
+    (Scan.repeat1 (Parse.binding -- Scan.optional ((Parse.$$$ "\<subseteq>" || Parse.$$$ "<") |--
         Parse.!!! (Parse.list1 Parse.class)) [])
       >> (Toplevel.theory o fold AxClass.axiomatize_class_cmd));
 
 val _ =
   Outer_Syntax.command ("classrel", Keyword.thy_decl) "state inclusion of type classes (axiomatic!)"
-    (Parse.and_list1 (Parse.class -- ((Parse.$$$ "\\<subseteq>" || Parse.$$$ "<")
+    (Parse.and_list1 (Parse.class -- ((Parse.$$$ "\<subseteq>" || Parse.$$$ "<")
         |-- Parse.!!! Parse.class))
     >> (Toplevel.theory o AxClass.axiomatize_classrel_cmd));
 
@@ -158,8 +126,6 @@ val _ =
   Outer_Syntax.command ("consts", Keyword.thy_decl) "declare constants"
     (Scan.repeat1 Parse.const_binding >> (Toplevel.theory o Sign.add_consts));
 
-val opt_overloaded = Parse.opt_keyword "overloaded";
-
 val mode_spec =
   (Parse.$$$ "output" >> K ("", false)) ||
     Parse.name -- Scan.optional (Parse.$$$ "output" >> K false) true;
@@ -184,9 +150,9 @@ val trans_pat =
     -- Parse.inner_syntax Parse.string;
 
 fun trans_arrow toks =
-  ((Parse.$$$ "\\<rightharpoonup>" || Parse.$$$ "=>") >> K Syntax.Parse_Rule ||
-    (Parse.$$$ "\\<leftharpoondown>" || Parse.$$$ "<=") >> K Syntax.Print_Rule ||
-    (Parse.$$$ "\\<rightleftharpoons>" || Parse.$$$ "==") >> K Syntax.Parse_Print_Rule) toks;
+  ((Parse.$$$ "\<rightharpoonup>" || Parse.$$$ "=>") >> K Syntax.Parse_Rule ||
+    (Parse.$$$ "\<leftharpoondown>" || Parse.$$$ "<=") >> K Syntax.Print_Rule ||
+    (Parse.$$$ "\<rightleftharpoons>" || Parse.$$$ "==") >> K Syntax.Parse_Print_Rule) toks;
 
 val trans_line =
   trans_pat -- Parse.!!! (trans_arrow -- trans_pat)
@@ -466,7 +432,7 @@ fun parse_interpretation_arguments mandatory =
 val _ =
   Outer_Syntax.command ("sublocale", Keyword.thy_schematic_goal)
     "prove sublocale relation between a locale and a locale expression"
-    (Parse.position Parse.xname --| (Parse.$$$ "\\<subseteq>" || Parse.$$$ "<") --
+    (Parse.position Parse.xname --| (Parse.$$$ "\<subseteq>" || Parse.$$$ "<") --
       parse_interpretation_arguments false
       >> (fn (loc, (expr, equations)) =>
           Toplevel.print o Toplevel.theory_to_proof (Expression.sublocale_cmd I loc expr equations)));
@@ -513,7 +479,7 @@ val _ =
 val _ =
   Outer_Syntax.command ("instance", Keyword.thy_goal) "prove type arity or subclass relation"
   ((Parse.class --
-    ((Parse.$$$ "\\<subseteq>" || Parse.$$$ "<") |-- Parse.!!! Parse.class) >> Class.classrel_cmd ||
+    ((Parse.$$$ "\<subseteq>" || Parse.$$$ "<") |-- Parse.!!! Parse.class) >> Class.classrel_cmd ||
     Parse.multi_arity >> Class.instance_arity_cmd)
     >> (Toplevel.print oo Toplevel.theory_to_proof) ||
     Scan.succeed
@@ -524,7 +490,7 @@ val _ =
 
 val _ =
   Outer_Syntax.command ("overloading", Keyword.thy_decl) "overloaded definitions"
-   (Scan.repeat1 (Parse.name --| (Parse.$$$ "\\<equiv>" || Parse.$$$ "==") -- Parse.term --
+   (Scan.repeat1 (Parse.name --| (Parse.$$$ "\<equiv>" || Parse.$$$ "==") -- Parse.term --
       Scan.optional (Parse.$$$ "(" |-- (Parse.$$$ "unchecked" >> K false) --| Parse.$$$ ")") true
       >> Parse.triple1) --| Parse.begin
    >> (fn operations => Toplevel.print o
@@ -639,7 +605,7 @@ val _ =
     (Parse.and_list1
       (Parse_Spec.opt_thm_name ":" --
         ((Parse.binding -- Parse.opt_mixfix) --
-          ((Parse.$$$ "\\<equiv>" || Parse.$$$ "==") |-- Parse.!!! Parse.termp)))
+          ((Parse.$$$ "\<equiv>" || Parse.$$$ "==") |-- Parse.!!! Parse.termp)))
     >> (Toplevel.print oo (Toplevel.proof o Proof.def_cmd)));
 
 val _ =
@@ -1040,6 +1006,16 @@ val _ =
       (Toplevel.no_timing o Toplevel.keep (fn state =>
         (Context.set_thread_data (try Toplevel.generic_theory_of state);
           raise Runtime.TERMINATE))));
+
+
+
+(** end **)
+
+val _ =
+  Outer_Syntax.command ("end", Keyword.tag_theory Keyword.thy_end) "end context"
+    (Scan.succeed
+      (Toplevel.exit o Toplevel.end_local_theory o Toplevel.close_target o
+        Toplevel.end_proof (K Proof.end_notepad)));
 
 end;
 

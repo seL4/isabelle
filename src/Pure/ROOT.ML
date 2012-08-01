@@ -259,7 +259,6 @@ use "Thy/rail.ML";
 use "Isar/rule_insts.ML";
 use "Thy/thm_deps.ML";
 use "Isar/isar_cmd.ML";
-use "Isar/isar_syn.ML";
 
 use "subgoal.ML";
 
@@ -302,11 +301,11 @@ use "ProofGeneral/preferences.ML";
 
 use "ProofGeneral/pgip_parser.ML";
 
-use "ProofGeneral/pgip_tests.ML";
-
 use "ProofGeneral/proof_general_pgip.ML";
 use "ProofGeneral/proof_general_emacs.ML";
 
 
 use "pure_setup.ML";
+
+use "ProofGeneral/pgip_tests.ML";
 
