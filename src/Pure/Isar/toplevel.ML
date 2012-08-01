@@ -672,31 +672,34 @@ structure Result = Proof_Data
 );
 
 fun proof_result immediate (tr, proof_trs) st =
-  if immediate orelse null proof_trs
-  then fold_map command_result (tr :: proof_trs) st |>> Future.value
-  else
-    let
-      val st' = command tr st;
-      val (body_trs, end_tr) = split_last proof_trs;
-      val finish = Context.Theory o Proof_Context.theory_of;
+  let val st' = command tr st in
+    if immediate orelse null proof_trs orelse not (can proof_of st')
+    then
+      let val (results, st'') = fold_map command_result proof_trs st'
+      in (Future.value ((tr, st') :: results), st'') end
+    else
+      let
+        val (body_trs, end_tr) = split_last proof_trs;
+        val finish = Context.Theory o Proof_Context.theory_of;
 
-      val future_proof = Proof.global_future_proof
-        (fn prf =>
-          Goal.fork_name "Toplevel.future_proof"
-            (fn () =>
-              let val (result, result_state) =
-                (case st' of State (SOME (Proof (_, (_, orig_gthy))), prev)
-                  => State (SOME (Proof (Proof_Node.init prf, (finish, orig_gthy))), prev))
-                |> fold_map command_result body_trs ||> command end_tr;
-              in (result, presentation_context_of result_state) end))
-        #-> Result.put;
+        val future_proof = Proof.global_future_proof
+          (fn prf =>
+            Goal.fork_name "Toplevel.future_proof"
+              (fn () =>
+                let val (result, result_state) =
+                  (case st' of State (SOME (Proof (_, (_, orig_gthy))), prev)
+                    => State (SOME (Proof (Proof_Node.init prf, (finish, orig_gthy))), prev))
+                  |> fold_map command_result body_trs ||> command end_tr;
+                in (result, presentation_context_of result_state) end))
+          #-> Result.put;
 
-      val st'' = st'
-        |> command (tr |> set_print false |> reset_trans |> end_proof (K future_proof));
-      val result =
-        Result.get (presentation_context_of st'')
-        |> Future.map (fn body => (tr, st') :: body @ [(end_tr, st'')]);
+        val st'' = st'
+          |> command (tr |> set_print false |> reset_trans |> end_proof (K future_proof));
+        val result =
+          Result.get (presentation_context_of st'')
+          |> Future.map (fn body => (tr, st') :: body @ [(end_tr, st'')]);
 
-    in (result, st'') end;
+      in (result, st'') end
+  end;
 
 end;
