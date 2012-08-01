@@ -26,5 +26,7 @@ ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 ISABELLE_USEDIR_OPTIONS="-i false -d false -t true -M 8 -q 2"
 ISABELLE_BUILD_OPTIONS="browser_info=false document=false threads=8 parallel_proofs=2"
 
+ISABELLE_FULL_TEST=true
+
 init_component "$HOME/contrib_devel/kodkodi-1.2.16"
 

@@ -740,7 +740,7 @@ session Quickcheck_Examples = HOL +
     Quickcheck_Narrowing_Examples
 
 session Quickcheck_Benchmark = HOL +
-  theories [condition = ISABELLE_BENCHMARK, quick_and_dirty]
+  theories [condition = ISABELLE_FULL_TEST, quick_and_dirty]
     Find_Unused_Assms_Examples
     Needham_Schroeder_No_Attacker_Example
     Needham_Schroeder_Guided_Attacker_Example
@@ -874,7 +874,7 @@ session ex in "HOLCF/IOA/ex" = IOA +
 session Datatype_Benchmark = HOL +
   description {* Some rather large datatype examples (from John Harrison). *}
   options [document = false]
-  theories [condition = ISABELLE_BENCHMARK, timing]
+  theories [condition = ISABELLE_FULL_TEST, timing]
     Brackin
     Instructions
     SML
@@ -883,6 +883,6 @@ session Datatype_Benchmark = HOL +
 session Record_Benchmark = HOL +
   description {* Some benchmark on large record. *}
   options [document = false]
-  theories [condition = ISABELLE_BENCHMARK, timing]
+  theories [condition = ISABELLE_FULL_TEST, timing]
     Record_Benchmark
 

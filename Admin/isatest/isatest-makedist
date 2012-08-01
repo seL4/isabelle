@@ -110,8 +110,8 @@ sleep 15
 $SSH macbroy23 "$MAKEALL $HOME/settings/at-poly-e"
 sleep 15
 $SSH macbroy2 "
-  env ISABELLE_BENCHMARK=true $MAKEALL $HOME/settings/mac-poly64-M4;
-  env ISABELLE_BENCHMARK=true $MAKEALL $HOME/settings/mac-poly64-M8;
+  $MAKEALL $HOME/settings/mac-poly64-M4;
+  $MAKEALL $HOME/settings/mac-poly64-M8;
   $MAKEALL $HOME/settings/mac-poly-M4;
   $MAKEALL $HOME/settings/mac-poly-M8"
 sleep 15
