@@ -77,13 +77,13 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_spec "classes"} "declare type classes"
-    (Scan.repeat1 (Parse.binding -- Scan.optional ((Parse.$$$ "\<subseteq>" || Parse.$$$ "<") |--
+    (Scan.repeat1 (Parse.binding -- Scan.optional ((@{keyword "\<subseteq>"} || @{keyword "<"}) |--
         Parse.!!! (Parse.list1 Parse.class)) [])
       >> (Toplevel.theory o fold AxClass.axiomatize_class_cmd));
 
 val _ =
   Outer_Syntax.command @{command_spec "classrel"} "state inclusion of type classes (axiomatic!)"
-    (Parse.and_list1 (Parse.class -- ((Parse.$$$ "\<subseteq>" || Parse.$$$ "<")
+    (Parse.and_list1 (Parse.class -- ((@{keyword "\<subseteq>"} || @{keyword "<"})
         |-- Parse.!!! Parse.class))
     >> (Toplevel.theory o AxClass.axiomatize_classrel_cmd));
 
@@ -103,7 +103,7 @@ val _ =
 val _ =
   Outer_Syntax.local_theory @{command_spec "type_synonym"} "declare type abbreviation"
     (Parse.type_args -- Parse.binding --
-      (Parse.$$$ "=" |-- Parse.!!! (Parse.typ -- Parse.opt_mixfix'))
+      (@{keyword "="} |-- Parse.!!! (Parse.typ -- Parse.opt_mixfix'))
       >> (fn ((args, a), (rhs, mx)) => snd o Typedecl.abbrev_cmd (a, args, mx) rhs));
 
 val _ =
@@ -127,11 +127,11 @@ val _ =
     (Scan.repeat1 Parse.const_binding >> (Toplevel.theory o Sign.add_consts));
 
 val mode_spec =
-  (Parse.$$$ "output" >> K ("", false)) ||
-    Parse.name -- Scan.optional (Parse.$$$ "output" >> K false) true;
+  (@{keyword "output"} >> K ("", false)) ||
+    Parse.name -- Scan.optional (@{keyword "output"} >> K false) true;
 
 val opt_mode =
-  Scan.optional (Parse.$$$ "(" |-- Parse.!!! (mode_spec --| Parse.$$$ ")")) Syntax.mode_default;
+  Scan.optional (@{keyword "("} |-- Parse.!!! (mode_spec --| @{keyword ")"})) Syntax.mode_default;
 
 val _ =
   Outer_Syntax.command @{command_spec "syntax"} "declare syntactic constants"
@@ -146,13 +146,13 @@ val _ =
 
 val trans_pat =
   Scan.optional
-    (Parse.$$$ "(" |-- Parse.!!! (Parse.xname --| Parse.$$$ ")")) "logic"
+    (@{keyword "("} |-- Parse.!!! (Parse.xname --| @{keyword ")"})) "logic"
     -- Parse.inner_syntax Parse.string;
 
 fun trans_arrow toks =
-  ((Parse.$$$ "\<rightharpoonup>" || Parse.$$$ "=>") >> K Syntax.Parse_Rule ||
-    (Parse.$$$ "\<leftharpoondown>" || Parse.$$$ "<=") >> K Syntax.Print_Rule ||
-    (Parse.$$$ "\<rightleftharpoons>" || Parse.$$$ "==") >> K Syntax.Parse_Print_Rule) toks;
+  ((@{keyword "\<rightharpoonup>"} || @{keyword "=>"}) >> K Syntax.Parse_Rule ||
+    (@{keyword "\<leftharpoondown>"} || @{keyword "<="}) >> K Syntax.Print_Rule ||
+    (@{keyword "\<rightleftharpoons>"} || @{keyword "=="}) >> K Syntax.Parse_Print_Rule) toks;
 
 val trans_line =
   trans_pat -- Parse.!!! (trans_arrow -- trans_pat)
@@ -177,9 +177,10 @@ val _ =
           Isar_Cmd.add_axioms spec thy))));
 
 val opt_unchecked_overloaded =
-  Scan.optional (Parse.$$$ "(" |-- Parse.!!!
-    (((Parse.$$$ "unchecked" >> K true) -- Scan.optional (Parse.$$$ "overloaded" >> K true) false ||
-      Parse.$$$ "overloaded" >> K (false, true)) --| Parse.$$$ ")")) (false, false);
+  Scan.optional (@{keyword "("} |-- Parse.!!!
+    (((@{keyword "unchecked"} >> K true) --
+        Scan.optional (@{keyword "overloaded"} >> K true) false ||
+      @{keyword "overloaded"} >> K (false, true)) --| @{keyword ")"})) (false, false);
 
 val _ =
   Outer_Syntax.command @{command_spec "defs"} "define constants"
@@ -304,13 +305,13 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_spec "attribute_setup"} "define attribute in ML"
     (Parse.position Parse.name --
-        Parse.!!! (Parse.$$$ "=" |-- Parse.ML_source -- Scan.optional Parse.text "")
+        Parse.!!! (@{keyword "="} |-- Parse.ML_source -- Scan.optional Parse.text "")
       >> (fn (name, (txt, cmt)) => Toplevel.theory (Attrib.attribute_setup name txt cmt)));
 
 val _ =
   Outer_Syntax.command @{command_spec "method_setup"} "define proof method in ML"
     (Parse.position Parse.name --
-        Parse.!!! (Parse.$$$ "=" |-- Parse.ML_source -- Scan.optional Parse.text "")
+        Parse.!!! (@{keyword "="} |-- Parse.ML_source -- Scan.optional Parse.text "")
       >> (fn (name, (txt, cmt)) => Toplevel.theory (Method.method_setup name txt cmt)));
 
 val _ =
@@ -326,8 +327,8 @@ val _ =
 val _ =
   Outer_Syntax.local_theory @{command_spec "simproc_setup"} "define simproc in ML"
     (Parse.position Parse.name --
-      (Parse.$$$ "(" |-- Parse.enum1 "|" Parse.term --| Parse.$$$ ")" --| Parse.$$$ "=") --
-      Parse.ML_source -- Scan.optional (Parse.$$$ "identifier" |-- Scan.repeat1 Parse.xname) []
+      (@{keyword "("} |-- Parse.enum1 "|" Parse.term --| @{keyword ")"} --| @{keyword "="}) --
+      Parse.ML_source -- Scan.optional (@{keyword "identifier"} |-- Scan.repeat1 Parse.xname) []
     >> (fn (((a, b), c), d) => Isar_Cmd.simproc_setup a b c d));
 
 
@@ -365,7 +366,7 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_spec "oracle"} "declare oracle"
-    (Parse.position Parse.name -- (Parse.$$$ "=" |-- Parse.ML_source) >>
+    (Parse.position Parse.name -- (@{keyword "="} |-- Parse.ML_source) >>
       (fn (x, y) => Toplevel.theory (Isar_Cmd.oracle x y)));
 
 
@@ -373,7 +374,7 @@ val _ =
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "bundle"} "define bundle of declarations"
-    ((Parse.binding --| Parse.$$$ "=") -- Parse_Spec.xthms1 -- Parse.for_fixes
+    ((Parse.binding --| @{keyword "="}) -- Parse_Spec.xthms1 -- Parse.for_fixes
       >> (uncurry Bundle.bundle_cmd));
 
 val _ =
@@ -410,13 +411,13 @@ val _ =
 
 val locale_val =
   Parse_Spec.locale_expression false --
-    Scan.optional (Parse.$$$ "+" |-- Parse.!!! (Scan.repeat1 Parse_Spec.context_element)) [] ||
+    Scan.optional (@{keyword "+"} |-- Parse.!!! (Scan.repeat1 Parse_Spec.context_element)) [] ||
   Scan.repeat1 Parse_Spec.context_element >> pair ([], []);
 
 val _ =
   Outer_Syntax.command @{command_spec "locale"} "define named proof context"
     (Parse.binding --
-      Scan.optional (Parse.$$$ "=" |-- Parse.!!! locale_val) (([], []), []) -- Parse.opt_begin
+      Scan.optional (@{keyword "="} |-- Parse.!!! locale_val) (([], []), []) -- Parse.opt_begin
       >> (fn ((name, (expr, elems)), begin) =>
           (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
             (Expression.add_locale_cmd I name Binding.empty expr elems #> snd)));
@@ -429,7 +430,7 @@ fun parse_interpretation_arguments mandatory =
 val _ =
   Outer_Syntax.command @{command_spec "sublocale"}
     "prove sublocale relation between a locale and a locale expression"
-    (Parse.position Parse.xname --| (Parse.$$$ "\<subseteq>" || Parse.$$$ "<") --
+    (Parse.position Parse.xname --| (@{keyword "\<subseteq>"} || @{keyword "<"}) --
       parse_interpretation_arguments false
       >> (fn (loc, (expr, equations)) =>
           Toplevel.print o Toplevel.theory_to_proof (Expression.sublocale_cmd I loc expr equations)));
@@ -453,12 +454,12 @@ val _ =
 
 val class_val =
   Parse_Spec.class_expression --
-    Scan.optional (Parse.$$$ "+" |-- Parse.!!! (Scan.repeat1 Parse_Spec.context_element)) [] ||
+    Scan.optional (@{keyword "+"} |-- Parse.!!! (Scan.repeat1 Parse_Spec.context_element)) [] ||
   Scan.repeat1 Parse_Spec.context_element >> pair [];
 
 val _ =
   Outer_Syntax.command @{command_spec "class"} "define type class"
-   (Parse.binding -- Scan.optional (Parse.$$$ "=" |-- class_val) ([], []) -- Parse.opt_begin
+   (Parse.binding -- Scan.optional (@{keyword "="} |-- class_val) ([], []) -- Parse.opt_begin
     >> (fn ((name, (supclasses, elems)), begin) =>
         (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
           (Class_Declaration.class_cmd I name supclasses elems #> snd)));
@@ -476,7 +477,7 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_spec "instance"} "prove type arity or subclass relation"
   ((Parse.class --
-    ((Parse.$$$ "\<subseteq>" || Parse.$$$ "<") |-- Parse.!!! Parse.class) >> Class.classrel_cmd ||
+    ((@{keyword "\<subseteq>"} || @{keyword "<"}) |-- Parse.!!! Parse.class) >> Class.classrel_cmd ||
     Parse.multi_arity >> Class.instance_arity_cmd)
     >> (Toplevel.print oo Toplevel.theory_to_proof) ||
     Scan.succeed
@@ -487,8 +488,8 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_spec "overloading"} "overloaded definitions"
-   (Scan.repeat1 (Parse.name --| (Parse.$$$ "\<equiv>" || Parse.$$$ "==") -- Parse.term --
-      Scan.optional (Parse.$$$ "(" |-- (Parse.$$$ "unchecked" >> K false) --| Parse.$$$ ")") true
+   (Scan.repeat1 (Parse.name --| (@{keyword "\<equiv>"} || @{keyword "=="}) -- Parse.term --
+      Scan.optional (@{keyword "("} |-- (@{keyword "unchecked"} >> K false) --| @{keyword ")"}) true
       >> Parse.triple1) --| Parse.begin
    >> (fn operations => Toplevel.print o
          Toplevel.begin_local_theory true (Overloading.overloading_cmd operations)));
@@ -597,7 +598,7 @@ val _ =
     (Parse.and_list1
       (Parse_Spec.opt_thm_name ":" --
         ((Parse.binding -- Parse.opt_mixfix) --
-          ((Parse.$$$ "\<equiv>" || Parse.$$$ "==") |-- Parse.!!! Parse.termp)))
+          ((@{keyword "\<equiv>"} || @{keyword "=="}) |-- Parse.!!! Parse.termp)))
     >> (Toplevel.print oo (Toplevel.proof o Proof.def_cmd)));
 
 val _ =
@@ -611,7 +612,7 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_spec "let"} "bind text variables"
-    (Parse.and_list1 (Parse.and_list1 Parse.term -- (Parse.$$$ "=" |-- Parse.term))
+    (Parse.and_list1 (Parse.and_list1 Parse.term -- (@{keyword "="} |-- Parse.term))
       >> (Toplevel.print oo (Toplevel.proof o Proof.let_bind_cmd)));
 
 val _ =
@@ -620,8 +621,8 @@ val _ =
     >> (fn (mode, args) => Toplevel.print o Toplevel.proof (Proof.write_cmd mode args)));
 
 val case_spec =
-  (Parse.$$$ "(" |--
-    Parse.!!! (Parse.xname -- Scan.repeat1 (Parse.maybe Parse.binding) --| Parse.$$$ ")") ||
+  (@{keyword "("} |--
+    Parse.!!! (Parse.xname -- Scan.repeat1 (Parse.maybe Parse.binding) --| @{keyword ")"}) ||
     Parse.xname >> rpair []) -- Parse_Spec.opt_attribs >> Parse.triple1;
 
 val _ =
@@ -703,7 +704,7 @@ val _ =
 (* calculational proof commands *)
 
 val calc_args =
-  Scan.option (Parse.$$$ "(" |-- Parse.!!! ((Parse_Spec.xthms1 --| Parse.$$$ ")")));
+  Scan.option (@{keyword "("} |-- Parse.!!! ((Parse_Spec.xthms1 --| @{keyword ")"})));
 
 val _ =
   Outer_Syntax.command @{command_spec "also"} "combine calculation and current facts"
@@ -751,9 +752,9 @@ val _ =
 (** diagnostic commands (for interactive mode only) **)
 
 val opt_modes =
-  Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Scan.repeat1 Parse.xname --| Parse.$$$ ")")) [];
+  Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.xname --| @{keyword ")"})) [];
 
-val opt_bang = Scan.optional (Parse.$$$ "!" >> K true) false;
+val opt_bang = Scan.optional (@{keyword "!"} >> K true) false;
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "pretty_setmargin"}
