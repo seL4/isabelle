@@ -410,7 +410,7 @@ fun begin_thy pp name imports =
 
       val Theory ({ids, ...}, data, _, _) =
         (case parents of
-          [] => error "No parent theories"
+          [] => error "Missing theory imports"
         | [thy] => extend_thy thy
         | thy :: thys => Library.foldl (merge_thys pp) (thy, thys));
 

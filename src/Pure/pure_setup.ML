@@ -4,16 +4,21 @@
 Pure theory and ML toplevel setup.
 *)
 
+(* ML toplevel use commands *)
+
+fun use name = Toplevel.program (fn () => Thy_Load.use_ml (Path.explode name));
+
+fun use_thys name = Toplevel.program (fn () => Thy_Info.use_thys name);
+fun use_thy name = Toplevel.program (fn () => Thy_Info.use_thy name);
+
+
 (* the Pure theory *)
 
-Context.>> (Context.map_theory
- (Outer_Syntax.process_file (Path.explode "Pure.thy") #>
-  Theory.end_theory));
-
-structure Pure = struct val thy = ML_Context.the_global_context () end;
-
+Unsynchronized.setmp Multithreading.max_threads 1
+  use_thy "Pure";
 Context.set_thread_data NONE;
-Thy_Info.register_thy Pure.thy;
+
+structure Pure = struct val thy = Thy_Info.get_theory "Pure" end;
 
 
 (* ML toplevel pretty printing *)
@@ -37,14 +42,6 @@ toplevel_pp ["Proof", "state"] "(fn _: Proof.state => Pretty.str \"<Proof.state>
 toplevel_pp ["Toplevel", "state"] "Toplevel.pretty_abstract";
 
 if ML_System.is_polyml then use "ML/install_pp_polyml.ML" else ();
-
-
-(* ML toplevel use commands *)
-
-fun use name = Toplevel.program (fn () => Thy_Load.use_ml (Path.explode name));
-
-fun use_thys name = Toplevel.program (fn () => Thy_Info.use_thys name);
-fun use_thy name = Toplevel.program (fn () => Thy_Info.use_thy name);
 
 
 (* misc *)

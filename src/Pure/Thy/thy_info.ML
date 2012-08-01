@@ -236,7 +236,9 @@ fun load_thy initiators update_time deps text name parents =
     val {uses, keywords, ...} = Thy_Header.read pos text;
     val header = Thy_Header.make name imports keywords uses;
 
-    val (theory, present) = Thy_Load.load_thy update_time dir header pos text parents;
+    val (theory, present) =
+      Thy_Load.load_thy update_time dir header pos text
+        (if name = Context.PureN then [ML_Context.the_global_context ()] else parents);
     fun commit () = update_thy deps theory;
   in (theory, present, commit) end;
 

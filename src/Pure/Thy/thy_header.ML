@@ -97,7 +97,7 @@ in
 
 val args =
   theory_name --
-  (Parse.$$$ importsN |-- Parse.!!! (Scan.repeat1 theory_name)) --
+  Scan.optional (Parse.$$$ importsN |-- Parse.!!! (Scan.repeat1 theory_name)) [] --
   Scan.optional (Parse.$$$ keywordsN |-- Parse.!!! keyword_decls) [] --
   Scan.optional (Parse.$$$ usesN |-- Parse.!!! (Scan.repeat1 file)) [] --|
   Parse.$$$ beginN >>

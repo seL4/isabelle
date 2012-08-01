@@ -31,7 +31,6 @@ sig
   val print_outer_syntax: unit -> unit
   val scan: Position.T -> string -> Token.T list
   val parse: Position.T -> string -> Toplevel.transition list
-  val process_file: Path.T -> theory -> theory
   type isar
   val isar: TextIO.instream -> bool -> isar
   val read_span: outer_syntax -> Token.T list -> Toplevel.transition * bool
@@ -240,20 +239,6 @@ fun parse pos str =
   |> Token.source {do_recover = SOME false} Keyword.get_lexicons pos
   |> toplevel_source false NONE lookup_commands_dynamic
   |> Source.exhaust;
-
-
-(* process file *)
-
-fun process_file path thy =
-  let
-    val trs = parse (Path.position path) (File.read path);
-    val init = Toplevel.init_theory (K thy) Toplevel.empty;
-    val result = fold Toplevel.command (init :: trs) Toplevel.toplevel;
-  in
-    (case (Toplevel.is_theory result, Toplevel.generic_theory_of result) of
-      (true, Context.Theory thy') => thy'
-    | _ => error "Bad result state: global theory expected")
-  end;
 
 
 (* interactive source of toplevel transformers *)

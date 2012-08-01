@@ -138,16 +138,19 @@ fun at_begin f = map_wrappers (apfst (cons (f, stamp ())));
 fun at_end f = map_wrappers (apsnd (cons (f, stamp ())));
 
 fun begin_theory name imports =
-  let
-    val thy = Context.begin_thy Context.pretty_global name imports;
-    val wrappers = begin_wrappers thy;
-  in
-    thy
-    |> Sign.local_path
-    |> Sign.map_naming (Name_Space.set_theory_name name)
-    |> apply_wrappers wrappers
-    |> tap (Syntax.force_syntax o Sign.syn_of)
-  end;
+  if name = Context.PureN then
+    (case imports of [thy] => thy | _ => error "Bad bootstrapping of theory Pure")
+  else
+    let
+      val thy = Context.begin_thy Context.pretty_global name imports;
+      val wrappers = begin_wrappers thy;
+    in
+      thy
+      |> Sign.local_path
+      |> Sign.map_naming (Name_Space.set_theory_name name)
+      |> apply_wrappers wrappers
+      |> tap (Syntax.force_syntax o Sign.syn_of)
+    end;
 
 fun end_theory thy =
   thy |> apply_wrappers (end_wrappers thy) |> Context.finish_thy;

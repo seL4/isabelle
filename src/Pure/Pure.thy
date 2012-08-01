@@ -1,3 +1,5 @@
+theory Pure
+begin
 
 section {* Further content for the Pure theory *}
 
@@ -81,4 +83,6 @@ next
     from conj show "PROP B" by (rule conjunctionD2)
   qed
 qed
+
+end
 
