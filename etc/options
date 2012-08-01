@@ -30,6 +30,8 @@ declare proofs : int = 1
   -- "level of detail for proof objects: 0, 1, 2"
 declare quick_and_dirty : bool = false
   -- "if true then some tools will OMIT some proofs"
+declare skip_proofs : bool = false
+  -- "skip over proofs"
 
 declare condition : string = ""
   -- "required environment variables for subsequent theories (separated by commas)"
