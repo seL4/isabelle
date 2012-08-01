@@ -122,8 +122,8 @@ function pre_latex ()
   [ -n "$CLEAN" ] && rm -f *.aux *.out *.ind *.idx *.ilg *.bbl *.blg *.log
   "$ISABELLE_TOOL" latex -o sty "$ROOT_NAME.tex" && \
   "$ISABELLE_TOOL" latex -o "$FMT" "$ROOT_NAME.tex" && \
-  { [ ! -f root.bib -a ! -f "$ROOT_NAME.bib" ] || "$ISABELLE_TOOL" latex -o bbl "$ROOT_NAME.tex"; } && \
-  { [ ! -f root.idx -a ! -f "$ROOT_NAME.idx" ] || "$ISABELLE_TOOL" latex -o idx "$ROOT_NAME.tex"; } && \
+  { [ ! -f "$ROOT_NAME.bib" ] || "$ISABELLE_TOOL" latex -o bbl "$ROOT_NAME.tex"; } && \
+  { [ ! -f "$ROOT_NAME.idx" ] || "$ISABELLE_TOOL" latex -o idx "$ROOT_NAME.tex"; } && \
   "$ISABELLE_TOOL" latex -o "$FMT"
 }
 
