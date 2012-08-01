@@ -341,6 +341,10 @@ session MicroJava = HOL +
     "document/root.bib"
     "document/root.tex"
 
+session "MicroJava-skip_proofs" in MicroJava = HOL +
+  options [condition = ISABELLE_FULL_TEST, document = false, skip_proofs, quick_and_dirty]
+  theories MicroJava
+
 session NanoJava = HOL +
   options [document_graph]
   theories Example
