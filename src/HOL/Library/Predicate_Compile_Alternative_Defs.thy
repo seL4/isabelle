@@ -172,7 +172,7 @@ apply auto done
 
 section {* Alternative list definitions *}
 
-subsection {* Alternative rules for length *}
+subsection {* Alternative rules for @{text length} *}
 
 definition size_list :: "'a list => nat"
 where "size_list = size"
@@ -186,7 +186,7 @@ declare size_list_simps[code_pred_def]
 declare size_list_def[symmetric, code_pred_inline]
 
 
-subsection {* Alternative rules for list_all2 *}
+subsection {* Alternative rules for @{text list_all2} *}
 
 lemma list_all2_NilI [code_pred_intro]: "list_all2 P [] []"
 by auto
