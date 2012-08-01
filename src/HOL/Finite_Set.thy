@@ -1788,7 +1788,6 @@ proof -
   with `finite A` have "finite B" by simp
   interpret fold: folding "op *" "\<lambda>a b. fold (op *) b a" proof
   qed (simp_all add: fun_eq_iff ac_simps)
-  thm fold.comp_fun_commute' [of B b, simplified fun_eq_iff, simplified]
   from `finite B` fold.comp_fun_commute' [of B x]
     have "op * x \<circ> (\<lambda>b. fold op * b B) = (\<lambda>b. fold op * b B) \<circ> op * x" by simp
   then have A: "x * fold op * b B = fold op * (b * x) B" by (simp add: fun_eq_iff commute)
