@@ -41,32 +41,50 @@ object Build
       val empty: Queue = new Queue()
     }
 
-    final class Queue private(graph: Graph[String, Info] = Graph.string)
+    final class Queue private(graph: Graph[String, Option[Info]] = Graph.string)
       extends PartialFunction[String, Info]
     {
-      def apply(name: String): Info = graph.get_node(name)
-      def isDefinedAt(name: String): Boolean = graph.defined(name)
+      def apply(name: String): Info = graph.get_node(name).get
+      def isDefinedAt(name: String): Boolean =
+        graph.defined(name) && graph.get_node(name).isDefined
 
       def is_inner(name: String): Boolean = !graph.is_maximal(name)
 
       def is_empty: Boolean = graph.is_empty
 
       def + (name: String, info: Info): Queue =
+      {
+        val parents = info.parent.toList
+
+        val graph1 = (graph /: (name :: parents))(_.default_node(_, None))
+        if (graph1.get_node(name).isDefined)
+          error("Duplicate session: " + quote(name))
+
         new Queue(
-          try { graph.new_node(name, info).add_deps_acyclic(name, info.parent.toList) }
+          try { graph1.map_node(name, _ => Some(info)).add_deps_acyclic(name, parents) }
           catch {
-            case _: Graph.Duplicate[_] => error("Duplicate session: " + quote(name))
             case exn: Graph.Cycles[_] =>
               error(cat_lines(exn.cycles.map(cycle =>
                 "Cyclic session dependency of " +
                   cycle.map(c => quote(c.toString)).mkString(" via "))))
           })
+      }
 
       def - (name: String): Queue = new Queue(graph.del_node(name))
 
       def required(all_sessions: Boolean, session_groups: List[String], sessions: List[String])
         : (List[String], Queue) =
       {
+        (for {
+          (name, (Some(info), _)) <- graph.entries
+          if info.parent.isDefined; parent = info.parent.get
+          if !isDefinedAt(parent)
+        } yield parent + " (for " + name + ")").toList match
+        {
+          case Nil =>
+          case bad => error("Bad parent session(s): " + commas(bad))
+        }
+
         sessions.filterNot(isDefinedAt(_)) match {
           case Nil =>
           case bad => error("Undefined session(s): " + commas_quote(bad))
@@ -90,8 +108,8 @@ object Build
       def dequeue(skip: String => Boolean): Option[(String, Info)] =
       {
         val it = graph.entries.dropWhile(
-          { case (name, (_, (deps, _))) => !deps.isEmpty || skip(name) })
-        if (it.hasNext) { val (name, (info, _)) = it.next; Some((name, info)) }
+          { case (name, (info, (deps, _))) => !deps.isEmpty || info.isEmpty || skip(name) })
+        if (it.hasNext) { val (name, (info, _)) = it.next; Some((name, info.get)) }
         else None
       }
 
@@ -169,7 +187,7 @@ object Build
 
   private def is_pure(name: String): Boolean = name == "RAW" || name == "Pure"
 
-  private def sessions_root(options: Options, dir: Path, root: Path, queue: Session.Queue)
+  private def sessions_root(options: Options, dir: Path, queue: Session.Queue, root: Path)
     : Session.Queue =
   {
     (queue /: Parser.parse_entries(root))((queue1, entry) =>
@@ -183,12 +201,10 @@ object Build
           }
           else
             entry.parent match {
-              case Some(parent_name) if queue1.isDefinedAt(parent_name) =>
-                val full_name =
-                  if (entry.this_name) entry.base_name
-                  else parent_name + "-" + entry.base_name
-                full_name
-              case _ => error("Bad parent session")
+              case None => error("Missing parent session")
+              case Some(parent_name) =>
+                if (entry.this_name) entry.base_name
+                else parent_name + "-" + entry.base_name
             }
 
         val path =
@@ -219,46 +235,21 @@ object Build
       })
   }
 
-  private def sessions_dir(options: Options, strict: Boolean, dir: Path, queue: Session.Queue)
+  private def sessions_dir(options: Options, strict: Boolean, queue: Session.Queue, dir: Path)
     : Session.Queue =
   {
     val root = dir + ROOT
-    if (root.is_file) sessions_root(options, dir, root, queue)
+    if (root.is_file) sessions_root(options, dir, queue, root)
     else if (strict) error("Bad session root file: " + root.toString)
     else queue
   }
 
-  private def sessions_catalog(options: Options, dir: Path, catalog: Path, queue: Session.Queue)
-    : Session.Queue =
-  {
-    val dirs =
-      split_lines(File.read(catalog)).filterNot(line => line == "" || line.startsWith("#"))
-    (queue /: dirs)((queue1, dir1) =>
-      try {
-        val dir2 = dir + Path.explode(dir1)
-        if (dir2.is_dir) sessions_dir(options, true, dir2, queue1)
-        else error("Bad session directory: " + dir2.toString)
-      }
-      catch {
-        case ERROR(msg) =>
-          error(msg + "\nThe error(s) above occurred in session catalog " + catalog.toString)
-      })
-  }
-
   def find_sessions(options: Options, more_dirs: List[Path]): Session.Queue =
   {
-    var queue = Session.Queue.empty
-
-    for (dir <- Isabelle_System.components()) {
-      queue = sessions_dir(options, false, dir, queue)
-
-      val catalog = dir + SESSIONS
-      if (catalog.is_file) queue = sessions_catalog(options, dir, catalog, queue)
-    }
-
-    for (dir <- more_dirs) queue = sessions_dir(options, true, dir, queue)
-
-    queue
+    val queue1 =
+      (Session.Queue.empty /: Isabelle_System.components())(sessions_dir(options, false, _, _))
+    val queue2 = (queue1 /: more_dirs)(sessions_dir(options, true, _, _))
+    queue2
   }
 
 

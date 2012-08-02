@@ -13,7 +13,7 @@ sig
   val is_markup: outer_syntax -> Thy_Output.markup -> string -> bool
   val get_syntax: unit -> (Scan.lexicon * Scan.lexicon) * outer_syntax
   val check_syntax: unit -> unit
-  type command_spec = string * Keyword.T
+  type command_spec = (string * Keyword.T) * Position.T
   val command: command_spec -> string ->
     (Toplevel.transition -> Toplevel.transition) parser -> unit
   val markup_command: Thy_Output.markup -> command_spec -> string ->
@@ -49,10 +49,17 @@ datatype command = Command of
  {comment: string,
   markup: Thy_Output.markup option,
   int_only: bool,
-  parse: (Toplevel.transition -> Toplevel.transition) parser};
+  parse: (Toplevel.transition -> Toplevel.transition) parser,
+  pos: Position.T,
+  id: serial};
 
-fun make_command comment markup int_only parse =
-  Command {comment = comment, markup = markup, int_only = int_only, parse = parse};
+fun new_command comment markup int_only parse pos =
+  Command {comment = comment, markup = markup, int_only = int_only, parse = parse,
+    pos = pos, id = serial ()};
+
+fun command_markup def (name, Command {pos, id, ...}) =
+  Markup.properties (Position.entity_properties_of def id pos)
+    (Isabelle_Markup.entity Isabelle_Markup.commandN name);
 
 
 (* parse command *)
@@ -118,7 +125,7 @@ fun is_markup (Outer_Syntax {markups, ...}) kind name =
 
 (** global outer syntax **)
 
-type command_spec = string * Keyword.T;
+type command_spec = (string * Keyword.T) * Position.T;
 
 local
 
@@ -128,15 +135,18 @@ val global_outer_syntax = Unsynchronized.ref empty_outer_syntax;
 fun add_command (name, kind) cmd = CRITICAL (fn () =>
   let
     val thy = ML_Context.the_global_context ();
+    val Command {pos, ...} = cmd;
     val _ =
       (case try (Thy_Header.the_keyword thy) name of
         SOME spec =>
           if Option.map #1 spec = SOME (Keyword.kind_of kind) then ()
-          else error ("Inconsistent outer syntax keyword declaration " ^ quote name)
+          else error ("Inconsistent outer syntax keyword declaration " ^
+            quote name ^ Position.str_of pos)
       | NONE =>
           if Context.theory_name thy = Context.PureN
           then Keyword.define (name, SOME kind)
-          else error ("Undeclared outer syntax command " ^ quote name));
+          else error ("Undeclared outer syntax command " ^ quote name ^ Position.str_of pos));
+    val _ = Position.report pos (command_markup true (name, cmd));
   in
     Unsynchronized.change global_outer_syntax (map_commands (fn commands =>
      (if not (Symtab.defined commands name) then ()
@@ -159,14 +169,14 @@ fun check_syntax () =
 
 fun lookup_commands_dynamic () = lookup_commands (! global_outer_syntax);
 
-fun command command_spec comment parse =
-  add_command command_spec (make_command comment NONE false parse);
+fun command (spec, pos) comment parse =
+  add_command spec (new_command comment NONE false parse pos);
 
-fun markup_command markup command_spec comment parse =
-  add_command command_spec (make_command comment (SOME markup) false parse);
+fun markup_command markup (spec, pos) comment parse =
+  add_command spec (new_command comment (SOME markup) false parse pos);
 
-fun improper_command command_spec comment parse =
-  add_command command_spec (make_command comment NONE true parse);
+fun improper_command (spec, pos) comment parse =
+  add_command spec (new_command comment NONE true parse pos);
 
 end;
 
@@ -265,7 +275,16 @@ fun read_span outer_syntax toks =
   let
     val commands = lookup_commands outer_syntax;
     val range_pos = Position.set_range (Token.range toks);
-    val _ = Position.reports (maps Thy_Syntax.reports_of_token toks);
+
+    fun command_reports tok =
+      if Token.kind_of tok = Token.Command then
+        let val name = Token.content_of tok in
+          (case commands name of
+            NONE => []
+          | SOME cmd => [(Token.position_of tok, command_markup false (name, cmd))])
+        end
+      else [];
+    val _ = Position.reports (maps Thy_Syntax.reports_of_token toks @ maps command_reports toks);
   in
     (case Source.exhaust (toplevel_source false NONE (K commands) (Source.of_list toks)) of
       [tr] =>

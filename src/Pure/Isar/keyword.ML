@@ -43,7 +43,7 @@ sig
   val tag_ml: T -> T
   type spec = string * string list
   val spec: spec -> T
-  val command_spec: string * spec -> string * T
+  val command_spec: (string * spec) * Position.T -> (string * T) * Position.T
   val get_lexicons: unit -> Scan.lexicon * Scan.lexicon
   val is_keyword: string -> bool
   val command_keyword: string -> T option
@@ -135,7 +135,7 @@ fun spec (kind, tags) =
     SOME k => k |> fold tag tags
   | NONE => error ("Unknown outer syntax keyword kind " ^ quote kind));
 
-fun command_spec (name, s) = (name, spec s);
+fun command_spec ((name, s), pos) = ((name, spec s), pos);
 
 
 
