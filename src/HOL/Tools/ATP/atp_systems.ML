@@ -211,8 +211,8 @@ val alt_ergo = (alt_ergoN, fn () => alt_ergo_config)
 
 (* E *)
 
-fun is_recent_e_version () = (string_ord (getenv "E_VERSION", "1.3") <> LESS)
-fun is_new_e_version () = (string_ord (getenv "E_VERSION", "1.6") <> LESS)
+fun is_e_at_least_1_3 () = (string_ord (getenv "E_VERSION", "1.3") <> LESS)
+fun is_e_at_least_1_6 () = (string_ord (getenv "E_VERSION", "1.6") <> LESS)
 
 val tstp_proof_delims =
   [("# SZS output start CNFRefutation.", "# SZS output end CNFRefutation"),
@@ -289,16 +289,16 @@ fun e_term_order_info_arguments false false _ = ""
     end
 
 fun e_shell_level_argument full_proof =
-  if is_new_e_version () then
+  if is_e_at_least_1_6 () then
     " --pcl-shell-level=" ^ (if full_proof then "0" else "2")
   else
     ""
 
 fun effective_e_selection_heuristic ctxt =
-  if is_recent_e_version () then Config.get ctxt e_selection_heuristic
+  if is_e_at_least_1_3 () then Config.get ctxt e_selection_heuristic
   else e_autoN
 
-fun e_kbo () = if is_recent_e_version () then "KBO6" else "KBO"
+fun e_kbo () = if is_e_at_least_1_3 () then "KBO6" else "KBO"
 
 val e_config : atp_config =
   {exec = (["E_HOME"], ["eproof_ram", "eproof"]),
@@ -445,7 +445,9 @@ val spass = (spassN, fn () => spass_config)
 
 (* Vampire 1.8 has TFF support, but the support was buggy until revision
    1435 (or shortly before). *)
-fun is_new_vampire_version () =
+fun is_vampire_at_least_1_8 () =
+  string_ord (getenv "VAMPIRE_VERSION", "1.8") <> LESS
+fun is_vampire_beyond_1_8 () =
   string_ord (getenv "VAMPIRE_VERSION", "1.8") = GREATER
 
 val vampire_tff0 = TFF (Monomorphic, TPTP_Implicit)
@@ -454,9 +456,12 @@ val vampire_config : atp_config =
   {exec = (["VAMPIRE_HOME"], ["vampire"]),
    arguments = fn _ => fn _ => fn sos => fn timeout => fn _ =>
        "--mode casc -t " ^ string_of_int (to_secs 1 timeout) ^
-       " --proof tptp --output_axiom_names on\
-       \ --forced_options propositional_to_bdd=off\
-       \ --thanks \"Andrei and Krystof\" --input_file"
+       " --proof tptp --output_axiom_names on" ^
+       (if is_vampire_at_least_1_8 () then
+          " --forced_options propositional_to_bdd=off"
+        else
+          "") ^
+       " --thanks \"Andrei and Krystof\" --input_file"
        |> sos = sosN ? prefix "--sos on ",
    proof_delims =
      [("=========== Refutation ==========",
@@ -473,7 +478,7 @@ val vampire_config : atp_config =
    prem_role = Conjecture,
    best_slices = fn ctxt =>
      (* FUDGE *)
-     (if is_new_vampire_version () then
+     (if is_vampire_beyond_1_8 () then
         [(0.333, (false, ((500, vampire_tff0, "mono_native", combs_or_liftingN, false), sosN))),
          (0.333, (false, ((150, vampire_tff0, "poly_guards??", combs_or_liftingN, false), sosN))),
          (0.334, (true, ((50, vampire_tff0, "mono_native", combs_or_liftingN, false), no_sosN)))]
