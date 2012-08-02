@@ -187,7 +187,7 @@ object Build
 
   private def is_pure(name: String): Boolean = name == "RAW" || name == "Pure"
 
-  private def sessions_root(options: Options, dir: Path, root: Path, queue: Session.Queue)
+  private def sessions_root(options: Options, dir: Path, queue: Session.Queue, root: Path)
     : Session.Queue =
   {
     (queue /: Parser.parse_entries(root))((queue1, entry) =>
@@ -235,46 +235,21 @@ object Build
       })
   }
 
-  private def sessions_dir(options: Options, strict: Boolean, dir: Path, queue: Session.Queue)
+  private def sessions_dir(options: Options, strict: Boolean, queue: Session.Queue, dir: Path)
     : Session.Queue =
   {
     val root = dir + ROOT
-    if (root.is_file) sessions_root(options, dir, root, queue)
+    if (root.is_file) sessions_root(options, dir, queue, root)
     else if (strict) error("Bad session root file: " + root.toString)
     else queue
   }
 
-  private def sessions_catalog(options: Options, dir: Path, catalog: Path, queue: Session.Queue)
-    : Session.Queue =
-  {
-    val dirs =
-      split_lines(File.read(catalog)).filterNot(line => line == "" || line.startsWith("#"))
-    (queue /: dirs)((queue1, dir1) =>
-      try {
-        val dir2 = dir + Path.explode(dir1)
-        if (dir2.is_dir) sessions_dir(options, true, dir2, queue1)
-        else error("Bad session directory: " + dir2.toString)
-      }
-      catch {
-        case ERROR(msg) =>
-          error(msg + "\nThe error(s) above occurred in session catalog " + catalog.toString)
-      })
-  }
-
   def find_sessions(options: Options, more_dirs: List[Path]): Session.Queue =
   {
-    var queue = Session.Queue.empty
-
-    for (dir <- Isabelle_System.components()) {
-      queue = sessions_dir(options, false, dir, queue)
-
-      val catalog = dir + SESSIONS
-      if (catalog.is_file) queue = sessions_catalog(options, dir, catalog, queue)
-    }
-
-    for (dir <- more_dirs) queue = sessions_dir(options, true, dir, queue)
-
-    queue
+    val queue1 =
+      (Session.Queue.empty /: Isabelle_System.components())(sessions_dir(options, false, _, _))
+    val queue2 = (queue1 /: more_dirs)(sessions_dir(options, true, _, _))
+    queue2
   }
 
 

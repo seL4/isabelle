@@ -195,11 +195,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   component directories (\secref{sec:components}), augmented by more
   directories given via options @{verbatim "-d"}~@{text "DIR"} on the
   command line.  Each such directory may contain a session
-  \texttt{ROOT} file and an additional catalog file @{verbatim
-  "etc/sessions"} with further sub-directories (list of lines).  Note
-  that a single \texttt{ROOT} file usually defines many sessions;
-  catalogs are only required for extra scalability and modularity
-  of large libraries.
+  \texttt{ROOT} file with several session specifications.
 
   \medskip The subset of sessions to be managed is determined via
   individual @{text "SESSIONS"} given as command-line arguments, or
