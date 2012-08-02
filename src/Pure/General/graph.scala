@@ -124,15 +124,12 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
 
   def new_node(x: Key, info: A): Graph[Key, A] =
   {
-    if (rep.isDefinedAt(x)) throw new Graph.Duplicate(x)
+    if (defined(x)) throw new Graph.Duplicate(x)
     else new Graph[Key, A](rep + (x -> (info, (empty_keys, empty_keys))))
   }
 
   def default_node(x: Key, info: A): Graph[Key, A] =
-  {
-    if (rep.isDefinedAt(x)) this
-    else new_node(x, info)
-  }
+    if (defined(x)) this else new_node(x, info)
 
   private def del_adjacent(fst: Boolean, x: Key)(map: SortedMap[Key, Entry], y: Key)
       : SortedMap[Key, Entry] =
