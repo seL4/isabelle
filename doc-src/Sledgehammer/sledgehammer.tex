@@ -203,10 +203,10 @@ manually, or found a Vampire executable somewhere (e.g.,
 \texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{eproof},
 \texttt{leo}, \texttt{satallax}, \texttt{SPASS}, or \texttt{vampire} executable.
 Sledgehammer has been tested with E 1.0 to 1.4, LEO-II 1.3.4, Satallax 2.2, 2.3,
-and 2.4, SPASS 3.8ds, and Vampire 0.6, 1.0, and 1.8.%
+and 2.4, SPASS 3.8ds, and Vampire 0.6 to 2.6.%
 \footnote{Following the rewrite of Vampire, the counter for version numbers was
-reset to 0; hence the (new) Vampire versions 0.6, 1.0, and 1.8 are more recent
-than 9.0 or 11.5.}%
+reset to 0; hence the (new) Vampire versions 0.6, 1.0, 1.8, and 2.6 are more
+recent than 9.0 or 11.5.}%
 Since the ATPs' output formats are neither documented nor stable, other
 versions might not work well with Sledgehammer. Ideally,
 you should also set \texttt{E\_VERSION}, \texttt{LEO2\_VERSION},
@@ -859,7 +859,13 @@ developed by Stephan Schulz \cite{schulz-2002}. To use E, set the environment
 variable \texttt{E\_HOME} to the directory that contains the \texttt{eproof}
 executable and \texttt{E\_VERSION} to the version number (e.g., ``1.4''), or
 install the prebuilt E package from \download. Sledgehammer has been tested with
-versions 1.0 to 1.4.
+versions 1.0 to 1.6.
+
+\item[\labelitemi] \textbf{\textit{e\_males}:} E-MaLeS is a metaprover developed
+by Daniel K\"uhlwein that implements strategy scheduling on top of E. To use
+E-MaLeS, set the environment variable \texttt{E\_MALES\_HOME} to the directory
+that contains the \texttt{emales.py} script. Sledgehammer has been tested with
+version 1.1.
 
 \item[\labelitemi] \textbf{\textit{leo2}:} LEO-II is an automatic
 higher-order prover developed by Christoph Benzm\"uller et al.\ \cite{leo2},
@@ -867,7 +873,7 @@ with support for the TPTP typed higher-order syntax (THF0). To use LEO-II, set
 the environment variable \texttt{LEO2\_HOME} to the directory that contains the
 \texttt{leo} executable. Sledgehammer requires version 1.2.9 or above.
 
-\item[\labelitemi] \textbf{\textit{metis}:} Although it is much less powerful than
+\item[\labelitemi] \textbf{\textit{metis}:} Although it is less powerful than
 the external provers, Metis itself can be used for proof search.
 
 \item[\labelitemi] \textbf{\textit{satallax}:} Satallax is an automatic
@@ -877,7 +883,8 @@ environment variable \texttt{SATALLAX\_HOME} to the directory that contains the
 \texttt{satallax} executable. Sledgehammer requires version 2.2 or above.
 
 \item[\labelitemi] \textbf{\textit{smt}:} The \textit{smt} proof method with the
-current settings (usually:\ Z3 with proof reconstruction).
+current settings (usually:\ Z3 with proof reconstruction) can be used for proof
+search.
 
 \item[\labelitemi] \textbf{\textit{spass}:} SPASS is a first-order resolution
 prover developed by Christoph Weidenbach et al.\ \cite{weidenbach-et-al-2009}.
@@ -886,14 +893,14 @@ that contains the \texttt{SPASS} executable and \texttt{SPASS\_VERSION} to the
 version number (e.g., ``3.8ds''), or install the prebuilt SPASS package from
 \download. Sledgehammer requires version 3.8ds or above.
 
-\item[\labelitemi] \textbf{\textit{vampire}:} Vampire is a first-order resolution
-prover developed by Andrei Voronkov and his colleagues
+\item[\labelitemi] \textbf{\textit{vampire}:} Vampire is a first-order
+resolution prover developed by Andrei Voronkov and his colleagues
 \cite{riazanov-voronkov-2002}. To use Vampire, set the environment variable
 \texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{vampire}
 executable and \texttt{VAMPIRE\_VERSION} to the version number (e.g.,
-``1.8rev1435''). Sledgehammer has been tested with versions 0.6, 1.0, and 1.8.
-Versions strictly above 1.8 (e.g., ``1.8rev1435'') support the TPTP typed
-first-order format (TFF0).
+``1.8rev1435'', ``2.6''). Sledgehammer has been tested with versions 0.6, 1.0,
+and 1.8. Versions strictly above 1.8 (e.g., ``1.8rev1435'') support the TPTP
+typed first-order format (TFF0).
 
 \item[\labelitemi] \textbf{\textit{yices}:} Yices is an SMT solver developed at
 SRI \cite{yices}. To use Yices, set the environment variable
@@ -911,8 +918,7 @@ and 4.0.
 an ATP, exploiting Z3's support for the TPTP untyped and typed first-order
 formats (FOF and TFF0). It is included for experimental purposes. Sledgehammer
 requires version 4.0 or above. To use it, set the environment variable
-\texttt{Z3\_HOME} to the directory that contains the \texttt{z3}
-executable.
+\texttt{Z3\_HOME} to the directory that contains the \texttt{z3} executable.
 \end{enum}
 
 The following remote provers are supported:
