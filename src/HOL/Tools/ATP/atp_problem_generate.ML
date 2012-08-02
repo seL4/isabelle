@@ -154,6 +154,9 @@ datatype type_enc =
   Guards of polymorphism * type_level |
   Tags of polymorphism * type_level
 
+(* not clear whether ATPs prefer to have their negative variables tagged *)
+val tag_neg_vars = false
+
 fun is_type_enc_native (Native _) = true
   | is_type_enc_native _ = false
 fun is_type_enc_higher_order (Native (Higher_Order _, _, _)) = true
@@ -1418,7 +1421,9 @@ fun should_tag_with_type _ _ _ (Top_Level _) _ _ = false
       case level of
         Nonmono_Types (_, Non_Uniform) =>
         (case (site, is_maybe_universal_var u) of
-           (Eq_Arg _, true) => should_encode_type ctxt mono level T
+           (Eq_Arg pos, true) =>
+           (pos <> SOME false orelse tag_neg_vars) andalso
+           should_encode_type ctxt mono level T
          | _ => false)
       | Undercover_Types =>
         (case (site, is_maybe_universal_var u) of
