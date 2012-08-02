@@ -196,8 +196,6 @@ session Pure in "." =
     "Thy/thy_load.ML"
     "Thy/thy_output.ML"
     "Thy/thy_syntax.ML"
-    "Tools/find_consts.ML"
-    "Tools/find_theorems.ML"
     "Tools/named_thms.ML"
     "Tools/xml_syntax.ML"
     "assumption.ML"

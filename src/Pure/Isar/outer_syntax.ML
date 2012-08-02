@@ -13,7 +13,7 @@ sig
   val is_markup: outer_syntax -> Thy_Output.markup -> string -> bool
   val get_syntax: unit -> (Scan.lexicon * Scan.lexicon) * outer_syntax
   val check_syntax: unit -> unit
-  type command_spec = string * Keyword.T
+  type command_spec = (string * Keyword.T) * Position.T
   val command: command_spec -> string ->
     (Toplevel.transition -> Toplevel.transition) parser -> unit
   val markup_command: Thy_Output.markup -> command_spec -> string ->
@@ -118,25 +118,26 @@ fun is_markup (Outer_Syntax {markups, ...}) kind name =
 
 (** global outer syntax **)
 
-type command_spec = string * Keyword.T;
+type command_spec = (string * Keyword.T) * Position.T;
 
 local
 
 (*synchronized wrt. Keywords*)
 val global_outer_syntax = Unsynchronized.ref empty_outer_syntax;
 
-fun add_command (name, kind) cmd = CRITICAL (fn () =>
+fun add_command ((name, kind), pos) cmd = CRITICAL (fn () =>
   let
     val thy = ML_Context.the_global_context ();
     val _ =
       (case try (Thy_Header.the_keyword thy) name of
         SOME spec =>
           if Option.map #1 spec = SOME (Keyword.kind_of kind) then ()
-          else error ("Inconsistent outer syntax keyword declaration " ^ quote name)
+          else error ("Inconsistent outer syntax keyword declaration " ^
+            quote name ^ Position.str_of pos)
       | NONE =>
           if Context.theory_name thy = Context.PureN
           then Keyword.define (name, SOME kind)
-          else error ("Undeclared outer syntax command " ^ quote name));
+          else error ("Undeclared outer syntax command " ^ quote name ^ Position.str_of pos));
   in
     Unsynchronized.change global_outer_syntax (map_commands (fn commands =>
      (if not (Symtab.defined commands name) then ()

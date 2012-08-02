@@ -989,6 +989,75 @@ val _ =
         (Context.set_thread_data (try Toplevel.generic_theory_of state);
           raise Runtime.TERMINATE))));
 
+val _ =
+  Outer_Syntax.improper_command @{command_spec "welcome"} "print welcome message"
+    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative (writeln o Session.welcome)));
+
+
+
+(** raw Isar read-eval-print loop **)
+
+val _ =
+  Outer_Syntax.improper_command @{command_spec "init_toplevel"} "init toplevel point-of-interest"
+    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative Isar.init));
+
+val _ =
+  Outer_Syntax.improper_command @{command_spec "linear_undo"} "undo commands"
+    (Scan.optional Parse.nat 1 >>
+      (fn n => Toplevel.no_timing o Toplevel.imperative (fn () => Isar.linear_undo n)));
+
+val _ =
+  Outer_Syntax.improper_command @{command_spec "undo"} "undo commands (skipping closed proofs)"
+    (Scan.optional Parse.nat 1 >>
+      (fn n => Toplevel.no_timing o Toplevel.imperative (fn () => Isar.undo n)));
+
+val _ =
+  Outer_Syntax.improper_command @{command_spec "undos_proof"}
+    "undo commands (skipping closed proofs)"
+    (Scan.optional Parse.nat 1 >> (fn n => Toplevel.no_timing o
+      Toplevel.keep (fn state =>
+        if Toplevel.is_proof state then (Isar.undo n; Isar.print ()) else raise Toplevel.UNDEF)));
+
+val _ =
+  Outer_Syntax.improper_command @{command_spec "cannot_undo"}
+    "partial undo -- Proof General legacy"
+    (Parse.name >>
+      (fn "end" => Toplevel.no_timing o Toplevel.imperative (fn () => Isar.undo 1)
+        | txt => Toplevel.imperative (fn () => error ("Cannot undo " ^ quote txt))));
+
+val _ =
+  Outer_Syntax.improper_command @{command_spec "kill"}
+    "kill partial proof or theory development"
+    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative Isar.kill));
+
+
+
+(** extraction of programs from proofs **)
+
+val parse_vars = Scan.optional (Parse.$$$ "(" |-- Parse.list1 Parse.name --| Parse.$$$ ")") [];
+
+val _ =
+  Outer_Syntax.command @{command_spec "realizers"}
+    "specify realizers for primitive axioms / theorems, together with correctness proof"
+    (Scan.repeat1 (Parse.xname -- parse_vars --| Parse.$$$ ":" -- Parse.string -- Parse.string) >>
+     (fn xs => Toplevel.theory (fn thy => Extraction.add_realizers
+       (map (fn (((a, vs), s1), s2) => (Global_Theory.get_thm thy a, (vs, s1, s2))) xs) thy)));
+
+val _ =
+  Outer_Syntax.command @{command_spec "realizability"}
+    "add equations characterizing realizability"
+    (Scan.repeat1 Parse.string >> (Toplevel.theory o Extraction.add_realizes_eqns));
+
+val _ =
+  Outer_Syntax.command @{command_spec "extract_type"}
+    "add equations characterizing type of extracted program"
+    (Scan.repeat1 Parse.string >> (Toplevel.theory o Extraction.add_typeof_eqns));
+
+val _ =
+  Outer_Syntax.command @{command_spec "extract"} "extract terms from proofs"
+    (Scan.repeat1 (Parse.xname -- parse_vars) >> (fn xs => Toplevel.theory (fn thy =>
+      Extraction.extract (map (apfst (Global_Theory.get_thm thy)) xs) thy)));
+
 
 
 (** end **)

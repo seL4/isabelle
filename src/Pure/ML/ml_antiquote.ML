@@ -190,22 +190,26 @@ val _ = Context.>> (Context.map_theory
 
 fun with_keyword f =
   Args.theory -- Scan.lift (Parse.position Parse.string) >> (fn (thy, (name, pos)) =>
-    (f (name, Thy_Header.the_keyword thy name)
+    (f ((name, Thy_Header.the_keyword thy name), pos)
       handle ERROR msg => error (msg ^ Position.str_of pos)));
 
 val _ = Context.>> (Context.map_theory
  (value (Binding.name "keyword")
     (with_keyword
-      (fn (name, NONE) => "Parse.$$$ " ^ ML_Syntax.print_string name
-        | (name, SOME _) => error ("Expected minor keyword " ^ quote name))) #>
+      (fn ((name, NONE), _) => "Parse.$$$ " ^ ML_Syntax.print_string name
+        | ((name, SOME _), pos) =>
+            error ("Expected minor keyword " ^ quote name ^ Position.str_of pos))) #>
   value (Binding.name "command_spec")
     (with_keyword
-      (fn (name, SOME kind) =>
+      (fn ((name, SOME kind), pos) =>
           "Keyword.command_spec " ^ ML_Syntax.atomic
-            (ML_Syntax.print_pair ML_Syntax.print_string
+            ((ML_Syntax.print_pair
               (ML_Syntax.print_pair ML_Syntax.print_string
-                (ML_Syntax.print_list ML_Syntax.print_string)) (name, kind))
-        | (name, NONE) => error ("Expected command keyword " ^ quote name)))));
+                (ML_Syntax.print_pair ML_Syntax.print_string
+                  (ML_Syntax.print_list ML_Syntax.print_string)))
+              ML_Syntax.print_position) ((name, kind), pos))
+        | ((name, NONE), pos) =>
+            error ("Expected command keyword " ^ quote name ^ Position.str_of pos)))));
 
 end;
 

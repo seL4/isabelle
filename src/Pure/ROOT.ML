@@ -282,9 +282,6 @@ use "Tools/named_thms.ML";
 
 use "Tools/xml_syntax.ML";
 
-use "Tools/find_theorems.ML";
-use "Tools/find_consts.ML";
-
 
 (* configuration for Proof General *)
 

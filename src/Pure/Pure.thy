@@ -80,8 +80,15 @@ theory Pure
   and "use_thy" "remove_thy" "kill_thy" :: control
   and "display_drafts" "print_drafts" "pr" :: diag
   and "disable_pr" "enable_pr" "commit" "quit" "exit" :: control
+  and "welcome" :: diag
+  and "init_toplevel" "linear_undo" "undo" "undos_proof" "cannot_undo" "kill" :: control
   and "end" :: thy_end % "theory"
-  uses "Isar/isar_syn.ML"
+  and "realizers" "realizability" "extract_type" "extract" :: thy_decl
+  and "find_theorems" "find_consts" :: diag
+  uses
+    "Isar/isar_syn.ML"
+    "Tools/find_theorems.ML"
+    "Tools/find_consts.ML"
 begin
 
 section {* Further content for the Pure theory *}

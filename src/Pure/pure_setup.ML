@@ -15,7 +15,8 @@ fun use_thy name = Toplevel.program (fn () => Thy_Info.use_thy name);
 (* the Pure theory *)
 
 val _ =
-  Outer_Syntax.command ("theory", Keyword.tag_theory Keyword.thy_begin) "begin theory context"
+  Outer_Syntax.command
+    (("theory", Keyword.tag_theory Keyword.thy_begin), Position.none) "begin theory context"
     (Thy_Header.args >> (fn header =>
       Toplevel.print o
         Toplevel.init_theory
