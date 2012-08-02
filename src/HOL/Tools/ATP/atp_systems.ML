@@ -45,6 +45,7 @@ sig
   val alt_ergoN : string
   val dummy_thfN : string
   val eN : string
+  val e_malesN : string
   val e_sineN : string
   val e_tofofN : string
   val iproverN : string
@@ -140,6 +141,7 @@ val known_says_failures = known_szs_failures (prefix " says ")
 val alt_ergoN = "alt_ergo"
 val dummy_thfN = "dummy_thf" (* for experiments *)
 val eN = "e"
+val e_malesN = "e_males"
 val e_sineN = "e_sine"
 val e_tofofN = "e_tofof"
 val iproverN = "iprover"
@@ -189,10 +191,9 @@ val alt_ergo_tff1 = TFF (Polymorphic, TPTP_Explicit)
 
 val alt_ergo_config : atp_config =
   {exec = (["WHY3_HOME"], ["why3"]),
-   arguments =
-     fn _ => fn _ => fn _ => fn timeout => fn _ =>
-        "--format tff1 --prover alt-ergo --timelimit " ^
-        string_of_int (to_secs 1 timeout),
+   arguments = fn _ => fn _ => fn _ => fn timeout => fn _ =>
+       "--format tff1 --prover alt-ergo --timelimit " ^
+       string_of_int (to_secs 1 timeout),
    proof_delims = [],
    known_failures =
      [(ProofMissing, ": Valid"),
@@ -301,15 +302,14 @@ fun e_kbo () = if is_recent_e_version () then "KBO6" else "KBO"
 
 val e_config : atp_config =
   {exec = (["E_HOME"], ["eproof_ram", "eproof"]),
-   arguments =
-     fn ctxt => fn full_proof => fn heuristic => fn timeout =>
-        fn ({is_lpo, gen_weights, gen_prec, ...}, ord_info, sel_weights) =>
-        "--tstp-in --tstp-out --output-level=5 --silent " ^
-        e_selection_weight_arguments ctxt heuristic sel_weights ^ " " ^
-        e_term_order_info_arguments gen_weights gen_prec ord_info ^ " " ^
-        "--term-ordering=" ^ (if is_lpo then "LPO4" else e_kbo ()) ^ " " ^
-        "--cpu-limit=" ^ string_of_int (to_secs 2 timeout) ^
-        e_shell_level_argument full_proof,
+   arguments = fn ctxt => fn full_proof => fn heuristic => fn timeout =>
+       fn ({is_lpo, gen_weights, gen_prec, ...}, ord_info, sel_weights) =>
+       "--tstp-in --tstp-out --output-level=5 --silent " ^
+       e_selection_weight_arguments ctxt heuristic sel_weights ^ " " ^
+       e_term_order_info_arguments gen_weights gen_prec ord_info ^ " " ^
+       "--term-ordering=" ^ (if is_lpo then "LPO4" else e_kbo ()) ^ " " ^
+       "--cpu-limit=" ^ string_of_int (to_secs 2 timeout) ^
+       e_shell_level_argument full_proof,
    proof_delims = tstp_proof_delims,
    known_failures =
      [(TimedOut, "Failure: Resource limit exceeded (time)"),
@@ -332,6 +332,24 @@ val e_config : atp_config =
 val e = (eN, fn () => e_config)
 
 
+(* E-MaLeS *)
+
+val e_males_config : atp_config =
+  {exec = (["E_MALES_HOME"], ["emales.py"]),
+   arguments = fn _ => fn _ => fn _ => fn timeout => fn _ =>
+       "-t " ^ string_of_int (to_secs 1 timeout) ^ " -p",
+   proof_delims = tstp_proof_delims,
+   known_failures = #known_failures e_config,
+   prem_role = Conjecture,
+   best_slices =
+     (* FUDGE *)
+     K [(1.0, (true, ((1000, FOF, "mono_tags??", combsN, false), "")))],
+   best_max_mono_iters = default_max_mono_iters,
+   best_max_new_mono_instances = default_max_new_mono_instances}
+
+val e_males = (e_malesN, fn () => e_males_config)
+
+
 (* LEO-II *)
 
 (* LEO-II supports definitions, but it performs significantly better on our
@@ -341,12 +359,10 @@ val leo2_thf0 =
 
 val leo2_config : atp_config =
   {exec = (["LEO2_HOME"], ["leo"]),
-   arguments =
-     fn _ => fn _ => fn _ => fn timeout => fn _ =>
-        "--foatp e --atp e=\"$E_HOME\"/eprover \
-        \--atp epclextract=\"$E_HOME\"/epclextract \
-        \--proofoutput 1 --timeout " ^
-        string_of_int (to_secs 1 timeout),
+   arguments = fn _ => fn _ => fn _ => fn timeout => fn _ =>
+       "--foatp e --atp e=\"$E_HOME\"/eprover \
+       \--atp epclextract=\"$E_HOME\"/epclextract \
+       \--proofoutput 1 --timeout " ^ string_of_int (to_secs 1 timeout),
    proof_delims = tstp_proof_delims,
    known_failures =
      [(TimedOut, "CPU time limit exceeded, terminating"),
@@ -369,9 +385,8 @@ val satallax_thf0 =
 
 val satallax_config : atp_config =
   {exec = (["SATALLAX_HOME"], ["satallax"]),
-   arguments =
-     fn _ => fn _ => fn _ => fn timeout => fn _ =>
-        "-p hocore -t " ^ string_of_int (to_secs 1 timeout),
+   arguments = fn _ => fn _ => fn _ => fn timeout => fn _ =>
+       "-p hocore -t " ^ string_of_int (to_secs 1 timeout),
    proof_delims =
      [("% Higher-Order Unsat Core BEGIN", "% Higher-Order Unsat Core END")],
    known_failures = known_szs_status_failures,
@@ -397,8 +412,8 @@ val spass_H2NuVS0Red2 = "-Heuristic=2 -RNuV=1 -Sorts=0 -RFRew=2 -RBRew=2 -RTaut=
 val spass_config : atp_config =
   {exec = (["SPASS_NEW_HOME", "SPASS_HOME"], ["SPASS"]),
    arguments = fn _ => fn _ => fn extra_options => fn timeout => fn _ =>
-     ("-Isabelle=1 -TimeLimit=" ^ string_of_int (to_secs 1 timeout))
-     |> extra_options <> "" ? prefix (extra_options ^ " "),
+       ("-Isabelle=1 -TimeLimit=" ^ string_of_int (to_secs 1 timeout))
+       |> extra_options <> "" ? prefix (extra_options ^ " "),
    proof_delims = [("Here is a proof", "Formulae used in the proof")],
    known_failures =
      [(OldSPASS, "Unrecognized option Isabelle"),
@@ -438,11 +453,11 @@ val vampire_tff0 = TFF (Monomorphic, TPTP_Implicit)
 val vampire_config : atp_config =
   {exec = (["VAMPIRE_HOME"], ["vampire"]),
    arguments = fn _ => fn _ => fn sos => fn timeout => fn _ =>
-     "--mode casc -t " ^ string_of_int (to_secs 1 timeout) ^
-     " --proof tptp --output_axiom_names on\
-     \ --forced_options propositional_to_bdd=off\
-     \ --thanks \"Andrei and Krystof\" --input_file"
-     |> sos = sosN ? prefix "--sos on ",
+       "--mode casc -t " ^ string_of_int (to_secs 1 timeout) ^
+       " --proof tptp --output_axiom_names on\
+       \ --forced_options propositional_to_bdd=off\
+       \ --thanks \"Andrei and Krystof\" --input_file"
+       |> sos = sosN ? prefix "--sos on ",
    proof_delims =
      [("=========== Refutation ==========",
        "======= End of refutation ======="),
@@ -481,8 +496,8 @@ val z3_tff0 = TFF (Monomorphic, TPTP_Implicit)
 val z3_tptp_config : atp_config =
   {exec = (["Z3_HOME"], ["z3"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn _ =>
-     "MBQI=true DISPLAY_UNSAT_CORE=true -tptp -t:" ^
-     string_of_int (to_secs 1 timeout),
+       "MBQI=true DISPLAY_UNSAT_CORE=true -tptp -t:" ^
+       string_of_int (to_secs 1 timeout),
    proof_delims = [("\ncore(", ").")],
    known_failures = known_szs_status_failures,
    prem_role = Hypothesis,
@@ -566,9 +581,9 @@ fun remote_config system_name system_versions proof_delims known_failures
                   prem_role best_slice : atp_config =
   {exec = (["ISABELLE_ATP"], ["scripts/remote_atp"]),
    arguments = fn _ => fn _ => fn command => fn timeout => fn _ =>
-     (if command <> "" then "-c " ^ quote command ^ " " else "") ^
-     "-s " ^ the_system system_name system_versions ^ " " ^
-     "-t " ^ string_of_int (Int.min (max_remote_secs, to_secs 1 timeout)),
+       (if command <> "" then "-c " ^ quote command ^ " " else "") ^
+       "-s " ^ the_system system_name system_versions ^ " " ^
+       "-t " ^ string_of_int (Int.min (max_remote_secs, to_secs 1 timeout)),
    proof_delims = union (op =) tstp_proof_delims proof_delims,
    known_failures = known_failures @ known_perl_failures @ known_says_failures,
    prem_role = prem_role,
@@ -671,10 +686,10 @@ fun effective_term_order ctxt atp =
   end
 
 val atps=
-  [alt_ergo, e, leo2, satallax, spass, spass_poly, vampire, z3_tptp, dummy_thf,
-   remote_e, remote_e_sine, remote_e_tofof, remote_iprover, remote_iprover_eq,
-   remote_leo2, remote_satallax, remote_vampire, remote_z3_tptp, remote_snark,
-   remote_waldmeister]
+  [alt_ergo, e, e_males, leo2, satallax, spass, spass_poly, vampire, z3_tptp,
+   dummy_thf, remote_e, remote_e_sine, remote_e_tofof, remote_iprover,
+   remote_iprover_eq, remote_leo2, remote_satallax, remote_vampire,
+   remote_z3_tptp, remote_snark, remote_waldmeister]
 
 val setup = fold add_atp atps
 
