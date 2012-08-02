@@ -256,15 +256,15 @@ val _ =
 
 (* name space entry path *)
 
-fun hide_names name hide what =
-  Outer_Syntax.command (name, Keyword.thy_decl) ("hide " ^ what ^ " from name space")
+fun hide_names spec hide what =
+  Outer_Syntax.command spec ("hide " ^ what ^ " from name space")
     ((Parse.opt_keyword "open" >> not) -- Scan.repeat1 Parse.xname >>
       (Toplevel.theory o uncurry hide));
 
-val _ = hide_names "hide_class" Isar_Cmd.hide_class "classes";
-val _ = hide_names "hide_type" Isar_Cmd.hide_type "types";
-val _ = hide_names "hide_const" Isar_Cmd.hide_const "constants";
-val _ = hide_names "hide_fact" Isar_Cmd.hide_fact "facts";
+val _ = hide_names @{command_spec "hide_class"} Isar_Cmd.hide_class "classes";
+val _ = hide_names @{command_spec "hide_type"} Isar_Cmd.hide_type "types";
+val _ = hide_names @{command_spec "hide_const"} Isar_Cmd.hide_const "constants";
+val _ = hide_names @{command_spec "hide_fact"} Isar_Cmd.hide_fact "facts";
 
 
 (* use ML text *)
@@ -508,10 +508,8 @@ val _ =
 
 (* statements *)
 
-fun gen_theorem schematic kind =
-  Outer_Syntax.local_theory_to_proof'
-    (if schematic then ("schematic_" ^ kind, Keyword.thy_schematic_goal)
-     else (kind, Keyword.thy_goal))
+fun gen_theorem spec schematic kind =
+  Outer_Syntax.local_theory_to_proof' spec
     ("state " ^ (if schematic then "schematic " ^ kind else kind))
     (Scan.optional (Parse_Spec.opt_thm_name ":" --|
       Scan.ahead (Parse_Spec.includes >> K "" ||
@@ -521,12 +519,12 @@ fun gen_theorem schematic kind =
         ((if schematic then Specification.schematic_theorem_cmd else Specification.theorem_cmd)
           kind NONE (K I) a includes elems concl)));
 
-val _ = gen_theorem false Thm.theoremK;
-val _ = gen_theorem false Thm.lemmaK;
-val _ = gen_theorem false Thm.corollaryK;
-val _ = gen_theorem true Thm.theoremK;
-val _ = gen_theorem true Thm.lemmaK;
-val _ = gen_theorem true Thm.corollaryK;
+val _ = gen_theorem @{command_spec "theorem"} false Thm.theoremK;
+val _ = gen_theorem @{command_spec "lemma"} false Thm.lemmaK;
+val _ = gen_theorem @{command_spec "corollary"} false Thm.corollaryK;
+val _ = gen_theorem @{command_spec "schematic_theorem"} true Thm.theoremK;
+val _ = gen_theorem @{command_spec "schematic_lemma"} true Thm.lemmaK;
+val _ = gen_theorem @{command_spec "schematic_corollary"} true Thm.corollaryK;
 
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "notepad"} "begin proof context"
