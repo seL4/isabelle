@@ -152,7 +152,8 @@ fun generate_commands ctxt (params as {provers, ...}) thy file_name =
         val core =
           escape_meta name ^ ": " ^ escape_metas prevs ^ "; " ^
           escape_metas feats
-        val query = if kind <> "" then "? " ^ core ^ "\n" else ""
+        val query =
+          if kind = "" orelse null deps then "" else "? " ^ core ^ "\n"
         val update = "! " ^ core ^ "; " ^ escape_metas deps ^ "\n"
         val _ = File.append path (query ^ update)
       in [name] end
