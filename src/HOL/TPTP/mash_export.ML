@@ -57,11 +57,6 @@ fun thy_of_fact thy = Context.this_theory thy o thy_name_of_fact
 
 val all_names = map (rpair () o nickname_of) #> Symtab.make
 
-fun smart_dependencies_of ctxt params prover facts all_names th =
-  case atp_dependencies_of ctxt params prover 0 facts all_names th of
-    SOME deps => deps
-  | NONE => isar_dependencies_of all_names th |> these
-
 fun generate_accessibility ctxt thy include_thy file_name =
   let
     val path = file_name |> Path.explode
@@ -129,7 +124,9 @@ fun generate_atp_dependencies ctxt (params as {provers, ...}) thy include_thy
     fun do_thm th =
       let
         val name = nickname_of th
-        val deps = smart_dependencies_of ctxt params prover facts all_names th
+        val deps =
+          atp_dependencies_of ctxt params prover 0 facts all_names th
+          |> snd |> these
         val s = escape_meta name ^ ": " ^ escape_metas deps ^ "\n"
       in File.append path s end
   in List.app do_thm ths end
@@ -143,13 +140,14 @@ fun generate_commands ctxt (params as {provers, ...}) thy file_name =
     val (new_facts, old_facts) =
       facts |> List.partition (has_thy thy o snd)
             |>> sort (thm_ord o pairself snd)
-    val ths = facts |> map snd
-    val all_names = all_names ths
+    val all_names = all_names (map snd facts)
     fun do_fact ((_, stature), th) prevs =
       let
         val name = nickname_of th
         val feats = features_of ctxt prover thy stature [prop_of th]
-        val deps = smart_dependencies_of ctxt params prover facts all_names th
+        val deps =
+          atp_dependencies_of ctxt params prover 0 facts all_names th
+          |> snd |> these
         val kind = Thm.legacy_get_kind th
         val core =
           escape_meta name ^ ": " ^ escape_metas prevs ^ "; " ^

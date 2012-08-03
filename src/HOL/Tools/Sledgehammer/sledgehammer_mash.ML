@@ -44,7 +44,7 @@ sig
   val isar_dependencies_of : unit Symtab.table -> thm -> string list option
   val atp_dependencies_of :
     Proof.context -> params -> string -> int -> fact list -> unit Symtab.table
-    -> thm -> string list option
+    -> thm -> bool * string list option
   val is_thm_technical : thm -> bool
   val mash_CLEAR : Proof.context -> unit
   val mash_ADD :
@@ -315,10 +315,10 @@ fun features_of ctxt prover thy (scope, status) ts =
   |> scope <> Global ? cons "local"
   |> (case string_of_status status of "" => I | s => cons s)
 
-(* Too many dependencies is a sign that a decision procedure is at work. There
-   isn't much too learn from such proofs. *)
-val max_dependencies = 20
-val atp_dependency_default_max_fact = 50
+(* Too many dependencies is a sign that a crazy decision procedure is at work.
+   There isn't much to learn from such proofs. *)
+val max_dependencies = 100
+val atp_dependency_default_max_facts = 50
 
 (* "type_definition_xxx" facts are characterized by their use of "CollectI". *)
 val typedef_deps = [@{thm CollectI} |> nickname_of]
@@ -355,7 +355,7 @@ fun isar_dependencies_of all_names th =
 fun atp_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
                         auto_level facts all_names th =
   case isar_dependencies_of all_names th of
-    SOME [] => NONE
+    SOME [] => (false, SOME [])
   | isar_deps =>
     let
       val thy = Proof_Context.theory_of ctxt
@@ -372,7 +372,7 @@ fun atp_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
         | NONE => accum (* shouldn't happen *)
       val facts =
         facts |> mepo_suggested_facts ctxt params prover
-                     (max_facts |> the_default atp_dependency_default_max_fact)
+                     (max_facts |> the_default atp_dependency_default_max_facts)
                      NONE hyp_ts concl_t
               |> fold (add_isar_dep facts) (these isar_deps)
               |> map fix_name
@@ -396,8 +396,10 @@ fun atp_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
            end
          else
            ();
-         used_facts |> map fst |> trim_dependencies th)
-      | _ => NONE
+         case used_facts |> map fst |> trim_dependencies th of
+           NONE => (false, isar_deps)
+         | atp_deps => (true, atp_deps))
+      | _ => (false, isar_deps)
     end
 
 val technical_theories =
@@ -747,6 +749,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
             SOME []
           else if atp then
             atp_dependencies_of ctxt params prover auto_level facts all_names th
+            |> (fn (false, _) => NONE | (true, deps) => deps)
           else
             isar_dependencies_of all_names th
         fun do_commit [] [] state = state
