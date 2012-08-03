@@ -63,3 +63,6 @@ declare thy_output_source : bool = false
 declare timing : bool = false
   -- "global timing of toplevel command execution and theory processing"
 
+declare timeout : real = 0
+  -- "timeout for session build job (seconds > 0)"
+

@@ -7,6 +7,7 @@ Build and manage Isabelle sessions.
 package isabelle
 
 
+import java.util.{Timer, TimerTask}
 import java.io.{BufferedInputStream, FileInputStream,
   BufferedReader, InputStreamReader, IOException}
 import java.util.zip.GZIPInputStream
@@ -331,7 +332,7 @@ object Build
   /* jobs */
 
   private class Job(dir: Path, env: Map[String, String], script: String, args: String,
-    val parent_heap: String, output: Path, do_output: Boolean)
+    val parent_heap: String, output: Path, do_output: Boolean, time: Time)
   {
     private val args_file = File.tmp_file("args")
     private val env1 = env + ("ARGS_FILE" -> Isabelle_System.posix_path(args_file.getPath))
@@ -342,7 +343,29 @@ object Build
 
     def terminate: Unit = thread.interrupt
     def is_finished: Boolean = result.is_finished
-    def join: (String, String, Int) = { val res = result.join; args_file.delete; res }
+
+    @volatile private var timeout = false
+    private val timer: Option[Timer] =
+      if (time.seconds > 0.0) {
+        val t = new Timer("build", true)
+        t.schedule(new TimerTask { def run = { terminate; timeout = true } }, time.ms)
+        Some(t)
+      }
+      else None
+
+    def join: (String, String, Int) = {
+      val (out, err, rc) = result.join
+      args_file.delete
+      timer.map(_.cancel())
+
+      val err1 =
+        if (rc == 130)
+          (if (err.isEmpty || err.endsWith("\n")) err else err + "\n") +
+          (if (timeout) "*** Timeout\n" else "*** Interrupt\n")
+        else err
+      (out, err1, rc)
+    }
+
     def output_path: Option[Path] = if (do_output) Some(output) else None
   }
 
@@ -402,7 +425,8 @@ object Build
           (do_output, (options, (verbose, (browser_info, (parent,
             (name, info.theories)))))))
     }
-    new Job(info.dir, env, script, YXML.string_of_body(args_xml), parent_heap, output, do_output)
+    new Job(info.dir, env, script, YXML.string_of_body(args_xml), parent_heap,
+      output, do_output, Time.seconds(options.real("timeout")))
   }
 
 
@@ -525,10 +549,12 @@ object Build
 
                 File.write(output_dir + log(name), out)
                 echo(name + " FAILED")
-                echo("(see also " + (output_dir + log(name)).file.toString + ")")
-                val lines = split_lines(out)
-                val tail = lines.drop(lines.length - 20 max 0)
-                echo("\n" + cat_lines(tail))
+                if (rc != 130) {
+                  echo("(see also " + (output_dir + log(name)).file.toString + ")")
+                  val lines = split_lines(out)
+                  val tail = lines.drop(lines.length - 20 max 0)
+                  echo("\n" + cat_lines(tail))
+                }
 
                 no_heap
               }
