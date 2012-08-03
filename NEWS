@@ -69,6 +69,9 @@ slightly exotic babel/greek.
 document/root_NAME.tex if that file exists, instead of the common
 document/root.tex.
 
+* Simplified custom document/build script, instead of old-style
+document/IsaMakefile.  Minor INCOMPATIBILITY.
+
 
 *** System ***
 

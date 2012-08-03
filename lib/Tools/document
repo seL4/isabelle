@@ -134,8 +134,8 @@ function pre_latex ()
 
   prep_tags
 
-  if [ -f IsaMakefile ]; then
-    "$ISABELLE_TOOL" make "$OUTFORMAT"
+  if [ -f build ]; then
+    ./build "$OUTFORMAT" "$NAME"
     RC="$?"
   elif [ "$OUTFORMAT" = pdf ]; then
     pre_latex pdf && \

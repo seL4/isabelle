@@ -500,11 +500,12 @@ Usage: isabelle document [OPTIONS] [DIR]
   and bibliographies (the latter assumes \verb|root.bib| within
   the same directory).
 
-  In more complex situations, a separate \verb|IsaMakefile| for
-  the document sources may be given instead.  This should provide
-  targets for any admissible document format; these have to produce
-  corresponding output files named after \verb|root| as well,
-  e.g.\ \verb|root.dvi| for target format \verb|dvi|.
+  In more complex situations, a separate \verb|build| script for
+  the document sources may be given.  It is invoked with command-line
+  arguments for the document format and the document variant name.
+  The script needs to produce corresponding output files, e.g.\
+  \verb|root.pdf| for target format \verb|pdf| (and default
+  default variants).  The main work can be again delegated to \hyperlink{tool.latex}{\mbox{\isa{\isatool{latex}}}}.
 
   \medskip When running the session, Isabelle copies the content of
   the original \verb|document| directory into its proper place

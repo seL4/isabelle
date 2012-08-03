@@ -489,11 +489,13 @@ Usage: isabelle document [OPTIONS] [DIR]
   and bibliographies (the latter assumes @{verbatim root.bib} within
   the same directory).
 
-  In more complex situations, a separate @{verbatim IsaMakefile} for
-  the document sources may be given instead.  This should provide
-  targets for any admissible document format; these have to produce
-  corresponding output files named after @{verbatim root} as well,
-  e.g.\ @{verbatim root.dvi} for target format @{verbatim dvi}.
+  In more complex situations, a separate @{verbatim build} script for
+  the document sources may be given.  It is invoked with command-line
+  arguments for the document format and the document variant name.
+  The script needs to produce corresponding output files, e.g.\
+  @{verbatim root.pdf} for target format @{verbatim pdf} (and default
+  default variants).  The main work can be again delegated to @{tool
+  latex}.
 
   \medskip When running the session, Isabelle copies the content of
   the original @{verbatim document} directory into its proper place
