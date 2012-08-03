@@ -133,11 +133,23 @@ val unescape_meta = String.explode #> unmeta_chars []
 val unescape_metas =
   space_explode " " #> filter_out (curry (op =) "") #> map unescape_meta
 
+datatype proof_kind = Isar_Proof | ATP_Proof | Isar_Proof_wegen_ATP_Flop
+
+fun str_of_proof_kind Isar_Proof = "i"
+  | str_of_proof_kind ATP_Proof = "a"
+  | str_of_proof_kind Isar_Proof_wegen_ATP_Flop = "x"
+
+fun proof_kind_of_str "i" = Isar_Proof
+  | proof_kind_of_str "a" = ATP_Proof
+  | proof_kind_of_str "x" = Isar_Proof_wegen_ATP_Flop
+
 fun extract_node line =
   case space_explode ":" line of
     [head, parents] =>
     (case space_explode " " head of
-       [tag, name] => SOME (unescape_meta name, unescape_metas parents, tag = "a")
+       [kind, name] =>
+       SOME (unescape_meta name, unescape_metas parents,
+             try proof_kind_of_str kind |> the_default Isar_Proof)
      | _ => NONE)
   | _ => NONE
 
@@ -501,9 +513,9 @@ fun mash_QUERY ctxt overlord max_suggs (query as (_, feats)) =
 (*** High-level communication with MaSh ***)
 
 (* FIXME: Here a "Graph.update_node" function would be useful *)
-fun update_fact_graph_node (name, atp) =
-  Graph.default_node (name, false)
-  #> atp ? Graph.map_node name (K atp)
+fun update_fact_graph_node (name, kind) =
+  Graph.default_node (name, Isar_Proof)
+  #> kind <> Isar_Proof ? Graph.map_node name (K kind)
 
 fun try_graph ctxt when def f =
   f ()
@@ -547,13 +559,13 @@ fun load _ (state as (true, _)) = state
          SOME (version' :: node_lines) =>
          let
            fun add_edge_to name parent =
-             Graph.default_node (parent, false)
+             Graph.default_node (parent, Isar_Proof)
              #> Graph.add_edge (parent, name)
            fun add_node line =
              case extract_node line of
                NONE => I (* shouldn't happen *)
-             | SOME (name, parents, atp) =>
-               update_fact_graph_node (name, atp)
+             | SOME (name, parents, kind) =>
+               update_fact_graph_node (name, kind)
                #> fold (add_edge_to name) parents
            val fact_G =
              try_graph ctxt "loading state" Graph.empty (fn () =>
@@ -568,11 +580,11 @@ fun load _ (state as (true, _)) = state
 
 fun save ctxt {fact_G} =
   let
-    fun str_of_entry (name, parents, atp) =
-      (if atp then "a" else "i") ^ " " ^ escape_meta name ^ ": " ^
+    fun str_of_entry (name, parents, kind) =
+      str_of_proof_kind kind ^ " " ^ escape_meta name ^ ": " ^
       escape_metas parents ^ "\n"
-    fun append_entry (name, (atp, (parents, _))) =
-      cons (name, Graph.Keys.dest parents, atp)
+    fun append_entry (name, (kind, (parents, _))) =
+      cons (name, Graph.Keys.dest parents, kind)
     val entries = [] |> Graph.fold append_entry fact_G
   in
     write_file (version ^ "\n") (entries, str_of_entry) (mash_state_file ());
@@ -681,7 +693,7 @@ fun add_wrt_fact_graph ctxt (name, parents, feats, deps) (adds, graph) =
     fun maybe_add_from from (accum as (parents, graph)) =
       try_graph ctxt "updating graph" accum (fn () =>
           (from :: parents, Graph.add_edge_acyclic (from, name) graph))
-    val graph = graph |> Graph.default_node (name, false)
+    val graph = graph |> Graph.default_node (name, Isar_Proof)
     val (parents, graph) = ([], graph) |> fold maybe_add_from parents
     val (deps, _) = ([], graph) |> fold maybe_add_from deps
   in ((name, parents, feats, deps) :: adds, graph) end
@@ -691,9 +703,12 @@ fun reprove_wrt_fact_graph ctxt (name, deps) (reps, graph) =
     fun maybe_rep_from from (accum as (parents, graph)) =
       try_graph ctxt "updating graph" accum (fn () =>
           (from :: parents, Graph.add_edge_acyclic (from, name) graph))
-    val graph = graph |> update_fact_graph_node (name, true)
+    val graph = graph |> update_fact_graph_node (name, ATP_Proof)
     val (deps, _) = ([], graph) |> fold maybe_rep_from deps
   in ((name, deps) :: reps, graph) end
+
+fun flop_wrt_fact_graph name =
+  update_fact_graph_node (name, Isar_Proof_wegen_ATP_Flop)
 
 val learn_timeout_slack = 2.0
 
@@ -766,24 +781,25 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
             |> (fn (false, _) => NONE | (true, deps) => deps)
           else
             isar_dependencies_of all_names th
-        fun do_commit [] [] state = state
-          | do_commit adds reps {fact_G} =
+        fun do_commit [] [] [] state = state
+          | do_commit adds reps flops {fact_G} =
             let
               val (adds, fact_G) =
                 ([], fact_G) |> fold (add_wrt_fact_graph ctxt) adds
               val (reps, fact_G) =
                 ([], fact_G) |> fold (reprove_wrt_fact_graph ctxt) reps
+              val fact_G = fact_G |> fold flop_wrt_fact_graph flops
             in
               mash_ADD ctxt overlord (rev adds);
               mash_REPROVE ctxt overlord reps;
               {fact_G = fact_G}
             end
-        fun commit last adds reps =
+        fun commit last adds reps flops =
           (if debug andalso auto_level = 0 then
              Output.urgent_message "Committing..."
            else
              ();
-           mash_map ctxt (do_commit (rev adds) reps);
+           mash_map ctxt (do_commit (rev adds) reps flops);
            if not last andalso auto_level = 0 then
              let val num_proofs = length adds + length reps in
                "Learned " ^ string_of_int num_proofs ^ " " ^
@@ -806,7 +822,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
               val adds = (name, parents, feats, deps) :: adds
               val (adds, next_commit) =
                 if Time.> (Timer.checkRealTimer timer, next_commit) then
-                  (commit false adds []; ([], next_commit_time ()))
+                  (commit false adds [] []; ([], next_commit_time ()))
                 else
                   (adds, next_commit)
               val timed_out = Time.> (Timer.checkRealTimer timer, learn_timeout)
@@ -825,35 +841,38 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
               val (adds, (_, n, _, _)) =
                 ([], (parents, 0, next_commit_time (), false))
                 |> fold learn_new_fact new_facts
-            in commit true adds []; n end
+            in commit true adds [] []; n end
         fun relearn_old_fact _ (accum as (_, (_, _, true))) = accum
           | relearn_old_fact ((_, (_, status)), th)
-                             (reps, (n, next_commit, _)) =
+                             ((reps, flops), (n, next_commit, _)) =
             let
               val name = nickname_of th
-              val (n, reps) =
+              val (n, reps, flops) =
                 case deps_of status th of
-                  SOME deps => (n + 1, (name, deps) :: reps)
-                | NONE => (n, reps)
-              val (reps, next_commit) =
+                  SOME deps => (n + 1, (name, deps) :: reps, flops)
+                | NONE => (n, reps, name :: flops)
+              val (reps, flops, next_commit) =
                 if Time.> (Timer.checkRealTimer timer, next_commit) then
-                  (commit false [] reps; ([], next_commit_time ()))
+                  (commit false [] reps flops; ([], [], next_commit_time ()))
                 else
-                  (reps, next_commit)
+                  (reps, flops, next_commit)
               val timed_out = Time.> (Timer.checkRealTimer timer, learn_timeout)
-            in (reps, (n, next_commit, timed_out)) end
+            in ((reps, flops), (n, next_commit, timed_out)) end
         val n =
           if not atp orelse null old_facts then
             n
           else
             let
               val max_isar = 1000 * max_dependencies
-              fun has_atp_proof th =
+              fun kind_of_proof th =
                 try (Graph.get_node fact_G) (nickname_of th)
-                |> the_default false
+                |> the_default Isar_Proof
               fun priority_of (_, th) =
                 random_range 0 max_isar
-                + (if has_atp_proof th then max_isar else 0)
+                + (case kind_of_proof th of
+                     Isar_Proof => 0
+                   | ATP_Proof => 2 * max_isar
+                   | Isar_Proof_wegen_ATP_Flop => max_isar)
                 - 500 * (th |> isar_dependencies_of all_names
                             |> Option.map length
                             |> the_default max_dependencies)
@@ -861,10 +880,10 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
                 old_facts |> map (`priority_of)
                           |> sort (int_ord o pairself fst)
                           |> map snd
-              val (reps, (n, _, _)) =
-                ([], (n, next_commit_time (), false))
+              val ((reps, flops), (n, _, _)) =
+                (([], []), (n, next_commit_time (), false))
                 |> fold relearn_old_fact old_facts
-            in commit true [] reps; n end
+            in commit true [] reps flops; n end
       in
         if verbose orelse auto_level < 2 then
           "Learned " ^ string_of_int n ^ " nontrivial " ^
