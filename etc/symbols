@@ -70,7 +70,7 @@
 \<FF>                   code: 0x01d509
 \<GG>                   code: 0x01d50a
 \<HH>                   code: 0x00210c
-#\<II>                   code: 0x01d50c
+\<II>                   code: 0x002111
 \<JJ>                   code: 0x01d50d
 \<KK>                   code: 0x01d50e
 \<LL>                   code: 0x01d50f
@@ -79,7 +79,7 @@
 \<OO>                   code: 0x01d512
 \<PP>                   code: 0x01d513
 \<QQ>                   code: 0x01d514
-#\<RR>                   code: 0x01d515
+\<RR>                   code: 0x00211c
 \<SS>                   code: 0x01d516
 \<TT>                   code: 0x01d517
 \<UU>                   code: 0x01d518
@@ -312,8 +312,6 @@
 \<emptyset>             code: 0x002205
 \<nabla>                code: 0x002207
 \<partial>              code: 0x002202
-\<Re>                   code: 0x00211c
-\<Im>                   code: 0x002111
 \<flat>                 code: 0x00266d
 \<natural>              code: 0x00266e
 \<sharp>                code: 0x00266f

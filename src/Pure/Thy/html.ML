@@ -145,8 +145,6 @@ local
     ("\\<omega>", (1, "&omega;")),
     ("\\<bullet>", (1, "&bull;")),
     ("\\<dots>", (1, "&hellip;")),
-    ("\\<Re>", (1, "&real;")),
-    ("\\<Im>", (1, "&image;")),
     ("\\<wp>", (1, "&weierp;")),
     ("\\<forall>", (1, "&forall;")),
     ("\\<partial>", (1, "&part;")),
