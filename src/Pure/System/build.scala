@@ -7,6 +7,7 @@ Build and manage Isabelle sessions.
 package isabelle
 
 
+import java.util.{Timer, TimerTask}
 import java.io.{BufferedInputStream, FileInputStream,
   BufferedReader, InputStreamReader, IOException}
 import java.util.zip.GZIPInputStream
@@ -264,21 +265,28 @@ object Build
 
   sealed case class Node(
     loaded_theories: Set[String],
+    syntax: Outer_Syntax,
     sources: List[(Path, SHA1.Digest)])
 
   sealed case class Deps(deps: Map[String, Node])
   {
     def is_empty: Boolean = deps.isEmpty
+    def apply(name: String): Node = deps(name)
     def sources(name: String): List[SHA1.Digest] = deps(name).sources.map(_._2)
   }
 
   def dependencies(verbose: Boolean, queue: Session.Queue): Deps =
     Deps((Map.empty[String, Node] /: queue.topological_order)(
       { case (deps, (name, info)) =>
-          val preloaded =
+          val (preloaded, parent_syntax) =
             info.parent match {
-              case None => Set.empty[String]
-              case Some(parent) => deps(parent).loaded_theories
+              case Some(parent) => (deps(parent).loaded_theories, deps(parent).syntax)
+              case None =>
+                (Set.empty[String],
+                  Outer_Syntax.init() +
+                    // FIXME avoid hardwired stuff!?
+                    ("hence", Keyword.PRF_ASM_GOAL, "then have") +
+                    ("thus", Keyword.PRF_ASM_GOAL, "then show"))
             }
           val thy_info = new Thy_Info(new Thy_Load(preloaded))
 
@@ -295,6 +303,9 @@ object Build
                 map(thy => Document.Node.Name(info.dir + Thy_Load.thy_path(thy))))
 
           val loaded_theories = preloaded ++ thy_deps.map(_._1.theory)
+
+          val keywords = thy_deps.map({ case (_, Exn.Res(h)) => h.keywords case _ => Nil }).flatten
+          val syntax = (parent_syntax /: keywords)(_ + _)
 
           val all_files =
             thy_deps.map({ case (n, h) =>
@@ -314,14 +325,14 @@ object Build
                 error(msg + "\nThe error(s) above occurred in session " + quote(name))
             }
 
-          deps + (name -> Node(loaded_theories, sources))
+          deps + (name -> Node(loaded_theories, syntax, sources))
       }))
 
 
   /* jobs */
 
   private class Job(dir: Path, env: Map[String, String], script: String, args: String,
-    val parent_heap: String, output: Path, do_output: Boolean)
+    val parent_heap: String, output: Path, do_output: Boolean, time: Time)
   {
     private val args_file = File.tmp_file("args")
     private val env1 = env + ("ARGS_FILE" -> Isabelle_System.posix_path(args_file.getPath))
@@ -332,7 +343,29 @@ object Build
 
     def terminate: Unit = thread.interrupt
     def is_finished: Boolean = result.is_finished
-    def join: (String, String, Int) = { val res = result.join; args_file.delete; res }
+
+    @volatile private var timeout = false
+    private val timer: Option[Timer] =
+      if (time.seconds > 0.0) {
+        val t = new Timer("build", true)
+        t.schedule(new TimerTask { def run = { terminate; timeout = true } }, time.ms)
+        Some(t)
+      }
+      else None
+
+    def join: (String, String, Int) = {
+      val (out, err, rc) = result.join
+      args_file.delete
+      timer.map(_.cancel())
+
+      val err1 =
+        if (rc == 130)
+          (if (err.isEmpty || err.endsWith("\n")) err else err + "\n") +
+          (if (timeout) "*** Timeout\n" else "*** Interrupt\n")
+        else err
+      (out, err1, rc)
+    }
+
     def output_path: Option[Path] = if (do_output) Some(output) else None
   }
 
@@ -392,7 +425,8 @@ object Build
           (do_output, (options, (verbose, (browser_info, (parent,
             (name, info.theories)))))))
     }
-    new Job(info.dir, env, script, YXML.string_of_body(args_xml), parent_heap, output, do_output)
+    new Job(info.dir, env, script, YXML.string_of_body(args_xml), parent_heap,
+      output, do_output, Time.seconds(options.real("timeout")))
   }
 
 
@@ -515,10 +549,12 @@ object Build
 
                 File.write(output_dir + log(name), out)
                 echo(name + " FAILED")
-                echo("(see also " + (output_dir + log(name)).file.toString + ")")
-                val lines = split_lines(out)
-                val tail = lines.drop(lines.length - 20 max 0)
-                echo("\n" + cat_lines(tail))
+                if (rc != 130) {
+                  echo("(see also " + (output_dir + log(name)).file.toString + ")")
+                  val lines = split_lines(out)
+                  val tail = lines.drop(lines.length - 20 max 0)
+                  echo("\n" + cat_lines(tail))
+                }
 
                 no_heap
               }
@@ -610,6 +646,16 @@ object Build
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }
     }
+  }
+
+
+  /* static outer syntax */
+
+  // FIXME Symbol.decode!?
+  def outer_syntax(session: String): Outer_Syntax =
+  {
+    val (_, queue) = find_sessions(Options.init(), Nil).required(false, Nil, List(session))
+    dependencies(false, queue)(session).syntax
   }
 }
 

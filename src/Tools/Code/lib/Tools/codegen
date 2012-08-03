@@ -52,7 +52,7 @@ CODE_EXPR=$(echo "$1" | perl -pe 's/\\/\\\\/g; s/"/\\\"/g')
 
 FORMAL_CMD="Toplevel.program (fn () => (use_thy thyname; ML_Context.eval_text_in \
   (SOME (Proof_Context.init_global (Thy_Info.get_theory thyname))) false Position.none ml_cmd)) \
-  handle _ => OS.Process.exit OS.Process.failure;"
+  handle _ => Posix.Process.exit 0w1;"
 
 ACTUAL_CMD="val thyname = \"$THYNAME\"; \
   val _ = quick_and_dirty := $QUICK_AND_DIRTY; \

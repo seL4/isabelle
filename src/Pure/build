@@ -61,11 +61,11 @@ COMPAT=""
 if [ "$TARGET" = RAW ]; then
   if [ -z "$OUTPUT" ]; then
     "$ISABELLE_PROCESS" \
-      -e "use\"$COMPAT\" handle _ => OS.Process.exit OS.Process.failure;" \
+      -e "use\"$COMPAT\" handle _ => Posix.Process.exit 0w1;" \
       -q RAW_ML_SYSTEM
   else
     "$ISABELLE_PROCESS" \
-      -e "use\"$COMPAT\" handle _ => OS.Process.exit OS.Process.failure;" \
+      -e "use\"$COMPAT\" handle _ => Posix.Process.exit 0w1;" \
       -e "structure Isar = struct fun main () = () end;" \
       -e "ml_prompts \"ML> \" \"ML# \";" \
       -q -w RAW_ML_SYSTEM "$OUTPUT"
@@ -73,11 +73,11 @@ if [ "$TARGET" = RAW ]; then
 else
   if [ -z "$OUTPUT" ]; then
     "$ISABELLE_PROCESS" \
-      -e "(use\"$COMPAT\"; use\"ROOT.ML\") handle _ => OS.Process.exit OS.Process.failure;" \
+      -e "(use\"$COMPAT\"; use\"ROOT.ML\") handle _ => Posix.Process.exit 0w1;" \
       -q RAW_ML_SYSTEM
   else
     "$ISABELLE_PROCESS" \
-      -e "(use\"$COMPAT\"; use\"ROOT.ML\") handle _ => OS.Process.exit OS.Process.failure;" \
+      -e "(use\"$COMPAT\"; use\"ROOT.ML\") handle _ => Posix.Process.exit 0w1;" \
       -e "ml_prompts \"ML> \" \"ML# \";" \
       -f -q -w RAW_ML_SYSTEM "$OUTPUT"
   fi
