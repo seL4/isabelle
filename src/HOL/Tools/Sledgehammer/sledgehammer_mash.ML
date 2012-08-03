@@ -135,8 +135,11 @@ val unescape_metas =
 
 fun extract_node line =
   case space_explode ":" line of
-    [name, parents] => (unescape_meta name, unescape_metas parents)
-  | _ => ("", [])
+    [head, parents] =>
+    (case space_explode " " head of
+       [tag, name] => SOME (unescape_meta name, unescape_metas parents, tag = "a")
+     | _ => NONE)
+  | _ => NONE
 
 fun extract_suggestion sugg =
   case space_explode "=" sugg of
@@ -342,11 +345,15 @@ fun is_size_def [dep] th =
   | is_size_def _ _ = false
 
 fun trim_dependencies th deps =
-  if length deps > max_dependencies orelse deps = typedef_deps orelse
-     exists (member (op =) typedef_ths) deps orelse is_size_def deps th then
+  if length deps > max_dependencies then
     NONE
   else
-    SOME deps
+    SOME (if deps = typedef_deps orelse
+             exists (member (op =) typedef_ths) deps orelse
+             is_size_def deps th then
+            []
+          else
+            deps)
 
 fun isar_dependencies_of all_names th =
   th |> thms_in_proof (SOME all_names) |> trim_dependencies th
@@ -493,6 +500,11 @@ fun mash_QUERY ctxt overlord max_suggs (query as (_, feats)) =
 
 (*** High-level communication with MaSh ***)
 
+(* FIXME: Here a "Graph.update_node" function would be useful *)
+fun update_fact_graph_node (name, atp) =
+  Graph.default_node (name, false)
+  #> atp ? Graph.map_node name (K atp)
+
 fun try_graph ctxt when def f =
   f ()
   handle Graph.CYCLES (cycle :: _) =>
@@ -535,12 +547,14 @@ fun load _ (state as (true, _)) = state
          SOME (version' :: node_lines) =>
          let
            fun add_edge_to name parent =
-             Graph.default_node (parent, ()) #> Graph.add_edge (parent, name)
+             Graph.default_node (parent, false)
+             #> Graph.add_edge (parent, name)
            fun add_node line =
              case extract_node line of
-               ("", _) => I (* shouldn't happen *)
-             | (name, parents) =>
-               Graph.default_node (name, ()) #> fold (add_edge_to name) parents
+               NONE => I (* shouldn't happen *)
+             | SOME (name, parents, atp) =>
+               update_fact_graph_node (name, atp)
+               #> fold (add_edge_to name) parents
            val fact_G =
              try_graph ctxt "loading state" Graph.empty (fn () =>
                  Graph.empty |> version' = version ? fold add_node node_lines)
@@ -554,10 +568,11 @@ fun load _ (state as (true, _)) = state
 
 fun save ctxt {fact_G} =
   let
-    fun str_of_entry (name, parents) =
-      escape_meta name ^ ": " ^ escape_metas parents ^ "\n"
-    fun append_entry (name, ((), (parents, _))) =
-      cons (name, Graph.Keys.dest parents)
+    fun str_of_entry (name, parents, atp) =
+      (if atp then "a" else "i") ^ " " ^ escape_meta name ^ ": " ^
+      escape_metas parents ^ "\n"
+    fun append_entry (name, (atp, (parents, _))) =
+      cons (name, Graph.Keys.dest parents, atp)
     val entries = [] |> Graph.fold append_entry fact_G
   in
     write_file (version ^ "\n") (entries, str_of_entry) (mash_state_file ());
@@ -661,15 +676,24 @@ fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
             |> List.partition (fn ((_, (scope, _)), _) => scope = Global)
   in (interleave max_facts unk_local sels |> weight_mepo_facts, unk_global) end
 
-fun add_to_fact_graph ctxt (name, parents, feats, deps) (adds, graph) =
+fun add_wrt_fact_graph ctxt (name, parents, feats, deps) (adds, graph) =
   let
     fun maybe_add_from from (accum as (parents, graph)) =
       try_graph ctxt "updating graph" accum (fn () =>
           (from :: parents, Graph.add_edge_acyclic (from, name) graph))
-    val graph = graph |> Graph.default_node (name, ())
+    val graph = graph |> Graph.default_node (name, false)
     val (parents, graph) = ([], graph) |> fold maybe_add_from parents
     val (deps, _) = ([], graph) |> fold maybe_add_from deps
   in ((name, parents, feats, deps) :: adds, graph) end
+
+fun reprove_wrt_fact_graph ctxt (name, deps) (reps, graph) =
+  let
+    fun maybe_rep_from from (accum as (parents, graph)) =
+      try_graph ctxt "updating graph" accum (fn () =>
+          (from :: parents, Graph.add_edge_acyclic (from, name) graph))
+    val graph = graph |> update_fact_graph_node (name, true)
+    val (deps, _) = ([], graph) |> fold maybe_rep_from deps
+  in ((name, deps) :: reps, graph) end
 
 val learn_timeout_slack = 2.0
 
@@ -746,7 +770,9 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
           | do_commit adds reps {fact_G} =
             let
               val (adds, fact_G) =
-                ([], fact_G) |> fold (add_to_fact_graph ctxt) adds
+                ([], fact_G) |> fold (add_wrt_fact_graph ctxt) adds
+              val (reps, fact_G) =
+                ([], fact_G) |> fold (reprove_wrt_fact_graph ctxt) reps
             in
               mash_ADD ctxt overlord (rev adds);
               mash_REPROVE ctxt overlord reps;
@@ -821,8 +847,13 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
             n
           else
             let
+              val max_isar = 1000 * max_dependencies
+              fun has_atp_proof th =
+                try (Graph.get_node fact_G) (nickname_of th)
+                |> the_default false
               fun priority_of (_, th) =
-                random_range 0 (1000 * max_dependencies)
+                random_range 0 max_isar
+                + (if has_atp_proof th then max_isar else 0)
                 - 500 * (th |> isar_dependencies_of all_names
                             |> Option.map length
                             |> the_default max_dependencies)
