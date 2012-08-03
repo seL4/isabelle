@@ -179,7 +179,12 @@ val split_ext = split_path (fn (prfx, s) => apfst (append prfx)
 
 (* expand variables *)
 
-fun eval (Variable s) = rep (explode_path (getenv_strict s))
+fun eval (Variable s) =
+      let val path = explode_path (getenv_strict s) in
+        if exists (fn Variable _ => true | _ => false) (rep path) then
+          error ("Illegal path variable nesting: " ^ s ^ "=" ^ print path)
+        else rep path
+      end
   | eval x = [x];
 
 val expand = rep #> maps eval #> norm #> Path;
