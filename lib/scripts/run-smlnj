@@ -52,7 +52,7 @@ check_mlhome_file "$ARCH_N_OPSYS"
 ## prepare databases
 
 if [ -z "$INFILE" ]; then
-  EXIT="fun exit 0 = (OS.Process.exit OS.Process.success): unit | exit _ = OS.Process.exit OS.Process.failure;"
+  EXIT="fun exit rc : unit = Posix.Process.exit (Word8.fromInt rc);"
   DB=""
 else
   EXIT=""

@@ -46,10 +46,10 @@ librarypath "$POLYLIB"
 
 if [ -z "$INFILE" ]; then
   INIT=""
-  EXIT="fun exit 0 = (OS.Process.exit OS.Process.success): unit | exit _ = OS.Process.exit OS.Process.failure;"
+  EXIT="fun exit rc : unit = Posix.Process.exit (Word8.fromInt rc);"
 else
   check_file "$INFILE"
-  INIT="(Signal.signal (2, Signal.SIG_HANDLE (fn _ => Process.interruptConsoleProcesses ())); PolyML.SaveState.loadState \"$INFILE\" handle Fail msg => (TextIO.output (TextIO.stdErr, msg ^ \": $INFILE\\n\"); OS.Process.exit OS.Process.failure));"
+  INIT="(Signal.signal (2, Signal.SIG_HANDLE (fn _ => Process.interruptConsoleProcesses ())); PolyML.SaveState.loadState \"$INFILE\" handle Fail msg => (TextIO.output (TextIO.stdErr, msg ^ \": $INFILE\\n\"); Posix.Process.exit 0w1));"
   EXIT=""
 fi
 

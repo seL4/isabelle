@@ -79,7 +79,9 @@ fun build args_file =
     val _ = Session.finish ();
     val _ = if do_output then () else quit ();
   in () end
-  handle exn => (Output.error_msg (ML_Compiler.exn_message exn); exit 1);
+  handle exn =>
+    (Output.error_msg (ML_Compiler.exn_message exn);
+     if Exn.is_interrupt exn then exit 130 else exit 1);
 
 end;
 
