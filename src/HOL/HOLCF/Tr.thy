@@ -29,13 +29,13 @@ text {* Exhaustion and Elimination for type @{typ tr} *}
 lemma Exh_tr: "t = \<bottom> \<or> t = TT \<or> t = FF"
 unfolding FF_def TT_def by (induct t) auto
 
-lemma trE [case_names bottom TT FF]:
+lemma trE [case_names bottom TT FF, cases type: tr]:
   "\<lbrakk>p = \<bottom> \<Longrightarrow> Q; p = TT \<Longrightarrow> Q; p = FF \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
 unfolding FF_def TT_def by (induct p) auto
 
-lemma tr_induct [case_names bottom TT FF]:
+lemma tr_induct [case_names bottom TT FF, induct type: tr]:
   "\<lbrakk>P \<bottom>; P TT; P FF\<rbrakk> \<Longrightarrow> P x"
-by (cases x rule: trE) simp_all
+by (cases x) simp_all
 
 text {* distinctness for type @{typ tr} *}
 
@@ -48,16 +48,16 @@ lemma dist_eq_tr [simp]:
 unfolding TT_def FF_def by simp_all
 
 lemma TT_below_iff [simp]: "TT \<sqsubseteq> x \<longleftrightarrow> x = TT"
-by (induct x rule: tr_induct) simp_all
+by (induct x) simp_all
 
 lemma FF_below_iff [simp]: "FF \<sqsubseteq> x \<longleftrightarrow> x = FF"
-by (induct x rule: tr_induct) simp_all
+by (induct x) simp_all
 
 lemma not_below_TT_iff [simp]: "x \<notsqsubseteq> TT \<longleftrightarrow> x = FF"
-by (induct x rule: tr_induct) simp_all
+by (induct x) simp_all
 
 lemma not_below_FF_iff [simp]: "x \<notsqsubseteq> FF \<longleftrightarrow> x = TT"
-by (induct x rule: tr_induct) simp_all
+by (induct x) simp_all
 
 
 subsection {* Case analysis *}
@@ -120,8 +120,8 @@ lemma andalso_thms [simp]:
   "(y andalso TT) = y"
   "(y andalso y) = y"
 apply (unfold andalso_def, simp_all)
-apply (cases y rule: trE, simp_all)
-apply (cases y rule: trE, simp_all)
+apply (cases y, simp_all)
+apply (cases y, simp_all)
 done
 
 lemma orelse_thms [simp]:
@@ -131,8 +131,8 @@ lemma orelse_thms [simp]:
   "(y orelse FF) = y"
   "(y orelse y) = y"
 apply (unfold orelse_def, simp_all)
-apply (cases y rule: trE, simp_all)
-apply (cases y rule: trE, simp_all)
+apply (cases y, simp_all)
+apply (cases y, simp_all)
 done
 
 lemma neg_thms [simp]:
@@ -146,7 +146,7 @@ text {* split-tac for If via If2 because the constant has to be a constant *}
 lemma split_If2:
   "P (If2 Q x y) = ((Q = \<bottom> \<longrightarrow> P \<bottom>) \<and> (Q = TT \<longrightarrow> P x) \<and> (Q = FF \<longrightarrow> P y))"
 apply (unfold If2_def)
-apply (rule_tac p = "Q" in trE)
+apply (cases Q)
 apply (simp_all)
 done
 
@@ -160,13 +160,13 @@ subsection "Rewriting of HOLCF operations to HOL functions"
 
 lemma andalso_or:
   "t \<noteq> \<bottom> \<Longrightarrow> ((t andalso s) = FF) = (t = FF \<or> s = FF)"
-apply (rule_tac p = "t" in trE)
+apply (cases t)
 apply simp_all
 done
 
 lemma andalso_and:
   "t \<noteq> \<bottom> \<Longrightarrow> ((t andalso s) \<noteq> FF) = (t \<noteq> FF \<and> s \<noteq> FF)"
-apply (rule_tac p = "t" in trE)
+apply (cases t)
 apply simp_all
 done
 
@@ -184,7 +184,7 @@ by (simp add: TT_def)
 
 lemma If_and_if:
   "(If Def P then A else B) = (if P then A else B)"
-apply (rule_tac p = "Def P" in trE)
+apply (cases "Def P")
 apply (auto simp add: TT_def[symmetric] FF_def[symmetric])
 done
 
