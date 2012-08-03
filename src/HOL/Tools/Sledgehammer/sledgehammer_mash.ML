@@ -45,7 +45,6 @@ sig
   val atp_dependencies_of :
     Proof.context -> params -> string -> int -> fact list -> unit Symtab.table
     -> thm -> bool * string list option
-  val is_thm_technical : thm -> bool
   val mash_CLEAR : Proof.context -> unit
   val mash_ADD :
     Proof.context -> bool
@@ -402,14 +401,6 @@ fun atp_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
       | _ => (false, isar_deps)
     end
 
-val technical_theories =
-  ["Code_Evaluation", "DSequence", "Enum", "Lazy_Sequence", "Nitpick",
-   "New_DSequence", "New_Random_Sequence", "Quickcheck",
-   "Quickcheck_Exhaustive", "Quickcheck_Narrowing", "Random_Sequence", "SMT"]
-
-val is_thm_technical =
-  member (op =) technical_theories o Context.theory_name o theory_of_thm
-
 
 (*** Low-level communication with MaSh ***)
 
@@ -727,8 +718,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
       Time.+ (Timer.checkRealTimer timer, commit_timeout)
     val {fact_G} = mash_get ctxt
     val (old_facts, new_facts) =
-      facts |> filter_out (is_thm_technical o snd)
-            |> List.partition (is_fact_in_graph fact_G)
+      facts |> List.partition (is_fact_in_graph fact_G)
             ||> sort (thm_ord o pairself snd)
   in
     if null new_facts andalso (not atp orelse null old_facts) then

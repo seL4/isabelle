@@ -182,14 +182,17 @@ fun is_formula_too_complex ho_atp t =
   apply_depth t > max_apply_depth orelse
   (not ho_atp andalso formula_has_too_many_lambdas [] t)
 
-(* These theories contain auxiliary facts that could positively confuse
-   Sledgehammer if they were included. *)
-val sledgehammer_prefixes =
-  ["ATP", "Meson", "Metis", "Sledgehammer"] |> map (suffix Long_Name.separator)
+(* FIXME: Ad hoc list *)
+val technical_prefixes =
+  ["ATP", "Code_Evaluation", "DSequence", "Enum", "Lazy_Sequence", "Meson",
+   "Metis", "Nitpick", "New_DSequence", "New_Random_Sequence", "Quickcheck",
+   "Quickcheck_Exhaustive", "Quickcheck_Narrowing", "Random_Sequence",
+   "Sledgehammer", "SMT"]
+  |> map (suffix Long_Name.separator)
 
-val exists_sledgehammer_const =
-  exists_Const (fn (s, _) =>
-      exists (fn pref => String.isPrefix pref s) sledgehammer_prefixes)
+fun has_technical_prefix s =
+  exists (fn pref => String.isPrefix pref s) technical_prefixes
+val exists_technical_const = exists_Const (has_technical_prefix o fst)
 
 (* FIXME: make more reliable *)
 val exists_low_level_class_const =
@@ -224,9 +227,8 @@ fun is_theorem_bad_for_atps ho_atp th =
   is_likely_tautology_or_too_meta th orelse
   let val t = prop_of th in
     is_formula_too_complex ho_atp t orelse
-    exists_type type_has_top_sort t orelse
-    exists_sledgehammer_const t orelse exists_low_level_class_const t orelse
-    is_that_fact th
+    exists_type type_has_top_sort t orelse exists_technical_const t orelse
+    exists_low_level_class_const t orelse is_that_fact th
   end
 
 fun hackish_string_for_term thy t =

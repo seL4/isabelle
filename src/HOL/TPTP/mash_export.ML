@@ -37,10 +37,10 @@ fun thy_map_from_facts ths =
 fun has_thy thy th =
   Context.theory_name thy = Context.theory_name (theory_of_thm th)
 
-fun all_non_technical_facts ctxt thy =
+fun all_facts ctxt thy =
   let val css = Sledgehammer_Fact.clasimpset_rule_table_of ctxt in
-    all_facts (Proof_Context.init_global thy) false Symtab.empty [] [] css
-    |> filter_out (is_thm_technical o snd)
+    nearly_all_facts (Proof_Context.init_global thy) false no_fact_override
+                     Symtab.empty css [] [] @{prop True}
   end
 
 fun parent_facts thy thy_map =
@@ -67,7 +67,7 @@ fun generate_accessibility ctxt thy include_thy file_name =
         val _ = File.append path s
       in [fact] end
     val thy_map =
-      all_non_technical_facts ctxt thy
+      all_facts ctxt thy
       |> not include_thy ? filter_out (has_thy thy o snd)
       |> thy_map_from_facts
     fun do_thy facts =
@@ -82,7 +82,7 @@ fun generate_features ctxt prover thy include_thy file_name =
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val facts =
-      all_non_technical_facts ctxt thy
+      all_facts ctxt thy
       |> not include_thy ? filter_out (has_thy thy o snd)
     fun do_fact ((_, stature), th) =
       let
@@ -98,7 +98,7 @@ fun generate_isar_dependencies ctxt thy include_thy file_name =
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val ths =
-      all_non_technical_facts ctxt thy
+      all_facts ctxt thy
       |> not include_thy ? filter_out (has_thy thy o snd)
       |> map snd
     val all_names = all_names ths
@@ -117,7 +117,7 @@ fun generate_atp_dependencies ctxt (params as {provers, ...}) thy include_thy
     val _ = File.write path ""
     val prover = hd provers
     val facts =
-      all_non_technical_facts ctxt thy
+      all_facts ctxt thy
       |> not include_thy ? filter_out (has_thy thy o snd)
     val ths = facts |> map snd
     val all_names = all_names ths
@@ -136,7 +136,7 @@ fun generate_commands ctxt (params as {provers, ...}) thy file_name =
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val prover = hd provers
-    val facts = all_non_technical_facts ctxt thy
+    val facts = all_facts ctxt thy
     val (new_facts, old_facts) =
       facts |> List.partition (has_thy thy o snd)
             |>> sort (thm_ord o pairself snd)
@@ -167,7 +167,7 @@ fun generate_mepo_suggestions ctxt (params as {provers, ...}) thy max_relevant
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val prover = hd provers
-    val facts = all_non_technical_facts ctxt thy
+    val facts = all_facts ctxt thy
     val (new_facts, old_facts) =
       facts |> List.partition (has_thy thy o snd)
             |>> sort (thm_ord o pairself snd)
