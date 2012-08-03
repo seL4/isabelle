@@ -411,9 +411,7 @@ val is_thm_technical =
 
 (*** Low-level communication with MaSh ***)
 
-(* more friendly than "try o File.rm" for those who keep the files open in their
-   text editor *)
-fun wipe_out_file file = File.write (Path.explode file) ""
+fun wipe_out_file file = (try (File.rm o Path.explode) file; ())
 
 fun write_file heading (xs, f) file =
   let val path = Path.explode file in
@@ -438,19 +436,24 @@ fun run_mash_tool ctxt overlord save max_suggs write_cmds read_suggs =
     val command =
       mash_home () ^ "/mash --quiet --outputDir " ^ mash_model_dir () ^
       " --log " ^ log_file ^ " " ^ core ^ " >& " ^ err_file
+
+      |> tap (fn _ => trace_msg ctxt (fn () =>
+             case try File.read (Path.explode err_file) of
+               NONE => "Done"
+             | SOME "" => "Done"
+             | SOME s => "Error: " ^ elide_string 1000 s))
+    fun run_on () =
+      (Isabelle_System.bash command;
+       read_suggs (fn () =>
+           try File.read_lines (Path.explode sugg_file) |> these))
+    fun clean_up () =
+      if overlord then ()
+      else List.app wipe_out_file [err_file, sugg_file, cmd_file]
   in
     write_file "" ([], K "") sugg_file;
     write_file "" write_cmds cmd_file;
     trace_msg ctxt (fn () => "Running " ^ command);
-    Isabelle_System.bash command;
-    read_suggs (fn () => try File.read_lines (Path.explode sugg_file) |> these)
-    |> tap (fn _ => trace_msg ctxt (fn () =>
-           case try File.read (Path.explode err_file) of
-             NONE => "Done"
-           | SOME "" => "Done"
-           | SOME s => "Error: " ^ elide_string 1000 s))
-    |> not overlord
-       ? tap (fn _ => List.app wipe_out_file [err_file, sugg_file, cmd_file])
+    with_cleanup clean_up run_on ()
   end
 
 fun str_of_add (name, parents, feats, deps) =
@@ -584,8 +587,7 @@ fun mash_get ctxt =
 
 fun mash_unlearn ctxt =
   Synchronized.change global_state (fn _ =>
-      (mash_CLEAR ctxt;
-       wipe_out_file (mash_state_file ());
+      (mash_CLEAR ctxt; (* also removes the state file *)
        (true, empty_state)))
 
 end

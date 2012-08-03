@@ -435,12 +435,6 @@ fun smt_weighted_fact _ _ (SMT_Weighted_Fact p, _) = p
 fun overlord_file_location_for_prover prover =
   (getenv "ISABELLE_HOME_USER", "prob_" ^ prover)
 
-fun with_path cleanup after f path =
-  Exn.capture f path
-  |> tap (fn _ => cleanup path)
-  |> Exn.release
-  |> tap (after path)
-
 fun proof_banner mode name =
   case mode of
     Auto_Try => "Auto Sledgehammer (" ^ quote name ^ ") found a proof"
@@ -653,7 +647,7 @@ fun run_atp mode name
     val problem_file_name =
       Path.basic (problem_prefix ^ (if overlord then "" else serial_string ()) ^
                   suffix_for_mode mode ^ "_" ^ string_of_int subgoal)
-    val problem_path_name =
+    val prob_path =
       if dest_dir = "" then
         File.tmp_path problem_file_name
       else if File.exists (Path.explode dest_dir) then
@@ -687,7 +681,7 @@ fun run_atp mode name
         val as_time =
           raw_explode #> Scan.read Symbol.stopper time #> the_default 0
       in (output, as_time t |> Time.fromMilliseconds) end
-    fun run_on prob_file =
+    fun run () =
       let
         (* If slicing is disabled, we expand the last slice to fill the entire
            time available. *)
@@ -776,13 +770,13 @@ fun run_atp mode name
                                  (ord, ord_info, sel_weights)
             val command =
               "(exec 2>&1; " ^ File.shell_path command0 ^ " " ^ args ^ " " ^
-              File.shell_path prob_file ^ ")"
+              File.shell_path prob_path ^ ")"
               |> enclose "TIMEFORMAT='%3R'; { time " " ; }"
             val _ =
               atp_problem
               |> lines_for_atp_problem format ord ord_info
               |> cons ("% " ^ command ^ "\n")
-              |> File.write_list prob_file
+              |> File.write_list prob_path
             val ((output, run_time), (atp_proof, outcome)) =
               TimeLimit.timeLimit generous_slice_timeout
                                   Isabelle_System.bash_output command
@@ -836,17 +830,16 @@ fun run_atp mode name
          ("", Time.zeroTime, [], SOME InternalError))
         |> fold maybe_run_slice actual_slices
       end
-
     (* If the problem file has not been exported, remove it; otherwise, export
        the proof file too. *)
-    fun cleanup prob_file =
-      if dest_dir = "" then try File.rm prob_file else NONE
-    fun export prob_file (_, (output, _, _, _)) =
+    fun clean_up () =
+      if dest_dir = "" then (try File.rm prob_path; ()) else ()
+    fun export (_, (output, _, _, _)) =
       if dest_dir = "" then ()
-      else File.write (Path.explode (Path.implode prob_file ^ "_proof")) output
+      else File.write (Path.explode (Path.implode prob_path ^ "_proof")) output
     val ((_, (_, pool, fact_names, _, sym_tab)),
          (output, run_time, atp_proof, outcome)) =
-      with_path cleanup export run_on problem_path_name
+      with_cleanup clean_up run () |> tap export
     val important_message =
       if mode = Normal andalso
          random_range 0 (atp_important_message_keep_quotient - 1) = 0 then

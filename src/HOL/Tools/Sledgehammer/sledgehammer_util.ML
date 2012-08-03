@@ -10,6 +10,7 @@ sig
   val plural_s : int -> string
   val serial_commas : string -> string list -> string list
   val simplify_spaces : string -> string
+  val with_cleanup : ('a -> unit) -> ('a -> 'b) -> 'a -> 'b
   val infinite_timeout : Time.time
   val time_mult : real -> Time.time -> Time.time
   val parse_bool_option : bool -> string -> string -> bool option
@@ -30,6 +31,11 @@ fun plural_s n = if n = 1 then "" else "s"
 
 val serial_commas = Try.serial_commas
 val simplify_spaces = strip_spaces false (K true)
+
+fun with_cleanup clean_up f x =
+  Exn.capture f x
+  |> tap (fn _ => clean_up x)
+  |> Exn.release
 
 val infinite_timeout = seconds 31536000.0 (* one year *)
 
