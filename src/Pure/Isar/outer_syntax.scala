@@ -45,6 +45,12 @@ final class Outer_Syntax private(
   lexicon: Scan.Lexicon = Scan.Lexicon.empty,
   val completion: Completion = Completion.empty)
 {
+  override def toString: String =
+    (for ((name, kind) <- keywords) yield {
+      if (kind == Keyword.MINOR) quote(name)
+      else quote(name) + " :: " + quote(kind)
+    }).toList.sorted.mkString("Outer_Syntax(keywords ", " and ", ")")
+
   def keyword_kind(name: String): Option[String] = keywords.get(name)
 
   def + (name: String, kind: String, replace: String): Outer_Syntax =

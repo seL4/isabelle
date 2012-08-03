@@ -264,21 +264,28 @@ object Build
 
   sealed case class Node(
     loaded_theories: Set[String],
+    syntax: Outer_Syntax,
     sources: List[(Path, SHA1.Digest)])
 
   sealed case class Deps(deps: Map[String, Node])
   {
     def is_empty: Boolean = deps.isEmpty
+    def apply(name: String): Node = deps(name)
     def sources(name: String): List[SHA1.Digest] = deps(name).sources.map(_._2)
   }
 
   def dependencies(verbose: Boolean, queue: Session.Queue): Deps =
     Deps((Map.empty[String, Node] /: queue.topological_order)(
       { case (deps, (name, info)) =>
-          val preloaded =
+          val (preloaded, parent_syntax) =
             info.parent match {
-              case None => Set.empty[String]
-              case Some(parent) => deps(parent).loaded_theories
+              case Some(parent) => (deps(parent).loaded_theories, deps(parent).syntax)
+              case None =>
+                (Set.empty[String],
+                  Outer_Syntax.init() +
+                    // FIXME avoid hardwired stuff!?
+                    ("hence", Keyword.PRF_ASM_GOAL, "then have") +
+                    ("thus", Keyword.PRF_ASM_GOAL, "then show"))
             }
           val thy_info = new Thy_Info(new Thy_Load(preloaded))
 
@@ -295,6 +302,9 @@ object Build
                 map(thy => Document.Node.Name(info.dir + Thy_Load.thy_path(thy))))
 
           val loaded_theories = preloaded ++ thy_deps.map(_._1.theory)
+
+          val keywords = thy_deps.map({ case (_, Exn.Res(h)) => h.keywords case _ => Nil }).flatten
+          val syntax = (parent_syntax /: keywords)(_ + _)
 
           val all_files =
             thy_deps.map({ case (n, h) =>
@@ -314,7 +324,7 @@ object Build
                 error(msg + "\nThe error(s) above occurred in session " + quote(name))
             }
 
-          deps + (name -> Node(loaded_theories, sources))
+          deps + (name -> Node(loaded_theories, syntax, sources))
       }))
 
 
@@ -610,6 +620,16 @@ object Build
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }
     }
+  }
+
+
+  /* static outer syntax */
+
+  // FIXME Symbol.decode!?
+  def outer_syntax(session: String): Outer_Syntax =
+  {
+    val (_, queue) = find_sessions(Options.init(), Nil).required(false, Nil, List(session))
+    dependencies(false, queue)(session).syntax
   }
 }
 
