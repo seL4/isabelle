@@ -76,7 +76,12 @@ fun build args_file = uninterruptible (fn restore_attributes => fn () =>
           (Options.string options "document_dump",
             Present.dump_mode (Options.string options "document_dump_mode"))
           "" verbose;
-      val _ = Session.with_timing name verbose (List.app use_theories) theories;
+      val _ =
+        theories |>
+          (List.app use_theories
+            |> Session.with_timing name verbose
+            |> Unsynchronized.setmp Multithreading.max_threads (Options.int options "threads"));
+
       val _ = Session.finish ();
       val _ = if do_output then () else quit ();
     in () end) ()) ()
