@@ -20,32 +20,161 @@ object Build
 {
   /** session information **/
 
+  // external version
+  sealed case class Session_Entry(
+    pos: Position.T,
+    base_name: String,
+    this_name: Boolean,
+    groups: List[String],
+    path: Option[String],
+    parent: Option[String],
+    description: String,
+    options: List[Options.Spec],
+    theories: List[(List[Options.Spec], List[String])],
+    files: List[String])
+
+  // internal version
+  sealed case class Session_Info(
+    pos: Position.T,
+    groups: List[String],
+    dir: Path,
+    parent: Option[String],
+    description: String,
+    options: Options,
+    theories: List[(Options, List[Path])],
+    files: List[Path],
+    entry_digest: SHA1.Digest)
+
+  def is_pure(name: String): Boolean = name == "RAW" || name == "Pure"
+
+  def session_info(options: Options, dir: Path, entry: Session_Entry): (String, Session_Info) =
+    try {
+      if (entry.base_name == "") error("Bad session name")
+
+      val full_name =
+        if (is_pure(entry.base_name)) {
+          if (entry.parent.isDefined) error("Illegal parent session")
+          else entry.base_name
+        }
+        else
+          entry.parent match {
+            case None => error("Missing parent session")
+            case Some(parent_name) =>
+              if (entry.this_name) entry.base_name
+              else parent_name + "-" + entry.base_name
+          }
+
+      val path =
+        entry.path match {
+          case Some(p) => Path.explode(p)
+          case None => Path.basic(entry.base_name)
+        }
+
+      val session_options = options ++ entry.options
+
+      val theories =
+        entry.theories.map({ case (opts, thys) =>
+          (session_options ++ opts, thys.map(Path.explode(_))) })
+      val files = entry.files.map(Path.explode(_))
+      val entry_digest =
+        SHA1.digest((full_name, entry.parent, entry.options, entry.theories).toString)
+
+      val info =
+        Session_Info(entry.pos, entry.groups, dir + path, entry.parent, entry.description,
+          session_options, theories, files, entry_digest)
+
+      (full_name, info)
+    }
+    catch {
+      case ERROR(msg) =>
+        error(msg + "\nThe error(s) above occurred in session entry " +
+          quote(entry.base_name) + Position.str_of(entry.pos))
+    }
+
+
+  /* parser */
+
+  private object Parser extends Parse.Parser
+  {
+    val SESSION = "session"
+    val IN = "in"
+    val DESCRIPTION = "description"
+    val OPTIONS = "options"
+    val THEORIES = "theories"
+    val FILES = "files"
+
+    val syntax =
+      Outer_Syntax.empty + "!" + "(" + ")" + "+" + "," + "=" + "[" + "]" +
+        SESSION + IN + DESCRIPTION + OPTIONS + THEORIES + FILES
+
+    def session_entry(pos: Position.T): Parser[Session_Entry] =
+    {
+      val session_name = atom("session name", _.is_name)
+
+      val option =
+        name ~ opt(keyword("=") ~! name ^^ { case _ ~ x => x }) ^^ { case x ~ y => (x, y) }
+      val options = keyword("[") ~> repsep(option, keyword(",")) <~ keyword("]")
+
+      val theories =
+        keyword(THEORIES) ~! ((options | success(Nil)) ~ rep1(theory_name)) ^^
+          { case _ ~ (x ~ y) => (x, y) }
+
+      ((keyword(SESSION) ~! session_name) ^^ { case _ ~ x => x }) ~
+        (keyword("!") ^^^ true | success(false)) ~
+        (keyword("(") ~! (rep1(name) <~ keyword(")")) ^^ { case _ ~ x => x } | success(Nil)) ~
+        (opt(keyword(IN) ~! path ^^ { case _ ~ x => x })) ~
+        (keyword("=") ~> opt(session_name <~ keyword("+"))) ~
+        (keyword(DESCRIPTION) ~! text ^^ { case _ ~ x => x } | success("")) ~
+        (keyword(OPTIONS) ~! options ^^ { case _ ~ x => x } | success(Nil)) ~
+        rep(theories) ~
+        (keyword(FILES) ~! rep1(path) ^^ { case _ ~ x => x } | success(Nil)) ^^
+          { case a ~ b ~ c ~ d ~ e ~ f ~ g ~ h ~ i => Session_Entry(pos, a, b, c, d, e, f, g, h, i) }
+    }
+
+    def parse_entries(root: Path): List[Session_Entry] =
+    {
+      val toks = syntax.scan(File.read(root))
+      parse_all(rep(session_entry(root.position)), Token.reader(toks, root.implode)) match {
+        case Success(result, _) => result
+        case bad => error(bad.toString)
+      }
+    }
+  }
+
+
+  /* find sessions within certain directories */
+
+  private val ROOT = Path.explode("ROOT")
+
+  private def is_session_dir(dir: Path): Boolean = (dir + ROOT).is_file
+
+  private def sessions_root(options: Options, dir: Path): List[(String, Session_Info)] =
+  {
+    val root = dir + ROOT
+    if (root.is_file) Parser.parse_entries(dir + ROOT).map(session_info(options, dir, _))
+    else error("Bad session root file: " + root.toString)
+  }
+
+  def find_sessions(options: Options, more_dirs: List[Path]): List[(String, Session_Info)] =
+  {
+    val dirs = Isabelle_System.components().filter(is_session_dir(_)) ::: more_dirs
+    dirs.map(sessions_root(options, _)).flatten
+  }
+
+
   object Session
   {
-    /* Info */
-
-    sealed case class Info(
-      groups: List[String],
-      dir: Path,
-      parent: Option[String],
-      description: String,
-      options: Options,
-      theories: List[(Options, List[Path])],
-      files: List[Path],
-      entry_digest: SHA1.Digest)
-
-
-    /* Queue */
-
     object Queue
     {
       val empty: Queue = new Queue()
+      def apply(args: Seq[(String, Session_Info)]): Queue =
+        (empty /: args) { case (queue, (name, info)) => queue + (name, info) }
     }
 
-    final class Queue private(graph: Graph[String, Option[Info]] = Graph.string)
-      extends PartialFunction[String, Info]
+    final class Queue private(graph: Graph[String, Option[Session_Info]] = Graph.string)
+      extends PartialFunction[String, Session_Info]
     {
-      def apply(name: String): Info = graph.get_node(name).get
+      def apply(name: String): Session_Info = graph.get_node(name).get
       def isDefinedAt(name: String): Boolean =
         graph.defined(name) && graph.get_node(name).isDefined
 
@@ -53,13 +182,13 @@ object Build
 
       def is_empty: Boolean = graph.is_empty
 
-      def + (name: String, info: Info): Queue =
+      def + (name: String, info: Session_Info): Queue =
       {
         val parents = info.parent.toList
 
         val graph1 = (graph /: (name :: parents))(_.default_node(_, None))
         if (graph1.get_node(name).isDefined)
-          error("Duplicate session: " + quote(name))
+          error("Duplicate session: " + quote(name) + Position.str_of(info.pos))
 
         new Queue(
           try { graph1.map_node(name, _ => Some(info)).add_deps_acyclic(name, parents) }
@@ -106,7 +235,7 @@ object Build
         (descendants, queue1)
       }
 
-      def dequeue(skip: String => Boolean): Option[(String, Info)] =
+      def dequeue(skip: String => Boolean): Option[(String, Session_Info)] =
       {
         val it = graph.entries.dropWhile(
           { case (name, (info, (deps, _))) => !deps.isEmpty || info.isEmpty || skip(name) })
@@ -114,143 +243,9 @@ object Build
         else None
       }
 
-      def topological_order: List[(String, Info)] =
+      def topological_order: List[(String, Session_Info)] =
         graph.topological_order.map(name => (name, apply(name)))
     }
-  }
-
-
-  /* parsing */
-
-  private case class Session_Entry(
-    base_name: String,
-    this_name: Boolean,
-    groups: List[String],
-    path: Option[String],
-    parent: Option[String],
-    description: String,
-    options: List[Options.Spec],
-    theories: List[(List[Options.Spec], List[String])],
-    files: List[String])
-
-  private object Parser extends Parse.Parser
-  {
-    val SESSION = "session"
-    val IN = "in"
-    val DESCRIPTION = "description"
-    val OPTIONS = "options"
-    val THEORIES = "theories"
-    val FILES = "files"
-
-    val syntax =
-      Outer_Syntax.empty + "!" + "(" + ")" + "+" + "," + "=" + "[" + "]" +
-        SESSION + IN + DESCRIPTION + OPTIONS + THEORIES + FILES
-
-    val session_entry: Parser[Session_Entry] =
-    {
-      val session_name = atom("session name", _.is_name)
-
-      val option =
-        name ~ opt(keyword("=") ~! name ^^ { case _ ~ x => x }) ^^ { case x ~ y => (x, y) }
-      val options = keyword("[") ~> repsep(option, keyword(",")) <~ keyword("]")
-
-      val theories =
-        keyword(THEORIES) ~! ((options | success(Nil)) ~ rep1(theory_name)) ^^
-          { case _ ~ (x ~ y) => (x, y) }
-
-      ((keyword(SESSION) ~! session_name) ^^ { case _ ~ x => x }) ~
-        (keyword("!") ^^^ true | success(false)) ~
-        (keyword("(") ~! (rep1(name) <~ keyword(")")) ^^ { case _ ~ x => x } | success(Nil)) ~
-        (opt(keyword(IN) ~! path ^^ { case _ ~ x => x })) ~
-        (keyword("=") ~> opt(session_name <~ keyword("+"))) ~
-        (keyword(DESCRIPTION) ~! text ^^ { case _ ~ x => x } | success("")) ~
-        (keyword(OPTIONS) ~! options ^^ { case _ ~ x => x } | success(Nil)) ~
-        rep(theories) ~
-        (keyword(FILES) ~! rep1(path) ^^ { case _ ~ x => x } | success(Nil)) ^^
-          { case a ~ b ~ c ~ d ~ e ~ f ~ g ~ h ~ i => Session_Entry(a, b, c, d, e, f, g, h, i) }
-    }
-
-    def parse_entries(root: Path): List[Session_Entry] =
-    {
-      val toks = syntax.scan(File.read(root))
-      parse_all(rep(session_entry), Token.reader(toks, root.implode)) match {
-        case Success(result, _) => result
-        case bad => error(bad.toString)
-      }
-    }
-  }
-
-
-  /* find sessions */
-
-  private val ROOT = Path.explode("ROOT")
-  private val SESSIONS = Path.explode("etc/sessions")
-
-  private def is_pure(name: String): Boolean = name == "RAW" || name == "Pure"
-
-  private def sessions_root(options: Options, dir: Path, queue: Session.Queue, root: Path)
-    : Session.Queue =
-  {
-    (queue /: Parser.parse_entries(root))((queue1, entry) =>
-      try {
-        if (entry.base_name == "") error("Bad session name")
-
-        val full_name =
-          if (is_pure(entry.base_name)) {
-            if (entry.parent.isDefined) error("Illegal parent session")
-            else entry.base_name
-          }
-          else
-            entry.parent match {
-              case None => error("Missing parent session")
-              case Some(parent_name) =>
-                if (entry.this_name) entry.base_name
-                else parent_name + "-" + entry.base_name
-            }
-
-        val path =
-          entry.path match {
-            case Some(p) => Path.explode(p)
-            case None => Path.basic(entry.base_name)
-          }
-
-        val session_options = options ++ entry.options
-
-        val theories =
-          entry.theories.map({ case (opts, thys) =>
-            (session_options ++ opts, thys.map(Path.explode(_))) })
-        val files = entry.files.map(Path.explode(_))
-        val entry_digest =
-          SHA1.digest((full_name, entry.parent, entry.options, entry.theories).toString)
-
-        val info =
-          Session.Info(entry.groups, dir + path, entry.parent, entry.description,
-            session_options, theories, files, entry_digest)
-
-        queue1 + (full_name, info)
-      }
-      catch {
-        case ERROR(msg) =>
-          error(msg + "\nThe error(s) above occurred in session entry " +
-            quote(entry.base_name) + Position.str_of(root.position))
-      })
-  }
-
-  private def sessions_dir(options: Options, strict: Boolean, queue: Session.Queue, dir: Path)
-    : Session.Queue =
-  {
-    val root = dir + ROOT
-    if (root.is_file) sessions_root(options, dir, queue, root)
-    else if (strict) error("Bad session root file: " + root.toString)
-    else queue
-  }
-
-  def find_sessions(options: Options, more_dirs: List[Path]): Session.Queue =
-  {
-    val queue1 =
-      (Session.Queue.empty /: Isabelle_System.components())(sessions_dir(options, false, _, _))
-    val queue2 = (queue1 /: more_dirs)(sessions_dir(options, true, _, _))
-    queue2
   }
 
 
@@ -323,7 +318,8 @@ object Build
             try { all_files.map(p => (p, SHA1.digest(p))) }
             catch {
               case ERROR(msg) =>
-                error(msg + "\nThe error(s) above occurred in session " + quote(name))
+                error(msg + "\nThe error(s) above occurred in session " +
+                  quote(name) + Position.str_of(info.pos))
             }
 
           deps + (name -> Node(loaded_theories, syntax, sources))
@@ -332,7 +328,7 @@ object Build
 
   /* jobs */
 
-  private class Job(name: String, info: Session.Info, output: Path, do_output: Boolean,
+  private class Job(name: String, info: Session_Info, output: Path, do_output: Boolean,
     verbose: Boolean, browser_info: Path)
   {
     // global browser info dir
@@ -480,7 +476,8 @@ object Build
   {
     val options = (Options.init() /: build_options)(_.define_simple(_))
     val (descendants, queue) =
-      find_sessions(options, more_dirs).required(all_sessions, session_groups, sessions)
+      Session.Queue(find_sessions(options, more_dirs))
+        .required(all_sessions, session_groups, sessions)
     val deps = dependencies(verbose, queue)
 
     def make_stamp(name: String): String =
@@ -647,7 +644,8 @@ object Build
   // FIXME Symbol.decode!?
   def outer_syntax(session: String): Outer_Syntax =
   {
-    val (_, queue) = find_sessions(Options.init(), Nil).required(false, Nil, List(session))
+    val (_, queue) =
+      Session.Queue(find_sessions(Options.init(), Nil)).required(false, Nil, List(session))
     dependencies(false, queue)(session).syntax
   }
 }
