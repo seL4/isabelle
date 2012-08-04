@@ -295,7 +295,7 @@ object Build
             val groups =
               if (info.groups.isEmpty) ""
               else info.groups.mkString(" (", " ", ")")
-            echo("Checking " + name + groups + " ...")
+            echo("Session " + name + groups)
           }
 
           val thy_deps =
@@ -332,49 +332,11 @@ object Build
 
   /* jobs */
 
-  private class Job(dir: Path, env: Map[String, String], script: String, args: String,
-    val parent_heap: String, output: Path, do_output: Boolean, time: Time)
-  {
-    private val args_file = File.tmp_file("args")
-    private val env1 = env + ("ARGS_FILE" -> Isabelle_System.posix_path(args_file.getPath))
-    File.write(args_file, args)
-
-    private val (thread, result) =
-      Simple_Thread.future("build") { Isabelle_System.bash_env(dir.file, env1, script) }
-
-    def terminate: Unit = thread.interrupt
-    def is_finished: Boolean = result.is_finished
-
-    @volatile private var timeout = false
-    private val timer: Option[Timer] =
-      if (time.seconds > 0.0) {
-        val t = new Timer("build", true)
-        t.schedule(new TimerTask { def run = { terminate; timeout = true } }, time.ms)
-        Some(t)
-      }
-      else None
-
-    def join: (String, String, Int) = {
-      val (out, err, rc) = result.join
-      args_file.delete
-      timer.map(_.cancel())
-
-      val err1 =
-        if (rc == 130)
-          (if (err.isEmpty || err.endsWith("\n")) err else err + "\n") +
-          (if (timeout) "*** Timeout\n" else "*** Interrupt\n")
-        else err
-      (out, err1, rc)
-    }
-
-    def output_path: Option[Path] = if (do_output) Some(output) else None
-  }
-
-  private def start_job(name: String, info: Session.Info, parent_heap: String,
-    output: Path, do_output: Boolean, options: Options, verbose: Boolean, browser_info: Path): Job =
+  private class Job(name: String, info: Session.Info, output: Path, do_output: Boolean,
+    verbose: Boolean, browser_info: Path)
   {
     // global browser info dir
-    if (options.bool("browser_info") && !(browser_info + Path.explode("index.html")).is_file)
+    if (info.options.bool("browser_info") && !(browser_info + Path.explode("index.html")).is_file)
     {
       browser_info.file.mkdirs()
       File.copy(Path.explode("~~/lib/logo/isabelle.gif"),
@@ -385,11 +347,13 @@ object Build
         File.read(Path.explode("~~/lib/html/library_index_footer.template")))
     }
 
-    val parent = info.parent.getOrElse("")
+    def output_path: Option[Path] = if (do_output) Some(output) else None
 
-    val env =
+    private val parent = info.parent.getOrElse("")
+
+    private val env =
       Map("INPUT" -> parent, "TARGET" -> name, "OUTPUT" -> Isabelle_System.standard_path(output))
-    val script =
+    private val script =
       if (is_pure(name)) {
         if (do_output) "./build " + name + " \"$OUTPUT\""
         else """ rm -f "$OUTPUT"; ./build """ + name
@@ -418,16 +382,46 @@ object Build
         exit "$RC"
         """
       }
-    val args_xml =
+    private val args_xml =
     {
       import XML.Encode._
           pair(bool, pair(Options.encode, pair(bool, pair(Path.encode, pair(string,
             pair(string, list(pair(Options.encode, list(Path.encode)))))))))(
-          (do_output, (options, (verbose, (browser_info, (parent,
+          (do_output, (info.options, (verbose, (browser_info, (parent,
             (name, info.theories)))))))
     }
-    new Job(info.dir, env, script, YXML.string_of_body(args_xml), parent_heap,
-      output, do_output, Time.seconds(options.real("timeout")))
+    private val args_file = File.tmp_file("args")
+    private val env1 = env + ("ARGS_FILE" -> Isabelle_System.posix_path(args_file.getPath))
+    File.write(args_file, YXML.string_of_body(args_xml))
+
+    private val (thread, result) =
+      Simple_Thread.future("build") { Isabelle_System.bash_env(info.dir.file, env1, script) }
+
+    def terminate: Unit = thread.interrupt
+    def is_finished: Boolean = result.is_finished
+
+    @volatile private var timeout = false
+    private val time = Time.seconds(info.options.real("timeout"))
+    private val timer: Option[Timer] =
+      if (time.seconds > 0.0) {
+        val t = new Timer("build", true)
+        t.schedule(new TimerTask { def run = { terminate; timeout = true } }, time.ms)
+        Some(t)
+      }
+      else None
+
+    def join: (String, String, Int) = {
+      val (out, err, rc) = result.join
+      args_file.delete
+      timer.map(_.cancel())
+
+      val err1 =
+        if (rc == 130)
+          (if (err.isEmpty || err.endsWith("\n")) err else err + "\n") +
+          (if (timeout) "*** Timeout\n" else "*** Interrupt\n")
+        else err
+      (out, err1, rc)
+    }
   }
 
 
@@ -521,13 +515,13 @@ object Build
 
     @tailrec def loop(
       pending: Session.Queue,
-      running: Map[String, Job],
+      running: Map[String, (String, Job)],
       results: Map[String, Result]): Map[String, Result] =
     {
       if (pending.is_empty) results
       else
-        running.find({ case (_, job) => job.is_finished }) match {
-          case Some((name, job)) =>
+        running.find({ case (_, (_, job)) => job.is_finished }) match {
+          case Some((name, (parent_heap, job))) =>
             // finish job
 
             val (out, err, rc) = job.join
@@ -540,7 +534,7 @@ object Build
                 val sources = make_stamp(name)
                 val heap = heap_stamp(job.output_path)
                 File.write_gzip(output_dir + log_gz(name),
-                  sources + "\n" + job.parent_heap + "\n" + heap + "\n" + out)
+                  sources + "\n" + parent_heap + "\n" + heap + "\n" + out)
 
                 heap
               }
@@ -595,10 +589,8 @@ object Build
                   loop(pending - name, running, results + (name -> Result(false, heap, 1)))
                 else if (parent_result.rc == 0) {
                   echo((if (do_output) "Building " else "Running ") + name + " ...")
-                  val job =
-                    start_job(name, info, parent_result.heap, output, do_output,
-                      info.options, verbose, browser_info)
-                  loop(pending, running + (name -> job), results)
+                  val job = new Job(name, info, output, do_output, verbose, browser_info)
+                  loop(pending, running + (name -> (parent_result.heap, job)), results)
                 }
                 else {
                   echo(name + " CANCELLED")
