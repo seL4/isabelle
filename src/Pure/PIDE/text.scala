@@ -10,7 +10,6 @@ package isabelle
 
 
 import scala.collection.mutable
-import scala.math.Ordering
 import scala.util.Sorting
 
 
