@@ -12,7 +12,7 @@ import java.io.{BufferedInputStream, FileInputStream,
   BufferedReader, InputStreamReader, IOException}
 import java.util.zip.GZIPInputStream
 
-import scala.collection.mutable
+import scala.collection.SortedSet
 import scala.annotation.tailrec
 
 
@@ -92,6 +92,76 @@ object Build
     }
 
 
+  /* session tree */
+
+  object Session_Tree
+  {
+    def apply(infos: Seq[(String, Session_Info)]): Session_Tree =
+    {
+      val graph =
+        (Graph.string[Option[Session_Info]] /: infos) {
+          case (graph, (name, info)) =>
+            val parents = info.parent.toList
+
+            val graph1 = (graph /: (name :: parents))(_.default_node(_, None))
+            if (graph1.get_node(name).isDefined)
+              error("Duplicate session: " + quote(name) + Position.str_of(info.pos))
+
+            try { graph1.map_node(name, _ => Some(info)).add_deps_acyclic(name, parents) }
+            catch {
+              case exn: Graph.Cycles[_] =>
+                error(cat_lines(exn.cycles.map(cycle =>
+                  "Cyclic session dependency of " +
+                    cycle.map(c => quote(c.toString)).mkString(" via "))))
+            }
+        }
+      val tree = new Session_Tree(graph)
+
+      val bad_parents =
+        (for {
+          (name, (Some(info), _)) <- graph.entries
+          if info.parent.isDefined; parent = info.parent.get
+          if !tree.isDefinedAt(parent)
+        } yield parent + " (for " + name + ")").toList
+      if (!bad_parents.isEmpty) error("Bad parent session(s): " + commas(bad_parents))
+
+      tree
+    }
+  }
+
+  final class Session_Tree private(val graph: Graph[String, Option[Session_Info]])
+    extends PartialFunction[String, Session_Info]
+  {
+    def apply(name: String): Session_Info = graph.get_node(name).get
+    def isDefinedAt(name: String): Boolean =
+      graph.defined(name) && graph.get_node(name).isDefined
+
+    def required(all_sessions: Boolean, session_groups: List[String], sessions: List[String])
+      : (List[String], Session_Tree) =
+    {
+      val bad_sessions = sessions.filterNot(isDefinedAt(_))
+      if (!bad_sessions.isEmpty) error("Undefined session(s): " + commas_quote(bad_sessions))
+
+      val selected =
+      {
+        if (all_sessions) graph.keys.toList
+        else {
+          val sel_group = session_groups.toSet
+          val sel = sessions.toSet
+            graph.keys.toList.filter(name =>
+              sel(name) || apply(name).groups.exists(sel_group)).toList
+        }
+      }
+      val descendants = graph.all_succs(selected)
+      val tree1 = new Session_Tree(graph.restrict(graph.all_preds(selected).toSet))
+      (descendants, tree1)
+    }
+
+    def topological_order: List[(String, Session_Info)] =
+      graph.topological_order.map(name => (name, apply(name)))
+  }
+
+
   /* parser */
 
   private object Parser extends Parse.Parser
@@ -155,97 +225,10 @@ object Build
     else error("Bad session root file: " + root.toString)
   }
 
-  def find_sessions(options: Options, more_dirs: List[Path]): List[(String, Session_Info)] =
+  def find_sessions(options: Options, more_dirs: List[Path]): Session_Tree =
   {
     val dirs = Isabelle_System.components().filter(is_session_dir(_)) ::: more_dirs
-    dirs.map(sessions_root(options, _)).flatten
-  }
-
-
-  object Session
-  {
-    object Queue
-    {
-      val empty: Queue = new Queue()
-      def apply(args: Seq[(String, Session_Info)]): Queue =
-        (empty /: args) { case (queue, (name, info)) => queue + (name, info) }
-    }
-
-    final class Queue private(graph: Graph[String, Option[Session_Info]] = Graph.string)
-      extends PartialFunction[String, Session_Info]
-    {
-      def apply(name: String): Session_Info = graph.get_node(name).get
-      def isDefinedAt(name: String): Boolean =
-        graph.defined(name) && graph.get_node(name).isDefined
-
-      def is_inner(name: String): Boolean = !graph.is_maximal(name)
-
-      def is_empty: Boolean = graph.is_empty
-
-      def + (name: String, info: Session_Info): Queue =
-      {
-        val parents = info.parent.toList
-
-        val graph1 = (graph /: (name :: parents))(_.default_node(_, None))
-        if (graph1.get_node(name).isDefined)
-          error("Duplicate session: " + quote(name) + Position.str_of(info.pos))
-
-        new Queue(
-          try { graph1.map_node(name, _ => Some(info)).add_deps_acyclic(name, parents) }
-          catch {
-            case exn: Graph.Cycles[_] =>
-              error(cat_lines(exn.cycles.map(cycle =>
-                "Cyclic session dependency of " +
-                  cycle.map(c => quote(c.toString)).mkString(" via "))))
-          })
-      }
-
-      def - (name: String): Queue = new Queue(graph.del_node(name))
-
-      def required(all_sessions: Boolean, session_groups: List[String], sessions: List[String])
-        : (List[String], Queue) =
-      {
-        (for {
-          (name, (Some(info), _)) <- graph.entries
-          if info.parent.isDefined; parent = info.parent.get
-          if !isDefinedAt(parent)
-        } yield parent + " (for " + name + ")").toList match
-        {
-          case Nil =>
-          case bad => error("Bad parent session(s): " + commas(bad))
-        }
-
-        sessions.filterNot(isDefinedAt(_)) match {
-          case Nil =>
-          case bad => error("Undefined session(s): " + commas_quote(bad))
-        }
-
-        val selected =
-        {
-          if (all_sessions) graph.keys.toList
-          else {
-            val sel_group = session_groups.toSet
-            val sel = sessions.toSet
-              graph.keys.toList.filter(name =>
-                sel(name) || apply(name).groups.exists(sel_group)).toList
-          }
-        }
-        val descendants = graph.all_succs(selected)
-        val queue1 = new Queue(graph.restrict(graph.all_preds(selected).toSet))
-        (descendants, queue1)
-      }
-
-      def dequeue(skip: String => Boolean): Option[(String, Session_Info)] =
-      {
-        val it = graph.entries.dropWhile(
-          { case (name, (info, (deps, _))) => !deps.isEmpty || info.isEmpty || skip(name) })
-        if (it.hasNext) { val (name, (info, _)) = it.next; Some((name, info.get)) }
-        else None
-      }
-
-      def topological_order: List[(String, Session_Info)] =
-        graph.topological_order.map(name => (name, apply(name)))
-    }
+    Session_Tree(dirs.map(sessions_root(options, _)).flatten)
   }
 
 
@@ -254,6 +237,34 @@ object Build
 
   private def echo(msg: String) { java.lang.System.out.println(msg) }
   private def sleep(): Unit = Thread.sleep(500)
+
+
+  /* queue */
+
+  object Queue
+  {
+    def apply(tree: Session_Tree): Queue =
+    {
+      val graph = tree.graph
+      new Queue(graph, SortedSet(graph.keys.toList: _*)(graph.ordering))
+    }
+  }
+
+  final class Queue private(graph: Graph[String, Option[Session_Info]], order: SortedSet[String])
+  {
+    def is_inner(name: String): Boolean = !graph.is_maximal(name)
+
+    def is_empty: Boolean = graph.is_empty
+
+    def - (name: String): Queue = new Queue(graph.del_node(name), order - name)
+
+    def dequeue(skip: String => Boolean): Option[(String, Session_Info)] =
+    {
+      val it = order.iterator.dropWhile(name => skip(name) || !graph.is_minimal(name))
+      if (it.hasNext) { val name = it.next; Some((name, graph.get_node(name).get)) }
+      else None
+    }
+  }
 
 
   /* source dependencies */
@@ -270,8 +281,8 @@ object Build
     def sources(name: String): List[SHA1.Digest] = deps(name).sources.map(_._2)
   }
 
-  def dependencies(verbose: Boolean, queue: Session.Queue): Deps =
-    Deps((Map.empty[String, Node] /: queue.topological_order)(
+  def dependencies(verbose: Boolean, tree: Session_Tree): Deps =
+    Deps((Map.empty[String, Node] /: tree.topological_order)(
       { case (deps, (name, info)) =>
           val (preloaded, parent_syntax) =
             info.parent match {
@@ -475,13 +486,13 @@ object Build
     sessions: List[String] = Nil): Int =
   {
     val options = (Options.init() /: build_options)(_.define_simple(_))
-    val (descendants, queue) =
-      Session.Queue(find_sessions(options, more_dirs))
-        .required(all_sessions, session_groups, sessions)
-    val deps = dependencies(verbose, queue)
+    val (descendants, tree) =
+      find_sessions(options, more_dirs).required(all_sessions, session_groups, sessions)
+    val deps = dependencies(verbose, tree)
+    val queue = Queue(tree)
 
     def make_stamp(name: String): String =
-      sources_stamp(queue(name).entry_digest :: deps.sources(name))
+      sources_stamp(tree(name).entry_digest :: deps.sources(name))
 
     val (input_dirs, output_dir, browser_info) =
       if (system_mode) {
@@ -511,7 +522,7 @@ object Build
     case class Result(current: Boolean, heap: String, rc: Int)
 
     @tailrec def loop(
-      pending: Session.Queue,
+      pending: Queue,
       running: Map[String, (String, Job)],
       results: Map[String, Result]): Map[String, Result] =
     {
@@ -644,9 +655,8 @@ object Build
   // FIXME Symbol.decode!?
   def outer_syntax(session: String): Outer_Syntax =
   {
-    val (_, queue) =
-      Session.Queue(find_sessions(Options.init(), Nil)).required(false, Nil, List(session))
-    dependencies(false, queue)(session).syntax
+    val (_, tree) = find_sessions(Options.init(), Nil).required(false, Nil, List(session))
+    dependencies(false, tree)(session).syntax
   }
 }
 
