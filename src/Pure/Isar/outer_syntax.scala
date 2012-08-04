@@ -49,7 +49,7 @@ final class Outer_Syntax private(
     (for ((name, kind) <- keywords) yield {
       if (kind == Keyword.MINOR) quote(name)
       else quote(name) + " :: " + quote(kind)
-    }).toList.sorted.mkString("Outer_Syntax(keywords ", " and ", ")")
+    }).toList.sorted.mkString("keywords\n  ", " and\n  ", "")
 
   def keyword_kind(name: String): Option[String] = keywords.get(name)
 

@@ -285,6 +285,7 @@ object Build
                 (Set.empty[String],
                   Outer_Syntax.init() +
                     // FIXME avoid hardwired stuff!?
+                    ("theory", Keyword.THY_BEGIN) +
                     ("hence", Keyword.PRF_ASM_GOAL, "then have") +
                     ("thus", Keyword.PRF_ASM_GOAL, "then show"))
             }
