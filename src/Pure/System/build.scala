@@ -246,7 +246,24 @@ object Build
     def apply(tree: Session_Tree): Queue =
     {
       val graph = tree.graph
-      new Queue(graph, SortedSet(graph.keys.toList: _*)(graph.ordering))
+
+      def outdegree(name: String): Int = graph.imm_succs(name).size
+      def timeout(name: String): Double = tree(name).options.real("timeout")
+
+      object Ordering extends scala.math.Ordering[String]
+      {
+        def compare(name1: String, name2: String): Int =
+          outdegree(name2) compare outdegree(name1) match {
+            case 0 =>
+              timeout(name2) compare timeout(name1) match {
+                case 0 => name1 compare name2
+                case ord => ord
+              }
+            case ord => ord
+          }
+      }
+
+      new Queue(graph, SortedSet(graph.keys.toList: _*)(Ordering))
     }
   }
 
@@ -593,8 +610,10 @@ object Build
 
                 if (all_current)
                   loop(pending - name, running, results + (name -> Result(true, heap, 0)))
-                else if (no_build)
+                else if (no_build) {
+                  if (verbose) echo("Skipping " + name + " ...")
                   loop(pending - name, running, results + (name -> Result(false, heap, 1)))
+                }
                 else if (parent_result.rc == 0) {
                   echo((if (do_output) "Building " else "Running ") + name + " ...")
                   val job = new Job(name, info, output, do_output, verbose, browser_info)
