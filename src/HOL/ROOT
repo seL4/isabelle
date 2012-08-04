@@ -162,7 +162,7 @@ session Metis_Examples = HOL +
 
     Testing Metis and Sledgehammer.
   *}
-  options [document = false]
+  options [timeout = 3600, document = false]
   theories
     Abstraction
     Big_O
@@ -399,7 +399,7 @@ session Lattice = HOL +
 
 session ex = HOL +
   description {* Miscellaneous examples for Higher-Order Logic. *}
-  options [condition = ISABELLE_POLYML]
+  options [timeout = 3600, condition = ISABELLE_POLYML]
   theories [document = false]
     "~~/src/HOL/Library/State_Monad"
     Code_Nat_examples
@@ -580,7 +580,7 @@ session Nominal (main) = HOL +
   theories Nominal
 
 session Examples in "Nominal/Examples" = "HOL-Nominal" +
-  options [condition = ISABELLE_POLYML, document = false]
+  options [timeout = 3600, condition = ISABELLE_POLYML, document = false]
   theories Nominal_Examples
   theories [quick_and_dirty] VC_Condition
 
@@ -737,7 +737,7 @@ session Mutabelle = HOL +
   theories MutabelleExtra
 
 session Quickcheck_Examples = HOL +
-  options [document = false]
+  options [timeout = 3600, document = false]
   theories
     Quickcheck_Examples (* FIXME more *)
   theories [condition = ISABELLE_GHC]
