@@ -55,30 +55,31 @@ fun use_theories (options, thys) =
 
 in
 
-fun build args_file =
-  let
-    val (do_output, (options, (verbose, (browser_info, (parent_name,
-        (name, theories)))))) =
-      File.read (Path.explode args_file) |> YXML.parse_body |>
-        let open XML.Decode in
-          pair bool (pair Options.decode (pair bool (pair string (pair string
-            (pair string ((list (pair Options.decode (list string)))))))))
-        end;
+fun build args_file = uninterruptible (fn restore_attributes => fn () =>
+  restore_attributes (fn () =>
+    let
+      val (do_output, (options, (verbose, (browser_info, (parent_name,
+          (name, theories)))))) =
+        File.read (Path.explode args_file) |> YXML.parse_body |>
+          let open XML.Decode in
+            pair bool (pair Options.decode (pair bool (pair string (pair string
+              (pair string ((list (pair Options.decode (list string)))))))))
+          end;
 
-    val _ =
-      Session.init do_output false
-        (Options.bool options "browser_info") browser_info
-        (Options.string options "document")
-        (Options.bool options "document_graph")
-        (space_explode ":" (Options.string options "document_variants"))
-        parent_name name
-        (Options.string options "document_dump",
-          Present.dump_mode (Options.string options "document_dump_mode"))
-        "" verbose;
-    val _ = Session.with_timing name verbose (List.app use_theories) theories;
-    val _ = Session.finish ();
-    val _ = if do_output then () else quit ();
-  in () end
+      val _ =
+        Session.init do_output false
+          (Options.bool options "browser_info") browser_info
+          (Options.string options "document")
+          (Options.bool options "document_graph")
+          (space_explode ":" (Options.string options "document_variants"))
+          parent_name name
+          (Options.string options "document_dump",
+            Present.dump_mode (Options.string options "document_dump_mode"))
+          "" verbose;
+      val _ = Session.with_timing name verbose (List.app use_theories) theories;
+      val _ = Session.finish ();
+      val _ = if do_output then () else quit ();
+    in () end) ()) ()
   handle exn =>
     (Output.error_msg (ML_Compiler.exn_message exn);
      if Exn.is_interrupt exn then exit 130 else exit 1);
