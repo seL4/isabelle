@@ -1,0 +1,170 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# DESCRIPTION: prepare session root directory
+
+
+## diagnostics
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: isabelle $PRG NAME"
+  echo
+  echo "  Prepare session root directory, adding session NAME with"
+  echo "  built-in document preparation."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+[ "$#" -ne 1 -o "$1" = "-?" ] && usage
+
+DIR_NAME="$1"; shift
+
+DIR="$(dirname "$DIR_NAME")"
+NAME="$(basename "$DIR_NAME")"
+
+
+## main
+
+[ -e "$DIR_NAME" ] && fail "Cannot overwrite existing \"$DIR_NAME\""
+
+echo
+echo "Preparing session \"$NAME\" ..."
+
+mkdir -p "$DIR_NAME" || fail "Bad directory: \"$DIR_NAME\""
+
+
+# example theory
+
+echo "creating $DIR_NAME/Ex.thy"
+cat > "$DIR_NAME/Ex.thy" <<EOF
+header {* Some example theory *}
+
+theory Ex imports Main
+begin
+
+text {* Some text here. *}
+
+end
+EOF
+
+
+# document directory
+
+echo "creating $DIR_NAME/document/root.tex"
+
+mkdir "$DIR_NAME/document" || fail "Bad directory: \"$DIR_NAME/document\""
+
+TITLE=$(echo "$NAME" | tr _ - | tr -d '\\')
+AUTHOR=$(echo "By $USER" | tr _ - | tr -d '\\')
+cat > "$DIR_NAME/document/root.tex" <<EOF
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+
+% further packages required for unusual symbols (see also
+% isabellesym.sty), use only when needed
+
+%\usepackage{amssymb}
+  %for \<leadsto>, \<box>, \<diamond>, \<sqsupset>, \<mho>, \<Join>,
+  %\<lhd>, \<lesssim>, \<greatersim>, \<lessapprox>, \<greaterapprox>,
+  %\<triangleq>, \<yen>, \<lozenge>
+
+%\usepackage{eurosym}
+  %for \<euro>
+
+%\usepackage[only,bigsqcap]{stmaryrd}
+  %for \<Sqinter>
+
+%\usepackage{eufrak}
+  %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
+
+%\usepackage{textcomp}
+  %for \<onequarter>, \<onehalf>, \<threequarters>, \<degree>, \<cent>,
+  %\<currency>
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+% for uniform font size
+%\renewcommand{\isastyle}{\isastyleminor}
+
+
+\begin{document}
+
+\title{$TITLE}
+\author{$AUTHOR}
+\maketitle
+
+\tableofcontents
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+% generated text of all theories
+\input{session}
+
+% optional bibliography
+%\bibliographystyle{abbrv}
+%\bibliography{root}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
+EOF
+
+
+# ROOT
+
+if [ -e "$DIR/ROOT" ]; then
+  echo "appending to existing ROOT"
+  echo >> "$DIR/ROOT"
+else
+  echo "creating ROOT"
+fi
+
+cat >> "$DIR/ROOT" <<EOF
+session "$NAME" = "$ISABELLE_LOGIC" +
+  options [document = $ISABELLE_DOC_FORMAT]
+  theories "Ex"
+  files "document/root.tex"
+EOF
+
+
+# notes
+
+cat <<EOF
+
+Notes:
+
+  * $DIR_NAME/Ex.thy contains an example theory
+
+  * $DIR_NAME/document/root.tex contains the LaTeX master document setup
+
+  * $DIR/ROOT contains build options, theories and extra file dependencies
+
+  * the following command line builds the session (with document):
+
+      isabelle build -v -d $DIR ${ISABELLE_LOGIC}-${NAME}
+
+EOF
+
