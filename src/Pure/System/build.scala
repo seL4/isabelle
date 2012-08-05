@@ -100,7 +100,7 @@ object Build
     {
       val graph1 =
         (Graph.string[Session_Info] /: infos) {
-          case (graph, (name, info)) => graph.new_node(name, info)
+          case (graph, (name, info)) =>
             if (graph.defined(name))
               error("Duplicate session " + quote(name) + Position.str_of(info.pos))
             else graph.new_node(name, info)
@@ -214,20 +214,52 @@ object Build
   /* find sessions within certain directories */
 
   private val ROOT = Path.explode("ROOT")
+  private val ROOTS = Path.explode("ROOTS")
 
-  private def is_session_dir(dir: Path): Boolean = (dir + ROOT).is_file
+  private def is_session_dir(dir: Path): Boolean =
+    (dir + ROOT).is_file || (dir + ROOTS).is_file
 
-  private def sessions_root(options: Options, dir: Path): List[(String, Session_Info)] =
-  {
-    val root = dir + ROOT
-    if (root.is_file) Parser.parse_entries(dir + ROOT).map(session_info(options, dir, _))
-    else error("Bad session root file: " + root.toString)
-  }
+  private def check_session_dir(dir: Path): Path =
+    if (is_session_dir(dir)) dir
+    else error("Bad session root directory: " + dir.toString)
 
   def find_sessions(options: Options, more_dirs: List[Path]): Session_Tree =
   {
-    val dirs = Isabelle_System.components().filter(is_session_dir(_)) ::: more_dirs
-    Session_Tree(dirs.map(sessions_root(options, _)).flatten)
+    def find_dir(dir: Path): List[(String, Session_Info)] = find_root(dir) ::: find_roots(dir)
+
+    def find_root(dir: Path): List[(String, Session_Info)] =
+    {
+      val root = dir + ROOT
+      if (root.is_file) Parser.parse_entries(root).map(session_info(options, dir, _))
+      else Nil
+    }
+
+    def find_roots(dir: Path): List[(String, Session_Info)] =
+    {
+      val roots = dir + ROOTS
+      if (roots.is_file) {
+        for {
+          line <- split_lines(File.read(roots))
+          if !(line == "" || line.startsWith("#"))
+          dir1 =
+            try { check_session_dir(dir + Path.explode(line)) }
+            catch {
+              case ERROR(msg) =>
+                error(msg + "\nThe error(s) above occurred in session catalog " + roots.toString)
+            }
+          info <- find_dir(dir1)
+        } yield info
+      }
+      else Nil
+    }
+
+    Session_Tree(
+      for {
+        dir <-
+          Isabelle_System.components().filter(is_session_dir(_)) :::
+          more_dirs.map(check_session_dir(_))
+        info <- find_dir(dir)
+      } yield info)
   }
 
 

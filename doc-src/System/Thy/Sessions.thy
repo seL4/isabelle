@@ -197,6 +197,13 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   command line.  Each such directory may contain a session
   \texttt{ROOT} file with several session specifications.
 
+  Any session root directory may refer recursively to further
+  directories of the same kind, by listing them in a catalog file
+  @{verbatim "ROOTS"} line-by-line.  This helps to organize large
+  collections of session specifications, or to make @{verbatim "-d"}
+  command line options persistent (say within @{verbatim
+  "$ISABELLE_HOME_USER/ROOTS"}).
+
   \medskip The subset of sessions to be managed is determined via
   individual @{text "SESSIONS"} given as command-line arguments, or
   session groups that are given via one or more options @{verbatim
