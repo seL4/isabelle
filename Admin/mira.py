@@ -139,64 +139,27 @@ def import_isatest_log(env, conf, logfile):
     env.report_db.put(case, (success == 'successful'), content)
 
 
+def isabelle_build(env, case, paths, dep_paths, playground, *cmdargs, **kwargs):
 
-def isabelle_usedir(env, isa_path, isabelle_usedir_opts, base_image, dir_name):
-
-    return env.run_process('%s/bin/isabelle' % isa_path, 'usedir',
-        isabelle_usedir_opts, base_image, dir_name)
-
-
-def isabelle_dependency_only(env, case, paths, dep_paths, playground):
+    more_settings=kwargs.get('more_settings', '')
 
     isabelle_home = paths[0]
-    result = path.join(isabelle_home, 'heaps')
-    os.makedirs(result)
+
+    # copy over build results from dependencies
+    heap_dir = path.join(isabelle_home, 'heaps')
+    classes_dir = path.join(heap_dir, 'classes')
+    os.makedirs(classes_dir)
+
     for dep_path in dep_paths:
-        subprocess.check_call(['cp', '-R'] + glob(dep_path + '/*') + [result])
+        subprocess.check_call(['cp', '-a'] + glob(dep_path + '/*') + [heap_dir])
 
-    return (True, 'ok', {}, {}, result)
+    subprocess.check_call(['ln', '-s', classes_dir, path.join(isabelle_home, 'lib', 'classes')])
+    jars = glob(path.join(classes_dir, 'ext', '*.jar'))
+    if jars:
+        subprocess.check_call(['touch'] + jars)
 
-
-def build_isabelle_image(subdir, base, img, env, case, paths, dep_paths, playground,
-  usedir_options=default_usedir_options, more_settings=''):
-
-    isabelle_home = paths[0]
-    dep_path = dep_paths[0]
-    prepare_isabelle_repository(isabelle_home, env.settings.contrib, dep_path,
-      usedir_options=usedir_options, more_settings=more_settings)
-    os.chdir(path.join(isabelle_home, 'src', subdir))
-
-    (return_code, log) = isabelle_usedir(env, isabelle_home, '-b', base, img)
-
-    result = path.join(isabelle_home, 'heaps')
-
-    return (return_code == 0, extract_isabelle_run_summary(log),
-      extract_report_data(isabelle_home, log), {'log': log}, result)
-
-
-def isabelle_make(subdir, env, case, paths, dep_paths, playground, usedir_options=default_usedir_options,
-  more_settings='', target='all', keep_results=False):
-
-    isabelle_home = paths[0]
-    dep_path = dep_paths[0] if dep_paths else None
-    prepare_isabelle_repository(isabelle_home, env.settings.contrib, dep_path,
-      usedir_options=usedir_options, more_settings=more_settings)
-    os.chdir(path.join(isabelle_home, subdir))
-
-    (return_code, log) = env.run_process('%s/bin/isabelle' % isabelle_home, 'make', '-k', target)
-
-    result = path.join(isabelle_home, 'heaps') if keep_results else None
-
-    return (return_code == 0, extract_isabelle_run_summary(log),
-      extract_report_data(isabelle_home, log), {'log': log}, result)
-
-
-def isabelle_makeall(env, case, paths, dep_paths, playground, usedir_options=default_usedir_options,
-  more_settings='', target='all', make_options=()):
-
-    if 'lxbroy10' in misc.hostnames():
-        make_options += ('-j', '8')
-        usedir_options += " -M 4 -q 2 -i false -d false"
+    # misc preparations
+    if 'lxbroy10' in misc.hostnames():  # special settings for lxbroy10
         more_settings += '''
 ML_PLATFORM="x86_64-linux"
 ML_HOME="/home/polyml/polyml-5.4.1/x86_64-linux"
@@ -206,58 +169,46 @@ ML_OPTIONS="-H 4000 --gcthreads 4"
 ISABELLE_GHC="/usr/bin/ghc"
 '''
 
-    isabelle_home = paths[0]
-    dep_path = dep_paths[0] if dep_paths else None
-    prepare_isabelle_repository(isabelle_home, env.settings.contrib, dep_path,
-      usedir_options=usedir_options, more_settings=more_settings)
+    prepare_isabelle_repository(isabelle_home, env.settings.contrib, None,
+      usedir_options="", more_settings=more_settings)
     os.chdir(isabelle_home)
 
-    (return_code, log) = env.run_process('%s/bin/isabelle' % isabelle_home, 'makeall', '-k', *(make_options + (target,)))
+    # invoke build tool
+    (return_code, log) = env.run_process('%s/bin/isabelle' % isabelle_home, 'build', '-s', '-v', *cmdargs)
 
+    # collect report
     return (return_code == 0, extract_isabelle_run_summary(log),
-      extract_report_data(isabelle_home, log), {'log': log}, None)
+      extract_report_data(isabelle_home, log), {'log': log}, heap_dir)
 
-
-def make_pure(env, case, paths, dep_paths, playground, more_settings=''):
-
-    isabelle_home = paths[0]
-    prepare_isabelle_repository(isabelle_home, env.settings.contrib, '',
-      more_settings=more_settings)
-    os.chdir(path.join(isabelle_home, 'src', 'Pure'))
-
-    (return_code, log) = env.run_process('%s/bin/isabelle' % isabelle_home, 'make', 'Pure')
-
-    result = path.join(isabelle_home, 'heaps')
-    return (return_code == 0, extract_isabelle_run_summary(log),
-      {'timing': extract_isabelle_run_timing(log)}, {'log': log}, result)
 
 
 # Isabelle configurations
 
 @configuration(repos = [Isabelle], deps = [])
 def Pure(*args):
-    """Pure image"""
-    return make_pure(*args)
+    """Pure Image"""
+    return isabelle_build(*(args + ("-b", "Pure")))
 
 @configuration(repos = [Isabelle], deps = [(Pure, [0])])
 def HOL(*args):
-    """HOL image"""
-    return build_isabelle_image('HOL', 'Pure', 'HOL', *args)
+    """HOL Image"""
+    return isabelle_build(*(args + ("-b", "HOL")))
 
 @configuration(repos = [Isabelle], deps = [(HOL, [0])])
 def HOL_Library(*args):
-    """HOL-Library image"""
-    return build_isabelle_image('HOL', 'HOL', 'HOL-Library', *args)
-
-@configuration(repos = [Isabelle], deps = [(Pure, [0])])
-def ZF(*args):
-    """ZF image"""
-    return build_isabelle_image('ZF', 'Pure', 'ZF', *args)
+    """HOL Library"""
+    return isabelle_build(*(args + ("-b", "HOL-Library")))
 
 @configuration(repos = [Isabelle], deps = [(HOL, [0])])
 def HOL_HOLCF(*args):
-    """HOLCF image"""
-    return build_isabelle_image('HOL/HOLCF', 'HOL', 'HOLCF', *args)
+    """HOLCF"""
+    return isabelle_build(*(args + ("-b", "HOL-HOLCF")))
+
+@configuration(repos = [Isabelle], deps = [(Pure, [0])])
+def ZF(*args):
+    """HOLCF"""
+    return isabelle_build(*(args + ("-b", "ZF")))
+
 
 settings64='''
 ML_PLATFORM=x86_64-linux
@@ -267,77 +218,33 @@ ML_SYSTEM="polyml-5.4.1"
 
 @configuration(repos = [Isabelle], deps = [])
 def Pure_64(*args):
-    """Pure image (64 bit)"""
-    return make_pure(*args, more_settings=settings64)
+    """Pure Image (64 bit)"""
+    return isabelle_build(*(args + ("-b", "Pure")), more_settings=settings64)
 
-@configuration(repos = [Isabelle], deps = [(Pure_64, [0])])
+@configuration(repos = [Isabelle], deps = [(Pure, [0])])
 def HOL_64(*args):
-    """HOL image (64 bit)"""
-    return build_isabelle_image('HOL', 'Pure', 'HOL', *args, more_settings=settings64)
+    """HOL Image (64 bit)"""
+    return isabelle_build(*(args + ("-b", "HOL")), more_settings=settings64)
 
-@configuration(repos = [Isabelle], deps = [(HOL_64, [0])])
+@configuration(repos = [Isabelle], deps = [(HOL, [0])])
 def HOL_HOLCF_64(*args):
-    """HOL-HOLCF image (64 bit)"""
-    return build_isabelle_image('HOL/HOLCF', 'HOL', 'HOLCF', *args, more_settings=settings64)
+    """HOLCF Image"""
+    return isabelle_build(*(args + ("-b", "HOL-HOLCF")), more_settings=settings64)
 
-@configuration(repos = [Isabelle], deps = [(HOL_64, [0])])
-def HOL_Nominal_64(*args):
-    """HOL-Nominal image (64 bit)"""
-    return build_isabelle_image('HOL/Nominal', 'HOL', 'HOL-Nominal', *args, more_settings=settings64)
-
-@configuration(repos = [Isabelle], deps = [(HOL_64, [0])])
+@configuration(repos = [Isabelle], deps = [(HOL, [0])])
 def HOL_Word_64(*args):
-    """HOL-Word image (64 bit)"""
-    return build_isabelle_image('HOL/Word', 'HOL', 'HOL-Word', *args, more_settings=settings64)
+    """HOL-Word Image"""
+    return isabelle_build(*(args + ("-b", "HOL-Word")), more_settings=settings64)
 
-@configuration(repos = [Isabelle], deps = [
-    (HOL_64, [0]),
-    (HOL_HOLCF_64, [0]),
-    (HOL_Nominal_64, [0]),
-    (HOL_Word_64, [0])
-  ])
+@configuration(repos = [Isabelle], deps = [])
 def AFP_images(*args):
     """Isabelle images needed for the AFP (64 bit)"""
-    return isabelle_dependency_only(*args)
+    return isabelle_build(*(args + ("-b", "-j", "2", "Pure", "HOL", "HOL-HOLCF", "HOL-Word")), more_settings=settings64)
 
 @configuration(repos = [Isabelle], deps = [])
 def Isabelle_makeall(*args):
-    """Isabelle makeall"""
-    return isabelle_makeall(*args)
-
-
-# distribution and documentation Build
-
-@configuration(repos = [Isabelle], deps = [])
-def Distribution(env, case, paths, dep_paths, playground):
-    """Build of distribution"""
-    ## FIXME This is rudimentary; study Admin/CHECKLIST to complete this configuration accordingly
-    isabelle_home = paths[0]
-    (return_code, log) = env.run_process(path.join(isabelle_home, 'Admin', 'Release', 'makedist'),
-      REPOS = repositories.get(Isabelle).local_path, DISTPREFIX = os.getcwd())
-    return (return_code == 0, '', ## FIXME might add summary here
-      {}, {'log': log}, None) ## FIXME might add proper result here
-
-@configuration(repos = [Isabelle], deps = [
-    (HOL, [0]),
-    (HOL_HOLCF, [0]),
-    (ZF, [0]),
-    (HOL_Library, [0])
-  ])
-def Documentation_images(*args):
-    """Isabelle images needed to build the documentation"""
-    return isabelle_dependency_only(*args)
-
-@configuration(repos = [Isabelle], deps = [(Documentation_images, [0])])
-def Documentation(env, case, paths, dep_paths, playground):
-    """Build of documentation"""
-    isabelle_home = paths[0]
-    dep_path = dep_paths[0]
-    prepare_isabelle_repository(isabelle_home, env.settings.contrib, dep_path,
-      usedir_options = default_usedir_options)
-    (return_code, log) = env.run_process(path.join(isabelle_home, 'Admin', 'build', 'doc-src'))
-    return (return_code == 0, extract_isabelle_run_summary(log),
-      extract_report_data(isabelle_home, log), {'log': log}, None)
+    """Build all sessions"""
+    return isabelle_build(*(args + ("-j", "6", "-o", "threads=4", "-a")), more_settings=settings64)
 
 
 # Mutabelle configurations
@@ -497,13 +404,62 @@ ML_OPTIONS="@SMLdebug=/dev/null @SMLalloc=1024"
 ML_PLATFORM=$(eval $("$ML_HOME/.arch-n-opsys" 2>/dev/null); echo "$HEAP_SUFFIX")
 '''
 
-@configuration(repos = [Isabelle], deps = [])
+@configuration(repos = [Isabelle], deps = [(Pure, [0])])
 def SML_HOL(*args):
     """HOL image built with SML/NJ"""
-    return isabelle_make('src/HOL', *args, more_settings=smlnj_settings, target='HOL', keep_results=True)
+    return isabelle_build(*(args + ("-b", "HOL")), more_settings=smlnj_settings)
 
 @configuration(repos = [Isabelle], deps = [])
 def SML_makeall(*args):
-    """Makeall built with SML/NJ"""
-    return isabelle_makeall(*args, more_settings=smlnj_settings, target='smlnj', make_options=('-j', '3'))
+    """SML/NJ build of all possible sessions"""
+    return isabelle_build(*(args + ("-j", "3", "-a")), more_settings=smlnj_settings)
+
+
+# Legacy Isabelle configurations
+
+# distribution and documentation Build
+
+@configuration(repos = [Isabelle], deps = [])
+def Distribution(env, case, paths, dep_paths, playground):
+    """Build of distribution"""
+    ## FIXME This is rudimentary; study Admin/CHECKLIST to complete this configuration accordingly
+    isabelle_home = paths[0]
+    (return_code, log) = env.run_process(path.join(isabelle_home, 'Admin', 'Release', 'makedist'),
+      REPOS = repositories.get(Isabelle).local_path, DISTPREFIX = os.getcwd())
+    return (return_code == 0, '', ## FIXME might add summary here
+      {}, {'log': log}, None) ## FIXME might add proper result here
+
+
+def isabelle_dependency_only(env, case, paths, dep_paths, playground):
+
+    isabelle_home = paths[0]
+    result = path.join(isabelle_home, 'heaps')
+    os.makedirs(result)
+    for dep_path in dep_paths:
+        subprocess.check_call(['cp', '-R'] + glob(dep_path + '/*') + [result])
+
+    return (True, 'ok', {}, {}, result)
+
+
+@configuration(repos = [Isabelle], deps = [
+    (HOL, [0]),
+    (HOL_HOLCF, [0]),
+    (ZF, [0]),
+    (HOL_Library, [0])
+  ])
+def Documentation_images(*args):
+    """Isabelle images needed to build the documentation"""
+    return isabelle_dependency_only(*args)
+
+@configuration(repos = [Isabelle], deps = [(Documentation_images, [0])])
+def Documentation(env, case, paths, dep_paths, playground):
+    """Build of documentation"""
+    isabelle_home = paths[0]
+    dep_path = dep_paths[0]
+    prepare_isabelle_repository(isabelle_home, env.settings.contrib, dep_path,
+      usedir_options = default_usedir_options)
+    (return_code, log) = env.run_process(path.join(isabelle_home, 'Admin', 'build', 'doc-src'))
+    return (return_code == 0, extract_isabelle_run_summary(log),
+      extract_report_data(isabelle_home, log), {'log': log}, None)
+
 
