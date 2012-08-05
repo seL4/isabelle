@@ -98,43 +98,42 @@ object Build
   {
     def apply(infos: Seq[(String, Session_Info)]): Session_Tree =
     {
-      val graph =
-        (Graph.string[Option[Session_Info]] /: infos) {
-          case (graph, (name, info)) =>
-            val parents = info.parent.toList
+      val graph1 =
+        (Graph.string[Session_Info] /: infos) {
+          case (graph, (name, info)) => graph.new_node(name, info)
+            if (graph.defined(name))
+              error("Duplicate session " + quote(name) + Position.str_of(info.pos))
+            else graph.new_node(name, info)
+        }
+      val graph2 =
+        (graph1 /: graph1.entries) {
+          case (graph, (name, (info, _))) =>
+            info.parent match {
+              case None => graph
+              case Some(parent) =>
+                if (!graph.defined(parent))
+                  error("Bad parent session " + quote(parent) + " for " +
+                    quote(name) + Position.str_of(info.pos))
 
-            val graph1 = (graph /: (name :: parents))(_.default_node(_, None))
-            if (graph1.get_node(name).isDefined)
-              error("Duplicate session: " + quote(name) + Position.str_of(info.pos))
-
-            try { graph1.map_node(name, _ => Some(info)).add_deps_acyclic(name, parents) }
-            catch {
-              case exn: Graph.Cycles[_] =>
-                error(cat_lines(exn.cycles.map(cycle =>
-                  "Cyclic session dependency of " +
-                    cycle.map(c => quote(c.toString)).mkString(" via "))))
+                try { graph.add_edge_acyclic(parent, name) }
+                catch {
+                  case exn: Graph.Cycles[_] =>
+                    error(cat_lines(exn.cycles.map(cycle =>
+                      "Cyclic session dependency of " +
+                        cycle.map(c => quote(c.toString)).mkString(" via "))) +
+                          Position.str_of(info.pos))
+                }
             }
         }
-      val tree = new Session_Tree(graph)
-
-      val bad_parents =
-        (for {
-          (name, (Some(info), _)) <- graph.entries
-          if info.parent.isDefined; parent = info.parent.get
-          if !tree.isDefinedAt(parent)
-        } yield parent + " (for " + name + ")").toList
-      if (!bad_parents.isEmpty) error("Bad parent session(s): " + commas(bad_parents))
-
-      tree
+      new Session_Tree(graph2)
     }
   }
 
-  final class Session_Tree private(val graph: Graph[String, Option[Session_Info]])
+  final class Session_Tree private(val graph: Graph[String, Session_Info])
     extends PartialFunction[String, Session_Info]
   {
-    def apply(name: String): Session_Info = graph.get_node(name).get
-    def isDefinedAt(name: String): Boolean =
-      graph.defined(name) && graph.get_node(name).isDefined
+    def apply(name: String): Session_Info = graph.get_node(name)
+    def isDefinedAt(name: String): Boolean = graph.defined(name)
 
     def required(all_sessions: Boolean, session_groups: List[String], sessions: List[String])
       : (List[String], Session_Tree) =
@@ -267,7 +266,7 @@ object Build
     }
   }
 
-  final class Queue private(graph: Graph[String, Option[Session_Info]], order: SortedSet[String])
+  final class Queue private(graph: Graph[String, Session_Info], order: SortedSet[String])
   {
     def is_inner(name: String): Boolean = !graph.is_maximal(name)
 
@@ -278,7 +277,7 @@ object Build
     def dequeue(skip: String => Boolean): Option[(String, Session_Info)] =
     {
       val it = order.iterator.dropWhile(name => skip(name) || !graph.is_minimal(name))
-      if (it.hasNext) { val name = it.next; Some((name, graph.get_node(name).get)) }
+      if (it.hasNext) { val name = it.next; Some((name, graph.get_node(name))) }
       else None
     }
   }
