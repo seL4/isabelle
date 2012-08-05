@@ -200,9 +200,9 @@ def HOL_Library(*args):
     return isabelle_build(*(args + ("-b", "HOL-Library")))
 
 @configuration(repos = [Isabelle], deps = [(HOL, [0])])
-def HOL_HOLCF(*args):
+def HOLCF(*args):
     """HOLCF"""
-    return isabelle_build(*(args + ("-b", "HOL-HOLCF")))
+    return isabelle_build(*(args + ("-b", "HOLCF")))
 
 @configuration(repos = [Isabelle], deps = [(Pure, [0])])
 def ZF(*args):
@@ -219,7 +219,7 @@ ML_SYSTEM="polyml-5.4.1"
 @configuration(repos = [Isabelle], deps = [])
 def AFP_images(*args):
     """Isabelle images needed for the AFP (64 bit)"""
-    return isabelle_build(*(args + ("-b", "-j", "2", "Pure", "HOL", "HOL-HOLCF", "HOL-Word")), more_settings=settings64)
+    return isabelle_build(*(args + ("-b", "-j", "2", "Pure", "HOL", "HOLCF", "HOL-Word")), more_settings=settings64)
 
 @configuration(repos = [Isabelle], deps = [])
 def Isabelle_makeall(*args):
