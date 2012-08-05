@@ -217,26 +217,6 @@ ML_SYSTEM="polyml-5.4.1"
 '''
 
 @configuration(repos = [Isabelle], deps = [])
-def Pure_64(*args):
-    """Pure Image (64 bit)"""
-    return isabelle_build(*(args + ("-b", "Pure")), more_settings=settings64)
-
-@configuration(repos = [Isabelle], deps = [(Pure, [0])])
-def HOL_64(*args):
-    """HOL Image (64 bit)"""
-    return isabelle_build(*(args + ("-b", "HOL")), more_settings=settings64)
-
-@configuration(repos = [Isabelle], deps = [(HOL, [0])])
-def HOL_HOLCF_64(*args):
-    """HOLCF Image"""
-    return isabelle_build(*(args + ("-b", "HOL-HOLCF")), more_settings=settings64)
-
-@configuration(repos = [Isabelle], deps = [(HOL, [0])])
-def HOL_Word_64(*args):
-    """HOL-Word Image"""
-    return isabelle_build(*(args + ("-b", "HOL-Word")), more_settings=settings64)
-
-@configuration(repos = [Isabelle], deps = [])
 def AFP_images(*args):
     """Isabelle images needed for the AFP (64 bit)"""
     return isabelle_build(*(args + ("-b", "-j", "2", "Pure", "HOL", "HOL-HOLCF", "HOL-Word")), more_settings=settings64)
