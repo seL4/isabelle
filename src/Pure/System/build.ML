@@ -6,7 +6,7 @@ Build Isabelle sessions.
 
 signature BUILD =
 sig
-  val build: string -> unit
+  val build: string -> 'a
 end;
 
 structure Build: BUILD =
@@ -55,8 +55,7 @@ fun use_theories (options, thys) =
 
 in
 
-fun build args_file = uninterruptible (fn restore_attributes => fn () =>
-  restore_attributes (fn () =>
+fun build args_file = Command_Line.tool (fn () =>
     let
       val (do_output, (options, (verbose, (browser_info, (parent_name,
           (name, theories)))))) =
@@ -83,11 +82,8 @@ fun build args_file = uninterruptible (fn restore_attributes => fn () =>
             |> Unsynchronized.setmp Multithreading.max_threads (Options.int options "threads"));
 
       val _ = Session.finish ();
-      val _ = if do_output then () else quit ();
-    in () end) ()) ()
-  handle exn =>
-    (Output.error_msg (ML_Compiler.exn_message exn);
-     if Exn.is_interrupt exn then exit 130 else exit 1);
+      val _ = if do_output then Secure.commit () else ();
+    in 0 end);
 
 end;
 
