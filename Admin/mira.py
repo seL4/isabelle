@@ -507,35 +507,3 @@ def SML_makeall(*args):
     """Makeall built with SML/NJ"""
     return isabelle_makeall(*args, more_settings=smlnj_settings, target='smlnj', make_options=('-j', '3'))
 
-
-
-# Importer
-
-@configuration(repos = ['Hollight'], deps = [])
-def Hollight_proof_objects(env, case, paths, dep_paths, playground):
-    """Build proof object bundle from HOL Light"""
-
-    hollight_home = paths[0]
-    os.chdir(os.path.join(hollight_home, 'Proofrecording', 'hol_light'))
-
-    subprocess.check_call(['make'])
-    (return_code, _) = util.run_process.run_process(
-       '''echo -e '#use "hol.ml";;\n export_saved_proofs None;;' | ocaml''',
-       environment={'HOLPROOFEXPORTDIR': './proofs_extended', 'HOLPROOFOBJECTS': 'EXTENDED'},
-       shell=True)
-    subprocess.check_call('tar -czf proofs_extended.tar.gz proofs_extended'.split(' '))
-    subprocess.check_call(['mv', 'proofs_extended.tar.gz', playground])
-
-    return (return_code == 0, '', {}, {}, playground)
-
-
-@configuration(repos = [Isabelle, 'Hollight'], deps = [(Hollight_proof_objects, [1])])
-def HOL_Generate_HOLLight(env, case, paths, dep_paths, playground):
-    """Generated theories by HOL Light import"""
-
-    os.chdir(playground)
-    subprocess.check_call(['tar', '-xzf', path.join(dep_paths[0], 'proofs_extended.tar.gz')])
-    proofs_dir = path.join(playground, 'proofs_extended')
-
-    return isabelle_make('src/HOL', env, case, paths, dep_paths, playground,
-      more_settings=('HOL4_PROOFS="%s"' % proofs_dir), target='HOL-Generate-HOLLight')
