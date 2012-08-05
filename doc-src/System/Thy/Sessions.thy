@@ -286,4 +286,43 @@ isabelle build -a -n -c
 \end{ttbox}
 *}
 
+
+section {* Preparing session root directories \label{sec:tool-mkroot} *}
+
+text {* The @{tool_def mkroot} tool prepares Isabelle session source
+  directories, including some @{verbatim ROOT} entry, an example
+  theory file, and some initial configuration for document preparation
+  (see also \chref{ch:present}).  The usage of @{tool mkroot} is:
+
+\begin{ttbox}
+Usage: isabelle mkroot NAME
+
+  Prepare session root directory, adding session NAME with
+  built-in document preparation.
+\end{ttbox}
+
+  All session-specific files are placed into a separate sub-directory
+  given as @{verbatim NAME} above.  The @{verbatim ROOT} file is in
+  the parent position relative to that --- it could refer to several
+  such sessions.  The @{tool mkroot} tool is conservative in the sense
+  that does not overwrite an existing session sub-directory; an
+  already existing @{verbatim ROOT} file is extended.
+
+  The implicit Isabelle settings variable @{setting ISABELLE_LOGIC}
+  specifies the parent session, and @{setting
+  ISABELLE_DOCUMENT_FORMAT} the document format to be filled filled
+  into the generated @{verbatim ROOT} file.  *}
+
+
+subsubsection {* Examples *}
+
+text {* The following produces an example session, relatively to the
+  @{verbatim ROOT} in the current directory:
+\begin{ttbox}
+isabelle mkroot Test && isabelle build -v -d. Test
+\end{ttbox}
+
+  Option @{verbatim "-v"} is not required, but useful to reveal the
+  the location of generated documents.  *}
+
 end

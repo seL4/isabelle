@@ -143,7 +143,7 @@ else
 fi
 
 cat >> "$DIR/ROOT" <<EOF
-session "$NAME" = "$ISABELLE_LOGIC" +
+session "$NAME"! = "$ISABELLE_LOGIC" +
   options [document = $ISABELLE_DOC_FORMAT]
   theories "Ex"
   files "document/root.tex"
@@ -152,19 +152,25 @@ EOF
 
 # notes
 
+if [ "$DIR" = . ]; then
+  OPT_DIR="-d."
+else
+  OPT_DIR="-d \"$DIR\""
+fi
+
 cat <<EOF
 
 Notes:
 
-  * $DIR_NAME/Ex.thy contains an example theory
+  * $DIR_NAME/Ex.thy contains an example theory.
 
-  * $DIR_NAME/document/root.tex contains the LaTeX master document setup
+  * $DIR_NAME/document/root.tex contains the LaTeX master document setup.
 
-  * $DIR/ROOT contains build options, theories and extra file dependencies
+  * $DIR/ROOT contains build options, theories and extra file dependencies.
 
-  * the following command line builds the session (with document):
+  * The following command line builds the session (with document):
 
-      isabelle build -v -d $DIR ${ISABELLE_LOGIC}-${NAME}
+      isabelle build -v $OPT_DIR $NAME
 
 EOF
 
