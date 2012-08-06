@@ -425,9 +425,9 @@ fun atp_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
 
 fun wipe_out_file file = (try (File.rm o Path.explode) file; ())
 
-fun write_file heading (xs, f) file =
+fun write_file banner (xs, f) file =
   let val path = Path.explode file in
-    File.write path heading;
+    case banner of SOME s => File.write path s | NONE => ();
     xs |> chunk_list 500
        |> List.app (File.append path o space_implode "" o map f)
   end
@@ -462,8 +462,8 @@ fun run_mash_tool ctxt overlord save max_suggs write_cmds read_suggs =
       if overlord then ()
       else List.app wipe_out_file [err_file, sugg_file, cmd_file]
   in
-    write_file "" ([], K "") sugg_file;
-    write_file "" write_cmds cmd_file;
+    write_file (SOME "") ([], K "") sugg_file;
+    write_file (SOME "") write_cmds cmd_file;
     trace_msg ctxt (fn () => "Running " ^ command);
     with_cleanup clean_up run_on ()
   end
@@ -543,9 +543,9 @@ fun graph_info G =
   string_of_int (length (Graph.minimals G)) ^ " minimal, " ^
   string_of_int (length (Graph.maximals G)) ^ " maximal"
 
-type mash_state = {fact_G : unit Graph.T}
+type mash_state = {fact_G : unit Graph.T, dirty : string list option}
 
-val empty_state = {fact_G = Graph.empty}
+val empty_state = {fact_G = Graph.empty, dirty = SOME []}
 
 local
 
@@ -573,23 +573,34 @@ fun load _ (state as (true, _)) = state
          in
            trace_msg ctxt (fn () =>
                "Loaded fact graph (" ^ graph_info fact_G ^ ")");
-           {fact_G = fact_G}
+           {fact_G = fact_G, dirty = SOME []}
          end
        | _ => empty_state)
     end
 
-fun save ctxt {fact_G} =
-  let
-    fun str_of_entry (name, parents, kind) =
-      str_of_proof_kind kind ^ " " ^ escape_meta name ^ ": " ^
-      escape_metas parents ^ "\n"
-    fun append_entry (name, (kind, (parents, _))) =
-      cons (name, Graph.Keys.dest parents, kind)
-    val entries = [] |> Graph.fold append_entry fact_G
-  in
-    write_file (version ^ "\n") (entries, str_of_entry) (mash_state_file ());
-    trace_msg ctxt (fn () => "Saved fact graph (" ^ graph_info fact_G ^ ")")
-  end
+fun save _ (state as {dirty = SOME [], ...}) = state
+  | save ctxt {fact_G, dirty} =
+    let
+      fun str_of_entry (name, parents, kind) =
+        str_of_proof_kind kind ^ " " ^ escape_meta name ^ ": " ^
+        escape_metas parents ^ "\n"
+      fun append_entry (name, (kind, (parents, _))) =
+        cons (name, Graph.Keys.dest parents, kind)
+      val (banner, entries) =
+        case dirty of
+          SOME names =>
+          (NONE, fold (append_entry o Graph.get_entry fact_G) names [])
+        | NONE => (SOME (version ^ "\n"), Graph.fold append_entry fact_G [])
+    in
+      write_file banner (entries, str_of_entry) (mash_state_file ());
+      trace_msg ctxt (fn () =>
+          "Saved fact graph (" ^ graph_info fact_G ^
+          (case dirty of
+             SOME dirty =>
+             "; " ^ string_of_int (length dirty) ^ " dirty fact(s)"
+           | _ => "") ^  ")");
+      {fact_G = fact_G, dirty = SOME []}
+    end
 
 val global_state =
   Synchronized.var "Sledgehammer_MaSh.global_state" (false, empty_state)
@@ -597,7 +608,7 @@ val global_state =
 in
 
 fun mash_map ctxt f =
-  Synchronized.change global_state (load ctxt ##> (f #> tap (save ctxt)))
+  Synchronized.change global_state (load ctxt ##> (f #> save ctxt))
 
 fun mash_peek ctxt f =
   Synchronized.change_result global_state (load ctxt #> `snd #>> f)
@@ -666,7 +677,7 @@ fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
   let
     val thy = Proof_Context.theory_of ctxt
     val (fact_G, suggs) =
-      mash_peek ctxt (fn {fact_G} =>
+      mash_peek ctxt (fn {fact_G, ...} =>
           if Graph.is_empty fact_G then
             (fact_G, [])
           else
@@ -736,7 +747,7 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
           val feats = features_of ctxt prover thy (Local, General) [t]
           val deps = used_ths |> map nickname_of
         in
-          mash_peek ctxt (fn {fact_G} =>
+          mash_peek ctxt (fn {fact_G, ...} =>
               let val parents = maximal_in_graph fact_G facts in
                 mash_ADD ctxt overlord [(name, parents, feats, deps)]
               end);
@@ -755,7 +766,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
     val timer = Timer.startRealTimer ()
     fun next_commit_time () =
       Time.+ (Timer.checkRealTimer timer, commit_timeout)
-    val {fact_G} = mash_get ctxt
+    val {fact_G, ...} = mash_get ctxt
     val (old_facts, new_facts) =
       facts |> List.partition (is_fact_in_graph fact_G)
             ||> sort (thm_ord o pairself snd)
@@ -782,17 +793,22 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
           else
             isar_dependencies_of all_names th
         fun do_commit [] [] [] state = state
-          | do_commit adds reps flops {fact_G} =
+          | do_commit adds reps flops {fact_G, dirty} =
             let
+              val was_empty = Graph.is_empty fact_G
               val (adds, fact_G) =
                 ([], fact_G) |> fold (add_wrt_fact_graph ctxt) adds
               val (reps, fact_G) =
                 ([], fact_G) |> fold (reprove_wrt_fact_graph ctxt) reps
               val fact_G = fact_G |> fold flop_wrt_fact_graph flops
+              val dirty =
+                case (was_empty, dirty, reps) of
+                  (false, SOME names, []) => SOME (map #1 adds @ names)
+                | _ => NONE
             in
               mash_ADD ctxt overlord (rev adds);
               mash_REPROVE ctxt overlord reps;
-              {fact_G = fact_G}
+              {fact_G = fact_G, dirty = dirty}
             end
         fun commit last adds reps flops =
           (if debug andalso auto_level = 0 then
