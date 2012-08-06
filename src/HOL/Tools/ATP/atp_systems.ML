@@ -350,6 +350,42 @@ val e_males_config : atp_config =
 val e_males = (e_malesN, fn () => e_males_config)
 
 
+(* iProver *)
+
+val iprover_config : atp_config =
+  {exec = (["IPROVER_HOME"], ["iprover"]),
+   arguments = fn _ => fn _ => fn _ => fn timeout => fn _ =>
+       "--clausifier vclausify_rel --time_out_real " ^
+       string_of_real (Time.toReal timeout),
+   proof_delims = tstp_proof_delims,
+   known_failures =
+     [(ProofIncomplete, "% SZS output start CNFRefutation")] @
+     known_szs_status_failures,
+   prem_role = Hypothesis,
+   best_slices =
+     (* FUDGE *)
+     K [(1.0, (true, ((150, FOF, "mono_guards??", liftingN, false), "")))],
+   best_max_mono_iters = default_max_mono_iters,
+   best_max_new_mono_instances = default_max_new_mono_instances}
+
+val iprover = (iproverN, fn () => iprover_config)
+
+
+(* iProver-Eq *)
+
+val iprover_eq_config : atp_config =
+  {exec = (["IPROVER_EQ_HOME"], ["iprover-eq"]),
+   arguments = #arguments iprover_config,
+   proof_delims = #proof_delims iprover_config,
+   known_failures = #known_failures iprover_config,
+   prem_role = #prem_role iprover_config,
+   best_slices = #best_slices iprover_config,
+   best_max_mono_iters = #best_max_mono_iters iprover_config,
+   best_max_new_mono_instances = #best_max_new_mono_instances iprover_config}
+
+val iprover_eq = (iprover_eqN, fn () => iprover_eq_config)
+
+
 (* LEO-II *)
 
 (* LEO-II supports definitions, but it performs significantly better on our
@@ -616,6 +652,12 @@ val explicit_tff0 = TFF (Monomorphic, TPTP_Explicit)
 val remote_e =
   remotify_atp e "EP" ["1.0", "1.1", "1.2"]
       (K ((750, FOF, "mono_tags??", combsN, false), "") (* FUDGE *))
+val remote_iprover =
+  remotify_atp iprover "iProver" []
+      (K ((150, FOF, "mono_guards??", liftingN, false), "") (* FUDGE *))
+val remote_iprover_eq =
+  remotify_atp iprover_eq "iProver-Eq" []
+      (K ((150, FOF, "mono_guards??", liftingN, false), "") (* FUDGE *))
 val remote_leo2 =
   remotify_atp leo2 "LEO-II" ["1.2.8", "1.2.6"]
       (K ((100, leo2_thf0, "mono_native_higher", liftingN, false), "") (* FUDGE *))
@@ -631,12 +673,6 @@ val remote_z3_tptp =
 val remote_e_sine =
   remote_atp e_sineN "SInE" ["0.4"] [] (#known_failures e_config) Conjecture
       (K ((500, FOF, "mono_guards??", combsN, false), "") (* FUDGE *))
-val remote_iprover =
-  remote_atp iproverN "iProver" [] [] [] Conjecture
-      (K ((150, FOF, "mono_guards??", liftingN, false), "") (* FUDGE *))
-val remote_iprover_eq =
-  remote_atp iprover_eqN "iProver-Eq" [] [] [] Conjecture
-      (K ((150, FOF, "mono_guards??", liftingN, false), "") (* FUDGE *))
 val remote_snark =
   remote_atp snarkN "SNARK" ["20080805r029", "20080805r024"]
       [("refutation.", "end_refutation.")] [] Hypothesis
@@ -691,10 +727,10 @@ fun effective_term_order ctxt atp =
   end
 
 val atps=
-  [alt_ergo, e, e_males, leo2, satallax, spass, spass_poly, vampire, z3_tptp,
-   dummy_thf, remote_e, remote_e_sine, remote_e_tofof, remote_iprover,
-   remote_iprover_eq, remote_leo2, remote_satallax, remote_vampire,
-   remote_z3_tptp, remote_snark, remote_waldmeister]
+  [alt_ergo, e, e_males, iprover, iprover_eq, leo2, satallax, spass, spass_poly,
+   vampire, z3_tptp, dummy_thf, remote_e, remote_e_sine, remote_e_tofof,
+   remote_iprover, remote_iprover_eq, remote_leo2, remote_satallax,
+   remote_vampire, remote_z3_tptp, remote_snark, remote_waldmeister]
 
 val setup = fold add_atp atps
 

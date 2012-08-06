@@ -186,7 +186,7 @@ fun extract_tstplike_proof_and_outcome verbose complete proof_delims
                                        known_failures output =
   case (extract_tstplike_proof proof_delims output,
         extract_known_failure known_failures output) of
-    (_, SOME ProofIncomplete) => ("", SOME ProofIncomplete)
+    (_, SOME ProofIncomplete) => ("", NONE)
   | ("", SOME ProofMissing) => ("", NONE)
   | ("", SOME failure) =>
     ("", SOME (if failure = GaveUp andalso complete then Unprovable
