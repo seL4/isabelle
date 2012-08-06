@@ -427,19 +427,4 @@ def isabelle_dependency_only(env, case, paths, dep_paths, playground):
     (ZF, [0]),
     (HOL_Library, [0])
   ])
-def Documentation_images(*args):
-    """Isabelle images needed to build the documentation"""
-    return isabelle_dependency_only(*args)
-
-@configuration(repos = [Isabelle], deps = [(Documentation_images, [0])])
-def Documentation(env, case, paths, dep_paths, playground):
-    """Build of documentation"""
-    isabelle_home = paths[0]
-    dep_path = dep_paths[0]
-    prepare_isabelle_repository(isabelle_home, env.settings.contrib, dep_path,
-      usedir_options = default_usedir_options)
-    (return_code, log) = env.run_process(path.join(isabelle_home, 'Admin', 'build', 'doc-src'))
-    return (return_code == 0, extract_isabelle_run_summary(log),
-      extract_report_data(isabelle_home, log), {'log': log}, None)
-
 

@@ -23,10 +23,9 @@ Usage: $PRG [MODULES]
   Produce Isabelle distribution modules from current repository sources.
   The MODULES list may contain any of the following:
 
-    all             all modules below *except* doc-src
+    all             all modules below
     browser         graph browser (requires jdk)
     doc             documentation (requires latex)
-    doc-src         documentation sources from Isabelle theories
     jars            Isabelle/Scala layer (requires \$ISABELLE_JDK_HOME and \$SCALA_HOME)
     jars_test       test separate build of jars
     jars_fresh      fresh build of jars
@@ -84,25 +83,6 @@ function build_doc ()
 }
 
 
-function build_doc-src ()
-{
-  echo "###"
-  echo "### Building documentation sources..."
-  echo "###"
-
-  cd "$ISABELLE_HOME/doc-src"
-  for DOC in $(cat Dirs)
-  do
-    pushd "$DOC" >/dev/null
-    if [[ -f "IsaMakefile" ]]
-    then
-      "$ISABELLE_TOOL" make || exit $?
-    fi
-    popd >/dev/null
-  done
-}
-
-
 function build_jars ()
 {
   pushd "$ISABELLE_HOME/src/Pure" >/dev/null
@@ -119,7 +99,6 @@ do
     all) build_all;;
     browser) build_browser;;
     doc) build_doc;;
-    doc-src) build_doc-src;;
     jars) build_jars;;
     jars_fresh) build_jars -f;;
     jars_test) build_jars -t;;
