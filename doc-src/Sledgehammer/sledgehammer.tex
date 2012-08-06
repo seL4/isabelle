@@ -839,6 +839,7 @@ installation instructions.
 
 The following local provers are supported:
 
+\begin{sloppy}
 \begin{enum}
 \item[\labelitemi] \textbf{\textit{alt\_ergo}:} Alt-Ergo is a polymorphic
 SMT solver developed by Bobot et al.\ \cite{alt-ergo}.
@@ -866,6 +867,19 @@ by Daniel K\"uhlwein that implements strategy scheduling on top of E. To use
 E-MaLeS, set the environment variable \texttt{E\_MALES\_HOME} to the directory
 that contains the \texttt{emales.py} script. Sledgehammer has been tested with
 version 1.1.
+
+\item[\labelitemi] \textbf{\textit{iprover}:} iProver is a pure
+instantiation-based prover developed by Konstantin Korovin \cite{korovin-2009}.
+To use iProver, set the environment variable \texttt{IPROVER\_HOME} to the
+directory that contains the \texttt{iprover} executable. Sledgehammer has been
+tested with version 0.99.
+
+\item[\labelitemi] \textbf{\textit{iprover\_eq}:} iProver-Eq is an
+instantiation-based prover with native support for equality developed by
+Konstantin Korovin and Christoph Sticksel \cite{korovin-sticksel-2010}. To use
+iProver-Eq, set the environment variable \texttt{IPROVER\_EQ\_HOME} to the
+directory that contains the \texttt{iprover-eq} executable. Sledgehammer has
+been tested with version 0.8.
 
 \item[\labelitemi] \textbf{\textit{leo2}:} LEO-II is an automatic
 higher-order prover developed by Christoph Benzm\"uller et al.\ \cite{leo2},
@@ -920,6 +934,7 @@ formats (FOF and TFF0). It is included for experimental purposes. Sledgehammer
 requires version 4.0 or above. To use it, set the environment variable
 \texttt{Z3\_HOME} to the directory that contains the \texttt{z3} executable.
 \end{enum}
+\end{sloppy}
 
 The following remote provers are supported:
 
@@ -940,14 +955,11 @@ developed by Geoff Sutcliffe \cite{tofof} based on E running on his Miami
 servers. This ATP supports the TPTP typed first-order format (TFF0). The
 remote version of E-ToFoF runs on Geoff Sutcliffe's Miami servers.
 
-\item[\labelitemi] \textbf{\textit{remote\_iprover}:} iProver is a pure
-instantiation-based prover developed by Konstantin Korovin \cite{korovin-2009}. The
+\item[\labelitemi] \textbf{\textit{remote\_iprover}:} The
 remote version of iProver runs on Geoff Sutcliffe's Miami servers
 \cite{sutcliffe-2000}.
 
-\item[\labelitemi] \textbf{\textit{remote\_iprover\_eq}:} iProver-Eq is an
-instantiation-based prover with native support for equality developed by
-Konstantin Korovin and Christoph Sticksel \cite{korovin-sticksel-2010}. The
+\item[\labelitemi] \textbf{\textit{remote\_iprover\_eq}:} The
 remote version of iProver-Eq runs on Geoff Sutcliffe's Miami servers
 \cite{sutcliffe-2000}.
 
