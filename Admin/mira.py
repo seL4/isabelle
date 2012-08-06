@@ -420,11 +420,3 @@ def isabelle_dependency_only(env, case, paths, dep_paths, playground):
 
     return (True, 'ok', {}, {}, result)
 
-
-@configuration(repos = [Isabelle], deps = [
-    (HOL, [0]),
-    (HOLCF, [0]),
-    (ZF, [0]),
-    (HOL_Library, [0])
-  ])
-
