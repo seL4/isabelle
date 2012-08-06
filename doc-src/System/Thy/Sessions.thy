@@ -152,6 +152,30 @@ text {* See @{file "~~/etc/options"} for the main defaults provided by
   the Isabelle distribution.  Isabelle/jEdit (\secref{sec:tool-jedit})
   includes a simple editing mode @{verbatim "isabelle-options"} for
   this file-format.
+
+  The @{tool_def options} tool prints Isabelle system options.  Its
+  command-line usage is:
+\begin{ttbox}
+Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
+
+  Options are:
+    -b           include $ISABELLE_BUILD_OPTIONS
+    -x FILE      export to FILE in YXML format
+
+  Print Isabelle system options, augmented by MORE_OPTIONS given as
+  arguments NAME=VAL or NAME.
+\end{ttbox}
+
+  The command line arguments provide additional system options of the
+  form @{text "name"}@{verbatim "="}@{text "value"} or @{text name}
+  for Boolean options.
+
+  Option @{verbatim "-b"} augments the implicit environment of system
+  options by the ones of @{setting ISABELLE_BUILD_OPTIONS}, cf.\
+  \secref{sec:tool-build}.
+
+  Option @{verbatim "-x"} specifies a file to export the result in
+  YXML format, instead of printing it in human-readable form.
 *}
 
 

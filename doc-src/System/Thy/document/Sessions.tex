@@ -264,7 +264,31 @@ See \verb|~~/src/HOL/ROOT| for a diversity of practically
 See \verb|~~/etc/options| for the main defaults provided by
   the Isabelle distribution.  Isabelle/jEdit (\secref{sec:tool-jedit})
   includes a simple editing mode \verb|isabelle-options| for
-  this file-format.%
+  this file-format.
+
+  The \indexdef{}{tool}{options}\hypertarget{tool.options}{\hyperlink{tool.options}{\mbox{\isa{\isatool{options}}}}} tool prints Isabelle system options.  Its
+  command-line usage is:
+\begin{ttbox}
+Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
+
+  Options are:
+    -b           include $ISABELLE_BUILD_OPTIONS
+    -x FILE      export to FILE in YXML format
+
+  Print Isabelle system options, augmented by MORE_OPTIONS given as
+  arguments NAME=VAL or NAME.
+\end{ttbox}
+
+  The command line arguments provide additional system options of the
+  form \isa{{\isaliteral{22}{\isachardoublequote}}name{\isaliteral{22}{\isachardoublequote}}}\verb|=|\isa{{\isaliteral{22}{\isachardoublequote}}value{\isaliteral{22}{\isachardoublequote}}} or \isa{name}
+  for Boolean options.
+
+  Option \verb|-b| augments the implicit environment of system
+  options by the ones of \hyperlink{setting.ISABELLE-BUILD-OPTIONS}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}BUILD{\isaliteral{5F}{\isacharunderscore}}OPTIONS}}}}, cf.\
+  \secref{sec:tool-build}.
+
+  Option \verb|-x| specifies a file to export the result in
+  YXML format, instead of printing it in human-readable form.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

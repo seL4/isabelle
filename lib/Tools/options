@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# DESCRIPTION: print Isabelle system options
+
+
+## diagnostics
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: isabelle $PRG [OPTIONS] [MORE_OPTIONS ...]"
+  echo
+  echo "  Options are:"
+  echo "    -b           include \$ISABELLE_BUILD_OPTIONS"
+  echo "    -x FILE      export to FILE in YXML format"
+  echo
+  echo "  Print Isabelle system options, augmented by MORE_OPTIONS given as"
+  echo "  arguments NAME=VAL or NAME."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+eval "declare -a BUILD_OPTIONS=()"
+EXPORT_FILE=""
+
+while getopts "bx:" OPT
+do
+  case "$OPT" in
+    b)
+      BUILD_OPTIONS=($ISABELLE_BUILD_OPTIONS)
+      ;;
+    x)
+      EXPORT_FILE="$OPTARG"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+## main
+
+[ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
+
+exec "$ISABELLE_TOOL" java isabelle.Options "$EXPORT_FILE" "${BUILD_OPTIONS[@]}" "$@"
+

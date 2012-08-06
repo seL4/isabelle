@@ -85,6 +85,9 @@ regular isabelle build tool.  For example:
 
   isabelle build -s -b HOLCF
 
+* The "isabelle options" tool prints Isabelle system options, as
+required for "isabelle build", for example.
+
 * The "isabelle mkroot" tool prepares session root directories for use
 with "isabelle build", similar to former "isabelle mkdir" for
 "isabelle usedir".
