@@ -49,16 +49,14 @@ fun atoms t = add_atoms true [] t []
 
 val coeff_ord = prod_ord bool_ord Term_Ord.term_ord
 
-exception Cancel
-
-fun find_common ord xs ys =
+fun find_all_common ord xs ys =
   let
     fun find (xs as (x, px)::xs') (ys as (y, py)::ys') =
         (case ord (x, y) of
-          EQUAL => (px, py)
+          EQUAL => (px, py) :: find xs' ys'
         | LESS => find xs' ys
         | GREATER => find xs ys')
-      | find _ _ = raise Cancel
+      | find _ _ = []
     fun ord' ((x, _), (y, _)) = ord (x, y)
   in
     find (sort ord' xs) (sort ord' ys)
@@ -66,14 +64,20 @@ fun find_common ord xs ys =
 
 fun cancel_conv rule ct =
   let
+    fun cancel1_conv (lpath, rpath) =
+      let
+        val lconv = move_to_front lpath
+        val rconv = move_to_front rpath
+        val conv1 = Conv.combination_conv (Conv.arg_conv lconv) rconv
+      in
+        conv1 then_conv Conv.rewr_conv rule
+      end
     val ((_, lhs), rhs) = (apfst dest_comb o dest_comb) (Thm.term_of ct)
-    val (lpath, rpath) = find_common coeff_ord (atoms lhs) (atoms rhs)
-    val lconv = move_to_front lpath
-    val rconv = move_to_front rpath
-    val conv1 = Conv.combination_conv (Conv.arg_conv lconv) rconv
-    val conv = conv1 then_conv Conv.rewr_conv rule
+    val common = find_all_common coeff_ord (atoms lhs) (atoms rhs)
+    val conv =
+      if null common then Conv.no_conv
+      else Conv.every_conv (map cancel1_conv common)
   in conv ct end
-    handle Cancel => raise CTERM ("no_conversion", [])
 
 val cancel_diff_conv = cancel_conv (mk_meta_eq @{thm add_diff_cancel_left})
 val cancel_eq_conv = cancel_conv (mk_meta_eq @{thm add_left_cancel})
