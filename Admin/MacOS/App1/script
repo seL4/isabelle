@@ -48,9 +48,9 @@ ISABELLE_TOOL="$(choosefrom \
 # Proof General / Emacs
 
 PROOFGENERAL_EMACS="$(choosefrom \
-  "$THIS/Emacs.app/Contents/MacOS/Emacs" \
-  "$SUPER_APP/Emacs.app/Contents/MacOS/Emacs" \
-  /Applications/Emacs.app/Contents/MacOS/Emacs \
+  "$THIS/Aquamacs.app/Contents/MacOS/Aquamacs" \
+  "$SUPER_APP/Aquamacs.app/Contents/MacOS/Aquamacs" \
+  /Applications/Aquamacs.app/Contents/MacOS/Aquamacs \
   "")"
 
 declare -a EMACS_OPTIONS=()
