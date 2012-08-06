@@ -83,12 +83,37 @@ object Options
   /* encode */
 
   val encode: XML.Encode.T[Options] = (options => options.encode)
+
+
+  /* command line entry point */
+
+  def main(args: Array[String])
+  {
+    Command_Line.tool {
+      args.toList match {
+        case export_file :: more_options =>
+          val options = (Options.init() /: more_options)(_.define_simple(_))
+
+          if (export_file == "") java.lang.System.out.println(options.print)
+          else File.write(Path.explode(export_file), YXML.string_of_body(options.encode))
+
+          0
+        case _ => error("Bad arguments:\n" + cat_lines(args))
+      }
+    }
+  }
 }
 
 
 final class Options private(options: Map[String, Options.Opt] = Map.empty)
 {
   override def toString: String = options.iterator.mkString("Options (", ",", ")")
+
+  def print: String =
+    cat_lines(options.toList.sortBy(_._1).map({ case (name, opt) =>
+      name + " : " + opt.typ.print + " = " +
+        (if (opt.typ == Options.String) quote(opt.value) else opt.value) +
+      "\n  -- " + quote(opt.description) }))
 
 
   /* check */
