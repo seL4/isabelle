@@ -406,8 +406,23 @@ object Build
 
     private val parent = info.parent.getOrElse("")
 
+    private val args_file = File.tmp_file("args")
+    File.write(args_file, YXML.string_of_body(
+      if (is_pure(name)) Options.encode(info.options)
+      else
+        {
+          import XML.Encode._
+              pair(bool, pair(Options.encode, pair(bool, pair(Path.encode, pair(string,
+                pair(string, list(pair(Options.encode, list(Path.encode)))))))))(
+              (do_output, (info.options, (verbose, (browser_info, (parent,
+                (name, info.theories)))))))
+        }))
+
     private val env =
-      Map("INPUT" -> parent, "TARGET" -> name, "OUTPUT" -> Isabelle_System.standard_path(output))
+      Map("INPUT" -> parent, "TARGET" -> name, "OUTPUT" -> Isabelle_System.standard_path(output),
+        (if (is_pure(name)) "ISABELLE_PROCESS_OPTIONS" else "ARGS_FILE") ->
+          Isabelle_System.posix_path(args_file.getPath))
+
     private val script =
       if (is_pure(name)) {
         if (do_output) "./build " + name + " \"$OUTPUT\""
@@ -437,20 +452,9 @@ object Build
         exit "$RC"
         """
       }
-    private val args_xml =
-    {
-      import XML.Encode._
-          pair(bool, pair(Options.encode, pair(bool, pair(Path.encode, pair(string,
-            pair(string, list(pair(Options.encode, list(Path.encode)))))))))(
-          (do_output, (info.options, (verbose, (browser_info, (parent,
-            (name, info.theories)))))))
-    }
-    private val args_file = File.tmp_file("args")
-    private val env1 = env + ("ARGS_FILE" -> Isabelle_System.posix_path(args_file.getPath))
-    File.write(args_file, YXML.string_of_body(args_xml))
 
     private val (thread, result) =
-      Simple_Thread.future("build") { Isabelle_System.bash_env(info.dir.file, env1, script) }
+      Simple_Thread.future("build") { Isabelle_System.bash_env(info.dir.file, env, script) }
 
     def terminate: Unit = thread.interrupt
     def is_finished: Boolean = result.is_finished

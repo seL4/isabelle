@@ -231,12 +231,16 @@ elif [ -n "$PGIP" ]; then
 elif [ -n "$PROOFGENERAL" ]; then
   MLTEXT="$MLTEXT; ProofGeneral.init $ISAR;"
 elif [ "$ISAR" = true ]; then
-  MLTEXT="$MLTEXT; Isar.main();"
+  if [ -z "$ISABELLE_PROCESS_OPTIONS" ]; then
+    ISABELLE_PROCESS_OPTIONS="$ISABELLE_TMP/options"
+    "$ISABELLE_TOOL" options -x "$ISABELLE_PROCESS_OPTIONS" || fail "Failed to retrieve options"
+  fi
+  MLTEXT="$MLTEXT; Isar.main ();"
 else
   NICE=""
 fi
 
-export INFILE OUTFILE MLTEXT TERMINATE NOWRITE ISABELLE_PID ISABELLE_TMP
+export INFILE OUTFILE MLTEXT TERMINATE NOWRITE ISABELLE_PID ISABELLE_TMP ISABELLE_PROCESS_OPTIONS
 
 if [ -f "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM" ]; then
   $NICE "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM"
@@ -245,6 +249,7 @@ else
 fi
 RC="$?"
 
+[ -n "$ISABELLE_PROCESS_OPTIONS" ] && rm -f "$ISABELLE_PROCESS_OPTIONS"
 rmdir "$ISABELLE_TMP"
 
 exit "$RC"

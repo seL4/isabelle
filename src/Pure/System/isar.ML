@@ -137,7 +137,7 @@ in
 
 fun toplevel_loop in_stream {init = do_init, welcome, sync, secure} =
  (Context.set_thread_data NONE;
-  if do_init then init () else ();
+  if do_init then (Options.load_default (); init ()) else ();
   if welcome then writeln (Session.welcome ()) else ();
   uninterruptible (fn _ => fn () => raw_loop secure (Outer_Syntax.isar in_stream sync)) ());
 
