@@ -36,7 +36,7 @@ session Library = HOL +
     Code_Char_ord
     Code_Integer
     Efficient_Nat
-    (*"Code_Prolog" FIXME cf. 76965c356d2a *)
+    (* Code_Prolog  FIXME cf. 76965c356d2a *)
     Code_Real_Approx_By_Float
     Target_Numeral
   files "document/root.bib" "document/root.tex"
