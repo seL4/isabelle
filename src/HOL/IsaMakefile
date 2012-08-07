@@ -10,27 +10,51 @@ clean:
 all:
 	@$(ISABELLE_TOOL) build -a
 
-Pure:
+
+Pure: $(ISABELLE_OUTPUT)/Pure
+
+$(ISABELLE_OUTPUT)/Pure:
 	@$(ISABELLE_TOOL) build -b Pure
 
-HOL:
+
+HOL: $(ISABELLE_OUTPUT)/HOL
+
+$(ISABELLE_OUTPUT)/HOL:
 	@$(ISABELLE_TOOL) build -b HOL
 
-HOL-Library:
+
+HOL-Library: $(ISABELLE_OUTPUT)/HOL-Library
+
+$(ISABELLE_OUTPUT)/HOL-Library:
 	@$(ISABELLE_TOOL) build -b HOL-Library
 
-HOL-IMP:
+
+HOL-IMP: $(ISABELLE_OUTPUT)/HOL-IMP
+
+$(ISABELLE_OUTPUT)/HOL-IMP:
 	@$(ISABELLE_TOOL) build -b HOL-IMP
 
-HOL-Multivariate_Analysis:
+
+HOL-Multivariate_Analysis: $(ISABELLE_OUTPUT)/HOL-Multivariate_Analysis
+
+$(ISABELLE_OUTPUT)/HOL-Multivariate_Analysis:
 	@$(ISABELLE_TOOL) build -b HOL-Multivariate_Analysis
 
-HOL-Nominal:
+
+HOL-Nominal: $(ISABELLE_OUTPUT)/HOL-Nominal
+
+$(ISABELLE_OUTPUT)/HOL-Nominal:
 	@$(ISABELLE_TOOL) build -b HOL-Nominal
 
-HOL-Word:
+
+HOL-Word: $(ISABELLE_OUTPUT)/HOL-Word
+
+$(ISABELLE_OUTPUT)/HOL-Word:
 	@$(ISABELLE_TOOL) build -b HOL-Word
 
-HOLCF:
+
+HOLCF: $(ISABELLE_OUTPUT)/HOLCF
+
+$(ISABELLE_OUTPUT)/HOLCF:
 	@$(ISABELLE_TOOL) build -b HOLCF
 
