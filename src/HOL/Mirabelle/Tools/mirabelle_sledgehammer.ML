@@ -533,7 +533,7 @@ fun run_sledgehammer trivial args reconstructor named_thms id
     val max_new_mono_instancesLST =
       available_parameter args max_new_mono_instancesK max_new_mono_instancesK
     val max_mono_itersLST = available_parameter args max_mono_itersK max_mono_itersK
-    val hard_timeout = SOME (2 * timeout)
+    val hard_timeout = SOME (4 * timeout)
     val (msg, result) =
       run_sh prover_name prover type_enc strict max_facts slice lam_trans
         uncurried_aliases e_selection_heuristic term_order force_sos
