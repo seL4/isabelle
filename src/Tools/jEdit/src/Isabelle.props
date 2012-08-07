@@ -67,9 +67,15 @@ isabelle-readme.title=README
 isabelle-syslog.title=Syslog
 
 #SideKick
+mode.isabelle.sidekick.showStatusWindow.label=true
 sidekick.parser.isabelle.label=Isabelle
 mode.isabelle.sidekick.parser=isabelle
+mode.isabelle-options.sidekick.parser=isabelle-options
+mode.isabelle-root.sidekick.parser=isabelle-root
 mode.ml.sidekick.parser=isabelle
+
+mode.isabelle.customSettings=true
+mode.isabelle.folding=sidekick
 
 #Hyperlinks
 mode.isabelle.hyperlink.source=isabelle

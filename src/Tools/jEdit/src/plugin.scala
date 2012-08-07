@@ -193,22 +193,24 @@ object Isabelle
     }
   }
 
+  def buffer_node_name(buffer: Buffer): Option[Document.Node.Name] =
+  {
+    val name = buffer_name(buffer)
+    Thy_Header.thy_name(name).map(theory => Document.Node.Name(name, buffer.getDirectory, theory))
+  }
+
   def init_model(buffer: Buffer)
   {
     swing_buffer_lock(buffer) {
       val opt_model =
-      {
-        val name = buffer_name(buffer)
-        Thy_Header.thy_name(name) match {
-          case Some(theory) =>
-            val node_name = Document.Node.Name(name, buffer.getDirectory, theory)
+        buffer_node_name(buffer) match {
+          case Some(node_name) =>
             document_model(buffer) match {
               case Some(model) if model.name == node_name => Some(model)
               case _ => Some(Document_Model.init(session, buffer, node_name))
             }
           case None => None
         }
-      }
       if (opt_model.isDefined) {
         for (text_area <- jedit_text_areas(buffer)) {
           if (document_view(text_area).map(_.model) != opt_model)
