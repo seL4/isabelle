@@ -222,15 +222,6 @@ Usage: isabelle make [ARGS ...]
 *}
 
 
-subsubsection {* Examples *}
-
-text {*
-  Refer to the @{verbatim IsaMakefile}s of the Isabelle distribution's
-  object-logics as a model for your own developments.  For example,
-  see @{file "~~/src/FOL/IsaMakefile"}.
-*}
-
-
 section {* Make all logics *}
 
 text {* The @{tool_def makeall} tool applies Isabelle make to any

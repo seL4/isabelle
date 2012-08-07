@@ -1,5 +1,0 @@
-Unsynchronized.setmp quick_and_dirty true
-  use_thys ["Common_Patterns"];
-
-use_thys ["QuoDataType", "QuoNestedDataType", "Term", "SList",
-  "ABexp", "Tree", "Ordinals", "Sigma_Algebra", "Comb", "PropLog", "Com"];

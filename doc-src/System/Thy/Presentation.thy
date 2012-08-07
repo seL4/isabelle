@@ -242,7 +242,7 @@ isabelle mkdir Foo && isabelle make
   meant to cover all of the sub-session directories at the same time
   (this is the deeper reasong why @{verbatim IsaMakefile} is not made
   part of the initial session directory created by @{tool mkdir}).
-  See @{file "~~/src/HOL/IsaMakefile"} for a full-blown example.  *}
+*}
 
 
 section {* Running Isabelle sessions \label{sec:tool-usedir} *}
@@ -417,15 +417,6 @@ text {*
   NAME} argument (in example mode). This may be overridden explicitly
   via the @{verbatim "-s"} option.
 *}
-
-
-subsubsection {* Examples *}
-
-text {* Refer to the @{verbatim IsaMakefile}s of the Isabelle
-  distribution's object-logics as a model for your own developments.
-  For example, see @{file "~~/src/FOL/IsaMakefile"}.  The @{tool_ref
-  mkdir} tool creates @{verbatim IsaMakefile}s with proper invocation
-  of @{tool usedir} as well.  *}
 
 
 section {* Preparing Isabelle session documents

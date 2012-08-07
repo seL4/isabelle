@@ -257,8 +257,7 @@ isabelle mkdir Foo && isabelle make
   manual editing of the generated \verb|IsaMakefile|, which is
   meant to cover all of the sub-session directories at the same time
   (this is the deeper reasong why \verb|IsaMakefile| is not made
-  part of the initial session directory created by \hyperlink{tool.mkdir}{\mbox{\isa{\isatool{mkdir}}}}).
-  See \verb|~~/src/HOL/IsaMakefile| for a full-blown example.%
+  part of the initial session directory created by \hyperlink{tool.mkdir}{\mbox{\isa{\isatool{mkdir}}}}).%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -427,18 +426,6 @@ Basically, there are two different modes of operation: \emph{build
   The current session's identifier is by default just the base name of
   the \verb|LOGIC| argument (in build mode), or of the \verb|NAME| argument (in example mode). This may be overridden explicitly
   via the \verb|-s| option.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsubsection{Examples%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-Refer to the \verb|IsaMakefile|s of the Isabelle
-  distribution's object-logics as a model for your own developments.
-  For example, see \verb|~~/src/FOL/IsaMakefile|.  The \indexref{}{tool}{mkdir}\hyperlink{tool.mkdir}{\mbox{\isa{\isatool{mkdir}}}} tool creates \verb|IsaMakefile|s with proper invocation
-  of \hyperlink{tool.usedir}{\mbox{\isa{\isatool{usedir}}}} as well.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

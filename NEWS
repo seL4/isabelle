@@ -80,6 +80,12 @@ document/IsaMakefile.  Minor INCOMPATIBILITY.
 build" tool and its examples.  Eventual INCOMPATIBILITY, as isabelle
 usedir / make / makeall are rendered obsolete.
 
+* Discontinued obsolete IsaMakefile and ROOT.ML files from the
+Isabelle distribution, except for rudimentary src/HOL/IsaMakefile that
+provides some traditional targets that invoke "isabelle build".  Note
+that this is inefficient!  Applications of Isabelle/HOL involving
+"isabelle make" should be upgraded to use "isabelle build" directly.
+
 * Discontinued obsolete Isabelle/build script, it is superseded by the
 regular isabelle build tool.  For example:
 
