@@ -32,6 +32,7 @@ function usage() {
   echo "    -O DIR       output directory for test data (default $out)"
   echo "    -t TIMEOUT   timeout for each action in seconds (default $timeout)"
   echo "    -q           be quiet (suppress output of Isabelle process)"
+  echo "    -S FILE      user-provided setup file (no actions required)"
   echo
   echo "  Apply the given actions (i.e., automated proof tools)"
   echo "  at all proof steps in the given theory files."
@@ -63,7 +64,9 @@ function fail()
 
 [ $# -eq 0 ] && usage
 
-while getopts "L:T:O:t:q?" OPT
+MIRABELLE_SETUP_FILE=
+
+while getopts "L:T:O:t:S:q?" OPT
 do
   case "$OPT" in
     L)
@@ -78,6 +81,9 @@ do
     t)
       MIRABELLE_TIMEOUT="$OPTARG"
       ;;
+    S)
+      MIRABELLE_SETUP_FILE="$OPTARG"
+      ;;
     q)
       MIRABELLE_QUIET="true"
       ;;
@@ -87,6 +93,7 @@ do
   esac
 done
 
+export MIRABELLE_SETUP_FILE
 export MIRABELLE_QUIET
 
 shift $(($OPTIND - 1))

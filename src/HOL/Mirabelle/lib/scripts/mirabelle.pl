@@ -15,21 +15,16 @@ my $mirabelle_theory = $ENV{'MIRABELLE_THEORY'};
 my $output_path = $ENV{'MIRABELLE_OUTPUT_PATH'};
 my $timeout = $ENV{'MIRABELLE_TIMEOUT'};
 my $be_quiet = $ENV{'MIRABELLE_QUIET'};
+my $user_setup_file = $ENV{'MIRABELLE_SETUP_FILE'};
 my $actions = $ENV{'MIRABELLE_ACTIONS'};
 
 my $mirabelle_thy = $mirabelle_home . "/Mirabelle";
 
 
-# arguments
+# argument
 
 my $thy_file = $ARGV[0];
-my $start_line = "0";
-my $end_line = "~1";
-if ($thy_file =~ /^(.*)\[([0-9]+)\:(~?[0-9]+)\]$/) {
-  $thy_file = $1;
-  $start_line = $2;
-  $end_line = $3;
-}
+
 my ($thy_name, $path, $ext) = fileparse($thy_file, ".thy");
 my $rand_suffix = join('', map { ('a'..'z')[rand(26)] } 1 .. 10);
 my $new_thy_name = $thy_name . "_Mirabelle_" . $rand_suffix;
@@ -37,6 +32,24 @@ my $new_thy_file = $path . "/" . $new_thy_name . $ext;
 
 
 # setup
+
+my $setup_file;
+my $setup_full_name;
+
+if (-e $user_setup_file) {
+  $setup_file = undef;
+  my ($name, $path, $ext) = fileparse($user_setup_file, ".thy");
+  $setup_full_name = $path . "/" . $name;
+}
+else {
+
+my $start_line = "0";
+my $end_line = "~1";
+if ($thy_file =~ /^(.*)\[([0-9]+)\:(~?[0-9]+)\]$/) {
+  $thy_file = $1;
+  $start_line = $2;
+  $end_line = $3;
+}
 
 my $setup_thy_name = $thy_name . "_Setup";
 my $setup_file = $output_path . "/" . $setup_thy_name . ".thy";
@@ -101,6 +114,17 @@ foreach (reverse(@action_list)) {
 print SETUP_FILE "\nend";
 close SETUP_FILE;
 
+$setup_full_name = $output_path . "/" . $setup_thy_name;
+
+open(LOG_FILE, ">$log_file");
+print LOG_FILE "Run of $new_thy_file with:\n";
+foreach $action  (@action_list) {
+  print LOG_FILE "  $action\n";
+}
+close(LOG_FILE);
+
+}
+
 
 # modify target theory file
 
@@ -108,8 +132,7 @@ open(OLD_FILE, "<$thy_file") || die "Cannot open file '$thy_file'";
 my @lines = <OLD_FILE>;
 close(OLD_FILE);
 
-my $setup_import =
-  substr("\"$output_path\/$setup_thy_name\"" . (" " x 1000), 0, 1000);
+my $setup_import = substr("\"$setup_full_name\"" . (" " x 1000), 0, 1000);
 
 my $thy_text = join("", @lines);
 my $old_len = length($thy_text);
@@ -124,13 +147,6 @@ close(NEW_FILE);
 
 # run isabelle
 
-open(LOG_FILE, ">$log_file");
-print LOG_FILE "Run of $new_thy_file with:\n";
-foreach $action  (@action_list) {
-  print LOG_FILE "  $action\n";
-}
-close(LOG_FILE);
-
 my $quiet = "";
 my $output_log = 1;
 if (defined $be_quiet and $be_quiet ne "") {
@@ -143,12 +159,17 @@ if ($output_log) { print "Mirabelle: $thy_file\n"; }
 my $result = system "\"$ENV{'ISABELLE_PROCESS'}\" " .
   "-e 'Unsynchronized.setmp quick_and_dirty true use_thy \"$path/$new_thy_name\" handle _ => exit 1;\n' -q $mirabelle_logic" . $quiet;
 
-if ($output_log) { print "Finished:  $thy_file\n"; }
+if ($output_log) {
+  my $outcome = ($result ? "failure" : "success");
+  print "\nFinished:  $thy_file  [$outcome]\n";
+}
 
 
 # cleanup
 
-unlink $setup_file;
+if (defined $setup_file) {
+  unlink $setup_file;
+}
 unlink $new_thy_file;
 
 exit ($result ? 1 : 0);
