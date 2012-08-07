@@ -132,8 +132,11 @@ class Isabelle_Sidekick(name: String, get_syntax: => Option[Outer_Syntax])
 }
 
 
-class Isabelle_Sidekick_Default
-  extends Isabelle_Sidekick("isabelle", Isabelle.session.get_recent_syntax)
+class Isabelle_Sidekick_Structure(
+    name: String,
+    get_syntax: => Option[Outer_Syntax],
+    node_name: Buffer => Option[Document.Node.Name])
+  extends Isabelle_Sidekick(name, get_syntax)
 {
   import Thy_Syntax.Structure
 
@@ -160,10 +163,10 @@ class Isabelle_Sidekick_Default
         case _ => Nil
       }
 
-    Isabelle.buffer_node_name(buffer) match {
-      case Some(node_name) =>
+    node_name(buffer) match {
+      case Some(name) =>
         val text = Isabelle.buffer_text(buffer)
-        val structure = Structure.parse(syntax, node_name, text)
+        val structure = Structure.parse(syntax, name, text)
         make_tree(0, structure) foreach (node => data.root.add(node))
         true
       case None => false
@@ -172,12 +175,16 @@ class Isabelle_Sidekick_Default
 }
 
 
-class Isabelle_Sidekick_Options
-  extends Isabelle_Sidekick("isabelle-options", Some(Options.options_syntax))
+class Isabelle_Sidekick_Default extends Isabelle_Sidekick_Structure(
+  "isabelle", Isabelle.session.get_recent_syntax, Isabelle.buffer_node_name)
 
 
-class Isabelle_Sidekick_Root
-  extends Isabelle_Sidekick("isabelle-root", Some(Build.root_syntax))
+class Isabelle_Sidekick_Options extends Isabelle_Sidekick_Structure(
+  "isabelle-options", Some(Options.options_syntax), Isabelle.buffer_node_dummy)
+
+
+class Isabelle_Sidekick_Root extends Isabelle_Sidekick_Structure(
+  "isabelle-root", Some(Build.root_syntax), Isabelle.buffer_node_dummy)
 
 
 class Isabelle_Sidekick_Raw

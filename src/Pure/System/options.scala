@@ -33,7 +33,9 @@ object Options
   private val DECLARE = "declare"
   private val DEFINE = "define"
 
-  lazy val options_syntax = Outer_Syntax.init() + ":" + "=" + "--" + DECLARE + DEFINE
+  lazy val options_syntax =
+    Outer_Syntax.init() + ":" + "=" + "--" +
+      (DECLARE, Keyword.THY_DECL) + (DEFINE, Keyword.PRF_DECL)
 
   private object Parser extends Parse.Parser
   {
@@ -47,10 +49,10 @@ object Options
           { case s ~ n => if (s.isDefined) "-" + n else n } |
         atom("option value", tok => tok.is_name || tok.is_float)
 
-      keyword(DECLARE) ~! (option_name ~ keyword(":") ~ option_type ~
+      command(DECLARE) ~! (option_name ~ keyword(":") ~ option_type ~
       keyword("=") ~ option_value ~ (keyword("--") ~! text ^^ { case _ ~ x => x } | success(""))) ^^
         { case _ ~ (a ~ _ ~ b ~ _ ~ c ~ d) => (options: Options) => options.declare(a, b, c, d) } |
-      keyword(DEFINE) ~! (option_name ~ keyword("=") ~ option_value) ^^
+      command(DEFINE) ~! (option_name ~ keyword("=") ~ option_value) ^^
         { case _ ~ (a ~ _ ~ b) => (options: Options) => options.define(a, b) }
     }
 

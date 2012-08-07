@@ -133,7 +133,7 @@ final class Command private(
   def is_command: Boolean = !is_ignored && !is_malformed
 
   def name: String =
-    span.find(_.is_command) match { case Some(tok) => tok.content case _ => "" }
+    span.find(_.is_command) match { case Some(tok) => tok.source case _ => "" }
 
   override def toString =
     id + "/" + (if (is_command) name else if (is_ignored) "IGNORED" else "MALFORMED")

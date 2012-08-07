@@ -172,7 +172,7 @@ object Build
 
   lazy val root_syntax =
     Outer_Syntax.init() + "!" + "(" + ")" + "+" + "," + "=" + "[" + "]" +
-      SESSION + IN + DESCRIPTION + OPTIONS + THEORIES + FILES
+      (SESSION, Keyword.THY_DECL) + IN + DESCRIPTION + OPTIONS + THEORIES + FILES
 
   private object Parser extends Parse.Parser
   {
@@ -188,7 +188,7 @@ object Build
         keyword(THEORIES) ~! ((options | success(Nil)) ~ rep1(theory_name)) ^^
           { case _ ~ (x ~ y) => (x, y) }
 
-      ((keyword(SESSION) ~! session_name) ^^ { case _ ~ x => x }) ~
+      ((command(SESSION) ~! session_name) ^^ { case _ ~ x => x }) ~
         (keyword("!") ^^^ true | success(false)) ~
         (keyword("(") ~! (rep1(name) <~ keyword(")")) ^^ { case _ ~ x => x } | success(Nil)) ~
         (opt(keyword(IN) ~! path ^^ { case _ ~ x => x })) ~

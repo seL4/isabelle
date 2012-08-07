@@ -33,7 +33,7 @@ object Thy_Syntax
 
       def buffer(): mutable.ListBuffer[Entry] = new mutable.ListBuffer[Entry]
       var stack: List[(Int, String, mutable.ListBuffer[Entry])] =
-        List((0, "theory " + node_name.theory, buffer()))
+        List((0, node_name.theory, buffer()))
 
       @tailrec def close(level: Int => Boolean)
       {
