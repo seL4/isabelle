@@ -12,6 +12,21 @@ import java.awt.FontMetrics
 
 object Pretty
 {
+  /* spaces */
+
+  val spc = ' '
+  val space = " "
+
+  private val static_spaces = space * 4000
+
+  def spaces(k: Int): String =
+  {
+    require(k >= 0)
+    if (k < static_spaces.length) static_spaces.substring(0, k)
+    else space * k
+  }
+
+
   /* markup trees with physical blocks and breaks */
 
   def block(body: XML.Body): XML.Tree = Block(2, body)
@@ -33,7 +48,7 @@ object Pretty
   {
     def apply(w: Int): XML.Tree =
       XML.Elem(Markup(Isabelle_Markup.BREAK, Isabelle_Markup.Width(w)),
-        List(XML.Text(Symbol.spaces(w))))
+        List(XML.Text(spaces(w))))
 
     def unapply(tree: XML.Tree): Option[Int] =
       tree match {
@@ -59,7 +74,7 @@ object Pretty
   {
     def newline: Text = copy(tx = FBreak :: tx, pos = 0.0, nl = nl + 1)
     def string(s: String, len: Double): Text = copy(tx = XML.Text(s) :: tx, pos = pos + len)
-    def blanks(wd: Int): Text = string(Symbol.spaces(wd), wd.toDouble)
+    def blanks(wd: Int): Text = string(spaces(wd), wd.toDouble)
     def content: XML.Body = tx.reverse
   }
 
@@ -69,7 +84,7 @@ object Pretty
   def font_metric(metrics: FontMetrics): String => Double =
     if (metrics == null) ((s: String) => s.length.toDouble)
     else {
-      val unit = metrics.charWidth(Symbol.spc).toDouble
+      val unit = metrics.charWidth(spc).toDouble
       ((s: String) => if (s == "\n") 1.0 else metrics.stringWidth(s) / unit)
     }
 
@@ -143,8 +158,8 @@ object Pretty
     def fmt(tree: XML.Tree): XML.Body =
       tree match {
         case Block(_, body) => body.flatMap(fmt)
-        case Break(wd) => List(XML.Text(Symbol.spaces(wd)))
-        case FBreak => List(XML.Text(Symbol.space))
+        case Break(wd) => List(XML.Text(spaces(wd)))
+        case FBreak => List(XML.Text(space))
         case XML.Elem(markup, body) => List(XML.Elem(markup, body.flatMap(fmt)))
         case XML.Text(_) => List(tree)
       }

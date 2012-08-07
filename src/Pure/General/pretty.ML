@@ -21,6 +21,7 @@ a unit for breaking).
 
 signature PRETTY =
 sig
+  val spaces: int -> string
   val default_indent: string -> int -> Output.output
   val add_mode: string -> (string -> int -> Output.output) -> unit
   type T
@@ -69,9 +70,22 @@ end;
 structure Pretty: PRETTY =
 struct
 
+(** spaces **)
+
+local
+  val small_spaces = Vector.tabulate (65, fn i => Library.replicate_string i Symbol.space);
+in
+  fun spaces k =
+    if k < 64 then Vector.sub (small_spaces, k)
+    else Library.replicate_string (k div 64) (Vector.sub (small_spaces, 64)) ^
+      Vector.sub (small_spaces, k mod 64);
+end;
+
+
+
 (** print mode operations **)
 
-fun default_indent (_: string) = Symbol.spaces;
+fun default_indent (_: string) = spaces;
 
 local
   val default = {indent = default_indent};
@@ -89,7 +103,7 @@ end;
 
 fun mode_indent x y = #indent (get_mode ()) x y;
 
-val output_spaces = Output.output o Symbol.spaces;
+val output_spaces = Output.output o spaces;
 val add_indent = Buffer.add o output_spaces;
 
 
@@ -167,7 +181,7 @@ fun str_list lpar rpar strs = list lpar rpar (map str strs);
 fun big_list name prts = block (fbreaks (str name :: prts));
 
 fun indent 0 prt = prt
-  | indent n prt = blk (0, [str (Symbol.spaces n), prt]);
+  | indent n prt = blk (0, [str (spaces n), prt]);
 
 fun unbreakable (Break (_, wd)) = String (output_spaces wd, wd)
   | unbreakable (Block (m, es, indent, wd)) = Block (m, map unbreakable es, indent, wd)

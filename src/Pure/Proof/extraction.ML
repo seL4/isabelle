@@ -120,7 +120,7 @@ val chtype = Proofterm.change_type o SOME;
 fun extr_name s vs = Long_Name.append "extr" (space_implode "_" (s :: vs));
 fun corr_name s vs = extr_name s vs ^ "_correctness";
 
-fun msg d s = Output.urgent_message (Symbol.spaces d ^ s);
+fun msg d s = Output.urgent_message (Pretty.spaces d ^ s);
 
 fun vars_of t = map Var (rev (Term.add_vars t []));
 fun frees_of t = map Free (rev (Term.add_frees t []));
