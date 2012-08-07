@@ -26,8 +26,11 @@ class Thy_Load(preloaded: Set[String] = Set.empty)
 
   private var loaded_theories: Set[String] = preloaded
 
-  def register_thy(thy_name: String): Unit =
-    synchronized { loaded_theories += thy_name }
+  def register_thy(name: String): Unit =
+    synchronized { loaded_theories += name }
+
+  def register_thys(names: Set[String]): Unit =
+    synchronized { loaded_theories ++= names }
 
   def is_loaded(thy_name: String): Boolean =
     synchronized { loaded_theories.contains(thy_name) }
@@ -36,7 +39,7 @@ class Thy_Load(preloaded: Set[String] = Set.empty)
   /* file-system operations */
 
   def append(dir: String, source_path: Path): String =
-    (Path.explode(dir) + source_path).implode
+    (Path.explode(dir) + source_path).expand.implode
 
   def read_header(name: Document.Node.Name): Thy_Header =
   {
@@ -60,7 +63,7 @@ class Thy_Load(preloaded: Set[String] = Set.empty)
     }
   }
 
-  def check_header(name: Document.Node.Name, header: Thy_Header): Document.Node.Deps =
+  def check_header(name: Document.Node.Name, header: Thy_Header): Document.Node.Header =
   {
     val name1 = header.name
     val imports = header.imports.map(import_name(name.dir, _))
@@ -69,10 +72,10 @@ class Thy_Load(preloaded: Set[String] = Set.empty)
     if (name.theory != name1)
       error("Bad file name " + Thy_Load.thy_path(Path.basic(name.theory)) +
         " for theory " + quote(name1))
-    Document.Node.Deps(imports, header.keywords, uses)
+    Document.Node.Header(imports, header.keywords, uses)
   }
 
-  def check_thy(name: Document.Node.Name): Document.Node.Deps =
+  def check_thy(name: Document.Node.Name): Document.Node.Header =
     check_header(name, read_header(name))
 }
 

@@ -10,7 +10,6 @@ sig
   val STX: symbol
   val DEL: symbol
   val space: symbol
-  val spaces: int -> string
   val is_char: symbol -> bool
   val is_utf8: symbol -> bool
   val is_symbolic: symbol -> bool
@@ -91,15 +90,6 @@ val STX = chr 2;
 val DEL = chr 127;
 
 val space = chr 32;
-
-local
-  val small_spaces = Vector.tabulate (65, fn i => Library.replicate_string i space);
-in
-  fun spaces k =
-    if k < 64 then Vector.sub (small_spaces, k)
-    else Library.replicate_string (k div 64) (Vector.sub (small_spaces, 64)) ^
-      Vector.sub (small_spaces, k mod 64);
-end;
 
 fun is_char s = size s = 1;
 

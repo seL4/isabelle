@@ -8,6 +8,12 @@
 	<SERVICE NAME="isabelle" CLASS="sidekick.SideKickParser">
 		new isabelle.jedit.Isabelle_Sidekick_Default();
 	</SERVICE>
+	<SERVICE NAME="isabelle-options" CLASS="sidekick.SideKickParser">
+		new isabelle.jedit.Isabelle_Sidekick_Options();
+	</SERVICE>
+	<SERVICE NAME="isabelle-root" CLASS="sidekick.SideKickParser">
+		new isabelle.jedit.Isabelle_Sidekick_Root();
+	</SERVICE>
 	<SERVICE NAME="isabelle-raw" CLASS="sidekick.SideKickParser">
 		new isabelle.jedit.Isabelle_Sidekick_Raw();
 	</SERVICE>

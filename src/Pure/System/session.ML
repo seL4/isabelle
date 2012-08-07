@@ -71,6 +71,7 @@ fun init_name reset parent name =
 fun finish () =
   (Thy_Info.finish ();
     Present.finish ();
+    Keyword.status ();
     Outer_Syntax.check_syntax ();
     Future.shutdown ();
     Options.reset_default ();

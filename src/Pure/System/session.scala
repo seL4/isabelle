@@ -37,7 +37,7 @@ object Session
 }
 
 
-class Session(thy_load: Thy_Load = new Thy_Load())
+class Session(val thy_load: Thy_Load = new Thy_Load())
 {
   /* global flags */
 
@@ -108,7 +108,7 @@ class Session(thy_load: Thy_Load = new Thy_Load())
           val prev = previous.get_finished
           val (doc_edits, version) =
             Timing.timeit("Thy_Syntax.text_edits", timing) {
-              Thy_Syntax.text_edits(prover_syntax, prev, text_edits)
+              Thy_Syntax.text_edits(base_syntax, prev, text_edits)
             }
           version_result.fulfill(version)
           sender ! Change(doc_edits, prev, version)
@@ -125,11 +125,7 @@ class Session(thy_load: Thy_Load = new Thy_Load())
 
   /* global state */
 
-  @volatile private var prover_syntax =
-    Outer_Syntax.init() +
-      // FIXME avoid hardwired stuff!?
-      ("hence", Keyword.PRF_ASM_GOAL, "then have") +
-      ("thus", Keyword.PRF_ASM_GOAL, "then show")
+  @volatile private var base_syntax = Outer_Syntax.init()
 
   private val syslog = Volatile(Queue.empty[XML.Elem])
   def current_syslog(): String = cat_lines(syslog().iterator.map(msg => XML.content(msg).mkString))
@@ -149,9 +145,12 @@ class Session(thy_load: Thy_Load = new Thy_Load())
   def recent_syntax(): Outer_Syntax =
   {
     val version = current_state().recent_finished.version.get_finished
-    if (version.is_init) prover_syntax
+    if (version.is_init) base_syntax
     else version.syntax
   }
+  def get_recent_syntax(): Option[Outer_Syntax] =
+    if (is_ready) Some(recent_syntax)
+    else None
 
   def snapshot(name: Document.Node.Name = Document.Node.Name.empty,
       pending_edits: List[Text.Edit] = Nil): Document.Snapshot =
@@ -160,21 +159,19 @@ class Session(thy_load: Thy_Load = new Thy_Load())
 
   /* theory files */
 
-  def header_edit(name: Document.Node.Name, header: Document.Node_Header): Document.Edit_Text =
+  def header_edit(name: Document.Node.Name, header: Document.Node.Header): Document.Edit_Text =
   {
-    val header1: Document.Node_Header =
-      header match {
-        case Exn.Res(_) if (thy_load.is_loaded(name.theory)) =>
-          Exn.Exn(ERROR("Attempt to update loaded theory " + quote(name.theory)))
-        case _ => header
-      }
-    (name, Document.Node.Header(header1))
+    val header1 =
+      if (thy_load.is_loaded(name.theory))
+        header.error("Attempt to update loaded theory " + quote(name.theory))
+      else header
+    (name, Document.Node.Deps(header1))
   }
 
 
   /* actor messages */
 
-  private case class Start(args: List[String])
+  private case class Start(logic: String, args: List[String])
   private case object Cancel_Execution
   private case class Edit(edits: List[Document.Edit_Text])
   private case class Change(
@@ -357,25 +354,16 @@ class Session(thy_load: Thy_Load = new Thy_Load())
         case Isabelle_Markup.Cancel_Scala(id) if output.is_protocol =>
           System.err.println("cancel_scala " + id)  // FIXME actually cancel JVM task
 
-        case Isabelle_Markup.Ready if output.is_protocol =>
+        case _ if output.is_init =>
             phase = Session.Ready
-
-        case Isabelle_Markup.Loaded_Theory(name) if output.is_protocol =>
-          thy_load.register_thy(name)
-
-        case Isabelle_Markup.Command_Decl(name, kind) if output.is_protocol =>
-          prover_syntax += (name, kind)
-
-        case Isabelle_Markup.Keyword_Decl(name) if output.is_protocol =>
-          prover_syntax += name
 
         case Isabelle_Markup.Return_Code(rc) if output.is_exit =>
           if (rc == 0) phase = Session.Inactive
           else phase = Session.Failed
 
-        case _ =>
-          if (output.is_init || output.is_stdout) { }
-          else bad_output(output)
+        case _ if output.is_stdout =>
+
+        case _ => bad_output(output)
       }
     }
     //}}}
@@ -389,9 +377,15 @@ class Session(thy_load: Thy_Load = new Thy_Load())
       receiveWithin(delay_commands_changed.flush_timeout) {
         case TIMEOUT => delay_commands_changed.flush()
 
-        case Start(args) if prover.isEmpty =>
+        case Start(name, args) if prover.isEmpty =>
           if (phase == Session.Inactive || phase == Session.Failed) {
             phase = Session.Startup
+
+            // FIXME static init in main constructor
+            val content = Build.session_content(name)
+            thy_load.register_thys(content.loaded_theories)
+            base_syntax = content.syntax
+
             prover = Some(new Isabelle_Process(receiver.invoke _, args) with Protocol)
           }
 
@@ -446,7 +440,7 @@ class Session(thy_load: Thy_Load = new Thy_Load())
 
   /* actions */
 
-  def start(args: List[String]) { session_actor ! Start(args) }
+  def start(name: String, args: List[String]) { session_actor ! Start(name, args) }
 
   def stop() { commands_changed_buffer !? Stop; change_parser !? Stop; session_actor !? Stop }
 
@@ -456,7 +450,7 @@ class Session(thy_load: Thy_Load = new Thy_Load())
   { session_actor !? Edit(edits) }
 
   def init_node(name: Document.Node.Name,
-    header: Document.Node_Header, perspective: Text.Perspective, text: String)
+    header: Document.Node.Header, perspective: Text.Perspective, text: String)
   {
     edit(List(header_edit(name, header),
       name -> Document.Node.Clear(),    // FIXME diff wrt. existing node
@@ -465,7 +459,7 @@ class Session(thy_load: Thy_Load = new Thy_Load())
   }
 
   def edit_node(name: Document.Node.Name,
-    header: Document.Node_Header, perspective: Text.Perspective, text_edits: List[Text.Edit])
+    header: Document.Node.Header, perspective: Text.Perspective, text_edits: List[Text.Edit])
   {
     edit(List(header_edit(name, header),
       name -> Document.Node.Edits(text_edits),

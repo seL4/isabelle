@@ -2,17 +2,15 @@
     Author:     Makarius
 
 Isabelle process wrapper, based on private fifos for maximum
-robustness and performance.
+robustness and performance, or local socket for maximum portability.
 
 Startup phases:
-  . raw Posix process startup with uncontrolled output on stdout/stderr
-  . stderr \002: ML running
-  .. stdin/stdout/stderr freely available (raw ML loop)
-  .. protocol thread initialization
-  ... rendezvous on system channel
-  ... message INIT(pid): channels ready
-  ... message RAW(keywords)
-  ... message RAW(ready): main loop ready
+  - raw Posix process startup with uncontrolled output on stdout/stderr
+  - stderr \002: ML running
+  - stdin/stdout/stderr freely available (raw ML loop)
+  - protocol thread initialization
+  - rendezvous on system channel
+  - message INIT: channels ready
 *)
 
 signature ISABELLE_PROCESS =
@@ -96,7 +94,7 @@ fun message_output mbox channel =
 
 in
 
-fun setup_channels channel =
+fun init_channels channel =
   let
     val _ = TextIO.StreamIO.setBufferMode (TextIO.getOutstream TextIO.stdOut, IO.LINE_BUF);
     val _ = TextIO.StreamIO.setBufferMode (TextIO.getOutstream TextIO.stdErr, IO.LINE_BUF);
@@ -178,15 +176,10 @@ fun init rendezvous = ignore (Simple_Thread.fork false (fn () =>
       Unsynchronized.change print_mode
         (fn mode =>
           (mode @ [Syntax_Trans.no_bracketsN, Syntax_Trans.no_type_bracketsN])
-          |> fold (update op =)
-            [Symbol.xsymbolsN, isabelle_processN, Keyword.keyword_statusN, Pretty.symbolicN]);
+          |> fold (update op =) [Symbol.xsymbolsN, isabelle_processN, Pretty.symbolicN]);
 
     val channel = rendezvous ();
-    val _ = setup_channels channel;
-
-    val _ = Keyword.status ();
-    val _ = Thy_Info.status ();
-    val _ = Output.protocol_message Isabelle_Markup.ready "";
+    val _ = init_channels channel;
   in loop channel end));
 
 fun init_fifos fifo1 fifo2 = init (fn () => System_Channel.fifo_rendezvous fifo1 fifo2);

@@ -15,21 +15,6 @@ object Symbol
   type Symbol = String
 
 
-  /* spaces */
-
-  val spc = ' '
-  val space = " "
-
-  private val static_spaces = space * 4000
-
-  def spaces(k: Int): String =
-  {
-    require(k >= 0)
-    if (k < static_spaces.length) static_spaces.substring(0, k)
-    else space * k
-  }
-
-
   /* ASCII characters */
 
   def is_ascii_letter(c: Char): Boolean = 'A' <= c && c <= 'Z' || 'a' <= c && c <= 'z'
@@ -345,7 +330,7 @@ object Symbol
       "\\<^isub>", "\\<^isup>")
 
     val blanks =
-      recode_set(space, "\t", "\n", "\u000B", "\f", "\r", "\r\n", "\\<spacespace>", "\\<^newline>")
+      recode_set(" ", "\t", "\n", "\u000B", "\f", "\r", "\r\n", "\\<spacespace>", "\\<^newline>")
 
     val sym_chars =
       Set("!", "#", "$", "%", "&", "*", "+", "-", "/", "<", "=", ">", "?", "@", "^", "_", "|", "~")

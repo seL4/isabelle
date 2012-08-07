@@ -83,6 +83,17 @@ class Isabelle_Process(
   import Isabelle_Process._
 
 
+  /* text representation */
+
+  def encode(s: String): String = Symbol.encode(s)
+  def decode(s: String): String = Symbol.decode(s)
+
+  object Encode
+  {
+    val string: XML.Encode.T[String] = (s => XML.Encode.string(encode(s)))
+  }
+
+
   /* output */
 
   private def system_output(text: String)
@@ -264,7 +275,7 @@ class Isabelle_Process(
             else done = true
           }
           if (result.length > 0) {
-            output_message(markup, Nil, List(XML.Text(Symbol.decode(result.toString))))
+            output_message(markup, Nil, List(XML.Text(decode(result.toString))))
             result.length = 0
           }
           else {
@@ -323,7 +334,7 @@ class Isabelle_Process(
       val default_buffer = new Array[Byte](65536)
       var c = -1
 
-      def read_chunk(decode: Boolean): XML.Body =
+      def read_chunk(do_decode: Boolean): XML.Body =
       {
         //{{{
         // chunk size
@@ -350,8 +361,8 @@ class Isabelle_Process(
 
         if (i != n) throw new Protocol_Error("bad message chunk content")
 
-        if (decode)
-          YXML.parse_body_failsafe(Standard_System.decode_chars(Symbol.decode, buf, 0, n))
+        if (do_decode)
+          YXML.parse_body_failsafe(Standard_System.decode_chars(decode, buf, 0, n))
         else List(XML.Text(Standard_System.decode_chars(s => s, buf, 0, n).toString))
         //}}}
       }

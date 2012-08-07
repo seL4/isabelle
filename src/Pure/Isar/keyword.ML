@@ -49,7 +49,6 @@ sig
   val command_keyword: string -> T option
   val command_tags: string -> string list
   val dest: unit -> string list * string list
-  val keyword_statusN: string
   val status: unit -> unit
   val define: string * T option -> unit
   val is_diag: string -> bool
@@ -183,43 +182,29 @@ fun dest () = pairself (sort_strings o Scan.dest_lexicon) (get_lexicons ());
 
 (* status *)
 
-val keyword_statusN = "keyword_status";
-
-fun status_message m s =
-  Position.setmp_thread_data Position.none
-    (if print_mode_active keyword_statusN then Output.protocol_message m else writeln) s;
-
-fun keyword_status name =
-  status_message (Isabelle_Markup.keyword_decl name)
-    ("Outer syntax keyword " ^ quote name);
-
-fun command_status (name, kind) =
-  status_message (Isabelle_Markup.command_decl name (kind_of kind))
-    ("Outer syntax keyword " ^ quote name ^ " :: " ^ kind_of kind);
-
 fun status () =
   let
     val {lexicons = (minor, _), commands} = get_keywords ();
-    val _ = List.app keyword_status (sort_strings (Scan.dest_lexicon minor));
-    val _ = List.app command_status (sort_wrt #1 (Symtab.dest commands));
+    val _ = sort_strings (Scan.dest_lexicon minor) |> List.app (fn name =>
+      writeln ("Outer syntax keyword " ^ quote name));
+    val _ = sort_wrt #1 (Symtab.dest commands) |> List.app (fn (name, kind) =>
+      writeln ("Outer syntax keyword " ^ quote name ^ " :: " ^ kind_of kind));
   in () end;
 
 
 (* define *)
 
-fun define (name, NONE) =
-     (change_keywords (fn ((minor, major), commands) =>
-        let
-          val minor' = Scan.extend_lexicon (Symbol.explode name) minor;
-        in ((minor', major), commands) end);
-      keyword_status name)
-  | define (name, SOME kind) =
-     (change_keywords (fn ((minor, major), commands) =>
-        let
-          val major' = Scan.extend_lexicon (Symbol.explode name) major;
-          val commands' = Symtab.update (name, kind) commands;
-        in ((minor, major'), commands') end);
-      command_status (name, kind));
+fun define (name, opt_kind) = change_keywords (fn ((minor, major), commands) =>
+  (case opt_kind of
+    NONE =>
+      let
+        val minor' = Scan.extend_lexicon (Symbol.explode name) minor;
+      in ((minor', major), commands) end
+  | SOME kind =>
+      let
+        val major' = Scan.extend_lexicon (Symbol.explode name) major;
+        val commands' = Symtab.update (name, kind) commands;
+      in ((minor, major'), commands') end));
 
 
 (* command categories *)

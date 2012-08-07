@@ -4,38 +4,10 @@
 <!-- Isabelle session root mode -->
 <MODE>
   <PROPS>
-    <PROPERTY NAME="commentStart" VALUE="(*"/>
-    <PROPERTY NAME="commentEnd" VALUE="*)"/>
     <PROPERTY NAME="noWordSep" VALUE="_'.?"/>
     <PROPERTY NAME="unalignedOpenBrackets" VALUE="(" />
     <PROPERTY NAME="unalignedCloseBrackets" VALUE=")" />
     <PROPERTY NAME="tabSize" VALUE="2" />
     <PROPERTY NAME="indentSize" VALUE="2" />
   </PROPS>
-  <RULES IGNORE_CASE="FALSE" HIGHLIGHT_DIGITS="FALSE" ESCAPE="\">
-    <SPAN TYPE="COMMENT1">
-      <BEGIN>(*</BEGIN>
-      <END>*)</END>
-    </SPAN>
-    <SPAN TYPE="COMMENT3">
-      <BEGIN>{*</BEGIN>
-      <END>*}</END>
-    </SPAN>
-    <SPAN TYPE="LITERAL2">
-      <BEGIN>`</BEGIN>
-      <END>`</END>
-    </SPAN>
-    <SPAN TYPE="LITERAL1">
-      <BEGIN>"</BEGIN>
-      <END>"</END>
-    </SPAN>
-    <KEYWORDS>
-      <KEYWORD1>session</KEYWORD1>
-      <KEYWORD2>in</KEYWORD2>
-      <KEYWORD2>description</KEYWORD2>
-      <KEYWORD2>files</KEYWORD2>
-      <KEYWORD2>options</KEYWORD2>
-      <KEYWORD2>theories</KEYWORD2>
-    </KEYWORDS>
-  </RULES>
 </MODE>

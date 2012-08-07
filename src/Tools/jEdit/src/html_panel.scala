@@ -134,7 +134,7 @@ class HTML_Panel(initial_font_family: String, initial_font_size: Int) extends Ht
       val (font_metrics, margin) =
         Swing_Thread.now {
           val metrics = getFontMetrics(font)
-          (metrics, (getWidth() / (metrics.charWidth(Symbol.spc) max 1) - 4) max 20)
+          (metrics, (getWidth() / (metrics.charWidth(Pretty.spc) max 1) - 4) max 20)
         }
       if (current_font_metrics == null ||
           current_font_family != font_family ||

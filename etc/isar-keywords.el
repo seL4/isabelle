@@ -1,6 +1,6 @@
 ;;
 ;; Keyword classification tables for Isabelle/Isar.
-;; Generated from Pure + HOL + HOLCF + HOL-Boogie + HOL-Library + HOL-Nominal + HOL-Statespace + HOL-SPARK + HOL-TPTP + HOL-Import.
+;; Generated from HOLCF + HOL-Boogie + HOL-Library + HOL-Nominal + HOL-Statespace + HOL-SPARK + HOL-TPTP + HOL-Import.
 ;; *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT ***
 ;;
 

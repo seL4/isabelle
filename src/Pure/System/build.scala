@@ -163,19 +163,19 @@ object Build
 
   /* parser */
 
+  private val SESSION = "session"
+  private val IN = "in"
+  private val DESCRIPTION = "description"
+  private val OPTIONS = "options"
+  private val THEORIES = "theories"
+  private val FILES = "files"
+
+  lazy val root_syntax =
+    Outer_Syntax.init() + "!" + "(" + ")" + "+" + "," + "=" + "[" + "]" +
+      (SESSION, Keyword.THY_DECL) + IN + DESCRIPTION + OPTIONS + THEORIES + FILES
+
   private object Parser extends Parse.Parser
   {
-    val SESSION = "session"
-    val IN = "in"
-    val DESCRIPTION = "description"
-    val OPTIONS = "options"
-    val THEORIES = "theories"
-    val FILES = "files"
-
-    val syntax =
-      Outer_Syntax.empty + "!" + "(" + ")" + "+" + "," + "=" + "[" + "]" +
-        SESSION + IN + DESCRIPTION + OPTIONS + THEORIES + FILES
-
     def session_entry(pos: Position.T): Parser[Session_Entry] =
     {
       val session_name = atom("session name", _.is_name)
@@ -188,7 +188,7 @@ object Build
         keyword(THEORIES) ~! ((options | success(Nil)) ~ rep1(theory_name)) ^^
           { case _ ~ (x ~ y) => (x, y) }
 
-      ((keyword(SESSION) ~! session_name) ^^ { case _ ~ x => x }) ~
+      ((command(SESSION) ~! session_name) ^^ { case _ ~ x => x }) ~
         (keyword("!") ^^^ true | success(false)) ~
         (keyword("(") ~! (rep1(name) <~ keyword(")")) ^^ { case _ ~ x => x } | success(Nil)) ~
         (opt(keyword(IN) ~! path ^^ { case _ ~ x => x })) ~
@@ -202,7 +202,7 @@ object Build
 
     def parse_entries(root: Path): List[Session_Entry] =
     {
-      val toks = syntax.scan(File.read(root))
+      val toks = root_syntax.scan(File.read(root))
       parse_all(rep(session_entry(root.position)), Token.reader(toks, root.implode)) match {
         case Success(result, _) => result
         case bad => error(bad.toString)
@@ -315,22 +315,22 @@ object Build
   }
 
 
-  /* source dependencies */
+  /* source dependencies and static content */
 
-  sealed case class Node(
+  sealed case class Session_Content(
     loaded_theories: Set[String],
     syntax: Outer_Syntax,
     sources: List[(Path, SHA1.Digest)])
 
-  sealed case class Deps(deps: Map[String, Node])
+  sealed case class Deps(deps: Map[String, Session_Content])
   {
     def is_empty: Boolean = deps.isEmpty
-    def apply(name: String): Node = deps(name)
+    def apply(name: String): Session_Content = deps(name)
     def sources(name: String): List[SHA1.Digest] = deps(name).sources.map(_._2)
   }
 
   def dependencies(verbose: Boolean, tree: Session_Tree): Deps =
-    Deps((Map.empty[String, Node] /: tree.topological_order)(
+    Deps((Map.empty[String, Session_Content] /: tree.topological_order)(
       { case (deps, (name, info)) =>
           val (preloaded, parent_syntax) =
             info.parent match {
@@ -358,19 +358,12 @@ object Build
                 map(thy => Document.Node.Name(info.dir + Thy_Load.thy_path(thy))))
 
           val loaded_theories = preloaded ++ thy_deps.map(_._1.theory)
-
-          val keywords = thy_deps.map({ case (_, Exn.Res(h)) => h.keywords case _ => Nil }).flatten
-          val syntax = (parent_syntax /: keywords)(_ + _)
+          val syntax = (parent_syntax /: thy_deps) { case (syn, (_, h)) => syn.add_keywords(h) }
 
           val all_files =
             thy_deps.map({ case (n, h) =>
               val thy = Path.explode(n.node).expand
-              val uses =
-                h match {
-                  case Exn.Res(d) =>
-                    d.uses.map(p => (Path.explode(n.dir) + Path.explode(p._1)).expand)
-                  case _ => Nil
-                }
+              val uses = h.uses.map(p => (Path.explode(n.dir) + Path.explode(p._1)).expand)
               thy :: uses
             }).flatten ::: info.files.map(file => info.dir + file)
           val sources =
@@ -381,8 +374,16 @@ object Build
                   quote(name) + Position.str_of(info.pos))
             }
 
-          deps + (name -> Node(loaded_theories, syntax, sources))
+          deps + (name -> Session_Content(loaded_theories, syntax, sources))
       }))
+
+  def session_content(session: String): Session_Content =
+  {
+    val (_, tree) = find_sessions(Options.init(), Nil).required(false, Nil, List(session))
+    dependencies(false, tree)(session)
+  }
+
+  def outer_syntax(session: String): Outer_Syntax = session_content(session).syntax
 
 
   /* jobs */
@@ -398,7 +399,7 @@ object Build
         browser_info + Path.explode("isabelle.gif"))
       File.write(browser_info + Path.explode("index.html"),
         File.read(Path.explode("~~/lib/html/library_index_header.template")) +
-        File.read(Path.explode("~~/lib/html/library_index_content.template")) +
+        File.read(Path.explode("~~/lib/html/library_index_Session_Content.template")) +
         File.read(Path.explode("~~/lib/html/library_index_footer.template")))
     }
 
@@ -701,16 +702,6 @@ object Build
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }
     }
-  }
-
-
-  /* static outer syntax */
-
-  // FIXME Symbol.decode!?
-  def outer_syntax(session: String): Outer_Syntax =
-  {
-    val (_, tree) = find_sessions(Options.init(), Nil).required(false, Nil, List(session))
-    dependencies(false, tree)(session).syntax
   }
 }
 

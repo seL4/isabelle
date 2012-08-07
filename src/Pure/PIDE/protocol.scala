@@ -195,7 +195,7 @@ trait Protocol extends Isabelle_Process
 
   def define_command(command: Command): Unit =
     input("Document.define_command",
-      Document.ID(command.id), Symbol.encode(command.name), Symbol.encode(command.source))
+      Document.ID(command.id), encode(command.name), encode(command.source))
 
 
   /* document versions */
@@ -210,30 +210,28 @@ trait Protocol extends Isabelle_Process
     val edits_yxml =
     { import XML.Encode._
       def id: T[Command] = (cmd => long(cmd.id))
-      def symbol_string: T[String] = (s => string(Symbol.encode(s)))
       def encode_edit(name: Document.Node.Name)
           : T[Document.Node.Edit[(Option[Command], Option[Command]), Command.Perspective]] =
         variant(List(
           { case Document.Node.Clear() => (Nil, Nil) },
           { case Document.Node.Edits(a) => (Nil, list(pair(option(id), option(id)))(a)) },
-          { case Document.Node.Header(Exn.Res(deps)) =>
+          { case Document.Node.Deps(header) =>
               val dir = Isabelle_System.posix_path(name.dir)
-              val imports = deps.imports.map(_.node)
+              val imports = header.imports.map(_.node)
               // FIXME val uses = deps.uses.map(p => (Isabelle_System.posix_path(p._1), p._2))
-              val uses = deps.uses
+              val uses = header.uses
               (Nil,
-                pair(pair(pair(pair(symbol_string, symbol_string), list(symbol_string)),
-                  list(pair(symbol_string, option(pair(symbol_string, list(symbol_string)))))),
-                    list(pair(symbol_string, bool)))(
-                (((dir, name.theory), imports), deps.keywords), uses)) },
-          { case Document.Node.Header(Exn.Exn(e)) => (List(Symbol.encode(Exn.message(e))), Nil) },
+                pair(Encode.string, pair(Encode.string, pair(list(Encode.string),
+                  pair(list(pair(Encode.string, option(pair(Encode.string, list(Encode.string))))),
+                  pair(list(pair(Encode.string, bool)), list(Encode.string))))))(
+                (dir, (name.theory, (imports, (header.keywords, (uses, header.errors))))))) },
           { case Document.Node.Perspective(a) => (a.commands.map(c => long_atom(c.id)), Nil) }))
-      def encode: T[List[Document.Edit_Command]] = list((node_edit: Document.Edit_Command) =>
+      def encode_edits: T[List[Document.Edit_Command]] = list((node_edit: Document.Edit_Command) =>
       {
         val (name, edit) = node_edit
         pair(string, encode_edit(name))(name.node, edit)
       })
-      YXML.string_of_body(encode(edits)) }
+      YXML.string_of_body(encode_edits(edits)) }
     input("Document.update", Document.ID(old_id), Document.ID(new_id), edits_yxml)
   }
 

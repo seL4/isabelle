@@ -24,7 +24,7 @@ class Thy_Info(thy_load: Thy_Load)
 
   /* dependencies */
 
-  type Dep = (Document.Node.Name, Document.Node_Header)
+  type Dep = (Document.Node.Name, Document.Node.Header)
   private type Required = (List[Dep], Set[Document.Node.Name])
 
   private def require_thys(initiators: List[Document.Node.Name],
@@ -40,7 +40,7 @@ class Thy_Info(thy_load: Thy_Load)
     else {
       try {
         if (initiators.contains(name)) error(cycle_msg(initiators))
-        val node_deps =
+        val header =
           try { thy_load.check_thy(name) }
           catch {
             case ERROR(msg) =>
@@ -48,10 +48,13 @@ class Thy_Info(thy_load: Thy_Load)
                 quote(name.theory) + required_by(initiators))
           }
         val (deps1, seen1) =
-          require_thys(name :: initiators, (deps, seen + name), node_deps.imports)
-        ((name, Exn.Res(node_deps)) :: deps1, seen1)
+          require_thys(name :: initiators, (deps, seen + name), header.imports)
+        ((name, header) :: deps1, seen1)
       }
-      catch { case e: Throwable => (((name, Exn.Exn(e)): Dep) :: deps, seen + name) }
+      catch {
+        case e: Throwable =>
+          ((name, Document.Node.bad_header(Exn.message(e))) :: deps, seen + name)
+      }
     }
   }
 

@@ -107,12 +107,17 @@ object Thy_Header extends Parse.Parser
     try { read(reader).map(Standard_System.decode_permissive_utf8) }
     finally { reader.close }
   }
+
+
+  /* keywords */
+
+  type Keywords = List[(String, Option[(String, List[String])])]
 }
 
 
 sealed case class Thy_Header(
   name: String, imports: List[String],
-  keywords: List[Outer_Syntax.Decl],
+  keywords: Thy_Header.Keywords,
   uses: List[(String, Boolean)])
 {
   def map(f: String => String): Thy_Header =

@@ -67,7 +67,8 @@ object Token
 sealed case class Token(val kind: Token.Kind.Value, val source: String)
 {
   def is_command: Boolean = kind == Token.Kind.COMMAND
-  def is_operator: Boolean = kind == Token.Kind.KEYWORD && !Symbol.is_ascii_identifier(source)
+  def is_keyword: Boolean = kind == Token.Kind.KEYWORD
+  def is_operator: Boolean = is_keyword && !Symbol.is_ascii_identifier(source)
   def is_delimited: Boolean =
     kind == Token.Kind.STRING ||
     kind == Token.Kind.ALT_STRING ||
@@ -90,8 +91,8 @@ sealed case class Token(val kind: Token.Kind.Value, val source: String)
   def is_proper: Boolean = !is_space && !is_comment
   def is_unparsed: Boolean = kind == Token.Kind.UNPARSED
 
-  def is_begin: Boolean = kind == Token.Kind.KEYWORD && source == "begin"
-  def is_end: Boolean = kind == Token.Kind.COMMAND && source == "end"
+  def is_begin: Boolean = is_keyword && source == "begin"
+  def is_end: Boolean = is_keyword && source == "end"
 
   def content: String =
     if (kind == Token.Kind.STRING) Scan.Lexicon.empty.quoted_content("\"", source)
@@ -101,7 +102,7 @@ sealed case class Token(val kind: Token.Kind.Value, val source: String)
     else source
 
   def text: (String, String) =
-    if (kind == Token.Kind.COMMAND && source == ";") ("terminator", "")
+    if (is_command && source == ";") ("terminator", "")
     else (kind.toString, source)
 }
 

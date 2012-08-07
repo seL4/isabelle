@@ -147,6 +147,15 @@ object Isabelle
 
   def buffer_name(buffer: Buffer): String = buffer.getSymlinkPath
 
+  def buffer_node_dummy(buffer: Buffer): Option[Document.Node.Name] =
+    Some(Document.Node.Name(buffer_name(buffer), buffer.getDirectory, buffer.getName))
+
+  def buffer_node_name(buffer: Buffer): Option[Document.Node.Name] =
+  {
+    val name = buffer_name(buffer)
+    Thy_Header.thy_name(name).map(theory => Document.Node.Name(name, buffer.getDirectory, theory))
+  }
+
 
   /* main jEdit components */
 
@@ -197,18 +206,14 @@ object Isabelle
   {
     swing_buffer_lock(buffer) {
       val opt_model =
-      {
-        val name = buffer_name(buffer)
-        Thy_Header.thy_name(name) match {
-          case Some(theory) =>
-            val node_name = Document.Node.Name(name, buffer.getDirectory, theory)
+        buffer_node_name(buffer) match {
+          case Some(node_name) =>
             document_model(buffer) match {
               case Some(model) if model.name == node_name => Some(model)
               case _ => Some(Document_Model.init(session, buffer, node_name))
             }
           case None => None
         }
-      }
       if (opt_model.isDefined) {
         for (text_area <- jedit_text_areas(buffer)) {
           if (document_view(text_area).map(_.model) != opt_model)
@@ -301,7 +306,8 @@ object Isabelle
       if (logic != null && logic != "") logic
       else Isabelle.default_logic()
     }
-    session.start(modes ::: List(logic))
+    val name = Path.explode(logic).base.implode  // FIXME more robust session name
+    session.start(name, modes ::: List(logic))
   }
 
 

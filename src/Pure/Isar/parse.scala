@@ -50,9 +50,11 @@ object Parse
     def atom(s: String, pred: Elem => Boolean): Parser[String] =
       token(s, pred) ^^ (_.content)
 
+    def command(name: String): Parser[String] =
+      atom("command " + quote(name), tok => tok.is_command && tok.source == name)
+
     def keyword(name: String): Parser[String] =
-      atom(Token.Kind.KEYWORD.toString + " " + quote(name),
-        tok => tok.kind == Token.Kind.KEYWORD && tok.content == name)
+      atom("keyword " + quote(name), tok => tok.is_keyword && tok.source == name)
 
     def string: Parser[String] = atom("string", _.is_string)
     def nat: Parser[Int] = atom("natural number", _.is_nat) ^^ (s => Integer.parseInt(s))
