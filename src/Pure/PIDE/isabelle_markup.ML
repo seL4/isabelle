@@ -102,7 +102,6 @@ sig
   val no_reportN: string val no_report: Markup.T
   val badN: string val bad: Markup.T
   val functionN: string
-  val ready: Properties.T
   val assign_execs: Properties.T
   val removed_versions: Properties.T
   val invoke_scala: string -> string -> Properties.T
@@ -304,8 +303,6 @@ val (badN, bad) = markup_elem "bad";
 (* protocol message functions *)
 
 val functionN = "function"
-
-val ready = [(functionN, "ready")];
 
 val assign_execs = [(functionN, "assign_execs")];
 val removed_versions = [(functionN, "removed_versions")];

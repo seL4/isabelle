@@ -250,8 +250,6 @@ object Isabelle_Markup
   val FUNCTION = "function"
   val Function = new Properties.String(FUNCTION)
 
-  val Ready: Properties.T = List((FUNCTION, "ready"))
-
   val Assign_Execs: Properties.T = List((FUNCTION, "assign_execs"))
   val Removed_Versions: Properties.T = List((FUNCTION, "removed_versions"))
 

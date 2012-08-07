@@ -351,16 +351,16 @@ class Session(val thy_load: Thy_Load = new Thy_Load())
         case Isabelle_Markup.Cancel_Scala(id) if output.is_protocol =>
           System.err.println("cancel_scala " + id)  // FIXME actually cancel JVM task
 
-        case Isabelle_Markup.Ready if output.is_protocol =>
+        case _ if output.is_init =>
             phase = Session.Ready
 
         case Isabelle_Markup.Return_Code(rc) if output.is_exit =>
           if (rc == 0) phase = Session.Inactive
           else phase = Session.Failed
 
-        case _ =>
-          if (output.is_init || output.is_stdout) { }
-          else bad_output(output)
+        case _ if output.is_stdout =>
+
+        case _ => bad_output(output)
       }
     }
     //}}}
