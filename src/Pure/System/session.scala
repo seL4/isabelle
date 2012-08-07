@@ -37,7 +37,7 @@ object Session
 }
 
 
-class Session(thy_load: Thy_Load = new Thy_Load())
+class Session(val thy_load: Thy_Load = new Thy_Load())
 {
   /* global flags */
 
@@ -354,9 +354,6 @@ class Session(thy_load: Thy_Load = new Thy_Load())
         case Isabelle_Markup.Ready if output.is_protocol =>
             phase = Session.Ready
 
-        case Isabelle_Markup.Loaded_Theory(name) if output.is_protocol =>
-          thy_load.register_thy(name)
-
         case Isabelle_Markup.Return_Code(rc) if output.is_exit =>
           if (rc == 0) phase = Session.Inactive
           else phase = Session.Failed
@@ -380,7 +377,12 @@ class Session(thy_load: Thy_Load = new Thy_Load())
         case Start(name, args) if prover.isEmpty =>
           if (phase == Session.Inactive || phase == Session.Failed) {
             phase = Session.Startup
-            base_syntax = Build.outer_syntax(name)
+
+            // FIXME static init in main constructor
+            val content = Build.session_content(name)
+            thy_load.register_thys(content.loaded_theories)
+            base_syntax = content.syntax
+
             prover = Some(new Isabelle_Process(receiver.invoke _, args) with Protocol)
           }
 

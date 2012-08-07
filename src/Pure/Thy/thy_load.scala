@@ -26,8 +26,11 @@ class Thy_Load(preloaded: Set[String] = Set.empty)
 
   private var loaded_theories: Set[String] = preloaded
 
-  def register_thy(thy_name: String): Unit =
-    synchronized { loaded_theories += thy_name }
+  def register_thy(name: String): Unit =
+    synchronized { loaded_theories += name }
+
+  def register_thys(names: Set[String]): Unit =
+    synchronized { loaded_theories ++= names }
 
   def is_loaded(thy_name: String): Boolean =
     synchronized { loaded_theories.contains(thy_name) }

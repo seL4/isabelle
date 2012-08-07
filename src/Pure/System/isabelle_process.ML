@@ -183,7 +183,6 @@ fun init rendezvous = ignore (Simple_Thread.fork false (fn () =>
     val channel = rendezvous ();
     val _ = setup_channels channel;
 
-    val _ = Thy_Info.status ();
     val _ = Output.protocol_message Isabelle_Markup.ready "";
   in loop channel end));
 

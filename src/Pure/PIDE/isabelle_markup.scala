@@ -252,15 +252,6 @@ object Isabelle_Markup
 
   val Ready: Properties.T = List((FUNCTION, "ready"))
 
-  object Loaded_Theory
-  {
-    def unapply(props: Properties.T): Option[String] =
-      props match {
-        case List((FUNCTION, "loaded_theory"), (Markup.NAME, name)) => Some(name)
-        case _ => None
-      }
-  }
-
   val Assign_Execs: Properties.T = List((FUNCTION, "assign_execs"))
   val Removed_Versions: Properties.T = List((FUNCTION, "removed_versions"))
 

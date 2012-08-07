@@ -103,7 +103,6 @@ sig
   val badN: string val bad: Markup.T
   val functionN: string
   val ready: Properties.T
-  val loaded_theory: string -> Properties.T
   val assign_execs: Properties.T
   val removed_versions: Properties.T
   val invoke_scala: string -> string -> Properties.T
@@ -307,8 +306,6 @@ val (badN, bad) = markup_elem "bad";
 val functionN = "function"
 
 val ready = [(functionN, "ready")];
-
-fun loaded_theory name = [(functionN, "loaded_theory"), (Markup.nameN, name)];
 
 val assign_execs = [(functionN, "assign_execs")];
 val removed_versions = [(functionN, "removed_versions")];

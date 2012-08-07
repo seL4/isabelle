@@ -10,7 +10,6 @@ sig
   datatype action = Update | Remove
   val add_hook: (action -> string -> unit) -> unit
   val get_names: unit -> string list
-  val status: unit -> unit
   val lookup_theory: string -> theory option
   val get_theory: string -> theory
   val is_finished: string -> bool
@@ -87,10 +86,6 @@ end;
 fun thy_graph f x = f (get_thys ()) x;
 
 fun get_names () = Graph.topological_order (get_thys ());
-
-fun status () =
-  List.app (fn name => Output.protocol_message (Isabelle_Markup.loaded_theory name) "")
-    (get_names ());
 
 
 (* access thy *)

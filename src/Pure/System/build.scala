@@ -315,22 +315,22 @@ object Build
   }
 
 
-  /* source dependencies */
+  /* source dependencies and static content */
 
-  sealed case class Node(
+  sealed case class Session_Content(
     loaded_theories: Set[String],
     syntax: Outer_Syntax,
     sources: List[(Path, SHA1.Digest)])
 
-  sealed case class Deps(deps: Map[String, Node])
+  sealed case class Deps(deps: Map[String, Session_Content])
   {
     def is_empty: Boolean = deps.isEmpty
-    def apply(name: String): Node = deps(name)
+    def apply(name: String): Session_Content = deps(name)
     def sources(name: String): List[SHA1.Digest] = deps(name).sources.map(_._2)
   }
 
   def dependencies(verbose: Boolean, tree: Session_Tree): Deps =
-    Deps((Map.empty[String, Node] /: tree.topological_order)(
+    Deps((Map.empty[String, Session_Content] /: tree.topological_order)(
       { case (deps, (name, info)) =>
           val (preloaded, parent_syntax) =
             info.parent match {
@@ -374,8 +374,16 @@ object Build
                   quote(name) + Position.str_of(info.pos))
             }
 
-          deps + (name -> Node(loaded_theories, syntax, sources))
+          deps + (name -> Session_Content(loaded_theories, syntax, sources))
       }))
+
+  def session_content(session: String): Session_Content =
+  {
+    val (_, tree) = find_sessions(Options.init(), Nil).required(false, Nil, List(session))
+    dependencies(false, tree)(session)
+  }
+
+  def outer_syntax(session: String): Outer_Syntax = session_content(session).syntax
 
 
   /* jobs */
@@ -391,7 +399,7 @@ object Build
         browser_info + Path.explode("isabelle.gif"))
       File.write(browser_info + Path.explode("index.html"),
         File.read(Path.explode("~~/lib/html/library_index_header.template")) +
-        File.read(Path.explode("~~/lib/html/library_index_content.template")) +
+        File.read(Path.explode("~~/lib/html/library_index_Session_Content.template")) +
         File.read(Path.explode("~~/lib/html/library_index_footer.template")))
     }
 
@@ -694,15 +702,6 @@ object Build
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }
     }
-  }
-
-
-  /* static outer syntax */
-
-  def outer_syntax(session: String): Outer_Syntax =
-  {
-    val (_, tree) = find_sessions(Options.init(), Nil).required(false, Nil, List(session))
-    dependencies(false, tree)(session).syntax
   }
 }
 
