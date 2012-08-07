@@ -15,11 +15,11 @@ sig
   val new_id: unit -> id
   val parse_id: string -> id
   val print_id: id -> string
-  type node_header = (string * Thy_Header.header) Exn.result
+  type node_header = string * Thy_Header.header * string list
   datatype node_edit =
     Clear |
     Edits of (command_id option * command_id option) list |
-    Header of node_header |
+    Deps of node_header |
     Perspective of command_id list
   type edit = string * node_edit
   type state
@@ -59,7 +59,7 @@ fun err_undef kind id = error ("Undefined " ^ kind ^ ": " ^ print_id id);
 
 (** document structure **)
 
-type node_header = (string * Thy_Header.header) Exn.result;
+type node_header = string * Thy_Header.header * string list;
 type perspective = (command_id -> bool) * command_id option;
 structure Entries = Linear_Set(type key = command_id val ord = int_ord);
 
@@ -67,7 +67,7 @@ type exec = (Toplevel.state * unit lazy) Command.memo;  (*eval/print process*)
 val no_exec = Command.memo_value (Toplevel.toplevel, Lazy.value ());
 
 abstype node = Node of
- {header: node_header,
+ {header: node_header,  (*master directory, theory header, errors*)
   perspective: perspective,  (*visible commands, last*)
   entries: (exec_id * exec) option Entries.T,  (*command entries with excecutions*)
   result: exec option}  (*result of last execution*)
@@ -83,7 +83,7 @@ fun map_node f (Node {header, perspective, entries, result}) =
 fun make_perspective command_ids : perspective =
   (Inttab.defined (Inttab.make (map (rpair ()) command_ids)), try List.last command_ids);
 
-val no_header = Exn.Exn (ERROR "Bad theory header");
+val no_header = ("", Thy_Header.make "" [] [] [], ["Bad theory header"]);
 val no_perspective = make_perspective [];
 
 val empty_node = make_node (no_header, no_perspective, Entries.empty, NONE);
@@ -92,7 +92,10 @@ val clear_node = map_node (fn (header, _, _, _) => (header, no_perspective, Entr
 
 (* basic components *)
 
-fun get_header (Node {header, ...}) = header;
+fun get_header (Node {header = (master, header, errors), ...}) =
+  if null errors then (master, header)
+  else error (cat_lines errors);
+
 fun set_header header =
   map_node (fn (_, perspective, entries, result) => (header, perspective, entries, result));
 
@@ -128,7 +131,7 @@ fun update_node name f = default_node name #> Graph.map_node name f;
 datatype node_edit =
   Clear |
   Edits of (command_id option * command_id option) list |
-  Header of node_header |
+  Deps of node_header |
   Perspective of command_id list;
 
 type edit = string * node_edit;
@@ -178,22 +181,21 @@ fun edit_nodes (name, node_edit) (Version nodes) =
     (case node_edit of
       Clear => update_node name clear_node nodes
     | Edits edits => update_node name (edit_node edits) nodes
-    | Header header =>
+    | Deps (master, header, errors) =>
         let
-          val imports = (case header of Exn.Res (_, {imports, ...}) => imports | _ => []);
-          val header' =
-            ((case header of Exn.Res (_, h) => Thy_Header.define_keywords h | _ => ()); header)
-              handle exn as ERROR _ => Exn.Exn exn;
+          val errors1 =
+            (Thy_Header.define_keywords header; errors)
+              handle ERROR msg => errors @ [msg];
           val nodes1 = nodes
             |> default_node name
-            |> fold default_node imports;
+            |> fold default_node (#imports header);
           val nodes2 = nodes1
             |> Graph.Keys.fold
                 (fn dep => Graph.del_edge (dep, name)) (Graph.imm_preds nodes1 name);
-          val (header'', nodes3) =
-            (header', Graph.add_deps_acyclic (name, imports) nodes2)
-              handle Graph.CYCLES cs => (Exn.Exn (ERROR (cat_lines (map cycle_msg cs))), nodes2);
-        in Graph.map_node name (set_header header'') nodes3 end
+          val (nodes3, errors2) =
+            (Graph.add_deps_acyclic (name, #imports header) nodes2, errors1)
+              handle Graph.CYCLES cs => (nodes2, errors1 @ map cycle_msg cs);
+        in Graph.map_node name (set_header (master, header, errors2)) nodes3 end
     | Perspective perspective => update_node name (set_perspective perspective) nodes);
 
 fun put_node (name, node) (Version nodes) =
@@ -374,7 +376,7 @@ fun make_required nodes =
 fun init_theory imports node =
   let
     (* FIXME provide files via Scala layer, not master_dir *)
-    val (dir, header) = Exn.release (get_header node);
+    val (dir, header) = get_header node;
     val master_dir =
       (case Url.explode dir of
         Url.File path => path
@@ -393,7 +395,7 @@ fun init_theory imports node =
 
 fun check_theory full name node =
   is_some (Thy_Info.lookup_theory name) orelse
-  is_some (Exn.get_res (get_header node)) andalso (not full orelse is_some (get_result node));
+  can get_header node andalso (not full orelse is_some (get_result node));
 
 fun last_common state last_visible node0 node =
   let

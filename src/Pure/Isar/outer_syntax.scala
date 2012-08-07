@@ -60,14 +60,10 @@ final class Outer_Syntax private(
   def + (name: String, kind: String): Outer_Syntax = this + (name, kind, name)
   def + (name: String): Outer_Syntax = this + (name, Keyword.MINOR)
 
-  def add_keywords(header: Document.Node_Header): Outer_Syntax =
-    header match {
-      case Exn.Res(deps) =>
-        (this /: deps.keywords) {
-          case (syntax, ((name, Some((kind, _))))) => syntax + (name, kind)
-          case (syntax, ((name, None))) => syntax + name
-        }
-      case Exn.Exn(_) => this
+  def add_keywords(header: Document.Node.Header): Outer_Syntax =
+    (this /: header.keywords) {
+      case (syntax, ((name, Some((kind, _))))) => syntax + (name, kind)
+      case (syntax, ((name, None))) => syntax + name
     }
 
   def is_command(name: String): Boolean =

@@ -134,19 +134,16 @@ object Thy_Syntax
     val doc_edits = new mutable.ListBuffer[Document.Edit_Command]
 
     edits foreach {
-      case (name, Document.Node.Header(header)) =>
+      case (name, Document.Node.Deps(header)) =>
         val node = nodes(name)
         val update_header =
-          (node.header, header) match {
-            case (Exn.Res(deps0), Exn.Res(deps)) => deps0 != deps
-            case _ => true
-          }
+          !node.header.errors.isEmpty || !header.errors.isEmpty || node.header != header
         if (update_header) {
           val node1 = node.update_header(header)
-          updated_imports = updated_imports || (node.imports != node1.imports)
-          updated_keywords = updated_keywords || (node.keywords != node1.keywords)
+          updated_imports = updated_imports || (node.header.imports != node1.header.imports)
+          updated_keywords = updated_keywords || (node.header.keywords != node1.header.keywords)
           nodes += (name -> node1)
-          doc_edits += (name -> Document.Node.Header(header))
+          doc_edits += (name -> Document.Node.Deps(header))
         }
       case _ =>
     }
@@ -289,7 +286,7 @@ object Thy_Syntax
         doc_edits += (name -> Document.Node.Edits(cmd_edits))
         nodes += (name -> node.update_commands(commands3))
 
-      case (name, Document.Node.Header(_)) =>
+      case (name, Document.Node.Deps(_)) =>
 
       case (name, Document.Node.Perspective(text_perspective)) =>
         val node = nodes(name)

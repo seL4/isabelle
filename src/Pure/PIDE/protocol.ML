@@ -37,16 +37,15 @@ val _ =
                   fn ([], a) => Document.Edits (list (pair (option int) (option int)) a),
                   fn ([], a) =>
                     let
-                      val ((((master, name), imports), keywords), uses) =
-                        pair (pair (pair (pair string string) (list string))
-                          (list (pair string (option (pair string (list string))))))
-                          (list (pair string bool)) a;
-                      val res =
-                        Exn.capture (fn () =>
-                          (master, Thy_Header.make name imports keywords
-                            (map (apfst Path.explode) uses))) ();
-                    in Document.Header res end,
-                  fn ([a], []) => Document.Header (Exn.Exn (ERROR a)),
+                      val (master, (name, (imports, (keywords, (uses, errors))))) =
+                        pair string (pair string (pair (list string)
+                          (pair (list (pair string (option (pair string (list string)))))
+                            (pair (list (pair string bool)) (list string))))) a;
+                      val (uses', errors') =
+                        (map (apfst Path.explode) uses, errors)
+                          handle ERROR msg => ([], errors @ [msg]);
+                      val header = Thy_Header.make name imports keywords uses';
+                    in Document.Deps (master, header, errors') end,
                   fn (a, []) => Document.Perspective (map int_atom a)]))
             end;
 

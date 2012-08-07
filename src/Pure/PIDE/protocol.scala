@@ -215,17 +215,16 @@ trait Protocol extends Isabelle_Process
         variant(List(
           { case Document.Node.Clear() => (Nil, Nil) },
           { case Document.Node.Edits(a) => (Nil, list(pair(option(id), option(id)))(a)) },
-          { case Document.Node.Header(Exn.Res(deps)) =>
+          { case Document.Node.Deps(header) =>
               val dir = Isabelle_System.posix_path(name.dir)
-              val imports = deps.imports.map(_.node)
+              val imports = header.imports.map(_.node)
               // FIXME val uses = deps.uses.map(p => (Isabelle_System.posix_path(p._1), p._2))
-              val uses = deps.uses
+              val uses = header.uses
               (Nil,
-                pair(pair(pair(pair(Encode.string, Encode.string), list(Encode.string)),
-                  list(pair(Encode.string, option(pair(Encode.string, list(Encode.string)))))),
-                    list(pair(Encode.string, bool)))(
-                (((dir, name.theory), imports), deps.keywords), uses)) },
-          { case Document.Node.Header(Exn.Exn(e)) => (List(encode(Exn.message(e))), Nil) },
+                pair(Encode.string, pair(Encode.string, pair(list(Encode.string),
+                  pair(list(pair(Encode.string, option(pair(Encode.string, list(Encode.string))))),
+                  pair(list(pair(Encode.string, bool)), list(Encode.string))))))(
+                (dir, (name.theory, (imports, (header.keywords, (uses, header.errors))))))) },
           { case Document.Node.Perspective(a) => (a.commands.map(c => long_atom(c.id)), Nil) }))
       def encode_edits: T[List[Document.Edit_Command]] = list((node_edit: Document.Edit_Command) =>
       {

@@ -7,7 +7,8 @@ Static theory header information.
 signature THY_HEADER =
 sig
   type header =
-   {name: string, imports: string list,
+   {name: string,
+    imports: string list,
     keywords: (string * Keyword.spec option) list,
     uses: (Path.T * bool) list}
   val make: string -> string list -> (string * Keyword.spec option) list ->
@@ -23,7 +24,8 @@ structure Thy_Header: THY_HEADER =
 struct
 
 type header =
- {name: string, imports: string list,
+ {name: string,
+  imports: string list,
   keywords: (string * Keyword.spec option) list,
   uses: (Path.T * bool) list};
 

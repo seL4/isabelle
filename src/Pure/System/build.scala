@@ -363,12 +363,7 @@ object Build
           val all_files =
             thy_deps.map({ case (n, h) =>
               val thy = Path.explode(n.node).expand
-              val uses =
-                h match {
-                  case Exn.Res(d) =>
-                    d.uses.map(p => (Path.explode(n.dir) + Path.explode(p._1)).expand)
-                  case _ => Nil
-                }
+              val uses = h.uses.map(p => (Path.explode(n.dir) + Path.explode(p._1)).expand)
               thy :: uses
             }).flatten ::: info.files.map(file => info.dir + file)
           val sources =

@@ -60,7 +60,7 @@ class Thy_Load(preloaded: Set[String] = Set.empty)
     }
   }
 
-  def check_header(name: Document.Node.Name, header: Thy_Header): Document.Node.Deps =
+  def check_header(name: Document.Node.Name, header: Thy_Header): Document.Node.Header =
   {
     val name1 = header.name
     val imports = header.imports.map(import_name(name.dir, _))
@@ -69,10 +69,10 @@ class Thy_Load(preloaded: Set[String] = Set.empty)
     if (name.theory != name1)
       error("Bad file name " + Thy_Load.thy_path(Path.basic(name.theory)) +
         " for theory " + quote(name1))
-    Document.Node.Deps(imports, header.keywords, uses)
+    Document.Node.Header(imports, header.keywords, uses)
   }
 
-  def check_thy(name: Document.Node.Name): Document.Node.Deps =
+  def check_thy(name: Document.Node.Name): Document.Node.Header =
     check_header(name, read_header(name))
 }
 

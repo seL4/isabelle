@@ -160,15 +160,13 @@ class Session(thy_load: Thy_Load = new Thy_Load())
 
   /* theory files */
 
-  def header_edit(name: Document.Node.Name, header: Document.Node_Header): Document.Edit_Text =
+  def header_edit(name: Document.Node.Name, header: Document.Node.Header): Document.Edit_Text =
   {
-    val header1: Document.Node_Header =
-      header match {
-        case Exn.Res(_) if (thy_load.is_loaded(name.theory)) =>
-          Exn.Exn(ERROR("Attempt to update loaded theory " + quote(name.theory)))
-        case _ => header
-      }
-    (name, Document.Node.Header(header1))
+    val header1 =
+      if (thy_load.is_loaded(name.theory))
+        header.error("Attempt to update loaded theory " + quote(name.theory))
+      else header
+    (name, Document.Node.Deps(header1))
   }
 
 
@@ -456,7 +454,7 @@ class Session(thy_load: Thy_Load = new Thy_Load())
   { session_actor !? Edit(edits) }
 
   def init_node(name: Document.Node.Name,
-    header: Document.Node_Header, perspective: Text.Perspective, text: String)
+    header: Document.Node.Header, perspective: Text.Perspective, text: String)
   {
     edit(List(header_edit(name, header),
       name -> Document.Node.Clear(),    // FIXME diff wrt. existing node
@@ -465,7 +463,7 @@ class Session(thy_load: Thy_Load = new Thy_Load())
   }
 
   def edit_node(name: Document.Node.Name,
-    header: Document.Node_Header, perspective: Text.Perspective, text_edits: List[Text.Edit])
+    header: Document.Node.Header, perspective: Text.Perspective, text_edits: List[Text.Edit])
   {
     edit(List(header_edit(name, header),
       name -> Document.Node.Edits(text_edits),
