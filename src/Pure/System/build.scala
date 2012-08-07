@@ -699,7 +699,6 @@ object Build
 
   /* static outer syntax */
 
-  // FIXME Symbol.decode!?
   def outer_syntax(session: String): Outer_Syntax =
   {
     val (_, tree) = find_sessions(Options.init(), Nil).required(false, Nil, List(session))

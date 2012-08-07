@@ -62,8 +62,10 @@ final class Outer_Syntax private(
 
   def add_keywords(header: Document.Node.Header): Outer_Syntax =
     (this /: header.keywords) {
-      case (syntax, ((name, Some((kind, _))))) => syntax + (name, kind)
-      case (syntax, ((name, None))) => syntax + name
+      case (syntax, ((name, Some((kind, _))))) =>
+        syntax + (Symbol.decode(name), kind) + (Symbol.encode(name), kind)
+      case (syntax, ((name, None))) =>
+        syntax + Symbol.decode(name) + Symbol.encode(name)
     }
 
   def is_command(name: String): Boolean =
