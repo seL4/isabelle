@@ -355,7 +355,7 @@ val e_males = (e_malesN, fn () => e_males_config)
 val iprover_config : atp_config =
   {exec = (["IPROVER_HOME"], ["iprover"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn _ =>
-       "--clausifier vclausify_rel --time_out_real " ^
+       "--clausifier $IPROVER_HOME/vclausify_rel --time_out_real " ^
        string_of_real (Time.toReal timeout),
    proof_delims = tstp_proof_delims,
    known_failures =
