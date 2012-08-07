@@ -41,7 +41,7 @@ object Document
   {
     sealed case class Deps(
       imports: List[Name],
-      keywords: List[Outer_Syntax.Decl],
+      keywords: Thy_Header.Keywords,
       uses: List[(String, Boolean)])
 
     object Name
@@ -125,7 +125,7 @@ object Document
     def imports: List[Node.Name] =
       header match { case Exn.Res(deps) => deps.imports case _ => Nil }
 
-    def keywords: List[Outer_Syntax.Decl] =
+    def keywords: Thy_Header.Keywords =
       header match { case Exn.Res(deps) => deps.keywords case _ => Nil }
 
 

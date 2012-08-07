@@ -153,7 +153,7 @@ object Thy_Syntax
 
     val syntax =
       if (previous.is_init || updated_keywords)
-        (base_syntax /: nodes.entries)({ case (syn, (_, node)) => (syn /: node.keywords)(_ + _) })
+        (base_syntax /: nodes.entries) { case (syn, (_, node)) => syn.add_keywords(node.header) }
       else previous.syntax
 
     val reparse =

@@ -358,9 +358,7 @@ object Build
                 map(thy => Document.Node.Name(info.dir + Thy_Load.thy_path(thy))))
 
           val loaded_theories = preloaded ++ thy_deps.map(_._1.theory)
-
-          val keywords = thy_deps.map({ case (_, Exn.Res(h)) => h.keywords case _ => Nil }).flatten
-          val syntax = (parent_syntax /: keywords)(_ + _)
+          val syntax = (parent_syntax /: thy_deps) { case (syn, (_, h)) => syn.add_keywords(h) }
 
           val all_files =
             thy_deps.map({ case (n, h) =>
