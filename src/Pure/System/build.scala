@@ -163,19 +163,19 @@ object Build
 
   /* parser */
 
+  private val SESSION = "session"
+  private val IN = "in"
+  private val DESCRIPTION = "description"
+  private val OPTIONS = "options"
+  private val THEORIES = "theories"
+  private val FILES = "files"
+
+  lazy val root_syntax =
+    Outer_Syntax.init() + "!" + "(" + ")" + "+" + "," + "=" + "[" + "]" +
+      SESSION + IN + DESCRIPTION + OPTIONS + THEORIES + FILES
+
   private object Parser extends Parse.Parser
   {
-    val SESSION = "session"
-    val IN = "in"
-    val DESCRIPTION = "description"
-    val OPTIONS = "options"
-    val THEORIES = "theories"
-    val FILES = "files"
-
-    val syntax =
-      Outer_Syntax.empty + "!" + "(" + ")" + "+" + "," + "=" + "[" + "]" +
-        SESSION + IN + DESCRIPTION + OPTIONS + THEORIES + FILES
-
     def session_entry(pos: Position.T): Parser[Session_Entry] =
     {
       val session_name = atom("session name", _.is_name)
@@ -202,7 +202,7 @@ object Build
 
     def parse_entries(root: Path): List[Session_Entry] =
     {
-      val toks = syntax.scan(File.read(root))
+      val toks = root_syntax.scan(File.read(root))
       parse_all(rep(session_entry(root.position)), Token.reader(toks, root.implode)) match {
         case Success(result, _) => result
         case bad => error(bad.toString)

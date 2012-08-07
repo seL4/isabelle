@@ -162,7 +162,7 @@ object Token_Markup
       }
   }
 
-  class Marker extends TokenMarker
+  class Marker(ext_styles: Boolean, get_syntax: => Option[Outer_Syntax]) extends TokenMarker
   {
     override def markTokens(context: TokenMarker.LineContext,
         handler: TokenHandler, raw_line: Segment): TokenMarker.LineContext =
@@ -176,12 +176,12 @@ object Token_Markup
 
       val context1 =
       {
+        val syntax = get_syntax
         val (styled_tokens, context1) =
-          if (line_ctxt.isDefined && Isabelle.session.is_ready) {
-            val syntax = Isabelle.session.recent_syntax()
-            val (tokens, ctxt1) = syntax.scan_context(line, line_ctxt.get)
+          if (line_ctxt.isDefined && syntax.isDefined) {
+            val (tokens, ctxt1) = syntax.get.scan_context(line, line_ctxt.get)
             val styled_tokens =
-              tokens.map(tok => (Isabelle_Rendering.token_markup(syntax, tok), tok))
+              tokens.map(tok => (Isabelle_Rendering.token_markup(syntax.get, tok), tok))
             (styled_tokens, new Line_Context(Some(ctxt1)))
           }
           else {
@@ -189,7 +189,9 @@ object Token_Markup
             (List((JEditToken.NULL, token)), new Line_Context(None))
           }
 
-        val extended = extended_styles(line)
+        val extended =
+          if (ext_styles) extended_styles(line)
+          else Map.empty[Text.Offset, Byte => Byte]
 
         var offset = 0
         for ((style, token) <- styled_tokens) {
@@ -221,7 +223,10 @@ object Token_Markup
 
   /* mode provider */
 
-  private val isabelle_token_marker = new Token_Markup.Marker
+  private val markers = Map(
+    "isabelle" -> new Token_Markup.Marker(true, Isabelle.session.get_recent_syntax()),
+    "isabelle-options" -> new Token_Markup.Marker(false, Some(Options.options_syntax)),
+    "isabelle-root" -> new Token_Markup.Marker(false, Some(Build.root_syntax)))
 
   class Mode_Provider(orig_provider: ModeProvider) extends ModeProvider
   {
@@ -230,15 +235,14 @@ object Token_Markup
     override def loadMode(mode: Mode, xmh: XModeHandler)
     {
       super.loadMode(mode, xmh)
-      if (mode.getName == "isabelle")
-        mode.setTokenMarker(isabelle_token_marker)
+      markers.get(mode.getName).map(mode.setTokenMarker(_))
     }
   }
 
   def refresh_buffer(buffer: JEditBuffer)
   {
     buffer.setTokenMarker(jEdit.getMode("text").getTokenMarker)
-    buffer.setTokenMarker(isabelle_token_marker)
+    markers.get(buffer.getMode.getName).map(buffer.setTokenMarker(_))
   }
 }
 

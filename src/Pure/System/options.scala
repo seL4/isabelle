@@ -30,13 +30,13 @@ object Options
 
   /* parsing */
 
+  private val DECLARE = "declare"
+  private val DEFINE = "define"
+
+  lazy val options_syntax = Outer_Syntax.init() + ":" + "=" + "--" + DECLARE + DEFINE
+
   private object Parser extends Parse.Parser
   {
-    val DECLARE = "declare"
-    val DEFINE = "define"
-
-    val syntax = Outer_Syntax.empty + ":" + "=" + "--" + DECLARE + DEFINE
-
     val entry: Parser[Options => Options] =
     {
       val option_name = atom("option name", _.is_xname)
@@ -56,7 +56,8 @@ object Options
 
     def parse_entries(file: Path): List[Options => Options] =
     {
-      parse_all(rep(entry), Token.reader(syntax.scan(File.read(file)), file.implode)) match {
+      val toks = options_syntax.scan(File.read(file))
+      parse_all(rep(entry), Token.reader(toks, file.implode)) match {
         case Success(result, _) => result
         case bad => error(bad.toString)
       }
