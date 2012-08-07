@@ -170,7 +170,7 @@ fun is_atp_for_format is_format ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
     case try (get_atp thy) name of
       SOME config =>
-      exists (fn (_, (_, ((_, format, _, _, _), _))) => is_format format)
+      exists (fn (_, ((_, format, _, _, _), _)) => is_format format)
              (#best_slices (config ()) ctxt)
     | NONE => false
   end
@@ -197,7 +197,7 @@ fun default_max_facts_for_prover ctxt slice name =
     if is_reconstructor name then
       reconstructor_default_max_facts
     else if is_atp thy name then
-      fold (Integer.max o #1 o fst o snd o snd o snd)
+      fold (Integer.max o #1 o fst o snd o snd)
            (get_slices slice (#best_slices (get_atp thy name ()) ctxt)) 0
     else (* is_smt_prover ctxt name *)
       SMT_Solver.default_max_relevant ctxt name
@@ -709,10 +709,10 @@ fun run_atp mode name
                         map (pair name o zero_var_indexes o snd) rths)
           end
         fun run_slice time_left (cache_key, cache_value)
-                (slice, (time_frac, (complete,
+                (slice, (time_frac,
                      (key as (best_max_facts, format, best_type_enc,
                               best_lam_trans, best_uncurried_aliases),
-                      extra)))) =
+                      extra))) =
           let
             val num_facts =
               length facts |> is_none max_facts ? Integer.min best_max_facts
@@ -787,8 +787,8 @@ fun run_atp mode name
               |> fst |> split_time
               |> (fn accum as (output, _) =>
                      (accum,
-                      extract_tstplike_proof_and_outcome verbose complete
-                          proof_delims known_failures output
+                      extract_tstplike_proof_and_outcome verbose proof_delims
+                                                         known_failures output
                       |>> atp_proof_from_tstplike_proof atp_problem
                       handle UNRECOGNIZED_ATP_PROOF () =>
                              ([], SOME ProofIncomplete)))
