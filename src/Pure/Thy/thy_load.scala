@@ -39,7 +39,7 @@ class Thy_Load(preloaded: Set[String] = Set.empty)
   /* file-system operations */
 
   def append(dir: String, source_path: Path): String =
-    (Path.explode(dir) + source_path).implode
+    (Path.explode(dir) + source_path).expand.implode
 
   def read_header(name: Document.Node.Name): Thy_Header =
   {
