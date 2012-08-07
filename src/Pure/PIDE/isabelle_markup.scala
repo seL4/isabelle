@@ -261,24 +261,6 @@ object Isabelle_Markup
       }
   }
 
-  object Keyword_Decl
-  {
-    def unapply(props: Properties.T): Option[String] =
-      props match {
-        case List((FUNCTION, "keyword_decl"), (Markup.NAME, name)) => Some(name)
-        case _ => None
-      }
-  }
-  object Command_Decl
-  {
-    def unapply(props: Properties.T): Option[(String, String)] =
-      props match {
-        case List((FUNCTION, "command_decl"), (Markup.NAME, name), (Markup.KIND, kind)) =>
-          Some((name, kind))
-        case _ => None
-      }
-  }
-
   val Assign_Execs: Properties.T = List((FUNCTION, "assign_execs"))
   val Removed_Versions: Properties.T = List((FUNCTION, "removed_versions"))
 

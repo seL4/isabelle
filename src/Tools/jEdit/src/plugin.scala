@@ -301,7 +301,8 @@ object Isabelle
       if (logic != null && logic != "") logic
       else Isabelle.default_logic()
     }
-    session.start(modes ::: List(logic))
+    val name = Path.explode(logic).base.implode  // FIXME more robust session name
+    session.start(name, modes ::: List(logic))
   }
 
 

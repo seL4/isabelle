@@ -104,8 +104,6 @@ sig
   val functionN: string
   val ready: Properties.T
   val loaded_theory: string -> Properties.T
-  val keyword_decl: string -> Properties.T
-  val command_decl: string -> string -> Properties.T
   val assign_execs: Properties.T
   val removed_versions: Properties.T
   val invoke_scala: string -> string -> Properties.T
@@ -311,10 +309,6 @@ val functionN = "function"
 val ready = [(functionN, "ready")];
 
 fun loaded_theory name = [(functionN, "loaded_theory"), (Markup.nameN, name)];
-
-fun keyword_decl name = [(functionN, "keyword_decl"), (Markup.nameN, name)];
-fun command_decl name kind =
-  [(functionN, "command_decl"), (Markup.nameN, name), (Markup.kindN, kind)];
 
 val assign_execs = [(functionN, "assign_execs")];
 val removed_versions = [(functionN, "removed_versions")];

@@ -108,7 +108,7 @@ class Session(thy_load: Thy_Load = new Thy_Load())
           val prev = previous.get_finished
           val (doc_edits, version) =
             Timing.timeit("Thy_Syntax.text_edits", timing) {
-              Thy_Syntax.text_edits(prover_syntax, prev, text_edits)
+              Thy_Syntax.text_edits(base_syntax, prev, text_edits)
             }
           version_result.fulfill(version)
           sender ! Change(doc_edits, prev, version)
@@ -125,11 +125,7 @@ class Session(thy_load: Thy_Load = new Thy_Load())
 
   /* global state */
 
-  @volatile private var prover_syntax =
-    Outer_Syntax.init() +
-      // FIXME avoid hardwired stuff!?
-      ("hence", Keyword.PRF_ASM_GOAL, "then have") +
-      ("thus", Keyword.PRF_ASM_GOAL, "then show")
+  @volatile private var base_syntax = Outer_Syntax.empty
 
   private val syslog = Volatile(Queue.empty[XML.Elem])
   def current_syslog(): String = cat_lines(syslog().iterator.map(msg => XML.content(msg).mkString))
@@ -149,7 +145,7 @@ class Session(thy_load: Thy_Load = new Thy_Load())
   def recent_syntax(): Outer_Syntax =
   {
     val version = current_state().recent_finished.version.get_finished
-    if (version.is_init) prover_syntax
+    if (version.is_init) base_syntax
     else version.syntax
   }
 
@@ -172,7 +168,7 @@ class Session(thy_load: Thy_Load = new Thy_Load())
 
   /* actor messages */
 
-  private case class Start(args: List[String])
+  private case class Start(logic: String, args: List[String])
   private case object Cancel_Execution
   private case class Edit(edits: List[Document.Edit_Text])
   private case class Change(
@@ -361,12 +357,6 @@ class Session(thy_load: Thy_Load = new Thy_Load())
         case Isabelle_Markup.Loaded_Theory(name) if output.is_protocol =>
           thy_load.register_thy(name)
 
-        case Isabelle_Markup.Command_Decl(name, kind) if output.is_protocol =>
-          prover_syntax += (name, kind)
-
-        case Isabelle_Markup.Keyword_Decl(name) if output.is_protocol =>
-          prover_syntax += name
-
         case Isabelle_Markup.Return_Code(rc) if output.is_exit =>
           if (rc == 0) phase = Session.Inactive
           else phase = Session.Failed
@@ -387,9 +377,10 @@ class Session(thy_load: Thy_Load = new Thy_Load())
       receiveWithin(delay_commands_changed.flush_timeout) {
         case TIMEOUT => delay_commands_changed.flush()
 
-        case Start(args) if prover.isEmpty =>
+        case Start(name, args) if prover.isEmpty =>
           if (phase == Session.Inactive || phase == Session.Failed) {
             phase = Session.Startup
+            base_syntax = Build.outer_syntax(name)
             prover = Some(new Isabelle_Process(receiver.invoke _, args) with Protocol)
           }
 
@@ -444,7 +435,7 @@ class Session(thy_load: Thy_Load = new Thy_Load())
 
   /* actions */
 
-  def start(args: List[String]) { session_actor ! Start(args) }
+  def start(name: String, args: List[String]) { session_actor ! Start(name, args) }
 
   def stop() { commands_changed_buffer !? Stop; change_parser !? Stop; session_actor !? Stop }
 
