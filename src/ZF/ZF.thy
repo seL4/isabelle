@@ -84,6 +84,8 @@ consts
   "Un"        :: "[i, i] => i"    (infixl "Un" 65) --{*binary union*}
   Diff        :: "[i, i] => i"    (infixl "-" 65) --{*set difference*}
   Subset      :: "[i, i] => o"    (infixl "<=" 50) --{*subset relation*}
+
+axiomatization
   mem         :: "[i, i] => o"    (infixl ":" 50) --{*membership relation*}
 
 abbreviation
