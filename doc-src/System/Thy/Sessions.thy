@@ -64,7 +64,7 @@ text {* Session specifications reside in files called @{verbatim ROOT}
     ;
     value: @{syntax name} | @{syntax real}
     ;
-    theories: @'theories' opts? ( @{syntax name} + )
+    theories: @'theories' opts? ( @{syntax name} * )
     ;
     files: @'files' ( @{syntax name} + )
     "}
@@ -321,40 +321,55 @@ isabelle build -D '$AFP'
 
 section {* Preparing session root directories \label{sec:tool-mkroot} *}
 
-text {* The @{tool_def mkroot} tool prepares Isabelle session source
-  directories, including some @{verbatim ROOT} entry, an example
-  theory file, and some initial configuration for document preparation
-  (see also \chref{ch:present}).  The usage of @{tool mkroot} is:
-
+text {* The @{tool_def mkroot} tool configures a given directory as
+  session root, with some @{verbatim ROOT} file and optional document
+  source directory.  Its usage is:
 \begin{ttbox}
-Usage: isabelle mkroot NAME
+Usage: isabelle mkroot [OPTIONS] [DIR]
 
-  Prepare session root directory, adding session NAME with
-  built-in document preparation.
+  Options are:
+    -d           enable document preparation
+    -n NAME      alternative session name (default: DIR base name)
+
+  Prepare session root DIR (default: current directory).
 \end{ttbox}
 
-  All session-specific files are placed into a separate sub-directory
-  given as @{verbatim NAME} above.  The @{verbatim ROOT} file is in
-  the parent position relative to that --- it could refer to several
-  such sessions.  The @{tool mkroot} tool is conservative in the sense
-  that does not overwrite an existing session sub-directory; an
-  already existing @{verbatim ROOT} file is extended.
+  The results are placed in the given directory @{text dir}, which
+  refers to the current directory by default.  The @{tool mkroot} tool
+  is conservative in the sense that it does not overwrite existing
+  files or directories.  Earlier attempts to generate a session root
+  need to be deleted manually.
 
-  The implicit Isabelle settings variable @{setting ISABELLE_LOGIC}
-  specifies the parent session, and @{setting
+  \medskip Option @{verbatim "-d"} indicates that the session shall be
+  accompanied by a formal document, with @{text dir}@{verbatim
+  "/document/root.tex"} as its {\LaTeX} entry point (see also
+  \chref{ch:present}).
+
+  Option @{verbatim "-n"} allows to specify an alternative session
+  name; otherwise the base name of the given directory is used.
+
+  \medskip The implicit Isabelle settings variable @{setting
+  ISABELLE_LOGIC} specifies the parent session, and @{setting
   ISABELLE_DOCUMENT_FORMAT} the document format to be filled filled
   into the generated @{verbatim ROOT} file.  *}
 
 
 subsubsection {* Examples *}
 
-text {* The following produces an example session, relatively to the
-  @{verbatim ROOT} in the current directory:
+text {* The following produces an example session as separate
+  directory called @{verbatim Test}:
 \begin{ttbox}
-isabelle mkroot Test && isabelle build -v -d. Test
+isabelle mkroot Test && isabelle build -v -D Test
 \end{ttbox}
 
   Option @{verbatim "-v"} is not required, but useful to reveal the
-  the location of generated documents.  *}
+  the location of generated documents.
+
+  \medskip The subsequent example turns the current directory to a
+  session directory with document and builds it:
+\begin{ttbox}
+isabelle mkroot -d && isabelle build -D.
+\end{ttbox}
+*}
 
 end

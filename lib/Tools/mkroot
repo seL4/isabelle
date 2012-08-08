@@ -12,10 +12,13 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: isabelle $PRG NAME"
+  echo "Usage: isabelle $PRG [OPTIONS] [DIR]"
   echo
-  echo "  Prepare session root directory, adding session NAME with"
-  echo "  built-in document preparation."
+  echo "  Options are:"
+  echo "    -d           enable document preparation"
+  echo "    -n NAME      alternative session name (default: DIR base name)"
+  echo
+  echo "  Prepare session root DIR (default: current directory)."
   echo
   exit 1
 }
@@ -29,48 +32,91 @@ function fail()
 
 ## process command line
 
-[ "$#" -ne 1 -o "$1" = "-?" ] && usage
+# options
 
-DIR_NAME="$1"; shift
+DOC=""
+NAME=""
 
-DIR="$(dirname "$DIR_NAME")"
-NAME="$(basename "$DIR_NAME")"
+while getopts "n:d" OPT
+do
+  case "$OPT" in
+    d)
+      DOC="true"
+      ;;
+    n)
+      NAME="$OPTARG"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
+if [ "$#" -eq 0 ]; then
+  DIR="."
+elif [ "$#" -eq 1 ]; then
+  DIR="$1"
+  shift
+else
+  usage
+fi
 
 
 ## main
 
-[ -e "$DIR_NAME" ] && fail "Cannot overwrite existing \"$DIR_NAME\""
+mkdir -p "$DIR" || fail "Bad directory: \"$DIR\""
+
+[ -z "$NAME" ] && NAME="$(basename "$(cd "$DIR"; pwd -P)")"
+
+[ -e "$DIR/ROOT" ] && fail "Cannot overwrite existing $DIR/ROOT"
+
+[ "$DOC" = true -a -e "$DIR/document" ] && \
+  fail "Cannot overwrite existing $DIR/document"
 
 echo
-echo "Preparing session \"$NAME\" ..."
-
-mkdir -p "$DIR_NAME" || fail "Bad directory: \"$DIR_NAME\""
+echo "Preparing session \"$NAME\" in \"$DIR\""
 
 
-# example theory
+# ROOT
 
-echo "creating $DIR_NAME/Ex.thy"
-cat > "$DIR_NAME/Ex.thy" <<EOF
-header {* Some example theory *}
+echo "  creating $DIR/ROOT"
 
-theory Ex imports Main
-begin
-
-text {* Some text here. *}
-
-end
+if [ "$DOC" = true ]; then
+  cat > "$DIR/ROOT" <<EOF
+session "$NAME" = "$ISABELLE_LOGIC" +
+  options [document = $ISABELLE_DOC_FORMAT]
+  theories [document = false]
+    (* Foo Bar *)
+  theories
+    (* Baz *)
+  files "document/root.tex"
 EOF
+else
+  cat > "$DIR/ROOT" <<EOF
+session "$NAME" = "$ISABELLE_LOGIC" +
+  options [document = false]
+  theories
+    (* Foo Bar Baz *)
+EOF
+fi
 
 
 # document directory
 
-echo "creating $DIR_NAME/document/root.tex"
+if [ "$DOC" = true ]; then
+  echo "  creating $DIR/document/root.tex"
 
-mkdir "$DIR_NAME/document" || fail "Bad directory: \"$DIR_NAME/document\""
+  mkdir "$DIR/document" || fail "Bad directory: \"$DIR/document\""
+  
+  TITLE=$(echo "$NAME" | tr _ - | tr -d '\\')
+  AUTHOR=$(echo "By $USER" | tr _ - | tr -d '\\')
 
-TITLE=$(echo "$NAME" | tr _ - | tr -d '\\')
-AUTHOR=$(echo "By $USER" | tr _ - | tr -d '\\')
-cat > "$DIR_NAME/document/root.tex" <<EOF
+  cat > "$DIR/document/root.tex" <<EOF
 \documentclass[11pt,a4paper]{article}
 \usepackage{isabelle,isabellesym}
 
@@ -131,46 +177,22 @@ cat > "$DIR_NAME/document/root.tex" <<EOF
 %%% TeX-master: t
 %%% End:
 EOF
-
-
-# ROOT
-
-if [ -e "$DIR/ROOT" ]; then
-  echo "appending to existing ROOT"
-  echo >> "$DIR/ROOT"
-else
-  echo "creating ROOT"
 fi
-
-cat >> "$DIR/ROOT" <<EOF
-session "$NAME"! = "$ISABELLE_LOGIC" +
-  options [document = $ISABELLE_DOC_FORMAT]
-  theories "Ex"
-  files "document/root.tex"
-EOF
-
 
 # notes
 
-if [ "$DIR" = . ]; then
-  OPT_DIR="-d."
+declare -a DIR_PARTS=($DIR)
+if [ ${#DIR_PARTS[@]} = 1 ]; then
+  OPT_DIR="-D $DIR"
 else
-  OPT_DIR="-d \"$DIR\""
+  OPT_DIR="-D \"$DIR\""
 fi
 
 cat <<EOF
 
-Notes:
+Now use the following command line to build the session:
 
-  * $DIR_NAME/Ex.thy contains an example theory.
-
-  * $DIR_NAME/document/root.tex contains the LaTeX master document setup.
-
-  * $DIR/ROOT contains build options, theories and extra file dependencies.
-
-  * The following command line builds the session (with document):
-
-      isabelle build -v $OPT_DIR $NAME
+  isabelle build -v $OPT_DIR
 
 EOF
 

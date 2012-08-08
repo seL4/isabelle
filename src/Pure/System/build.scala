@@ -172,7 +172,7 @@ object Build
       val options = keyword("[") ~> repsep(option, keyword(",")) <~ keyword("]")
 
       val theories =
-        keyword(THEORIES) ~! ((options | success(Nil)) ~ rep1(theory_name)) ^^
+        keyword(THEORIES) ~! ((options | success(Nil)) ~ rep(theory_name)) ^^
           { case _ ~ (x ~ y) => (x, y) }
 
       ((command(SESSION) ~! session_name) ^^ { case _ ~ x => x }) ~
