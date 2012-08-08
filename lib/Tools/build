@@ -26,10 +26,11 @@ function usage()
   echo "Usage: isabelle $PRG [OPTIONS] [SESSIONS ...]"
   echo
   echo "  Options are:"
+  echo "    -D DIR       include session directory and select its sessions"
   echo "    -a           select all sessions"
   echo "    -b           build heap images"
   echo "    -c           clean build"
-  echo "    -d DIR       include session directory with ROOT file"
+  echo "    -d DIR       include session directory"
   echo "    -g NAME      select session group NAME"
   echo "    -j INT       maximum number of parallel jobs (default 1)"
   echo "    -n           no build -- test dependencies only"
@@ -57,10 +58,11 @@ function check_number()
 
 ## process command line
 
+declare -a SELECT_DIRS=()
 ALL_SESSIONS=false
 BUILD_HEAP=false
 CLEAN_BUILD=false
-declare -a MORE_DIRS=()
+declare -a INCLUDE_DIRS=()
 declare -a SESSION_GROUPS=()
 MAX_JOBS=1
 NO_BUILD=false
@@ -68,9 +70,12 @@ eval "declare -a BUILD_OPTIONS=($ISABELLE_BUILD_OPTIONS)"
 SYSTEM_MODE=false
 VERBOSE=false
 
-while getopts "abcd:g:j:no:sv" OPT
+while getopts "D:abcd:g:j:no:sv" OPT
 do
   case "$OPT" in
+    D)
+      SELECT_DIRS["${#SELECT_DIRS[@]}"]="$OPTARG"
+      ;;
     a)
       ALL_SESSIONS="true"
       ;;
@@ -81,7 +86,7 @@ do
       CLEAN_BUILD="true"
       ;;
     d)
-      MORE_DIRS["${#MORE_DIRS[@]}"]="$OPTARG"
+      INCLUDE_DIRS["${#INCLUDE_DIRS[@]}"]="$OPTARG"
       ;;
     g)
       SESSION_GROUPS["${#SESSION_GROUPS[@]}"]="$OPTARG"
@@ -126,7 +131,8 @@ fi
 "$ISABELLE_TOOL" java isabelle.Build \
   "$ALL_SESSIONS" "$BUILD_HEAP" "$CLEAN_BUILD" "$MAX_JOBS" \
   "$NO_BUILD" "$SYSTEM_MODE" "$VERBOSE" \
-  "${MORE_DIRS[@]}" $'\n' "${SESSION_GROUPS[@]}" $'\n' "${BUILD_OPTIONS[@]}" $'\n' "$@"
+  "${SELECT_DIRS[@]}" $'\n' "${INCLUDE_DIRS[@]}" $'\n' \
+  "${SESSION_GROUPS[@]}" $'\n' "${BUILD_OPTIONS[@]}" $'\n' "$@"
 RC="$?"
 
 if [ "$NO_BUILD" = false -a "$VERBOSE" = true ]; then

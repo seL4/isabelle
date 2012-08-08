@@ -35,6 +35,7 @@ object Build
 
   // internal version
   sealed case class Session_Info(
+    select: Boolean,
     pos: Position.T,
     groups: List[String],
     dir: Path,
@@ -47,7 +48,8 @@ object Build
 
   def is_pure(name: String): Boolean = name == "RAW" || name == "Pure"
 
-  def session_info(options: Options, dir: Path, entry: Session_Entry): (String, Session_Info) =
+  def session_info(options: Options, select: Boolean, dir: Path, entry: Session_Entry)
+      : (String, Session_Info) =
     try {
       if (entry.base_name == "") error("Bad session name")
 
@@ -80,7 +82,7 @@ object Build
         SHA1.digest((full_name, entry.parent, entry.options, entry.theories).toString)
 
       val info =
-        Session_Info(entry.pos, entry.groups, dir + path, entry.parent, entry.description,
+        Session_Info(select, entry.pos, entry.groups, dir + path, entry.parent, entry.description,
           session_options, theories, files, entry_digest)
 
       (full_name, info)
@@ -145,10 +147,12 @@ object Build
       {
         if (all_sessions) graph.keys.toList
         else {
-          val sel_group = session_groups.toSet
-          val sel = sessions.toSet
-            graph.keys.toList.filter(name =>
-              sel(name) || apply(name).groups.exists(sel_group)).toList
+          val select_group = session_groups.toSet
+          val select = sessions.toSet
+          (for {
+            (name, (info, _)) <- graph.entries
+            if info.select || select(name) || apply(name).groups.exists(select_group)
+          } yield name).toList
         }
       }
       val descendants = graph.all_succs(selected)
@@ -223,18 +227,19 @@ object Build
     if (is_session_dir(dir)) dir
     else error("Bad session root directory: " + dir.toString)
 
-  def find_sessions(options: Options, more_dirs: List[Path]): Session_Tree =
+  def find_sessions(options: Options, more_dirs: List[(Boolean, Path)]): Session_Tree =
   {
-    def find_dir(dir: Path): List[(String, Session_Info)] = find_root(dir) ::: find_roots(dir)
+    def find_dir(select: Boolean, dir: Path): List[(String, Session_Info)] =
+      find_root(select, dir) ::: find_roots(select, dir)
 
-    def find_root(dir: Path): List[(String, Session_Info)] =
+    def find_root(select: Boolean, dir: Path): List[(String, Session_Info)] =
     {
       val root = dir + ROOT
-      if (root.is_file) Parser.parse_entries(root).map(session_info(options, dir, _))
+      if (root.is_file) Parser.parse_entries(root).map(session_info(options, select, dir, _))
       else Nil
     }
 
-    def find_roots(dir: Path): List[(String, Session_Info)] =
+    def find_roots(select: Boolean, dir: Path): List[(String, Session_Info)] =
     {
       val roots = dir + ROOTS
       if (roots.is_file) {
@@ -247,18 +252,20 @@ object Build
               case ERROR(msg) =>
                 error(msg + "\nThe error(s) above occurred in session catalog " + roots.toString)
             }
-          info <- find_dir(dir1)
+          info <- find_dir(select, dir1)
         } yield info
       }
       else Nil
     }
 
+    val default_dirs = Isabelle_System.components().filter(is_session_dir(_)).map((false, _))
+
+    more_dirs foreach { case (_, dir) => check_session_dir(dir) }
+
     Session_Tree(
       for {
-        dir <-
-          Isabelle_System.components().filter(is_session_dir(_)) :::
-          more_dirs.map(check_session_dir(_))
-        info <- find_dir(dir)
+        (select, dir) <- default_dirs ::: more_dirs
+        info <- find_dir(select, dir)
       } yield info)
   }
 
@@ -529,7 +536,7 @@ object Build
     all_sessions: Boolean = false,
     build_heap: Boolean = false,
     clean_build: Boolean = false,
-    more_dirs: List[Path] = Nil,
+    more_dirs: List[(Boolean, Path)] = Nil,
     session_groups: List[String] = Nil,
     max_jobs: Int = 1,
     no_build: Boolean = false,
@@ -696,9 +703,12 @@ object Build
           Properties.Value.Boolean(no_build) ::
           Properties.Value.Boolean(system_mode) ::
           Properties.Value.Boolean(verbose) ::
-          Command_Line.Chunks(more_dirs, session_groups, build_options, sessions) =>
-            build(all_sessions, build_heap, clean_build, more_dirs.map(Path.explode),
-              session_groups, max_jobs, no_build, build_options, system_mode, verbose, sessions)
+          Command_Line.Chunks(select_dirs, include_dirs, session_groups, build_options, sessions) =>
+            val dirs =
+              select_dirs.map(d => (true, Path.explode(d))) :::
+              include_dirs.map(d => (false, Path.explode(d)))
+            build(all_sessions, build_heap, clean_build, dirs, session_groups,
+              max_jobs, no_build, build_options, system_mode, verbose, sessions)
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }
     }

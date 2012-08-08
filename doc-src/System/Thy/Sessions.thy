@@ -192,10 +192,11 @@ text {* The @{tool_def build} tool invokes the build process for
 Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   Options are:
+    -D DIR       include session directory and select its sessions
     -a           select all sessions
     -b           build heap images
     -c           clean build
-    -d DIR       include session directory with ROOT file
+    -d DIR       include session directory
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs (default 1)
     -n           no build -- test dependencies only
@@ -234,6 +235,9 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   "-g"}~@{text "NAME"}.  Option @{verbatim "-a"} selects all sessions.
   The build tool takes session dependencies into account: the set of
   selected sessions is completed by including all ancestors.
+
+  \medskip Option @{verbatim "-D"} is similar to @{verbatim "-d"}, but
+  selects all sessions that are defined in the given directories.
 
   \medskip The build process depends on additional options
   (\secref{sec:system-options}) that are passed to the prover
@@ -314,6 +318,13 @@ isabelle build -b -c HOL-Boogie HOL-SPARK
   \smallskip Clean all sessions without building anything:
 \begin{ttbox}
 isabelle build -a -n -c
+\end{ttbox}
+
+  \smallskip Build all sessions from some other directory hierarchy,
+  according to the settings variable @{verbatim "AFP"} that happens to
+  be defined inside the Isabelle environment:
+\begin{ttbox}
+isabelle build -D '$AFP'
 \end{ttbox}
 *}
 
