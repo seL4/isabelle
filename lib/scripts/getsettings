@@ -198,6 +198,7 @@ function init_component ()
 #main components
 init_component "$ISABELLE_HOME"
 [ -d "$ISABELLE_HOME/doc-src" ] && init_component "$ISABELLE_HOME/doc-src"
+[ -d "$ISABELLE_HOME/Admin" ] && init_component "$ISABELLE_HOME/Admin"
 [ -d "$ISABELLE_HOME_USER" ] && init_component "$ISABELLE_HOME_USER"
 
 #ML system identifier
