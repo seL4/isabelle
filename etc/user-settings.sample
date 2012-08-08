@@ -2,5 +2,5 @@
 #
 # Isabelle user settings sample -- for use in $ISABELLE_HOME_USER/etc/settings
 
-ISABELLE_USEDIR_OPTIONS="-i true -d pdf"
+ISABELLE_BUILD_OPTIONS="browser_info document=pdf"
 ISABELLE_LOGIC=HOL
