@@ -6,7 +6,7 @@ Build Isabelle sessions.
 
 signature BUILD =
 sig
-  val build: string -> 'a
+  val build: string -> unit
 end;
 
 structure Build: BUILD =
