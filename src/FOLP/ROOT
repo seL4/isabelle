@@ -1,4 +1,4 @@
-session FOLP! in "." = Pure +
+session FOLP = Pure +
   description {*
     Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
@@ -10,7 +10,7 @@ session FOLP! in "." = Pure +
   options [document = false]
   theories FOLP
 
-session ex = FOLP +
+session "FOLP-ex" in ex = FOLP +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge

@@ -1,4 +1,4 @@
-session LCF! in "." = Pure +
+session LCF = Pure +
   description {*
     Author:     Tobias Nipkow
     Copyright   1992  University of Cambridge
@@ -6,7 +6,7 @@ session LCF! in "." = Pure +
   options [document = false]
   theories LCF
 
-session ex = LCF +
+session "LCF-ex" in ex = LCF +
   description {*
     Author:     Tobias Nipkow
     Copyright   1991  University of Cambridge

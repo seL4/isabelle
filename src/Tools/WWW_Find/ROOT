@@ -1,3 +1,3 @@
-session WWW_Find in "." = Pure +
+session WWW_Find = Pure +
   theories [condition = ISABELLE_POLYML] WWW_Find
 

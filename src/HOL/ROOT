@@ -1,30 +1,30 @@
-session HOL! (main) in "." = Pure +
+session HOL (main) = Pure +
   description {* Classical Higher-order Logic *}
   options [document_graph]
   theories Complex_Main
   files "document/root.bib" "document/root.tex"
 
-session "HOL-Base"! in "." = Pure +
+session "HOL-Base" = Pure +
   description {* Raw HOL base, with minimal tools *}
   options [document = false]
   theories HOL
 
-session "HOL-Plain"! in "." = Pure +
+session "HOL-Plain" = Pure +
   description {* HOL side-entry after bootstrap of many tools and packages *}
   options [document = false]
   theories Plain
 
-session "HOL-Main"! in "." = Pure +
+session "HOL-Main" = Pure +
   description {* HOL side-entry for Main only, without Complex_Main *}
   options [document = false]
   theories Main
 
-session "HOL-Proofs"! in "." = Pure +
+session "HOL-Proofs" = Pure +
   description {* HOL-Main with explicit proof terms *}
   options [document = false, proofs = 2, parallel_proofs = 0]
   theories Main
 
-session Library = HOL +
+session "HOL-Library" in Library = HOL +
   description {* Classical Higher-order Logic -- batteries included *}
   theories
     Library
@@ -41,7 +41,7 @@ session Library = HOL +
     Target_Numeral
   files "document/root.bib" "document/root.tex"
 
-session Hahn_Banach = HOL +
+session "HOL-Hahn_Banach" in Hahn_Banach = HOL +
   description {*
     Author:     Gertrud Bauer, TU Munich
 
@@ -51,7 +51,7 @@ session Hahn_Banach = HOL +
   theories Hahn_Banach
   files "document/root.bib" "document/root.tex"
 
-session Induct = HOL +
+session "HOL-Induct" in Induct = HOL +
   theories [quick_and_dirty]
     Common_Patterns
   theories
@@ -68,7 +68,7 @@ session Induct = HOL +
     Com
   files "document/root.tex"
 
-session IMP = HOL +
+session "HOL-IMP" in IMP = HOL +
   options [document_graph]
   theories [document = false]
     "~~/src/HOL/ex/Interpretation_with_Defs"
@@ -109,7 +109,7 @@ session IMP = HOL +
     Fold
   files "document/root.bib" "document/root.tex"
 
-session IMPP = HOL +
+session "HOL-IMPP" in IMPP = HOL +
   description {*
     Author:     David von Oheimb
     Copyright   1999 TUM
@@ -117,16 +117,16 @@ session IMPP = HOL +
   options [document = false]
   theories EvenOdd
 
-session Import = HOL +
+session "HOL-Import" in Import = HOL +
   options [document_graph]
   theories HOL_Light_Maps
   theories [condition = HOL_LIGHT_BUNDLE] HOL_Light_Import
 
-session Number_Theory = HOL +
+session "HOL-Number_Theory" in Number_Theory = HOL +
   options [document = false]
   theories Number_Theory
 
-session Old_Number_Theory = HOL +
+session "HOL-Old_Number_Theory" in Old_Number_Theory = HOL +
   options [document_graph]
   theories [document = false]
     "~~/src/HOL/Library/Infinite_Set"
@@ -142,20 +142,20 @@ session Old_Number_Theory = HOL +
     Pocklington
   files "document/root.tex"
 
-session Hoare = HOL +
+session "HOL-Hoare" in Hoare = HOL +
   theories Hoare
   files "document/root.bib" "document/root.tex"
 
-session Hoare_Parallel = HOL +
+session "HOL-Hoare_Parallel" in Hoare_Parallel = HOL +
   options [document_graph]
   theories Hoare_Parallel
   files "document/root.bib" "document/root.tex"
 
-session Codegenerator_Test = "HOL-Library" +
+session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Library" +
   options [document = false, document_graph = false, browser_info = false]
   theories Generate Generate_Pretty RBT_Set_Test
 
-session Metis_Examples = HOL +
+session "HOL-Metis_Examples" in Metis_Examples = HOL +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen
@@ -174,7 +174,7 @@ session Metis_Examples = HOL +
     Trans_Closure
     Sets
 
-session Nitpick_Examples = HOL +
+session "HOL-Nitpick_Examples" in Nitpick_Examples = HOL +
   description {*
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2009
@@ -182,7 +182,7 @@ session Nitpick_Examples = HOL +
   options [document = false]
   theories [quick_and_dirty] Nitpick_Examples
 
-session Algebra = HOL +
+session "HOL-Algebra" in Algebra = HOL +
   description {*
     Author: Clemens Ballarin, started 24 September 1999
 
@@ -212,7 +212,7 @@ session Algebra = HOL +
     "poly/Polynomial"    (*The full theory*)
   files "document/root.bib" "document/root.tex"
 
-session Auth = HOL +
+session "HOL-Auth" in Auth = HOL +
   options [document_graph]
   theories
     Auth_Shared
@@ -222,7 +222,7 @@ session Auth = HOL +
     "Guard/Auth_Guard_Public"
   files "document/root.tex"
 
-session UNITY = HOL +
+session "HOL-UNITY" in UNITY = HOL +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
@@ -268,17 +268,17 @@ session UNITY = HOL +
     "ELT"
   files "document/root.tex"
 
-session Unix = HOL +
+session "HOL-Unix" in Unix = HOL +
   options [print_mode = "no_brackets,no_type_brackets"]
   theories Unix
   files "document/root.bib" "document/root.tex"
 
-session ZF = HOL +
+session "HOL-ZF" in ZF = HOL +
   description {* *}
   theories MainZF Games
   files "document/root.tex"
 
-session Imperative_HOL = HOL +
+session "HOL-Imperative_HOL" in Imperative_HOL = HOL +
   description {* *}
   options [document_graph, print_mode = "iff,no_brackets"]
   theories [document = false]
@@ -289,15 +289,15 @@ session Imperative_HOL = HOL +
   theories Imperative_HOL_ex
   files "document/root.bib" "document/root.tex"
 
-session Decision_Procs = HOL +
+session "HOL-Decision_Procs" in Decision_Procs = HOL +
   options [condition = ISABELLE_POLYML, document = false]
   theories Decision_Procs
 
-session ex in "Proofs/ex" = "HOL-Proofs" +
+session "HOL-Proofs-ex" in "Proofs/ex" = "HOL-Proofs" +
   options [document = false, proofs = 2, parallel_proofs = 0]
   theories Hilbert_Classical
 
-session Extraction in "Proofs/Extraction" = "HOL-Proofs" +
+session "HOL-Proofs-Extraction" in "Proofs/Extraction" = "HOL-Proofs" +
   description {* Examples for program extraction in Higher-Order Logic *}
   options [condition = ISABELLE_POLYML, proofs = 2, parallel_proofs = 0]
   theories [document = false]
@@ -314,7 +314,7 @@ session Extraction in "Proofs/Extraction" = "HOL-Proofs" +
     Euclid
   files "document/root.bib" "document/root.tex"
 
-session Lambda in "Proofs/Lambda" = "HOL-Proofs" +
+session "HOL-Proofs-Lambda" in "Proofs/Lambda" = "HOL-Proofs" +
   options [document_graph, print_mode = "no_brackets", proofs = 2, parallel_proofs = 0]
   theories [document = false]
     "~~/src/HOL/Library/Code_Integer"
@@ -325,14 +325,14 @@ session Lambda in "Proofs/Lambda" = "HOL-Proofs" +
     WeakNorm
   files "document/root.bib" "document/root.tex"
 
-session Prolog = HOL +
+session "HOL-Prolog" in Prolog = HOL +
   description {*
     Author:   David von Oheimb (based on a lecture on Lambda Prolog by Nadathur)
   *}
   options [document = false]
   theories Test Type
 
-session MicroJava = HOL +
+session "HOL-MicroJava" in MicroJava = HOL +
   options [document_graph]
   theories [document = false] "~~/src/HOL/Library/While_Combinator"
   theories MicroJava
@@ -341,16 +341,16 @@ session MicroJava = HOL +
     "document/root.bib"
     "document/root.tex"
 
-session "MicroJava-skip_proofs" in MicroJava = HOL +
+session "HOL-MicroJava-skip_proofs" in MicroJava = HOL +
   options [condition = ISABELLE_FULL_TEST, document = false, skip_proofs, quick_and_dirty]
   theories MicroJava
 
-session NanoJava = HOL +
+session "HOL-NanoJava" in NanoJava = HOL +
   options [document_graph]
   theories Example
   files "document/root.bib" "document/root.tex"
 
-session Bali = HOL +
+session "HOL-Bali" in Bali = HOL +
   options [document_graph]
   theories
     AxExample
@@ -359,7 +359,7 @@ session Bali = HOL +
     Trans
   files "document/root.tex"
 
-session IOA = HOL +
+session "HOL-IOA" in IOA = HOL +
   description {*
     Author:     Tobias Nipkow & Konrad Slind
     Copyright   1994  TU Muenchen
@@ -388,7 +388,7 @@ session IOA = HOL +
   options [document = false]
   theories Solve
 
-session Lattice = HOL +
+session "HOL-Lattice" in Lattice = HOL +
   description {*
     Author:     Markus Wenzel, TU Muenchen
 
@@ -397,7 +397,7 @@ session Lattice = HOL +
   theories CompleteLattice
   files "document/root.tex"
 
-session ex = HOL +
+session "HOL-ex" in ex = HOL +
   description {* Miscellaneous examples for Higher-Order Logic. *}
   options [timeout = 3600, condition = ISABELLE_POLYML]
   theories [document = false]
@@ -483,7 +483,7 @@ try use_thy "SAT_Examples";   (* FIXME try!? (not really a proper test) *)
 *)
   files "document/root.bib" "document/root.tex"
 
-session Isar_Examples = HOL +
+session "HOL-Isar_Examples" in Isar_Examples = HOL +
   description {* Miscellaneous Isabelle/Isar examples for Higher-Order Logic. *}
   theories [document = false]
     "~~/src/HOL/Library/Lattice_Syntax"
@@ -509,35 +509,35 @@ session Isar_Examples = HOL +
     "document/root.tex"
     "document/style.tex"
 
-session SET_Protocol = HOL +
+session "HOL-SET_Protocol" in SET_Protocol = HOL +
   options [document_graph]
   theories [document = false] "~~/src/HOL/Library/Nat_Bijection"
   theories SET_Protocol
   files "document/root.tex"
 
-session Matrix_LP = HOL +
+session "HOL-Matrix_LP" in Matrix_LP = HOL +
   options [document_graph]
   theories Cplex
   files "document/root.tex"
 
-session TLA = HOL +
+session "HOL-TLA" in TLA = HOL +
   description {* The Temporal Logic of Actions *}
   options [document = false]
   theories TLA
 
-session Inc in "TLA/Inc" = "HOL-TLA" +
+session "HOL-TLA-Inc" in "TLA/Inc" = "HOL-TLA" +
   options [document = false]
   theories Inc
 
-session Buffer in "TLA/Buffer" = "HOL-TLA" +
+session "HOL-TLA-Buffer" in "TLA/Buffer" = "HOL-TLA" +
   options [document = false]
   theories DBuffer
 
-session Memory in "TLA/Memory" = "HOL-TLA" +
+session "HOL-TLA-Memory" in "TLA/Memory" = "HOL-TLA" +
   options [document = false]
   theories MemoryImplementation
 
-session TPTP = HOL +
+session "HOL-TPTP" in TPTP = HOL +
   description {*
     Author:     Jasmin Blanchette, TU Muenchen
     Author:     Nik Sultana, University of Cambridge
@@ -555,7 +555,7 @@ session TPTP = HOL +
   theories [proofs = 0]  (* FIXME !? *)
     ATP_Problem_Import
 
-session Multivariate_Analysis = HOL +
+session "HOL-Multivariate_Analysis" in Multivariate_Analysis = HOL +
   options [document_graph]
   theories
     Multivariate_Analysis
@@ -564,7 +564,7 @@ session Multivariate_Analysis = HOL +
     "Integration.certs"
     "document/root.tex"
 
-session "HOL-Probability"! in "Probability" = "HOL-Multivariate_Analysis" +
+session "HOL-Probability" in "Probability" = "HOL-Multivariate_Analysis" +
   options [document_graph]
   theories [document = false]
     "~~/src/HOL/Library/Countable"
@@ -576,45 +576,45 @@ session "HOL-Probability"! in "Probability" = "HOL-Multivariate_Analysis" +
     "ex/Koepf_Duermuth_Countermeasure"
   files "document/root.tex"
 
-session Nominal (main) = HOL +
+session "HOL-Nominal" (main) in Nominal = HOL +
   options [document = false]
   theories Nominal
 
-session Examples in "Nominal/Examples" = "HOL-Nominal" +
+session "HOL-Nominal-Examples" in "Nominal/Examples" = "HOL-Nominal" +
   options [timeout = 3600, condition = ISABELLE_POLYML, document = false]
   theories Nominal_Examples
   theories [quick_and_dirty] VC_Condition
 
-session Word = HOL +
+session "HOL-Word" in Word = HOL +
   options [document_graph]
   theories Word
   files "document/root.bib" "document/root.tex"
 
-session Examples in "Word/Examples" = "HOL-Word" +
+session "HOL-Word-Examples" in "Word/Examples" = "HOL-Word" +
   options [document = false]
   theories WordExamples
 
-session Statespace = HOL +
+session "HOL-Statespace" in Statespace = HOL +
   theories StateSpaceEx
   files "document/root.tex"
 
-session NSA = HOL +
+session "HOL-NSA" in NSA = HOL +
   options [document_graph]
   theories Hypercomplex
   files "document/root.tex"
 
-session Examples in "NSA/Examples" = "HOL-NSA" +
+session "HOL-NSA-Examples" in "NSA/Examples" = "HOL-NSA" +
   options [document = false]
   theories NSPrimes
 
-session Mirabelle = HOL +
+session "HOL-Mirabelle" in Mirabelle = HOL +
   options [document = false]
   theories Mirabelle_Test
 
-session ex in "Mirabelle/ex" = "HOL-Mirabelle" +
+session "HOL-Mirabelle-ex" in "Mirabelle/ex" = "HOL-Mirabelle" +
   theories Ex
 
-session SMT_Examples = "HOL-Word" +
+session "HOL-Word-SMT_Examples" in SMT_Examples = "HOL-Word" +
   options [document = false, quick_and_dirty]
   theories
     SMT_Tests
@@ -624,11 +624,11 @@ session SMT_Examples = "HOL-Word" +
     "SMT_Examples.certs"
     "SMT_Tests.certs"
 
-session "HOL-Boogie"! in "Boogie" = "HOL-Word" +
+session "HOL-Boogie" in "Boogie" = "HOL-Word" +
   options [document = false]
   theories Boogie
 
-session Examples in "Boogie/Examples" = "HOL-Boogie" +
+session "HOL-Boogie-Examples" in "Boogie/Examples" = "HOL-Boogie" +
   options [document = false]
   theories
     Boogie_Max_Stepwise
@@ -643,11 +643,11 @@ session Examples in "Boogie/Examples" = "HOL-Boogie" +
     "VCC_Max.b2i"
     "VCC_Max.certs"
 
-session "HOL-SPARK"! in "SPARK" = "HOL-Word" +
+session "HOL-SPARK" in "SPARK" = "HOL-Word" +
   options [document = false]
   theories SPARK
 
-session Examples in "SPARK/Examples" = "HOL-SPARK" +
+session "HOL-SPARK-Examples" in "SPARK/Examples" = "HOL-SPARK" +
   options [document = false]
   theories
     "Gcd/Greatest_Common_Divisor"
@@ -700,7 +700,7 @@ session Examples in "SPARK/Examples" = "HOL-SPARK" +
     "RIPEMD-160/rmd/s_r.rls"
     "RIPEMD-160/rmd/s_r.siv"
 
-session Manual in "SPARK/Manual" = "HOL-SPARK" +
+session "HOL-SPARK-Manual" in "SPARK/Manual" = "HOL-SPARK" +
   options [show_question_marks = false]
   theories
     Example_Verification
@@ -733,11 +733,11 @@ session Manual in "SPARK/Manual" = "HOL-SPARK" +
     "simple_greatest_common_divisor/g_c_d.rls"
     "simple_greatest_common_divisor/g_c_d.siv"
 
-session Mutabelle = HOL +
+session "HOL-Mutabelle" in Mutabelle = HOL +
   options [document = false]
   theories MutabelleExtra
 
-session Quickcheck_Examples = HOL +
+session "HOL-Quickcheck_Examples" in Quickcheck_Examples = HOL +
   options [timeout = 3600, document = false]
   theories
     Quickcheck_Examples
@@ -749,14 +749,14 @@ session Quickcheck_Examples = HOL +
   theories [condition = ISABELLE_GHC]
     Quickcheck_Narrowing_Examples
 
-session Quickcheck_Benchmark = HOL +
+session "HOL-Quickcheck_Benchmark" in Quickcheck_Benchmark = HOL +
   theories [condition = ISABELLE_FULL_TEST, quick_and_dirty]
     Find_Unused_Assms_Examples
     Needham_Schroeder_No_Attacker_Example
     Needham_Schroeder_Guided_Attacker_Example
     Needham_Schroeder_Unguided_Attacker_Example
 
-session Quotient_Examples = HOL +
+session "HOL-Quotient_Examples" in Quotient_Examples = HOL +
   description {*
     Author:     Cezary Kaliszyk and Christian Urban
   *}
@@ -772,7 +772,7 @@ session Quotient_Examples = HOL +
     Quotient_Rat
     Lift_DList
 
-session Predicate_Compile_Examples = HOL +
+session "HOL-Predicate_Compile_Examples" in Predicate_Compile_Examples = HOL +
   options [document = false]
   theories
     Examples
@@ -795,7 +795,7 @@ session Predicate_Compile_Examples = HOL +
   theories [condition = "ISABELLE_SWIPL", quick_and_dirty]  (* FIXME: *or* ISABELLE_YAP (??) *)
     Reg_Exp_Example
 
-session HOLCF! (main) = HOL +
+session HOLCF (main) in HOLCF = HOL +
   description {*
     Author:     Franz Regensburger
     Author:     Brian Huffman
@@ -812,23 +812,23 @@ session HOLCF! (main) = HOL +
     HOLCF
   files "document/root.tex"
 
-session Tutorial in "HOLCF/Tutorial" = HOLCF +
+session "HOLCF-Tutorial" in "HOLCF/Tutorial" = HOLCF +
   theories
     Domain_ex
     Fixrec_ex
     New_Domain
   files "document/root.tex"
 
-session Library in "HOLCF/Library" = HOLCF +
+session "HOLCF-Library" in "HOLCF/Library" = HOLCF +
   options [document = false]
   theories HOLCF_Library
 
-session IMP in "HOLCF/IMP" = HOLCF +
+session "HOLCF-IMP" in "HOLCF/IMP" = HOLCF +
   options [document = false]
   theories HoareEx
   files "document/root.tex"
 
-session ex in "HOLCF/ex" = HOLCF +
+session "HOLCF-ex" in "HOLCF/ex" = HOLCF +
   description {* Misc HOLCF examples *}
   options [document = false]
   theories
@@ -844,14 +844,14 @@ session ex in "HOLCF/ex" = HOLCF +
     Letrec
     Pattern_Match
 
-session FOCUS in "HOLCF/FOCUS" = HOLCF +
+session "HOLCF-FOCUS" in "HOLCF/FOCUS" = HOLCF +
   options [document = false]
   theories
     Fstreams
     FOCUS
     Buffer_adm
 
-session IOA! in "HOLCF/IOA" = HOLCF +
+session IOA in "HOLCF/IOA" = HOLCF +
   description {*
     Author:     Olaf Mueller
 
@@ -860,7 +860,7 @@ session IOA! in "HOLCF/IOA" = HOLCF +
   options [document = false]
   theories "meta_theory/Abstraction"
 
-session ABP in "HOLCF/IOA/ABP" = IOA +
+session "IOA-ABP" in "HOLCF/IOA/ABP" = IOA +
   description {*
     Author:     Olaf Mueller
 
@@ -869,7 +869,7 @@ session ABP in "HOLCF/IOA/ABP" = IOA +
   options [document = false]
   theories Correctness
 
-session NTP in "HOLCF/IOA/NTP" = IOA +
+session "IOA-NTP" in "HOLCF/IOA/NTP" = IOA +
   description {*
     Author:     Tobias Nipkow & Konrad Slind
 
@@ -879,7 +879,7 @@ session NTP in "HOLCF/IOA/NTP" = IOA +
   options [document = false]
   theories Correctness
 
-session Storage in "HOLCF/IOA/Storage" = IOA +
+session "IOA-Storage" in "HOLCF/IOA/Storage" = IOA +
   description {*
     Author:     Olaf Mueller
 
@@ -888,7 +888,7 @@ session Storage in "HOLCF/IOA/Storage" = IOA +
   options [document = false]
   theories Correctness
 
-session ex in "HOLCF/IOA/ex" = IOA +
+session "IOA-ex" in "HOLCF/IOA/ex" = IOA +
   description {*
     Author:     Olaf Mueller
   *}
@@ -897,7 +897,7 @@ session ex in "HOLCF/IOA/ex" = IOA +
     TrivEx
     TrivEx2
 
-session Datatype_Benchmark = HOL +
+session "HOL-Datatype_Benchmark" in Datatype_Benchmark = HOL +
   description {* Some rather large datatype examples (from John Harrison). *}
   options [document = false]
   theories [condition = ISABELLE_FULL_TEST, timing]
@@ -906,7 +906,7 @@ session Datatype_Benchmark = HOL +
     SML
     Verilog
 
-session Record_Benchmark = HOL +
+session "HOL-Record_Benchmark" in Record_Benchmark = HOL +
   description {* Some benchmark on large record. *}
   options [document = false]
   theories [condition = ISABELLE_FULL_TEST, timing]

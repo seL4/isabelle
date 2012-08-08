@@ -1,4 +1,4 @@
-session CCL! in "." = Pure +
+session CCL = Pure +
   description {*
     Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
@@ -11,7 +11,7 @@ session CCL! in "." = Pure +
   options [document = false]
   theories Wfd Fix
 
-session ex = CCL +
+session "CCL-ex" in ex = CCL +
   description {*
     Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge

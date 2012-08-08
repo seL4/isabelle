@@ -102,10 +102,6 @@ Session specifications reside in files called \verb|ROOT|
 \rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
 \rail@bar
 \rail@nextbar{1}
-\rail@term{\isa{{\isaliteral{21}{\isacharbang}}}}[]
-\rail@endbar
-\rail@bar
-\rail@nextbar{1}
 \rail@nont{\isa{groups}}[]
 \rail@endbar
 \rail@bar
@@ -185,17 +181,9 @@ Session specifications reside in files called \verb|ROOT|
   applications: only Isabelle/Pure can bootstrap itself from nothing.
 
   All such session specifications together describe a hierarchy (tree)
-  of sessions, with globally unique names.  By default, names are
-  derived from parent ones by concatenation, i.e.\ \isa{{\isaliteral{22}{\isachardoublequote}}B{\isaliteral{5C3C646173683E}{\isasymdash}}A{\isaliteral{22}{\isachardoublequote}}}
-  above.  Cumulatively, this leads to session paths of the form \isa{{\isaliteral{22}{\isachardoublequote}}X{\isaliteral{5C3C646173683E}{\isasymdash}}Y{\isaliteral{5C3C646173683E}{\isasymdash}}Z{\isaliteral{5C3C646173683E}{\isasymdash}}W{\isaliteral{22}{\isachardoublequote}}}.  Note that in the specification,
-  \isa{B} is already such a fully-qualified name, while \isa{{\isaliteral{22}{\isachardoublequote}}A{\isaliteral{22}{\isachardoublequote}}}
-  is the new base name.
-
-  \item \isakeyword{session}~\isa{{\isaliteral{22}{\isachardoublequote}}A{\isaliteral{21}{\isacharbang}}\ {\isaliteral{3D}{\isacharequal}}\ B{\isaliteral{22}{\isachardoublequote}}} indicates a fresh start
-  in the naming scheme: the session is called just \isa{{\isaliteral{22}{\isachardoublequote}}A{\isaliteral{22}{\isachardoublequote}}} instead
-  of \isa{{\isaliteral{22}{\isachardoublequote}}B{\isaliteral{5C3C646173683E}{\isasymdash}}A{\isaliteral{22}{\isachardoublequote}}}.  Here the name \isa{{\isaliteral{22}{\isachardoublequote}}A{\isaliteral{22}{\isachardoublequote}}} should be
-  sufficiently long to stand on its own in a potentially large
-  library.
+  of sessions, with globally unique names.  The new session name
+  \isa{{\isaliteral{22}{\isachardoublequote}}A{\isaliteral{22}{\isachardoublequote}}} should be sufficiently long to stand on its own in a
+  potentially large library.
 
   \item \isakeyword{session}~\isa{{\isaliteral{22}{\isachardoublequote}}A\ {\isaliteral{28}{\isacharparenleft}}groups{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} indicates a
   collection of groups where the new session is a member.  Group names
@@ -206,13 +194,8 @@ Session specifications reside in files called \verb|ROOT|
   within this unchecked name space.
 
   \item \isakeyword{session}~\isa{{\isaliteral{22}{\isachardoublequote}}A{\isaliteral{22}{\isachardoublequote}}}~\isakeyword{in}~\isa{{\isaliteral{22}{\isachardoublequote}}dir{\isaliteral{22}{\isachardoublequote}}}
-  specifies an explicit directory for this session.  By default,
-  \isakeyword{session}~\isa{{\isaliteral{22}{\isachardoublequote}}A{\isaliteral{22}{\isachardoublequote}}} abbreviates
-  \isakeyword{session}~\isa{{\isaliteral{22}{\isachardoublequote}}A{\isaliteral{22}{\isachardoublequote}}}~\isakeyword{in}~\isa{{\isaliteral{22}{\isachardoublequote}}A{\isaliteral{22}{\isachardoublequote}}}.  This
-  accommodates the common scheme where some base directory contains
-  several sessions in sub-directories of corresponding names.  Another
-  common scheme is \isakeyword{session}~\isa{{\isaliteral{22}{\isachardoublequote}}A{\isaliteral{22}{\isachardoublequote}}}~\isakeyword{in}~\verb|"."| to refer to the current
-  directory of the ROOT file.
+  specifies an explicit directory for this session; by default this is
+  the current directory of the \verb|ROOT| file.
 
   All theories and auxiliary source files are located relatively to
   the session directory.  The prover process is run within the same as
@@ -252,7 +235,11 @@ Session specifications reside in files called \verb|ROOT|
 %
 \begin{isamarkuptext}%
 See \verb|~~/src/HOL/ROOT| for a diversity of practically
-  relevant situations.%
+  relevant situations, but it uses relatively complex quasi-hierarchic
+  naming conventions like \isa{{\isaliteral{22}{\isachardoublequote}}HOL{\isaliteral{5C3C646173683E}{\isasymdash}}SPARK{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}HOL{\isaliteral{5C3C646173683E}{\isasymdash}}SPARK{\isaliteral{5C3C646173683E}{\isasymdash}}Examples{\isaliteral{22}{\isachardoublequote}}}.  An alternative is to use
+  unqualified names that are relatively long and descriptive, as in
+  the Archive of Formal Proofs (\url{http://afp.sf.net}), for
+  example.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

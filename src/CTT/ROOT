@@ -1,4 +1,4 @@
-session CTT! in "." = Pure +
+session CTT = Pure +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
@@ -6,7 +6,7 @@ session CTT! in "." = Pure +
   options [document = false]
   theories Main
 
-session ex = CTT +
+session "CTT-ex" in ex = CTT +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge

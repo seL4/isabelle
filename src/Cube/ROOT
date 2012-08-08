@@ -1,4 +1,4 @@
-session Cube! in "." = Pure +
+session Cube = Pure +
   description {*
     Author:     Tobias Nipkow
     Copyright   1992  University of Cambridge

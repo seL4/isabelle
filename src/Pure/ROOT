@@ -1,4 +1,4 @@
-session RAW in "." =
+session RAW =
   files
     "General/exn.ML"
     "ML-Systems/compiler_polyml.ML"
@@ -19,7 +19,7 @@ session RAW in "." =
     "ML-Systems/unsynchronized.ML"
     "ML-Systems/use_context.ML"
 
-session Pure in "." =
+session Pure =
   theories Pure
   files
     "General/exn.ML"

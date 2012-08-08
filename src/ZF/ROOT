@@ -1,4 +1,4 @@
-session ZF! in "." = Pure +
+session ZF = Pure +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
@@ -13,7 +13,7 @@ session ZF! in "." = Pure +
     Main_ZFC
   files "document/root.tex"
 
-session AC = ZF +
+session "ZF-AC" in AC = ZF +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
@@ -34,7 +34,7 @@ session AC = ZF +
     DC
   files "document/root.tex" "document/root.bib"
 
-session Coind = ZF +
+session "ZF-Coind" in Coind = ZF +
   description {*
     Author:     Jacob Frost, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
@@ -53,13 +53,13 @@ session Coind = ZF +
   options [document = false]
   theories ECR
 
-session Constructible = ZF +
+session "ZF-Constructible" in Constructible = ZF +
   description {* Inner Models, Absoluteness and Consistency Proofs. *}
   options [document_graph]
   theories DPow_absolute AC_in_L Rank_Separation
   files "document/root.tex" "document/root.bib"
 
-session IMP = ZF +
+session "ZF-IMP" in IMP = ZF +
   description {*
     Author:     Heiko Loetzbeyer & Robert Sandner, TUM
     Copyright   1994 TUM
@@ -77,7 +77,7 @@ session IMP = ZF +
   theories Equiv
   files "document/root.tex" "document/root.bib"
 
-session Induct = ZF +
+session "ZF-Induct" in Induct = ZF +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2001  University of Cambridge
@@ -108,7 +108,7 @@ session Induct = ZF +
     Primrec         (*Primitive recursive functions*)
   files "document/root.tex"
 
-session Resid = ZF +
+session "ZF-Resid" in Resid = ZF +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
@@ -124,7 +124,7 @@ session Resid = ZF +
   options [document = false]
   theories Confluence
 
-session UNITY = ZF +
+session "ZF-UNITY" in UNITY = ZF +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
@@ -142,7 +142,7 @@ session UNITY = ZF +
     (*Prefix relation; the Allocator example*)
     Distributor Merge ClientImpl AllocImpl
 
-session ex = ZF +
+session "ZF-ex" in ex = ZF +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge

@@ -23,10 +23,9 @@ object Build
   // external version
   sealed case class Session_Entry(
     pos: Position.T,
-    base_name: String,
-    this_name: Boolean,
+    name: String,
     groups: List[String],
-    path: Option[String],
+    path: String,
     parent: Option[String],
     description: String,
     options: List[Options.Spec],
@@ -51,26 +50,11 @@ object Build
   def session_info(options: Options, select: Boolean, dir: Path, entry: Session_Entry)
       : (String, Session_Info) =
     try {
-      if (entry.base_name == "") error("Bad session name")
+      val name = entry.name
 
-      val full_name =
-        if (is_pure(entry.base_name)) {
-          if (entry.parent.isDefined) error("Illegal parent session")
-          else entry.base_name
-        }
-        else
-          entry.parent match {
-            case None => error("Missing parent session")
-            case Some(parent_name) =>
-              if (entry.this_name) entry.base_name
-              else parent_name + "-" + entry.base_name
-          }
-
-      val path =
-        entry.path match {
-          case Some(p) => Path.explode(p)
-          case None => Path.basic(entry.base_name)
-        }
+      if (name == "") error("Bad session name")
+      if (is_pure(name) && entry.parent.isDefined) error("Illegal parent session")
+      if (!is_pure(name) && !entry.parent.isDefined) error("Missing parent session")
 
       val session_options = options ++ entry.options
 
@@ -78,19 +62,18 @@ object Build
         entry.theories.map({ case (opts, thys) =>
           (session_options ++ opts, thys.map(Path.explode(_))) })
       val files = entry.files.map(Path.explode(_))
-      val entry_digest =
-        SHA1.digest((full_name, entry.parent, entry.options, entry.theories).toString)
+      val entry_digest = SHA1.digest((name, entry.parent, entry.options, entry.theories).toString)
 
       val info =
-        Session_Info(select, entry.pos, entry.groups, dir + path, entry.parent, entry.description,
-          session_options, theories, files, entry_digest)
+        Session_Info(select, entry.pos, entry.groups, dir + Path.explode(entry.path),
+          entry.parent, entry.description, session_options, theories, files, entry_digest)
 
-      (full_name, info)
+      (name, info)
     }
     catch {
       case ERROR(msg) =>
         error(msg + "\nThe error(s) above occurred in session entry " +
-          quote(entry.base_name) + Position.str_of(entry.pos))
+          quote(entry.name) + Position.str_of(entry.pos))
     }
 
 
@@ -175,7 +158,7 @@ object Build
   private val FILES = "files"
 
   lazy val root_syntax =
-    Outer_Syntax.init() + "!" + "(" + ")" + "+" + "," + "=" + "[" + "]" +
+    Outer_Syntax.init() + "(" + ")" + "+" + "," + "=" + "[" + "]" +
       (SESSION, Keyword.THY_DECL) + IN + DESCRIPTION + OPTIONS + THEORIES + FILES
 
   private object Parser extends Parse.Parser
@@ -193,15 +176,14 @@ object Build
           { case _ ~ (x ~ y) => (x, y) }
 
       ((command(SESSION) ~! session_name) ^^ { case _ ~ x => x }) ~
-        (keyword("!") ^^^ true | success(false)) ~
         (keyword("(") ~! (rep1(name) <~ keyword(")")) ^^ { case _ ~ x => x } | success(Nil)) ~
-        (opt(keyword(IN) ~! path ^^ { case _ ~ x => x })) ~
+        (keyword(IN) ~! path ^^ { case _ ~ x => x } | success(".")) ~
         (keyword("=") ~> opt(session_name <~ keyword("+"))) ~
         (keyword(DESCRIPTION) ~! text ^^ { case _ ~ x => x } | success("")) ~
         (keyword(OPTIONS) ~! options ^^ { case _ ~ x => x } | success(Nil)) ~
         rep(theories) ~
         (keyword(FILES) ~! rep1(path) ^^ { case _ ~ x => x } | success(Nil)) ^^
-          { case a ~ b ~ c ~ d ~ e ~ f ~ g ~ h ~ i => Session_Entry(pos, a, b, c, d, e, f, g, h, i) }
+          { case a ~ b ~ c ~ d ~ e ~ f ~ g ~ h => Session_Entry(pos, a, b, c, d, e, f, g, h) }
     }
 
     def parse_entries(root: Path): List[Session_Entry] =

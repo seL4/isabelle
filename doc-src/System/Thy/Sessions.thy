@@ -50,7 +50,7 @@ text {* Session specifications reside in files called @{verbatim ROOT}
     ;
     body: description? options? ( theories * ) files?
     ;
-    spec: @{syntax name} '!'? groups? dir?
+    spec: @{syntax name} groups? dir?
     ;
     groups: '(' (@{syntax name} +) ')'
     ;
@@ -78,18 +78,9 @@ text {* Session specifications reside in files called @{verbatim ROOT}
   applications: only Isabelle/Pure can bootstrap itself from nothing.
 
   All such session specifications together describe a hierarchy (tree)
-  of sessions, with globally unique names.  By default, names are
-  derived from parent ones by concatenation, i.e.\ @{text "B\<dash>A"}
-  above.  Cumulatively, this leads to session paths of the form @{text
-  "X\<dash>Y\<dash>Z\<dash>W"}.  Note that in the specification,
-  @{text B} is already such a fully-qualified name, while @{text "A"}
-  is the new base name.
-
-  \item \isakeyword{session}~@{text "A! = B"} indicates a fresh start
-  in the naming scheme: the session is called just @{text "A"} instead
-  of @{text "B\<dash>A"}.  Here the name @{text "A"} should be
-  sufficiently long to stand on its own in a potentially large
-  library.
+  of sessions, with globally unique names.  The new session name
+  @{text "A"} should be sufficiently long to stand on its own in a
+  potentially large library.
 
   \item \isakeyword{session}~@{text "A (groups)"} indicates a
   collection of groups where the new session is a member.  Group names
@@ -100,14 +91,8 @@ text {* Session specifications reside in files called @{verbatim ROOT}
   within this unchecked name space.
 
   \item \isakeyword{session}~@{text "A"}~\isakeyword{in}~@{text "dir"}
-  specifies an explicit directory for this session.  By default,
-  \isakeyword{session}~@{text "A"} abbreviates
-  \isakeyword{session}~@{text "A"}~\isakeyword{in}~@{text "A"}.  This
-  accommodates the common scheme where some base directory contains
-  several sessions in sub-directories of corresponding names.  Another
-  common scheme is \isakeyword{session}~@{text
-  "A"}~\isakeyword{in}~@{verbatim "\".\""} to refer to the current
-  directory of the ROOT file.
+  specifies an explicit directory for this session; by default this is
+  the current directory of the @{verbatim ROOT} file.
 
   All theories and auxiliary source files are located relatively to
   the session directory.  The prover process is run within the same as
@@ -143,7 +128,12 @@ text {* Session specifications reside in files called @{verbatim ROOT}
 subsubsection {* Examples *}
 
 text {* See @{file "~~/src/HOL/ROOT"} for a diversity of practically
-  relevant situations. *}
+  relevant situations, but it uses relatively complex quasi-hierarchic
+  naming conventions like @{text "HOL\<dash>SPARK"}, @{text
+  "HOL\<dash>SPARK\<dash>Examples"}.  An alternative is to use
+  unqualified names that are relatively long and descriptive, as in
+  the Archive of Formal Proofs (\url{http://afp.sf.net}), for
+  example. *}
 
 
 section {* System build options \label{sec:system-options} *}

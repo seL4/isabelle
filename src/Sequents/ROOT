@@ -1,4 +1,4 @@
-session Sequents! in "." = Pure +
+session Sequents = Pure +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
@@ -16,7 +16,7 @@ session Sequents! in "." = Pure +
     S4
     S43
 
-session LK = Sequents +
+session "Sequents-LK" in LK = Sequents +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
