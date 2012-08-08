@@ -1,7 +1,7 @@
 # -*- shell-script -*- :mode=shellscript:
 
   POLYML_HOME="/home/polyml/polyml-svn"
-  ML_SYSTEM="polyml-5.4.2"
+  ML_SYSTEM="polyml-5.5.0"
   ML_PLATFORM="x86-linux"
   ML_HOME="$POLYML_HOME/$ML_PLATFORM"
   ML_OPTIONS="-H 500 --gcthreads 1"
