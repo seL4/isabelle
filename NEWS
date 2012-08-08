@@ -77,8 +77,10 @@ document/IsaMakefile.  Minor INCOMPATIBILITY.
 
 * Advanced support for Isabelle sessions and build management, see
 "system" manual for the chapter of that name, especially the "isabelle
-build" tool and its examples.  Eventual INCOMPATIBILITY, as isabelle
-usedir / make / makeall are rendered obsolete.
+build" tool and its examples.  INCOMPATIBILITY, isabelle usedir /
+mkdir / make are rendered obsolete.
+
+* Discontinued obsolete "isabelle makeall".
 
 * Discontinued obsolete IsaMakefile and ROOT.ML files from the
 Isabelle distribution, except for rudimentary src/HOL/IsaMakefile that

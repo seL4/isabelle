@@ -222,22 +222,6 @@ Usage: isabelle make [ARGS ...]
 *}
 
 
-section {* Make all logics *}
-
-text {* The @{tool_def makeall} tool applies Isabelle make to any
-  Isabelle component (cf.\ \secref{sec:components}) that contains an
-  @{verbatim IsaMakefile}:
-\begin{ttbox}
-Usage: isabelle makeall [ARGS ...]
-
-  Apply isabelle make to all components with IsaMakefile (passing ARGS).
-\end{ttbox}
-
-  The arguments @{verbatim ARGS} are just passed verbatim to each
-  @{tool make} invocation.
-*}
-
-
 section {* Printing documents *}
 
 text {*
