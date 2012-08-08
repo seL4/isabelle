@@ -82,7 +82,7 @@ fun build args_file = Command_Line.tool (fn () =>
             |> Unsynchronized.setmp Multithreading.max_threads (Options.int options "threads"));
 
       val _ = Session.finish ();
-      val _ = if do_output then Secure.commit () else ();
+      val _ = if do_output then () else exit 0;
     in 0 end);
 
 end;
