@@ -226,7 +226,6 @@ session Pure in "." =
     "pattern.ML"
     "primitive_defs.ML"
     "proofterm.ML"
-    "pure_setup.ML"
     "pure_thy.ML"
     "raw_simplifier.ML"
     "search.ML"
