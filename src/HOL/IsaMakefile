@@ -41,6 +41,12 @@ $(ISABELLE_OUTPUT)/HOL-Multivariate_Analysis:
 	@$(ISABELLE_TOOL) build -b HOL-Multivariate_Analysis
 
 
+HOL-Probability: $(ISABELLE_OUTPUT)/HOL-Probability
+
+$(ISABELLE_OUTPUT)/HOL-Probability:
+	@$(ISABELLE_TOOL) build -b HOL-Probability
+
+
 HOL-Nominal: $(ISABELLE_OUTPUT)/HOL-Nominal
 
 $(ISABELLE_OUTPUT)/HOL-Nominal:
