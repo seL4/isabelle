@@ -399,7 +399,7 @@ object Build
         browser_info + Path.explode("isabelle.gif"))
       File.write(browser_info + Path.explode("index.html"),
         File.read(Path.explode("~~/lib/html/library_index_header.template")) +
-        File.read(Path.explode("~~/lib/html/library_index_Session_Content.template")) +
+        File.read(Path.explode("~~/lib/html/library_index_content.template")) +
         File.read(Path.explode("~~/lib/html/library_index_footer.template")))
     }
 
