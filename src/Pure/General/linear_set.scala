@@ -152,6 +152,14 @@ final class Linear_Set[A] private(
     if (contains(elem)) make_iterator(Some(elem))
     else throw new Linear_Set.Undefined(elem)
 
+  def iterator(from: A, to: A): Iterator[A] =
+    if (!contains(to)) throw new Linear_Set.Undefined(to)
+    else
+      nexts.get(to) match {
+        case None => iterator(from)
+        case Some(stop) => iterator(from).takeWhile(_ != stop)
+      }
+
   def + (elem: A): Linear_Set[A] = insert_after(end, elem)
 
   def - (elem: A): Linear_Set[A] =

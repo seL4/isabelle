@@ -209,8 +209,7 @@ object Thy_Syntax
         case Some(first_undefined) =>
           val first = bound(commands.reverse, first_undefined)
           val last = bound(commands, first_undefined)
-          val range =
-            commands.iterator(first).takeWhile(_ != last).toList ::: List(last)
+          val range = commands.iterator(first, last).toList
 
           val spans0 = parse_spans(syntax.scan(range.map(_.source).mkString))
 
