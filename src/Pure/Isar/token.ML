@@ -53,9 +53,9 @@ sig
   val closure: T -> T
   val ident_or_symbolic: string -> bool
   val source_proper: (T, 'a) Source.source -> (T, (T, 'a) Source.source) Source.source
-  val source': {do_recover: bool Option.option} -> (unit -> Scan.lexicon * Scan.lexicon) ->
+  val source': {do_recover: bool option} -> (unit -> Scan.lexicon * Scan.lexicon) ->
     (Symbol_Pos.T, 'a) Source.source -> (T, (Symbol_Pos.T, 'a) Source.source) Source.source
-  val source: {do_recover: bool Option.option} -> (unit -> Scan.lexicon * Scan.lexicon) ->
+  val source: {do_recover: bool option} -> (unit -> Scan.lexicon * Scan.lexicon) ->
     Position.T -> (Symbol.symbol, 'a) Source.source -> (T,
       (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source) Source.source
   val read_antiq: Scan.lexicon -> (T list -> 'a * T list) -> Symbol_Pos.T list * Position.T -> 'a

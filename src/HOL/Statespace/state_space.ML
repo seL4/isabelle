@@ -42,7 +42,7 @@ sig
   val distinct_simproc : Simplifier.simproc
 
 
-  val get_comp : Context.generic -> string -> (typ * string) Option.option
+  val get_comp : Context.generic -> string -> (typ * string) option
   val get_silent : Context.generic -> bool
   val set_silent : bool -> Context.generic -> Context.generic
 
