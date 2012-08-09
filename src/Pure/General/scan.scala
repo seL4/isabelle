@@ -235,6 +235,9 @@ object Scan
       }
     }.named("quoted_context")
 
+    def quoted_prefix(quote: Symbol.Symbol): Parser[String] =
+      quoted_context(quote, Finished) ^^ (_._1)
+
 
     /* verbatim text */
 
@@ -266,6 +269,9 @@ object Scan
         case _ => failure("")
       }
     }.named("verbatim_context")
+
+    val verbatim_prefix: Parser[String] =
+      verbatim_context(Finished) ^^ (_._1)
 
 
     /* nested comments */
@@ -303,6 +309,11 @@ object Scan
     def comment: Parser[String] =
       comment_depth(0) ^? { case (x, d) if d == 0 => x }
 
+    def comment_content(source: String): String =
+    {
+      require(parseAll(comment, source).successful)
+      source.substring(2, source.length - 2)
+    }
     def comment_context(ctxt: Context): Parser[(String, Context)] =
     {
       val depth =
@@ -318,11 +329,8 @@ object Scan
       else failure("")
     }
 
-    def comment_content(source: String): String =
-    {
-      require(parseAll(comment, source).successful)
-      source.substring(2, source.length - 2)
-    }
+    val comment_prefix: Parser[String] =
+      comment_context(Finished) ^^ (_._1)
 
 
     /* outer syntax tokens */
@@ -360,18 +368,16 @@ object Scan
         (many1(Symbol.is_symbolic_char) | one(sym => Symbol.is_symbolic(sym))) ^^
         (x => Token(Token.Kind.SYM_IDENT, x))
 
-      val space = many1(Symbol.is_blank) ^^ (x => Token(Token.Kind.SPACE, x))
-
-      // FIXME check
-      val junk = many(sym => !(Symbol.is_blank(sym)))
-      val junk1 = many1(sym => !(Symbol.is_blank(sym)))
-
-      val bad_delimiter =
-        ("\"" | "`" | "{*" | "(*") ~ junk ^^ { case x ~ y => Token(Token.Kind.UNPARSED, x + y) }
-      val bad = junk1 ^^ (x => Token(Token.Kind.UNPARSED, x))
-
       val command_keyword =
         keyword ^^ (x => Token(if (is_command(x)) Token.Kind.COMMAND else Token.Kind.KEYWORD, x))
+
+      val space = many1(Symbol.is_blank) ^^ (x => Token(Token.Kind.SPACE, x))
+
+      val bad_delimiter =
+        (quoted_prefix("\"") | (quoted_prefix("`") | (verbatim_prefix | comment_prefix))) ^^
+          (x => Token(Token.Kind.UNPARSED, x))
+
+      val bad = one(_ => true) ^^ (x => Token(Token.Kind.UNPARSED, x))
 
       space | (bad_delimiter |
         (((ident | (var_ | (type_ident | (type_var | (float | (nat_ | sym_ident)))))) |||

@@ -303,6 +303,9 @@ val scan_verbatim =
     (Symbol_Pos.change_prompt
       ((Scan.repeat scan_verb >> flat) -- ($$$ "*" |-- $$$ "}" |-- Symbol_Pos.scan_pos)));
 
+val recover_verbatim =
+  $$$ "{" @@@ $$$ "*" @@@ (Scan.repeat scan_verb >> flat);
+
 
 (* scan space *)
 
@@ -355,7 +358,11 @@ fun scan (lex1, lex2) = !!! "bad input"
         scan_symid >> pair SymIdent) >> uncurry token));
 
 fun recover msg =
-  Scan.many ((Symbol.is_regular andf (not o Symbol.is_blank)) o Symbol_Pos.symbol)
+  (Symbol_Pos.recover_string_qq ||
+    Symbol_Pos.recover_string_bq ||
+    recover_verbatim ||
+    Symbol_Pos.recover_comment ||
+    Scan.one (Symbol.is_regular o Symbol_Pos.symbol) >> single)
   >> (single o token (Error msg));
 
 in

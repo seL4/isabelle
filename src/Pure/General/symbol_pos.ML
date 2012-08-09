@@ -19,6 +19,9 @@ sig
   val scan_string_q: T list -> (Position.T * (T list * Position.T)) * T list
   val scan_string_qq: T list -> (Position.T * (T list * Position.T)) * T list
   val scan_string_bq: T list -> (Position.T * (T list * Position.T)) * T list
+  val recover_string_q: T list -> T list * T list
+  val recover_string_qq: T list -> T list * T list
+  val recover_string_bq: T list -> T list * T list
   val quote_string_q: string -> string
   val quote_string_qq: string -> string
   val quote_string_bq: string -> string
@@ -26,6 +29,7 @@ sig
     T list -> T list * T list
   val scan_comment_body: (string -> (T list -> T list * T list) -> T list -> T list * T list) ->
     T list -> T list * T list
+  val recover_comment: T list -> T list * T list
   val source: Position.T -> (Symbol.symbol, 'a) Source.source ->
     (T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source
   type text = string
@@ -98,11 +102,18 @@ fun scan_strs q =
   (scan_pos --| $$$ q) -- !!! (fn () => "missing quote at end of string")
     (change_prompt ((Scan.repeat (scan_str q) >> flat) -- ($$$ q |-- scan_pos)));
 
+fun recover_strs q =
+  $$$ q @@@ (Scan.repeat (Scan.permissive (scan_str q)) >> flat);
+
 in
 
 val scan_string_q = scan_strs "'";
 val scan_string_qq = scan_strs "\"";
 val scan_string_bq = scan_strs "`";
+
+val recover_string_q = recover_strs "'";
+val recover_string_qq = recover_strs "\"";
+val recover_string_bq = recover_strs "`";
 
 end;
 
@@ -140,7 +151,9 @@ val scan_cmt =
   Scan.lift ($$$ "*" --| Scan.ahead (~$$$ ")")) ||
   Scan.lift (Scan.one (fn (s, _) => s <> "*" andalso Symbol.is_regular s)) >> single;
 
-val scan_body = change_prompt (Scan.pass 0 (Scan.repeat scan_cmt >> flat));
+val scan_cmts = Scan.pass 0 (Scan.repeat scan_cmt >> flat);
+
+val scan_body = change_prompt scan_cmts;
 
 in
 
@@ -149,6 +162,9 @@ fun scan_comment cut =
 
 fun scan_comment_body cut =
   $$$ "(" |-- $$$ "*" |-- cut "missing end of comment" (scan_body --| $$$ "*" --| $$$ ")");
+
+val recover_comment =
+  $$$ "(" @@@ $$$ "*" @@@ scan_cmts;
 
 end;
 

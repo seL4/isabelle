@@ -235,9 +235,15 @@ in
 val scan_char =
   $$$ "#" @@@ $$$ "\"" @@@ scan_gaps @@@ scan_str @@@ scan_gaps @@@ $$$ "\"";
 
+val recover_char =
+  $$$ "#" @@@ $$$ "\"" @@@ scan_gaps @@@ Scan.optional (Scan.permissive scan_str @@@ scan_gaps) [];
+
 val scan_string =
   $$$ "\"" @@@ !!! "missing quote at end of string"
     ((Scan.repeat (scan_gap || scan_str) >> flat) @@@ $$$ "\"");
+
+val recover_string =
+  $$$ "\"" @@@ (Scan.repeat (scan_gap || Scan.permissive scan_str) >> flat);
 
 end;
 
@@ -265,8 +271,11 @@ val scan_ml =
 val scan_antiq = Antiquote.scan || scan_ml >> Antiquote.Text;
 
 fun recover msg =
-  Scan.many (((not o Symbol.is_blank) andf Symbol.is_regular) o Symbol_Pos.symbol)
-  >> (fn cs => [token (Error msg) cs]);
+ (recover_char ||
+  recover_string ||
+  Symbol_Pos.recover_comment ||
+  Scan.one (Symbol.not_eof o Symbol_Pos.symbol) >> single)
+  >> (single o token (Error msg));
 
 in
 

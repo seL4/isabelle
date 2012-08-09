@@ -39,6 +39,7 @@ signature SCAN =
 sig
   include BASIC_SCAN
   val prompt: string -> ('a -> 'b) -> 'a -> 'b
+  val permissive: ('a -> 'b) -> 'a -> 'b
   val error: ('a -> 'b) -> 'a -> 'b
   val catch: ('a -> 'b) -> 'a -> 'b    (*exception Fail*)
   val fail: 'a -> 'b
