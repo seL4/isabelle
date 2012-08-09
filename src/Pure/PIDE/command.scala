@@ -72,24 +72,26 @@ object Command
 
   /* make commands */
 
-  def apply(id: Document.Command_ID, node_name: Document.Node.Name, toks: List[Token]): Command =
+  type Span = List[Token]
+
+  def apply(id: Document.Command_ID, node_name: Document.Node.Name, span: Span): Command =
   {
     val source: String =
-      toks match {
+      span match {
         case List(tok) => tok.source
-        case _ => toks.map(_.source).mkString
+        case _ => span.map(_.source).mkString
       }
 
-    val span = new mutable.ListBuffer[Token]
+    val span1 = new mutable.ListBuffer[Token]
     var i = 0
-    for (Token(kind, s) <- toks) {
+    for (Token(kind, s) <- span) {
       val n = s.length
       val s1 = source.substring(i, i + n)
-      span += Token(kind, s1)
+      span1 += Token(kind, s1)
       i += n
     }
 
-    new Command(id, node_name, span.toList, source)
+    new Command(id, node_name, span1.toList, source)
   }
 
   def unparsed(source: String): Command =
@@ -121,7 +123,7 @@ object Command
 final class Command private(
     val id: Document.Command_ID,
     val node_name: Document.Node.Name,
-    val span: List[Token],
+    val span: Command.Span,
     val source: String)
 {
   /* classification */
