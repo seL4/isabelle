@@ -76,6 +76,11 @@ final class Linear_Set[A] private(
             }
       }
 
+  def append_after(hook: Option[A], elems: Seq[A]): Linear_Set[A] =
+    ((hook, this) /: elems) {
+      case ((last, set), elem) => (Some(elem), set.insert_after(last, elem))
+    }._2
+
   def delete_after(hook: Option[A]): Linear_Set[A] =
     hook match {
       case None =>
@@ -104,24 +109,6 @@ final class Linear_Set[A] private(
               }
           }
     }
-
-  def append_after(hook: Option[A], elems: Seq[A]): Linear_Set[A] =
-    ((hook, this) /: elems) {
-      case ((last_elem, set), elem) => (Some(elem), set.insert_after(last_elem, elem))
-    }._2
-
-  def delete_between(from: Option[A], to: Option[A]): Linear_Set[A] =
-  {
-    if (isEmpty) this
-    else {
-      val next =
-        if (from == end) None
-        else if (from == None) start
-        else from.map(nexts(_))
-      if (next == to) this
-      else delete_after(from).delete_between(from, to)
-    }
-  }
 
 
   /* Set methods */

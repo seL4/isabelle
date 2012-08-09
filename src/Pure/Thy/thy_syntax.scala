@@ -77,9 +77,9 @@ object Thy_Syntax
 
   /** parse spans **/
 
-  def parse_spans(toks: List[Token]): List[List[Token]] =
+  def parse_spans(toks: List[Token]): List[Command.Span] =
   {
-    val result = new mutable.ListBuffer[List[Token]]
+    val result = new mutable.ListBuffer[Command.Span]
     val span = new mutable.ListBuffer[Token]
 
     def flush() { if (!span.isEmpty) { result += span.toList; span.clear } }
@@ -196,36 +196,53 @@ object Thy_Syntax
 
   /* phase 2: recover command spans */
 
+  @tailrec private def chop_common(
+      cmds: List[Command], spans: List[Command.Span]): (List[Command], List[Command.Span]) =
+    (cmds, spans) match {
+      case (c :: cs, s :: ss) if c.span == s => chop_common(cs, ss)
+      case _ => (cmds, spans)
+    }
+
+  private def trim_common(
+      cmds: List[Command], spans: List[Command.Span]): (List[Command], List[Command.Span]) =
+  {
+    val (cmds1, spans1) = chop_common(cmds, spans)
+    val (rev_cmds2, rev_spans2) = chop_common(cmds1.reverse, spans1.reverse)
+    (rev_cmds2.reverse, rev_spans2.reverse)
+  }
+
   private def recover_spans(
     syntax: Outer_Syntax,
     node_name: Document.Node.Name,
+    perspective: Command.Perspective,
     old_commands: Linear_Set[Command]): Linear_Set[Command] =
   {
-    def bound(commands: Linear_Set[Command], cmd: Command): Command =
-      commands.iterator(cmd).dropWhile(_.newlines == 0).find(_.is_command) getOrElse commands.last
+    val visible = perspective.commands.iterator.filter(_.is_defined).toSet
+
+    def next_invisible_command(commands: Linear_Set[Command], from: Command): Command =
+      commands.iterator(from).dropWhile(cmd => !cmd.is_command || visible(cmd))
+        .find(_.is_command) getOrElse commands.last
 
     @tailrec def recover(commands: Linear_Set[Command]): Linear_Set[Command] =
       commands.iterator.find(cmd => !cmd.is_defined) match {
         case Some(first_undefined) =>
-          val first = bound(commands.reverse, first_undefined)
-          val last = bound(commands, first_undefined)
-          val range = commands.iterator(first, last).toList
+          val first = next_invisible_command(commands.reverse, first_undefined)
+          val last = next_invisible_command(commands, first_undefined)
 
-          val spans0 = parse_spans(syntax.scan(range.map(_.source).mkString))
+          val cmds0 = commands.iterator(first, last).toList
+          val spans0 = parse_spans(syntax.scan(cmds0.iterator.map(_.source).mkString))
 
-          val (before_edit, spans1) =
-            if (!spans0.isEmpty && first.is_command && first.span == spans0.head)
-              (Some(first), spans0.tail)
-            else (commands.prev(first), spans0)
-
-          val (after_edit, spans2) =
-            if (!spans1.isEmpty && last.is_command && last.span == spans1.last)
-              (Some(last), spans1.take(spans1.length - 1))
-            else (commands.next(last), spans1)
-
-          val inserted = spans2.map(span => Command(Document.new_id(), node_name, span))
+          val (cmds, spans) = trim_common(cmds0, spans0)
           val new_commands =
-            commands.delete_between(before_edit, after_edit).append_after(before_edit, inserted)
+            cmds match {
+              case Nil =>
+                assert(spans.isEmpty)
+                commands
+              case cmd :: _ =>
+                val hook = commands.prev(cmd)
+                val inserted = spans.map(span => Command(Document.new_id(), node_name, span))
+                (commands /: cmds)(_ - _).append_after(hook, inserted)
+            }
           recover(new_commands)
 
         case None => commands
@@ -271,7 +288,7 @@ object Thy_Syntax
         val node = nodes(name)
         val commands0 = node.commands
         val commands1 = edit_text(text_edits, commands0)
-        val commands2 = recover_spans(syntax, name, commands1)   // FIXME somewhat slow
+        val commands2 = recover_spans(syntax, name, node.perspective, commands1)   // FIXME somewhat slow
         val commands3 =
           if (reparse_set.contains(name)) reparse_spans(syntax, name, commands2)  // slow
           else commands2
