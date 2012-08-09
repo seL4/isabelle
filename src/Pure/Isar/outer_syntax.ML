@@ -269,31 +269,38 @@ fun isar in_stream term : isar =
 
 (* read toplevel commands -- fail-safe *)
 
-val not_singleton = "Exactly one command expected";
-
 fun read_span outer_syntax toks =
   let
     val commands = lookup_commands outer_syntax;
+
     val range_pos = Position.set_range (Token.range toks);
+    val pos =
+      (case find_first Token.is_command toks of
+        SOME tok => Token.position_of tok
+      | NONE => range_pos);
 
     fun command_reports tok =
-      if Token.kind_of tok = Token.Command then
+      if Token.is_command tok then
         let val name = Token.content_of tok in
           (case commands name of
             NONE => []
           | SOME cmd => [(Token.position_of tok, command_markup false (name, cmd))])
         end
       else [];
-    val _ = Position.reports (maps Thy_Syntax.reports_of_token toks @ maps command_reports toks);
+
+    val (is_malformed, token_reports) = Thy_Syntax.reports_of_tokens toks;
+    val _ = Position.reports (token_reports @ maps command_reports toks);
   in
-    (case Source.exhaust (toplevel_source false NONE (K commands) (Source.of_list toks)) of
-      [tr] =>
-        if Keyword.is_control (Toplevel.name_of tr) then
-          (Toplevel.malformed (Toplevel.pos_of tr) "Illegal control command", true)
-        else (tr, true)
-    | [] => (Toplevel.ignored range_pos, false)
-    | _ => (Toplevel.malformed range_pos not_singleton, true))
-    handle ERROR msg => (Toplevel.malformed range_pos msg, true)
+    if is_malformed then (Toplevel.malformed pos "Malformed command syntax", true)
+    else
+      (case Source.exhaust (toplevel_source false NONE (K commands) (Source.of_list toks)) of
+        [tr] =>
+          if Keyword.is_control (Toplevel.name_of tr) then
+            (Toplevel.malformed pos "Illegal control command", true)
+          else (tr, true)
+      | [] => (Toplevel.ignored range_pos, false)
+      | _ => (Toplevel.malformed range_pos "Exactly one command expected", true))
+      handle ERROR msg => (Toplevel.malformed range_pos msg, true)
   end;
 
 fun read_element outer_syntax init {head, proof, proper_proof} =

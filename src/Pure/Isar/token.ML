@@ -34,6 +34,7 @@ sig
   val is_comment: T -> bool
   val is_begin_ignore: T -> bool
   val is_end_ignore: T -> bool
+  val is_error: T -> bool
   val is_blank: T -> bool
   val is_newline: T -> bool
   val source_of: T -> string
@@ -177,6 +178,9 @@ fun is_begin_ignore (Token (_, (Comment, "<"), _)) = true
 
 fun is_end_ignore (Token (_, (Comment, ">"), _)) = true
   | is_end_ignore _ = false;
+
+fun is_error (Token (_, (Error _, _), _)) = true
+  | is_error _ = false;
 
 
 (* blanks and newlines -- space tokens obey lines *)

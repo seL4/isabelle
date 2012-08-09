@@ -7,8 +7,8 @@ Superficial theory syntax: tokens and spans.
 signature THY_SYNTAX =
 sig
   val parse_tokens: Scan.lexicon * Scan.lexicon -> Position.T -> string -> Token.T list
+  val reports_of_tokens: Token.T list -> bool * Position.report list
   val present_token: Token.T -> Output.output
-  val reports_of_token: Token.T -> Position.report list
   datatype span_kind = Command of string | Ignored | Malformed
   type span
   val span_kind: span -> span_kind
@@ -69,17 +69,24 @@ fun token_markup tok =
         else I;
     in props (token_kind_markup kind) end;
 
-fun reports_of_symbol (sym, pos) =
-  if Symbol.is_malformed sym then [(pos, Isabelle_Markup.malformed)] else [];
+fun reports_of_token tok =
+  let
+    val malformed_symbols =
+      Symbol_Pos.explode (Token.source_position_of tok)
+      |> map_filter (fn (sym, pos) =>
+          if Symbol.is_malformed sym then SOME (pos, Isabelle_Markup.malformed) else NONE);
+    val is_malformed = Token.is_error tok orelse not (null malformed_symbols);
+    val reports = (Token.position_of tok, token_markup tok) :: malformed_symbols;
+  in (is_malformed, reports) end;
 
 in
 
+fun reports_of_tokens toks =
+  let val results = map reports_of_token toks
+  in (exists fst results, maps snd results) end;
+
 fun present_token tok =
   Markup.enclose (token_markup tok) (Output.output (Token.unparse tok));
-
-fun reports_of_token tok =
-  (Token.position_of tok, token_markup tok) ::
-    maps reports_of_symbol (Symbol_Pos.explode (Token.source_position_of tok));
 
 end;
 
