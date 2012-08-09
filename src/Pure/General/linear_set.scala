@@ -34,6 +34,8 @@ final class Linear_Set[A] private(
 {
   override def companion: GenericCompanion[Linear_Set] = Linear_Set
 
+  def reverse: Linear_Set[A] = new Linear_Set(end, start, prevs, nexts)
+
 
   /* relative addressing */
 
@@ -132,26 +134,22 @@ final class Linear_Set[A] private(
   def contains(elem: A): Boolean =
     !isEmpty && (end.get == elem || nexts.isDefinedAt(elem))
 
-  private def make_iterator(from: Option[A], which: Map[A, A]): Iterator[A] = new Iterator[A] {
+  private def make_iterator(from: Option[A]): Iterator[A] = new Iterator[A] {
     private var next_elem = from
     def hasNext(): Boolean = next_elem.isDefined
     def next(): A =
       next_elem match {
         case Some(elem) =>
-          next_elem = which.get(elem)
+          next_elem = nexts.get(elem)
           elem
         case None => Iterator.empty.next()
       }
   }
 
-  override def iterator: Iterator[A] = make_iterator(start, nexts)
+  override def iterator: Iterator[A] = make_iterator(start)
 
   def iterator(elem: A): Iterator[A] =
-    if (contains(elem)) make_iterator(Some(elem), nexts)
-    else throw new Linear_Set.Undefined(elem)
-
-  def reverse_iterator(elem: A): Iterator[A] =
-    if (contains(elem)) make_iterator(Some(elem), prevs)
+    if (contains(elem)) make_iterator(Some(elem))
     else throw new Linear_Set.Undefined(elem)
 
   def + (elem: A): Linear_Set[A] = insert_after(end, elem)

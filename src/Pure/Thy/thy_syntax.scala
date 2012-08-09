@@ -196,41 +196,42 @@ object Thy_Syntax
 
   /* phase 2: recover command spans */
 
-  @tailrec private def recover_spans(
+  private def recover_spans(
     syntax: Outer_Syntax,
     node_name: Document.Node.Name,
-    commands: Linear_Set[Command]): Linear_Set[Command] =
+    old_commands: Linear_Set[Command]): Linear_Set[Command] =
   {
-    commands.iterator.find(cmd => !cmd.is_defined) match {
-      case Some(first_undefined) =>
-        val first =
-          commands.reverse_iterator(first_undefined).
-            dropWhile(_.newlines == 0).find(_.is_command) getOrElse commands.head
-        val last =
-          commands.iterator(first_undefined).
-            dropWhile(_.newlines == 0).find(_.is_command) getOrElse commands.last
-        val range =
-          commands.iterator(first).takeWhile(_ != last).toList ::: List(last)
+    def bound(commands: Linear_Set[Command], cmd: Command): Command =
+      commands.iterator(cmd).dropWhile(_.newlines == 0).find(_.is_command) getOrElse commands.last
 
-        val spans0 = parse_spans(syntax.scan(range.map(_.source).mkString))
+    @tailrec def recover(commands: Linear_Set[Command]): Linear_Set[Command] =
+      commands.iterator.find(cmd => !cmd.is_defined) match {
+        case Some(first_undefined) =>
+          val first = bound(commands.reverse, first_undefined)
+          val last = bound(commands, first_undefined)
+          val range =
+            commands.iterator(first).takeWhile(_ != last).toList ::: List(last)
 
-        val (before_edit, spans1) =
-          if (!spans0.isEmpty && first.is_command && first.span == spans0.head)
-            (Some(first), spans0.tail)
-          else (commands.prev(first), spans0)
+          val spans0 = parse_spans(syntax.scan(range.map(_.source).mkString))
 
-        val (after_edit, spans2) =
-          if (!spans1.isEmpty && last.is_command && last.span == spans1.last)
-            (Some(last), spans1.take(spans1.length - 1))
-          else (commands.next(last), spans1)
+          val (before_edit, spans1) =
+            if (!spans0.isEmpty && first.is_command && first.span == spans0.head)
+              (Some(first), spans0.tail)
+            else (commands.prev(first), spans0)
 
-        val inserted = spans2.map(span => Command(Document.new_id(), node_name, span))
-        val new_commands =
-          commands.delete_between(before_edit, after_edit).append_after(before_edit, inserted)
-        recover_spans(syntax, node_name, new_commands)
+          val (after_edit, spans2) =
+            if (!spans1.isEmpty && last.is_command && last.span == spans1.last)
+              (Some(last), spans1.take(spans1.length - 1))
+            else (commands.next(last), spans1)
 
-      case None => commands
-    }
+          val inserted = spans2.map(span => Command(Document.new_id(), node_name, span))
+          val new_commands =
+            commands.delete_between(before_edit, after_edit).append_after(before_edit, inserted)
+          recover(new_commands)
+
+        case None => commands
+      }
+    recover(old_commands)
   }
 
 
