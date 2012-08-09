@@ -373,13 +373,13 @@ object Scan
 
       val space = many1(Symbol.is_blank) ^^ (x => Token(Token.Kind.SPACE, x))
 
-      val bad_delimiter =
+      val recover_delimited =
         (quoted_prefix("\"") | (quoted_prefix("`") | (verbatim_prefix | comment_prefix))) ^^
           (x => Token(Token.Kind.UNPARSED, x))
 
       val bad = one(_ => true) ^^ (x => Token(Token.Kind.UNPARSED, x))
 
-      space | (bad_delimiter |
+      space | (recover_delimited |
         (((ident | (var_ | (type_ident | (type_var | (float | (nat_ | sym_ident)))))) |||
           command_keyword) | bad))
     }
