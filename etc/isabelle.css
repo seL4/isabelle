@@ -42,7 +42,7 @@ body { background-color: #FFFFFF; }
 .verbatim       { color: #00008B; }
 .comment        { color: #8B0000; }
 .control        { background-color: #FF6A6A; }
-.malformed      { background-color: #FF6A6A; }
+.bad            { background-color: #FF6A6A; }
 
 .malformed_span { background-color: #FF6A6A; }
 

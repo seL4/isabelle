@@ -22,7 +22,7 @@ object Isabelle_Rendering
 {
   /* physical rendering */
 
-  // see http://www.w3schools.com/css/css_colornames.asp
+  // see http://www.w3schools.com/cssref/css_colornames.asp
 
   def get_color(s: String): Color = ColorFactory.getInstance.getColor(s)
 
@@ -290,7 +290,6 @@ object Isabelle_Rendering
       Isabelle_Markup.ML_CHAR -> get_color("#D2691E"),
       Isabelle_Markup.ML_STRING -> get_color("#D2691E"),
       Isabelle_Markup.ML_COMMENT -> get_color("#8B0000"),
-      Isabelle_Markup.ML_MALFORMED -> get_color("#FF6A6A"),
       Isabelle_Markup.ANTIQ -> get_color("blue"))
 
   private val text_color_elements = Set.empty[String] ++ text_colors.keys

@@ -115,7 +115,7 @@ val token_kind_markup =
   | String    => Isabelle_Markup.ML_string
   | Space     => Markup.empty
   | Comment   => Isabelle_Markup.ML_comment
-  | Error _   => Isabelle_Markup.ML_malformed
+  | Error _   => Isabelle_Markup.bad
   | EOF       => Markup.empty;
 
 fun token_markup kind x =

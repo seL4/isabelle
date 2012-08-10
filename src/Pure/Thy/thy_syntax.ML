@@ -54,7 +54,7 @@ val token_kind_markup =
   | Token.Space         => Markup.empty
   | Token.Comment       => Isabelle_Markup.comment
   | Token.InternalValue => Markup.empty
-  | Token.Error _       => Isabelle_Markup.malformed
+  | Token.Error _       => Isabelle_Markup.bad
   | Token.Sync          => Isabelle_Markup.control
   | Token.EOF           => Isabelle_Markup.control;
 
@@ -74,7 +74,7 @@ fun reports_of_token tok =
     val malformed_symbols =
       Symbol_Pos.explode (Token.source_position_of tok)
       |> map_filter (fn (sym, pos) =>
-          if Symbol.is_malformed sym then SOME (pos, Isabelle_Markup.malformed) else NONE);
+          if Symbol.is_malformed sym then SOME (pos, Isabelle_Markup.bad) else NONE);
     val is_malformed = Token.is_error tok orelse not (null malformed_symbols);
     val reports = (Token.position_of tok, token_markup tok) :: malformed_symbols;
   in (is_malformed, reports) end;

@@ -55,7 +55,6 @@ sig
   val ML_charN: string val ML_char: Markup.T
   val ML_stringN: string val ML_string: Markup.T
   val ML_commentN: string val ML_comment: Markup.T
-  val ML_malformedN: string val ML_malformed: Markup.T
   val ML_defN: string
   val ML_openN: string
   val ML_structN: string
@@ -74,7 +73,6 @@ sig
   val verbatimN: string val verbatim: Markup.T
   val commentN: string val comment: Markup.T
   val controlN: string val control: Markup.T
-  val malformedN: string val malformed: Markup.T
   val tokenN: string val token: Properties.T -> Markup.T
   val command_spanN: string val command_span: string -> Markup.T
   val ignored_spanN: string val ignored_span: Markup.T
@@ -211,7 +209,6 @@ val (ML_numeralN, ML_numeral) = markup_elem "ML_numeral";
 val (ML_charN, ML_char) = markup_elem "ML_char";
 val (ML_stringN, ML_string) = markup_elem "ML_string";
 val (ML_commentN, ML_comment) = markup_elem "ML_comment";
-val (ML_malformedN, ML_malformed) = markup_elem "ML_malformed";
 
 val ML_defN = "ML_def";
 val ML_openN = "ML_open";
@@ -240,7 +237,6 @@ val (altstringN, altstring) = markup_elem "altstring";
 val (verbatimN, verbatim) = markup_elem "verbatim";
 val (commentN, comment) = markup_elem "comment";
 val (controlN, control) = markup_elem "control";
-val (malformedN, malformed) = markup_elem "malformed";
 
 val tokenN = "token";
 fun token props = (tokenN, props);

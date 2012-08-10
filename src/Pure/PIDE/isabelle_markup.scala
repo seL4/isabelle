@@ -132,7 +132,6 @@ object Isabelle_Markup
   val ML_CHAR = "ML_char"
   val ML_STRING = "ML_string"
   val ML_COMMENT = "ML_comment"
-  val ML_MALFORMED = "ML_malformed"
 
   val ML_DEF = "ML_def"
   val ML_OPEN = "ML_open"
@@ -150,7 +149,6 @@ object Isabelle_Markup
   val VERBATIM = "verbatim"
   val COMMENT = "comment"
   val CONTROL = "control"
-  val MALFORMED = "malformed"
 
   val COMMAND_SPAN = "command_span"
   val IGNORED_SPAN = "ignored_span"
