@@ -335,7 +335,7 @@ object Isabelle_Rendering
       Token.Kind.VERBATIM -> COMMENT3,
       Token.Kind.SPACE -> NULL,
       Token.Kind.COMMENT -> COMMENT1,
-      Token.Kind.UNPARSED -> INVALID
+      Token.Kind.ERROR -> INVALID
     ).withDefaultValue(NULL)
   }
 

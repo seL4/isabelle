@@ -375,9 +375,9 @@ object Scan
 
       val recover_delimited =
         (quoted_prefix("\"") | (quoted_prefix("`") | (verbatim_prefix | comment_prefix))) ^^
-          (x => Token(Token.Kind.UNPARSED, x))
+          (x => Token(Token.Kind.ERROR, x))
 
-      val bad = one(_ => true) ^^ (x => Token(Token.Kind.UNPARSED, x))
+      val bad = one(_ => true) ^^ (x => Token(Token.Kind.ERROR, x))
 
       space | (recover_delimited |
         (((ident | (var_ | (type_ident | (type_var | (float | (nat_ | sym_ident)))))) |||

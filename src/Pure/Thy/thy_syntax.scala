@@ -194,7 +194,7 @@ object Thy_Syntax
   }
 
 
-  /* phase 2: recover command spans */
+  /* phase 2a: reparse range of command spans */
 
   @tailrec private def chop_common(
       cmds: List[Command], spans: List[Command.Span]): (List[Command], List[Command.Span]) =
@@ -203,69 +203,94 @@ object Thy_Syntax
       case _ => (cmds, spans)
     }
 
-  private def trim_common(
-      cmds: List[Command], spans: List[Command.Span]): (List[Command], List[Command.Span]) =
+  private def reparse_spans(
+    syntax: Outer_Syntax,
+    name: Document.Node.Name,
+    commands: Linear_Set[Command],
+    first: Command, last: Command): Linear_Set[Command] =
   {
-    val (cmds1, spans1) = chop_common(cmds, spans)
+    val cmds0 = commands.iterator(first, last).toList
+    val spans0 = parse_spans(syntax.scan(cmds0.iterator.map(_.source).mkString))
+
+    val (cmds1, spans1) = chop_common(cmds0, spans0)
+
     val (rev_cmds2, rev_spans2) = chop_common(cmds1.reverse, spans1.reverse)
-    (rev_cmds2.reverse, rev_spans2.reverse)
+    val cmds2 = rev_cmds2.reverse
+    val spans2 = rev_spans2.reverse
+
+    cmds2 match {
+      case Nil =>
+        assert(spans2.isEmpty)
+        commands
+      case cmd :: _ =>
+        val hook = commands.prev(cmd)
+        val inserted = spans2.map(span => Command(Document.new_id(), name, span))
+        (commands /: cmds2)(_ - _).append_after(hook, inserted)
+    }
   }
+
+
+  /* phase 2b: recover command spans after edits */
 
   private def recover_spans(
     syntax: Outer_Syntax,
-    node_name: Document.Node.Name,
+    name: Document.Node.Name,
     perspective: Command.Perspective,
-    old_commands: Linear_Set[Command]): Linear_Set[Command] =
+    commands: Linear_Set[Command]): Linear_Set[Command] =
   {
-    val visible = perspective.commands.iterator.filter(_.is_defined).toSet
+    val visible = perspective.commands.toSet
 
-    def next_invisible_command(commands: Linear_Set[Command], from: Command): Command =
-      commands.iterator(from).dropWhile(cmd => !cmd.is_command || visible(cmd))
-        .find(_.is_command) getOrElse commands.last
+    def next_invisible_command(cmds: Linear_Set[Command], from: Command): Command =
+      cmds.iterator(from).dropWhile(cmd => !cmd.is_command || visible(cmd))
+        .find(_.is_command) getOrElse cmds.last
 
-    @tailrec def recover(commands: Linear_Set[Command]): Linear_Set[Command] =
-      commands.iterator.find(cmd => !cmd.is_defined) match {
-        case Some(first_undefined) =>
-          val first = next_invisible_command(commands.reverse, first_undefined)
-          val last = next_invisible_command(commands, first_undefined)
-
-          val cmds0 = commands.iterator(first, last).toList
-          val spans0 = parse_spans(syntax.scan(cmds0.iterator.map(_.source).mkString))
-
-          val (cmds, spans) = trim_common(cmds0, spans0)
-          val new_commands =
-            cmds match {
-              case Nil =>
-                assert(spans.isEmpty)
-                commands
-              case cmd :: _ =>
-                val hook = commands.prev(cmd)
-                val inserted = spans.map(span => Command(Document.new_id(), node_name, span))
-                (commands /: cmds)(_ - _).append_after(hook, inserted)
-            }
-          recover(new_commands)
-
-        case None => commands
+    @tailrec def recover(cmds: Linear_Set[Command]): Linear_Set[Command] =
+      cmds.find(_.is_unparsed) match {
+        case Some(first_unparsed) =>
+          val first = next_invisible_command(cmds.reverse, first_unparsed)
+          val last = next_invisible_command(cmds, first_unparsed)
+          recover(reparse_spans(syntax, name, cmds, first, last))
+        case None => cmds
       }
-    recover(old_commands)
+    recover(commands)
   }
 
 
-  /* phase 3: full reparsing after syntax change */
+  /* phase 2c: consolidate unfinished spans */
 
-  private def reparse_spans(
+  private def consolidate_spans(
     syntax: Outer_Syntax,
-    node_name: Document.Node.Name,
+    name: Document.Node.Name,
+    perspective: Command.Perspective,
     commands: Linear_Set[Command]): Linear_Set[Command] =
   {
-    val cmds = commands.toList
-    val spans1 = parse_spans(syntax.scan(cmds.map(_.source).mkString))
-    if (cmds.map(_.span) == spans1) commands
-    else Linear_Set(spans1.map(span => Command(Document.new_id(), node_name, span)): _*)
+    if (perspective.commands.isEmpty) commands
+    else {
+      commands.find(_.is_unfinished) match {
+        case Some(first_unfinished) =>
+          val visible = perspective.commands.toSet
+          commands.reverse.find(visible) match {
+            case Some(last_visible) =>
+              reparse_spans(syntax, name, commands, first_unfinished, last_visible)
+            case None => commands
+          }
+        case None => commands
+      }
+    }
   }
 
 
   /* main phase */
+
+  private def diff_commands(old_cmds: Linear_Set[Command], new_cmds: Linear_Set[Command])
+    : List[(Option[Command], Option[Command])] =
+  {
+    val removed = old_cmds.iterator.filter(!new_cmds.contains(_)).toList
+    val inserted = new_cmds.iterator.filter(!old_cmds.contains(_)).toList
+
+    removed.reverse.map(cmd => (old_cmds.prev(cmd), None)) :::
+    inserted.map(cmd => (new_cmds.prev(cmd), Some(cmd)))
+  }
 
   def text_edits(
       base_syntax: Outer_Syntax,
@@ -286,21 +311,16 @@ object Thy_Syntax
 
       case (name, Document.Node.Edits(text_edits)) =>
         val node = nodes(name)
+
         val commands0 = node.commands
         val commands1 = edit_text(text_edits, commands0)
         val commands2 = recover_spans(syntax, name, node.perspective, commands1)   // FIXME somewhat slow
         val commands3 =
-          if (reparse_set.contains(name)) reparse_spans(syntax, name, commands2)  // slow
+          if (reparse_set.contains(name) && !commands2.isEmpty)
+            reparse_spans(syntax, name, commands2, commands2.head, commands2.last)  // FIXME somewhat slow
           else commands2
 
-        val removed_commands = commands0.iterator.filter(!commands3.contains(_)).toList
-        val inserted_commands = commands3.iterator.filter(!commands0.contains(_)).toList
-
-        val cmd_edits =
-          removed_commands.reverse.map(cmd => (commands0.prev(cmd), None)) :::
-          inserted_commands.map(cmd => (commands3.prev(cmd), Some(cmd)))
-
-        doc_edits += (name -> Document.Node.Edits(cmd_edits))
+        doc_edits += (name -> Document.Node.Edits(diff_commands(commands0, commands3)))
         nodes += (name -> node.update_commands(commands3))
 
       case (name, Document.Node.Deps(_)) =>
@@ -309,10 +329,15 @@ object Thy_Syntax
         val node = nodes(name)
         val perspective = command_perspective(node, text_perspective)
         if (!(node.perspective same perspective)) {
+/* FIXME
+          val commands1 = consolidate_spans(syntax, name, perspective, node.commands)
+          doc_edits += (name -> Document.Node.Edits(diff_commands(node.commands, commands1)))
+*/
           doc_edits += (name -> Document.Node.Perspective(perspective))
           nodes += (name -> node.update_perspective(perspective))
         }
     }
+
     (doc_edits.toList, Document.Version.make(syntax, nodes))
   }
 }
