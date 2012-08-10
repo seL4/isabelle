@@ -235,8 +235,8 @@ object Scan
       }
     }.named("quoted_context")
 
-    def quoted_prefix(quote: Symbol.Symbol): Parser[String] =
-      quoted_context(quote, Finished) ^^ (_._1)
+    def recover_quoted(quote: Symbol.Symbol): Parser[String] =
+      quote ~ quoted_body(quote) ^^ { case x ~ y => x + y }
 
 
     /* verbatim text */
@@ -270,8 +270,8 @@ object Scan
       }
     }.named("verbatim_context")
 
-    val verbatim_prefix: Parser[String] =
-      verbatim_context(Finished) ^^ (_._1)
+    val recover_verbatim: Parser[String] =
+      "{*" ~ verbatim_body ^^ { case x ~ y => x + y }
 
 
     /* nested comments */
@@ -329,8 +329,8 @@ object Scan
       else failure("")
     }
 
-    val comment_prefix: Parser[String] =
-      comment_context(Finished) ^^ (_._1)
+    val recover_comment: Parser[String] =
+      comment_depth(0) ^^ (_._1)
 
 
     /* outer syntax tokens */
@@ -374,7 +374,7 @@ object Scan
       val space = many1(Symbol.is_blank) ^^ (x => Token(Token.Kind.SPACE, x))
 
       val recover_delimited =
-        (quoted_prefix("\"") | (quoted_prefix("`") | (verbatim_prefix | comment_prefix))) ^^
+        (recover_quoted("\"") | (recover_quoted("`") | (recover_verbatim | recover_comment))) ^^
           (x => Token(Token.Kind.ERROR, x))
 
       val bad = one(_ => true) ^^ (x => Token(Token.Kind.ERROR, x))
