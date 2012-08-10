@@ -37,16 +37,18 @@ final class Linear_Set[A] private(
 
   /* relative addressing */
 
-  // FIXME check definedness??
-  def next(elem: A): Option[A] = nexts.get(elem)
-  def prev(elem: A): Option[A] = prevs.get(elem)
+  def next(elem: A): Option[A] =
+    if (contains(elem)) nexts.get(elem)
+    else throw new Linear_Set.Undefined(elem)
+
+  def prev(elem: A): Option[A] =
+    if (contains(elem)) prevs.get(elem)
+    else throw new Linear_Set.Undefined(elem)
 
   def get_after(hook: Option[A]): Option[A] =
     hook match {
       case None => start
-      case Some(elem) =>
-        if (!contains(elem)) throw new Linear_Set.Undefined(elem)
-        next(elem)
+      case Some(elem) => next(elem)
     }
 
   def insert_after(hook: Option[A], elem: A): Linear_Set[A] =
@@ -138,12 +140,12 @@ final class Linear_Set[A] private(
     else throw new Linear_Set.Undefined(elem)
 
   def iterator(from: A, to: A): Iterator[A] =
-    if (!contains(to)) throw new Linear_Set.Undefined(to)
-    else
+    if (contains(to))
       nexts.get(to) match {
         case None => iterator(from)
         case Some(stop) => iterator(from).takeWhile(_ != stop)
       }
+    else throw new Linear_Set.Undefined(to)
 
   def reverse: Linear_Set[A] = new Linear_Set(end, start, prevs, nexts)
 
@@ -151,7 +153,5 @@ final class Linear_Set[A] private(
 
   def + (elem: A): Linear_Set[A] = insert_after(end, elem)
 
-  def - (elem: A): Linear_Set[A] =
-    if (!contains(elem)) throw new Linear_Set.Undefined(elem)
-    else delete_after(prev(elem))
+  def - (elem: A): Linear_Set[A] = delete_after(prev(elem))
 }
