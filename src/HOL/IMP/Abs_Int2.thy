@@ -238,7 +238,7 @@ proof(simp add: CS_def AI_def)
   have 2: "step' (top c) C \<sqsubseteq> C" by(rule lpfpc_pfp[OF 1])
   have 3: "strip (\<gamma>\<^isub>c (step' (top c) C)) = c"
     by(simp add: strip_lpfp[OF _ 1])
-  have "lfp (step UNIV) c \<le> \<gamma>\<^isub>c (step' (top c) C)"
+  have "lfp c (step UNIV) \<le> \<gamma>\<^isub>c (step' (top c) C)"
   proof(rule lfp_lowerbound[simplified,OF 3])
     show "step UNIV (\<gamma>\<^isub>c (step' (top c) C)) \<le> \<gamma>\<^isub>c (step' (top c) C)"
     proof(rule step_preserves_le[OF _ _ `wt C (vars c)` wt_top])
@@ -246,7 +246,7 @@ proof(simp add: CS_def AI_def)
       show "\<gamma>\<^isub>c (step' (top c) C) \<le> \<gamma>\<^isub>c C" by(rule mono_gamma_c[OF 2])
     qed
   qed
-  from this 2 show "lfp (step UNIV) c \<le> \<gamma>\<^isub>c C"
+  from this 2 show "lfp c (step UNIV) \<le> \<gamma>\<^isub>c C"
     by (blast intro: mono_gamma_c order_trans)
 qed
 

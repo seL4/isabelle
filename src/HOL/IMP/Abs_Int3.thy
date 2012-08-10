@@ -356,7 +356,7 @@ proof(simp add: CS_def AI_wn_def)
     by(rule pfp_wn_pfp[where c=c])
       (simp_all add: 1 mono_step'_top wt_widen_c wt_narrow_c)
   have 3: "strip (\<gamma>\<^isub>c (step' \<top>\<^bsub>c\<^esub> C)) = c" by(simp add: strip_pfp_wn[OF _ 1])
-  have "lfp (step UNIV) c \<le> \<gamma>\<^isub>c (step' \<top>\<^bsub>c\<^esub> C)"
+  have "lfp c (step UNIV) \<le> \<gamma>\<^isub>c (step' \<top>\<^bsub>c\<^esub> C)"
   proof(rule lfp_lowerbound[simplified,OF 3])
     show "step UNIV (\<gamma>\<^isub>c (step' \<top>\<^bsub>c\<^esub> C)) \<le> \<gamma>\<^isub>c (step' \<top>\<^bsub>c\<^esub> C)"
     proof(rule step_preserves_le[OF _ _ _ wt_top])
@@ -365,7 +365,7 @@ proof(simp add: CS_def AI_wn_def)
       show "wt C (vars c)" using 2 by blast
     qed
   qed
-  from this 2 show "lfp (step UNIV) c \<le> \<gamma>\<^isub>c C"
+  from this 2 show "lfp c (step UNIV) \<le> \<gamma>\<^isub>c C"
     by (blast intro: mono_gamma_c order_trans)
 qed
 
