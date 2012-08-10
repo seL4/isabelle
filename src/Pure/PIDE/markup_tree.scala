@@ -95,7 +95,8 @@ final class Markup_Tree private(branches: Markup_Tree.Branches.T)
             new Markup_Tree(rest, Entry(new_markup, new Markup_Tree(body)))
           }
           else { // FIXME split markup!?
-            System.err.println("Ignored overlapping markup information: " + new_markup)
+            System.err.println("Ignored overlapping markup information: " + new_markup +
+              body.filter(e => !new_range.contains(e._1)).mkString("\n"))
             this
           }
         }
