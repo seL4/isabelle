@@ -236,6 +236,7 @@ object Isabelle_Markup
 
   val NO_REPORT = "no_report"
 
+  val Message = new Properties.String("message")
   val BAD = "bad"
 
 

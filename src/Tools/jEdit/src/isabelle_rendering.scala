@@ -104,18 +104,25 @@ object Isabelle_Rendering
   }
 
 
+  private def tooltip_text(msg: XML.Body): String =
+    Pretty.string_of(msg, margin = Isabelle.Int_Property("tooltip-margin"))
+
   def tooltip_message(snapshot: Document.Snapshot, range: Text.Range): Option[String] =
   {
     val msgs =
       snapshot.cumulate_markup[SortedMap[Long, String]](range, SortedMap.empty,
-        Some(Set(Isabelle_Markup.WRITELN, Isabelle_Markup.WARNING, Isabelle_Markup.ERROR)),
+        Some(Set(Isabelle_Markup.WRITELN, Isabelle_Markup.WARNING, Isabelle_Markup.ERROR,
+          Isabelle_Markup.BAD)),
         {
-          case (msgs, Text.Info(_, msg @ XML.Elem(Markup(markup, Isabelle_Markup.Serial(serial)), _)))
+          case (msgs, Text.Info(_, msg @
+              XML.Elem(Markup(markup, Isabelle_Markup.Serial(serial)), _)))
           if markup == Isabelle_Markup.WRITELN ||
               markup == Isabelle_Markup.WARNING ||
               markup == Isabelle_Markup.ERROR =>
-            msgs + (serial ->
-              Pretty.string_of(List(msg), margin = Isabelle.Int_Property("tooltip-margin")))
+            msgs + (serial -> tooltip_text(List(msg)))
+          case (msgs, Text.Info(_,
+              XML.Elem(Markup(Isabelle_Markup.BAD, Isabelle_Markup.Message(msg)), _))) =>
+            msgs + (0L -> tooltip_text(YXML.parse_body(msg)))
         }).toList.flatMap(_.info)
     if (msgs.isEmpty) None else Some(cat_lines(msgs.iterator.map(_._2)))
   }
