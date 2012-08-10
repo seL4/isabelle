@@ -8,7 +8,7 @@ The well-ordering theorem.
 header {* Zorn's Lemma *}
 
 theory Zorn
-imports Order_Relation Main
+imports Order_Relation
 begin
 
 (* Define globally? In Set.thy? *)
@@ -143,7 +143,7 @@ text{*NB: We assume the partial ordering is @{text "\<subseteq>"},
  the subset relation!*}
 
 lemma empty_set_mem_chain: "({} :: 'a set set) \<in> chain S"
-by (unfold chain_def chain_subset_def) auto
+  by (unfold chain_def chain_subset_def) simp
 
 lemma super_subset_chain: "super S c \<subseteq> chain S"
   by (unfold super_def) blast
@@ -152,13 +152,13 @@ lemma maxchain_subset_chain: "maxchain S \<subseteq> chain S"
   by (unfold maxchain_def) blast
 
 lemma mem_super_Ex: "c \<in> chain S - maxchain S ==> EX d. d \<in> super S c"
-  by (unfold super_def maxchain_def) auto
+  by (unfold super_def maxchain_def) simp
 
 lemma select_super:
      "c \<in> chain S - maxchain S ==> (\<some>c'. c': super S c): super S c"
   apply (erule mem_super_Ex [THEN exE])
   apply (rule someI2)
-  apply auto
+  apply simp+
   done
 
 lemma select_not_equals:
@@ -286,7 +286,7 @@ proof-
     proof (simp add:Chain_def, intro allI impI, elim conjE)
       fix a b
       assume "a \<in> Field r" "?B a \<in> C" "b \<in> Field r" "?B b \<in> C"
-      hence "?B a \<subseteq> ?B b \<or> ?B b \<subseteq> ?B a" using 2 by auto
+      hence "?B a \<subseteq> ?B b \<or> ?B b \<subseteq> ?B a" using 2 by simp
       thus "(a, b) \<in> r \<or> (b, a) \<in> r" using `Preorder r` `a:Field r` `b:Field r`
         by (simp add:subset_Image1_Image1_iff)
     qed
@@ -296,7 +296,7 @@ proof-
       fix a B assume aB: "B:C" "a:B"
       with 1 obtain x where "x:Field r" "B = r^-1 `` {x}" by auto
       thus "(a,u) : r" using uA aB `Preorder r`
-        by (auto simp add: preorder_on_def refl_on_def) (metis transD)
+        by (simp add: preorder_on_def refl_on_def) (rule transD, blast+)
     qed
     thus "EX u:Field r. ?P u" using `u:Field r` by blast
   qed
@@ -326,8 +326,7 @@ by(simp add:init_seg_of_def)
 
 lemma trans_init_seg_of:
   "r initial_segment_of s \<Longrightarrow> s initial_segment_of t \<Longrightarrow> r initial_segment_of t"
-by(simp (no_asm_use) add: init_seg_of_def)
-  (metis Domain_iff UnCI Un_absorb2 subset_trans)
+by (simp (no_asm_use) add: init_seg_of_def) (metis (no_types) in_mono order_trans)
 
 lemma antisym_init_seg_of:
   "r initial_segment_of s \<Longrightarrow> s initial_segment_of r \<Longrightarrow> r=s"
@@ -335,20 +334,17 @@ unfolding init_seg_of_def by safe
 
 lemma Chain_init_seg_of_Union:
   "R \<in> Chain init_seg_of \<Longrightarrow> r\<in>R \<Longrightarrow> r initial_segment_of \<Union>R"
-by(auto simp add:init_seg_of_def Chain_def Ball_def) blast
+by(simp add: init_seg_of_def Chain_def Ball_def) blast
 
 lemma chain_subset_trans_Union:
   "chain\<^bsub>\<subseteq>\<^esub> R \<Longrightarrow> \<forall>r\<in>R. trans r \<Longrightarrow> trans(\<Union>R)"
-apply(auto simp add:chain_subset_def)
+apply(simp add:chain_subset_def)
 apply(simp (no_asm_use) add:trans_def)
-apply (metis subsetD)
-done
+by (metis subsetD)
 
 lemma chain_subset_antisym_Union:
   "chain\<^bsub>\<subseteq>\<^esub> R \<Longrightarrow> \<forall>r\<in>R. antisym r \<Longrightarrow> antisym(\<Union>R)"
-apply(auto simp add:chain_subset_def antisym_def)
-apply (metis subsetD)
-done
+by (simp add:chain_subset_def antisym_def) (metis subsetD)
 
 lemma chain_subset_Total_Union:
 assumes "chain\<^bsub>\<subseteq>\<^esub> R" "\<forall>r\<in>R. Total r"
@@ -403,7 +399,7 @@ proof-
 -- {*The initial segment relation on well-orders: *}
   let ?WO = "{r::('a*'a)set. Well_order r}"
   def I \<equiv> "init_seg_of \<inter> ?WO \<times> ?WO"
-  have I_init: "I \<subseteq> init_seg_of" by(auto simp:I_def)
+  have I_init: "I \<subseteq> init_seg_of" by(simp add: I_def)
   hence subch: "!!R. R : Chain I \<Longrightarrow> chain\<^bsub>\<subseteq>\<^esub> R"
     by(auto simp:init_seg_of_def chain_subset_def Chain_def)
   have Chain_wo: "!!R r. R \<in> Chain I \<Longrightarrow> r \<in> R \<Longrightarrow> Well_order r"
@@ -437,7 +433,7 @@ proof-
       by(simp add: Chain_init_seg_of_Union)
     ultimately have "\<Union>R : ?WO \<and> (\<forall>r\<in>R. (r,\<Union>R) : I)"
       using mono_Chain[OF I_init] `R \<in> Chain I`
-      by(simp (no_asm) add:I_def del:Field_Union)(metis Chain_wo subsetD)
+      by(simp (no_asm) add:I_def del:Field_Union)(metis Chain_wo)
   }
   hence 1: "\<forall>R \<in> Chain I. \<exists>u\<in>Field I. \<forall>r\<in>R. (r,u) : I" by (subst FI) blast
 --{*Zorn's Lemma yields a maximal well-order m:*}
@@ -475,7 +471,7 @@ proof-
     moreover have "wf(?m-Id)"
     proof-
       have "wf ?s" using `x \<notin> Field m`
-        by(auto simp add:wf_eq_minimal Field_def Domain_unfold Domain_converse [symmetric]) metis
+        by(simp add:wf_eq_minimal Field_def Domain_unfold Domain_converse [symmetric]) metis
       thus ?thesis using `wf(m-Id)` `x \<notin> Field m`
         wf_subset[OF `wf ?s` Diff_subset]
         by (fastforce intro!: wf_Un simp add: Un_Diff Field_def)
