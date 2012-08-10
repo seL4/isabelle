@@ -28,6 +28,7 @@ object Token
     val VERBATIM = Value("verbatim text")
     val SPACE = Value("white space")
     val COMMENT = Value("comment text")
+    val ERROR = Value("bad input")
     val UNPARSED = Value("unparsed input")
   }
 
@@ -89,7 +90,14 @@ sealed case class Token(val kind: Token.Kind.Value, val source: String)
   def is_space: Boolean = kind == Token.Kind.SPACE
   def is_comment: Boolean = kind == Token.Kind.COMMENT
   def is_proper: Boolean = !is_space && !is_comment
+  def is_error: Boolean = kind == Token.Kind.ERROR
   def is_unparsed: Boolean = kind == Token.Kind.UNPARSED
+
+  def is_unfinished: Boolean = is_error &&
+   (source.startsWith("\"") ||
+    source.startsWith("`") ||
+    source.startsWith("{*") ||
+    source.startsWith("(*"))
 
   def is_begin: Boolean = is_keyword && source == "begin"
   def is_end: Boolean = is_keyword && source == "end"

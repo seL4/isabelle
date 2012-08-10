@@ -22,7 +22,7 @@ object Isabelle_Rendering
 {
   /* physical rendering */
 
-  // see http://www.w3schools.com/css/css_colornames.asp
+  // see http://www.w3schools.com/cssref/css_colornames.asp
 
   def get_color(s: String): Color = ColorFactory.getInstance.getColor(s)
 
@@ -104,18 +104,25 @@ object Isabelle_Rendering
   }
 
 
+  private def tooltip_text(msg: XML.Body): String =
+    Pretty.string_of(msg, margin = Isabelle.Int_Property("tooltip-margin"))
+
   def tooltip_message(snapshot: Document.Snapshot, range: Text.Range): Option[String] =
   {
     val msgs =
       snapshot.cumulate_markup[SortedMap[Long, String]](range, SortedMap.empty,
-        Some(Set(Isabelle_Markup.WRITELN, Isabelle_Markup.WARNING, Isabelle_Markup.ERROR)),
+        Some(Set(Isabelle_Markup.WRITELN, Isabelle_Markup.WARNING, Isabelle_Markup.ERROR,
+          Isabelle_Markup.BAD)),
         {
-          case (msgs, Text.Info(_, msg @ XML.Elem(Markup(markup, Isabelle_Markup.Serial(serial)), _)))
+          case (msgs, Text.Info(_, msg @
+              XML.Elem(Markup(markup, Isabelle_Markup.Serial(serial)), _)))
           if markup == Isabelle_Markup.WRITELN ||
               markup == Isabelle_Markup.WARNING ||
               markup == Isabelle_Markup.ERROR =>
-            msgs + (serial ->
-              Pretty.string_of(List(msg), margin = Isabelle.Int_Property("tooltip-margin")))
+            msgs + (serial -> tooltip_text(List(msg)))
+          case (msgs, Text.Info(_,
+              XML.Elem(Markup(Isabelle_Markup.BAD, Isabelle_Markup.Message(msg)), _))) =>
+            msgs + (0L -> tooltip_text(YXML.parse_body(msg)))
         }).toList.flatMap(_.info)
     if (msgs.isEmpty) None else Some(cat_lines(msgs.iterator.map(_._2)))
   }
@@ -290,7 +297,6 @@ object Isabelle_Rendering
       Isabelle_Markup.ML_CHAR -> get_color("#D2691E"),
       Isabelle_Markup.ML_STRING -> get_color("#D2691E"),
       Isabelle_Markup.ML_COMMENT -> get_color("#8B0000"),
-      Isabelle_Markup.ML_MALFORMED -> get_color("#FF6A6A"),
       Isabelle_Markup.ANTIQ -> get_color("blue"))
 
   private val text_color_elements = Set.empty[String] ++ text_colors.keys
@@ -336,7 +342,7 @@ object Isabelle_Rendering
       Token.Kind.VERBATIM -> COMMENT3,
       Token.Kind.SPACE -> NULL,
       Token.Kind.COMMENT -> COMMENT1,
-      Token.Kind.UNPARSED -> INVALID
+      Token.Kind.ERROR -> INVALID
     ).withDefaultValue(NULL)
   }
 

@@ -34,8 +34,6 @@ final class Linear_Set[A] private(
 {
   override def companion: GenericCompanion[Linear_Set] = Linear_Set
 
-  def reverse: Linear_Set[A] = new Linear_Set(end, start, prevs, nexts)
-
 
   /* relative addressing */
 
@@ -76,7 +74,7 @@ final class Linear_Set[A] private(
             }
       }
 
-  def append_after(hook: Option[A], elems: Seq[A]): Linear_Set[A] =
+  def append_after(hook: Option[A], elems: Seq[A]): Linear_Set[A] =  // FIXME reverse fold
     ((hook, this) /: elems) {
       case ((last, set), elem) => (Some(elem), set.insert_after(last, elem))
     }._2
@@ -146,6 +144,10 @@ final class Linear_Set[A] private(
         case None => iterator(from)
         case Some(stop) => iterator(from).takeWhile(_ != stop)
       }
+
+  def reverse: Linear_Set[A] = new Linear_Set(end, start, prevs, nexts)
+
+  override def last: A = reverse.head
 
   def + (elem: A): Linear_Set[A] = insert_after(end, elem)
 

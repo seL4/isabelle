@@ -111,8 +111,8 @@ object Command
     {
       val cmds1 = this.commands
       val cmds2 = that.commands
-      require(cmds1.forall(_.is_defined))
-      require(cmds2.forall(_.is_defined))
+      require(!cmds1.exists(_.is_undefined))
+      require(!cmds2.exists(_.is_undefined))
       cmds1.length == cmds2.length &&
         (cmds1.iterator zip cmds2.iterator).forall({ case (c1, c2) => c1.id == c2.id })
     }
@@ -128,10 +128,12 @@ final class Command private(
 {
   /* classification */
 
-  def is_defined: Boolean = id != Document.no_id
+  def is_undefined: Boolean = id == Document.no_id
+  val is_unparsed: Boolean = span.exists(_.is_unparsed)
+  val is_unfinished: Boolean = span.exists(_.is_unfinished)
 
   val is_ignored: Boolean = !span.exists(_.is_proper)
-  val is_malformed: Boolean = !is_ignored && (!span.head.is_command || span.exists(_.is_unparsed))
+  val is_malformed: Boolean = !is_ignored && (!span.head.is_command || span.exists(_.is_error))
   def is_command: Boolean = !is_ignored && !is_malformed
 
   def name: String =

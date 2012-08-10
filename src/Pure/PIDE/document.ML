@@ -17,7 +17,7 @@ sig
   val print_id: id -> string
   type node_header = string * Thy_Header.header * string list
   datatype node_edit =
-    Clear |
+    Clear |    (* FIXME unused !? *)
     Edits of (command_id option * command_id option) list |
     Deps of node_header |
     Perspective of command_id list
