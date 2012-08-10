@@ -74,9 +74,6 @@ sig
   val commentN: string val comment: Markup.T
   val controlN: string val control: Markup.T
   val tokenN: string val token: Properties.T -> Markup.T
-  val command_spanN: string val command_span: string -> Markup.T
-  val ignored_spanN: string val ignored_span: Markup.T
-  val malformed_spanN: string val malformed_span: Markup.T
   val elapsedN: string
   val cpuN: string
   val gcN: string
@@ -240,10 +237,6 @@ val (controlN, control) = markup_elem "control";
 
 val tokenN = "token";
 fun token props = (tokenN, props);
-
-val (command_spanN, command_span) = markup_string "command_span" Markup.nameN;
-val (ignored_spanN, ignored_span) = markup_elem "ignored_span";
-val (malformed_spanN, malformed_span) = markup_elem "malformed_span";
 
 
 (* timing *)

@@ -127,18 +127,7 @@ end;
 
 (* present *)
 
-local
-
-fun kind_markup (Command name) = Isabelle_Markup.command_span name
-  | kind_markup Ignored = Isabelle_Markup.ignored_span
-  | kind_markup Malformed = Isabelle_Markup.malformed_span;
-
-in
-
-fun present_span span =
-  Markup.enclose (kind_markup (span_kind span)) (implode (map present_token (span_content span)));
-
-end;
+val present_span = implode o map present_token o span_content;
 
 
 

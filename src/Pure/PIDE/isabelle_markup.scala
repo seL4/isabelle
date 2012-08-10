@@ -150,10 +150,6 @@ object Isabelle_Markup
   val COMMENT = "comment"
   val CONTROL = "control"
 
-  val COMMAND_SPAN = "command_span"
-  val IGNORED_SPAN = "ignored_span"
-  val MALFORMED_SPAN = "malformed_span"
-
 
   /* timing */
 
