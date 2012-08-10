@@ -67,13 +67,15 @@ open Basic_Symbol_Pos;
 
 local
 
+val err_prefix = "Antiquotation lexical error: ";
+
 val scan_txt =
   $$$ "@" --| Scan.ahead (~$$$ "{") ||
   Scan.one (fn (s, _) => s <> "@" andalso s <> "\\<lbrace>" andalso s <> "\\<rbrace>"
     andalso Symbol.is_regular s) >> single;
 
 val scan_ant =
-  Scan.trace (Symbol_Pos.scan_string_qq || Symbol_Pos.scan_string_bq) >> #2 ||
+  Scan.trace (Symbol_Pos.scan_string_qq err_prefix || Symbol_Pos.scan_string_bq err_prefix) >> #2 ||
   Scan.one (fn (s, _) => s <> "}" andalso Symbol.is_regular s) >> single;
 
 val scan_open = Symbol_Pos.scan_pos --| $$$ "\\<lbrace>";
@@ -83,7 +85,7 @@ in
 
 val scan_antiq =
   Symbol_Pos.scan_pos -- ($$$ "@" |-- $$$ "{" |--
-    Symbol_Pos.!!! (fn () => "missing closing brace of antiquotation")
+    Symbol_Pos.!!! (fn () => err_prefix ^ "missing closing brace")
       (Scan.repeat scan_ant -- ($$$ "}" |-- Symbol_Pos.scan_pos)))
   >> (fn (pos1, (body, pos2)) => (flat body, Position.range pos1 pos2));
 

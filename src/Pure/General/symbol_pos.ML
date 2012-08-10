@@ -16,9 +16,9 @@ sig
   val !!! : Scan.message -> (T list -> 'a) -> T list -> 'a
   val change_prompt: ('a -> 'b) -> 'a -> 'b
   val scan_pos: T list -> Position.T * T list
-  val scan_string_q: T list -> (Position.T * (T list * Position.T)) * T list
-  val scan_string_qq: T list -> (Position.T * (T list * Position.T)) * T list
-  val scan_string_bq: T list -> (Position.T * (T list * Position.T)) * T list
+  val scan_string_q: string -> T list -> (Position.T * (T list * Position.T)) * T list
+  val scan_string_qq: string -> T list -> (Position.T * (T list * Position.T)) * T list
+  val scan_string_bq: string -> T list -> (Position.T * (T list * Position.T)) * T list
   val recover_string_q: T list -> T list * T list
   val recover_string_qq: T list -> T list * T list
   val recover_string_bq: T list -> T list * T list
@@ -94,16 +94,17 @@ val char_code =
     let val (n, _) = Library.read_int [a, b, c]
     in if n <= 255 then Scan.succeed [(chr n, pos)] else Scan.fail end);
 
-fun scan_str q =
-  $$$ "\\" |-- !!! (fn () => "bad escape character in string") ($$$ q || $$$ "\\" || char_code) ||
+fun scan_str q err_prefix =
+  $$$ "\\" |-- !!! (fn () => err_prefix ^ "bad escape character in string")
+    ($$$ q || $$$ "\\" || char_code) ||
   Scan.one (fn (s, _) => s <> q andalso s <> "\\" andalso Symbol.is_regular s) >> single;
 
-fun scan_strs q =
-  (scan_pos --| $$$ q) -- !!! (fn () => "missing quote at end of string")
-    (change_prompt ((Scan.repeat (scan_str q) >> flat) -- ($$$ q |-- scan_pos)));
+fun scan_strs q err_prefix =
+  (scan_pos --| $$$ q) -- !!! (fn () => err_prefix ^ "missing quote at end of string")
+    (change_prompt ((Scan.repeat (scan_str q err_prefix) >> flat) -- ($$$ q |-- scan_pos)));
 
 fun recover_strs q =
-  $$$ q @@@ (Scan.repeat (Scan.permissive (scan_str q)) >> flat);
+  $$$ q @@@ (Scan.repeat (Scan.permissive (scan_str q "")) >> flat);
 
 in
 

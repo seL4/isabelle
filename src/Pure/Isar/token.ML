@@ -273,7 +273,9 @@ fun closure (Token (x, y, Assignable (Unsynchronized.ref v))) = Token (x, y, Val
 
 open Basic_Symbol_Pos;
 
-fun !!! msg = Symbol_Pos.!!! (fn () => "Outer lexical error: " ^ msg);
+val err_prefix = "Outer lexical error: ";
+
+fun !!! msg = Symbol_Pos.!!! (fn () => err_prefix ^ msg);
 
 
 (* scan symbolic idents *)
@@ -342,8 +344,8 @@ fun token_range k (pos1, (ss, pos2)) =
   Token (Symbol_Pos.implode_range pos1 pos2 ss, (k, Symbol_Pos.content ss), Slot);
 
 fun scan (lex1, lex2) = !!! "bad input"
-  (Symbol_Pos.scan_string_qq >> token_range String ||
-    Symbol_Pos.scan_string_bq >> token_range AltString ||
+  (Symbol_Pos.scan_string_qq err_prefix >> token_range String ||
+    Symbol_Pos.scan_string_bq err_prefix >> token_range AltString ||
     scan_verbatim >> token_range Verbatim ||
     scan_comment >> token_range Comment ||
     scan_space >> token Space ||

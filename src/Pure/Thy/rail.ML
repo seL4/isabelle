@@ -63,16 +63,18 @@ val scan_space = Scan.many1 (Symbol.is_blank o Symbol_Pos.symbol);
 val scan_keyword =
   Scan.one (member (op =) ["|", "*", "+", "?", "(", ")", "\\", ";", ":", "@"] o Symbol_Pos.symbol);
 
+val err_prefix = "Rail lexical error: ";
+
 val scan_token =
   scan_space >> K [] ||
   Antiquote.scan_antiq >> (fn antiq as (ss, _) => token (Antiq antiq) ss) ||
   scan_keyword >> (token Keyword o single) ||
   Lexicon.scan_id >> token Ident ||
-  Symbol_Pos.scan_string_q >> (token String o #1 o #2);
+  Symbol_Pos.scan_string_q err_prefix >> (token String o #1 o #2);
 
 val scan =
   (Scan.repeat scan_token >> flat) --|
-    Symbol_Pos.!!! (fn () => "Rail lexical error: bad input")
+    Symbol_Pos.!!! (fn () => err_prefix ^ "bad input")
       (Scan.ahead (Scan.one Symbol_Pos.is_eof));
 
 in
