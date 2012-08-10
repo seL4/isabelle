@@ -213,7 +213,7 @@ trait Protocol extends Isabelle_Process
       def encode_edit(name: Document.Node.Name)
           : T[Document.Node.Edit[(Option[Command], Option[Command]), Command.Perspective]] =
         variant(List(
-          { case Document.Node.Clear() => (Nil, Nil) },
+          { case Document.Node.Clear() => (Nil, Nil) },  // FIXME unused !?
           { case Document.Node.Edits(a) => (Nil, list(pair(option(id), option(id)))(a)) },
           { case Document.Node.Deps(header) =>
               val dir = Isabelle_System.posix_path(name.dir)

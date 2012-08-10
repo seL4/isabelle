@@ -33,7 +33,7 @@ val _ =
             let open XML.Decode in
               list (pair string
                 (variant
-                 [fn ([], []) => Document.Clear,
+                 [fn ([], []) => Document.Clear,  (* FIXME unused !? *)
                   fn ([], a) => Document.Edits (list (pair (option int) (option int)) a),
                   fn ([], a) =>
                     let

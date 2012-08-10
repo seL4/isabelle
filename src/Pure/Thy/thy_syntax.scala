@@ -165,7 +165,7 @@ object Thy_Syntax
 
   /** text edits **/
 
-  /* phase 1: edit individual command source */
+  /* edit individual command source */
 
   @tailrec private def edit_text(eds: List[Text.Edit], commands: Linear_Set[Command])
       : Linear_Set[Command] =
@@ -194,7 +194,7 @@ object Thy_Syntax
   }
 
 
-  /* phase 2a: reparse range of command spans */
+  /* reparse range of command spans */
 
   @tailrec private def chop_common(
       cmds: List[Command], spans: List[Command.Span]): (List[Command], List[Command.Span]) =
@@ -230,8 +230,9 @@ object Thy_Syntax
   }
 
 
-  /* phase 2b: recover command spans after edits */
+  /* recover command spans after edits */
 
+  // FIXME somewhat slow
   private def recover_spans(
     syntax: Outer_Syntax,
     name: Document.Node.Name,
@@ -256,7 +257,7 @@ object Thy_Syntax
   }
 
 
-  /* phase 2c: consolidate unfinished spans */
+  /* consolidate unfinished spans */
 
   private def consolidate_spans(
     syntax: Outer_Syntax,
@@ -280,7 +281,7 @@ object Thy_Syntax
   }
 
 
-  /* main phase */
+  /* main */
 
   private def diff_commands(old_cmds: Linear_Set[Command], new_cmds: Linear_Set[Command])
     : List[(Option[Command], Option[Command])] =
@@ -290,6 +291,29 @@ object Thy_Syntax
 
     removed.reverse.map(cmd => (old_cmds.prev(cmd), None)) :::
     inserted.map(cmd => (new_cmds.prev(cmd), Some(cmd)))
+  }
+
+  private def text_edit(syntax: Outer_Syntax,
+    node: Document.Node, edit: Document.Edit_Text): Document.Node =
+  {
+    edit match {
+      case (_, Document.Node.Clear()) => node.clear
+
+      case (name, Document.Node.Edits(text_edits)) =>
+        val commands0 = node.commands
+        val commands1 = edit_text(text_edits, commands0)
+        val commands2 = recover_spans(syntax, name, node.perspective, commands1)
+        node.update_commands(commands2)
+
+      case (_, Document.Node.Deps(_)) => node
+
+      case (name, Document.Node.Perspective(text_perspective)) =>
+        val perspective = command_perspective(node, text_perspective)
+        if (node.perspective same perspective) node
+        else
+          node.update_perspective(perspective)
+            .update_commands(consolidate_spans(syntax, name, perspective, node.commands))
+    }
   }
 
   def text_edits(
@@ -304,38 +328,27 @@ object Thy_Syntax
     var nodes = nodes0
     val doc_edits = new mutable.ListBuffer[Document.Edit_Command]; doc_edits ++= doc_edits0
 
-    (edits ::: reparse.map((_, Document.Node.Edits(Nil)))) foreach {
-      case (name, Document.Node.Clear()) =>
-        doc_edits += (name -> Document.Node.Clear())
-        nodes += (name -> nodes(name).clear)
+    val node_edits =
+      (edits ::: reparse.map((_, Document.Node.Edits(Nil)))).groupBy(_._1)
+        .asInstanceOf[Map[Document.Node.Name, List[Document.Edit_Text]]]  // FIXME ???
 
-      case (name, Document.Node.Edits(text_edits)) =>
+    node_edits foreach {
+      case (name, edits) =>
         val node = nodes(name)
+        val commands = node.commands
 
-        val commands0 = node.commands
-        val commands1 = edit_text(text_edits, commands0)
-        val commands2 = recover_spans(syntax, name, node.perspective, commands1)   // FIXME somewhat slow
-        val commands3 =
-          if (reparse_set.contains(name) && !commands2.isEmpty)
-            reparse_spans(syntax, name, commands2, commands2.head, commands2.last)  // FIXME somewhat slow
-          else commands2
+        val node1 =
+          if (reparse_set(name) && !commands.isEmpty)
+            node.update_commands(reparse_spans(syntax, name, commands, commands.head, commands.last))
+          else node
+        val node2 = (node1 /: edits)(text_edit(syntax, _, _))
 
-        doc_edits += (name -> Document.Node.Edits(diff_commands(commands0, commands3)))
-        nodes += (name -> node.update_commands(commands3))
+        if (!(node.perspective same node2.perspective))
+          doc_edits += (name -> Document.Node.Perspective(node2.perspective))
 
-      case (name, Document.Node.Deps(_)) =>
+        doc_edits += (name -> Document.Node.Edits(diff_commands(commands, node2.commands)))
 
-      case (name, Document.Node.Perspective(text_perspective)) =>
-        val node = nodes(name)
-        val perspective = command_perspective(node, text_perspective)
-        if (!(node.perspective same perspective)) {
-/* FIXME
-          val commands1 = consolidate_spans(syntax, name, perspective, node.commands)
-          doc_edits += (name -> Document.Node.Edits(diff_commands(node.commands, commands1)))
-*/
-          doc_edits += (name -> Document.Node.Perspective(perspective))
-          nodes += (name -> node.update_perspective(perspective))
-        }
+        nodes += (name -> node2)
     }
 
     (doc_edits.toList, Document.Version.make(syntax, nodes))

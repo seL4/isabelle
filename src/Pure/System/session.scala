@@ -453,7 +453,7 @@ class Session(val thy_load: Thy_Load = new Thy_Load())
     header: Document.Node.Header, perspective: Text.Perspective, text: String)
   {
     edit(List(header_edit(name, header),
-      name -> Document.Node.Clear(),    // FIXME diff wrt. existing node
+      name -> Document.Node.Clear(),
       name -> Document.Node.Edits(List(Text.Edit.insert(0, text))),
       name -> Document.Node.Perspective(perspective)))
   }
