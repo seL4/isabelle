@@ -1,5 +1,5 @@
-theory Collecting
-imports Complete_Lattice ACom
+theory Collecting_ITP
+imports Complete_Lattice_ix "../ACom"
 begin
 
 subsection "Collecting Semantics of Commands"
@@ -89,7 +89,7 @@ where
  WHILE b DO lift F c (sub\<^isub>1 ` M)
  {F (post ` M)}"
 
-interpretation Complete_Lattice "{C. strip C = c}" "lift Inter c" for c
+interpretation Complete_Lattice_ix "%c. {c'. strip c' = c}" "lift Inter"
 proof
   case goal1
   have "a:A \<Longrightarrow> lift Inter (strip a) A \<le> a"
@@ -104,26 +104,31 @@ proof
 next
   case goal2
   thus ?case
-  proof(simp, induction b arbitrary: c A)
+  proof(induction b arbitrary: i A)
     case SKIP thus ?case by (force simp:SKIP_le)
   next
     case Assign thus ?case by (force simp:Assign_le)
   next
-    case Seq from Seq.prems show ?case by(force intro!: Seq.IH simp:Seq_le)
+    case Seq from Seq.prems show ?case
+      by (force intro!: Seq.IH simp:Seq_le)
   next
     case If from If.prems show ?case by (force simp: If_le intro!: If.IH)
   next
-    case While from While.prems show ?case by(fastforce simp: While_le intro: While.IH)
+    case While from While.prems show ?case
+      by(fastforce simp: While_le intro: While.IH)
   qed
 next
   case goal3
-  have "strip(lift Inter c A) = c"
-  proof(induction c arbitrary: A)
-    case Seq from Seq.prems show ?case by (fastforce simp: strip_eq_Seq subset_iff intro!: Seq.IH)
+  have "strip(lift Inter i A) = i"
+  proof(induction i arbitrary: A)
+    case Seq from Seq.prems show ?case
+      by (fastforce simp: strip_eq_Seq subset_iff intro!: Seq.IH)
   next
-    case If from If.prems show ?case by (fastforce intro!: If.IH simp: strip_eq_If)
+    case If from If.prems show ?case
+      by (fastforce intro!: If.IH simp: strip_eq_If)
   next
-    case While from While.prems show ?case by(fastforce intro: While.IH simp: strip_eq_While)
+    case While from While.prems show ?case
+      by(fastforce intro: While.IH simp: strip_eq_While)
   qed auto
   thus ?case by auto
 qed
@@ -145,7 +150,7 @@ fun step :: "state set \<Rightarrow> state set acom \<Rightarrow> state set acom
   {S \<union> post c} WHILE b DO (step {s:Inv. bval b s} c) {{s:Inv. \<not> bval b s}}"
 
 definition CS :: "com \<Rightarrow> state set acom" where
-"CS c = lfp c (step UNIV)"
+"CS c = lfp (step UNIV) c"
 
 lemma mono2_step: "c1 \<le> c2 \<Longrightarrow> S1 \<subseteq> S2 \<Longrightarrow> step S1 c1 \<le> step S2 c2"
 proof(induction c1 c2 arbitrary: S1 S2 rule: less_eq_acom.induct)
@@ -164,7 +169,7 @@ by(blast intro: monoI mono2_step)
 lemma strip_step: "strip(step S c) = strip c"
 by (induction c arbitrary: S) auto
 
-lemma lfp_cs_unfold: "lfp c (step S) = step S (lfp c (step S))"
+lemma lfp_cs_unfold: "lfp (step S) c = step S (lfp (step S) c)"
 apply(rule lfp_unfold[OF _  mono_step])
 apply(simp add: strip_step)
 done
