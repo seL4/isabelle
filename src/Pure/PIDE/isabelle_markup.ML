@@ -95,8 +95,7 @@ sig
   val promptN: string val prompt: Markup.T
   val reportN: string val report: Markup.T
   val no_reportN: string val no_report: Markup.T
-  val messageN: string
-  val badN: string val bad: string -> Markup.T
+  val badN: string val bad: Markup.T
   val functionN: string
   val assign_execs: Properties.T
   val removed_versions: Properties.T
@@ -287,11 +286,7 @@ val (promptN, prompt) = markup_elem "prompt";
 val (reportN, report) = markup_elem "report";
 val (no_reportN, no_report) = markup_elem "no_report";
 
-val messageN = "message"
-val badN = "bad"
-
-fun bad "" = (badN, [])
-  | bad msg = (badN, [(messageN, msg)]);
+val (badN, bad) = markup_elem "bad";
 
 
 (* protocol message functions *)

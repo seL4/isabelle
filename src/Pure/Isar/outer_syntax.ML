@@ -284,12 +284,12 @@ fun read_span outer_syntax toks =
         let val name = Token.content_of tok in
           (case commands name of
             NONE => []
-          | SOME cmd => [(Token.position_of tok, command_markup false (name, cmd))])
+          | SOME cmd => [((Token.position_of tok, command_markup false (name, cmd)), "")])
         end
       else [];
 
     val (is_malformed, token_reports) = Thy_Syntax.reports_of_tokens toks;
-    val _ = Position.reports (token_reports @ maps command_reports toks);
+    val _ = Position.reports_text (token_reports @ maps command_reports toks);
   in
     if is_malformed then (Toplevel.malformed pos "Malformed command syntax", true)
     else

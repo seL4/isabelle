@@ -104,28 +104,30 @@ val flatten = implode o flatten_content;
 local
 
 val token_kind_markup =
- fn Keyword   => Isabelle_Markup.ML_keyword
-  | Ident     => Markup.empty
-  | LongIdent => Markup.empty
-  | TypeVar   => Isabelle_Markup.ML_tvar
-  | Word      => Isabelle_Markup.ML_numeral
-  | Int       => Isabelle_Markup.ML_numeral
-  | Real      => Isabelle_Markup.ML_numeral
-  | Char      => Isabelle_Markup.ML_char
-  | String    => Isabelle_Markup.ML_string
-  | Space     => Markup.empty
-  | Comment   => Isabelle_Markup.ML_comment
-  | Error msg => Isabelle_Markup.bad msg
-  | EOF       => Markup.empty;
+ fn Keyword   => (Isabelle_Markup.ML_keyword, "")
+  | Ident     => (Markup.empty, "")
+  | LongIdent => (Markup.empty, "")
+  | TypeVar   => (Isabelle_Markup.ML_tvar, "")
+  | Word      => (Isabelle_Markup.ML_numeral, "")
+  | Int       => (Isabelle_Markup.ML_numeral, "")
+  | Real      => (Isabelle_Markup.ML_numeral, "")
+  | Char      => (Isabelle_Markup.ML_char, "")
+  | String    => (Isabelle_Markup.ML_string, "")
+  | Space     => (Markup.empty, "")
+  | Comment   => (Isabelle_Markup.ML_comment, "")
+  | Error msg => (Isabelle_Markup.bad, msg)
+  | EOF       => (Markup.empty, "");
 
 fun token_markup kind x =
   if kind = Keyword andalso exists_string (not o Symbol.is_ascii_letter) x
-  then Isabelle_Markup.ML_delimiter
+  then (Isabelle_Markup.ML_delimiter, "")
   else token_kind_markup kind;
 
 in
 
-fun report_of_token (Token ((pos, _), (kind, x))) = (pos, token_markup kind x);
+fun report_of_token (Token ((pos, _), (kind, x))) =
+  let val (markup, txt) = token_markup kind x
+  in ((pos, markup), txt) end;
 
 end;
 
@@ -301,7 +303,7 @@ fun read pos txt =
         |> Source.source Symbol_Pos.stopper (Scan.bulk (!!! "bad input" scan_antiq))
           (SOME (false, fn msg => recover msg >> map Antiquote.Text))
         |> Source.exhaust
-        |> tap (Position.reports o Antiquote.reports_of (single o report_of_token))
+        |> tap (Position.reports_text o Antiquote.reports_of (single o report_of_token))
         |> tap Antiquote.check_nesting
         |> tap (List.app (fn Antiquote.Text tok => (check_content_of tok; warn tok) | _ => ())))
       handle ERROR msg =>

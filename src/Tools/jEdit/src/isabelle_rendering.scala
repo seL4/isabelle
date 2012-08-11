@@ -104,8 +104,8 @@ object Isabelle_Rendering
   }
 
 
-  private def tooltip_text(msg: XML.Body): String =
-    Pretty.string_of(msg, margin = Isabelle.Int_Property("tooltip-margin"))
+  private def tooltip_text(msg: XML.Tree): String =
+    Pretty.string_of(List(msg), margin = Isabelle.Int_Property("tooltip-margin"))
 
   def tooltip_message(snapshot: Document.Snapshot, range: Text.Range): Option[String] =
   {
@@ -119,10 +119,9 @@ object Isabelle_Rendering
           if markup == Isabelle_Markup.WRITELN ||
               markup == Isabelle_Markup.WARNING ||
               markup == Isabelle_Markup.ERROR =>
-            msgs + (serial -> tooltip_text(List(msg)))
-          case (msgs, Text.Info(_,
-              XML.Elem(Markup(Isabelle_Markup.BAD, Isabelle_Markup.Message(msg)), _))) =>
-            msgs + (0L -> tooltip_text(YXML.parse_body(msg)))
+            msgs + (serial -> tooltip_text(msg))
+          case (msgs, Text.Info(_, msg @ XML.Elem(Markup(Isabelle_Markup.BAD, _), _))) =>
+            msgs + (Document.new_id() -> tooltip_text(msg))
         }).toList.flatMap(_.info)
     if (msgs.isEmpty) None else Some(cat_lines(msgs.iterator.map(_._2)))
   }

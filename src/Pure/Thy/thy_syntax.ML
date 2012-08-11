@@ -7,7 +7,7 @@ Superficial theory syntax: tokens and spans.
 signature THY_SYNTAX =
 sig
   val parse_tokens: Scan.lexicon * Scan.lexicon -> Position.T -> string -> Token.T list
-  val reports_of_tokens: Token.T list -> bool * Position.report list
+  val reports_of_tokens: Token.T list -> bool * (Position.report * string) list
   val present_token: Token.T -> Output.output
   datatype span_kind = Command of string | Ignored | Malformed
   type span
@@ -38,28 +38,29 @@ fun parse_tokens lexs pos =
 local
 
 val token_kind_markup =
- fn Token.Command       => Isabelle_Markup.command
-  | Token.Keyword       => Isabelle_Markup.keyword
-  | Token.Ident         => Markup.empty
-  | Token.LongIdent     => Markup.empty
-  | Token.SymIdent      => Markup.empty
-  | Token.Var           => Isabelle_Markup.var
-  | Token.TypeIdent     => Isabelle_Markup.tfree
-  | Token.TypeVar       => Isabelle_Markup.tvar
-  | Token.Nat           => Markup.empty
-  | Token.Float         => Markup.empty
-  | Token.String        => Isabelle_Markup.string
-  | Token.AltString     => Isabelle_Markup.altstring
-  | Token.Verbatim      => Isabelle_Markup.verbatim
-  | Token.Space         => Markup.empty
-  | Token.Comment       => Isabelle_Markup.comment
-  | Token.InternalValue => Markup.empty
-  | Token.Error msg     => Isabelle_Markup.bad msg
-  | Token.Sync          => Isabelle_Markup.control
-  | Token.EOF           => Isabelle_Markup.control;
+ fn Token.Command       => (Isabelle_Markup.command, "")
+  | Token.Keyword       => (Isabelle_Markup.keyword, "")
+  | Token.Ident         => (Markup.empty, "")
+  | Token.LongIdent     => (Markup.empty, "")
+  | Token.SymIdent      => (Markup.empty, "")
+  | Token.Var           => (Isabelle_Markup.var, "")
+  | Token.TypeIdent     => (Isabelle_Markup.tfree, "")
+  | Token.TypeVar       => (Isabelle_Markup.tvar, "")
+  | Token.Nat           => (Markup.empty, "")
+  | Token.Float         => (Markup.empty, "")
+  | Token.String        => (Isabelle_Markup.string, "")
+  | Token.AltString     => (Isabelle_Markup.altstring, "")
+  | Token.Verbatim      => (Isabelle_Markup.verbatim, "")
+  | Token.Space         => (Markup.empty, "")
+  | Token.Comment       => (Isabelle_Markup.comment, "")
+  | Token.InternalValue => (Markup.empty, "")
+  | Token.Error msg     => (Isabelle_Markup.bad, msg)
+  | Token.Sync          => (Isabelle_Markup.control, "")
+  | Token.EOF           => (Isabelle_Markup.control, "");
 
 fun token_markup tok =
-  if Token.keyword_with (not o Lexicon.is_ascii_identifier) tok then Isabelle_Markup.operator
+  if Token.keyword_with (not o Lexicon.is_ascii_identifier) tok
+  then (Isabelle_Markup.operator, "")
   else
     let
       val kind = Token.kind_of tok;
@@ -67,7 +68,8 @@ fun token_markup tok =
         if kind = Token.Command
         then Markup.properties [(Markup.nameN, Token.content_of tok)]
         else I;
-    in props (token_kind_markup kind) end;
+      val (markup, txt) = token_kind_markup kind;
+    in (props markup, txt) end;
 
 fun reports_of_token tok =
   let
@@ -75,9 +77,10 @@ fun reports_of_token tok =
       Symbol_Pos.explode (Token.source_position_of tok)
       |> map_filter (fn (sym, pos) =>
           if Symbol.is_malformed sym
-          then SOME (pos, Isabelle_Markup.bad "Malformed symbol") else NONE);
+          then SOME ((pos, Isabelle_Markup.bad), "Malformed symbol") else NONE);
     val is_malformed = Token.is_error tok orelse not (null malformed_symbols);
-    val reports = (Token.position_of tok, token_markup tok) :: malformed_symbols;
+    val (markup, txt) = token_markup tok;
+    val reports = ((Token.position_of tok, markup), txt) :: malformed_symbols;
   in (is_malformed, reports) end;
 
 in
@@ -87,7 +90,7 @@ fun reports_of_tokens toks =
   in (exists fst results, maps snd results) end;
 
 fun present_token tok =
-  Markup.enclose (token_markup tok) (Output.output (Token.unparse tok));
+  Markup.enclose (fst (token_markup tok)) (Output.output (Token.unparse tok));
 
 end;
 
