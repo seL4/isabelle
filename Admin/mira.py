@@ -217,11 +217,6 @@ ML_SYSTEM="polyml-5.4.1"
 '''
 
 @configuration(repos = [Isabelle], deps = [])
-def AFP_images(*args):
-    """Isabelle images needed for the AFP (64 bit)"""
-    return isabelle_build(*(args + ("-b", "-j", "2", "Pure", "HOL", "HOLCF", "HOL-Word")), more_settings=settings64)
-
-@configuration(repos = [Isabelle], deps = [])
 def Isabelle_makeall(*args):
     """Build all sessions"""
     return isabelle_build(*(args + ("-j", "6", "-o", "threads=4", "-a")), more_settings=settings64)
