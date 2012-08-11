@@ -56,7 +56,7 @@ object Symbol
         val c1 = s(0)
         val c2 = s(1)
         !(c1 == '\r' && c2 == '\n' || Character.isSurrogatePair(c1, c2))
-      case _ => !s.endsWith(">")
+      case _ => !s.endsWith(">") || s == "\\<>" || s == "\\<^>"
     }
 
   def is_physical_newline(s: Symbol): Boolean =

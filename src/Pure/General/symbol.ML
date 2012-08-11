@@ -115,7 +115,10 @@ fun is_sync s = s = sync;
 
 fun is_regular s = not_eof s andalso s <> sync;
 
-fun is_malformed s = String.isPrefix "\\<" s andalso not (String.isSuffix ">" s);
+fun is_malformed s =
+  String.isPrefix "\\<" s andalso not (String.isSuffix ">" s)
+  orelse s = "\\<>" orelse s = "\\<^>";
+
 fun malformed_msg s = "Malformed symbolic character: " ^ quote s;
 
 
@@ -436,9 +439,8 @@ val scan_total =
   Scan.one is_utf8 ::: Scan.many is_utf8_trailer >> implode_pseudo_utf8 ||
   scan_encoded_newline ||
   ($$ "\\" ^^ $$ "<" ^^
-    (($$ "^" ^^ (scan_raw || scan_id) || scan_id) ^^ Scan.optional ($$ ">") "")) ||
-  Scan.this_string "\\<^" ||
-  Scan.this_string "\\<" ||
+    (($$ "^" ^^ Scan.optional (scan_raw || scan_id) "" || Scan.optional scan_id "") ^^
+      Scan.optional ($$ ">") "")) ||
   Scan.one not_eof;
 
 in
