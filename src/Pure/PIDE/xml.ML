@@ -224,7 +224,7 @@ fun parse s =
   (case Scan.finite Symbol.stopper (Scan.error (!! (err (fn () => "Malformed element"))
       (blanks |-- parse_document --| blanks))) (raw_explode s) of
     (x, []) => x
-  | (_, ys) => error ("XML parsing error: Unprocessed input\n" ^ Symbol.beginning 100 ys));
+  | (_, ys) => error ("XML parsing error: unprocessed input\n" ^ Symbol.beginning 100 ys));
 
 end;
 
