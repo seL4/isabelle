@@ -157,8 +157,9 @@ fun to_ascii_upper s = if is_ascii_lower s then chr (ord s + ord "A" - ord "a") 
 (* encode_raw *)
 
 fun raw_chr c =
-  ord space <= ord c andalso ord c <= ord "~" andalso c <> "." andalso c <> ">"
-  orelse ord c >= 128;
+  is_char c andalso
+    (ord space <= ord c andalso ord c <= ord "~" andalso c <> "." andalso c <> ">"
+      orelse ord c >= 128);
 
 fun encode_raw "" = ""
   | encode_raw str =
@@ -434,7 +435,8 @@ val scan_total =
   Scan.one is_plain ||
   Scan.one is_utf8 ::: Scan.many is_utf8_trailer >> implode_pseudo_utf8 ||
   scan_encoded_newline ||
-  ($$ "\\" ^^ $$ "<" ^^ (($$ "^" ^^ (scan_raw || scan_id) || scan_id) ^^ $$ ">")) ||
+  ($$ "\\" ^^ $$ "<" ^^
+    (($$ "^" ^^ (scan_raw || scan_id) || scan_id) ^^ Scan.optional ($$ ">") "")) ||
   Scan.this_string "\\<^" ||
   Scan.this_string "\\<" ||
   Scan.one not_eof;

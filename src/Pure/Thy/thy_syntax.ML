@@ -77,7 +77,7 @@ fun reports_of_token tok =
       Symbol_Pos.explode (Token.source_position_of tok)
       |> map_filter (fn (sym, pos) =>
           if Symbol.is_malformed sym
-          then SOME ((pos, Isabelle_Markup.bad), "Malformed symbol") else NONE);
+          then SOME ((pos, Isabelle_Markup.bad), "Malformed symbolic character") else NONE);
     val is_malformed = Token.is_error tok orelse not (null malformed_symbols);
     val (markup, txt) = token_markup tok;
     val reports = ((Token.position_of tok, markup), txt) :: malformed_symbols;

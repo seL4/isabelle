@@ -37,25 +37,30 @@ object Symbol
 
   private val symbol = new Regex("""(?xs)
       \\ < (?:
-      \^? [A-Za-z][A-Za-z0-9_']* |
-      \^raw: [\x20-\x7e\u0100-\uffff && [^.>]]* ) >""")
+      \^raw: [\x20-\x7e\u0100-\uffff && [^.>]]* |
+      \^? ([A-Za-z][A-Za-z0-9_']*)? ) >?""")
 
-  private val malformed_symbol = new Regex("(?xs) (?!" + symbol + ")" +
-    """ [\ud800-\udbff\ufffd] | \\<\^? """)
-
-  val regex_total =
-    new Regex(plain + "|" + physical_newline + "|" + symbol + "|" + malformed_symbol + "| .")
+  val regex_total = new Regex(plain + "|" + physical_newline + "|" + symbol + "| .")
 
 
   /* basic matching */
 
-  def is_plain(c: Char): Boolean = !(c == '\r' || c == '\\' || '\ud800' <= c && c <= '\udfff')
+  def is_plain(c: Char): Boolean = !(c == '\r' || c == '\\' || Character.isHighSurrogate(c))
+
+  def is_malformed(s: Symbol): Boolean =
+    s.length match {
+      case 1 =>
+        val c = s(0)
+        Character.isHighSurrogate(c) || Character.isLowSurrogate(c) || c == '\ufffd'
+      case 2 =>
+        val c1 = s(0)
+        val c2 = s(1)
+        !(c1 == '\r' && c2 == '\n' || Character.isSurrogatePair(c1, c2))
+      case _ => !s.endsWith(">")
+    }
 
   def is_physical_newline(s: Symbol): Boolean =
     s == "\n" || s == "\r" || s == "\r\n"
-
-  def is_malformed(s: Symbol): Boolean =
-    !(s.length == 1 && is_plain(s(0))) && malformed_symbol.pattern.matcher(s).matches
 
   class Matcher(text: CharSequence)
   {
