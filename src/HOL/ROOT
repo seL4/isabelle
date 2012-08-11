@@ -92,7 +92,7 @@ session "HOL-IMP" in IMP = HOL +
     VC
     HoareT
     Collecting1
-    Collecting_list
+    Collecting_Examples
     Abs_Int_Tests
     Abs_Int1_parity
     Abs_Int1_const
