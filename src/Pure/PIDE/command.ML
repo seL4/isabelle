@@ -13,7 +13,8 @@ sig
   val memo_value: 'a -> 'a memo
   val memo_eval: 'a memo -> 'a
   val memo_result: 'a memo -> 'a
-  val run_command: Toplevel.transition -> Toplevel.state -> Toplevel.state * unit lazy
+  val run_command: Toplevel.transition ->
+    Toplevel.state * bool -> (Toplevel.state * bool) * unit lazy
 end;
 
 structure Command: COMMAND =
@@ -88,34 +89,37 @@ fun print_state tr st =
 
 in
 
-fun run_command tr st =
-  let
-    val is_init = Toplevel.is_init tr;
-    val is_proof = Keyword.is_proof (Toplevel.name_of tr);
+fun run_command tr (st, malformed) =
+  if malformed then ((Toplevel.toplevel, malformed), no_print)
+  else
+    let
+      val malformed' = Toplevel.is_malformed tr;
+      val is_init = Toplevel.is_init tr;
+      val is_proof = Keyword.is_proof (Toplevel.name_of tr);
 
-    val _ = Multithreading.interrupted ();
-    val _ = Toplevel.status tr Isabelle_Markup.forked;
-    val start = Timing.start ();
-    val (errs, result) = run (is_init orelse is_proof) (Toplevel.set_print false tr) st;
-    val _ = timing tr (Timing.result start);
-    val _ = Toplevel.status tr Isabelle_Markup.joined;
-    val _ = List.app (Toplevel.error_msg tr) errs;
-  in
-    (case result of
-      NONE =>
-        let
-          val _ = if null errs then Exn.interrupt () else ();
-          val _ = Toplevel.status tr Isabelle_Markup.failed;
-        in (st, no_print) end
-    | SOME st' =>
-        let
-          val _ = Toplevel.status tr Isabelle_Markup.finished;
-          val _ = proof_status tr st';
-          val do_print =
-            not is_init andalso
-              (Toplevel.print_of tr orelse (is_proof andalso Toplevel.is_proof st'));
-        in (st', if do_print then print_state tr st' else no_print) end)
-  end;
+      val _ = Multithreading.interrupted ();
+      val _ = Toplevel.status tr Isabelle_Markup.forked;
+      val start = Timing.start ();
+      val (errs, result) = run (is_init orelse is_proof) (Toplevel.set_print false tr) st;
+      val _ = timing tr (Timing.result start);
+      val _ = Toplevel.status tr Isabelle_Markup.joined;
+      val _ = List.app (Toplevel.error_msg tr) errs;
+    in
+      (case result of
+        NONE =>
+          let
+            val _ = if null errs then Exn.interrupt () else ();
+            val _ = Toplevel.status tr Isabelle_Markup.failed;
+          in ((st, malformed'), no_print) end
+      | SOME st' =>
+          let
+            val _ = Toplevel.status tr Isabelle_Markup.finished;
+            val _ = proof_status tr st';
+            val do_print =
+              not is_init andalso
+                (Toplevel.print_of tr orelse (is_proof andalso Toplevel.is_proof st'));
+          in ((st', malformed'), if do_print then print_state tr st' else no_print) end)
+    end;
 
 end;
 

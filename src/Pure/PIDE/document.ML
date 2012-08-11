@@ -63,8 +63,8 @@ type node_header = string * Thy_Header.header * string list;
 type perspective = (command_id -> bool) * command_id option;
 structure Entries = Linear_Set(type key = command_id val ord = int_ord);
 
-type exec = (Toplevel.state * unit lazy) Command.memo;  (*eval/print process*)
-val no_exec = Command.memo_value (Toplevel.toplevel, Lazy.value ());
+type exec = ((Toplevel.state * bool) * unit lazy) Command.memo;  (*eval/print process*)
+val no_exec = Command.memo_value ((Toplevel.toplevel, false), Lazy.value ());
 
 abstype node = Node of
  {header: node_header,  (*master directory, theory header, errors*)
@@ -303,7 +303,7 @@ fun start_execution state =
   let
     fun finished_theory node =
       (case Exn.capture (Command.memo_result o the) (get_result node) of
-        Exn.Res (st, _) => can (Toplevel.end_theory Position.none) st
+        Exn.Res ((st, _), _) => can (Toplevel.end_theory Position.none) st
       | _ => false);
 
     fun run node command_id exec =
@@ -348,14 +348,14 @@ local
 
 fun stable_finished_theory node =
   is_some (Exn.get_res (Exn.capture (fn () =>
-    fst (Command.memo_result (the (get_result node)))
+    fst (fst (Command.memo_result (the (get_result node))))
     |> Toplevel.end_theory Position.none
     |> Global_Theory.join_proofs) ()));
 
 fun stable_command exec =
   (case Exn.capture Command.memo_result exec of
     Exn.Exn exn => not (Exn.is_interrupt exn)
-  | Exn.Res (st, _) =>
+  | Exn.Res ((st, _), _) =>
       (case try Toplevel.theory_of st of
         NONE => true
       | SOME thy => is_some (Exn.get_res (Exn.capture Global_Theory.join_recent_proofs thy))));
@@ -387,10 +387,10 @@ fun init_theory imports node =
           SOME thy => thy
         | NONE =>
             Toplevel.end_theory (Position.file_only import)
-              (fst
+              (fst (fst
                 (Command.memo_result
                   (the_default no_exec
-                    (get_result (snd (the (AList.lookup (op =) imports import)))))))));
+                    (get_result (snd (the (AList.lookup (op =) imports import))))))))));
   in Thy_Load.begin_theory master_dir header parents end;
 
 fun check_theory full name node =
