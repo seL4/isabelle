@@ -32,23 +32,10 @@ def prepare_isabelle_repository(loc_isabelle, loc_contrib, loc_dependency_heaps,
         raise IOError('Bad file: %s' % loc_contrib)
     subprocess.check_call(['ln', '-s', loc_contrib, '%s/contrib' % loc_isabelle])
 
-    # provide existing dependencies
-    if loc_dependency_heaps:
-        isabelle_path = loc_dependency_heaps + '/$ISABELLE_IDENTIFIER:$ISABELLE_OUTPUT'
-    else:
-        isabelle_path = '$ISABELLE_OUTPUT'
-
     # patch settings
     extra_settings = '''
 ISABELLE_HOME_USER="$ISABELLE_HOME/home_user"
-ISABELLE_OUTPUT="$ISABELLE_HOME/heaps"
-ISABELLE_BROWSER_INFO="$ISABELLE_HOME/browser_info"
-ISABELLE_PATH="%s"
-
-ISABELLE_USEDIR_OPTIONS="%s"
-
 Z3_NON_COMMERCIAL="yes"
-
 source "${ISABELLE_HOME}/Admin/init_components"
 
 %s
