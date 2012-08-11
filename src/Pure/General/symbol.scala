@@ -28,24 +28,15 @@ object Symbol
     s.length > 0 && is_ascii_letter(s(0)) && s.substring(1).forall(is_ascii_letdig)
 
 
-  /* Symbol regexps */
+  /* symbol matching */
 
-  private val plain = new Regex("""(?xs)
-      [^\r\\\ud800-\udfff\ufffd] | [\ud800-\udbff][\udc00-\udfff] """)
+  private val symbol_total = new Regex("""(?xs)
+    [\ud800-\udbff][\udc00-\udfff] | \r\n |
+    \\ < (?: \^raw: [\x20-\x7e\u0100-\uffff && [^.>]]* | \^? ([A-Za-z][A-Za-z0-9_']*)? ) >? |
+    .""")
 
-  private val physical_newline = new Regex("""(?xs) \n | \r\n | \r """)
-
-  private val symbol = new Regex("""(?xs)
-      \\ < (?:
-      \^raw: [\x20-\x7e\u0100-\uffff && [^.>]]* |
-      \^? ([A-Za-z][A-Za-z0-9_']*)? ) >?""")
-
-  val regex_total = new Regex(plain + "|" + physical_newline + "|" + symbol + "| .")
-
-
-  /* basic matching */
-
-  def is_plain(c: Char): Boolean = !(c == '\r' || c == '\\' || Character.isHighSurrogate(c))
+  private def is_plain(c: Char): Boolean =
+    !(c == '\r' || c == '\\' || Character.isHighSurrogate(c))
 
   def is_malformed(s: Symbol): Boolean =
     s.length match {
@@ -64,7 +55,7 @@ object Symbol
 
   class Matcher(text: CharSequence)
   {
-    private val matcher = regex_total.pattern.matcher(text)
+    private val matcher = symbol_total.pattern.matcher(text)
     def apply(start: Int, end: Int): Int =
     {
       require(0 <= start && start < end && end <= text.length)
@@ -178,7 +169,7 @@ object Symbol
     def recode(text: String): String =
     {
       val len = text.length
-      val matcher = regex_total.pattern.matcher(text)
+      val matcher = symbol_total.pattern.matcher(text)
       val result = new StringBuilder(len)
       var i = 0
       while (i < len) {
