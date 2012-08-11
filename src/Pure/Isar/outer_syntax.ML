@@ -273,11 +273,11 @@ fun read_span outer_syntax toks =
   let
     val commands = lookup_commands outer_syntax;
 
-    val range_pos = Position.set_range (Token.range toks);
+    val proper_range = Position.set_range (Command.proper_range toks);
     val pos =
       (case find_first Token.is_command toks of
         SOME tok => Token.position_of tok
-      | NONE => range_pos);
+      | NONE => proper_range);
 
     fun command_reports tok =
       if Token.is_command tok then
@@ -298,9 +298,9 @@ fun read_span outer_syntax toks =
           if Keyword.is_control (Toplevel.name_of tr) then
             (Toplevel.malformed pos "Illegal control command", true)
           else (tr, true)
-      | [] => (Toplevel.ignored range_pos, false)
-      | _ => (Toplevel.malformed range_pos "Exactly one command expected", true))
-      handle ERROR msg => (Toplevel.malformed range_pos msg, true)
+      | [] => (Toplevel.ignored (Position.set_range (Command.range toks)), false)
+      | _ => (Toplevel.malformed proper_range "Exactly one command expected", true))
+      handle ERROR msg => (Toplevel.malformed proper_range msg, true)
   end;
 
 fun read_element outer_syntax init {head, proof, proper_proof} =

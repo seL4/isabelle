@@ -18,7 +18,6 @@ sig
   val position_of: T -> Position.T
   val end_position_of: T -> Position.T
   val pos_of: T -> string
-  val range: T list -> Position.range
   val eof: T
   val is_eof: T -> bool
   val not_eof: T -> bool
@@ -35,6 +34,7 @@ sig
   val is_begin_ignore: T -> bool
   val is_end_ignore: T -> bool
   val is_error: T -> bool
+  val is_space: T -> bool
   val is_blank: T -> bool
   val is_newline: T -> bool
   val source_of: T -> string
@@ -125,13 +125,6 @@ fun end_position_of (Token ((_, (_, pos)), _, _)) = pos;
 
 val pos_of = Position.str_of o position_of;
 
-fun range [] = (Position.none, Position.none)
-  | range toks =
-      let
-        val start_pos = position_of (hd toks);
-        val end_pos = end_position_of (List.last toks);
-      in (start_pos, end_pos) end;
-
 
 (* control tokens *)
 
@@ -184,6 +177,9 @@ fun is_error (Token (_, (Error _, _), _)) = true
 
 
 (* blanks and newlines -- space tokens obey lines *)
+
+fun is_space (Token (_, (Space, _), _)) = true
+  | is_space _ = false;
 
 fun is_blank (Token (_, (Space, x), _)) = not (String.isSuffix "\n" x)
   | is_blank _ = false;
@@ -315,11 +311,11 @@ val recover_verbatim =
 
 (* scan space *)
 
-fun is_space s = Symbol.is_blank s andalso s <> "\n";
+fun space_symbol (s, _) = Symbol.is_blank s andalso s <> "\n";
 
 val scan_space =
-  Scan.many1 (is_space o Symbol_Pos.symbol) @@@ Scan.optional ($$$ "\n") [] ||
-  Scan.many (is_space o Symbol_Pos.symbol) @@@ $$$ "\n";
+  Scan.many1 space_symbol @@@ Scan.optional ($$$ "\n") [] ||
+  Scan.many space_symbol @@@ $$$ "\n";
 
 
 (* scan comment *)

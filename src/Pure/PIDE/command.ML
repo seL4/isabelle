@@ -6,6 +6,8 @@ Prover command execution.
 
 signature COMMAND =
 sig
+  val range: Token.T list -> Position.range
+  val proper_range: Token.T list -> Position.range
   type 'a memo
   val memo: (unit -> 'a) -> 'a memo
   val memo_value: 'a -> 'a memo
@@ -16,6 +18,18 @@ end;
 
 structure Command: COMMAND =
 struct
+
+(* span range *)
+
+fun range [] = (Position.none, Position.none)
+  | range toks =
+      let
+        val start_pos = Token.position_of (hd toks);
+        val end_pos = Token.end_position_of (List.last toks);
+      in (start_pos, end_pos) end;
+
+val proper_range = range o #1 o take_suffix Token.is_space;
+
 
 (* memo results *)
 
