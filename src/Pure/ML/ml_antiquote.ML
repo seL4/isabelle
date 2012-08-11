@@ -20,10 +20,12 @@ struct
 
 (* ML names *)
 
+val init_context = ML_Syntax.reserved |> Name.declare "ML_context";
+
 structure Names = Proof_Data
 (
   type T = Name.context;
-  fun init _ = ML_Syntax.reserved;
+  fun init _ = init_context;
 );
 
 fun variant a ctxt =
@@ -73,7 +75,7 @@ val _ = Context.>> (Context.map_theory
       "Context.get_theory (ML_Context.the_global_context ()) " ^ ML_Syntax.print_string name)
     || Scan.succeed "ML_Context.the_global_context ()") #>
 
-  value (Binding.name "context") (Scan.succeed "ML_Context.the_local_context ()") #>
+  value (Binding.name "context") (Scan.succeed "ML_context") #>
 
   inline (Binding.name "typ") (Args.typ >> (ML_Syntax.atomic o ML_Syntax.print_typ)) #>
   inline (Binding.name "term") (Args.term >> (ML_Syntax.atomic o ML_Syntax.print_term)) #>

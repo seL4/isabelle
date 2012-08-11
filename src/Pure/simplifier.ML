@@ -154,7 +154,7 @@ fun simpset_of ctxt = Raw_Simplifier.context ctxt (get_ss (Context.Proof ctxt));
 
 val _ = Context.>> (Context.map_theory
   (ML_Antiquote.value (Binding.name "simpset")
-    (Scan.succeed "Simplifier.simpset_of (ML_Context.the_local_context ())")));
+    (Scan.succeed "Simplifier.simpset_of ML_context")));
 
 
 (* global simpset *)
@@ -180,7 +180,7 @@ val _ =
    (ML_Antiquote.value (Binding.name "simproc")
       (Args.context -- Scan.lift (Parse.position Args.name)
         >> (fn (ctxt, name) =>
-          "Simplifier.the_simproc (ML_Context.the_local_context ()) " ^
+          "Simplifier.the_simproc ML_context " ^
             ML_Syntax.print_string (check_simproc ctxt name)))));
 
 

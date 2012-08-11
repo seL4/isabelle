@@ -46,7 +46,7 @@ val _ =
           val (a, background') = background
             |> ML_Antiquote.variant "attributes" ||> put_attributes (i, srcs);
           val ml =
-            ("val " ^ a ^ " = ML_Thms.the_attributes (ML_Context.the_local_context ()) " ^
+            ("val " ^ a ^ " = ML_Thms.the_attributes ML_context " ^
               string_of_int i ^ ";\n", "Isabelle." ^ a);
         in (K ml, background') end))));
 
@@ -54,8 +54,7 @@ val _ =
 (* fact references *)
 
 fun thm_bind kind a i =
-  "val " ^ a ^ " = ML_Thms.the_" ^ kind ^
-    " (ML_Context.the_local_context ()) " ^ string_of_int i ^ ";\n";
+  "val " ^ a ^ " = ML_Thms.the_" ^ kind ^ " ML_context " ^ string_of_int i ^ ";\n";
 
 fun thm_antiq kind scan = ML_Context.add_antiq (Binding.name kind)
   (fn _ => scan >> (fn ths => fn background =>

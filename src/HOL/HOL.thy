@@ -847,7 +847,7 @@ open Basic_Classical;
 
 setup {*
   ML_Antiquote.value @{binding claset}
-    (Scan.succeed "Classical.claset_of (ML_Context.the_local_context ())")
+    (Scan.succeed "Classical.claset_of ML_context")
 *}
 
 setup Classical.setup

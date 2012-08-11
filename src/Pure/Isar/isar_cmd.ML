@@ -38,8 +38,8 @@ sig
   val done_proof: Toplevel.transition -> Toplevel.transition
   val skip_proof: Toplevel.transition -> Toplevel.transition
   val ml_diag: bool -> Symbol_Pos.text * Position.T -> Toplevel.transition -> Toplevel.transition
-  val diag_state: unit -> Toplevel.state
-  val diag_goal: unit -> {context: Proof.context, facts: thm list, goal: thm}
+  val diag_state: Proof.context -> Toplevel.state
+  val diag_goal: Proof.context -> {context: Proof.context, facts: thm list, goal: thm}
   val display_drafts: Path.T list -> Toplevel.transition -> Toplevel.transition
   val print_drafts: Path.T list -> Toplevel.transition -> Toplevel.transition
   val print_context: Toplevel.transition -> Toplevel.transition
@@ -297,18 +297,18 @@ fun ml_diag verbose (txt, pos) = Toplevel.keep (fn state =>
     |> Option.map (Context.proof_of #> Diag_State.put state)
   in ML_Context.eval_text_in opt_ctxt verbose pos txt end);
 
-fun diag_state () = Diag_State.get (ML_Context.the_local_context ());
+val diag_state = Diag_State.get;
 
-fun diag_goal () =
-  Proof.goal (Toplevel.proof_of (diag_state ()))
+fun diag_goal ctxt =
+  Proof.goal (Toplevel.proof_of (diag_state ctxt))
     handle Toplevel.UNDEF => error "No goal present";
 
 val _ =
   Context.>> (Context.map_theory
    (ML_Antiquote.value (Binding.qualify true "Isar" (Binding.name "state"))
-      (Scan.succeed "Isar_Cmd.diag_state ()") #>
+      (Scan.succeed "Isar_Cmd.diag_state ML_context") #>
     ML_Antiquote.value (Binding.qualify true "Isar" (Binding.name "goal"))
-      (Scan.succeed "Isar_Cmd.diag_goal ()")));
+      (Scan.succeed "Isar_Cmd.diag_goal ML_context")));
 
 
 (* present draft files *)

@@ -130,7 +130,11 @@ val antiq =
   Parse.!!! (Parse.position Parse.xname -- Args.parse --| Scan.ahead Parse.eof)
   >> (fn ((x, pos), y) => Args.src ((x, y), pos));
 
-val begin_env = ML_Lex.tokenize "structure Isabelle =\nstruct\n";
+val begin_env0 = ML_Lex.tokenize "structure Isabelle =\nstruct\n";
+val begin_env =
+  ML_Lex.tokenize
+    "structure Isabelle =\nstruct\nval ML_context = ML_Context.the_local_context ()\n";
+
 val end_env = ML_Lex.tokenize "end;";
 val reset_env = ML_Lex.tokenize "structure Isabelle = struct end";
 
@@ -141,7 +145,7 @@ fun eval_antiquotes (ants, pos) opt_context =
     val opt_ctxt = Option.map (Context.Proof o Context.proof_of) opt_context;
     val ((ml_env, ml_body), opt_ctxt') =
       if forall Antiquote.is_text ants
-      then (([], map (fn Antiquote.Text tok => tok) ants), opt_ctxt)
+      then ((begin_env0, map (fn Antiquote.Text tok => tok) ants), opt_ctxt)
       else
         let
           val ctxt =
@@ -167,9 +171,9 @@ fun eval_antiquotes (ants, pos) opt_context =
                 (no_decl, (Stack.pop scope, background));
 
           val (decls, (_, ctxt')) = fold_map expand ants (Stack.init ctxt, ctxt);
-          val ml = decls |> map (fn decl => decl ctxt') |> split_list |> pairself flat;
-        in (ml, SOME (Context.Proof ctxt')) end;
-  in ((begin_env @ ml_env @ end_env, ml_body), opt_ctxt') end;
+          val (ml_env, ml_body) = decls |> map (fn decl => decl ctxt') |> split_list |> pairself flat;
+        in ((begin_env @ ml_env, ml_body), SOME (Context.Proof ctxt')) end;
+  in ((ml_env @ end_env, ml_body), opt_ctxt') end;
 
 val trace_raw = Config.declare "ML_trace" (fn _ => Config.Bool false);
 val trace = Config.bool trace_raw;
