@@ -16,6 +16,7 @@ sig
   val reported_text: Proof.context -> Position.T -> Markup.T -> string -> string
   val report_text: Proof.context -> Position.T -> Markup.T -> string -> unit
   val report: Proof.context -> Position.T -> Markup.T -> unit
+  val reports_text: Proof.context -> Position.report_text list -> unit
   val reports: Proof.context -> Position.report list -> unit
 end;
 
@@ -53,6 +54,7 @@ fun reported_text ctxt pos markup txt =
 fun report_text ctxt pos markup txt = Output.report (reported_text ctxt pos markup txt);
 fun report ctxt pos markup = report_text ctxt pos markup "";
 
+fun reports_text ctxt reps = if is_visible ctxt then Position.reports_text reps else ();
 fun reports ctxt reps = if is_visible ctxt then Position.reports reps else ();
 
 end;

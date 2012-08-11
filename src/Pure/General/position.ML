@@ -37,6 +37,8 @@ sig
   val report_text: T -> Markup.T -> string -> unit
   val report: T -> Markup.T -> unit
   type report = T * Markup.T
+  type report_text = report * string
+  val reports_text: report_text list -> unit
   val reports: report list -> unit
   val store_reports: report list Unsynchronized.ref -> T list -> ('a -> Markup.T list) -> 'a -> unit
   val str_of: T -> string
@@ -164,10 +166,13 @@ fun report_text pos markup txt = Output.report (reported_text pos markup txt);
 fun report pos markup = report_text pos markup "";
 
 type report = T * Markup.T;
+type report_text = report * string;
 
-val reports =
-  map (fn (pos, m) => if is_reported pos then Markup.markup_only (markup pos m) else "")
+val reports_text =
+  map (fn ((pos, m), txt) => if is_reported pos then Markup.markup (markup pos m) txt else "")
   #> implode #> Output.report;
+
+val reports = map (rpair "") #> reports_text;
 
 fun store_reports _ [] _ _ = ()
   | store_reports (r: report list Unsynchronized.ref) ps markup x =
