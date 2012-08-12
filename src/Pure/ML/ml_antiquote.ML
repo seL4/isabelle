@@ -72,10 +72,10 @@ val _ = Context.>> (Context.map_theory
 
   value (Binding.name "theory")
     (Scan.lift Args.name >> (fn name =>
-      "Context.get_theory (ML_Context.the_global_context ()) " ^ ML_Syntax.print_string name)
-    || Scan.succeed "ML_Context.the_global_context ()") #>
+      "Context.get_theory (Proof_Context.theory_of ML_context) " ^ ML_Syntax.print_string name)
+    || Scan.succeed "Proof_Context.theory_of ML_context") #>
 
-  value (Binding.name "context") (Scan.succeed "ML_context") #>
+  inline (Binding.name "context") (Scan.succeed "Isabelle.ML_context") #>
 
   inline (Binding.name "typ") (Args.typ >> (ML_Syntax.atomic o ML_Syntax.print_typ)) #>
   inline (Binding.name "term") (Args.term >> (ML_Syntax.atomic o ML_Syntax.print_term)) #>
@@ -94,18 +94,21 @@ val _ = Context.>> (Context.map_theory
       >> (fn args => #2 (Proof_Context.note_thmss "" args ctxt)))) #>
 
   value (Binding.name "ctyp") (Args.typ >> (fn T =>
-    "Thm.ctyp_of (ML_Context.the_global_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_typ T))) #>
+    "Thm.ctyp_of (Proof_Context.theory_of ML_context) " ^
+      ML_Syntax.atomic (ML_Syntax.print_typ T))) #>
 
   value (Binding.name "cterm") (Args.term >> (fn t =>
-    "Thm.cterm_of (ML_Context.the_global_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_term t))) #>
+    "Thm.cterm_of (Proof_Context.theory_of ML_context) " ^
+     ML_Syntax.atomic (ML_Syntax.print_term t))) #>
 
   value (Binding.name "cprop") (Args.prop >> (fn t =>
-    "Thm.cterm_of (ML_Context.the_global_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_term t))) #>
+    "Thm.cterm_of (Proof_Context.theory_of ML_context) " ^
+     ML_Syntax.atomic (ML_Syntax.print_term t))) #>
 
   value (Binding.name "cpat")
     (Args.context --
       Scan.lift Args.name_source >> uncurry Proof_Context.read_term_pattern >> (fn t =>
-        "Thm.cterm_of (ML_Context.the_global_context ()) " ^
+        "Thm.cterm_of (Proof_Context.theory_of ML_context) " ^
           ML_Syntax.atomic (ML_Syntax.print_term t)))));
 
 

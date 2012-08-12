@@ -133,7 +133,7 @@ val antiq =
 val begin_env0 = ML_Lex.tokenize "structure Isabelle =\nstruct\n";
 val begin_env =
   ML_Lex.tokenize
-    "structure Isabelle =\nstruct\nval ML_context = ML_Context.the_local_context ()\n";
+    "structure Isabelle =\nstruct\nval ML_context = ML_Context.the_local_context ();\n";
 
 val end_env = ML_Lex.tokenize "end;";
 val reset_env = ML_Lex.tokenize "structure Isabelle = struct end";
