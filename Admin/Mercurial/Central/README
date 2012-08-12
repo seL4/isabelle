@@ -1,0 +1,27 @@
+Notes on central Isabelle repository
+====================================
+
+* direct file-system access (locally or remotely via ssh)
+
+* permissions via dedicated Unix group "isabelle"
+
+* See http://mercurial.selenic.com/wiki/RequiresFile on physical format, with
+  conservative requirements for Mercurial 1.3 as lowest common denominator:
+
+    revlogv1
+    store
+    fncache
+
+* See http://mercurial.selenic.com/wiki/MultipleCommitters for old-fashioned
+  CVS-like multiple committers configuration, "The filesystem method":
+
+    hg --config format.dotencode=0 init isabelle-clone
+    cd isabelle-clone
+    chgrp -R isabelle .hg
+    chmod g+s .hg .hg/store
+    mkdir .hg/strip-backup   ## Not to be used under normal circumstances!
+    chmod -R g+w .hg
+
+  Now isabelle-clone is ready for push of repository data (without making
+  a working directory).
+

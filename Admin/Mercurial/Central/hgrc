@@ -1,0 +1,7 @@
+[web]
+style = isabelle
+contact = isabelle
+description = The Isabelle repository
+allow_archive = gz
+maxfiles = 50
+encoding = UTF-8
