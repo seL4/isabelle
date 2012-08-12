@@ -21,10 +21,8 @@ from mira import repositories
 
 # build and evaluation tools
 
-default_usedir_options = "$ISABELLE_USEDIR_OPTIONS -d pdf -g true -i true -t true"
-
 def prepare_isabelle_repository(loc_isabelle, loc_contrib, loc_dependency_heaps,
-  usedir_options=default_usedir_options, more_settings=''):
+  usedir_options='', more_settings=''):
 
     # prepare components
     loc_contrib = path.expanduser(loc_contrib)
@@ -38,8 +36,7 @@ ISABELLE_HOME_USER="$ISABELLE_HOME/home_user"
 Z3_NON_COMMERCIAL="yes"
 source "${ISABELLE_HOME}/Admin/init_components"
 
-%s
-''' % (isabelle_path, usedir_options, more_settings)
+''' + more_settings
 
     writer = open(path.join(loc_isabelle, 'etc', 'settings'), 'a')
     writer.write(extra_settings)
