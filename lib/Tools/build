@@ -125,8 +125,9 @@ if [ "$NO_BUILD" = false -a "$VERBOSE" = true ]; then
 
   show_settings ""
   echo
-  . "$ISABELLE_HOME/lib/scripts/timestart.bash"
 fi
+
+. "$ISABELLE_HOME/lib/scripts/timestart.bash"
 
 "$ISABELLE_TOOL" java isabelle.Build \
   "$ALL_SESSIONS" "$BUILD_HEAP" "$CLEAN_BUILD" "$MAX_JOBS" \
@@ -138,8 +139,9 @@ RC="$?"
 if [ "$NO_BUILD" = false -a "$VERBOSE" = true ]; then
   echo -n "Finished at "; date
 
-  . "$ISABELLE_HOME/lib/scripts/timestop.bash"
-  echo "$TIMES_REPORT"
 fi
+
+. "$ISABELLE_HOME/lib/scripts/timestop.bash"
+echo "$TIMES_REPORT"
 
 exit "$RC"
