@@ -7,8 +7,7 @@ Attribute source and theorem values within ML.
 signature ML_THMS =
 sig
   val the_attributes: Proof.context -> int -> Args.src list
-  val the_thms: Proof.context -> int -> thm list
-  val the_thm: Proof.context -> int -> thm
+  val the_thmss: Proof.context -> thm list list
 end;
 
 structure ML_Thms: ML_THMS =
@@ -16,19 +15,21 @@ struct
 
 (* auxiliary data *)
 
+type thms = (string * bool) * thm list;  (*name, single, value*)
+
 structure Data = Proof_Data
 (
-  type T = Args.src list Inttab.table * thm list Inttab.table;
-  fun init _ = (Inttab.empty, Inttab.empty);
+  type T = Args.src list Inttab.table * thms list;
+  fun init _ = (Inttab.empty, []);
 );
 
 val put_attributes = Data.map o apfst o Inttab.update;
 fun the_attributes ctxt name = the (Inttab.lookup (fst (Data.get ctxt)) name);
 
-val put_thms = Data.map o apsnd o Inttab.update;
+val get_thmss = snd o Data.get;
+val the_thmss = map snd o get_thmss;
+val cons_thms = Data.map o apsnd o cons;
 
-fun the_thms ctxt name = the (Inttab.lookup (snd (Data.get ctxt)) name);
-fun the_thm ctxt name = the_single (the_thms ctxt name);
 
 
 (* attribute source *)
@@ -53,22 +54,26 @@ val _ =
 
 (* fact references *)
 
-fun thm_bind kind a i =
-  "val " ^ a ^ " = ML_Thms.the_" ^ kind ^ " ML_context " ^ string_of_int i ^ ";\n";
+fun thm_binding kind is_single thms background =
+  let
+    val initial = null (get_thmss background);
+    val (name, background') = ML_Antiquote.variant kind background;
+    val background'' = cons_thms ((name, is_single), thms) background';
 
-fun thm_antiq kind scan = ML_Context.add_antiq (Binding.name kind)
-  (fn _ => scan >> (fn ths => fn background =>
-    let
-      val i = serial ();
-      val (a, background') = background
-        |> ML_Antiquote.variant kind ||> put_thms (i, ths);
-      val ml = (thm_bind kind a i, "Isabelle." ^ a);
-    in (K ml, background') end));
+    val ml_body = "Isabelle." ^ name;
+    fun decl ctxt =
+      if initial then
+        let
+          val binds = get_thmss ctxt |> map (fn ((a, b), _) => (b ? enclose "[" "]") a);
+          val ml_env = "val [" ^ commas binds ^ "] = ML_Thms.the_thmss ML_context;\n";
+        in (ml_env, ml_body) end
+      else ("", ml_body);
+  in (decl, background'') end;
 
 val _ =
   Context.>> (Context.map_theory
-   (thm_antiq "thm" (Attrib.thm >> single) #>
-    thm_antiq "thms" Attrib.thms));
+   (ML_Context.add_antiq (Binding.name "thm") (K (Attrib.thm >> (thm_binding "thm" true o single))) #>
+    ML_Context.add_antiq (Binding.name "thms") (K (Attrib.thms >> thm_binding "thms" false))));
 
 
 (* ad-hoc goals *)
@@ -86,18 +91,18 @@ val _ =
       (fn ((ctxt, is_open), (raw_propss, methods)) => fn background =>
         let
           val propss = burrow (map (rpair []) o Syntax.read_props ctxt) raw_propss;
-          val i = serial ();
           val prep_result = Goal.norm_result #> not is_open ? Thm.close_derivation;
           fun after_qed res goal_ctxt =
-            put_thms (i, map prep_result (Proof_Context.export goal_ctxt ctxt (flat res))) goal_ctxt;
+            Proof_Context.put_thms false (Auto_Bind.thisN,
+              SOME (map prep_result (Proof_Context.export goal_ctxt ctxt (flat res)))) goal_ctxt;
+
           val ctxt' = ctxt
             |> Proof.theorem NONE after_qed propss
             |> Proof.global_terminal_proof methods;
-          val (a, background') = background
-            |> ML_Antiquote.variant "lemma" ||> put_thms (i, the_thms ctxt' i);
-          val ml =
-            (thm_bind (if length (flat propss) = 1 then "thm" else "thms") a i, "Isabelle." ^ a);
-        in (K ml, background') end))));
+          val thms =
+            Proof_Context.get_fact ctxt'
+              (Facts.named (Proof_Context.full_name ctxt' (Binding.name Auto_Bind.thisN)));
+        in thm_binding "lemma" (length (flat propss) = 1) thms background end))));
 
 end;
 
