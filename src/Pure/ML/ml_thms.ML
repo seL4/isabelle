@@ -88,7 +88,7 @@ val _ =
     (fn _ => Args.context -- Args.mode "open" --
         Scan.lift (Parse.and_list1 (Scan.repeat1 goal) --
           (by |-- Method.parse -- Scan.option Method.parse)) >>
-      (fn ((ctxt, is_open), (raw_propss, methods)) => fn background =>
+      (fn ((ctxt, is_open), (raw_propss, methods)) =>
         let
           val propss = burrow (map (rpair []) o Syntax.read_props ctxt) raw_propss;
           val prep_result = Goal.norm_result #> not is_open ? Thm.close_derivation;
@@ -102,7 +102,7 @@ val _ =
           val thms =
             Proof_Context.get_fact ctxt'
               (Facts.named (Proof_Context.full_name ctxt' (Binding.name Auto_Bind.thisN)));
-        in thm_binding "lemma" (length (flat propss) = 1) thms background end))));
+        in thm_binding "lemma" (length (flat propss) = 1) thms end))));
 
 end;
 
