@@ -1,0 +1,15 @@
+diff -ru jEdit/org/gjt/sp/jedit/OperatingSystem.java jEdit-patched/org/gjt/sp/jedit/OperatingSystem.java
+--- jEdit/org/gjt/sp/jedit/OperatingSystem.java	2012-06-15 22:20:24.000000000 +0200
++++ jEdit-patched/org/gjt/sp/jedit/OperatingSystem.java	2012-08-13 19:13:06.000000000 +0200
+@@ -317,6 +317,10 @@
+ 			{
+ 				os = OS2;
+ 			}
++			else if(osName.contains("Mac OS X"))
++			{
++				os = MAC_OS_X;
++			}
+ 			else if(osName.contains("VMS"))
+ 			{
+ 				os = VMS;
+
