@@ -1,0 +1,28 @@
+diff -ru jEdit/org/gjt/sp/jedit/OperatingSystem.java jEdit-patched/org/gjt/sp/jedit/OperatingSystem.java
+--- jEdit/org/gjt/sp/jedit/OperatingSystem.java	2012-06-15 22:20:24.000000000 +0200
++++ jEdit-patched/org/gjt/sp/jedit/OperatingSystem.java	2012-08-13 19:13:06.000000000 +0200
+@@ -317,6 +317,10 @@
+ 			{
+ 				os = OS2;
+ 			}
++			else if(osName.contains("Mac OS X"))
++			{
++				os = MAC_OS_X;
++			}
+ 			else if(osName.contains("VMS"))
+ 			{
+ 				os = VMS;
+diff -ru jEdit/org/gjt/sp/jedit/Debug.java jEdit-patched/org/gjt/sp/jedit/Debug.java
+--- jEdit/org/gjt/sp/jedit/Debug.java	2012-06-15 22:20:24.000000000 +0200
++++ jEdit-patched/org/gjt/sp/jedit/Debug.java	2012-08-13 19:44:43.000000000 +0200
+@@ -109,7 +109,8 @@
+ 	 * used to handle a modifier key press in conjunction with an alphabet
+ 	 * key. <b>On by default on MacOS.</b>
+ 	 */
+-	public static boolean ALTERNATIVE_DISPATCHER = OperatingSystem.isMacOS();
++	public static boolean ALTERNATIVE_DISPATCHER = OperatingSystem.isMacOS() &&
++		System.getProperty("java.version").startsWith("1.6.");
+ 
+ 	/**
+ 	 * If true, A+ shortcuts are disabled. If you use this, you should also
+

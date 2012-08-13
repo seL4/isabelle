@@ -1,0 +1,12 @@
+diff -ru jEdit/org/gjt/sp/jedit/gui/statusbar/MemoryStatusWidgetFactory.java jEdit-patched/org/gjt/sp/jedit/gui/statusbar/MemoryStatusWidgetFactory.java
+--- jEdit/org/gjt/sp/jedit/gui/statusbar/MemoryStatusWidgetFactory.java	2012-06-15 22:20:10.000000000 +0200
++++ jEdit-patched/org/gjt/sp/jedit/gui/statusbar/MemoryStatusWidgetFactory.java	2012-08-13 19:11:51.000000000 +0200
+@@ -222,7 +222,7 @@
+ 		} //}}}
+ 
+ 		//{{{ Private members
+-		private static final String memoryTestStr = "999/999Mb";
++		private static final String memoryTestStr = "9999/9999Mb";
+ 
+ 		private final LineMetrics lm;
+ 		private final Color progressForeground;
