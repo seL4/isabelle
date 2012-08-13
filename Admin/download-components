@@ -17,7 +17,7 @@ function fail {
   exit 1
 }
 
-ISABELLE_HOME_USER="$(isabelle getenv -b ISABELLE_HOME_USER)"
+ISABELLE_HOME_USER="$("${HERE}/../bin/isabelle" getenv -b ISABELLE_HOME_USER)"
 : ${TMP:='/tmp'}
 REMOTE='http://isabelle.in.tum.de/components'
 LOCAL="${ISABELLE_HOME_USER}/contrib"
