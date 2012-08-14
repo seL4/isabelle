@@ -906,7 +906,8 @@ val z3_failures =
    (103, MalformedInput),
    (110, MalformedInput)]
 val unix_failures =
-  [(139, Crashed)]
+  [(138, Crashed),
+   (139, Crashed)]
 val smt_failures = remote_smt_failures @ z3_failures @ unix_failures
 
 fun failure_from_smt_failure (SMT_Failure.Counterexample {is_real_cex, ...}) =
