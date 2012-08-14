@@ -3,6 +3,8 @@ syntax: glob
 *~
 *.class
 *.jar
+*.orig
+*.rej
 .DS_Store
 
 
