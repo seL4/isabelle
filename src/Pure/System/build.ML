@@ -65,12 +65,14 @@ fun build args_file = Command_Line.tool (fn () =>
               (pair string ((list (pair Options.decode (list string)))))))))
           end;
 
+      val document_variants =
+        map Present.read_variant (space_explode ":" (Options.string options "document_variants"));
       val _ =
         Session.init do_output false
           (Options.bool options "browser_info") browser_info
           (Options.string options "document")
           (Options.bool options "document_graph")
-          (space_explode ":" (Options.string options "document_variants"))
+          document_variants
           parent_name name
           (Options.string options "document_dump",
             Present.dump_mode (Options.string options "document_dump_mode"))

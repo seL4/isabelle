@@ -19,7 +19,8 @@ sig
    path: string, parents: string list} list -> unit
   datatype dump_mode = Dump_all | Dump_tex | Dump_tex_sty
   val dump_mode: string -> dump_mode
-  val init: bool -> bool -> string -> string -> bool -> string list -> string list ->
+  val read_variant: string -> string * string
+  val init: bool -> bool -> string -> string -> bool -> (string * string) list -> string list ->
     string -> string * dump_mode -> Url.T option * bool -> bool ->
     theory list -> unit  (*not thread-safe!*)
   val finish: unit -> unit  (*not thread-safe!*)
@@ -274,10 +275,6 @@ fun read_variant str =
   | [name, tags] => (name, tags)
   | _ => error ("Malformed document variant specification: " ^ quote str));
 
-fun read_variants strs =
-  rev (distinct (eq_fst (op =)) (rev ((documentN, "") :: map read_variant strs)))
-  |> filter_out (fn (_, s) => s = "-");
-
 
 (* init session *)
 
@@ -299,7 +296,7 @@ fun init build info info_path doc doc_graph doc_variants path name
         else if not (can File.check_dir document_path) then
           (if verbose then Output.physical_stderr "Warning: missing document directory\n"
            else (); [])
-        else read_variants doc_variants;
+        else doc_variants;
 
       val parent_index_path = Path.append Path.parent index_path;
       val index_up_lnk =

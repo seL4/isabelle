@@ -10,7 +10,7 @@ sig
   val name: unit -> string
   val welcome: unit -> string
   val finish: unit -> unit
-  val init: bool -> bool -> bool -> string -> string -> bool -> string list ->
+  val init: bool -> bool -> bool -> string -> string -> bool -> (string * string) list ->
     string -> string -> string * Present.dump_mode -> string -> bool -> unit
   val with_timing: string -> bool -> ('a -> 'b) -> 'a -> 'b
   val use_dir: string -> string -> bool -> string list -> bool -> bool -> string ->
@@ -112,13 +112,17 @@ local
 
 fun doc_dump (cp, dump) = (dump, if cp then Present.Dump_all else Present.Dump_tex_sty);
 
+fun read_variants strs =
+  rev (distinct (eq_fst (op =)) (rev (("document", "") :: map Present.read_variant strs)))
+  |> filter_out (fn (_, s) => s = "-");
+
 in
 
 fun use_dir item root build modes reset info info_path doc doc_graph doc_variants parent
     name dump rpath level timing verbose max_threads trace_threads
     parallel_proofs parallel_proofs_threshold =
   ((fn () =>
-     (init build reset info info_path doc doc_graph doc_variants parent name
+     (init build reset info info_path doc doc_graph (read_variants doc_variants) parent name
         (doc_dump dump) rpath verbose;
       with_timing item timing use root;
       finish ()))
