@@ -528,7 +528,7 @@ val vampire_config : atp_config =
 val vampire = (vampireN, fn () => vampire_config)
 
 
-(* Z3 with TPTP syntax *)
+(* Z3 with TPTP syntax (half experimental, half legacy) *)
 
 val z3_tff0 = TFF (Monomorphic, TPTP_Implicit)
 
@@ -665,9 +665,6 @@ val remote_satallax =
 val remote_vampire =
   remotify_atp vampire "Vampire" ["2.6", "2.5", "1.8"]
       (K ((250, vampire_tff0, "mono_native", combs_or_liftingN, false), "") (* FUDGE *))
-val remote_z3_tptp =
-  remotify_atp z3_tptp "Z3" ["3.0"]
-      (K ((250, z3_tff0, "mono_native", combsN, false), "") (* FUDGE *))
 val remote_e_sine =
   remote_atp e_sineN "SInE" ["0.4"] [] (#known_failures e_config) Conjecture
       (K ((500, FOF, "mono_guards??", combsN, false), "") (* FUDGE *))
@@ -728,7 +725,7 @@ val atps=
   [alt_ergo, e, e_males, iprover, iprover_eq, leo2, satallax, spass, spass_poly,
    vampire, z3_tptp, dummy_thf, remote_e, remote_e_sine, remote_e_tofof,
    remote_iprover, remote_iprover_eq, remote_leo2, remote_satallax,
-   remote_vampire, remote_z3_tptp, remote_snark, remote_waldmeister]
+   remote_vampire, remote_snark, remote_waldmeister]
 
 val setup = fold add_atp atps
 
