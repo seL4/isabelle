@@ -446,15 +446,15 @@ fun proof_banner mode name =
 
 fun bunch_of_reconstructors needs_full_types lam_trans =
   if needs_full_types then
-    [Metis (partial_type_enc, lam_trans false),
-     Metis (full_type_enc, lam_trans false),
-     Metis (no_typesN, lam_trans true),
-     Metis (really_full_type_enc, lam_trans true),
-     SMT]
-  else
     [Metis (full_type_enc, lam_trans false),
      Metis (really_full_type_enc, lam_trans false),
      Metis (full_type_enc, lam_trans true),
+     Metis (really_full_type_enc, lam_trans true),
+     SMT]
+  else
+    [Metis (partial_type_enc, lam_trans false),
+     Metis (full_type_enc, lam_trans false),
+     Metis (no_typesN, lam_trans true),
      Metis (really_full_type_enc, lam_trans true),
      SMT]
 
