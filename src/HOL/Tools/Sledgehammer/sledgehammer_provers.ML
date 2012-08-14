@@ -445,14 +445,18 @@ fun proof_banner mode name =
   | _ => "Try this"
 
 fun bunch_of_reconstructors needs_full_types lam_trans =
-  [(false, Metis (partial_type_enc, lam_trans false)),
-   (true, Metis (full_type_enc, lam_trans false)),
-   (false, Metis (no_typesN, lam_trans true)),
-   (true, Metis (really_full_type_enc, lam_trans true)),
-   (true, SMT)]
-  |> map_filter (fn (full_types, reconstr) =>
-                    if needs_full_types andalso not full_types then NONE
-                    else SOME reconstr)
+  if needs_full_types then
+    [Metis (partial_type_enc, lam_trans false),
+     Metis (full_type_enc, lam_trans false),
+     Metis (no_typesN, lam_trans true),
+     Metis (really_full_type_enc, lam_trans true),
+     SMT]
+  else
+    [Metis (full_type_enc, lam_trans false),
+     Metis (really_full_type_enc, lam_trans false),
+     Metis (full_type_enc, lam_trans true),
+     Metis (really_full_type_enc, lam_trans true),
+     SMT]
 
 fun extract_reconstructor ({type_enc, lam_trans, ...} : params)
                           (Metis (type_enc', lam_trans')) =
@@ -1058,8 +1062,9 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
             play_one_line_proof mode debug verbose preplay_timeout used_pairs
                 state subgoal SMT
                 (bunch_of_reconstructors false
-                     (fn plain =>
-                         if plain then metis_default_lam_trans else liftingN)),
+                     (fn desperate =>
+                         if desperate then liftingN
+                         else metis_default_lam_trans)),
          fn preplay =>
             let
               val one_line_params =
