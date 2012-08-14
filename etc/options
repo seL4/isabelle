@@ -5,7 +5,9 @@ option browser_info : bool = false
 
 option document : string = ""
   -- "build document in given format: pdf, dvi, dvi.gz, ps, ps.gz, or false"
-option document_variants : string = "outline=/proof,/ML"
+option document_output : string = ""
+  -- "document output directory (default within $ISABELLE_BROWSER_INFO tree)"
+option document_variants : string = "document"
   -- "option alternative document variants (separated by colons)"
 option document_graph : bool = false
   -- "generate session graph image for document"

@@ -89,7 +89,7 @@ echo "  creating $DIR/ROOT"
 if [ "$DOC" = true ]; then
   cat > "$DIR/ROOT" <<EOF
 session "$NAME" = "$ISABELLE_LOGIC" +
-  options [document = $ISABELLE_DOC_FORMAT]
+  options [document = $ISABELLE_DOC_FORMAT, document_output = "output"]
   theories [document = false]
     (* Foo Bar *)
   theories
@@ -192,7 +192,7 @@ cat <<EOF
 
 Now use the following command line to build the session:
 
-  isabelle build -v $OPT_DIR
+  isabelle build $OPT_DIR
 
 EOF
 

@@ -471,19 +471,16 @@ Usage: isabelle mkroot [OPTIONS] [DIR]
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The following produces an example session as separate
-  directory called \verb|Test|:
+Produce session \verb|Test| within a separate directory
+  of the same name:
 \begin{ttbox}
-isabelle mkroot Test && isabelle build -v -D Test
+isabelle mkroot Test && isabelle build -D Test
 \end{ttbox}
 
-  Option \verb|-v| is not required, but useful to reveal the
-  the location of generated documents.
-
-  \medskip The subsequent example turns the current directory to a
-  session directory with document and builds it:
+  \medskip Upgrade the current directory into a session ROOT with
+  document preparation, and build it:
 \begin{ttbox}
-isabelle mkroot -d && isabelle build -D.
+isabelle mkroot -d && isabelle build -D .
 \end{ttbox}%
 \end{isamarkuptext}%
 \isamarkuptrue%
