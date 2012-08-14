@@ -382,7 +382,7 @@ class Session(val thy_load: Thy_Load = new Thy_Load())
             phase = Session.Startup
 
             // FIXME static init in main constructor
-            val content = Build.session_content(dirs, name)
+            val content = Build.session_content(dirs, name).check_errors
             thy_load.register_thys(content.loaded_theories)
             base_syntax = content.syntax
 
