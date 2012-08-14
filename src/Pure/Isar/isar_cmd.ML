@@ -75,7 +75,8 @@ sig
     -> Toplevel.transition -> Toplevel.transition
   val print_prop: (string list * string) -> Toplevel.transition -> Toplevel.transition
   val print_term: (string list * string) -> Toplevel.transition -> Toplevel.transition
-  val print_type: (string list * string) -> Toplevel.transition -> Toplevel.transition
+  val print_type: (string list * (string * string option)) ->
+    Toplevel.transition -> Toplevel.transition
   val header_markup: Symbol_Pos.text * Position.T -> Toplevel.transition -> Toplevel.transition
   val local_theory_markup: (xstring * Position.T) option * (Symbol_Pos.text * Position.T) ->
     Toplevel.transition -> Toplevel.transition
@@ -494,9 +495,19 @@ fun string_of_term ctxt s =
         Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt' T)])
   end;
 
-fun string_of_type ctxt s =
-  let val T = Syntax.read_typ ctxt s
-  in Pretty.string_of (Pretty.quote (Syntax.pretty_typ ctxt T)) end;
+fun string_of_type ctxt (s, NONE) =
+      let val T = Syntax.read_typ ctxt s
+      in Pretty.string_of (Pretty.quote (Syntax.pretty_typ ctxt T)) end
+  | string_of_type ctxt (s1, SOME s2) =
+      let
+        val ctxt' = Config.put show_sorts true ctxt;
+        val raw_T = Syntax.parse_typ ctxt' s1;
+        val S = Syntax.read_sort ctxt' s2;
+        val T =
+          Syntax.check_term ctxt'
+            (Logic.mk_type raw_T |> Type.constraint (Term.itselfT (Type_Infer.anyT S)))
+          |> Logic.dest_type;
+      in Pretty.string_of (Pretty.quote (Syntax.pretty_typ ctxt' T)) end;
 
 fun print_item string_of (modes, arg) = Toplevel.keep (fn state =>
   Print_Mode.with_modes modes (fn () => writeln (string_of state arg)) ());
