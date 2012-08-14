@@ -128,10 +128,11 @@ fun linear_minimize test timeout result xs =
         case test timeout (xs @ seen) of
           result as {outcome = NONE, used_facts, run_time, ...}
           : prover_result =>
-          min (new_timeout timeout run_time) (filter_used_facts used_facts xs)
-              (filter_used_facts used_facts seen, result)
+          min (new_timeout timeout run_time)
+              (filter_used_facts true used_facts xs)
+              (filter_used_facts false used_facts seen, result)
         | _ => min timeout xs (x :: seen, result)
-  in min timeout xs ([], result) end
+  in min timeout (rev xs) ([], result) end
 
 fun binary_minimize test timeout result xs =
   let
@@ -154,20 +155,21 @@ fun binary_minimize test timeout result xs =
         in
           case test timeout (sup @ l0) of
             result as {outcome = NONE, used_facts, ...} =>
-            min depth result (filter_used_facts used_facts sup)
-                      (filter_used_facts used_facts l0)
+            min depth result (filter_used_facts true used_facts sup)
+                      (filter_used_facts true used_facts l0)
           | _ =>
             case test timeout (sup @ r0) of
               result as {outcome = NONE, used_facts, ...} =>
-              min depth result (filter_used_facts used_facts sup)
-                        (filter_used_facts used_facts r0)
+              min depth result (filter_used_facts true used_facts sup)
+                        (filter_used_facts true used_facts r0)
             | _ =>
               let
                 val (sup_r0, (l, result)) = min depth result (sup @ r0) l0
                 val (sup, r0) =
-                  (sup, r0) |> pairself (filter_used_facts (map fst sup_r0))
+                  (sup, r0)
+                  |> pairself (filter_used_facts true (map fst sup_r0))
                 val (sup_l, (r, result)) = min depth result (sup @ l) r0
-                val sup = sup |> filter_used_facts (map fst sup_l)
+                val sup = sup |> filter_used_facts true (map fst sup_l)
               in (sup, (l @ r, result)) end
         end
 (*
@@ -183,8 +185,6 @@ fun binary_minimize test timeout result xs =
     | p => p
   end
 
-fun is_fact_chained ((_, (sc, _)), _) = sc = Chained
-
 fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
                    i n state facts =
   let
@@ -193,8 +193,9 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
       get_prover ctxt (if silent then Auto_Minimize else Minimize) prover_name
     fun test timeout = test_facts params silent prover timeout i n state
     val (chained, non_chained) = List.partition is_fact_chained facts
-    (* Push chained facts to the back, so that they are less likely to be kicked
-       out by the linear minimization algorithm. *)
+    (* Pull chained facts to the front, so that they are less likely to be
+       kicked out by the minimization algorithms (cf. "rev" in
+       "linear_minimize"). *)
     val facts = non_chained @ chained
   in
     (print silent (fn () => "Sledgehammer minimizer: " ^
@@ -202,7 +203,7 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
      case test timeout facts of
        result as {outcome = NONE, used_facts, run_time, ...} =>
        let
-         val facts = filter_used_facts used_facts facts
+         val facts = filter_used_facts true used_facts facts
          val min =
            if length facts >= Config.get ctxt binary_min_facts then
              binary_minimize
@@ -307,7 +308,7 @@ fun maybe_minimize ctxt mode do_learn name
           minimize_facts do_learn minimize_name params
                          (mode <> Normal orelse not verbose) subgoal
                          subgoal_count state
-                         (filter_used_facts used_facts
+                         (filter_used_facts true used_facts
                               (map (apsnd single o untranslated_fact) facts))
           |>> Option.map (map fst)
         else

@@ -131,7 +131,10 @@ sig
   val kill_provers : unit -> unit
   val running_provers : unit -> unit
   val messages : int option -> unit
-  val filter_used_facts : ''a list -> (''a * 'b) list -> (''a * 'b) list
+  val is_fact_chained : (('a * stature) * 'b) -> bool
+  val filter_used_facts :
+    bool -> (''a * stature) list -> ((''a * stature) * 'b) list ->
+    ((''a * stature) * 'b) list
   val get_prover : Proof.context -> mode -> string -> prover
 end;
 
@@ -483,7 +486,11 @@ fun timed_reconstructor reconstr debug timeout ths =
    #> (fn ctxt => tac_for_reconstructor reconstr ctxt ths))
   |> timed_apply timeout
 
-fun filter_used_facts used = filter (member (op =) used o fst)
+fun is_fact_chained ((_, (sc, _)), _) = sc = Chained
+
+fun filter_used_facts keep_chained used =
+  filter ((member (op =) used o fst) orf
+          (if keep_chained then is_fact_chained else K false))
 
 fun play_one_line_proof mode debug verbose timeout pairs state i preferred
                         reconstrs =
@@ -862,7 +869,8 @@ fun run_atp mode name
            fn () =>
               let
                 val used_pairs =
-                  facts |> map untranslated_fact |> filter_used_facts used_facts
+                  facts |> map untranslated_fact
+                        |> filter_used_facts false used_facts
               in
                 play_one_line_proof mode debug verbose preplay_timeout
                     used_pairs state subgoal (hd reconstrs) reconstrs

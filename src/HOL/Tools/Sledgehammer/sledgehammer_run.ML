@@ -87,7 +87,7 @@ fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
     fun print_used_facts used_facts =
       tag_list 1 facts
       |> map (fn (j, fact) => fact |> untranslated_fact |> apsnd (K j))
-      |> filter_used_facts used_facts
+      |> filter_used_facts false used_facts
       |> map (fn ((name, _), j) => name ^ "@" ^ string_of_int j)
       |> commas
       |> enclose ("Fact" ^ plural_s (length facts) ^ " in " ^ quote name ^
