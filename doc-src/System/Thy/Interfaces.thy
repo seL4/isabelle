@@ -15,6 +15,7 @@ text {* The @{tool_def jedit} tool invokes a version of
   Options are:
     -J OPTION    add JVM runtime option (default JEDIT_JAVA_OPTIONS)
     -b           build only
+    -d DIR       include session directory
     -f           fresh build
     -j OPTION    add jEdit runtime option (default JEDIT_OPTIONS)
     -l NAME      logic image name (default ISABELLE_LOGIC)
@@ -24,8 +25,12 @@ Start jEdit with Isabelle plugin setup and opens theory FILES
 (default Scratch.thy).
 \end{ttbox}
 
-  The @{verbatim "-l"} option specifies the logic image.  The
-  @{verbatim "-m"} option specifies additional print modes.
+  The @{verbatim "-l"} option specifies the session name of the logic
+  image to be used for proof processing.  Additional session root
+  directories may be included via option @{verbatim "-d"} to augment
+  that name space (see also \secref{sec:tool-build}).
+
+  The @{verbatim "-m"} option specifies additional print modes.
 
   The @{verbatim "-J"} and @{verbatim "-j"} options allow to pass
   additional low-level options to the JVM or jEdit, respectively.  The

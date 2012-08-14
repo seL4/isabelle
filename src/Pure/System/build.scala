@@ -366,13 +366,14 @@ object Build
           deps + (name -> Session_Content(loaded_theories, syntax, sources))
       }))
 
-  def session_content(session: String): Session_Content =
+  def session_content(dirs: List[Path], session: String): Session_Content =
   {
-    val (_, tree) = find_sessions(Options.init(), Nil).required(false, Nil, List(session))
+    val (_, tree) =
+      find_sessions(Options.init(), dirs.map((false, _))).required(false, Nil, List(session))
     dependencies(false, tree)(session)
   }
 
-  def outer_syntax(session: String): Outer_Syntax = session_content(session).syntax
+  def outer_syntax(session: String): Outer_Syntax = session_content(Nil, session).syntax
 
 
   /* jobs */

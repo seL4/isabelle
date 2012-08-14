@@ -171,7 +171,7 @@ class Session(val thy_load: Thy_Load = new Thy_Load())
 
   /* actor messages */
 
-  private case class Start(logic: String, args: List[String])
+  private case class Start(dirs: List[Path], logic: String, args: List[String])
   private case object Cancel_Execution
   private case class Edit(edits: List[Document.Edit_Text])
   private case class Change(
@@ -377,12 +377,12 @@ class Session(val thy_load: Thy_Load = new Thy_Load())
       receiveWithin(delay_commands_changed.flush_timeout) {
         case TIMEOUT => delay_commands_changed.flush()
 
-        case Start(name, args) if prover.isEmpty =>
+        case Start(dirs, name, args) if prover.isEmpty =>
           if (phase == Session.Inactive || phase == Session.Failed) {
             phase = Session.Startup
 
             // FIXME static init in main constructor
-            val content = Build.session_content(name)
+            val content = Build.session_content(dirs, name)
             thy_load.register_thys(content.loaded_theories)
             base_syntax = content.syntax
 
@@ -440,7 +440,8 @@ class Session(val thy_load: Thy_Load = new Thy_Load())
 
   /* actions */
 
-  def start(name: String, args: List[String]) { session_actor ! Start(name, args) }
+  def start(dirs: List[Path], name: String, args: List[String])
+  { session_actor ! Start(dirs, name, args) }
 
   def stop() { commands_changed_buffer !? Stop; change_parser !? Stop; session_actor !? Stop }
 
