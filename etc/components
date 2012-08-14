@@ -10,6 +10,7 @@ src/FOLP
 src/LCF
 src/Sequents
 #misc components
+doc-src
 src/Tools/Code
 src/Tools/jEdit
 src/Tools/WWW_Find

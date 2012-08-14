@@ -60,7 +60,7 @@ rm -rf $HOME/isabelle-*
 
 echo "### building distribution"  >> $DISTLOG 2>&1
 mkdir -p $DISTPREFIX
-$MAKEDIST -D -j "/home/isabelle/contrib_devel/jedit_build-20120414" >> $DISTLOG 2>&1
+$MAKEDIST -j "/home/isabelle/contrib_devel/jedit_build-20120414" >> $DISTLOG 2>&1
 
 if [ $? -ne 0 ]
 then
