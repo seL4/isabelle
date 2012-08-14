@@ -183,17 +183,23 @@ fun binary_minimize test timeout result xs =
     | p => p
   end
 
+fun is_fact_chained ((_, (sc, _)), _) = sc = Chained
+
 fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
                    i n state facts =
   let
     val ctxt = Proof.context_of state
     val prover =
       get_prover ctxt (if silent then Auto_Minimize else Minimize) prover_name
-    val _ = print silent (fn () => "Sledgehammer minimizer: " ^
-                                   quote prover_name ^ ".")
     fun test timeout = test_facts params silent prover timeout i n state
+    val (chained, non_chained) = List.partition is_fact_chained facts
+    (* Push chained facts to the back, so that they are less likely to be kicked
+       out by the linear minimization algorithm. *)
+    val facts = non_chained @ chained
   in
-    (case test timeout facts of
+    (print silent (fn () => "Sledgehammer minimizer: " ^
+                            quote prover_name ^ ".");
+     case test timeout facts of
        result as {outcome = NONE, used_facts, run_time, ...} =>
        let
          val facts = filter_used_facts used_facts facts
@@ -207,8 +213,7 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
        in
          print silent (fn () => cat_lines
              ["Minimized to " ^ n_facts (map fst min_facts)] ^
-              (case min_facts |> filter (fn ((_, (sc, _)), _) => sc = Chained)
-                              |> length of
+              (case min_facts |> filter is_fact_chained |> length of
                  0 => ""
                | n => "\n(including " ^ string_of_int n ^ " chained)") ^ ".");
          (if learn then do_learn prover_name (maps snd min_facts) else ());
