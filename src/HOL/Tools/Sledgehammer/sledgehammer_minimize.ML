@@ -132,7 +132,7 @@ fun linear_minimize test timeout result xs =
               (filter_used_facts true used_facts xs)
               (filter_used_facts false used_facts seen, result)
         | _ => min timeout xs (x :: seen, result)
-  in min timeout (rev xs) ([], result) end
+  in min timeout xs ([], result) end
 
 fun binary_minimize test timeout result xs =
   let
@@ -193,9 +193,8 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
       get_prover ctxt (if silent then Auto_Minimize else Minimize) prover_name
     fun test timeout = test_facts params silent prover timeout i n state
     val (chained, non_chained) = List.partition is_fact_chained facts
-    (* Pull chained facts to the front, so that they are less likely to be
-       kicked out by the minimization algorithms (cf. "rev" in
-       "linear_minimize"). *)
+    (* Push chained facts to the back, so that they are less likely to be
+       kicked out by the linear minimization algorithm. *)
     val facts = non_chained @ chained
   in
     (print silent (fn () => "Sledgehammer minimizer: " ^

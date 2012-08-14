@@ -52,7 +52,7 @@ sig
     Proof.context -> (string * stature) list vector -> 'a proof
     -> string list option
   val unalias_type_enc : string -> string list
-  val one_line_proof_text : one_line_params -> string
+  val one_line_proof_text : int -> one_line_params -> string
   val make_tvar : string -> typ
   val make_tfree : Proof.context -> string -> typ
   val term_from_atp :
@@ -64,7 +64,7 @@ sig
   val isar_proof_text :
     Proof.context -> bool -> isar_params -> one_line_params -> string
   val proof_text :
-    Proof.context -> bool -> isar_params -> one_line_params -> string
+    Proof.context -> bool -> isar_params -> int -> one_line_params -> string
 end;
 
 structure ATP_Proof_Reconstruct : ATP_PROOF_RECONSTRUCT =
@@ -250,21 +250,33 @@ fun string_for_label (s, num) = s ^ string_of_int num
 fun show_time NONE = ""
   | show_time (SOME ext_time) = " (" ^ string_from_ext_time ext_time ^ ")"
 
+fun unusing_chained_facts _ 0 = ""
+  | unusing_chained_facts used_chaineds num_chained =
+    if length used_chaineds = num_chained then ""
+    else if null used_chaineds then "(* using no facts *) "
+    else "(* using only " ^ space_implode " " used_chaineds ^ " *) "
+
 fun apply_on_subgoal _ 1 = "by "
   | apply_on_subgoal 1 _ = "apply "
   | apply_on_subgoal i n =
     "prefer " ^ string_of_int i ^ " " ^ apply_on_subgoal 1 n
+
 fun command_call name [] =
     name |> not (Lexicon.is_identifier name) ? enclose "(" ")"
   | command_call name args = "(" ^ name ^ " " ^ space_implode " " args ^ ")"
+
 fun try_command_line banner time command =
   banner ^ ": " ^ Markup.markup Isabelle_Markup.sendback command ^ show_time time ^ "."
+
 fun using_labels [] = ""
   | using_labels ls =
     "using " ^ space_implode " " (map string_for_label ls) ^ " "
-fun reconstructor_command reconstr i n (ls, ss) =
+
+fun reconstructor_command reconstr i n used_chaineds num_chained (ls, ss) =
+  unusing_chained_facts used_chaineds num_chained ^
   using_labels ls ^ apply_on_subgoal i n ^
   command_call (string_for_reconstructor reconstr) ss
+
 fun minimize_line _ [] = ""
   | minimize_line minimize_command ss =
     case minimize_command ss of
@@ -276,8 +288,9 @@ fun split_used_facts facts =
   facts |> List.partition (fn (_, (sc, _)) => sc = Chained)
         |> pairself (sort_distinct (string_ord o pairself fst))
 
-fun one_line_proof_text (preplay, banner, used_facts, minimize_command,
-                         subgoal, subgoal_count) =
+fun one_line_proof_text num_chained
+        (preplay, banner, used_facts, minimize_command, subgoal,
+         subgoal_count) =
   let
     val (chained, extra) = split_used_facts used_facts
     val (failed, reconstr, ext_time) =
@@ -292,7 +305,8 @@ fun one_line_proof_text (preplay, banner, used_facts, minimize_command,
       | Failed_to_Play reconstr => (true, reconstr, NONE)
     val try_line =
       ([], map fst extra)
-      |> reconstructor_command reconstr subgoal subgoal_count
+      |> reconstructor_command reconstr subgoal subgoal_count (map fst chained)
+                               num_chained
       |> (if failed then
             enclose "One-line proof reconstruction failed: "
                      ".\n(Invoking \"sledgehammer\" with \"[strict]\" might \
@@ -845,7 +859,7 @@ fun string_for_proof ctxt0 type_enc lam_trans i n =
     val do_term = maybe_quote o fix_print_mode (Syntax.string_of_term ctxt)
     val reconstr = Metis (type_enc, lam_trans)
     fun do_facts (ls, ss) =
-      reconstructor_command reconstr 1 1
+      reconstructor_command reconstr 1 1 [] 0
           (ls |> sort_distinct (prod_ord string_ord int_ord),
            ss |> sort_distinct string_ord)
     and do_step ind (Fix xs) =
@@ -887,7 +901,7 @@ fun isar_proof_text ctxt isar_proof_requested
       (if isar_proof_requested then 1 else 2) * isar_shrink_factor
     val (params, hyp_ts, concl_t) = strip_subgoal ctxt goal subgoal
     val frees = fold Term.add_frees (concl_t :: hyp_ts) []
-    val one_line_proof = one_line_proof_text one_line_params
+    val one_line_proof = one_line_proof_text 0 one_line_params
     val type_enc =
       if is_typed_helper_used_in_atp_proof atp_proof then full_typesN
       else partial_typesN
@@ -982,11 +996,11 @@ fun isar_proof_text ctxt isar_proof_requested
                   ""
   in one_line_proof ^ isar_proof end
 
-fun proof_text ctxt isar_proof isar_params
+fun proof_text ctxt isar_proof isar_params num_chained
                (one_line_params as (preplay, _, _, _, _, _)) =
   (if case preplay of Failed_to_Play _ => true | _ => isar_proof then
      isar_proof_text ctxt isar_proof isar_params
    else
-     one_line_proof_text) one_line_params
+     one_line_proof_text num_chained) one_line_params
 
 end;
