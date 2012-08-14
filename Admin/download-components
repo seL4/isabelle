@@ -1,33 +1,139 @@
 #!/usr/bin/env bash
 #
 # Author: Florian Haftmann
+# Author: Tjark Weber
 #
-# DESCRIPTION: Download and unpack components from central component store
+# Download and unpack Isabelle components from central component store.
 
 shopt -s -o errexit
 shopt -s -o nounset
 
-THIS="$(basename "$0")"
-HERE="$(cd $(dirname "$0"); cd "$(pwd -P)"; pwd)"
+REMOTE='http://isabelle.in.tum.de/components'
 
-trap 'echo "Error in ${THIS}" >&2' ERR
+## diagnostics
 
-function fail {
-  echo "$1" >&2
+PRG="$(basename "$0")"
+
+trap 'echo "Error in ${PRG}" >&2' ERR
+
+function usage()
+{
+  cat <<EOF
+
+Usage: ${PRG} [OPTIONS] [COMPONENTS ...]
+
+  Options are:
+    -c           Download current components (as listed in Admin/components).
+    -q           Quiet (do not output diagnostic messages).
+    -r           Replace components already present (default is to skip).
+    -x           Exit on failed download (default is to ignore).
+
+  Download and unpack Isabelle components from central component store
+  (${REMOTE}/).
+
+EOF
   exit 1
 }
 
-ISABELLE_HOME_USER="$("${HERE}/../bin/isabelle" getenv -b ISABELLE_HOME_USER)"
-: ${TMP:='/tmp'}
-REMOTE='http://isabelle.in.tum.de/components'
-LOCAL="${ISABELLE_HOME_USER}/contrib"
-SUFFIX='.tar.gz'
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
 
+## process command line
+
+# options
+
+DOWNLOAD_CURRENT=""
+ECHO="echo"
+REPLACE_EXISTING=""
+EXIT_ON_FAILED_DOWNLOAD=""
+
+function getoptions()
+{
+  OPTIND=1
+  while getopts "cqrx" OPT
+  do
+    case "$OPT" in
+      c)
+        DOWNLOAD_CURRENT=true
+        ;;
+      q)
+        ECHO=":"
+        ;;
+      r)
+        REPLACE_EXISTING=true
+        ;;
+      x)
+        EXIT_ON_FAILED_DOWNLOAD=true
+        ;;
+      \?)
+        usage
+        ;;
+    esac
+  done
+}
+
+getoptions "$@"
+shift $(($OPTIND - 1))
+
+## directory layout
+
+: ${TMPDIR:="/tmp"}
+
+: ${ISABELLE_HOME_USER:=""}
+
+if [ -z "${ISABELLE_HOME_USER}" ]; then
+  ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd ..; pwd)"
+  ISABELLE_TOOL="${ISABELLE_HOME}/bin/isabelle"
+  ISABELLE_HOME_USER="$("${ISABELLE_TOOL}" getenv -b ISABELLE_HOME_USER)"
+fi
+
+LOCAL="${ISABELLE_HOME_USER}/contrib"
+
+## download (and unpack) components
+
+function download()
+{
+  if [ -e "${LOCAL}/${COMPONENT}" -a -z "${REPLACE_EXISTING}" ]; then
+    "${ECHO}" "Skipping existing component ${COMPONENT}"
+  else
+    "${ECHO}" "${COMPONENT}"
+    ARCHIVE="${COMPONENT}.tar.gz"
+    if curl -s `"${ECHO}" --no-silent` -f -o "${TMPDIR}/${ARCHIVE}" "${REMOTE}/${ARCHIVE}"; then
+      tar -xzf "${TMPDIR}/${ARCHIVE}" -C "${LOCAL}" --recursive-unlink
+    else
+      if [ -n "${EXIT_ON_FAILED_DOWNLOAD}" ]; then
+        fail "Error downloading component ${COMPONENT} (non-free?)"
+      else
+        "${ECHO}" "Error downloading component ${COMPONENT} (non-free?)"
+      fi
+    fi
+  fi
+}
+
+"${ECHO}" "Unpacking components into ${LOCAL}/"
+
+[ -e "${LOCAL}" ] || mkdir -p "${LOCAL}"
+
+# process Admin/components
+if [ -n "${DOWNLOAD_CURRENT}" ]; then
+  while { unset REPLY; read -r; test "$?" = 0 -o -n "${REPLY}"; }
+  do
+    case "${REPLY}" in
+      \#* | "")
+        ;;
+      *)
+        COMPONENT="$(basename "${REPLY}")"
+        download "${COMPONENT}"
+        ;;
+    esac
+  done < "$ISABELLE_HOME/Admin/components"
+fi
+
+# process args
 for COMPONENT in "$@"
 do
-  COMPONENT_ARCHIVE="${COMPONENT}.tar.gz"
-  wget -nd --directory-prefix="${TMP}" "${REMOTE}/${COMPONENT_ARCHIVE}"
-  tar -xzv -f "${TMP}/${COMPONENT_ARCHIVE}" -C "${LOCAL}"
-  rm "${TMP}/${COMPONENT_ARCHIVE}"
-  echo
+  download "${COMPONENT}"
 done
