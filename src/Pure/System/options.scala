@@ -7,6 +7,9 @@ Stand-alone options with external string representation.
 package isabelle
 
 
+import java.util.Calendar
+
+
 object Options
 {
   type Spec = (String, Option[String])
@@ -31,52 +34,60 @@ object Options
   /* parsing */
 
   private val OPTION = "option"
+  private val OPTIONS = Path.explode("etc/options")
+  private val PREFS = Path.explode("$ISABELLE_HOME_USER/etc/preferences")
+  private val PREFS_BACKUP = Path.explode("$ISABELLE_HOME_USER/etc/preferences~")
 
-  lazy val options_syntax =
-    Outer_Syntax.init() + ":" + "=" + "--" + (OPTION, Keyword.THY_DECL)
+  lazy val options_syntax = Outer_Syntax.init() + ":" + "=" + "--" + (OPTION, Keyword.THY_DECL)
+  lazy val prefs_syntax = Outer_Syntax.init() + "="
 
-  private object Parser extends Parse.Parser
+  object Parser extends Parse.Parser
   {
-    val entry: Parser[Options => Options] =
+    val option_name = atom("option name", _.is_xname)
+    val option_type = atom("option type", _.is_ident)
+    val option_value =
+      opt(token("-", tok => tok.is_sym_ident && tok.content == "-")) ~ atom("nat", _.is_nat) ^^
+        { case s ~ n => if (s.isDefined) "-" + n else n } |
+      atom("option value", tok => tok.is_name || tok.is_float)
+
+    val option_entry: Parser[Options => Options] =
     {
-      val option_name = atom("option name", _.is_xname)
-      val option_type = atom("option type", _.is_ident)
-
-      val option_value =
-        opt(token("-", tok => tok.is_sym_ident && tok.content == "-")) ~ atom("nat", _.is_nat) ^^
-          { case s ~ n => if (s.isDefined) "-" + n else n } |
-        atom("option value", tok => tok.is_name || tok.is_float)
-
       command(OPTION) ~! (option_name ~ keyword(":") ~ option_type ~
       keyword("=") ~ option_value ~ (keyword("--") ~! text ^^ { case _ ~ x => x } | success(""))) ^^
         { case _ ~ (a ~ _ ~ b ~ _ ~ c ~ d) => (options: Options) => options.declare(a, b, c, d) }
     }
 
-    def parse_entries(file: Path): List[Options => Options] =
+    val prefs_entry: Parser[Options => Options] =
     {
-      val toks = options_syntax.scan(File.read(file))
-      parse_all(rep(entry), Token.reader(toks, file.implode)) match {
-        case Success(result, _) => result
-        case bad => error(bad.toString)
-      }
+      option_name ~ (keyword("=") ~! option_value) ^^
+      { case a ~ (_ ~ b) => (options: Options) => options + (a, b) }
+    }
+
+    def parse_file(syntax: Outer_Syntax, parser: Parser[Options => Options],
+      options: Options, file: Path): Options =
+    {
+      val toks = syntax.scan(File.read(file))
+      val ops =
+        parse_all(rep(parser), Token.reader(toks, file.implode)) match {
+          case Success(result, _) => result
+          case bad => error(bad.toString)
+        }
+      try { (options /: ops) { case (opts, op) => op(opts) } }
+      catch { case ERROR(msg) => error(msg + Position.str_of(file.position)) }
     }
   }
 
-  private val OPTIONS = Path.explode("etc/options")
-
-  def init(): Options =
+  def init_defaults(): Options =
   {
     var options = empty
     for {
       dir <- Isabelle_System.components()
       file = dir + OPTIONS if file.is_file
-      entry <- Parser.parse_entries(file)
-    } {
-      try { options = entry(options) }
-      catch { case ERROR(msg) => error(msg + Position.str_of(file.position)) }
-    }
+    } { options = Parser.parse_file(options_syntax, Parser.option_entry, options, file) }
     options
   }
+
+  def init(): Options = init_defaults().load_prefs()
 
 
   /* encode */
@@ -91,7 +102,7 @@ object Options
     Command_Line.tool {
       args.toList match {
         case export_file :: more_options =>
-          val options = (Options.init() /: more_options)(_.define_simple(_))
+          val options = (Options.init() /: more_options)(_ + _)
 
           if (export_file == "") java.lang.System.out.println(options.print)
           else File.write(Path.explode(export_file), YXML.string_of_body(options.encode))
@@ -104,7 +115,7 @@ object Options
 }
 
 
-final class Options private(options: Map[String, Options.Opt] = Map.empty)
+final class Options private(protected val options: Map[String, Options.Opt] = Map.empty)
 {
   override def toString: String = options.iterator.mkString("Options (", ",", ")")
 
@@ -181,7 +192,7 @@ final class Options private(options: Map[String, Options.Opt] = Map.empty)
   }
 
 
-  /* external declare and define */
+  /* external updates */
 
   private def check_value(name: String): Options =
   {
@@ -207,36 +218,37 @@ final class Options private(options: Map[String, Options.Opt] = Map.empty)
             case "string" => Options.String
             case _ => error("Unknown type for option " + quote(name) + " : " + quote(typ_name))
           }
-        (new Options(options + (name -> Options.Opt(typ, value, description)))).check_value(name)
+        val opt = Options.Opt(typ, value, description)
+        (new Options(options + (name -> opt))).check_value(name)
     }
   }
 
-  def define(name: String, value: String): Options =
+  def + (name: String, value: String): Options =
   {
     val opt = check_name(name)
     (new Options(options + (name -> opt.copy(value = value)))).check_value(name)
   }
 
-  def define(name: String, opt_value: Option[String]): Options =
+  def + (name: String, opt_value: Option[String]): Options =
   {
     val opt = check_name(name)
     opt_value match {
-      case Some(value) => define(name, value)
-      case None if opt.typ == Options.Bool => define(name, "true")
+      case Some(value) => this + (name, value)
+      case None if opt.typ == Options.Bool => this + (name, "true")
       case None => error("Missing value for option " + quote(name) + " : " + opt.typ.print)
     }
   }
 
-  def ++ (specs: List[Options.Spec]): Options =
-    (this /: specs)({ case (x, (y, z)) => x.define(y, z) })
-
-  def define_simple(str: String): Options =
+  def + (str: String): Options =
   {
     str.indexOf('=') match {
-      case -1 => define(str, None)
-      case i => define(str.substring(0, i), str.substring(i + 1))
+      case -1 => this + (str, None)
+      case i => this + (str.substring(0, i), str.substring(i + 1))
     }
   }
+
+  def ++ (specs: List[Options.Spec]): Options =
+    (this /: specs)({ case (x, (y, z)) => x + (y, z) })
 
 
   /* encode */
@@ -246,5 +258,32 @@ final class Options private(options: Map[String, Options.Opt] = Map.empty)
     import XML.Encode.{string => str, _}
     list(triple(str, str, str))(
       options.toList.map({ case (name, opt) => (name, opt.typ.print, opt.value) }))
+  }
+
+
+  /* user preferences */
+
+  def load_prefs(): Options =
+    if (Options.PREFS.is_file)
+      Options.Parser.parse_file(
+        Options.prefs_syntax, Options.Parser.prefs_entry, this, Options.PREFS)
+    else this
+
+  def save_prefs()
+  {
+    val current_defaults = Options.init_defaults()
+    val changed =
+      (for {
+        (name, opt1) <- current_defaults.options.iterator
+        opt2 <- options.get(name)
+        if (opt1.value != opt2.value)
+      } yield (name, opt2.value)).toList
+    val prefs =
+      changed.sortBy(_._1)
+        .map({ case (x, y) => x + " = " + Outer_Syntax.quote_string(y) + "\n" }).mkString
+
+    Options.PREFS.file renameTo Options.PREFS_BACKUP.file
+    File.write(Options.PREFS,
+      "(* generated by Isabelle " + Calendar.getInstance.getTime + " *)\n\n" + prefs)
   }
 }

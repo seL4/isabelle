@@ -543,7 +543,7 @@ object Build
     verbose: Boolean = false,
     sessions: List[String] = Nil): Int =
   {
-    val options = (Options.init() /: build_options)(_.define_simple(_))
+    val options = (Options.init() /: build_options)(_ + _)
     val (descendants, tree) =
       find_sessions(options, more_dirs).required(all_sessions, session_groups, sessions)
     val deps = dependencies(verbose, tree)
