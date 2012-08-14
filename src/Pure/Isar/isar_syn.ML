@@ -902,7 +902,8 @@ val _ =
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "typ"} "read and print type"
-    (opt_modes -- Parse.typ >> (Toplevel.no_timing oo Isar_Cmd.print_type));
+    (opt_modes -- (Parse.typ -- Scan.option (@{keyword "::"} |-- Parse.!!! Parse.sort))
+      >> (Toplevel.no_timing oo Isar_Cmd.print_type));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_codesetup"} "print code generator setup"

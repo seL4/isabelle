@@ -29,6 +29,12 @@ structure instead.  Note that Isabelle/ML provides a variety of
 operators like COMP, INCR_COMP, COMP_INCR, which need to be applied
 with some care where this is really required.
 
+* Command 'typ' supports an additional variant with explicit sort
+constraint, to infer and check the most general type conforming to a
+given given sort.  Example (in HOL):
+
+  typ "_ * _ * bool * unit" :: finite
+
 
 *** HOL ***
 

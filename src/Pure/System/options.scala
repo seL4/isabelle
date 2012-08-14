@@ -30,12 +30,10 @@ object Options
 
   /* parsing */
 
-  private val DECLARE = "declare"
-  private val DEFINE = "define"
+  private val OPTION = "option"
 
   lazy val options_syntax =
-    Outer_Syntax.init() + ":" + "=" + "--" +
-      (DECLARE, Keyword.THY_DECL) + (DEFINE, Keyword.PRF_DECL)
+    Outer_Syntax.init() + ":" + "=" + "--" + (OPTION, Keyword.THY_DECL)
 
   private object Parser extends Parse.Parser
   {
@@ -49,11 +47,9 @@ object Options
           { case s ~ n => if (s.isDefined) "-" + n else n } |
         atom("option value", tok => tok.is_name || tok.is_float)
 
-      command(DECLARE) ~! (option_name ~ keyword(":") ~ option_type ~
+      command(OPTION) ~! (option_name ~ keyword(":") ~ option_type ~
       keyword("=") ~ option_value ~ (keyword("--") ~! text ^^ { case _ ~ x => x } | success(""))) ^^
-        { case _ ~ (a ~ _ ~ b ~ _ ~ c ~ d) => (options: Options) => options.declare(a, b, c, d) } |
-      command(DEFINE) ~! (option_name ~ keyword("=") ~ option_value) ^^
-        { case _ ~ (a ~ _ ~ b) => (options: Options) => options.define(a, b) }
+        { case _ ~ (a ~ _ ~ b ~ _ ~ c ~ d) => (options: Options) => options.declare(a, b, c, d) }
     }
 
     def parse_entries(file: Path): List[Options => Options] =
@@ -114,7 +110,7 @@ final class Options private(options: Map[String, Options.Opt] = Map.empty)
 
   def print: String =
     cat_lines(options.toList.sortBy(_._1).map({ case (name, opt) =>
-      name + " : " + opt.typ.print + " = " +
+      "option " + name + " : " + opt.typ.print + " = " +
         (if (opt.typ == Options.String) quote(opt.value) else opt.value) +
       "\n  -- " + quote(opt.description) }))
 

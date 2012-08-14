@@ -300,6 +300,7 @@ object Isabelle
 
   def start_session()
   {
+    val dirs = Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS"))
     val modes = space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE")).map("-m" + _)
     val logic = {
       val logic = Property("logic")
@@ -307,7 +308,7 @@ object Isabelle
       else Isabelle.default_logic()
     }
     val name = Path.explode(logic).base.implode  // FIXME more robust session name
-    session.start(name, modes ::: List(logic))
+    session.start(dirs, name, modes ::: List(logic))
   }
 
 

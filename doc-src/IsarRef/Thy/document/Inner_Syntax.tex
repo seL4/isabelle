@@ -75,6 +75,11 @@ The inner syntax of Isabelle provides concrete notation for
 \rail@nont{\hyperlink{syntax.modes}{\mbox{\isa{modes}}}}[]
 \rail@endbar
 \rail@nont{\hyperlink{syntax.type}{\mbox{\isa{type}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.sort}{\mbox{\isa{sort}}}}[]
+\rail@endbar
 \rail@end
 \rail@begin{2}{}
 \rail@term{\hyperlink{command.term}{\mbox{\isa{\isacommand{term}}}}}[]
@@ -139,8 +144,15 @@ The inner syntax of Isabelle provides concrete notation for
 
   \begin{description}
 
-  \item \hyperlink{command.typ}{\mbox{\isa{\isacommand{typ}}}}~\isa{{\isaliteral{5C3C7461753E}{\isasymtau}}} reads and prints types of the
-  meta-logic according to the current theory or proof context.
+  \item \hyperlink{command.typ}{\mbox{\isa{\isacommand{typ}}}}~\isa{{\isaliteral{5C3C7461753E}{\isasymtau}}} reads and prints a type expression
+  according to the current context.
+
+  \item \hyperlink{command.typ}{\mbox{\isa{\isacommand{typ}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7461753E}{\isasymtau}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ s{\isaliteral{22}{\isachardoublequote}}} uses type-inference to
+  determine the most general way to make \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{22}{\isachardoublequote}}} conform to sort
+  \isa{{\isaliteral{22}{\isachardoublequote}}s{\isaliteral{22}{\isachardoublequote}}}.  For concrete \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{22}{\isachardoublequote}}} this checks if the type
+  belongs to that sort.  Dummy type parameters ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5F}{\isacharunderscore}}{\isaliteral{22}{\isachardoublequote}}}''
+  (underscore) are assigned to fresh type variables with most general
+  sorts, according the the principles of type-inference.
 
   \item \hyperlink{command.term}{\mbox{\isa{\isacommand{term}}}}~\isa{t} and \hyperlink{command.prop}{\mbox{\isa{\isacommand{prop}}}}~\isa{{\isaliteral{5C3C7068693E}{\isasymphi}}}
   read, type-check and print terms or propositions according to the

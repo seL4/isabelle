@@ -52,6 +52,7 @@ function usage()
   echo "    -J OPTION    add JVM runtime option"
   echo "                 (default JEDIT_JAVA_OPTIONS=$JEDIT_JAVA_OPTIONS)"
   echo "    -b           build only"
+  echo "    -d DIR       include session directory"
   echo "    -f           fresh build"
   echo "    -j OPTION    add jEdit runtime option"
   echo "                 (default JEDIT_OPTIONS=$JEDIT_OPTIONS)"
@@ -82,13 +83,14 @@ function failed()
 
 BUILD_ONLY=false
 BUILD_JARS="jars"
+JEDIT_SESSION_DIRS=""
 JEDIT_LOGIC="$ISABELLE_LOGIC"
 JEDIT_PRINT_MODE=""
 
 function getoptions()
 {
   OPTIND=1
-  while getopts "J:bdfj:l:m:" OPT
+  while getopts "J:bd:fj:l:m:" OPT
   do
     case "$OPT" in
       J)
@@ -96,6 +98,13 @@ function getoptions()
         ;;
       b)
         BUILD_ONLY=true
+        ;;
+      d)
+        if [ -z "$JEDIT_SESSION_DIRS" ]; then
+          JEDIT_SESSION_DIRS="$OPTARG"
+        else
+          JEDIT_SESSION_DIRS="$JEDIT_SESSION_DIRS:$OPTARG"
+        fi
         ;;
       f)
         BUILD_JARS="jars_fresh"
@@ -283,7 +292,7 @@ fi
       ;;
   esac
 
-  export JEDIT_LOGIC JEDIT_PRINT_MODE
+  export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_PRINT_MODE
 
   exec "$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" \
     -jar "$(jvmpath "$JEDIT_HOME/dist/jedit.jar")" \

@@ -145,6 +145,8 @@ object Build
 
     def topological_order: List[(String, Session_Info)] =
       graph.topological_order.map(name => (name, apply(name)))
+
+    override def toString: String = graph.entries.map(_._1).toList.sorted.mkString(",")
   }
 
 
@@ -309,7 +311,15 @@ object Build
   sealed case class Session_Content(
     loaded_theories: Set[String],
     syntax: Outer_Syntax,
-    sources: List[(Path, SHA1.Digest)])
+    sources: List[(Path, SHA1.Digest)],
+    errors: List[String])
+  {
+    def check_errors: Session_Content =
+    {
+      if (errors.isEmpty) this
+      else error(cat_lines(errors))
+    }
+  }
 
   sealed case class Deps(deps: Map[String, Session_Content])
   {
@@ -321,16 +331,19 @@ object Build
   def dependencies(verbose: Boolean, tree: Session_Tree): Deps =
     Deps((Map.empty[String, Session_Content] /: tree.topological_order)(
       { case (deps, (name, info)) =>
-          val (preloaded, parent_syntax) =
+          val (preloaded, parent_syntax, parent_errors) =
             info.parent match {
-              case Some(parent) => (deps(parent).loaded_theories, deps(parent).syntax)
+              case Some(parent_name) =>
+                val parent = deps(parent_name)
+                (parent.loaded_theories, parent.syntax, parent.errors)
               case None =>
-                (Set.empty[String],
+                val init_syntax =
                   Outer_Syntax.init() +
                     // FIXME avoid hardwired stuff!?
                     ("theory", Keyword.THY_BEGIN) +
                     ("hence", Keyword.PRF_ASM_GOAL, "then have") +
-                    ("thus", Keyword.PRF_ASM_GOAL, "then show"))
+                    ("thus", Keyword.PRF_ASM_GOAL, "then show")
+                (Set.empty[String], init_syntax, Nil)
             }
           val thy_info = new Thy_Info(new Thy_Load(preloaded))
 
@@ -362,17 +375,20 @@ object Build
                 error(msg + "\nThe error(s) above occurred in session " +
                   quote(name) + Position.str_of(info.pos))
             }
+          val errors = parent_errors ::: thy_deps.map(d => d._2.errors).flatten
 
-          deps + (name -> Session_Content(loaded_theories, syntax, sources))
+          deps + (name -> Session_Content(loaded_theories, syntax, sources, errors))
       }))
 
-  def session_content(session: String): Session_Content =
+  def session_content(dirs: List[Path], session: String): Session_Content =
   {
-    val (_, tree) = find_sessions(Options.init(), Nil).required(false, Nil, List(session))
+    val (_, tree) =
+      find_sessions(Options.init(), dirs.map((false, _))).required(false, Nil, List(session))
     dependencies(false, tree)(session)
   }
 
-  def outer_syntax(session: String): Outer_Syntax = session_content(session).syntax
+  def outer_syntax(session: String): Outer_Syntax =
+    session_content(Nil, session).check_errors.syntax
 
 
   /* jobs */

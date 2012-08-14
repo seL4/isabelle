@@ -47,7 +47,7 @@ text {*
   internal logical entities in a human-readable fashion.
 
   @{rail "
-    @@{command typ} @{syntax modes}? @{syntax type}
+    @@{command typ} @{syntax modes}? @{syntax type} ('::' @{syntax sort})?
     ;
     @@{command term} @{syntax modes}? @{syntax term}
     ;
@@ -65,8 +65,15 @@ text {*
 
   \begin{description}
 
-  \item @{command "typ"}~@{text \<tau>} reads and prints types of the
-  meta-logic according to the current theory or proof context.
+  \item @{command "typ"}~@{text \<tau>} reads and prints a type expression
+  according to the current context.
+
+  \item @{command "typ"}~@{text "\<tau> :: s"} uses type-inference to
+  determine the most general way to make @{text "\<tau>"} conform to sort
+  @{text "s"}.  For concrete @{text "\<tau>"} this checks if the type
+  belongs to that sort.  Dummy type parameters ``@{text "_"}''
+  (underscore) are assigned to fresh type variables with most general
+  sorts, according the the principles of type-inference.
 
   \item @{command "term"}~@{text t} and @{command "prop"}~@{text \<phi>}
   read, type-check and print terms or propositions according to the

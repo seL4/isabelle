@@ -19,8 +19,9 @@ sig
    path: string, parents: string list} list -> unit
   datatype dump_mode = Dump_all | Dump_tex | Dump_tex_sty
   val dump_mode: string -> dump_mode
-  val init: bool -> bool -> string -> string -> bool -> string list -> string list ->
-    string -> string * dump_mode -> Url.T option * bool -> bool ->
+  val read_variant: string -> string * string
+  val init: bool -> bool -> string -> string -> bool -> string -> (string * string) list ->
+    string list -> string -> string * dump_mode -> Url.T option * bool -> bool ->
     theory list -> unit  (*not thread-safe!*)
   val finish: unit -> unit  (*not thread-safe!*)
   val init_theory: string -> unit
@@ -219,17 +220,17 @@ fun dump_mode "all" = Dump_all
 
 type session_info =
   {name: string, parent: string, session: string, path: string list, html_prefix: Path.T,
-    info: bool, doc_format: string, doc_graph: bool, documents: (string * string) list,
-    doc_dump: (string * dump_mode), remote_path: Url.T option, verbose: bool,
-    readme: Path.T option};
+    info: bool, doc_format: string, doc_graph: bool, doc_output: Path.T option,
+    documents: (string * string) list, doc_dump: (string * dump_mode), remote_path: Url.T option,
+    verbose: bool, readme: Path.T option};
 
 fun make_session_info
-  (name, parent, session, path, html_prefix, info, doc_format, doc_graph, documents,
-    doc_dump, remote_path, verbose, readme) =
+  (name, parent, session, path, html_prefix, info, doc_format, doc_graph, doc_output,
+    documents, doc_dump, remote_path, verbose, readme) =
   {name = name, parent = parent, session = session, path = path, html_prefix = html_prefix,
-    info = info, doc_format = doc_format, doc_graph = doc_graph, documents = documents,
-    doc_dump = doc_dump, remote_path = remote_path, verbose = verbose,
-    readme = readme}: session_info;
+    info = info, doc_format = doc_format, doc_graph = doc_graph, doc_output = doc_output,
+    documents = documents, doc_dump = doc_dump, remote_path = remote_path,
+    verbose = verbose, readme = readme}: session_info;
 
 
 (* state *)
@@ -274,16 +275,12 @@ fun read_variant str =
   | [name, tags] => (name, tags)
   | _ => error ("Malformed document variant specification: " ^ quote str));
 
-fun read_variants strs =
-  rev (distinct (eq_fst (op =)) (rev ((documentN, "") :: map read_variant strs)))
-  |> filter_out (fn (_, s) => s = "-");
-
 
 (* init session *)
 
 fun name_of_session elems = space_implode "/" ("Isabelle" :: elems);
 
-fun init build info info_path doc doc_graph doc_variants path name
+fun init build info info_path doc doc_graph document_output doc_variants path name
     (doc_dump as (dump_prefix, _)) (remote_path, first_time) verbose thys =
   if not build andalso not info andalso doc = "" andalso dump_prefix = "" then
     (browser_info := empty_browser_info; session_info := NONE)
@@ -293,13 +290,14 @@ fun init build info info_path doc doc_graph doc_variants path name
       val session_name = name_of_session path;
       val sess_prefix = Path.make path;
       val html_prefix = Path.append (Path.expand (Path.explode info_path)) sess_prefix;
+      val doc_output = if document_output = "" then NONE else SOME (Path.explode document_output);
 
       val documents =
         if doc = "" then []
         else if not (can File.check_dir document_path) then
           (if verbose then Output.physical_stderr "Warning: missing document directory\n"
            else (); [])
-        else read_variants doc_variants;
+        else doc_variants;
 
       val parent_index_path = Path.append Path.parent index_path;
       val index_up_lnk =
@@ -318,8 +316,8 @@ fun init build info info_path doc doc_graph doc_variants path name
         (Url.File index_path, session_name) docs (Url.explode "medium.html");
     in
       session_info :=
-        SOME (make_session_info (name, parent_name, session_name, path, html_prefix,
-          info, doc, doc_graph, documents, doc_dump, remote_path, verbose, readme));
+        SOME (make_session_info (name, parent_name, session_name, path, html_prefix, info, doc,
+          doc_graph, doc_output, documents, doc_dump, remote_path, verbose, readme));
       browser_info := init_browser_info remote_path path thys;
       add_html_index (0, index_text)
     end;
@@ -327,11 +325,11 @@ fun init build info info_path doc doc_graph doc_variants path name
 
 (* isabelle tool wrappers *)
 
-fun isabelle_document verbose format name tags path result_path =
+fun isabelle_document {verbose, purge} format name tags dir =
   let
-    val s = "\"$ISABELLE_TOOL\" document -c -o '" ^ format ^ "' \
-      \-n '" ^ name ^ "' -t '" ^ tags ^ "' " ^ File.shell_path path ^ " 2>&1";
-    val doc_path = Path.append result_path (Path.ext format (Path.basic name));
+    val s = "\"$ISABELLE_TOOL\" document" ^ (if purge then " -c" else "") ^ " -o '" ^ format ^ "' \
+      \-n '" ^ name ^ "' -t '" ^ tags ^ "' " ^ File.shell_path dir ^ " 2>&1";
+    val doc_path = Path.appends [dir, Path.parent, Path.basic name |> Path.ext format];
     val _ = if verbose then writeln s else ();
     val (out, rc) = Isabelle_System.bash_output s;
     val _ =
@@ -369,8 +367,8 @@ fun write_tex_index tex_index path =
 
 
 fun finish () =
-  session_default () (fn {name, info, html_prefix, doc_format,
-    doc_graph, documents, doc_dump = (dump_prefix, dump_mode), path, verbose, readme, ...} =>
+  session_default () (fn {name, info, html_prefix, doc_format, doc_graph, doc_output,
+    documents, doc_dump = (dump_prefix, dump_mode), path, verbose, readme, ...} =>
   let
     val {theories, files, tex_index, html_index, graph} = ! browser_info;
     val thys = Symtab.dest theories;
@@ -433,11 +431,19 @@ fun finish () =
     val doc_paths =
       documents |> Par_List.map (fn (name, tags) =>
         let
-          val path = Path.append html_prefix (Path.basic name);
-          val _ = prepare_sources path Dump_all;
-        in isabelle_document true doc_format name tags path html_prefix end);
+          val (doc_prefix, purge) =
+            (case doc_output of
+              SOME path => (path, false)
+            | NONE => (html_prefix, true));
+          val _ =
+            File.eq (document_path, doc_prefix) andalso
+              error ("Overlap of document input and output directory " ^ Path.print doc_prefix);
+          val dir = Path.append doc_prefix (Path.basic name);
+          val mode = if File.eq (document_path, dir) then Dump_tex_sty else Dump_all;
+          val _ = prepare_sources dir mode;
+        in isabelle_document {verbose = true, purge = purge} doc_format name tags dir end);
     val _ =
-      if verbose then
+      if verbose orelse is_some doc_output then
         doc_paths
         |> List.app (fn doc => Output.physical_stderr ("Document at " ^ show_path doc ^ "\n"))
       else ();
@@ -543,7 +549,8 @@ fun drafts doc_format src_paths = Isabelle_System.with_tmp_dir "drafts" (fn dir 
       |> File.write (Path.append doc_path (tex_path name)));
     val _ = write_tex_index tex_index doc_path;
 
-    val result = isabelle_document false doc_format documentN "" doc_path dir;
+    val result =
+      isabelle_document {verbose = false, purge = true} doc_format documentN "" doc_path;
     val result' = Isabelle_System.create_tmp_path documentN doc_format;
     val _ = File.copy result result';
   in result' end);

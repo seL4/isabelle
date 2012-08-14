@@ -1,68 +1,70 @@
 (* :mode=isabelle-options: *)
 
-declare browser_info : bool = false
+option browser_info : bool = false
   -- "generate theory browser information"
 
-declare document : string = ""
+option document : string = ""
   -- "build document in given format: pdf, dvi, dvi.gz, ps, ps.gz, or false"
-declare document_variants : string = "outline=/proof,/ML"
-  -- "declare alternative document variants (separated by colons)"
-declare document_graph : bool = false
+option document_output : string = ""
+  -- "document output directory (default within $ISABELLE_BROWSER_INFO tree)"
+option document_variants : string = "document"
+  -- "option alternative document variants (separated by colons)"
+option document_graph : bool = false
   -- "generate session graph image for document"
-declare document_dump : string = ""
+option document_dump : string = ""
   -- "dump generated document sources into given directory"
-declare document_dump_mode : string = "all"
+option document_dump_mode : string = "all"
   -- "specific document dump mode: all, tex, tex+sty"
 
-declare threads : int = 0
+option threads : int = 0
   -- "maximum number of worker threads for prover process (0 = hardware max.)"
-declare threads_trace : int = 0
+option threads_trace : int = 0
   -- "level of tracing information for multithreading"
-declare parallel_proofs : int = 2
+option parallel_proofs : int = 2
   -- "level of parallel proof checking: 0, 1, 2"
-declare parallel_proofs_threshold : int = 100
+option parallel_proofs_threshold : int = 100
   -- "threshold for sub-proof parallelization"
 
-declare print_mode : string = ""
+option print_mode : string = ""
   -- "additional print modes for prover output (separated by commas)"
 
-declare proofs : int = 1
+option proofs : int = 1
   -- "level of detail for proof objects: 0, 1, 2"
-declare quick_and_dirty : bool = false
+option quick_and_dirty : bool = false
   -- "if true then some tools will OMIT some proofs"
-declare skip_proofs : bool = false
+option skip_proofs : bool = false
   -- "skip over proofs"
 
-declare condition : string = ""
+option condition : string = ""
   -- "required environment variables for subsequent theories (separated by commas)"
 
-declare show_question_marks : bool = true
+option show_question_marks : bool = true
   -- "show leading question mark of schematic variables"
 
-declare names_long : bool = false
+option names_long : bool = false
   -- "show fully qualified names"
-declare names_short : bool = false
+option names_short : bool = false
   -- "show base names only"
-declare names_unique : bool = true
+option names_unique : bool = true
   -- "show partially qualified names, as required for unique name resolution"
 
-declare pretty_margin : int = 76
+option pretty_margin : int = 76
   -- "right margin / page width of pretty printer in Isabelle/ML"
 
-declare thy_output_display : bool = false
+option thy_output_display : bool = false
   -- "indicate output as multi-line display-style material"
-declare thy_output_break : bool = false
+option thy_output_break : bool = false
   -- "control line breaks in non-display material"
-declare thy_output_quotes : bool = false
+option thy_output_quotes : bool = false
   -- "indicate if the output should be enclosed in double quotes"
-declare thy_output_indent : int = 0
+option thy_output_indent : int = 0
   -- "indentation for pretty printing of display material"
-declare thy_output_source : bool = false
+option thy_output_source : bool = false
   -- "print original source text rather than internal representation"
 
-declare timing : bool = false
+option timing : bool = false
   -- "global timing of toplevel command execution and theory processing"
 
-declare timeout : real = 0
+option timeout : real = 0
   -- "timeout for session build job (seconds > 0)"
 
