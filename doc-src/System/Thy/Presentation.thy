@@ -4,40 +4,35 @@ begin
 
 chapter {* Presenting theories \label{ch:present} *}
 
-text {*
-  Isabelle provides several ways to present the outcome of formal
-  developments, including WWW-based browsable libraries or actual
-  printable documents.  Presentation is centered around the concept of
-  \emph{logic sessions}.  The global session structure is that of a
-  tree, with Isabelle Pure at its root, further object-logics derived
-  (e.g.\ HOLCF from HOL, and HOL from Pure), and application sessions
-  in leaf positions (usually without a separate image).
+text {* Isabelle provides several ways to present the outcome of
+  formal developments, including WWW-based browsable libraries or
+  actual printable documents.  Presentation is centered around the
+  concept of \emph{sessions} (\chref{ch:session}).  The global session
+  structure is that of a tree, with Isabelle Pure at its root, further
+  object-logics derived (e.g.\ HOLCF from HOL, and HOL from Pure), and
+  application sessions further on in the hierarchy.
 
-  The tools @{tool_ref mkdir} and @{tool_ref make} provide the primary
-  means for managing Isabelle sessions, including proper setup for
-  presentation.  Here @{tool_ref usedir} takes care to let
-  @{executable_ref "isabelle-process"} process run any additional
-  stages required for document preparation, notably the tools
-  @{tool_ref document} and @{tool_ref latex}.  The complete tool chain
-  for managing batch-mode Isabelle sessions is illustrated in
-  \figref{fig:session-tools}.
+  The tools @{tool_ref mkroot} and @{tool_ref build} provide the
+  primary means for managing Isabelle sessions, including proper setup
+  for presentation; @{tool build} takes care to have @{executable_ref
+  "isabelle-process"} run any additional stages required for document
+  preparation, notably the @{tool_ref document} and @{tool_ref latex}.
+  The complete tool chain for managing batch-mode Isabelle sessions is
+  illustrated in \figref{fig:session-tools}.
 
   \begin{figure}[htbp]
   \begin{center}
   \begin{tabular}{lp{0.6\textwidth}}
 
-      @{tool_ref mkdir} & invoked once by the user to create the
-      initial source setup (common @{verbatim IsaMakefile} plus a
-      single session directory); \\
+      @{tool_ref mkroot} & invoked once by the user to initialize the
+      session @{verbatim ROOT} with optional @{verbatim document}
+      directory; \\
 
-      @{tool make} & invoked repeatedly by the user to keep session
-      output up-to-date (HTML, documents etc.); \\
-
-      @{tool usedir} & part of the standard @{verbatim IsaMakefile}
-      entry of a session; \\
+      @{tool_ref build} & invoked repeatedly by the user to keep
+      session output up-to-date (HTML, documents etc.); \\
 
       @{executable "isabelle-process"} & run through @{tool_ref
-      usedir}; \\
+      build}; \\
 
       @{tool_ref document} & run by the Isabelle process if document
       preparation is enabled; \\
@@ -58,364 +53,106 @@ section {* Generating theory browser information \label{sec:info} *}
 text {*
   \index{theory browsing information|bold}
 
-  As a side-effect of running a logic sessions, Isabelle is able to
-  generate theory browsing information, including HTML documents that
-  show a theory's definition, the theorems proved in its ML file and
-  the relationship with its ancestors and descendants.  Besides the
-  HTML file that is generated for every theory, Isabelle stores links
-  to all theories in an index file. These indexes are linked with
-  other indexes to represent the overall tree structure of logic
-  sessions.
+  As a side-effect of building sessions, Isabelle is able to generate
+  theory browsing information, including HTML documents that show the
+  theory sources and the relationship with its ancestors and
+  descendants.  Besides the HTML file that is generated for every
+  theory, Isabelle stores links to all theories in an index
+  file. These indexes are linked with other indexes to represent the
+  overall tree structure of the sessions.
 
   Isabelle also generates graph files that represent the theory
-  hierarchy of a logic.  There is a graph browser Java applet embedded
-  in the generated HTML pages, and also a stand-alone application that
-  allows browsing theory graphs without having to start a WWW client
-  first.  The latter version also includes features such as generating
-  Postscript files, which are not available in the applet version.
-  See \secref{sec:browse} for further information.
+  dependencies within a session.  There is a graph browser Java applet
+  embedded in the generated HTML pages, and also a stand-alone
+  application that allows browsing theory graphs without having to
+  start a WWW client first.  The latter version also includes features
+  such as generating Postscript files, which are not available in the
+  applet version.  See \secref{sec:browse} for further information.
 
   \medskip
 
   The easiest way to let Isabelle generate theory browsing information
-  for existing sessions is to append ``@{verbatim "-i true"}'' to the
-  @{setting_ref ISABELLE_USEDIR_OPTIONS} before invoking @{tool make}.
-  For example, add something like this to your Isabelle settings file
+  for existing sessions is to invoke @{tool build} with suitable
+  options:
 
 \begin{ttbox}
-ISABELLE_USEDIR_OPTIONS="-i true"
+isabelle build -o browser_info -v -c FOL
 \end{ttbox}
 
-  and then change into the @{file "~~/src/FOL"} directory and run
-  @{tool make}, or even @{tool make}~@{verbatim all}.  The
-  presentation output will appear in @{verbatim
-  "ISABELLE_BROWSER_INFO/FOL"}, which usually refers to something like
-  @{verbatim "~/.isabelle/IsabelleXXXX/browser_info/FOL"}.  Note that
-  option @{verbatim "-v true"} will make the internal runs of @{tool
-  usedir} more explicit about such details.
+  The presentation output will appear in @{verbatim
+  "$ISABELLE_BROWSER_INFO/FOL"} as reported by the above verbose
+  invocation of the build process.
 
-  Many standard Isabelle sessions (such as @{file "~~/src/HOL/ex"})
-  also provide actual printable documents.  These are prepared
-  automatically as well if enabled like this, using the @{verbatim
-  "-d"} option
+  Many Isabelle sessions (such as @{verbatim "HOL-Library"} in @{file
+  "~~/src/HOL/Library"}) also provide actual printable documents.
+  These are prepared automatically as well if enabled like this:
 \begin{ttbox}
-ISABELLE_USEDIR_OPTIONS="-i true -d dvi"
+isabelle build -o browser_info -o document=pdf -v -c HOL-Library
 \end{ttbox}
-  Enabling options @{verbatim "-i"} and @{verbatim "-d"}
-  simultaneously as shown above causes an appropriate ``document''
-  link to be included in the HTML index.  Documents (or raw document
-  sources) may be generated independently of browser information as
-  well, see \secref{sec:tool-document} for further details.
+
+  Enabling both browser info and document preparation simultaneously
+  causes an appropriate ``document'' link to be included in the HTML
+  index.  Documents may be generated independently of browser
+  information as well, see \secref{sec:tool-document} for further
+  details.
 
   \bigskip The theory browsing information is stored in a
   sub-directory directory determined by the @{setting_ref
   ISABELLE_BROWSER_INFO} setting plus a prefix corresponding to the
   session identifier (according to the tree structure of sub-sessions
-  by default).  A complete WWW view of all standard object-logics and
-  examples of the Isabelle distribution is available at the usual
-  Isabelle sites:
-  \begin{center}\small
-  \begin{tabular}{l}
-    \url{http://isabelle.in.tum.de/dist/library/} \\
-    \url{http://www.cl.cam.ac.uk/research/hvg/Isabelle/dist/library/} \\
-    \url{http://mirror.cse.unsw.edu.au/pub/isabelle/dist/library/} \\
-  \end{tabular}
-  \end{center}
-  
-  \medskip In order to present your own theories on the web, simply
-  copy the corresponding subdirectory from @{setting
-  ISABELLE_BROWSER_INFO} to your WWW server, having generated browser
-  info like this:
-\begin{ttbox}
-isabelle usedir -i true HOL Foo
-\end{ttbox}
-
-  This assumes that directory @{verbatim Foo} contains some @{verbatim
-  ROOT.ML} file to load all your theories, and HOL is your parent
-  logic image (@{tool_ref mkdir} assists in setting up Isabelle
-  session directories.  Theory browser information for HOL should have
-  been generated already beforehand.  Alternatively, one may specify
-  an external link to an existing body of HTML data by giving @{tool
-  usedir} a @{verbatim "-P"} option like this:
-\begin{ttbox}
-isabelle usedir -i true -P http://isabelle.in.tum.de/library/ HOL Foo
-\end{ttbox}
-
-  \medskip For production use, @{tool usedir} is usually invoked in an
-  appropriate @{verbatim IsaMakefile}, via @{tool make}.  There is a
-  separate @{tool mkdir} tool to provide easy setup of all this, with
-  only minimal manual editing required.
-\begin{ttbox}
-isabelle mkdir HOL Foo && isabelle make
-\end{ttbox}
-  See \secref{sec:tool-mkdir} for more information on preparing
-  Isabelle session directories, including the setup for documents.
+  by default).  In order to present Isabelle applications on the web,
+  the corresponding subdirectory from @{setting ISABELLE_BROWSER_INFO}
+  can be put on a WWW server.
 *}
 
+section {* Preparing session root directories \label{sec:tool-mkroot} *}
 
-section {* Creating Isabelle session directories
-  \label{sec:tool-mkdir} *}
-
-text {* The @{tool_def mkdir} tool prepares Isabelle session source
-  directories, including a sensible default setup of @{verbatim
-  IsaMakefile}, @{verbatim ROOT.ML}, and a @{verbatim document}
-  directory with a minimal @{verbatim root.tex} that is sufficient to
-  print all theories of the session (in the order of appearance); see
-  \secref{sec:tool-document} for further information on Isabelle
-  document preparation.  The usage of @{tool mkdir} is:
-
+text {* The @{tool_def mkroot} tool configures a given directory as
+  session root, with some @{verbatim ROOT} file and optional document
+  source directory.  Its usage is:
 \begin{ttbox}
-Usage: isabelle mkdir [OPTIONS] [LOGIC] NAME
+Usage: isabelle mkroot [OPTIONS] [DIR]
 
   Options are:
-    -I FILE      alternative IsaMakefile output
-    -P           include parent logic target
-    -b           setup build mode (session outputs heap image)
-    -q           quiet mode
+    -d           enable document preparation
+    -n NAME      alternative session name (default: DIR base name)
 
-  Prepare session directory, including IsaMakefile and document source,
-  with parent LOGIC (default ISABELLE_LOGIC=\$ISABELLE_LOGIC)
+  Prepare session root DIR (default: current directory).
 \end{ttbox}
 
-  The @{tool mkdir} tool is conservative in the sense that any
-  existing @{verbatim IsaMakefile} etc.\ is left unchanged.  Thus it
-  is safe to invoke it multiple times, although later runs may not
-  have the desired effect.
+  The results are placed in the given directory @{text dir}, which
+  refers to the current directory by default.  The @{tool mkroot} tool
+  is conservative in the sense that it does not overwrite existing
+  files or directories.  Earlier attempts to generate a session root
+  need to be deleted manually.
 
-  Note that @{tool mkdir} is unable to change @{verbatim IsaMakefile}
-  incrementally --- manual changes are required for multiple
-  sub-sessions.  On order to get an initial working session, the only
-  editing needed is to add appropriate @{ML use_thy} calls to the
-  generated @{verbatim ROOT.ML} file.
-*}
+  \medskip Option @{verbatim "-d"} indicates that the session shall be
+  accompanied by a formal document, with @{text dir}@{verbatim
+  "/document/root.tex"} as its {\LaTeX} entry point (see also
+  \chref{ch:present}).
 
+  Option @{verbatim "-n"} allows to specify an alternative session
+  name; otherwise the base name of the given directory is used.
 
-subsubsection {* Options *}
-
-text {*
-  The @{verbatim "-I"} option specifies an alternative to @{verbatim
-  IsaMakefile} for dependencies.  Note that ``@{verbatim "-"}'' refers
-  to \emph{stdout}, i.e.\ ``@{verbatim "-I-"}'' provides an easy way
-  to peek at @{tool mkdir}'s idea of @{tool make} setup required for
-  some particular of Isabelle session.
-
-  \medskip The @{verbatim "-P"} option includes a target for the
-  parent @{verbatim LOGIC} session in the generated @{verbatim
-  IsaMakefile}.  The corresponding sources are assumed to be located
-  within the Isabelle distribution.
-
-  \medskip The @{verbatim "-b"} option sets up the current directory
-  as the base for a new session that provides an actual logic image,
-  as opposed to one that only runs several theories based on an
-  existing image.  Note that in the latter case, everything except
-  @{verbatim IsaMakefile} would be placed into a separate directory
-  @{verbatim NAME}, rather than the current one.  See
-  \secref{sec:tool-usedir} for further information on \emph{build
-  mode} vs.\ \emph{example mode} of @{tool usedir}.
-
-  \medskip The @{verbatim "-q"} option enables quiet mode, suppressing
-  further notes on how to proceed.
-*}
+  \medskip The implicit Isabelle settings variable @{setting
+  ISABELLE_LOGIC} specifies the parent session, and @{setting
+  ISABELLE_DOCUMENT_FORMAT} the document format to be filled filled
+  into the generated @{verbatim ROOT} file.  *}
 
 
 subsubsection {* Examples *}
 
-text {*
-  The standard setup of a single ``example session'' based on the
-  default logic, with proper document generation is generated like
-  this:
+text {* Produce session @{verbatim Test} (with document preparation)
+  within a separate directory of the same name:
 \begin{ttbox}
-isabelle mkdir Foo && isabelle make
+isabelle mkroot -d Test && isabelle build -D Test
 \end{ttbox}
 
-  \noindent The theory sources should be put into the @{verbatim Foo}
-  directory, and its @{verbatim ROOT.ML} should be edited to load all
-  required theories.  Invoking @{tool make} again would run the whole
-  session, generating browser information and the document
-  automatically.  The @{verbatim IsaMakefile} is typically tuned
-  manually later, e.g.\ adding source dependencies, or changing the
-  options passed to @{tool usedir}.
-
-  \medskip Large projects may demand further sessions, potentially
-  with separate logic images being created.  This usually requires
-  manual editing of the generated @{verbatim IsaMakefile}, which is
-  meant to cover all of the sub-session directories at the same time
-  (this is the deeper reasong why @{verbatim IsaMakefile} is not made
-  part of the initial session directory created by @{tool mkdir}).
-*}
-
-
-section {* Running Isabelle sessions \label{sec:tool-usedir} *}
-
-text {* The @{tool_def usedir} tool builds object-logic images, or
-  runs example sessions based on existing logics. Its usage is:
+  \medskip Upgrade the current directory into a session ROOT with
+  document preparation, and build it:
 \begin{ttbox}
-Usage: isabelle usedir [OPTIONS] LOGIC NAME
-
-  Options are:
-    -C BOOL      copy existing document directory to -D PATH (default true)
-    -D PATH      dump generated document sources into PATH
-    -M MAX       multithreading: maximum number of worker threads (default 1)
-    -P PATH      set path for remote theory browsing information
-    -Q INT       set threshold for sub-proof parallelization (default 50)
-    -T LEVEL     multithreading: trace level (default 0)
-    -V VARIANT   declare alternative document VARIANT
-    -b           build mode (output heap image, using current dir)
-    -d FORMAT    build document as FORMAT (default false)
-    -f NAME      use ML file NAME (default ROOT.ML)
-    -g BOOL      generate session graph image for document (default false)
-    -i BOOL      generate theory browser information (default false)
-    -m MODE      add print mode for output
-    -p LEVEL     set level of detail for proof objects (default 0)
-    -q LEVEL     set level of parallel proof checking (default 1)
-    -r           reset session path
-    -s NAME      override session NAME
-    -t BOOL      internal session timing (default false)
-    -v BOOL      be verbose (default false)
-
-  Build object-logic or run examples. Also creates browsing
-  information (HTML etc.) according to settings.
-
-  ISABELLE_USEDIR_OPTIONS=...
-
-  ML_PLATFORM=...
-  ML_HOME=...
-  ML_SYSTEM=...
-  ML_OPTIONS=...
+isabelle mkroot -d && isabelle build -D .
 \end{ttbox}
-
-  Note that the value of the @{setting_ref ISABELLE_USEDIR_OPTIONS}
-  setting is implicitly prefixed to \emph{any} @{tool usedir}
-  call. Since the @{verbatim IsaMakefile}s of all object-logics
-  distributed with Isabelle just invoke @{tool usedir} for the real
-  work, one may control compilation options globally via above
-  variable. In particular, generation of \rmindex{HTML} browsing
-  information and document preparation is controlled here.
-*}
-
-
-subsubsection {* Options *}
-
-text {*
-  Basically, there are two different modes of operation: \emph{build
-  mode} (enabled through the @{verbatim "-b"} option) and
-  \emph{example mode} (default).
-
-  Calling @{tool usedir} with @{verbatim "-b"} runs @{executable
-  "isabelle-process"} with input image @{verbatim LOGIC} and output to
-  @{verbatim NAME}, as provided on the command line. This will be a
-  batch session, running @{verbatim ROOT.ML} from the current
-  directory and then quitting.  It is assumed that @{verbatim ROOT.ML}
-  contains all ML commands required to build the logic.
-
-  In example mode, @{tool usedir} runs a read-only session of
-  @{verbatim LOGIC} and automatically runs @{verbatim ROOT.ML} from
-  within directory @{verbatim NAME}.  It assumes that this file
-  contains appropriate ML commands to run the desired examples.
-
-  \medskip The @{verbatim "-i"} option controls theory browser data
-  generation. It may be explicitly turned on or off --- as usual, the
-  last occurrence of @{verbatim "-i"} on the command line wins.
-
-  The @{verbatim "-P"} option specifies a path (or actual URL) to be
-  prefixed to any \emph{non-local} reference of existing theories.
-  Thus user sessions may easily link to existing Isabelle libraries
-  already present on the WWW.
-
-  The @{verbatim "-m"} options specifies additional print modes to be
-  activated temporarily while the session is processed.
-
-  \medskip The @{verbatim "-d"} option controls document preparation.
-  Valid arguments are @{verbatim false} (do not prepare any document;
-  this is default), or any of @{verbatim dvi}, @{verbatim dvi.gz},
-  @{verbatim ps}, @{verbatim ps.gz}, @{verbatim pdf}.  The logic
-  session has to provide a properly setup @{verbatim document}
-  directory.  See \secref{sec:tool-document} and
-  \secref{sec:tool-latex} for more details.
-
-  \medskip The @{verbatim "-V"} option declares alternative document
-  variants, consisting of name/tags pairs (cf.\ options @{verbatim
-  "-n"} and @{verbatim "-t"} of @{tool_ref document}).  The standard
-  document is equivalent to ``@{verbatim
-  "document=theory,proof,ML"}'', which means that all theory begin/end
-  commands, proof body texts, and ML code will be presented
-  faithfully.
-
-  An alternative variant ``@{verbatim "outline=/proof/ML"}'' would
-  fold proof and ML parts, replacing the original text by a short
-  place-holder.  The form ``@{text name}@{verbatim "=-"},'' means to
-  remove document @{text name} from the list of variants to be
-  processed.  Any number of @{verbatim "-V"} options may be given;
-  later declarations have precedence over earlier ones.
-
-  Some document variant @{text name} may use an alternative {\LaTeX}
-  entry point called @{verbatim "document/root_"}@{text
-  "name"}@{verbatim ".tex"} if that file exists; otherwise the common
-  @{verbatim "document/root.tex"} is used.
-
-  \medskip The @{verbatim "-g"} option produces images of the theory
-  dependency graph (cf.\ \secref{sec:browse}) for inclusion in the
-  generated document, both as @{verbatim session_graph.eps} and
-  @{verbatim session_graph.pdf} at the same time.  To include this in
-  the final {\LaTeX} document one could say @{verbatim
-  "\\includegraphics{session_graph}"} in @{verbatim
-  "document/root.tex"} (omitting the file-name extension enables
-  {\LaTeX} to select to correct version, either for the DVI or PDF
-  output path).
-
-  \medskip The @{verbatim "-D"} option causes the generated document
-  sources to be dumped at location @{verbatim PATH}; this path is
-  relative to the session's main directory.  If the @{verbatim "-C"}
-  option is true, this will include a copy of an existing @{verbatim
-  document} directory as provided by the user.  For example, @{tool
-  usedir}~@{verbatim "-D generated HOL Foo"} produces a complete set
-  of document sources at @{verbatim "Foo/generated"}.  Subsequent
-  invocation of @{tool document}~@{verbatim "Foo/generated"} (see also
-  \secref{sec:tool-document}) will process the final result
-  independently of an Isabelle job.  This decoupled mode of operation
-  facilitates debugging of serious {\LaTeX} errors, for example.
-
-  \medskip The @{verbatim "-p"} option determines the level of detail
-  for internal proof objects, see also the \emph{Isabelle Reference
-  Manual}~\cite{isabelle-ref}.
-
-  \medskip The @{verbatim "-q"} option specifies the level of parallel
-  proof checking: @{verbatim 0} no proofs, @{verbatim 1} toplevel
-  proofs (default), @{verbatim 2} toplevel and nested Isar proofs.
-  The option @{verbatim "-Q"} specifies a threshold for @{verbatim
-  "-q2"}: nested proofs are only parallelized when the current number
-  of forked proofs falls below the given value (default 50),
-  multiplied by the number of worker threads (see option @{verbatim
-  "-M"}).
-
-  \medskip The @{verbatim "-t"} option produces a more detailed
-  internal timing report of the session.
-
-  \medskip The @{verbatim "-v"} option causes additional information
-  to be printed while running the session, notably the location of
-  prepared documents.
-
-  \medskip The @{verbatim "-M"} option specifies the maximum number of
-  parallel worker threads used for processing independent tasks when
-  checking theory sources (multithreading only works on suitable ML
-  platforms).  The special value of @{verbatim 0} or @{verbatim max}
-  refers to the number of actual CPU cores of the underlying machine,
-  which is a good starting point for optimal performance tuning.  The
-  @{verbatim "-T"} option determines the level of detail in tracing
-  output concerning the internal locking and scheduling in
-  multithreaded operation.  This may be helpful in isolating
-  performance bottle-necks, e.g.\ due to excessive wait states when
-  locking critical code sections.
-
-  \medskip Any @{tool usedir} session is named by some \emph{session
-  identifier}. These accumulate, documenting the way sessions depend
-  on others. For example, consider @{verbatim "Pure/FOL/ex"}, which
-  refers to the examples of FOL, which in turn is built upon Pure.
-
-  The current session's identifier is by default just the base name of
-  the @{verbatim LOGIC} argument (in build mode), or of the @{verbatim
-  NAME} argument (in example mode). This may be overridden explicitly
-  via the @{verbatim "-s"} option.
 *}
 
 
@@ -438,15 +175,14 @@ Usage: isabelle document [OPTIONS] [DIR]
   Prepare the theory session document in DIR (default 'document')
   producing the specified output format.
 \end{ttbox}
-  This tool is usually run automatically as part of the corresponding
-  Isabelle batch process, provided document preparation has been
-  enabled (cf.\ the @{verbatim "-d"} option of @{tool_ref usedir}).
-  It may be manually invoked on the generated browser information
-  document output as well, e.g.\ in case of errors encountered in the
-  batch run.
+  This tool is usually run automatically as part of the Isabelle build
+  process, provided document preparation has been enabled via suitable
+  options.  It may be manually invoked on the generated browser
+  information document output as well, e.g.\ in case of errors
+  encountered in the batch run.
 
   \medskip The @{verbatim "-c"} option tells @{tool document} to
-  dispose the document sources after successful operation.  This is
+  dispose the document sources after successful operation!  This is
   the right thing to do for sources generated by an Isabelle process,
   but take care of your files in manual document preparation!
 
@@ -467,11 +203,10 @@ Usage: isabelle document [OPTIONS] [DIR]
   @{verbatim "\\isafoldtag"}, in @{file
   "~~/lib/texinputs/isabelle.sty"}.
 
-  \medskip Document preparation requires a properly setup ``@{verbatim
-  document}'' directory within the logic session sources.  This
-  directory is supposed to contain all the files needed to produce the
-  final document --- apart from the actual theories which are
-  generated by Isabelle.
+  \medskip Document preparation requires a @{verbatim document}
+  directory within the session sources.  This directory is supposed to
+  contain all the files needed to produce the final document --- apart
+  from the actual theories which are generated by Isabelle.
 
   \medskip For most practical purposes, @{tool document} is smart
   enough to create any of the specified output formats, taking
@@ -486,7 +221,8 @@ Usage: isabelle document [OPTIONS] [DIR]
   The script needs to produce corresponding output files, e.g.\
   @{verbatim root.pdf} for target format @{verbatim pdf} (and default
   default variants).  The main work can be again delegated to @{tool
-  latex}.
+  latex}, but it is also possible to harvest generated {\LaTeX}
+  sources and copy them elsewhere, for example.
 
   \medskip When running the session, Isabelle copies the content of
   the original @{verbatim document} directory into its proper place
@@ -519,15 +255,16 @@ Usage: isabelle document [OPTIONS] [DIR]
   bookmarks), we recommend to include @{file
   "~~/lib/texinputs/pdfsetup.sty"} as well.
 
-  \medskip As a final step of document preparation within Isabelle,
-  @{tool document}~@{verbatim "-c"} is run on the resulting @{verbatim
-  document} directory.  Thus the actual output document is built and
-  installed in its proper place (as linked by the session's @{verbatim
-  index.html} if option @{verbatim "-i"} of @{tool_ref usedir} has
-  been enabled, cf.\ \secref{sec:info}).  The generated sources are
-  deleted after successful run of {\LaTeX} and friends.  Note that a
-  separate copy of the sources may be retained by passing an option
-  @{verbatim "-D"} to @{tool usedir} when running the session.  *}
+  \medskip As a final step of Isabelle document preparation, @{tool
+  document}~@{verbatim "-c"} is run on the resulting copy of the
+  @{verbatim document} directory.  Thus the actual output document is
+  built and installed in its proper place.  The generated sources are
+  deleted after successful run of {\LaTeX} and friends.
+
+  Some care is needed if the document output location is configured
+  differently, say within a directory whose content is still required
+  afterwards!
+*}
 
 
 section {* Running {\LaTeX} within the Isabelle environment
@@ -556,8 +293,7 @@ Usage: isabelle latex [OPTIONS] [FILE]
   The @{verbatim sty} output format causes the Isabelle style files to
   be updated from the distribution.  This is useful in special
   situations where the document sources are to be processed another
-  time by separate tools (cf.\ option @{verbatim "-D"} of @{tool
-  usedir}).
+  time by separate tools.
 
   The @{verbatim syms} output is for internal use; it generates lists
   of symbols that are available without loading additional {\LaTeX}

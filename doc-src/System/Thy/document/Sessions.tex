@@ -430,61 +430,6 @@ isabelle build -D '$AFP'
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsection{Preparing session root directories \label{sec:tool-mkroot}%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-The \indexdef{}{tool}{mkroot}\hypertarget{tool.mkroot}{\hyperlink{tool.mkroot}{\mbox{\isa{\isatool{mkroot}}}}} tool configures a given directory as
-  session root, with some \verb|ROOT| file and optional document
-  source directory.  Its usage is:
-\begin{ttbox}
-Usage: isabelle mkroot [OPTIONS] [DIR]
-
-  Options are:
-    -d           enable document preparation
-    -n NAME      alternative session name (default: DIR base name)
-
-  Prepare session root DIR (default: current directory).
-\end{ttbox}
-
-  The results are placed in the given directory \isa{dir}, which
-  refers to the current directory by default.  The \hyperlink{tool.mkroot}{\mbox{\isa{\isatool{mkroot}}}} tool
-  is conservative in the sense that it does not overwrite existing
-  files or directories.  Earlier attempts to generate a session root
-  need to be deleted manually.
-
-  \medskip Option \verb|-d| indicates that the session shall be
-  accompanied by a formal document, with \isa{dir}\verb|/document/root.tex| as its {\LaTeX} entry point (see also
-  \chref{ch:present}).
-
-  Option \verb|-n| allows to specify an alternative session
-  name; otherwise the base name of the given directory is used.
-
-  \medskip The implicit Isabelle settings variable \hyperlink{setting.ISABELLE-LOGIC}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}LOGIC}}}} specifies the parent session, and \hyperlink{setting.ISABELLE-DOCUMENT-FORMAT}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}DOCUMENT{\isaliteral{5F}{\isacharunderscore}}FORMAT}}}} the document format to be filled filled
-  into the generated \verb|ROOT| file.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsubsection{Examples%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-Produce session \verb|Test| within a separate directory
-  of the same name:
-\begin{ttbox}
-isabelle mkroot Test && isabelle build -D Test
-\end{ttbox}
-
-  \medskip Upgrade the current directory into a session ROOT with
-  document preparation, and build it:
-\begin{ttbox}
-isabelle mkroot -d && isabelle build -D .
-\end{ttbox}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
 \isadelimtheory
 %
 \endisadelimtheory

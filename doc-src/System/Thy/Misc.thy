@@ -196,9 +196,9 @@ Usage: isabelle logo [OPTIONS] NAME
   creates @{verbatim isabelle_bali.eps}.  *}
 
 
-section {* Isabelle's version of make \label{sec:tool-make} *}
+section {* Isabelle wrapper for make \label{sec:tool-make} *}
 
-text {* The @{tool_def make} tool is a very simple wrapper for
+text {* The old @{tool_def make} tool is a very simple wrapper for
   ordinary Unix @{executable make}:
 \begin{ttbox}
 Usage: isabelle make [ARGS ...]
@@ -209,16 +209,73 @@ Usage: isabelle make [ARGS ...]
 
   Note that the Isabelle settings environment is also active. Thus one
   may refer to its values within the @{verbatim IsaMakefile}, e.g.\
-  @{verbatim "$(ISABELLE_OUTPUT)"}. Furthermore, programs started from
-  the make file also inherit this environment.  Typically, @{verbatim
-  IsaMakefile}s defer the real work to @{tool_ref usedir}.
+  @{verbatim "$(ISABELLE_HOME)"}. Furthermore, programs started from
+  the make file also inherit this environment.
+*}
 
-  \medskip The basic @{verbatim IsaMakefile} convention is that the
-  default target builds the actual logic, including its parents if
-  appropriate.  The @{verbatim images} target is intended to build all
-  local logic images, while the @{verbatim test} target shall build
-  all related examples.  The @{verbatim all} target shall do
-  @{verbatim images} and @{verbatim test}.
+
+section {* Creating Isabelle session directories
+  \label{sec:tool-mkdir} *}
+
+text {* The old @{tool_def mkdir} tool prepares Isabelle session
+  source directories, including a sensible default setup of @{verbatim
+  IsaMakefile}, @{verbatim ROOT.ML}, and a @{verbatim document}
+  directory with a minimal @{verbatim root.tex} that is sufficient to
+  print all theories of the session (in the order of appearance); see
+  \secref{sec:tool-document} for further information on Isabelle
+  document preparation.  The usage of @{tool mkdir} is:
+
+\begin{ttbox}
+Usage: isabelle mkdir [OPTIONS] [LOGIC] NAME
+
+  Options are:
+    -I FILE      alternative IsaMakefile output
+    -P           include parent logic target
+    -b           setup build mode (session outputs heap image)
+    -q           quiet mode
+
+  Prepare session directory, including IsaMakefile and document source,
+  with parent LOGIC (default ISABELLE_LOGIC=\$ISABELLE_LOGIC)
+\end{ttbox}
+
+  The @{tool mkdir} tool is conservative in the sense that any
+  existing @{verbatim IsaMakefile} etc.\ is left unchanged.  Thus it
+  is safe to invoke it multiple times, although later runs may not
+  have the desired effect.
+
+  Note that @{tool mkdir} is unable to change @{verbatim IsaMakefile}
+  incrementally --- manual changes are required for multiple
+  sub-sessions.  On order to get an initial working session, the only
+  editing needed is to add appropriate @{ML use_thy} calls to the
+  generated @{verbatim ROOT.ML} file.
+*}
+
+
+subsubsection {* Options *}
+
+text {*
+  The @{verbatim "-I"} option specifies an alternative to @{verbatim
+  IsaMakefile} for dependencies.  Note that ``@{verbatim "-"}'' refers
+  to \emph{stdout}, i.e.\ ``@{verbatim "-I-"}'' provides an easy way
+  to peek at @{tool mkdir}'s idea of @{tool make} setup required for
+  some particular of Isabelle session.
+
+  \medskip The @{verbatim "-P"} option includes a target for the
+  parent @{verbatim LOGIC} session in the generated @{verbatim
+  IsaMakefile}.  The corresponding sources are assumed to be located
+  within the Isabelle distribution.
+
+  \medskip The @{verbatim "-b"} option sets up the current directory
+  as the base for a new session that provides an actual logic image,
+  as opposed to one that only runs several theories based on an
+  existing image.  Note that in the latter case, everything except
+  @{verbatim IsaMakefile} would be placed into a separate directory
+  @{verbatim NAME}, rather than the current one.  See
+  \secref{sec:tool-usedir} for further information on \emph{build
+  mode} vs.\ \emph{example mode} of @{tool usedir}.
+
+  \medskip The @{verbatim "-q"} option enables quiet mode, suppressing
+  further notes on how to proceed.
 *}
 
 
@@ -258,6 +315,180 @@ Usage: isabelle unsymbolize [FILES|DIRS...]
 
   Renames old versions of FILES by appending "~~".
 \end{ttbox}
+*}
+
+
+section {* Running Isabelle sessions \label{sec:tool-usedir} *}
+
+text {* The old @{tool_def usedir} tool builds object-logic images, or
+  runs example sessions based on existing logics. Its usage is:
+\begin{ttbox}
+Usage: isabelle usedir [OPTIONS] LOGIC NAME
+
+  Options are:
+    -C BOOL      copy existing document directory to -D PATH (default true)
+    -D PATH      dump generated document sources into PATH
+    -M MAX       multithreading: maximum number of worker threads (default 1)
+    -P PATH      set path for remote theory browsing information
+    -Q INT       set threshold for sub-proof parallelization (default 50)
+    -T LEVEL     multithreading: trace level (default 0)
+    -V VARIANT   declare alternative document VARIANT
+    -b           build mode (output heap image, using current dir)
+    -d FORMAT    build document as FORMAT (default false)
+    -f NAME      use ML file NAME (default ROOT.ML)
+    -g BOOL      generate session graph image for document (default false)
+    -i BOOL      generate theory browser information (default false)
+    -m MODE      add print mode for output
+    -p LEVEL     set level of detail for proof objects (default 0)
+    -q LEVEL     set level of parallel proof checking (default 1)
+    -r           reset session path
+    -s NAME      override session NAME
+    -t BOOL      internal session timing (default false)
+    -v BOOL      be verbose (default false)
+
+  Build object-logic or run examples. Also creates browsing
+  information (HTML etc.) according to settings.
+
+  ISABELLE_USEDIR_OPTIONS=...
+
+  ML_PLATFORM=...
+  ML_HOME=...
+  ML_SYSTEM=...
+  ML_OPTIONS=...
+\end{ttbox}
+
+  Note that the value of the @{setting_ref ISABELLE_USEDIR_OPTIONS}
+  setting is implicitly prefixed to \emph{any} @{tool usedir}
+  call. Since the @{verbatim IsaMakefile}s of all object-logics
+  distributed with Isabelle just invoke @{tool usedir} for the real
+  work, one may control compilation options globally via above
+  variable. In particular, generation of \rmindex{HTML} browsing
+  information and document preparation is controlled here.
+*}
+
+
+subsubsection {* Options *}
+
+text {*
+  Basically, there are two different modes of operation: \emph{build
+  mode} (enabled through the @{verbatim "-b"} option) and
+  \emph{example mode} (default).
+
+  Calling @{tool usedir} with @{verbatim "-b"} runs @{executable
+  "isabelle-process"} with input image @{verbatim LOGIC} and output to
+  @{verbatim NAME}, as provided on the command line. This will be a
+  batch session, running @{verbatim ROOT.ML} from the current
+  directory and then quitting.  It is assumed that @{verbatim ROOT.ML}
+  contains all ML commands required to build the logic.
+
+  In example mode, @{tool usedir} runs a read-only session of
+  @{verbatim LOGIC} and automatically runs @{verbatim ROOT.ML} from
+  within directory @{verbatim NAME}.  It assumes that this file
+  contains appropriate ML commands to run the desired examples.
+
+  \medskip The @{verbatim "-i"} option controls theory browser data
+  generation. It may be explicitly turned on or off --- as usual, the
+  last occurrence of @{verbatim "-i"} on the command line wins.
+
+  The @{verbatim "-P"} option specifies a path (or actual URL) to be
+  prefixed to any \emph{non-local} reference of existing theories.
+  Thus user sessions may easily link to existing Isabelle libraries
+  already present on the WWW.
+
+  The @{verbatim "-m"} options specifies additional print modes to be
+  activated temporarily while the session is processed.
+
+  \medskip The @{verbatim "-d"} option controls document preparation.
+  Valid arguments are @{verbatim false} (do not prepare any document;
+  this is default), or any of @{verbatim dvi}, @{verbatim dvi.gz},
+  @{verbatim ps}, @{verbatim ps.gz}, @{verbatim pdf}.  The logic
+  session has to provide a properly setup @{verbatim document}
+  directory.  See \secref{sec:tool-document} and
+  \secref{sec:tool-latex} for more details.
+
+  \medskip The @{verbatim "-V"} option declares alternative document
+  variants, consisting of name/tags pairs (cf.\ options @{verbatim
+  "-n"} and @{verbatim "-t"} of @{tool_ref document}).  The standard
+  document is equivalent to ``@{verbatim
+  "document=theory,proof,ML"}'', which means that all theory begin/end
+  commands, proof body texts, and ML code will be presented
+  faithfully.
+
+  An alternative variant ``@{verbatim "outline=/proof/ML"}'' would
+  fold proof and ML parts, replacing the original text by a short
+  place-holder.  The form ``@{text name}@{verbatim "=-"},'' means to
+  remove document @{text name} from the list of variants to be
+  processed.  Any number of @{verbatim "-V"} options may be given;
+  later declarations have precedence over earlier ones.
+
+  Some document variant @{text name} may use an alternative {\LaTeX}
+  entry point called @{verbatim "document/root_"}@{text
+  "name"}@{verbatim ".tex"} if that file exists; otherwise the common
+  @{verbatim "document/root.tex"} is used.
+
+  \medskip The @{verbatim "-g"} option produces images of the theory
+  dependency graph (cf.\ \secref{sec:browse}) for inclusion in the
+  generated document, both as @{verbatim session_graph.eps} and
+  @{verbatim session_graph.pdf} at the same time.  To include this in
+  the final {\LaTeX} document one could say @{verbatim
+  "\\includegraphics{session_graph}"} in @{verbatim
+  "document/root.tex"} (omitting the file-name extension enables
+  {\LaTeX} to select to correct version, either for the DVI or PDF
+  output path).
+
+  \medskip The @{verbatim "-D"} option causes the generated document
+  sources to be dumped at location @{verbatim PATH}; this path is
+  relative to the session's main directory.  If the @{verbatim "-C"}
+  option is true, this will include a copy of an existing @{verbatim
+  document} directory as provided by the user.  For example, @{tool
+  usedir}~@{verbatim "-D generated HOL Foo"} produces a complete set
+  of document sources at @{verbatim "Foo/generated"}.  Subsequent
+  invocation of @{tool document}~@{verbatim "Foo/generated"} (see also
+  \secref{sec:tool-document}) will process the final result
+  independently of an Isabelle job.  This decoupled mode of operation
+  facilitates debugging of serious {\LaTeX} errors, for example.
+
+  \medskip The @{verbatim "-p"} option determines the level of detail
+  for internal proof objects, see also the \emph{Isabelle Reference
+  Manual}~\cite{isabelle-ref}.
+
+  \medskip The @{verbatim "-q"} option specifies the level of parallel
+  proof checking: @{verbatim 0} no proofs, @{verbatim 1} toplevel
+  proofs (default), @{verbatim 2} toplevel and nested Isar proofs.
+  The option @{verbatim "-Q"} specifies a threshold for @{verbatim
+  "-q2"}: nested proofs are only parallelized when the current number
+  of forked proofs falls below the given value (default 50),
+  multiplied by the number of worker threads (see option @{verbatim
+  "-M"}).
+
+  \medskip The @{verbatim "-t"} option produces a more detailed
+  internal timing report of the session.
+
+  \medskip The @{verbatim "-v"} option causes additional information
+  to be printed while running the session, notably the location of
+  prepared documents.
+
+  \medskip The @{verbatim "-M"} option specifies the maximum number of
+  parallel worker threads used for processing independent tasks when
+  checking theory sources (multithreading only works on suitable ML
+  platforms).  The special value of @{verbatim 0} or @{verbatim max}
+  refers to the number of actual CPU cores of the underlying machine,
+  which is a good starting point for optimal performance tuning.  The
+  @{verbatim "-T"} option determines the level of detail in tracing
+  output concerning the internal locking and scheduling in
+  multithreaded operation.  This may be helpful in isolating
+  performance bottle-necks, e.g.\ due to excessive wait states when
+  locking critical code sections.
+
+  \medskip Any @{tool usedir} session is named by some \emph{session
+  identifier}. These accumulate, documenting the way sessions depend
+  on others. For example, consider @{verbatim "Pure/FOL/ex"}, which
+  refers to the examples of FOL, which in turn is built upon Pure.
+
+  The current session's identifier is by default just the base name of
+  the @{verbatim LOGIC} argument (in build mode), or of the @{verbatim
+  NAME} argument (in example mode). This may be overridden explicitly
+  via the @{verbatim "-s"} option.
 *}
 
 

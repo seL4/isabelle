@@ -234,12 +234,12 @@ Usage: isabelle logo [OPTIONS] NAME
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsection{Isabelle's version of make \label{sec:tool-make}%
+\isamarkupsection{Isabelle wrapper for make \label{sec:tool-make}%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The \indexdef{}{tool}{make}\hypertarget{tool.make}{\hyperlink{tool.make}{\mbox{\isa{\isatool{make}}}}} tool is a very simple wrapper for
+The old \indexdef{}{tool}{make}\hypertarget{tool.make}{\hyperlink{tool.make}{\mbox{\isa{\isatool{make}}}}} tool is a very simple wrapper for
   ordinary Unix \hyperlink{executable.make}{\mbox{\isa{\isatt{make}}}}:
 \begin{ttbox}
 Usage: isabelle make [ARGS ...]
@@ -250,15 +250,75 @@ Usage: isabelle make [ARGS ...]
 
   Note that the Isabelle settings environment is also active. Thus one
   may refer to its values within the \verb|IsaMakefile|, e.g.\
-  \verb|$(ISABELLE_OUTPUT)|. Furthermore, programs started from
-  the make file also inherit this environment.  Typically, \verb|IsaMakefile|s defer the real work to \indexref{}{tool}{usedir}\hyperlink{tool.usedir}{\mbox{\isa{\isatool{usedir}}}}.
+  \verb|$(ISABELLE_HOME)|. Furthermore, programs started from
+  the make file also inherit this environment.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Creating Isabelle session directories
+  \label{sec:tool-mkdir}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The old \indexdef{}{tool}{mkdir}\hypertarget{tool.mkdir}{\hyperlink{tool.mkdir}{\mbox{\isa{\isatool{mkdir}}}}} tool prepares Isabelle session
+  source directories, including a sensible default setup of \verb|IsaMakefile|, \verb|ROOT.ML|, and a \verb|document|
+  directory with a minimal \verb|root.tex| that is sufficient to
+  print all theories of the session (in the order of appearance); see
+  \secref{sec:tool-document} for further information on Isabelle
+  document preparation.  The usage of \hyperlink{tool.mkdir}{\mbox{\isa{\isatool{mkdir}}}} is:
 
-  \medskip The basic \verb|IsaMakefile| convention is that the
-  default target builds the actual logic, including its parents if
-  appropriate.  The \verb|images| target is intended to build all
-  local logic images, while the \verb|test| target shall build
-  all related examples.  The \verb|all| target shall do
-  \verb|images| and \verb|test|.%
+\begin{ttbox}
+Usage: isabelle mkdir [OPTIONS] [LOGIC] NAME
+
+  Options are:
+    -I FILE      alternative IsaMakefile output
+    -P           include parent logic target
+    -b           setup build mode (session outputs heap image)
+    -q           quiet mode
+
+  Prepare session directory, including IsaMakefile and document source,
+  with parent LOGIC (default ISABELLE_LOGIC=\$ISABELLE_LOGIC)
+\end{ttbox}
+
+  The \hyperlink{tool.mkdir}{\mbox{\isa{\isatool{mkdir}}}} tool is conservative in the sense that any
+  existing \verb|IsaMakefile| etc.\ is left unchanged.  Thus it
+  is safe to invoke it multiple times, although later runs may not
+  have the desired effect.
+
+  Note that \hyperlink{tool.mkdir}{\mbox{\isa{\isatool{mkdir}}}} is unable to change \verb|IsaMakefile|
+  incrementally --- manual changes are required for multiple
+  sub-sessions.  On order to get an initial working session, the only
+  editing needed is to add appropriate \verb|use_thy| calls to the
+  generated \verb|ROOT.ML| file.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Options%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The \verb|-I| option specifies an alternative to \verb|IsaMakefile| for dependencies.  Note that ``\verb|-|'' refers
+  to \emph{stdout}, i.e.\ ``\verb|-I-|'' provides an easy way
+  to peek at \hyperlink{tool.mkdir}{\mbox{\isa{\isatool{mkdir}}}}'s idea of \hyperlink{tool.make}{\mbox{\isa{\isatool{make}}}} setup required for
+  some particular of Isabelle session.
+
+  \medskip The \verb|-P| option includes a target for the
+  parent \verb|LOGIC| session in the generated \verb|IsaMakefile|.  The corresponding sources are assumed to be located
+  within the Isabelle distribution.
+
+  \medskip The \verb|-b| option sets up the current directory
+  as the base for a new session that provides an actual logic image,
+  as opposed to one that only runs several theories based on an
+  existing image.  Note that in the latter case, everything except
+  \verb|IsaMakefile| would be placed into a separate directory
+  \verb|NAME|, rather than the current one.  See
+  \secref{sec:tool-usedir} for further information on \emph{build
+  mode} vs.\ \emph{example mode} of \hyperlink{tool.usedir}{\mbox{\isa{\isatool{usedir}}}}.
+
+  \medskip The \verb|-q| option enables quiet mode, suppressing
+  further notes on how to proceed.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -301,6 +361,174 @@ Usage: isabelle unsymbolize [FILES|DIRS...]
 
   Renames old versions of FILES by appending "~~".
 \end{ttbox}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Running Isabelle sessions \label{sec:tool-usedir}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The old \indexdef{}{tool}{usedir}\hypertarget{tool.usedir}{\hyperlink{tool.usedir}{\mbox{\isa{\isatool{usedir}}}}} tool builds object-logic images, or
+  runs example sessions based on existing logics. Its usage is:
+\begin{ttbox}
+Usage: isabelle usedir [OPTIONS] LOGIC NAME
+
+  Options are:
+    -C BOOL      copy existing document directory to -D PATH (default true)
+    -D PATH      dump generated document sources into PATH
+    -M MAX       multithreading: maximum number of worker threads (default 1)
+    -P PATH      set path for remote theory browsing information
+    -Q INT       set threshold for sub-proof parallelization (default 50)
+    -T LEVEL     multithreading: trace level (default 0)
+    -V VARIANT   declare alternative document VARIANT
+    -b           build mode (output heap image, using current dir)
+    -d FORMAT    build document as FORMAT (default false)
+    -f NAME      use ML file NAME (default ROOT.ML)
+    -g BOOL      generate session graph image for document (default false)
+    -i BOOL      generate theory browser information (default false)
+    -m MODE      add print mode for output
+    -p LEVEL     set level of detail for proof objects (default 0)
+    -q LEVEL     set level of parallel proof checking (default 1)
+    -r           reset session path
+    -s NAME      override session NAME
+    -t BOOL      internal session timing (default false)
+    -v BOOL      be verbose (default false)
+
+  Build object-logic or run examples. Also creates browsing
+  information (HTML etc.) according to settings.
+
+  ISABELLE_USEDIR_OPTIONS=...
+
+  ML_PLATFORM=...
+  ML_HOME=...
+  ML_SYSTEM=...
+  ML_OPTIONS=...
+\end{ttbox}
+
+  Note that the value of the \indexref{}{setting}{ISABELLE\_USEDIR\_OPTIONS}\hyperlink{setting.ISABELLE-USEDIR-OPTIONS}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}USEDIR{\isaliteral{5F}{\isacharunderscore}}OPTIONS}}}}
+  setting is implicitly prefixed to \emph{any} \hyperlink{tool.usedir}{\mbox{\isa{\isatool{usedir}}}}
+  call. Since the \verb|IsaMakefile|s of all object-logics
+  distributed with Isabelle just invoke \hyperlink{tool.usedir}{\mbox{\isa{\isatool{usedir}}}} for the real
+  work, one may control compilation options globally via above
+  variable. In particular, generation of \rmindex{HTML} browsing
+  information and document preparation is controlled here.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Options%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Basically, there are two different modes of operation: \emph{build
+  mode} (enabled through the \verb|-b| option) and
+  \emph{example mode} (default).
+
+  Calling \hyperlink{tool.usedir}{\mbox{\isa{\isatool{usedir}}}} with \verb|-b| runs \hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isaliteral{2D}{\isacharminus}}process}}}} with input image \verb|LOGIC| and output to
+  \verb|NAME|, as provided on the command line. This will be a
+  batch session, running \verb|ROOT.ML| from the current
+  directory and then quitting.  It is assumed that \verb|ROOT.ML|
+  contains all ML commands required to build the logic.
+
+  In example mode, \hyperlink{tool.usedir}{\mbox{\isa{\isatool{usedir}}}} runs a read-only session of
+  \verb|LOGIC| and automatically runs \verb|ROOT.ML| from
+  within directory \verb|NAME|.  It assumes that this file
+  contains appropriate ML commands to run the desired examples.
+
+  \medskip The \verb|-i| option controls theory browser data
+  generation. It may be explicitly turned on or off --- as usual, the
+  last occurrence of \verb|-i| on the command line wins.
+
+  The \verb|-P| option specifies a path (or actual URL) to be
+  prefixed to any \emph{non-local} reference of existing theories.
+  Thus user sessions may easily link to existing Isabelle libraries
+  already present on the WWW.
+
+  The \verb|-m| options specifies additional print modes to be
+  activated temporarily while the session is processed.
+
+  \medskip The \verb|-d| option controls document preparation.
+  Valid arguments are \verb|false| (do not prepare any document;
+  this is default), or any of \verb|dvi|, \verb|dvi.gz|,
+  \verb|ps|, \verb|ps.gz|, \verb|pdf|.  The logic
+  session has to provide a properly setup \verb|document|
+  directory.  See \secref{sec:tool-document} and
+  \secref{sec:tool-latex} for more details.
+
+  \medskip The \verb|-V| option declares alternative document
+  variants, consisting of name/tags pairs (cf.\ options \verb|-n| and \verb|-t| of \indexref{}{tool}{document}\hyperlink{tool.document}{\mbox{\isa{\isatool{document}}}}).  The standard
+  document is equivalent to ``\verb|document=theory,proof,ML|'', which means that all theory begin/end
+  commands, proof body texts, and ML code will be presented
+  faithfully.
+
+  An alternative variant ``\verb|outline=/proof/ML|'' would
+  fold proof and ML parts, replacing the original text by a short
+  place-holder.  The form ``\isa{name}\verb|=-|,'' means to
+  remove document \isa{name} from the list of variants to be
+  processed.  Any number of \verb|-V| options may be given;
+  later declarations have precedence over earlier ones.
+
+  Some document variant \isa{name} may use an alternative {\LaTeX}
+  entry point called \verb|document/root_|\isa{{\isaliteral{22}{\isachardoublequote}}name{\isaliteral{22}{\isachardoublequote}}}\verb|.tex| if that file exists; otherwise the common
+  \verb|document/root.tex| is used.
+
+  \medskip The \verb|-g| option produces images of the theory
+  dependency graph (cf.\ \secref{sec:browse}) for inclusion in the
+  generated document, both as \verb|session_graph.eps| and
+  \verb|session_graph.pdf| at the same time.  To include this in
+  the final {\LaTeX} document one could say \verb|\includegraphics{session_graph}| in \verb|document/root.tex| (omitting the file-name extension enables
+  {\LaTeX} to select to correct version, either for the DVI or PDF
+  output path).
+
+  \medskip The \verb|-D| option causes the generated document
+  sources to be dumped at location \verb|PATH|; this path is
+  relative to the session's main directory.  If the \verb|-C|
+  option is true, this will include a copy of an existing \verb|document| directory as provided by the user.  For example, \hyperlink{tool.usedir}{\mbox{\isa{\isatool{usedir}}}}~\verb|-D generated HOL Foo| produces a complete set
+  of document sources at \verb|Foo/generated|.  Subsequent
+  invocation of \hyperlink{tool.document}{\mbox{\isa{\isatool{document}}}}~\verb|Foo/generated| (see also
+  \secref{sec:tool-document}) will process the final result
+  independently of an Isabelle job.  This decoupled mode of operation
+  facilitates debugging of serious {\LaTeX} errors, for example.
+
+  \medskip The \verb|-p| option determines the level of detail
+  for internal proof objects, see also the \emph{Isabelle Reference
+  Manual}~\cite{isabelle-ref}.
+
+  \medskip The \verb|-q| option specifies the level of parallel
+  proof checking: \verb|0| no proofs, \verb|1| toplevel
+  proofs (default), \verb|2| toplevel and nested Isar proofs.
+  The option \verb|-Q| specifies a threshold for \verb|-q2|: nested proofs are only parallelized when the current number
+  of forked proofs falls below the given value (default 50),
+  multiplied by the number of worker threads (see option \verb|-M|).
+
+  \medskip The \verb|-t| option produces a more detailed
+  internal timing report of the session.
+
+  \medskip The \verb|-v| option causes additional information
+  to be printed while running the session, notably the location of
+  prepared documents.
+
+  \medskip The \verb|-M| option specifies the maximum number of
+  parallel worker threads used for processing independent tasks when
+  checking theory sources (multithreading only works on suitable ML
+  platforms).  The special value of \verb|0| or \verb|max|
+  refers to the number of actual CPU cores of the underlying machine,
+  which is a good starting point for optimal performance tuning.  The
+  \verb|-T| option determines the level of detail in tracing
+  output concerning the internal locking and scheduling in
+  multithreaded operation.  This may be helpful in isolating
+  performance bottle-necks, e.g.\ due to excessive wait states when
+  locking critical code sections.
+
+  \medskip Any \hyperlink{tool.usedir}{\mbox{\isa{\isatool{usedir}}}} session is named by some \emph{session
+  identifier}. These accumulate, documenting the way sessions depend
+  on others. For example, consider \verb|Pure/FOL/ex|, which
+  refers to the examples of FOL, which in turn is built upon Pure.
+
+  The current session's identifier is by default just the base name of
+  the \verb|LOGIC| argument (in build mode), or of the \verb|NAME| argument (in example mode). This may be overridden explicitly
+  via the \verb|-s| option.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

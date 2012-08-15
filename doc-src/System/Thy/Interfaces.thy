@@ -116,9 +116,7 @@ text {* The Isabelle graph browser is a general tool for visualizing
   be grouped together in ``directories'', whose contents may be
   hidden, thus enabling the user to collapse irrelevant portions of
   information.  The browser is written in Java, it can be used both as
-  a stand-alone application and as an applet.  Note that the option
-  @{verbatim "-g"} of @{tool_ref usedir} creates graph presentations
-  in batch mode for inclusion in session documents.  *}
+  a stand-alone application and as an applet.  *}
 
 
 subsection {* Invoking the graph browser *}
