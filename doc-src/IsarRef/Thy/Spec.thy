@@ -416,7 +416,8 @@ text {*
   instances are equal if they are of the same locale and the
   parameters are instantiated with equivalent terms.  Declaration
   elements from equal instances are never repeated, thus avoiding
-  duplicate declarations.
+  duplicate declarations.  More precisely, declarations from instances
+  that are subsumed by earlier instances are omitted.
 
   @{rail "
     @{syntax_def locale_expr}: (instance + '+') (@'for' (@{syntax \"fixes\"} + @'and'))?
@@ -438,9 +439,10 @@ text {*
 
   Terms in instantiations are from the context the locale expressions
   is declared in.  Local names may be added to this context with the
-  optional for clause.  In addition, syntax declarations from one
-  instance are effective when parsing subsequent instances of the same
-  expression.
+  optional @{keyword "for"} clause.  This is useful for shadowing names
+  bound in outer contexts, and for declaring syntax.  In addition,
+  syntax declarations from one instance are effective when parsing
+  subsequent instances of the same expression.
 
   Instances have an optional qualifier which applies to names in
   declarations.  Names include local definitions and theorem names.
@@ -588,7 +590,7 @@ text {*
 *}
 
 
-subsection {* Locale interpretations *}
+subsection {* Locale interpretation *}
 
 text {*
   \begin{matharray}{rcl}
@@ -602,9 +604,10 @@ text {*
   Locale expressions may be instantiated, and the instantiated facts
   added to the current context.  This requires a proof of the
   instantiated specification and is called \emph{locale
-  interpretation}.  Interpretation is possible in locales @{command
-  "sublocale"}, theories (command @{command "interpretation"}) and
-  also within a proof body (command @{command "interpret"}).
+  interpretation}.  Interpretation is possible in locales (command
+  @{command "sublocale"}), theories (command @{command
+  "interpretation"}) and also within proof bodies (command @{command
+  "interpret"}).
 
   @{rail "
     @@{command interpretation} @{syntax locale_expr} equations?
@@ -629,6 +632,12 @@ text {*
   obligations for the instantiated specifications (assumes and defines
   elements).  Once these are discharged by the user, instantiated
   facts are added to the theory in a post-processing phase.
+
+  Free variables in the interpreted expression are allowed.  They are
+  turned into schematic variables in the generated declarations.  In
+  order to use a free variable whose name is already bound in the
+  context --- for example, because a constant of that name exists ---
+  it may be added to the @{keyword "for"} clause.
 
   Additional equations, which are unfolded during
   post-processing, may be given after the keyword @{keyword "where"}.

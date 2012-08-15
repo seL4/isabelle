@@ -654,7 +654,8 @@ A \emph{locale expression} denotes a structured context composed of
   instances are equal if they are of the same locale and the
   parameters are instantiated with equivalent terms.  Declaration
   elements from equal instances are never repeated, thus avoiding
-  duplicate declarations.
+  duplicate declarations.  More precisely, declarations from instances
+  that are subsumed by earlier instances are omitted.
 
   \begin{railoutput}
 \rail@begin{3}{\indexdef{}{syntax}{locale\_expr}\hypertarget{syntax.locale-expr}{\hyperlink{syntax.locale-expr}{\mbox{\isa{locale{\isaliteral{5F}{\isacharunderscore}}expr}}}}}
@@ -728,9 +729,10 @@ A \emph{locale expression} denotes a structured context composed of
 
   Terms in instantiations are from the context the locale expressions
   is declared in.  Local names may be added to this context with the
-  optional for clause.  In addition, syntax declarations from one
-  instance are effective when parsing subsequent instances of the same
-  expression.
+  optional \hyperlink{keyword.for}{\mbox{\isa{\isakeyword{for}}}} clause.  This is useful for shadowing names
+  bound in outer contexts, and for declaring syntax.  In addition,
+  syntax declarations from one instance are effective when parsing
+  subsequent instances of the same expression.
 
   Instances have an optional qualifier which applies to names in
   declarations.  Names include local definitions and theorem names.
@@ -954,7 +956,7 @@ A \emph{locale expression} denotes a structured context composed of
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Locale interpretations%
+\isamarkupsubsection{Locale interpretation%
 }
 \isamarkuptrue%
 %
@@ -970,8 +972,8 @@ A \emph{locale expression} denotes a structured context composed of
   Locale expressions may be instantiated, and the instantiated facts
   added to the current context.  This requires a proof of the
   instantiated specification and is called \emph{locale
-  interpretation}.  Interpretation is possible in locales \hyperlink{command.sublocale}{\mbox{\isa{\isacommand{sublocale}}}}, theories (command \hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}}) and
-  also within a proof body (command \hyperlink{command.interpret}{\mbox{\isa{\isacommand{interpret}}}}).
+  interpretation}.  Interpretation is possible in locales (command
+  \hyperlink{command.sublocale}{\mbox{\isa{\isacommand{sublocale}}}}), theories (command \hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}}) and also within proof bodies (command \hyperlink{command.interpret}{\mbox{\isa{\isacommand{interpret}}}}).
 
   \begin{railoutput}
 \rail@begin{2}{}
@@ -1039,6 +1041,12 @@ A \emph{locale expression} denotes a structured context composed of
   obligations for the instantiated specifications (assumes and defines
   elements).  Once these are discharged by the user, instantiated
   facts are added to the theory in a post-processing phase.
+
+  Free variables in the interpreted expression are allowed.  They are
+  turned into schematic variables in the generated declarations.  In
+  order to use a free variable whose name is already bound in the
+  context --- for example, because a constant of that name exists ---
+  it may be added to the \hyperlink{keyword.for}{\mbox{\isa{\isakeyword{for}}}} clause.
 
   Additional equations, which are unfolded during
   post-processing, may be given after the keyword \hyperlink{keyword.where}{\mbox{\isa{\isakeyword{where}}}}.
