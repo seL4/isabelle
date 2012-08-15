@@ -149,30 +149,17 @@ Usage: isabelle getenv [OPTIONS] [VARNAMES ...]
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Get the ML system name and the location where the compiler binaries
-  are supposed to reside as follows:
+Get the location of \hyperlink{setting.ISABELLE-HOME-USER}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME{\isaliteral{5F}{\isacharunderscore}}USER}}}} where
+  user-specific information is stored:
 \begin{ttbox}
-isabelle getenv ML_SYSTEM ML_HOME
-{\out ML_SYSTEM=polyml}
-{\out ML_HOME=/usr/share/polyml/x86-linux}
+isabelle getenv ISABELLE_HOME_USER
 \end{ttbox}
 
-  The next one peeks at the output directory for Isabelle logic
-  images:
+  \medskip Get the value only of the same settings variable, which is
+particularly useful in shell scripts:
 \begin{ttbox}
 isabelle getenv -b ISABELLE_OUTPUT
-{\out /home/me/isabelle/heaps/polyml_x86-linux}
-\end{ttbox}
-  Here we have used the \verb|-b| option to suppress the
-  \verb|ISABELLE_OUTPUT=| prefix.  The value above is what
-  became of the following assignment in the default settings file:
-\begin{ttbox}
-ISABELLE_OUTPUT="\$ISABELLE_HOME_USER/heaps"
-\end{ttbox}
-
-  Note how the \hyperlink{setting.ML-IDENTIFIER}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}IDENTIFIER}}}} value got appended
-  automatically to each path component. This is a special feature of
-  \hyperlink{setting.ISABELLE-OUTPUT}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}OUTPUT}}}}.%
+\end{ttbox}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -201,14 +188,14 @@ Usage: isabelle install [OPTIONS]
   distribution directory as determined by \hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME}}}}.
 
   The \verb|-p| option installs executable wrapper scripts for
-  \hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isaliteral{2D}{\isacharminus}}process}}}}, \hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}},
-  \hyperlink{executable.Isabelle}{\mbox{\isa{\isatt{Isabelle}}}}, containing proper absolute references to the
-  Isabelle distribution directory.  A typical \verb|DIR|
-  specification would be some directory expected to be in the shell's
-  \hyperlink{setting.PATH}{\mbox{\isa{\isatt{PATH}}}}, such as \verb|/usr/local/bin|.  It is
-  important to note that a plain manual copy of the original Isabelle
-  executables does not work, since it disrupts the integrity of the
-  Isabelle distribution.%
+  \hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isaliteral{2D}{\isacharminus}}process}}}}, \hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}}, containing
+  proper absolute references to the Isabelle distribution directory.
+  A typical \verb|DIR| specification would be some directory
+  expected to be in the shell's \hyperlink{setting.PATH}{\mbox{\isa{\isatt{PATH}}}}, such as \verb|$HOME/bin|.
+
+  It is possible to make symbolic links of the main Isabelle
+  executables, but making separate copies outside the Isabelle
+  distribution directory will not work.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

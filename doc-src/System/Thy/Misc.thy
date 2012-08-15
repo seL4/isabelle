@@ -116,31 +116,17 @@ Usage: isabelle getenv [OPTIONS] [VARNAMES ...]
 
 subsubsection {* Examples *}
 
-text {*
-  Get the ML system name and the location where the compiler binaries
-  are supposed to reside as follows:
+text {* Get the location of @{setting ISABELLE_HOME_USER} where
+  user-specific information is stored:
 \begin{ttbox}
-isabelle getenv ML_SYSTEM ML_HOME
-{\out ML_SYSTEM=polyml}
-{\out ML_HOME=/usr/share/polyml/x86-linux}
+isabelle getenv ISABELLE_HOME_USER
 \end{ttbox}
 
-  The next one peeks at the output directory for Isabelle logic
-  images:
+  \medskip Get the value only of the same settings variable, which is
+particularly useful in shell scripts:
 \begin{ttbox}
 isabelle getenv -b ISABELLE_OUTPUT
-{\out /home/me/isabelle/heaps/polyml_x86-linux}
 \end{ttbox}
-  Here we have used the @{verbatim "-b"} option to suppress the
-  @{verbatim "ISABELLE_OUTPUT="} prefix.  The value above is what
-  became of the following assignment in the default settings file:
-\begin{ttbox}
-ISABELLE_OUTPUT="\$ISABELLE_HOME_USER/heaps"
-\end{ttbox}
-
-  Note how the @{setting ML_IDENTIFIER} value got appended
-  automatically to each path component. This is a special feature of
-  @{setting ISABELLE_OUTPUT}.
 *}
 
 
@@ -167,14 +153,15 @@ Usage: isabelle install [OPTIONS]
   distribution directory as determined by @{setting ISABELLE_HOME}.
 
   The @{verbatim "-p"} option installs executable wrapper scripts for
-  @{executable "isabelle-process"}, @{executable isabelle},
-  @{executable Isabelle}, containing proper absolute references to the
-  Isabelle distribution directory.  A typical @{verbatim DIR}
-  specification would be some directory expected to be in the shell's
-  @{setting PATH}, such as @{verbatim "/usr/local/bin"}.  It is
-  important to note that a plain manual copy of the original Isabelle
-  executables does not work, since it disrupts the integrity of the
-  Isabelle distribution.
+  @{executable "isabelle-process"}, @{executable isabelle}, containing
+  proper absolute references to the Isabelle distribution directory.
+  A typical @{verbatim DIR} specification would be some directory
+  expected to be in the shell's @{setting PATH}, such as @{verbatim
+  "$HOME/bin"}.
+
+  It is possible to make symbolic links of the main Isabelle
+  executables, but making separate copies outside the Isabelle
+  distribution directory will not work.
 *}
 
 

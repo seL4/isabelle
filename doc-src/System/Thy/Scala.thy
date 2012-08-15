@@ -46,7 +46,8 @@ text {* The @{tool_def scala} tool is a direct wrapper for the Scala
 \begin{alltt}
   isabelle scala
   scala> isabelle.Isabelle_System.getenv("ISABELLE_HOME")
-  scala> isabelle.Isabelle_System.find_logics()
+  scala> val options = isabelle.Options.init()
+  scala> options.bool("browser_info")
 \end{alltt}
 *}
 

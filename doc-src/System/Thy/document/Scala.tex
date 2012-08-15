@@ -70,7 +70,8 @@ The \indexdef{}{tool}{scala}\hypertarget{tool.scala}{\hyperlink{tool.scala}{\mbo
 \begin{alltt}
   isabelle scala
   scala> isabelle.Isabelle_System.getenv("ISABELLE_HOME")
-  scala> isabelle.Isabelle_System.find_logics()
+  scala> val options = isabelle.Options.init()
+  scala> options.bool("browser_info")
 \end{alltt}%
 \end{isamarkuptext}%
 \isamarkuptrue%
