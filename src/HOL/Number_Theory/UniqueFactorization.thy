@@ -544,12 +544,7 @@ lemma multiplicity_product_aux_nat: "(k::nat) > 0 \<Longrightarrow> l > 0 \<Long
   apply (erule ssubst)
   apply (subst setprod_Un_disjoint)
   apply auto
-  apply (subgoal_tac "(\<Prod>p\<in>prime_factors l - prime_factors k. p ^ multiplicity p k) = 
-      (\<Prod>p\<in>prime_factors l - prime_factors k. 1)")
-  apply (erule ssubst)
-  apply (simp add: setprod_1)
-  apply (erule prime_factorization_nat)
-  apply (rule setprod_cong, auto)
+  apply(simp add: prime_factorization_nat)
   apply (subgoal_tac "prime_factors k Un prime_factors l = prime_factors l Un 
       (prime_factors k - prime_factors l)")
   apply (erule ssubst)
@@ -557,9 +552,7 @@ lemma multiplicity_product_aux_nat: "(k::nat) > 0 \<Longrightarrow> l > 0 \<Long
   apply auto
   apply (subgoal_tac "(\<Prod>p\<in>prime_factors k - prime_factors l. p ^ multiplicity p l) = 
       (\<Prod>p\<in>prime_factors k - prime_factors l. 1)")
-  apply (erule ssubst)
-  apply (simp add: setprod_1)
-  apply (erule prime_factorization_nat)
+  apply (simp add: prime_factorization_nat)
   apply (rule setprod_cong, auto)
   done
 
