@@ -39,6 +39,12 @@ next
   then show ?thesis unfolding `A = B` by simp
 qed
 
+lemma F_neutral[simp]: "F (%i. 1) A = 1"
+by (cases "finite A") (simp_all add: neutral)
+
+lemma F_neutral': "ALL a:A. g a = 1 \<Longrightarrow> F g A = 1"
+by (simp cong: F_cong)
+
 lemma If_cases:
   fixes P :: "'b \<Rightarrow> bool" and g h :: "'b \<Rightarrow> 'a"
   assumes fA: "finite A"
@@ -202,11 +208,8 @@ lemma (in comm_monoid_add) setsum_reindex_cong:
     ==> setsum h B = setsum g A"
   by (simp add: setsum_reindex)
 
-lemma (in comm_monoid_add) setsum_0[simp]: "setsum (%i. 0) A = 0"
-  by (cases "finite A") (erule finite_induct, auto)
-
-lemma (in comm_monoid_add) setsum_0': "ALL a:A. f a = 0 ==> setsum f A = 0"
-  by (simp add:setsum_cong)
+lemmas setsum_0 = setsum.F_neutral
+lemmas setsum_0' = setsum.F_neutral'
 
 lemma (in comm_monoid_add) setsum_Un_Int: "finite A ==> finite B ==>
   setsum g (A Un B) + setsum g (A Int B) = setsum g A + setsum g B"
@@ -942,16 +945,9 @@ lemma setprod_Un_one:
   using I0 by auto
 
 
-lemma setprod_1: "setprod (%i. 1) A = 1"
-apply (case_tac "finite A")
-apply (erule finite_induct, auto simp add: mult_ac)
-done
+lemmas setprod_1 = setprod.F_neutral
+lemmas setprod_1' = setprod.F_neutral'
 
-lemma setprod_1': "ALL a:F. f a = 1 ==> setprod f F = 1"
-apply (subgoal_tac "setprod f F = setprod (%x. 1) F")
-apply (erule ssubst, rule setprod_1)
-apply (rule setprod_cong, auto)
-done
 
 lemma setprod_Un_Int: "finite A ==> finite B
     ==> setprod g (A Un B) * setprod g (A Int B) = setprod g A * setprod g B"
