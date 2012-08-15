@@ -1052,7 +1052,7 @@ text {* The inner syntax engine of Isabelle provides separate
   with all names and binding scopes resolved, but most type
   information still missing.  Explicit type constraints might be given by
   the user, or implicit position information by the system --- both
-  needs to be passed-through carefully by syntax transformations.
+  need to be passed-through carefully by syntax transformations.
 
   Pre-terms are further processed by the so-called \emph{check} and
   \emph{unckeck} phases that are intertwined with type-inference (see
@@ -1170,7 +1170,7 @@ text {* Naming constant entities within ASTs is another delicate
   correspondence of a particular grammar production to some known term
   entity is preserved.
 
-  \item Input type constants (constructors) and type classes ---
+  \item Input of type constants (constructors) and type classes ---
   thanks to explicit syntactic distinction independently on the
   context.
 
@@ -1181,9 +1181,10 @@ text {* Naming constant entities within ASTs is another delicate
   \end{itemize}
 
   In other words, syntax transformations that operate on input terms
-  written as prefix applications are difficult to achieve.  Luckily,
-  this case rarely occurs in practice, because syntax forms to be
-  translated usually correspond to some bits of concrete notation. *}
+  written as prefix applications are difficult to make robust.
+  Luckily, this case rarely occurs in practice, because syntax forms
+  to be translated usually correspond to some bits of concrete
+  notation. *}
 
 
 subsection {* Raw syntax and translations \label{sec:syn-trans} *}
@@ -1271,7 +1272,7 @@ text {*
   check wrt.\ existing declarations.  It is conventional to use plain
   identifiers prefixed by a single underscore (e.g.\ @{text
   "_foobar"}).  Names should be chosen with care, to avoid clashes
-  with unrelated syntax declarations.
+  with other syntax declarations.
 
   \medskip The special case of copy production is specified by @{text
   "c = "}@{verbatim "\"\""} (empty string).  It means that the
@@ -1284,7 +1285,7 @@ text {*
 
   \item @{command "translations"}~@{text rules} specifies syntactic
   translation rules (i.e.\ macros) as first-order rewrite rules on
-  ASTs (see also \secref{sec:ast}).  The theory context maintains two
+  ASTs (\secref{sec:ast}).  The theory context maintains two
   independent lists translation rules: parse rules (@{verbatim "=>"}
   or @{text "\<rightharpoonup>"}) and print rules (@{verbatim "<="} or @{text "\<leftharpoondown>"}).
   For convenience, both can be specified simultaneously as parse~/
@@ -1412,7 +1413,7 @@ text {* As a term is being parsed or printed, an AST is generated as
   chosen in order of appearance in the theory definitions.
 
   The configuration options @{attribute syntax_ast_trace} and
-  @{attribute syntax_ast_stats} might help understand this process
+  @{attribute syntax_ast_stats} might help to understand this process
   and diagnose problems.
 
   \begin{warn}
@@ -1484,12 +1485,11 @@ text {*
   \end{tabular}}
   \medskip
 
-  The argument list consist of @{text "(c, tr)"} pairs, where @{text
-  "c"} is the syntax name of the syntax constant, term constant or
-  type constructor involved, and @{text "tr"} a function that
-  translates a syntax form @{text "c args"} into @{text "tr args"}.
-  For print translations, the naming convention for such functions is
-  @{text "tr'"} instead of @{text "tr"}.
+  The argument list consists of @{text "(c, tr)"} pairs, where @{text
+  "c"} is the syntax name of the formal entity involved, and @{text
+  "tr"} a function that translates a syntax form @{text "c args"} into
+  @{text "tr args"}.  The ML naming convention for parse translations
+  is @{text "c_tr"} and for print translations @{text "c_tr'"}.
 
   The @{command_ref print_syntax} command displays the sets of names
   associated with the translation functions of a theory under @{text
@@ -1521,7 +1521,7 @@ text {*
 
 subsubsection {* The translation strategy *}
 
-text {* The different kinds of translation functions are called during
+text {* The different kinds of translation functions are invoked during
   the transformations between parse trees, ASTs and syntactic terms
   (cf.\ \figref{fig:parse-print}).  Whenever a combination of the form
   @{text "c x\<^sub>1 \<dots> x\<^sub>n"} is encountered, and a translation function
@@ -1536,7 +1536,8 @@ text {* The different kinds of translation functions are called during
   $ x\<^sub>1 $ \<dots> $ x\<^sub>n"}.  Terms allow more sophisticated transformations
   than ASTs do, typically involving abstractions and bound
   variables. \emph{Typed} print translations may even peek at the type
-  @{text "\<tau>"} of the constant they are invoked on.
+  @{text "\<tau>"} of the constant they are invoked on, although that information
+  may be inaccurate.
 
   Regardless of whether they act on ASTs or terms, translation
   functions called during the parsing process differ from those for
