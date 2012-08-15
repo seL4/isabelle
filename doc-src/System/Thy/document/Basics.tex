@@ -45,7 +45,7 @@ This manual describes Isabelle together with related tools and
   of the actual ML system to be used.  Regular users rarely need to
   care about the low-level process.
 
-  \item The main \emph{Isabelle tools wrapper} (\indexref{}{executable}{isabelle}\hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}}) provides a generic startup environment Isabelle related
+  \item The main \emph{Isabelle tool wrapper} (\indexref{}{executable}{isabelle}\hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}}) provides a generic startup environment Isabelle related
   utilities, user interfaces etc.  Such tools automatically benefit
   from the settings mechanism.
 
@@ -505,7 +505,7 @@ isabelle-process -e 'Thy_Info.get_theory "Main";' -q -r HOL
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsection{The Isabelle tools wrapper \label{sec:isabelle-tool}%
+\isamarkupsection{The Isabelle tool wrapper \label{sec:isabelle-tool}%
 }
 \isamarkuptrue%
 %
@@ -538,8 +538,8 @@ Usage: isabelle TOOL [ARGS ...]
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Show the list of available documentation of the current Isabelle
-  installation like this:
+Show the list of available documentation of the Isabelle
+  distribution:
 
 \begin{ttbox}
   isabelle doc
@@ -550,14 +550,10 @@ Show the list of available documentation of the current Isabelle
   isabelle doc system
 \end{ttbox}
 
-  Create an Isabelle session derived from HOL (see also
-  \secref{sec:tool-mkdir} and \secref{sec:tool-make}):
+  Query the Isabelle settings environment:
 \begin{ttbox}
-  isabelle mkdir HOL Test && isabelle make
-\end{ttbox}
-  Note that \verb|isabelle mkdir| is usually only invoked once;
-  existing sessions (including document output etc.) are then updated
-  by \verb|isabelle make| alone.%
+  isabelle getenv ISABELLE_HOME_USER
+\end{ttbox}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
