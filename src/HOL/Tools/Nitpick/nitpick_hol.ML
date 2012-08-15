@@ -754,7 +754,7 @@ fun is_quot_rep_fun ctxt (s, Type (@{type_name fun},
     (case try (Quotient_Term.absrep_const_chk ctxt Quotient_Term.RepF) abs_s of
        SOME (Const (s', _)) =>
        s = s' andalso not (is_registered_type ctxt abs_T)
-     | NONE => false)
+     | _ => false)
   | is_quot_rep_fun _ _ = false
 
 fun mate_of_rep_fun ctxt (x as (_, Type (@{type_name fun},
@@ -1298,14 +1298,6 @@ fun is_funky_typedef_name ctxt s =
   is_frac_type ctxt (Type (s, []))
 fun is_funky_typedef ctxt (Type (s, _)) = is_funky_typedef_name ctxt s
   | is_funky_typedef _ _ = false
-fun is_typedef_axiom ctxt boring (@{const "==>"} $ _ $ t2) =
-    is_typedef_axiom ctxt boring t2
-  | is_typedef_axiom ctxt boring
-        (@{const Trueprop} $ (Const (@{const_name Typedef.type_definition}, _)
-         $ Const (_, Type (@{type_name fun}, [Type (s, _), _]))
-         $ Const _ $ _)) =
-    boring <> is_funky_typedef_name ctxt s andalso is_typedef ctxt s
-  | is_typedef_axiom _ _ _ = false
 
 fun all_defs_of thy subst =
   let
