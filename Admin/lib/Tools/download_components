@@ -3,12 +3,18 @@
 # Author: Florian Haftmann
 # Author: Tjark Weber
 #
-# Download and unpack Isabelle components from central component store.
+# DESCRIPTION: download Isabelle components
 
 shopt -s -o errexit
 shopt -s -o nounset
 
-REMOTE='http://isabelle.in.tum.de/components'
+## directory layout
+
+: ${TMPDIR:="/tmp"}
+
+LOCAL="${ISABELLE_HOME_USER}/contrib"
+
+REMOTE="http://isabelle.in.tum.de/components"
 
 ## diagnostics
 
@@ -78,20 +84,6 @@ function getoptions()
 getoptions "$@"
 shift $(($OPTIND - 1))
 
-## directory layout
-
-: ${TMPDIR:="/tmp"}
-
-: ${ISABELLE_HOME_USER:=""}
-
-if [ -z "${ISABELLE_HOME_USER}" ]; then
-  ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd ..; pwd)"
-  ISABELLE_TOOL="${ISABELLE_HOME}/bin/isabelle"
-  ISABELLE_HOME_USER="$("${ISABELLE_TOOL}" getenv -b ISABELLE_HOME_USER)"
-fi
-
-LOCAL="${ISABELLE_HOME_USER}/contrib"
-
 ## download (and unpack) components
 
 function download()
@@ -102,7 +94,11 @@ function download()
     "${ECHO}" "${COMPONENT}"
     ARCHIVE="${COMPONENT}.tar.gz"
     if curl -s `"${ECHO}" --no-silent` -f -o "${TMPDIR}/${ARCHIVE}" "${REMOTE}/${ARCHIVE}"; then
-      tar -xzf "${TMPDIR}/${ARCHIVE}" -C "${LOCAL}" --recursive-unlink
+      if [ -n "${REPLACE_EXISTING}" ]; then
+        tar -xzf "${TMPDIR}/${ARCHIVE}" -C "${LOCAL}" --recursive-unlink
+      else
+        tar -xzf "${TMPDIR}/${ARCHIVE}" -C "${LOCAL}"
+      fi
     else
       if [ -n "${EXIT_ON_FAILED_DOWNLOAD}" ]; then
         fail "Error downloading component ${COMPONENT} (non-free?)"
@@ -115,7 +111,7 @@ function download()
 
 "${ECHO}" "Unpacking components into ${LOCAL}/"
 
-[ -e "${LOCAL}" ] || mkdir -p "${LOCAL}"
+mkdir -p "${LOCAL}"
 
 # process Admin/components
 if [ -n "${DOWNLOAD_CURRENT}" ]; then
@@ -129,7 +125,7 @@ if [ -n "${DOWNLOAD_CURRENT}" ]; then
         download "${COMPONENT}"
         ;;
     esac
-  done < "$ISABELLE_HOME/Admin/components"
+  done < "${ISABELLE_HOME}/Admin/components"
 fi
 
 # process args
