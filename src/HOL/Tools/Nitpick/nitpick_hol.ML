@@ -670,7 +670,8 @@ fun is_real_quot_type ctxt (Type (s, _)) =
     is_some (Quotient_Info.lookup_quotients ctxt s)
   | is_real_quot_type _ _ = false
 fun is_quot_type ctxt T =
-  is_real_quot_type ctxt T andalso not (is_registered_type ctxt T)
+  is_real_quot_type ctxt T andalso not (is_registered_type ctxt T) andalso
+  T <> @{typ int}
 fun is_pure_typedef ctxt (T as Type (s, _)) =
     let val thy = Proof_Context.theory_of ctxt in
       is_frac_type ctxt T orelse

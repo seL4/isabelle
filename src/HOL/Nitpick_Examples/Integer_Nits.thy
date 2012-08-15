@@ -1,6 +1,6 @@
 (*  Title:      HOL/Nitpick_Examples/Integer_Nits.thy
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2009-2011
+    Copyright   2009-2012
 
 Examples featuring Nitpick applied to natural numbers and integers.
 *)
@@ -94,9 +94,6 @@ nitpick [unary_ints, expect = none]
 nitpick [binary_ints, expect = none]
 nitpick [binary_ints, bits = 9, expect = genuine]
 oops
-
-(* FIXME
-*** Invalid intermediate term ("Nitpick_Nut.the_name"): (ConstName Nitpick.sel0$Nitpick.Quot int \<Rightarrow> nat X).
 
 lemma "nat (of_nat n) = n"
 nitpick [unary_ints, expect = none]
@@ -208,7 +205,6 @@ lemma "nat (of_nat n) = n"
 nitpick [unary_ints, expect = none]
 nitpick [binary_ints, expect = none]
 sorry
-*)
 
 datatype tree = Null | Node nat tree tree
 
@@ -218,7 +214,6 @@ primrec labels where
 
 lemma "labels (Node x t u) \<noteq> labels (Node y v w)"
 nitpick [expect = potential] (* unfortunate *)
-nitpick [dont_finitize, expect = potential]
 oops
 
 lemma "labels (Node x t u) \<noteq> {}"
@@ -227,22 +222,18 @@ oops
 
 lemma "card (labels t) > 0"
 nitpick [expect = potential] (* unfortunate *)
-nitpick [dont_finitize, expect = potential]
 oops
 
 lemma "(\<Sum>n \<in> labels t. n + 2) \<ge> 2"
 nitpick [expect = potential] (* unfortunate *)
-nitpick [dont_finitize, expect = potential]
 oops
 
 lemma "t \<noteq> Null \<Longrightarrow> (\<Sum>n \<in> labels t. n + 2) \<ge> 2"
 nitpick [expect = potential] (* unfortunate *)
-nitpick [dont_finitize, expect = potential]
 sorry
 
 lemma "(\<Sum>i \<in> labels (Node x t u). f i\<Colon>nat) = f x + (\<Sum>i \<in> labels t. f i) + (\<Sum>i \<in> labels u. f i)"
 nitpick [expect = potential] (* unfortunate *)
-nitpick [dont_finitize, expect = potential]
 oops
 
 end

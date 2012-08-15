@@ -171,7 +171,6 @@ record point =
   Xcoord :: int
   Ycoord :: int
 
-(* FIXME: Invalid intermediate term
 lemma "Abs_point_ext (Rep_point_ext a) = a"
 nitpick [expect = none]
 by (fact Rep_point_ext_inverse)
@@ -183,6 +182,5 @@ by (rule Fract_of_int_quotient)
 lemma "Abs_rat (Rep_rat a) = a"
 nitpick [card = 1, expect = none]
 by (rule Rep_rat_inverse)
-*)
 
 end
