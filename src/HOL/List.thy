@@ -2392,6 +2392,11 @@ by(auto simp add: set_zip list_all2_eq list_all2_conv_all_nth cong: conj_cong)
 
 subsubsection {* @{const fold} with natural argument order *}
 
+lemma fold_simps [code]: -- {* eta-expanded variant for generated code -- enables tail-recursion optimisation in Scala *}
+  "fold f [] s = s"
+  "fold f (x # xs) s = fold f xs (f x s)" 
+  by simp_all
+
 lemma fold_remove1_split:
   assumes f: "\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> f x \<circ> f y = f y \<circ> f x"
     and x: "x \<in> set xs"
