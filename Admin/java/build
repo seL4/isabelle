@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+
+## diagnostics
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## parameters
+
+ARCHIVE_LINUX32="jdk-7u6-linux-i586.tar.gz"
+ARCHIVE_LINUX64="jdk-7u6-linux-x64.tar.gz"
+ARCHIVE_DARWIN="jdk1.7.0_06.jdk.tar.gz"
+ARCHIVE_WINDOWS="jdk1.7.0_06.tar.gz"
+
+VERSION="7u6"
+
+
+## variations on version
+
+case "$VERSION" in
+  *u?)
+    MAJOR="$(echo "$VERSION" | cut -du -f1)"
+    MINOR="0$(echo "$VERSION" | cut -du -f2)"
+    ;;
+  *u??)
+    MAJOR="$(echo "$VERSION" | cut -du -f1)"
+    MINOR="$(echo "$VERSION" | cut -du -f2)"
+    ;;
+  *)
+    fail "Bad version identifier: \"$VERSION\""
+    ;;
+esac
+
+FULL_VERSION="1.${MAJOR}.0_${MINOR}"
+
+
+## main
+
+DIR="jdk-${VERSION}"
+mkdir "$DIR" || fail "Cannot create fresh directory: \"$DIR\""
+
+
+# README
+
+cat >> "$DIR/README" << EOF
+This is JDK $FULL_VERSION for Linux, Mac OS X, Windows.
+
+See http://www.oracle.com/technetwork/java/javase/downloads/index.html
+for the original downloads, which are covered by the Oracle Binary
+Code License Agreement for Java SE.
+
+Note that Java 1.7 requires 64bit hardware on Mac OS X.
+EOF
+
+
+# settings
+
+mkdir "$DIR/etc"
+cat >> "$DIR/etc/settings" << EOF
+# -*- shell-script -*- :mode=shellscript:
+
+case "\${ISABELLE_PLATFORM64:-\$ISABELLE_PLATFORM32}" in
+  x86-darwin)
+    echo "### Java 1.7 unavailable on 32bit Macintosh!" >&2
+    ;;
+  x86_64-darwin)
+    ISABELLE_JDK_HOME="\$COMPONENT/\$ISABELLE_PLATFORM64/jdk${FULL_VERSION}.jdk/Contents/Home"
+    ;;
+  *)
+    ISABELLE_JDK_HOME="\$COMPONENT/\${ISABELLE_PLATFORM64:-\$ISABELLE_PLATFORM32}/jdk${FULL_VERSION}"
+    ;;
+esac
+
+if [ -n "\$ISABELLE_JDK_HOME" ]; then
+  ISABELLE_JAVA_EXT="\${ISABELLE_JDK_HOME}/jre/lib/ext"
+fi
+EOF
+
+
+# content
+
+mkdir "$DIR/x86-linux" "$DIR/x86_64-linux" "$DIR/x86_64-darwin" "$DIR/x86-cygwin"
+
+tar -C "$DIR/x86-linux" -xf "$ARCHIVE_LINUX32"
+tar -C "$DIR/x86_64-linux" -xf "$ARCHIVE_LINUX64"
+tar -C "$DIR/x86_64-darwin" -xf "$ARCHIVE_DARWIN"
+tar -C "$DIR/x86-cygwin" -xf "$ARCHIVE_WINDOWS"
+
+chgrp -R isabelle "$DIR"
+chmod -R a+r "$DIR"
+chmod -R a+X "$DIR"
+
+(
+  cd "$DIR/x86-linux/jdk${FULL_VERSION}"
+  for FILE in $(find . -type f)
+  do
+    for OTHER in \
+      "../../x86_64-linux/jdk${FULL_VERSION}/$FILE" \
+      "../../x86_64-darwin/jdk${FULL_VERSION}.jdk/Contents/Home/$FILE" \
+      "../../x86-cygwin/jdk${FULL_VERSION}/$FILE"
+    do
+      if cmp -s "$FILE" "$OTHER"
+      then
+        ln -f "$FILE" "$OTHER"
+      fi
+    done
+  done
+)
+
+
+# create archive
+
+tar -cz -f "${DIR}.tar.gz" "$DIR"
