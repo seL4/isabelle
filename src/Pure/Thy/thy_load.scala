@@ -43,9 +43,9 @@ class Thy_Load(preloaded: Set[String] = Set.empty)
 
   def read_header(name: Document.Node.Name): Thy_Header =
   {
-    val file = new JFile(name.node)
-    if (!file.exists || !file.isFile) error("No such file: " + quote(file.toString))
-    Thy_Header.read(file)
+    val path = Path.explode(name.node)
+    if (!path.is_file) error("No such file: " + path.toString)
+    Thy_Header.read(path.file)
   }
 
 
