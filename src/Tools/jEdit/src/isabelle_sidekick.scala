@@ -110,11 +110,12 @@ class Isabelle_Sidekick(name: String, get_syntax: => Option[Outer_Syntax])
               else
                 new SideKickCompletion(pane.getView, word, ds.toArray.asInstanceOf[Array[Object]]) {
                   override def getRenderer() =
-                    new ListCellRenderer {
-                      val default_renderer = new DefaultListCellRenderer
+                    new ListCellRenderer[Any] {
+                      val default_renderer =
+                        (new DefaultListCellRenderer).asInstanceOf[ListCellRenderer[Any]]
 
                       override def getListCellRendererComponent(
-                          list: JList, value: Any, index: Int,
+                          list: JList[_ <: Any], value: Any, index: Int,
                           selected: Boolean, focus: Boolean): Component =
                       {
                         val renderer: Component =
