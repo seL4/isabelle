@@ -70,31 +70,32 @@ sig
       given to force a specific mapping: this is usually done for using an
       imported TPTP problem in Isar.
     const_map = as previous, but for constants.
-    path_prefix = path where TPTP problems etc are located (to help the "include"
-      directive find the files.
+    path_prefixes = paths where TPTP problems etc are located (to help the
+      "include" directive find the files.
     line = parsed TPTP line
     thy = theory where interpreted info will be stored.
   *)
   val interpret_line : config -> string list -> type_map -> const_map ->
-    Path.T -> TPTP_Syntax.tptp_line -> theory -> tptp_general_meaning * theory
+    Path.T list -> TPTP_Syntax.tptp_line -> theory ->
+    tptp_general_meaning * theory
 
   (*Like "interpret_line" above, but works over a whole parsed problem.
     Arguments:
       config = as previously
       inclusion list = as previously
-      path_prefix = as previously
+      path_prefixes = as previously
       lines = parsed TPTP syntax
       type_map = as previously
       const_map = as previously
       thy = as previously
   *)
-  val interpret_problem : config -> string list -> Path.T ->
+  val interpret_problem : config -> string list -> Path.T list ->
     TPTP_Syntax.tptp_line list -> type_map -> const_map -> theory ->
     tptp_general_meaning * theory
 
   (*Like "interpret_problem" above, but it is given a filename rather than
   a parsed problem.*)
-  val interpret_file : bool -> Path.T -> Path.T -> type_map -> const_map ->
+  val interpret_file : bool -> Path.T list -> Path.T -> type_map -> const_map ->
     theory -> tptp_general_meaning * theory
 
   type position = string * int * int
@@ -104,7 +105,7 @@ sig
   exception MISINTERPRET_TERM of string * TPTP_Syntax.tptp_term
   exception MISINTERPRET_TYPE of string * TPTP_Syntax.tptp_type
 
-  val import_file : bool -> Path.T -> Path.T -> type_map -> const_map ->
+  val import_file : bool -> Path.T list -> Path.T -> type_map -> const_map ->
     theory -> theory
 
   (*Imported TPTP files are stored as "manifests" in the theory.*)
@@ -322,9 +323,6 @@ fun mk_fun_type [] b acc = acc b
   | mk_fun_type (ty :: tys) b acc =
       mk_fun_type tys b (fn ty_rest => Type ("fun", [ty, acc ty_rest]))
 
-fun dummy_term () =
-  HOLogic.choice_const Term.dummyT $ Term.absdummy Term.dummyT @{term "True"}
-
 (*These arities are not part of the TPTP spec*)
 fun arity_of interpreted_symbol = case interpreted_symbol of
     UMinus => 1
@@ -390,7 +388,7 @@ fun interpret_symbol config language const_map symb thy =
    | TypeSymbol _ =>
        raise MISINTERPRET_SYMBOL
         ("Cannot have TypeSymbol in term", symb)
-   | System str =>
+   | System _ =>
        raise MISINTERPRET_SYMBOL
         ("Cannot interpret system symbol", symb)
 
@@ -445,7 +443,6 @@ fun type_atoms_to_thy config formula_level type_map tptp_atom_value thy =
         declare_const_ifnot config const_name
          (mk_fun_type (replicate n_args ind_type) value_type I) thy
         |> snd
-    | _ => thy
   end
 
 (*FIXME only used until interpretation is implemented*)
@@ -498,8 +495,6 @@ fun interpret_term formula_level config language const_map var_types type_map
        let
          val thy' =
            type_atoms_to_thy config formula_level type_map (Atom_App tptp_t) thy
-         fun typeof_const const_name = Sign.the_const_type thy'
-             (Sign.full_name thy' (mk_binding config const_name))
        in
          case symb of
            Interpreted_ExtraLogic Apply =>
@@ -708,18 +703,22 @@ fun nameof_typing
      ((Atom (THF_Atom_term (Term_Func (Uninterpreted str, [])))), _)) = str
 fun nameof_tff_typing (Atom (TFF_Typed_Atom (Uninterpreted str, _))) = str
 
-fun interpret_line config inc_list type_map const_map path_prefix line thy =
+fun resolve_include_path path_prefixes path_suffix =
+  case find_first (fn prefix => File.exists (Path.append prefix path_suffix))
+         path_prefixes of
+    SOME prefix => Path.append prefix path_suffix
+  | NONE =>
+    error ("Cannot find include file " ^ quote (Path.implode path_suffix))
+
+fun interpret_line config inc_list type_map const_map path_prefixes line thy =
   case line of
      Include (_, quoted_path, inc_list) =>
        interpret_file'
         config
         inc_list
-        path_prefix
-        (Path.append
-          path_prefix
-          (quoted_path
-           |> unenclose
-           |> Path.explode))
+        path_prefixes
+        (resolve_include_path path_prefixes
+           (quoted_path |> unenclose |> Path.explode))
         type_map
         const_map
         thy
@@ -731,7 +730,6 @@ fun interpret_line config inc_list type_map const_map path_prefix line thy =
          case role of
            Role_Type =>
              let
-               val thy_name = Context.theory_name thy
                val (tptp_ty, name) =
                  if lang = THF then
                    (typeof_typing tptp_formula (*assuming tptp_formula is a typing*),
@@ -818,17 +816,15 @@ fun interpret_line config inc_list type_map const_map path_prefix line thy =
        else (*do nothing if we're not to includ this AF*)
          ((type_map, const_map, []), thy)
 
-and interpret_problem config inc_list path_prefix lines type_map const_map thy =
-  let
-    val thy_name = Context.theory_name thy
-    val thy_with_symbols = add_interp_symbols_to_thy config type_map thy
-  in
+and interpret_problem config inc_list path_prefixes lines type_map const_map thy =
+  let val thy_with_symbols = add_interp_symbols_to_thy config type_map thy in
     fold (fn line =>
            fn ((type_map, const_map, lines), thy) =>
              let
                (*process the line, ignoring the type-context for variables*)
                val ((type_map', const_map', l'), thy') =
-                 interpret_line config inc_list type_map const_map path_prefix line thy
+                 interpret_line config inc_list type_map const_map path_prefixes
+                   line thy
                  (*FIXME
                    handle
                      (*package all exceptions to include position information,
@@ -851,32 +847,32 @@ and interpret_problem config inc_list path_prefix lines type_map const_map thy =
          ((type_map, const_map, []), thy_with_symbols) (*initial values*)
   end
 
-and interpret_file' config inc_list path_prefix file_name =
+and interpret_file' config inc_list path_prefixes file_name =
   let
     val file_name' = Path.expand file_name
   in
     if Path.is_absolute file_name' then
       Path.implode file_name
       |> TPTP_Parser.parse_file
-      |> interpret_problem config inc_list path_prefix
+      |> interpret_problem config inc_list path_prefixes
     else error "Could not determine absolute path to file"
   end
 
-and interpret_file cautious path_prefix file_name =
+and interpret_file cautious path_prefixes file_name =
   let
     val config =
       {cautious = cautious,
        problem_name =
         SOME (TPTP_Problem_Name.parse_problem_name ((Path.base #> Path.implode)
          file_name))}
-  in interpret_file' config [] path_prefix file_name end
+  in interpret_file' config [] path_prefixes file_name end
 
-fun import_file cautious path_prefix file_name type_map const_map thy =
+fun import_file cautious path_prefixes file_name type_map const_map thy =
   let
     val prob_name =
       TPTP_Problem_Name.parse_problem_name (Path.implode (Path.base file_name))
     val (result, thy') =
-      interpret_file cautious path_prefix file_name type_map const_map thy
+      interpret_file cautious path_prefixes file_name type_map const_map thy
   (*FIXME doesn't check if problem has already been interpreted*)
   in TPTP_Data.map (cons ((prob_name, result))) thy' end
 
@@ -886,6 +882,6 @@ val _ =
       Toplevel.theory (fn thy =>
        (*NOTE: assumes include files are located at $TPTP/Axioms
          (which is how TPTP is organised)*)
-       import_file true (Path.explode "$TPTP") path [] [] thy)))
+       import_file true [Path.dir path, Path.explode "$TPTP"] path [] [] thy)))
 
 end

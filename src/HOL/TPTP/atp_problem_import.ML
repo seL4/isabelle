@@ -56,7 +56,8 @@ fun read_tptp_file thy postproc file_name =
              path |> not (Path.is_absolute path)
                      ? Path.append (Path.explode "$PWD"))
     val ((_, _, problem), thy) =
-      TPTP_Interpret.interpret_file true (Path.explode "$TPTP") path [] [] thy
+      TPTP_Interpret.interpret_file true [Path.dir path, Path.explode "$TPTP"]
+                                    path [] [] thy
     val (conjs, defs_and_nondefs) =
       problem |> List.partition (has_role TPTP_Syntax.Role_Conjecture)
               ||> List.partition (has_role TPTP_Syntax.Role_Definition)

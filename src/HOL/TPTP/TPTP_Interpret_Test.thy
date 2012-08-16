@@ -17,7 +17,7 @@ ML {*
     Timing.timing
       (TPTP_Interpret.interpret_file
        false
-       (Path.dir tptp_probs_dir)
+       [Path.explode "$TPTP"]
        (Path.append tptp_probs_dir (Path.explode "LCL/LCL825-1.p"))
        []
        [])
@@ -38,7 +38,7 @@ ML {*
     TimeLimit.timeLimit (Time.fromSeconds (if timeout = 0 then 60 else timeout))
      (TPTP_Interpret.interpret_file
        false
-       (Path.dir tptp_probs_dir)
+       [Path.explode "$TPTP"]
        file
        []
        []) thy
