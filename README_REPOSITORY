@@ -244,7 +244,7 @@ further clues.
 Here is a reasonably easy way to include important Isabelle components
 on the spot:
 
-  (1) The bash script ISABELLE_HOME_USER/etc/settings is augmented by
+  (1) The bash script $ISABELLE_HOME_USER/etc/settings is augmented by
   some shell function invocations like this:
 
       init_components "$HOME/.isabelle/contrib" "$ISABELLE_HOME/Admin/components/main"
@@ -258,7 +258,7 @@ on the spot:
       isabelle components -a
 
   This will saturate the "$HOME/.isabelle/contrib" directory structure
-  from according to $ISABELLE_COMPONENT_REPOSITORY.
+  from $ISABELLE_COMPONENT_REPOSITORY.
 
 Since the given component catalogs in $ISABELLE_HOME/Admin/components
 are subject to the Mercurial history, it is possible to bisect over a
