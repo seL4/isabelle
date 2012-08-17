@@ -39,11 +39,71 @@ next
   then show ?thesis unfolding `A = B` by simp
 qed
 
+lemma strong_F_cong [cong]:
+  "\<lbrakk> A = B; !!x. x:B =simp=> g x = h x \<rbrakk>
+   \<Longrightarrow> F (%x. g x) A = F (%x. h x) B"
+by (rule F_cong) (simp_all add: simp_implies_def)
+
 lemma F_neutral[simp]: "F (%i. 1) A = 1"
 by (cases "finite A") (simp_all add: neutral)
 
 lemma F_neutral': "ALL a:A. g a = 1 \<Longrightarrow> F g A = 1"
-by (simp cong: F_cong)
+by simp
+
+lemma F_subset_diff: "\<lbrakk> B \<subseteq> A; finite A \<rbrakk> \<Longrightarrow> F g A = F g (A - B) * F g B"
+by (metis Diff_partition union_disjoint Diff_disjoint finite_Un inf_commute sup_commute)
+
+lemma F_mono_neutral_cong_left:
+  assumes "finite T" and "S \<subseteq> T" and "\<forall>i \<in> T - S. h i = 1"
+  and "\<And>x. x \<in> S \<Longrightarrow> g x = h x" shows "F g S = F h T"
+proof-
+  have eq: "T = S \<union> (T - S)" using `S \<subseteq> T` by blast
+  have d: "S \<inter> (T - S) = {}" using `S \<subseteq> T` by blast
+  from `finite T` `S \<subseteq> T` have f: "finite S" "finite (T - S)"
+    by (auto intro: finite_subset)
+  show ?thesis using assms(4)
+    by (simp add: union_disjoint[OF f d, unfolded eq[symmetric]] F_neutral'[OF assms(3)])
+qed
+
+lemma F_mono_neutral_cong_right:
+  "\<lbrakk> finite T; S \<subseteq> T; \<forall>i \<in> T - S. g i = 1; \<And>x. x \<in> S \<Longrightarrow> g x = h x \<rbrakk>
+   \<Longrightarrow> F g T = F h S"
+by(auto intro!: F_mono_neutral_cong_left[symmetric])
+
+lemma F_mono_neutral_left:
+  "\<lbrakk> finite T; S \<subseteq> T; \<forall>i \<in> T - S. g i = 1 \<rbrakk> \<Longrightarrow> F g S = F g T"
+by(blast intro: F_mono_neutral_cong_left)
+
+lemma F_mono_neutral_right:
+  "\<lbrakk> finite T;  S \<subseteq> T;  \<forall>i \<in> T - S. g i = 1 \<rbrakk> \<Longrightarrow> F g T = F g S"
+by(blast intro!: F_mono_neutral_left[symmetric])
+
+lemma F_delta: 
+  assumes fS: "finite S"
+  shows "F (\<lambda>k. if k=a then b k else 1) S = (if a \<in> S then b a else 1)"
+proof-
+  let ?f = "(\<lambda>k. if k=a then b k else 1)"
+  { assume a: "a \<notin> S"
+    hence "\<forall>k\<in>S. ?f k = 1" by simp
+    hence ?thesis  using a by simp }
+  moreover
+  { assume a: "a \<in> S"
+    let ?A = "S - {a}"
+    let ?B = "{a}"
+    have eq: "S = ?A \<union> ?B" using a by blast 
+    have dj: "?A \<inter> ?B = {}" by simp
+    from fS have fAB: "finite ?A" "finite ?B" by auto  
+    have "F ?f S = F ?f ?A * F ?f ?B"
+      using union_disjoint[OF fAB dj, of ?f, unfolded eq[symmetric]]
+      by simp
+    then have ?thesis  using a by simp }
+  ultimately show ?thesis by blast
+qed
+
+lemma F_delta': 
+  assumes fS: "finite S" shows 
+  "F (\<lambda>k. if a = k then b k else 1) S = (if a \<in> S then b a else 1)"
+using F_delta[OF fS, of a b, symmetric] by (auto intro: F_cong)
 
 lemma If_cases:
   fixes P :: "'b \<Rightarrow> bool" and g h :: "'b \<Rightarrow> 'a"
@@ -144,14 +204,14 @@ lemma (in comm_monoid_add) setsum_reindex:
   assumes "inj_on f B" shows "setsum h (f ` B) = setsum (h \<circ> f) B"
 proof -
   interpret comm_monoid_mult "op +" 0 by (fact comm_monoid_mult)
-  from assms show ?thesis by (auto simp add: setsum_def fold_image_reindex dest!:finite_imageD)
+  from assms show ?thesis by (auto simp add: setsum_def fold_image_reindex o_def dest!:finite_imageD)
 qed
 
-lemma (in comm_monoid_add) setsum_reindex_id:
+lemma setsum_reindex_id:
   "inj_on f B ==> setsum f B = setsum id (f ` B)"
-  by (simp add: setsum_reindex)
+by (simp add: setsum_reindex)
 
-lemma (in comm_monoid_add) setsum_reindex_nonzero: 
+lemma setsum_reindex_nonzero: 
   assumes fS: "finite S"
   and nz: "\<And> x y. x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x \<noteq> y \<Longrightarrow> f x = f y \<Longrightarrow> h (f x) = 0"
   shows "setsum h (f ` S) = setsum (h o f) S"
@@ -160,7 +220,7 @@ proof(induct rule: finite_induct[OF fS])
   case 1 thus ?case by simp
 next
   case (2 x F) 
-  {assume fxF: "f x \<in> f ` F" hence "\<exists>y \<in> F . f y = f x" by auto
+  { assume fxF: "f x \<in> f ` F" hence "\<exists>y \<in> F . f y = f x" by auto
     then obtain y where y: "y \<in> F" "f x = f y" by auto 
     from "2.hyps" y have xy: "x \<noteq> y" by auto
     
@@ -169,120 +229,81 @@ next
     also have "\<dots> = setsum (h o f) (insert x F)" 
       unfolding setsum.insert[OF `finite F` `x\<notin>F`]
       using h0
-      apply simp
+      apply (simp cong del:setsum.strong_F_cong)
       apply (rule "2.hyps"(3))
       apply (rule_tac y="y" in  "2.prems")
       apply simp_all
       done
-    finally have ?case .}
+    finally have ?case . }
   moreover
-  {assume fxF: "f x \<notin> f ` F"
+  { assume fxF: "f x \<notin> f ` F"
     have "setsum h (f ` insert x F) = h (f x) + setsum h (f ` F)" 
       using fxF "2.hyps" by simp 
     also have "\<dots> = setsum (h o f) (insert x F)"
       unfolding setsum.insert[OF `finite F` `x\<notin>F`]
-      apply simp
+      apply (simp cong del:setsum.strong_F_cong)
       apply (rule cong [OF refl [of "op + (h (f x))"]])
       apply (rule "2.hyps"(3))
       apply (rule_tac y="y" in  "2.prems")
       apply simp_all
       done
-    finally have ?case .}
+    finally have ?case . }
   ultimately show ?case by blast
 qed
 
-lemma (in comm_monoid_add) setsum_cong:
+lemma setsum_cong:
   "A = B ==> (!!x. x:B ==> f x = g x) ==> setsum f A = setsum g B"
-  by (cases "finite A") (auto intro: setsum.cong)
+by (fact setsum.F_cong)
 
-lemma (in comm_monoid_add) strong_setsum_cong [cong]:
+lemma strong_setsum_cong:
   "A = B ==> (!!x. x:B =simp=> f x = g x)
    ==> setsum (%x. f x) A = setsum (%x. g x) B"
-  by (rule setsum_cong) (simp_all add: simp_implies_def)
+by (fact setsum.strong_F_cong)
 
-lemma (in comm_monoid_add) setsum_cong2: "\<lbrakk>\<And>x. x \<in> A \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> setsum f A = setsum g A"
-  by (auto intro: setsum_cong)
+lemma setsum_cong2: "\<lbrakk>\<And>x. x \<in> A \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> setsum f A = setsum g A"
+by (auto intro: setsum_cong)
 
-lemma (in comm_monoid_add) setsum_reindex_cong:
+lemma setsum_reindex_cong:
    "[|inj_on f A; B = f ` A; !!a. a:A \<Longrightarrow> g a = h (f a)|] 
     ==> setsum h B = setsum g A"
-  by (simp add: setsum_reindex)
+by (simp add: setsum_reindex)
 
 lemmas setsum_0 = setsum.F_neutral
 lemmas setsum_0' = setsum.F_neutral'
 
-lemma (in comm_monoid_add) setsum_Un_Int: "finite A ==> finite B ==>
+lemma setsum_Un_Int: "finite A ==> finite B ==>
   setsum g (A Un B) + setsum g (A Int B) = setsum g A + setsum g B"
   -- {* The reversed orientation looks more natural, but LOOPS as a simprule! *}
-  by (fact setsum.union_inter)
+by (fact setsum.union_inter)
 
-lemma (in comm_monoid_add) setsum_Un_disjoint: "finite A ==> finite B
+lemma setsum_Un_disjoint: "finite A ==> finite B
   ==> A Int B = {} ==> setsum g (A Un B) = setsum g A + setsum g B"
-  by (fact setsum.union_disjoint)
+by (fact setsum.union_disjoint)
+
+lemma setsum_subset_diff: "\<lbrakk> B \<subseteq> A; finite A \<rbrakk> \<Longrightarrow>
+    setsum f A = setsum f (A - B) + setsum f B"
+by(fact setsum.F_subset_diff)
 
 lemma setsum_mono_zero_left: 
-  assumes fT: "finite T" and ST: "S \<subseteq> T"
-  and z: "\<forall>i \<in> T - S. f i = 0"
-  shows "setsum f S = setsum f T"
-proof-
-  have eq: "T = S \<union> (T - S)" using ST by blast
-  have d: "S \<inter> (T - S) = {}" using ST by blast
-  from fT ST have f: "finite S" "finite (T - S)" by (auto intro: finite_subset)
-  show ?thesis 
-  by (simp add: setsum_Un_disjoint[OF f d, unfolded eq[symmetric]] setsum_0'[OF z])
-qed
+  "\<lbrakk> finite T; S \<subseteq> T; \<forall>i \<in> T - S. f i = 0 \<rbrakk> \<Longrightarrow> setsum f S = setsum f T"
+by(fact setsum.F_mono_neutral_left)
 
-lemma setsum_mono_zero_right: 
-  "finite T \<Longrightarrow> S \<subseteq> T \<Longrightarrow> \<forall>i \<in> T - S. f i = 0 \<Longrightarrow> setsum f T = setsum f S"
-by(blast intro!: setsum_mono_zero_left[symmetric])
+lemmas setsum_mono_zero_right = setsum.F_mono_neutral_right
 
 lemma setsum_mono_zero_cong_left: 
-  assumes fT: "finite T" and ST: "S \<subseteq> T"
-  and z: "\<forall>i \<in> T - S. g i = 0"
-  and fg: "\<And>x. x \<in> S \<Longrightarrow> f x = g x"
-  shows "setsum f S = setsum g T"
-proof-
-  have eq: "T = S \<union> (T - S)" using ST by blast
-  have d: "S \<inter> (T - S) = {}" using ST by blast
-  from fT ST have f: "finite S" "finite (T - S)" by (auto intro: finite_subset)
-  show ?thesis 
-    using fg by (simp add: setsum_Un_disjoint[OF f d, unfolded eq[symmetric]] setsum_0'[OF z])
-qed
+  "\<lbrakk> finite T; S \<subseteq> T; \<forall>i \<in> T - S. g i = 0; \<And>x. x \<in> S \<Longrightarrow> f x = g x \<rbrakk>
+  \<Longrightarrow> setsum f S = setsum g T"
+by(fact setsum.F_mono_neutral_cong_left)
 
-lemma setsum_mono_zero_cong_right: 
-  assumes fT: "finite T" and ST: "S \<subseteq> T"
-  and z: "\<forall>i \<in> T - S. f i = 0"
-  and fg: "\<And>x. x \<in> S \<Longrightarrow> f x = g x"
-  shows "setsum f T = setsum g S"
-using setsum_mono_zero_cong_left[OF fT ST z] fg[symmetric] by auto 
+lemmas setsum_mono_zero_cong_right = setsum.F_mono_neutral_cong_right
 
-lemma setsum_delta: 
-  assumes fS: "finite S"
-  shows "setsum (\<lambda>k. if k=a then b k else 0) S = (if a \<in> S then b a else 0)"
-proof-
-  let ?f = "(\<lambda>k. if k=a then b k else 0)"
-  {assume a: "a \<notin> S"
-    hence "\<forall> k\<in> S. ?f k = 0" by simp
-    hence ?thesis  using a by simp}
-  moreover 
-  {assume a: "a \<in> S"
-    let ?A = "S - {a}"
-    let ?B = "{a}"
-    have eq: "S = ?A \<union> ?B" using a by blast 
-    have dj: "?A \<inter> ?B = {}" by simp
-    from fS have fAB: "finite ?A" "finite ?B" by auto  
-    have "setsum ?f S = setsum ?f ?A + setsum ?f ?B"
-      using setsum_Un_disjoint[OF fAB dj, of ?f, unfolded eq[symmetric]]
-      by simp
-    then have ?thesis  using a by simp}
-  ultimately show ?thesis by blast
-qed
-lemma setsum_delta': 
-  assumes fS: "finite S" shows 
-  "setsum (\<lambda>k. if a = k then b k else 0) S = 
-     (if a\<in> S then b a else 0)"
-  using setsum_delta[OF fS, of a b, symmetric] 
-  by (auto intro: setsum_cong)
+lemma setsum_delta: "finite S \<Longrightarrow>
+  setsum (\<lambda>k. if k=a then b k else 0) S = (if a \<in> S then b a else 0)"
+by(fact setsum.F_delta)
+
+lemma setsum_delta': "finite S \<Longrightarrow>
+  setsum (\<lambda>k. if a = k then b k else 0) S = (if a\<in> S then b a else 0)"
+by(fact setsum.F_delta')
 
 lemma setsum_restrict_set:
   assumes fA: "finite A"
@@ -906,18 +927,18 @@ lemma setprod_infinite: "~ finite A ==> setprod f A = 1"
 
 lemma setprod_reindex:
    "inj_on f B ==> setprod h (f ` B) = setprod (h \<circ> f) B"
-by(auto simp: setprod_def fold_image_reindex dest!:finite_imageD)
+by(auto simp: setprod_def fold_image_reindex o_def dest!:finite_imageD)
 
 lemma setprod_reindex_id: "inj_on f B ==> setprod f B = setprod id (f ` B)"
 by (auto simp add: setprod_reindex)
 
 lemma setprod_cong:
   "A = B ==> (!!x. x:B ==> f x = g x) ==> setprod f A = setprod g B"
-by(fastforce simp: setprod_def intro: fold_image_cong)
+by(fact setprod.F_cong)
 
-lemma strong_setprod_cong[cong]:
+lemma strong_setprod_cong:
   "A = B ==> (!!x. x:B =simp=> f x = g x) ==> setprod f A = setprod g B"
-by(fastforce simp: simp_implies_def setprod_def intro: fold_image_cong)
+by(fact setprod.strong_F_cong)
 
 lemma setprod_reindex_cong: "inj_on f A ==>
     B = f ` A ==> g = h \<circ> f ==> setprod h B = setprod g A"
@@ -951,56 +972,36 @@ lemmas setprod_1' = setprod.F_neutral'
 
 lemma setprod_Un_Int: "finite A ==> finite B
     ==> setprod g (A Un B) * setprod g (A Int B) = setprod g A * setprod g B"
-by(simp add: setprod_def fold_image_Un_Int[symmetric])
+by (fact setprod.union_inter)
 
 lemma setprod_Un_disjoint: "finite A ==> finite B
   ==> A Int B = {} ==> setprod g (A Un B) = setprod g A * setprod g B"
-by (subst setprod_Un_Int [symmetric], auto)
+by (fact setprod.union_disjoint)
 
-lemma setprod_mono_one_left: 
-  assumes fT: "finite T" and ST: "S \<subseteq> T"
-  and z: "\<forall>i \<in> T - S. f i = 1"
-  shows "setprod f S = setprod f T"
-proof-
-  have eq: "T = S \<union> (T - S)" using ST by blast
-  have d: "S \<inter> (T - S) = {}" using ST by blast
-  from fT ST have f: "finite S" "finite (T - S)" by (auto intro: finite_subset)
-  show ?thesis
-  by (simp add: setprod_Un_disjoint[OF f d, unfolded eq[symmetric]] setprod_1'[OF z])
-qed
+lemma setprod_subset_diff: "\<lbrakk> B \<subseteq> A; finite A \<rbrakk> \<Longrightarrow>
+    setprod f A = setprod f (A - B) * setprod f B"
+by(fact setprod.F_subset_diff)
 
-lemmas setprod_mono_one_right = setprod_mono_one_left [THEN sym]
+lemma setprod_mono_one_left:
+  "\<lbrakk> finite T; S \<subseteq> T; \<forall>i \<in> T - S. f i = 1 \<rbrakk> \<Longrightarrow> setprod f S = setprod f T"
+by(fact setprod.F_mono_neutral_left)
 
-lemma setprod_delta: 
-  assumes fS: "finite S"
-  shows "setprod (\<lambda>k. if k=a then b k else 1) S = (if a \<in> S then b a else 1)"
-proof-
-  let ?f = "(\<lambda>k. if k=a then b k else 1)"
-  {assume a: "a \<notin> S"
-    hence "\<forall> k\<in> S. ?f k = 1" by simp
-    hence ?thesis  using a by (simp add: setprod_1) }
-  moreover 
-  {assume a: "a \<in> S"
-    let ?A = "S - {a}"
-    let ?B = "{a}"
-    have eq: "S = ?A \<union> ?B" using a by blast 
-    have dj: "?A \<inter> ?B = {}" by simp
-    from fS have fAB: "finite ?A" "finite ?B" by auto  
-    have fA1: "setprod ?f ?A = 1" apply (rule setprod_1') by auto
-    have "setprod ?f ?A * setprod ?f ?B = setprod ?f S"
-      using setprod_Un_disjoint[OF fAB dj, of ?f, unfolded eq[symmetric]]
-      by simp
-    then have ?thesis using a by (simp add: fA1 cong: setprod_cong cong del: if_weak_cong)}
-  ultimately show ?thesis by blast
-qed
+lemmas setprod_mono_one_right = setprod.F_mono_neutral_right
 
-lemma setprod_delta': 
-  assumes fS: "finite S" shows 
-  "setprod (\<lambda>k. if a = k then b k else 1) S = 
-     (if a\<in> S then b a else 1)"
-  using setprod_delta[OF fS, of a b, symmetric] 
-  by (auto intro: setprod_cong)
+lemma setprod_mono_one_cong_left: 
+  "\<lbrakk> finite T; S \<subseteq> T; \<forall>i \<in> T - S. g i = 1; \<And>x. x \<in> S \<Longrightarrow> f x = g x \<rbrakk>
+  \<Longrightarrow> setprod f S = setprod g T"
+by(fact setprod.F_mono_neutral_cong_left)
 
+lemmas setprod_mono_one_cong_right = setprod.F_mono_neutral_cong_right
+
+lemma setprod_delta: "finite S \<Longrightarrow>
+  setprod (\<lambda>k. if k=a then b k else 1) S = (if a \<in> S then b a else 1)"
+by(fact setprod.F_delta)
+
+lemma setprod_delta': "finite S \<Longrightarrow>
+  setprod (\<lambda>k. if a = k then b k else 1) S = (if a\<in> S then b a else 1)"
+by(fact setprod.F_delta')
 
 lemma setprod_UN_disjoint:
     "finite I ==> (ALL i:I. finite (A i)) ==>
@@ -1030,7 +1031,7 @@ apply (cases "finite A")
  apply (cases "finite B") 
   apply (simp add: setprod_Sigma)
  apply (cases "A={}", simp)
- apply (simp add: setprod_1) 
+ apply (simp) 
 apply (auto simp add: setprod_def
             dest: finite_cartesian_productD1 finite_cartesian_productD2) 
 done
@@ -1175,7 +1176,7 @@ proof-
   let ?f = "(\<lambda>k. if k=a then b k else c)"
   {assume a: "a \<notin> S"
     hence "\<forall> k\<in> S. ?f k = c" by simp
-    hence ?thesis  using a setprod_constant[OF fS, of c] by (simp add: setprod_1 cong add: setprod_cong) }
+    hence ?thesis  using a setprod_constant[OF fS, of c] by simp }
   moreover 
   {assume a: "a \<in> S"
     let ?A = "S - {a}"
