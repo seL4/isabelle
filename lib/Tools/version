@@ -60,7 +60,7 @@ if [ -n "$SHORT_ID" ]; then
   if [ -n "$ISABELLE_ID" ]; then
     echo "$ISABELLE_ID"
   else
-    ${HG:-hg} id --repository "$ISABELLE_HOME" --id 2>/dev/null || echo undefined
+    "${HG:-hg}" id --repository "$ISABELLE_HOME" --id 2>/dev/null || echo undefined
   fi
 else
   echo 'unidentified repository version'    # filled in automatically!
