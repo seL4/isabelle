@@ -258,7 +258,7 @@ on the spot:
       isabelle components -a
 
   This will saturate the "$HOME/.isabelle/contrib" directory structure
-  from according to $ISABELLE_COMPONENT_REPOSITORY.
+  according to $ISABELLE_COMPONENT_REPOSITORY.
 
 Since the given component catalogs in $ISABELLE_HOME/Admin/components
 are subject to the Mercurial history, it is possible to bisect over a
