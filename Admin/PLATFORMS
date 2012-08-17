@@ -11,10 +11,10 @@ as possible.
 The basic Isabelle system infrastructure provides some facilities to
 make this work, e.g. see the ML and Scala modules File and Path, or
 functions like Isabelle_System.bash.  The settings environment also
-provides some means for portability, e.g. jvm_path to keep the
-impression that Java on Windows/Cygwin adheres to Isabelle/POSIX
-standards, although inside the JVM itself there are many
-Windows-specific things.
+provides some means for portability, e.g. the bash function "jvmpath"
+to keep the impression that Java on Windows/Cygwin adheres to
+Isabelle/POSIX standards, although inside the JVM itself there are
+many Windows-specific things.
 
 When producing add-on tools, it is important to stay within this clean
 room of Isabelle, and refrain from overly ambitious system hacking.
