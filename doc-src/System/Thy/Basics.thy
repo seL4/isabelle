@@ -299,18 +299,18 @@ text {* Any directory may be registered as an explicit \emph{Isabelle
   For example, the following setting allows to refer to files within
   the component later on, without having to hardwire absolute paths:
 
-  \begin{ttbox}
-  MY_COMPONENT_HOME="$COMPONENT"
-  \end{ttbox}
+\begin{ttbox}
+MY_COMPONENT_HOME="$COMPONENT"
+\end{ttbox}
 
   Components can also add to existing Isabelle settings such as
   @{setting_def ISABELLE_TOOLS}, in order to provide
   component-specific tools that can be invoked by end-users.  For
   example:
 
-  \begin{ttbox}
-  ISABELLE_TOOLS="$ISABELLE_TOOLS:$COMPONENT/lib/Tools"
-  \end{ttbox}
+\begin{ttbox}
+ISABELLE_TOOLS="$ISABELLE_TOOLS:$COMPONENT/lib/Tools"
+\end{ttbox}
 
   \item @{verbatim "etc/components"} holds a list of further
   sub-components of the same structure.  The directory specifications
@@ -328,12 +328,23 @@ text {* Any directory may be registered as an explicit \emph{Isabelle
   \verb,init_component, shell function in the \verb,etc/settings,
   script of \verb,$ISABELLE_HOME_USER, (or any other component
   directory).  For example:
-  \begin{verbatim}
-  if [ -d "$HOME/screwdriver-2.0" ]
-  then
-    init_component "$HOME/screwdriver-2.0"
-  else
-  \end{verbatim}
+\begin{ttbox}
+init_component "$HOME/screwdriver-2.0"
+\end{ttbox}
+
+  This is tolerant wrt.\ missing component directories, but might
+  produce a warning.
+
+  \medskip More complex situations may be addressed by initializing
+  components listed in a given catalog file, relatively to some base
+  directory:
+
+\begin{ttbox}
+init_components "$HOME/my_component_store" "some_catalog_file"
+\end{ttbox}
+
+  The component directories listed in the catalog file are treated as
+  relative to the given base directory.
 *}
 
 
