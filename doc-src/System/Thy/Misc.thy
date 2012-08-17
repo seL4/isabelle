@@ -10,6 +10,48 @@ text {*
 *}
 
 
+section {* Resolving Isabelle components \label{sec:tool-components} *}
+
+text {*
+  The @{tool_def components} tool resolves Isabelle components:
+\begin{ttbox}
+Usage: isabelle components [OPTIONS] [COMPONENTS ...]
+
+  Options are:
+    -R URL       component repository
+                 (default $ISABELLE_COMPONENT_REPOSITORY)
+    -a           all missing components
+    -l           list status
+
+  Resolve Isabelle components via download and installation.
+  COMPONENTS are identified via base name.
+
+  ISABELLE_COMPONENT_REPOSITORY="http://isabelle.in.tum.de/components"
+\end{ttbox}
+
+  Components are initialized as described in \secref{sec:components}
+  in a permissive manner, which can mark components as ``missing''.
+  This state is amended by letting @{tool "components"} download and
+  unpack components that are published on the default component
+  repository \url{http://isabelle.in.tum.de/components/} in
+  particular.
+
+  Option @{verbatim "-R"} specifies an alternative component
+  repository.  Note that @{verbatim "file:///"} URLs can be used for
+  local directories.
+
+  Option @{verbatim "-a"} selects all missing components to be
+  installed.  Explicit components may be named as command
+  line-arguments as well.  Note that components are uniquely
+  identified by their base name, while the installation takes place in
+  the location that was specified in the attempt to initialize the
+  component before.
+
+  Option @{verbatim "-l"} lists the current state of available and
+  missing components with their location (full name) within the
+  file-system.  *}
+
+
 section {* Displaying documents *}
 
 text {* The @{tool_def display} tool displays documents in DVI or PDF

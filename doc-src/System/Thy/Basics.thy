@@ -345,6 +345,10 @@ init_components "$HOME/my_component_store" "some_catalog_file"
 
   The component directories listed in the catalog file are treated as
   relative to the given base directory.
+
+  See also \secref{sec:tool-components} for some tool-support for
+  resolving components that are formally initialized but not installed
+  yet.
 *}
 
 
