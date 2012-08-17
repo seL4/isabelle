@@ -233,28 +233,34 @@ changesets that are meant to be published at some point.
 Building a repository version of Isabelle
 -----------------------------------------
 
-A proper Isabelle distribution contains many add-on components that
-are important for practical use.  Some extra configuration is required
-to approximate this system integration from a bare-bones repository
-snapshot; see also its directory Admin/ (which is absent in official
-releases).
+The regular "isabelle build" tool allows to build session images as
+usual, but this first requires to resolve add-on components first,
+including the ML system.  Some extra configuration is required to
+approximate some of the system integration of official Isabelle
+releases from a bare-bones repository snapshot.  The special directory
+Admin/ -- which is absent in official releases -- might provide some
+further clues.
 
-  (1) Admin/components lists potentially relevant components, with
-    explicit version information for the given repository version.
-    For example, this allows to bisect over Mercurial history while
-    the contributing components change accordingly.
+Here is a reasonably easy way to include important Isabelle components
+on the spot:
 
-  (2) Admin/init_components is a bash script that can be sourced in
-    $ISABELLE_HOME_USER/etc/settings to initialize components listed
-    in Admin/components and present in $ISABELLE_HOME_USER/contrib/.
+  (1) The bash script ISABELLE_HOME_USER/etc/settings is augmented by
+  some shell function invocations like this:
 
-  (3) http://isabelle.in.tum.de/components/ provides tar.gz archives
-    of many components, excluding some non-free ones (which are also
-    not part of Isabelle releases).
+      init_components "$HOME/.isabelle/contrib" "$ISABELLE_HOME/Admin/components/main"
+      init_components "$HOME/.isabelle/contrib" "$ISABELLE_HOME/Admin/components/optional"
 
-Also note that the repository lacks some textual version identifiers
-in the sources and scripts; this implies some changed behavior when
-processing settings etc. -- especially the location of
-$ISABELLE_HOME_USER provided by the system.
+  This uses some central place "$HOME/.isabelle/contrib" to keep
+  component directories that are shared by all Isabelle versions.
 
-The isabelle build tool allows to build logic images.
+  (2) Missing components are resolved on the command line like this:
+
+      isabelle components -a
+
+  This will saturate the "$HOME/.isabelle/contrib" directory structure
+  from according to $ISABELLE_COMPONENT_REPOSITORY.
+
+Since the given component catalogs in $ISABELLE_HOME/Admin/components
+are subject to the Mercurial history, it is possible to bisect over a
+range of Isabelle versions while references to the contributing
+components change accordingly.

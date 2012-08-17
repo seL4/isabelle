@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# DESCRIPTION: resolve Isabelle components
+
+
+## diagnostics
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: isabelle $PRG [OPTIONS] [COMPONENTS ...]"
+  echo
+  echo "  Options are:"
+  echo "    -R URL       component repository (default \$ISABELLE_COMPONENT_REPOSITORY)"
+  echo "    -a           all missing components"
+  echo "    -l           list status"
+  echo
+  echo "  Resolve Isabelle components via download and installation."
+  echo "  COMPONENTS are identified via base name."
+  echo
+  echo "  ISABELLE_COMPONENT_REPOSITORY=\"$ISABELLE_COMPONENT_REPOSITORY\""
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+#options
+
+COMPONENT_REPOSITORY="$ISABELLE_COMPONENT_REPOSITORY"
+ALL_MISSING=""
+LIST_ONLY=""
+
+while getopts "R:al" OPT
+do
+  case "$OPT" in
+    R)
+      COMPONENT_REPOSITORY="$OPTARG"
+      ;;
+    a)
+      ALL_MISSING="true"
+      ;;
+    l)
+      LIST_ONLY="true"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
+[ "$#" -eq 0 -a -z "$ALL_MISSING" -a -z "$LIST_ONLY" ] && usage
+
+if [ -z "$ALL_MISSING" ]; then
+  splitarray ":" "$@"
+else
+  splitarray ":" "$ISABELLE_COMPONENTS_MISSING" "$@"
+fi
+declare -a SELECTED_COMPONENTS=("${SPLITARRAY[@]}")
+
+
+## main
+
+splitarray ":" "$ISABELLE_COMPONENTS"; declare -a AVAILABLE_COMPONENTS=("${SPLITARRAY[@]}")
+splitarray ":" "$ISABELLE_COMPONENTS_MISSING"; declare -a MISSING_COMPONENTS=("${SPLITARRAY[@]}")
+
+if [ -n "$LIST_ONLY" ]; then
+  echo
+  echo "Available components:"
+  for NAME in "${AVAILABLE_COMPONENTS[@]}"; do echo "  $NAME"; done
+  echo
+  echo "Missing components:"
+  for NAME in "${MISSING_COMPONENTS[@]}"; do echo "  $NAME"; done
+else
+  for NAME in "${SELECTED_COMPONENTS[@]}"
+  do
+    BASE_NAME="$(basename "$NAME")"
+    FULL_NAME=""
+    for X in "${AVAILABLE_COMPONENTS[@]}" "${MISSING_COMPONENTS[@]}"
+    do
+      [ -z "$FULL_NAME" -a "$BASE_NAME" = "$(basename "$X")" ] && FULL_NAME="$X"
+    done
+    if [ -z "$FULL_NAME" ]; then
+      echo "Ignoring irrelevant component \"$NAME\""
+    elif [ -d "$FULL_NAME" ]; then
+      echo "Skipping existing component \"$FULL_NAME\""
+    else
+      if [ ! -e "${FULL_NAME}.tar.gz" ]; then
+        REMOTE="$COMPONENT_REPOSITORY/${BASE_NAME}.tar.gz"
+        echo "Getting \"$REMOTE\""
+        mkdir -p "$(dirname "$FULL_NAME")"
+        perl -MLWP::Simple -e "getprint '$REMOTE';" > "${FULL_NAME}.tar.gz"
+        if perl -e "exit((stat('${FULL_NAME}.tar.gz'))[7] == 0 ? 0 : 1);"
+        then
+          rm -f "${FULL_NAME}.tar.gz"
+        fi
+      fi
+      if [ -e "${FULL_NAME}.tar.gz" ]; then
+        echo "Unpacking \"${FULL_NAME}.tar.gz\""
+        tar -C "$(dirname "$FULL_NAME")" -x -f "${FULL_NAME}.tar.gz"
+      fi
+    fi
+  done
+fi
+

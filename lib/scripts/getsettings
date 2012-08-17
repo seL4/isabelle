@@ -11,7 +11,7 @@ set -o allexport
 
 ISABELLE_SETTINGS_PRESENT=true
 
-#Cygwin vs Posix
+#Cygwin vs. POSIX
 if [ "$OSTYPE" = cygwin ]
 then
   if [ -z "$USER_HOME" ]; then
@@ -34,11 +34,6 @@ else
 fi
 
 export ISABELLE_HOME
-if { echo -n "$ISABELLE_HOME" | fgrep " " >/dev/null; }
-then
-  echo 1>&2 "### White space in ISABELLE_HOME may cause strange problems!"
-  echo 1>&2 "### ISABELLE_HOME=\"$ISABELLE_HOME\""
-fi
 
 #key executables
 ISABELLE_PROCESS="$ISABELLE_HOME/bin/isabelle-process"
@@ -58,7 +53,7 @@ fi
 
 #Isabelle distribution identifier -- filled in automatically!
 ISABELLE_ID=""
-ISABELLE_IDENTIFIER=""
+[ -z "$ISABELLE_IDENTIFIER" ] && ISABELLE_IDENTIFIER=""
 
 #sometimes users put strange things in here ...
 unset ENV
@@ -153,8 +148,13 @@ function splitarray ()
   done
 }
 
-#nested components
+
+# components
+
 ISABELLE_COMPONENTS=""
+ISABELLE_COMPONENTS_MISSING=""
+
+#init component tree
 function init_component ()
 {
   local COMPONENT="$1"
@@ -166,13 +166,21 @@ function init_component ()
       ;;
   esac
 
-  if [ ! -d "$COMPONENT" ]; then
-    echo >&2 "### Missing Isabelle component: \"$COMPONENT\""
-  elif [ -z "$ISABELLE_COMPONENTS" ]; then
-    ISABELLE_COMPONENTS="$COMPONENT"
+  if [ -d "$COMPONENT" ]; then
+    if [ -z "$ISABELLE_COMPONENTS" ]; then
+      ISABELLE_COMPONENTS="$COMPONENT"
+    else
+      ISABELLE_COMPONENTS="$ISABELLE_COMPONENTS:$COMPONENT"
+    fi
   else
-    ISABELLE_COMPONENTS="$ISABELLE_COMPONENTS:$COMPONENT"
+    echo >&2 "### Missing Isabelle component: \"$COMPONENT\""
+    if [ -z "$ISABELLE_COMPONENTS_MISSING" ]; then
+      ISABELLE_COMPONENTS_MISSING="$COMPONENT"
+    else
+      ISABELLE_COMPONENTS_MISSING="$ISABELLE_COMPONENTS_MISSING:$COMPONENT"
+    fi
   fi
+
   if [ -f "$COMPONENT/etc/settings" ]; then
     source "$COMPONENT/etc/settings"
     local RC="$?"
@@ -182,23 +190,41 @@ function init_component ()
     fi
   fi
   if [ -f "$COMPONENT/etc/components" ]; then
-    {
-      while { unset REPLY; read -r; test "$?" = 0 -o -n "$REPLY"; }
-      do
-        case "$REPLY" in
-          \#* | "") ;;
-          /*) init_component "$REPLY" ;;
-          *) init_component "$COMPONENT/$REPLY" ;;
-        esac
-      done
-    } < "$COMPONENT/etc/components"
+    init_components "$COMPONENT" "$COMPONENT/etc/components"
   fi
+}
+
+#init component forest
+function init_components ()
+{
+  local BASE="$1"
+  local CATALOG="$2"
+
+  if [ ! -d "$BASE" ]; then
+    echo >&2 "Bad component base directory: \"$BASE\""
+    exit 2
+  fi
+  if [ ! -f "$CATALOG" ]; then
+    echo >&2 "Bad component catalog file: \"$CATALOG\""
+    exit 2
+  fi
+  {
+    while { unset REPLY; read -r; test "$?" = 0 -o -n "$REPLY"; }
+    do
+      case "$REPLY" in
+        \#* | "") ;;
+        /*) init_component "$REPLY" ;;
+        *) init_component "$BASE/$REPLY" ;;
+      esac
+    done
+  } < "$CATALOG"
 }
 
 #main components
 init_component "$ISABELLE_HOME"
 [ -d "$ISABELLE_HOME/Admin" ] && init_component "$ISABELLE_HOME/Admin"
 [ -d "$ISABELLE_HOME_USER" ] && init_component "$ISABELLE_HOME_USER"
+
 
 #ML system identifier
 if [ -z "$ML_PLATFORM" ]; then
@@ -207,10 +233,10 @@ else
   ML_IDENTIFIER="${ML_SYSTEM}_${ML_PLATFORM}"
 fi
 
+ISABELLE_OUTPUT="$ISABELLE_OUTPUT/$ML_IDENTIFIER"
+
 #enforce JAVA_HOME
 export JAVA_HOME="$ISABELLE_JDK_HOME"
-
-ISABELLE_OUTPUT="$ISABELLE_OUTPUT/$ML_IDENTIFIER"
 
 #build condition etc.
 case "$ML_SYSTEM" in

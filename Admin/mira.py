@@ -39,7 +39,9 @@ ISABELLE_PATH="$ISABELLE_OUTPUT"
 
 Z3_NON_COMMERCIAL="yes"
 
-source "${ISABELLE_HOME}/Admin/init_components"
+init_components "$COMPONENT/contrib" "$ISABELLE_HOME/Admin/components/main"
+init_components "$COMPONENT/contrib" "$ISABELLE_HOME/Admin/components/optional"
+init_components "$COMPONENT/contrib" "$ISABELLE_HOME/Admin/components/nonfree"
 
 ''' + more_settings
 

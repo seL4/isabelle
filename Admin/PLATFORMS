@@ -5,21 +5,21 @@ Preamble
 --------
 
 The general programming model is that of a stylized ML + Scala + POSIX
-environment, with hardly any system specific code in user-space tools
-and packages.
+environment, with as little system-specific code in user-space tools
+as possible.
 
 The basic Isabelle system infrastructure provides some facilities to
-make this work, e.g. see the ML structures File and Path, or functions
-like Isabelle_System.bash.  The settings environment also provides
-some means for portability, e.g. jvm_path to keep the impression that
-Java on Windows/Cygwin adheres to Isabelle/POSIX standards (inside the
-JVM itself there are many Windows-specific things, though).
+make this work, e.g. see the ML and Scala modules File and Path, or
+functions like Isabelle_System.bash.  The settings environment also
+provides some means for portability, e.g. the bash function "jvmpath"
+to keep the impression that Java on Windows/Cygwin adheres to
+Isabelle/POSIX standards, although inside the JVM itself there are
+many Windows-specific things.
 
 When producing add-on tools, it is important to stay within this clean
 room of Isabelle, and refrain from overly ambitious system hacking.
-The existing Isabelle scripts follow a certain style that might look
-odd at first sight, but it reflects long years of experience in
-getting system plumbing right (which is quite hard).
+The existing Isabelle scripts follow a peculiar style that reflects
+long years of experience in getting system plumbing right.
 
 
 Supported platforms
@@ -31,23 +31,22 @@ following reference versions (which have been selected to be neither
 too old nor too new):
 
   x86-linux         Ubuntu 10.04 LTS
-  x86-darwin        Mac OS Leopard (macbroy30)
-                    Mac OS Snow Leopard (macbroy2)
-                    Mac OS Lion (macbroy6)
-  x86-cygwin        Cygwin 1.7 (vmbroy9)
-
   x86_64-linux      Ubuntu 10.04 LTS
-  x86_64-darwin     Mac OS Leopard (macbroy30)
-                    Mac OS Snow Leopard (macbroy2)
+
+  x86_64-darwin     Mac OS Snow Leopard (macbroy2)
                     Mac OS Lion (macbroy6)
+                    Mac OS Mountain Lion (macbroy30)
+
+  x86-cygwin        Cygwin 1.7 (vmbroy9)
 
 All of the above platforms are 100% supported by Isabelle -- end-users
 should not have to care about the differences (at least in theory).
-There are also some additional platforms where Poly/ML also happens to
-work, but they are *not* covered by the official Isabelle
+There are also some additional platforms where Poly/ML might also
+happen to work, but they are *not* covered by the official Isabelle
 distribution:
 
   ppc-darwin
+  x86-darwin
   sparc-solaris
   x86-solaris
   x86-bsd
@@ -55,31 +54,45 @@ distribution:
 There are increasing problems to make contributing components of
 Isabelle work on such fringe platforms.  Note that x86-bsd is silently
 treated like x86-linux -- this works if certain Linux compatibility
-packages are installed on BSD.
+packages are installed on BSD.  Old 32 bit Macintosh hardware is no
+longer supported due the its lack of Java 7.
 
 
 32 bit vs. 64 bit platforms
 ---------------------------
 
-Most users already have 64 bit hardware, and many of them are running
-a 64 bit operating system.  Native 64 bit support for ML and Scala/JVM
-is increasingly important for big Isabelle applications, but 32 bit is
-often the default to get started.  Add-on executables need to work
-seamlessly without manual user configuration, either as native 64 bit
-executables or in 32 bit mode on a 64 bit platform.
+Most users have 64 bit hardware and are running a 64 bit operating
+system by default.  For Linux this often means missing 32 bit shared
+libraries, so native x86_64-linux needs to be used by default, despite
+its doubled space requirements for Poly/ML heaps.  For Mac OS X, the
+x86-darwin personality usually works seamlessly for C/C++ programs,
+but the Java 7 platform is only available for x86_64-darwin.
+
+Add-on executables are expected to without manual user configuration,
+Each component settings script needs to work out the platform details
+appropriately.
+
+The Isabelle settings environment provides the following variables to
+help configuring platform-dependent tools:
+
+  ISABELLE_PLATFORM64  (potentially empty)
+  ISABELLE_PLATFORM32
+  ISABELLE_PLATFORM
 
 The ISABELLE_PLATFORM setting variable refers to the 32 bit version of
-the platform, even on 64 bit hardware.  Tools need to indicate 64 bit
-support explicitly via the (optional) ISABELLE_PLATFORM64 setting, if
-this is really required.  The following bash expression prefers the 64
-bit platform, if that is available:
+the platform, even on 64 bit hardware.  Using regular bash notation,
+tools may express their preference for 64 bit with a fall-back for 32
+bit as follows:
 
-  "${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM}"
+  "${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM32}"
 
-Note that ML and JVM may have a different idea of the platform,
-depending on the respective binaries that are actually run.  The
-"uname" Unix tool usually only tells about its own executable format,
-not the underlying platform.
+Moreover note that ML and JVM usually have a different idea of the
+platform, depending on the respective binaries that are actually run.
+Poly/ML 5.5.x runs most efficiently on 32 bit, even for large
+applications.  The JVM usually performs better in 64 bit mode.
+
+The traditional "uname" Unix tool usually only tells about its own
+executable format, not the underlying platform!
 
 
 Dependable system tools
@@ -96,8 +109,8 @@ The following portable system tools can be taken for granted:
   performs not as well in addressing various delicate details of
   operating system concepts (processes, signals, sockets etc.).
 
-* Scala with Java Runtime 1.6.  The Isabelle/Scala layer irons out
-  many oddities and portability issues of the Java platform.
+* Scala with Java 1.7.  The Isabelle/Scala layer irons out many
+  oddities and portability issues of the Java platform.
 
 
 Known problems
@@ -115,12 +128,8 @@ Known problems
   default.
 
 * The Java runtime has its own idea about the underlying platform,
-  e.g. on a 64 bit machine Isabelle/ML could be x86-linux, but the JVM
-  could be x86_64-linux.  This affects Java native libraries in
-  particular -- which cause extra portability problems and can make
-  the JVM crash anyway.
-
-  In Isabelle/Scala isabelle.Platform.jvm_platform identifies the JVM
+  which affects Java native libraries in particular.  In
+  Isabelle/Scala isabelle.Platform.jvm_platform identifies the JVM
   platform.  Since there can be many different Java installations on
   the same machine, which can also be run with different options,
   reliable JVM platform identification works from inside the running

@@ -12,4 +12,4 @@ do
     /*) init_component "$REPLY" ;;
     *) init_component "$COMPONENT/$REPLY" ;;
   esac
-done < "$ISABELLE_HOME/Admin/components"
+done < "$ISABELLE_HOME/Admin/components_old"

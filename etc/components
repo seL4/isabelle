@@ -10,7 +10,6 @@ src/FOLP
 src/LCF
 src/Sequents
 #misc components
-doc-src
 src/Tools/Code
 src/Tools/jEdit
 src/Tools/WWW_Find
@@ -21,3 +20,4 @@ src/HOL/Tools/ATP
 src/HOL/Tools/Predicate_Compile
 src/HOL/Tools/SMT
 src/HOL/TPTP
+doc-src

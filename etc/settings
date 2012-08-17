@@ -96,6 +96,8 @@ ISABELLE_EPSTOPDF="epstopdf"
 ### Misc path settings
 ###
 
+ISABELLE_COMPONENT_REPOSITORY="http://isabelle.in.tum.de/components"
+
 # The place for user configuration, heap files, etc.
 if [ -z "$ISABELLE_IDENTIFIER" ]; then
   ISABELLE_HOME_USER="$USER_HOME/.isabelle"
