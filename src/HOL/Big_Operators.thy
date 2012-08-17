@@ -65,13 +65,18 @@ proof-
     by (simp add: union_disjoint[OF f d, unfolded eq[symmetric]] F_neutral'[OF assms(3)])
 qed
 
-lemmas F_mono_neutral_cong_right = F_mono_neutral_cong_left[symmetric]
+lemma F_mono_neutral_cong_right:
+  "\<lbrakk> finite T; S \<subseteq> T; \<forall>i \<in> T - S. g i = 1; \<And>x. x \<in> S \<Longrightarrow> g x = h x \<rbrakk>
+   \<Longrightarrow> F g T = F h S"
+by(auto intro!: F_mono_neutral_cong_left[symmetric])
 
 lemma F_mono_neutral_left:
   "\<lbrakk> finite T; S \<subseteq> T; \<forall>i \<in> T - S. g i = 1 \<rbrakk> \<Longrightarrow> F g S = F g T"
 by(blast intro: F_mono_neutral_cong_left)
 
-lemmas F_mono_neutral_right = F_mono_neutral_left[symmetric]
+lemma F_mono_neutral_right:
+  "\<lbrakk> finite T;  S \<subseteq> T;  \<forall>i \<in> T - S. g i = 1 \<rbrakk> \<Longrightarrow> F g T = F g S"
+by(blast intro!: F_mono_neutral_left[symmetric])
 
 lemma F_delta: 
   assumes fS: "finite S"
