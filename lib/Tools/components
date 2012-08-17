@@ -104,6 +104,7 @@ else
       if [ ! -e "${FULL_NAME}.tar.gz" ]; then
         REMOTE="$COMPONENT_REPOSITORY/${BASE_NAME}.tar.gz"
         echo "Getting \"$REMOTE\""
+        mkdir -p "$(dirname "$FULL_NAME")"
         perl -MLWP::Simple -e "getprint '$REMOTE';" > "${FULL_NAME}.tar.gz"
         if perl -e "exit((stat('${FULL_NAME}.tar.gz'))[7] == 0 ? 0 : 1);"
         then
