@@ -1,15 +1,3 @@
-#main object logics
-src/Pure
-src/FOL
-src/HOL
-src/ZF
-src/CCL
-src/CTT
-src/Cube
-src/FOLP
-src/LCF
-src/Sequents
-#misc components
 src/Tools/Code
 src/Tools/jEdit
 src/Tools/WWW_Find
@@ -20,4 +8,3 @@ src/HOL/Tools/ATP
 src/HOL/Tools/Predicate_Compile
 src/HOL/Tools/SMT
 src/HOL/TPTP
-doc-src
