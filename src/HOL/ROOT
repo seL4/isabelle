@@ -49,6 +49,8 @@ session "HOL-Library" in Library = HOL +
     (* Code_Prolog  FIXME cf. 76965c356d2a *)
     Code_Real_Approx_By_Float
     Target_Numeral
+  theories [condition = ISABELLE_FULL_TEST]
+    Sum_of_Squares_Remote
   files "document/root.bib" "document/root.tex"
 
 session "HOL-Hahn_Banach" in Hahn_Banach = HOL +
