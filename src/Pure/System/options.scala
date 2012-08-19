@@ -27,8 +27,12 @@ object Options
   private case object Int extends Type
   private case object Real extends Type
   private case object String extends Type
+  private case object Unknown extends Type
 
   case class Opt(typ: Type, value: String, description: String)
+  {
+    def unknown: Boolean = typ == Unknown
+  }
 
 
   /* parsing */
@@ -60,7 +64,7 @@ object Options
     val prefs_entry: Parser[Options => Options] =
     {
       option_name ~ (keyword("=") ~! option_value) ^^
-      { case a ~ (_ ~ b) => (options: Options) => options + (a, b) }
+      { case a ~ (_ ~ b) => (options: Options) => options.add_permissive(a, b) }
     }
 
     def parse_file(syntax: Outer_Syntax, parser: Parser[Options => Options],
@@ -123,15 +127,15 @@ final class Options private(protected val options: Map[String, Options.Opt] = Ma
     cat_lines(options.toList.sortBy(_._1).map({ case (name, opt) =>
       "option " + name + " : " + opt.typ.print + " = " +
         (if (opt.typ == Options.String) quote(opt.value) else opt.value) +
-      "\n  -- " + quote(opt.description) }))
+      (if (opt.description == "") "" else "\n  -- " + quote(opt.description)) }))
 
 
   /* check */
 
   private def check_name(name: String): Options.Opt =
     options.get(name) match {
-      case Some(opt) => opt
-      case None => error("Unknown option " + quote(name))
+      case Some(opt) if !opt.unknown => opt
+      case _ => error("Unknown option " + quote(name))
     }
 
   private def check_type(name: String, typ: Options.Type): Options.Opt =
@@ -202,6 +206,7 @@ final class Options private(protected val options: Map[String, Options.Opt] = Ma
       case Options.Int => int(name); this
       case Options.Real => real(name); this
       case Options.String => string(name); this
+      case Options.Unknown => this
     }
   }
 
@@ -221,6 +226,12 @@ final class Options private(protected val options: Map[String, Options.Opt] = Ma
         val opt = Options.Opt(typ, value, description)
         (new Options(options + (name -> opt))).check_value(name)
     }
+  }
+
+  def add_permissive(name: String, value: String): Options =
+  {
+    if (options.isDefinedAt(name)) this + (name, value)
+    else new Options(options + (name -> Options.Opt(Options.Unknown, value, "")))
   }
 
   def + (name: String, value: String): Options =
@@ -255,9 +266,12 @@ final class Options private(protected val options: Map[String, Options.Opt] = Ma
 
   def encode: XML.Body =
   {
+    val opts =
+      for ((name, opt) <- options.toList; if !opt.unknown)
+        yield (name, opt.typ.print, opt.value)
+
     import XML.Encode.{string => str, _}
-    list(triple(str, str, str))(
-      options.toList.map({ case (name, opt) => (name, opt.typ.print, opt.value) }))
+    list(triple(str, str, str))(opts)
   }
 
 
@@ -271,16 +285,17 @@ final class Options private(protected val options: Map[String, Options.Opt] = Ma
 
   def save_prefs()
   {
-    val current_defaults = Options.init_defaults()
+    val defaults = Options.init_defaults()
     val changed =
       (for {
-        (name, opt1) <- current_defaults.options.iterator
-        opt2 <- options.get(name)
-        if (opt1.value != opt2.value)
-      } yield (name, opt2.value)).toList
+        (name, opt2) <- options.iterator
+        opt1 = defaults.options.get(name)
+        if (opt1.isEmpty || opt1.get.value != opt2.value)
+      } yield (name, opt2.value, if (opt1.isEmpty) "  (* unknown *)" else "")).toList
+
     val prefs =
       changed.sortBy(_._1)
-        .map({ case (x, y) => x + " = " + Outer_Syntax.quote_string(y) + "\n" }).mkString
+        .map({ case (x, y, z) => x + " = " + Outer_Syntax.quote_string(y) + z + "\n" }).mkString
 
     Options.PREFS.file renameTo Options.PREFS_BACKUP.file
     File.write(Options.PREFS,
