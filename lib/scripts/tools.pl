@@ -24,7 +24,7 @@ for my $dir (split(":", $ENV{"ISABELLE_TOOLS"})) {
             }
             close FILE;
             if (defined($description)) {
-              push(@tools, "    $name - $description\n");
+              push(@tools, "  $name - $description\n");
             }
           }
         }

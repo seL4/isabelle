@@ -27,7 +27,7 @@ function usage()
   echo
   echo "  Start Isabelle tool NAME with ARGS; pass \"-?\" for tool specific help."
   echo
-  echo "  Available tools are:"
+  echo "Available tools:"
   perl -w "$ISABELLE_HOME/lib/scripts/tools.pl"
   exit 1
 }
