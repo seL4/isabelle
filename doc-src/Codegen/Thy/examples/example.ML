@@ -1,5 +1,4 @@
 structure Example : sig
-  val id : 'a -> 'a
   val fold : ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val rev : 'a list -> 'a list
   datatype 'a queue = AQueue of 'a list * 'a list
@@ -8,10 +7,8 @@ structure Example : sig
   val enqueue : 'a -> 'a queue -> 'a queue
 end = struct
 
-fun id x = (fn xa => xa) x;
-
-fun fold f [] = id
-  | fold f (x :: xs) = fold f xs o f x;
+fun fold f (x :: xs) s = fold f xs (f x s)
+  | fold f [] s = s;
 
 fun rev xs = fold (fn a => fn b => a :: b) xs [];
 

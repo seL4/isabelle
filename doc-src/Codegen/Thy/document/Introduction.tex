@@ -141,7 +141,6 @@ In a HOL theory, the \indexdef{}{command}{datatype}\hypertarget{command.datatype
 %
 \begin{isamarkuptext}%
 structure\ Example\ {\isaliteral{3A}{\isacharcolon}}\ sig\isanewline
-\ \ val\ id\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\isanewline
 \ \ val\ fold\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}b\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}b\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}b\isanewline
 \ \ val\ rev\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ list\isanewline
 \ \ datatype\ {\isaliteral{27}{\isacharprime}}a\ queue\ {\isaliteral{3D}{\isacharequal}}\ AQueue\ of\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{27}{\isacharprime}}a\ list\isanewline
@@ -150,10 +149,8 @@ structure\ Example\ {\isaliteral{3A}{\isacharcolon}}\ sig\isanewline
 \ \ val\ enqueue\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ queue\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ queue\isanewline
 end\ {\isaliteral{3D}{\isacharequal}}\ struct\isanewline
 \isanewline
-fun\ id\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}fn\ xa\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ xa{\isaliteral{29}{\isacharparenright}}\ x{\isaliteral{3B}{\isacharsemicolon}}\isanewline
-\isanewline
-fun\ fold\ f\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ id\isanewline
-\ \ {\isaliteral{7C}{\isacharbar}}\ fold\ f\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ fold\ f\ xs\ o\ f\ x{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+fun\ fold\ f\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ xs{\isaliteral{29}{\isacharparenright}}\ s\ {\isaliteral{3D}{\isacharequal}}\ fold\ f\ xs\ {\isaliteral{28}{\isacharparenleft}}f\ x\ s{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ fold\ f\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ s\ {\isaliteral{3D}{\isacharequal}}\ s{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
 fun\ rev\ xs\ {\isaliteral{3D}{\isacharequal}}\ fold\ {\isaliteral{28}{\isacharparenleft}}fn\ a\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ fn\ b\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ a\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ b{\isaliteral{29}{\isacharparenright}}\ xs\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
