@@ -13,8 +13,8 @@ sig
   type span
   val span_kind: span -> span_kind
   val span_content: span -> Token.T list
-  val parse_spans: Token.T list -> span list
   val present_span: span -> Output.output
+  val parse_spans: Token.T list -> span list
   type element = {head: span, proof: span list, proper_proof: bool}
   val parse_elements: span list -> element list
 end;
@@ -106,6 +106,8 @@ datatype span = Span of span_kind * Token.T list;
 fun span_kind (Span (k, _)) = k;
 fun span_content (Span (_, toks)) = toks;
 
+val present_span = implode o map present_token o span_content;
+
 
 (* parse *)
 
@@ -127,11 +129,6 @@ fun parse_spans toks =
   |> #1 |> rev |> map make_span;
 
 end;
-
-
-(* present *)
-
-val present_span = implode o map present_token o span_content;
 
 
 
