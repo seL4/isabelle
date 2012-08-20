@@ -222,7 +222,8 @@ trait Protocol extends Isabelle_Process
               val uses = header.uses
               (Nil,
                 pair(Encode.string, pair(Encode.string, pair(list(Encode.string),
-                  pair(list(pair(Encode.string, option(pair(Encode.string, list(Encode.string))))),
+                  pair(list(pair(Encode.string,
+                    option(pair(pair(Encode.string, list(Encode.string)), list(Encode.string))))),
                   pair(list(pair(Encode.string, bool)), list(Encode.string))))))(
                 (dir, (name.theory, (imports, (header.keywords, (uses, header.errors))))))) },
           { case Document.Node.Perspective(a) => (a.commands.map(c => long_atom(c.id)), Nil) }))

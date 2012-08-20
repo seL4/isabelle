@@ -37,6 +37,7 @@ my %convert_kinds = (
   "thy_heading2" => "theory-heading",
   "thy_heading3" => "theory-heading",
   "thy_heading4" => "theory-heading",
+  "thy_load" => "theory-decl",
   "thy_decl" => "theory-decl",
   "thy_script" => "theory-script",
   "thy_goal" => "theory-goal",

@@ -61,6 +61,7 @@ val command_keywords = Symtab.empty
   |> command Keyword.thy_heading2     thy_heading
   |> command Keyword.thy_heading3     thy_heading
   |> command Keyword.thy_heading4     thy_heading
+  |> command Keyword.thy_load         thy_decl
   |> command Keyword.thy_decl         thy_decl
   |> command Keyword.thy_script       thy_decl
   |> command Keyword.thy_goal         goal

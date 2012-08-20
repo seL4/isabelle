@@ -341,8 +341,8 @@ object Build
                   Outer_Syntax.init() +
                     // FIXME avoid hardwired stuff!?
                     ("theory", Keyword.THY_BEGIN) +
-                    ("hence", Keyword.PRF_ASM_GOAL, "then have") +
-                    ("thus", Keyword.PRF_ASM_GOAL, "then show")
+                    ("hence", (Keyword.PRF_ASM_GOAL, Nil), "then have") +
+                    ("thus", (Keyword.PRF_ASM_GOAL, Nil), "then show")
                 (Set.empty[String], init_syntax, Nil)
             }
           val thy_info = new Thy_Info(new Thy_Load(preloaded))

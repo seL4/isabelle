@@ -39,25 +39,29 @@ object Outer_Syntax
 }
 
 final class Outer_Syntax private(
-  keywords: Map[String, String] = Map.empty,
+  keywords: Map[String, (String, List[String])] = Map.empty,
   lexicon: Scan.Lexicon = Scan.Lexicon.empty,
   val completion: Completion = Completion.empty)
 {
   override def toString: String =
-    (for ((name, kind) <- keywords) yield {
+    (for ((name, (kind, files)) <- keywords) yield {
       if (kind == Keyword.MINOR) quote(name)
-      else quote(name) + " :: " + quote(kind)
+      else
+        quote(name) + " :: " + quote(kind) +
+        (if (files.isEmpty) "" else " (" + commas_quote(files) + ")")
     }).toList.sorted.mkString("keywords\n  ", " and\n  ", "")
 
-  def keyword_kind(name: String): Option[String] = keywords.get(name)
+  def keyword_kind_files(name: String): Option[(String, List[String])] = keywords.get(name)
+  def keyword_kind(name: String): Option[String] = keyword_kind_files(name).map(_._1)
 
-  def + (name: String, kind: String, replace: String): Outer_Syntax =
+  def + (name: String, kind: (String, List[String]), replace: String): Outer_Syntax =
     new Outer_Syntax(
       keywords + (name -> kind),
       lexicon + name,
-      if (Keyword.control(kind)) completion else completion + (name, replace))
+      if (Keyword.control(kind._1)) completion else completion + (name, replace))
 
-  def + (name: String, kind: String): Outer_Syntax = this + (name, kind, name)
+  def + (name: String, kind: (String, List[String])): Outer_Syntax = this + (name, kind, name)
+  def + (name: String, kind: String): Outer_Syntax = this + (name, (kind, Nil), name)
   def + (name: String): Outer_Syntax = this + (name, Keyword.MINOR)
 
   def add_keywords(header: Document.Node.Header): Outer_Syntax =

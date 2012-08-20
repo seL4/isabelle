@@ -26,7 +26,7 @@ object Thy_Header extends Parse.Parser
   val BEGIN = "begin"
 
   private val lexicon =
-    Scan.Lexicon("%", "(", ")", "::", ";", AND, BEGIN, HEADER, IMPORTS, KEYWORDS, THEORY, USES)
+    Scan.Lexicon("%", "(", ")", ",", "::", ";", AND, BEGIN, HEADER, IMPORTS, KEYWORDS, THEORY, USES)
 
 
   /* theory file name */
@@ -47,10 +47,15 @@ object Thy_Header extends Parse.Parser
   {
     val file_name = atom("file name", _.is_name)
 
-    val keyword_kind =
-      atom("outer syntax keyword kind", _.is_name) ~ tags ^^ { case x ~ y => (x, y) }
+    val opt_files =
+      keyword("(") ~! (rep1sep(name, keyword(",")) <~ keyword(")")) ^^ { case _ ~ x => x } |
+      success(Nil)
+    val keyword_spec =
+      atom("outer syntax keyword specification", _.is_name) ~ opt_files ~ tags ^^
+      { case x ~ y ~ z => ((x, y), z) }
+
     val keyword_decl =
-      rep1(string) ~ opt(keyword("::") ~! keyword_kind ^^ { case _ ~ x => x }) ^^
+      rep1(string) ~ opt(keyword("::") ~! keyword_spec ^^ { case _ ~ x => x }) ^^
       { case xs ~ y => xs.map((_, y)) }
     val keyword_decls =
       keyword_decl ~ rep(keyword(AND) ~! keyword_decl ^^ { case _ ~ x => x }) ^^
@@ -111,7 +116,7 @@ object Thy_Header extends Parse.Parser
 
   /* keywords */
 
-  type Keywords = List[(String, Option[(String, List[String])])]
+  type Keywords = List[(String, Option[((String, List[String]), List[String])])]
 }
 
 

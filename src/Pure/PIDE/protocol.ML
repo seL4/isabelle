@@ -39,7 +39,8 @@ val _ =
                     let
                       val (master, (name, (imports, (keywords, (uses, errors))))) =
                         pair string (pair string (pair (list string)
-                          (pair (list (pair string (option (pair string (list string)))))
+                          (pair (list (pair string
+                            (option (pair (pair string (list string)) (list string)))))
                             (pair (list (pair string bool)) (list string))))) a;
                       val (uses', errors') =
                         (map (apfst Path.explode) uses, errors)

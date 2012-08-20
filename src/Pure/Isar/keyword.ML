@@ -8,6 +8,7 @@ signature KEYWORD =
 sig
   type T
   val kind_of: T -> string
+  val kind_files_of: T -> string * string list
   val control: T
   val diag: T
   val thy_begin: T
@@ -17,6 +18,8 @@ sig
   val thy_heading3: T
   val thy_heading4: T
   val thy_decl: T
+  val thy_load: T
+  val thy_load_files: string list -> T
   val thy_script: T
   val thy_goal: T
   val thy_schematic_goal: T
@@ -41,7 +44,7 @@ sig
   val tag_theory: T -> T
   val tag_proof: T -> T
   val tag_ml: T -> T
-  type spec = string * string list
+  type spec = (string * string list) * string list
   val spec: spec -> T
   val command_spec: (string * spec) * Position.T -> (string * T) * Position.T
   val get_lexicons: unit -> Scan.lexicon * Scan.lexicon
@@ -70,10 +73,17 @@ struct
 
 (** keyword classification **)
 
-datatype T = Keyword of string * string list;  (*kind, tags (in canonical reverse order)*)
+datatype T = Keyword of
+ {kind: string,
+  files: string list,  (*extensions of embedded files*)
+  tags: string list};  (*tags in canonical reverse order*)
 
-fun kind s = Keyword (s, []);
-fun kind_of (Keyword (s, _)) = s;
+fun kind s = Keyword {kind = s, files = [], tags = []};
+fun kind_of (Keyword {kind, ...}) = kind;
+fun kind_files_of (Keyword {kind, files, ...}) = (kind, files);
+
+fun add_files fs (Keyword {kind, files, tags}) =
+  Keyword {kind = kind, files = files @ fs, tags = tags};
 
 
 (* kinds *)
@@ -86,6 +96,8 @@ val thy_heading1 = kind "thy_heading1";
 val thy_heading2 = kind "thy_heading2";
 val thy_heading3 = kind "thy_heading3";
 val thy_heading4 = kind "thy_heading4";
+val thy_load = kind "thy_load";
+fun thy_load_files files = Keyword {kind = "thy_load", files = files, tags = []};
 val thy_decl = kind "thy_decl";
 val thy_script = kind "thy_script";
 val thy_goal = kind "thy_goal";
@@ -108,15 +120,16 @@ val prf_script = kind "prf_script";
 
 val kinds =
   [control, diag, thy_begin, thy_end, thy_heading1, thy_heading2, thy_heading3, thy_heading4,
-    thy_decl, thy_script, thy_goal, thy_schematic_goal, qed, qed_block, qed_global,
+    thy_load, thy_decl, thy_script, thy_goal, thy_schematic_goal, qed, qed_block, qed_global,
     prf_heading2, prf_heading3, prf_heading4, prf_goal, prf_block, prf_open,
     prf_close, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script];
 
 
 (* tags *)
 
-fun tag t (Keyword (s, ts)) = Keyword (s, update (op =) t ts);
-fun tags_of (Keyword (_, ts)) = ts;
+fun tag t (Keyword {kind, files, tags}) =
+  Keyword {kind = kind, files = files, tags = update (op =) t tags};
+fun tags_of (Keyword {tags, ...}) = tags;
 
 val tag_theory = tag "theory";
 val tag_proof = tag "proof";
@@ -127,12 +140,17 @@ val tag_ml = tag "ML";
 
 val name_table = Symtab.make (map (`kind_of) kinds);
 
-type spec = string * string list;
+type spec = (string * string list) * string list;
 
-fun spec (kind, tags) =
-  (case Symtab.lookup name_table kind of
-    SOME k => k |> fold tag tags
-  | NONE => error ("Unknown outer syntax keyword kind " ^ quote kind));
+fun spec ((name, files), tags) =
+  (case Symtab.lookup name_table name of
+    SOME kind =>
+      let val kind' = kind |> fold tag tags in
+        if null files then kind'
+        else if name = kind_of thy_load then kind' |> add_files files
+        else error ("Illegal specification of files for " ^ quote name)
+      end
+  | NONE => error ("Unknown outer syntax keyword kind " ^ quote name));
 
 fun command_spec ((name, s), pos) = ((name, spec s), pos);
 
@@ -226,7 +244,7 @@ val is_theory_begin = command_category [thy_begin];
 
 val is_theory = command_category
   [thy_begin, thy_end, thy_heading1, thy_heading2, thy_heading3, thy_heading4,
-    thy_decl, thy_script, thy_goal, thy_schematic_goal];
+    thy_load, thy_decl, thy_script, thy_goal, thy_schematic_goal];
 
 val is_proof = command_category
   [qed, qed_block, qed_global, prf_heading2, prf_heading3, prf_heading4,

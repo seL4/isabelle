@@ -210,7 +210,9 @@ val _ = Context.>> (Context.map_theory
           "Keyword.command_spec " ^ ML_Syntax.atomic
             ((ML_Syntax.print_pair
               (ML_Syntax.print_pair ML_Syntax.print_string
-                (ML_Syntax.print_pair ML_Syntax.print_string
+                (ML_Syntax.print_pair
+                  (ML_Syntax.print_pair ML_Syntax.print_string
+                    (ML_Syntax.print_list ML_Syntax.print_string))
                   (ML_Syntax.print_list ML_Syntax.print_string)))
               ML_Syntax.print_position) ((name, kind), pos))
         | ((name, NONE), pos) =>

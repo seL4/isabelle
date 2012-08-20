@@ -39,7 +39,7 @@ fun make name imports keywords uses : header =
 fun define_keywords ({keywords, ...}: header) =
   List.app (Keyword.define o apsnd (Option.map Keyword.spec)) keywords;
 
-fun err_dup name = error ("Inconsistent declaration of outer syntax keyword " ^ quote name);
+fun err_dup name = error ("Duplicate declaration of outer syntax keyword " ^ quote name);
 
 structure Data = Theory_Data
 (
@@ -75,7 +75,7 @@ val beginN = "begin";
 val header_lexicon =
   Scan.make_lexicon
     (map Symbol.explode
-      ["%", "(", ")", "::", ";", "and", beginN, headerN, importsN, keywordsN, theoryN, usesN]);
+      ["%", "(", ")", ",", "::", ";", "and", beginN, headerN, importsN, keywordsN, theoryN, usesN]);
 
 
 (* header args *)
@@ -85,10 +85,15 @@ local
 val file_name = Parse.group (fn () => "file name") Parse.path;
 val theory_name = Parse.group (fn () => "theory name") Parse.name;
 
-val keyword_kind = Parse.group (fn () => "outer syntax keyword kind") (Parse.name -- Parse.tags);
+val opt_files =
+  Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Parse.list1 Parse.name) --| Parse.$$$ ")") [];
+val keyword_spec =
+  Parse.group (fn () => "outer syntax keyword specification")
+    (Parse.name -- opt_files -- Parse.tags);
+
 val keyword_decl =
-  Scan.repeat1 Parse.string -- Scan.option (Parse.$$$ "::" |-- Parse.!!! keyword_kind) >>
-  (fn (names, kind) => map (rpair kind) names);
+  Scan.repeat1 Parse.string -- Scan.option (Parse.$$$ "::" |-- Parse.!!! keyword_spec) >>
+  (fn (names, spec) => map (rpair spec) names);
 val keyword_decls = Parse.and_list1 keyword_decl >> flat;
 
 val file =
