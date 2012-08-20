@@ -190,7 +190,7 @@ fun eval (Variable s) =
 val expand = rep #> maps eval #> norm #> Path;
 
 
-(* source position -- with smart replacement ISABELLE_HOME *)
+(* source position -- with smart replacement of ISABELLE_HOME *)
 
 val isabelle_home = explode_path "~~";
 
