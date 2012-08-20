@@ -10,9 +10,10 @@ sig
     Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
     Nat | Float | String | AltString | Verbatim | Space | Comment | InternalValue |
     Error of string | Sync | EOF
+  type files = Path.T * (string * Position.T) list
   datatype value =
     Text of string | Typ of typ | Term of term | Fact of thm list |
-    Attribute of morphism -> attribute
+    Attribute of morphism -> attribute | Files of files
   type T
   val str_of_kind: kind -> string
   val position_of: T -> Position.T
@@ -28,6 +29,7 @@ sig
   val keyword_with: (string -> bool) -> T -> bool
   val ident_with: (string -> bool) -> T -> bool
   val is_command: T -> bool
+  val is_name: T -> bool
   val is_proper: T -> bool
   val is_semicolon: T -> bool
   val is_comment: T -> bool
@@ -42,6 +44,8 @@ sig
   val content_of: T -> string
   val unparse: T -> string
   val text_of: T -> string * string
+  val get_files: T -> files option
+  val put_files: files -> T -> T
   val get_value: T -> value option
   val map_value: (value -> value) -> T -> T
   val mk_text: string -> T
@@ -74,12 +78,15 @@ struct
   args.ML).  Note that an assignable ref designates an intermediate
   state of internalization -- it is NOT meant to persist.*)
 
+type files = Path.T * (string * Position.T) list;  (*master dir, multiple file content*)
+
 datatype value =
   Text of string |
   Typ of typ |
   Term of term |
   Fact of thm list |
-  Attribute of morphism -> attribute;
+  Attribute of morphism -> attribute |
+  Files of files;
 
 datatype slot =
   Slot |
@@ -149,6 +156,7 @@ fun kind_of (Token (_, (k, _), _)) = k;
 fun is_kind k (Token (_, (k', _), _)) = k = k';
 
 val is_command = is_kind Command;
+val is_name = is_kind Ident orf is_kind SymIdent orf is_kind String orf is_kind Nat;
 
 fun keyword_with pred (Token (_, (Keyword, x), _)) = pred x
   | keyword_with _ _ = false;
@@ -228,6 +236,16 @@ fun text_of tok =
 
 
 (** associated values **)
+
+(* inlined file content *)
+
+fun get_files (Token (_, _, Value (SOME (Files files)))) = SOME files
+  | get_files _ = NONE;
+
+fun put_files files (Token (x, y, Slot)) = Token (x, y, Value (SOME (Files files)))
+  | put_files _ tok =
+      raise Fail ("Cannot put inlined files here" ^ Position.str_of (position_of tok));
+
 
 (* access values *)
 

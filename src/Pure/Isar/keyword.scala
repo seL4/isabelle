@@ -21,6 +21,7 @@ object Keyword
   val THY_HEADING3 = "thy_heading3"
   val THY_HEADING4 = "thy_heading4"
   val THY_DECL = "thy_decl"
+  val THY_LOAD = "thy_load"
   val THY_SCRIPT = "thy_script"
   val THY_GOAL = "thy_goal"
   val THY_SCHEMATIC_GOAL = "thy_schematic_goal"

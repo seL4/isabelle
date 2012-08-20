@@ -22,6 +22,8 @@ sig
   val begin_theory: Path.T -> Thy_Header.header -> theory list -> theory
   val load_thy: int -> Path.T -> Thy_Header.header -> Position.T -> string ->
     theory list -> theory * unit future
+  val resolve_files: Path.T -> Thy_Syntax.span -> Thy_Syntax.span
+  val parse_files: string -> (theory -> Token.files) parser
   val set_master_path: Path.T -> unit
   val get_master_path: unit -> Path.T
 end;
@@ -158,6 +160,42 @@ fun use_ml src_path =
 fun exec_ml src_path = ML_Context.exec (fn () => use_ml src_path);
 
 
+(* inlined files *)
+
+fun read_files cmd dir tok =
+  let
+    val path = Path.explode (Token.content_of tok);
+    val exts = Keyword.command_files cmd;
+    val variants =
+      if null exts then [path]
+      else map (fn ext => Path.ext ext path) exts;
+  in (dir, variants |> map (Path.append dir #> (fn p => (File.read p, Path.position p)))) end;
+
+fun resolve_files dir (span as Thy_Syntax.Span (Thy_Syntax.Command cmd, toks)) =
+      if Keyword.is_theory_load cmd then
+        (case find_index Token.is_name (rev toks) of  (* FIXME allow trailing cmt (!?!) *)
+          ~1 => span
+        | i' =>
+            let
+              val i = length toks - 1 - i';
+              val toks' = toks |> map_index (fn (j, tok) =>
+                if i = j then Token.put_files (read_files cmd dir tok) tok
+                else tok);
+            in Thy_Syntax.Span (Thy_Syntax.Command cmd, toks') end)
+      else span
+  | resolve_files _ span = span;
+
+fun parse_files cmd =
+  Scan.ahead Parse.not_eof -- Parse.group (fn () => "file name/path specification") Parse.name
+    >> (fn (tok, name) => fn thy =>
+      (case Token.get_files tok of
+        SOME files => files
+      | NONE =>
+          (warning ("Dynamic loading of files: " ^ quote name ^
+              Position.str_of (Token.position_of tok));
+            read_files cmd (master_directory thy) tok)));
+
+
 (* load_thy *)
 
 fun begin_theory dir {name, imports, keywords, uses} parents =
@@ -192,7 +230,7 @@ fun load_thy update_time dir header pos text parents =
   let
     val time = ! Toplevel.timing;
 
-    val {name, imports, uses, ...} = header;
+    val {name, uses, ...} = header;
     val _ = Thy_Header.define_keywords header;
     val _ = Present.init_theory name;
     fun init () =
@@ -202,7 +240,7 @@ fun load_thy update_time dir header pos text parents =
     val lexs = Keyword.get_lexicons ();
 
     val toks = Thy_Syntax.parse_tokens lexs pos text;
-    val spans = Thy_Syntax.parse_spans toks;
+    val spans = map (resolve_files dir) (Thy_Syntax.parse_spans toks);
     val elements = Thy_Syntax.parse_elements spans;
 
     val _ = Present.theory_source name

@@ -10,7 +10,7 @@ sig
   val reports_of_tokens: Token.T list -> bool * (Position.report * string) list
   val present_token: Token.T -> Output.output
   datatype span_kind = Command of string | Ignored | Malformed
-  type span
+  datatype span = Span of span_kind * Token.T list
   val span_kind: span -> span_kind
   val span_content: span -> Token.T list
   val present_span: span -> Output.output

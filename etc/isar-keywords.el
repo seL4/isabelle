@@ -10,6 +10,7 @@
     "Isabelle\\.command"
     "ML"
     "ML_command"
+    "ML_file"
     "ML_prf"
     "ML_val"
     "ProofGeneral\\.inform_file_processed"
@@ -453,6 +454,7 @@
 
 (defconst isar-keywords-theory-decl
   '("ML"
+    "ML_file"
     "abbreviation"
     "arities"
     "atom_decl"

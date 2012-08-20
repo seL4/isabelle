@@ -341,6 +341,7 @@ object Build
                   Outer_Syntax.init() +
                     // FIXME avoid hardwired stuff!?
                     ("theory", Keyword.THY_BEGIN) +
+                    ("ML_file", Keyword.THY_LOAD) +
                     ("hence", (Keyword.PRF_ASM_GOAL, Nil), "then have") +
                     ("thus", (Keyword.PRF_ASM_GOAL, Nil), "then show")
                 (Set.empty[String], init_syntax, Nil)

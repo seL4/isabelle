@@ -321,6 +321,16 @@ val _ =
         Toplevel.init_theory
           (fn () => Thy_Info.toplevel_begin_theory (Thy_Load.get_master_path ()) header)));
 
+val _ =
+  Outer_Syntax.command
+    (("ML_file", Keyword.tag_ml Keyword.thy_load), Position.none) "ML text from file"
+    (Thy_Load.parse_files "ML_file" >> (fn files => Toplevel.generic_theory (fn gthy =>
+      let val (_, [(txt, pos)]) = files (Context.theory_of gthy) in
+        gthy
+        |> ML_Context.exec (fn () => ML_Context.eval_text true pos txt)
+        |> Local_Theory.propagate_ml_env
+      end)));
+
 Unsynchronized.setmp Multithreading.max_threads 1
   use_thy "Pure";
 Context.set_thread_data NONE;

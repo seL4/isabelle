@@ -50,6 +50,7 @@ sig
   val get_lexicons: unit -> Scan.lexicon * Scan.lexicon
   val is_keyword: string -> bool
   val command_keyword: string -> T option
+  val command_files: string -> string list
   val command_tags: string -> string list
   val dest: unit -> string list * string list
   val status: unit -> unit
@@ -59,6 +60,7 @@ sig
   val is_regular: string -> bool
   val is_heading: string -> bool
   val is_theory_begin: string -> bool
+  val is_theory_load: string -> bool
   val is_theory: string -> bool
   val is_proof: string -> bool
   val is_theory_goal: string -> bool
@@ -96,9 +98,9 @@ val thy_heading1 = kind "thy_heading1";
 val thy_heading2 = kind "thy_heading2";
 val thy_heading3 = kind "thy_heading3";
 val thy_heading4 = kind "thy_heading4";
+val thy_decl = kind "thy_decl";
 val thy_load = kind "thy_load";
 fun thy_load_files files = Keyword {kind = "thy_load", files = files, tags = []};
-val thy_decl = kind "thy_decl";
 val thy_script = kind "thy_script";
 val thy_goal = kind "thy_goal";
 val thy_schematic_goal = kind "thy_schematic_goal";
@@ -193,7 +195,8 @@ fun is_keyword s =
   in Scan.is_literal minor syms orelse Scan.is_literal major syms end;
 
 fun command_keyword name = Symtab.lookup (get_commands ()) name;
-fun command_tags name = these (Option.map tags_of (command_keyword name));
+val command_files = these o Option.map (#2 o kind_files_of) o command_keyword;
+val command_tags = these o Option.map tags_of o command_keyword;
 
 fun dest () = pairself (sort_strings o Scan.dest_lexicon) (get_lexicons ());
 
@@ -241,6 +244,8 @@ val is_heading =
     prf_heading2, prf_heading3, prf_heading4];
 
 val is_theory_begin = command_category [thy_begin];
+
+val is_theory_load = command_category [thy_load];
 
 val is_theory = command_category
   [thy_begin, thy_end, thy_heading1, thy_heading2, thy_heading3, thy_heading4,
