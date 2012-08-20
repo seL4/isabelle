@@ -171,13 +171,22 @@ fun read_files cmd dir tok =
       else map (fn ext => Path.ext ext path) exts;
   in (dir, variants |> map (Path.append dir #> (fn p => (File.read p, Path.position p)))) end;
 
+
+fun clean ((i1, t1) :: (i2, t2) :: toks) =
+      if Token.keyword_with (fn s => s = "%" orelse s = "--") t1 then clean toks
+      else (i1, t1) :: clean ((i2, t2) :: toks)
+  | clean toks = toks;
+
+fun clean_tokens toks =
+  ((0 upto length toks - 1) ~~ toks)
+  |> filter (fn (_, tok) => Token.is_proper tok) |> clean;
+
 fun resolve_files dir (span as Thy_Syntax.Span (Thy_Syntax.Command cmd, toks)) =
       if Keyword.is_theory_load cmd then
-        (case find_index Token.is_name (rev toks) of  (* FIXME allow trailing cmt (!?!) *)
-          ~1 => span
-        | i' =>
+        (case find_first (Token.is_name o #2) (rev (clean_tokens toks)) of
+          NONE => span
+        | SOME (i, _) =>
             let
-              val i = length toks - 1 - i';
               val toks' = toks |> map_index (fn (j, tok) =>
                 if i = j then Token.put_files (read_files cmd dir tok) tok
                 else tok);
