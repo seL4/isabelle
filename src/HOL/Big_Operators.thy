@@ -105,6 +105,9 @@ lemma F_delta':
   "F (\<lambda>k. if a = k then b k else 1) S = (if a \<in> S then b a else 1)"
 using F_delta[OF fS, of a b, symmetric] by (auto intro: F_cong)
 
+lemma F_fun_f: "F (%x. g x * h x) A = (F g A * F h A)"
+by (cases "finite A") (simp_all add: distrib)
+
 lemma If_cases:
   fixes P :: "'b \<Rightarrow> bool" and g h :: "'b \<Rightarrow> 'a"
   assumes fA: "finite A"
@@ -367,8 +370,8 @@ apply (auto simp add: setsum_def
             dest: finite_cartesian_productD1 finite_cartesian_productD2) 
 done
 
-lemma (in comm_monoid_add) setsum_addf: "setsum (%x. f x + g x) A = (setsum f A + setsum g A)"
-  by (cases "finite A") (simp_all add: setsum.distrib)
+lemma setsum_addf: "setsum (%x. f x + g x) A = (setsum f A + setsum g A)"
+by (fact setsum.F_fun_f)
 
 
 subsubsection {* Properties in more restricted classes of structures *}
@@ -1036,9 +1039,8 @@ apply (auto simp add: setprod_def
             dest: finite_cartesian_productD1 finite_cartesian_productD2) 
 done
 
-lemma setprod_timesf:
-     "setprod (%x. f x * g x) A = (setprod f A * setprod g A)"
-by(simp add:setprod_def fold_image_distrib)
+lemma setprod_timesf: "setprod (%x. f x * g x) A = (setprod f A * setprod g A)"
+by (fact setprod.F_fun_f)
 
 
 subsubsection {* Properties in more restricted classes of structures *}
