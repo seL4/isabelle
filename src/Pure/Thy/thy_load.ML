@@ -73,6 +73,59 @@ fun provide (src_path, path_id) =
     else (master_dir, imports, required, (src_path, path_id) :: provided));
 
 
+(* inlined files *)
+
+fun command_files cmd path =
+  (case Keyword.command_files cmd of
+    [] => [path]
+  | exts => map (fn ext => Path.ext ext path) exts);
+
+fun read_files cmd dir tok =
+  let
+    val path = Path.explode (Token.content_of tok);
+    val files =
+      command_files cmd path
+      |> map (Path.append dir #> (fn p => (File.read p, Path.position p)));
+  in (dir, files) end;
+
+fun parse_files cmd =
+  Scan.ahead Parse.not_eof -- Parse.group (fn () => "file name/path specification") Parse.name
+    >> (fn (tok, name) => fn thy =>
+      (case Token.get_files tok of
+        SOME files => files
+      | NONE =>
+          (warning ("Dynamic loading of files: " ^ quote name ^ Token.pos_of tok);
+            read_files cmd (master_directory thy) tok)));
+
+local
+
+fun clean ((i1, t1) :: (i2, t2) :: toks) =
+      if Token.keyword_with (fn s => s = "%" orelse s = "--") t1 then clean toks
+      else (i1, t1) :: clean ((i2, t2) :: toks)
+  | clean toks = toks;
+
+fun clean_tokens toks =
+  ((0 upto length toks - 1) ~~ toks)
+  |> filter (fn (_, tok) => Token.is_proper tok) |> clean;
+
+in
+
+fun resolve_files dir (span as Thy_Syntax.Span (Thy_Syntax.Command cmd, toks)) =
+      if Keyword.is_theory_load cmd then
+        (case find_first (Token.is_name o #2) (rev (clean_tokens toks)) of
+          NONE => span
+        | SOME (i, _) =>
+            let
+              val toks' = toks |> map_index (fn (j, tok) =>
+                if i = j then Token.put_files (read_files cmd dir tok) tok
+                else tok);
+            in Thy_Syntax.Span (Thy_Syntax.Command cmd, toks') end)
+      else span
+  | resolve_files _ span = span;
+
+end;
+
+
 (* check files *)
 
 fun check_file dir file = File.check_file (File.full_path dir file);
@@ -158,51 +211,6 @@ fun use_ml src_path =
     in () end;
 
 fun exec_ml src_path = ML_Context.exec (fn () => use_ml src_path);
-
-
-(* inlined files *)
-
-fun read_files cmd dir tok =
-  let
-    val path = Path.explode (Token.content_of tok);
-    val exts = Keyword.command_files cmd;
-    val variants =
-      if null exts then [path]
-      else map (fn ext => Path.ext ext path) exts;
-  in (dir, variants |> map (Path.append dir #> (fn p => (File.read p, Path.position p)))) end;
-
-
-fun clean ((i1, t1) :: (i2, t2) :: toks) =
-      if Token.keyword_with (fn s => s = "%" orelse s = "--") t1 then clean toks
-      else (i1, t1) :: clean ((i2, t2) :: toks)
-  | clean toks = toks;
-
-fun clean_tokens toks =
-  ((0 upto length toks - 1) ~~ toks)
-  |> filter (fn (_, tok) => Token.is_proper tok) |> clean;
-
-fun resolve_files dir (span as Thy_Syntax.Span (Thy_Syntax.Command cmd, toks)) =
-      if Keyword.is_theory_load cmd then
-        (case find_first (Token.is_name o #2) (rev (clean_tokens toks)) of
-          NONE => span
-        | SOME (i, _) =>
-            let
-              val toks' = toks |> map_index (fn (j, tok) =>
-                if i = j then Token.put_files (read_files cmd dir tok) tok
-                else tok);
-            in Thy_Syntax.Span (Thy_Syntax.Command cmd, toks') end)
-      else span
-  | resolve_files _ span = span;
-
-fun parse_files cmd =
-  Scan.ahead Parse.not_eof -- Parse.group (fn () => "file name/path specification") Parse.name
-    >> (fn (tok, name) => fn thy =>
-      (case Token.get_files tok of
-        SOME files => files
-      | NONE =>
-          (warning ("Dynamic loading of files: " ^ quote name ^
-              Position.str_of (Token.position_of tok));
-            read_files cmd (master_directory thy) tok)));
 
 
 (* load_thy *)
