@@ -333,20 +333,13 @@ object Build
       { case (deps, (name, info)) =>
           val (preloaded, parent_syntax, parent_errors) =
             info.parent match {
+              case None =>
+                (Set.empty[String], Outer_Syntax.init_pure(), Nil)
               case Some(parent_name) =>
                 val parent = deps(parent_name)
                 (parent.loaded_theories, parent.syntax, parent.errors)
-              case None =>
-                val init_syntax =
-                  Outer_Syntax.init() +
-                    // FIXME avoid hardwired stuff!?
-                    ("theory", Keyword.THY_BEGIN) +
-                    ("ML_file", Keyword.THY_LOAD) +
-                    ("hence", (Keyword.PRF_ASM_GOAL, Nil), "then have") +
-                    ("thus", (Keyword.PRF_ASM_GOAL, Nil), "then show")
-                (Set.empty[String], init_syntax, Nil)
             }
-          val thy_info = new Thy_Info(new Thy_Load(preloaded))
+          val thy_info = new Thy_Info(new Thy_Load(preloaded, parent_syntax))
 
           if (verbose) {
             val groups =
@@ -361,7 +354,15 @@ object Build
                 map(thy => Document.Node.Name(info.dir + Thy_Load.thy_path(thy))))
 
           val loaded_theories = preloaded ++ thy_deps.map(_._1.theory)
-          val syntax = (parent_syntax /: thy_deps) { case (syn, (_, h)) => syn.add_keywords(h) }
+          val syntax0 = (parent_syntax /: thy_deps) { case (syn, (_, h)) => syn.add_keywords(h) }
+          val syntax =
+            // FIXME avoid hardwired stuff!?
+            // FIXME broken?!
+            if (name == "Pure")
+              syntax0 +
+                ("hence", (Keyword.PRF_ASM_GOAL, Nil), "then have") +
+                ("thus", (Keyword.PRF_ASM_GOAL, Nil), "then show")
+            else syntax0
 
           val all_files =
             thy_deps.map({ case (n, h) =>

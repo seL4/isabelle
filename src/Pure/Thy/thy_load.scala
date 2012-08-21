@@ -20,22 +20,8 @@ object Thy_Load
 }
 
 
-class Thy_Load(preloaded: Set[String] = Set.empty)
+class Thy_Load(val loaded_theories: Set[String] = Set.empty, val base_syntax: Outer_Syntax)
 {
-  /* loaded theories provided by prover */
-
-  private var loaded_theories: Set[String] = preloaded
-
-  def register_thy(name: String): Unit =
-    synchronized { loaded_theories += name }
-
-  def register_thys(names: Set[String]): Unit =
-    synchronized { loaded_theories ++= names }
-
-  def is_loaded(thy_name: String): Boolean =
-    synchronized { loaded_theories.contains(thy_name) }
-
-
   /* file-system operations */
 
   def append(dir: String, source_path: Path): String =
@@ -54,7 +40,7 @@ class Thy_Load(preloaded: Set[String] = Set.empty)
   private def import_name(dir: String, s: String): Document.Node.Name =
   {
     val theory = Thy_Header.base_name(s)
-    if (is_loaded(theory)) Document.Node.Name(theory, "", theory)
+    if (loaded_theories(theory)) Document.Node.Name(theory, "", theory)
     else {
       val path = Path.explode(s)
       val node = append(dir, Thy_Load.thy_path(path))

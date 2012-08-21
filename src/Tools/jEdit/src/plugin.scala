@@ -37,8 +37,8 @@ object Isabelle
   var plugin: Plugin = null
   var session: Session = null
 
-  val thy_load = new JEdit_Thy_Load
-  val thy_info = new Thy_Info(thy_load)
+  def thy_load(): JEdit_Thy_Load =
+    session.thy_load.asInstanceOf[JEdit_Thy_Load]
 
 
   /* properties */
@@ -298,17 +298,22 @@ object Isabelle
     component
   }
 
-  def start_session()
+  def session_args(): List[String] =
   {
-    val dirs = Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS"))
     val modes = space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE")).map("-m" + _)
     val logic = {
       val logic = Property("logic")
       if (logic != null && logic != "") logic
       else Isabelle.default_logic()
     }
-    val name = Path.explode(logic).base.implode  // FIXME more robust session name
-    session.start(dirs, name, modes ::: List(logic))
+    modes ::: List(logic)
+  }
+
+  def session_content(): Build.Session_Content =
+  {
+    val dirs = Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS"))
+    val name = Path.explode(session_args().last).base.implode  // FIXME more robust
+    Build.session_content(dirs, name).check_errors
   }
 
 
@@ -359,8 +364,9 @@ class Plugin extends EBPlugin
           for (buffer <- buffers; model <- Isabelle.document_model(buffer))
             yield model.name
 
+        val thy_info = new Thy_Info(Isabelle.thy_load)
         // FIXME avoid I/O in Swing thread!?!
-        val files = Isabelle.thy_info.dependencies(thys).map(_._1.node).
+        val files = thy_info.dependencies(thys).map(_._1.node).
           filter(file => !loaded_buffer(file) && Isabelle.thy_load.check_file(view, file))
 
         if (!files.isEmpty) {
@@ -422,7 +428,7 @@ class Plugin extends EBPlugin
     message match {
       case msg: EditorStarted =>
         if (Isabelle.Boolean_Property("auto-start"))
-          Isabelle.start_session()
+          Isabelle.session.start(Isabelle.session_args())
 
       case msg: BufferUpdate
       if msg.getWhat == BufferUpdate.LOADED || msg.getWhat == BufferUpdate.PROPERTIES_CHANGED =>
@@ -459,12 +465,16 @@ class Plugin extends EBPlugin
   }
 
   override def start()
-  {
+  { // FIXME more robust error handling
     Isabelle.plugin = this
     Isabelle.setup_tooltips()
     Isabelle_System.init()
     Isabelle_System.install_fonts()
-    Isabelle.session = new Session(Isabelle.thy_load)
+
+    val content = Isabelle.session_content()
+    val thy_load = new JEdit_Thy_Load(content.loaded_theories, content.syntax)
+    Isabelle.session = new Session(thy_load)
+
     SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender)
     if (ModeProvider.instance.isInstanceOf[ModeProvider])
       ModeProvider.instance = new Token_Markup.Mode_Provider(ModeProvider.instance)

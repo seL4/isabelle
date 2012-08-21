@@ -17,7 +17,8 @@ import org.gjt.sp.jedit.MiscUtilities
 import org.gjt.sp.jedit.View
 
 
-class JEdit_Thy_Load extends Thy_Load()
+class JEdit_Thy_Load(loaded_theories: Set[String] = Set.empty, base_syntax: Outer_Syntax)
+  extends Thy_Load(loaded_theories, base_syntax)
 {
   override def append(dir: String, source_path: Path): String =
   {

@@ -37,7 +37,7 @@ object Session
 }
 
 
-class Session(val thy_load: Thy_Load = new Thy_Load())
+class Session(val thy_load: Thy_Load)
 {
   /* global flags */
 
@@ -108,7 +108,7 @@ class Session(val thy_load: Thy_Load = new Thy_Load())
           val prev = previous.get_finished
           val (doc_edits, version) =
             Timing.timeit("Thy_Syntax.text_edits", timing) {
-              Thy_Syntax.text_edits(base_syntax, prev, text_edits)
+              Thy_Syntax.text_edits(thy_load.base_syntax, prev, text_edits)
             }
           version_result.fulfill(version)
           sender ! Change(doc_edits, prev, version)
@@ -124,8 +124,6 @@ class Session(val thy_load: Thy_Load = new Thy_Load())
   /** main protocol actor **/
 
   /* global state */
-
-  @volatile private var base_syntax = Outer_Syntax.init()
 
   private val syslog = Volatile(Queue.empty[XML.Elem])
   def current_syslog(): String = cat_lines(syslog().iterator.map(msg => XML.content(msg).mkString))
@@ -145,7 +143,7 @@ class Session(val thy_load: Thy_Load = new Thy_Load())
   def recent_syntax(): Outer_Syntax =
   {
     val version = current_state().recent_finished.version.get_finished
-    if (version.is_init) base_syntax
+    if (version.is_init) thy_load.base_syntax
     else version.syntax
   }
   def get_recent_syntax(): Option[Outer_Syntax] =
@@ -162,7 +160,7 @@ class Session(val thy_load: Thy_Load = new Thy_Load())
   def header_edit(name: Document.Node.Name, header: Document.Node.Header): Document.Edit_Text =
   {
     val header1 =
-      if (thy_load.is_loaded(name.theory))
+      if (thy_load.loaded_theories(name.theory))
         header.error("Attempt to update loaded theory " + quote(name.theory))
       else header
     (name, Document.Node.Deps(header1))
@@ -171,7 +169,7 @@ class Session(val thy_load: Thy_Load = new Thy_Load())
 
   /* actor messages */
 
-  private case class Start(dirs: List[Path], logic: String, args: List[String])
+  private case class Start(args: List[String])
   private case object Cancel_Execution
   private case class Edit(edits: List[Document.Edit_Text])
   private case class Change(
@@ -377,15 +375,9 @@ class Session(val thy_load: Thy_Load = new Thy_Load())
       receiveWithin(delay_commands_changed.flush_timeout) {
         case TIMEOUT => delay_commands_changed.flush()
 
-        case Start(dirs, name, args) if prover.isEmpty =>
+        case Start(args) if prover.isEmpty =>
           if (phase == Session.Inactive || phase == Session.Failed) {
             phase = Session.Startup
-
-            // FIXME static init in main constructor
-            val content = Build.session_content(dirs, name).check_errors
-            thy_load.register_thys(content.loaded_theories)
-            base_syntax = content.syntax
-
             prover = Some(new Isabelle_Process(receiver.invoke _, args) with Protocol)
           }
 
@@ -440,8 +432,8 @@ class Session(val thy_load: Thy_Load = new Thy_Load())
 
   /* actions */
 
-  def start(dirs: List[Path], name: String, args: List[String])
-  { session_actor ! Start(dirs, name, args) }
+  def start(args: List[String])
+  { session_actor ! Start(args) }
 
   def stop() { commands_changed_buffer !? Stop; change_parser !? Stop; session_actor !? Stop }
 

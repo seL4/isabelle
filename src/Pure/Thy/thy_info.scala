@@ -36,7 +36,7 @@ class Thy_Info(thy_load: Thy_Load)
   {
     val (deps, seen) = required
     if (seen(name)) required
-    else if (thy_load.is_loaded(name.theory)) (deps, seen + name)
+    else if (thy_load.loaded_theories(name.theory)) (deps, seen + name)
     else {
       try {
         if (initiators.contains(name)) error(cycle_msg(initiators))
