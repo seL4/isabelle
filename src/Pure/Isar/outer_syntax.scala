@@ -58,6 +58,9 @@ final class Outer_Syntax private(
   def keyword_kind_files(name: String): Option[(String, List[String])] = keywords.get(name)
   def keyword_kind(name: String): Option[String] = keyword_kind_files(name).map(_._1)
 
+  def thy_load_commands: List[String] =
+    (for ((name, (Keyword.THY_LOAD, _)) <- keywords.iterator) yield name).toList
+
   def + (name: String, kind: (String, List[String]), replace: String): Outer_Syntax =
     new Outer_Syntax(
       keywords + (name -> kind),

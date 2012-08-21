@@ -52,6 +52,7 @@ sig
   val command_keyword: string -> T option
   val command_files: string -> string list
   val command_tags: string -> string list
+  val thy_load_commands: unit -> string list
   val dest: unit -> string list * string list
   val status: unit -> unit
   val define: string * T option -> unit
@@ -197,6 +198,9 @@ fun is_keyword s =
 fun command_keyword name = Symtab.lookup (get_commands ()) name;
 val command_files = these o Option.map (#2 o kind_files_of) o command_keyword;
 val command_tags = these o Option.map tags_of o command_keyword;
+
+fun thy_load_commands () =
+  Symtab.fold (fn (name, k) => kind_of k = kind_of thy_load ? cons name) (get_commands ()) [];
 
 fun dest () = pairself (sort_strings o Scan.dest_lexicon) (get_lexicons ());
 

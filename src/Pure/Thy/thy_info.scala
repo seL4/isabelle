@@ -25,20 +25,47 @@ class Thy_Info(thy_load: Thy_Load)
   /* dependencies */
 
   type Dep = (Document.Node.Name, Document.Node.Header)
-  private sealed case class Required(
-    deps: List[Dep] = Nil,
-    seen: Set[Document.Node.Name] = Set.empty)
+
+  object Dependencies
   {
-    def :: (dep: Dep): Required = copy(deps = dep :: deps)
-    def + (name: Document.Node.Name): Required = copy(seen = seen + name)
+    val empty = new Dependencies(Nil, Set.empty)
+  }
+
+  final class Dependencies private(
+    rev_deps: List[Dep],
+    val seen: Set[Document.Node.Name])
+  {
+    def :: (dep: Dep): Dependencies = new Dependencies(dep :: rev_deps, seen)
+    def + (name: Document.Node.Name): Dependencies = new Dependencies(rev_deps, seen = seen + name)
+
+    def deps: List[Dep] = rev_deps.reverse
+
+    def thy_load_commands: List[String] =
+      (for ((_, h) <- rev_deps; (cmd, Some(((Keyword.THY_LOAD, _), _))) <- h.keywords) yield cmd) :::
+        thy_load.base_syntax.thy_load_commands
+
+    def loaded_theories: Set[String] =
+      (thy_load.loaded_theories /: rev_deps) { case (loaded, (name, _)) => loaded + name.theory }
+
+    def syntax: Outer_Syntax =
+      (thy_load.base_syntax /: rev_deps) { case (syn, (name, h)) =>
+        val syn1 = syn.add_keywords(h)
+        // FIXME avoid hardwired stuff!?
+        // FIXME broken?!
+        if (name.theory == "Pure")
+          syn1 +
+            ("hence", (Keyword.PRF_ASM_GOAL, Nil), "then have") +
+            ("thus", (Keyword.PRF_ASM_GOAL, Nil), "then show")
+        else syn1
+      }
   }
 
   private def require_thys(initiators: List[Document.Node.Name],
-      required: Required, names: List[Document.Node.Name]): Required =
+      required: Dependencies, names: List[Document.Node.Name]): Dependencies =
     (required /: names)(require_thy(initiators, _, _))
 
   private def require_thy(initiators: List[Document.Node.Name],
-      required: Required, name: Document.Node.Name): Required =
+      required: Dependencies, name: Document.Node.Name): Dependencies =
   {
     if (required.seen(name)) required
     else if (thy_load.loaded_theories(name.theory)) required + name
@@ -61,6 +88,6 @@ class Thy_Info(thy_load: Thy_Load)
     }
   }
 
-  def dependencies(names: List[Document.Node.Name]): List[Dep] =
-    require_thys(Nil, Required(), names).deps.reverse
+  def dependencies(names: List[Document.Node.Name]): Dependencies =
+    require_thys(Nil, Dependencies.empty, names)
 }

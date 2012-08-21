@@ -353,19 +353,11 @@ object Build
               info.theories.map(_._2).flatten.
                 map(thy => Document.Node.Name(info.dir + Thy_Load.thy_path(thy))))
 
-          val loaded_theories = preloaded ++ thy_deps.map(_._1.theory)
-          val syntax0 = (parent_syntax /: thy_deps) { case (syn, (_, h)) => syn.add_keywords(h) }
-          val syntax =
-            // FIXME avoid hardwired stuff!?
-            // FIXME broken?!
-            if (name == "Pure")
-              syntax0 +
-                ("hence", (Keyword.PRF_ASM_GOAL, Nil), "then have") +
-                ("thus", (Keyword.PRF_ASM_GOAL, Nil), "then show")
-            else syntax0
+          val loaded_theories = thy_deps.loaded_theories
+          val syntax = thy_deps.syntax
 
           val all_files =
-            thy_deps.map({ case (n, h) =>
+            thy_deps.deps.map({ case (n, h) =>
               val thy = Path.explode(n.node).expand
               val uses = h.uses.map(p => (Path.explode(n.dir) + Path.explode(p._1)).expand)
               thy :: uses
@@ -377,7 +369,7 @@ object Build
                 error(msg + "\nThe error(s) above occurred in session " +
                   quote(name) + Position.str_of(info.pos))
             }
-          val errors = parent_errors ::: thy_deps.map(d => d._2.errors).flatten
+          val errors = parent_errors ::: thy_deps.deps.map(d => d._2.errors).flatten
 
           deps + (name -> Session_Content(loaded_theories, syntax, sources, errors))
       }))
