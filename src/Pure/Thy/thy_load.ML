@@ -121,7 +121,7 @@ fun read_files cmd dir tok =
     val path = Path.explode (Token.content_of tok);
     val files =
       command_files path (Keyword.command_files cmd)
-      |> map (Path.append dir #> (fn path => (File.read path, Path.position path)));
+      |> map (File.full_path dir #> (fn path => (File.read path, Path.position path)));
   in (dir, files) end;
 
 fun parse_files cmd =
