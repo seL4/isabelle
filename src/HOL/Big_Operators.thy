@@ -108,6 +108,24 @@ using F_delta[OF fS, of a b, symmetric] by (auto intro: F_cong)
 lemma F_fun_f: "F (%x. g x * h x) A = (F g A * F h A)"
 by (cases "finite A") (simp_all add: distrib)
 
+
+text {* for ad-hoc proofs for @{const fold_image} *}
+lemma comm_monoid_mult:  "class.comm_monoid_mult (op *) 1"
+proof qed (auto intro: assoc commute)
+
+lemma F_Un_neutral:
+  assumes fS: "finite S" and fT: "finite T"
+  and I1: "\<forall>x \<in> S\<inter>T. g x = 1"
+  shows "F g (S \<union> T) = F g S  * F g T"
+proof -
+  interpret comm_monoid_mult "op *" 1 by (fact comm_monoid_mult)
+  show ?thesis
+  using fS fT
+  apply (simp add: F_eq)
+  apply (rule fold_image_Un_one)
+  using I1 by auto
+qed
+
 lemma If_cases:
   fixes P :: "'b \<Rightarrow> bool" and g h :: "'b \<Rightarrow> 'a"
   assumes fA: "finite A"
@@ -373,6 +391,28 @@ done
 lemma setsum_addf: "setsum (%x. f x + g x) A = (setsum f A + setsum g A)"
 by (fact setsum.F_fun_f)
 
+lemma setsum_Un_zero:  
+  "\<lbrakk> finite S; finite T; \<forall>x \<in> S\<inter>T. f x = 0 \<rbrakk> \<Longrightarrow>
+  setsum f (S \<union> T) = setsum f S + setsum f T"
+by(fact setsum.F_Un_neutral)
+
+lemma setsum_UNION_zero: 
+  assumes fS: "finite S" and fSS: "\<forall>T \<in> S. finite T"
+  and f0: "\<And>T1 T2 x. T1\<in>S \<Longrightarrow> T2\<in>S \<Longrightarrow> T1 \<noteq> T2 \<Longrightarrow> x \<in> T1 \<Longrightarrow> x \<in> T2 \<Longrightarrow> f x = 0"
+  shows "setsum f (\<Union>S) = setsum (\<lambda>T. setsum f T) S"
+  using fSS f0
+proof(induct rule: finite_induct[OF fS])
+  case 1 thus ?case by simp
+next
+  case (2 T F)
+  then have fTF: "finite T" "\<forall>T\<in>F. finite T" "finite F" and TF: "T \<notin> F" 
+    and H: "setsum f (\<Union> F) = setsum (setsum f) F" by auto
+  from fTF have fUF: "finite (\<Union>F)" by auto
+  from "2.prems" TF fTF
+  show ?case 
+    by (auto simp add: H[symmetric] intro: setsum_Un_zero[OF fTF(1) fUF, of f])
+qed
+
 
 subsubsection {* Properties in more restricted classes of structures *}
 
@@ -419,36 +459,6 @@ proof -
   apply (erule kh)
   apply (erule hk)
   done
-qed
-
-lemma (in comm_monoid_add) setsum_Un_zero:  
-  assumes fS: "finite S" and fT: "finite T"
-  and I0: "\<forall>x \<in> S\<inter>T. f x = 0"
-  shows "setsum f (S \<union> T) = setsum f S  + setsum f T"
-proof -
-  interpret comm_monoid_mult "op +" 0 by (fact comm_monoid_mult)
-  show ?thesis
-  using fS fT
-  apply (simp add: setsum_def)
-  apply (rule fold_image_Un_one)
-  using I0 by auto
-qed
-
-lemma setsum_UNION_zero: 
-  assumes fS: "finite S" and fSS: "\<forall>T \<in> S. finite T"
-  and f0: "\<And>T1 T2 x. T1\<in>S \<Longrightarrow> T2\<in>S \<Longrightarrow> T1 \<noteq> T2 \<Longrightarrow> x \<in> T1 \<Longrightarrow> x \<in> T2 \<Longrightarrow> f x = 0"
-  shows "setsum f (\<Union>S) = setsum (\<lambda>T. setsum f T) S"
-  using fSS f0
-proof(induct rule: finite_induct[OF fS])
-  case 1 thus ?case by simp
-next
-  case (2 T F)
-  then have fTF: "finite T" "\<forall>T\<in>F. finite T" "finite F" and TF: "T \<notin> F" 
-    and H: "setsum f (\<Union> F) = setsum (setsum f) F" by auto
-  from fTF have fUF: "finite (\<Union>F)" by auto
-  from "2.prems" TF fTF
-  show ?case 
-    by (auto simp add: H[symmetric] intro: setsum_Un_zero[OF fTF(1) fUF, of f])
 qed
 
 lemma setsum_diff1_nat: "(setsum f (A - {a}) :: nat) =
@@ -959,15 +969,9 @@ proof-
       by (simp add: eq)
 qed
 
-lemma setprod_Un_one:  
-  assumes fS: "finite S" and fT: "finite T"
-  and I0: "\<forall>x \<in> S\<inter>T. f x = 1"
-  shows "setprod f (S \<union> T) = setprod f S  * setprod f T"
-  using fS fT
-  apply (simp add: setprod_def)
-  apply (rule fold_image_Un_one)
-  using I0 by auto
-
+lemma setprod_Un_one: "\<lbrakk> finite S; finite T; \<forall>x \<in> S\<inter>T. f x = 1 \<rbrakk>
+  \<Longrightarrow> setprod f (S \<union> T) = setprod f S  * setprod f T"
+by(fact setprod.F_Un_neutral)
 
 lemmas setprod_1 = setprod.F_neutral
 lemmas setprod_1' = setprod.F_neutral'
