@@ -135,7 +135,7 @@ val named_thms_setup =
 val thy_file_setup =
   Thy_Output.antiquotation @{binding thy_file} (Scan.lift Args.name)
     (fn {context = ctxt, ...} =>
-      fn name => (Thy_Load.check_thy Path.current name; Thy_Output.output ctxt [Pretty.str name]));
+      fn name => (Thy_Load.check_thy [] Path.current name; Thy_Output.output ctxt [Pretty.str name]));
 
 
 (* Isabelle/Isar entities (with index) *)
