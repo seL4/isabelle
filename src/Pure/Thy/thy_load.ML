@@ -11,9 +11,9 @@ sig
   val provide: Path.T * (Path.T * SHA1.digest) -> theory -> theory
   val check_file: Path.T -> Path.T -> Path.T
   val thy_path: Path.T -> Path.T
-  val check_thy: (string * Keyword.T option) list -> Path.T -> string ->
+  val check_thy: Thy_Header.keywords -> Path.T -> string ->
    {master: Path.T * SHA1.digest, text: string, imports: string list,
-    uses: (Path.T * bool) list, keywords: (string * Keyword.T option) list}
+    uses: (Path.T * bool) list, keywords: Thy_Header.keywords}
   val load_file: theory -> Path.T -> (Path.T * SHA1.digest) * string
   val use_file: Path.T -> theory -> string * theory
   val loaded_files: theory -> Path.T list
@@ -157,28 +157,23 @@ fun check_file dir file = File.check_file (File.full_path dir file);
 
 val thy_path = Path.ext "thy";
 
-fun check_thy base_keywords dir name =
+fun check_thy base_keywords dir thy_name =
   let
-    val path = thy_path (Path.basic name);
+    val path = thy_path (Path.basic thy_name);
     val master_file = check_file dir path;
     val text = File.read master_file;
-    val (name', imports, uses, more_keywords) =
-      if name = Context.PureN then (Context.PureN, [], [], [])
-      else
-        let
-          val {name, imports, uses, keywords} = Thy_Header.read (Path.position master_file) text;
-          val more_keywords = map (apsnd (Option.map Keyword.spec)) keywords;
-          val syntax =
-            Keyword.get_keywords ()
-            |> fold Keyword.define_keywords base_keywords
-            |> fold Keyword.define_keywords more_keywords;
-          val more_uses = map (rpair false) (find_files syntax text);
-        in (name, imports, uses @ more_uses, more_keywords) end;
-    val _ = name <> name' andalso
-      error ("Bad file name " ^ Path.print path ^ " for theory " ^ quote name');
+
+    val {name, imports, uses, keywords} = Thy_Header.read (Path.position master_file) text;
+    val _ = thy_name <> name andalso
+      error ("Bad file name " ^ Path.print path ^ " for theory " ^ quote name);
+
+    val syntax =
+      fold (Keyword.define_keywords o apsnd (Option.map Keyword.spec))
+        (keywords @ base_keywords) (Keyword.get_keywords ());
+    val more_uses = map (rpair false) (find_files syntax text);
   in
    {master = (master_file, SHA1.digest text), text = text,
-    imports = imports, uses = uses, keywords = more_keywords}
+    imports = imports, uses = uses @ more_uses, keywords = keywords}
   end;
 
 

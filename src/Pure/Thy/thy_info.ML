@@ -220,7 +220,7 @@ local
 fun required_by _ [] = ""
   | required_by s initiators = s ^ "(required by " ^ show_path (rev initiators) ^ ")";
 
-fun load_thy initiators update_time deps text name parents =
+fun load_thy initiators update_time deps text name uses keywords parents =
   let
     val _ = kill_thy name;
     val _ = Output.urgent_message ("Loading theory " ^ quote name ^ required_by " " initiators);
@@ -228,7 +228,6 @@ fun load_thy initiators update_time deps text name parents =
     val {master = (thy_path, _), imports} = deps;
     val dir = Path.dir thy_path;
     val pos = Path.position thy_path;
-    val {uses, keywords, ...} = Thy_Header.read pos text;
     val header = Thy_Header.make name imports keywords uses;
 
     val (theory, present) =
@@ -239,21 +238,21 @@ fun load_thy initiators update_time deps text name parents =
 
 fun check_deps base_keywords dir name =
   (case lookup_deps name of
-    SOME NONE => (true, NONE, get_imports name, [])
+    SOME NONE => (true, NONE, get_imports name, [], [])
   | NONE =>
-      let val {master, text, imports, keywords, ...} = Thy_Load.check_thy base_keywords dir name
-      in (false, SOME (make_deps master imports, text), imports, keywords) end
+      let val {master, text, imports, keywords, uses} = Thy_Load.check_thy base_keywords dir name
+      in (false, SOME (make_deps master imports, text), imports, uses, keywords) end
   | SOME (SOME {master, ...}) =>
       let
-        val {master = master', text = text', imports = imports', keywords, ...} =
-          Thy_Load.check_thy base_keywords dir name;
+        val {master = master', text = text', imports = imports', uses = uses', keywords = keywords'}
+          = Thy_Load.check_thy base_keywords dir name;
         val deps' = SOME (make_deps master' imports', text');
         val current =
           #2 master = #2 master' andalso
             (case lookup_theory name of
               NONE => false
             | SOME theory => Thy_Load.all_current theory);
-      in (current, deps', imports', keywords) end);
+      in (current, deps', imports', uses', keywords') end);
 
 in
 
@@ -271,7 +270,7 @@ and require_thy initiators dir str (base_keywords, tasks) =
           val dir' = Path.append dir (Path.dir path);
           val _ = member (op =) initiators name andalso error (cycle_msg initiators);
 
-          val (current, deps, imports, keywords) = check_deps base_keywords dir' name
+          val (current, deps, imports, uses, keywords) = check_deps base_keywords dir' name
             handle ERROR msg => cat_error msg
               (loader_msg "the error(s) above occurred while examining theory" [name] ^
                 required_by "\n" initiators);
@@ -288,8 +287,10 @@ and require_thy initiators dir str (base_keywords, tasks) =
               (case deps of
                 NONE => raise Fail "Malformed deps"
               | SOME (dep, text) =>
-                  let val update_time = serial ()
-                  in Task (parents, load_thy initiators update_time dep text name) end);
+                  let
+                    val update_time = serial ();
+                    val load = load_thy initiators update_time dep text name uses keywords;
+                  in Task (parents, load) end);
 
           val base_keywords'' = keywords @ base_keywords';
           val tasks'' = new_entry name parents task tasks';

@@ -324,12 +324,17 @@ val _ =
 val _ =
   Outer_Syntax.command
     (("ML_file", Keyword.tag_ml Keyword.thy_load), Position.none) "ML text from file"
-    (Thy_Load.parse_files "ML_file" >> (fn files => Toplevel.generic_theory (fn gthy =>
-      let val (_, [(txt, pos)]) = files (Context.theory_of gthy) in
-        gthy
-        |> ML_Context.exec (fn () => ML_Context.eval_text true pos txt)
-        |> Local_Theory.propagate_ml_env
-      end)));
+    (Scan.ahead Parse.path -- Thy_Load.parse_files "ML_file"
+      >> (fn (src_path, files) => Toplevel.generic_theory (fn gthy =>
+        let
+          val (dir, [(txt, pos)]) = files (Context.theory_of gthy);
+          val provide = Thy_Load.provide (src_path, (File.full_path dir src_path, SHA1.digest txt));
+        in
+          gthy
+          |> ML_Context.exec (fn () => ML_Context.eval_text true pos txt)
+          |> Local_Theory.propagate_ml_env
+          |> Context.mapping provide (Local_Theory.background_theory provide)
+        end)));
 
 Unsynchronized.setmp Multithreading.max_threads 1
   use_thy "Pure";
