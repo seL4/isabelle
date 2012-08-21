@@ -11,8 +11,9 @@ sig
   val provide: Path.T * (Path.T * SHA1.digest) -> theory -> theory
   val check_file: Path.T -> Path.T -> Path.T
   val thy_path: Path.T -> Path.T
-  val check_thy: Path.T -> string ->
-    {master: Path.T * SHA1.digest, text: string, imports: string list, uses: (Path.T * bool) list}
+  val check_thy: (string * Keyword.T option) list -> Path.T -> string ->
+   {master: Path.T * SHA1.digest, text: string, imports: string list,
+    uses: (Path.T * bool) list, keywords: (string * Keyword.T option) list}
   val load_file: theory -> Path.T -> (Path.T * SHA1.digest) * string
   val use_file: Path.T -> theory -> string * theory
   val loaded_files: theory -> Path.T list
@@ -75,17 +76,52 @@ fun provide (src_path, path_id) =
 
 (* inlined files *)
 
-fun command_files cmd path =
-  (case Keyword.command_files cmd of
-    [] => [path]
-  | exts => map (fn ext => Path.ext ext path) exts);
+local
+
+fun clean ((i1, t1) :: (i2, t2) :: toks) =
+      if Token.keyword_with (fn s => s = "%" orelse s = "--") t1 then clean toks
+      else (i1, t1) :: clean ((i2, t2) :: toks)
+  | clean toks = toks;
+
+fun clean_tokens toks =
+  ((0 upto length toks - 1) ~~ toks)
+  |> filter (fn (_, tok) => Token.is_proper tok)
+  |> clean;
+
+fun find_file toks =
+  rev (clean_tokens toks) |> get_first (fn (i, tok) =>
+    if Token.is_name tok then SOME (i, Path.explode (Token.content_of tok))
+    else NONE);
+
+fun command_files path exts =
+  if null exts then [path]
+  else map (fn ext => Path.ext ext path) exts;
+
+in
+
+fun find_files syntax text =
+  let val thy_load_commands = Keyword.thy_load_commands syntax in
+    if exists (fn (cmd, _) => String.isSubstring cmd text) thy_load_commands then
+      Thy_Syntax.parse_tokens (Keyword.lexicons_of syntax) Position.none text
+      |> Thy_Syntax.parse_spans
+      |> maps
+        (fn Thy_Syntax.Span (Thy_Syntax.Command cmd, toks) =>
+              (case AList.lookup (op =) thy_load_commands cmd of
+                SOME exts =>
+                  (case find_file toks of
+                    SOME (_, path) => command_files path exts
+                  | NONE => [])
+              | NONE => [])
+          | _ => [])
+    else []
+  end;
 
 fun read_files cmd dir tok =
   let
     val path = Path.explode (Token.content_of tok);
     val files =
-      command_files cmd path
-      |> map (Path.append dir #> (fn p => (File.read p, Path.position p)));
+      command_files path (Keyword.command_files cmd)
+      |> map (Path.append dir #> (fn path => (File.read path, Path.position path)));
   in (dir, files) end;
 
 fun parse_files cmd =
@@ -97,31 +133,20 @@ fun parse_files cmd =
           (warning ("Dynamic loading of files: " ^ quote name ^ Token.pos_of tok);
             read_files cmd (master_directory thy) tok)));
 
-local
-
-fun clean ((i1, t1) :: (i2, t2) :: toks) =
-      if Token.keyword_with (fn s => s = "%" orelse s = "--") t1 then clean toks
-      else (i1, t1) :: clean ((i2, t2) :: toks)
-  | clean toks = toks;
-
-fun clean_tokens toks =
-  ((0 upto length toks - 1) ~~ toks)
-  |> filter (fn (_, tok) => Token.is_proper tok) |> clean;
-
-in
-
-fun resolve_files dir (span as Thy_Syntax.Span (Thy_Syntax.Command cmd, toks)) =
+fun resolve_files dir span =
+  (case span of
+    Thy_Syntax.Span (Thy_Syntax.Command cmd, toks) =>
       if Keyword.is_theory_load cmd then
         (case find_first (Token.is_name o #2) (rev (clean_tokens toks)) of
-          NONE => span
-        | SOME (i, _) =>
+          NONE => span  (* FIXME error *)
+        | SOME (i, path) =>
             let
               val toks' = toks |> map_index (fn (j, tok) =>
-                if i = j then Token.put_files (read_files cmd dir tok) tok
+                if i = j then Token.put_files (read_files cmd dir path) tok
                 else tok);
             in Thy_Syntax.Span (Thy_Syntax.Command cmd, toks') end)
       else span
-  | resolve_files _ span = span;
+  | span => span);
 
 end;
 
@@ -132,19 +157,29 @@ fun check_file dir file = File.check_file (File.full_path dir file);
 
 val thy_path = Path.ext "thy";
 
-fun check_thy dir name =
+fun check_thy base_keywords dir name =
   let
     val path = thy_path (Path.basic name);
     val master_file = check_file dir path;
     val text = File.read master_file;
-    val (name', imports, uses) =
-      if name = Context.PureN then (Context.PureN, [], [])
+    val (name', imports, uses, more_keywords) =
+      if name = Context.PureN then (Context.PureN, [], [], [])
       else
-        let val {name, imports, uses, ...} = Thy_Header.read (Path.position master_file) text
-        in (name, imports, uses) end;
+        let
+          val {name, imports, uses, keywords} = Thy_Header.read (Path.position master_file) text;
+          val more_keywords = map (apsnd (Option.map Keyword.spec)) keywords;
+          val syntax =
+            Keyword.get_keywords ()
+            |> fold Keyword.define_keywords base_keywords
+            |> fold Keyword.define_keywords more_keywords;
+          val more_uses = map (rpair false) (find_files syntax text);
+        in (name, imports, uses @ more_uses, more_keywords) end;
     val _ = name <> name' andalso
       error ("Bad file name " ^ Path.print path ^ " for theory " ^ quote name');
-  in {master = (master_file, SHA1.digest text), text = text, imports = imports, uses = uses} end;
+  in
+   {master = (master_file, SHA1.digest text), text = text,
+    imports = imports, uses = uses, keywords = more_keywords}
+  end;
 
 
 (* load files *)

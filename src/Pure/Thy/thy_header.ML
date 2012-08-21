@@ -6,13 +6,13 @@ Static theory header information.
 
 signature THY_HEADER =
 sig
+  type keywords = (string * Keyword.spec option) list
   type header =
    {name: string,
     imports: string list,
-    keywords: (string * Keyword.spec option) list,
+    keywords: keywords,
     uses: (Path.T * bool) list}
-  val make: string -> string list -> (string * Keyword.spec option) list ->
-    (Path.T * bool) list -> header
+  val make: string -> string list -> keywords -> (Path.T * bool) list -> header
   val define_keywords: header -> unit
   val declare_keyword: string * Keyword.spec option -> theory -> theory
   val the_keyword: theory -> string -> Keyword.spec option
@@ -23,10 +23,12 @@ end;
 structure Thy_Header: THY_HEADER =
 struct
 
+type keywords = (string * Keyword.spec option) list;
+
 type header =
  {name: string,
   imports: string list,
-  keywords: (string * Keyword.spec option) list,
+  keywords: keywords,
   uses: (Path.T * bool) list};
 
 fun make name imports keywords uses : header =
