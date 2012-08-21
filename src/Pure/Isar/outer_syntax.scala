@@ -71,8 +71,8 @@ final class Outer_Syntax private(
   def + (name: String, kind: String): Outer_Syntax = this + (name, (kind, Nil), name)
   def + (name: String): Outer_Syntax = this + (name, Keyword.MINOR)
 
-  def add_keywords(header: Document.Node.Header): Outer_Syntax =
-    (this /: header.keywords) {
+  def add_keywords(keywords: Thy_Header.Keywords): Outer_Syntax =
+    (this /: keywords) {
       case (syntax, ((name, Some((kind, _))))) =>
         syntax + (Symbol.decode(name), kind) + (Symbol.encode(name), kind)
       case (syntax, ((name, None))) =>
