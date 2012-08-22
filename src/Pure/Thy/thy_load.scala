@@ -27,13 +27,6 @@ class Thy_Load(val loaded_theories: Set[String] = Set.empty, val base_syntax: Ou
   def append(dir: String, source_path: Path): String =
     (Path.explode(dir) + source_path).expand.implode
 
-  def read_header(name: Document.Node.Name): Thy_Header =
-  {
-    val path = Path.explode(name.node)
-    if (!path.is_file) error("No such file: " + path.toString)
-    Thy_Header.read(path.file)
-  }
-
 
   /* theory files */
 
@@ -49,8 +42,9 @@ class Thy_Load(val loaded_theories: Set[String] = Set.empty, val base_syntax: Ou
     }
   }
 
-  def check_header(name: Document.Node.Name, header: Thy_Header): Document.Node.Header =
+  def check_thy_text(name: Document.Node.Name, text: CharSequence): Document.Node.Header =
   {
+    val header = Thy_Header.read(text)
     val name1 = header.name
     val imports = header.imports.map(import_name(name.dir, _))
     // FIXME val uses = header.uses.map(p => (append(name.dir, Path.explode(p._1)), p._2))
@@ -62,6 +56,10 @@ class Thy_Load(val loaded_theories: Set[String] = Set.empty, val base_syntax: Ou
   }
 
   def check_thy(name: Document.Node.Name): Document.Node.Header =
-    check_header(name, read_header(name))
+  {
+    val path = Path.explode(name.node)
+    if (!path.is_file) error("No such file: " + path.toString)
+    check_thy_text(name, File.read(path))
+  }
 }
 
