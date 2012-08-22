@@ -118,30 +118,27 @@ fun find_files syntax text =
     else []
   end;
 
-fun read_files cmd dir tok =
+fun read_files cmd dir path =
   let
-    val path = Path.explode (Token.content_of tok);
     val files =
       command_files path (Keyword.command_files cmd)
-      |> map (check_file dir #> (fn path => (File.read path, Path.position path)));
+      |> map (check_file dir #> (fn p => (File.read p, Path.position p)));
   in (dir, files) end;
 
 fun parse_files cmd =
-  Scan.ahead Parse.not_eof -- Parse.group (fn () => "file name/path specification") Parse.name
-    >> (fn (tok, name) => fn thy =>
-      (case Token.get_files tok of
-        SOME files => files
-      | NONE =>
-          (warning ("Dynamic loading of files: " ^ quote name ^ Token.pos_of tok);
-            read_files cmd (master_directory thy) tok)));
+  Scan.ahead Parse.not_eof -- Parse.path >> (fn (tok, path) => fn thy =>
+    (case Token.get_files tok of
+      SOME files => files
+    | NONE =>
+        (warning ("Dynamic loading of files: " ^ Path.print path ^ Token.pos_of tok);
+          read_files cmd (master_directory thy) path)));
 
 fun resolve_files dir span =
   (case span of
     Thy_Syntax.Span (Thy_Syntax.Command (cmd, pos), toks) =>
       if Keyword.is_theory_load cmd then
-        (case find_first (Token.is_name o #2) (rev (clean_tokens toks)) of
-          NONE =>
-            error ("Cannot resolve file argument of command " ^ quote cmd ^ Position.str_of pos)
+        (case find_file toks of
+          NONE => error ("Bad file argument of command " ^ quote cmd ^ Position.str_of pos)
         | SOME (i, path) =>
             let
               val toks' = toks |> map_index (fn (j, tok) =>
