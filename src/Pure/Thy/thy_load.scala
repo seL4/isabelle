@@ -42,12 +42,14 @@ class Thy_Load(val loaded_theories: Set[String] = Set.empty, val base_syntax: Ou
     }
   }
 
-  def check_thy_text(name: Document.Node.Name, text: CharSequence): Document.Node.Header =
+  def check_thy_text(syntax: Outer_Syntax, name: Document.Node.Name, text: CharSequence)
+    : Document.Node.Header =
   {
     val header = Thy_Header.read(text)
     val name1 = header.name
     val imports = header.imports.map(import_name(name.dir, _))
     // FIXME val uses = header.uses.map(p => (append(name.dir, Path.explode(p._1)), p._2))
+    // FIXME find files in text
     val uses = header.uses
     if (name.theory != name1)
       error("Bad file name " + Thy_Load.thy_path(Path.basic(name.theory)) +
@@ -55,11 +57,11 @@ class Thy_Load(val loaded_theories: Set[String] = Set.empty, val base_syntax: Ou
     Document.Node.Header(imports, header.keywords, uses)
   }
 
-  def check_thy(name: Document.Node.Name): Document.Node.Header =
+  def check_thy(syntax: Outer_Syntax, name: Document.Node.Name): Document.Node.Header =
   {
     val path = Path.explode(name.node)
     if (!path.is_file) error("No such file: " + path.toString)
-    check_thy_text(name, File.read(path))
+    check_thy_text(syntax, name, File.read(path))
   }
 }
 

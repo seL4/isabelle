@@ -354,7 +354,7 @@ object Build
                 map(thy => Document.Node.Name(info.dir + Thy_Load.thy_path(thy))))
 
           val loaded_theories = thy_deps.loaded_theories
-          val syntax = thy_deps.syntax
+          val syntax = thy_deps.make_syntax
 
           val all_files =
             thy_deps.deps.map({ case (n, h) =>

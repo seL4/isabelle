@@ -53,20 +53,21 @@ class JEdit_Thy_Load(loaded_theories: Set[String] = Set.empty, base_syntax: Oute
     }
   }
 
-  override def check_thy(name: Document.Node.Name): Document.Node.Header =
+  override def check_thy(syntax: Outer_Syntax, name: Document.Node.Name)
+    : Document.Node.Header =
   {
     Swing_Thread.now {
       Isabelle.jedit_buffer(name.node) match {
         case Some(buffer) =>
           Isabelle.buffer_lock(buffer) {
-            Some(check_thy_text(name, buffer.getSegment(0, buffer.getLength)))
+            Some(check_thy_text(syntax, name, buffer.getSegment(0, buffer.getLength)))
           }
         case None => None
       }
     } getOrElse {
       val file = new JFile(name.node)  // FIXME load URL via jEdit VFS (!?)
       if (!file.exists || !file.isFile) error("No such file: " + quote(file.toString))
-      check_thy_text(name, File.read(file))
+      check_thy_text(syntax, name, File.read(file))
     }
   }
 }

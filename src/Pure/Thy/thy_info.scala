@@ -44,14 +44,10 @@ class Thy_Info(thy_load: Thy_Load)
 
     def deps: List[Dep] = rev_deps.reverse
 
-    def thy_load_commands: List[String] =
-      (for ((cmd, Some(((Keyword.THY_LOAD, _), _))) <- keywords) yield cmd) :::
-        thy_load.base_syntax.thy_load_commands
-
     def loaded_theories: Set[String] =
       (thy_load.loaded_theories /: rev_deps) { case (loaded, (name, _)) => loaded + name.theory }
 
-    def syntax: Outer_Syntax = thy_load.base_syntax.add_keywords(keywords)
+    def make_syntax: Outer_Syntax = thy_load.base_syntax.add_keywords(keywords)
   }
 
   private def require_thys(initiators: List[Document.Node.Name],
@@ -66,8 +62,9 @@ class Thy_Info(thy_load: Thy_Load)
     else {
       try {
         if (initiators.contains(name)) error(cycle_msg(initiators))
+        val syntax = required.make_syntax
         val header =
-          try { thy_load.check_thy(name) }
+          try { thy_load.check_thy(syntax, name) }
           catch {
             case ERROR(msg) =>
               cat_error(msg, "The error(s) above occurred while examining theory " +
