@@ -11,7 +11,6 @@ header {* Extensible records with structural subtyping *}
 theory Record
 imports Plain Quickcheck_Narrowing
 keywords "record" :: thy_decl
-uses ("Tools/record.ML")
 begin
 
 subsection {* Introduction *}
@@ -461,7 +460,7 @@ syntax (xsymbols)
 
 subsection {* Record package *}
 
-use "Tools/record.ML" setup Record.setup
+ML_file "Tools/record.ML" setup Record.setup
 
 hide_const (open) Tuple_Isomorphism repr abst iso_tuple_fst iso_tuple_snd
   iso_tuple_fst_update iso_tuple_snd_update iso_tuple_cons

@@ -1,9 +1,9 @@
 theory Setup
 imports Main "~~/src/HOL/Library/Code_Integer"
-uses
-  "../../antiquote_setup.ML"
-  "../../more_antiquote.ML"
 begin
+
+ML_file "../../antiquote_setup.ML"
+ML_file "../../more_antiquote.ML"
 
 setup {*
   Antiquote_Setup.setup #>

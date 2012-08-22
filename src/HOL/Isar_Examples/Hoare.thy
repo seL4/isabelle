@@ -8,7 +8,6 @@ header {* Hoare Logic *}
 
 theory Hoare
 imports Main
-uses ("~~/src/HOL/Hoare/hoare_tac.ML")
 begin
 
 subsection {* Abstract syntax and semantics *}
@@ -402,7 +401,7 @@ lemma Compl_Collect: "- Collect b = {x. \<not> b x}"
 
 lemmas AbortRule = SkipRule  -- "dummy version"
 
-use "~~/src/HOL/Hoare/hoare_tac.ML"
+ML_file "~~/src/HOL/Hoare/hoare_tac.ML"
 
 method_setup hoare = {*
   Scan.succeed (fn ctxt =>

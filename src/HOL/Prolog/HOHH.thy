@@ -6,8 +6,9 @@ header {* Higher-order hereditary Harrop formulas *}
 
 theory HOHH
 imports HOL
-uses "prolog.ML"
 begin
+
+ML_file "prolog.ML"
 
 method_setup ptac =
   {* Attrib.thms >> (fn thms => fn ctxt => SIMPLE_METHOD' (Prolog.ptac ctxt thms)) *}

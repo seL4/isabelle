@@ -7,7 +7,6 @@ header {* Finite sets *}
 
 theory Finite_Set
 imports Option Power
-uses ("Tools/set_comprehension_pointfree.ML")
 begin
 
 subsection {* Predicate for finite sets *}
@@ -18,7 +17,7 @@ inductive finite :: "'a set \<Rightarrow> bool"
   | insertI [simp, intro!]: "finite A \<Longrightarrow> finite (insert a A)"
 
 (* FIXME: move to Set theory *)
-use "Tools/set_comprehension_pointfree.ML"
+ML_file "Tools/set_comprehension_pointfree.ML"
 
 simproc_setup finite_Collect ("finite (Collect P)") =
   {* K Set_Comprehension_Pointfree.simproc *}

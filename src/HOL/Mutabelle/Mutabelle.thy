@@ -2,8 +2,9 @@
 
 theory Mutabelle
 imports Main
-uses "mutabelle.ML"
 begin
+
+ML_file "mutabelle.ML"
 
 ML {*
 val comms = [@{const_name HOL.eq}, @{const_name HOL.disj}, @{const_name HOL.conj}];

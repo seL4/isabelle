@@ -7,8 +7,9 @@ header {* Reflexive and Transitive closure of a relation *}
 
 theory Transitive_Closure
 imports Relation
-uses "~~/src/Provers/trancl.ML"
 begin
+
+ML_file "~~/src/Provers/trancl.ML"
 
 text {*
   @{text rtrancl} is reflexive/transitive closure,

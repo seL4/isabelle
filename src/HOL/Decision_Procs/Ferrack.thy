@@ -5,7 +5,6 @@
 theory Ferrack
 imports Complex_Main Dense_Linear_Order DP_Library
   "~~/src/HOL/Library/Efficient_Nat" "~~/src/HOL/Library/Old_Recdef"
-uses ("ferrack_tac.ML")
 begin
 
 section {* Quantifier elimination for @{text "\<real> (0, 1, +, <)"} *}
@@ -2003,7 +2002,7 @@ in fn (ctxt, t) =>
 end;
 *}
 
-use "ferrack_tac.ML"
+ML_file "ferrack_tac.ML"
 
 method_setup rferrack = {*
   Args.mode "no_quantify" >>

@@ -8,10 +8,6 @@ header {* Datatype package: constructing datatypes from Cartesian Products and D
 theory Datatype
 imports Product_Type Sum_Type Nat
 keywords "datatype" :: thy_decl
-uses
-  ("Tools/Datatype/datatype.ML")
-  ("Tools/inductive_realizer.ML")
-  ("Tools/Datatype/datatype_realizer.ML")
 begin
 
 subsection {* The datatype universe *}
@@ -517,12 +513,12 @@ text {* hides popular names *}
 hide_type (open) node item
 hide_const (open) Push Node Atom Leaf Numb Lim Split Case
 
-use "Tools/Datatype/datatype.ML"
+ML_file "Tools/Datatype/datatype.ML"
 
-use "Tools/inductive_realizer.ML"
+ML_file "Tools/inductive_realizer.ML"
 setup InductiveRealizer.setup
 
-use "Tools/Datatype/datatype_realizer.ML"
+ML_file "Tools/Datatype/datatype_realizer.ML"
 setup Datatype_Realizer.setup
 
 end

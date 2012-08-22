@@ -11,12 +11,6 @@ keywords
   "print_quotmaps" "print_quotients" :: diag and
   "lift_definition" :: thy_goal and
   "setup_lifting" :: thy_decl
-uses
-  ("Tools/Lifting/lifting_util.ML")
-  ("Tools/Lifting/lifting_info.ML")
-  ("Tools/Lifting/lifting_term.ML")
-  ("Tools/Lifting/lifting_def.ML")
-  ("Tools/Lifting/lifting_setup.ML")
 begin
 
 subsection {* Function map *}
@@ -418,19 +412,19 @@ by (auto intro: reflpI)
 
 subsection {* ML setup *}
 
-use "Tools/Lifting/lifting_util.ML"
+ML_file "Tools/Lifting/lifting_util.ML"
 
-use "Tools/Lifting/lifting_info.ML"
+ML_file "Tools/Lifting/lifting_info.ML"
 setup Lifting_Info.setup
 
 declare fun_quotient[quot_map]
 lemmas [reflexivity_rule] = reflp_equality reflp_Quotient_composition
 
-use "Tools/Lifting/lifting_term.ML"
+ML_file "Tools/Lifting/lifting_term.ML"
 
-use "Tools/Lifting/lifting_def.ML"
+ML_file "Tools/Lifting/lifting_def.ML"
 
-use "Tools/Lifting/lifting_setup.ML"
+ML_file "Tools/Lifting/lifting_setup.ML"
 
 hide_const (open) invariant
 

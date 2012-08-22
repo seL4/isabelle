@@ -6,9 +6,9 @@ header {* Semiring normalization *}
 
 theory Semiring_Normalization
 imports Numeral_Simprocs Nat_Transfer
-uses
-  "Tools/semiring_normalizer.ML"
 begin
+
+ML_file "Tools/semiring_normalizer.ML"
 
 text {* Prelude *}
 

@@ -7,7 +7,6 @@ Like Hoare.thy, but with an Abort statement for modelling run time errors.
 
 theory Hoare_Logic_Abort
 imports Main
-uses ("hoare_syntax.ML") ("hoare_tac.ML")
 begin
 
 type_synonym 'a bexp = "'a set"
@@ -56,7 +55,7 @@ syntax ("" output)
   "_hoare_abort"      :: "['a assn,'a com,'a assn] => bool"
                  ("{_} // _ // {_}" [0,55,0] 50)
 
-use "hoare_syntax.ML"
+ML_file "hoare_syntax.ML"
 parse_translation {* [(@{syntax_const "_hoare_abort_vars"}, Hoare_Syntax.hoare_vars_tr)] *}
 print_translation
   {* [(@{const_syntax Valid}, Hoare_Syntax.spec_tr' @{syntax_const "_hoare_abort"})] *}
@@ -105,7 +104,7 @@ subsection {* Derivation of the proof rules and, most importantly, the VCG tacti
 lemma Compl_Collect: "-(Collect b) = {x. ~(b x)}"
   by blast
 
-use "hoare_tac.ML"
+ML_file "hoare_tac.ML"
 
 method_setup vcg = {*
   Scan.succeed (fn ctxt => SIMPLE_METHOD' (hoare_tac ctxt (K all_tac))) *}

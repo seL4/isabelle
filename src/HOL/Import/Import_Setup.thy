@@ -7,11 +7,10 @@ header {* Importer machinery and required theorems *}
 
 theory Import_Setup
 imports "~~/src/HOL/Parity" "~~/src/HOL/Fact"
-keywords
-    "import_type_map" :: thy_decl and "import_const_map" :: thy_decl and
-    "import_file" :: thy_decl
-uses "import_data.ML" ("import_rule.ML")
+keywords "import_type_map" "import_const_map" "import_file" :: thy_decl
 begin
+
+ML_file "import_data.ML"
 
 lemma light_ex_imp_nonempty:
   "P t \<Longrightarrow> \<exists>x. x \<in> Collect P"
@@ -27,7 +26,7 @@ lemma ext2:
   "(\<And>x. f x = g x) \<Longrightarrow> f = g"
   by auto
 
-use "import_rule.ML"
+ML_file "import_rule.ML"
 
 end
 

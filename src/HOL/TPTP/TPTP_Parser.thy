@@ -6,16 +6,15 @@ Parser for TPTP formulas
 
 theory TPTP_Parser
 imports Pure
-uses
-  "TPTP_Parser/ml_yacc_lib.ML" (*generated from ML-Yacc's lib*)
-
-  "TPTP_Parser/tptp_syntax.ML"
-  "TPTP_Parser/tptp_lexyacc.ML" (*generated from tptp.lex and tptp.yacc*)
-  "TPTP_Parser/tptp_parser.ML"
-  "TPTP_Parser/tptp_problem_name.ML"
-  "TPTP_Parser/tptp_proof.ML"
-
 begin
+
+ML_file "TPTP_Parser/ml_yacc_lib.ML" (*generated from ML-Yacc's lib*)
+
+ML_file "TPTP_Parser/tptp_syntax.ML"
+ML_file "TPTP_Parser/tptp_lexyacc.ML" (*generated from tptp.lex and tptp.yacc*)
+ML_file "TPTP_Parser/tptp_parser.ML"
+ML_file "TPTP_Parser/tptp_problem_name.ML"
+ML_file "TPTP_Parser/tptp_proof.ML"
 
 text {*The TPTP parser was generated using ML-Yacc, and needs the
 ML-Yacc library to operate.  This library is included with the parser,

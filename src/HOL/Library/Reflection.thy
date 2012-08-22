@@ -6,10 +6,10 @@ header {* Generic reflection and reification *}
 
 theory Reflection
 imports Main
-uses
-  "~~/src/HOL/Library/reify_data.ML"
-  "~~/src/HOL/Library/reflection.ML"
 begin
+
+ML_file "~~/src/HOL/Library/reify_data.ML"
+ML_file "~~/src/HOL/Library/reflection.ML"
 
 setup {* Reify_Data.setup *}
 

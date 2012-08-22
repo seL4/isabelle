@@ -7,10 +7,10 @@ header {* Abstract orderings *}
 theory Orderings
 imports HOL
 keywords "print_orders" :: diag
-uses
-  "~~/src/Provers/order.ML"
-  "~~/src/Provers/quasi.ML"  (* FIXME unused? *)
 begin
+
+ML_file "~~/src/Provers/order.ML"
+ML_file "~~/src/Provers/quasi.ML"  (* FIXME unused? *)
 
 subsection {* Syntactic orders *}
 

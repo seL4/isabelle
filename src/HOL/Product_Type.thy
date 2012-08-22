@@ -8,9 +8,6 @@ header {* Cartesian products *}
 theory Product_Type
 imports Typedef Inductive Fun
 keywords "inductive_set" "coinductive_set" :: thy_decl
-uses
-  ("Tools/split_rule.ML")
-  ("Tools/inductive_set.ML")
 begin
 
 subsection {* @{typ bool} is a datatype *}
@@ -690,7 +687,7 @@ definition internal_split :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarro
 lemma internal_split_conv: "internal_split c (a, b) = c a b"
   by (simp only: internal_split_def split_conv)
 
-use "Tools/split_rule.ML"
+ML_file "Tools/split_rule.ML"
 setup Split_Rule.setup
 
 hide_const internal_split
@@ -1122,7 +1119,7 @@ qed
 
 subsection {* Inductively defined sets *}
 
-use "Tools/inductive_set.ML"
+ML_file "Tools/inductive_set.ML"
 setup Inductive_Set.setup
 
 

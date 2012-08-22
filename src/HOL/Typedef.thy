@@ -7,7 +7,6 @@ header {* HOL type definitions *}
 theory Typedef
 imports Set
 keywords "typedef" :: thy_goal and "morphisms"
-uses ("Tools/typedef.ML")
 begin
 
 locale type_definition =
@@ -109,6 +108,6 @@ qed
 
 end
 
-use "Tools/typedef.ML" setup Typedef.setup
+ML_file "Tools/typedef.ML" setup Typedef.setup
 
 end

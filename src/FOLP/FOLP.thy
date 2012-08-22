@@ -7,8 +7,6 @@ header {* Classical First-Order Logic with Proofs *}
 
 theory FOLP
 imports IFOLP
-uses
-  ("classical.ML") ("simp.ML") ("simpdata.ML")
 begin
 
 axiomatization cla :: "[p=>p]=>p"
@@ -99,8 +97,8 @@ schematic_lemma swap:
   apply assumption
   done
 
-use "classical.ML"      (* Patched 'cos matching won't instantiate proof *)
-use "simp.ML"           (* Patched 'cos matching won't instantiate proof *)
+ML_file "classical.ML"      (* Patched because matching won't instantiate proof *)
+ML_file "simp.ML"           (* Patched because matching won't instantiate proof *)
 
 ML {*
 structure Cla = Classical
@@ -139,6 +137,6 @@ schematic_lemma cla_rews:
   apply (tactic {* ALLGOALS (Cla.fast_tac FOLP_cs) *})
   done
 
-use "simpdata.ML"
+ML_file "simpdata.ML"
 
 end

@@ -5,7 +5,15 @@ Steven Obua's evaluator.
 *)
 
 theory Compute_Oracle imports HOL
-uses "am.ML" "am_compiler.ML" "am_interpreter.ML" "am_ghc.ML" "am_sml.ML" "report.ML" "compute.ML" "linker.ML"
 begin
+
+ML_file "am.ML"
+ML_file "am_compiler.ML"
+ML_file "am_interpreter.ML"
+ML_file "am_ghc.ML"
+ML_file "am_sml.ML"
+ML_file "report.ML"
+ML_file "compute.ML"
+ML_file "linker.ML"
 
 end

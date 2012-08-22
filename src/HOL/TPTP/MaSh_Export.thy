@@ -6,8 +6,9 @@ header {* MaSh Exporter *}
 
 theory MaSh_Export
 imports Complex_Main
-uses "mash_export.ML"
 begin
+
+ML_file "mash_export.ML"
 
 sledgehammer_params
   [provers = e, max_relevant = 40, strict, dont_slice, type_enc = poly_guards??,

@@ -10,12 +10,6 @@ keywords
   "print_quotmapsQ3" "print_quotientsQ3" "print_quotconsts" :: diag and
   "quotient_type" :: thy_goal and "/" and
   "quotient_definition" :: thy_goal
-uses
-  ("Tools/Quotient/quotient_info.ML")
-  ("Tools/Quotient/quotient_type.ML")
-  ("Tools/Quotient/quotient_def.ML")
-  ("Tools/Quotient/quotient_term.ML")
-  ("Tools/Quotient/quotient_tacs.ML")
 begin
 
 text {*
@@ -765,7 +759,7 @@ subsection {* ML setup *}
 
 text {* Auxiliary data for the quotient package *}
 
-use "Tools/Quotient/quotient_info.ML"
+ML_file "Tools/Quotient/quotient_info.ML"
 setup Quotient_Info.setup
 
 declare [[mapQ3 "fun" = (fun_rel, fun_quotient3)]]
@@ -787,15 +781,15 @@ lemmas [id_simps] =
   vimage_id
 
 text {* Translation functions for the lifting process. *}
-use "Tools/Quotient/quotient_term.ML"
+ML_file "Tools/Quotient/quotient_term.ML"
 
 
 text {* Definitions of the quotient types. *}
-use "Tools/Quotient/quotient_type.ML"
+ML_file "Tools/Quotient/quotient_type.ML"
 
 
 text {* Definitions for quotient constants. *}
-use "Tools/Quotient/quotient_def.ML"
+ML_file "Tools/Quotient/quotient_def.ML"
 
 
 text {*
@@ -820,7 +814,7 @@ lemma QT_imp: "Quot_True a \<equiv> Quot_True b"
 
 
 text {* Tactics for proving the lifted theorems *}
-use "Tools/Quotient/quotient_tacs.ML"
+ML_file "Tools/Quotient/quotient_tacs.ML"
 
 subsection {* Methods / Interface *}
 

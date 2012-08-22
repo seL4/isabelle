@@ -6,7 +6,6 @@ header {* Rational numbers *}
 
 theory Rat
 imports GCD Archimedean_Field
-uses ("Tools/float_syntax.ML")
 begin
 
 subsection {* Rational numbers as quotient *}
@@ -1107,7 +1106,7 @@ subsection{* Float syntax *}
 
 syntax "_Float" :: "float_const \<Rightarrow> 'a"    ("_")
 
-use "Tools/float_syntax.ML"
+ML_file "Tools/float_syntax.ML"
 setup Float_Syntax.setup
 
 text{* Test: *}

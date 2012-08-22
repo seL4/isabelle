@@ -8,8 +8,9 @@ header{*Datatype and CoDatatype Definitions*}
 theory Datatype_ZF
 imports Inductive_ZF Univ QUniv
 keywords "datatype" "codatatype" :: thy_decl
-uses "Tools/datatype_package.ML"
 begin
+
+ML_file "Tools/datatype_package.ML"
 
 ML {*
 (*Typechecking rules for most datatypes involving univ*)

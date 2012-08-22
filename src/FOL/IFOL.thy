@@ -6,22 +6,20 @@ header {* Intuitionistic first-order logic *}
 
 theory IFOL
 imports Pure
-uses
-  "~~/src/Tools/misc_legacy.ML"
-  "~~/src/Provers/splitter.ML"
-  "~~/src/Provers/hypsubst.ML"
-  "~~/src/Tools/IsaPlanner/zipper.ML"
-  "~~/src/Tools/IsaPlanner/isand.ML"
-  "~~/src/Tools/IsaPlanner/rw_tools.ML"
-  "~~/src/Tools/IsaPlanner/rw_inst.ML"
-  "~~/src/Tools/eqsubst.ML"
-  "~~/src/Provers/quantifier1.ML"
-  "~~/src/Tools/intuitionistic.ML"
-  "~~/src/Tools/project_rule.ML"
-  "~~/src/Tools/atomize_elim.ML"
-  ("fologic.ML")
-  ("intprover.ML")
 begin
+
+ML_file "~~/src/Tools/misc_legacy.ML"
+ML_file "~~/src/Provers/splitter.ML"
+ML_file "~~/src/Provers/hypsubst.ML"
+ML_file "~~/src/Tools/IsaPlanner/zipper.ML"
+ML_file "~~/src/Tools/IsaPlanner/isand.ML"
+ML_file "~~/src/Tools/IsaPlanner/rw_tools.ML"
+ML_file "~~/src/Tools/IsaPlanner/rw_inst.ML"
+ML_file "~~/src/Tools/eqsubst.ML"
+ML_file "~~/src/Provers/quantifier1.ML"
+ML_file "~~/src/Tools/intuitionistic.ML"
+ML_file "~~/src/Tools/project_rule.ML"
+ML_file "~~/src/Tools/atomize_elim.ML"
 
 
 subsection {* Syntax and axiomatic basis *}
@@ -575,7 +573,7 @@ structure Project_Rule = Project_Rule
 )
 *}
 
-use "fologic.ML"
+ML_file "fologic.ML"
 
 lemma thin_refl: "[|x=x; PROP W|] ==> PROP W" .
 
@@ -597,7 +595,7 @@ open Hypsubst;
 *}
 
 setup hypsubst_setup
-use "intprover.ML"
+ML_file "intprover.ML"
 
 
 subsection {* Intuitionistic Reasoning *}

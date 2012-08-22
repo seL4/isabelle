@@ -5,7 +5,6 @@
 theory MIR
 imports Complex_Main Dense_Linear_Order DP_Library
   "~~/src/HOL/Library/Efficient_Nat" "~~/src/HOL/Library/Old_Recdef"
-uses ("mir_tac.ML")
 begin
 
 section {* Quantifier elimination for @{text "\<real> (0, 1, +, floor, <)"} *}
@@ -5634,7 +5633,7 @@ in
 end;
 *}
 
-use "mir_tac.ML"
+ML_file "mir_tac.ML"
 
 method_setup mir = {*
   Args.mode "no_quantify" >>

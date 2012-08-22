@@ -12,21 +12,19 @@ keywords
     "code_const" "code_reserved" "code_include" "code_modulename"
     "code_abort" "code_monad" "code_reflect" :: thy_decl and
   "datatypes" "functions" "module_name" "file" "checking"
-uses
-  "~~/src/Tools/value.ML"
-  "~~/src/Tools/cache_io.ML"
-  "~~/src/Tools/Code/code_preproc.ML"
-  "~~/src/Tools/Code/code_thingol.ML"
-  "~~/src/Tools/Code/code_simp.ML"
-  "~~/src/Tools/Code/code_printer.ML"
-  "~~/src/Tools/Code/code_target.ML"
-  "~~/src/Tools/Code/code_namespace.ML"
-  "~~/src/Tools/Code/code_ml.ML"
-  "~~/src/Tools/Code/code_haskell.ML"
-  "~~/src/Tools/Code/code_scala.ML"
-  ("~~/src/Tools/Code/code_runtime.ML")
-  ("~~/src/Tools/nbe.ML")
 begin
+
+ML_file "~~/src/Tools/value.ML"
+ML_file "~~/src/Tools/cache_io.ML"
+ML_file "~~/src/Tools/Code/code_preproc.ML"
+ML_file "~~/src/Tools/Code/code_thingol.ML"
+ML_file "~~/src/Tools/Code/code_simp.ML"
+ML_file "~~/src/Tools/Code/code_printer.ML"
+ML_file "~~/src/Tools/Code/code_target.ML"
+ML_file "~~/src/Tools/Code/code_namespace.ML"
+ML_file "~~/src/Tools/Code/code_ml.ML"
+ML_file "~~/src/Tools/Code/code_haskell.ML"
+ML_file "~~/src/Tools/Code/code_scala.ML"
 
 setup {*
   Value.setup
@@ -65,9 +63,8 @@ next
     by rule (rule holds)+
 qed  
 
-use "~~/src/Tools/Code/code_runtime.ML"
-use "~~/src/Tools/nbe.ML"
-
+ML_file "~~/src/Tools/Code/code_runtime.ML"
+ML_file "~~/src/Tools/nbe.ML"
 setup Nbe.setup
 
 hide_const (open) holds

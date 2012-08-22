@@ -6,9 +6,9 @@ header {* ATP Problem Importer *}
 
 theory ATP_Problem_Import
 imports Complex_Main TPTP_Interpret
-uses "sledgehammer_tactics.ML"
-     ("atp_problem_import.ML")
 begin
+
+ML_file "sledgehammer_tactics.ML"
 
 ML {* Proofterm.proofs := 0 *}
 
@@ -18,7 +18,7 @@ declare [[smt_oracle]]
 declare [[unify_search_bound = 60]]
 declare [[unify_trace_bound = 60]]
 
-use "atp_problem_import.ML"
+ML_file "atp_problem_import.ML"
 
 (*
 ML {* ATP_Problem_Import.isabelle_tptp_file @{theory} 50

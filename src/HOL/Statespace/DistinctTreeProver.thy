@@ -6,7 +6,6 @@ header {* Distinctness of Names in a Binary Tree \label{sec:DistinctTreeProver}*
 
 theory DistinctTreeProver 
 imports Main
-uses ("distinct_tree_prover.ML")
 begin
 
 text {* A state space manages a set of (abstract) names and assumes
@@ -631,7 +630,7 @@ lemma subtract_Tip: "subtract Tip t = Some t"
 text {* Now we have all the theorems in place that are needed for the
 certificate generating ML functions. *}
 
-use "distinct_tree_prover.ML"
+ML_file "distinct_tree_prover.ML"
 
 (* Uncomment for profiling or debugging *)
 (*

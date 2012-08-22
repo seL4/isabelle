@@ -4,10 +4,10 @@ imports
   "~~/src/HOL/Library/Dlist"
   "~~/src/HOL/Library/RBT"
   "~~/src/HOL/Library/Mapping"
-uses
-  "../../antiquote_setup.ML"
-  "../../more_antiquote.ML"
 begin
+
+ML_file "../../antiquote_setup.ML"
+ML_file "../../more_antiquote.ML"
 
 setup {*
   Antiquote_Setup.setup #>

@@ -6,8 +6,9 @@ header {* Floating Point Representation of the Reals *}
 
 theory ComputeFloat
 imports Complex_Main "~~/src/HOL/Library/Lattice_Algebras"
-uses "~~/src/Tools/float.ML" ("~~/src/HOL/Tools/float_arith.ML")
 begin
+
+ML_file "~~/src/Tools/float.ML"
 
 definition int_of_real :: "real \<Rightarrow> int"
   where "int_of_real x = (SOME y. real y = x)"
@@ -238,6 +239,6 @@ lemmas floatarith[simplified norm_0_1] = float_add float_add_l0 float_add_r0 flo
 lemmas arith = arith_simps rel_simps diff_nat_numeral nat_0
   nat_neg_numeral powerarith floatarith not_false_eq_true not_true_eq_false
 
-use "~~/src/HOL/Tools/float_arith.ML"
+ML_file "~~/src/HOL/Tools/float_arith.ML"
 
 end

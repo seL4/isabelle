@@ -7,9 +7,9 @@ header {* Constructive Type Theory *}
 
 theory CTT
 imports Pure
-uses "~~/src/Provers/typedsimp.ML" ("rew.ML")
 begin
 
+ML_file "~~/src/Provers/typedsimp.ML"
 setup Pure_Thy.old_appl_syntax_setup
 
 typedecl i
@@ -460,7 +460,7 @@ fun step_tac thms = safestep_tac thms  ORELSE'  biresolve_tac unsafe_brls
 fun pc_tac thms = DEPTH_SOLVE_1 o (step_tac thms)
 *}
 
-use "rew.ML"
+ML_file "rew.ML"
 
 
 subsection {* The elimination rules for fst/snd *}

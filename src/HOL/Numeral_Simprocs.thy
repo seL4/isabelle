@@ -4,15 +4,13 @@ header {* Combination and Cancellation Simprocs for Numeral Expressions *}
 
 theory Numeral_Simprocs
 imports Divides
-uses
-  "~~/src/Provers/Arith/assoc_fold.ML"
-  "~~/src/Provers/Arith/cancel_numerals.ML"
-  "~~/src/Provers/Arith/combine_numerals.ML"
-  "~~/src/Provers/Arith/cancel_numeral_factor.ML"
-  "~~/src/Provers/Arith/extract_common_term.ML"
-  ("Tools/numeral_simprocs.ML")
-  ("Tools/nat_numeral_simprocs.ML")
 begin
+
+ML_file "~~/src/Provers/Arith/assoc_fold.ML"
+ML_file "~~/src/Provers/Arith/cancel_numerals.ML"
+ML_file "~~/src/Provers/Arith/combine_numerals.ML"
+ML_file "~~/src/Provers/Arith/cancel_numeral_factor.ML"
+ML_file "~~/src/Provers/Arith/extract_common_term.ML"
 
 lemmas semiring_norm =
   Let_def arith_simps nat_arith rel_simps
@@ -100,7 +98,7 @@ lemma nat_mult_div_cancel_disj[simp]:
      "(k*m) div (k*n) = (if k = (0::nat) then 0 else m div n)"
 by (simp add: nat_mult_div_cancel1)
 
-use "Tools/numeral_simprocs.ML"
+ML_file "Tools/numeral_simprocs.ML"
 
 simproc_setup semiring_assoc_fold
   ("(a::'a::comm_semiring_1_cancel) * b") =
@@ -210,7 +208,7 @@ simproc_setup divide_cancel_factor
   |"(l::'a::field_inverse_zero) / (m * n)") =
   {* fn phi => Numeral_Simprocs.divide_cancel_factor *}
 
-use "Tools/nat_numeral_simprocs.ML"
+ML_file "Tools/nat_numeral_simprocs.ML"
 
 simproc_setup nat_combine_numerals
   ("(i::nat) + j" | "Suc (i + j)") =

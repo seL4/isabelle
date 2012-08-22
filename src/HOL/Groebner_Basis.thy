@@ -6,8 +6,6 @@ header {* Groebner bases *}
 
 theory Groebner_Basis
 imports Semiring_Normalization
-uses
-  ("Tools/groebner.ML")
 begin
 
 subsection {* Groebner Bases *}
@@ -41,7 +39,7 @@ structure Algebra_Simplification = Named_Thms
 
 setup Algebra_Simplification.setup
 
-use "Tools/groebner.ML"
+ML_file "Tools/groebner.ML"
 
 method_setup algebra = {*
   let

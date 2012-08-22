@@ -9,10 +9,10 @@ imports Complex_Main
   "~/repos/afp/thys/Polynomials/Polynomial"
   "~/repos/afp/thys/Presburger-Automata/Presburger_Automata"
   "~/repos/afp/thys/Abstract-Rewriting/Abstract_Rewriting"*)
-uses
-     "mutabelle.ML"
-     "mutabelle_extra.ML"
 begin
+
+ML_file "mutabelle.ML"
+ML_file "mutabelle_extra.ML"
 
 
 section {* configuration *}

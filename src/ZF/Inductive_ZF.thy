@@ -18,13 +18,6 @@ keywords
   "inductive_cases" :: thy_script and
   "domains" "intros" "monos" "con_defs" "type_intros" "type_elims"
   "elimination" "induction" "case_eqns" "recursor_eqns"
-uses
-  ("ind_syntax.ML")
-  ("Tools/cartprod.ML")
-  ("Tools/ind_cases.ML")
-  ("Tools/inductive_package.ML")
-  ("Tools/induct_tacs.ML")
-  ("Tools/primrec_package.ML")
 begin
 
 lemma def_swap_iff: "a == b ==> a = c \<longleftrightarrow> c = b"
@@ -35,12 +28,12 @@ lemma def_trans: "f == g ==> g(a) = b ==> f(a) = b"
 
 lemma refl_thin: "!!P. a = a ==> P ==> P" .
 
-use "ind_syntax.ML"
-use "Tools/ind_cases.ML"
-use "Tools/cartprod.ML"
-use "Tools/inductive_package.ML"
-use "Tools/induct_tacs.ML"
-use "Tools/primrec_package.ML"
+ML_file "ind_syntax.ML"
+ML_file "Tools/ind_cases.ML"
+ML_file "Tools/cartprod.ML"
+ML_file "Tools/inductive_package.ML"
+ML_file "Tools/induct_tacs.ML"
+ML_file "Tools/primrec_package.ML"
 
 setup IndCases.setup
 setup DatatypeTactics.setup
