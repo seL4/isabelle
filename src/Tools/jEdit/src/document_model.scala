@@ -68,8 +68,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
     Swing_Thread.require()
     Isabelle.buffer_lock(buffer) {
       Exn.capture {
-        val text = buffer.getSegment(0, buffer.getLength)
-        Isabelle.thy_load.check_thy_text(session.recent_syntax, name, text)
+        Isabelle.thy_load.check_thy_text(name, buffer.getSegment(0, buffer.getLength))
       } match {
         case Exn.Res(header) => header
         case Exn.Exn(exn) => Document.Node.bad_header(Exn.message(exn))

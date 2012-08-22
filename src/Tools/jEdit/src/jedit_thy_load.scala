@@ -33,6 +33,23 @@ class JEdit_Thy_Load(loaded_theories: Set[String] = Set.empty, base_syntax: Oute
     }
   }
 
+  override def with_thy_text[A](name: Document.Node.Name, f: CharSequence => A): A =
+  {
+    Swing_Thread.now {
+      Isabelle.jedit_buffer(name.node) match {
+        case Some(buffer) =>
+          Isabelle.buffer_lock(buffer) {
+            Some(f(buffer.getSegment(0, buffer.getLength)))
+          }
+        case None => None
+      }
+    } getOrElse {
+      val file = new JFile(name.node)  // FIXME load URL via jEdit VFS (!?)
+      if (!file.exists || !file.isFile) error("No such file: " + quote(file.toString))
+      f(File.read(file))
+    }
+  }
+
   def check_file(view: View, path: String): Boolean =
   {
     val vfs = VFSManager.getVFSForPath(path)
@@ -50,24 +67,6 @@ class JEdit_Thy_Load(loaded_theories: Set[String] = Set.empty, base_syntax: Oute
     finally {
       try { vfs._endVFSSession(session, view) }
       catch { case _: IOException => }
-    }
-  }
-
-  override def check_thy(syntax: Outer_Syntax, name: Document.Node.Name)
-    : Document.Node.Header =
-  {
-    Swing_Thread.now {
-      Isabelle.jedit_buffer(name.node) match {
-        case Some(buffer) =>
-          Isabelle.buffer_lock(buffer) {
-            Some(check_thy_text(syntax, name, buffer.getSegment(0, buffer.getLength)))
-          }
-        case None => None
-      }
-    } getOrElse {
-      val file = new JFile(name.node)  // FIXME load URL via jEdit VFS (!?)
-      if (!file.exists || !file.isFile) error("No such file: " + quote(file.toString))
-      check_thy_text(syntax, name, File.read(file))
     }
   }
 }

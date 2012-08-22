@@ -64,7 +64,7 @@ class Thy_Info(thy_load: Thy_Load)
         if (initiators.contains(name)) error(cycle_msg(initiators))
         val syntax = required.make_syntax
         val header =
-          try { thy_load.check_thy(syntax, name) }
+          try { thy_load.check_thy_files(syntax, name) }
           catch {
             case ERROR(msg) =>
               cat_error(msg, "The error(s) above occurred while examining theory " +
