@@ -960,7 +960,7 @@ section {* Incorporating ML code \label{sec:ML} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "use"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "ML_file"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "ML"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "ML_prf"} & : & @{text "proof \<rightarrow> proof"} \\
     @{command_def "ML_val"} & : & @{text "any \<rightarrow>"} \\
@@ -971,7 +971,7 @@ text {*
   \end{matharray}
 
   @{rail "
-    @@{command use} @{syntax name}
+    @@{command ML_file} @{syntax name}
     ;
     (@@{command ML} | @@{command ML_prf} | @@{command ML_val} |
       @@{command ML_command} | @@{command setup} | @@{command local_setup}) @{syntax text}
@@ -981,28 +981,22 @@ text {*
 
   \begin{description}
 
-  \item @{command "use"}~@{text "file"} reads and executes ML
-  commands from @{text "file"}.  The current theory context is passed
-  down to the ML toplevel and may be modified, using @{ML
-  "Context.>>"} or derived ML commands.  The file name is checked with
-  the @{keyword_ref "uses"} dependency declaration given in the theory
-  header (see also \secref{sec:begin-thy}).
-
-  Top-level ML bindings are stored within the (global or local) theory
-  context.
+  \item @{command "ML_file"}~@{text "name"} reads and evaluates the
+  given ML file.  The current theory context is passed down to the ML
+  toplevel and may be modified, using @{ML "Context.>>"} or derived ML
+  commands.  Top-level ML bindings are stored within the (global or
+  local) theory context.
   
-  \item @{command "ML"}~@{text "text"} is similar to @{command "use"},
-  but executes ML commands directly from the given @{text "text"}.
+  \item @{command "ML"}~@{text "text"} is similar to @{command
+  "ML_file"}, but evaluates directly the given @{text "text"}.
   Top-level ML bindings are stored within the (global or local) theory
   context.
 
   \item @{command "ML_prf"} is analogous to @{command "ML"} but works
-  within a proof context.
-
-  Top-level ML bindings are stored within the proof context in a
-  purely sequential fashion, disregarding the nested proof structure.
-  ML bindings introduced by @{command "ML_prf"} are discarded at the
-  end of the proof.
+  within a proof context.  Top-level ML bindings are stored within the
+  proof context in a purely sequential fashion, disregarding the
+  nested proof structure.  ML bindings introduced by @{command
+  "ML_prf"} are discarded at the end of the proof.
 
   \item @{command "ML_val"} and @{command "ML_command"} are diagnostic
   versions of @{command "ML"}, which means that the context may not be
