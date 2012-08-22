@@ -177,7 +177,7 @@ class Isabelle_Sidekick_Structure(
 
 
 class Isabelle_Sidekick_Default extends Isabelle_Sidekick_Structure(
-  "isabelle", Isabelle.session.get_recent_syntax, Isabelle.buffer_node_name)
+  "isabelle", Isabelle.get_recent_syntax, Isabelle.buffer_node_name)
 
 
 class Isabelle_Sidekick_Options extends Isabelle_Sidekick_Structure(
@@ -189,7 +189,7 @@ class Isabelle_Sidekick_Root extends Isabelle_Sidekick_Structure(
 
 
 class Isabelle_Sidekick_Raw
-  extends Isabelle_Sidekick("isabelle-raw", Isabelle.session.get_recent_syntax)
+  extends Isabelle_Sidekick("isabelle-raw", Isabelle.get_recent_syntax)
 {
   override def parser(buffer: Buffer, syntax: Outer_Syntax, data: SideKickParsedData): Boolean =
   {

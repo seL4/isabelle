@@ -146,9 +146,6 @@ class Session(val thy_load: Thy_Load)
     if (version.is_init) thy_load.base_syntax
     else version.syntax
   }
-  def get_recent_syntax(): Option[Outer_Syntax] =
-    if (is_ready) Some(recent_syntax)
-    else None
 
   def snapshot(name: Document.Node.Name = Document.Node.Name.empty,
       pending_edits: List[Text.Edit] = Nil): Document.Snapshot =

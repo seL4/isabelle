@@ -40,6 +40,13 @@ object Isabelle
   def thy_load(): JEdit_Thy_Load =
     session.thy_load.asInstanceOf[JEdit_Thy_Load]
 
+  def get_recent_syntax(): Option[Outer_Syntax] =
+  {
+    val current_session = session
+    if (current_session != null) Some(current_session.recent_syntax)
+    else None
+  }
+
 
   /* properties */
 
