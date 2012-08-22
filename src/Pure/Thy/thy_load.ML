@@ -76,6 +76,8 @@ fun provide (src_path, path_id) =
 
 (* inlined files *)
 
+fun check_file dir file = File.check_file (File.full_path dir file);
+
 local
 
 fun clean ((i1, t1) :: (i2, t2) :: toks) =
@@ -105,7 +107,7 @@ fun find_files syntax text =
       Thy_Syntax.parse_tokens (Keyword.lexicons_of syntax) Position.none text
       |> Thy_Syntax.parse_spans
       |> maps
-        (fn Thy_Syntax.Span (Thy_Syntax.Command cmd, toks) =>
+        (fn Thy_Syntax.Span (Thy_Syntax.Command (cmd, _), toks) =>
               (case AList.lookup (op =) thy_load_commands cmd of
                 SOME exts =>
                   (case find_file toks of
@@ -121,7 +123,7 @@ fun read_files cmd dir tok =
     val path = Path.explode (Token.content_of tok);
     val files =
       command_files path (Keyword.command_files cmd)
-      |> map (File.full_path dir #> (fn path => (File.read path, Path.position path)));
+      |> map (check_file dir #> (fn path => (File.read path, Path.position path)));
   in (dir, files) end;
 
 fun parse_files cmd =
@@ -135,16 +137,17 @@ fun parse_files cmd =
 
 fun resolve_files dir span =
   (case span of
-    Thy_Syntax.Span (Thy_Syntax.Command cmd, toks) =>
+    Thy_Syntax.Span (Thy_Syntax.Command (cmd, pos), toks) =>
       if Keyword.is_theory_load cmd then
         (case find_first (Token.is_name o #2) (rev (clean_tokens toks)) of
-          NONE => span  (* FIXME error *)
+          NONE =>
+            error ("Cannot resolve file argument of command " ^ quote cmd ^ Position.str_of pos)
         | SOME (i, path) =>
             let
               val toks' = toks |> map_index (fn (j, tok) =>
                 if i = j then Token.put_files (read_files cmd dir path) tok
                 else tok);
-            in Thy_Syntax.Span (Thy_Syntax.Command cmd, toks') end)
+            in Thy_Syntax.Span (Thy_Syntax.Command (cmd, pos), toks') end)
       else span
   | span => span);
 
@@ -152,8 +155,6 @@ end;
 
 
 (* check files *)
-
-fun check_file dir file = File.check_file (File.full_path dir file);
 
 val thy_path = Path.ext "thy";
 
