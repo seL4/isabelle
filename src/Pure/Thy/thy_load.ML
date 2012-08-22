@@ -124,11 +124,7 @@ fun parse_files cmd =
   Scan.ahead Parse.not_eof -- Parse.path >> (fn (tok, name) => fn thy =>
     (case Token.get_files tok of
       SOME files => files
-    | NONE =>
-        let
-          val path = Path.explode name;
-          val _ = warning ("Dynamic loading of files: " ^ Path.print path);
-        in read_files cmd (master_directory thy) path end));
+    | NONE => read_files cmd (master_directory thy) (Path.explode name)));
 
 fun resolve_files dir span =
   (case span of
