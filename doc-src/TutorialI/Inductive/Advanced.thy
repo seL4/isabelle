@@ -1,5 +1,6 @@
-(*<*)theory Advanced imports Even uses "../../antiquote_setup.ML" begin
-setup {* Antiquote_Setup.setup *}
+(*<*)theory Advanced imports Even begin
+ML_file "../../antiquote_setup.ML"
+setup Antiquote_Setup.setup
 (*>*)
 
 text {*
