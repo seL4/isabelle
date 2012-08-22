@@ -108,7 +108,7 @@ class Thy_Load(val loaded_theories: Set[String] = Set.empty, val base_syntax: Ou
       {
         val string = text.toString
         val header = check_thy_text(name, string)
-        val more_uses = find_files(syntax, string)
+        val more_uses = find_files(syntax.add_keywords(header.keywords), string)
         header.copy(uses = header.uses ::: more_uses.map((_, false)))
       })
 }
