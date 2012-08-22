@@ -251,7 +251,7 @@ fun check_deps base_keywords dir name =
           #2 master = #2 master' andalso
             (case lookup_theory name of
               NONE => false
-            | SOME theory => Thy_Load.all_current theory);
+            | SOME theory => Thy_Load.load_current theory);
       in (current, deps', imports', uses', keywords') end);
 
 in

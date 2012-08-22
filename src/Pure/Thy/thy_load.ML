@@ -17,7 +17,7 @@ sig
   val load_file: theory -> Path.T -> (Path.T * SHA1.digest) * string
   val use_file: Path.T -> theory -> string * theory
   val loaded_files: theory -> Path.T list
-  val all_current: theory -> bool
+  val load_current: theory -> bool
   val use_ml: Path.T -> unit
   val exec_ml: Path.T -> generic_theory -> generic_theory
   val begin_theory: Path.T -> Thy_Header.header -> theory list -> theory
@@ -37,41 +37,34 @@ struct
 type files =
  {master_dir: Path.T,  (*master directory of theory source*)
   imports: string list,  (*source specification of imports*)
-  required: Path.T list,  (*source path*)
   provided: (Path.T * (Path.T * SHA1.digest)) list};  (*source path, physical path, digest*)
 
-fun make_files (master_dir, imports, required, provided): files =
- {master_dir = master_dir, imports = imports, required = required, provided = provided};
+fun make_files (master_dir, imports, provided): files =
+ {master_dir = master_dir, imports = imports, provided = provided};
 
 structure Files = Theory_Data
 (
   type T = files;
-  val empty = make_files (Path.current, [], [], []);
+  val empty = make_files (Path.current, [], []);
   fun extend _ = empty;
   fun merge _ = empty;
 );
 
 fun map_files f =
-  Files.map (fn {master_dir, imports, required, provided} =>
-    make_files (f (master_dir, imports, required, provided)));
+  Files.map (fn {master_dir, imports, provided} =>
+    make_files (f (master_dir, imports, provided)));
 
 
 val master_directory = #master_dir o Files.get;
 val imports_of = #imports o Files.get;
 
-fun put_deps dir imports = map_files (fn _ => (dir, imports, [], []));
-
-fun require src_path =
-  map_files (fn (master_dir, imports, required, provided) =>
-    if member (op =) required src_path then
-      error ("Duplicate source file dependency: " ^ Path.print src_path)
-    else (master_dir, imports, src_path :: required, provided));
+fun put_deps dir imports = map_files (fn _ => (dir, imports, []));
 
 fun provide (src_path, path_id) =
-  map_files (fn (master_dir, imports, required, provided) =>
+  map_files (fn (master_dir, imports, provided) =>
     if AList.defined (op =) provided src_path then
-      error ("Duplicate resolution of source file dependency: " ^ Path.print src_path)
-    else (master_dir, imports, required, (src_path, path_id) :: provided));
+      error ("Duplicate use of source file: " ^ Path.print src_path)
+    else (master_dir, imports, (src_path, path_id) :: provided));
 
 
 (* inlined files *)
@@ -93,8 +86,8 @@ fun clean_tokens toks =
 fun find_file toks =
   rev (clean_tokens toks) |> get_first (fn (i, tok) =>
     if Token.is_name tok then
-    SOME (i, Path.explode (Token.content_of tok))
-      handle ERROR msg => error (msg ^ Token.pos_of tok)
+      SOME (i, Path.explode (Token.content_of tok))
+        handle ERROR msg => error (msg ^ Token.pos_of tok)
     else NONE);
 
 fun command_files path exts =
@@ -196,30 +189,12 @@ fun use_file src_path thy =
 
 val loaded_files = map (#1 o #2) o #provided o Files.get;
 
-fun check_loaded thy =
-  let
-    val {required, provided, ...} = Files.get thy;
-    val provided_paths = map #1 provided;
-    val _ =
-      (case subtract (op =) provided_paths required of
-        [] => NONE
-      | bad => error ("Pending source file dependencies: " ^ commas (map Path.print (rev bad))));
-    val _ =
-      (case subtract (op =) required provided_paths of
-        [] => NONE
-      | bad => error ("Undeclared source file dependencies: " ^ commas (map Path.print (rev bad))));
-  in () end;
-
-fun all_current thy =
-  let
-    val {provided, ...} = Files.get thy;
-    fun current (src_path, (_, id)) =
+fun load_current thy =
+  #provided (Files.get thy) |>
+    forall (fn (src_path, (_, id)) =>
       (case try (load_file thy) src_path of
         NONE => false
-      | SOME ((_, id'), _) => id = id');
-  in can check_loaded thy andalso forall current provided end;
-
-val _ = Context.>> (Context.map_theory (Theory.at_end (fn thy => (check_loaded thy; NONE))));
+      | SOME ((_, id'), _) => id = id'));
 
 
 (* provide files *)
@@ -251,7 +226,6 @@ fun begin_theory dir {name, imports, keywords, uses} parents =
   Theory.begin_theory name parents
   |> put_deps dir imports
   |> fold Thy_Header.declare_keyword keywords
-  |> fold (require o fst) uses
   |> fold (fn (path, true) => Context.theory_map (exec_ml path) o Theory.checkpoint | _ => I) uses
   |> Theory.checkpoint;
 
