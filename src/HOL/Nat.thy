@@ -9,13 +9,12 @@ header {* Natural numbers *}
 
 theory Nat
 imports Inductive Typedef Fun Fields
-uses
-  "~~/src/Tools/rat.ML"
-  "Tools/arith_data.ML"
-  ("Tools/nat_arith.ML")
-  "~~/src/Provers/Arith/fast_lin_arith.ML"
-  ("Tools/lin_arith.ML")
 begin
+
+ML_file "~~/src/Tools/rat.ML"
+ML_file "Tools/arith_data.ML"
+ML_file "~~/src/Provers/Arith/fast_lin_arith.ML"
+
 
 subsection {* Type @{text ind} *}
 
@@ -1492,7 +1491,7 @@ lemma subst_equals:
 
 setup Arith_Data.setup
 
-use "Tools/nat_arith.ML"
+ML_file "Tools/nat_arith.ML"
 
 simproc_setup nateq_cancel_sums
   ("(l::nat) + m = n" | "(l::nat) = m + n" | "Suc m = n" | "m = Suc n") =
@@ -1510,7 +1509,7 @@ simproc_setup natdiff_cancel_sums
   ("(l::nat) + m - n" | "(l::nat) - (m + n)" | "Suc m - n" | "m - Suc n") =
   {* fn phi => fn ss => try Nat_Arith.cancel_diff_conv *}
 
-use "Tools/lin_arith.ML"
+ML_file "Tools/lin_arith.ML"
 setup {* Lin_Arith.global_setup *}
 declaration {* K Lin_Arith.setup *}
 

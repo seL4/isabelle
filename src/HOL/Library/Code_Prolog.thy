@@ -6,8 +6,9 @@ header {* Code generation of prolog programs *}
 
 theory Code_Prolog
 imports Main
-uses "~~/src/HOL/Tools/Predicate_Compile/code_prolog.ML"
 begin
+
+ML_file "~~/src/HOL/Tools/Predicate_Compile/code_prolog.ML"
 
 section {* Setup for Numerals *}
 

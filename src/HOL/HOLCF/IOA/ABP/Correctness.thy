@@ -6,8 +6,9 @@ header {* The main correctness proof: System_fin implements System *}
 
 theory Correctness
 imports IOA Env Impl Impl_finite
-uses "Check.ML"
 begin
+
+ML_file "Check.ML"
 
 primrec reduce :: "'a list => 'a list"
 where

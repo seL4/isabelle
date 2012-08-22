@@ -7,14 +7,13 @@ header {* Classical first-order logic *}
 theory FOL
 imports IFOL
 keywords "print_claset" "print_induct_rules" :: diag
-uses
-  "~~/src/Provers/classical.ML"
-  "~~/src/Provers/blast.ML"
-  "~~/src/Provers/clasimp.ML"
-  "~~/src/Tools/induct.ML"
-  "~~/src/Tools/case_product.ML"
-  ("simpdata.ML")
 begin
+
+ML_file "~~/src/Provers/classical.ML"
+ML_file "~~/src/Provers/blast.ML"
+ML_file "~~/src/Provers/clasimp.ML"
+ML_file "~~/src/Tools/induct.ML"
+ML_file "~~/src/Tools/case_product.ML"
 
 
 subsection {* The classical axiom *}
@@ -329,7 +328,7 @@ lemmas cla_simps =
   not_imp not_all not_ex cases_simp cla_simps_misc
 
 
-use "simpdata.ML"
+ML_file "simpdata.ML"
 
 simproc_setup defined_Ex ("EX x. P(x)") = {* fn _ => Quantifier1.rearrange_ex *}
 simproc_setup defined_All ("ALL x. P(x)") = {* fn _ => Quantifier1.rearrange_all *}

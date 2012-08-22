@@ -10,12 +10,10 @@ imports Word
 keywords
   "spark_open" "spark_proof_functions" "spark_types" "spark_end" :: thy_decl and
   "spark_vc" :: thy_goal and "spark_status" :: diag
-uses
-  "Tools/fdl_lexer.ML"
-  "Tools/fdl_parser.ML"
-  ("Tools/spark_vcs.ML")
-  ("Tools/spark_commands.ML")
 begin
+
+ML_file "Tools/fdl_lexer.ML"
+ML_file "Tools/fdl_parser.ML"
 
 text {*
 SPARK version of div, see section 4.4.1.1 of SPARK Proof Manual
@@ -180,8 +178,8 @@ lemma interval_expand:
 
 text {* Load the package *}
 
-use "Tools/spark_vcs.ML"
-use "Tools/spark_commands.ML"
+ML_file "Tools/spark_vcs.ML"
+ML_file "Tools/spark_commands.ML"
 
 setup SPARK_Commands.setup
 

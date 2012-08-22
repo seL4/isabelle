@@ -7,9 +7,6 @@ header "Package for defining recursive functions in HOLCF"
 theory Fixrec
 imports Plain_HOLCF
 keywords "fixrec" :: thy_decl
-uses
-  ("Tools/holcf_library.ML")
-  ("Tools/fixrec.ML")
 begin
 
 subsection {* Pattern-match monad *}
@@ -227,8 +224,8 @@ by simp
 
 subsection {* Initializing the fixrec package *}
 
-use "Tools/holcf_library.ML"
-use "Tools/fixrec.ML"
+ML_file "Tools/holcf_library.ML"
+ML_file "Tools/fixrec.ML"
 
 method_setup fixrec_simp = {*
   Scan.succeed (SIMPLE_METHOD' o Fixrec.fixrec_simp_tac)

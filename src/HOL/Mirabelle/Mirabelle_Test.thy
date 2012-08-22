@@ -6,15 +6,15 @@ header {* Simple test theory for Mirabelle actions *}
 
 theory Mirabelle_Test
 imports Main Mirabelle
-uses
-  "Tools/mirabelle_arith.ML"
-  "Tools/mirabelle_metis.ML"
-  "Tools/mirabelle_quickcheck.ML"
-  "Tools/mirabelle_refute.ML"
-  "Tools/mirabelle_sledgehammer.ML"
-  "Tools/mirabelle_sledgehammer_filter.ML"
-  "Tools/mirabelle_try0.ML"
 begin
+
+ML_file "Tools/mirabelle_arith.ML"
+ML_file "Tools/mirabelle_metis.ML"
+ML_file "Tools/mirabelle_quickcheck.ML"
+ML_file "Tools/mirabelle_refute.ML"
+ML_file "Tools/mirabelle_sledgehammer.ML"
+ML_file "Tools/mirabelle_sledgehammer_filter.ML"
+ML_file "Tools/mirabelle_try0.ML"
 
 text {*
   Only perform type-checking of the actions,

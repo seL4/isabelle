@@ -4,9 +4,10 @@
 
 theory Mirabelle
 imports Sledgehammer
-uses "Tools/mirabelle.ML"
-     "../TPTP/sledgehammer_tactics.ML"
 begin
+
+ML_file "Tools/mirabelle.ML"
+ML_file "../TPTP/sledgehammer_tactics.ML"
 
 (* no multithreading, no parallel proofs *)  (* FIXME *)
 ML {* Multithreading.max_threads := 1 *}

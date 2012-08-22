@@ -6,8 +6,9 @@ Example of importing a TPTP problem and trying to prove it in Isabelle/HOL.
 
 theory TPTP_Parser_Example
 imports TPTP_Parser TPTP_Interpret
-uses "sledgehammer_tactics.ML"
 begin
+
+ML_file "sledgehammer_tactics.ML"
 
 import_tptp "$TPTP/Problems/CSR/CSR077+1.p"
 

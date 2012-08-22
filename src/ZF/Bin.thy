@@ -17,7 +17,6 @@ header{*Arithmetic on Binary Integers*}
 
 theory Bin
 imports Int_ZF Datatype_ZF
-uses ("Tools/numeral_syntax.ML")
 begin
 
 consts  bin :: i
@@ -104,7 +103,7 @@ primrec
 syntax
   "_Int"    :: "xnum_token => i"        ("_")
 
-use "Tools/numeral_syntax.ML"
+ML_file "Tools/numeral_syntax.ML"
 setup Numeral_Syntax.setup
 
 

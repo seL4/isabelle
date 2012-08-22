@@ -4,16 +4,6 @@ keywords
   "atom_decl" "nominal_datatype" "equivariance" :: thy_decl and
   "nominal_primrec" "nominal_inductive" "nominal_inductive2" :: thy_goal and
   "avoids"
-uses
-  ("nominal_thmdecls.ML")
-  ("nominal_atoms.ML")
-  ("nominal_datatype.ML")
-  ("nominal_induct.ML") 
-  ("nominal_permeq.ML")
-  ("nominal_fresh_fun.ML")
-  ("nominal_primrec.ML")
-  ("nominal_inductive.ML")
-  ("nominal_inductive2.ML")
 begin
 
 section {* Permutations *}
@@ -3562,7 +3552,7 @@ by (simp add:perm_int_def)
 
 (*******************************************************)
 (* Setup of the theorem attributes eqvt and eqvt_force *)
-use "nominal_thmdecls.ML"
+ML_file "nominal_thmdecls.ML"
 setup "NominalThmDecls.setup"
 
 lemmas [eqvt] = 
@@ -3598,11 +3588,11 @@ lemmas [eqvt_force] = numeral_nat_eqvt numeral_int_eqvt neg_numeral_int_eqvt
 (***************************************)
 (* setup for the individial atom-kinds *)
 (* and nominal datatypes               *)
-use "nominal_atoms.ML"
+ML_file "nominal_atoms.ML"
 
 (************************************************************)
 (* various tactics for analysing permutations, supports etc *)
-use "nominal_permeq.ML"
+ML_file "nominal_permeq.ML"
 
 method_setup perm_simp =
   {* NominalPermeq.perm_simp_meth *}
@@ -3646,7 +3636,7 @@ method_setup fresh_guess_debug =
 
 (*****************************************************************)
 (* tactics for generating fresh names and simplifying fresh_funs *)
-use "nominal_fresh_fun.ML"
+ML_file "nominal_fresh_fun.ML"
 
 method_setup generate_fresh = 
   {* setup_generate_fresh *} 
@@ -3662,20 +3652,20 @@ method_setup fresh_fun_simp =
 lemma allE_Nil: assumes "\<forall>x. P x" obtains "P []"
   using assms ..
 
-use "nominal_datatype.ML"
+ML_file "nominal_datatype.ML"
 
 (******************************************************)
 (* primitive recursive functions on nominal datatypes *)
-use "nominal_primrec.ML"
+ML_file "nominal_primrec.ML"
 
 (****************************************************)
 (* inductive definition involving nominal datatypes *)
-use "nominal_inductive.ML"
-use "nominal_inductive2.ML"
+ML_file "nominal_inductive.ML"
+ML_file "nominal_inductive2.ML"
 
 (*****************************************)
 (* setup for induction principles method *)
-use "nominal_induct.ML"
+ML_file "nominal_induct.ML"
 method_setup nominal_induct =
   {* NominalInduct.nominal_induct_method *}
   {* nominal induction *}

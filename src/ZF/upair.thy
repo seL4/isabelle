@@ -14,9 +14,9 @@ header{*Unordered Pairs*}
 theory upair
 imports ZF
 keywords "print_tcset" :: diag
-uses "Tools/typechk.ML"
 begin
 
+ML_file "Tools/typechk.ML"
 setup TypeCheck.setup
 
 lemma atomize_ball [symmetric, rulify]:

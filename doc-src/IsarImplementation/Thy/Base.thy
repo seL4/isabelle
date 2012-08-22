@@ -1,8 +1,8 @@
 theory Base
 imports Main
-uses "../../antiquote_setup.ML"
 begin
 
+ML_file "../../antiquote_setup.ML"
 setup {* Antiquote_Setup.setup *}
 
 end

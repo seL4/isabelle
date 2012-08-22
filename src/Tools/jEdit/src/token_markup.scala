@@ -224,7 +224,7 @@ object Token_Markup
   /* mode provider */
 
   private val markers = Map(
-    "isabelle" -> new Token_Markup.Marker(true, Isabelle.session.get_recent_syntax()),
+    "isabelle" -> new Token_Markup.Marker(true, Isabelle.get_recent_syntax()),
     "isabelle-options" -> new Token_Markup.Marker(false, Some(Options.options_syntax)),
     "isabelle-root" -> new Token_Markup.Marker(false, Some(Build.root_syntax)))
 

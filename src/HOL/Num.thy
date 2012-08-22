@@ -7,8 +7,6 @@ header {* Binary Numerals *}
 
 theory Num
 imports Datatype
-uses
-  ("Tools/numeral.ML")
 begin
 
 subsection {* The @{text num} type *}
@@ -333,7 +331,7 @@ in [(@{const_syntax numeral}, num_tr' ""),
     (@{const_syntax neg_numeral}, num_tr' "-")] end
 *}
 
-use "Tools/numeral.ML"
+ML_file "Tools/numeral.ML"
 
 
 subsection {* Class-specific numeral rules *}

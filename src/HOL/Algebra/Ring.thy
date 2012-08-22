@@ -5,7 +5,6 @@
 
 theory Ring
 imports FiniteProduct
-uses ("ringsimp.ML")
 begin
 
 section {* The Algebraic Hierarchy of Rings *}
@@ -389,7 +388,7 @@ lemma (in abelian_group) minus_eq:
 text {* Setup algebra method:
   compute distributive normal form in locale contexts *}
 
-use "ringsimp.ML"
+ML_file "ringsimp.ML"
 
 setup Algebra.attrib_setup
 

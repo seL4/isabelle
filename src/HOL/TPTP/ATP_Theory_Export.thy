@@ -6,8 +6,9 @@ header {* ATP Theory Exporter *}
 
 theory ATP_Theory_Export
 imports Complex_Main
-uses "atp_theory_export.ML"
 begin
+
+ML_file "atp_theory_export.ML"
 
 ML {*
 open ATP_Problem

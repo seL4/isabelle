@@ -4,7 +4,6 @@
 
 theory Cooper
 imports Complex_Main "~~/src/HOL/Library/Efficient_Nat" "~~/src/HOL/Library/Old_Recdef"
-uses ("cooper_tac.ML")
 begin
 
 (* Periodicity of dvd *)
@@ -2004,7 +2003,7 @@ in fn ct =>
 end;
 *}
 
-use "cooper_tac.ML"
+ML_file "cooper_tac.ML"
 
 method_setup cooper = {*
   Args.mode "no_quantify" >>

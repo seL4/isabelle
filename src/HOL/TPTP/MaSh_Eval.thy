@@ -6,8 +6,9 @@ header {* MaSh Evaluation Driver *}
 
 theory MaSh_Eval
 imports Complex_Main
-uses "mash_eval.ML"
 begin
+
+ML_file "mash_eval.ML"
 
 sledgehammer_params
   [provers = e, max_relevant = 40, strict, dont_slice, type_enc = poly_guards??,

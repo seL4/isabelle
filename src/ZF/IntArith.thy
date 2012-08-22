@@ -1,6 +1,5 @@
 
 theory IntArith imports Bin
-uses ("int_arith.ML")
 begin
 
 
@@ -90,6 +89,6 @@ lemma le_add_iff2: "(i$*u $+ m $<= j$*u $+ n) \<longleftrightarrow> (m $<= (j$-i
   apply (simp add: zadd_ac)
   done
 
-use "int_arith.ML"
+ML_file "int_arith.ML"
 
 end

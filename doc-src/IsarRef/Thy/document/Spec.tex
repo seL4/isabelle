@@ -1444,7 +1444,7 @@ The class relation together with the collection of
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{use}\hypertarget{command.use}{\hyperlink{command.use}{\mbox{\isa{\isacommand{use}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{ML\_file}\hypertarget{command.ML-file}{\hyperlink{command.ML-file}{\mbox{\isa{\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}file}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{command}{ML}\hypertarget{command.ML}{\hyperlink{command.ML}{\mbox{\isa{\isacommand{ML}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{command}{ML\_prf}\hypertarget{command.ML-prf}{\hyperlink{command.ML-prf}{\mbox{\isa{\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}prf}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{command}{ML\_val}\hypertarget{command.ML-val}{\hyperlink{command.ML-val}{\mbox{\isa{\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}val}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}any\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
@@ -1456,7 +1456,7 @@ The class relation together with the collection of
 
   \begin{railoutput}
 \rail@begin{1}{}
-\rail@term{\hyperlink{command.use}{\mbox{\isa{\isacommand{use}}}}}[]
+\rail@term{\hyperlink{command.ML-file}{\mbox{\isa{\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}file}}}}}[]
 \rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
 \rail@end
 \rail@begin{6}{}
@@ -1490,27 +1490,20 @@ The class relation together with the collection of
 
   \begin{description}
 
-  \item \hyperlink{command.use}{\mbox{\isa{\isacommand{use}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}file{\isaliteral{22}{\isachardoublequote}}} reads and executes ML
-  commands from \isa{{\isaliteral{22}{\isachardoublequote}}file{\isaliteral{22}{\isachardoublequote}}}.  The current theory context is passed
-  down to the ML toplevel and may be modified, using \verb|Context.>>| or derived ML commands.  The file name is checked with
-  the \indexref{}{keyword}{uses}\hyperlink{keyword.uses}{\mbox{\isa{\isakeyword{uses}}}} dependency declaration given in the theory
-  header (see also \secref{sec:begin-thy}).
-
-  Top-level ML bindings are stored within the (global or local) theory
-  context.
+  \item \hyperlink{command.ML-file}{\mbox{\isa{\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}file}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}name{\isaliteral{22}{\isachardoublequote}}} reads and evaluates the
+  given ML file.  The current theory context is passed down to the ML
+  toplevel and may be modified, using \verb|Context.>>| or derived ML
+  commands.  Top-level ML bindings are stored within the (global or
+  local) theory context.
   
-  \item \hyperlink{command.ML}{\mbox{\isa{\isacommand{ML}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}text{\isaliteral{22}{\isachardoublequote}}} is similar to \hyperlink{command.use}{\mbox{\isa{\isacommand{use}}}},
-  but executes ML commands directly from the given \isa{{\isaliteral{22}{\isachardoublequote}}text{\isaliteral{22}{\isachardoublequote}}}.
+  \item \hyperlink{command.ML}{\mbox{\isa{\isacommand{ML}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}text{\isaliteral{22}{\isachardoublequote}}} is similar to \hyperlink{command.ML-file}{\mbox{\isa{\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}file}}}}, but evaluates directly the given \isa{{\isaliteral{22}{\isachardoublequote}}text{\isaliteral{22}{\isachardoublequote}}}.
   Top-level ML bindings are stored within the (global or local) theory
   context.
 
   \item \hyperlink{command.ML-prf}{\mbox{\isa{\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}prf}}}} is analogous to \hyperlink{command.ML}{\mbox{\isa{\isacommand{ML}}}} but works
-  within a proof context.
-
-  Top-level ML bindings are stored within the proof context in a
-  purely sequential fashion, disregarding the nested proof structure.
-  ML bindings introduced by \hyperlink{command.ML-prf}{\mbox{\isa{\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}prf}}}} are discarded at the
-  end of the proof.
+  within a proof context.  Top-level ML bindings are stored within the
+  proof context in a purely sequential fashion, disregarding the
+  nested proof structure.  ML bindings introduced by \hyperlink{command.ML-prf}{\mbox{\isa{\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}prf}}}} are discarded at the end of the proof.
 
   \item \hyperlink{command.ML-val}{\mbox{\isa{\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}val}}}} and \hyperlink{command.ML-command}{\mbox{\isa{\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}command}}}} are diagnostic
   versions of \hyperlink{command.ML}{\mbox{\isa{\isacommand{ML}}}}, which means that the context may not be

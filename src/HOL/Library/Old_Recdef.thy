@@ -10,17 +10,6 @@ keywords
   "recdef" "defer_recdef" :: thy_decl and
   "recdef_tc" :: thy_goal and
   "permissive" "congs" "hints"
-uses
-  ("~~/src/HOL/Tools/TFL/casesplit.ML")
-  ("~~/src/HOL/Tools/TFL/utils.ML")
-  ("~~/src/HOL/Tools/TFL/usyntax.ML")
-  ("~~/src/HOL/Tools/TFL/dcterm.ML")
-  ("~~/src/HOL/Tools/TFL/thms.ML")
-  ("~~/src/HOL/Tools/TFL/rules.ML")
-  ("~~/src/HOL/Tools/TFL/thry.ML")
-  ("~~/src/HOL/Tools/TFL/tfl.ML")
-  ("~~/src/HOL/Tools/TFL/post.ML")
-  ("~~/src/HOL/Tools/recdef.ML")
 begin
 
 subsection {* Lemmas for TFL *}
@@ -66,16 +55,16 @@ lemma tfl_disjE: "P \<or> Q ==> P --> R ==> Q --> R ==> R"
 lemma tfl_exE: "\<exists>x. P x ==> \<forall>x. P x --> Q ==> Q"
   by blast
 
-use "~~/src/HOL/Tools/TFL/casesplit.ML"
-use "~~/src/HOL/Tools/TFL/utils.ML"
-use "~~/src/HOL/Tools/TFL/usyntax.ML"
-use "~~/src/HOL/Tools/TFL/dcterm.ML"
-use "~~/src/HOL/Tools/TFL/thms.ML"
-use "~~/src/HOL/Tools/TFL/rules.ML"
-use "~~/src/HOL/Tools/TFL/thry.ML"
-use "~~/src/HOL/Tools/TFL/tfl.ML"
-use "~~/src/HOL/Tools/TFL/post.ML"
-use "~~/src/HOL/Tools/recdef.ML"
+ML_file "~~/src/HOL/Tools/TFL/casesplit.ML"
+ML_file "~~/src/HOL/Tools/TFL/utils.ML"
+ML_file "~~/src/HOL/Tools/TFL/usyntax.ML"
+ML_file "~~/src/HOL/Tools/TFL/dcterm.ML"
+ML_file "~~/src/HOL/Tools/TFL/thms.ML"
+ML_file "~~/src/HOL/Tools/TFL/rules.ML"
+ML_file "~~/src/HOL/Tools/TFL/thry.ML"
+ML_file "~~/src/HOL/Tools/TFL/tfl.ML"
+ML_file "~~/src/HOL/Tools/TFL/post.ML"
+ML_file "~~/src/HOL/Tools/recdef.ML"
 setup Recdef.setup
 
 subsection {* Rule setup *}

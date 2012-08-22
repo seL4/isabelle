@@ -7,10 +7,12 @@ header{*Arithmetic with simplification*}
 
 theory ArithSimp
 imports Arith
-uses "~~/src/Provers/Arith/cancel_numerals.ML"
-      "~~/src/Provers/Arith/combine_numerals.ML"
-      "arith_data.ML"
 begin
+
+ML_file "~~/src/Provers/Arith/cancel_numerals.ML"
+ML_file "~~/src/Provers/Arith/combine_numerals.ML"
+ML_file "arith_data.ML"
+
 
 subsection{*Difference*}
 

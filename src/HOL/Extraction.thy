@@ -6,8 +6,9 @@ header {* Program extraction for HOL *}
 
 theory Extraction
 imports Option
-uses "Tools/rewrite_hol_proof.ML"
 begin
+
+ML_file "Tools/rewrite_hol_proof.ML"
 
 subsection {* Setup *}
 

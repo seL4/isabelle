@@ -878,10 +878,11 @@ fun import_file cautious path_prefixes file_name type_map const_map thy =
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "import_tptp"} "import TPTP problem"
-    (Parse.path >> (fn path =>
+    (Parse.path >> (fn name =>
       Toplevel.theory (fn thy =>
-       (*NOTE: assumes include files are located at $TPTP/Axioms
-         (which is how TPTP is organised)*)
-       import_file true [Path.dir path, Path.explode "$TPTP"] path [] [] thy)))
+        let val path = Path.explode name
+        (*NOTE: assumes include files are located at $TPTP/Axioms
+          (which is how TPTP is organised)*)
+        in import_file true [Path.dir path, Path.explode "$TPTP"] path [] [] thy end)))
 
 end

@@ -6,7 +6,6 @@ header {* General linear decision procedure for normed spaces *}
 
 theory Norm_Arith
 imports "~~/src/HOL/Library/Sum_of_Squares"
-uses ("normarith.ML")
 begin
 
 lemma norm_cmul_rule_thm:
@@ -111,7 +110,7 @@ lemmas arithmetic_simps =
   mult_1_left
   mult_1_right
 
-use "normarith.ML"
+ML_file "normarith.ML"
 
 method_setup norm = {* Scan.succeed (SIMPLE_METHOD' o NormArith.norm_arith_tac)
 *} "prove simple linear statements about vector norms"

@@ -47,6 +47,9 @@ sig
   type spec = (string * string list) * string list
   val spec: spec -> T
   val command_spec: (string * spec) * Position.T -> (string * T) * Position.T
+  type keywords
+  val lexicons_of: keywords -> Scan.lexicon * Scan.lexicon
+  val get_keywords: unit -> keywords
   val get_lexicons: unit -> Scan.lexicon * Scan.lexicon
   val is_keyword: string -> bool
   val command_keyword: string -> T option
@@ -54,6 +57,8 @@ sig
   val command_tags: string -> string list
   val dest: unit -> string list * string list
   val status: unit -> unit
+  val thy_load_commands: keywords -> (string * string list) list
+  val define_keywords: string * T option -> keywords -> keywords
   val define: string * T option -> unit
   val is_diag: string -> bool
   val is_control: string -> bool
@@ -160,12 +165,17 @@ fun command_spec ((name, s), pos) = ((name, spec s), pos);
 
 (** global keyword tables **)
 
-type keywords =
+datatype keywords = Keywords of
  {lexicons: Scan.lexicon * Scan.lexicon,  (*minor, major*)
   commands: T Symtab.table};  (*command classification*)
 
-fun make_keywords (lexicons, commands) : keywords =
-  {lexicons = lexicons, commands = commands};
+fun make_keywords (lexicons, commands) =
+  Keywords {lexicons = lexicons, commands = commands};
+
+fun map_keywords f (Keywords {lexicons, commands}) =
+  make_keywords (f (lexicons, commands));
+
+fun lexicons_of (Keywords {lexicons, ...}) = lexicons;
 
 local
 
@@ -176,14 +186,12 @@ in
 
 fun get_keywords () = ! global_keywords;
 
-fun change_keywords f = CRITICAL (fn () =>
-  Unsynchronized.change global_keywords
-    (fn {lexicons, commands} => make_keywords (f (lexicons, commands))));
+fun change_keywords f = CRITICAL (fn () => Unsynchronized.change global_keywords f);
 
 end;
 
-fun get_lexicons () = #lexicons (get_keywords ());
-fun get_commands () = #commands (get_keywords ());
+fun get_lexicons () = lexicons_of (get_keywords ());
+fun get_commands () = get_keywords () |> (fn Keywords {commands, ...} => commands);
 
 
 (* lookup *)
@@ -205,7 +213,7 @@ fun dest () = pairself (sort_strings o Scan.dest_lexicon) (get_lexicons ());
 
 fun status () =
   let
-    val {lexicons = (minor, _), commands} = get_keywords ();
+    val Keywords {lexicons = (minor, _), commands} = get_keywords ();
     val _ = sort_strings (Scan.dest_lexicon minor) |> List.app (fn name =>
       writeln ("Outer syntax keyword " ^ quote name));
     val _ = sort_wrt #1 (Symtab.dest commands) |> List.app (fn (name, kind) =>
@@ -213,9 +221,14 @@ fun status () =
   in () end;
 
 
+fun thy_load_commands (Keywords {commands, ...}) =
+  Symtab.fold (fn (name, Keyword {kind, files, ...}) =>
+      kind = kind_of thy_load ? cons (name, files)) commands [];
+
+
 (* define *)
 
-fun define (name, opt_kind) = change_keywords (fn ((minor, major), commands) =>
+fun define_keywords (name, opt_kind) = map_keywords (fn ((minor, major), commands) =>
   (case opt_kind of
     NONE =>
       let
@@ -226,6 +239,8 @@ fun define (name, opt_kind) = change_keywords (fn ((minor, major), commands) =>
         val major' = Scan.extend_lexicon (Symbol.explode name) major;
         val commands' = Symtab.update (name, kind) commands;
       in ((minor, major'), commands') end));
+
+val define = change_keywords o define_keywords;
 
 
 (* command categories *)

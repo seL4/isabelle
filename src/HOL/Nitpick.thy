@@ -10,21 +10,6 @@ header {* Nitpick: Yet Another Counterexample Generator for Isabelle/HOL *}
 theory Nitpick
 imports Map Quotient SAT Record
 keywords "nitpick" :: diag and "nitpick_params" :: thy_decl
-uses ("Tools/Nitpick/kodkod.ML")
-     ("Tools/Nitpick/kodkod_sat.ML")
-     ("Tools/Nitpick/nitpick_util.ML")
-     ("Tools/Nitpick/nitpick_hol.ML")
-     ("Tools/Nitpick/nitpick_preproc.ML")
-     ("Tools/Nitpick/nitpick_mono.ML")
-     ("Tools/Nitpick/nitpick_scope.ML")
-     ("Tools/Nitpick/nitpick_peephole.ML")
-     ("Tools/Nitpick/nitpick_rep.ML")
-     ("Tools/Nitpick/nitpick_nut.ML")
-     ("Tools/Nitpick/nitpick_kodkod.ML")
-     ("Tools/Nitpick/nitpick_model.ML")
-     ("Tools/Nitpick/nitpick.ML")
-     ("Tools/Nitpick/nitpick_isar.ML")
-     ("Tools/Nitpick/nitpick_tests.ML")
 begin
 
 typedecl bisim_iterator
@@ -212,21 +197,21 @@ definition less_eq_frac :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where
 definition of_frac :: "'a \<Rightarrow> 'b\<Colon>{inverse,ring_1}" where
 "of_frac q \<equiv> of_int (num q) / of_int (denom q)"
 
-use "Tools/Nitpick/kodkod.ML"
-use "Tools/Nitpick/kodkod_sat.ML"
-use "Tools/Nitpick/nitpick_util.ML"
-use "Tools/Nitpick/nitpick_hol.ML"
-use "Tools/Nitpick/nitpick_mono.ML"
-use "Tools/Nitpick/nitpick_preproc.ML"
-use "Tools/Nitpick/nitpick_scope.ML"
-use "Tools/Nitpick/nitpick_peephole.ML"
-use "Tools/Nitpick/nitpick_rep.ML"
-use "Tools/Nitpick/nitpick_nut.ML"
-use "Tools/Nitpick/nitpick_kodkod.ML"
-use "Tools/Nitpick/nitpick_model.ML"
-use "Tools/Nitpick/nitpick.ML"
-use "Tools/Nitpick/nitpick_isar.ML"
-use "Tools/Nitpick/nitpick_tests.ML"
+ML_file "Tools/Nitpick/kodkod.ML"
+ML_file "Tools/Nitpick/kodkod_sat.ML"
+ML_file "Tools/Nitpick/nitpick_util.ML"
+ML_file "Tools/Nitpick/nitpick_hol.ML"
+ML_file "Tools/Nitpick/nitpick_mono.ML"
+ML_file "Tools/Nitpick/nitpick_preproc.ML"
+ML_file "Tools/Nitpick/nitpick_scope.ML"
+ML_file "Tools/Nitpick/nitpick_peephole.ML"
+ML_file "Tools/Nitpick/nitpick_rep.ML"
+ML_file "Tools/Nitpick/nitpick_nut.ML"
+ML_file "Tools/Nitpick/nitpick_kodkod.ML"
+ML_file "Tools/Nitpick/nitpick_model.ML"
+ML_file "Tools/Nitpick/nitpick.ML"
+ML_file "Tools/Nitpick/nitpick_isar.ML"
+ML_file "Tools/Nitpick/nitpick_tests.ML"
 
 setup {*
   Nitpick_Isar.setup #>

@@ -4,9 +4,6 @@ header {* A simple counterexample generator performing random testing *}
 
 theory Quickcheck
 imports Random Code_Evaluation Enum
-uses
-  ("Tools/Quickcheck/quickcheck_common.ML")
-  ("Tools/Quickcheck/random_generators.ML")
 begin
 
 notation fcomp (infixl "\<circ>>" 60)
@@ -182,8 +179,8 @@ lemma random_aux_rec:
 
 subsection {* Deriving random generators for datatypes *}
 
-use "Tools/Quickcheck/quickcheck_common.ML" 
-use "Tools/Quickcheck/random_generators.ML"
+ML_file "Tools/Quickcheck/quickcheck_common.ML" 
+ML_file "Tools/Quickcheck/random_generators.ML"
 setup Random_Generators.setup
 
 

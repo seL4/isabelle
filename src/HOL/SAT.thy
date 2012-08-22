@@ -9,9 +9,9 @@ header {* Reconstructing external resolution proofs for propositional logic *}
 
 theory SAT
 imports Refute
-uses
-  "Tools/sat_funcs.ML"
 begin
+
+ML_file "Tools/sat_funcs.ML"
 
 ML {* structure sat = SATFunc(cnf) *}
 

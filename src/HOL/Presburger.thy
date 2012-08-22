@@ -6,11 +6,10 @@ header {* Decision Procedure for Presburger Arithmetic *}
 
 theory Presburger
 imports Groebner_Basis Set_Interval
-uses
-  "Tools/Qelim/qelim.ML"
-  "Tools/Qelim/cooper_procedure.ML"
-  ("Tools/Qelim/cooper.ML")
 begin
+
+ML_file "Tools/Qelim/qelim.ML"
+ML_file "Tools/Qelim/cooper_procedure.ML"
 
 subsection{* The @{text "-\<infinity>"} and @{text "+\<infinity>"} Properties *}
 
@@ -386,7 +385,7 @@ theorem conj_le_cong:
   "\<lbrakk>x = x'; 0 \<le> x' \<Longrightarrow> P = P'\<rbrakk> \<Longrightarrow> (0 \<le> (x::int) \<and> P) = (0 \<le> x' \<and> P')"
   by (simp cong: conj_cong)
 
-use "Tools/Qelim/cooper.ML"
+ML_file "Tools/Qelim/cooper.ML"
 setup Cooper.setup
 
 method_setup presburger = {*

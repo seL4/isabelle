@@ -10,9 +10,9 @@ header {* Refute *}
 theory Refute
 imports Hilbert_Choice List Sledgehammer
 keywords "refute" :: diag and "refute_params" :: thy_decl
-uses "Tools/refute.ML"
 begin
 
+ML_file "Tools/refute.ML"
 setup Refute.setup
 
 refute_params

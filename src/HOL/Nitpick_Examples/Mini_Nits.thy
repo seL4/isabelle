@@ -9,8 +9,9 @@ header {* Examples Featuring Minipick, the Minimalistic Version of Nitpick *}
 
 theory Mini_Nits
 imports Main
-uses "minipick.ML"
 begin
+
+ML_file "minipick.ML"
 
 nitpick_params [verbose, sat_solver = MiniSat_JNI, max_threads = 1]
 

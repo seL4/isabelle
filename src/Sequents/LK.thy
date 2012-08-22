@@ -14,7 +14,6 @@ various modal rules would become inconsistent.
 
 theory LK
 imports LK0
-uses ("simpdata.ML")
 begin
 
 axiomatization where
@@ -215,7 +214,7 @@ lemma eq_sym_conv: "|- (x=y) <-> (y=x)"
   apply (tactic {* fast_tac (LK_pack add_safes @{thms subst}) 1 *})
   done
 
-use "simpdata.ML"
+ML_file "simpdata.ML"
 setup {* Simplifier.map_simpset_global (K LK_ss) *}
 
 

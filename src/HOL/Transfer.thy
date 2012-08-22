@@ -6,7 +6,6 @@ header {* Generic theorem transfer using relations *}
 
 theory Transfer
 imports Plain Hilbert_Choice
-uses ("Tools/transfer.ML")
 begin
 
 subsection {* Relator for function space *}
@@ -96,8 +95,7 @@ lemma Rel_abs:
   shows "Rel (A ===> B) (\<lambda>x. f x) (\<lambda>y. g y)"
   using assms unfolding Rel_def fun_rel_def by fast
 
-use "Tools/transfer.ML"
-
+ML_file "Tools/transfer.ML"
 setup Transfer.setup
 
 declare fun_rel_eq [relator_eq]

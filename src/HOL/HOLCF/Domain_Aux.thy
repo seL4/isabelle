@@ -6,12 +6,6 @@ header {* Domain package support *}
 
 theory Domain_Aux
 imports Map_Functions Fixrec
-uses
-  ("Tools/Domain/domain_take_proofs.ML")
-  ("Tools/cont_consts.ML")
-  ("Tools/cont_proc.ML")
-  ("Tools/Domain/domain_constructors.ML")
-  ("Tools/Domain/domain_induction.ML")
 begin
 
 subsection {* Continuous isomorphisms *}
@@ -350,11 +344,11 @@ lemmas take_con_rules =
 
 subsection {* ML setup *}
 
-use "Tools/Domain/domain_take_proofs.ML"
-use "Tools/cont_consts.ML"
-use "Tools/cont_proc.ML"
-use "Tools/Domain/domain_constructors.ML"
-use "Tools/Domain/domain_induction.ML"
+ML_file "Tools/Domain/domain_take_proofs.ML"
+ML_file "Tools/cont_consts.ML"
+ML_file "Tools/cont_proc.ML"
+ML_file "Tools/Domain/domain_constructors.ML"
+ML_file "Tools/Domain/domain_induction.ML"
 
 setup Domain_Take_Proofs.setup
 

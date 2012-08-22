@@ -9,9 +9,6 @@ header {* MESON Proof Method *}
 
 theory Meson
 imports Datatype
-uses ("Tools/Meson/meson.ML")
-     ("Tools/Meson/meson_clausify.ML")
-     ("Tools/Meson/meson_tactic.ML")
 begin
 
 subsection {* Negation Normal Form *}
@@ -194,9 +191,9 @@ lemmas skolem_COMBK_D = iffD2 [OF skolem_COMBK_iff]
 
 subsection {* Meson package *}
 
-use "Tools/Meson/meson.ML"
-use "Tools/Meson/meson_clausify.ML"
-use "Tools/Meson/meson_tactic.ML"
+ML_file "Tools/Meson/meson.ML"
+ML_file "Tools/Meson/meson_clausify.ML"
+ML_file "Tools/Meson/meson_tactic.ML"
 
 setup {* Meson_Tactic.setup *}
 

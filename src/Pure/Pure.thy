@@ -85,11 +85,12 @@ theory Pure
   and "end" :: thy_end % "theory"
   and "realizers" "realizability" "extract_type" "extract" :: thy_decl
   and "find_theorems" "find_consts" :: diag
-  uses
-    "Isar/isar_syn.ML"
-    "Tools/find_theorems.ML"
-    "Tools/find_consts.ML"
 begin
+
+ML_file "Isar/isar_syn.ML"
+ML_file "Tools/find_theorems.ML"
+ML_file "Tools/find_consts.ML"
+
 
 section {* Further content for the Pure theory *}
 

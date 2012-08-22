@@ -9,11 +9,6 @@ imports Representable Domain_Aux
 keywords
   "domaindef" :: thy_decl and "lazy" "unsafe" and
   "domain_isomorphism" "domain" :: thy_decl
-uses
-  ("Tools/domaindef.ML")
-  ("Tools/Domain/domain_isomorphism.ML")
-  ("Tools/Domain/domain_axioms.ML")
-  ("Tools/Domain/domain.ML")
 begin
 
 default_sort "domain"
@@ -155,7 +150,7 @@ setup {*
   , (@{const_name liftprj}, SOME @{typ "udom u \<rightarrow> 'a::predomain u"}) ]
 *}
 
-use "Tools/domaindef.ML"
+ML_file "Tools/domaindef.ML"
 
 subsection {* Isomorphic deflations *}
 
@@ -321,9 +316,9 @@ by (simp add: emb_cfun_def prj_cfun_def cfcomp1 encode_cfun_map)
 
 subsection {* Setting up the domain package *}
 
-use "Tools/Domain/domain_isomorphism.ML"
-use "Tools/Domain/domain_axioms.ML"
-use "Tools/Domain/domain.ML"
+ML_file "Tools/Domain/domain_isomorphism.ML"
+ML_file "Tools/Domain/domain_axioms.ML"
+ML_file "Tools/Domain/domain.ML"
 
 setup Domain_Isomorphism.setup
 

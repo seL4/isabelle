@@ -6,9 +6,6 @@ header {* The datatype of finite lists *}
 
 theory List
 imports Plain Presburger Code_Numeral Quotient ATP
-uses
-  ("Tools/list_code.ML")
-  ("Tools/list_to_set_comprehension.ML")
 begin
 
 datatype 'a list =
@@ -485,7 +482,7 @@ term "[(x,y). x\<leftarrow>xs, let xx = x+x, y\<leftarrow>ys, y \<noteq> xx]"
 *)
 
 
-use "Tools/list_to_set_comprehension.ML"
+ML_file "Tools/list_to_set_comprehension.ML"
 
 simproc_setup list_to_set_comprehension ("set xs") = {* K List_to_Set_Comprehension.simproc *}
 
@@ -5522,7 +5519,7 @@ hide_const (open) member null maps map_filter all_interval_nat all_interval_int
 
 subsubsection {* Pretty lists *}
 
-use "Tools/list_code.ML"
+ML_file "Tools/list_code.ML"
 
 code_type list
   (SML "_ list")

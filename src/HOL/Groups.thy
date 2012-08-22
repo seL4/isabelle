@@ -6,7 +6,6 @@ header {* Groups, also combined with orderings *}
 
 theory Groups
 imports Orderings
-uses ("Tools/group_cancel.ML")
 begin
 
 subsection {* Fact collections *}
@@ -830,7 +829,7 @@ lemma diff_eq_diff_less_eq:
 
 end
 
-use "Tools/group_cancel.ML"
+ML_file "Tools/group_cancel.ML"
 
 simproc_setup group_cancel_add ("a + b::'a::ab_group_add") =
   {* fn phi => fn ss => try Group_Cancel.cancel_add_conv *}

@@ -6,8 +6,9 @@
 header{*Ordered Pairs*}
 
 theory pair imports upair
-uses "simpdata.ML"
 begin
+
+ML_file "simpdata.ML"
 
 setup {*
   Simplifier.map_simpset_global

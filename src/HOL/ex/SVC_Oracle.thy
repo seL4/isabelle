@@ -9,8 +9,9 @@ header {* Installing an oracle for SVC (Stanford Validity Checker) *}
 
 theory SVC_Oracle
 imports Main
-uses "svc_funcs.ML"
 begin
+
+ML_file "svc_funcs.ML"
 
 consts
   iff_keep :: "[bool, bool] => bool"

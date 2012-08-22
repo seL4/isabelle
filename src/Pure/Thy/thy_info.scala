@@ -25,39 +25,60 @@ class Thy_Info(thy_load: Thy_Load)
   /* dependencies */
 
   type Dep = (Document.Node.Name, Document.Node.Header)
-  private type Required = (List[Dep], Set[Document.Node.Name])
+
+  object Dependencies
+  {
+    val empty = new Dependencies(Nil, Nil, Set.empty)
+  }
+
+  final class Dependencies private(
+    rev_deps: List[Dep],
+    val keywords: Thy_Header.Keywords,
+    val seen: Set[Document.Node.Name])
+  {
+    def :: (dep: Dep): Dependencies =
+      new Dependencies(dep :: rev_deps, dep._2.keywords ::: keywords, seen)
+
+    def + (name: Document.Node.Name): Dependencies =
+      new Dependencies(rev_deps, keywords, seen = seen + name)
+
+    def deps: List[Dep] = rev_deps.reverse
+
+    def loaded_theories: Set[String] =
+      (thy_load.loaded_theories /: rev_deps) { case (loaded, (name, _)) => loaded + name.theory }
+
+    def make_syntax: Outer_Syntax = thy_load.base_syntax.add_keywords(keywords)
+  }
 
   private def require_thys(initiators: List[Document.Node.Name],
-      required: Required, names: List[Document.Node.Name]): Required =
+      required: Dependencies, names: List[Document.Node.Name]): Dependencies =
     (required /: names)(require_thy(initiators, _, _))
 
   private def require_thy(initiators: List[Document.Node.Name],
-      required: Required, name: Document.Node.Name): Required =
+      required: Dependencies, name: Document.Node.Name): Dependencies =
   {
-    val (deps, seen) = required
-    if (seen(name)) required
-    else if (thy_load.is_loaded(name.theory)) (deps, seen + name)
+    if (required.seen(name)) required
+    else if (thy_load.loaded_theories(name.theory)) required + name
     else {
       try {
         if (initiators.contains(name)) error(cycle_msg(initiators))
+        val syntax = required.make_syntax
         val header =
-          try { thy_load.check_thy(name) }
+          try { thy_load.check_thy_files(syntax, name) }
           catch {
             case ERROR(msg) =>
               cat_error(msg, "The error(s) above occurred while examining theory " +
                 quote(name.theory) + required_by(initiators))
           }
-        val (deps1, seen1) =
-          require_thys(name :: initiators, (deps, seen + name), header.imports)
-        ((name, header) :: deps1, seen1)
+        (name, header) :: require_thys(name :: initiators, required + name, header.imports)
       }
       catch {
         case e: Throwable =>
-          ((name, Document.Node.bad_header(Exn.message(e))) :: deps, seen + name)
+          (name, Document.Node.bad_header(Exn.message(e))) :: (required + name)
       }
     }
   }
 
-  def dependencies(names: List[Document.Node.Name]): List[Dep] =
-    require_thys(Nil, (Nil, Set.empty), names)._1.reverse
+  def dependencies(names: List[Document.Node.Name]): Dependencies =
+    require_thys(Nil, Dependencies.empty, names)
 }

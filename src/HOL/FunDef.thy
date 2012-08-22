@@ -7,26 +7,10 @@ header {* Function Definitions and Termination Proofs *}
 theory FunDef
 imports Partial_Function Wellfounded
 keywords "function" "termination" :: thy_goal and "fun" :: thy_decl
-uses
-  "Tools/prop_logic.ML"
-  "Tools/sat_solver.ML"
-  ("Tools/Function/function_common.ML")
-  ("Tools/Function/context_tree.ML")
-  ("Tools/Function/function_core.ML")
-  ("Tools/Function/sum_tree.ML")
-  ("Tools/Function/mutual.ML")
-  ("Tools/Function/pattern_split.ML")
-  ("Tools/Function/function.ML")
-  ("Tools/Function/relation.ML")
-  ("Tools/Function/measure_functions.ML")
-  ("Tools/Function/lexicographic_order.ML")
-  ("Tools/Function/pat_completeness.ML")
-  ("Tools/Function/fun.ML")
-  ("Tools/Function/induction_schema.ML")
-  ("Tools/Function/termination.ML")
-  ("Tools/Function/scnp_solve.ML")
-  ("Tools/Function/scnp_reconstruct.ML")
 begin
+
+ML_file "Tools/prop_logic.ML"
+ML_file "Tools/sat_solver.ML"
 
 subsection {* Definitions with default value. *}
 
@@ -101,27 +85,27 @@ lemma wf_in_rel:
   "wf R \<Longrightarrow> wfP (in_rel R)"
   by (simp add: wfP_def)
 
-use "Tools/Function/function_common.ML"
-use "Tools/Function/context_tree.ML"
-use "Tools/Function/function_core.ML"
-use "Tools/Function/sum_tree.ML"
-use "Tools/Function/mutual.ML"
-use "Tools/Function/pattern_split.ML"
-use "Tools/Function/relation.ML"
+ML_file "Tools/Function/function_common.ML"
+ML_file "Tools/Function/context_tree.ML"
+ML_file "Tools/Function/function_core.ML"
+ML_file "Tools/Function/sum_tree.ML"
+ML_file "Tools/Function/mutual.ML"
+ML_file "Tools/Function/pattern_split.ML"
+ML_file "Tools/Function/relation.ML"
 
 method_setup relation = {*
   Args.term >> (fn t => fn ctxt => SIMPLE_METHOD' (Function_Relation.relation_infer_tac ctxt t))
 *} "prove termination using a user-specified wellfounded relation"
 
-use "Tools/Function/function.ML"
-use "Tools/Function/pat_completeness.ML"
+ML_file "Tools/Function/function.ML"
+ML_file "Tools/Function/pat_completeness.ML"
 
 method_setup pat_completeness = {*
   Scan.succeed (SIMPLE_METHOD' o Pat_Completeness.pat_completeness_tac)
 *} "prove completeness of datatype patterns"
 
-use "Tools/Function/fun.ML"
-use "Tools/Function/induction_schema.ML"
+ML_file "Tools/Function/fun.ML"
+ML_file "Tools/Function/induction_schema.ML"
 
 method_setup induction_schema = {*
   Scan.succeed (RAW_METHOD o Induction_Schema.induction_schema_tac)
@@ -137,7 +121,7 @@ subsection {* Measure Functions *}
 inductive is_measure :: "('a \<Rightarrow> nat) \<Rightarrow> bool"
 where is_measure_trivial: "is_measure f"
 
-use "Tools/Function/measure_functions.ML"
+ML_file "Tools/Function/measure_functions.ML"
 setup MeasureFunctions.setup
 
 lemma measure_size[measure_function]: "is_measure size"
@@ -148,7 +132,7 @@ by (rule is_measure_trivial)
 lemma measure_snd[measure_function]: "is_measure f \<Longrightarrow> is_measure (\<lambda>p. f (snd p))"
 by (rule is_measure_trivial)
 
-use "Tools/Function/lexicographic_order.ML"
+ML_file "Tools/Function/lexicographic_order.ML"
 
 method_setup lexicographic_order = {*
   Method.sections clasimp_modifiers >>
@@ -323,9 +307,9 @@ by (auto simp: pair_less_def pair_leq_def)
 
 subsection {* Tool setup *}
 
-use "Tools/Function/termination.ML"
-use "Tools/Function/scnp_solve.ML"
-use "Tools/Function/scnp_reconstruct.ML"
+ML_file "Tools/Function/termination.ML"
+ML_file "Tools/Function/scnp_solve.ML"
+ML_file "Tools/Function/scnp_reconstruct.ML"
 
 setup {* ScnpReconstruct.setup *}
 

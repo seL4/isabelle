@@ -7,7 +7,6 @@ header {* Proving equalities in commutative rings *}
 
 theory Commutative_Ring
 imports Main Parity
-uses ("commutative_ring_tac.ML")
 begin
 
 text {* Syntax of multivariate polynomials (pol) and polynomial expressions. *}
@@ -313,7 +312,7 @@ proof -
 qed
 
 
-use "commutative_ring_tac.ML"
+ML_file "commutative_ring_tac.ML"
 
 method_setup comm_ring = {*
   Scan.succeed (SIMPLE_METHOD' o Commutative_Ring_Tac.tac)

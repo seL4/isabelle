@@ -7,8 +7,6 @@ header {* The Integers as Equivalence Classes over Pairs of Natural Numbers *}
 
 theory Int
 imports Equiv_Relations Wellfounded Quotient
-uses
-  ("Tools/int_arith.ML")
 begin
 
 subsection {* Definition of integers as a quotient type *}
@@ -719,7 +717,7 @@ lemmas int_arith_rules =
   of_nat_0 of_nat_1 of_nat_Suc of_nat_add of_nat_mult
   of_int_0 of_int_1 of_int_add of_int_mult
 
-use "Tools/int_arith.ML"
+ML_file "Tools/int_arith.ML"
 declaration {* K Int_Arith.setup *}
 
 simproc_setup fast_arith ("(m::'a::linordered_idom) < n" |

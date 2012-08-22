@@ -11,15 +11,6 @@ keywords
   "inductive_cases" "inductive_simps" :: thy_script and "monos" and
   "rep_datatype" :: thy_goal and
   "primrec" :: thy_decl
-uses
-  ("Tools/inductive.ML")
-  ("Tools/Datatype/datatype_aux.ML")
-  ("Tools/Datatype/datatype_prop.ML")
-  ("Tools/Datatype/datatype_data.ML")
-  ("Tools/Datatype/datatype_case.ML")
-  ("Tools/Datatype/rep_datatype.ML")
-  ("Tools/Datatype/datatype_codegen.ML")
-  ("Tools/Datatype/primrec.ML")
 begin
 
 subsection {* Least and greatest fixed points *}
@@ -264,7 +255,7 @@ theorems basic_monos =
   subset_refl imp_refl disj_mono conj_mono ex_mono all_mono if_bool_eq_conj
   Collect_mono in_mono vimage_mono
 
-use "Tools/inductive.ML"
+ML_file "Tools/inductive.ML"
 setup Inductive.setup
 
 theorems [mono] =
@@ -278,13 +269,13 @@ subsection {* Inductive datatypes and primitive recursion *}
 
 text {* Package setup. *}
 
-use "Tools/Datatype/datatype_aux.ML"
-use "Tools/Datatype/datatype_prop.ML"
-use "Tools/Datatype/datatype_data.ML" setup Datatype_Data.setup
-use "Tools/Datatype/datatype_case.ML" setup Datatype_Case.setup
-use "Tools/Datatype/rep_datatype.ML"
-use "Tools/Datatype/datatype_codegen.ML" setup Datatype_Codegen.setup
-use "Tools/Datatype/primrec.ML"
+ML_file "Tools/Datatype/datatype_aux.ML"
+ML_file "Tools/Datatype/datatype_prop.ML"
+ML_file "Tools/Datatype/datatype_data.ML" setup Datatype_Data.setup
+ML_file "Tools/Datatype/datatype_case.ML" setup Datatype_Case.setup
+ML_file "Tools/Datatype/rep_datatype.ML"
+ML_file "Tools/Datatype/datatype_codegen.ML" setup Datatype_Codegen.setup
+ML_file "Tools/Datatype/primrec.ML"
 
 text{* Lambda-abstractions with pattern matching: *}
 

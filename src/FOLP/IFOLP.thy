@@ -7,8 +7,9 @@ header {* Intuitionistic First-Order Logic with Proofs *}
 
 theory IFOLP
 imports Pure
-uses "~~/src/Tools/misc_legacy.ML" ("hypsubst.ML") ("intprover.ML")
 begin
+
+ML_file "~~/src/Tools/misc_legacy.ML"
 
 setup Pure_Thy.old_appl_syntax_setup
 
@@ -587,7 +588,7 @@ schematic_lemma rev_cut_eq:
 
 lemma thin_refl: "!!X. [|p:x=x; PROP W|] ==> PROP W" .
 
-use "hypsubst.ML"
+ML_file "hypsubst.ML"
 
 ML {*
 structure Hypsubst = Hypsubst
@@ -609,7 +610,7 @@ structure Hypsubst = Hypsubst
 open Hypsubst;
 *}
 
-use "intprover.ML"
+ML_file "intprover.ML"
 
 
 (*** Rewrite rules ***)

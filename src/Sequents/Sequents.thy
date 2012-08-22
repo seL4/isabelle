@@ -7,7 +7,6 @@ header {* Parsing and pretty-printing of sequences *}
 
 theory Sequents
 imports Pure
-uses ("prover.ML")
 begin
 
 setup Pure_Thy.old_appl_syntax_setup
@@ -142,7 +141,7 @@ fun side_tr [s1] = seq_tr s1;
 
 parse_translation {* [(@{syntax_const "_Side"}, side_tr)] *}
 
-use "prover.ML"
+ML_file "prover.ML"
 
 end
 

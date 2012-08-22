@@ -101,7 +101,7 @@ fun parse_span span =
     val text = implode (map (Print_Mode.setmp [] Thy_Syntax.present_token) toks);
   in
     (case kind of
-      Thy_Syntax.Command name => parse_command name text
+      Thy_Syntax.Command (name, _) => parse_command name text
     | Thy_Syntax.Ignored => [D.Whitespace {text = text}]
     | Thy_Syntax.Malformed => [D.Unparseable {text = text}])
   end;

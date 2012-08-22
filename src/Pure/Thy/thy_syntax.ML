@@ -9,7 +9,7 @@ sig
   val parse_tokens: Scan.lexicon * Scan.lexicon -> Position.T -> string -> Token.T list
   val reports_of_tokens: Token.T list -> bool * (Position.report * string) list
   val present_token: Token.T -> Output.output
-  datatype span_kind = Command of string | Ignored | Malformed
+  datatype span_kind = Command of string * Position.T | Ignored | Malformed
   datatype span = Span of span_kind * Token.T list
   val span_kind: span -> span_kind
   val span_content: span -> Token.T list
@@ -100,7 +100,7 @@ end;
 
 (* type span *)
 
-datatype span_kind = Command of string | Ignored | Malformed;
+datatype span_kind = Command of string * Position.T | Ignored | Malformed;
 datatype span = Span of span_kind * Token.T list;
 
 fun span_kind (Span (k, _)) = k;
@@ -115,7 +115,7 @@ local
 
 fun make_span toks =
   if not (null toks) andalso Token.is_command (hd toks) then
-    Span (Command (Token.content_of (hd toks)), toks)
+    Span (Command (Token.content_of (hd toks), Token.position_of (hd toks)), toks)
   else if forall (not o Token.is_proper) toks then Span (Ignored, toks)
   else Span (Malformed, toks);
 
@@ -142,9 +142,9 @@ fun make_element head proof proper_proof =
 
 (* scanning spans *)
 
-val eof = Span (Command "", []);
+val eof = Span (Command ("", Position.none), []);
 
-fun is_eof (Span (Command "", _)) = true
+fun is_eof (Span (Command ("", _), _)) = true
   | is_eof _ = false;
 
 val not_eof = not o is_eof;
@@ -156,7 +156,8 @@ val stopper = Scan.stopper (K eof) is_eof;
 
 local
 
-fun command_with pred = Scan.one (fn (Span (Command name, _)) => pred name | _ => false);
+fun command_with pred =
+  Scan.one (fn (Span (Command (name, _), _)) => pred name | _ => false);
 
 val proof = Scan.pass 1 (Scan.repeat (Scan.depend (fn d =>
   if d <= 0 then Scan.fail

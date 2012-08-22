@@ -7,11 +7,10 @@ header {* Partial Function Definitions *}
 theory Partial_Function
 imports Complete_Partial_Order Option
 keywords "partial_function" :: thy_decl
-uses 
-  "Tools/Function/function_lib.ML" 
-  "Tools/Function/partial_function.ML" 
 begin
 
+ML_file "Tools/Function/function_lib.ML"
+ML_file "Tools/Function/partial_function.ML"
 setup Partial_Function.setup
 
 subsection {* Axiomatic setup *}

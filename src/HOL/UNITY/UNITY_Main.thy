@@ -7,8 +7,9 @@ header{*Comprehensive UNITY Theory*}
 
 theory UNITY_Main
 imports Detects PPROD Follows ProgressSets
-uses "UNITY_tactics.ML"
 begin
+
+ML_file "UNITY_tactics.ML"
 
 method_setup safety = {*
     Scan.succeed (SIMPLE_METHOD' o constrains_tac) *}

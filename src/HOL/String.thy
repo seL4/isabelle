@@ -4,9 +4,6 @@ header {* Character and string types *}
 
 theory String
 imports List
-uses
-  ("Tools/string_syntax.ML")
-  ("Tools/string_code.ML")
 begin
 
 subsection {* Characters *}
@@ -79,7 +76,7 @@ type_synonym string = "char list"
 syntax
   "_String" :: "str_position => string"    ("_")
 
-use "Tools/string_syntax.ML"
+ML_file "Tools/string_syntax.ML"
 setup String_Syntax.setup
 
 definition chars :: string where
@@ -188,7 +185,7 @@ by(simp add: STR_inject)
 
 subsection {* Code generator *}
 
-use "Tools/string_code.ML"
+ML_file "Tools/string_code.ML"
 
 code_reserved SML string
 code_reserved OCaml string

@@ -6,7 +6,6 @@ header {* Term evaluation using the generic code generator *}
 
 theory Code_Evaluation
 imports Plain Typerep Code_Numeral Predicate
-uses ("Tools/code_evaluation.ML")
 begin
 
 subsection {* Term representation *}
@@ -73,7 +72,7 @@ lemma eq_eq_TrueD:
   shows "x \<equiv> y"
   using assms by simp
 
-use "Tools/code_evaluation.ML"
+ML_file "Tools/code_evaluation.ML"
 
 code_reserved Eval Code_Evaluation
 

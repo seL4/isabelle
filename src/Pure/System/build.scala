@@ -333,20 +333,13 @@ object Build
       { case (deps, (name, info)) =>
           val (preloaded, parent_syntax, parent_errors) =
             info.parent match {
+              case None =>
+                (Set.empty[String], Outer_Syntax.init_pure(), Nil)
               case Some(parent_name) =>
                 val parent = deps(parent_name)
                 (parent.loaded_theories, parent.syntax, parent.errors)
-              case None =>
-                val init_syntax =
-                  Outer_Syntax.init() +
-                    // FIXME avoid hardwired stuff!?
-                    ("theory", Keyword.THY_BEGIN) +
-                    ("ML_file", Keyword.THY_LOAD) +
-                    ("hence", (Keyword.PRF_ASM_GOAL, Nil), "then have") +
-                    ("thus", (Keyword.PRF_ASM_GOAL, Nil), "then show")
-                (Set.empty[String], init_syntax, Nil)
             }
-          val thy_info = new Thy_Info(new Thy_Load(preloaded))
+          val thy_info = new Thy_Info(new Thy_Load(preloaded, parent_syntax))
 
           if (verbose) {
             val groups =
@@ -360,11 +353,11 @@ object Build
               info.theories.map(_._2).flatten.
                 map(thy => Document.Node.Name(info.dir + Thy_Load.thy_path(thy))))
 
-          val loaded_theories = preloaded ++ thy_deps.map(_._1.theory)
-          val syntax = (parent_syntax /: thy_deps) { case (syn, (_, h)) => syn.add_keywords(h) }
+          val loaded_theories = thy_deps.loaded_theories
+          val syntax = thy_deps.make_syntax
 
           val all_files =
-            thy_deps.map({ case (n, h) =>
+            thy_deps.deps.map({ case (n, h) =>
               val thy = Path.explode(n.node).expand
               val uses = h.uses.map(p => (Path.explode(n.dir) + Path.explode(p._1)).expand)
               thy :: uses
@@ -376,7 +369,7 @@ object Build
                 error(msg + "\nThe error(s) above occurred in session " +
                   quote(name) + Position.str_of(info.pos))
             }
-          val errors = parent_errors ::: thy_deps.map(d => d._2.errors).flatten
+          val errors = parent_errors ::: thy_deps.deps.map(d => d._2.errors).flatten
 
           deps + (name -> Session_Content(loaded_theories, syntax, sources, errors))
       }))

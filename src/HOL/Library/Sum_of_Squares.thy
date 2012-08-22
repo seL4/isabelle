@@ -8,12 +8,12 @@ header {* A decision method for universal multivariate real arithmetic with addi
 
 theory Sum_of_Squares
 imports Complex_Main
-uses
-  "positivstellensatz.ML"
-  "Sum_of_Squares/sum_of_squares.ML"
-  "Sum_of_Squares/positivstellensatz_tools.ML"
-  "Sum_of_Squares/sos_wrapper.ML"
 begin
+
+ML_file "positivstellensatz.ML"
+ML_file "Sum_of_Squares/sum_of_squares.ML"
+ML_file "Sum_of_Squares/positivstellensatz_tools.ML"
+ML_file "Sum_of_Squares/sos_wrapper.ML"
 
 text {*
   Proof method sos invocations:

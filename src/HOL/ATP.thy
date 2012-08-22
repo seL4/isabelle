@@ -7,16 +7,14 @@ header {* Automatic Theorem Provers (ATPs) *}
 
 theory ATP
 imports Meson
-uses "Tools/lambda_lifting.ML"
-     "Tools/monomorph.ML"
-     "Tools/ATP/atp_util.ML"
-     "Tools/ATP/atp_problem.ML"
-     "Tools/ATP/atp_proof.ML"
-     "Tools/ATP/atp_proof_redirect.ML"
-     ("Tools/ATP/atp_problem_generate.ML")
-     ("Tools/ATP/atp_proof_reconstruct.ML")
-     ("Tools/ATP/atp_systems.ML")
 begin
+
+ML_file "Tools/lambda_lifting.ML"
+ML_file "Tools/monomorph.ML"
+ML_file "Tools/ATP/atp_util.ML"
+ML_file "Tools/ATP/atp_problem.ML"
+ML_file "Tools/ATP/atp_proof.ML"
+ML_file "Tools/ATP/atp_proof_redirect.ML"
 
 subsection {* Higher-order reasoning helpers *}
 
@@ -132,9 +130,9 @@ unfolding fNot_def fComp_def fAll_def fEx_def by auto
 
 subsection {* Setup *}
 
-use "Tools/ATP/atp_problem_generate.ML"
-use "Tools/ATP/atp_proof_reconstruct.ML"
-use "Tools/ATP/atp_systems.ML"
+ML_file "Tools/ATP/atp_problem_generate.ML"
+ML_file "Tools/ATP/atp_proof_reconstruct.ML"
+ML_file "Tools/ATP/atp_systems.ML"
 
 setup ATP_Systems.setup
 

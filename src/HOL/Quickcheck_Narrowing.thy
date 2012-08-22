@@ -5,11 +5,9 @@ header {* Counterexample generator performing narrowing-based testing *}
 theory Quickcheck_Narrowing
 imports Quickcheck_Exhaustive
 keywords "find_unused_assms" :: diag
-uses
+uses  (* FIXME session files *)
   ("Tools/Quickcheck/PNF_Narrowing_Engine.hs")
   ("Tools/Quickcheck/Narrowing_Engine.hs")
-  ("Tools/Quickcheck/narrowing_generators.ML")
-  ("Tools/Quickcheck/find_unused_assms.ML")
 begin
 
 subsection {* Counterexample generator *}
@@ -340,7 +338,7 @@ hide_const (open) Constant eval_cfun Abs_cfun Rep_cfun
 
 subsubsection {* Setting up the counterexample generator *}
 
-use "Tools/Quickcheck/narrowing_generators.ML"
+ML_file "Tools/Quickcheck/narrowing_generators.ML"
 
 setup {* Narrowing_Generators.setup *}
 
@@ -447,7 +445,7 @@ by (rule partial_term_of_anything)
 
 subsection {* The @{text find_unused_assms} command *}
 
-use "Tools/Quickcheck/find_unused_assms.ML"
+ML_file "Tools/Quickcheck/find_unused_assms.ML"
 
 subsection {* Closing up *}
 

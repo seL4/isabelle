@@ -8,7 +8,6 @@ header {* Notions about functions *}
 theory Fun
 imports Complete_Lattices
 keywords "enriched_type" :: thy_goal
-uses ("Tools/enriched_type.ML")
 begin
 
 lemma apply_inverse:
@@ -801,7 +800,7 @@ code_const "id"
 
 subsubsection {* Functorial structure of types *}
 
-use "Tools/enriched_type.ML"
+ML_file "Tools/enriched_type.ML"
 
 enriched_type map_fun: map_fun
   by (simp_all add: fun_eq_iff)

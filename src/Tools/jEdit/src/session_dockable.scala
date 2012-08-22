@@ -134,7 +134,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
         }
       val nodes_status1 =
         (nodes_status /: iterator)({ case (status, (name, node)) =>
-            if (Isabelle.thy_load.is_loaded(name.theory)) status
+            if (Isabelle.thy_load.loaded_theories(name.theory)) status
             else status + (name -> Protocol.node_status(snapshot.state, snapshot.version, node)) })
 
       if (nodes_status != nodes_status1) {

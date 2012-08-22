@@ -8,11 +8,6 @@ theory Boogie
 imports Word
 keywords
   "boogie_open" "boogie_end" :: thy_decl and "boogie_vc" :: thy_goal and "boogie_status" :: diag
-uses
-  ("Tools/boogie_vcs.ML")
-  ("Tools/boogie_loader.ML")
-  ("Tools/boogie_tactics.ML")
-  ("Tools/boogie_commands.ML")
 begin
 
 text {*
@@ -95,12 +90,12 @@ structure Boogie_Axioms = Named_Thms
 *}
 setup Boogie_Axioms.setup
 
-use "Tools/boogie_vcs.ML"
-use "Tools/boogie_loader.ML"
-use "Tools/boogie_tactics.ML"
+ML_file "Tools/boogie_vcs.ML"
+ML_file "Tools/boogie_loader.ML"
+ML_file "Tools/boogie_tactics.ML"
 setup Boogie_Tactics.setup
 
-use "Tools/boogie_commands.ML"
+ML_file "Tools/boogie_commands.ML"
 setup Boogie_Commands.setup
 
 end

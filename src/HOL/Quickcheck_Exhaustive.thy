@@ -5,9 +5,6 @@ header {* A simple counterexample generator performing exhaustive testing *}
 theory Quickcheck_Exhaustive
 imports Quickcheck
 keywords "quickcheck_generator" :: thy_decl
-uses
-  ("Tools/Quickcheck/exhaustive_generators.ML")
-  ("Tools/Quickcheck/abstract_generators.ML")
 begin
 
 subsection {* basic operations for exhaustive generators *}
@@ -577,7 +574,7 @@ axiomatization unknown :: 'a
 
 notation (output) unknown  ("?")
  
-use "Tools/Quickcheck/exhaustive_generators.ML"
+ML_file "Tools/Quickcheck/exhaustive_generators.ML"
 
 setup {* Exhaustive_Generators.setup *}
 
@@ -585,7 +582,7 @@ declare [[quickcheck_batch_tester = exhaustive]]
 
 subsection {* Defining generators for abstract types *}
 
-use "Tools/Quickcheck/abstract_generators.ML"
+ML_file "Tools/Quickcheck/abstract_generators.ML"
 
 hide_fact (open) orelse_def
 no_notation orelse (infixr "orelse" 55)

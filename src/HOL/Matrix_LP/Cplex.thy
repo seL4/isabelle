@@ -4,9 +4,12 @@
 
 theory Cplex 
 imports SparseMatrix LP ComputeFloat ComputeNumeral
-uses "Cplex_tools.ML" "CplexMatrixConverter.ML" "FloatSparseMatrixBuilder.ML"
-  "fspmlp.ML" ("matrixlp.ML")
 begin
+
+ML_file "Cplex_tools.ML"
+ML_file "CplexMatrixConverter.ML"
+ML_file "FloatSparseMatrixBuilder.ML"
+ML_file "fspmlp.ML"
 
 lemma spm_mult_le_dual_prts: 
   assumes
@@ -61,7 +64,7 @@ lemma spm_mult_le_dual_prts_no_let:
   (mult_est_spmat r1 r2 (diff_spmat c1 (mult_spmat y A2)) (diff_spmat c2 (mult_spmat y A1))))"
   by (simp add: assms mult_est_spmat_def spm_mult_le_dual_prts[where A=A, simplified Let_def])
 
-use "matrixlp.ML"
+ML_file "matrixlp.ML"
 
 end
 

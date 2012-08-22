@@ -7,8 +7,9 @@ header {* The division operators div and mod *}
 
 theory Divides
 imports Nat_Transfer
-uses "~~/src/Provers/Arith/cancel_div_mod.ML"
 begin
+
+ML_file "~~/src/Provers/Arith/cancel_div_mod.ML"
 
 subsection {* Syntactic division operations *}
 

@@ -10,7 +10,6 @@ later.
 
 theory Hoare_Logic
 imports Main
-uses ("hoare_syntax.ML") ("hoare_tac.ML")
 begin
 
 type_synonym 'a bexp = "'a set"
@@ -54,7 +53,7 @@ syntax ("" output)
  "_hoare"      :: "['a assn,'a com,'a assn] => bool"
                  ("{_} // _ // {_}" [0,55,0] 50)
 
-use "hoare_syntax.ML"
+ML_file "hoare_syntax.ML"
 parse_translation {* [(@{syntax_const "_hoare_vars"}, Hoare_Syntax.hoare_vars_tr)] *}
 print_translation {* [(@{const_syntax Valid}, Hoare_Syntax.spec_tr' @{syntax_const "_hoare"})] *}
 
@@ -94,7 +93,7 @@ lemma Compl_Collect: "-(Collect b) = {x. ~(b x)}"
   by blast
 
 lemmas AbortRule = SkipRule  -- "dummy version"
-use "hoare_tac.ML"
+ML_file "hoare_tac.ML"
 
 method_setup vcg = {*
   Scan.succeed (fn ctxt => SIMPLE_METHOD' (hoare_tac ctxt (K all_tac))) *}

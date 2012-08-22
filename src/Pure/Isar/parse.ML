@@ -65,7 +65,7 @@ sig
   val binding: binding parser
   val xname: xstring parser
   val text: string parser
-  val path: Path.T parser
+  val path: string parser
   val liberal_name: xstring parser
   val parname: string parser
   val parbinding: binding parser
@@ -250,7 +250,7 @@ val xname = group (fn () => "name reference")
 val text = group (fn () => "text")
   (short_ident || long_ident || sym_ident || string || number || verbatim);
 
-val path = group (fn () => "file name/path specification") name >> Path.explode;
+val path = group (fn () => "file name/path specification") name;
 
 val liberal_name = keyword_ident_or_symbolic || xname;
 

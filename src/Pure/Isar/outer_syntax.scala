@@ -35,7 +35,11 @@ object Outer_Syntax
   }
 
   val empty: Outer_Syntax = new Outer_Syntax()
+
   def init(): Outer_Syntax = new Outer_Syntax(completion = Completion.init())
+
+  def init_pure(): Outer_Syntax =
+    init() + ("theory", Keyword.THY_BEGIN) + ("ML_file", Keyword.THY_LOAD)
 }
 
 final class Outer_Syntax private(
@@ -54,6 +58,9 @@ final class Outer_Syntax private(
   def keyword_kind_files(name: String): Option[(String, List[String])] = keywords.get(name)
   def keyword_kind(name: String): Option[String] = keyword_kind_files(name).map(_._1)
 
+  def thy_load_commands: List[(String, List[String])] =
+    (for ((name, (Keyword.THY_LOAD, files)) <- keywords.iterator) yield (name, files)).toList
+
   def + (name: String, kind: (String, List[String]), replace: String): Outer_Syntax =
     new Outer_Syntax(
       keywords + (name -> kind),
@@ -64,8 +71,8 @@ final class Outer_Syntax private(
   def + (name: String, kind: String): Outer_Syntax = this + (name, (kind, Nil), name)
   def + (name: String): Outer_Syntax = this + (name, Keyword.MINOR)
 
-  def add_keywords(header: Document.Node.Header): Outer_Syntax =
-    (this /: header.keywords) {
+  def add_keywords(keywords: Thy_Header.Keywords): Outer_Syntax =
+    (this /: keywords) {
       case (syntax, ((name, Some((kind, _))))) =>
         syntax + (Symbol.decode(name), kind) + (Symbol.encode(name), kind)
       case (syntax, ((name, None))) =>

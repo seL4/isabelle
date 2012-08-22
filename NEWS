@@ -6,6 +6,9 @@ New in this Isabelle version
 
 *** General ***
 
+* Command 'ML_file' evaluates ML text from a file directly within the
+theory, without any predeclaration via 'uses' in the theory header.
+
 * Discontinued obsolete method fastsimp / tactic fast_simp_tac, which
 is called fastforce / fast_force_tac already since Isabelle2011-1.
 

@@ -9,12 +9,9 @@ header {* Metis Proof Method *}
 theory Metis
 imports ATP
 keywords "try0" :: diag
-uses "~~/src/Tools/Metis/metis.ML"
-     ("Tools/Metis/metis_generate.ML")
-     ("Tools/Metis/metis_reconstruct.ML")
-     ("Tools/Metis/metis_tactic.ML")
-     ("Tools/try0.ML")
 begin
+
+ML_file "~~/src/Tools/Metis/metis.ML"
 
 subsection {* Literal selection and lambda-lifting helpers *}
 
@@ -41,9 +38,9 @@ unfolding lambda_def by assumption
 
 subsection {* Metis package *}
 
-use "Tools/Metis/metis_generate.ML"
-use "Tools/Metis/metis_reconstruct.ML"
-use "Tools/Metis/metis_tactic.ML"
+ML_file "Tools/Metis/metis_generate.ML"
+ML_file "Tools/Metis/metis_reconstruct.ML"
+ML_file "Tools/Metis/metis_tactic.ML"
 
 setup {* Metis_Tactic.setup *}
 
@@ -58,8 +55,7 @@ hide_fact (open) select_def not_atomize atomize_not_select not_atomize_select
 
 subsection {* Try0 *}
 
-use "Tools/try0.ML"
-
+ML_file "Tools/try0.ML"
 setup {* Try0.setup *}
 
 end

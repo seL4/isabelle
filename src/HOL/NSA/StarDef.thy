@@ -6,7 +6,6 @@ header {* Construction of Star Types Using Ultrafilters *}
 
 theory StarDef
 imports Filter
-uses ("transfer.ML")
 begin
 
 subsection {* A Free Ultrafilter over the Naturals *}
@@ -88,7 +87,7 @@ lemma transfer_start:
 by (subgoal_tac "P \<equiv> Q", simp, simp add: atomize_eq)
 
 text {*Initialize transfer tactic.*}
-use "transfer.ML"
+ML_file "transfer.ML"
 setup Transfer_Principle.setup
 
 method_setup transfer = {*

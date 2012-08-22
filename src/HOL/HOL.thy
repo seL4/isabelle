@@ -10,36 +10,31 @@ keywords
   "try" "solve_direct" "quickcheck"
     "print_coercions" "print_coercion_maps" "print_claset" "print_induct_rules" :: diag and
   "quickcheck_params" :: thy_decl
-uses
-  ("Tools/hologic.ML")
-  "~~/src/Tools/misc_legacy.ML"
-  "~~/src/Tools/try.ML"
-  "~~/src/Tools/quickcheck.ML"
-  "~~/src/Tools/solve_direct.ML"
-  "~~/src/Tools/IsaPlanner/zipper.ML"
-  "~~/src/Tools/IsaPlanner/isand.ML"
-  "~~/src/Tools/IsaPlanner/rw_tools.ML"
-  "~~/src/Tools/IsaPlanner/rw_inst.ML"
-  "~~/src/Provers/hypsubst.ML"
-  "~~/src/Provers/splitter.ML"
-  "~~/src/Provers/classical.ML"
-  "~~/src/Provers/blast.ML"
-  "~~/src/Provers/clasimp.ML"
-  "~~/src/Tools/coherent.ML"
-  "~~/src/Tools/eqsubst.ML"
-  "~~/src/Provers/quantifier1.ML"
-  ("Tools/simpdata.ML")
-  "~~/src/Tools/atomize_elim.ML"
-  "~~/src/Tools/induct.ML"
-  "~~/src/Tools/cong_tac.ML"
-  "~~/src/Tools/intuitionistic.ML"
-  "~~/src/Tools/project_rule.ML"
-  ("~~/src/Tools/induction.ML")
-  ("~~/src/Tools/induct_tacs.ML")
-  ("Tools/cnf_funcs.ML")
-  "~~/src/Tools/subtyping.ML"
-  "~~/src/Tools/case_product.ML"
 begin
+
+ML_file "~~/src/Tools/misc_legacy.ML"
+ML_file "~~/src/Tools/try.ML"
+ML_file "~~/src/Tools/quickcheck.ML"
+ML_file "~~/src/Tools/solve_direct.ML"
+ML_file "~~/src/Tools/IsaPlanner/zipper.ML"
+ML_file "~~/src/Tools/IsaPlanner/isand.ML"
+ML_file "~~/src/Tools/IsaPlanner/rw_tools.ML"
+ML_file "~~/src/Tools/IsaPlanner/rw_inst.ML"
+ML_file "~~/src/Provers/hypsubst.ML"
+ML_file "~~/src/Provers/splitter.ML"
+ML_file "~~/src/Provers/classical.ML"
+ML_file "~~/src/Provers/blast.ML"
+ML_file "~~/src/Provers/clasimp.ML"
+ML_file "~~/src/Tools/coherent.ML"
+ML_file "~~/src/Tools/eqsubst.ML"
+ML_file "~~/src/Provers/quantifier1.ML"
+ML_file "~~/src/Tools/atomize_elim.ML"
+ML_file "~~/src/Tools/induct.ML"
+ML_file "~~/src/Tools/cong_tac.ML"
+ML_file "~~/src/Tools/intuitionistic.ML"
+ML_file "~~/src/Tools/project_rule.ML"
+ML_file "~~/src/Tools/subtyping.ML"
+ML_file "~~/src/Tools/case_product.ML"
 
 setup {*
   Intuitionistic.method_setup @{binding iprover}
@@ -702,7 +697,7 @@ lemmas [trans] = trans
   and [sym] = sym not_sym
   and [Pure.elim?] = iffD1 iffD2 impE
 
-use "Tools/hologic.ML"
+ML_file "Tools/hologic.ML"
 
 
 subsubsection {* Atomizing meta-level connectives *}
@@ -1193,7 +1188,7 @@ lemma ex_comm:
   "(\<exists>x y. P x y) = (\<exists>y x. P x y)"
   by blast
 
-use "Tools/simpdata.ML"
+ML_file "Tools/simpdata.ML"
 ML {* open Simpdata *}
 
 setup {* Simplifier.map_simpset_global (K HOL_basic_ss) *}
@@ -1481,7 +1476,7 @@ structure Induct = Induct
 )
 *}
 
-use "~~/src/Tools/induction.ML"
+ML_file "~~/src/Tools/induction.ML"
 
 setup {*
   Induct.setup #> Induction.setup #>
@@ -1563,7 +1558,7 @@ lemma [induct_simp]: "(x = x) = True"
 
 hide_const induct_forall induct_implies induct_equal induct_conj induct_true induct_false
 
-use "~~/src/Tools/induct_tacs.ML"
+ML_file "~~/src/Tools/induct_tacs.ML"
 setup Induct_Tacs.setup
 
 
@@ -1701,7 +1696,7 @@ val sym = @{thm sym}
 val trans = @{thm trans}
 *}
 
-use "Tools/cnf_funcs.ML"
+ML_file "Tools/cnf_funcs.ML"
 
 subsection {* Code generator setup *}
 

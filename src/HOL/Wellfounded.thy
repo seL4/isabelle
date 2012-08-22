@@ -9,7 +9,6 @@ header {*Well-founded Recursion*}
 
 theory Wellfounded
 imports Transitive_Closure
-uses ("Tools/Function/size.ML")
 begin
 
 subsection {* Basic Definitions *}
@@ -845,8 +844,7 @@ done
 
 subsection {* size of a datatype value *}
 
-use "Tools/Function/size.ML"
-
+ML_file "Tools/Function/size.ML"
 setup Size.setup
 
 lemma size_bool [code]:
