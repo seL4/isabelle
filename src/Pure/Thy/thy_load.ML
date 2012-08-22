@@ -1,7 +1,7 @@
 (*  Title:      Pure/Thy/thy_load.ML
     Author:     Makarius
 
-Loading files that contribute to a theory.  Global master path.
+Loading files that contribute to a theory.  Global master path for TTY loop.
 *)
 
 signature THY_LOAD =
@@ -23,7 +23,6 @@ sig
   val begin_theory: Path.T -> Thy_Header.header -> theory list -> theory
   val load_thy: int -> Path.T -> Thy_Header.header -> Position.T -> string ->
     theory list -> theory * unit future
-  val resolve_files: Path.T -> Thy_Syntax.span -> Thy_Syntax.span
   val parse_files: string -> (theory -> Token.files) parser
   val set_master_path: Path.T -> unit
   val get_master_path: unit -> Path.T
@@ -58,7 +57,7 @@ fun map_files f =
 val master_directory = #master_dir o Files.get;
 val imports_of = #imports o Files.get;
 
-fun put_deps dir imports = map_files (fn _ => (dir, imports, []));
+fun put_deps master_dir imports = map_files (fn _ => (master_dir, imports, []));
 
 fun provide (src_path, path_id) =
   map_files (fn (master_dir, imports, provided) =>
@@ -126,7 +125,7 @@ fun parse_files cmd =
       SOME files => files
     | NONE => read_files cmd (master_directory thy) (Path.explode name)));
 
-fun resolve_files dir span =
+fun resolve_files master_dir span =
   (case span of
     Thy_Syntax.Span (Thy_Syntax.Command (cmd, pos), toks) =>
       if Keyword.is_theory_load cmd then
@@ -135,7 +134,7 @@ fun resolve_files dir span =
         | SOME (i, path) =>
             let
               val toks' = toks |> map_index (fn (j, tok) =>
-                if i = j then Token.put_files (read_files cmd dir path) tok
+                if i = j then Token.put_files (read_files cmd master_dir path) tok
                 else tok);
             in Thy_Syntax.Span (Thy_Syntax.Command (cmd, pos), toks') end)
       else span
@@ -218,9 +217,9 @@ fun exec_ml src_path = ML_Context.exec (fn () => use_ml src_path);
 
 (* load_thy *)
 
-fun begin_theory dir {name, imports, keywords, uses} parents =
+fun begin_theory master_dir {name, imports, keywords, uses} parents =
   Theory.begin_theory name parents
-  |> put_deps dir imports
+  |> put_deps master_dir imports
   |> fold Thy_Header.declare_keyword keywords
   |> fold (fn (path, true) => Context.theory_map (exec_ml path) o Theory.checkpoint | _ => I) uses
   |> Theory.checkpoint;
@@ -245,7 +244,7 @@ fun excursion init elements =
     val thy = Toplevel.end_theory end_pos end_state;
   in (flat results, thy) end;
 
-fun load_thy update_time dir header pos text parents =
+fun load_thy update_time master_dir header pos text parents =
   let
     val time = ! Toplevel.timing;
 
@@ -253,13 +252,13 @@ fun load_thy update_time dir header pos text parents =
     val _ = Thy_Header.define_keywords header;
     val _ = Present.init_theory name;
     fun init () =
-      begin_theory dir header parents
-      |> Present.begin_theory update_time dir uses;
+      begin_theory master_dir header parents
+      |> Present.begin_theory update_time master_dir uses;
 
     val lexs = Keyword.get_lexicons ();
 
     val toks = Thy_Syntax.parse_tokens lexs pos text;
-    val spans = map (resolve_files dir) (Thy_Syntax.parse_spans toks);
+    val spans = map (resolve_files master_dir) (Thy_Syntax.parse_spans toks);
     val elements = Thy_Syntax.parse_elements spans;
 
     val _ = Present.theory_source name
