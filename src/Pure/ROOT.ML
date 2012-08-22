@@ -303,44 +303,15 @@ use "ProofGeneral/proof_general_pgip.ML";
 use "ProofGeneral/proof_general_emacs.ML";
 
 
-(* ML toplevel use commands *)
-
-fun use name = Toplevel.program (fn () => Thy_Load.use_ml (Path.explode name));
-
-fun use_thys name = Toplevel.program (fn () => Thy_Info.use_thys name);
-fun use_thy name = Toplevel.program (fn () => Thy_Info.use_thy name);
-
-
 (* the Pure theory *)
 
-val _ =
-  Outer_Syntax.command
-    (("theory", Keyword.tag_theory Keyword.thy_begin), Position.none) "begin theory context"
-    (Thy_Header.args >> (fn header =>
-      Toplevel.print o
-        Toplevel.init_theory
-          (fn () => Thy_Info.toplevel_begin_theory (Thy_Load.get_master_path ()) header)));
-
-val _ =
-  Outer_Syntax.command
-    (("ML_file", Keyword.tag_ml Keyword.thy_load), Position.none) "ML text from file"
-    (Scan.ahead Parse.path -- Thy_Load.parse_files "ML_file"
-      >> (fn (src_path, files) => Toplevel.generic_theory (fn gthy =>
-        let
-          val (dir, [(txt, pos)]) = files (Context.theory_of gthy);
-          val provide = Thy_Load.provide (src_path, (File.full_path dir src_path, SHA1.digest txt));
-        in
-          gthy
-          |> ML_Context.exec (fn () => ML_Context.eval_text true pos txt)
-          |> Local_Theory.propagate_ml_env
-          |> Context.mapping provide (Local_Theory.background_theory provide)
-        end)));
-
-Unsynchronized.setmp Multithreading.max_threads 1
-  use_thy "Pure";
+use "pure_syn.ML";
+Thy_Info.use_thy "Pure";
 Context.set_thread_data NONE;
-
 structure Pure = struct val thy = Thy_Info.get_theory "Pure" end;
+
+
+use "ProofGeneral/pgip_tests.ML";
 
 
 (* ML toplevel pretty printing *)
@@ -366,11 +337,15 @@ toplevel_pp ["Toplevel", "state"] "Toplevel.pretty_abstract";
 if ML_System.is_polyml then use "ML/install_pp_polyml.ML" else ();
 
 
-(* misc *)
+(* ML toplevel commands *)
+
+fun use name = Toplevel.program (fn () => Thy_Load.use_ml (Path.explode name));
+
+fun use_thys name = Toplevel.program (fn () => Thy_Info.use_thys name);
+fun use_thy name = Toplevel.program (fn () => Thy_Info.use_thy name);
 
 val cd = File.cd o Path.explode;
 
 Proofterm.proofs := 0;
-
-use "ProofGeneral/pgip_tests.ML";
+Multithreading.max_threads := 0;
 

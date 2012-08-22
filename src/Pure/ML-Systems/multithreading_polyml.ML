@@ -29,7 +29,7 @@ struct
 
 val available = true;
 
-val max_threads = ref 0;
+val max_threads = ref 1;
 
 fun max_threads_value () =
   let val m = ! max_threads in
