@@ -40,8 +40,8 @@ sig
   val ml_diag: bool -> Symbol_Pos.text * Position.T -> Toplevel.transition -> Toplevel.transition
   val diag_state: Proof.context -> Toplevel.state
   val diag_goal: Proof.context -> {context: Proof.context, facts: thm list, goal: thm}
-  val display_drafts: Path.T list -> Toplevel.transition -> Toplevel.transition
-  val print_drafts: Path.T list -> Toplevel.transition -> Toplevel.transition
+  val display_drafts: string list -> Toplevel.transition -> Toplevel.transition
+  val print_drafts: string list -> Toplevel.transition -> Toplevel.transition
   val print_context: Toplevel.transition -> Toplevel.transition
   val print_theory: bool -> Toplevel.transition -> Toplevel.transition
   val print_syntax: Toplevel.transition -> Toplevel.transition
@@ -314,12 +314,16 @@ val _ =
 
 (* present draft files *)
 
-fun display_drafts files = Toplevel.imperative (fn () =>
-  let val outfile = File.shell_path (Present.drafts (getenv "ISABELLE_DOC_FORMAT") files)
+fun display_drafts names = Toplevel.imperative (fn () =>
+  let
+    val paths = map Path.explode names;
+    val outfile = File.shell_path (Present.drafts (getenv "ISABELLE_DOC_FORMAT") paths);
   in Isabelle_System.isabelle_tool "display" ("-c " ^ outfile ^ " &"); () end);
 
-fun print_drafts files = Toplevel.imperative (fn () =>
-  let val outfile = File.shell_path (Present.drafts "ps" files)
+fun print_drafts names = Toplevel.imperative (fn () =>
+  let
+    val paths = map Path.explode names;
+    val outfile = File.shell_path (Present.drafts "ps" paths);
   in Isabelle_System.isabelle_tool "print" ("-c " ^ outfile); () end);
 
 

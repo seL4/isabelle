@@ -92,7 +92,9 @@ fun clean_tokens toks =
 
 fun find_file toks =
   rev (clean_tokens toks) |> get_first (fn (i, tok) =>
-    if Token.is_name tok then SOME (i, Path.explode (Token.content_of tok))
+    if Token.is_name tok then
+    SOME (i, Path.explode (Token.content_of tok))
+      handle ERROR msg => error (msg ^ Token.pos_of tok)
     else NONE);
 
 fun command_files path exts =
@@ -126,12 +128,14 @@ fun read_files cmd dir path =
   in (dir, files) end;
 
 fun parse_files cmd =
-  Scan.ahead Parse.not_eof -- Parse.path >> (fn (tok, path) => fn thy =>
+  Scan.ahead Parse.not_eof -- Parse.path >> (fn (tok, name) => fn thy =>
     (case Token.get_files tok of
       SOME files => files
     | NONE =>
-        (warning ("Dynamic loading of files: " ^ Path.print path ^ Token.pos_of tok);
-          read_files cmd (master_directory thy) path)));
+        let
+          val path = Path.explode name;
+          val _ = warning ("Dynamic loading of files: " ^ Path.print path);
+        in read_files cmd (master_directory thy) path end));
 
 fun resolve_files dir span =
   (case span of

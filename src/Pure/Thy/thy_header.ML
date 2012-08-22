@@ -84,7 +84,7 @@ val header_lexicon =
 
 local
 
-val file_name = Parse.group (fn () => "file name") Parse.path;
+val file_name = Parse.group (fn () => "file name") Parse.path >> Path.explode;
 val theory_name = Parse.group (fn () => "theory name") Parse.name;
 
 val opt_files =

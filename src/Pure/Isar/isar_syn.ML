@@ -271,7 +271,8 @@ val _ = hide_names @{command_spec "hide_fact"} Isar_Cmd.hide_fact "facts";
 
 val _ =
   Outer_Syntax.command @{command_spec "use"} "ML text from file"
-    (Parse.path >> (fn path => Toplevel.generic_theory (Thy_Load.exec_ml path)));
+    (Parse.path >> (fn name =>
+      Toplevel.generic_theory (fn gthy => Thy_Load.exec_ml (Path.explode name) gthy)));
 
 val _ =
   Outer_Syntax.command @{command_spec "ML"} "ML text within theory or local theory"
@@ -923,7 +924,8 @@ val _ =
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "cd"} "change current working directory"
-    (Parse.path >> (fn path => Toplevel.no_timing o Toplevel.imperative (fn () => File.cd path)));
+    (Parse.path >> (fn name =>
+      Toplevel.no_timing o Toplevel.imperative (fn () => File.cd (Path.explode name))));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "pwd"} "print current working directory"
