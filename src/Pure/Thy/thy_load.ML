@@ -8,7 +8,7 @@ signature THY_LOAD =
 sig
   val master_directory: theory -> Path.T
   val imports_of: theory -> string list
-  val provide: Path.T * (Path.T * SHA1.digest) -> theory -> theory
+  val provide: Path.T * SHA1.digest -> theory -> theory
   val check_file: Path.T -> Path.T -> Path.T
   val thy_path: Path.T -> Path.T
   val check_thy: Thy_Header.keywords -> Path.T -> string ->
@@ -36,7 +36,7 @@ struct
 type files =
  {master_dir: Path.T,  (*master directory of theory source*)
   imports: string list,  (*source specification of imports*)
-  provided: (Path.T * (Path.T * SHA1.digest)) list};  (*source path, physical path, digest*)
+  provided: (Path.T * SHA1.digest) list};  (*source path, digest*)
 
 fun make_files (master_dir, imports, provided): files =
  {master_dir = master_dir, imports = imports, provided = provided};
@@ -59,11 +59,11 @@ val imports_of = #imports o Files.get;
 
 fun put_deps master_dir imports = map_files (fn _ => (master_dir, imports, []));
 
-fun provide (src_path, path_id) =
+fun provide (src_path, id) =
   map_files (fn (master_dir, imports, provided) =>
     if AList.defined (op =) provided src_path then
       error ("Duplicate use of source file: " ^ Path.print src_path)
-    else (master_dir, imports, (src_path, path_id) :: provided));
+    else (master_dir, imports, (src_path, id) :: provided));
 
 
 (* inlined files *)
@@ -178,15 +178,17 @@ fun load_file thy src_path =
 
 fun use_file src_path thy =
   let
-    val (path_id, text) = load_file thy src_path;
-    val thy' = provide (src_path, path_id) thy;
+    val ((_, id), text) = load_file thy src_path;
+    val thy' = provide (src_path, id) thy;
   in (text, thy') end;
 
-val loaded_files = map (#1 o #2) o #provided o Files.get;
+fun loaded_files thy =
+  let val {master_dir, provided, ...} = Files.get thy
+  in map (File.full_path master_dir o #1) provided end;
 
 fun load_current thy =
   #provided (Files.get thy) |>
-    forall (fn (src_path, (_, id)) =>
+    forall (fn (src_path, id) =>
       (case try (load_file thy) src_path of
         NONE => false
       | SOME ((_, id'), _) => id = id'));
@@ -208,7 +210,7 @@ fun use_ml src_path =
       val _ = eval_file path text;
       val _ = Context.>> Local_Theory.propagate_ml_env;
 
-      val provide = provide (src_path, (path, id));
+      val provide = provide (src_path, id);
       val _ = Context.>> (Context.mapping provide (Local_Theory.background_theory provide));
     in () end;
 

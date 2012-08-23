@@ -22,8 +22,8 @@ val _ =
       >> (fn (name, files) => Toplevel.generic_theory (fn gthy =>
         let
           val src_path = Path.explode name;
-          val (dir, [(txt, pos)]) = files (Context.theory_of gthy);
-          val provide = Thy_Load.provide (src_path, (File.full_path dir src_path, SHA1.digest txt));
+          val (_, [(txt, pos)]) = files (Context.theory_of gthy);
+          val provide = Thy_Load.provide (src_path, SHA1.digest txt);
         in
           gthy
           |> ML_Context.exec (fn () => ML_Context.eval_text true pos txt)
