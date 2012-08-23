@@ -22,7 +22,7 @@ sig
   val begin_theory: Path.T -> Thy_Header.header -> theory list -> theory
   val load_thy: int -> Path.T -> Thy_Header.header -> Position.T -> string ->
     theory list -> theory * unit future
-  val parse_files: string -> (theory -> Token.files) parser
+  val parse_files: string -> (theory -> Token.file list) parser
   val set_master_path: Path.T -> unit
   val get_master_path: unit -> Path.T
 end;
@@ -69,14 +69,17 @@ fun provide (src_path, id) =
 
 fun check_file dir file = File.check_file (File.full_path dir file);
 
+fun make_file dir file =
+  let val full_path = check_file dir file
+  in {src_path = file, text = File.read full_path, pos = Path.position full_path} end;
+
 fun read_files cmd dir path =
   let
     val paths =
       (case Keyword.command_files cmd of
         [] => [path]
       | exts => map (fn ext => Path.ext ext path) exts);
-    val files = paths |> map (check_file dir #> (fn p => (File.read p, Path.position p)));
-  in (dir, files) end;
+  in map (make_file dir) paths end;
 
 fun parse_files cmd =
   Scan.ahead Parse.not_eof -- Parse.path >> (fn (tok, name) => fn thy =>
