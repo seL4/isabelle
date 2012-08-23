@@ -177,15 +177,18 @@ object Build
         keyword(THEORIES) ~! ((options | success(Nil)) ~ rep(theory_name)) ^^
           { case _ ~ (x ~ y) => (x, y) }
 
-      ((command(SESSION) ~! session_name) ^^ { case _ ~ x => x }) ~
-        (keyword("(") ~! (rep1(name) <~ keyword(")")) ^^ { case _ ~ x => x } | success(Nil)) ~
-        (keyword(IN) ~! path ^^ { case _ ~ x => x } | success(".")) ~
-        (keyword("=") ~> opt(session_name <~ keyword("+"))) ~
-        (keyword(DESCRIPTION) ~! text ^^ { case _ ~ x => x } | success("")) ~
-        (keyword(OPTIONS) ~! options ^^ { case _ ~ x => x } | success(Nil)) ~
-        rep(theories) ~
-        (keyword(FILES) ~! rep1(path) ^^ { case _ ~ x => x } | success(Nil)) ^^
-          { case a ~ b ~ c ~ d ~ e ~ f ~ g ~ h => Session_Entry(pos, a, b, c, d, e, f, g, h) }
+      command(SESSION) ~!
+        (session_name ~
+          ((keyword("(") ~! (rep1(name) <~ keyword(")")) ^^ { case _ ~ x => x }) | success(Nil)) ~
+          ((keyword(IN) ~! path ^^ { case _ ~ x => x }) | success(".")) ~
+          (keyword("=") ~!
+            (opt(session_name ~! keyword("+") ^^ { case x ~ _ => x }) ~
+              ((keyword(DESCRIPTION) ~! text ^^ { case _ ~ x => x }) | success("")) ~
+              ((keyword(OPTIONS) ~! options ^^ { case _ ~ x => x }) | success(Nil)) ~
+              rep(theories) ~
+              ((keyword(FILES) ~! rep1(path) ^^ { case _ ~ x => x }) | success(Nil))))) ^^
+        { case _ ~ (a ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h))) =>
+            Session_Entry(pos, a, b, c, d, e, f, g, h) }
     }
 
     def parse_entries(root: Path): List[Session_Entry] =

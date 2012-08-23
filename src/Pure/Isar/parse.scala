@@ -44,9 +44,6 @@ object Parse
       }
     }
 
-    def not_eof: Parser[Elem] = token("input token", _ => true)
-    def eof: Parser[Unit] = not(not_eof)
-
     def atom(s: String, pred: Elem => Boolean): Parser[String] =
       token(s, pred) ^^ (_.content)
 
@@ -79,8 +76,14 @@ object Parse
     /* wrappers */
 
     def parse[T](p: Parser[T], in: Token.Reader): ParseResult[T] = p(in)
+
     def parse_all[T](p: Parser[T], in: Token.Reader): ParseResult[T] =
-      parse(p <~ eof, in)
+    {
+      val result = parse(p, in)
+      val rest = proper(result.next)
+      if (result.successful && !rest.atEnd) Error("bad input", rest)
+      else result
+    }
   }
 }
 
