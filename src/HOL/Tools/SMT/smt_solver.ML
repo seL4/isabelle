@@ -96,7 +96,7 @@ fun run_solver ctxt name mk_cmd input =
       SMT_Config.with_timeout ctxt (run ctxt name mk_cmd) input
     val _ = SMT_Config.trace_msg ctxt (pretty "Solver:") err
 
-    val ls = rev (snd (chop_while (equal "") (rev res)))
+    val ls = fst (take_suffix (equal "") res)
     val _ = SMT_Config.trace_msg ctxt (pretty "Result:") ls
 
     val _ = return_code <> 0 andalso

@@ -48,8 +48,8 @@ fun build_concl_prems thm1 thm2 ctxt =
     val concl = Thm.concl_of thm1
 
     fun is_consumes t = not (Logic.strip_assums_concl t aconv concl)
-    val (p_cons1, p_cases1) = chop_while is_consumes (Thm.prems_of thm1)
-    val (p_cons2, p_cases2) = chop_while is_consumes (Thm.prems_of thm2)
+    val (p_cons1, p_cases1) = take_prefix is_consumes (Thm.prems_of thm1)
+    val (p_cons2, p_cases2) = take_prefix is_consumes (Thm.prems_of thm2)
 
     val p_cases_prod = map (fn p1 => map (fn p2 =>
       let
