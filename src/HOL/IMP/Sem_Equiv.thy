@@ -1,17 +1,19 @@
 header "Semantic Equivalence up to a Condition"
 
 theory Sem_Equiv
-imports Hoare_Sound_Complete
+imports Big_Step
 begin
+
+type_synonym assn = "state \<Rightarrow> bool"
 
 definition
   equiv_up_to :: "assn \<Rightarrow> com \<Rightarrow> com \<Rightarrow> bool" ("_ \<Turnstile> _ \<sim> _" [60,0,10] 60)
 where
   "P \<Turnstile> c \<sim> c' \<equiv> \<forall>s s'. P s \<longrightarrow> (c,s) \<Rightarrow> s' \<longleftrightarrow> (c',s) \<Rightarrow> s'"
 
-definition 
+definition
   bequiv_up_to :: "assn \<Rightarrow> bexp \<Rightarrow> bexp \<Rightarrow> bool" ("_ \<Turnstile> _ <\<sim>> _" [60,0,10] 60)
-where 
+where
   "P \<Turnstile> b <\<sim>> b' \<equiv> \<forall>s. P s \<longrightarrow> bval b s = bval b' s"
 
 lemma equiv_up_to_True:
@@ -27,11 +29,11 @@ lemma equiv_up_toI:
   by (unfold equiv_up_to_def) blast
 
 lemma equiv_up_toD1:
-  "P \<Turnstile> c \<sim> c' \<Longrightarrow> P s \<Longrightarrow> (c, s) \<Rightarrow> s' \<Longrightarrow> (c', s) \<Rightarrow> s'"
+  "P \<Turnstile> c \<sim> c' \<Longrightarrow> (c, s) \<Rightarrow> s' \<Longrightarrow> P s \<Longrightarrow> (c', s) \<Rightarrow> s'"
   by (unfold equiv_up_to_def) blast
 
 lemma equiv_up_toD2:
-  "P \<Turnstile> c \<sim> c' \<Longrightarrow> P s \<Longrightarrow> (c', s) \<Rightarrow> s' \<Longrightarrow> (c, s) \<Rightarrow> s'"
+  "P \<Turnstile> c \<sim> c' \<Longrightarrow> (c', s) \<Rightarrow> s' \<Longrightarrow> P s \<Longrightarrow> (c, s) \<Rightarrow> s'"
   by (unfold equiv_up_to_def) blast
 
 
@@ -60,32 +62,28 @@ lemma bequiv_up_to_trans:
   "P \<Turnstile> b <\<sim>> b' \<Longrightarrow> P \<Turnstile> b' <\<sim>> b'' \<Longrightarrow> P \<Turnstile> b <\<sim>> b''"
   by (auto simp: bequiv_up_to_def)
 
-
-lemma equiv_up_to_hoare:
-  "P' \<Turnstile> c \<sim> c' \<Longrightarrow> (\<And>s. P s \<Longrightarrow> P' s) \<Longrightarrow> (\<Turnstile> {P} c {Q}) = (\<Turnstile> {P} c' {Q})"
-  unfolding hoare_valid_def equiv_up_to_def by blast
-
-lemma equiv_up_to_hoare_eq:
-  "P \<Turnstile> c \<sim> c' \<Longrightarrow> (\<Turnstile> {P} c {Q}) = (\<Turnstile> {P} c' {Q})"
-  by (rule equiv_up_to_hoare)
+lemma bequiv_up_to_subst:
+  "P \<Turnstile> b <\<sim>> b' \<Longrightarrow> P s \<Longrightarrow> bval b s = bval b' s"
+  by (simp add: bequiv_up_to_def)
 
 
 lemma equiv_up_to_seq:
-  "P \<Turnstile> c \<sim> c' \<Longrightarrow> Q \<Turnstile> d \<sim> d' \<Longrightarrow> \<Turnstile> {P} c {Q} \<Longrightarrow>
+  "P \<Turnstile> c \<sim> c' \<Longrightarrow> Q \<Turnstile> d \<sim> d' \<Longrightarrow>
+  (\<And>s s'. (c,s) \<Rightarrow> s' \<Longrightarrow> P s \<Longrightarrow> Q s') \<Longrightarrow>
   P \<Turnstile> (c; d) \<sim> (c'; d')"
-  by (clarsimp simp: equiv_up_to_def hoare_valid_def) blast
+  by (clarsimp simp: equiv_up_to_def) blast
 
 lemma equiv_up_to_while_lemma:
-  shows "(d,s) \<Rightarrow> s' \<Longrightarrow> 
+  shows "(d,s) \<Rightarrow> s' \<Longrightarrow>
          P \<Turnstile> b <\<sim>> b' \<Longrightarrow>
-         (\<lambda>s. P s \<and> bval b s) \<Turnstile> c \<sim> c' \<Longrightarrow> 
-         \<Turnstile> {\<lambda>s. P s \<and> bval b s} c {P} \<Longrightarrow> 
-         P s \<Longrightarrow> 
-         d = WHILE b DO c \<Longrightarrow> 
-         (WHILE b' DO c', s) \<Rightarrow> s'"  
+         (\<lambda>s. P s \<and> bval b s) \<Turnstile> c \<sim> c' \<Longrightarrow>
+         (\<And>s s'. (c, s) \<Rightarrow> s' \<Longrightarrow> P s \<Longrightarrow> bval b s \<Longrightarrow> P s') \<Longrightarrow>
+         P s \<Longrightarrow>
+         d = WHILE b DO c \<Longrightarrow>
+         (WHILE b' DO c', s) \<Rightarrow> s'"
 proof (induction rule: big_step_induct)
   case (WhileTrue b s1 c s2 s3)
-  note IH = WhileTrue.IH(2) [OF WhileTrue.prems(1-3) _ WhileTrue.prems(5)]
+  hence IH: "P s2 \<Longrightarrow> (WHILE b' DO c', s2) \<Rightarrow> s3" by auto
   from WhileTrue.prems
   have "P \<Turnstile> b <\<sim>> b'" by simp
   with `bval b s1` `P s1`
@@ -97,38 +95,46 @@ proof (induction rule: big_step_induct)
   have "(c', s1) \<Rightarrow> s2" by (simp add: equiv_up_to_def)
   moreover
   from WhileTrue.prems
-  have "\<Turnstile> {\<lambda>s. P s \<and> bval b s} c {P}" by simp
+  have "\<And>s s'. (c,s) \<Rightarrow> s' \<Longrightarrow> P s \<Longrightarrow> bval b s \<Longrightarrow> P s'" by simp
   with `P s1` `bval b s1` `(c, s1) \<Rightarrow> s2`
-  have "P s2" by (simp add: hoare_valid_def)
+  have "P s2" by simp
   hence "(WHILE b' DO c', s2) \<Rightarrow> s3" by (rule IH)
-  ultimately 
+  ultimately
   show ?case by blast
 next
   case WhileFalse
   thus ?case by (auto simp: bequiv_up_to_def)
-qed (fastforce simp: equiv_up_to_def bequiv_up_to_def hoare_valid_def)+
+qed (fastforce simp: equiv_up_to_def bequiv_up_to_def)+
 
 lemma bequiv_context_subst:
   "P \<Turnstile> b <\<sim>> b' \<Longrightarrow> (P s \<and> bval b s) = (P s \<and> bval b' s)"
   by (auto simp: bequiv_up_to_def)
 
 lemma equiv_up_to_while:
-  "P \<Turnstile> b <\<sim>> b' \<Longrightarrow> (\<lambda>s. P s \<and> bval b s) \<Turnstile> c \<sim> c' \<Longrightarrow> 
-   \<Turnstile> {\<lambda>s. P s \<and> bval b s} c {P} \<Longrightarrow> 
-   P \<Turnstile> WHILE b DO c \<sim> WHILE b' DO c'"
-  apply (safe intro!: equiv_up_toI)
-   apply (auto intro: equiv_up_to_while_lemma)[1]
-  apply (simp add: equiv_up_to_hoare_eq bequiv_context_subst)
-  apply (drule equiv_up_to_sym [THEN iffD1])
-  apply (drule bequiv_up_to_sym [THEN iffD1])
-  apply (auto intro: equiv_up_to_while_lemma)[1]
-  done
+  assumes b: "P \<Turnstile> b <\<sim>> b'"
+  assumes c: "(\<lambda>s. P s \<and> bval b s) \<Turnstile> c \<sim> c'"
+  assumes I: "\<And>s s'. (c, s) \<Rightarrow> s' \<Longrightarrow> P s \<Longrightarrow> bval b s \<Longrightarrow> P s'"
+  shows "P \<Turnstile> WHILE b DO c \<sim> WHILE b' DO c'"
+proof -
+  from b have b': "P \<Turnstile> b' <\<sim>> b" by (simp add: bequiv_up_to_sym)
+
+  from c b have c': "(\<lambda>s. P s \<and> bval b' s) \<Turnstile> c' \<sim> c"
+    by (simp add: equiv_up_to_sym bequiv_context_subst)
+
+  from I
+  have I': "\<And>s s'. (c', s) \<Rightarrow> s' \<Longrightarrow> P s \<Longrightarrow> bval b' s \<Longrightarrow> P s'"
+    by (auto dest!: equiv_up_toD1 [OF c'] simp: bequiv_up_to_subst [OF b'])
+
+  note equiv_up_to_while_lemma [OF _ b c]
+       equiv_up_to_while_lemma [OF _ b' c']
+  thus ?thesis using I I' by (auto intro!: equiv_up_toI)
+qed
 
 lemma equiv_up_to_while_weak:
-  "P \<Turnstile> b <\<sim>> b' \<Longrightarrow> P \<Turnstile> c \<sim> c' \<Longrightarrow> \<Turnstile> {P} c {P} \<Longrightarrow> 
+  "P \<Turnstile> b <\<sim>> b' \<Longrightarrow> P \<Turnstile> c \<sim> c' \<Longrightarrow>
+   (\<And>s s'. (c, s) \<Rightarrow> s' \<Longrightarrow> P s \<Longrightarrow> bval b s \<Longrightarrow> P s') \<Longrightarrow>
    P \<Turnstile> WHILE b DO c \<sim> WHILE b' DO c'"
-  by (fastforce elim!: equiv_up_to_while equiv_up_to_weaken 
-               simp: hoare_valid_def)
+  by (fastforce elim!: equiv_up_to_while equiv_up_to_weaken)
 
 lemma equiv_up_to_if:
   "P \<Turnstile> b <\<sim>> b' \<Longrightarrow> (\<lambda>s. P s \<and> bval b s) \<Turnstile> c \<sim> c' \<Longrightarrow> (\<lambda>s. P s \<and> \<not>bval b s) \<Turnstile> d \<sim> d' \<Longrightarrow>
@@ -142,7 +148,7 @@ lemma equiv_up_to_if_weak:
 
 lemma equiv_up_to_if_True [intro!]:
   "(\<And>s. P s \<Longrightarrow> bval b s) \<Longrightarrow> P \<Turnstile> IF b THEN c1 ELSE c2 \<sim> c1"
-  by (auto simp: equiv_up_to_def) 
+  by (auto simp: equiv_up_to_def)
 
 lemma equiv_up_to_if_False [intro!]:
   "(\<And>s. P s \<Longrightarrow> \<not> bval b s) \<Longrightarrow> P \<Turnstile> IF b THEN c1 ELSE c2 \<sim> c2"
@@ -154,7 +160,7 @@ lemma equiv_up_to_while_False [intro!]:
 
 lemma while_never: "(c, s) \<Rightarrow> u \<Longrightarrow> c \<noteq> WHILE (Bc True) DO c'"
  by (induct rule: big_step_induct) auto
-  
+
 lemma equiv_up_to_while_True [intro!,simp]:
   "P \<Turnstile> WHILE Bc True DO c \<sim> WHILE Bc True DO SKIP"
   unfolding equiv_up_to_def

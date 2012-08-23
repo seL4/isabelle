@@ -12,14 +12,14 @@ fun simp_const :: "aexp \<Rightarrow> tab \<Rightarrow> aexp" where
 "simp_const (N n) _ = N n" |
 "simp_const (V x) t = (case t x of None \<Rightarrow> V x | Some k \<Rightarrow> N k)" |
 "simp_const (Plus e1 e2) t = (case (simp_const e1 t, simp_const e2 t) of
-  (N n1, N n2) \<Rightarrow> N(n1+n2) | (e1',e2') \<Rightarrow> Plus e1' e2')" 
+  (N n1, N n2) \<Rightarrow> N(n1+n2) | (e1',e2') \<Rightarrow> Plus e1' e2')"
 
 definition "approx t s \<longleftrightarrow> (ALL x k. t x = Some k \<longrightarrow> s x = k)"
 
 theorem aval_simp_const[simp]:
 assumes "approx t s"
 shows "aval (simp_const a t) s = aval a s"
-  using assms 
+  using assms
   by (induct a) (auto simp: approx_def split: aexp.split option.split)
 
 theorem aval_simp_const_N:
@@ -45,7 +45,7 @@ primrec "defs" :: "com \<Rightarrow> tab \<Rightarrow> tab" where
   (case simp_const a t of N k \<Rightarrow> t(x \<mapsto> k) | _ \<Rightarrow> t(x:=None))" |
 "defs (c1;c2) t = (defs c2 o defs c1) t" |
 "defs (IF b THEN c1 ELSE c2) t = merge (defs c1 t) (defs c2 t)" |
-"defs (WHILE b DO c) t = t |` (-lnames c)" 
+"defs (WHILE b DO c) t = t |` (-lnames c)"
 
 primrec fold where
 "fold SKIP _ = SKIP" |
@@ -71,10 +71,10 @@ lemma merge_restrict:
   shows "merge t1 t2 |` S = t |` S"
 proof -
   from assms
-  have "\<forall>x. (t1 |` S) x = (t |` S) x" 
+  have "\<forall>x. (t1 |` S) x = (t |` S) x"
    and "\<forall>x. (t2 |` S) x = (t |` S) x" by auto
   thus ?thesis
-    by (auto simp: merge_def restrict_map_def 
+    by (auto simp: merge_def restrict_map_def
              split: if_splits intro: ext)
 qed
 
@@ -83,13 +83,13 @@ lemma defs_restrict:
   "defs c t |` (- lnames c) = t |` (- lnames c)"
 proof (induction c arbitrary: t)
   case (Seq c1 c2)
-  hence "defs c1 t |` (- lnames c1) = t |` (- lnames c1)" 
+  hence "defs c1 t |` (- lnames c1) = t |` (- lnames c1)"
     by simp
-  hence "defs c1 t |` (- lnames c1) |` (-lnames c2) = 
+  hence "defs c1 t |` (- lnames c1) |` (-lnames c2) =
          t |` (- lnames c1) |` (-lnames c2)" by simp
   moreover
   from Seq
-  have "defs c2 (defs c1 t) |` (- lnames c2) = 
+  have "defs c2 (defs c1 t) |` (- lnames c2) =
         defs c1 t |` (- lnames c2)"
     by simp
   hence "defs c2 (defs c1 t) |` (- lnames c2) |` (- lnames c1) =
@@ -100,12 +100,12 @@ proof (induction c arbitrary: t)
 next
   case (If b c1 c2)
   hence "defs c1 t |` (- lnames c1) = t |` (- lnames c1)" by simp
-  hence "defs c1 t |` (- lnames c1) |` (-lnames c2) = 
+  hence "defs c1 t |` (- lnames c1) |` (-lnames c2) =
          t |` (- lnames c1) |` (-lnames c2)" by simp
   moreover
   from If
   have "defs c2 t |` (- lnames c2) = t |` (- lnames c2)" by simp
-  hence "defs c2 t |` (- lnames c2) |` (-lnames c1) = 
+  hence "defs c2 t |` (- lnames c2) |` (-lnames c1) =
          t |` (- lnames c2) |` (-lnames c1)" by simp
   ultimately
   show ?case by (auto simp: Int_commute intro: merge_restrict)
@@ -144,10 +144,6 @@ next
   thus ?case by (simp add: defs_restrict)
 qed
 
-corollary approx_defs_inv [simp]:
-  "\<Turnstile> {approx t} c {approx (defs c t)}"
-  by (simp add: hoare_valid_def big_step_pres_approx)
-
 
 lemma big_step_pres_approx_restrict:
   "(c,s) \<Rightarrow> s' \<Longrightarrow> approx (t |` (-lnames c)) s \<Longrightarrow> approx (t |` (-lnames c)) s'"
@@ -156,7 +152,7 @@ proof (induction arbitrary: t rule: big_step_induct)
   thus ?case by (clarsimp simp: approx_def)
 next
   case (Seq c1 s1 s2 c2 s3)
-  hence "approx (t |` (-lnames c2) |` (-lnames c1)) s1" 
+  hence "approx (t |` (-lnames c2) |` (-lnames c1)) s1"
     by (simp add: Int_commute)
   hence "approx (t |` (-lnames c2) |` (-lnames c1)) s2"
     by (rule Seq)
@@ -167,24 +163,20 @@ next
   thus ?case by simp
 next
   case (IfTrue b s c1 s' c2)
-  hence "approx (t |` (-lnames c2) |` (-lnames c1)) s" 
+  hence "approx (t |` (-lnames c2) |` (-lnames c1)) s"
     by (simp add: Int_commute)
-  hence "approx (t |` (-lnames c2) |` (-lnames c1)) s'" 
+  hence "approx (t |` (-lnames c2) |` (-lnames c1)) s'"
     by (rule IfTrue)
-  thus ?case by (simp add: Int_commute) 
+  thus ?case by (simp add: Int_commute)
 next
   case (IfFalse b s c2 s' c1)
-  hence "approx (t |` (-lnames c1) |` (-lnames c2)) s" 
+  hence "approx (t |` (-lnames c1) |` (-lnames c2)) s"
     by simp
-  hence "approx (t |` (-lnames c1) |` (-lnames c2)) s'" 
+  hence "approx (t |` (-lnames c1) |` (-lnames c2)) s'"
     by (rule IfFalse)
   thus ?case by simp
 qed auto
 
-
-lemma approx_restrict_inv:
-  "\<Turnstile> {approx (t |` (-lnames c))} c {approx (t |` (-lnames c))}"
-  by (simp add: hoare_valid_def big_step_pres_approx_restrict)
 
 declare assign_simp [simp]
 
@@ -196,22 +188,22 @@ next
   case Assign
   show ?case by (simp add: equiv_up_to_def)
 next
-  case Seq 
-  thus ?case by (auto intro!: equiv_up_to_seq)
+  case Seq
+  thus ?case by (auto intro!: equiv_up_to_seq big_step_pres_approx)
 next
   case If
   thus ?case by (auto intro!: equiv_up_to_if_weak)
 next
   case (While b c)
-  hence "approx (t |` (- lnames c)) \<Turnstile> 
+  hence "approx (t |` (- lnames c)) \<Turnstile>
          WHILE b DO c \<sim> WHILE b DO fold c (t |` (- lnames c))"
-    by (auto intro: equiv_up_to_while_weak approx_restrict_inv)
-  thus ?case 
+    by (auto intro: equiv_up_to_while_weak big_step_pres_approx_restrict)
+  thus ?case
     by (auto intro: equiv_up_to_weaken approx_map_le)
 qed
-  
 
-lemma approx_empty [simp]: 
+
+lemma approx_empty [simp]:
   "approx empty = (\<lambda>_. True)"
   by (auto intro!: ext simp: approx_def)
 
@@ -246,22 +238,22 @@ lemma not_Bc [simp]: "not (Bc v) = Bc (\<not>v)"
 lemma not_Bc_eq [simp]: "(not b = Bc v) = (b = Bc (\<not>v))"
   by (cases b) auto
 
-lemma and_Bc_eq: 
+lemma and_Bc_eq:
   "(and a b = Bc v) =
-   (a = Bc False \<and> \<not>v  \<or>  b = Bc False \<and> \<not>v \<or> 
+   (a = Bc False \<and> \<not>v  \<or>  b = Bc False \<and> \<not>v \<or>
     (\<exists>v1 v2. a = Bc v1 \<and> b = Bc v2 \<and> v = v1 \<and> v2))"
   by (rule and.induct) auto
 
 lemma less_Bc_eq [simp]:
   "(less a b = Bc v) = (\<exists>n1 n2. a = N n1 \<and> b = N n2 \<and> v = (n1 < n2))"
   by (rule less.induct) auto
-    
+
 theorem bvalsimp_const_Bc:
 assumes "approx t s"
 shows "bsimp_const b t = Bc v \<Longrightarrow> bval b s = v"
   using assms
   by (induct b arbitrary: v)
-     (auto simp: approx_def and_Bc_eq aval_simp_const_N 
+     (auto simp: approx_def and_Bc_eq aval_simp_const_N
            split: bexp.splits bool.splits)
 
 
@@ -274,7 +266,7 @@ primrec "bdefs" :: "com \<Rightarrow> tab \<Rightarrow> tab" where
     Bc True \<Rightarrow> bdefs c1 t
   | Bc False \<Rightarrow> bdefs c2 t
   | _ \<Rightarrow> merge (bdefs c1 t) (bdefs c2 t))" |
-"bdefs (WHILE b DO c) t = t |` (-lnames c)" 
+"bdefs (WHILE b DO c) t = t |` (-lnames c)"
 
 
 primrec bfold where
@@ -294,13 +286,13 @@ lemma bdefs_restrict:
   "bdefs c t |` (- lnames c) = t |` (- lnames c)"
 proof (induction c arbitrary: t)
   case (Seq c1 c2)
-  hence "bdefs c1 t |` (- lnames c1) = t |` (- lnames c1)" 
+  hence "bdefs c1 t |` (- lnames c1) = t |` (- lnames c1)"
     by simp
-  hence "bdefs c1 t |` (- lnames c1) |` (-lnames c2) = 
+  hence "bdefs c1 t |` (- lnames c1) |` (-lnames c2) =
          t |` (- lnames c1) |` (-lnames c2)" by simp
   moreover
   from Seq
-  have "bdefs c2 (bdefs c1 t) |` (- lnames c2) = 
+  have "bdefs c2 (bdefs c1 t) |` (- lnames c2) =
         bdefs c1 t |` (- lnames c2)"
     by simp
   hence "bdefs c2 (bdefs c1 t) |` (- lnames c2) |` (- lnames c1) =
@@ -311,22 +303,22 @@ proof (induction c arbitrary: t)
 next
   case (If b c1 c2)
   hence "bdefs c1 t |` (- lnames c1) = t |` (- lnames c1)" by simp
-  hence "bdefs c1 t |` (- lnames c1) |` (-lnames c2) = 
+  hence "bdefs c1 t |` (- lnames c1) |` (-lnames c2) =
          t |` (- lnames c1) |` (-lnames c2)" by simp
   moreover
   from If
   have "bdefs c2 t |` (- lnames c2) = t |` (- lnames c2)" by simp
-  hence "bdefs c2 t |` (- lnames c2) |` (-lnames c1) = 
+  hence "bdefs c2 t |` (- lnames c2) |` (-lnames c1) =
          t |` (- lnames c2) |` (-lnames c1)" by simp
   ultimately
-  show ?case 
-    by (auto simp: Int_commute intro: merge_restrict 
+  show ?case
+    by (auto simp: Int_commute intro: merge_restrict
              split: bexp.splits bool.splits)
 qed (auto split: aexp.split bexp.split bool.split)
 
 
 lemma big_step_pres_approx_b:
-  "(c,s) \<Rightarrow> s' \<Longrightarrow> approx t s \<Longrightarrow> approx (bdefs c t) s'" 
+  "(c,s) \<Rightarrow> s' \<Longrightarrow> approx t s \<Longrightarrow> approx (bdefs c t) s'"
 proof (induction arbitrary: t rule: big_step_induct)
   case Skip thus ?case by simp
 next
@@ -352,7 +344,7 @@ next
                  split: bexp.splits bool.splits)
 next
   case WhileFalse
-  thus ?case 
+  thus ?case
     by (clarsimp simp: bvalsimp_const_Bc approx_def restrict_map_def
                  split: bexp.splits bool.splits)
 next
@@ -361,15 +353,11 @@ next
   with WhileTrue
   have "approx (bdefs c t |` (- lnames c)) s3"
     by simp
-  thus ?case 
+  thus ?case
     by (simp add: bdefs_restrict)
 qed
 
-corollary approx_bdefs_inv [simp]:
-  "\<Turnstile> {approx t} c {approx (bdefs c t)}"
-  by (simp add: hoare_valid_def big_step_pres_approx_b)
-
-lemma bfold_equiv: 
+lemma bfold_equiv:
   "approx t \<Turnstile> c \<sim> bfold c t"
 proof (induction c arbitrary: t)
   case SKIP show ?case by simp
@@ -378,28 +366,28 @@ next
   thus ?case by (simp add: equiv_up_to_def)
 next
   case Seq
-  thus ?case by (auto intro!: equiv_up_to_seq)           
+  thus ?case by (auto intro!: equiv_up_to_seq big_step_pres_approx_b)
 next
   case (If b c1 c2)
-  hence "approx t \<Turnstile> IF b THEN c1 ELSE c2 \<sim> 
+  hence "approx t \<Turnstile> IF b THEN c1 ELSE c2 \<sim>
                    IF Fold.bsimp_const b t THEN bfold c1 t ELSE bfold c2 t"
-    by (auto intro: equiv_up_to_if_weak simp: bequiv_up_to_def) 
+    by (auto intro: equiv_up_to_if_weak simp: bequiv_up_to_def)
   thus ?case using If
-    by (fastforce simp: bvalsimp_const_Bc split: bexp.splits bool.splits 
+    by (fastforce simp: bvalsimp_const_Bc split: bexp.splits bool.splits
                  intro: equiv_up_to_trans)
   next
   case (While b c)
-  hence "approx (t |` (- lnames c)) \<Turnstile> 
+  hence "approx (t |` (- lnames c)) \<Turnstile>
                    WHILE b DO c \<sim>
-                   WHILE bsimp_const b (t |` (- lnames c)) 
-                      DO bfold c (t |` (- lnames c))" (is "_ \<Turnstile> ?W \<sim> ?W'") 
-    by (auto intro: equiv_up_to_while_weak approx_restrict_inv 
+                   WHILE bsimp_const b (t |` (- lnames c))
+                      DO bfold c (t |` (- lnames c))" (is "_ \<Turnstile> ?W \<sim> ?W'")
+    by (auto intro: equiv_up_to_while_weak big_step_pres_approx_restrict
              simp: bequiv_up_to_def)
   hence "approx t \<Turnstile> ?W \<sim> ?W'"
     by (auto intro: equiv_up_to_weaken approx_map_le)
   thus ?case
-    by (auto split: bexp.splits bool.splits 
-             intro: equiv_up_to_while_False 
+    by (auto split: bexp.splits bool.splits
+             intro: equiv_up_to_while_False
              simp: bvalsimp_const_Bc)
 qed
 
