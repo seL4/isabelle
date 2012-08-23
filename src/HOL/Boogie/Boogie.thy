@@ -7,7 +7,10 @@ header {* Integration of the Boogie program verifier *}
 theory Boogie
 imports Word
 keywords
-  "boogie_open" "boogie_end" :: thy_decl and "boogie_vc" :: thy_goal and "boogie_status" :: diag
+  "boogie_open" :: thy_load and
+  "boogie_end" :: thy_decl and
+  "boogie_vc" :: thy_goal and
+  "boogie_status" :: diag
 begin
 
 text {*
@@ -64,7 +67,7 @@ text {*
 Proving Boogie-generated verification conditions happens inside
 a Boogie environment:
 
-  boogie_open "b2i file without extension"
+  boogie_open "b2i file with extension"
   boogie_vc "verification condition 1" ...
   boogie_vc "verification condition 2" ...
   boogie_vc "verification condition 3" ...
