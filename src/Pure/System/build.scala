@@ -328,7 +328,7 @@ object Build
     def sources(name: String): List[SHA1.Digest] = deps(name).sources.map(_._2)
   }
 
-  def dependencies(verbose: Boolean, tree: Session_Tree): Deps =
+  def dependencies(verbose: Boolean, list_files: Boolean, tree: Session_Tree): Deps =
     Deps((Map.empty[String, Session_Content] /: tree.topological_order)(
       { case (deps, (name, info)) =>
           val (preloaded, parent_syntax, parent_errors) =
@@ -341,7 +341,7 @@ object Build
             }
           val thy_info = new Thy_Info(new Thy_Load(preloaded, parent_syntax))
 
-          if (verbose) {
+          if (verbose || list_files) {
             val groups =
               if (info.groups.isEmpty) ""
               else info.groups.mkString(" (", " ", ")")
@@ -362,6 +362,10 @@ object Build
               val uses = h.uses.map(p => (Path.explode(n.dir) + Path.explode(p._1)).expand)
               thy :: uses
             }).flatten ::: info.files.map(file => info.dir + file)
+
+          if (list_files)
+            echo(cat_lines(all_files.map(_.implode).sorted.map("  " + _)))
+
           val sources =
             try { all_files.map(p => (p, SHA1.digest(p))) }
             catch {
@@ -378,7 +382,7 @@ object Build
   {
     val (_, tree) =
       find_sessions(Options.init(), dirs.map((false, _))).required(false, Nil, List(session))
-    dependencies(false, tree)(session)
+    dependencies(false, false, tree)(session)
   }
 
   def outer_syntax(session: String): Outer_Syntax =
@@ -531,6 +535,7 @@ object Build
     more_dirs: List[(Boolean, Path)] = Nil,
     session_groups: List[String] = Nil,
     max_jobs: Int = 1,
+    list_files: Boolean = false,
     no_build: Boolean = false,
     build_options: List[String] = Nil,
     system_mode: Boolean = false,
@@ -540,7 +545,7 @@ object Build
     val options = (Options.init() /: build_options)(_ + _)
     val (descendants, tree) =
       find_sessions(options, more_dirs).required(all_sessions, session_groups, sessions)
-    val deps = dependencies(verbose, tree)
+    val deps = dependencies(verbose, list_files, tree)
     val queue = Queue(tree)
 
     def make_stamp(name: String): String =
@@ -692,6 +697,7 @@ object Build
           Properties.Value.Boolean(build_heap) ::
           Properties.Value.Boolean(clean_build) ::
           Properties.Value.Int(max_jobs) ::
+          Properties.Value.Boolean(list_files) ::
           Properties.Value.Boolean(no_build) ::
           Properties.Value.Boolean(system_mode) ::
           Properties.Value.Boolean(verbose) ::
@@ -700,7 +706,7 @@ object Build
               select_dirs.map(d => (true, Path.explode(d))) :::
               include_dirs.map(d => (false, Path.explode(d)))
             build(all_sessions, build_heap, clean_build, dirs, session_groups,
-              max_jobs, no_build, build_options, system_mode, verbose, sessions)
+              max_jobs, list_files, no_build, build_options, system_mode, verbose, sessions)
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }
     }

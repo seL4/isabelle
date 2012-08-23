@@ -189,6 +189,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     -d DIR       include session directory
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs (default 1)
+    -l           list session source files
     -n           no build -- test dependencies only
     -o OPTION    override session configuration OPTION
                  (via NAME=VAL or NAME)
@@ -265,7 +266,9 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   @{setting ISABELLE_OUTPUT} (which is normally in @{setting
   ISABELLE_HOME_USER}, i.e.\ the user's home directory).
 
-  \medskip Option @{verbatim "-v"} enables verbose mode.
+  \medskip Option @{verbatim "-v"} increases the general level of
+  verbosity.  Option @{verbatim "-l"} lists the source files that
+  contribute to a session.
 *}
 
 subsubsection {* Examples *}
