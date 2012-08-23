@@ -357,11 +357,11 @@ object Build
           val syntax = thy_deps.make_syntax
 
           val all_files =
-            thy_deps.deps.map({ case (n, h) =>
-              val thy = Path.explode(n.node).expand
-              val uses = h.uses.map(p => (Path.explode(n.dir) + Path.explode(p._1)).expand)
+            (thy_deps.deps.map({ case (n, h) =>
+              val thy = Path.explode(n.node)
+              val uses = h.uses.map(p => Path.explode(n.dir) + Path.explode(p._1))
               thy :: uses
-            }).flatten ::: info.files.map(file => info.dir + file)
+            }).flatten ::: info.files.map(file => info.dir + file)).map(_.expand)
 
           if (list_files)
             echo(cat_lines(all_files.map(_.implode).sorted.map("  " + _)))
