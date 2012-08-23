@@ -8,11 +8,13 @@ signature THY_LOAD =
 sig
   val master_directory: theory -> Path.T
   val imports_of: theory -> string list
-  val provide: Path.T * SHA1.digest -> theory -> theory
   val thy_path: Path.T -> Path.T
+  val parse_files: string -> (theory -> Token.file list) parser
   val check_thy: Path.T -> string ->
    {master: Path.T * SHA1.digest, text: string, imports: string list,
     uses: (Path.T * bool) list, keywords: Thy_Header.keywords}
+  val provide: Path.T * SHA1.digest -> theory -> theory
+  val provide_parse_files: string -> (theory -> Token.file list * theory) parser
   val load_file: theory -> Path.T -> (Path.T * SHA1.digest) * string
   val use_file: Path.T -> theory -> string * theory
   val loaded_files: theory -> Path.T list
@@ -22,7 +24,6 @@ sig
   val begin_theory: Path.T -> Thy_Header.header -> theory list -> theory
   val load_thy: int -> Path.T -> Thy_Header.header -> Position.T -> string ->
     theory list -> theory * unit future
-  val parse_files: string -> (theory -> Token.file list) parser
   val set_master_path: Path.T -> unit
   val get_master_path: unit -> Path.T
 end;
@@ -57,12 +58,6 @@ val master_directory = #master_dir o Files.get;
 val imports_of = #imports o Files.get;
 
 fun put_deps master_dir imports = map_files (fn _ => (master_dir, imports, []));
-
-fun provide (src_path, id) =
-  map_files (fn (master_dir, imports, provided) =>
-    if AList.defined (op =) provided src_path then
-      error ("Duplicate use of source file: " ^ Path.print src_path)
-    else (master_dir, imports, (src_path, id) :: provided));
 
 
 (* inlined files *)
@@ -146,6 +141,19 @@ fun check_thy dir thy_name =
 
 
 (* load files *)
+
+fun provide (src_path, id) =
+  map_files (fn (master_dir, imports, provided) =>
+    if AList.defined (op =) provided src_path then
+      error ("Duplicate use of source file: " ^ Path.print src_path)
+    else (master_dir, imports, (src_path, id) :: provided));
+
+fun provide_parse_files cmd =
+  parse_files cmd >> (fn files => fn thy =>
+    let
+      val fs = files thy;
+      val thy' = fold (fn {src_path, text, ...} => provide (src_path, SHA1.digest text)) fs thy;
+    in (fs, thy') end);
 
 fun load_file thy src_path =
   let
