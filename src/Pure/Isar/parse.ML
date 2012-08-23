@@ -115,7 +115,7 @@ type 'a context_parser = Context.generic * Token.T list -> 'a * (Context.generic
 (* group atomic parsers (no cuts!) *)
 
 fun group s scan = scan || Scan.fail_with
-  (fn [] => (fn () => s () ^ " expected (past end-of-file!)")
+  (fn [] => (fn () => s () ^ " expected,\nbut end-of-input was found")
     | tok :: _ =>
         (fn () =>
           (case Token.text_of tok of
@@ -129,7 +129,7 @@ fun group s scan = scan || Scan.fail_with
 
 fun cut kind scan =
   let
-    fun get_pos [] = " (past end-of-file!)"
+    fun get_pos [] = " (end-of-input)"
       | get_pos (tok :: _) = Token.pos_of tok;
 
     fun err (toks, NONE) = (fn () => kind ^ get_pos toks)

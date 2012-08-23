@@ -31,7 +31,7 @@ val print_kind =
   | Ident => "identifier"
   | String => "single-quoted string"
   | Antiq _ => "antiquotation"
-  | EOF => "end-of-file";
+  | EOF => "end-of-input";
 
 fun print (Token ((pos, _), (k, x))) =
   (if k = EOF then print_kind k else print_kind k ^ " " ^ quote x) ^
@@ -91,7 +91,7 @@ fun !!! scan =
   let
     val prefix = "Rail syntax error";
 
-    fun get_pos [] = " (past end-of-file!)"
+    fun get_pos [] = " (end-of-input)"
       | get_pos (tok :: _) = Position.str_of (pos_of tok);
 
     fun err (toks, NONE) = (fn () => prefix ^ get_pos toks)
@@ -106,7 +106,7 @@ fun !!! scan =
 fun $$$ x =
   Scan.one (fn tok => kind_of tok = Keyword andalso content_of tok = x) ||
   Scan.fail_with
-    (fn [] => (fn () => print_keyword x ^ " expected (past end-of-file!)")
+    (fn [] => (fn () => print_keyword x ^ " expected,\nbut end-of-input was found")
       | tok :: _ => (fn () => print_keyword x ^ " expected,\nbut " ^ print tok ^ " was found"));
 
 fun enum1 sep scan = scan ::: Scan.repeat ($$$ sep |-- !!! scan);

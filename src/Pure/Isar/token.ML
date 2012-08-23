@@ -122,7 +122,7 @@ val str_of_kind =
   | InternalValue => "internal value"
   | Error _ => "bad input"
   | Sync => "sync marker"
-  | EOF => "end-of-file";
+  | EOF => "end-of-input";
 
 
 (* position *)

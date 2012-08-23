@@ -128,7 +128,7 @@ fun read_dir path = rev (fold_dir cons path []);
 (*
   scalable iterator:
   . avoid size limit of TextIO.inputAll and overhead of many TextIO.inputLine
-  . optional terminator at end-of-file
+  . optional terminator at end-of-input
 *)
 fun fold_chunks terminator f path a = open_input (fn file =>
   let

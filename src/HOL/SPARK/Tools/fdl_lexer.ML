@@ -191,7 +191,7 @@ fun beginning n cs =
 
 fun !!! text scan =
   let
-    fun get_pos [] = " (past end-of-text!)"
+    fun get_pos [] = " (end-of-input)"
       | get_pos ((_, pos) :: _) = Position.str_of pos;
 
     fun err (syms, msg) = fn () =>

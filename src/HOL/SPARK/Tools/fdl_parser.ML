@@ -69,7 +69,7 @@ fun beginning n cs =
 
 fun !!! scan =
   let
-    fun get_pos [] = " (past end-of-file!)"
+    fun get_pos [] = " (end-of-input)"
       | get_pos (tok :: _) = Fdl_Lexer.pos_of tok;
 
     fun err (syms, msg) = fn () =>

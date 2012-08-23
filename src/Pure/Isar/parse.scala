@@ -29,7 +29,7 @@ object Parse
       def apply(raw_input: Input) =
       {
         val in = proper(raw_input)
-        if (in.atEnd) Failure(s + " expected (past end-of-file!)", in)
+        if (in.atEnd) Failure(s + " expected,\nbut end-of-input was found", in)
         else {
           val token = in.first
           if (pred(token)) Success(token, proper(in.rest))
