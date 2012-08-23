@@ -2,7 +2,11 @@ session HOL (main) = Pure +
   description {* Classical Higher-order Logic *}
   options [document_graph]
   theories Complex_Main
-  files "document/root.bib" "document/root.tex"
+  files
+    "Tools/Quickcheck/Narrowing_Engine.hs"
+    "Tools/Quickcheck/PNF_Narrowing_Engine.hs"
+    "document/root.bib"
+    "document/root.tex"
 
 session "HOL-Base" = Pure +
   description {* Raw HOL base, with minimal tools *}
@@ -18,11 +22,17 @@ session "HOL-Main" = Pure +
   description {* HOL side-entry for Main only, without Complex_Main *}
   options [document = false]
   theories Main
+  files
+    "Tools/Quickcheck/Narrowing_Engine.hs"
+    "Tools/Quickcheck/PNF_Narrowing_Engine.hs"
 
 session "HOL-Proofs" = Pure +
   description {* HOL-Main with explicit proof terms *}
   options [document = false, proofs = 2, parallel_proofs = 0]
   theories Main
+  files
+    "Tools/Quickcheck/Narrowing_Engine.hs"
+    "Tools/Quickcheck/PNF_Narrowing_Engine.hs"
 
 session "HOL-Library" in Library = HOL +
   description {* Classical Higher-order Logic -- batteries included *}
