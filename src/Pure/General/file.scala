@@ -35,6 +35,29 @@ object File
 
   /* read */
 
+  def read_bytes(file: JFile): Array[Byte] =
+  {
+    var i = 0
+    var m = 0
+    val n = file.length.toInt
+    val buf = new Array[Byte](n)
+
+    val stream = new FileInputStream(file)
+    try {
+      do {
+        m = stream.read(buf, i, n - i)
+        if (m != -1) i += m
+      } while (m != -1 && n > i)
+    }
+    finally { stream.close }
+    buf
+  }
+
+  def read(file: JFile): String =
+    new String(read_bytes(file), Standard_System.charset)
+
+  def read(path: Path): String = read(path.file)
+
   def read(reader: BufferedReader): String =
   {
     val output = new StringBuilder(100)
@@ -46,10 +69,6 @@ object File
 
   def read(stream: InputStream): String =
     read(new BufferedReader(new InputStreamReader(stream, Standard_System.charset)))
-
-  def read(file: JFile): String = read(new FileInputStream(file))
-
-  def read(path: Path): String = read(path.file)
 
 
   /* try_read */
