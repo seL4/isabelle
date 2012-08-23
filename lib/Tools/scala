@@ -8,4 +8,4 @@
 
 CLASSPATH="$(jvmpath "$CLASSPATH")"
 isabelle_scala scala -Dfile.encoding=UTF-8 \
-  "-Djava.ext.dirs=$("$ISABELLE_HOME/src/Tools/JVM/java_ext_dirs")" "$@"
+  "-Djava.ext.dirs=$(jvmpath "$ISABELLE_JAVA_EXT:$ISABELLE_HOME/lib/classes/ext")" "$@"
