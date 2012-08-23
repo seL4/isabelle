@@ -9,7 +9,6 @@ sig
   val master_directory: theory -> Path.T
   val imports_of: theory -> string list
   val provide: Path.T * SHA1.digest -> theory -> theory
-  val check_file: Path.T -> Path.T -> Path.T
   val thy_path: Path.T -> Path.T
   val check_thy: Thy_Header.keywords -> Path.T -> string ->
    {master: Path.T * SHA1.digest, text: string, imports: string list,
