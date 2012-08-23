@@ -10,7 +10,7 @@ sig
   val imports_of: theory -> string list
   val provide: Path.T * SHA1.digest -> theory -> theory
   val thy_path: Path.T -> Path.T
-  val check_thy: Thy_Header.keywords -> Path.T -> string ->
+  val check_thy: Path.T -> string ->
    {master: Path.T * SHA1.digest, text: string, imports: string list,
     uses: (Path.T * bool) list, keywords: Thy_Header.keywords}
   val load_file: theory -> Path.T -> (Path.T * SHA1.digest) * string
@@ -69,6 +69,21 @@ fun provide (src_path, id) =
 
 fun check_file dir file = File.check_file (File.full_path dir file);
 
+fun read_files cmd dir path =
+  let
+    val paths =
+      (case Keyword.command_files cmd of
+        [] => [path]
+      | exts => map (fn ext => Path.ext ext path) exts);
+    val files = paths |> map (check_file dir #> (fn p => (File.read p, Path.position p)));
+  in (dir, files) end;
+
+fun parse_files cmd =
+  Scan.ahead Parse.not_eof -- Parse.path >> (fn (tok, name) => fn thy =>
+    (case Token.get_files tok of
+      SOME files => files
+    | NONE => read_files cmd (master_directory thy) (Path.explode name)));
+
 local
 
 fun clean ((i1, t1) :: (i2, t2) :: toks) =
@@ -88,41 +103,7 @@ fun find_file toks =
         handle ERROR msg => error (msg ^ Token.pos_of tok)
     else NONE);
 
-fun command_files path exts =
-  if null exts then [path]
-  else map (fn ext => Path.ext ext path) exts;
-
 in
-
-fun find_files syntax text =
-  let val thy_load_commands = Keyword.thy_load_commands syntax in
-    if exists (fn (cmd, _) => String.isSubstring cmd text) thy_load_commands then
-      Thy_Syntax.parse_tokens (Keyword.lexicons_of syntax) Position.none text
-      |> Thy_Syntax.parse_spans
-      |> maps
-        (fn Thy_Syntax.Span (Thy_Syntax.Command (cmd, _), toks) =>
-              (case AList.lookup (op =) thy_load_commands cmd of
-                SOME exts =>
-                  (case find_file toks of
-                    SOME (_, path) => command_files path exts
-                  | NONE => [])
-              | NONE => [])
-          | _ => [])
-    else []
-  end;
-
-fun read_files cmd dir path =
-  let
-    val files =
-      command_files path (Keyword.command_files cmd)
-      |> map (check_file dir #> (fn p => (File.read p, Path.position p)));
-  in (dir, files) end;
-
-fun parse_files cmd =
-  Scan.ahead Parse.not_eof -- Parse.path >> (fn (tok, name) => fn thy =>
-    (case Token.get_files tok of
-      SOME files => files
-    | NONE => read_files cmd (master_directory thy) (Path.explode name)));
 
 fun resolve_files master_dir span =
   (case span of
@@ -146,7 +127,7 @@ end;
 
 val thy_path = Path.ext "thy";
 
-fun check_thy base_keywords dir thy_name =
+fun check_thy dir thy_name =
   let
     val path = thy_path (Path.basic thy_name);
     val master_file = check_file dir path;
@@ -155,14 +136,9 @@ fun check_thy base_keywords dir thy_name =
     val {name, imports, uses, keywords} = Thy_Header.read (Path.position master_file) text;
     val _ = thy_name <> name andalso
       error ("Bad file name " ^ Path.print path ^ " for theory " ^ quote name);
-
-    val syntax =
-      fold (Keyword.define_keywords o apsnd (Option.map Keyword.spec))
-        (keywords @ base_keywords) (Keyword.get_keywords ());
-    val more_uses = map (rpair false) (find_files syntax text);
   in
    {master = (master_file, SHA1.digest text), text = text,
-    imports = imports, uses = uses @ more_uses, keywords = keywords}
+    imports = imports, uses = uses, keywords = keywords}
   end;
 
 

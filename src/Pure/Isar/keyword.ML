@@ -57,7 +57,6 @@ sig
   val command_tags: string -> string list
   val dest: unit -> string list * string list
   val status: unit -> unit
-  val thy_load_commands: keywords -> (string * string list) list
   val define_keywords: string * T option -> keywords -> keywords
   val define: string * T option -> unit
   val is_diag: string -> bool
@@ -219,11 +218,6 @@ fun status () =
     val _ = sort_wrt #1 (Symtab.dest commands) |> List.app (fn (name, kind) =>
       writeln ("Outer syntax keyword " ^ quote name ^ " :: " ^ kind_of kind));
   in () end;
-
-
-fun thy_load_commands (Keywords {commands, ...}) =
-  Symtab.fold (fn (name, Keyword {kind, files, ...}) =>
-      kind = kind_of thy_load ? cons (name, files)) commands [];
 
 
 (* define *)
