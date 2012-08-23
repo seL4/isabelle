@@ -302,6 +302,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     -d DIR       include session directory
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs (default 1)
+    -l           list session source files
     -n           no build -- test dependencies only
     -o OPTION    override session configuration OPTION
                  (via NAME=VAL or NAME)
@@ -373,7 +374,9 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   \verb|$ISABELLE_HOME/heaps| instead of the default location
   \hyperlink{setting.ISABELLE-OUTPUT}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}OUTPUT}}}} (which is normally in \hyperlink{setting.ISABELLE-HOME-USER}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME{\isaliteral{5F}{\isacharunderscore}}USER}}}}, i.e.\ the user's home directory).
 
-  \medskip Option \verb|-v| enables verbose mode.%
+  \medskip Option \verb|-v| increases the general level of
+  verbosity.  Option \verb|-l| lists the source files that
+  contribute to a session.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

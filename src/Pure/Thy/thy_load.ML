@@ -8,12 +8,13 @@ signature THY_LOAD =
 sig
   val master_directory: theory -> Path.T
   val imports_of: theory -> string list
-  val provide: Path.T * (Path.T * SHA1.digest) -> theory -> theory
-  val check_file: Path.T -> Path.T -> Path.T
   val thy_path: Path.T -> Path.T
-  val check_thy: Thy_Header.keywords -> Path.T -> string ->
+  val parse_files: string -> (theory -> Token.file list) parser
+  val check_thy: Path.T -> string ->
    {master: Path.T * SHA1.digest, text: string, imports: string list,
     uses: (Path.T * bool) list, keywords: Thy_Header.keywords}
+  val provide: Path.T * SHA1.digest -> theory -> theory
+  val provide_parse_files: string -> (theory -> Token.file list * theory) parser
   val load_file: theory -> Path.T -> (Path.T * SHA1.digest) * string
   val use_file: Path.T -> theory -> string * theory
   val loaded_files: theory -> Path.T list
@@ -23,7 +24,6 @@ sig
   val begin_theory: Path.T -> Thy_Header.header -> theory list -> theory
   val load_thy: int -> Path.T -> Thy_Header.header -> Position.T -> string ->
     theory list -> theory * unit future
-  val parse_files: string -> (theory -> Token.files) parser
   val set_master_path: Path.T -> unit
   val get_master_path: unit -> Path.T
 end;
@@ -36,7 +36,7 @@ struct
 type files =
  {master_dir: Path.T,  (*master directory of theory source*)
   imports: string list,  (*source specification of imports*)
-  provided: (Path.T * (Path.T * SHA1.digest)) list};  (*source path, physical path, digest*)
+  provided: (Path.T * SHA1.digest) list};  (*source path, digest*)
 
 fun make_files (master_dir, imports, provided): files =
  {master_dir = master_dir, imports = imports, provided = provided};
@@ -59,16 +59,28 @@ val imports_of = #imports o Files.get;
 
 fun put_deps master_dir imports = map_files (fn _ => (master_dir, imports, []));
 
-fun provide (src_path, path_id) =
-  map_files (fn (master_dir, imports, provided) =>
-    if AList.defined (op =) provided src_path then
-      error ("Duplicate use of source file: " ^ Path.print src_path)
-    else (master_dir, imports, (src_path, path_id) :: provided));
-
 
 (* inlined files *)
 
 fun check_file dir file = File.check_file (File.full_path dir file);
+
+fun make_file dir file =
+  let val full_path = check_file dir file
+  in {src_path = file, text = File.read full_path, pos = Path.position full_path} end;
+
+fun read_files cmd dir path =
+  let
+    val paths =
+      (case Keyword.command_files cmd of
+        [] => [path]
+      | exts => map (fn ext => Path.ext ext path) exts);
+  in map (make_file dir) paths end;
+
+fun parse_files cmd =
+  Scan.ahead Parse.not_eof -- Parse.path >> (fn (tok, name) => fn thy =>
+    (case Token.get_files tok of
+      SOME files => files
+    | NONE => read_files cmd (master_directory thy) (Path.explode name)));
 
 local
 
@@ -89,41 +101,7 @@ fun find_file toks =
         handle ERROR msg => error (msg ^ Token.pos_of tok)
     else NONE);
 
-fun command_files path exts =
-  if null exts then [path]
-  else map (fn ext => Path.ext ext path) exts;
-
 in
-
-fun find_files syntax text =
-  let val thy_load_commands = Keyword.thy_load_commands syntax in
-    if exists (fn (cmd, _) => String.isSubstring cmd text) thy_load_commands then
-      Thy_Syntax.parse_tokens (Keyword.lexicons_of syntax) Position.none text
-      |> Thy_Syntax.parse_spans
-      |> maps
-        (fn Thy_Syntax.Span (Thy_Syntax.Command (cmd, _), toks) =>
-              (case AList.lookup (op =) thy_load_commands cmd of
-                SOME exts =>
-                  (case find_file toks of
-                    SOME (_, path) => command_files path exts
-                  | NONE => [])
-              | NONE => [])
-          | _ => [])
-    else []
-  end;
-
-fun read_files cmd dir path =
-  let
-    val files =
-      command_files path (Keyword.command_files cmd)
-      |> map (check_file dir #> (fn p => (File.read p, Path.position p)));
-  in (dir, files) end;
-
-fun parse_files cmd =
-  Scan.ahead Parse.not_eof -- Parse.path >> (fn (tok, name) => fn thy =>
-    (case Token.get_files tok of
-      SOME files => files
-    | NONE => read_files cmd (master_directory thy) (Path.explode name)));
 
 fun resolve_files master_dir span =
   (case span of
@@ -147,7 +125,7 @@ end;
 
 val thy_path = Path.ext "thy";
 
-fun check_thy base_keywords dir thy_name =
+fun check_thy dir thy_name =
   let
     val path = thy_path (Path.basic thy_name);
     val master_file = check_file dir path;
@@ -156,18 +134,26 @@ fun check_thy base_keywords dir thy_name =
     val {name, imports, uses, keywords} = Thy_Header.read (Path.position master_file) text;
     val _ = thy_name <> name andalso
       error ("Bad file name " ^ Path.print path ^ " for theory " ^ quote name);
-
-    val syntax =
-      fold (Keyword.define_keywords o apsnd (Option.map Keyword.spec))
-        (keywords @ base_keywords) (Keyword.get_keywords ());
-    val more_uses = map (rpair false) (find_files syntax text);
   in
    {master = (master_file, SHA1.digest text), text = text,
-    imports = imports, uses = uses @ more_uses, keywords = keywords}
+    imports = imports, uses = uses, keywords = keywords}
   end;
 
 
 (* load files *)
+
+fun provide (src_path, id) =
+  map_files (fn (master_dir, imports, provided) =>
+    if AList.defined (op =) provided src_path then
+      error ("Duplicate use of source file: " ^ Path.print src_path)
+    else (master_dir, imports, (src_path, id) :: provided));
+
+fun provide_parse_files cmd =
+  parse_files cmd >> (fn files => fn thy =>
+    let
+      val fs = files thy;
+      val thy' = fold (fn {src_path, text, ...} => provide (src_path, SHA1.digest text)) fs thy;
+    in (fs, thy') end);
 
 fun load_file thy src_path =
   let
@@ -178,15 +164,17 @@ fun load_file thy src_path =
 
 fun use_file src_path thy =
   let
-    val (path_id, text) = load_file thy src_path;
-    val thy' = provide (src_path, path_id) thy;
+    val ((_, id), text) = load_file thy src_path;
+    val thy' = provide (src_path, id) thy;
   in (text, thy') end;
 
-val loaded_files = map (#1 o #2) o #provided o Files.get;
+fun loaded_files thy =
+  let val {master_dir, provided, ...} = Files.get thy
+  in map (File.full_path master_dir o #1) provided end;
 
 fun load_current thy =
   #provided (Files.get thy) |>
-    forall (fn (src_path, (_, id)) =>
+    forall (fn (src_path, id) =>
       (case try (load_file thy) src_path of
         NONE => false
       | SOME ((_, id'), _) => id = id'));
@@ -208,7 +196,7 @@ fun use_ml src_path =
       val _ = eval_file path text;
       val _ = Context.>> Local_Theory.propagate_ml_env;
 
-      val provide = provide (src_path, (path, id));
+      val provide = provide (src_path, id);
       val _ = Context.>> (Context.mapping provide (Local_Theory.background_theory provide));
     in () end;
 

@@ -74,7 +74,6 @@ sig
   val take: int -> 'a list -> 'a list
   val drop: int -> 'a list -> 'a list
   val chop: int -> 'a list -> 'a list * 'a list
-  val chop_while: ('a -> bool) -> 'a list -> 'a list * 'a list
   val chop_groups: int -> 'a list -> 'a list list
   val nth: 'a list -> int -> 'a
   val nth_list: 'a list list -> int -> 'a list
@@ -412,10 +411,6 @@ fun drop (0: int) xs = xs
 fun chop (0: int) xs = ([], xs)
   | chop _ [] = ([], [])
   | chop n (x :: xs) = chop (n - 1) xs |>> cons x;
-
-fun chop_while P [] = ([], [])
-  | chop_while P (ys as x :: xs) =
-      if P x then chop_while P xs |>> cons x else ([], ys);
 
 fun chop_groups n list =
   (case chop (Int.max (n, 1)) list of

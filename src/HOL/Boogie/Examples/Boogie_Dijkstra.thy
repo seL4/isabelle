@@ -6,7 +6,6 @@ header {* Boogie example: Dijkstra's algorithm *}
 
 theory Boogie_Dijkstra
 imports Boogie
-uses ("Boogie_Dijkstra.b2i")
 begin
 
 text {*

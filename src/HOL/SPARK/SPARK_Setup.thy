@@ -8,6 +8,8 @@ Setup for SPARK/Ada verification environment.
 theory SPARK_Setup
 imports Word
 keywords
+  "spark_open_vcg" :: thy_load ("vcg", "fdl", "rls") and
+  "spark_open_siv" :: thy_load ("siv", "fdl", "rls") and
   "spark_open" "spark_proof_functions" "spark_types" "spark_end" :: thy_decl and
   "spark_vc" :: thy_goal and "spark_status" :: diag
 begin

@@ -18,15 +18,13 @@ val _ =
 val _ =
   Outer_Syntax.command
     (("ML_file", Keyword.tag_ml Keyword.thy_load), Position.none) "ML text from file"
-    (Scan.ahead Parse.path -- Thy_Load.parse_files "ML_file"
-      >> (fn (name, files) => Toplevel.generic_theory (fn gthy =>
+    (Thy_Load.parse_files "ML_file" >> (fn files => Toplevel.generic_theory (fn gthy =>
         let
-          val src_path = Path.explode name;
-          val (dir, [(txt, pos)]) = files (Context.theory_of gthy);
-          val provide = Thy_Load.provide (src_path, (File.full_path dir src_path, SHA1.digest txt));
+          val [{src_path, text, pos}] = files (Context.theory_of gthy);
+          val provide = Thy_Load.provide (src_path, SHA1.digest text);
         in
           gthy
-          |> ML_Context.exec (fn () => ML_Context.eval_text true pos txt)
+          |> ML_Context.exec (fn () => ML_Context.eval_text true pos text)
           |> Local_Theory.propagate_ml_env
           |> Context.mapping provide (Local_Theory.background_theory provide)
         end)));

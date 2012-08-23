@@ -51,7 +51,7 @@ fun on_first_line test_outcome solver_name lines =
   let
     val empty_line = (fn "" => true | _ => false)
     val split_first = (fn [] => ("", []) | l :: ls => (l, ls))
-    val (l, ls) = split_first (snd (chop_while empty_line lines))
+    val (l, ls) = split_first (snd (take_prefix empty_line lines))
   in (test_outcome solver_name l, ls) end
 
 

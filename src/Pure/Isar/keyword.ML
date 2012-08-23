@@ -47,9 +47,6 @@ sig
   type spec = (string * string list) * string list
   val spec: spec -> T
   val command_spec: (string * spec) * Position.T -> (string * T) * Position.T
-  type keywords
-  val lexicons_of: keywords -> Scan.lexicon * Scan.lexicon
-  val get_keywords: unit -> keywords
   val get_lexicons: unit -> Scan.lexicon * Scan.lexicon
   val is_keyword: string -> bool
   val command_keyword: string -> T option
@@ -57,8 +54,6 @@ sig
   val command_tags: string -> string list
   val dest: unit -> string list * string list
   val status: unit -> unit
-  val thy_load_commands: keywords -> (string * string list) list
-  val define_keywords: string * T option -> keywords -> keywords
   val define: string * T option -> unit
   val is_diag: string -> bool
   val is_control: string -> bool
@@ -172,11 +167,6 @@ datatype keywords = Keywords of
 fun make_keywords (lexicons, commands) =
   Keywords {lexicons = lexicons, commands = commands};
 
-fun map_keywords f (Keywords {lexicons, commands}) =
-  make_keywords (f (lexicons, commands));
-
-fun lexicons_of (Keywords {lexicons, ...}) = lexicons;
-
 local
 
 val global_keywords =
@@ -186,11 +176,13 @@ in
 
 fun get_keywords () = ! global_keywords;
 
-fun change_keywords f = CRITICAL (fn () => Unsynchronized.change global_keywords f);
+fun change_keywords f = CRITICAL (fn () =>
+  Unsynchronized.change global_keywords
+    (fn Keywords {lexicons, commands} => make_keywords (f (lexicons, commands))));
 
 end;
 
-fun get_lexicons () = lexicons_of (get_keywords ());
+fun get_lexicons () = get_keywords () |> (fn Keywords {lexicons, ...} => lexicons);
 fun get_commands () = get_keywords () |> (fn Keywords {commands, ...} => commands);
 
 
@@ -221,14 +213,9 @@ fun status () =
   in () end;
 
 
-fun thy_load_commands (Keywords {commands, ...}) =
-  Symtab.fold (fn (name, Keyword {kind, files, ...}) =>
-      kind = kind_of thy_load ? cons (name, files)) commands [];
-
-
 (* define *)
 
-fun define_keywords (name, opt_kind) = map_keywords (fn ((minor, major), commands) =>
+fun define (name, opt_kind) = change_keywords (fn ((minor, major), commands) =>
   (case opt_kind of
     NONE =>
       let
@@ -239,8 +226,6 @@ fun define_keywords (name, opt_kind) = map_keywords (fn ((minor, major), command
         val major' = Scan.extend_lexicon (Symbol.explode name) major;
         val commands' = Symtab.update (name, kind) commands;
       in ((minor, major'), commands') end));
-
-val define = change_keywords o define_keywords;
 
 
 (* command categories *)

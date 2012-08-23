@@ -10,10 +10,10 @@ sig
     Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
     Nat | Float | String | AltString | Verbatim | Space | Comment | InternalValue |
     Error of string | Sync | EOF
-  type files = Path.T * (string * Position.T) list
+  type file = {src_path: Path.T, text: string, pos: Position.T}
   datatype value =
     Text of string | Typ of typ | Term of term | Fact of thm list |
-    Attribute of morphism -> attribute | Files of files
+    Attribute of morphism -> attribute | Files of file list
   type T
   val str_of_kind: kind -> string
   val position_of: T -> Position.T
@@ -44,8 +44,8 @@ sig
   val content_of: T -> string
   val unparse: T -> string
   val text_of: T -> string * string
-  val get_files: T -> files option
-  val put_files: files -> T -> T
+  val get_files: T -> file list option
+  val put_files: file list -> T -> T
   val get_value: T -> value option
   val map_value: (value -> value) -> T -> T
   val mk_text: string -> T
@@ -78,7 +78,7 @@ struct
   args.ML).  Note that an assignable ref designates an intermediate
   state of internalization -- it is NOT meant to persist.*)
 
-type files = Path.T * (string * Position.T) list;  (*master dir, multiple file content*)
+type file = {src_path: Path.T, text: string, pos: Position.T};
 
 datatype value =
   Text of string |
@@ -86,7 +86,7 @@ datatype value =
   Term of term |
   Fact of thm list |
   Attribute of morphism -> attribute |
-  Files of files;
+  Files of file list;
 
 datatype slot =
   Slot |

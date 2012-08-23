@@ -14,17 +14,16 @@ struct
 
 (* commands *)
 
-fun boogie_open ((quiet, base_name), offsets) thy =
+fun boogie_open ((quiet, files), offsets) thy =
   let
+    val ([{src_path = path, text, ...}], thy') = files thy
+
     val ext = "b2i"
-    fun check_ext path = snd (Path.split_ext path) = ext orelse
+    val _ = snd (Path.split_ext path) = ext orelse
       error ("Bad file ending of file " ^ Path.print path ^ ", " ^
         "expected file ending " ^ quote ext)
 
-    val base_path = Path.explode base_name |> tap check_ext
-    val (text, thy') = Thy_Load.use_file base_path thy
-
-    val _ = Boogie_VCs.is_closed thy' orelse
+    val _ = Boogie_VCs.is_closed thy orelse
       error ("Found the beginning of a new Boogie environment, " ^
         "but another Boogie environment is still open.")
   in
@@ -44,7 +43,7 @@ datatype vc_opts =
 fun get_vc thy vc_name =
   (case Boogie_VCs.lookup thy vc_name of
     SOME vc => vc
-  | NONE => 
+  | NONE =>
       (case AList.lookup (op =) (Boogie_VCs.state_of thy) vc_name of
         SOME Boogie_VCs.Proved => error ("The verification condition " ^
           quote vc_name ^ " has already been proved.")
@@ -258,7 +257,7 @@ fun boogie_end thy =
     val unproved = map_filter not_proved (Boogie_VCs.state_of thy)
   in
     if null unproved then Boogie_VCs.close thy
-    else error (Pretty.string_of (Pretty.big_list 
+    else error (Pretty.string_of (Pretty.big_list
       "The following verification conditions have not been proved:"
       (map Pretty.str unproved)))
   end
@@ -277,7 +276,7 @@ val vc_offsets = Scan.optional (Args.bracks (Parse.list1
 val _ =
   Outer_Syntax.command @{command_spec "boogie_open"}
     "open a new Boogie environment and load a Boogie-generated .b2i file"
-    (scan_opt "quiet" -- Parse.name -- vc_offsets >> 
+    (scan_opt "quiet" -- Thy_Load.provide_parse_files "boogie_open" -- vc_offsets >>
       (Toplevel.theory o boogie_open))
 
 
@@ -350,7 +349,7 @@ val _ =
 val setup = Theory.at_end (fn thy =>
   let
     val _ = Boogie_VCs.is_closed thy
-      orelse error ("Found the end of the theory, " ^ 
+      orelse error ("Found the end of the theory, " ^
         "but the last Boogie environment is still open.")
   in NONE end)
 

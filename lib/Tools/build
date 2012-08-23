@@ -33,6 +33,7 @@ function usage()
   echo "    -d DIR       include session directory"
   echo "    -g NAME      select session group NAME"
   echo "    -j INT       maximum number of parallel jobs (default 1)"
+  echo "    -l           list session source files"
   echo "    -n           no build -- test dependencies only"
   echo "    -o OPTION    override session configuration OPTION (via NAME=VAL or NAME)"
   echo "    -s           system build mode: produce output in ISABELLE_HOME"
@@ -65,12 +66,13 @@ CLEAN_BUILD=false
 declare -a INCLUDE_DIRS=()
 declare -a SESSION_GROUPS=()
 MAX_JOBS=1
+LIST_FILES=false
 NO_BUILD=false
 eval "declare -a BUILD_OPTIONS=($ISABELLE_BUILD_OPTIONS)"
 SYSTEM_MODE=false
 VERBOSE=false
 
-while getopts "D:abcd:g:j:no:sv" OPT
+while getopts "D:abcd:g:j:lno:sv" OPT
 do
   case "$OPT" in
     D)
@@ -94,6 +96,9 @@ do
     j)
       check_number "$OPTARG"
       MAX_JOBS="$OPTARG"
+      ;;
+    l)
+      LIST_FILES="true"
       ;;
     n)
       NO_BUILD="true"
@@ -131,7 +136,7 @@ fi
 
 "$ISABELLE_TOOL" java isabelle.Build \
   "$ALL_SESSIONS" "$BUILD_HEAP" "$CLEAN_BUILD" "$MAX_JOBS" \
-  "$NO_BUILD" "$SYSTEM_MODE" "$VERBOSE" \
+  "$LIST_FILES" "$NO_BUILD" "$SYSTEM_MODE" "$VERBOSE" \
   "${SELECT_DIRS[@]}" $'\n' "${INCLUDE_DIRS[@]}" $'\n' \
   "${SESSION_GROUPS[@]}" $'\n' "${BUILD_OPTIONS[@]}" $'\n' "$@"
 RC="$?"

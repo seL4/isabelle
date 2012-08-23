@@ -236,16 +236,16 @@ fun load_thy initiators update_time deps text name uses keywords parents =
     fun commit () = update_thy deps theory;
   in (theory, present, commit) end;
 
-fun check_deps base_keywords dir name =
+fun check_deps dir name =
   (case lookup_deps name of
     SOME NONE => (true, NONE, get_imports name, [], [])
   | NONE =>
-      let val {master, text, imports, keywords, uses} = Thy_Load.check_thy base_keywords dir name
+      let val {master, text, imports, keywords, uses} = Thy_Load.check_thy dir name
       in (false, SOME (make_deps master imports, text), imports, uses, keywords) end
   | SOME (SOME {master, ...}) =>
       let
         val {master = master', text = text', imports = imports', uses = uses', keywords = keywords'}
-          = Thy_Load.check_thy base_keywords dir name;
+          = Thy_Load.check_thy dir name;
         val deps' = SOME (make_deps master' imports', text');
         val current =
           #2 master = #2 master' andalso
@@ -256,29 +256,29 @@ fun check_deps base_keywords dir name =
 
 in
 
-fun require_thys initiators dir strs result =
-      fold_map (require_thy initiators dir) strs result |>> forall I
-and require_thy initiators dir str (base_keywords, tasks) =
+fun require_thys initiators dir strs tasks =
+      fold_map (require_thy initiators dir) strs tasks |>> forall I
+and require_thy initiators dir str tasks =
   let
     val path = Path.expand (Path.explode str);
     val name = Path.implode (Path.base path);
   in
     (case try (Graph.get_node tasks) name of
-      SOME task => (task_finished task, (base_keywords, tasks))
+      SOME task => (task_finished task, tasks)
     | NONE =>
         let
           val dir' = Path.append dir (Path.dir path);
           val _ = member (op =) initiators name andalso error (cycle_msg initiators);
 
-          val (current, deps, imports, uses, keywords) = check_deps base_keywords dir' name
+          val (current, deps, imports, uses, keywords) = check_deps dir' name
             handle ERROR msg => cat_error msg
               (loader_msg "the error(s) above occurred while examining theory" [name] ^
                 required_by "\n" initiators);
 
           val parents = map base_name imports;
-          val (parents_current, (base_keywords', tasks')) =
+          val (parents_current, tasks') =
             require_thys (name :: initiators)
-              (Path.append dir (master_dir (Option.map #1 deps))) imports (base_keywords, tasks);
+              (Path.append dir (master_dir (Option.map #1 deps))) imports tasks;
 
           val all_current = current andalso parents_current;
           val task =
@@ -292,9 +292,8 @@ and require_thy initiators dir str (base_keywords, tasks) =
                     val load = load_thy initiators update_time dep text name uses keywords;
                   in Task (parents, load) end);
 
-          val base_keywords'' = keywords @ base_keywords';
           val tasks'' = new_entry name parents task tasks';
-        in (all_current, (base_keywords'', tasks'')) end)
+        in (all_current, tasks'') end)
   end;
 
 end;
@@ -303,7 +302,7 @@ end;
 (* use_thy *)
 
 fun use_thys_wrt dir arg =
-  schedule_tasks (snd (snd (require_thys [] dir arg ([], Graph.empty))));
+  schedule_tasks (snd (require_thys [] dir arg Graph.empty));
 
 val use_thys = use_thys_wrt Path.current;
 val use_thy = use_thys o single;
@@ -326,7 +325,7 @@ fun toplevel_begin_theory master_dir (header: Thy_Header.header) =
 fun register_thy theory =
   let
     val name = Context.theory_name theory;
-    val {master, ...} = Thy_Load.check_thy [] (Thy_Load.master_directory theory) name;
+    val {master, ...} = Thy_Load.check_thy (Thy_Load.master_directory theory) name;
     val imports = Thy_Load.imports_of theory;
   in
     NAMED_CRITICAL "Thy_Info" (fn () =>

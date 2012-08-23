@@ -84,7 +84,7 @@ fun strip_spaces skip_comments is_evil =
       | strip_c_style_comment (_ :: cs) accum = strip_c_style_comment cs accum
     and strip_spaces_in_list _ [] accum = accum
       | strip_spaces_in_list true (#"%" :: cs) accum =
-        strip_spaces_in_list true (cs |> chop_while (not_equal #"\n") |> snd)
+        strip_spaces_in_list true (cs |> take_prefix (not_equal #"\n") |> snd)
                              accum
       | strip_spaces_in_list true (#"/" :: #"*" :: cs) accum =
         strip_c_style_comment cs accum
