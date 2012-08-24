@@ -114,8 +114,8 @@ object Isabelle_Rendering
         {
           case (links, Text.Info(info_range, XML.Elem(Isabelle_Markup.Path(name), _)))
           if Path.is_ok(name) =>
-            val file = Path.explode(name).file
-            Text.Info(snapshot.convert(info_range), Hyperlink(file, 0, 0)) :: links
+            val jedit_file = Isabelle.thy_load.append(snapshot.node_name.dir, Path.explode(name))
+            Text.Info(snapshot.convert(info_range), Hyperlink(jedit_file, 0, 0)) :: links
 
           case (links, Text.Info(info_range, XML.Elem(Markup(Isabelle_Markup.ENTITY, props), _)))
           if (props.find(
@@ -126,23 +126,21 @@ object Isabelle_Rendering
             props match {
               case Position.Line_File(line, name) if Path.is_ok(name) =>
                 Isabelle_System.source_file(Path.explode(name)) match {
-                  case Some(file) =>
-                    Text.Info(snapshot.convert(info_range), Hyperlink(file, line, 0)) :: links
+                  case Some(path) =>
+                    val jedit_file = Isabelle_System.platform_path(path)
+                    Text.Info(snapshot.convert(info_range), Hyperlink(jedit_file, line, 0)) :: links
                   case None => links
                 }
 
               case Position.Id_Offset(id, offset) if !snapshot.is_outdated =>
                 snapshot.state.find_command(snapshot.version, id) match {
                   case Some((node, command)) =>
-                    val file = new JFile(command.node_name.node)
-
                     val sources =
                       node.commands.iterator.takeWhile(_ != command).map(_.source) ++
                         Iterator.single(command.source(Text.Range(0, command.decode(offset))))
                     val (line, column) = ((1, 1) /: sources)(Symbol.advance_line_column)
-
-                    Text.Info(snapshot.convert(info_range), Hyperlink(file, line, column)) :: links
-
+                    Text.Info(snapshot.convert(info_range),
+                      Hyperlink(command.node_name.node, line, column)) :: links
                   case None => links
                 }
 

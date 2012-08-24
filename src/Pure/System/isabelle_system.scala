@@ -124,19 +124,16 @@ object Isabelle_System
   def posix_path(jvm_path: String): String = standard_system.posix_path(jvm_path)
 
 
-  /* source files */
+  /* source files of Isabelle/ML bootstrap */
 
-  private def try_file(file: JFile) = if (file.isFile) Some(file) else None
-
-  def source_file(path: Path): Option[JFile] =
+  def source_file(path: Path): Option[Path] =
   {
-    if (path.is_absolute || path.is_current)
-      try_file(platform_file(path))
+    def check(p: Path): Option[Path] = if (p.is_file) Some(p) else None
+
+    if (path.is_absolute || path.is_current) check(path)
     else {
-      val pure_file = (Path.explode("~~/src/Pure") + path).file
-      if (pure_file.isFile) Some(pure_file)
-      else if (getenv("ML_SOURCES") != "") try_file((Path.explode("$ML_SOURCES") + path).file)
-      else None
+      check(Path.explode("~~/src/Pure") + path) orElse
+        (if (getenv("ML_SOURCES") == "") None else check(Path.explode("$ML_SOURCES") + path))
     }
   }
 

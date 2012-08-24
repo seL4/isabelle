@@ -10,16 +10,14 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.io.{File => JFile}
-
 import org.gjt.sp.jedit.{View, jEdit}
 import org.gjt.sp.jedit.textarea.JEditTextArea
 
 
 object Hyperlink
 {
-  def apply(file: JFile, line: Int, column: Int): Hyperlink =
-    File_Link(file, line, column)
+  def apply(jedit_file: String, line: Int, column: Int): Hyperlink =
+    File_Link(jedit_file, line, column)
 }
 
 abstract class Hyperlink
@@ -27,16 +25,13 @@ abstract class Hyperlink
   def follow(view: View): Unit
 }
 
-private case class File_Link(file: JFile, line: Int, column: Int) extends Hyperlink
+private case class File_Link(jedit_file: String, line: Int, column: Int) extends Hyperlink
 {
   override def follow(view: View)
   {
     Swing_Thread.require()
 
-    val full_name = file.getCanonicalPath
-    val base_name = file.getName
-
-    Isabelle.jedit_buffer(full_name) match {
+    Isabelle.jedit_buffer(jedit_file) match {
       case Some(buffer) =>
         view.setBuffer(buffer)
         val text_area = view.getTextArea
@@ -53,10 +48,10 @@ private case class File_Link(file: JFile, line: Int, column: Int) extends Hyperl
 
       case None =>
         val args =
-          if (line <= 0) Array(base_name)
-          else if (column <= 0) Array(base_name, "+line:" + line.toInt)
-          else Array(base_name, "+line:" + line.toInt + "," + column.toInt)
-        jEdit.openFiles(view, file.getParent, args)
+          if (line <= 0) Array(jedit_file)
+          else if (column <= 0) Array(jedit_file, "+line:" + line.toInt)
+          else Array(jedit_file, "+line:" + line.toInt + "," + column.toInt)
+        jEdit.openFiles(view, null, args)
     }
   }
 }

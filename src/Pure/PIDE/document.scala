@@ -283,6 +283,7 @@ object Document
   {
     val state: State
     val version: Version
+    val node_name: Node.Name
     val node: Node
     val is_outdated: Boolean
     def convert(i: Text.Offset): Text.Offset
@@ -493,6 +494,7 @@ object Document
       {
         val state = State.this
         val version = stable.version.get_finished
+        val node_name = name
         val node = version.nodes(name)
         val is_outdated = !(pending_edits.isEmpty && latest == stable)
 
