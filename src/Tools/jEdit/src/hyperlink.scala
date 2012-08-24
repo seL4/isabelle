@@ -33,7 +33,7 @@ private case class File_Link(jedit_file: String, line: Int, column: Int) extends
 
     Isabelle.jedit_buffer(jedit_file) match {
       case Some(buffer) =>
-        view.setBuffer(buffer)
+        view.goToBuffer(buffer)
         val text_area = view.getTextArea
 
         try {
