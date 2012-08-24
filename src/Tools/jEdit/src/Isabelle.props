@@ -18,7 +18,6 @@ plugin.isabelle.jedit.Plugin.depend.1=jedit 04.03.99.00
 plugin.isabelle.jedit.Plugin.depend.2=plugin console.ConsolePlugin 4.4.1
 plugin.isabelle.jedit.Plugin.depend.3=plugin errorlist.ErrorListPlugin 1.8
 plugin.isabelle.jedit.Plugin.depend.4=plugin sidekick.SideKickPlugin 0.8
-plugin.isabelle.jedit.Plugin.depend.5=plugin gatchan.jedit.hyperlinks.HyperlinksPlugin 1.0.1
 
 #options
 plugin.isabelle.jedit.Plugin.option-pane=isabelle
@@ -78,5 +77,3 @@ mode.isabelle.sidekick.showStatusWindow.label=true
 mode.ml.sidekick.parser=isabelle
 sidekick.parser.isabelle.label=Isabelle
 
-#Hyperlinks
-mode.isabelle.hyperlink.source=isabelle

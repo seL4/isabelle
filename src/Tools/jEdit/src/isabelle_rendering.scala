@@ -11,6 +11,7 @@ import isabelle._
 
 import java.awt.Color
 import javax.swing.Icon
+import java.io.{File => JFile}
 
 import org.lobobrowser.util.gui.ColorFactory
 import org.gjt.sp.jedit.syntax.{Token => JEditToken}
@@ -42,6 +43,7 @@ object Isabelle_Rendering
 
   val quoted_color = new Color(139, 139, 139, 25)
   val subexp_color = new Color(80, 80, 80, 50)
+  val hyperlink_color = Color.BLACK
 
   val keyword1_color = get_color("#006699")
   val keyword2_color = get_color("#009966")
@@ -98,9 +100,64 @@ object Isabelle_Rendering
   {
     snapshot.select_markup(range, Some(subexp_include),
         {
-          case Text.Info(range, XML.Elem(Markup(name, _), _)) if subexp_include(name) =>
-            Text.Info(snapshot.convert(range), subexp_color)
+          case Text.Info(info_range, XML.Elem(Markup(name, _), _)) if subexp_include(name) =>
+            Text.Info(snapshot.convert(info_range), subexp_color)
         }) match { case Text.Info(_, info) #:: _ => Some(info) case _ => None }
+  }
+
+
+  private val hyperlink_include = Set(Isabelle_Markup.ENTITY, Isabelle_Markup.PATH)
+
+  def hyperlink(snapshot: Document.Snapshot, range: Text.Range): Option[Text.Info[Hyperlink]] =
+  {
+    snapshot.cumulate_markup[List[Text.Info[Hyperlink]]](range, Nil, Some(hyperlink_include),
+        {
+          case (links, Text.Info(info_range, XML.Elem(Isabelle_Markup.Path(name), _)))
+          if Path.is_ok(name) =>
+            val file = Path.explode(name).file
+            Text.Info(snapshot.convert(info_range), Hyperlink(file, 0, 0)) :: links
+
+          case (links, Text.Info(info_range, XML.Elem(Markup(Isabelle_Markup.ENTITY, props), _)))
+          if (props.find(
+            { case (Markup.KIND, Isabelle_Markup.ML_OPEN) => true
+              case (Markup.KIND, Isabelle_Markup.ML_STRUCT) => true
+              case _ => false }).isEmpty) =>
+
+            props match {
+              case Position.Line_File(line, name) if Path.is_ok(name) =>
+                Isabelle_System.source_file(Path.explode(name)) match {
+                  case Some(file) =>
+                    Text.Info(snapshot.convert(info_range), Hyperlink(file, line, 0)) :: links
+                  case None => links
+                }
+
+              case Position.Id_Offset(def_id, def_offset) if !snapshot.is_outdated =>
+                snapshot.state.find_command(snapshot.version, def_id) match {
+                  case Some((def_node, def_cmd)) =>
+                    val file = new JFile(def_cmd.node_name.node)
+
+                    // FIXME move!?
+                    val sources =
+                      def_node.commands.iterator.takeWhile(_ != def_cmd).map(_.source) ++
+                        Iterator.single(def_cmd.source(Text.Range(0, def_offset)))
+                    var line = 1
+                    var column = 1
+                    for (source <- sources) {
+                      val newlines = (0 /: source.iterator) {  // FIXME Symbol.iterator!?
+                        case (n, c) => if (c == '\n') n + 1 else n }
+                      if (newlines > 0) {
+                        line += newlines
+                        column = source.lastIndexOf('\n') + 2
+                      }
+                    }
+                    Text.Info(snapshot.convert(info_range), Hyperlink(file, line, column)) :: links
+
+                  case None => links
+                }
+
+              case _ => links
+            }
+        }) match { case Text.Info(_, info :: _) #:: _ => Some(info) case _ => None }
   }
 
 

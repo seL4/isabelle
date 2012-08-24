@@ -17,7 +17,7 @@ import scala.actors.Actor._
 import java.lang.System
 import java.text.BreakIterator
 import java.awt.{Color, Graphics2D, Point}
-import java.awt.event.{MouseMotionAdapter, MouseEvent,
+import java.awt.event.{MouseMotionAdapter, MouseAdapter, MouseEvent,
   FocusAdapter, FocusEvent, WindowEvent, WindowAdapter}
 import javax.swing.{Popup, PopupFactory, SwingUtilities, BorderFactory}
 import javax.swing.event.{CaretListener, CaretEvent}
@@ -181,10 +181,13 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   }
 
 
-  /* subexpression highlighting */
+  /* subexpression highlighting and hyperlinks */
 
   @volatile private var _highlight_range: Option[Text.Info[Color]] = None
   def highlight_range(): Option[Text.Info[Color]] = _highlight_range
+
+  @volatile private var _hyperlink_range: Option[Text.Info[Hyperlink]] = None
+  def hyperlink_range(): Option[Text.Info[Hyperlink]] = _hyperlink_range
 
   private var control: Boolean = false
 
@@ -192,17 +195,29 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   {
     exit_popup()
     _highlight_range = None
+    _hyperlink_range = None
   }
 
   private val focus_listener = new FocusAdapter {
     override def focusLost(e: FocusEvent) {
-      _highlight_range = None // FIXME exit_control !?
+      // FIXME exit_control !?
+      _highlight_range = None
+      _hyperlink_range = None
     }
   }
 
   private val window_listener = new WindowAdapter {
     override def windowIconified(e: WindowEvent) { exit_control() }
     override def windowDeactivated(e: WindowEvent) { exit_control() }
+  }
+
+  private val mouse_listener = new MouseAdapter {
+    override def mouseClicked(e: MouseEvent) {
+      hyperlink_range match {
+        case Some(Text.Info(range, link)) => link.follow(text_area.getView)
+        case None =>
+      }
+    }
   }
 
   private val mouse_motion_listener = new MouseMotionAdapter {
@@ -220,14 +235,22 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
           if (control) init_popup(snapshot, x, y)
 
-          for (Text.Info(range, _) <- _highlight_range) invalidate_range(range)
-          _highlight_range =
-            if (control) {
-              val offset = text_area.xyToOffset(x, y)
-              Isabelle_Rendering.subexp(snapshot, Text.Range(offset, offset + 1))
-            }
-            else None
-          for (Text.Info(range, _) <- _highlight_range) invalidate_range(range)
+          def update_range[A](
+            rendering: (Document.Snapshot, Text.Range) => Option[Text.Info[A]],
+            info: Option[Text.Info[A]]): Option[Text.Info[A]] =
+          {
+            for (Text.Info(range, _) <- info) invalidate_range(range)
+            val new_info =
+              if (control) {
+                val offset = text_area.xyToOffset(x, y)
+                rendering(snapshot, Text.Range(offset, offset + 1))
+              }
+              else None
+            for (Text.Info(range, _) <- info) invalidate_range(range)
+            new_info
+          }
+          _highlight_range = update_range(Isabelle_Rendering.subexp, _highlight_range)
+          _hyperlink_range = update_range(Isabelle_Rendering.hyperlink, _hyperlink_range)
         }
     }
   }
@@ -395,6 +418,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     text_area.getGutter.addExtension(gutter_painter)
     text_area.addFocusListener(focus_listener)
     text_area.getView.addWindowListener(window_listener)
+    painter.addMouseListener(mouse_listener)
     painter.addMouseMotionListener(mouse_motion_listener)
     text_area.addCaretListener(caret_listener)
     text_area.addLeftOfScrollBar(overview)
@@ -410,6 +434,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     text_area.removeFocusListener(focus_listener)
     text_area.getView.removeWindowListener(window_listener)
     painter.removeMouseMotionListener(mouse_motion_listener)
+    painter.removeMouseListener(mouse_listener)
     text_area.removeCaretListener(caret_listener); delay_caret_update(false)
     text_area.removeLeftOfScrollBar(overview); overview.delay_repaint(false)
     text_area.getGutter.removeExtension(gutter_painter)

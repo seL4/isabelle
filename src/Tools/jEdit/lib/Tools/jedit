@@ -12,8 +12,8 @@ declare -a SOURCES=(
   "src/document_model.scala"
   "src/document_view.scala"
   "src/html_panel.scala"
+  "src/hyperlink.scala"
   "src/isabelle_encoding.scala"
-  "src/isabelle_hyperlinks.scala"
   "src/isabelle_options.scala"
   "src/isabelle_rendering.scala"
   "src/isabelle_sidekick.scala"
@@ -167,7 +167,6 @@ JEDIT_JAR="$ISABELLE_JEDIT_BUILD_HOME/contrib/$ISABELLE_JEDIT_BUILD_VERSION/jedi
 JEDIT_JARS=(
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/Console.jar"
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/ErrorList.jar"
-  "$ISABELLE_JEDIT_BUILD_HOME/contrib/Hyperlinks.jar"
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/SideKick.jar"
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/cobra.jar"
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/js.jar"
