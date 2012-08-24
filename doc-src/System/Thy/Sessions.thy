@@ -48,7 +48,7 @@ text {* Session specifications reside in files called @{verbatim ROOT}
   @{rail "
     @{syntax_def session_entry}: @'session' spec '=' (@{syntax name} '+')? body
     ;
-    body: description? options? ( theories * ) files?
+    body: description? options? ( theories + ) files?
     ;
     spec: @{syntax name} groups? dir?
     ;

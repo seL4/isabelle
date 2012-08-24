@@ -1,4 +1,5 @@
 session RAW =
+  theories
   files
     "General/exn.ML"
     "ML-Systems/compiler_polyml.ML"

@@ -185,7 +185,7 @@ object Build
             (opt(session_name ~! keyword("+") ^^ { case x ~ _ => x }) ~
               ((keyword(DESCRIPTION) ~! text ^^ { case _ ~ x => x }) | success("")) ~
               ((keyword(OPTIONS) ~! options ^^ { case _ ~ x => x }) | success(Nil)) ~
-              rep(theories) ~
+              rep1(theories) ~
               ((keyword(FILES) ~! rep1(path) ^^ { case _ ~ x => x }) | success(Nil))))) ^^
         { case _ ~ (a ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h))) =>
             Session_Entry(pos, a, b, c, d, e, f, g, h) }
