@@ -131,25 +131,16 @@ object Isabelle_Rendering
                   case None => links
                 }
 
-              case Position.Id_Offset(def_id, def_offset) if !snapshot.is_outdated =>
-                snapshot.state.find_command(snapshot.version, def_id) match {
-                  case Some((def_node, def_cmd)) =>
-                    val file = new JFile(def_cmd.node_name.node)
+              case Position.Id_Offset(id, offset) if !snapshot.is_outdated =>
+                snapshot.state.find_command(snapshot.version, id) match {
+                  case Some((node, command)) =>
+                    val file = new JFile(command.node_name.node)
 
-                    // FIXME move!?
                     val sources =
-                      def_node.commands.iterator.takeWhile(_ != def_cmd).map(_.source) ++
-                        Iterator.single(def_cmd.source(Text.Range(0, def_offset)))
-                    var line = 1
-                    var column = 1
-                    for (source <- sources) {
-                      val newlines = (0 /: source.iterator) {  // FIXME Symbol.iterator!?
-                        case (n, c) => if (c == '\n') n + 1 else n }
-                      if (newlines > 0) {
-                        line += newlines
-                        column = source.lastIndexOf('\n') + 2
-                      }
-                    }
+                      node.commands.iterator.takeWhile(_ != command).map(_.source) ++
+                        Iterator.single(command.source(Text.Range(0, command.decode(offset))))
+                    val (line, column) = ((1, 1) /: sources)(Symbol.advance_line_column)
+
                     Text.Info(snapshot.convert(info_range), Hyperlink(file, line, column)) :: links
 
                   case None => links

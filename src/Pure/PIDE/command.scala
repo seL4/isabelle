@@ -153,10 +153,6 @@ final class Command private(
 
   def source(range: Text.Range): String = source.substring(range.start, range.stop)
 
-  val newlines =
-    (0 /: Symbol.iterator(source)) {
-      case (n, s) => if (Symbol.is_physical_newline(s)) n + 1 else n }
-
   lazy val symbol_index = new Symbol.Index(source)
   def decode(i: Text.Offset): Text.Offset = symbol_index.decode(i)
   def decode(r: Text.Range): Text.Range = symbol_index.decode(r)

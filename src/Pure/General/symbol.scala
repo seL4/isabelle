@@ -8,6 +8,7 @@ package isabelle
 
 import scala.collection.mutable
 import scala.util.matching.Regex
+import scala.annotation.tailrec
 
 
 object Symbol
@@ -97,6 +98,16 @@ object Symbol
 
   def explode(text: CharSequence): List[Symbol] = iterator(text).toList
 
+  def advance_line_column(pos: (Int, Int), text: CharSequence): (Int, Int) =
+  {
+    var (line, column) = pos
+    for (sym <- iterator(text)) {
+      if (is_physical_newline(sym)) { line += 1; column = 1 }
+      else column += 1
+    }
+    (line, column)
+  }
+
 
   /* decoding offsets */
 
@@ -121,7 +132,7 @@ object Symbol
     {
       val sym = sym1 - 1
       val end = index.length
-      def bisect(a: Int, b: Int): Int =
+      @tailrec def bisect(a: Int, b: Int): Int =
       {
         if (a < b) {
           val c = (a + b) / 2
