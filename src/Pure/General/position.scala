@@ -20,13 +20,32 @@ object Position
   val File = new Properties.String(Isabelle_Markup.FILE)
   val Id = new Properties.Long(Isabelle_Markup.ID)
 
+  object Line_File
+  {
+    def unapply(pos: T): Option[(Int, String)] =
+      (pos, pos) match {
+        case (Line(i), File(name)) => Some((i, name))
+        case (_, File(name)) => Some((1, name))
+        case _ => None
+      }
+  }
+
   object Range
   {
     def apply(range: Text.Range): T = Offset(range.start) ++ Offset(range.stop)
     def unapply(pos: T): Option[Text.Range] =
-      (Offset.unapply(pos), End_Offset.unapply(pos)) match {
-        case (Some(start), Some(stop)) if start <= stop => Some(Text.Range(start, stop))
-        case (Some(start), None) => Some(Text.Range(start, start + 1))
+      (pos, pos) match {
+        case (Offset(start), End_Offset(stop)) if start <= stop => Some(Text.Range(start, stop))
+        case (Offset(start), _) => Some(Text.Range(start, start + 1))
+        case _ => None
+      }
+  }
+
+  object Id_Offset
+  {
+    def unapply(pos: T): Option[(Long, Text.Offset)] =
+      (pos, pos) match {
+        case (Id(id), Offset(offset)) => Some((id, offset))
         case _ => None
       }
   }
@@ -52,8 +71,8 @@ object Position
       yield (if (purge_pos.isDefinedAt(x)) (purge_pos(x), y) else (x, y))
 
 
-  def str_of(props: T): String =
-    (Line.unapply(props), File.unapply(props)) match {
+  def str_of(pos: T): String =
+    (Line.unapply(pos), File.unapply(pos)) match {
       case (Some(i), None) => " (line " + i.toString + ")"
       case (Some(i), Some(name)) => " (line " + i.toString + " of " + quote(name) + ")"
       case (None, Some(name)) => " (file " + quote(name) + ")"
