@@ -64,23 +64,24 @@ fun put_deps master_dir imports = map_files (fn _ => (master_dir, imports, []));
 
 fun check_file dir file = File.check_file (File.full_path dir file);
 
-fun make_file dir file =
-  let val full_path = check_file dir file
-  in {src_path = file, text = File.read full_path, pos = Path.position full_path} end;
-
-fun read_files cmd dir path =
+fun read_files cmd dir (path, pos) =
   let
+    fun make_file file =
+      let
+        val full_path = check_file dir file;
+        val _ = Position.report pos (Isabelle_Markup.path (Path.implode full_path));
+      in {src_path = file, text = File.read full_path, pos = Path.position full_path} end;
     val paths =
       (case Keyword.command_files cmd of
         [] => [path]
       | exts => map (fn ext => Path.ext ext path) exts);
-  in map (make_file dir) paths end;
+  in map make_file paths end;
 
 fun parse_files cmd =
   Scan.ahead Parse.not_eof -- Parse.path >> (fn (tok, name) => fn thy =>
     (case Token.get_files tok of
       SOME files => files
-    | NONE => read_files cmd (master_directory thy) (Path.explode name)));
+    | NONE => read_files cmd (master_directory thy) (Path.explode name, Token.position_of tok)));
 
 local
 
@@ -97,7 +98,7 @@ fun clean_tokens toks =
 fun find_file toks =
   rev (clean_tokens toks) |> get_first (fn (i, tok) =>
     if Token.is_name tok then
-      SOME (i, Path.explode (Token.content_of tok))
+      SOME (i, (Path.explode (Token.content_of tok), Token.position_of tok))
         handle ERROR msg => error (msg ^ Token.pos_of tok)
     else NONE);
 
