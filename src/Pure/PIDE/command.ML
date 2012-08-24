@@ -13,7 +13,7 @@ sig
   val memo_value: 'a -> 'a memo
   val memo_eval: 'a memo -> 'a
   val memo_result: 'a memo -> 'a
-  val run_command: Toplevel.transition ->
+  val run_command: Toplevel.transition * Token.T list ->
     Toplevel.state * bool -> (Toplevel.state * bool) * unit lazy
 end;
 
@@ -73,6 +73,13 @@ fun run int tr st =
   | SOME (_, SOME (exn, _)) => (ML_Compiler.exn_messages exn, NONE)
   | NONE => ([(serial (), ML_Compiler.exn_message Runtime.TERMINATE)], NONE));
 
+fun check_cmts tr cmts st =
+  Toplevel.setmp_thread_position tr
+    (fn () => cmts
+      |> maps (fn cmt =>
+        (Thy_Output.check_text (Token.source_position_of cmt) st; [])
+          handle exn => ML_Compiler.exn_messages exn)) ();
+
 fun timing tr t =
   if Timing.is_relevant t then Toplevel.status tr (Isabelle_Markup.timing t) else ();
 
@@ -89,7 +96,7 @@ fun print_state tr st =
 
 in
 
-fun run_command tr (st, malformed) =
+fun run_command (tr, cmts) (st, malformed) =
   if malformed then ((Toplevel.toplevel, malformed), no_print)
   else
     let
@@ -100,7 +107,9 @@ fun run_command tr (st, malformed) =
       val _ = Multithreading.interrupted ();
       val _ = Toplevel.status tr Isabelle_Markup.forked;
       val start = Timing.start ();
-      val (errs, result) = run (is_init orelse is_proof) (Toplevel.set_print false tr) st;
+      val (errs1, result) = run (is_init orelse is_proof) (Toplevel.set_print false tr) st;
+      val errs2 = (case result of NONE => [] | SOME st' => check_cmts tr cmts st');
+      val errs = errs1 @ errs2;
       val _ = timing tr (Timing.result start);
       val _ = Toplevel.status tr Isabelle_Markup.joined;
       val _ = List.app (Toplevel.error_msg tr) errs;

@@ -530,15 +530,11 @@ end;
 
 (* markup commands *)
 
-fun check_text (txt, pos) state =
- (Position.report pos Isabelle_Markup.doc_source;
-  ignore (Thy_Output.eval_antiquote (#1 (Keyword.get_lexicons ())) state (txt, pos)));
-
 fun header_markup txt = Toplevel.keep (fn state =>
-  if Toplevel.is_toplevel state then check_text txt state
+  if Toplevel.is_toplevel state then Thy_Output.check_text txt state
   else raise Toplevel.UNDEF);
 
-fun local_theory_markup (loc, txt) = Toplevel.present_local_theory loc (check_text txt);
-val proof_markup = Toplevel.present_proof o check_text;
+fun local_theory_markup (loc, txt) = Toplevel.present_local_theory loc (Thy_Output.check_text txt);
+val proof_markup = Toplevel.present_proof o Thy_Output.check_text;
 
 end;

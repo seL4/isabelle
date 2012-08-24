@@ -32,6 +32,7 @@ sig
   val modes: string list Unsynchronized.ref
   val eval_antiq: Scan.lexicon -> Toplevel.state -> Symbol_Pos.T list * Position.range -> string
   val eval_antiquote: Scan.lexicon -> Toplevel.state -> Symbol_Pos.text * Position.T -> string
+  val check_text: Symbol_Pos.text * Position.T -> Toplevel.state -> unit
   val present_thy: Scan.lexicon -> (string -> string list) -> (markup -> string -> bool) ->
     (Toplevel.transition * Toplevel.state) list -> Token.T list -> Buffer.T
   val pretty_text: Proof.context -> string -> Pretty.T
@@ -200,6 +201,11 @@ fun eval_antiquote lex state (txt, pos) =
       error ("Unknown context -- cannot expand document antiquotations" ^ Position.str_of pos)
     else implode (map expand ants)
   end;
+
+
+fun check_text (txt, pos) state =
+ (Position.report pos Isabelle_Markup.doc_source;
+  ignore (eval_antiquote (#1 (Keyword.get_lexicons ())) state (txt, pos)));
 
 
 

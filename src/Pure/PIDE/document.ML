@@ -442,15 +442,19 @@ fun new_exec state proper_init command_id' (execs, command_exec, init) =
         else (I, init);
       val exec_id' = new_id ();
       val exec_id'_string = print_id exec_id';
-      val tr =
+      val cmd =
         Position.setmp_thread_data (Position.id_only exec_id'_string)
           (fn () =>
-            #1 (Outer_Syntax.read_span (#2 (Outer_Syntax.get_syntax ())) span)
-            |> modify_init
-            |> Toplevel.put_id exec_id'_string);
+            let
+              val tr =
+                #1 (Outer_Syntax.read_span (#2 (Outer_Syntax.get_syntax ())) span)
+                |> modify_init
+                |> Toplevel.put_id exec_id'_string;
+              val cmts = Outer_Syntax.span_cmts span;
+            in (tr, cmts) end);
       val exec' =
         Command.memo (fn () =>
-          Command.run_command (tr ()) (fst (Command.memo_result (snd (snd command_exec)))));
+          Command.run_command (cmd ()) (fst (Command.memo_result (snd (snd command_exec)))));
       val command_exec' = (command_id', (exec_id', exec'));
     in SOME (command_exec' :: execs, command_exec', init') end;
 
