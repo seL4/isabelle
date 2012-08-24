@@ -31,8 +31,9 @@ body { font-family: STIXGeneral, IsabelleText; font-size: 14pt; }
 <p>
   <em>Research and implementation of concepts around PIDE has started
   around 2008 and was kindly supported by BMBF (http://www.bmbf.de),
-  Université Paris-Sud (http://www.u-psud.fr), and Digiteo
-  (http://www.digiteo.fr).</em>
+  Université Paris-Sud (http://www.u-psud.fr), Digiteo
+  (http://www.digiteo.fr), and ANR
+  (http://www.agence-nationale-recherche.fr).</em>
 </p>
 
 
@@ -156,23 +157,19 @@ stateless environment of formal document content.</li>
 </ul>
 
 
-<h2>Limitations and workarounds (May 2012)</h2>
+<h2>Limitations and workarounds</h2>
 
 <ul>
   <li>No way to start/stop prover or switch to a different logic.<br/>
   <em>Workaround:</em> Change options and restart editor.</li>
-
-  <li>Incremental reparsing sometimes produces unexpected command
-  spans.<br/>
-  <em>Workaround:</em> Cut/paste larger parts or reload buffer.</li>
 
   <li>Odd behavior of some diagnostic commands, notably those starting
   external processes asynchronously (e.g. <tt>thy_deps</tt>).<br/>
   <em>Workaround:</em> Avoid such commands.</li>
 
   <li>Lack of dependency managed for auxiliary files that contribute
-  to a theory ("<b>uses</b>").<br/>
-  <em>Workaround:</em> Re-use files manually within the prover.</li>
+  to a theory (e.g. <tt>ML_file</tt>).<br/>
+  <em>Workaround:</em> Re-load files manually within the prover.</li>
 
   <li>No way to delete document nodes from the overall collection of
   theories.<br/>
@@ -183,35 +180,7 @@ stateless environment of formal document content.</li>
   previous commands (proof end on proof head), or markup produced by
   loading external files.</li>
 
-  <li>General lack of various conveniences known from Proof
-  General.</li>
-</ul>
-
-
-<h2>Known problems with Mac OS X (Java 1.6)</h2>
-
-<ul>
-
-<li>The MacOSX plugin for jEdit disrupts regular C-X/C/V operations,
-  e.g. between the editor and the Console plugin, which is a standard
-  swing text box.  Similar for search boxes etc.</li>
-
-<li><tt>Font.createFont</tt> mangles the font family of non-regular
-  fonts, e.g. bold.  IsabelleText font files need to be
-  installed/updated manually if bold versions are desired.  Note that
-  this has to be repeated whenever fonts shipped with Isabelle are
-  updated!</li>
-
-<li>Missing glyphs are collected from other fonts (like Emacs,
-  Firefox).  This is actually an advantage over the Oracle JVM on
-  Windows or Linux, but also the deeper reason for other oddities of
-  Apple font management.</li>
-
-<li>The native font renderer
-  of <tt>-Dapple.awt.graphics.UseQuartz=true</tt> (<em>not</em>
-  enabled by default) fails to handle the infinitesimal font size of
-  "hidden" text (e.g. used in Isabelle sub/superscripts).</li>
-
+  <li>Lack of a few conveniences known from Proof General.</li>
 </ul>
 
 

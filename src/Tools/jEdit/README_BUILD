@@ -13,10 +13,7 @@ Requirements for instantaneous build from repository
 
   Note that the official directory layout of JDK and Scala is required!
 
-* Auxiliary jedit_build component
-
-
-See also http://isabelle.in.tum.de/components/.
+* Auxiliary jedit_build component according to Admin/components/main
 
 
 Build and run
