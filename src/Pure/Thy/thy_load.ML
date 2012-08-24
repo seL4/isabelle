@@ -68,8 +68,8 @@ fun read_files cmd dir (path, pos) =
   let
     fun make_file file =
       let
+        val _ = Position.report pos (Isabelle_Markup.path (Path.implode file));
         val full_path = check_file dir file;
-        val _ = Position.report pos (Isabelle_Markup.path (Path.implode full_path));
       in {src_path = file, text = File.read full_path, pos = Path.position full_path} end;
     val paths =
       (case Keyword.command_files cmd of
