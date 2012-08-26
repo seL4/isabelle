@@ -20,6 +20,7 @@ sig
   val checkpoint: theory -> theory
   val copy: theory -> theory
   val requires: theory -> string -> string -> unit
+  val get_markup: theory -> Markup.T
   val axiom_space: theory -> Name_Space.T
   val axiom_table: theory -> term Symtab.table
   val axioms_of: theory -> (string * term) list
@@ -27,7 +28,7 @@ sig
   val defs_of: theory -> Defs.T
   val at_begin: (theory -> theory option) -> theory -> theory
   val at_end: (theory -> theory option) -> theory -> theory
-  val begin_theory: string -> theory list -> theory
+  val begin_theory: string * Position.T -> theory list -> theory
   val end_theory: theory -> theory
   val add_axiom: Proof.context -> binding * term -> theory -> theory
   val add_deps: Proof.context -> string -> string * typ -> (string * typ) list -> theory -> theory
@@ -80,42 +81,63 @@ fun apply_wrappers (wrappers: wrapper list) =
   perhaps (perhaps_loop (perhaps_apply (map fst wrappers)));
 
 datatype thy = Thy of
- {axioms: term Name_Space.table,
+ {pos: Position.T,
+  id: serial,
+  axioms: term Name_Space.table,
   defs: Defs.T,
   wrappers: wrapper list * wrapper list};
 
-fun make_thy (axioms, defs, wrappers) = Thy {axioms = axioms, defs = defs, wrappers = wrappers};
+fun make_thy (pos, id, axioms, defs, wrappers) =
+  Thy {pos = pos, id = id, axioms = axioms, defs = defs, wrappers = wrappers};
 
 structure Thy = Theory_Data_PP
 (
   type T = thy;
   val empty_axioms = Name_Space.empty_table "axiom" : term Name_Space.table;
-  val empty = make_thy (empty_axioms, Defs.empty, ([], []));
+  val empty = make_thy (Position.none, 0, empty_axioms, Defs.empty, ([], []));
 
-  fun extend (Thy {axioms = _, defs, wrappers}) = make_thy (empty_axioms, defs, wrappers);
+  fun extend (Thy {pos = _, id = _, axioms = _, defs, wrappers}) =
+    make_thy (Position.none, 0, empty_axioms, defs, wrappers);
 
   fun merge pp (thy1, thy2) =
     let
       val ctxt = Syntax.init_pretty pp;
-      val Thy {axioms = _, defs = defs1, wrappers = (bgs1, ens1)} = thy1;
-      val Thy {axioms = _, defs = defs2, wrappers = (bgs2, ens2)} = thy2;
+      val Thy {pos = _, id = _, axioms = _, defs = defs1, wrappers = (bgs1, ens1)} = thy1;
+      val Thy {pos = _, id = _, axioms = _, defs = defs2, wrappers = (bgs2, ens2)} = thy2;
 
       val axioms' = empty_axioms;
       val defs' = Defs.merge ctxt (defs1, defs2);
       val bgs' = Library.merge (eq_snd op =) (bgs1, bgs2);
       val ens' = Library.merge (eq_snd op =) (ens1, ens2);
-    in make_thy (axioms', defs', (bgs', ens')) end;
+    in make_thy (Position.none, 0, axioms', defs', (bgs', ens')) end;
 );
 
 fun rep_theory thy = Thy.get thy |> (fn Thy args => args);
 
-fun map_thy f = Thy.map (fn (Thy {axioms, defs, wrappers}) =>
-  make_thy (f (axioms, defs, wrappers)));
+fun map_thy f = Thy.map (fn (Thy {pos, id, axioms, defs, wrappers}) =>
+  make_thy (f (pos, id, axioms, defs, wrappers)));
+
+fun map_axioms f =
+  map_thy (fn (pos, id, axioms, defs, wrappers) => (pos, id, f axioms, defs, wrappers));
+
+fun map_defs f =
+  map_thy (fn (pos, id, axioms, defs, wrappers) => (pos, id, axioms, f defs, wrappers));
+
+fun map_wrappers f =
+  map_thy (fn (pos, id, axioms, defs, wrappers) => (pos, id, axioms, defs, f wrappers));
 
 
-fun map_axioms f = map_thy (fn (axioms, defs, wrappers) => (f axioms, defs, wrappers));
-fun map_defs f = map_thy (fn (axioms, defs, wrappers) => (axioms, f defs, wrappers));
-fun map_wrappers f = map_thy (fn (axioms, defs, wrappers) => (axioms, defs, f wrappers));
+(* entity markup *)
+
+fun theory_markup def name id pos =
+  if id = 0 then Markup.empty
+  else
+    Markup.properties (Position.entity_properties_of def id pos)
+      (Isabelle_Markup.entity Isabelle_Markup.theoryN name);
+
+fun get_markup thy =
+  let val {pos, id, ...} = rep_theory thy
+  in theory_markup false (Context.theory_name thy) id pos end;
 
 
 (* basic operations *)
@@ -137,12 +159,17 @@ val end_wrappers = rev o #2 o #wrappers o rep_theory;
 fun at_begin f = map_wrappers (apfst (cons (f, stamp ())));
 fun at_end f = map_wrappers (apsnd (cons (f, stamp ())));
 
-fun begin_theory name imports =
+fun begin_theory (name, pos) imports =
   if name = Context.PureN then
     (case imports of [thy] => thy | _ => error "Bad bootstrapping of theory Pure")
   else
     let
-      val thy = Context.begin_thy Context.pretty_global name imports;
+      val id = serial ();
+      val thy =
+        Context.begin_thy Context.pretty_global name imports
+        |> map_thy (fn (_, _, axioms, defs, wrappers) => (pos, id, axioms, defs, wrappers));
+      val _ = Position.report pos (theory_markup true name id pos);
+
       val wrappers = begin_wrappers thy;
     in
       thy

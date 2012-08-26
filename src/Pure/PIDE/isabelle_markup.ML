@@ -26,6 +26,7 @@ sig
   val breakN: string val break: int -> Markup.T
   val fbreakN: string val fbreak: Markup.T
   val hiddenN: string val hidden: Markup.T
+  val theoryN: string
   val classN: string
   val type_nameN: string
   val constantN: string
@@ -165,6 +166,7 @@ val (hiddenN, hidden) = markup_elem "hidden";
 
 (* logical entities *)
 
+val theoryN = "theory";
 val classN = "class";
 val type_nameN = "type name";
 val constantN = "constant";

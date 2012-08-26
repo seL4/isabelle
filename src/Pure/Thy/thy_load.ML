@@ -7,11 +7,11 @@ Loading files that contribute to a theory.  Global master path for TTY loop.
 signature THY_LOAD =
 sig
   val master_directory: theory -> Path.T
-  val imports_of: theory -> string list
+  val imports_of: theory -> (string * Position.T) list
   val thy_path: Path.T -> Path.T
   val parse_files: string -> (theory -> Token.file list) parser
   val check_thy: Path.T -> string ->
-   {master: Path.T * SHA1.digest, text: string, imports: string list,
+   {master: Path.T * SHA1.digest, text: string, imports: (string * Position.T) list,
     uses: (Path.T * bool) list, keywords: Thy_Header.keywords}
   val provide: Path.T * SHA1.digest -> theory -> theory
   val provide_parse_files: string -> (theory -> Token.file list * theory) parser
@@ -35,7 +35,7 @@ struct
 
 type files =
  {master_dir: Path.T,  (*master directory of theory source*)
-  imports: string list,  (*source specification of imports*)
+  imports: (string * Position.T) list,  (*source specification of imports*)
   provided: (Path.T * SHA1.digest) list};  (*source path, digest*)
 
 fun make_files (master_dir, imports, provided): files =
@@ -132,9 +132,10 @@ fun check_thy dir thy_name =
     val master_file = check_file dir path;
     val text = File.read master_file;
 
-    val {name, imports, uses, keywords} = Thy_Header.read (Path.position master_file) text;
+    val {name = (name, pos), imports, uses, keywords} =
+      Thy_Header.read (Path.position master_file) text;
     val _ = thy_name <> name andalso
-      error ("Bad file name " ^ Path.print path ^ " for theory " ^ quote name);
+      error ("Bad file name " ^ Path.print path ^ " for theory " ^ quote name ^ Position.str_of pos);
   in
    {master = (master_file, SHA1.digest text), text = text,
     imports = imports, uses = uses, keywords = keywords}
@@ -233,11 +234,11 @@ fun excursion init elements =
     val thy = Toplevel.end_theory end_pos end_state;
   in (flat results, thy) end;
 
-fun load_thy update_time master_dir header pos text parents =
+fun load_thy update_time master_dir header text_pos text parents =
   let
     val time = ! Toplevel.timing;
 
-    val {name, uses, ...} = header;
+    val {name = (name, _), uses, ...} = header;
     val _ = Thy_Header.define_keywords header;
     val _ = Present.init_theory name;
     fun init () =
@@ -246,7 +247,7 @@ fun load_thy update_time master_dir header pos text parents =
 
     val lexs = Keyword.get_lexicons ();
 
-    val toks = Thy_Syntax.parse_tokens lexs pos text;
+    val toks = Thy_Syntax.parse_tokens lexs text_pos text;
     val spans = map (resolve_files master_dir) (Thy_Syntax.parse_spans toks);
     val elements = Thy_Syntax.parse_elements spans;
 

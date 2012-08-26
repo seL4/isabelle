@@ -42,10 +42,11 @@ val _ =
                           (pair (list (pair string
                             (option (pair (pair string (list string)) (list string)))))
                             (pair (list (pair string bool)) (list string))))) a;
+                      val imports' = map (rpair Position.none) imports;
                       val (uses', errors') =
                         (map (apfst Path.explode) uses, errors)
                           handle ERROR msg => ([], errors @ [msg]);
-                      val header = Thy_Header.make name imports keywords uses';
+                      val header = Thy_Header.make (name, Position.none) imports' keywords uses';
                     in Document.Deps (master, header, errors') end,
                   fn (a, []) => Document.Perspective (map int_atom a)]))
             end;

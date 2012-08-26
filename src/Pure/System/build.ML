@@ -47,7 +47,7 @@ fun use_thys options =
 fun use_theories (options, thys) =
   let val condition = space_explode "," (Options.string options "condition") in
     (case filter_out (can getenv_strict) condition of
-      [] => use_thys options thys
+      [] => use_thys options (map (rpair Position.none) thys)
     | conds =>
         Output.physical_stderr ("Skipping theories " ^ commas_quote thys ^
           " (undefined " ^ commas conds ^ ")\n"))

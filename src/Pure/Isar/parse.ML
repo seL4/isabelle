@@ -34,6 +34,7 @@ sig
   val verbatim: string parser
   val sync: string parser
   val eof: string parser
+  val command_name: string -> string parser
   val keyword_with: (string -> bool) -> string parser
   val keyword_ident_or_symbolic: string parser
   val $$$ : string -> string parser
@@ -189,6 +190,11 @@ val eof = kind Token.EOF;
 
 fun keyword_with pred = RESET_VALUE (Scan.one (Token.keyword_with pred) >> Token.content_of);
 val keyword_ident_or_symbolic = keyword_with Token.ident_or_symbolic;
+
+fun command_name x =
+  group (fn () => Token.str_of_kind Token.Command ^ " " ^ quote x)
+    (RESET_VALUE (Scan.one (fn tok => Token.is_command tok andalso Token.content_of tok = x)))
+  >> Token.content_of;
 
 fun $$$ x =
   group (fn () => Token.str_of_kind Token.Keyword ^ " " ^ quote x)

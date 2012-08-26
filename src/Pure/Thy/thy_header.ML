@@ -8,16 +8,18 @@ signature THY_HEADER =
 sig
   type keywords = (string * Keyword.spec option) list
   type header =
-   {name: string,
-    imports: string list,
+   {name: string * Position.T,
+    imports: (string * Position.T) list,
     keywords: keywords,
     uses: (Path.T * bool) list}
-  val make: string -> string list -> keywords -> (Path.T * bool) list -> header
+  val make: string * Position.T -> (string * Position.T) list -> keywords ->
+    (Path.T * bool) list -> header
   val define_keywords: header -> unit
   val declare_keyword: string * Keyword.spec option -> theory -> theory
   val the_keyword: theory -> string -> Keyword.spec option
   val args: header parser
   val read: Position.T -> string -> header
+  val read_tokens: Token.T list -> header
 end;
 
 structure Thy_Header: THY_HEADER =
@@ -26,8 +28,8 @@ struct
 type keywords = (string * Keyword.spec option) list;
 
 type header =
- {name: string,
-  imports: string list,
+ {name: string * Position.T,
+  imports: (string * Position.T) list,
   keywords: keywords,
   uses: (Path.T * bool) list};
 
@@ -74,10 +76,10 @@ val keywordsN = "keywords";
 val usesN = "uses";
 val beginN = "begin";
 
-val header_lexicon =
-  Scan.make_lexicon
-    (map Symbol.explode
-      ["%", "(", ")", ",", "::", ";", "and", beginN, headerN, importsN, keywordsN, theoryN, usesN]);
+val header_lexicons =
+  pairself (Scan.make_lexicon o map Symbol.explode)
+   (["%", "(", ")", ",", "::", ";", "and", beginN, importsN, keywordsN, usesN],
+    [headerN, theoryN]);
 
 
 (* header args *)
@@ -85,7 +87,7 @@ val header_lexicon =
 local
 
 val file_name = Parse.group (fn () => "file name") Parse.path >> Path.explode;
-val theory_name = Parse.group (fn () => "theory name") Parse.name;
+val theory_name = Parse.group (fn () => "theory name") (Parse.position Parse.name);
 
 val opt_files =
   Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Parse.list1 Parse.name) --| Parse.$$$ ")") [];
@@ -118,17 +120,20 @@ end;
 (* read header *)
 
 val header =
-  (Parse.$$$ headerN -- Parse.tags) |--
+  (Parse.command_name headerN -- Parse.tags) |--
     (Parse.!!! (Parse.doc_source -- Scan.repeat Parse.semicolon --
-      (Parse.$$$ theoryN -- Parse.tags) |-- args)) ||
-  (Parse.$$$ theoryN -- Parse.tags) |-- Parse.!!! args;
+      (Parse.command_name theoryN -- Parse.tags) |-- args)) ||
+  (Parse.command_name theoryN -- Parse.tags) |-- Parse.!!! args;
 
-fun read pos str =
+fun token_source pos str =
+  str
+  |> Source.of_string_limited 8000
+  |> Symbol.source
+  |> Token.source {do_recover = NONE} (K header_lexicons) pos;
+
+fun read_source pos source =
   let val res =
-    str
-    |> Source.of_string_limited 8000
-    |> Symbol.source
-    |> Token.source {do_recover = NONE} (fn () => (header_lexicon, Scan.empty_lexicon)) pos
+    source
     |> Token.source_proper
     |> Source.source Token.stopper (Scan.single (Scan.error (Parse.!!! header))) NONE
     |> Source.get_single;
@@ -137,5 +142,8 @@ fun read pos str =
       SOME (h, _) => h
     | NONE => error ("Unexpected end of input" ^ Position.str_of pos))
   end;
+
+fun read pos str = read_source pos (token_source pos str);
+fun read_tokens toks = read_source Position.none (Source.of_list toks);
 
 end;

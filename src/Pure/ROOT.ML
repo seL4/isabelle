@@ -306,7 +306,7 @@ use "ProofGeneral/proof_general_emacs.ML";
 (* the Pure theory *)
 
 use "pure_syn.ML";
-Thy_Info.use_thy "Pure";
+Thy_Info.use_thy ("Pure", Position.none);
 Context.set_thread_data NONE;
 structure Pure = struct val thy = Thy_Info.get_theory "Pure" end;
 
@@ -341,8 +341,8 @@ if ML_System.is_polyml then use "ML/install_pp_polyml.ML" else ();
 
 fun use name = Toplevel.program (fn () => Thy_Load.use_ml (Path.explode name));
 
-fun use_thys name = Toplevel.program (fn () => Thy_Info.use_thys name);
-fun use_thy name = Toplevel.program (fn () => Thy_Info.use_thy name);
+fun use_thys args = Toplevel.program (fn () => Thy_Info.use_thys (map (rpair Position.none) args));
+val use_thy = use_thys o single;
 
 val cd = File.cd o Path.explode;
 

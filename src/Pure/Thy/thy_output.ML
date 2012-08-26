@@ -532,8 +532,11 @@ fun pretty_type ctxt s =
 
 fun pretty_prf full ctxt = Proof_Syntax.pretty_proof_of ctxt full;
 
-fun pretty_theory ctxt name =
-  (Theory.requires (Proof_Context.theory_of ctxt) name "presentation"; Pretty.str name);
+fun pretty_theory ctxt (name, pos) =
+  (case find_first (fn thy => Context.theory_name thy = name)
+      (Theory.nodes_of (Proof_Context.theory_of ctxt)) of
+    NONE => error ("No ancestor theory " ^ quote name ^ Position.str_of pos)
+  | SOME thy => (Position.report pos (Theory.get_markup thy); Pretty.str name));
 
 
 (* default output *)
@@ -591,7 +594,7 @@ val _ =
     basic_entity (Binding.name "text") (Scan.lift Args.name) pretty_text #>
     basic_entities (Binding.name "prf") Attrib.thms (pretty_prf false) #>
     basic_entities (Binding.name "full_prf") Attrib.thms (pretty_prf true) #>
-    basic_entity (Binding.name "theory") (Scan.lift Args.name) pretty_theory #>
+    basic_entity (Binding.name "theory") (Scan.lift (Parse.position Args.name)) pretty_theory #>
     basic_entities_style (Binding.name "thm_style")
       (Term_Style.parse_bare -- Attrib.thms) pretty_thm_style #>
     basic_entity (Binding.name "term_style")

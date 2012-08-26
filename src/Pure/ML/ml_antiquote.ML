@@ -71,8 +71,9 @@ val _ = Context.>> (Context.map_theory
     (Scan.lift (Parse.position Args.name) >> ML_Syntax.make_binding) #>
 
   value (Binding.name "theory")
-    (Scan.lift Args.name >> (fn name =>
-      "Context.get_theory (Proof_Context.theory_of ML_context) " ^ ML_Syntax.print_string name)
+    (Args.theory -- Scan.lift (Parse.position Args.name) >> (fn (thy, (name, pos)) =>
+      (Position.report pos (Theory.get_markup (Context.get_theory thy name));
+        "Context.get_theory (Proof_Context.theory_of ML_context) " ^ ML_Syntax.print_string name))
     || Scan.succeed "Proof_Context.theory_of ML_context") #>
 
   inline (Binding.name "context") (Scan.succeed "Isabelle.ML_context") #>

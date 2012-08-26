@@ -83,7 +83,7 @@ fun map_node f (Node {header, perspective, entries, result}) =
 fun make_perspective command_ids : perspective =
   (Inttab.defined (Inttab.make (map (rpair ()) command_ids)), try List.last command_ids);
 
-val no_header = ("", Thy_Header.make "" [] [] [], ["Bad theory header"]);
+val no_header = ("", Thy_Header.make ("", Position.none) [] [] [], ["Bad theory header"]);
 val no_perspective = make_perspective [];
 
 val empty_node = make_node (no_header, no_perspective, Entries.empty, NONE);
@@ -92,12 +92,18 @@ val clear_node = map_node (fn (header, _, _, _) => (header, no_perspective, Entr
 
 (* basic components *)
 
+fun set_header header =
+  map_node (fn (_, perspective, entries, result) => (header, perspective, entries, result));
+
 fun get_header (Node {header = (master, header, errors), ...}) =
   if null errors then (master, header)
   else error (cat_lines errors);
 
-fun set_header header =
-  map_node (fn (_, perspective, entries, result) => (header, perspective, entries, result));
+fun read_header node span =
+  let
+    val (dir, {name = (name, _), imports, keywords, uses}) = get_header node;
+    val {name = (_, pos), imports = imports', ...} = Thy_Header.read_tokens span;
+  in (dir, Thy_Header.make (name, pos) (map #1 imports ~~ map #2 imports') keywords uses) end;
 
 fun get_perspective (Node {perspective, ...}) = perspective;
 fun set_perspective ids =
@@ -183,17 +189,18 @@ fun edit_nodes (name, node_edit) (Version nodes) =
     | Edits edits => update_node name (edit_node edits) nodes
     | Deps (master, header, errors) =>
         let
+          val imports = map fst (#imports header);
           val errors1 =
             (Thy_Header.define_keywords header; errors)
               handle ERROR msg => errors @ [msg];
           val nodes1 = nodes
             |> default_node name
-            |> fold default_node (#imports header);
+            |> fold default_node imports;
           val nodes2 = nodes1
             |> Graph.Keys.fold
                 (fn dep => Graph.del_edge (dep, name)) (Graph.imm_preds nodes1 name);
           val (nodes3, errors2) =
-            (Graph.add_deps_acyclic (name, #imports header) nodes2, errors1)
+            (Graph.add_deps_acyclic (name, imports) nodes2, errors1)
               handle Graph.CYCLES cs => (nodes2, errors1 @ map cycle_msg cs);
         in Graph.map_node name (set_header (master, header, errors2)) nodes3 end
     | Perspective perspective => update_node name (set_perspective perspective) nodes);
@@ -373,16 +380,17 @@ fun make_required nodes =
           Symtab.update (a, ())) all_visible Symtab.empty;
   in Symtab.defined required end;
 
-fun init_theory imports node =
+fun init_theory deps node span =
   let
     (* FIXME provide files via Scala layer, not master_dir *)
-    val (dir, header) = get_header node;
+    val (dir, header) = read_header node span;
     val master_dir =
       (case try Url.explode dir of
         SOME (Url.File path) => path
       | _ => Path.current);
+    val imports = #imports header;
     val parents =
-      #imports header |> map (fn import =>
+      imports |> map (fn (import, _) =>
         (case Thy_Info.lookup_theory import of
           SOME thy => thy
         | NONE =>
@@ -390,7 +398,8 @@ fun init_theory imports node =
               (fst (fst
                 (Command.memo_result
                   (the_default no_exec
-                    (get_result (snd (the (AList.lookup (op =) imports import))))))))));
+                    (get_result (snd (the (AList.lookup (op =) deps import))))))))));
+    val _ = Position.reports (map #2 imports ~~ map Theory.get_markup parents);
   in Thy_Load.begin_theory master_dir header parents end;
 
 fun check_theory full name node =
@@ -429,7 +438,7 @@ fun last_common state last_visible node0 node =
     else (common, flags)
   end;
 
-fun illegal_init () = error "Illegal theory header after end of theory";
+fun illegal_init _ = error "Illegal theory header after end of theory";
 
 fun new_exec state proper_init command_id' (execs, command_exec, init) =
   if not proper_init andalso is_none init then NONE
@@ -438,7 +447,7 @@ fun new_exec state proper_init command_id' (execs, command_exec, init) =
       val (name, span) = the_command state command_id' ||> Lazy.force;
       val (modify_init, init') =
         if Keyword.is_theory_begin name then
-          (Toplevel.modify_init (the_default illegal_init init), NONE)
+          (Toplevel.modify_init (fn () => the_default illegal_init init span), NONE)
         else (I, init);
       val exec_id' = new_id ();
       val exec_id'_string = print_id exec_id';
@@ -487,7 +496,7 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
                 then
                   let
                     val node0 = node_of old_version name;
-                    fun init () = init_theory imports node;
+                    val init = init_theory imports node;
                     val proper_init =
                       check_theory false name node andalso
                       forall (fn (name, (_, node)) => check_theory true name node) imports;

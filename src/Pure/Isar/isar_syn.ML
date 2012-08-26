@@ -934,7 +934,7 @@ val _ =
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "use_thy"} "use theory file"
-    (Parse.name >> (fn name =>
+    (Parse.position Parse.name >> (fn name =>
       Toplevel.no_timing o Toplevel.imperative (fn () => Thy_Info.use_thy name)));
 
 val _ =

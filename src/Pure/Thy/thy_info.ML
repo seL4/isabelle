@@ -17,9 +17,9 @@ sig
   val loaded_files: string -> Path.T list
   val remove_thy: string -> unit
   val kill_thy: string -> unit
-  val use_thys_wrt: Path.T -> string list -> unit
-  val use_thys: string list -> unit
-  val use_thy: string -> unit
+  val use_thys_wrt: Path.T -> (string * Position.T) list -> unit
+  val use_thys: (string * Position.T) list -> unit
+  val use_thy: string * Position.T -> unit
   val toplevel_begin_theory: Path.T -> Thy_Header.header -> theory
   val register_thy: theory -> unit
   val finish: unit -> unit
@@ -66,7 +66,7 @@ fun new_entry name parents entry =
 
 type deps =
  {master: (Path.T * SHA1.digest),  (*master dependencies for thy file*)
-  imports: string list};  (*source specification of imports (partially qualified)*)
+  imports: (string * Position.T) list};  (*source specification of imports (partially qualified)*)
 
 fun make_deps master imports : deps = {master = master, imports = imports};
 
@@ -220,18 +220,19 @@ local
 fun required_by _ [] = ""
   | required_by s initiators = s ^ "(required by " ^ show_path (rev initiators) ^ ")";
 
-fun load_thy initiators update_time deps text name uses keywords parents =
+fun load_thy initiators update_time deps text (name, pos) uses keywords parents =
   let
     val _ = kill_thy name;
     val _ = Output.urgent_message ("Loading theory " ^ quote name ^ required_by " " initiators);
 
     val {master = (thy_path, _), imports} = deps;
     val dir = Path.dir thy_path;
-    val pos = Path.position thy_path;
-    val header = Thy_Header.make name imports keywords uses;
+    val header = Thy_Header.make (name, pos) imports keywords uses;
+
+    val _ = Position.reports (map #2 imports ~~ map Theory.get_markup parents);
 
     val (theory, present) =
-      Thy_Load.load_thy update_time dir header pos text
+      Thy_Load.load_thy update_time dir header (Path.position thy_path) text
         (if name = Context.PureN then [ML_Context.the_global_context ()] else parents);
     fun commit () = update_thy deps theory;
   in (theory, present, commit) end;
@@ -258,7 +259,7 @@ in
 
 fun require_thys initiators dir strs tasks =
       fold_map (require_thy initiators dir) strs tasks |>> forall I
-and require_thy initiators dir str tasks =
+and require_thy initiators dir (str, pos) tasks =
   let
     val path = Path.expand (Path.explode str);
     val name = Path.implode (Path.base path);
@@ -273,9 +274,9 @@ and require_thy initiators dir str tasks =
           val (current, deps, imports, uses, keywords) = check_deps dir' name
             handle ERROR msg => cat_error msg
               (loader_msg "the error(s) above occurred while examining theory" [name] ^
-                required_by "\n" initiators);
+                Position.str_of pos ^ required_by "\n" initiators);
 
-          val parents = map base_name imports;
+          val parents = map (base_name o #1) imports;
           val (parents_current, tasks') =
             require_thys (name :: initiators)
               (Path.append dir (master_dir (Option.map #1 deps))) imports tasks;
@@ -289,7 +290,7 @@ and require_thy initiators dir str tasks =
               | SOME (dep, text) =>
                   let
                     val update_time = serial ();
-                    val load = load_thy initiators update_time dep text name uses keywords;
+                    val load = load_thy initiators update_time dep text (name, pos) uses keywords;
                   in Task (parents, load) end);
 
           val tasks'' = new_entry name parents task tasks';
@@ -312,11 +313,11 @@ val use_thy = use_thys o single;
 
 fun toplevel_begin_theory master_dir (header: Thy_Header.header) =
   let
-    val {name, imports, ...} = header;
+    val {name = (name, _), imports, ...} = header;
     val _ = kill_thy name;
     val _ = use_thys_wrt master_dir imports;
     val _ = Thy_Header.define_keywords header;
-    val parents = map (get_theory o base_name) imports;
+    val parents = map (get_theory o base_name o fst) imports;
   in Thy_Load.begin_theory master_dir header parents end;
 
 
