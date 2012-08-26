@@ -5,7 +5,7 @@
 header {* Order on characters *}
 
 theory Char_ord
-imports Product_ord Char_nat Main
+imports Char_nat
 begin
 
 instantiation nibble :: linorder
