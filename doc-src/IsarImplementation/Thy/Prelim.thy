@@ -157,7 +157,7 @@ text %mlref {*
   @{index_ML Theory.checkpoint: "theory -> theory"} \\
   @{index_ML Theory.copy: "theory -> theory"} \\
   @{index_ML Theory.merge: "theory * theory -> theory"} \\
-  @{index_ML Theory.begin_theory: "string -> theory list -> theory"} \\
+  @{index_ML Theory.begin_theory: "string * Position.T -> theory list -> theory"} \\
   @{index_ML Theory.parents_of: "theory -> theory list"} \\
   @{index_ML Theory.ancestors_of: "theory -> theory list"} \\
   \end{mldecls}
