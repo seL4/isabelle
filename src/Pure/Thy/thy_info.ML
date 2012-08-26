@@ -239,27 +239,27 @@ fun load_thy initiators update_time deps text (name, pos) uses keywords parents 
 
 fun check_deps dir name =
   (case lookup_deps name of
-    SOME NONE => (true, NONE, get_imports name, [], [])
+    SOME NONE => (true, NONE, Position.none, get_imports name, [], [])
   | NONE =>
-      let val {master, text, imports, keywords, uses} = Thy_Load.check_thy dir name
-      in (false, SOME (make_deps master imports, text), imports, uses, keywords) end
+      let val {master, text, theory_pos, imports, keywords, uses} = Thy_Load.check_thy dir name
+      in (false, SOME (make_deps master imports, text), theory_pos, imports, uses, keywords) end
   | SOME (SOME {master, ...}) =>
       let
-        val {master = master', text = text', imports = imports', uses = uses', keywords = keywords'}
-          = Thy_Load.check_thy dir name;
+        val {master = master', text = text', theory_pos = theory_pos', imports = imports',
+          uses = uses', keywords = keywords'} = Thy_Load.check_thy dir name;
         val deps' = SOME (make_deps master' imports', text');
         val current =
           #2 master = #2 master' andalso
             (case lookup_theory name of
               NONE => false
             | SOME theory => Thy_Load.load_current theory);
-      in (current, deps', imports', uses', keywords') end);
+      in (current, deps', theory_pos', imports', uses', keywords') end);
 
 in
 
 fun require_thys initiators dir strs tasks =
       fold_map (require_thy initiators dir) strs tasks |>> forall I
-and require_thy initiators dir (str, pos) tasks =
+and require_thy initiators dir (str, require_pos) tasks =
   let
     val path = Path.expand (Path.explode str);
     val name = Path.implode (Path.base path);
@@ -271,10 +271,10 @@ and require_thy initiators dir (str, pos) tasks =
           val dir' = Path.append dir (Path.dir path);
           val _ = member (op =) initiators name andalso error (cycle_msg initiators);
 
-          val (current, deps, imports, uses, keywords) = check_deps dir' name
+          val (current, deps, theory_pos, imports, uses, keywords) = check_deps dir' name
             handle ERROR msg => cat_error msg
               (loader_msg "the error(s) above occurred while examining theory" [name] ^
-                Position.str_of pos ^ required_by "\n" initiators);
+                Position.str_of require_pos ^ required_by "\n" initiators);
 
           val parents = map (base_name o #1) imports;
           val (parents_current, tasks') =
@@ -290,7 +290,8 @@ and require_thy initiators dir (str, pos) tasks =
               | SOME (dep, text) =>
                   let
                     val update_time = serial ();
-                    val load = load_thy initiators update_time dep text (name, pos) uses keywords;
+                    val load =
+                      load_thy initiators update_time dep text (name, theory_pos) uses keywords;
                   in Task (parents, load) end);
 
           val tasks'' = new_entry name parents task tasks';

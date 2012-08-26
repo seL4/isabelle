@@ -11,8 +11,8 @@ sig
   val thy_path: Path.T -> Path.T
   val parse_files: string -> (theory -> Token.file list) parser
   val check_thy: Path.T -> string ->
-   {master: Path.T * SHA1.digest, text: string, imports: (string * Position.T) list,
-    uses: (Path.T * bool) list, keywords: Thy_Header.keywords}
+   {master: Path.T * SHA1.digest, text: string, theory_pos: Position.T,
+    imports: (string * Position.T) list, uses: (Path.T * bool) list, keywords: Thy_Header.keywords}
   val provide: Path.T * SHA1.digest -> theory -> theory
   val provide_parse_files: string -> (theory -> Token.file list * theory) parser
   val load_file: theory -> Path.T -> (Path.T * SHA1.digest) * string
@@ -137,7 +137,7 @@ fun check_thy dir thy_name =
     val _ = thy_name <> name andalso
       error ("Bad file name " ^ Path.print path ^ " for theory " ^ quote name ^ Position.str_of pos);
   in
-   {master = (master_file, SHA1.digest text), text = text,
+   {master = (master_file, SHA1.digest text), text = text, theory_pos = pos,
     imports = imports, uses = uses, keywords = keywords}
   end;
 
