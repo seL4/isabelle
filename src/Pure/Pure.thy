@@ -1,3 +1,9 @@
+(*  Title:      Pure/Pure.thy
+    Author:     Makarius
+
+Final stage of bootstrapping Pure, based on implicit background theory.
+*)
+
 theory Pure
   keywords
     "!!" "!" "%" "(" ")" "+" "," "--" ":" "::" ";" "<" "<=" "=" "=="

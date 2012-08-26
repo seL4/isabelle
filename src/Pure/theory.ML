@@ -135,6 +135,12 @@ fun theory_markup def name id pos =
     Markup.properties (Position.entity_properties_of def id pos)
       (Isabelle_Markup.entity Isabelle_Markup.theoryN name);
 
+fun init_markup (name, pos) thy =
+  let
+    val id = serial ();
+    val _ = Position.report pos (theory_markup true name id pos);
+  in map_thy (fn (_, _, axioms, defs, wrappers) => (pos, id, axioms, defs, wrappers)) thy end;
+
 fun get_markup thy =
   let val {pos, id, ...} = rep_theory thy
   in theory_markup false (Context.theory_name thy) id pos end;
@@ -161,18 +167,16 @@ fun at_end f = map_wrappers (apsnd (cons (f, stamp ())));
 
 fun begin_theory (name, pos) imports =
   if name = Context.PureN then
-    (case imports of [thy] => thy | _ => error "Bad bootstrapping of theory Pure")
+    (case imports of
+      [thy] => init_markup (name, pos) thy
+    | _ => error "Bad bootstrapping of theory Pure")
   else
     let
-      val id = serial ();
-      val thy =
-        Context.begin_thy Context.pretty_global name imports
-        |> map_thy (fn (_, _, axioms, defs, wrappers) => (pos, id, axioms, defs, wrappers));
-      val _ = Position.report pos (theory_markup true name id pos);
-
+      val thy = Context.begin_thy Context.pretty_global name imports;
       val wrappers = begin_wrappers thy;
     in
       thy
+      |> init_markup (name, pos)
       |> Sign.local_path
       |> Sign.map_naming (Name_Space.set_theory_name name)
       |> apply_wrappers wrappers
