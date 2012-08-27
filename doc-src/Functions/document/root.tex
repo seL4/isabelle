@@ -3,12 +3,12 @@
 
 \usepackage{latexsym,graphicx}
 \usepackage[refpage]{nomencl}
-\usepackage{../iman,../extra,../isar,../proof}
-\usepackage{../../lib/texinputs/isabelle,../../lib/texinputs/isabellesym}
+\usepackage{iman,extra,isar}
+\usepackage{isabelle,isabellesym}
 \usepackage{style}
 \usepackage{mathpartir}
 \usepackage{amsthm}
-\usepackage{../pdfsetup}
+\usepackage{pdfsetup}
 
 \newcommand{\cmd}[1]{\isacommand{#1}}
 
@@ -72,13 +72,13 @@
 %\clearfirst
 
 \input{intro.tex}
-\input{Thy/document/Functions.tex}
+\input{Functions.tex}
 %\input{conclusion.tex}
 
 \begingroup
 %\tocentry{\bibname}
 \bibliographystyle{plain} \small\raggedright\frenchspacing
-\bibliography{../manual}
+\bibliography{manual}
 \endgroup
 
 \end{document}

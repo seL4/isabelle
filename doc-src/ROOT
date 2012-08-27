@@ -18,10 +18,20 @@ session Codegen (doc) in "Codegen/Thy" = "HOL-Library" +
     Adaptation
     Further
 
-session Functions (doc) in "Functions/Thy" = HOL +
-  options [browser_info = false, document = false,
-    document_dump = document, document_dump_mode = "tex"]
+session Functions (doc) in "Functions" = HOL +
+  options [document_variants = "functions"]
   theories Functions
+  files
+    "../iman.sty"
+    "../extra.sty"
+    "../isar.sty"
+    "../manual.bib"
+    "document/build"
+    "document/conclusion.tex"
+    "document/intro.tex"
+    "document/mathpartir.sty"
+    "document/root.tex"
+    "document/style.sty"
 
 session IsarImplementation (doc) in "IsarImplementation" = HOL +
   options [document_variants = "implementation"]
