@@ -1,13 +1,12 @@
 # -*- shell-script -*- :mode=shellscript:
 
-  POLYML_HOME="/home/polyml/polyml-5.4.0"
-  ML_SYSTEM="polyml-5.4.0"
-  ML_PLATFORM="x86-darwin"
-  ML_HOME="$POLYML_HOME/$ML_PLATFORM"
-  ML_OPTIONS="-H 500"
+ML_SYSTEM="polyml-5.5.0"
+ML_PLATFORM="x86-darwin"
+ML_HOME="/home/polyml/polyml-svn/$ML_PLATFORM"
+ML_OPTIONS="-H 500"
 
 
-ISABELLE_HOME_USER=~/isabelle-at-mac-poly-e
+ISABELLE_HOME_USER=~/isabelle-mac-poly-M2
 
 # Where to look for isabelle tools (multiple dirs separated by ':').
 ISABELLE_TOOLS="$ISABELLE_HOME/lib/Tools"
@@ -23,7 +22,9 @@ ISABELLE_PATH="$ISABELLE_HOME_USER/heaps:$ISABELLE_HOME/heaps"
 ISABELLE_OUTPUT="$ISABELLE_HOME_USER/heaps"
 ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 
-ISABELLE_BUILD_OPTIONS="browser_info=false document=false threads=2 parallel_proofs=2"
+ISABELLE_BUILD_OPTIONS="browser_info=true document=pdf threads=2 parallel_proofs=2"
 
-init_component "$HOME/contrib_devel/kodkodi-1.2.16"
+init_components /home/isabelle/contrib "$ISABELLE_HOME/Admin/components/main"
+init_components /home/isabelle/contrib "$ISABELLE_HOME/Admin/components/optional"
+init_components /home/isabelle/contrib "$ISABELLE_HOME/Admin/components/nonfree"
 
