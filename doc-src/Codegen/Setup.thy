@@ -6,8 +6,13 @@ imports
   "~~/src/HOL/Library/Mapping"
 begin
 
-ML_file "../../antiquote_setup.ML"
-ML_file "../../more_antiquote.ML"
+(* FIXME avoid writing into source directory *)
+ML {*
+  Isabelle_System.mkdirs (Path.append (Thy_Load.master_directory @{theory}) (Path.basic "examples"))
+*}
+
+ML_file "../antiquote_setup.ML"
+ML_file "../more_antiquote.ML"
 
 setup {*
   Antiquote_Setup.setup #>

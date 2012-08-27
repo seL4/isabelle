@@ -7,10 +7,8 @@ session Classes (doc) in "Classes" = HOL +
     "document/root.tex"
     "document/style.sty"
 
-session Codegen (doc) in "Codegen/Thy" = "HOL-Library" +
-  options [browser_info = false, document = false,
-    document_dump = document, document_dump_mode = "tex",
-    print_mode = "no_brackets,iff"]
+session Codegen (doc) in "Codegen" = "HOL-Library" +
+  options [document_variants = "codegen", print_mode = "no_brackets,iff"]
   theories [document = false] Setup
   theories
     Introduction
@@ -20,6 +18,12 @@ session Codegen (doc) in "Codegen/Thy" = "HOL-Library" +
     Evaluation
     Adaptation
     Further
+  files
+    "document/adaptation.tex"
+    "document/architecture.tex"
+    "document/build"
+    "document/root.tex"
+    "document/style.sty"
 
 session Functions (doc) in "Functions" = HOL +
   options [document_variants = "functions"]

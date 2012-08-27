@@ -1,12 +1,11 @@
 
 \documentclass[12pt,a4paper,fleqn]{article}
 \usepackage{latexsym,graphicx}
-\usepackage[refpage]{nomencl}
 \usepackage{multirow}
-\usepackage{../iman,../extra,../isar,../proof}
-\usepackage{../../lib/texinputs/isabelle,../../lib/texinputs/isabellesym}
+\usepackage{iman,extra,isar,proof}
+\usepackage{isabelle,isabellesym}
 \usepackage{style}
-\usepackage{../pdfsetup}
+\usepackage{pdfsetup}
 
 \hyphenation{Isabelle}
 \hyphenation{Isar}
@@ -31,17 +30,17 @@
 \pagenumbering{roman}
 \clearfirst
 
-\input{Thy/document/Introduction.tex}
-\input{Thy/document/Foundations.tex}
-\input{Thy/document/Refinement.tex}
-\input{Thy/document/Inductive_Predicate.tex}
-\input{Thy/document/Adaptation.tex}
-\input{Thy/document/Evaluation.tex}
-\input{Thy/document/Further.tex}
+\input{Introduction.tex}
+\input{Foundations.tex}
+\input{Refinement.tex}
+\input{Inductive_Predicate.tex}
+\input{Adaptation.tex}
+\input{Evaluation.tex}
+\input{Further.tex}
 
 \begingroup
 \bibliographystyle{plain} \small\raggedright\frenchspacing
-\bibliography{../manual}
+\bibliography{manual}
 \endgroup
 
 \end{document}
