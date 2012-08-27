@@ -123,6 +123,19 @@ session Logics (doc) in "Logics" = Pure +
     "document/build"
     "document/root.tex"
 
+session "Logics-HOL" (doc) in "HOL" = Pure +
+  options [document_variants = "logics-HOL"]
+  theories
+  files
+    "../iman.sty"
+    "../extra.sty"
+    "../ttbox.sty"
+    "../proof.sty"
+    "../manual.bib"
+    "../Logics/document/syntax.tex"
+    "document/build"
+    "document/root.tex"
+
 session Main (doc) in "Main" = HOL +
   options [document_variants = "main"]
   theories Main_Doc

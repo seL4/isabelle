@@ -1,6 +1,6 @@
 \documentclass[12pt,a4paper]{report}
-\usepackage{../../lib/texinputs/isabelle,../../lib/texinputs/isabellesym}
-\usepackage{graphicx,../iman,../extra,../ttbox,../proof,latexsym,../pdfsetup}
+\usepackage{isabelle,isabellesym}
+\usepackage{graphicx,iman,extra,ttbox,proof,latexsym,pdfsetup}
 
 %%% to index derived rls:  ^\([a-zA-Z0-9][a-zA-Z0-9_]*\)        \\tdx{\1}  
 %%% to index rulenames:   ^ *(\([a-zA-Z0-9][a-zA-Z0-9_]*\),     \\tdx{\1}  
@@ -52,9 +52,9 @@ Markus Wenzel\footnote
 \end{abstract}
 
 \pagenumbering{roman} \tableofcontents \clearfirst
-\input{../Logics/syntax}
+\input{syntax}
 \include{HOL}
 \bibliographystyle{plain}
-\bibliography{../manual}
+\bibliography{manual}
 \printindex
 \end{document}
