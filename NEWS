@@ -84,6 +84,9 @@ document/IsaMakefile.  Minor INCOMPATIBILITY.
 
 *** System ***
 
+* The "isabelle logo" tool allows to specify EPS or PDF format; the
+latter is preferred now.  Minor INCOMPATIBILITY.
+
 * Advanced support for Isabelle sessions and build management, see
 "system" manual for the chapter of that name, especially the "isabelle
 build" tool and its examples.  INCOMPATIBILITY, isabelle usedir /

@@ -210,19 +210,28 @@ Usage: isabelle install [OPTIONS]
 section {* Creating instances of the Isabelle logo *}
 
 text {* The @{tool_def logo} tool creates any instance of the generic
-  Isabelle logo as an Encapsuled Postscript file (EPS):
+  Isabelle logo as EPS or PDF.
 \begin{ttbox}
 Usage: isabelle logo [OPTIONS] NAME
 
-  Create instance NAME of the Isabelle logo (as EPS).
+  Create instance NAME of the Isabelle logo (as EPS or PDF).
 
   Options are:
-    -o OUTFILE   set output file (default determined from NAME)
+    -o OUTFILE   specify output file and format
+                 (default "isabelle_name.pdf")
     -q           quiet mode
 \end{ttbox}
-  You are encouraged to use this to create a derived logo for your
-  Isabelle project.  For example, @{tool logo}~@{verbatim Bali}
-  creates @{verbatim isabelle_bali.eps}.  *}
+
+  Option @{verbatim "-o"} specifies an explicit output file name and
+  format, e.g.\ @{verbatim "mylogo.eps"} for an EPS logo.  The default
+  is @{verbatim "isabelle_"}@{text name}@{verbatim ".pdf"}, with the
+  lower-case version of the given name and PDF output.
+
+  Option @{verbatim "-q"} omits printing of the result file name.
+
+  \medskip Implementors of Isabelle tools and applications are
+  encouraged to make derived Isabelle logos for their own projects
+  using this template.  *}
 
 
 section {* Isabelle wrapper for make \label{sec:tool-make} *}

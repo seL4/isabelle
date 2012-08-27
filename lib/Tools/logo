@@ -12,10 +12,10 @@ function usage()
   echo
   echo "Usage: isabelle $PRG [OPTIONS] NAME"
   echo
-  echo "  Create instance NAME of the Isabelle logo (as EPS)."
+  echo "  Create instance NAME of the Isabelle logo (as EPS or PDF)."
   echo
   echo "  Options are:"
-  echo "    -o OUTFILE   set output file (default determined from NAME)"
+  echo "    -o OUTPUT    specify output file and format (default \"isabelle_name.pdf\")"
   echo "    -q           quiet mode"
   echo
   exit 1
@@ -32,14 +32,14 @@ function fail()
 
 # options
 
-OUTFILE=""
+OUTPUT=""
 QUIET=""
 
 while getopts "o:q" OPT
 do
   case "$OPT" in
     o)
-      OUTFILE="$OPTARG"
+      OUTPUT="$OPTARG"
       ;;
     q)
       QUIET=true
@@ -63,15 +63,30 @@ NAME="-"
 
 ## main
 
-if [ -z "$OUTFILE" ]; then
-  OUTFILE=$(echo "$NAME" | tr A-Z a-z)
-  [ -n "$OUTFILE" ] && OUTFILE="_$OUTFILE"
-  OUTFILE="isabelle${OUTFILE}.eps"
+if [ -z "$OUTPUT" ]; then
+  OUTPUT=$(echo "$NAME" | tr A-Z a-z)
+  [ -n "$OUTPUT" ] && OUTPUT="_${OUTPUT}"
+  OUTPUT="isabelle${OUTPUT}.pdf"
+  OUTPUT_FORMAT="pdf"
+else
+  case "$OUTPUT" in
+    *.eps)
+      OUTPUT_FORMAT="eps"
+      ;;
+    *.pdf)
+      OUTPUT_FORMAT="pdf"
+      ;;
+    *)
+      fail "Cannot guess output format (eps or pdf) from \"$OUTPUT\""
+      ;;
+  esac
 fi
 
-if [ "$OUTFILE" = "-" ]; then
-  perl -p -e "s/<any>/$NAME/" "$ISABELLE_HOME/lib/logo/isabelle_any.eps"
+[ -z "$QUIET" ] && echo "$OUTPUT" >&2
+
+if [ "$OUTPUT_FORMAT" = "eps" ]; then
+  perl -p -e "s,<any>,$NAME," "$ISABELLE_HOME/lib/logo/isabelle_any.eps" > "$OUTPUT"
 else
-  [ -z "$QUIET" ] && echo "$OUTFILE" >&2
-  perl -p -e "s/<any>/$NAME/" "$ISABELLE_HOME/lib/logo/isabelle_any.eps" > "$OUTFILE"
+  perl -p -e "s,<any>,$NAME," "$ISABELLE_HOME/lib/logo/isabelle_any.eps" | \
+    "$ISABELLE_EPSTOPDF" -f > "$OUTPUT"
 fi
