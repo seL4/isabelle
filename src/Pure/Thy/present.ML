@@ -383,19 +383,6 @@ fun finish () =
         SOME (isabelle_browser sorted_graph)
       else NONE;
 
-    fun prepare_sources doc_dir doc_mode =
-     (Isabelle_System.mkdirs doc_dir;
-      (case doc_mode of
-        Dump_all => Isabelle_System.copy_dir document_path doc_dir
-      | Dump_tex_sty =>
-          ignore (Isabelle_System.isabelle_tool "latex"
-            ("-o sty " ^ File.shell_path (Path.append doc_dir (Path.basic "root.tex"))))
-      | Dump_tex => ());
-      (case opt_graphs of NONE => () | SOME (pdf, eps) =>
-        (File.write (Path.append doc_dir graph_pdf_path) pdf;
-          File.write (Path.append doc_dir graph_eps_path) eps));
-      write_tex_index tex_index doc_dir;
-      List.app (fn (a, {tex_source, ...}) => write_tex tex_source a doc_dir) thys);
     val _ =
       if info then
        (Isabelle_System.mkdirs (Path.append html_prefix session_path);
@@ -415,6 +402,20 @@ fun finish () =
         if verbose then Output.physical_stderr ("Browser info at " ^ show_path html_prefix ^ "\n")
         else ())
       else ();
+
+    fun prepare_sources doc_dir doc_mode =
+     (Isabelle_System.mkdirs doc_dir;
+      (case doc_mode of
+        Dump_all => Isabelle_System.copy_dir document_path doc_dir
+      | Dump_tex_sty =>
+          ignore (Isabelle_System.isabelle_tool "latex"
+            ("-o sty " ^ File.shell_path (Path.append doc_dir (Path.basic "root.tex"))))
+      | Dump_tex => ());
+      (case opt_graphs of NONE => () | SOME (pdf, eps) =>
+        (File.write (Path.append doc_dir graph_pdf_path) pdf;
+          File.write (Path.append doc_dir graph_eps_path) eps));
+      write_tex_index tex_index doc_dir;
+      List.app (fn (a, {tex_source, ...}) => write_tex tex_source a doc_dir) thys);
 
     val _ =
       if dump_prefix = "" then ()
