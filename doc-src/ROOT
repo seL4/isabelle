@@ -158,10 +158,8 @@ session Main (doc) in "Main" = HOL +
     "document/build"
     "document/root.tex"
 
-session ProgProve (doc) in "ProgProve/Thys" = HOL +
-  options [browser_info = false, document = false,
-    document_dump = document, document_dump_mode = "tex",
-    show_question_marks = false]
+session ProgProve (doc) in "ProgProve" = HOL +
+  options [document_variants = "prog-prove", show_question_marks = false]
   theories
     Basics
     Bool_nat_list
@@ -169,6 +167,16 @@ session ProgProve (doc) in "ProgProve/Thys" = HOL +
     Types_and_funs
     Logic
     Isar
+  files
+    "document/bang.eps"
+    "document/bang.pdf"
+    "document/build"
+    "document/intro-isabelle.tex"
+    "document/mathpartir.sty"
+    "document/prelude.tex"
+    "document/root.bib"
+    "document/root.tex"
+    "document/svmono.cls"
 
 session Ref (doc) in "Ref" = Pure +
   options [document_variants = "ref"]

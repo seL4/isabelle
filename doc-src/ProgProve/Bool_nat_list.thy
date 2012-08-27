@@ -210,7 +210,7 @@ Because @{text list}, @{const Nil}, @{const Cons} etc are already predefined,
 
 \begin{figure}[htbp]
 \begin{alltt}
-\input{Thys/MyList.thy}\end{alltt}
+\input{MyList.thy}\end{alltt}
 \caption{A Theory of Lists}
 \label{fig:MyList}
 \end{figure}
