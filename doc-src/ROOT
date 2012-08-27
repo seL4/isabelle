@@ -103,13 +103,17 @@ session "ZF-IsarRef" (doc) in "IsarRef/Thy" = ZF +
     quick_and_dirty]
   theories ZF_Specific
 
-session LaTeXsugar (doc) in "LaTeXsugar/Sugar" = HOL +
-  options [browser_info = false, document = false,
-    document_dump = document, document_dump_mode = "tex"]
-  theories [document_dump = ""]
+session LaTeXsugar (doc) in "LaTeXsugar" = HOL +
+  options [document_variants = "sugar"]
+  theories [document = ""]
     "~~/src/HOL/Library/LaTeXsugar"
     "~~/src/HOL/Library/OptionalSugar"
   theories Sugar
+  files
+    "document/build"
+    "document/mathpartir.sty"
+    "document/root.bib"
+    "document/root.tex"
 
 session Locales (doc) in "Locales" = HOL +
   options [document_variants = "locales"]
