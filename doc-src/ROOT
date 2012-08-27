@@ -48,6 +48,18 @@ session IsarImplementation (doc) in "IsarImplementation" = HOL +
     "document/root.tex"
     "document/style.sty"
 
+session Intro (doc) in "Intro" = Pure +
+  options [document_variants = "intro"]
+  theories
+  files
+    "../iman.sty"
+    "../extra.sty"
+    "../ttbox.sty"
+    "../proof.sty"
+    "../manual.bib"
+    "document/build"
+    "document/root.tex"
+
 session "HOL-IsarRef" (doc) in "IsarRef/Thy" = HOL +
   options [browser_info = false, document = false,
     document_dump = document, document_dump_mode = "tex",
