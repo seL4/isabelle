@@ -123,7 +123,7 @@ session LaTeXsugar (doc) in "LaTeXsugar" = HOL +
     "document/root.tex"
 
 session Locales (doc) in "Locales" = HOL +
-  options [document_variants = "locales"]
+  options [document_variants = "locales", pretty_margin = 65]
   theories
     Examples1
     Examples2

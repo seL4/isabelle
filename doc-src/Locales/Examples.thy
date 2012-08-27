@@ -2,8 +2,6 @@ theory Examples
 imports Main
 begin
 
-pretty_setmargin %invisible 65
-
 (*
 text {* The following presentation will use notation of
   Isabelle's meta logic, hence a few sentences to explain this.
