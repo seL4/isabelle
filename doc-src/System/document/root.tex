@@ -1,12 +1,12 @@
 \documentclass[12pt,a4paper]{report}
 \usepackage{supertabular}
 \usepackage{graphicx}
-\usepackage{../iman,../extra,../isar,../ttbox}
-\usepackage[nohyphen,strings]{../underscore}
-\usepackage{../../lib/texinputs/isabelle,../../lib/texinputs/isabellesym}
-\usepackage{../../lib/texinputs/railsetup}
-\usepackage{../IsarRef/style}
-\usepackage{../pdfsetup}
+\usepackage{iman,extra,isar,ttbox}
+\usepackage[nohyphen,strings]{underscore}
+\usepackage{isabelle,isabellesym}
+\usepackage{railsetup}
+\usepackage{style}
+\usepackage{pdfsetup}
 
 \hyphenation{Isabelle}
 \hyphenation{Isar}
@@ -28,17 +28,17 @@
 \maketitle 
 \pagenumbering{roman} \tableofcontents \clearfirst
 
-\input{Thy/document/Basics.tex}
-\input{Thy/document/Interfaces.tex}
-\input{Thy/document/Sessions.tex}
-\input{Thy/document/Presentation.tex}
-\input{Thy/document/Scala.tex}
-\input{Thy/document/Misc.tex}
+\input{Basics.tex}
+\input{Interfaces.tex}
+\input{Sessions.tex}
+\input{Presentation.tex}
+\input{Scala.tex}
+\input{Misc.tex}
 
 \begingroup
   \tocentry{\bibname}
   \bibliographystyle{abbrv} \small\raggedright\frenchspacing
-  \bibliography{../manual}
+  \bibliography{manual}
 \endgroup
 
 \tocentry{\indexname}

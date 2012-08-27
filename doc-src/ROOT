@@ -104,9 +104,8 @@ session ProgProve (doc) in "ProgProve/Thys" = HOL +
     Logic
     Isar
 
-session System (doc) in "System/Thy" = Pure +
-  options [browser_info = false, document = false,
-    document_dump = document, document_dump_mode = "tex"]
+session System (doc) in "System" = Pure +
+  options [document_variants = "system", thy_output_source]
   theories
     Basics
     Interfaces
@@ -114,6 +113,18 @@ session System (doc) in "System/Thy" = Pure +
     Presentation
     Scala
     Misc
+  files
+    "../IsarRef/style.sty"
+    "../iman.sty"
+    "../extra.sty"
+    "../ttbox.sty"
+    "../isar.sty"
+    "../underscore.sty"
+    "../manual.bib"
+    "document/browser_screenshot.eps"
+    "document/browser_screenshot.png"
+    "document/build"
+    "document/root.tex"
 
 session Tutorial (doc) in "TutorialI" = HOL +
   options [browser_info = false, document = false,
