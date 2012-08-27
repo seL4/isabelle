@@ -14,7 +14,7 @@ cp "$ISABELLE_HOME/doc-src/isar.sty" .
 cp "$ISABELLE_HOME/doc-src/proof.sty" .
 cp "$ISABELLE_HOME/doc-src/manual.bib" .
 
-for NAME in architecture adaptation
+for NAME in architecture adapt
 do
   latex "$NAME"
   $ISABELLE_DVIPS -E -o "$NAME.eps" "$NAME.dvi"

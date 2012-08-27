@@ -19,7 +19,7 @@ session Codegen (doc) in "Codegen" = "HOL-Library" +
     Adaptation
     Further
   files
-    "document/adaptation.tex"
+    "document/adapt.tex"
     "document/architecture.tex"
     "document/build"
     "document/root.tex"

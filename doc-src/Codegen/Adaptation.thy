@@ -71,7 +71,7 @@ text {*
   conceptually supposed to be:
 
   \begin{figure}[here]
-    \includegraphics{adaptation}
+    \includegraphics{adapt}
     \caption{The adaptation principle}
     \label{fig:adaptation}
   \end{figure}
