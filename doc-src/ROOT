@@ -101,13 +101,15 @@ session LaTeXsugar (doc) in "LaTeXsugar/Sugar" = HOL +
     "~~/src/HOL/Library/OptionalSugar"
   theories Sugar
 
-session Locales (doc) in "Locales/Locales" = HOL +
-  options [browser_info = false, document = false,
-    document_dump = document, document_dump_mode = "tex"]
+session Locales (doc) in "Locales" = HOL +
+  options [document_variants = "locales"]
   theories
     Examples1
     Examples2
     Examples3
+  files
+    "document/build"
+    "document/root.tex"
 
 session Logics (doc) in "Logics" = Pure +
   options [document_variants = "logics"]
