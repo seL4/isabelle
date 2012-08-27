@@ -23,9 +23,8 @@ session Functions (doc) in "Functions/Thy" = HOL +
     document_dump = document, document_dump_mode = "tex"]
   theories Functions
 
-session IsarImplementation (doc) in "IsarImplementation/Thy" = HOL +
-  options [browser_info = false, document = false,
-    document_dump = document, document_dump_mode = "tex"]
+session IsarImplementation (doc) in "IsarImplementation" = HOL +
+  options [document_variants = "implementation"]
   theories
     Eq
     Integration
@@ -37,6 +36,17 @@ session IsarImplementation (doc) in "IsarImplementation/Thy" = HOL +
     Proof
     Syntax
     Tactic
+  files
+    "../iman.sty"
+    "../extra.sty"
+    "../isar.sty"
+    "../proof.sty"
+    "../underscore.sty"
+    "../ttbox.sty"
+    "../manual.bib"
+    "document/build"
+    "document/root.tex"
+    "document/style.sty"
 
 session "HOL-IsarRef" (doc) in "IsarRef/Thy" = HOL +
   options [browser_info = false, document = false,

@@ -8,7 +8,7 @@ LATEX = latex
 PDFLATEX = pdflatex
 BIBTEX = bibtex
 SEDINDEX = ../sedindex
-FIXBOOKMARKS = perl -pi ../fixbookmarks.pl
+FIXBOOKMARKS = ../fixbookmarks
 
 DEFAULT_GARBAGE = *.aux *.log *.toc *.idx *.bbl *.ind *.ilg *.blg *.out *.lof
 DEFAULT_OUTPUT = *.dvi *.pdf *.ps

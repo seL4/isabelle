@@ -1,14 +1,14 @@
 \documentclass[12pt,a4paper,fleqn]{report}
 \usepackage{latexsym,graphicx}
 \usepackage[refpage]{nomencl}
-\usepackage{../iman,../extra,../isar,../proof}
-\usepackage[nohyphen,strings]{../underscore}
-\usepackage{../../lib/texinputs/isabelle}
-\usepackage{../../lib/texinputs/isabellesym}
-\usepackage{../../lib/texinputs/railsetup}
-\usepackage{../ttbox}
+\usepackage{iman,extra,isar,proof}
+\usepackage[nohyphen,strings]{underscore}
+\usepackage{isabelle}
+\usepackage{isabellesym}
+\usepackage{railsetup}
+\usepackage{ttbox}
 \usepackage{style}
-\usepackage{../pdfsetup}
+\usepackage{pdfsetup}
 
 
 \hyphenation{Isabelle}
@@ -81,21 +81,21 @@
 
 \setcounter{chapter}{-1}
 
-\input{Thy/document/ML.tex}
-\input{Thy/document/Prelim.tex}
-\input{Thy/document/Logic.tex}
-\input{Thy/document/Syntax.tex}
-\input{Thy/document/Tactic.tex}
-\input{Thy/document/Eq.tex}
-\input{Thy/document/Proof.tex}
-\input{Thy/document/Isar.tex}
-\input{Thy/document/Local_Theory.tex}
-\input{Thy/document/Integration.tex}
+\input{ML.tex}
+\input{Prelim.tex}
+\input{Logic.tex}
+\input{Syntax.tex}
+\input{Tactic.tex}
+\input{Eq.tex}
+\input{Proof.tex}
+\input{Isar.tex}
+\input{Local_Theory.tex}
+\input{Integration.tex}
 
 \begingroup
 \tocentry{\bibname}
 \bibliographystyle{abbrv} \small\raggedright\frenchspacing
-\bibliography{../manual}
+\bibliography{manual}
 \endgroup
 
 \tocentry{\indexname}
