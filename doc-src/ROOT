@@ -114,6 +114,24 @@ session ProgProve (doc) in "ProgProve/Thys" = HOL +
     Logic
     Isar
 
+session Ref (doc) in "Ref" = Pure +
+  options [document_variants = "ref"]
+  theories
+  files
+    "../iman.sty"
+    "../extra.sty"
+    "../ttbox.sty"
+    "../proof.sty"
+    "../manual.bib"
+    "document/build"
+    "document/classical.tex"
+    "document/root.tex"
+    "document/simplifier.tex"
+    "document/substitution.tex"
+    "document/syntax.tex"
+    "document/tactic.tex"
+    "document/thm.tex"
+
 session System (doc) in "System" = Pure +
   options [document_variants = "system", thy_output_source]
   theories
