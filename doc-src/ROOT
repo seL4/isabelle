@@ -1,8 +1,11 @@
-session Classes (doc) in "Classes/Thy" = HOL +
-  options [browser_info = false, document = false,
-    document_dump = document, document_dump_mode = "tex"]
+session Classes (doc) in "Classes" = HOL +
+  options [document_variants = "classes"]
   theories [document = false] Setup
   theories Classes
+  files
+    "document/build"
+    "document/root.tex"
+    "document/style.sty"
 
 session Codegen (doc) in "Codegen/Thy" = "HOL-Library" +
   options [browser_info = false, document = false,

@@ -1,11 +1,9 @@
-
 \documentclass[12pt,a4paper,fleqn]{article}
 \usepackage{latexsym,graphicx}
-\usepackage[refpage]{nomencl}
-\usepackage{../iman,../extra,../isar,../proof}
-\usepackage{../../lib/texinputs/isabelle,../../lib/texinputs/isabellesym}
+\usepackage{iman,extra,isar,proof}
+\usepackage{isabelle,isabellesym}
 \usepackage{style}
-\usepackage{../pdfsetup}
+\usepackage{pdfsetup}
 
 
 \hyphenation{Isabelle}
@@ -32,11 +30,11 @@
 \pagenumbering{roman}
 \clearfirst
 
-\input{Thy/document/Classes.tex}
+\input{Classes.tex}
 
 \begingroup
 \bibliographystyle{plain} \small\raggedright\frenchspacing
-\bibliography{../manual}
+\bibliography{manual}
 \endgroup
 
 \end{document}

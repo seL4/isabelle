@@ -2,8 +2,8 @@ theory Setup
 imports Main "~~/src/HOL/Library/Code_Integer"
 begin
 
-ML_file "../../antiquote_setup.ML"
-ML_file "../../more_antiquote.ML"
+ML_file "../antiquote_setup.ML"
+ML_file "../more_antiquote.ML"
 
 setup {*
   Antiquote_Setup.setup #>
