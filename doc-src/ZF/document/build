@@ -1,0 +1,24 @@
+#!/bin/bash
+
+set -e
+
+FORMAT="$1"
+VARIANT="$2"
+
+"$ISABELLE_TOOL" logo -o isabelle_zf.pdf "ZF"
+"$ISABELLE_TOOL" logo -o isabelle_zf.eps "ZF"
+
+cp "$ISABELLE_HOME/doc-src/ttbox.sty" .
+cp "$ISABELLE_HOME/doc-src/proof.sty" .
+cp "$ISABELLE_HOME/doc-src/manual.bib" .
+cp "$ISABELLE_HOME/doc-src/Logics/document/syntax.tex" .
+
+"$ISABELLE_TOOL" latex -o sty
+"$ISABELLE_TOOL" latex -o "$FORMAT"
+"$ISABELLE_TOOL" latex -o bbl
+"$ISABELLE_TOOL" latex -o "$FORMAT"
+"$ISABELLE_TOOL" latex -o "$FORMAT"
+"$ISABELLE_HOME/doc-src/sedindex" root
+[ -f root.out ] && "$ISABELLE_HOME/doc-src/fixbookmarks" root.out
+"$ISABELLE_TOOL" latex -o "$FORMAT"
+"$ISABELLE_TOOL" latex -o "$FORMAT"
