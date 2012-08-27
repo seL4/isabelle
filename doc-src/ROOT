@@ -123,10 +123,12 @@ session Logics (doc) in "Logics" = Pure +
     "document/build"
     "document/root.tex"
 
-session Main (doc) in "Main/Docs" = HOL +
-  options [browser_info = false, document = false,
-    document_dump = document, document_dump_mode = "tex"]
+session Main (doc) in "Main" = HOL +
+  options [document_variants = "main"]
   theories Main_Doc
+  files
+    "document/build"
+    "document/root.tex"
 
 session ProgProve (doc) in "ProgProve/Thys" = HOL +
   options [browser_info = false, document = false,
