@@ -429,25 +429,32 @@ fun finish () =
           else ()
         end;
 
-    val doc_paths =
-      documents |> Par_List.map (fn (name, tags) =>
-        let
-          val (doc_prefix, purge) =
-            (case doc_output of
-              SOME path => (path, false)
-            | NONE => (html_prefix, true));
-          val _ =
-            File.eq (document_path, doc_prefix) andalso
-              error ("Overlap of document input and output directory " ^ Path.print doc_prefix);
-          val dir = Path.append doc_prefix (Path.basic name);
-          val mode = if File.eq (document_path, dir) then Dump_tex_sty else Dump_all;
-          val _ = prepare_sources dir mode;
-        in isabelle_document {verbose = true, purge = purge} doc_format name tags dir end);
-    val _ =
-      if verbose orelse is_some doc_output then
-        doc_paths
-        |> List.app (fn doc => Output.physical_stderr ("Document at " ^ show_path doc ^ "\n"))
-      else ();
+    fun document_job doc_prefix backdrop (name, tags) =
+      let
+        val _ =
+          File.eq (document_path, doc_prefix) andalso
+            error ("Overlap of document input and output directory " ^ Path.print doc_prefix);
+        val dir = Path.append doc_prefix (Path.basic name);
+        val mode = if File.eq (document_path, dir) then Dump_tex_sty else Dump_all;
+        val _ = prepare_sources dir mode;
+        fun inform doc =
+          if verbose orelse not backdrop then
+            Output.physical_stderr ("Document at " ^ show_path doc ^ "\n")
+          else ();
+      in
+        fn () =>
+          (isabelle_document {verbose = true, purge = backdrop} doc_format name tags dir, inform)
+      end;
+
+    val jobs =
+      (if info orelse is_none doc_output then
+        map (document_job html_prefix true) documents
+       else []) @
+      (case doc_output of
+        NONE => []
+      | SOME path => map (document_job path false) documents);
+
+    val _ = jobs |> Par_List.map (fn job => job ()) |> List.app (op |>);
   in
     browser_info := empty_browser_info;
     session_info := NONE
