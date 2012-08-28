@@ -6,6 +6,8 @@ FORMAT="$1"
 VARIANT="$2"
 
 "$ISABELLE_TOOL" latex -o sty
+cp "$ISABELLE_HOME/doc-src/pdfsetup.sty" .
+
 "$ISABELLE_TOOL" latex -o "$FORMAT"
 "$ISABELLE_TOOL" latex -o bbl
 "$ISABELLE_TOOL" latex -o "$FORMAT"

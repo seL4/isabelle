@@ -1,8 +1,13 @@
-theory ZF_Specific
-imports Base Main
+theory ZF_Isar
+imports Main
 begin
 
-chapter {* Isabelle/ZF \label{ch:zf} *}
+(*<*)
+ML_file "../antiquote_setup.ML"
+setup Antiquote_Setup.setup
+(*>*)
+
+chapter {* Some Isar language elements *}
 
 section {* Type checking *}
 

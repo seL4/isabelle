@@ -3,6 +3,7 @@ session Classes (doc) in "Classes" = HOL +
   theories [document = false] Setup
   theories Classes
   files
+    "../pdfsetup.sty"
     "document/build"
     "document/root.tex"
     "document/style.sty"
@@ -19,6 +20,7 @@ session Codegen (doc) in "Codegen" = "HOL-Library" +
     Adaptation
     Further
   files
+    "../pdfsetup.sty"
     "document/adapt.tex"
     "document/architecture.tex"
     "document/build"
@@ -29,6 +31,7 @@ session Functions (doc) in "Functions" = HOL +
   options [document_variants = "functions"]
   theories Functions
   files
+    "../pdfsetup.sty"
     "../iman.sty"
     "../extra.sty"
     "../isar.sty"
@@ -54,6 +57,7 @@ session IsarImplementation (doc) in "IsarImplementation" = HOL +
     Syntax
     Tactic
   files
+    "../pdfsetup.sty"
     "../iman.sty"
     "../extra.sty"
     "../isar.sty"
@@ -69,6 +73,7 @@ session Intro (doc) in "Intro" = Pure +
   options [document_variants = "intro"]
   theories
   files
+    "../pdfsetup.sty"
     "../iman.sty"
     "../extra.sty"
     "../ttbox.sty"
@@ -80,7 +85,7 @@ session Intro (doc) in "Intro" = Pure +
 session "HOL-IsarRef" (doc) in "IsarRef/Thy" = HOL +
   options [browser_info = false, document = false,
     document_dump = document, document_dump_mode = "tex",
-    quick_and_dirty]
+    quick_and_dirty, thy_output_source]
   theories
     Preface
     Synopsis
@@ -101,14 +106,8 @@ session "HOL-IsarRef" (doc) in "IsarRef/Thy" = HOL +
 session "HOLCF-IsarRef" (doc) in "IsarRef/Thy" = HOLCF +
   options [browser_info = false, document = false,
     document_dump = document, document_dump_mode = "tex",
-    quick_and_dirty]
+    quick_and_dirty, thy_output_source]
   theories HOLCF_Specific
-
-session "ZF-IsarRef" (doc) in "IsarRef/Thy" = ZF +
-  options [browser_info = false, document = false,
-    document_dump = document, document_dump_mode = "tex",
-    quick_and_dirty]
-  theories ZF_Specific
 
 session LaTeXsugar (doc) in "LaTeXsugar" = HOL +
   options [document_variants = "sugar"]
@@ -117,6 +116,7 @@ session LaTeXsugar (doc) in "LaTeXsugar" = HOL +
     "~~/src/HOL/Library/OptionalSugar"
   theories Sugar
   files
+    "../pdfsetup.sty"
     "document/build"
     "document/mathpartir.sty"
     "document/root.bib"
@@ -129,6 +129,7 @@ session Locales (doc) in "Locales" = HOL +
     Examples2
     Examples3
   files
+    "../pdfsetup.sty"
     "document/build"
     "document/root.tex"
 
@@ -136,6 +137,7 @@ session Logics (doc) in "Logics" = Pure +
   options [document_variants = "logics"]
   theories
   files
+    "../pdfsetup.sty"
     "../iman.sty"
     "../extra.sty"
     "../ttbox.sty"
@@ -148,6 +150,7 @@ session "Logics-HOL" (doc) in "HOL" = Pure +
   options [document_variants = "logics-HOL"]
   theories
   files
+    "../pdfsetup.sty"
     "../iman.sty"
     "../extra.sty"
     "../ttbox.sty"
@@ -158,13 +161,17 @@ session "Logics-HOL" (doc) in "HOL" = Pure +
     "document/root.tex"
 
 session "Logics-ZF" (doc) in "ZF" = ZF +
-  options [document_variants = "logics-ZF", print_mode = "brackets"]
+  options [document_variants = "logics-ZF", print_mode = "brackets",
+    thy_output_source]
   theories
     IFOL_examples
     FOL_examples
     ZF_examples
     If
+    ZF_Isar
   files
+    "../pdfsetup.sty"
+    "../isar.sty"
     "../ttbox.sty"
     "../proof.sty"
     "../manual.bib"
@@ -176,6 +183,7 @@ session Main (doc) in "Main" = HOL +
   options [document_variants = "main"]
   theories Main_Doc
   files
+    "../pdfsetup.sty"
     "document/build"
     "document/root.tex"
 
@@ -189,6 +197,7 @@ session ProgProve (doc) in "ProgProve" = HOL +
     Logic
     Isar
   files
+    "../pdfsetup.sty"
     "document/bang.eps"
     "document/bang.pdf"
     "document/build"
@@ -203,6 +212,7 @@ session Ref (doc) in "Ref" = Pure +
   options [document_variants = "ref"]
   theories
   files
+    "../pdfsetup.sty"
     "../iman.sty"
     "../extra.sty"
     "../ttbox.sty"
@@ -228,6 +238,7 @@ session System (doc) in "System" = Pure +
     Misc
   files
     "../IsarRef/style.sty"
+    "../pdfsetup.sty"
     "../iman.sty"
     "../extra.sty"
     "../ttbox.sty"

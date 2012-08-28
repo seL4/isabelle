@@ -1,6 +1,7 @@
 \documentclass[11pt,a4paper]{report}
-\usepackage{isabelle,isabellesym}
+\usepackage{isabelle,isabellesym,railsetup}
 \usepackage{graphicx,logics,ttbox,proof,latexsym}
+\usepackage{isar}
 
 \usepackage{pdfsetup}   
 %last package!
@@ -35,6 +36,14 @@
 \pagestyle{headings}
 \sloppy
 \binperiod     %%%treat . like a binary operator
+
+
+\isadroptag{theory}
+
+\railtermfont{\isabellestyle{tt}}
+\railnontermfont{\isabellestyle{literal}}
+\railnamefont{\isabellestyle{literal}}
+
 
 \begin{document}
 \maketitle 
@@ -71,6 +80,11 @@ Markus Wenzel made numerous improvements.
 \input{syntax}
 \include{FOL}
 \include{ZF}
+
+\isabellestyle{literal}
+\include{ZF_Isar}
+\isabellestyle{tt}
+
 \bibliographystyle{plain}
 \bibliography{manual}
 \printindex
