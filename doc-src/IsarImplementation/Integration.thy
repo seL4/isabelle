@@ -6,7 +6,7 @@ chapter {* System integration *}
 
 section {* Isar toplevel \label{sec:isar-toplevel} *}
 
-text {* The Isar toplevel may be considered the centeral hub of the
+text {* The Isar toplevel may be considered the central hub of the
   Isabelle/Isar system, where all key components and sub-systems are
   integrated into a single read-eval-print loop of Isar commands,
   which also incorporates the underlying ML compiler.
