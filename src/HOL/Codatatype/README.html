@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <title>Codatatype Package</title>
+</head>
+
+<body>
+
+<h3><i>Codatatype</i>: A (co)datatype package based on bounded natural functors
+(BNFs)</h3>
+
+<p>
+The <i>Codatatype</i> package provides a fully modular framework for
+constructing inductive and coinductive datatypes in HOL, with support for mixed
+mutual and nested (co)recursion. Mixed (co)recursion enables type definitions
+involving both datatypes and codatatypes, such as the type of finitely branching
+trees of possibly infinite depth. The framework draws heavily from category
+theory.
+
+<p>
+The package is described in the following paper:
+
+<ul>
+  <li><a href="http://www21.in.tum.de/~traytel/papers/codatatypes/index.html">Foundational, Compositional (Co)datatypes for Higher-Order Logic&mdash;Category Theory Applied to Theorem Proving</a>, <br>
+  Dmitriy Traytel, Andrei Popescu, and Jasmin Christian Blanchette.<br>
+  <i>Logic in Computer Science (LICS 2012)</i>, 2012.
+</ul>
+
+<p>
+The main entry point for applications is <tt>Codatatype.thy</tt>.
+The <tt>Examples</tt> directory contains various examples of (co)datatypes,
+including the examples from the paper.
+
+<p>
+The key notion underlying the package is that of a <i>bounded natural functor</i>
+(<i>BNF</i>)&mdash;an enriched type constructor satisfying specific properties
+preserved by interesting categorical operations (composition, least fixed point,
+and greatest fixed point). The <tt>Basic_BNFs.thy</tt> file registers
+various basic types, notably for sums, products, function spaces, finite sets,
+multisets, and countable sets. Custom BNFs can be registered as well.
+
+<p>
+<b>Warning:</b> The package is under development. Future versions are expected
+to support multiple constructors and selectors per (co)datatype (instead of a
+single <i>fld</i> or <i>unf</i> constant) and provide a nicer syntax for
+(co)datatype and (co)recursive function definitions. Please contact
+any of
+<a href="mailto:traytel@in.tum.de">the</a>
+<a href="mailto:popescua@in.tum.de">above</a>
+<a href="mailto:blanchette@in.tum.de">authors</a>
+if you have questions or comments.
+
+</body>
+
+</html>

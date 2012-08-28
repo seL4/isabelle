@@ -1,0 +1,59 @@
+-1. At the new Isabelle release (after 2009-2), replace the operator List 
+from Cardinal_Order_Relation with "lists" from List.thy in standard library. 
+A lemma for "lists" is the actual definition of "List".  
+
+0. Add: 
+
+lemma finite_iff_cardOf_nat:
+"finite A = ( |A| <o |UNIV :: nat set| )"
+using infinite_iff_card_of_nat[of A] 
+by (auto simp add: card_of_Well_order ordLess_iff_not_ordLeq)
+
+
+
+
+1. Remember that the version from my computer has a few more theorems than the one 
+from the Isabelle site.
+
+2. Many basic cardinal arithmetic facts can be listed as simps!  
+The the proofs can be simplified.
+
+3. Add: 
+
+lemma card_of_Plus_ordLeq_infinite:
+assumes "infinite C" and "|A| );£o |C|" and "|B| £o |C|"-A
+shows "|A <+> B| );£o |C|"-A
+proof-
+  let ?phi = "(EX a1 a2. a1 ~= a2 );Ù {a1,a2} <= A) Ù -A
+              (EX b1 b2. b1 ~= b2 );Ù {b1,b2} <= B)"-A
+  show ?thesis
+  proof(cases ?phi, auto)
+    fix a1 b1 a2 b2 
+    assume "a1 );¹ a2" "b1 ¹ b2" "a1 Î A" "a2 Î A" "b1 Î B" "b2 Î B"-A
+    hence "|A <+> B| <=o |A <*> B|"
+    apply - apply(rule card_of_Plus_Times) by auto
+    moreover have "|A <*> B| );£o |C|"-A
+    using assms by (auto simp add: card_of_Times_ordLeq_infinite)
+    ultimately show ?thesis using ordLeq_transitive by blast
+  next
+    assume "-=Õa1. a1 );Î A (<_(B (-=Õa2. a1 = a2 );Ú a2 Ï A)"-A
+    then obtain a where "A <= {a}" by blast
+    {assume "A = {}"
+     hence "|A <+> B| =o |B|" 
+     using ordIso_symmetric card_of_Plus_empty2 by blast
+     hence ?thesis using assms ordIso_ordLeq_trans by blast
+    }
+    moreover 
+    {assume "A = {a}"
+
+    }
+  qed
+qed
+
+
+lemma card_of_Plus_ordLess_infinite:
+assumes "infinite C" and "|A| <o |C|" and "|B| <o |C|"
+shows "|A <+> B| <o |C|"
+
+
+  

@@ -1,0 +1,123 @@
+\newcommand{\eqo}{\mbox{$=\!\!o$}}
+\newcommand{\leqo}{\mbox{$\leq\!\!o$}}
+\newcommand{\lesso}{\mbox{$<\!\!o$}}
+
+
+\begin{abstract}
+We develop a basic theory of ordinals and cardinals in Isabelle/HOL, up to the
+point where some cardinality facts relevant for the ``working mathematician" become available.
+Unlike in set theory, here we do not have at hand canonical notions of ordinal and cardinal.
+Therefore, here an ordinal is merely a well-order relation and a cardinal is an
+ordinal minim w.r.t. order embedding on its field.
+\end{abstract}
+
+
+
+\section{Introduction}
+
+In set theory (under formalizations such as Zermelo-Fraenkel or Von Neumann-Bernays-G\"{o}del), an
+{\em ordinal} is a special kind of well-order, namely one
+whose strict version is the restriction of the membership relation to a set.  In particular,
+the field of a set-theoretic ordinal is a transitive set, and the non-strict version
+of an ordinal relation is set inclusion. Set-theoretic ordinals enjoy the nice properties
+of membership on transitive sets, while at the same time forming a complete class of
+representatives for well-orders (since any well-order turns out isomorphic to an ordinal).
+Moreover, the class of ordinals is itself transitive and well-ordered by membership as the strict relation
+and inclusion as the non-strict relation.
+Also knowing that any set can be well-ordered (in the presence of the axiom of choice), one then defines
+the {\em cardinal} of a set to be the smallest ordinal isomorphic to a well-order on that set.
+This makes the class of cardinals a complete set of representatives for the intuitive notion
+of set cardinality.\footnote{The ``intuitive" cardinality of a set $A$ is the class of all
+sets equipollent to $A$, i.e., being in bijection with $A$.}
+The ability to produce {\em canonical well-orders} from the membership relation (having the aforementioned
+convenient properties)
+allows for a harmonious development of the theory of cardinals in set-theoretic settings.
+Non-trivial cardinality results, such as $A$ being equipollent to $A \times A$ for any infinite $A$,
+follow rather quickly within this theory.
+
+However, a canonical notion of well-order is {\em not} available in HOL.
+Here, one has to do with well-order ``as is", but otherwise has all the necessary infrastructure
+(including Hilbert choice) to ``climb" well-orders recursively and to well-oder arbitrary sets.
+
+The current work, formalized in Isabelle/HOL, develops the basic theory of ordinals and cardinals
+up to the point where there are inferred a collection of non-trivial cardinality facts useful
+for the ``working mathematician", among which:
+\begin{itemize}
+\item Given any two sets (on any two given types)\footnote{Recall that, in HOL, a set
+on a type $\alpha$ is modeled, just like a predicate, as a function from $\alpha$ to \textsf{bool}.},
+one is injectable in the other.
+\item If at least one of two sets is infinite, then their sum and their Cartesian product are equipollent
+to the larger of the two.
+\item The set of lists (and also the set of finite sets) with element from an
+infinite set is equipollent with that set.
+\end{itemize}
+
+Our development emulates the standard one from set-theory, but keeps everything
+{\em up to order isomorphism}.
+An (HOL) ordinal is merely a well-order.  An {\em ordinal embedding} is an
+injective and order-compatible function which maps its source into an initial segment
+(i.e., order filter) of its target.  Now, a {\em cardinal} (called in this work a {\em cardinal order})
+is an ordinal minim w.r.t. the existence of embeddings among all
+well-orders on its field.  After showing the existence of cardinals on any given set,
+we define the cardinal of a set $A$, denoted $|A|$, to be {\em some} cardinal order
+on $A$.  This concept is unique only up to order isomorphism (denoted $\eqo$), but meets
+its purpose: any two sets $A$ and $B$ (laying at potentially distinct types)
+are in bijection if and only if $|A|\;\eqo\;|B|$. Moreover, we also show that numeric cardinals
+assigned to finite sets\footnote{Numeric cardinals of finite sets are already formalized in
+Isabelle/HOL.}
+are {\em conservatively extended} by our general (order-theoretic) notion of
+cardinal. We study the interaction of cardinals with standard set-theoretic
+constructions such as powersets, products, sums and lists.  These constructions are shown
+to preserve the ``cardinal identity" $\eqo$ and also to be monotonic w.r.t. $\leqo$, the ordinal
+embedding relation.  By studying the interaction between these constructions, infinite sets and
+cardinals, we obtain the
+aforementioned results for ``working mathematicians".
+
+For this development, we did not follow closely any particular textbook, and in fact are not
+aware of such basic theory of cardinals previously
+developed in HOL.\footnote{After writing this formalization, we became aware of
+Paul Taylor's membership-free development of the theory of ordinals \cite{taylor-ordinals}.} On
+the other hand,
+the set-theoretic versions of the facts proved here are folklore in set theory, and can be found,
+e.g., in the textbook \cite{card-book}.  Beyond taking care of some locality aspects
+concerning the spreading of our concepts throughout types, we have not departed
+much from the techniques used in set theory for establishing these facts -- for instance,
+in the proof of one of our major theorems,
+\textit{Card-order-Times-same-infinite} from Section 8.4,\footnote{This theorem states that, for any
+infinite cardinal $r$ on a set $A$, $|A\times A|$ is not larger than $r$.}
+we have essentially applied the technique described, e.g., in the proof of
+theorem 1.5.11 from \cite{card-book}, page 47.
+
+Here is the structure of the rest of this document.
+
+The next three sections, 2-4, develop some
+mathematical prerequisites.
+In Section 2, a large collection of simple facts about
+injections, bijections, inverses, (in)finite sets and numeric cardinals are proved,
+making life easier
+for later, when proving less trivial facts.
+Section 3 introduces upper and lower
+bounds operators for order-like relations and studies their basic properties.
+Section 4 states some useful variations of well-founded recursion and induction principles.
+
+Then come the major sections, 5-8.
+Section 5 defines and studies, in the context of a well-order relation,
+the notions of minimum (of a set), maximum (of two elements), supremum, successor (of a set),
+and order filter (i.e., initial segment, i.e., downward-closed set).
+Section 6 defines and studies (well-order) embeddings, strict embeddings, isomorphisms, and
+compatible functions.
+Section 7 deals with various constructions on well-orders, and with the relations
+$\leqo$, $\lesso$ and $\eqo$ of well-order embedding, strict embedding, and isomorphism, respectively.
+Section 8 defines and studies cardinal order relations, the cardinal of a set, the connection
+of cardinals with set-theoretic constructs,
+the canonical cardinal of natural numbers and finite cardinals, the successor
+of a cardinal, as well as regular cardinals. (The latter play a crucial role in the development of 
+a new (co)datatype package in HOL.)
+
+Finally, section 9 provides an abstraction of the previous developments on
+cardinals, to provide a simpler user interface to cardinals, which in most of
+the cases allows to forget that cardinals are represented by orders and use them
+through defined arithmetic operators.
+
+More informal details are provided at the beginning of each section, and also at the
+beginning of some of the subsections.
