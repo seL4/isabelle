@@ -2,10 +2,10 @@
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
-Well-order embeddings (full).
+Well-order embeddings.
 *)
 
-header {* Well-Order Embeddings (Full) *}
+header {* Well-Order Embeddings *}
 
 theory Wellorder_Embedding
 imports
