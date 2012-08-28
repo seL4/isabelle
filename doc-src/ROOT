@@ -82,7 +82,7 @@ session Intro (doc) in "Intro" = Pure +
     "document/build"
     "document/root.tex"
 
-session "HOL-IsarRef" (doc) in "IsarRef/Thy" = HOL +
+session IsarRef (doc) in "IsarRef/Thy" = HOL +
   options [browser_info = false, document = false,
     document_dump = document, document_dump_mode = "tex",
     quick_and_dirty, thy_output_source]
@@ -102,12 +102,6 @@ session "HOL-IsarRef" (doc) in "IsarRef/Thy" = HOL +
     Quick_Reference
     Symbols
     ML_Tactic
-
-session "HOLCF-IsarRef" (doc) in "IsarRef/Thy" = HOLCF +
-  options [browser_info = false, document = false,
-    document_dump = document, document_dump_mode = "tex",
-    quick_and_dirty, thy_output_source]
-  theories HOLCF_Specific
 
 session LaTeXsugar (doc) in "LaTeXsugar" = HOL +
   options [document_variants = "sugar"]
