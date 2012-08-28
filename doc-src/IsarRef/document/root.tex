@@ -7,15 +7,15 @@
 \usepackage{latexsym}
 \usepackage{graphicx}
 \let\intorig=\int  %iman.sty redefines \int
-\usepackage{../iman,../extra,../isar,../proof}
-\usepackage[nohyphen,strings]{../underscore}
-\usepackage{../../lib/texinputs/isabelle}
-\usepackage{../../lib/texinputs/isabellesym}
-\usepackage{../../lib/texinputs/railsetup}
-\usepackage{../ttbox}
+\usepackage{iman,extra,isar,proof}
+\usepackage[nohyphen,strings]{underscore}
+\usepackage{isabelle}
+\usepackage{isabellesym}
+\usepackage{railsetup}
+\usepackage{ttbox}
 \usepackage{supertabular}
 \usepackage{style}
-\usepackage{../pdfsetup}
+\usepackage{pdfsetup}
 
 \hyphenation{Isabelle}
 \hyphenation{Isar}
@@ -53,36 +53,36 @@
 \maketitle 
 
 \pagenumbering{roman}
-{\def\isamarkupchapter#1{\chapter*{#1}}\input{Thy/document/Preface.tex}}
+{\def\isamarkupchapter#1{\chapter*{#1}}\input{Preface.tex}}
 \tableofcontents
 \clearfirst
 
 \part{Basic Concepts}
-\input{Thy/document/Synopsis.tex}
-\input{Thy/document/Framework.tex}
-\input{Thy/document/First_Order_Logic.tex}
+\input{Synopsis.tex}
+\input{Framework.tex}
+\input{First_Order_Logic.tex}
 \part{General Language Elements}
-\input{Thy/document/Outer_Syntax.tex}
-\input{Thy/document/Document_Preparation.tex}
-\input{Thy/document/Spec.tex}
-\input{Thy/document/Proof.tex}
-\input{Thy/document/Inner_Syntax.tex}
-\input{Thy/document/Misc.tex}
-\input{Thy/document/Generic.tex}
+\input{Outer_Syntax.tex}
+\input{Document_Preparation.tex}
+\input{Spec.tex}
+\input{Proof.tex}
+\input{Inner_Syntax.tex}
+\input{Misc.tex}
+\input{Generic.tex}
 \part{Object-Logic}
-\input{Thy/document/HOL_Specific.tex}
+\input{HOL_Specific.tex}
 
 \part{Appendix}
 \appendix
-\input{Thy/document/Quick_Reference.tex}
+\input{Quick_Reference.tex}
 \let\int\intorig
-\input{Thy/document/Symbols.tex}
-\input{Thy/document/ML_Tactic.tex}
+\input{Symbols.tex}
+\input{ML_Tactic.tex}
 
 \begingroup
   \tocentry{\bibname}
   \bibliographystyle{abbrv} \small\raggedright\frenchspacing
-  \bibliography{../manual}
+  \bibliography{manual}
 \endgroup
 
 \tocentry{\indexname}

@@ -82,10 +82,8 @@ session Intro (doc) in "Intro" = Pure +
     "document/build"
     "document/root.tex"
 
-session IsarRef (doc) in "IsarRef/Thy" = HOL +
-  options [browser_info = false, document = false,
-    document_dump = document, document_dump_mode = "tex",
-    quick_and_dirty, thy_output_source]
+session IsarRef (doc) in "IsarRef" = HOL +
+  options [document_variants = "isar-ref", quick_and_dirty, thy_output_source]
   theories
     Preface
     Synopsis
@@ -102,6 +100,21 @@ session IsarRef (doc) in "IsarRef/Thy" = HOL +
     Quick_Reference
     Symbols
     ML_Tactic
+  files
+    "../pdfsetup.sty"
+    "../iman.sty"
+    "../extra.sty"
+    "../ttbox.sty"
+    "../proof.sty"
+    "../isar.sty"
+    "../manual.bib"
+    "document/build"
+    "document/isar-vm.eps"
+    "document/isar-vm.pdf"
+    "document/isar-vm.svg"
+    "document/root.tex"
+    "document/showsymbols"
+    "document/style.sty"
 
 session LaTeXsugar (doc) in "LaTeXsugar" = HOL +
   options [document_variants = "sugar"]

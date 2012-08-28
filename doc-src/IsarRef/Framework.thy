@@ -798,7 +798,7 @@ text {*
 
   \begin{figure}[htb]
   \begin{center}
-  \includegraphics[width=0.8\textwidth]{Thy/document/isar-vm}
+  \includegraphics[width=0.8\textwidth]{isar-vm}
   \end{center}
   \caption{Isar/VM modes}\label{fig:isar-vm}
   \end{figure}
