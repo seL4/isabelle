@@ -1,9 +1,0 @@
-#!/bin/bash
-
-set -e
-
-FORMAT="$1"
-VARIANT="$2"
-
-"$ISABELLE_HOME/doc-src/prepare_document" "$FORMAT"
-

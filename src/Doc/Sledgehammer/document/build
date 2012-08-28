@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -e
+
+FORMAT="$1"
+VARIANT="$2"
+
+"$ISABELLE_TOOL" logo -o isabelle_sledgehammer.pdf "S/H"
+"$ISABELLE_TOOL" logo -o isabelle_sledgehammer.eps "S/H"
+
+cp "$ISABELLE_HOME/src/Doc/iman.sty" .
+cp "$ISABELLE_HOME/src/Doc/manual.bib" .
+
+"$ISABELLE_HOME/src/Doc/prepare_document" "$FORMAT"
+

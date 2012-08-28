@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -e
+
+FORMAT="$1"
+VARIANT="$2"
+
+"$ISABELLE_TOOL" logo -o isabelle.pdf ""
+"$ISABELLE_TOOL" logo -o isabelle.eps ""
+
+cp "$ISABELLE_HOME/src/Doc/iman.sty" .
+cp "$ISABELLE_HOME/src/Doc/extra.sty" .
+cp "$ISABELLE_HOME/src/Doc/ttbox.sty" .
+cp "$ISABELLE_HOME/src/Doc/proof.sty" .
+cp "$ISABELLE_HOME/src/Doc/manual.bib" .
+
+"$ISABELLE_HOME/src/Doc/prepare_document" "$FORMAT"
+

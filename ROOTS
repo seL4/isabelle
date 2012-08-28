@@ -8,4 +8,4 @@ src/Cube
 src/FOLP
 src/LCF
 src/Sequents
-doc-src
+src/Doc

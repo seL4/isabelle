@@ -1,0 +1,25 @@
+#!/bin/bash
+
+set -e
+
+FORMAT="$1"
+VARIANT="$2"
+
+"$ISABELLE_TOOL" logo -o isabelle_isar.pdf "Isar"
+"$ISABELLE_TOOL" logo -o isabelle_isar.eps "Isar"
+
+cp "$ISABELLE_HOME/src/Doc/iman.sty" .
+cp "$ISABELLE_HOME/src/Doc/extra.sty" .
+cp "$ISABELLE_HOME/src/Doc/isar.sty" .
+cp "$ISABELLE_HOME/src/Doc/proof.sty" .
+cp "$ISABELLE_HOME/src/Doc/manual.bib" .
+
+for NAME in architecture adapt
+do
+  latex "$NAME"
+  $ISABELLE_DVIPS -E -o "$NAME.eps" "$NAME.dvi"
+  $ISABELLE_EPSTOPDF "$NAME.eps"
+done
+
+"$ISABELLE_HOME/src/Doc/prepare_document" "$FORMAT"
+

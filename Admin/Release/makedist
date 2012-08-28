@@ -149,7 +149,7 @@ perl -pi -e 's/^(ISABELLE_SCALA_BUILD_OPTIONS=")/$1-optimise /,' etc/settings
 
 ./Admin/build all || fail "Failed to build distribution"
 
-cp -a doc-src doc-src.orig
+cp -a src/Doc src/Doc.orig
 ./bin/isabelle build_doc -a || fail "Failed to build documentation"
 
 if [ -n "$ISABELLE_JEDIT_BUILD_HOME" ]; then
@@ -161,9 +161,9 @@ if [ -n "$ISABELLE_JEDIT_BUILD_HOME" ]; then
 fi
 
 rm -rf Admin
-rm -rf doc-src
+rm -rf src/Doc
 
-mv doc-src.orig doc-src
+mv src/Doc.orig src/Doc
 
 mkdir -p contrib
 cat >contrib/README <<EOF

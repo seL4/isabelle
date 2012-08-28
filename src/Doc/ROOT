@@ -1,0 +1,387 @@
+session Classes (doc) in "Classes" = HOL +
+  options [document_variants = "classes"]
+  theories [document = false] Setup
+  theories Classes
+  files
+    "../prepare_document"
+    "../pdfsetup.sty"
+    "document/build"
+    "document/root.tex"
+    "document/style.sty"
+
+session Codegen (doc) in "Codegen" = "HOL-Library" +
+  options [document_variants = "codegen", print_mode = "no_brackets,iff"]
+  theories [document = false] Setup
+  theories
+    Introduction
+    Foundations
+    Refinement
+    Inductive_Predicate
+    Evaluation
+    Adaptation
+    Further
+  files
+    "../prepare_document"
+    "../pdfsetup.sty"
+    "document/adapt.tex"
+    "document/architecture.tex"
+    "document/build"
+    "document/root.tex"
+    "document/style.sty"
+
+session Functions (doc) in "Functions" = HOL +
+  options [document_variants = "functions"]
+  theories Functions
+  files
+    "../prepare_document"
+    "../pdfsetup.sty"
+    "../iman.sty"
+    "../extra.sty"
+    "../isar.sty"
+    "../manual.bib"
+    "document/build"
+    "document/conclusion.tex"
+    "document/intro.tex"
+    "document/mathpartir.sty"
+    "document/root.tex"
+    "document/style.sty"
+
+session Intro (doc) in "Intro" = Pure +
+  options [document_variants = "intro"]
+  theories
+  files
+    "../prepare_document"
+    "../pdfsetup.sty"
+    "../iman.sty"
+    "../extra.sty"
+    "../ttbox.sty"
+    "../proof.sty"
+    "../manual.bib"
+    "document/build"
+    "document/root.tex"
+
+session IsarImplementation (doc) in "IsarImplementation" = HOL +
+  options [document_variants = "implementation"]
+  theories
+    Eq
+    Integration
+    Isar
+    Local_Theory
+    Logic
+    ML
+    Prelim
+    Proof
+    Syntax
+    Tactic
+  files
+    "../prepare_document"
+    "../pdfsetup.sty"
+    "../iman.sty"
+    "../extra.sty"
+    "../isar.sty"
+    "../proof.sty"
+    "../underscore.sty"
+    "../ttbox.sty"
+    "../manual.bib"
+    "document/build"
+    "document/root.tex"
+    "document/style.sty"
+
+session IsarRef (doc) in "IsarRef" = HOL +
+  options [document_variants = "isar-ref", quick_and_dirty, thy_output_source]
+  theories
+    Preface
+    Synopsis
+    Framework
+    First_Order_Logic
+    Outer_Syntax
+    Document_Preparation
+    Spec
+    Proof
+    Inner_Syntax
+    Misc
+    Generic
+    HOL_Specific
+    Quick_Reference
+    Symbols
+    ML_Tactic
+  files
+    "../prepare_document"
+    "../pdfsetup.sty"
+    "../iman.sty"
+    "../extra.sty"
+    "../ttbox.sty"
+    "../proof.sty"
+    "../isar.sty"
+    "../manual.bib"
+    "document/build"
+    "document/isar-vm.eps"
+    "document/isar-vm.pdf"
+    "document/isar-vm.svg"
+    "document/root.tex"
+    "document/showsymbols"
+    "document/style.sty"
+
+session LaTeXsugar (doc) in "LaTeXsugar" = HOL +
+  options [document_variants = "sugar"]
+  theories [document = ""]
+    "~~/src/HOL/Library/LaTeXsugar"
+    "~~/src/HOL/Library/OptionalSugar"
+  theories Sugar
+  files
+    "../prepare_document"
+    "../pdfsetup.sty"
+    "document/build"
+    "document/mathpartir.sty"
+    "document/root.bib"
+    "document/root.tex"
+
+session Locales (doc) in "Locales" = HOL +
+  options [document_variants = "locales", pretty_margin = 65]
+  theories
+    Examples1
+    Examples2
+    Examples3
+  files
+    "../prepare_document"
+    "../pdfsetup.sty"
+    "document/build"
+    "document/root.tex"
+
+session Logics (doc) in "Logics" = Pure +
+  options [document_variants = "logics"]
+  theories
+  files
+    "../prepare_document"
+    "../pdfsetup.sty"
+    "../iman.sty"
+    "../extra.sty"
+    "../ttbox.sty"
+    "../proof.sty"
+    "../manual.bib"
+    "document/build"
+    "document/root.tex"
+
+session "Logics-HOL" (doc) in "HOL" = Pure +
+  options [document_variants = "logics-HOL"]
+  theories
+  files
+    "../prepare_document"
+    "../pdfsetup.sty"
+    "../iman.sty"
+    "../extra.sty"
+    "../ttbox.sty"
+    "../proof.sty"
+    "../manual.bib"
+    "../Logics/document/syntax.tex"
+    "document/build"
+    "document/root.tex"
+
+session "Logics-ZF" (doc) in "ZF" = ZF +
+  options [document_variants = "logics-ZF", print_mode = "brackets",
+    thy_output_source]
+  theories
+    IFOL_examples
+    FOL_examples
+    ZF_examples
+    If
+    ZF_Isar
+  files
+    "../prepare_document"
+    "../pdfsetup.sty"
+    "../isar.sty"
+    "../ttbox.sty"
+    "../proof.sty"
+    "../manual.bib"
+    "../Logics/document/syntax.tex"
+    "document/build"
+    "document/root.tex"
+
+session Main (doc) in "Main" = HOL +
+  options [document_variants = "main"]
+  theories Main_Doc
+  files
+    "../prepare_document"
+    "../pdfsetup.sty"
+    "document/build"
+    "document/root.tex"
+
+session Nitpick (doc) in "Nitpick" = Pure +
+  options [document_variants = "nitpick"]
+  theories
+  files
+    "../prepare_document"
+    "../pdfsetup.sty"
+    "../iman.sty"
+    "../manual.bib"
+    "document/build"
+    "document/root.tex"
+
+session ProgProve (doc) in "ProgProve" = HOL +
+  options [document_variants = "prog-prove", show_question_marks = false]
+  theories
+    Basics
+    Bool_nat_list
+    MyList
+    Types_and_funs
+    Logic
+    Isar
+  files
+    "../prepare_document"
+    "../pdfsetup.sty"
+    "document/bang.eps"
+    "document/bang.pdf"
+    "document/build"
+    "document/intro-isabelle.tex"
+    "document/mathpartir.sty"
+    "document/prelude.tex"
+    "document/root.bib"
+    "document/root.tex"
+    "document/svmono.cls"
+
+session Ref (doc) in "Ref" = Pure +
+  options [document_variants = "ref"]
+  theories
+  files
+    "../prepare_document"
+    "../pdfsetup.sty"
+    "../iman.sty"
+    "../extra.sty"
+    "../ttbox.sty"
+    "../proof.sty"
+    "../manual.bib"
+    "document/build"
+    "document/classical.tex"
+    "document/root.tex"
+    "document/simplifier.tex"
+    "document/substitution.tex"
+    "document/syntax.tex"
+    "document/tactic.tex"
+    "document/thm.tex"
+
+session Sledgehammer (doc) in "Sledgehammer" = Pure +
+  options [document_variants = "sledgehammer"]
+  theories
+  files
+    "../prepare_document"
+    "../pdfsetup.sty"
+    "../iman.sty"
+    "../manual.bib"
+    "document/build"
+    "document/root.tex"
+
+session System (doc) in "System" = Pure +
+  options [document_variants = "system", thy_output_source]
+  theories
+    Basics
+    Interfaces
+    Sessions
+    Presentation
+    Scala
+    Misc
+  files
+    "../prepare_document"
+    "../IsarRef/document/style.sty"
+    "../pdfsetup.sty"
+    "../iman.sty"
+    "../extra.sty"
+    "../ttbox.sty"
+    "../isar.sty"
+    "../underscore.sty"
+    "../manual.bib"
+    "document/browser_screenshot.eps"
+    "document/browser_screenshot.png"
+    "document/build"
+    "document/root.tex"
+
+session Tutorial (doc) in "Tutorial" = HOL +
+  options [document_variants = "tutorial", print_mode = "brackets"]
+  theories [thy_output_indent = 5]
+    "ToyList/ToyList"
+    "Ifexpr/Ifexpr"
+    "CodeGen/CodeGen"
+    "Trie/Trie"
+    "Datatype/ABexpr"
+    "Datatype/unfoldnested"
+    "Datatype/Nested"
+    "Datatype/Fundata"
+    "Fun/fun0"
+    "Advanced/simp2"
+    "CTL/PDL"
+    "CTL/CTL"
+    "CTL/CTLind"
+    "Inductive/Even"
+    "Inductive/Mutual"
+    "Inductive/Star"
+    "Inductive/AB"
+    "Inductive/Advanced"
+    "Misc/Tree"
+    "Misc/Tree2"
+    "Misc/Plus"
+    "Misc/case_exprs"
+    "Misc/fakenat"
+    "Misc/natsum"
+    "Misc/pairs2"
+    "Misc/Option2"
+    "Misc/types"
+    "Misc/prime_def"
+    "Misc/simp"
+    "Misc/Itrev"
+    "Misc/AdvancedInd"
+    "Misc/appendix"
+  theories
+    "Protocol/NS_Public"
+    "Documents/Documents"
+  theories [document = ""]
+    "Types/Setup"
+  theories [pretty_margin = 64, thy_output_indent = 0]
+    "Types/Numbers"
+    "Types/Pairs"
+    "Types/Records"
+    "Types/Typedefs"
+    "Types/Overloading"
+    "Types/Axioms"
+    "Rules/Basic"
+    "Rules/Blast"
+    "Rules/Force"
+  theories [pretty_margin = 64, thy_output_indent = 5]
+    "Rules/Primes"
+    "Rules/Forward"
+    "Rules/Tacticals"
+    "Rules/find2"
+    "Sets/Examples"
+    "Sets/Functions"
+    "Sets/Relations"
+    "Sets/Recur"
+  files
+    "ToyList/ToyList1"
+    "ToyList/ToyList2"
+    "../pdfsetup.sty"
+    "../proof.sty"
+    "../ttbox.sty"
+    "../manual.bib"
+    "document/advanced0.tex"
+    "document/appendix0.tex"
+    "document/basics.tex"
+    "document/build"
+    "document/cl2emono-modified.sty"
+    "document/ctl0.tex"
+    "document/documents0.tex"
+    "document/fp.tex"
+    "document/inductive0.tex"
+    "document/isa-index"
+    "document/Isa-logics.eps"
+    "document/Isa-logics.pdf"
+    "document/numerics.tex"
+    "document/pghead.eps"
+    "document/pghead.pdf"
+    "document/preface.tex"
+    "document/protocol.tex"
+    "document/root.tex"
+    "document/rules.tex"
+    "document/sets.tex"
+    "document/tutorial.sty"
+    "document/typedef.pdf"
+    "document/typedef.ps"
+    "document/types0.tex"
+

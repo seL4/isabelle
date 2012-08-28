@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -e
+
+FORMAT="$1"
+VARIANT="$2"
+
+"$ISABELLE_HOME/src/Doc/prepare_document" "$FORMAT"
+
