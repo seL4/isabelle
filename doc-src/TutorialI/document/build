@@ -20,9 +20,7 @@ cp "$ISABELLE_HOME/doc-src/pdfsetup.sty" .
 
 "$ISABELLE_TOOL" latex -o "$FORMAT"
 "$ISABELLE_TOOL" latex -o bbl
-"$ISABELLE_TOOL" latex -o "$FORMAT"
-"$ISABELLE_TOOL" latex -o "$FORMAT"
 ./isa-index root
-[ -f root.out ] && "$ISABELLE_HOME/doc-src/fixbookmarks" root.out
 "$ISABELLE_TOOL" latex -o "$FORMAT"
+[ -f root.out ] && "$ISABELLE_HOME/doc-src/fixbookmarks" root.out
 "$ISABELLE_TOOL" latex -o "$FORMAT"
