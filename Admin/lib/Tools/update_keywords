@@ -9,7 +9,7 @@ LOG="$ISABELLE_OUTPUT/log"
 cd "$ISABELLE_HOME/etc"
 
 "$ISABELLE_TOOL" keywords \
-  "$LOG/HOLCF.gz" "$LOG/HOL-Boogie.gz" "$LOG/HOL-Library.gz" "$LOG/HOL-Nominal.gz" \
+  "$LOG/HOLCF.gz" "$LOG/HOL-Boogie.gz" "$LOG/HOL-Codatatype.gz" "$LOG/HOL-Library.gz" "$LOG/HOL-Nominal.gz" \
   "$LOG/HOL-Statespace.gz" "$LOG/HOL-SPARK.gz" "$LOG/HOL-TPTP.gz" "$LOG/HOL-Import.gz"
 
 "$ISABELLE_TOOL" keywords -k ZF "$LOG/ZF.gz"
