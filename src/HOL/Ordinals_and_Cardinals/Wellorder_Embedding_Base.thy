@@ -8,10 +8,7 @@ Well-order embeddings (base).
 header {* Well-Order Embeddings (Base) *}
 
 theory Wellorder_Embedding_Base
-imports
-  "~~/src/HOL/Library/Zorn"
-  Fun_More_Base
-  Wellorder_Relation_Base
+imports "~~/src/HOL/Library/Zorn" Fun_More_Base Wellorder_Relation_Base
 begin
 
 

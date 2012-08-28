@@ -8,10 +8,8 @@ Library for bounded natural functors.
 header {* Library for Bounded Natural Functors *}
 
 theory BNF_Library
-imports
-   "../Ordinals_and_Cardinals_Base/Cardinal_Arithmetic"
-   "~~/src/HOL/Library/List_Prefix"
-   Equiv_Relations_More
+imports "../Ordinals_and_Cardinals/Cardinal_Arithmetic" "~~/src/HOL/Library/List_Prefix"
+  Equiv_Relations_More
 begin
 
 lemma subset_Collect_iff: "B \<subseteq> A \<Longrightarrow> (B \<subseteq> {x \<in> A. P x}) = (\<forall>x \<in> B. P x)"

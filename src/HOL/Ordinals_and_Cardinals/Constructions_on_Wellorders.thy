@@ -8,9 +8,7 @@ Constructions on wellorders.
 header {* Constructions on Wellorders *}
 
 theory Constructions_on_Wellorders
-imports
-  "../Ordinals_and_Cardinals_Base/Constructions_on_Wellorders_Base"
-  Wellorder_Embedding
+imports Constructions_on_Wellorders_Base Wellorder_Embedding
 begin
 
 declare

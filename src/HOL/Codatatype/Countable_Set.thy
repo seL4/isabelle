@@ -8,8 +8,7 @@
 header {* (At Most) Countable Sets *}
 
 theory Countable_Set
-imports "../Ordinals_and_Cardinals_Base/Cardinal_Arithmetic"
-        "~~/src/HOL/Library/Countable"
+imports "../Ordinals_and_Cardinals/Cardinal_Arithmetic" "~~/src/HOL/Library/Countable"
 begin
 
 

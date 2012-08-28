@@ -8,9 +8,7 @@ Well-order relations.
 header {* Well-Order Relations *}
 
 theory Wellorder_Relation
-imports
-  "../Ordinals_and_Cardinals_Base/Wellorder_Relation_Base"
-  Wellfounded_More
+imports Wellorder_Relation_Base Wellfounded_More
 begin
 
 

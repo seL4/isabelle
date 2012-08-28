@@ -8,7 +8,7 @@ Basics on order-like relations.
 header {* Basics on Order-Like Relations *}
 
 theory Order_Relation_More
-imports "../Ordinals_and_Cardinals_Base/Order_Relation_More_Base"
+imports Order_Relation_More_Base
 begin
 
 
