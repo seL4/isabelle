@@ -84,9 +84,9 @@ done
 if [ "$RC" = 0 ]; then
   for FILE in $(find "$OUTPUT" -name "*.eps" -o -name "*.ps")
   do
-    mv -f "$FILE" "$ISABELLE_HOME/doc"
+    cp -f "$FILE" "$ISABELLE_HOME/doc"
   done
-  mv -f "$OUTPUT"/*.dvi "$OUTPUT"/*.pdf "$ISABELLE_HOME/doc"
+  cp -f "$OUTPUT"/*.dvi "$OUTPUT"/*.pdf "$ISABELLE_HOME/doc"
 fi
 
 rm -rf "$OUTPUT"
