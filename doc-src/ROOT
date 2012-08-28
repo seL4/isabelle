@@ -194,6 +194,16 @@ session Main (doc) in "Main" = HOL +
     "document/build"
     "document/root.tex"
 
+session Nitpick (doc) in "Nitpick" = Pure +
+  options [document_variants = "nitpick"]
+  theories
+  files
+    "../pdfsetup.sty"
+    "../iman.sty"
+    "../manual.bib"
+    "document/build"
+    "document/root.tex"
+
 session ProgProve (doc) in "ProgProve" = HOL +
   options [document_variants = "prog-prove", show_question_marks = false]
   theories
