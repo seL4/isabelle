@@ -6,6 +6,12 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* August 2012: Dmitriy Traytel, Andrei Popescu, Jasmin Blanchette, TUM
+  New (co)datatype package.
+
+* August 2012: Andrei Popescu and Dmitriy Traytel, TUM
+  Theories of ordinals and cardinals.
+
 * July 2012: Makarius Wenzel, Université Paris-Sud / LRI
   Advanced support for Isabelle sessions and build management, notably
   "isabelle build".
@@ -161,7 +167,7 @@ Contributions to Isabelle2009-1
 * November 2009: Lukas Bulwahn, TUM
   Predicate Compiler: a compiler for inductive predicates to
   equational specifications.
- 
+
 * November 2009: Sascha Boehme, TUM and Burkhart Wolff, LRI Paris
   HOL-Boogie: an interactive prover back-end for Boogie and VCC.
 
