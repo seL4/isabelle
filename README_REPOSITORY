@@ -233,13 +233,11 @@ changesets that are meant to be published at some point.
 Building a repository version of Isabelle
 -----------------------------------------
 
-The regular "isabelle build" tool allows to build session images as
-usual, but this first requires to resolve add-on components first,
-including the ML system.  Some extra configuration is required to
-approximate some of the system integration of official Isabelle
-releases from a bare-bones repository snapshot.  The special directory
-Admin/ -- which is absent in official releases -- might provide some
-further clues.
+This first requires to resolve add-on components first, including the
+ML system.  Some extra configuration is required to approximate some
+of the system integration of official Isabelle releases from a
+bare-bones repository snapshot.  The special directory Admin/ -- which
+is absent in official releases -- might provide some further clues.
 
 Here is a reasonably easy way to include important Isabelle components
 on the spot:
@@ -264,3 +262,10 @@ Since the given component catalogs in $ISABELLE_HOME/Admin/components
 are subject to the Mercurial history, it is possible to bisect over a
 range of Isabelle versions while references to the contributing
 components change accordingly.
+
+The Isabelle build process is managed as follows:
+
+  * regular "isabelle build" to build session images, e.g. HOL;
+
+  * administrative "isabelle build_doc" to populate the doc/
+    directory, such that "isabelle doc" will find the results.
