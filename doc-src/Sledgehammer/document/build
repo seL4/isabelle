@@ -1,0 +1,24 @@
+#!/bin/bash
+
+set -e
+
+FORMAT="$1"
+VARIANT="$2"
+
+"$ISABELLE_TOOL" logo -o isabelle_sledgehammer.pdf "S/H"
+"$ISABELLE_TOOL" logo -o isabelle_sledgehammer.eps "S/H"
+
+cp "$ISABELLE_HOME/doc-src/iman.sty" .
+cp "$ISABELLE_HOME/doc-src/manual.bib" .
+
+"$ISABELLE_TOOL" latex -o sty
+cp "$ISABELLE_HOME/doc-src/pdfsetup.sty" .
+
+"$ISABELLE_TOOL" latex -o "$FORMAT"
+"$ISABELLE_TOOL" latex -o bbl
+"$ISABELLE_TOOL" latex -o "$FORMAT"
+"$ISABELLE_TOOL" latex -o "$FORMAT"
+"$ISABELLE_HOME/doc-src/sedindex" root
+[ -f root.out ] && "$ISABELLE_HOME/doc-src/fixbookmarks" root.out
+"$ISABELLE_TOOL" latex -o "$FORMAT"
+"$ISABELLE_TOOL" latex -o "$FORMAT"

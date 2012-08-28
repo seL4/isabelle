@@ -234,6 +234,16 @@ session Ref (doc) in "Ref" = Pure +
     "document/tactic.tex"
     "document/thm.tex"
 
+session Sledgehammer (doc) in "Sledgehammer" = Pure +
+  options [document_variants = "sledgehammer"]
+  theories
+  files
+    "../pdfsetup.sty"
+    "../iman.sty"
+    "../manual.bib"
+    "document/build"
+    "document/root.tex"
+
 session System (doc) in "System" = Pure +
   options [document_variants = "system", thy_output_source]
   theories
