@@ -598,20 +598,24 @@ session "HOL-Nominal-Examples" in "Nominal/Examples" = "HOL-Nominal" +
   theories [quick_and_dirty] VC_Condition
 
 session "HOL-Ordinals_and_Cardinals-Base" in Ordinals_and_Cardinals = HOL +
+  description {* Ordinals and Cardinals, Base Theories *}
   options [document = false]
   theories Cardinal_Arithmetic
 
 session "HOL-Ordinals_and_Cardinals" in Ordinals_and_Cardinals =
     "HOL-Ordinals_and_Cardinals-Base" +
+  description {* Ordinals and Cardinals, Full Theories *}
   options [document = pdf, document_output = "."]
   theories Cardinal_Order_Relation
   files "document/intro.tex" "document/root.tex" "document/root.bib"
 
 session "HOL-Codatatype" in Codatatype = "HOL-Ordinals_and_Cardinals-Base" +
+  description {* New (Co)datatype Package *}
   options [document = false]
   theories Codatatype
 
 session "HOL-Codatatype-Examples" in "Codatatype/Examples" = "HOL-Codatatype" +
+  description {* Examples for the New (Co)datatype Package *}
   options [document = false]
   theories
     HFset
@@ -619,8 +623,7 @@ session "HOL-Codatatype-Examples" in "Codatatype/Examples" = "HOL-Codatatype" +
     Process
     TreeFsetI
   (* FIXME: shouldn't require "parallel_proofs = 0";
-  with parallel proofs enabled, the build of this session
-  takes 10 times longer *)
+     with parallel proofs enabled, the build of this session takes 10 times longer *)
   theories [parallel_proofs = 0]
     "Infinite_Derivation_Trees/Gram_Lang"
     "Infinite_Derivation_Trees/Parallel"
