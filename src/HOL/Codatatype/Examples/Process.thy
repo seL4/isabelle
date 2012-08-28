@@ -8,7 +8,7 @@ Processes.
 header {* Processes *}
 
 theory Process
-imports "../Codatatype/Codatatype"
+imports "../Codatatype"
 begin
 
 bnf_codata process: 'p = "'a * 'p + 'p * 'p"

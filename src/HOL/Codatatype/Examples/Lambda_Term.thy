@@ -9,7 +9,7 @@ Lambda-terms.
 header {* Lambda-Terms *}
 
 theory Lambda_Term
-imports "../Codatatype/Codatatype"
+imports "../Codatatype"
 begin
 
 

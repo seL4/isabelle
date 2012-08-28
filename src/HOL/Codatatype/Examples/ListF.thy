@@ -9,7 +9,7 @@ Finite lists.
 header {* Finite Lists *}
 
 theory ListF
-imports "../Codatatype/Codatatype"
+imports "../Codatatype"
 begin
 
 bnf_data listF: 'list = "unit + 'a \<times> 'list"

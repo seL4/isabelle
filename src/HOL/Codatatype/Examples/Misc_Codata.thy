@@ -9,7 +9,7 @@ Miscellaneous codatatype declarations.
 header {* Miscellaneous Codatatype Declarations *}
 
 theory Misc_Codata
-imports "../Codatatype/Codatatype"
+imports "../Codatatype"
 begin
 
 ML {* quick_and_dirty := false *}

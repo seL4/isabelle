@@ -8,7 +8,7 @@ Hereditary sets.
 header {* Hereditary Sets *}
 
 theory HFset
-imports "../Codatatype/Codatatype"
+imports "../Codatatype"
 begin
 
 
