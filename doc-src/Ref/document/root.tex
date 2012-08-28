@@ -1,7 +1,6 @@
 \documentclass[12pt,a4paper]{report}
 \usepackage{graphicx,iman,extra,ttbox,proof,pdfsetup}
 
-%%\includeonly{}
 %%% to index ids: \[\\tt \([a-zA-Z0-9][a-zA-Z0-9_'.]*\)    [\\ttindexbold{\1}
 %%% to delete old ones:  \\indexbold{\*[^}]*}
 %% run    sedindex ref    to prepare index file
@@ -47,12 +46,12 @@ Tobias Nipkow, of T. U. Munich, wrote most of
 
 \pagenumbering{roman} \tableofcontents \clearfirst
 
-\include{tactic}
-\include{thm}
-\include{syntax}
-\include{substitution}
-\include{simplifier}
-\include{classical}
+\input{tactic}
+\input{thm}
+\input{syntax}
+\input{substitution}
+\input{simplifier}
+\input{classical}
 
 %%seealso's must be last so that they appear last in the index entries
 \index{meta-rewriting|seealso{tactics, theorems}}
@@ -61,7 +60,6 @@ Tobias Nipkow, of T. U. Munich, wrote most of
   \bibliographystyle{plain} \small\raggedright\frenchspacing
   \bibliography{manual}
 \endgroup
-\include{theory-syntax}
 
 \printindex
 \end{document}
