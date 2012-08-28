@@ -1,11 +1,10 @@
 \documentclass{article}
-%%\includeonly{Types/types} %%UNCOMMENT to process only selected chapters
-\usepackage{cl2emono-modified,../../lib/texinputs/isabelle,../../lib/texinputs/isabellesym}
-\usepackage{../proof,amsmath,amsfonts}
-\usepackage{latexsym,wasysym,verbatim,graphicx,tutorial,../ttbox,comment}
+\usepackage{cl2emono-modified,isabelle,isabellesym}
+\usepackage{proof,amsmath,amsfonts}
+\usepackage{latexsym,wasysym,verbatim,graphicx,tutorial,ttbox,comment}
 \usepackage{eurosym}
 \usepackage[english]{babel}
-\usepackage{../pdfsetup}   
+\usepackage{pdfsetup}   
 %last package!
 
 \remarkstrue          %TRUE causes remarks to be displayed (as marginal notes)
@@ -55,26 +54,26 @@
 %\vspace*{\fill}
 %\newpage
 
-\include{preface}
+\input{preface}
 
 \tableofcontents
 
 \cleardoublepage\pagenumbering{arabic}
 
 \part{Elementary Techniques}
-\include{basics}
-\include{fp}
-\include{Documents/documents}
+\input{basics}
+\input{fp}
+\input{documents0}
 
 \part{Logic and Sets}
-\include{Rules/rules}
-\include{Sets/sets}
-\include{Inductive/inductive}
+\input{rules}
+\input{sets}
+\input{inductive0}
 
 \part{Advanced Material}
-\include{Types/types}
-\include{Advanced/advanced}
-\include{Protocol/protocol}
+\input{types0}
+\input{advanced0}
+\input{protocol}
 
 \markboth{}{}
 \cleardoublepage
@@ -90,10 +89,10 @@ Sherlock Holmes
 
 \underscoreoff
 
-\include{appendix}
+\input{appendix0}
 
 \bibliographystyle{plain}
-\bibliography{../manual}
+\bibliography{manual}
 \underscoreoff
 \printindex
 \end{document}

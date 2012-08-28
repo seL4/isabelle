@@ -278,9 +278,7 @@ session System (doc) in "System" = Pure +
     "document/root.tex"
 
 session Tutorial (doc) in "TutorialI" = HOL +
-  options [browser_info = false, document = false,
-    document_dump = document, document_dump_mode = "tex",
-    print_mode = "brackets"]
+  options [document_variants = "tutorial", print_mode = "brackets"]
   theories [thy_output_indent = 5]
     "ToyList/ToyList"
     "Ifexpr/Ifexpr"
@@ -317,7 +315,7 @@ session Tutorial (doc) in "TutorialI" = HOL +
   theories
     "Protocol/NS_Public"
     "Documents/Documents"
-  theories [document_dump = ""]
+  theories [document = ""]
     "Types/Setup"
   theories [pretty_margin = 64, thy_output_indent = 0]
     "Types/Numbers"
@@ -338,8 +336,15 @@ session Tutorial (doc) in "TutorialI" = HOL +
     "Sets/Functions"
     "Sets/Relations"
     "Sets/Recur"
-
-session "HOL-ToyList2" (doc) in "TutorialI/ToyList2" = HOL +
-  options [browser_info = false, document = false, print_mode = "brackets"]
-  theories ToyList
+  files
+    "ToyList/ToyList1"
+    "ToyList/ToyList2"
+    "../pdfsetup.sty"
+    "../proof.sty"
+    "../ttbox.sty"
+    "../manual.bib"
+    "document/pghead.eps"
+    "document/pghead.pdf"
+    "document/build"
+    "document/root.tex"
 

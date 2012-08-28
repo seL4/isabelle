@@ -2,6 +2,17 @@ theory ToyList
 imports Datatype
 begin
 
+(*<*)
+ML {*
+  let
+    val texts =
+      map (File.read o Path.append (Thy_Load.master_directory @{theory}) o Path.explode)
+        ["ToyList1", "ToyList2"];
+    val trs = Outer_Syntax.parse Position.start (implode texts);
+  in @{assert} (Toplevel.is_toplevel (fold Toplevel.command trs Toplevel.toplevel)) end;
+*}
+(*>*)
+
 text{*\noindent
 HOL already has a predefined theory of lists called @{text List} ---
 @{text ToyList} is merely a small fragment of it chosen as an example. In
