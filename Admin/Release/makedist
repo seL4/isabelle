@@ -172,8 +172,6 @@ Isabelle distribution.  Separate licensing conditions apply, see each
 directory individually.
 EOF
 
-cp doc/isabelle*.eps lib/logo
-
 if [ -z "$RELEASE" ]; then
   {
     echo
