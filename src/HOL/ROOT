@@ -605,9 +605,11 @@ session "HOL-Ordinals_and_Cardinals-Base" in Ordinals_and_Cardinals = HOL +
 session "HOL-Ordinals_and_Cardinals" in Ordinals_and_Cardinals =
     "HOL-Ordinals_and_Cardinals-Base" +
   description {* Ordinals and Cardinals, Full Theories *}
-  options [document = pdf, document_output = "."]
   theories Cardinal_Order_Relation
-  files "document/intro.tex" "document/root.tex" "document/root.bib"
+  files
+    "document/intro.tex"
+    "document/root.tex"
+    "document/root.bib"
 
 session "HOL-Codatatype" in Codatatype = "HOL-Ordinals_and_Cardinals-Base" +
   description {* New (Co)datatype Package *}
