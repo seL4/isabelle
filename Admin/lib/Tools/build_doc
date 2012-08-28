@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# DESCRIPTION: build Isabelle documentation
+
+
+## diagnostics
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: isabelle $PRG [OPTIONS] [SESSIONS ...]"
+  echo
+  echo "  Options are:"
+  echo "    -a           select all doc sessions"
+  echo "    -j INT       maximum number of parallel jobs (default 1)"
+  echo
+  echo "  Build Isabelle documentation from (doc) sessions."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+function check_number()
+{
+  [ -n "$1" -a -z "$(echo "$1" | tr -d '[0-9]')" ] || fail "Bad number: \"$1\""
+}
+
+
+## process command line
+
+ALL_DOCS="false"
+JOBS=""
+
+while getopts "aj:" OPT
+do
+  case "$OPT" in
+    a)
+      ALL_DOCS="true"
+      ;;
+    j)
+      check_number "$OPTARG"
+      JOBS="-j $OPTARG"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+if [ "$ALL_DOCS" = true ]; then
+  declare -a BUILD_OPTIONS=(-g doc)
+else
+  declare -a BUILD_OPTIONS=()
+fi
+
+
+## main
+
+OUTPUT="$ISABELLE_TMP_PREFIX$$"
+mkdir -p "$OUTPUT" || fail "Bad directory: \"$OUTPUT\""
+
+RC=0
+for FORMAT in dvi pdf
+do
+  if [ "$RC" = 0 ]; then
+    echo "Document format: $FORMAT"
+    "$ISABELLE_TOOL" build -o browser_info=false -o "document=$FORMAT" \
+      -o "document_output=$OUTPUT" -c $JOBS "${BUILD_OPTIONS[@]}" -- "$@"
+    RC=$?
+  fi
+done
+
+if [ "$RC" = 0 ]; then
+  for FILE in $(find "$OUTPUT" -name "*.eps" -o -name "*.ps")
+  do
+    mv -f "$FILE" "$ISABELLE_HOME/doc"
+  done
+  mv -f "$OUTPUT"/*.dvi "$OUTPUT"/*.pdf "$ISABELLE_HOME/doc"
+fi
+
+rm -rf "$OUTPUT"
+
+exit $RC
