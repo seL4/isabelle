@@ -43,9 +43,7 @@ fun path () = ! session_path;
 fun welcome () =
   if Distribution.is_official then
     "Welcome to " ^ name () ^ " (" ^ Distribution.version ^ ")"
-  else
-    "Unofficial version of " ^ name () ^ " (" ^ Distribution.version ^ ")" ^
-    (if Distribution.changelog <> "" then "\nSee also " ^ Distribution.changelog else "");
+  else "Unofficial version of " ^ name () ^ " (" ^ Distribution.version ^ ")";
 
 
 (* add_path *)

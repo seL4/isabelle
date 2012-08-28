@@ -4,7 +4,6 @@ structure Distribution =     (*filled-in by makedist*)
 struct
   val version = "unidentified repository version";
   val is_official = false;
-  val changelog = "";
 end;
 
 (*if true then some tools will OMIT some proofs*)

@@ -186,7 +186,6 @@ else
   perl -pi -e "s,val is_official = false,val is_official = true,g" src/Pure/ROOT.ML
 fi
 
-perl -pi -e "s,val changelog = \"\",val changelog = \"$REPOS/log/$IDENT\",g" src/Pure/ROOT.ML
 perl -pi -e "s,ISABELLE_ID=\"\",ISABELLE_ID=\"$IDENT\",g" lib/scripts/getsettings
 perl -pi -e "s,ISABELLE_IDENTIFIER=\"\",ISABELLE_IDENTIFIER=\"$DISTNAME\",g" lib/scripts/getsettings
 perl -pi -e "s,{ISABELLE},$DISTNAME,g" lib/html/library_index_header.template
