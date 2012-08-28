@@ -8,7 +8,7 @@ VARIANT="$2"
 "$ISABELLE_TOOL" logo -o isabelle.pdf ""
 "$ISABELLE_TOOL" logo -o isabelle.eps ""
 
-cp "$ISABELLE_HOME/doc-src/IsarRef/style.sty" .
+cp "$ISABELLE_HOME/doc-src/IsarRef/document/style.sty" .
 cp "$ISABELLE_HOME/doc-src/iman.sty" .
 cp "$ISABELLE_HOME/doc-src/extra.sty" .
 cp "$ISABELLE_HOME/doc-src/isar.sty" .
