@@ -43,6 +43,19 @@ session Functions (doc) in "Functions" = HOL +
     "document/root.tex"
     "document/style.sty"
 
+session Intro (doc) in "Intro" = Pure +
+  options [document_variants = "intro"]
+  theories
+  files
+    "../pdfsetup.sty"
+    "../iman.sty"
+    "../extra.sty"
+    "../ttbox.sty"
+    "../proof.sty"
+    "../manual.bib"
+    "document/build"
+    "document/root.tex"
+
 session IsarImplementation (doc) in "IsarImplementation" = HOL +
   options [document_variants = "implementation"]
   theories
@@ -68,19 +81,6 @@ session IsarImplementation (doc) in "IsarImplementation" = HOL +
     "document/build"
     "document/root.tex"
     "document/style.sty"
-
-session Intro (doc) in "Intro" = Pure +
-  options [document_variants = "intro"]
-  theories
-  files
-    "../pdfsetup.sty"
-    "../iman.sty"
-    "../extra.sty"
-    "../ttbox.sty"
-    "../proof.sty"
-    "../manual.bib"
-    "document/build"
-    "document/root.tex"
 
 session IsarRef (doc) in "IsarRef" = HOL +
   options [document_variants = "isar-ref", quick_and_dirty, thy_output_source]
