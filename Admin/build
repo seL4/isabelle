@@ -25,7 +25,6 @@ Usage: $PRG [MODULES]
 
     all             all modules below
     browser         graph browser (requires jdk)
-    doc             documentation (requires latex)
     jars            Isabelle/Scala layer (requires \$ISABELLE_JDK_HOME and \$SCALA_HOME)
     jars_test       test separate build of jars
     jars_fresh      fresh build of jars
@@ -52,7 +51,6 @@ MODULES="$@"; shift "$#"
 
 function build_all ()
 {
-  build_doc
   build_browser
   build_jars
 }
@@ -63,23 +61,6 @@ function build_browser ()
   pushd "$ISABELLE_HOME/lib/browser" >/dev/null
   "$ISABELLE_TOOL" env ./build || exit $?
   popd >/dev/null
-}
-
-
-function build_doc ()
-{
-  echo "###"
-  echo "### Building documentation ..."
-  echo "###"
-
-  cd "$ISABELLE_HOME/doc-src"
-  for DOC in $(cat Dirs)
-  do
-    pushd "$DOC" >/dev/null
-    make clean dvi || fail "DVI document for $DOC failed!"
-    make clean pdf || fail "PDF document for $DOC failed!"
-    popd >/dev/null
-  done
 }
 
 
@@ -98,7 +79,6 @@ do
   case $MODULE in
     all) build_all;;
     browser) build_browser;;
-    doc) build_doc;;
     jars) build_jars;;
     jars_fresh) build_jars -f;;
     jars_test) build_jars -t;;

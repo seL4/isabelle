@@ -3,6 +3,7 @@ session Classes (doc) in "Classes" = HOL +
   theories [document = false] Setup
   theories Classes
   files
+    "../prepare_document"
     "../pdfsetup.sty"
     "document/build"
     "document/root.tex"
@@ -20,6 +21,7 @@ session Codegen (doc) in "Codegen" = "HOL-Library" +
     Adaptation
     Further
   files
+    "../prepare_document"
     "../pdfsetup.sty"
     "document/adapt.tex"
     "document/architecture.tex"
@@ -31,6 +33,7 @@ session Functions (doc) in "Functions" = HOL +
   options [document_variants = "functions"]
   theories Functions
   files
+    "../prepare_document"
     "../pdfsetup.sty"
     "../iman.sty"
     "../extra.sty"
@@ -42,6 +45,20 @@ session Functions (doc) in "Functions" = HOL +
     "document/mathpartir.sty"
     "document/root.tex"
     "document/style.sty"
+
+session Intro (doc) in "Intro" = Pure +
+  options [document_variants = "intro"]
+  theories
+  files
+    "../prepare_document"
+    "../pdfsetup.sty"
+    "../iman.sty"
+    "../extra.sty"
+    "../ttbox.sty"
+    "../proof.sty"
+    "../manual.bib"
+    "document/build"
+    "document/root.tex"
 
 session IsarImplementation (doc) in "IsarImplementation" = HOL +
   options [document_variants = "implementation"]
@@ -57,6 +74,7 @@ session IsarImplementation (doc) in "IsarImplementation" = HOL +
     Syntax
     Tactic
   files
+    "../prepare_document"
     "../pdfsetup.sty"
     "../iman.sty"
     "../extra.sty"
@@ -68,19 +86,6 @@ session IsarImplementation (doc) in "IsarImplementation" = HOL +
     "document/build"
     "document/root.tex"
     "document/style.sty"
-
-session Intro (doc) in "Intro" = Pure +
-  options [document_variants = "intro"]
-  theories
-  files
-    "../pdfsetup.sty"
-    "../iman.sty"
-    "../extra.sty"
-    "../ttbox.sty"
-    "../proof.sty"
-    "../manual.bib"
-    "document/build"
-    "document/root.tex"
 
 session IsarRef (doc) in "IsarRef" = HOL +
   options [document_variants = "isar-ref", quick_and_dirty, thy_output_source]
@@ -101,6 +106,7 @@ session IsarRef (doc) in "IsarRef" = HOL +
     Symbols
     ML_Tactic
   files
+    "../prepare_document"
     "../pdfsetup.sty"
     "../iman.sty"
     "../extra.sty"
@@ -123,6 +129,7 @@ session LaTeXsugar (doc) in "LaTeXsugar" = HOL +
     "~~/src/HOL/Library/OptionalSugar"
   theories Sugar
   files
+    "../prepare_document"
     "../pdfsetup.sty"
     "document/build"
     "document/mathpartir.sty"
@@ -136,6 +143,7 @@ session Locales (doc) in "Locales" = HOL +
     Examples2
     Examples3
   files
+    "../prepare_document"
     "../pdfsetup.sty"
     "document/build"
     "document/root.tex"
@@ -144,6 +152,7 @@ session Logics (doc) in "Logics" = Pure +
   options [document_variants = "logics"]
   theories
   files
+    "../prepare_document"
     "../pdfsetup.sty"
     "../iman.sty"
     "../extra.sty"
@@ -157,6 +166,7 @@ session "Logics-HOL" (doc) in "HOL" = Pure +
   options [document_variants = "logics-HOL"]
   theories
   files
+    "../prepare_document"
     "../pdfsetup.sty"
     "../iman.sty"
     "../extra.sty"
@@ -177,6 +187,7 @@ session "Logics-ZF" (doc) in "ZF" = ZF +
     If
     ZF_Isar
   files
+    "../prepare_document"
     "../pdfsetup.sty"
     "../isar.sty"
     "../ttbox.sty"
@@ -190,6 +201,7 @@ session Main (doc) in "Main" = HOL +
   options [document_variants = "main"]
   theories Main_Doc
   files
+    "../prepare_document"
     "../pdfsetup.sty"
     "document/build"
     "document/root.tex"
@@ -198,6 +210,7 @@ session Nitpick (doc) in "Nitpick" = Pure +
   options [document_variants = "nitpick"]
   theories
   files
+    "../prepare_document"
     "../pdfsetup.sty"
     "../iman.sty"
     "../manual.bib"
@@ -214,6 +227,7 @@ session ProgProve (doc) in "ProgProve" = HOL +
     Logic
     Isar
   files
+    "../prepare_document"
     "../pdfsetup.sty"
     "document/bang.eps"
     "document/bang.pdf"
@@ -229,6 +243,7 @@ session Ref (doc) in "Ref" = Pure +
   options [document_variants = "ref"]
   theories
   files
+    "../prepare_document"
     "../pdfsetup.sty"
     "../iman.sty"
     "../extra.sty"
@@ -248,6 +263,7 @@ session Sledgehammer (doc) in "Sledgehammer" = Pure +
   options [document_variants = "sledgehammer"]
   theories
   files
+    "../prepare_document"
     "../pdfsetup.sty"
     "../iman.sty"
     "../manual.bib"
@@ -264,6 +280,7 @@ session System (doc) in "System" = Pure +
     Scala
     Misc
   files
+    "../prepare_document"
     "../IsarRef/document/style.sty"
     "../pdfsetup.sty"
     "../iman.sty"

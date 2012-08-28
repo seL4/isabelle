@@ -26,7 +26,6 @@ Checklist for official releases
 - update https://isabelle.in.tum.de/repos/website;
 
 - maintain Docs:
-    doc-src/Dirs
     doc/Contents
 
 - maintain Logics:

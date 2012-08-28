@@ -16,14 +16,5 @@ cp "$ISABELLE_HOME/doc-src/ttbox.sty" .
 cp "$ISABELLE_HOME/doc-src/underscore.sty" .
 cp "$ISABELLE_HOME/doc-src/manual.bib" .
 
-"$ISABELLE_TOOL" latex -o sty
-cp "$ISABELLE_HOME/doc-src/pdfsetup.sty" .
+"$ISABELLE_HOME/doc-src/prepare_document" "$FORMAT"
 
-"$ISABELLE_TOOL" latex -o "$FORMAT"
-"$ISABELLE_TOOL" latex -o bbl
-"$ISABELLE_TOOL" latex -o "$FORMAT"
-"$ISABELLE_TOOL" latex -o "$FORMAT"
-"$ISABELLE_HOME/doc-src/sedindex" root
-[ -f root.out ] && "$ISABELLE_HOME/doc-src/fixbookmarks" root.out
-"$ISABELLE_TOOL" latex -o "$FORMAT"
-"$ISABELLE_TOOL" latex -o "$FORMAT"
