@@ -37,7 +37,6 @@ sig
   val print_of: transition -> bool
   val name_of: transition -> string
   val pos_of: transition -> Position.T
-  val str_of: transition -> string
   val name: string -> transition -> transition
   val position: Position.T -> transition -> transition
   val interactive: bool -> transition -> transition
@@ -359,9 +358,8 @@ val empty = make_transition ("", Position.none, false, false, false, []);
 fun print_of (Transition {print, ...}) = print;
 fun name_of (Transition {name, ...}) = name;
 fun pos_of (Transition {pos, ...}) = pos;
-fun str_of tr = quote (name_of tr) ^ Position.here (pos_of tr);
 
-fun command_msg msg tr = msg ^ "command " ^ str_of tr;
+fun command_msg msg tr = msg ^ "command " ^ quote (name_of tr) ^ Position.here (pos_of tr);
 fun at_command tr = command_msg "At " tr;
 
 fun type_error tr state =
