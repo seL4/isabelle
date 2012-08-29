@@ -93,10 +93,10 @@ object YXML
 
     /* parse chunks */
 
-    for (chunk <- Library.chunks(source, X) if chunk.length != 0) {
+    for (chunk <- Library.separated_chunks(X, source) if chunk.length != 0) {
       if (chunk.length == 1 && chunk.charAt(0) == Y) pop()
       else {
-        Library.chunks(chunk, Y).toList match {
+        Library.separated_chunks(Y, chunk).toList match {
           case ch :: name :: atts if ch.length == 0 =>
             push(name.toString, atts.map(parse_attrib))
           case txts => for (txt <- txts) add(XML.Text(txt.toString))

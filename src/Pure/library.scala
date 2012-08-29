@@ -34,7 +34,7 @@ object Library
     else error(msg1 + "\n" + msg2)
 
 
-  /* lists */
+  /* separated chunks */
 
   def separate[A](s: A, list: List[A]): List[A] =
     list match {
@@ -42,61 +42,50 @@ object Library
       case _ => list
     }
 
-  def space_explode(sep: Char, str: String): List[String] =
-    if (str.isEmpty) Nil
-    else {
-      val result = new mutable.ListBuffer[String]
-      var start = 0
-      var finished = false
-      while (!finished) {
-        val i = str.indexOf(sep, start)
-        if (i == -1) { result += str.substring(start); finished = true }
-        else { result += str.substring(start, i); start = i + 1 }
+  def separated_chunks(sep: Char, source: CharSequence): Iterator[CharSequence] =
+    new Iterator[CharSequence] {
+      private val end = source.length
+      private def next_chunk(i: Int): Option[(CharSequence, Int)] =
+      {
+        if (i < end) {
+          var j = i; do j += 1 while (j < end && source.charAt(j) != sep)
+          Some((source.subSequence(i + 1, j), j))
+        }
+        else None
       }
-      result.toList
+      private var state: Option[(CharSequence, Int)] = if (end == 0) None else next_chunk(-1)
+
+      def hasNext(): Boolean = state.isDefined
+      def next(): CharSequence =
+        state match {
+          case Some((s, i)) => { state = next_chunk(i); s }
+          case None => Iterator.empty.next()
+        }
     }
 
+  def space_explode(sep: Char, str: String): List[String] =
+    separated_chunks(sep, str).map(_.toString).toList
+
+
+  /* lines */
+
+  def cat_lines(lines: TraversableOnce[String]): String = lines.mkString("\n")
+
   def split_lines(str: String): List[String] = space_explode('\n', str)
+
+  def first_line(source: CharSequence): String =
+  {
+    val lines = separated_chunks('\n', source)
+    if (lines.hasNext) lines.next.toString
+    else ""
+  }
 
   def trim_line(str: String): String =
     if (str.endsWith("\n")) str.substring(0, str.length - 1)
     else str
 
 
-  /* iterate over chunks (cf. space_explode) */
-
-  def chunks(source: CharSequence, sep: Char = '\n') = new Iterator[CharSequence]
-  {
-    private val end = source.length
-    private def next_chunk(i: Int): Option[(CharSequence, Int)] =
-    {
-      if (i < end) {
-        var j = i; do j += 1 while (j < end && source.charAt(j) != sep)
-        Some((source.subSequence(i + 1, j), j))
-      }
-      else None
-    }
-    private var state: Option[(CharSequence, Int)] = if (end == 0) None else next_chunk(-1)
-
-    def hasNext(): Boolean = state.isDefined
-    def next(): CharSequence =
-      state match {
-        case Some((s, i)) => { state = next_chunk(i); s }
-        case None => Iterator.empty.next()
-      }
-  }
-
-  def first_line(source: CharSequence): String =
-  {
-    val lines = chunks(source)
-    if (lines.hasNext) lines.next.toString
-    else ""
-  }
-
-
-  /* strings */
-
-  def cat_lines(lines: TraversableOnce[String]): String = lines.mkString("\n")
+  /* quote */
 
   def quote(s: String): String = "\"" + s + "\""
   def commas(ss: Iterable[String]): String = ss.iterator.mkString(", ")

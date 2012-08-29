@@ -65,9 +65,7 @@ object Pretty
   private def standard_format(tree: XML.Tree): XML.Body =
     tree match {
       case XML.Elem(markup, body) => List(XML.Elem(markup, body.flatMap(standard_format)))
-      case XML.Text(text) =>
-        Library.separate(FBreak,
-          Library.chunks(text).toList.map((s: CharSequence) => XML.Text(s.toString)))
+      case XML.Text(text) => Library.separate(FBreak, split_lines(text).map(XML.Text))
     }
 
   private sealed case class Text(tx: XML.Body = Nil, val pos: Double = 0.0, val nl: Int = 0)
