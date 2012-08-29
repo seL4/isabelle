@@ -1,0 +1,219 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# DESCRIPTION: make Isabelle distribution from repository
+
+## global parameters
+
+umask 022
+
+HG="${HG:-hg}"
+
+DISTPREFIX="${DISTPREFIX:-$HOME/tmp/isadist}"
+
+
+## diagnostics
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: isabelle $PRG [OPTIONS] [VERSION]"
+  echo
+  echo "  Options are:"
+  echo "    -d DIR       global directory prefix (default: \"$DISTPREFIX\")"
+  echo "    -j INT       maximum number of parallel jobs (default 1)"
+  echo "    -r RELEASE   proper release with name"
+  echo
+  echo "  Make Isabelle distribution from the local repository clone."
+  echo
+  echo "  VERSION identifies the snapshot, using usual Mercurial terminology;"
+  echo "  the default is RELEASE if given, otherwise \"tip\"."
+  echo
+  echo "  Auxiliary components are that of the running Isabelle version!"
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+function check_number()
+{
+  [ -n "$1" -a -z "$(echo "$1" | tr -d '[0-9]')" ] || fail "Bad number: \"$1\""
+}
+
+
+## process command line
+
+# options
+
+JOBS=""
+RELEASE=""
+
+while getopts "d:j:r:" OPT
+do
+  case "$OPT" in
+    d)
+      DISTPREFIX="$OPTARG"
+      ;;
+    j)
+      check_number "$OPTARG"
+      JOBS="-j $OPTARG"
+      ;;
+    r)
+      RELEASE="$OPTARG"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
+VERSION=""
+[ "$#" -gt 0 ] && { VERSION="$1"; shift; }
+[ -z "$VERSION" ] && VERSION="$RELEASE"
+[ -z "$VERSION" ] && VERSION="tip"
+
+[ "$#" -gt 0 ] && usage
+
+IDENT=$("$HG" --repository "$ISABELLE_HOME" id -r "$VERSION" -i)
+[ -z "$IDENT" ] && fail "Bad repository version: \"$VERSION\""
+
+
+## main
+
+# dist name
+
+DATE=$(env LC_ALL=C date "+%d-%b-%Y")
+DISTDATE=$(env LC_ALL=C date "+%B %Y")
+
+if [ -z "$RELEASE" ]; then
+  DISTNAME="Isabelle_$DATE"
+  DISTVERSION="Isabelle repository snapshot $IDENT $DATE"
+else
+  DISTNAME="$RELEASE"
+  DISTVERSION="$DISTNAME: $DISTDATE"
+fi
+
+DISTBASE="$DISTPREFIX/dist-$DISTNAME"
+mkdir -p "$DISTBASE" || fail "Unable to create distribution base dir \"$DISTBASE\""
+
+DIR="$DISTBASE/$DISTNAME"
+[ -e "$DIR" ] && fail "Directory \"$DIR\" already exists"
+
+
+# retrieve repository archive
+
+echo "### Retrieving Mercurial repository $VERSION"
+
+"$HG" --repository "$ISABELLE_HOME" archive --type files -r "$IDENT" "$DIR" || \
+  fail "Failed to retrieve $VERSION"
+
+rm -f "$DIR/.hg_archival.txt"
+rm -f "$DIR/.hgtags"
+rm -f "$DIR/.hgignore"
+rm -f "$DIR/README_REPOSITORY"
+
+
+# partial context switch to new version
+
+cd "$DIR"
+
+unset ISABELLE_SETTINGS_PRESENT
+unset ISABELLE_SITE_SETTINGS_PRESENT
+
+if [ -z "$RELEASE" ]; then
+  {
+    echo
+    echo "IMPORTANT NOTE"
+    echo "=============="
+    echo
+    echo "This is snapshot of Isabelle/${IDENT} from the repository."
+    echo
+  } >ANNOUNCE
+else
+  perl -pi -e "s,val is_official = false,val is_official = true,g" src/Pure/ROOT.ML
+fi
+
+perl -pi -e "s,ISABELLE_ID=\"\",ISABELLE_ID=\"$IDENT\",g" lib/scripts/getsettings
+perl -pi -e "s,ISABELLE_IDENTIFIER=\"\",ISABELLE_IDENTIFIER=\"$DISTNAME\",g" lib/scripts/getsettings
+perl -pi -e "s,{ISABELLE},$DISTNAME,g" lib/html/library_index_header.template
+perl -pi -e "s,unidentified repository version,$DISTVERSION,g" src/Pure/ROOT.ML lib/Tools/version
+perl -pi -e "s,some unidentified repository version of Isabelle,$DISTVERSION,g" README
+
+mkdir -p contrib
+cat >contrib/README <<EOF
+This directory contains add-on components that contribute to the main
+Isabelle distribution.  Separate licensing conditions apply, see each
+directory individually.
+EOF
+
+
+# prepare dist for release
+
+echo "### Preparing distribution $DISTNAME"
+
+find . "(" -name \*.thy -o -name \*.ML -o -name \*.scala ")" -perm +111 -print | xargs chmod -f -x
+find . -print | xargs chmod -f u+rw
+
+./bin/isabelle env ISABELLE_SCALA_BUILD_OPTIONS="$ISABELLE_SCALA_BUILD_OPTIONS -optimise" \
+  ./Admin/build all || fail "Failed to build distribution"
+
+if [ -n "$ISABELLE_JEDIT_BUILD_HOME" ]; then
+  ./bin/isabelle env ISABELLE_SCALA_BUILD_OPTIONS="$ISABELLE_SCALA_BUILD_OPTIONS -optimise" \
+    ./bin/isabelle jedit -b || fail "Failed to build Isabelle/jEdit"
+else
+  echo "### Missing jEdit build component"
+fi
+
+cp -a src/Doc src/Doc.orig
+./bin/isabelle env ./bin/isabelle build_doc -a || fail "Failed to build documentation"
+rm -rf src/Doc
+mv src/Doc.orig src/Doc
+
+rm -rf Admin
+
+
+# create archive
+
+echo "### Creating archive"
+
+cd "$DISTBASE"
+
+echo "$DISTBASE/$DISTNAME.tar.gz" > ../ISABELLE_DIST
+echo "$IDENT" >../ISABELLE_IDENT
+
+chown -R "$LOGNAME" "$DISTNAME"
+chmod -R u+w "$DISTNAME"
+chmod -R g=o "$DISTNAME"
+
+echo "$DISTNAME.tar.gz"
+tar -czf "$DISTNAME.tar.gz" "$DISTNAME"
+
+
+# cleanup dist
+
+mv "$DISTNAME" "${DISTNAME}-old"
+mkdir "$DISTNAME"
+
+mv "${DISTNAME}-old/README" "${DISTNAME}-old/NEWS" "${DISTNAME}-old/ANNOUNCE" \
+  "${DISTNAME}-old/COPYRIGHT" "${DISTNAME}-old/CONTRIBUTORS" "$DISTNAME"
+mkdir "$DISTNAME/doc"
+mv "${DISTNAME}-old/doc/"*.pdf "${DISTNAME}-old/doc/Contents" "$DISTNAME/doc"
+
+rm -f Isabelle && ln -sf "$DISTNAME" Isabelle
+
+rm -rf "${DISTNAME}-old"
+
+echo "DONE"

@@ -46,7 +46,7 @@ Checklist for official releases
 Packaging
 =========
 
-- makedist -j jedit_build-XXXX -r DISTNAME
+- hg up -r DISTNAME && isabelle makedist -r DISTNAME;
 
 - makebin (multiplatform);
 

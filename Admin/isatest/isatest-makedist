@@ -5,12 +5,11 @@
 # DESCRIPTION: Build distribution and run isatest-make for lots of platforms.
 
 ## global settings
-. ~/admin/isatest/isatest-settings
+. "$HOME/hg-isabelle/Admin/isatest/isatest-settings"
 
 TMP=/tmp/isatest-makedist.$$
 MAIL=$HOME/bin/pmail
 
-MAKEDIST=$HOME/bin/makedist
 MAKEALL=$HOME/bin/isatest-makeall
 TAR=tar
 
@@ -60,7 +59,7 @@ rm -rf $HOME/isabelle-*
 
 echo "### building distribution"  >> $DISTLOG 2>&1
 mkdir -p $DISTPREFIX
-$MAKEDIST -j "/home/isabelle/contrib/jedit_build-20120813" >> $DISTLOG 2>&1
+"$HOME/hg-isabelle/bin/isabelle" makedist >> $DISTLOG 2>&1
 
 if [ $? -ne 0 ]
 then
