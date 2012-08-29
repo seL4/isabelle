@@ -433,6 +433,17 @@ lemma emb_Nil2 [simp]:
   assumes "emb P xs []" shows "xs = []"
   using assms by (cases rule: emb.cases) auto
 
+lemma emb_Cons_Nil [simp]:
+  "emb P (x#xs) [] = False"
+proof -
+  { assume "emb P (x#xs) []"
+    from emb_Nil2 [OF this] have False by simp
+  } moreover {
+    assume False
+    hence "emb P (x#xs) []" by simp
+  } ultimately show ?thesis by blast
+qed
+
 lemma emb_append2 [intro]:
   "emb P xs ys \<Longrightarrow> emb P xs (zs @ ys)"
   by (induct zs) auto
@@ -478,5 +489,203 @@ lemma emb_suffixeq:
 
 lemma emb_length: "emb P xs ys \<Longrightarrow> length xs \<le> length ys"
   by (induct rule: emb.induct) auto
+
+(*FIXME: move*)
+definition transp_on :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool" where
+  "transp_on P A \<equiv> \<forall>a\<in>A. \<forall>b\<in>A. \<forall>c\<in>A. P a b \<and> P b c \<longrightarrow> P a c"
+lemma transp_onI [Pure.intro]:
+  "(\<And>a b c. \<lbrakk>a \<in> A; b \<in> A; c \<in> A; P a b; P b c\<rbrakk> \<Longrightarrow> P a c) \<Longrightarrow> transp_on P A"
+  unfolding transp_on_def by blast
+
+lemma transp_on_emb:
+  assumes "transp_on P A"
+  shows "transp_on (emb P) (lists A)"
+proof
+  fix xs ys zs
+  assume "emb P xs ys" and "emb P ys zs"
+    and "xs \<in> lists A" and "ys \<in> lists A" and "zs \<in> lists A"
+  thus "emb P xs zs"
+  proof (induction arbitrary: zs)
+    case emb_Nil show ?case by blast
+  next
+    case (emb_Cons xs ys y)
+    from emb_ConsD [OF `emb P (y#ys) zs`] obtain us v vs
+      where zs: "zs = us @ v # vs" and "P y v" and "emb P ys vs" by blast
+    hence "emb P ys (v#vs)" by blast
+    hence "emb P ys zs" unfolding zs by (rule emb_append2)
+    from emb_Cons.IH [OF this] and emb_Cons.prems show ?case by simp
+  next
+    case (emb_Cons2 x y xs ys)
+    from emb_ConsD [OF `emb P (y#ys) zs`] obtain us v vs
+      where zs: "zs = us @ v # vs" and "P y v" and "emb P ys vs" by blast
+    with emb_Cons2 have "emb P xs vs" by simp
+    moreover have "P x v"
+    proof -
+      from zs and `zs \<in> lists A` have "v \<in> A" by auto
+      moreover have "x \<in> A" and "y \<in> A" using emb_Cons2 by simp_all
+      ultimately show ?thesis using `P x y` and `P y v` and assms
+        unfolding transp_on_def by blast
+    qed
+    ultimately have "emb P (x#xs) (v#vs)" by blast
+    thus ?case unfolding zs by (rule emb_append2)
+  qed
+qed
+
+
+subsection {* Sublists (special case of embedding) *}
+
+abbreviation sub :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
+  "sub xs ys \<equiv> emb (op =) xs ys"
+
+lemma sub_Cons2: "sub xs ys \<Longrightarrow> sub (x#xs) (x#ys)" by auto
+
+lemma sub_same_length:
+  assumes "sub xs ys" and "length xs = length ys" shows "xs = ys"
+  using assms by (induct) (auto dest: emb_length)
+
+lemma not_sub_length [simp]: "length ys < length xs \<Longrightarrow> \<not> sub xs ys"
+  by (metis emb_length linorder_not_less)
+
+lemma [code]:
+  "emb P [] ys \<longleftrightarrow> True"
+  "emb P (x#xs) [] \<longleftrightarrow> False"
+  by (simp_all)
+
+lemma sub_Cons': "sub (x#xs) ys \<Longrightarrow> sub xs ys"
+  by (induct xs) (auto dest: emb_ConsD)
+
+lemma sub_Cons2':
+  assumes "sub (x#xs) (x#ys)" shows "sub xs ys"
+  using assms by (cases) (rule sub_Cons')
+
+lemma sub_Cons2_neq:
+  assumes "sub (x#xs) (y#ys)"
+  shows "x \<noteq> y \<Longrightarrow> sub (x#xs) ys"
+  using assms by (cases) auto
+
+lemma sub_Cons2_iff [simp, code]:
+  "sub (x#xs) (y#ys) = (if x = y then sub xs ys else sub (x#xs) ys)"
+  by (metis emb_Cons emb_Cons2 [of "op =", OF refl] sub_Cons2' sub_Cons2_neq)
+
+lemma sub_append': "sub (zs @ xs) (zs @ ys) \<longleftrightarrow> sub xs ys"
+  by (induct zs) simp_all
+
+lemma sub_refl [simp, intro!]: "sub xs xs" by (induct xs) simp_all
+
+lemma sub_antisym:
+  assumes "sub xs ys" and "sub ys xs"
+  shows "xs = ys"
+using assms
+proof (induct)
+  case emb_Nil
+  from emb_Nil2 [OF this] show ?case by simp
+next
+  case emb_Cons2 thus ?case by simp
+next
+  case emb_Cons thus ?case
+    by (metis sub_Cons' emb_length Suc_length_conv Suc_n_not_le_n)
+qed
+
+lemma transp_on_sub: "transp_on sub UNIV"
+proof -
+  have "transp_on (op =) UNIV" by (simp add: transp_on_def)
+  from transp_on_emb [OF this] show ?thesis by simp
+qed
+
+lemma sub_trans: "sub xs ys \<Longrightarrow> sub ys zs \<Longrightarrow> sub xs zs"
+  using transp_on_sub [unfolded transp_on_def] by blast
+
+lemma sub_append_le_same_iff: "sub (xs @ ys) ys \<longleftrightarrow> xs = []"
+  by (auto dest: emb_length)
+
+lemma emb_append_mono:
+  "\<lbrakk> emb P xs xs'; emb P ys ys' \<rbrakk> \<Longrightarrow> emb P (xs@ys) (xs'@ys')"
+apply (induct rule: emb.induct)
+  apply (metis eq_Nil_appendI emb_append2)
+ apply (metis append_Cons emb_Cons)
+by (metis append_Cons emb_Cons2)
+
+
+subsection {* Appending elements *}
+
+lemma sub_append [simp]:
+  "sub (xs @ zs) (ys @ zs) \<longleftrightarrow> sub xs ys" (is "?l = ?r")
+proof
+  { fix xs' ys' xs ys zs :: "'a list" assume "sub xs' ys'"
+    hence "xs' = xs @ zs & ys' = ys @ zs \<longrightarrow> sub xs ys"
+    proof (induct arbitrary: xs ys zs)
+      case emb_Nil show ?case by simp
+    next
+      case (emb_Cons xs' ys' x)
+      { assume "ys=[]" hence ?case using emb_Cons(1) by auto }
+      moreover
+      { fix us assume "ys = x#us"
+        hence ?case using emb_Cons(2) by(simp add: emb.emb_Cons) }
+      ultimately show ?case by (auto simp:Cons_eq_append_conv)
+    next
+      case (emb_Cons2 x y xs' ys')
+      { assume "xs=[]" hence ?case using emb_Cons2(1) by auto }
+      moreover
+      { fix us vs assume "xs=x#us" "ys=x#vs" hence ?case using emb_Cons2 by auto}
+      moreover
+      { fix us assume "xs=x#us" "ys=[]" hence ?case using emb_Cons2(2) by bestsimp }
+      ultimately show ?case using `x = y` by (auto simp: Cons_eq_append_conv)
+    qed }
+  moreover assume ?l
+  ultimately show ?r by blast
+next
+  assume ?r thus ?l by (metis emb_append_mono sub_refl)
+qed
+
+lemma sub_drop_many: "sub xs ys \<Longrightarrow> sub xs (zs @ ys)"
+  by (induct zs) auto
+
+lemma sub_rev_drop_many: "sub xs ys \<Longrightarrow> sub xs (ys @ zs)"
+  by (metis append_Nil2 emb_Nil emb_append_mono)
+
+
+subsection {* Relation to standard list operations *}
+
+lemma sub_map:
+  assumes "sub xs ys" shows "sub (map f xs) (map f ys)"
+  using assms by (induct) auto
+
+lemma sub_filter_left [simp]: "sub (filter P xs) xs"
+  by (induct xs) auto
+
+lemma sub_filter [simp]:
+  assumes "sub xs ys" shows "sub (filter P xs) (filter P ys)"
+  using assms by (induct) auto
+
+lemma "sub xs ys \<longleftrightarrow> (\<exists> N. xs = sublist ys N)" (is "?L = ?R")
+proof
+  assume ?L
+  thus ?R
+  proof (induct)
+    case emb_Nil show ?case by (metis sublist_empty)
+  next
+    case (emb_Cons xs ys x)
+    then obtain N where "xs = sublist ys N" by blast
+    hence "xs = sublist (x#ys) (Suc ` N)"
+      by (clarsimp simp add:sublist_Cons inj_image_mem_iff)
+    thus ?case by blast
+  next
+    case (emb_Cons2 x y xs ys)
+    then obtain N where "xs = sublist ys N" by blast
+    hence "x#xs = sublist (x#ys) (insert 0 (Suc ` N))"
+      by (clarsimp simp add:sublist_Cons inj_image_mem_iff)
+    thus ?case unfolding `x = y` by blast
+  qed
+next
+  assume ?R
+  then obtain N where "xs = sublist ys N" ..
+  moreover have "sub (sublist ys N) ys"
+  proof (induct ys arbitrary:N)
+    case Nil show ?case by simp
+  next
+    case Cons thus ?case by (auto simp: sublist_Cons)
+  qed
+  ultimately show ?L by simp
+qed
 
 end
