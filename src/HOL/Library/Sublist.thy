@@ -14,71 +14,71 @@ instantiation list :: (type) "{order, bot}"
 begin
 
 definition
-  prefix_def: "xs \<le> ys \<longleftrightarrow> (\<exists>zs. ys = xs @ zs)"
+  prefixeq_def: "xs \<le> ys \<longleftrightarrow> (\<exists>zs. ys = xs @ zs)"
 
 definition
-  strict_prefix_def: "xs < ys \<longleftrightarrow> xs \<le> ys \<and> xs \<noteq> (ys::'a list)"
+  prefix_def: "xs < ys \<longleftrightarrow> xs \<le> ys \<and> xs \<noteq> (ys::'a list)"
 
 definition
   "bot = []"
 
 instance proof
-qed (auto simp add: prefix_def strict_prefix_def bot_list_def)
+qed (auto simp add: prefixeq_def prefix_def bot_list_def)
 
 end
 
-lemma prefixI [intro?]: "ys = xs @ zs ==> xs \<le> ys"
-  unfolding prefix_def by blast
+lemma prefixeqI [intro?]: "ys = xs @ zs ==> xs \<le> ys"
+  unfolding prefixeq_def by blast
 
-lemma prefixE [elim?]:
+lemma prefixeqE [elim?]:
   assumes "xs \<le> ys"
   obtains zs where "ys = xs @ zs"
-  using assms unfolding prefix_def by blast
+  using assms unfolding prefixeq_def by blast
 
-lemma strict_prefixI' [intro?]: "ys = xs @ z # zs ==> xs < ys"
-  unfolding strict_prefix_def prefix_def by blast
+lemma prefixI' [intro?]: "ys = xs @ z # zs ==> xs < ys"
+  unfolding prefix_def prefixeq_def by blast
 
-lemma strict_prefixE' [elim?]:
+lemma prefixE' [elim?]:
   assumes "xs < ys"
   obtains z zs where "ys = xs @ z # zs"
 proof -
   from `xs < ys` obtain us where "ys = xs @ us" and "xs \<noteq> ys"
-    unfolding strict_prefix_def prefix_def by blast
+    unfolding prefix_def prefixeq_def by blast
   with that show ?thesis by (auto simp add: neq_Nil_conv)
 qed
 
-lemma strict_prefixI [intro?]: "xs \<le> ys ==> xs \<noteq> ys ==> xs < (ys::'a list)"
-  unfolding strict_prefix_def by blast
+lemma prefixI [intro?]: "xs \<le> ys ==> xs \<noteq> ys ==> xs < (ys::'a list)"
+  unfolding prefix_def by blast
 
-lemma strict_prefixE [elim?]:
+lemma prefixE [elim?]:
   fixes xs ys :: "'a list"
   assumes "xs < ys"
   obtains "xs \<le> ys" and "xs \<noteq> ys"
-  using assms unfolding strict_prefix_def by blast
+  using assms unfolding prefix_def by blast
 
 
 subsection {* Basic properties of prefixes *}
 
-theorem Nil_prefix [iff]: "[] \<le> xs"
-  by (simp add: prefix_def)
+theorem Nil_prefixeq [iff]: "[] \<le> xs"
+  by (simp add: prefixeq_def)
 
-theorem prefix_Nil [simp]: "(xs \<le> []) = (xs = [])"
-  by (induct xs) (simp_all add: prefix_def)
+theorem prefixeq_Nil [simp]: "(xs \<le> []) = (xs = [])"
+  by (induct xs) (simp_all add: prefixeq_def)
 
-lemma prefix_snoc [simp]: "(xs \<le> ys @ [y]) = (xs = ys @ [y] \<or> xs \<le> ys)"
+lemma prefixeq_snoc [simp]: "(xs \<le> ys @ [y]) = (xs = ys @ [y] \<or> xs \<le> ys)"
 proof
   assume "xs \<le> ys @ [y]"
   then obtain zs where zs: "ys @ [y] = xs @ zs" ..
   show "xs = ys @ [y] \<or> xs \<le> ys"
-    by (metis append_Nil2 butlast_append butlast_snoc prefixI zs)
+    by (metis append_Nil2 butlast_append butlast_snoc prefixeqI zs)
 next
   assume "xs = ys @ [y] \<or> xs \<le> ys"
   then show "xs \<le> ys @ [y]"
-    by (metis order_eq_iff order_trans prefixI)
+    by (metis order_eq_iff order_trans prefixeqI)
 qed
 
-lemma Cons_prefix_Cons [simp]: "(x # xs \<le> y # ys) = (x = y \<and> xs \<le> ys)"
-  by (auto simp add: prefix_def)
+lemma Cons_prefixeq_Cons [simp]: "(x # xs \<le> y # ys) = (x = y \<and> xs \<le> ys)"
+  by (auto simp add: prefixeq_def)
 
 lemma less_eq_list_code [code]:
   "([]\<Colon>'a\<Colon>{equal, ord} list) \<le> xs \<longleftrightarrow> True"
@@ -86,22 +86,22 @@ lemma less_eq_list_code [code]:
   "(x\<Colon>'a\<Colon>{equal, ord}) # xs \<le> y # ys \<longleftrightarrow> x = y \<and> xs \<le> ys"
   by simp_all
 
-lemma same_prefix_prefix [simp]: "(xs @ ys \<le> xs @ zs) = (ys \<le> zs)"
+lemma same_prefixeq_prefixeq [simp]: "(xs @ ys \<le> xs @ zs) = (ys \<le> zs)"
   by (induct xs) simp_all
 
-lemma same_prefix_nil [iff]: "(xs @ ys \<le> xs) = (ys = [])"
-  by (metis append_Nil2 append_self_conv order_eq_iff prefixI)
+lemma same_prefixeq_nil [iff]: "(xs @ ys \<le> xs) = (ys = [])"
+  by (metis append_Nil2 append_self_conv order_eq_iff prefixeqI)
 
-lemma prefix_prefix [simp]: "xs \<le> ys ==> xs \<le> ys @ zs"
-  by (metis order_le_less_trans prefixI strict_prefixE strict_prefixI)
+lemma prefixeq_prefixeq [simp]: "xs \<le> ys ==> xs \<le> ys @ zs"
+  by (metis order_le_less_trans prefixeqI prefixE prefixI)
 
-lemma append_prefixD: "xs @ ys \<le> zs \<Longrightarrow> xs \<le> zs"
-  by (auto simp add: prefix_def)
+lemma append_prefixeqD: "xs @ ys \<le> zs \<Longrightarrow> xs \<le> zs"
+  by (auto simp add: prefixeq_def)
 
-theorem prefix_Cons: "(xs \<le> y # ys) = (xs = [] \<or> (\<exists>zs. xs = y # zs \<and> zs \<le> ys))"
-  by (cases xs) (auto simp add: prefix_def)
+theorem prefixeq_Cons: "(xs \<le> y # ys) = (xs = [] \<or> (\<exists>zs. xs = y # zs \<and> zs \<le> ys))"
+  by (cases xs) (auto simp add: prefixeq_def)
 
-theorem prefix_append:
+theorem prefixeq_append:
   "(xs \<le> ys @ zs) = (xs \<le> ys \<or> (\<exists>us. xs = ys @ us \<and> us \<le> zs))"
   apply (induct zs rule: rev_induct)
    apply force
@@ -109,44 +109,44 @@ theorem prefix_append:
   apply (metis append_eq_appendI)
   done
 
-lemma append_one_prefix:
+lemma append_one_prefixeq:
   "xs \<le> ys ==> length xs < length ys ==> xs @ [ys ! length xs] \<le> ys"
-  unfolding prefix_def
+  unfolding prefixeq_def
   by (metis Cons_eq_appendI append_eq_appendI append_eq_conv_conj
     eq_Nil_appendI nth_drop')
 
-theorem prefix_length_le: "xs \<le> ys ==> length xs \<le> length ys"
-  by (auto simp add: prefix_def)
+theorem prefixeq_length_le: "xs \<le> ys ==> length xs \<le> length ys"
+  by (auto simp add: prefixeq_def)
 
-lemma prefix_same_cases:
+lemma prefixeq_same_cases:
   "(xs\<^isub>1::'a list) \<le> ys \<Longrightarrow> xs\<^isub>2 \<le> ys \<Longrightarrow> xs\<^isub>1 \<le> xs\<^isub>2 \<or> xs\<^isub>2 \<le> xs\<^isub>1"
-  unfolding prefix_def by (metis append_eq_append_conv2)
+  unfolding prefixeq_def by (metis append_eq_append_conv2)
 
-lemma set_mono_prefix: "xs \<le> ys \<Longrightarrow> set xs \<subseteq> set ys"
-  by (auto simp add: prefix_def)
+lemma set_mono_prefixeq: "xs \<le> ys \<Longrightarrow> set xs \<subseteq> set ys"
+  by (auto simp add: prefixeq_def)
 
-lemma take_is_prefix: "take n xs \<le> xs"
-  unfolding prefix_def by (metis append_take_drop_id)
+lemma take_is_prefixeq: "take n xs \<le> xs"
+  unfolding prefixeq_def by (metis append_take_drop_id)
 
-lemma map_prefixI: "xs \<le> ys \<Longrightarrow> map f xs \<le> map f ys"
-  by (auto simp: prefix_def)
+lemma map_prefixeqI: "xs \<le> ys \<Longrightarrow> map f xs \<le> map f ys"
+  by (auto simp: prefixeq_def)
 
-lemma prefix_length_less: "xs < ys \<Longrightarrow> length xs < length ys"
-  by (auto simp: strict_prefix_def prefix_def)
+lemma prefixeq_length_less: "xs < ys \<Longrightarrow> length xs < length ys"
+  by (auto simp: prefix_def prefixeq_def)
 
-lemma strict_prefix_simps [simp, code]:
+lemma prefix_simps [simp, code]:
   "xs < [] \<longleftrightarrow> False"
   "[] < x # xs \<longleftrightarrow> True"
   "x # xs < y # ys \<longleftrightarrow> x = y \<and> xs < ys"
-  by (simp_all add: strict_prefix_def cong: conj_cong)
+  by (simp_all add: prefix_def cong: conj_cong)
 
-lemma take_strict_prefix: "xs < ys \<Longrightarrow> take n xs < ys"
+lemma take_prefix: "xs < ys \<Longrightarrow> take n xs < ys"
   apply (induct n arbitrary: xs ys)
    apply (case_tac ys, simp_all)[1]
-  apply (metis order_less_trans strict_prefixI take_is_prefix)
+  apply (metis order_less_trans prefixI take_is_prefixeq)
   done
 
-lemma not_prefix_cases:
+lemma not_prefixeq_cases:
   assumes pfx: "\<not> ps \<le> ls"
   obtains
     (c1) "ps \<noteq> []" and "ls = []"
@@ -159,7 +159,7 @@ next
   note c = `ps = a#as`
   show ?thesis
   proof (cases ls)
-    case Nil then show ?thesis by (metis append_Nil2 pfx c1 same_prefix_nil)
+    case Nil then show ?thesis by (metis append_Nil2 pfx c1 same_prefixeq_nil)
   next
     case (Cons x xs)
     show ?thesis
@@ -174,7 +174,7 @@ next
   qed
 qed
 
-lemma not_prefix_induct [consumes 1, case_names Nil Neq Eq]:
+lemma not_prefixeq_induct [consumes 1, case_names Nil Neq Eq]:
   assumes np: "\<not> ps \<le> ls"
     and base: "\<And>x xs. P (x#xs) []"
     and r1: "\<And>x xs y ys. x \<noteq> y \<Longrightarrow> P (x#xs) (y#ys)"
@@ -182,13 +182,13 @@ lemma not_prefix_induct [consumes 1, case_names Nil Neq Eq]:
   shows "P ps ls" using np
 proof (induct ls arbitrary: ps)
   case Nil then show ?case
-    by (auto simp: neq_Nil_conv elim!: not_prefix_cases intro!: base)
+    by (auto simp: neq_Nil_conv elim!: not_prefixeq_cases intro!: base)
 next
   case (Cons y ys)
   then have npfx: "\<not> ps \<le> (y # ys)" by simp
   then obtain x xs where pv: "ps = x # xs"
-    by (rule not_prefix_cases) auto
-  show ?case by (metis Cons.hyps Cons_prefix_Cons npfx pv r1 r2)
+    by (rule not_prefixeq_cases) auto
+  show ?case by (metis Cons.hyps Cons_prefixeq_Cons npfx pv r1 r2)
 qed
 
 
@@ -206,9 +206,9 @@ lemma parallelE [elim]:
   obtains "\<not> xs \<le> ys \<and> \<not> ys \<le> xs"
   using assms unfolding parallel_def by blast
 
-theorem prefix_cases:
+theorem prefixeq_cases:
   obtains "xs \<le> ys" | "ys < xs" | "xs \<parallel> ys"
-  unfolding parallel_def strict_prefix_def by blast
+  unfolding parallel_def prefix_def by blast
 
 theorem parallel_decomp:
   "xs \<parallel> ys ==> \<exists>as b bs c cs. b \<noteq> c \<and> xs = as @ b # bs \<and> ys = as @ c # cs"
@@ -219,21 +219,21 @@ proof (induct xs rule: rev_induct)
 next
   case (snoc x xs)
   show ?case
-  proof (rule prefix_cases)
+  proof (rule prefixeq_cases)
     assume le: "xs \<le> ys"
     then obtain ys' where ys: "ys = xs @ ys'" ..
     show ?thesis
     proof (cases ys')
       assume "ys' = []"
-      then show ?thesis by (metis append_Nil2 parallelE prefixI snoc.prems ys)
+      then show ?thesis by (metis append_Nil2 parallelE prefixeqI snoc.prems ys)
     next
       fix c cs assume ys': "ys' = c # cs"
       then show ?thesis
-        by (metis Cons_eq_appendI eq_Nil_appendI parallelE prefixI
-          same_prefix_prefix snoc.prems ys)
+        by (metis Cons_eq_appendI eq_Nil_appendI parallelE prefixeqI
+          same_prefixeq_prefixeq snoc.prems ys)
     qed
   next
-    assume "ys < xs" then have "ys \<le> xs @ [x]" by (simp add: strict_prefix_def)
+    assume "ys < xs" then have "ys \<le> xs @ [x]" by (simp add: prefix_def)
     with snoc have False by blast
     then show ?thesis ..
   next
@@ -249,7 +249,7 @@ qed
 lemma parallel_append: "a \<parallel> b \<Longrightarrow> a @ c \<parallel> b @ d"
   apply (rule parallelI)
     apply (erule parallelE, erule conjE,
-      induct rule: not_prefix_induct, simp+)+
+      induct rule: not_prefixeq_induct, simp+)+
   done
 
 lemma parallel_appendI: "xs \<parallel> ys \<Longrightarrow> x = xs @ xs' \<Longrightarrow> y = ys @ ys' \<Longrightarrow> x \<parallel> y"
@@ -310,7 +310,7 @@ proof -
     by (induct zs) (auto intro!: postfix_appendI postfix_ConsI)
 qed
 
-lemma postfix_to_prefix [code]: "xs >>= ys \<longleftrightarrow> rev ys \<le> rev xs"
+lemma postfix_to_prefixeq [code]: "xs >>= ys \<longleftrightarrow> rev ys \<le> rev xs"
 proof
   assume "xs >>= ys"
   then obtain zs where "xs = zs @ ys" ..
@@ -355,7 +355,7 @@ lemma Cons_parallelI1: "a \<noteq> b \<Longrightarrow> a # as \<parallel> b # bs
   by auto
 
 lemma Cons_parallelI2: "\<lbrakk> a = b; as \<parallel> bs \<rbrakk> \<Longrightarrow> a # as \<parallel> b # bs"
-  by (metis Cons_prefix_Cons parallelE parallelI)
+  by (metis Cons_prefixeq_Cons parallelE parallelI)
 
 lemma not_equal_is_parallel:
   assumes neq: "xs \<noteq> ys"
