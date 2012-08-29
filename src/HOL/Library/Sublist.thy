@@ -265,6 +265,13 @@ definition
   suffixeq :: "'a list => 'a list => bool" where
   "suffixeq xs ys = (\<exists>zs. ys = zs @ xs)"
 
+definition suffix :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
+  "suffix xs ys \<equiv> \<exists>us. ys = us @ xs \<and> us \<noteq> []"
+
+lemma suffix_imp_suffixeq:
+  "suffix xs ys \<Longrightarrow> suffixeq xs ys"
+  by (auto simp: suffixeq_def suffix_def)
+
 lemma suffixeqI [intro?]: "ys = zs @ xs ==> suffixeq xs ys"
   unfolding suffixeq_def by blast
 
@@ -275,10 +282,19 @@ lemma suffixeqE [elim?]:
 
 lemma suffixeq_refl [iff]: "suffixeq xs xs"
   by (auto simp add: suffixeq_def)
+lemma suffix_trans:
+  "suffix xs ys \<Longrightarrow> suffix ys zs \<Longrightarrow> suffix xs zs"
+  by (auto simp: suffix_def)
 lemma suffixeq_trans: "\<lbrakk>suffixeq xs ys; suffixeq ys zs\<rbrakk> \<Longrightarrow> suffixeq xs zs"
   by (auto simp add: suffixeq_def)
 lemma suffixeq_antisym: "\<lbrakk>suffixeq xs ys; suffixeq ys xs\<rbrakk> \<Longrightarrow> xs = ys"
   by (auto simp add: suffixeq_def)
+
+lemma suffixeq_tl [simp]: "suffixeq (tl xs) xs"
+  by (induct xs) (auto simp: suffixeq_def)
+
+lemma suffix_tl [simp]: "xs \<noteq> [] \<Longrightarrow> suffix (tl xs) xs"
+  by (induct xs) (auto simp: suffix_def)
 
 lemma Nil_suffixeq [iff]: "suffixeq [] xs"
   by (simp add: suffixeq_def)
@@ -295,12 +311,11 @@ lemma suffixeq_appendI: "suffixeq xs ys \<Longrightarrow> suffixeq xs (zs @ ys)"
 lemma suffixeq_appendD: "suffixeq (zs @ xs) ys \<Longrightarrow> suffixeq xs ys"
   by (auto simp add: suffixeq_def)
 
-lemma suffixeq_is_subset: "suffixeq xs ys ==> set xs \<subseteq> set ys"
-proof -
-  assume "suffixeq xs ys"
-  then obtain zs where "ys = zs @ xs" ..
-  then show ?thesis by (induct zs) auto
-qed
+lemma suffix_set_subset:
+  "suffix xs ys \<Longrightarrow> set xs \<subseteq> set ys" by (auto simp: suffix_def)
+
+lemma suffixeq_set_subset:
+  "suffixeq xs ys \<Longrightarrow> set xs \<subseteq> set ys" by (auto simp: suffixeq_def)
 
 lemma suffixeq_ConsD2: "suffixeq (x#xs) (y#ys) ==> suffixeq xs ys"
 proof -
@@ -338,6 +353,27 @@ lemma suffixeq_drop: "suffixeq (drop n as) as"
 
 lemma suffixeq_take: "suffixeq xs ys \<Longrightarrow> ys = take (length ys - length xs) ys @ xs"
   by (clarsimp elim!: suffixeqE)
+
+lemma suffixeq_suffix_reflclp_conv:
+  "suffixeq = suffix\<^sup>=\<^sup>="
+proof (intro ext iffI)
+  fix xs ys :: "'a list"
+  assume "suffixeq xs ys"
+  show "suffix\<^sup>=\<^sup>= xs ys"
+  proof
+    assume "xs \<noteq> ys"
+    with `suffixeq xs ys` show "suffix xs ys" by (auto simp: suffixeq_def suffix_def)
+  qed
+next
+  fix xs ys :: "'a list"
+  assume "suffix\<^sup>=\<^sup>= xs ys"
+  thus "suffixeq xs ys"
+  proof
+    assume "suffix xs ys" thus "suffixeq xs ys" by (rule suffix_imp_suffixeq)
+  next
+    assume "xs = ys" thus "suffixeq xs ys" by (auto simp: suffixeq_def)
+  qed
+qed
 
 lemma parallelD1: "x \<parallel> y \<Longrightarrow> \<not> x \<le> y"
   by blast
@@ -378,6 +414,14 @@ next
     then show ?thesis by (rule Cons_parallelI1)
   qed
 qed
+
+lemma suffix_reflclp_conv:
+  "suffix\<^sup>=\<^sup>= = suffixeq"
+  by (intro ext) (auto simp: suffixeq_def suffix_def)
+
+lemma suffix_lists:
+  "suffix xs ys \<Longrightarrow> ys \<in> lists A \<Longrightarrow> xs \<in> lists A"
+  unfolding suffix_def by auto
 
 
 subsection {* Embedding on lists *}
@@ -426,5 +470,15 @@ next
     and "P x v" and "emb P (xs @ ys) vs" by (auto dest: emb_ConsD)
   with Cons show ?case by (metis append_Cons append_assoc emb_Cons2 emb_append2)
 qed
+
+lemma emb_suffix:
+  assumes "emb P xs ys" and "suffix ys zs"
+  shows "emb P xs zs"
+  using assms(2) and emb_append2 [OF assms(1)] by (auto simp: suffix_def)
+
+lemma emb_suffixeq:
+  assumes "emb P xs ys" and "suffixeq ys zs"
+  shows "emb P xs zs"
+  using assms and emb_suffix unfolding suffixeq_suffix_reflclp_conv by auto
 
 end
