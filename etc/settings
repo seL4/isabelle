@@ -8,49 +8,6 @@
 #   * DO NOT COPY this file into your ~/.isabelle directory!
 
 ###
-### ML compiler settings (ESSENTIAL!)
-###
-
-# ML_HOME specifies the location of the actual compiler binaries.  Do
-# not invent new ML system names unless you know what you are doing.
-# Only one of the sections below should be activated.
-
-# Poly/ML default (automated settings)
-ML_PLATFORM="$ISABELLE_PLATFORM"
-ML_HOME="$(choosefrom \
-  "$ISABELLE_HOME/contrib/polyml/$ML_PLATFORM" \
-  "$ISABELLE_HOME/../polyml/$ML_PLATFORM" \
-  "/usr/local/polyml/$ML_PLATFORM" \
-  "/usr/share/polyml/$ML_PLATFORM" \
-  "/opt/polyml/$ML_PLATFORM" \
-  "")"
-ML_SYSTEM=$("$ISABELLE_HOME/lib/scripts/polyml-version")
-ML_OPTIONS="-H 200"
-ML_SOURCES="$ML_HOME/../src"
-
-# Poly/ML 32 bit (manual settings)
-#ML_SYSTEM=polyml-5.4.1
-#ML_PLATFORM="$ISABELLE_PLATFORM"
-#ML_HOME="$ISABELLE_HOME/contrib/$ML_SYSTEM/$ML_PLATFORM"
-#ML_OPTIONS="-H 500"
-#ML_SOURCES="$ML_HOME/../src"
-
-# Poly/ML 64 bit (manual settings)
-#ML_SYSTEM=polyml-5.4.1
-#ML_PLATFORM="${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM}"
-#ML_HOME="$ISABELLE_HOME/contrib/$ML_SYSTEM/$ML_PLATFORM"
-#ML_OPTIONS="-H 1000"
-#ML_SOURCES="$ML_HOME/../src"
-
-# Standard ML of New Jersey (slow!)
-#ML_SYSTEM=smlnj-110
-#ML_HOME="/usr/local/smlnj/bin"
-#ML_OPTIONS="@SMLdebug=/dev/null @SMLalloc=1024"
-#ML_PLATFORM=$(eval $("$ML_HOME/.arch-n-opsys" 2>/dev/null); echo "$HEAP_SUFFIX")
-#SMLNJ_CYGWIN_RUNTIME=1
-
-
-###
 ### JVM components (Scala or Java)
 ###
 
@@ -175,8 +132,15 @@ ISABELLE_SYMBOLS="$ISABELLE_HOME/etc/symbols:$ISABELLE_HOME_USER/etc/symbols"
 
 
 ###
-### Old-style settings for some external tools
+### Misc old-style settings
 ###
+
+# Standard ML of New Jersey (slow!)
+#ML_SYSTEM=smlnj-110
+#ML_HOME="/usr/local/smlnj/bin"
+#ML_OPTIONS="@SMLdebug=/dev/null @SMLalloc=1024"
+#ML_PLATFORM=$(eval $("$ML_HOME/.arch-n-opsys" 2>/dev/null); echo "$HEAP_SUFFIX")
+#SMLNJ_CYGWIN_RUNTIME=1
 
 ## Set HOME only for tools you have installed!
 

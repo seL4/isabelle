@@ -97,6 +97,10 @@ necessarily printing visible text.
 
 *** System ***
 
+* The ML system is configured as regular component, and no longer
+picked up from some surrounding directory.  Potential INCOMPATIBILITY
+for home-made configurations.
+
 * The "isabelle logo" tool allows to specify EPS or PDF format; the
 latter is preferred now.  Minor INCOMPATIBILITY.
 

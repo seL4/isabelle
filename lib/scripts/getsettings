@@ -59,21 +59,6 @@ ISABELLE_ID=""
 unset ENV
 unset BASH_ENV
 
-#support easy settings
-function choosefrom ()
-{
-  local RESULT=""
-  local FILE=""
-
-  for FILE in "$@"
-  do
-    [ -z "$RESULT" -a -e "$FILE" ] && RESULT="$FILE"
-  done
-
-  [ -z "$RESULT" ] && RESULT="$FILE"
-  echo "$RESULT"
-}
-
 #shared library convenience
 function librarypath () {
   for X in "$@"
