@@ -356,8 +356,6 @@ class Session(val thy_load: Thy_Load)
           if (rc == 0) phase = Session.Inactive
           else phase = Session.Failed
 
-        case _ if output.is_stdout =>
-
         case _ => bad_output(output)
       }
     }
@@ -409,9 +407,9 @@ class Session(val thy_load: Thy_Load)
               all_messages.event(input)
 
             case output: Isabelle_Process.Output =>
-              handle_output(output)
-              if (output.is_syslog) syslog_messages.event(output)
               if (output.is_stdout || output.is_stderr) raw_output_messages.event(output)
+              else handle_output(output)
+              if (output.is_syslog) syslog_messages.event(output)
               all_messages.event(output)
           }
 
