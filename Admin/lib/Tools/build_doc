@@ -71,7 +71,7 @@ OUTPUT="$ISABELLE_TMP_PREFIX$$"
 mkdir -p "$OUTPUT" || fail "Bad directory: \"$OUTPUT\""
 
 RC=0
-for FORMAT in dvi pdf
+for FORMAT in false dvi pdf
 do
   if [ "$RC" = 0 ]; then
     echo "Document format: $FORMAT"
