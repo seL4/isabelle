@@ -2,7 +2,7 @@
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 *)
 
-header {* List prefixes and postfixes *}
+header {* List prefixes, suffixes, and embedding*}
 
 theory Sublist
 imports List Main
@@ -259,60 +259,60 @@ lemma parallel_commute: "a \<parallel> b \<longleftrightarrow> b \<parallel> a"
   unfolding parallel_def by auto
 
 
-subsection {* Postfix order on lists *}
+subsection {* Suffix order on lists *}
 
 definition
-  postfix :: "'a list => 'a list => bool"  ("(_/ >>= _)" [51, 50] 50) where
-  "(xs >>= ys) = (\<exists>zs. xs = zs @ ys)"
+  suffixeq :: "'a list => 'a list => bool" where
+  "suffixeq xs ys = (\<exists>zs. xs = zs @ ys)"
 
-lemma postfixI [intro?]: "xs = zs @ ys ==> xs >>= ys"
-  unfolding postfix_def by blast
+lemma suffixeqI [intro?]: "xs = zs @ ys ==> suffixeq xs ys"
+  unfolding suffixeq_def by blast
 
-lemma postfixE [elim?]:
-  assumes "xs >>= ys"
+lemma suffixeqE [elim?]:
+  assumes "suffixeq xs ys"
   obtains zs where "xs = zs @ ys"
-  using assms unfolding postfix_def by blast
+  using assms unfolding suffixeq_def by blast
 
-lemma postfix_refl [iff]: "xs >>= xs"
-  by (auto simp add: postfix_def)
-lemma postfix_trans: "\<lbrakk>xs >>= ys; ys >>= zs\<rbrakk> \<Longrightarrow> xs >>= zs"
-  by (auto simp add: postfix_def)
-lemma postfix_antisym: "\<lbrakk>xs >>= ys; ys >>= xs\<rbrakk> \<Longrightarrow> xs = ys"
-  by (auto simp add: postfix_def)
+lemma suffixeq_refl [iff]: "suffixeq xs xs"
+  by (auto simp add: suffixeq_def)
+lemma suffixeq_trans: "\<lbrakk>suffixeq xs ys; suffixeq ys zs\<rbrakk> \<Longrightarrow> suffixeq xs zs"
+  by (auto simp add: suffixeq_def)
+lemma suffixeq_antisym: "\<lbrakk>suffixeq xs ys; suffixeq ys xs\<rbrakk> \<Longrightarrow> xs = ys"
+  by (auto simp add: suffixeq_def)
 
-lemma Nil_postfix [iff]: "xs >>= []"
-  by (simp add: postfix_def)
-lemma postfix_Nil [simp]: "([] >>= xs) = (xs = [])"
-  by (auto simp add: postfix_def)
+lemma Nil_suffixeq [iff]: "suffixeq xs []"
+  by (simp add: suffixeq_def)
+lemma suffixeq_Nil [simp]: "(suffixeq [] xs) = (xs = [])"
+  by (auto simp add: suffixeq_def)
 
-lemma postfix_ConsI: "xs >>= ys \<Longrightarrow> x#xs >>= ys"
-  by (auto simp add: postfix_def)
-lemma postfix_ConsD: "xs >>= y#ys \<Longrightarrow> xs >>= ys"
-  by (auto simp add: postfix_def)
+lemma suffixeq_ConsI: "suffixeq xs ys \<Longrightarrow> suffixeq (x#xs) ys"
+  by (auto simp add: suffixeq_def)
+lemma suffixeq_ConsD: "suffixeq xs (y#ys) \<Longrightarrow> suffixeq xs ys"
+  by (auto simp add: suffixeq_def)
 
-lemma postfix_appendI: "xs >>= ys \<Longrightarrow> zs @ xs >>= ys"
-  by (auto simp add: postfix_def)
-lemma postfix_appendD: "xs >>= zs @ ys \<Longrightarrow> xs >>= ys"
-  by (auto simp add: postfix_def)
+lemma suffixeq_appendI: "suffixeq xs ys \<Longrightarrow> suffixeq (zs @ xs) ys"
+  by (auto simp add: suffixeq_def)
+lemma suffixeq_appendD: "suffixeq xs (zs @ ys) \<Longrightarrow> suffixeq xs ys"
+  by (auto simp add: suffixeq_def)
 
-lemma postfix_is_subset: "xs >>= ys ==> set ys \<subseteq> set xs"
+lemma suffixeq_is_subset: "suffixeq xs ys ==> set ys \<subseteq> set xs"
 proof -
-  assume "xs >>= ys"
+  assume "suffixeq xs ys"
   then obtain zs where "xs = zs @ ys" ..
   then show ?thesis by (induct zs) auto
 qed
 
-lemma postfix_ConsD2: "x#xs >>= y#ys ==> xs >>= ys"
+lemma suffixeq_ConsD2: "suffixeq (x#xs) (y#ys) ==> suffixeq xs ys"
 proof -
-  assume "x#xs >>= y#ys"
+  assume "suffixeq (x#xs) (y#ys)"
   then obtain zs where "x#xs = zs @ y#ys" ..
   then show ?thesis
-    by (induct zs) (auto intro!: postfix_appendI postfix_ConsI)
+    by (induct zs) (auto intro!: suffixeq_appendI suffixeq_ConsI)
 qed
 
-lemma postfix_to_prefixeq [code]: "xs >>= ys \<longleftrightarrow> rev ys \<le> rev xs"
+lemma suffixeq_to_prefixeq [code]: "suffixeq xs ys \<longleftrightarrow> rev ys \<le> rev xs"
 proof
-  assume "xs >>= ys"
+  assume "suffixeq xs ys"
   then obtain zs where "xs = zs @ ys" ..
   then have "rev xs = rev ys @ rev zs" by simp
   then show "rev ys <= rev xs" ..
@@ -321,23 +321,23 @@ next
   then obtain zs where "rev xs = rev ys @ zs" ..
   then have "rev (rev xs) = rev zs @ rev (rev ys)" by simp
   then have "xs = rev zs @ ys" by simp
-  then show "xs >>= ys" ..
+  then show "suffixeq xs ys" ..
 qed
 
-lemma distinct_postfix: "distinct xs \<Longrightarrow> xs >>= ys \<Longrightarrow> distinct ys"
-  by (clarsimp elim!: postfixE)
+lemma distinct_suffixeq: "distinct xs \<Longrightarrow> suffixeq xs ys \<Longrightarrow> distinct ys"
+  by (clarsimp elim!: suffixeqE)
 
-lemma postfix_map: "xs >>= ys \<Longrightarrow> map f xs >>= map f ys"
-  by (auto elim!: postfixE intro: postfixI)
+lemma suffixeq_map: "suffixeq xs ys \<Longrightarrow> suffixeq (map f xs) (map f ys)"
+  by (auto elim!: suffixeqE intro: suffixeqI)
 
-lemma postfix_drop: "as >>= drop n as"
-  unfolding postfix_def
+lemma suffixeq_drop: "suffixeq as (drop n as)"
+  unfolding suffixeq_def
   apply (rule exI [where x = "take n as"])
   apply simp
   done
 
-lemma postfix_take: "xs >>= ys \<Longrightarrow> xs = take (length xs - length ys) xs @ ys"
-  by (clarsimp elim!: postfixE)
+lemma suffixeq_take: "suffixeq xs ys \<Longrightarrow> xs = take (length xs - length ys) xs @ ys"
+  by (clarsimp elim!: suffixeqE)
 
 lemma parallelD1: "x \<parallel> y \<Longrightarrow> \<not> x \<le> y"
   by blast
