@@ -167,46 +167,46 @@ fun function_cmd a b c int = gen_function int Specification.read_spec "_::type" 
 fun prepare_termination_proof prep_term raw_term_opt lthy =
   let
     val term_opt = Option.map (prep_term lthy) raw_term_opt
-    val info = the (case term_opt of
-                      SOME t => (import_function_data t lthy
-                        handle Option.Option =>
-                          error ("Not a function: " ^ quote (Syntax.string_of_term lthy t)))
-                    | NONE => (import_last_function lthy handle Option.Option => error "Not a function"))
+    val info =
+      the (case term_opt of
+             SOME t => (import_function_data t lthy
+               handle Option.Option =>
+                 error ("Not a function: " ^ quote (Syntax.string_of_term lthy t)))
+           | NONE => (import_last_function lthy handle Option.Option => error "Not a function"))
 
-      val { termination, fs, R, add_simps, case_names, psimps,
-        pinducts, defname, ...} = info
-      val domT = domain_type (fastype_of R)
-      val goal = HOLogic.mk_Trueprop
-                   (HOLogic.mk_all ("x", domT, mk_acc domT R $ Free ("x", domT)))
-      fun afterqed [[totality]] lthy =
-        let
-          val totality = Thm.close_derivation totality
-          val remove_domain_condition =
-            full_simplify (HOL_basic_ss addsimps [totality, @{thm True_implies_equals}])
-          val tsimps = map remove_domain_condition psimps
-          val tinduct = map remove_domain_condition pinducts
+    val { termination, fs, R, add_simps, case_names, psimps,
+      pinducts, defname, ...} = info
+    val domT = domain_type (fastype_of R)
+    val goal = HOLogic.mk_Trueprop (HOLogic.mk_all ("x", domT, mk_acc domT R $ Free ("x", domT)))
+    fun afterqed [[totality]] lthy =
+      let
+        val totality = Thm.close_derivation totality
+        val remove_domain_condition =
+          full_simplify (HOL_basic_ss addsimps [totality, @{thm True_implies_equals}])
+        val tsimps = map remove_domain_condition psimps
+        val tinduct = map remove_domain_condition pinducts
 
-          fun qualify n = Binding.name n
-            |> Binding.qualify true defname
-        in
-          lthy
-          |> add_simps I "simps" I simp_attribs tsimps
-          ||>> Local_Theory.note
-             ((qualify "induct",
-               [Attrib.internal (K (Rule_Cases.case_names case_names))]),
-              tinduct)
-          |-> (fn (simps, (_, inducts)) => fn lthy =>
-            let val info' = { is_partial=false, defname=defname, add_simps=add_simps,
-              case_names=case_names, fs=fs, R=R, psimps=psimps, pinducts=pinducts,
-              simps=SOME simps, inducts=SOME inducts, termination=termination }
-            in
-              (info',
-               lthy 
-               |> Local_Theory.declaration {syntax = false, pervasive = false}
-                 (add_function_data o transform_function_data info')
-               |> Spec_Rules.add Spec_Rules.Equational (fs, tsimps))
-            end)
-        end
+        fun qualify n = Binding.name n
+          |> Binding.qualify true defname
+      in
+        lthy
+        |> add_simps I "simps" I simp_attribs tsimps
+        ||>> Local_Theory.note
+           ((qualify "induct",
+             [Attrib.internal (K (Rule_Cases.case_names case_names))]),
+            tinduct)
+        |-> (fn (simps, (_, inducts)) => fn lthy =>
+          let val info' = { is_partial=false, defname=defname, add_simps=add_simps,
+            case_names=case_names, fs=fs, R=R, psimps=psimps, pinducts=pinducts,
+            simps=SOME simps, inducts=SOME inducts, termination=termination }
+          in
+            (info',
+             lthy 
+             |> Local_Theory.declaration {syntax = false, pervasive = false}
+               (add_function_data o transform_function_data info')
+             |> Spec_Rules.add Spec_Rules.Equational (fs, tsimps))
+          end)
+      end
   in
     (goal, afterqed, termination)
   end
