@@ -210,7 +210,7 @@ fun gen_def prep (raw_var, raw_spec) int lthy =
             val y = Variable.check_name b;
             val _ = x = y orelse
               error ("Head of definition " ^ quote x ^ " differs from declaration " ^ quote y ^
-                Position.str_of (Binding.pos_of b));
+                Position.here (Binding.pos_of b));
           in (b, mx) end);
     val name = Thm.def_binding_optional b raw_name;
     val ((lhs, (_, raw_th)), lthy2) = lthy
@@ -248,7 +248,7 @@ fun gen_abbrev prep mode (raw_var, raw_prop) int lthy =
             val y = Variable.check_name b;
             val _ = x = y orelse
               error ("Head of abbreviation " ^ quote x ^ " differs from declaration " ^ quote y ^
-                Position.str_of (Binding.pos_of b));
+                Position.here (Binding.pos_of b));
           in (b, mx) end);
     val lthy' = lthy
       |> Proof_Context.set_syntax_mode mode    (* FIXME ?!? *)

@@ -48,7 +48,7 @@ fun if_context NONE _ _ = []
 fun exn_messages exn_position e =
   let
     fun raised exn name msgs =
-      let val pos = Position.str_of (exn_position exn) in
+      let val pos = Position.here (exn_position exn) in
         (case msgs of
           [] => "exception " ^ name ^ " raised" ^ pos
         | [msg] => "exception " ^ name ^ " raised" ^ pos ^ ": " ^ msg

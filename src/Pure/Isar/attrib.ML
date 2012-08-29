@@ -129,7 +129,7 @@ fun attribute_generic context =
     fun attr src =
       let val ((name, _), pos) = Args.dest_src src in
         (case Symtab.lookup tab name of
-          NONE => error ("Unknown attribute: " ^ quote name ^ Position.str_of pos)
+          NONE => error ("Unknown attribute: " ^ quote name ^ Position.here pos)
         | SOME (att, _) =>
             (Context_Position.report_generic context pos (Name_Space.markup space name); att src))
       end;
@@ -254,7 +254,7 @@ fun apply_att src (context, th) =
 
 fun err msg src =
   let val ((name, _), pos) = Args.dest_src src
-  in error (msg ^ " " ^ quote name ^ Position.str_of pos) end;
+  in error (msg ^ " " ^ quote name ^ Position.here pos) end;
 
 fun eval src ((th, dyn), (decls, context)) =
   (case (apply_att src (context, th), dyn) of

@@ -41,7 +41,7 @@ sig
   val reports_text: report_text list -> unit
   val reports: report list -> unit
   val store_reports: report list Unsynchronized.ref -> T list -> ('a -> Markup.T list) -> 'a -> unit
-  val str_of: T -> string
+  val here: T -> string
   type range = T * T
   val no_range: range
   val set_range: range -> T
@@ -180,9 +180,9 @@ fun store_reports _ [] _ _ = ()
       in Unsynchronized.change r (fold (fn p => fold (fn m => cons (p, m)) ms) ps) end;
 
 
-(* str_of *)
+(* here: inlined formal markup *)
 
-fun str_of pos =
+fun here pos =
   let
     val props = properties_of pos;
     val s =

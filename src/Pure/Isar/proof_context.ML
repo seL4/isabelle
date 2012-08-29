@@ -361,7 +361,7 @@ fun read_class ctxt text =
     val tsig = tsig_of ctxt;
     val (syms, pos) = Syntax.read_token text;
     val c = Type.cert_class tsig (Type.intern_class tsig (Symbol_Pos.content syms))
-      handle TYPE (msg, _, _) => error (msg ^ Position.str_of pos);
+      handle TYPE (msg, _, _) => error (msg ^ Position.here pos);
     val _ = Context_Position.report ctxt pos (Name_Space.markup (Type.class_space tsig) c);
   in c end;
 
@@ -425,7 +425,7 @@ val token_content = Syntax.read_token #>> Symbol_Pos.content;
 
 fun prep_const_proper ctxt strict (c, pos) =
   let
-    fun err msg = error (msg ^ Position.str_of pos);
+    fun err msg = error (msg ^ Position.here pos);
     val consts = consts_of ctxt;
     val t as Const (d, _) =
       (case Variable.lookup_const ctxt c of
@@ -452,7 +452,7 @@ fun read_type_name ctxt strict text =
       let
         val d = intern_type ctxt c;
         val decl = Type.the_decl tsig (d, pos);
-        fun err () = error ("Bad type name: " ^ quote d ^ Position.str_of pos);
+        fun err () = error ("Bad type name: " ^ quote d ^ Position.here pos);
         val args =
           (case decl of
             Type.LogicalType n => n
@@ -844,7 +844,7 @@ fun retrieve_thms pick ctxt (Facts.Fact s) =
         val prop =
           Syntax.read_prop (ctxt |> set_mode mode_default |> allow_dummies) s
           |> singleton (Variable.polymorphic ctxt);
-        fun err msg = error (msg ^ Position.str_of pos ^ ":\n" ^ Syntax.string_of_term ctxt prop);
+        fun err msg = error (msg ^ Position.here pos ^ ":\n" ^ Syntax.string_of_term ctxt prop);
 
         val (prop', _) = Term.replace_dummy_patterns prop (Variable.maxidx_of ctxt + 1);
         fun prove_fact th =

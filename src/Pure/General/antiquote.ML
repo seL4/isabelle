@@ -49,7 +49,7 @@ fun reports_of text =
 (* check_nesting *)
 
 fun err_unbalanced pos =
-  error ("Unbalanced antiquotation block parentheses" ^ Position.str_of pos);
+  error ("Unbalanced antiquotation block parentheses" ^ Position.here pos);
 
 fun check_nesting antiqs =
   let
@@ -101,6 +101,6 @@ end;
 fun read (syms, pos) =
   (case Scan.read Symbol_Pos.stopper (Scan.repeat scan_text) syms of
     SOME xs => (Position.reports_text (reports_of (K []) xs); check_nesting xs; xs)
-  | NONE => error ("Malformed quotation/antiquotation source" ^ Position.str_of pos));
+  | NONE => error ("Malformed quotation/antiquotation source" ^ Position.here pos));
 
 end;

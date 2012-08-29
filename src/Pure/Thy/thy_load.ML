@@ -109,7 +109,7 @@ fun resolve_files master_dir span =
     Thy_Syntax.Span (Thy_Syntax.Command (cmd, pos), toks) =>
       if Keyword.is_theory_load cmd then
         (case find_file toks of
-          NONE => error ("Bad file argument of command " ^ quote cmd ^ Position.str_of pos)
+          NONE => error ("Bad file argument of command " ^ quote cmd ^ Position.here pos)
         | SOME (i, path) =>
             let
               val toks' = toks |> map_index (fn (j, tok) =>
@@ -135,7 +135,7 @@ fun check_thy dir thy_name =
     val {name = (name, pos), imports, uses, keywords} =
       Thy_Header.read (Path.position master_file) text;
     val _ = thy_name <> name andalso
-      error ("Bad file name " ^ Path.print path ^ " for theory " ^ quote name ^ Position.str_of pos);
+      error ("Bad file name " ^ Path.print path ^ " for theory " ^ quote name ^ Position.here pos);
   in
    {master = (master_file, SHA1.digest text), text = text, theory_pos = pos,
     imports = imports, uses = uses, keywords = keywords}

@@ -140,7 +140,7 @@ fun read_source pos source =
   in
     (case res of
       SOME (h, _) => h
-    | NONE => error ("Unexpected end of input" ^ Position.str_of pos))
+    | NONE => error ("Unexpected end of input" ^ Position.here pos))
   end;
 
 fun read pos str = read_source pos (token_source pos str);

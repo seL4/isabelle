@@ -18,7 +18,7 @@ struct
 fun !!! scan =
   let
     fun get_pos [] = " (end-of-input)"
-      | get_pos (tok :: _) = Position.str_of (ML_Lex.pos_of tok);
+      | get_pos (tok :: _) = Position.here (ML_Lex.pos_of tok);
 
     fun err (toks, NONE) = (fn () => "SML syntax error" ^ get_pos toks)
       | err (toks, SOME msg) = (fn () => "SML syntax error" ^ get_pos toks ^ ": " ^ msg ());
@@ -67,7 +67,7 @@ val fix_ints =
 val global_context: use_context =
  {tune_source = fix_ints,
   name_space = ML_Name_Space.global,
-  str_of_pos = Position.str_of oo Position.line_file,
+  str_of_pos = Position.here oo Position.line_file,
   print = writeln,
   error = error};
 

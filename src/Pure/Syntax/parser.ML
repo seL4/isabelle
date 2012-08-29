@@ -702,7 +702,7 @@ fun produce prods tags chains stateset i indata prev_token =
     [] =>
       let
         val toks = if Lexicon.is_eof prev_token then indata else prev_token :: indata;
-        val pos = Position.str_of (Lexicon.pos_of_token prev_token);
+        val pos = Position.here (Lexicon.pos_of_token prev_token);
       in
         if null toks then error ("Inner syntax error: unexpected end of input" ^ pos)
         else error (Pretty.string_of (Pretty.block

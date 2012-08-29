@@ -1226,7 +1226,7 @@ text {* \medskip That position can be also printed in a message as
 
 ML_command {*
   writeln
-    ("Look here" ^ Position.str_of (Binding.pos_of @{binding here}))
+    ("Look here" ^ Position.here (Binding.pos_of @{binding here}))
 *}
 
 text {* This illustrates a key virtue of formalized bindings as

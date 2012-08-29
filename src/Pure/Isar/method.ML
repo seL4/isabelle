@@ -340,7 +340,7 @@ fun method_i thy =
     fun meth src =
       let val ((name, _), pos) = Args.dest_src src in
         (case Symtab.lookup tab name of
-          NONE => error ("Unknown proof method: " ^ quote name ^ Position.str_of pos)
+          NONE => error ("Unknown proof method: " ^ quote name ^ Position.here pos)
         | SOME (mth, _) => (Position.report pos (Name_Space.markup space name); mth src))
       end;
   in meth end;

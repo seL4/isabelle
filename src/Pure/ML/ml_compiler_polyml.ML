@@ -114,7 +114,7 @@ fun eval verbose pos toks =
         val pos = position_of loc;
         val txt =
           (Position.is_reported pos ? Markup.markup Isabelle_Markup.no_report)
-            ((if hard then "Error" else "Warning") ^ Position.str_of pos ^ ":\n") ^
+            ((if hard then "Error" else "Warning") ^ Position.here pos ^ ":\n") ^
           Pretty.string_of (Pretty.from_ML (pretty_ml msg)) ^
           Position.reported_text pos Isabelle_Markup.report "";
       in if hard then err txt else warn txt end;

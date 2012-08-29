@@ -189,8 +189,8 @@ fun proof_position_of state =
   | _ => raise UNDEF);
 
 fun end_theory _ (State (NONE, SOME (Theory (Context.Theory thy, _)))) = thy
-  | end_theory pos (State (NONE, _)) = error ("Bad theory" ^ Position.str_of pos)
-  | end_theory pos (State (SOME _, _)) = error ("Unfinished theory" ^ Position.str_of pos);
+  | end_theory pos (State (NONE, _)) = error ("Bad theory" ^ Position.here pos)
+  | end_theory pos (State (SOME _, _)) = error ("Unfinished theory" ^ Position.here pos);
 
 
 (* print state *)
@@ -359,7 +359,7 @@ val empty = make_transition ("", Position.none, false, false, false, []);
 fun print_of (Transition {print, ...}) = print;
 fun name_of (Transition {name, ...}) = name;
 fun pos_of (Transition {pos, ...}) = pos;
-fun str_of tr = quote (name_of tr) ^ Position.str_of (pos_of tr);
+fun str_of tr = quote (name_of tr) ^ Position.here (pos_of tr);
 
 fun command_msg msg tr = msg ^ "command " ^ str_of tr;
 fun at_command tr = command_msg "At " tr;

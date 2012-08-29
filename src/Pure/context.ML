@@ -135,7 +135,7 @@ fun invoke name f k x =
   (case Datatab.lookup (Synchronized.value kinds) k of
     SOME kind =>
       if ! timing andalso name <> "" then
-        Timing.cond_timeit true ("Theory_Data." ^ name ^ Position.str_of (#pos kind))
+        Timing.cond_timeit true ("Theory_Data." ^ name ^ Position.here (#pos kind))
           (fn () => f kind x)
       else f kind x
   | NONE => raise Fail "Invalid theory data identifier");

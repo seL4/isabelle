@@ -85,7 +85,7 @@ val name_space: ML_Name_Space.T =
 val local_context: use_context =
  {tune_source = ML_Parse.fix_ints,
   name_space = name_space,
-  str_of_pos = Position.str_of oo Position.line_file,
+  str_of_pos = Position.here oo Position.line_file,
   print = writeln,
   error = error};
 

@@ -109,7 +109,7 @@ fun tokenize syms =
       (toks, []) => toks
     | (_, ss) =>
         error ("Lexical error at: " ^ Symbol_Pos.content ss ^
-          Position.str_of (#1 (Symbol_Pos.range ss))))
+          Position.here (#1 (Symbol_Pos.range ss))))
   end;
 
 val stopper =
@@ -152,8 +152,8 @@ fun add_entries ((fromsym, fromabbr, tosym, toabbr), ((sym, pos), uni, oabbr)) =
         Symtab.update_new (abbr, uni) fromabbr,
         Inttab.update (uni, sym) tosym,
         Inttab.update (uni, abbr) toabbr))
-  handle Symtab.DUP sym => error ("Duplicate at" ^ Position.str_of pos)
-       | Inttab.DUP sym => error ("Duplicate code at" ^ Position.str_of pos);
+  handle Symtab.DUP sym => error ("Duplicate at" ^ Position.here pos)
+       | Inttab.DUP sym => error ("Duplicate code at" ^ Position.here pos);
 
 in
 

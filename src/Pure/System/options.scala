@@ -77,7 +77,7 @@ object Options
           case bad => error(bad.toString)
         }
       try { (options /: ops) { case (opts, op) => op(opts) } }
-      catch { case ERROR(msg) => error(msg + Position.str_of(file.position)) }
+      catch { case ERROR(msg) => error(msg + Position.here(file.position)) }
     }
   }
 

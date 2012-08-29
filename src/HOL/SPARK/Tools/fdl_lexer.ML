@@ -56,7 +56,7 @@ fun unparse (Token (Traceability, s, _)) = "For " ^ s ^ ":"
 
 fun position_of (Token (_, _, pos)) = pos;
 
-val pos_of = Position.str_of o position_of;
+val pos_of = Position.here o position_of;
 
 fun is_eof (Token (EOF, _, _)) = true
   | is_eof _ = false;
@@ -192,7 +192,7 @@ fun beginning n cs =
 fun !!! text scan =
   let
     fun get_pos [] = " (end-of-input)"
-      | get_pos ((_, pos) :: _) = Position.str_of pos;
+      | get_pos ((_, pos) :: _) = Position.here pos;
 
     fun err (syms, msg) = fn () =>
       text ^ get_pos syms ^ " at " ^ beginning 10 (map symbol syms) ^

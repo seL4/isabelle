@@ -82,7 +82,7 @@ fun warn tok =
     Token (_, (Keyword, ":>")) =>
       warning ("Opaque signature matching (:>) fails to work with ML pretty printing --\n\
         \prefer non-opaque matching (:) possibly with abstype" ^
-        Position.str_of (pos_of tok))
+        Position.here (pos_of tok))
   | _ => ());
 
 fun check_content_of tok =
@@ -307,7 +307,7 @@ fun read pos txt =
         |> tap Antiquote.check_nesting
         |> tap (List.app (fn Antiquote.Text tok => (check_content_of tok; warn tok) | _ => ())))
       handle ERROR msg =>
-        cat_error msg ("The error(s) above occurred in ML source" ^ Position.str_of pos);
+        cat_error msg ("The error(s) above occurred in ML source" ^ Position.here pos);
   in input @ termination end;
 
 end;

@@ -298,7 +298,7 @@ fun tokenize lex xids syms =
         (Scan.finite Symbol_Pos.stopper (Scan.repeat scan_token)) syms of
       (toks, []) => toks
     | (_, ss) => error ("Inner lexical error at: " ^ Symbol_Pos.content ss ^
-        Position.str_of (#1 (Symbol_Pos.range ss))))
+        Position.here (#1 (Symbol_Pos.range ss))))
   end;
 
 

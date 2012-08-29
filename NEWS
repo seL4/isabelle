@@ -88,6 +88,13 @@ document/root.tex.
 document/IsaMakefile.  Minor INCOMPATIBILITY.
 
 
+*** ML ***
+
+* Renamed Position.str_of to Position.here to emphasize that this is a
+formal device to inline positions into message text, but not
+necessarily printing visible text.
+
+
 *** System ***
 
 * The "isabelle logo" tool allows to specify EPS or PDF format; the

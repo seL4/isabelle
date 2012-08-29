@@ -100,7 +100,7 @@ fun select (Fact _) ths = ths
         val n = length ths;
         fun err msg =
           error (msg ^ " for " ^ quote name ^ " (length " ^ string_of_int n ^ ")" ^
-            Position.str_of pos);
+            Position.here pos);
         fun sel i =
           if i < 1 orelse i > n then err ("Bad subscript " ^ string_of_int i)
           else nth ths (i - 1);

@@ -142,7 +142,7 @@ fun parsetree_to_ast ctxt raw trf parsetree =
           let
             val pos = Lexicon.pos_of_token tok;
             val c = Proof_Context.read_class ctxt (Lexicon.str_of_token tok)
-              handle ERROR msg => error (msg ^ Position.str_of pos);
+              handle ERROR msg => error (msg ^ Position.here pos);
             val _ = report pos (markup_class ctxt) c;
           in [Ast.Constant (Lexicon.mark_class c)] end
       | asts_of (Parser.Node ("_type_name", [Parser.Tip tok])) =
@@ -150,7 +150,7 @@ fun parsetree_to_ast ctxt raw trf parsetree =
             val pos = Lexicon.pos_of_token tok;
             val Type (c, _) =
               Proof_Context.read_type_name_proper ctxt false (Lexicon.str_of_token tok)
-                handle ERROR msg => error (msg ^ Position.str_of pos);
+                handle ERROR msg => error (msg ^ Position.here pos);
             val _ = report pos (markup_type ctxt) c;
           in [Ast.Constant (Lexicon.mark_type c)] end
       | asts_of (Parser.Node ("_position", [pt as Parser.Tip tok])) =
@@ -268,7 +268,7 @@ fun report_result ctxt pos ambig_msgs results =
   | ([(reports, x)], _) => (Context_Position.reports ctxt reports; x)
   | _ =>
       if null ambig_msgs then
-        error ("Parse error: ambiguous syntax" ^ Position.str_of pos)
+        error ("Parse error: ambiguous syntax" ^ Position.here pos)
       else error (cat_lines ambig_msgs));
 
 
@@ -294,7 +294,7 @@ fun parse_asts ctxt raw root (syms, pos) =
       if len <= 1 then []
       else
         [cat_lines
-          (("Ambiguous input" ^ Position.str_of (Position.reset_range pos) ^
+          (("Ambiguous input" ^ Position.here (Position.reset_range pos) ^
             "\nproduces " ^ string_of_int len ^ " parse trees" ^
             (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
             map (Pretty.string_of o Parser.pretty_parsetree) (take limit pts))];
@@ -379,7 +379,7 @@ fun parse_term is_prop ctxt =
               Context_Position.if_visible ctxt warning
                 (cat_lines (ambig_msgs @
                   ["Fortunately, only one parse tree is type correct" ^
-                  Position.str_of (Position.reset_range pos) ^
+                  Position.here (Position.reset_range pos) ^
                   ",\nbut you may still want to disambiguate your grammar or your input."]))
              else (); report_result ctxt pos [] results')
           else
@@ -687,7 +687,7 @@ fun const_ast_tr intern ctxt [Ast.Variable c] =
   | const_ast_tr intern ctxt [Ast.Appl [Ast.Constant "_constrain", x, T as Ast.Variable pos]] =
       (Ast.Appl [Ast.Constant "_constrain", const_ast_tr intern ctxt [x], T]
         handle ERROR msg =>
-          error (msg ^ Position.str_of (the_default Position.none (Term_Position.decode pos))))
+          error (msg ^ Position.here (the_default Position.none (Term_Position.decode pos))))
   | const_ast_tr _ _ asts = raise Ast.AST ("const_ast_tr", asts);
 
 

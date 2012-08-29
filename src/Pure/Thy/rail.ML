@@ -35,7 +35,7 @@ val print_kind =
 
 fun print (Token ((pos, _), (k, x))) =
   (if k = EOF then print_kind k else print_kind k ^ " " ^ quote x) ^
-  Position.str_of pos;
+  Position.here pos;
 
 fun print_keyword x = print_kind Keyword ^ " " ^ quote x;
 
@@ -92,7 +92,7 @@ fun !!! scan =
     val prefix = "Rail syntax error";
 
     fun get_pos [] = " (end-of-input)"
-      | get_pos (tok :: _) = Position.str_of (pos_of tok);
+      | get_pos (tok :: _) = Position.here (pos_of tok);
 
     fun err (toks, NONE) = (fn () => prefix ^ get_pos toks)
       | err (toks, SOME msg) =

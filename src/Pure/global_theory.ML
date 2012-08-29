@@ -103,7 +103,7 @@ fun get_fact context thy xthmref =
     val _ = Theory.check_thy thy;
   in
     (case res of
-      NONE => error ("Unknown fact " ^ quote name ^ Position.str_of pos)
+      NONE => error ("Unknown fact " ^ quote name ^ Position.here pos)
     | SOME (static, ths) =>
         (Context_Position.report_generic context pos (Name_Space.markup (Facts.space_of facts) name);
          if static then ()

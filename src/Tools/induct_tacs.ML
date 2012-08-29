@@ -23,7 +23,7 @@ fun check_type ctxt (t, pos) =
     val u = singleton (Variable.polymorphic ctxt) t;
     val U = Term.fastype_of u;
     val _ = Term.is_TVar U andalso
-      error ("Cannot determine type of " ^ Syntax.string_of_term ctxt u ^ Position.str_of pos);
+      error ("Cannot determine type of " ^ Syntax.string_of_term ctxt u ^ Position.here pos);
   in (u, U) end;
 
 fun gen_case_tac ctxt0 s opt_rule i st =
@@ -75,17 +75,17 @@ fun gen_induct_tac ctxt0 varss opt_rules i st =
         val pos = Syntax.read_token_pos name;
         val (x, _) = Term.dest_Free t handle TERM _ =>
           error ("Induction argument not a variable: " ^
-            Syntax.string_of_term ctxt t ^ Position.str_of pos);
+            Syntax.string_of_term ctxt t ^ Position.here pos);
         val eq_x = fn Free (y, _) => x = y | _ => false;
         val _ =
           if Term.exists_subterm eq_x concl then ()
           else
             error ("No such variable in subgoal: " ^
-              Syntax.string_of_term ctxt t ^ Position.str_of pos);
+              Syntax.string_of_term ctxt t ^ Position.here pos);
         val _ =
           if (exists o Term.exists_subterm) eq_x prems then
             warning ("Induction variable occurs also among premises: " ^
-              Syntax.string_of_term ctxt t ^ Position.str_of pos)
+              Syntax.string_of_term ctxt t ^ Position.here pos)
           else ();
       in #1 (check_type ctxt (t, pos)) end;
 

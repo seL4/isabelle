@@ -67,7 +67,7 @@ val stopper =
 fun !!! text scan =
   let
     fun get_pos [] = " (end-of-input)"
-      | get_pos ((_, pos) :: _) = Position.str_of pos;
+      | get_pos ((_, pos) :: _) = Position.here pos;
 
     fun err (syms, msg) = fn () =>
       text () ^ get_pos syms ^

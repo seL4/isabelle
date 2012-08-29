@@ -48,7 +48,7 @@ infix 0 MRSL
 fun error_msg bind str =
   let
     val name = Binding.name_of bind
-    val pos = Position.str_of (Binding.pos_of bind)
+    val pos = Position.here (Binding.pos_of bind)
   in
     error ("Head of quotient_definition " ^
       quote str ^ " differs from declaration " ^ name ^ pos)

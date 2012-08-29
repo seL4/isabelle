@@ -139,7 +139,7 @@ fun type_name kind check = Args.context -- Scan.lift (Parse.position Args.name_s
       val res =
         (case try check (c, decl) of
           SOME res => res
-        | NONE => error ("Not a " ^ kind ^ ": " ^ quote c ^ Position.str_of pos));
+        | NONE => error ("Not a " ^ kind ^ ": " ^ quote c ^ Position.here pos));
     in ML_Syntax.print_string res end);
 
 val _ = Context.>> (Context.map_theory
@@ -160,7 +160,7 @@ fun const_name check = Args.context -- Scan.lift (Parse.position Args.name_sourc
     let
       val Const (c, _) = Proof_Context.read_const_proper ctxt false s;
       val res = check (Proof_Context.consts_of ctxt, c)
-        handle TYPE (msg, _, _) => error (msg ^ Position.str_of pos);
+        handle TYPE (msg, _, _) => error (msg ^ Position.here pos);
     in ML_Syntax.print_string res end);
 
 val _ = Context.>> (Context.map_theory
@@ -175,7 +175,7 @@ val _ = Context.>> (Context.map_theory
     (Args.context -- Scan.lift (Parse.position Args.name) >> (fn (ctxt, (c, pos)) =>
       if is_some (Syntax.lookup_const (Proof_Context.syn_of ctxt) c)
       then ML_Syntax.print_string c
-      else error ("Unknown syntax const: " ^ quote c ^ Position.str_of pos))) #>
+      else error ("Unknown syntax const: " ^ quote c ^ Position.here pos))) #>
 
   inline (Binding.name "const")
     (Args.context -- Scan.lift Args.name_source -- Scan.optional
@@ -197,14 +197,14 @@ val _ = Context.>> (Context.map_theory
 fun with_keyword f =
   Args.theory -- Scan.lift (Parse.position Parse.string) >> (fn (thy, (name, pos)) =>
     (f ((name, Thy_Header.the_keyword thy name), pos)
-      handle ERROR msg => error (msg ^ Position.str_of pos)));
+      handle ERROR msg => error (msg ^ Position.here pos)));
 
 val _ = Context.>> (Context.map_theory
  (value (Binding.name "keyword")
     (with_keyword
       (fn ((name, NONE), _) => "Parse.$$$ " ^ ML_Syntax.print_string name
         | ((name, SOME _), pos) =>
-            error ("Expected minor keyword " ^ quote name ^ Position.str_of pos))) #>
+            error ("Expected minor keyword " ^ quote name ^ Position.here pos))) #>
   value (Binding.name "command_spec")
     (with_keyword
       (fn ((name, SOME kind), pos) =>
@@ -217,7 +217,7 @@ val _ = Context.>> (Context.map_theory
                   (ML_Syntax.print_list ML_Syntax.print_string)))
               ML_Syntax.print_position) ((name, kind), pos))
         | ((name, NONE), pos) =>
-            error ("Expected command keyword " ^ quote name ^ Position.str_of pos)))));
+            error ("Expected command keyword " ^ quote name ^ Position.here pos)))));
 
 end;
 

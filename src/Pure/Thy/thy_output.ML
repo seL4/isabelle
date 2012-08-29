@@ -110,7 +110,7 @@ fun command src state ctxt =
   in
     f src state ctxt handle ERROR msg =>
       cat_error msg ("The error(s) above occurred in document antiquotation: " ^
-        quote name ^ Position.str_of pos)
+        quote name ^ Position.here pos)
   end;
 
 fun option ((xname, pos), s) ctxt =
@@ -198,7 +198,7 @@ fun eval_antiquote lex state (txt, pos) =
     val ants = Antiquote.read (Symbol_Pos.explode (txt, pos), pos);
   in
     if Toplevel.is_toplevel state andalso not (forall Antiquote.is_text ants) then
-      error ("Unknown context -- cannot expand document antiquotations" ^ Position.str_of pos)
+      error ("Unknown context -- cannot expand document antiquotations" ^ Position.here pos)
     else implode (map expand ants)
   end;
 
@@ -309,7 +309,7 @@ fun present_span lex default_tags span state state'
       else
         (case drop (~ nesting - 1) tags of
           tgs :: tgss => (tgs, tgss)
-        | [] => err_bad_nesting (Position.str_of cmd_pos));
+        | [] => err_bad_nesting (Position.here cmd_pos));
 
     val buffer' =
       buffer
@@ -535,7 +535,7 @@ fun pretty_prf full ctxt = Proof_Syntax.pretty_proof_of ctxt full;
 fun pretty_theory ctxt (name, pos) =
   (case find_first (fn thy => Context.theory_name thy = name)
       (Theory.nodes_of (Proof_Context.theory_of ctxt)) of
-    NONE => error ("No ancestor theory " ^ quote name ^ Position.str_of pos)
+    NONE => error ("No ancestor theory " ^ quote name ^ Position.here pos)
   | SOME thy => (Position.report pos (Theory.get_markup thy); Pretty.str name));
 
 

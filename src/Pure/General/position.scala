@@ -71,7 +71,9 @@ object Position
       yield (if (purge_pos.isDefinedAt(x)) (purge_pos(x), y) else (x, y))
 
 
-  def str_of(pos: T): String =
+  /* here: inlined formal markup */
+
+  def here(pos: T): String =
     (Line.unapply(pos), File.unapply(pos)) match {
       case (Some(i), None) => " (line " + i.toString + ")"
       case (Some(i), Some(name)) => " (line " + i.toString + " of " + quote(name) + ")"

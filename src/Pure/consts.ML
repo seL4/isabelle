@@ -146,7 +146,7 @@ fun extern_syntax ctxt consts s =
 fun read_const consts (raw_c, pos) =
   let
     val c = intern consts raw_c;
-    val T = type_scheme consts c handle TYPE (msg, _, _) => error (msg ^ Position.str_of pos);
+    val T = type_scheme consts c handle TYPE (msg, _, _) => error (msg ^ Position.here pos);
   in Const (c, T) end;
 
 

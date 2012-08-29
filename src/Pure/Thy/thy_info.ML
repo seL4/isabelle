@@ -274,7 +274,7 @@ and require_thy initiators dir (str, require_pos) tasks =
           val (current, deps, theory_pos, imports, uses, keywords) = check_deps dir' name
             handle ERROR msg => cat_error msg
               (loader_msg "the error(s) above occurred while examining theory" [name] ^
-                Position.str_of require_pos ^ required_by "\n" initiators);
+                Position.here require_pos ^ required_by "\n" initiators);
 
           val parents = map (base_name o #1) imports;
           val (parents_current, tasks') =

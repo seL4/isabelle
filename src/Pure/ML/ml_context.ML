@@ -150,7 +150,7 @@ fun eval_antiquotes (ants, pos) opt_context =
         let
           val ctxt =
             (case opt_ctxt of
-              NONE => error ("No context -- cannot expand ML antiquotations" ^ Position.str_of pos)
+              NONE => error ("No context -- cannot expand ML antiquotations" ^ Position.here pos)
             | SOME ctxt => Context.proof_of ctxt);
 
           val lex = #1 (Keyword.get_lexicons ());

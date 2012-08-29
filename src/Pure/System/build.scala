@@ -73,7 +73,7 @@ object Build
     catch {
       case ERROR(msg) =>
         error(msg + "\nThe error(s) above occurred in session entry " +
-          quote(entry.name) + Position.str_of(entry.pos))
+          quote(entry.name) + Position.here(entry.pos))
     }
 
 
@@ -87,7 +87,7 @@ object Build
         (Graph.string[Session_Info] /: infos) {
           case (graph, (name, info)) =>
             if (graph.defined(name))
-              error("Duplicate session " + quote(name) + Position.str_of(info.pos))
+              error("Duplicate session " + quote(name) + Position.here(info.pos))
             else graph.new_node(name, info)
         }
       val graph2 =
@@ -98,7 +98,7 @@ object Build
               case Some(parent) =>
                 if (!graph.defined(parent))
                   error("Bad parent session " + quote(parent) + " for " +
-                    quote(name) + Position.str_of(info.pos))
+                    quote(name) + Position.here(info.pos))
 
                 try { graph.add_edge_acyclic(parent, name) }
                 catch {
@@ -106,7 +106,7 @@ object Build
                     error(cat_lines(exn.cycles.map(cycle =>
                       "Cyclic session dependency of " +
                         cycle.map(c => quote(c.toString)).mkString(" via "))) +
-                          Position.str_of(info.pos))
+                          Position.here(info.pos))
                 }
             }
         }
@@ -374,7 +374,7 @@ object Build
             catch {
               case ERROR(msg) =>
                 error(msg + "\nThe error(s) above occurred in session " +
-                  quote(name) + Position.str_of(info.pos))
+                  quote(name) + Position.here(info.pos))
             }
           val errors = parent_errors ::: thy_deps.deps.map(d => d._2.errors).flatten
 

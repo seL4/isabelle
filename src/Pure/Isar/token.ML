@@ -130,7 +130,7 @@ val str_of_kind =
 fun position_of (Token ((_, (pos, _)), _, _)) = pos;
 fun end_position_of (Token ((_, (_, pos)), _, _)) = pos;
 
-val pos_of = Position.str_of o position_of;
+val pos_of = Position.here o position_of;
 
 
 (* control tokens *)
@@ -244,7 +244,7 @@ fun get_files (Token (_, _, Value (SOME (Files files)))) = SOME files
 
 fun put_files files (Token (x, y, Slot)) = Token (x, y, Value (SOME (Files files)))
   | put_files _ tok =
-      raise Fail ("Cannot put inlined files here" ^ Position.str_of (position_of tok));
+      raise Fail ("Cannot put inlined files here" ^ Position.here (position_of tok));
 
 
 (* access values *)
@@ -402,7 +402,7 @@ end;
 
 fun read_antiq lex scan (syms, pos) =
   let
-    fun err msg = cat_error msg ("Malformed antiquotation" ^ Position.str_of pos ^ ":\n" ^
+    fun err msg = cat_error msg ("Malformed antiquotation" ^ Position.here pos ^ ":\n" ^
       "@{" ^ Symbol_Pos.content syms ^ "}");
 
     val res =

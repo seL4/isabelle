@@ -258,7 +258,7 @@ fun lookup_type (TSig {types = (_, types), ...}) = Symtab.lookup types;
 
 fun the_decl tsig (c, pos) =
   (case lookup_type tsig c of
-    NONE => error (undecl_type c ^ Position.str_of pos)
+    NONE => error (undecl_type c ^ Position.here pos)
   | SOME decl => decl);
 
 
