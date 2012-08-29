@@ -379,4 +379,52 @@ next
   qed
 qed
 
+
+subsection {* Embedding on lists *}
+
+inductive
+  emb :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool"
+  for P :: "('a \<Rightarrow> 'a \<Rightarrow> bool)"
+where
+  emb_Nil [intro, simp]: "emb P [] ys"
+| emb_Cons [intro] : "emb P xs ys \<Longrightarrow> emb P xs (y#ys)"
+| emb_Cons2 [intro]: "P x y \<Longrightarrow> emb P xs ys \<Longrightarrow> emb P (x#xs) (y#ys)"
+
+lemma emb_Nil2 [simp]:
+  assumes "emb P xs []" shows "xs = []"
+  using assms by (cases rule: emb.cases) auto
+
+lemma emb_append2 [intro]:
+  "emb P xs ys \<Longrightarrow> emb P xs (zs @ ys)"
+  by (induct zs) auto
+
+lemma emb_prefix [intro]:
+  assumes "emb P xs ys" shows "emb P xs (ys @ zs)"
+  using assms
+  by (induct arbitrary: zs) auto
+
+lemma emb_ConsD:
+  assumes "emb P (x#xs) ys"
+  shows "\<exists>us v vs. ys = us @ v # vs \<and> P x v \<and> emb P xs vs"
+using assms
+proof (induct x\<equiv>"x#xs" y\<equiv>"ys" arbitrary: x xs ys)
+  case emb_Cons thus ?case by (metis append_Cons)
+next
+  case (emb_Cons2 x y xs ys)
+  thus ?case by (cases xs) (auto, blast+)
+qed
+
+lemma emb_appendD:
+  assumes "emb P (xs @ ys) zs"
+  shows "\<exists>us vs. zs = us @ vs \<and> emb P xs us \<and> emb P ys vs"
+using assms
+proof (induction xs arbitrary: ys zs)
+  case Nil thus ?case by auto
+next
+  case (Cons x xs)
+  then obtain us v vs where "zs = us @ v # vs"
+    and "P x v" and "emb P (xs @ ys) vs" by (auto dest: emb_ConsD)
+  with Cons show ?case by (metis append_Cons append_assoc emb_Cons2 emb_append2)
+qed
+
 end
