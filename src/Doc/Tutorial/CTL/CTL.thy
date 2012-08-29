@@ -399,7 +399,7 @@ done
 definition eusem :: "state set \<Rightarrow> state set \<Rightarrow> state set" where
 "eusem A B \<equiv> {s. \<exists>p\<in>Paths s. \<exists>j. p j \<in> B \<and> (\<forall>i < j. p i \<in> A)}"
 
-axioms
+axiomatization where
 M_total: "\<exists>t. (s,t) \<in> M"
 
 consts apath :: "state \<Rightarrow> (nat \<Rightarrow> state)"

@@ -132,8 +132,8 @@ As an application, we prove a property of the following
 function:
 *};
 
-consts f :: "nat \<Rightarrow> nat";
-axioms f_ax: "f(f(n)) < f(Suc(n))";
+axiomatization f :: "nat \<Rightarrow> nat"
+  where f_ax: "f(f(n)) < f(Suc(n))"
 
 text{*
 \begin{warn}

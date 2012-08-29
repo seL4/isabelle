@@ -41,7 +41,7 @@ together with its properties: declare the type and state its properties as
 axioms. Example:
 *}
 
-axioms
+axiomatization where
 just_one: "\<exists>x::my_new_type. \<forall>y. x = y"
 
 text{*\noindent
