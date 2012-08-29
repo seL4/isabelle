@@ -17,6 +17,7 @@ function usage()
   echo "  Options are:"
   echo "    -a           select all doc sessions"
   echo "    -j INT       maximum number of parallel jobs (default 1)"
+  echo "    -p           approximative build of pdf documents"
   echo
   echo "  Build Isabelle documentation from (doc) sessions."
   echo
@@ -39,8 +40,9 @@ function check_number()
 
 ALL_DOCS="false"
 JOBS=""
+PDF_ONLY=""
 
-while getopts "aj:" OPT
+while getopts "aj:p" OPT
 do
   case "$OPT" in
     a)
@@ -49,6 +51,9 @@ do
     j)
       check_number "$OPTARG"
       JOBS="-j $OPTARG"
+      ;;
+    p)
+      PDF_ONLY="true"
       ;;
     \?)
       usage
@@ -70,8 +75,14 @@ fi
 OUTPUT="$ISABELLE_TMP_PREFIX$$"
 mkdir -p "$OUTPUT" || fail "Bad directory: \"$OUTPUT\""
 
+if [ "$PDF_ONLY" = true ]; then
+  FORMATS="pdf"
+else
+  FORMATS="false dvi pdf"
+fi
+
 RC=0
-for FORMAT in false dvi pdf
+for FORMAT in $FORMATS
 do
   if [ "$RC" = 0 ]; then
     echo "Document format: $FORMAT"
