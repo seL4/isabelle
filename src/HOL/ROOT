@@ -38,7 +38,7 @@ session "HOL-Library" in Library = HOL +
   description {* Classical Higher-order Logic -- batteries included *}
   theories
     Library
-    List_Prefix
+    Sublist
     List_lexord
     Sublist_Order
     Product_Lattice

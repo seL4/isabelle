@@ -1,10 +1,10 @@
-(*  Title:      HOL/Library/List_Prefix.thy
+(*  Title:      HOL/Library/Sublist.thy
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 *)
 
 header {* List prefixes and postfixes *}
 
-theory List_Prefix
+theory Sublist
 imports List Main
 begin
 

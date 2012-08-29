@@ -7,7 +7,7 @@ header {* Unix file-systems \label{sec:unix-file-system} *}
 theory Unix
 imports
   Nested_Environment
-  "~~/src/HOL/Library/List_Prefix"
+  "~~/src/HOL/Library/Sublist"
 begin
 
 text {*
