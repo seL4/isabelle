@@ -272,7 +272,9 @@ val _ = hide_names @{command_spec "hide_fact"} Isar_Cmd.hide_fact "facts";
 val _ =
   Outer_Syntax.command @{command_spec "use"} "ML text from file"
     (Parse.path >> (fn name =>
-      Toplevel.generic_theory (fn gthy => Thy_Load.exec_ml (Path.explode name) gthy)));
+      Toplevel.generic_theory (fn gthy =>
+        (legacy_feature "Old 'use' command -- use 'ML_file' instead";
+         Thy_Load.exec_ml (Path.explode name) gthy))));
 
 val _ =
   Outer_Syntax.command @{command_spec "ML"} "ML text within theory or local theory"
