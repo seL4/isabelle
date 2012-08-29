@@ -198,7 +198,7 @@ chown -R "$LOGNAME" "$DISTNAME"
 chmod -R u+w "$DISTNAME"
 chmod -R g=o "$DISTNAME"
 
-echo "$DISTNAME.tar.gz"
+echo "$DISTBASE/$DISTNAME.tar.gz"
 tar -czf "$DISTNAME.tar.gz" "$DISTNAME"
 
 
