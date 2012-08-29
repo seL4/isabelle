@@ -263,14 +263,14 @@ subsection {* Suffix order on lists *}
 
 definition
   suffixeq :: "'a list => 'a list => bool" where
-  "suffixeq xs ys = (\<exists>zs. xs = zs @ ys)"
+  "suffixeq xs ys = (\<exists>zs. ys = zs @ xs)"
 
-lemma suffixeqI [intro?]: "xs = zs @ ys ==> suffixeq xs ys"
+lemma suffixeqI [intro?]: "ys = zs @ xs ==> suffixeq xs ys"
   unfolding suffixeq_def by blast
 
 lemma suffixeqE [elim?]:
   assumes "suffixeq xs ys"
-  obtains zs where "xs = zs @ ys"
+  obtains zs where "ys = zs @ xs"
   using assms unfolding suffixeq_def by blast
 
 lemma suffixeq_refl [iff]: "suffixeq xs xs"
@@ -280,63 +280,63 @@ lemma suffixeq_trans: "\<lbrakk>suffixeq xs ys; suffixeq ys zs\<rbrakk> \<Longri
 lemma suffixeq_antisym: "\<lbrakk>suffixeq xs ys; suffixeq ys xs\<rbrakk> \<Longrightarrow> xs = ys"
   by (auto simp add: suffixeq_def)
 
-lemma Nil_suffixeq [iff]: "suffixeq xs []"
+lemma Nil_suffixeq [iff]: "suffixeq [] xs"
   by (simp add: suffixeq_def)
-lemma suffixeq_Nil [simp]: "(suffixeq [] xs) = (xs = [])"
+lemma suffixeq_Nil [simp]: "(suffixeq xs []) = (xs = [])"
   by (auto simp add: suffixeq_def)
 
-lemma suffixeq_ConsI: "suffixeq xs ys \<Longrightarrow> suffixeq (x#xs) ys"
+lemma suffixeq_ConsI: "suffixeq xs ys \<Longrightarrow> suffixeq xs (y#ys)"
   by (auto simp add: suffixeq_def)
-lemma suffixeq_ConsD: "suffixeq xs (y#ys) \<Longrightarrow> suffixeq xs ys"
-  by (auto simp add: suffixeq_def)
-
-lemma suffixeq_appendI: "suffixeq xs ys \<Longrightarrow> suffixeq (zs @ xs) ys"
-  by (auto simp add: suffixeq_def)
-lemma suffixeq_appendD: "suffixeq xs (zs @ ys) \<Longrightarrow> suffixeq xs ys"
+lemma suffixeq_ConsD: "suffixeq (x#xs) ys \<Longrightarrow> suffixeq xs ys"
   by (auto simp add: suffixeq_def)
 
-lemma suffixeq_is_subset: "suffixeq xs ys ==> set ys \<subseteq> set xs"
+lemma suffixeq_appendI: "suffixeq xs ys \<Longrightarrow> suffixeq xs (zs @ ys)"
+  by (auto simp add: suffixeq_def)
+lemma suffixeq_appendD: "suffixeq (zs @ xs) ys \<Longrightarrow> suffixeq xs ys"
+  by (auto simp add: suffixeq_def)
+
+lemma suffixeq_is_subset: "suffixeq xs ys ==> set xs \<subseteq> set ys"
 proof -
   assume "suffixeq xs ys"
-  then obtain zs where "xs = zs @ ys" ..
+  then obtain zs where "ys = zs @ xs" ..
   then show ?thesis by (induct zs) auto
 qed
 
 lemma suffixeq_ConsD2: "suffixeq (x#xs) (y#ys) ==> suffixeq xs ys"
 proof -
   assume "suffixeq (x#xs) (y#ys)"
-  then obtain zs where "x#xs = zs @ y#ys" ..
+  then obtain zs where "y#ys = zs @ x#xs" ..
   then show ?thesis
     by (induct zs) (auto intro!: suffixeq_appendI suffixeq_ConsI)
 qed
 
-lemma suffixeq_to_prefixeq [code]: "suffixeq xs ys \<longleftrightarrow> rev ys \<le> rev xs"
+lemma suffixeq_to_prefixeq [code]: "suffixeq xs ys \<longleftrightarrow> rev xs \<le> rev ys"
 proof
   assume "suffixeq xs ys"
-  then obtain zs where "xs = zs @ ys" ..
-  then have "rev xs = rev ys @ rev zs" by simp
-  then show "rev ys <= rev xs" ..
+  then obtain zs where "ys = zs @ xs" ..
+  then have "rev ys = rev xs @ rev zs" by simp
+  then show "rev xs <= rev ys" ..
 next
-  assume "rev ys <= rev xs"
-  then obtain zs where "rev xs = rev ys @ zs" ..
-  then have "rev (rev xs) = rev zs @ rev (rev ys)" by simp
-  then have "xs = rev zs @ ys" by simp
+  assume "rev xs <= rev ys"
+  then obtain zs where "rev ys = rev xs @ zs" ..
+  then have "rev (rev ys) = rev zs @ rev (rev xs)" by simp
+  then have "ys = rev zs @ xs" by simp
   then show "suffixeq xs ys" ..
 qed
 
-lemma distinct_suffixeq: "distinct xs \<Longrightarrow> suffixeq xs ys \<Longrightarrow> distinct ys"
+lemma distinct_suffixeq: "distinct ys \<Longrightarrow> suffixeq xs ys \<Longrightarrow> distinct xs"
   by (clarsimp elim!: suffixeqE)
 
 lemma suffixeq_map: "suffixeq xs ys \<Longrightarrow> suffixeq (map f xs) (map f ys)"
   by (auto elim!: suffixeqE intro: suffixeqI)
 
-lemma suffixeq_drop: "suffixeq as (drop n as)"
+lemma suffixeq_drop: "suffixeq (drop n as) as"
   unfolding suffixeq_def
   apply (rule exI [where x = "take n as"])
   apply simp
   done
 
-lemma suffixeq_take: "suffixeq xs ys \<Longrightarrow> xs = take (length xs - length ys) xs @ ys"
+lemma suffixeq_take: "suffixeq xs ys \<Longrightarrow> ys = take (length ys - length xs) ys @ xs"
   by (clarsimp elim!: suffixeqE)
 
 lemma parallelD1: "x \<parallel> y \<Longrightarrow> \<not> x \<le> y"
