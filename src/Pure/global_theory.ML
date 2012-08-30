@@ -10,9 +10,6 @@ sig
   val intern_fact: theory -> xstring -> string
   val defined_fact: theory -> string -> bool
   val hide_fact: bool -> string -> theory -> theory
-  val begin_recent_proofs: theory -> theory
-  val join_recent_proofs: theory -> unit
-  val join_proofs: theory -> unit
   val get_fact: Context.generic -> theory -> Facts.ref -> thm list
   val get_thms: theory -> xstring -> thm list
   val get_thm: theory -> xstring -> thm
@@ -49,42 +46,20 @@ struct
 
 (** theory data **)
 
-type proofs = thm list * unit lazy;  (*accumulated thms, persistent join*)
-
-val empty_proofs: proofs = ([], Lazy.value ());
-
-fun add_proofs more_thms ((thms, _): proofs) =
-  let val thms' = fold cons more_thms thms
-  in (thms', Lazy.lazy (fn () => Thm.join_proofs (rev thms'))) end;
-
-fun force_proofs ((_, prfs): proofs) = Lazy.force prfs;
-
 structure Data = Theory_Data
 (
-  type T = Facts.T * (proofs * proofs);  (*facts, recent proofs, all proofs of theory node*)
-  val empty = (Facts.empty, (empty_proofs, empty_proofs));
-  fun extend (facts, _) = (facts, snd empty);
-  fun merge ((facts1, _), (facts2, _)) = (Facts.merge (facts1, facts2), snd empty);
+  type T = Facts.T;
+  val empty = Facts.empty;
+  val extend = I;
+  val merge = Facts.merge;
 );
 
-
-(* facts *)
-
-val facts_of = #1 o Data.get;
+val facts_of = Data.get;
 
 val intern_fact = Facts.intern o facts_of;
 val defined_fact = Facts.defined o facts_of;
 
-fun hide_fact fully name = Data.map (apfst (Facts.hide fully name));
-
-
-(* forked proofs *)
-
-fun register_proofs thms thy = (thms, Data.map (apsnd (pairself (add_proofs thms))) thy);
-
-val begin_recent_proofs = Data.map (apsnd (apfst (K empty_proofs)));
-val join_recent_proofs = force_proofs o #1 o #2 o Data.get;
-val join_proofs = force_proofs o #2 o #2 o Data.get;
+fun hide_fact fully name = Data.map (Facts.hide fully name);
 
 
 (** retrieve theorems **)
@@ -149,6 +124,8 @@ fun name_thmss official name fact =
 
 (* enter_thms *)
 
+fun register_proofs thms thy = (thms, Thm.register_proofs thms thy);
+
 fun enter_thms pre_name post_name app_att (b, thms) thy =
   if Binding.is_empty b
   then app_att thms thy |-> register_proofs
@@ -157,8 +134,7 @@ fun enter_thms pre_name post_name app_att (b, thms) thy =
       val name = Sign.full_name thy b;
       val (thms', thy') = app_att (pre_name name thms) thy |>> post_name name |-> register_proofs;
       val thms'' = map (Thm.transfer thy') thms';
-      val thy'' = thy'
-        |> (Data.map o apfst) (Facts.add_global (Context.Theory thy') (b, thms'') #> snd);
+      val thy'' = thy' |> Data.map (Facts.add_global (Context.Theory thy') (b, thms'') #> snd);
     in (thms'', thy'') end;
 
 
@@ -192,7 +168,7 @@ val add_thm = yield_singleton add_thms;
 (* add_thms_dynamic *)
 
 fun add_thms_dynamic (b, f) thy = thy
-  |> (Data.map o apfst) (Facts.add_dynamic (Context.Theory thy) (b, f) #> snd);
+  |> Data.map (Facts.add_dynamic (Context.Theory thy) (b, f) #> snd);
 
 
 (* note_thmss *)

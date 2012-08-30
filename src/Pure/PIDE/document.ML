@@ -357,7 +357,7 @@ fun stable_finished_theory node =
   is_some (Exn.get_res (Exn.capture (fn () =>
     fst (fst (Command.memo_result (the (get_result node))))
     |> Toplevel.end_theory Position.none
-    |> Global_Theory.join_proofs) ()));
+    |> Thm.join_all_proofs) ()));
 
 fun stable_command exec =
   (case Exn.capture Command.memo_result exec of
@@ -365,7 +365,7 @@ fun stable_command exec =
   | Exn.Res ((st, _), _) =>
       (case try Toplevel.theory_of st of
         NONE => true
-      | SOME thy => is_some (Exn.get_res (Exn.capture Global_Theory.join_recent_proofs thy))));
+      | SOME thy => is_some (Exn.get_res (Exn.capture Thm.join_recent_proofs thy))));
 
 fun make_required nodes =
   let

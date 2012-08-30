@@ -95,6 +95,10 @@ sig
   val legacy_get_kind: thm -> string
   val kind_rule: string -> thm -> thm
   val kind: string -> attribute
+  val register_proofs: thm list -> theory -> theory
+  val begin_recent_proofs: theory -> theory
+  val join_recent_proofs: theory -> unit
+  val join_all_proofs: theory -> unit
 end;
 
 structure Thm: THM =
@@ -464,6 +468,33 @@ fun legacy_get_kind thm = the_default "" (Properties.get (Thm.get_tags thm) Mark
 
 fun kind_rule k = tag_rule (Markup.kindN, k) o untag_rule Markup.kindN;
 fun kind k = rule_attribute (K (k <> "" ? kind_rule k));
+
+
+(* forked proofs within the context *)
+
+type proofs = thm list * unit lazy;  (*accumulated thms, persistent join*)
+
+val empty_proofs: proofs = ([], Lazy.value ());
+
+fun add_proofs more_thms ((thms, _): proofs) =
+  let val thms' = fold cons more_thms thms
+  in (thms', Lazy.lazy (fn () => Thm.join_proofs (rev thms'))) end;
+
+fun force_proofs ((_, prfs): proofs) = Lazy.force prfs;
+
+structure Proofs = Theory_Data
+(
+  type T = proofs * proofs;  (*recent proofs, all proofs of theory node*)
+  val empty = (empty_proofs, empty_proofs);
+  fun extend _ = empty;
+  fun merge _ = empty;
+);
+
+val register_proofs = Proofs.map o pairself o add_proofs;
+val begin_recent_proofs = Proofs.map (apfst (K empty_proofs));
+
+val join_recent_proofs = force_proofs o #1 o Proofs.get;
+val join_all_proofs = force_proofs o #2 o Proofs.get;
 
 
 open Thm;

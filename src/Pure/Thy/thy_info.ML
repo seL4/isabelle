@@ -176,7 +176,7 @@ fun task_parents deps (parents: string list) = map (the o AList.lookup (op =) de
 local
 
 fun finish_thy ((thy, present, commit): result) =
-  (Global_Theory.join_proofs thy; Future.join present; commit (); thy);
+  (Thm.join_all_proofs thy; Future.join present; commit (); thy);
 
 val schedule_seq =
   Graph.schedule (fn deps => fn (_, task) =>
