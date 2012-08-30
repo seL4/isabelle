@@ -12,6 +12,8 @@ theory TreeFsetI
 imports "../Codatatype"
 begin
 
+hide_const (open) Sublist.sub
+
 definition pair_fun (infixr "\<odot>" 50) where
   "f \<odot> g \<equiv> \<lambda>x. (f x, g x)"
 
