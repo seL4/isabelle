@@ -47,6 +47,14 @@ next
   thus "xs <= zs" by (unfold less_eq_list_def) (rule sub_trans)
 qed
 
+lemmas less_eq_list_induct [consumes 1, case_names empty drop take] =
+  emb.induct [of "op =", folded less_eq_list_def]
+lemmas less_eq_list_drop = emb.emb_Cons [of "op =", folded less_eq_list_def]
+lemmas le_list_Cons2_iff [simp, code] = sub_Cons2_iff [folded less_eq_list_def]
+lemmas le_list_map = sub_map [folded less_eq_list_def]
+lemmas le_list_filter = sub_filter [folded less_eq_list_def]
+lemmas le_list_length = emb_length [of "op =", folded less_eq_list_def]
+
 lemma less_list_length: "xs < ys \<Longrightarrow> length xs < length ys"
   by (metis emb_length sub_same_length le_neq_implies_less less_list_def less_eq_list_def)
 
