@@ -426,11 +426,11 @@ val unknown_context = imperative (fn () => warning "Unknown context");
 
 val global_theory_group =
   Sign.new_group #>
-  Thm.begin_recent_proofs #> Theory.checkpoint;
+  Context.theory_map Thm.begin_proofs #> Theory.checkpoint;
 
 val local_theory_group =
   Local_Theory.new_group #>
-  Local_Theory.raw_theory (Thm.begin_recent_proofs #> Theory.checkpoint);
+  Local_Theory.raw_theory (Context.theory_map Thm.begin_proofs #> Theory.checkpoint);
 
 fun generic_theory f = transaction (fn _ =>
   (fn Theory (gthy, _) => Theory (f gthy, NONE)

@@ -111,6 +111,9 @@ sig
     (Thm.binding * (term * term list) list) list -> bool -> state -> state
   val show_cmd: Method.text option -> (thm list list -> state -> state) ->
     (Attrib.binding * (string * string list) list) list -> bool -> state -> state
+  val begin_proofs: state -> state
+  val register_proofs: thm list -> state -> state
+  val join_recent_proofs: state -> unit
   val schematic_goal: state -> bool
   val local_future_proof: (state -> ('a * state) future) -> state -> 'a future * state
   val global_future_proof: (state -> ('a * Proof.context) future) -> state -> 'a future * context
@@ -168,8 +171,11 @@ val init_context =
 fun init ctxt =
   State (Stack.init (make_node (init_context ctxt, NONE, Forward, NONE)));
 
-fun current (State st) = Stack.top st |> (fn Node node => node);
-fun map_current f (State st) = State (Stack.map_top (map_node f) st);
+fun top (State st) = Stack.top st |> (fn Node node => node);
+fun bottom (State st) = Stack.bottom st |> (fn Node node => node);
+
+fun map_top f (State st) = State (Stack.map_top (map_node f) st);
+fun map_bottom f (State st) = State (Stack.map_bottom (map_node f) st);
 fun map_all f (State st) = State (Stack.map_all (map_node f) st);
 
 
@@ -195,17 +201,20 @@ fun assert_bottom b state =
 
 (* context *)
 
-val context_of = #context o current;
+val context_of = #context o top;
 val theory_of = Proof_Context.theory_of o context_of;
 
 fun map_node_context f =
   map_node (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
 
 fun map_context f =
-  map_current (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
+  map_top (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
 
 fun map_context_result f state =
   f (context_of state) ||> (fn ctxt => map_context (K ctxt) state);
+
+fun map_context_bottom f =
+  map_bottom (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
 
 fun map_contexts f = map_all (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
 
@@ -218,7 +227,7 @@ val put_thms = map_context oo Proof_Context.put_thms;
 
 (* facts *)
 
-val get_facts = #facts o current;
+val get_facts = #facts o top;
 
 fun the_facts state =
   (case get_facts state of SOME facts => facts
@@ -229,7 +238,7 @@ fun the_fact state =
   | _ => error "Single theorem expected");
 
 fun put_facts facts =
-  map_current (fn (ctxt, _, mode, goal) => (ctxt, facts, mode, goal)) #>
+  map_top (fn (ctxt, _, mode, goal) => (ctxt, facts, mode, goal)) #>
   put_thms true (Auto_Bind.thisN, facts);
 
 val set_facts = put_facts o SOME;
@@ -249,8 +258,8 @@ fun export_facts inner outer =
 
 (* mode *)
 
-val get_mode = #mode o current;
-fun put_mode mode = map_current (fn (ctxt, facts, _, goal) => (ctxt, facts, mode, goal));
+val get_mode = #mode o top;
+fun put_mode mode = map_top (fn (ctxt, facts, _, goal) => (ctxt, facts, mode, goal));
 
 val mode_name = (fn Forward => "state" | Chain => "chain" | Backward => "prove");
 
@@ -274,7 +283,7 @@ val enter_backward = put_mode Backward;
 (* current goal *)
 
 fun current_goal state =
-  (case current state of
+  (case top state of
     {context, goal = SOME (Goal goal), ...} => (context, goal)
   | _ => error "No current goal");
 
@@ -285,7 +294,7 @@ fun assert_current_goal g state =
     else state
   end;
 
-fun put_goal goal = map_current (fn (ctxt, using, mode, _) => (ctxt, using, mode, goal));
+fun put_goal goal = map_top (fn (ctxt, using, mode, _) => (ctxt, using, mode, goal));
 
 val set_goal = put_goal o SOME;
 val reset_goal = put_goal NONE;
@@ -338,7 +347,7 @@ fun pretty_facts _ _ NONE = []
 
 fun pretty_state nr state =
   let
-    val {context = ctxt, facts, mode, goal = _} = current state;
+    val {context = ctxt, facts, mode, goal = _} = top state;
     val verbose = Config.get ctxt Proof_Context.verbose;
 
     fun levels_up 0 = ""
@@ -1050,6 +1059,14 @@ end;
 
 
 (** future proofs **)
+
+(* forked proofs *)
+
+val begin_proofs = map_context_bottom (Context.proof_map Thm.begin_proofs);
+val register_proofs = map_context_bottom o Context.proof_map o Thm.register_proofs;
+
+val join_recent_proofs = Thm.join_local_proofs o #context o bottom;
+
 
 (* relevant proof states *)
 
