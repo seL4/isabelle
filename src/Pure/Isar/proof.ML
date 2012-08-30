@@ -21,6 +21,9 @@ sig
   val propagate_ml_env: state -> state
   val bind_terms: (indexname * term option) list -> state -> state
   val put_thms: bool -> string * thm list option -> state -> state
+  val begin_proofs: state -> state
+  val register_proofs: thm list -> state -> state
+  val join_recent_proofs: state -> unit
   val the_facts: state -> thm list
   val the_fact: state -> thm
   val set_facts: thm list -> state -> state
@@ -111,9 +114,6 @@ sig
     (Thm.binding * (term * term list) list) list -> bool -> state -> state
   val show_cmd: Method.text option -> (thm list list -> state -> state) ->
     (Attrib.binding * (string * string list) list) list -> bool -> state -> state
-  val begin_proofs: state -> state
-  val register_proofs: thm list -> state -> state
-  val join_recent_proofs: state -> unit
   val schematic_goal: state -> bool
   val local_future_proof: (state -> ('a * state) future) -> state -> 'a future * state
   val global_future_proof: (state -> ('a * Proof.context) future) -> state -> 'a future * context
@@ -223,6 +223,14 @@ fun propagate_ml_env state = map_contexts
 
 val bind_terms = map_context o Proof_Context.bind_terms;
 val put_thms = map_context oo Proof_Context.put_thms;
+
+
+(* forked proofs *)
+
+val begin_proofs = map_context_bottom (Context.proof_map Thm.begin_proofs);
+val register_proofs = map_context_bottom o Context.proof_map o Thm.register_proofs;
+
+val join_recent_proofs = Thm.join_local_proofs o #context o bottom;
 
 
 (* facts *)
@@ -931,6 +939,7 @@ fun generic_qed after_ctxt state =
       |> burrow (Proof_Context.export goal_ctxt outer_ctxt);
   in
     outer_state
+    |> register_proofs (flat results)
     |> map_context (after_ctxt props)
     |> pair (after_qed, results)
   end;
@@ -1059,14 +1068,6 @@ end;
 
 
 (** future proofs **)
-
-(* forked proofs *)
-
-val begin_proofs = map_context_bottom (Context.proof_map Thm.begin_proofs);
-val register_proofs = map_context_bottom o Context.proof_map o Thm.register_proofs;
-
-val join_recent_proofs = Thm.join_local_proofs o #context o bottom;
-
 
 (* relevant proof states *)
 
