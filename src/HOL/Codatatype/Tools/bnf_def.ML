@@ -556,10 +556,10 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
           else map (fn i => fn () => Binding.suffix_name ("_" ^ mk_witN i) b) (1 upto nwits);
       in map2 pair bs wit_rhss end;
 
-    fun maybe_define needed_for_fp (b, rhs) lthy =
+    fun maybe_define needed_for_extra_facts (b, rhs) lthy =
       let
         val inline =
-          (not needed_for_fp orelse fact_policy = Derive_Some_Facts) andalso
+          (not needed_for_extra_facts orelse fact_policy = Derive_Some_Facts) andalso
           (case const_policy of
             Dont_Inline => false
           | Hardly_Inline => Term.is_Free rhs orelse Term.is_Const rhs
