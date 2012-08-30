@@ -131,9 +131,10 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
     val discs = map (mk_disc_or_sel As) discs0;
     val selss = map (map (mk_disc_or_sel As)) selss0;
 
+    fun mk_imp_p Q = Logic.list_implies (Q, HOLogic.mk_Trueprop p);
+
     val goal_exhaust =
       let
-        fun mk_imp_p Q = Logic.list_implies (Q, HOLogic.mk_Trueprop p);
         fun mk_prem xctr xs =
           fold_rev Logic.all xs (mk_imp_p [HOLogic.mk_Trueprop (HOLogic.mk_eq (v, xctr))]);
       in
@@ -175,7 +176,7 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
           let
             val goal =
               HOLogic.mk_Trueprop (HOLogic.mk_all (fst v', snd v',
-                   Library.foldr1 HOLogic.mk_disj exist_xs_v_eq_ctrs));
+                Library.foldr1 HOLogic.mk_disj exist_xs_v_eq_ctrs));
           in
             Skip_Proof.prove lthy [] [] goal (fn _ => mk_nchotomy_tac n exhaust_thm)
           end;
@@ -222,8 +223,8 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
           let
             fun get_disc_thm k k' = nth disc_thms ((k' - 1) * n + (k - 1));
             fun mk_goal ((_, disc), (_, disc')) =
-              Logic.mk_implies (HOLogic.mk_Trueprop (disc $ v),
-                HOLogic.mk_Trueprop (HOLogic.mk_not (disc' $ v)));
+              Logic.all v (Logic.mk_implies (HOLogic.mk_Trueprop (disc $ v),
+                HOLogic.mk_Trueprop (HOLogic.mk_not (disc' $ v))));
             fun prove tac goal = Skip_Proof.prove lthy [] [] goal (K tac);
 
             val bundles = ks ~~ ms ~~ disc_defs ~~ discs;
@@ -242,7 +243,13 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
             half_thms @ other_half_thms
           end;
 
-        val disc_exhaust_thms = [];
+        val disc_exhaust_thm =
+          let
+            fun mk_prem disc = mk_imp_p [HOLogic.mk_Trueprop (disc $ v)];
+            val goal = fold Logic.all [p, v] (mk_imp_p (map mk_prem discs));
+          in
+            Skip_Proof.prove lthy [] [] goal (fn _ => mk_disc_exhaust_tac n exhaust_thm discI_thms)
+          end;
 
         val ctr_sel_thms = [];
 
@@ -269,7 +276,7 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
         |> note ctr_selsN ctr_sel_thms
         |> note discsN disc_thms
         |> note disc_disjointN disc_disjoint_thms
-        |> note disc_exhaustN disc_exhaust_thms
+        |> note disc_exhaustN [disc_exhaust_thm]
         |> note distinctN (half_distinct_thms @ other_half_distinct_thms)
         |> note exhaustN [exhaust_thm]
         |> note injectN inject_thms

@@ -1162,7 +1162,7 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
     val surj_unf_thms = map (fn thm => thm RS @{thm bij_is_surj}) bij_unf_thms;
     val unf_nchotomy_thms = map (fn thm => thm RS @{thm surjD}) surj_unf_thms;
     val unf_inject_thms = map (fn thm => thm RS @{thm inj_eq}) inj_unf_thms;
-    val unf_exhaust_thms = map (fn thm => thm RS @{thm exE}) unf_nchotomy_thms;
+    val unf_exhaust_thms = map (fn thm => thm RS exE) unf_nchotomy_thms;
 
     val bij_fld_thms =
       map2 (fn thm1 => fn thm2 => @{thm o_bij} OF [thm1, thm2]) unf_o_fld_thms fld_o_unf_thms;
@@ -1170,7 +1170,7 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
     val surj_fld_thms = map (fn thm => thm RS @{thm bij_is_surj}) bij_fld_thms;
     val fld_nchotomy_thms = map (fn thm => thm RS @{thm surjD}) surj_fld_thms;
     val fld_inject_thms = map (fn thm => thm RS @{thm inj_eq}) inj_fld_thms;
-    val fld_exhaust_thms = map (fn thm => thm RS @{thm exE}) fld_nchotomy_thms;
+    val fld_exhaust_thms = map (fn thm => thm RS exE) fld_nchotomy_thms;
 
     val timer = time (timer "unf definitions & thms");
 

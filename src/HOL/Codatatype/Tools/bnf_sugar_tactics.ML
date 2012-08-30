@@ -7,14 +7,16 @@ Tactics for sugar on top of a BNF.
 
 signature BNF_SUGAR_TACTICS =
 sig
-  val mk_nchotomy_tac: int -> thm -> tactic
+  val mk_disc_exhaust_tac: int -> thm -> thm list -> tactic
   val mk_half_disc_disjoint_tac: int -> thm -> thm -> tactic
+  val mk_nchotomy_tac: int -> thm -> tactic
   val mk_other_half_disc_disjoint_tac: thm -> tactic
 end;
 
 structure BNF_Sugar_Tactics : BNF_SUGAR_TACTICS =
 struct
 
+open BNF_Tactics
 open BNF_FP_Util
 
 fun mk_nchotomy_tac n exhaust =
@@ -29,5 +31,10 @@ fun mk_half_disc_disjoint_tac m disc_def disc'_thm =
 
 fun mk_other_half_disc_disjoint_tac half_thm =
   (etac @{thm contrapos_pn} THEN' etac half_thm) 1;
+
+fun mk_disc_exhaust_tac n exhaust discIs =
+  (rtac exhaust THEN'
+   EVERY' (map2 (fn k => fn discI =>
+     dtac discI THEN' select_prem_tac n (etac @{thm meta_mp}) k THEN' atac) (1 upto n) discIs)) 1;
 
 end;
