@@ -1137,19 +1137,21 @@ end;
 
 local
 
-fun future_terminal_proof proof1 proof2 meths int state =
-  if int orelse is_relevant state orelse not (Goal.local_future_enabled ())
-  then proof1 meths state
-  else snd (proof2 (fn state' =>
-    Goal.fork_name "Proof.future_terminal_proof" (fn () => ((), proof1 meths state'))) state);
+fun future_terminal_proof n proof1 proof2 meths int state =
+  if (Goal.future_enabled_level 4 orelse Goal.future_enabled_nested n andalso not int)
+    andalso not (is_relevant state)
+  then
+    snd (proof2 (fn state' =>
+      Goal.fork_name "Proof.future_terminal_proof" (fn () => ((), proof1 meths state'))) state)
+  else proof1 meths state;
 
 in
 
 fun local_future_terminal_proof x =
-  future_terminal_proof local_terminal_proof local_future_proof x;
+  future_terminal_proof 2 local_terminal_proof local_future_proof x;
 
 fun global_future_terminal_proof x =
-  future_terminal_proof global_terminal_proof global_future_proof x;
+  future_terminal_proof 3 global_terminal_proof global_future_proof x;
 
 end;
 

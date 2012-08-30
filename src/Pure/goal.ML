@@ -26,8 +26,9 @@ sig
   val norm_result: thm -> thm
   val fork_name: string -> (unit -> 'a) -> 'a future
   val fork: (unit -> 'a) -> 'a future
+  val future_enabled_level: int -> bool
   val future_enabled: unit -> bool
-  val local_future_enabled: unit -> bool
+  val future_enabled_nested: int -> bool
   val future_result: Proof.context -> thm future -> term -> thm
   val prove_internal: cterm list -> cterm -> (thm list -> tactic) -> thm
   val prove_multi: Proof.context -> string list -> term list -> term list ->
@@ -155,12 +156,14 @@ fun fork e = fork_name "Goal.fork" e;
 val parallel_proofs = Unsynchronized.ref 1;
 val parallel_proofs_threshold = Unsynchronized.ref 50;
 
-fun future_enabled () =
-  Multithreading.enabled () andalso ! parallel_proofs >= 1 andalso
+fun future_enabled_level n =
+  Multithreading.enabled () andalso ! parallel_proofs >= n andalso
   is_some (Future.worker_task ());
 
-fun local_future_enabled () =
-  future_enabled () andalso ! parallel_proofs >= 2 andalso
+fun future_enabled () = future_enabled_level 1;
+
+fun future_enabled_nested n =
+  future_enabled_level n andalso
   Synchronized.value forked_proofs <
     ! parallel_proofs_threshold * Multithreading.max_threads_value ();
 
