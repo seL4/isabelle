@@ -290,23 +290,28 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
             |> singleton (Proof_Context.export names_lthy lthy)
           end;
 
-        val case_cong_thm =
+        val (case_cong_thm, weak_case_cong_thm) =
           let
             fun mk_prem xctr xs f g =
               fold_rev Logic.all xs (Logic.mk_implies (mk_Trueprop_eq (v, xctr),
                 mk_Trueprop_eq (f, g)));
-            fun mk_caseof_term fs v = Term.list_comb (caseofB, fs) $ v;
+            fun mk_caseof_term fs = Term.list_comb (caseofB, fs);
+
+            val v_eq_w = mk_Trueprop_eq (v, w);
+            val caseof_fs = mk_caseof_term eta_fs;
+            val caseof_gs = mk_caseof_term eta_gs;
 
             val goal =
-              Logic.list_implies (mk_Trueprop_eq (v, w) :: map4 mk_prem xctrs xss fs gs,
-                 mk_Trueprop_eq (mk_caseof_term eta_fs v, mk_caseof_term eta_gs w));
+              Logic.list_implies (v_eq_w :: map4 mk_prem xctrs xss fs gs,
+                 mk_Trueprop_eq (caseof_fs $ v, caseof_gs $ w));
+            val goal_weak =
+              Logic.mk_implies (v_eq_w, mk_Trueprop_eq (caseof_fs $ v, caseof_fs $ w));
           in
-            Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-              mk_case_cong_tac ctxt exhaust_thm' case_thms)
-            |> singleton (Proof_Context.export names_lthy lthy)
+            (Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
+               mk_case_cong_tac ctxt exhaust_thm' case_thms),
+             Skip_Proof.prove lthy [] [] goal_weak (K (etac arg_cong 1)))
+            |> pairself (singleton (Proof_Context.export names_lthy lthy))
           end;
-
-        val weak_case_cong_thms = TrueI;
 
         val split_thms = [];
 
@@ -333,7 +338,7 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
         |> note selsN (flat sel_thmss)
         |> note splitN split_thms
         |> note split_asmN split_asm_thms
-        |> note weak_case_cong_thmsN [weak_case_cong_thms]
+        |> note weak_case_cong_thmsN [weak_case_cong_thm]
       end;
   in
     (goals, after_qed, lthy')
