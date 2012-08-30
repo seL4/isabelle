@@ -81,14 +81,14 @@ sig
   val user_policy: Proof.context -> fact_policy
 
   val print_bnfs: Proof.context -> unit
-  val add_bnf: const_policy -> (Proof.context -> fact_policy) -> (binding -> binding) ->
+  val bnf_def: const_policy -> (Proof.context -> fact_policy) -> (binding -> binding) ->
     ({prems: thm list, context: Proof.context} -> tactic) list ->
     ({prems: thm list, context: Proof.context} -> tactic) -> typ list option ->
     (((binding * term) * term list) * term) * term list -> local_theory ->
     BNF * local_theory
 
   val filter_refl: thm list -> thm list
-  val add_bnf_cmd: (((binding * string) * string list) * string) * string list -> local_theory ->
+  val bnf_def_cmd: (((binding * string) * string list) * string) * string list -> local_theory ->
     Proof.state
 end;
 
@@ -708,8 +708,7 @@ fun prepare_bnf const_policy mk_fact_policy qualify prep_term Ds_opt
 
     val goal_map_id =
       let
-        val bnf_map_app_id = Term.list_comb
-          (bnf_map_AsAs, map HOLogic.id_const As');
+        val bnf_map_app_id = Term.list_comb (bnf_map_AsAs, map HOLogic.id_const As');
       in
         HOLogic.mk_Trueprop
           (HOLogic.mk_eq (bnf_map_app_id, HOLogic.id_const CA'))
@@ -717,8 +716,7 @@ fun prepare_bnf const_policy mk_fact_policy qualify prep_term Ds_opt
 
     val goal_map_comp =
       let
-        val bnf_map_app_comp = Term.list_comb
-          (bnf_map_AsCs, map2 (curry HOLogic.mk_comp) gs fs);
+        val bnf_map_app_comp = Term.list_comb (bnf_map_AsCs, map2 (curry HOLogic.mk_comp) gs fs);
         val comp_bnf_map_app = HOLogic.mk_comp
           (Term.list_comb (bnf_map_BsCs, gs),
            Term.list_comb (bnf_map_AsBs, fs));
@@ -1155,7 +1153,7 @@ fun prepare_bnf const_policy mk_fact_policy qualify prep_term Ds_opt
     (goals, wit_goalss, after_qed, lthy', one_step_defs)
   end;
 
-fun add_bnf const_policy fact_policy qualify tacs wit_tac Ds =
+fun bnf_def const_policy fact_policy qualify tacs wit_tac Ds =
   (fn (goals, wit_goalss, after_qed, lthy, defs) =>
   let
     val wits_tac = K (TRYALL Goal.conjunction_tac) THEN' unfold_defs_tac lthy defs wit_tac;
@@ -1172,7 +1170,7 @@ fun add_bnf const_policy fact_policy qualify tacs wit_tac Ds =
   end) oo prepare_bnf const_policy fact_policy qualify
   (fn ctxt => singleton (Type_Infer_Context.infer_types ctxt)) Ds;
 
-val add_bnf_cmd = (fn (goals, wit_goals, after_qed, lthy, defs) =>
+val bnf_def_cmd = (fn (goals, wit_goals, after_qed, lthy, defs) =>
   Proof.unfolding ([[(defs, [])]])
     (Proof.theorem NONE (snd oo after_qed)
       (map (single o rpair []) goals @ map (map (rpair [])) wit_goals) lthy)) oo
@@ -1211,6 +1209,6 @@ val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "bnf_def"} "define a BNF for an existing type"
     (((Parse.binding --| Parse.$$$ "=") -- Parse.term --
        (Parse.$$$ "[" |-- Parse.list Parse.term --| Parse.$$$ "]") -- Parse.term --
-       (Parse.$$$ "[" |-- Parse.list Parse.term --| Parse.$$$ "]")) >> add_bnf_cmd);
+       (Parse.$$$ "[" |-- Parse.list Parse.term --| Parse.$$$ "]")) >> bnf_def_cmd);
 
 end;

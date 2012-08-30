@@ -1661,7 +1661,7 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
 
         val (Ibnfs, lthy) =
           fold_map6 (fn tacs => fn b => fn map => fn sets => fn T => fn wits =>
-            add_bnf Dont_Inline user_policy I tacs wit_tac (SOME deads)
+            bnf_def Dont_Inline user_policy I tacs wit_tac (SOME deads)
               ((((b, fold_rev Term.absfree fs' map), sets), absdummy T bd), wits))
           tacss bs fs_maps setss_by_bnf Ts fld_witss lthy;
 

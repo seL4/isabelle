@@ -261,7 +261,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold, lthy) =
         (maps wit_thms_of_bnf inners);
 
     val (bnf', lthy') =
-      add_bnf const_policy (K Derive_Some_Facts) qualify tacs wit_tac (SOME (oDs @ flat Dss))
+      bnf_def const_policy (K Derive_Some_Facts) qualify tacs wit_tac (SOME (oDs @ flat Dss))
         ((((b, comp_map), comp_sets), comp_bd), comp_wits) lthy;
 
     val outer_rel_Gr = rel_Gr_of_bnf outer RS sym;
@@ -368,7 +368,7 @@ fun killN_bnf qualify n bnf (unfold, lthy) = if n = 0 then (bnf, (unfold, lthy))
     fun wit_tac _ = mk_simple_wit_tac (wit_thms_of_bnf bnf);
 
     val (bnf', lthy') =
-      add_bnf Smart_Inline (K Derive_Some_Facts) qualify tacs wit_tac (SOME (killedAs @ Ds))
+      bnf_def Smart_Inline (K Derive_Some_Facts) qualify tacs wit_tac (SOME (killedAs @ Ds))
         ((((b, killN_map), killN_sets), Term.absdummy T killN_bd), killN_wits) lthy;
 
     val rel_Gr = rel_Gr_of_bnf bnf RS sym;
@@ -473,7 +473,7 @@ fun liftN_bnf qualify n bnf (unfold, lthy) = if n = 0 then (bnf, (unfold, lthy))
     fun wit_tac _ = mk_simple_wit_tac (wit_thms_of_bnf bnf);
 
     val (bnf', lthy') =
-      add_bnf Smart_Inline (K Derive_Some_Facts) qualify tacs wit_tac (SOME Ds)
+      bnf_def Smart_Inline (K Derive_Some_Facts) qualify tacs wit_tac (SOME Ds)
         ((((b, liftN_map), liftN_sets), Term.absdummy T liftN_bd), liftN_wits) lthy;
 
     val liftN_rel_unfold_thm =
@@ -561,7 +561,7 @@ fun permute_bnf qualify src dest bnf (unfold, lthy) = if src = dest then (bnf, (
     fun wit_tac _ = mk_simple_wit_tac (wit_thms_of_bnf bnf);
 
     val (bnf', lthy') =
-      add_bnf Smart_Inline (K Derive_Some_Facts) qualify tacs wit_tac (SOME Ds)
+      bnf_def Smart_Inline (K Derive_Some_Facts) qualify tacs wit_tac (SOME Ds)
         ((((b, permute_map), permute_sets), Term.absdummy T permute_bd), permute_wits) lthy;
 
     val permute_rel_unfold_thm =
@@ -716,7 +716,7 @@ fun seal_bnf unfold b Ds bnf lthy =
 
     fun wit_tac _ = mk_simple_wit_tac (map unfold_defs (wit_thms_of_bnf bnf));
 
-    val (bnf', lthy') = add_bnf Hardly_Inline (K Derive_All_Facts) I tacs wit_tac NONE
+    val (bnf', lthy') = bnf_def Hardly_Inline (K Derive_All_Facts) I tacs wit_tac NONE
         ((((b, bnf_map), bnf_sets), Term.absdummy T bnf_bd'), bnf_wits) lthy;
 
     val defs' = filter_refl (map_def_of_bnf bnf' :: set_defs_of_bnf bnf');
