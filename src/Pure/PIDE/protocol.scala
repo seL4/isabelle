@@ -65,13 +65,14 @@ object Protocol
 
   val command_status_markup: Set[String] =
     Set(Isabelle_Markup.ACCEPTED, Isabelle_Markup.FINISHED, Isabelle_Markup.FAILED,
-      Isabelle_Markup.FORKED, Isabelle_Markup.JOINED)
+      Isabelle_Markup.FORKED, Isabelle_Markup.JOINED, Isabelle_Markup.CANCELLED)
 
   def command_status(status: Status, markup: Markup): Status =
     markup match {
       case Markup(Isabelle_Markup.ACCEPTED, _) => status.copy(accepted = true)
       case Markup(Isabelle_Markup.FINISHED, _) => status.copy(finished = true)
       case Markup(Isabelle_Markup.FAILED, _) => status.copy(failed = true)
+      case Markup(Isabelle_Markup.CANCELLED, _) => status.copy(failed = true)
       case Markup(Isabelle_Markup.FORKED, _) => status.copy(forks = status.forks + 1)
       case Markup(Isabelle_Markup.JOINED, _) => status.copy(forks = status.forks - 1)
       case _ => status

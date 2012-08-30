@@ -73,7 +73,6 @@ sig
   val fulfill_result: 'a future -> 'a Exn.result -> unit
   val fulfill: 'a future -> 'a -> unit
   val shutdown: unit -> unit
-  val status: (unit -> 'a) -> 'a
   val group_tasks: group -> task list
   val queue_status: unit -> {ready: int, pending: int, running: int, passive: int}
 end;
@@ -640,20 +639,6 @@ fun shutdown () =
      while scheduler_active () do
       (wait scheduler_event; broadcast_work ()))
   else ();
-
-
-(* status markup *)
-
-fun status e =
-  let
-    val task_props =
-      (case worker_task () of
-        NONE => I
-      | SOME task => Markup.properties [(Isabelle_Markup.taskN, Task_Queue.str_of_task task)]);
-    val _ = Output.status (Markup.markup_only (task_props Isabelle_Markup.forked));
-    val x = e ();  (*sic -- report "joined" only for success*)
-    val _ = Output.status (Markup.markup_only (task_props Isabelle_Markup.joined));
-  in x end;
 
 
 (* queue status *)
