@@ -14,6 +14,7 @@ imports BNF_LFP BNF_GFP
 keywords
   "bnf_sugar" :: thy_goal
 uses
+  "Tools/bnf_sugar_tactics.ML"
   "Tools/bnf_sugar.ML"
 begin
 

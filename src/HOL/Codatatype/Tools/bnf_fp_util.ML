@@ -20,6 +20,7 @@ sig
   val coiterN: string
   val coiter_uniqueN: string
   val corecN: string
+  val exhaustN: string
   val fldN: string
   val fld_coiterN: string
   val fld_exhaustN: string
@@ -39,6 +40,7 @@ sig
   val map_uniqueN: string
   val min_algN: string
   val morN: string
+  val nchotomyN: string
   val pred_coinductN: string
   val pred_coinduct_uptoN: string
   val recN: string
@@ -78,6 +80,8 @@ sig
 
   val mk_Field: term -> term
   val mk_union: term * term -> term
+
+  val mk_disjIN: int -> int -> thm
 
   val mk_tactics: 'a -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a list
 
@@ -154,10 +158,12 @@ val corecN = coN ^ recN
 
 val fld_unfN = fldN ^ "_" ^ unfN
 val unf_fldN = unfN ^ "_" ^ fldN
-fun mk_nchotomyN s = s ^ "_nchotomy"
+val nchotomyN = "nchotomy"
+fun mk_nchotomyN s = s ^ "_" ^ nchotomyN
 val injectN = "inject"
 fun mk_injectN s = s ^ "_" ^ injectN
-fun mk_exhaustN s = s ^ "_exhaust"
+val exhaustN = "exhaust"
+fun mk_exhaustN s = s ^ "_" ^ exhaustN
 val fld_injectN = mk_injectN fldN
 val fld_exhaustN = mk_exhaustN fldN
 val unf_injectN = mk_injectN unfN
@@ -183,6 +189,11 @@ fun mk_Field r =
   in Const (@{const_name Field}, mk_relT (T, T) --> HOLogic.mk_setT T) $ r end;
 
 val mk_union = HOLogic.mk_binop @{const_name sup};
+
+fun mk_disjIN 1 1 = @{thm TrueE[OF TrueI]}
+  | mk_disjIN _ 1 = disjI1
+  | mk_disjIN 2 2 = disjI2
+  | mk_disjIN n m = (mk_disjIN (n - 1) (m - 1)) RS disjI2;
 
 (*dangerous; use with monotonic, converging functions only!*)
 fun fixpoint eq f X = if subset eq (f X, X) then X else fixpoint eq f (f X);

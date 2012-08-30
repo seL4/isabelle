@@ -35,6 +35,7 @@
     "bnf_codata"
     "bnf_data"
     "bnf_def"
+    "bnf_sugar"
     "boogie_end"
     "boogie_open"
     "boogie_status"
@@ -576,6 +577,7 @@
 (defconst isar-keywords-theory-goal
   '("ax_specification"
     "bnf_def"
+    "bnf_sugar"
     "boogie_vc"
     "code_pred"
     "corollary"

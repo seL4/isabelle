@@ -124,6 +124,7 @@ struct
 
 open BNF_Tactics
 open BNF_Util
+open BNF_FP_Util
 open BNF_GFP_Util
 
 fun mk_coalg_set_tac coalg_def =

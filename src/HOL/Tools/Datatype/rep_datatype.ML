@@ -589,7 +589,7 @@ fun gen_rep_datatype prep_term config after_qed raw_ts thy =
       (case map_filter (fn (tyco, _) =>
           if Symtab.defined (Datatype_Data.get_all thy) tyco then SOME tyco else NONE) raw_cs of
         [] => ()
-      | tycos => error ("Type(s) " ^ commas_quote tycos ^ " already represented inductivly"));
+      | tycos => error ("Type(s) " ^ commas_quote tycos ^ " already represented inductively"));
     val raw_vss = maps (map (map snd o fst) o snd) raw_cs;
     val ms =
       (case distinct (op =) (map length raw_vss) of

@@ -47,7 +47,6 @@ sig
   val mk_sum_case: term -> term -> term
   val mk_sum_caseN: term list -> term
 
-  val mk_disjIN: int -> int -> thm
   val mk_specN: int -> thm -> thm
   val mk_sum_casesN: int -> int -> thm
   val mk_sumEN: int -> thm
@@ -192,11 +191,6 @@ fun mk_pickWP A f1 f2 b1 b2 =
     Const (@{const_name pickWP}, HOLogic.mk_setT AT --> fT1 --> fT2 --> BT1 --> BT2 --> AT) $
       A $ f1 $ f2 $ b1 $ b2
   end;
-
-fun mk_disjIN 1 1 = @{thm TrueE[OF TrueI]}
-  | mk_disjIN _ 1 = disjI1
-  | mk_disjIN 2 2 = disjI2
-  | mk_disjIN n m = (mk_disjIN (n - 1) (m - 1)) RS disjI2;
 
 fun mk_sumTN Ts = Library.foldr1 (mk_sumT) Ts;
 
