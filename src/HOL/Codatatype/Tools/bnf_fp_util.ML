@@ -30,6 +30,7 @@ sig
   val hsetN: string
   val hset_recN: string
   val inductN: string
+  val injectN: string
   val isNodeN: string
   val iterN: string
   val iter_uniqueN: string
@@ -154,7 +155,8 @@ val corecN = coN ^ recN
 val fld_unfN = fldN ^ "_" ^ unfN
 val unf_fldN = unfN ^ "_" ^ fldN
 fun mk_nchotomyN s = s ^ "_nchotomy"
-fun mk_injectN s = s ^ "_inject"
+val injectN = "inject"
+fun mk_injectN s = s ^ "_" ^ injectN
 fun mk_exhaustN s = s ^ "_exhaust"
 val fld_injectN = mk_injectN fldN
 val fld_exhaustN = mk_exhaustN fldN

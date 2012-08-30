@@ -528,7 +528,7 @@ val filter_refl = filter_out is_reflexive;
 
 (* Define new BNFs *)
 
-fun prepare_bnf const_policy mk_fact_policy qualify prep_term Ds_opt
+fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
   ((((raw_b, raw_map), raw_sets), raw_bd_Abs), raw_wits) no_defs_lthy =
   let
     val fact_policy = mk_fact_policy no_defs_lthy;
@@ -1167,14 +1167,14 @@ fun bnf_def const_policy fact_policy qualify tacs wit_tac Ds =
   in
     (map2 (Skip_Proof.prove lthy [] []) goals (map (unfold_defs_tac lthy defs) tacs))
     |> (fn thms => after_qed (map single thms @ wit_thms) lthy)
-  end) oo prepare_bnf const_policy fact_policy qualify
+  end) oo prepare_def const_policy fact_policy qualify
   (fn ctxt => singleton (Type_Infer_Context.infer_types ctxt)) Ds;
 
 val bnf_def_cmd = (fn (goals, wit_goals, after_qed, lthy, defs) =>
   Proof.unfolding ([[(defs, [])]])
     (Proof.theorem NONE (snd oo after_qed)
       (map (single o rpair []) goals @ map (map (rpair [])) wit_goals) lthy)) oo
-  prepare_bnf Do_Inline user_policy I Syntax.read_term NONE;
+  prepare_def Do_Inline user_policy I Syntax.read_term NONE;
 
 fun print_bnfs ctxt =
   let

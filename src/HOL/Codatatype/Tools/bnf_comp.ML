@@ -68,7 +68,6 @@ val pred_unfolds_of = #pred_unfolds;
 
 val bdTN = "bdT";
 
-val compN = "comp_"
 fun mk_killN n = "kill" ^ string_of_int n ^ "_";
 fun mk_liftN n = "lift" ^ string_of_int n ^ "_";
 fun mk_permuteN src dest =
