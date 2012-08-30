@@ -507,8 +507,7 @@ datatype fact_policy =
 val bnf_note_all = Attrib.setup_config_bool @{binding bnf_note_all} (K false);
 
 fun user_policy ctxt =
-  if Config.get ctxt bnf_note_all then Note_All_Facts_and_Axioms
-  else Derive_All_Facts_Note_Most;
+  if Config.get ctxt bnf_note_all then Note_All_Facts_and_Axioms else Derive_All_Facts_Note_Most;
 
 val smart_max_inline_size = 25; (*FUDGE*)
 

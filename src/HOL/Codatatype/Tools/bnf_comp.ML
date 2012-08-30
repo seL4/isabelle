@@ -18,7 +18,6 @@ sig
   val bnf_of_typ: BNF_Def.const_policy -> binding -> (binding -> binding) ->
     ((string * sort) list list -> (string * sort) list) -> typ -> unfold_thms * Proof.context ->
     (BNF_Def.BNF * (typ list * typ list)) * (unfold_thms * Proof.context)
-  val bnf_of_typ_cmd: binding * string -> Proof.context -> Proof.context
   val default_comp_sort: (string * sort) list list -> (string * sort) list
   val normalize_bnfs: (int -> binding -> binding) -> ''a list list -> ''a list ->
     (''a list list -> ''a list) -> BNF_Def.BNF list -> unfold_thms -> Proof.context ->
@@ -793,18 +792,5 @@ fun bnf_of_typ _ _ _ _ (T as TFree _) (unfold, lthy) =
           compose_bnf const_policy (qualify 0) b sort outer inners oDs Dss Ass (unfold', lthy')
         end
     end;
-
-fun bnf_of_typ_cmd (b, rawT) lthy =
-  let
-    val ((bnf, (Ds, As)), (unfold, lthy')) =
-      bnf_of_typ Smart_Inline b I default_comp_sort (Syntax.read_typ lthy rawT)
-        (empty_unfold, lthy);
-  in
-    snd (seal_bnf unfold b Ds bnf lthy')
-  end;
-
-val _ =
-  Outer_Syntax.local_theory @{command_spec "bnf_of_typ"} "parse a type as composition of BNFs"
-    (((Parse.binding --| Parse.$$$ "=") -- Parse.typ) >> bnf_of_typ_cmd);
 
 end;
