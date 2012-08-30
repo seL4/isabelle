@@ -21,6 +21,9 @@ sig
   val propagate_ml_env: state -> state
   val bind_terms: (indexname * term option) list -> state -> state
   val put_thms: bool -> string * thm list option -> state -> state
+  val begin_proofs: state -> state
+  val register_proofs: thm list -> state -> state
+  val join_recent_proofs: state -> unit
   val the_facts: state -> thm list
   val the_fact: state -> thm
   val set_facts: thm list -> state -> state
@@ -168,8 +171,11 @@ val init_context =
 fun init ctxt =
   State (Stack.init (make_node (init_context ctxt, NONE, Forward, NONE)));
 
-fun current (State st) = Stack.top st |> (fn Node node => node);
-fun map_current f (State st) = State (Stack.map_top (map_node f) st);
+fun top (State st) = Stack.top st |> (fn Node node => node);
+fun bottom (State st) = Stack.bottom st |> (fn Node node => node);
+
+fun map_top f (State st) = State (Stack.map_top (map_node f) st);
+fun map_bottom f (State st) = State (Stack.map_bottom (map_node f) st);
 fun map_all f (State st) = State (Stack.map_all (map_node f) st);
 
 
@@ -195,17 +201,20 @@ fun assert_bottom b state =
 
 (* context *)
 
-val context_of = #context o current;
+val context_of = #context o top;
 val theory_of = Proof_Context.theory_of o context_of;
 
 fun map_node_context f =
   map_node (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
 
 fun map_context f =
-  map_current (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
+  map_top (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
 
 fun map_context_result f state =
   f (context_of state) ||> (fn ctxt => map_context (K ctxt) state);
+
+fun map_context_bottom f =
+  map_bottom (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
 
 fun map_contexts f = map_all (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
 
@@ -216,9 +225,17 @@ val bind_terms = map_context o Proof_Context.bind_terms;
 val put_thms = map_context oo Proof_Context.put_thms;
 
 
+(* forked proofs *)
+
+val begin_proofs = map_context_bottom (Context.proof_map Thm.begin_proofs);
+val register_proofs = map_context_bottom o Context.proof_map o Thm.register_proofs;
+
+val join_recent_proofs = Thm.join_local_proofs o #context o bottom;
+
+
 (* facts *)
 
-val get_facts = #facts o current;
+val get_facts = #facts o top;
 
 fun the_facts state =
   (case get_facts state of SOME facts => facts
@@ -229,7 +246,7 @@ fun the_fact state =
   | _ => error "Single theorem expected");
 
 fun put_facts facts =
-  map_current (fn (ctxt, _, mode, goal) => (ctxt, facts, mode, goal)) #>
+  map_top (fn (ctxt, _, mode, goal) => (ctxt, facts, mode, goal)) #>
   put_thms true (Auto_Bind.thisN, facts);
 
 val set_facts = put_facts o SOME;
@@ -249,8 +266,8 @@ fun export_facts inner outer =
 
 (* mode *)
 
-val get_mode = #mode o current;
-fun put_mode mode = map_current (fn (ctxt, facts, _, goal) => (ctxt, facts, mode, goal));
+val get_mode = #mode o top;
+fun put_mode mode = map_top (fn (ctxt, facts, _, goal) => (ctxt, facts, mode, goal));
 
 val mode_name = (fn Forward => "state" | Chain => "chain" | Backward => "prove");
 
@@ -274,7 +291,7 @@ val enter_backward = put_mode Backward;
 (* current goal *)
 
 fun current_goal state =
-  (case current state of
+  (case top state of
     {context, goal = SOME (Goal goal), ...} => (context, goal)
   | _ => error "No current goal");
 
@@ -285,7 +302,7 @@ fun assert_current_goal g state =
     else state
   end;
 
-fun put_goal goal = map_current (fn (ctxt, using, mode, _) => (ctxt, using, mode, goal));
+fun put_goal goal = map_top (fn (ctxt, using, mode, _) => (ctxt, using, mode, goal));
 
 val set_goal = put_goal o SOME;
 val reset_goal = put_goal NONE;
@@ -338,7 +355,7 @@ fun pretty_facts _ _ NONE = []
 
 fun pretty_state nr state =
   let
-    val {context = ctxt, facts, mode, goal = _} = current state;
+    val {context = ctxt, facts, mode, goal = _} = top state;
     val verbose = Config.get ctxt Proof_Context.verbose;
 
     fun levels_up 0 = ""
@@ -922,6 +939,7 @@ fun generic_qed after_ctxt state =
       |> burrow (Proof_Context.export goal_ctxt outer_ctxt);
   in
     outer_state
+    |> register_proofs (flat results)
     |> map_context (after_ctxt props)
     |> pair (after_qed, results)
   end;
@@ -1120,19 +1138,21 @@ end;
 
 local
 
-fun future_terminal_proof proof1 proof2 meths int state =
-  if int orelse is_relevant state orelse not (Goal.local_future_enabled ())
-  then proof1 meths state
-  else snd (proof2 (fn state' =>
-    Goal.fork_name "Proof.future_terminal_proof" (fn () => ((), proof1 meths state'))) state);
+fun future_terminal_proof n proof1 proof2 meths int state =
+  if (Goal.future_enabled_level 4 orelse Goal.future_enabled_nested n andalso not int)
+    andalso not (is_relevant state)
+  then
+    snd (proof2 (fn state' =>
+      Goal.fork_name "Proof.future_terminal_proof" (fn () => ((), proof1 meths state'))) state)
+  else proof1 meths state;
 
 in
 
 fun local_future_terminal_proof x =
-  future_terminal_proof local_terminal_proof local_future_proof x;
+  future_terminal_proof 2 local_terminal_proof local_future_proof x;
 
 fun global_future_terminal_proof x =
-  future_terminal_proof global_terminal_proof global_future_proof x;
+  future_terminal_proof 3 global_terminal_proof global_future_proof x;
 
 end;
 

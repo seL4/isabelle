@@ -514,7 +514,7 @@ fun raw_promises_of (Thm (Deriv {promises, ...}, _)) = promises;
 
 fun join_promises [] = ()
   | join_promises promises = join_promises_of (Future.joins (map snd promises))
-and join_promises_of thms = join_promises (maps raw_promises_of thms);
+and join_promises_of thms = join_promises (Ord_List.make promise_ord (maps raw_promises_of thms));
 
 fun fulfill_body (Thm (Deriv {promises, body}, {thy_ref, ...})) =
   Proofterm.fulfill_norm_proof (Theory.deref thy_ref) (fulfill_promises promises) body
