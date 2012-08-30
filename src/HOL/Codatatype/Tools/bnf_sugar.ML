@@ -78,7 +78,7 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
     val caseofB = mk_caseof As B;
     val caseofB_Ts = map (fn Ts => Ts ---> B) ctr_Tss;
 
-    val (((((xss, yss), fs), (v, v')), p), _) = no_defs_lthy |>
+    val (((((xss, yss), fs), (v, v')), p), names_lthy) = no_defs_lthy |>
       mk_Freess "x" ctr_Tss
       ||>> mk_Freess "y" ctr_Tss
       ||>> mk_Frees "f" caseofB_Ts
@@ -265,7 +265,27 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
               goals ms discD_thms sel_thmss
           end;
 
-        val case_disc_thms = [];
+        val case_disc_thm =
+          let
+            fun mk_core f sels = Term.list_comb (f, map (fn sel => sel $ v) sels);
+            fun mk_rhs _ [f] [sels] = mk_core f sels
+              | mk_rhs (disc :: discs) (f :: fs) (sels :: selss) =
+                Const (@{const_name If}, HOLogic.boolT --> B --> B --> B) $
+                  (disc $ v) $ mk_core f sels $ mk_rhs discs fs selss;
+
+            val lhs = Term.list_comb (caseofB, eta_fs) $ v;
+            val rhs = mk_rhs discs fs selss;
+            val goal = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
+
+            val Tinst = map (pairself (certifyT lthy)) (map Logic.varifyT_global As ~~ As);
+            val exhaust_thm' =
+              Drule.instantiate' [] [SOME (certify lthy v)]
+                (Thm.instantiate (Tinst, []) (Drule.zero_var_indexes exhaust_thm));
+          in
+            Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
+              mk_case_disc_tac ctxt exhaust_thm' case_thms disc_thms sel_thmss)
+            |> singleton (Proof_Context.export names_lthy lthy)
+          end;
 
         val case_cong_thm = TrueI;
 
@@ -283,7 +303,7 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
       in
         lthy
         |> note case_congN [case_cong_thm]
-        |> note case_discsN case_disc_thms
+        |> note case_discsN [case_disc_thm]
         |> note casesN case_thms
         |> note ctr_selsN ctr_sel_thms
         |> note discsN disc_thms
