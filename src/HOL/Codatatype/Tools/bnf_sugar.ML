@@ -21,12 +21,18 @@ val case_discsN = "case_discs"
 val casesN = "cases"
 val ctr_selsN = "ctr_sels"
 val disc_disjointN = "disc_disjoint"
-val distinctN = "distinct"
 val disc_exhaustN = "disc_exhaust"
+val discsN = "discs"
+val distinctN = "distinct"
 val selsN = "sels"
 val splitN = "split"
 val split_asmN = "split_asm"
 val weak_case_cong_thmsN = "weak_case_cong"
+
+fun index_of_triangle_row _ 0 = 0
+  | index_of_triangle_row n j = index_of_triangle_row n (j - 1) + n - j;
+
+fun index_of_triangle_cell n j k = index_of_triangle_row n j + k - (j + 1);
 
 fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) no_defs_lthy =
   let
@@ -194,7 +200,20 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
             flat (map6 mk_thms ks xss goal_cases case_thms selss sel_defss)
           end;
 
-        val disc_thms = [];
+        val disc_thms =
+          let
+            fun get_distinct_thm k k' =
+              if k > k' then nth half_distinct_thms (index_of_triangle_cell n (k' - 1) (k - 1))
+              else nth other_half_distinct_thms (index_of_triangle_cell n (k' - 1) (k' - 1))
+            fun mk_thm ((k, m), disc_def) k' =
+              if k = k' then
+                refl RS (funpow m (fn thm => exI RS thm) (disc_def RS iffD2))
+              else
+                get_distinct_thm k k' RS (funpow m (fn thm => allI RS thm)
+                  (Local_Defs.unfold lthy @{thms not_ex} (disc_def RS @{thm ssubst[of _ _ Not]})));
+          in
+            map_product mk_thm (ks ~~ map length ctr_Tss ~~ disc_defs) ks
+          end;
 
         val disc_disjoint_thms = [];
 
@@ -223,6 +242,7 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
         |> note case_discsN case_disc_thms
         |> note casesN case_thms
         |> note ctr_selsN ctr_sel_thms
+        |> note discsN disc_thms
         |> note disc_disjointN disc_disjoint_thms
         |> note disc_exhaustN disc_exhaust_thms
         |> note distinctN (half_distinct_thms @ other_half_distinct_thms)
