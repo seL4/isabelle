@@ -179,9 +179,13 @@ fun pretties_for_formulas _ _ [] = []
                                  Pretty.str (if j = 1 then "." else ";")])
                (length ts downto 1) ts))]
 
-fun install_java_message () =
-  "Nitpick requires Java Development Kit 1.6 via ISABELLE_JDK_HOME setting."
-fun install_kodkodi_message () =
+val isabelle_wrong_message =
+  "Something appears to be wrong with your Isabelle installation."
+fun java_not_found_message () =
+  "Java could not be launched. " ^ isabelle_wrong_message
+fun java_too_old_message () =
+  "The Java version is too old. " ^ isabelle_wrong_message
+fun kodkodi_not_installed_message () =
   "Nitpick requires the external Java program Kodkodi. To install it, download \
   \the package from \"http://www21.in.tum.de/~blanchet/#software\" and add the \
   \\"kodkodi-x.y.z\" directory's full path to " ^
@@ -802,14 +806,14 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
         else
           case KK.solve_any_problem debug overlord deadline max_threads
                                     max_solutions (map fst problems) of
-            KK.JavaNotInstalled =>
-            (print_nt install_java_message;
+            KK.JavaNotFound =>
+            (print_nt java_not_found_message;
              (found_really_genuine, max_potential, max_genuine, donno + 1))
           | KK.JavaTooOld =>
-            (print_nt install_java_message;
+            (print_nt java_too_old_message;
              (found_really_genuine, max_potential, max_genuine, donno + 1))
           | KK.KodkodiNotInstalled =>
-            (print_nt install_kodkodi_message;
+            (print_nt kodkodi_not_installed_message;
              (found_really_genuine, max_potential, max_genuine, donno + 1))
           | KK.Normal ([], unsat_js, s) =>
             (update_checked_problems problems unsat_js; show_kodkod_warning s;
@@ -1062,7 +1066,7 @@ fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) mode i n
     if getenv "KODKODI" = "" then
       (* The "expect" argument is deliberately ignored if Kodkodi is missing so
          that the "Nitpick_Examples" can be processed on any machine. *)
-      (print_nt (Pretty.string_of (plazy install_kodkodi_message));
+      (print_nt (Pretty.string_of (plazy kodkodi_not_installed_message));
        ("no_kodkodi", state))
     else
       let

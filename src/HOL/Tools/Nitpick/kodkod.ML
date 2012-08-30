@@ -155,7 +155,7 @@ sig
   type raw_bound = n_ary_index * int list list
 
   datatype outcome =
-    JavaNotInstalled |
+    JavaNotFound |
     JavaTooOld |
     KodkodiNotInstalled |
     Normal of (int * raw_bound list) list * int list * string |
@@ -302,7 +302,7 @@ type problem =
 type raw_bound = n_ary_index * int list list
 
 datatype outcome =
-  JavaNotInstalled |
+  JavaNotFound |
   JavaTooOld |
   KodkodiNotInstalled |
   Normal of (int * raw_bound list) list * int list * string |
@@ -1068,7 +1068,7 @@ fun uncached_solve_any_problem overlord deadline max_threads max_solutions
                 else if code = 0 then
                   Normal ([], js, first_error)
                 else if code = 127 then
-                  JavaNotInstalled
+                  JavaNotFound
                 else if has_error "UnsupportedClassVersionError" then
                   JavaTooOld
                 else if has_error "NoClassDefFoundError" then
