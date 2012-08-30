@@ -288,18 +288,6 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold, lthy) =
     (bnf', (unfold', lthy'))
   end;
 
-fun clean_compose_bnf_cmd (outer, inners) lthy =
-  let
-    val outer = the (bnf_of lthy outer)
-    val inners = map (the o bnf_of lthy) inners
-    val b = name_of_bnf outer
-      |> Binding.prefix_name compN
-      |> Binding.suffix_name ("_" ^ implode (map (Binding.name_of o name_of_bnf) inners));
-  in
-    (snd o snd) (clean_compose_bnf Dont_Inline I b outer inners
-      (empty_unfold, lthy))
-  end;
-
 (* Killing live variables *)
 
 fun killN_bnf qualify n bnf (unfold, lthy) = if n = 0 then (bnf, (unfold, lthy)) else
@@ -406,9 +394,6 @@ fun killN_bnf qualify n bnf (unfold, lthy) = if n = 0 then (bnf, (unfold, lthy))
     (bnf', (unfold', lthy'))
   end;
 
-fun killN_bnf_cmd (n, raw_bnf) lthy =
-  (snd o snd) (killN_bnf I n (the (bnf_of lthy raw_bnf)) (empty_unfold, lthy));
-
 (* Adding dummy live variables *)
 
 fun liftN_bnf qualify n bnf (unfold, lthy) = if n = 0 then (bnf, (unfold, lthy)) else
@@ -505,9 +490,6 @@ fun liftN_bnf qualify n bnf (unfold, lthy) = if n = 0 then (bnf, (unfold, lthy))
     (bnf', (unfold', lthy'))
   end;
 
-fun liftN_bnf_cmd (n, raw_bnf) lthy =
-  (snd o snd) (liftN_bnf I n (the (bnf_of lthy raw_bnf)) (empty_unfold, lthy));
-
 (* Changing the order of live variables *)
 
 fun permute_bnf qualify src dest bnf (unfold, lthy) = if src = dest then (bnf, (unfold, lthy)) else
@@ -596,10 +578,6 @@ fun permute_bnf qualify src dest bnf (unfold, lthy) = if src = dest then (bnf, (
     (bnf', (unfold', lthy'))
   end;
 
-fun permute_bnf_cmd ((src, dest), raw_bnf) lthy =
-  (snd o snd) (permute_bnf I src dest (the (bnf_of lthy raw_bnf))
-    (empty_unfold, lthy));
-
 (* Composition pipeline *)
 
 fun permute_and_kill qualify n src dest bnf =
@@ -661,12 +639,6 @@ fun compose_bnf const_policy qualify' b sort outer inners oDs Dss tfreess (unfol
   in
     apfst (rpair (Ds, As)) (clean_compose_bnf const_policy I b outer inners' (unfold', lthy'))
   end;
-
-fun compose_bnf_cmd (((((b, outer), inners), oDs), Dss), Ass) lthy = (snd o snd)
-  (compose_bnf Dont_Inline I b default_comp_sort (the (bnf_of lthy outer))
-    (map (the o bnf_of lthy) inners)
-    (map (Syntax.read_typ lthy) oDs) (map (map (Syntax.read_typ lthy)) Dss)
-    (map (map (Syntax.read_typ lthy)) Ass) (empty_unfold, lthy));
 
 (* Hide the type of the bound (optimization) and unfold the definitions (nicer to the user) *)
 
@@ -755,8 +727,7 @@ fun seal_bnf unfold b Ds bnf lthy =
     val rel_unfold = Local_Defs.unfold lthy'
       (map unfold_defs (filter_refl (rel_unfolds_of unfold))) rel_def;
 
-    val unfold_defs'' =
-      unfold_defs' o (Local_Defs.unfold lthy' (filter_refl [rel_def_of_bnf bnf']));
+    val unfold_defs'' = unfold_defs' o Local_Defs.unfold lthy' (filter_refl [rel_def_of_bnf bnf']);
 
     val pred_def = unfold_defs'' (pred_def_of_bnf bnf' RS abs_pred_sym_pred_abs);
     val pred_unfold = Local_Defs.unfold lthy'
