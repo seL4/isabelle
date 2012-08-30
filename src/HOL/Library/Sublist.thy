@@ -1,5 +1,6 @@
 (*  Title:      HOL/Library/Sublist.thy
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
+    Author:     Christian Sternagel, JAIST
 *)
 
 header {* List prefixes, suffixes, and embedding*}
