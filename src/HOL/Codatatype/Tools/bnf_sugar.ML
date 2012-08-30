@@ -37,6 +37,10 @@ fun index_of_half_row _ 0 = 0
 
 fun index_of_half_cell n j k = index_of_half_row n j + k - (j + 1);
 
+val mk_Trueprop_eq = HOLogic.mk_Trueprop o HOLogic.mk_eq;
+
+fun eta_expand_caseof_arg f xs = fold_rev Term.lambda xs (Term.list_comb (f, xs));
+
 fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
@@ -78,31 +82,34 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
     val caseofB = mk_caseof As B;
     val caseofB_Ts = map (fn Ts => Ts ---> B) ctr_Tss;
 
-    val (((((xss, yss), fs), (v, v')), p), names_lthy) = no_defs_lthy |>
+    val (((((((xss, yss), fs), gs), (v, v')), w), p), names_lthy) = no_defs_lthy |>
       mk_Freess "x" ctr_Tss
       ||>> mk_Freess "y" ctr_Tss
       ||>> mk_Frees "f" caseofB_Ts
+      ||>> mk_Frees "g" caseofB_Ts
       ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "v") T
+      ||>> yield_singleton (mk_Frees "w") T
       ||>> yield_singleton (mk_Frees "P") HOLogic.boolT;
 
     val xctrs = map2 (curry Term.list_comb) ctrs xss;
     val yctrs = map2 (curry Term.list_comb) ctrs yss;
-    val eta_fs = map2 (fn f => fn xs => fold_rev Term.lambda xs (Term.list_comb (f, xs))) fs xss;
+
+    val eta_fs = map2 eta_expand_caseof_arg fs xss;
+    val eta_gs = map2 eta_expand_caseof_arg gs xss;
 
     val exist_xs_v_eq_ctrs =
       map2 (fn xctr => fn xs => list_exists_free xs (HOLogic.mk_eq (v, xctr))) xctrs xss;
 
-    fun mk_caseof_args k xs x T =
+    fun mk_sel_caseof_args k xs x T =
       map2 (fn Ts => fn i => if i = k then fold_rev Term.lambda xs x else mk_undef T Ts) ctr_Tss ks;
 
     fun disc_spec b exist_xs_v_eq_ctr =
-      HOLogic.mk_Trueprop (HOLogic.mk_eq (Free (Binding.name_of b, T --> HOLogic.boolT) $ v,
-        exist_xs_v_eq_ctr));
+      mk_Trueprop_eq (Free (Binding.name_of b, T --> HOLogic.boolT) $ v, exist_xs_v_eq_ctr);
 
     fun sel_spec b x xs k =
       let val T' = fastype_of x in
-        HOLogic.mk_Trueprop (HOLogic.mk_eq (Free (Binding.name_of b, T --> T') $ v,
-            Term.list_comb (mk_caseof As T', mk_caseof_args k xs x T') $ v))
+        mk_Trueprop_eq (Free (Binding.name_of b, T --> T') $ v,
+          Term.list_comb (mk_caseof As T', mk_sel_caseof_args k xs x T') $ v)
       end;
 
     val (((raw_discs, (_, raw_disc_defs)), (raw_selss, (_, raw_sel_defss))), (lthy', lthy)) =
@@ -131,13 +138,10 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
     val discs = map (mk_disc_or_sel As) discs0;
     val selss = map (map (mk_disc_or_sel As)) selss0;
 
-    fun mk_imp_p Q = Logic.list_implies (Q, HOLogic.mk_Trueprop p);
+    fun mk_imp_p Qs = Logic.list_implies (Qs, HOLogic.mk_Trueprop p);
 
     val goal_exhaust =
-      let
-        fun mk_prem xctr xs =
-          fold_rev Logic.all xs (mk_imp_p [HOLogic.mk_Trueprop (HOLogic.mk_eq (v, xctr))]);
-      in
+      let fun mk_prem xctr xs = fold_rev Logic.all xs (mk_imp_p [mk_Trueprop_eq (v, xctr)]) in
         mk_imp_p (map2 mk_prem xctrs xss)
       end;
 
@@ -145,9 +149,8 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
       let
         fun mk_goal _ _ [] [] = NONE
           | mk_goal xctr yctr xs ys =
-            SOME (HOLogic.mk_Trueprop (HOLogic.mk_eq
-              (HOLogic.mk_eq (xctr, yctr),
-               Library.foldr1 HOLogic.mk_conj (map2 (curry HOLogic.mk_eq) xs ys))));
+            SOME (mk_Trueprop_eq (HOLogic.mk_eq (xctr, yctr),
+              Library.foldr1 HOLogic.mk_conj (map2 (curry HOLogic.mk_eq) xs ys)));
       in
         map_filter I (map4 mk_goal xctrs yctrs xss yss)
       end;
@@ -158,8 +161,7 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
     val goal_cases =
       let
         val lhs0 = Term.list_comb (caseofB, eta_fs);
-        fun mk_goal xctr xs f =
-          HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs0 $ xctr, Term.list_comb (f, xs)));
+        fun mk_goal xctr xs f = mk_Trueprop_eq (lhs0 $ xctr, Term.list_comb (f, xs));
       in
         map3 mk_goal xctrs xss fs
       end;
@@ -169,6 +171,12 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
     fun after_qed thmss lthy =
       let
         val [[exhaust_thm], inject_thms, half_distinct_thms, case_thms] = thmss;
+
+        val exhaust_thm' =
+          let val Tinst = map (pairself (certifyT lthy)) (map Logic.varifyT_global As ~~ As) in
+            Drule.instantiate' [] [SOME (certify lthy v)]
+              (Thm.instantiate (Tinst, []) (Drule.zero_var_indexes exhaust_thm))
+          end;
 
         val other_half_distinct_thms = map (fn thm => thm RS not_sym) half_distinct_thms;
 
@@ -189,7 +197,7 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
                 val cTs =
                   map ((fn T' => certifyT lthy (if T' = B then T else T')) o TFree)
                     (rev (Term.add_tfrees goal_case []));
-                val cxs = map (certify lthy) (mk_caseof_args k xs x T);
+                val cxs = map (certify lthy) (mk_sel_caseof_args k xs x T);
               in
                 Local_Defs.fold lthy [sel_def]
                   (Drule.instantiate' (map SOME cTs) (map SOME cxs) case_thm)
@@ -255,8 +263,8 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
           let
             fun mk_goal ctr disc sels =
               Logic.all v (Logic.mk_implies (HOLogic.mk_Trueprop (disc $ v),
-                HOLogic.mk_Trueprop (HOLogic.mk_eq ((null sels ? swap)
-                  (Term.list_comb (ctr, map (fn sel => sel $ v) sels), v)))));
+                mk_Trueprop_eq ((null sels ? swap)
+                  (Term.list_comb (ctr, map (fn sel => sel $ v) sels), v))));
             val goals = map3 mk_goal ctrs discs selss;
           in
             map4 (fn goal => fn m => fn discD => fn sel_thms =>
@@ -275,19 +283,28 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
 
             val lhs = Term.list_comb (caseofB, eta_fs) $ v;
             val rhs = mk_rhs discs fs selss;
-            val goal = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
-
-            val Tinst = map (pairself (certifyT lthy)) (map Logic.varifyT_global As ~~ As);
-            val exhaust_thm' =
-              Drule.instantiate' [] [SOME (certify lthy v)]
-                (Thm.instantiate (Tinst, []) (Drule.zero_var_indexes exhaust_thm));
+            val goal = mk_Trueprop_eq (lhs, rhs);
           in
             Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
               mk_case_disc_tac ctxt exhaust_thm' case_thms disc_thms sel_thmss)
             |> singleton (Proof_Context.export names_lthy lthy)
           end;
 
-        val case_cong_thm = TrueI;
+        val case_cong_thm =
+          let
+            fun mk_prem xctr xs f g =
+              fold_rev Logic.all xs (Logic.mk_implies (mk_Trueprop_eq (v, xctr),
+                mk_Trueprop_eq (f, g)));
+            fun mk_caseof_term fs v = Term.list_comb (caseofB, fs) $ v;
+
+            val goal =
+              Logic.list_implies (mk_Trueprop_eq (v, w) :: map4 mk_prem xctrs xss fs gs,
+                 mk_Trueprop_eq (mk_caseof_term eta_fs v, mk_caseof_term eta_gs w));
+          in
+            Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
+              mk_case_cong_tac ctxt exhaust_thm' case_thms)
+            |> singleton (Proof_Context.export names_lthy lthy)
+          end;
 
         val weak_case_cong_thms = TrueI;
 

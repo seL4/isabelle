@@ -7,6 +7,7 @@ Tactics for sugar on top of a BNF.
 
 signature BNF_SUGAR_TACTICS =
 sig
+  val mk_case_cong_tac: Proof.context -> thm -> thm list -> tactic
   val mk_case_disc_tac: Proof.context -> thm -> thm list -> thm list -> thm list list -> tactic
   val mk_ctr_sel_tac: Proof.context -> int -> thm -> thm list -> tactic
   val mk_disc_exhaust_tac: int -> thm -> thm list -> tactic
@@ -24,6 +25,8 @@ open BNF_FP_Util
 fun eq_True_or_False thm =
   thm RS @{thm eq_False[THEN iffD2]}
   handle THM _ => thm RS @{thm eq_True[THEN iffD2]}
+
+fun context_ss_only thms = map_simpset (fn ss => Simplifier.clear_ss ss addsimps thms)
 
 fun mk_nchotomy_tac n exhaust =
   (rtac allI THEN' rtac exhaust THEN'
@@ -53,13 +56,16 @@ fun mk_ctr_sel_tac ctxt m discD sel_thms =
       SELECT_GOAL (Local_Defs.unfold_tac ctxt sel_thms) THEN'
       rtac refl)) 1;
 
-fun mk_case_disc_tac ctxt exhaust case_thms disc_thms sel_thmss =
+fun mk_case_disc_tac ctxt exhaust' case_thms disc_thms sel_thmss =
   let val base_unfolds = @{thms if_True if_False} @ map eq_True_or_False disc_thms in
-    (rtac exhaust THEN'
+    (rtac exhaust' THEN'
      EVERY' (map2 (fn case_thm => fn sel_thms => EVERY' [
        hyp_subst_tac THEN'
        SELECT_GOAL (Local_Defs.unfold_tac ctxt (base_unfolds @ sel_thms)) THEN'
        rtac case_thm]) case_thms sel_thmss)) 1
   end;
+
+fun mk_case_cong_tac ctxt exhaust' case_thms =
+  rtac exhaust' 1 THEN ALLGOALS (clarsimp_tac (context_ss_only case_thms ctxt));
 
 end;
