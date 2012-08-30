@@ -181,7 +181,7 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
             Skip_Proof.prove lthy [] [] goal (fn _ => mk_nchotomy_tac n exhaust_thm)
           end;
 
-        val sel_thms =
+        val sel_thmss =
           let
             fun mk_thm k xs goal_case case_thm x sel_def =
               let
@@ -197,15 +197,15 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
             fun mk_thms k xs goal_case case_thm sel_defs =
               map2 (mk_thm k xs goal_case case_thm) xs sel_defs;
           in
-            flat (map5 mk_thms ks xss goal_cases case_thms sel_defss)
+            map5 mk_thms ks xss goal_cases case_thms sel_defss
           end;
 
+        val discD_thms = map (fn def => def RS iffD1) disc_defs;
         val discI_thms =
-          map2 (fn m => fn disc_def => funpow m (fn thm => exI RS thm) (disc_def RS iffD2))
-            ms disc_defs;
+          map2 (fn m => fn def => funpow m (fn thm => exI RS thm) (def RS iffD2)) ms disc_defs;
         val not_disc_thms =
-          map2 (fn m => fn disc_def => funpow m (fn thm => allI RS thm)
-                  (Local_Defs.unfold lthy @{thms not_ex} (disc_def RS @{thm ssubst[of _ _ Not]})))
+          map2 (fn m => fn def => funpow m (fn thm => allI RS thm)
+                  (Local_Defs.unfold lthy @{thms not_ex} (def RS @{thm ssubst[of _ _ Not]})))
             ms disc_defs;
 
         val disc_thms =
@@ -227,13 +227,13 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
                 HOLogic.mk_Trueprop (HOLogic.mk_not (disc' $ v))));
             fun prove tac goal = Skip_Proof.prove lthy [] [] goal (K tac);
 
-            val bundles = ks ~~ ms ~~ disc_defs ~~ discs;
+            val bundles = ks ~~ ms ~~ discD_thms ~~ discs;
             val half_pairs = mk_half_pairs bundles;
 
             val goal_halves = map mk_goal half_pairs;
             val half_thms =
-              map2 (fn ((((k, m), disc_def), _), (((k', _), _), _)) =>
-                prove (mk_half_disc_disjoint_tac m disc_def (get_disc_thm k k')))
+              map2 (fn ((((k, m), discD), _), (((k', _), _), _)) =>
+                prove (mk_half_disc_disjoint_tac m discD (get_disc_thm k k')))
               half_pairs goal_halves;
 
             val goal_other_halves = map (mk_goal o swap) half_pairs;
@@ -251,7 +251,19 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
             Skip_Proof.prove lthy [] [] goal (fn _ => mk_disc_exhaust_tac n exhaust_thm discI_thms)
           end;
 
-        val ctr_sel_thms = [];
+        val ctr_sel_thms =
+          let
+            fun mk_goal ctr disc sels =
+              Logic.all v (Logic.mk_implies (HOLogic.mk_Trueprop (disc $ v),
+                HOLogic.mk_Trueprop (HOLogic.mk_eq ((null sels ? swap)
+                  (Term.list_comb (ctr, map (fn sel => sel $ v) sels), v)))));
+            val goals = map3 mk_goal ctrs discs selss;
+          in
+            map4 (fn goal => fn m => fn discD => fn sel_thms =>
+              Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
+                mk_ctr_sel_tac ctxt m discD sel_thms))
+              goals ms discD_thms sel_thmss
+          end;
 
         val case_disc_thms = [];
 
@@ -281,7 +293,7 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
         |> note exhaustN [exhaust_thm]
         |> note injectN inject_thms
         |> note nchotomyN [nchotomy_thm]
-        |> note selsN sel_thms
+        |> note selsN (flat sel_thmss)
         |> note splitN split_thms
         |> note split_asmN split_asm_thms
         |> note weak_case_cong_thmsN [weak_case_cong_thms]
