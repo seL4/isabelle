@@ -145,14 +145,14 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
         mk_imp_p (map2 mk_prem xctrs xss)
       end;
 
-    val goal_injects =
+    val goal_injectss =
       let
-        fun mk_goal _ _ [] [] = NONE
+        fun mk_goal _ _ [] [] = []
           | mk_goal xctr yctr xs ys =
-            SOME (mk_Trueprop_eq (HOLogic.mk_eq (xctr, yctr),
-              Library.foldr1 HOLogic.mk_conj (map2 (curry HOLogic.mk_eq) xs ys)));
+            [mk_Trueprop_eq (HOLogic.mk_eq (xctr, yctr),
+              Library.foldr1 HOLogic.mk_conj (map2 (curry HOLogic.mk_eq) xs ys))];
       in
-        map_filter I (map4 mk_goal xctrs yctrs xss yss)
+        map4 mk_goal xctrs yctrs xss yss
       end;
 
     val goal_half_distincts =
@@ -166,11 +166,12 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
         map3 mk_goal xctrs xss fs
       end;
 
-    val goals = [[goal_exhaust], goal_injects, goal_half_distincts, goal_cases];
+    val goals = [goal_exhaust] :: goal_injectss @ [goal_half_distincts, goal_cases];
 
     fun after_qed thmss lthy =
       let
-        val [[exhaust_thm], inject_thms, half_distinct_thms, case_thms] = thmss;
+        val ([exhaust_thm], (inject_thmss, [half_distinct_thms, case_thms])) =
+          (hd thmss, chop n (tl thmss));
 
         val exhaust_thm' =
           let val Tinst = map (pairself (certifyT lthy)) (map Logic.varifyT_global As ~~ As) in
@@ -333,7 +334,7 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
         |> note disc_exhaustN [disc_exhaust_thm]
         |> note distinctN (half_distinct_thms @ other_half_distinct_thms)
         |> note exhaustN [exhaust_thm]
-        |> note injectN inject_thms
+        |> note injectN (flat inject_thmss)
         |> note nchotomyN [nchotomy_thm]
         |> note selsN (flat sel_thmss)
         |> note splitN split_thms
