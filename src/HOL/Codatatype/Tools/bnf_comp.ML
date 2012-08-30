@@ -15,16 +15,16 @@ sig
   val rel_unfolds_of: unfold_thms -> thm list
   val pred_unfolds_of: unfold_thms -> thm list
 
-  val default_comp_sort: (string * sort) list list -> (string * sort) list
   val bnf_of_typ: BNF_Def.const_policy -> binding -> (binding -> binding) ->
     ((string * sort) list list -> (string * sort) list) -> typ -> unfold_thms * Proof.context ->
     (BNF_Def.BNF * (typ list * typ list)) * (unfold_thms * Proof.context)
   val bnf_of_typ_cmd: binding * string -> Proof.context -> Proof.context
-  val seal_bnf: unfold_thms -> binding -> typ list -> BNF_Def.BNF -> Proof.context ->
-    BNF_Def.BNF * local_theory
+  val default_comp_sort: (string * sort) list list -> (string * sort) list
   val normalize_bnfs: (int -> binding -> binding) -> ''a list list -> ''a list ->
     (''a list list -> ''a list) -> BNF_Def.BNF list -> unfold_thms -> Proof.context ->
     (int list list * ''a list) * (BNF_Def.BNF list * (unfold_thms * Proof.context))
+  val seal_bnf: unfold_thms -> binding -> typ list -> BNF_Def.BNF -> Proof.context ->
+    BNF_Def.BNF * local_theory
 end;
 
 structure BNF_Comp : BNF_COMP =
@@ -600,6 +600,74 @@ fun permute_bnf_cmd ((src, dest), raw_bnf) lthy =
   (snd o snd) (permute_bnf I src dest (the (bnf_of lthy raw_bnf))
     (empty_unfold, lthy));
 
+(* Composition pipeline *)
+
+fun permute_and_kill qualify n src dest bnf =
+  bnf
+  |> permute_bnf qualify src dest
+  #> uncurry (killN_bnf qualify n);
+
+fun lift_and_permute qualify n src dest bnf =
+  bnf
+  |> liftN_bnf qualify n
+  #> uncurry (permute_bnf qualify src dest);
+
+fun normalize_bnfs qualify Ass Ds sort bnfs unfold lthy =
+  let
+    val before_kill_src = map (fn As => 0 upto (length As - 1)) Ass;
+    val kill_poss = map (find_indices Ds) Ass;
+    val live_poss = map2 (subtract (op =)) kill_poss before_kill_src;
+    val before_kill_dest = map2 append kill_poss live_poss;
+    val kill_ns = map length kill_poss;
+    val (inners', (unfold', lthy')) =
+      fold_map5 (fn i => permute_and_kill (qualify i))
+        (if length bnfs = 1 then [0] else (1 upto length bnfs))
+        kill_ns before_kill_src before_kill_dest bnfs (unfold, lthy);
+
+    val Ass' = map2 (map o nth) Ass live_poss;
+    val As = sort Ass';
+    val after_lift_dest = replicate (length Ass') (0 upto (length As - 1));
+    val old_poss = map (map (fn x => find_index (fn y => x = y) As)) Ass';
+    val new_poss = map2 (subtract (op =)) old_poss after_lift_dest;
+    val after_lift_src = map2 append new_poss old_poss;
+    val lift_ns = map (fn xs => length As - length xs) Ass';
+  in
+    ((kill_poss, As), fold_map5 (fn i => lift_and_permute (qualify i))
+      (if length bnfs = 1 then [0] else (1 upto length bnfs))
+      lift_ns after_lift_src after_lift_dest inners' (unfold', lthy'))
+  end;
+
+fun default_comp_sort Ass =
+  Library.sort (Term_Ord.typ_ord o pairself TFree) (fold (fold (insert (op =))) Ass []);
+
+fun compose_bnf const_policy qualify' b sort outer inners oDs Dss tfreess (unfold, lthy) =
+  let
+    val name = Binding.name_of b;
+    fun qualify i bind =
+      let val namei = if i > 0 then name ^ string_of_int i else name;
+      in
+        if member (op =) (#2 (Binding.dest bind)) (namei, true) then qualify' bind
+        else qualify' (Binding.prefix_name namei bind)
+      end;
+
+    val Ass = map (map dest_TFree) tfreess;
+    val Ds = fold (fold Term.add_tfreesT) (oDs :: Dss) [];
+
+    val ((kill_poss, As), (inners', (unfold', lthy'))) =
+      normalize_bnfs qualify Ass Ds sort inners unfold lthy;
+
+    val Ds = oDs @ flat (map3 (append oo map o nth) tfreess kill_poss Dss);
+    val As = map TFree As;
+  in
+    apfst (rpair (Ds, As)) (clean_compose_bnf const_policy I b outer inners' (unfold', lthy'))
+  end;
+
+fun compose_bnf_cmd (((((b, outer), inners), oDs), Dss), Ass) lthy = (snd o snd)
+  (compose_bnf Dont_Inline I b default_comp_sort (the (bnf_of lthy outer))
+    (map (the o bnf_of lthy) inners)
+    (map (Syntax.read_typ lthy) oDs) (map (map (Syntax.read_typ lthy)) Dss)
+    (map (map (Syntax.read_typ lthy)) Ass) (empty_unfold, lthy));
+
 (* Hide the type of the bound (optimization) and unfold the definitions (nicer to the user) *)
 
 fun seal_bnf unfold b Ds bnf lthy =
@@ -703,74 +771,6 @@ fun seal_bnf unfold b Ds bnf lthy =
       |> note pred_unfoldN [pred_unfold])
   end;
 
-(* Composition pipeline *)
-
-fun permute_and_kill qualify n src dest bnf =
-  bnf
-  |> permute_bnf qualify src dest
-  #> uncurry (killN_bnf qualify n);
-
-fun lift_and_permute qualify n src dest bnf =
-  bnf
-  |> liftN_bnf qualify n
-  #> uncurry (permute_bnf qualify src dest);
-
-fun normalize_bnfs qualify Ass Ds sort bnfs unfold lthy =
-  let
-    val before_kill_src = map (fn As => 0 upto (length As - 1)) Ass;
-    val kill_poss = map (find_indices Ds) Ass;
-    val live_poss = map2 (subtract (op =)) kill_poss before_kill_src;
-    val before_kill_dest = map2 append kill_poss live_poss;
-    val kill_ns = map length kill_poss;
-    val (inners', (unfold', lthy')) =
-      fold_map5 (fn i => permute_and_kill (qualify i))
-        (if length bnfs = 1 then [0] else (1 upto length bnfs))
-        kill_ns before_kill_src before_kill_dest bnfs (unfold, lthy);
-
-    val Ass' = map2 (map o nth) Ass live_poss;
-    val As = sort Ass';
-    val after_lift_dest = replicate (length Ass') (0 upto (length As - 1));
-    val old_poss = map (map (fn x => find_index (fn y => x = y) As)) Ass';
-    val new_poss = map2 (subtract (op =)) old_poss after_lift_dest;
-    val after_lift_src = map2 append new_poss old_poss;
-    val lift_ns = map (fn xs => length As - length xs) Ass';
-  in
-    ((kill_poss, As), fold_map5 (fn i => lift_and_permute (qualify i))
-      (if length bnfs = 1 then [0] else (1 upto length bnfs))
-      lift_ns after_lift_src after_lift_dest inners' (unfold', lthy'))
-  end;
-
-fun default_comp_sort Ass =
-  Library.sort (Term_Ord.typ_ord o pairself TFree) (fold (fold (insert (op =))) Ass []);
-
-fun compose_bnf const_policy qualify' b sort outer inners oDs Dss tfreess (unfold, lthy) =
-  let
-    val name = Binding.name_of b;
-    fun qualify i bind =
-      let val namei = if i > 0 then name ^ string_of_int i else name;
-      in
-        if member (op =) (#2 (Binding.dest bind)) (namei, true) then qualify' bind
-        else qualify' (Binding.prefix_name namei bind)
-      end;
-
-    val Ass = map (map dest_TFree) tfreess;
-    val Ds = fold (fold Term.add_tfreesT) (oDs :: Dss) [];
-
-    val ((kill_poss, As), (inners', (unfold', lthy'))) =
-      normalize_bnfs qualify Ass Ds sort inners unfold lthy;
-
-    val Ds = oDs @ flat (map3 (append oo map o nth) tfreess kill_poss Dss);
-    val As = map TFree As;
-  in
-    apfst (rpair (Ds, As)) (clean_compose_bnf const_policy I b outer inners' (unfold', lthy'))
-  end;
-
-fun compose_bnf_cmd (((((b, outer), inners), oDs), Dss), Ass) lthy = (snd o snd)
-  (compose_bnf Dont_Inline I b default_comp_sort (the (bnf_of lthy outer))
-    (map (the o bnf_of lthy) inners)
-    (map (Syntax.read_typ lthy) oDs) (map (map (Syntax.read_typ lthy)) Dss)
-    (map (map (Syntax.read_typ lthy)) Ass) (empty_unfold, lthy));
-
 fun bnf_of_typ _ _ _ _ (T as TFree _) (unfold, lthy) =
     ((Basic_BNFs.ID_bnf, ([], [T])), (add_to_unfold_opt NONE NONE
       (SOME Basic_BNFs.ID_rel_def) (SOME Basic_BNFs.ID_pred_def) unfold, lthy))
@@ -823,9 +823,14 @@ fun bnf_of_typ _ _ _ _ (T as TFree _) (unfold, lthy) =
         end
     end;
 
-fun bnf_of_typ_cmd (b, rawT) lthy = (snd o snd)
-  (bnf_of_typ Dont_Inline b I default_comp_sort (Syntax.read_typ lthy rawT)
-    (empty_unfold, lthy));
+fun bnf_of_typ_cmd (b, rawT) lthy =
+  let
+    val ((bnf, (Ds, As)), (unfold, lthy')) =
+      bnf_of_typ Smart_Inline b I default_comp_sort (Syntax.read_typ lthy rawT)
+        (empty_unfold, lthy);
+  in
+    snd (seal_bnf unfold b Ds bnf lthy')
+  end;
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "bnf_of_typ"} "parse a type as composition of BNFs"
