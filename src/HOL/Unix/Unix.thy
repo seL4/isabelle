@@ -952,7 +952,7 @@ proof -
     with tr obtain opt where root': "root' = update (path_of x) opt root"
       by cases auto
     show ?thesis
-    proof (rule prefix_cases)
+    proof (rule prefixeq_cases)
       assume "path_of x \<parallel> path"
       with inv root'
       have "\<And>perms. access root' path user\<^isub>1 perms = access root path user\<^isub>1 perms"
@@ -960,7 +960,7 @@ proof -
       with inv show "invariant root' path"
         by (simp only: invariant_def)
     next
-      assume "path_of x \<le> path"
+      assume "prefixeq (path_of x) path"
       then obtain ys where path: "path = path_of x @ ys" ..
 
       show ?thesis
@@ -997,7 +997,7 @@ proof -
           by (simp only: invariant_def access_def)
       qed
     next
-      assume "path < path_of x"
+      assume "prefix path (path_of x)"
       then obtain y ys where path: "path_of x = path @ y # ys" ..
 
       obtain dir' where

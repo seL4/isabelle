@@ -5,7 +5,7 @@
 header {* List prefixes, suffixes, and embedding*}
 
 theory Sublist
-imports List Main
+imports Main
 begin
 
 subsection {* Prefix order on lists *}

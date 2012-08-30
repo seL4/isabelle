@@ -646,7 +646,7 @@ fun mk_prefCl_Lev_tac cts Lev_0s Lev_Sucs =
       REPEAT_DETERM o rtac allI,
       CONJ_WRAP' (fn Lev_0 =>
         EVERY' [rtac impI, etac conjE, dtac (Lev_0 RS equalityD1 RS @{thm set_mp}),
-          etac @{thm singletonE}, hyp_subst_tac, dtac @{thm prefix_Nil[THEN subst, of "%x. x"]},
+          etac @{thm singletonE}, hyp_subst_tac, dtac @{thm prefixeq_Nil[THEN subst, of "%x. x"]},
           hyp_subst_tac, rtac @{thm set_mp[OF equalityD2[OF trans[OF arg_cong[OF list.size(3)]]]]},
           rtac Lev_0, rtac @{thm singletonI}]) Lev_0s,
       REPEAT_DETERM o rtac allI,
@@ -654,7 +654,7 @@ fun mk_prefCl_Lev_tac cts Lev_0s Lev_Sucs =
         EVERY' [rtac impI, etac conjE, dtac (Lev_Suc RS equalityD1 RS @{thm set_mp}),
           CONJ_WRAP_GEN' (etac (Thm.permute_prems 1 1 UnE))
             (fn i => EVERY' [REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE], hyp_subst_tac,
-              dtac @{thm prefix_Cons[THEN subst, of "%x. x"]}, etac disjE, hyp_subst_tac,
+              dtac @{thm prefixeq_Cons[THEN subst, of "%x. x"]}, etac disjE, hyp_subst_tac,
               rtac @{thm set_mp[OF equalityD2[OF trans[OF arg_cong[OF list.size(3)]]]]},
               rtac Lev_0, rtac @{thm singletonI},
               REPEAT_DETERM o eresolve_tac [exE, conjE], hyp_subst_tac,
@@ -845,7 +845,7 @@ fun mk_mor_beh_tac m mor_def mor_cong beh_defs carT_defs strT_defs isNode_defs
         rtac conjI,
           rtac @{thm prefCl_UN}, rtac ssubst, rtac @{thm PrefCl_def}, REPEAT_DETERM o rtac allI,
           rtac impI, etac conjE, rtac exI, rtac conjI, rtac @{thm ord_le_eq_trans},
-          etac @{thm prefix_length_le}, etac length_Lev, rtac prefCl_Lev, etac conjI, atac,
+          etac @{thm prefixeq_length_le}, etac length_Lev, rtac prefCl_Lev, etac conjI, atac,
         rtac conjI,
           rtac ballI, etac @{thm UN_E}, rtac conjI,
           if n = 1 then K all_tac else rtac (mk_sumEN n),
