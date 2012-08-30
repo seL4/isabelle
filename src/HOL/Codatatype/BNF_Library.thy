@@ -8,7 +8,9 @@ Library for bounded natural functors.
 header {* Library for Bounded Natural Functors *}
 
 theory BNF_Library
-imports "../Ordinals_and_Cardinals/Cardinal_Arithmetic" "~~/src/HOL/Library/Sublist"
+imports
+  "../Ordinals_and_Cardinals/Cardinal_Arithmetic"
+  "~~/src/HOL/Library/Prefix_Order"
   Equiv_Relations_More
 begin
 
@@ -654,23 +656,16 @@ lemmas sh_def = Shift_def shift_def
 lemma empty_Shift: "\<lbrakk>[] \<in> Kl; k \<in> Succ Kl []\<rbrakk> \<Longrightarrow> [] \<in> Shift Kl k"
 unfolding Shift_def Succ_def by simp
 
-instantiation list :: (type) order
-begin
-  definition "(xs::'a list) \<le> ys \<equiv> prefixeq xs ys"
-  definition "(xs::'a list) < ys \<equiv> xs \<le> ys \<and> \<not> (ys \<le> xs)"
-
-instance by (default, unfold less_eq_list_def less_list_def) auto
-end
-
 lemma Shift_clists: "Kl \<subseteq> Field (clists r) \<Longrightarrow> Shift Kl k \<subseteq> Field (clists r)"
 unfolding Shift_def clists_def Field_card_of by auto
+
 lemma Shift_prefCl: "prefCl Kl \<Longrightarrow> prefCl (Shift Kl k)"
 unfolding prefCl_def Shift_def
 proof safe
   fix kl1 kl2
   assume "\<forall>kl1 kl2. kl1 \<le> kl2 \<and> kl2 \<in> Kl \<longrightarrow> kl1 \<in> Kl"
     "kl1 \<le> kl2" "k # kl2 \<in> Kl"
-  thus "k # kl1 \<in> Kl" using Cons_prefixeq_Cons[of k kl1 k kl2, folded less_eq_list_def] by blast
+  thus "k # kl1 \<in> Kl" using Cons_prefix_Cons[of k kl1 k kl2] by blast
 qed
 
 lemma not_in_Shift: "kl \<notin> Shift Kl x \<Longrightarrow> x # kl \<notin> Kl"
@@ -679,7 +674,7 @@ unfolding Shift_def by simp
 lemma prefCl_Succ: "\<lbrakk>prefCl Kl; k # kl \<in> Kl\<rbrakk> \<Longrightarrow> k \<in> Succ Kl []"
 unfolding Succ_def proof
   assume "prefCl Kl" "k # kl \<in> Kl"
-  moreover have "k # [] \<le> k # kl" unfolding less_eq_list_def by auto
+  moreover have "k # [] \<le> k # kl" by auto
   ultimately have "k # [] \<in> Kl" unfolding prefCl_def by blast
   thus "[] @ [k] \<in> Kl" by simp
 qed
