@@ -18,7 +18,7 @@ open BNF_Sugar_Tactics
 
 val distinctN = "distinct";
 
-fun prepare_sugar prep_term (((raw_ctors, dtor_names), stor_namess), raw_caseof) no_defs_lthy =
+fun prepare_sugar prep_term (((raw_ctors, raw_caseof), dtor_names), stor_namess) no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
 
@@ -147,8 +147,8 @@ val bnf_sugar_cmd = (fn (goalss, after_qed, lthy) =>
 
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "bnf_sugar"} "adds sugar on top of a BNF"
-    (((Parse.$$$ "[" |-- Parse.list Parse.term --| Parse.$$$ "]") --
-      parse_binding_list -- (Parse.$$$ "[" |-- Parse.list parse_binding_list --| Parse.$$$ "]") --
-      Parse.term) >> bnf_sugar_cmd);
+    (((Parse.$$$ "[" |-- Parse.list Parse.term --| Parse.$$$ "]") -- Parse.term --
+      parse_binding_list -- (Parse.$$$ "[" |-- Parse.list parse_binding_list --| Parse.$$$ "]"))
+      >> bnf_sugar_cmd);
 
 end;
