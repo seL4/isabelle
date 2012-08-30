@@ -29,10 +29,13 @@ val splitN = "split"
 val split_asmN = "split_asm"
 val weak_case_cong_thmsN = "weak_case_cong"
 
-fun index_of_triangle_row _ 0 = 0
-  | index_of_triangle_row n j = index_of_triangle_row n (j - 1) + n - j;
+fun mk_half_pairs [] = []
+  | mk_half_pairs (x :: xs) = fold_rev (cons o pair x) xs (mk_half_pairs xs);
 
-fun index_of_triangle_cell n j k = index_of_triangle_row n j + k - (j + 1);
+fun index_of_half_row _ 0 = 0
+  | index_of_half_row n j = index_of_half_row n (j - 1) + n - j;
+
+fun index_of_half_cell n j k = index_of_half_row n j + k - (j + 1);
 
 fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) no_defs_lthy =
   let
@@ -57,24 +60,22 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
     fun mk_undef T Ts = Const (@{const_name undefined}, Ts ---> T);
 
     fun mk_ctr Ts ctr =
-      let
-        val Ts0 = snd (dest_Type (body_type (fastype_of ctr)));
-      in
+      let val Ts0 = snd (dest_Type (body_type (fastype_of ctr))) in
         Term.subst_atomic_types (Ts0 ~~ Ts) ctr
       end;
 
-    fun mk_caseof T =
-      let
-        val (binders, body) = strip_type (fastype_of caseof0);
-      in
-        Term.subst_atomic_types ((body, T) :: (snd (dest_Type (List.last binders)) ~~ As)) caseof0
+    fun mk_caseof Ts T =
+      let val (binders, body) = strip_type (fastype_of caseof0) in
+        Term.subst_atomic_types ((body, T) :: (snd (dest_Type (List.last binders)) ~~ Ts)) caseof0
       end;
 
     val T = Type (T_name, As);
     val ctrs = map (mk_ctr As) ctrs0;
     val ctr_Tss = map (binder_types o fastype_of) ctrs;
 
-    val caseofB = mk_caseof B;
+    val ms = map length ctr_Tss;
+
+    val caseofB = mk_caseof As B;
     val caseofB_Ts = map (fn Ts => Ts ---> B) ctr_Tss;
 
     val (((((xss, yss), fs), (v, v')), p), _) = no_defs_lthy |>
@@ -98,32 +99,37 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
       HOLogic.mk_Trueprop (HOLogic.mk_eq (Free (Binding.name_of b, T --> HOLogic.boolT) $ v,
         exist_xs_v_eq_ctr));
 
-    fun sel_spec b x xs xctr k =
+    fun sel_spec b x xs k =
       let val T' = fastype_of x in
         HOLogic.mk_Trueprop (HOLogic.mk_eq (Free (Binding.name_of b, T --> T') $ v,
-            Term.list_comb (mk_caseof T', mk_caseof_args k xs x T') $ v))
+            Term.list_comb (mk_caseof As T', mk_caseof_args k xs x T') $ v))
       end;
 
-    val (((discs0, (_, disc_defs0)), (selss0, (_, sel_defss0))), (lthy', lthy)) =
+    val (((raw_discs, (_, raw_disc_defs)), (raw_selss, (_, raw_sel_defss))), (lthy', lthy)) =
       no_defs_lthy
       |> apfst (apsnd split_list o split_list) o fold_map2 (fn b => fn exist_xs_v_eq_ctr =>
         Specification.definition (SOME (b, NONE, NoSyn),
           ((Thm.def_binding b, []), disc_spec b exist_xs_v_eq_ctr))) disc_names exist_xs_v_eq_ctrs
-      ||>> apfst (apsnd split_list o split_list) o fold_map4 (fn bs => fn xs => fn xctr => fn k =>
+      ||>> apfst (apsnd split_list o split_list) o fold_map3 (fn bs => fn xs => fn k =>
         apfst (apsnd split_list o split_list) o fold_map2 (fn b => fn x =>
           Specification.definition (SOME (b, NONE, NoSyn),
-            ((Thm.def_binding b, []), sel_spec b x xs xctr k))) bs xs) sel_namess xss xctrs
-            ks
+            ((Thm.def_binding b, []), sel_spec b x xs k))) bs xs) sel_namess xss ks
       ||> `Local_Theory.restore;
 
     (*transforms defined frees into consts (and more)*)
     val phi = Proof_Context.export_morphism lthy lthy';
 
-    val disc_defs = map (Morphism.thm phi) disc_defs0;
-    val sel_defss = map (map (Morphism.thm phi)) sel_defss0;
+    val disc_defs = map (Morphism.thm phi) raw_disc_defs;
+    val sel_defss = map (map (Morphism.thm phi)) raw_sel_defss;
 
-    val discs = map (Morphism.term phi) discs0;
-    val selss = map (map (Morphism.term phi)) selss0;
+    val discs0 = map (Morphism.term phi) raw_discs;
+    val selss0 = map (map (Morphism.term phi)) raw_selss;
+
+    fun mk_disc_or_sel Ts t =
+      Term.subst_atomic_types (snd (dest_Type (domain_type (fastype_of t))) ~~ Ts) t;
+
+    val discs = map (mk_disc_or_sel As) discs0;
+    val selss = map (map (mk_disc_or_sel As)) selss0;
 
     val goal_exhaust =
       let
@@ -146,22 +152,15 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
       end;
 
     val goal_half_distincts =
-      let
-        fun mk_goal t u = HOLogic.mk_Trueprop (HOLogic.mk_not (HOLogic.mk_eq (t, u)));
-        fun mk_goals [] = []
-          | mk_goals (t :: ts) = fold_rev (cons o mk_goal t) ts (mk_goals ts);
-      in
-        mk_goals xctrs
-      end;
+      map (HOLogic.mk_Trueprop o HOLogic.mk_not o HOLogic.mk_eq) (mk_half_pairs xctrs);
 
     val goal_cases =
       let
         val lhs0 = Term.list_comb (caseofB, eta_fs);
-        fun mk_goal k xctr xs f =
-          HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs0 $ xctr, Term.list_comb (f, xs)))
-          |> tap (tracing o prefix "HERE: " o PolyML.makestring)(*###*);
+        fun mk_goal xctr xs f =
+          HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs0 $ xctr, Term.list_comb (f, xs)));
       in
-        map4 mk_goal ks xctrs xss fs
+        map3 mk_goal xctrs xss fs
       end;
 
     val goals = [[goal_exhaust], goal_injects, goal_half_distincts, goal_cases];
@@ -183,7 +182,7 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
 
         val sel_thms =
           let
-            fun mk_thm k xs goal_case case_thm x sel sel_def =
+            fun mk_thm k xs goal_case case_thm x sel_def =
               let
                 val T = fastype_of x;
                 val cTs =
@@ -194,28 +193,54 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
                 Local_Defs.fold lthy [sel_def]
                   (Drule.instantiate' (map SOME cTs) (map SOME cxs) case_thm)
               end;
-            fun mk_thms k xs goal_case case_thm sels sel_defs =
-              map3 (mk_thm k xs goal_case case_thm) xs sels sel_defs;
+            fun mk_thms k xs goal_case case_thm sel_defs =
+              map2 (mk_thm k xs goal_case case_thm) xs sel_defs;
           in
-            flat (map6 mk_thms ks xss goal_cases case_thms selss sel_defss)
+            flat (map5 mk_thms ks xss goal_cases case_thms sel_defss)
           end;
+
+        val discI_thms =
+          map2 (fn m => fn disc_def => funpow m (fn thm => exI RS thm) (disc_def RS iffD2))
+            ms disc_defs;
+        val not_disc_thms =
+          map2 (fn m => fn disc_def => funpow m (fn thm => allI RS thm)
+                  (Local_Defs.unfold lthy @{thms not_ex} (disc_def RS @{thm ssubst[of _ _ Not]})))
+            ms disc_defs;
 
         val disc_thms =
           let
             fun get_distinct_thm k k' =
-              if k > k' then nth half_distinct_thms (index_of_triangle_cell n (k' - 1) (k - 1))
-              else nth other_half_distinct_thms (index_of_triangle_cell n (k' - 1) (k' - 1))
-            fun mk_thm ((k, m), disc_def) k' =
-              if k = k' then
-                refl RS (funpow m (fn thm => exI RS thm) (disc_def RS iffD2))
-              else
-                get_distinct_thm k k' RS (funpow m (fn thm => allI RS thm)
-                  (Local_Defs.unfold lthy @{thms not_ex} (disc_def RS @{thm ssubst[of _ _ Not]})));
+              if k > k' then nth half_distinct_thms (index_of_half_cell n (k' - 1) (k - 1))
+              else nth other_half_distinct_thms (index_of_half_cell n (k' - 1) (k' - 1))
+            fun mk_thm ((k, discI), not_disc) k' =
+              if k = k' then refl RS discI else get_distinct_thm k k' RS not_disc;
           in
-            map_product mk_thm (ks ~~ map length ctr_Tss ~~ disc_defs) ks
+            map_product mk_thm (ks ~~ discI_thms ~~ not_disc_thms) ks
           end;
 
-        val disc_disjoint_thms = [];
+        val disc_disjoint_thms =
+          let
+            fun get_disc_thm k k' = nth disc_thms ((k' - 1) * n + (k - 1));
+            fun mk_goal ((_, disc), (_, disc')) =
+              Logic.mk_implies (HOLogic.mk_Trueprop (disc $ v),
+                HOLogic.mk_Trueprop (HOLogic.mk_not (disc' $ v)));
+            fun prove tac goal = Skip_Proof.prove lthy [] [] goal (K tac);
+
+            val bundles = ks ~~ ms ~~ disc_defs ~~ discs;
+            val half_pairs = mk_half_pairs bundles;
+
+            val goal_halves = map mk_goal half_pairs;
+            val half_thms =
+              map2 (fn ((((k, m), disc_def), _), (((k', _), _), _)) =>
+                prove (mk_half_disc_disjoint_tac m disc_def (get_disc_thm k k')))
+              half_pairs goal_halves;
+
+            val goal_other_halves = map (mk_goal o swap) half_pairs;
+            val other_half_thms =
+              map2 (prove o mk_other_half_disc_disjoint_tac) half_thms goal_other_halves;
+          in
+            half_thms @ other_half_thms
+          end;
 
         val disc_exhaust_thms = [];
 
