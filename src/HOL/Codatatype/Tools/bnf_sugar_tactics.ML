@@ -17,6 +17,6 @@ open BNF_FP_Util
 
 fun mk_nchotomy_tac n exhaust =
   (rtac allI THEN' rtac exhaust THEN'
-   EVERY' (maps (fn i => [rtac (mk_disjIN n i), REPEAT_DETERM o rtac exI, atac]) (1 upto n))) 1;
+   EVERY' (maps (fn k => [rtac (mk_disjIN n k), REPEAT_DETERM o rtac exI, atac]) (1 upto n))) 1;
 
 end;

@@ -18,20 +18,29 @@ open BNF_Sugar_Tactics
 
 val distinctN = "distinct";
 
-fun prepare_sugar prep_term (((raw_ctors, raw_dtors), raw_storss), raw_recur)
-  lthy =
+fun prepare_sugar prep_term (((raw_ctors, dtor_names), stor_namess), raw_caseof) no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
 
-    val ctors = map (prep_term lthy) raw_ctors;
+    val ctors = map (prep_term no_defs_lthy) raw_ctors;
     val ctor_Tss = map (binder_types o fastype_of) ctors;
 
-    val T as Type (T_name, _) = body_type (fastype_of (hd ctors));
+    val caseof = prep_term no_defs_lthy raw_caseof;
+
+    val T as Type (T_name, As) = body_type (fastype_of (hd ctors));
     val b = Binding.qualified_name T_name;
 
     val n = length ctors;
+    val ks = 1 upto n;
 
-    val ((((xss, yss), (v, v')), p), _) = lthy |>
+    fun mk_caseof T =
+      let
+        val (binders, body) = strip_type (fastype_of caseof);
+      in
+        Term.subst_atomic_types ((body, T) :: (snd (dest_Type (List.last binders)) ~~ As)) caseof
+      end;
+
+    val ((((xss, yss), (v, v')), p), no_defs_lthy') = no_defs_lthy |>
       mk_Freess "x" ctor_Tss
       ||>> mk_Freess "y" ctor_Tss
       ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "v") T
@@ -40,12 +49,41 @@ fun prepare_sugar prep_term (((raw_ctors, raw_dtors), raw_storss), raw_recur)
     val xs_ctors = map2 (curry Term.list_comb) ctors xss;
     val ys_ctors = map2 (curry Term.list_comb) ctors yss;
 
+    val exist_xs_v_eq_ctors =
+      map2 (fn xs_ctor => fn xs => list_exists_free xs (HOLogic.mk_eq (v, xs_ctor))) xs_ctors xss;
+
+    fun dtor_spec b exist_xs_v_eq_ctor =
+      HOLogic.mk_Trueprop
+        (HOLogic.mk_eq (Free (Binding.name_of b, T --> HOLogic.boolT) $ v, exist_xs_v_eq_ctor));
+
+    fun stor_spec b x xs xs_ctor k =
+      let
+        val T' = fastype_of x;
+      in
+        HOLogic.mk_Trueprop
+          (HOLogic.mk_eq (Free (Binding.name_of b, T --> T') $ v,
+            Term.list_comb (mk_caseof T', map2 (fn Ts => fn i =>
+              if i = k then fold_rev lambda xs x else Const (@{const_name undefined}, Ts ---> T'))
+              ctor_Tss ks) $ v))
+      end;
+
+    val ((dtor_defs, stor_defss), (lthy', lthy)) =
+      no_defs_lthy
+      |> fold_map2 (fn b => fn exist_xs_v_eq_ctor =>
+        Specification.definition (SOME (b, NONE, NoSyn),
+          ((Thm.def_binding b, []), dtor_spec b exist_xs_v_eq_ctor))) dtor_names exist_xs_v_eq_ctors
+      ||>> fold_map4 (fn bs => fn xs => fn xs_ctor => fn k =>
+        fold_map2 (fn b => fn x =>
+          Specification.definition (SOME (b, NONE, NoSyn),
+            ((Thm.def_binding b, []), stor_spec b x xs xs_ctor k))) bs xs) stor_namess xss xs_ctors
+          ks
+      ||> `Local_Theory.restore;
+
     val goal_exhaust =
       let
         fun mk_imp_p Q = Logic.list_implies (Q, HOLogic.mk_Trueprop p);
         fun mk_prem xs_ctor xs =
-          fold_rev Logic.all xs
-            (mk_imp_p [HOLogic.mk_Trueprop (HOLogic.mk_eq (v, xs_ctor))]);
+          fold_rev Logic.all xs (mk_imp_p [HOLogic.mk_Trueprop (HOLogic.mk_eq (v, xs_ctor))]);
       in
         mk_imp_p (map2 mk_prem xs_ctors xss)
       end;
@@ -80,11 +118,9 @@ fun prepare_sugar prep_term (((raw_ctors, raw_dtors), raw_storss), raw_recur)
 
         val nchotomy_thm =
           let
-            fun mk_disjunct xs_ctor xs = list_exists_free xs (HOLogic.mk_eq (v, xs_ctor))
             val goal =
-              HOLogic.mk_Trueprop
-                (HOLogic.mk_all (fst v', snd v',
-                   Library.foldr1 HOLogic.mk_disj (map2 mk_disjunct xs_ctors xss)));
+              HOLogic.mk_Trueprop (HOLogic.mk_all (fst v', snd v',
+                   Library.foldr1 HOLogic.mk_disj exist_xs_v_eq_ctors));
           in
             Skip_Proof.prove lthy [] [] goal (fn _ => mk_nchotomy_tac n exhaust_thm)
           end;
