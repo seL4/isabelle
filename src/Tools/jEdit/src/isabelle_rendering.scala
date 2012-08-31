@@ -293,8 +293,8 @@ object Isabelle_Rendering
         color <-
           (result match {
             case (Some(status), _) =>
-              if (status.is_running) Some(running1_color)
-              else if (status.is_unprocessed) Some(unprocessed1_color)
+              if (status.is_unprocessed) Some(unprocessed1_color)
+              else if (status.is_running) Some(running1_color)
               else None
             case (_, opt_color) => opt_color
           })

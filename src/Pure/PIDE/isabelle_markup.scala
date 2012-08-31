@@ -195,9 +195,9 @@ object Isabelle_Markup
   val ACCEPTED = "accepted"
   val FORKED = "forked"
   val JOINED = "joined"
-  val CANCELLED = "cancelled"
-  val FAILED = "failed"
+  val RUNNING = "running"
   val FINISHED = "finished"
+  val FAILED = "failed"
 
 
   /* interactive documents */
