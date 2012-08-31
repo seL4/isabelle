@@ -10,7 +10,7 @@ package isabelle.jedit
 import isabelle._
 
 import scala.actors.Actor._
-import scala.swing.{FlowPanel, Button, TextArea, Label, ListView, Alignment, Component}
+import scala.swing.{FlowPanel, Button, TextArea, Label, ListView, Alignment, ScrollPane, Component}
 import scala.swing.event.{ButtonClicked, MouseClicked, SelectionChanged}
 
 import java.lang.System
@@ -36,7 +36,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   status.peer.setLayoutOrientation(JList.VERTICAL_WRAP)
   status.selection.intervalMode = ListView.IntervalMode.Single
 
-  set_content(status)
+  set_content(new ScrollPane(status))
 
 
   /* controls */

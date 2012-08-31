@@ -120,23 +120,9 @@ fun forked i =
           ("PROOFS " ^ Time.toString (Time.now ()) ^ ": " ^ string_of_int n));
     in n end);
 
-fun capture_status e =
-  let
-    val task_props =
-      (case Future.worker_task () of
-        NONE => I
-      | SOME task => Markup.properties [(Isabelle_Markup.taskN, Task_Queue.str_of_task task)]);
-    fun status m = Output.status (Markup.markup_only (task_props m));
-
-    val _ = status Isabelle_Markup.forked;
-    val result = Exn.capture (Future.interruptible_task e) ();
-    val _ =
-      (case result of
-        Exn.Res _ => status Isabelle_Markup.joined
-      | Exn.Exn exn =>
-          if Exn.is_interrupt exn then status Isabelle_Markup.cancelled
-          else status Isabelle_Markup.failed);
-  in result end;
+fun status task markups =
+  let val props = Markup.properties [(Isabelle_Markup.taskN, Task_Queue.str_of_task task)]
+  in Output.status (implode (map (Markup.markup_only o props) markups)) end;
 
 fun fork_name name e =
   uninterruptible (fn _ => fn () =>
@@ -145,7 +131,21 @@ fun fork_name name e =
       val future =
         (singleton o Future.forks)
           {name = name, group = NONE, deps = [], pri = ~1, interrupts = false}
-          (fn () => Exn.release (capture_status e before forked ~1));
+          (fn () =>
+            let
+              val task = the (Future.worker_task ());
+              val _ = status task [Isabelle_Markup.running];
+              val result = Exn.capture (Future.interruptible_task e) ();
+              val _ = status task [Isabelle_Markup.finished, Isabelle_Markup.joined];
+              val _ =
+                (case result of
+                  Exn.Res _ => ()
+                | Exn.Exn exn =>
+                    (status task [Isabelle_Markup.failed];
+                     Output.report (Markup.markup_only Isabelle_Markup.bad);
+                     Output.error_msg (ML_Compiler.exn_message exn)));
+            in Exn.release result end);
+      val _ = status (Future.task_of future) [Isabelle_Markup.forked];
     in future end) ();
 
 fun fork e = fork_name "Goal.fork" e;

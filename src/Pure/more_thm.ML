@@ -96,6 +96,7 @@ sig
   val kind_rule: string -> thm -> thm
   val kind: string -> attribute
   val register_proofs: thm list -> Context.generic -> Context.generic
+  val register_proofs_thy: thm list -> theory -> theory
   val begin_proofs: Context.generic -> Context.generic
   val join_local_proofs: Proof.context -> unit
   val join_recent_proofs: theory -> unit
@@ -493,6 +494,7 @@ structure Proofs = Generic_Data
 
 val begin_proofs = Proofs.map (apfst (K empty_proofs));
 val register_proofs = Proofs.map o pairself o add_proofs;
+val register_proofs_thy = Context.theory_map o register_proofs;
 
 val join_local_proofs = force_proofs o #1 o Proofs.get o Context.Proof;
 val join_recent_proofs = force_proofs o #1 o Proofs.get o Context.Theory;

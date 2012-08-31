@@ -89,9 +89,9 @@ sig
   val acceptedN: string val accepted: Markup.T
   val forkedN: string val forked: Markup.T
   val joinedN: string val joined: Markup.T
-  val cancelledN: string val cancelled: Markup.T
-  val failedN: string val failed: Markup.T
+  val runningN: string val running: Markup.T
   val finishedN: string val finished: Markup.T
+  val failedN: string val failed: Markup.T
   val serialN: string
   val legacyN: string val legacy: Markup.T
   val promptN: string val prompt: Markup.T
@@ -274,9 +274,9 @@ val taskN = "task";
 val (acceptedN, accepted) = markup_elem "accepted";
 val (forkedN, forked) = markup_elem "forked";
 val (joinedN, joined) = markup_elem "joined";
-val (cancelledN, cancelled) = markup_elem "cancelled";
-val (failedN, failed) = markup_elem "failed";
+val (runningN, running) = markup_elem "running";
 val (finishedN, finished) = markup_elem "finished";
+val (failedN, failed) = markup_elem "failed";
 
 
 (* messages *)

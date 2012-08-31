@@ -49,32 +49,34 @@ object Protocol
   }
 
   sealed case class Status(
+    private val touched: Boolean = false,
     private val accepted: Boolean = false,
-    private val finished: Boolean = false,
     private val failed: Boolean = false,
-    forks: Int = 0)
+    forks: Int = 0,
+    runs: Int = 0)
   {
-    def is_unprocessed: Boolean = accepted && !finished && !failed && forks == 0
-    def is_running: Boolean = forks != 0
-    def is_finished: Boolean = finished && forks == 0
-    def is_failed: Boolean = failed && forks == 0
     def + (that: Status): Status =
-      Status(accepted || that.accepted, finished || that.finished,
-        failed || that.failed, forks + that.forks)
+      Status(touched || that.touched, accepted || that.accepted, failed || that.failed,
+        forks + that.forks, runs + that.runs)
+
+    def is_unprocessed: Boolean = accepted && !failed && (!touched || (forks != 0 && runs == 0))
+    def is_running: Boolean = runs != 0
+    def is_finished: Boolean = !failed && touched && forks == 0 && runs == 0
+    def is_failed: Boolean = failed
   }
 
   val command_status_markup: Set[String] =
-    Set(Isabelle_Markup.ACCEPTED, Isabelle_Markup.FINISHED, Isabelle_Markup.FAILED,
-      Isabelle_Markup.FORKED, Isabelle_Markup.JOINED, Isabelle_Markup.CANCELLED)
+    Set(Isabelle_Markup.ACCEPTED, Isabelle_Markup.FORKED, Isabelle_Markup.JOINED,
+      Isabelle_Markup.RUNNING, Isabelle_Markup.FINISHED, Isabelle_Markup.FAILED)
 
   def command_status(status: Status, markup: Markup): Status =
     markup match {
       case Markup(Isabelle_Markup.ACCEPTED, _) => status.copy(accepted = true)
-      case Markup(Isabelle_Markup.FINISHED, _) => status.copy(finished = true)
-      case Markup(Isabelle_Markup.FAILED, _) => status.copy(failed = true)
-      case Markup(Isabelle_Markup.CANCELLED, _) => status.copy(failed = true)
-      case Markup(Isabelle_Markup.FORKED, _) => status.copy(forks = status.forks + 1)
+      case Markup(Isabelle_Markup.FORKED, _) => status.copy(touched = true, forks = status.forks + 1)
       case Markup(Isabelle_Markup.JOINED, _) => status.copy(forks = status.forks - 1)
+      case Markup(Isabelle_Markup.RUNNING, _) => status.copy(touched = true, runs = status.runs + 1)
+      case Markup(Isabelle_Markup.FINISHED, _) => status.copy(runs = status.runs - 1)
+      case Markup(Isabelle_Markup.FAILED, _) => status.copy(failed = true)
       case _ => status
     }
 

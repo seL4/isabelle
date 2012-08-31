@@ -166,8 +166,8 @@ object Isabelle_Rendering
               markup == Isabelle_Markup.WARNING ||
               markup == Isabelle_Markup.ERROR =>
             msgs + (serial -> tooltip_text(msg))
-          case (msgs, Text.Info(_, msg @ XML.Elem(Markup(Isabelle_Markup.BAD, _), _))) =>
-            msgs + (Document.new_id() -> tooltip_text(msg))
+          case (msgs, Text.Info(_, msg @ XML.Elem(Markup(Isabelle_Markup.BAD, _), body)))
+          if !body.isEmpty => msgs + (Document.new_id() -> tooltip_text(msg))
         }).toList.flatMap(_.info)
     if (msgs.isEmpty) None else Some(cat_lines(msgs.iterator.map(_._2)))
   }
@@ -292,10 +292,10 @@ object Isabelle_Rendering
             })
         color <-
           (result match {
-            case (Some(status), _) =>
-              if (status.is_running) Some(running1_color)
-              else if (status.is_unprocessed) Some(unprocessed1_color)
-              else None
+            case (Some(status), opt_color) =>
+              if (status.is_unprocessed) Some(unprocessed1_color)
+              else if (status.is_running) Some(running1_color)
+              else opt_color
             case (_, opt_color) => opt_color
           })
       } yield Text.Info(r, color)

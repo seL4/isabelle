@@ -48,6 +48,11 @@ object Command
                 val props = Position.purge(atts)
                 val info: Text.Markup = Text.Info(range, XML.Elem(Markup(name, props), args))
                 state.add_markup(info)
+              case XML.Elem(Markup(name, atts), args) =>
+                val range = command.proper_range
+                val props = Position.purge(atts)
+                val info: Text.Markup = Text.Info(range, XML.Elem(Markup(name, props), args))
+                state.add_markup(info)
               case _ =>
                 // FIXME System.err.println("Ignored report message: " + msg)
                 state

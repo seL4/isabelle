@@ -425,8 +425,9 @@ val unknown_context = imperative (fn () => warning "Unknown context");
 
 (* forked proofs *)
 
-val begin_proofs_thy = Context.theory_map Thm.begin_proofs #> Theory.checkpoint;
-val begin_proofs = Context.mapping begin_proofs_thy (Local_Theory.raw_theory begin_proofs_thy);
+val begin_proofs =
+  Context.mapping (Context.theory_map Thm.begin_proofs #> Theory.checkpoint)
+    Local_Theory.begin_proofs;
 
 fun join_recent_proofs st =
   (case try proof_of st of
