@@ -166,8 +166,8 @@ object Isabelle_Rendering
               markup == Isabelle_Markup.WARNING ||
               markup == Isabelle_Markup.ERROR =>
             msgs + (serial -> tooltip_text(msg))
-          case (msgs, Text.Info(_, msg @ XML.Elem(Markup(Isabelle_Markup.BAD, _), _))) =>
-            msgs + (Document.new_id() -> tooltip_text(msg))
+          case (msgs, Text.Info(_, msg @ XML.Elem(Markup(Isabelle_Markup.BAD, _), body)))
+          if !body.isEmpty => msgs + (Document.new_id() -> tooltip_text(msg))
         }).toList.flatMap(_.info)
     if (msgs.isEmpty) None else Some(cat_lines(msgs.iterator.map(_._2)))
   }
