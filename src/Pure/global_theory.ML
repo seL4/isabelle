@@ -124,7 +124,7 @@ fun name_thmss official name fact =
 
 (* enter_thms *)
 
-fun register_proofs thms thy = (thms, Context.theory_map (Thm.register_proofs thms) thy);
+fun register_proofs thms thy = (thms, Thm.register_proofs_thy thms thy);
 
 fun enter_thms pre_name post_name app_att (b, thms) thy =
   if Binding.is_empty b

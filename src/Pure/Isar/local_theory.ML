@@ -195,7 +195,7 @@ fun background_theory f = #2 o background_theory_result (f #> pair ());
 (* forked proofs *)
 
 val begin_proofs = background_theory (Context.theory_map Thm.begin_proofs);
-val register_proofs = background_theory o Context.theory_map o Thm.register_proofs;
+val register_proofs = background_theory o Thm.register_proofs_thy;
 
 
 (* target contexts *)
