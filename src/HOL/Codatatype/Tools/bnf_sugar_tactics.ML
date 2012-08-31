@@ -14,7 +14,8 @@ sig
   val mk_half_disc_disjoint_tac: int -> thm -> thm -> tactic
   val mk_nchotomy_tac: int -> thm -> tactic
   val mk_other_half_disc_disjoint_tac: thm -> tactic
-  val mk_split_tac:  Proof.context -> thm -> thm list -> thm list -> thm list -> tactic
+  val mk_split_tac: Proof.context -> thm -> thm list -> thm list -> thm list -> tactic
+  val mk_split_asm_tac: Proof.context -> thm -> tactic
 end;
 
 structure BNF_Sugar_Tactics : BNF_SUGAR_TACTICS =
@@ -76,5 +77,12 @@ fun mk_split_tac ctxt exhaust' case_thms injects distincts =
   ALLGOALS (hyp_subst_tac THEN'
     simp_tac (ss_only (@{thms simp_thms} @ case_thms @ injects @ distincts) HOL_basic_ss)) THEN
   ALLGOALS (blast_tac ctxt);
+
+val split_asm_thms = @{thms imp_conv_disj de_Morgan_conj de_Morgan_disj not_not not_ex};
+
+fun mk_split_asm_tac ctxt split =
+  rtac (split RS trans) 1 THEN
+  Local_Defs.unfold_tac ctxt split_asm_thms THEN
+  rtac refl 1;
 
 end;

@@ -316,20 +316,33 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
             |> pairself (singleton (Proof_Context.export names_lthy lthy))
           end;
 
-        val split_thm =
+        val (split_thm, split_asm_thm) =
           let
-            fun mk_clause xctr xs f_xs =
+            fun mk_conjunct xctr xs f_xs =
               list_all_free xs (HOLogic.mk_imp (HOLogic.mk_eq (v, xctr), q $ f_xs));
-            val goal =
-              mk_Trueprop_eq (q $ (mk_caseofB_term eta_fs $ v),
-                Library.foldr1 HOLogic.mk_conj (map3 mk_clause xctrs xss xfs));
-          in
-            Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-              mk_split_tac ctxt exhaust_thm' case_thms inject_thms distinct_thms)
-            |> singleton (Proof_Context.export names_lthy lthy)
-          end;
+            fun mk_disjunct xctr xs f_xs =
+              list_exists_free xs (HOLogic.mk_conj (HOLogic.mk_eq (v, xctr),
+                HOLogic.mk_not (q $ f_xs)));
 
-        val split_asm_thm = TrueI;
+            val lhs = q $ (mk_caseofB_term eta_fs $ v);
+
+            val goal =
+              mk_Trueprop_eq (lhs, Library.foldr1 HOLogic.mk_conj (map3 mk_conjunct xctrs xss xfs));
+            val goal_asm =
+              mk_Trueprop_eq (lhs, HOLogic.mk_not (Library.foldr1 HOLogic.mk_disj
+                (map3 mk_disjunct xctrs xss xfs)));
+
+            val split_thm =
+              Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
+                mk_split_tac ctxt exhaust_thm' case_thms inject_thms distinct_thms)
+              |> singleton (Proof_Context.export names_lthy lthy)
+            val split_asm_thm =
+              Skip_Proof.prove lthy [] [] goal_asm (fn {context = ctxt, ...} =>
+                mk_split_asm_tac ctxt split_thm)
+              |> singleton (Proof_Context.export names_lthy lthy)
+          in
+            (split_thm, split_asm_thm)
+          end;
 
         (* TODO: case syntax *)
         (* TODO: attributes (simp, case_names, etc.) *)
