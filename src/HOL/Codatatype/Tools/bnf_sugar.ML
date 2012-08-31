@@ -17,19 +17,22 @@ open BNF_FP_Util
 open BNF_Sugar_Tactics
 
 val is_N = "is_";
+val un_N = "un_";
+fun mk_un_N 1 1 suf = un_N ^ suf
+  | mk_un_N _ l suf = un_N ^ suf ^ string_of_int l;
 
-val case_congN = "case_cong"
-val case_discsN = "case_discs"
-val casesN = "cases"
-val ctr_selsN = "ctr_sels"
-val disc_exclusN = "disc_exclus"
-val disc_exhaustN = "disc_exhaust"
-val discsN = "discs"
-val distinctN = "distinct"
-val selsN = "sels"
-val splitN = "split"
-val split_asmN = "split_asm"
-val weak_case_cong_thmsN = "weak_case_cong"
+val case_congN = "case_cong";
+val case_discsN = "case_discs";
+val casesN = "cases";
+val ctr_selsN = "ctr_sels";
+val disc_exclusN = "disc_exclus";
+val disc_exhaustN = "disc_exhaust";
+val discsN = "discs";
+val distinctN = "distinct";
+val selsN = "sels";
+val splitN = "split";
+val split_asmN = "split_asm";
+val weak_case_cong_thmsN = "weak_case_cong";
 
 val default_name = @{binding _};
 
@@ -49,7 +52,8 @@ fun name_of_ctr t =
   | Free (s, _) => s
   | _ => error "Cannot extract name of constructor";
 
-fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), raw_disc_names), sel_namess) no_defs_lthy =
+fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), raw_disc_names), raw_sel_namess)
+  no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
 
@@ -58,15 +62,27 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), raw_disc_names), sel_names
     val ctrs0 = map (prep_term no_defs_lthy) raw_ctrs;
     val caseof0 = prep_term no_defs_lthy raw_caseof;
 
+    val n = length ctrs0;
+    val ks = 1 upto n;
+
+    val raw_disc_names' =
+      raw_disc_names @ replicate (length ctrs0 - length raw_disc_names) default_name;
+
     val disc_names =
       map2 (fn ctr => fn disc =>
         if Binding.eq_name (disc, default_name) then
           Binding.name (prefix is_N (Long_Name.base_name (name_of_ctr ctr)))
         else
-          disc) ctrs0 raw_disc_names;
-
-    val n = length ctrs0;
-    val ks = 1 upto n;
+          disc) ctrs0 raw_disc_names';
+    val sel_namess =
+      map2 (fn ctr => fn sels =>
+        let val m = length sels in
+          map2 (fn l => fn sel =>
+            if Binding.eq_name (sel, default_name) then
+              Binding.name (mk_un_N m l (Long_Name.base_name (name_of_ctr ctr)))
+            else
+              sel) (1 upto m) sels
+        end) ctrs0 raw_sel_namess;
 
     val (T_name, As0) = dest_Type (body_type (fastype_of (hd ctrs0)));
     val b = Binding.qualified_name T_name;
