@@ -191,8 +191,6 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), raw_disc_names), sel_names
         val ([exhaust_thm], (inject_thmss, (half_distinct_thmss, [case_thms]))) =
           (hd thmss, apsnd (chop (n * n)) (chop n (tl thmss)));
 
-        val inject_thms = flat inject_thmss;
-
         val exhaust_thm' =
           let val Tinst = map (pairself (certifyT lthy)) (map Logic.varifyT_global As ~~ As) in
             Drule.instantiate' [] [SOME (certify lthy v)]
@@ -201,9 +199,10 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), raw_disc_names), sel_names
 
         val other_half_distinct_thmss = map (map (fn thm => thm RS not_sym)) half_distinct_thmss;
 
-        val distinct_thmsss =
+        val (distinct_thmsss', distinct_thmsss) =
           map2 (map2 append) (Library.chop_groups n half_distinct_thmss)
-            (transpose (Library.chop_groups n other_half_distinct_thmss));
+            (transpose (Library.chop_groups n other_half_distinct_thmss))
+          |> `transpose;
         val distinct_thms = interleave (flat half_distinct_thmss) (flat other_half_distinct_thmss);
 
         val nchotomy_thm =
@@ -248,7 +247,7 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), raw_disc_names), sel_names
               | mk_thm _ not_disc [distinct] = distinct RS not_disc;
             fun mk_thms discI not_disc distinctss = map (mk_thm discI not_disc) distinctss;
           in
-            map3 mk_thms discI_thms not_disc_thms (transpose distinct_thmsss)
+            map3 mk_thms discI_thms not_disc_thms distinct_thmsss'
             |> `transpose
           end;
 
@@ -351,7 +350,7 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), raw_disc_names), sel_names
 
             val split_thm =
               Skip_Proof.prove lthy [] [] goal
-                (fn _ => mk_split_tac exhaust_thm' case_thms inject_thms distinct_thms)
+                (fn _ => mk_split_tac exhaust_thm' case_thms inject_thmss distinct_thmsss)
               |> singleton (Proof_Context.export names_lthy lthy)
             val split_asm_thm =
               Skip_Proof.prove lthy [] [] goal_asm (fn {context = ctxt, ...} =>
@@ -364,26 +363,26 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), raw_disc_names), sel_names
         (* TODO: case syntax *)
         (* TODO: attributes (simp, case_names, etc.) *)
 
-        fun note thmN thms =
-          snd o Local_Theory.note
-            ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), thms);
+        val notes =
+          [(case_congN, [case_cong_thm]),
+           (case_discsN, [case_disc_thm]),
+           (casesN, case_thms),
+           (ctr_selsN, ctr_sel_thms),
+           (discsN, (flat disc_thmss)),
+           (disc_disjointN, disc_disjoint_thms),
+           (disc_exhaustN, [disc_exhaust_thm]),
+           (distinctN, distinct_thms),
+           (exhaustN, [exhaust_thm]),
+           (injectN, (flat inject_thmss)),
+           (nchotomyN, [nchotomy_thm]),
+           (selsN, (flat sel_thmss)),
+           (splitN, [split_thm]),
+           (split_asmN, [split_asm_thm]),
+           (weak_case_cong_thmsN, [weak_case_cong_thm])]
+          |> map (fn (thmN, thms) =>
+            ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
       in
-        lthy
-        |> note case_congN [case_cong_thm]
-        |> note case_discsN [case_disc_thm]
-        |> note casesN case_thms
-        |> note ctr_selsN ctr_sel_thms
-        |> note discsN (flat disc_thmss)
-        |> note disc_disjointN disc_disjoint_thms
-        |> note disc_exhaustN [disc_exhaust_thm]
-        |> note distinctN distinct_thms
-        |> note exhaustN [exhaust_thm]
-        |> note injectN inject_thms
-        |> note nchotomyN [nchotomy_thm]
-        |> note selsN (flat sel_thmss)
-        |> note splitN [split_thm]
-        |> note split_asmN [split_asm_thm]
-        |> note weak_case_cong_thmsN [weak_case_cong_thm]
+        lthy |> Local_Theory.notes notes |> snd
       end;
   in
     (goals, after_qed, lthy')

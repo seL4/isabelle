@@ -14,7 +14,7 @@ sig
   val mk_half_disc_disjoint_tac: int -> thm -> thm -> tactic
   val mk_nchotomy_tac: int -> thm -> tactic
   val mk_other_half_disc_disjoint_tac: thm -> tactic
-  val mk_split_tac: thm -> thm list -> thm list -> thm list -> tactic
+  val mk_split_tac: thm -> thm list -> thm list list -> thm list list list -> tactic
   val mk_split_asm_tac: Proof.context -> thm -> tactic
 end;
 
@@ -75,10 +75,12 @@ fun mk_case_cong_tac exhaust' case_thms =
 
 val naked_ctxt = Proof_Context.init_global @{theory HOL};
 
-fun mk_split_tac exhaust' case_thms injects distincts =
+fun mk_split_tac exhaust' case_thms injectss distinctsss =
   rtac exhaust' 1 THEN
-  ALLGOALS (hyp_subst_tac THEN'
-    simp_tac (ss_only (@{thms simp_thms} @ case_thms @ injects @ distincts))) THEN
+  ALLGOALS (fn k =>
+    (hyp_subst_tac THEN'
+     simp_tac (ss_only (@{thms simp_thms} @ case_thms @ nth injectss (k - 1) @
+       flat (nth distinctsss (k - 1))))) k) THEN
   ALLGOALS (blast_tac naked_ctxt);
 
 val split_asm_thms = @{thms imp_conv_disj de_Morgan_conj de_Morgan_disj not_not not_ex};
