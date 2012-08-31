@@ -28,7 +28,7 @@ fun eq_True_or_False thm =
   thm RS @{thm eq_False[THEN iffD2]}
   handle THM _ => thm RS @{thm eq_True[THEN iffD2]}
 
-fun ss_only thms ss = Simplifier.clear_ss ss addsimps thms
+fun ss_only thms = Simplifier.clear_ss HOL_basic_ss addsimps thms
 
 fun mk_nchotomy_tac n exhaust =
   (rtac allI THEN' rtac exhaust THEN'
@@ -68,14 +68,15 @@ fun mk_case_disc_tac ctxt exhaust' case_thms disc_thms sel_thmss =
   end;
 
 fun mk_case_cong_tac ctxt exhaust' case_thms =
-  rtac exhaust' 1 THEN ALLGOALS (clarsimp_tac (map_simpset (ss_only case_thms) ctxt));
+  (rtac exhaust' THEN'
+   EVERY' (maps (fn case_thm => [dtac sym, asm_simp_tac (ss_only [case_thm])]) case_thms)) 1;
 
 val naked_ctxt = Proof_Context.init_global @{theory HOL};
 
 fun mk_split_tac ctxt exhaust' case_thms injects distincts =
   rtac exhaust' 1 THEN
   ALLGOALS (hyp_subst_tac THEN'
-    simp_tac (ss_only (@{thms simp_thms} @ case_thms @ injects @ distincts) HOL_basic_ss)) THEN
+    simp_tac (ss_only (@{thms simp_thms} @ case_thms @ injects @ distincts))) THEN
   ALLGOALS (blast_tac naked_ctxt);
 
 val split_asm_thms = @{thms imp_conv_disj de_Morgan_conj de_Morgan_disj not_not not_ex};
