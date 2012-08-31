@@ -56,7 +56,7 @@ fun name_of_ctr t =
   | Free (s, _) => s
   | _ => error "Cannot extract name of constructor";
 
-fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), raw_disc_names), raw_sel_namess)
+fun prepare_sugar prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_namess))
   no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
@@ -403,7 +403,9 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), raw_disc_names), raw_sel_n
     (goals, after_qed, lthy')
   end;
 
-val parse_binding_list = Parse.$$$ "[" |--  Parse.list Parse.binding --| Parse.$$$ "]";
+val parse_bindings = Parse.$$$ "[" |--  Parse.list Parse.binding --| Parse.$$$ "]";
+
+val parse_bindingss = Parse.$$$ "[" |-- Parse.list parse_bindings --| Parse.$$$ "]";
 
 val bnf_sugar_cmd = (fn (goalss, after_qed, lthy) =>
   Proof.theorem NONE after_qed (map (map (rpair [])) goalss) lthy) oo
@@ -412,7 +414,7 @@ val bnf_sugar_cmd = (fn (goalss, after_qed, lthy) =>
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "bnf_sugar"} "adds sugar on top of a BNF"
     (((Parse.$$$ "[" |-- Parse.list Parse.term --| Parse.$$$ "]") -- Parse.term --
-      parse_binding_list -- (Parse.$$$ "[" |-- Parse.list parse_binding_list --| Parse.$$$ "]"))
-      >> bnf_sugar_cmd);
+      Scan.optional (parse_bindings -- Scan.optional parse_bindingss []) ([], []))
+     >> bnf_sugar_cmd);
 
 end;
