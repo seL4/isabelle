@@ -44,6 +44,8 @@ fun mk_half_pairss ys = mk_half_pairss' [[]] ys;
 
 val mk_Trueprop_eq = HOLogic.mk_Trueprop o HOLogic.mk_eq;
 
+fun mk_undef T Ts = Const (@{const_name undefined}, Ts ---> T);
+
 fun eta_expand_caseof_arg xs f_xs = fold_rev Term.lambda xs f_xs;
 
 fun name_of_ctr t =
@@ -65,8 +67,30 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), raw_disc_names), raw_sel_n
     val n = length ctrs0;
     val ks = 1 upto n;
 
+    val (T_name, As0) = dest_Type (body_type (fastype_of (hd ctrs0)));
+    val b = Binding.qualified_name T_name;
+
+    val (As, B) =
+      no_defs_lthy
+      |> mk_TFrees (length As0)
+      ||> the_single o fst o mk_TFrees 1;
+
+    fun mk_ctr Ts ctr =
+      let val Ts0 = snd (dest_Type (body_type (fastype_of ctr))) in
+        Term.subst_atomic_types (Ts0 ~~ Ts) ctr
+      end;
+
+    val T = Type (T_name, As);
+    val ctrs = map (mk_ctr As) ctrs0;
+    val ctr_Tss = map (binder_types o fastype_of) ctrs;
+
+    val ms = map length ctr_Tss;
+
     val raw_disc_names' =
-      raw_disc_names @ replicate (length ctrs0 - length raw_disc_names) default_name;
+      raw_disc_names @ replicate (n - length raw_disc_names) default_name;
+    val raw_sel_namess' =
+      map2 (fn m => fn sels => sels @ replicate (m - length sels) default_name)
+        ms (raw_sel_namess @ replicate (n - length raw_sel_namess) []);
 
     val disc_names =
       map2 (fn ctr => fn disc =>
@@ -82,33 +106,12 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), raw_disc_names), raw_sel_n
               Binding.name (mk_un_N m l (Long_Name.base_name (name_of_ctr ctr)))
             else
               sel) (1 upto m) sels
-        end) ctrs0 raw_sel_namess;
-
-    val (T_name, As0) = dest_Type (body_type (fastype_of (hd ctrs0)));
-    val b = Binding.qualified_name T_name;
-
-    val (As, B) =
-      no_defs_lthy
-      |> mk_TFrees (length As0)
-      ||> the_single o fst o mk_TFrees 1;
-
-    fun mk_undef T Ts = Const (@{const_name undefined}, Ts ---> T);
-
-    fun mk_ctr Ts ctr =
-      let val Ts0 = snd (dest_Type (body_type (fastype_of ctr))) in
-        Term.subst_atomic_types (Ts0 ~~ Ts) ctr
-      end;
+        end) ctrs0 raw_sel_namess';
 
     fun mk_caseof Ts T =
       let val (binders, body) = strip_type (fastype_of caseof0) in
         Term.subst_atomic_types ((body, T) :: (snd (dest_Type (List.last binders)) ~~ Ts)) caseof0
       end;
-
-    val T = Type (T_name, As);
-    val ctrs = map (mk_ctr As) ctrs0;
-    val ctr_Tss = map (binder_types o fastype_of) ctrs;
-
-    val ms = map length ctr_Tss;
 
     val caseofB = mk_caseof As B;
     val caseofB_Ts = map (fn Ts => Ts ---> B) ctr_Tss;
