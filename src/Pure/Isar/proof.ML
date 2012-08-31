@@ -78,15 +78,15 @@ sig
   val begin_block: state -> state
   val next_block: state -> state
   val end_block: state -> state
-  val begin_notepad: Proof.context -> state
-  val end_notepad: state -> Proof.context
+  val begin_notepad: context -> state
+  val end_notepad: state -> context
   val proof: Method.text option -> state -> state Seq.seq
   val defer: int option -> state -> state Seq.seq
   val prefer: int -> state -> state Seq.seq
   val apply: Method.text -> state -> state Seq.seq
   val apply_end: Method.text -> state -> state Seq.seq
   val local_goal: (context -> ((string * string) * (string * thm list) list) -> unit) ->
-    (Proof.context -> 'a -> attribute) ->
+    (context -> 'a -> attribute) ->
     ('b list -> context -> (term list list * (context -> context)) * context) ->
     string -> Method.text option -> (thm list list -> state -> state) ->
     ((binding * 'a list) * 'b) list -> state -> state
@@ -116,7 +116,7 @@ sig
     (Attrib.binding * (string * string list) list) list -> bool -> state -> state
   val schematic_goal: state -> bool
   val local_future_proof: (state -> ('a * state) future) -> state -> 'a future * state
-  val global_future_proof: (state -> ('a * Proof.context) future) -> state -> 'a future * context
+  val global_future_proof: (state -> ('a * context) future) -> state -> 'a future * context
   val local_future_terminal_proof: Method.text * Method.text option -> bool -> state -> state
   val global_future_terminal_proof: Method.text * Method.text option -> bool -> state -> context
 end;
@@ -939,7 +939,6 @@ fun generic_qed after_ctxt state =
       |> burrow (Proof_Context.export goal_ctxt outer_ctxt);
   in
     outer_state
-    |> register_proofs (flat results)
     |> map_context (after_ctxt props)
     |> pair (after_qed, results)
   end;
@@ -967,7 +966,7 @@ fun local_goal print_results prep_att prepp kind before_qed after_qed stmt state
 fun local_qeds txt =
   end_proof false txt
   #> Seq.map (generic_qed Proof_Context.auto_bind_facts #->
-    (fn ((after_qed, _), results) => after_qed results));
+    (fn ((after_qed, _), results) => register_proofs (flat results) #> after_qed results));
 
 fun local_qed txt = local_qeds txt #> check_finish;
 

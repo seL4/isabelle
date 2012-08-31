@@ -30,6 +30,8 @@ sig
   val raw_theory: (theory -> theory) -> local_theory -> local_theory
   val background_theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
   val background_theory: (theory -> theory) -> local_theory -> local_theory
+  val begin_proofs: local_theory -> local_theory
+  val register_proofs: thm list -> local_theory -> local_theory
   val target_of: local_theory -> Proof.context
   val target: (Proof.context -> Proof.context) -> local_theory -> local_theory
   val target_morphism: local_theory -> morphism
@@ -188,6 +190,12 @@ fun background_theory_result f lthy =
     ||> Theory.checkpoint);
 
 fun background_theory f = #2 o background_theory_result (f #> pair ());
+
+
+(* forked proofs *)
+
+val begin_proofs = background_theory (Context.theory_map Thm.begin_proofs);
+val register_proofs = background_theory o Context.theory_map o Thm.register_proofs;
 
 
 (* target contexts *)
