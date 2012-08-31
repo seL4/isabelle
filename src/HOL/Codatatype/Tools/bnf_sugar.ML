@@ -185,7 +185,7 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
           end;
 
         val other_half_distinct_thms = map (fn thm => thm RS not_sym) half_distinct_thms;
-        val distinct_thms = half_distinct_thms @ other_half_distinct_thms;
+        val distinct_thms = interleave half_distinct_thms other_half_distinct_thms;
 
         val nchotomy_thm =
           let
@@ -255,7 +255,7 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
             val other_half_thms =
               map2 (prove o mk_other_half_disc_disjoint_tac) half_thms goal_other_halves;
           in
-            half_thms @ other_half_thms
+            interleave half_thms other_half_thms
           end;
 
         val disc_exhaust_thm =
@@ -297,7 +297,7 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), disc_names), sel_namess) n
         val (case_cong_thm, weak_case_cong_thm) =
           let
             fun mk_prem xctr xs f g =
-              fold_rev Logic.all xs (Logic.mk_implies (mk_Trueprop_eq (v, xctr),
+              fold_rev Logic.all xs (Logic.mk_implies (mk_Trueprop_eq (w, xctr),
                 mk_Trueprop_eq (f, g)));
 
             val v_eq_w = mk_Trueprop_eq (v, w);

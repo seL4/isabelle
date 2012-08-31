@@ -76,7 +76,7 @@ fun mk_split_tac ctxt exhaust' case_thms injects distincts =
   rtac exhaust' 1 THEN
   ALLGOALS (hyp_subst_tac THEN'
     simp_tac (ss_only (@{thms simp_thms} @ case_thms @ injects @ distincts) HOL_basic_ss)) THEN
-  ALLGOALS (blast_tac ctxt);
+  ALLGOALS (blast_tac naked_ctxt);
 
 val split_asm_thms = @{thms imp_conv_disj de_Morgan_conj de_Morgan_disj not_not not_ex};
 
