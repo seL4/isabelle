@@ -158,10 +158,18 @@ use "raw_simplifier.ML";
 use "conjunction.ML";
 use "assumption.ML";
 use "display.ML";
-use "goal.ML";
 
 
 (* Isar -- Intelligible Semi-Automated Reasoning *)
+
+(*ML support*)
+use "ML/ml_syntax.ML";
+use "ML/ml_env.ML";
+use "Isar/runtime.ML";
+use "ML/ml_compiler.ML";
+if ML_System.is_polyml then use "ML/ml_compiler_polyml.ML" else ();
+
+use "goal.ML";
 
 (*proof context*)
 use "Isar/object_logic.ML";
@@ -185,13 +193,6 @@ use "Isar/token.ML";
 use "Isar/keyword.ML";
 use "Isar/parse.ML";
 use "Isar/args.ML";
-
-(*ML support*)
-use "ML/ml_syntax.ML";
-use "ML/ml_env.ML";
-use "Isar/runtime.ML";
-use "ML/ml_compiler.ML";
-if ML_System.is_polyml then use "ML/ml_compiler_polyml.ML" else ();
 use "ML/ml_context.ML";
 
 (*theory sources*)
