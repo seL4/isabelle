@@ -61,7 +61,7 @@ object Protocol
 
     def is_unprocessed: Boolean = accepted && !failed && (!touched || (forks != 0 && runs == 0))
     def is_running: Boolean = runs != 0
-    def is_finished: Boolean = !failed && forks == 0 && runs == 0
+    def is_finished: Boolean = !failed && touched && forks == 0 && runs == 0
     def is_failed: Boolean = failed
   }
 
