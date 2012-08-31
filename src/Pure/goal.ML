@@ -136,10 +136,12 @@ fun fork_name name e =
               val task = the (Future.worker_task ());
               val _ = status task [Isabelle_Markup.running];
               val result = Exn.capture (Future.interruptible_task e) ();
+              val _ = status task [Isabelle_Markup.finished, Isabelle_Markup.joined];
               val _ =
-                status task
-                  ([Isabelle_Markup.finished, Isabelle_Markup.joined] @
-                    (if is_some (Exn.get_res result) then [] else [Isabelle_Markup.failed]));
+                if is_some (Exn.get_res result) then ()
+                else
+                  (status task [Isabelle_Markup.failed];
+                   Output.report (Markup.markup_only Isabelle_Markup.bad));
             in Exn.release result end);
       val _ = status (Future.task_of future) [Isabelle_Markup.forked];
     in future end) ();

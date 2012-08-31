@@ -292,10 +292,10 @@ object Isabelle_Rendering
             })
         color <-
           (result match {
-            case (Some(status), _) =>
+            case (Some(status), opt_color) =>
               if (status.is_unprocessed) Some(unprocessed1_color)
               else if (status.is_running) Some(running1_color)
-              else None
+              else opt_color
             case (_, opt_color) => opt_color
           })
       } yield Text.Info(r, color)
