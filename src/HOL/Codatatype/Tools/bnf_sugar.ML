@@ -36,9 +36,11 @@ val weak_case_cong_thmsN = "weak_case_cong";
 
 val default_name = @{binding _};
 
+fun pad_list x n xs = xs @ replicate (n - length xs) x;
+
 fun mk_half_pairss' _ [] = []
-  | mk_half_pairss' pad (y :: ys) =
-    pad @ fold_rev (cons o single o pair y) ys (mk_half_pairss' ([] :: pad) ys);
+  | mk_half_pairss' indent (y :: ys) =
+    indent @ fold_rev (cons o single o pair y) ys (mk_half_pairss' ([] :: indent) ys);
 
 fun mk_half_pairss ys = mk_half_pairss' [[]] ys;
 
@@ -86,27 +88,21 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), raw_disc_names), raw_sel_n
 
     val ms = map length ctr_Tss;
 
-    val raw_disc_names' =
-      raw_disc_names @ replicate (n - length raw_disc_names) default_name;
-    val raw_sel_namess' =
-      map2 (fn m => fn sels => sels @ replicate (m - length sels) default_name)
-        ms (raw_sel_namess @ replicate (n - length raw_sel_namess) []);
-
     val disc_names =
-      map2 (fn ctr => fn disc =>
+      pad_list default_name n raw_disc_names
+      |> map2 (fn ctr => fn disc =>
         if Binding.eq_name (disc, default_name) then
           Binding.name (prefix is_N (Long_Name.base_name (name_of_ctr ctr)))
         else
-          disc) ctrs0 raw_disc_names';
+          disc) ctrs0;
+
     val sel_namess =
-      map2 (fn ctr => fn sels =>
-        let val m = length sels in
-          map2 (fn l => fn sel =>
-            if Binding.eq_name (sel, default_name) then
-              Binding.name (mk_un_N m l (Long_Name.base_name (name_of_ctr ctr)))
-            else
-              sel) (1 upto m) sels
-        end) ctrs0 raw_sel_namess';
+      pad_list [] n raw_sel_namess
+      |> map3 (fn ctr => fn m => map2 (fn l => fn sel =>
+        if Binding.eq_name (sel, default_name) then
+          Binding.name (mk_un_N m l (Long_Name.base_name (name_of_ctr ctr)))
+        else
+          sel) (1 upto m) o pad_list default_name m) ctrs0 ms;
 
     fun mk_caseof Ts T =
       let val (binders, body) = strip_type (fastype_of caseof0) in
