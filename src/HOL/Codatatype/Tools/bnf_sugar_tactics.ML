@@ -7,14 +7,14 @@ Tactics for sugar on top of a BNF.
 
 signature BNF_SUGAR_TACTICS =
 sig
-  val mk_case_cong_tac: Proof.context -> thm -> thm list -> tactic
+  val mk_case_cong_tac: thm -> thm list -> tactic
   val mk_case_disc_tac: Proof.context -> thm -> thm list -> thm list list -> thm list list -> tactic
   val mk_ctr_sel_tac: Proof.context -> int -> thm -> thm list -> tactic
   val mk_disc_exhaust_tac: int -> thm -> thm list -> tactic
   val mk_half_disc_disjoint_tac: int -> thm -> thm -> tactic
   val mk_nchotomy_tac: int -> thm -> tactic
   val mk_other_half_disc_disjoint_tac: thm -> tactic
-  val mk_split_tac: Proof.context -> thm -> thm list -> thm list -> thm list -> tactic
+  val mk_split_tac: thm -> thm list -> thm list -> thm list -> tactic
   val mk_split_asm_tac: Proof.context -> thm -> tactic
 end;
 
@@ -67,13 +67,13 @@ fun mk_case_disc_tac ctxt exhaust' case_thms disc_thmss sel_thmss =
        rtac case_thm]) case_thms sel_thmss)) 1
   end;
 
-fun mk_case_cong_tac ctxt exhaust' case_thms =
+fun mk_case_cong_tac exhaust' case_thms =
   (rtac exhaust' THEN'
    EVERY' (maps (fn case_thm => [dtac sym, asm_simp_tac (ss_only [case_thm])]) case_thms)) 1;
 
 val naked_ctxt = Proof_Context.init_global @{theory HOL};
 
-fun mk_split_tac ctxt exhaust' case_thms injects distincts =
+fun mk_split_tac exhaust' case_thms injects distincts =
   rtac exhaust' 1 THEN
   ALLGOALS (hyp_subst_tac THEN'
     simp_tac (ss_only (@{thms simp_thms} @ case_thms @ injects @ distincts))) THEN

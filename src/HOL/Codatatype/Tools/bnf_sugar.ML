@@ -327,8 +327,7 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), raw_disc_names), sel_names
             val goal_weak =
               Logic.mk_implies (v_eq_w, mk_Trueprop_eq (caseof_fs $ v, caseof_fs $ w));
           in
-            (Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-               mk_case_cong_tac ctxt exhaust_thm' case_thms),
+            (Skip_Proof.prove lthy [] [] goal (fn _ => mk_case_cong_tac exhaust_thm' case_thms),
              Skip_Proof.prove lthy [] [] goal_weak (K (etac arg_cong 1)))
             |> pairself (singleton (Proof_Context.export names_lthy lthy))
           end;
@@ -350,8 +349,8 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), raw_disc_names), sel_names
                 (map3 mk_disjunct xctrs xss xfs)));
 
             val split_thm =
-              Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-                mk_split_tac ctxt exhaust_thm' case_thms inject_thms distinct_thms)
+              Skip_Proof.prove lthy [] [] goal
+                (fn _ => mk_split_tac exhaust_thm' case_thms inject_thms distinct_thms)
               |> singleton (Proof_Context.export names_lthy lthy)
             val split_asm_thm =
               Skip_Proof.prove lthy [] [] goal_asm (fn {context = ctxt, ...} =>
