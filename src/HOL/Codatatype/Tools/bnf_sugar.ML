@@ -22,7 +22,7 @@ val case_congN = "case_cong"
 val case_discsN = "case_discs"
 val casesN = "cases"
 val ctr_selsN = "ctr_sels"
-val disc_disjointN = "disc_disjoint"
+val disc_exclusN = "disc_exclus"
 val disc_exhaustN = "disc_exhaust"
 val discsN = "discs"
 val distinctN = "distinct"
@@ -251,7 +251,7 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), raw_disc_names), sel_names
             |> `transpose
           end;
 
-        val disc_disjoint_thms =
+        val disc_exclus_thms =
           let
             fun mk_goal ((_, disc), (_, disc')) =
               Logic.all v (Logic.mk_implies (HOLogic.mk_Trueprop (disc $ v),
@@ -265,12 +265,12 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), raw_disc_names), sel_names
             val half_thmss =
               map3 (fn [] => K (K [])
                      | [(((m, discD), _), _)] => fn disc_thm => fn [goal] =>
-                [prove (mk_half_disc_disjoint_tac m discD disc_thm) goal])
+                [prove (mk_half_disc_exclus_tac m discD disc_thm) goal])
               half_pairss (flat disc_thmss') goal_halvess;
 
             val goal_other_halvess = map (map (mk_goal o swap)) half_pairss;
             val other_half_thmss =
-              map2 (map2 (prove o mk_other_half_disc_disjoint_tac)) half_thmss goal_other_halvess;
+              map2 (map2 (prove o mk_other_half_disc_exclus_tac)) half_thmss goal_other_halvess;
           in
             interleave (flat half_thmss) (flat other_half_thmss)
           end;
@@ -369,7 +369,7 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), raw_disc_names), sel_names
            (casesN, case_thms),
            (ctr_selsN, ctr_sel_thms),
            (discsN, (flat disc_thmss)),
-           (disc_disjointN, disc_disjoint_thms),
+           (disc_exclusN, disc_exclus_thms),
            (disc_exhaustN, [disc_exhaust_thm]),
            (distinctN, distinct_thms),
            (exhaustN, [exhaust_thm]),
