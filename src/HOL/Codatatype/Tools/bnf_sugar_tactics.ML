@@ -8,7 +8,7 @@ Tactics for sugar on top of a BNF.
 signature BNF_SUGAR_TACTICS =
 sig
   val mk_case_cong_tac: Proof.context -> thm -> thm list -> tactic
-  val mk_case_disc_tac: Proof.context -> thm -> thm list -> thm list -> thm list list -> tactic
+  val mk_case_disc_tac: Proof.context -> thm -> thm list -> thm list list -> thm list list -> tactic
   val mk_ctr_sel_tac: Proof.context -> int -> thm -> thm list -> tactic
   val mk_disc_exhaust_tac: int -> thm -> thm list -> tactic
   val mk_half_disc_disjoint_tac: int -> thm -> thm -> tactic
@@ -58,8 +58,8 @@ fun mk_ctr_sel_tac ctxt m discD sel_thms =
       SELECT_GOAL (Local_Defs.unfold_tac ctxt sel_thms) THEN'
       rtac refl)) 1;
 
-fun mk_case_disc_tac ctxt exhaust' case_thms disc_thms sel_thmss =
-  let val base_unfolds = @{thms if_True if_False} @ map eq_True_or_False disc_thms in
+fun mk_case_disc_tac ctxt exhaust' case_thms disc_thmss sel_thmss =
+  let val base_unfolds = @{thms if_True if_False} @ maps (map eq_True_or_False) disc_thmss in (*###*)
     (rtac exhaust' THEN'
      EVERY' (map2 (fn case_thm => fn sel_thms => EVERY' [
        hyp_subst_tac THEN'

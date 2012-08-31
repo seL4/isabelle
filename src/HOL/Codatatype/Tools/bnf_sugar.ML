@@ -33,10 +33,11 @@ val weak_case_cong_thmsN = "weak_case_cong"
 
 val default_name = @{binding _};
 
-fun mk_half_pairs [] = []
-  | mk_half_pairs (x :: xs) = fold_rev (cons o pair x) xs (mk_half_pairs xs);
+fun mk_half_pairss' _ [] = []
+  | mk_half_pairss' pad (y :: ys) =
+    pad @ fold_rev (cons o single o pair y) ys (mk_half_pairss' ([] :: pad) ys);
 
-fun index_of_half_cell n j k = j * (2 * n - (j + 1)) div 2 + k - (j + 1);
+fun mk_half_pairss ys = mk_half_pairss' [[]] ys;
 
 val mk_Trueprop_eq = HOLogic.mk_Trueprop o HOLogic.mk_eq;
 
@@ -178,17 +179,17 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), raw_disc_names), sel_names
         map4 mk_goal xctrs yctrs xss yss
       end;
 
-    val goal_half_distincts =
-      map (HOLogic.mk_Trueprop o HOLogic.mk_not o HOLogic.mk_eq) (mk_half_pairs xctrs);
+    val goal_half_distinctss =
+      map (map (HOLogic.mk_Trueprop o HOLogic.mk_not o HOLogic.mk_eq)) (mk_half_pairss xctrs);
 
     val goal_cases = map2 (fn xctr => fn xf => mk_Trueprop_eq (caseofB_fs $ xctr, xf)) xctrs xfs;
 
-    val goals = [goal_exhaust] :: goal_injectss @ [goal_half_distincts, goal_cases];
+    val goals = [goal_exhaust] :: goal_injectss @ goal_half_distinctss @ [goal_cases];
 
     fun after_qed thmss lthy =
       let
-        val ([exhaust_thm], (inject_thmss, [half_distinct_thms, case_thms])) =
-          (hd thmss, chop n (tl thmss));
+        val ([exhaust_thm], (inject_thmss, (half_distinct_thmss, [case_thms]))) =
+          (hd thmss, apsnd (chop (n * n)) (chop n (tl thmss)));
 
         val inject_thms = flat inject_thmss;
 
@@ -198,8 +199,12 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), raw_disc_names), sel_names
               (Thm.instantiate (Tinst, []) (Drule.zero_var_indexes exhaust_thm))
           end;
 
-        val other_half_distinct_thms = map (fn thm => thm RS not_sym) half_distinct_thms;
-        val distinct_thms = interleave half_distinct_thms other_half_distinct_thms;
+        val other_half_distinct_thmss = map (map (fn thm => thm RS not_sym)) half_distinct_thmss;
+
+        val distinct_thmsss =
+          map2 (map2 append) (Library.chop_groups n half_distinct_thmss)
+            (transpose (Library.chop_groups n other_half_distinct_thmss));
+        val distinct_thms = interleave (flat half_distinct_thmss) (flat other_half_distinct_thmss);
 
         val nchotomy_thm =
           let
@@ -237,39 +242,37 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), raw_disc_names), sel_names
                   (Local_Defs.unfold lthy @{thms not_ex} (def RS @{thm ssubst[of _ _ Not]})))
             ms disc_defs;
 
-        val disc_thms =
+        val disc_thmss =
           let
-            fun get_distinct_thm k k' =
-              if k > k' then nth half_distinct_thms (index_of_half_cell n (k' - 1) (k - 1))
-              else nth other_half_distinct_thms (index_of_half_cell n (k - 1) (k' - 1))
-            fun mk_thm ((k, discI), not_disc) k' =
-              if k = k' then refl RS discI else get_distinct_thm k k' RS not_disc;
+            fun mk_thm discI _ [] = refl RS discI
+              | mk_thm _ not_disc [distinct] = distinct RS not_disc;
+            fun mk_thms discI not_disc distinctss = map (mk_thm discI not_disc) distinctss;
           in
-            map_product mk_thm (ks ~~ discI_thms ~~ not_disc_thms) ks
+            map3 mk_thms discI_thms not_disc_thms (transpose distinct_thmsss)
           end;
 
         val disc_disjoint_thms =
           let
-            fun get_disc_thm k k' = nth disc_thms ((k' - 1) * n + (k - 1));
             fun mk_goal ((_, disc), (_, disc')) =
               Logic.all v (Logic.mk_implies (HOLogic.mk_Trueprop (disc $ v),
                 HOLogic.mk_Trueprop (HOLogic.mk_not (disc' $ v))));
             fun prove tac goal = Skip_Proof.prove lthy [] [] goal (K tac);
 
-            val bundles = ks ~~ ms ~~ discD_thms ~~ discs;
-            val half_pairs = mk_half_pairs bundles;
+            val bundles = ms ~~ discD_thms ~~ discs;
+            val half_pairss = mk_half_pairss bundles;
 
-            val goal_halves = map mk_goal half_pairs;
-            val half_thms =
-              map2 (fn ((((k, m), discD), _), (((k', _), _), _)) =>
-                prove (mk_half_disc_disjoint_tac m discD (get_disc_thm k k')))
-              half_pairs goal_halves;
+            val goal_halvess = map (map mk_goal) half_pairss;
+            val half_thmss =
+              map3 (fn [] => K (K [])
+                     | [(((m, discD), _), _)] => fn disc_thm => fn [goal] =>
+                [prove (mk_half_disc_disjoint_tac m discD disc_thm) goal])
+              half_pairss (flat (transpose disc_thmss)) goal_halvess;
 
-            val goal_other_halves = map (mk_goal o swap) half_pairs;
-            val other_half_thms =
-              map2 (prove o mk_other_half_disc_disjoint_tac) half_thms goal_other_halves;
+            val goal_other_halvess = map (map (mk_goal o swap)) half_pairss;
+            val other_half_thmss =
+              map2 (map2 (prove o mk_other_half_disc_disjoint_tac)) half_thmss goal_other_halvess;
           in
-            interleave half_thms other_half_thms
+            interleave (flat half_thmss) (flat other_half_thmss)
           end;
 
         val disc_exhaust_thm =
@@ -304,7 +307,7 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), raw_disc_names), sel_names
             val goal = mk_Trueprop_eq (caseofB_fs $ v, mk_rhs discs fs selss);
           in
             Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-              mk_case_disc_tac ctxt exhaust_thm' case_thms disc_thms sel_thmss)
+              mk_case_disc_tac ctxt exhaust_thm' case_thms disc_thmss sel_thmss)
             |> singleton (Proof_Context.export names_lthy lthy)
           end;
 
@@ -370,7 +373,7 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), raw_disc_names), sel_names
         |> note case_discsN [case_disc_thm]
         |> note casesN case_thms
         |> note ctr_selsN ctr_sel_thms
-        |> note discsN disc_thms
+        |> note discsN (flat disc_thmss)
         |> note disc_disjointN disc_disjoint_thms
         |> note disc_exhaustN [disc_exhaust_thm]
         |> note distinctN distinct_thms
