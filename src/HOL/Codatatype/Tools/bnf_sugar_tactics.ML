@@ -21,6 +21,7 @@ end;
 structure BNF_Sugar_Tactics : BNF_SUGAR_TACTICS =
 struct
 
+open BNF_Util
 open BNF_Tactics
 open BNF_FP_Util
 
@@ -58,14 +59,13 @@ fun mk_ctr_sel_tac ctxt m discD sel_thms =
       SELECT_GOAL (Local_Defs.unfold_tac ctxt sel_thms) THEN'
       rtac refl)) 1;
 
-fun mk_case_disc_tac ctxt exhaust' case_thms disc_thmss sel_thmss =
-  let val base_unfolds = @{thms if_True if_False} @ maps (map eq_True_or_False) disc_thmss in (*###*)
-    (rtac exhaust' THEN'
-     EVERY' (map2 (fn case_thm => fn sel_thms => EVERY' [
-       hyp_subst_tac THEN'
-       SELECT_GOAL (Local_Defs.unfold_tac ctxt (base_unfolds @ sel_thms)) THEN'
-       rtac case_thm]) case_thms sel_thmss)) 1
-  end;
+fun mk_case_disc_tac ctxt exhaust' case_thms disc_thmss' sel_thmss =
+  (rtac exhaust' THEN'
+   EVERY' (map3 (fn case_thm => fn disc_thms => fn sel_thms => EVERY' [
+     hyp_subst_tac THEN'
+     SELECT_GOAL (Local_Defs.unfold_tac ctxt
+       (@{thms if_True if_False} @ disc_thms @ sel_thms)) THEN'
+     rtac case_thm]) case_thms (map (map eq_True_or_False) disc_thmss') sel_thmss)) 1;
 
 fun mk_case_cong_tac exhaust' case_thms =
   (rtac exhaust' THEN'

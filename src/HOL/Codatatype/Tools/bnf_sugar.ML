@@ -242,13 +242,14 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), raw_disc_names), sel_names
                   (Local_Defs.unfold lthy @{thms not_ex} (def RS @{thm ssubst[of _ _ Not]})))
             ms disc_defs;
 
-        val disc_thmss =
+        val (disc_thmss', disc_thmss) =
           let
             fun mk_thm discI _ [] = refl RS discI
               | mk_thm _ not_disc [distinct] = distinct RS not_disc;
             fun mk_thms discI not_disc distinctss = map (mk_thm discI not_disc) distinctss;
           in
             map3 mk_thms discI_thms not_disc_thms (transpose distinct_thmsss)
+            |> `transpose
           end;
 
         val disc_disjoint_thms =
@@ -266,7 +267,7 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), raw_disc_names), sel_names
               map3 (fn [] => K (K [])
                      | [(((m, discD), _), _)] => fn disc_thm => fn [goal] =>
                 [prove (mk_half_disc_disjoint_tac m discD disc_thm) goal])
-              half_pairss (flat (transpose disc_thmss)) goal_halvess;
+              half_pairss (flat disc_thmss') goal_halvess;
 
             val goal_other_halvess = map (map (mk_goal o swap)) half_pairss;
             val other_half_thmss =
@@ -307,7 +308,7 @@ fun prepare_sugar prep_term (((raw_ctrs, raw_caseof), raw_disc_names), sel_names
             val goal = mk_Trueprop_eq (caseofB_fs $ v, mk_rhs discs fs selss);
           in
             Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-              mk_case_disc_tac ctxt exhaust_thm' case_thms disc_thmss sel_thmss)
+              mk_case_disc_tac ctxt exhaust_thm' case_thms disc_thmss' sel_thmss)
             |> singleton (Proof_Context.export names_lthy lthy)
           end;
 
