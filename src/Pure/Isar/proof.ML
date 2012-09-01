@@ -21,9 +21,6 @@ sig
   val propagate_ml_env: state -> state
   val bind_terms: (indexname * term option) list -> state -> state
   val put_thms: bool -> string * thm list option -> state -> state
-  val begin_proofs: state -> state
-  val register_proofs: thm list -> state -> state
-  val join_recent_proofs: state -> unit
   val the_facts: state -> thm list
   val the_fact: state -> thm
   val set_facts: thm list -> state -> state
@@ -223,14 +220,6 @@ fun propagate_ml_env state = map_contexts
 
 val bind_terms = map_context o Proof_Context.bind_terms;
 val put_thms = map_context oo Proof_Context.put_thms;
-
-
-(* forked proofs *)
-
-val begin_proofs = map_context_bottom (Context.proof_map Thm.begin_proofs);
-val register_proofs = map_context_bottom o Context.proof_map o Thm.register_proofs;
-
-val join_recent_proofs = Thm.join_local_proofs o #context o bottom;
 
 
 (* facts *)
@@ -966,7 +955,7 @@ fun local_goal print_results prep_att prepp kind before_qed after_qed stmt state
 fun local_qeds txt =
   end_proof false txt
   #> Seq.map (generic_qed Proof_Context.auto_bind_facts #->
-    (fn ((after_qed, _), results) => register_proofs (flat results) #> after_qed results));
+    (fn ((after_qed, _), results) => after_qed results));
 
 fun local_qed txt = local_qeds txt #> check_finish;
 

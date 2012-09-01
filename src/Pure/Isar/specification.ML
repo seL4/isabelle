@@ -395,8 +395,7 @@ fun gen_theorem schematic prep_bundle prep_att prep_stmt
       let
         val results' = burrow (map Goal.norm_result o Proof_Context.export goal_ctxt' lthy) results;
         val (res, lthy') =
-          if forall (Attrib.is_empty_binding o fst) stmt
-          then (map (pair "") results', Local_Theory.register_proofs (flat results) lthy)
+          if forall (Attrib.is_empty_binding o fst) stmt then (map (pair "") results', lthy)
           else
             Local_Theory.notes_kind kind
               (map2 (fn (b, _) => fn ths => (b, [(ths, [])])) stmt results') lthy;

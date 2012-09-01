@@ -53,7 +53,6 @@ sig
   val ignored: Position.T -> transition
   val malformed: Position.T -> string -> transition
   val is_malformed: transition -> bool
-  val join_recent_proofs: state -> unit
   val generic_theory: (generic_theory -> generic_theory) -> transition -> transition
   val theory': (bool -> theory -> theory) -> transition -> transition
   val theory: (theory -> theory) -> transition -> transition
@@ -423,21 +422,6 @@ val unknown_proof = imperative (fn () => warning "Unknown proof context");
 val unknown_context = imperative (fn () => warning "Unknown context");
 
 
-(* forked proofs *)
-
-val begin_proofs =
-  Context.mapping (Context.theory_map Thm.begin_proofs #> Theory.checkpoint)
-    Local_Theory.begin_proofs;
-
-fun join_recent_proofs st =
-  (case try proof_of st of
-    SOME prf => Proof.join_recent_proofs prf
-  | NONE =>
-      (case try theory_of st of
-        SOME thy => Thm.join_recent_proofs thy
-      | NONE => ()));
-
-
 (* theory transitions *)
 
 fun generic_theory f = transaction (fn _ =>
@@ -487,9 +471,7 @@ local
 fun local_theory_presentation loc f = present_transaction (fn int =>
   (fn Theory (gthy, _) =>
         let
-          val (finish, lthy) = gthy
-            |> begin_proofs
-            |> loc_begin loc;
+          val (finish, lthy) = loc_begin loc gthy;
           val lthy' = lthy
             |> Local_Theory.new_group
             |> f int
@@ -545,9 +527,7 @@ in
 
 fun local_theory_to_proof' loc f = begin_proof
   (fn int => fn gthy =>
-    let val (finish, lthy) = gthy
-      |> begin_proofs
-      |> loc_begin loc;
+    let val (finish, lthy) = loc_begin loc gthy
     in (finish o Local_Theory.reset_group, f int (Local_Theory.new_group lthy)) end);
 
 fun local_theory_to_proof loc f = local_theory_to_proof' loc (K f);
@@ -555,7 +535,7 @@ fun local_theory_to_proof loc f = local_theory_to_proof' loc (K f);
 fun theory_to_proof f = begin_proof
   (fn _ => fn gthy =>
     (Context.Theory o Sign.reset_group o Proof_Context.theory_of,
-      (case begin_proofs gthy of
+      (case gthy of
         Context.Theory thy => f (Theory.checkpoint (Sign.new_group thy))
       | _ => raise UNDEF)));
 
@@ -567,12 +547,12 @@ val forget_proof = transaction (fn _ =>
     | _ => raise UNDEF));
 
 val present_proof = present_transaction (fn _ =>
-  (fn Proof (prf, x) => Proof (Proof_Node.apply Proof.begin_proofs prf, x)
+  (fn Proof (prf, x) => Proof (Proof_Node.apply I prf, x)
     | skip as SkipProof _ => skip
     | _ => raise UNDEF));
 
 fun proofs' f = transaction (fn int =>
-  (fn Proof (prf, x) => Proof (Proof_Node.applys (f int o Proof.begin_proofs) prf, x)
+  (fn Proof (prf, x) => Proof (Proof_Node.applys (f int) prf, x)
     | skip as SkipProof _ => skip
     | _ => raise UNDEF));
 
