@@ -359,10 +359,13 @@ fun stable_finished_theory node =
     |> Toplevel.end_theory Position.none
     |> Thm.join_theory_proofs) ()));
 
-fun stable_command exec =
+fun stable_exec_id id =
+  not (Par_Exn.is_interrupted (Future.join_results (Goal.peek_futures id)));
+
+fun stable_exec exec =
   (case Exn.capture Command.memo_result exec of
     Exn.Exn exn => not (Exn.is_interrupt exn)
-  | Exn.Res ((st, _), _) => is_some (Exn.get_res (Exn.capture Toplevel.join_recent_proofs st)));
+  | Exn.Res _ => true);
 
 fun make_required nodes =
   let
@@ -423,7 +426,8 @@ fun last_common state last_visible node0 node =
             | SOME (exec_id, exec) =>
                 (case lookup_entry node0 id of
                   NONE => false
-                | SOME (exec_id0, _) => exec_id = exec_id0 andalso stable_command exec));
+                | SOME (exec_id0, _) =>
+                    exec_id = exec_id0 andalso stable_exec_id exec_id andalso stable_exec exec));
         in SOME (same', (prev, flags')) end
       else NONE;
     val (same, (common, flags)) =

@@ -1,7 +1,7 @@
 (*  Title:      Pure/goal.ML
     Author:     Makarius
 
-Goals in tactical theorem proving.
+Goals in tactical theorem proving, with support for forked proofs.
 *)
 
 signature BASIC_GOAL =
@@ -26,6 +26,8 @@ sig
   val norm_result: thm -> thm
   val fork_name: string -> (unit -> 'a) -> 'a future
   val fork: (unit -> 'a) -> 'a future
+  val peek_futures: serial -> unit future list
+  val cancel_futures: unit -> unit
   val future_enabled_level: int -> bool
   val future_enabled: unit -> bool
   val future_enabled_nested: int -> bool
@@ -109,25 +111,42 @@ val norm_result =
 
 (* forked proofs *)
 
-val forked_proofs = Synchronized.var "forked_proofs" 0;
+local
 
-fun forked i =
-  Synchronized.change forked_proofs (fn m =>
+val forked_proofs =
+  Synchronized.var "forked_proofs"
+    (0, []: Future.group list, Inttab.empty: unit future list Inttab.table);
+
+fun count_forked i =
+  Synchronized.change forked_proofs (fn (m, groups, tab) =>
     let
       val n = m + i;
       val _ =
         Multithreading.tracing 2 (fn () =>
           ("PROOFS " ^ Time.toString (Time.now ()) ^ ": " ^ string_of_int n));
-    in n end);
+    in (n, groups, tab) end);
+
+fun register_forked id future =
+  Synchronized.change forked_proofs (fn (m, groups, tab) =>
+    let
+      val groups' = Task_Queue.group_of_task (Future.task_of future) :: groups;
+      val tab' = Inttab.cons_list (id, Future.map (K ()) future) tab;
+    in (m, groups', tab') end);
 
 fun status task markups =
   let val props = Markup.properties [(Isabelle_Markup.taskN, Task_Queue.str_of_task task)]
   in Output.status (implode (map (Markup.markup_only o props) markups)) end;
 
+in
+
 fun fork_name name e =
   uninterruptible (fn _ => fn () =>
     let
-      val _ = forked 1;
+      val id =
+        (case Position.get_id (Position.thread_data ()) of
+          NONE => 0
+        | SOME id => Markup.parse_int id);
+      val _ = count_forked 1;
       val future =
         (singleton o Future.forks)
           {name = name, group = NONE, deps = [], pri = ~1, interrupts = false}
@@ -144,11 +163,24 @@ fun fork_name name e =
                     (status task [Isabelle_Markup.failed];
                      Output.report (Markup.markup_only Isabelle_Markup.bad);
                      Output.error_msg (ML_Compiler.exn_message exn)));
+              val _ = count_forked ~1;
             in Exn.release result end);
       val _ = status (Future.task_of future) [Isabelle_Markup.forked];
+      val _ = register_forked id future;
     in future end) ();
 
 fun fork e = fork_name "Goal.fork" e;
+
+fun forked_count () = #1 (Synchronized.value forked_proofs);
+
+fun peek_futures id =
+  Inttab.lookup_list (#3 (Synchronized.value forked_proofs)) id;
+
+fun cancel_futures () =
+  Synchronized.change forked_proofs (fn (m, groups, tab) =>
+    (List.app Future.cancel_group groups; (0, [], Inttab.empty)));
+
+end;
 
 
 (* scheduling parameters *)
@@ -164,8 +196,7 @@ fun future_enabled () = future_enabled_level 1;
 
 fun future_enabled_nested n =
   future_enabled_level n andalso
-  Synchronized.value forked_proofs <
-    ! parallel_proofs_threshold * Multithreading.max_threads_value ();
+  forked_count () < ! parallel_proofs_threshold * Multithreading.max_threads_value ();
 
 
 (* future_result *)

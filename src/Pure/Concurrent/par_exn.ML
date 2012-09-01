@@ -10,6 +10,7 @@ sig
   val serial: exn -> serial * exn
   val make: exn list -> exn
   val dest: exn -> exn list option
+  val is_interrupted: 'a Exn.result list -> bool
   val release_all: 'a Exn.result list -> 'a list
   val release_first: 'a Exn.result list -> 'a list
 end;
@@ -52,6 +53,10 @@ fun dest (Par_Exn exns) = SOME exns
 
 
 (* parallel results *)
+
+fun is_interrupted results =
+  exists (fn Exn.Exn _ => true | _ => false) results andalso
+    Exn.is_interrupt (make (map_filter Exn.get_exn results));
 
 fun release_all results =
   if forall (fn Exn.Res _ => true | _ => false) results

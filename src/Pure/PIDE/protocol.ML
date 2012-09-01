@@ -59,6 +59,7 @@ val _ =
               in pair int (list (pair int (option int))) end
               |> YXML.string_of_body);
 
+        val _ = Goal.cancel_futures ();
         val _ = Document.start_execution state';
       in state' end));
 
