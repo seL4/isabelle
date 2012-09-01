@@ -169,10 +169,7 @@ fun init ctxt =
   State (Stack.init (make_node (init_context ctxt, NONE, Forward, NONE)));
 
 fun top (State st) = Stack.top st |> (fn Node node => node);
-fun bottom (State st) = Stack.bottom st |> (fn Node node => node);
-
 fun map_top f (State st) = State (Stack.map_top (map_node f) st);
-fun map_bottom f (State st) = State (Stack.map_bottom (map_node f) st);
 fun map_all f (State st) = State (Stack.map_all (map_node f) st);
 
 
@@ -209,9 +206,6 @@ fun map_context f =
 
 fun map_context_result f state =
   f (context_of state) ||> (fn ctxt => map_context (K ctxt) state);
-
-fun map_context_bottom f =
-  map_bottom (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
 
 fun map_contexts f = map_all (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
 
