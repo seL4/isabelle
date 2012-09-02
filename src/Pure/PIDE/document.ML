@@ -69,7 +69,7 @@ val no_exec = Command.memo_value ((Toplevel.toplevel, false), Lazy.value ());
 abstype node = Node of
  {header: node_header,  (*master directory, theory header, errors*)
   perspective: perspective,  (*visible commands, last*)
-  entries: (exec_id * exec) option Entries.T,  (*command entries with excecutions*)
+  entries: (exec_id * exec) option Entries.T * bool,  (*command entries with excecutions, stable*)
   result: exec option}  (*result of last execution*)
 and version = Version of node Graph.T  (*development graph wrt. static imports*)
 with
@@ -86,8 +86,9 @@ fun make_perspective command_ids : perspective =
 val no_header = ("", Thy_Header.make ("", Position.none) [] [] [], ["Bad theory header"]);
 val no_perspective = make_perspective [];
 
-val empty_node = make_node (no_header, no_perspective, Entries.empty, NONE);
-val clear_node = map_node (fn (header, _, _, _) => (header, no_perspective, Entries.empty, NONE));
+val empty_node = make_node (no_header, no_perspective, (Entries.empty, true), NONE);
+val clear_node =
+  map_node (fn (header, _, _, _) => (header, no_perspective, (Entries.empty, true), NONE));
 
 
 (* basic components *)
@@ -114,11 +115,17 @@ val visible_last = #2 o get_perspective;
 val visible_node = is_some o visible_last
 
 fun map_entries f =
-  map_node (fn (header, perspective, entries, result) => (header, perspective, f entries, result));
-fun get_entries (Node {entries, ...}) = entries;
+  map_node (fn (header, perspective, (entries, stable), result) =>
+    (header, perspective, (f entries, stable), result));
+fun get_entries (Node {entries = (entries, _), ...}) = entries;
+
+fun entries_stable stable =
+  map_node (fn (header, perspective, (entries, _), result) =>
+    (header, perspective, (entries, stable), result));
+fun stable_entries (Node {entries = (_, stable), ...}) = stable;
 
 fun iterate_entries f = Entries.iterate NONE f o get_entries;
-fun iterate_entries_after start f (Node {entries, ...}) =
+fun iterate_entries_after start f (Node {entries = (entries, _), ...}) =
   (case Entries.get_after entries start of
     NONE => I
   | SOME id => Entries.iterate (SOME id) f entries);
@@ -142,15 +149,15 @@ datatype node_edit =
 
 type edit = string * node_edit;
 
-fun after_entry (Node {entries, ...}) = Entries.get_after entries;
+val after_entry = Entries.get_after o get_entries;
 
-fun lookup_entry (Node {entries, ...}) id =
-  (case Entries.lookup entries id of
+fun lookup_entry node id =
+  (case Entries.lookup (get_entries node) id of
     NONE => NONE
   | SOME (exec, _) => exec);
 
-fun the_entry (Node {entries, ...}) id =
-  (case Entries.lookup entries id of
+fun the_entry node id =
+  (case Entries.lookup (get_entries node) id of
     NONE => err_undef "command entry" id
   | SOME (exec, _) => exec);
 
@@ -293,6 +300,20 @@ fun remove_versions ids state = state |> map_state (fn (versions, _, execution) 
   in (versions', commands', execution) end);
 
 
+(* consolidated states *)
+
+fun stable_command (exec_id, exec) =
+  not (Par_Exn.is_interrupted (Future.join_results (Goal.peek_futures exec_id))) andalso
+    (case Exn.capture Command.memo_result exec of
+      Exn.Exn exn => not (Exn.is_interrupt exn)
+    | Exn.Res _ => true);
+
+fun finished_theory node =
+  (case Exn.capture (Command.memo_result o the) (get_result node) of
+    Exn.Res ((st, _), _) => can (Toplevel.end_theory Position.none) st
+  | _ => false);
+
+
 
 (** document execution **)
 
@@ -308,11 +329,6 @@ fun terminate_execution state =
 
 fun start_execution state =
   let
-    fun finished_theory node =
-      (case Exn.capture (Command.memo_result o the) (get_result node) of
-        Exn.Res ((st, _), _) => can (Toplevel.end_theory Position.none) st
-      | _ => false);
-
     fun run node command_id exec =
       let
         val (_, print) = Command.memo_eval exec;
@@ -352,20 +368,6 @@ val timing = Unsynchronized.ref false;
 fun timeit msg e = cond_timeit (! timing) msg e;
 
 local
-
-fun stable_finished_theory node =
-  is_some (Exn.get_res (Exn.capture (fn () =>
-    fst (fst (Command.memo_result (the (get_result node))))
-    |> Toplevel.end_theory Position.none
-    |> Thm.join_theory_proofs) ()));
-
-fun stable_exec_id id =
-  not (Par_Exn.is_interrupted (Future.join_results (Goal.peek_futures id)));
-
-fun stable_exec exec =
-  (case Exn.capture Command.memo_result exec of
-    Exn.Exn exn => not (Exn.is_interrupt exn)
-  | Exn.Res _ => true);
 
 fun make_required nodes =
   let
@@ -426,8 +428,7 @@ fun last_common state last_visible node0 node =
             | SOME (exec_id, exec) =>
                 (case lookup_entry node0 id of
                   NONE => false
-                | SOME (exec_id0, _) =>
-                    exec_id = exec_id0 andalso stable_exec_id exec_id andalso stable_exec exec));
+                | SOME (exec_id0, _) => exec_id = exec_id0 andalso stable_command (exec_id, exec)));
         in SOME (same', (prev, flags')) end
       else NONE;
     val (same, (common, flags)) =
@@ -493,7 +494,7 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
                 val required = is_required name;
               in
                 if updated_imports orelse AList.defined (op =) edits name orelse
-                  not (stable_finished_theory node)
+                  not (stable_entries node) orelse not (finished_theory node)
                 then
                   let
                     val node0 = node_of old_version name;
@@ -531,6 +532,7 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
                     val node' = node
                       |> fold reset_entry no_execs
                       |> fold (fn (id, exec) => update_entry id (SOME exec)) new_execs
+                      |> entries_stable (null new_execs)
                       |> set_result result;
                     val updated_node =
                       if null no_execs andalso null new_execs then NONE
