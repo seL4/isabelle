@@ -48,6 +48,7 @@ declare -a SOURCES=(
   System/isabelle_charset.scala
   System/isabelle_process.scala
   System/isabelle_system.scala
+  System/jfx_thread.scala
   System/main.scala
   System/options.scala
   System/platform.scala
@@ -200,7 +201,8 @@ then
   isabelle_jdk jar cfe "$(jvmpath "$TARGET")" isabelle.GUI_Setup META-INF isabelle || \
     fail "Failed to produce $TARGET"
 
-  cp "$SCALA_HOME/lib/scala-compiler.jar" \
+  cp "$ISABELLE_JDK_HOME/jre/lib/jfxrt.jar" \
+    "$SCALA_HOME/lib/scala-compiler.jar" \
     "$SCALA_HOME/lib/scala-library.jar" \
     "$SCALA_HOME/lib/scala-swing.jar" "$TARGET_DIR/ext"
 
