@@ -185,11 +185,12 @@ then
   if [ "$TEST_PIDE" = true ]; then
     isabelle_scala scalac $SCALAC_OPTIONS "${PIDE_SOURCES[@]}" || \
       fail "Failed to compile PIDE sources"
-    isabelle_scala scalac $SCALAC_OPTIONS -classpath "$JFXRT:classes" "${PURE_SOURCES[@]}" || \
+    isabelle_scala scalac $SCALAC_OPTIONS \
+        -classpath "$(jvmpath "$JFXRT:classes")" "${PURE_SOURCES[@]}" || \
       fail "Failed to compile Pure sources"
   else
-    isabelle_scala scalac $SCALAC_OPTIONS -classpath "$JFXRT:classes" \
-      "${PIDE_SOURCES[@]}" "${PURE_SOURCES[@]}" || \
+    isabelle_scala scalac $SCALAC_OPTIONS \
+        -classpath "$(jvmpath "$JFXRT:classes")" "${PIDE_SOURCES[@]}" "${PURE_SOURCES[@]}" || \
       fail "Failed to compile sources"
   fi
 
