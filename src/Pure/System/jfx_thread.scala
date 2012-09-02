@@ -25,4 +25,14 @@ object JFX_Thread
     if (JFX_Platform.isFxApplicationThread()) body
     else JFX_Platform.runLater(new Runnable { def run = body })
   }
+
+  def future[A](body: => A): Future[A] =
+  {
+    if (JFX_Platform.isFxApplicationThread()) Future.value(body)
+    else {
+      val promise = Future.promise[A]
+      later { promise.fulfill_result(Exn.capture(body)) }
+      promise
+    }
+  }
 }
