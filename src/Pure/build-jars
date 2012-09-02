@@ -180,13 +180,15 @@ then
 
   SCALAC_OPTIONS="$ISABELLE_SCALA_BUILD_OPTIONS -d classes"
 
+  JFXRT="$ISABELLE_JDK_HOME/jre/lib/jfxrt.jar"
+
   if [ "$TEST_PIDE" = true ]; then
     isabelle_scala scalac $SCALAC_OPTIONS "${PIDE_SOURCES[@]}" || \
       fail "Failed to compile PIDE sources"
-    isabelle_scala scalac $SCALAC_OPTIONS -classpath classes "${PURE_SOURCES[@]}" || \
+    isabelle_scala scalac $SCALAC_OPTIONS -classpath "$JFXRT:classes" "${PURE_SOURCES[@]}" || \
       fail "Failed to compile Pure sources"
   else
-    isabelle_scala scalac $SCALAC_OPTIONS -classpath classes \
+    isabelle_scala scalac $SCALAC_OPTIONS -classpath "$JFXRT:classes" \
       "${PIDE_SOURCES[@]}" "${PURE_SOURCES[@]}" || \
       fail "Failed to compile sources"
   fi
@@ -202,7 +204,7 @@ then
   isabelle_jdk jar cfe "$(jvmpath "$TARGET")" isabelle.GUI_Setup META-INF isabelle || \
     fail "Failed to produce $TARGET"
 
-  cp "$ISABELLE_JDK_HOME/jre/lib/jfxrt.jar" \
+  cp "$JFXRT" \
     "$SCALA_HOME/lib/scala-compiler.jar" \
     "$SCALA_HOME/lib/scala-library.jar" \
     "$SCALA_HOME/lib/scala-swing.jar" "$TARGET_DIR/ext"
