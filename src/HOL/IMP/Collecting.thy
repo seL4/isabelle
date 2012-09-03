@@ -18,10 +18,10 @@ fun less_eq_acom :: "('a::order)acom \<Rightarrow> 'a acom \<Rightarrow> bool" w
 "(SKIP {S}) \<le> (SKIP {S'}) = (S \<le> S')" |
 "(x ::= e {S}) \<le> (x' ::= e' {S'}) = (x=x' \<and> e=e' \<and> S \<le> S')" |
 "(c1;c2) \<le> (c1';c2') = (c1 \<le> c1' \<and> c2 \<le> c2')" |
-"(IF b THEN c1 ELSE c2 {S}) \<le> (IF b' THEN c1' ELSE c2' {S'}) =
-  (b=b' \<and> c1 \<le> c1' \<and> c2 \<le> c2' \<and> S \<le> S')" |
-"({Inv} WHILE b DO c {P}) \<le> ({Inv'} WHILE b' DO c' {P'}) =
-  (b=b' \<and> c \<le> c' \<and> Inv \<le> Inv' \<and> P \<le> P')" |
+"(IF b THEN {p1} C1 ELSE {p2} C2 {S}) \<le> (IF b' THEN {p1'} C1' ELSE {p2'} C2' {S'}) =
+  (b=b' \<and> p1 \<le> p1' \<and> C1 \<le> C1' \<and> p2 \<le> p2' \<and> C2 \<le> C2' \<and> S \<le> S')" |
+"({I} WHILE b DO {p} C {P}) \<le> ({I'} WHILE b' DO {p'} C' {P'}) =
+  (b=b' \<and> C \<le> C' \<and> I \<le> I' \<and> p \<le> p' \<and> P \<le> P')" |
 "less_eq_acom _ _ = False"
 
 lemma SKIP_le: "SKIP {S} \<le> c \<longleftrightarrow> (\<exists>S'. c = SKIP {S'} \<and> S \<le> S')"
@@ -30,16 +30,17 @@ by (cases c) auto
 lemma Assign_le: "x ::= e {S} \<le> c \<longleftrightarrow> (\<exists>S'. c = x ::= e {S'} \<and> S \<le> S')"
 by (cases c) auto
 
-lemma Seq_le: "c1;c2 \<le> c \<longleftrightarrow> (\<exists>c1' c2'. c = c1';c2' \<and> c1 \<le> c1' \<and> c2 \<le> c2')"
-by (cases c) auto
+lemma Seq_le: "C1;C2 \<le> C \<longleftrightarrow> (\<exists>C1' C2'. C = C1';C2' \<and> C1 \<le> C1' \<and> C2 \<le> C2')"
+by (cases C) auto
 
-lemma If_le: "IF b THEN c1 ELSE c2 {S} \<le> c \<longleftrightarrow>
-  (\<exists>c1' c2' S'. c= IF b THEN c1' ELSE c2' {S'} \<and> c1 \<le> c1' \<and> c2 \<le> c2' \<and> S \<le> S')"
-by (cases c) auto
+lemma If_le: "IF b THEN {p1} C1 ELSE {p2} C2 {S} \<le> C \<longleftrightarrow>
+  (\<exists>p1' p2' C1' C2' S'. C = IF b THEN {p1'} C1' ELSE {p2'} C2' {S'} \<and>
+     p1 \<le> p1' \<and> p2 \<le> p2' \<and> C1 \<le> C1' \<and> C2 \<le> C2' \<and> S \<le> S')"
+by (cases C) auto
 
-lemma While_le: "{Inv} WHILE b DO c {P} \<le> w \<longleftrightarrow>
-  (\<exists>Inv' c' P'. w = {Inv'} WHILE b DO c' {P'} \<and> c \<le> c' \<and> Inv \<le> Inv' \<and> P \<le> P')"
-by (cases w) auto
+lemma While_le: "{I} WHILE b DO {p} C {P} \<le> W \<longleftrightarrow>
+  (\<exists>I' p' C' P'. W = {I'} WHILE b DO {p'} C' {P'} \<and> C \<le> C' \<and> p \<le> p' \<and> I \<le> I' \<and> P \<le> P')"
+by (cases W) auto
 
 definition less_acom :: "'a acom \<Rightarrow> 'a acom \<Rightarrow> bool" where
 "less_acom x y = (x \<le> y \<and> \<not> y \<le> x)"
@@ -64,16 +65,22 @@ qed
 end
 
 fun sub\<^isub>1 :: "'a acom \<Rightarrow> 'a acom" where
-"sub\<^isub>1(c1;c2) = c1" |
-"sub\<^isub>1(IF b THEN c1 ELSE c2 {S}) = c1" |
-"sub\<^isub>1({I} WHILE b DO c {P}) = c"
+"sub\<^isub>1(C1;C2) = C1" |
+"sub\<^isub>1(IF b THEN {p1} C1 ELSE {p2} C2 {S}) = C1" |
+"sub\<^isub>1({I} WHILE b DO {p} C {P}) = C"
 
 fun sub\<^isub>2 :: "'a acom \<Rightarrow> 'a acom" where
-"sub\<^isub>2(c1;c2) = c2" |
-"sub\<^isub>2(IF b THEN c1 ELSE c2 {S}) = c2"
+"sub\<^isub>2(C1;C2) = C2" |
+"sub\<^isub>2(IF b THEN {p1} C1 ELSE {p2} C2 {S}) = C2"
 
-fun invar :: "'a acom \<Rightarrow> 'a" where
-"invar({I} WHILE b DO c {P}) = I"
+fun anno\<^isub>1 :: "'a acom \<Rightarrow> 'a" where
+"anno\<^isub>1(IF b THEN {p1} C1 ELSE {p2} C2 {S}) = p1" |
+"anno\<^isub>1({I} WHILE b DO {p} C {P}) = I"
+
+fun anno\<^isub>2 :: "'a acom \<Rightarrow> 'a" where
+"anno\<^isub>2(IF b THEN {p1} C1 ELSE {p2} C2 {S}) = p2" |
+"anno\<^isub>2({I} WHILE b DO {p} C {P}) = p"
+
 
 fun lift :: "('a set \<Rightarrow> 'b) \<Rightarrow> com \<Rightarrow> 'a acom set \<Rightarrow> 'b acom"
 where
@@ -82,11 +89,11 @@ where
 "lift F (c1;c2) M =
   lift F c1 (sub\<^isub>1 ` M); lift F c2 (sub\<^isub>2 ` M)" |
 "lift F (IF b THEN c1 ELSE c2) M =
-  IF b THEN lift F c1 (sub\<^isub>1 ` M) ELSE lift F c2 (sub\<^isub>2 ` M)
+  IF b THEN {F (anno\<^isub>1 ` M)} lift F c1 (sub\<^isub>1 ` M) ELSE {F (anno\<^isub>2 ` M)} lift F c2 (sub\<^isub>2 ` M)
   {F (post ` M)}" |
 "lift F (WHILE b DO c) M =
- {F (invar ` M)}
- WHILE b DO lift F c (sub\<^isub>1 ` M)
+ {F (anno\<^isub>1 ` M)}
+ WHILE b DO {F (anno\<^isub>2 ` M)} lift F c (sub\<^isub>1 ` M)
  {F (post ` M)}"
 
 interpretation Complete_Lattice "{C. strip C = c}" "lift Inter c" for c
@@ -137,12 +144,12 @@ fun step :: "state set \<Rightarrow> state set acom \<Rightarrow> state set acom
 "step S (SKIP {P}) = (SKIP {S})" |
 "step S (x ::= e {P}) =
   (x ::= e {{s'. EX s:S. s' = s(x := aval e s)}})" |
-"step S (c1; c2) = step S c1; step (post c1) c2" |
-"step S (IF b THEN c1 ELSE c2 {P}) =
-   IF b THEN step {s:S. bval b s} c1 ELSE step {s:S. \<not> bval b s} c2
-   {post c1 \<union> post c2}" |
-"step S ({Inv} WHILE b DO c {P}) =
-  {S \<union> post c} WHILE b DO (step {s:Inv. bval b s} c) {{s:Inv. \<not> bval b s}}"
+"step S (C1; C2) = step S C1; step (post C1) C2" |
+"step S (IF b THEN {P1} C1 ELSE {P2} C2 {P}) =
+   IF b THEN {{s:S. bval b s}} step P1 C1 ELSE {{s:S. \<not> bval b s}} step P2 C2
+   {post C1 \<union> post C2}" |
+"step S ({I} WHILE b DO {P} C {P'}) =
+  {S \<union> post C} WHILE b DO {{s:I. bval b s}} step P C {{s:I. \<not> bval b s}}"
 
 definition CS :: "com \<Rightarrow> state set acom" where
 "CS c = lfp c (step UNIV)"
@@ -161,8 +168,8 @@ qed auto
 lemma mono_step: "mono (step S)"
 by(blast intro: monoI mono2_step)
 
-lemma strip_step: "strip(step S c) = strip c"
-by (induction c arbitrary: S) auto
+lemma strip_step: "strip(step S C) = strip C"
+by (induction C arbitrary: S) auto
 
 lemma lfp_cs_unfold: "lfp c (step S) = step S (lfp c (step S))"
 apply(rule lfp_unfold[OF _  mono_step])

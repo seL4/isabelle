@@ -1,5 +1,5 @@
 theory Collecting_ITP
-imports Complete_Lattice_ix "../ACom"
+imports Complete_Lattice_ix "ACom_ITP"
 begin
 
 subsection "Collecting Semantics of Commands"
