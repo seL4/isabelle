@@ -161,41 +161,6 @@ class Text_Area_Painter(doc_view: Document_View)
 
   /* text */
 
-  private def line_infos(physical_lines: Iterator[Int]): Map[Text.Offset, Chunk] =
-  {
-    val painter = text_area.getPainter
-    val font = painter.getFont
-    val font_context = painter.getFontRenderContext
-
-    // see org.gjt.sp.jedit.textarea.TextArea.propertiesChanged
-    // see org.gjt.sp.jedit.textarea.TextArea.setMaxLineLength
-    val margin =
-      if (buffer.getStringProperty("wrap") != "soft") 0.0f
-      else {
-        val max = buffer.getIntegerProperty("maxLineLen", 0)
-        if (max > 0) font.getStringBounds(" " * max, font_context).getWidth.toInt
-        else painter.getWidth - char_width() * 3
-      }.toFloat
-
-    val out = new ArrayList[Chunk]
-    val handler = new DisplayTokenHandler
-
-    var result = Map[Text.Offset, Chunk]()
-    for (line <- physical_lines) {
-      val line_start = buffer.getLineStartOffset(line)
-
-      out.clear
-      handler.init(painter.getStyles, font_context, painter, out, margin, line_start)
-      buffer.markTokens(line, handler)
-
-      for (i <- 0 until out.size) {
-        val chunk = out.get(i)
-        result += (line_start + chunk.offset -> chunk)
-      }
-    }
-    result
-  }
-
   private def paint_chunk_list(snapshot: Document.Snapshot,
     gfx: Graphics2D, line_start: Text.Offset, head: Chunk, x: Float, y: Float): Float =
   {
@@ -287,21 +252,20 @@ class Text_Area_Painter(doc_view: Document_View)
         val fm = text_area.getPainter.getFontMetrics
         var y0 = y + fm.getHeight - (fm.getLeading + 1) - fm.getDescent
 
-        val infos = line_infos(physical_lines.iterator.filter(i => i != -1))
         for (i <- 0 until physical_lines.length) {
-          if (physical_lines(i) != -1) {
-            val x1 =
-              infos.get(start(i)) match {
-                case None => x0
-                case Some(chunk) =>
-                  gfx.clipRect(x0, y + line_height * i, Integer.MAX_VALUE, line_height)
-                  val w = paint_chunk_list(snapshot, gfx, start(i), chunk, x0, y0).toInt
-                  x0 + w.toInt
-              }
-            gfx.clipRect(x1, 0, Integer.MAX_VALUE, Integer.MAX_VALUE)
-            orig_text_painter.paintValidLine(gfx,
-              first_line + i, physical_lines(i), start(i), end(i), y + line_height * i)
-            gfx.setClip(clip)
+          val line = physical_lines(i)
+          if (line != -1) {
+            val screen_line = first_line + i
+            val chunks = text_area.getChunksOfScreenLine(screen_line)
+            if (chunks != null) {
+              val line_start = text_area.getBuffer.getLineStartOffset(line)
+              gfx.clipRect(x0, y + line_height * i, Integer.MAX_VALUE, line_height)
+              val w = paint_chunk_list(snapshot, gfx, line_start, chunks, x0, y0).toInt
+              gfx.clipRect(x0 + w.toInt, 0, Integer.MAX_VALUE, Integer.MAX_VALUE)
+              orig_text_painter.paintValidLine(gfx,
+                screen_line, line, start(i), end(i), y + line_height * i)
+              gfx.setClip(clip)
+            }
           }
           y0 += line_height
         }

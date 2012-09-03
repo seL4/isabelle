@@ -1,0 +1,16 @@
+diff -ru jEdit/org/gjt/sp/jedit/textarea/TextArea.java jEdit-patched/org/gjt/sp/jedit/textarea/TextArea.java
+--- jEdit/org/gjt/sp/jedit/textarea/TextArea.java       2012-08-13 19:11:04.000000000 +0200
++++ jEdit-patched/org/gjt/sp/jedit/textarea/TextArea.java       2012-09-03 19:37:48.000000000 +0200
+@@ -905,6 +905,11 @@
+                return chunkCache.getLineInfo(screenLine).physicalLine;
+        } //}}}
+ 
++       public Chunk getChunksOfScreenLine(int screenLine)
++       {
++               return chunkCache.getLineInfo(screenLine).chunks;
++       }
++
+        //{{{ getScreenLineOfOffset() method
+        /**
+         * Returns the screen (wrapped) line containing the specified offset.
+
