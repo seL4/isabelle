@@ -15,7 +15,7 @@ begin
 
 typedecl N  typedecl T
 
-bnf_codata Tree: 'Tree = "N \<times> (T + 'Tree) fset"
+codata_raw Tree: 'Tree = "N \<times> (T + 'Tree) fset"
 
 
 section {* Sugar notations for Tree *}
