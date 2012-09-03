@@ -11,11 +11,11 @@ begin
 
 subsection {* Prefix order on lists *}
 
-definition prefixeq :: "'a list => 'a list => bool" where
-  "prefixeq xs ys \<longleftrightarrow> (\<exists>zs. ys = xs @ zs)"
+definition prefixeq :: "'a list => 'a list => bool"
+  where "prefixeq xs ys \<longleftrightarrow> (\<exists>zs. ys = xs @ zs)"
 
-definition prefix :: "'a list => 'a list => bool" where
-  "prefix xs ys \<longleftrightarrow> prefixeq xs ys \<and> xs \<noteq> ys"
+definition prefix :: "'a list => 'a list => bool"
+  where "prefix xs ys \<longleftrightarrow> prefixeq xs ys \<and> xs \<noteq> ys"
 
 interpretation prefix_order: order prefixeq prefix
   by default (auto simp: prefixeq_def prefix_def)
@@ -149,7 +149,8 @@ lemma not_prefixeq_cases:
   | (c2) a as x xs where "ps = a#as" and "ls = x#xs" and "x = a" and "\<not> prefixeq as xs"
   | (c3) a as x xs where "ps = a#as" and "ls = x#xs" and "x \<noteq> a"
 proof (cases ps)
-  case Nil then show ?thesis using pfx by simp
+  case Nil
+  then show ?thesis using pfx by simp
 next
   case (Cons a as)
   note c = `ps = a#as`
@@ -190,9 +191,8 @@ qed
 
 subsection {* Parallel lists *}
 
-definition
-  parallel :: "'a list => 'a list => bool"  (infixl "\<parallel>" 50) where
-  "(xs \<parallel> ys) = (\<not> prefixeq xs ys \<and> \<not> prefixeq ys xs)"
+definition parallel :: "'a list => 'a list => bool"  (infixl "\<parallel>" 50)
+  where "(xs \<parallel> ys) = (\<not> prefixeq xs ys \<and> \<not> prefixeq ys xs)"
 
 lemma parallelI [intro]: "\<not> prefixeq xs ys ==> \<not> prefixeq ys xs ==> xs \<parallel> ys"
   unfolding parallel_def by blast
@@ -229,7 +229,8 @@ next
           same_prefixeq_prefixeq snoc.prems ys)
     qed
   next
-    assume "prefix ys xs" then have "prefixeq ys (xs @ [x])" by (simp add: prefix_def)
+    assume "prefix ys xs"
+    then have "prefixeq ys (xs @ [x])" by (simp add: prefix_def)
     with snoc have False by blast
     then show ?thesis ..
   next
@@ -257,12 +258,11 @@ lemma parallel_commute: "a \<parallel> b \<longleftrightarrow> b \<parallel> a"
 
 subsection {* Suffix order on lists *}
 
-definition
-  suffixeq :: "'a list => 'a list => bool" where
-  "suffixeq xs ys = (\<exists>zs. ys = zs @ xs)"
+definition suffixeq :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
+  where "suffixeq xs ys = (\<exists>zs. ys = zs @ xs)"
 
-definition suffix :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
-  "suffix xs ys \<equiv> \<exists>us. ys = us @ xs \<and> us \<noteq> []"
+definition suffix :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
+  where "suffix xs ys \<longleftrightarrow> (\<exists>us. ys = us @ xs \<and> us \<noteq> [])"
 
 lemma suffix_imp_suffixeq:
   "suffix xs ys \<Longrightarrow> suffixeq xs ys"
@@ -297,9 +297,9 @@ lemma Nil_suffixeq [iff]: "suffixeq [] xs"
 lemma suffixeq_Nil [simp]: "(suffixeq xs []) = (xs = [])"
   by (auto simp add: suffixeq_def)
 
-lemma suffixeq_ConsI: "suffixeq xs ys \<Longrightarrow> suffixeq xs (y#ys)"
+lemma suffixeq_ConsI: "suffixeq xs ys \<Longrightarrow> suffixeq xs (y # ys)"
   by (auto simp add: suffixeq_def)
-lemma suffixeq_ConsD: "suffixeq (x#xs) ys \<Longrightarrow> suffixeq xs ys"
+lemma suffixeq_ConsD: "suffixeq (x # xs) ys \<Longrightarrow> suffixeq xs ys"
   by (auto simp add: suffixeq_def)
 
 lemma suffixeq_appendI: "suffixeq xs ys \<Longrightarrow> suffixeq xs (zs @ ys)"
@@ -313,10 +313,10 @@ lemma suffix_set_subset:
 lemma suffixeq_set_subset:
   "suffixeq xs ys \<Longrightarrow> set xs \<subseteq> set ys" by (auto simp: suffixeq_def)
 
-lemma suffixeq_ConsD2: "suffixeq (x#xs) (y#ys) ==> suffixeq xs ys"
+lemma suffixeq_ConsD2: "suffixeq (x # xs) (y # ys) \<Longrightarrow> suffixeq xs ys"
 proof -
-  assume "suffixeq (x#xs) (y#ys)"
-  then obtain zs where "y#ys = zs @ x#xs" ..
+  assume "suffixeq (x # xs) (y # ys)"
+  then obtain zs where "y # ys = zs @ x # xs" ..
   then show ?thesis
     by (induct zs) (auto intro!: suffixeq_appendI suffixeq_ConsI)
 qed
@@ -348,26 +348,28 @@ lemma suffixeq_drop: "suffixeq (drop n as) as"
   done
 
 lemma suffixeq_take: "suffixeq xs ys \<Longrightarrow> ys = take (length ys - length xs) ys @ xs"
-  by (clarsimp elim!: suffixeqE)
+  by (auto elim!: suffixeqE)
 
-lemma suffixeq_suffix_reflclp_conv:
-  "suffixeq = suffix\<^sup>=\<^sup>="
+lemma suffixeq_suffix_reflclp_conv: "suffixeq = suffix\<^sup>=\<^sup>="
 proof (intro ext iffI)
   fix xs ys :: "'a list"
   assume "suffixeq xs ys"
   show "suffix\<^sup>=\<^sup>= xs ys"
   proof
     assume "xs \<noteq> ys"
-    with `suffixeq xs ys` show "suffix xs ys" by (auto simp: suffixeq_def suffix_def)
+    with `suffixeq xs ys` show "suffix xs ys"
+      by (auto simp: suffixeq_def suffix_def)
   qed
 next
   fix xs ys :: "'a list"
   assume "suffix\<^sup>=\<^sup>= xs ys"
-  thus "suffixeq xs ys"
+  then show "suffixeq xs ys"
   proof
-    assume "suffix xs ys" thus "suffixeq xs ys" by (rule suffix_imp_suffixeq)
+    assume "suffix xs ys" then show "suffixeq xs ys"
+      by (rule suffix_imp_suffixeq)
   next
-    assume "xs = ys" thus "suffixeq xs ys" by (auto simp: suffixeq_def)
+    assume "xs = ys" then show "suffixeq xs ys"
+      by (auto simp: suffixeq_def)
   qed
 qed
 
@@ -411,19 +413,16 @@ next
   qed
 qed
 
-lemma suffix_reflclp_conv:
-  "suffix\<^sup>=\<^sup>= = suffixeq"
+lemma suffix_reflclp_conv: "suffix\<^sup>=\<^sup>= = suffixeq"
   by (intro ext) (auto simp: suffixeq_def suffix_def)
 
-lemma suffix_lists:
-  "suffix xs ys \<Longrightarrow> ys \<in> lists A \<Longrightarrow> xs \<in> lists A"
+lemma suffix_lists: "suffix xs ys \<Longrightarrow> ys \<in> lists A \<Longrightarrow> xs \<in> lists A"
   unfolding suffix_def by auto
 
 
 subsection {* Embedding on lists *}
 
-inductive
-  emb :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool"
+inductive emb :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool"
   for P :: "('a \<Rightarrow> 'a \<Rightarrow> bool)"
 where
   emb_Nil [intro, simp]: "emb P [] ys"
@@ -434,19 +433,17 @@ lemma emb_Nil2 [simp]:
   assumes "emb P xs []" shows "xs = []"
   using assms by (cases rule: emb.cases) auto
 
-lemma emb_Cons_Nil [simp]:
-  "emb P (x#xs) [] = False"
+lemma emb_Cons_Nil [simp]: "emb P (x#xs) [] = False"
 proof -
   { assume "emb P (x#xs) []"
     from emb_Nil2 [OF this] have False by simp
   } moreover {
     assume False
-    hence "emb P (x#xs) []" by simp
+    then have "emb P (x#xs) []" by simp
   } ultimately show ?thesis by blast
 qed
 
-lemma emb_append2 [intro]:
-  "emb P xs ys \<Longrightarrow> emb P xs (zs @ ys)"
+lemma emb_append2 [intro]: "emb P xs ys \<Longrightarrow> emb P xs (zs @ ys)"
   by (induct zs) auto
 
 lemma emb_prefix [intro]:
@@ -458,11 +455,12 @@ lemma emb_ConsD:
   assumes "emb P (x#xs) ys"
   shows "\<exists>us v vs. ys = us @ v # vs \<and> P x v \<and> emb P xs vs"
 using assms
-proof (induct x\<equiv>"x#xs" y\<equiv>"ys" arbitrary: x xs ys)
-  case emb_Cons thus ?case by (metis append_Cons)
+proof (induct x \<equiv> "x # xs" ys arbitrary: x xs)
+  case emb_Cons
+  then show ?case by (metis append_Cons)
 next
   case (emb_Cons2 x y xs ys)
-  thus ?case by (cases xs) (auto, blast+)
+  then show ?case by (cases xs) (auto, blast+)
 qed
 
 lemma emb_appendD:
@@ -470,7 +468,7 @@ lemma emb_appendD:
   shows "\<exists>us vs. zs = us @ vs \<and> emb P xs us \<and> emb P ys vs"
 using assms
 proof (induction xs arbitrary: ys zs)
-  case Nil thus ?case by auto
+  case Nil then show ?case by auto
 next
   case (Cons x xs)
   then obtain us v vs where "zs = us @ v # vs"
@@ -492,8 +490,8 @@ lemma emb_length: "emb P xs ys \<Longrightarrow> length xs \<le> length ys"
   by (induct rule: emb.induct) auto
 
 (*FIXME: move*)
-definition transp_on :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool" where
-  "transp_on P A \<equiv> \<forall>a\<in>A. \<forall>b\<in>A. \<forall>c\<in>A. P a b \<and> P b c \<longrightarrow> P a c"
+definition transp_on :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool"
+  where "transp_on P A \<longleftrightarrow> (\<forall>a\<in>A. \<forall>b\<in>A. \<forall>c\<in>A. P a b \<and> P b c \<longrightarrow> P a c)"
 lemma transp_onI [Pure.intro]:
   "(\<And>a b c. \<lbrakk>a \<in> A; b \<in> A; c \<in> A; P a b; P b c\<rbrakk> \<Longrightarrow> P a c) \<Longrightarrow> transp_on P A"
   unfolding transp_on_def by blast
@@ -505,15 +503,15 @@ proof
   fix xs ys zs
   assume "emb P xs ys" and "emb P ys zs"
     and "xs \<in> lists A" and "ys \<in> lists A" and "zs \<in> lists A"
-  thus "emb P xs zs"
+  then show "emb P xs zs"
   proof (induction arbitrary: zs)
     case emb_Nil show ?case by blast
   next
     case (emb_Cons xs ys y)
     from emb_ConsD [OF `emb P (y#ys) zs`] obtain us v vs
       where zs: "zs = us @ v # vs" and "P y v" and "emb P ys vs" by blast
-    hence "emb P ys (v#vs)" by blast
-    hence "emb P ys zs" unfolding zs by (rule emb_append2)
+    then have "emb P ys (v#vs)" by blast
+    then have "emb P ys zs" unfolding zs by (rule emb_append2)
     from emb_Cons.IH [OF this] and emb_Cons.prems show ?case by simp
   next
     case (emb_Cons2 x y xs ys)
@@ -528,15 +526,15 @@ proof
         unfolding transp_on_def by blast
     qed
     ultimately have "emb P (x#xs) (v#vs)" by blast
-    thus ?case unfolding zs by (rule emb_append2)
+    then show ?case unfolding zs by (rule emb_append2)
   qed
 qed
 
 
 subsection {* Sublists (special case of embedding) *}
 
-abbreviation sub :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
-  "sub xs ys \<equiv> emb (op =) xs ys"
+abbreviation sub :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
+  where "sub xs ys \<equiv> emb (op =) xs ys"
 
 lemma sub_Cons2: "sub xs ys \<Longrightarrow> sub (x#xs) (x#ys)" by auto
 
@@ -581,9 +579,11 @@ proof (induct)
   case emb_Nil
   from emb_Nil2 [OF this] show ?case by simp
 next
-  case emb_Cons2 thus ?case by simp
+  case emb_Cons2
+  then show ?case by simp
 next
-  case emb_Cons thus ?case
+  case emb_Cons
+  then show ?case
     by (metis sub_Cons' emb_length Suc_length_conv Suc_n_not_le_n)
 qed
 
@@ -601,10 +601,11 @@ lemma sub_append_le_same_iff: "sub (xs @ ys) ys \<longleftrightarrow> xs = []"
 
 lemma emb_append_mono:
   "\<lbrakk> emb P xs xs'; emb P ys ys' \<rbrakk> \<Longrightarrow> emb P (xs@ys) (xs'@ys')"
-apply (induct rule: emb.induct)
-  apply (metis eq_Nil_appendI emb_append2)
- apply (metis append_Cons emb_Cons)
-by (metis append_Cons emb_Cons2)
+  apply (induct rule: emb.induct)
+    apply (metis eq_Nil_appendI emb_append2)
+   apply (metis append_Cons emb_Cons)
+  apply (metis append_Cons emb_Cons2)
+  done
 
 
 subsection {* Appending elements *}
@@ -613,29 +614,29 @@ lemma sub_append [simp]:
   "sub (xs @ zs) (ys @ zs) \<longleftrightarrow> sub xs ys" (is "?l = ?r")
 proof
   { fix xs' ys' xs ys zs :: "'a list" assume "sub xs' ys'"
-    hence "xs' = xs @ zs & ys' = ys @ zs \<longrightarrow> sub xs ys"
+    then have "xs' = xs @ zs & ys' = ys @ zs \<longrightarrow> sub xs ys"
     proof (induct arbitrary: xs ys zs)
       case emb_Nil show ?case by simp
     next
       case (emb_Cons xs' ys' x)
-      { assume "ys=[]" hence ?case using emb_Cons(1) by auto }
+      { assume "ys=[]" then have ?case using emb_Cons(1) by auto }
       moreover
       { fix us assume "ys = x#us"
-        hence ?case using emb_Cons(2) by(simp add: emb.emb_Cons) }
+        then have ?case using emb_Cons(2) by(simp add: emb.emb_Cons) }
       ultimately show ?case by (auto simp:Cons_eq_append_conv)
     next
       case (emb_Cons2 x y xs' ys')
-      { assume "xs=[]" hence ?case using emb_Cons2(1) by auto }
+      { assume "xs=[]" then have ?case using emb_Cons2(1) by auto }
       moreover
-      { fix us vs assume "xs=x#us" "ys=x#vs" hence ?case using emb_Cons2 by auto}
+      { fix us vs assume "xs=x#us" "ys=x#vs" then have ?case using emb_Cons2 by auto}
       moreover
-      { fix us assume "xs=x#us" "ys=[]" hence ?case using emb_Cons2(2) by bestsimp }
+      { fix us assume "xs=x#us" "ys=[]" then have ?case using emb_Cons2(2) by bestsimp }
       ultimately show ?case using `x = y` by (auto simp: Cons_eq_append_conv)
     qed }
   moreover assume ?l
   ultimately show ?r by blast
 next
-  assume ?r thus ?l by (metis emb_append_mono sub_refl)
+  assume ?r then show ?l by (metis emb_append_mono sub_refl)
 qed
 
 lemma sub_drop_many: "sub xs ys \<Longrightarrow> sub xs (zs @ ys)"
@@ -658,33 +659,33 @@ lemma sub_filter [simp]:
   assumes "sub xs ys" shows "sub (filter P xs) (filter P ys)"
   using assms by (induct) auto
 
-lemma "sub xs ys \<longleftrightarrow> (\<exists> N. xs = sublist ys N)" (is "?L = ?R")
+lemma "sub xs ys \<longleftrightarrow> (\<exists>N. xs = sublist ys N)" (is "?L = ?R")
 proof
   assume ?L
-  thus ?R
+  then show ?R
   proof (induct)
     case emb_Nil show ?case by (metis sublist_empty)
   next
     case (emb_Cons xs ys x)
     then obtain N where "xs = sublist ys N" by blast
-    hence "xs = sublist (x#ys) (Suc ` N)"
+    then have "xs = sublist (x#ys) (Suc ` N)"
       by (clarsimp simp add:sublist_Cons inj_image_mem_iff)
-    thus ?case by blast
+    then show ?case by blast
   next
     case (emb_Cons2 x y xs ys)
     then obtain N where "xs = sublist ys N" by blast
-    hence "x#xs = sublist (x#ys) (insert 0 (Suc ` N))"
+    then have "x#xs = sublist (x#ys) (insert 0 (Suc ` N))"
       by (clarsimp simp add:sublist_Cons inj_image_mem_iff)
-    thus ?case unfolding `x = y` by blast
+    then show ?case unfolding `x = y` by blast
   qed
 next
   assume ?R
   then obtain N where "xs = sublist ys N" ..
   moreover have "sub (sublist ys N) ys"
-  proof (induct ys arbitrary:N)
+  proof (induct ys arbitrary: N)
     case Nil show ?case by simp
   next
-    case Cons thus ?case by (auto simp: sublist_Cons)
+    case Cons then show ?case by (auto simp: sublist_Cons)
   qed
   ultimately show ?L by simp
 qed
