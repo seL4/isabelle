@@ -21,8 +21,7 @@ import org.gjt.sp.jedit.{jEdit, GUIUtilities, EBMessage, EBPlugin,
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
 import org.gjt.sp.jedit.syntax.{Token => JEditToken, ModeProvider}
-import org.gjt.sp.jedit.msg.{EditorStarted, ViewUpdate,
-  BufferUpdate, EditPaneUpdate, PropertiesChanged}
+import org.gjt.sp.jedit.msg.{EditorStarted, BufferUpdate, EditPaneUpdate, PropertiesChanged}
 import org.gjt.sp.jedit.gui.DockableWindowManager
 
 import org.gjt.sp.util.SyntaxUtilities
@@ -438,8 +437,8 @@ class Plugin extends EBPlugin
 
     if (Isabelle.startup_failure.isDefined && !Isabelle.startup_notified) {
       message match {
-        case msg: ViewUpdate =>
-          Library.error_dialog(msg.getView, "Isabelle plugin startup failure",
+        case msg: EditorStarted =>
+          Library.error_dialog(null, "Isabelle plugin startup failure",
             Library.scrollable_text(Exn.message(Isabelle.startup_failure.get)),
             "Prover IDE inactive!")
           Isabelle.startup_notified = true
