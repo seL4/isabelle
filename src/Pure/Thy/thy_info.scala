@@ -50,11 +50,11 @@ class Thy_Info(thy_load: Thy_Load)
     def make_syntax: Outer_Syntax = thy_load.base_syntax.add_keywords(keywords)
   }
 
-  private def require_thys(initiators: List[Document.Node.Name],
+  private def require_thys(files: Boolean, initiators: List[Document.Node.Name],
       required: Dependencies, names: List[Document.Node.Name]): Dependencies =
-    (required /: names)(require_thy(initiators, _, _))
+    (required /: names)(require_thy(files, initiators, _, _))
 
-  private def require_thy(initiators: List[Document.Node.Name],
+  private def require_thy(files: Boolean, initiators: List[Document.Node.Name],
       required: Dependencies, name: Document.Node.Name): Dependencies =
   {
     if (required.seen(name)) required
@@ -64,13 +64,16 @@ class Thy_Info(thy_load: Thy_Load)
         if (initiators.contains(name)) error(cycle_msg(initiators))
         val syntax = required.make_syntax
         val header =
-          try { thy_load.check_thy_files(syntax, name) }
+          try {
+            if (files) thy_load.check_thy_files(syntax, name)
+            else thy_load.check_thy(name)
+          }
           catch {
             case ERROR(msg) =>
               cat_error(msg, "The error(s) above occurred while examining theory " +
                 quote(name.theory) + required_by(initiators))
           }
-        (name, header) :: require_thys(name :: initiators, required + name, header.imports)
+        (name, header) :: require_thys(files, name :: initiators, required + name, header.imports)
       }
       catch {
         case e: Throwable =>
@@ -79,6 +82,6 @@ class Thy_Info(thy_load: Thy_Load)
     }
   }
 
-  def dependencies(names: List[Document.Node.Name]): Dependencies =
-    require_thys(Nil, Dependencies.empty, names)
+  def dependencies(inlined_files: Boolean, names: List[Document.Node.Name]): Dependencies =
+    require_thys(inlined_files, Nil, Dependencies.empty, names)
 }

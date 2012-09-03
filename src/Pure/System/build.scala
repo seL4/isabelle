@@ -331,7 +331,8 @@ object Build
     def sources(name: String): List[SHA1.Digest] = deps(name).sources.map(_._2)
   }
 
-  def dependencies(verbose: Boolean, list_files: Boolean, tree: Session_Tree): Deps =
+  def dependencies(inlined_files: Boolean, verbose: Boolean, list_files: Boolean,
+      tree: Session_Tree): Deps =
     Deps((Map.empty[String, Session_Content] /: tree.topological_order)(
       { case (deps, (name, info)) =>
           val (preloaded, parent_syntax, parent_errors) =
@@ -352,7 +353,7 @@ object Build
           }
 
           val thy_deps =
-            thy_info.dependencies(
+            thy_info.dependencies(inlined_files,
               info.theories.map(_._2).flatten.
                 map(thy => Document.Node.Name(info.dir + Thy_Load.thy_path(thy))))
 
@@ -381,15 +382,15 @@ object Build
           deps + (name -> Session_Content(loaded_theories, syntax, sources, errors))
       }))
 
-  def session_content(dirs: List[Path], session: String): Session_Content =
+  def session_content(inlined_files: Boolean, dirs: List[Path], session: String): Session_Content =
   {
     val (_, tree) =
       find_sessions(Options.init(), dirs.map((false, _))).required(false, Nil, List(session))
-    dependencies(false, false, tree)(session)
+    dependencies(inlined_files, false, false, tree)(session)
   }
 
   def outer_syntax(session: String): Outer_Syntax =
-    session_content(Nil, session).check_errors.syntax
+    session_content(false, Nil, session).check_errors.syntax
 
 
   /* jobs */
@@ -548,7 +549,7 @@ object Build
     val options = (Options.init() /: build_options)(_ + _)
     val (descendants, tree) =
       find_sessions(options, more_dirs).required(all_sessions, session_groups, sessions)
-    val deps = dependencies(verbose, list_files, tree)
+    val deps = dependencies(true, verbose, list_files, tree)
     val queue = Queue(tree)
 
     def make_stamp(name: String): String =
