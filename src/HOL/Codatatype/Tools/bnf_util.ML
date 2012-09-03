@@ -40,6 +40,7 @@ sig
     'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list -> 'g -> 'h list * 'g
   val fold_map7: ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h -> 'i * 'h) ->
     'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list -> 'g list -> 'h -> 'i list * 'h
+  val interleave: 'a list -> 'a list -> 'a list
   val transpose: 'a list list -> 'a list list
 
   val mk_fresh_names: Proof.context -> int -> string -> string list * Proof.context
@@ -87,6 +88,9 @@ sig
   val mk_subset: term -> term -> term
   val mk_wpull: term -> term -> term -> term -> term -> (term * term) option -> term -> term -> term
 
+  val list_all_free: term list -> term -> term
+  val list_exists_free: term list -> term -> term
+
   (*parameterized terms*)
   val mk_nthN: int -> term -> int -> term
 
@@ -94,6 +98,7 @@ sig
   val mk_Un_upper: int -> int -> thm
   val mk_conjIN: int -> thm
   val mk_conjunctN: int -> int -> thm
+  val mk_disjIN: int -> int -> thm
   val mk_nthI: int -> int -> thm
   val mk_nth_conv: int -> int -> thm
   val mk_ordLeq_csum: int -> int -> thm -> thm
@@ -107,6 +112,9 @@ sig
 
   val mk_permute: ''a list -> ''a list -> 'b list -> 'b list
   val find_indices: ''a list -> ''a list -> int list
+
+  val certifyT: Proof.context -> typ -> ctyp
+  val certify: Proof.context -> term -> cterm
 
   val WRAP: ('a -> tactic) -> ('a -> tactic) -> 'a list -> tactic -> tactic
   val WRAP': ('a -> int -> tactic) -> ('a -> int -> tactic) -> 'a list -> (int -> tactic) -> int ->
@@ -222,6 +230,10 @@ fun fold_map7 _ [] [] [] [] [] [] [] acc = ([], acc)
       val (xs, acc'') = fold_map7 f x1s x2s x3s x4s x5s x6s x7s acc';
     in (x :: xs, acc'') end
   | fold_map7 _ _ _ _ _ _ _ _ _ = raise ListPair.UnequalLengths;
+
+(*stolen from ~~/src/HOL/Tools/SMT/smt_utils.ML*)
+fun certify ctxt = Thm.cterm_of (Proof_Context.theory_of ctxt);
+fun certifyT ctxt = Thm.ctyp_of (Proof_Context.theory_of ctxt);
 
 (*Tactical WRAP surrounds a static given tactic (core) with two deterministic chains of tactics*)
 fun WRAP gen_before gen_after xs core_tac =
@@ -434,6 +446,16 @@ fun mk_collect xs defT =
 
 fun mk_permute src dest xs = map (nth xs o (fn x => find_index ((curry op =) x) src)) dest;
 
+val list_all_free =
+  fold_rev (fn free => fn P =>
+    let val (x, T) = Term.dest_Free free;
+    in HOLogic.all_const T $ Term.absfree (x, T) P end);
+
+val list_exists_free =
+  fold_rev (fn free => fn P =>
+    let val (x, T) = Term.dest_Free free;
+    in HOLogic.exists_const T $ Term.absfree (x, T) P end);
+
 fun find_indices xs ys = map_filter I
   (map_index (fn (i, y) => if member (op =) xs y then SOME i else NONE) ys);
 
@@ -471,6 +493,11 @@ fun mk_conjunctN 1 1 = @{thm TrueE[OF TrueI]}
 fun mk_conjIN 1 = @{thm TrueE[OF TrueI]}
   | mk_conjIN n = mk_conjIN (n - 1) RSN (2, conjI);
 
+fun mk_disjIN 1 1 = @{thm TrueE[OF TrueI]}
+  | mk_disjIN _ 1 = disjI1
+  | mk_disjIN 2 2 = disjI2
+  | mk_disjIN n m = (mk_disjIN (n - 1) (m - 1)) RS disjI2;
+
 fun mk_ordLeq_csum 1 1 thm = thm
   | mk_ordLeq_csum _ 1 thm = @{thm ordLeq_transitive} OF [thm, @{thm ordLeq_csum1}]
   | mk_ordLeq_csum 2 2 thm = @{thm ordLeq_transitive} OF [thm, @{thm ordLeq_csum2}]
@@ -496,6 +523,8 @@ in
     | mk_UnN n 1 = Library.foldr1 (op RS o swap) (replicate (n - 1) @{thm UnI1})
     | mk_UnN n m = mk_UnN' (n - m)
 end;
+
+fun interleave xs ys = flat (map2 (fn x => fn y => [x, y]) xs ys);
 
 fun transpose [] = []
   | transpose ([] :: xss) = transpose xss

@@ -23,7 +23,6 @@ struct
 
 open BNF_Util
 open BNF_Tactics
-open BNF_FP_Util
 
 fun triangle _ [] = []
   | triangle k (xs :: xss) = take k xs :: triangle (k + 1) xss

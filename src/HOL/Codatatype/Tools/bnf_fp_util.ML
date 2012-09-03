@@ -75,21 +75,12 @@ sig
   val split_conj_thm: thm -> thm list
   val split_conj_prems: int -> thm -> thm
 
-  val list_all_free: term list -> term -> term
-  val list_exists_free: term list -> term -> term
-
   val mk_Field: term -> term
   val mk_union: term * term -> term
-
-  val mk_disjIN: int -> int -> thm
 
   val mk_tactics: 'a -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a list
 
   val fixpoint: ('a * 'a -> bool) -> ('a list -> 'a list) -> 'a list -> 'a list
-  val interleave: 'a list -> 'a list -> 'a list
-
-  val certifyT: Proof.context -> typ -> ctyp
-  val certify: Proof.context -> term -> cterm
 
   val fp_bnf: (binding list -> typ list list -> BNF_Def.BNF list ->
     Proof.context -> Proof.context) ->
@@ -190,27 +181,8 @@ fun mk_Field r =
 
 val mk_union = HOLogic.mk_binop @{const_name sup};
 
-fun mk_disjIN 1 1 = @{thm TrueE[OF TrueI]}
-  | mk_disjIN _ 1 = disjI1
-  | mk_disjIN 2 2 = disjI2
-  | mk_disjIN n m = (mk_disjIN (n - 1) (m - 1)) RS disjI2;
-
 (*dangerous; use with monotonic, converging functions only!*)
 fun fixpoint eq f X = if subset eq (f X, X) then X else fixpoint eq f (f X);
-
-val list_exists_free =
-  fold_rev (fn free => fn P =>
-    let val (x, T) = Term.dest_Free free;
-    in HOLogic.exists_const T $ Term.absfree (x, T) P end);
-
-val list_all_free =
-  fold_rev (fn free => fn P =>
-    let val (x, T) = Term.dest_Free free;
-    in HOLogic.all_const T $ Term.absfree (x, T) P end);
-
-(*stolen from ~~/src/HOL/Tools/SMT/smt_utils.ML*)
-fun certify ctxt = Thm.cterm_of (Proof_Context.theory_of ctxt);
-fun certifyT ctxt = Thm.ctyp_of (Proof_Context.theory_of ctxt);
 
 (* stolen from "~~/src/HOL/Tools/Datatype/datatype_aux.ML" *)
 fun split_conj_thm th =
@@ -224,8 +196,6 @@ fun split_conj_prems limit th =
 
 fun mk_tactics mid mcomp mcong snat bdco bdinf sbd inbd wpull =
   [mid, mcomp, mcong] @ snat @ [bdco, bdinf] @ sbd @ [inbd, wpull];
-
-fun interleave xs ys = flat (map2 (fn x => fn y => [x, y]) xs ys);
 
 fun fp_sort lhss Ass = Library.sort (Term_Ord.typ_ord o pairself TFree)
   (subtract (op =) lhss (fold (fold (insert (op =))) Ass [])) @ lhss;

@@ -13,7 +13,6 @@ structure BNF_Wrap : BNF_WRAP =
 struct
 
 open BNF_Util
-open BNF_FP_Util
 open BNF_Wrap_Tactics
 
 val is_N = "is_";
@@ -29,6 +28,9 @@ val disc_exclusN = "disc_exclus";
 val disc_exhaustN = "disc_exhaust";
 val discsN = "discs";
 val distinctN = "distinct";
+val exhaustN = "exhaust";
+val injectN = "inject";
+val nchotomyN = "nchotomy";
 val selsN = "sels";
 val splitN = "split";
 val split_asmN = "split_asm";
