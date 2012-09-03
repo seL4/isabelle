@@ -1,11 +1,11 @@
-(*  Title:      HOL/Codatatype/Tools/bnf_sugar_tactics.ML
+(*  Title:      HOL/Codatatype/Tools/bnf_wrap_tactics.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012
 
-Tactics for sugar on top of a BNF.
+Tactics for wrapping datatypes.
 *)
 
-signature BNF_SUGAR_TACTICS =
+signature BNF_WRAP_TACTICS =
 sig
   val mk_case_cong_tac: thm -> thm list -> tactic
   val mk_case_disc_tac: Proof.context -> thm -> thm list -> thm list list -> thm list list -> tactic
@@ -18,7 +18,7 @@ sig
   val mk_split_asm_tac: Proof.context -> thm -> tactic
 end;
 
-structure BNF_Sugar_Tactics : BNF_SUGAR_TACTICS =
+structure BNF_Wrap_Tactics : BNF_WRAP_TACTICS =
 struct
 
 open BNF_Util

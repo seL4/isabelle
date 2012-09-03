@@ -11,7 +11,7 @@ theory Process
 imports "../Codatatype"
 begin
 
-bnf_codata process: 'p = "'a * 'p + 'p * 'p"
+codata_raw process: 'p = "'a * 'p + 'p * 'p"
 (* codatatype
      'a process = Action (prefOf :: 'a) (contOf :: 'a process) |
                   Choice (ch1Of :: 'a process) (ch2Of :: 'a process)

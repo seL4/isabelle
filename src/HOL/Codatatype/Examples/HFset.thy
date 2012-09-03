@@ -14,7 +14,7 @@ begin
 
 section {* Datatype definition *}
 
-bnf_data hfset: 'hfset = "'hfset fset"
+data_raw hfset: 'hfset = "'hfset fset"
 
 
 section {* Customization of terms *}

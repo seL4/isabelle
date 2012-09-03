@@ -12,7 +12,7 @@ theory Stream
 imports TreeFI
 begin
 
-bnf_codata stream: 's = "'a \<times> 's"
+codata_raw stream: 's = "'a \<times> 's"
 
 (* selectors for streams *)
 definition "hdd as \<equiv> fst (stream_unf as)"

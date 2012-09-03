@@ -2776,7 +2776,7 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
   end;
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "bnf_codata"} "greatest fixed points for BNF equations"
+  Outer_Syntax.local_theory @{command_spec "codata_raw"} "greatest fixed points for BNF equations"
     (Parse.and_list1
       ((Parse.binding --| Parse.$$$ ":") -- (Parse.typ --| Parse.$$$ "=" -- Parse.typ)) >>
       (fp_bnf_cmd bnf_gfp o apsnd split_list o split_list));

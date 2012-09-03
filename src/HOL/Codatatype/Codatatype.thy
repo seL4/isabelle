@@ -12,10 +12,10 @@ header {* The (Co)datatype Package *}
 theory Codatatype
 imports BNF_LFP BNF_GFP
 keywords
-  "bnf_sugar" :: thy_goal
-uses
-  "Tools/bnf_sugar_tactics.ML"
-  "Tools/bnf_sugar.ML"
+  "wrap_data" :: thy_goal
+usesy
+  "Tools/bnf_wrap_tactics.ML"
+  "Tools/bnf_wrap.ML"
 begin
 
 end

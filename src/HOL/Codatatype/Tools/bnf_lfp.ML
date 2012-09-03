@@ -1755,7 +1755,7 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
   end;
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "bnf_data"} "least fixed points for BNF equations"
+  Outer_Syntax.local_theory @{command_spec "data_raw"} "least fixed points for BNF equations"
     (Parse.and_list1
       ((Parse.binding --| Parse.$$$ ":") -- (Parse.typ --| Parse.$$$ "=" -- Parse.typ)) >>
       (fp_bnf_cmd bnf_lfp o apsnd split_list o split_list));

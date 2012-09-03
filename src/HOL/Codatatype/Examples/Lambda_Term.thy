@@ -15,7 +15,7 @@ begin
 
 section {* Datatype definition *}
 
-bnf_data trm: 'trm = "'a + 'trm \<times> 'trm + 'a \<times> 'trm + ('a \<times> 'trm) fset \<times> 'trm"
+data_raw trm: 'trm = "'a + 'trm \<times> 'trm + 'a \<times> 'trm + ('a \<times> 'trm) fset \<times> 'trm"
 
 
 section {* Customization of terms *}

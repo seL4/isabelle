@@ -1,20 +1,20 @@
-(*  Title:      HOL/Codatatype/Tools/bnf_sugar.ML
+(*  Title:      HOL/Codatatype/Tools/bnf_wrap.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012
 
-Sugar on top of a BNF.
+Wrapping existing datatypes.
 *)
 
-signature BNF_SUGAR =
+signature BNF_WRAP =
 sig
 end;
 
-structure BNF_Sugar : BNF_SUGAR =
+structure BNF_Wrap : BNF_WRAP =
 struct
 
 open BNF_Util
 open BNF_FP_Util
-open BNF_Sugar_Tactics
+open BNF_Wrap_Tactics
 
 val is_N = "is_";
 val un_N = "un_";
@@ -56,7 +56,7 @@ fun name_of_ctr t =
   | Free (s, _) => s
   | _ => error "Cannot extract name of constructor";
 
-fun prepare_sugar prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_namess))
+fun prepare_wrap prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_namess))
   no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
@@ -407,14 +407,14 @@ val parse_bindings = Parse.$$$ "[" |--  Parse.list Parse.binding --| Parse.$$$ "
 
 val parse_bindingss = Parse.$$$ "[" |-- Parse.list parse_bindings --| Parse.$$$ "]";
 
-val bnf_sugar_cmd = (fn (goalss, after_qed, lthy) =>
+val wrap_data_cmd = (fn (goalss, after_qed, lthy) =>
   Proof.theorem NONE after_qed (map (map (rpair [])) goalss) lthy) oo
-  prepare_sugar Syntax.read_term;
+  prepare_wrap Syntax.read_term;
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_spec "bnf_sugar"} "adds sugar on top of a BNF"
+  Outer_Syntax.local_theory_to_proof @{command_spec "wrap_data"} "wraps an existing datatype"
     (((Parse.$$$ "[" |-- Parse.list Parse.term --| Parse.$$$ "]") -- Parse.term --
       Scan.optional (parse_bindings -- Scan.optional parse_bindingss []) ([], []))
-     >> bnf_sugar_cmd);
+     >> wrap_data_cmd);
 
 end;

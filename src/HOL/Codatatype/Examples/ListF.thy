@@ -12,7 +12,7 @@ theory ListF
 imports "../Codatatype"
 begin
 
-bnf_data listF: 'list = "unit + 'a \<times> 'list"
+data_raw listF: 'list = "unit + 'a \<times> 'list"
 
 definition "NilF = listF_fld (Inl ())"
 definition "Conss a as \<equiv> listF_fld (Inr (a, as))"

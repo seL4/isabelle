@@ -10,7 +10,7 @@ header {* Least Fixed Point Operation on Bounded Natural Functors *}
 theory BNF_LFP
 imports BNF_Comp
 keywords
-  "bnf_data" :: thy_decl
+  "data_raw" :: thy_decl
 uses
   "Tools/bnf_lfp_util.ML"
   "Tools/bnf_lfp_tactics.ML"
