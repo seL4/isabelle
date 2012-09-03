@@ -8,7 +8,9 @@ Library for bounded natural functors.
 header {* Library for Bounded Natural Functors *}
 
 theory BNF_Library
-imports "../Ordinals_and_Cardinals/Cardinal_Arithmetic" "~~/src/HOL/Library/List_Prefix"
+imports
+  "../Ordinals_and_Cardinals/Cardinal_Arithmetic"
+  "~~/src/HOL/Library/Prefix_Order"
   Equiv_Relations_More
 begin
 
@@ -634,7 +636,7 @@ lemma meta_spec2:
   shows "PROP P x y"
 by (rule `(\<And>x y. PROP P x y)`)
 
-(*Extended List_Prefix*)
+(*Extended Sublist*)
 
 definition prefCl where
   "prefCl Kl = (\<forall> kl1 kl2. kl1 \<le> kl2 \<and> kl2 \<in> Kl \<longrightarrow> kl1 \<in> Kl)"
