@@ -316,11 +316,11 @@ object Isabelle
     modes ::: List(logic)
   }
 
-  def session_content(): Build.Session_Content =
+  def session_content(inlined_files: Boolean): Build.Session_Content =
   {
     val dirs = Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS"))
     val name = Path.explode(session_args().last).base.implode  // FIXME more robust
-    Build.session_content(dirs, name).check_errors
+    Build.session_content(inlined_files, dirs, name).check_errors
   }
 
 
@@ -373,7 +373,7 @@ class Plugin extends EBPlugin
 
         val thy_info = new Thy_Info(Isabelle.thy_load)
         // FIXME avoid I/O in Swing thread!?!
-        val files = thy_info.dependencies(thys).deps.map(_._1.node).
+        val files = thy_info.dependencies(true, thys).deps.map(_._1.node).
           filter(file => !loaded_buffer(file) && Isabelle.thy_load.check_file(view, file))
 
         if (!files.isEmpty) {
@@ -478,7 +478,7 @@ class Plugin extends EBPlugin
     Isabelle_System.init()
     Isabelle_System.install_fonts()
 
-    val content = Isabelle.session_content()
+    val content = Isabelle.session_content(false)
     val thy_load = new JEdit_Thy_Load(content.loaded_theories, content.syntax)
     Isabelle.session = new Session(thy_load)
 
