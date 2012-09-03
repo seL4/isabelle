@@ -67,6 +67,7 @@ if [ "$ALL_DOCS" = true ]; then
   declare -a BUILD_OPTIONS=(-g doc)
 else
   declare -a BUILD_OPTIONS=()
+  [ "$#" -eq 0 ] && usage
 fi
 
 
@@ -97,7 +98,12 @@ if [ "$RC" = 0 ]; then
   do
     cp -f "$FILE" "$ISABELLE_HOME/doc"
   done
-  cp -f "$OUTPUT"/*.dvi "$OUTPUT"/*.pdf "$ISABELLE_HOME/doc"
+  if [ "$PDF_ONLY" = true ]; then
+    cp -f "$OUTPUT"/*.pdf "$ISABELLE_HOME/doc"
+    rm -f "$ISABELLE_HOME/doc/document.pdf" "$ISABELLE_HOME/doc/outline.pdf"
+  else
+    cp -f "$OUTPUT"/*.dvi "$OUTPUT"/*.pdf "$ISABELLE_HOME/doc"
+  fi
 fi
 
 rm -rf "$OUTPUT"
