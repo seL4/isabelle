@@ -74,6 +74,16 @@ and in_here'': 'c = "'d \<times> 'b + 'e"
 
 codata_raw less_killing: 'a = "'b \<Rightarrow> 'c"
 
+codata_raw
+    wit3_F1: 'b1 = "'a1 \<times> 'b1 \<times> 'b2"
+and wit3_F2: 'b2 = "'a2 \<times> 'b2"
+and wit3_F3: 'b3 = "'a1 \<times> 'a2 \<times> 'b1 + 'a3 \<times> 'a1 \<times> 'a2 \<times> 'b1"
+
+codata_raw
+    coind_wit1: 'a = "'c \<times> 'a \<times> 'b \<times> 'd"
+and coind_wit2: 'd = "'d \<times> 'e + 'c \<times> 'g"
+and ind_wit:    'b = "unit + 'c"
+
 (* SLOW, MEMORY-HUNGRY
 codata_raw K1': 'K1 = "'K2 + 'a list"
 and K2': 'K2 = "'K3 + 'c fset"
