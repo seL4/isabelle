@@ -21,7 +21,8 @@ import org.gjt.sp.jedit.{jEdit, GUIUtilities, EBMessage, EBPlugin,
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
 import org.gjt.sp.jedit.syntax.{Token => JEditToken, ModeProvider}
-import org.gjt.sp.jedit.msg.{EditorStarted, BufferUpdate, EditPaneUpdate, PropertiesChanged}
+import org.gjt.sp.jedit.msg.{EditorStarted, ViewUpdate,
+  BufferUpdate, EditPaneUpdate, PropertiesChanged}
 import org.gjt.sp.jedit.gui.DockableWindowManager
 
 import org.gjt.sp.util.SyntaxUtilities
@@ -34,8 +35,10 @@ object Isabelle
 {
   /* plugin instance */
 
-  var plugin: Plugin = null
-  var session: Session = null
+  @volatile var plugin: Plugin = null
+  @volatile var session: Session = null
+  @volatile var startup_failure: Option[Throwable] = None
+  @volatile var startup_notified = false
 
   def thy_load(): JEdit_Thy_Load =
     session.thy_load.asInstanceOf[JEdit_Thy_Load]
@@ -432,66 +435,93 @@ class Plugin extends EBPlugin
   override def handleMessage(message: EBMessage)
   {
     Swing_Thread.assert()
-    message match {
-      case msg: EditorStarted =>
-        if (Isabelle.Boolean_Property("auto-start"))
-          Isabelle.session.start(Isabelle.session_args())
 
-      case msg: BufferUpdate
-      if msg.getWhat == BufferUpdate.LOADED || msg.getWhat == BufferUpdate.PROPERTIES_CHANGED =>
-        if (Isabelle.session.is_ready) {
-          val buffer = msg.getBuffer
-          if (buffer != null && !buffer.isLoading) Isabelle.init_model(buffer)
-          delay_load(true)
-        }
+    if (Isabelle.startup_failure.isDefined && !Isabelle.startup_notified) {
+      message match {
+        case msg: ViewUpdate =>
+          Library.error_dialog(msg.getView, "Isabelle plugin startup failure",
+            Library.scrollable_text(Exn.message(Isabelle.startup_failure.get)),
+            "Prover IDE inactive!")
+          Isabelle.startup_notified = true
+        case _ =>
+      }
+    }
 
-      case msg: EditPaneUpdate
-      if (msg.getWhat == EditPaneUpdate.BUFFER_CHANGING ||
-          msg.getWhat == EditPaneUpdate.BUFFER_CHANGED ||
-          msg.getWhat == EditPaneUpdate.CREATED ||
-          msg.getWhat == EditPaneUpdate.DESTROYED) =>
-        val edit_pane = msg.getEditPane
-        val buffer = edit_pane.getBuffer
-        val text_area = edit_pane.getTextArea
+    if (Isabelle.startup_failure.isEmpty) {
+      message match {
+        case msg: EditorStarted =>
+          if (Isabelle.Boolean_Property("auto-start"))
+            Isabelle.session.start(Isabelle.session_args())
 
-        if (buffer != null && text_area != null) {
-          if (msg.getWhat == EditPaneUpdate.BUFFER_CHANGED ||
-              msg.getWhat == EditPaneUpdate.CREATED) {
-            if (Isabelle.session.is_ready)
-              Isabelle.init_view(buffer, text_area)
+        case msg: BufferUpdate
+        if msg.getWhat == BufferUpdate.LOADED || msg.getWhat == BufferUpdate.PROPERTIES_CHANGED =>
+          if (Isabelle.session.is_ready) {
+            val buffer = msg.getBuffer
+            if (buffer != null && !buffer.isLoading) Isabelle.init_model(buffer)
+            delay_load(true)
           }
-          else Isabelle.exit_view(buffer, text_area)
-        }
 
-      case msg: PropertiesChanged =>
-        Isabelle.setup_tooltips()
-        Isabelle.session.global_settings.event(Session.Global_Settings)
+        case msg: EditPaneUpdate
+        if (msg.getWhat == EditPaneUpdate.BUFFER_CHANGING ||
+            msg.getWhat == EditPaneUpdate.BUFFER_CHANGED ||
+            msg.getWhat == EditPaneUpdate.CREATED ||
+            msg.getWhat == EditPaneUpdate.DESTROYED) =>
+          val edit_pane = msg.getEditPane
+          val buffer = edit_pane.getBuffer
+          val text_area = edit_pane.getTextArea
 
-      case _ =>
+          if (buffer != null && text_area != null) {
+            if (msg.getWhat == EditPaneUpdate.BUFFER_CHANGED ||
+                msg.getWhat == EditPaneUpdate.CREATED) {
+              if (Isabelle.session.is_ready)
+                Isabelle.init_view(buffer, text_area)
+            }
+            else Isabelle.exit_view(buffer, text_area)
+          }
+
+        case msg: PropertiesChanged =>
+          Isabelle.setup_tooltips()
+          Isabelle.session.global_settings.event(Session.Global_Settings)
+
+        case _ =>
+      }
     }
   }
 
   override def start()
-  { // FIXME more robust error handling
-    Isabelle.plugin = this
-    Isabelle.setup_tooltips()
-    Isabelle_System.init()
-    Isabelle_System.install_fonts()
+  {
+    try {
+      Isabelle.plugin = this
+      Isabelle.setup_tooltips()
+      Isabelle_System.init()
+      Isabelle_System.install_fonts()
 
-    val content = Isabelle.session_content(false)
-    val thy_load = new JEdit_Thy_Load(content.loaded_theories, content.syntax)
-    Isabelle.session = new Session(thy_load)
+      SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender)
+      if (ModeProvider.instance.isInstanceOf[ModeProvider])
+        ModeProvider.instance = new Token_Markup.Mode_Provider(ModeProvider.instance)
 
-    SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender)
-    if (ModeProvider.instance.isInstanceOf[ModeProvider])
-      ModeProvider.instance = new Token_Markup.Mode_Provider(ModeProvider.instance)
-    Isabelle.session.phase_changed += session_manager
+      val content = Isabelle.session_content(false)
+      val thy_load = new JEdit_Thy_Load(content.loaded_theories, content.syntax)
+      Isabelle.session = new Session(thy_load)
+
+      Isabelle.session.phase_changed += session_manager
+      Isabelle.startup_failure = None
+    }
+    catch {
+      case exn: Throwable =>
+        stop()
+        Isabelle.session = null
+        Isabelle.startup_failure = Some(exn)
+        Isabelle.startup_notified = false
+    }
   }
 
   override def stop()
   {
-    Isabelle.session.phase_changed -= session_manager
-    Isabelle.jedit_buffers.foreach(Isabelle.exit_model)
-    Isabelle.session.stop()
+    if (Isabelle.session != null) {
+      Isabelle.session.phase_changed -= session_manager
+      Isabelle.jedit_buffers.foreach(Isabelle.exit_model)
+      Isabelle.session.stop()
+    }
   }
 }
