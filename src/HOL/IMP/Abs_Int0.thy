@@ -79,10 +79,10 @@ fun le_acom :: "('a::preord)acom \<Rightarrow> 'a acom \<Rightarrow> bool" where
 "le_acom (SKIP {S}) (SKIP {S'}) = (S \<sqsubseteq> S')" |
 "le_acom (x ::= e {S}) (x' ::= e' {S'}) = (x=x' \<and> e=e' \<and> S \<sqsubseteq> S')" |
 "le_acom (C1;C2) (D1;D2) = (C1 \<sqsubseteq> D1 \<and> C2 \<sqsubseteq> D2)" |
-"le_acom (IF b THEN C1 ELSE C2 {S}) (IF b' THEN D1 ELSE D2 {S'}) =
-  (b=b' \<and> C1 \<sqsubseteq> D1 \<and> C2 \<sqsubseteq> D2 \<and> S \<sqsubseteq> S')" |
-"le_acom ({I} WHILE b DO C {P}) ({I'} WHILE b' DO C' {P'}) =
-  (b=b' \<and> C \<sqsubseteq> C' \<and> I \<sqsubseteq> I' \<and> P \<sqsubseteq> P')" |
+"le_acom (IF b THEN {p1} C1 ELSE {p2} C2 {S}) (IF b' THEN {q1} D1 ELSE {q2} D2 {S'}) =
+  (b=b' \<and> p1 \<sqsubseteq> q1 \<and> C1 \<sqsubseteq> D1 \<and> p2 \<sqsubseteq> q2 \<and> C2 \<sqsubseteq> D2 \<and> S \<sqsubseteq> S')" |
+"le_acom ({I} WHILE b DO {p} C {P}) ({I'} WHILE b' DO {p'} C' {P'}) =
+  (b=b' \<and> p \<sqsubseteq> p' \<and> C \<sqsubseteq> C' \<and> I \<sqsubseteq> I' \<and> P \<sqsubseteq> P')" |
 "le_acom _ _ = False"
 
 lemma [simp]: "SKIP {S} \<sqsubseteq> C \<longleftrightarrow> (\<exists>S'. C = SKIP {S'} \<and> S \<sqsubseteq> S')"
@@ -94,12 +94,13 @@ by (cases C) auto
 lemma [simp]: "C1;C2 \<sqsubseteq> C \<longleftrightarrow> (\<exists>D1 D2. C = D1;D2 \<and> C1 \<sqsubseteq> D1 \<and> C2 \<sqsubseteq> D2)"
 by (cases C) auto
 
-lemma [simp]: "IF b THEN C1 ELSE C2 {S} \<sqsubseteq> C \<longleftrightarrow>
-  (\<exists>D1 D2 S'. C = IF b THEN D1 ELSE D2 {S'} \<and> C1 \<sqsubseteq> D1 \<and> C2 \<sqsubseteq> D2 \<and> S \<sqsubseteq> S')"
+lemma [simp]: "IF b THEN {p1} C1 ELSE {p2} C2 {S} \<sqsubseteq> C \<longleftrightarrow>
+  (\<exists>q1 q2 D1 D2 S'. C = IF b THEN {q1} D1 ELSE {q2} D2 {S'} \<and>
+     p1 \<sqsubseteq> q1 \<and> C1 \<sqsubseteq> D1 \<and> p2 \<sqsubseteq> q2 \<and> C2 \<sqsubseteq> D2 \<and> S \<sqsubseteq> S')"
 by (cases C) auto
 
-lemma [simp]: "{I} WHILE b DO C {P} \<sqsubseteq> W \<longleftrightarrow>
-  (\<exists>I' C' P'. W = {I'} WHILE b DO C' {P'} \<and> C \<sqsubseteq> C' \<and> I \<sqsubseteq> I' \<and> P \<sqsubseteq> P')"
+lemma [simp]: "{I} WHILE b DO {p} C {P} \<sqsubseteq> W \<longleftrightarrow>
+  (\<exists>I' p' C' P'. W = {I'} WHILE b DO {p'} C' {P'} \<and> p \<sqsubseteq> p' \<and> C \<sqsubseteq> C' \<and> I \<sqsubseteq> I' \<and> P \<sqsubseteq> P')"
 by (cases W) auto
 
 instance
@@ -274,10 +275,10 @@ fun step' :: "'av st option \<Rightarrow> 'av st option acom \<Rightarrow> 'av s
 "step' S (x ::= e {P}) =
   x ::= e {case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(S(x := aval' e S))}" |
 "step' S (C1; C2) = step' S C1; step' (post C1) C2" |
-"step' S (IF b THEN C1 ELSE C2 {P}) =
-   IF b THEN step' S C1 ELSE step' S C2 {post C1 \<squnion> post C2}" |
-"step' S ({Inv} WHILE b DO C {P}) =
-  {S \<squnion> post C} WHILE b DO (step' Inv C) {Inv}"
+"step' S (IF b THEN {p1} C1 ELSE {p2} C2 {P}) =
+   IF b THEN {S} step' p1 C1 ELSE {S} step' p2 C2 {post C1 \<squnion> post C2}" |
+"step' S ({I} WHILE b DO {p} C {P}) =
+  {S \<squnion> post C} WHILE b DO {I} step' p C {I}"
 
 definition AI :: "com \<Rightarrow> 'av st option acom option" where
 "AI = lpfp (step' \<top>)"
@@ -335,10 +336,10 @@ next
   case Seq thus ?case apply (auto simp: Seq_le map_acom_Seq)
     by (metis le_post post_map_acom)
 next
-  case (If b C1 C2 P)
-  then obtain D1 D2 P' where
-      "C' = IF b THEN D1 ELSE D2 {P'}"
-      "P \<subseteq> \<gamma>\<^isub>o P'" "C1 \<le> \<gamma>\<^isub>c D1" "C2 \<le> \<gamma>\<^isub>c D2"
+  case (If b p1 C1 p2 C2 P)
+  then obtain q1 q2 D1 D2 P' where
+      "C' = IF b THEN {q1} D1 ELSE {q2} D2 {P'}"
+      "p1 \<subseteq> \<gamma>\<^isub>o q1" "p2 \<subseteq> \<gamma>\<^isub>o q2" "P \<subseteq> \<gamma>\<^isub>o P'" "C1 \<le> \<gamma>\<^isub>c D1" "C2 \<le> \<gamma>\<^isub>c D2"
     by (fastforce simp: If_le map_acom_If)
   moreover have "post C1 \<subseteq> \<gamma>\<^isub>o(post D1 \<squnion> post D2)"
     by (metis (no_types) `C1 \<le> \<gamma>\<^isub>c D1` join_ge1 le_post mono_gamma_o order_trans post_map_acom)
@@ -346,15 +347,16 @@ next
     by (metis (no_types) `C2 \<le> \<gamma>\<^isub>c D2` join_ge2 le_post mono_gamma_o order_trans post_map_acom)
   ultimately show ?case using `S \<subseteq> \<gamma>\<^isub>o S'` by (simp add: If.IH subset_iff)
 next
-  case (While I b C1 P)
-  then obtain D1 I' P' where
-    "C' = {I'} WHILE b DO D1 {P'}"
-    "I \<subseteq> \<gamma>\<^isub>o I'" "P \<subseteq> \<gamma>\<^isub>o P'" "C1 \<le> \<gamma>\<^isub>c D1"
+  case (While I b p1 C1 P)
+  then obtain D1 I' p1' P' where
+    "C' = {I'} WHILE b DO {p1'} D1 {P'}"
+    "I \<subseteq> \<gamma>\<^isub>o I'" "p1 \<subseteq> \<gamma>\<^isub>o p1'" "P \<subseteq> \<gamma>\<^isub>o P'" "C1 \<le> \<gamma>\<^isub>c D1"
     by (fastforce simp: map_acom_While While_le)
   moreover have "S \<union> post C1 \<subseteq> \<gamma>\<^isub>o (S' \<squnion> post D1)"
     using `S \<subseteq> \<gamma>\<^isub>o S'` le_post[OF `C1 \<le> \<gamma>\<^isub>c D1`, simplified]
     by (metis (no_types) join_ge1 join_ge2 le_sup_iff mono_gamma_o order_trans)
   ultimately show ?case by (simp add: While.IH subset_iff)
+
 qed
 
 lemma AI_sound: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"

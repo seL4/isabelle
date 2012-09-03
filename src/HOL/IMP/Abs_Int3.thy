@@ -171,10 +171,10 @@ fun map2_acom :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a acom \
 "map2_acom f (SKIP {a1}) (SKIP {a2}) = (SKIP {f a1 a2})" |
 "map2_acom f (x ::= e {a1}) (x' ::= e' {a2}) = (x ::= e {f a1 a2})" |
 "map2_acom f (C1;C2) (D1;D2) = (map2_acom f C1 D1; map2_acom f C2 D2)" |
-"map2_acom f (IF b THEN C1 ELSE C2 {a1}) (IF b' THEN D1 ELSE D2 {a2}) =
-  (IF b THEN map2_acom f C1 D1 ELSE map2_acom f C2 D2 {f a1 a2})" |
-"map2_acom f ({a1} WHILE b DO C {a2}) ({a3} WHILE b' DO C' {a4}) =
-  ({f a1 a3} WHILE b DO map2_acom f C C' {f a2 a4})"
+"map2_acom f (IF b THEN {p1} C1 ELSE {p2} C2 {a1}) (IF b' THEN {q1} D1 ELSE {q2} D2 {a2}) =
+  (IF b THEN {f p1 q1} map2_acom f C1 D1 ELSE {f p2 q2} map2_acom f C2 D2 {f a1 a2})" |
+"map2_acom f ({a1} WHILE b DO {p} C {a2}) ({a3} WHILE b' DO {p'} C' {a4}) =
+  ({f a1 a3} WHILE b DO {f p p'} map2_acom f C C' {f a2 a4})"
 
 instantiation acom :: (WN_Wt)WN_Wt
 begin
@@ -515,7 +515,7 @@ done
 
 
 lemma annos_narrow_acom[simp]: "strip C2 = strip (C1::'a::WN_Wt acom) \<Longrightarrow>
-  annos(C1 \<triangle> C2) = map (%(x,y).x\<triangle>y) (zip (annos C1) (annos C2))"
+  annos(C1 \<triangle> C2) = map (\<lambda>(x,y).x\<triangle>y) (zip (annos C1) (annos C2))"
 by(induction "narrow::'a\<Rightarrow>'a\<Rightarrow>'a" C1 C2 rule: map2_acom.induct)
   (simp_all add: narrow_acom_def size_annos_same2)
 

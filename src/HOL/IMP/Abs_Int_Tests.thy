@@ -1,5 +1,5 @@
 theory Abs_Int_Tests
-imports ACom
+imports Com
 begin
 
 subsection "Test Programs"
