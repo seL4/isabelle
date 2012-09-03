@@ -2766,9 +2766,6 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
         val coind_witss =
           maps (map (mk_coind_wits o prepare_args)) nonredundant_coind_wit_argsss;
 
-        val _ = (warning o PolyML.makestring) (map length coind_wit_argsss)
-        val _ = (warning o PolyML.makestring) (map length nonredundant_coind_wit_argsss)
-
         fun mk_coind_wit_thms ((I, dummys), (wits, wit_thms)) =
           let
             fun mk_goal sets y y_copy y'_copy j =
