@@ -28,6 +28,8 @@ sig
   val mk_coalg_set_tac: thm -> tactic
   val mk_coalg_thePull_tac: int -> thm -> thm list -> thm list list -> (int -> tactic) list ->
     {prems: 'a, context: Proof.context} -> tactic
+  val mk_coind_wit_tac: thm -> thm list -> thm list -> thm list ->
+    {prems: 'a, context: Proof.context} -> tactic
   val mk_coiter_unique_mor_tac: thm list -> thm -> thm -> thm list -> tactic
   val mk_col_bd_tac: int -> int -> cterm option list -> thm list -> thm list -> thm -> thm ->
     thm list list -> tactic
@@ -114,7 +116,7 @@ sig
   val mk_unf_o_fld_tac: thm -> thm -> thm -> thm -> thm list ->
     {prems: 'a, context: Proof.context} -> tactic
   val mk_unique_mor_tac: thm list -> thm -> tactic
-  val mk_wit_tac: int -> thm list -> thm list -> thm list ->
+  val mk_wit_tac: int -> thm list -> thm list -> thm list -> thm list ->
     {prems: 'a, context: Proof.context} -> tactic
   val mk_wpull_tac: int -> thm -> thm -> thm -> thm -> thm -> thm list -> thm list -> tactic
 end;
@@ -1463,7 +1465,8 @@ fun mk_wpull_tac m coalg_thePull mor_thePull_fst mor_thePull_snd mor_thePull_pic
         rtac @{thm prod_caseI}, etac conjI, etac conjI, atac])
     (pick_cols ~~ hset_defs)] 1;
 
-fun mk_wit_tac n unf_flds set_simp wit {context = ctxt, prems = _} =
+fun mk_wit_tac n unf_flds set_simp wit coind_wits {context = ctxt, prems = _} =
+  ALLGOALS (TRY o (eresolve_tac coind_wits THEN' rtac refl)) THEN
   REPEAT_DETERM (atac 1 ORELSE
     EVERY' [dtac @{thm set_rev_mp}, rtac equalityD1, resolve_tac set_simp,
     K (Local_Defs.unfold_tac ctxt unf_flds),
@@ -1475,6 +1478,13 @@ fun mk_wit_tac n unf_flds set_simp wit {context = ctxt, prems = _} =
           (etac FalseE ORELSE'
           EVERY' [hyp_subst_tac, dtac @{thm set_rev_mp}, rtac equalityD1, resolve_tac set_simp,
             K (Local_Defs.unfold_tac ctxt unf_flds), REPEAT_DETERM_N n o etac UnE]))))] 1);
+
+fun mk_coind_wit_tac induct coiters set_nats wits {context = ctxt, prems = _} =
+  rtac induct 1 THEN ALLGOALS (TRY o rtac impI THEN' TRY o hyp_subst_tac) THEN
+  Local_Defs.unfold_tac ctxt (coiters @ set_nats @ @{thms image_id id_apply}) THEN
+  ALLGOALS (REPEAT_DETERM o etac imageE THEN' TRY o hyp_subst_tac) THEN
+  ALLGOALS (TRY o
+    FIRST' [rtac TrueI, rtac refl, etac (refl RSN (2, mp)), dresolve_tac wits THEN' etac FalseE])
 
 fun mk_rel_unfold_tac in_Jrels i in_rel map_comp map_cong map_simp set_simps unf_inject unf_fld
   set_naturals set_incls set_set_inclss =
