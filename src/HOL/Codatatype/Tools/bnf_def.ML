@@ -71,7 +71,7 @@ sig
   val wit_thmss_of_bnf: BNF -> thm list list
 
   val mk_witness: int list * term -> thm list -> nonemptiness_witness
-  val minimize_wits: (''a list * term) list -> (''a list * term) list
+  val minimize_wits: (''a list * 'b) list -> (''a list * 'b) list
   val wits_of_bnf: BNF -> nonemptiness_witness list
 
   datatype const_policy = Dont_Inline | Hardly_Inline | Smart_Inline | Do_Inline
@@ -447,7 +447,7 @@ fun normalize_wit insts CA As wit =
 fun minimize_wits wits =
  let
    fun minimize done [] = done
-     | minimize done ((I, wit : term) :: todo) =
+     | minimize done ((I, wit) :: todo) =
        if exists (fn (J, _) => subset (op =) (J, I)) (done @ todo)
        then minimize done todo
        else minimize ((I, wit) :: done) todo;
