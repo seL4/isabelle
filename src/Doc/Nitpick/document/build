@@ -5,8 +5,7 @@ set -e
 FORMAT="$1"
 VARIANT="$2"
 
-"$ISABELLE_TOOL" logo -o isabelle_nitpick.pdf "Nitpick"
-"$ISABELLE_TOOL" logo -o isabelle_nitpick.eps "Nitpick"
+"$ISABELLE_TOOL" logo Nitpick
 
 cp "$ISABELLE_HOME/src/Doc/iman.sty" .
 cp "$ISABELLE_HOME/src/Doc/manual.bib" .

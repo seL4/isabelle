@@ -5,8 +5,7 @@ set -e
 FORMAT="$1"
 VARIANT="$2"
 
-"$ISABELLE_TOOL" logo -o isabelle_hol.pdf "HOL"
-"$ISABELLE_TOOL" logo -o isabelle_hol.eps "HOL"
+"$ISABELLE_TOOL" logo HOL
 
 cp "$ISABELLE_HOME/src/Doc/ProgProve/MyList.thy" .
 

@@ -209,23 +209,21 @@ Usage: isabelle install [OPTIONS]
 
 section {* Creating instances of the Isabelle logo *}
 
-text {* The @{tool_def logo} tool creates any instance of the generic
-  Isabelle logo as EPS or PDF.
+text {* The @{tool_def logo} tool creates instances of the generic
+  Isabelle logo as EPS and PDF, for inclusion in {\LaTeX} documents.
 \begin{ttbox}
-Usage: isabelle logo [OPTIONS] NAME
+Usage: isabelle logo [OPTIONS] XYZ
 
-  Create instance NAME of the Isabelle logo (as EPS or PDF).
+  Create instance XYZ of the Isabelle logo (as EPS and PDF).
 
   Options are:
-    -o OUTFILE   specify output file and format
-                 (default "isabelle_name.pdf")
+    -n NAME      alternative output base name (default "isabelle_xyx")
     -q           quiet mode
 \end{ttbox}
 
-  Option @{verbatim "-o"} specifies an explicit output file name and
-  format, e.g.\ @{verbatim "mylogo.eps"} for an EPS logo.  The default
-  is @{verbatim "isabelle_"}@{text name}@{verbatim ".pdf"}, with the
-  lower-case version of the given name and PDF output.
+  Option @{verbatim "-n"} specifies an altenative (base) name for the
+  generated files.  The default is @{verbatim "isabelle_"}@{text xyz}
+  in lower-case.
 
   Option @{verbatim "-q"} omits printing of the result file name.
 

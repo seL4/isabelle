@@ -10,12 +10,12 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: isabelle $PRG [OPTIONS] NAME"
+  echo "Usage: isabelle $PRG [OPTIONS] [XYZ]"
   echo
-  echo "  Create instance NAME of the Isabelle logo (as EPS or PDF)."
+  echo "  Create instance XYZ of the Isabelle logo (as EPS and PDF)."
   echo
   echo "  Options are:"
-  echo "    -o OUTPUT    specify output file and format (default \"isabelle_name.pdf\")"
+  echo "    -n NAME      alternative output base name (default \"isabelle_xyx\")"
   echo "    -q           quiet mode"
   echo
   exit 1
@@ -32,14 +32,14 @@ function fail()
 
 # options
 
-OUTPUT=""
+OUTPUT_NAME=""
 QUIET=""
 
-while getopts "o:q" OPT
+while getopts "n:q" OPT
 do
   case "$OPT" in
-    o)
-      OUTPUT="$OPTARG"
+    n)
+      OUTPUT_NAME="$OPTARG"
       ;;
     q)
       QUIET=true
@@ -55,38 +55,33 @@ shift $(($OPTIND - 1))
 
 # args
 
-NAME="-"
-[ "$#" -ge 1 ] && { NAME="$1"; shift; }
+TEXT=""
+[ "$#" -ge 1 ] && { TEXT="$1"; shift; }
 
-[ "$#" -ne 0 -o "$NAME" = "-" ] && usage
+[ "$#" -ne 0 ] && usage
 
 
 ## main
 
-if [ -z "$OUTPUT" ]; then
-  OUTPUT=$(echo "$NAME" | tr A-Z a-z)
-  [ -n "$OUTPUT" ] && OUTPUT="_${OUTPUT}"
-  OUTPUT="isabelle${OUTPUT}.pdf"
-  OUTPUT_FORMAT="pdf"
-else
-  case "$OUTPUT" in
-    *.eps)
-      OUTPUT_FORMAT="eps"
-      ;;
-    *.pdf)
-      OUTPUT_FORMAT="pdf"
-      ;;
-    *)
-      fail "Cannot guess output format (eps or pdf) from \"$OUTPUT\""
-      ;;
-  esac
-fi
+case "$OUTPUT_NAME" in
+  "")
+    OUTPUT_NAME=$(echo "$TEXT" | tr A-Z a-z)
+    if [ -z "$OUTPUT_NAME" ]; then
+      OUTPUT_NAME="isabelle"
+    else
+      OUTPUT_NAME="isabelle_${OUTPUT_NAME}"
+    fi
+    ;;
+  */* | *.eps | *.pdf)
+    fail "Bad output base name: \"$OUTPUT_NAME\""
+    ;;
+  *)
+    ;;
+esac
 
-[ -z "$QUIET" ] && echo "$OUTPUT" >&2
+[ -z "$QUIET" ] && echo "${OUTPUT_NAME}.eps" >&2
+perl -p -e "s,<any>,$NAME," "$ISABELLE_HOME/lib/logo/isabelle_any.eps" > "${OUTPUT_NAME}.eps"
 
-if [ "$OUTPUT_FORMAT" = "eps" ]; then
-  perl -p -e "s,<any>,$NAME," "$ISABELLE_HOME/lib/logo/isabelle_any.eps" > "$OUTPUT"
-else
-  perl -p -e "s,<any>,$NAME," "$ISABELLE_HOME/lib/logo/isabelle_any.eps" | \
-    "$ISABELLE_EPSTOPDF" -f > "$OUTPUT"
-fi
+[ -z "$QUIET" ] && echo "${OUTPUT_NAME}.pdf" >&2
+"$ISABELLE_EPSTOPDF" "${OUTPUT_NAME}.eps"
+

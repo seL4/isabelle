@@ -101,8 +101,8 @@ necessarily printing visible text.
 picked up from some surrounding directory.  Potential INCOMPATIBILITY
 for home-made configurations.
 
-* The "isabelle logo" tool allows to specify EPS or PDF format; the
-latter is preferred now.  Minor INCOMPATIBILITY.
+* The "isabelle logo" tool produces EPS and PDF format simultaneously.
+Minor INCOMPATIBILITY in command-line options.
 
 * Advanced support for Isabelle sessions and build management, see
 "system" manual for the chapter of that name, especially the "isabelle

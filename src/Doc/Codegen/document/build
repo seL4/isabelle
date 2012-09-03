@@ -5,8 +5,7 @@ set -e
 FORMAT="$1"
 VARIANT="$2"
 
-"$ISABELLE_TOOL" logo -o isabelle_isar.pdf "Isar"
-"$ISABELLE_TOOL" logo -o isabelle_isar.eps "Isar"
+"$ISABELLE_TOOL" logo Isar
 
 cp "$ISABELLE_HOME/src/Doc/iman.sty" .
 cp "$ISABELLE_HOME/src/Doc/extra.sty" .
