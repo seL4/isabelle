@@ -2013,19 +2013,16 @@ method_setup rferrack = {*
 lemma
   fixes x :: real
   shows "2 * x \<le> 2 * x \<and> 2 * x \<le> 2 * x + 1"
-apply rferrack
-done
+  by rferrack
 
 lemma
   fixes x :: real
   shows "\<exists>y \<le> x. x = y + 1"
-apply rferrack
-done
+  by rferrack
 
 lemma
   fixes x :: real
   shows "\<not> (\<exists>z. x + z = x + z + 1)"
-apply rferrack
-done
+  by rferrack
 
 end
