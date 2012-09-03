@@ -107,9 +107,9 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
                     case _ => true
                   }).toList
               html_panel.render(filtered_results)
-            case _ =>
+            case _ => html_panel.render(Nil)
           }
-        case None =>
+        case None => html_panel.render(Nil)
       }
     }
   }
