@@ -34,10 +34,11 @@ object Isabelle
 {
   /* plugin instance */
 
-  @volatile var plugin: Plugin = null
-  @volatile var session: Session = null
   @volatile var startup_failure: Option[Throwable] = None
   @volatile var startup_notified = false
+
+  @volatile var plugin: Plugin = null
+  @volatile var session: Session = new Session(new JEdit_Thy_Load(Set.empty, Outer_Syntax.empty))
 
   def thy_load(): JEdit_Thy_Load =
     session.thy_load.asInstanceOf[JEdit_Thy_Load]
@@ -45,8 +46,8 @@ object Isabelle
   def get_recent_syntax(): Option[Outer_Syntax] =
   {
     val current_session = session
-    if (current_session != null) Some(current_session.recent_syntax)
-    else None
+    if (current_session.recent_syntax == Outer_Syntax.empty) None
+    else Some(current_session.recent_syntax)
   }
 
 
@@ -508,8 +509,6 @@ class Plugin extends EBPlugin
     }
     catch {
       case exn: Throwable =>
-        stop()
-        Isabelle.session = null
         Isabelle.startup_failure = Some(exn)
         Isabelle.startup_notified = false
     }
@@ -517,10 +516,8 @@ class Plugin extends EBPlugin
 
   override def stop()
   {
-    if (Isabelle.session != null) {
-      Isabelle.session.phase_changed -= session_manager
-      Isabelle.jedit_buffers.foreach(Isabelle.exit_model)
-      Isabelle.session.stop()
-    }
+    Isabelle.session.phase_changed -= session_manager
+    Isabelle.jedit_buffers.foreach(Isabelle.exit_model)
+    Isabelle.session.stop()
   }
 }
