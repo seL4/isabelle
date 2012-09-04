@@ -829,11 +829,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
       let
         val (axioms, wit_thms) = apfst (mk_axioms live) (chop (length goals) thms);
 
-        val bd_Card_order =
-          Skip_Proof.prove lthy [] []
-            (HOLogic.mk_Trueprop (mk_Card_order (bnf_bd_As)))
-            (fn _ => mk_Card_order_tac (#bd_card_order axioms));
-
+        val bd_Card_order = #bd_card_order axioms RS @{thm conjunct2[OF card_order_on_Card_order]};
         val bd_Cinfinite = @{thm conjI} OF [#bd_cinfinite axioms, bd_Card_order];
         val bd_Cnotzero = bd_Cinfinite RS @{thm Cinfinite_Cnotzero};
 
@@ -855,6 +851,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
           in
             Skip_Proof.prove lthy [] [] goal
               (fn {context = ctxt, ...} => mk_collect_set_natural_tac ctxt (#set_natural axioms))
+            |> Thm.close_derivation
           end;
 
         val collect_set_natural = mk_lazy mk_collect_set_natural;
@@ -868,6 +865,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
                   (mk_subset (mk_in As bnf_sets_As CA') (mk_in As_copy bnf_sets_As CA'))));
           in
             Skip_Proof.prove lthy [] [] goal_in_mono (K (mk_in_mono_tac live))
+            |> Thm.close_derivation
           end;
 
         val in_mono = mk_lazy mk_in_mono;
@@ -881,6 +879,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
                   (HOLogic.mk_eq (mk_in As bnf_sets_As CA', mk_in As_copy bnf_sets_As CA'))));
           in
             Skip_Proof.prove lthy [] [] goal_in_cong (K ((TRY o hyp_subst_tac THEN' rtac refl) 1))
+            |> Thm.close_derivation
           end;
 
         val in_cong = mk_lazy mk_in_cong;
@@ -982,6 +981,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             Skip_Proof.prove lthy [] [] goal
               (fn _ => mk_map_wppull_tac (#map_id axioms) (#map_cong axioms)
                 (#map_wpull axioms) (Lazy.force map_comp') (map Lazy.force set_natural'))
+            |> Thm.close_derivation
           end;
 
         val map_wppull = mk_lazy mk_map_wppull;
@@ -997,6 +997,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
               (mk_rel_Gr_tac bnf_rel_def (#map_id axioms) (#map_cong axioms)
                 (#map_wpull axioms) (Lazy.force in_cong) (Lazy.force map_id')
                 (Lazy.force map_comp') (map Lazy.force set_natural'))
+            |> Thm.close_derivation
           end;
 
         val rel_Gr = mk_lazy mk_rel_Gr;
@@ -1013,6 +1014,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             Skip_Proof.prove lthy [] []
               (fold_rev Logic.all (Rs @ Rs_copy) (Logic.list_implies (mono_prems, mono_concl)))
               (mk_rel_mono_tac bnf_rel_def (Lazy.force in_mono))
+            |> Thm.close_derivation
           end;
 
         fun mk_rel_cong () =
@@ -1023,6 +1025,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             Skip_Proof.prove lthy [] []
               (fold_rev Logic.all (Rs @ Rs_copy) (Logic.list_implies (cong_prems, cong_concl)))
               (fn _ => (TRY o hyp_subst_tac THEN' rtac refl) 1)
+            |> Thm.close_derivation
           end;
 
         val rel_mono = mk_lazy mk_rel_mono;
@@ -1034,6 +1037,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
               (HOLogic.mk_Trueprop
                 (HOLogic.mk_eq (Term.list_comb (relAsAs, map Id_const As'), Id_const CA')))
               (mk_rel_Id_tac live (Lazy.force rel_Gr) (#map_id axioms))
+            |> Thm.close_derivation
           end;
 
         val rel_Id = mk_lazy mk_rel_Id;
@@ -1047,9 +1051,11 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             val le_thm = Skip_Proof.prove lthy [] [] le_goal
               (mk_rel_converse_le_tac bnf_rel_def (Lazy.force rel_Id) (#map_cong axioms)
                 (Lazy.force map_comp') (map Lazy.force set_natural'))
+              |> Thm.close_derivation
             val goal = fold_rev Logic.all Rs (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs)));
           in
             Skip_Proof.prove lthy [] [] goal (fn _ => mk_rel_converse_tac le_thm)
+            |> Thm.close_derivation
           end;
 
         val rel_converse = mk_lazy mk_rel_converse;
@@ -1066,6 +1072,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             Skip_Proof.prove lthy [] [] goal
               (mk_rel_O_tac bnf_rel_def (Lazy.force rel_Id) (#map_cong axioms)
                 (Lazy.force map_wppull) (Lazy.force map_comp') (map Lazy.force set_natural'))
+            |> Thm.close_derivation
           end;
 
         val rel_O = mk_lazy mk_rel_O;
@@ -1085,6 +1092,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
               fold_rev Logic.all (x :: y :: Rs) (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs)));
           in
             Skip_Proof.prove lthy [] [] goal (mk_in_rel_tac bnf_rel_def (length bnf_sets))
+            |> Thm.close_derivation
           end;
 
         val in_rel = mk_lazy mk_in_rel;
@@ -1104,48 +1112,55 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
 
         val bnf = mk_bnf b CA live alphas betas dead deads bnf_map bnf_sets bnf_bd axioms defs facts
           wits bnf_rel bnf_pred;
-
-        fun note thmN thms =
-          snd o Local_Theory.note
-            ((qualify (Binding.qualify true (Binding.name_of b) (Binding.name thmN)), []), thms);
-
-        fun lazy_note thmN thms = note thmN (map Lazy.force thms);
       in
         (bnf, lthy
           |> (if fact_policy = Note_All_Facts_and_Axioms then
                 let
                   val witNs = if length wits = 1 then [witN] else map mk_witN (1 upto length wits);
+                  val notes =
+                    [(bd_card_orderN, [#bd_card_order axioms]),
+                    (bd_cinfiniteN, [#bd_cinfinite axioms]),
+                    (bd_Card_orderN, [#bd_Card_order facts]),
+                    (bd_CinfiniteN, [#bd_Cinfinite facts]),
+                    (bd_CnotzeroN, [#bd_Cnotzero facts]),
+                    (collect_set_naturalN, [Lazy.force (#collect_set_natural facts)]),
+                    (in_bdN, [#in_bd axioms]),
+                    (in_monoN, [Lazy.force (#in_mono facts)]),
+                    (in_relN, [Lazy.force (#in_rel facts)]),
+                    (map_compN, [#map_comp axioms]),
+                    (map_idN, [#map_id axioms]),
+                    (map_wpullN, [#map_wpull axioms]),
+                    (set_naturalN, #set_natural axioms),
+                    (set_bdN, #set_bd axioms)] @
+                    map2 pair witNs wit_thms
+                    |> map (fn (thmN, thms) =>
+                      ((qualify (Binding.qualify true (Binding.name_of b) (Binding.name thmN)), []),
+                      [(thms, [])]));
                 in
-                  note bd_card_orderN [#bd_card_order axioms]
-                  #> note bd_cinfiniteN [#bd_cinfinite axioms]
-                  #> note bd_Card_orderN [#bd_Card_order facts]
-                  #> note bd_CinfiniteN [#bd_Cinfinite facts]
-                  #> note bd_CnotzeroN [#bd_Cnotzero facts]
-                  #> lazy_note collect_set_naturalN [#collect_set_natural facts]
-                  #> note in_bdN [#in_bd axioms]
-                  #> lazy_note in_monoN [#in_mono facts]
-                  #> lazy_note in_relN [#in_rel facts]
-                  #> note map_compN [#map_comp axioms]
-                  #> note map_idN [#map_id axioms]
-                  #> note map_wpullN [#map_wpull axioms]
-                  #> note set_naturalN (#set_natural axioms)
-                  #> note set_bdN (#set_bd axioms)
-                  #> fold2 note witNs wit_thms
+                  Local_Theory.notes notes #> snd
                 end
               else
                 I)
           |> (if fact_policy = Note_All_Facts_and_Axioms orelse
                  fact_policy = Derive_All_Facts_Note_Most then
-                lazy_note rel_IdN [#rel_Id facts]
-                #> lazy_note rel_GrN [#rel_Gr facts]
-                #> lazy_note rel_converseN [#rel_converse facts]
-                #> lazy_note rel_ON [#rel_O facts]
-                #> lazy_note map_id'N [#map_id' facts]
-                #> lazy_note map_comp'N [#map_comp' facts]
-                #> note map_congN [#map_cong axioms]
-                #> lazy_note set_natural'N (#set_natural' facts)
-                #> Local_Theory.declaration {syntax = false, pervasive = true}
-                  (fn phi => Data.map (Symtab.update_new (key, morph_bnf phi bnf)))
+                let
+                  val notes =
+                    [(map_congN, [#map_cong axioms]),
+                    (rel_IdN, [Lazy.force (#rel_Id facts)]),
+                    (rel_GrN, [Lazy.force (#rel_Gr facts)]),
+                    (rel_converseN, [Lazy.force (#rel_converse facts)]),
+                    (rel_ON, [Lazy.force (#rel_O facts)]),
+                    (map_id'N, [Lazy.force (#map_id' facts)]),
+                    (map_comp'N, [Lazy.force (#map_comp' facts)]),
+                    (set_natural'N, map Lazy.force (#set_natural' facts))]
+                    |> map (fn (thmN, thms) =>
+                      ((qualify (Binding.qualify true (Binding.name_of b) (Binding.name thmN)), []),
+                      [(thms, [])]));
+                in
+                  Local_Theory.notes notes #> snd
+                  #> Local_Theory.declaration {syntax = false, pervasive = true}
+                    (fn phi => Data.map (Symtab.update_new (key, morph_bnf phi bnf)))
+                end
               else
                 I))
       end;
@@ -1163,9 +1178,10 @@ fun bnf_def const_policy fact_policy qualify tacs wit_tac Ds =
       Skip_Proof.prove lthy [] [] wit_goal wits_tac
       |> Conjunction.elim_balanced (length wit_goals)
       |> map2 (Conjunction.elim_balanced o length) wit_goalss
-      |> map (map (Thm.forall_elim_vars 0));
+      |> map (map (Thm.close_derivation o Thm.forall_elim_vars 0))
   in
-    (map2 (Skip_Proof.prove lthy [] []) goals (map (unfold_defs_tac lthy defs) tacs))
+    (map2 (Thm.close_derivation oo Skip_Proof.prove lthy [] [])
+      goals (map (unfold_defs_tac lthy defs) tacs))
     |> (fn thms => after_qed (map single thms @ wit_thms) lthy)
   end) oo prepare_def const_policy fact_policy qualify
   (fn ctxt => singleton (Type_Infer_Context.infer_types ctxt)) Ds;

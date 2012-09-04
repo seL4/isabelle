@@ -62,11 +62,6 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
     val ls = 1 upto m;
     val b = Binding.name (fold_rev (fn b => fn s => Binding.name_of b ^ s) bs "");
 
-    fun note thmN thms = snd o Local_Theory.note
-      ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), thms);
-    fun notes thmN thmss = fold2 (fn b => fn thms => snd o Local_Theory.note
-      ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), thms)) bs thmss;
-
     (* TODO: check if m, n etc are sane *)
 
     val Dss = map (fn Ds => map TFree (fold Term.add_tfreesT Ds [])) Dss_insts;
@@ -243,6 +238,7 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
         Skip_Proof.prove lthy [] []
           (fold_rev Logic.all (x :: fs @ all_gs) (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs))))
           (K (mk_map_comp_id_tac map_comp))
+        |> Thm.close_derivation
       end;
 
     val map_comp_id_thms = map5 mk_map_comp_id xFs mapsAsBs mapsBsCs' mapsAsCs' map_comp's;
@@ -261,6 +257,7 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
         Skip_Proof.prove lthy [] []
           (fold_rev Logic.all (x :: self_fs) (Logic.list_implies (prems, goal)))
           (K (mk_map_congL_tac m map_cong map_id'))
+        |> Thm.close_derivation
       end;
 
     val map_congL_thms = map5 mk_map_congL xFs mapsAsAs setssAs map_congs map_id's;
@@ -281,7 +278,7 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
           prems concls xFs xFs_copy;
       in
         map (fn goal => Skip_Proof.prove lthy [] [] goal
-          (K ((hyp_subst_tac THEN' rtac refl) 1))) goals
+          (K ((hyp_subst_tac THEN' rtac refl) 1)) |> Thm.close_derivation) goals
       end;
 
     val timer = time (timer "Derived simple theorems");
@@ -344,7 +341,7 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
             (Logic.list_implies (coalg_prem :: [prem], concl))) concls) zs prems conclss;
       in
         map (fn goals => map (fn goal => Skip_Proof.prove lthy [] [] goal
-          (K (mk_coalg_set_tac coalg_def))) goals) goalss
+          (K (mk_coalg_set_tac coalg_def)) |> Thm.close_derivation) goals) goalss
       end;
 
     val coalg_set_thmss' = transpose coalg_set_thmss;
@@ -360,6 +357,7 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
           (K (stac coalg_def 1 THEN CONJ_WRAP
             (K (EVERY' [rtac ballI, rtac CollectI,
               CONJ_WRAP' (K (EVERY' [rtac @{thm subset_UNIV}])) allAs] 1)) ss))
+        |> Thm.close_derivation
       end;
 
     val timer = time (timer "Coalgebra definition & thms");
@@ -424,7 +422,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
                (Term.list_comb (mapAsBs, passive_ids @ fs @ [s $ x]), s' $ (f $ x)))));
         val elim_goals = map6 mk_elim_goal Bs mapsAsBs fs ss s's zs;
         fun prove goal =
-          Skip_Proof.prove lthy [] [] goal (K (mk_mor_elim_tac mor_def));
+          Skip_Proof.prove lthy [] [] goal (K (mk_mor_elim_tac mor_def))
+          |> Thm.close_derivation;
       in
         (map prove image_goals, map prove elim_goals)
       end;
@@ -439,6 +438,7 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
         Skip_Proof.prove lthy [] []
           (fold_rev Logic.all (Bs @ ss @ Bs_copy) (Logic.list_implies (prems, concl)))
           (K (mk_mor_incl_tac mor_def map_id's))
+        |> Thm.close_derivation
       end;
 
     val mor_id_thm = mor_incl_thm OF (replicate n subset_refl);
@@ -455,6 +455,7 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
           (fold_rev Logic.all (Bs @ ss @ B's @ s's @ B''s @ s''s @ fs @ gs)
             (Logic.list_implies (prems, concl)))
           (K (mk_mor_comp_tac mor_def mor_image'_thms morE_thms map_comp_id_thms))
+        |> Thm.close_derivation
       end;
 
     val mor_cong_thm =
@@ -467,6 +468,7 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
           (fold_rev Logic.all (Bs @ ss @ B's @ s's @ fs @ fs_copy)
             (Logic.list_implies (prems, concl)))
           (K ((hyp_subst_tac THEN' atac) 1))
+        |> Thm.close_derivation
       end;
 
     val mor_UNIV_thm =
@@ -480,6 +482,7 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
         Skip_Proof.prove lthy [] []
           (fold_rev Logic.all (ss @ s's @ fs) (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs))))
           (K (mk_mor_UNIV_tac morE_thms mor_def))
+        |> Thm.close_derivation
       end;
 
     val mor_str_thm =
@@ -491,6 +494,7 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
           (fold_rev Logic.all ss (HOLogic.mk_Trueprop
             (mk_mor active_UNIVs ss (map HOLogic.mk_UNIV FTsAs) maps ss)))
           (K (mk_mor_str_tac ks mor_UNIV_thm))
+        |> Thm.close_derivation
       end;
 
     val mor_sum_case_thm =
@@ -503,6 +507,7 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
           (fold_rev Logic.all (s's @ sum_ss) (HOLogic.mk_Trueprop
             (mk_mor (map HOLogic.mk_UNIV activeBs) s's sum_UNIVs maps Inls)))
           (K (mk_mor_sum_case_tac ks mor_UNIV_thm))
+        |> Thm.close_derivation
       end;
 
     val timer = time (timer "Morphism definition & thms");
@@ -634,15 +639,16 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
       in
         (map3 (fn goals => fn defs => fn rec_Sucs =>
           map3 (fn goal => fn def => fn rec_Suc =>
-            Skip_Proof.prove lthy [] [] goal
-              (K (mk_set_incl_hset_tac def rec_Suc)))
+            Skip_Proof.prove lthy [] [] goal (K (mk_set_incl_hset_tac def rec_Suc))
+            |> Thm.close_derivation)
           goals defs rec_Sucs)
         set_incl_hset_goalss hset_defss hset_rec_Sucss,
         map3 (fn goalss => fn defsi => fn rec_Sucs =>
           map3 (fn k => fn goals => fn defsk =>
             map4 (fn goal => fn defk => fn defi => fn rec_Suc =>
               Skip_Proof.prove lthy [] [] goal
-                (K (mk_set_hset_incl_hset_tac n [defk, defi] rec_Suc k)))
+                (K (mk_set_hset_incl_hset_tac n [defk, defi] rec_Suc k))
+              |> Thm.close_derivation)
             goals defsk defsi rec_Sucs)
           ks goalss hset_defss)
         set_hset_incl_hset_goalsss hset_defss hset_rec_Sucss)
@@ -671,7 +677,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
           ss zs setssAs hsetssAs;
       in
         map2 (map2 (fn goal => fn thms =>
-          Skip_Proof.prove lthy [] [] goal (K (mk_set_incl_hin_tac thms))))
+          Skip_Proof.prove lthy [] [] goal (K (mk_set_incl_hin_tac thms))
+          |> Thm.close_derivation))
         set_incl_hin_goalss set_hset_incl_hset_thmsss
       end;
 
@@ -707,7 +714,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
             map4 (fn goal => fn cts => fn hset_rec_0s => fn hset_rec_Sucs =>
               singleton (Proof_Context.export names_lthy lthy)
                 (Skip_Proof.prove lthy [] [] goal
-                  (mk_hset_rec_minimal_tac m cts hset_rec_0s hset_rec_Sucs)))
+                  (mk_hset_rec_minimal_tac m cts hset_rec_0s hset_rec_Sucs))
+              |> Thm.close_derivation)
             goals ctss hset_rec_0ss' hset_rec_Sucss'
           end;
 
@@ -721,7 +729,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
       in
         map3 (fn goal => fn hset_defs => fn hset_rec_minimal =>
           Skip_Proof.prove lthy [] [] goal
-            (mk_hset_minimal_tac n hset_defs hset_rec_minimal))
+            (mk_hset_minimal_tac n hset_defs hset_rec_minimal)
+          |> Thm.close_derivation)
         goals hset_defss' hset_rec_minimal_thms
       end;
 
@@ -747,7 +756,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
               singleton (Proof_Context.export names_lthy lthy)
                 (Skip_Proof.prove lthy [] [] goal
                   (K (mk_mor_hset_rec_tac m n cts j hset_rec_0s hset_rec_Sucs
-                    morE_thms set_natural'ss coalg_set_thmss))))
+                    morE_thms set_natural'ss coalg_set_thmss)))
+              |> Thm.close_derivation)
             ls goals ctss hset_rec_0ss' hset_rec_Sucss'
           end;
 
@@ -766,7 +776,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
       in
         map3 (map3 (fn goal => fn hset_def => fn mor_hset_rec =>
           Skip_Proof.prove lthy [] [] goal
-            (K (mk_mor_hset_tac hset_def mor_hset_rec))))
+            (K (mk_mor_hset_tac hset_def mor_hset_rec))
+          |> Thm.close_derivation))
         goalss hset_defss' mor_hset_rec_thmss
       end;
 
@@ -832,6 +843,7 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
           (fold_rev Logic.all (As @ Bs @ ss @ B's @ s's @ Rs @ Rs_copy)
             (Logic.list_implies (prems, concl)))
           (K ((hyp_subst_tac THEN' atac) 1))
+        |> Thm.close_derivation
       end;
 
     val bis_rel_thm =
@@ -850,6 +862,7 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
           (fold_rev Logic.all (As @ Bs @ ss @ B's @ s's @ Rs)
             (HOLogic.mk_Trueprop (HOLogic.mk_eq (mk_bis As Bs ss B's s's Rs, rhs))))
           (K (mk_bis_rel_tac m bis_def rel_defs map_comp's map_congs set_natural'ss))
+        |> Thm.close_derivation
       end;
 
     val bis_converse_thm =
@@ -858,7 +871,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
           (Logic.mk_implies
             (HOLogic.mk_Trueprop (mk_bis As Bs ss B's s's Rs),
             HOLogic.mk_Trueprop (mk_bis As B's s's Bs ss (map mk_converse Rs)))))
-      (K (mk_bis_converse_tac m bis_rel_thm rel_congs rel_converses));
+        (K (mk_bis_converse_tac m bis_rel_thm rel_congs rel_converses))
+      |> Thm.close_derivation;
 
     val bis_O_thm =
       let
@@ -872,6 +886,7 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
           (fold_rev Logic.all (As @ Bs @ ss @ B's @ s's @ B''s @ s''s @ Rs @ R's)
             (Logic.list_implies (prems, concl)))
           (K (mk_bis_O_tac m bis_rel_thm rel_congs rel_Os))
+        |> Thm.close_derivation
       end;
 
     val bis_Gr_thm =
@@ -883,6 +898,7 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
           (fold_rev Logic.all (As @ Bs @ ss @ B's @ s's @ fs)
             (Logic.list_implies ([coalg_prem, mor_prem], concl)))
           (mk_bis_Gr_tac bis_rel_thm rel_Grs mor_image_thms morE_thms coalg_in_thms)
+        |> Thm.close_derivation
       end;
 
     val bis_image2_thm = bis_cong_thm OF
@@ -904,6 +920,7 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
           (fold_rev Logic.all (Idx :: As @ Bs @ ss @ B's @ s's @ Ris)
             (Logic.mk_implies (prem, concl)))
           (mk_bis_Union_tac bis_def in_mono'_thms)
+        |> Thm.close_derivation
       end;
 
     (* self-bisimulation *)
@@ -959,7 +976,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
       Skip_Proof.prove lthy [] []
         (fold_rev Logic.all (As @ Bs @ ss)
           (HOLogic.mk_Trueprop (mk_sbis As Bs ss (map (mk_lsbis As Bs ss) ks))))
-        (K (mk_sbis_lsbis_tac lsbis_defs bis_Union_thm bis_cong_thm));
+        (K (mk_sbis_lsbis_tac lsbis_defs bis_Union_thm bis_cong_thm))
+      |> Thm.close_derivation;
 
     val lsbis_incl_thms = map (fn i => sbis_lsbis_thm RS
       (bis_def RS @{thm subst[of _ _ "%x. x"]} RS conjunct1 RS mk_conjunctN n i)) ks;
@@ -973,7 +991,7 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
           (Logic.mk_implies (sbis_prem, mk_concl i R))) ks sRs;
       in
         map3 (fn goal => fn i => fn def => Skip_Proof.prove lthy [] [] goal
-          (K (mk_incl_lsbis_tac n i def))) goals ks lsbis_defs
+          (K (mk_incl_lsbis_tac n i def)) |> Thm.close_derivation) goals ks lsbis_defs
       end;
 
     val equiv_lsbis_thms =
@@ -985,7 +1003,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
         map3 (fn goal => fn l_incl => fn incl_l =>
           Skip_Proof.prove lthy [] [] goal
             (K (mk_equiv_lsbis_tac sbis_lsbis_thm l_incl incl_l
-              bis_diag_thm bis_converse_thm bis_O_thm)))
+              bis_diag_thm bis_converse_thm bis_O_thm))
+          |> Thm.close_derivation)
         goals lsbis_incl_thms incl_lsbis_thms
       end;
 
@@ -1269,7 +1288,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
     val coalgT_thm =
       Skip_Proof.prove lthy [] []
         (fold_rev Logic.all As (HOLogic.mk_Trueprop (mk_coalg As carTAs strTAs)))
-        (mk_coalgT_tac m (coalg_def :: isNode_defs @ carT_defs) strT_defs set_natural'ss);
+        (mk_coalgT_tac m (coalg_def :: isNode_defs @ carT_defs) strT_defs set_natural'ss)
+      |> Thm.close_derivation;
 
     val card_of_carT_thms =
       let
@@ -1285,6 +1305,7 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
             (fold_rev Logic.all As (HOLogic.mk_Trueprop (mk_ordLeq lhs rhs)))
             (K (mk_card_of_carT_tac m isNode_defs sbd_sbd_thm
               sbd_card_order sbd_Card_order sbd_Cinfinite sbd_Cnotzero in_sbds))
+          |> Thm.close_derivation
       in
         map (fn def => @{thm ordLeq_transitive[OF
           card_of_mono1[OF ord_eq_le_trans[OF _ Collect_restrict']]]} OF [def, card_of_carT])
@@ -1310,7 +1331,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
             fn carT_def => fn strT_def => fn isNode_def => fn set_naturals =>
           map2 (fn goal => fn set_natural =>
             Skip_Proof.prove lthy [] [] goal
-            (mk_carT_set_tac n i carT_def strT_def isNode_def set_natural))
+              (mk_carT_set_tac n i carT_def strT_def isNode_def set_natural)
+            |> Thm.close_derivation)
           goals (drop m set_naturals))
         ks goalss carT_defs strT_defs isNode_defs set_natural'ss
       end;
@@ -1354,7 +1376,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
                       (K (mk_strT_hset_tac n m j arg_cong_cTs cTs cts
                         carT_defs strT_defs isNode_defs
                         set_incl_hsets set_hset_incl_hsetss coalg_set_thmss' carT_set_thmss'
-                        coalgT_thm set_natural'ss))))
+                        coalgT_thm set_natural'ss)))
+                  |> Thm.close_derivation)
                 ls goals ctss set_incl_hset_thmss' set_hset_incl_hset_thmsss''
               end;
 
@@ -1375,9 +1398,10 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
         map5 (fn carT_prem => fn isNode_prems => fn in_prem => fn concls => fn strT_hset_thmss =>
           map4 (fn isNode_prem => fn concl => fn isNode_def => fn strT_hset_thms =>
             Skip_Proof.prove lthy [] []
-            (fold_rev Logic.all (Kl :: lab :: kl :: As @ As_copy)
-              (Logic.list_implies ([carT_prem, prem, isNode_prem, in_prem], concl)))
-            (mk_isNode_hset_tac n isNode_def strT_hset_thms))
+              (fold_rev Logic.all (Kl :: lab :: kl :: As @ As_copy)
+                (Logic.list_implies ([carT_prem, prem, isNode_prem, in_prem], concl)))
+              (mk_isNode_hset_tac n isNode_def strT_hset_thms)
+            |> Thm.close_derivation)
           isNode_prems concls isNode_defs
           (if m = 0 then replicate n [] else transpose strT_hset_thmss))
         carT_prems isNode_premss in_prems conclss
@@ -1556,7 +1580,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
 
         val Lev_sbd = singleton (Proof_Context.export names_lthy lthy)
           (Skip_Proof.prove lthy [] [] (HOLogic.mk_Trueprop goal)
-            (K (mk_Lev_sbd_tac cts Lev_0s Lev_Sucs to_sbd_thmss)));
+            (K (mk_Lev_sbd_tac cts Lev_0s Lev_Sucs to_sbd_thmss))
+          |> Thm.close_derivation);
 
         val Lev_sbd' = mk_specN n Lev_sbd;
       in
@@ -1574,7 +1599,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
 
         val length_Lev = singleton (Proof_Context.export names_lthy lthy)
           (Skip_Proof.prove lthy [] [] (HOLogic.mk_Trueprop goal)
-            (K (mk_length_Lev_tac cts Lev_0s Lev_Sucs)));
+            (K (mk_length_Lev_tac cts Lev_0s Lev_Sucs))
+          |> Thm.close_derivation);
 
         val length_Lev' = mk_specN (n + 1) length_Lev;
         val length_Levs = map (fn i => length_Lev' RS mk_conjunctN n i RS mp) ks;
@@ -1585,8 +1611,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
         val goals = map2 mk_goal ks zs;
 
         val length_Levs' = map2 (fn goal => fn length_Lev =>
-          Skip_Proof.prove lthy [] [] goal
-            (K (mk_length_Lev'_tac length_Lev))) goals length_Levs;
+          Skip_Proof.prove lthy [] [] goal (K (mk_length_Lev'_tac length_Lev))
+          |> Thm.close_derivation) goals length_Levs;
       in
         (length_Levs, length_Levs')
       end;
@@ -1603,7 +1629,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
 
         val prefCl_Lev = singleton (Proof_Context.export names_lthy lthy)
           (Skip_Proof.prove lthy [] [] (HOLogic.mk_Trueprop goal)
-            (K (mk_prefCl_Lev_tac cts Lev_0s Lev_Sucs)));
+            (K (mk_prefCl_Lev_tac cts Lev_0s Lev_Sucs)))
+          |> Thm.close_derivation;
 
         val prefCl_Lev' = mk_specN (n + 2) prefCl_Lev;
       in
@@ -1626,7 +1653,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
 
         val rv_last = singleton (Proof_Context.export names_lthy lthy)
           (Skip_Proof.prove lthy [] [] (HOLogic.mk_Trueprop goal)
-            (K (mk_rv_last_tac cTs cts rv_Nils rv_Conss)));
+            (K (mk_rv_last_tac cTs cts rv_Nils rv_Conss)))
+          |> Thm.close_derivation;
 
         val rv_last' = mk_specN (n + 1) rv_last;
       in
@@ -1651,7 +1679,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
           (Skip_Proof.prove lthy [] []
             (Logic.mk_implies (coalg_prem, HOLogic.mk_Trueprop goal))
             (K (mk_set_rv_Lev_tac m cts Lev_0s Lev_Sucs rv_Nils rv_Conss
-              coalg_set_thmss from_to_sbd_thmss)));
+              coalg_set_thmss from_to_sbd_thmss)))
+          |> Thm.close_derivation;
 
         val set_rv_Lev' = mk_specN (n + 1) set_rv_Lev;
       in
@@ -1689,7 +1718,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
 
         val set_Lev = singleton (Proof_Context.export names_lthy lthy)
           (Skip_Proof.prove lthy [] [] (HOLogic.mk_Trueprop goal)
-            (K (mk_set_Lev_tac cts Lev_0s Lev_Sucs rv_Nils rv_Conss from_to_sbd_thmss)));
+            (K (mk_set_Lev_tac cts Lev_0s Lev_Sucs rv_Nils rv_Conss from_to_sbd_thmss)))
+          |> Thm.close_derivation;
 
         val set_Lev' = mk_specN (3 * n + 1) set_Lev;
       in
@@ -1727,7 +1757,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
         val set_image_Lev = singleton (Proof_Context.export names_lthy lthy)
           (Skip_Proof.prove lthy [] [] (HOLogic.mk_Trueprop goal)
             (K (mk_set_image_Lev_tac cts Lev_0s Lev_Sucs rv_Nils rv_Conss
-              from_to_sbd_thmss to_sbd_inj_thmss)));
+              from_to_sbd_thmss to_sbd_inj_thmss)))
+          |> Thm.close_derivation;
 
         val set_image_Lev' = mk_specN (2 * n + 2) set_image_Lev;
       in
@@ -1746,7 +1777,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
           to_sbd_inj_thmss from_to_sbd_thmss Lev_0s Lev_Sucs rv_Nils rv_Conss Lev_sbd_thms
           length_Lev_thms length_Lev'_thms prefCl_Lev_thms rv_last_thmss
           set_rv_Lev_thmsss set_Lev_thmsss set_image_Lev_thmsss
-          set_natural'ss coalg_set_thmss map_comp_id_thms map_congs map_arg_cong_thms);
+          set_natural'ss coalg_set_thmss map_comp_id_thms map_congs map_arg_cong_thms)
+      |> Thm.close_derivation;
 
     val timer = time (timer "Behavioral morphism");
 
@@ -1776,19 +1808,22 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
       in
         map4 (fn goal => fn lsbisE => fn map_comp_id => fn map_cong =>
           Skip_Proof.prove lthy [] [] goal
-            (K (mk_congruent_str_final_tac m lsbisE map_comp_id map_cong equiv_LSBIS_thms)))
+            (K (mk_congruent_str_final_tac m lsbisE map_comp_id map_cong equiv_LSBIS_thms))
+          |> Thm.close_derivation)
         goals lsbisE_thms map_comp_id_thms map_congs
       end;
 
     val coalg_final_thm = Skip_Proof.prove lthy [] [] (fold_rev Logic.all As
       (HOLogic.mk_Trueprop (mk_coalg As car_finalAs str_finalAs)))
       (K (mk_coalg_final_tac m coalg_def congruent_str_final_thms equiv_LSBIS_thms
-        set_natural'ss coalgT_set_thmss));
+        set_natural'ss coalgT_set_thmss))
+      |> Thm.close_derivation;
 
     val mor_T_final_thm = Skip_Proof.prove lthy [] [] (fold_rev Logic.all As
       (HOLogic.mk_Trueprop (mk_mor carTAs strTAs car_finalAs str_finalAs
         (map (mk_proj o mk_LSBIS As) ks))))
-      (K (mk_mor_T_final_tac mor_def congruent_str_final_thms equiv_LSBIS_thms));
+      (K (mk_mor_T_final_tac mor_def congruent_str_final_thms equiv_LSBIS_thms))
+      |> Thm.close_derivation;
 
     val mor_final_thm = mor_comp_thm OF [mor_beh_thm, mor_T_final_thm];
     val in_car_final_thms = map (fn mor_image' => mor_image' OF
@@ -1892,12 +1927,14 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
           Skip_Proof.prove lthy [] []
             (HOLogic.mk_Trueprop (mk_mor UNIVs unfs car_finals str_finals Rep_Ts))
             (mk_mor_Rep_tac m (mor_def :: unf_defs) Reps Abs_inverses coalg_final_set_thmss
-              map_comp_id_thms map_congL_thms);
+              map_comp_id_thms map_congL_thms)
+          |> Thm.close_derivation;
 
         val mor_Abs =
           Skip_Proof.prove lthy [] []
             (HOLogic.mk_Trueprop (mk_mor car_finals str_finals UNIVs unfs Abs_Ts))
-            (mk_mor_Abs_tac (mor_def :: unf_defs) Abs_inverses);
+            (mk_mor_Abs_tac (mor_def :: unf_defs) Abs_inverses)
+          |> Thm.close_derivation;
       in
         (mor_Rep, mor_Abs)
       end;
@@ -1946,6 +1983,7 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
             (HOLogic.mk_Trueprop (mk_mor active_UNIVs ss UNIVs unfs (map (mk_coiter Ts ss) ks))))
           (K (mk_mor_coiter_tac m mor_UNIV_thm unf_defs coiter_defs Abs_inverses' morEs'
             map_comp_id_thms map_congs))
+        |> Thm.close_derivation
       end;
     val coiter_thms = map (fn thm => (thm OF [mor_coiter_thm, UNIV_I]) RS sym) morE_thms;
 
@@ -1959,7 +1997,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
         `split_conj_thm (Skip_Proof.prove lthy [] [] goal
           (K (mk_raw_coind_tac bis_def bis_cong_thm bis_O_thm bis_converse_thm bis_Gr_thm
             tcoalg_thm coalgT_thm mor_T_final_thm sbis_lsbis_thm
-            lsbis_incl_thms incl_lsbis_thms equiv_LSBIS_thms mor_Rep_thm Rep_injects)))
+            lsbis_incl_thms incl_lsbis_thms equiv_LSBIS_thms mor_Rep_thm Rep_injects))
+          |> Thm.close_derivation)
       end;
 
     val unique_mor_thms =
@@ -1975,7 +2014,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
         val unique_mor = Skip_Proof.prove lthy [] []
           (fold_rev Logic.all (Bs @ ss @ coiter_fs @ coiter_fs_copy @ zs)
             (Logic.list_implies (prems, unique)))
-          (K (mk_unique_mor_tac raw_coind_thms bis_image2_thm));
+          (K (mk_unique_mor_tac raw_coind_thms bis_image2_thm))
+          |> Thm.close_derivation;
       in
         map (fn thm => conjI RSN (2, thm RS mp)) (split_conj_thm unique_mor)
       end;
@@ -1992,7 +2032,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
 
         val unique_mor = Skip_Proof.prove lthy [] []
           (fold_rev Logic.all (ss @ coiter_fs) (Logic.mk_implies (prem, unique)))
-          (K (mk_coiter_unique_mor_tac raw_coind_thms bis_thm mor_thm coiter_defs));
+          (K (mk_coiter_unique_mor_tac raw_coind_thms bis_thm mor_thm coiter_defs))
+          |> Thm.close_derivation;
       in
         `split_conj_thm unique_mor
       end;
@@ -2054,7 +2095,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
       in
         map5 (fn goal => fn fld_def => fn coiter => fn map_comp_id => fn map_congL =>
           Skip_Proof.prove lthy [] [] goal
-            (mk_unf_o_fld_tac fld_def coiter map_comp_id map_congL coiter_o_unf_thms))
+            (mk_unf_o_fld_tac fld_def coiter map_comp_id map_congL coiter_o_unf_thms)
+          |> Thm.close_derivation)
           goals fld_defs coiter_thms map_comp_id_thms map_congL_thms
       end;
 
@@ -2139,8 +2181,9 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
       in
         map3 (fn goal => fn coiter => fn map_cong =>
           Skip_Proof.prove lthy [] [] goal
-            (mk_corec_tac m corec_defs coiter map_cong corec_Inl_sum_thms))
-          goals coiter_thms map_congs
+            (mk_corec_tac m corec_defs coiter map_cong corec_Inl_sum_thms)
+          |> Thm.close_derivation)
+        goals coiter_thms map_congs
       end;
 
     val timer = time (timer "corec definitions & thms");
@@ -2185,7 +2228,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
 
         val rel_coinduct = Local_Defs.unfold lthy @{thms diag_UNIV}
           (Skip_Proof.prove lthy [] [] rel_coinduct_goal
-            (K (mk_rel_coinduct_tac ks raw_coind_thm bis_rel_thm)));
+            (K (mk_rel_coinduct_tac ks raw_coind_thm bis_rel_thm))
+          |> Thm.close_derivation);
 
         fun mk_unf_prem upto_eq phi unf map_nth sets Jz Jz_copy FJz =
           let
@@ -2216,7 +2260,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
 
         val unf_coinduct_goal = fold_rev Logic.all frees (Logic.list_implies (unf_prems, concl));
         val unf_coinduct = Skip_Proof.prove lthy [] [] unf_coinduct_goal
-          (K (mk_unf_coinduct_tac m ks raw_coind_thm bis_def));
+          (K (mk_unf_coinduct_tac m ks raw_coind_thm bis_def))
+          |> Thm.close_derivation;
 
         val cTs = map (SOME o certifyT lthy o TFree) coinduct_params;
         val cts = map3 (SOME o certify lthy ooo mk_phi true) phis Jzs1 Jzs2;
@@ -2224,13 +2269,15 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
         val rel_coinduct_upto = singleton (Proof_Context.export names_lthy lthy)
           (Skip_Proof.prove lthy [] []
             (fold_rev Logic.all zs (Logic.list_implies (rel_upto_prems, concl)))
-            (K (mk_rel_coinduct_upto_tac m cTs cts rel_coinduct rel_monos rel_Ids)));
+            (K (mk_rel_coinduct_upto_tac m cTs cts rel_coinduct rel_monos rel_Ids)))
+          |> Thm.close_derivation;
 
         val unf_coinduct_upto = singleton (Proof_Context.export names_lthy lthy)
           (Skip_Proof.prove lthy [] []
             (fold_rev Logic.all zs (Logic.list_implies (unf_upto_prems, concl)))
             (K (mk_unf_coinduct_upto_tac ks cTs cts unf_coinduct bis_def
-              (tcoalg_thm RS bis_diag_thm))));
+              (tcoalg_thm RS bis_diag_thm))))
+          |> Thm.close_derivation;
 
         val pred_coinduct = rel_coinduct
           |> Local_Defs.unfold lthy @{thms Id_def'}
@@ -2338,9 +2385,11 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
                 HOLogic.mk_comp (Term.list_comb (map, fs @ fs_maps), unf))));
             val goals = map4 mk_goal fs_maps map_FTFT's unfs unf's;
             val cTs = map (SOME o certifyT lthy) FTs';
-            val maps = map5 (fn goal => fn cT => fn coiter => fn map_comp' => fn map_cong =>
-              Skip_Proof.prove lthy [] [] goal
-                (K (mk_map_tac m n cT coiter map_comp' map_cong)))
+            val maps =
+              map5 (fn goal => fn cT => fn coiter => fn map_comp' => fn map_cong =>
+                Skip_Proof.prove lthy [] [] goal
+                  (K (mk_map_tac m n cT coiter map_comp' map_cong))
+                |> Thm.close_derivation)
               goals cTs coiter_thms map_comp's map_congs;
           in
             map_split (fn thm => (thm RS @{thm pointfreeE}, thm)) maps
@@ -2355,7 +2404,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
                 fs_maps gs_maps fgs_maps)))
           in
             split_conj_thm (Skip_Proof.prove lthy [] [] goal
-              (K (mk_map_comp_tac m n map_thms map_comps map_congs coiter_unique_thm)))
+              (K (mk_map_comp_tac m n map_thms map_comps map_congs coiter_unique_thm))
+              |> Thm.close_derivation)
           end;
 
         val (map_unique_thms, map_unique_thm) =
@@ -2369,7 +2419,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
                 (map2 (curry HOLogic.mk_eq) us fs_maps));
             val unique = Skip_Proof.prove lthy [] []
               (fold_rev Logic.all (us @ fs) (Logic.list_implies (prems, goal)))
-              (mk_map_unique_tac coiter_unique_thm map_comps);
+              (mk_map_unique_tac coiter_unique_thm map_comps)
+              |> Thm.close_derivation;
           in
             `split_conj_thm unique
           end;
@@ -2408,7 +2459,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
             val set_le_thmss = map split_conj_thm
               (map4 (fn goal => fn hset_minimal => fn set_hsets => fn set_hset_hsetss =>
                 Skip_Proof.prove lthy [] [] goal
-                  (K (mk_set_le_tac n hset_minimal set_hsets set_hset_hsetss)))
+                  (K (mk_set_le_tac n hset_minimal set_hsets set_hset_hsetss))
+                |> Thm.close_derivation)
               le_goals hset_minimal_thms set_hset_thmss' set_hset_hset_thmsss');
 
             val simp_goalss = map (map2 (fn z => fn goal =>
@@ -2417,7 +2469,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
           in
             map4 (map4 (fn goal => fn set_le => fn set_incl_hset => fn set_hset_incl_hsets =>
               Skip_Proof.prove lthy [] [] goal
-                (K (mk_set_simp_tac n set_le set_incl_hset set_hset_incl_hsets))))
+                (K (mk_set_simp_tac n set_le set_incl_hset set_hset_incl_hsets))
+              |> Thm.close_derivation))
             simp_goalss set_le_thmss set_incl_hset_thmss' set_hset_incl_hset_thmsss'
           end;
 
@@ -2443,10 +2496,12 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
             val ctss =
               map (fn phi => map (SOME o certify lthy) [Term.absfree nat' phi, nat]) goals;
 
-            val thms = map4 (fn goal => fn cts => fn rec_0s => fn rec_Sucs =>
-              singleton (Proof_Context.export names_lthy lthy)
-                (Skip_Proof.prove lthy [] [] (HOLogic.mk_Trueprop goal)
-                  (mk_col_natural_tac cts rec_0s rec_Sucs map_simp_thms set_natural'ss)))
+            val thms =
+              map4 (fn goal => fn cts => fn rec_0s => fn rec_Sucs =>
+                singleton (Proof_Context.export names_lthy lthy)
+                  (Skip_Proof.prove lthy [] [] (HOLogic.mk_Trueprop goal)
+                    (mk_col_natural_tac cts rec_0s rec_Sucs map_simp_thms set_natural'ss))
+                |> Thm.close_derivation)
               goals ctss hset_rec_0ss' hset_rec_Sucss';
           in
             map (split_conj_thm o mk_specN n) thms
@@ -2464,11 +2519,13 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
             val ctss =
               map (fn phi => map (SOME o certify lthy) [Term.absfree nat' phi, nat]) goals;
 
-            val thms = map5 (fn j => fn goal => fn cts => fn rec_0s => fn rec_Sucs =>
-              singleton (Proof_Context.export names_lthy lthy)
-                (Skip_Proof.prove lthy [] [] (HOLogic.mk_Trueprop goal)
-                  (K (mk_col_bd_tac m j cts rec_0s rec_Sucs
-                    sbd_Card_order sbd_Cinfinite set_sbdss))))
+            val thms =
+              map5 (fn j => fn goal => fn cts => fn rec_0s => fn rec_Sucs =>
+                singleton (Proof_Context.export names_lthy lthy)
+                  (Skip_Proof.prove lthy [] [] (HOLogic.mk_Trueprop goal)
+                    (K (mk_col_bd_tac m j cts rec_0s rec_Sucs
+                      sbd_Card_order sbd_Cinfinite set_sbdss)))
+                |> Thm.close_derivation)
               ls goals ctss hset_rec_0ss' hset_rec_Sucss';
           in
             map (split_conj_thm o mk_specN n) thms
@@ -2513,6 +2570,7 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
               (Skip_Proof.prove lthy [] [] goal
               (K (mk_mcong_tac m (rtac coinduct) map_comp's map_simp_thms map_congs set_natural'ss
               set_hset_thmss set_hset_hset_thmsss)))
+              |> Thm.close_derivation
           in
             split_conj_thm thm
           end;
@@ -2547,6 +2605,7 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
           in
             Skip_Proof.prove lthy [] [] goal (mk_coalg_thePull_tac m coalg_def map_wpull_thms
               set_natural'ss pickWP_assms_tacs)
+            |> Thm.close_derivation
           end;
 
         val (mor_thePull_fst_thm, mor_thePull_snd_thm, mor_thePull_pick_thm) =
@@ -2569,11 +2628,11 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
               (Logic.mk_implies (wpull_prem, mor_pick));
           in
             (Skip_Proof.prove lthy [] [] goal_fst (mk_mor_thePull_fst_tac m mor_def map_wpull_thms
-              map_comp's pickWP_assms_tacs),
+              map_comp's pickWP_assms_tacs) |> Thm.close_derivation,
             Skip_Proof.prove lthy [] [] goal_snd (mk_mor_thePull_snd_tac m mor_def map_wpull_thms
-              map_comp's pickWP_assms_tacs),
+              map_comp's pickWP_assms_tacs) |> Thm.close_derivation,
             Skip_Proof.prove lthy [] [] goal_pick (mk_mor_thePull_pick_tac mor_def coiter_thms
-              map_comp's))
+              map_comp's) |> Thm.close_derivation)
           end;
 
         val pick_col_thmss =
@@ -2593,10 +2652,12 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
             val goals =
               map (fn concl => Logic.mk_implies (wpull_prem, HOLogic.mk_Trueprop concl)) concls;
 
-            val thms = map5 (fn j => fn goal => fn cts => fn rec_0s => fn rec_Sucs =>
-              singleton (Proof_Context.export names_lthy lthy) (Skip_Proof.prove lthy [] [] goal
-                (mk_pick_col_tac m j cts rec_0s rec_Sucs coiter_thms set_natural'ss map_wpull_thms
-                  pickWP_assms_tacs)))
+            val thms =
+              map5 (fn j => fn goal => fn cts => fn rec_0s => fn rec_Sucs =>
+                singleton (Proof_Context.export names_lthy lthy) (Skip_Proof.prove lthy [] [] goal
+                  (mk_pick_col_tac m j cts rec_0s rec_Sucs coiter_thms set_natural'ss map_wpull_thms
+                    pickWP_assms_tacs))
+                |> Thm.close_derivation)
               ls goals ctss hset_rec_0ss' hset_rec_Sucss';
           in
             map (map (fn thm => thm RS mp) o split_conj_thm o mk_specN n) thms
@@ -2785,7 +2846,8 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
           in
             map2 (fn goal => fn induct =>
               Skip_Proof.prove lthy [] [] goal
-               (mk_coind_wit_tac induct coiter_thms (flat set_natural'ss) wit_thms))
+                (mk_coind_wit_tac induct coiter_thms (flat set_natural'ss) wit_thms)
+              |> Thm.close_derivation)
             goals hset_induct_thms
             |> map split_conj_thm
             |> transpose
@@ -2861,8 +2923,9 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
               fn map_simp => fn set_simps => fn unf_inject => fn unf_fld =>
               fn set_naturals => fn set_incls => fn set_set_inclss =>
               Skip_Proof.prove lthy [] [] goal
-               (K (mk_rel_unfold_tac in_Jrels i in_rel map_comp map_cong map_simp set_simps
-                 unf_inject unf_fld set_naturals set_incls set_set_inclss)))
+                (K (mk_rel_unfold_tac in_Jrels i in_rel map_comp map_cong map_simp set_simps
+                  unf_inject unf_fld set_naturals set_incls set_set_inclss))
+              |> Thm.close_derivation)
             ks goals in_rels map_comp's map_congs folded_map_simp_thms folded_set_simp_thmss'
               unf_inject_thms unf_fld_thms set_natural'ss set_incl_thmss set_set_incl_thmsss
           end;
@@ -2875,42 +2938,64 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
             val goals = map6 mk_goal Jzs Jz's unfs unf's Jpredphis predphis;
           in
             map3 (fn goal => fn pred_def => fn Jrel_unfold =>
-              Skip_Proof.prove lthy [] [] goal (mk_pred_unfold_tac pred_def Jpred_defs Jrel_unfold))
+              Skip_Proof.prove lthy [] [] goal (mk_pred_unfold_tac pred_def Jpred_defs Jrel_unfold)
+              |> Thm.close_derivation)
             goals pred_defs Jrel_unfold_thms
           end;
 
         val timer = time (timer "additional properties");
 
         val ls' = if m = 1 then [0] else ls;
+
+        val Jbnf_common_notes =
+          [(map_uniqueN, [fold_maps map_unique_thm])] @
+          map2 (fn i => fn thm => (mk_set_inductN i, [thm])) ls' set_induct_thms
+          |> map (fn (thmN, thms) =>
+            ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
+
+        val Jbnf_notes =
+          [(map_simpsN, map single folded_map_simp_thms),
+          (set_inclN, set_incl_thmss),
+          (set_set_inclN, map flat set_set_incl_thmsss), (* nicer names? *)
+          (rel_unfoldN, map single Jrel_unfold_thms),
+          (pred_unfoldN, map single Jpred_unfold_thms)] @
+          map2 (fn i => fn thms => (mk_set_simpsN i, map single thms)) ls' folded_set_simp_thmss
+          |> maps (fn (thmN, thmss) =>
+            map2 (fn b => fn thms =>
+              ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
+            bs thmss)
       in
-        lthy
-        |> note map_uniqueN [fold_maps map_unique_thm]
-        |> notes map_simpsN (map single folded_map_simp_thms)
-        |> fold2 (fn i => notes (mk_set_simpsN i) o map single) ls' folded_set_simp_thmss
-        |> notes set_inclN set_incl_thmss
-        |> notes set_set_inclN (map flat set_set_incl_thmsss) (* nicer names? *)
-        |> fold2 (fn i => note (mk_set_inductN i) o single) ls' set_induct_thms
-        |> notes rel_unfoldN (map single Jrel_unfold_thms)
-        |> notes pred_unfoldN (map single Jpred_unfold_thms)
+        lthy |> Local_Theory.notes (Jbnf_common_notes @ Jbnf_notes) |> snd
       end;
+
+      val common_notes =
+        [(unf_coinductN, [unf_coinduct_thm]),
+        (rel_coinductN, [rel_coinduct_thm]),
+        (pred_coinductN, [pred_coinduct_thm]),
+        (unf_coinduct_uptoN, [unf_coinduct_upto_thm]),
+        (rel_coinduct_uptoN, [rel_coinduct_upto_thm]),
+        (pred_coinduct_uptoN, [pred_coinduct_upto_thm])]
+        |> map (fn (thmN, thms) =>
+          ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
+
+      val notes =
+        [(coiterN, coiter_thms),
+        (coiter_uniqueN, coiter_unique_thms),
+        (corecN, corec_thms),
+        (unf_fldN, unf_fld_thms),
+        (fld_unfN, fld_unf_thms),
+        (unf_injectN, unf_inject_thms),
+        (unf_exhaustN, unf_exhaust_thms),
+        (fld_injectN, fld_inject_thms),
+        (fld_exhaustN, fld_exhaust_thms),
+        (fld_coiterN, fld_coiter_thms)]
+        |> map (apsnd (map single))
+        |> maps (fn (thmN, thmss) =>
+          map2 (fn b => fn thms =>
+            ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
+          bs thmss)
   in
-    lthy
-    |> notes coiterN (map single coiter_thms)
-    |> notes coiter_uniqueN (map single coiter_unique_thms)
-    |> notes corecN (map single corec_thms)
-    |> notes unf_fldN (map single unf_fld_thms)
-    |> notes fld_unfN (map single fld_unf_thms)
-    |> notes unf_injectN (map single unf_inject_thms)
-    |> notes unf_exhaustN (map single unf_exhaust_thms)
-    |> notes fld_injectN (map single fld_inject_thms)
-    |> notes fld_exhaustN (map single fld_exhaust_thms)
-    |> notes fld_coiterN (map single fld_coiter_thms)
-    |> note unf_coinductN [unf_coinduct_thm]
-    |> note rel_coinductN [rel_coinduct_thm]
-    |> note pred_coinductN [pred_coinduct_thm]
-    |> note unf_coinduct_uptoN [unf_coinduct_upto_thm]
-    |> note rel_coinduct_uptoN [rel_coinduct_upto_thm]
-    |> note pred_coinduct_uptoN [pred_coinduct_upto_thm]
+    lthy |> Local_Theory.notes (common_notes @ notes) |> snd
   end;
 
 val _ =

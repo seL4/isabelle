@@ -188,8 +188,10 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold, lthy) =
       if ! quick_and_dirty then
         replicate ilive no_thm
       else
-        map (fn goal => Skip_Proof.prove lthy [] [] goal
-        (fn {context, ...} => (mk_comp_set_alt_tac context (collect_set_natural_of_bnf outer))))
+        map (fn goal =>
+          Skip_Proof.prove lthy [] [] goal
+            (fn {context, ...} => (mk_comp_set_alt_tac context (collect_set_natural_of_bnf outer)))
+          |> Thm.close_derivation)
         (map2 (curry (HOLogic.mk_Trueprop o HOLogic.mk_eq)) comp_sets comp_sets_alt);
 
     fun comp_map_cong_tac _ =
@@ -227,6 +229,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold, lthy) =
         in
           Skip_Proof.prove lthy [] [] goal
             (fn {context, ...} => mk_comp_in_alt_tac context comp_set_alt_thms)
+          |> Thm.close_derivation
         end;
 
     fun comp_in_bd_tac _ =
@@ -346,7 +349,7 @@ fun killN_bnf qualify n bnf (unfold, lthy) = if n = 0 then (bnf, (unfold, lthy))
           val goal =
             fold_rev Logic.all Asets (HOLogic.mk_Trueprop (HOLogic.mk_eq (killN_in, killN_in_alt)));
         in
-          Skip_Proof.prove lthy [] [] goal (K killN_in_alt_tac)
+          Skip_Proof.prove lthy [] [] goal (K killN_in_alt_tac) |> Thm.close_derivation
         end;
 
     fun killN_in_bd_tac _ =
@@ -455,7 +458,7 @@ fun liftN_bnf qualify n bnf (unfold, lthy) = if n = 0 then (bnf, (unfold, lthy))
           val goal =
             fold_rev Logic.all Asets (HOLogic.mk_Trueprop (HOLogic.mk_eq (liftN_in, liftN_in_alt)))
         in
-          Skip_Proof.prove lthy [] [] goal (K liftN_in_alt_tac)
+          Skip_Proof.prove lthy [] [] goal (K liftN_in_alt_tac) |> Thm.close_derivation
         end;
 
     fun liftN_in_bd_tac _ =
@@ -543,6 +546,7 @@ fun permute_bnf qualify src dest bnf (unfold, lthy) = if src = dest then (bnf, (
               (HOLogic.mk_Trueprop (HOLogic.mk_eq (permute_in, permute_in_alt)));
         in
           Skip_Proof.prove lthy [] [] goal (K (mk_permute_in_alt_tac src dest))
+          |> Thm.close_derivation
         end;
 
     fun permute_in_bd_tac _ =
@@ -731,13 +735,13 @@ fun seal_bnf unfold b Ds bnf lthy =
     val pred_unfold = Local_Defs.unfold lthy'
       (map unfold_defs (filter_refl (pred_unfolds_of unfold))) pred_def;
 
-    fun note thmN thms =
-      snd o Local_Theory.note
-        ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), thms);
+    val notes =
+      [(rel_unfoldN, [rel_unfold]),
+      (pred_unfoldN, [pred_unfold])]
+      |> map (fn (thmN, thms) =>
+        ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
   in
-    (bnf', lthy'
-      |> note rel_unfoldN [rel_unfold]
-      |> note pred_unfoldN [pred_unfold])
+    (bnf', lthy' |> Local_Theory.notes notes |> snd)
   end;
 
 fun bnf_of_typ _ _ _ _ (T as TFree _) (unfold, lthy) =
