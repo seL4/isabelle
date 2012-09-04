@@ -10,6 +10,7 @@ sig
   val mk_exhaust_tac: Proof.context -> int -> int list -> thm list -> thm -> thm -> tactic
   val mk_fld_iff_unf_tac: Proof.context -> ctyp option list -> cterm -> cterm -> thm -> thm
     -> tactic
+  val mk_inject_tac: Proof.context -> thm -> thm -> tactic
 end;
 
 structure BNF_FP_Sugar_Tactics : BNF_FP_SUGAR_TACTICS =
@@ -32,5 +33,11 @@ fun mk_fld_iff_unf_tac ctxt cTs cfld cunf fld_unf unf_fld =
      dtac (Drule.instantiate' cTs [NONE, NONE, SOME cx] arg_cong) THEN'
      SELECT_GOAL (Local_Defs.unfold_tac ctxt [th]) THEN'
      atac) [rev cTs, cTs] [cunf, cfld] [unf_fld, fld_unf])) 1;
+
+fun mk_inject_tac ctxt ctr_def fld_inject =
+  Local_Defs.unfold_tac ctxt [ctr_def] THEN
+  rtac (fld_inject RS ssubst) 1 THEN
+  Local_Defs.unfold_tac ctxt @{thms sum.inject Pair_eq conj_assoc} THEN
+  rtac refl 1;
 
 end;

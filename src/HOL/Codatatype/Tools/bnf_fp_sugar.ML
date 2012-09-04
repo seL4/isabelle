@@ -107,21 +107,22 @@ fun prepare_data prepare_typ construct specs fake_lthy lthy =
 
     val eqs = map dest_TFree Bs ~~ sum_prod_TsBs;
 
-    val ((raw_flds, raw_unfs, fld_unfs, unf_flds), lthy') = fp_bnf construct bs eqs lthy;
+    val ((raw_unfs, raw_flds, unf_flds, fld_unfs, fld_injects), lthy') =
+      fp_bnf construct bs eqs lthy;
 
-    fun mk_fld_or_unf get_foldedT Ts t =
+    fun mk_unf_or_fld get_foldedT Ts t =
       let val Type (_, Ts0) = get_foldedT (fastype_of t) in
         Term.subst_atomic_types (Ts0 ~~ Ts) t
       end;
 
-    val mk_fld = mk_fld_or_unf range_type;
-    val mk_unf = mk_fld_or_unf domain_type;
+    val mk_unf = mk_unf_or_fld domain_type;
+    val mk_fld = mk_unf_or_fld range_type;
 
-    val flds = map (mk_fld As) raw_flds;
     val unfs = map (mk_unf As) raw_unfs;
+    val flds = map (mk_fld As) raw_flds;
 
-    fun wrap_type ((((((((T, fld), unf), fld_unf), unf_fld), ctr_names), ctr_Tss), disc_names),
-        sel_namess) no_defs_lthy =
+    fun wrap_type (((((((((T, fld), unf), fld_unf), unf_fld), fld_inject), ctr_names), ctr_Tss),
+        disc_names), sel_namess) no_defs_lthy =
       let
         val n = length ctr_names;
         val ks = 1 upto n;
@@ -178,10 +179,14 @@ fun prepare_data prepare_typ construct specs fake_lthy lthy =
         fun exhaust_tac {context = ctxt, ...} =
           mk_exhaust_tac ctxt n ms ctr_defs fld_iff_unf_thm sumEN_thm';
 
-        (* ### *)
-        fun cheat_tac {context = ctxt, ...} = Skip_Proof.cheat_tac (Proof_Context.theory_of ctxt);
+        val inject_tacss =
+          map2 (fn 0 => K []
+                 | _ => fn ctr_def => [fn {context = ctxt, ...} =>
+                     mk_inject_tac ctxt ctr_def fld_inject])
+            ms ctr_defs;
 
-        val inject_tacss = map (fn 0 => [] | _ => [cheat_tac]) ms;
+        (*###*)
+        fun cheat_tac {context = ctxt, ...} = Skip_Proof.cheat_tac (Proof_Context.theory_of ctxt);
 
         val half_distinct_tacss = map (map (K cheat_tac)) (mk_half_pairss ks);
 
@@ -193,8 +198,8 @@ fun prepare_data prepare_typ construct specs fake_lthy lthy =
       end;
   in
     lthy'
-    |> fold wrap_type (Ts ~~ flds ~~ unfs ~~ fld_unfs ~~ unf_flds ~~ ctr_namess ~~ ctr_Tsss ~~
-      disc_namess ~~ sel_namesss)
+    |> fold wrap_type (Ts ~~ flds ~~ unfs ~~ fld_unfs ~~ unf_flds ~~ fld_injects ~~ ctr_namess ~~
+      ctr_Tsss ~~ disc_namess ~~ sel_namesss)
   end;
 
 fun data_cmd info specs lthy =

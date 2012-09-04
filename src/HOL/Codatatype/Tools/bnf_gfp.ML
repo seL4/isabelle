@@ -10,7 +10,7 @@ Codatatype construction.
 signature BNF_GFP =
 sig
   val bnf_gfp: binding list -> typ list list -> BNF_Def.BNF list -> local_theory ->
-    (term list * term list * thm list * thm list) * local_theory
+    (term list * term list * thm list * thm list * thm list) * local_theory
 end;
 
 structure BNF_GFP : BNF_GFP =
@@ -2989,7 +2989,7 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
           bs thmss)
   in
-    ((flds, unfs, fld_unf_thms, unf_fld_thms),
+    ((unfs, flds, unf_fld_thms, fld_unf_thms, fld_inject_thms),
       lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
   end;
 
