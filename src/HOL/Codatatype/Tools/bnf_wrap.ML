@@ -25,7 +25,7 @@ fun mk_un_N 1 1 suf = un_N ^ suf
 val case_congN = "case_cong";
 val case_eqN = "case_eq";
 val casesN = "cases";
-val ctr_selsN = "ctr_sels";
+val collapseN = "collapse";
 val disc_exclusN = "disc_exclus";
 val disc_exhaustN = "disc_exhaust";
 val discsN = "discs";
@@ -350,7 +350,7 @@ fun prepare_wrap prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_nam
                  mk_disc_exhaust_tac n exhaust_thm discI_thms)]
             end;
 
-        val ctr_sel_thms =
+        val collapse_thms =
           let
             fun mk_goal ctr disc sels =
               let
@@ -366,7 +366,7 @@ fun prepare_wrap prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_nam
           in
             map4 (fn m => fn discD => fn sel_thms => Option.map (fn goal =>
               Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-                mk_ctr_sel_tac ctxt m discD sel_thms))) ms discD_thms sel_thmss goals
+                mk_collapse_tac ctxt m discD sel_thms))) ms discD_thms sel_thmss goals
             |> map_filter I
           end;
 
@@ -437,7 +437,7 @@ fun prepare_wrap prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_nam
           [(case_congN, [case_cong_thm]),
            (case_eqN, [case_eq_thm]),
            (casesN, case_thms),
-           (ctr_selsN, ctr_sel_thms),
+           (collapseN, collapse_thms),
            (discsN, disc_thms),
            (disc_exclusN, disc_exclus_thms),
            (disc_exhaustN, disc_exhaust_thms),

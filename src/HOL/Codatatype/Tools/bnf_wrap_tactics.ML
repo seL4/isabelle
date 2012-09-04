@@ -9,7 +9,7 @@ signature BNF_WRAP_TACTICS =
 sig
   val mk_case_cong_tac: thm -> thm list -> tactic
   val mk_case_eq_tac: Proof.context -> thm -> thm list -> thm list list -> thm list list -> tactic
-  val mk_ctr_sel_tac: Proof.context -> int -> thm -> thm list -> tactic
+  val mk_collapse_tac: Proof.context -> int -> thm -> thm list -> tactic
   val mk_disc_exhaust_tac: int -> thm -> thm list -> tactic
   val mk_half_disc_exclus_tac: int -> thm -> thm -> tactic
   val mk_nchotomy_tac: int -> thm -> tactic
@@ -56,7 +56,7 @@ fun mk_disc_exhaust_tac n exhaust discIs =
    EVERY' (map2 (fn k => fn discI =>
      dtac discI THEN' select_prem_tac n (etac @{thm meta_mp}) k THEN' atac) (1 upto n) discIs)) 1;
 
-fun mk_ctr_sel_tac ctxt m discD sel_thms =
+fun mk_collapse_tac ctxt m discD sel_thms =
   (dtac discD THEN'
    (if m = 0 then
       atac
