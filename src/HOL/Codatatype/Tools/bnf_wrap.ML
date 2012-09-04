@@ -51,8 +51,6 @@ fun mk_half_pairss' _ [] = []
 
 fun mk_half_pairss ys = mk_half_pairss' [[]] ys;
 
-val mk_Trueprop_eq = HOLogic.mk_Trueprop o HOLogic.mk_eq;
-
 fun mk_undef T Ts = Const (@{const_name undefined}, Ts ---> T);
 
 fun eta_expand_caseof_arg xs f_xs = fold_rev Term.lambda xs f_xs;

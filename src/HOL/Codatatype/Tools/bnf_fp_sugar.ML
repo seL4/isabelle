@@ -17,6 +17,7 @@ open BNF_Wrap
 open BNF_FP_Util
 open BNF_LFP
 open BNF_GFP
+open BNF_FP_Sugar_Tactics
 
 fun cannot_merge_types () = error "Mutually recursive (co)datatypes must have same type parameters";
 
@@ -142,10 +143,22 @@ fun prepare_data prepare_typ construct specs fake_lthy lthy =
         val phi = Proof_Context.export_morphism lthy lthy';
 
         val ctr_defs = map (Morphism.thm phi) raw_ctr_defs;
-
         val ctrs = map (Morphism.term phi) raw_ctrs;
-
         val caseof = Morphism.term phi raw_caseof;
+
+        val fld_iff_unf_thm =
+          let
+            val fld = @{term "undefined::'a=>'b"};
+            val unf = @{term True};
+            val (T, T') = dest_funT (fastype_of fld);
+            val fld_unf = TrueI;
+            val unf_fld = TrueI;
+            val goal = @{term True};
+          in
+            Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
+              mk_fld_iff_unf_tac ctxt (map (SOME o certifyT lthy) [T, T']) (certify lthy fld)
+                (certify lthy unf) fld_unf unf_fld)
+          end;
 
         (* ### *)
         fun cheat_tac {context = ctxt, ...} = Skip_Proof.cheat_tac (Proof_Context.theory_of ctxt);

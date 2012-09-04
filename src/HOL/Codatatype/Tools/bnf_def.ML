@@ -721,8 +721,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
           (Term.list_comb (bnf_map_BsCs, gs),
            Term.list_comb (bnf_map_AsBs, fs));
       in
-        fold_rev Logic.all (fs @ gs)
-          (HOLogic.mk_Trueprop (HOLogic.mk_eq (bnf_map_app_comp, comp_bnf_map_app)))
+        fold_rev Logic.all (fs @ gs) (mk_Trueprop_eq (bnf_map_app_comp, comp_bnf_map_app))
       end;
 
     val goal_map_cong =
@@ -730,7 +729,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
         fun mk_prem z set f f_copy =
           Logic.all z (Logic.mk_implies
             (HOLogic.mk_Trueprop (HOLogic.mk_mem (z, set $ x)),
-            HOLogic.mk_Trueprop (HOLogic.mk_eq (f $ z, f_copy $ z))));
+            mk_Trueprop_eq (f $ z, f_copy $ z)));
         val prems = map4 mk_prem zs bnf_sets_As fs fs_copy;
         val eq = HOLogic.mk_eq (Term.list_comb (bnf_map_AsBs, fs) $ x,
           Term.list_comb (bnf_map_AsBs, fs_copy) $ x);
@@ -747,8 +746,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
               HOLogic.mk_comp (setB, Term.list_comb (bnf_map_AsBs, fs));
             val image_comp_set = HOLogic.mk_comp (mk_image f, setA);
           in
-            fold_rev Logic.all fs
-              (HOLogic.mk_Trueprop (HOLogic.mk_eq (set_comp_map, image_comp_set)))
+            fold_rev Logic.all fs (mk_Trueprop_eq (set_comp_map, image_comp_set))
           end;
       in
         map3 mk_goal bnf_sets_As bnf_sets_Bs fs
@@ -845,9 +843,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
               (map2 (fn h => fn set => HOLogic.mk_comp (mk_image h, set)) hs bnf_sets_As)
               defT;
             (*collect {set1 ... setm} o map f1 ... fm = collect {f1` o set1 ... fm` o setm}*)
-            val goal =
-              fold_rev Logic.all hs
-                (HOLogic.mk_Trueprop (HOLogic.mk_eq (collect_map, image_collect)));
+            val goal = fold_rev Logic.all hs (mk_Trueprop_eq (collect_map, image_collect));
           in
             Skip_Proof.prove lthy [] [] goal
               (fn {context = ctxt, ...} => mk_collect_set_natural_tac ctxt (#set_natural axioms))
@@ -990,8 +986,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
           let
             val lhs = Term.list_comb (relAsBs, map2 mk_Gr As fs);
             val rhs = mk_Gr (mk_in As bnf_sets_As CA') (Term.list_comb (bnf_map_AsBs, fs));
-            val goal = fold_rev Logic.all (As @ fs)
-              (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs)));
+            val goal = fold_rev Logic.all (As @ fs) (mk_Trueprop_eq (lhs, rhs));
           in
             Skip_Proof.prove lthy [] [] goal
               (mk_rel_Gr_tac bnf_rel_def (#map_id axioms) (#map_cong axioms)
@@ -1052,7 +1047,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
               (mk_rel_converse_le_tac bnf_rel_def (Lazy.force rel_Id) (#map_cong axioms)
                 (Lazy.force map_comp') (map Lazy.force set_natural'))
               |> Thm.close_derivation
-            val goal = fold_rev Logic.all Rs (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs)));
+            val goal = fold_rev Logic.all Rs (mk_Trueprop_eq (lhs, rhs));
           in
             Skip_Proof.prove lthy [] [] goal (fn _ => mk_rel_converse_tac le_thm)
             |> Thm.close_derivation
@@ -1066,8 +1061,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             val relBsCs = mk_bnf_rel setRTsBsCs CB' CC';
             val lhs = Term.list_comb (relAsCs, map2 (curry mk_rel_comp) Rs Ss);
             val rhs = mk_rel_comp (Term.list_comb (relAsBs, Rs), Term.list_comb (relBsCs, Ss));
-            val goal =
-              fold_rev Logic.all (Rs @ Ss) (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs)));
+            val goal = fold_rev Logic.all (Rs @ Ss) (mk_Trueprop_eq (lhs, rhs));
           in
             Skip_Proof.prove lthy [] [] goal
               (mk_rel_O_tac bnf_rel_def (Lazy.force rel_Id) (#map_cong axioms)
@@ -1089,7 +1083,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
               HOLogic.mk_exists (fst z', snd z', HOLogic.mk_conj (HOLogic.mk_mem (z, bnf_in),
                 HOLogic.mk_conj (map_fst_eq, map_snd_eq)));
             val goal =
-              fold_rev Logic.all (x :: y :: Rs) (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs)));
+              fold_rev Logic.all (x :: y :: Rs) (mk_Trueprop_eq (lhs, rhs));
           in
             Skip_Proof.prove lthy [] [] goal (mk_in_rel_tac bnf_rel_def (length bnf_sets))
             |> Thm.close_derivation

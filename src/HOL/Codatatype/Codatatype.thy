@@ -16,6 +16,7 @@ keywords
 and
   "codata" :: thy_decl
 uses
+  "Tools/bnf_fp_sugar_tactics.ML"
   "Tools/bnf_fp_sugar.ML"
 begin
 

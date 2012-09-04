@@ -170,7 +170,7 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
           take m all_gs @ map HOLogic.mk_comp (drop m all_gs ~~ fs)) $ x;
       in
         Skip_Proof.prove lthy [] []
-          (fold_rev Logic.all (x :: fs @ all_gs) (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs))))
+          (fold_rev Logic.all (x :: fs @ all_gs) (mk_Trueprop_eq (lhs, rhs)))
           (K (mk_map_comp_id_tac map_comp))
         |> Thm.close_derivation
       end;
@@ -184,8 +184,7 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
         fun mk_prem set f z z' = HOLogic.mk_Trueprop
           (mk_Ball (set $ x) (Term.absfree z' (HOLogic.mk_eq (f $ z, z))));
         val prems = map4 mk_prem (drop m sets) self_fs zs zs';
-        val goal = HOLogic.mk_Trueprop (HOLogic.mk_eq
-         (Term.list_comb (mapAsAs, passive_ids @ self_fs) $ x, x))
+        val goal = mk_Trueprop_eq (Term.list_comb (mapAsAs, passive_ids @ self_fs) $ x, x);
       in
         Skip_Proof.prove lthy [] []
           (fold_rev Logic.all (x :: self_fs) (Logic.list_implies (prems, goal)))
@@ -217,7 +216,7 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
         val lhs = Term.list_comb (Free (alg_name, algT), As @ Bs @ ss);
         val rhs = Library.foldr1 HOLogic.mk_conj (map5 mk_alg_conjunct Bs ss ins xFs xFs')
       in
-        HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs))
+        mk_Trueprop_eq (lhs, rhs)
       end;
 
     val ((alg_free, (_, alg_def_free)), (lthy, lthy_old)) =
@@ -312,7 +311,7 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
           Library.foldr1 HOLogic.mk_conj
             (map8 mk_mor setssAs mapsAsBs fs ss s's FTsAs xFs xFs'))
       in
-        HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs))
+        mk_Trueprop_eq (lhs, rhs)
       end;
 
     val ((mor_free, (_, mor_def_free)), (lthy, lthy_old)) =
@@ -345,8 +344,7 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
         fun mk_elim_goal sets mapAsBs f s s' x T =
           fold_rev Logic.all (x :: Bs @ ss @ B's @ s's @ fs)
             (Logic.list_implies ([prem, mk_elim_prem sets x T],
-              HOLogic.mk_Trueprop (HOLogic.mk_eq (f $ (s $ x),
-                s' $ Term.list_comb (mapAsBs, passive_ids @ fs @ [x])))));
+              mk_Trueprop_eq (f $ (s $ x), s' $ Term.list_comb (mapAsBs, passive_ids @ fs @ [x]))));
         val elim_goals = map7 mk_elim_goal setssAs mapsAsBs fs ss s's xFs FTsAs;
         fun prove goal =
           Skip_Proof.prove lthy [] [] goal (K (mk_mor_elim_tac mor_def)) |> Thm.close_derivation;
@@ -445,8 +443,7 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
         val lhs = mk_mor active_UNIVs ss (map HOLogic.mk_UNIV activeBs) s's fs;
         val rhs = Library.foldr1 HOLogic.mk_conj (map4 mk_conjunct mapsAsBs fs ss s's);
       in
-        Skip_Proof.prove lthy [] []
-          (fold_rev Logic.all (ss @ s's @ fs) (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs))))
+        Skip_Proof.prove lthy [] [] (fold_rev Logic.all (ss @ s's @ fs) (mk_Trueprop_eq (lhs, rhs)))
           (K (mk_mor_UNIV_tac m morE_thms mor_def))
         |> Thm.close_derivation
       end;
@@ -472,9 +469,9 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
         val prems = map HOLogic.mk_Trueprop
          [mk_alg passive_UNIVs Bs ss,
          mk_alg passive_UNIVs B's s's]
-        val concl = HOLogic.mk_Trueprop (HOLogic.mk_eq (mk_iso Bs ss B's s's fs inv_fs,
+        val concl = mk_Trueprop_eq (mk_iso Bs ss B's s's fs inv_fs,
           HOLogic.mk_conj (mk_mor Bs ss B's s's fs,
-            Library.foldr1 HOLogic.mk_conj (map3 mk_bij_betw fs Bs B's))));
+            Library.foldr1 HOLogic.mk_conj (map3 mk_bij_betw fs Bs B's)));
       in
         Skip_Proof.prove lthy [] []
           (fold_rev Logic.all (Bs @ ss @ B's @ s's @ fs) (Logic.list_implies (prems, concl)))
@@ -698,7 +695,7 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
         val rhs = mk_UNION (field_suc_bd)
           (Term.absfree idx' (mk_nthN n (mk_min_algs As ss $ idx) i));
       in
-        HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs))
+        mk_Trueprop_eq (lhs, rhs)
       end;
 
     val ((min_alg_frees, (_, min_alg_def_frees)), (lthy, lthy_old)) =
@@ -818,7 +815,7 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
         val lhs = Term.list_comb (Free (str_init_name i, str_initT), [init_xF, iidx]);
         val rhs = select_s $ (Term.list_comb (map, map_args) $ init_xF);
       in
-        HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs))
+        mk_Trueprop_eq (lhs, rhs)
       end;
 
     val ((str_init_frees, (_, str_init_def_frees)), (lthy, lthy_old)) =
@@ -1006,7 +1003,7 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
         val rhs = Term.absfree x' (abs $ (str $
           (Term.list_comb (map_FT_init, map HOLogic.id_const passiveAs @ Rep_Ts) $ x)));
       in
-        HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs))
+        mk_Trueprop_eq (lhs, rhs)
       end;
 
     val ((fld_frees, (_, fld_def_frees)), (lthy, lthy_old)) =
@@ -1066,7 +1063,7 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
         val lhs = Term.list_comb (Free (iter_name i, iterT), ss);
         val rhs = mk_nthN n iter i;
       in
-        HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs))
+        mk_Trueprop_eq (lhs, rhs)
       end;
 
     val ((iter_frees, (_, iter_def_frees)), (lthy, lthy_old)) =
@@ -1151,7 +1148,7 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
         val lhs = Free (unf_name i, unfT);
         val rhs = mk_iter Ts map_flds i;
       in
-        HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs))
+        mk_Trueprop_eq (lhs, rhs)
       end;
 
     val ((unf_frees, (_, unf_def_frees)), (lthy, lthy_old)) =
@@ -1174,8 +1171,7 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
 
     val unf_o_fld_thms =
       let
-        fun mk_goal unf fld FT =
-          HOLogic.mk_Trueprop (HOLogic.mk_eq (HOLogic.mk_comp (unf, fld), HOLogic.id_const FT));
+        fun mk_goal unf fld FT = mk_Trueprop_eq (HOLogic.mk_comp (unf, fld), HOLogic.id_const FT);
         val goals = map3 mk_goal unfs flds FTs;
       in
         map5 (fn goal => fn unf_def => fn iter => fn map_comp_id => fn map_congL =>
@@ -1228,7 +1224,7 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
         val lhs = Term.list_comb (Free (rec_name i, recT), rec_ss);
         val rhs = HOLogic.mk_comp (snd_const (HOLogic.mk_prodT (T, AT)), mk_iter Ts maps i);
       in
-        HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs))
+        mk_Trueprop_eq (lhs, rhs)
       end;
 
     val ((rec_frees, (_, rec_def_frees)), (lthy, lthy_old)) =
@@ -1255,7 +1251,7 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
             val lhs = mk_rec rec_ss i $ (fld $ x);
             val rhs = rec_s $ (Term.list_comb (rec_map, passive_ids @ convols) $ x);
           in
-            fold_rev Logic.all (x :: rec_ss) (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs)))
+            fold_rev Logic.all (x :: rec_ss) (mk_Trueprop_eq (lhs, rhs))
           end;
         val goals = map5 mk_goal ks rec_ss rec_maps_rev flds xFs;
       in
@@ -1400,8 +1396,8 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
         val (map_simp_thms, map_thms) =
           let
             fun mk_goal fs_map map fld fld' = fold_rev Logic.all fs
-              (HOLogic.mk_Trueprop (HOLogic.mk_eq (HOLogic.mk_comp (fs_map, fld),
-                HOLogic.mk_comp (fld', Term.list_comb (map, fs @ fs_maps)))));
+              (mk_Trueprop_eq (HOLogic.mk_comp (fs_map, fld),
+                HOLogic.mk_comp (fld', Term.list_comb (map, fs @ fs_maps))));
             val goals = map4 mk_goal fs_maps map_FTFT's flds fld's;
             val maps =
               map4 (fn goal => fn iter => fn map_comp_id => fn map_cong =>
@@ -1415,8 +1411,8 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
         val (map_unique_thms, map_unique_thm) =
           let
             fun mk_prem u map fld fld' =
-              HOLogic.mk_Trueprop (HOLogic.mk_eq (HOLogic.mk_comp (u, fld),
-                HOLogic.mk_comp (fld', Term.list_comb (map, fs @ us))));
+              mk_Trueprop_eq (HOLogic.mk_comp (u, fld),
+                HOLogic.mk_comp (fld', Term.list_comb (map, fs @ us)));
             val prems = map4 mk_prem us map_FTFT's flds fld's;
             val goal =
               HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
@@ -1460,8 +1456,8 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
         val (set_simp_thmss, set_thmss) =
           let
             fun mk_goal sets fld set col map =
-              HOLogic.mk_Trueprop (HOLogic.mk_eq (HOLogic.mk_comp (set, fld),
-                HOLogic.mk_comp (col, Term.list_comb (map, passive_ids @ sets))));
+              mk_Trueprop_eq (HOLogic.mk_comp (set, fld),
+                HOLogic.mk_comp (col, Term.list_comb (map, passive_ids @ sets)));
             val goalss =
               map3 (fn sets => map4 (mk_goal sets) flds sets) setss_by_range colss map_setss;
             val setss = map (map2 (fn iter => fn goal =>
@@ -1469,9 +1465,9 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
               iter_thms) goalss;
 
             fun mk_simp_goal pas_set act_sets sets fld z set =
-              Logic.all z (HOLogic.mk_Trueprop (HOLogic.mk_eq (set $ (fld $ z),
+              Logic.all z (mk_Trueprop_eq (set $ (fld $ z),
                 mk_union (pas_set $ z,
-                  Library.foldl1 mk_union (map2 (fn X => mk_UNION (X $ z)) act_sets sets)))));
+                  Library.foldl1 mk_union (map2 (fn X => mk_UNION (X $ z)) act_sets sets))));
             val simp_goalss =
               map2 (fn i => fn sets =>
                 map4 (fn Fsets => mk_simp_goal (nth Fsets (i - 1)) (drop m Fsets) sets)
@@ -1743,9 +1739,8 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
         val Irel_unfold_thms =
           let
             fun mk_goal xF yF fld fld' IrelR relR = fold_rev Logic.all (xF :: yF :: IRs)
-              (HOLogic.mk_Trueprop (HOLogic.mk_eq
-                (HOLogic.mk_mem (HOLogic.mk_prod (fld $ xF, fld' $ yF), IrelR),
-                  HOLogic.mk_mem (HOLogic.mk_prod (xF, yF), relR))));
+              (mk_Trueprop_eq (HOLogic.mk_mem (HOLogic.mk_prod (fld $ xF, fld' $ yF), IrelR),
+                  HOLogic.mk_mem (HOLogic.mk_prod (xF, yF), relR)));
             val goals = map6 mk_goal xFs yFs flds fld's IrelRs relRs;
           in
             map12 (fn i => fn goal => fn in_rel => fn map_comp => fn map_cong =>
@@ -1762,8 +1757,7 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
         val Ipred_unfold_thms =
           let
             fun mk_goal xF yF fld fld' Ipredphi predphi = fold_rev Logic.all (xF :: yF :: Iphis)
-              (HOLogic.mk_Trueprop (HOLogic.mk_eq
-                (Ipredphi $ (fld $ xF) $ (fld' $ yF), predphi $ xF $ yF)));
+              (mk_Trueprop_eq (Ipredphi $ (fld $ xF) $ (fld' $ yF), predphi $ xF $ yF));
             val goals = map6 mk_goal xFs yFs flds fld's Ipredphis predphis;
           in
             map3 (fn goal => fn pred_def => fn Irel_unfold =>
