@@ -189,7 +189,8 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_case), (raw_disc_binders, raw_se
       no_defs_lthy
       |> apfst split_list o fold_map4 (fn k => fn m => fn exist_xs_v_eq_ctr =>
         fn NONE =>
-           if m = 0 then pair (Term.lambda v exist_xs_v_eq_ctr, refl)
+           if n = 1 then pair (Term.lambda v @{term True}, refl)
+           else if m = 0 then pair (Term.lambda v exist_xs_v_eq_ctr, refl)
            else pair (not_other_disc k, missing_disc_def)
          | SOME b => Specification.definition (SOME (b, NONE, NoSyn),
              ((Thm.def_binding b, []), disc_spec b exist_xs_v_eq_ctr)) #>> apsnd snd)
