@@ -186,7 +186,7 @@ fun fixpoint eq f X = if subset eq (f X, X) then X else fixpoint eq f (f X);
 
 (* stolen from "~~/src/HOL/Tools/Datatype/datatype_aux.ML" *)
 fun split_conj_thm th =
-  ((th RS conjunct1)::(split_conj_thm (th RS conjunct2))) handle THM _ => [th];
+  ((th RS conjunct1) :: split_conj_thm (th RS conjunct2)) handle THM _ => [th];
 
 fun split_conj_prems limit th =
   let

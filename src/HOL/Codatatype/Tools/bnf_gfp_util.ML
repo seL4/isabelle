@@ -43,7 +43,6 @@ sig
 
   val mk_InN: typ list -> term -> int -> term
 
-  val mk_sumTN: typ list -> typ
   val mk_sum_case: term -> term -> term
   val mk_sum_caseN: term list -> term
 
@@ -191,8 +190,6 @@ fun mk_pickWP A f1 f2 b1 b2 =
     Const (@{const_name pickWP}, HOLogic.mk_setT AT --> fT1 --> fT2 --> BT1 --> BT2 --> AT) $
       A $ f1 $ f2 $ b1 $ b2
   end;
-
-fun mk_sumTN Ts = Library.foldr1 (mk_sumT) Ts;
 
 fun Inl_const LT RT = Const (@{const_name Inl}, LT --> mk_sumT (LT, RT));
 fun mk_Inl t RT = Inl_const (fastype_of t) RT $ t;

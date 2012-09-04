@@ -7,8 +7,9 @@ Wrapping existing datatypes.
 
 signature BNF_WRAP =
 sig
+  val no_name: binding
   val wrap: ({prems: thm list, context: Proof.context} -> tactic) list list ->
-    (term list * term) * (binding list * binding list list) -> Proof.context -> local_theory
+    (term list * term) * (binding list * binding list list) -> local_theory -> local_theory
 end;
 
 structure BNF_Wrap : BNF_WRAP =
@@ -39,7 +40,7 @@ val split_asmN = "split_asm";
 val weak_case_cong_thmsN = "weak_case_cong";
 
 val no_name = @{binding "*"};
-val default_name = @{binding _};
+val fallback_name = @{binding _};
 
 fun pad_list x n xs = xs @ replicate (n - length xs) x;
 
@@ -95,11 +96,11 @@ fun prepare_wrap prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_nam
     val ms = map length ctr_Tss;
 
     val disc_names =
-      pad_list default_name n raw_disc_names
+      pad_list fallback_name n raw_disc_names
       |> map2 (fn ctr => fn disc =>
         if Binding.eq_name (disc, no_name) then
           NONE
-        else if Binding.eq_name (disc, default_name) then
+        else if Binding.eq_name (disc, fallback_name) then
           SOME (Binding.name (prefix is_N (Long_Name.base_name (name_of_ctr ctr))))
         else
           SOME disc) ctrs0;
@@ -109,10 +110,10 @@ fun prepare_wrap prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_nam
     val sel_namess =
       pad_list [] n raw_sel_namess
       |> map3 (fn ctr => fn m => map2 (fn l => fn sel =>
-        if Binding.eq_name (sel, default_name) then
+        if Binding.eq_name (sel, fallback_name) then
           Binding.name (mk_un_N m l (Long_Name.base_name (name_of_ctr ctr)))
         else
-          sel) (1 upto m) o pad_list default_name m) ctrs0 ms;
+          sel) (1 upto m) o pad_list fallback_name m) ctrs0 ms;
 
     fun mk_caseof Ts T =
       let val (binders, body) = strip_type (fastype_of caseof0) in

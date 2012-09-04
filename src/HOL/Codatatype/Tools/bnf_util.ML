@@ -57,6 +57,7 @@ sig
   val mk_relT: typ * typ -> typ
   val dest_relT: typ -> typ * typ
   val mk_sumT: typ * typ -> typ
+  val mk_sumTN: typ list -> typ
 
   val ctwo: term
   val fst_const: typ -> term
@@ -288,6 +289,7 @@ fun mk_optionT T = Type (@{type_name option}, [T]);
 val mk_relT = HOLogic.mk_setT o HOLogic.mk_prodT;
 val dest_relT = HOLogic.dest_prodT o HOLogic.dest_setT;
 fun mk_sumT (LT, RT) = Type (@{type_name Sum_Type.sum}, [LT, RT]);
+fun mk_sumTN Ts = Library.foldr1 mk_sumT Ts;
 fun mk_partial_funT (ranT, domT) = domT --> mk_optionT ranT;
 
 
