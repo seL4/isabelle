@@ -185,10 +185,12 @@ fun prepare_data prepare_typ construct specs fake_lthy lthy =
                      mk_inject_tac ctxt ctr_def fld_inject])
             ms ctr_defs;
 
+        val half_distinct_tacss =
+          map (map (fn (def, def') => fn {context = ctxt, ...} =>
+            mk_half_distinct_tac ctxt fld_inject [def, def'])) (mk_half_pairss ctr_defs);
+
         (*###*)
         fun cheat_tac {context = ctxt, ...} = Skip_Proof.cheat_tac (Proof_Context.theory_of ctxt);
-
-        val half_distinct_tacss = map (map (K cheat_tac)) (mk_half_pairss ks);
 
         val case_tacs = map (K cheat_tac) ks;
 
