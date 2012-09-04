@@ -14,6 +14,9 @@ imports
   Equiv_Relations_More
 begin
 
+lemma iffI_np: "\<lbrakk>x \<Longrightarrow> \<not> y; \<not> x \<Longrightarrow> y\<rbrakk> \<Longrightarrow> \<not> x \<longleftrightarrow> y"
+by (erule iffI) (erule contrapos_pn)
+
 lemma subset_Collect_iff: "B \<subseteq> A \<Longrightarrow> (B \<subseteq> {x \<in> A. P x}) = (\<forall>x \<in> B. P x)"
 by blast
 
