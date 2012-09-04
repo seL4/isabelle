@@ -7,7 +7,7 @@ Wrapping existing datatypes.
 
 signature BNF_WRAP =
 sig
-  val no_name: binding
+  val no_binder: binding
   val mk_half_pairss: 'a list -> ('a * 'a) list list
   val wrap_data: ({prems: thm list, context: Proof.context} -> tactic) list list ->
     (term list * term) * (binding list * binding list list) -> local_theory -> local_theory
@@ -40,8 +40,8 @@ val splitN = "split";
 val split_asmN = "split_asm";
 val weak_case_cong_thmsN = "weak_case_cong";
 
-val no_name = @{binding "*"};
-val fallback_name = @{binding _};
+val no_binder = @{binding "*"};
+val fallback_binder = @{binding _};
 
 fun pad_list x n xs = xs @ replicate (n - length xs) x;
 
@@ -61,7 +61,7 @@ fun name_of_ctr t =
   | Free (s, _) => s
   | _ => error "Cannot extract name of constructor";
 
-fun prepare_wrap_data prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_namess))
+fun prepare_wrap_data prep_term ((raw_ctrs, raw_caseof), (raw_disc_binders, raw_sel_binderss))
   no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
@@ -96,36 +96,36 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_se
 
     val ms = map length ctr_Tss;
 
-    val raw_disc_names' = pad_list no_name n raw_disc_names;
+    val raw_disc_binders' = pad_list no_binder n raw_disc_binders;
 
     fun can_rely_on_disc i =
-      not (Binding.eq_name (nth raw_disc_names' i, no_name)) orelse nth ms i = 0;
-    fun can_omit_disc_name k m =
+      not (Binding.eq_name (nth raw_disc_binders' i, no_binder)) orelse nth ms i = 0;
+    fun can_omit_disc_binder k m =
       n = 1 orelse m = 0 orelse (n = 2 andalso can_rely_on_disc (2 - k))
 
-    val fallback_disc_name = Binding.name o prefix is_N o Long_Name.base_name o name_of_ctr;
+    val fallback_disc_binder = Binding.name o prefix is_N o Long_Name.base_name o name_of_ctr;
 
-    val disc_names =
-      raw_disc_names'
+    val disc_binders =
+      raw_disc_binders'
       |> map4 (fn k => fn m => fn ctr => fn disc =>
-        if Binding.eq_name (disc, no_name) then
-          if can_omit_disc_name k m then NONE else SOME (fallback_disc_name ctr)
-        else if Binding.eq_name (disc, fallback_name) then
-          SOME (fallback_disc_name ctr)
+        if Binding.eq_name (disc, no_binder) then
+          if can_omit_disc_binder k m then NONE else SOME (fallback_disc_binder ctr)
+        else if Binding.eq_name (disc, fallback_binder) then
+          SOME (fallback_disc_binder ctr)
         else
           SOME disc) ks ms ctrs0;
 
-    val no_discs = map is_none disc_names;
+    val no_discs = map is_none disc_binders;
 
-    fun fallback_sel_name m l = Binding.name o mk_un_N m l o Long_Name.base_name o name_of_ctr;
+    fun fallback_sel_binder m l = Binding.name o mk_un_N m l o Long_Name.base_name o name_of_ctr;
 
-    val sel_namess =
-      pad_list [] n raw_sel_namess
+    val sel_binderss =
+      pad_list [] n raw_sel_binderss
       |> map3 (fn ctr => fn m => map2 (fn l => fn sel =>
-        if Binding.eq_name (sel, no_name) orelse Binding.eq_name (sel, fallback_name) then
-          fallback_sel_name m l ctr
+        if Binding.eq_name (sel, no_binder) orelse Binding.eq_name (sel, fallback_binder) then
+          fallback_sel_binder m l ctr
         else
-          sel) (1 upto m) o pad_list no_name m) ctrs0 ms;
+          sel) (1 upto m) o pad_list no_binder m) ctrs0 ms;
 
     fun mk_caseof Ts T =
       let
@@ -172,7 +172,7 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_se
 
     fun not_other_disc_lhs i =
       HOLogic.mk_not
-        (case nth disc_names i of NONE => nth exist_xs_v_eq_ctrs i | SOME b => disc_free b $ v);
+        (case nth disc_binders i of NONE => nth exist_xs_v_eq_ctrs i | SOME b => disc_free b $ v);
 
     fun not_other_disc k =
       if n = 2 then Term.lambda v (not_other_disc_lhs (2 - k)) else error "Cannot use \"*\" here"
@@ -193,10 +193,10 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_se
            else pair (not_other_disc k, missing_disc_def)
          | SOME b => Specification.definition (SOME (b, NONE, NoSyn),
              ((Thm.def_binding b, []), disc_spec b exist_xs_v_eq_ctr)) #>> apsnd snd)
-        ks ms exist_xs_v_eq_ctrs disc_names
+        ks ms exist_xs_v_eq_ctrs disc_binders
       ||>> apfst split_list o fold_map3 (fn bs => fn xs => fn k => apfst split_list o
           fold_map2 (fn b => fn x => Specification.definition (SOME (b, NONE, NoSyn),
-            ((Thm.def_binding b, []), sel_spec b x xs k)) #>> apsnd snd) bs xs) sel_namess xss ks
+            ((Thm.def_binding b, []), sel_spec b x xs k)) #>> apsnd snd) bs xs) sel_binderss xss ks
       ||> `Local_Theory.restore;
 
     (*transforms defined frees into consts (and more)*)

@@ -35,9 +35,6 @@ sig
   val mk_undefined: typ -> term
   val mk_univ: term -> term
 
-  val mk_sum_case: term -> term -> term
-  val mk_sum_caseN: term list -> term
-
   val mk_specN: int -> thm -> thm
   val mk_sum_casesN: int -> int -> thm
 
@@ -181,18 +178,6 @@ fun mk_pickWP A f1 f2 b1 b2 =
     Const (@{const_name pickWP}, HOLogic.mk_setT AT --> fT1 --> fT2 --> BT1 --> BT2 --> AT) $
       A $ f1 $ f2 $ b1 $ b2
   end;
-
-fun mk_sum_case f g =
-  let
-    val fT = fastype_of f;
-    val gT = fastype_of g;
-  in
-    Const (@{const_name sum_case},
-      fT --> gT --> mk_sumT (domain_type fT, domain_type gT) --> range_type fT) $ f $ g
-  end;
-
-fun mk_sum_caseN [f] = f
-  | mk_sum_caseN (f :: fs) = mk_sum_case f (mk_sum_caseN fs);
 
 fun mk_InN_not_InM 1 _ = @{thm Inl_not_Inr}
   | mk_InN_not_InM n m =

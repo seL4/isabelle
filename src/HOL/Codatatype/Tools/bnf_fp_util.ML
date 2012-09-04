@@ -85,6 +85,8 @@ sig
   val mk_Inl: term -> typ -> term
   val mk_Inr: term -> typ -> term
   val mk_InN: typ list -> term -> int -> term
+  val mk_sum_case: term -> term -> term
+  val mk_sum_caseN: term list -> term
 
   val mk_Field: term -> term
   val mk_union: term * term -> term
@@ -200,6 +202,18 @@ fun mk_InN [_] t 1 = t
   | mk_InN (_ :: Ts) t 1 = mk_Inl t (mk_sumTN Ts)
   | mk_InN (LT :: Ts) t m = mk_Inr (mk_InN Ts t (m - 1)) LT
   | mk_InN Ts t _ = raise (TYPE ("mk_InN", Ts, [t]));
+
+fun mk_sum_case f g =
+  let
+    val fT = fastype_of f;
+    val gT = fastype_of g;
+  in
+    Const (@{const_name sum_case},
+      fT --> gT --> mk_sumT (domain_type fT, domain_type gT) --> range_type fT) $ f $ g
+  end;
+
+fun mk_sum_caseN [f] = f
+  | mk_sum_caseN (f :: fs) = mk_sum_case f (mk_sum_caseN fs);
 
 fun mk_Field r =
   let val T = fst (dest_relT (fastype_of r));

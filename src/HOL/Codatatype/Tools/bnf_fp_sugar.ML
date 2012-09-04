@@ -19,6 +19,8 @@ open BNF_LFP
 open BNF_GFP
 open BNF_FP_Sugar_Tactics
 
+val caseN = "case";
+
 fun cannot_merge_types () = error "Mutually recursive types must have the same type parameters";
 
 fun merge_type_arg_constrained ctxt (T, c) (T', c') =
@@ -41,7 +43,7 @@ fun merge_type_args_constrained ctxt (cAs, cAs') =
 
 fun type_args_constrained_of (((cAs, _), _), _) = cAs;
 val type_args_of = map fst o type_args_constrained_of;
-fun type_name_of (((_, b), _), _) = b;
+fun type_binder_of (((_, b), _), _) = b;
 fun mixfix_of_typ ((_, mx), _) = mx;
 fun ctr_specs_of (_, ctr_specs) = ctr_specs;
 
@@ -72,7 +74,7 @@ fun prepare_data prepare_typ construct specs fake_lthy lthy =
       Type (fst (Term.dest_Type (Proof_Context.read_type_name fake_lthy true (Binding.name_of b))),
         As);
 
-    val bs = map type_name_of specs;
+    val bs = map type_binder_of specs;
     val Ts = map mk_T bs;
 
     val mixfixes = map mixfix_of_typ specs;
@@ -82,12 +84,12 @@ fun prepare_data prepare_typ construct specs fake_lthy lthy =
 
     val ctr_specss = map ctr_specs_of specs;
 
-    val disc_namess = map (map disc_of) ctr_specss;
-    val ctr_namess = map (map ctr_of) ctr_specss;
+    val disc_binderss = map (map disc_of) ctr_specss;
+    val ctr_binderss = map (map ctr_of) ctr_specss;
     val ctr_argsss = map (map args_of) ctr_specss;
     val ctr_mixfixess = map (map mixfix_of_ctr) ctr_specss;
 
-    val sel_namesss = map (map (map fst)) ctr_argsss;
+    val sel_bindersss = map (map (map fst)) ctr_argsss;
     val ctr_Tsss = map (map (map (prepare_typ fake_lthy o snd))) ctr_argsss;
 
     val (Bs, C) =
@@ -121,35 +123,43 @@ fun prepare_data prepare_typ construct specs fake_lthy lthy =
     val unfs = map (mk_unf As) raw_unfs;
     val flds = map (mk_fld As) raw_flds;
 
-    fun wrap_type (((((((((T, fld), unf), fld_unf), unf_fld), fld_inject), ctr_names), ctr_Tss),
-        disc_names), sel_namess) no_defs_lthy =
+    fun wrap_type ((((((((((b, T), fld), unf), fld_unf), unf_fld), fld_inject), ctr_binders),
+        ctr_Tss), disc_binders), sel_binderss) no_defs_lthy =
       let
-        val n = length ctr_names;
+        val n = length ctr_binders;
         val ks = 1 upto n;
         val ms = map length ctr_Tss;
 
         val unf_T = domain_type (fastype_of fld);
-
         val prod_Ts = map HOLogic.mk_tupleT ctr_Tss;
+        val caseofC_Ts = map (fn Ts => Ts ---> C) ctr_Tss;
 
-        val (((u, v), xss), _) =
+        val ((((fs, u), v), xss), _) =
           lthy
-          |> yield_singleton (mk_Frees "u") unf_T
+          |> mk_Frees "f" caseofC_Ts
+          ||>> yield_singleton (mk_Frees "u") unf_T
           ||>> yield_singleton (mk_Frees "v") T
           ||>> mk_Freess "x" ctr_Tss;
 
-        val rhss =
+        val uncurried_fs =
+          map2 (fn f => fn xs =>
+            HOLogic.tupled_lambda (HOLogic.mk_tuple xs) (Term.list_comb (f, xs))) fs xss;
+
+        val ctr_rhss =
           map2 (fn k => fn xs =>
             fold_rev Term.lambda xs (fld $ mk_InN prod_Ts (HOLogic.mk_tuple xs) k)) ks xss;
 
-        val ((raw_ctrs, raw_ctr_defs), (lthy', lthy)) = no_defs_lthy
+        val caseof_binder = Binding.suffix_name ("_" ^ caseN) b;
+
+        val caseof_rhs = fold_rev Term.lambda (fs @ [v]) (mk_sum_caseN uncurried_fs $ (unf $ v));
+
+        val (((raw_ctrs, raw_ctr_defs), (raw_caseof, raw_caseof_def)), (lthy', lthy)) = no_defs_lthy
           |> apfst split_list o fold_map2 (fn b => fn rhs =>
                Local_Theory.define ((b, NoSyn), ((Thm.def_binding b, []), rhs)) #>> apsnd snd)
-             ctr_names rhss
+             ctr_binders ctr_rhss
+          ||>> (Local_Theory.define ((caseof_binder, NoSyn), ((Thm.def_binding caseof_binder, []),
+             caseof_rhs)) #>> apsnd snd)
           ||> `Local_Theory.restore;
-
-        val raw_caseof =
-          Const (@{const_name undefined}, map (fn Ts => Ts ---> C) ctr_Tss ---> T --> C);
 
         (*transforms defined frees into consts (and more)*)
         val phi = Proof_Context.export_morphism lthy lthy';
@@ -196,12 +206,12 @@ fun prepare_data prepare_typ construct specs fake_lthy lthy =
 
         val tacss = [exhaust_tac] :: inject_tacss @ half_distinct_tacss @ [case_tacs];
       in
-        wrap_data tacss ((ctrs, caseof), (disc_names, sel_namess)) lthy'
+        wrap_data tacss ((ctrs, caseof), (disc_binders, sel_binderss)) lthy'
       end;
   in
     lthy'
-    |> fold wrap_type (Ts ~~ flds ~~ unfs ~~ fld_unfs ~~ unf_flds ~~ fld_injects ~~ ctr_namess ~~
-      ctr_Tsss ~~ disc_namess ~~ sel_namesss)
+    |> fold wrap_type (bs ~~ Ts ~~ flds ~~ unfs ~~ fld_unfs ~~ unf_flds ~~ fld_injects ~~
+      ctr_binderss ~~ ctr_Tsss ~~ disc_binderss ~~ sel_bindersss)
   end;
 
 fun data_cmd info specs lthy =
@@ -210,17 +220,17 @@ fun data_cmd info specs lthy =
       Proof_Context.theory_of lthy
       |> Theory.copy
       |> Sign.add_types_global (map (fn spec =>
-        (type_name_of spec, length (type_args_constrained_of spec), mixfix_of_typ spec)) specs)
+        (type_binder_of spec, length (type_args_constrained_of spec), mixfix_of_typ spec)) specs)
       |> Proof_Context.init_global
   in
     prepare_data Syntax.read_typ info specs fake_lthy lthy
   end;
 
-val parse_opt_binding_colon = Scan.optional (Parse.binding --| Parse.$$$ ":") no_name
+val parse_opt_binding_colon = Scan.optional (Parse.binding --| Parse.$$$ ":") no_binder
 
 val parse_ctr_arg =
   Parse.$$$ "(" |-- parse_opt_binding_colon -- Parse.typ --| Parse.$$$ ")" ||
-  (Parse.typ >> pair no_name);
+  (Parse.typ >> pair no_binder);
 
 val parse_single_spec =
   Parse.type_args_constrained -- Parse.binding -- Parse.opt_mixfix --
