@@ -17,7 +17,7 @@ function usage()
   echo "  Options are:"
   echo "    -a           select all doc sessions"
   echo "    -j INT       maximum number of parallel jobs (default 1)"
-  echo "    -p           approximative build of pdf documents"
+  echo "    -p           build only pdf documents"
   echo
   echo "  Build Isabelle documentation from (doc) sessions."
   echo
@@ -37,6 +37,8 @@ function check_number()
 
 
 ## process command line
+
+# options
 
 ALL_DOCS="false"
 JOBS=""
@@ -63,12 +65,22 @@ done
 
 shift $(($OPTIND - 1))
 
+
+# arguments
+
 if [ "$ALL_DOCS" = true ]; then
-  declare -a BUILD_OPTIONS=(-g doc)
+  declare -a BUILD_ARGS=(-g doc)
 else
-  declare -a BUILD_OPTIONS=()
+  declare -a BUILD_ARGS=()
   [ "$#" -eq 0 ] && usage
 fi
+
+BUILD_ARGS["${#BUILD_ARGS[@]}"]="--"
+
+while [ "$#" -ne 0 ]; do
+  BUILD_ARGS["${#BUILD_ARGS[@]}"]="$1"
+  shift
+done
 
 
 ## main
@@ -76,19 +88,21 @@ fi
 OUTPUT="$ISABELLE_TMP_PREFIX$$"
 mkdir -p "$OUTPUT" || fail "Bad directory: \"$OUTPUT\""
 
+"$ISABELLE_TOOL" build -R -b $JOBS "${BUILD_ARGS[@]}"
+RC=$?
+
 if [ "$PDF_ONLY" = true ]; then
   FORMATS="pdf"
 else
-  FORMATS="false dvi pdf"
+  FORMATS="dvi pdf"
 fi
 
-RC=0
 for FORMAT in $FORMATS
 do
   if [ "$RC" = 0 ]; then
     echo "Document format: $FORMAT"
     "$ISABELLE_TOOL" build -o browser_info=false -o "document=$FORMAT" \
-      -o "document_output=$OUTPUT" -c $JOBS "${BUILD_OPTIONS[@]}" -- "$@"
+      -o "document_output=$OUTPUT" -c $JOBS "${BUILD_ARGS[@]}"
     RC=$?
   fi
 done
@@ -100,7 +114,6 @@ if [ "$RC" = 0 ]; then
   done
   if [ "$PDF_ONLY" = true ]; then
     cp -f "$OUTPUT"/*.pdf "$ISABELLE_HOME/doc"
-    rm -f "$ISABELLE_HOME/doc/document.pdf" "$ISABELLE_HOME/doc/outline.pdf"
   else
     cp -f "$OUTPUT"/*.dvi "$OUTPUT"/*.pdf "$ISABELLE_HOME/doc"
   fi

@@ -27,6 +27,7 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -D DIR       include session directory and select its sessions"
+  echo "    -R           operate on requirements of selected sessions"
   echo "    -a           select all sessions"
   echo "    -b           build heap images"
   echo "    -c           clean build"
@@ -60,6 +61,7 @@ function check_number()
 ## process command line
 
 declare -a SELECT_DIRS=()
+REQUIREMENTS=false
 ALL_SESSIONS=false
 BUILD_HEAP=false
 CLEAN_BUILD=false
@@ -72,11 +74,14 @@ eval "declare -a BUILD_OPTIONS=($ISABELLE_BUILD_OPTIONS)"
 SYSTEM_MODE=false
 VERBOSE=false
 
-while getopts "D:abcd:g:j:lno:sv" OPT
+while getopts "D:Rabcd:g:j:lno:sv" OPT
 do
   case "$OPT" in
     D)
       SELECT_DIRS["${#SELECT_DIRS[@]}"]="$OPTARG"
+      ;;
+    R)
+      REQUIREMENTS="true"
       ;;
     a)
       ALL_SESSIONS="true"
@@ -135,7 +140,7 @@ fi
 . "$ISABELLE_HOME/lib/scripts/timestart.bash"
 
 "$ISABELLE_TOOL" java isabelle.Build \
-  "$ALL_SESSIONS" "$BUILD_HEAP" "$CLEAN_BUILD" "$MAX_JOBS" \
+  "$REQUIREMENTS" "$ALL_SESSIONS" "$BUILD_HEAP" "$CLEAN_BUILD" "$MAX_JOBS" \
   "$LIST_FILES" "$NO_BUILD" "$SYSTEM_MODE" "$VERBOSE" \
   "${SELECT_DIRS[@]}" $'\n' "${INCLUDE_DIRS[@]}" $'\n' \
   "${SESSION_GROUPS[@]}" $'\n' "${BUILD_OPTIONS[@]}" $'\n' "$@"
