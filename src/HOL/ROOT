@@ -624,13 +624,10 @@ session "HOL-Codatatype-Examples" in "Codatatype/Examples" = "HOL-Codatatype" +
     Lambda_Term
     Process
     TreeFsetI
-  (* FIXME: shouldn't require "parallel_proofs = 0";
-     with parallel proofs enabled, the build of this session takes 10 times longer *)
-  theories [parallel_proofs = 0]
     "Infinite_Derivation_Trees/Gram_Lang"
     "Infinite_Derivation_Trees/Parallel"
     Stream
-  theories [parallel_proofs = 0, condition = ISABELLE_FULL_TEST]
+  theories [condition = ISABELLE_FULL_TEST]
     Misc_Codata
     Misc_Data
 
