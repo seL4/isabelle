@@ -17,6 +17,19 @@ begin
 lemma iffI_np: "\<lbrakk>x \<Longrightarrow> \<not> y; \<not> x \<Longrightarrow> y\<rbrakk> \<Longrightarrow> \<not> x \<longleftrightarrow> y"
 by (erule iffI) (erule contrapos_pn)
 
+lemma all_unit_eq: "(\<And>x. PROP P x) \<equiv> PROP P ()" by simp
+
+lemma all_prod_eq: "(\<And>x. PROP P x) \<equiv> (\<And>a b. PROP P (a, b))" by auto
+
+lemma False_imp_eq: "(False \<Longrightarrow> P) \<equiv> Trueprop True"
+by presburger
+
+lemma case_unit: "(case u of () => f) = f"
+by (cases u) (hypsubst, rule unit.cases)
+
+lemma All_point_1: "(\<And>z. z = b \<Longrightarrow> phi z) \<equiv> Trueprop (phi b)"
+by presburger
+
 lemma subset_Collect_iff: "B \<subseteq> A \<Longrightarrow> (B \<subseteq> {x \<in> A. P x}) = (\<forall>x \<in> B. P x)"
 by blast
 

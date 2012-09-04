@@ -10,6 +10,7 @@ signature BNF_TACTICS =
 sig
   val select_prem_tac: int -> (int -> tactic) -> int -> int -> tactic
   val fo_rtac: thm -> Proof.context -> int -> tactic
+  val subst_asm_tac: Proof.context -> thm list -> int -> tactic
   val subst_tac: Proof.context -> thm list -> int -> tactic
   val substs_tac: Proof.context -> thm list -> int -> tactic
 
@@ -70,6 +71,7 @@ fun fo_rtac thm = Subgoal.FOCUS (fn {concl, ...} =>
   end);
 
 (*unlike "unfold_tac", succeeds when the RHS contains schematic variables not in the LHS*)
+fun subst_asm_tac ctxt = EqSubst.eqsubst_asm_tac ctxt [0];
 fun subst_tac ctxt = EqSubst.eqsubst_tac ctxt [0];
 fun substs_tac ctxt = REPEAT_DETERM oo subst_tac ctxt;
 

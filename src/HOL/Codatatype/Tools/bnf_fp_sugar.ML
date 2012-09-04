@@ -166,12 +166,20 @@ fun prepare_data prepare_typ construct specs fake_lthy lthy =
             Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
               mk_fld_iff_unf_tac ctxt (map (SOME o certifyT lthy) [unf_T, T]) (certify lthy fld)
                 (certify lthy unf) fld_unf unf_fld)
+            |> Thm.close_derivation
           end;
+
+        val sumEN_thm = mk_sumEN n;
+        val sumEN_thm' =
+          let val cTs = map (SOME o certifyT lthy) prod_Ts in
+            Local_Defs.unfold lthy @{thms all_unit_eq} (Drule.instantiate' cTs [] sumEN_thm)
+          end;
+
+        fun exhaust_tac {context = ctxt, ...} =
+          mk_exhaust_tac ctxt n ms ctr_defs fld_iff_unf_thm sumEN_thm';
 
         (* ### *)
         fun cheat_tac {context = ctxt, ...} = Skip_Proof.cheat_tac (Proof_Context.theory_of ctxt);
-
-        val exhaust_tac = cheat_tac;
 
         val inject_tacss = map (fn 0 => [] | _ => [cheat_tac]) ms;
 

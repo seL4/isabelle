@@ -303,6 +303,7 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_se
               mk_not_other_disc_def_tac ctxt (nth disc_defs (2 - k)) (nth distinct_thms (2 - k))
                 exhaust_thm')
             |> singleton (Proof_Context.export names_lthy lthy)
+            |> Thm.close_derivation
           end;
 
         val has_not_other_disc_def =

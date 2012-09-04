@@ -9,8 +9,8 @@ Codatatype construction.
 
 signature BNF_GFP =
 sig
-  val bnf_gfp: binding list -> typ list list -> BNF_Def.BNF list -> Proof.context ->
-    (term list * term list * thm list * thm list) * Proof.context
+  val bnf_gfp: binding list -> typ list list -> BNF_Def.BNF list -> local_theory ->
+    (term list * term list * thm list * thm list) * local_theory
 end;
 
 structure BNF_GFP : BNF_GFP =

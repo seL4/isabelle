@@ -8,8 +8,8 @@ Datatype construction.
 
 signature BNF_LFP =
 sig
-  val bnf_lfp: binding list -> typ list list -> BNF_Def.BNF list -> Proof.context ->
-    (term list * term list * thm list * thm list) * Proof.context
+  val bnf_lfp: binding list -> typ list list -> BNF_Def.BNF list -> local_theory ->
+    (term list * term list * thm list * thm list) * local_theory
 end;
 
 structure BNF_LFP : BNF_LFP =

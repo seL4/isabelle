@@ -85,6 +85,8 @@ sig
   val mk_Field: term -> term
   val mk_union: term * term -> term
 
+  val mk_sumEN: int -> thm
+
   val mk_tactics: 'a -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a list
 
   val fixpoint: ('a * 'a -> bool) -> ('a list -> 'a list) -> 'a list -> 'a list
@@ -209,6 +211,15 @@ fun split_conj_prems limit th =
     fun split n i th =
       if i = n then th else split n (i + 1) (conjI RSN (i, th)) handle THM _ => th;
   in split limit 1 th end;
+
+local
+  fun mk_sumEN' 1 = @{thm obj_sum_step}
+    | mk_sumEN' n = mk_sumEN' (n - 1) RSN (2, @{thm obj_sum_step});
+in
+  fun mk_sumEN 1 = @{thm obj_sum_base}
+    | mk_sumEN 2 = @{thm sumE}
+    | mk_sumEN n = (mk_sumEN' (n - 2) RSN (2, @{thm obj_sumE})) OF replicate n (impI RS allI);
+end;
 
 fun mk_tactics mid mcomp mcong snat bdco bdinf sbd inbd wpull =
   [mid, mcomp, mcong] @ snat @ [bdco, bdinf] @ sbd @ [inbd, wpull];

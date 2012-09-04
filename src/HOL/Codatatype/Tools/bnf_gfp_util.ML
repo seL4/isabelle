@@ -40,7 +40,6 @@ sig
 
   val mk_specN: int -> thm -> thm
   val mk_sum_casesN: int -> int -> thm
-  val mk_sumEN: int -> thm
 
   val mk_InN_Field: int -> int -> thm
   val mk_InN_inject: int -> int -> thm
@@ -217,15 +216,6 @@ fun mk_sum_casesN 1 1 = @{thm refl}
   | mk_sum_casesN _ 1 = @{thm sum.cases(1)}
   | mk_sum_casesN 2 2 = @{thm sum.cases(2)}
   | mk_sum_casesN n m = trans OF [@{thm sum_case_step(2)}, mk_sum_casesN (n - 1) (m - 1)];
-
-local
-  fun mk_sumEN' 1 = @{thm obj_sum_step}
-    | mk_sumEN' n = mk_sumEN' (n - 1) RSN (2, @{thm obj_sum_step});
-in
-  fun mk_sumEN 1 = @{thm obj_sum_base}
-    | mk_sumEN 2 = @{thm sumE}
-    | mk_sumEN n = (mk_sumEN' (n - 2) RSN (2, @{thm obj_sumE})) OF replicate n (impI RS allI);
-end;
 
 fun mk_rec_simps n rec_thm defs = map (fn i =>
   map (fn def => def RS rec_thm RS mk_nthI n i RS fun_cong) defs) (1 upto n);
