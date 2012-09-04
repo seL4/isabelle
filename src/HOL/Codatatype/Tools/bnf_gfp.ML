@@ -9,7 +9,8 @@ Codatatype construction.
 
 signature BNF_GFP =
 sig
-  val bnf_gfp: binding list -> typ list list -> BNF_Def.BNF list -> Proof.context -> Proof.context
+  val bnf_gfp: binding list -> typ list list -> BNF_Def.BNF list -> Proof.context ->
+    term list * Proof.context
 end;
 
 structure BNF_GFP : BNF_GFP =
@@ -91,7 +92,7 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
 
     (* typs *)
     fun mk_FTs Ts = map2 (fn Ds => mk_T_of_bnf Ds Ts) Dss bnfs;
-    val (params, params') = `(map dest_TFree) (deads @ passiveAs);
+    val (params, params') = `(map Term.dest_TFree) (deads @ passiveAs);
     val FTsAs = mk_FTs allAs;
     val FTsBs = mk_FTs allBs;
     val FTsCs = mk_FTs allCs;
@@ -2995,13 +2996,13 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
           bs thmss)
   in
-    lthy |> Local_Theory.notes (common_notes @ notes) |> snd
+    (flds, lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
   end;
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "codata_raw"} "greatest fixed points for BNF equations"
     (Parse.and_list1
       ((Parse.binding --| Parse.$$$ ":") -- (Parse.typ --| Parse.$$$ "=" -- Parse.typ)) >>
-      (fp_bnf_cmd bnf_gfp o apsnd split_list o split_list));
+      (snd oo fp_bnf_cmd bnf_gfp o apsnd split_list o split_list));
 
 end;

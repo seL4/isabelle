@@ -630,7 +630,7 @@ fun compose_bnf const_policy qualify' b sort outer inners oDs Dss tfreess (unfol
         else qualify' (Binding.prefix_name namei bind)
       end;
 
-    val Ass = map (map dest_TFree) tfreess;
+    val Ass = map (map Term.dest_TFree) tfreess;
     val Ds = fold (fold Term.add_tfreesT) (oDs :: Dss) [];
 
     val ((kill_poss, As), (inners', (unfold', lthy'))) =
@@ -781,7 +781,7 @@ fun bnf_of_typ _ _ _ _ (T as TFree _) (unfold, lthy) =
           val odead = dead_of_bnf outer;
           val olive = live_of_bnf outer;
           val oDs_pos = find_indices [TFree ("dead", [])]
-            (snd (dest_Type
+            (snd (Term.dest_Type
               (mk_T_of_bnf (replicate odead (TFree ("dead", []))) (replicate olive dummyT) outer)));
           val oDs = map (nth Ts) oDs_pos;
           val Ts' = map (nth Ts) (subtract (op =) oDs_pos (0 upto length Ts - 1));

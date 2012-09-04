@@ -35,14 +35,6 @@ sig
   val mk_undefined: typ -> term
   val mk_univ: term -> term
 
-  val Inl_const: typ -> typ -> term
-  val Inr_const: typ -> typ -> term
-
-  val mk_Inl: term -> typ -> term
-  val mk_Inr: term -> typ -> term
-
-  val mk_InN: typ list -> term -> int -> term
-
   val mk_sum_case: term -> term -> term
   val mk_sum_caseN: term list -> term
 
@@ -190,17 +182,6 @@ fun mk_pickWP A f1 f2 b1 b2 =
     Const (@{const_name pickWP}, HOLogic.mk_setT AT --> fT1 --> fT2 --> BT1 --> BT2 --> AT) $
       A $ f1 $ f2 $ b1 $ b2
   end;
-
-fun Inl_const LT RT = Const (@{const_name Inl}, LT --> mk_sumT (LT, RT));
-fun mk_Inl t RT = Inl_const (fastype_of t) RT $ t;
-
-fun Inr_const LT RT = Const (@{const_name Inr}, RT --> mk_sumT (LT, RT));
-fun mk_Inr t LT = Inr_const LT (fastype_of t) $ t;
-
-fun mk_InN [_] t 1 = t
-  | mk_InN (_ :: Ts) t 1 = mk_Inl t (mk_sumTN Ts)
-  | mk_InN (LT :: Ts) t m = mk_Inr (mk_InN Ts t (m - 1)) LT
-  | mk_InN Ts t _ = raise (TYPE ("mk_InN", Ts, [t]));
 
 fun mk_sum_case f g =
   let

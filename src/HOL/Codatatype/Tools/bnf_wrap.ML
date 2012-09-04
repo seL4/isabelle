@@ -8,7 +8,8 @@ Wrapping existing datatypes.
 signature BNF_WRAP =
 sig
   val no_name: binding
-  val wrap: ({prems: thm list, context: Proof.context} -> tactic) list list ->
+  val mk_half_pairss: 'a list -> ('a * 'a) list list
+  val wrap_data: ({prems: thm list, context: Proof.context} -> tactic) list list ->
     (term list * term) * (binding list * binding list list) -> local_theory -> local_theory
 end;
 
@@ -62,7 +63,7 @@ fun name_of_ctr t =
   | Free (s, _) => s
   | _ => error "Cannot extract name of constructor";
 
-fun prepare_wrap prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_namess))
+fun prepare_wrap_data prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_namess))
   no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
@@ -76,7 +77,9 @@ fun prepare_wrap prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_nam
     val n = length ctrs0;
     val ks = 1 upto n;
 
-    val (T_name, As0) = dest_Type (body_type (fastype_of (hd ctrs0)));
+    val _ = if n > 0 then () else error "No constructors specified";
+
+    val Type (T_name, As0) = body_type (fastype_of (hd ctrs0));
     val b = Binding.qualified_name T_name;
 
     val (As, B) =
@@ -85,7 +88,7 @@ fun prepare_wrap prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_nam
       ||> the_single o fst o mk_TFrees 1;
 
     fun mk_ctr Ts ctr =
-      let val Ts0 = snd (dest_Type (body_type (fastype_of ctr))) in
+      let val Type (_, Ts0) = body_type (fastype_of ctr) in
         Term.subst_atomic_types (Ts0 ~~ Ts) ctr
       end;
 
@@ -127,9 +130,10 @@ fun prepare_wrap prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_nam
           sel) (1 upto m) o pad_list no_name m) ctrs0 ms;
 
     fun mk_caseof Ts T =
-      let val (binders, body) = strip_type (fastype_of caseof0) in
-        Term.subst_atomic_types ((body, T) :: (snd (dest_Type (List.last binders)) ~~ Ts)) caseof0
-      end;
+      let
+        val (binders, body) = strip_type (fastype_of caseof0)
+        val Type (_, Ts0) = List.last binders
+      in Term.subst_atomic_types ((body, T) :: (Ts0 ~~ Ts)) caseof0 end;
 
     val caseofB = mk_caseof As B;
     val caseofB_Ts = map (fn Ts => Ts ---> B) ctr_Tss;
@@ -207,7 +211,7 @@ fun prepare_wrap prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_nam
     val selss0 = map (map (Morphism.term phi)) raw_selss;
 
     fun mk_disc_or_sel Ts t =
-      Term.subst_atomic_types (snd (dest_Type (domain_type (fastype_of t))) ~~ Ts) t;
+      Term.subst_atomic_types (snd (Term.dest_Type (domain_type (fastype_of t))) ~~ Ts) t;
 
     val discs = map (mk_disc_or_sel As) discs0;
     val selss = map (map (mk_disc_or_sel As)) selss0;
@@ -216,25 +220,33 @@ fun prepare_wrap prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_nam
 
     val goal_exhaust =
       let fun mk_prem xctr xs = fold_rev Logic.all xs (mk_imp_p [mk_Trueprop_eq (v, xctr)]) in
-        mk_imp_p (map2 mk_prem xctrs xss)
+        fold_rev Logic.all [p, v] (mk_imp_p (map2 mk_prem xctrs xss))
       end;
 
     val goal_injectss =
       let
         fun mk_goal _ _ [] [] = []
           | mk_goal xctr yctr xs ys =
-            [mk_Trueprop_eq (HOLogic.mk_eq (xctr, yctr),
-              Library.foldr1 HOLogic.mk_conj (map2 (curry HOLogic.mk_eq) xs ys))];
+            [fold_rev Logic.all (xs @ ys) (mk_Trueprop_eq (HOLogic.mk_eq (xctr, yctr),
+              Library.foldr1 HOLogic.mk_conj (map2 (curry HOLogic.mk_eq) xs ys)))];
       in
         map4 mk_goal xctrs yctrs xss yss
       end;
 
     val goal_half_distinctss =
-      map (map (HOLogic.mk_Trueprop o HOLogic.mk_not o HOLogic.mk_eq)) (mk_half_pairss xctrs);
+      let
+        fun mk_goal ((xs, t), (xs', t')) =
+          fold_rev Logic.all (xs @ xs')
+            (HOLogic.mk_Trueprop (HOLogic.mk_not (HOLogic.mk_eq (t, t'))));
+      in
+        map (map mk_goal) (mk_half_pairss (xss ~~ xctrs))
+      end;
 
-    val goal_cases = map2 (fn xctr => fn xf => mk_Trueprop_eq (caseofB_fs $ xctr, xf)) xctrs xfs;
+    val goal_cases =
+      map3 (fn xs => fn xctr => fn xf =>
+        fold_rev Logic.all (fs @ xs) (mk_Trueprop_eq (caseofB_fs $ xctr, xf))) xss xctrs xfs;
 
-    val goals = [goal_exhaust] :: goal_injectss @ goal_half_distinctss @ [goal_cases];
+    val goalss = [goal_exhaust] :: goal_injectss @ goal_half_distinctss @ [goal_cases];
 
     fun after_qed thmss lthy =
       let
@@ -356,7 +368,7 @@ fun prepare_wrap prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_nam
           else
             let
               fun mk_prem disc = mk_imp_p [HOLogic.mk_Trueprop (betapply (disc, v))];
-              val goal = fold Logic.all [p, v] (mk_imp_p (map mk_prem discs));
+              val goal = fold_rev Logic.all [p, v] (mk_imp_p (map mk_prem discs));
             in
               [Skip_Proof.prove lthy [] [] goal (fn _ =>
                  mk_disc_exhaust_tac n exhaust_thm discI_thms)]
@@ -455,9 +467,9 @@ fun prepare_wrap prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_nam
            (disc_exhaustN, disc_exhaust_thms),
            (distinctN, distinct_thms),
            (exhaustN, [exhaust_thm]),
-           (injectN, (flat inject_thmss)),
+           (injectN, flat inject_thmss),
            (nchotomyN, [nchotomy_thm]),
-           (selsN, (flat sel_thmss)),
+           (selsN, flat sel_thmss),
            (splitN, [split_thm]),
            (split_asmN, [split_asm_thm]),
            (weak_case_cong_thmsN, [weak_case_cong_thm])]
@@ -468,20 +480,20 @@ fun prepare_wrap prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_nam
         lthy |> Local_Theory.notes notes |> snd
       end;
   in
-    (goals, after_qed, lthy')
+    (goalss, after_qed, lthy')
   end;
 
-fun wrap tacss = (fn (goalss, after_qed, lthy) =>
+fun wrap_data tacss = (fn (goalss, after_qed, lthy) =>
   map2 (map2 (Skip_Proof.prove lthy [] [])) goalss tacss
   |> (fn thms => after_qed thms lthy)) oo
-  prepare_wrap (singleton o Type_Infer_Context.infer_types)
+  prepare_wrap_data (K I) (* FIXME? (singleton o Type_Infer_Context.infer_types) *)
 
 val parse_bindings = Parse.$$$ "[" |-- Parse.list Parse.binding --| Parse.$$$ "]";
 val parse_bindingss = Parse.$$$ "[" |-- Parse.list parse_bindings --| Parse.$$$ "]";
 
 val wrap_data_cmd = (fn (goalss, after_qed, lthy) =>
   Proof.theorem NONE after_qed (map (map (rpair [])) goalss) lthy) oo
-  prepare_wrap Syntax.read_term;
+  prepare_wrap_data Syntax.read_term;
 
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "wrap_data"} "wraps an existing datatype"

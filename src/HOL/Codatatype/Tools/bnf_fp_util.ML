@@ -75,6 +75,13 @@ sig
   val split_conj_thm: thm -> thm list
   val split_conj_prems: int -> thm -> thm
 
+  val Inl_const: typ -> typ -> term
+  val Inr_const: typ -> typ -> term
+
+  val mk_Inl: term -> typ -> term
+  val mk_Inr: term -> typ -> term
+  val mk_InN: typ list -> term -> int -> term
+
   val mk_Field: term -> term
   val mk_union: term * term -> term
 
@@ -82,12 +89,10 @@ sig
 
   val fixpoint: ('a * 'a -> bool) -> ('a list -> 'a list) -> 'a list -> 'a list
 
-  val fp_bnf: (binding list -> typ list list -> BNF_Def.BNF list ->
-    Proof.context -> Proof.context) ->
-    binding list -> ((string * sort) * typ) list -> Proof.context -> Proof.context
-  val fp_bnf_cmd: (binding list -> typ list list -> BNF_Def.BNF list ->
-    Proof.context -> Proof.context) ->
-    binding list * (string list * string list) -> Proof.context -> Proof.context
+  val fp_bnf: (binding list -> typ list list -> BNF_Def.BNF list -> Proof.context -> 'a) ->
+    binding list -> ((string * sort) * typ) list -> Proof.context -> 'a
+  val fp_bnf_cmd: (binding list -> typ list list -> BNF_Def.BNF list -> Proof.context -> 'a) ->
+    binding list * (string list * string list) -> Proof.context -> 'a
 end;
 
 structure BNF_FP_Util : BNF_FP_UTIL =
@@ -174,6 +179,17 @@ val hsetN = "Hset"
 val hset_recN = hsetN ^ "_rec"
 val set_inclN = "set_incl"
 val set_set_inclN = "set_set_incl"
+
+fun Inl_const LT RT = Const (@{const_name Inl}, LT --> mk_sumT (LT, RT));
+fun mk_Inl t RT = Inl_const (fastype_of t) RT $ t;
+
+fun Inr_const LT RT = Const (@{const_name Inr}, RT --> mk_sumT (LT, RT));
+fun mk_Inr t LT = Inr_const LT (fastype_of t) $ t;
+
+fun mk_InN [_] t 1 = t
+  | mk_InN (_ :: Ts) t 1 = mk_Inl t (mk_sumTN Ts)
+  | mk_InN (LT :: Ts) t m = mk_Inr (mk_InN Ts t (m - 1)) LT
+  | mk_InN Ts t _ = raise (TYPE ("mk_InN", Ts, [t]));
 
 fun mk_Field r =
   let val T = fst (dest_relT (fastype_of r));
