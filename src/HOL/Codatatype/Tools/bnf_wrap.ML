@@ -95,25 +95,36 @@ fun prepare_wrap prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_nam
 
     val ms = map length ctr_Tss;
 
+    val raw_disc_names' = pad_list no_name n raw_disc_names;
+
+    fun can_rely_on_disc i =
+      not (Binding.eq_name (nth raw_disc_names' i, no_name)) orelse nth ms i = 0;
+    fun can_omit_disc_name k m =
+      n = 1 orelse m = 0 orelse (n = 2 andalso can_rely_on_disc (2 - k))
+
+    val fallback_disc_name = Binding.name o prefix is_N o Long_Name.base_name o name_of_ctr;
+
     val disc_names =
-      pad_list fallback_name n raw_disc_names
-      |> map2 (fn ctr => fn disc =>
+      raw_disc_names'
+      |> map4 (fn k => fn m => fn ctr => fn disc =>
         if Binding.eq_name (disc, no_name) then
-          NONE
+          if can_omit_disc_name k m then NONE else SOME (fallback_disc_name ctr)
         else if Binding.eq_name (disc, fallback_name) then
-          SOME (Binding.name (prefix is_N (Long_Name.base_name (name_of_ctr ctr))))
+          SOME (fallback_disc_name ctr)
         else
-          SOME disc) ctrs0;
+          SOME disc) ks ms ctrs0;
 
     val no_discs = map is_none disc_names;
+
+    fun fallback_sel_name m l = Binding.name o mk_un_N m l o Long_Name.base_name o name_of_ctr;
 
     val sel_namess =
       pad_list [] n raw_sel_namess
       |> map3 (fn ctr => fn m => map2 (fn l => fn sel =>
-        if Binding.eq_name (sel, fallback_name) then
-          Binding.name (mk_un_N m l (Long_Name.base_name (name_of_ctr ctr)))
+        if Binding.eq_name (sel, no_name) orelse Binding.eq_name (sel, fallback_name) then
+          fallback_sel_name m l ctr
         else
-          sel) (1 upto m) o pad_list fallback_name m) ctrs0 ms;
+          sel) (1 upto m) o pad_list no_name m) ctrs0 ms;
 
     fun mk_caseof Ts T =
       let val (binders, body) = strip_type (fastype_of caseof0) in
