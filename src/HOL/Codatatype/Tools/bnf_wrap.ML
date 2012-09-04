@@ -68,7 +68,6 @@ fun prepare_wrap prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_nam
     (* TODO: attributes (simp, case_names, etc.) *)
     (* TODO: case syntax *)
     (* TODO: integration with function package ("size") *)
-    (* TODO: omission of needless discriminators *)
 
     val ctrs0 = map (prep_term no_defs_lthy) raw_ctrs;
     val caseof0 = prep_term no_defs_lthy raw_caseof;
