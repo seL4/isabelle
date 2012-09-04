@@ -38,6 +38,7 @@ val splitN = "split";
 val split_asmN = "split_asm";
 val weak_case_cong_thmsN = "weak_case_cong";
 
+val no_name = @{binding "*"};
 val default_name = @{binding _};
 
 fun pad_list x n xs = xs @ replicate (n - length xs) x;
@@ -97,10 +98,12 @@ fun prepare_wrap prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_nam
     val disc_names =
       pad_list default_name n raw_disc_names
       |> map2 (fn ctr => fn disc =>
-        if Binding.eq_name (disc, default_name) then
-          Binding.name (prefix is_N (Long_Name.base_name (name_of_ctr ctr)))
+        if Binding.eq_name (disc, no_name) then
+          NONE
+        else if Binding.eq_name (disc, default_name) then
+          SOME (Binding.name (prefix is_N (Long_Name.base_name (name_of_ctr ctr))))
         else
-          disc) ctrs0;
+          SOME disc) ctrs0;
 
     val sel_namess =
       pad_list [] n raw_sel_namess
@@ -157,15 +160,16 @@ fun prepare_wrap prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_nam
           Term.list_comb (mk_caseof As T', mk_sel_caseof_args k xs x T') $ v)
       end;
 
-    val (((raw_discs, (_, raw_disc_defs)), (raw_selss, (_, raw_sel_defss))), (lthy', lthy)) =
+    val (((raw_discs, raw_disc_defs), (raw_selss, raw_sel_defss)), (lthy', lthy)) =
       no_defs_lthy
-      |> apfst (apsnd split_list o split_list) o fold_map2 (fn b => fn exist_xs_v_eq_ctr =>
-        Specification.definition (SOME (b, NONE, NoSyn),
-          ((Thm.def_binding b, []), disc_spec b exist_xs_v_eq_ctr))) disc_names exist_xs_v_eq_ctrs
-      ||>> apfst (apsnd split_list o split_list) o fold_map3 (fn bs => fn xs => fn k =>
-        apfst (apsnd split_list o split_list) o fold_map2 (fn b => fn x =>
-          Specification.definition (SOME (b, NONE, NoSyn),
-            ((Thm.def_binding b, []), sel_spec b x xs k))) bs xs) sel_namess xss ks
+      |> apfst split_list o fold_map2 (fn exist_xs_v_eq_ctr =>
+        fn NONE => pair (Term.lambda v exist_xs_v_eq_ctr, refl)
+         | SOME b => Specification.definition (SOME (b, NONE, NoSyn),
+             ((Thm.def_binding b, []), disc_spec b exist_xs_v_eq_ctr)) #>> apsnd snd)
+        exist_xs_v_eq_ctrs disc_names
+      ||>> apfst split_list o fold_map3 (fn bs => fn xs => fn k => apfst split_list o
+          fold_map2 (fn b => fn x => Specification.definition (SOME (b, NONE, NoSyn),
+            ((Thm.def_binding b, []), sel_spec b x xs k)) #>> apsnd snd) bs xs) sel_namess xss ks
       ||> `Local_Theory.restore;
 
     (*transforms defined frees into consts (and more)*)
@@ -259,7 +263,7 @@ fun prepare_wrap prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_nam
           map2 (fn m => fn def => funpow m (fn thm => exI RS thm) (def RS iffD2)) ms disc_defs;
         val not_disc_thms =
           map2 (fn m => fn def => funpow m (fn thm => allI RS thm)
-                  (Local_Defs.unfold lthy @{thms not_ex} (def RS @{thm ssubst[of _ _ Not]})))
+              (Local_Defs.unfold lthy @{thms not_ex} (def RS @{thm ssubst[of _ _ Not]})))
             ms disc_defs;
 
         val (disc_thmss', disc_thmss) =
@@ -268,15 +272,14 @@ fun prepare_wrap prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_nam
               | mk_thm _ not_disc [distinct] = distinct RS not_disc;
             fun mk_thms discI not_disc distinctss = map (mk_thm discI not_disc) distinctss;
           in
-            map3 mk_thms discI_thms not_disc_thms distinct_thmsss'
-            |> `transpose
+            map3 mk_thms discI_thms not_disc_thms distinct_thmsss' |> `transpose
           end;
 
         val disc_exclus_thms =
           let
             fun mk_goal ((_, disc), (_, disc')) =
-              Logic.all v (Logic.mk_implies (HOLogic.mk_Trueprop (disc $ v),
-                HOLogic.mk_Trueprop (HOLogic.mk_not (disc' $ v))));
+              Logic.all v (Logic.mk_implies (HOLogic.mk_Trueprop (betapply (disc, v)),
+                HOLogic.mk_Trueprop (HOLogic.mk_not (betapply (disc', v)))));
             fun prove tac goal = Skip_Proof.prove lthy [] [] goal (K tac);
 
             val bundles = ms ~~ discD_thms ~~ discs;
@@ -298,7 +301,7 @@ fun prepare_wrap prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_nam
 
         val disc_exhaust_thm =
           let
-            fun mk_prem disc = mk_imp_p [HOLogic.mk_Trueprop (disc $ v)];
+            fun mk_prem disc = mk_imp_p [HOLogic.mk_Trueprop (betapply (disc, v))];
             val goal = fold Logic.all [p, v] (mk_imp_p (map mk_prem discs));
           in
             Skip_Proof.prove lthy [] [] goal (fn _ => mk_disc_exhaust_tac n exhaust_thm discI_thms)
@@ -307,15 +310,21 @@ fun prepare_wrap prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_nam
         val ctr_sel_thms =
           let
             fun mk_goal ctr disc sels =
-              Logic.all v (Logic.mk_implies (HOLogic.mk_Trueprop (disc $ v),
-                mk_Trueprop_eq ((null sels ? swap)
-                  (Term.list_comb (ctr, map (fn sel => sel $ v) sels), v))));
+              let
+                val prem = HOLogic.mk_Trueprop (betapply (disc, v));
+                val concl =
+                  mk_Trueprop_eq ((null sels ? swap)
+                    (Term.list_comb (ctr, map (fn sel => sel $ v) sels), v));
+              in
+                if prem aconv concl then NONE
+                else SOME (Logic.all v (Logic.mk_implies (prem, concl)))
+              end;
             val goals = map3 mk_goal ctrs discs selss;
           in
-            map4 (fn goal => fn m => fn discD => fn sel_thms =>
+            map4 (fn m => fn discD => fn sel_thms => Option.map (fn goal =>
               Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-                mk_ctr_sel_tac ctxt m discD sel_thms))
-              goals ms discD_thms sel_thmss
+                mk_ctr_sel_tac ctxt m discD sel_thms))) ms discD_thms sel_thmss goals
+            |> map_filter I
           end;
 
         val case_disc_thm =
@@ -324,7 +333,7 @@ fun prepare_wrap prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_nam
             fun mk_rhs _ [f] [sels] = mk_core f sels
               | mk_rhs (disc :: discs) (f :: fs) (sels :: selss) =
                 Const (@{const_name If}, HOLogic.boolT --> B --> B --> B) $
-                  (disc $ v) $ mk_core f sels $ mk_rhs discs fs selss;
+                  betapply (disc, v) $ mk_core f sels $ mk_rhs discs fs selss;
             val goal = mk_Trueprop_eq (caseofB_fs $ v, mk_rhs discs fs selss);
           in
             Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
@@ -411,8 +420,7 @@ fun wrap tacss = (fn (goalss, after_qed, lthy) =>
   |> (fn thms => after_qed thms lthy)) oo
   prepare_wrap (singleton o Type_Infer_Context.infer_types)
 
-val parse_bindings = Parse.$$$ "[" |--  Parse.list Parse.binding --| Parse.$$$ "]";
-
+val parse_bindings = Parse.$$$ "[" |-- Parse.list Parse.binding --| Parse.$$$ "]";
 val parse_bindingss = Parse.$$$ "[" |-- Parse.list parse_bindings --| Parse.$$$ "]";
 
 val wrap_data_cmd = (fn (goalss, after_qed, lthy) =>
