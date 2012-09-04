@@ -183,6 +183,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   Options are:
     -D DIR       include session directory and select its sessions
+    -R           operate on requirements of selected sessions
     -a           select all sessions
     -b           build heap images
     -c           clean build
@@ -226,6 +227,12 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   "-g"}~@{text "NAME"}.  Option @{verbatim "-a"} selects all sessions.
   The build tool takes session dependencies into account: the set of
   selected sessions is completed by including all ancestors.
+
+  \medskip Option @{verbatim "-R"} reverses the selection in the sense
+  that it refers to its requirements: all ancestor sessions excluding
+  the original selection.  This allows to prepare the stage for some
+  build process with different options, before running the main build
+  itself (without option @{verbatim "-R"}).
 
   \medskip Option @{verbatim "-D"} is similar to @{verbatim "-d"}, but
   selects all sessions that are defined in the given directories.
@@ -318,6 +325,12 @@ isabelle build -a -n -c
   be defined inside the Isabelle environment:
 \begin{ttbox}
 isabelle build -D '$AFP'
+\end{ttbox}
+
+  \smallskip Inform about the status of all sessions required for AFP,
+  without building anything yet:
+\begin{ttbox}
+isabelle build -D '$AFP' -R -v -n
 \end{ttbox}
 *}
 

@@ -120,13 +120,13 @@ object Build
     def apply(name: String): Session_Info = graph.get_node(name)
     def isDefinedAt(name: String): Boolean = graph.defined(name)
 
-    def required(all_sessions: Boolean, session_groups: List[String], sessions: List[String])
-      : (List[String], Session_Tree) =
+    def selection(requirements: Boolean, all_sessions: Boolean,
+      session_groups: List[String], sessions: List[String]): (List[String], Session_Tree) =
     {
       val bad_sessions = sessions.filterNot(isDefinedAt(_))
       if (!bad_sessions.isEmpty) error("Undefined session(s): " + commas_quote(bad_sessions))
 
-      val selected =
+      val pre_selected =
       {
         if (all_sessions) graph.keys.toList
         else {
@@ -138,9 +138,12 @@ object Build
           } yield name).toList
         }
       }
-      val descendants = graph.all_succs(selected)
+      val selected =
+        if (requirements) (graph.all_preds(pre_selected).toSet -- pre_selected).toList
+        else pre_selected
+
       val tree1 = new Session_Tree(graph.restrict(graph.all_preds(selected).toSet))
-      (descendants, tree1)
+      (selected, tree1)
     }
 
     def topological_order: List[(String, Session_Info)] =
@@ -384,8 +387,9 @@ object Build
 
   def session_content(inlined_files: Boolean, dirs: List[Path], session: String): Session_Content =
   {
+    val options = Options.init
     val (_, tree) =
-      find_sessions(Options.init(), dirs.map((false, _))).required(false, Nil, List(session))
+      find_sessions(options, dirs.map((false, _))).selection(false, false, Nil, List(session))
     dependencies(inlined_files, false, false, tree)(session)
   }
 
@@ -533,6 +537,7 @@ object Build
   /* build */
 
   def build(
+    requirements: Boolean = false,
     all_sessions: Boolean = false,
     build_heap: Boolean = false,
     clean_build: Boolean = false,
@@ -547,13 +552,15 @@ object Build
     sessions: List[String] = Nil): Int =
   {
     val options = (Options.init() /: build_options)(_ + _)
-    val (descendants, tree) =
-      find_sessions(options, more_dirs).required(all_sessions, session_groups, sessions)
-    val deps = dependencies(true, verbose, list_files, tree)
-    val queue = Queue(tree)
+    val full_tree = find_sessions(options, more_dirs)
+    val (selected, selected_tree) =
+      full_tree.selection(requirements, all_sessions, session_groups, sessions)
+
+    val deps = dependencies(true, verbose, list_files, selected_tree)
+    val queue = Queue(selected_tree)
 
     def make_stamp(name: String): String =
-      sources_stamp(tree(name).entry_digest :: deps.sources(name))
+      sources_stamp(selected_tree(name).entry_digest :: deps.sources(name))
 
     val (input_dirs, output_dir, browser_info) =
       if (system_mode) {
@@ -571,7 +578,7 @@ object Build
 
     // optional cleanup
     if (clean_build) {
-      for (name <- descendants) {
+      for (name <- full_tree.graph.all_succs(selected)) {
         val files =
           List(Path.basic(name), log(name), log_gz(name)).map(output_dir + _).filter(_.is_file)
         if (!files.isEmpty) echo("Cleaning " + name + " ...")
@@ -697,6 +704,7 @@ object Build
     Command_Line.tool {
       args.toList match {
         case
+          Properties.Value.Boolean(requirements) ::
           Properties.Value.Boolean(all_sessions) ::
           Properties.Value.Boolean(build_heap) ::
           Properties.Value.Boolean(clean_build) ::
@@ -709,7 +717,7 @@ object Build
             val dirs =
               select_dirs.map(d => (true, Path.explode(d))) :::
               include_dirs.map(d => (false, Path.explode(d)))
-            build(all_sessions, build_heap, clean_build, dirs, session_groups,
+            build(requirements, all_sessions, build_heap, clean_build, dirs, session_groups,
               max_jobs, list_files, no_build, build_options, system_mode, verbose, sessions)
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }
