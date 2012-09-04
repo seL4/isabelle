@@ -11,10 +11,10 @@ sig
   val mk_case_eq_tac: Proof.context -> thm -> thm list -> thm list list -> thm list list -> tactic
   val mk_collapse_tac: Proof.context -> int -> thm -> thm list -> tactic
   val mk_disc_exhaust_tac: int -> thm -> thm list -> tactic
-  val mk_half_disc_exclus_tac: int -> thm -> thm -> tactic
+  val mk_half_disc_exclude_tac: int -> thm -> thm -> tactic
   val mk_nchotomy_tac: int -> thm -> tactic
   val mk_not_other_disc_def_tac: Proof.context -> thm -> thm -> thm -> tactic
-  val mk_other_half_disc_exclus_tac: thm -> tactic
+  val mk_other_half_disc_exclude_tac: thm -> tactic
   val mk_split_tac: thm -> thm list -> thm list list -> thm list list list -> tactic
   val mk_split_asm_tac: Proof.context -> thm -> tactic
 end;
@@ -42,13 +42,13 @@ fun mk_not_other_disc_def_tac ctxt other_disc_def distinct exhaust' =
     SELECT_GOAL (Local_Defs.unfold_tac ctxt [not_ex]), REPEAT_DETERM o rtac allI, rtac distinct,
     rtac exhaust', etac notE, atac, REPEAT_DETERM o rtac exI, atac] 1;
 
-fun mk_half_disc_exclus_tac m discD disc'_thm =
+fun mk_half_disc_exclude_tac m discD disc'_thm =
   (dtac discD THEN'
    REPEAT_DETERM_N m o etac exE THEN'
    hyp_subst_tac THEN'
    rtac disc'_thm) 1;
 
-fun mk_other_half_disc_exclus_tac half_thm =
+fun mk_other_half_disc_exclude_tac half_thm =
   (etac @{thm contrapos_pn} THEN' etac half_thm) 1;
 
 fun mk_disc_exhaust_tac n exhaust discIs =

@@ -28,7 +28,7 @@ val case_congN = "case_cong";
 val case_eqN = "case_eq";
 val casesN = "cases";
 val collapseN = "collapse";
-val disc_exclusN = "disc_exclus";
+val disc_excludeN = "disc_exclude";
 val disc_exhaustN = "disc_exhaust";
 val discsN = "discs";
 val distinctN = "distinct";
@@ -334,7 +334,7 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_se
 
         val disc_thms = flat (map2 (fn true => K [] | false => I) no_discs disc_thmss);
 
-        val disc_exclus_thms =
+        val disc_exclude_thms =
           if has_not_other_disc_def then
             []
           else
@@ -352,12 +352,12 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_se
               val goal_halvess = map mk_goal half_pairss;
               val half_thmss =
                 map3 (fn [] => K (K []) | [goal] => fn [((((m, discD), _), _), _)] => fn disc_thm =>
-                  [prove (mk_half_disc_exclus_tac m discD disc_thm) goal])
+                  [prove (mk_half_disc_exclude_tac m discD disc_thm) goal])
                 goal_halvess half_pairss (flat disc_thmss');
 
               val goal_other_halvess = map (mk_goal o map swap) half_pairss;
               val other_half_thmss =
-                map2 (map2 (prove o mk_other_half_disc_exclus_tac)) half_thmss goal_other_halvess;
+                map2 (map2 (prove o mk_other_half_disc_exclude_tac)) half_thmss goal_other_halvess;
             in
               interleave (flat half_thmss) (flat other_half_thmss)
             end;
@@ -463,7 +463,7 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_se
            (casesN, case_thms),
            (collapseN, collapse_thms),
            (discsN, disc_thms),
-           (disc_exclusN, disc_exclus_thms),
+           (disc_excludeN, disc_exclude_thms),
            (disc_exhaustN, disc_exhaust_thms),
            (distinctN, distinct_thms),
            (exhaustN, [exhaust_thm]),
