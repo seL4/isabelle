@@ -7,16 +7,17 @@ Tactics for wrapping datatypes.
 
 signature BNF_WRAP_TACTICS =
 sig
+  val mk_alternate_disc_def_tac: Proof.context -> thm -> thm -> thm -> tactic
   val mk_case_cong_tac: thm -> thm list -> tactic
   val mk_case_eq_tac: Proof.context -> thm -> thm list -> thm list list -> thm list list -> tactic
   val mk_collapse_tac: Proof.context -> int -> thm -> thm list -> tactic
   val mk_disc_exhaust_tac: int -> thm -> thm list -> tactic
   val mk_half_disc_exclude_tac: int -> thm -> thm -> tactic
   val mk_nchotomy_tac: int -> thm -> tactic
-  val mk_not_other_disc_def_tac: Proof.context -> thm -> thm -> thm -> tactic
   val mk_other_half_disc_exclude_tac: thm -> tactic
   val mk_split_tac: thm -> thm list -> thm list list -> thm list list list -> tactic
   val mk_split_asm_tac: Proof.context -> thm -> tactic
+  val mk_unique_disc_def_tac: int -> thm -> tactic
 end;
 
 structure BNF_Wrap_Tactics : BNF_WRAP_TACTICS =
@@ -37,7 +38,10 @@ fun mk_nchotomy_tac n exhaust =
   (rtac allI THEN' rtac exhaust THEN'
    EVERY' (maps (fn k => [rtac (mk_disjIN n k), REPEAT_DETERM o rtac exI, atac]) (1 upto n))) 1;
 
-fun mk_not_other_disc_def_tac ctxt other_disc_def distinct exhaust' =
+fun mk_unique_disc_def_tac m exhaust' =
+  EVERY' [rtac iffI, rtac exhaust', REPEAT_DETERM_N m o rtac exI, atac, rtac refl] 1;
+
+fun mk_alternate_disc_def_tac ctxt other_disc_def distinct exhaust' =
   EVERY' [subst_tac ctxt [other_disc_def], rtac @{thm iffI_np}, hyp_subst_tac,
     SELECT_GOAL (Local_Defs.unfold_tac ctxt [not_ex]), REPEAT_DETERM o rtac allI, rtac distinct,
     rtac exhaust', etac notE, atac, REPEAT_DETERM o rtac exI, atac] 1;

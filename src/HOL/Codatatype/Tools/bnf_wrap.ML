@@ -116,6 +116,7 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_case), (raw_disc_binders, raw_se
           SOME disc) ks ms ctrs0;
 
     val no_discs = map is_none disc_binders;
+    val no_discs_at_all = forall I no_discs;
 
     fun fallback_sel_binder m l = Binding.name o mk_un_N m l o Long_Name.base_name o name_of_ctr;
 
@@ -149,6 +150,8 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_case), (raw_disc_binders, raw_se
 
     val q = Free (fst p', B --> HOLogic.boolT);
 
+    fun mk_v_eq_v () = HOLogic.mk_eq (v, v);
+
     val xctrs = map2 (curry Term.list_comb) ctrs xss;
     val yctrs = map2 (curry Term.list_comb) ctrs yss;
 
@@ -170,12 +173,12 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_case), (raw_disc_binders, raw_se
 
     fun disc_spec b exist_xs_v_eq_ctr = mk_Trueprop_eq (disc_free b $ v, exist_xs_v_eq_ctr);
 
-    fun not_other_disc_lhs i =
+    fun alternate_disc_lhs i =
       HOLogic.mk_not
         (case nth disc_binders i of NONE => nth exist_xs_v_eq_ctrs i | SOME b => disc_free b $ v);
 
-    fun not_other_disc k =
-      if n = 2 then Term.lambda v (not_other_disc_lhs (2 - k)) else error "Cannot use \"*\" here"
+    fun alternate_disc k =
+      if n = 2 then Term.lambda v (alternate_disc_lhs (2 - k)) else error "Cannot use \"*\" here"
 
     fun sel_spec b x xs k =
       let val T' = fastype_of x in
@@ -183,15 +186,16 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_case), (raw_disc_binders, raw_se
           Term.list_comb (mk_case As T', mk_sel_case_args k xs x T') $ v)
       end;
 
-    val missing_disc_def = TrueI; (* marker *)
+    val missing_unique_disc_def = TrueI; (*arbitrary marker*)
+    val missing_alternate_disc_def = FalseE; (*arbitrary marker*)
 
     val (((raw_discs, raw_disc_defs), (raw_selss, raw_sel_defss)), (lthy', lthy)) =
       no_defs_lthy
       |> apfst split_list o fold_map4 (fn k => fn m => fn exist_xs_v_eq_ctr =>
         fn NONE =>
-           if n = 1 then pair (Term.lambda v @{term True}, refl)
+           if n = 1 then pair (Term.lambda v (mk_v_eq_v ()), missing_unique_disc_def)
            else if m = 0 then pair (Term.lambda v exist_xs_v_eq_ctr, refl)
-           else pair (not_other_disc k, missing_disc_def)
+           else pair (alternate_disc k, missing_alternate_disc_def)
          | SOME b => Specification.definition (SOME (b, NONE, NoSyn),
              ((Thm.def_binding b, []), disc_spec b exist_xs_v_eq_ctr)) #>> apsnd snd)
         ks ms exist_xs_v_eq_ctrs disc_binders
@@ -294,31 +298,43 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_case), (raw_disc_binders, raw_se
             map5 mk_thms ks xss goal_cases case_thms sel_defss
           end;
 
-        fun not_other_disc_def k =
+        fun mk_unique_disc_def k =
+          let
+            val m = the_single ms;
+            val goal = mk_Trueprop_eq (mk_v_eq_v (), the_single exist_xs_v_eq_ctrs);
+          in
+            Skip_Proof.prove lthy [] [] goal (fn _ => mk_unique_disc_def_tac m exhaust_thm')
+            |> singleton (Proof_Context.export names_lthy lthy)
+            |> Thm.close_derivation
+          end;
+
+        fun mk_alternate_disc_def k =
           let
             val goal =
-              mk_Trueprop_eq (Morphism.term phi (not_other_disc_lhs (2 - k)),
+              mk_Trueprop_eq (Morphism.term phi (alternate_disc_lhs (2 - k)),
                 nth exist_xs_v_eq_ctrs (k - 1));
           in
             Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-              mk_not_other_disc_def_tac ctxt (nth disc_defs (2 - k)) (nth distinct_thms (2 - k))
+              mk_alternate_disc_def_tac ctxt (nth disc_defs (2 - k)) (nth distinct_thms (2 - k))
                 exhaust_thm')
             |> singleton (Proof_Context.export names_lthy lthy)
             |> Thm.close_derivation
           end;
 
-        val has_not_other_disc_def =
-          exists (fn def => Thm.eq_thm_prop (def, missing_disc_def)) disc_defs;
+        val has_alternate_disc_def =
+          exists (fn def => Thm.eq_thm_prop (def, missing_alternate_disc_def)) disc_defs;
 
         val disc_defs' =
           map2 (fn k => fn def =>
-            if Thm.eq_thm_prop (def, missing_disc_def) then not_other_disc_def k else def)
+            if Thm.eq_thm_prop (def, missing_unique_disc_def) then mk_unique_disc_def k
+            else if Thm.eq_thm_prop (def, missing_alternate_disc_def) then mk_alternate_disc_def k
+            else def)
           ks disc_defs;
 
         val discD_thms = map (fn def => def RS iffD1) disc_defs';
         val discI_thms =
           map2 (fn m => fn def => funpow m (fn thm => exI RS thm) (def RS iffD2)) ms disc_defs';
-        val not_disc_thms =
+        val not_discI_thms =
           map2 (fn m => fn def => funpow m (fn thm => allI RS thm)
             (Local_Defs.unfold lthy @{thms not_ex} (def RS @{thm ssubst[of _ _ Not]})))
           ms disc_defs';
@@ -326,16 +342,16 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_case), (raw_disc_binders, raw_se
         val (disc_thmss', disc_thmss) =
           let
             fun mk_thm discI _ [] = refl RS discI
-              | mk_thm _ not_disc [distinct] = distinct RS not_disc;
-            fun mk_thms discI not_disc distinctss = map (mk_thm discI not_disc) distinctss;
+              | mk_thm _ not_discI [distinct] = distinct RS not_discI;
+            fun mk_thms discI not_discI distinctss = map (mk_thm discI not_discI) distinctss;
           in
-            map3 mk_thms discI_thms not_disc_thms distinct_thmsss' |> `transpose
+            map3 mk_thms discI_thms not_discI_thms distinct_thmsss' |> `transpose
           end;
 
         val disc_thms = flat (map2 (fn true => K [] | false => I) no_discs disc_thmss);
 
         val disc_exclude_thms =
-          if has_not_other_disc_def then
+          if has_alternate_disc_def then
             []
           else
             let
@@ -363,7 +379,7 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_case), (raw_disc_binders, raw_se
             end;
 
         val disc_exhaust_thms =
-          if has_not_other_disc_def orelse forall I no_discs then
+          if has_alternate_disc_def orelse no_discs_at_all then
             []
           else
             let
@@ -390,7 +406,8 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_case), (raw_disc_binders, raw_se
           in
             map4 (fn m => fn discD => fn sel_thms => Option.map (fn goal =>
               Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-                mk_collapse_tac ctxt m discD sel_thms))) ms discD_thms sel_thmss goals
+                mk_collapse_tac ctxt m discD sel_thms)
+              |> perhaps (try (fn thm => refl RS thm)))) ms discD_thms sel_thmss goals
             |> map_filter I
           end;
 
