@@ -18,27 +18,27 @@ definition "NilF = listF_fld (Inl ())"
 definition "Conss a as \<equiv> listF_fld (Inr (a, as))"
 
 lemma listF_map_NilF[simp]: "listF_map f NilF = NilF"
-unfolding listF_map_def listFBNF_map_def NilF_def listF.iter by simp
+unfolding listF_map_def listFBNF_map_def NilF_def listF.fld_iter by simp
 
 lemma listF_map_Conss[simp]:
   "listF_map f (Conss x xs) = Conss (f x) (listF_map f xs)"
-unfolding listF_map_def listFBNF_map_def Conss_def listF.iter by simp
+unfolding listF_map_def listFBNF_map_def Conss_def listF.fld_iter by simp
 
 lemma listF_set_NilF[simp]: "listF_set NilF = {}"
-unfolding listF_set_def NilF_def listF.iter listFBNF_set1_def listFBNF_set2_def
+unfolding listF_set_def NilF_def listF.fld_iter listFBNF_set1_def listFBNF_set2_def
   sum_set_defs listFBNF_map_def collect_def[abs_def] by simp
 
 lemma listF_set_Conss[simp]: "listF_set (Conss x xs) = {x} \<union> listF_set xs"
-unfolding listF_set_def Conss_def listF.iter listFBNF_set1_def listFBNF_set2_def
+unfolding listF_set_def Conss_def listF.fld_iter listFBNF_set1_def listFBNF_set2_def
   sum_set_defs prod_set_defs listFBNF_map_def collect_def[abs_def] by simp
 
-lemma iter_sum_case_NilF: "listF_iter (sum_case f g) NilF = f ()"
-unfolding NilF_def listF.iter listFBNF_map_def by simp
+lemma iter_sum_case_NilF: "listF_fld_iter (sum_case f g) NilF = f ()"
+unfolding NilF_def listF.fld_iter listFBNF_map_def by simp
 
 
 lemma iter_sum_case_Conss:
-  "listF_iter (sum_case f g) (Conss y ys) = g (y, listF_iter (sum_case f g) ys)"
-unfolding Conss_def listF.iter listFBNF_map_def by simp
+  "listF_fld_iter (sum_case f g) (Conss y ys) = g (y, listF_fld_iter (sum_case f g) ys)"
+unfolding Conss_def listF.fld_iter listFBNF_map_def by simp
 
 (* familiar induction principle *)
 lemma listF_induct:
@@ -71,9 +71,9 @@ definition Singll ("[[_]]") where
   [simp]: "Singll a \<equiv> Conss a NilF"
 
 definition appendd (infixr "@@" 65) where
-  "appendd \<equiv> listF_iter (sum_case (\<lambda> _. id) (\<lambda> (a,f) bs. Conss a (f bs)))"
+  "appendd \<equiv> listF_fld_iter (sum_case (\<lambda> _. id) (\<lambda> (a,f) bs. Conss a (f bs)))"
 
-definition "lrev \<equiv> listF_iter (sum_case (\<lambda> _. NilF) (\<lambda> (b,bs). bs @@ [[b]]))"
+definition "lrev \<equiv> listF_fld_iter (sum_case (\<lambda> _. NilF) (\<lambda> (b,bs). bs @@ [[b]]))"
 
 lemma lrev_NilF[simp]: "lrev NilF = NilF"
 unfolding lrev_def by (simp add: iter_sum_case_NilF)

@@ -48,13 +48,13 @@ using Fold by (metis notin_fset)
 
 subsection{* Recursion and iteration *}
 
-lemma hfset_rec:
-"hfset_rec R (Fold hs) = R (map_fset <id, hfset_rec R> hs)"
-using hfset.rec unfolding Fold_def .
+lemma hfset_fld_rec:
+"hfset_fld_rec R (Fold hs) = R (map_fset <id, hfset_fld_rec R> hs)"
+using hfset.fld_rec unfolding Fold_def .
 
 (* The iterator has a simpler form: *)
-lemma hfset_iter:
-"hfset_iter R (Fold hs) = R (map_fset (hfset_iter R) hs)"
-using hfset.iter unfolding Fold_def .
+lemma hfset_fld_iter:
+"hfset_fld_iter R (Fold hs) = R (map_fset (hfset_fld_iter R) hs)"
+using hfset.fld_iter unfolding Fold_def .
 
 end

@@ -18,12 +18,12 @@ codata_raw stream: 's = "'a \<times> 's"
 definition "hdd as \<equiv> fst (stream_unf as)"
 definition "tll as \<equiv> snd (stream_unf as)"
 
-lemma coiter_pair_fun_hdd[simp]: "hdd (stream_coiter (f \<odot> g) t) = f t"
-unfolding hdd_def pair_fun_def stream.coiter by simp
+lemma coiter_pair_fun_hdd[simp]: "hdd (stream_unf_coiter (f \<odot> g) t) = f t"
+unfolding hdd_def pair_fun_def stream.unf_coiter by simp
 
-lemma coiter_pair_fun_tll[simp]: "tll (stream_coiter (f \<odot> g) t) =
- stream_coiter (f \<odot> g) (g t)"
-unfolding tll_def pair_fun_def stream.coiter by simp
+lemma coiter_pair_fun_tll[simp]: "tll (stream_unf_coiter (f \<odot> g) t) =
+ stream_unf_coiter (f \<odot> g) (g t)"
+unfolding tll_def pair_fun_def stream.unf_coiter by simp
 
 (* infinite trees: *)
 coinductive infiniteTr where
@@ -45,7 +45,7 @@ lemma infiniteTr_sub[simp]:
 "infiniteTr tr \<Longrightarrow> (\<exists> tr' \<in> listF_set (sub tr). infiniteTr tr')"
 by (erule infiniteTr.cases) blast
 
-definition "konigPath \<equiv> stream_coiter
+definition "konigPath \<equiv> stream_unf_coiter
   (lab \<odot> (\<lambda>tr. SOME tr'. tr' \<in> listF_set (sub tr) \<and> infiniteTr tr'))"
 
 lemma hdd_simps1[simp]: "hdd (konigPath t) = lab t"
@@ -111,7 +111,7 @@ qed
 
 (* some more stream theorems *)
 
-lemma stream_map[simp]: "stream_map f = stream_coiter (f o hdd \<odot> tll)"
+lemma stream_map[simp]: "stream_map f = stream_unf_coiter (f o hdd \<odot> tll)"
 unfolding stream_map_def pair_fun_def hdd_def[abs_def] tll_def[abs_def]
   map_pair_def o_def prod_case_beta by simp
 
@@ -123,13 +123,13 @@ lemmas stream_coind = mp[OF stream.pred_coinduct, unfolded streamBNF_pred[abs_de
 
 definition plus :: "nat stream \<Rightarrow> nat stream \<Rightarrow> nat stream" (infixr "\<oplus>" 66) where
   [simp]: "plus xs ys =
-    stream_coiter ((%(xs, ys). hdd xs + hdd ys) \<odot> (%(xs, ys). (tll xs, tll ys))) (xs, ys)"
+    stream_unf_coiter ((%(xs, ys). hdd xs + hdd ys) \<odot> (%(xs, ys). (tll xs, tll ys))) (xs, ys)"
 
 definition scalar :: "nat \<Rightarrow> nat stream \<Rightarrow> nat stream" (infixr "\<cdot>" 68) where
   [simp]: "scalar n = stream_map (\<lambda>x. n * x)"
 
-definition ones :: "nat stream" where [simp]: "ones = stream_coiter ((%x. 1) \<odot> id) ()"
-definition twos :: "nat stream" where [simp]: "twos = stream_coiter ((%x. 2) \<odot> id) ()"
+definition ones :: "nat stream" where [simp]: "ones = stream_unf_coiter ((%x. 1) \<odot> id) ()"
+definition twos :: "nat stream" where [simp]: "twos = stream_unf_coiter ((%x. 2) \<odot> id) ()"
 definition ns :: "nat \<Rightarrow> nat stream" where [simp]: "ns n = scalar n ones"
 
 lemma "ones \<oplus> ones = twos"

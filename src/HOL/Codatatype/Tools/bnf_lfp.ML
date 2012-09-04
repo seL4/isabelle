@@ -1052,7 +1052,7 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
       (mk_mor UNIVs flds active_UNIVs ss (map (mk_nthN n iter_f) ks));
     val iter = HOLogic.choice_const iterT $ iter_fun;
 
-    fun iter_bind i = Binding.suffix_name ("_" ^ iterN) (nth bs (i - 1));
+    fun iter_bind i = Binding.suffix_name ("_" ^ fld_iterN) (nth bs (i - 1));
     val iter_name = Binding.name_of o iter_bind;
     val iter_def_bind = rpair [] o Thm.def_binding o iter_bind;
 
@@ -1210,7 +1210,7 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
           trans OF [mor RS unique, iter_fld]) iter_unique_mor_thms iter_fld_thms
       end;
 
-    fun rec_bind i = Binding.suffix_name ("_" ^ recN) (nth bs (i - 1));
+    fun rec_bind i = Binding.suffix_name ("_" ^ fld_recN) (nth bs (i - 1));
     val rec_name = Binding.name_of o rec_bind;
     val rec_def_bind = rpair [] o Thm.def_binding o rec_bind;
 
@@ -1797,9 +1797,9 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
           ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
 
       val notes =
-        [(iterN, iter_thms),
-        (iter_uniqueN, iter_unique_thms),
-        (recN, rec_thms),
+        [(fld_iterN, iter_thms),
+        (fld_iter_uniqueN, iter_unique_thms),
+        (fld_recN, rec_thms),
         (unf_fldN, unf_fld_thms),
         (fld_unfN, fld_unf_thms),
         (unf_injectN, unf_inject_thms),

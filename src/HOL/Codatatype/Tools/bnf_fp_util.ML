@@ -18,15 +18,17 @@ sig
   val coN: string
   val coinductN: string
   val coiterN: string
-  val coiter_uniqueN: string
+  val unf_coiter_uniqueN: string
   val corecN: string
   val exhaustN: string
   val fldN: string
-  val fld_coiterN: string
+  val fld_unf_coiterN: string
   val fld_exhaustN: string
   val fld_induct2N: string
   val fld_inductN: string
   val fld_injectN: string
+  val fld_iterN: string
+  val fld_recN: string
   val fld_unfN: string
   val hsetN: string
   val hset_recN: string
@@ -34,7 +36,7 @@ sig
   val injectN: string
   val isNodeN: string
   val iterN: string
-  val iter_uniqueN: string
+  val fld_iter_uniqueN: string
   val lsbisN: string
   val map_simpsN: string
   val map_uniqueN: string
@@ -56,6 +58,8 @@ sig
   val unfN: string
   val unf_coinductN: string
   val unf_coinduct_uptoN: string
+  val unf_coiterN: string
+  val unf_corecN: string
   val unf_exhaustN: string
   val unf_fldN: string
   val unf_injectN: string
@@ -127,11 +131,13 @@ val IITN = "IITN"
 val iterN = "iter"
 val coiterN = coN ^ iterN
 val uniqueN = "_unique"
-val iter_uniqueN = iterN ^ uniqueN
-val coiter_uniqueN = coiterN ^ uniqueN
 val fldN = "fld"
 val unfN = "unf"
-val fld_coiterN = fldN ^ "_" ^ coiterN
+val fld_iterN = fldN ^ "_" ^ iterN
+val unf_coiterN = unfN ^ "_" ^ coiterN
+val fld_iter_uniqueN = fld_iterN ^ uniqueN
+val unf_coiter_uniqueN = unf_coiterN ^ uniqueN
+val fld_unf_coiterN = fldN ^ "_" ^ unf_coiterN
 val map_simpsN = mapN ^ "_simps"
 val map_uniqueN = mapN ^ uniqueN
 val min_algN = "min_alg"
@@ -153,6 +159,8 @@ fun mk_set_inductN i = mk_setN i ^ "_induct"
 val str_initN = "str_init"
 val recN = "rec"
 val corecN = coN ^ recN
+val fld_recN = fldN ^ "_" ^ recN
+val unf_corecN = unfN ^ "_" ^ corecN
 
 val fld_unfN = fldN ^ "_" ^ unfN
 val unf_fldN = unfN ^ "_" ^ fldN

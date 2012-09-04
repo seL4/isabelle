@@ -290,7 +290,7 @@ definition pcoiter ::
  ('b \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'b)
  \<Rightarrow>
  'b \<Rightarrow> 'a process"
-where "pcoiter isA pr co isC c1 c2 \<equiv> process_coiter (join22 isA pr co isC c1 c2)"
+where "pcoiter isA pr co isC c1 c2 \<equiv> process_unf_coiter (join22 isA pr co isC c1 c2)"
 
 lemma unf_prefOf:
 assumes "process_unf q = Inl (a,p)"
@@ -325,8 +325,8 @@ proof-
   fix P
   let ?f = "pcoiter isA pr co isC c1 c2"  let ?s = "join22 isA pr co isC c1 c2"
   assume isA: "isA P"
-  have unf: "process_unf (process_coiter ?s P) = Inl (pr P, ?f (co P))"
-  using process.coiter[of ?s P]
+  have unf: "process_unf (process_unf_coiter ?s P) = Inl (pr P, ?f (co P))"
+  using process.unf_coiter[of ?s P]
   unfolding isA_join22[of isA P "pr" co isC c1 c2, OF isA]
             processBNF_map id_apply pcoiter_def .
   thus "?f P = Action (pr P) (?f (co P))"
@@ -335,8 +335,8 @@ next
   fix P
   let ?f = "pcoiter isA pr co isC c1 c2"  let ?s = "join22 isA pr co isC c1 c2"
   assume isA: "\<not> isA P" and isC: "isC P"
-  have unf: "process_unf (process_coiter ?s P) = Inr (?f (c1 P), ?f (c2 P))"
-  using process.coiter[of ?s P]
+  have unf: "process_unf (process_unf_coiter ?s P) = Inr (?f (c1 P), ?f (c2 P))"
+  using process.unf_coiter[of ?s P]
   unfolding isC_join22[of isA P isC "pr" co c1 c2, OF isA isC]
             processBNF_map id_apply pcoiter_def .
   thus "?f P = Choice (?f (c1 P)) (?f (c2 P))"
@@ -351,7 +351,7 @@ definition pcorec ::
  \<Rightarrow>
  'b \<Rightarrow> 'a process"
 where
-"pcorec isA pr co isC c1 c2 \<equiv> process_corec (join22 isA pr co isC c1 c2)"
+"pcorec isA pr co isC c1 c2 \<equiv> process_unf_corec (join22 isA pr co isC c1 c2)"
 
 theorem pcorec_Action:
 assumes isA: "isA P"
@@ -366,15 +366,15 @@ proof-
   show ?thesis
   proof(cases "co P")
     case (Inl p)
-    have "process_unf (process_corec ?s P) = Inl (pr P, p)"
-    using process.corec[of ?s P]
+    have "process_unf (process_unf_corec ?s P) = Inl (pr P, p)"
+    using process.unf_corec[of ?s P]
     unfolding isA_join22[of isA P "pr" co isC c1 c2, OF isA]
               processBNF_map id_apply pcorec_def Inl by simp
     thus ?thesis unfolding Inl pcorec_def Action_def using process.fld_unf by (simp, metis)
   next
     case (Inr Q)
-    have "process_unf (process_corec ?s P) = Inl (pr P, ?f Q)"
-    using process.corec[of ?s P]
+    have "process_unf (process_unf_corec ?s P) = Inl (pr P, ?f Q)"
+    using process.unf_corec[of ?s P]
     unfolding isA_join22[of isA P "pr" co isC c1 c2, OF isA]
               processBNF_map id_apply pcorec_def Inr by simp
     thus ?thesis unfolding Inr pcorec_def Action_def using process.fld_unf by (simp, metis)
@@ -404,15 +404,15 @@ proof-
     show ?thesis
     proof(cases "c2 P")
       case (Inl p2)  note c2 = Inl
-      have "process_unf (process_corec ?s P) = Inr (p1, p2)"
-      using process.corec[of ?s P]
+      have "process_unf (process_unf_corec ?s P) = Inr (p1, p2)"
+      using process.unf_corec[of ?s P]
       unfolding isC_join22[of isA P isC "pr" co c1 c2, OF isA isC]
                 processBNF_map id_apply pcorec_def c1 c2 by simp
       thus ?thesis unfolding c1 c2 pcorec_def Choice_def using process.fld_unf by (simp, metis)
     next
       case (Inr Q2)  note c2 = Inr
-      have "process_unf (process_corec ?s P) = Inr (p1, ?f Q2)"
-      using process.corec[of ?s P]
+      have "process_unf (process_unf_corec ?s P) = Inr (p1, ?f Q2)"
+      using process.unf_corec[of ?s P]
       unfolding isC_join22[of isA P isC "pr" co c1 c2, OF isA isC]
                 processBNF_map id_apply pcorec_def c1 c2 by simp
       thus ?thesis unfolding c1 c2 pcorec_def Choice_def using process.fld_unf by (simp, metis)
@@ -422,15 +422,15 @@ proof-
     show ?thesis
     proof(cases "c2 P")
       case (Inl p2)  note c2 = Inl
-      have "process_unf (process_corec ?s P) = Inr (?f Q1, p2)"
-      using process.corec[of ?s P]
+      have "process_unf (process_unf_corec ?s P) = Inr (?f Q1, p2)"
+      using process.unf_corec[of ?s P]
       unfolding isC_join22[of isA P isC "pr" co c1 c2, OF isA isC]
                 processBNF_map id_apply pcorec_def c1 c2 by simp
       thus ?thesis unfolding c1 c2 pcorec_def Choice_def using process.fld_unf by (simp, metis)
     next
       case (Inr Q2)  note c2 = Inr
-      have "process_unf (process_corec ?s P) = Inr (?f Q1, ?f Q2)"
-      using process.corec[of ?s P]
+      have "process_unf (process_unf_corec ?s P) = Inr (?f Q1, ?f Q2)"
+      using process.unf_corec[of ?s P]
       unfolding isC_join22[of isA P isC "pr" co c1 c2, OF isA isC]
                 processBNF_map id_apply pcorec_def c1 c2 by simp
       thus ?thesis unfolding c1 c2 pcorec_def Choice_def using process.fld_unf by (simp, metis)

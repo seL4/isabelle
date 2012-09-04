@@ -1938,7 +1938,7 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
 
     val timer = time (timer "unf definitions & thms");
 
-    fun coiter_bind i = Binding.suffix_name ("_" ^ coN ^ iterN) (nth bs (i - 1));
+    fun coiter_bind i = Binding.suffix_name ("_" ^ unf_coiterN) (nth bs (i - 1));
     val coiter_name = Binding.name_of o coiter_bind;
     val coiter_def_bind = rpair [] o Thm.def_binding o coiter_bind;
 
@@ -2129,7 +2129,7 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
           trans OF [mor RS unique, coiter_unf]) coiter_unique_mor_thms coiter_unf_thms
       end;
 
-    fun corec_bind i = Binding.suffix_name ("_" ^ coN ^ recN) (nth bs (i - 1));
+    fun corec_bind i = Binding.suffix_name ("_" ^ unf_corecN) (nth bs (i - 1));
     val corec_name = Binding.name_of o corec_bind;
     val corec_def_bind = rpair [] o Thm.def_binding o corec_bind;
 
@@ -2973,16 +2973,16 @@ fun bnf_gfp bs Dss_insts bnfs lthy =
           ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
 
       val notes =
-        [(coiterN, coiter_thms),
-        (coiter_uniqueN, coiter_unique_thms),
-        (corecN, corec_thms),
+        [(unf_coiterN, coiter_thms),
+        (unf_coiter_uniqueN, coiter_unique_thms),
+        (unf_corecN, corec_thms),
         (unf_fldN, unf_fld_thms),
         (fld_unfN, fld_unf_thms),
         (unf_injectN, unf_inject_thms),
         (unf_exhaustN, unf_exhaust_thms),
         (fld_injectN, fld_inject_thms),
         (fld_exhaustN, fld_exhaust_thms),
-        (fld_coiterN, fld_coiter_thms)]
+        (fld_unf_coiterN, fld_coiter_thms)]
         |> map (apsnd (map single))
         |> maps (fn (thmN, thmss) =>
           map2 (fn b => fn thms =>

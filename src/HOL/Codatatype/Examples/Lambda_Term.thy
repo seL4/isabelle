@@ -137,25 +137,25 @@ lemma sumJoin4_simps[simp]:
 "\<And> xtas t a. sumJoin4 var app lam lt (Inr (Inr (Inr (xtas,(t,a))))) = lt xtas t a"
 unfolding sumJoin4_def by auto
 
-definition "trmrec var app lam lt \<equiv> trm_rec (sumJoin4 var app lam lt)"
+definition "trmrec var app lam lt \<equiv> trm_fld_rec (sumJoin4 var app lam lt)"
 
 lemma trmrec_Var[simp]:
 "trmrec var app lam lt (Var x) = var x"
-unfolding trmrec_def Var_def trm.rec trmBNF_map(1) by simp
+unfolding trmrec_def Var_def trm.fld_rec trmBNF_map(1) by simp
 
 lemma trmrec_App[simp]:
 "trmrec var app lam lt (App t1 t2) =
  app t1 (trmrec var app lam lt t1) t2 (trmrec var app lam lt t2)"
-unfolding trmrec_def App_def trm.rec trmBNF_map(2) convol_def by simp
+unfolding trmrec_def App_def trm.fld_rec trmBNF_map(2) convol_def by simp
 
 lemma trmrec_Lam[simp]:
 "trmrec var app lam lt (Lam x t) = lam x t (trmrec var app lam lt t)"
-unfolding trmrec_def Lam_def trm.rec trmBNF_map(3) convol_def by simp
+unfolding trmrec_def Lam_def trm.fld_rec trmBNF_map(3) convol_def by simp
 
 lemma trmrec_Lt[simp]:
 "trmrec var app lam lt (Lt xts t) =
  lt (map_fset (\<lambda> (x,t). (x,t,trmrec var app lam lt t)) xts) t (trmrec var app lam lt t)"
-unfolding trmrec_def Lt_def trm.rec trmBNF_map(4) convol_def by simp
+unfolding trmrec_def Lt_def trm.fld_rec trmBNF_map(4) convol_def by simp
 
 definition
 "sumJoinI4 f1 f2 f3 f4 \<equiv>
@@ -174,25 +174,25 @@ lemma sumJoinI4_simps[simp]:
 unfolding sumJoinI4_def by auto
 
 (* The iterator has a simpler, hence more manageable type. *)
-definition "trmiter var app lam lt \<equiv> trm_iter (sumJoinI4 var app lam lt)"
+definition "trmiter var app lam lt \<equiv> trm_fld_iter (sumJoinI4 var app lam lt)"
 
 lemma trmiter_Var[simp]:
 "trmiter var app lam lt (Var x) = var x"
-unfolding trmiter_def Var_def trm.iter trmBNF_map(1) by simp
+unfolding trmiter_def Var_def trm.fld_iter trmBNF_map(1) by simp
 
 lemma trmiter_App[simp]:
 "trmiter var app lam lt (App t1 t2) =
  app (trmiter var app lam lt t1) (trmiter var app lam lt t2)"
-unfolding trmiter_def App_def trm.iter trmBNF_map(2) by simp
+unfolding trmiter_def App_def trm.fld_iter trmBNF_map(2) by simp
 
 lemma trmiter_Lam[simp]:
 "trmiter var app lam lt (Lam x t) = lam x (trmiter var app lam lt t)"
-unfolding trmiter_def Lam_def trm.iter trmBNF_map(3) by simp
+unfolding trmiter_def Lam_def trm.fld_iter trmBNF_map(3) by simp
 
 lemma trmiter_Lt[simp]:
 "trmiter var app lam lt (Lt xts t) =
  lt (map_fset (\<lambda> (x,t). (x,trmiter var app lam lt t)) xts) (trmiter var app lam lt t)"
-unfolding trmiter_def Lt_def trm.iter trmBNF_map(4) by simp
+unfolding trmiter_def Lt_def trm.fld_iter trmBNF_map(4) by simp
 
 
 subsection{* Example: The set of all variables varsOf and free variables fvarsOf of a term: *}

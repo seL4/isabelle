@@ -26,14 +26,14 @@ definition "sub t \<equiv> snd (treeFsetI_unf t)"
 lemma unf[simp]: "treeFsetI_unf t = (lab t, sub t)"
 unfolding lab_def sub_def by simp
 
-lemma coiter_pair_fun_lab: "lab (treeFsetI_coiter (f \<odot> g) t) = f t"
-unfolding lab_def pair_fun_def treeFsetI.coiter treeFsetIBNF_map_def by simp
+lemma coiter_pair_fun_lab: "lab (treeFsetI_unf_coiter (f \<odot> g) t) = f t"
+unfolding lab_def pair_fun_def treeFsetI.unf_coiter treeFsetIBNF_map_def by simp
 
-lemma coiter_pair_fun_sub: "sub (treeFsetI_coiter (f \<odot> g) t) = map_fset (treeFsetI_coiter (f \<odot> g)) (g t)"
-unfolding sub_def pair_fun_def treeFsetI.coiter treeFsetIBNF_map_def by simp
+lemma coiter_pair_fun_sub: "sub (treeFsetI_unf_coiter (f \<odot> g) t) = map_fset (treeFsetI_unf_coiter (f \<odot> g)) (g t)"
+unfolding sub_def pair_fun_def treeFsetI.unf_coiter treeFsetIBNF_map_def by simp
 
 (* tree map (contrived example): *)
-definition "tmap f \<equiv> treeFsetI_coiter (f o lab \<odot> sub)"
+definition "tmap f \<equiv> treeFsetI_unf_coiter (f o lab \<odot> sub)"
 
 lemma tmap_simps1[simp]: "lab (tmap f t) = f (lab t)"
 unfolding tmap_def by (simp add: coiter_pair_fun_lab)
