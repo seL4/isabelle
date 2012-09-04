@@ -53,7 +53,7 @@ fun mk_half_pairss ys = mk_half_pairss' [[]] ys;
 
 fun mk_undef T Ts = Const (@{const_name undefined}, Ts ---> T);
 
-fun eta_expand_caseof_arg xs f_xs = fold_rev Term.lambda xs f_xs;
+fun eta_expand_case_arg xs f_xs = fold_rev Term.lambda xs f_xs;
 
 fun name_of_ctr t =
   case head_of t of
@@ -61,7 +61,7 @@ fun name_of_ctr t =
   | Free (s, _) => s
   | _ => error "Cannot extract name of constructor";
 
-fun prepare_wrap_data prep_term ((raw_ctrs, raw_caseof), (raw_disc_binders, raw_sel_binderss))
+fun prepare_wrap_data prep_term ((raw_ctrs, raw_case), (raw_disc_binders, raw_sel_binderss))
   no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
@@ -70,7 +70,7 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_caseof), (raw_disc_binders, raw_
     (* TODO: integration with function package ("size") *)
 
     val ctrs0 = map (prep_term no_defs_lthy) raw_ctrs;
-    val caseof0 = prep_term no_defs_lthy raw_caseof;
+    val case0 = prep_term no_defs_lthy raw_case;
 
     val n = length ctrs0;
     val ks = 1 upto n;
@@ -127,22 +127,22 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_caseof), (raw_disc_binders, raw_
         else
           sel) (1 upto m) o pad_list no_binder m) ctrs0 ms;
 
-    fun mk_caseof Ts T =
+    fun mk_case Ts T =
       let
-        val (binders, body) = strip_type (fastype_of caseof0)
+        val (binders, body) = strip_type (fastype_of case0)
         val Type (_, Ts0) = List.last binders
-      in Term.subst_atomic_types ((body, T) :: (Ts0 ~~ Ts)) caseof0 end;
+      in Term.subst_atomic_types ((body, T) :: (Ts0 ~~ Ts)) case0 end;
 
-    val caseofB = mk_caseof As B;
-    val caseofB_Ts = map (fn Ts => Ts ---> B) ctr_Tss;
+    val caseB = mk_case As B;
+    val caseB_Ts = map (fn Ts => Ts ---> B) ctr_Tss;
 
-    fun mk_caseofB_term eta_fs = Term.list_comb (caseofB, eta_fs);
+    fun mk_caseB_term eta_fs = Term.list_comb (caseB, eta_fs);
 
     val (((((((xss, yss), fs), gs), (v, v')), w), (p, p')), names_lthy) = no_defs_lthy |>
       mk_Freess "x" ctr_Tss
       ||>> mk_Freess "y" ctr_Tss
-      ||>> mk_Frees "f" caseofB_Ts
-      ||>> mk_Frees "g" caseofB_Ts
+      ||>> mk_Frees "f" caseB_Ts
+      ||>> mk_Frees "g" caseB_Ts
       ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "v") T
       ||>> yield_singleton (mk_Frees "w") T
       ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "P") HOLogic.boolT;
@@ -155,15 +155,15 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_caseof), (raw_disc_binders, raw_
     val xfs = map2 (curry Term.list_comb) fs xss;
     val xgs = map2 (curry Term.list_comb) gs xss;
 
-    val eta_fs = map2 eta_expand_caseof_arg xss xfs;
-    val eta_gs = map2 eta_expand_caseof_arg xss xgs;
+    val eta_fs = map2 eta_expand_case_arg xss xfs;
+    val eta_gs = map2 eta_expand_case_arg xss xgs;
 
-    val caseofB_fs = Term.list_comb (caseofB, eta_fs);
+    val caseB_fs = Term.list_comb (caseB, eta_fs);
 
     val exist_xs_v_eq_ctrs =
       map2 (fn xctr => fn xs => list_exists_free xs (HOLogic.mk_eq (v, xctr))) xctrs xss;
 
-    fun mk_sel_caseof_args k xs x T =
+    fun mk_sel_case_args k xs x T =
       map2 (fn Ts => fn i => if i = k then fold_rev Term.lambda xs x else mk_undef T Ts) ctr_Tss ks;
 
     fun disc_free b = Free (Binding.name_of b, T --> HOLogic.boolT);
@@ -180,7 +180,7 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_caseof), (raw_disc_binders, raw_
     fun sel_spec b x xs k =
       let val T' = fastype_of x in
         mk_Trueprop_eq (Free (Binding.name_of b, T --> T') $ v,
-          Term.list_comb (mk_caseof As T', mk_sel_caseof_args k xs x T') $ v)
+          Term.list_comb (mk_case As T', mk_sel_case_args k xs x T') $ v)
       end;
 
     val missing_disc_def = TrueI; (* marker *)
@@ -242,7 +242,7 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_caseof), (raw_disc_binders, raw_
 
     val goal_cases =
       map3 (fn xs => fn xctr => fn xf =>
-        fold_rev Logic.all (fs @ xs) (mk_Trueprop_eq (caseofB_fs $ xctr, xf))) xss xctrs xfs;
+        fold_rev Logic.all (fs @ xs) (mk_Trueprop_eq (caseB_fs $ xctr, xf))) xss xctrs xfs;
 
     val goalss = [goal_exhaust] :: goal_injectss @ goal_half_distinctss @ [goal_cases];
 
@@ -282,7 +282,7 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_caseof), (raw_disc_binders, raw_
                 val cTs =
                   map ((fn T' => certifyT lthy (if T' = B then T else T')) o TFree)
                     (rev (Term.add_tfrees goal_case []));
-                val cxs = map (certify lthy) (mk_sel_caseof_args k xs x T);
+                val cxs = map (certify lthy) (mk_sel_case_args k xs x T);
               in
                 Local_Defs.fold lthy [sel_def]
                   (Drule.instantiate' (map SOME cTs) (map SOME cxs) case_thm)
@@ -400,7 +400,7 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_caseof), (raw_disc_binders, raw_
               | mk_rhs (disc :: discs) (f :: fs) (sels :: selss) =
                 Const (@{const_name If}, HOLogic.boolT --> B --> B --> B) $
                   betapply (disc, v) $ mk_core f sels $ mk_rhs discs fs selss;
-            val goal = mk_Trueprop_eq (caseofB_fs $ v, mk_rhs discs fs selss);
+            val goal = mk_Trueprop_eq (caseB_fs $ v, mk_rhs discs fs selss);
           in
             Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
               mk_case_eq_tac ctxt exhaust_thm' case_thms disc_thmss' sel_thmss)
@@ -414,14 +414,13 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_caseof), (raw_disc_binders, raw_
                 mk_Trueprop_eq (f, g)));
 
             val v_eq_w = mk_Trueprop_eq (v, w);
-            val caseof_fs = mk_caseofB_term eta_fs;
-            val caseof_gs = mk_caseofB_term eta_gs;
+            val case_fs = mk_caseB_term eta_fs;
+            val case_gs = mk_caseB_term eta_gs;
 
             val goal =
               Logic.list_implies (v_eq_w :: map4 mk_prem xctrs xss fs gs,
-                 mk_Trueprop_eq (caseof_fs $ v, caseof_gs $ w));
-            val goal_weak =
-              Logic.mk_implies (v_eq_w, mk_Trueprop_eq (caseof_fs $ v, caseof_fs $ w));
+                 mk_Trueprop_eq (case_fs $ v, case_gs $ w));
+            val goal_weak = Logic.mk_implies (v_eq_w, mk_Trueprop_eq (case_fs $ v, case_fs $ w));
           in
             (Skip_Proof.prove lthy [] [] goal (fn _ => mk_case_cong_tac exhaust_thm' case_thms),
              Skip_Proof.prove lthy [] [] goal_weak (K (etac arg_cong 1)))
@@ -436,7 +435,7 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_caseof), (raw_disc_binders, raw_
               list_exists_free xs (HOLogic.mk_conj (HOLogic.mk_eq (v, xctr),
                 HOLogic.mk_not (q $ f_xs)));
 
-            val lhs = q $ (mk_caseofB_term eta_fs $ v);
+            val lhs = q $ (mk_caseB_term eta_fs $ v);
 
             val goal =
               mk_Trueprop_eq (lhs, Library.foldr1 HOLogic.mk_conj (map3 mk_conjunct xctrs xss xfs));

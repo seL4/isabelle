@@ -92,6 +92,7 @@ sig
   val mk_union: term * term -> term
 
   val mk_sumEN: int -> thm
+  val mk_sum_casesN: int -> int -> thm
 
   val mk_tactics: 'a -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a list
 
@@ -242,6 +243,11 @@ in
     | mk_sumEN 2 = @{thm sumE}
     | mk_sumEN n = (mk_sumEN' (n - 2) RSN (2, @{thm obj_sumE})) OF replicate n (impI RS allI);
 end;
+
+fun mk_sum_casesN 1 1 = @{thm refl}
+  | mk_sum_casesN _ 1 = @{thm sum.cases(1)}
+  | mk_sum_casesN 2 2 = @{thm sum.cases(2)}
+  | mk_sum_casesN n m = trans OF [@{thm sum_case_step(2)}, mk_sum_casesN (n - 1) (m - 1)];
 
 fun mk_tactics mid mcomp mcong snat bdco bdinf sbd inbd wpull =
   [mid, mcomp, mcong] @ snat @ [bdco, bdinf] @ sbd @ [inbd, wpull];

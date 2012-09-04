@@ -36,7 +36,6 @@ sig
   val mk_univ: term -> term
 
   val mk_specN: int -> thm -> thm
-  val mk_sum_casesN: int -> int -> thm
 
   val mk_InN_Field: int -> int -> thm
   val mk_InN_inject: int -> int -> thm
@@ -196,11 +195,6 @@ fun mk_InN_inject 1 _ = @{thm TrueE[OF TrueI]}
 
 fun mk_specN 0 thm = thm
   | mk_specN n thm = mk_specN (n - 1) (thm RS spec);
-
-fun mk_sum_casesN 1 1 = @{thm refl}
-  | mk_sum_casesN _ 1 = @{thm sum.cases(1)}
-  | mk_sum_casesN 2 2 = @{thm sum.cases(2)}
-  | mk_sum_casesN n m = trans OF [@{thm sum_case_step(2)}, mk_sum_casesN (n - 1) (m - 1)];
 
 fun mk_rec_simps n rec_thm defs = map (fn i =>
   map (fn def => def RS rec_thm RS mk_nthI n i RS fun_cong) defs) (1 upto n);

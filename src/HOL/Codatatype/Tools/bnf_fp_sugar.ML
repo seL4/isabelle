@@ -132,11 +132,11 @@ fun prepare_data prepare_typ construct specs fake_lthy lthy =
 
         val unf_T = domain_type (fastype_of fld);
         val prod_Ts = map HOLogic.mk_tupleT ctr_Tss;
-        val caseofC_Ts = map (fn Ts => Ts ---> C) ctr_Tss;
+        val caseC_Ts = map (fn Ts => Ts ---> C) ctr_Tss;
 
         val ((((fs, u), v), xss), _) =
           lthy
-          |> mk_Frees "f" caseofC_Ts
+          |> mk_Frees "f" caseC_Ts
           ||>> yield_singleton (mk_Frees "u") unf_T
           ||>> yield_singleton (mk_Frees "v") T
           ||>> mk_Freess "x" ctr_Tss;
@@ -149,24 +149,26 @@ fun prepare_data prepare_typ construct specs fake_lthy lthy =
           map2 (fn k => fn xs =>
             fold_rev Term.lambda xs (fld $ mk_InN prod_Ts (HOLogic.mk_tuple xs) k)) ks xss;
 
-        val caseof_binder = Binding.suffix_name ("_" ^ caseN) b;
+        val case_binder = Binding.suffix_name ("_" ^ caseN) b;
 
-        val caseof_rhs = fold_rev Term.lambda (fs @ [v]) (mk_sum_caseN uncurried_fs $ (unf $ v));
+        val case_rhs = fold_rev Term.lambda (fs @ [v]) (mk_sum_caseN uncurried_fs $ (unf $ v));
 
-        val (((raw_ctrs, raw_ctr_defs), (raw_caseof, raw_caseof_def)), (lthy', lthy)) = no_defs_lthy
+        val (((raw_ctrs, raw_ctr_defs), (raw_case, raw_case_def)), (lthy', lthy)) = no_defs_lthy
           |> apfst split_list o fold_map2 (fn b => fn rhs =>
                Local_Theory.define ((b, NoSyn), ((Thm.def_binding b, []), rhs)) #>> apsnd snd)
              ctr_binders ctr_rhss
-          ||>> (Local_Theory.define ((caseof_binder, NoSyn), ((Thm.def_binding caseof_binder, []),
-             caseof_rhs)) #>> apsnd snd)
+          ||>> (Local_Theory.define ((case_binder, NoSyn), ((Thm.def_binding case_binder, []),
+             case_rhs)) #>> apsnd snd)
           ||> `Local_Theory.restore;
 
         (*transforms defined frees into consts (and more)*)
         val phi = Proof_Context.export_morphism lthy lthy';
 
         val ctr_defs = map (Morphism.thm phi) raw_ctr_defs;
+        val case_def = Morphism.thm phi raw_case_def;
+
         val ctrs = map (Morphism.term phi) raw_ctrs;
-        val caseof = Morphism.term phi raw_caseof;
+        val casex = Morphism.term phi raw_case;
 
         val fld_iff_unf_thm =
           let
@@ -199,14 +201,13 @@ fun prepare_data prepare_typ construct specs fake_lthy lthy =
           map (map (fn (def, def') => fn {context = ctxt, ...} =>
             mk_half_distinct_tac ctxt fld_inject [def, def'])) (mk_half_pairss ctr_defs);
 
-        (*###*)
-        fun cheat_tac {context = ctxt, ...} = Skip_Proof.cheat_tac (Proof_Context.theory_of ctxt);
-
-        val case_tacs = map (K cheat_tac) ks;
+        val case_tacs =
+          map3 (fn k => fn m => fn ctr_def => fn {context = ctxt, ...} =>
+            mk_case_tac ctxt n k m case_def ctr_def unf_fld) ks ms ctr_defs;
 
         val tacss = [exhaust_tac] :: inject_tacss @ half_distinct_tacss @ [case_tacs];
       in
-        wrap_data tacss ((ctrs, caseof), (disc_binders, sel_binderss)) lthy'
+        wrap_data tacss ((ctrs, casex), (disc_binders, sel_binderss)) lthy'
       end;
   in
     lthy'

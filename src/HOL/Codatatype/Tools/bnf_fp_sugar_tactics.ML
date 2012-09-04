@@ -7,6 +7,7 @@ Tactics for the LFP/GFP sugar.
 
 signature BNF_FP_SUGAR_TACTICS =
 sig
+  val mk_case_tac: Proof.context -> int -> int -> int -> thm -> thm -> thm -> tactic
   val mk_exhaust_tac: Proof.context -> int -> int list -> thm list -> thm -> thm -> tactic
   val mk_fld_iff_unf_tac: Proof.context -> ctyp option list -> cterm -> cterm -> thm -> thm
     -> tactic
@@ -19,6 +20,12 @@ struct
 
 open BNF_Tactics
 open BNF_Util
+
+fun mk_case_tac ctxt n k m case_def ctr_def unf_fld =
+  Local_Defs.unfold_tac ctxt [case_def, ctr_def, unf_fld] THEN
+  (rtac (BNF_FP_Util.mk_sum_casesN n k RS ssubst) THEN'
+   REPEAT_DETERM_N (Int.max (0, m - 1)) o rtac (@{thm split} RS ssubst) THEN'
+   rtac refl) 1;
 
 fun mk_exhaust_tac ctxt n ms ctr_defs fld_iff_unf sumEN' =
   Local_Defs.unfold_tac ctxt (fld_iff_unf :: ctr_defs) THEN
