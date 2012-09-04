@@ -98,10 +98,12 @@ sig
 
   val fixpoint: ('a * 'a -> bool) -> ('a list -> 'a list) -> 'a list -> 'a list
 
-  val fp_bnf: (binding list -> typ list list -> BNF_Def.BNF list -> Proof.context -> 'a) ->
-    binding list -> ((string * sort) * typ) list -> Proof.context -> 'a
-  val fp_bnf_cmd: (binding list -> typ list list -> BNF_Def.BNF list -> Proof.context -> 'a) ->
-    binding list * (string list * string list) -> Proof.context -> 'a
+  val fp_bnf: (binding list -> (string * sort) list -> typ list list -> BNF_Def.BNF list ->
+    local_theory -> 'a) ->
+    binding list -> (string * sort) list -> ((string * sort) * typ) list -> local_theory -> 'a
+  val fp_bnf_cmd: (binding list -> (string * sort) list -> typ list list -> BNF_Def.BNF list ->
+    local_theory -> 'a) ->
+    binding list * (string list * string list) -> local_theory -> 'a
 end;
 
 structure BNF_FP_Util : BNF_FP_UTIL =
@@ -255,7 +257,7 @@ fun mk_tactics mid mcomp mcong snat bdco bdinf sbd inbd wpull =
 fun fp_sort lhss Ass = Library.sort (Term_Ord.typ_ord o pairself TFree)
   (subtract (op =) lhss (fold (fold (insert (op =))) Ass [])) @ lhss;
 
-fun mk_fp_bnf timer construct bs sort bnfs deadss livess unfold lthy =
+fun mk_fp_bnf timer construct bs resBs sort bnfs deadss livess unfold lthy =
   let
     val name = fold_rev (fn b => fn s => Binding.name_of b ^ s) bs "";
     fun qualify i bind =
@@ -266,7 +268,8 @@ fun mk_fp_bnf timer construct bs sort bnfs deadss livess unfold lthy =
       end;
 
     val Ass = map (map dest_TFree) livess;
-    val Ds = fold (fold Term.add_tfreesT) deadss [];
+    val resDs = fold (subtract (op =)) Ass resBs;
+    val Ds = fold (fold Term.add_tfreesT) deadss resDs;
 
     val _ = (case Library.inter (op =) Ds (fold (union (op =)) Ass []) of [] => ()
       | A :: _ => error ("Nonadmissible type recursion (cannot take fixed point of dead type \
@@ -284,14 +287,14 @@ fun mk_fp_bnf timer construct bs sort bnfs deadss livess unfold lthy =
 
     val timer = time (timer "Normalization & sealing of BNFs");
 
-    val res = construct bs Dss bnfs'' lthy'';
+    val res = construct bs resDs Dss bnfs'' lthy'';
 
     val timer = time (timer "FP construction in total");
   in
     res
   end;
 
-fun fp_bnf construct bs eqs lthy =
+fun fp_bnf construct bs resBs eqs lthy =
   let
     val timer = time (Timer.startRealTimer ());
     val (lhss, rhss) = split_list eqs;
@@ -300,7 +303,7 @@ fun fp_bnf construct bs eqs lthy =
       (fold_map2 (fn b => bnf_of_typ Smart_Inline (Binding.suffix_name "RAW" b) I sort) bs rhss
         (empty_unfold, lthy));
   in
-    mk_fp_bnf timer construct bs sort bnfs Dss Ass unfold lthy'
+    mk_fp_bnf timer construct bs resBs sort bnfs Dss Ass unfold lthy'
   end;
 
 fun fp_bnf_cmd construct (bs, (raw_lhss, raw_bnfs)) lthy =
@@ -313,7 +316,7 @@ fun fp_bnf_cmd construct (bs, (raw_lhss, raw_bnfs)) lthy =
         (bnf_of_typ Smart_Inline (Binding.suffix_name "RAW" b) I sort (Syntax.read_typ lthy rawT)))
         bs raw_bnfs (empty_unfold, lthy));
   in
-    mk_fp_bnf timer construct bs sort bnfs Dss Ass unfold lthy'
+    mk_fp_bnf timer construct bs [] sort bnfs Dss Ass unfold lthy'
   end;
 
 end;

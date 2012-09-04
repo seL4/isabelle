@@ -8,8 +8,8 @@ Datatype construction.
 
 signature BNF_LFP =
 sig
-  val bnf_lfp: binding list -> typ list list -> BNF_Def.BNF list -> local_theory ->
-    (term list * term list * thm list * thm list * thm list) * local_theory
+  val bnf_lfp: binding list -> (string * sort) list -> typ list list -> BNF_Def.BNF list ->
+    local_theory -> (term list * term list * thm list * thm list * thm list) * local_theory
 end;
 
 structure BNF_LFP : BNF_LFP =
@@ -23,7 +23,7 @@ open BNF_LFP_Util
 open BNF_LFP_Tactics
 
 (*all bnfs have the same lives*)
-fun bnf_lfp bs Dss_insts bnfs lthy =
+fun bnf_lfp bs resDs Dss_insts bnfs lthy =
   let
     val timer = time (Timer.startRealTimer ());
     val live = live_of_bnf (hd bnfs);
@@ -35,7 +35,7 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
     (* TODO: check if m, n etc are sane *)
 
     val Dss = map (fn Ds => map TFree (fold Term.add_tfreesT Ds [])) Dss_insts;
-    val deads = distinct (op =) (flat Dss);
+    val deads = fold (union (op =)) Dss (map TFree resDs);
     val names_lthy = fold Variable.declare_typ deads lthy;
 
     (* tvars *)
@@ -1778,7 +1778,7 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
         val Ibnf_notes =
           [(map_simpsN, map single folded_map_simp_thms),
           (set_inclN, set_incl_thmss),
-          (set_set_inclN, map flat set_set_incl_thmsss), (* nicer names? *)
+          (set_set_inclN, map flat set_set_incl_thmsss),
           (rel_unfoldN, map single Irel_unfold_thms),
           (pred_unfoldN, map single Ipred_unfold_thms)] @
           map2 (fn i => fn thms => (mk_set_simpsN i, map single thms)) ls' folded_set_simp_thmss

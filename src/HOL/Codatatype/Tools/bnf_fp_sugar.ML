@@ -52,15 +52,16 @@ fun ctr_of (((_, ctr), _), _) = ctr;
 fun args_of ((_, args), _) = args;
 fun mixfix_of_ctr (_, mx) = mx;
 
-val lfp_info = bnf_lfp;
-val gfp_info = bnf_gfp;
+val uncurry_fs =
+  map2 (fn f => fn xs => HOLogic.tupled_lambda (HOLogic.mk_tuple xs) (Term.list_comb (f, xs)));
 
-fun prepare_data prepare_typ construct specs fake_lthy lthy =
+fun prepare_data prepare_typ gfp specs fake_lthy lthy =
   let
     val constrained_As =
       map (map (apfst (prepare_typ fake_lthy)) o type_args_constrained_of) specs
       |> Library.foldr1 (merge_type_args_constrained lthy);
     val As = map fst constrained_As;
+    val As' = map dest_TFree As;
 
     val _ = (case duplicates (op =) As of [] => ()
       | T :: _ => error ("Duplicate type parameter " ^ quote (Syntax.string_of_typ lthy T)));
@@ -110,7 +111,7 @@ fun prepare_data prepare_typ construct specs fake_lthy lthy =
     val eqs = map dest_TFree Bs ~~ sum_prod_TsBs;
 
     val ((raw_unfs, raw_flds, unf_flds, fld_unfs, fld_injects), lthy') =
-      fp_bnf construct bs eqs lthy;
+      fp_bnf (if gfp then bnf_gfp else bnf_lfp) bs As' eqs lthy;
 
     fun mk_unf_or_fld get_foldedT Ts t =
       let val Type (_, Ts0) = get_foldedT (fastype_of t) in
@@ -123,8 +124,8 @@ fun prepare_data prepare_typ construct specs fake_lthy lthy =
     val unfs = map (mk_unf As) raw_unfs;
     val flds = map (mk_fld As) raw_flds;
 
-    fun wrap_type ((((((((((b, T), fld), unf), fld_unf), unf_fld), fld_inject), ctr_binders),
-        ctr_Tss), disc_binders), sel_binderss) no_defs_lthy =
+    fun pour_some_sugar_on_type ((((((((((b, T), fld), unf), fld_unf), unf_fld), fld_inject),
+        ctr_binders), ctr_Tss), disc_binders), sel_binderss) no_defs_lthy =
       let
         val n = length ctr_binders;
         val ks = 1 upto n;
@@ -132,18 +133,14 @@ fun prepare_data prepare_typ construct specs fake_lthy lthy =
 
         val unf_T = domain_type (fastype_of fld);
         val prod_Ts = map HOLogic.mk_tupleT ctr_Tss;
-        val caseC_Ts = map (fn Ts => Ts ---> C) ctr_Tss;
+        val case_Ts = map (fn Ts => Ts ---> C) ctr_Tss;
 
         val ((((fs, u), v), xss), _) =
           lthy
-          |> mk_Frees "f" caseC_Ts
+          |> mk_Frees "f" case_Ts
           ||>> yield_singleton (mk_Frees "u") unf_T
           ||>> yield_singleton (mk_Frees "v") T
           ||>> mk_Freess "x" ctr_Tss;
-
-        val uncurried_fs =
-          map2 (fn f => fn xs =>
-            HOLogic.tupled_lambda (HOLogic.mk_tuple xs) (Term.list_comb (f, xs))) fs xss;
 
         val ctr_rhss =
           map2 (fn k => fn xs =>
@@ -151,7 +148,8 @@ fun prepare_data prepare_typ construct specs fake_lthy lthy =
 
         val case_binder = Binding.suffix_name ("_" ^ caseN) b;
 
-        val case_rhs = fold_rev Term.lambda (fs @ [v]) (mk_sum_caseN uncurried_fs $ (unf $ v));
+        val case_rhs =
+          fold_rev Term.lambda (fs @ [v]) (mk_sum_caseN (uncurry_fs fs xss) $ (unf $ v));
 
         val (((raw_ctrs, raw_ctr_defs), (raw_case, raw_case_def)), (lthy', lthy)) = no_defs_lthy
           |> apfst split_list o fold_map2 (fn b => fn rhs =>
@@ -206,12 +204,31 @@ fun prepare_data prepare_typ construct specs fake_lthy lthy =
             mk_case_tac ctxt n k m case_def ctr_def unf_fld) ks ms ctr_defs;
 
         val tacss = [exhaust_tac] :: inject_tacss @ half_distinct_tacss @ [case_tacs];
+
+        fun sugar_lfp lthy =
+          let
+(*###
+            val iter_Tss = map ( ) ctr_Tss
+            val iter_Ts = map (fn Ts => Ts ---> C) iter_Tss;
+
+            val iter_fs = map2 (fn Free (s, _) => fn T => Free (s, T)) fs iter_Ts
+
+            val uncurried_fs =
+              map2 (fn f => fn xs =>
+                HOLogic.tupled_lambda (HOLogic.mk_tuple xs) (Term.list_comb (f, xs))) fs xss;
+*)
+          in
+            lthy
+          end;
+
+        fun sugar_gfp lthy = lthy;
       in
         wrap_data tacss ((ctrs, casex), (disc_binders, sel_binderss)) lthy'
+        |> (if gfp then sugar_gfp else sugar_lfp)
       end;
   in
     lthy'
-    |> fold wrap_type (bs ~~ Ts ~~ flds ~~ unfs ~~ fld_unfs ~~ unf_flds ~~ fld_injects ~~
+    |> fold pour_some_sugar_on_type (bs ~~ Ts ~~ flds ~~ unfs ~~ fld_unfs ~~ unf_flds ~~ fld_injects ~~
       ctr_binderss ~~ ctr_Tsss ~~ disc_binderss ~~ sel_bindersss)
   end;
 
@@ -240,10 +257,10 @@ val parse_single_spec =
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "data"} "define BNF-based inductive datatypes"
-    (Parse.and_list1 parse_single_spec >> data_cmd lfp_info);
+    (Parse.and_list1 parse_single_spec >> data_cmd false);
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "codata"} "define BNF-based coinductive datatypes"
-    (Parse.and_list1 parse_single_spec >> data_cmd gfp_info);
+    (Parse.and_list1 parse_single_spec >> data_cmd true);
 
 end;
