@@ -255,10 +255,8 @@ fun mk_tactics mid mcomp mcong snat bdco bdinf sbd inbd wpull =
 fun fp_sort lhss Ass = Library.sort (Term_Ord.typ_ord o pairself TFree)
   (subtract (op =) lhss (fold (fold (insert (op =))) Ass [])) @ lhss;
 
-fun mk_fp_bnf timer construct bs sort bnfs deads lives unfold lthy =
+fun mk_fp_bnf timer construct bs sort bnfs deadss livess unfold lthy =
   let
-    (* TODO: assert that none of the deads is a lhs *)
-
     val name = fold_rev (fn b => fn s => Binding.name_of b ^ s) bs "";
     fun qualify i bind =
       let val namei = if i > 0 then name ^ string_of_int i else name;
@@ -267,15 +265,19 @@ fun mk_fp_bnf timer construct bs sort bnfs deads lives unfold lthy =
         else Binding.prefix_name namei bind
       end;
 
-    val Ass = map (map dest_TFree) lives;
-    val Ds = fold (fold Term.add_tfreesT) deads [];
+    val Ass = map (map dest_TFree) livess;
+    val Ds = fold (fold Term.add_tfreesT) deadss [];
+
+    val _ = (case Library.inter (op =) Ds (fold (union (op =)) Ass []) of [] => ()
+      | A :: _ => error ("Nonadmissible type recursion (cannot take fixed point of dead type \
+        \variable " ^ quote (Syntax.string_of_typ lthy (TFree A)) ^ ")"));
 
     val timer = time (timer "Construction of BNFs");
 
     val ((kill_poss, _), (bnfs', (unfold', lthy'))) =
       normalize_bnfs qualify Ass Ds sort bnfs unfold lthy;
 
-    val Dss = map3 (append oo map o nth) lives kill_poss deads;
+    val Dss = map3 (append oo map o nth) livess kill_poss deadss;
 
     val (bnfs'', lthy'') =
       fold_map3 (seal_bnf unfold') (map (Binding.suffix_name "BNF") bs) Dss bnfs' lthy';

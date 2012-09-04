@@ -26,10 +26,10 @@ open BNF_LFP_Tactics
 fun bnf_lfp bs Dss_insts bnfs lthy =
   let
     val timer = time (Timer.startRealTimer ());
-    val live = live_of_bnf (hd bnfs)
+    val live = live_of_bnf (hd bnfs);
     val n = length bnfs; (*active*)
-    val ks = 1 upto n
-    val m = live - n (*passive, if 0 don't generate a new bnf*)
+    val ks = 1 upto n;
+    val m = live - n; (*passive, if 0 don't generate a new bnf*)
     val b = Binding.name (fold_rev (fn b => fn s => Binding.name_of b ^ s) bs "");
 
     (* TODO: check if m, n etc are sane *)
