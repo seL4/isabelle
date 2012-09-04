@@ -9,7 +9,7 @@ Datatype construction.
 signature BNF_LFP =
 sig
   val bnf_lfp: binding list -> typ list list -> BNF_Def.BNF list -> Proof.context ->
-    term list * Proof.context
+    (term list * term list * thm list * thm list) * Proof.context
 end;
 
 structure BNF_LFP : BNF_LFP =
@@ -1812,7 +1812,8 @@ fun bnf_lfp bs Dss_insts bnfs lthy =
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
           bs thmss)
   in
-    (flds, lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
+    ((flds, unfs, fld_unf_thms, unf_fld_thms),
+      lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
   end;
 
 val _ =

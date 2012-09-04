@@ -19,7 +19,7 @@ open BNF_LFP
 open BNF_GFP
 open BNF_FP_Sugar_Tactics
 
-fun cannot_merge_types () = error "Mutually recursive (co)datatypes must have same type parameters";
+fun cannot_merge_types () = error "Mutually recursive types must have the same type parameters";
 
 fun merge_type_arg_constrained ctxt (T, c) (T', c') =
   if T = T' then
@@ -107,24 +107,35 @@ fun prepare_data prepare_typ construct specs fake_lthy lthy =
 
     val eqs = map dest_TFree Bs ~~ sum_prod_TsBs;
 
-    val (raw_flds, lthy') = fp_bnf construct bs eqs lthy;
+    val ((raw_flds, raw_unfs, fld_unfs, unf_flds), lthy') = fp_bnf construct bs eqs lthy;
 
-    fun mk_fld Ts fld =
-      let val Type (_, Ts0) = body_type (fastype_of fld) in
-        Term.subst_atomic_types (Ts0 ~~ Ts) fld
+    fun mk_fld_or_unf get_foldedT Ts t =
+      let val Type (_, Ts0) = get_foldedT (fastype_of t) in
+        Term.subst_atomic_types (Ts0 ~~ Ts) t
       end;
 
-    val flds = map (mk_fld As) raw_flds;
+    val mk_fld = mk_fld_or_unf range_type;
+    val mk_unf = mk_fld_or_unf domain_type;
 
-    fun wrap_type (((((T, fld), ctr_names), ctr_Tss), disc_names), sel_namess) no_defs_lthy =
+    val flds = map (mk_fld As) raw_flds;
+    val unfs = map (mk_unf As) raw_unfs;
+
+    fun wrap_type ((((((((T, fld), unf), fld_unf), unf_fld), ctr_names), ctr_Tss), disc_names),
+        sel_namess) no_defs_lthy =
       let
         val n = length ctr_names;
         val ks = 1 upto n;
         val ms = map length ctr_Tss;
 
+        val unf_T = domain_type (fastype_of fld);
+
         val prod_Ts = map HOLogic.mk_tupleT ctr_Tss;
 
-        val (xss, _) = lthy |> mk_Freess "x" ctr_Tss;
+        val (((u, v), xss), _) =
+          lthy
+          |> yield_singleton (mk_Frees "u") unf_T
+          ||>> yield_singleton (mk_Frees "v") T
+          ||>> mk_Freess "x" ctr_Tss;
 
         val rhss =
           map2 (fn k => fn xs =>
@@ -148,15 +159,12 @@ fun prepare_data prepare_typ construct specs fake_lthy lthy =
 
         val fld_iff_unf_thm =
           let
-            val fld = @{term "undefined::'a=>'b"};
-            val unf = @{term True};
-            val (T, T') = dest_funT (fastype_of fld);
-            val fld_unf = TrueI;
-            val unf_fld = TrueI;
-            val goal = @{term True};
+            val goal =
+              fold_rev Logic.all [u, v]
+                (mk_Trueprop_eq (HOLogic.mk_eq (v, fld $ u), HOLogic.mk_eq (unf $ v, u)));
           in
             Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-              mk_fld_iff_unf_tac ctxt (map (SOME o certifyT lthy) [T, T']) (certify lthy fld)
+              mk_fld_iff_unf_tac ctxt (map (SOME o certifyT lthy) [unf_T, T]) (certify lthy fld)
                 (certify lthy unf) fld_unf unf_fld)
           end;
 
@@ -176,7 +184,9 @@ fun prepare_data prepare_typ construct specs fake_lthy lthy =
         wrap_data tacss ((ctrs, caseof), (disc_names, sel_namess)) lthy'
       end;
   in
-    lthy' |> fold wrap_type (Ts ~~ flds ~~ ctr_namess ~~ ctr_Tsss ~~ disc_namess ~~ sel_namesss)
+    lthy'
+    |> fold wrap_type (Ts ~~ flds ~~ unfs ~~ fld_unfs ~~ unf_flds ~~ ctr_namess ~~ ctr_Tsss ~~
+      disc_namess ~~ sel_namesss)
   end;
 
 fun data_cmd info specs lthy =
