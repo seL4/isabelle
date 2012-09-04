@@ -7,6 +7,8 @@ Wrapping existing datatypes.
 
 signature BNF_WRAP =
 sig
+  val wrap: ({prems: thm list, context: Proof.context} -> tactic) list list ->
+    (term list * term) * (binding list * binding list list) -> Proof.context -> local_theory
 end;
 
 structure BNF_Wrap : BNF_WRAP =
@@ -404,6 +406,11 @@ fun prepare_wrap prep_term ((raw_ctrs, raw_caseof), (raw_disc_names, raw_sel_nam
   in
     (goals, after_qed, lthy')
   end;
+
+fun wrap tacss = (fn (goalss, after_qed, lthy) =>
+  map2 (map2 (Skip_Proof.prove lthy [] [])) goalss tacss
+  |> (fn thms => after_qed thms lthy)) oo
+  prepare_wrap (singleton o Type_Infer_Context.infer_types)
 
 val parse_bindings = Parse.$$$ "[" |--  Parse.list Parse.binding --| Parse.$$$ "]";
 

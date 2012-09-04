@@ -1180,11 +1180,11 @@ fun bnf_def const_policy fact_policy qualify tacs wit_tac Ds =
       |> map2 (Conjunction.elim_balanced o length) wit_goalss
       |> map (map (Thm.close_derivation o Thm.forall_elim_vars 0))
   in
-    (map2 (Thm.close_derivation oo Skip_Proof.prove lthy [] [])
-      goals (map (unfold_defs_tac lthy defs) tacs))
+    map2 (Thm.close_derivation oo Skip_Proof.prove lthy [] [])
+      goals (map (unfold_defs_tac lthy defs) tacs)
     |> (fn thms => after_qed (map single thms @ wit_thms) lthy)
   end) oo prepare_def const_policy fact_policy qualify
-  (fn ctxt => singleton (Type_Infer_Context.infer_types ctxt)) Ds;
+  (singleton o Type_Infer_Context.infer_types) Ds;
 
 val bnf_def_cmd = (fn (goals, wit_goals, after_qed, lthy, defs) =>
   Proof.unfolding ([[(defs, [])]])
