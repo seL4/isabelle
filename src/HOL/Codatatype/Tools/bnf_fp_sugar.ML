@@ -124,7 +124,7 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
     val unfs = map (mk_unf As) raw_unfs;
     val flds = map (mk_fld As) raw_flds;
 
-    fun pour_some_sugar_on_type ((((((((((b, T), fld), unf), fld_unf), unf_fld), fld_inject),
+    fun pour_sugar_on_type ((((((((((b, T), fld), unf), fld_unf), unf_fld), fld_inject),
         ctr_binders), ctr_Tss), disc_binders), sel_binderss) no_defs_lthy =
       let
         val n = length ctr_binders;
@@ -168,26 +168,28 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
         val ctrs = map (Morphism.term phi) raw_ctrs;
         val casex = Morphism.term phi raw_case;
 
-        val fld_iff_unf_thm =
-          let
-            val goal =
-              fold_rev Logic.all [u, v]
-                (mk_Trueprop_eq (HOLogic.mk_eq (v, fld $ u), HOLogic.mk_eq (unf $ v, u)));
-          in
-            Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-              mk_fld_iff_unf_tac ctxt (map (SOME o certifyT lthy) [unf_T, T]) (certify lthy fld)
-                (certify lthy unf) fld_unf unf_fld)
-            |> Thm.close_derivation
-          end;
-
-        val sumEN_thm = mk_sumEN n;
-        val sumEN_thm' =
-          let val cTs = map (SOME o certifyT lthy) prod_Ts in
-            Local_Defs.unfold lthy @{thms all_unit_eq} (Drule.instantiate' cTs [] sumEN_thm)
-          end;
-
         fun exhaust_tac {context = ctxt, ...} =
-          mk_exhaust_tac ctxt n ms ctr_defs fld_iff_unf_thm sumEN_thm';
+          let
+            val fld_iff_unf_thm =
+              let
+                val goal =
+                  fold_rev Logic.all [u, v]
+                    (mk_Trueprop_eq (HOLogic.mk_eq (v, fld $ u), HOLogic.mk_eq (unf $ v, u)));
+              in
+                Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
+                  mk_fld_iff_unf_tac ctxt (map (SOME o certifyT lthy) [unf_T, T]) (certify lthy fld)
+                    (certify lthy unf) fld_unf unf_fld)
+                |> Thm.close_derivation
+                |> Morphism.thm phi
+              end;
+
+            val sumEN_thm' =
+              Local_Defs.unfold lthy @{thms all_unit_eq}
+                (Drule.instantiate' (map (SOME o certifyT lthy) prod_Ts) [] (mk_sumEN n))
+              |> Morphism.thm phi;
+          in
+            mk_exhaust_tac ctxt n ms ctr_defs fld_iff_unf_thm sumEN_thm'
+          end;
 
         val inject_tacss =
           map2 (fn 0 => K []
@@ -228,7 +230,7 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
       end;
   in
     lthy'
-    |> fold pour_some_sugar_on_type (bs ~~ Ts ~~ flds ~~ unfs ~~ fld_unfs ~~ unf_flds ~~ fld_injects ~~
+    |> fold pour_sugar_on_type (bs ~~ Ts ~~ flds ~~ unfs ~~ fld_unfs ~~ unf_flds ~~ fld_injects ~~
       ctr_binderss ~~ ctr_Tsss ~~ disc_binderss ~~ sel_bindersss)
   end;
 

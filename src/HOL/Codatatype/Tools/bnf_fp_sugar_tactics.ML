@@ -28,12 +28,10 @@ fun mk_case_tac ctxt n k m case_def ctr_def unf_fld =
    rtac refl) 1;
 
 fun mk_exhaust_tac ctxt n ms ctr_defs fld_iff_unf sumEN' =
-  Local_Defs.unfold_tac ctxt (fld_iff_unf :: ctr_defs) THEN
-  rtac sumEN' 1 THEN
+  Local_Defs.unfold_tac ctxt (fld_iff_unf :: ctr_defs) THEN rtac sumEN' 1 THEN
   Local_Defs.unfold_tac ctxt @{thms all_prod_eq} THEN
-  EVERY' (map2 (fn k => fn m =>
-     select_prem_tac n (REPEAT_DETERM_N m o dtac @{thm meta_spec} THEN' etac @{thm meta_mp}) k THEN'
-     atac) (1 upto n) ms) 1;
+  EVERY' (map2 (fn k => fn m => select_prem_tac n (REPEAT_DETERM_N m o dtac @{thm meta_spec} THEN'
+    etac @{thm meta_mp}) k THEN' atac) (1 upto n) ms) 1;
 
 fun mk_fld_iff_unf_tac ctxt cTs cfld cunf fld_unf unf_fld =
   (rtac iffI THEN'
@@ -47,9 +45,7 @@ fun mk_half_distinct_tac ctxt fld_inject ctr_defs =
   rtac @{thm sum.distinct(1)} 1;
 
 fun mk_inject_tac ctxt ctr_def fld_inject =
-  Local_Defs.unfold_tac ctxt [ctr_def] THEN
-  rtac (fld_inject RS ssubst) 1 THEN
-  Local_Defs.unfold_tac ctxt @{thms sum.inject Pair_eq conj_assoc} THEN
-  rtac refl 1;
+  Local_Defs.unfold_tac ctxt [ctr_def] THEN rtac (fld_inject RS ssubst) 1 THEN
+  Local_Defs.unfold_tac ctxt @{thms sum.inject Pair_eq conj_assoc} THEN rtac refl 1;
 
 end;
