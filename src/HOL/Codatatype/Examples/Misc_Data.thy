@@ -12,10 +12,6 @@ theory Misc_Data
 imports "../Codatatype"
 begin
 
-ML {* quick_and_dirty := false *}
-
-ML {* PolyML.fullGC (); *}
-
 data_raw simple: 'a = "unit + unit + unit + unit"
 
 data_raw mylist: 'list = "unit + 'a \<times> 'list"

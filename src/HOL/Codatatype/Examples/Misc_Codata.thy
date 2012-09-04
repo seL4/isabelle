@@ -12,10 +12,6 @@ theory Misc_Codata
 imports "../Codatatype"
 begin
 
-ML {* quick_and_dirty := false *}
-
-ML {* PolyML.fullGC (); *}
-
 codata_raw simple: 'a = "unit + unit + unit + unit"
 
 codata_raw stream: 's = "'a \<times> 's"
