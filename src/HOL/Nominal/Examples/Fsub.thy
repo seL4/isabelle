@@ -140,12 +140,12 @@ by (induct \<Gamma>) (simp_all add: eqvts)
 lemma finite_vrs:
   shows "finite (tyvrs_of x)"
   and   "finite (vrs_of x)"
-by (nominal_induct rule:binding.strong_induct, auto)
+by (nominal_induct rule:binding.strong_induct) auto
  
 lemma finite_doms:
   shows "finite (ty_dom \<Gamma>)"
   and   "finite (trm_dom \<Gamma>)"
-by (induct \<Gamma>, auto simp add: finite_vrs)
+by (induct \<Gamma>) (auto simp add: finite_vrs)
 
 lemma ty_dom_supp:
   shows "(supp (ty_dom  \<Gamma>)) = (ty_dom  \<Gamma>)"
@@ -155,13 +155,13 @@ by (simp only: at_fin_set_supp at_tyvrs_inst at_vrs_inst finite_doms)+
 lemma ty_dom_inclusion:
   assumes a: "(TVarB X T)\<in>set \<Gamma>" 
   shows "X\<in>(ty_dom \<Gamma>)"
-using a by (induct \<Gamma>, auto)
+using a by (induct \<Gamma>) (auto)
 
 lemma ty_binding_existence:
   assumes "X \<in> (tyvrs_of a)"
   shows "\<exists>T.(TVarB X T=a)"
   using assms
-by (nominal_induct a rule: binding.strong_induct, auto)
+by (nominal_induct a rule: binding.strong_induct) (auto)
 
 lemma ty_dom_existence:
   assumes a: "X\<in>(ty_dom \<Gamma>)" 
@@ -176,7 +176,7 @@ done
 lemma doms_append:
   shows "ty_dom (\<Gamma>@\<Delta>) = ((ty_dom \<Gamma>) \<union> (ty_dom \<Delta>))"
   and   "trm_dom (\<Gamma>@\<Delta>) = ((trm_dom \<Gamma>) \<union> (trm_dom \<Delta>))"
-  by (induct \<Gamma>, auto)
+  by (induct \<Gamma>) (auto)
 
 lemma ty_vrs_prm_simp:
   fixes pi::"vrs prm"
@@ -1069,7 +1069,7 @@ qed
 lemma typing_ok:
   assumes "\<Gamma> \<turnstile> t : T"
   shows   "\<turnstile> \<Gamma> ok"
-using assms by (induct, auto)
+using assms by (induct) (auto)
 
 nominal_inductive typing
 by (auto dest!: typing_ok intro: closed_in_fresh fresh_dom type_subst_fresh
@@ -1208,7 +1208,7 @@ inductive_cases eval_inv_auto[elim]:
 
 lemma ty_dom_cons:
   shows "ty_dom (\<Gamma>@[VarB X Q]@\<Delta>) = ty_dom (\<Gamma>@\<Delta>)"
-by (induct \<Gamma>, auto)
+by (induct \<Gamma>) (auto)
 
 lemma closed_in_cons: 
   assumes "S closed_in (\<Gamma> @ VarB X Q # \<Delta>)"
@@ -1251,7 +1251,7 @@ lemma valid_subst:
 
 lemma ty_dom_vrs:
   shows "ty_dom (G @ [VarB x Q] @ D) = ty_dom (G @ D)"
-by (induct G, auto)
+by (induct G) (auto)
 
 lemma valid_cons':
   assumes "\<turnstile> (\<Gamma> @ VarB x Q # \<Delta>) ok"

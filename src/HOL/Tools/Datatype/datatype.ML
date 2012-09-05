@@ -178,7 +178,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
       |> Sign.map_naming Name_Space.conceal
       |> Inductive.add_inductive_global
           {quiet_mode = #quiet config, verbose = false, alt_name = Binding.name big_rec_name,
-           coind = false, no_elim = true, no_ind = false, skip_mono = true, fork_mono = false}
+           coind = false, no_elim = true, no_ind = false, skip_mono = true}
           (map (fn s => ((Binding.name s, UnivT'), NoSyn)) rep_set_names') []
           (map (fn x => (Attrib.empty_binding, x)) intr_ts) []
       ||> Sign.restore_naming thy1

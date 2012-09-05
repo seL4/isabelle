@@ -92,9 +92,9 @@ object Isabelle_Rendering
   private val subexp_include =
     Set(Isabelle_Markup.SORT, Isabelle_Markup.TYP, Isabelle_Markup.TERM, Isabelle_Markup.PROP,
       Isabelle_Markup.ML_TYPING, Isabelle_Markup.TOKEN_RANGE, Isabelle_Markup.ENTITY,
-      Isabelle_Markup.TYPING, Isabelle_Markup.FREE, Isabelle_Markup.SKOLEM, Isabelle_Markup.BOUND,
-      Isabelle_Markup.VAR, Isabelle_Markup.TFREE, Isabelle_Markup.TVAR, Isabelle_Markup.ML_SOURCE,
-      Isabelle_Markup.DOC_SOURCE)
+      Isabelle_Markup.PATH, Isabelle_Markup.TYPING, Isabelle_Markup.FREE, Isabelle_Markup.SKOLEM,
+      Isabelle_Markup.BOUND, Isabelle_Markup.VAR, Isabelle_Markup.TFREE, Isabelle_Markup.TVAR,
+      Isabelle_Markup.ML_SOURCE, Isabelle_Markup.DOC_SOURCE)
 
   def subexp(snapshot: Document.Snapshot, range: Text.Range): Option[Text.Info[Color]] =
   {
@@ -190,8 +190,8 @@ object Isabelle_Rendering
       Isabelle_Markup.DOC_SOURCE -> "document source")
 
   private val tooltip_elements =
-    Set(Isabelle_Markup.ENTITY, Isabelle_Markup.TYPING, Isabelle_Markup.ML_TYPING) ++
-    tooltips.keys
+    Set(Isabelle_Markup.ENTITY, Isabelle_Markup.TYPING, Isabelle_Markup.ML_TYPING,
+      Isabelle_Markup.PATH) ++ tooltips.keys
 
   private def string_of_typing(kind: String, body: XML.Body): String =
     Pretty.string_of(List(Pretty.block(XML.Text(kind) :: Pretty.Break(1) :: body)),
@@ -208,6 +208,10 @@ object Isabelle_Rendering
         {
           case (prev, Text.Info(r, XML.Elem(Isabelle_Markup.Entity(kind, name), _))) =>
             add(prev, r, (true, kind + " " + quote(name)))
+          case (prev, Text.Info(r, XML.Elem(Isabelle_Markup.Path(name), _)))
+          if Path.is_ok(name) =>
+            val jedit_file = Isabelle.thy_load.append(snapshot.node_name.dir, Path.explode(name))
+            add(prev, r, (true, "file " + quote(jedit_file)))
           case (prev, Text.Info(r, XML.Elem(Markup(Isabelle_Markup.TYPING, _), body))) =>
             add(prev, r, (true, string_of_typing("::", body)))
           case (prev, Text.Info(r, XML.Elem(Markup(Isabelle_Markup.ML_TYPING, _), body))) =>
