@@ -66,7 +66,6 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
     val _ = (case duplicates (op =) As of [] => ()
       | A :: _ => error ("Duplicate type parameter " ^ quote (Syntax.string_of_typ lthy A)));
 
-    (* TODO: print timing information for sugar *)
     (* TODO: use sort constraints on type args *)
     (* TODO: use mixfix *)
 
@@ -94,13 +93,11 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
     val sel_bindersss = map (map (map fst)) ctr_argsss;
     val ctr_Tsss = map (map (map (prepare_typ fake_lthy o snd))) ctr_argsss;
 
-    val rhs_As = (case subtract (op =) As' (fold (fold (fold Term.add_tfreesT)) ctr_Tsss []) of
+    val rhs_As' = fold (fold (fold Term.add_tfreesT)) ctr_Tsss [];
+    val _ = (case subtract (op =) As' rhs_As' of
         [] => ()
       | A' :: _ => error ("Extra type variables on rhs: " ^
           quote (Syntax.string_of_typ lthy (TFree A'))));
-
-    (* TODO: check that no type variables occur in the rhss that's not in the lhss *)
-
 
     val (Bs, C) =
       lthy
@@ -126,6 +123,8 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
 
     val ((raw_unfs, raw_flds, unf_flds, fld_unfs, fld_injects), lthy') =
       fp_bnf (if gfp then bnf_gfp else bnf_lfp) bs As' eqs lthy;
+
+    val timer = time (Timer.startRealTimer ());
 
     fun mk_unf_or_fld get_foldedT Ts t =
       let val Type (_, Ts0) = get_foldedT (fastype_of t) in
@@ -248,10 +247,15 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
         wrap_data tacss ((ctrs, casex), (disc_binders, sel_binderss)) lthy'
         |> (if gfp then sugar_gfp else sugar_lfp)
       end;
+
+    val lthy'' =
+      fold pour_sugar_on_type (bs ~~ Ts ~~ flds ~~ unfs ~~ fld_unfs ~~ unf_flds ~~ fld_injects ~~
+        ctr_binderss ~~ ctr_Tsss ~~ disc_binderss ~~ sel_bindersss) lthy'
+
+    val timer = time (timer ("Constructors, discriminators, selectors, etc., for the new " ^
+      (if gfp then "co" else "") ^ "datatype"));
   in
-    lthy'
-    |> fold pour_sugar_on_type (bs ~~ Ts ~~ flds ~~ unfs ~~ fld_unfs ~~ unf_flds ~~ fld_injects ~~
-      ctr_binderss ~~ ctr_Tsss ~~ disc_binderss ~~ sel_bindersss)
+    (timer; lthy'')
   end;
 
 fun data_cmd info specs lthy =
