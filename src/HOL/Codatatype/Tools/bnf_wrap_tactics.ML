@@ -97,8 +97,6 @@ fun mk_split_tac exhaust' case_thms injectss distinctsss =
 val split_asm_thms = @{thms imp_conv_disj de_Morgan_conj de_Morgan_disj not_not not_ex};
 
 fun mk_split_asm_tac ctxt split =
-  rtac (split RS trans) 1 THEN
-  Local_Defs.unfold_tac ctxt split_asm_thms THEN
-  rtac refl 1;
+  rtac (split RS trans) 1 THEN Local_Defs.unfold_tac ctxt split_asm_thms THEN rtac refl 1;
 
 end;
