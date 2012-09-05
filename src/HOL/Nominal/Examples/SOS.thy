@@ -321,7 +321,7 @@ lemma unicity_of_evaluation:
 proof (nominal_induct e e\<^isub>1 avoiding: e\<^isub>2 rule: big.strong_induct)
   case (b_Lam x e t\<^isub>2)
   have "Lam [x].e \<Down> t\<^isub>2" by fact
-  thus "Lam [x].e = t\<^isub>2" by (cases, simp_all add: trm.inject)
+  thus "Lam [x].e = t\<^isub>2" by cases (simp_all add: trm.inject)
 next
   case (b_App x e\<^isub>1 e\<^isub>2 e' e\<^isub>1' e\<^isub>2' t\<^isub>2)
   have ih1: "\<And>t. e\<^isub>1 \<Down> t \<Longrightarrow> Lam [x].e\<^isub>1' = t" by fact

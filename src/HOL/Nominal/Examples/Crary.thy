@@ -225,7 +225,7 @@ lemma subst_fresh_simp:
   assumes a: "x\<sharp>\<theta>"
   shows "\<theta><Var x> = Var x"
 using a
-by (induct \<theta> arbitrary: x, auto simp add:fresh_list_cons fresh_prod fresh_atm)
+by (induct \<theta> arbitrary: x) (auto simp add:fresh_list_cons fresh_prod fresh_atm)
 
 lemma psubst_subst_propagate: 
   assumes "x\<sharp>\<theta>" 
@@ -529,7 +529,7 @@ qed (auto)
 lemma alg_path_equiv_implies_valid:
   shows  "\<Gamma> \<turnstile> s \<Leftrightarrow> t : T \<Longrightarrow> valid \<Gamma>" 
   and    "\<Gamma> \<turnstile> s \<leftrightarrow> t : T \<Longrightarrow> valid \<Gamma>"
-by (induct rule : alg_equiv_alg_path_equiv.inducts, auto)
+by (induct rule : alg_equiv_alg_path_equiv.inducts) auto
 
 lemma algorithmic_symmetry:
   shows "\<Gamma> \<turnstile> s \<Leftrightarrow> t : T \<Longrightarrow> \<Gamma> \<turnstile> t \<Leftrightarrow> s : T" 
