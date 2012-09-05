@@ -89,8 +89,7 @@ val naked_ctxt = Proof_Context.init_global @{theory HOL};
 
 fun mk_split_tac exhaust' case_thms injectss distinctsss =
   rtac exhaust' 1 THEN
-  ALLGOALS (fn k =>
-    (hyp_subst_tac THEN'
+  ALLGOALS (fn k => (hyp_subst_tac THEN'
      simp_tac (ss_only (@{thms simp_thms} @ case_thms @ nth injectss (k - 1) @
        flat (nth distinctsss (k - 1))))) k) THEN
   ALLGOALS (blast_tac naked_ctxt);

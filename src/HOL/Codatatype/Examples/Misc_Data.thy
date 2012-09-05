@@ -12,146 +12,139 @@ theory Misc_Data
 imports "../Codatatype"
 begin
 
-data_raw simple: 'a = "unit + unit + unit + unit"
+data simple = X1 | X2 | X3 | X4
 
-data_raw mylist: 'list = "unit + 'a \<times> 'list"
+data simple' = X1' unit | X2' unit | X3' unit | X4' unit
 
-data_raw some_passive: 'a = "'a + 'b + 'c + 'd + 'e"
+data 'a mylist = MyNil | MyCons 'a "'a mylist"
 
-data_raw lambda:
-  'trm = "string +
-          'trm \<times> 'trm +
-          string \<times> 'trm +
-          (string \<times> 'trm) fset \<times> 'trm"
+data ('b, 'c, 'd, 'e) some_passive =
+  SP1 "('b, 'c, 'd, 'e) some_passive" | SP2 'b | SP3 'c | SP4 'd | SP5 'e
 
-data_raw par_lambda:
-  'trm = "'a +
-          'trm \<times> 'trm +
-          'a \<times> 'trm +
-          ('a \<times> 'trm) fset \<times> 'trm"
+data lambda =
+  Var string |
+  App lambda lambda |
+  Abs string lambda |
+  Let "(string \<times> lambda) fset" lambda
+
+data 'a par_lambda =
+  PVar 'a |
+  PApp "'a par_lambda" "'a par_lambda" |
+  PAbs 'a "'a par_lambda" |
+  PLet "('a \<times> 'a par_lambda) fset" "'a par_lambda"
 
 (*
   ('a, 'b1, 'b2) F1 = 'a * 'b1 + 'a * 'b2
   ('a, 'b1, 'b2) F2 = unit + 'b1 * 'b2
 *)
 
-data_raw F1: 'b1 = "'a \<times> 'b1 + 'a \<times> 'b2"
-and F2: 'b2 = "unit + 'b1 * 'b2"
+data 'a I1 = I11 'a "'a I1" | I12 'a "'a I2"
+ and 'a I2 = I21 | I22 "'a I1" "'a I2"
 
-(*
-  'a tree = Empty | Node of 'a * 'a forest      ('b = unit + 'a * 'c)
-  'a forest = Nil | Cons of 'a tree * 'a forest ('c = unit + 'b * 'c)
+data 'a tree = TEmpty | TNode 'a "'a forest"
+ and 'a forest = FNil | FCons "'a tree" "'a forest"
+
+data 'a tree' = TEmpty' | TNode' "'a branch" "'a branch"
+ and 'a branch = Branch 'a "'a tree'"
+
+data ('a, 'b) exp = Term "('a, 'b) trm" | Sum "('a, 'b) trm" "('a, 'b) exp"
+ and ('a, 'b) trm = Factor "('a, 'b) factor" | Prod "('a, 'b) factor" "('a, 'b) trm"
+ and ('a, 'b) factor = C 'a | V 'b | Paren "('a, 'b) exp"
+
+data_raw some_killing: 'A = "'a \<Rightarrow> 'b \<Rightarrow> ('A + 'B)"
+and in_here: 'B = "'b \<times> 'a + 'c"
+
+(* FIXME
+data ('a, 'b, 'c) some_killing =
+  SK "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b, 'c) some_killing + ('a, 'b, 'c) in_here"
+ and ('a, 'b, 'c) in_here =
+  IH1 'b 'a | IH2 'c
 *)
 
-data_raw tree: 'tree = "unit + 'a \<times> 'forest"
-and forest: 'forest = "unit + 'tree \<times> 'forest"
-
-(*
-  'a tree = Empty | Node of 'a branch * 'a branch ('b = unit + 'c * 'c)
-'  a branch = Branch of 'a * 'a tree              ('c = 'a * 'b)
-*)
-
-data_raw tree': 'tree = "unit + 'branch \<times> 'branch"
-and branch: 'branch = "'a \<times> 'tree"
-
-(*
-  exp = Sum of term * exp          ('c = 'd + 'd * 'c)
-  term = Prod of factor * term     ('d = 'e + 'e * 'd)
-  factor = C 'a | V 'b | Paren exp ('e = 'a + 'b + 'c)
-*)
-
-data_raw EXPR: 'E = "'T + 'T \<times> 'E"
-and TERM: 'T = "'F + 'F \<times> 'T"
-and FACTOR: 'F = "'a + 'b + 'E"
-
-data_raw some_killing: 'a = "'b \<Rightarrow> 'd \<Rightarrow> ('a + 'c)"
-and in_here: 'c = "'d \<times> 'b + 'e"
-
+(* FIXME data 'b nofail1 = NF11 "'a \<times> 'b" | NF12 'b *)
 data_raw nofail1: 'a = "'a \<times> 'b + 'b"
-data_raw nofail2: 'a = "('a \<times> 'b \<times> 'a \<times> 'b) list"
-data_raw nofail3: 'a = "'b \<times> ('a \<times> 'b \<times> 'a \<times> 'b) fset"
-data_raw nofail4: 'a = "('a \<times> ('a \<times> 'b \<times> 'a \<times> 'b) fset) list"
+data 'b nofail2 = NF2 "('b nofail2 \<times> 'b \<times> 'b nofail2 \<times> 'b) list"
+data 'b nofail3 = NF3 "'b \<times> ('b nofail3 \<times> 'b \<times> 'b nofail3 \<times> 'b) fset"
+data 'b nofail4 = NF4 "('b nofail3 \<times> ('b nofail3 \<times> 'b \<times> 'b nofail3 \<times> 'b) fset) list"
 
 (*
-data_raw fail: 'a = "'a \<times> 'b \<times> 'a \<times> 'b list"
-data_raw fail: 'a = "'a \<times> 'b \<times> 'a \<times> 'b"
-data_raw fail: 'a = "'a \<times> 'b + 'a"
-data_raw fail: 'a = "'a \<times> 'b"
+data 'b fail = F "'b fail \<times> 'b \<times> 'b fail \<times> 'b list"
+data 'b fail = F "'b fail \<times> 'b \<times> 'b fail \<times> 'b"
+data 'b fail = F "'b fail \<times> 'b + 'b fail"
+data 'b fail = F "'b fail \<times> 'b"
 *)
 
-data_raw L1: 'L1 = "'L2 list"
-and L2: 'L2 = "'L1 fset + 'L2"
+data l1 = L1 "l2 list"
+ and l2 = L21 "l1 fset" | L22 l2
 
-data_raw K1: 'K1 = "'K2"
-and K2: 'K2 = "'K3"
-and K3: 'K3 = "'K1 list"
+data kk1 = KK1 kk2
+ and kk2 = KK2 kk3
+ and kk3 = KK3 "kk1 list"
 
-data_raw t1: 't1 = "'t3 + 't2"
-and t2: 't2 = "'t1"
-and t3: 't3 = "unit"
+data t1 = T11 t3 | T12 t2
+ and t2 = T2 t1
+ and t3 = T3
 
-data_raw t1': 't1 = "'t2 + 't3"
-and t2': 't2 = "'t1"
-and t3': 't3 = "unit"
+data t1' = T11' t2' | T12' t3'
+ and t2' = T2' t1'
+ and t3' = T3'
 
 (*
-data_raw fail1: 'L1 = "'L2"
-and fail2: 'L2 = "'L3"
-and fail2: 'L3 = "'L1"
+data fail1 = F1 fail2
+ and fail2 = F2 fail3
+ and fail3 = F3 fail1
 
-data_raw fail1: 'L1 = "'L2 list \<times> 'L2"
-and fail2: 'L2 = "'L2 fset \<times> 'L3"
-and fail2: 'L3 = "'L1"
+data fail1 = F1 "fail2 list" fail2
+ and fail2 = F2 "fail2 fset" fail3
+ and fail3 = F3 fail1
 
-data_raw fail1: 'L1 = "'L2 list \<times> 'L2"
-and fail2: 'L2 = "'L1 fset \<times> 'L1"
+data fail1 = F1 "fail2 list" fail2
+ and fail2 = F2 "fail1 fset" fail1
 *)
-(* SLOW
-data_raw K1': 'K1 = "'K2 + 'a list"
-and K2': 'K2 = "'K3 + 'c fset"
-and K3': 'K3 = "'K3 + 'K4 + 'K4 \<times> 'K5"
-and K4': 'K4 = "'K5 + 'a list list list"
-and K5': 'K5 = "'K6"
-and K6': 'K6 = "'K7"
-and K7': 'K7 = "'K8"
-and K8': 'K8 = "'K1 list"
+
+data ('a, 'c) D1 = A1 "('a, 'c) D2" | B1 "'a list"
+ and ('a, 'c) D2 = A2 "('a, 'c) D3" | B2 "'c list"
+ and ('a, 'c) D3 = A3 "('a, 'c) D3" | B3 "('a, 'c) D4" | C3 "('a, 'c) D4" "('a, 'c) D5"
+ and ('a, 'c) D4 = A4 "('a, 'c) D5" | B4 "'a list list list"
+ and ('a, 'c) D5 = A5 "('a, 'c) D6"
+ and ('a, 'c) D6 = A6 "('a, 'c) D7"
+ and ('a, 'c) D7 = A7 "('a, 'c) D8"
+ and ('a, 'c) D8 = A8 "('a, 'c) D1 list"
 
 (*time comparison*)
-datatype ('a, 'c) D1 = A1 "('a, 'c) D2" | B1 "'a list"
-     and ('a, 'c) D2 = A2 "('a, 'c) D3" | B2 "'c list"
-     and ('a, 'c) D3 = A3 "('a, 'c) D3" | B3 "('a, 'c) D4" | C3 "('a, 'c) D4" "('a, 'c) D5"
-     and ('a, 'c) D4 = A4 "('a, 'c) D5" | B4 "'a list list list"
-     and ('a, 'c) D5 = A5 "('a, 'c) D6"
-     and ('a, 'c) D6 = A6 "('a, 'c) D7"
-     and ('a, 'c) D7 = A7 "('a, 'c) D8"
-     and ('a, 'c) D8 = A8 "('a, 'c) D1 list"
-*)
+datatype ('a, 'c) D1' = A1' "('a, 'c) D2'" | B1' "'a list"
+     and ('a, 'c) D2' = A2' "('a, 'c) D3'" | B2' "'c list"
+     and ('a, 'c) D3' = A3' "('a, 'c) D3'" | B3' "('a, 'c) D4'" | C3' "('a, 'c) D4'" "('a, 'c) D5'"
+     and ('a, 'c) D4' = A4' "('a, 'c) D5'" | B4' "'a list list list"
+     and ('a, 'c) D5' = A5' "('a, 'c) D6'"
+     and ('a, 'c) D6' = A6' "('a, 'c) D7'"
+     and ('a, 'c) D7' = A7' "('a, 'c) D8'"
+     and ('a, 'c) D8' = A8' "('a, 'c) D1' list"
 
 (* fail:
-data_raw t1: 't1 = "'t2 * 't3 + 't2 * 't4"
-and t2: 't2 = "unit"
-and t3: 't3 = 't4
-and t4: 't4 = 't1
+data tt1 = TT11 tt2 tt3 | TT12 tt2 tt4
+ and tt2 = TT2
+ and tt3 = TT3 tt4
+ and tt4 = TT4 tt1
 *)
 
-data_raw k1: 'k1 = "'k2 * 'k3 + 'k2 * 'k4"
-and k2: 'k2 = unit
-and k3: 'k3 = 'k4
-and k4: 'k4 = unit
+data k1 = K11 k2 k3 | K12 k2 k4
+ and k2 = K2
+ and k3 = K3 k4
+ and k4 = K4
 
-data_raw tt1: 'tt1 = "'tt3 * 'tt2 + 'tt2 * 'tt4"
-and tt2: 'tt2 = unit
-and tt3: 'tt3 = 'tt1
-and tt4: 'tt4 = unit
-(* SLOW
-data_raw s1: 's1 = "'s2 * 's3 * 's4 + 's3 + 's2 * 's6 + 's4 * 's2 + 's2 * 's2"
-and s2: 's2 = "'s7 * 's5 + 's5 * 's4 * 's6"
-and s3: 's3 = "'s1 * 's7 * 's2 + 's3 * 's3 + 's4 * 's5"
-and s4: 's4 = 's5
-and s5: 's5 = unit
-and s6: 's6 = "'s6 + 's1 * 's2 + 's6"
-and s7: 's7 = "'s8 + 's5"
-and s8: 's8 = nat
-*)
+data tt1 = TT11 tt3 tt2 | TT12 tt2 tt4
+ and tt2 = TT2
+ and tt3 = TT3 tt1
+ and tt4 = TT4
+
+data s1 = S11 s2 s3 s4 | S12 s3 | S13 s2 s6 | S14 s4 s2 | S15 s2 s2
+ and s2 = S21 s7 s5 | S22 s5 s4 s6
+ and s3 = S31 s1 s7 s2 | S32 s3 s3 | S33 s4 s5
+ and s4 = S4 s5
+ and s5 = S5
+ and s6 = S61 s6 | S62 s1 s2 | S63 s6
+ and s7 = S71 s8 | S72 s5
+ and s8 = S8 nat
 
 end

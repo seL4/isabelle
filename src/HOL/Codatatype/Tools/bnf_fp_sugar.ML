@@ -66,8 +66,10 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
     val _ = (case duplicates (op =) As of [] => ()
       | T :: _ => error ("Duplicate type parameter " ^ quote (Syntax.string_of_typ lthy T)));
 
+    (* TODO: print timing information for sugar *)
     (* TODO: check that no type variables occur in the rhss that's not in the lhss *)
     (* TODO: use sort constraints on type args *)
+    (* TODO: use mixfix *)
 
     val N = length specs;
 

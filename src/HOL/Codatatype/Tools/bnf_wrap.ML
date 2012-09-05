@@ -192,6 +192,9 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_case), (raw_disc_binders, raw_se
     val missing_unique_disc_def = TrueI; (*arbitrary marker*)
     val missing_alternate_disc_def = FalseE; (*arbitrary marker*)
 
+    (* TODO: Allow use of same selector for several constructors *)
+    (* TODO: Allow use of same name for datatype and for constructor, e.g. "data L = L" *)
+
     val (((raw_discs, raw_disc_defs), (raw_selss, raw_sel_defss)), (lthy', lthy)) =
       no_defs_lthy
       |> apfst split_list o fold_map4 (fn k => fn m => fn exist_xs_v_eq_ctr =>
@@ -301,7 +304,7 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_case), (raw_disc_binders, raw_se
             map5 mk_thms ks xss goal_cases case_thms sel_defss
           end;
 
-        fun mk_unique_disc_def k =
+        fun mk_unique_disc_def () =
           let
             val m = the_single ms;
             val goal = mk_Trueprop_eq (mk_v_eq_v (), the_single exist_xs_v_eq_ctrs);
@@ -329,7 +332,7 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_case), (raw_disc_binders, raw_se
 
         val disc_defs' =
           map2 (fn k => fn def =>
-            if Thm.eq_thm_prop (def, missing_unique_disc_def) then mk_unique_disc_def k
+            if Thm.eq_thm_prop (def, missing_unique_disc_def) then mk_unique_disc_def ()
             else if Thm.eq_thm_prop (def, missing_alternate_disc_def) then mk_alternate_disc_def k
             else def)
           ks disc_defs;
