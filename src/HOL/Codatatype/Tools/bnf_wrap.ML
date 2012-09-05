@@ -40,7 +40,7 @@ val splitN = "split";
 val split_asmN = "split_asm";
 val weak_case_cong_thmsN = "weak_case_cong";
 
-val no_binder = @{binding "*"};
+val no_binder = @{binding ""};
 val fallback_binder = @{binding _};
 
 fun pad_list x n xs = xs @ replicate (n - length xs) x;
