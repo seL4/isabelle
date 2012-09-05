@@ -133,6 +133,7 @@ def import_isatest_log(env, conf, logfile):
 def isabelle_build(env, case, paths, dep_paths, playground, *cmdargs, **kwargs):
 
     more_settings=kwargs.get('more_settings', '')
+    keep_results=kwargs.get('keep_results', True)
 
     isabelle_home = paths[0]
 
@@ -169,7 +170,7 @@ ISABELLE_GHC="/usr/bin/ghc"
 
     # collect report
     return (return_code == 0, extract_isabelle_run_summary(log),
-      extract_report_data(isabelle_home, log), {'log': log}, heap_dir)
+      extract_report_data(isabelle_home, log), {'log': log}, heap_dir if keep_results else None)
 
 
 
@@ -210,7 +211,7 @@ ML_SYSTEM="polyml-5.4.1"
 @configuration(repos = [Isabelle], deps = [])
 def Isabelle_makeall(*args):
     """Build all sessions"""
-    return isabelle_build(*(args + ("-j", "6", "-o", "threads=4", "-a")), more_settings=settings64)
+    return isabelle_build(*(args + ("-j", "6", "-o", "threads=4", "-a")), more_settings=settings64, keep_results=False)
 
 
 # Mutabelle configurations
