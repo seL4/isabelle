@@ -99,9 +99,14 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
       |> mk_TFrees N
       ||> the_single o fst o mk_TFrees 1;
 
-    fun freeze_rec (T as Type (s, Ts')) =
-        (case find_index (curry (op =) T) Ts of
-          ~1 => Type (s, map freeze_rec Ts')
+    fun is_same_rec (T as Type (s, Us)) (Type (s', Us')) =
+        s = s' andalso (Us = Us' orelse error ("Illegal occurrence of recursive type " ^
+          quote (Syntax.string_of_typ fake_lthy T)))
+      | is_same_rec _ _ = false
+
+    fun freeze_rec (T as Type (s, Us)) =
+        (case find_index (is_same_rec T) Ts of
+          ~1 => Type (s, map freeze_rec Us)
         | i => nth Bs i)
       | freeze_rec T = T;
 
@@ -210,10 +215,16 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
         fun sugar_lfp lthy =
           let
 (*###
-            val iter_Tss = map ( ) ctr_Tss
+            val fld_iter = @{term True}; (*###*)
+
+            val iter_Tss = map (fn Ts => Ts) (*###*) ctr_Tss;
             val iter_Ts = map (fn Ts => Ts ---> C) iter_Tss;
 
             val iter_fs = map2 (fn Free (s, _) => fn T => Free (s, T)) fs iter_Ts
+
+            val iter_rhs =
+              fold_rev Term.lambda fs (fld_iter $ mk_sum_caseN (uncurry_fs fs xss) $ (unf $ v));
+
 
             val uncurried_fs =
               map2 (fn f => fn xs =>
