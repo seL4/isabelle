@@ -68,9 +68,9 @@ its doubled space requirements for Poly/ML heaps.  For Mac OS X, the
 x86-darwin personality usually works seamlessly for C/C++ programs,
 but the Java 7 platform is only available for x86_64-darwin.
 
-Add-on executables are expected to without manual user configuration,
-Each component settings script needs to work out the platform details
-appropriately.
+Add-on executables are expected to work without manual user
+configuration.  Each component settings script needs to determine the
+platform details appropriately.
 
 The Isabelle settings environment provides the following variables to
 help configuring platform-dependent tools:
@@ -88,8 +88,10 @@ bit as follows:
 
 Moreover note that ML and JVM usually have a different idea of the
 platform, depending on the respective binaries that are actually run.
-Poly/ML 5.5.x runs most efficiently on 32 bit, even for large
-applications.  The JVM usually performs better in 64 bit mode.
+Poly/ML 5.5.x performs best in 32 bit mode, even for large
+applications, thanks to its sophisticated heap management.  The JVM
+usually works better in 64 bit mode, which allows its heap to grow
+beyond 2 GB.
 
 The traditional "uname" Unix tool usually only tells about its own
 executable format, not the underlying platform!
@@ -109,8 +111,8 @@ The following portable system tools can be taken for granted:
   performs not as well in addressing various delicate details of
   operating system concepts (processes, signals, sockets etc.).
 
-* Scala with Java 1.7.  The Isabelle/Scala layer irons out many
-  oddities and portability issues of the Java platform.
+* Scala with Java 1.7.  Isabelle/Scala irons out many oddities and
+  portability issues of the Java platform.
 
 
 Known problems
@@ -129,8 +131,7 @@ Known problems
 
 * The Java runtime has its own idea about the underlying platform,
   which affects Java native libraries in particular.  In
-  Isabelle/Scala isabelle.Platform.jvm_platform identifies the JVM
-  platform.  Since there can be many different Java installations on
-  the same machine, which can also be run with different options,
-  reliable JVM platform identification works from inside the running
-  JVM only.
+  Isabelle/Scala the function isabelle.Platform.jvm_platform
+  identifies the JVM platform.  Since a particular Java version is
+  always bundled with Isabelle, the resulting settings also provide
+  some clues about its platform, without running it.
