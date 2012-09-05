@@ -99,10 +99,10 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_case), (raw_disc_binders, raw_se
 
     val raw_disc_binders' = pad_list no_binder n raw_disc_binders;
 
-    fun can_rely_on_disc i =
-      not (Binding.eq_name (nth raw_disc_binders' i, no_binder)) orelse nth ms i = 0;
+    fun can_rely_on_disc k =
+      not (Binding.eq_name (nth raw_disc_binders' (k - 1), no_binder)) orelse nth ms (k - 1) = 0;
     fun can_omit_disc_binder k m =
-      n = 1 orelse m = 0 orelse (n = 2 andalso can_rely_on_disc (2 - k))
+      n = 1 orelse m = 0 orelse (n = 2 andalso can_rely_on_disc (3 - k))
 
     val fallback_disc_binder = Binding.name o prefix is_N o Long_Name.base_name o name_of_ctr;
 
@@ -174,12 +174,14 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_case), (raw_disc_binders, raw_se
 
     fun disc_spec b exist_xs_v_eq_ctr = mk_Trueprop_eq (disc_free b $ v, exist_xs_v_eq_ctr);
 
-    fun alternate_disc_lhs i =
+    fun alternate_disc_lhs k =
       HOLogic.mk_not
-        (case nth disc_binders i of NONE => nth exist_xs_v_eq_ctrs i | SOME b => disc_free b $ v);
+        (case nth disc_binders (k - 1) of
+          NONE => nth exist_xs_v_eq_ctrs (k - 1)
+        | SOME b => disc_free b $ v);
 
     fun alternate_disc k =
-      if n = 2 then Term.lambda v (alternate_disc_lhs (2 - k)) else error "Cannot use \"*\" here"
+      if n = 2 then Term.lambda v (alternate_disc_lhs (3 - k)) else error "Cannot use \"*\" here"
 
     fun sel_spec b x xs k =
       let val T' = fastype_of x in
@@ -312,7 +314,7 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_case), (raw_disc_binders, raw_se
         fun mk_alternate_disc_def k =
           let
             val goal =
-              mk_Trueprop_eq (Morphism.term phi (alternate_disc_lhs (2 - k)),
+              mk_Trueprop_eq (Morphism.term phi (alternate_disc_lhs (3 - k)),
                 nth exist_xs_v_eq_ctrs (k - 1));
           in
             Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
