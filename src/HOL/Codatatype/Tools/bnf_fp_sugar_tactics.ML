@@ -31,7 +31,7 @@ fun mk_exhaust_tac ctxt n ms ctr_defs fld_iff_unf sumEN' =
   Local_Defs.unfold_tac ctxt (fld_iff_unf :: ctr_defs) THEN rtac sumEN' 1 THEN
   Local_Defs.unfold_tac ctxt @{thms all_prod_eq} THEN
   EVERY' (map2 (fn k => fn m =>
-    select_prem_tac n (REPEAT_DETERM_N m o dtac @{thm meta_spec} THEN' rotate_tac ~1 THEN'
+    select_prem_tac k (REPEAT_DETERM_N m o dtac @{thm meta_spec} THEN' rotate_tac ~1 THEN'
       etac @{thm meta_mp}) k THEN' atac) (1 upto n) ms) 1;
 
 fun mk_fld_iff_unf_tac ctxt cTs cfld cunf fld_unf unf_fld =
