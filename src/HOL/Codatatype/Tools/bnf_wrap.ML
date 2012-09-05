@@ -424,7 +424,7 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_case), (raw_disc_binders, raw_se
             val goal = mk_Trueprop_eq (caseB_fs $ v, mk_rhs discs fs selss);
           in
             Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-              mk_case_eq_tac ctxt exhaust_thm' case_thms disc_thmss' sel_thmss)
+              mk_case_eq_tac ctxt n exhaust_thm' case_thms disc_thmss' sel_thmss)
             |> singleton (Proof_Context.export names_lthy lthy)
           end;
 

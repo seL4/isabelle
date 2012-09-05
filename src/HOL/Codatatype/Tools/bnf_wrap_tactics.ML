@@ -9,7 +9,8 @@ signature BNF_WRAP_TACTICS =
 sig
   val mk_alternate_disc_def_tac: Proof.context -> int -> thm -> thm -> thm -> tactic
   val mk_case_cong_tac: thm -> thm list -> tactic
-  val mk_case_eq_tac: Proof.context -> thm -> thm list -> thm list list -> thm list list -> tactic
+  val mk_case_eq_tac: Proof.context -> int -> thm -> thm list -> thm list list -> thm list list ->
+    tactic
   val mk_collapse_tac: Proof.context -> int -> thm -> thm list -> tactic
   val mk_disc_exhaust_tac: int -> thm -> thm list -> tactic
   val mk_half_disc_exclude_tac: int -> thm -> thm -> tactic
@@ -29,8 +30,10 @@ open BNF_Tactics
 fun triangle _ [] = []
   | triangle k (xs :: xss) = take k xs :: triangle (k + 1) xss
 
-fun mk_if_P_or_not_P thm =
-  thm RS @{thm if_not_P} handle THM _ => thm RS @{thm if_P}
+fun mk_case_if_P_or_not_Ps n k thms =
+  let val (negs, pos) = split_last thms in
+    map (fn thm => thm RS @{thm if_not_P}) negs @ (if k = n then [] else [pos RS @{thm if_P}])
+  end;
 
 fun ss_only thms = Simplifier.clear_ss HOL_basic_ss addsimps thms
 
@@ -71,13 +74,12 @@ fun mk_collapse_tac ctxt m discD sel_thms =
       SELECT_GOAL (Local_Defs.unfold_tac ctxt sel_thms) THEN'
       rtac refl)) 1;
 
-fun mk_case_eq_tac ctxt exhaust' case_thms disc_thmss' sel_thmss =
+fun mk_case_eq_tac ctxt n exhaust' case_thms disc_thmss' sel_thmss =
   (rtac exhaust' THEN'
    EVERY' (map3 (fn case_thm => fn if_disc_thms => fn sel_thms =>
-       EVERY' [hyp_subst_tac THEN'
-         SELECT_GOAL (Local_Defs.unfold_tac ctxt (if_disc_thms @ sel_thms)) THEN' rtac case_thm])
-     case_thms (map (map mk_if_P_or_not_P) (triangle 1 (map (fst o split_last) disc_thmss')))
-     sel_thmss)) 1;
+       EVERY' [hyp_subst_tac, SELECT_GOAL (Local_Defs.unfold_tac ctxt (if_disc_thms @ sel_thms)),
+         rtac case_thm])
+     case_thms (map2 (mk_case_if_P_or_not_Ps n) (1 upto n) (triangle 1 disc_thmss')) sel_thmss)) 1;
 
 fun mk_case_cong_tac exhaust' case_thms =
   (rtac exhaust' THEN'
