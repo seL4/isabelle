@@ -41,6 +41,51 @@ given given sort.  Example (in HOL):
 
 *** HOL ***
 
+* Renamed theory Library/List_Prefix to Library/Sublist.
+INCOMPATIBILITY.  Related changes are:
+
+  - Renamed constants:
+
+      prefix ~> prefixeq
+      strict_prefix ~> prefix
+
+    Renamed lemmas accordingly, INCOMPATIBILITY.
+
+  - Replaced constant "postfix" by "suffixeq" with swapped argument order
+    (i.e., "postfix xs ys" is now "suffixeq ys xs") and dropped old infix
+    syntax "xs >>= ys"; use "suffixeq ys xs" instead.  Renamed lemmas
+    accordingly.  INCOMPATIBILITY.
+
+  - New constant "emb" for homeomorphic embedding on lists. New
+    abbreviation "sub" for special case "emb (op =)".
+
+  - Library/Sublist does no longer provide "order" and "bot" type class
+    instances for the prefix order (merely corresponding locale
+    interpretations). The type class instances are to be found in
+    Library/Prefix_Order. INCOMPATIBILITY.
+
+  - The sublist relation from Library/Sublist_Order is now based on
+    "Sublist.sub". Replaced lemmas:
+
+      le_list_append_le_same_iff ~> Sublist.sub_append_le_same_iff
+      le_list_append_mono ~> Sublist.emb_append_mono
+      le_list_below_empty ~> Sublist.emb_Nil, Sublist.emb_Nil2
+      le_list_Cons_EX ~> Sublist.emb_ConsD
+      le_list_drop_Cons2 ~> Sublist.sub_Cons2'
+      le_list_drop_Cons_neq ~> Sublist.sub_Cons2_neq
+      le_list_drop_Cons ~> Sublist.sub_Cons'
+      le_list_drop_many ~> Sublist.sub_drop_many
+      le_list_filter_left ~> Sublist.sub_filter_left
+      le_list_rev_drop_many ~> Sublist.sub_rev_drop_many
+      le_list_rev_take_iff ~> Sublist.sub_append
+      le_list_same_length ~> Sublist.sub_same_length
+      le_list_take_many_iff ~> Sublist.sub_append'
+      less_eq_list.drop ~> less_eq_list_drop
+      less_eq_list.induct ~> less_eq_list_induct
+      not_le_list_length ~> Sublist.not_sub_length
+
+    INCOMPATIBILITY.
+
 * HOL/Codatatype: New (co)datatype package with support for mixed,
 nested recursion and interesting non-free datatypes.
 

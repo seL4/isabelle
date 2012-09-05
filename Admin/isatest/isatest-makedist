@@ -116,7 +116,7 @@ $SSH macbroy2 "
 sleep 15
 $SSH macbroy6 "$MAKEALL $HOME/settings/mac-poly64-M2"
 sleep 15
-$SSH macbroy30 "sleep 10800; $MAKEALL $HOME/settings/mac-poly-M2"
+$SSH macbroy30 "$MAKEALL $HOME/settings/mac-poly-M2"
 
 echo ------------------- spawned tests successfully --- `date` --- $HOSTNAME >> $DISTLOG 2>&1
 

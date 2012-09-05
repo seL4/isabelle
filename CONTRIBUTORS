@@ -6,6 +6,10 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* September 2012: Christian Sternagel, JAIST
+  Consolidated HOL/Library (theories: Prefix_Order, Sublist, and
+  Sublist_Order) w.r.t. prefixes, suffixes, and embedding on lists.
+
 * August 2012: Dmitriy Traytel, Andrei Popescu, Jasmin Blanchette, TUM
   New (co)datatype package.
 
