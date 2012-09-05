@@ -358,7 +358,7 @@ fun process_constraints ctxt err cs tye_idx =
                     error (gen_msg err ("failed to unify invariant arguments" ^ msg))));
             val (new, (tye', idx')) = apfst (fn cs => (cs ~~ replicate (length cs) error_pack))
               (fold new_constraints (arg_var ~~ (Ts ~~ Us)) ([], (tye, idx)));
-            val test_update = is_compT orf is_freeT orf is_fixedvarT;
+            val test_update = is_typeT orf is_freeT orf is_fixedvarT;
             val (ch, done') =
               if not (null new) then ([], done)
               else split_cs (test_update o Type_Infer.deref tye') done;
