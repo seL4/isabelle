@@ -315,7 +315,7 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_case), (raw_disc_binders, raw_se
                 nth exist_xs_v_eq_ctrs (k - 1));
           in
             Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-              mk_alternate_disc_def_tac ctxt (nth disc_defs (2 - k)) (nth distinct_thms (2 - k))
+              mk_alternate_disc_def_tac ctxt k (nth disc_defs (2 - k)) (nth distinct_thms (2 - k))
                 exhaust_thm')
             |> singleton (Proof_Context.export names_lthy lthy)
             |> Thm.close_derivation
