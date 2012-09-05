@@ -16,7 +16,7 @@ datatype 'a acom =
   If bexp 'a "('a acom)" 'a "('a acom)" 'a
     ("(IF _/ THEN ({_}/ _)/ ELSE ({_}/ _)//{_})"  [0, 0, 0, 61, 0, 0] 61) |
   While 'a bexp 'a "('a acom)" 'a
-    ("({_}//WHILE _/ DO ({_}/ _)//{_})"  [0, 0, 0, 61, 0] 61)
+    ("({_}//WHILE _//DO ({_}//_)//{_})"  [0, 0, 0, 61, 0] 61)
 
 fun post :: "'a acom \<Rightarrow>'a" where
 "post (SKIP {P}) = P" |
