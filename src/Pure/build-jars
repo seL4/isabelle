@@ -166,7 +166,7 @@ fi
 
 if [ "$OUTDATED" = true ]
 then
-  echo "### Building Isabelle/Scala layer ..."
+  echo "### Building Isabelle/Scala ..."
 
   [ "${#UPDATED[@]}" -gt 0 ] && {
     echo "Changed files:"

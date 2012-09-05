@@ -1,7 +1,7 @@
 (*  Title:      Pure/System/invoke_scala.ML
     Author:     Makarius
 
-JVM method invocation service via Scala layer.
+JVM method invocation service via Isabelle/Scala.
 
 TODO: proper cancellation!
 *)

@@ -446,8 +446,8 @@ text {*
   @{verbatim "-X"} option enables XML-based PGIP communication.
 
   \medskip The @{verbatim "-T"} or @{verbatim "-W"} option makes
-  Isabelle enter a special process wrapper for interaction via the
-  Isabelle/Scala layer, see also @{file
+  Isabelle enter a special process wrapper for interaction via
+  Isabelle/Scala, see also @{file
   "~~/src/Pure/System/isabelle_process.scala"}.  The protocol between
   the ML and JVM process is private to the implementation.
 

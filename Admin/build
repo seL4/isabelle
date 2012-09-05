@@ -25,7 +25,7 @@ Usage: $PRG [MODULES]
 
     all             all modules below
     browser         graph browser (requires jdk)
-    jars            Isabelle/Scala layer (requires \$ISABELLE_JDK_HOME and \$SCALA_HOME)
+    jars            Isabelle/Scala (requires \$ISABELLE_JDK_HOME and \$SCALA_HOME)
     jars_test       test separate build of jars
     jars_fresh      fresh build of jars
 

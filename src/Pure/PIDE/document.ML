@@ -384,7 +384,7 @@ fun make_required nodes =
 
 fun init_theory deps node span =
   let
-    (* FIXME provide files via Scala layer, not master_dir *)
+    (* FIXME provide files via Isabelle/Scala, not master_dir *)
     val (dir, header) = read_header node span;
     val master_dir =
       (case try Url.explode dir of
