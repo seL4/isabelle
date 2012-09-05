@@ -254,6 +254,8 @@ fun mk_sum_casesN 1 1 = @{thm refl}
 fun mk_tactics mid mcomp mcong snat bdco bdinf sbd inbd wpull =
   [mid, mcomp, mcong] @ snat @ [bdco, bdinf] @ sbd @ [inbd, wpull];
 
+(* FIXME: because of "@ lhss", the output could contain type variables that are not in the input;
+   also, "fp_sort" should put the "resBs" first and in the order in which they appear *)
 fun fp_sort lhss Ass = Library.sort (Term_Ord.typ_ord o pairself TFree)
   (subtract (op =) lhss (fold (fold (insert (op =))) Ass [])) @ lhss;
 
