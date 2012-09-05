@@ -61,8 +61,7 @@ data ('a, 'b, 'c) some_killing =
   IH1 'b 'a | IH2 'c
 *)
 
-(* FIXME data 'b nofail1 = NF11 "'a \<times> 'b" | NF12 'b *)
-data_raw nofail1: 'a = "'a \<times> 'b + 'b"
+data 'b nofail1 = NF11 "'b nofail1 \<times> 'b" | NF12 'b
 data 'b nofail2 = NF2 "('b nofail2 \<times> 'b \<times> 'b nofail2 \<times> 'b) list"
 data 'b nofail3 = NF3 "'b \<times> ('b nofail3 \<times> 'b \<times> 'b nofail3 \<times> 'b) fset"
 data 'b nofail4 = NF4 "('b nofail3 \<times> ('b nofail3 \<times> 'b \<times> 'b nofail3 \<times> 'b) fset) list"
