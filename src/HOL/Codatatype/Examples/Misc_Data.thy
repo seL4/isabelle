@@ -102,6 +102,7 @@ data fail1 = F1 "fail2 list" fail2
  and fail2 = F2 "fail1 fset" fail1
 *)
 
+(* SLOW
 data ('a, 'c) D1 = A1 "('a, 'c) D2" | B1 "'a list"
  and ('a, 'c) D2 = A2 "('a, 'c) D3" | B2 "'c list"
  and ('a, 'c) D3 = A3 "('a, 'c) D3" | B3 "('a, 'c) D4" | C3 "('a, 'c) D4" "('a, 'c) D5"
@@ -120,6 +121,7 @@ datatype ('a, 'c) D1' = A1' "('a, 'c) D2'" | B1' "'a list"
      and ('a, 'c) D6' = A6' "('a, 'c) D7'"
      and ('a, 'c) D7' = A7' "('a, 'c) D8'"
      and ('a, 'c) D8' = A8' "('a, 'c) D1' list"
+*)
 
 (* fail:
 data tt1 = TT11 tt2 tt3 | TT12 tt2 tt4
@@ -138,6 +140,7 @@ data tt1 = TT11 tt3 tt2 | TT12 tt2 tt4
  and tt3 = TT3 tt1
  and tt4 = TT4
 
+(* SLOW
 data s1 = S11 s2 s3 s4 | S12 s3 | S13 s2 s6 | S14 s4 s2 | S15 s2 s2
  and s2 = S21 s7 s5 | S22 s5 s4 s6
  and s3 = S31 s1 s7 s2 | S32 s3 s3 | S33 s4 s5
@@ -146,5 +149,6 @@ data s1 = S11 s2 s3 s4 | S12 s3 | S13 s2 s6 | S14 s4 s2 | S15 s2 s2
  and s6 = S61 s6 | S62 s1 s2 | S63 s6
  and s7 = S71 s8 | S72 s5
  and s8 = S8 nat
+*)
 
 end
