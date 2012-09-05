@@ -293,7 +293,7 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_case), (raw_disc_binders, raw_se
                   (Drule.instantiate' (map SOME cTs) (map SOME cxs) case_thm)
               end;
             fun mk_thms k xs goal_case case_thm sel_defs =
-              map2 (mk_thm k xs goal_case case_thm) xs sel_defs;
+              map2 (mk_thm k xs (strip_all_body goal_case) case_thm) xs sel_defs;
           in
             map5 mk_thms ks xss goal_cases case_thms sel_defss
           end;
