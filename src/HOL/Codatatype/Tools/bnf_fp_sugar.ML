@@ -195,7 +195,7 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
                 (Drule.instantiate' (map (SOME o certifyT lthy) prod_Ts) [] (mk_sumEN n))
               |> Morphism.thm phi;
           in
-            mk_exhaust_tac ctxt n ms ctr_defs fld_iff_unf_thm sumEN_thm'
+            mk_exhaust_tac ctxt n ctr_defs fld_iff_unf_thm sumEN_thm'
           end;
 
         val inject_tacss =

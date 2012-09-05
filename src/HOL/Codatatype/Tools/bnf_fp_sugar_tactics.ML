@@ -8,7 +8,7 @@ Tactics for the LFP/GFP sugar.
 signature BNF_FP_SUGAR_TACTICS =
 sig
   val mk_case_tac: Proof.context -> int -> int -> int -> thm -> thm -> thm -> tactic
-  val mk_exhaust_tac: Proof.context -> int -> int list -> thm list -> thm -> thm -> tactic
+  val mk_exhaust_tac: Proof.context -> int -> thm list -> thm -> thm -> tactic
   val mk_fld_iff_unf_tac: Proof.context -> ctyp option list -> cterm -> cterm -> thm -> thm
     -> tactic
   val mk_half_distinct_tac: Proof.context -> thm -> thm list -> tactic
@@ -27,12 +27,11 @@ fun mk_case_tac ctxt n k m case_def ctr_def unf_fld =
    REPEAT_DETERM_N (Int.max (0, m - 1)) o rtac (@{thm split} RS ssubst) THEN'
    rtac refl) 1;
 
-fun mk_exhaust_tac ctxt n ms ctr_defs fld_iff_unf sumEN' =
+fun mk_exhaust_tac ctxt n ctr_defs fld_iff_unf sumEN' =
   Local_Defs.unfold_tac ctxt (fld_iff_unf :: ctr_defs) THEN rtac sumEN' 1 THEN
   Local_Defs.unfold_tac ctxt @{thms all_prod_eq} THEN
-  EVERY' (map2 (fn k => fn m =>
-    select_prem_tac n (rotate_tac 1) k THEN' REPEAT_DETERM_N m o dtac @{thm meta_spec} THEN'
-    etac @{thm meta_mp} THEN' atac) (1 upto n) ms) 1;
+  EVERY' (maps (fn k => [select_prem_tac n (rotate_tac 1) k, REPEAT_DETERM o dtac @{thm meta_spec},
+    etac @{thm meta_mp}, atac]) (1 upto n)) 1;
 
 fun mk_fld_iff_unf_tac ctxt cTs cfld cunf fld_unf unf_fld =
   (rtac iffI THEN'
