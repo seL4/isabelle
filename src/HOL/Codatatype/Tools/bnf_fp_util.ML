@@ -259,7 +259,7 @@ fun mk_tactics mid mcomp mcong snat bdco bdinf sbd inbd wpull =
 fun fp_sort lhss Ass = Library.sort (Term_Ord.typ_ord o pairself TFree)
   (subtract (op =) lhss (fold (fold (insert (op =))) Ass [])) @ lhss;
 
-fun mk_fp_bnf timer construct bs resBs sort bnfs deadss livess unfold lthy =
+fun mk_fp_bnf timer construct bs resBs sort lhss bnfs deadss livess unfold lthy =
   let
     val name = fold_rev (fn b => fn s => Binding.name_of b ^ s) bs "";
     fun qualify i bind =
@@ -273,7 +273,7 @@ fun mk_fp_bnf timer construct bs resBs sort bnfs deadss livess unfold lthy =
     val resDs = fold (subtract (op =)) Ass resBs;
     val Ds = fold (fold Term.add_tfreesT) deadss resDs;
 
-    val _ = (case Library.inter (op =) Ds (fold (union (op =)) Ass []) of [] => ()
+    val _ = (case Library.inter (op =) Ds lhss of [] => ()
       | A :: _ => error ("Nonadmissible type recursion (cannot take fixed point of dead type \
         \variable " ^ quote (Syntax.string_of_typ lthy (TFree A)) ^ ")"));
 
@@ -305,7 +305,7 @@ fun fp_bnf construct bs resBs eqs lthy =
       (fold_map2 (fn b => bnf_of_typ Smart_Inline (Binding.suffix_name "RAW" b) I sort) bs rhss
         (empty_unfold, lthy));
   in
-    mk_fp_bnf timer construct bs resBs sort bnfs Dss Ass unfold lthy'
+    mk_fp_bnf timer construct bs resBs sort lhss bnfs Dss Ass unfold lthy'
   end;
 
 fun fp_bnf_cmd construct (bs, (raw_lhss, raw_bnfs)) lthy =
@@ -318,7 +318,7 @@ fun fp_bnf_cmd construct (bs, (raw_lhss, raw_bnfs)) lthy =
         (bnf_of_typ Smart_Inline (Binding.suffix_name "RAW" b) I sort (Syntax.read_typ lthy rawT)))
         bs raw_bnfs (empty_unfold, lthy));
   in
-    mk_fp_bnf timer construct bs [] sort bnfs Dss Ass unfold lthy'
+    mk_fp_bnf timer construct bs [] sort lhss bnfs Dss Ass unfold lthy'
   end;
 
 end;
