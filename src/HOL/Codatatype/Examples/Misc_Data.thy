@@ -52,7 +52,7 @@ data ('a, 'b) exp = Term "('a, 'b) trm" | Sum "('a, 'b) trm" "('a, 'b) exp"
  and ('a, 'b) factor = C 'a | V 'b | Paren "('a, 'b) exp"
 
 data_raw some_killing: 'A = "'a \<Rightarrow> 'b \<Rightarrow> ('A + 'B)"
-and in_here: 'B = "'b \<times> 'a + 'c"
+     and in_here: 'B = "'b \<times> 'a + 'c"
 
 (* FIXME
 data ('a, 'b, 'c) some_killing =
