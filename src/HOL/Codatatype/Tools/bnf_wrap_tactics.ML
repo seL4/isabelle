@@ -73,11 +73,11 @@ fun mk_collapse_tac ctxt m discD sel_thms =
 
 fun mk_case_eq_tac ctxt exhaust' case_thms disc_thmss' sel_thmss =
   (rtac exhaust' THEN'
-   EVERY' (map3 (fn case_thm => fn if_disc_thms => fn sel_thms => EVERY' [
-     hyp_subst_tac THEN'
-     SELECT_GOAL (Local_Defs.unfold_tac ctxt (if_disc_thms @ sel_thms)) THEN'
-     rtac case_thm]) case_thms
-  (map (map mk_if_P_or_not_P) (triangle 1 (map (fst o split_last) disc_thmss'))) sel_thmss)) 1;
+   EVERY' (map3 (fn case_thm => fn if_disc_thms => fn sel_thms =>
+       EVERY' [hyp_subst_tac THEN'
+         SELECT_GOAL (Local_Defs.unfold_tac ctxt (if_disc_thms @ sel_thms)) THEN' rtac case_thm])
+     case_thms (map (map mk_if_P_or_not_P) (triangle 1 (map (fst o split_last) disc_thmss')))
+     sel_thmss)) 1;
 
 fun mk_case_cong_tac exhaust' case_thms =
   (rtac exhaust' THEN'
