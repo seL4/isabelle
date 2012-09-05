@@ -45,10 +45,11 @@ fun mk_unique_disc_def_tac m exhaust' =
   EVERY' [rtac iffI, rtac exhaust', REPEAT_DETERM_N m o rtac exI, atac, rtac refl] 1;
 
 fun mk_alternate_disc_def_tac ctxt k other_disc_def distinct exhaust' =
-  EVERY' ([subst_tac ctxt [other_disc_def], rtac @{thm iffI_np}, hyp_subst_tac,
-    SELECT_GOAL (Local_Defs.unfold_tac ctxt [not_ex]), REPEAT_DETERM o rtac allI, rtac distinct,
-    rtac exhaust'] @
-    (([etac notE, atac], [REPEAT_DETERM o rtac exI, atac]) |> k = 1 ? swap |> op @)) 1;
+  EVERY' ([subst_tac ctxt [other_disc_def], rtac @{thm iffI_np}, REPEAT_DETERM o etac exE,
+    hyp_subst_tac, SELECT_GOAL (Local_Defs.unfold_tac ctxt [not_ex]), REPEAT_DETERM o rtac allI,
+    rtac distinct, rtac exhaust'] @
+    (([etac notE, REPEAT_DETERM o rtac exI, atac], [REPEAT_DETERM o rtac exI, atac])
+     |> k = 1 ? swap |> op @)) 1;
 
 fun mk_half_disc_exclude_tac m discD disc'_thm =
   (dtac discD THEN'

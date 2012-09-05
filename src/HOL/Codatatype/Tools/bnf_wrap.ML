@@ -99,10 +99,12 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_case), (raw_disc_binders, raw_se
 
     val raw_disc_binders' = pad_list no_binder n raw_disc_binders;
 
-    fun can_rely_on_disc k =
+    fun can_really_rely_on_disc k =
       not (Binding.eq_name (nth raw_disc_binders' (k - 1), no_binder)) orelse nth ms (k - 1) = 0;
+    fun can_rely_on_disc k =
+      can_really_rely_on_disc k orelse (k = 1 andalso not (can_really_rely_on_disc 2));
     fun can_omit_disc_binder k m =
-      n = 1 orelse m = 0 orelse (n = 2 andalso can_rely_on_disc (3 - k))
+      n = 1 orelse m = 0 orelse (n = 2 andalso can_rely_on_disc (3 - k));
 
     val fallback_disc_binder = Binding.name o prefix is_N o Long_Name.base_name o name_of_ctr;
 
