@@ -417,7 +417,7 @@ fun code_ind_att optmod = to_pred_att [];
 (**** definition of inductive sets ****)
 
 fun add_ind_set_def
-    {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mono, fork_mono}
+    {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mono}
     cs intros monos params cnames_syn lthy =
   let
     val thy = Proof_Context.theory_of lthy;
@@ -490,8 +490,7 @@ fun add_ind_set_def
     val ({preds, intrs, elims, raw_induct, eqs, ...}, lthy1) =
       Inductive.add_ind_def
         {quiet_mode = quiet_mode, verbose = verbose, alt_name = Binding.empty,
-          coind = coind, no_elim = no_elim, no_ind = no_ind,
-          skip_mono = skip_mono, fork_mono = fork_mono}
+          coind = coind, no_elim = no_elim, no_ind = no_ind, skip_mono = skip_mono}
         cs' intros' monos' params1 cnames_syn' lthy;
 
     (* define inductive sets using previously defined predicates *)

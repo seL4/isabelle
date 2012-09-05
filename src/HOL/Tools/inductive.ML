@@ -39,7 +39,7 @@ sig
     thm list list * local_theory
   type inductive_flags =
     {quiet_mode: bool, verbose: bool, alt_name: binding, coind: bool,
-      no_elim: bool, no_ind: bool, skip_mono: bool, fork_mono: bool}
+      no_elim: bool, no_ind: bool, skip_mono: bool}
   val add_inductive_i:
     inductive_flags -> ((binding * typ) * mixfix) list ->
     (string * typ) list -> (Attrib.binding * term) list -> thm list -> local_theory ->
@@ -358,10 +358,10 @@ end;
 
 (* prove monotonicity *)
 
-fun prove_mono quiet_mode skip_mono fork_mono predT fp_fun monos ctxt =
- (message (quiet_mode orelse skip_mono andalso !quick_and_dirty orelse fork_mono)
+fun prove_mono quiet_mode skip_mono predT fp_fun monos ctxt =
+ (message (quiet_mode orelse skip_mono andalso ! quick_and_dirty)
     "  Proving monotonicity ...";
-  (if skip_mono then Skip_Proof.prove else if fork_mono then Goal.prove_future else Goal.prove) ctxt
+  (if skip_mono then Skip_Proof.prove else Goal.prove_future) ctxt
     [] []
     (HOLogic.mk_Trueprop
       (Const (@{const_name Orderings.mono}, (predT --> predT) --> HOLogic.boolT) $ fp_fun))
@@ -746,8 +746,7 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
 
 (** specification of (co)inductive predicates **)
 
-fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind
-    cs intr_ts monos params cnames_syn lthy =
+fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cnames_syn lthy =
   let
     val fp_name = if coind then @{const_name Inductive.gfp} else @{const_name Inductive.lfp};
 
@@ -841,7 +840,7 @@ fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind
     val preds = (case cs of [_] => [rec_const] | _ => map #1 consts_defs);
 
     val (_, lthy''') = Variable.add_fixes (map (fst o dest_Free) params) lthy'';
-    val mono = prove_mono quiet_mode skip_mono fork_mono predT fp_fun monos lthy''';
+    val mono = prove_mono quiet_mode skip_mono predT fp_fun monos lthy''';
     val (_, lthy'''') =
       Local_Theory.note (apfst Binding.conceal Attrib.empty_binding,
         Proof_Context.export lthy''' lthy'' [mono]) lthy'';
@@ -912,7 +911,7 @@ fun declare_rules rec_binding coind no_ind cnames
 
 type inductive_flags =
   {quiet_mode: bool, verbose: bool, alt_name: binding, coind: bool,
-    no_elim: bool, no_ind: bool, skip_mono: bool, fork_mono: bool};
+    no_elim: bool, no_ind: bool, skip_mono: bool};
 
 type add_ind_def =
   inductive_flags ->
@@ -920,7 +919,7 @@ type add_ind_def =
   term list -> (binding * mixfix) list ->
   local_theory -> inductive_result * local_theory;
 
-fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mono, fork_mono}
+fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mono}
     cs intros monos params cnames_syn lthy =
   let
     val _ = null cnames_syn andalso error "No inductive predicates given";
@@ -933,7 +932,7 @@ fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mon
       apfst split_list (split_list (map (check_rule lthy cs params) intros));
 
     val (lthy1, lthy2, rec_name, mono, fp_def, rec_preds_defs, rec_const, preds,
-      argTs, bs, xs) = mk_ind_def quiet_mode skip_mono fork_mono alt_name coind cs intr_ts
+      argTs, bs, xs) = mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts
         monos params cnames_syn lthy;
 
     val (intrs, unfold) = prove_intrs quiet_mode coind mono fp_def (length bs + length xs)
@@ -983,7 +982,7 @@ fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mon
 (* external interfaces *)
 
 fun gen_add_inductive_i mk_def
-    (flags as {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mono, fork_mono})
+    (flags as {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mono})
     cnames_syn pnames spec monos lthy =
   let
     val thy = Proof_Context.theory_of lthy;
@@ -1047,8 +1046,9 @@ fun gen_add_inductive mk_def verbose coind cnames_syn pnames_syn intro_srcs raw_
       |> Specification.read_spec (cnames_syn @ pnames_syn) intro_srcs;
     val (cs, ps) = chop (length cnames_syn) vars;
     val monos = Attrib.eval_thms lthy raw_monos;
-    val flags = {quiet_mode = false, verbose = verbose, alt_name = Binding.empty,
-      coind = coind, no_elim = false, no_ind = false, skip_mono = false, fork_mono = not int};
+    val flags =
+     {quiet_mode = false, verbose = verbose, alt_name = Binding.empty,
+      coind = coind, no_elim = false, no_ind = false, skip_mono = false};
   in
     lthy
     |> gen_add_inductive_i mk_def flags cs (map (apfst Binding.name_of o fst) ps) intrs monos

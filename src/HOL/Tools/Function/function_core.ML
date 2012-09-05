@@ -439,8 +439,7 @@ fun inductive_def (binding as ((R, T), _)) intrs lthy =
             coind = false,
             no_elim = false,
             no_ind = false,
-            skip_mono = true,
-            fork_mono = false}
+            skip_mono = true}
           [binding] (* relation *)
           [] (* no parameters *)
           (map (fn t => (Attrib.empty_binding, t)) intrs) (* intro rules *)

@@ -355,7 +355,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
     val (ind_info, thy3') = thy2 |>
       Inductive.add_inductive_global
         {quiet_mode = false, verbose = false, alt_name = Binding.empty, coind = false,
-          no_elim = false, no_ind = false, skip_mono = false, fork_mono = false}
+          no_elim = false, no_ind = false, skip_mono = false}
         rlzpreds rlzparams (map (fn (rintr, intr) =>
           ((Binding.name (Long_Name.base_name (name_of_thm intr)), []),
            subst_atomic rlzpreds' (Logic.unvarify_global rintr)))
