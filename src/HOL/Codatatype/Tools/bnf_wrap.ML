@@ -51,6 +51,7 @@ fun mk_half_pairss' _ [] = []
 
 fun mk_half_pairss ys = mk_half_pairss' [[]] ys;
 
+(* TODO: provide a way to have a different default value, e.g. "tl Nil = Nil" *)
 fun mk_undef T Ts = Const (@{const_name undefined}, Ts ---> T);
 
 fun eta_expand_case_arg xs f_xs = fold_rev Term.lambda xs f_xs;
