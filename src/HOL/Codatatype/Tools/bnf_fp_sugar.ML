@@ -64,10 +64,9 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
     val As' = map dest_TFree As;
 
     val _ = (case duplicates (op =) As of [] => ()
-      | T :: _ => error ("Duplicate type parameter " ^ quote (Syntax.string_of_typ lthy T)));
+      | A :: _ => error ("Duplicate type parameter " ^ quote (Syntax.string_of_typ lthy A)));
 
     (* TODO: print timing information for sugar *)
-    (* TODO: check that no type variables occur in the rhss that's not in the lhss *)
     (* TODO: use sort constraints on type args *)
     (* TODO: use mixfix *)
 
@@ -94,6 +93,14 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
 
     val sel_bindersss = map (map (map fst)) ctr_argsss;
     val ctr_Tsss = map (map (map (prepare_typ fake_lthy o snd))) ctr_argsss;
+
+    val rhs_As = (case subtract (op =) As' (fold (fold (fold Term.add_tfreesT)) ctr_Tsss []) of
+        [] => ()
+      | A' :: _ => error ("Extra type variables on rhs: " ^
+          quote (Syntax.string_of_typ lthy (TFree A'))));
+
+    (* TODO: check that no type variables occur in the rhss that's not in the lhss *)
+
 
     val (Bs, C) =
       lthy
