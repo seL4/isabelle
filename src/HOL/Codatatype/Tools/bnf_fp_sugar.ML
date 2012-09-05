@@ -67,7 +67,6 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
       | A :: _ => error ("Duplicate type parameter " ^ quote (Syntax.string_of_typ lthy A)));
 
     (* TODO: use sort constraints on type args *)
-    (* TODO: use mixfix *)
 
     val N = length specs;
 
@@ -122,7 +121,7 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
     val eqs = map dest_TFree Bs ~~ sum_prod_TsBs;
 
     val ((raw_unfs, raw_flds, unf_flds, fld_unfs, fld_injects), lthy') =
-      fp_bnf (if gfp then bnf_gfp else bnf_lfp) bs As' eqs lthy;
+      fp_bnf (if gfp then bnf_gfp else bnf_lfp) bs mixfixes As' eqs lthy;
 
     val timer = time (Timer.startRealTimer ());
 
@@ -137,8 +136,8 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
     val unfs = map (mk_unf As) raw_unfs;
     val flds = map (mk_fld As) raw_flds;
 
-    fun pour_sugar_on_type ((((((((((b, T), fld), unf), fld_unf), unf_fld), fld_inject),
-        ctr_binders), ctr_Tss), disc_binders), sel_binderss) no_defs_lthy =
+    fun pour_sugar_on_type (((((((((((b, T), fld), unf), fld_unf), unf_fld), fld_inject),
+        ctr_binders), ctr_mixfixes), ctr_Tss), disc_binders), sel_binderss) no_defs_lthy =
       let
         val n = length ctr_binders;
         val ks = 1 upto n;
@@ -165,9 +164,9 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
           fold_rev Term.lambda (fs @ [v]) (mk_sum_caseN (uncurry_fs fs xss) $ (unf $ v));
 
         val (((raw_ctrs, raw_ctr_defs), (raw_case, raw_case_def)), (lthy', lthy)) = no_defs_lthy
-          |> apfst split_list o fold_map2 (fn b => fn rhs =>
-               Local_Theory.define ((b, NoSyn), ((Thm.def_binding b, []), rhs)) #>> apsnd snd)
-             ctr_binders ctr_rhss
+          |> apfst split_list o fold_map3 (fn b => fn mx => fn rhs =>
+               Local_Theory.define ((b, mx), ((Thm.def_binding b, []), rhs)) #>> apsnd snd)
+             ctr_binders ctr_mixfixes ctr_rhss
           ||>> (Local_Theory.define ((case_binder, NoSyn), ((Thm.def_binding case_binder, []),
              case_rhs)) #>> apsnd snd)
           ||> `Local_Theory.restore;
@@ -250,7 +249,7 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
 
     val lthy'' =
       fold pour_sugar_on_type (bs ~~ Ts ~~ flds ~~ unfs ~~ fld_unfs ~~ unf_flds ~~ fld_injects ~~
-        ctr_binderss ~~ ctr_Tsss ~~ disc_binderss ~~ sel_bindersss) lthy'
+        ctr_binderss ~~ ctr_mixfixess ~~ ctr_Tsss ~~ disc_binderss ~~ sel_bindersss) lthy';
 
     val timer = time (timer ("Constructors, discriminators, selectors, etc., for the new " ^
       (if gfp then "co" else "") ^ "datatype"));

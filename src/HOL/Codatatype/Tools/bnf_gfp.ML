@@ -9,8 +9,9 @@ Codatatype construction.
 
 signature BNF_GFP =
 sig
-  val bnf_gfp: binding list -> (string * sort) list -> typ list list -> BNF_Def.BNF list ->
-    local_theory -> (term list * term list * thm list * thm list * thm list) * local_theory
+  val bnf_gfp: binding list -> mixfix list -> (string * sort) list -> typ list list ->
+    BNF_Def.BNF list -> local_theory ->
+    (term list * term list * thm list * thm list * thm list) * local_theory
 end;
 
 structure BNF_GFP : BNF_GFP =
@@ -52,7 +53,7 @@ fun tree_to_coind_wits _ (Leaf j) = []
      ((i, I), nth (nth lwitss i) nwit) :: maps (tree_to_coind_wits lwitss) subtrees;
 
 (*all bnfs have the same lives*)
-fun bnf_gfp bs resDs Dss_insts bnfs lthy =
+fun bnf_gfp bs mixfixes resDs Dss_insts bnfs lthy =
   let
     val timer = time (Timer.startRealTimer ());
 
@@ -1830,9 +1831,9 @@ fun bnf_gfp bs resDs Dss_insts bnfs lthy =
 
     val ((T_names, (T_glob_infos, T_loc_infos)), lthy) =
       lthy
-      |> fold_map3 (fn b => fn car_final => fn in_car_final =>
-        typedef false NONE (b, params, NoSyn) car_final NONE
-          (EVERY' [rtac exI, rtac in_car_final] 1)) bs car_finals in_car_final_thms
+      |> fold_map4 (fn b => fn mx => fn car_final => fn in_car_final =>
+        typedef false NONE (b, params, mx) car_final NONE
+          (EVERY' [rtac exI, rtac in_car_final] 1)) bs mixfixes car_finals in_car_final_thms
       |>> apsnd split_list o split_list;
 
     val Ts = map (fn name => Type (name, params')) T_names;

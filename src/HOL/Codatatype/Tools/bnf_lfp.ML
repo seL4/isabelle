@@ -8,8 +8,9 @@ Datatype construction.
 
 signature BNF_LFP =
 sig
-  val bnf_lfp: binding list -> (string * sort) list -> typ list list -> BNF_Def.BNF list ->
-    local_theory -> (term list * term list * thm list * thm list * thm list) * local_theory
+  val bnf_lfp: binding list -> mixfix list -> (string * sort) list -> typ list list ->
+    BNF_Def.BNF list -> local_theory ->
+    (term list * term list * thm list * thm list * thm list) * local_theory
 end;
 
 structure BNF_LFP : BNF_LFP =
@@ -23,7 +24,7 @@ open BNF_LFP_Util
 open BNF_LFP_Tactics
 
 (*all bnfs have the same lives*)
-fun bnf_lfp bs resDs Dss_insts bnfs lthy =
+fun bnf_lfp bs mixfixes resDs Dss_insts bnfs lthy =
   let
     val timer = time (Timer.startRealTimer ());
     val live = live_of_bnf (hd bnfs);
@@ -927,9 +928,9 @@ fun bnf_lfp bs resDs Dss_insts bnfs lthy =
 
     val ((T_names, (T_glob_infos, T_loc_infos)), lthy) =
       lthy
-      |> fold_map2 (fn b => fn car_init => typedef true NONE (b, params, NoSyn) car_init NONE
+      |> fold_map3 (fn b => fn mx => fn car_init => typedef true NONE (b, params, mx) car_init NONE
           (EVERY' [rtac ssubst, rtac @{thm ex_in_conv}, resolve_tac alg_not_empty_thms,
-            rtac alg_init_thm] 1)) bs car_inits
+            rtac alg_init_thm] 1)) bs mixfixes car_inits
       |>> apsnd split_list o split_list;
 
     val Ts = map (fn name => Type (name, params')) T_names;
