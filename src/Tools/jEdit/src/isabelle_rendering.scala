@@ -92,9 +92,9 @@ object Isabelle_Rendering
   private val subexp_include =
     Set(Isabelle_Markup.SORT, Isabelle_Markup.TYP, Isabelle_Markup.TERM, Isabelle_Markup.PROP,
       Isabelle_Markup.ML_TYPING, Isabelle_Markup.TOKEN_RANGE, Isabelle_Markup.ENTITY,
-      Isabelle_Markup.TYPING, Isabelle_Markup.FREE, Isabelle_Markup.SKOLEM, Isabelle_Markup.BOUND,
-      Isabelle_Markup.VAR, Isabelle_Markup.TFREE, Isabelle_Markup.TVAR, Isabelle_Markup.ML_SOURCE,
-      Isabelle_Markup.DOC_SOURCE)
+      Isabelle_Markup.PATH, Isabelle_Markup.TYPING, Isabelle_Markup.FREE, Isabelle_Markup.SKOLEM,
+      Isabelle_Markup.BOUND, Isabelle_Markup.VAR, Isabelle_Markup.TFREE, Isabelle_Markup.TVAR,
+      Isabelle_Markup.ML_SOURCE, Isabelle_Markup.DOC_SOURCE)
 
   def subexp(snapshot: Document.Snapshot, range: Text.Range): Option[Text.Info[Color]] =
   {
