@@ -277,8 +277,8 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
 fun data_cmd info specs lthy =
   let
     val fake_thy = Theory.copy
-      #> Sign.add_types_global (map (fn spec =>
-        (type_binder_of spec, length (type_args_constrained_of spec), mixfix_of_typ spec)) specs);
+      #> fold (fn spec => Sign.add_type lthy
+        (type_binder_of spec, length (type_args_constrained_of spec), mixfix_of_typ spec)) specs;
     val fake_lthy = Proof_Context.background_theory fake_thy lthy;
   in
     prepare_data Syntax.read_typ info specs fake_lthy lthy
