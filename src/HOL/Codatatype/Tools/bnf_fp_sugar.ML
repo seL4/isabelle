@@ -87,9 +87,9 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
     val ctr_mixfixess = map (map ctr_mixfix_of) ctr_specss;
 
     val sel_bindersss = map (map (map fst)) ctr_argsss;
-    val ctr_Tsss = map (map (map (prepare_typ fake_lthy o snd))) ctr_argsss;
+    val fake_ctr_Tsss = map (map (map (prepare_typ fake_lthy o snd))) ctr_argsss;
 
-    val rhs_As' = fold (fold (fold Term.add_tfreesT)) ctr_Tsss [];
+    val rhs_As' = fold (fold (fold Term.add_tfreesT)) fake_ctr_Tsss [];
     val _ = (case subtract (op =) As' rhs_As' of
         [] => ()
       | A' :: _ => error ("Extra type variables on rhs: " ^
@@ -112,7 +112,7 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
         | i => nth Xs i)
       | freeze_recXs T = T;
 
-    val ctr_TsssXs = map (map (map freeze_recXs)) ctr_Tsss;
+    val ctr_TsssXs = map (map (map freeze_recXs)) fake_ctr_Tsss;
     val sum_prod_TsXs = map (mk_sumTN o map HOLogic.mk_tupleT) ctr_TsssXs;
 
     val eqs = map dest_TFree Xs ~~ sum_prod_TsXs;
@@ -134,6 +134,7 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
     val flds = map (mk_fld As) raw_flds;
 
     val fp_Ts = map (domain_type o fastype_of) unfs;
+    val ctr_Tsss = map (map (map (Term.typ_subst_atomic (Xs ~~ fp_Ts)))) ctr_TsssXs;
 
     fun mk_fp_iter_or_rec Ts Us t =
       let
