@@ -732,51 +732,51 @@ fun bnf_of_typ _ _ _ _ (T as TFree _) (unfold, lthy) =
       (SOME Basic_BNFs.ID_rel_def) (SOME Basic_BNFs.ID_pred_def) unfold, lthy))
   | bnf_of_typ _ _ _ _ (TVar _) _ = error "Unexpected schematic variable"
   | bnf_of_typ const_policy b qualify' sort (T as Type (C, Ts)) (unfold, lthy) =
-    let val tfrees = Term.add_tfreesT T [];
+    let
+      val tfrees = Term.add_tfreesT T [];
+      val bnf_opt = if null tfrees then NONE else bnf_of lthy (Long_Name.base_name C);
     in
-      if null tfrees then
-        ((Basic_BNFs.DEADID_bnf, ([T], [])), (unfold, lthy))
-      else if forall (can Term.dest_TFree) Ts andalso length Ts = length tfrees then let
-        val bnf = the (bnf_of lthy (Long_Name.base_name C));
-        val T' = T_of_bnf bnf;
-        val deads = deads_of_bnf bnf;
-        val lives = lives_of_bnf bnf;
-        val tvars' = Term.add_tvarsT T' [];
-        val deads_lives =
-          pairself (map (Term.typ_subst_TVars (map fst tvars' ~~ map TFree tfrees)))
-          (deads, lives);
-      val rel_def = rel_def_of_bnf bnf;
-      val unfold' = add_to_unfold_opt NONE NONE (SOME (rel_def RS sym))
-        (SOME (Local_Defs.unfold lthy [rel_def] (pred_def_of_bnf bnf) RS sym)) unfold;
-      in ((bnf, deads_lives), (unfold', lthy)) end
-      else
-        let
-          (* FIXME: we should allow several BNFs with the same base name *)
-          val Tname = Long_Name.base_name C;
-          val name = Binding.name_of b ^ "_" ^ Tname;
-          fun qualify i bind =
-            let val namei = if i > 0 then name ^ string_of_int i else name;
-            in
-              if member (op =) (#2 (Binding.dest bind)) (namei, true) then qualify' bind
-              else qualify' (Binding.prefix_name namei bind)
-            end;
-          val outer = the (bnf_of lthy Tname);
-          val odead = dead_of_bnf outer;
-          val olive = live_of_bnf outer;
-          val oDs_pos = find_indices [TFree ("dead", [])]
-            (snd (Term.dest_Type
-              (mk_T_of_bnf (replicate odead (TFree ("dead", []))) (replicate olive dummyT) outer)));
-          val oDs = map (nth Ts) oDs_pos;
-          val Ts' = map (nth Ts) (subtract (op =) oDs_pos (0 upto length Ts - 1));
-          val ((inners, (Dss, Ass)), (unfold', lthy')) =
-            apfst (apsnd split_list o split_list)
-              (fold_map2 (fn i =>
+      (case bnf_opt of
+        NONE => ((Basic_BNFs.DEADID_bnf, ([T], [])), (unfold, lthy))
+      | SOME bnf =>
+        if forall (can Term.dest_TFree) Ts andalso length Ts = length tfrees then
+          let
+            val T' = T_of_bnf bnf;
+            val deads = deads_of_bnf bnf;
+            val lives = lives_of_bnf bnf;
+            val tvars' = Term.add_tvarsT T' [];
+            val deads_lives =
+              pairself (map (Term.typ_subst_TVars (map fst tvars' ~~ map TFree tfrees)))
+                (deads, lives);
+            val rel_def = rel_def_of_bnf bnf;
+            val unfold' = add_to_unfold_opt NONE NONE (SOME (rel_def RS sym))
+              (SOME (Local_Defs.unfold lthy [rel_def] (pred_def_of_bnf bnf) RS sym)) unfold;
+          in ((bnf, deads_lives), (unfold', lthy)) end
+        else
+          let
+            (* FIXME: we should allow several BNFs with the same base name *)
+            val Tname = Long_Name.base_name C;
+            val name = Binding.name_of b ^ "_" ^ Tname;
+            fun qualify i bind =
+              let val namei = if i > 0 then name ^ string_of_int i else name;
+              in
+                if member (op =) (#2 (Binding.dest bind)) (namei, true) then qualify' bind
+                else qualify' (Binding.prefix_name namei bind)
+              end;
+            val odead = dead_of_bnf bnf;
+            val olive = live_of_bnf bnf;
+            val oDs_pos = find_indices [TFree ("dead", [])] (snd (Term.dest_Type
+              (mk_T_of_bnf (replicate odead (TFree ("dead", []))) (replicate olive dummyT) bnf)));
+            val oDs = map (nth Ts) oDs_pos;
+            val Ts' = map (nth Ts) (subtract (op =) oDs_pos (0 upto length Ts - 1));
+            val ((inners, (Dss, Ass)), (unfold', lthy')) =
+              apfst (apsnd split_list o split_list)
+                (fold_map2 (fn i =>
                   bnf_of_typ Smart_Inline (Binding.name (name ^ string_of_int i)) (qualify i) sort)
-                (if length Ts' = 1 then [0] else (1 upto length Ts'))
-                Ts' (unfold, lthy));
-        in
-          compose_bnf const_policy (qualify 0) b sort outer inners oDs Dss Ass (unfold', lthy')
-        end
+                (if length Ts' = 1 then [0] else (1 upto length Ts')) Ts' (unfold, lthy));
+          in
+            compose_bnf const_policy (qualify 0) b sort bnf inners oDs Dss Ass (unfold', lthy')
+          end)
     end;
 
 end;

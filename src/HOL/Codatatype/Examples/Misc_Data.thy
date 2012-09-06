@@ -149,7 +149,6 @@ data ('a, 'b) bar = BAR "'b \<Rightarrow> 'a"
 data ('a, 'b, 'c, 'd) foo = FOO "'d + 'b \<Rightarrow> 'c + 'a"
 
 data 'a dead_foo = A
-(* FIXME: handle unknown type constructors using DEADID?
 data ('a, 'b) use_dead_foo = Y "'a" "'b dead_foo"
-*)
+
 end

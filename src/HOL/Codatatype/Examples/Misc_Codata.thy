@@ -94,9 +94,7 @@ codata ('b, 'a) bar = BAR "'a \<Rightarrow> 'b"
 codata ('a, 'b, 'c, 'd) foo = FOO "'d + 'b \<Rightarrow> 'c + 'a"
 
 codata 'a dead_foo = A
-(* FIXME: handle unknown type constructors using DEADID?
 codata ('a, 'b) use_dead_foo = Y "'a" "'b dead_foo"
-*)
 
 (* SLOW, MEMORY-HUNGRY
 codata ('a, 'c) D1 = A1 "('a, 'c) D2" | B1 "'a list"
