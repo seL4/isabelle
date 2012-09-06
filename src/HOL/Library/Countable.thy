@@ -288,12 +288,17 @@ ML {*
         val induct_thms = #inducts (snd induct_info)
         val alist = pred_names ~~ induct_thms
         val induct_thm = the (AList.lookup (op =) alist pred_name)
+        val vars = rev (Term.add_vars (Thm.prop_of induct_thm) [])
+        val thy = Proof_Context.theory_of ctxt
+        val insts = vars |> map (fn (_, T) => try (Thm.cterm_of thy)
+          (Const (@{const_name Countable.finite_item}, T)))
+        val induct_thm' = Drule.instantiate' [] insts induct_thm
         val rules = @{thms finite_item.intros}
       in
         SOLVED' (fn i => EVERY
           [rtac @{thm countable_datatype} i,
            rtac typedef_thm i,
-           etac induct_thm i,
+           etac induct_thm' i,
            REPEAT (resolve_tac rules i ORELSE atac i)]) 1
       end)
 *}
