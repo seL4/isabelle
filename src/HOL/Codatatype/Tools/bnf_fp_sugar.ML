@@ -279,9 +279,11 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
 
 fun data_cmd info specs lthy =
   let
+    (*the "perhaps o try" below helps gracefully handles the case where the new type is defined in a
+      locale and shadows an existing global type*)
     val fake_thy = Theory.copy
-      #> fold (fn spec => Sign.add_type lthy
-        (type_binder_of spec, length (type_args_constrained_of spec), mixfix_of spec)) specs;
+      #> fold (fn spec => perhaps (try (Sign.add_type lthy
+        (type_binder_of spec, length (type_args_constrained_of spec), mixfix_of spec)))) specs;
     val fake_lthy = Proof_Context.background_theory fake_thy lthy;
   in
     prepare_data Syntax.read_typ info specs fake_lthy lthy
