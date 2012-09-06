@@ -23,7 +23,7 @@ sig
     (''a list list -> ''a list) -> BNF_Def.BNF list -> unfold_thms -> Proof.context ->
     (int list list * ''a list) * (BNF_Def.BNF list * (unfold_thms * Proof.context))
   val seal_bnf: unfold_thms -> binding -> typ list -> BNF_Def.BNF -> Proof.context ->
-    BNF_Def.BNF * local_theory
+    (BNF_Def.BNF * typ list) * local_theory
 end;
 
 structure BNF_Comp : BNF_COMP =
@@ -656,6 +656,7 @@ fun seal_bnf unfold b Ds bnf lthy =
     val bd_repT = fst (dest_relT (fastype_of bnf_bd));
     val bdT_bind = Binding.suffix_name ("_" ^ bdTN) b;
     val params = fold Term.add_tfreesT Ds [];
+    val deads = map TFree params;
 
     val ((bdT_name, (bdT_glob_info, bdT_loc_info)), (lthy', lthy)) =
       lthy
@@ -666,7 +667,7 @@ fun seal_bnf unfold b Ds bnf lthy =
     val phi = Proof_Context.export_morphism lthy lthy';
 
     val bnf_bd' = mk_dir_image bnf_bd
-      (Const (#Abs_name bdT_glob_info, bd_repT --> Type (bdT_name, map TFree params)))
+      (Const (#Abs_name bdT_glob_info, bd_repT --> Type (bdT_name, deads)))
 
     val set_def = Morphism.thm phi (the (#set_def bdT_loc_info));
     val Abs_inject = Morphism.thm phi (#Abs_inject bdT_loc_info);
@@ -701,8 +702,8 @@ fun seal_bnf unfold b Ds bnf lthy =
 
     fun wit_tac _ = mk_simple_wit_tac (map unfold_defs (wit_thms_of_bnf bnf));
 
-    val (bnf', lthy') = bnf_def Hardly_Inline (K Derive_All_Facts) I tacs wit_tac NONE
-        ((((b, bnf_map), bnf_sets), Term.absdummy T bnf_bd'), bnf_wits) lthy;
+    val (bnf', lthy') = bnf_def Hardly_Inline (K Derive_All_Facts) I tacs wit_tac (SOME deads)
+      ((((b, bnf_map), bnf_sets), Term.absdummy T bnf_bd'), bnf_wits) lthy;
 
     val defs' = filter_refl (map_def_of_bnf bnf' :: set_defs_of_bnf bnf');
     val unfold_defs' = unfold_defs o Local_Defs.unfold lthy' defs';
@@ -723,7 +724,7 @@ fun seal_bnf unfold b Ds bnf lthy =
       |> map (fn (thmN, thms) =>
         ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
   in
-    (bnf', lthy' |> Local_Theory.notes notes |> snd)
+    ((bnf', deads), lthy' |> Local_Theory.notes notes |> snd)
   end;
 
 fun bnf_of_typ _ _ _ _ (T as TFree _) (unfold, lthy) =

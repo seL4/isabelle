@@ -103,12 +103,12 @@ sig
 
   val fixpoint: ('a * 'a -> bool) -> ('a list -> 'a list) -> 'a list -> 'a list
 
-  val fp_bnf: (binding list -> mixfix list -> (string * sort) list -> typ list list ->
-    BNF_Def.BNF list -> local_theory -> 'a) ->
+  val fp_bnf: (mixfix list -> (string * sort) list option -> binding list ->
+    typ list * typ list list -> BNF_Def.BNF list -> local_theory -> 'a) ->
     binding list -> mixfix list -> (string * sort) list -> ((string * sort) * typ) list ->
     local_theory -> 'a
-  val fp_bnf_cmd: (binding list -> mixfix list -> (string * sort) list -> typ list list ->
-    BNF_Def.BNF list -> local_theory -> 'a) ->
+  val fp_bnf_cmd: (mixfix list -> (string * sort) list option -> binding list ->
+    typ list * typ list list -> BNF_Def.BNF list -> local_theory -> 'a) ->
     binding list * (string list * string list) -> local_theory -> 'a
 end;
 
@@ -272,10 +272,12 @@ fun mk_tactics mid mcomp mcong snat bdco bdinf sbd inbd wpull =
 
 (* FIXME: because of "@ lhss", the output could contain type variables that are not in the input;
    also, "fp_sort" should put the "resBs" first and in the order in which they appear *)
-fun fp_sort lhss Ass = Library.sort (Term_Ord.typ_ord o pairself TFree)
-  (subtract (op =) lhss (fold (fold (insert (op =))) Ass [])) @ lhss;
+fun fp_sort lhss NONE Ass = Library.sort (Term_Ord.typ_ord o pairself TFree)
+    (subtract (op =) lhss (fold (fold (insert (op =))) Ass [])) @ lhss
+  | fp_sort lhss (SOME resBs) Ass =
+    (subtract (op =) lhss (filter (fn T => exists (fn Ts => member (op =) Ts T) Ass) resBs)) @ lhss;
 
-fun mk_fp_bnf timer construct bs mixfixes resBs sort lhss bnfs deadss livess unfold lthy =
+fun mk_fp_bnf timer construct resBs bs sort lhss bnfs deadss livess unfold lthy =
   let
     val name = fold_rev (fn b => fn s => Binding.name_of b ^ s) bs "";
     fun qualify i bind =
@@ -286,8 +288,8 @@ fun mk_fp_bnf timer construct bs mixfixes resBs sort lhss bnfs deadss livess unf
       end;
 
     val Ass = map (map dest_TFree) livess;
-    val resDs = fold (subtract (op =)) Ass resBs;
-    val Ds = fold (fold Term.add_tfreesT) deadss resDs;
+    val resDs = (case resBs of NONE => [] | SOME Ts => fold (subtract (op =)) Ass Ts);
+    val Ds = fold (fold Term.add_tfreesT) deadss [];
 
     val _ = (case Library.inter (op =) Ds lhss of [] => ()
       | A :: _ => error ("Nonadmissible type recursion (cannot take fixed point of dead type \
@@ -300,12 +302,13 @@ fun mk_fp_bnf timer construct bs mixfixes resBs sort lhss bnfs deadss livess unf
 
     val Dss = map3 (append oo map o nth) livess kill_poss deadss;
 
-    val (bnfs'', lthy'') =
-      fold_map3 (seal_bnf unfold') (map (Binding.suffix_name "BNF") bs) Dss bnfs' lthy';
+    val ((bnfs'', deadss), lthy'') =
+      fold_map3 (seal_bnf unfold') (map (Binding.suffix_name "BNF") bs) Dss bnfs' lthy'
+      |>> split_list;
 
     val timer = time (timer "Normalization & sealing of BNFs");
 
-    val res = construct bs mixfixes resDs Dss bnfs'' lthy'';
+    val res = construct resBs bs (map TFree resDs, deadss) bnfs'' lthy'';
 
     val timer = time (timer "FP construction in total");
   in
@@ -316,25 +319,25 @@ fun fp_bnf construct bs mixfixes resBs eqs lthy =
   let
     val timer = time (Timer.startRealTimer ());
     val (lhss, rhss) = split_list eqs;
-    val sort = fp_sort lhss;
+    val sort = fp_sort lhss (SOME resBs);
     val ((bnfs, (Dss, Ass)), (unfold, lthy')) = apfst (apsnd split_list o split_list)
       (fold_map2 (fn b => bnf_of_typ Smart_Inline (Binding.suffix_name "RAW" b) I sort) bs rhss
         (empty_unfold, lthy));
   in
-    mk_fp_bnf timer construct bs mixfixes resBs sort lhss bnfs Dss Ass unfold lthy'
+    mk_fp_bnf timer (construct mixfixes) (SOME resBs) bs sort lhss bnfs Dss Ass unfold lthy'
   end;
 
 fun fp_bnf_cmd construct (bs, (raw_lhss, raw_bnfs)) lthy =
   let
     val timer = time (Timer.startRealTimer ());
     val lhss = map (dest_TFree o Syntax.read_typ lthy) raw_lhss;
-    val sort = fp_sort lhss;
+    val sort = fp_sort lhss NONE;
     val ((bnfs, (Dss, Ass)), (unfold, lthy')) = apfst (apsnd split_list o split_list)
       (fold_map2 (fn b => fn rawT =>
         (bnf_of_typ Smart_Inline (Binding.suffix_name "RAW" b) I sort (Syntax.read_typ lthy rawT)))
-        bs raw_bnfs (empty_unfold, lthy));
+      bs raw_bnfs (empty_unfold, lthy));
   in
-    mk_fp_bnf timer construct bs (map (K NoSyn) bs) [] sort lhss bnfs Dss Ass unfold lthy'
+    mk_fp_bnf timer (construct (map (K NoSyn) bs)) NONE bs sort lhss bnfs Dss Ass unfold lthy'
   end;
 
 end;

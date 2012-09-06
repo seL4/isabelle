@@ -53,15 +53,10 @@ codata ('a, 'b) exp = Term "('a, 'b) trm" | Sum "('a, 'b) trm" "('a, 'b) exp"
    and ('a, 'b) trm = Factor "('a, 'b) factor" | Prod "('a, 'b) factor" "('a, 'b) trm"
    and ('a, 'b) factor = C 'a | V 'b | Paren "('a, 'b) exp"
 
-codata_raw some_killing: 'A = "'a \<Rightarrow> 'b \<Rightarrow> ('A + 'B)"
-       and in_here: 'B = "'b \<times> 'a + 'c"
-
-(* FIXME
 codata ('a, 'b, 'c) some_killing =
   SK "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b, 'c) some_killing + ('a, 'b, 'c) in_here"
- and ('a, 'b, 'c) in_here =
+   and ('a, 'b, 'c) in_here =
   IH1 'b 'a | IH2 'c
-*)
 
 codata_raw some_killing': 'a = "'b \<Rightarrow> 'd \<Rightarrow> ('a + 'c)"
 and in_here': 'c = "'d + 'e"
@@ -69,7 +64,7 @@ and in_here': 'c = "'d + 'e"
 codata_raw some_killing'': 'a = "'b \<Rightarrow> 'c"
 and in_here'': 'c = "'d \<times> 'b + 'e"
 
-codata_raw less_killing: 'a = "'b \<Rightarrow> 'c"
+codata ('b, 'c) less_killing = LK "'b \<Rightarrow> 'c"
 
 codata 'b cps = CPS1 'b | CPS2 "'b \<Rightarrow> 'b cps"
 
@@ -94,6 +89,14 @@ codata ('c, 'e, 'g) coind_wit1 =
        CW21 "('c, 'e, 'g) coind_wit2" 'e | CW22 'c 'g
    and ('c, 'e, 'g) ind_wit =
        IW1 | IW2 'c
+
+codata ('b, 'a) bar = BAR "'a \<Rightarrow> 'b"
+codata ('a, 'b, 'c, 'd) foo = FOO "'d + 'b \<Rightarrow> 'c + 'a"
+
+codata 'a dead_foo = A
+(* FIXME: handle unknown type constructors using DEADID?
+codata ('a, 'b) use_dead_foo = Y "'a" "'b dead_foo"
+*)
 
 (* SLOW, MEMORY-HUNGRY
 codata ('a, 'c) D1 = A1 "('a, 'c) D2" | B1 "'a list"

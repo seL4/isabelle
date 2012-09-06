@@ -9,8 +9,8 @@ Codatatype construction.
 
 signature BNF_GFP =
 sig
-  val bnf_gfp: binding list -> mixfix list -> (string * sort) list -> typ list list ->
-    BNF_Def.BNF list -> local_theory ->
+  val bnf_gfp: mixfix list -> (string * sort) list option -> binding list ->
+    typ list * typ list list -> BNF_Def.BNF list -> local_theory ->
     (term list * term list * term list * term list * thm list * thm list * thm list) * local_theory
 end;
 
@@ -53,7 +53,7 @@ fun tree_to_coind_wits _ (Leaf j) = []
      ((i, I), nth (nth lwitss i) nwit) :: maps (tree_to_coind_wits lwitss) subtrees;
 
 (*all bnfs have the same lives*)
-fun bnf_gfp bs mixfixes resDs Dss_insts bnfs lthy =
+fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
   let
     val timer = time (Timer.startRealTimer ());
 
@@ -66,8 +66,7 @@ fun bnf_gfp bs mixfixes resDs Dss_insts bnfs lthy =
 
     (* TODO: check if m, n etc are sane *)
 
-    val Dss = map (fn Ds => map TFree (fold Term.add_tfreesT Ds [])) Dss_insts;
-    val deads = fold (union (op =)) Dss (map TFree resDs);
+    val deads = fold (union (op =)) Dss resDs;
     val names_lthy = fold Variable.declare_typ deads lthy;
 
     (* tvars *)
@@ -92,8 +91,16 @@ fun bnf_gfp bs mixfixes resDs Dss_insts bnfs lthy =
     val Css' = replicate n allCs';
 
     (* typs *)
+    val dead_poss =
+      (case resBs of
+        NONE => map SOME deads @ replicate m NONE
+      | SOME Ts => map (fn T => if member (op =) deads (TFree T) then SOME (TFree T) else NONE) Ts);
+    fun mk_param NONE passive = (hd passive, tl passive)
+      | mk_param (SOME a) passive = (a, passive);
+    val mk_params = fold_map mk_param dead_poss #> fst;
+
     fun mk_FTs Ts = map2 (fn Ds => mk_T_of_bnf Ds Ts) Dss bnfs;
-    val (params, params') = `(map Term.dest_TFree) (deads @ passiveAs);
+    val (params, params') = `(map Term.dest_TFree) (mk_params passiveAs);
     val FTsAs = mk_FTs allAs;
     val FTsBs = mk_FTs allBs;
     val FTsCs = mk_FTs allCs;
@@ -1912,7 +1919,7 @@ fun bnf_gfp bs mixfixes resDs Dss_insts bnfs lthy =
     (*transforms defined frees into consts*)
     val phi = Proof_Context.export_morphism lthy_old lthy;
     fun mk_unfs passive =
-      map (Term.subst_atomic_types (map (Morphism.typ phi) params' ~~ (deads @ passive)) o
+      map (Term.subst_atomic_types (map (Morphism.typ phi) params' ~~ (mk_params passive)) o
         Morphism.term phi) unf_frees;
     val unfs = mk_unfs passiveAs;
     val unf's = mk_unfs passiveBs;

@@ -51,15 +51,10 @@ data ('a, 'b) exp = Term "('a, 'b) trm" | Sum "('a, 'b) trm" "('a, 'b) exp"
  and ('a, 'b) trm = Factor "('a, 'b) factor" | Prod "('a, 'b) factor" "('a, 'b) trm"
  and ('a, 'b) factor = C 'a | V 'b | Paren "('a, 'b) exp"
 
-data_raw some_killing: 'A = "'a \<Rightarrow> 'b \<Rightarrow> ('A + 'B)"
-     and in_here: 'B = "'b \<times> 'a + 'c"
-
-(* FIXME
 data ('a, 'b, 'c) some_killing =
   SK "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b, 'c) some_killing + ('a, 'b, 'c) in_here"
  and ('a, 'b, 'c) in_here =
   IH1 'b 'a | IH2 'c
-*)
 
 data 'b nofail1 = NF11 "'b nofail1 \<times> 'b" | NF12 'b
 data 'b nofail2 = NF2 "('b nofail2 \<times> 'b \<times> 'b nofail2 \<times> 'b) list"
@@ -150,4 +145,11 @@ data s1 = S11 s2 s3 s4 | S12 s3 | S13 s2 s6 | S14 s4 s2 | S15 s2 s2
  and s8 = S8 nat
 *)
 
+data ('a, 'b) bar = BAR "'b \<Rightarrow> 'a"
+data ('a, 'b, 'c, 'd) foo = FOO "'d + 'b \<Rightarrow> 'c + 'a"
+
+data 'a dead_foo = A
+(* FIXME: handle unknown type constructors using DEADID?
+data ('a, 'b) use_dead_foo = Y "'a" "'b dead_foo"
+*)
 end
