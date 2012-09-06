@@ -67,12 +67,12 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
 
     val N = length specs;
 
-    fun mk_T b =
+    fun mk_fake_T b =
       Type (fst (Term.dest_Type (Proof_Context.read_type_name fake_lthy true (Binding.name_of b))),
         As);
 
     val bs = map type_binder_of specs;
-    val fp_Ts = map mk_T bs;
+    val fake_Ts = map mk_fake_T bs;
 
     val mixfixes = map mixfix_of specs;
 
@@ -107,7 +107,7 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
       | is_same_recT _ _ = false;
 
     fun freeze_recXs (T as Type (s, Us)) =
-        (case find_index (is_same_recT T) fp_Ts of
+        (case find_index (is_same_recT T) fake_Ts of
           ~1 => Type (s, map freeze_recXs Us)
         | i => nth Xs i)
       | freeze_recXs T = T;
@@ -132,6 +132,8 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
 
     val unfs = map (mk_unf As) raw_unfs;
     val flds = map (mk_fld As) raw_flds;
+
+    val fp_Ts = map (domain_type o fastype_of) unfs;
 
     fun mk_fp_iter_or_rec Ts Us t =
       let
