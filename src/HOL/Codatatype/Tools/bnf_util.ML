@@ -268,16 +268,13 @@ fun mk_TFrees n = apfst (map TFree) o Variable.invent_types (replicate n (HOLogi
 fun mk_TFreess ns = apfst (map (map TFree)) o
   fold_map Variable.invent_types (map (fn n => replicate n (HOLogic.typeS)) ns);
 
-fun mk_names n x = if n = 1 then [x]
-  else map (fn i => x ^ string_of_int i) (1 upto n);
+fun mk_names n x = if n = 1 then [x] else map (fn i => x ^ string_of_int i) (1 upto n);
 
-fun mk_fresh_names ctxt = (fn names => Variable.variant_fixes names ctxt) oo mk_names;
-fun mk_Frees x Ts ctxt = mk_fresh_names ctxt (length Ts) x
-  |>> (fn names => map2 (curry Free) names Ts);
+fun mk_fresh_names ctxt = (fn xs => Variable.variant_fixes xs ctxt) oo mk_names;
+fun mk_Frees x Ts ctxt = mk_fresh_names ctxt (length Ts) x |>> (fn xs => map2 (curry Free) xs Ts);
 fun mk_Freess x Tss = fold_map2 mk_Frees (mk_names (length Tss) x) Tss;
 fun mk_Freesss x Tsss = fold_map2 mk_Freess (mk_names (length Tsss) x) Tsss;
-fun mk_Frees' x Ts ctxt = mk_fresh_names ctxt (length Ts) x
-  |>> (fn names => `(map Free) (names ~~ Ts));
+fun mk_Frees' x Ts ctxt = mk_fresh_names ctxt (length Ts) x |>> (fn xs => `(map Free) (xs ~~ Ts));
 fun mk_Freess' x Tss = fold_map2 mk_Frees' (mk_names (length Tss) x) Tss #>> split_list;
 
 
