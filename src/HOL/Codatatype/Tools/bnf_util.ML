@@ -273,8 +273,8 @@ fun mk_fresh_names ctxt = (fn names => Variable.variant_fixes names ctxt) oo mk_
 fun mk_Frees x Ts ctxt = mk_fresh_names ctxt (length Ts) x
   |>> (fn names => map2 (curry Free) names Ts);
 fun mk_Freess x Tss ctxt =
-  fold_map2 (fn name => fn Ts => fn ctxt =>
-    mk_fresh_names ctxt (length Ts) name) (mk_names (length Tss) x) Tss ctxt
+  fold_map2 (fn name => fn Ts => fn ctxt => mk_fresh_names ctxt (length Ts) name)
+    (mk_names (length Tss) x) Tss ctxt
   |>> (fn namess => map2 (map2 (curry Free)) namess Tss);
 fun mk_Frees' x Ts ctxt = mk_fresh_names ctxt (length Ts) x
   |>> (fn names => `(map Free) (names ~~ Ts));

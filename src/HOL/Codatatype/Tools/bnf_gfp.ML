@@ -11,7 +11,7 @@ signature BNF_GFP =
 sig
   val bnf_gfp: binding list -> mixfix list -> (string * sort) list -> typ list list ->
     BNF_Def.BNF list -> local_theory ->
-    (term list * term list * thm list * thm list * thm list) * local_theory
+    (term list * term list * term list * term list * thm list * thm list * thm list) * local_theory
 end;
 
 structure BNF_GFP : BNF_GFP =
@@ -1965,8 +1965,9 @@ fun bnf_gfp bs mixfixes resDs Dss_insts bnfs lthy =
 
     (*transforms defined frees into consts*)
     val phi = Proof_Context.export_morphism lthy_old lthy;
-    val coiters = map (fst o dest_Const o Morphism.term phi) coiter_frees;
-    fun mk_coiter Ts ss i = Term.list_comb (Const (nth coiters (i - 1), Library.foldr (op -->)
+    val coiters = map (Morphism.term phi) coiter_frees;
+    val coiter_names = map (fst o dest_Const) coiters;
+    fun mk_coiter Ts ss i = Term.list_comb (Const (nth coiter_names (i - 1), Library.foldr (op -->)
       (map fastype_of ss, domain_type (fastype_of (nth ss (i - 1))) --> nth Ts (i - 1))), ss);
     val coiter_defs = map ((fn thm => thm RS fun_cong) o Morphism.thm phi) coiter_def_frees;
 
@@ -2158,8 +2159,9 @@ fun bnf_gfp bs mixfixes resDs Dss_insts bnfs lthy =
 
     (*transforms defined frees into consts*)
     val phi = Proof_Context.export_morphism lthy_old lthy;
-    val corecs = map (fst o dest_Const o Morphism.term phi) corec_frees;
-    fun mk_corec ss i = Term.list_comb (Const (nth corecs (i - 1), Library.foldr (op -->)
+    val corecs = map (Morphism.term phi) corec_frees;
+    val corec_names = map (fst o dest_Const) corecs;
+    fun mk_corec ss i = Term.list_comb (Const (nth corec_names (i - 1), Library.foldr (op -->)
       (map fastype_of ss, domain_type (fastype_of (nth ss (i - 1))) --> nth Ts (i - 1))), ss);
     val corec_defs = map (Morphism.thm phi) corec_def_frees;
 
@@ -2990,7 +2992,7 @@ fun bnf_gfp bs mixfixes resDs Dss_insts bnfs lthy =
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
           bs thmss)
   in
-    ((unfs, flds, unf_fld_thms, fld_unf_thms, fld_inject_thms),
+    ((unfs, flds, coiters, corecs, unf_fld_thms, fld_unf_thms, fld_inject_thms),
       lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
   end;
 

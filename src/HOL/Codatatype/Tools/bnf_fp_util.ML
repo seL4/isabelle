@@ -88,6 +88,11 @@ sig
   val mk_sum_case: term -> term -> term
   val mk_sum_caseN: term list -> term
 
+  val dest_sumTN: int -> typ -> typ list
+  val dest_tupleT: int -> typ -> typ list
+
+  val mk_uncurried_fun: term -> term list -> term
+
   val mk_Field: term -> term
   val mk_union: term * term -> term
 
@@ -218,6 +223,16 @@ fun mk_sum_case f g =
 
 fun mk_sum_caseN [f] = f
   | mk_sum_caseN (f :: fs) = mk_sum_case f (mk_sum_caseN fs);
+
+fun dest_sumTN 1 T = [T]
+  | dest_sumTN n (Type (@{type_name sum}, [T, T'])) = T :: dest_sumTN (n - 1) T';
+
+(* TODO: move something like this to "HOLogic"? *)
+fun dest_tupleT 0 @{typ unit} = []
+  | dest_tupleT 1 T = [T]
+  | dest_tupleT n (Type (@{type_name prod}, [T, T'])) = T :: dest_tupleT (n - 1) T';
+
+fun mk_uncurried_fun f xs = HOLogic.tupled_lambda (HOLogic.mk_tuple xs) (Term.list_comb (f, xs));
 
 fun mk_Field r =
   let val T = fst (dest_relT (fastype_of r));

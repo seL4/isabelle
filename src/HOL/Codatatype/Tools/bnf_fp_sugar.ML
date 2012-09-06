@@ -52,9 +52,6 @@ fun ctr_of (((_, ctr), _), _) = ctr;
 fun args_of ((_, args), _) = args;
 fun mixfix_of_ctr (_, mx) = mx;
 
-val uncurry_fs =
-  map2 (fn f => fn xs => HOLogic.tupled_lambda (HOLogic.mk_tuple xs) (Term.list_comb (f, xs)));
-
 fun prepare_data prepare_typ gfp specs fake_lthy lthy =
   let
     val constrained_As =
@@ -75,7 +72,7 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
         As);
 
     val bs = map type_binder_of specs;
-    val Ts = map mk_T bs;
+    val fp_Ts = map mk_T bs;
 
     val mixfixes = map mixfix_of_typ specs;
 
@@ -98,35 +95,35 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
       | A' :: _ => error ("Extra type variables on rhs: " ^
           quote (Syntax.string_of_typ lthy (TFree A'))));
 
-    val (Bs, C) =
+    val ((Cs, Xs), _) =
       lthy
       |> fold (fold (fn s => Variable.declare_typ (TFree (s, dummyS))) o type_args_of) specs
       |> mk_TFrees N
-      ||> the_single o fst o mk_TFrees 1;
+      ||>> mk_TFrees N;
 
-    fun is_same_rec (T as Type (s, Us)) (Type (s', Us')) =
+    fun is_same_recT (T as Type (s, Us)) (Type (s', Us')) =
         s = s' andalso (Us = Us' orelse error ("Illegal occurrence of recursive type " ^
           quote (Syntax.string_of_typ fake_lthy T)))
-      | is_same_rec _ _ = false
+      | is_same_recT _ _ = false;
 
-    fun freeze_rec (T as Type (s, Us)) =
-        (case find_index (is_same_rec T) Ts of
-          ~1 => Type (s, map freeze_rec Us)
-        | i => nth Bs i)
-      | freeze_rec T = T;
+    fun freeze_recXs (T as Type (s, Us)) =
+        (case find_index (is_same_recT T) fp_Ts of
+          ~1 => Type (s, map freeze_recXs Us)
+        | i => nth Xs i)
+      | freeze_recXs T = T;
 
-    val ctr_TsssBs = map (map (map freeze_rec)) ctr_Tsss;
-    val sum_prod_TsBs = map (mk_sumTN o map HOLogic.mk_tupleT) ctr_TsssBs;
+    val ctr_TsssXs = map (map (map freeze_recXs)) ctr_Tsss;
+    val sum_prod_TsXs = map (mk_sumTN o map HOLogic.mk_tupleT) ctr_TsssXs;
 
-    val eqs = map dest_TFree Bs ~~ sum_prod_TsBs;
+    val eqs = map dest_TFree Xs ~~ sum_prod_TsXs;
 
-    val ((raw_unfs, raw_flds, unf_flds, fld_unfs, fld_injects), lthy') =
+    val ((raw_unfs, raw_flds, raw_fp_iters, raw_fp_recs, unf_flds, fld_unfs, fld_injects), lthy') =
       fp_bnf (if gfp then bnf_gfp else bnf_lfp) bs mixfixes As' eqs lthy;
 
     val timer = time (Timer.startRealTimer ());
 
-    fun mk_unf_or_fld get_foldedT Ts t =
-      let val Type (_, Ts0) = get_foldedT (fastype_of t) in
+    fun mk_unf_or_fld get_T Ts t =
+      let val Type (_, Ts0) = get_T (fastype_of t) in
         Term.subst_atomic_types (Ts0 ~~ Ts) t
       end;
 
@@ -136,10 +133,23 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
     val unfs = map (mk_unf As) raw_unfs;
     val flds = map (mk_fld As) raw_flds;
 
-    fun pour_sugar_on_type (((((((((((b, T), fld), unf), fld_unf), unf_fld), fld_inject),
-        ctr_binders), ctr_mixfixes), ctr_Tss), disc_binders), sel_binderss) no_defs_lthy =
+    fun mk_fp_iter_or_rec Ts Us t =
       let
-        val n = length ctr_binders;
+        val (binders, body) = strip_type (fastype_of t);
+        val Type (_, Ts0) = if gfp then body else List.last binders;
+        val Us0 = map (if gfp then domain_type else body_type) (fst (split_last binders));
+      in
+        Term.subst_atomic_types (Ts0 @ Us0 ~~ Ts @ Us) t
+      end;
+
+    val fp_iters = map (mk_fp_iter_or_rec As Cs) raw_fp_iters;
+    val fp_recs = map (mk_fp_iter_or_rec As Cs) raw_fp_recs;
+
+    fun pour_sugar_on_type ((((((((((((((b, fp_T), C), fld), unf), fp_iter), fp_rec), fld_unf),
+          unf_fld), fld_inject), ctr_binders), ctr_mixfixes), ctr_Tss), disc_binders), sel_binderss)
+        no_defs_lthy =
+      let
+        val n = length ctr_Tss;
         val ks = 1 upto n;
         val ms = map length ctr_Tss;
 
@@ -147,11 +157,11 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
         val prod_Ts = map HOLogic.mk_tupleT ctr_Tss;
         val case_Ts = map (fn Ts => Ts ---> C) ctr_Tss;
 
-        val ((((fs, u), v), xss), _) =
+        val ((((u, v), fs), xss), _) =
           lthy
-          |> mk_Frees "f" case_Ts
-          ||>> yield_singleton (mk_Frees "u") unf_T
-          ||>> yield_singleton (mk_Frees "v") T
+          |> yield_singleton (mk_Frees "u") unf_T
+          ||>> yield_singleton (mk_Frees "v") fp_T
+          ||>> mk_Frees "f" case_Ts
           ||>> mk_Freess "x" ctr_Tss;
 
         val ctr_rhss =
@@ -161,7 +171,7 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
         val case_binder = Binding.suffix_name ("_" ^ caseN) b;
 
         val case_rhs =
-          fold_rev Term.lambda (fs @ [v]) (mk_sum_caseN (uncurry_fs fs xss) $ (unf $ v));
+          fold_rev Term.lambda (fs @ [v]) (mk_sum_caseN (map2 mk_uncurried_fun fs xss) $ (unf $ v));
 
         val (((raw_ctrs, raw_ctr_defs), (raw_case, raw_case_def)), (lthy', lthy)) = no_defs_lthy
           |> apfst split_list o fold_map3 (fn b => fn mx => fn rhs =>
@@ -189,8 +199,8 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
                     (mk_Trueprop_eq (HOLogic.mk_eq (v, fld $ u), HOLogic.mk_eq (unf $ v, u)));
               in
                 Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-                  mk_fld_iff_unf_tac ctxt (map (SOME o certifyT lthy) [unf_T, T]) (certify lthy fld)
-                    (certify lthy unf) fld_unf unf_fld)
+                  mk_fld_iff_unf_tac ctxt (map (SOME o certifyT lthy) [unf_T, fp_T])
+                    (certify lthy fld) (certify lthy unf) fld_unf unf_fld)
                 |> Thm.close_derivation
                 |> Morphism.thm phi
               end;
@@ -219,24 +229,30 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
 
         val tacss = [exhaust_tac] :: inject_tacss @ half_distinct_tacss @ [case_tacs];
 
+        (* (co)iterators, (co)recursors, (co)induction *)
+
+        val is_recT = member (op =) fp_Ts;
+
+        val ns = map length ctr_Tsss;
+        val mss = map (map length) ctr_Tsss;
+        val Css = map2 replicate ns Cs;
+
         fun sugar_lfp lthy =
           let
-(*###
-            val fld_iter = @{term True}; (*###*)
+            val fp_y_Ts = map domain_type (fst (split_last (binder_types (fastype_of fp_iter))));
+            val y_prod_Tss = map2 dest_sumTN ns fp_y_Ts;
+            val y_Tsss = map2 (map2 dest_tupleT) mss y_prod_Tss;
+            val g_Tss = map2 (map2 (curry (op --->))) y_Tsss Css;
+            val iter_T = flat g_Tss ---> fp_T --> C;
 
-            val iter_Tss = map (fn Ts => Ts) (*###*) ctr_Tss;
-            val iter_Ts = map (fn Ts => Ts ---> C) iter_Tss;
-
-            val iter_fs = map2 (fn Free (s, _) => fn T => Free (s, T)) fs iter_Ts
+            val ((gss, ysss), _) =
+              lthy
+              |> mk_Freess "f" g_Tss
+              ||>> apfst (unflat y_Tsss) o mk_Freess "x" (flat y_Tsss);
 
             val iter_rhs =
-              fold_rev Term.lambda fs (fld_iter $ mk_sum_caseN (uncurry_fs fs xss) $ (unf $ v));
-
-
-            val uncurried_fs =
-              map2 (fn f => fn xs =>
-                HOLogic.tupled_lambda (HOLogic.mk_tuple xs) (Term.list_comb (f, xs))) fs xss;
-*)
+              fold_rev (fold_rev Term.lambda) gss
+                (Term.list_comb (fp_iter, map2 (mk_sum_caseN oo map2 mk_uncurried_fun) gss ysss));
           in
             lthy
           end;
@@ -248,8 +264,9 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
       end;
 
     val lthy'' =
-      fold pour_sugar_on_type (bs ~~ Ts ~~ flds ~~ unfs ~~ fld_unfs ~~ unf_flds ~~ fld_injects ~~
-        ctr_binderss ~~ ctr_mixfixess ~~ ctr_Tsss ~~ disc_binderss ~~ sel_bindersss) lthy';
+      fold pour_sugar_on_type (bs ~~ fp_Ts ~~ Cs ~~ flds ~~ unfs ~~ fp_iters ~~ fp_recs ~~
+        fld_unfs ~~ unf_flds ~~ fld_injects ~~ ctr_binderss ~~ ctr_mixfixess ~~ ctr_Tsss ~~
+        disc_binderss ~~ sel_bindersss) lthy';
 
     val timer = time (timer ("Constructors, discriminators, selectors, etc., for the new " ^
       (if gfp then "co" else "") ^ "datatype"));
