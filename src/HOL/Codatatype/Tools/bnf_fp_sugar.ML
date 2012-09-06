@@ -44,13 +44,13 @@ fun merge_type_args_constrained ctxt (cAs, cAs') =
 fun type_args_constrained_of (((cAs, _), _), _) = cAs;
 val type_args_of = map fst o type_args_constrained_of;
 fun type_binder_of (((_, b), _), _) = b;
-fun mixfix_of_typ ((_, mx), _) = mx;
+fun mixfix_of ((_, mx), _) = mx;
 fun ctr_specs_of (_, ctr_specs) = ctr_specs;
 
 fun disc_of (((disc, _), _), _) = disc;
 fun ctr_of (((_, ctr), _), _) = ctr;
 fun args_of ((_, args), _) = args;
-fun mixfix_of_ctr (_, mx) = mx;
+fun ctr_mixfix_of (_, mx) = mx;
 
 fun prepare_data prepare_typ gfp specs fake_lthy lthy =
   let
@@ -74,7 +74,7 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
     val bs = map type_binder_of specs;
     val fp_Ts = map mk_T bs;
 
-    val mixfixes = map mixfix_of_typ specs;
+    val mixfixes = map mixfix_of specs;
 
     val _ = (case duplicates Binding.eq_name bs of [] => ()
       | b :: _ => error ("Duplicate type name declaration " ^ quote (Binding.name_of b)));
@@ -84,7 +84,7 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
     val disc_binderss = map (map disc_of) ctr_specss;
     val ctr_binderss = map (map ctr_of) ctr_specss;
     val ctr_argsss = map (map args_of) ctr_specss;
-    val ctr_mixfixess = map (map mixfix_of_ctr) ctr_specss;
+    val ctr_mixfixess = map (map ctr_mixfix_of) ctr_specss;
 
     val sel_bindersss = map (map (map fst)) ctr_argsss;
     val ctr_Tsss = map (map (map (prepare_typ fake_lthy o snd))) ctr_argsss;
@@ -278,7 +278,7 @@ fun data_cmd info specs lthy =
   let
     val fake_thy = Theory.copy
       #> fold (fn spec => Sign.add_type lthy
-        (type_binder_of spec, length (type_args_constrained_of spec), mixfix_of_typ spec)) specs;
+        (type_binder_of spec, length (type_args_constrained_of spec), mixfix_of spec)) specs;
     val fake_lthy = Proof_Context.background_theory fake_thy lthy;
   in
     prepare_data Syntax.read_typ info specs fake_lthy lthy
