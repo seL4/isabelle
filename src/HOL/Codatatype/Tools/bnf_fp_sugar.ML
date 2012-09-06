@@ -248,7 +248,7 @@ fun prepare_data prepare_typ gfp specs fake_lthy lthy =
             val ((gss, ysss), _) =
               lthy
               |> mk_Freess "f" g_Tss
-              ||>> apfst (unflat y_Tsss) o mk_Freess "x" (flat y_Tsss);
+              ||>> mk_Freesss "x" y_Tsss;
 
             val iter_rhs =
               fold_rev (fold_rev Term.lambda) gss

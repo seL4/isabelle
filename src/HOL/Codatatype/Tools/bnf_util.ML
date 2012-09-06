@@ -48,6 +48,8 @@ sig
   val mk_TFreess: int list -> Proof.context -> typ list list * Proof.context
   val mk_Frees: string -> typ list -> Proof.context -> term list * Proof.context
   val mk_Freess: string -> typ list list -> Proof.context -> term list list * Proof.context
+  val mk_Freesss: string -> typ list list list -> Proof.context ->
+    term list list list * Proof.context
   val mk_Frees': string -> typ list -> Proof.context ->
     (term list * (string * typ) list) * Proof.context
   val mk_Freess': string -> typ list list -> Proof.context ->
@@ -272,16 +274,11 @@ fun mk_names n x = if n = 1 then [x]
 fun mk_fresh_names ctxt = (fn names => Variable.variant_fixes names ctxt) oo mk_names;
 fun mk_Frees x Ts ctxt = mk_fresh_names ctxt (length Ts) x
   |>> (fn names => map2 (curry Free) names Ts);
-fun mk_Freess x Tss ctxt =
-  fold_map2 (fn name => fn Ts => fn ctxt => mk_fresh_names ctxt (length Ts) name)
-    (mk_names (length Tss) x) Tss ctxt
-  |>> (fn namess => map2 (map2 (curry Free)) namess Tss);
+fun mk_Freess x Tss = fold_map2 mk_Frees (mk_names (length Tss) x) Tss;
+fun mk_Freesss x Tsss = fold_map2 mk_Freess (mk_names (length Tsss) x) Tsss;
 fun mk_Frees' x Ts ctxt = mk_fresh_names ctxt (length Ts) x
   |>> (fn names => `(map Free) (names ~~ Ts));
-fun mk_Freess' x Tss ctxt =
-  fold_map2 (fn name => fn Ts => fn ctxt =>
-    mk_fresh_names ctxt (length Ts) name) (mk_names (length Tss) x) Tss ctxt
-  |>> (fn namess => map_split (`(map Free) o (op ~~)) (namess ~~ Tss));
+fun mk_Freess' x Tss = fold_map2 mk_Frees' (mk_names (length Tss) x) Tss #>> split_list;
 
 
 (** Types **)
