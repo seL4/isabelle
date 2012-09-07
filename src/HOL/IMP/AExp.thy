@@ -8,16 +8,16 @@ type_synonym vname = string
 type_synonym val = int
 type_synonym state = "vname \<Rightarrow> val"
 
-text_raw{*\begin{isaverbatimwrite}\newcommand{\AExpaexpdef}{% *}
+text_raw{*\snip{AExpaexpdef}{2}{1}{% *}
 datatype aexp = N int | V vname | Plus aexp aexp
-text_raw{*}\end{isaverbatimwrite}*}
+text_raw{*}%endsnip*}
 
-text_raw{*\begin{isaverbatimwrite}\newcommand{\AExpavaldef}{% *}
+text_raw{*\snip{AExpavaldef}{1}{2}{% *}
 fun aval :: "aexp \<Rightarrow> state \<Rightarrow> val" where
 "aval (N n) s = n" |
 "aval (V x) s = s x" |
 "aval (Plus a1 a2) s = aval a1 s + aval a2 s"
-text_raw{*}\end{isaverbatimwrite}*}
+text_raw{*}%endsnip*}
 
 
 value "aval (Plus (V ''x'') (N 5)) (\<lambda>x. if x = ''x'' then 7 else 0)"
@@ -34,7 +34,7 @@ syntax
 translations
   "_State ms" => "_Update <> ms"
 
-text {* 
+text {* \noindent
   We can now write a series of updates to the function @{text "\<lambda>x. 0"} compactly:
 *}
 lemma "<a := Suc 0, b := 2> = (<> (a := Suc 0)) (b := 2)"
@@ -43,8 +43,7 @@ lemma "<a := Suc 0, b := 2> = (<> (a := Suc 0)) (b := 2)"
 value "aval (Plus (V ''x'') (N 5)) <''x'' := 7>"
 
 
-text {* Variables that are not mentioned in the state are 0 by default in 
-  the @{term "<a := b::int>"} syntax: 
+text {* In  the @{term[source] "<a := b>"} syntax, variables that are not mentioned are 0 by default:
 *}
 value "aval (Plus (V ''x'') (N 5)) <''y'' := 7>"
 
@@ -56,7 +55,7 @@ subsection "Constant Folding"
 
 text{* Evaluate constant subsexpressions: *}
 
-text_raw{*\begin{isaverbatimwrite}\newcommand{\AExpasimpconstdef}{% *}
+text_raw{*\snip{AExpasimpconstdef}{0}{2}{% *}
 fun asimp_const :: "aexp \<Rightarrow> aexp" where
 "asimp_const (N n) = N n" |
 "asimp_const (V x) = V x" |
@@ -64,7 +63,7 @@ fun asimp_const :: "aexp \<Rightarrow> aexp" where
   (case (asimp_const a\<^isub>1, asimp_const a\<^isub>2) of
     (N n\<^isub>1, N n\<^isub>2) \<Rightarrow> N(n\<^isub>1+n\<^isub>2) |
     (b\<^isub>1,b\<^isub>2) \<Rightarrow> Plus b\<^isub>1 b\<^isub>2)"
-text_raw{*}\end{isaverbatimwrite}*}
+text_raw{*}%endsnip*}
 
 theorem aval_asimp_const:
   "aval (asimp_const a) s = aval a s"
@@ -75,13 +74,13 @@ done
 text{* Now we also eliminate all occurrences 0 in additions. The standard
 method: optimized versions of the constructors: *}
 
-text_raw{*\begin{isaverbatimwrite}\newcommand{\AExpplusdef}{% *}
+text_raw{*\snip{AExpplusdef}{0}{2}{% *}
 fun plus :: "aexp \<Rightarrow> aexp \<Rightarrow> aexp" where
 "plus (N i\<^isub>1) (N i\<^isub>2) = N(i\<^isub>1+i\<^isub>2)" |
 "plus (N i) a = (if i=0 then a else Plus (N i) a)" |
 "plus a (N i) = (if i=0 then a else Plus a (N i))" |
 "plus a\<^isub>1 a\<^isub>2 = Plus a\<^isub>1 a\<^isub>2"
-text_raw{*}\end{isaverbatimwrite}*}
+text_raw{*}%endsnip*}
 
 lemma aval_plus[simp]:
   "aval (plus a1 a2) s = aval a1 s + aval a2 s"
@@ -89,12 +88,12 @@ apply(induction a1 a2 rule: plus.induct)
 apply simp_all (* just for a change from auto *)
 done
 
-text_raw{*\begin{isaverbatimwrite}\newcommand{\AExpasimpdef}{% *}
+text_raw{*\snip{AExpasimpdef}{2}{0}{% *}
 fun asimp :: "aexp \<Rightarrow> aexp" where
 "asimp (N n) = N n" |
 "asimp (V x) = V x" |
 "asimp (Plus a\<^isub>1 a\<^isub>2) = plus (asimp a\<^isub>1) (asimp a\<^isub>2)"
-text_raw{*}\end{isaverbatimwrite}*}
+text_raw{*}%endsnip*}
 
 text{* Note that in @{const asimp_const} the optimized constructor was
 inlined. Making it a separate function @{const plus} improves modularity of
