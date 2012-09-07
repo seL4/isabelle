@@ -136,6 +136,7 @@ value "show_acom (steps test2_parity 2)"
 value "show_acom (steps test2_parity 3)"
 value "show_acom (steps test2_parity 4)"
 value "show_acom (steps test2_parity 5)"
+value "show_acom (steps test2_parity 6)"
 value "show_acom_opt (AI_parity test2_parity)"
 
 

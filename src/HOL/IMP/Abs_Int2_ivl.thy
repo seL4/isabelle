@@ -261,6 +261,7 @@ value "show_acom_opt (AI_ivl test2_ivl)"
 value "show_acom (steps test2_ivl 0)"
 value "show_acom (steps test2_ivl 1)"
 value "show_acom (steps test2_ivl 2)"
+value "show_acom (steps test2_ivl 3)"
 
 text{* Fixed point reached in 2 steps.
  Not so if the start value of x is known: *}
@@ -271,6 +272,7 @@ value "show_acom (steps test3_ivl 1)"
 value "show_acom (steps test3_ivl 2)"
 value "show_acom (steps test3_ivl 3)"
 value "show_acom (steps test3_ivl 4)"
+value "show_acom (steps test3_ivl 5)"
 
 text{* Takes as many iterations as the actual execution. Would diverge if
 loop did not terminate. Worse still, as the following example shows: even if
