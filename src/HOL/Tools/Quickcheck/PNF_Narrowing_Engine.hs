@@ -11,43 +11,133 @@ import Data.Maybe
 import Data.List (partition, findIndex)
 import qualified Generated_Code
 
-
 type Pos = [Int]
+
+--  Refinement Tree
+
+data Quantifier = Existential | Universal
+
+data Truth = Eval Bool | Unevaluated | Unknown deriving Eq
+
+conj :: Truth -> Truth -> Truth
+conj (Eval True) b = b
+conj (Eval False) _ = Eval False
+conj b (Eval True) = b
+conj _ (Eval False) = Eval False
+conj Unevaluated _ = Unevaluated
+conj _ Unevaluated = Unevaluated
+conj Unknown Unknown = Unknown
+
+disj :: Truth -> Truth -> Truth
+disj (Eval True) _ = Eval True
+disj (Eval False) b = b
+disj _ (Eval True) = Eval True
+disj b (Eval False) = b
+disj Unknown _ = Unknown
+disj _ Unknown = Unknown
+disj Unevaluated Unevaluated = Unevaluated
+
+ball ts = foldl (\s t -> conj s (value_of t)) (Eval True) ts
+bexists ts = foldl (\s t -> disj s (value_of t)) (Eval False) ts
+
+data Tree = Leaf Truth
+  | Variable Quantifier Truth Pos Generated_Code.Narrowing_type Tree
+  | Constructor Quantifier Truth Pos [Tree]
+
+value_of :: Tree -> Truth
+value_of (Leaf r) = r
+value_of (Variable _ r _ _ _) = r
+value_of (Constructor _ r _ _) = r
+
+data Edge = V Pos Generated_Code.Narrowing_type | C Pos Int
+type Path = [Edge]
+
+position_of :: Edge -> Pos
+position_of (V pos _) = pos
+position_of (C pos _) = pos
+
+-- Operation find: finds first relevant unevaluated node and returns its path
+
+find :: Tree -> Path
+find (Leaf Unevaluated) = []
+find (Variable _ _ pos ty t) = V pos ty : (find t)
+find (Constructor _ _ pos ts) = C pos i : find (ts !! i)
+  where  
+    Just i = findIndex (\t -> value_of t == Unevaluated) ts
+
+-- Operation update: updates the leaf and the cached truth values results along the path
+
+update :: Path -> Truth -> Tree -> Tree
+update [] v (Leaf _) = Leaf v
+update (V _ _ : es) v (Variable q r p ty t) = Variable q (value_of t') p ty t'
+  where
+    t' = update es v t    
+update (C _ i : es) v (Constructor q r pos ts) = Constructor q r' pos ts' 
+  where
+    (xs, y : ys) = splitAt i ts
+    y' = update es v y
+    ts' = xs ++ (y' : ys)
+    r' = valueOf ts'
+    valueOf = case q of { Universal -> ball; Existential -> bexists}
+ 
+-- Operation: refineTree
+
+replace :: (Tree -> Tree) -> Path -> Tree -> Tree
+replace f [] t = (f t)
+replace f (V _ _ : es) (Variable q r pos ty t) = Variable q r pos ty (replace f es t)
+replace f (C _ i : es) (Constructor q r pos ts) = Constructor q r pos (xs ++ (replace f es y : ys))
+   where
+     (xs, y : ys) = splitAt i ts
+
+refine_tree :: [Edge] -> Pos -> Tree -> Tree
+refine_tree es p t = replace refine (path_of_position p es) t
+  where
+    path_of_position p es = takeWhile (\e -> position_of e /= p) es  
+    refine (Variable q r p (Generated_Code.Narrowing_sum_of_products ps) t) =
+      Constructor q r p [ foldr (\(i,ty) t -> Variable q r (p++[i]) ty t) t (zip [0..] ts) | ts <- ps ]
+
+-- refute
+
+refute :: ([Generated_Code.Narrowing_term] -> Bool) -> Bool -> Int -> Tree -> IO Tree
+refute exec genuine_only d t = ref t
+  where
+    ref t =
+      let path = find t in
+        do
+          t' <- answer genuine_only (exec (terms_of [] path)) (\b -> return (update path (Eval b) t))
+            (\p -> return (if length p < d then refine_tree path p t else update path Unknown t));
+          case value_of t' of
+            Unevaluated -> ref t'
+            _ -> return t'
+
+depthCheck :: Bool -> Int -> Generated_Code.Property -> IO ()
+depthCheck genuine_only d p = refute (checkOf p) genuine_only d (treeOf 0 p) >>= (\t -> 
+  case value_of t of
+   Eval False -> putStrLn ("SOME (" ++ show (counterexampleOf (reifysOf p) (exampleOf 0 t)) ++ ")")  
+   _ -> putStrLn ("NONE"))
 
 -- Term refinement
 
 -- Operation: termOf
 
-posOf :: Edge -> Pos
-posOf (VN pos _) = pos
-posOf (CtrB pos _) = pos
+term_of :: Pos -> Path -> Generated_Code.Narrowing_term
+term_of p (C [] i : es) = Generated_Code.Narrowing_constructor i (terms_of p es)
+term_of p [V [] ty] = Generated_Code.Narrowing_variable p ty
 
-tailPosEdge :: Edge -> Edge
-tailPosEdge (VN pos ty) = VN (tail pos) ty
-tailPosEdge (CtrB pos ts) = CtrB (tail pos) ts
-
-termOf :: Pos -> Path -> Generated_Code.Narrowing_term
-termOf pos (CtrB [] i : es) = Generated_Code.Narrowing_constructor i (termListOf pos es)
-termOf pos [VN [] ty] = Generated_Code.Narrowing_variable pos ty
-
-termListOf :: Pos -> Path -> [Generated_Code.Narrowing_term]
-termListOf pos es = termListOf' 0 es
+terms_of :: Pos -> Path -> [Generated_Code.Narrowing_term]
+terms_of p es = terms_of' 0 es
   where
-    termListOf' i [] = []
-    termListOf' i (e : es) =
-      let 
-        (ts, rs) = Data.List.partition (\e -> head (posOf e) == i) (e : es)
-        t = termOf (pos ++ [i]) (map tailPosEdge ts)
-      in
-        (t : termListOf' (i + 1) rs) 
-{-
-conv :: [[Term] -> a] -> Term -> a
-conv cs (Var p _) = error ('\0':map toEnum p)
-conv cs (Ctr i xs) = (cs !! i) xs
--}
+    terms_of' i [] = []
+    terms_of' i (e : es) = (t : terms_of' (i + 1) rs) 
+      where
+        (ts, rs) = Data.List.partition (\e -> head (position_of e) == i) (e : es)
+        t = term_of (p ++ [i]) (map (map_pos tail) ts)
+        map_pos f (V p ty) = V (f p) ty
+        map_pos f (C p ts) = C (f p) ts
+
 -- Answers
 
-data Answer = Known Bool | Unknown Pos deriving Show;
+data Answer = Known Bool | Refine Pos;
 
 answeri :: a -> (a -> IO b) -> (Pos -> IO b) -> IO b;
 answeri a known unknown =
@@ -61,116 +151,6 @@ answer :: Bool -> Bool -> (Bool -> IO b) -> (Pos -> IO b) -> IO b;
 answer genuine_only a known unknown =
   Control.Exception.catch (answeri a known unknown) 
     (\ (PatternMatchFail _) -> known genuine_only)
-
---  Proofs and Refutation
-
-data Quantifier = ExistentialQ | UniversalQ
-
-data EvaluationResult = Eval Bool | UnknownValue Bool deriving Eq
-{-
-instance Show EvaluationResult where
-  show (Eval True) = "T"
-  show (Eval False) = "F"
-  show (UnknownValue False) = "U"
-  show (UnknownValue True) = "X"
--}
-uneval = UnknownValue True
-unknown = UnknownValue False
-
-andOp :: EvaluationResult -> EvaluationResult -> EvaluationResult
-andOp (Eval b1) (Eval b2) = Eval (b1 && b2)
-andOp (Eval True) (UnknownValue b) = UnknownValue b
-andOp (Eval False) (UnknownValue _) = Eval False
-andOp (UnknownValue b) (Eval True) = UnknownValue b
-andOp (UnknownValue _) (Eval False) = Eval False
-andOp (UnknownValue b1) (UnknownValue b2) = UnknownValue (b1 || b2)
-
-orOp :: EvaluationResult -> EvaluationResult -> EvaluationResult
-orOp (Eval b1) (Eval b2) = Eval (b1 || b2)
-orOp (Eval False) (UnknownValue b) = UnknownValue b
-orOp (Eval True) (UnknownValue _) = Eval True
-orOp (UnknownValue b) (Eval False) = UnknownValue b
-orOp (UnknownValue _) (Eval True) = Eval True
-orOp (UnknownValue b1) (UnknownValue b2) = UnknownValue (b1 && b2)
-
-
-data Edge = VN Pos Generated_Code.Narrowing_type | CtrB Pos Int
-type Path = [Edge]
-
-data QuantTree = Node EvaluationResult
-  | VarNode Quantifier EvaluationResult Pos Generated_Code.Narrowing_type QuantTree
-  | CtrBranch Quantifier EvaluationResult Pos [QuantTree]
-{-
-instance Show QuantTree where
-  show (Node r) = "Node " ++ show r
-  show (VarNode q r p _ t) = "VarNode " ++ show q ++ " " ++ show r ++ " " ++ show p ++ " " ++ show t
-  show (CtrBranch q r p ts) = "CtrBranch " ++ show q ++ show r ++ show p ++ show ts
--}
-evalOf :: QuantTree -> EvaluationResult
-evalOf (Node r) = r
-evalOf (VarNode _ r _ _ _) = r
-evalOf (CtrBranch _ r _ _) = r
-
--- Operation find: finds first relevant unevaluated node and returns its path
-
-find :: QuantTree -> Path
-find (Node (UnknownValue True)) = []
-find (VarNode _ _ pos ty t) = VN pos ty : (find t)
-find (CtrBranch _ _ pos ts) = CtrB pos i : find (ts !! i)
-  where  
-    Just i = findIndex (\t -> evalOf t == uneval) ts
-
--- Operation: updateNode ( and simplify)
-
-{- updates the Node and the stored evaluation results along the upper nodes -}
-updateNode :: Path -> EvaluationResult -> QuantTree -> QuantTree
-updateNode [] v (Node _) = Node v
-updateNode (VN _ _ : es) v (VarNode q r p ty t) = VarNode q (evalOf t') p ty t'
-  where
-    t' = updateNode es v t    
-updateNode (CtrB _ i : es) v (CtrBranch q r pos ts) = CtrBranch q r' pos ts' 
-  where
-    (xs, y : ys) = splitAt i ts
-    y' = updateNode es v y
-    ts' = xs ++ (y' : ys)
-    r' = foldl (\s t -> oper s (evalOf t)) neutral ts'
-    (neutral, oper) = case q of { UniversalQ -> (Eval True, andOp); ExistentialQ -> (Eval False, orOp)}
- 
--- Operation: refineTree
-
-updateTree :: (QuantTree -> QuantTree) -> Path -> QuantTree -> QuantTree
-updateTree f [] t = (f t)
-updateTree f (VN _ _ : es) (VarNode q r pos ty t) = VarNode q r pos ty (updateTree f es t)
-updateTree f (CtrB _ i : es) (CtrBranch q r pos ts) = CtrBranch q r pos (xs ++ (updateTree f es y : ys))
-   where
-     (xs, y : ys) = splitAt i ts
-
-refineTree :: [Edge] -> Pos -> QuantTree -> QuantTree
-refineTree es p t = updateTree refine (pathPrefix p es) t
-  where
-    pathPrefix p es = takeWhile (\e -> posOf e /= p) es  
-    refine (VarNode q r p (Generated_Code.Narrowing_sum_of_products ps) t) =
-      CtrBranch q r p [ foldr (\(i,ty) t -> VarNode q r (p++[i]) ty t) t (zip [0..] ts) | ts <- ps ]
-
--- refute
-
-refute :: ([Generated_Code.Narrowing_term] -> Bool) -> Bool -> Int -> QuantTree -> IO QuantTree
-refute exec genuine_only d t = ref t
-  where
-    ref t =
-      let path = find t in
-        do
-          t' <- answer genuine_only (exec (termListOf [] path)) (\b -> return (updateNode path (Eval b) t))
-            (\p -> return (if length p < d then refineTree path p t else updateNode path unknown t));
-          case evalOf t' of
-            UnknownValue True -> ref t'
-            _ -> return t'
-
-depthCheck :: Bool -> Int -> Generated_Code.Property -> IO ()
-depthCheck genuine_only d p = refute (checkOf p) genuine_only d (treeOf 0 p) >>= (\t -> 
-  case evalOf t of
-   Eval False -> putStrLn ("SOME (" ++ show (counterexampleOf (reifysOf p) (exampleOf 0 t)) ++ ")")  
-   _ -> putStrLn ("NONE"))
 
 
 -- presentation of counterexample
@@ -227,40 +207,40 @@ term_of p' (CtrBranch q _ p ts) =
   else
     error ""
 -}
-termlist_of :: Pos -> ([Generated_Code.Narrowing_term], QuantTree) -> ([Generated_Code.Narrowing_term], QuantTree)
-termlist_of p' (terms, Node b) = (terms, Node b) 
-termlist_of p' (terms, VarNode q r p ty t) = if p' == take (length p') p then
+termlist_of :: Pos -> ([Generated_Code.Narrowing_term], Tree) -> ([Generated_Code.Narrowing_term], Tree)
+termlist_of p' (terms, Leaf b) = (terms, Leaf b) 
+termlist_of p' (terms, Variable q r p ty t) = if p' == take (length p') p then
     termlist_of p' (terms ++ [Generated_Code.Narrowing_variable p ty], t)
   else
-    (terms, VarNode q r p ty t)
-termlist_of p' (terms, CtrBranch q r p ts) = if p' == take (length p') p then
+    (terms, Variable q r p ty t)
+termlist_of p' (terms, Constructor q r p ts) = if p' == take (length p') p then
     let
-      Just i = findIndex (\t -> evalOf t == Eval False) ts
+      Just i = findIndex (\t -> value_of t == Eval False) ts
       (subterms, t') = fixp (\j -> termlist_of (p ++ [j])) 0 ([], ts !! i)
     in
       (terms ++ [Generated_Code.Narrowing_constructor i subterms], t')
   else
-    (terms, CtrBranch q r p ts)
+    (terms, Constructor q r p ts)
   where
     fixp f j s = if length (fst (f j s)) == length (fst s) then s else fixp f (j + 1) (f j s)
 
 
-alltermlist_of :: Pos -> ([Generated_Code.Narrowing_term], QuantTree) -> [([Generated_Code.Narrowing_term], QuantTree)]
-alltermlist_of p' (terms, Node b) = [(terms, Node b)] 
-alltermlist_of p' (terms, VarNode q r p ty t) = if p' == take (length p') p then
+alltermlist_of :: Pos -> ([Generated_Code.Narrowing_term], Tree) -> [([Generated_Code.Narrowing_term], Tree)]
+alltermlist_of p' (terms, Leaf b) = [(terms, Leaf b)] 
+alltermlist_of p' (terms, Variable q r p ty t) = if p' == take (length p') p then
     alltermlist_of p' (terms ++ [Generated_Code.Narrowing_variable p ty], t)
   else
-    [(terms, VarNode q r p ty t)]
-alltermlist_of p' (terms, CtrBranch q r p ts) =
+    [(terms, Variable q r p ty t)]
+alltermlist_of p' (terms, Constructor q r p ts) =
   if p' == take (length p') p then
     let
-      its = filter (\(i, t) -> evalOf t == Eval False) (zip [0..] ts)
+      its = filter (\(i, t) -> value_of t == Eval False) (zip [0..] ts)
     in
       concatMap
         (\(i, t) -> map (\(subterms, t') -> (terms ++ [Generated_Code.Narrowing_constructor i subterms], t'))
            (fixp (\j -> alltermlist_of (p ++ [j])) 0 ([], t))) its
   else
-    [(terms, CtrBranch q r p ts)]
+    [(terms, Constructor q r p ts)]
   where
     fixp f j s = case (f j s) of
       [s'] -> if length (fst s') == length (fst s) then [s'] else concatMap (fixp f (j + 1)) (f j s)
@@ -268,18 +248,18 @@ alltermlist_of p' (terms, CtrBranch q r p ts) =
 
 data Example = UnivExample Generated_Code.Narrowing_term Example | ExExample [(Generated_Code.Narrowing_term, Example)] | EmptyExample
 
-quantifierOf (VarNode q _ _ _ _) = q
-quantifierOf (CtrBranch q _ _ _) = q
+quantifierOf (Variable q _ _ _ _) = q
+quantifierOf (Constructor q _ _ _) = q
 
-exampleOf :: Int -> QuantTree -> Example
-exampleOf _ (Node _) = EmptyExample
+exampleOf :: Int -> Tree -> Example
+exampleOf _ (Leaf _) = EmptyExample
 exampleOf p t =
    case quantifierOf t of
-     UniversalQ ->
+     Universal ->
        let
          ([term], rt) = termlist_of [p] ([], t)
        in UnivExample term (exampleOf (p + 1) rt)
-     ExistentialQ ->
+     Existential ->
        ExExample (map (\([term], rt) -> (term, exampleOf (p + 1) rt)) (alltermlist_of [p] ([], t)))
 
 data Counterexample = Universal_Counterexample (Generated_Code.Term, Counterexample)
@@ -303,10 +283,10 @@ checkOf (Generated_Code.Existential _ f _) = (\(t : ts) -> checkOf (f t) ts)
 
 dummy = Generated_Code.Narrowing_variable [] (Generated_Code.Narrowing_sum_of_products [[]])
 
-treeOf :: Int -> Generated_Code.Property -> QuantTree
-treeOf n (Generated_Code.Property _) = Node uneval
-treeOf n (Generated_Code.Universal ty f _)  = VarNode UniversalQ uneval [n] ty (treeOf (n + 1) (f dummy)) 
-treeOf n (Generated_Code.Existential ty f _) = VarNode ExistentialQ uneval [n] ty (treeOf (n + 1) (f dummy))
+treeOf :: Int -> Generated_Code.Property -> Tree
+treeOf n (Generated_Code.Property _) = Leaf Unevaluated
+treeOf n (Generated_Code.Universal ty f _)  = Variable Universal Unevaluated [n] ty (treeOf (n + 1) (f dummy)) 
+treeOf n (Generated_Code.Existential ty f _) = Variable Existential Unevaluated [n] ty (treeOf (n + 1) (f dummy))
 
 reifysOf :: Generated_Code.Property -> [Generated_Code.Narrowing_term -> Generated_Code.Term]
 reifysOf (Generated_Code.Property _) = []
