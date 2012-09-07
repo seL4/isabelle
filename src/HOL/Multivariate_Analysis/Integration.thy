@@ -1771,31 +1771,33 @@ subsection {* Using additivity of lifted function to encode definedness. *}
 lemma forall_option: "(\<forall>x. P x) \<longleftrightarrow> P None \<and> (\<forall>x. P(Some x))"
   by (metis option.nchotomy)
 
-lemma exists_option:
- "(\<exists>x. P x) \<longleftrightarrow> P None \<or> (\<exists>x. P(Some x))" 
+lemma exists_option: "(\<exists>x. P x) \<longleftrightarrow> P None \<or> (\<exists>x. P(Some x))"
   by (metis option.nchotomy)
 
-fun lifted where 
-  "lifted (opp::'a\<Rightarrow>'a\<Rightarrow>'b) (Some x) (Some y) = Some(opp x y)" |
-  "lifted opp None _ = (None::'b option)" |
-  "lifted opp _ None = None"
+fun lifted
+where
+  "lifted (opp::'a\<Rightarrow>'a\<Rightarrow>'b) (Some x) (Some y) = Some (opp x y)"
+| "lifted opp None _ = (None::'b option)"
+| "lifted opp _ None = None"
 
 lemma lifted_simp_1[simp]: "lifted opp v None = None"
-  apply(induct v) by auto
+  by (induct v) auto
 
 definition "monoidal opp \<equiv>  (\<forall>x y. opp x y = opp y x) \<and>
                    (\<forall>x y z. opp x (opp y z) = opp (opp x y) z) \<and>
                    (\<forall>x. opp (neutral opp) x = x)"
 
-lemma monoidalI: assumes "\<And>x y. opp x y = opp y x"
+lemma monoidalI:
+  assumes "\<And>x y. opp x y = opp y x"
   "\<And>x y z. opp x (opp y z) = opp (opp x y) z"
   "\<And>x. opp (neutral opp) x = x" shows "monoidal opp"
   unfolding monoidal_def using assms by fastforce
 
-lemma monoidal_ac: assumes "monoidal opp"
+lemma monoidal_ac:
+  assumes "monoidal opp"
   shows "opp (neutral opp) a = a" "opp a (neutral opp) = a" "opp a b = opp b a"
   "opp (opp a b) c = opp a (opp b c)"  "opp a (opp b c) = opp b (opp a c)"
-  using assms unfolding monoidal_def apply- by metis+
+  using assms unfolding monoidal_def by metis+
 
 lemma monoidal_simps[simp]: assumes "monoidal opp"
   shows "opp (neutral opp) a = a" "opp a (neutral opp) = a"
@@ -1804,10 +1806,14 @@ lemma monoidal_simps[simp]: assumes "monoidal opp"
 lemma neutral_lifted[cong]: assumes "monoidal opp"
   shows "neutral (lifted opp) = Some(neutral opp)"
   apply(subst neutral_def) apply(rule some_equality) apply(rule,induct_tac y) prefer 3
-proof- fix x assume "\<forall>y. lifted opp x y = y \<and> lifted opp y x = y"
-  thus "x = Some (neutral opp)" apply(induct x) defer
+proof -
+  fix x assume "\<forall>y. lifted opp x y = y \<and> lifted opp y x = y"
+  thus "x = Some (neutral opp)"
+    apply(induct x) defer
     apply rule apply(subst neutral_def) apply(subst eq_commute,rule some_equality)
-    apply(rule,erule_tac x="Some y" in allE) defer apply(erule_tac x="Some x" in allE) by auto
+    apply(rule,erule_tac x="Some y" in allE) defer apply(erule_tac x="Some x" in allE)
+    apply auto
+    done
 qed(auto simp add:monoidal_ac[OF assms])
 
 lemma monoidal_lifted[intro]: assumes "monoidal opp" shows "monoidal(lifted opp)"
@@ -1825,7 +1831,8 @@ lemma comp_fun_commute_monoidal[intro]: assumes "monoidal opp" shows "comp_fun_c
 
 lemma support_clauses:
   "\<And>f g s. support opp f {} = {}"
-  "\<And>f g s. support opp f (insert x s) = (if f(x) = neutral opp then support opp f s else insert x (support opp f s))"
+  "\<And>f g s. support opp f (insert x s) =
+    (if f(x) = neutral opp then support opp f s else insert x (support opp f s))"
   "\<And>f g s. support opp f (s - {x}) = (support opp f s) - {x}"
   "\<And>f g s. support opp f (s \<union> t) = (support opp f s) \<union> (support opp f t)"
   "\<And>f g s. support opp f (s \<inter> t) = (support opp f s) \<inter> (support opp f t)"
@@ -3989,7 +3996,7 @@ proof assume ?r show ?l unfolding negligible_def
 
 lemma has_integral_spike_set_eq: fixes f::"'n::ordered_euclidean_space \<Rightarrow> 'a::banach" 
   assumes "negligible((s - t) \<union> (t - s))" shows "((f has_integral y) s \<longleftrightarrow> (f has_integral y) t)"
-  unfolding has_integral_restrict_univ[THEN sym,of f] apply(rule has_integral_spike_eq[OF assms]) by (safe, auto split: split_if_asm)
+  unfolding has_integral_restrict_univ[THEN sym,of f] apply(rule has_integral_spike_eq[OF assms]) by (auto split: split_if_asm)
 
 lemma has_integral_spike_set[dest]: fixes f::"'n::ordered_euclidean_space \<Rightarrow> 'a::banach"
   assumes "negligible((s - t) \<union> (t - s))" "(f has_integral y) s"

@@ -24,6 +24,7 @@ object Session
   //{{{
   case object Global_Settings
   case object Caret_Focus
+  case class Raw_Edits(edits: List[Document.Edit_Text])
   case class Commands_Changed(
     assignment: Boolean, nodes: Set[Document.Node.Name], commands: Set[Command])
 
@@ -61,6 +62,7 @@ class Session(val thy_load: Thy_Load)
 
   val global_settings = new Event_Bus[Session.Global_Settings.type]
   val caret_focus = new Event_Bus[Session.Caret_Focus.type]
+  val raw_edits = new Event_Bus[Session.Raw_Edits]
   val commands_changed = new Event_Bus[Session.Commands_Changed]
   val phase_changed = new Event_Bus[Session.Phase]
   val syslog_messages = new Event_Bus[Isabelle_Process.Output]
@@ -168,7 +170,6 @@ class Session(val thy_load: Thy_Load)
 
   private case class Start(args: List[String])
   private case object Cancel_Execution
-  private case class Edit(edits: List[Document.Edit_Text])
   private case class Change(
     doc_edits: List[Document.Edit_Command],
     previous: Document.Version,
@@ -391,12 +392,13 @@ class Session(val thy_load: Thy_Load)
         case Cancel_Execution if prover.isDefined =>
           prover.get.cancel_execution()
 
-        case Edit(edits) if prover.isDefined =>
+        case raw @ Session.Raw_Edits(edits) if prover.isDefined =>
           prover.get.discontinue_execution()
 
           val previous = global_state().history.tip.version
           val version = Future.promise[Document.Version]
           val change = global_state >>> (_.continue_history(previous, edits, version))
+          raw_edits.event(raw)
           change_parser ! Text_Edits(previous, edits, version)
 
           reply(())
@@ -435,7 +437,7 @@ class Session(val thy_load: Thy_Load)
   def cancel_execution() { session_actor ! Cancel_Execution }
 
   def edit(edits: List[Document.Edit_Text])
-  { session_actor !? Edit(edits) }
+  { session_actor !? Session.Raw_Edits(edits) }
 
   def init_node(name: Document.Node.Name,
     header: Document.Node.Header, perspective: Text.Perspective, text: String)

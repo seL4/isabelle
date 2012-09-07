@@ -416,11 +416,11 @@ class Plugin extends EBPlugin
 
             case Session.Ready =>
               Isabelle.jedit_buffers.foreach(Isabelle.init_model)
-              delay_load(true)
+              Swing_Thread.later { delay_load.invoke() }
 
             case Session.Shutdown =>
               Isabelle.jedit_buffers.foreach(Isabelle.exit_model)
-              delay_load(false)
+              Swing_Thread.later { delay_load.revoke() }
 
             case _ =>
           }
@@ -458,7 +458,7 @@ class Plugin extends EBPlugin
           if (Isabelle.session.is_ready) {
             val buffer = msg.getBuffer
             if (buffer != null && !buffer.isLoading) Isabelle.init_model(buffer)
-            delay_load(true)
+            Swing_Thread.later { delay_load.invoke() }
           }
 
         case msg: EditPaneUpdate

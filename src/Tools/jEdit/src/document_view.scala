@@ -346,7 +346,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     }
 
   private val caret_listener = new CaretListener {
-    override def caretUpdate(e: CaretEvent) { delay_caret_update(true) }
+    override def caretUpdate(e: CaretEvent) { delay_caret_update.invoke() }
   }
 
 
@@ -364,6 +364,11 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   private val main_actor = actor {
     loop {
       react {
+        case _: Session.Raw_Edits =>
+          Swing_Thread.later {
+            overview.delay_repaint.postpone(Isabelle.session.input_delay)
+          }
+
         case changed: Session.Commands_Changed =>
           val buffer = model.buffer
           Swing_Thread.later {
@@ -374,7 +379,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
                 if (changed.assignment ||
                     (changed.nodes.contains(model.name) &&
                      changed.commands.exists(snapshot.node.commands.contains)))
-                  overview.delay_repaint(true)
+                  Swing_Thread.later { overview.delay_repaint.invoke() }
 
                 visible_range() match {
                   case Some(visible) =>
@@ -422,6 +427,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     painter.addMouseMotionListener(mouse_motion_listener)
     text_area.addCaretListener(caret_listener)
     text_area.addLeftOfScrollBar(overview)
+    session.raw_edits += main_actor
     session.commands_changed += main_actor
     session.global_settings += main_actor
   }
@@ -429,14 +435,15 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   private def deactivate()
   {
     val painter = text_area.getPainter
+    session.raw_edits -= main_actor
     session.commands_changed -= main_actor
     session.global_settings -= main_actor
     text_area.removeFocusListener(focus_listener)
     text_area.getView.removeWindowListener(window_listener)
     painter.removeMouseMotionListener(mouse_motion_listener)
     painter.removeMouseListener(mouse_listener)
-    text_area.removeCaretListener(caret_listener); delay_caret_update(false)
-    text_area.removeLeftOfScrollBar(overview); overview.delay_repaint(false)
+    text_area.removeCaretListener(caret_listener); delay_caret_update.revoke()
+    text_area.removeLeftOfScrollBar(overview); overview.delay_repaint.revoke()
     text_area.getGutter.removeExtension(gutter_painter)
     text_area_painter.deactivate()
     painter.removeExtension(tooltip_painter)

@@ -121,12 +121,12 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
     {
       Swing_Thread.require()
       pending += edit
-      delay_flush(true)
+      delay_flush.invoke()
     }
 
     def update_perspective()
     {
-      delay_flush(true)
+      delay_flush.invoke()
     }
 
     def init()
@@ -137,7 +137,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
 
     def exit()
     {
-      delay_flush(false)
+      delay_flush.revoke()
       flush()
     }
   }
