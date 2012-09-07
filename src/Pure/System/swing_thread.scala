@@ -51,6 +51,7 @@ object Swing_Thread
   {
     def invoke(): Unit
     def revoke(): Unit
+    def postpone(time: Time): Unit
   }
 
   private def delayed_action(first: Boolean)(time: Time)(action: => Unit): Delay =
@@ -76,6 +77,15 @@ object Swing_Thread
         require()
         timer.stop()
         timer.setDelay(time.ms.toInt)
+      }
+
+      def postpone(alt_time: Time)
+      {
+        require()
+        if (timer.isRunning) {
+          timer.setDelay(timer.getDelay max alt_time.ms.toInt)
+          timer.restart()
+        }
       }
     }
 
