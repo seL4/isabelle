@@ -57,23 +57,39 @@ end
 
 text{* The ordering on one-dimensional vectors is linear. *}
 
-class cart_one = assumes UNIV_one: "card (UNIV \<Colon> 'a set) = Suc 0"
+class cart_one =
+  assumes UNIV_one: "card (UNIV \<Colon> 'a set) = Suc 0"
 begin
-  subclass finite
-  proof from UNIV_one show "finite (UNIV :: 'a set)"
-      by (auto intro!: card_ge_0_finite) qed
+
+subclass finite
+proof
+  from UNIV_one show "finite (UNIV :: 'a set)"
+    by (auto intro!: card_ge_0_finite)
+qed
+
 end
 
-instantiation vec :: (linorder,cart_one) linorder begin
-instance proof
-  guess a B using UNIV_one[where 'a='b] unfolding card_Suc_eq apply- by(erule exE)+
-  hence *:"UNIV = {a}" by auto
-  have "\<And>P. (\<forall>i\<in>UNIV. P i) \<longleftrightarrow> P a" unfolding * by auto hence all:"\<And>P. (\<forall>i. P i) \<longleftrightarrow> P a" by auto
-  fix x y z::"'a^'b::cart_one" note * = less_eq_vec_def less_vec_def all vec_eq_iff
-  show "x\<le>x" "(x < y) = (x \<le> y \<and> \<not> y \<le> x)" "x\<le>y \<or> y\<le>x" unfolding * by(auto simp only:field_simps)
-  { assume "x\<le>y" "y\<le>z" thus "x\<le>z" unfolding * by(auto simp only:field_simps) }
-  { assume "x\<le>y" "y\<le>x" thus "x=y" unfolding * by(auto simp only:field_simps) }
-qed end
+instantiation vec :: (linorder, cart_one) linorder
+begin
+
+instance
+proof
+  obtain a :: 'b where all: "\<And>P. (\<forall>i. P i) \<longleftrightarrow> P a"
+  proof -
+    have "card (UNIV :: 'b set) = Suc 0" by (rule UNIV_one)
+    then obtain b :: 'b where "UNIV = {b}" by (auto iff: card_Suc_eq)
+    then have "\<And>P. (\<forall>i\<in>UNIV. P i) \<longleftrightarrow> P b" by auto
+    then show thesis by (auto intro: that)
+  qed
+
+  note [simp] = less_eq_vec_def less_vec_def all vec_eq_iff field_simps
+  fix x y z :: "'a^'b::cart_one"
+  show "x \<le> x" "(x < y) = (x \<le> y \<and> \<not> y \<le> x)" "x \<le> y \<or> y \<le> x" by auto
+  { assume "x\<le>y" "y\<le>z" then show "x\<le>z" by auto }
+  { assume "x\<le>y" "y\<le>x" then show "x=y" by auto }
+qed
+
+end
 
 text{* Constant Vectors *} 
 
@@ -1986,12 +2002,21 @@ proof- note simps = interval_split_cart content_closed_interval_cases_cart vec_l
     unfolding simps unfolding *(1)[of "\<lambda>i x. b$i - x"] *(1)[of "\<lambda>i x. x - a$i"] *(2) by(auto)
 qed*)
 
-lemma has_integral_vec1: assumes "(f has_integral k) {a..b}"
+lemma has_integral_vec1:
+  assumes "(f has_integral k) {a..b}"
   shows "((\<lambda>x. vec1 (f x)) has_integral (vec1 k)) {a..b}"
-proof- have *:"\<And>p. (\<Sum>(x, k)\<in>p. content k *\<^sub>R vec1 (f x)) - vec1 k = vec1 ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - k)"
-    unfolding vec_sub vec_eq_iff by(auto simp add: split_beta)
-  show ?thesis using assms unfolding has_integral apply safe
-    apply(erule_tac x=e in allE,safe) apply(rule_tac x=d in exI,safe)
-    apply(erule_tac x=p in allE,safe) unfolding * norm_vector_1 by auto qed
+proof -
+  have *: "\<And>p. (\<Sum>(x, k)\<in>p. content k *\<^sub>R vec1 (f x)) - vec1 k = vec1 ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - k)"
+    unfolding vec_sub vec_eq_iff by (auto simp add: split_beta)
+  show ?thesis
+    using assms unfolding has_integral
+    apply safe
+    apply(erule_tac x=e in allE,safe)
+    apply(rule_tac x=d in exI,safe)
+    apply(erule_tac x=p in allE,safe)
+    unfolding * norm_vector_1
+    apply auto
+    done
+qed
 
 end
