@@ -3989,7 +3989,7 @@ proof assume ?r show ?l unfolding negligible_def
 
 lemma has_integral_spike_set_eq: fixes f::"'n::ordered_euclidean_space \<Rightarrow> 'a::banach" 
   assumes "negligible((s - t) \<union> (t - s))" shows "((f has_integral y) s \<longleftrightarrow> (f has_integral y) t)"
-  unfolding has_integral_restrict_univ[THEN sym,of f] apply(rule has_integral_spike_eq[OF assms]) by (safe, auto split: split_if_asm)
+  unfolding has_integral_restrict_univ[THEN sym,of f] apply(rule has_integral_spike_eq[OF assms]) by (auto split: split_if_asm)
 
 lemma has_integral_spike_set[dest]: fixes f::"'n::ordered_euclidean_space \<Rightarrow> 'a::banach"
   assumes "negligible((s - t) \<union> (t - s))" "(f has_integral y) s"
