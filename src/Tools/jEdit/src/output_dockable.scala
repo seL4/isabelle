@@ -141,7 +141,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     Isabelle.session.global_settings -= main_actor
     Isabelle.session.commands_changed -= main_actor
     Isabelle.session.caret_focus -= main_actor
-    delay_resize(false)
+    delay_resize.revoke()
   }
 
 
@@ -151,7 +151,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     Swing_Thread.delay_first(Isabelle.session.update_delay) { handle_resize() }
 
   addComponentListener(new ComponentAdapter {
-    override def componentResized(e: ComponentEvent) { delay_resize(true) }
+    override def componentResized(e: ComponentEvent) { delay_resize.invoke() }
   })
 
 
