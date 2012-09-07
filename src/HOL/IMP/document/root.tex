@@ -1,23 +1,20 @@
 \documentclass[11pt,a4paper]{article}
 \usepackage{isabelle,isabellesym}
-
 \usepackage{latexsym}
-
 % this should be the last package used
 \usepackage{pdfsetup}
 
-\usepackage{isaverbatimwrite}
+% snip
+\newcommand{\repeatisanl}[1]{\ifnum#1=0\else\isanewline\repeatisanl{\numexpr#1-1}\fi}
+\newcommand{\snip}[4]{\repeatisanl#2#4\repeatisanl#3}
 
-% urls in roman style, theory text in math-similar italics
 \urlstyle{rm}
 \isabellestyle{it}
 
 % for uniform font size
 \renewcommand{\isastyle}{\isastyleminor}
 
-
 \begin{document}
-\openisaverbatimout fragments
 
 \title{Concrete Semantics}
 \author{TN \& GK}
@@ -32,7 +29,6 @@
 
 \nocite{Nipkow}
 
-% optional bibliography
 \bibliographystyle{abbrv}
 \bibliography{root}
 
