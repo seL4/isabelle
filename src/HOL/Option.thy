@@ -117,8 +117,56 @@ by (cases x) auto
 lemma bind_cong: "x = y \<Longrightarrow> (\<And>a. y = Some a \<Longrightarrow> f a = g a) \<Longrightarrow> bind x f = bind y g"
 by (cases x) auto
 
-hide_const (open) set map bind
+definition these :: "'a option set \<Rightarrow> 'a set"
+where
+  "these A = the ` {x \<in> A. x \<noteq> None}"
+
+lemma these_empty [simp]:
+  "these {} = {}"
+  by (simp add: these_def)
+
+lemma these_insert_None [simp]:
+  "these (insert None A) = these A"
+  by (auto simp add: these_def)
+
+lemma these_insert_Some [simp]:
+  "these (insert (Some x) A) = insert x (these A)"
+proof -
+  have "{y \<in> insert (Some x) A. y \<noteq> None} = insert (Some x) {y \<in> A. y \<noteq> None}"
+    by auto
+  then show ?thesis by (simp add: these_def)
+qed
+
+lemma in_these_eq:
+  "x \<in> these A \<longleftrightarrow> Some x \<in> A"
+proof
+  assume "Some x \<in> A"
+  then obtain B where "A = insert (Some x) B" by auto
+  then show "x \<in> these A" by (auto simp add: these_def intro!: image_eqI)
+next
+  assume "x \<in> these A"
+  then show "Some x \<in> A" by (auto simp add: these_def)
+qed
+
+lemma these_image_Some_eq [simp]:
+  "these (Some ` A) = A"
+  by (auto simp add: these_def intro!: image_eqI)
+
+lemma Some_image_these_eq:
+  "Some ` these A = {x\<in>A. x \<noteq> None}"
+  by (auto simp add: these_def image_image intro!: image_eqI)
+
+lemma these_empty_eq:
+  "these B = {} \<longleftrightarrow> B = {} \<or> B = {None}"
+  by (auto simp add: these_def)
+
+lemma these_not_empty_eq:
+  "these B \<noteq> {} \<longleftrightarrow> B \<noteq> {} \<and> B \<noteq> {None}"
+  by (auto simp add: these_empty_eq)
+
+hide_const (open) set map bind these
 hide_fact (open) map_cong bind_cong
+
 
 subsubsection {* Code generator setup *}
 
@@ -164,3 +212,4 @@ code_reserved Scala
   Option None Some
 
 end
+

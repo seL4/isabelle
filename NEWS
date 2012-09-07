@@ -41,6 +41,8 @@ given given sort.  Example (in HOL):
 
 *** HOL ***
 
+* New combinator "Option.these" with type "'a option set => 'a option".
+
 * Renamed theory Library/List_Prefix to Library/Sublist.
 INCOMPATIBILITY.  Related changes are:
 
