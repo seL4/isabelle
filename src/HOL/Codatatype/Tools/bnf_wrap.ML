@@ -20,10 +20,10 @@ struct
 open BNF_Util
 open BNF_Wrap_Tactics
 
-val is_N = "is_";
-val un_N = "un_";
-fun mk_un_N 1 1 suf = un_N ^ suf
-  | mk_un_N _ l suf = un_N ^ suf ^ string_of_int l;
+val isN = "is_";
+val unN = "un_";
+fun mk_unN 1 1 suf = unN ^ suf
+  | mk_unN _ l suf = unN ^ suf ^ string_of_int l;
 
 val case_congN = "case_cong";
 val case_eqN = "case_eq";
@@ -107,7 +107,7 @@ fun prepare_wrap_datatype prep_term ((raw_ctrs, raw_case), (raw_disc_binders, ra
     fun can_omit_disc_binder k m =
       n = 1 orelse m = 0 orelse (n = 2 andalso can_rely_on_disc (3 - k));
 
-    val fallback_disc_binder = Binding.name o prefix is_N o Long_Name.base_name o name_of_ctr;
+    val fallback_disc_binder = Binding.name o prefix isN o Long_Name.base_name o name_of_ctr;
 
     val disc_binders =
       raw_disc_binders'
@@ -122,7 +122,7 @@ fun prepare_wrap_datatype prep_term ((raw_ctrs, raw_case), (raw_disc_binders, ra
     val no_discs = map is_none disc_binders;
     val no_discs_at_all = forall I no_discs;
 
-    fun fallback_sel_binder m l = Binding.name o mk_un_N m l o Long_Name.base_name o name_of_ctr;
+    fun fallback_sel_binder m l = Binding.name o mk_unN m l o Long_Name.base_name o name_of_ctr;
 
     val sel_binderss =
       pad_list [] n raw_sel_binderss
