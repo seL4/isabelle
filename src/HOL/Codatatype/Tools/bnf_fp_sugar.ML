@@ -391,6 +391,7 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
 
 fun datatype_cmd info specs lthy =
   let
+    (* TODO: cleaner handling of fake contexts, without "background_theory" *)
     (*the "perhaps o try" below helps gracefully handles the case where the new type is defined in a
       locale and shadows an existing global type*)
     val fake_thy = Theory.copy
