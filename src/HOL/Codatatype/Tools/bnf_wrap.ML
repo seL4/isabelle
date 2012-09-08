@@ -9,7 +9,7 @@ signature BNF_WRAP =
 sig
   val no_binder: binding
   val mk_half_pairss: 'a list -> ('a * 'a) list list
-  val wrap_data: ({prems: thm list, context: Proof.context} -> tactic) list list ->
+  val wrap_datatype: ({prems: thm list, context: Proof.context} -> tactic) list list ->
     (term list * term) * (binding list * binding list list) -> local_theory -> local_theory
 end;
 
@@ -62,7 +62,7 @@ fun name_of_ctr t =
   | Free (s, _) => s
   | _ => error "Cannot extract name of constructor";
 
-fun prepare_wrap_data prep_term ((raw_ctrs, raw_case), (raw_disc_binders, raw_sel_binderss))
+fun prepare_wrap_datatype prep_term ((raw_ctrs, raw_case), (raw_disc_binders, raw_sel_binderss))
   no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
@@ -507,22 +507,22 @@ fun prepare_wrap_data prep_term ((raw_ctrs, raw_case), (raw_disc_binders, raw_se
     (goalss, after_qed, lthy')
   end;
 
-fun wrap_data tacss = (fn (goalss, after_qed, lthy) =>
+fun wrap_datatype tacss = (fn (goalss, after_qed, lthy) =>
   map2 (map2 (Skip_Proof.prove lthy [] [])) goalss tacss
   |> (fn thms => after_qed thms lthy)) oo
-  prepare_wrap_data (K I) (* FIXME? (singleton o Type_Infer_Context.infer_types) *)
+  prepare_wrap_datatype (K I) (* FIXME? (singleton o Type_Infer_Context.infer_types) *)
 
 val parse_bindings = Parse.$$$ "[" |-- Parse.list Parse.binding --| Parse.$$$ "]";
 val parse_bindingss = Parse.$$$ "[" |-- Parse.list parse_bindings --| Parse.$$$ "]";
 
-val wrap_data_cmd = (fn (goalss, after_qed, lthy) =>
+val wrap_datatype_cmd = (fn (goalss, after_qed, lthy) =>
   Proof.theorem NONE after_qed (map (map (rpair [])) goalss) lthy) oo
-  prepare_wrap_data Syntax.read_term;
+  prepare_wrap_datatype Syntax.read_term;
 
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "wrap_data"} "wraps an existing datatype"
     (((Parse.$$$ "[" |-- Parse.list Parse.term --| Parse.$$$ "]") -- Parse.term --
       Scan.optional (parse_bindings -- Scan.optional parse_bindingss []) ([], []))
-     >> wrap_data_cmd);
+     >> wrap_datatype_cmd);
 
 end;
