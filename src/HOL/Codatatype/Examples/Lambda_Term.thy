@@ -22,26 +22,26 @@ section {* Customization of terms *}
 
 subsection{* Set and map *}
 
-lemma trmBNF_set2_Lt: "trmBNF_set2 (Inr (Inr (Inr (xts, t)))) = snd ` (fset xts) \<union> {t}"
-unfolding trmBNF_set2_def sum_set_defs prod_set_defs collect_def[abs_def]
+lemma pre_trm_set2_Lt: "pre_trm_set2 (Inr (Inr (Inr (xts, t)))) = snd ` (fset xts) \<union> {t}"
+unfolding pre_trm_set2_def sum_set_defs prod_set_defs collect_def[abs_def]
 by auto
 
-lemma trmBNF_set2_Var: "\<And>x. trmBNF_set2 (Inl x) = {}"
-and trmBNF_set2_App:
-"\<And>t1 t2. trmBNF_set2 (Inr (Inl t1t2)) = {fst t1t2, snd t1t2}"
-and trmBNF_set2_Lam:
-"\<And>x t. trmBNF_set2 (Inr (Inr (Inl (x, t)))) = {t}"
-unfolding trmBNF_set2_def sum_set_defs prod_set_defs collect_def[abs_def]
+lemma pre_trm_set2_Var: "\<And>x. pre_trm_set2 (Inl x) = {}"
+and pre_trm_set2_App:
+"\<And>t1 t2. pre_trm_set2 (Inr (Inl t1t2)) = {fst t1t2, snd t1t2}"
+and pre_trm_set2_Lam:
+"\<And>x t. pre_trm_set2 (Inr (Inr (Inl (x, t)))) = {t}"
+unfolding pre_trm_set2_def sum_set_defs prod_set_defs collect_def[abs_def]
 by auto
 
-lemma trmBNF_map:
-"\<And> a1. trmBNF_map f1 f2 (Inl a1) = Inl (f1 a1)"
-"\<And> a2 b2. trmBNF_map f1 f2 (Inr (Inl (a2,b2))) = Inr (Inl (f2 a2, f2 b2))"
-"\<And> a1 a2. trmBNF_map f1 f2 (Inr (Inr (Inl (a1,a2)))) = Inr (Inr (Inl (f1 a1, f2 a2)))"
+lemma pre_trm_map:
+"\<And> a1. pre_trm_map f1 f2 (Inl a1) = Inl (f1 a1)"
+"\<And> a2 b2. pre_trm_map f1 f2 (Inr (Inl (a2,b2))) = Inr (Inl (f2 a2, f2 b2))"
+"\<And> a1 a2. pre_trm_map f1 f2 (Inr (Inr (Inl (a1,a2)))) = Inr (Inr (Inl (f1 a1, f2 a2)))"
 "\<And> a1a2s a2.
-   trmBNF_map f1 f2 (Inr (Inr (Inr (a1a2s, a2)))) =
+   pre_trm_map f1 f2 (Inr (Inr (Inr (a1a2s, a2)))) =
    Inr (Inr (Inr (map_fset (\<lambda> (a1', a2'). (f1 a1', f2 a2')) a1a2s, f2 a2)))"
-unfolding trmBNF_map_def collect_def[abs_def] map_pair_def by auto
+unfolding pre_trm_map_def collect_def[abs_def] map_pair_def by auto
 
 
 subsection{* Constructors *}
@@ -87,7 +87,7 @@ and Lt: "\<And> xts t. \<lbrakk>\<And> x1 t1. (x1,t1) |\<in>| xts \<Longrightarr
 shows "phi t"
 proof(induct rule: trm.fld_induct)
   fix u :: "'a + 'a trm \<times> 'a trm + 'a \<times> 'a trm + ('a \<times> 'a trm) fset \<times> 'a trm"
-  assume IH: "\<And>t. t \<in> trmBNF_set2 u \<Longrightarrow> phi t"
+  assume IH: "\<And>t. t \<in> pre_trm_set2 u \<Longrightarrow> phi t"
   show "phi (trm_fld u)"
   proof(cases u)
     case (Inl x)
@@ -99,7 +99,7 @@ proof(induct rule: trm.fld_induct)
       case (Inl t1t2)
       obtain t1 t2 where t1t2: "t1t2 = (t1,t2)" by (cases t1t2, blast)
       show ?thesis unfolding Inr1 Inl t1t2 App_def[symmetric] apply(rule App)
-      using IH unfolding Inr1 Inl trmBNF_set2_App t1t2 fst_conv snd_conv by blast+
+      using IH unfolding Inr1 Inl pre_trm_set2_App t1t2 fst_conv snd_conv by blast+
     next
       case (Inr uuu) note Inr2 = Inr
       show ?thesis
@@ -107,12 +107,12 @@ proof(induct rule: trm.fld_induct)
         case (Inl xt)
         obtain x t where xt: "xt = (x,t)" by (cases xt, blast)
         show ?thesis unfolding Inr1 Inr2 Inl xt Lam_def[symmetric] apply(rule Lam)
-        using IH unfolding Inr1 Inr2 Inl trmBNF_set2_Lam xt by blast
+        using IH unfolding Inr1 Inr2 Inl pre_trm_set2_Lam xt by blast
       next
         case (Inr xts_t)
         obtain xts t where xts_t: "xts_t = (xts,t)" by (cases xts_t, blast)
         show ?thesis unfolding Inr1 Inr2 Inr xts_t Lt_def[symmetric] apply(rule Lt) using IH
-        unfolding Inr1 Inr2 Inr trmBNF_set2_Lt xts_t fset_fset_member image_def by auto
+        unfolding Inr1 Inr2 Inr pre_trm_set2_Lt xts_t fset_fset_member image_def by auto
       qed
     qed
   qed
@@ -141,21 +141,21 @@ definition "trmrec var app lam lt \<equiv> trm_fld_rec (sumJoin4 var app lam lt)
 
 lemma trmrec_Var[simp]:
 "trmrec var app lam lt (Var x) = var x"
-unfolding trmrec_def Var_def trm.fld_rec trmBNF_map(1) by simp
+unfolding trmrec_def Var_def trm.fld_rec pre_trm_map(1) by simp
 
 lemma trmrec_App[simp]:
 "trmrec var app lam lt (App t1 t2) =
  app t1 (trmrec var app lam lt t1) t2 (trmrec var app lam lt t2)"
-unfolding trmrec_def App_def trm.fld_rec trmBNF_map(2) convol_def by simp
+unfolding trmrec_def App_def trm.fld_rec pre_trm_map(2) convol_def by simp
 
 lemma trmrec_Lam[simp]:
 "trmrec var app lam lt (Lam x t) = lam x t (trmrec var app lam lt t)"
-unfolding trmrec_def Lam_def trm.fld_rec trmBNF_map(3) convol_def by simp
+unfolding trmrec_def Lam_def trm.fld_rec pre_trm_map(3) convol_def by simp
 
 lemma trmrec_Lt[simp]:
 "trmrec var app lam lt (Lt xts t) =
  lt (map_fset (\<lambda> (x,t). (x,t,trmrec var app lam lt t)) xts) t (trmrec var app lam lt t)"
-unfolding trmrec_def Lt_def trm.fld_rec trmBNF_map(4) convol_def by simp
+unfolding trmrec_def Lt_def trm.fld_rec pre_trm_map(4) convol_def by simp
 
 definition
 "sumJoinI4 f1 f2 f3 f4 \<equiv>
@@ -178,21 +178,21 @@ definition "trmiter var app lam lt \<equiv> trm_fld_iter (sumJoinI4 var app lam 
 
 lemma trmiter_Var[simp]:
 "trmiter var app lam lt (Var x) = var x"
-unfolding trmiter_def Var_def trm.fld_iter trmBNF_map(1) by simp
+unfolding trmiter_def Var_def trm.fld_iter pre_trm_map(1) by simp
 
 lemma trmiter_App[simp]:
 "trmiter var app lam lt (App t1 t2) =
  app (trmiter var app lam lt t1) (trmiter var app lam lt t2)"
-unfolding trmiter_def App_def trm.fld_iter trmBNF_map(2) by simp
+unfolding trmiter_def App_def trm.fld_iter pre_trm_map(2) by simp
 
 lemma trmiter_Lam[simp]:
 "trmiter var app lam lt (Lam x t) = lam x (trmiter var app lam lt t)"
-unfolding trmiter_def Lam_def trm.fld_iter trmBNF_map(3) by simp
+unfolding trmiter_def Lam_def trm.fld_iter pre_trm_map(3) by simp
 
 lemma trmiter_Lt[simp]:
 "trmiter var app lam lt (Lt xts t) =
  lt (map_fset (\<lambda> (x,t). (x,trmiter var app lam lt t)) xts) (trmiter var app lam lt t)"
-unfolding trmiter_def Lt_def trm.fld_iter trmBNF_map(4) by simp
+unfolding trmiter_def Lt_def trm.fld_iter pre_trm_map(4) by simp
 
 
 subsection{* Example: The set of all variables varsOf and free variables fvarsOf of a term: *}

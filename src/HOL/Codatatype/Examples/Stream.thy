@@ -115,10 +115,10 @@ lemma stream_map[simp]: "stream_map f = stream_unf_coiter (f o hdd \<odot> tll)"
 unfolding stream_map_def pair_fun_def hdd_def[abs_def] tll_def[abs_def]
   map_pair_def o_def prod_case_beta by simp
 
-lemma streamBNF_pred[simp]: "streamBNF_pred \<phi>1 \<phi>2 a b = (\<phi>1 (fst a) (fst b) \<and> \<phi>2 (snd a) (snd b))"
-by (auto simp: streamBNF.pred_unfold)
+lemma pre_stream_pred[simp]: "pre_stream_pred \<phi>1 \<phi>2 a b = (\<phi>1 (fst a) (fst b) \<and> \<phi>2 (snd a) (snd b))"
+by (auto simp: pre_stream.pred_unfold)
 
-lemmas stream_coind = mp[OF stream.pred_coinduct, unfolded streamBNF_pred[abs_def],
+lemmas stream_coind = mp[OF stream.pred_coinduct, unfolded pre_stream_pred[abs_def],
   folded hdd_def tll_def]
 
 definition plus :: "nat stream \<Rightarrow> nat stream \<Rightarrow> nat stream" (infixr "\<oplus>" 66) where

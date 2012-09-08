@@ -173,9 +173,11 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
     fun mk_iter_like Ts Us t =
       let
         val (binders, body) = strip_type (fastype_of t);
+val _ = tracing ("mk_iter_like: " ^ PolyML.makestring (binders, body, t)) (*###*)
         val (f_Us, prebody) = split_last binders;
         val Type (_, Ts0) = if lfp then prebody else body;
         val Us0 = distinct (op =) (map (if lfp then body_type else domain_type) f_Us);
+val _ = tracing (" Ts0 @ Us0 ...: " ^ PolyML.makestring (Ts0, Us0, Ts, Us)) (*###*)
       in
         Term.subst_atomic_types (Ts0 @ Us0 ~~ Ts @ Us) t
       end;
@@ -371,6 +373,7 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
 
             val [iter_def, rec_def] = map (Morphism.thm phi) defs;
 
+val _ = tracing ("LFP As Cs: " ^ PolyML.makestring (As, Cs)) (*###*)
             val [iter, recx] = map (mk_iter_like As Cs o Morphism.term phi) csts;
           in
             ((ctrs, iter, recx, v, xss, ctr_defs, iter_def, rec_def), lthy)
@@ -414,6 +417,7 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
 
             val [coiter_def, corec_def] = map (Morphism.thm phi) defs;
 
+val _ = tracing ("GFP As Cs: " ^ PolyML.makestring (As, Cs)) (*###*)
             val [coiter, corec] = map (mk_iter_like As Cs o Morphism.term phi) csts;
           in
             ((ctrs, coiter, corec, v, xss, ctr_defs, coiter_def, corec_def), lthy)

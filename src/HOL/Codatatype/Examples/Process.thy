@@ -25,17 +25,17 @@ subsection{* Setup for map, set, pred  *}
 
 (* These should be eventually inferred from compositionality *)
 
-lemma processBNF_map[simp]:
-"processBNF_map fa fp (Inl (a ,p)) = Inl (fa a, fp p)"
-"processBNF_map fa fp (Inr (p1, p2)) = Inr (fp p1, fp p2)"
-unfolding processBNF_map_def by auto
+lemma pre_process_map[simp]:
+"pre_process_map fa fp (Inl (a ,p)) = Inl (fa a, fp p)"
+"pre_process_map fa fp (Inr (p1, p2)) = Inr (fp p1, fp p2)"
+unfolding pre_process_map_def by auto
 
-lemma processBNF_pred[simp]:
-"processBNF_pred (op =) \<phi> (Inl (a,p)) (Inl (a',p')) \<longleftrightarrow> a = a' \<and> \<phi> p p'"
-"processBNF_pred (op =) \<phi> (Inr (p,q)) (Inr (p',q')) \<longleftrightarrow> \<phi> p p' \<and> \<phi> q q'"
-"\<not> processBNF_pred (op =) \<phi> (Inl ap) (Inr q1q2)"
-"\<not> processBNF_pred (op =) \<phi> (Inr q1q2) (Inl ap)"
-by (auto simp: diag_def processBNF.pred_unfold)
+lemma pre_process_pred[simp]:
+"pre_process_pred (op =) \<phi> (Inl (a,p)) (Inl (a',p')) \<longleftrightarrow> a = a' \<and> \<phi> p p'"
+"pre_process_pred (op =) \<phi> (Inr (p,q)) (Inr (p',q')) \<longleftrightarrow> \<phi> p p' \<and> \<phi> q q'"
+"\<not> pre_process_pred (op =) \<phi> (Inl ap) (Inr q1q2)"
+"\<not> pre_process_pred (op =) \<phi> (Inr q1q2) (Inl ap)"
+by (auto simp: diag_def pre_process.pred_unfold)
 
 
 subsection{* Constructors *}
@@ -186,7 +186,7 @@ Ch: "\<And> p q p' q'. \<phi> (Choice p q) (Choice p' q') \<Longrightarrow> \<ph
 shows "p = p'"
 proof(intro mp[OF process.pred_coinduct, of \<phi>, OF _ phi], clarify)
   fix p p'  assume \<phi>: "\<phi> p p'"
-  show "processBNF_pred (op =) \<phi> (process_unf p) (process_unf p')"
+  show "pre_process_pred (op =) \<phi> (process_unf p) (process_unf p')"
   proof(cases rule: process_cases[of p])
     case (Action a q) note p = Action
     hence "isAction p'" using iss[OF \<phi>] by (cases rule: process_cases[of p'], auto)
@@ -216,7 +216,7 @@ Ch: "\<And> p q p' q'. \<phi> (Choice p q) (Choice p' q') \<Longrightarrow> (\<p
 shows "p = p'"
 proof(intro mp[OF process.pred_coinduct_upto, of \<phi>, OF _ phi], clarify)
   fix p p'  assume \<phi>: "\<phi> p p'"
-  show "processBNF_pred (op =) (\<lambda>a b. \<phi> a b \<or> a = b) (process_unf p) (process_unf p')"
+  show "pre_process_pred (op =) (\<lambda>a b. \<phi> a b \<or> a = b) (process_unf p) (process_unf p')"
   proof(cases rule: process_cases[of p])
     case (Action a q) note p = Action
     hence "isAction p'" using iss[OF \<phi>] by (cases rule: process_cases[of p'], auto)
@@ -328,7 +328,7 @@ proof-
   have unf: "process_unf (process_unf_coiter ?s P) = Inl (pr P, ?f (co P))"
   using process.unf_coiter[of ?s P]
   unfolding isA_join22[of isA P "pr" co isC c1 c2, OF isA]
-            processBNF_map id_apply pcoiter_def .
+            pre_process_map id_apply pcoiter_def .
   thus "?f P = Action (pr P) (?f (co P))"
   unfolding pcoiter_def Action_def using process.fld_unf by metis
 next
@@ -338,7 +338,7 @@ next
   have unf: "process_unf (process_unf_coiter ?s P) = Inr (?f (c1 P), ?f (c2 P))"
   using process.unf_coiter[of ?s P]
   unfolding isC_join22[of isA P isC "pr" co c1 c2, OF isA isC]
-            processBNF_map id_apply pcoiter_def .
+            pre_process_map id_apply pcoiter_def .
   thus "?f P = Choice (?f (c1 P)) (?f (c2 P))"
   unfolding pcoiter_def Choice_def using process.fld_unf by metis
 qed
@@ -369,14 +369,14 @@ proof-
     have "process_unf (process_unf_corec ?s P) = Inl (pr P, p)"
     using process.unf_corec[of ?s P]
     unfolding isA_join22[of isA P "pr" co isC c1 c2, OF isA]
-              processBNF_map id_apply pcorec_def Inl by simp
+              pre_process_map id_apply pcorec_def Inl by simp
     thus ?thesis unfolding Inl pcorec_def Action_def using process.fld_unf by (simp, metis)
   next
     case (Inr Q)
     have "process_unf (process_unf_corec ?s P) = Inl (pr P, ?f Q)"
     using process.unf_corec[of ?s P]
     unfolding isA_join22[of isA P "pr" co isC c1 c2, OF isA]
-              processBNF_map id_apply pcorec_def Inr by simp
+              pre_process_map id_apply pcorec_def Inr by simp
     thus ?thesis unfolding Inr pcorec_def Action_def using process.fld_unf by (simp, metis)
   qed
 qed
@@ -407,14 +407,14 @@ proof-
       have "process_unf (process_unf_corec ?s P) = Inr (p1, p2)"
       using process.unf_corec[of ?s P]
       unfolding isC_join22[of isA P isC "pr" co c1 c2, OF isA isC]
-                processBNF_map id_apply pcorec_def c1 c2 by simp
+                pre_process_map id_apply pcorec_def c1 c2 by simp
       thus ?thesis unfolding c1 c2 pcorec_def Choice_def using process.fld_unf by (simp, metis)
     next
       case (Inr Q2)  note c2 = Inr
       have "process_unf (process_unf_corec ?s P) = Inr (p1, ?f Q2)"
       using process.unf_corec[of ?s P]
       unfolding isC_join22[of isA P isC "pr" co c1 c2, OF isA isC]
-                processBNF_map id_apply pcorec_def c1 c2 by simp
+                pre_process_map id_apply pcorec_def c1 c2 by simp
       thus ?thesis unfolding c1 c2 pcorec_def Choice_def using process.fld_unf by (simp, metis)
     qed
   next
@@ -425,14 +425,14 @@ proof-
       have "process_unf (process_unf_corec ?s P) = Inr (?f Q1, p2)"
       using process.unf_corec[of ?s P]
       unfolding isC_join22[of isA P isC "pr" co c1 c2, OF isA isC]
-                processBNF_map id_apply pcorec_def c1 c2 by simp
+                pre_process_map id_apply pcorec_def c1 c2 by simp
       thus ?thesis unfolding c1 c2 pcorec_def Choice_def using process.fld_unf by (simp, metis)
     next
       case (Inr Q2)  note c2 = Inr
       have "process_unf (process_unf_corec ?s P) = Inr (?f Q1, ?f Q2)"
       using process.unf_corec[of ?s P]
       unfolding isC_join22[of isA P isC "pr" co c1 c2, OF isA isC]
-                processBNF_map id_apply pcorec_def c1 c2 by simp
+                pre_process_map id_apply pcorec_def c1 c2 by simp
       thus ?thesis unfolding c1 c2 pcorec_def Choice_def using process.fld_unf by (simp, metis)
     qed
   qed

@@ -27,10 +27,10 @@ lemma unf[simp]: "treeFsetI_unf t = (lab t, sub t)"
 unfolding lab_def sub_def by simp
 
 lemma coiter_pair_fun_lab: "lab (treeFsetI_unf_coiter (f \<odot> g) t) = f t"
-unfolding lab_def pair_fun_def treeFsetI.unf_coiter treeFsetIBNF_map_def by simp
+unfolding lab_def pair_fun_def treeFsetI.unf_coiter pre_treeFsetI_map_def by simp
 
 lemma coiter_pair_fun_sub: "sub (treeFsetI_unf_coiter (f \<odot> g) t) = map_fset (treeFsetI_unf_coiter (f \<odot> g)) (g t)"
-unfolding sub_def pair_fun_def treeFsetI.unf_coiter treeFsetIBNF_map_def by simp
+unfolding sub_def pair_fun_def treeFsetI.unf_coiter pre_treeFsetI_map_def by simp
 
 (* tree map (contrived example): *)
 definition "tmap f \<equiv> treeFsetI_unf_coiter (f o lab \<odot> sub)"
@@ -41,12 +41,12 @@ unfolding tmap_def by (simp add: coiter_pair_fun_lab)
 lemma trev_simps2[simp]: "sub (tmap f t) = map_fset (tmap f) (sub t)"
 unfolding tmap_def by (simp add: coiter_pair_fun_sub)
 
-lemma treeFsetIBNF_pred[simp]: "treeFsetIBNF_pred R1 R2 a b = (R1 (fst a) (fst b) \<and>
+lemma pre_treeFsetI_pred[simp]: "pre_treeFsetI_pred R1 R2 a b = (R1 (fst a) (fst b) \<and>
   (\<forall>t \<in> fset (snd a). (\<exists>u \<in> fset (snd b). R2 t u)) \<and>
   (\<forall>t \<in> fset (snd b). (\<exists>u \<in> fset (snd a). R2 u t)))"
 apply (cases a)
 apply (cases b)
-apply (simp add: treeFsetIBNF.pred_unfold)
+apply (simp add: pre_treeFsetI.pred_unfold)
 done
 
 lemmas treeFsetI_coind = mp[OF treeFsetI.pred_coinduct]

@@ -24,14 +24,14 @@ subsection{* Setup for map, set, pred *}
 
 (* These should be eventually inferred from compositionality *)
 
-lemma TreeBNF_map:
-"TreeBNF_map f (n, as) = (n, map_fset (id \<oplus> f) as)"
-unfolding TreeBNF_map_def id_apply
+lemma pre_Tree_map:
+"pre_Tree_map f (n, as) = (n, map_fset (id \<oplus> f) as)"
+unfolding pre_Tree_map_def id_apply
 sum_map_def by simp
 
-lemma TreeBNF_map':
-"TreeBNF_map f n_as = (fst n_as, map_fset (id \<oplus> f) (snd n_as))"
-using TreeBNF_map by(cases n_as, simp)
+lemma pre_Tree_map':
+"pre_Tree_map f n_as = (fst n_as, map_fset (id \<oplus> f) (snd n_as))"
+using pre_Tree_map by(cases n_as, simp)
 
 
 definition
@@ -40,8 +40,8 @@ definition
  (\<forall> tr1. Inr tr1 \<in> fset as1 \<longrightarrow> (\<exists> tr2. Inr tr2 \<in> fset as2 \<and> \<phi> tr1 tr2)) \<and>
  (\<forall> tr2. Inr tr2 \<in> fset as2 \<longrightarrow> (\<exists> tr1. Inr tr1 \<in> fset as1 \<and> \<phi> tr1 tr2))"
 
-lemma TreeBNF_pred: "TreeBNF_pred \<phi> (n1,as1) (n2,as2) \<longleftrightarrow> n1 = n2 \<and> llift2 \<phi> as1 as2"
-unfolding llift2_def TreeBNF.pred_unfold
+lemma pre_Tree_pred: "pre_Tree_pred \<phi> (n1,as1) (n2,as2) \<longleftrightarrow> n1 = n2 \<and> llift2 \<phi> as1 as2"
+unfolding llift2_def pre_Tree.pred_unfold
 apply (auto split: sum.splits)
 apply (metis sumE)
 apply (metis sumE)
@@ -132,11 +132,11 @@ NNode: "\<And> n1 n2 as1 as2.
 shows "tr1 = tr2"
 apply(rule mp[OF Tree.pred_coinduct[of \<phi> tr1 tr2] phi]) proof clarify
   fix tr1 tr2  assume \<phi>: "\<phi> tr1 tr2"
-  show "TreeBNF_pred \<phi> (Tree_unf tr1) (Tree_unf tr2)"
+  show "pre_Tree_pred \<phi> (Tree_unf tr1) (Tree_unf tr2)"
   apply(cases rule: Tree.fld_exhaust[of tr1], cases rule: Tree.fld_exhaust[of tr2])
   apply (simp add: Tree.unf_fld)
   apply(case_tac x, case_tac xa, simp)
-  unfolding TreeBNF_pred apply(rule NNode) using \<phi> unfolding NNode_def by simp
+  unfolding pre_Tree_pred apply(rule NNode) using \<phi> unfolding NNode_def by simp
 qed
 
 theorem TTree_coind[elim, consumes 1, case_names LLift]:
@@ -178,7 +178,7 @@ theorem TTree_coit:
 "root (TTree_coit rt ct b) = rt b"
 "ccont (TTree_coit rt ct b) = map_fset (id \<oplus> TTree_coit rt ct) (ct b)"
 using Tree.unf_coiter[of "<rt,ct>" b] unfolding Tree_coit_coit fst_convol snd_convol
-unfolding TreeBNF_map' fst_convol' snd_convol'
+unfolding pre_Tree_map' fst_convol' snd_convol'
 unfolding Tree_unf_root_ccont by simp_all
 
 (* Corecursion, stronger than coiteration *)
@@ -195,7 +195,7 @@ theorem TTree_corec:
 "root (TTree_corec rt ct b) = rt b"
 "ccont (TTree_corec rt ct b) = map_fset (id \<oplus> ([[id, TTree_corec rt ct]]) ) (ct b)"
 using Tree.unf_corec[of "<rt,ct>" b] unfolding Tree_unf_corec_corec fst_convol snd_convol
-unfolding TreeBNF_map' fst_convol' snd_convol'
+unfolding pre_Tree_map' fst_convol' snd_convol'
 unfolding Tree_unf_root_ccont by simp_all
 
 
