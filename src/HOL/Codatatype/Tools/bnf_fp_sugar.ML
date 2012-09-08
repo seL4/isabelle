@@ -7,6 +7,7 @@ Sugar for constructing LFPs and GFPs.
 
 signature BNF_FP_SUGAR =
 sig
+  (* TODO: programmatic interface *)
 end;
 
 structure BNF_FP_Sugar : BNF_FP_SUGAR =
@@ -22,6 +23,8 @@ open BNF_FP_Sugar_Tactics
 val caseN = "case";
 val itersN = "iters";
 val recsN = "recs";
+
+fun split_list7 xs = (map #1 xs, map #2 xs, map #3 xs, map #4 xs, map #5 xs, map #6 xs, map #7 xs);
 
 fun retype_free (Free (s, _)) T = Free (s, T);
 
@@ -127,7 +130,8 @@ fun prepare_datatype prepare_typ gfp specs fake_lthy no_defs_lthy =
 
     val eqs = map dest_TFree Xs ~~ sum_prod_TsXs;
 
-    val ((unfs0, flds0, fp_iters0, fp_recs0, unf_flds, fld_unfs, fld_injects), lthy) =
+    val ((unfs0, flds0, fp_iters0, fp_recs0, unf_flds, fld_unfs, fld_injects, fp_iter_thms,
+        fp_rec_thms), lthy) =
       fp_bnf (if gfp then bnf_gfp else bnf_lfp) bs mixfixes As' eqs no_defs_lthy;
 
     val timer = time (Timer.startRealTimer ());
@@ -257,10 +261,8 @@ fun prepare_datatype prepare_typ gfp specs fake_lthy no_defs_lthy =
           end;
 
         val inject_tacss =
-          map2 (fn 0 => K []
-                 | _ => fn ctr_def => [fn {context = ctxt, ...} =>
-                     mk_inject_tac ctxt ctr_def fld_inject])
-            ms ctr_defs;
+          map2 (fn 0 => K [] | _ => fn ctr_def => [fn {context = ctxt, ...} =>
+              mk_inject_tac ctxt ctr_def fld_inject]) ms ctr_defs;
 
         val half_distinct_tacss =
           map (map (fn (def, def') => fn {context = ctxt, ...} =>
@@ -308,23 +310,27 @@ fun prepare_datatype prepare_typ gfp specs fake_lthy no_defs_lthy =
             val iter = mk_iter_or_rec As Cs' iter0;
             val recx = mk_iter_or_rec As Cs' rec0;
           in
-            ([[ctrs], [[iter]], [[recx]], xss], lthy)
+            ((ctrs, iter, recx, xss, ctr_defs, iter_def, rec_def), lthy)
           end;
 
-        fun sugar_codatatype no_defs_lthy = ([], no_defs_lthy);
+        fun sugar_codatatype no_defs_lthy =
+          (([], @{term True}, @{term True}, [], [], TrueI, TrueI), no_defs_lthy);
       in
         wrap_datatype tacss ((ctrs0, casex0), (disc_binders, sel_binderss)) lthy'
         |> (if gfp then sugar_codatatype else sugar_datatype)
       end;
 
-    fun pour_more_sugar_on_datatypes ([[ctrss], [[iters]], [[recs]], xsss], lthy) =
+    fun pour_more_sugar_on_datatypes ((ctrss, iters, recs, xsss, ctr_defss, iter_defs, rec_defs),
+        lthy) =
       let
         val xctrss = map2 (map2 (curry Term.list_comb)) ctrss xsss;
         val giters = map (fn iter => flat_list_comb (iter, gss)) iters;
         val hrecs = map (fn recx => flat_list_comb (recx, hss)) recs;
 
         val (iter_thmss, rec_thmss) =
-          let
+          if true then
+            `I (map (map (K TrueI)) ctr_defss)
+          else let
             fun mk_goal_iter_or_rec fss fc xctr f xs xs' =
               mk_Trueprop_eq (fc $ xctr, Term.list_comb (f, xs'));
 
@@ -342,13 +348,14 @@ fun prepare_datatype prepare_typ gfp specs fake_lthy no_defs_lthy =
               map5 (map4 o mk_goal_iter_or_rec hss) hrecs xctrss hss xsss rec_xsss;
 
             val iter_tacss =
-              map (map (K (fn _ => Skip_Proof.cheat_tac (Proof_Context.theory_of lthy)))) goal_iterss;
-              (* ### map (map mk_iter_or_rec_tac); (* needs ctr_def, iter_def, fld_iter *) *)
+              map2 (map o mk_iter_or_rec_tac bnf_map_defs iter_defs) fp_iter_thms ctr_defss;
             val rec_tacss =
-              map (map (K (fn _ => Skip_Proof.cheat_tac (Proof_Context.theory_of lthy)))) goal_recss;
+              map2 (map o mk_iter_or_rec_tac bnf_map_defs rec_defs) fp_rec_thms ctr_defss;
           in
-            (map2 (map2 (Skip_Proof.prove lthy [] [])) goal_iterss iter_tacss,
-             map2 (map2 (Skip_Proof.prove lthy [] [])) goal_recss rec_tacss)
+            (map2 (map2 (fn goal => fn tac => Skip_Proof.prove lthy [] [] goal (tac o #context)))
+               goal_iterss iter_tacss,
+             map2 (map2 (fn goal => fn tac => Skip_Proof.prove lthy [] [] goal (tac o #context)))
+               goal_recss rec_tacss)
           end;
 
         val notes =
@@ -366,7 +373,8 @@ fun prepare_datatype prepare_typ gfp specs fake_lthy no_defs_lthy =
       |> fold_map pour_sugar_on_type (bs ~~ fpTs ~~ Cs ~~ flds ~~ unfs ~~ fp_iters ~~ fp_recs ~~
         fld_unfs ~~ unf_flds ~~ fld_injects ~~ ctr_binderss ~~ ctr_mixfixess ~~ ctr_Tsss ~~
         disc_binderss ~~ sel_bindersss)
-      |> (if gfp then snd else pour_more_sugar_on_datatypes o apfst transpose);
+      |>> split_list7
+      |> (if gfp then snd else pour_more_sugar_on_datatypes);
 
     val timer = time (timer ("Constructors, discriminators, selectors, etc., for the new " ^
       (if gfp then "co" else "") ^ "datatype"));

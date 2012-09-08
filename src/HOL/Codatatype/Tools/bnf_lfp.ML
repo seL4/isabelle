@@ -8,9 +8,10 @@ Datatype construction.
 
 signature BNF_LFP =
 sig
-  val bnf_lfp:  mixfix list -> (string * sort) list option -> binding list ->
+  val bnf_lfp: mixfix list -> (string * sort) list option -> binding list ->
     typ list * typ list list -> BNF_Def.BNF list -> local_theory ->
-    (term list * term list * term list * term list * thm list * thm list * thm list) * local_theory
+    (term list * term list * term list * term list * thm list * thm list * thm list * thm list *
+      thm list) * local_theory
 end;
 
 structure BNF_LFP : BNF_LFP =
@@ -1822,8 +1823,8 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
           bs thmss)
   in
-    ((unfs, flds, iters, recs, unf_fld_thms, fld_unf_thms, fld_inject_thms),
-      lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
+    ((unfs, flds, iters, recs, unf_fld_thms, fld_unf_thms, fld_inject_thms, iter_thms, rec_thms),
+     lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
   end;
 
 val _ =
