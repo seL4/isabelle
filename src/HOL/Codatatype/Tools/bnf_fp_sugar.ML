@@ -501,6 +501,7 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
     fun pour_more_sugar_on_gfps ((ctrss, coiters, corecs, vs, xsss, ctr_defss, coiter_defs,
         corec_defs), lthy) =
       let
+(* NOTYET
         val gcoiters = map (lists_bmoc pgss) coiters;
         val hcorecs = map (lists_bmoc phss) corecs;
 
@@ -540,8 +541,9 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
             map2 (fn b => fn thms =>
                 ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
               bs thmss);
+*)
       in
-        lthy |> Local_Theory.notes notes |> snd
+        lthy (* NOTYET |> Local_Theory.notes notes |> snd *)
       end;
 
     val lthy' = lthy
