@@ -28,6 +28,8 @@ sig
   val rel_unfoldN: string
   val pred_unfoldN: string
 
+  val map_of_bnf: BNF -> term
+
   val mk_T_of_bnf: typ list -> typ list -> BNF -> typ
   val mk_bd_of_bnf: typ list -> typ list -> BNF -> term
   val mk_map_of_bnf: typ list -> typ list -> typ list -> BNF -> term
