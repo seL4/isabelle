@@ -485,19 +485,24 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
             val rec_tacss =
               map2 (map o mk_iter_like_tac pre_map_defs rec_defs) fp_rec_thms ctr_defss;
           in
+            ([], [])
+(* NOTYET
             (map2 (map2 (fn goal => fn tac => Skip_Proof.prove lthy [] [] goal (tac o #context)))
                goal_iterss iter_tacss,
              map2 (map2 (fn goal => fn tac => Skip_Proof.prove lthy [] [] goal (tac o #context)))
                goal_recss rec_tacss)
+*)
           end;
 
-        val notes =
+        val notes = [];
+(* NOTYET
           [(itersN, iter_thmss),
            (recsN, rec_thmss)]
           |> maps (fn (thmN, thmss) =>
             map2 (fn b => fn thms =>
                 ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
               bs thmss);
+*)
       in
         lthy |> Local_Theory.notes notes |> snd
       end;

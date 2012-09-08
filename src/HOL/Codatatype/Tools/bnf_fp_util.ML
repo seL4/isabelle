@@ -134,6 +134,9 @@ fun typedef def opt_name typ set opt_morphs tac lthy =
     ((name, Typedef.transform_info phi info), lthy)
   end;
 
+val pre_N = "pre_"
+val raw_N = "raw_"
+
 val coN = "co"
 val algN = "alg"
 val IITN = "IITN"
@@ -299,7 +302,7 @@ fun mk_fp_bnf timer construct resBs bs sort lhss bnfs deadss livess unfold lthy 
     val Dss = map3 (append oo map o nth) livess kill_poss deadss;
 
     val ((bnfs'', deadss), lthy'') =
-      fold_map3 (seal_bnf unfold') (map (Binding.suffix_name "BNF") bs) Dss bnfs' lthy'
+      fold_map3 (seal_bnf unfold') (map (Binding.prefix_name pre_N) bs) Dss bnfs' lthy'
       |>> split_list;
 
     val pre_map_defs = map map_def_of_bnf bnfs'';
@@ -319,7 +322,7 @@ fun fp_bnf construct bs mixfixes resBs eqs lthy =
     val (lhss, rhss) = split_list eqs;
     val sort = fp_sort lhss (SOME resBs);
     val ((bnfs, (Dss, Ass)), (unfold, lthy')) = apfst (apsnd split_list o split_list)
-      (fold_map2 (fn b => bnf_of_typ Smart_Inline (Binding.suffix_name "RAW" b) I sort) bs rhss
+      (fold_map2 (fn b => bnf_of_typ Smart_Inline (Binding.prefix_name raw_N b) I sort) bs rhss
         (empty_unfold, lthy));
   in
     mk_fp_bnf timer (construct mixfixes) (SOME resBs) bs sort lhss bnfs Dss Ass unfold lthy'
@@ -332,7 +335,7 @@ fun fp_bnf_cmd construct (bs, (raw_lhss, raw_bnfs)) lthy =
     val sort = fp_sort lhss NONE;
     val ((bnfs, (Dss, Ass)), (unfold, lthy')) = apfst (apsnd split_list o split_list)
       (fold_map2 (fn b => fn rawT =>
-        (bnf_of_typ Smart_Inline (Binding.suffix_name "RAW" b) I sort (Syntax.read_typ lthy rawT)))
+        (bnf_of_typ Smart_Inline (Binding.prefix_name raw_N b) I sort (Syntax.read_typ lthy rawT)))
       bs raw_bnfs (empty_unfold, lthy));
   in
     snd (mk_fp_bnf timer (construct (map (K NoSyn) bs)) NONE bs sort lhss bnfs Dss Ass unfold lthy')
