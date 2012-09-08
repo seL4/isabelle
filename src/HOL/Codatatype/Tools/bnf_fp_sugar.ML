@@ -145,9 +145,22 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
 
     val eqs = map dest_TFree Xs ~~ sum_prod_TsXs;
 
-    val (pre_map_defs, ((unfs0, flds0, fp_iters0, fp_recs0, unf_flds, fld_unfs, fld_injects,
+    val (pre_bnfs, ((unfs0, flds0, fp_iters0, fp_recs0, unf_flds, fld_unfs, fld_injects,
         fp_iter_thms, fp_rec_thms), lthy)) =
       fp_bnf (if lfp then bnf_lfp else bnf_gfp) bs mixfixes As' eqs no_defs_lthy;
+
+    val add_nested_bnf_names =
+      let
+        fun add (Type (s, Ts)) ss =
+            let val (needs, ss') = fold_map add Ts ss in
+              if exists I needs then (true, insert (op =) s ss') else (false, ss')
+            end
+          | add T ss = (member (op =) As T, ss);
+      in snd oo add end;
+
+    val nested_bnfs =
+      map_filter (bnf_of lthy o Long_Name.base_name)
+        (fold (fold (fold add_nested_bnf_names)) ctr_TsssXs []);
 
     val timer = time (Timer.startRealTimer ());
 
@@ -426,6 +439,9 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
         |> (if lfp then some_lfp_sugar else some_gfp_sugar)
       end;
 
+    val pre_map_defs = map map_def_of_bnf pre_bnfs;
+    val map_id's = map map_id'_of_bnf nested_bnfs;
+
     fun mk_map Ts Us t =
       let val (Type (_, Ts0), Type (_, Us0)) = strip_map_type (fastype_of t) |>> List.last in
         Term.subst_atomic_types (Ts0 @ Us0 ~~ Ts @ Us) t
@@ -484,28 +500,23 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
             val goal_recss = map5 (map4 o mk_goal_iter_like hss) hrecs xctrss hss xsss hxsss;
 
             val iter_tacss =
-              map2 (map o mk_iter_like_tac pre_map_defs iter_defs) fp_iter_thms ctr_defss;
+              map2 (map o mk_iter_like_tac pre_map_defs map_id's iter_defs) fp_iter_thms ctr_defss;
             val rec_tacss =
-              map2 (map o mk_iter_like_tac pre_map_defs rec_defs) fp_rec_thms ctr_defss;
+              map2 (map o mk_iter_like_tac pre_map_defs map_id's rec_defs) fp_rec_thms ctr_defss;
           in
-            ([], [])
-(* NOTYET
             (map2 (map2 (fn goal => fn tac => Skip_Proof.prove lthy [] [] goal (tac o #context)))
                goal_iterss iter_tacss,
              map2 (map2 (fn goal => fn tac => Skip_Proof.prove lthy [] [] goal (tac o #context)))
                goal_recss rec_tacss)
-*)
           end;
 
-        val notes = [];
-(* NOTYET
+        val notes =
           [(itersN, iter_thmss),
            (recsN, rec_thmss)]
           |> maps (fn (thmN, thmss) =>
             map2 (fn b => fn thms =>
                 ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
               bs thmss);
-*)
       in
         lthy |> Local_Theory.notes notes |> snd
       end;
@@ -538,7 +549,8 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
               map7 (map3 oooo mk_goal_coiter_like phss) cs cpss hcorecs ns kss ctrss chsss;
 
             val coiter_tacss =
-              map3 (map oo mk_coiter_like_tac coiter_defs) fp_iter_thms pre_map_defs ctr_defss;
+              map3 (map oo mk_coiter_like_tac coiter_defs map_id's) fp_iter_thms pre_map_defs
+                ctr_defss;
           in
             (map2 (map2 (fn goal => fn tac => Skip_Proof.prove lthy [] [] goal (tac o #context)))
                goal_coiterss coiter_tacss,
