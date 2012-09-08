@@ -47,9 +47,6 @@ fun mk_uncurried2_fun f xss =
 
 fun tick v f = Term.lambda v (HOLogic.mk_prod (v, f $ v))
 
-fun popescu_zip [] [fs] = fs
-  | popescu_zip (p :: ps) (fs :: fss) = p :: fs @ popescu_zip ps fss;
-
 fun cannot_merge_types () = error "Mutually recursive types must have the same type parameters";
 
 fun merge_type_arg_constrained ctxt (T, c) (T', c') =
@@ -190,9 +187,9 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
         if member (op =) Cs U then Us else [T]
       | dest_rec_pair T = [T];
 
-    val (((gss, g_Tss, ysss), (hss, h_Tss, zssss)),
-         (cs, cpss, p_Tss, coiter_extra as ((pgss, cgsss), g_sum_prod_Ts, g_prod_Tss, g_Tsss),
-          corec_extra as ((phss, chsss), h_sum_prod_Ts, h_prod_Tss, h_Tsss))) =
+    val ((iter_only as (gss, g_Tss, yssss), rec_only as (hss, h_Tss, zssss)),
+         (cs, cpss, p_Tss, coiter_only as ((pgss, cgsss), g_sum_prod_Ts, g_prod_Tss, g_Tsss),
+          corec_only as ((phss, chsss), h_sum_prod_Ts, h_prod_Tss, h_Tsss))) =
       if lfp then
         let
           val y_Tsss =
@@ -215,13 +212,16 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
             lthy
             |> mk_Freessss "x" z_Tssss;
         in
-          (((gss, g_Tss, ysss), (hss, h_Tss, zssss)),
+          (((gss, g_Tss, map (map (map single)) ysss), (hss, h_Tss, zssss)),
            ([], [], [], (([], []), [], [], []), (([], []), [], [], [])))
         end
       else
         let
           val p_Tss =
             map2 (fn C => fn n => replicate (Int.max (0, n - 1)) (C --> HOLogic.boolT)) Cs ns;
+
+          fun popescu_zip [] [fs] = fs
+            | popescu_zip (p :: ps) (fs :: fss) = p :: fs @ popescu_zip ps fss;
 
           fun mk_types fun_Ts =
             let
@@ -338,36 +338,37 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
         fun some_lfp_sugar no_defs_lthy =
           let
             val fpT_to_C = fpT --> C;
-            val iter_T = fold_rev (curry (op --->)) g_Tss fpT_to_C;
-            val rec_T = fold_rev (curry (op --->)) h_Tss fpT_to_C;
 
-            val iter_binder = Binding.suffix_name ("_" ^ iterN) b;
-            val rec_binder = Binding.suffix_name ("_" ^ recN) b;
+            fun generate_iter_like (suf, fp_iter_like, (fss, f_Tss, xssss)) =
+              let
+                val res_T = fold_rev (curry (op --->)) f_Tss fpT_to_C;
 
-            val iter_spec =
-              mk_Trueprop_eq (lists_bmoc gss (Free (Binding.name_of iter_binder, iter_T)),
-                Term.list_comb (fp_iter, map2 (mk_sum_caseN oo map2 mk_uncurried_fun) gss ysss));
-            val rec_spec =
-              mk_Trueprop_eq (lists_bmoc hss (Free (Binding.name_of rec_binder, rec_T)),
-                Term.list_comb (fp_rec, map2 (mk_sum_caseN oo map2 mk_uncurried2_fun) hss zssss));
+                val binder = Binding.suffix_name ("_" ^ suf) b;
 
-            val (([raw_iter, raw_rec], [raw_iter_def, raw_rec_def]), (lthy', lthy)) = no_defs_lthy
+                val spec =
+                  mk_Trueprop_eq (lists_bmoc fss (Free (Binding.name_of binder, res_T)),
+                    Term.list_comb (fp_iter_like,
+                      map2 (mk_sum_caseN oo map2 mk_uncurried2_fun) fss xssss));
+              in (binder, spec) end;
+
+            val iter_likes =
+              [(iterN, fp_iter, iter_only),
+               (recN, fp_rec, rec_only)];
+
+            val (binders, specs) = map generate_iter_like iter_likes |> split_list;
+
+            val ((csts, defs), (lthy', lthy)) = no_defs_lthy
               |> apfst split_list o fold_map2 (fn b => fn spec =>
                 Specification.definition (SOME (b, NONE, NoSyn), ((Thm.def_binding b, []), spec))
-                #>> apsnd snd) [iter_binder, rec_binder] [iter_spec, rec_spec]
+                #>> apsnd snd) binders specs
               ||> `Local_Theory.restore;
 
             (*transforms defined frees into consts (and more)*)
             val phi = Proof_Context.export_morphism lthy lthy';
 
-            val iter_def = Morphism.thm phi raw_iter_def;
-            val rec_def = Morphism.thm phi raw_rec_def;
+            val [iter_def, rec_def] = map (Morphism.thm phi) defs;
 
-            val iter0 = Morphism.term phi raw_iter;
-            val rec0 = Morphism.term phi raw_rec;
-
-            val iter = mk_iter_like As Cs iter0;
-            val recx = mk_iter_like As Cs rec0;
+            val [iter, recx] = map (mk_iter_like As Cs o Morphism.term phi) csts;
           in
             ((ctrs, iter, recx, v, xss, ctr_defs, iter_def, rec_def), lthy)
           end;
@@ -383,19 +384,19 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
 
                 val binder = Binding.suffix_name ("_" ^ suf) b;
 
-                fun mk_join c n cps sum_prod_T prod_Ts cfss =
+                fun mk_popescu_join c n cps sum_prod_T prod_Ts cfss =
                   Term.lambda c (mk_IfN sum_prod_T cps
                     (map2 (mk_InN prod_Ts) (map HOLogic.mk_tuple cfss) (1 upto n)));
 
                 val spec =
                   mk_Trueprop_eq (lists_bmoc pfss (Free (Binding.name_of binder, res_T)),
                     Term.list_comb (fp_iter_like,
-                      map6 mk_join cs ns cpss f_sum_prod_Ts f_prod_Tss cfsss));
+                      map6 mk_popescu_join cs ns cpss f_sum_prod_Ts f_prod_Tss cfsss));
               in (binder, spec) end;
 
             val coiter_likes =
-              [(coiterN, fp_iter, coiter_extra),
-               (corecN, fp_rec, corec_extra)];
+              [(coiterN, fp_iter, coiter_only),
+               (corecN, fp_rec, corec_only)];
 
             val (binders, specs) = map generate_coiter_like coiter_likes |> split_list;
 
@@ -437,7 +438,7 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
               fold_rev (fold_rev Logic.all) (xs :: fss)
                 (mk_Trueprop_eq (fiter_like $ xctr, Term.list_comb (f, fxs)));
 
-            fun build_iter_like fiter_likes maybe_tick =
+            fun build_call fiter_likes maybe_tick =
               let
                 fun build (T, U) =
                   if T = U then
@@ -459,9 +460,9 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
 
             fun repair_calls fiter_likes maybe_cons maybe_tick maybe_prodT (x as Free (_, T)) =
               if member (op =) fpTs T then
-                maybe_cons x [build_iter_like fiter_likes (K I) (T, mk_U (K I) T) $ x]
+                maybe_cons x [build_call fiter_likes (K I) (T, mk_U (K I) T) $ x]
               else if exists_subtype (member (op =) fpTs) T then
-                [build_iter_like fiter_likes maybe_tick (T, mk_U maybe_prodT T) $ x]
+                [build_call fiter_likes maybe_tick (T, mk_U maybe_prodT T) $ x]
               else
                 [x];
 
@@ -512,11 +513,11 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
                 (Logic.list_implies (seq_conds mk_cond n k cps,
                    mk_Trueprop_eq (fcoiter_like $ c, Term.list_comb (ctr, cfs'))));
 
-            fun repair_coiter_like_call fcoiter_likes (cf as Free (_, Type (_, [_, T])) $ _) =
+            fun repair_call fcoiter_likes (cf as Free (_, Type (_, [_, T])) $ _) =
               (case find_index (curry (op =) T) Cs of ~1 => cf | j => nth fcoiter_likes j $ cf);
 
-            val cgsss = map (map (map (repair_coiter_like_call gcoiters))) cgsss;
-            val chsss = map (map (map (repair_coiter_like_call hcorecs))) chsss;
+            val cgsss = map (map (map (repair_call gcoiters))) cgsss;
+            val chsss = map (map (map (repair_call hcorecs))) chsss;
 
             val goal_coiterss =
               map7 (map3 oooo mk_goal_coiter_like pgss) cs cpss gcoiters ns kss ctrss cgsss;
