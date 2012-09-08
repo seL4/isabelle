@@ -27,13 +27,7 @@ struct
 open BNF_Util
 open BNF_Tactics
 
-fun triangle _ [] = []
-  | triangle k (xs :: xss) = take k xs :: triangle (k + 1) xss
-
-fun mk_case_if_P_or_not_Ps n k thms =
-  let val (negs, pos) = split_last thms in
-    map (fn thm => thm RS @{thm if_not_P}) negs @ (if k = n then [] else [pos RS @{thm if_P}])
-  end;
+fun if_P_or_not_P_OF pos thm = thm RS (if pos then @{thm if_P} else @{thm if_not_P});
 
 fun ss_only thms = Simplifier.clear_ss HOL_basic_ss addsimps thms
 
@@ -80,7 +74,7 @@ fun mk_case_eq_tac ctxt n exhaust' case_thms disc_thmss' sel_thmss =
    EVERY' (map3 (fn case_thm => fn if_disc_thms => fn sel_thms =>
        EVERY' [hyp_subst_tac, SELECT_GOAL (Local_Defs.unfold_tac ctxt (if_disc_thms @ sel_thms)),
          rtac case_thm])
-     case_thms (map2 (mk_case_if_P_or_not_Ps n) (1 upto n) (triangle 1 disc_thmss')) sel_thmss)) 1;
+     case_thms (map2 (seq_conds if_P_or_not_P_OF n) (1 upto n) disc_thmss') sel_thmss)) 1;
 
 fun mk_case_cong_tac exhaust' case_thms =
   (rtac exhaust' THEN'

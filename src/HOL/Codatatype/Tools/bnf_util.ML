@@ -42,6 +42,7 @@ sig
     'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list -> 'g list -> 'h -> 'i list * 'h
   val interleave: 'a list -> 'a list -> 'a list
   val transpose: 'a list list -> 'a list list
+  val seq_conds: (bool -> 'a -> 'b) -> int -> int -> 'a list -> 'b list
 
   val mk_fresh_names: Proof.context -> int -> string -> string list * Proof.context
   val mk_TFrees: int -> Proof.context -> typ list * Proof.context
@@ -536,6 +537,14 @@ fun interleave xs ys = flat (map2 (fn x => fn y => [x, y]) xs ys);
 fun transpose [] = []
   | transpose ([] :: xss) = transpose xss
   | transpose xss = map hd xss :: transpose (map tl xss);
+
+fun seq_conds f n k xs =
+  if k = n then
+    map (f false) (take (k - 1) xs)
+  else
+    let val (negs, pos) = split_last (take k xs) in
+      map (f false) negs @ [f true pos]
+    end;
 
 fun mk_unabs_def 0 thm = thm
   | mk_unabs_def n thm = mk_unabs_def (n - 1) thm RS @{thm spec[OF iffD1[OF fun_eq_iff]]};
