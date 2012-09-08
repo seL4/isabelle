@@ -91,8 +91,6 @@ sig
   val dest_sumTN: int -> typ -> typ list
   val dest_tupleT: int -> typ -> typ list
 
-  val mk_uncurried_fun: term -> term list -> term
-
   val mk_Field: term -> term
   val mk_union: term * term -> term
 
@@ -231,8 +229,6 @@ fun dest_sumTN 1 T = [T]
 fun dest_tupleT 0 @{typ unit} = []
   | dest_tupleT 1 T = [T]
   | dest_tupleT n (Type (@{type_name prod}, [T, T'])) = T :: dest_tupleT (n - 1) T';
-
-fun mk_uncurried_fun f xs = HOLogic.tupled_lambda (HOLogic.mk_tuple xs) (Term.list_comb (f, xs));
 
 fun mk_Field r =
   let val T = fst (dest_relT (fastype_of r));

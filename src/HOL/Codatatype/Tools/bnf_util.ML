@@ -50,6 +50,8 @@ sig
   val mk_Freess: string -> typ list list -> Proof.context -> term list list * Proof.context
   val mk_Freesss: string -> typ list list list -> Proof.context ->
     term list list list * Proof.context
+  val mk_Freessss: string -> typ list list list list -> Proof.context ->
+    term list list list list * Proof.context
   val mk_Frees': string -> typ list -> Proof.context ->
     (term list * (string * typ) list) * Proof.context
   val mk_Freess': string -> typ list list -> Proof.context ->
@@ -274,6 +276,7 @@ fun mk_fresh_names ctxt = (fn xs => Variable.variant_fixes xs ctxt) oo mk_names;
 fun mk_Frees x Ts ctxt = mk_fresh_names ctxt (length Ts) x |>> (fn xs => map2 (curry Free) xs Ts);
 fun mk_Freess x Tss = fold_map2 mk_Frees (mk_names (length Tss) x) Tss;
 fun mk_Freesss x Tsss = fold_map2 mk_Freess (mk_names (length Tsss) x) Tsss;
+fun mk_Freessss x Tssss = fold_map2 mk_Freesss (mk_names (length Tssss) x) Tssss;
 fun mk_Frees' x Ts ctxt = mk_fresh_names ctxt (length Ts) x |>> (fn xs => `(map Free) (xs ~~ Ts));
 fun mk_Freess' x Tss = fold_map2 mk_Frees' (mk_names (length Tss) x) Tss #>> split_list;
 
