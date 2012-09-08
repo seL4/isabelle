@@ -222,6 +222,9 @@ val _ = tracing (" Ts0 @ Us0 ...: " ^ PolyML.makestring (Ts0, Us0, Ts, Us)) (*##
         end
       else
         let
+          (*avoid "'a itself" arguments in coiterators and corecursors*)
+          val mss' =  map (fn [0] => [1] | ms => ms) mss;
+
           val p_Tss =
             map2 (fn C => fn n => replicate (Int.max (0, n - 1)) (C --> HOLogic.boolT)) Cs ns;
 
@@ -233,7 +236,7 @@ val _ = tracing (" Ts0 @ Us0 ...: " ^ PolyML.makestring (Ts0, Us0, Ts, Us)) (*##
               val f_sum_prod_Ts = map range_type fun_Ts;
               val f_prod_Tss = map2 dest_sumTN ns f_sum_prod_Ts;
               val f_Tsss =
-                map3 (fn C => map2 (map (curry (op -->) C) oo dest_tupleT)) Cs mss f_prod_Tss;
+                map3 (fn C => map2 (map (curry (op -->) C) oo dest_tupleT)) Cs mss' f_prod_Tss;
               val pf_Tss = map2 popescu_zip p_Tss f_Tsss
             in (f_sum_prod_Ts, f_prod_Tss, f_Tsss, pf_Tss) end;
 
