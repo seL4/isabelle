@@ -13,7 +13,7 @@ sig
     -> tactic
   val mk_half_distinct_tac: Proof.context -> thm -> thm list -> tactic
   val mk_inject_tac: Proof.context -> thm -> thm -> tactic
-  val mk_iter_or_rec_tac: thm list -> thm list -> thm -> thm -> Proof.context -> tactic
+  val mk_iter_like_tac: thm list -> thm list -> thm -> thm -> Proof.context -> tactic
 end;
 
 structure BNF_FP_Sugar_Tactics : BNF_FP_SUGAR_TACTICS =
@@ -49,11 +49,11 @@ fun mk_inject_tac ctxt ctr_def fld_inject =
   Local_Defs.unfold_tac ctxt [ctr_def] THEN rtac (fld_inject RS ssubst) 1 THEN
   Local_Defs.unfold_tac ctxt @{thms sum.inject Pair_eq conj_assoc} THEN rtac refl 1;
 
-val iter_or_rec_thms =
+val iter_like_thms =
   @{thms sum_map.simps sum.simps(5,6) convol_def case_unit map_pair_def split_conv id_def};
 
-fun mk_iter_or_rec_tac iter_or_rec_defs fld_iter_or_recs ctr_def pre_map_def ctxt =
-  Local_Defs.unfold_tac ctxt (ctr_def :: pre_map_def :: iter_or_rec_defs @ fld_iter_or_recs) THEN
-  Local_Defs.unfold_tac ctxt iter_or_rec_thms THEN rtac refl 1;
+fun mk_iter_like_tac iter_like_defs fld_iter_likes ctr_def pre_map_def ctxt =
+  Local_Defs.unfold_tac ctxt (ctr_def :: pre_map_def :: iter_like_defs @ fld_iter_likes) THEN
+  Local_Defs.unfold_tac ctxt iter_like_thms THEN rtac refl 1;
 
 end;
