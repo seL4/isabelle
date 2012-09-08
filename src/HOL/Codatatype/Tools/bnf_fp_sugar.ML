@@ -20,12 +20,16 @@ open BNF_GFP
 open BNF_FP_Sugar_Tactics
 
 val caseN = "case";
+val itersN = "iters";
+val recsN = "recs";
 
 fun retype_free (Free (s, _)) T = Free (s, T);
 
+fun flat_list_comb (f, xss) = fold (fn xs => fn t => Term.list_comb (t, xs)) xss f
+
 fun mk_tupled_fun x f xs = HOLogic.tupled_lambda x (Term.list_comb (f, xs));
 fun mk_uncurried_fun f xs = mk_tupled_fun (HOLogic.mk_tuple xs) f xs;
-fun mk_doubly_uncurried_fun f xss =
+fun mk_uncurried2_fun f xss =
   mk_tupled_fun (HOLogic.mk_tuple (map HOLogic.mk_tuple xss)) f (flat xss);
 
 fun cannot_merge_types () = error "Mutually recursive types must have the same type parameters";
@@ -281,12 +285,11 @@ fun prepare_datatype prepare_typ gfp specs fake_lthy lthy =
             val rec_free = Free (Binding.name_of rec_binder, rec_T);
 
             val iter_spec =
-              mk_Trueprop_eq (fold (fn gs => fn t => Term.list_comb (t, gs)) gss iter_free,
+              mk_Trueprop_eq (flat_list_comb (iter_free, gss),
                 Term.list_comb (fp_iter, map2 (mk_sum_caseN oo map2 mk_uncurried_fun) gss ysss));
             val rec_spec =
-              mk_Trueprop_eq (fold (fn hs => fn t => Term.list_comb (t, hs)) hss rec_free,
-                Term.list_comb (fp_rec,
-                  map2 (mk_sum_caseN oo map2 mk_doubly_uncurried_fun) hss zssss));
+              mk_Trueprop_eq (flat_list_comb (rec_free, hss),
+                Term.list_comb (fp_rec, map2 (mk_sum_caseN oo map2 mk_uncurried2_fun) hss zssss));
 
             val (([raw_iter, raw_rec], [raw_iter_def, raw_rec_def]), (lthy', lthy)) = no_defs_lthy
               |> apfst split_list o fold_map2 (fn b => fn spec =>
@@ -303,98 +306,51 @@ fun prepare_datatype prepare_typ gfp specs fake_lthy lthy =
             val iter = Morphism.term phi raw_iter;
             val recx = Morphism.term phi raw_rec;
           in
-            ((iter, recx), lthy)
+            ([[ctrs], [[iter]], [[recx]], xss, gss, hss], lthy)
           end;
 
-        fun sugar_codatatype no_defs_lthy =
-          let
-(*###
-            val fp_y_Ts = map range_type (fst (split_last (binder_types (fastype_of fp_iter))));
-            val y_prod_Tss = map2 dest_sumTN ns fp_y_Ts;
-            val y_Tsss = map2 (map2 dest_tupleT) mss y_prod_Tss;
-            val g_Tss = map2 (map2 (curry (op --->))) y_Tsss Css;
-            val coiter_T = flat g_Tss ---> fpT --> C;
-
-            val fp_z_Ts = map domain_type (fst (split_last (binder_types (fastype_of fp_rec))));
-            val z_prod_Tss = map2 dest_sumTN ns fp_z_Ts;
-            val z_Tsss = map2 (map2 dest_tupleT) mss z_prod_Tss;
-            val z_Tssss = map (map (map dest_rec_pair)) z_Tsss;
-            val h_Tss = map2 (map2 (fold_rev (curry (op --->)))) z_Tssss Css;
-            val corec_T = flat h_Tss ---> fpT --> C;
-
-            val ((gss, ysss), _) =
-              no_defs_lthy
-              |> mk_Freess "f" g_Tss
-              ||>> mk_Freesss "x" y_Tsss;
-
-            val hss = map2 (map2 retype_free) gss h_Tss;
-            val (zssss, _) =
-              no_defs_lthy
-              |> mk_Freessss "x" z_Tssss;
-
-            val coiter_binder = Binding.suffix_name ("_" ^ coiterN) b;
-            val corec_binder = Binding.suffix_name ("_" ^ corecN) b;
-
-            val coiter_free = Free (Binding.name_of coiter_binder, coiter_T);
-            val corec_free = Free (Binding.name_of corec_binder, corec_T);
-
-            val coiter_spec =
-              mk_Trueprop_eq (fold (fn gs => fn t => Term.list_comb (t, gs)) gss coiter_free,
-                Term.list_comb (fp_iter, map2 (mk_sum_caseN oo map2 mk_uncurried_fun) gss ysss));
-            val corec_spec =
-              mk_Trueprop_eq (fold (fn hs => fn t => Term.list_comb (t, hs)) hss corec_free,
-                Term.list_comb (fp_rec,
-                  map2 (mk_sum_caseN oo map2 mk_doubly_uncurried_fun) hss zssss));
-
-            val (([raw_coiter, raw_corec], [raw_coiter_def, raw_corec_def]), (lthy', lthy)) =
-              no_defs_lthy
-              |> apfst split_list o fold_map2 (fn b => fn spec =>
-                Specification.definition (SOME (b, NONE, NoSyn), ((Thm.def_binding b, []), spec))
-                #>> apsnd snd) [coiter_binder, corec_binder] [coiter_spec, corec_spec]
-              ||> `Local_Theory.restore;
-
-            (*transforms defined frees into consts (and more)*)
-            val phi = Proof_Context.export_morphism lthy lthy';
-
-            val coiter_def = Morphism.thm phi raw_coiter_def;
-            val corec_def = Morphism.thm phi raw_corec_def;
-
-            val coiter = Morphism.term phi raw_coiter;
-            val corec = Morphism.term phi raw_corec;
-*)
-            val coiter = @{term True}; (*###*)
-            val corec = @{term True}; (*###*)
-          in
-            ((coiter, corec), lthy)
-          end;
+        fun sugar_codatatype no_defs_lthy = ([], no_defs_lthy);
       in
         wrap_datatype tacss ((ctrs, casex), (disc_binders, sel_binderss)) lthy'
         |> (if gfp then sugar_codatatype else sugar_datatype)
       end;
 
-(* ###
-            val (iter_thms, rec_thms) =
-              let
-                fun mk_goal_iter_or_rec fc xctr f xs =
-                  mk_Trueprop_eq (fc $ xctr, Term.list_comb (f, ));
+    fun pour_more_sugar_on_datatypes ([[ctrss], [[iters]], [[recs]], xsss, gsss, hsss], lthy) =
+      let
+        val xctrss = map2 (map2 (curry Term.list_comb)) ctrss xsss;
+        val giters = map2 (curry flat_list_comb) iters gsss;
+        val hrecs = map2 (curry flat_list_comb) recs hsss;
 
-                val giter = Term.list_comb (iter, gs);
-                val hrec = Term.list_comb (rec, hs);
+        val (iter_thmss, rec_thmss) =
+          let
+            fun mk_goal_iter_or_rec fc xctr =
+              mk_Trueprop_eq (fc $ xctr, fc $ xctr);
 
-                val goal_iters = map2 (mk_goal_iter_or_rec iter) gss xctrs;
-                val goal_recs = map2 (mk_goal_iter_or_rec recx) hss xctrs;
-                val iter_tacs = [];
-                val rec_tacs = [];
-              in
-                (map2 (Skip_Proof.prove lthy [] []) goal_iters iter_tacs,
-                 map2 (Skip_Proof.prove lthy [] []) goal_recs rec_tacs)
-              end;
-*)
+            val goal_iterss = map2 (fn giter => map (mk_goal_iter_or_rec giter)) giters xctrss;
+            val goal_recss = [];
+            val iter_tacss = []; (* ### map (map mk_iter_or_rec_tac); (* needs ctr_def, iter_def, fld_iter *) *)
+            val rec_tacss = [];
+          in
+            (map2 (map2 (Skip_Proof.prove lthy [] [])) goal_iterss iter_tacss,
+             map2 (map2 (Skip_Proof.prove lthy [] [])) goal_recss rec_tacss)
+          end;
 
-    val ((iters, recs), lthy'') =
-      fold_map pour_sugar_on_type (bs ~~ fpTs ~~ Cs ~~ flds ~~ unfs ~~ fp_iters ~~ fp_recs ~~
+        val notes =
+          [(itersN, iter_thmss),
+           (recsN, rec_thmss)]
+          |> maps (fn (thmN, thmss) =>
+            map2 (fn b => fn thms =>
+                ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
+              bs thmss);
+      in
+        lthy |> Local_Theory.notes notes |> snd
+      end;
+
+    val lthy'' = lthy'
+      |> fold_map pour_sugar_on_type (bs ~~ fpTs ~~ Cs ~~ flds ~~ unfs ~~ fp_iters ~~ fp_recs ~~
         fld_unfs ~~ unf_flds ~~ fld_injects ~~ ctr_binderss ~~ ctr_mixfixess ~~ ctr_Tsss ~~
-        disc_binderss ~~ sel_bindersss) lthy' |>> split_list;
+        disc_binderss ~~ sel_bindersss)
+      |> (if gfp then snd else pour_more_sugar_on_datatypes o apfst transpose);
 
     val timer = time (timer ("Constructors, discriminators, selectors, etc., for the new " ^
       (if gfp then "co" else "") ^ "datatype"));
