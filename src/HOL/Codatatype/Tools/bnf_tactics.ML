@@ -8,6 +8,8 @@ General tactics for bounded natural functors.
 
 signature BNF_TACTICS =
 sig
+  val ss_only: thm list -> simpset
+
   val select_prem_tac: int -> (int -> tactic) -> int -> int -> tactic
   val fo_rtac: thm -> Proof.context -> int -> tactic
   val subst_asm_tac: Proof.context -> thm list -> int -> tactic
@@ -55,6 +57,8 @@ structure BNF_Tactics : BNF_TACTICS =
 struct
 
 open BNF_Util
+
+fun ss_only thms = Simplifier.clear_ss HOL_basic_ss addsimps thms;
 
 val set_mp = @{thm set_mp};
 

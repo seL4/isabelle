@@ -2126,7 +2126,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val fld_exhaust_thms = map (fn thm => thm RS exE) fld_nchotomy_thms;
 
     val fld_coiter_thms = map3 (fn unf_inject => fn coiter => fn unf_fld =>
-      iffD1 OF [unf_inject, trans  OF [coiter, unf_fld RS sym]])
+      iffD1 OF [unf_inject, trans OF [coiter, unf_fld RS sym]])
       unf_inject_thms coiter_thms unf_fld_thms;
 
     val timer = time (timer "fld definitions & thms");
@@ -3000,8 +3000,8 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
           bs thmss)
   in
-    ((unfs, flds, coiters, corecs, unf_fld_thms, fld_unf_thms, fld_inject_thms, coiter_thms,
-      corec_thms),
+    ((unfs, flds, coiters, corecs, unf_fld_thms, fld_unf_thms, fld_inject_thms, fld_coiter_thms,
+      corec_thms (* FIXME: should be "fld_corec_thms" *)),
      lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
   end;
 

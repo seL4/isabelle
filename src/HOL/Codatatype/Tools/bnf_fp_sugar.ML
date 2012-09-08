@@ -21,8 +21,8 @@ open BNF_GFP
 open BNF_FP_Sugar_Tactics
 
 val caseN = "case";
-val coitersN = "iters";
-val corecsN = "recs";
+val coitersN = "coiters";
+val corecsN = "corecs";
 val itersN = "iters";
 val recsN = "recs";
 
@@ -480,9 +480,14 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
               map7 (map3 oooo mk_goal_coiter_like pgss) cs cpss gcoiters ns kss ctrss cgsss;
             val goal_corecss =
               map7 (map3 oooo mk_goal_coiter_like phss) cs cpss hcorecs ns kss ctrss chsss;
+
+            val coiter_tacss =
+              map3 (map oo mk_coiter_like_tac coiter_defs) fp_iter_thms pre_map_defs ctr_defss;
           in
-            (map (map (Skip_Proof.make_thm (Proof_Context.theory_of lthy))) goal_coiterss,
-             map (map (Skip_Proof.make_thm (Proof_Context.theory_of lthy))) goal_coiterss (*### goal_corecss*))
+            (map2 (map2 (fn goal => fn tac => Skip_Proof.prove lthy [] [] goal (tac o #context)))
+               goal_coiterss coiter_tacss,
+             map2 (map2 (fn goal => fn tac => Skip_Proof.prove lthy [] [] goal (tac o #context)))
+               goal_coiterss coiter_tacss (* TODO: should be corecs *))
           end;
 
         val notes =

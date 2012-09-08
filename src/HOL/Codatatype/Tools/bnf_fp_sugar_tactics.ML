@@ -8,6 +8,7 @@ Tactics for the LFP/GFP sugar.
 signature BNF_FP_SUGAR_TACTICS =
 sig
   val mk_case_tac: Proof.context -> int -> int -> int -> thm -> thm -> thm -> tactic
+  val mk_coiter_like_tac: thm list -> thm -> thm -> thm -> Proof.context -> tactic
   val mk_exhaust_tac: Proof.context -> int -> thm list -> thm -> thm -> tactic
   val mk_fld_iff_unf_tac: Proof.context -> ctyp option list -> cterm -> cterm -> thm -> thm
     -> tactic
@@ -55,5 +56,15 @@ val iter_like_thms =
 fun mk_iter_like_tac iter_like_defs fld_iter_likes ctr_def pre_map_def ctxt =
   Local_Defs.unfold_tac ctxt (ctr_def :: pre_map_def :: iter_like_defs @ fld_iter_likes) THEN
   Local_Defs.unfold_tac ctxt iter_like_thms THEN rtac refl 1;
+
+val coiter_like_ss = ss_only @{thms if_True if_False};
+val coiter_like_thms = @{thms sum_map.simps map_pair_def id_def prod.cases};
+
+fun mk_coiter_like_tac coiter_like_defs fld_unf_coiter_like pre_map_def ctr_def ctxt =
+  Local_Defs.unfold_tac ctxt (ctr_def :: coiter_like_defs) THEN
+  subst_tac ctxt [fld_unf_coiter_like] 1 THEN
+  asm_simp_tac coiter_like_ss 1 THEN
+  Local_Defs.unfold_tac ctxt (pre_map_def :: coiter_like_thms) THEN
+  rtac refl 1;
 
 end;

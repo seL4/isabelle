@@ -29,8 +29,6 @@ open BNF_Tactics
 
 fun if_P_or_not_P_OF pos thm = thm RS (if pos then @{thm if_P} else @{thm if_not_P});
 
-fun ss_only thms = Simplifier.clear_ss HOL_basic_ss addsimps thms
-
 fun mk_nchotomy_tac n exhaust =
   (rtac allI THEN' rtac exhaust THEN'
    EVERY' (maps (fn k => [rtac (mk_disjIN n k), REPEAT_DETERM o rtac exI, atac]) (1 upto n))) 1;
