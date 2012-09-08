@@ -51,14 +51,15 @@ fun mk_inject_tac ctxt ctr_def fld_inject =
   Local_Defs.unfold_tac ctxt @{thms sum.inject Pair_eq conj_assoc} THEN rtac refl 1;
 
 val iter_like_thms =
-  @{thms sum_map.simps sum.simps(5,6) convol_def case_unit map_pair_def split_conv id_def};
+  @{thms case_unit comp_def convol_def id_def map_pair_def sum.simps(5,6) sum_map.simps split_conv};
 
 fun mk_iter_like_tac iter_like_defs fld_iter_likes ctr_def pre_map_def ctxt =
   Local_Defs.unfold_tac ctxt (ctr_def :: pre_map_def :: iter_like_defs @ fld_iter_likes) THEN
-  Local_Defs.unfold_tac ctxt iter_like_thms THEN rtac refl 1;
+  Local_Defs.unfold_tac ctxt iter_like_thms THEN
+  rtac refl 1;
 
 val coiter_like_ss = ss_only @{thms if_True if_False};
-val coiter_like_thms = @{thms sum_map.simps map_pair_def id_def prod.cases};
+val coiter_like_thms = @{thms id_def map_pair_def sum_map.simps prod.cases};
 
 fun mk_coiter_like_tac coiter_like_defs fld_unf_coiter_like pre_map_def ctr_def ctxt =
   Local_Defs.unfold_tac ctxt (ctr_def :: coiter_like_defs) THEN

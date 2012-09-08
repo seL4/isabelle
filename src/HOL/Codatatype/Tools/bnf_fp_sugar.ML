@@ -30,6 +30,9 @@ val recsN = "recs";
 fun split_list8 xs =
   (map #1 xs, map #2 xs, map #3 xs, map #4 xs, map #5 xs, map #6 xs, map #7 xs, map #8 xs);
 
+fun strip_map_type (Type (@{type_name fun}, [T as Type _, T'])) = strip_map_type T' |>> cons T
+  | strip_map_type T = ([], T);
+
 fun typ_subst inst (T as Type (s, Ts)) =
     (case AList.lookup (op =) inst T of
       NONE => Type (s, map (typ_subst inst) Ts)
@@ -421,7 +424,7 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
       end;
 
     fun mk_map Ts Us t =
-      let val (Type (_, Ts0), Type (_, Us0)) = strip_type (fastype_of t) |>> List.last in
+      let val (Type (_, Ts0), Type (_, Us0)) = strip_map_type (fastype_of t) |>> List.last in
         Term.subst_atomic_types (Ts0 @ Us0 ~~ Ts @ Us) t
       end;
 
@@ -449,7 +452,8 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
                       let
                         val map0 = map_of_bnf (the (bnf_of lthy (Long_Name.base_name s)));
                         val mapx = mk_map Ts Us map0;
-                        val TUs = map dest_funT (fst (split_last (binder_types (fastype_of mapx))));
+                        val TUs =
+                          map dest_funT (fst (split_last (fst (strip_map_type (fastype_of mapx)))));
                         val args = map build TUs;
                       in Term.list_comb (mapx, args) end
                     | (j, _) => maybe_tick (nth vs j) (nth fiter_likes j))
