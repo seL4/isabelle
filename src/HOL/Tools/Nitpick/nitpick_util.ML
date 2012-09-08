@@ -192,8 +192,10 @@ fun all_permutations [] = [[]]
     maps (fn j => map (cons (nth xs j)) (all_permutations (nth_drop j xs)))
          (index_seq 0 (length xs))
 
+(* FIXME: use "Library.chop_groups" *)
 val chunk_list = ATP_Util.chunk_list
 
+(* FIXME: use "Library.unflat" *)
 fun chunk_list_unevenly _ [] = []
   | chunk_list_unevenly [] xs = map single xs
   | chunk_list_unevenly (k :: ks) xs =
