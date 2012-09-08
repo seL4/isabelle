@@ -2993,7 +2993,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         (unf_exhaustN, unf_exhaust_thms),
         (fld_injectN, fld_inject_thms),
         (fld_exhaustN, fld_exhaust_thms),
-        (fld_unf_coiterN, fld_coiter_thms)]
+        (fld_unf_coitersN, fld_coiter_thms)]
         |> map (apsnd (map single))
         |> maps (fn (thmN, thmss) =>
           map2 (fn b => fn thms =>

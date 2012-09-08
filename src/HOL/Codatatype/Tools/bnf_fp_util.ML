@@ -22,7 +22,7 @@ sig
   val corecN: string
   val exhaustN: string
   val fldN: string
-  val fld_unf_coiterN: string
+  val fld_unf_coitersN: string
   val fld_exhaustN: string
   val fld_induct2N: string
   val fld_inductN: string
@@ -155,7 +155,7 @@ val unf_coiterN = unfN ^ "_" ^ coiterN
 val unf_coitersN = unf_coiterN ^ "s"
 val fld_iter_uniqueN = fld_iterN ^ uniqueN
 val unf_coiter_uniqueN = unf_coiterN ^ uniqueN
-val fld_unf_coiterN = fldN ^ "_" ^ unf_coiterN
+val fld_unf_coitersN = fldN ^ "_" ^ unf_coiterN ^ "s"
 val map_simpsN = mapN ^ "_simps"
 val map_uniqueN = mapN ^ uniqueN
 val min_algN = "min_alg"
