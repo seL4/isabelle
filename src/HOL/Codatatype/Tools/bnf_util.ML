@@ -73,6 +73,7 @@ sig
   val mk_Card_order: term -> term
   val mk_Field: term -> term
   val mk_Gr: term -> term -> term
+  val mk_IfN: typ -> term list -> term list -> term
   val mk_Trueprop_eq: term * term -> term
   val mk_UNION: term -> term -> term
   val mk_Union: typ -> term
@@ -301,6 +302,10 @@ fun Id_const T = Const (@{const_name Id}, mk_relT (T, T));
 (** Operators **)
 
 val mk_Trueprop_eq = HOLogic.mk_Trueprop o HOLogic.mk_eq;
+
+fun mk_IfN _ _ [t] = t
+  | mk_IfN T (c :: cs) (t :: ts) =
+    Const (@{const_name If}, HOLogic.boolT --> T --> T --> T) $ c $ t $ mk_IfN T cs ts;
 
 fun mk_converse R =
   let

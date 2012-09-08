@@ -152,6 +152,7 @@ fun prepare_wrap_datatype prep_term ((raw_ctrs, raw_case), (raw_disc_binders, ra
 
     val q = Free (fst p', B --> HOLogic.boolT);
 
+    fun ap_v t = t $ v;
     fun mk_v_eq_v () = HOLogic.mk_eq (v, v);
 
     val xctrs = map2 (curry Term.list_comb) ctrs xss;
@@ -404,8 +405,7 @@ fun prepare_wrap_datatype prep_term ((raw_ctrs, raw_case), (raw_disc_binders, ra
               let
                 val prem = HOLogic.mk_Trueprop (betapply (disc, v));
                 val concl =
-                  mk_Trueprop_eq ((null sels ? swap)
-                    (Term.list_comb (ctr, map (fn sel => sel $ v) sels), v));
+                  mk_Trueprop_eq ((null sels ? swap) (Term.list_comb (ctr, map ap_v sels), v));
               in
                 if prem aconv concl then NONE
                 else SOME (Logic.all v (Logic.mk_implies (prem, concl)))
@@ -421,12 +421,9 @@ fun prepare_wrap_datatype prep_term ((raw_ctrs, raw_case), (raw_disc_binders, ra
 
         val case_eq_thm =
           let
-            fun mk_core f sels = Term.list_comb (f, map (fn sel => sel $ v) sels);
-            fun mk_rhs _ [f] [sels] = mk_core f sels
-              | mk_rhs (disc :: discs) (f :: fs) (sels :: selss) =
-                Const (@{const_name If}, HOLogic.boolT --> B --> B --> B) $
-                  betapply (disc, v) $ mk_core f sels $ mk_rhs discs fs selss;
-            val goal = mk_Trueprop_eq (fcase $ v, mk_rhs discs fs selss);
+            fun mk_body f sels = Term.list_comb (f, map ap_v sels);
+            val goal =
+              mk_Trueprop_eq (fcase $ v, mk_IfN B (map ap_v discs) (map2 mk_body fs selss));
           in
             Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
               mk_case_eq_tac ctxt n exhaust_thm' case_thms disc_thmss' sel_thmss)
