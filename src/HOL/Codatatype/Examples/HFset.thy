@@ -50,11 +50,11 @@ subsection{* Recursion and iteration *}
 
 lemma hfset_fld_rec:
 "hfset_fld_rec R (Fold hs) = R (map_fset <id, hfset_fld_rec R> hs)"
-using hfset.fld_rec unfolding Fold_def .
+using hfset.fld_recs unfolding Fold_def .
 
 (* The iterator has a simpler form: *)
 lemma hfset_fld_iter:
 "hfset_fld_iter R (Fold hs) = R (map_fset (hfset_fld_iter R) hs)"
-using hfset.fld_iter unfolding Fold_def .
+using hfset.fld_iters unfolding Fold_def .
 
 end

@@ -28,7 +28,9 @@ sig
   val fld_inductN: string
   val fld_injectN: string
   val fld_iterN: string
+  val fld_itersN: string
   val fld_recN: string
+  val fld_recsN: string
   val fld_unfN: string
   val hsetN: string
   val hset_recN: string
@@ -59,7 +61,9 @@ sig
   val unf_coinductN: string
   val unf_coinduct_uptoN: string
   val unf_coiterN: string
+  val unf_coitersN: string
   val unf_corecN: string
+  val unf_corecsN: string
   val unf_exhaustN: string
   val unf_fldN: string
   val unf_injectN: string
@@ -146,7 +150,9 @@ val uniqueN = "_unique"
 val fldN = "fld"
 val unfN = "unf"
 val fld_iterN = fldN ^ "_" ^ iterN
+val fld_itersN = fld_iterN ^ "s"
 val unf_coiterN = unfN ^ "_" ^ coiterN
+val unf_coitersN = unf_coiterN ^ "s"
 val fld_iter_uniqueN = fld_iterN ^ uniqueN
 val unf_coiter_uniqueN = unf_coiterN ^ uniqueN
 val fld_unf_coiterN = fldN ^ "_" ^ unf_coiterN
@@ -172,7 +178,9 @@ val str_initN = "str_init"
 val recN = "rec"
 val corecN = coN ^ recN
 val fld_recN = fldN ^ "_" ^ recN
+val fld_recsN = fld_recN ^ "s"
 val unf_corecN = unfN ^ "_" ^ corecN
+val unf_corecsN = unf_corecN ^ "s"
 
 val fld_unfN = fldN ^ "_" ^ unfN
 val unf_fldN = unfN ^ "_" ^ fldN

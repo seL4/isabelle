@@ -27,10 +27,10 @@ lemma unf[simp]: "treeFsetI_unf t = (lab t, sub t)"
 unfolding lab_def sub_def by simp
 
 lemma coiter_pair_fun_lab: "lab (treeFsetI_unf_coiter (f \<odot> g) t) = f t"
-unfolding lab_def pair_fun_def treeFsetI.unf_coiter pre_treeFsetI_map_def by simp
+unfolding lab_def pair_fun_def treeFsetI.unf_coiters pre_treeFsetI_map_def by simp
 
 lemma coiter_pair_fun_sub: "sub (treeFsetI_unf_coiter (f \<odot> g) t) = map_fset (treeFsetI_unf_coiter (f \<odot> g)) (g t)"
-unfolding sub_def pair_fun_def treeFsetI.unf_coiter pre_treeFsetI_map_def by simp
+unfolding sub_def pair_fun_def treeFsetI.unf_coiters pre_treeFsetI_map_def by simp
 
 (* tree map (contrived example): *)
 definition "tmap f \<equiv> treeFsetI_unf_coiter (f o lab \<odot> sub)"

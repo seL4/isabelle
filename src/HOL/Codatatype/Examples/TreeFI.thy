@@ -31,10 +31,10 @@ definition pair_fun (infixr "\<odot>" 50) where
   "f \<odot> g \<equiv> \<lambda>x. (f x, g x)"
 
 lemma coiter_pair_fun_lab: "lab (treeFI_unf_coiter (f \<odot> g) t) = f t"
-unfolding lab_def pair_fun_def treeFI.unf_coiter pre_treeFI_map_def by simp
+unfolding lab_def pair_fun_def treeFI.unf_coiters pre_treeFI_map_def by simp
 
 lemma coiter_pair_fun_sub: "sub (treeFI_unf_coiter (f \<odot> g) t) = listF_map (treeFI_unf_coiter (f \<odot> g)) (g t)"
-unfolding sub_def pair_fun_def treeFI.unf_coiter pre_treeFI_map_def by simp
+unfolding sub_def pair_fun_def treeFI.unf_coiters pre_treeFI_map_def by simp
 
 (* Tree reverse:*)
 definition "trev \<equiv> treeFI_unf_coiter (lab \<odot> lrev o sub)"

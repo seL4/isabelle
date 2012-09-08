@@ -2984,9 +2984,9 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
 
       val notes =
-        [(unf_coiterN, coiter_thms),
+        [(unf_coitersN, coiter_thms),
         (unf_coiter_uniqueN, coiter_unique_thms),
-        (unf_corecN, corec_thms),
+        (unf_corecsN, corec_thms),
         (unf_fldN, unf_fld_thms),
         (fld_unfN, fld_unf_thms),
         (unf_injectN, unf_inject_thms),

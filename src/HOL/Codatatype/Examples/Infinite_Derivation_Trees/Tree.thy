@@ -177,7 +177,7 @@ unfolding TTree_coit_def by simp
 theorem TTree_coit:
 "root (TTree_coit rt ct b) = rt b"
 "ccont (TTree_coit rt ct b) = map_fset (id \<oplus> TTree_coit rt ct) (ct b)"
-using Tree.unf_coiter[of "<rt,ct>" b] unfolding Tree_coit_coit fst_convol snd_convol
+using Tree.unf_coiters[of "<rt,ct>" b] unfolding Tree_coit_coit fst_convol snd_convol
 unfolding pre_Tree_map' fst_convol' snd_convol'
 unfolding Tree_unf_root_ccont by simp_all
 
@@ -194,7 +194,7 @@ unfolding TTree_corec_def by simp
 theorem TTree_corec:
 "root (TTree_corec rt ct b) = rt b"
 "ccont (TTree_corec rt ct b) = map_fset (id \<oplus> ([[id, TTree_corec rt ct]]) ) (ct b)"
-using Tree.unf_corec[of "<rt,ct>" b] unfolding Tree_unf_corec_corec fst_convol snd_convol
+using Tree.unf_corecs[of "<rt,ct>" b] unfolding Tree_unf_corec_corec fst_convol snd_convol
 unfolding pre_Tree_map' fst_convol' snd_convol'
 unfolding Tree_unf_root_ccont by simp_all
 

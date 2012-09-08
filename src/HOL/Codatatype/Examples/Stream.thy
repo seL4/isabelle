@@ -19,11 +19,11 @@ definition "hdd as \<equiv> fst (stream_unf as)"
 definition "tll as \<equiv> snd (stream_unf as)"
 
 lemma coiter_pair_fun_hdd[simp]: "hdd (stream_unf_coiter (f \<odot> g) t) = f t"
-unfolding hdd_def pair_fun_def stream.unf_coiter by simp
+unfolding hdd_def pair_fun_def stream.unf_coiters by simp
 
 lemma coiter_pair_fun_tll[simp]: "tll (stream_unf_coiter (f \<odot> g) t) =
  stream_unf_coiter (f \<odot> g) (g t)"
-unfolding tll_def pair_fun_def stream.unf_coiter by simp
+unfolding tll_def pair_fun_def stream.unf_coiters by simp
 
 (* infinite trees: *)
 coinductive infiniteTr where

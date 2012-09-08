@@ -18,27 +18,27 @@ definition "NilF = listF_fld (Inl ())"
 definition "Conss a as \<equiv> listF_fld (Inr (a, as))"
 
 lemma listF_map_NilF[simp]: "listF_map f NilF = NilF"
-unfolding listF_map_def pre_listF_map_def NilF_def listF.fld_iter by simp
+unfolding listF_map_def pre_listF_map_def NilF_def listF.fld_iters by simp
 
 lemma listF_map_Conss[simp]:
   "listF_map f (Conss x xs) = Conss (f x) (listF_map f xs)"
-unfolding listF_map_def pre_listF_map_def Conss_def listF.fld_iter by simp
+unfolding listF_map_def pre_listF_map_def Conss_def listF.fld_iters by simp
 
 lemma listF_set_NilF[simp]: "listF_set NilF = {}"
-unfolding listF_set_def NilF_def listF.fld_iter pre_listF_set1_def pre_listF_set2_def
+unfolding listF_set_def NilF_def listF.fld_iters pre_listF_set1_def pre_listF_set2_def
   sum_set_defs pre_listF_map_def collect_def[abs_def] by simp
 
 lemma listF_set_Conss[simp]: "listF_set (Conss x xs) = {x} \<union> listF_set xs"
-unfolding listF_set_def Conss_def listF.fld_iter pre_listF_set1_def pre_listF_set2_def
+unfolding listF_set_def Conss_def listF.fld_iters pre_listF_set1_def pre_listF_set2_def
   sum_set_defs prod_set_defs pre_listF_map_def collect_def[abs_def] by simp
 
 lemma iter_sum_case_NilF: "listF_fld_iter (sum_case f g) NilF = f ()"
-unfolding NilF_def listF.fld_iter pre_listF_map_def by simp
+unfolding NilF_def listF.fld_iters pre_listF_map_def by simp
 
 
 lemma iter_sum_case_Conss:
   "listF_fld_iter (sum_case f g) (Conss y ys) = g (y, listF_fld_iter (sum_case f g) ys)"
-unfolding Conss_def listF.fld_iter pre_listF_map_def by simp
+unfolding Conss_def listF.fld_iters pre_listF_map_def by simp
 
 (* familiar induction principle *)
 lemma listF_induct:

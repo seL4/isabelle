@@ -1808,9 +1808,9 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
 
       val notes =
-        [(fld_iterN, iter_thms),
+        [(fld_itersN, iter_thms),
         (fld_iter_uniqueN, iter_unique_thms),
-        (fld_recN, rec_thms),
+        (fld_recsN, rec_thms),
         (unf_fldN, unf_fld_thms),
         (fld_unfN, fld_unf_thms),
         (unf_injectN, unf_inject_thms),
