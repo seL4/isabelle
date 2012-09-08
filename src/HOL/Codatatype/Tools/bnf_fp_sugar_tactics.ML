@@ -52,8 +52,8 @@ fun mk_inject_tac ctxt ctr_def fld_inject =
 val iter_or_rec_thms =
   @{thms sum_map.simps sum.simps(5,6) convol_def case_unit map_pair_def split_conv id_def};
 
-fun mk_iter_or_rec_tac iter_or_rec_defs fld_iter_or_recs ctr_def bnf_map_def ctxt =
-  Local_Defs.unfold_tac ctxt (ctr_def :: bnf_map_def :: iter_or_rec_defs @ fld_iter_or_recs) THEN
+fun mk_iter_or_rec_tac iter_or_rec_defs fld_iter_or_recs ctr_def pre_map_def ctxt =
+  Local_Defs.unfold_tac ctxt (ctr_def :: pre_map_def :: iter_or_rec_defs @ fld_iter_or_recs) THEN
   Local_Defs.unfold_tac ctxt iter_or_rec_thms THEN rtac refl 1;
 
 end;

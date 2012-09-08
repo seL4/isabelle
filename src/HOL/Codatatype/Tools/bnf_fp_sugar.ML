@@ -130,8 +130,8 @@ fun prepare_datatype prepare_typ gfp specs fake_lthy no_defs_lthy =
 
     val eqs = map dest_TFree Xs ~~ sum_prod_TsXs;
 
-    val ((unfs0, flds0, fp_iters0, fp_recs0, unf_flds, fld_unfs, fld_injects, fp_iter_thms,
-        fp_rec_thms), lthy) =
+    val (pre_map_defs, ((unfs0, flds0, fp_iters0, fp_recs0, unf_flds, fld_unfs, fld_injects,
+        fp_iter_thms, fp_rec_thms), lthy)) =
       fp_bnf (if gfp then bnf_gfp else bnf_lfp) bs mixfixes As' eqs no_defs_lthy;
 
     val timer = time (Timer.startRealTimer ());
@@ -328,11 +328,10 @@ fun prepare_datatype prepare_typ gfp specs fake_lthy no_defs_lthy =
         val hrecs = map (fn recx => flat_list_comb (recx, hss)) recs;
 
         val (iter_thmss, rec_thmss) =
-          if true then
-            `I (map (map (K TrueI)) ctr_defss)
-          else let
+          let
             fun mk_goal_iter_or_rec fss fc xctr f xs xs' =
-              mk_Trueprop_eq (fc $ xctr, Term.list_comb (f, xs'));
+              fold_rev (fold_rev Logic.all) (xs :: fss)
+                (mk_Trueprop_eq (fc $ xctr, Term.list_comb (f, xs')));
 
             fun fix_iter_free (x as Free (_, T)) =
               (case find_index (eq_fpT T) fpTs of ~1 => x | j => nth giters j $ x);
@@ -348,9 +347,9 @@ fun prepare_datatype prepare_typ gfp specs fake_lthy no_defs_lthy =
               map5 (map4 o mk_goal_iter_or_rec hss) hrecs xctrss hss xsss rec_xsss;
 
             val iter_tacss =
-              map2 (map o mk_iter_or_rec_tac bnf_map_defs iter_defs) fp_iter_thms ctr_defss;
+              map2 (map o mk_iter_or_rec_tac pre_map_defs iter_defs) fp_iter_thms ctr_defss;
             val rec_tacss =
-              map2 (map o mk_iter_or_rec_tac bnf_map_defs rec_defs) fp_rec_thms ctr_defss;
+              map2 (map o mk_iter_or_rec_tac pre_map_defs rec_defs) fp_rec_thms ctr_defss;
           in
             (map2 (map2 (fn goal => fn tac => Skip_Proof.prove lthy [] [] goal (tac o #context)))
                goal_iterss iter_tacss,
