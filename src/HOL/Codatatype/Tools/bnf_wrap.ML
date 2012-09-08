@@ -9,6 +9,7 @@ signature BNF_WRAP =
 sig
   val no_binder: binding
   val mk_half_pairss: 'a list -> ('a * 'a) list list
+  val mk_ctr: typ list -> term -> term
   val wrap_datatype: ({prems: thm list, context: Proof.context} -> tactic) list list ->
     (term list * term) * (binding list * binding list list) -> local_theory -> local_theory
 end;
@@ -54,10 +55,15 @@ fun mk_half_pairss ys = mk_half_pairss' [[]] ys;
 (* TODO: provide a way to have a different default value, e.g. "tl Nil = Nil" *)
 fun mk_undef T Ts = Const (@{const_name undefined}, Ts ---> T);
 
+fun mk_ctr Ts ctr =
+  let val Type (_, Ts0) = body_type (fastype_of ctr) in
+    Term.subst_atomic_types (Ts0 ~~ Ts) ctr
+  end;
+
 fun eta_expand_case_arg xs f_xs = fold_rev Term.lambda xs f_xs;
 
-fun name_of_ctr t =
-  case head_of t of
+fun name_of_ctr c =
+  case head_of c of
     Const (s, _) => s
   | Free (s, _) => s
   | _ => error "Cannot extract name of constructor";
@@ -85,11 +91,6 @@ fun prepare_wrap_datatype prep_term ((raw_ctrs, raw_case), (raw_disc_binders, ra
       no_defs_lthy
       |> mk_TFrees (length As0)
       ||> the_single o fst o mk_TFrees 1;
-
-    fun mk_ctr Ts ctr =
-      let val Type (_, Ts0) = body_type (fastype_of ctr) in
-        Term.subst_atomic_types (Ts0 ~~ Ts) ctr
-      end;
 
     val T = Type (T_name, As);
     val ctrs = map (mk_ctr As) ctrs0;
@@ -220,8 +221,8 @@ fun prepare_wrap_datatype prep_term ((raw_ctrs, raw_case), (raw_disc_binders, ra
     val discs0 = map (Morphism.term phi) raw_discs;
     val selss0 = map (map (Morphism.term phi)) raw_selss;
 
-    fun mk_disc_or_sel Ts t =
-      Term.subst_atomic_types (snd (Term.dest_Type (domain_type (fastype_of t))) ~~ Ts) t;
+    fun mk_disc_or_sel Ts c =
+      Term.subst_atomic_types (snd (Term.dest_Type (domain_type (fastype_of c))) ~~ Ts) c;
 
     val discs = map (mk_disc_or_sel As) discs0;
     val selss = map (map (mk_disc_or_sel As)) selss0;
@@ -245,9 +246,9 @@ fun prepare_wrap_datatype prep_term ((raw_ctrs, raw_case), (raw_disc_binders, ra
 
     val goal_half_distinctss =
       let
-        fun mk_goal ((xs, t), (xs', t')) =
+        fun mk_goal ((xs, xc), (xs', xc')) =
           fold_rev Logic.all (xs @ xs')
-            (HOLogic.mk_Trueprop (HOLogic.mk_not (HOLogic.mk_eq (t, t'))));
+            (HOLogic.mk_Trueprop (HOLogic.mk_not (HOLogic.mk_eq (xc, xc'))));
       in
         map (map mk_goal) (mk_half_pairss (xss ~~ xctrs))
       end;

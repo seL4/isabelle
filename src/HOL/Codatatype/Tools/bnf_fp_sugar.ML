@@ -128,7 +128,7 @@ fun prepare_datatype prepare_typ gfp specs fake_lthy lthy =
 
     val eqs = map dest_TFree Xs ~~ sum_prod_TsXs;
 
-    val ((raw_unfs, raw_flds, raw_fp_iters, raw_fp_recs, unf_flds, fld_unfs, fld_injects), lthy') =
+    val ((unfs0, flds0, fp_iters0, fp_recs0, unf_flds, fld_unfs, fld_injects), lthy') =
       fp_bnf (if gfp then bnf_gfp else bnf_lfp) bs mixfixes As' eqs lthy;
 
     val timer = time (Timer.startRealTimer ());
@@ -141,23 +141,29 @@ fun prepare_datatype prepare_typ gfp specs fake_lthy lthy =
     val mk_unf = mk_unf_or_fld domain_type;
     val mk_fld = mk_unf_or_fld range_type;
 
-    val unfs = map (mk_unf As) raw_unfs;
-    val flds = map (mk_fld As) raw_flds;
+    val unfs = map (mk_unf As) unfs0;
+    val flds = map (mk_fld As) flds0;
 
     val fpTs = map (domain_type o fastype_of) unfs;
     val ctr_Tsss = map (map (map (Term.typ_subst_atomic (Xs ~~ fpTs)))) ctr_TsssXs;
 
-    fun mk_fp_iter_or_rec Ts Us c =
+    val ns = map length ctr_Tsss;
+    val mss = map (map length) ctr_Tsss;
+    val Css = map2 replicate ns Cs;
+    val Cs' = flat Css;
+
+    fun mk_iter_or_rec Ts Us c =
       let
         val (binders, body) = strip_type (fastype_of c);
-        val Type (_, Ts0) = if gfp then body else List.last binders;
-        val Us0 = map (if gfp then domain_type else body_type) (fst (split_last binders));
+        val (fst_binders, last_binder) = split_last binders;
+        val Type (_, Ts0) = if gfp then body else last_binder;
+        val Us0 = map (if gfp then domain_type else body_type) fst_binders;
       in
         Term.subst_atomic_types (Ts0 @ Us0 ~~ Ts @ Us) c
       end;
 
-    val fp_iters = map (mk_fp_iter_or_rec As Cs) raw_fp_iters;
-    val fp_recs = map (mk_fp_iter_or_rec As Cs) raw_fp_recs;
+    val fp_iters = map (mk_iter_or_rec As Cs) fp_iters0;
+    val fp_recs = map (mk_iter_or_rec As Cs) fp_recs0;
 
     fun pour_sugar_on_type ((((((((((((((b, fpT), C), fld), unf), fp_iter), fp_rec), fld_unf),
           unf_fld), fld_inject), ctr_binders), ctr_mixfixes), ctr_Tss), disc_binders), sel_binderss)
@@ -199,8 +205,10 @@ fun prepare_datatype prepare_typ gfp specs fake_lthy lthy =
         val ctr_defs = map (Morphism.thm phi) raw_ctr_defs;
         val case_def = Morphism.thm phi raw_case_def;
 
-        val ctrs = map (Morphism.term phi) raw_ctrs;
-        val casex = Morphism.term phi raw_case;
+        val ctrs0 = map (Morphism.term phi) raw_ctrs;
+        val casex0 = Morphism.term phi raw_case;
+
+        val ctrs = map (mk_ctr As) ctrs0;
 
         fun exhaust_tac {context = ctxt, ...} =
           let
@@ -244,10 +252,6 @@ fun prepare_datatype prepare_typ gfp specs fake_lthy lthy =
         (* (co)iterators, (co)recursors, (co)induction *)
 
         val is_fpT = member (op =) fpTs;
-
-        val ns = map length ctr_Tsss;
-        val mss = map (map length) ctr_Tsss;
-        val Css = map2 replicate ns Cs;
 
         fun dest_rec_pair (T as Type (@{type_name prod}, Us as [_, U])) =
             if member (op =) Cs U then Us else [T]
@@ -303,15 +307,18 @@ fun prepare_datatype prepare_typ gfp specs fake_lthy lthy =
             val iter_def = Morphism.thm phi raw_iter_def;
             val rec_def = Morphism.thm phi raw_rec_def;
 
-            val iter = Morphism.term phi raw_iter;
-            val recx = Morphism.term phi raw_rec;
+            val iter0 = Morphism.term phi raw_iter;
+            val rec0 = Morphism.term phi raw_rec;
+
+            val iter = mk_iter_or_rec As Cs' iter0;
+            val recx = mk_iter_or_rec As Cs' rec0;
           in
             ([[ctrs], [[iter]], [[recx]], xss, gss, hss], lthy)
           end;
 
         fun sugar_codatatype no_defs_lthy = ([], no_defs_lthy);
       in
-        wrap_datatype tacss ((ctrs, casex), (disc_binders, sel_binderss)) lthy'
+        wrap_datatype tacss ((ctrs0, casex0), (disc_binders, sel_binderss)) lthy'
         |> (if gfp then sugar_codatatype else sugar_datatype)
       end;
 
@@ -327,9 +334,12 @@ fun prepare_datatype prepare_typ gfp specs fake_lthy lthy =
               mk_Trueprop_eq (fc $ xctr, fc $ xctr);
 
             val goal_iterss = map2 (fn giter => map (mk_goal_iter_or_rec giter)) giters xctrss;
-            val goal_recss = [];
-            val iter_tacss = []; (* ### map (map mk_iter_or_rec_tac); (* needs ctr_def, iter_def, fld_iter *) *)
-            val rec_tacss = [];
+            val goal_recss = map2 (fn hrec => map (mk_goal_iter_or_rec hrec)) hrecs xctrss;
+            val iter_tacss =
+              map (map (K (fn _ => Skip_Proof.cheat_tac (Proof_Context.theory_of lthy)))) goal_iterss;
+              (* ### map (map mk_iter_or_rec_tac); (* needs ctr_def, iter_def, fld_iter *) *)
+            val rec_tacss =
+              map (map (K (fn _ => Skip_Proof.cheat_tac (Proof_Context.theory_of lthy)))) goal_recss;
           in
             (map2 (map2 (Skip_Proof.prove lthy [] [])) goal_iterss iter_tacss,
              map2 (map2 (Skip_Proof.prove lthy [] [])) goal_recss rec_tacss)
