@@ -137,16 +137,14 @@ fun prepare_wrap_datatype prep_term ((raw_ctrs, raw_case), (raw_disc_binders, ra
         val Type (_, Ts0) = List.last binders
       in Term.subst_atomic_types ((body, T) :: (Ts0 ~~ Ts)) case0 end;
 
-    val caseB = mk_case As B;
-    val caseB_Ts = map (fn Ts => Ts ---> B) ctr_Tss;
-
-    fun mk_caseB_term eta_fs = Term.list_comb (caseB, eta_fs);
+    val casex = mk_case As B;
+    val case_Ts = map (fn Ts => Ts ---> B) ctr_Tss;
 
     val (((((((xss, yss), fs), gs), (v, v')), w), (p, p')), names_lthy) = no_defs_lthy |>
       mk_Freess "x" ctr_Tss
       ||>> mk_Freess "y" ctr_Tss
-      ||>> mk_Frees "f" caseB_Ts
-      ||>> mk_Frees "g" caseB_Ts
+      ||>> mk_Frees "f" case_Ts
+      ||>> mk_Frees "g" case_Ts
       ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "v") T
       ||>> yield_singleton (mk_Frees "w") T
       ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "P") HOLogic.boolT;
@@ -164,7 +162,8 @@ fun prepare_wrap_datatype prep_term ((raw_ctrs, raw_case), (raw_disc_binders, ra
     val eta_fs = map2 eta_expand_case_arg xss xfs;
     val eta_gs = map2 eta_expand_case_arg xss xgs;
 
-    val caseB_fs = Term.list_comb (caseB, eta_fs);
+    val fcase = Term.list_comb (casex, eta_fs);
+    val gcase = Term.list_comb (casex, eta_gs);
 
     val exist_xs_v_eq_ctrs =
       map2 (fn xctr => fn xs => list_exists_free xs (HOLogic.mk_eq (v, xctr))) xctrs xss;
@@ -255,7 +254,7 @@ fun prepare_wrap_datatype prep_term ((raw_ctrs, raw_case), (raw_disc_binders, ra
 
     val goal_cases =
       map3 (fn xs => fn xctr => fn xf =>
-        fold_rev Logic.all (fs @ xs) (mk_Trueprop_eq (caseB_fs $ xctr, xf))) xss xctrs xfs;
+        fold_rev Logic.all (fs @ xs) (mk_Trueprop_eq (fcase $ xctr, xf))) xss xctrs xfs;
 
     val goalss = [goal_exhaust] :: goal_injectss @ goal_half_distinctss @ [goal_cases];
 
@@ -426,7 +425,7 @@ fun prepare_wrap_datatype prep_term ((raw_ctrs, raw_case), (raw_disc_binders, ra
               | mk_rhs (disc :: discs) (f :: fs) (sels :: selss) =
                 Const (@{const_name If}, HOLogic.boolT --> B --> B --> B) $
                   betapply (disc, v) $ mk_core f sels $ mk_rhs discs fs selss;
-            val goal = mk_Trueprop_eq (caseB_fs $ v, mk_rhs discs fs selss);
+            val goal = mk_Trueprop_eq (fcase $ v, mk_rhs discs fs selss);
           in
             Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
               mk_case_eq_tac ctxt n exhaust_thm' case_thms disc_thmss' sel_thmss)
@@ -440,13 +439,11 @@ fun prepare_wrap_datatype prep_term ((raw_ctrs, raw_case), (raw_disc_binders, ra
                 mk_Trueprop_eq (f, g)));
 
             val v_eq_w = mk_Trueprop_eq (v, w);
-            val case_fs = mk_caseB_term eta_fs;
-            val case_gs = mk_caseB_term eta_gs;
 
             val goal =
               Logic.list_implies (v_eq_w :: map4 mk_prem xctrs xss fs gs,
-                 mk_Trueprop_eq (case_fs $ v, case_gs $ w));
-            val goal_weak = Logic.mk_implies (v_eq_w, mk_Trueprop_eq (case_fs $ v, case_fs $ w));
+                 mk_Trueprop_eq (fcase $ v, gcase $ w));
+            val goal_weak = Logic.mk_implies (v_eq_w, mk_Trueprop_eq (fcase $ v, fcase $ w));
           in
             (Skip_Proof.prove lthy [] [] goal (fn _ => mk_case_cong_tac exhaust_thm' case_thms),
              Skip_Proof.prove lthy [] [] goal_weak (K (etac arg_cong 1)))
@@ -461,7 +458,7 @@ fun prepare_wrap_datatype prep_term ((raw_ctrs, raw_case), (raw_disc_binders, ra
               list_exists_free xs (HOLogic.mk_conj (HOLogic.mk_eq (v, xctr),
                 HOLogic.mk_not (q $ f_xs)));
 
-            val lhs = q $ (mk_caseB_term eta_fs $ v);
+            val lhs = q $ (fcase $ v);
 
             val goal =
               mk_Trueprop_eq (lhs, Library.foldr1 HOLogic.mk_conj (map3 mk_conjunct xctrs xss xfs));
