@@ -56,16 +56,16 @@ data ('a, 'b, 'c) some_killing =
  and ('a, 'b, 'c) in_here =
   IH1 'b 'a | IH2 'c
 
-data 'b nofail1 = NF11 "'b nofail1 \<times> 'b" | NF12 'b
+data 'b nofail1 = NF11 "'b nofail1" 'b | NF12 'b
 data 'b nofail2 = NF2 "('b nofail2 \<times> 'b \<times> 'b nofail2 \<times> 'b) list"
-data 'b nofail3 = NF3 "'b \<times> ('b nofail3 \<times> 'b \<times> 'b nofail3 \<times> 'b) fset"
-data 'b nofail4 = NF4 "('b nofail3 \<times> ('b nofail3 \<times> 'b \<times> 'b nofail3 \<times> 'b) fset) list"
+data 'b nofail3 = NF3 'b "('b nofail3 \<times> 'b \<times> 'b nofail3 \<times> 'b) fset"
+data 'b nofail4 = NF4 "('b nofail4 \<times> ('b nofail4 \<times> 'b \<times> 'b nofail4 \<times> 'b) fset) list"
 
 (*
-data 'b fail = F "'b fail \<times> 'b \<times> 'b fail \<times> 'b list"
-data 'b fail = F "'b fail \<times> 'b \<times> 'b fail \<times> 'b"
-data 'b fail = F "'b fail \<times> 'b + 'b fail"
-data 'b fail = F "'b fail \<times> 'b"
+data 'b fail = F "'b fail" 'b "'b fail" "'b list"
+data 'b fail = F "'b fail" 'b "'b fail" 'b
+data 'b fail = F1 "'b fail" 'b | F2 "'b fail"
+data 'b fail = F "'b fail" 'b
 *)
 
 data l1 = L1 "l2 list"
