@@ -43,6 +43,8 @@ fun retype_free (Free (s, _)) T = Free (s, T);
 
 val lists_bmoc = fold (fn xs => fn t => Term.list_comb (t, xs))
 
+fun mk_id T = Const (@{const_name id}, T --> T);
+
 fun mk_tupled_fun x f xs = HOLogic.tupled_lambda x (Term.list_comb (f, xs));
 fun mk_uncurried_fun f xs = mk_tupled_fun (HOLogic.mk_tuple xs) f xs;
 fun mk_uncurried2_fun f xss =
@@ -452,6 +454,14 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
         Term.subst_atomic_types (Ts0 @ Us0 ~~ Ts @ Us) t
       end;
 
+    fun build_map build_arg (Type (s, Ts)) (Type (_, Us)) =
+      let
+        val map0 = map_of_bnf (the (bnf_of lthy (Long_Name.base_name s)));
+        val mapx = mk_map Ts Us map0;
+        val TUs = map dest_funT (fst (split_last (fst (strip_map_type (fastype_of mapx)))));
+        val args = map build_arg TUs;
+      in Term.list_comb (mapx, args) end;
+
     fun pour_more_sugar_on_lfps ((ctrss, iters, recs, vs, xsss, ctr_defss, iter_defs, rec_defs),
         lthy) =
       let
@@ -465,23 +475,13 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
               fold_rev (fold_rev Logic.all) (xs :: fss)
                 (mk_Trueprop_eq (fiter_like $ xctr, Term.list_comb (f, fxs)));
 
-            fun build_call fiter_likes maybe_tick =
-              let
-                fun build (T, U) =
-                  if T = U then
-                    Const (@{const_name id}, T --> T)
-                  else
-                    (case (find_index (curry (op =) T) fpTs, (T, U)) of
-                      (~1, (Type (s, Ts), Type (_, Us))) =>
-                      let
-                        val map0 = map_of_bnf (the (bnf_of lthy (Long_Name.base_name s)));
-                        val mapx = mk_map Ts Us map0;
-                        val TUs =
-                          map dest_funT (fst (split_last (fst (strip_map_type (fastype_of mapx)))));
-                        val args = map build TUs;
-                      in Term.list_comb (mapx, args) end
-                    | (j, _) => maybe_tick (nth vs j) (nth fiter_likes j))
-              in build end;
+            fun build_call fiter_likes maybe_tick (T, U) =
+              if T = U then
+                mk_id T
+              else
+                (case find_index (curry (op =) T) fpTs of
+                  ~1 => build_map (build_call fiter_likes maybe_tick) T U
+                | j => maybe_tick (nth vs j) (nth fiter_likes j));
 
             fun mk_U maybe_prodT =
               typ_subst (map2 (fn fpT => fn C => (fpT, maybe_prodT fpT C)) fpTs Cs);
@@ -540,23 +540,13 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
                 (Logic.list_implies (seq_conds mk_goal_cond n k cps,
                    mk_Trueprop_eq (fcoiter_like $ c, Term.list_comb (ctr, cfs'))));
 
-            fun build_call fiter_likes maybe_tack =
-              let
-                fun build (T, U) =
-                  if T = U then
-                    Const (@{const_name id}, T --> T)
-                  else
-                    (case (find_index (curry (op =) U) fpTs, (T, U)) of
-                      (~1, (Type (s, Ts), Type (_, Us))) =>
-                      let
-                        val map0 = map_of_bnf (the (bnf_of lthy (Long_Name.base_name s)));
-                        val mapx = mk_map Ts Us map0;
-                        val TUs =
-                          map dest_funT (fst (split_last (fst (strip_map_type (fastype_of mapx)))));
-                        val args = map build TUs;
-                      in Term.list_comb (mapx, args) end
-                    | (j, _) => maybe_tack (nth cs j, nth vs j) (nth fiter_likes j))
-              in build end;
+            fun build_call fiter_likes maybe_tack (T, U) =
+              if T = U then
+                mk_id T
+              else
+                (case find_index (curry (op =) U) fpTs of
+                  ~1 => build_map (build_call fiter_likes maybe_tack) T U
+                | j => maybe_tack (nth cs j, nth vs j) (nth fiter_likes j));
 
             fun mk_U maybe_sumT =
               typ_subst (map2 (fn C => fn fpT => (maybe_sumT fpT C, fpT)) Cs fpTs);
