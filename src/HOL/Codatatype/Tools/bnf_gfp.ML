@@ -2121,9 +2121,10 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val fld_inject_thms = map (fn thm => thm RS @{thm inj_eq}) inj_fld_thms;
     val fld_exhaust_thms = map (fn thm => thm RS exE) fld_nchotomy_thms;
 
-    val fld_coiter_thms = map3 (fn unf_inject => fn coiter => fn unf_fld =>
-      iffD1 OF [unf_inject, trans OF [coiter, unf_fld RS sym]])
-      unf_inject_thms coiter_thms unf_fld_thms;
+    fun mk_fld_unf_coiter_like_thm unf_inject unf_fld coiter =
+      iffD1 OF [unf_inject, trans OF [coiter, unf_fld RS sym]];
+
+    val fld_coiter_thms = map3 mk_fld_unf_coiter_like_thm unf_inject_thms unf_fld_thms coiter_thms;
 
     val timer = time (timer "fld definitions & thms");
 
@@ -2188,6 +2189,8 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           |> Thm.close_derivation)
         goals coiter_thms map_congs
       end;
+
+    val fld_corec_thms = map3 mk_fld_unf_coiter_like_thm unf_inject_thms unf_fld_thms corec_thms;
 
     val timer = time (timer "corec definitions & thms");
 
@@ -2989,7 +2992,8 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         (unf_exhaustN, unf_exhaust_thms),
         (fld_injectN, fld_inject_thms),
         (fld_exhaustN, fld_exhaust_thms),
-        (fld_unf_coitersN, fld_coiter_thms)]
+        (fld_unf_coitersN, fld_coiter_thms),
+        (fld_unf_corecsN, fld_corec_thms)]
         |> map (apsnd (map single))
         |> maps (fn (thmN, thmss) =>
           map2 (fn b => fn thms =>
@@ -2997,7 +3001,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           bs thmss)
   in
     ((unfs, flds, coiters, corecs, unf_fld_thms, fld_unf_thms, fld_inject_thms, fld_coiter_thms,
-      corec_thms (* FIXME: should be "fld_corec_thms" *)),
+      fld_corec_thms),
      lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
   end;
 

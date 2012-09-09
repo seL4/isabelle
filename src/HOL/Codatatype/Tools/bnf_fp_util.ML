@@ -22,7 +22,6 @@ sig
   val corecN: string
   val exhaustN: string
   val fldN: string
-  val fld_unf_coitersN: string
   val fld_exhaustN: string
   val fld_induct2N: string
   val fld_inductN: string
@@ -32,6 +31,8 @@ sig
   val fld_recN: string
   val fld_recsN: string
   val fld_unfN: string
+  val fld_unf_coitersN: string
+  val fld_unf_corecsN: string
   val hsetN: string
   val hset_recN: string
   val inductN: string
@@ -166,6 +167,7 @@ val fld_recN = fldN ^ "_" ^ recN
 val fld_recsN = fld_recN ^ "s"
 val unf_corecN = unfN ^ "_" ^ corecN
 val unf_corecsN = unf_corecN ^ "s"
+val fld_unf_corecsN = fldN ^ "_" ^ unf_corecN ^ "s"
 
 val fld_unfN = fldN ^ "_" ^ unfN
 val unf_fldN = unfN ^ "_" ^ fldN
