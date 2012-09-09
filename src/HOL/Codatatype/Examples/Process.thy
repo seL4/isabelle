@@ -11,11 +11,9 @@ theory Process
 imports "../Codatatype"
 begin
 
-codata_raw process: 'p = "'a * 'p + 'p * 'p"
-(* codatatype
-     'a process = Action (prefOf :: 'a) (contOf :: 'a process) |
-                  Choice (ch1Of :: 'a process) (ch2Of :: 'a process)
-*)
+codata 'a process =
+  isAction: Action (prefOf: 'a) (contOf: "'a process") |
+  isChoice: Choice (ch1Of: "'a process") (ch2Of: "'a process")
 
 (* Read: prefix of, continuation of, choice 1 of, choice 2 of *)
 
@@ -38,142 +36,25 @@ lemma pre_process_pred[simp]:
 by (auto simp: diag_def pre_process.pred_unfold)
 
 
-subsection{* Constructors *}
-
-definition Action :: "'a \<Rightarrow> 'a process \<Rightarrow> 'a process"
-where "Action a p \<equiv> process_fld (Inl (a,p))"
-
-definition Choice :: "'a process \<Rightarrow> 'a process \<Rightarrow> 'a process"
-where "Choice p1 p2 \<equiv> process_fld (Inr (p1,p2))"
-
-lemmas ctor_defs = Action_def Choice_def
-
-
-subsection {* Discriminators *}
-
-(* One discriminator for each constructor. By the constructor exhaustiveness,
-one of them is of course redundant, so for n constructors we only need n-1
-discriminators. However, keeping n discriminators seems more uniform.   *)
-
-definition isAction :: "'a process \<Rightarrow> bool"
-where "isAction q \<equiv> \<exists> a p. q = Action a p"
-
-definition isChoice :: "'a process \<Rightarrow> bool"
-where "isChoice q \<equiv> \<exists> p1 p2. q = Choice p1 p2"
-
-lemmas discr_defs = isAction_def isChoice_def
-
-
-subsection {* Pre-selectors *}
-
-(* These are mere auxiliaries *)
-
-definition "asAction q \<equiv> SOME ap. q = Action (fst ap) (snd ap)"
-definition "asChoice q \<equiv> SOME p1p2. q = Choice (fst p1p2) (snd p1p2)"
-lemmas pre_sel_defs = asAction_def asChoice_def
-
-
-subsection {* Selectors *}
-
-(* One for each pair (constructor, constructor argument) *)
-
-(* For Action: *)
-definition prefOf :: "'a process \<Rightarrow> 'a" where "prefOf q = fst (asAction q)"
-definition contOf :: "'a process \<Rightarrow> 'a process" where "contOf q = snd (asAction q)"
-
-(* For Choice: *)
-definition ch1Of :: "'a process \<Rightarrow> 'a process" where "ch1Of q = fst (asChoice q)"
-definition ch2Of :: "'a process \<Rightarrow> 'a process" where "ch2Of q = snd (asChoice q)"
-
-lemmas sel_defs = prefOf_def contOf_def ch1Of_def ch2Of_def
-
-
 subsection {* Basic properties *}
 
-(* Selectors versus discriminators *)
-lemma isAction_asAction:
-"isAction q \<longleftrightarrow> q = Action (fst (asAction q)) (snd (asAction q))"
-(is "?L \<longleftrightarrow> ?R")
-proof
-  assume ?L
-  then obtain a p where q: "q = Action a p" unfolding isAction_def by auto
-  show ?R unfolding asAction_def q by (rule someI[of _ "(a,p)"]) simp
-qed(unfold isAction_def, auto)
+declare
+  process.inject[simp]
+  process.distinct[simp]
+  process.discs[simp]
+  process.sels[simp]
+  process.collapse[simp]
 
-theorem isAction_prefOf_contOf:
-"isAction q \<longleftrightarrow> q = Action (prefOf q) (contOf q)"
-using isAction_asAction unfolding prefOf_def contOf_def .
-
-lemma isChoice_asChoice:
-"isChoice q \<longleftrightarrow> q = Choice (fst (asChoice q)) (snd (asChoice q))"
-(is "?L \<longleftrightarrow> ?R")
-proof
-  assume ?L
-  then obtain p1 p2 where q: "q = Choice p1 p2" unfolding isChoice_def by auto
-  show ?R unfolding asChoice_def q by (rule someI[of _ "(p1,p2)"]) simp
-qed(unfold isChoice_def, auto)
-
-theorem isChoice_ch1Of_ch2Of:
-"isChoice q \<longleftrightarrow> q = Choice (ch1Of q) (ch2Of q)"
-using isChoice_asChoice unfolding ch1Of_def ch2Of_def .
-
-(* Constructors *)
-theorem process_simps[simp]:
-"Action a p = Action a' p' \<longleftrightarrow> a = a' \<and> p = p'"
-"Choice p1 p2 = Choice p1' p2' \<longleftrightarrow> p1 = p1' \<and> p2 = p2'"
-(*  *)
-"Action a p \<noteq> Choice p1 p2"
-"Choice p1 p2 \<noteq> Action a p"
-unfolding ctor_defs process.fld_inject by auto
-
-theorem process_cases[elim, case_names Action Choice]:
-assumes Action: "\<And> a p. q = Action a p \<Longrightarrow> phi"
-and Choice: "\<And> p1 p2. q = Choice p1 p2 \<Longrightarrow> phi"
-shows phi
-proof(cases rule: process.fld_exhaust[of q])
-  fix x assume "q = process_fld x"
-  thus ?thesis
-  apply(cases x)
-    apply(case_tac a) using Action unfolding ctor_defs apply blast
-    apply(case_tac b) using Choice unfolding ctor_defs apply blast
-  done
-qed
+lemmas process_exhaust =
+  process.exhaust[elim, case_names Action Choice]
 
 (* Constructors versus discriminators *)
 theorem isAction_isChoice:
 "isAction p \<or> isChoice p"
-unfolding isAction_def isChoice_def by (cases rule: process_cases) auto
-
-theorem isAction_Action[simp]: "isAction (Action a p)"
-unfolding isAction_def by auto
-
-theorem isAction_Choice[simp]: "\<not> isAction (Choice p1 p2)"
-unfolding isAction_def by auto
-
-theorem isChoice_Choice[simp]: "isChoice (Choice p1 p2)"
-unfolding isChoice_def by auto
-
-theorem isChoice_Action[simp]: "\<not> isChoice (Action a p)"
-unfolding isChoice_def by auto
+by (rule process.disc_exhaust) auto
 
 theorem not_isAction_isChoice: "\<not> (isAction p \<and> isChoice p)"
-by (cases rule: process_cases[of p]) auto
-
-(* Constructors versus selectors *)
-theorem dest_ctor[simp]:
-"prefOf (Action a p) = a"
-"contOf (Action a p) = p"
-"ch1Of (Choice p1 p2) = p1"
-"ch2Of (Choice p1 p2) = p2"
-using isAction_Action[of a p]
-      isChoice_Choice[of p1 p2]
-unfolding isAction_prefOf_contOf
-          isChoice_ch1Of_ch2Of by auto
-
-theorem ctor_dtor[simp]:
-"\<And> p. isAction p \<Longrightarrow> Action (prefOf p) (contOf p) = p"
-"\<And> p. isChoice p \<Longrightarrow> Choice (ch1Of p) (ch2Of p) = p"
-unfolding isAction_def isChoice_def by auto
+by (cases rule: process_exhaust[of p]) auto
 
 
 subsection{* Coinduction *}
@@ -187,19 +68,19 @@ shows "p = p'"
 proof(intro mp[OF process.pred_coinduct, of \<phi>, OF _ phi], clarify)
   fix p p'  assume \<phi>: "\<phi> p p'"
   show "pre_process_pred (op =) \<phi> (process_unf p) (process_unf p')"
-  proof(cases rule: process_cases[of p])
+  proof(cases rule: process_exhaust[of p])
     case (Action a q) note p = Action
-    hence "isAction p'" using iss[OF \<phi>] by (cases rule: process_cases[of p'], auto)
-    then obtain a' q' where p': "p' = Action a' q'" by (cases rule: process_cases[of p'], auto)
+    hence "isAction p'" using iss[OF \<phi>] by (cases rule: process_exhaust[of p'], auto)
+    then obtain a' q' where p': "p' = Action a' q'" by (cases rule: process_exhaust[of p'], auto)
     have 0: "a = a' \<and> \<phi> q q'" using Act[OF \<phi>[unfolded p p']] .
     have unf: "process_unf p = Inl (a,q)" "process_unf p' = Inl (a',q')"
     unfolding p p' Action_def process.unf_fld by simp_all
     show ?thesis using 0 unfolding unf by simp
   next
     case (Choice p1 p2) note p = Choice
-    hence "isChoice p'" using iss[OF \<phi>] by (cases rule: process_cases[of p'], auto)
+    hence "isChoice p'" using iss[OF \<phi>] by (cases rule: process_exhaust[of p'], auto)
     then obtain p1' p2' where p': "p' = Choice p1' p2'"
-    by (cases rule: process_cases[of p'], auto)
+    by (cases rule: process_exhaust[of p'], auto)
     have 0: "\<phi> p1 p1' \<and> \<phi> p2 p2'" using Ch[OF \<phi>[unfolded p p']] .
     have unf: "process_unf p = Inr (p1,p2)" "process_unf p' = Inr (p1',p2')"
     unfolding p p' Choice_def process.unf_fld by simp_all
@@ -217,19 +98,19 @@ shows "p = p'"
 proof(intro mp[OF process.pred_coinduct_upto, of \<phi>, OF _ phi], clarify)
   fix p p'  assume \<phi>: "\<phi> p p'"
   show "pre_process_pred (op =) (\<lambda>a b. \<phi> a b \<or> a = b) (process_unf p) (process_unf p')"
-  proof(cases rule: process_cases[of p])
+  proof(cases rule: process_exhaust[of p])
     case (Action a q) note p = Action
-    hence "isAction p'" using iss[OF \<phi>] by (cases rule: process_cases[of p'], auto)
-    then obtain a' q' where p': "p' = Action a' q'" by (cases rule: process_cases[of p'], auto)
+    hence "isAction p'" using iss[OF \<phi>] by (cases rule: process_exhaust[of p'], auto)
+    then obtain a' q' where p': "p' = Action a' q'" by (cases rule: process_exhaust[of p'], auto)
     have 0: "a = a' \<and> (\<phi> q q' \<or> q = q')" using Act[OF \<phi>[unfolded p p']] .
     have unf: "process_unf p = Inl (a,q)" "process_unf p' = Inl (a',q')"
     unfolding p p' Action_def process.unf_fld by simp_all
     show ?thesis using 0 unfolding unf by simp
   next
     case (Choice p1 p2) note p = Choice
-    hence "isChoice p'" using iss[OF \<phi>] by (cases rule: process_cases[of p'], auto)
+    hence "isChoice p'" using iss[OF \<phi>] by (cases rule: process_exhaust[of p'], auto)
     then obtain p1' p2' where p': "p' = Choice p1' p2'"
-    by (cases rule: process_cases[of p'], auto)
+    by (cases rule: process_exhaust[of p'], auto)
     have 0: "(\<phi> p1 p1' \<or> p1 = p1') \<and> (\<phi> p2 p2' \<or> p2 = p2')" using Ch[OF \<phi>[unfolded p p']] .
     have unf: "process_unf p = Inr (p1,p2)" "process_unf p' = Inr (p1',p2')"
     unfolding p p' Choice_def process.unf_fld by simp_all
@@ -295,22 +176,22 @@ where "pcoiter isA pr co isC c1 c2 \<equiv> process_unf_coiter (join22 isA pr co
 lemma unf_prefOf:
 assumes "process_unf q = Inl (a,p)"
 shows "prefOf q = a"
-using assms by (cases rule: process_cases[of q]) auto
+using assms by (cases rule: process_exhaust[of q]) auto
 
 lemma unf_contOf:
 assumes "process_unf q = Inl (a,p)"
 shows "contOf q = p"
-using assms by (cases rule: process_cases[of q]) auto
+using assms by (cases rule: process_exhaust[of q]) auto
 
 lemma unf_ch1Of:
 assumes "process_unf q = Inr (p1,p2)"
 shows "ch1Of q = p1"
-using assms by (cases rule: process_cases[of q]) auto
+using assms by (cases rule: process_exhaust[of q]) auto
 
 lemma unf_ch2Of:
 assumes "process_unf q = Inr (p1,p2)"
 shows "ch2Of q = p2"
-using assms by (cases rule: process_cases[of q]) auto
+using assms by (cases rule: process_exhaust[of q]) auto
 
 theorem pcoiter:
 "\<And>P. isA P \<Longrightarrow>
@@ -342,103 +223,6 @@ next
   thus "?f P = Choice (?f (c1 P)) (?f (c2 P))"
   unfolding pcoiter_def Choice_def using process.fld_unf by metis
 qed
-
-(* Corecursion, more general than coiteration (often unnecessarily more general): *)
-definition pcorec ::
-"('b \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> 'a process + 'b)
- \<Rightarrow>
- ('b \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'a process + 'b) \<Rightarrow> ('b \<Rightarrow> 'a process + 'b)
- \<Rightarrow>
- 'b \<Rightarrow> 'a process"
-where
-"pcorec isA pr co isC c1 c2 \<equiv> process_unf_corec (join22 isA pr co isC c1 c2)"
-
-theorem pcorec_Action:
-assumes isA: "isA P"
-shows
-"case co P of
-   Inl p \<Rightarrow> pcorec isA pr co isC c1 c2 P = Action (pr P) p
-  |Inr Q \<Rightarrow> pcorec isA pr co isC c1 c2 P =
-            Action (pr P)
-                   (pcorec isA pr co isC c1 c2 Q)"
-proof-
-  let ?f = "pcorec isA pr co isC c1 c2"  let ?s = "join22 isA pr co isC c1 c2"
-  show ?thesis
-  proof(cases "co P")
-    case (Inl p)
-    have "process_unf (process_unf_corec ?s P) = Inl (pr P, p)"
-    using process.unf_corecs[of ?s P]
-    unfolding isA_join22[of isA P "pr" co isC c1 c2, OF isA]
-              pre_process_map id_apply pcorec_def Inl by simp
-    thus ?thesis unfolding Inl pcorec_def Action_def using process.fld_unf by (simp, metis)
-  next
-    case (Inr Q)
-    have "process_unf (process_unf_corec ?s P) = Inl (pr P, ?f Q)"
-    using process.unf_corecs[of ?s P]
-    unfolding isA_join22[of isA P "pr" co isC c1 c2, OF isA]
-              pre_process_map id_apply pcorec_def Inr by simp
-    thus ?thesis unfolding Inr pcorec_def Action_def using process.fld_unf by (simp, metis)
-  qed
-qed
-
-theorem pcorec_Choice:
-assumes isA: "\<not> isA P" and isC: "isC P"
-shows
-"case (c1 P,c2 P) of
-   (Inl p1, Inl p2) \<Rightarrow> pcorec isA pr co isC c1 c2 P =
-                      Choice p1 p2
-  |(Inl p1, Inr Q2) \<Rightarrow> pcorec isA pr co isC c1 c2 P =
-                      Choice p1
-                             (pcorec isA pr co isC c1 c2 Q2)
-  |(Inr Q1, Inl p2) \<Rightarrow> pcorec isA pr co isC c1 c2 P =
-                      Choice (pcorec isA pr co isC c1 c2 Q1)
-                             p2
-  |(Inr Q1, Inr Q2) \<Rightarrow> pcorec isA pr co isC c1 c2 P =
-                      Choice (pcorec isA pr co isC c1 c2 Q1)
-                             (pcorec isA pr co isC c1 c2 Q2)"
-proof-
-  let ?f = "pcorec isA pr co isC c1 c2"  let ?s = "join22 isA pr co isC c1 c2"
-  show ?thesis
-  proof(cases "c1 P")
-    case (Inl p1) note c1 = Inl
-    show ?thesis
-    proof(cases "c2 P")
-      case (Inl p2)  note c2 = Inl
-      have "process_unf (process_unf_corec ?s P) = Inr (p1, p2)"
-      using process.unf_corecs[of ?s P]
-      unfolding isC_join22[of isA P isC "pr" co c1 c2, OF isA isC]
-                pre_process_map id_apply pcorec_def c1 c2 by simp
-      thus ?thesis unfolding c1 c2 pcorec_def Choice_def using process.fld_unf by (simp, metis)
-    next
-      case (Inr Q2)  note c2 = Inr
-      have "process_unf (process_unf_corec ?s P) = Inr (p1, ?f Q2)"
-      using process.unf_corecs[of ?s P]
-      unfolding isC_join22[of isA P isC "pr" co c1 c2, OF isA isC]
-                pre_process_map id_apply pcorec_def c1 c2 by simp
-      thus ?thesis unfolding c1 c2 pcorec_def Choice_def using process.fld_unf by (simp, metis)
-    qed
-  next
-    case (Inr Q1) note c1 = Inr
-    show ?thesis
-    proof(cases "c2 P")
-      case (Inl p2)  note c2 = Inl
-      have "process_unf (process_unf_corec ?s P) = Inr (?f Q1, p2)"
-      using process.unf_corecs[of ?s P]
-      unfolding isC_join22[of isA P isC "pr" co c1 c2, OF isA isC]
-                pre_process_map id_apply pcorec_def c1 c2 by simp
-      thus ?thesis unfolding c1 c2 pcorec_def Choice_def using process.fld_unf by (simp, metis)
-    next
-      case (Inr Q2)  note c2 = Inr
-      have "process_unf (process_unf_corec ?s P) = Inr (?f Q1, ?f Q2)"
-      using process.unf_corecs[of ?s P]
-      unfolding isC_join22[of isA P isC "pr" co c1 c2, OF isA isC]
-                pre_process_map id_apply pcorec_def c1 c2 by simp
-      thus ?thesis unfolding c1 c2 pcorec_def Choice_def using process.fld_unf by (simp, metis)
-    qed
-  qed
-qed
-
-theorems pcorec = pcorec_Action pcorec_Choice
 
 
 section{* Coinductive definition of the notion of trace *}
