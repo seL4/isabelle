@@ -124,6 +124,9 @@ sig
   val certifyT: Proof.context -> typ -> ctyp
   val certify: Proof.context -> term -> cterm
 
+  val typedef: bool -> binding option -> binding * (string * sort) list * mixfix -> term ->
+    (binding * binding) option -> tactic -> local_theory -> (string * Typedef.info) * local_theory
+
   val WRAP: ('a -> tactic) -> ('a -> tactic) -> 'a list -> tactic -> tactic
   val WRAP': ('a -> int -> tactic) -> ('a -> int -> tactic) -> 'a list -> (int -> tactic) -> int ->
     tactic
@@ -242,6 +245,18 @@ fun fold_map7 _ [] [] [] [] [] [] [] acc = ([], acc)
 (*stolen from ~~/src/HOL/Tools/SMT/smt_utils.ML*)
 fun certify ctxt = Thm.cterm_of (Proof_Context.theory_of ctxt);
 fun certifyT ctxt = Thm.ctyp_of (Proof_Context.theory_of ctxt);
+
+(*TODO: is this really different from Typedef.add_typedef_global?*)
+fun typedef def opt_name typ set opt_morphs tac lthy =
+  let
+    val ((name, info), (lthy, lthy_old)) =
+      lthy
+      |> Typedef.add_typedef def opt_name typ set opt_morphs tac
+      ||> `Local_Theory.restore;
+    val phi = Proof_Context.export_morphism lthy_old lthy;
+  in
+    ((name, Typedef.transform_info phi info), lthy)
+  end;
 
 (*Tactical WRAP surrounds a static given tactic (core) with two deterministic chains of tactics*)
 fun WRAP gen_before gen_after xs core_tac =

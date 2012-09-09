@@ -77,9 +77,6 @@ sig
   val mk_set_minimalN: int -> string
   val mk_set_inductN: int -> string
 
-  val typedef: bool -> binding option -> binding * (string * sort) list * mixfix -> term ->
-    (binding * binding) option -> tactic -> local_theory -> (string * Typedef.info) * local_theory
-
   val split_conj_thm: thm -> thm list
   val split_conj_prems: int -> thm -> thm
 
@@ -125,18 +122,6 @@ val timing = true;
 fun time timer msg = (if timing
   then warning (msg ^ ": " ^ ATP_Util.string_from_time (Timer.checkRealTimer timer))
   else (); Timer.startRealTimer ());
-
-(*TODO: is this really different from Typedef.add_typedef_global?*)
-fun typedef def opt_name typ set opt_morphs tac lthy =
-  let
-    val ((name, info), (lthy, lthy_old)) =
-      lthy
-      |> Typedef.add_typedef def opt_name typ set opt_morphs tac
-      ||> `Local_Theory.restore;
-    val phi = Proof_Context.export_morphism lthy_old lthy;
-  in
-    ((name, Typedef.transform_info phi info), lthy)
-  end;
 
 val preN = "pre_"
 val rawN = "raw_"

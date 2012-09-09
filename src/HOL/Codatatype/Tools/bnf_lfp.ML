@@ -774,14 +774,13 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val IIT_bind = Binding.suffix_name ("_" ^ IITN) b;
 
     val ((IIT_name, (IIT_glob_info, IIT_loc_info)), lthy) =
-      typedef true NONE (IIT_bind, params, NoSyn)
+      typedef false NONE (IIT_bind, params, NoSyn)
         (HOLogic.mk_UNIV II_repT) NONE (EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
 
     val IIT = Type (IIT_name, params');
     val Abs_IIT = Const (#Abs_name IIT_glob_info, II_repT --> IIT);
     val Rep_IIT = Const (#Rep_name IIT_glob_info, IIT --> II_repT);
-    val Abs_IIT_inverse_thm =
-      mk_Abs_inverse_thm (the (#set_def IIT_loc_info)) (#Abs_inverse IIT_loc_info);
+    val Abs_IIT_inverse_thm = UNIV_I RS #Abs_inverse IIT_loc_info;
 
     val initT = IIT --> Asuc_bdT;
     val active_initTs = replicate n initT;

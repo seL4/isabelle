@@ -1028,7 +1028,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           val sbdT_bind = Binding.suffix_name ("_" ^ sum_bdTN) b;
 
           val ((sbdT_name, (sbdT_glob_info, sbdT_loc_info)), lthy) =
-            typedef true NONE (sbdT_bind, params, NoSyn)
+            typedef false NONE (sbdT_bind, params, NoSyn)
               (HOLogic.mk_UNIV sum_bdT) NONE (EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
 
           val sbdT = Type (sbdT_name, params');
@@ -1052,12 +1052,8 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           val sbd_def = Morphism.thm phi sbd_def_free;
           val sbd = Const (fst (Term.dest_Const (Morphism.term phi sbd_free)), mk_relT (`I sbdT));
 
-          val sbdT_set_def = the (#set_def sbdT_loc_info);
-          val sbdT_Abs_inject = #Abs_inject sbdT_loc_info;
-          val sbdT_Abs_cases = #Abs_cases sbdT_loc_info;
-
-          val Abs_sbdT_inj = mk_Abs_inj_thm sbdT_set_def sbdT_Abs_inject;
-          val Abs_sbdT_bij = mk_Abs_bij_thm lthy sbdT_set_def sbdT_Abs_inject sbdT_Abs_cases;
+          val Abs_sbdT_inj = mk_Abs_inj_thm (#Abs_inject sbdT_loc_info);
+          val Abs_sbdT_bij = mk_Abs_bij_thm lthy Abs_sbdT_inj (#Abs_cases sbdT_loc_info);
 
           fun mk_sum_Cinfinite [thm] = thm
             | mk_sum_Cinfinite (thm :: thms) =

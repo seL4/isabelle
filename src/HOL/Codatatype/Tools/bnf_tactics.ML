@@ -20,12 +20,8 @@ sig
   val mk_rotate_eq_tac: (int -> tactic) -> thm -> thm -> thm -> thm -> ''a list -> ''a list ->
     int -> tactic
 
-  val mk_Abs_bij_thm: Proof.context -> thm -> thm -> thm -> thm
-  val mk_Abs_inj_thm: thm -> thm -> thm
-  val mk_Abs_inverse_thm: thm -> thm -> thm
-  val mk_T_I: thm -> thm
-  val mk_T_subset1: thm -> thm
-  val mk_T_subset2: thm -> thm
+  val mk_Abs_bij_thm: Proof.context -> thm -> thm -> thm
+  val mk_Abs_inj_thm: thm -> thm
 
   val mk_Card_order_tac: thm -> tactic
   val mk_collect_set_natural_tac: Proof.context -> thm list -> tactic
@@ -81,17 +77,11 @@ fun substs_tac ctxt = REPEAT_DETERM oo subst_tac ctxt;
 
 
 
-(* Theorems for typedefs with UNIV as representing set *)
+(* Theorems for open typedefs with UNIV as representing set *)
 
-(*equivalent to UNIV_I for the representing set of the particular type T*)
-fun mk_T_subset1 def = set_mp OF [def RS meta_eq_to_obj_eq RS equalityD2];
-fun mk_T_subset2 def = set_mp OF [def RS meta_eq_to_obj_eq RS equalityD1];
-fun mk_T_I def = UNIV_I RS mk_T_subset1 def;
-
-fun mk_Abs_inverse_thm def inv = mk_T_I def RS inv;
-fun mk_Abs_inj_thm def inj = inj OF (replicate 2 (mk_T_I def));
-fun mk_Abs_bij_thm ctxt def inj surj = rule_by_tactic ctxt ((rtac surj THEN' etac exI) 1)
-  (mk_Abs_inj_thm def inj RS @{thm bijI});
+fun mk_Abs_inj_thm inj = inj OF (replicate 2 UNIV_I);
+fun mk_Abs_bij_thm ctxt Abs_inj_thm surj = rule_by_tactic ctxt ((rtac surj THEN' etac exI) 1)
+  (Abs_inj_thm RS @{thm bijI});
 
 
 

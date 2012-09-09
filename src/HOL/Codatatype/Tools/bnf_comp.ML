@@ -658,23 +658,15 @@ fun seal_bnf unfold b Ds bnf lthy =
     val params = fold Term.add_tfreesT Ds [];
     val deads = map TFree params;
 
-    val ((bdT_name, (bdT_glob_info, bdT_loc_info)), (lthy', lthy)) =
-      lthy
-      |> Typedef.add_typedef true NONE (bdT_bind, params, NoSyn)
-        (HOLogic.mk_UNIV bd_repT) NONE (EVERY' [rtac exI, rtac UNIV_I] 1)
-      ||> `Local_Theory.restore;
-
-    val phi = Proof_Context.export_morphism lthy lthy';
+    val ((bdT_name, (bdT_glob_info, bdT_loc_info)), lthy) =
+      typedef false NONE (bdT_bind, params, NoSyn)
+        (HOLogic.mk_UNIV bd_repT) NONE (EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
 
     val bnf_bd' = mk_dir_image bnf_bd
       (Const (#Abs_name bdT_glob_info, bd_repT --> Type (bdT_name, deads)))
 
-    val set_def = Morphism.thm phi (the (#set_def bdT_loc_info));
-    val Abs_inject = Morphism.thm phi (#Abs_inject bdT_loc_info);
-    val Abs_cases = Morphism.thm phi (#Abs_cases bdT_loc_info);
-
-    val Abs_bdT_inj = mk_Abs_inj_thm set_def Abs_inject;
-    val Abs_bdT_bij = mk_Abs_bij_thm lthy' set_def Abs_inject Abs_cases;
+    val Abs_bdT_inj = mk_Abs_inj_thm (#Abs_inject bdT_loc_info);
+    val Abs_bdT_bij = mk_Abs_bij_thm lthy Abs_bdT_inj (#Abs_cases bdT_loc_info);
 
     val bd_ordIso = @{thm dir_image} OF [Abs_bdT_inj, bd_Card_order_of_bnf bnf];
     val bd_card_order =
