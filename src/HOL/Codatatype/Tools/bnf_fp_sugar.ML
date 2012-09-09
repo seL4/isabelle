@@ -440,7 +440,7 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
       end;
 
     val pre_map_defs = map map_def_of_bnf pre_bnfs;
-    val map_id's = map map_id'_of_bnf nested_bnfs;
+    val map_ids = map map_id_of_bnf nested_bnfs;
 
     fun mk_map Ts Us t =
       let val (Type (_, Ts0), Type (_, Us0)) = strip_map_type (fastype_of t) |>> List.last in
@@ -500,9 +500,9 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
             val goal_recss = map5 (map4 o mk_goal_iter_like hss) hrecs xctrss hss xsss hxsss;
 
             val iter_tacss =
-              map2 (map o mk_iter_like_tac pre_map_defs map_id's iter_defs) fp_iter_thms ctr_defss;
+              map2 (map o mk_iter_like_tac pre_map_defs map_ids iter_defs) fp_iter_thms ctr_defss;
             val rec_tacss =
-              map2 (map o mk_iter_like_tac pre_map_defs map_id's rec_defs) fp_rec_thms ctr_defss;
+              map2 (map o mk_iter_like_tac pre_map_defs map_ids rec_defs) fp_rec_thms ctr_defss;
           in
             (map2 (map2 (fn goal => fn tac => Skip_Proof.prove lthy [] [] goal (tac o #context)))
                goal_iterss iter_tacss,
@@ -549,7 +549,7 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
               map7 (map3 oooo mk_goal_coiter_like phss) cs cpss hcorecs ns kss ctrss chsss;
 
             val coiter_tacss =
-              map3 (map oo mk_coiter_like_tac coiter_defs map_id's) fp_iter_thms pre_map_defs
+              map3 (map oo mk_coiter_like_tac coiter_defs map_ids) fp_iter_thms pre_map_defs
                 ctr_defss;
           in
             (map2 (map2 (fn goal => fn tac => Skip_Proof.prove lthy [] [] goal (tac o #context)))
