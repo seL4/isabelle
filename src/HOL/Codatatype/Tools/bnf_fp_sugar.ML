@@ -489,9 +489,6 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
               else
                 [x];
 
-            fun repair_rec_call (x as Free (_, T)) =
-              (case find_index (curry (op =) T) fpTs of ~1 => [x] | j => [x, nth hrecs j $ x]);
-
             val gxsss = map (map (maps (repair_calls giters (K I) (K I) (K I)))) xsss;
             val hxsss =
               map (map (maps (repair_calls hrecs cons tick (curry HOLogic.mk_prodT)))) xsss;
@@ -524,7 +521,6 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
     fun pour_more_sugar_on_gfps ((ctrss, coiters, corecs, vs, xsss, ctr_defss, coiter_defs,
         corec_defs), lthy) =
       let
-(* NOTYET
         val gcoiters = map (lists_bmoc pgss) coiters;
         val hcorecs = map (lists_bmoc phss) corecs;
 
@@ -541,12 +537,9 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
               (case find_index (curry (op =) T) Cs of ~1 => cf | j => nth fcoiter_likes j $ cf);
 
             val cgsss = map (map (map (repair_call gcoiters))) cgsss;
-            val chsss = map (map (map (repair_call hcorecs))) chsss;
 
             val goal_coiterss =
               map7 (map3 oooo mk_goal_coiter_like pgss) cs cpss gcoiters ns kss ctrss cgsss;
-            val goal_corecss =
-              map7 (map3 oooo mk_goal_coiter_like phss) cs cpss hcorecs ns kss ctrss chsss;
 
             val coiter_tacss =
               map3 (map oo mk_coiter_like_tac coiter_defs map_ids) fp_iter_thms pre_map_defs
@@ -554,20 +547,17 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
           in
             (map2 (map2 (fn goal => fn tac => Skip_Proof.prove lthy [] [] goal (tac o #context)))
                goal_coiterss coiter_tacss,
-             map2 (map2 (fn goal => fn tac => Skip_Proof.prove lthy [] [] goal (tac o #context)))
-               goal_coiterss coiter_tacss (* TODO: should be corecs *))
+             [])
           end;
 
         val notes =
-          [(coitersN, coiter_thmss),
-           (corecsN, corec_thmss)]
+          [(coitersN, coiter_thmss)]
           |> maps (fn (thmN, thmss) =>
             map2 (fn b => fn thms =>
                 ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
               bs thmss);
-*)
       in
-        lthy (* NOTYET |> Local_Theory.notes notes |> snd *)
+        lthy |> Local_Theory.notes notes |> snd
       end;
 
     val lthy' = lthy
