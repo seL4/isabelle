@@ -447,6 +447,24 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
         Term.subst_atomic_types (Ts0 @ Us0 ~~ Ts @ Us) t
       end;
 
+    fun build_iter_like_call vs basic_Ts fiter_likes maybe_tick =
+      let
+        fun build (T, U) =
+          if T = U then
+            Const (@{const_name id}, T --> T)
+          else
+            (case (find_index (curry (op =) T) basic_Ts, (T, U)) of
+              (~1, (Type (s, Ts), Type (_, Us))) =>
+              let
+                val map0 = map_of_bnf (the (bnf_of lthy (Long_Name.base_name s)));
+                val mapx = mk_map Ts Us map0;
+                val TUs =
+                  map dest_funT (fst (split_last (fst (strip_map_type (fastype_of mapx)))));
+                val args = map build TUs;
+              in Term.list_comb (mapx, args) end
+            | (j, _) => maybe_tick (nth vs j) (nth fiter_likes j))
+      in build end;
+
     fun pour_more_sugar_on_lfps ((ctrss, iters, recs, vs, xsss, ctr_defss, iter_defs, rec_defs),
         lthy) =
       let
@@ -460,32 +478,14 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
               fold_rev (fold_rev Logic.all) (xs :: fss)
                 (mk_Trueprop_eq (fiter_like $ xctr, Term.list_comb (f, fxs)));
 
-            fun build_call fiter_likes maybe_tick =
-              let
-                fun build (T, U) =
-                  if T = U then
-                    Const (@{const_name id}, T --> T)
-                  else
-                    (case (find_index (curry (op =) T) fpTs, (T, U)) of
-                      (~1, (Type (s, Ts), Type (_, Us))) =>
-                      let
-                        val map0 = map_of_bnf (the (bnf_of lthy (Long_Name.base_name s)));
-                        val mapx = mk_map Ts Us map0;
-                        val TUs =
-                          map dest_funT (fst (split_last (fst (strip_map_type (fastype_of mapx)))));
-                        val args = map build TUs;
-                      in Term.list_comb (mapx, args) end
-                    | (j, _) => maybe_tick (nth vs j) (nth fiter_likes j))
-              in build end;
-
             fun mk_U maybe_prodT =
               typ_subst (map2 (fn fpT => fn C => (fpT, maybe_prodT fpT C)) fpTs Cs);
 
             fun repair_calls fiter_likes maybe_cons maybe_tick maybe_prodT (x as Free (_, T)) =
               if member (op =) fpTs T then
-                maybe_cons x [build_call fiter_likes (K I) (T, mk_U (K I) T) $ x]
+                maybe_cons x [build_iter_like_call vs fpTs fiter_likes (K I) (T, mk_U (K I) T) $ x]
               else if exists_subtype (member (op =) fpTs) T then
-                [build_call fiter_likes maybe_tick (T, mk_U maybe_prodT T) $ x]
+                [build_iter_like_call vs fpTs fiter_likes maybe_tick (T, mk_U maybe_prodT T) $ x]
               else
                 [x];
 
@@ -526,17 +526,24 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
 
         val (coiter_thmss, corec_thmss) =
           let
-            fun mk_cond pos = HOLogic.mk_Trueprop o (not pos ? HOLogic.mk_not);
+            fun mk_goal_cond pos = HOLogic.mk_Trueprop o (not pos ? HOLogic.mk_not);
 
             fun mk_goal_coiter_like pfss c cps fcoiter_like n k ctr cfs' =
               fold_rev (fold_rev Logic.all) ([c] :: pfss)
-                (Logic.list_implies (seq_conds mk_cond n k cps,
+                (Logic.list_implies (seq_conds mk_goal_cond n k cps,
                    mk_Trueprop_eq (fcoiter_like $ c, Term.list_comb (ctr, cfs'))));
 
-            fun repair_call fcoiter_likes (cf as Free (_, Type (_, [_, T])) $ _) =
-              (case find_index (curry (op =) T) Cs of ~1 => cf | j => nth fcoiter_likes j $ cf);
+            fun mk_U maybe_sumT =
+              typ_subst (map2 (fn C => fn fpT => (C, maybe_sumT C fpT)) Cs fpTs);
 
-            val cgsss = map (map (map (repair_call gcoiters))) cgsss;
+            fun repair_calls fiter_likes maybe_sumT maybe_tack
+                (cf as Free (_, Type (_, [_, T])) $ _) =
+              if exists_subtype (member (op =) Cs) T then
+                build_iter_like_call vs Cs fiter_likes maybe_tack (T, mk_U maybe_sumT T) $ cf
+              else
+                cf;
+
+            val cgsss = map (map (map (repair_calls gcoiters (K I) (K I)))) cgsss;
 
             val goal_coiterss =
               map7 (map3 oooo mk_goal_coiter_like pgss) cs cpss gcoiters ns kss ctrss cgsss;
