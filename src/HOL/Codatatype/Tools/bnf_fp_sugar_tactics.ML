@@ -65,6 +65,7 @@ fun mk_coiter_like_tac coiter_like_defs map_ids fld_unf_coiter_like pre_map_def 
   Local_Defs.unfold_tac ctxt (ctr_def :: coiter_like_defs) THEN
   subst_tac ctxt [fld_unf_coiter_like] 1 THEN asm_simp_tac coiter_like_ss 1 THEN
   Local_Defs.unfold_tac ctxt (pre_map_def :: coiter_like_thms @ map_ids) THEN
-  Local_Defs.unfold_tac ctxt @{thms id_def} THEN rtac refl 1;
+  Local_Defs.unfold_tac ctxt @{thms id_def} THEN
+  (rtac refl ORELSE' subst_tac ctxt @{thms unit_eq} THEN' rtac refl) 1;
 
 end;

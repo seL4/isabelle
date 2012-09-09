@@ -535,10 +535,10 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
           let
             fun mk_goal_cond pos = HOLogic.mk_Trueprop o (not pos ? HOLogic.mk_not);
 
-            fun mk_goal_coiter_like pfss c cps fcoiter_like n k ctr cfs' =
+            fun mk_goal_coiter_like pfss c cps fcoiter_like n k ctr m cfs' =
               fold_rev (fold_rev Logic.all) ([c] :: pfss)
                 (Logic.list_implies (seq_conds mk_goal_cond n k cps,
-                   mk_Trueprop_eq (fcoiter_like $ c, Term.list_comb (ctr, cfs'))));
+                   mk_Trueprop_eq (fcoiter_like $ c, Term.list_comb (ctr, take m cfs'))));
 
             fun build_call fiter_likes maybe_tack (T, U) =
               if T = U then
@@ -558,13 +558,13 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
               else
                 cf;
 
-            val cgsss = map (map (map (repair_calls gcoiters (K I) (K I)))) cgsss;
-            val chsss = map (map (map (repair_calls hcorecs (curry mk_sumT) (tack z)))) chsss;
+            val cgsss' = map (map (map (repair_calls gcoiters (K I) (K I)))) cgsss;
+            val chsss' = map (map (map (repair_calls hcorecs (curry mk_sumT) (tack z)))) chsss;
 
             val goal_coiterss =
-              map7 (map3 oooo mk_goal_coiter_like pgss) cs cpss gcoiters ns kss ctrss cgsss;
+              map8 (map4 oooo mk_goal_coiter_like pgss) cs cpss gcoiters ns kss ctrss mss cgsss';
             val goal_corecss =
-              map7 (map3 oooo mk_goal_coiter_like phss) cs cpss hcorecs ns kss ctrss chsss;
+              map8 (map4 oooo mk_goal_coiter_like phss) cs cpss hcorecs ns kss ctrss mss chsss';
 
             val coiter_tacss =
               map3 (map oo mk_coiter_like_tac coiter_defs map_ids) fp_iter_thms pre_map_defs
