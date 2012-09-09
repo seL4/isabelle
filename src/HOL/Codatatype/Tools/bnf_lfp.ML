@@ -936,7 +936,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
     val ((T_names, (T_glob_infos, T_loc_infos)), lthy) =
       lthy
-      |> fold_map3 (fn b => fn mx => fn car_init => typedef true NONE (b, params, mx) car_init NONE
+      |> fold_map3 (fn b => fn mx => fn car_init => typedef false NONE (b, params, mx) car_init NONE
           (EVERY' [rtac ssubst, rtac @{thm ex_in_conv}, resolve_tac alg_not_empty_thms,
             rtac alg_init_thm] 1)) bs mixfixes car_inits
       |>> apsnd split_list o split_list;
@@ -947,16 +947,12 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val Rep_Ts = map2 (fn info => fn T => Const (#Rep_name info, T --> initT)) T_glob_infos Ts;
     val Abs_Ts = map2 (fn info => fn T => Const (#Abs_name info, initT --> T)) T_glob_infos Ts;
 
-    val set_defs = map (the o #set_def) T_loc_infos;
     val type_defs = map #type_definition T_loc_infos;
     val Reps = map #Rep T_loc_infos;
     val Rep_casess = map #Rep_cases T_loc_infos;
     val Rep_injects = map #Rep_inject T_loc_infos;
     val Rep_inverses = map #Rep_inverse T_loc_infos;
     val Abs_inverses = map #Abs_inverse T_loc_infos;
-
-    val T_subset1s = map mk_T_subset1 set_defs;
-    val T_subset2s = map mk_T_subset2 set_defs;
 
     fun mk_inver_thm mk_tac rep abs X thm =
       Skip_Proof.prove lthy [] []
@@ -965,8 +961,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
       |> Thm.close_derivation;
 
     val inver_Reps = map4 (mk_inver_thm rtac) Abs_Ts Rep_Ts (map HOLogic.mk_UNIV Ts) Rep_inverses;
-    val inver_Abss = map4 (mk_inver_thm etac) Rep_Ts Abs_Ts car_inits
-      (map2 (curry op RS) T_subset1s Abs_inverses);
+    val inver_Abss = map4 (mk_inver_thm etac) Rep_Ts Abs_Ts car_inits Abs_inverses;
 
     val timer = time (timer "THE TYPEDEFs & Rep/Abs thms");
 
@@ -1036,9 +1031,8 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val (mor_Rep_thm, mor_Abs_thm) =
       let
         val copy = alg_init_thm RS copy_alg_thm;
-        fun mk_bij inj subset1 subset2 Rep cases = @{thm bij_betwI'} OF
-          [inj, Rep RS subset2, subset1 RS cases];
-        val bijs = map5 mk_bij Rep_injects T_subset1s T_subset2s Reps Rep_casess;
+        fun mk_bij inj Rep cases = @{thm bij_betwI'} OF [inj, Rep, cases];
+        val bijs = map3 mk_bij Rep_injects Reps Rep_casess;
         val mor_Rep =
           Skip_Proof.prove lthy [] []
             (HOLogic.mk_Trueprop (mk_mor UNIVs flds car_inits str_inits Rep_Ts))
@@ -1118,7 +1112,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val unique = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 mk_fun_eq fs ks));
         val unique_mor = Skip_Proof.prove lthy [] []
           (fold_rev Logic.all (ss @ fs) (Logic.mk_implies (prem, unique)))
-          (K (mk_iter_unique_mor_tac type_defs init_unique_mor_thms T_subset2s Reps
+          (K (mk_iter_unique_mor_tac type_defs init_unique_mor_thms Reps
             mor_comp_thm mor_Abs_thm mor_iter_thm))
           |> Thm.close_derivation;
       in
@@ -1303,7 +1297,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         (Skip_Proof.prove lthy [] []
           (fold_rev Logic.all (phis @ Izs) goal)
           (K (mk_fld_induct_tac m set_natural'ss init_induct_thm morE_thms mor_Abs_thm
-            Rep_inverses Abs_inverses Reps T_subset1s T_subset2s))
+            Rep_inverses Abs_inverses Reps))
         |> Thm.close_derivation,
         rev (Term.add_tfrees goal []))
       end;

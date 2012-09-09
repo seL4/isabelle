@@ -22,7 +22,7 @@ sig
   val mk_fld_induct2_tac: ctyp option list -> cterm option list -> thm -> thm list ->
     {prems: 'a, context: Proof.context} -> tactic
   val mk_fld_induct_tac: int -> thm list list -> thm -> thm list -> thm -> thm list -> thm list ->
-    thm list -> thm list -> thm list -> tactic
+    thm list -> tactic
   val mk_in_bd_tac: thm -> thm -> thm -> thm -> tactic
   val mk_incl_min_alg_tac: (int -> tactic) -> thm list list list -> thm list -> thm ->
     {prems: 'a, context: Proof.context} -> tactic
@@ -32,8 +32,7 @@ sig
   val mk_init_unique_mor_tac: int -> thm -> thm -> thm list -> thm list -> thm list -> thm list ->
     thm list -> tactic
   val mk_iso_alt_tac: thm list -> thm -> tactic
-  val mk_iter_unique_mor_tac: thm list -> thm list -> thm list -> thm list -> thm -> thm -> thm ->
-    tactic
+  val mk_iter_unique_mor_tac: thm list -> thm list -> thm list -> thm -> thm -> thm -> tactic
   val mk_least_min_alg_tac: thm -> thm -> tactic
   val mk_lfp_map_wpull_tac: int -> (int -> tactic) -> thm list -> thm list -> thm list list ->
     thm list list list -> thm list -> tactic
@@ -497,12 +496,12 @@ fun mk_mor_iter_tac cT ct iter_defs ex_mor mor =
   REPEAT_DETERM_N (length iter_defs) o etac exE THEN'
   rtac (Drule.instantiate' [SOME cT] [SOME ct] @{thm someI}) THEN' etac mor) 1;
 
-fun mk_iter_unique_mor_tac type_defs init_unique_mors subsets Reps mor_comp mor_Abs mor_iter =
+fun mk_iter_unique_mor_tac type_defs init_unique_mors Reps mor_comp mor_Abs mor_iter =
   let
-    fun mk_subset subset Rep = etac subset ORELSE' rtac (Rep RS subset);
     fun mk_unique type_def =
       EVERY' [rtac @{thm surj_fun_eq}, rtac (type_def RS @{thm type_definition.Abs_image}),
-        rtac ballI, resolve_tac init_unique_mors, EVERY' (map2 mk_subset subsets Reps),
+        rtac ballI, resolve_tac init_unique_mors,
+        EVERY' (map (fn thm => atac ORELSE' rtac thm) Reps),
         rtac mor_comp, rtac mor_Abs, atac,
         rtac mor_comp, rtac mor_Abs, rtac mor_iter];
   in
@@ -522,33 +521,30 @@ fun mk_rec_tac rec_defs iter fst_recs {context = ctxt, prems = _}=
   EVERY' [rtac trans, rtac o_apply, rtac trans, rtac (iter RS @{thm arg_cong[of _ _ snd]}),
     rtac @{thm snd_convol'}] 1;
 
-fun mk_fld_induct_tac m set_natural'ss init_induct morEs mor_Abs Rep_invs Abs_invs Reps
-    subset1s subset2s =
+fun mk_fld_induct_tac m set_natural'ss init_induct morEs mor_Abs Rep_invs Abs_invs Reps =
   let
     val n = length set_natural'ss;
     val ks = 1 upto n;
 
-    fun mk_IH_tac Rep_inv Abs_inv set_natural' subset =
+    fun mk_IH_tac Rep_inv Abs_inv set_natural' =
       DETERM o EVERY' [dtac @{thm meta_mp}, rtac (Rep_inv RS arg_cong RS subst), etac bspec,
         dtac @{thm set_rev_mp}, rtac equalityD1, rtac set_natural', etac imageE,
-        hyp_subst_tac, rtac (Abs_inv RS ssubst), rtac subset, etac @{thm set_mp},
+        hyp_subst_tac, rtac (Abs_inv RS ssubst), etac @{thm set_mp},
         atac, atac];
 
     fun mk_closed_tac (k, (morE, set_natural's)) =
       EVERY' [select_prem_tac n (dtac asm_rl) k, rtac ballI, rtac impI,
         rtac (mor_Abs RS morE RS arg_cong RS ssubst), atac,
         REPEAT_DETERM o eresolve_tac [CollectE, conjE], dtac @{thm meta_spec},
-        EVERY' (map4 mk_IH_tac Rep_invs Abs_invs (drop m set_natural's) subset1s), atac];
+        EVERY' (map3 mk_IH_tac Rep_invs Abs_invs (drop m set_natural's)), atac];
 
-    fun mk_induct_tac ((Rep, Rep_inv), subset) =
-      EVERY' [rtac (Rep_inv RS arg_cong RS subst), etac (Rep RS subset RSN (2, bspec))];
+    fun mk_induct_tac (Rep, Rep_inv) =
+      EVERY' [rtac (Rep_inv RS arg_cong RS subst), etac (Rep RSN (2, bspec))];
   in
     (rtac mp THEN' rtac impI THEN'
-    DETERM o CONJ_WRAP_GEN' (etac conjE THEN' rtac conjI) mk_induct_tac
-      ((Reps ~~ Rep_invs) ~~ subset2s) THEN'
+    DETERM o CONJ_WRAP_GEN' (etac conjE THEN' rtac conjI) mk_induct_tac (Reps ~~ Rep_invs) THEN'
     rtac init_induct THEN'
-    DETERM o CONJ_WRAP' mk_closed_tac
-      (ks ~~ (morEs ~~ set_natural'ss))) 1
+    DETERM o CONJ_WRAP' mk_closed_tac (ks ~~ (morEs ~~ set_natural'ss))) 1
   end;
 
 fun mk_fld_induct2_tac cTs cts fld_induct weak_fld_inducts {context = ctxt, prems = _} =
