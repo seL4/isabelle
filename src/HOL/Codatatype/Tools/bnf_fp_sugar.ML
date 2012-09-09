@@ -166,8 +166,7 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
       in snd oo add end;
 
     val nested_bnfs =
-      map_filter (bnf_of lthy o Long_Name.base_name)
-        (fold (fold (fold add_nested_bnf_names)) ctr_TsssXs []);
+      map_filter (bnf_of lthy) (fold (fold (fold add_nested_bnf_names)) ctr_TsssXs []);
 
     val timer = time (Timer.startRealTimer ());
 
@@ -456,7 +455,7 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
 
     fun build_map build_arg (Type (s, Ts)) (Type (_, Us)) =
       let
-        val map0 = map_of_bnf (the (bnf_of lthy (Long_Name.base_name s)));
+        val map0 = map_of_bnf (the (bnf_of lthy s));
         val mapx = mk_map Ts Us map0;
         val TUs = map dest_funT (fst (split_last (fst (strip_map_type (fastype_of mapx)))));
         val args = map build_arg TUs;

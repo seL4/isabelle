@@ -572,10 +572,6 @@ next
   qed
 qed auto
 
-bnf_def deadlist = "map id" [] "\<lambda>_::'a list. |lists (UNIV :: 'a set)|" ["[]"]
-by (auto simp add: cinfinite_def wpull_def infinite_UNIV_listI map.id
-  ordLeq_transitive ctwo_def card_of_card_order_on Field_card_of card_of_mono1 ordLeq_cexp2)
-
 (* Finite sets *)
 abbreviation afset where "afset \<equiv> abs_fset"
 abbreviation rfset where "rfset \<equiv> rep_fset"

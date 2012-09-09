@@ -726,7 +726,7 @@ fun bnf_of_typ _ _ _ _ (T as TFree _) (unfold, lthy) =
   | bnf_of_typ const_policy b qualify' sort (T as Type (C, Ts)) (unfold, lthy) =
     let
       val tfrees = Term.add_tfreesT T [];
-      val bnf_opt = if null tfrees then NONE else bnf_of lthy (Long_Name.base_name C);
+      val bnf_opt = if null tfrees then NONE else bnf_of lthy C;
     in
       (case bnf_opt of
         NONE => ((Basic_BNFs.DEADID_bnf, ([T], [])), (unfold, lthy))
@@ -746,9 +746,7 @@ fun bnf_of_typ _ _ _ _ (T as TFree _) (unfold, lthy) =
           in ((bnf, deads_lives), (unfold', lthy)) end
         else
           let
-            (* FIXME: we should allow several BNFs with the same base name *)
-            val Tname = Long_Name.base_name C;
-            val name = Binding.name_of b ^ "_" ^ Tname;
+            val name = Binding.name_of b;
             fun qualify i bind =
               let val namei = if i > 0 then name ^ string_of_int i else name;
               in
