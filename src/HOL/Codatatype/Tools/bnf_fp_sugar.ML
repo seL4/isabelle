@@ -24,11 +24,16 @@ open BNF_FP_Sugar_Tactics
 val caseN = "case";
 val coitersN = "coiters";
 val corecsN = "corecs";
+val disc_coitersN = "disc_coiters";
+val disc_corecsN = "disc_corecs";
 val itersN = "iters";
 val recsN = "recs";
+val sel_coitersN = "sel_coiters";
+val sel_corecsN = "sel_corecs";
 
-fun split_list8 xs =
-  (map #1 xs, map #2 xs, map #3 xs, map #4 xs, map #5 xs, map #6 xs, map #7 xs, map #8 xs);
+fun split_list11 xs =
+  (map #1 xs, map #2 xs, map #3 xs, map #4 xs, map #5 xs, map #6 xs, map #7 xs, map #8 xs,
+   map #9 xs, map #10 xs, map #11 xs);
 
 fun strip_map_type (Type (@{type_name fun}, [T as Type _, T'])) = strip_map_type T' |>> cons T
   | strip_map_type T = ([], T);
@@ -362,7 +367,7 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
 
         val tacss = [exhaust_tac] :: inject_tacss @ half_distinct_tacss @ [case_tacs];
 
-        fun some_lfp_sugar no_defs_lthy =
+        fun some_lfp_sugar ((selss, discIs, sel_thmss), no_defs_lthy) =
           let
             val fpT_to_C = fpT --> C;
 
@@ -397,10 +402,11 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
 
             val [iter, recx] = map (mk_iter_like As Cs o Morphism.term phi) csts;
           in
-            ((ctrs, iter, recx, v, xss, ctr_defs, iter_def, rec_def), lthy)
+            ((ctrs, selss, iter, recx, v, xss, ctr_defs, discIs, sel_thmss, iter_def, rec_def),
+             lthy)
           end;
 
-        fun some_gfp_sugar no_defs_lthy =
+        fun some_gfp_sugar ((selss, discIs, sel_thmss), no_defs_lthy) =
           let
             val B_to_fpT = C --> fpT;
 
@@ -439,7 +445,8 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
 
             val [coiter, corec] = map (mk_iter_like As Cs o Morphism.term phi) csts;
           in
-            ((ctrs, coiter, corec, v, xss, ctr_defs, coiter_def, corec_def), lthy)
+            ((ctrs, selss, coiter, corec, v, xss, ctr_defs, discIs, sel_thmss, coiter_def,
+              corec_def), lthy)
           end;
       in
         wrap_datatype tacss ((ctrs0, casex0), (disc_binders, sel_binderss)) lthy'
@@ -462,8 +469,8 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
         val args = map build_arg TUs;
       in Term.list_comb (mapx, args) end;
 
-    fun pour_more_sugar_on_lfps ((ctrss, iters, recs, vs, xsss, ctr_defss, iter_defs, rec_defs),
-        lthy) =
+    fun pour_more_sugar_on_lfps ((ctrss, _, iters, recs, vs, xsss, ctr_defss, _, _, iter_defs,
+        rec_defs), lthy) =
       let
         val xctrss = map2 (map2 (curry Term.list_comb)) ctrss xsss;
         val giters = map (lists_bmoc gss) iters;
@@ -506,9 +513,11 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
             val rec_tacss =
               map2 (map o mk_iter_like_tac pre_map_defs map_ids rec_defs) fp_rec_thms ctr_defss;
           in
-            (map2 (map2 (fn goal => fn tac => Skip_Proof.prove lthy [] [] goal (tac o #context)))
+            (map2 (map2 (fn goal => fn tac =>
+                 Skip_Proof.prove lthy [] [] goal (tac o #context) |> Thm.close_derivation))
                goal_iterss iter_tacss,
-             map2 (map2 (fn goal => fn tac => Skip_Proof.prove lthy [] [] goal (tac o #context)))
+             map2 (map2 (fn goal => fn tac =>
+                 Skip_Proof.prove lthy [] [] goal (tac o #context) |> Thm.close_derivation))
                goal_recss rec_tacss)
           end;
 
@@ -523,8 +532,8 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
         lthy |> Local_Theory.notes notes |> snd
       end;
 
-    fun pour_more_sugar_on_gfps ((ctrss, coiters, corecs, vs, _, ctr_defss, coiter_defs,
-        corec_defs), lthy) =
+    fun pour_more_sugar_on_gfps ((ctrss, selsss, coiters, corecs, vs, _, ctr_defss, discIss,
+        sel_thmsss, coiter_defs, corec_defs), lthy) =
       let
         val z = the_single zs;
 
@@ -579,13 +588,39 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
                goal_corecss corec_tacss)
           end;
 
+        fun mk_disc_coiter_like_thms [_] = K []
+          | mk_disc_coiter_like_thms thms = map2 (curry (op RS)) thms;
+
+        val disc_coiter_thmss = map2 mk_disc_coiter_like_thms coiter_thmss discIss;
+        val disc_corec_thmss = map2 mk_disc_coiter_like_thms corec_thmss discIss;
+
+        fun mk_sel_coiter_like_thm coiter_like_thm sel sel_thm =
+          let
+            val (domT, ranT) = dest_funT (fastype_of sel);
+            val arg_cong' =
+              Drule.instantiate' (map (SOME o certifyT lthy) [domT, ranT])
+                [NONE, NONE, SOME (certify lthy sel)] arg_cong;
+            val sel_thm' = sel_thm RSN (2, trans);
+          in
+            (coiter_like_thm RS arg_cong') RS sel_thm'
+          end;
+
+        val sel_coiter_thmsss =
+          map3 (map3 (map2 o mk_sel_coiter_like_thm)) coiter_thmss selsss sel_thmsss;
+        val sel_corec_thmsss =
+          map3 (map3 (map2 o mk_sel_coiter_like_thm)) coiter_thmss selsss sel_thmsss;
+
         val notes =
           [(coitersN, coiter_thmss),
-           (corecsN, corec_thmss)]
+           (disc_coitersN, disc_coiter_thmss),
+           (sel_coitersN, map flat sel_coiter_thmsss),
+           (corecsN, corec_thmss),
+           (disc_corecsN, disc_corec_thmss),
+           (sel_corecsN, map flat sel_corec_thmsss)]
           |> maps (fn (thmN, thmss) =>
-            map2 (fn b => fn thms =>
-                ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
-              bs thmss);
+            map_filter (fn (_, []) => NONE | (b, thms) =>
+              SOME ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []),
+                [(thms, [])])) (bs ~~ thmss));
       in
         lthy |> Local_Theory.notes notes |> snd
       end;
@@ -594,7 +629,7 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
       |> fold_map pour_some_sugar_on_type (bs ~~ fpTs ~~ Cs ~~ flds ~~ unfs ~~ fp_iters ~~
         fp_recs ~~ fld_unfs ~~ unf_flds ~~ fld_injects ~~ ns ~~ kss ~~ mss ~~ ctr_binderss ~~
         ctr_mixfixess ~~ ctr_Tsss ~~ disc_binderss ~~ sel_bindersss)
-      |>> split_list8
+      |>> split_list11
       |> (if lfp then pour_more_sugar_on_lfps else pour_more_sugar_on_gfps);
 
     val timer = time (timer ("Constructors, discriminators, selectors, etc., for the new " ^

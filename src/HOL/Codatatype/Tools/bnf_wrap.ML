@@ -11,7 +11,8 @@ sig
   val mk_half_pairss: 'a list -> ('a * 'a) list list
   val mk_ctr: typ list -> term -> term
   val wrap_datatype: ({prems: thm list, context: Proof.context} -> tactic) list list ->
-    (term list * term) * (binding list * binding list list) -> local_theory -> local_theory
+    (term list * term) * (binding list * binding list list) -> local_theory ->
+    (term list list * thm list * thm list list) * local_theory
 end;
 
 structure BNF_Wrap : BNF_WRAP =
@@ -501,7 +502,7 @@ fun prepare_wrap_datatype prep_term ((raw_ctrs, raw_case), (raw_disc_binders, ra
           |> map (fn (thmN, thms) =>
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
       in
-        lthy |> Local_Theory.notes notes |> snd
+        ((selss, discI_thms, sel_thmss), lthy |> Local_Theory.notes notes |> snd)
       end;
   in
     (goalss, after_qed, lthy')
@@ -516,7 +517,7 @@ val parse_bindings = Parse.$$$ "[" |-- Parse.list Parse.binding --| Parse.$$$ "]
 val parse_bindingss = Parse.$$$ "[" |-- Parse.list parse_bindings --| Parse.$$$ "]";
 
 val wrap_datatype_cmd = (fn (goalss, after_qed, lthy) =>
-  Proof.theorem NONE after_qed (map (map (rpair [])) goalss) lthy) oo
+  Proof.theorem NONE (snd oo after_qed) (map (map (rpair [])) goalss) lthy) oo
   prepare_wrap_datatype Syntax.read_term;
 
 val _ =
