@@ -69,16 +69,18 @@ fun mk_InN_balanced sum_T n t k =
 
 val mk_sum_caseN_balanced = Balanced_Tree.make mk_sum_case;
 
-fun mk_sumEN_balanced n =
-  let
-    val thm =
-      Balanced_Tree.make (fn (thm1, thm2) => thm1 RSN (1, thm2 RSN (2, @{thm obj_sumE_f})))
-        (replicate n asm_rl) OF (replicate n (impI RS allI));
-    val f as (_, f_T) =
-      Term.add_vars (prop_of thm) []
-      |> filter (fn ((s, _), _) => s = "f") |> the_single;
-    val inst = [pairself (cterm_of @{theory}) (Var f, Abs (Name.uu, domain_type f_T, Bound 0))];
-  in cterm_instantiate inst thm end;
+fun mk_sumEN_balanced 1 = @{thm one_pointE}
+  | mk_sumEN_balanced 2 = @{thm sumE} (*optimization*)
+  | mk_sumEN_balanced n =
+    let
+      val thm =
+        Balanced_Tree.make (fn (thm1, thm2) => thm1 RSN (1, thm2 RSN (2, @{thm obj_sumE_f})))
+          (replicate n asm_rl) OF (replicate n (impI RS allI));
+      val f as (_, f_T) =
+        Term.add_vars (prop_of thm) []
+        |> filter (fn ((s, _), _) => s = "f") |> the_single;
+      val inst = [pairself (cterm_of @{theory}) (Var f, Abs (Name.uu, domain_type f_T, Bound 0))];
+    in cterm_instantiate inst thm end;
 
 fun tick v f = Term.lambda v (HOLogic.mk_prod (v, f $ v));
 
