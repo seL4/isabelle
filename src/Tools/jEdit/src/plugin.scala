@@ -14,7 +14,7 @@ import java.awt.Font
 import javax.swing.JOptionPane
 
 import scala.collection.mutable
-import scala.swing.{ComboBox, ListView, ScrollPane}
+import scala.swing.{ListView, ScrollPane}
 
 import org.gjt.sp.jedit.{jEdit, GUIUtilities, EBMessage, EBPlugin,
   Buffer, EditPane, ServiceManager, View}
@@ -227,53 +227,6 @@ object Isabelle
     }
 
 
-  /* logic image */
-
-  def default_logic(): String =
-  {
-    val logic = Isabelle_System.getenv("JEDIT_LOGIC")
-    if (logic != "") logic
-    else Isabelle_System.getenv_strict("ISABELLE_LOGIC")
-  }
-
-  class Logic_Entry(val name: String, val description: String)
-  {
-    override def toString = description
-  }
-
-  def logic_selector(logic: String): ComboBox[Logic_Entry] =
-  {
-    val entries =
-      new Logic_Entry("", "default (" + default_logic() + ")") ::
-        Isabelle_System.find_logics().map(name => new Logic_Entry(name, name))
-    val component = new ComboBox(entries)
-    entries.find(_.name == logic) match {
-      case None =>
-      case Some(entry) => component.selection.item = entry
-    }
-    component.tooltip = "Isabelle logic image"
-    component
-  }
-
-  def session_args(): List[String] =
-  {
-    val modes = space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE")).map("-m" + _)
-    val logic =
-      Isabelle.options.string("jedit_logic") match {
-        case "" => Isabelle.default_logic()
-        case logic => logic
-      }
-    modes ::: List(logic)
-  }
-
-  def session_content(inlined_files: Boolean): Build.Session_Content =
-  {
-    val dirs = Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS"))
-    val name = Path.explode(session_args().last).base.implode  // FIXME more robust
-    Build.session_content(inlined_files, dirs, name).check_errors
-  }
-
-
   /* convenience actions */
 
   private def user_input(text_area: JEditTextArea, s1: String, s2: String = "")
@@ -398,7 +351,7 @@ class Plugin extends EBPlugin
       message match {
         case msg: EditorStarted =>
           if (Isabelle.options.bool("jedit_auto_start"))
-            Isabelle.session.start(Isabelle.session_args())
+            Isabelle.session.start(Isabelle_Logic.session_args())
 
         case msg: BufferUpdate
         if msg.getWhat == BufferUpdate.LOADED || msg.getWhat == BufferUpdate.PROPERTIES_CHANGED =>
@@ -452,7 +405,7 @@ class Plugin extends EBPlugin
       if (ModeProvider.instance.isInstanceOf[ModeProvider])
         ModeProvider.instance = new Token_Markup.Mode_Provider(ModeProvider.instance)
 
-      val content = Isabelle.session_content(false)
+      val content = Isabelle_Logic.session_content(false)
       val thy_load = new JEdit_Thy_Load(content.loaded_theories, content.syntax)
       Isabelle.session = new Session(thy_load)
 

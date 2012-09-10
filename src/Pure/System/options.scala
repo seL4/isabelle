@@ -24,11 +24,11 @@ object Options
   {
     def print: String = toString.toLowerCase(Locale.ENGLISH)
   }
-  private case object Bool extends Type
-  private case object Int extends Type
-  private case object Real extends Type
-  private case object String extends Type
-  private case object Unknown extends Type
+  case object Bool extends Type
+  case object Int extends Type
+  case object Real extends Type
+  case object String extends Type
+  case object Unknown extends Type
 
   case class Opt(typ: Type, value: String, description: String)
   {
@@ -147,7 +147,7 @@ final class Options private(protected val options: Map[String, Options.Opt] = Ma
 
   /* check */
 
-  private def check_name(name: String): Options.Opt =
+  def check_name(name: String): Options.Opt =
     options.get(name) match {
       case Some(opt) if !opt.unknown => opt
       case _ => error("Unknown option " + quote(name))

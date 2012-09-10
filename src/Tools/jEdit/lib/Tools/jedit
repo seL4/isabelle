@@ -14,6 +14,7 @@ declare -a SOURCES=(
   "src/html_panel.scala"
   "src/hyperlink.scala"
   "src/isabelle_encoding.scala"
+  "src/isabelle_logic.scala"
   "src/isabelle_options.scala"
   "src/isabelle_rendering.scala"
   "src/isabelle_sidekick.scala"

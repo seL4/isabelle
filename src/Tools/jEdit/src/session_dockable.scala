@@ -11,7 +11,7 @@ import isabelle._
 
 import scala.actors.Actor._
 import scala.swing.{FlowPanel, Button, TextArea, Label, ListView, Alignment, ScrollPane, Component}
-import scala.swing.event.{ButtonClicked, MouseClicked, SelectionChanged}
+import scala.swing.event.{ButtonClicked, MouseClicked}
 
 import java.lang.System
 import java.awt.{BorderLayout, Graphics2D, Insets}
@@ -60,12 +60,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   }
   check.tooltip = jEdit.getProperty("isabelle.check-buffer.label")
 
-  private val logic = Isabelle.logic_selector(Isabelle.options.string("jedit_logic"))
-  logic.listenTo(logic.selection)
-  logic.reactions += {
-    case SelectionChanged(_) =>
-      Isabelle.options.string("jedit_logic") = logic.selection.item.name
-  }
+  private val logic = Isabelle_Logic.logic_selector(true)
 
   private val controls =
     new FlowPanel(FlowPanel.Alignment.Right)(check, cancel, session_phase, logic)
