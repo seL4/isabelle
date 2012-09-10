@@ -247,14 +247,11 @@ fun split_conj_prems limit th =
       if i = n then th else split n (i + 1) (conjI RSN (i, th)) handle THM _ => th;
   in split limit 1 th end;
 
-local
-  fun mk_sumEN' 1 = @{thm obj_sum_step}
-    | mk_sumEN' n = mk_sumEN' (n - 1) RSN (2, @{thm obj_sum_step});
-in
-  fun mk_sumEN 1 = @{thm obj_sum_base}
-    | mk_sumEN 2 = @{thm sumE}
-    | mk_sumEN n = (mk_sumEN' (n - 2) RSN (2, @{thm obj_sumE})) OF replicate n (impI RS allI);
-end;
+fun mk_sumEN 1 = @{thm obj_sum_base}
+  | mk_sumEN 2 = @{thm sumE}
+  | mk_sumEN n =
+    (fold (fn i => fn thm => @{thm obj_sum_step} RSN (i, thm)) (2 upto n - 1) @{thm obj_sumE}) OF
+      replicate n (impI RS allI);
 
 fun mk_sum_casesN 1 1 = @{thm refl}
   | mk_sum_casesN _ 1 = @{thm sum.cases(1)}
