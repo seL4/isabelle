@@ -150,6 +150,8 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
       react {
         case phase: Session.Phase => handle_phase(phase)
 
+        case Session.Global_Settings => Swing_Thread.later { logic.load () }
+
         case changed: Session.Commands_Changed => handle_update(Some(changed.nodes))
 
         case bad => System.err.println("Session_Dockable: ignoring bad message " + bad)
@@ -160,12 +162,14 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   override def init()
   {
     Isabelle.session.phase_changed += main_actor; handle_phase(Isabelle.session.phase)
+    Isabelle.session.global_settings += main_actor
     Isabelle.session.commands_changed += main_actor; handle_update()
   }
 
   override def exit()
   {
     Isabelle.session.phase_changed -= main_actor
+    Isabelle.session.global_settings -= main_actor
     Isabelle.session.commands_changed -= main_actor
   }
 }

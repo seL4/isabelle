@@ -17,6 +17,7 @@ import scala.swing.{Component, CheckBox, TextArea}
 trait Option_Component extends Component
 {
   val title: String
+  def load(): Unit
   def save(): Unit
 }
 
@@ -35,15 +36,15 @@ class JEdit_Options extends Options_Variable
       if (opt.typ == Options.Bool)
         new CheckBox with Option_Component {
           val title = opt_title
+          def load = selected = bool(opt_name)
           def save = bool(opt_name) = selected
-          selected = bool(opt_name)
         }
       else {
         val text_area =
           new TextArea with Option_Component {
             val title = opt_title
+            def load = text = value.check_name(opt_name).value
             def save = update(value + (opt_name, text))
-            text = opt.value
           }
         text_area.peer.setInputVerifier(new InputVerifier {
           def verify(jcomponent: JComponent): Boolean =
@@ -56,7 +57,8 @@ class JEdit_Options extends Options_Variable
           })
         text_area
       }
-    component.tooltip = opt.description
+    component.load()
+    component.tooltip = opt.print
     component
   }
 }

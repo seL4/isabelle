@@ -37,21 +37,23 @@ object Isabelle_Logic
 
     val component = new ComboBox(entries) with Option_Component {
       val title = Isabelle.options.title("jedit_logic")
-      def save = Isabelle.options.string("jedit_logic") = selection.item.name
+      def load: Unit =
+      {
+        val logic = Isabelle.options.string("jedit_logic")
+        entries.find(_.name == logic) match {
+          case Some(entry) => selection.item = entry
+          case None =>
+        }
+      }
+      def save: Unit = Isabelle.options.string("jedit_logic") = selection.item.name
     }
 
+    component.load()
     if (autosave) {
       component.listenTo(component.selection)
       component.reactions += { case SelectionChanged(_) => component.save() }
     }
-
-    val logic = Isabelle.options.string("jedit_logic")
-    entries.find(_.name == logic) match {
-      case Some(entry) => component.selection.item = entry
-      case None =>
-    }
-
-    component.tooltip = Isabelle.options.value.check_name("jedit_logic").description
+    component.tooltip = Isabelle.options.value.check_name("jedit_logic").print
     component
   }
 

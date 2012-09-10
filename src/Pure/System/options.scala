@@ -30,8 +30,13 @@ object Options
   case object String extends Type
   case object Unknown extends Type
 
-  case class Opt(typ: Type, value: String, description: String)
+  case class Opt(name: String, typ: Type, value: String, description: String)
   {
+    def print: String =
+      "option " + name + " : " + typ.print + " = " +
+        (if (typ == Options.String) quote(value) else value) +
+      (if (description == "") "" else "\n  -- " + quote(description))
+
     def unknown: Boolean = typ == Unknown
   }
 
@@ -124,11 +129,7 @@ final class Options private(protected val options: Map[String, Options.Opt] = Ma
 {
   override def toString: String = options.iterator.mkString("Options (", ",", ")")
 
-  def print: String =
-    cat_lines(options.toList.sortBy(_._1).map({ case (name, opt) =>
-      "option " + name + " : " + opt.typ.print + " = " +
-        (if (opt.typ == Options.String) quote(opt.value) else opt.value) +
-      (if (opt.description == "") "" else "\n  -- " + quote(opt.description)) }))
+  def print: String = cat_lines(options.toList.sortBy(_._1).map(p => p._2.print))
 
   def title(strip: String, name: String): String =
   {
@@ -238,7 +239,7 @@ final class Options private(protected val options: Map[String, Options.Opt] = Ma
             case "string" => Options.String
             case _ => error("Unknown type for option " + quote(name) + " : " + quote(typ_name))
           }
-        val opt = Options.Opt(typ, value, description)
+        val opt = Options.Opt(name, typ, value, description)
         (new Options(options + (name -> opt))).check_value(name)
     }
   }
@@ -246,7 +247,7 @@ final class Options private(protected val options: Map[String, Options.Opt] = Ma
   def add_permissive(name: String, value: String): Options =
   {
     if (options.isDefinedAt(name)) this + (name, value)
-    else new Options(options + (name -> Options.Opt(Options.Unknown, value, "")))
+    else new Options(options + (name -> Options.Opt(name, Options.Unknown, value, "")))
   }
 
   def + (name: String, value: String): Options =
