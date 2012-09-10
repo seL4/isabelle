@@ -30,11 +30,7 @@ fun mk_case_tac ctxt n k m case_def ctr_def unf_fld =
    rtac refl) 1;
 
 fun mk_exhaust_tac ctxt n ctr_defs fld_iff_unf sumEN' =
-print_tac "A1" THEN(*###*)
-  Local_Defs.unfold_tac ctxt (fld_iff_unf :: ctr_defs) THEN
-print_tac ("A2: " ^ Display.string_of_thm ctxt sumEN') THEN(*###*)
-  rtac sumEN' 1 THEN
-print_tac "A3" THEN(*###*)
+  Local_Defs.unfold_tac ctxt (fld_iff_unf :: ctr_defs) THEN rtac sumEN' 1 THEN
   Local_Defs.unfold_tac ctxt @{thms all_prod_eq} THEN
   EVERY' (maps (fn k => [select_prem_tac n (rotate_tac 1) k, REPEAT_DETERM o dtac @{thm meta_spec},
     etac @{thm meta_mp}, atac]) (1 upto n)) 1;
