@@ -196,7 +196,6 @@ fun prepare_wrap_datatype prep_term ((raw_ctrs, raw_case), (raw_disc_binders, ra
     val missing_alternate_disc_def = FalseE; (*arbitrary marker*)
 
     (* TODO: Allow use of same selector for several constructors *)
-    (* TODO: Allow use of same name for datatype and for constructor, e.g. "data L = L" *)
 
     val (((raw_discs, raw_disc_defs), (raw_selss, raw_sel_defss)), (lthy', lthy)) =
       no_defs_lthy
