@@ -193,6 +193,11 @@ fun prepare_wrap_datatype prep_term ((raw_ctrs, raw_case), (raw_disc_binders, ra
 
     fun sel_spec b proto_sels =
       let
+        val _ =
+          (case duplicates (op =) (map fst proto_sels) of
+             k :: _ => error ("Duplicate selector name " ^ quote (Binding.name_of b) ^
+               " for constructor " ^ quote (Syntax.string_of_term no_defs_lthy (nth ctrs (k - 1))))
+           | [] => ())
         val T =
           (case distinct (op =) (map (fastype_of o snd o snd) proto_sels) of
             [T] => T
