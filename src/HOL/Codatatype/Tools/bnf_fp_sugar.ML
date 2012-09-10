@@ -245,8 +245,8 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
           val p_Tss =
             map2 (fn C => fn n => replicate (Int.max (0, n - 1)) (C --> HOLogic.boolT)) Cs ns;
 
-          fun popescu_zip [] [fs] = fs
-            | popescu_zip (p :: ps) (fs :: fss) = p :: fs @ popescu_zip ps fss;
+          fun zip_preds_getters [] [fs] = fs
+            | zip_preds_getters (p :: ps) (fs :: fss) = p :: fs @ zip_preds_getters ps fss;
 
           fun mk_types fun_Ts =
             let
@@ -254,7 +254,7 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
               val f_prod_Tss = map2 dest_sumTN ns f_sum_prod_Ts;
               val f_Tsss =
                 map3 (fn C => map2 (map (curry (op -->) C) oo dest_tupleT)) Cs mss' f_prod_Tss;
-              val pf_Tss = map2 popescu_zip p_Tss f_Tsss
+              val pf_Tss = map2 zip_preds_getters p_Tss f_Tsss
             in (f_sum_prod_Ts, f_prod_Tss, f_Tsss, pf_Tss) end;
 
           val (g_sum_prod_Ts, g_prod_Tss, g_Tsss, pg_Tss) = mk_types fp_iter_fun_Ts;
@@ -273,7 +273,7 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
 
           fun mk_terms fsss =
             let
-              val pfss = map2 popescu_zip pss fsss;
+              val pfss = map2 zip_preds_getters pss fsss;
               val cfsss = map2 (fn c => map (map (fn f => f $ c))) cs fsss
             in (pfss, cfsss) end;
         in
@@ -409,14 +409,14 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
 
                 val binder = Binding.suffix_name ("_" ^ suf) b;
 
-                fun mk_popescu_join c n cps sum_prod_T prod_Ts cfss =
+                fun mk_preds_getters_join c n cps sum_prod_T prod_Ts cfss =
                   Term.lambda c (mk_IfN sum_prod_T cps
                     (map2 (mk_InN prod_Ts) (map HOLogic.mk_tuple cfss) (1 upto n)));
 
                 val spec =
                   mk_Trueprop_eq (lists_bmoc pfss (Free (Binding.name_of binder, res_T)),
                     Term.list_comb (fp_iter_like,
-                      map6 mk_popescu_join cs ns cpss f_sum_prod_Ts f_prod_Tss cfsss));
+                      map6 mk_preds_getters_join cs ns cpss f_sum_prod_Ts f_prod_Tss cfsss));
               in (binder, spec) end;
 
             val coiter_likes =
