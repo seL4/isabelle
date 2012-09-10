@@ -22,10 +22,11 @@ struct
 
 open BNF_Tactics
 open BNF_Util
+open BNF_FP_Util
 
 fun mk_case_tac ctxt n k m case_def ctr_def unf_fld =
   Local_Defs.unfold_tac ctxt [case_def, ctr_def, unf_fld] THEN
-  (rtac (BNF_FP_Util.mk_sum_casesN n k RS ssubst) THEN'
+  (rtac (mk_sum_casesN_balanced n k RS ssubst) THEN'
    REPEAT_DETERM_N (Int.max (0, m - 1)) o rtac (@{thm split} RS ssubst) THEN'
    rtac refl) 1;
 

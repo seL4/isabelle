@@ -50,31 +50,6 @@ fun mk_uncurried_fun f xs = mk_tupled_fun (HOLogic.mk_tuple xs) f xs;
 fun mk_uncurried2_fun f xss =
   mk_tupled_fun (HOLogic.mk_tuple (map HOLogic.mk_tuple xss)) f (flat xss);
 
-val mk_sumTN_balanced = Balanced_Tree.make mk_sumT;
-val dest_sumTN_balanced = Balanced_Tree.dest dest_sumT;
-
-fun mk_InN_balanced sum_T n t k =
-  let
-    fun repair_types T (Const (s as @{const_name Inl}, _) $ t) = repair_inj_types T s fst t
-      | repair_types T (Const (s as @{const_name Inr}, _) $ t) = repair_inj_types T s snd t
-      | repair_types _ t = t
-    and repair_inj_types T s get t =
-      let val T' = get (dest_sumT T) in
-        Const (s, T' --> T) $ repair_types T' t
-      end;
-  in
-    Balanced_Tree.access {left = mk_Inl dummyT, right = mk_Inr dummyT, init = t} n k
-    |> repair_types sum_T
-  end;
-
-val mk_sum_caseN_balanced = Balanced_Tree.make mk_sum_case;
-
-fun mk_sumEN_balanced 1 = @{thm one_pointE}
-  | mk_sumEN_balanced 2 = @{thm sumE} (*optimization*)
-  | mk_sumEN_balanced n =
-    Balanced_Tree.make (fn (thm1, thm2) => thm1 RSN (1, thm2 RSN (2, @{thm obj_sumE_f})))
-      (replicate n asm_rl) OF (replicate n (impI RS allI)) RS @{thm obj_one_pointE};
-
 fun tick v f = Term.lambda v (HOLogic.mk_prod (v, f $ v));
 
 fun tack z_name (c, v) f =
