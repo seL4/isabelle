@@ -46,8 +46,7 @@ val fallback_binder = @{binding _};
 
 fun pad_list x n xs = xs @ replicate (n - length xs) x;
 
-fun unflat_lookup _ _ [] = []
-  | unflat_lookup eq ps (xs :: xss) = map (the o AList.lookup eq ps) xs :: unflat_lookup eq ps xss;
+fun unflat_lookup eq ys zs = map (map (fn x => nth zs (find_index (curry eq x) ys)));
 
 fun mk_half_pairss' _ [] = []
   | mk_half_pairss' indent (y :: ys) =
@@ -203,11 +202,10 @@ fun prepare_wrap_datatype prep_term ((raw_ctrs, raw_case), (raw_disc_binders, ra
     val missing_alternate_disc_def = FalseE; (*arbitrary marker*)
 
     val proto_selss = map3 (fn k => fn xs => map (fn x => (k, (xs, x)))) ks xss xss;
-
     val sel_bundles = AList.group Binding.eq_name (flat sel_binderss ~~ flat proto_selss);
     val sel_binders = map fst sel_bundles;
 
-    fun unflat_sels xs = unflat_lookup Binding.eq_name (sel_binders ~~ xs) sel_binderss;
+    fun unflat_selss xs = unflat_lookup Binding.eq_name sel_binders xs sel_binderss;
 
     val (((raw_discs, raw_disc_defs), (raw_sels, raw_sel_defs)), (lthy', lthy)) =
       no_defs_lthy
@@ -228,10 +226,10 @@ fun prepare_wrap_datatype prep_term ((raw_ctrs, raw_case), (raw_disc_binders, ra
     val phi = Proof_Context.export_morphism lthy lthy';
 
     val disc_defs = map (Morphism.thm phi) raw_disc_defs;
-    val sel_defss = unflat_sels (map (Morphism.thm phi) raw_sel_defs);
+    val sel_defss = unflat_selss (map (Morphism.thm phi) raw_sel_defs);
 
     val discs0 = map (Morphism.term phi) raw_discs;
-    val selss0 = unflat_sels (map (Morphism.term phi) raw_sels);
+    val selss0 = unflat_selss (map (Morphism.term phi) raw_sels);
 
     fun mk_disc_or_sel Ts c =
       Term.subst_atomic_types (snd (Term.dest_Type (domain_type (fastype_of c))) ~~ Ts) c;
