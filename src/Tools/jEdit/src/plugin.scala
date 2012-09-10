@@ -261,7 +261,7 @@ class Plugin extends EBPlugin
   /* theory files */
 
   private lazy val delay_load =
-    Swing_Thread.delay_last(Isabelle.session.load_delay)
+    Swing_Thread.delay_last(Time.seconds(Isabelle.options.real("jedit_load_delay")))
     {
       val view = jEdit.getActiveView()
 

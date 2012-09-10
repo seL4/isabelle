@@ -52,7 +52,6 @@ class Session(val thy_load: Thy_Load)
   val input_delay = Time.seconds(0.3)  // user input (e.g. text edits, cursor movement)
   val output_delay = Time.seconds(0.1)  // prover output (markup, common messages)
   val update_delay = Time.seconds(0.5)  // GUI layout updates
-  val load_delay = Time.seconds(0.5)  // file load operations (new buffers etc.)
   val prune_delay = Time.seconds(60.0)  // prune history -- delete old versions
   val prune_size = 0  // size of retained history
   val syslog_limit = 100

@@ -20,7 +20,8 @@ class Isabelle_Options extends AbstractOptionPane("isabelle")
     Isabelle.options.make_component("jedit_relative_font_size"),
     Isabelle.options.make_component("jedit_tooltip_font_size"),
     Isabelle.options.make_component("jedit_tooltip_margin"),
-    Isabelle.options.make_component("jedit_tooltip_dismiss_delay"))
+    Isabelle.options.make_component("jedit_tooltip_dismiss_delay"),
+    Isabelle.options.make_component("jedit_load_delay"))
 
   override def _init()
   {
