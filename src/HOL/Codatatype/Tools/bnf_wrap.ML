@@ -191,9 +191,15 @@ fun prepare_wrap_datatype prep_term ((raw_ctrs, raw_case), (raw_disc_binders, ra
           NONE => mk_undef T Ts
         | SOME (xs, x) => fold_rev Term.lambda xs x) ctr_Tss ks;
 
-    (* TODO: check types of tail of list *)
-    fun sel_spec b (proto_sels as ((_, (_, x)) :: _)) =
-      let val T = fastype_of x in
+    fun sel_spec b proto_sels =
+      let
+        val T =
+          (case distinct (op =) (map (fastype_of o snd o snd) proto_sels) of
+            [T] => T
+          | T :: T' :: _ => error ("Inconsistent range type for selector " ^
+              quote (Binding.name_of b) ^ ": " ^ quote (Syntax.string_of_typ no_defs_lthy T) ^
+              " vs. " ^ quote (Syntax.string_of_typ no_defs_lthy T')));
+      in
         mk_Trueprop_eq (Free (Binding.name_of b, fpT --> T) $ v,
           Term.list_comb (mk_case As T, mk_sel_case_args proto_sels T) $ v)
       end;
