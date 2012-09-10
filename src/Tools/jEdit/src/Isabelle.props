@@ -23,17 +23,6 @@ plugin.isabelle.jedit.Plugin.depend.4=plugin sidekick.SideKickPlugin 0.8
 plugin.isabelle.jedit.Plugin.option-pane=isabelle
 options.isabelle.label=Isabelle
 options.isabelle.code=new isabelle.jedit.Isabelle_Options();
-options.isabelle.logic.title=Logic
-options.isabelle.relative-font-size.title=Relative Font Size
-options.isabelle.relative-font-size=100
-options.isabelle.tooltip-font-size.title=Tooltip Font Size
-options.isabelle.tooltip-font-size=10
-options.isabelle.tooltip-margin.title=Tooltip Margin
-options.isabelle.tooltip-margin=60
-options.isabelle.tooltip-dismiss-delay.title=Tooltip Dismiss Delay (global)
-options.isabelle.tooltip-dismiss-delay=8.0
-options.isabelle.auto-start.title=Auto Start
-options.isabelle.auto-start=true
 
 #actions
 isabelle.check-buffer.label=Commence full proof checking of current buffer

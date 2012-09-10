@@ -34,6 +34,8 @@ object Isabelle
 {
   /* plugin instance */
 
+  val options = new JEdit_Options
+
   @volatile var startup_failure: Option[Throwable] = None
   @volatile var startup_notified = false
 
@@ -51,81 +53,26 @@ object Isabelle
   }
 
 
-  /* properties */
-
-  val OPTION_PREFIX = "options.isabelle."
-
-  object Property
-  {
-    def apply(name: String): String =
-      jEdit.getProperty(OPTION_PREFIX + name)
-    def apply(name: String, default: String): String =
-      jEdit.getProperty(OPTION_PREFIX + name, default)
-    def update(name: String, value: String) =
-      jEdit.setProperty(OPTION_PREFIX + name, value)
-  }
-
-  object Boolean_Property
-  {
-    def apply(name: String): Boolean =
-      jEdit.getBooleanProperty(OPTION_PREFIX + name)
-    def apply(name: String, default: Boolean): Boolean =
-      jEdit.getBooleanProperty(OPTION_PREFIX + name, default)
-    def update(name: String, value: Boolean) =
-      jEdit.setBooleanProperty(OPTION_PREFIX + name, value)
-  }
-
-  object Int_Property
-  {
-    def apply(name: String): Int =
-      jEdit.getIntegerProperty(OPTION_PREFIX + name)
-    def apply(name: String, default: Int): Int =
-      jEdit.getIntegerProperty(OPTION_PREFIX + name, default)
-    def update(name: String, value: Int) =
-      jEdit.setIntegerProperty(OPTION_PREFIX + name, value)
-  }
-
-  object Double_Property
-  {
-    def apply(name: String): Double =
-      jEdit.getDoubleProperty(OPTION_PREFIX + name, 0.0)
-    def apply(name: String, default: Double): Double =
-      jEdit.getDoubleProperty(OPTION_PREFIX + name, default)
-    def update(name: String, value: Double) =
-      jEdit.setDoubleProperty(OPTION_PREFIX + name, value)
-  }
-
-  object Time_Property
-  {
-    def apply(name: String): Time =
-      Time.seconds(Double_Property(name))
-    def apply(name: String, default: Time): Time =
-      Time.seconds(Double_Property(name, default.seconds))
-    def update(name: String, value: Time) =
-      Double_Property.update(name, value.seconds)
-  }
-
-
   /* font */
 
   def font_family(): String = jEdit.getProperty("view.font")
 
   def font_size(): Float =
     (jEdit.getIntegerProperty("view.fontsize", 16) *
-      Int_Property("relative-font-size", 100)).toFloat / 100
+      options.int("jedit_relative_font_size")).toFloat / 100
 
 
   /* tooltip markup */
 
   def tooltip(text: String): String =
     "<html><pre style=\"font-family: " + font_family() + "; font-size: " +
-        Int_Property("tooltip-font-size", 10).toString + "px; \">" +  // FIXME proper scaling (!?)
+        options.int("jedit_tooltip_font_size").toString + "px; \">" +  // FIXME proper scaling (!?)
       HTML.encode(text) + "</pre></html>"
 
   private val tooltip_lb = Time.seconds(0.5)
   private val tooltip_ub = Time.seconds(60.0)
   def tooltip_dismiss_delay(): Time =
-    Time_Property("tooltip-dismiss-delay", Time.seconds(8.0)) max tooltip_lb min tooltip_ub
+    Time.seconds(options.real("jedit_tooltip_dismiss_delay")) max tooltip_lb min tooltip_ub
 
   def setup_tooltips()
   {
@@ -311,11 +258,11 @@ object Isabelle
   def session_args(): List[String] =
   {
     val modes = space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE")).map("-m" + _)
-    val logic = {
-      val logic = Property("logic")
-      if (logic != null && logic != "") logic
-      else Isabelle.default_logic()
-    }
+    val logic =
+      Isabelle.options.string("jedit_logic") match {
+        case "" => Isabelle.default_logic()
+        case logic => logic
+      }
     modes ::: List(logic)
   }
 
@@ -450,7 +397,7 @@ class Plugin extends EBPlugin
     if (Isabelle.startup_failure.isEmpty) {
       message match {
         case msg: EditorStarted =>
-          if (Isabelle.Boolean_Property("auto-start"))
+          if (Isabelle.options.bool("jedit_auto_start"))
             Isabelle.session.start(Isabelle.session_args())
 
         case msg: BufferUpdate
@@ -492,9 +439,14 @@ class Plugin extends EBPlugin
   {
     try {
       Isabelle.plugin = this
-      Isabelle.setup_tooltips()
       Isabelle_System.init()
       Isabelle_System.install_fonts()
+
+      val init_options = Options.init()
+      Swing_Thread.now {
+        Isabelle.options.update(init_options)
+        Isabelle.setup_tooltips()
+      }
 
       SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender)
       if (ModeProvider.instance.isInstanceOf[ModeProvider])
@@ -516,6 +468,9 @@ class Plugin extends EBPlugin
 
   override def stop()
   {
+    if (Isabelle.startup_failure.isEmpty)
+      Isabelle.options.value.save_prefs()
+
     Isabelle.session.phase_changed -= session_manager
     Isabelle.jedit_buffers.foreach(Isabelle.exit_model)
     Isabelle.session.stop()

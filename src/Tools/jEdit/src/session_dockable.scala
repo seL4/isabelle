@@ -60,10 +60,11 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   }
   check.tooltip = jEdit.getProperty("isabelle.check-buffer.label")
 
-  private val logic = Isabelle.logic_selector(Isabelle.Property("logic"))
+  private val logic = Isabelle.logic_selector(Isabelle.options.string("jedit_logic"))
   logic.listenTo(logic.selection)
   logic.reactions += {
-    case SelectionChanged(_) => Isabelle.Property("logic") = logic.selection.item.name
+    case SelectionChanged(_) =>
+      Isabelle.options.string("jedit_logic") = logic.selection.item.name
   }
 
   private val controls =

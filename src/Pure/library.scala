@@ -9,6 +9,7 @@ package isabelle
 
 
 import java.lang.System
+import java.util.Locale
 import java.awt.Component
 import javax.swing.JOptionPane
 
@@ -83,6 +84,10 @@ object Library
   def trim_line(str: String): String =
     if (str.endsWith("\n")) str.substring(0, str.length - 1)
     else str
+
+  def capitalize(str: String): String =
+    if (str.length == 0) str
+    else str.substring(0, 1).toUpperCase(Locale.ENGLISH) + str.substring(1)
 
 
   /* quote */

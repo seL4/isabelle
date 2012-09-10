@@ -18,6 +18,7 @@ declare -a SOURCES=(
   "src/isabelle_rendering.scala"
   "src/isabelle_sidekick.scala"
   "src/jedit_thy_load.scala"
+  "src/jedit_options.scala"
   "src/output_dockable.scala"
   "src/plugin.scala"
   "src/protocol_dockable.scala"

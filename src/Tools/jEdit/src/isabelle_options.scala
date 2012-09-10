@@ -9,7 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import javax.swing.JSpinner
+import javax.swing.{JSpinner, JTextField}
 
 import scala.swing.CheckBox
 
@@ -18,51 +18,50 @@ import org.gjt.sp.jedit.AbstractOptionPane
 
 class Isabelle_Options extends AbstractOptionPane("isabelle")
 {
-  private val logic_selector = Isabelle.logic_selector(Isabelle.Property("logic"))
+  private val logic_selector = Isabelle.logic_selector(Isabelle.options.string("jedit_logic"))
   private val auto_start = new CheckBox()
   private val relative_font_size = new JSpinner()
   private val tooltip_font_size = new JSpinner()
   private val tooltip_margin = new JSpinner()
-  private val tooltip_dismiss_delay = new JSpinner()
+  private val tooltip_dismiss_delay = new JTextField()
 
   override def _init()
   {
-    addComponent(Isabelle.Property("logic.title"),
+    addComponent(Isabelle.options.title("jedit_logic"),
       logic_selector.peer.asInstanceOf[java.awt.Component])
 
-    addComponent(Isabelle.Property("auto-start.title"), auto_start.peer)
-    auto_start.selected = Isabelle.Boolean_Property("auto-start")
+    addComponent(Isabelle.options.title("jedit_auto_start"), auto_start.peer)
+    auto_start.selected = Isabelle.options.bool("jedit_auto_start")
 
-    relative_font_size.setValue(Isabelle.Int_Property("relative-font-size", 100))
-    addComponent(Isabelle.Property("relative-font-size.title"), relative_font_size)
+    addComponent(Isabelle.options.title("jedit_relative_font_size"), relative_font_size)
+    relative_font_size.setValue(Isabelle.options.int("jedit_relative_font_size"))
 
-    tooltip_font_size.setValue(Isabelle.Int_Property("tooltip-font-size", 10))
-    addComponent(Isabelle.Property("tooltip-font-size.title"), tooltip_font_size)
+    tooltip_font_size.setValue(Isabelle.options.int("jedit_tooltip_font_size"))
+    addComponent(Isabelle.options.title("jedit_tooltip_font_size"), tooltip_font_size)
 
-    tooltip_margin.setValue(Isabelle.Int_Property("tooltip-margin", 40))
-    addComponent(Isabelle.Property("tooltip-margin.title"), tooltip_margin)
+    tooltip_margin.setValue(Isabelle.options.int("jedit_tooltip_margin"))
+    addComponent(Isabelle.options.title("jedit_tooltip_margin"), tooltip_margin)
 
-    tooltip_dismiss_delay.setValue(
-      Isabelle.Time_Property("tooltip-dismiss-delay", Time.seconds(8.0)).ms.toInt)
-    addComponent(Isabelle.Property("tooltip-dismiss-delay.title"), tooltip_dismiss_delay)
+    // FIXME InputVerifier for Double
+    tooltip_dismiss_delay.setText(Isabelle.options.real("jedit_tooltip_dismiss_delay").toString)
+    addComponent(Isabelle.options.title("jedit_tooltip_dismiss_delay"), tooltip_dismiss_delay)
   }
 
   override def _save()
   {
-    Isabelle.Property("logic") = logic_selector.selection.item.name
+    Isabelle.options.string("jedit_logic") = logic_selector.selection.item.name
 
-    Isabelle.Boolean_Property("auto-start") = auto_start.selected
+    Isabelle.options.bool("jedit_auto_start") = auto_start.selected
 
-    Isabelle.Int_Property("relative-font-size") =
+    Isabelle.options.int("jedit_relative_font_size") =
       relative_font_size.getValue().asInstanceOf[Int]
 
-    Isabelle.Int_Property("tooltip-font-size") =
+    Isabelle.options.int("jedit_tooltip_font_size") =
       tooltip_font_size.getValue().asInstanceOf[Int]
 
-    Isabelle.Int_Property("tooltip-margin") =
+    Isabelle.options.int("jedit_tooltip_margin") =
       tooltip_margin.getValue().asInstanceOf[Int]
 
-    Isabelle.Time_Property("tooltip-dismiss-delay") =
-      Time.ms(tooltip_dismiss_delay.getValue().asInstanceOf[Int])
+    Isabelle.options + ("jedit_tooltip_dismiss_delay", tooltip_dismiss_delay.getText)
   }
 }
