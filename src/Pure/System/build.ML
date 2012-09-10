@@ -71,6 +71,12 @@ fun build args_file = Command_Line.tool (fn () =>
         (case duplicates (op =) (map fst document_variants) of
           [] => ()
         | dups => error ("Duplicate document variants: " ^ commas_quote dups));
+
+      val _ =
+        if Options.string options "document_dump" = "" then ()
+        else
+          Output.physical_stderr
+            "### Legacy feature: old option \"document_dump\" -- use \"document_output\" instead\n";
       val _ =
         Session.init do_output false
           (Options.bool options "browser_info") browser_info
