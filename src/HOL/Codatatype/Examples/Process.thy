@@ -19,16 +19,6 @@ codata 'a process =
 
 section {* Customization *}
 
-subsection{* Setup for map, set, pred  *}
-
-lemma pre_process_pred[simp]:
-"pre_process_pred (op =) \<phi> (Inl (a,p)) (Inl (a',p')) \<longleftrightarrow> a = a' \<and> \<phi> p p'"
-"pre_process_pred (op =) \<phi> (Inr (p,q)) (Inr (p',q')) \<longleftrightarrow> \<phi> p p' \<and> \<phi> q q'"
-"\<not> pre_process_pred (op =) \<phi> (Inl ap) (Inr q1q2)"
-"\<not> pre_process_pred (op =) \<phi> (Inr q1q2) (Inl ap)"
-by (auto simp: diag_def pre_process.pred_unfold)
-
-
 subsection {* Basic properties *}
 
 declare
@@ -37,6 +27,7 @@ declare
   process.discs[simp]
   process.sels[simp]
   process.collapse[simp]
+  pre_process.pred_unfold[simp]
 
 lemmas process_exhaust =
   process.exhaust[elim, case_names Action Choice]
