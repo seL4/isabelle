@@ -273,6 +273,22 @@ fun load_thy update_time master_dir header text_pos text parents =
   in (thy, present) end;
 
 
+(* document antiquotation *)
+
+val _ =
+  Context.>> (Context.map_theory
+   (Thy_Output.antiquotation (Binding.name "file") (Scan.lift (Parse.position Parse.path))
+    (fn {context = ctxt, ...} => fn (name, pos) =>
+      let
+        val dir = master_directory (Proof_Context.theory_of ctxt);
+        val path = Path.append dir (Path.explode name);
+        val _ =
+          if File.exists path then ()
+          else error ("Bad file: " ^ Path.print (Path.expand path) ^ Position.here pos);
+        val _ = Position.report pos (Isabelle_Markup.path name);
+      in Thy_Output.verb_text name end)));
+
+
 (* global master path *)
 
 local

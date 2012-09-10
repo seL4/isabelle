@@ -42,6 +42,7 @@ sig
   val maybe_pretty_source: (Proof.context -> 'a -> Pretty.T) -> Proof.context ->
     Args.src -> 'a list -> Pretty.T list
   val output: Proof.context -> Pretty.T list -> string
+  val verb_text: string -> string
 end;
 
 structure Thy_Output: THY_OUTPUT =
@@ -684,15 +685,5 @@ val _ =
     ml_text (Binding.name "ML_text") (K (K []))));
 
 end;
-
-
-(* files *)
-
-val _ =
-  Context.>> (Context.map_theory
-   (antiquotation (Binding.name "file") (Scan.lift Args.name)
-    (fn _ => fn path =>
-      if File.exists (Path.explode path) then verb_text path
-      else error ("Bad file: " ^ quote path))));
 
 end;
