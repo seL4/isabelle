@@ -281,15 +281,13 @@ checkOf (Generated_Code.Property b) = (\[] -> b)
 checkOf (Generated_Code.Universal _ f _) = (\(t : ts) -> checkOf (f t) ts)
 checkOf (Generated_Code.Existential _ f _) = (\(t : ts) -> checkOf (f t) ts)
 
-dummy = Generated_Code.Narrowing_variable [] (Generated_Code.Narrowing_sum_of_products [[]])
-
 treeOf :: Int -> Generated_Code.Property -> Tree
 treeOf n (Generated_Code.Property _) = Leaf Unevaluated
-treeOf n (Generated_Code.Universal ty f _)  = Variable Universal Unevaluated [n] ty (treeOf (n + 1) (f dummy)) 
-treeOf n (Generated_Code.Existential ty f _) = Variable Existential Unevaluated [n] ty (treeOf (n + 1) (f dummy))
+treeOf n (Generated_Code.Universal ty f _)  = Variable Universal Unevaluated [n] ty (treeOf (n + 1) (f undefined)) 
+treeOf n (Generated_Code.Existential ty f _) = Variable Existential Unevaluated [n] ty (treeOf (n + 1) (f undefined))
 
 reifysOf :: Generated_Code.Property -> [Generated_Code.Narrowing_term -> Generated_Code.Term]
 reifysOf (Generated_Code.Property _) = []
-reifysOf (Generated_Code.Universal _ f r)  = (r : (reifysOf (f dummy)))
-reifysOf (Generated_Code.Existential _ f r) = (r : (reifysOf (f dummy)))
+reifysOf (Generated_Code.Universal _ f r)  = (r : (reifysOf (f undefined)))
+reifysOf (Generated_Code.Existential _ f r) = (r : (reifysOf (f undefined)))
 
