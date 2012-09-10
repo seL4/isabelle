@@ -51,13 +51,11 @@ text {*
   admissible.
 
   @{rail "
-    @@{command theory} @{syntax name} imports \\ keywords? uses? @'begin'
+    @@{command theory} @{syntax name} imports keywords? \\ @'begin'
     ;
     imports: @'imports' (@{syntax name} +)
     ;
     keywords: @'keywords' ((@{syntax string} +) ('::' @{syntax name} @{syntax tags})? + @'and')
-    ;
-    uses: @'uses' ((@{syntax name} | @{syntax parname}) +)
   "}
 
   \begin{description}
@@ -83,14 +81,6 @@ text {*
   "\"datatype\""} @{text ":: thy_decl"} for theory-level declarations
   with and without proof, respectively.  Additional @{syntax tags}
   provide defaults for document preparation (\secref{sec:tags}).
-  
-  The optional @{keyword_def "uses"} specification declares additional
-  dependencies on external files (notably ML sources).  Files will be
-  loaded immediately (as ML), unless the name is parenthesized.  The
-  latter case records a dependency that needs to be resolved later in
-  the text, usually via explicit @{command_ref "use"} for ML files;
-  other file formats require specific load commands defined by the
-  corresponding tools or packages.
   
   \item @{command (global) "end"} concludes the current theory
   definition.  Note that some other commands, e.g.\ local theory
