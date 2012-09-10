@@ -19,7 +19,7 @@ by (erule iffI) (erule contrapos_pn)
 
 lemma all_unit_eq: "(\<And>x. PROP P x) \<equiv> PROP P ()" by simp
 
-lemma all_prod_eq: "(\<And>x. PROP P x) \<equiv> (\<And>a b. PROP P (a, b))" by auto
+lemma all_prod_eq: "(\<And>x. PROP P x) \<equiv> (\<And>a b. PROP P (a, b))" by clarsimp
 
 lemma False_imp_eq: "(False \<Longrightarrow> P) \<equiv> Trueprop True"
 by presburger
@@ -89,23 +89,23 @@ lemma image_o_collect: "collect ((\<lambda>f. image g o f) ` F) = image g o coll
 by (rule ext) (auto simp add: collect_def)
 
 lemma conj_subset_def: "A \<subseteq> {x. P x \<and> Q x} = (A \<subseteq> {x. P x} \<and> A \<subseteq> {x. Q x})"
-by auto
+by blast
 
 lemma subset_emptyI: "(\<And>x. x \<in> A \<Longrightarrow> False) \<Longrightarrow> A \<subseteq> {}"
-by auto
+by blast
 
 lemma rev_bspec: "a \<in> A \<Longrightarrow> \<forall>z \<in> A. P z \<Longrightarrow> P a"
 by simp
 
 lemma Un_cong: "\<lbrakk>A = B; C = D\<rbrakk> \<Longrightarrow> A \<union> C = B \<union> D"
-by auto
+by simp
 
 lemma UN_image_subset: "\<Union>f ` g x \<subseteq> X = (g x \<subseteq> {x. f x \<subseteq> X})"
-by auto
+by blast
 
 lemma image_Collect_subsetI:
   "(\<And>x. P x \<Longrightarrow> f x \<in> B) \<Longrightarrow> f ` {x. P x} \<subseteq> B"
-by auto
+by blast
 
 lemma comp_set_bd_Union_o_collect: "|\<Union>\<Union>(\<lambda>f. f x) ` X| \<le>o hbd \<Longrightarrow> |(Union \<circ> collect X) x| \<le>o hbd"
 by (unfold o_apply collect_def SUP_def)
@@ -826,17 +826,21 @@ lemma sum_case_step:
   "sum_case f (sum_case f' g') (Inr p) = sum_case f' g' p"
 by auto
 
+lemma one_pointE: "\<lbrakk>\<And>x. s = x \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+by simp
+
+lemma obj_sumE_f:
+"\<lbrakk>\<forall>x. s = f (Inl x) \<longrightarrow> P; \<forall>x. s = f (Inr x) \<longrightarrow> P\<rbrakk> \<Longrightarrow> \<forall>x. s = f x \<longrightarrow> P"
+by (metis sum.exhaust)
+
 lemma obj_sumE: "\<lbrakk>\<forall>x. s = Inl x \<longrightarrow> P; \<forall>x. s = Inr x \<longrightarrow> P\<rbrakk> \<Longrightarrow> P"
 by (cases s) auto
-
-lemma obj_sum_base: "\<lbrakk>\<And>x. s = x \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
-by auto
 
 lemma obj_sum_step:
   "\<lbrakk>\<forall>x. s = f (Inr (Inl x)) \<longrightarrow> P; \<forall>x. s = f (Inr (Inr x)) \<longrightarrow> P\<rbrakk> \<Longrightarrow> \<forall>x. s = f (Inr x) \<longrightarrow> P"
 by (metis obj_sumE)
 
 lemma not_arg_cong_Inr: "x \<noteq> y \<Longrightarrow> Inr x \<noteq> Inr y"
-by auto
+by simp
 
 end

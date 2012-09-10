@@ -506,7 +506,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val mor_sum_case_thm =
       let
         val maps = map3 (fn s => fn sum_s => fn map =>
-          mk_sum_case (HOLogic.mk_comp (Term.list_comb (map, passive_ids @ Inls), s)) sum_s)
+          mk_sum_case (HOLogic.mk_comp (Term.list_comb (map, passive_ids @ Inls), s), sum_s))
           s's sum_ss map_Inls;
       in
         Skip_Proof.prove lthy [] []
@@ -2144,7 +2144,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
       let
         val corecT = Library.foldr (op -->) (corec_sTs, AT --> T);
         val maps = map3 (fn unf => fn sum_s => fn map => mk_sum_case
-            (HOLogic.mk_comp (Term.list_comb (map, passive_ids @ corec_Inls), unf)) sum_s)
+            (HOLogic.mk_comp (Term.list_comb (map, passive_ids @ corec_Inls), unf), sum_s))
           unfs corec_ss corec_maps;
 
         val lhs = Term.list_comb (Free (corec_name i, corecT), corec_ss);
@@ -2171,7 +2171,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val corec_defs = map (Morphism.thm phi) corec_def_frees;
 
     val sum_cases =
-      map2 (fn T => fn i => mk_sum_case (HOLogic.id_const T) (mk_corec corec_ss i)) Ts ks;
+      map2 (fn T => fn i => mk_sum_case (HOLogic.id_const T, mk_corec corec_ss i)) Ts ks;
     val corec_thms =
       let
         fun mk_goal i corec_s corec_map unf z =

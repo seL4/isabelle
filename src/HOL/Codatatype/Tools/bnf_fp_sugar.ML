@@ -50,11 +50,33 @@ fun mk_uncurried_fun f xs = mk_tupled_fun (HOLogic.mk_tuple xs) f xs;
 fun mk_uncurried2_fun f xss =
   mk_tupled_fun (HOLogic.mk_tuple (map HOLogic.mk_tuple xss)) f (flat xss);
 
+val mk_sumTN_balanced = Balanced_Tree.make mk_sumT;
+val dest_sumTN_balanced = Balanced_Tree.dest dest_sumT;
+
+fun mk_InN_balanced ctxt sum_T Ts t k =
+  let
+    val u =
+      Balanced_Tree.access {left = mk_Inl dummyT, right = mk_Inr dummyT, init = t} (length Ts) k;
+  in singleton (Type_Infer_Context.infer_types ctxt) (Type.constraint sum_T u) end;
+
+val mk_sum_caseN_balanced = Balanced_Tree.make mk_sum_case;
+
+fun mk_sumEN_balanced n =
+  let
+    val thm =
+      Balanced_Tree.make (fn (thm1, thm2) => thm1 RSN (1, thm2 RSN (2, @{thm obj_sumE_f})))
+        (replicate n asm_rl) OF (replicate n (impI RS allI));
+    val f as (_, f_T) =
+      Term.add_vars (prop_of thm) []
+      |> filter (fn ((s, _), _) => s = "f") |> the_single;
+    val inst = [pairself (cterm_of @{theory}) (Var f, Abs (Name.uu, domain_type f_T, Bound 0))];
+  in cterm_instantiate inst thm end;
+
 fun tick v f = Term.lambda v (HOLogic.mk_prod (v, f $ v));
 
 fun tack z_name (c, v) f =
   let val z = Free (z_name, mk_sumT (fastype_of v, fastype_of c)) in
-    Term.lambda z (mk_sum_case (Term.lambda v v) (Term.lambda c (f $ c)) $ z)
+    Term.lambda z (mk_sum_case (Term.lambda v v, Term.lambda c (f $ c)) $ z)
   end;
 
 fun cannot_merge_types () = error "Mutually recursive types must have the same type parameters";
@@ -148,9 +170,9 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
       | freeze_fp T = T;
 
     val ctr_TsssXs = map (map (map freeze_fp)) fake_ctr_Tsss;
-    val sum_prod_TsXs = map (mk_sumTN o map HOLogic.mk_tupleT) ctr_TsssXs;
+    val ctr_sum_prod_TsXs = map (mk_sumTN_balanced o map HOLogic.mk_tupleT) ctr_TsssXs;
 
-    val eqs = map dest_TFree Xs ~~ sum_prod_TsXs;
+    val eqs = map dest_TFree Xs ~~ ctr_sum_prod_TsXs;
 
     val (pre_bnfs, ((unfs0, flds0, fp_iters0, fp_recs0, unf_flds, fld_unfs, fld_injects,
         fp_iter_thms, fp_rec_thms), lthy)) =
@@ -215,7 +237,7 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
       if lfp then
         let
           val y_Tsss =
-            map3 (fn n => fn ms => map2 dest_tupleT ms o dest_sumTN n o domain_type)
+            map3 (fn n => fn ms => map2 dest_tupleT ms o dest_sumTN_balanced n o domain_type)
               ns mss fp_iter_fun_Ts;
           val g_Tss = map2 (map2 (curry (op --->))) y_Tsss Css;
 
@@ -225,8 +247,8 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
             ||>> mk_Freesss "x" y_Tsss;
 
           val z_Tssss =
-            map3 (fn n => fn ms => map2 (map dest_rec_pair oo dest_tupleT) ms o dest_sumTN n
-              o domain_type) ns mss fp_rec_fun_Ts;
+            map3 (fn n => fn ms => map2 (map dest_rec_pair oo dest_tupleT) ms o
+              dest_sumTN_balanced n o domain_type) ns mss fp_rec_fun_Ts;
           val h_Tss = map2 (map2 (fold_rev (curry (op --->)))) z_Tssss Css;
 
           val hss = map2 (map2 retype_free) gss h_Tss;
@@ -251,7 +273,7 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
           fun mk_types fun_Ts =
             let
               val f_sum_prod_Ts = map range_type fun_Ts;
-              val f_prod_Tss = map2 dest_sumTN ns f_sum_prod_Ts;
+              val f_prod_Tss = map2 dest_sumTN_balanced ns f_sum_prod_Ts;
               val f_Tsss =
                 map3 (fn C => map2 (map (curry (op -->) C) oo dest_tupleT)) Cs mss' f_prod_Tss;
               val pf_Tss = map2 zip_preds_getters p_Tss f_Tsss
@@ -288,6 +310,7 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
       let
         val unfT = domain_type (fastype_of fld);
         val ctr_prod_Ts = map HOLogic.mk_tupleT ctr_Tss;
+        val ctr_sum_prod_T = mk_sumTN_balanced ctr_prod_Ts;
         val case_Ts = map (fn Ts => Ts ---> C) ctr_Tss;
 
         val ((((u, v), fs), xss), _) =
@@ -299,12 +322,15 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
 
         val ctr_rhss =
           map2 (fn k => fn xs =>
-            fold_rev Term.lambda xs (fld $ mk_InN ctr_prod_Ts (HOLogic.mk_tuple xs) k)) ks xss;
+              fold_rev Term.lambda xs (fld $ mk_InN_balanced no_defs_lthy ctr_sum_prod_T ctr_prod_Ts
+                (HOLogic.mk_tuple xs) k))
+            ks xss;
 
         val case_binder = Binding.suffix_name ("_" ^ caseN) b;
 
         val case_rhs =
-          fold_rev Term.lambda (fs @ [v]) (mk_sum_caseN (map2 mk_uncurried_fun fs xss) $ (unf $ v));
+          fold_rev Term.lambda (fs @ [v])
+            (mk_sum_caseN_balanced (map2 mk_uncurried_fun fs xss) $ (unf $ v));
 
         val ((raw_case :: raw_ctrs, raw_case_def :: raw_ctr_defs), (lthy', lthy)) = no_defs_lthy
           |> apfst split_list o fold_map3 (fn b => fn mx => fn rhs =>
@@ -340,7 +366,8 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
 
             val sumEN_thm' =
               Local_Defs.unfold lthy @{thms all_unit_eq}
-                (Drule.instantiate' (map (SOME o certifyT lthy) ctr_prod_Ts) [] (mk_sumEN n))
+                (Drule.instantiate' (map (SOME o certifyT lthy) ctr_prod_Ts) []
+                   (mk_sumEN_balanced n))
               |> Morphism.thm phi;
           in
             mk_exhaust_tac ctxt n ctr_defs fld_iff_unf_thm sumEN_thm'
@@ -373,7 +400,7 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
                 val spec =
                   mk_Trueprop_eq (lists_bmoc fss (Free (Binding.name_of binder, res_T)),
                     Term.list_comb (fp_iter_like,
-                      map2 (mk_sum_caseN oo map2 mk_uncurried2_fun) fss xssss));
+                      map2 (mk_sum_caseN_balanced oo map2 mk_uncurried2_fun) fss xssss));
               in (binder, spec) end;
 
             val iter_likes =
@@ -411,7 +438,8 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
 
                 fun mk_preds_getters_join c n cps sum_prod_T prod_Ts cfss =
                   Term.lambda c (mk_IfN sum_prod_T cps
-                    (map2 (mk_InN prod_Ts) (map HOLogic.mk_tuple cfss) (1 upto n)));
+                    (map2 (mk_InN_balanced no_defs_lthy sum_prod_T prod_Ts)
+                      (map HOLogic.mk_tuple cfss) (1 upto n)));
 
                 val spec =
                   mk_Trueprop_eq (lists_bmoc pfss (Free (Binding.name_of binder, res_T)),

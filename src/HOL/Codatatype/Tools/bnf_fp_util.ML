@@ -81,15 +81,18 @@ sig
   val split_conj_thm: thm -> thm list
   val split_conj_prems: int -> thm -> thm
 
+  val mk_sumTN: typ list -> typ
+
   val Inl_const: typ -> typ -> term
   val Inr_const: typ -> typ -> term
 
-  val mk_Inl: term -> typ -> term
-  val mk_Inr: term -> typ -> term
+  val mk_Inl: typ -> term -> term
+  val mk_Inr: typ -> term -> term
   val mk_InN: typ list -> term -> int -> term
-  val mk_sum_case: term -> term -> term
+  val mk_sum_case: term * term -> term
   val mk_sum_caseN: term list -> term
 
+  val dest_sumT: typ -> typ * typ
   val dest_sumTN: int -> typ -> typ list
   val dest_tupleT: int -> typ -> typ list
 
@@ -197,18 +200,20 @@ val hset_recN = hsetN ^ "_rec"
 val set_inclN = "set_incl"
 val set_set_inclN = "set_set_incl"
 
+fun mk_sumTN Ts = Library.foldr1 mk_sumT Ts;
+
 fun Inl_const LT RT = Const (@{const_name Inl}, LT --> mk_sumT (LT, RT));
-fun mk_Inl t RT = Inl_const (fastype_of t) RT $ t;
+fun mk_Inl RT t = Inl_const (fastype_of t) RT $ t;
 
 fun Inr_const LT RT = Const (@{const_name Inr}, RT --> mk_sumT (LT, RT));
-fun mk_Inr t LT = Inr_const LT (fastype_of t) $ t;
+fun mk_Inr LT t = Inr_const LT (fastype_of t) $ t;
 
 fun mk_InN [_] t 1 = t
-  | mk_InN (_ :: Ts) t 1 = mk_Inl t (mk_sumTN Ts)
-  | mk_InN (LT :: Ts) t m = mk_Inr (mk_InN Ts t (m - 1)) LT
+  | mk_InN (_ :: Ts) t 1 = mk_Inl (mk_sumTN Ts) t
+  | mk_InN (LT :: Ts) t m = mk_Inr LT (mk_InN Ts t (m - 1))
   | mk_InN Ts t _ = raise (TYPE ("mk_InN", Ts, [t]));
 
-fun mk_sum_case f g =
+fun mk_sum_case (f, g) =
   let
     val fT = fastype_of f;
     val gT = fastype_of g;
@@ -218,7 +223,9 @@ fun mk_sum_case f g =
   end;
 
 fun mk_sum_caseN [f] = f
-  | mk_sum_caseN (f :: fs) = mk_sum_case f (mk_sum_caseN fs);
+  | mk_sum_caseN (f :: fs) = mk_sum_case (f, mk_sum_caseN fs);
+
+fun dest_sumT (Type (@{type_name sum}, [T, T'])) = (T, T');
 
 fun dest_sumTN 1 T = [T]
   | dest_sumTN n (Type (@{type_name sum}, [T, T'])) = T :: dest_sumTN (n - 1) T';
@@ -247,7 +254,7 @@ fun split_conj_prems limit th =
       if i = n then th else split n (i + 1) (conjI RSN (i, th)) handle THM _ => th;
   in split limit 1 th end;
 
-fun mk_sumEN 1 = @{thm obj_sum_base}
+fun mk_sumEN 1 = @{thm one_pointE}
   | mk_sumEN 2 = @{thm sumE}
   | mk_sumEN n =
     (fold (fn i => fn thm => @{thm obj_sum_step} RSN (i, thm)) (2 upto n - 1) @{thm obj_sumE}) OF
