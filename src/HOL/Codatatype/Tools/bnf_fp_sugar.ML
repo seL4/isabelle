@@ -58,9 +58,10 @@ fun mk_uncurried2_fun f xss =
 fun tick v f = Term.lambda v (HOLogic.mk_prod (v, f $ v));
 
 fun tack z_name (c, v) f =
-  let val z = Free (z_name, mk_sumT (fastype_of v, fastype_of c)) in
-    Term.lambda z (mk_sum_case (Term.lambda v v, Term.lambda c (f $ c)) $ z)
-  end;
+  let
+    val T = fastype_of v;
+    val z = Free (z_name, mk_sumT (T, fastype_of c))
+  in Term.lambda z (mk_sum_case (mk_id T, Term.lambda c (f $ c)) $ z) end;
 
 fun cannot_merge_types () = error "Mutually recursive types must have the same type parameters";
 
