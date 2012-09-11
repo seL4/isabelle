@@ -10,8 +10,7 @@ header {* Wrapping Datatypes *}
 theory BNF_Wrap
 imports BNF_Util
 keywords
-  "wrap_data" :: thy_goal
-and
+  "wrap_data" :: thy_goal and
   "no_dests"
 uses
   "Tools/bnf_wrap_tactics.ML"

@@ -15,6 +15,7 @@ sig
       (binding list * (binding list list * (binding * term) list list)) -> local_theory ->
     (term list list * thm list * thm list list) * local_theory
   val parse_wrap_options: bool parser
+  val parse_bound_term: (binding * string) parser
 end;
 
 structure BNF_Wrap : BNF_WRAP =

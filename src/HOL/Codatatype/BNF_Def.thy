@@ -10,8 +10,7 @@ header {* Definition of Bounded Natural Functors *}
 theory BNF_Def
 imports BNF_Util
 keywords
-  "print_bnfs" :: diag
-and
+  "print_bnfs" :: diag and
   "bnf_def" :: thy_goal
 uses
   "Tools/bnf_def_tactics.ML"

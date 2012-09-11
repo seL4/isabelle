@@ -90,14 +90,15 @@ fun type_binder_of (((_, b), _), _) = b;
 fun mixfix_of ((_, mx), _) = mx;
 fun ctr_specs_of (_, ctr_specs) = ctr_specs;
 
-fun disc_of (((disc, _), _), _) = disc;
-fun ctr_of (((_, ctr), _), _) = ctr;
-fun args_of ((_, args), _) = args;
+fun disc_of ((((disc, _), _), _), _) = disc;
+fun ctr_of ((((_, ctr), _), _), _) = ctr;
+fun args_of (((_, args), _), _) = args;
+fun defaults_of ((_, ds), _) = ds;
 fun ctr_mixfix_of (_, mx) = mx;
 
-fun prepare_datatype prepare_typ lfp (no_dests, specs) fake_lthy no_defs_lthy =
+fun prepare_datatype prepare_typ prepare_term lfp (no_dests, specs) fake_lthy no_defs_lthy =
   let
-    val _ = if not lfp andalso no_dests then error "Cannot use \"no_dests\" option for codatatypes"
+    val _ = if not lfp andalso no_dests then error "Cannot define destructor-less codatatypes"
       else ();
 
     val constrained_As =
@@ -135,6 +136,8 @@ fun prepare_datatype prepare_typ lfp (no_dests, specs) fake_lthy no_defs_lthy =
 
     val sel_bindersss = map (map (map fst)) ctr_argsss;
     val fake_ctr_Tsss = map (map (map (prepare_typ fake_lthy o snd))) ctr_argsss;
+
+    val raw_sel_defaultsss = map (map defaults_of) ctr_specss;
 
     val rhs_As' = fold (fold (fold Term.add_tfreesT)) fake_ctr_Tsss [];
     val _ = (case subtract (op =) As' rhs_As' of
@@ -316,9 +319,9 @@ fun prepare_datatype prepare_typ lfp (no_dests, specs) fake_lthy no_defs_lthy =
             (mk_terms sssss hssss, (h_sum_prod_Ts, ph_Tss))))
         end;
 
-    fun pour_some_sugar_on_type (((((((((((((((((b, fpT), C), fld), unf), fp_iter), fp_rec),
+    fun pour_some_sugar_on_type ((((((((((((((((((b, fpT), C), fld), unf), fp_iter), fp_rec),
           fld_unf), unf_fld), fld_inject), n), ks), ms), ctr_binders), ctr_mixfixes), ctr_Tss),
-        disc_binders), sel_binderss) no_defs_lthy =
+        disc_binders), sel_binderss), raw_sel_defaultss) no_defs_lthy =
       let
         val unfT = domain_type (fastype_of fld);
         val ctr_prod_Ts = map HOLogic.mk_tupleT ctr_Tss;
@@ -479,8 +482,11 @@ fun prepare_datatype prepare_typ lfp (no_dests, specs) fake_lthy no_defs_lthy =
             ((ctrs, selss0, coiter, corec, v, xss, ctr_defs, discIs, sel_thmss, coiter_def,
               corec_def), lthy)
           end;
+
+        val sel_defaultss = map (map (apsnd (prepare_term lthy'))) raw_sel_defaultss;
       in
-        wrap_datatype tacss (((no_dests, ctrs0), casex0), (disc_binders, (sel_binderss, []))) lthy'
+        wrap_datatype tacss (((no_dests, ctrs0), casex0), (disc_binders, (sel_binderss,
+          sel_defaultss))) lthy'
         |> (if lfp then some_lfp_sugar else some_gfp_sugar)
       end;
 
@@ -662,7 +668,7 @@ fun prepare_datatype prepare_typ lfp (no_dests, specs) fake_lthy no_defs_lthy =
     val lthy' = lthy
       |> fold_map pour_some_sugar_on_type (bs ~~ fpTs ~~ Cs ~~ flds ~~ unfs ~~ fp_iters ~~
         fp_recs ~~ fld_unfs ~~ unf_flds ~~ fld_injects ~~ ns ~~ kss ~~ mss ~~ ctr_binderss ~~
-        ctr_mixfixess ~~ ctr_Tsss ~~ disc_binderss ~~ sel_bindersss)
+        ctr_mixfixess ~~ ctr_Tsss ~~ disc_binderss ~~ sel_bindersss ~~ raw_sel_defaultsss)
       |>> split_list11
       |> (if lfp then pour_more_sugar_on_lfps else pour_more_sugar_on_gfps);
 
@@ -682,7 +688,7 @@ fun datatype_cmd lfp (bundle as (_, specs)) lthy =
         (type_binder_of spec, length (type_args_constrained_of spec), mixfix_of spec)))) specs;
     val fake_lthy = Proof_Context.background_theory fake_thy lthy;
   in
-    prepare_datatype Syntax.read_typ lfp bundle fake_lthy lthy
+    prepare_datatype Syntax.read_typ Syntax.read_term lfp bundle fake_lthy lthy
   end;
 
 val parse_opt_binding_colon = Scan.optional (Parse.binding --| @{keyword ":"}) no_binder
@@ -691,10 +697,13 @@ val parse_ctr_arg =
   @{keyword "("} |-- parse_opt_binding_colon -- Parse.typ --| @{keyword ")"} ||
   (Parse.typ >> pair no_binder);
 
+val parse_defaults =
+  @{keyword "("} |-- @{keyword "defaults"} |-- Scan.repeat parse_bound_term --| @{keyword ")"};
+
 val parse_single_spec =
   Parse.type_args_constrained -- Parse.binding -- Parse.opt_mixfix --
   (@{keyword "="} |-- Parse.enum1 "|" (parse_opt_binding_colon -- Parse.binding --
-    Scan.repeat parse_ctr_arg -- Parse.opt_mixfix));
+    Scan.repeat parse_ctr_arg -- Scan.optional parse_defaults [] -- Parse.opt_mixfix));
 
 val parse_datatype = parse_wrap_options -- Parse.and_list1 parse_single_spec;
 
