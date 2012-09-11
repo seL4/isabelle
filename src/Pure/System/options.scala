@@ -30,12 +30,19 @@ object Options
   case object String extends Type
   case object Unknown extends Type
 
-  case class Opt(name: String, typ: Type, value: String, description: String, section: String)
+  case class Opt(name: String, typ: Type, value: String, default_value: String,
+    description: String, section: String)
   {
-    def print: String =
+    private def print(default: Boolean): String =
+    {
+      val x = if (default) default_value else value
       "option " + name + " : " + typ.print + " = " +
-        (if (typ == Options.String) quote(value) else value) +
-      (if (description == "") "" else "\n  -- " + quote(description))
+        (if (typ == Options.String) quote(x) else x) +
+        (if (description == "") "" else "\n  -- " + quote(description))
+    }
+
+    def print: String = print(false)
+    def print_default: String = print(true)
 
     def title(strip: String): String =
     {
@@ -246,7 +253,7 @@ final class Options private(
             case "string" => Options.String
             case _ => error("Unknown type for option " + quote(name) + " : " + quote(typ_name))
           }
-        val opt = Options.Opt(name, typ, value, description, section)
+        val opt = Options.Opt(name, typ, value, value, description, section)
         (new Options(options + (name -> opt), section)).check_value(name)
     }
   }
@@ -254,7 +261,9 @@ final class Options private(
   def add_permissive(name: String, value: String): Options =
   {
     if (options.isDefinedAt(name)) this + (name, value)
-    else new Options(options + (name -> Options.Opt(name, Options.Unknown, value, "", "")), section)
+    else
+      new Options(
+        options + (name -> Options.Opt(name, Options.Unknown, value, value, "", "")), section)
   }
 
   def + (name: String, value: String): Options =

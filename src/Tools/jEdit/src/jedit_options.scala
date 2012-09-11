@@ -61,7 +61,7 @@ class JEdit_Options extends Options_Variable
         text_area
       }
     component.load()
-    component.tooltip = Isabelle.tooltip(opt.print)
+    component.tooltip = Isabelle.tooltip(opt.print_default)
     component
   }
 
