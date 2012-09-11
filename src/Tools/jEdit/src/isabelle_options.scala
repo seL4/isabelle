@@ -22,8 +22,15 @@ class Isabelle_Options extends AbstractOptionPane("isabelle")
 
   relevant_options.foreach(Isabelle.options.value.check_name _)
 
-  private val components =
-    Isabelle.options.make_components(List(Isabelle_Logic.logic_selector(false)), relevant_options)
+  private val predefined =
+    Isabelle_Logic.logic_selector(false) ::
+      (for {
+        (name, opt) <- Isabelle.options.value.options.toList
+        // FIXME avoid hard-wired stuff
+        if (name.startsWith("color_") && opt.section == "Rendering of Document Content")
+      } yield Isabelle.options.make_color_component(opt))
+
+  private val components = Isabelle.options.make_components(predefined, relevant_options)
 
   override def _init()
   {

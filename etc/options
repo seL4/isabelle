@@ -1,6 +1,6 @@
 (* :mode=isabelle-options: *)
 
-section {* Document preparation *}
+section "Document Preparation"
 
 option browser_info : bool = false
   -- "generate theory browser information"
@@ -47,7 +47,7 @@ option print_mode : string = ""
   -- "additional print modes for prover output (separated by commas)"
 
 
-section {* Parallel checking *}
+section "Parallel Checking"
 
 option threads : int = 0
   -- "maximum number of worker threads for prover process (0 = hardware max.)"
@@ -59,7 +59,7 @@ option parallel_proofs_threshold : int = 100
   -- "threshold for sub-proof parallelization"
 
 
-section {* Detail of proof recording *}
+section "Detail of Proof Recording"
 
 option proofs : int = 1
   -- "level of detail for proof objects: 0, 1, 2"
@@ -69,7 +69,7 @@ option skip_proofs : bool = false
   -- "skip over proofs"
 
 
-section {* Global session parameters *}
+section "Global Session Parameters"
 
 option condition : string = ""
   -- "required environment variables for subsequent theories (separated by commas)"
@@ -81,7 +81,7 @@ option timeout : real = 0
   -- "timeout for session build job (seconds > 0)"
 
 
-section {* Editor reactivity *}
+section "Editor Reactivity"
 
 option editor_load_delay : real = 0.5
   -- "delay for file load operations (new buffers etc.)"

@@ -13,7 +13,6 @@ import java.awt.Color
 import javax.swing.Icon
 import java.io.{File => JFile}
 
-import org.lobobrowser.util.gui.ColorFactory
 import org.gjt.sp.jedit.syntax.{Token => JEditToken}
 
 import scala.collection.immutable.SortedMap
@@ -23,30 +22,7 @@ object Isabelle_Rendering
 {
   /* physical rendering */
 
-  // see http://www.w3schools.com/cssref/css_colornames.asp
-
-  def get_color(s: String): Color = ColorFactory.getInstance.getColor(s)
-
-  val outdated_color = new Color(238, 227, 227)
-  val unprocessed_color = new Color(255, 160, 160)
-  val unprocessed1_color = new Color(255, 160, 160, 50)
-  val running_color = new Color(97, 0, 97)
-  val running1_color = new Color(97, 0, 97, 100)
-
-  val light_color = new Color(240, 240, 240)
-  val writeln_color = new Color(192, 192, 192)
-  val warning_color = new Color(255, 140, 0)
-  val error_color = new Color(178, 34, 34)
-  val error1_color = new Color(178, 34, 34, 50)
-  val bad_color = new Color(255, 106, 106, 100)
-  val hilite_color = new Color(255, 204, 102, 100)
-
-  val quoted_color = new Color(139, 139, 139, 25)
-  val subexp_color = new Color(80, 80, 80, 50)
-  val hyperlink_color = Color.BLACK
-
-  val keyword1_color = get_color("#006699")
-  val keyword2_color = get_color("#009966")
+  def color_value(s: String): Color = Color_Value(Isabelle.options.value.string(s))
 
   private val writeln_pri = 1
   private val warning_pri = 2
@@ -76,11 +52,11 @@ object Isabelle_Rendering
           ((Protocol.Status.init, 0) /: results) {
             case ((s1, p1), Text.Info(_, (s2, p2))) => (s1 + s2, p1 max p2) }
 
-        if (pri == warning_pri) Some(warning_color)
-        else if (pri == error_pri) Some(error_color)
-        else if (status.is_unprocessed) Some(unprocessed_color)
-        else if (status.is_running) Some(running_color)
-        else if (status.is_failed) Some(error_color)
+        if (pri == warning_pri) Some(color_value("color_warning"))
+        else if (pri == error_pri) Some(color_value("color_error"))
+        else if (status.is_unprocessed) Some(color_value("color_unprocessed"))
+        else if (status.is_running) Some(color_value("color_running"))
+        else if (status.is_failed) Some(color_value("color_error"))
         else None
       }
     }
@@ -101,7 +77,7 @@ object Isabelle_Rendering
     snapshot.select_markup(range, Some(subexp_include),
         {
           case Text.Info(info_range, XML.Elem(Markup(name, _), _)) if subexp_include(name) =>
-            Text.Info(snapshot.convert(info_range), subexp_color)
+            Text.Info(snapshot.convert(info_range), color_value("color_subexp"))
         }) match { case Text.Info(_, info) #:: _ => Some(info) case _ => None }
   }
 
@@ -250,13 +226,13 @@ object Isabelle_Rendering
   }
 
 
-  private val squiggly_colors = Map(
-    writeln_pri -> writeln_color,
-    warning_pri -> warning_color,
-    error_pri -> error_color)
-
   def squiggly_underline(snapshot: Document.Snapshot, range: Text.Range): Stream[Text.Info[Color]] =
   {
+    val squiggly_colors = Map(
+      writeln_pri -> color_value("color_writeln"),
+      warning_pri -> color_value("color_warning"),
+      error_pri -> color_value("color_error"))
+
     val results =
       snapshot.cumulate_markup[Int](range, 0,
         Some(Set(Isabelle_Markup.WRITELN, Isabelle_Markup.WARNING, Isabelle_Markup.ERROR)),
@@ -278,7 +254,7 @@ object Isabelle_Rendering
 
   def background1(snapshot: Document.Snapshot, range: Text.Range): Stream[Text.Info[Color]] =
   {
-    if (snapshot.is_outdated) Stream(Text.Info(range, outdated_color))
+    if (snapshot.is_outdated) Stream(Text.Info(range, color_value("color_outdated")))
     else
       for {
         Text.Info(r, result) <-
@@ -290,15 +266,15 @@ object Isabelle_Rendering
               if (Protocol.command_status_markup(markup.name)) =>
                 (Some(Protocol.command_status(status, markup)), color)
               case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.BAD, _), _))) =>
-                (None, Some(bad_color))
+                (None, Some(color_value("color_bad")))
               case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.HILITE, _), _))) =>
-                (None, Some(hilite_color))
+                (None, Some(color_value("color_hilite")))
             })
         color <-
           (result match {
             case (Some(status), opt_color) =>
-              if (status.is_unprocessed) Some(unprocessed1_color)
-              else if (status.is_running) Some(running1_color)
+              if (status.is_unprocessed) Some(color_value("color_unprocessed1"))
+              else if (status.is_running) Some(color_value("color_running1"))
               else opt_color
             case (_, opt_color) => opt_color
           })
@@ -310,7 +286,8 @@ object Isabelle_Rendering
     snapshot.select_markup(range,
       Some(Set(Isabelle_Markup.TOKEN_RANGE)),
       {
-        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.TOKEN_RANGE, _), _)) => light_color
+        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.TOKEN_RANGE, _), _)) =>
+          color_value("color_light")
       })
 
 
@@ -318,45 +295,49 @@ object Isabelle_Rendering
     snapshot.select_markup(range,
       Some(Set(Isabelle_Markup.STRING, Isabelle_Markup.ALTSTRING, Isabelle_Markup.VERBATIM)),
       {
-        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.STRING, _), _)) => quoted_color
-        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.ALTSTRING, _), _)) => quoted_color
-        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.VERBATIM, _), _)) => quoted_color
+        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.STRING, _), _)) =>
+          color_value("color_quoted")
+        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.ALTSTRING, _), _)) =>
+          color_value("color_quoted")
+        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.VERBATIM, _), _)) =>
+          color_value("color_quoted")
       })
 
 
-  private val text_colors: Map[String, Color] =
-    Map(
-      Isabelle_Markup.STRING -> get_color("black"),
-      Isabelle_Markup.ALTSTRING -> get_color("black"),
-      Isabelle_Markup.VERBATIM -> get_color("black"),
-      Isabelle_Markup.LITERAL -> keyword1_color,
-      Isabelle_Markup.DELIMITER -> get_color("black"),
-      Isabelle_Markup.TFREE -> get_color("#A020F0"),
-      Isabelle_Markup.TVAR -> get_color("#A020F0"),
-      Isabelle_Markup.FREE -> get_color("blue"),
-      Isabelle_Markup.SKOLEM -> get_color("#D2691E"),
-      Isabelle_Markup.BOUND -> get_color("green"),
-      Isabelle_Markup.VAR -> get_color("#00009B"),
-      Isabelle_Markup.INNER_STRING -> get_color("#D2691E"),
-      Isabelle_Markup.INNER_COMMENT -> get_color("#8B0000"),
-      Isabelle_Markup.DYNAMIC_FACT -> get_color("#7BA428"),
-      Isabelle_Markup.ML_KEYWORD -> keyword1_color,
-      Isabelle_Markup.ML_DELIMITER -> get_color("black"),
-      Isabelle_Markup.ML_NUMERAL -> get_color("red"),
-      Isabelle_Markup.ML_CHAR -> get_color("#D2691E"),
-      Isabelle_Markup.ML_STRING -> get_color("#D2691E"),
-      Isabelle_Markup.ML_COMMENT -> get_color("#8B0000"),
-      Isabelle_Markup.ANTIQ -> get_color("blue"))
-
-  private val text_color_elements = Set.empty[String] ++ text_colors.keys
-
   def text_color(snapshot: Document.Snapshot, range: Text.Range, color: Color)
       : Stream[Text.Info[Color]] =
+  {
+    val text_colors: Map[String, Color] = Map(
+      Isabelle_Markup.STRING -> Color.BLACK,
+      Isabelle_Markup.ALTSTRING -> Color.BLACK,
+      Isabelle_Markup.VERBATIM -> Color.BLACK,
+      Isabelle_Markup.LITERAL -> color_value("color_keyword1"),
+      Isabelle_Markup.DELIMITER -> Color.BLACK,
+      Isabelle_Markup.TFREE -> color_value("color_variable_type"),
+      Isabelle_Markup.TVAR -> color_value("color_variable_type"),
+      Isabelle_Markup.FREE -> color_value("color_variable_free"),
+      Isabelle_Markup.SKOLEM -> color_value("color_variable_skolem"),
+      Isabelle_Markup.BOUND -> color_value("color_variable_bound"),
+      Isabelle_Markup.VAR -> color_value("color_variable_schematic"),
+      Isabelle_Markup.INNER_STRING -> color_value("color_inner_quoted"),
+      Isabelle_Markup.INNER_COMMENT -> color_value("color_inner_comment"),
+      Isabelle_Markup.DYNAMIC_FACT -> color_value("color_dynamic"),
+      Isabelle_Markup.ML_KEYWORD -> color_value("color_keyword1"),
+      Isabelle_Markup.ML_DELIMITER -> Color.BLACK,
+      Isabelle_Markup.ML_NUMERAL -> color_value("color_inner_numeral"),
+      Isabelle_Markup.ML_CHAR -> color_value("color_inner_quoted"),
+      Isabelle_Markup.ML_STRING -> color_value("color_inner_quoted"),
+      Isabelle_Markup.ML_COMMENT -> color_value("color_inner_comment"),
+      Isabelle_Markup.ANTIQ -> color_value("color_antiquotation"))
+
+    val text_color_elements = Set.empty[String] ++ text_colors.keys
+
     snapshot.cumulate_markup(range, color, Some(text_color_elements),
       {
         case (_, Text.Info(_, XML.Elem(Markup(m, _), _)))
         if text_colors.isDefinedAt(m) => text_colors(m)
       })
+  }
 
 
   /* token markup -- text styles */

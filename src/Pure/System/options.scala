@@ -85,7 +85,7 @@ object Options
     val option_entry: Parser[Options => Options] =
     {
       command(SECTION) ~! text ^^
-        { case _ ~ a => (options: Options) => options.set_section(a.trim) } |
+        { case _ ~ a => (options: Options) => options.set_section(a) } |
       command(OPTION) ~! (option_name ~ keyword(":") ~ option_type ~
       keyword("=") ~ option_value ~ (keyword("--") ~! text ^^ { case _ ~ x => x } | success(""))) ^^
         { case _ ~ (a ~ _ ~ b ~ _ ~ c ~ d) => (options: Options) => options.declare(a, b, c, d) }
@@ -150,7 +150,7 @@ object Options
 
 
 final class Options private(
-  protected val options: Map[String, Options.Opt] = Map.empty,
+  val options: Map[String, Options.Opt] = Map.empty,
   val section: String = "")
 {
   override def toString: String = options.iterator.mkString("Options (", ",", ")")

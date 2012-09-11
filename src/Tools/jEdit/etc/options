@@ -17,3 +17,36 @@ option jedit_tooltip_margin : int = 60
 
 option jedit_tooltip_dismiss_delay : real = 8.0
   -- "global delay for Swing tooltips"
+
+
+section "Rendering of Document Content"
+
+option color_outdated : string = "EEE3E3FF"
+option color_unprocessed : string = "FFA0A0FF"
+option color_unprocessed1 : string = "FFA0A032"
+option color_running : string = "610061FF"
+option color_running1 : string = "61006164"
+option color_light : string = "F0F0F0FF"
+option color_writeln : string = "C0C0C0FF"
+option color_warning : string = "FF8C00FF"
+option color_error : string = "B22222FF"
+option color_error1 : string = "B2222232"
+option color_bad : string = "FF6A6A64"
+option color_hilite : string = "FFCC6664"
+option color_quoted : string = "8B8B8B19"
+option color_subexp : string = "50505032"
+option color_hyperlink : string = "000000FF"
+option color_keyword1 : string = "006699FF"
+option color_keyword2 : string = "009966FF"
+
+option color_variable_free : string = "0000FFFF"
+option color_variable_type : string = "A020F0FF"
+option color_variable_skolem : string = "D2691EFF"
+option color_variable_bound : string = "008000FF"
+option color_variable_schematic : string = "00009BFF"
+option color_inner_quoted : string = "D2691EFF"
+option color_inner_comment : string = "8B0000FF"
+option color_inner_numeral : string = "FF0000FF"
+option color_antiquotation : string = "0000FFFF"
+option color_dynamic : string = "7BA428FF"
+

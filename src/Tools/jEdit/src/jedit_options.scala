@@ -14,6 +14,8 @@ import javax.swing.text.JTextComponent
 
 import scala.swing.{Component, CheckBox, TextArea}
 
+import org.gjt.sp.jedit.gui.ColorWellButton
+
 
 trait Option_Component extends Component
 {
@@ -24,6 +26,25 @@ trait Option_Component extends Component
 
 class JEdit_Options extends Options_Variable
 {
+  def make_color_component(opt: Options.Opt): Option_Component =
+  {
+    Swing_Thread.require()
+
+    val opt_name = opt.name
+    val opt_title = opt.title("jedit")
+
+    val button = new ColorWellButton(Color_Value(opt.value))
+    val component = new Component with Option_Component {
+      override lazy val peer = button
+      name = opt_name
+      val title = opt_title
+      def load = button.setSelectedColor(Color_Value(string(opt_name)))
+      def save = string(opt_name) = Color_Value.print(button.getSelectedColor)
+    }
+    component.tooltip = Isabelle.tooltip(opt.print_default)
+    component
+  }
+
   def make_component(opt: Options.Opt): Option_Component =
   {
     Swing_Thread.require()

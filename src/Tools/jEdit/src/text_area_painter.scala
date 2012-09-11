@@ -312,7 +312,7 @@ class Text_Area_Painter(doc_view: Document_View)
               Text.Info(range, _) <- info.try_restrict(line_range)
               r <- gfx_range(range)
             } {
-              gfx.setColor(Isabelle_Rendering.hyperlink_color)
+              gfx.setColor(Isabelle_Rendering.color_value("color_hyperlink"))
               gfx.drawRect(r.x, y + i * line_height, r.length - 1, line_height - 1)
             }
           }
