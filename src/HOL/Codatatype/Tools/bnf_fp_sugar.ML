@@ -682,10 +682,10 @@ fun datatype_cmd info specs lthy =
     prepare_datatype Syntax.read_typ info specs fake_lthy lthy
   end;
 
-val parse_opt_binding_colon = Scan.optional (Parse.binding --| Parse.$$$ ":") no_binder
+val parse_opt_binding_colon = Scan.optional (Parse.binding --| @{keyword ":"}) no_binder
 
 val parse_ctr_arg =
-  Parse.$$$ "(" |-- parse_opt_binding_colon -- Parse.typ --| Parse.$$$ ")" ||
+  @{keyword "("} |-- parse_opt_binding_colon -- Parse.typ --| @{keyword ")"} ||
   (Parse.typ >> pair no_binder);
 
 val parse_single_spec =

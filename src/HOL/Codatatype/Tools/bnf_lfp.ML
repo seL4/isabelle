@@ -1821,9 +1821,9 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
   end;
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "data_raw"} "least fixed points for BNF equations"
+  Outer_Syntax.local_theory @{command_spec "data_raw"} "least fixed points of BNF equations"
     (Parse.and_list1
-      ((Parse.binding --| Parse.$$$ ":") -- (Parse.typ --| Parse.$$$ "=" -- Parse.typ)) >>
+      ((Parse.binding --| @{keyword ":"}) -- (Parse.typ --| @{keyword "="} -- Parse.typ)) >>
       (snd oo fp_bnf_cmd bnf_lfp o apsnd split_list o split_list));
 
 end;

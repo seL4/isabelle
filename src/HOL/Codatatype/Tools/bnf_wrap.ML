@@ -513,8 +513,8 @@ fun wrap_datatype tacss = (fn (goalss, after_qed, lthy) =>
   |> (fn thms => after_qed thms lthy)) oo
   prepare_wrap_datatype (K I) (* FIXME? (singleton o Type_Infer_Context.infer_types) *)
 
-val parse_bindings = Parse.$$$ "[" |-- Parse.list Parse.binding --| Parse.$$$ "]";
-val parse_bindingss = Parse.$$$ "[" |-- Parse.list parse_bindings --| Parse.$$$ "]";
+val parse_bindings = @{keyword "["} |-- Parse.list Parse.binding --| @{keyword "]"};
+val parse_bindingss = @{keyword "["} |-- Parse.list parse_bindings --| @{keyword "]"};
 
 val wrap_datatype_cmd = (fn (goalss, after_qed, lthy) =>
   Proof.theorem NONE (snd oo after_qed) (map (map (rpair [])) goalss) lthy) oo
@@ -522,7 +522,7 @@ val wrap_datatype_cmd = (fn (goalss, after_qed, lthy) =>
 
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "wrap_data"} "wraps an existing datatype"
-    (((Parse.$$$ "[" |-- Parse.list Parse.term --| Parse.$$$ "]") -- Parse.term --
+    (((@{keyword "["} |-- Parse.list Parse.term --| @{keyword "]"}) -- Parse.term --
       Scan.optional (parse_bindings -- Scan.optional parse_bindingss []) ([], []))
      >> wrap_datatype_cmd);
 
