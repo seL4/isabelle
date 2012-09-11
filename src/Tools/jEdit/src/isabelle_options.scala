@@ -16,8 +16,10 @@ class Isabelle_Options extends AbstractOptionPane("isabelle")
 {
   // FIXME avoid hard-wired stuff
   private val relevant_options =
-    Set("jedit_logic", "jedit_auto_start", "jedit_relative_font_size", "jedit_tooltip_font_size",
+    Set("jedit_logic", "jedit_auto_start", "jedit_font_scale", "jedit_tooltip_font_size",
       "jedit_tooltip_margin", "jedit_tooltip_dismiss_delay", "jedit_load_delay")
+
+  relevant_options.foreach(Isabelle.options.value.check_name _)
 
   private val components =
     Isabelle.options.make_components(List(Isabelle_Logic.logic_selector(false)), relevant_options)

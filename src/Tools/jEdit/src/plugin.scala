@@ -58,8 +58,7 @@ object Isabelle
   def font_family(): String = jEdit.getProperty("view.font")
 
   def font_size(): Float =
-    (jEdit.getIntegerProperty("view.fontsize", 16) *
-      options.int("jedit_relative_font_size")).toFloat / 100
+    (jEdit.getIntegerProperty("view.fontsize", 16) * options.real("jedit_font_scale")).toFloat
 
 
   /* tooltip markup */
