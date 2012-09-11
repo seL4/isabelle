@@ -185,9 +185,9 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
           NONE => nth exist_xs_v_eq_ctrs (k - 1)
         | SOME b => get_disc b (k - 1) $ v);
 
-    val (discs, selss, disc_defs, sel_defs, sel_defss, lthy') =
+    val (all_sels_distinct, discs, selss, disc_defs, sel_defs, sel_defss, lthy') =
       if no_dests then
-        ([], [], [], [], [], no_defs_lthy)
+        (true, [], [], [], [], [], no_defs_lthy)
       else
         let
           fun disc_free b = Free (Binding.name_of b, fpT --> HOLogic.boolT);
@@ -227,8 +227,19 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
                 Term.list_comb (mk_case As T, mk_sel_case_args b proto_sels T) $ v)
             end;
 
-          val proto_selss = map3 (fn k => fn xs => map (fn x => (k, (xs, x)))) ks xss xss;
-          val sel_bundles = AList.group Binding.eq_name (flat sel_binderss ~~ flat proto_selss);
+          val sel_binders = flat sel_binderss;
+          val uniq_sel_binders = distinct Binding.eq_name sel_binders;
+          val all_sels_distinct = (length uniq_sel_binders = length sel_binders);
+
+          val sel_binder_index =
+            if all_sels_distinct then 1 upto length sel_binders
+            else map (fn b => find_index (curry Binding.eq_name b) uniq_sel_binders) sel_binders;
+
+          val proto_sels = flat (map3 (fn k => fn xs => map (fn x => (k, (xs, x)))) ks xss xss);
+          val sel_bundles =
+            AList.group (op =) (sel_binder_index ~~ proto_sels)
+            |> sort (int_ord o pairself fst)
+            |> map snd |> curry (op ~~) uniq_sel_binders;
           val sel_binders = map fst sel_bundles;
 
           fun unflat_selss xs = unflat_lookup Binding.eq_name sel_binders xs sel_binderss;
@@ -264,7 +275,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
           val discs = map (mk_disc_or_sel As) discs0;
           val selss = map (map (mk_disc_or_sel As)) selss0;
         in
-          (discs, selss, disc_defs, sel_defs, sel_defss, lthy')
+          (all_sels_distinct, discs, selss, disc_defs, sel_defs, sel_defss, lthy')
         end;
 
     fun mk_imp_p Qs = Logic.list_implies (Qs, HOLogic.mk_Trueprop p);
@@ -343,11 +354,11 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
               val sel_thmss = map2 (map o make_sel_thm) case_thms sel_defss;
 
               val all_sel_thms =
-                if forall null sel_defaultss then
-                  flat (transpose sel_thmss)
-                else
-                  map_product (fn s => fn c => make_sel_thm c s) sel_defs case_thms
-                  |> filter_out has_undefined_rhs;
+                (if all_sels_distinct andalso forall null sel_defaultss then
+                   flat sel_thmss
+                 else
+                   map_product (fn s => fn c => make_sel_thm c s) sel_defs case_thms)
+                |> filter_out has_undefined_rhs;
 
               fun mk_unique_disc_def () =
                 let
