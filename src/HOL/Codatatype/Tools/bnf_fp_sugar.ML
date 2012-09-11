@@ -367,7 +367,7 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
 
         val tacss = [exhaust_tac] :: inject_tacss @ half_distinct_tacss @ [case_tacs];
 
-        fun some_lfp_sugar ((selss, discIs, sel_thmss), no_defs_lthy) =
+        fun some_lfp_sugar ((selss0, discIs, sel_thmss), no_defs_lthy) =
           let
             val fpT_to_C = fpT --> C;
 
@@ -402,11 +402,11 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
 
             val [iter, recx] = map (mk_iter_like As Cs o Morphism.term phi) csts;
           in
-            ((ctrs, selss, iter, recx, v, xss, ctr_defs, discIs, sel_thmss, iter_def, rec_def),
+            ((ctrs, selss0, iter, recx, v, xss, ctr_defs, discIs, sel_thmss, iter_def, rec_def),
              lthy)
           end;
 
-        fun some_gfp_sugar ((selss, discIs, sel_thmss), no_defs_lthy) =
+        fun some_gfp_sugar ((selss0, discIs, sel_thmss), no_defs_lthy) =
           let
             val B_to_fpT = C --> fpT;
 
@@ -445,7 +445,7 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
 
             val [coiter, corec] = map (mk_iter_like As Cs o Morphism.term phi) csts;
           in
-            ((ctrs, selss, coiter, corec, v, xss, ctr_defs, discIs, sel_thmss, coiter_def,
+            ((ctrs, selss0, coiter, corec, v, xss, ctr_defs, discIs, sel_thmss, coiter_def,
               corec_def), lthy)
           end;
       in
@@ -594,21 +594,22 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
         val disc_coiter_thmss = map2 mk_disc_coiter_like_thms coiter_thmss discIss;
         val disc_corec_thmss = map2 mk_disc_coiter_like_thms corec_thmss discIss;
 
-        fun mk_sel_coiter_like_thm coiter_like_thm sel sel_thm =
+        fun mk_sel_coiter_like_thm coiter_like_thm sel0 sel_thm =
           let
-            val (domT, ranT) = dest_funT (fastype_of sel);
+            val (domT, ranT) = dest_funT (fastype_of sel0);
             val arg_cong' =
               Drule.instantiate' (map (SOME o certifyT lthy) [domT, ranT])
-                [NONE, NONE, SOME (certify lthy sel)] arg_cong;
+                [NONE, NONE, SOME (certify lthy sel0)] arg_cong
+              |> Thm.varifyT_global;
             val sel_thm' = sel_thm RSN (2, trans);
           in
-            (coiter_like_thm RS arg_cong') RS sel_thm'
+            coiter_like_thm RS arg_cong' RS sel_thm'
           end;
 
         val sel_coiter_thmsss =
           map3 (map3 (map2 o mk_sel_coiter_like_thm)) coiter_thmss selsss sel_thmsss;
         val sel_corec_thmsss =
-          map3 (map3 (map2 o mk_sel_coiter_like_thm)) coiter_thmss selsss sel_thmsss;
+          map3 (map3 (map2 o mk_sel_coiter_like_thm)) corec_thmss selsss sel_thmsss;
 
         val notes =
           [(coitersN, coiter_thmss),
