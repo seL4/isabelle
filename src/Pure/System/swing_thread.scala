@@ -83,7 +83,7 @@ object Swing_Thread
       {
         require()
         if (timer.isRunning) {
-          timer.setInitialDelay(timer.getDelay max alt_time.ms.toInt)
+          timer.setInitialDelay(timer.getInitialDelay max alt_time.ms.toInt)
           timer.restart()
         }
       }
