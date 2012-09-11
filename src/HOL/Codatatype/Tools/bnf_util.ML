@@ -47,6 +47,7 @@ sig
   val mk_fresh_names: Proof.context -> int -> string -> string list * Proof.context
   val mk_TFrees: int -> Proof.context -> typ list * Proof.context
   val mk_TFreess: int list -> Proof.context -> typ list list * Proof.context
+  val mk_TFrees': sort list -> Proof.context -> typ list * Proof.context
   val mk_Frees: string -> typ list -> Proof.context -> term list * Proof.context
   val mk_Freess: string -> typ list list -> Proof.context -> term list list * Proof.context
   val mk_Freesss: string -> typ list list list -> Proof.context ->
@@ -282,9 +283,10 @@ fun CONJ_WRAP' gen_tac = CONJ_WRAP_GEN' (rtac conjI) gen_tac;
 
 (** Fresh variables **)
 
-fun mk_TFrees n = apfst (map TFree) o Variable.invent_types (replicate n (HOLogic.typeS));
-fun mk_TFreess ns = apfst (map (map TFree)) o
-  fold_map Variable.invent_types (map (fn n => replicate n (HOLogic.typeS)) ns);
+val mk_TFrees' = apfst (map TFree) oo Variable.invent_types;
+
+fun mk_TFrees n = mk_TFrees' (replicate n HOLogic.typeS);
+val mk_TFreess = fold_map mk_TFrees;
 
 fun mk_names n x = if n = 1 then [x] else map (fn i => x ^ string_of_int i) (1 upto n);
 

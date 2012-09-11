@@ -96,7 +96,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
 
     val (As, B) =
       no_defs_lthy
-      |> mk_TFrees (length As0)
+      |> mk_TFrees' (map Type.sort_of_atyp As0)
       ||> the_single o fst o mk_TFrees 1;
 
     val fpT = Type (fpT_name, As);
