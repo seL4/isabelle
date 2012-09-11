@@ -11,8 +11,9 @@ sig
   val mk_half_pairss: 'a list -> ('a * 'a) list list
   val mk_ctr: typ list -> term -> term
   val wrap_datatype: ({prems: thm list, context: Proof.context} -> tactic) list list ->
-    (term list * term) * (binding list * binding list list) -> local_theory ->
+    ((bool * term list) * term) * (binding list * binding list list) -> local_theory ->
     (term list list * thm list * thm list list) * local_theory
+  val parse_wrap_options: bool parser
 end;
 
 structure BNF_Wrap : BNF_WRAP =
@@ -71,8 +72,8 @@ fun name_of_ctr c =
   | Free (s, _) => s
   | _ => error "Cannot extract name of constructor";
 
-fun prepare_wrap_datatype prep_term ((raw_ctrs, raw_case), (raw_disc_binders, raw_sel_binderss))
-  no_defs_lthy =
+fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
+    (raw_disc_binders, raw_sel_binderss)) no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
     (* TODO: attributes (simp, case_names, etc.) *)
@@ -173,81 +174,89 @@ fun prepare_wrap_datatype prep_term ((raw_ctrs, raw_case), (raw_disc_binders, ra
     val exist_xs_v_eq_ctrs =
       map2 (fn xctr => fn xs => list_exists_free xs (HOLogic.mk_eq (v, xctr))) xctrs xss;
 
-    fun disc_free b = Free (Binding.name_of b, fpT --> HOLogic.boolT);
+    val unique_disc_no_def = TrueI; (*arbitrary marker*)
+    val alternate_disc_no_def = FalseE; (*arbitrary marker*)
 
-    fun disc_spec b exist_xs_v_eq_ctr = mk_Trueprop_eq (disc_free b $ v, exist_xs_v_eq_ctr);
-
-    fun alternate_disc_lhs k =
+    fun alternate_disc_lhs get_disc k =
       HOLogic.mk_not
         (case nth disc_binders (k - 1) of
           NONE => nth exist_xs_v_eq_ctrs (k - 1)
-        | SOME b => disc_free b $ v);
+        | SOME b => get_disc b (k - 1) $ v);
 
-    fun alternate_disc k =
-      if n = 2 then Term.lambda v (alternate_disc_lhs (3 - k)) else error "Cannot use \"*\" here"
+    val (discs, selss, disc_defs, sel_defss, lthy') =
+      if no_dests then
+        ([], [], [], [], no_defs_lthy)
+      else
+        let
+          fun disc_free b = Free (Binding.name_of b, fpT --> HOLogic.boolT);
 
-    fun mk_sel_case_args proto_sels T =
-      map2 (fn Ts => fn i =>
-        case AList.lookup (op =) proto_sels i of
-          NONE => mk_undef T Ts
-        | SOME (xs, x) => fold_rev Term.lambda xs x) ctr_Tss ks;
+          fun disc_spec b exist_xs_v_eq_ctr = mk_Trueprop_eq (disc_free b $ v, exist_xs_v_eq_ctr);
 
-    fun sel_spec b proto_sels =
-      let
-        val _ =
-          (case duplicates (op =) (map fst proto_sels) of
-             k :: _ => error ("Duplicate selector name " ^ quote (Binding.name_of b) ^
-               " for constructor " ^ quote (Syntax.string_of_term no_defs_lthy (nth ctrs (k - 1))))
-           | [] => ())
-        val T =
-          (case distinct (op =) (map (fastype_of o snd o snd) proto_sels) of
-            [T] => T
-          | T :: T' :: _ => error ("Inconsistent range type for selector " ^
-              quote (Binding.name_of b) ^ ": " ^ quote (Syntax.string_of_typ no_defs_lthy T) ^
-              " vs. " ^ quote (Syntax.string_of_typ no_defs_lthy T')));
-      in
-        mk_Trueprop_eq (Free (Binding.name_of b, fpT --> T) $ v,
-          Term.list_comb (mk_case As T, mk_sel_case_args proto_sels T) $ v)
-      end;
+          fun alternate_disc k = Term.lambda v (alternate_disc_lhs (K o disc_free) (3 - k));
 
-    val missing_unique_disc_def = TrueI; (*arbitrary marker*)
-    val missing_alternate_disc_def = FalseE; (*arbitrary marker*)
+          fun mk_sel_case_args proto_sels T =
+            map2 (fn Ts => fn i =>
+              case AList.lookup (op =) proto_sels i of
+                NONE => mk_undef T Ts
+              | SOME (xs, x) => fold_rev Term.lambda xs x) ctr_Tss ks;
 
-    val proto_selss = map3 (fn k => fn xs => map (fn x => (k, (xs, x)))) ks xss xss;
-    val sel_bundles = AList.group Binding.eq_name (flat sel_binderss ~~ flat proto_selss);
-    val sel_binders = map fst sel_bundles;
+          fun sel_spec b proto_sels =
+            let
+              val _ =
+                (case duplicates (op =) (map fst proto_sels) of
+                   k :: _ => error ("Duplicate selector name " ^ quote (Binding.name_of b) ^
+                     " for constructor " ^
+                     quote (Syntax.string_of_term no_defs_lthy (nth ctrs (k - 1))))
+                 | [] => ())
+              val T =
+                (case distinct (op =) (map (fastype_of o snd o snd) proto_sels) of
+                  [T] => T
+                | T :: T' :: _ => error ("Inconsistent range type for selector " ^
+                    quote (Binding.name_of b) ^ ": " ^ quote (Syntax.string_of_typ no_defs_lthy T) ^
+                    " vs. " ^ quote (Syntax.string_of_typ no_defs_lthy T')));
+            in
+              mk_Trueprop_eq (Free (Binding.name_of b, fpT --> T) $ v,
+                Term.list_comb (mk_case As T, mk_sel_case_args proto_sels T) $ v)
+            end;
 
-    fun unflat_selss xs = unflat_lookup Binding.eq_name sel_binders xs sel_binderss;
+          val proto_selss = map3 (fn k => fn xs => map (fn x => (k, (xs, x)))) ks xss xss;
+          val sel_bundles = AList.group Binding.eq_name (flat sel_binderss ~~ flat proto_selss);
+          val sel_binders = map fst sel_bundles;
 
-    val (((raw_discs, raw_disc_defs), (raw_sels, raw_sel_defs)), (lthy', lthy)) =
-      no_defs_lthy
-      |> apfst split_list o fold_map4 (fn k => fn m => fn exist_xs_v_eq_ctr =>
-        fn NONE =>
-           if n = 1 then pair (Term.lambda v (mk_v_eq_v ()), missing_unique_disc_def)
-           else if m = 0 then pair (Term.lambda v exist_xs_v_eq_ctr, refl)
-           else pair (alternate_disc k, missing_alternate_disc_def)
-         | SOME b => Specification.definition (SOME (b, NONE, NoSyn),
-             ((Thm.def_binding b, []), disc_spec b exist_xs_v_eq_ctr)) #>> apsnd snd)
-        ks ms exist_xs_v_eq_ctrs disc_binders
-      ||>> apfst split_list o fold_map (fn (b, proto_sels) =>
-        Specification.definition (SOME (b, NONE, NoSyn),
-          ((Thm.def_binding b, []), sel_spec b proto_sels)) #>> apsnd snd) sel_bundles
-      ||> `Local_Theory.restore;
+          fun unflat_selss xs = unflat_lookup Binding.eq_name sel_binders xs sel_binderss;
 
-    (*transforms defined frees into consts (and more)*)
-    val phi = Proof_Context.export_morphism lthy lthy';
+          val (((raw_discs, raw_disc_defs), (raw_sels, raw_sel_defs)), (lthy', lthy)) =
+            no_defs_lthy
+            |> apfst split_list o fold_map4 (fn k => fn m => fn exist_xs_v_eq_ctr =>
+              fn NONE =>
+                 if n = 1 then pair (Term.lambda v (mk_v_eq_v ()), unique_disc_no_def)
+                 else if m = 0 then pair (Term.lambda v exist_xs_v_eq_ctr, refl)
+                 else pair (alternate_disc k, alternate_disc_no_def)
+               | SOME b => Specification.definition (SOME (b, NONE, NoSyn),
+                   ((Thm.def_binding b, []), disc_spec b exist_xs_v_eq_ctr)) #>> apsnd snd)
+              ks ms exist_xs_v_eq_ctrs disc_binders
+            ||>> apfst split_list o fold_map (fn (b, proto_sels) =>
+              Specification.definition (SOME (b, NONE, NoSyn),
+                ((Thm.def_binding b, []), sel_spec b proto_sels)) #>> apsnd snd) sel_bundles
+            ||> `Local_Theory.restore;
 
-    val disc_defs = map (Morphism.thm phi) raw_disc_defs;
-    val sel_defss = unflat_selss (map (Morphism.thm phi) raw_sel_defs);
+          (*transforms defined frees into consts (and more)*)
+          val phi = Proof_Context.export_morphism lthy lthy';
 
-    val discs0 = map (Morphism.term phi) raw_discs;
-    val selss0 = unflat_selss (map (Morphism.term phi) raw_sels);
+          val disc_defs = map (Morphism.thm phi) raw_disc_defs;
+          val sel_defss = unflat_selss (map (Morphism.thm phi) raw_sel_defs);
 
-    fun mk_disc_or_sel Ts c =
-      Term.subst_atomic_types (snd (Term.dest_Type (domain_type (fastype_of c))) ~~ Ts) c;
+          val discs0 = map (Morphism.term phi) raw_discs;
+          val selss0 = unflat_selss (map (Morphism.term phi) raw_sels);
 
-    val discs = map (mk_disc_or_sel As) discs0;
-    val selss = map (map (mk_disc_or_sel As)) selss0;
+          fun mk_disc_or_sel Ts c =
+            Term.subst_atomic_types (snd (Term.dest_Type (domain_type (fastype_of c))) ~~ Ts) c;
+
+          val discs = map (mk_disc_or_sel As) discs0;
+          val selss = map (map (mk_disc_or_sel As)) selss0;
+        in
+          (discs, selss, disc_defs, sel_defss, lthy')
+        end;
 
     fun mk_imp_p Qs = Logic.list_implies (Qs, HOLogic.mk_Trueprop p);
 
@@ -309,132 +318,150 @@ fun prepare_wrap_datatype prep_term ((raw_ctrs, raw_case), (raw_disc_binders, ra
             Skip_Proof.prove lthy [] [] goal (fn _ => mk_nchotomy_tac n exhaust_thm)
           end;
 
-        val sel_thmss =
-          map2 (fn case_thm => map (fn sel_def => case_thm RS (sel_def RS trans))) case_thms
-            sel_defss;
-
-        fun mk_unique_disc_def () =
-          let
-            val m = the_single ms;
-            val goal = mk_Trueprop_eq (mk_v_eq_v (), the_single exist_xs_v_eq_ctrs);
-          in
-            Skip_Proof.prove lthy [] [] goal (fn _ => mk_unique_disc_def_tac m exhaust_thm')
-            |> singleton (Proof_Context.export names_lthy lthy)
-            |> Thm.close_derivation
-          end;
-
-        fun mk_alternate_disc_def k =
-          let
-            val goal =
-              mk_Trueprop_eq (Morphism.term phi (alternate_disc_lhs (3 - k)),
-                nth exist_xs_v_eq_ctrs (k - 1));
-          in
-            Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-              mk_alternate_disc_def_tac ctxt k (nth disc_defs (2 - k)) (nth distinct_thms (2 - k))
-                exhaust_thm')
-            |> singleton (Proof_Context.export names_lthy lthy)
-            |> Thm.close_derivation
-          end;
-
-        val has_alternate_disc_def =
-          exists (fn def => Thm.eq_thm_prop (def, missing_alternate_disc_def)) disc_defs;
-
-        val disc_defs' =
-          map2 (fn k => fn def =>
-            if Thm.eq_thm_prop (def, missing_unique_disc_def) then mk_unique_disc_def ()
-            else if Thm.eq_thm_prop (def, missing_alternate_disc_def) then mk_alternate_disc_def k
-            else def)
-          ks disc_defs;
-
-        val discD_thms = map (fn def => def RS iffD1) disc_defs';
-        val discI_thms =
-          map2 (fn m => fn def => funpow m (fn thm => exI RS thm) (def RS iffD2)) ms disc_defs';
-        val not_discI_thms =
-          map2 (fn m => fn def => funpow m (fn thm => allI RS thm)
-            (Local_Defs.unfold lthy @{thms not_ex} (def RS @{thm ssubst[of _ _ Not]})))
-          ms disc_defs';
-
-        val (disc_thmss', disc_thmss) =
-          let
-            fun mk_thm discI _ [] = refl RS discI
-              | mk_thm _ not_discI [distinct] = distinct RS not_discI;
-            fun mk_thms discI not_discI distinctss = map (mk_thm discI not_discI) distinctss;
-          in
-            map3 mk_thms discI_thms not_discI_thms distinct_thmsss' |> `transpose
-          end;
-
-        val disc_thms = flat (map2 (fn true => K [] | false => I) no_discs disc_thmss);
-
-        val disc_exclude_thms =
-          if has_alternate_disc_def then
-            []
+        val (sel_thmss, disc_thms, discI_thms, disc_exclude_thms, disc_exhaust_thms, collapse_thms,
+             case_eq_thms) =
+          if no_dests then
+            ([], [], [], [], [], [], [])
           else
             let
-              fun mk_goal [] = []
-                | mk_goal [((_, true), (_, true))] = []
-                | mk_goal [(((_, disc), _), ((_, disc'), _))] =
-                  [Logic.all v (Logic.mk_implies (HOLogic.mk_Trueprop (betapply (disc, v)),
-                     HOLogic.mk_Trueprop (HOLogic.mk_not (betapply (disc', v)))))];
-              fun prove tac goal = Skip_Proof.prove lthy [] [] goal (K tac);
+              val sel_thmss =
+                map2 (fn case_thm => map (fn sel_def => case_thm RS (sel_def RS trans))) case_thms
+                  sel_defss;
 
-              val bundles = ms ~~ discD_thms ~~ discs ~~ no_discs;
-              val half_pairss = mk_half_pairss bundles;
+              fun mk_unique_disc_def () =
+                let
+                  val m = the_single ms;
+                  val goal = mk_Trueprop_eq (mk_v_eq_v (), the_single exist_xs_v_eq_ctrs);
+                in
+                  Skip_Proof.prove lthy [] [] goal (fn _ => mk_unique_disc_def_tac m exhaust_thm')
+                  |> singleton (Proof_Context.export names_lthy lthy)
+                  |> Thm.close_derivation
+                end;
 
-              val goal_halvess = map mk_goal half_pairss;
-              val half_thmss =
-                map3 (fn [] => K (K []) | [goal] => fn [((((m, discD), _), _), _)] => fn disc_thm =>
-                  [prove (mk_half_disc_exclude_tac m discD disc_thm) goal])
-                goal_halvess half_pairss (flat disc_thmss');
+              fun mk_alternate_disc_def k =
+                let
+                  val goal =
+                    mk_Trueprop_eq (alternate_disc_lhs (K (nth discs)) (3 - k),
+                      nth exist_xs_v_eq_ctrs (k - 1));
+                in
+                  Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
+                    mk_alternate_disc_def_tac ctxt k (nth disc_defs (2 - k))
+                      (nth distinct_thms (2 - k)) exhaust_thm')
+                  |> singleton (Proof_Context.export names_lthy lthy)
+                  |> Thm.close_derivation
+                end;
 
-              val goal_other_halvess = map (mk_goal o map swap) half_pairss;
-              val other_half_thmss =
-                map2 (map2 (prove o mk_other_half_disc_exclude_tac)) half_thmss goal_other_halvess;
+              val has_alternate_disc_def =
+                exists (fn def => Thm.eq_thm_prop (def, alternate_disc_no_def)) disc_defs;
+
+              val disc_defs' =
+                map2 (fn k => fn def =>
+                  if Thm.eq_thm_prop (def, unique_disc_no_def) then mk_unique_disc_def ()
+                  else if Thm.eq_thm_prop (def, alternate_disc_no_def) then mk_alternate_disc_def k
+                  else def) ks disc_defs;
+
+              val discD_thms = map (fn def => def RS iffD1) disc_defs';
+              val discI_thms =
+                map2 (fn m => fn def => funpow m (fn thm => exI RS thm) (def RS iffD2)) ms
+                  disc_defs';
+              val not_discI_thms =
+                map2 (fn m => fn def => funpow m (fn thm => allI RS thm)
+                    (Local_Defs.unfold lthy @{thms not_ex} (def RS @{thm ssubst[of _ _ Not]})))
+                  ms disc_defs';
+
+              val (disc_thmss', disc_thmss) =
+                let
+                  fun mk_thm discI _ [] = refl RS discI
+                    | mk_thm _ not_discI [distinct] = distinct RS not_discI;
+                  fun mk_thms discI not_discI distinctss = map (mk_thm discI not_discI) distinctss;
+                in
+                  map3 mk_thms discI_thms not_discI_thms distinct_thmsss' |> `transpose
+                end;
+
+              val disc_thms = flat (map2 (fn true => K [] | false => I) no_discs disc_thmss);
+
+              val disc_exclude_thms =
+                if has_alternate_disc_def then
+                  []
+                else
+                  let
+                    fun mk_goal [] = []
+                      | mk_goal [((_, true), (_, true))] = []
+                      | mk_goal [(((_, disc), _), ((_, disc'), _))] =
+                        [Logic.all v (Logic.mk_implies (HOLogic.mk_Trueprop (betapply (disc, v)),
+                           HOLogic.mk_Trueprop (HOLogic.mk_not (betapply (disc', v)))))];
+                    fun prove tac goal = Skip_Proof.prove lthy [] [] goal (K tac);
+
+                    val bundles = ms ~~ discD_thms ~~ discs ~~ no_discs;
+                    val half_pairss = mk_half_pairss bundles;
+
+                    val goal_halvess = map mk_goal half_pairss;
+                    val half_thmss =
+                      map3 (fn [] => K (K []) | [goal] => fn [((((m, discD), _), _), _)] =>
+                          fn disc_thm => [prove (mk_half_disc_exclude_tac m discD disc_thm) goal])
+                        goal_halvess half_pairss (flat disc_thmss');
+
+                    val goal_other_halvess = map (mk_goal o map swap) half_pairss;
+                    val other_half_thmss =
+                      map2 (map2 (prove o mk_other_half_disc_exclude_tac)) half_thmss
+                        goal_other_halvess;
+                  in
+                    interleave (flat half_thmss) (flat other_half_thmss)
+                  end;
+
+              val disc_exhaust_thms =
+                if has_alternate_disc_def orelse no_discs_at_all then
+                  []
+                else
+                  let
+                    fun mk_prem disc = mk_imp_p [HOLogic.mk_Trueprop (betapply (disc, v))];
+                    val goal = fold_rev Logic.all [p, v] (mk_imp_p (map mk_prem discs));
+                  in
+                    [Skip_Proof.prove lthy [] [] goal (fn _ =>
+                       mk_disc_exhaust_tac n exhaust_thm discI_thms)]
+                  end;
+
+              val collapse_thms =
+                if no_dests then
+                  []
+                else
+                  let
+                    fun mk_goal ctr disc sels =
+                      let
+                        val prem = HOLogic.mk_Trueprop (betapply (disc, v));
+                        val concl =
+                          mk_Trueprop_eq ((null sels ? swap)
+                            (Term.list_comb (ctr, map ap_v sels), v));
+                      in
+                        if prem aconv concl then NONE
+                        else SOME (Logic.all v (Logic.mk_implies (prem, concl)))
+                      end;
+                    val goals = map3 mk_goal ctrs discs selss;
+                  in
+                    map4 (fn m => fn discD => fn sel_thms => Option.map (fn goal =>
+                      Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
+                        mk_collapse_tac ctxt m discD sel_thms)
+                      |> perhaps (try (fn thm => refl RS thm)))) ms discD_thms sel_thmss goals
+                    |> map_filter I
+                  end;
+
+              val case_eq_thms =
+                if no_dests then
+                  []
+                else
+                  let
+                    fun mk_body f sels = Term.list_comb (f, map ap_v sels);
+                    val goal =
+                      mk_Trueprop_eq (fcase $ v, mk_IfN B (map ap_v discs) (map2 mk_body fs selss));
+                  in
+                    [Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
+                      mk_case_eq_tac ctxt n exhaust_thm' case_thms disc_thmss' sel_thmss)]
+                    |> Proof_Context.export names_lthy lthy
+                  end;
             in
-              interleave (flat half_thmss) (flat other_half_thmss)
+              (sel_thmss, disc_thms, discI_thms, disc_exclude_thms, disc_exhaust_thms,
+               collapse_thms, case_eq_thms)
             end;
-
-        val disc_exhaust_thms =
-          if has_alternate_disc_def orelse no_discs_at_all then
-            []
-          else
-            let
-              fun mk_prem disc = mk_imp_p [HOLogic.mk_Trueprop (betapply (disc, v))];
-              val goal = fold_rev Logic.all [p, v] (mk_imp_p (map mk_prem discs));
-            in
-              [Skip_Proof.prove lthy [] [] goal (fn _ =>
-                 mk_disc_exhaust_tac n exhaust_thm discI_thms)]
-            end;
-
-        val collapse_thms =
-          let
-            fun mk_goal ctr disc sels =
-              let
-                val prem = HOLogic.mk_Trueprop (betapply (disc, v));
-                val concl =
-                  mk_Trueprop_eq ((null sels ? swap) (Term.list_comb (ctr, map ap_v sels), v));
-              in
-                if prem aconv concl then NONE
-                else SOME (Logic.all v (Logic.mk_implies (prem, concl)))
-              end;
-            val goals = map3 mk_goal ctrs discs selss;
-          in
-            map4 (fn m => fn discD => fn sel_thms => Option.map (fn goal =>
-              Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-                mk_collapse_tac ctxt m discD sel_thms)
-              |> perhaps (try (fn thm => refl RS thm)))) ms discD_thms sel_thmss goals
-            |> map_filter I
-          end;
-
-        val case_eq_thm =
-          let
-            fun mk_body f sels = Term.list_comb (f, map ap_v sels);
-            val goal =
-              mk_Trueprop_eq (fcase $ v, mk_IfN B (map ap_v discs) (map2 mk_body fs selss));
-          in
-            Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-              mk_case_eq_tac ctxt n exhaust_thm' case_thms disc_thmss' sel_thmss)
-            |> singleton (Proof_Context.export names_lthy lthy)
-          end;
 
         val (case_cong_thm, weak_case_cong_thm) =
           let
@@ -484,7 +511,7 @@ fun prepare_wrap_datatype prep_term ((raw_ctrs, raw_case), (raw_disc_binders, ra
 
         val notes =
           [(case_congN, [case_cong_thm]),
-           (case_eqN, [case_eq_thm]),
+           (case_eqN, case_eq_thms),
            (casesN, case_thms),
            (collapseN, collapse_thms),
            (discsN, disc_thms),
@@ -520,10 +547,13 @@ val wrap_datatype_cmd = (fn (goalss, after_qed, lthy) =>
   Proof.theorem NONE (snd oo after_qed) (map (map (rpair [])) goalss) lthy) oo
   prepare_wrap_datatype Syntax.read_term;
 
+val parse_wrap_options =
+  Scan.optional (@{keyword "("} |-- (@{keyword "no_dests"} >> K true) --| @{keyword ")"}) false;
+
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "wrap_data"} "wraps an existing datatype"
-    (((@{keyword "["} |-- Parse.list Parse.term --| @{keyword "]"}) -- Parse.term --
-      Scan.optional (parse_bindings -- Scan.optional parse_bindingss []) ([], []))
+    ((parse_wrap_options -- (@{keyword "["} |-- Parse.list Parse.term --| @{keyword "]"}) --
+      Parse.term -- Scan.optional (parse_bindings -- Scan.optional parse_bindingss []) ([], []))
      >> wrap_datatype_cmd);
 
 end;

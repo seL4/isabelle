@@ -95,8 +95,11 @@ fun ctr_of (((_, ctr), _), _) = ctr;
 fun args_of ((_, args), _) = args;
 fun ctr_mixfix_of (_, mx) = mx;
 
-fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
+fun prepare_datatype prepare_typ lfp (no_dests, specs) fake_lthy no_defs_lthy =
   let
+    val _ = if not lfp andalso no_dests then error "Cannot use \"no_dests\" option for codatatypes"
+      else ();
+
     val constrained_As =
       map (map (apfst (prepare_typ fake_lthy)) o type_args_constrained_of) specs
       |> Library.foldr1 (merge_type_args_constrained no_defs_lthy);
@@ -477,7 +480,7 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
               corec_def), lthy)
           end;
       in
-        wrap_datatype tacss ((ctrs0, casex0), (disc_binders, sel_binderss)) lthy'
+        wrap_datatype tacss (((no_dests, ctrs0), casex0), (disc_binders, sel_binderss)) lthy'
         |> (if lfp then some_lfp_sugar else some_gfp_sugar)
       end;
 
@@ -669,7 +672,7 @@ fun prepare_datatype prepare_typ lfp specs fake_lthy no_defs_lthy =
     (timer; lthy')
   end;
 
-fun datatype_cmd info specs lthy =
+fun datatype_cmd lfp (bundle as (_, specs)) lthy =
   let
     (* TODO: cleaner handling of fake contexts, without "background_theory" *)
     (*the "perhaps o try" below helps gracefully handles the case where the new type is defined in a
@@ -679,7 +682,7 @@ fun datatype_cmd info specs lthy =
         (type_binder_of spec, length (type_args_constrained_of spec), mixfix_of spec)))) specs;
     val fake_lthy = Proof_Context.background_theory fake_thy lthy;
   in
-    prepare_datatype Syntax.read_typ info specs fake_lthy lthy
+    prepare_datatype Syntax.read_typ lfp bundle fake_lthy lthy
   end;
 
 val parse_opt_binding_colon = Scan.optional (Parse.binding --| @{keyword ":"}) no_binder
@@ -693,12 +696,14 @@ val parse_single_spec =
   (@{keyword "="} |-- Parse.enum1 "|" (parse_opt_binding_colon -- Parse.binding --
     Scan.repeat parse_ctr_arg -- Parse.opt_mixfix));
 
+val parse_datatype = parse_wrap_options -- Parse.and_list1 parse_single_spec;
+
 val _ =
   Outer_Syntax.local_theory @{command_spec "data"} "define BNF-based inductive datatypes"
-    (Parse.and_list1 parse_single_spec >> datatype_cmd true);
+    (parse_datatype >> datatype_cmd true);
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "codata"} "define BNF-based coinductive datatypes"
-    (Parse.and_list1 parse_single_spec >> datatype_cmd false);
+    (parse_datatype >> datatype_cmd false);
 
 end;
