@@ -9,8 +9,9 @@ package isabelle.jedit
 
 import isabelle._
 
-import javax.swing.{InputVerifier, JComponent}
+import javax.swing.{InputVerifier, JComponent, UIManager}
 import javax.swing.text.JTextComponent
+
 import scala.swing.{Component, CheckBox, TextArea}
 
 
@@ -40,8 +41,10 @@ class JEdit_Options extends Options_Variable
           def save = bool(opt_name) = selected
         }
       else {
+        val default_font = UIManager.getFont("TextField.font")
         val text_area =
           new TextArea with Option_Component {
+            if (default_font != null) font = default_font
             val title = opt_title
             def load = text = value.check_name(opt_name).value
             def save = update(value + (opt_name, text))
