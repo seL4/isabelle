@@ -12,7 +12,6 @@ sig
   val dest_listT: typ -> typ
 
   val mk_Cons: term -> term -> term
-  val mk_If: term -> term -> term -> term
   val mk_Shift: term -> term -> term
   val mk_Succ: term -> term -> term
   val mk_Times: term * term -> term
@@ -121,10 +120,6 @@ fun mk_Cons x xs =
   in Const (@{const_name Cons}, dest_listT T --> T --> T) $ x $ xs end;
 
 fun mk_size t = HOLogic.size_const (fastype_of t) $ t;
-
-fun mk_If p t f =
-  let val T = fastype_of t;
-  in Const (@{const_name If}, HOLogic.boolT --> T --> T --> T) $ p $ t $ f end;
 
 fun mk_quotient A R =
   let val T = fastype_of A;
