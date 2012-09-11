@@ -33,6 +33,9 @@ sig
 
   val mk_permute_in_alt_tac: ''a list -> ''a list -> tactic
   val mk_permute_in_bd_tac: ''a list -> ''a list -> thm -> thm -> thm -> tactic
+
+  val mk_map_wpull_tac: thm -> thm list -> thm -> tactic
+  val mk_simple_wit_tac: thm list -> tactic
 end;
 
 structure BNF_Comp_Tactics : BNF_COMP_TACTICS =
@@ -390,5 +393,12 @@ fun mk_permute_in_bd_tac src dest in_alt in_bd bd_Card_order =
   rtac disjI1 THEN'
   TRY o rtac @{thm csum_Cnotzero2} THEN'
   rtac @{thm ctwo_Cnotzero}) 1;
+
+fun mk_map_wpull_tac comp_in_alt inner_map_wpulls outer_map_wpull =
+  (rtac (@{thm wpull_cong} OF (replicate 3 comp_in_alt)) THEN' rtac outer_map_wpull) 1 THEN
+  WRAP (fn thm => rtac thm 1 THEN REPEAT_DETERM (atac 1)) (K all_tac) inner_map_wpulls all_tac THEN
+  TRY (REPEAT_DETERM (atac 1 ORELSE rtac @{thm wpull_id} 1));
+
+fun mk_simple_wit_tac wit_thms = ALLGOALS (atac ORELSE' eresolve_tac (@{thm emptyE} :: wit_thms));
 
 end;

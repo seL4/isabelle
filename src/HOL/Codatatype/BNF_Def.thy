@@ -14,6 +14,7 @@ keywords
 and
   "bnf_def" :: thy_goal
 uses
+  "Tools/bnf_def_tactics.ML"
   "Tools/bnf_def.ML"
 begin
 

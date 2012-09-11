@@ -98,7 +98,7 @@ structure BNF_Def : BNF_DEF =
 struct
 
 open BNF_Util
-open BNF_Tactics
+open BNF_Def_Tactics
 
 type axioms = {
   map_id: thm,
