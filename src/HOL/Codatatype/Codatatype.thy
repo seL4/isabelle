@@ -10,7 +10,7 @@ The (co)datatype package.
 header {* The (Co)datatype Package *}
 
 theory Codatatype
-imports BNF_Wrap BNF_LFP BNF_GFP
+imports BNF_LFP BNF_GFP BNF_Wrap
 keywords
   "data" :: thy_decl
 and

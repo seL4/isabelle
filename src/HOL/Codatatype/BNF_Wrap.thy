@@ -8,7 +8,7 @@ Wrapping datatypes.
 header {* Wrapping Datatypes *}
 
 theory BNF_Wrap
-imports BNF_Def
+imports BNF_Util
 keywords
   "wrap_data" :: thy_goal
 and
