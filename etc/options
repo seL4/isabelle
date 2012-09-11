@@ -81,7 +81,7 @@ option timeout : real = 0
   -- "timeout for session build job (seconds > 0)"
 
 
-section {* Editor session parameters *}
+section {* Editor reactivity *}
 
 option editor_load_delay : real = 0.5
   -- "delay for file load operations (new buffers etc.)"
