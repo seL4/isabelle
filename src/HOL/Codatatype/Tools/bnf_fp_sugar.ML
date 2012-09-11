@@ -7,7 +7,10 @@ Sugar for constructing LFPs and GFPs.
 
 signature BNF_FP_SUGAR =
 sig
-  (* TODO: programmatic interface *)
+  val datatyp: bool ->
+    bool * ((((typ * typ option) list * binding) * mixfix) * ((((binding * binding) *
+      (binding * typ) list) * (binding * term) list) * mixfix) list) list ->
+    local_theory -> local_theory
 end;
 
 structure BNF_FP_Sugar : BNF_FP_SUGAR =
@@ -46,7 +49,7 @@ fun typ_subst inst (T as Type (s, Ts)) =
 
 fun retype_free (Free (s, _)) T = Free (s, T);
 
-val lists_bmoc = fold (fn xs => fn t => Term.list_comb (t, xs))
+val lists_bmoc = fold (fn xs => fn t => Term.list_comb (t, xs));
 
 fun mk_predT T = T --> HOLogic.boolT;
 
@@ -145,9 +148,9 @@ fun prepare_datatype prepare_typ prepare_term lfp (no_dests, specs) fake_lthy no
       | A' :: _ => error ("Extra type variables on rhs: " ^
           quote (Syntax.string_of_typ no_defs_lthy (TFree A'))));
 
-    val ((Cs, Xs), _) =
+    val ((Bs, Cs), _) =
       no_defs_lthy
-      |> fold (fold (fn s => Variable.declare_typ (TFree (s, dummyS))) o type_args_of) specs
+      |> fold Variable.declare_typ As
       |> mk_TFrees N
       ||>> mk_TFrees N;
 
@@ -157,13 +160,13 @@ fun prepare_datatype prepare_typ prepare_term lfp (no_dests, specs) fake_lthy no
       | eq_fpT _ _ = false;
 
     fun freeze_fp (T as Type (s, Us)) =
-        (case find_index (eq_fpT T) fakeTs of ~1 => Type (s, map freeze_fp Us) | j => nth Xs j)
+        (case find_index (eq_fpT T) fakeTs of ~1 => Type (s, map freeze_fp Us) | j => nth Bs j)
       | freeze_fp T = T;
 
-    val ctr_TsssXs = map (map (map freeze_fp)) fake_ctr_Tsss;
-    val ctr_sum_prod_TsXs = map (mk_sumTN_balanced o map HOLogic.mk_tupleT) ctr_TsssXs;
+    val ctr_TsssBs = map (map (map freeze_fp)) fake_ctr_Tsss;
+    val ctr_sum_prod_TsBs = map (mk_sumTN_balanced o map HOLogic.mk_tupleT) ctr_TsssBs;
 
-    val eqs = map dest_TFree Xs ~~ ctr_sum_prod_TsXs;
+    val eqs = map dest_TFree Bs ~~ ctr_sum_prod_TsBs;
 
     val (pre_bnfs, ((unfs0, flds0, fp_iters0, fp_recs0, unf_flds, fld_unfs, fld_injects,
         fp_iter_thms, fp_rec_thms), lthy)) =
@@ -179,7 +182,7 @@ fun prepare_datatype prepare_typ prepare_term lfp (no_dests, specs) fake_lthy no
       in snd oo add end;
 
     val nested_bnfs =
-      map_filter (bnf_of lthy) (fold (fold (fold add_nested_bnf_names)) ctr_TsssXs []);
+      map_filter (bnf_of lthy) (fold (fold (fold add_nested_bnf_names)) ctr_TsssBs []);
 
     val timer = time (Timer.startRealTimer ());
 
@@ -196,7 +199,7 @@ fun prepare_datatype prepare_typ prepare_term lfp (no_dests, specs) fake_lthy no
 
     val fpTs = map (domain_type o fastype_of) unfs;
 
-    val ctr_Tsss = map (map (map (Term.typ_subst_atomic (Xs ~~ fpTs)))) ctr_TsssXs;
+    val ctr_Tsss = map (map (map (Term.typ_subst_atomic (Bs ~~ fpTs)))) ctr_TsssBs;
     val ns = map length ctr_Tsss;
     val kss = map (fn n => 1 upto n) ns;
     val mss = map (map length) ctr_Tsss;
@@ -684,6 +687,8 @@ fun prepare_datatype prepare_typ prepare_term lfp (no_dests, specs) fake_lthy no
   in
     (timer; lthy')
   end;
+
+fun datatyp lfp bundle lthy = prepare_datatype (K I) (K I) lfp bundle lthy lthy;
 
 fun datatype_cmd lfp (bundle as (_, specs)) lthy =
   let

@@ -572,6 +572,10 @@ fun wrap_datatype tacss = (fn (goalss, after_qed, lthy) =>
   map2 (map2 (Skip_Proof.prove lthy [] [])) goalss tacss
   |> (fn thms => after_qed thms lthy)) oo prepare_wrap_datatype (K I);
 
+val wrap_datatype_cmd = (fn (goalss, after_qed, lthy) =>
+  Proof.theorem NONE (snd oo after_qed) (map (map (rpair [])) goalss) lthy) oo
+  prepare_wrap_datatype Syntax.read_term;
+
 fun parse_bracket_list parser = @{keyword "["} |-- Parse.list parser --|  @{keyword "]"};
 
 val parse_bindings = parse_bracket_list Parse.binding;
@@ -580,10 +584,6 @@ val parse_bindingss = parse_bracket_list parse_bindings;
 val parse_bound_term = (Parse.binding --| @{keyword ":"}) -- Parse.term;
 val parse_bound_terms = parse_bracket_list parse_bound_term;
 val parse_bound_termss = parse_bracket_list parse_bound_terms;
-
-val wrap_datatype_cmd = (fn (goalss, after_qed, lthy) =>
-  Proof.theorem NONE (snd oo after_qed) (map (map (rpair [])) goalss) lthy) oo
-  prepare_wrap_datatype Syntax.read_term;
 
 val parse_wrap_options =
   Scan.optional (@{keyword "("} |-- (@{keyword "no_dests"} >> K true) --| @{keyword ")"}) false;
