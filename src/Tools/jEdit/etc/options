@@ -19,7 +19,7 @@ option jedit_tooltip_dismiss_delay : real = 8.0
   -- "global delay for Swing tooltips"
 
 
-section "Editor Document View"
+section "Rendering of Document Content"
 
 option color_outdated : string = "EEE3E3FF"
 option color_unprocessed : string = "FFA0A0FF"

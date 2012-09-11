@@ -150,7 +150,7 @@ object Options
 
 
 final class Options private(
-  protected val options: Map[String, Options.Opt] = Map.empty,
+  val options: Map[String, Options.Opt] = Map.empty,
   val section: String = "")
 {
   override def toString: String = options.iterator.mkString("Options (", ",", ")")
