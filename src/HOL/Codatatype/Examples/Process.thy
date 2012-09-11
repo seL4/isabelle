@@ -21,16 +21,7 @@ section {* Customization *}
 
 subsection {* Basic properties *}
 
-declare
-  process.inject[simp]
-  process.distinct[simp]
-  process.discs[simp]
-  process.sels[simp]
-  process.collapse[simp]
-  pre_process.pred_unfold[simp]
-
-lemmas process_exhaust =
-  process.exhaust[elim, case_names Action Choice]
+declare pre_process.pred_unfold[simp]
 
 (* Constructors versus discriminators *)
 theorem isAction_isChoice:
@@ -38,7 +29,7 @@ theorem isAction_isChoice:
 by (rule process.disc_exhaust) auto
 
 theorem not_isAction_isChoice: "\<not> (isAction p \<and> isChoice p)"
-by (cases rule: process_exhaust[of p]) auto
+by (cases rule: process.exhaust[of p]) auto
 
 
 subsection{* Coinduction *}
@@ -52,19 +43,19 @@ shows "p = p'"
 proof(intro mp[OF process.pred_coinduct, of \<phi>, OF _ phi], clarify)
   fix p p'  assume \<phi>: "\<phi> p p'"
   show "pre_process_pred (op =) \<phi> (process_unf p) (process_unf p')"
-  proof(cases rule: process_exhaust[of p])
+  proof(cases rule: process.exhaust[of p])
     case (Action a q) note p = Action
-    hence "isAction p'" using iss[OF \<phi>] by (cases rule: process_exhaust[of p'], auto)
-    then obtain a' q' where p': "p' = Action a' q'" by (cases rule: process_exhaust[of p'], auto)
+    hence "isAction p'" using iss[OF \<phi>] by (cases rule: process.exhaust[of p'], auto)
+    then obtain a' q' where p': "p' = Action a' q'" by (cases rule: process.exhaust[of p'], auto)
     have 0: "a = a' \<and> \<phi> q q'" using Act[OF \<phi>[unfolded p p']] .
     have unf: "process_unf p = Inl (a,q)" "process_unf p' = Inl (a',q')"
     unfolding p p' Action_def process.unf_fld by simp_all
     show ?thesis using 0 unfolding unf by simp
   next
     case (Choice p1 p2) note p = Choice
-    hence "isChoice p'" using iss[OF \<phi>] by (cases rule: process_exhaust[of p'], auto)
+    hence "isChoice p'" using iss[OF \<phi>] by (cases rule: process.exhaust[of p'], auto)
     then obtain p1' p2' where p': "p' = Choice p1' p2'"
-    by (cases rule: process_exhaust[of p'], auto)
+    by (cases rule: process.exhaust[of p'], auto)
     have 0: "\<phi> p1 p1' \<and> \<phi> p2 p2'" using Ch[OF \<phi>[unfolded p p']] .
     have unf: "process_unf p = Inr (p1,p2)" "process_unf p' = Inr (p1',p2')"
     unfolding p p' Choice_def process.unf_fld by simp_all
@@ -82,19 +73,19 @@ shows "p = p'"
 proof(intro mp[OF process.pred_coinduct_upto, of \<phi>, OF _ phi], clarify)
   fix p p'  assume \<phi>: "\<phi> p p'"
   show "pre_process_pred (op =) (\<lambda>a b. \<phi> a b \<or> a = b) (process_unf p) (process_unf p')"
-  proof(cases rule: process_exhaust[of p])
+  proof(cases rule: process.exhaust[of p])
     case (Action a q) note p = Action
-    hence "isAction p'" using iss[OF \<phi>] by (cases rule: process_exhaust[of p'], auto)
-    then obtain a' q' where p': "p' = Action a' q'" by (cases rule: process_exhaust[of p'], auto)
+    hence "isAction p'" using iss[OF \<phi>] by (cases rule: process.exhaust[of p'], auto)
+    then obtain a' q' where p': "p' = Action a' q'" by (cases rule: process.exhaust[of p'], auto)
     have 0: "a = a' \<and> (\<phi> q q' \<or> q = q')" using Act[OF \<phi>[unfolded p p']] .
     have unf: "process_unf p = Inl (a,q)" "process_unf p' = Inl (a',q')"
     unfolding p p' Action_def process.unf_fld by simp_all
     show ?thesis using 0 unfolding unf by simp
   next
     case (Choice p1 p2) note p = Choice
-    hence "isChoice p'" using iss[OF \<phi>] by (cases rule: process_exhaust[of p'], auto)
+    hence "isChoice p'" using iss[OF \<phi>] by (cases rule: process.exhaust[of p'], auto)
     then obtain p1' p2' where p': "p' = Choice p1' p2'"
-    by (cases rule: process_exhaust[of p'], auto)
+    by (cases rule: process.exhaust[of p'], auto)
     have 0: "(\<phi> p1 p1' \<or> p1 = p1') \<and> (\<phi> p2 p2' \<or> p2 = p2')" using Ch[OF \<phi>[unfolded p p']] .
     have unf: "process_unf p = Inr (p1,p2)" "process_unf p' = Inr (p1',p2')"
     unfolding p p' Choice_def process.unf_fld by simp_all
