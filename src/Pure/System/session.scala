@@ -49,11 +49,10 @@ class Session(val thy_load: Thy_Load)
   /* tuning parameters */
 
   def output_delay: Time = Time.seconds(0.1)  // prover output (markup, common messages)
-
-  private val message_delay = Time.seconds(0.01)  // incoming prover messages
-  private val prune_delay = Time.seconds(60.0)  // prune history -- delete old versions
-  private val prune_size = 0  // size of retained history
-  private val syslog_limit = 100
+  def message_delay: Time = Time.seconds(0.01)  // incoming prover messages
+  def prune_delay: Time = Time.seconds(60.0)  // prune history -- delete old versions
+  def prune_size: Int = 0  // size of retained history
+  def syslog_limit: Int = 100
 
 
   /* pervasive event buses */
