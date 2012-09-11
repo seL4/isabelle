@@ -2,7 +2,7 @@
     Author:     Dmitriy Traytel, TU Muenchen
     Copyright   2012
 
-General library functions.
+Library for bounded natural functors.
 *)
 
 signature BNF_UTIL =

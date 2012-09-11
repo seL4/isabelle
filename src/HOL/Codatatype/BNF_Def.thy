@@ -8,7 +8,7 @@ Definition of bounded natural functors.
 header {* Definition of Bounded Natural Functors *}
 
 theory BNF_Def
-imports BNF_Library
+imports BNF_Util
 keywords
   "print_bnfs" :: diag
 and

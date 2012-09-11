@@ -1,5 +1,6 @@
-(*  Title:      HOL/Codatatype/BNF_Library.thy
+(*  Title:      HOL/Codatatype/BNF_Util.thy
     Author:     Dmitriy Traytel, TU Muenchen
+    Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012
 
 Library for bounded natural functors.
@@ -7,7 +8,7 @@ Library for bounded natural functors.
 
 header {* Library for Bounded Natural Functors *}
 
-theory BNF_Library
+theory BNF_Util
 imports
   "../Ordinals_and_Cardinals/Cardinal_Arithmetic"
   "~~/src/HOL/Library/Prefix_Order"
