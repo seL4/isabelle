@@ -1182,8 +1182,7 @@ fun bnf_def const_policy fact_policy qualify tacs wit_tac Ds =
     map2 (Thm.close_derivation oo Skip_Proof.prove lthy [] [])
       goals (map (unfold_defs_tac lthy defs) tacs)
     |> (fn thms => after_qed (map single thms @ wit_thms) lthy)
-  end) oo prepare_def const_policy fact_policy qualify
-  (singleton o Type_Infer_Context.infer_types) Ds;
+  end) oo prepare_def const_policy fact_policy qualify (K I) Ds;
 
 val bnf_def_cmd = (fn (goals, wit_goals, after_qed, lthy, defs) =>
   Proof.unfolding ([[(defs, [])]])
