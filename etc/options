@@ -80,3 +80,18 @@ option timing : bool = false
 option timeout : real = 0
   -- "timeout for session build job (seconds > 0)"
 
+
+section {* Editor session parameters *}
+
+option editor_load_delay : real = 0.5
+  -- "delay for file load operations (new buffers etc.)"
+
+option editor_input_delay : real = 0.3
+  -- "delay for user input (text edits, cursor movement etc.)"
+
+option editor_output_delay : real = 0.1
+  -- "delay for prover output (markup, common messages etc.)"
+
+option editor_update_delay : real = 0.5
+  -- "delay for physical GUI updates"
+

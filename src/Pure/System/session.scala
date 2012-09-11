@@ -46,15 +46,14 @@ class Session(val thy_load: Thy_Load)
   @volatile var verbose: Boolean = false
 
 
-  /* tuning parameters */  // FIXME properties or settings (!?)
+  /* tuning parameters */
 
-  val message_delay = Time.seconds(0.01)  // prover messages
-  val input_delay = Time.seconds(0.3)  // user input (e.g. text edits, cursor movement)
-  val output_delay = Time.seconds(0.1)  // prover output (markup, common messages)
-  val update_delay = Time.seconds(0.5)  // GUI layout updates
-  val prune_delay = Time.seconds(60.0)  // prune history -- delete old versions
-  val prune_size = 0  // size of retained history
-  val syslog_limit = 100
+  def output_delay: Time = Time.seconds(0.1)  // prover output (markup, common messages)
+
+  private val message_delay = Time.seconds(0.01)  // incoming prover messages
+  private val prune_delay = Time.seconds(60.0)  // prune history -- delete old versions
+  private val prune_size = 0  // size of retained history
+  private val syslog_limit = 100
 
 
   /* pervasive event buses */

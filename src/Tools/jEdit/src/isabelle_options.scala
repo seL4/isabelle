@@ -17,7 +17,8 @@ class Isabelle_Options extends AbstractOptionPane("isabelle")
   // FIXME avoid hard-wired stuff
   private val relevant_options =
     Set("jedit_logic", "jedit_auto_start", "jedit_font_scale", "jedit_tooltip_font_size",
-      "jedit_tooltip_margin", "jedit_tooltip_dismiss_delay", "jedit_load_delay")
+      "jedit_tooltip_margin", "jedit_tooltip_dismiss_delay", "editor_load_delay",
+      "editor_input_delay", "editor_output_delay", "editor_update_delay")
 
   relevant_options.foreach(Isabelle.options.value.check_name _)
 
