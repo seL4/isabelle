@@ -98,7 +98,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
       pad_list [] n (map (map (apsnd (prep_term no_defs_lthy))) raw_sel_defaultss);
 
     val Type (dataT_name, As0) = body_type (fastype_of (hd ctrs0));
-    val b = Binding.qualified_name dataT_name;
+    val data_b = Binding.qualified_name dataT_name;
 
     val (As, B) =
       no_defs_lthy
@@ -120,17 +120,19 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
     fun can_omit_disc_binder k m =
       n = 1 orelse m = 0 orelse (n = 2 andalso can_rely_on_disc (3 - k));
 
-    val std_disc_binder = Binding.name o prefix isN o base_name_of_ctr;
+    val std_disc_binder =
+      Binding.qualify false (Binding.name_of data_b) o Binding.name o prefix isN o base_name_of_ctr;
 
     val disc_binders =
       raw_disc_binders'
       |> map4 (fn k => fn m => fn ctr => fn disc =>
-        if Binding.eq_name (disc, no_binder) then
-          if can_omit_disc_binder k m then NONE else SOME (std_disc_binder ctr)
-        else if Binding.eq_name (disc, std_binder) then
-          SOME (std_disc_binder ctr)
-        else
-          SOME disc) ks ms ctrs0;
+        Option.map (Binding.qualify false (Binding.name_of data_b))
+          (if Binding.eq_name (disc, no_binder) then
+             if can_omit_disc_binder k m then NONE else SOME (std_disc_binder ctr)
+           else if Binding.eq_name (disc, std_binder) then
+             SOME (std_disc_binder ctr)
+           else
+             SOME disc)) ks ms ctrs0;
 
     val no_discs = map is_none disc_binders;
     val no_discs_at_all = forall I no_discs;
@@ -140,10 +142,11 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
     val sel_binderss =
       pad_list [] n raw_sel_binderss
       |> map3 (fn ctr => fn m => map2 (fn l => fn sel =>
-        if Binding.eq_name (sel, no_binder) orelse Binding.eq_name (sel, std_binder) then
-          std_sel_binder m l ctr
-        else
-          sel) (1 upto m) o pad_list no_binder m) ctrs0 ms;
+        Binding.qualify false (Binding.name_of data_b)
+          (if Binding.eq_name (sel, no_binder) orelse Binding.eq_name (sel, std_binder) then
+            std_sel_binder m l ctr
+          else
+            sel)) (1 upto m) o pad_list no_binder m) ctrs0 ms;
 
     fun mk_case Ts T =
       let
@@ -571,7 +574,8 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
            (weak_case_cong_thmsN, [weak_case_cong_thm], cong_attrs)]
           |> filter_out (null o #2)
           |> map (fn (thmN, thms, attrs) =>
-            ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), attrs), [(thms, [])]));
+            ((Binding.qualify true (Binding.name_of data_b) (Binding.name thmN), attrs),
+             [(thms, [])]));
 
         val notes' =
           [(map (fn th => th RS notE) distinct_thms, safe_elim_attrs)]

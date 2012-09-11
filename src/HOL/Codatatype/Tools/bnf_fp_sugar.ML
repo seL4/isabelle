@@ -127,18 +127,20 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp (no_dests, s
       Type (fst (Term.dest_Type (Proof_Context.read_type_name fake_lthy true (Binding.name_of b))),
         unsorted_As);
 
-    val bs = map type_binder_of specs;
-    val fake_Ts = map mk_fake_T bs;
+    val fp_bs = map type_binder_of specs;
+    val fake_Ts = map mk_fake_T fp_bs;
 
     val mixfixes = map mixfix_of specs;
 
-    val _ = (case duplicates Binding.eq_name bs of [] => ()
+    val _ = (case duplicates Binding.eq_name fp_bs of [] => ()
       | b :: _ => error ("Duplicate type name declaration " ^ quote (Binding.name_of b)));
 
     val ctr_specss = map ctr_specs_of specs;
 
     val disc_binderss = map (map disc_of) ctr_specss;
-    val ctr_binderss = map (map ctr_of) ctr_specss;
+    val ctr_binderss =
+      map2 (fn fp_b => map (Binding.qualify false (Binding.name_of fp_b) o ctr_of))
+        fp_bs ctr_specss;
     val ctr_argsss = map (map args_of) ctr_specss;
     val ctr_mixfixess = map (map ctr_mixfix_of) ctr_specss;
 
@@ -176,7 +178,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp (no_dests, s
 
     val (pre_bnfs, ((unfs0, flds0, fp_iters0, fp_recs0, unf_flds, fld_unfs, fld_injects,
         fp_iter_thms, fp_rec_thms), lthy)) =
-      fp_bnf (if lfp then bnf_lfp else bnf_gfp) bs mixfixes (map dest_TFree unsorted_As) fp_eqs
+      fp_bnf (if lfp then bnf_lfp else bnf_gfp) fp_bs mixfixes (map dest_TFree unsorted_As) fp_eqs
         no_defs_lthy0;
 
     val add_nested_bnf_names =
@@ -329,7 +331,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp (no_dests, s
             (mk_terms sssss hssss, (h_sum_prod_Ts, ph_Tss))))
         end;
 
-    fun define_ctrs_case_for_type ((((((((((((((((((b, fpT), C), fld), unf), fp_iter), fp_rec),
+    fun define_ctrs_case_for_type ((((((((((((((((((fp_b, fpT), C), fld), unf), fp_iter), fp_rec),
           fld_unf), unf_fld), fld_inject), n), ks), ms), ctr_binders), ctr_mixfixes), ctr_Tss),
         disc_binders), sel_binderss), raw_sel_defaultss) no_defs_lthy =
       let
@@ -349,7 +351,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp (no_dests, s
           map2 (fn k => fn xs => fold_rev Term.lambda xs (fld $
             mk_InN_balanced ctr_sum_prod_T n (HOLogic.mk_tuple xs) k)) ks xss;
 
-        val case_binder = Binding.suffix_name ("_" ^ caseN) b;
+        val case_binder = Binding.suffix_name ("_" ^ caseN) fp_b;
 
         val case_rhs =
           fold_rev Term.lambda (fs @ [v])
@@ -357,8 +359,8 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp (no_dests, s
 
         val ((raw_case :: raw_ctrs, raw_case_def :: raw_ctr_defs), (lthy', lthy)) = no_defs_lthy
           |> apfst split_list o fold_map3 (fn b => fn mx => fn rhs =>
-               Local_Theory.define ((b, mx), ((Thm.def_binding b, []), rhs)) #>> apsnd snd)
-             (case_binder :: ctr_binders) (NoSyn :: ctr_mixfixes) (case_rhs :: ctr_rhss)
+              Local_Theory.define ((b, mx), ((Thm.def_binding b, []), rhs)) #>> apsnd snd)
+            (case_binder :: ctr_binders) (NoSyn :: ctr_mixfixes) (case_rhs :: ctr_rhss)
           ||> `Local_Theory.restore;
 
         (*transforms defined frees into consts (and more)*)
@@ -418,7 +420,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp (no_dests, s
               let
                 val res_T = fold_rev (curry (op --->)) f_Tss fpT_to_C;
 
-                val binder = Binding.suffix_name ("_" ^ suf) b;
+                val binder = Binding.suffix_name ("_" ^ suf) fp_b;
 
                 val spec =
                   mk_Trueprop_eq (lists_bmoc fss (Free (Binding.name_of binder, res_T)),
@@ -432,8 +434,6 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp (no_dests, s
 
             val (binders, specs) = map generate_iter_like iter_like_infos |> split_list;
 
-            (* TODO: Allow same constructor (and selector/discriminator) names for different
-               types (cf. old "datatype" package) *)
             val ((csts, defs), (lthy', lthy)) = no_defs_lthy
               |> apfst split_list o fold_map2 (fn b => fn spec =>
                 Specification.definition (SOME (b, NONE, NoSyn), ((Thm.def_binding b, []), spec))
@@ -464,7 +464,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp (no_dests, s
               let
                 val res_T = fold_rev (curry (op --->)) pf_Tss B_to_fpT;
 
-                val binder = Binding.suffix_name ("_" ^ suf) b;
+                val binder = Binding.suffix_name ("_" ^ suf) fp_b;
 
                 val spec =
                   mk_Trueprop_eq (lists_bmoc pfss (Free (Binding.name_of binder, res_T)),
@@ -578,7 +578,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp (no_dests, s
           |> maps (fn (thmN, thmss, attrs) =>
             map2 (fn b => fn thms =>
               ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), attrs),
-                [(thms, [])])) bs thmss);
+                [(thms, [])])) fp_bs thmss);
       in
         lthy |> Local_Theory.notes notes |> snd
       end;
@@ -676,7 +676,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp (no_dests, s
           |> maps (fn (thmN, thmss, attrs) =>
             map_filter (fn (_, []) => NONE | (b, thms) =>
               SOME ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), attrs),
-                [(thms, [])])) (bs ~~ thmss));
+                [(thms, [])])) (fp_bs ~~ thmss));
       in
         lthy |> Local_Theory.notes notes |> snd
       end;
@@ -685,7 +685,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp (no_dests, s
       fold_map2 (curry (op o)) define_iter_likess wraps lthy |>> split_list11
 
     val lthy' = lthy
-      |> fold_map define_ctrs_case_for_type (bs ~~ fpTs ~~ Cs ~~ flds ~~ unfs ~~ fp_iters ~~
+      |> fold_map define_ctrs_case_for_type (fp_bs ~~ fpTs ~~ Cs ~~ flds ~~ unfs ~~ fp_iters ~~
         fp_recs ~~ fld_unfs ~~ unf_flds ~~ fld_injects ~~ ns ~~ kss ~~ mss ~~ ctr_binderss ~~
         ctr_mixfixess ~~ ctr_Tsss ~~ disc_binderss ~~ sel_bindersss ~~ raw_sel_defaultsss)
       |>> split_list |> wrap_types_and_define_iter_likes
