@@ -480,7 +480,7 @@ fun prepare_datatype prepare_typ lfp (no_dests, specs) fake_lthy no_defs_lthy =
               corec_def), lthy)
           end;
       in
-        wrap_datatype tacss (((no_dests, ctrs0), casex0), (disc_binders, sel_binderss)) lthy'
+        wrap_datatype tacss (((no_dests, ctrs0), casex0), (disc_binders, (sel_binderss, []))) lthy'
         |> (if lfp then some_lfp_sugar else some_gfp_sugar)
       end;
 
