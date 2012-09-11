@@ -27,6 +27,8 @@ object Isabelle_Logic
     override def toString = description
   }
 
+  private val opt_name = "jedit_logic"
+
   def logic_selector(autosave: Boolean): Option_Component =
   {
     Swing_Thread.require()
@@ -36,16 +38,17 @@ object Isabelle_Logic
         Isabelle_System.find_logics().map(name => new Logic_Entry(name, name))
 
     val component = new ComboBox(entries) with Option_Component {
-      val title = Isabelle.options.title("jedit_logic")
+      name = opt_name
+      val title = "Logic"
       def load: Unit =
       {
-        val logic = Isabelle.options.string("jedit_logic")
+        val logic = Isabelle.options.string(opt_name)
         entries.find(_.name == logic) match {
           case Some(entry) => selection.item = entry
           case None =>
         }
       }
-      def save: Unit = Isabelle.options.string("jedit_logic") = selection.item.name
+      def save: Unit = Isabelle.options.string(opt_name) = selection.item.name
     }
 
     component.load()
@@ -53,7 +56,7 @@ object Isabelle_Logic
       component.listenTo(component.selection)
       component.reactions += { case SelectionChanged(_) => component.save() }
     }
-    component.tooltip = Isabelle.tooltip(Isabelle.options.value.check_name("jedit_logic").print)
+    component.tooltip = Isabelle.tooltip(Isabelle.options.value.check_name(opt_name).print)
     component
   }
 
@@ -61,7 +64,7 @@ object Isabelle_Logic
   {
     val modes = space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE")).map("-m" + _)
     val logic =
-      Isabelle.options.string("jedit_logic") match {
+      Isabelle.options.string(opt_name) match {
         case "" => default_logic()
         case logic => logic
       }

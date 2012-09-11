@@ -18,5 +18,8 @@ option jedit_tooltip_margin : int = 60
 option jedit_tooltip_dismiss_delay : real = 8.0
   -- "global delay for Swing tooltips"
 
+
+section {* Reactivity *}
+
 option jedit_load_delay : real = 0.5
   -- "delay for file load operations (new buffers etc.)"
