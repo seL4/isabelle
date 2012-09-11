@@ -60,8 +60,7 @@ fun mk_iter_like_tac pre_map_defs map_ids iter_like_defs fld_iter_like ctr_def c
     iter_like_thms) THEN Local_Defs.unfold_tac ctxt @{thms id_def} THEN rtac refl 1;
 
 val coiter_like_ss = ss_only @{thms if_True if_False};
-val coiter_like_thms =
-  @{thms id_apply map_pair_def sum_case_if sum_map.simps sum_map_if prod.cases};
+val coiter_like_thms = @{thms id_apply map_pair_def sum_map.simps prod.cases};
 
 fun mk_coiter_like_tac coiter_like_defs map_ids fld_unf_coiter_like pre_map_def ctr_def ctxt =
   Local_Defs.unfold_tac ctxt (ctr_def :: coiter_like_defs) THEN

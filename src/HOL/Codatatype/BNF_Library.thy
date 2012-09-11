@@ -843,10 +843,6 @@ lemma obj_sum_step:
   "\<lbrakk>\<forall>x. s = f (Inr (Inl x)) \<longrightarrow> P; \<forall>x. s = f (Inr (Inr x)) \<longrightarrow> P\<rbrakk> \<Longrightarrow> \<forall>x. s = f (Inr x) \<longrightarrow> P"
 by (metis obj_sumE)
 
-lemma sum_map_if:
-"sum_map f g (if p then Inl x else Inr y) = (if p then Inl (f x) else Inr (g y))"
-by simp
-
 lemma sum_case_if:
 "sum_case f g (if p then Inl x else Inr y) = (if p then f x else g y)"
 by simp
