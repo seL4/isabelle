@@ -185,9 +185,9 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
           NONE => nth exist_xs_v_eq_ctrs (k - 1)
         | SOME b => get_disc b (k - 1) $ v);
 
-    val (discs, selss, disc_defs, sel_defss, lthy') =
+    val (discs, selss, disc_defs, sel_defs, sel_defss, lthy') =
       if no_dests then
-        ([], [], [], [], no_defs_lthy)
+        ([], [], [], [], [], no_defs_lthy)
       else
         let
           fun disc_free b = Free (Binding.name_of b, fpT --> HOLogic.boolT);
@@ -252,7 +252,8 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
           val phi = Proof_Context.export_morphism lthy lthy';
 
           val disc_defs = map (Morphism.thm phi) raw_disc_defs;
-          val sel_defss = unflat_selss (map (Morphism.thm phi) raw_sel_defs);
+          val sel_defs = map (Morphism.thm phi) raw_sel_defs;
+          val sel_defss = unflat_selss sel_defs;
 
           val discs0 = map (Morphism.term phi) raw_discs;
           val selss0 = unflat_selss (map (Morphism.term phi) raw_sels);
@@ -263,7 +264,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
           val discs = map (mk_disc_or_sel As) discs0;
           val selss = map (map (mk_disc_or_sel As)) selss0;
         in
-          (discs, selss, disc_defs, sel_defss, lthy')
+          (discs, selss, disc_defs, sel_defs, sel_defss, lthy')
         end;
 
     fun mk_imp_p Qs = Logic.list_implies (Qs, HOLogic.mk_Trueprop p);
@@ -326,15 +327,27 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
             Skip_Proof.prove lthy [] [] goal (fn _ => mk_nchotomy_tac n exhaust_thm)
           end;
 
-        val (sel_thmss, disc_thms, discI_thms, disc_exclude_thms, disc_exhaust_thms, collapse_thms,
-             case_eq_thms) =
+        val (all_sel_thms, sel_thmss, disc_thms, discI_thms, disc_exclude_thms, disc_exhaust_thms,
+             collapse_thms, case_eq_thms) =
           if no_dests then
-            ([], [], [], [], [], [], [])
+            ([], [], [], [], [], [], [], [])
           else
             let
-              val sel_thmss =
-                map2 (fn case_thm => map (fn sel_def => case_thm RS (sel_def RS trans))) case_thms
-                  sel_defss;
+              fun make_sel_thm case_thm sel_def = case_thm RS (sel_def RS trans);
+
+              fun has_undefined_rhs thm =
+                (case snd (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of thm))) of
+                  Const (@{const_name undefined}, _) => true
+                | _ => false);
+
+              val sel_thmss = map2 (map o make_sel_thm) case_thms sel_defss;
+
+              val all_sel_thms =
+                if forall null sel_defaultss then
+                  flat (transpose sel_thmss)
+                else
+                  map_product (fn s => fn c => make_sel_thm c s) sel_defs case_thms
+                  |> filter_out has_undefined_rhs;
 
               fun mk_unique_disc_def () =
                 let
@@ -467,7 +480,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
                     |> Proof_Context.export names_lthy lthy
                   end;
             in
-              (sel_thmss, disc_thms, discI_thms, disc_exclude_thms, disc_exhaust_thms,
+              (all_sel_thms, sel_thmss, disc_thms, discI_thms, disc_exclude_thms, disc_exhaust_thms,
                collapse_thms, case_eq_thms)
             end;
 
@@ -529,7 +542,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
            (exhaustN, [exhaust_thm]),
            (injectN, flat inject_thmss),
            (nchotomyN, [nchotomy_thm]),
-           (selsN, flat sel_thmss),
+           (selsN, all_sel_thms),
            (splitN, [split_thm]),
            (split_asmN, [split_asm_thm]),
            (weak_case_cong_thmsN, [weak_case_cong_thm])]
