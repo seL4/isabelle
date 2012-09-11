@@ -9,7 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import org.gjt.sp.jedit.AbstractOptionPane
+import org.gjt.sp.jedit.{jEdit, AbstractOptionPane}
 
 
 class Isabelle_Options extends AbstractOptionPane("isabelle")
@@ -24,8 +24,14 @@ class Isabelle_Options extends AbstractOptionPane("isabelle")
 
   override def _init()
   {
+    val dummy_property = "options.isabelle.dummy"
+
     for ((s, cs) <- components) {
-      if (s == "") addSeparator() else addSeparator(s)
+      if (s != "") {
+        jEdit.setProperty(dummy_property, s)
+        addSeparator(dummy_property)
+        jEdit.setProperty(dummy_property, null)
+      }
       cs.foreach(c => addComponent(c.title, c.peer))
     }
   }
