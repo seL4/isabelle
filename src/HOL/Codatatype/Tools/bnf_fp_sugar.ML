@@ -34,6 +34,8 @@ val recsN = "recs";
 val sel_coitersN = "sel_coiters";
 val sel_corecsN = "sel_corecs";
 
+val simp_attrs = @{attributes [simp]};
+
 fun split_list11 xs =
   (map #1 xs, map #2 xs, map #3 xs, map #4 xs, map #5 xs, map #6 xs, map #7 xs, map #8 xs,
    map #9 xs, map #10 xs, map #11 xs);
@@ -424,12 +426,14 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp (no_dests, s
                       map2 (mk_sum_caseN_balanced oo map2 mk_uncurried2_fun) fss xssss));
               in (binder, spec) end;
 
-            val iter_like_bundles =
+            val iter_like_infos =
               [(iterN, fp_iter, iter_only),
                (recN, fp_rec, rec_only)];
 
-            val (binders, specs) = map generate_iter_like iter_like_bundles |> split_list;
+            val (binders, specs) = map generate_iter_like iter_like_infos |> split_list;
 
+            (* TODO: Allow same constructor (and selector/discriminator) names for different
+               types (cf. old "datatype" package) *)
             val ((csts, defs), (lthy', lthy)) = no_defs_lthy
               |> apfst split_list o fold_map2 (fn b => fn spec =>
                 Specification.definition (SOME (b, NONE, NoSyn), ((Thm.def_binding b, []), spec))
@@ -468,11 +472,11 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp (no_dests, s
                       map5 mk_preds_getterss_join cs ns cpss f_sum_prod_Ts cqfsss));
               in (binder, spec) end;
 
-            val coiter_like_bundles =
+            val coiter_like_infos =
               [(coiterN, fp_iter, coiter_only),
                (corecN, fp_rec, corec_only)];
 
-            val (binders, specs) = map generate_coiter_like coiter_like_bundles |> split_list;
+            val (binders, specs) = map generate_coiter_like coiter_like_infos |> split_list;
 
             val ((csts, defs), (lthy', lthy)) = no_defs_lthy
               |> apfst split_list o fold_map2 (fn b => fn spec =>
@@ -569,12 +573,12 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp (no_dests, s
           end;
 
         val notes =
-          [(itersN, iter_thmss),
-           (recsN, rec_thmss)]
-          |> maps (fn (thmN, thmss) =>
+          [(itersN, iter_thmss, simp_attrs),
+           (recsN, rec_thmss, Code.add_default_eqn_attrib :: simp_attrs)]
+          |> maps (fn (thmN, thmss, attrs) =>
             map2 (fn b => fn thms =>
-                ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
-              bs thmss);
+              ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), attrs),
+                [(thms, [])])) bs thmss);
       in
         lthy |> Local_Theory.notes notes |> snd
       end;
@@ -663,15 +667,15 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp (no_dests, s
           map3 (map3 (map2 o mk_sel_coiter_like_thm)) corec_thmss selsss sel_thmsss;
 
         val notes =
-          [(coitersN, coiter_thmss),
-           (disc_coitersN, disc_coiter_thmss),
-           (sel_coitersN, map flat sel_coiter_thmsss),
-           (corecsN, corec_thmss),
-           (disc_corecsN, disc_corec_thmss),
-           (sel_corecsN, map flat sel_corec_thmsss)]
-          |> maps (fn (thmN, thmss) =>
+          [(coitersN, coiter_thmss, []),
+           (disc_coitersN, disc_coiter_thmss, []),
+           (sel_coitersN, map flat sel_coiter_thmsss, []),
+           (corecsN, corec_thmss, []),
+           (disc_corecsN, disc_corec_thmss, []),
+           (sel_corecsN, map flat sel_corec_thmsss, [])]
+          |> maps (fn (thmN, thmss, attrs) =>
             map_filter (fn (_, []) => NONE | (b, thms) =>
-              SOME ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []),
+              SOME ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), attrs),
                 [(thms, [])])) (bs ~~ thmss));
       in
         lthy |> Local_Theory.notes notes |> snd

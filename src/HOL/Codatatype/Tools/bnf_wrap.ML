@@ -46,7 +46,13 @@ val split_asmN = "split_asm";
 val weak_case_cong_thmsN = "weak_case_cong";
 
 val no_binder = @{binding ""};
-val fallback_binder = @{binding _};
+val std_binder = @{binding _};
+
+val induct_simp_attrs = @{attributes [induct_simp]};
+val cong_attrs = @{attributes [cong]};
+val iff_attrs = @{attributes [iff]};
+val safe_elim_attrs = @{attributes [elim!]};
+val simp_attrs = @{attributes [simp]};
 
 fun pad_list x n xs = xs @ replicate (n - length xs) x;
 
@@ -67,11 +73,11 @@ fun mk_ctr Ts ctr =
 
 fun eta_expand_case_arg xs f_xs = fold_rev Term.lambda xs f_xs;
 
-fun name_of_ctr c =
-  (case head_of c of
-    Const (s, _) => s
-  | Free (s, _) => s
-  | _ => error "Cannot extract name of constructor");
+fun base_name_of_ctr c =
+  Long_Name.base_name (case head_of c of
+      Const (s, _) => s
+    | Free (s, _) => s
+    | _ => error "Cannot extract name of constructor");
 
 fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
     (raw_disc_binders, (raw_sel_binderss, raw_sel_defaultss))) no_defs_lthy =
@@ -91,15 +97,15 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
     val sel_defaultss =
       pad_list [] n (map (map (apsnd (prep_term no_defs_lthy))) raw_sel_defaultss);
 
-    val Type (fpT_name, As0) = body_type (fastype_of (hd ctrs0));
-    val b = Binding.qualified_name fpT_name;
+    val Type (dataT_name, As0) = body_type (fastype_of (hd ctrs0));
+    val b = Binding.qualified_name dataT_name;
 
     val (As, B) =
       no_defs_lthy
       |> mk_TFrees' (map Type.sort_of_atyp As0)
       ||> the_single o fst o mk_TFrees 1;
 
-    val fpT = Type (fpT_name, As);
+    val dataT = Type (dataT_name, As);
     val ctrs = map (mk_ctr As) ctrs0;
     val ctr_Tss = map (binder_types o fastype_of) ctrs;
 
@@ -114,28 +120,28 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
     fun can_omit_disc_binder k m =
       n = 1 orelse m = 0 orelse (n = 2 andalso can_rely_on_disc (3 - k));
 
-    val fallback_disc_binder = Binding.name o prefix isN o Long_Name.base_name o name_of_ctr;
+    val std_disc_binder = Binding.name o prefix isN o base_name_of_ctr;
 
     val disc_binders =
       raw_disc_binders'
       |> map4 (fn k => fn m => fn ctr => fn disc =>
         if Binding.eq_name (disc, no_binder) then
-          if can_omit_disc_binder k m then NONE else SOME (fallback_disc_binder ctr)
-        else if Binding.eq_name (disc, fallback_binder) then
-          SOME (fallback_disc_binder ctr)
+          if can_omit_disc_binder k m then NONE else SOME (std_disc_binder ctr)
+        else if Binding.eq_name (disc, std_binder) then
+          SOME (std_disc_binder ctr)
         else
           SOME disc) ks ms ctrs0;
 
     val no_discs = map is_none disc_binders;
     val no_discs_at_all = forall I no_discs;
 
-    fun fallback_sel_binder m l = Binding.name o mk_unN m l o Long_Name.base_name o name_of_ctr;
+    fun std_sel_binder m l = Binding.name o mk_unN m l o base_name_of_ctr;
 
     val sel_binderss =
       pad_list [] n raw_sel_binderss
       |> map3 (fn ctr => fn m => map2 (fn l => fn sel =>
-        if Binding.eq_name (sel, no_binder) orelse Binding.eq_name (sel, fallback_binder) then
-          fallback_sel_binder m l ctr
+        if Binding.eq_name (sel, no_binder) orelse Binding.eq_name (sel, std_binder) then
+          std_sel_binder m l ctr
         else
           sel) (1 upto m) o pad_list no_binder m) ctrs0 ms;
 
@@ -153,8 +159,8 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
       ||>> mk_Freess "y" ctr_Tss
       ||>> mk_Frees "f" case_Ts
       ||>> mk_Frees "g" case_Ts
-      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "v") fpT
-      ||>> yield_singleton (mk_Frees "w") fpT
+      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "v") dataT
+      ||>> yield_singleton (mk_Frees "w") dataT
       ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "P") HOLogic.boolT;
 
     val q = Free (fst p', B --> HOLogic.boolT);
@@ -191,7 +197,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
         (true, [], [], [], [], [], no_defs_lthy)
       else
         let
-          fun disc_free b = Free (Binding.name_of b, fpT --> HOLogic.boolT);
+          fun disc_free b = Free (Binding.name_of b, dataT --> HOLogic.boolT);
 
           fun disc_spec b exist_xs_v_eq_ctr = mk_Trueprop_eq (disc_free b $ v, exist_xs_v_eq_ctr);
 
@@ -224,7 +230,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
                     quote (Binding.name_of b) ^ ": " ^ quote (Syntax.string_of_typ no_defs_lthy T) ^
                     " vs. " ^ quote (Syntax.string_of_typ no_defs_lthy T')));
             in
-              mk_Trueprop_eq (Free (Binding.name_of b, fpT --> T) $ v,
+              mk_Trueprop_eq (Free (Binding.name_of b, dataT --> T) $ v,
                 Term.list_comb (mk_case As T, mk_sel_case_args b proto_sels T) $ v)
             end;
 
@@ -237,11 +243,11 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
             else map (fn b => find_index (curry Binding.eq_name b) uniq_sel_binders) sel_binders;
 
           val proto_sels = flat (map3 (fn k => fn xs => map (fn x => (k, (xs, x)))) ks xss xss);
-          val sel_bundles =
+          val sel_infos =
             AList.group (op =) (sel_binder_index ~~ proto_sels)
             |> sort (int_ord o pairself fst)
             |> map snd |> curry (op ~~) uniq_sel_binders;
-          val sel_binders = map fst sel_bundles;
+          val sel_binders = map fst sel_infos;
 
           fun unflat_selss xs = unflat_lookup Binding.eq_name sel_binders xs sel_binderss;
 
@@ -257,7 +263,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
               ks ms exist_xs_v_eq_ctrs disc_binders
             ||>> apfst split_list o fold_map (fn (b, proto_sels) =>
               Specification.definition (SOME (b, NONE, NoSyn),
-                ((Thm.def_binding b, []), sel_spec b proto_sels)) #>> apsnd snd) sel_bundles
+                ((Thm.def_binding b, []), sel_spec b proto_sels)) #>> apsnd snd) sel_infos
             ||> `Local_Theory.restore;
 
           (*transforms defined frees into consts (and more)*)
@@ -321,6 +327,8 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
             Drule.instantiate' [] [SOME (certify lthy v)]
               (Thm.instantiate (Tinst, []) (Drule.zero_var_indexes exhaust_thm))
           end;
+
+        val exhaust_cases = map base_name_of_ctr ctrs;
 
         val other_half_distinct_thmss = map (map (fn thm => thm RS not_sym)) half_distinct_thmss;
 
@@ -425,8 +433,8 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
                            HOLogic.mk_Trueprop (HOLogic.mk_not (betapply (disc', v)))))];
                     fun prove tac goal = Skip_Proof.prove lthy [] [] goal (K tac);
 
-                    val bundles = ms ~~ discD_thms ~~ discs ~~ no_discs;
-                    val half_pairss = mk_half_pairss bundles;
+                    val infos = ms ~~ discD_thms ~~ discs ~~ no_discs;
+                    val half_pairss = mk_half_pairss infos;
 
                     val goal_halvess = map mk_goal half_pairss;
                     val half_thmss =
@@ -542,27 +550,34 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
             (split_thm, split_asm_thm)
           end;
 
+        val cases_type_attr = Attrib.internal (K (Induct.cases_type dataT_name));
+        val exhaust_case_names_attr = Attrib.internal (K (Rule_Cases.case_names exhaust_cases));
+
         val notes =
-          [(case_congN, [case_cong_thm]),
-           (case_eqN, case_eq_thms),
-           (casesN, case_thms),
-           (collapseN, collapse_thms),
-           (discsN, disc_thms),
-           (disc_excludeN, disc_exclude_thms),
-           (disc_exhaustN, disc_exhaust_thms),
-           (distinctN, distinct_thms),
-           (exhaustN, [exhaust_thm]),
-           (injectN, flat inject_thmss),
-           (nchotomyN, [nchotomy_thm]),
-           (selsN, all_sel_thms),
-           (splitN, [split_thm]),
-           (split_asmN, [split_asm_thm]),
-           (weak_case_cong_thmsN, [weak_case_cong_thm])]
-          |> filter_out (null o snd)
-          |> map (fn (thmN, thms) =>
-            ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
+          [(case_congN, [case_cong_thm], []),
+           (case_eqN, case_eq_thms, []),
+           (casesN, case_thms, simp_attrs),
+           (collapseN, collapse_thms, simp_attrs),
+           (discsN, disc_thms, simp_attrs),
+           (disc_excludeN, disc_exclude_thms, []),
+           (disc_exhaustN, disc_exhaust_thms, [exhaust_case_names_attr]),
+           (distinctN, distinct_thms, simp_attrs @ induct_simp_attrs),
+           (exhaustN, [exhaust_thm], [exhaust_case_names_attr, cases_type_attr]),
+           (injectN, flat inject_thmss, iff_attrs @ induct_simp_attrs),
+           (nchotomyN, [nchotomy_thm], []),
+           (selsN, all_sel_thms, simp_attrs),
+           (splitN, [split_thm], []),
+           (split_asmN, [split_asm_thm], []),
+           (weak_case_cong_thmsN, [weak_case_cong_thm], cong_attrs)]
+          |> filter_out (null o #2)
+          |> map (fn (thmN, thms, attrs) =>
+            ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), attrs), [(thms, [])]));
+
+        val notes' =
+          [(map (fn th => th RS notE) distinct_thms, safe_elim_attrs)]
+          |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
       in
-        ((selss, discI_thms, sel_thmss), lthy |> Local_Theory.notes notes |> snd)
+        ((selss, discI_thms, sel_thmss), lthy |> Local_Theory.notes (notes' @ notes) |> snd)
       end;
   in
     (goalss, after_qed, lthy')
