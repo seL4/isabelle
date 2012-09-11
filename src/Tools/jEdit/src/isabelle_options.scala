@@ -9,27 +9,38 @@ package isabelle.jedit
 
 import isabelle._
 
-import org.gjt.sp.jedit.AbstractOptionPane
+import org.gjt.sp.jedit.{jEdit, AbstractOptionPane}
 
 
 class Isabelle_Options extends AbstractOptionPane("isabelle")
 {
-  private val components = List(
-    Isabelle_Logic.logic_selector(false),
-    Isabelle.options.make_component("jedit_auto_start"),
-    Isabelle.options.make_component("jedit_relative_font_size"),
-    Isabelle.options.make_component("jedit_tooltip_font_size"),
-    Isabelle.options.make_component("jedit_tooltip_margin"),
-    Isabelle.options.make_component("jedit_tooltip_dismiss_delay"),
-    Isabelle.options.make_component("jedit_load_delay"))
+  // FIXME avoid hard-wired stuff
+  private val relevant_options =
+    Set("jedit_logic", "jedit_auto_start", "jedit_font_scale", "jedit_tooltip_font_size",
+      "jedit_tooltip_margin", "jedit_tooltip_dismiss_delay", "editor_load_delay",
+      "editor_input_delay", "editor_output_delay", "editor_update_delay")
+
+  relevant_options.foreach(Isabelle.options.value.check_name _)
+
+  private val components =
+    Isabelle.options.make_components(List(Isabelle_Logic.logic_selector(false)), relevant_options)
 
   override def _init()
   {
-    for (c <- components) addComponent(c.title, c.peer)
+    val dummy_property = "options.isabelle.dummy"
+
+    for ((s, cs) <- components) {
+      if (s != "") {
+        jEdit.setProperty(dummy_property, s)
+        addSeparator(dummy_property)
+        jEdit.setProperty(dummy_property, null)
+      }
+      cs.foreach(c => addComponent(c.title, c.peer))
+    }
   }
 
   override def _save()
   {
-    for (c <- components) c.save()
+    for ((_, cs) <- components) cs.foreach(_.save())
   }
 }

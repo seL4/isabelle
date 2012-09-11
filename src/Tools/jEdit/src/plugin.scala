@@ -58,8 +58,7 @@ object Isabelle
   def font_family(): String = jEdit.getProperty("view.font")
 
   def font_size(): Float =
-    (jEdit.getIntegerProperty("view.fontsize", 16) *
-      options.int("jedit_relative_font_size")).toFloat / 100
+    (jEdit.getIntegerProperty("view.fontsize", 16) * options.real("jedit_font_scale")).toFloat
 
 
   /* tooltip markup */
@@ -261,7 +260,7 @@ class Plugin extends EBPlugin
   /* theory files */
 
   private lazy val delay_load =
-    Swing_Thread.delay_last(Time.seconds(Isabelle.options.real("jedit_load_delay")))
+    Swing_Thread.delay_last(Time.seconds(Isabelle.options.real("editor_load_delay")))
     {
       val view = jEdit.getActiveView()
 
@@ -407,7 +406,9 @@ class Plugin extends EBPlugin
 
       val content = Isabelle_Logic.session_content(false)
       val thy_load = new JEdit_Thy_Load(content.loaded_theories, content.syntax)
-      Isabelle.session = new Session(thy_load)
+      Isabelle.session = new Session(thy_load) {
+        override def output_delay = Time.seconds(Isabelle.options.real("editor_output_delay"))
+      }
 
       Isabelle.session.phase_changed += session_manager
       Isabelle.startup_failure = None

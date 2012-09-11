@@ -30,12 +30,30 @@ object Options
   case object String extends Type
   case object Unknown extends Type
 
-  case class Opt(name: String, typ: Type, value: String, description: String)
+  case class Opt(name: String, typ: Type, value: String, default_value: String,
+    description: String, section: String)
   {
-    def print: String =
+    private def print(default: Boolean): String =
+    {
+      val x = if (default) default_value else value
       "option " + name + " : " + typ.print + " = " +
-        (if (typ == Options.String) quote(value) else value) +
-      (if (description == "") "" else "\n  -- " + quote(description))
+        (if (typ == Options.String) quote(x) else x) +
+        (if (description == "") "" else "\n  -- " + quote(description))
+    }
+
+    def print: String = print(false)
+    def print_default: String = print(true)
+
+    def title(strip: String): String =
+    {
+      val words = space_explode('_', name)
+      val words1 =
+        words match {
+          case word :: rest if word == strip => rest
+          case _ => words
+        }
+      words1.map(Library.capitalize).mkString(" ")
+    }
 
     def unknown: Boolean = typ == Unknown
   }
@@ -43,12 +61,16 @@ object Options
 
   /* parsing */
 
+  private val SECTION = "section"
   private val OPTION = "option"
   private val OPTIONS = Path.explode("etc/options")
   private val PREFS = Path.explode("$ISABELLE_HOME_USER/etc/preferences")
   private val PREFS_BACKUP = Path.explode("$ISABELLE_HOME_USER/etc/preferences~")
 
-  lazy val options_syntax = Outer_Syntax.init() + ":" + "=" + "--" + (OPTION, Keyword.THY_DECL)
+  lazy val options_syntax =
+    Outer_Syntax.init() + ":" + "=" + "--" +
+      (SECTION, Keyword.THY_HEADING2) + (OPTION, Keyword.THY_DECL)
+
   lazy val prefs_syntax = Outer_Syntax.init() + "="
 
   object Parser extends Parse.Parser
@@ -62,6 +84,8 @@ object Options
 
     val option_entry: Parser[Options => Options] =
     {
+      command(SECTION) ~! text ^^
+        { case _ ~ a => (options: Options) => options.set_section(a.trim) } |
       command(OPTION) ~! (option_name ~ keyword(":") ~ option_type ~
       keyword("=") ~ option_value ~ (keyword("--") ~! text ^^ { case _ ~ x => x } | success(""))) ^^
         { case _ ~ (a ~ _ ~ b ~ _ ~ c ~ d) => (options: Options) => options.declare(a, b, c, d) }
@@ -82,7 +106,7 @@ object Options
           case Success(result, _) => result
           case bad => error(bad.toString)
         }
-      try { (options /: ops) { case (opts, op) => op(opts) } }
+      try { (options.set_section("") /: ops) { case (opts, op) => op(opts) } }
       catch { case ERROR(msg) => error(msg + Position.here(file.position)) }
     }
   }
@@ -125,23 +149,13 @@ object Options
 }
 
 
-final class Options private(protected val options: Map[String, Options.Opt] = Map.empty)
+final class Options private(
+  protected val options: Map[String, Options.Opt] = Map.empty,
+  val section: String = "")
 {
   override def toString: String = options.iterator.mkString("Options (", ",", ")")
 
   def print: String = cat_lines(options.toList.sortBy(_._1).map(p => p._2.print))
-
-  def title(strip: String, name: String): String =
-  {
-    check_name(name)
-    val words = space_explode('_', name)
-    val words1 =
-      words match {
-        case word :: rest if word == strip => rest
-        case _ => words
-      }
-    words1.map(Library.capitalize).mkString(" ")
-  }
 
   def description(name: String): String = check_name(name).description
 
@@ -167,7 +181,7 @@ final class Options private(protected val options: Map[String, Options.Opt] = Ma
   private def put[A](name: String, typ: Options.Type, value: String): Options =
   {
     val opt = check_type(name, typ)
-    new Options(options + (name -> opt.copy(value = value)))
+    new Options(options + (name -> opt.copy(value = value)), section)
   }
 
   private def get[A](name: String, typ: Options.Type, parse: String => Option[A]): A =
@@ -239,21 +253,23 @@ final class Options private(protected val options: Map[String, Options.Opt] = Ma
             case "string" => Options.String
             case _ => error("Unknown type for option " + quote(name) + " : " + quote(typ_name))
           }
-        val opt = Options.Opt(name, typ, value, description)
-        (new Options(options + (name -> opt))).check_value(name)
+        val opt = Options.Opt(name, typ, value, value, description, section)
+        (new Options(options + (name -> opt), section)).check_value(name)
     }
   }
 
   def add_permissive(name: String, value: String): Options =
   {
     if (options.isDefinedAt(name)) this + (name, value)
-    else new Options(options + (name -> Options.Opt(name, Options.Unknown, value, "")))
+    else
+      new Options(
+        options + (name -> Options.Opt(name, Options.Unknown, value, value, "", "")), section)
   }
 
   def + (name: String, value: String): Options =
   {
     val opt = check_name(name)
-    (new Options(options + (name -> opt.copy(value = value)))).check_value(name)
+    (new Options(options + (name -> opt.copy(value = value)), section)).check_value(name)
   }
 
   def + (name: String, opt_value: Option[String]): Options =
@@ -276,6 +292,15 @@ final class Options private(protected val options: Map[String, Options.Opt] = Ma
 
   def ++ (specs: List[Options.Spec]): Options =
     (this /: specs)({ case (x, (y, z)) => x + (y, z) })
+
+
+  /* sections */
+
+  def set_section(new_section: String): Options =
+    new Options(options, new_section)
+
+  def sections: List[(String, List[Options.Opt])] =
+    options.groupBy(_._2.section).toList.map({ case (a, opts) => (a, opts.toList.map(_._2)) })
 
 
   /* encode */

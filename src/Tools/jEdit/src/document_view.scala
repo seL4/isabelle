@@ -341,7 +341,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   }
 
   private val delay_caret_update =
-    Swing_Thread.delay_last(session.input_delay) {
+    Swing_Thread.delay_last(Time.seconds(Isabelle.options.real("editor_input_delay"))) {
       session.caret_focus.event(Session.Caret_Focus)
     }
 
@@ -355,7 +355,8 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   private object overview extends Text_Overview(this)
   {
     val delay_repaint =
-      Swing_Thread.delay_first(Isabelle.session.update_delay) { repaint() }
+      Swing_Thread.delay_first(
+        Time.seconds(Isabelle.options.real("editor_update_delay"))) { repaint() }
   }
 
 
@@ -366,7 +367,8 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
       react {
         case _: Session.Raw_Edits =>
           Swing_Thread.later {
-            overview.delay_repaint.postpone(Isabelle.session.input_delay)
+            overview.delay_repaint.postpone(
+              Time.seconds(Isabelle.options.real("editor_input_delay")))
           }
 
         case changed: Session.Commands_Changed =>

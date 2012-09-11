@@ -1,5 +1,7 @@
 (* :mode=isabelle-options: *)
 
+section {* Document preparation *}
+
 option browser_info : bool = false
   -- "generate theory browser information"
 
@@ -15,28 +17,6 @@ option document_dump : string = ""
   -- "dump generated document sources into given directory"
 option document_dump_mode : string = "all"
   -- "specific document dump mode: all, tex, tex+sty"
-
-option threads : int = 0
-  -- "maximum number of worker threads for prover process (0 = hardware max.)"
-option threads_trace : int = 0
-  -- "level of tracing information for multithreading"
-option parallel_proofs : int = 2
-  -- "level of parallel proof checking: 0, 1, 2"
-option parallel_proofs_threshold : int = 100
-  -- "threshold for sub-proof parallelization"
-
-option print_mode : string = ""
-  -- "additional print modes for prover output (separated by commas)"
-
-option proofs : int = 1
-  -- "level of detail for proof objects: 0, 1, 2"
-option quick_and_dirty : bool = false
-  -- "if true then some tools will OMIT some proofs"
-option skip_proofs : bool = false
-  -- "skip over proofs"
-
-option condition : string = ""
-  -- "required environment variables for subsequent theories (separated by commas)"
 
 option show_question_marks : bool = true
   -- "show leading question mark of schematic variables"
@@ -62,9 +42,56 @@ option thy_output_indent : int = 0
 option thy_output_source : bool = false
   -- "print original source text rather than internal representation"
 
+
+option print_mode : string = ""
+  -- "additional print modes for prover output (separated by commas)"
+
+
+section {* Parallel checking *}
+
+option threads : int = 0
+  -- "maximum number of worker threads for prover process (0 = hardware max.)"
+option threads_trace : int = 0
+  -- "level of tracing information for multithreading"
+option parallel_proofs : int = 2
+  -- "level of parallel proof checking: 0, 1, 2"
+option parallel_proofs_threshold : int = 100
+  -- "threshold for sub-proof parallelization"
+
+
+section {* Detail of proof recording *}
+
+option proofs : int = 1
+  -- "level of detail for proof objects: 0, 1, 2"
+option quick_and_dirty : bool = false
+  -- "if true then some tools will OMIT some proofs"
+option skip_proofs : bool = false
+  -- "skip over proofs"
+
+
+section {* Global session parameters *}
+
+option condition : string = ""
+  -- "required environment variables for subsequent theories (separated by commas)"
+
 option timing : bool = false
   -- "global timing of toplevel command execution and theory processing"
 
 option timeout : real = 0
   -- "timeout for session build job (seconds > 0)"
+
+
+section {* Editor reactivity *}
+
+option editor_load_delay : real = 0.5
+  -- "delay for file load operations (new buffers etc.)"
+
+option editor_input_delay : real = 0.3
+  -- "delay for user input (text edits, cursor movement etc.)"
+
+option editor_output_delay : real = 0.1
+  -- "delay for prover output (markup, common messages etc.)"
+
+option editor_update_delay : real = 0.5
+  -- "delay for physical GUI updates"
 

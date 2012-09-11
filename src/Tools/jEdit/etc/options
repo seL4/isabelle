@@ -6,8 +6,8 @@ option jedit_logic : string = ""
 option jedit_auto_start : bool = true
   -- "auto-start prover session on editor startup"
 
-option jedit_relative_font_size : int = 100
-  -- "relative font size of output panel wrt. main text area"
+option jedit_font_scale : real = 1.0
+  -- "scale factor of add-on panels wrt. main text area"
 
 option jedit_tooltip_font_size : int = 10
   -- "tooltip font size (according to HTML)"
@@ -17,6 +17,3 @@ option jedit_tooltip_margin : int = 60
 
 option jedit_tooltip_dismiss_delay : real = 8.0
   -- "global delay for Swing tooltips"
-
-option jedit_load_delay : real = 0.5
-  -- "delay for file load operations (new buffers etc.)"
