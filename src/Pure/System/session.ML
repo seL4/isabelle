@@ -121,7 +121,9 @@ fun use_dir item root build modes reset info info_path doc doc_graph doc_variant
     name dump rpath level timing verbose max_threads trace_threads
     parallel_proofs parallel_proofs_threshold =
   ((fn () =>
-     (init build reset info info_path doc doc_graph "" (read_variants doc_variants) parent name
+     (Output.physical_stderr
+        "### Legacy feature: old \"isabelle usedir\" -- use \"isabelle build\" instead!\n";
+      init build reset info info_path doc doc_graph "" (read_variants doc_variants) parent name
         (doc_dump dump) rpath verbose;
       with_timing item timing use root;
       finish ()))

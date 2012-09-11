@@ -1,0 +1,22 @@
+(* :mode=isabelle-options: *)
+
+option jedit_logic : string = ""
+  -- "default logic session"
+
+option jedit_auto_start : bool = true
+  -- "auto-start prover session on editor startup"
+
+option jedit_relative_font_size : int = 100
+  -- "relative font size of output panel wrt. main text area"
+
+option jedit_tooltip_font_size : int = 10
+  -- "tooltip font size (according to HTML)"
+
+option jedit_tooltip_margin : int = 60
+  -- "margin for tooltip pretty-printing"
+
+option jedit_tooltip_dismiss_delay : real = 8.0
+  -- "global delay for Swing tooltips"
+
+option jedit_load_delay : real = 0.5
+  -- "delay for file load operations (new buffers etc.)"

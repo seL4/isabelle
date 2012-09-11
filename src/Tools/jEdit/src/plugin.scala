@@ -14,7 +14,7 @@ import java.awt.Font
 import javax.swing.JOptionPane
 
 import scala.collection.mutable
-import scala.swing.{ComboBox, ListView, ScrollPane}
+import scala.swing.{ListView, ScrollPane}
 
 import org.gjt.sp.jedit.{jEdit, GUIUtilities, EBMessage, EBPlugin,
   Buffer, EditPane, ServiceManager, View}
@@ -34,6 +34,8 @@ object Isabelle
 {
   /* plugin instance */
 
+  val options = new JEdit_Options
+
   @volatile var startup_failure: Option[Throwable] = None
   @volatile var startup_notified = false
 
@@ -51,81 +53,26 @@ object Isabelle
   }
 
 
-  /* properties */
-
-  val OPTION_PREFIX = "options.isabelle."
-
-  object Property
-  {
-    def apply(name: String): String =
-      jEdit.getProperty(OPTION_PREFIX + name)
-    def apply(name: String, default: String): String =
-      jEdit.getProperty(OPTION_PREFIX + name, default)
-    def update(name: String, value: String) =
-      jEdit.setProperty(OPTION_PREFIX + name, value)
-  }
-
-  object Boolean_Property
-  {
-    def apply(name: String): Boolean =
-      jEdit.getBooleanProperty(OPTION_PREFIX + name)
-    def apply(name: String, default: Boolean): Boolean =
-      jEdit.getBooleanProperty(OPTION_PREFIX + name, default)
-    def update(name: String, value: Boolean) =
-      jEdit.setBooleanProperty(OPTION_PREFIX + name, value)
-  }
-
-  object Int_Property
-  {
-    def apply(name: String): Int =
-      jEdit.getIntegerProperty(OPTION_PREFIX + name)
-    def apply(name: String, default: Int): Int =
-      jEdit.getIntegerProperty(OPTION_PREFIX + name, default)
-    def update(name: String, value: Int) =
-      jEdit.setIntegerProperty(OPTION_PREFIX + name, value)
-  }
-
-  object Double_Property
-  {
-    def apply(name: String): Double =
-      jEdit.getDoubleProperty(OPTION_PREFIX + name, 0.0)
-    def apply(name: String, default: Double): Double =
-      jEdit.getDoubleProperty(OPTION_PREFIX + name, default)
-    def update(name: String, value: Double) =
-      jEdit.setDoubleProperty(OPTION_PREFIX + name, value)
-  }
-
-  object Time_Property
-  {
-    def apply(name: String): Time =
-      Time.seconds(Double_Property(name))
-    def apply(name: String, default: Time): Time =
-      Time.seconds(Double_Property(name, default.seconds))
-    def update(name: String, value: Time) =
-      Double_Property.update(name, value.seconds)
-  }
-
-
   /* font */
 
   def font_family(): String = jEdit.getProperty("view.font")
 
   def font_size(): Float =
     (jEdit.getIntegerProperty("view.fontsize", 16) *
-      Int_Property("relative-font-size", 100)).toFloat / 100
+      options.int("jedit_relative_font_size")).toFloat / 100
 
 
   /* tooltip markup */
 
   def tooltip(text: String): String =
     "<html><pre style=\"font-family: " + font_family() + "; font-size: " +
-        Int_Property("tooltip-font-size", 10).toString + "px; \">" +  // FIXME proper scaling (!?)
+        options.int("jedit_tooltip_font_size").toString + "px; \">" +  // FIXME proper scaling (!?)
       HTML.encode(text) + "</pre></html>"
 
   private val tooltip_lb = Time.seconds(0.5)
   private val tooltip_ub = Time.seconds(60.0)
   def tooltip_dismiss_delay(): Time =
-    Time_Property("tooltip-dismiss-delay", Time.seconds(8.0)) max tooltip_lb min tooltip_ub
+    Time.seconds(options.real("jedit_tooltip_dismiss_delay")) max tooltip_lb min tooltip_ub
 
   def setup_tooltips()
   {
@@ -280,53 +227,6 @@ object Isabelle
     }
 
 
-  /* logic image */
-
-  def default_logic(): String =
-  {
-    val logic = Isabelle_System.getenv("JEDIT_LOGIC")
-    if (logic != "") logic
-    else Isabelle_System.getenv_strict("ISABELLE_LOGIC")
-  }
-
-  class Logic_Entry(val name: String, val description: String)
-  {
-    override def toString = description
-  }
-
-  def logic_selector(logic: String): ComboBox[Logic_Entry] =
-  {
-    val entries =
-      new Logic_Entry("", "default (" + default_logic() + ")") ::
-        Isabelle_System.find_logics().map(name => new Logic_Entry(name, name))
-    val component = new ComboBox(entries)
-    entries.find(_.name == logic) match {
-      case None =>
-      case Some(entry) => component.selection.item = entry
-    }
-    component.tooltip = "Isabelle logic image"
-    component
-  }
-
-  def session_args(): List[String] =
-  {
-    val modes = space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE")).map("-m" + _)
-    val logic = {
-      val logic = Property("logic")
-      if (logic != null && logic != "") logic
-      else Isabelle.default_logic()
-    }
-    modes ::: List(logic)
-  }
-
-  def session_content(inlined_files: Boolean): Build.Session_Content =
-  {
-    val dirs = Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS"))
-    val name = Path.explode(session_args().last).base.implode  // FIXME more robust
-    Build.session_content(inlined_files, dirs, name).check_errors
-  }
-
-
   /* convenience actions */
 
   private def user_input(text_area: JEditTextArea, s1: String, s2: String = "")
@@ -361,7 +261,7 @@ class Plugin extends EBPlugin
   /* theory files */
 
   private lazy val delay_load =
-    Swing_Thread.delay_last(Isabelle.session.load_delay)
+    Swing_Thread.delay_last(Time.seconds(Isabelle.options.real("jedit_load_delay")))
     {
       val view = jEdit.getActiveView()
 
@@ -450,8 +350,8 @@ class Plugin extends EBPlugin
     if (Isabelle.startup_failure.isEmpty) {
       message match {
         case msg: EditorStarted =>
-          if (Isabelle.Boolean_Property("auto-start"))
-            Isabelle.session.start(Isabelle.session_args())
+          if (Isabelle.options.bool("jedit_auto_start"))
+            Isabelle.session.start(Isabelle_Logic.session_args())
 
         case msg: BufferUpdate
         if msg.getWhat == BufferUpdate.LOADED || msg.getWhat == BufferUpdate.PROPERTIES_CHANGED =>
@@ -492,15 +392,20 @@ class Plugin extends EBPlugin
   {
     try {
       Isabelle.plugin = this
-      Isabelle.setup_tooltips()
       Isabelle_System.init()
       Isabelle_System.install_fonts()
+
+      val init_options = Options.init()
+      Swing_Thread.now {
+        Isabelle.options.update(init_options)
+        Isabelle.setup_tooltips()
+      }
 
       SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender)
       if (ModeProvider.instance.isInstanceOf[ModeProvider])
         ModeProvider.instance = new Token_Markup.Mode_Provider(ModeProvider.instance)
 
-      val content = Isabelle.session_content(false)
+      val content = Isabelle_Logic.session_content(false)
       val thy_load = new JEdit_Thy_Load(content.loaded_theories, content.syntax)
       Isabelle.session = new Session(thy_load)
 
@@ -516,6 +421,9 @@ class Plugin extends EBPlugin
 
   override def stop()
   {
+    if (Isabelle.startup_failure.isEmpty)
+      Isabelle.options.value.save_prefs()
+
     Isabelle.session.phase_changed -= session_manager
     Isabelle.jedit_buffers.foreach(Isabelle.exit_model)
     Isabelle.session.stop()

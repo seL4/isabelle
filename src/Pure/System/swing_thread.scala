@@ -54,14 +54,14 @@ object Swing_Thread
     def postpone(time: Time): Unit
   }
 
-  private def delayed_action(first: Boolean)(time: Time)(action: => Unit): Delay =
+  private def delayed_action(first: Boolean)(time: => Time)(action: => Unit): Delay =
     new Delay {
       private val timer = new Timer(time.ms.toInt, null)
       timer.setRepeats(false)
       timer.addActionListener(new ActionListener {
         override def actionPerformed(e: ActionEvent) {
           assert()
-          timer.setDelay(time.ms.toInt)
+          timer.setInitialDelay(time.ms.toInt)
           action
         }
       })
@@ -76,14 +76,14 @@ object Swing_Thread
       {
         require()
         timer.stop()
-        timer.setDelay(time.ms.toInt)
+        timer.setInitialDelay(time.ms.toInt)
       }
 
       def postpone(alt_time: Time)
       {
         require()
         if (timer.isRunning) {
-          timer.setDelay(timer.getDelay max alt_time.ms.toInt)
+          timer.setInitialDelay(timer.getInitialDelay max alt_time.ms.toInt)
           timer.restart()
         }
       }

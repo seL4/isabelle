@@ -151,7 +151,7 @@ object Isabelle_Rendering
 
 
   private def tooltip_text(msg: XML.Tree): String =
-    Pretty.string_of(List(msg), margin = Isabelle.Int_Property("tooltip-margin"))
+    Pretty.string_of(List(msg), margin = Isabelle.options.int("jedit_tooltip_margin"))
 
   def tooltip_message(snapshot: Document.Snapshot, range: Text.Range): Option[String] =
   {
@@ -195,7 +195,7 @@ object Isabelle_Rendering
 
   private def string_of_typing(kind: String, body: XML.Body): String =
     Pretty.string_of(List(Pretty.block(XML.Text(kind) :: Pretty.Break(1) :: body)),
-      margin = Isabelle.Int_Property("tooltip-margin"))
+      margin = Isabelle.options.int("jedit_tooltip_margin"))
 
   def tooltip(snapshot: Document.Snapshot, range: Text.Range): Option[String] =
   {

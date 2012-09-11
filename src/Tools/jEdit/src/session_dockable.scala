@@ -11,7 +11,7 @@ import isabelle._
 
 import scala.actors.Actor._
 import scala.swing.{FlowPanel, Button, TextArea, Label, ListView, Alignment, ScrollPane, Component}
-import scala.swing.event.{ButtonClicked, MouseClicked, SelectionChanged}
+import scala.swing.event.{ButtonClicked, MouseClicked}
 
 import java.lang.System
 import java.awt.{BorderLayout, Graphics2D, Insets}
@@ -60,11 +60,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   }
   check.tooltip = jEdit.getProperty("isabelle.check-buffer.label")
 
-  private val logic = Isabelle.logic_selector(Isabelle.Property("logic"))
-  logic.listenTo(logic.selection)
-  logic.reactions += {
-    case SelectionChanged(_) => Isabelle.Property("logic") = logic.selection.item.name
-  }
+  private val logic = Isabelle_Logic.logic_selector(true)
 
   private val controls =
     new FlowPanel(FlowPanel.Alignment.Right)(check, cancel, session_phase, logic)
@@ -154,6 +150,8 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
       react {
         case phase: Session.Phase => handle_phase(phase)
 
+        case Session.Global_Settings => Swing_Thread.later { logic.load () }
+
         case changed: Session.Commands_Changed => handle_update(Some(changed.nodes))
 
         case bad => System.err.println("Session_Dockable: ignoring bad message " + bad)
@@ -164,12 +162,14 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   override def init()
   {
     Isabelle.session.phase_changed += main_actor; handle_phase(Isabelle.session.phase)
+    Isabelle.session.global_settings += main_actor
     Isabelle.session.commands_changed += main_actor; handle_update()
   }
 
   override def exit()
   {
     Isabelle.session.phase_changed -= main_actor
+    Isabelle.session.global_settings -= main_actor
     Isabelle.session.commands_changed -= main_actor
   }
 }
