@@ -234,7 +234,6 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         |> Specification.definition (SOME (alg_bind, NONE, NoSyn), (alg_def_bind, alg_spec))
         ||> `Local_Theory.restore;
 
-    (*transforms defined frees into consts*)
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val alg = fst (Term.dest_Const (Morphism.term phi alg_free));
     val alg_def = Morphism.thm phi alg_def_free;
@@ -329,7 +328,6 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         |> Specification.definition (SOME (mor_bind, NONE, NoSyn), (mor_def_bind, mor_spec))
         ||> `Local_Theory.restore;
 
-    (*transforms defined frees into consts*)
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val mor = fst (Term.dest_Const (Morphism.term phi mor_free));
     val mor_def = Morphism.thm phi mor_def_free;
@@ -715,7 +713,6 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         |>> apsnd split_list o split_list
         ||> `Local_Theory.restore;
 
-    (*transforms defined frees into consts*)
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val min_algs = map (fst o Term.dest_Const o Morphism.term phi) min_alg_frees;
     val min_alg_defs = map (Morphism.thm phi) min_alg_def_frees;
@@ -834,7 +831,6 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
       |>> apsnd split_list o split_list
       ||> `Local_Theory.restore;
 
-    (*transforms defined frees into consts*)
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val str_inits =
       map (Term.subst_atomic_types (map (`(Morphism.typ phi)) params') o Morphism.term phi)
@@ -1011,15 +1007,14 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
       end;
 
     val ((fld_frees, (_, fld_def_frees)), (lthy, lthy_old)) =
-        lthy
-        |> fold_map6 (fn i => fn abs => fn str => fn map => fn x => fn x' =>
-          Specification.definition
-            (SOME (fld_bind i, NONE, NoSyn), (fld_def_bind i, fld_spec i abs str map x x')))
-            ks Abs_Ts str_inits map_FT_inits xFs xFs'
-        |>> apsnd split_list o split_list
-        ||> `Local_Theory.restore;
+      lthy
+      |> fold_map6 (fn i => fn abs => fn str => fn map => fn x => fn x' =>
+        Specification.definition
+          (SOME (fld_bind i, NONE, NoSyn), (fld_def_bind i, fld_spec i abs str map x x')))
+          ks Abs_Ts str_inits map_FT_inits xFs xFs'
+      |>> apsnd split_list o split_list
+      ||> `Local_Theory.restore;
 
-    (*transforms defined frees into consts*)
     val phi = Proof_Context.export_morphism lthy_old lthy;
     fun mk_flds passive =
       map (Term.subst_atomic_types (map (Morphism.typ phi) params' ~~ (mk_params passive)) o
@@ -1070,15 +1065,14 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
       end;
 
     val ((iter_frees, (_, iter_def_frees)), (lthy, lthy_old)) =
-        lthy
-        |> fold_map3 (fn i => fn T => fn AT =>
-          Specification.definition
-            (SOME (iter_bind i, NONE, NoSyn), (iter_def_bind i, iter_spec i T AT)))
-            ks Ts activeAs
-        |>> apsnd split_list o split_list
-        ||> `Local_Theory.restore;
+      lthy
+      |> fold_map3 (fn i => fn T => fn AT =>
+        Specification.definition
+          (SOME (iter_bind i, NONE, NoSyn), (iter_def_bind i, iter_spec i T AT)))
+          ks Ts activeAs
+      |>> apsnd split_list o split_list
+      ||> `Local_Theory.restore;
 
-    (*transforms defined frees into consts*)
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val iters = map (Morphism.term phi) iter_frees;
     val iter_names = map (fst o dest_Const) iters;
@@ -1156,14 +1150,13 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
       end;
 
     val ((unf_frees, (_, unf_def_frees)), (lthy, lthy_old)) =
-        lthy
-        |> fold_map3 (fn i => fn FT => fn T =>
-          Specification.definition
-            (SOME (unf_bind i, NONE, NoSyn), (unf_def_bind i, unf_spec i FT T))) ks FTs Ts
-        |>> apsnd split_list o split_list
-        ||> `Local_Theory.restore;
+      lthy
+      |> fold_map3 (fn i => fn FT => fn T =>
+        Specification.definition
+          (SOME (unf_bind i, NONE, NoSyn), (unf_def_bind i, unf_spec i FT T))) ks FTs Ts
+      |>> apsnd split_list o split_list
+      ||> `Local_Theory.restore;
 
-    (*transforms defined frees into consts*)
     val phi = Proof_Context.export_morphism lthy_old lthy;
     fun mk_unfs params =
       map (Term.subst_atomic_types (map (Morphism.typ phi) params' ~~ params) o Morphism.term phi)
@@ -1232,15 +1225,14 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
       end;
 
     val ((rec_frees, (_, rec_def_frees)), (lthy, lthy_old)) =
-        lthy
-        |> fold_map3 (fn i => fn T => fn AT =>
-          Specification.definition
-            (SOME (rec_bind i, NONE, NoSyn), (rec_def_bind i, rec_spec i T AT)))
-            ks Ts activeAs
-        |>> apsnd split_list o split_list
-        ||> `Local_Theory.restore;
+      lthy
+      |> fold_map3 (fn i => fn T => fn AT =>
+        Specification.definition
+          (SOME (rec_bind i, NONE, NoSyn), (rec_def_bind i, rec_spec i T AT)))
+          ks Ts activeAs
+      |>> apsnd split_list o split_list
+      ||> `Local_Theory.restore;
 
-    (*transforms defined frees into consts*)
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val recs = map (Morphism.term phi) rec_frees;
     val rec_names = map (fst o dest_Const) recs;

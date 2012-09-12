@@ -369,7 +369,6 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
             (case_binder :: ctr_binders) (NoSyn :: ctr_mixfixes) (case_rhs :: ctr_rhss)
           ||> `Local_Theory.restore;
 
-        (*transforms defined frees into consts (and more)*)
         val phi = Proof_Context.export_morphism lthy lthy';
 
         val ctr_defs = map (Morphism.thm phi) raw_ctr_defs;
@@ -446,7 +445,6 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
                 #>> apsnd snd) binders specs
               ||> `Local_Theory.restore;
 
-            (*transforms defined frees into consts (and more)*)
             val phi = Proof_Context.export_morphism lthy lthy';
 
             val [iter_def, rec_def] = map (Morphism.thm phi) defs;
@@ -490,7 +488,6 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
                 #>> apsnd snd) binders specs
               ||> `Local_Theory.restore;
 
-            (*transforms defined frees into consts (and more)*)
             val phi = Proof_Context.export_morphism lthy lthy';
 
             val [coiter_def, corec_def] = map (Morphism.thm phi) defs;

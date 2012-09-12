@@ -269,7 +269,6 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
                 ((Thm.def_binding b, []), sel_spec b proto_sels)) #>> apsnd snd) sel_infos
             ||> `Local_Theory.restore;
 
-          (*transforms defined frees into consts (and more)*)
           val phi = Proof_Context.export_morphism lthy lthy';
 
           val disc_defs = map (Morphism.thm phi) raw_disc_defs;
