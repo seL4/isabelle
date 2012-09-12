@@ -51,7 +51,7 @@ proof(rule bchoice[of ?A' ?phi], default)
   moreover have "f1 (fst a') = f2 (snd a')"
   using a' unfolding csquare_def thePull_def by auto
   ultimately show "\<exists> ja'. ?phi a' ja'"
-  using assms unfolding wppull_def by auto
+  using assms unfolding wppull_def by blast
 qed
 
 lemma wpull_wppull:
@@ -64,7 +64,7 @@ unfolding wppull_def proof safe
   then obtain a' where a': "a' \<in> A'" and b1: "b1 = p1' a'" and b2: "b2 = p2' a'"
   using wp unfolding wpull_def by blast
   show "\<exists>a\<in>A. e1 (p1 a) = e1 b1 \<and> e2 (p2 a) = e2 b2"
-  apply(rule bexI[of _ "j a'"]) unfolding b1 b2 using a' 1 by auto
+  apply (rule bexI[of _ "j a'"]) unfolding b1 b2 using a' 1 by auto
 qed
 
 lemma wppull_id: "\<lbrakk>wpull UNIV UNIV UNIV f1 f2 p1 p2; e1 = id; e2 = id\<rbrakk> \<Longrightarrow>
@@ -87,8 +87,7 @@ unfolding wpull_def Gr_def by auto
 definition "pick_middle P Q a c = (SOME b. (a,b) \<in> P \<and> (b,c) \<in> Q)"
 
 lemma pick_middle:
-assumes "(a,c) \<in> P O Q"
-shows "(a, pick_middle P Q a c) \<in> P \<and> (pick_middle P Q a c, c) \<in> Q"
+"(a,c) \<in> P O Q \<Longrightarrow> (a, pick_middle P Q a c) \<in> P \<and> (pick_middle P Q a c, c) \<in> Q"
 unfolding pick_middle_def apply(rule someI_ex)
 using assms unfolding relcomp_def by auto
 
@@ -96,7 +95,8 @@ definition fstO where "fstO P Q ac = (fst ac, pick_middle P Q (fst ac) (snd ac))
 definition sndO where "sndO P Q ac = (pick_middle P Q (fst ac) (snd ac), snd ac)"
 
 lemma fstO_in: "ac \<in> P O Q \<Longrightarrow> fstO P Q ac \<in> P"
-by (metis assms fstO_def pick_middle surjective_pairing)
+unfolding fstO_def
+by (subst (asm) surjective_pairing) (rule pick_middle[THEN conjunct1])
 
 lemma fst_fstO: "fst bc = (fst \<circ> fstO P Q) bc"
 unfolding comp_def fstO_def by simp
@@ -105,11 +105,12 @@ lemma snd_sndO: "snd bc = (snd \<circ> sndO P Q) bc"
 unfolding comp_def sndO_def by simp
 
 lemma sndO_in: "ac \<in> P O Q \<Longrightarrow> sndO P Q ac \<in> Q"
-by (metis assms sndO_def pick_middle surjective_pairing)
+unfolding sndO_def
+by (subst (asm) surjective_pairing) (rule pick_middle[THEN conjunct2])
 
 lemma csquare_fstO_sndO:
 "csquare (P O Q) snd fst (fstO P Q) (sndO P Q)"
-unfolding csquare_def fstO_def sndO_def using pick_middle by auto
+unfolding csquare_def fstO_def sndO_def using pick_middle by simp
 
 lemma wppull_fstO_sndO:
 shows "wppull (P O Q) P Q snd fst fst snd (fstO P Q) (sndO P Q)"

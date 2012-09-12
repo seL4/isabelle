@@ -278,12 +278,10 @@ unfolding fromCard_def by (rule some_equality) (auto simp add: toCard_inj)
 
 (* pick according to the weak pullback *)
 definition pickWP_pred where
-"pickWP_pred A p1 p2 b1 b2 a \<equiv>
- a \<in> A \<and> p1 a = b1 \<and> p2 a = b2"
+"pickWP_pred A p1 p2 b1 b2 a \<equiv> a \<in> A \<and> p1 a = b1 \<and> p2 a = b2"
 
 definition pickWP where
-"pickWP A p1 p2 b1 b2 \<equiv>
- SOME a. pickWP_pred A p1 p2 b1 b2 a"
+"pickWP A p1 p2 b1 b2 \<equiv> SOME a. pickWP_pred A p1 p2 b1 b2 a"
 
 lemma pickWP_pred:
 assumes "wpull A B1 B2 f1 f2 p1 p2" and
