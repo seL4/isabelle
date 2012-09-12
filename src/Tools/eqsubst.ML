@@ -19,99 +19,47 @@ sig
        * int (* maxidx *)
        * Zipper.T (* focusterm to search under *)
 
-    exception eqsubst_occL_exp of
-       string * int list * thm list * int * thm
-    
-    (* low level substitution functions *)
-    val apply_subst_in_asm :
-       int ->
-       thm ->
-       thm ->
-       (cterm list * int * 'a * thm) * match -> thm Seq.seq
-    val apply_subst_in_concl :
-       int ->
-       thm ->
-       cterm list * thm ->
-       thm -> match -> thm Seq.seq
+  datatype 'a skipseq = SkipMore of int | SkipSeq of 'a Seq.seq Seq.seq
 
-    (* matching/unification within zippers *)
-    val clean_match_z :
-       theory -> term -> Zipper.T -> match option
-    val clean_unify_z :
-       theory -> int -> term -> Zipper.T -> match Seq.seq
+  val skip_first_asm_occs_search :
+     ('a -> 'b -> 'c Seq.seq Seq.seq) ->
+     'a -> int -> 'b -> 'c skipseq
+  val skip_first_occs_search :
+     int -> ('a -> 'b -> 'c Seq.seq Seq.seq) -> 'a -> 'b -> 'c Seq.seq
+  val skipto_skipseq : int -> 'a Seq.seq Seq.seq -> 'a skipseq
 
-    (* skipping things in seq seq's *)
+  (* tactics *)
+  val eqsubst_asm_tac :
+     Proof.context ->
+     int list -> thm list -> int -> tactic
+  val eqsubst_asm_tac' :
+     Proof.context ->
+     (searchinfo -> int -> term -> match skipseq) ->
+     int -> thm -> int -> tactic
+  val eqsubst_tac :
+     Proof.context ->
+     int list -> (* list of occurences to rewrite, use [0] for any *)
+     thm list -> int -> tactic
+  val eqsubst_tac' :
+     Proof.context -> (* proof context *)
+     (searchinfo -> term -> match Seq.seq) (* search function *)
+     -> thm (* equation theorem to rewrite with *)
+     -> int (* subgoal number in goal theorem *)
+     -> thm (* goal theorem *)
+     -> thm Seq.seq (* rewritten goal theorem *)
 
-   (* skipping non-empty sub-sequences but when we reach the end
-      of the seq, remembering how much we have left to skip. *)
-    datatype 'a skipseq = SkipMore of int
-      | SkipSeq of 'a Seq.seq Seq.seq;
+  (* search for substitutions *)
+  val valid_match_start : Zipper.T -> bool
+  val search_lr_all : Zipper.T -> Zipper.T Seq.seq
+  val search_lr_valid : (Zipper.T -> bool) -> Zipper.T -> Zipper.T Seq.seq
+  val searchf_lr_unify_all :
+     searchinfo -> term -> match Seq.seq Seq.seq
+  val searchf_lr_unify_valid :
+     searchinfo -> term -> match Seq.seq Seq.seq
+  val searchf_bt_unify_valid :
+     searchinfo -> term -> match Seq.seq Seq.seq
 
-    val skip_first_asm_occs_search :
-       ('a -> 'b -> 'c Seq.seq Seq.seq) ->
-       'a -> int -> 'b -> 'c skipseq
-    val skip_first_occs_search :
-       int -> ('a -> 'b -> 'c Seq.seq Seq.seq) -> 'a -> 'b -> 'c Seq.seq
-    val skipto_skipseq : int -> 'a Seq.seq Seq.seq -> 'a skipseq
-
-    (* tactics *)
-    val eqsubst_asm_tac :
-       Proof.context ->
-       int list -> thm list -> int -> tactic
-    val eqsubst_asm_tac' :
-       Proof.context ->
-       (searchinfo -> int -> term -> match skipseq) ->
-       int -> thm -> int -> tactic
-    val eqsubst_tac :
-       Proof.context ->
-       int list -> (* list of occurences to rewrite, use [0] for any *)
-       thm list -> int -> tactic
-    val eqsubst_tac' :
-       Proof.context -> (* proof context *)
-       (searchinfo -> term -> match Seq.seq) (* search function *)
-       -> thm (* equation theorem to rewrite with *)
-       -> int (* subgoal number in goal theorem *)
-       -> thm (* goal theorem *)
-       -> thm Seq.seq (* rewritten goal theorem *)
-
-
-    val fakefree_badbounds :
-       (string * typ) list ->
-       term ->
-       (string * typ) list * (string * typ) list * term
-
-    val mk_foo_match :
-       (term -> term) ->
-       ('a * typ) list -> term -> term
-
-    (* preparing substitution *)
-    val prep_meta_eq : Proof.context -> thm -> thm list
-    val prep_concl_subst :
-       int -> thm -> (cterm list * thm) * searchinfo
-    val prep_subst_in_asm :
-       int -> thm -> int ->
-       (cterm list * int * int * thm) * searchinfo
-    val prep_subst_in_asms :
-       int -> thm ->
-       ((cterm list * int * int * thm) * searchinfo) list
-    val prep_zipper_match :
-       Zipper.T -> term * ((string * typ) list * (string * typ) list * term)
-
-    (* search for substitutions *)
-    val valid_match_start : Zipper.T -> bool
-    val search_lr_all : Zipper.T -> Zipper.T Seq.seq
-    val search_lr_valid : (Zipper.T -> bool) -> Zipper.T -> Zipper.T Seq.seq
-    val searchf_lr_unify_all :
-       searchinfo -> term -> match Seq.seq Seq.seq
-    val searchf_lr_unify_valid :
-       searchinfo -> term -> match Seq.seq Seq.seq
-    val searchf_bt_unify_valid :
-       searchinfo -> term -> match Seq.seq Seq.seq
-
-    (* Isar level hooks *)
-    val eqsubst_asm_meth : Proof.context -> int list -> thm list -> Proof.method
-    val eqsubst_meth : Proof.context -> int list -> thm list -> Proof.method
-    val setup : theory -> theory
+  val setup : theory -> theory
 
 end;
 
@@ -142,25 +90,25 @@ fun prep_meta_eq ctxt =
 datatype 'a skipseq = SkipMore of int
   | SkipSeq of 'a Seq.seq Seq.seq;
 (* given a seqseq, skip the first m non-empty seq's, note deficit *)
-fun skipto_skipseq m s = 
-    let 
-      fun skip_occs n sq = 
-          case Seq.pull sq of 
+fun skipto_skipseq m s =
+    let
+      fun skip_occs n sq =
+          case Seq.pull sq of
             NONE => SkipMore n
-          | SOME (h,t) => 
+          | SOME (h,t) =>
             (case Seq.pull h of NONE => skip_occs n t
              | SOME _ => if n <= 1 then SkipSeq (Seq.cons h t)
                          else skip_occs (n - 1) t)
     in (skip_occs m s) end;
 
-(* note: outerterm is the taget with the match replaced by a bound 
-         variable : ie: "P lhs" beocmes "%x. P x" 
+(* note: outerterm is the taget with the match replaced by a bound
+         variable : ie: "P lhs" beocmes "%x. P x"
          insts is the types of instantiations of vars in lhs
          and typinsts is the type instantiations of types in the lhs
-         Note: Final rule is the rule lifted into the ontext of the 
+         Note: Final rule is the rule lifted into the ontext of the
          taget thm. *)
-fun mk_foo_match mkuptermfunc Ts t = 
-    let 
+fun mk_foo_match mkuptermfunc Ts t =
+    let
       val ty = Term.type_of t
       val bigtype = (rev (map snd Ts)) ---> ty
       fun mk_foo 0 t = t
@@ -172,12 +120,13 @@ fun mk_foo_match mkuptermfunc Ts t =
 
 (* T is outer bound vars, n is number of locally bound vars *)
 (* THINK: is order of Ts correct...? or reversed? *)
-fun fakefree_badbounds Ts t = 
-    let val (FakeTs,Ts,newnames) = 
-            List.foldr (fn ((n,ty),(FakeTs,Ts,usednames)) => 
+fun mk_fake_bound_name n = ":b_" ^ n;
+fun fakefree_badbounds Ts t =
+    let val (FakeTs,Ts,newnames) =
+            List.foldr (fn ((n,ty),(FakeTs,Ts,usednames)) =>
                            let val newname = singleton (Name.variant_list usednames) n
-                           in ((RWTools.mk_fake_bound_name newname,ty)::FakeTs,
-                               (newname,ty)::Ts, 
+                           in ((mk_fake_bound_name newname,ty)::FakeTs,
+                               (newname,ty)::Ts,
                                newname::usednames) end)
                        ([],[],[])
                        Ts
@@ -187,9 +136,9 @@ fun fakefree_badbounds Ts t =
 abstraction. In this function we additionally construct the
 abstraction environment, and an outer context term (with the focus
 abstracted out) for use in rewriting with RWInst.rw *)
-fun prep_zipper_match z = 
-    let 
-      val t = Zipper.trm z  
+fun prep_zipper_match z =
+    let
+      val t = Zipper.trm z
       val c = Zipper.ctxt z
       val Ts = Zipper.C.nty_ctxt c
       val (FakeTs', Ts', t') = fakefree_badbounds Ts t
@@ -198,12 +147,7 @@ fun prep_zipper_match z =
       (t', (FakeTs', Ts', absterm))
     end;
 
-(* Matching and Unification with exception handled *)
-fun clean_match thy (a as (pat, t)) =
-  let val (tyenv, tenv) = Pattern.match thy a (Vartab.empty, Vartab.empty)
-  in SOME (Vartab.dest tyenv, Vartab.dest tenv)
-  end handle Pattern.MATCH => NONE;
-
+(* Unification with exception handled *)
 (* given theory, max var index, pat, tgt; returns Seq of instantiations *)
 fun clean_unify thry ix (a as (pat, tgt)) =
     let
@@ -242,39 +186,16 @@ fun clean_unify thry ix (a as (pat, tgt)) =
       | NONE => Seq.empty
     end;
 
-(* Matching and Unification for zippers *)
+(* Unification for zippers *)
 (* Note: Ts is a modified version of the original names of the outer
 bound variables. New names have been introduced to make sure they are
 unique w.r.t all names in the term and each other. usednames' is
 oldnames + new names. *)
-fun clean_match_z thy pat z = 
-    let val (t, (FakeTs,Ts,absterm)) = prep_zipper_match z in
-      case clean_match thy (pat, t) of 
-        NONE => NONE 
-      | SOME insts => SOME (insts, FakeTs, Ts, absterm) end;
 (* ix = max var index *)
-fun clean_unify_z sgn ix pat z = 
+fun clean_unify_z sgn ix pat z =
     let val (t, (FakeTs, Ts,absterm)) = prep_zipper_match z in
-    Seq.map (fn insts => (insts, FakeTs, Ts, absterm)) 
+    Seq.map (fn insts => (insts, FakeTs, Ts, absterm))
             (clean_unify sgn ix (t, pat)) end;
-
-
-(* FOR DEBUGGING...
-type trace_subst_errT = int (* subgoal *)
-        * thm (* thm with all goals *)
-        * (cterm list (* certified free var placeholders for vars *)
-           * thm)  (* trivial thm of goal concl *)
-            (* possible matches/unifiers *)
-        * thm (* rule *)
-        * (((indexname * typ) list (* type instantiations *)
-              * (indexname * term) list ) (* term instantiations *)
-             * (string * typ) list (* Type abs env *)
-             * term) (* outer term *);
-
-val trace_subst_err = (Unsynchronized.ref NONE : trace_subst_errT option Unsynchronized.ref);
-val trace_subst_search = Unsynchronized.ref false;
-exception trace_subst_exp of trace_subst_errT;
-*)
 
 
 fun bot_left_leaf_of (l $ r) = bot_left_leaf_of l
@@ -284,8 +205,8 @@ fun bot_left_leaf_of (l $ r) = bot_left_leaf_of l
 (* Avoid considering replacing terms which have a var at the head as
    they always succeed trivially, and uninterestingly. *)
 fun valid_match_start z =
-    (case bot_left_leaf_of (Zipper.trm z) of 
-      Var _ => false 
+    (case bot_left_leaf_of (Zipper.trm z) of
+      Var _ => false
       | _ => true);
 
 (* search from top, left to right, then down *)
@@ -293,12 +214,12 @@ val search_lr_all = ZipperSearch.all_bl_ur;
 
 (* search from top, left to right, then down *)
 fun search_lr_valid validf =
-    let 
-      fun sf_valid_td_lr z = 
+    let
+      fun sf_valid_td_lr z =
           let val here = if validf z then [Zipper.Here z] else [] in
-            case Zipper.trm z 
-             of _ $ _ => [Zipper.LookIn (Zipper.move_down_left z)] 
-                         @ here 
+            case Zipper.trm z
+             of _ $ _ => [Zipper.LookIn (Zipper.move_down_left z)]
+                         @ here
                          @ [Zipper.LookIn (Zipper.move_down_right z)]
               | Abs _ => here @ [Zipper.LookIn (Zipper.move_down_abs z)]
               | _ => here
@@ -308,11 +229,11 @@ fun search_lr_valid validf =
 (* search from bottom to top, left to right *)
 
 fun search_bt_valid validf =
-    let 
-      fun sf_valid_td_lr z = 
+    let
+      fun sf_valid_td_lr z =
           let val here = if validf z then [Zipper.Here z] else [] in
-            case Zipper.trm z 
-             of _ $ _ => [Zipper.LookIn (Zipper.move_down_left z), 
+            case Zipper.trm z
+             of _ $ _ => [Zipper.LookIn (Zipper.move_down_left z),
                           Zipper.LookIn (Zipper.move_down_right z)] @ here
               | Abs _ => [Zipper.LookIn (Zipper.move_down_abs z)] @ here
               | _ => here
@@ -320,7 +241,7 @@ fun search_bt_valid validf =
     in Zipper.lzy_search sf_valid_td_lr end;
 
 fun searchf_unify_gen f (sgn, maxidx, z) lhs =
-    Seq.map (clean_unify_z sgn maxidx lhs) 
+    Seq.map (clean_unify_z sgn maxidx lhs)
             (Zipper.limit_apply f z);
 
 (* search all unifications *)
@@ -328,7 +249,7 @@ val searchf_lr_unify_all =
     searchf_unify_gen search_lr_all;
 
 (* search only for 'valid' unifiers (non abs subterms and non vars) *)
-val searchf_lr_unify_valid = 
+val searchf_lr_unify_valid =
     searchf_unify_gen (search_lr_valid valid_match_start);
 
 val searchf_bt_unify_valid =
@@ -390,8 +311,6 @@ fun distinct_subgoals th =
    the given theorems*)
 
 
-exception eqsubst_occL_exp of
-          string * (int list) * (thm list) * int * thm;
 fun skip_first_occs_search occ srchf sinfo lhs =
     case (skipto_skipseq occ (srchf sinfo lhs)) of
       SkipMore _ => Seq.empty
@@ -408,8 +327,8 @@ fun eqsubst_tac ctxt occL thms i th =
       let val thmseq = (Seq.of_list thms)
         fun apply_occ occ th =
             thmseq |> Seq.maps
-                    (fn r => eqsubst_tac' 
-                               ctxt 
+                    (fn r => eqsubst_tac'
+                               ctxt
                                (skip_first_occs_search
                                   occ searchf_lr_unify_valid) r
                                  (i + ((Thm.nprems_of th) - nprems))
@@ -419,8 +338,7 @@ fun eqsubst_tac ctxt occL thms i th =
       in
         Seq.map distinct_subgoals (Seq.EVERY (map apply_occ sortedoccL) th)
       end
-    end
-    handle THM _ => raise eqsubst_occL_exp ("THM",occL,thms,i,th);
+    end;
 
 
 (* inthms are the given arguments in Isar, and treated as eqstep with
@@ -534,8 +452,7 @@ fun eqsubst_asm_tac ctxt occL thms i th =
         Seq.map distinct_subgoals
                 (Seq.EVERY (map apply_occ sortedoccs) th)
       end
-    end
-    handle THM _ => raise eqsubst_occL_exp ("THM",occL,thms,i,th);
+    end;
 
 (* inthms are the given arguments in Isar, and treated as eqstep with
    the first one, then the second etc *)
