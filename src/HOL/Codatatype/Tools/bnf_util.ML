@@ -567,5 +567,4 @@ fun seq_conds f n k xs =
 fun mk_unabs_def 0 thm = thm
   | mk_unabs_def n thm = mk_unabs_def (n - 1) thm RS @{thm spec[OF iffD1[OF fun_eq_iff]]};
 
-
 end;

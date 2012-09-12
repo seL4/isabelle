@@ -18,7 +18,6 @@ sig
   val caseN: string
   val coN: string
   val coinductN: string
-  val coinductsN: string
   val coiterN: string
   val coitersN: string
   val corecN: string
@@ -42,7 +41,6 @@ sig
   val hsetN: string
   val hset_recN: string
   val inductN: string
-  val inductsN: string
   val injectN: string
   val isNodeN: string
   val iterN: string
@@ -159,7 +157,9 @@ val coN = "co"
 val algN = "alg"
 val IITN = "IITN"
 val iterN = "iter"
+val itersN = iterN ^ "s"
 val coiterN = coN ^ iterN
+val coitersN = coiterN ^ "s"
 val uniqueN = "_unique"
 val fldN = "fld"
 val unfN = "unf"
@@ -190,7 +190,9 @@ fun mk_set_inductN i = mk_setN i ^ "_induct"
 
 val str_initN = "str_init"
 val recN = "rec"
+val recsN = recN ^ "s"
 val corecN = coN ^ recN
+val corecsN = corecN ^ "s"
 val fld_recN = fldN ^ "_" ^ recN
 val fld_recsN = fld_recN ^ "s"
 val unf_corecN = unfN ^ "_" ^ corecN
@@ -226,16 +228,12 @@ val set_inclN = "set_incl"
 val set_set_inclN = "set_set_incl"
 
 val caseN = "case"
-val coinductsN = "coinducts"
-val coitersN = "coiters"
-val corecsN = "corecs"
-val disc_coitersN = "disc_coiters"
-val disc_corecsN = "disc_corecs"
-val inductsN = "inducts"
-val itersN = "iters"
-val recsN = "recs"
-val sel_coitersN = "sel_coiters"
-val sel_corecsN = "sel_corecs"
+val discN = "disc"
+val disc_coitersN = discN ^ "_" ^ coitersN
+val disc_corecsN = discN ^ "_" ^ corecsN
+val selN = "sel"
+val sel_coitersN = selN ^ "_" ^ coitersN
+val sel_corecsN = selN ^ "_" ^ corecsN
 
 val mk_common_name = space_implode "_" o map Binding.name_of;
 
