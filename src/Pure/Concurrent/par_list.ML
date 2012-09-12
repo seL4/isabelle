@@ -33,14 +33,17 @@ fun managed_results name f xs =
       not (Multithreading.enabled ()) orelse Multithreading.self_critical ()
   then map (Exn.capture f) xs
   else
-    let
-      val group = Future.new_group (Future.worker_group ());
-      val futures =
-        Future.forks {name = name, group = SOME group, deps = [], pri = 0, interrupts = true}
-          (map (fn x => fn () => f x) xs);
-      val results = Future.join_results futures
-        handle exn => (if Exn.is_interrupt exn then Future.cancel_group group else (); reraise exn);
-    in results end;
+    uninterruptible (fn restore_attributes => fn () =>
+      let
+        val group = Future.new_group (Future.worker_group ());
+        val futures =
+          Future.forks {name = name, group = SOME group, deps = [], pri = 0, interrupts = true}
+            (map (fn x => fn () => f x) xs);
+        val results =
+          restore_attributes Future.join_results futures
+            handle exn =>
+              (if Exn.is_interrupt exn then Future.cancel_group group else (); reraise exn);
+      in results end) ();
 
 fun map_name name f xs = Par_Exn.release_first (managed_results name f xs);
 fun map f = map_name "Par_List.map" f;
