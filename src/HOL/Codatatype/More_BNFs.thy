@@ -83,6 +83,15 @@ next
   thus False by simp
 qed
 
+lemma option_pred[simp]: "option_pred R x_opt y_opt =
+  (case (x_opt, y_opt) of
+    (None, None) \<Rightarrow> True
+  | (Some x, Some y) \<Rightarrow> R x y
+  | _ \<Rightarrow> False)"
+unfolding option_pred_def option_rel_def Gr_def relcomp_unfold converse_unfold
+by (auto simp: trans[OF eq_commute option_map_is_None] trans[OF eq_commute option_map_eq_Some]
+  split: option.splits)
+
 lemma card_of_list_in:
   "|{xs. set xs \<subseteq> A}| \<le>o |Pfunc (UNIV :: nat set) A|" (is "|?LHS| \<le>o |?RHS|")
 proof -
