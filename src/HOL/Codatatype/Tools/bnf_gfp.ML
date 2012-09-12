@@ -64,7 +64,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val ks = 1 upto n;
     val m = live - n (*passive, if 0 don't generate a new bnf*);
     val ls = 1 upto m;
-    val b = Binding.name (fold_rev (fn b => fn s => Binding.name_of b ^ s) bs "");
+    val b = Binding.name (mk_bundle_name bs);
 
     (* TODO: check if m, n etc are sane *)
 
@@ -1675,7 +1675,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         map (fn i => map (fn i' =>
           split_conj_thm (if n = 1 then set_rv_Lev' RS mk_conjunctN n i RS mp
             else set_rv_Lev' RS mk_conjunctN n i RS mp RSN
-              (2, @{thm sum_case_cong} RS @{thm subst[of _ _ "%x. x"]}) RS
+              (2, @{thm sum_case_weak_cong} RS @{thm subst[of _ _ "%x. x"]}) RS
               (mk_sum_casesN n i' RS @{thm subst[of _ _ "%x. x"]}))) ks) ks
       end;
 

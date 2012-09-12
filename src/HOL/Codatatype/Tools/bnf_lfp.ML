@@ -33,7 +33,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val n = length bnfs; (*active*)
     val ks = 1 upto n;
     val m = live - n; (*passive, if 0 don't generate a new bnf*)
-    val b = Binding.name (fold_rev (fn b => fn s => Binding.name_of b ^ s) bs "");
+    val b = Binding.name (mk_bundle_name bs);
 
     (* TODO: check if m, n etc are sane *)
 
