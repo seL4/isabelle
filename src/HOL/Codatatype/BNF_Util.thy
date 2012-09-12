@@ -12,7 +12,6 @@ theory BNF_Util
 imports
   "../Cardinals/Cardinal_Arithmetic"
   "~~/src/HOL/Library/Prefix_Order"
-  Equiv_Relations_More
 begin
 
 lemma subset_Collect_iff: "B \<subseteq> A \<Longrightarrow> (B \<subseteq> {x \<in> A. P x}) = (\<forall>x \<in> B. P x)"

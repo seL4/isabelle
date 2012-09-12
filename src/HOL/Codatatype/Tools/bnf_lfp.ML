@@ -1390,7 +1390,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val p1s_maps = map (mk_map XTs p1s Ts flds (mk_passive_maps passiveXs passiveAs)) ks;
         val p2s_maps = map (mk_map XTs p2s Ts' fld's (mk_passive_maps passiveXs passiveBs)) ks;
 
-        val (map_simp_thms, map_thms) =
+        val map_simp_thms =
           let
             fun mk_goal fs_map map fld fld' = fold_rev Logic.all fs
               (mk_Trueprop_eq (HOLogic.mk_comp (fs_map, fld),
@@ -1402,7 +1402,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
                 |> Thm.close_derivation)
               goals iter_thms map_comp_id_thms map_congs;
           in
-            map_split (fn thm => (thm RS @{thm pointfreeE}, thm)) maps
+            map (fn thm => thm RS @{thm pointfreeE}) maps
           end;
 
         val (map_unique_thms, map_unique_thm) =
@@ -1450,7 +1450,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val setss_by_range = map (fn cols => map (mk_iter Ts cols) ks) colss;
         val setss_by_bnf = transpose setss_by_range;
 
-        val (set_simp_thmss, set_thmss) =
+        val set_simp_thmss =
           let
             fun mk_goal sets fld set col map =
               mk_Trueprop_eq (HOLogic.mk_comp (set, fld),
@@ -1477,7 +1477,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
                 |> Thm.close_derivation)
               set_natural'ss) ls simp_goalss setss;
           in
-            (set_simpss, setss)
+            set_simpss
           end;
 
         fun mk_set_thms set_simp = (@{thm xt1(3)} OF [set_simp, @{thm Un_upper1}]) ::
