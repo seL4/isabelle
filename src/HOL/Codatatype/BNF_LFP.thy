@@ -61,7 +61,8 @@ proof (rule iffI)
   then obtain g where g: "ALL b : B. g b : A \<and> f (g b) = b"
     using bchoice[of B ?phi] by blast
   hence gg: "ALL b : f ` A. g b : A \<and> f (g b) = b" using f by blast
-  have gf: "inver g f A" unfolding inver_def by (metis gg imageI inj_f the_inv_into_f_f)
+  have gf: "inver g f A" unfolding inver_def
+    by (metis (no_types) gg imageI[of _ A f] the_inv_into_f_f[OF inj_f])
   moreover have "g ` B \<le> A \<and> inver f g B" using g unfolding inver_def by blast
   moreover have "A \<le> g ` B"
   proof safe
@@ -123,13 +124,16 @@ lemma bij_betw_inver2: "bij_betw f A B \<Longrightarrow> inver f (inv_into A f) 
 unfolding bij_betw_def inver_def by auto
 
 lemma bij_betwI: "\<lbrakk>bij_betw g B A; inver g f A; inver f g B\<rbrakk> \<Longrightarrow> bij_betw f A B"
-by (metis bij_betw_iff_ex bij_betw_imageE)
+by (drule bij_betw_imageE, unfold bij_betw_iff_ex) blast
 
 lemma bij_betwI':
   "\<lbrakk>\<And>x y. \<lbrakk>x \<in> X; y \<in> X\<rbrakk> \<Longrightarrow> (f x = f y) = (x = y);
     \<And>x. x \<in> X \<Longrightarrow> f x \<in> Y;
     \<And>y. y \<in> Y \<Longrightarrow> \<exists>x \<in> X. y = f x\<rbrakk> \<Longrightarrow> bij_betw f X Y"
-unfolding bij_betw_def inj_on_def by auto (metis rev_image_eqI)
+unfolding bij_betw_def inj_on_def
+apply (rule conjI)
+ apply blast
+by (erule thin_rl) blast
 
 lemma surj_fun_eq:
   assumes surj_on: "f ` X = UNIV" and eq_on: "\<forall>x \<in> X. (g1 o f) x = (g2 o f) x"
@@ -192,7 +196,15 @@ next
   then obtain y where y: "y \<in> Field r" "\<forall>x \<in> X. (x \<noteq> y \<and> (x, y) \<in> r)" by blast
   then obtain z where z: "z \<in> Field r" "x \<noteq> z \<and> (x, z) \<in> r" "y \<noteq> z \<and> (y, z) \<in> r"
     using Cinfinite_limit2[OF _ y(1) insert(5), of x] insert(4) by blast
-  show ?case by (metis Card_order_trans insert(5) insertE y(2) z)
+  show ?case
+    apply (intro bexI ballI)
+    apply (erule insertE)
+    apply hypsubst
+    apply (rule z(2))
+    using Card_order_trans[OF insert(5)[THEN conjunct2]] y(2) z(3)
+    apply blast
+    apply (rule z(1))
+    done
 qed
 
 lemma insert_subsetI: "\<lbrakk>x \<in> A; X \<subseteq> A\<rbrakk> \<Longrightarrow> insert x X \<subseteq> A"
