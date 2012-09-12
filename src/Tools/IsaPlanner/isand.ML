@@ -26,13 +26,15 @@ sig
   (* inserting meta level params for frees in the conditions *)
   val allify_conditions : (term -> cterm) -> (string * typ) list -> thm -> thm * cterm list
 
+  val variant_names : Proof.context -> term list -> string list -> string list
+
   (* meta level fixed params (i.e. !! vars) *)
-  val fix_alls_term : int -> term -> term * term list
+  val fix_alls_term : Proof.context -> int -> term -> term * term list
 
   val unfix_frees : cterm list -> thm -> thm
 
   (* assumptions/subgoals *)
-  val fixed_subgoal_thms : thm -> thm list * (thm list -> thm)
+  val fixed_subgoal_thms : Proof.context -> thm -> thm list * (thm list -> thm)
 end
 
 structure IsaND : ISA_ND =
@@ -85,6 +87,15 @@ fun export_solution (export {fixes = cfvs, assumes = hcprems,
                 |> Drule.forall_intr_list cfvs
     in Drule.compose_single (solth', i, gth) end;
 
+fun variant_names ctxt ts xs =
+  let
+    val names =
+      Variable.names_of ctxt
+      |> (fold o fold_aterms)
+          (fn Var ((a, _), _) => Name.declare a
+            | Free (a, _) => Name.declare a
+            | _ => I) ts;
+  in fst (fold_map Name.variant xs names) end;
 
 (* fix parameters of a subgoal "i", as free variables, and create an
 exporting function that will use the result of this proved goal to
@@ -104,30 +115,26 @@ Result:
      ("As ==> SGi x'" : thm) ->
      ("[| SG0; ... SGi-1; SGi+1; ... SGm |] ==> G") : thm)
 *)
-fun fix_alls_term i t =
+fun fix_alls_term ctxt i t =
     let
-      val varnames = map (fst o fst o Term.dest_Var) (Misc_Legacy.term_vars t)
-      val names = Misc_Legacy.add_term_names (t,varnames);
       val gt = Logic.get_goal t i;
       val body = Term.strip_all_body gt;
       val alls = rev (Term.strip_all_vars gt);
-      val fvs = map Free
-                    (Name.variant_list names (map fst alls)
-                       ~~ (map snd alls));
+      val xs = variant_names ctxt [t] (map fst alls);
+      val fvs = map Free (xs ~~ map snd alls);
     in ((subst_bounds (fvs,body)), fvs) end;
 
-fun fix_alls_cterm i th =
+fun fix_alls_cterm ctxt i th =
     let
       val ctermify = Thm.cterm_of (Thm.theory_of_thm th);
-      val (fixedbody, fvs) = fix_alls_term i (Thm.prop_of th);
+      val (fixedbody, fvs) = fix_alls_term ctxt i (Thm.prop_of th);
       val cfvs = rev (map ctermify fvs);
       val ct_body = ctermify fixedbody
     in
       (ct_body, cfvs)
     end;
 
-fun fix_alls' i =
-     (apfst Thm.trivial) o (fix_alls_cterm i);
+fun fix_alls' ctxt i = apfst Thm.trivial o fix_alls_cterm ctxt i;
 
 
 (* hide other goals *)
@@ -154,9 +161,9 @@ Result:
      ("SGi x'" : thm) ->
      ("[| SG0; ... SGi-1; SGi+1; ... SGm |] ==> G") : thm)
 *)
-fun fix_alls i th =
+fun fix_alls ctxt i th =
     let
-      val (fixed_gth, fixedvars) = fix_alls' i th
+      val (fixed_gth, fixedvars) = fix_alls' ctxt i th
       val (sml_gth, othergoals) = hide_other_goals fixed_gth
     in
       (sml_gth, export {fixes = fixedvars,
@@ -208,7 +215,7 @@ Result:
    "G" : thm)
 *)
 (* requires being given solutions! *)
-fun fixed_subgoal_thms th =
+fun fixed_subgoal_thms ctxt th =
     let
       val (subgoals, expf) = subgoal_thms th;
 (*       fun export_sg (th, exp) = exp th; *)
@@ -217,7 +224,7 @@ fun fixed_subgoal_thms th =
 (*           expf (map export_sg (ths ~~ expfs)); *)
     in
       apsnd export_sgs (Library.split_list (map (apsnd export_solution o
-                                                 fix_alls 1) subgoals))
+                                                 fix_alls ctxt 1) subgoals))
     end;
 
 end;

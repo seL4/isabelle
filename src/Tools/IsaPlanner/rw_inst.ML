@@ -12,7 +12,7 @@ sig
 
   (* Rewrite: give it instantiation infromation, a rule, and the
   target thm, and it will return the rewritten target thm *)
-  val rw :
+  val rw : Proof.context ->
       ((indexname * (sort * typ)) list *  (* type var instantiations *)
        (indexname * (typ * term)) list)  (* schematic var instantiations *)
       * (string * typ) list           (* Fake named bounds + types *)
@@ -37,16 +37,6 @@ fun beta_eta_contract thm =
     in thm3 end;
 
 
-(* to get the free names of a theorem (including hyps and flexes) *)
-fun usednames_of_thm th =
-    let val rep = Thm.rep_thm th
-      val hyps = #hyps rep
-      val (tpairl,tpairr) = Library.split_list (#tpairs rep)
-      val prop = #prop rep
-    in
-      List.foldr Misc_Legacy.add_term_names [] (prop :: (tpairl @ (tpairr @ hyps)))
-    end;
-
 (* Given a list of variables that were bound, and a that has been
 instantiated with free variable placeholders for the bound vars, it
 creates an abstracted version of the theorem, with local bound vars as
@@ -64,22 +54,22 @@ results in:
 note: assumes rule is instantiated
 *)
 (* Note, we take abstraction in the order of last abstraction first *)
-fun mk_abstractedrule TsFake Ts rule =
+fun mk_abstractedrule ctxt TsFake Ts rule =
     let
       val ctermify = Thm.cterm_of (Thm.theory_of_thm rule);
 
       (* now we change the names of temporary free vars that represent
          bound vars with binders outside the redex *)
-      val names = usednames_of_thm rule;
-      val (fromnames,tonames,_,Ts') =
-          Library.foldl (fn ((rnf,rnt,names, Ts''),((faken,_),(n,ty))) =>
-                    let val n2 = singleton (Name.variant_list names) n in
+
+      val ns =
+        IsaND.variant_names ctxt (Thm.full_prop_of rule :: Thm.hyps_of rule) (map fst Ts);
+
+      val (fromnames, tonames, Ts') =
+          fold (fn (((faken, _), (n, ty)), n2) => fn (rnf, rnt, Ts'') =>
                       (ctermify (Free(faken,ty)) :: rnf,
                        ctermify (Free(n2,ty)) :: rnt,
-                       n2 :: names,
-                       (n2,ty) :: Ts'')
-                    end)
-                (([],[],names, []), TsFake~~Ts);
+                       (n2,ty) :: Ts''))
+                (TsFake ~~ Ts ~~ ns) ([], [], []);
 
       (* rename conflicting free's in the rule to avoid cconflicts
       with introduced vars from bounds outside in redex *)
@@ -105,10 +95,9 @@ variables *)
 (* Create a table of vars to be renamed after instantiation - ie
       other uninstantiated vars in the hyps of the rule
       ie ?z in C ?z ?x ==> A ?x ?y = B ?x ?y *)
-fun mk_renamings tgt rule_inst =
+fun mk_renamings ctxt tgt rule_inst =
     let
-      val rule_conds = Thm.prems_of rule_inst
-      val names = List.foldr Misc_Legacy.add_term_names [] (tgt :: rule_conds);
+      val rule_conds = Thm.prems_of rule_inst;
       val (_, cond_vs) =
           Library.foldl (fn ((tyvs, vs), t) =>
                     (union (op =) (Misc_Legacy.term_tvars t) tyvs,
@@ -116,13 +105,8 @@ fun mk_renamings tgt rule_inst =
                 (([],[]), rule_conds);
       val termvars = map Term.dest_Var (Misc_Legacy.term_vars tgt);
       val vars_to_fix = union (op =) termvars cond_vs;
-      val (renamings, _) =
-          List.foldr (fn (((n,i),ty), (vs, names')) =>
-                    let val n' = singleton (Name.variant_list names') n in
-                      ((((n,i),ty), Free (n', ty)) :: vs, n'::names')
-                    end)
-                ([], names) vars_to_fix;
-    in renamings end;
+      val ys = IsaND.variant_names ctxt (tgt :: rule_conds) (map (fst o fst) vars_to_fix);
+  in map2 (fn (xi, T) => fn y => ((xi, T), Free (y, T))) vars_to_fix ys end;
 
 (* make a new fresh typefree instantiation for the given tvar *)
 fun new_tfree (tv as (ix,sort), (pairs,used)) =
@@ -184,7 +168,7 @@ the abstracted subterm has the arguments in the revered order, ie
 first abstraction first.  FakeTs has abstractions using the fake name
 - ie the name distinct from all other abstractions. *)
 
-fun rw ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule target_thm =
+fun rw ctxt ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule target_thm =
     let
       (* general signature info *)
       val target_sign = (Thm.theory_of_thm target_thm);
@@ -192,7 +176,7 @@ fun rw ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule target_thm
       val ctypeify = Thm.ctyp_of target_sign;
 
       (* fix all non-instantiated tvars *)
-      val (fixtyinsts, othertfrees) =
+      val (fixtyinsts, othertfrees) = (* FIXME proper context!? *)
           mk_fixtvar_tyinsts nonfixed_typinsts
                              [Thm.prop_of rule, Thm.prop_of target_thm];
       val typinsts = cross_inst_typs (nonfixed_typinsts @ fixtyinsts);
@@ -236,8 +220,7 @@ fun rw ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule target_thm
       (* Create a table of vars to be renamed after instantiation - ie
       other uninstantiated vars in the hyps the *instantiated* rule
       ie ?z in C ?z ?x ==> A ?x ?y = B ?x ?y *)
-      val renamings = mk_renamings (Thm.prop_of tgt_th_tyinst)
-                                   rule_inst;
+      val renamings = mk_renamings ctxt (Thm.prop_of tgt_th_tyinst) rule_inst;
       val cterm_renamings =
           map (fn (x,y) => (ctermify (Var x), ctermify y)) renamings;
 
@@ -249,7 +232,7 @@ fun rw ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule target_thm
       val couter_inst = Thm.reflexive (ctermify outerterm_inst);
       val (cprems, abstract_rule_inst) =
           rule_inst |> Thm.instantiate ([], cterm_renamings)
-                    |> mk_abstractedrule FakeTs_tyinst Ts_tyinst;
+                    |> mk_abstractedrule ctxt FakeTs_tyinst Ts_tyinst;
       val specific_tgt_rule =
           beta_eta_contract
             (Thm.combination couter_inst abstract_rule_inst);

@@ -166,18 +166,18 @@ local
   fun get_related_thms i = 
       map_filter ((fn (r,x) => if x = i then SOME r else NONE));
 
-  fun solve_eq (th, [], i) =  error "derive_init_eqs: missing rules"
-    | solve_eq (th, [a], i) = [(a, i)]
-    | solve_eq (th, splitths, i) =
+  fun solve_eq _ (th, [], i) =  error "derive_init_eqs: missing rules"
+    | solve_eq _ (th, [a], i) = [(a, i)]
+    | solve_eq ctxt (th, splitths, i) =
       (writeln "Proving unsplit equation...";
       [((Drule.export_without_context o Object_Logic.rulify_no_asm)
-          (CaseSplit.splitto splitths th), i)])
+          (CaseSplit.splitto ctxt splitths th), i)])
       handle ERROR s => 
              (warning ("recdef (solve_eq): " ^ s); map (fn x => (x,i)) splitths);
 in
-fun derive_init_eqs thy rules eqs =
-  map (Thm.trivial o Thm.cterm_of thy o HOLogic.mk_Trueprop) eqs
-  |> map_index (fn (i, e) => solve_eq (e, (get_related_thms i rules), i))
+fun derive_init_eqs ctxt rules eqs =
+  map (Thm.trivial o Thm.cterm_of (Proof_Context.theory_of ctxt) o HOLogic.mk_Trueprop) eqs
+  |> map_index (fn (i, e) => solve_eq ctxt (e, (get_related_thms i rules), i))
   |> flat;
 end;
 
@@ -192,7 +192,7 @@ fun define_i strict ctxt congs wfs fid R eqs thy =
       val (lhs, _) = Logic.dest_equals (prop_of def)
       val {induct, rules, tcs} = simplify_defn strict thy ctxt' congs wfs fid pats def
       val rules' = 
-          if strict then derive_init_eqs thy rules eqs
+          if strict then derive_init_eqs ctxt rules eqs
           else rules
   in ({lhs = lhs, rules = rules', induct = induct, tcs = tcs}, thy) end;
 

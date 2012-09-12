@@ -7,7 +7,7 @@ Extra case splitting for TFL.
 signature CASE_SPLIT =
 sig
   (* try to recursively split conjectured thm to given list of thms *)
-  val splitto : thm list -> thm -> thm
+  val splitto : Proof.context -> thm list -> thm -> thm
 end;
 
 structure CaseSplit: CASE_SPLIT =
@@ -121,7 +121,7 @@ useful, drop it? *)
 (* Note: This should not be a separate tactic but integrated into the
 case split done during recdef's case analysis, this would avoid us
 having to (re)search for variables to split. *)
-fun splitto splitths genth =
+fun splitto ctxt splitths genth =
     let
       val _ = not (null splitths) orelse error "splitto: no given splitths";
       val thy = Thm.theory_of_thm genth;
@@ -142,7 +142,7 @@ fun splitto splitths genth =
             let
               val gt = HOLogic.dest_Trueprop (#1 (Logic.dest_implies (Thm.prop_of th)));
               val split_thm = mk_casesplit_goal_thm thy v gt;
-              val (subthms, expf) = IsaND.fixed_subgoal_thms split_thm;
+              val (subthms, expf) = IsaND.fixed_subgoal_thms ctxt split_thm;
             in
               expf (map recsplitf subthms)
             end)
