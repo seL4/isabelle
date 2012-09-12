@@ -15,13 +15,3 @@
 \urlstyle{rm}
 \ifpdf\relax\else\renewcommand{\url}[1]{\nolinkurl{#1}}\fi
 
-\def\isaliteral#1#2{#2}
-\def\isanil{}
-
-%experimental treatment of replacement text
-\iffalse
-\ifnum\pdfminorversion<5\pdfminorversion=5\fi
-\renewcommand{\isaliteral}[2]{%
-\pdfliteral direct{/Span <</ActualText<#1>>> BDC}#2\pdfliteral direct{EMC}}
-\renewcommand{\isanil}{{\color{white}.}}
-\fi
