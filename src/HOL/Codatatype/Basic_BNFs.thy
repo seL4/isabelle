@@ -13,6 +13,9 @@ theory Basic_BNFs
 imports BNF_Def
 begin
 
+lemma wpull_id: "wpull UNIV B1 B2 id id id id"
+unfolding wpull_def by simp
+
 lemmas natLeq_card_order = natLeq_Card_order[unfolded Field_natLeq]
 
 lemma ctwo_card_order: "card_order ctwo"

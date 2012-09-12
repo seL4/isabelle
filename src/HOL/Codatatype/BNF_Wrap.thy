@@ -14,6 +14,9 @@ keywords
   "no_dests"
 begin
 
+lemma iffI_np: "\<lbrakk>x \<Longrightarrow> \<not> y; \<not> x \<Longrightarrow> y\<rbrakk> \<Longrightarrow> \<not> x \<longleftrightarrow> y"
+by (erule iffI) (erule contrapos_pn)
+
 ML_file "Tools/bnf_wrap_tactics.ML"
 ML_file "Tools/bnf_wrap.ML"
 
