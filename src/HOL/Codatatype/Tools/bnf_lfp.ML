@@ -10,8 +10,8 @@ signature BNF_LFP =
 sig
   val bnf_lfp: mixfix list -> (string * sort) list option -> binding list ->
     typ list * typ list list -> BNF_Def.BNF list -> local_theory ->
-    (term list * term list * term list * term list * thm list * thm list * thm list * thm list *
-      thm list) * local_theory
+    (term list * term list * term list * term list * thm * thm list * thm list * thm list *
+      thm list * thm list) * local_theory
 end;
 
 structure BNF_LFP : BNF_LFP =
@@ -33,7 +33,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val n = length bnfs; (*active*)
     val ks = 1 upto n;
     val m = live - n; (*passive, if 0 don't generate a new bnf*)
-    val b = Binding.name (mk_bundle_name bs);
+    val b = Binding.name (mk_common_name bs);
 
     (* TODO: check if m, n etc are sane *)
 
@@ -1810,7 +1810,8 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
           bs thmss)
   in
-    ((unfs, flds, iters, recs, unf_fld_thms, fld_unf_thms, fld_inject_thms, iter_thms, rec_thms),
+    ((unfs, flds, iters, recs, fld_induct_thm, unf_fld_thms, fld_unf_thms, fld_inject_thms,
+      iter_thms, rec_thms),
      lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
   end;
 

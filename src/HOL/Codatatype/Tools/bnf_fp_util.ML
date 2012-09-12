@@ -78,7 +78,7 @@ sig
   val mk_set_minimalN: int -> string
   val mk_set_inductN: int -> string
 
-  val mk_bundle_name: binding list -> string
+  val mk_common_name: binding list -> string
 
   val split_conj_thm: thm -> thm list
   val split_conj_prems: int -> thm -> thm
@@ -214,7 +214,7 @@ val hset_recN = hsetN ^ "_rec"
 val set_inclN = "set_incl"
 val set_set_inclN = "set_set_incl"
 
-val mk_bundle_name = space_implode "_" o map Binding.name_of;
+val mk_common_name = space_implode "_" o map Binding.name_of;
 
 fun mk_predT T = T --> HOLogic.boolT;
 
@@ -347,7 +347,7 @@ fun fp_sort lhss NONE Ass = Library.sort (Term_Ord.typ_ord o pairself TFree)
 
 fun mk_fp_bnf timer construct resBs bs sort lhss bnfs deadss livess unfold lthy =
   let
-    val name = mk_bundle_name bs;
+    val name = mk_common_name bs;
     fun qualify i bind =
       let val namei = if i > 0 then name ^ string_of_int i else name;
       in

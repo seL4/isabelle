@@ -106,6 +106,7 @@ sig
   val mk_Un_upper: int -> int -> thm
   val mk_conjIN: int -> thm
   val mk_conjunctN: int -> int -> thm
+  val conj_dests: int -> thm -> thm list
   val mk_disjIN: int -> int -> thm
   val mk_nthI: int -> int -> thm
   val mk_nth_conv: int -> int -> thm
@@ -512,6 +513,8 @@ fun mk_conjunctN 1 1 = @{thm TrueE[OF TrueI]}
   | mk_conjunctN _ 1 = conjunct1
   | mk_conjunctN 2 2 = conjunct2
   | mk_conjunctN n m = conjunct2 RS (mk_conjunctN (n - 1) (m - 1));
+
+fun conj_dests n thm = map (fn k => thm RS mk_conjunctN n k) (1 upto n);
 
 fun mk_conjIN 1 = @{thm TrueE[OF TrueI]}
   | mk_conjIN n = mk_conjIN (n - 1) RSN (2, conjI);
