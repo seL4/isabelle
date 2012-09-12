@@ -12,10 +12,10 @@ theory BNF_FP
 imports BNF_Comp BNF_Wrap
 keywords
   "defaults"
-uses
-  "Tools/bnf_fp_util.ML"
-  "Tools/bnf_fp_sugar_tactics.ML"
-  "Tools/bnf_fp_sugar.ML"
 begin
+
+ML_file "Tools/bnf_fp_util.ML"
+ML_file "Tools/bnf_fp_sugar_tactics.ML"
+ML_file "Tools/bnf_fp_sugar.ML"
 
 end

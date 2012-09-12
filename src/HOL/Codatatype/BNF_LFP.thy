@@ -12,10 +12,10 @@ imports BNF_FP
 keywords
   "data_raw" :: thy_decl and
   "data" :: thy_decl
-uses
-  "Tools/bnf_lfp_util.ML"
-  "Tools/bnf_lfp_tactics.ML"
-  "Tools/bnf_lfp.ML"
 begin
+
+ML_file "Tools/bnf_lfp_util.ML"
+ML_file "Tools/bnf_lfp_tactics.ML"
+ML_file "Tools/bnf_lfp.ML"
 
 end

@@ -13,8 +13,6 @@ imports
   "../Ordinals_and_Cardinals/Cardinal_Arithmetic"
   "~~/src/HOL/Library/Prefix_Order"
   Equiv_Relations_More
-uses
-  ("Tools/bnf_util.ML")
 begin
 
 lemma iffI_np: "\<lbrakk>x \<Longrightarrow> \<not> y; \<not> x \<Longrightarrow> y\<rbrakk> \<Longrightarrow> \<not> x \<longleftrightarrow> y"

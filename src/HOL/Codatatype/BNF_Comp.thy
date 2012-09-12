@@ -9,9 +9,9 @@ header {* Composition of Bounded Natural Functors *}
 
 theory BNF_Comp
 imports Basic_BNFs
-uses
-  "Tools/bnf_comp_tactics.ML"
-  "Tools/bnf_comp.ML"
 begin
+
+ML_file "Tools/bnf_comp_tactics.ML"
+ML_file "Tools/bnf_comp.ML"
 
 end

@@ -12,10 +12,10 @@ imports BNF_FP
 keywords
   "codata_raw" :: thy_decl and
   "codata" :: thy_decl
-uses
-  "Tools/bnf_gfp_util.ML"
-  "Tools/bnf_gfp_tactics.ML"
-  "Tools/bnf_gfp.ML"
 begin
+
+ML_file "Tools/bnf_gfp_util.ML"
+ML_file "Tools/bnf_gfp_tactics.ML"
+ML_file "Tools/bnf_gfp.ML"
 
 end

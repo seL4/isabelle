@@ -12,9 +12,9 @@ imports BNF_Util
 keywords
   "wrap_data" :: thy_goal and
   "no_dests"
-uses
-  "Tools/bnf_wrap_tactics.ML"
-  "Tools/bnf_wrap.ML"
 begin
+
+ML_file "Tools/bnf_wrap_tactics.ML"
+ML_file "Tools/bnf_wrap.ML"
 
 end

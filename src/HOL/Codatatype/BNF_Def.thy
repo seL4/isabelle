@@ -12,9 +12,9 @@ imports BNF_Util
 keywords
   "print_bnfs" :: diag and
   "bnf_def" :: thy_goal
-uses
-  "Tools/bnf_def_tactics.ML"
-  "Tools/bnf_def.ML"
 begin
+
+ML_file "Tools/bnf_def_tactics.ML"
+ML_file"Tools/bnf_def.ML"
 
 end
