@@ -32,18 +32,6 @@ open BNF_Def
 open BNF_FP_Util
 open BNF_FP_Sugar_Tactics
 
-val caseN = "case";
-val coinductsN = "coinducts";
-val coitersN = "coiters";
-val corecsN = "corecs";
-val disc_coitersN = "disc_coiters";
-val disc_corecsN = "disc_corecs";
-val inductsN = "inducts";
-val itersN = "iters";
-val recsN = "recs";
-val sel_coitersN = "sel_coiters";
-val sel_corecsN = "sel_corecs";
-
 val simp_attrs = @{attributes [simp]};
 
 fun split_list11 xs =

@@ -15,11 +15,16 @@ sig
   val behN: string
   val bisN: string
   val carTN: string
+  val caseN: string
   val coN: string
   val coinductN: string
+  val coinductsN: string
   val coiterN: string
-  val unf_coiter_uniqueN: string
+  val coitersN: string
   val corecN: string
+  val corecsN: string
+  val disc_coitersN: string
+  val disc_corecsN: string
   val exhaustN: string
   val fldN: string
   val fld_exhaustN: string
@@ -27,6 +32,7 @@ sig
   val fld_inductN: string
   val fld_injectN: string
   val fld_iterN: string
+  val fld_iter_uniqueN: string
   val fld_itersN: string
   val fld_recN: string
   val fld_recsN: string
@@ -36,10 +42,11 @@ sig
   val hsetN: string
   val hset_recN: string
   val inductN: string
+  val inductsN: string
   val injectN: string
   val isNodeN: string
   val iterN: string
-  val fld_iter_uniqueN: string
+  val itersN: string
   val lsbisN: string
   val map_simpsN: string
   val map_uniqueN: string
@@ -49,9 +56,12 @@ sig
   val pred_coinductN: string
   val pred_coinduct_uptoN: string
   val recN: string
+  val recsN: string
   val rel_coinductN: string
   val rel_coinduct_uptoN: string
   val rvN: string
+  val sel_coitersN: string
+  val sel_corecsN: string
   val set_inclN: string
   val set_set_inclN: string
   val strTN: string
@@ -62,6 +72,7 @@ sig
   val unf_coinductN: string
   val unf_coinduct_uptoN: string
   val unf_coiterN: string
+  val unf_coiter_uniqueN: string
   val unf_coitersN: string
   val unf_corecN: string
   val unf_corecsN: string
@@ -213,6 +224,18 @@ val hsetN = "Hset"
 val hset_recN = hsetN ^ "_rec"
 val set_inclN = "set_incl"
 val set_set_inclN = "set_set_incl"
+
+val caseN = "case"
+val coinductsN = "coinducts"
+val coitersN = "coiters"
+val corecsN = "corecs"
+val disc_coitersN = "disc_coiters"
+val disc_corecsN = "disc_corecs"
+val inductsN = "inducts"
+val itersN = "iters"
+val recsN = "recs"
+val sel_coitersN = "sel_coiters"
+val sel_corecsN = "sel_corecs"
 
 val mk_common_name = space_implode "_" o map Binding.name_of;
 
