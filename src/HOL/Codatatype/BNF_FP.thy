@@ -17,10 +17,17 @@ begin
 lemma case_unit: "(case u of () => f) = f"
 by (cases u) (hypsubst, rule unit.cases)
 
-(* FIXME: needed? *)
+lemma unit_all_impI: "(P () \<Longrightarrow> Q ()) \<Longrightarrow> \<forall>x. P x \<longrightarrow> Q x"
+by simp
+
+lemma prod_all_impI: "(\<And>x y. P (x, y) \<Longrightarrow> Q (x, y)) \<Longrightarrow> \<forall>x. P x \<longrightarrow> Q x"
+by clarify
+
+lemma prod_all_impI_step: "(\<And>x. \<forall>y. P (x, y) \<longrightarrow> Q (x, y)) \<Longrightarrow> \<forall>x. P x \<longrightarrow> Q x"
+by auto
+
 lemma all_unit_eq: "(\<And>x. PROP P x) \<equiv> PROP P ()" by simp
 
-(* FIXME: needed? *)
 lemma all_prod_eq: "(\<And>x. PROP P x) \<equiv> (\<And>a b. PROP P (a, b))" by clarsimp
 
 (* FIXME: needed? *)

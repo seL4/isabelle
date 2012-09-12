@@ -112,6 +112,7 @@ sig
 
   val mk_sumEN: int -> thm
   val mk_sumEN_balanced: int -> thm
+  val mk_sumEN_tupled_balanced: int list -> thm
   val mk_sum_casesN: int -> int -> thm
   val mk_sum_casesN_balanced: int -> int -> thm
 
@@ -300,11 +301,26 @@ fun mk_sumEN 1 = @{thm one_pointE}
     (fold (fn i => fn thm => @{thm obj_sum_step} RSN (i, thm)) (2 upto n - 1) @{thm obj_sumE}) OF
       replicate n (impI RS allI);
 
-fun mk_sumEN_balanced 1 = @{thm one_pointE}
+fun mk_obj_sumEN_balanced n =
+  Balanced_Tree.make (fn (thm1, thm2) => thm1 RSN (1, thm2 RSN (2, @{thm obj_sumE_f})))
+    (replicate n asm_rl);
+
+fun mk_sumEN_balanced' n all_impIs = mk_obj_sumEN_balanced n OF all_impIs RS @{thm obj_one_pointE};
+
+fun mk_sumEN_balanced 1 = @{thm one_pointE} (*optimization*)
   | mk_sumEN_balanced 2 = @{thm sumE} (*optimization*)
-  | mk_sumEN_balanced n =
-    Balanced_Tree.make (fn (thm1, thm2) => thm1 RSN (1, thm2 RSN (2, @{thm obj_sumE_f})))
-      (replicate n asm_rl) OF (replicate n (impI RS allI)) RS @{thm obj_one_pointE};
+  | mk_sumEN_balanced n = mk_sumEN_balanced' n (replicate n (impI RS allI));
+
+fun mk_tupled_allIN 0 = @{thm unit_all_impI}
+  | mk_tupled_allIN 1 = @{thm impI[THEN allI]}
+  | mk_tupled_allIN 2 = @{thm prod_all_impI} (*optimization*)
+  | mk_tupled_allIN n = mk_tupled_allIN (n - 1) RS @{thm prod_all_impI_step};
+
+fun mk_sumEN_tupled_balanced ms =
+  let val n = length ms in
+    if forall (curry (op =) 1) ms then mk_sumEN_balanced n
+    else mk_sumEN_balanced' n (map mk_tupled_allIN ms)
+  end;
 
 fun mk_sum_casesN 1 1 = refl
   | mk_sum_casesN _ 1 = @{thm sum.cases(1)}
