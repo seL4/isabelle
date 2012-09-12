@@ -78,7 +78,7 @@ object Isabelle_Markup
   /* logical entities */
 
   val CLASS = "class"
-  val TYPE_NAME = "type name"
+  val TYPE_NAME = "type_name"
   val FIXED = "fixed"
   val CONSTANT = "constant"
 
@@ -115,12 +115,12 @@ object Isabelle_Markup
   /* embedded source text */
 
   val ML_SOURCE = "ML_source"
-  val DOC_SOURCE = "doc_source"
+  val DOCUMENT_SOURCE = "document_source"
 
   val ANTIQ = "antiq"
-  val ML_ANTIQUOTATION = "ML antiquotation"
-  val DOCUMENT_ANTIQUOTATION = "document antiquotation"
-  val DOCUMENT_ANTIQUOTATION_OPTION = "document antiquotation option"
+  val ML_ANTIQUOTATION = "ML_antiquotation"
+  val DOCUMENT_ANTIQUOTATION = "document_antiquotation"
+  val DOCUMENT_ANTIQUOTATION_OPTION = "document_antiquotation_option"
 
 
   /* ML syntax */

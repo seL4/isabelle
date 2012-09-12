@@ -70,7 +70,7 @@ object Isabelle_Rendering
       Isabelle_Markup.ML_TYPING, Isabelle_Markup.TOKEN_RANGE, Isabelle_Markup.ENTITY,
       Isabelle_Markup.PATH, Isabelle_Markup.TYPING, Isabelle_Markup.FREE, Isabelle_Markup.SKOLEM,
       Isabelle_Markup.BOUND, Isabelle_Markup.VAR, Isabelle_Markup.TFREE, Isabelle_Markup.TVAR,
-      Isabelle_Markup.ML_SOURCE, Isabelle_Markup.DOC_SOURCE)
+      Isabelle_Markup.ML_SOURCE, Isabelle_Markup.DOCUMENT_SOURCE)
 
   def subexp(snapshot: Document.Snapshot, range: Text.Range): Option[Text.Info[Color]] =
   {
@@ -163,7 +163,7 @@ object Isabelle_Rendering
       Isabelle_Markup.TFREE -> "free type variable",
       Isabelle_Markup.TVAR -> "schematic type variable",
       Isabelle_Markup.ML_SOURCE -> "ML source",
-      Isabelle_Markup.DOC_SOURCE -> "document source")
+      Isabelle_Markup.DOCUMENT_SOURCE -> "document source")
 
   private val tooltip_elements =
     Set(Isabelle_Markup.ENTITY, Isabelle_Markup.TYPING, Isabelle_Markup.ML_TYPING,
@@ -183,7 +183,8 @@ object Isabelle_Rendering
         range, Text.Info(range, Nil), Some(tooltip_elements),
         {
           case (prev, Text.Info(r, XML.Elem(Isabelle_Markup.Entity(kind, name), _))) =>
-            add(prev, r, (true, kind + " " + quote(name)))
+            val kind1 = space_explode('_', kind).mkString(" ")
+            add(prev, r, (true, kind1 + " " + quote(name)))
           case (prev, Text.Info(r, XML.Elem(Isabelle_Markup.Path(name), _)))
           if Path.is_ok(name) =>
             val jedit_file = Isabelle.thy_load.append(snapshot.node_name.dir, Path.explode(name))

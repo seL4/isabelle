@@ -64,8 +64,8 @@ sig
   val doc_sourceN: string val doc_source: Markup.T
   val antiqN: string val antiq: Markup.T
   val ML_antiquotationN: string
-  val doc_antiquotationN: string
-  val doc_antiquotation_optionN: string
+  val document_antiquotationN: string
+  val document_antiquotation_optionN: string
   val keywordN: string val keyword: Markup.T
   val operatorN: string val operator: Markup.T
   val commandN: string val command: Markup.T
@@ -169,7 +169,7 @@ val (hiddenN, hidden) = markup_elem "hidden";
 
 val theoryN = "theory";
 val classN = "class";
-val type_nameN = "type name";
+val type_nameN = "type_name";
 val constantN = "constant";
 
 val (fixedN, fixed) = markup_string "fixed" Markup.nameN;
@@ -222,9 +222,9 @@ val (ML_sourceN, ML_source) = markup_elem "ML_source";
 val (doc_sourceN, doc_source) = markup_elem "doc_source";
 
 val (antiqN, antiq) = markup_elem "antiq";
-val ML_antiquotationN = "ML antiquotation";
-val doc_antiquotationN = "document antiquotation";
-val doc_antiquotation_optionN = "document antiquotation option";
+val ML_antiquotationN = "ML_antiquotation";
+val document_antiquotationN = "document_antiquotation";
+val document_antiquotation_optionN = "document_antiquotation_option";
 
 
 (* outer syntax *)
