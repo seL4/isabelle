@@ -7,7 +7,7 @@ Wrapping existing datatypes.
 
 signature BNF_WRAP =
 sig
-  val no_binder: binding
+  val no_binding: binding
   val mk_half_pairss: 'a list -> ('a * 'a) list list
   val mk_ctr: typ list -> term -> term
   val wrap_datatype: ({prems: thm list, context: Proof.context} -> tactic) list list ->
@@ -45,8 +45,8 @@ val splitN = "split";
 val split_asmN = "split_asm";
 val weak_case_cong_thmsN = "weak_case_cong";
 
-val no_binder = @{binding ""};
-val std_binder = @{binding _};
+val no_binding = @{binding ""};
+val std_binding = @{binding _};
 
 val induct_simp_attrs = @{attributes [induct_simp]};
 val cong_attrs = @{attributes [cong]};
@@ -80,7 +80,7 @@ fun base_name_of_ctr c =
     | _ => error "Cannot extract name of constructor");
 
 fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
-    (raw_disc_binders, (raw_sel_binderss, raw_sel_defaultss))) no_defs_lthy =
+    (raw_disc_bindings, (raw_sel_bindingss, raw_sel_defaultss))) no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
     (* TODO: attributes (simp, case_names, etc.) *)
@@ -111,47 +111,47 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
 
     val ms = map length ctr_Tss;
 
-    val raw_disc_binders' = pad_list no_binder n raw_disc_binders;
+    val raw_disc_bindings' = pad_list no_binding n raw_disc_bindings;
 
     fun can_really_rely_on_disc k =
-      not (Binding.eq_name (nth raw_disc_binders' (k - 1), no_binder)) orelse nth ms (k - 1) = 0;
+      not (Binding.eq_name (nth raw_disc_bindings' (k - 1), no_binding)) orelse nth ms (k - 1) = 0;
     fun can_rely_on_disc k =
       can_really_rely_on_disc k orelse (k = 1 andalso not (can_really_rely_on_disc 2));
-    fun can_omit_disc_binder k m =
+    fun can_omit_disc_binding k m =
       n = 1 orelse m = 0 orelse (n = 2 andalso can_rely_on_disc (3 - k));
 
-    val std_disc_binder =
+    val std_disc_binding =
       Binding.qualify false (Binding.name_of data_b) o Binding.name o prefix isN o base_name_of_ctr;
 
-    val disc_binders =
-      raw_disc_binders'
+    val disc_bindings =
+      raw_disc_bindings'
       |> map4 (fn k => fn m => fn ctr => fn disc =>
         Option.map (Binding.qualify false (Binding.name_of data_b))
-          (if Binding.eq_name (disc, no_binder) then
-             if can_omit_disc_binder k m then NONE else SOME (std_disc_binder ctr)
-           else if Binding.eq_name (disc, std_binder) then
-             SOME (std_disc_binder ctr)
+          (if Binding.eq_name (disc, no_binding) then
+             if can_omit_disc_binding k m then NONE else SOME (std_disc_binding ctr)
+           else if Binding.eq_name (disc, std_binding) then
+             SOME (std_disc_binding ctr)
            else
              SOME disc)) ks ms ctrs0;
 
-    val no_discs = map is_none disc_binders;
+    val no_discs = map is_none disc_bindings;
     val no_discs_at_all = forall I no_discs;
 
-    fun std_sel_binder m l = Binding.name o mk_unN m l o base_name_of_ctr;
+    fun std_sel_binding m l = Binding.name o mk_unN m l o base_name_of_ctr;
 
-    val sel_binderss =
-      pad_list [] n raw_sel_binderss
+    val sel_bindingss =
+      pad_list [] n raw_sel_bindingss
       |> map3 (fn ctr => fn m => map2 (fn l => fn sel =>
         Binding.qualify false (Binding.name_of data_b)
-          (if Binding.eq_name (sel, no_binder) orelse Binding.eq_name (sel, std_binder) then
-            std_sel_binder m l ctr
+          (if Binding.eq_name (sel, no_binding) orelse Binding.eq_name (sel, std_binding) then
+            std_sel_binding m l ctr
           else
-            sel)) (1 upto m) o pad_list no_binder m) ctrs0 ms;
+            sel)) (1 upto m) o pad_list no_binding m) ctrs0 ms;
 
     fun mk_case Ts T =
       let
-        val (binders, body) = strip_type (fastype_of case0)
-        val Type (_, Ts0) = List.last binders
+        val (bindings, body) = strip_type (fastype_of case0)
+        val Type (_, Ts0) = List.last bindings
       in Term.subst_atomic_types ((body, T) :: (Ts0 ~~ Ts)) case0 end;
 
     val casex = mk_case As B;
@@ -191,7 +191,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
 
     fun alternate_disc_lhs get_disc k =
       HOLogic.mk_not
-        (case nth disc_binders (k - 1) of
+        (case nth disc_bindings (k - 1) of
           NONE => nth exist_xs_v_eq_ctrs (k - 1)
         | SOME b => get_disc b (k - 1) $ v);
 
@@ -237,22 +237,22 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
                 Term.list_comb (mk_case As T, mk_sel_case_args b proto_sels T) $ v)
             end;
 
-          val sel_binders = flat sel_binderss;
-          val uniq_sel_binders = distinct Binding.eq_name sel_binders;
-          val all_sels_distinct = (length uniq_sel_binders = length sel_binders);
+          val sel_bindings = flat sel_bindingss;
+          val uniq_sel_bindings = distinct Binding.eq_name sel_bindings;
+          val all_sels_distinct = (length uniq_sel_bindings = length sel_bindings);
 
-          val sel_binder_index =
-            if all_sels_distinct then 1 upto length sel_binders
-            else map (fn b => find_index (curry Binding.eq_name b) uniq_sel_binders) sel_binders;
+          val sel_binding_index =
+            if all_sels_distinct then 1 upto length sel_bindings
+            else map (fn b => find_index (curry Binding.eq_name b) uniq_sel_bindings) sel_bindings;
 
           val proto_sels = flat (map3 (fn k => fn xs => map (fn x => (k, (xs, x)))) ks xss xss);
           val sel_infos =
-            AList.group (op =) (sel_binder_index ~~ proto_sels)
+            AList.group (op =) (sel_binding_index ~~ proto_sels)
             |> sort (int_ord o pairself fst)
-            |> map snd |> curry (op ~~) uniq_sel_binders;
-          val sel_binders = map fst sel_infos;
+            |> map snd |> curry (op ~~) uniq_sel_bindings;
+          val sel_bindings = map fst sel_infos;
 
-          fun unflat_selss xs = unflat_lookup Binding.eq_name sel_binders xs sel_binderss;
+          fun unflat_selss xs = unflat_lookup Binding.eq_name sel_bindings xs sel_bindingss;
 
           val (((raw_discs, raw_disc_defs), (raw_sels, raw_sel_defs)), (lthy', lthy)) =
             no_defs_lthy
@@ -263,7 +263,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
                  else pair (alternate_disc k, alternate_disc_no_def)
                | SOME b => Specification.definition (SOME (b, NONE, NoSyn),
                    ((Thm.def_binding b, []), disc_spec b exist_xs_v_eq_ctr)) #>> apsnd snd)
-              ks ms exist_xs_v_eq_ctrs disc_binders
+              ks ms exist_xs_v_eq_ctrs disc_bindings
             ||>> apfst split_list o fold_map (fn (b, proto_sels) =>
               Specification.definition (SOME (b, NONE, NoSyn),
                 ((Thm.def_binding b, []), sel_spec b proto_sels)) #>> apsnd snd) sel_infos

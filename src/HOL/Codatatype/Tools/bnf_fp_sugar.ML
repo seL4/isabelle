@@ -83,7 +83,7 @@ fun merge_type_args (As, As') =
   if length As = length As' then map2 merge_type_arg As As' else cannot_merge_types ();
 
 fun type_args_constrained_of (((cAs, _), _), _) = cAs;
-fun type_binder_of (((_, b), _), _) = b;
+fun type_binding_of (((_, b), _), _) = b;
 fun mixfix_of ((_, mx), _) = mx;
 fun ctr_specs_of (_, ctr_specs) = ctr_specs;
 
@@ -123,14 +123,14 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
       locale and shadows an existing global type*)
     val fake_thy =
       Theory.copy #> fold (fn spec => perhaps (try (Sign.add_type no_defs_lthy
-        (type_binder_of spec, length (type_args_constrained_of spec), mixfix_of spec)))) specs;
+        (type_binding_of spec, length (type_args_constrained_of spec), mixfix_of spec)))) specs;
     val fake_lthy = Proof_Context.background_theory fake_thy no_defs_lthy;
 
     fun mk_fake_T b =
       Type (fst (Term.dest_Type (Proof_Context.read_type_name fake_lthy true (Binding.name_of b))),
         unsorted_As);
 
-    val fp_bs = map type_binder_of specs;
+    val fp_bs = map type_binding_of specs;
     val fake_Ts = map mk_fake_T fp_bs;
 
     val mixfixes = map mixfix_of specs;
@@ -140,14 +140,14 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
 
     val ctr_specss = map ctr_specs_of specs;
 
-    val disc_binderss = map (map disc_of) ctr_specss;
-    val ctr_binderss =
+    val disc_bindingss = map (map disc_of) ctr_specss;
+    val ctr_bindingss =
       map2 (fn fp_b => map (Binding.qualify false (Binding.name_of fp_b) o ctr_of))
         fp_bs ctr_specss;
     val ctr_argsss = map (map args_of) ctr_specss;
     val ctr_mixfixess = map (map ctr_mixfix_of) ctr_specss;
 
-    val sel_bindersss = map (map (map fst)) ctr_argsss;
+    val sel_bindingsss = map (map (map fst)) ctr_argsss;
     val fake_ctr_Tsss0 = map (map (map (prepare_typ fake_lthy o snd))) ctr_argsss;
     val raw_sel_defaultsss = map (map defaults_of) ctr_specss;
 
@@ -218,8 +218,8 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
 
     fun mk_iter_like Ts Us t =
       let
-        val (binders, body) = strip_type (fastype_of t);
-        val (f_Us, prebody) = split_last binders;
+        val (bindings, body) = strip_type (fastype_of t);
+        val (f_Us, prebody) = split_last bindings;
         val Type (_, Ts0) = if lfp then prebody else body;
         val Us0 = distinct (op =) (map (if lfp then body_type else domain_type) f_Us);
       in
@@ -334,8 +334,8 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
         end;
 
     fun define_ctrs_case_for_type ((((((((((((((((((fp_b, fpT), C), fld), unf), fp_iter), fp_rec),
-          fld_unf), unf_fld), fld_inject), n), ks), ms), ctr_binders), ctr_mixfixes), ctr_Tss),
-        disc_binders), sel_binderss), raw_sel_defaultss) no_defs_lthy =
+          fld_unf), unf_fld), fld_inject), n), ks), ms), ctr_bindings), ctr_mixfixes), ctr_Tss),
+        disc_bindings), sel_bindingss), raw_sel_defaultss) no_defs_lthy =
       let
         val unfT = domain_type (fastype_of fld);
         val ctr_prod_Ts = map HOLogic.mk_tupleT ctr_Tss;
@@ -353,7 +353,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
           map2 (fn k => fn xs => fold_rev Term.lambda xs (fld $
             mk_InN_balanced ctr_sum_prod_T n (HOLogic.mk_tuple xs) k)) ks xss;
 
-        val case_binder = Binding.suffix_name ("_" ^ caseN) fp_b;
+        val case_binding = Binding.suffix_name ("_" ^ caseN) fp_b;
 
         val case_rhs =
           fold_rev Term.lambda (fs @ [v])
@@ -362,7 +362,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
         val ((raw_case :: raw_ctrs, raw_case_def :: raw_ctr_defs), (lthy', lthy)) = no_defs_lthy
           |> apfst split_list o fold_map3 (fn b => fn mx => fn rhs =>
               Local_Theory.define ((b, mx), ((Thm.def_binding b, []), rhs)) #>> apsnd snd)
-            (case_binder :: ctr_binders) (NoSyn :: ctr_mixfixes) (case_rhs :: ctr_rhss)
+            (case_binding :: ctr_bindings) (NoSyn :: ctr_mixfixes) (case_rhs :: ctr_rhss)
           ||> `Local_Theory.restore;
 
         val phi = Proof_Context.export_morphism lthy lthy';
@@ -420,25 +420,23 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
             fun generate_iter_like (suf, fp_iter_like, (fss, f_Tss, xssss)) =
               let
                 val res_T = fold_rev (curry (op --->)) f_Tss fpT_to_C;
-
-                val binder = Binding.suffix_name ("_" ^ suf) fp_b;
-
+                val binding = Binding.suffix_name ("_" ^ suf) fp_b;
                 val spec =
-                  mk_Trueprop_eq (lists_bmoc fss (Free (Binding.name_of binder, res_T)),
+                  mk_Trueprop_eq (lists_bmoc fss (Free (Binding.name_of binding, res_T)),
                     Term.list_comb (fp_iter_like,
                       map2 (mk_sum_caseN_balanced oo map2 mk_uncurried2_fun) fss xssss));
-              in (binder, spec) end;
+              in (binding, spec) end;
 
             val iter_like_infos =
               [(iterN, fp_iter, iter_only),
                (recN, fp_rec, rec_only)];
 
-            val (binders, specs) = map generate_iter_like iter_like_infos |> split_list;
+            val (bindings, specs) = map generate_iter_like iter_like_infos |> split_list;
 
             val ((csts, defs), (lthy', lthy)) = no_defs_lthy
               |> apfst split_list o fold_map2 (fn b => fn spec =>
                 Specification.definition (SOME (b, NONE, NoSyn), ((Thm.def_binding b, []), spec))
-                #>> apsnd snd) binders specs
+                #>> apsnd snd) bindings specs
               ||> `Local_Theory.restore;
 
             val phi = Proof_Context.export_morphism lthy lthy';
@@ -463,25 +461,23 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
                 pf_Tss))) =
               let
                 val res_T = fold_rev (curry (op --->)) pf_Tss B_to_fpT;
-
-                val binder = Binding.suffix_name ("_" ^ suf) fp_b;
-
+                val binding = Binding.suffix_name ("_" ^ suf) fp_b;
                 val spec =
-                  mk_Trueprop_eq (lists_bmoc pfss (Free (Binding.name_of binder, res_T)),
+                  mk_Trueprop_eq (lists_bmoc pfss (Free (Binding.name_of binding, res_T)),
                     Term.list_comb (fp_iter_like,
                       map5 mk_preds_getterss_join cs ns cpss f_sum_prod_Ts cqfsss));
-              in (binder, spec) end;
+              in (binding, spec) end;
 
             val coiter_like_infos =
               [(coiterN, fp_iter, coiter_only),
                (corecN, fp_rec, corec_only)];
 
-            val (binders, specs) = map generate_coiter_like coiter_like_infos |> split_list;
+            val (bindings, specs) = map generate_coiter_like coiter_like_infos |> split_list;
 
             val ((csts, defs), (lthy', lthy)) = no_defs_lthy
               |> apfst split_list o fold_map2 (fn b => fn spec =>
                 Specification.definition (SOME (b, NONE, NoSyn), ((Thm.def_binding b, []), spec))
-                #>> apsnd snd) binders specs
+                #>> apsnd snd) bindings specs
               ||> `Local_Theory.restore;
 
             val phi = Proof_Context.export_morphism lthy lthy';
@@ -496,7 +492,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
 
         fun wrap lthy =
           let val sel_defaultss = map (map (apsnd (prepare_term lthy))) raw_sel_defaultss in
-            wrap_datatype tacss (((no_dests, ctrs0), casex0), (disc_binders, (sel_binderss,
+            wrap_datatype tacss (((no_dests, ctrs0), casex0), (disc_bindings, (sel_bindingss,
               sel_defaultss))) lthy
           end;
 
@@ -685,8 +681,8 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
 
     val lthy' = lthy
       |> fold_map define_ctrs_case_for_type (fp_bs ~~ fpTs ~~ Cs ~~ flds ~~ unfs ~~ fp_iters ~~
-        fp_recs ~~ fld_unfs ~~ unf_flds ~~ fld_injects ~~ ns ~~ kss ~~ mss ~~ ctr_binderss ~~
-        ctr_mixfixess ~~ ctr_Tsss ~~ disc_binderss ~~ sel_bindersss ~~ raw_sel_defaultsss)
+        fp_recs ~~ fld_unfs ~~ unf_flds ~~ fld_injects ~~ ns ~~ kss ~~ mss ~~ ctr_bindingss ~~
+        ctr_mixfixess ~~ ctr_Tsss ~~ disc_bindingss ~~ sel_bindingsss ~~ raw_sel_defaultsss)
       |>> split_list |> wrap_types_and_define_iter_likes
       |> (if lfp then derive_iter_rec_thms_for_types else derive_coiter_corec_thms_for_types);
 
@@ -701,11 +697,11 @@ val datatyp = define_datatype (K I) (K I) (K I);
 val datatype_cmd = define_datatype Typedecl.read_constraint Syntax.parse_typ Syntax.read_term;
 
 val parse_binding_colon = Parse.binding --| @{keyword ":"};
-val parse_opt_binding_colon = Scan.optional parse_binding_colon no_binder;
+val parse_opt_binding_colon = Scan.optional parse_binding_colon no_binding;
 
 val parse_ctr_arg =
   @{keyword "("} |-- parse_binding_colon -- Parse.typ --| @{keyword ")"} ||
-  (Parse.typ >> pair no_binder);
+  (Parse.typ >> pair no_binding);
 
 val parse_defaults =
   @{keyword "("} |-- @{keyword "defaults"} |-- Scan.repeat parse_bound_term --| @{keyword ")"};
