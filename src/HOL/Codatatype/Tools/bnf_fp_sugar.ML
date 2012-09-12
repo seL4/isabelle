@@ -8,9 +8,19 @@ Sugar for constructing LFPs and GFPs.
 signature BNF_FP_SUGAR =
 sig
   val datatyp: bool ->
+    (mixfix list -> (string * sort) list option -> binding list -> typ list * typ list list ->
+      BNF_Def.BNF list -> local_theory ->
+      (term list * term list * term list * term list * thm list * thm list * thm list * thm list *
+         thm list) * local_theory) ->
     bool * ((((typ * sort) list * binding) * mixfix) * ((((binding * binding) *
       (binding * typ) list) * (binding * term) list) * mixfix) list) list ->
     local_theory -> local_theory
+  val parse_datatype_cmd: bool ->
+    (mixfix list -> (string * sort) list option -> binding list -> typ list * typ list list ->
+      BNF_Def.BNF list -> local_theory ->
+      (term list * term list * term list * term list * thm list * thm list * thm list * thm list *
+         thm list) * local_theory) ->
+    (local_theory -> local_theory) parser
 end;
 
 structure BNF_FP_Sugar : BNF_FP_SUGAR =
@@ -20,8 +30,6 @@ open BNF_Util
 open BNF_Wrap
 open BNF_Def
 open BNF_FP_Util
-open BNF_LFP
-open BNF_GFP
 open BNF_FP_Sugar_Tactics
 
 val caseN = "case";
@@ -79,7 +87,6 @@ fun merge_type_args (As, As') =
   if length As = length As' then map2 merge_type_arg As As' else cannot_merge_types ();
 
 fun type_args_constrained_of (((cAs, _), _), _) = cAs;
-val type_args_of = map fst o type_args_constrained_of;
 fun type_binder_of (((_, b), _), _) = b;
 fun mixfix_of ((_, mx), _) = mx;
 fun ctr_specs_of (_, ctr_specs) = ctr_specs;
@@ -90,7 +97,7 @@ fun args_of (((_, args), _), _) = args;
 fun defaults_of ((_, ds), _) = ds;
 fun ctr_mixfix_of (_, mx) = mx;
 
-fun define_datatype prepare_constraint prepare_typ prepare_term lfp (no_dests, specs)
+fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (no_dests, specs)
     no_defs_lthy0 =
   let
     (* TODO: sanity checks on arguments *)
@@ -148,7 +155,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp (no_dests, s
     val fake_ctr_Tsss0 = map (map (map (prepare_typ fake_lthy o snd))) ctr_argsss;
     val raw_sel_defaultsss = map (map defaults_of) ctr_specss;
 
-    val (Ass as As :: _) :: fake_ctr_Tsss =
+    val (As :: _) :: fake_ctr_Tsss =
       burrow (burrow (Syntax.check_typs fake_lthy)) (Ass0 :: fake_ctr_Tsss0);
 
     val _ = (case duplicates (op =) unsorted_As of [] => ()
@@ -178,8 +185,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp (no_dests, s
 
     val (pre_bnfs, ((unfs0, flds0, fp_iters0, fp_recs0, unf_flds, fld_unfs, fld_injects,
         fp_iter_thms, fp_rec_thms), lthy)) =
-      fp_bnf (if lfp then bnf_lfp else bnf_gfp) fp_bs mixfixes (map dest_TFree unsorted_As) fp_eqs
-        no_defs_lthy0;
+      fp_bnf construct fp_bs mixfixes (map dest_TFree unsorted_As) fp_eqs no_defs_lthy0;
 
     val add_nested_bnf_names =
       let
@@ -694,7 +700,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp (no_dests, s
     val timer = time (timer ("Constructors, discriminators, selectors, etc., for the new " ^
       (if lfp then "" else "co") ^ "datatype"));
   in
-    (timer; lthy')
+    timer; lthy'
   end;
 
 val datatyp = define_datatype (K I) (K I) (K I);
@@ -717,12 +723,6 @@ val parse_single_spec =
 
 val parse_datatype = parse_wrap_options -- Parse.and_list1 parse_single_spec;
 
-val _ =
-  Outer_Syntax.local_theory @{command_spec "data"} "define BNF-based inductive datatypes"
-    (parse_datatype >> datatype_cmd true);
-
-val _ =
-  Outer_Syntax.local_theory @{command_spec "codata"} "define BNF-based coinductive datatypes"
-    (parse_datatype >> datatype_cmd false);
+fun parse_datatype_cmd lfp construct = parse_datatype >> datatype_cmd lfp construct;
 
 end;

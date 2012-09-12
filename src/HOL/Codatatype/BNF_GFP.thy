@@ -8,9 +8,10 @@ Greatest fixed point operation on bounded natural functors.
 header {* Greatest Fixed Point Operation on Bounded Natural Functors *}
 
 theory BNF_GFP
-imports BNF_Comp
+imports BNF_FP
 keywords
-  "codata_raw" :: thy_decl
+  "codata_raw" :: thy_decl and
+  "codata" :: thy_decl
 uses
   "Tools/bnf_gfp_util.ML"
   "Tools/bnf_gfp_tactics.ML"

@@ -352,7 +352,7 @@ fun mk_fp_bnf timer construct resBs bs sort lhss bnfs deadss livess unfold lthy 
 
     val timer = time (timer "FP construction in total");
   in
-    (bnfs'', res)
+    timer; (bnfs'', res)
   end;
 
 fun fp_bnf construct bs mixfixes resBs eqs lthy =

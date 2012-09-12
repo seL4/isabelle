@@ -12,7 +12,6 @@ imports Basic_BNFs
 uses
   "Tools/bnf_comp_tactics.ML"
   "Tools/bnf_comp.ML"
-  "Tools/bnf_fp_util.ML"
 begin
 
 end

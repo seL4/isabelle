@@ -21,6 +21,7 @@ open BNF_Def
 open BNF_Util
 open BNF_Tactics
 open BNF_FP_Util
+open BNF_FP_Sugar
 open BNF_LFP_Util
 open BNF_LFP_Tactics
 
@@ -1118,8 +1119,8 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         `split_conj_thm unique_mor
       end;
 
-    val (iter_unique_thms, iter_unique_thm) =
-      `split_conj_thm (mk_conjIN n RS
+    val iter_unique_thms =
+      split_conj_thm (mk_conjIN n RS
         (mor_UNIV_thm RS @{thm ssubst[of _ _ "%x. x"]} RS iter_unique_mor_thm))
 
     val iter_fld_thms =
@@ -1791,7 +1792,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
               ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
             bs thmss)
       in
-        lthy |> Local_Theory.notes (Ibnf_common_notes @ Ibnf_notes) |> snd
+        timer; lthy |> Local_Theory.notes (Ibnf_common_notes @ Ibnf_notes) |> snd
       end;
 
       val common_notes =
@@ -1821,9 +1822,14 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
   end;
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "data_raw"} "least fixed points of BNF equations"
+  Outer_Syntax.local_theory @{command_spec "data_raw"}
+    "define BNF-based inductive datatypes (low-level)"
     (Parse.and_list1
       ((Parse.binding --| @{keyword ":"}) -- (Parse.typ --| @{keyword "="} -- Parse.typ)) >>
       (snd oo fp_bnf_cmd bnf_lfp o apsnd split_list o split_list));
+
+val _ =
+  Outer_Syntax.local_theory @{command_spec "data"} "define BNF-based inductive datatypes"
+    (parse_datatype_cmd true bnf_lfp);
 
 end;

@@ -22,6 +22,7 @@ open BNF_Def
 open BNF_Util
 open BNF_Tactics
 open BNF_FP_Util
+open BNF_FP_Sugar
 open BNF_GFP_Util
 open BNF_GFP_Tactics
 
@@ -49,7 +50,7 @@ fun tree_to_fld_wit vars _ _ (Leaf j) = ([j], nth vars j)
      (I, nth flds i $ (Term.list_comb (snd (nth (nth witss i) nwit),
        map (snd o tree_to_fld_wit vars flds witss) subtrees)));
 
-fun tree_to_coind_wits _ (Leaf j) = []
+fun tree_to_coind_wits _ (Leaf _) = []
   | tree_to_coind_wits lwitss (Node ((i, nwit, I), subtrees)) =
      ((i, I), nth (nth lwitss i) nwit) :: maps (tree_to_coind_wits lwitss) subtrees;
 
@@ -147,7 +148,6 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val bds = map3 mk_bd_of_bnf Dss Ass bnfs;
     val sum_bd = Library.foldr1 (uncurry mk_csum) bds;
     val sum_bdT = fst (dest_relT (fastype_of sum_bd));
-    val witss = map wits_of_bnf bnfs;
 
     val emptys = map (fn T => HOLogic.mk_set T []) passiveAs;
     val Zeros = map (fn empty =>
@@ -272,7 +272,6 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val map_congL_thms = map5 mk_map_congL xFs mapsAsAs setssAs map_congs map_id's;
     val in_mono'_thms = map (fn thm =>
       (thm OF (replicate m subset_refl)) RS @{thm set_mp}) in_monos;
-    val in_cong'_thms = map (fn bnf => in_cong_of_bnf bnf OF (replicate m refl)) bnfs;
 
     val map_arg_cong_thms =
       let
@@ -1860,7 +1859,6 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val prodTs = map (HOLogic.mk_prodT o `I) Ts;
     val prodFTs = mk_FTs (passiveAs @ prodTs);
     val FTs_setss = mk_setss (passiveAs @ Ts);
-    val FTs'_setss = mk_setss (passiveBs @ Ts);
     val prodFT_setss = mk_setss (passiveAs @ prodTs);
     val map_FTs = map2 (fn Ds => mk_map_of_bnf Ds treeQTs (passiveAs @ Ts)) Dss bnfs;
     val map_FT_nths = map2 (fn Ds =>
@@ -2318,13 +2316,13 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val XTs = mk_Ts passiveXs;
         val YTs = mk_Ts passiveYs;
 
-        val (((((((((((((((((((((fs, fs'), (fs_copy, fs'_copy)), (gs, gs')), us),
+        val ((((((((((((((((((((fs, fs'), fs_copy), gs), us),
           (Jys, Jys')), (Jys_copy, Jys'_copy)), set_induct_phiss), JRs), Jphis),
-          B1s), B2s), AXs), Xs), f1s), f2s), p1s), p2s), ps), (ys, ys')), (ys_copy, ys'_copy)),
+          B1s), B2s), AXs), f1s), f2s), p1s), p2s), ps), (ys, ys')), (ys_copy, ys'_copy)),
           names_lthy) = names_lthy
           |> mk_Frees' "f" fTs
-          ||>> mk_Frees' "f" fTs
-          ||>> mk_Frees' "g" gTs
+          ||>> mk_Frees "f" fTs
+          ||>> mk_Frees "g" gTs
           ||>> mk_Frees "u" uTs
           ||>> mk_Frees' "b" Ts'
           ||>> mk_Frees' "b" Ts'
@@ -2334,7 +2332,6 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           ||>> mk_Frees "B1" B1Ts
           ||>> mk_Frees "B2" B2Ts
           ||>> mk_Frees "A" AXTs
-          ||>> mk_Frees "x" XTs
           ||>> mk_Frees "f1" f1Ts
           ||>> mk_Frees "f2" f2Ts
           ||>> mk_Frees "p1" p1Ts
@@ -2414,7 +2411,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
               |> Thm.close_derivation)
           end;
 
-        val (map_unique_thms, map_unique_thm) =
+        val map_unique_thm =
           let
             fun mk_prem u map unf unf' =
               mk_Trueprop_eq (HOLogic.mk_comp (unf', u),
@@ -2423,12 +2420,11 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
             val goal =
               HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
                 (map2 (curry HOLogic.mk_eq) us fs_maps));
-            val unique = Skip_Proof.prove lthy [] []
+          in
+            Skip_Proof.prove lthy [] []
               (fold_rev Logic.all (us @ fs) (Logic.list_implies (prems, goal)))
               (mk_map_unique_tac coiter_unique_thm map_comps)
-              |> Thm.close_derivation;
-          in
-            `split_conj_thm unique
+              |> Thm.close_derivation
           end;
 
         val timer = time (timer "map functions for the new codatatypes");
@@ -2436,11 +2432,6 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val bd = mk_ccexp sbd sbd;
 
         val timer = time (timer "bounds for the new codatatypes");
-
-        fun mk_set_Ts T = passiveAs @ replicate n (HOLogic.mk_setT T);
-        val setsss = map (mk_setss o mk_set_Ts) passiveAs;
-        val map_setss = map (fn T => map2 (fn Ds =>
-          mk_map_of_bnf Ds (passiveAs @ Ts) (mk_set_Ts T)) Dss bnfs) passiveAs;
 
         val setss_by_bnf = map (fn i => map2 (mk_hset unfs i) ls passiveAs) ks;
         val setss_by_bnf' = map (fn i => map2 (mk_hset unf's i) ls passiveBs) ks;
@@ -2778,11 +2769,11 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           end;
 
         val nat_witss =
-          map3 (fn i => fn Ds => fn bnf => mk_wits_of_bnf (replicate (nwits_of_bnf bnf) Ds)
+          map2 (fn Ds => fn bnf => mk_wits_of_bnf (replicate (nwits_of_bnf bnf) Ds)
             (replicate (nwits_of_bnf bnf) (replicate live HOLogic.unitT)) bnf
             |> map (fn (I, wit) =>
               (I, Lazy.lazy (mk_nat_wit Ds bnf (I, Term.list_comb (wit, map (K HOLogic.unit) I))))))
-          ks Dss bnfs;
+          Dss bnfs;
 
         val nat_wit_thmss = map2 (curry op ~~) nat_witss (map wit_thmss_of_bnf bnfs)
 
@@ -2969,7 +2960,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
               ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
             bs thmss)
       in
-        lthy |> Local_Theory.notes (Jbnf_common_notes @ Jbnf_notes) |> snd
+        timer; lthy |> Local_Theory.notes (Jbnf_common_notes @ Jbnf_notes) |> snd
       end;
 
       val common_notes =
@@ -3006,9 +2997,14 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
   end;
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "codata_raw"} "greatest fixed points of BNF equations"
+  Outer_Syntax.local_theory @{command_spec "codata_raw"}
+    "define BNF-based coinductive datatypes (low-level)"
     (Parse.and_list1
       ((Parse.binding --| @{keyword ":"}) -- (Parse.typ --| @{keyword "="} -- Parse.typ)) >>
       (snd oo fp_bnf_cmd bnf_gfp o apsnd split_list o split_list));
+
+val _ =
+  Outer_Syntax.local_theory @{command_spec "codata"} "define BNF-based coinductive datatypes"
+    (parse_datatype_cmd false bnf_gfp);
 
 end;
