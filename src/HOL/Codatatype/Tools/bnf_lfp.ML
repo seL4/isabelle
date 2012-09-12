@@ -792,7 +792,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
       ||>> mk_Frees' "x" init_FTs
       ||>> mk_Frees "f" init_fTs
       ||>> mk_Frees "f" init_fTs
-      ||>> mk_Frees "phi" (replicate n (initT --> HOLogic.boolT));
+      ||>> mk_Frees "phi" (replicate n (mk_predT initT));
 
     val II = HOLogic.mk_Collect (fst iidx', IIT, list_exists_free (II_Bs @ II_ss)
       (HOLogic.mk_conj (HOLogic.mk_eq (iidx,
@@ -977,8 +977,8 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val rec_maps_rev = map (Term.subst_atomic_types (activeBs ~~ Ts)) map_fsts_rev;
     val rec_fsts = map (Term.subst_atomic_types (activeBs ~~ Ts)) fsts;
 
-    val (((((((((((Izs, (Izs1, Izs1')), (Izs2, Izs2')), (xFs, xFs')), yFs), (AFss, AFss')),
-      (iter_f, iter_f')), fs), phis), phi2s), rec_ss), names_lthy) = names_lthy
+    val (((((((((Izs, (Izs1, Izs1')), (Izs2, Izs2')), (xFs, xFs')), yFs), (AFss, AFss')),
+      (iter_f, iter_f')), fs), rec_ss), names_lthy) = names_lthy
       |> mk_Frees "z" Ts
       ||>> mk_Frees' "z1" Ts
       ||>> mk_Frees' "z2" Ts'
@@ -987,9 +987,10 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
       ||>> mk_Freess' "z" setFTss
       ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "f") iterT
       ||>> mk_Frees "f" fTs
-      ||>> mk_Frees "phi" (map (fn T => T --> HOLogic.boolT) Ts)
-      ||>> mk_Frees "phi" (map2 (fn T => fn U => T --> U --> HOLogic.boolT) Ts Ts')
       ||>> mk_Frees "s" rec_sTs;
+
+    val phis = map2 retype_free (map mk_predT Ts) init_phis;
+    val phi2s = map2 retype_free (map2 (fn T => fn T' => T --> mk_predT T') Ts Ts') init_phis;
 
     fun fld_bind i = Binding.suffix_name ("_" ^ fldN) (nth bs (i - 1));
     val fld_name = Binding.name_of o fld_bind;
@@ -1353,7 +1354,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val XTs = mk_Ts passiveXs;
         val YTs = mk_Ts passiveYs;
         val IRTs = map2 (curry mk_relT) passiveAs passiveBs;
-        val IphiTs = map2 (fn T => fn U => T --> U --> HOLogic.boolT) passiveAs passiveBs;
+        val IphiTs = map2 (fn T => fn U => T --> mk_predT U) passiveAs passiveBs;
 
         val (((((((((((((((fs, fs'), fs_copy), us),
           B1s), B2s), AXs), (xs, xs')), f1s), f2s), p1s), p2s), (ys, ys')), IRs), Iphis),

@@ -83,6 +83,10 @@ sig
   val split_conj_thm: thm -> thm list
   val split_conj_prems: int -> thm -> thm
 
+  val retype_free: typ -> term -> term
+
+  val mk_predT: typ -> typ;
+
   val mk_sumTN: typ list -> typ
   val mk_sumTN_balanced: typ list -> typ
 
@@ -210,6 +214,10 @@ val set_inclN = "set_incl"
 val set_set_inclN = "set_set_incl"
 
 val mk_bundle_name = space_implode "_" o map Binding.name_of;
+
+fun mk_predT T = T --> HOLogic.boolT;
+
+fun retype_free T (Free (s, _)) = Free (s, T);
 
 fun dest_sumT (Type (@{type_name sum}, [T, T'])) = (T, T');
 

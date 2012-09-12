@@ -1873,7 +1873,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
       ||>> mk_Frees "f" coiter_fTs
       ||>> mk_Frees "g" coiter_fTs
       ||>> mk_Frees "s" corec_sTs
-      ||>> mk_Frees "phi" (map (fn T => T --> T --> HOLogic.boolT) Ts);
+      ||>> mk_Frees "phi" (map (fn T => T --> mk_predT T) Ts);
 
     fun unf_bind i = Binding.suffix_name ("_" ^ unfN) (nth bs (i - 1));
     val unf_name = Binding.name_of o unf_bind;
@@ -2291,7 +2291,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val pTs = map2 (curry op -->) passiveXs passiveCs;
         val uTs = map2 (curry op -->) Ts Ts';
         val JRTs = map2 (curry mk_relT) passiveAs passiveBs;
-        val JphiTs = map2 (fn T => fn U => T --> U --> HOLogic.boolT) passiveAs passiveBs;
+        val JphiTs = map2 (fn T => fn U => T --> mk_predT U) passiveAs passiveBs;
         val prodTs = map2 (curry HOLogic.mk_prodT) Ts Ts';
         val B1Ts = map HOLogic.mk_setT passiveAs;
         val B2Ts = map HOLogic.mk_setT passiveBs;
@@ -2309,7 +2309,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           ||>> mk_Frees "u" uTs
           ||>> mk_Frees' "b" Ts'
           ||>> mk_Frees' "b" Ts'
-          ||>> mk_Freess "phi" (map (fn T => map (fn U => T --> U --> HOLogic.boolT) Ts) passiveAs)
+          ||>> mk_Freess "phi" (map (fn T => map (fn U => T --> mk_predT U) Ts) passiveAs)
           ||>> mk_Frees "R" JRTs
           ||>> mk_Frees "phi" JphiTs
           ||>> mk_Frees "B1" B1Ts

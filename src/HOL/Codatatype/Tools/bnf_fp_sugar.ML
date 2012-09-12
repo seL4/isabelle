@@ -59,11 +59,7 @@ fun typ_subst inst (T as Type (s, Ts)) =
 
 fun resort_tfree S (TFree (s, _)) = TFree (s, S);
 
-fun retype_free T (Free (s, _)) = Free (s, T);
-
 val lists_bmoc = fold (fn xs => fn t => Term.list_comb (t, xs));
-
-fun mk_predT T = T --> HOLogic.boolT;
 
 fun mk_id T = Const (@{const_name id}, T --> T);
 
