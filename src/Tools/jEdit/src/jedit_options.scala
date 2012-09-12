@@ -68,7 +68,13 @@ class JEdit_Options extends Options_Variable
             name = opt_name
             val title = opt_title
             def load = text = value.check_name(opt_name).value
-            def save = update(value + (opt_name, text))
+            def save =
+              try { update(value + (opt_name, text)) }
+              catch {
+                case ERROR(msg) =>
+                  Library.error_dialog(this.peer, "Failed to update options",
+                    Library.scrollable_text(msg))
+              }
           }
         text_area.peer.setInputVerifier(new InputVerifier {
           def verify(jcomponent: JComponent): Boolean =

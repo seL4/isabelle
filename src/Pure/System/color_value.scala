@@ -1,4 +1,4 @@
-/*  Title:      Pure/General/color_value.scala
+/*  Title:      Pure/System/color_value.scala
     Module:     PIDE
     Author:     Makarius
 

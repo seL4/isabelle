@@ -30,22 +30,6 @@ end;
 structure Latex: LATEX =
 struct
 
-(* literal text *)
-
-local
-  fun hex_nibble i =
-    if i < 10 then string_of_int i
-    else chr (ord "A" + i - 10);
-
-  fun hex_byte c = hex_nibble (ord c div 16) ^ hex_nibble (ord c mod 16);
-in
-
-fun literal txt = "\\isaliteral{" ^ translate_string hex_byte txt ^ "}";
-fun enclose_literal txt arg = enclose "{" "}" (literal txt ^ arg);
-
-end;
-
-
 (* symbol output *)
 
 local
@@ -90,7 +74,7 @@ fun output_chr " " = "\\ "
   | output_chr "\n" = "\\isanewline\n"
   | output_chr c =
       (case Symtab.lookup char_table c of
-        SOME s => enclose_literal c s
+        SOME s => s
       | NONE => if Symbol.is_ascii_digit c then enclose "{\\isadigit{" "}}" c else c);
 
 val output_chrs = translate_string output_chr;
@@ -99,12 +83,8 @@ fun output_known_sym (known_sym, known_ctrl) sym =
   (case Symbol.decode sym of
     Symbol.Char s => output_chr s
   | Symbol.UTF8 s => s
-  | Symbol.Sym s =>
-      if known_sym s then enclose_literal sym (enclose "{\\isasym" "}" s)
-      else output_chrs sym
-  | Symbol.Ctrl s =>
-      if known_ctrl s then literal sym ^ "{}" ^ enclose "\\isactrl" " " s
-      else output_chrs sym
+  | Symbol.Sym s => if known_sym s then enclose "{\\isasym" "}" s else output_chrs sym
+  | Symbol.Ctrl s => if known_ctrl s then enclose "\\isactrl" " " s else output_chrs sym
   | Symbol.Raw s => s
   | Symbol.Malformed s => error (Symbol.malformed_msg s)
   | Symbol.EOF => error "Bad EOF symbol");
@@ -120,8 +100,8 @@ val output_syms_antiq =
     | Antiquote.Antiq (ss, _) =>
         enclose "%\n\\isaantiq\n" "{}%\n\\endisaantiq\n"
           (output_symbols (map Symbol_Pos.symbol ss))
-    | Antiquote.Open _ => enclose_literal "\\<lbrace>" "{\\isaantiqopen}"
-    | Antiquote.Close _ => enclose_literal "\\<rbrace>" "{\\isaantiqclose}");
+    | Antiquote.Open _ => "{\\isaantiqopen}"
+    | Antiquote.Close _ => "{\\isaantiqclose}");
 
 end;
 
@@ -138,23 +118,15 @@ fun output_basic tok =
     else if Token.is_kind Token.Keyword tok andalso Lexicon.is_ascii_identifier s then
       "\\isakeyword{" ^ output_syms s ^ "}"
     else if Token.is_kind Token.String tok then
-      output_syms s |> enclose
-        (enclose_literal "\"" "{\\isachardoublequoteopen}")
-        (enclose_literal "\"" "{\\isachardoublequoteclose}")
+      enclose "{\\isachardoublequoteopen}" "{\\isachardoublequoteclose}" (output_syms s)
     else if Token.is_kind Token.AltString tok then
-      output_syms s |> enclose
-        (enclose_literal "`" "{\\isacharbackquoteopen}")
-        (enclose_literal "`" "{\\isacharbackquoteclose}")
+      enclose "{\\isacharbackquoteopen}" "{\\isacharbackquoteclose}" (output_syms s)
     else if Token.is_kind Token.Verbatim tok then
       let
         val (txt, pos) = Token.source_position_of tok;
         val ants = Antiquote.read (Symbol_Pos.explode (txt, pos), pos);
         val out = implode (map output_syms_antiq ants);
-      in
-        out |> enclose
-          (enclose_literal "{*" "{\\isacharverbatimopen}")
-          (enclose_literal "*}" "{\\isacharverbatimclose}")
-      end
+      in enclose "{\\isacharverbatimopen}" "{\\isacharverbatimclose}" out end
     else output_syms s
   end;
 

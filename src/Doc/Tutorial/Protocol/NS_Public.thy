@@ -1,5 +1,4 @@
-(*  Title:      HOL/Auth/NS_Public
-    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+(*  Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 
 Inductive relation "ns_public" for the Needham-Schroeder Public-Key protocol.

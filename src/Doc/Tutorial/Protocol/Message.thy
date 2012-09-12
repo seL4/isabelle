@@ -1,5 +1,4 @@
-(*  Title:      HOL/Auth/Message
-    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+(*  Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 
 Datatypes of agents and messages;

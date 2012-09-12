@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Sublist.thy
+(*  Title:      HOL/Library/Prefix_Order.thy
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 *)
 

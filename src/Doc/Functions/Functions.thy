@@ -1,4 +1,4 @@
-(*  Title:      Doc/Functions/Thy/Fundefs.thy
+(*  Title:      Doc/Functions/Fundefs.thy
     Author:     Alexander Krauss, TU Muenchen
 
 Tutorial for function definitions with the new "function" package.

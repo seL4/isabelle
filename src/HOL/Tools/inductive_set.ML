@@ -21,7 +21,7 @@ sig
     (binding * string option * mixfix) list ->
     (binding * string option * mixfix) list ->
     (Attrib.binding * string) list -> (Facts.ref * Attrib.src list) list ->
-    bool -> local_theory -> Inductive.inductive_result * local_theory
+    local_theory -> Inductive.inductive_result * local_theory
   val mono_add: attribute
   val mono_del: attribute
   val codegen_preproc: theory -> thm list -> thm list
@@ -574,11 +574,11 @@ val setup =
 val ind_set_decl = Inductive.gen_ind_decl add_ind_set_def;
 
 val _ =
-  Outer_Syntax.local_theory' @{command_spec "inductive_set"} "define inductive sets"
+  Outer_Syntax.local_theory @{command_spec "inductive_set"} "define inductive sets"
     (ind_set_decl false);
 
 val _ =
-  Outer_Syntax.local_theory' @{command_spec "coinductive_set"} "define coinductive sets"
+  Outer_Syntax.local_theory @{command_spec "coinductive_set"} "define coinductive sets"
     (ind_set_decl true);
 
 end;

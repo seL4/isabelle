@@ -49,7 +49,7 @@ sig
     (binding * string option * mixfix) list ->
     (Attrib.binding * string) list ->
     (Facts.ref * Attrib.src list) list ->
-    bool -> local_theory -> inductive_result * local_theory
+    local_theory -> inductive_result * local_theory
   val add_inductive_global: inductive_flags ->
     ((binding * typ) * mixfix) list -> (string * typ) list -> (Attrib.binding * term) list ->
     thm list -> theory -> inductive_result * theory
@@ -81,8 +81,8 @@ sig
     (binding * string option * mixfix) list ->
     (binding * string option * mixfix) list ->
     (Attrib.binding * string) list -> (Facts.ref * Attrib.src list) list ->
-    bool -> local_theory -> inductive_result * local_theory
-  val gen_ind_decl: add_ind_def -> bool -> (bool -> local_theory -> local_theory) parser
+    local_theory -> inductive_result * local_theory
+  val gen_ind_decl: add_ind_def -> bool -> (local_theory -> local_theory) parser
 end;
 
 structure Inductive: INDUCTIVE =
@@ -1039,7 +1039,7 @@ fun gen_add_inductive_i mk_def
     ||> fold (snd oo Local_Theory.abbrev Syntax.mode_default) abbrevs
   end;
 
-fun gen_add_inductive mk_def verbose coind cnames_syn pnames_syn intro_srcs raw_monos int lthy =
+fun gen_add_inductive mk_def verbose coind cnames_syn pnames_syn intro_srcs raw_monos lthy =
   let
     val ((vars, intrs), _) = lthy
       |> Proof_Context.set_mode Proof_Context.mode_abbrev
@@ -1143,16 +1143,16 @@ fun gen_ind_decl mk_def coind =
   Scan.optional Parse_Spec.where_alt_specs [] --
   Scan.optional (@{keyword "monos"} |-- Parse.!!! Parse_Spec.xthms1) []
   >> (fn (((preds, params), specs), monos) =>
-      (snd oo gen_add_inductive mk_def true coind preds params specs monos));
+      (snd o gen_add_inductive mk_def true coind preds params specs monos));
 
 val ind_decl = gen_ind_decl add_ind_def;
 
 val _ =
-  Outer_Syntax.local_theory' @{command_spec "inductive"} "define inductive predicates"
+  Outer_Syntax.local_theory @{command_spec "inductive"} "define inductive predicates"
     (ind_decl false);
 
 val _ =
-  Outer_Syntax.local_theory' @{command_spec "coinductive"} "define coinductive predicates"
+  Outer_Syntax.local_theory @{command_spec "coinductive"} "define coinductive predicates"
     (ind_decl true);
 
 val _ =

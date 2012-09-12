@@ -380,7 +380,7 @@ fun tvar_name ((x as (s, _)), _) = (make_tvar x, s)
 
 (* "HOL.eq" and choice are mapped to the ATP's equivalents *)
 local
-  val choice_const = (fst o dest_Const o HOLogic.choice_const) Term.dummyT
+  val choice_const = (fst o dest_Const o HOLogic.choice_const) dummyT
   fun default c = const_prefix ^ lookup_const c
 in
   fun make_fixed_const _ @{const_name HOL.eq} = tptp_old_equal
