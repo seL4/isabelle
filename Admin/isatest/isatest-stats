@@ -97,6 +97,7 @@ AFP_SESSIONS="
   HOL-Binomial-Heaps
   HOL-Binomial-Queues
   HOL-BytecodeLogicJmlTypes
+  HOL-Cardinals
   HOL-Category
   HOL-Category2
   HOL-Cauchy
@@ -146,7 +147,6 @@ AFP_SESSIONS="
   HOL-Nominal-Lam-ml-Normalization
   HOL-Nominal-SequentInvertibility
   HOL-Ordinal
-  HOL-Ordinals_and_Cardinals
   HOL-POPLmark-deBruijn
   HOL-Perfect-Number-Thm
   HOL-Polynomials

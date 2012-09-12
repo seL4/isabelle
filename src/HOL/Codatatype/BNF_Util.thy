@@ -10,7 +10,7 @@ header {* Library for Bounded Natural Functors *}
 
 theory BNF_Util
 imports
-  "../Ordinals_and_Cardinals/Cardinal_Arithmetic"
+  "../Cardinals/Cardinal_Arithmetic"
   "~~/src/HOL/Library/Prefix_Order"
   Equiv_Relations_More
 begin

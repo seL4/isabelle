@@ -1,4 +1,4 @@
-(*  Title:      HOL/Ordinals_and_Cardinals/Wellfounded_More.thy
+(*  Title:      HOL/Cardinals/Wellfounded_More.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 

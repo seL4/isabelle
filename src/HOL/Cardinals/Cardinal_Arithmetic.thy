@@ -1,4 +1,4 @@
-(*  Title:      HOL/Ordinals_and_Cardinals/Cardinal_Arithmetic.thy
+(*  Title:      HOL/Cardinals/Cardinal_Arithmetic.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Copyright   2012
 

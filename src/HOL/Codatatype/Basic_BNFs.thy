@@ -10,7 +10,7 @@ Registration of basic types as bounded natural functors.
 header {* Registration of Basic Types as Bounded Natural Functors *}
 
 theory Basic_BNFs
-imports BNF_Def "~~/src/HOL/Quotient_Examples/FSet" "~~/src/HOL/Library/Multiset" Countable_Set
+imports BNF_Def
 begin
 
 lemmas natLeq_card_order = natLeq_Card_order[unfolded Field_natLeq]

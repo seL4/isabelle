@@ -1,4 +1,4 @@
-(*  Title:      HOL/Ordinals_and_Cardinals/Wellorder_Relation.thy
+(*  Title:      HOL/Cardinals/Wellorder_Relation.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 

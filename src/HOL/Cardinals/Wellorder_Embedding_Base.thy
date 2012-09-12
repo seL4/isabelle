@@ -1,4 +1,4 @@
-(*  Title:      HOL/Ordinals_and_Cardinals/Wellorder_Embedding_Base.thy
+(*  Title:      HOL/Cardinals/Wellorder_Embedding_Base.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 

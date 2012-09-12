@@ -100,8 +100,8 @@ INCOMPATIBILITY.  Related changes are:
 * HOL/Codatatype: New (co)datatype package with support for mixed,
 nested recursion and interesting non-free datatypes.
 
-* HOL/Ordinals_and_Cardinals: Theories of ordinals and cardinals
-(supersedes the AFP entry of the same name).
+* HOL/Cardinals: Theories of ordinals and cardinals
+(supersedes the AFP entry "Ordinals_and_Cardinals").
 
 * Library/Debug.thy and Library/Parallel.thy: debugging and parallel
 execution for code generated towards Isabelle/ML.

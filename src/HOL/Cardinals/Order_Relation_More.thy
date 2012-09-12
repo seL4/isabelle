@@ -1,4 +1,4 @@
-(*  Title:      HOL/Ordinals_and_Cardinals/Order_Relation_More.thy
+(*  Title:      HOL/Cardinals/Order_Relation_More.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 

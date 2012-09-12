@@ -11,7 +11,12 @@ Registration of various types as bounded natural functors.
 header {* Registration of Various Types as Bounded Natural Functors *}
 
 theory More_BNFs
-imports BNF_LFP BNF_GFP
+imports
+  BNF_LFP
+  BNF_GFP
+  "~~/src/HOL/Quotient_Examples/FSet"
+  "~~/src/HOL/Library/Multiset"
+  Countable_Set
 begin
 
 lemma option_rec_conv_option_case: "option_rec = option_case"

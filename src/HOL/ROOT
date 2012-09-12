@@ -597,13 +597,12 @@ session "HOL-Nominal-Examples" in "Nominal/Examples" = "HOL-Nominal" +
   theories Nominal_Examples
   theories [quick_and_dirty] VC_Condition
 
-session "HOL-Ordinals_and_Cardinals-Base" in Ordinals_and_Cardinals = HOL +
+session "HOL-Cardinals-Base" in Cardinals = HOL +
   description {* Ordinals and Cardinals, Base Theories *}
   options [document = false]
   theories Cardinal_Arithmetic
 
-session "HOL-Ordinals_and_Cardinals" in Ordinals_and_Cardinals =
-    "HOL-Ordinals_and_Cardinals-Base" +
+session "HOL-Cardinals" in Cardinals = "HOL-Cardinals-Base" +
   description {* Ordinals and Cardinals, Full Theories *}
   theories Cardinal_Order_Relation
   files
@@ -611,7 +610,7 @@ session "HOL-Ordinals_and_Cardinals" in Ordinals_and_Cardinals =
     "document/root.tex"
     "document/root.bib"
 
-session "HOL-Codatatype" in Codatatype = "HOL-Ordinals_and_Cardinals-Base" +
+session "HOL-Codatatype" in Codatatype = "HOL-Cardinals-Base" +
   description {* New (Co)datatype Package *}
   options [document = false]
   theories Codatatype

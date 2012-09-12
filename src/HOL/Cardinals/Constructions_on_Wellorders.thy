@@ -1,4 +1,4 @@
-(*  Title:      HOL/Ordinals_and_Cardinals/Constructions_on_Wellorders.thy
+(*  Title:      HOL/Cardinals/Constructions_on_Wellorders.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 

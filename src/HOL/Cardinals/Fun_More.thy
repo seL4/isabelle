@@ -1,4 +1,4 @@
-(*  Title:      HOL/Ordinals_and_Cardinals/Fun_More.thy
+(*  Title:      HOL/Cardinals/Fun_More.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
