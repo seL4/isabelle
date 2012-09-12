@@ -284,7 +284,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold, lthy) =
 
 (* Killing live variables *)
 
-fun killN_bnf qualify n bnf (unfold, lthy) = if n = 0 then (bnf, (unfold, lthy)) else
+fun kill_bnf qualify n bnf (unfold, lthy) = if n = 0 then (bnf, (unfold, lthy)) else
   let
     val b = Binding.prefix_name (mk_killN n) (name_of_bnf bnf);
     val live = live_of_bnf bnf;
@@ -323,12 +323,12 @@ fun killN_bnf qualify n bnf (unfold, lthy) = if n = 0 then (bnf, (unfold, lthy))
       Local_Defs.unfold_tac context ((map_comp_of_bnf bnf RS sym) :: @{thms o_assoc id_o o_id}) THEN
       rtac refl 1;
     fun map_cong_tac {context, ...} =
-      mk_killN_map_cong_tac context n (live - n) (map_cong_of_bnf bnf);
+      mk_kill_map_cong_tac context n (live - n) (map_cong_of_bnf bnf);
     val set_natural_tacs = map (fn thm => fn _ => rtac thm 1) (drop n (set_natural_of_bnf bnf));
-    fun bd_card_order_tac _ = mk_killN_bd_card_order_tac n (bd_card_order_of_bnf bnf);
-    fun bd_cinfinite_tac _ = mk_killN_bd_cinfinite_tac (bd_Cinfinite_of_bnf bnf);
+    fun bd_card_order_tac _ = mk_kill_bd_card_order_tac n (bd_card_order_of_bnf bnf);
+    fun bd_cinfinite_tac _ = mk_kill_bd_cinfinite_tac (bd_Cinfinite_of_bnf bnf);
     val set_bd_tacs =
-      map (fn thm => fn _ => mk_killN_set_bd_tac (bd_Card_order_of_bnf bnf) thm)
+      map (fn thm => fn _ => mk_kill_set_bd_tac (bd_Card_order_of_bnf bnf) thm)
         (drop n (set_bd_of_bnf bnf));
 
     val in_alt_thm =
@@ -337,11 +337,11 @@ fun killN_bnf qualify n bnf (unfold, lthy) = if n = 0 then (bnf, (unfold, lthy))
         val in_alt = mk_in (map HOLogic.mk_UNIV killedAs @ Asets) bnf_sets T;
         val goal = fold_rev Logic.all Asets (mk_Trueprop_eq (inx, in_alt));
       in
-        Skip_Proof.prove lthy [] [] goal (K killN_in_alt_tac) |> Thm.close_derivation
+        Skip_Proof.prove lthy [] [] goal (K kill_in_alt_tac) |> Thm.close_derivation
       end;
 
     fun in_bd_tac _ =
-      mk_killN_in_bd_tac n (live > n) in_alt_thm (in_bd_of_bnf bnf) (bd_Card_order_of_bnf bnf)
+      mk_kill_in_bd_tac n (live > n) in_alt_thm (in_bd_of_bnf bnf) (bd_Card_order_of_bnf bnf)
         (bd_Cinfinite_of_bnf bnf) (bd_Cnotzero_of_bnf bnf);
     fun map_wpull_tac _ = mk_map_wpull_tac in_alt_thm [] (map_wpull_of_bnf bnf);
 
@@ -383,7 +383,7 @@ fun killN_bnf qualify n bnf (unfold, lthy) = if n = 0 then (bnf, (unfold, lthy))
 
 (* Adding dummy live variables *)
 
-fun liftN_bnf qualify n bnf (unfold, lthy) = if n = 0 then (bnf, (unfold, lthy)) else
+fun lift_bnf qualify n bnf (unfold, lthy) = if n = 0 then (bnf, (unfold, lthy)) else
   let
     val b = Binding.prefix_name (mk_liftN n) (name_of_bnf bnf);
     val live = live_of_bnf bnf;
@@ -431,7 +431,7 @@ fun liftN_bnf qualify n bnf (unfold, lthy) = if n = 0 then (bnf, (unfold, lthy))
       if ! quick_and_dirty then
         replicate (n + live) (K all_tac)
       else
-        replicate n (K (mk_liftN_set_bd_tac (bd_Card_order_of_bnf bnf))) @
+        replicate n (K (mk_lift_set_bd_tac (bd_Card_order_of_bnf bnf))) @
         (map (fn thm => fn _ => rtac thm 1) (set_bd_of_bnf bnf));
 
     val in_alt_thm =
@@ -440,10 +440,10 @@ fun liftN_bnf qualify n bnf (unfold, lthy) = if n = 0 then (bnf, (unfold, lthy))
         val in_alt = mk_in (drop n Asets) bnf_sets T;
         val goal = fold_rev Logic.all Asets (mk_Trueprop_eq (inx, in_alt));
       in
-        Skip_Proof.prove lthy [] [] goal (K liftN_in_alt_tac) |> Thm.close_derivation
+        Skip_Proof.prove lthy [] [] goal (K lift_in_alt_tac) |> Thm.close_derivation
       end;
 
-    fun in_bd_tac _ = mk_liftN_in_bd_tac n in_alt_thm (in_bd_of_bnf bnf) (bd_Card_order_of_bnf bnf);
+    fun in_bd_tac _ = mk_lift_in_bd_tac n in_alt_thm (in_bd_of_bnf bnf) (bd_Card_order_of_bnf bnf);
     fun map_wpull_tac _ = mk_map_wpull_tac in_alt_thm [] (map_wpull_of_bnf bnf);
 
     val tacs = [map_id_tac, map_comp_tac, map_cong_tac] @ set_natural_tacs @ [bd_card_order_tac,
@@ -555,11 +555,11 @@ fun permute_bnf qualify src dest bnf (unfold, lthy) = if src = dest then (bnf, (
 fun permute_and_kill qualify n src dest bnf =
   bnf
   |> permute_bnf qualify src dest
-  #> uncurry (killN_bnf qualify n);
+  #> uncurry (kill_bnf qualify n);
 
 fun lift_and_permute qualify n src dest bnf =
   bnf
-  |> liftN_bnf qualify n
+  |> lift_bnf qualify n
   #> uncurry (permute_bnf qualify src dest);
 
 fun normalize_bnfs qualify Ass Ds sort bnfs unfold lthy =

@@ -19,17 +19,17 @@ sig
   val mk_comp_set_natural_tac: thm -> thm -> thm -> thm list -> tactic
   val mk_comp_wit_tac: Proof.context -> thm list -> thm -> thm list -> tactic
 
-  val mk_killN_bd_card_order_tac: int -> thm -> tactic
-  val mk_killN_bd_cinfinite_tac: thm -> tactic
-  val killN_in_alt_tac: tactic
-  val mk_killN_in_bd_tac: int -> bool -> thm -> thm -> thm -> thm -> thm -> tactic
-  val mk_killN_map_cong_tac: Proof.context -> int -> int -> thm -> tactic
-  val mk_killN_set_bd_tac: thm -> thm -> tactic
+  val mk_kill_bd_card_order_tac: int -> thm -> tactic
+  val mk_kill_bd_cinfinite_tac: thm -> tactic
+  val kill_in_alt_tac: tactic
+  val mk_kill_in_bd_tac: int -> bool -> thm -> thm -> thm -> thm -> thm -> tactic
+  val mk_kill_map_cong_tac: Proof.context -> int -> int -> thm -> tactic
+  val mk_kill_set_bd_tac: thm -> thm -> tactic
 
   val empty_natural_tac: tactic
-  val liftN_in_alt_tac: tactic
-  val mk_liftN_in_bd_tac: int -> thm -> thm -> thm -> tactic
-  val mk_liftN_set_bd_tac: thm -> tactic
+  val lift_in_alt_tac: tactic
+  val mk_lift_in_bd_tac: int -> thm -> thm -> thm -> tactic
+  val mk_lift_set_bd_tac: thm -> tactic
 
   val mk_permute_in_alt_tac: ''a list -> ''a list -> tactic
   val mk_permute_in_bd_tac: ''a list -> ''a list -> thm -> thm -> thm -> tactic
@@ -220,11 +220,11 @@ fun mk_comp_wit_tac ctxt Gwit_thms collect_set_natural Fwit_thms =
 
 (* Kill operation *)
 
-fun mk_killN_map_cong_tac ctxt n m map_cong =
+fun mk_kill_map_cong_tac ctxt n m map_cong =
   (rtac map_cong THEN' EVERY' (replicate n (rtac refl)) THEN'
     EVERY' (replicate m (Goal.assume_rule_tac ctxt))) 1;
 
-fun mk_killN_bd_card_order_tac n bd_card_order =
+fun mk_kill_bd_card_order_tac n bd_card_order =
   (rtac @{thm card_order_cprod} THEN'
   K (REPEAT_DETERM_N (n - 1)
     ((rtac @{thm card_order_csum} THEN'
@@ -232,13 +232,13 @@ fun mk_killN_bd_card_order_tac n bd_card_order =
   rtac @{thm card_of_card_order_on} THEN'
   rtac bd_card_order) 1;
 
-fun mk_killN_bd_cinfinite_tac bd_Cinfinite =
+fun mk_kill_bd_cinfinite_tac bd_Cinfinite =
   (rtac @{thm cinfinite_cprod2} THEN'
   TRY o rtac @{thm csum_Cnotzero1} THEN'
   rtac @{thm Cnotzero_UNIV} THEN'
   rtac bd_Cinfinite) 1;
 
-fun mk_killN_set_bd_tac bd_Card_order set_bd =
+fun mk_kill_set_bd_tac bd_Card_order set_bd =
   (rtac ctrans THEN'
   rtac set_bd THEN'
   rtac @{thm ordLeq_cprod2} THEN'
@@ -246,7 +246,7 @@ fun mk_killN_set_bd_tac bd_Card_order set_bd =
   rtac @{thm Cnotzero_UNIV} THEN'
   rtac bd_Card_order) 1
 
-val killN_in_alt_tac =
+val kill_in_alt_tac =
   ((rtac @{thm Collect_cong} THEN' rtac @{thm iffI}) 1 THEN
   REPEAT_DETERM (CHANGED (etac conjE 1)) THEN
   REPEAT_DETERM (CHANGED ((etac conjI ORELSE'
@@ -257,7 +257,7 @@ val killN_in_alt_tac =
   ((rtac @{thm UNIV_eq_I} THEN' rtac CollectI) 1 THEN
     REPEAT_DETERM (TRY (rtac conjI 1) THEN rtac @{thm subset_UNIV} 1));
 
-fun mk_killN_in_bd_tac n nontrivial_killN_in in_alt in_bd bd_Card_order bd_Cinfinite bd_Cnotzero =
+fun mk_kill_in_bd_tac n nontrivial_kill_in in_alt in_bd bd_Card_order bd_Cinfinite bd_Cnotzero =
   (rtac @{thm ordIso_ordLeq_trans} THEN'
   rtac @{thm card_of_ordIso_subst} THEN'
   rtac in_alt THEN'
@@ -265,7 +265,7 @@ fun mk_killN_in_bd_tac n nontrivial_killN_in in_alt in_bd bd_Card_order bd_Cinfi
   rtac in_bd THEN'
   rtac @{thm ordIso_ordLeq_trans} THEN'
   rtac @{thm cexp_cong1}) 1 THEN
-  (if nontrivial_killN_in then
+  (if nontrivial_kill_in then
     rtac @{thm ordIso_transitive} 1 THEN
     REPEAT_DETERM_N (n - 1)
       ((rtac @{thm csum_cong1} THEN'
@@ -333,9 +333,9 @@ fun mk_killN_in_bd_tac n nontrivial_killN_in in_alt in_bd bd_Card_order bd_Cinfi
 
 val empty_natural_tac = rtac @{thm empty_natural} 1;
 
-fun mk_liftN_set_bd_tac bd_Card_order = (rtac @{thm Card_order_empty} THEN' rtac bd_Card_order) 1;
+fun mk_lift_set_bd_tac bd_Card_order = (rtac @{thm Card_order_empty} THEN' rtac bd_Card_order) 1;
 
-val liftN_in_alt_tac =
+val lift_in_alt_tac =
   ((rtac @{thm Collect_cong} THEN' rtac @{thm iffI}) 1 THEN
   REPEAT_DETERM (CHANGED (etac conjE 1)) THEN
   REPEAT_DETERM (CHANGED ((etac conjI ORELSE' atac) 1)) THEN
@@ -346,7 +346,7 @@ val liftN_in_alt_tac =
   ((rtac sym THEN' rtac @{thm UNIV_eq_I} THEN' rtac CollectI) 1 THEN
     REPEAT_DETERM (TRY (rtac conjI 1) THEN rtac @{thm empty_subsetI} 1));
 
-fun mk_liftN_in_bd_tac n in_alt in_bd bd_Card_order =
+fun mk_lift_in_bd_tac n in_alt in_bd bd_Card_order =
   (rtac @{thm ordIso_ordLeq_trans} THEN'
   rtac @{thm card_of_ordIso_subst} THEN'
   rtac in_alt THEN'
