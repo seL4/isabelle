@@ -633,7 +633,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
     (*FIXME: check DUP here, not in after_qed*)
     val key =
       (case (CA, Binding.eq_name (qualify b, b)) of
-        (Type (C, _), True) => C
+        (Type (C, _), true) => C
       | _ => Name_Space.full_name Name_Space.default_naming b);
 
     (*TODO: further checks of type of bnf_map*)
