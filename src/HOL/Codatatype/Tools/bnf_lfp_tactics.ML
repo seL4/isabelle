@@ -826,7 +826,7 @@ fun mk_rel_unfold_tac in_Irels i in_rel map_comp map_cong map_simp set_simps fld
             (rev (active_set_naturals ~~ in_Irels))])
         (set_simps ~~ passive_set_naturals),
         rtac conjI,
-        REPEAT_DETERM_N 2 o EVERY'[rtac trans, rtac map_simp, rtac (fld_inject RS iffD2),
+        REPEAT_DETERM_N 2 o EVERY' [rtac trans, rtac map_simp, rtac (fld_inject RS iffD2),
           rtac trans, rtac map_comp, rtac trans, rtac map_cong,
           REPEAT_DETERM_N m o rtac @{thm fun_cong[OF o_id]},
           EVERY' (map (fn in_Irel => EVERY' [rtac trans, rtac o_apply, dtac set_rev_mp, atac,
