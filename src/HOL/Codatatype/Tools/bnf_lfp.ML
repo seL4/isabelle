@@ -152,19 +152,21 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     (* nonemptiness check *)
     fun new_wit X wit = subset (op =) (#I wit, (0 upto m - 1) @ map snd X);
 
+    val all = m upto m + n - 1;
+
     fun enrich X = map_filter (fn i =>
       (case find_first (fn (_, i') => i = i') X of
         NONE =>
           (case find_index (new_wit X) (nth witss (i - m)) of
             ~1 => NONE
           | j => SOME (j, i))
-      | SOME ji => SOME ji)) (m upto m + n - 1);
+      | SOME ji => SOME ji)) all;
     val reachable = fixpoint (op =) enrich [];
-    val _ = if map snd reachable = (m upto m + n - 1) then ()
-      else error "The datatype could not be generated because nonemptiness could not be proved";
+    val _ = (case subtract (op =) (map snd reachable) all of
+        [] => ()
+      | i :: _ => error ("Invalid empty datatype " ^ quote (Binding.name_of (nth bs (i - m)))));
 
-    val wit_thms =
-      flat (map2 (fn bnf => fn (j, _) => nth (wit_thmss_of_bnf bnf) j) bnfs reachable);
+    val wit_thms = flat (map2 (fn bnf => fn (j, _) => nth (wit_thmss_of_bnf bnf) j) bnfs reachable);
 
     val timer = time (timer "Checked nonemptiness");
 
