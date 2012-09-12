@@ -321,9 +321,6 @@ by auto
 lemma list_rec_Cons: "f = list_rec f1 (%x xs rec. f2 x xs rec) \<Longrightarrow> f (x # xs) = f2 x xs (f xs)"
 by auto
 
-lemma sum_case_cong: "p = q \<Longrightarrow> sum_case f g p = sum_case f g q"
-by simp
-
 lemma not_arg_cong_Inr: "x \<noteq> y \<Longrightarrow> Inr x \<noteq> Inr y"
 by simp
 

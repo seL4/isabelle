@@ -143,6 +143,7 @@ val set_rev_mp = @{thm set_rev_mp};
 val snd_convol_fun_cong_sym = @{thm snd_convol} RS fun_cong RS sym;
 val ssubst_id = @{thm ssubst[of _ _ "%x. x"]};
 val subst_id = @{thm subst[of _ _ "%x. x"]};
+val sum_case_weak_cong = @{thm sum_case_weak_cong};
 val trans_fun_cong_image_id_id_apply = @{thm trans[OF fun_cong[OF image_id] id_apply]};
 
 fun mk_coalg_set_tac coalg_def =
@@ -701,7 +702,7 @@ fun mk_rv_last_tac cTs cts rv_Nils rv_Conss =
         CONJ_WRAP' (fn rv_Cons => EVERY' [REPEAT_DETERM o etac allE, dtac (mk_conjunctN n i),
           CONJ_WRAP' (fn i' => EVERY' [dtac (mk_conjunctN n i'), etac exE, rtac exI,
             rtac (@{thm append_Cons} RS arg_cong RS trans),
-            rtac (rv_Cons RS trans), etac (@{thm sum_case_cong} RS arg_cong RS trans),
+            rtac (rv_Cons RS trans), etac (sum_case_weak_cong RS arg_cong RS trans),
             rtac (mk_sum_casesN n i RS arg_cong RS trans), atac])
           ks])
         rv_Conss)
@@ -873,7 +874,7 @@ fun mk_mor_beh_tac m mor_def mor_cong beh_defs carT_defs strT_defs isNode_defs
               rtac exI, rtac conjI,
               (if n = 1 then rtac @{thm if_P} THEN' etac length_Lev'
               else rtac (@{thm if_P} RS arg_cong RS trans) THEN' etac length_Lev' THEN'
-                etac (@{thm sum_case_cong} RS trans) THEN' rtac (mk_sum_casesN n i)),
+                etac (sum_case_weak_cong RS trans) THEN' rtac (mk_sum_casesN n i)),
               EVERY' (map2 (fn set_natural => fn set_rv_Lev =>
                 EVERY' [rtac conjI, rtac ord_eq_le_trans, rtac (set_natural RS trans),
                   rtac trans_fun_cong_image_id_id_apply,
@@ -897,7 +898,7 @@ fun mk_mor_beh_tac m mor_def mor_cong beh_defs carT_defs strT_defs isNode_defs
               rtac exI, rtac conjI,
               (if n = 1 then rtac @{thm if_P} THEN' etac length_Lev'
               else rtac (@{thm if_P} RS trans) THEN' etac length_Lev' THEN'
-                etac (@{thm sum_case_cong} RS trans) THEN' rtac (mk_sum_casesN n i)),
+                etac (sum_case_weak_cong RS trans) THEN' rtac (mk_sum_casesN n i)),
               EVERY' (map2 (fn set_natural => fn set_rv_Lev =>
                 EVERY' [rtac conjI, rtac ord_eq_le_trans, rtac (set_natural RS trans),
                   rtac trans_fun_cong_image_id_id_apply,
@@ -946,13 +947,13 @@ fun mk_mor_beh_tac m mor_def mor_cong beh_defs carT_defs strT_defs isNode_defs
       ((map_comp_id, (map_cong, map_arg_cong)), (length_Lev', (from_to_sbds, to_sbd_injs)))))) =
       EVERY' [rtac ballI, rtac sym, rtac trans, rtac strT_def,
         rtac (@{thm if_P} RS
-          (if n = 1 then map_arg_cong else @{thm sum_case_cong}) RS trans),
+          (if n = 1 then map_arg_cong else sum_case_weak_cong) RS trans),
         rtac (@{thm list.size(3)} RS arg_cong RS trans RS equalityD2 RS set_mp),
         rtac Lev_0, rtac @{thm singletonI},
         CONVERSION (Conv.top_conv
           (K (Conv.try_conv (Conv.rewr_conv (rv_Nil RS eq_reflection)))) ctxt),
         if n = 1 then K all_tac
-        else (rtac (@{thm sum_case_cong} RS trans) THEN'
+        else (rtac (sum_case_weak_cong RS trans) THEN'
           rtac (mk_sum_casesN n i) THEN' rtac (mk_sum_casesN n i RS trans)),
         rtac (map_comp_id RS trans), rtac (map_cong OF replicate m refl),
         EVERY' (map3 (fn i' => fn to_sbd_inj => fn from_to_sbd =>
@@ -990,7 +991,7 @@ fun mk_mor_beh_tac m mor_def mor_cong beh_defs carT_defs strT_defs isNode_defs
             CONVERSION (Conv.top_conv
               (K (Conv.try_conv (Conv.rewr_conv (rv_Cons RS eq_reflection)))) ctxt),
             if n = 1 then K all_tac
-            else rtac @{thm sum_case_cong} THEN' rtac (mk_sum_casesN n i' RS trans),
+            else rtac sum_case_weak_cong THEN' rtac (mk_sum_casesN n i' RS trans),
             SELECT_GOAL (Local_Defs.unfold_tac ctxt [from_to_sbd]), rtac refl,
             rtac refl])
         ks to_sbd_injs from_to_sbds)];
