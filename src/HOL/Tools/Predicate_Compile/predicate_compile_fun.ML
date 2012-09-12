@@ -38,7 +38,7 @@ fun lookup thy net t =
   end
 
 fun pred_of_function thy name =
-  case Item_Net.retrieve (Fun_Pred.get thy) (Const (name, Term.dummyT)) of
+  case Item_Net.retrieve (Fun_Pred.get thy) (Const (name, dummyT)) of
     [] => NONE
   | [(f, p)] => SOME (fst (dest_Const p))
   | _ => error ("Multiple matches possible for lookup of constant " ^ name)

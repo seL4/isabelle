@@ -316,8 +316,8 @@ fun mk_n_fun n str =
     fun body 0 t = t
       | body n t = body (n - 1) (t  $ (Bound (n - 1)))
   in
-    body n (Const (str, Term.dummyT))
-    |> funpow n (Term.absdummy Term.dummyT)
+    body n (Const (str, dummyT))
+    |> funpow n (Term.absdummy dummyT)
   end
 fun mk_fun_type [] b acc = acc b
   | mk_fun_type (ty :: tys) b acc =
@@ -365,10 +365,10 @@ fun interpret_symbol config language const_map symb thy =
           (string_of_interpreted_symbol interpreted_symbol))), [])
    | Interpreted_Logic logic_symbol =>
        (case logic_symbol of
-          Equals => HOLogic.eq_const Term.dummyT
+          Equals => HOLogic.eq_const dummyT
         | NEquals =>
-           HOLogic.mk_not (HOLogic.eq_const Term.dummyT $ Bound 1 $ Bound 0)
-           |> (Term.absdummy Term.dummyT #> Term.absdummy Term.dummyT)
+           HOLogic.mk_not (HOLogic.eq_const dummyT $ Bound 1 $ Bound 0)
+           |> (Term.absdummy dummyT #> Term.absdummy dummyT)
         | Or => HOLogic.disj
         | And => HOLogic.conj
         | Iff => HOLogic.eq_const HOLogic.boolT
@@ -380,8 +380,8 @@ fun interpret_symbol config language const_map symb thy =
         | Nor => @{term "\<lambda> x. \<lambda> y. \<not> (x \<or> y)"}
         | Nand => @{term "\<lambda> x. \<lambda> y. \<not> (x \<and> y)"}
         | Not => HOLogic.Not
-        | Op_Forall => HOLogic.all_const Term.dummyT
-        | Op_Exists => HOLogic.exists_const Term.dummyT
+        | Op_Forall => HOLogic.all_const dummyT
+        | Op_Exists => HOLogic.exists_const dummyT
         | True => @{term "True"}
         | False => @{term "False"}
         )
@@ -404,7 +404,7 @@ fun mapply' (args, thy) f =
 fun mtimes thy =
   fold (fn x => fn y =>
     Sign.mk_const thy
-    ("Product_Type.Pair", [Term.dummyT, Term.dummyT]) $ y $ x)
+    ("Product_Type.Pair", [dummyT, dummyT]) $ y $ x)
 
 fun mtimes' (args, thy) f =
   let
@@ -530,7 +530,7 @@ fun interpret_term formula_level config language const_map var_types type_map
            SOME ty =>
              (case ty of
                 SOME ty => Free (n, ty)
-              | NONE => Free (n, Term.dummyT) (*to infer the variable's type*)
+              | NONE => Free (n, dummyT) (*to infer the variable's type*)
              )
          | NONE =>
              raise MISINTERPRET_TERM ("Could not type variable", tptp_t))
@@ -621,7 +621,7 @@ and interpret_formula config language const_map var_types type_map tptp_fmla thy
                  case ty of
                    NONE =>
                      f (n,
-                        if language = THF then Term.dummyT
+                        if language = THF then dummyT
                         else
                           interpret_type config thy type_map
                            (Defined_type Type_Ind),
@@ -646,12 +646,12 @@ and interpret_formula config language const_map var_types type_map tptp_fmla thy
             let val (t, thy') =
               interpret_formula config language const_map var_types type_map
                (Quant (Lambda, bindings, tptp_formula)) thy
-            in ((HOLogic.choice_const Term.dummyT) $ t, thy') end
+            in ((HOLogic.choice_const dummyT) $ t, thy') end
         | Iota =>
             let val (t, thy') =
               interpret_formula config language const_map var_types type_map
                (Quant (Lambda, bindings, tptp_formula)) thy
-            in (Const (@{const_name The}, Term.dummyT) $ t, thy') end
+            in (Const (@{const_name The}, dummyT) $ t, thy') end
         | Dep_Prod =>
             raise MISINTERPRET_FORMULA ("Unsupported", tptp_fmla)
         | Dep_Sum =>
