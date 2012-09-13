@@ -185,10 +185,6 @@ function init_components ()
   local BASE="$1"
   local CATALOG="$2"
 
-  if [ ! -d "$BASE" ]; then
-    echo >&2 "Bad component base directory: \"$BASE\""
-    exit 2
-  fi
   if [ ! -f "$CATALOG" ]; then
     echo >&2 "Bad component catalog file: \"$CATALOG\""
     exit 2
