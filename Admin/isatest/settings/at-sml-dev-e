@@ -1,5 +1,7 @@
 # -*- shell-script -*- :mode=shellscript:
 
+init_components /home/isabelle/contrib "$HOME/admin/components/main"
+
 ML_SYSTEM=smlnj
 ML_HOME="/home/smlnj/110.74/bin"
 ML_OPTIONS="@SMLdebug=/dev/null @SMLalloc=1024"

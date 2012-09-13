@@ -1,8 +1,8 @@
 # -*- shell-script -*- :mode=shellscript:
 
-CONTRIB=~/afp/contrib
+init_components /home/isabelle/contrib "$HOME/admin/components/main"
 
-  POLYML_HOME=$CONTRIB/polyml-5.4.1
+  POLYML_HOME="$HOME/afp/contrib/polyml-5.4.1"
   ML_SYSTEM="polyml-5.4.1"
   ML_PLATFORM="x86_64-darwin"
   ML_HOME="$POLYML_HOME/$ML_PLATFORM"
@@ -29,4 +29,3 @@ ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 
 ISABELLE_BUILD_OPTIONS="browser_info=false document=false threads=4 parallel_proofs=2"
 
-init_component "$CONTRIB/kodkodi-1.2.16"

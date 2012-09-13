@@ -1,5 +1,7 @@
 # -*- shell-script -*- :mode=shellscript:
 
+init_components /home/isabelle/contrib "$HOME/admin/components/main"
+
   POLYML_HOME="/home/polyml/polyml-5.4.0"
   ML_SYSTEM="polyml-5.4.0"
   ML_PLATFORM="x86_64-darwin"
@@ -24,6 +26,4 @@ ISABELLE_OUTPUT="$ISABELLE_HOME_USER/heaps"
 ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 
 ISABELLE_BUILD_OPTIONS="browser_info=false document=false threads=2 parallel_proofs=2"
-
-init_component "$HOME/contrib_devel/kodkodi-1.2.16"
 
