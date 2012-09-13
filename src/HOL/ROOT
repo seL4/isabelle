@@ -657,6 +657,7 @@ session "HOL-Mirabelle" in Mirabelle = HOL +
   theories Mirabelle_Test
 
 session "HOL-Mirabelle-ex" in "Mirabelle/ex" = "HOL-Mirabelle" +
+  options [document = false, timeout = 600 (* FIXME avoid "hang" of external bash *) ]
   theories Ex
 
 session "HOL-Word-SMT_Examples" in SMT_Examples = "HOL-Word" +
