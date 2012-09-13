@@ -1,6 +1,27 @@
 Important notes on Mercurial repository access for Isabelle
 ===========================================================
 
+Quick start in 20min
+--------------------
+
+1. Install Mercurial http://www.selenic.com/mercurial
+
+2. Create file $HOME/.isabelle/etc/settings and insert the following
+   line near its beginning:
+
+    init_components "$HOME/.isabelle/contrib" "$ISABELLE_HOME/Admin/components/main"
+
+3. Execute shell commands as follows:
+
+    hg clone http://isabelle.in.tum.de/repos/isabelle
+
+    ./isabelle/bin/isabelle components -a
+
+    ./isabelle/bin/isabelle build -b HOL
+
+    ./isabelle/bin/isabelle jedit
+
+
 Introduction
 ------------
 
