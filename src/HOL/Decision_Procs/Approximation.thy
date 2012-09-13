@@ -23,15 +23,20 @@ primrec horner :: "(nat \<Rightarrow> nat) \<Rightarrow> (nat \<Rightarrow> nat 
 "horner F G 0 i k x       = 0" |
 "horner F G (Suc n) i k x = 1 / k - x * horner F G n (F i) (G i k) x"
 
-lemma horner_schema': fixes x :: real  and a :: "nat \<Rightarrow> real"
+lemma horner_schema':
+  fixes x :: real and a :: "nat \<Rightarrow> real"
   shows "a 0 - x * (\<Sum> i=0..<n. (-1)^i * a (Suc i) * x^i) = (\<Sum> i=0..<Suc n. (-1)^i * a i * x^i)"
 proof -
-  have shift_pow: "\<And>i. - (x * ((-1)^i * a (Suc i) * x ^ i)) = (-1)^(Suc i) * a (Suc i) * x ^ (Suc i)" by auto
-  show ?thesis unfolding setsum_right_distrib shift_pow diff_minus setsum_negf[symmetric] setsum_head_upt_Suc[OF zero_less_Suc]
+  have shift_pow: "\<And>i. - (x * ((-1)^i * a (Suc i) * x ^ i)) = (-1)^(Suc i) * a (Suc i) * x ^ (Suc i)"
+    by auto
+  show ?thesis
+    unfolding setsum_right_distrib shift_pow diff_minus setsum_negf[symmetric]
+    setsum_head_upt_Suc[OF zero_less_Suc]
     setsum_reindex[OF inj_Suc, unfolded comp_def, symmetric, of "\<lambda> n. (-1)^n  *a n * x^n"] by auto
 qed
 
-lemma horner_schema: fixes f :: "nat \<Rightarrow> nat" and G :: "nat \<Rightarrow> nat \<Rightarrow> nat" and F :: "nat \<Rightarrow> nat"
+lemma horner_schema:
+  fixes f :: "nat \<Rightarrow> nat" and G :: "nat \<Rightarrow> nat \<Rightarrow> nat" and F :: "nat \<Rightarrow> nat"
   assumes f_Suc: "\<And>n. f (Suc n) = G ((F ^^ n) s) (f n)"
   shows "horner F G n ((F ^^ j') s) (f j') x = (\<Sum> j = 0..< n. -1 ^ j * (1 / (f (j' + j))) * x ^ j)"
 proof (induct n arbitrary: j')
@@ -46,15 +51,16 @@ qed
 lemma horner_bounds':
   fixes lb :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> float \<Rightarrow> float" and ub :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> float \<Rightarrow> float"
   assumes "0 \<le> real x" and f_Suc: "\<And>n. f (Suc n) = G ((F ^^ n) s) (f n)"
-  and lb_0: "\<And> i k x. lb 0 i k x = 0"
-  and lb_Suc: "\<And> n i k x. lb (Suc n) i k x = lapprox_rat prec 1 k - x * (ub n (F i) (G i k) x)"
-  and ub_0: "\<And> i k x. ub 0 i k x = 0"
-  and ub_Suc: "\<And> n i k x. ub (Suc n) i k x = rapprox_rat prec 1 k - x * (lb n (F i) (G i k) x)"
+    and lb_0: "\<And> i k x. lb 0 i k x = 0"
+    and lb_Suc: "\<And> n i k x. lb (Suc n) i k x = lapprox_rat prec 1 k - x * (ub n (F i) (G i k) x)"
+    and ub_0: "\<And> i k x. ub 0 i k x = 0"
+    and ub_Suc: "\<And> n i k x. ub (Suc n) i k x = rapprox_rat prec 1 k - x * (lb n (F i) (G i k) x)"
   shows "(lb n ((F ^^ j') s) (f j') x) \<le> horner F G n ((F ^^ j') s) (f j') x \<and>
          horner F G n ((F ^^ j') s) (f j') x \<le> (ub n ((F ^^ j') s) (f j') x)"
   (is "?lb n j' \<le> ?horner n j' \<and> ?horner n j' \<le> ?ub n j'")
 proof (induct n arbitrary: j')
-  case 0 thus ?case unfolding lb_0 ub_0 horner.simps by auto
+  case 0
+  thus ?case unfolding lb_0 ub_0 horner.simps by auto
 next
   case (Suc n)
   thus ?case using lapprox_rat[of prec 1 "f j'"] using rapprox_rat[of 1 "f j'" prec]
@@ -71,12 +77,13 @@ all alternating and reciprocs. We use @{term G} and @{term F} to describe the co
 
 *}
 
-lemma horner_bounds: fixes F :: "nat \<Rightarrow> nat" and G :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+lemma horner_bounds:
+  fixes F :: "nat \<Rightarrow> nat" and G :: "nat \<Rightarrow> nat \<Rightarrow> nat"
   assumes "0 \<le> real x" and f_Suc: "\<And>n. f (Suc n) = G ((F ^^ n) s) (f n)"
-  and lb_0: "\<And> i k x. lb 0 i k x = 0"
-  and lb_Suc: "\<And> n i k x. lb (Suc n) i k x = lapprox_rat prec 1 k - x * (ub n (F i) (G i k) x)"
-  and ub_0: "\<And> i k x. ub 0 i k x = 0"
-  and ub_Suc: "\<And> n i k x. ub (Suc n) i k x = rapprox_rat prec 1 k - x * (lb n (F i) (G i k) x)"
+    and lb_0: "\<And> i k x. lb 0 i k x = 0"
+    and lb_Suc: "\<And> n i k x. lb (Suc n) i k x = lapprox_rat prec 1 k - x * (ub n (F i) (G i k) x)"
+    and ub_0: "\<And> i k x. ub 0 i k x = 0"
+    and ub_Suc: "\<And> n i k x. ub (Suc n) i k x = rapprox_rat prec 1 k - x * (lb n (F i) (G i k) x)"
   shows "(lb n ((F ^^ j') s) (f j') x) \<le> (\<Sum>j=0..<n. -1 ^ j * (1 / (f (j' + j))) * (x ^ j))" (is "?lb") and
     "(\<Sum>j=0..<n. -1 ^ j * (1 / (f (j' + j))) * (x ^ j)) \<le> (ub n ((F ^^ j') s) (f j') x)" (is "?ub")
 proof -
@@ -86,12 +93,13 @@ proof -
   thus "?lb" and "?ub" by auto
 qed
 
-lemma horner_bounds_nonpos: fixes F :: "nat \<Rightarrow> nat" and G :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+lemma horner_bounds_nonpos:
+  fixes F :: "nat \<Rightarrow> nat" and G :: "nat \<Rightarrow> nat \<Rightarrow> nat"
   assumes "real x \<le> 0" and f_Suc: "\<And>n. f (Suc n) = G ((F ^^ n) s) (f n)"
-  and lb_0: "\<And> i k x. lb 0 i k x = 0"
-  and lb_Suc: "\<And> n i k x. lb (Suc n) i k x = lapprox_rat prec 1 k + x * (ub n (F i) (G i k) x)"
-  and ub_0: "\<And> i k x. ub 0 i k x = 0"
-  and ub_Suc: "\<And> n i k x. ub (Suc n) i k x = rapprox_rat prec 1 k + x * (lb n (F i) (G i k) x)"
+    and lb_0: "\<And> i k x. lb 0 i k x = 0"
+    and lb_Suc: "\<And> n i k x. lb (Suc n) i k x = lapprox_rat prec 1 k + x * (ub n (F i) (G i k) x)"
+    and ub_0: "\<And> i k x. ub 0 i k x = 0"
+    and ub_Suc: "\<And> n i k x. ub (Suc n) i k x = rapprox_rat prec 1 k + x * (lb n (F i) (G i k) x)"
   shows "(lb n ((F ^^ j') s) (f j') x) \<le> (\<Sum>j=0..<n. (1 / (f (j' + j))) * real x ^ j)" (is "?lb") and
     "(\<Sum>j=0..<n. (1 / (f (j' + j))) * real x ^ j) \<le> (ub n ((F ^^ j') s) (f j') x)" (is "?ub")
 proof -
@@ -320,8 +328,7 @@ next
   thus ?thesis unfolding lb_sqrt.simps by auto
 qed
 
-lemma bnds_sqrt':
-  shows "sqrt x \<in> {(lb_sqrt prec x) .. (ub_sqrt prec x) }"
+lemma bnds_sqrt': "sqrt x \<in> {(lb_sqrt prec x) .. (ub_sqrt prec x)}"
 proof -
   { fix x :: float assume "0 < x"
     hence "0 < real x" and "0 \<le> real x" by auto
@@ -402,7 +409,8 @@ and lb_arctan_horner :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> f
 | "lb_arctan_horner prec (Suc n) k x =
     (lapprox_rat prec 1 k) - x * (ub_arctan_horner prec n (k + 2) x)"
 
-lemma arctan_0_1_bounds': assumes "0 \<le> real x" "real x \<le> 1" and "even n"
+lemma arctan_0_1_bounds':
+  assumes "0 \<le> real x" "real x \<le> 1" and "even n"
   shows "arctan x \<in> {(x * lb_arctan_horner prec n 1 (x * x)) .. (x * ub_arctan_horner prec (Suc n) 1 (x * x))}"
 proof -
   let "?c i" = "-1^i * (1 / (i * 2 + (1::nat)) * real x ^ (i * 2 + 1))"
@@ -2031,7 +2039,8 @@ next
   qed
 qed
 
-lemma ub_ln_lb_ln_bounds: assumes "0 < x"
+lemma ub_ln_lb_ln_bounds:
+  assumes "0 < x"
   shows "the (lb_ln prec x) \<le> ln x \<and> ln x \<le> the (ub_ln prec x)"
   (is "?lb \<le> ?ln \<and> ?ln \<le> ?ub")
 proof (cases "x < 1")
@@ -2067,7 +2076,8 @@ next
     unfolding if_not_P[OF `\<not> x \<le> 0`] if_P[OF True] by auto
 qed
 
-lemma lb_ln: assumes "Some y = lb_ln prec x"
+lemma lb_ln:
+  assumes "Some y = lb_ln prec x"
   shows "y \<le> ln x" and "0 < real x"
 proof -
   have "0 < x"
@@ -2080,7 +2090,8 @@ proof -
   thus "y \<le> ln x" unfolding assms[symmetric] by auto
 qed
 
-lemma ub_ln: assumes "Some y = ub_ln prec x"
+lemma ub_ln:
+  assumes "Some y = ub_ln prec x"
   shows "ln x \<le> y" and "0 < real x"
 proof -
   have "0 < x"
@@ -2577,7 +2588,7 @@ lemma lazy_conj: "(if A then B else False) = (A \<and> B)" by simp
 lemma approx_form_approx_form':
   assumes "approx_form' prec f s n l u bs ss" and "(x::real) \<in> { l .. u }"
   obtains l' u' where "x \<in> { l' .. u' }"
-  and "approx_form prec f (bs[n := Some (l', u')]) ss"
+    and "approx_form prec f (bs[n := Some (l', u')]) ss"
 using assms proof (induct s arbitrary: l u)
   case 0
   from this(1)[of l u] this(2,3)
@@ -2605,7 +2616,7 @@ qed
 
 lemma approx_form_aux:
   assumes "approx_form prec f vs ss"
-  and "bounded_by xs vs"
+    and "bounded_by xs vs"
   shows "interpret_form f xs"
 using assms proof (induct f arbitrary: vs)
   case (Bound x a b f)
@@ -2658,8 +2669,8 @@ next
   case (Less a b)
   then obtain l u l' u'
     where l_eq: "Some (l, u) = approx prec a vs"
-    and u_eq: "Some (l', u') = approx prec b vs"
-    and inequality: "u < l'"
+      and u_eq: "Some (l', u') = approx prec b vs"
+      and inequality: "u < l'"
     by (cases "approx prec a vs", auto,
       cases "approx prec b vs", auto)
   from inequality approx[OF Less.prems(2) l_eq] approx[OF Less.prems(2) u_eq]
@@ -2668,8 +2679,8 @@ next
   case (LessEqual a b)
   then obtain l u l' u'
     where l_eq: "Some (l, u) = approx prec a vs"
-    and u_eq: "Some (l', u') = approx prec b vs"
-    and inequality: "u \<le> l'"
+      and u_eq: "Some (l', u') = approx prec b vs"
+      and inequality: "u \<le> l'"
     by (cases "approx prec a vs", auto,
       cases "approx prec b vs", auto)
   from inequality approx[OF LessEqual.prems(2) l_eq] approx[OF LessEqual.prems(2) u_eq]
@@ -2740,21 +2751,27 @@ lemma DERIV_floatarith:
   shows "DERIV (\<lambda> x'. interpret_floatarith f (vs[n := x'])) x :>
                interpret_floatarith (DERIV_floatarith n f) (vs[n := x])"
    (is "DERIV (?i f) x :> _")
-using isDERIV proof (induct f arbitrary: x)
-     case (Inverse a) thus ?case
+using isDERIV
+proof (induct f arbitrary: x)
+  case (Inverse a)
+  thus ?case
+    by (auto intro!: DERIV_intros simp add: algebra_simps power2_eq_square)
+next
+  case (Cos a)
+  thus ?case
     by (auto intro!: DERIV_intros
-             simp add: algebra_simps power2_eq_square)
-next case (Cos a) thus ?case
-  apply (auto intro!: DERIV_intros
            simp del: interpret_floatarith.simps(5)
            simp add: interpret_floatarith_sin interpret_floatarith.simps(5)[of a])
-  done
-next case (Power a n) thus ?case
-  by (cases n, auto intro!: DERIV_intros
-                    simp del: power_Suc)
-next case (Ln a) thus ?case
-    by (auto intro!: DERIV_intros simp add: divide_inverse)
-next case (Var i) thus ?case using `n < length vs` by auto
+next
+  case (Power a n)
+  thus ?case
+    by (cases n) (auto intro!: DERIV_intros simp del: power_Suc)
+next
+  case (Ln a)
+  thus ?case by (auto intro!: DERIV_intros simp add: divide_inverse)
+next
+  case (Var i)
+  thus ?case using `n < length vs` by auto
 qed (auto intro!: DERIV_intros)
 
 declare approx.simps[simp del]
@@ -2783,13 +2800,14 @@ fun isDERIV_approx :: "nat \<Rightarrow> nat \<Rightarrow> floatarith \<Rightarr
 
 lemma isDERIV_approx:
   assumes "bounded_by xs vs"
-  and isDERIV_approx: "isDERIV_approx prec x f vs"
+    and isDERIV_approx: "isDERIV_approx prec x f vs"
   shows "isDERIV x f xs"
-using isDERIV_approx proof (induct f)
+  using isDERIV_approx
+proof (induct f)
   case (Inverse a)
   then obtain l u where approx_Some: "Some (l, u) = approx prec a vs"
     and *: "0 < l \<or> u < 0"
-    by (cases "approx prec a vs", auto)
+    by (cases "approx prec a vs") auto
   with approx[OF `bounded_by xs vs` approx_Some]
   have "interpret_floatarith a xs \<noteq> 0" by auto
   thus ?case using Inverse by auto
@@ -2797,7 +2815,7 @@ next
   case (Ln a)
   then obtain l u where approx_Some: "Some (l, u) = approx prec a vs"
     and *: "0 < l"
-    by (cases "approx prec a vs", auto)
+    by (cases "approx prec a vs") auto
   with approx[OF `bounded_by xs vs` approx_Some]
   have "0 < interpret_floatarith a xs" by auto
   thus ?case using Ln by auto
@@ -2805,46 +2823,49 @@ next
   case (Sqrt a)
   then obtain l u where approx_Some: "Some (l, u) = approx prec a vs"
     and *: "0 < l"
-    by (cases "approx prec a vs", auto)
+    by (cases "approx prec a vs") auto
   with approx[OF `bounded_by xs vs` approx_Some]
   have "0 < interpret_floatarith a xs" by auto
   thus ?case using Sqrt by auto
 next
-  case (Power a n) thus ?case by (cases n, auto)
+  case (Power a n) thus ?case by (cases n) auto
 qed auto
 
 lemma bounded_by_update_var:
   assumes "bounded_by xs vs" and "vs ! i = Some (l, u)"
-  and bnd: "x \<in> { real l .. real u }"
+    and bnd: "x \<in> { real l .. real u }"
   shows "bounded_by (xs[i := x]) vs"
 proof (cases "i < length xs")
-  case False thus ?thesis using `bounded_by xs vs` by auto
+  case False
+  thus ?thesis using `bounded_by xs vs` by auto
 next
   let ?xs = "xs[i := x]"
   case True hence "i < length ?xs" by auto
-{ fix j
-  assume "j < length vs"
-  have "case vs ! j of None \<Rightarrow> True | Some (l, u) \<Rightarrow> ?xs ! j \<in> { real l .. real u }"
-  proof (cases "vs ! j")
-    case (Some b)
-    thus ?thesis
-    proof (cases "i = j")
-      case True
-      thus ?thesis using `vs ! i = Some (l, u)` Some and bnd `i < length ?xs`
-        by auto
-    next
-      case False
-      thus ?thesis using `bounded_by xs vs`[THEN bounded_byE, OF `j < length vs`] Some
-        by auto
-    qed
-  qed auto }
+  {
+    fix j
+    assume "j < length vs"
+    have "case vs ! j of None \<Rightarrow> True | Some (l, u) \<Rightarrow> ?xs ! j \<in> { real l .. real u }"
+    proof (cases "vs ! j")
+      case (Some b)
+      thus ?thesis
+      proof (cases "i = j")
+        case True
+        thus ?thesis using `vs ! i = Some (l, u)` Some and bnd `i < length ?xs`
+          by auto
+      next
+        case False
+        thus ?thesis
+          using `bounded_by xs vs`[THEN bounded_byE, OF `j < length vs`] Some by auto
+      qed
+    qed auto
+  }
   thus ?thesis unfolding bounded_by_def by auto
 qed
 
 lemma isDERIV_approx':
   assumes "bounded_by xs vs"
-  and vs_x: "vs ! x = Some (l, u)" and X_in: "X \<in> { real l .. real u }"
-  and approx: "isDERIV_approx prec x f vs"
+    and vs_x: "vs ! x = Some (l, u)" and X_in: "X \<in> { real l .. real u }"
+    and approx: "isDERIV_approx prec x f vs"
   shows "isDERIV x f (xs[x := X])"
 proof -
   note bounded_by_update_var[OF `bounded_by xs vs` vs_x X_in] approx
@@ -2853,8 +2874,8 @@ qed
 
 lemma DERIV_approx:
   assumes "n < length xs" and bnd: "bounded_by xs vs"
-  and isD: "isDERIV_approx prec n f vs"
-  and app: "Some (l, u) = approx prec (DERIV_floatarith n f) vs" (is "_ = approx _ ?D _")
+    and isD: "isDERIV_approx prec n f vs"
+    and app: "Some (l, u) = approx prec (DERIV_floatarith n f) vs" (is "_ = approx _ ?D _")
   shows "\<exists>(x::real). l \<le> x \<and> x \<le> u \<and>
              DERIV (\<lambda> x. interpret_floatarith f (xs[n := x])) (xs!n) :> x"
          (is "\<exists> x. _ \<and> _ \<and> DERIV (?i f) _ :> _")
@@ -2867,17 +2888,19 @@ proof (rule exI[of _ "?i ?D (xs!n)"], rule conjI[OF _ conjI])
   show "DERIV (?i f) (xs!n) :> (?i ?D (xs!n))" by simp
 qed
 
-fun lift_bin :: "(float * float) option \<Rightarrow> (float * float) option \<Rightarrow> (float \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float \<Rightarrow> (float * float) option) \<Rightarrow> (float * float) option" where
-"lift_bin (Some (l1, u1)) (Some (l2, u2)) f = f l1 u1 l2 u2" |
-"lift_bin a b f = None"
+fun lift_bin :: "(float * float) option \<Rightarrow>
+    (float * float) option \<Rightarrow> (float \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float \<Rightarrow> (float * float) option) \<Rightarrow>
+    (float * float) option" where
+  "lift_bin (Some (l1, u1)) (Some (l2, u2)) f = f l1 u1 l2 u2"
+| "lift_bin a b f = None"
 
 lemma lift_bin:
   assumes lift_bin_Some: "Some (l, u) = lift_bin a b f"
   obtains l1 u1 l2 u2
   where "a = Some (l1, u1)"
-  and "b = Some (l2, u2)"
-  and "f l1 u1 l2 u2 = Some (l, u)"
-using assms by (cases a, simp, cases b, simp, auto)
+    and "b = Some (l2, u2)"
+    and "f l1 u1 l2 u2 = Some (l, u)"
+  using assms by (cases a, simp, cases b, simp, auto)
 
 fun approx_tse where
 "approx_tse prec n 0 c k f bs = approx prec f bs" |
@@ -2894,10 +2917,11 @@ fun approx_tse where
 
 lemma bounded_by_Cons:
   assumes bnd: "bounded_by xs vs"
-  and x: "x \<in> { real l .. real u }"
+    and x: "x \<in> { real l .. real u }"
   shows "bounded_by (x#xs) ((Some (l, u))#vs)"
 proof -
-  { fix i assume *: "i < length ((Some (l, u))#vs)"
+  {
+    fix i assume *: "i < length ((Some (l, u))#vs)"
     have "case ((Some (l,u))#vs) ! i of Some (l, u) \<Rightarrow> (x#xs)!i \<in> { real l .. real u } | None \<Rightarrow> True"
     proof (cases i)
       case 0 with x show ?thesis by auto
@@ -2905,15 +2929,16 @@ proof -
       case (Suc i) with * have "i < length vs" by auto
       from bnd[THEN bounded_byE, OF this]
       show ?thesis unfolding Suc nth_Cons_Suc .
-    qed }
+    qed
+  }
   thus ?thesis by (auto simp add: bounded_by_def)
 qed
 
 lemma approx_tse_generic:
   assumes "bounded_by xs vs"
-  and bnd_c: "bounded_by (xs[x := c]) vs" and "x < length vs" and "x < length xs"
-  and bnd_x: "vs ! x = Some (lx, ux)"
-  and ate: "Some (l, u) = approx_tse prec x s c k f vs"
+    and bnd_c: "bounded_by (xs[x := c]) vs" and "x < length vs" and "x < length xs"
+    and bnd_x: "vs ! x = Some (lx, ux)"
+    and ate: "Some (l, u) = approx_tse prec x s c k f vs"
   shows "\<exists> n. (\<forall> m < n. \<forall> (z::real) \<in> {lx .. ux}.
       DERIV (\<lambda> y. interpret_floatarith ((DERIV_floatarith x ^^ m) f) (xs[x := y])) z :>
             (interpret_floatarith ((DERIV_floatarith x ^^ (Suc m)) f) (xs[x := z])))
@@ -2925,36 +2950,39 @@ lemma approx_tse_generic:
       (xs!x - c)^n \<in> {l .. u})" (is "\<exists> n. ?taylor f k l u n")
 using ate proof (induct s arbitrary: k f l u)
   case 0
-  { fix t::real assume "t \<in> {lx .. ux}"
+  {
+    fix t::real assume "t \<in> {lx .. ux}"
     note bounded_by_update_var[OF `bounded_by xs vs` bnd_x this]
     from approx[OF this 0[unfolded approx_tse.simps]]
     have "(interpret_floatarith f (xs[x := t])) \<in> {l .. u}"
       by (auto simp add: algebra_simps)
-  } thus ?case by (auto intro!: exI[of _ 0])
+  }
+  thus ?case by (auto intro!: exI[of _ 0])
 next
   case (Suc s)
   show ?case
   proof (cases "isDERIV_approx prec x f vs")
     case False
     note ap = Suc.prems[unfolded approx_tse.simps if_not_P[OF False]]
-
-    { fix t::real assume "t \<in> {lx .. ux}"
+    {
+      fix t::real assume "t \<in> {lx .. ux}"
       note bounded_by_update_var[OF `bounded_by xs vs` bnd_x this]
       from approx[OF this ap]
       have "(interpret_floatarith f (xs[x := t])) \<in> {l .. u}"
         by (auto simp add: algebra_simps)
-    } thus ?thesis by (auto intro!: exI[of _ 0])
+    }
+    thus ?thesis by (auto intro!: exI[of _ 0])
   next
     case True
     with Suc.prems
     obtain l1 u1 l2 u2
       where a: "Some (l1, u1) = approx prec f (vs[x := Some (c,c)])"
-      and ate: "Some (l2, u2) = approx_tse prec x s c (Suc k) (DERIV_floatarith x f) vs"
-      and final: "Some (l, u) = approx prec
-        (Add (Var 0)
-             (Mult (Inverse (Num (Float (int k) 0)))
-                   (Mult (Add (Var (Suc (Suc 0))) (Minus (Num c)))
-                         (Var (Suc 0))))) [Some (l1, u1), Some (l2, u2), vs!x]"
+        and ate: "Some (l2, u2) = approx_tse prec x s c (Suc k) (DERIV_floatarith x f) vs"
+        and final: "Some (l, u) = approx prec
+          (Add (Var 0)
+               (Mult (Inverse (Num (Float (int k) 0)))
+                     (Mult (Add (Var (Suc (Suc 0))) (Minus (Num c)))
+                           (Var (Suc 0))))) [Some (l1, u1), Some (l2, u2), vs!x]"
       by (auto elim!: lift_bin) blast
 
     from bnd_c `x < length xs`
@@ -2966,9 +2994,11 @@ next
               (is "?f 0 (real c) \<in> _")
       by auto
 
-    { fix f :: "'a \<Rightarrow> 'a" fix n :: nat fix x :: 'a
+    {
+      fix f :: "'a \<Rightarrow> 'a" fix n :: nat fix x :: 'a
       have "(f ^^ Suc n) x = (f ^^ n) (f x)"
-        by (induct n, auto) }
+        by (induct n) auto
+    }
     note funpow_Suc = this[symmetric]
     from Suc.hyps[OF ate, unfolded this]
     obtain n
@@ -2978,7 +3008,8 @@ next
           (is "\<forall> t \<in> _. ?X (Suc k) f n t \<in> _")
       by blast
 
-    { fix m and z::real
+    {
+      fix m and z::real
       assume "m < Suc n" and bnd_z: "z \<in> { lx .. ux }"
       have "DERIV (?f m) z :> ?f (Suc m) z"
       proof (cases m)
@@ -2990,7 +3021,8 @@ next
         hence "m' < n" using `m < Suc n` by auto
         from DERIV_hyp[OF this bnd_z]
         show ?thesis using Suc by simp
-      qed } note DERIV = this
+      qed
+    } note DERIV = this
 
     have "\<And> k i. k < i \<Longrightarrow> {k ..< i} = insert k {Suc k ..< i}" by auto
     hence setprod_head_Suc: "\<And> k i. \<Prod> {k ..< k + Suc i} = k * \<Prod> {Suc k ..< Suc k + i}" by auto
@@ -2999,7 +3031,8 @@ next
       unfolding setsum_head_upt_Suc[OF zero_less_Suc] ..
     def C \<equiv> "xs!x - c"
 
-    { fix t::real assume t: "t \<in> {lx .. ux}"
+    {
+      fix t::real assume t: "t \<in> {lx .. ux}"
       hence "bounded_by [xs!x] [vs!x]"
         using `bounded_by xs vs`[THEN bounded_byE, OF `x < length vs`]
         by (cases "vs!x", auto simp add: bounded_by_def)
@@ -3016,24 +3049,28 @@ next
         unfolding funpow_Suc C_def[symmetric] setsum_move0 setprod_head_Suc
         by (auto simp add: algebra_simps)
           (simp only: mult_left_commute [of _ "inverse (real k)"] setsum_right_distrib [symmetric])
-      finally have "?T \<in> {l .. u}" . }
+      finally have "?T \<in> {l .. u}" .
+    }
     thus ?thesis using DERIV by blast
   qed
 qed
 
 lemma setprod_fact: "\<Prod> {1..<1 + k} = fact (k :: nat)"
 proof (induct k)
+  case 0
+  show ?case by simp
+next
   case (Suc k)
   have "{ 1 ..< Suc (Suc k) } = insert (Suc k) { 1 ..< Suc k }" by auto
   hence "\<Prod> { 1 ..< Suc (Suc k) } = (Suc k) * \<Prod> { 1 ..< Suc k }" by auto
   thus ?case using Suc by auto
-qed simp
+qed
 
 lemma approx_tse:
   assumes "bounded_by xs vs"
-  and bnd_x: "vs ! x = Some (lx, ux)" and bnd_c: "real c \<in> {lx .. ux}"
-  and "x < length vs" and "x < length xs"
-  and ate: "Some (l, u) = approx_tse prec x s c 1 f vs"
+    and bnd_x: "vs ! x = Some (lx, ux)" and bnd_c: "real c \<in> {lx .. ux}"
+    and "x < length vs" and "x < length xs"
+    and ate: "Some (l, u) = approx_tse prec x s c 1 f vs"
   shows "interpret_floatarith f xs \<in> { l .. u }"
 proof -
   def F \<equiv> "\<lambda> n z. interpret_floatarith ((DERIV_floatarith x ^^ n) f) (xs[x := z])"
@@ -3247,10 +3284,18 @@ proof (cases f)
       case (Assign x a f') with assms
       show ?thesis by (auto elim!: option_caseE simp add: f_def approx_tse_form_def)
     qed } thus ?thesis unfolding f_def by auto
-next case Assign with assms show ?thesis by (auto simp add: approx_tse_form_def)
-next case LessEqual with assms show ?thesis by (auto simp add: approx_tse_form_def)
-next case Less with assms show ?thesis by (auto simp add: approx_tse_form_def)
-next case AtLeastAtMost with assms show ?thesis by (auto simp add: approx_tse_form_def)
+next
+  case Assign
+  with assms show ?thesis by (auto simp add: approx_tse_form_def)
+next
+  case LessEqual
+  with assms show ?thesis by (auto simp add: approx_tse_form_def)
+next
+  case Less
+  with assms show ?thesis by (auto simp add: approx_tse_form_def)
+next
+  case AtLeastAtMost
+  with assms show ?thesis by (auto simp add: approx_tse_form_def)
 qed
 
 text {* @{term approx_form_eval} is only used for the {\tt value}-command. *}
