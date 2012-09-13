@@ -99,8 +99,8 @@ text{* A concrete type of state with computable @{text"\<sqsubseteq>"}: *}
 
 datatype 'a st = FunDom "vname \<Rightarrow> 'a" "vname set"
 
-fun "fun" where "fun (FunDom f xs) = f"
-fun dom where "dom (FunDom f xs) = xs"
+fun "fun" where "fun (FunDom f X) = f"
+fun dom where "dom (FunDom f X) = X"
 
 definition "show_st S = (\<lambda>x. (x, fun S x)) ` dom S"
 

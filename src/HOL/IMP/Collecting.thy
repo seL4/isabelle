@@ -15,13 +15,13 @@ instantiation acom :: (order) order
 begin
 
 fun less_eq_acom :: "('a::order)acom \<Rightarrow> 'a acom \<Rightarrow> bool" where
-"(SKIP {S}) \<le> (SKIP {S'}) = (S \<le> S')" |
-"(x ::= e {S}) \<le> (x' ::= e' {S'}) = (x=x' \<and> e=e' \<and> S \<le> S')" |
-"(c1;c2) \<le> (c1';c2') = (c1 \<le> c1' \<and> c2 \<le> c2')" |
-"(IF b THEN {p1} C1 ELSE {p2} C2 {S}) \<le> (IF b' THEN {p1'} C1' ELSE {p2'} C2' {S'}) =
-  (b=b' \<and> p1 \<le> p1' \<and> C1 \<le> C1' \<and> p2 \<le> p2' \<and> C2 \<le> C2' \<and> S \<le> S')" |
-"({I} WHILE b DO {p} C {P}) \<le> ({I'} WHILE b' DO {p'} C' {P'}) =
-  (b=b' \<and> C \<le> C' \<and> I \<le> I' \<and> p \<le> p' \<and> P \<le> P')" |
+"(SKIP {P}) \<le> (SKIP {P'}) = (P \<le> P')" |
+"(x ::= e {P}) \<le> (x' ::= e' {P'}) = (x=x' \<and> e=e' \<and> P \<le> P')" |
+"(C1;C2) \<le> (C1';C2') = (C1 \<le> C1' \<and> C2 \<le> C2')" |
+"(IF b THEN {P1} C1 ELSE {P2} C2 {Q}) \<le> (IF b' THEN {P1'} C1' ELSE {P2'} C2' {Q'}) =
+  (b=b' \<and> P1 \<le> P1' \<and> C1 \<le> C1' \<and> P2 \<le> P2' \<and> C2 \<le> C2' \<and> Q \<le> Q')" |
+"({I} WHILE b DO {P} C {Q}) \<le> ({I'} WHILE b' DO {P'} C' {Q'}) =
+  (b=b' \<and> C \<le> C' \<and> I \<le> I' \<and> P \<le> P' \<and> Q \<le> Q')" |
 "less_eq_acom _ _ = False"
 
 lemma SKIP_le: "SKIP {S} \<le> c \<longleftrightarrow> (\<exists>S'. c = SKIP {S'} \<and> S \<le> S')"
@@ -66,20 +66,20 @@ end
 
 fun sub\<^isub>1 :: "'a acom \<Rightarrow> 'a acom" where
 "sub\<^isub>1(C1;C2) = C1" |
-"sub\<^isub>1(IF b THEN {p1} C1 ELSE {p2} C2 {S}) = C1" |
-"sub\<^isub>1({I} WHILE b DO {p} C {P}) = C"
+"sub\<^isub>1(IF b THEN {P1} C1 ELSE {P2} C2 {Q}) = C1" |
+"sub\<^isub>1({I} WHILE b DO {P} C {Q}) = C"
 
 fun sub\<^isub>2 :: "'a acom \<Rightarrow> 'a acom" where
 "sub\<^isub>2(C1;C2) = C2" |
-"sub\<^isub>2(IF b THEN {p1} C1 ELSE {p2} C2 {S}) = C2"
+"sub\<^isub>2(IF b THEN {P1} C1 ELSE {P2} C2 {Q}) = C2"
 
 fun anno\<^isub>1 :: "'a acom \<Rightarrow> 'a" where
-"anno\<^isub>1(IF b THEN {p1} C1 ELSE {p2} C2 {S}) = p1" |
-"anno\<^isub>1({I} WHILE b DO {p} C {P}) = I"
+"anno\<^isub>1(IF b THEN {P1} C1 ELSE {P2} C2 {Q}) = P1" |
+"anno\<^isub>1({I} WHILE b DO {P} C {Q}) = I"
 
 fun anno\<^isub>2 :: "'a acom \<Rightarrow> 'a" where
-"anno\<^isub>2(IF b THEN {p1} C1 ELSE {p2} C2 {S}) = p2" |
-"anno\<^isub>2({I} WHILE b DO {p} C {P}) = p"
+"anno\<^isub>2(IF b THEN {P1} C1 ELSE {P2} C2 {Q}) = P2" |
+"anno\<^isub>2({I} WHILE b DO {P} C {Q}) = P"
 
 
 fun lift :: "('a set \<Rightarrow> 'b) \<Rightarrow> com \<Rightarrow> 'a acom set \<Rightarrow> 'b acom"

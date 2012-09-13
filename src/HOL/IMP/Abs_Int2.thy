@@ -159,10 +159,10 @@ fun step' :: "'av st option \<Rightarrow> 'av st option acom \<Rightarrow> 'av s
 "step' S (x ::= e {P}) =
   x ::= e {case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(update S x (aval' e S))}" |
 "step' S (C1; C2) = step' S C1; step' (post C1) C2" |
-"step' S (IF b THEN {p1} C1 ELSE {p2} C2 {P}) =
-  (let p1' = bfilter b True S; C1' = step' p1 C1; p2' = bfilter b False S; C2' = step' p2 C2
-   in IF b THEN {p1'} C1' ELSE {p2'} C2' {post C1 \<squnion> post C2})" |
-"step' S ({I} WHILE b DO {p} C {P}) =
+"step' S (IF b THEN {P1} C1 ELSE {P2} C2 {Q}) =
+  (let P1' = bfilter b True S; C1' = step' P1 C1; P2' = bfilter b False S; C2' = step' P2 C2
+   in IF b THEN {P1'} C1' ELSE {P2'} C2' {post C1 \<squnion> post C2})" |
+"step' S ({I} WHILE b DO {p} C {Q}) =
    {S \<squnion> post C}
    WHILE b DO {bfilter b True I} step' p C
    {bfilter b False I}"
@@ -192,12 +192,12 @@ next
   case Seq thus ?case apply (auto simp: Seq_le map_acom_Seq)
     by (metis le_post post_map_acom wt_post)
 next
-  case (If b p1 C1 p2 C2 P)
-  then obtain p1' C1' p2' C2' P' where
-      "C' = IF b THEN {p1'} C1' ELSE {p2'} C2' {P'}"
-      "p1 \<subseteq> \<gamma>\<^isub>o p1'" "p2 \<subseteq> \<gamma>\<^isub>o p2'"  "C1 \<le> \<gamma>\<^isub>c C1'" "C2 \<le> \<gamma>\<^isub>c C2'" "P \<subseteq> \<gamma>\<^isub>o P'" 
+  case (If b P1 C1 P2 C2 Q)
+  then obtain P1' C1' P2' C2' Q' where
+      "C' = IF b THEN {P1'} C1' ELSE {P2'} C2' {Q'}"
+      "P1 \<subseteq> \<gamma>\<^isub>o P1'" "P2 \<subseteq> \<gamma>\<^isub>o P2'"  "C1 \<le> \<gamma>\<^isub>c C1'" "C2 \<le> \<gamma>\<^isub>c C2'" "Q \<subseteq> \<gamma>\<^isub>o Q'" 
     by (fastforce simp: If_le map_acom_If)
-  moreover from this(1) `wt C' X` have wt: "wt C1' X" "wt C2' X" "wt p1' X" "wt p2' X"
+  moreover from this(1) `wt C' X` have wt: "wt C1' X" "wt C2' X" "wt P1' X" "wt P2' X"
     and "vars b \<subseteq> X" by simp_all
   moreover have "post C1 \<subseteq> \<gamma>\<^isub>o(post C1' \<squnion> post C2')"
     by (metis (no_types) `C1 \<le> \<gamma>\<^isub>c C1'` join_ge1 le_post mono_gamma_o order_trans post_map_acom wt_post wt)
@@ -207,13 +207,13 @@ next
   ultimately show ?case using `S \<subseteq> \<gamma>\<^isub>o S'`
     by (simp add: If.IH subset_iff bfilter_sound[OF vars] wt_bfilter[OF vars])
 next
-  case (While I b p C1 P)
-  then obtain C1' I' p' P' where
-    "C' = {I'} WHILE b DO {p'} C1' {P'}"
-    "I \<subseteq> \<gamma>\<^isub>o I'" "p \<subseteq> \<gamma>\<^isub>o p'" "P \<subseteq> \<gamma>\<^isub>o P'" "C1 \<le> \<gamma>\<^isub>c C1'"
+  case (While I b P C1 Q)
+  then obtain C1' I' P' Q' where
+    "C' = {I'} WHILE b DO {P'} C1' {Q'}"
+    "I \<subseteq> \<gamma>\<^isub>o I'" "P \<subseteq> \<gamma>\<^isub>o P'" "Q \<subseteq> \<gamma>\<^isub>o Q'" "C1 \<le> \<gamma>\<^isub>c C1'"
     by (fastforce simp: map_acom_While While_le)
   moreover from this(1) `wt C' X`
-  have wt: "wt C1' X" "wt I' X" "wt p' X" and "vars b \<subseteq> X" by simp_all
+  have wt: "wt C1' X" "wt I' X" "wt P' X" and "vars b \<subseteq> X" by simp_all
   moreover note compat = `wt S' X` wt_post[OF wt(1)]
   moreover note vars = `wt I' X` `vars b \<subseteq> X`
   moreover have "S \<union> post C1 \<subseteq> \<gamma>\<^isub>o (S' \<squnion> post C1')"

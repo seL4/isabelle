@@ -108,7 +108,7 @@ qed
 
 text{* Instantiating the abstract interpretation locale requires no more
 proofs (they happened in the instatiation above) but delivers the
-instantiated abstract interpreter which we call AI: *}
+instantiated abstract interpreter which we call @{text AI_parity}: *}
 
 interpretation Abs_Int
 where \<gamma> = \<gamma>_parity and num' = num_parity and plus' = plus_parity

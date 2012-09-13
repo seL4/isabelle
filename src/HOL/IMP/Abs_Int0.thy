@@ -275,10 +275,10 @@ fun step' :: "'av st option \<Rightarrow> 'av st option acom \<Rightarrow> 'av s
 "step' S (x ::= e {P}) =
   x ::= e {case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(S(x := aval' e S))}" |
 "step' S (C1; C2) = step' S C1; step' (post C1) C2" |
-"step' S (IF b THEN {p1} C1 ELSE {p2} C2 {P}) =
-   IF b THEN {S} step' p1 C1 ELSE {S} step' p2 C2 {post C1 \<squnion> post C2}" |
-"step' S ({I} WHILE b DO {p} C {P}) =
-  {S \<squnion> post C} WHILE b DO {I} step' p C {I}"
+"step' S (IF b THEN {P1} C1 ELSE {P2} C2 {Q}) =
+   IF b THEN {S} step' P1 C1 ELSE {S} step' P2 C2 {post C1 \<squnion> post C2}" |
+"step' S ({I} WHILE b DO {P} C {Q}) =
+  {S \<squnion> post C} WHILE b DO {I} step' P C {I}"
 
 definition AI :: "com \<Rightarrow> 'av st option acom option" where
 "AI = lpfp (step' \<top>)"

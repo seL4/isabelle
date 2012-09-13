@@ -22,10 +22,10 @@ by(simp add: wt_acom_def bot_def)
 lemma wt_acom_simps[simp]: "wt (SKIP {P}) X \<longleftrightarrow> wt P X"
   "wt (x ::= e {P}) X \<longleftrightarrow> x : X \<and> vars e \<subseteq> X \<and> wt P X"
   "wt (C1;C2) X \<longleftrightarrow> wt C1 X \<and> wt C2 X"
-  "wt (IF b THEN {p1} C1 ELSE {p2} C2 {P}) X \<longleftrightarrow>
-   vars b \<subseteq> X \<and> wt C1 X \<and> wt C2 X \<and> wt p1 X \<and> wt p2 X \<and> wt P X"
-  "wt ({I} WHILE b DO {p} C {P}) X \<longleftrightarrow>
-   wt I X \<and> vars b \<subseteq> X \<and> wt p X \<and> wt C X \<and> wt P X"
+  "wt (IF b THEN {P1} C1 ELSE {P2} C2 {Q}) X \<longleftrightarrow>
+   vars b \<subseteq> X \<and> wt C1 X \<and> wt C2 X \<and> wt P1 X \<and> wt P2 X \<and> wt Q X"
+  "wt ({I} WHILE b DO {P} C {Q}) X \<longleftrightarrow>
+   wt I X \<and> vars b \<subseteq> X \<and> wt P X \<and> wt C X \<and> wt Q X"
 by(auto simp add: wt_acom_def)
 
 lemma wt_post[simp]: "wt c  X \<Longrightarrow> wt (post c) X"
@@ -68,10 +68,10 @@ fun step' :: "'av st option \<Rightarrow> 'av st option acom \<Rightarrow> 'av s
 "step' S (x ::= e {P}) =
   x ::= e {case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(update S x (aval' e S))}" |
 "step' S (C1; C2) = step' S C1; step' (post C1) C2" |
-"step' S (IF b THEN {p1} C1 ELSE {p2} C2 {P}) =
-  (IF b THEN {S} step' p1 C1 ELSE {S} step' p2 C2 {post C1 \<squnion> post C2})" |
-"step' S ({I} WHILE b DO {p} C {P}) =
-   {S \<squnion> post C} WHILE b DO {I} step' p C {I}"
+"step' S (IF b THEN {P1} C1 ELSE {P2} C2 {Q}) =
+  (IF b THEN {S} step' P1 C1 ELSE {S} step' P2 C2 {post C1 \<squnion> post C2})" |
+"step' S ({I} WHILE b DO {P} C {Q}) =
+   {S \<squnion> post C} WHILE b DO {I} step' P C {I}"
 
 definition AI :: "com \<Rightarrow> 'av st option acom option" where
 "AI c = lpfp (step' (top c)) c"
@@ -99,12 +99,12 @@ next
   case Seq thus ?case apply (auto simp: Seq_le map_acom_Seq)
     by (metis le_post post_map_acom wt_post)
 next
-  case (If b p1 C1 p2 C2 P)
-  then obtain p1' p2' C1' C2' P' where
-      "C' = IF b THEN {p1'} C1' ELSE {p2'} C2' {P'}"
-      "p1 \<subseteq> \<gamma>\<^isub>o p1'" "p2 \<subseteq> \<gamma>\<^isub>o p2'" "P \<subseteq> \<gamma>\<^isub>o P'" "C1 \<le> \<gamma>\<^isub>c C1'" "C2 \<le> \<gamma>\<^isub>c C2'"
+  case (If b P1 C1 P2 C2 Q)
+  then obtain P1' P2' C1' C2' Q' where
+      "C' = IF b THEN {P1'} C1' ELSE {P2'} C2' {Q'}"
+      "P1 \<subseteq> \<gamma>\<^isub>o P1'" "P2 \<subseteq> \<gamma>\<^isub>o P2'" "Q \<subseteq> \<gamma>\<^isub>o Q'" "C1 \<le> \<gamma>\<^isub>c C1'" "C2 \<le> \<gamma>\<^isub>c C2'"
     by (fastforce simp: If_le map_acom_If)
-  moreover from this(1) `wt C' X` have wt: "wt C1' X" "wt C2' X" "wt p1' X" "wt p2' X"
+  moreover from this(1) `wt C' X` have wt: "wt C1' X" "wt C2' X" "wt P1' X" "wt P2' X"
     by simp_all
   moreover have "post C1 \<subseteq> \<gamma>\<^isub>o(post C1' \<squnion> post C2')"
     by (metis (no_types) `C1 \<le> \<gamma>\<^isub>c C1'` join_ge1 le_post mono_gamma_o order_trans post_map_acom wt wt_post)
@@ -113,13 +113,13 @@ next
   ultimately show ?case using `S \<subseteq> \<gamma>\<^isub>o S'` `wt S' X`
     by (simp add: If.IH subset_iff)
 next
-  case (While I b p1 C1 P)
-  then obtain C1' I' p1' P' where
-    "C' = {I'} WHILE b DO {p1'} C1' {P'}"
-    "I \<subseteq> \<gamma>\<^isub>o I'" "p1 \<subseteq> \<gamma>\<^isub>o p1'" "C1 \<le> \<gamma>\<^isub>c C1'" "P \<subseteq> \<gamma>\<^isub>o P'" 
+  case (While I b P1 C1 Q)
+  then obtain C1' I' P1' Q' where
+    "C' = {I'} WHILE b DO {P1'} C1' {Q'}"
+    "I \<subseteq> \<gamma>\<^isub>o I'" "P1 \<subseteq> \<gamma>\<^isub>o P1'" "C1 \<le> \<gamma>\<^isub>c C1'" "Q \<subseteq> \<gamma>\<^isub>o Q'" 
     by (fastforce simp: map_acom_While While_le)
   moreover from this(1) `wt C' X`
-  have wt: "wt C1' X" "wt I' X" "wt p1' X" by simp_all
+  have wt: "wt C1' X" "wt I' X" "wt P1' X" by simp_all
   moreover note compat = `wt S' X` wt_post[OF wt(1)]
   moreover have "S \<union> post C1 \<subseteq> \<gamma>\<^isub>o (S' \<squnion> post C1')"
     using `S \<subseteq> \<gamma>\<^isub>o S'` le_post[OF `C1 \<le> \<gamma>\<^isub>c C1'`, simplified]
