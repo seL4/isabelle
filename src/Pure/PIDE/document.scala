@@ -290,6 +290,7 @@ object Document
     def convert(range: Text.Range): Text.Range
     def revert(i: Text.Offset): Text.Offset
     def revert(range: Text.Range): Text.Range
+    def eq_markup(other: Snapshot): Boolean
     def cumulate_markup[A](range: Text.Range, info: A, elements: Option[Set[String]],
       result: PartialFunction[(A, Text.Markup), A]): Stream[Text.Info[A]]
     def select_markup[A](range: Text.Range, elements: Option[Set[String]],
@@ -479,7 +480,8 @@ object Document
 
 
     // persistent user-view
-    def snapshot(name: Node.Name, pending_edits: List[Text.Edit]): Snapshot =
+    def snapshot(name: Node.Name = Node.Name.empty, pending_edits: List[Text.Edit] = Nil)
+      : Snapshot =
     {
       val stable = recent_stable
       val latest = history.tip
@@ -502,6 +504,16 @@ object Document
         def revert(offset: Text.Offset) = (offset /: reverse_edits)((i, edit) => edit.revert(i))
         def convert(range: Text.Range) = (range /: edits)((r, edit) => edit.convert(r))
         def revert(range: Text.Range) = (range /: reverse_edits)((r, edit) => edit.revert(r))
+
+        def eq_markup(other: Snapshot): Boolean =
+          !is_outdated && !other.is_outdated &&
+            node.commands.size == other.node.commands.size &&
+            ((node.commands.iterator zip other.node.commands.iterator) forall {
+              case (cmd1, cmd2) =>
+                cmd1.source == cmd2.source &&
+                (state.command_state(version, cmd1).markup eq
+                 other.state.command_state(other.version, cmd2).markup)
+            })
 
         def cumulate_markup[A](range: Text.Range, info: A, elements: Option[Set[String]],
           result: PartialFunction[(A, Text.Markup), A]): Stream[Text.Info[A]] =
