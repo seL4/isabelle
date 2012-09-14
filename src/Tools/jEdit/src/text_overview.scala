@@ -69,7 +69,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
         val snapshot = doc_view.model.snapshot()
 
         if (snapshot.is_outdated) {
-          gfx.setColor(Isabelle_Rendering.color_value("color_outdated"))
+          gfx.setColor(Isabelle_Rendering.color_value("outdated_color"))
           gfx.asInstanceOf[Graphics2D].fill(gfx.getClipBounds)
         }
         else {

@@ -58,7 +58,7 @@ class Isabelle_Options2 extends Isabelle_Options("isabelle-rendering")
   private val predefined =
     (for {
       (name, opt) <- Isabelle.options.value.options.toList
-      if (name.startsWith("color_") && opt.section == "Rendering of Document Content")
+      if (name.endsWith("_color") && opt.section == "Rendering of Document Content")
     } yield Isabelle.options.make_color_component(opt))
 
   assert(!predefined.isEmpty)

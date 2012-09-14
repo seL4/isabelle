@@ -89,10 +89,10 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
           var end = size.width - insets.right
           for {
             (n, color) <- List(
-              (st.unprocessed, Isabelle_Rendering.color_value("color_unprocessed1")),
-              (st.running, Isabelle_Rendering.color_value("color_running")),
-              (st.warned, Isabelle_Rendering.color_value("color_warning")),
-              (st.failed, Isabelle_Rendering.color_value("color_error"))) }
+              (st.unprocessed, Isabelle_Rendering.color_value("unprocessed1_color")),
+              (st.running, Isabelle_Rendering.color_value("running_color")),
+              (st.warned, Isabelle_Rendering.color_value("warning_color")),
+              (st.failed, Isabelle_Rendering.color_value("error_color"))) }
           {
             gfx.setColor(color)
             val v = (n * w / st.total) max (if (n > 0) 2 else 0)
