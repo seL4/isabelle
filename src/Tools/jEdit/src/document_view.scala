@@ -363,7 +363,6 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     text_area.addLeftOfScrollBar(overview)
     session.raw_edits += main_actor
     session.commands_changed += main_actor
-    session.global_settings += main_actor
   }
 
   private def deactivate()
@@ -371,7 +370,6 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     val painter = text_area.getPainter
     session.raw_edits -= main_actor
     session.commands_changed -= main_actor
-    session.global_settings -= main_actor
     text_area.removeFocusListener(focus_listener)
     text_area.getView.removeWindowListener(window_listener)
     painter.removeMouseMotionListener(mouse_motion_listener)
