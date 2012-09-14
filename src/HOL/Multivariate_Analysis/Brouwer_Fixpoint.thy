@@ -24,12 +24,16 @@ begin
 
 lemma brouwer_compactness_lemma:
   assumes "compact s" "continuous_on s f" "\<not> (\<exists>x\<in>s. (f x = (0::_::euclidean_space)))"
-  obtains d where "0 < d" "\<forall>x\<in>s. d \<le> norm(f x)" proof(cases "s={}") case False
-  have "continuous_on s (norm \<circ> f)" by(rule continuous_on_intros continuous_on_norm assms(2))+
-  then obtain x where x:"x\<in>s" "\<forall>y\<in>s. (norm \<circ> f) x \<le> (norm \<circ> f) y"
-    using continuous_attains_inf[OF assms(1), of "norm \<circ> f"] and False unfolding o_def by auto
+  obtains d where "0 < d" "\<forall>x\<in>s. d \<le> norm(f x)"
+proof (cases "s={}")
+  case False
+  have "continuous_on s (norm \<circ> f)"
+    by(rule continuous_on_intros continuous_on_norm assms(2))+
+  with False obtain x where x: "x\<in>s" "\<forall>y\<in>s. (norm \<circ> f) x \<le> (norm \<circ> f) y"
+    using continuous_attains_inf[OF assms(1), of "norm \<circ> f"] unfolding o_def by auto
   have "(norm \<circ> f) x > 0" using assms(3) and x(1) by auto
-  thus ?thesis apply(rule that) using x(2) unfolding o_def by auto qed(rule that[of 1], auto)
+  then show ?thesis by (rule that) (insert x(2), auto simp: o_def)
+qed (rule that [of 1], auto)
 
 lemma kuhn_labelling_lemma: fixes type::"'a::euclidean_space"
   assumes "(\<forall>x::'a. P x \<longrightarrow> P (f x))"  "\<forall>x. P x \<longrightarrow> (\<forall>i<DIM('a). Q i \<longrightarrow> 0 \<le> x$$i \<and> x$$i \<le> 1)"
@@ -37,19 +41,41 @@ lemma kuhn_labelling_lemma: fixes type::"'a::euclidean_space"
              (\<forall>x.\<forall> i<DIM('a). P x \<and> Q i \<and> (x$$i = 0) \<longrightarrow> (l x i = 0)) \<and>
              (\<forall>x.\<forall> i<DIM('a). P x \<and> Q i \<and> (x$$i = 1) \<longrightarrow> (l x i = 1)) \<and>
              (\<forall>x.\<forall> i<DIM('a). P x \<and> Q i \<and> (l x i = 0) \<longrightarrow> x$$i \<le> f(x)$$i) \<and>
-             (\<forall>x.\<forall> i<DIM('a). P x \<and> Q i \<and> (l x i = 1) \<longrightarrow> f(x)$$i \<le> x$$i)" proof-
-  have and_forall_thm:"\<And>P Q. (\<forall>x. P x) \<and> (\<forall>x. Q x) \<longleftrightarrow> (\<forall>x. P x \<and> Q x)" by auto
-  have *:"\<forall>x y::real. 0 \<le> x \<and> x \<le> 1 \<and> 0 \<le> y \<and> y \<le> 1 \<longrightarrow> (x \<noteq> 1 \<and> x \<le> y \<or> x \<noteq> 0 \<and> y \<le> x)" by auto
-  show ?thesis unfolding and_forall_thm apply(subst choice_iff[THEN sym])+ proof(rule,rule) case goal1
+             (\<forall>x.\<forall> i<DIM('a). P x \<and> Q i \<and> (l x i = 1) \<longrightarrow> f(x)$$i \<le> x$$i)"
+proof -
+  have and_forall_thm:"\<And>P Q. (\<forall>x. P x) \<and> (\<forall>x. Q x) \<longleftrightarrow> (\<forall>x. P x \<and> Q x)"
+    by auto
+  have *:"\<forall>x y::real. 0 \<le> x \<and> x \<le> 1 \<and> 0 \<le> y \<and> y \<le> 1 \<longrightarrow> (x \<noteq> 1 \<and> x \<le> y \<or> x \<noteq> 0 \<and> y \<le> x)"
+    by auto
+  show ?thesis
+    unfolding and_forall_thm
+    apply(subst choice_iff[THEN sym])+
+    apply rule
+    apply rule
+  proof -
+    case goal1
     let ?R = "\<lambda>y. (P x \<and> Q xa \<and> x $$ xa = 0 \<longrightarrow> y = (0::nat)) \<and>
-        (P x \<and> Q xa \<and> x $$ xa = 1 \<longrightarrow> y = 1) \<and> (P x \<and> Q xa \<and> y = 0 \<longrightarrow> x $$ xa \<le> f x $$ xa) \<and> (P x \<and> Q xa \<and> y = 1 \<longrightarrow> f x $$ xa \<le> x $$ xa)"
-    { assume "P x" "Q xa" "xa<DIM('a)" hence "0 \<le> f x $$ xa \<and> f x $$ xa \<le> 1" using assms(2)[rule_format,of "f x" xa]
-        apply(drule_tac assms(1)[rule_format]) by auto }
-    hence "xa<DIM('a) \<Longrightarrow> ?R 0 \<or> ?R 1" by auto thus ?case by auto qed qed 
+        (P x \<and> Q xa \<and> x $$ xa = 1 \<longrightarrow> y = 1) \<and>
+        (P x \<and> Q xa \<and> y = 0 \<longrightarrow> x $$ xa \<le> f x $$ xa) \<and>
+        (P x \<and> Q xa \<and> y = 1 \<longrightarrow> f x $$ xa \<le> x $$ xa)"
+    {
+      assume "P x" "Q xa" "xa<DIM('a)"
+      then have "0 \<le> f x $$ xa \<and> f x $$ xa \<le> 1"
+        using assms(2)[rule_format,of "f x" xa]
+        apply (drule_tac assms(1)[rule_format])
+        apply auto
+        done
+    }
+    then have "xa<DIM('a) \<Longrightarrow> ?R 0 \<or> ?R 1" by auto
+    then show ?case by auto
+  qed
+qed
+
  
 subsection {* The key "counting" observation, somewhat abstracted. *}
 
-lemma setsum_Un_disjoint':assumes "finite A" "finite B" "A \<inter> B = {}" "A \<union> B = C"
+lemma setsum_Un_disjoint':
+  assumes "finite A" "finite B" "A \<inter> B = {}" "A \<union> B = C"
   shows "setsum g C = setsum g A + setsum g B"
   using setsum_Un_disjoint[OF assms(1-3)] and assms(4) by auto
 
@@ -60,19 +86,29 @@ lemma kuhn_counting_lemma: assumes "finite faces" "finite simplices"
   "\<forall>s\<in>simplices. \<not> compo s \<longrightarrow> (card {f \<in> faces. face f s \<and> compo' f} = 0) \<or>
                              (card {f \<in> faces. face f s \<and> compo' f} = 2)"
     "odd(card {f \<in> faces. compo' f \<and> bnd f})"
-  shows "odd(card {s \<in> simplices. compo s})" proof-
-  have "\<And>x. {f\<in>faces. compo' f \<and> bnd f \<and> face f x} \<union> {f\<in>faces. compo' f \<and> \<not>bnd f \<and> face f x} = {f\<in>faces. compo' f \<and> face f x}"
-    "\<And>x. {f \<in> faces. compo' f \<and> bnd f \<and> face f x} \<inter> {f \<in> faces. compo' f \<and> \<not> bnd f \<and> face f x} = {}" by auto
+  shows "odd(card {s \<in> simplices. compo s})"
+proof -
+  have "\<And>x. {f\<in>faces. compo' f \<and> bnd f \<and> face f x} \<union> {f\<in>faces. compo' f \<and> \<not>bnd f \<and> face f x} =
+      {f\<in>faces. compo' f \<and> face f x}"
+    "\<And>x. {f \<in> faces. compo' f \<and> bnd f \<and> face f x} \<inter> {f \<in> faces. compo' f \<and> \<not> bnd f \<and> face f x} = {}"
+    by auto
   hence lem1:"setsum (\<lambda>s. (card {f \<in> faces. face f s \<and> compo' f})) simplices =
-    setsum (\<lambda>s. card {f \<in> {f \<in> faces. compo' f \<and> bnd f}. face f s}) simplices +
-    setsum (\<lambda>s. card {f \<in> {f \<in> faces. compo' f \<and> \<not> (bnd f)}. face f s}) simplices"
-    unfolding setsum_addf[THEN sym] apply- apply(rule setsum_cong2)
-    using assms(1) by(auto simp add: card_Un_Int, auto simp add:conj_commute)
+      setsum (\<lambda>s. card {f \<in> {f \<in> faces. compo' f \<and> bnd f}. face f s}) simplices +
+      setsum (\<lambda>s. card {f \<in> {f \<in> faces. compo' f \<and> \<not> (bnd f)}. face f s}) simplices"
+    unfolding setsum_addf[THEN sym]
+    apply -
+    apply(rule setsum_cong2)
+    using assms(1)
+    apply (auto simp add: card_Un_Int, auto simp add:conj_commute)
+    done
   have lem2:"setsum (\<lambda>j. card {f \<in> {f \<in> faces. compo' f \<and> bnd f}. face f j}) simplices = 
               1 * card {f \<in> faces. compo' f \<and> bnd f}"
        "setsum (\<lambda>j. card {f \<in> {f \<in> faces. compo' f \<and> \<not> bnd f}. face f j}) simplices = 
               2 * card {f \<in> faces. compo' f \<and> \<not> bnd f}"
-    apply(rule_tac[!] setsum_multicount) using assms by auto
+    apply(rule_tac[!] setsum_multicount)
+    using assms
+    apply auto
+    done
   have lem3:"setsum (\<lambda>s. card {f \<in> faces. face f s \<and> compo' f}) simplices =
     setsum (\<lambda>s. card {f \<in> faces. face f s \<and> compo' f}) {s \<in> simplices.   compo s}+
     setsum (\<lambda>s. card {f \<in> faces. face f s \<and> compo' f}) {s \<in> simplices. \<not> compo s}"
@@ -90,27 +126,54 @@ lemma kuhn_counting_lemma: assumes "finite faces" "finite simplices"
     int (card {f \<in> faces. compo' f \<and> bnd f} + 2 * card {f \<in> faces. compo' f \<and> \<not> bnd f}) - 
     int (card {s \<in> simplices. \<not> compo s \<and> card {f \<in> faces. face f s \<and> compo' f} = 2} * 2)"
     using lem1[unfolded lem3 lem2 lem5] by auto
-  have even_minus_odd:"\<And>x y. even x \<Longrightarrow> odd (y::int) \<Longrightarrow> odd (x - y)" using assms by auto
-  have odd_minus_even:"\<And>x y. odd x \<Longrightarrow> even (y::int) \<Longrightarrow> odd (x - y)" using assms by auto
-  show ?thesis unfolding even_nat_def unfolding card_eq_setsum and lem4[THEN sym] and *[unfolded card_eq_setsum]
-    unfolding card_eq_setsum[THEN sym] apply (rule odd_minus_even) unfolding of_nat_add apply(rule odd_plus_even)
-    apply(rule assms(7)[unfolded even_nat_def]) unfolding int_mult by auto qed
+  have even_minus_odd:"\<And>x y. even x \<Longrightarrow> odd (y::int) \<Longrightarrow> odd (x - y)"
+    using assms by auto
+  have odd_minus_even:"\<And>x y. odd x \<Longrightarrow> even (y::int) \<Longrightarrow> odd (x - y)"
+    using assms by auto
+  show ?thesis
+    unfolding even_nat_def card_eq_setsum and lem4[THEN sym] and *[unfolded card_eq_setsum]
+    unfolding card_eq_setsum[THEN sym]
+    apply (rule odd_minus_even)
+    unfolding of_nat_add
+    apply(rule odd_plus_even)
+    apply(rule assms(7)[unfolded even_nat_def])
+    unfolding int_mult
+    apply auto
+    done
+qed
+
 
 subsection {* The odd/even result for faces of complete vertices, generalized. *}
 
-lemma card_1_exists: "card s = 1 \<longleftrightarrow> (\<exists>!x. x \<in> s)" unfolding One_nat_def
-  apply rule apply(drule card_eq_SucD) defer apply(erule ex1E) proof-
+lemma card_1_exists: "card s = 1 \<longleftrightarrow> (\<exists>!x. x \<in> s)"
+  unfolding One_nat_def
+  apply rule
+  apply (drule card_eq_SucD)
+  defer
+  apply(erule ex1E)
+proof -
   fix x assume as:"x \<in> s" "\<forall>y. y \<in> s \<longrightarrow> y = x"
-  have *:"s = insert x {}" apply- apply(rule set_eqI,rule) unfolding singleton_iff
-    apply(rule as(2)[rule_format]) using as(1) by auto
-  show "card s = Suc 0" unfolding * using card_insert by auto qed auto
+  have *: "s = insert x {}"
+    apply -
+    apply (rule set_eqI,rule) unfolding singleton_iff
+    apply (rule as(2)[rule_format]) using as(1)
+    apply auto
+    done
+  show "card s = Suc 0" unfolding * using card_insert by auto
+qed auto
 
-lemma card_2_exists: "card s = 2 \<longleftrightarrow> (\<exists>x\<in>s. \<exists>y\<in>s. x \<noteq> y \<and> (\<forall>z\<in>s. (z = x) \<or> (z = y)))" proof
-  assume "card s = 2" then obtain x y where obt:"s = {x, y}" "x\<noteq>y" unfolding numeral_2_eq_2 apply - apply(erule exE conjE|drule card_eq_SucD)+ by auto
+lemma card_2_exists: "card s = 2 \<longleftrightarrow> (\<exists>x\<in>s. \<exists>y\<in>s. x \<noteq> y \<and> (\<forall>z\<in>s. (z = x) \<or> (z = y)))"
+proof
+  assume "card s = 2"
+  then obtain x y where obt:"s = {x, y}" "x\<noteq>y" unfolding numeral_2_eq_2
+    apply - apply(erule exE conjE|drule card_eq_SucD)+ apply auto done
   show "\<exists>x\<in>s. \<exists>y\<in>s. x \<noteq> y \<and> (\<forall>z\<in>s. z = x \<or> z = y)" using obt by auto next
-  assume "\<exists>x\<in>s. \<exists>y\<in>s. x \<noteq> y \<and> (\<forall>z\<in>s. z = x \<or> z = y)" then guess x .. from this(2) guess y  ..
-  with `x\<in>s` have *:"s = {x, y}" "x\<noteq>y" by auto
-  from this(2) show "card s = 2" unfolding * by auto qed
+  assume "\<exists>x\<in>s. \<exists>y\<in>s. x \<noteq> y \<and> (\<forall>z\<in>s. z = x \<or> z = y)"
+  then guess x ..
+  from this(2) guess y ..
+  with `x\<in>s` have *: "s = {x, y}" "x\<noteq>y" by auto
+  from this(2) show "card s = 2" unfolding * by auto
+qed
 
 lemma image_lemma_0: assumes "card {a\<in>s. f ` (s - {a}) = t - {b}} = n"
   shows "card {s'. \<exists>a\<in>s. (s' = s - {a}) \<and> (f ` s' = t - {b})} = n" proof-
