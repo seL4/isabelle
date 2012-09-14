@@ -185,7 +185,7 @@ class Text_Area_Painter(doc_view: Document_View)
           else chunk_font.getStringBounds(s, font_context).getWidth.toFloat
 
         val caret_range =
-          if (text_area.isCaretVisible) doc_view.caret_range()
+          if (text_area.isCaretVisible) model.point_range(text_area.getCaretPosition)
           else Text.Range(-1)
 
         val markup =
@@ -296,9 +296,9 @@ class Text_Area_Painter(doc_view: Document_View)
               gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
             }
 
-            // highlighted range -- potentially from other snapshot
+            // highlight range -- potentially from other snapshot
             for {
-              info <- doc_view.highlight_range()
+              info <- doc_view.highlight_info()
               Text.Info(range, color) <- info.try_restrict(line_range)
               r <- gfx_range(range)
             } {
@@ -308,7 +308,7 @@ class Text_Area_Painter(doc_view: Document_View)
 
             // hyperlink range -- potentially from other snapshot
             for {
-              info <- doc_view.hyperlink_range()
+              info <- doc_view.hyperlink_info()
               Text.Info(range, _) <- info.try_restrict(line_range)
               r <- gfx_range(range)
             } {

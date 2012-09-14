@@ -19,7 +19,6 @@ import java.text.BreakIterator
 import java.awt.{Color, Graphics2D, Point}
 import java.awt.event.{MouseMotionAdapter, MouseAdapter, MouseEvent,
   FocusAdapter, FocusEvent, WindowEvent, WindowAdapter}
-import javax.swing.{Popup, PopupFactory, SwingUtilities, BorderFactory}
 import javax.swing.event.{CaretListener, CaretEvent}
 
 import org.gjt.sp.util.Log
@@ -143,77 +142,56 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   }
 
 
-  /* HTML popups */
+  /* active areas within the text */
 
-  private var html_popup: Option[Popup] = None
-
-  private def exit_popup() { html_popup.map(_.hide) }
-
-  private val html_panel =
-    new HTML_Panel(Isabelle.font_family(), scala.math.round(Isabelle.font_size()))
-  html_panel.setBorder(BorderFactory.createLineBorder(Color.black))
-
-  private def html_panel_resize()
+  private class Active_Area[A](
+    rendering: Isabelle_Rendering => Text.Range => Option[Text.Info[A]])
   {
-    Swing_Thread.now {
-      html_panel.resize(Isabelle.font_family(), scala.math.round(Isabelle.font_size()))
+    private var the_info: Option[Text.Info[A]] = None
+
+    def info: Option[Text.Info[A]] = the_info
+
+    def update(new_info: Option[Text.Info[A]])
+    {
+      val old_info = the_info
+      if (new_info != old_info) {
+        for { opt <- List(old_info, new_info); Text.Info(range, _) <- opt }
+          invalidate_range(range)
+        the_info = new_info
+      }
     }
+
+    def update_rendering(r: Isabelle_Rendering, range: Text.Range)
+    { update(rendering(r)(range)) }
+
+    def reset { update(None) }
   }
 
-  private def init_popup(snapshot: Document.Snapshot, x: Int, y: Int)
-  {
-    exit_popup()
-/* FIXME broken
-    val offset = text_area.xyToOffset(x, y)
-    val p = new Point(x, y); SwingUtilities.convertPointToScreen(p, text_area.getPainter)
-
-    // FIXME snapshot.cumulate
-    snapshot.select_markup(Text.Range(offset, offset + 1))(Isabelle_Rendering.popup) match {
-      case Text.Info(_, Some(msg)) #:: _ =>
-        val popup = PopupFactory.getSharedInstance().getPopup(text_area, html_panel, p.x, p.y + 60)
-        html_panel.render_sync(List(msg))
-        Thread.sleep(10)  // FIXME !?
-        popup.show
-        html_popup = Some(popup)
-      case _ =>
-    }
-*/
-  }
-
-
-  /* subexpression highlighting and hyperlinks */
-
-  @volatile private var _highlight_range: Option[Text.Info[Color]] = None
-  def highlight_range(): Option[Text.Info[Color]] = _highlight_range
-
-  @volatile private var _hyperlink_range: Option[Text.Info[Hyperlink]] = None
-  def hyperlink_range(): Option[Text.Info[Hyperlink]] = _hyperlink_range
+  // owned by Swing thread
 
   private var control: Boolean = false
 
-  private def exit_control()
-  {
-    exit_popup()
-    _highlight_range = None
-    _hyperlink_range = None
-  }
+  private val highlight_area = new Active_Area[Color]((r: Isabelle_Rendering) => r.subexp _)
+  def highlight_info(): Option[Text.Info[Color]] = highlight_area.info
+
+  private val hyperlink_area = new Active_Area[Hyperlink]((r: Isabelle_Rendering) => r.hyperlink _)
+  def hyperlink_info(): Option[Text.Info[Hyperlink]] = hyperlink_area.info
+
+  private val active_areas = List(highlight_area, hyperlink_area)
+  private def active_reset(): Unit = active_areas.foreach(_.reset)
 
   private val focus_listener = new FocusAdapter {
-    override def focusLost(e: FocusEvent) {
-      // FIXME exit_control !?
-      _highlight_range = None
-      _hyperlink_range = None
-    }
+    override def focusLost(e: FocusEvent) { active_reset() }
   }
 
   private val window_listener = new WindowAdapter {
-    override def windowIconified(e: WindowEvent) { exit_control() }
-    override def windowDeactivated(e: WindowEvent) { exit_control() }
+    override def windowIconified(e: WindowEvent) { active_reset() }
+    override def windowDeactivated(e: WindowEvent) { active_reset() }
   }
 
   private val mouse_listener = new MouseAdapter {
     override def mouseClicked(e: MouseEvent) {
-      hyperlink_range match {
+      hyperlink_area.info match {
         case Some(Text.Info(range, link)) => link.follow(text_area.getView)
         case None =>
       }
@@ -222,37 +200,15 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
   private val mouse_motion_listener = new MouseMotionAdapter {
     override def mouseMoved(e: MouseEvent) {
-      Swing_Thread.assert()
-
       control = if (OperatingSystem.isMacOS()) e.isMetaDown else e.isControlDown
-      val x = e.getX()
-      val y = e.getY()
-
-      if (!model.buffer.isLoaded) exit_control()
-      else
+      if (control && model.buffer.isLoaded) {
         Isabelle.buffer_lock(model.buffer) {
-          val snapshot = model.snapshot()
-          val rendering = Isabelle_Rendering(snapshot, Isabelle.options.value)
-
-          if (control) init_popup(snapshot, x, y)
-
-          def update_range[A](
-            rendering: Text.Range => Option[Text.Info[A]],
-            info: Option[Text.Info[A]]): Option[Text.Info[A]] =
-          {
-            for (Text.Info(range, _) <- info) invalidate_range(range)
-            val new_info =
-              if (control) {
-                val offset = text_area.xyToOffset(x, y)
-                rendering(Text.Range(offset, offset + 1))
-              }
-              else None
-            for (Text.Info(range, _) <- info) invalidate_range(range)
-            new_info
-          }
-          _highlight_range = update_range(rendering.subexp, _highlight_range)
-          _hyperlink_range = update_range(rendering.hyperlink, _hyperlink_range)
+          val rendering = Isabelle_Rendering(model.snapshot(), Isabelle.options.value)
+          val mouse_range = model.point_range(text_area.xyToOffset(e.getX(), e.getY()))
+          active_areas.foreach(_.update_rendering(rendering, mouse_range))
         }
+      }
+      else active_reset()
     }
   }
 
@@ -314,24 +270,6 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
       }
     }
   }
-
-
-  /* caret range */
-
-  def caret_range(): Text.Range =
-    Isabelle.buffer_lock(model.buffer) {
-      def text(i: Text.Offset): Char = model.buffer.getText(i, 1).charAt(0)
-      val caret = text_area.getCaretPosition
-      try {
-        val c = text(caret)
-        if (Character.isHighSurrogate(c) && Character.isLowSurrogate(text(caret + 1)))
-          Text.Range(caret, caret + 2)
-        else if (Character.isLowSurrogate(c) && Character.isHighSurrogate(text(caret - 1)))
-          Text.Range(caret - 1, caret + 1)
-        else Text.Range(caret, caret + 1)
-      }
-      catch { case _: ArrayIndexOutOfBoundsException => Text.Range(caret, caret + 1) }
-    }
 
 
   /* caret handling */
@@ -408,8 +346,6 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
             }
           }
 
-        case Session.Global_Settings => html_panel_resize()
-
         case bad => System.err.println("command_change_actor: ignoring bad message " + bad)
       }
     }
@@ -452,6 +388,5 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     text_area_painter.deactivate()
     painter.removeExtension(tooltip_painter)
     painter.removeExtension(update_perspective)
-    exit_popup()
   }
 }
