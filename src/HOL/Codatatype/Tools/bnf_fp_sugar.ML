@@ -91,7 +91,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
     val _ = if not lfp andalso no_dests then error "Cannot define destructor-less codatatypes"
       else ();
 
-    val N = length specs;
+    val nn = length specs;
     val fp_bs = map type_binding_of specs;
     val fp_common_name = mk_common_name fp_bs;
 
@@ -107,8 +107,8 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
     val (((Bs, Cs), vs'), no_defs_lthy) =
       no_defs_lthy0
       |> fold (Variable.declare_typ o resort_tfree dummyS) unsorted_As
-      |> mk_TFrees N
-      ||>> mk_TFrees N
+      |> mk_TFrees nn
+      ||>> mk_TFrees nn
       ||>> Variable.variant_fixes (map Binding.name_of fp_bs);
 
     (* TODO: cleaner handling of fake contexts, without "background_theory" *)
@@ -568,7 +568,8 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
               | mk_prem_prems _ _ = [];
 
             fun close_prem_prem (Free x') t =
-              fold_rev Logic.all (map Free (drop (N + 1) (rev (Term.add_frees t (x' :: phis'))))) t;
+              fold_rev Logic.all
+                (map Free (drop (nn + 1) (rev (Term.add_frees t (x' :: phis'))))) t;
 
             fun mk_prem phi ctr ctr_Ts =
               let
@@ -591,7 +592,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
               Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
                 mk_induct_tac ctxt);
           in
-            `(conj_dests N) induct_thm
+            `(conj_dests nn) induct_thm
           end;
 
         val (iter_thmss, rec_thmss) =
@@ -643,7 +644,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
           end;
 
         val common_notes =
-          (if N > 1 then [(inductN, [induct_thm], [])] (* FIXME: attribs *) else [])
+          (if nn > 1 then [(inductN, [induct_thm], [])] (* FIXME: attribs *) else [])
           |> map (fn (thmN, thms, attrs) =>
               ((Binding.qualify true fp_common_name (Binding.name thmN), attrs), [(thms, [])]));
 
@@ -666,7 +667,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
           let
             val coinduct_thm = fp_induct;
           in
-            `(conj_dests N) coinduct_thm
+            `(conj_dests nn) coinduct_thm
           end;
 
         val (coiter_thmss, corec_thmss) =
@@ -749,7 +750,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
           map3 (map3 (map2 o mk_sel_coiter_like_thm)) corec_thmss selsss sel_thmsss;
 
         val common_notes =
-          (if N > 1 then [(coinductN, [coinduct_thm], [])] (* FIXME: attribs *) else [])
+          (if nn > 1 then [(coinductN, [coinduct_thm], [])] (* FIXME: attribs *) else [])
           |> map (fn (thmN, thms, attrs) =>
               ((Binding.qualify true fp_common_name (Binding.name thmN), attrs), [(thms, [])]));
 
