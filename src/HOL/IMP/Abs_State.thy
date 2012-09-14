@@ -52,7 +52,7 @@ begin
 definition wt_option where
 "wt opt X = (case opt of None \<Rightarrow> True | Some x \<Rightarrow> wt x X)"
 
-lemma wt_simps[simp]: "wt None X" "wt (Some x) X = wt x X"
+lemma wt_option_simps[simp]: "wt None X" "wt (Some x) X = wt x X"
 by(simp_all add: wt_option_def)
 
 instance ..

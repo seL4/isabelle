@@ -28,8 +28,11 @@ lemma wt_acom_simps[simp]: "wt (SKIP {P}) X \<longleftrightarrow> wt P X"
    wt I X \<and> vars b \<subseteq> X \<and> wt P X \<and> wt C X \<and> wt Q X"
 by(auto simp add: wt_acom_def)
 
-lemma wt_post[simp]: "wt c  X \<Longrightarrow> wt (post c) X"
-by(induction c)(auto simp: wt_acom_def)
+lemma post_in_annos: "post C : set(annos C)"
+by(induction C) auto
+
+lemma wt_post[simp]: "wt C X \<Longrightarrow> wt (post C) X"
+by(simp add: wt_acom_def post_in_annos)
 
 lemma lpfp_inv:
 assumes "lpfp f x0 = Some x" and "\<And>x. P x \<Longrightarrow> P(f x)" and "P(bot x0)"
