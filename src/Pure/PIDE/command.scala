@@ -102,6 +102,8 @@ object Command
   def unparsed(source: String): Command =
     Command(Document.no_id, Document.Node.Name.empty, List(Token(Token.Kind.UNPARSED, source)))
 
+  val empty = Command(Document.no_id, Document.Node.Name.empty, Nil)
+
 
   /* perspective */
 

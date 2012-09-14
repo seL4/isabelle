@@ -274,12 +274,6 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
   /* caret handling */
 
-  def selected_command(): Option[Command] =
-  {
-    Swing_Thread.require()
-    model.snapshot().node.command_at(text_area.getCaretPosition).map(_._1)
-  }
-
   private val delay_caret_update =
     Swing_Thread.delay_last(Time.seconds(Isabelle.options.real("editor_input_delay"))) {
       session.caret_focus.event(Session.Caret_Focus)

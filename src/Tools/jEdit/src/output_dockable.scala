@@ -25,6 +25,18 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 {
   Swing_Thread.require()
 
+
+  /* component state -- owned by Swing thread */
+
+  private var zoom_factor = 100
+  private var show_tracing = false
+  private var do_update = true
+  private var current_state = Command.empty.empty_state
+  private var current_body: XML.Body = Nil
+
+
+  /* HTML panel */
+
   private val html_panel =
     new HTML_Panel(Isabelle.font_family(), scala.math.round(Isabelle.font_size()))
   {
@@ -36,23 +48,20 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
         Document_View(view.getTextArea) match {
           case Some(doc_view) =>
             doc_view.robust_body() {
-              current_command match {
-                case Some(cmd) =>
-                  val model = doc_view.model
-                  val buffer = model.buffer
-                  val snapshot = model.snapshot()
-                  snapshot.node.command_start(cmd) match {
-                    case Some(start) if !snapshot.is_outdated =>
-                      val text = Pretty.string_of(sendback)
-                      try {
-                        buffer.beginCompoundEdit()
-                        buffer.remove(start, cmd.proper_range.length)
-                        buffer.insert(start, text)
-                      }
-                      finally { buffer.endCompoundEdit() }
-                    case _ =>
+              val cmd = current_state.command
+              val model = doc_view.model
+              val buffer = model.buffer
+              val snapshot = model.snapshot()
+              snapshot.node.command_start(cmd) match {
+                case Some(start) if !snapshot.is_outdated =>
+                  val text = Pretty.string_of(sendback)
+                  try {
+                    buffer.beginCompoundEdit()
+                    buffer.remove(start, cmd.proper_range.length)
+                    buffer.insert(start, text)
                   }
-                case None =>
+                  finally { buffer.endCompoundEdit() }
+                case _ =>
               }
             }
           case None =>
@@ -63,55 +72,45 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   set_content(html_panel)
 
 
-  /* component state -- owned by Swing thread */
-
-  private var zoom_factor = 100
-  private var show_tracing = false
-  private var follow_caret = true
-  private var current_command: Option[Command] = None
-
-
   private def handle_resize()
   {
-    Swing_Thread.now {
-      html_panel.resize(Isabelle.font_family(),
-        scala.math.round(Isabelle.font_size() * zoom_factor / 100))
-    }
+    Swing_Thread.require()
+
+    html_panel.resize(Isabelle.font_family(),
+      scala.math.round(Isabelle.font_size() * zoom_factor / 100))
   }
 
-  private def handle_perspective(): Boolean =
-    Swing_Thread.now {
-      Document_View(view.getTextArea) match {
-        case Some(doc_view) =>
-          val cmd = doc_view.selected_command()
-          if (current_command == cmd) false
-          else { current_command = cmd; true }
-        case None => false
-      }
-    }
-
-  private def handle_update(restriction: Option[Set[Command]] = None)
+  private def handle_update(follow: Boolean, restriction: Option[Set[Command]])
   {
-    Swing_Thread.now {
-      if (follow_caret) handle_perspective()
-      Document_View(view.getTextArea) match {
-        case Some(doc_view) =>
-          current_command match {
-            case Some(cmd) if !restriction.isDefined || restriction.get.contains(cmd) =>
-              val snapshot = doc_view.model.snapshot()
-              val filtered_results =
-                snapshot.state.command_state(snapshot.version, cmd).results.iterator
-                  .map(_._2).filter(
-                  { // FIXME not scalable
-                    case XML.Elem(Markup(Isabelle_Markup.TRACING, _), _) => show_tracing
-                    case _ => true
-                  }).toList
-              html_panel.render(filtered_results)
-            case _ => html_panel.render(Nil)
-          }
-        case None => html_panel.render(Nil)
+    Swing_Thread.require()
+
+    val new_state =
+      if (follow) {
+        Document_View(view.getTextArea) match {
+          case Some(doc_view) =>
+            val snapshot = doc_view.model.snapshot()
+            snapshot.node.command_at(doc_view.text_area.getCaretPosition).map(_._1) match {
+              case Some(cmd) => snapshot.state.command_state(snapshot.version, cmd)
+              case None => Command.empty.empty_state
+            }
+          case None => Command.empty.empty_state
+        }
       }
-    }
+      else current_state
+
+    val new_body =
+      if (!restriction.isDefined || restriction.get.contains(new_state.command))
+        new_state.results.iterator.map(_._2).filter(
+        { // FIXME not scalable
+          case XML.Elem(Markup(Isabelle_Markup.TRACING, _), _) => show_tracing
+          case _ => true
+        }).toList
+      else current_body
+
+    if (new_body != current_body) html_panel.render(new_body)
+
+    current_state = new_state
+    current_body = new_body
   }
 
 
@@ -120,9 +119,12 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   private val main_actor = actor {
     loop {
       react {
-        case Session.Global_Settings => handle_resize()
-        case changed: Session.Commands_Changed => handle_update(Some(changed.commands))
-        case Session.Caret_Focus => if (follow_caret && handle_perspective()) handle_update()
+        case Session.Global_Settings =>
+          Swing_Thread.later { handle_resize() }
+        case changed: Session.Commands_Changed =>
+          Swing_Thread.later { handle_update(do_update, Some(changed.commands)) }
+        case Session.Caret_Focus =>
+          Swing_Thread.later { handle_update(do_update, None) }
         case bad => System.err.println("Output_Dockable: ignoring bad message " + bad)
       }
     }
@@ -130,14 +132,18 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   override def init()
   {
+    Swing_Thread.require()
+
     Isabelle.session.global_settings += main_actor
     Isabelle.session.commands_changed += main_actor
     Isabelle.session.caret_focus += main_actor
-    handle_update()
+    handle_update(true, None)
   }
 
   override def exit()
   {
+    Swing_Thread.require()
+
     Isabelle.session.global_settings -= main_actor
     Isabelle.session.commands_changed -= main_actor
     Isabelle.session.caret_focus -= main_actor
@@ -162,19 +168,21 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   zoom.tooltip = "Zoom factor for basic font size"
 
   private val tracing = new CheckBox("Tracing") {
-    reactions += { case ButtonClicked(_) => show_tracing = this.selected; handle_update() }
+    reactions += {
+      case ButtonClicked(_) => show_tracing = this.selected; handle_update(do_update, None) }
   }
   tracing.selected = show_tracing
   tracing.tooltip = "Indicate output of tracing messages"
 
   private val auto_update = new CheckBox("Auto update") {
-    reactions += { case ButtonClicked(_) => follow_caret = this.selected; handle_update() }
+    reactions += {
+      case ButtonClicked(_) => do_update = this.selected; handle_update(do_update, None) }
   }
-  auto_update.selected = follow_caret
+  auto_update.selected = do_update
   auto_update.tooltip = "Indicate automatic update following cursor movement"
 
   private val update = new Button("Update") {
-    reactions += { case ButtonClicked(_) => handle_perspective(); handle_update() }
+    reactions += { case ButtonClicked(_) => handle_update(true, None) }
   }
   update.tooltip = "Update display according to the command at cursor position"
 
