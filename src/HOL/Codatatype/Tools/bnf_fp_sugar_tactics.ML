@@ -32,14 +32,13 @@ val meta_spec = @{thm meta_spec};
 
 fun smash_spurious_fs lthy thm =
   let
-    val spurious_fs =
+    val fs =
       Term.add_vars (prop_of thm) []
       |> filter (fn (_, Type (@{type_name fun}, [_, T'])) => T' <> HOLogic.boolT | _ => false);
-    val cxs =
-      map (fn s as (_, T) =>
-        (certify lthy (Var s), certify lthy (id_abs (domain_type T)))) spurious_fs;
+    val cfs =
+      map (fn f as (_, T) => (certify lthy (Var f), certify lthy (id_abs (domain_type T)))) fs;
   in
-    Drule.cterm_instantiate cxs thm
+    Drule.cterm_instantiate cfs thm
   end;
 
 val smash_spurious_fs_tac = PRIMITIVE o smash_spurious_fs;
@@ -113,7 +112,7 @@ val induct_prem_prem_thms =
 val induct_prem_prem_thms_delayed =
   @{thms fsts_def[abs_def] snds_def[abs_def] sum_setl_def[abs_def] sum_setr_def[abs_def]};
 
-(* TODO: Get rid of the "auto_tac" (or at least use a naked context) *)
+(* TODO: Get rid of "auto_tac" (or at least use a naked context) *)
 fun mk_induct_prem_prem_endgame_tac _ 0 = atac ORELSE' rtac @{thm singletonI}
   | mk_induct_prem_prem_endgame_tac ctxt qq =
     REPEAT_DETERM_N qq o
@@ -123,7 +122,7 @@ fun mk_induct_prem_prem_endgame_tac _ 0 = atac ORELSE' rtac @{thm singletonI}
 
 fun mk_induct_discharge_prem_prems_tac ctxt nn ixs set_natural's pre_set_defs =
   EVERY' (maps (fn ((pp, jj), (qq, kk)) =>
-      [select_prem_tac nn (dtac meta_spec) kk, rotate_tac ~1 (*FIXME: needed?*), etac meta_mp,
+      [select_prem_tac nn (dtac meta_spec) kk, etac meta_mp,
        SELECT_GOAL (Local_Defs.unfold_tac ctxt pre_set_defs), (* FIXME: ### why on a line of its own? *)
        SELECT_GOAL (Local_Defs.unfold_tac ctxt (set_natural's @ induct_prem_prem_thms)),
        SELECT_GOAL (Local_Defs.unfold_tac ctxt
