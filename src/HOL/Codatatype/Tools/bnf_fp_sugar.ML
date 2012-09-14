@@ -565,12 +565,12 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
                 | i => [([], (i + 1, x))])
               | mk_raw_prem_prems _ _ = [];
 
-            fun close_prem_prem xs t =
+            fun close_prem_prem (Free x') t =
               fold_rev Logic.all
-                (map Free (drop (2 * nn) (rev (Term.add_frees t (map dest_Free xs @ phis'))))) t;
+                (map Free (drop (nn + 1) (rev (Term.add_frees t (x' :: phis'))))) t;
 
-            fun mk_prem_prem xs (xysets, (j, x)) =
-              close_prem_prem xs (Logic.list_implies (map (fn (x', (y, set)) =>
+            fun mk_prem_prem (xysets, (j, x)) =
+              close_prem_prem x (Logic.list_implies (map (fn (x', (y, set)) =>
                   HOLogic.mk_Trueprop (HOLogic.mk_mem (y, set $ x'))) xysets,
                 HOLogic.mk_Trueprop (nth phis (j - 1) $ x)));
 
@@ -585,23 +585,25 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
             val raw_premss = map3 (map2 o mk_raw_prem) phis ctrss ctr_Tsss;
 
             fun mk_prem (xs, raw_pprems, concl) =
-              fold_rev Logic.all xs (Logic.list_implies (map (mk_prem_prem xs) raw_pprems, concl));
+              fold_rev Logic.all xs (Logic.list_implies (map mk_prem_prem raw_pprems, concl));
 
             val goal =
               Library.foldr (Logic.list_implies o apfst (map mk_prem)) (raw_premss,
                 HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
                   (map2 (curry (op $)) phis vs)));
 
-            fun mk_prem_prems_indices raw_pprems =
+            fun mk_raw_prem_prems_indices pprems =
               let
-                val rr = length raw_pprems;
+                fun has_index kk (_, (kk', _)) = kk' = kk;
+                val buckets = Library.partition_list has_index 1 nn pprems;
+                val pps = map length buckets;
               in
-                map2 (fn pp => fn (xysets, (i, _)) => ((rr, pp), i)) (1 upto rr) raw_pprems
+                map (fn pprem as (_ (*xysets*), (kk, _)) =>
+                  ((nth pps (kk - 1), find_index (curry (op =) pprem) (nth buckets (kk - 1)) + 1),
+                   kk)) pprems
               end;
 
-            val ppjjkksss = map (map (mk_prem_prems_indices o #2)) raw_premss;
-
-val _ = tracing ("PPJJISSS:\n" ^ PolyML.makestring (ppjjkksss)) (*###*)
+            val ppjjkksss = map (map (mk_raw_prem_prems_indices o #2)) raw_premss;
 
             val fld_induct' = fp_induct OF (map mk_sumEN_tupled_balanced mss);
 

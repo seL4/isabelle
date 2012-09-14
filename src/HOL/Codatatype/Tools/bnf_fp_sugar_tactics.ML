@@ -119,7 +119,7 @@ fun mk_induct_discharge_prem_prems_tac ctxt nn ppjjkks set_natural's pre_set_def
      SELECT_GOAL (Local_Defs.unfold_tac ctxt (set_natural's @ induct_prem_prem_thms)),
      SELECT_GOAL (Local_Defs.unfold_tac ctxt
        (induct_prem_prem_thms_delayed @ induct_prem_prem_thms)),
-     TRY o rtac (mk_UnIN pp jj), (*#####*)
+     rtac (mk_UnIN pp jj),
      atac ORELSE'
      rtac @{thm singletonI} ORELSE'
      (REPEAT_DETERM o (SELECT_GOAL (Local_Defs.unfold_tac ctxt @{thms Union_iff bex_simps(6)}) THEN'
