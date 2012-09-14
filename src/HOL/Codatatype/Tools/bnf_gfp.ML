@@ -1873,7 +1873,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
       ||>> mk_Frees "f" coiter_fTs
       ||>> mk_Frees "g" coiter_fTs
       ||>> mk_Frees "s" corec_sTs
-      ||>> mk_Frees "phi" (map (fn T => T --> mk_predT T) Ts);
+      ||>> mk_Frees "P" (map (fn T => T --> mk_predT T) Ts);
 
     fun unf_bind i = Binding.suffix_name ("_" ^ unfN) (nth bs (i - 1));
     val unf_name = Binding.name_of o unf_bind;
@@ -2309,9 +2309,9 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           ||>> mk_Frees "u" uTs
           ||>> mk_Frees' "b" Ts'
           ||>> mk_Frees' "b" Ts'
-          ||>> mk_Freess "phi" (map (fn T => map (fn U => T --> mk_predT U) Ts) passiveAs)
+          ||>> mk_Freess "P" (map (fn T => map (fn U => T --> mk_predT U) Ts) passiveAs)
           ||>> mk_Frees "R" JRTs
-          ||>> mk_Frees "phi" JphiTs
+          ||>> mk_Frees "P" JphiTs
           ||>> mk_Frees "B1" B1Ts
           ||>> mk_Frees "B2" B2Ts
           ||>> mk_Frees "A" AXTs

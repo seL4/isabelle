@@ -13,6 +13,7 @@ sig
   val mk_fld_iff_unf_tac: Proof.context -> ctyp option list -> cterm -> cterm -> thm -> thm
     -> tactic
   val mk_half_distinct_tac: Proof.context -> thm -> thm list -> tactic
+  val mk_induct_tac: Proof.context -> tactic
   val mk_inject_tac: Proof.context -> thm -> thm -> tactic
   val mk_iter_like_tac: thm list -> thm list -> thm list -> thm -> thm -> Proof.context -> tactic
 end;
@@ -51,6 +52,9 @@ fun mk_inject_tac ctxt ctr_def fld_inject =
   Local_Defs.unfold_tac ctxt [ctr_def] THEN rtac (fld_inject RS ssubst) 1 THEN
   Local_Defs.unfold_tac ctxt @{thms sum.inject Pair_eq conj_assoc} THEN rtac refl 1;
 
+fun mk_induct_tac ctxt =
+  Skip_Proof.cheat_tac (Proof_Context.theory_of ctxt)(*###*);
+
 val iter_like_thms =
   @{thms case_unit comp_def convol_def id_apply map_pair_def sum.simps(5,6) sum_map.simps
       split_conv};
@@ -67,6 +71,6 @@ fun mk_coiter_like_tac coiter_like_defs map_ids fld_unf_coiter_like pre_map_def 
   subst_tac ctxt [fld_unf_coiter_like] 1 THEN asm_simp_tac coiter_like_ss 1 THEN
   Local_Defs.unfold_tac ctxt (pre_map_def :: coiter_like_thms @ map_ids) THEN
   Local_Defs.unfold_tac ctxt @{thms id_def} THEN
-  (rtac refl ORELSE' subst_tac ctxt @{thms unit_eq} THEN' rtac refl) 1;
+  TRY ((rtac refl ORELSE' subst_tac ctxt @{thms unit_eq} THEN' rtac refl) 1);
 
 end;

@@ -52,7 +52,6 @@ fun typ_subst inst (T as Type (s, Ts)) =
 val lists_bmoc = fold (fn xs => fn t => Term.list_comb (t, xs));
 
 fun mk_id T = Const (@{const_name id}, T --> T);
-fun mk_id_fun T = Abs (Name.uu, T, Bound 0);
 
 fun mk_tupled_fun x f xs = HOLogic.tupled_lambda x (Term.list_comb (f, xs));
 fun mk_uncurried_fun f xs = mk_tupled_fun (HOLogic.mk_tuple xs) f xs;
@@ -65,8 +64,6 @@ fun tack z_name (c, v) f =
   let val z = Free (z_name, mk_sumT (fastype_of v, fastype_of c)) in
     Term.lambda z (mk_sum_case (Term.lambda v v, Term.lambda c (f $ c)) $ z)
   end;
-
-fun fold_def_rule n thm = funpow n (fn thm => thm RS fun_cong) (thm RS meta_eq_to_obj_eq) RS sym;
 
 fun cannot_merge_types () = error "Mutually recursive types must have the same type parameters";
 
@@ -184,7 +181,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
             let val (needs, ss') = fold_map add Ts ss in
               if exists I needs then (true, insert (op =) s ss') else (false, ss')
             end
-          | add T ss = (member (op =) As T, ss);
+          | add T ss = (member (op =) Bs T, ss);
       in snd oo add end;
 
     val nested_bnfs =
@@ -204,6 +201,9 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
     val flds = map (mk_fld As) flds0;
 
     val fpTs = map (domain_type o fastype_of) unfs;
+
+    val exists_fp_subtype = exists_subtype (member (op =) fpTs);
+
     val vs = map2 (curry Free) vs' fpTs;
 
     val ctr_Tsss = map (map (map (Term.typ_subst_atomic (Bs ~~ fpTs)))) ctr_TsssBs;
@@ -516,34 +516,76 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
     fun derive_induct_iter_rec_thms_for_types ((ctrss, _, iters, recs, vs, xsss, ctr_defss, _, _,
         iter_defs, rec_defs), lthy) =
       let
+        fun mk_sets_nested bnf =
+          let
+            val Type (T_name, Us) = T_of_bnf bnf;
+            val lives = lives_of_bnf bnf;
+            val sets = sets_of_bnf bnf;
+            fun mk_set U =
+              (case find_index (curry (op =) U) lives of
+                ~1 => Term.dummy
+              | i => nth sets i);
+          in
+            (T_name, map mk_set Us)
+          end;
+
+        val setss_nested = map mk_sets_nested nested_bnfs;
+
         val (induct_thms, induct_thm) =
           let
-            val (ps, names_lthy) =
+            val ((phis, phis'), names_lthy) =
               lthy
-              |> mk_Frees "P" (map mk_predT fpTs);
+              |> mk_Frees' "P" (map mk_predT fpTs);
 
-            fun mk_prem_prem (x as Free (_, T)) =
-              map HOLogic.mk_Trueprop
+            fun mk_set Ts t =
+              let val Type (_, Ts0) = domain_type (fastype_of t) in
+                Term.subst_atomic_types (Ts0 ~~ Ts) t
+              end;
+
+            fun mk_prem_prems names_lthy (x as Free (s, T as Type (T_name, Ts0))) =
                 (case find_index (curry (op =) T) fpTs of
-                  ~1 => []
-                | i => [nth ps i $ x]);
+                  ~1 =>
+                  (case AList.lookup (op =) setss_nested T_name of
+                    NONE => []
+                  | SOME raw_sets0 =>
+                    let
+                      val (Ts, raw_sets) =
+                        split_list (filter (exists_fp_subtype o fst) (Ts0 ~~ raw_sets0));
+                      val sets = map (mk_set Ts0) raw_sets;
+                      val (ys, names_lthy') = names_lthy |> mk_Frees s Ts;
+                      val heads =
+                        map2 (fn y => fn set => HOLogic.mk_Trueprop (HOLogic.mk_mem (y, set $ x)))
+                          ys sets;
+                      val bodies = flat (map (mk_prem_prems names_lthy') ys);
+                    in
+                      map2 (curry Logic.mk_implies) heads bodies
+                    end)
+                | i => [HOLogic.mk_Trueprop (nth phis i $ x)])
+              | mk_prem_prems _ _ = [];
 
-            fun mk_prem p ctr ctr_Ts =
-              let val (xs, _) = names_lthy |> mk_Frees "x" ctr_Ts in
+            fun close_prem_prem (Free x') t =
+              fold_rev Logic.all (map Free (drop (N + 1) (rev (Term.add_frees t (x' :: phis'))))) t;
+
+            fun mk_prem phi ctr ctr_Ts =
+              let
+                val (xs, names_lthy') = names_lthy |> mk_Frees "x" ctr_Ts;
+                val prem_prems =
+                  maps (fn x => map (close_prem_prem x) (mk_prem_prems names_lthy' x)) xs;
+              in
                 fold_rev Logic.all xs
-                  (Logic.list_implies (maps mk_prem_prem xs,
-                     HOLogic.mk_Trueprop (p $ Term.list_comb (ctr, xs))))
+                  (Logic.list_implies (prem_prems,
+                     HOLogic.mk_Trueprop (phi $ Term.list_comb (ctr, xs))))
               end;
 
             val goal =
-              fold_rev (fold_rev Logic.all) [ps, vs]
-                (Library.foldr Logic.list_implies (map3 (map2 o mk_prem) ps ctrss ctr_Tsss,
+              fold_rev (fold_rev Logic.all) [phis, vs]
+                (Library.foldr Logic.list_implies (map3 (map2 o mk_prem) phis ctrss ctr_Tsss,
                    HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
-                     (map2 (curry (op $)) ps vs))));
+                     (map2 (curry (op $)) phis vs))));
 
             val induct_thm =
               Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-                Skip_Proof.cheat_tac (Proof_Context.theory_of ctxt));
+                mk_induct_tac ctxt);
           in
             `(conj_dests N) induct_thm
           end;
@@ -572,7 +614,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
             fun intr_calls fiter_likes maybe_cons maybe_tick maybe_mk_prodT (x as Free (_, T)) =
               if member (op =) fpTs T then
                 maybe_cons x [build_call fiter_likes (K I) (T, mk_U (K I) T) $ x]
-              else if exists_subtype (member (op =) fpTs) T then
+              else if exists_fp_subtype T then
                 [build_call fiter_likes maybe_tick (T, mk_U maybe_mk_prodT T) $ x]
               else
                 [x];

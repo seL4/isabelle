@@ -794,7 +794,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
       ||>> mk_Frees' "x" init_FTs
       ||>> mk_Frees "f" init_fTs
       ||>> mk_Frees "f" init_fTs
-      ||>> mk_Frees "phi" (replicate n (mk_predT initT));
+      ||>> mk_Frees "P" (replicate n (mk_predT initT));
 
     val II = HOLogic.mk_Collect (fst iidx', IIT, list_exists_free (II_Bs @ II_ss)
       (HOLogic.mk_conj (HOLogic.mk_eq (iidx,
@@ -1374,7 +1374,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           ||>> mk_Frees "p2" p2Ts
           ||>> mk_Frees' "y" passiveAs
           ||>> mk_Frees "R" IRTs
-          ||>> mk_Frees "phi" IphiTs;
+          ||>> mk_Frees "P" IphiTs;
 
         val map_FTFT's = map2 (fn Ds =>
           mk_map_of_bnf Ds (passiveAs @ Ts) (passiveBs @ Ts')) Dss bnfs;
