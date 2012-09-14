@@ -232,25 +232,26 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
       else
         Isabelle.buffer_lock(model.buffer) {
           val snapshot = model.snapshot()
+          val rendering = Isabelle_Rendering(snapshot, Isabelle.options.value)
 
           if (control) init_popup(snapshot, x, y)
 
           def update_range[A](
-            rendering: (Document.Snapshot, Text.Range) => Option[Text.Info[A]],
+            rendering: Text.Range => Option[Text.Info[A]],
             info: Option[Text.Info[A]]): Option[Text.Info[A]] =
           {
             for (Text.Info(range, _) <- info) invalidate_range(range)
             val new_info =
               if (control) {
                 val offset = text_area.xyToOffset(x, y)
-                rendering(snapshot, Text.Range(offset, offset + 1))
+                rendering(Text.Range(offset, offset + 1))
               }
               else None
             for (Text.Info(range, _) <- info) invalidate_range(range)
             new_info
           }
-          _highlight_range = update_range(Isabelle_Rendering.subexp, _highlight_range)
-          _hyperlink_range = update_range(Isabelle_Rendering.hyperlink, _hyperlink_range)
+          _highlight_range = update_range(rendering.subexp, _highlight_range)
+          _hyperlink_range = update_range(rendering.hyperlink, _hyperlink_range)
         }
     }
   }
@@ -265,12 +266,12 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     override def getToolTipText(x: Int, y: Int): String =
     {
       robust_body(null: String) {
-        val snapshot = model.snapshot()
+        val rendering = Isabelle_Rendering(model.snapshot(), Isabelle.options.value)
         val offset = text_area.xyToOffset(x, y)
         val range = Text.Range(offset, offset + 1)
         val tip =
-          if (control) Isabelle_Rendering.tooltip(snapshot, range)
-          else Isabelle_Rendering.tooltip_message(snapshot, range)
+          if (control) rendering.tooltip(range)
+          else rendering.tooltip_message(range)
         tip.map(Isabelle.tooltip(_)) getOrElse null
       }
     }
@@ -292,13 +293,14 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
         if (gutter.isSelectionAreaEnabled && !gutter.isExpanded && width >= 12 && line_height >= 12) {
           Isabelle.buffer_lock(model.buffer) {
-            val snapshot = model.snapshot()
+            val rendering = Isabelle_Rendering(model.snapshot(), Isabelle.options.value)
+
             for (i <- 0 until physical_lines.length) {
               if (physical_lines(i) != -1) {
                 val line_range = proper_line_range(start(i), end(i))
 
                 // gutter icons
-                Isabelle_Rendering.gutter_message(snapshot, line_range) match {
+                rendering.gutter_message(line_range) match {
                   case Some(icon) =>
                     val x0 = (FOLD_MARKER_SIZE + width - border_width - icon.getIconWidth) max 10
                     val y0 = y + i * line_height + (((line_height - icon.getIconHeight) / 2) max 0)

@@ -75,7 +75,7 @@ class Text_Area_Painter(doc_view: Document_View)
 
   /* common painter state */
 
-  @volatile private var painter_snapshot: Document.Snapshot = null
+  @volatile private var painter_rendering: Isabelle_Rendering = null
   @volatile private var painter_clip: Shape = null
 
   private val set_state = new TextAreaExtension
@@ -84,7 +84,7 @@ class Text_Area_Painter(doc_view: Document_View)
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
-      painter_snapshot = model.snapshot()
+      painter_rendering = Isabelle_Rendering(model.snapshot(), Isabelle.options.value)
       painter_clip = gfx.getClip
     }
   }
@@ -95,14 +95,14 @@ class Text_Area_Painter(doc_view: Document_View)
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
-      painter_snapshot = null
+      painter_rendering = null
       painter_clip = null
     }
   }
 
-  private def robust_snapshot(body: Document.Snapshot => Unit)
+  private def robust_rendering(body: Isabelle_Rendering => Unit)
   {
-    doc_view.robust_body(()) { body(painter_snapshot) }
+    doc_view.robust_body(()) { body(painter_rendering) }
   }
 
 
@@ -114,7 +114,7 @@ class Text_Area_Painter(doc_view: Document_View)
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
-      robust_snapshot { snapshot =>
+      robust_rendering { rendering =>
         val ascent = text_area.getPainter.getFontMetrics.getAscent
 
         for (i <- 0 until physical_lines.length) {
@@ -123,7 +123,7 @@ class Text_Area_Painter(doc_view: Document_View)
 
             // background color (1)
             for {
-              Text.Info(range, color) <- Isabelle_Rendering.background1(snapshot, line_range)
+              Text.Info(range, color) <- rendering.background1(line_range)
               r <- gfx_range(range)
             } {
               gfx.setColor(color)
@@ -132,7 +132,7 @@ class Text_Area_Painter(doc_view: Document_View)
 
             // background color (2)
             for {
-              Text.Info(range, color) <- Isabelle_Rendering.background2(snapshot, line_range)
+              Text.Info(range, color) <- rendering.background2(line_range)
               r <- gfx_range(range)
             } {
               gfx.setColor(color)
@@ -141,7 +141,7 @@ class Text_Area_Painter(doc_view: Document_View)
 
             // squiggly underline
             for {
-              Text.Info(range, color) <- Isabelle_Rendering.squiggly_underline(snapshot, line_range)
+              Text.Info(range, color) <- rendering.squiggly_underline(line_range)
               r <- gfx_range(range)
             } {
               gfx.setColor(color)
@@ -161,7 +161,7 @@ class Text_Area_Painter(doc_view: Document_View)
 
   /* text */
 
-  private def paint_chunk_list(snapshot: Document.Snapshot,
+  private def paint_chunk_list(rendering: Isabelle_Rendering,
     gfx: Graphics2D, line_start: Text.Offset, head: Chunk, x: Float, y: Float): Float =
   {
     val clip_rect = gfx.getClipBounds
@@ -190,7 +190,7 @@ class Text_Area_Painter(doc_view: Document_View)
 
         val markup =
           for {
-            r1 <- Isabelle_Rendering.text_color(snapshot, chunk_range, chunk_color)
+            r1 <- rendering.text_color(chunk_range, chunk_color)
             r2 <- r1.try_restrict(chunk_range)
           } yield r2
 
@@ -246,7 +246,7 @@ class Text_Area_Painter(doc_view: Document_View)
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
-      robust_snapshot { snapshot =>
+      robust_rendering { rendering =>
         val clip = gfx.getClip
         val x0 = text_area.getHorizontalOffset
         val fm = text_area.getPainter.getFontMetrics
@@ -260,7 +260,7 @@ class Text_Area_Painter(doc_view: Document_View)
             if (chunks != null) {
               val line_start = text_area.getBuffer.getLineStartOffset(line)
               gfx.clipRect(x0, y + line_height * i, Integer.MAX_VALUE, line_height)
-              val w = paint_chunk_list(snapshot, gfx, line_start, chunks, x0, y0).toInt
+              val w = paint_chunk_list(rendering, gfx, line_start, chunks, x0, y0).toInt
               gfx.clipRect(x0 + w.toInt, 0, Integer.MAX_VALUE, Integer.MAX_VALUE)
               orig_text_painter.paintValidLine(gfx,
                 screen_line, line, start(i), end(i), y + line_height * i)
@@ -282,14 +282,14 @@ class Text_Area_Painter(doc_view: Document_View)
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
-      robust_snapshot { snapshot =>
+      robust_rendering { rendering =>
         for (i <- 0 until physical_lines.length) {
           if (physical_lines(i) != -1) {
             val line_range = doc_view.proper_line_range(start(i), end(i))
 
             // foreground color
             for {
-              Text.Info(range, color) <- Isabelle_Rendering.foreground(snapshot, line_range)
+              Text.Info(range, color) <- rendering.foreground(line_range)
               r <- gfx_range(range)
             } {
               gfx.setColor(color)
@@ -312,7 +312,7 @@ class Text_Area_Painter(doc_view: Document_View)
               Text.Info(range, _) <- info.try_restrict(line_range)
               r <- gfx_range(range)
             } {
-              gfx.setColor(Isabelle_Rendering.color_value("hyperlink_color"))
+              gfx.setColor(rendering.hyperlink_color)
               gfx.drawRect(r.x, y + i * line_height, r.length - 1, line_height - 1)
             }
           }
@@ -329,7 +329,7 @@ class Text_Area_Painter(doc_view: Document_View)
     override def paintValidLine(gfx: Graphics2D,
       screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int)
     {
-      robust_snapshot { _ =>
+      robust_rendering { _ =>
         if (before) gfx.clipRect(0, 0, 0, 0)
         else gfx.setClip(painter_clip)
       }
@@ -346,7 +346,7 @@ class Text_Area_Painter(doc_view: Document_View)
     override def paintValidLine(gfx: Graphics2D,
       screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int)
     {
-      robust_snapshot { _ =>
+      robust_rendering { _ =>
         if (text_area.isCaretVisible) {
           val caret = text_area.getCaretPosition
           if (start <= caret && caret == end - 1) {
