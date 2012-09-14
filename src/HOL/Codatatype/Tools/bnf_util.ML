@@ -111,7 +111,7 @@ sig
   val mk_nthI: int -> int -> thm
   val mk_nth_conv: int -> int -> thm
   val mk_ordLeq_csum: int -> int -> thm -> thm
-  val mk_UnN: int -> int -> thm
+  val mk_UnIN: int -> int -> thm
 
   val ctrans: thm
   val o_apply: thm
@@ -542,12 +542,12 @@ in
 end;
 
 local
-  fun mk_UnN' 0 = @{thm UnI2}
-    | mk_UnN' m = mk_UnN' (m - 1) RS @{thm UnI1};
+  fun mk_UnIN' 0 = @{thm UnI2}
+    | mk_UnIN' m = mk_UnIN' (m - 1) RS @{thm UnI1};
 in
-  fun mk_UnN 1 1 = @{thm TrueE[OF TrueI]}
-    | mk_UnN n 1 = Library.foldr1 (op RS o swap) (replicate (n - 1) @{thm UnI1})
-    | mk_UnN n m = mk_UnN' (n - m)
+  fun mk_UnIN 1 1 = @{thm TrueE[OF TrueI]}
+    | mk_UnIN n 1 = Library.foldr1 (op RS o swap) (replicate (n - 1) @{thm UnI1})
+    | mk_UnIN n m = mk_UnIN' (n - m)
 end;
 
 fun interleave xs ys = flat (map2 (fn x => fn y => [x, y]) xs ys);

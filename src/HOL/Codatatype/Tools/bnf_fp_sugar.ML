@@ -499,6 +499,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
         ((wrap, define_iter_likes), lthy')
       end;
 
+    (* TODO: remove all "nested" and "nesting" BNFs from pre_bnfs, if they're there *)
     val pre_map_defs = map map_def_of_bnf pre_bnfs;
     val pre_set_defss = map set_defs_of_bnf pre_bnfs;
     val nesting_map_ids = map map_id_of_bnf nesting_bnfs;

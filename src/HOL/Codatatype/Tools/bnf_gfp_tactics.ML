@@ -206,7 +206,7 @@ fun mk_set_incl_hset_tac def rec_Suc =
 fun mk_set_hset_incl_hset_tac n defs rec_Suc i =
   EVERY' (map (TRY oo stac) defs @
     map rtac [@{thm UN_least}, subsetI, @{thm UN_I}, UNIV_I, set_mp, equalityD2, rec_Suc, UnI2,
-      mk_UnN n i] @
+      mk_UnIN n i] @
     [etac @{thm UN_I}, atac]) 1;
 
 fun mk_set_incl_hin_tac incls =
@@ -535,7 +535,7 @@ fun mk_card_of_carT_tac m isNode_defs sbd_sbd
       hyp_subst_tac, etac @{thm emptyE}, rtac (@{thm Ffunc_def} RS equalityD2 RS set_mp),
       rtac CollectI, rtac conjI, rtac ballI, dtac bspec, etac thin_rl, atac, dtac conjunct1,
       CONJ_WRAP_GEN' (etac disjE) (fn (i, def) => EVERY'
-        [rtac (mk_UnN n i), dtac (def RS subst_id),
+        [rtac (mk_UnIN n i), dtac (def RS subst_id),
         REPEAT_DETERM o eresolve_tac [exE, conjE], rtac @{thm image_eqI}, atac, rtac CollectI,
         REPEAT_DETERM_N m o (rtac conjI THEN' atac),
         CONJ_WRAP' (K (EVERY' [etac ord_eq_le_trans, rtac subset_trans,
@@ -678,7 +678,7 @@ fun mk_prefCl_Lev_tac cts Lev_0s Lev_Sucs =
               rtac Lev_0, rtac @{thm singletonI},
               REPEAT_DETERM o eresolve_tac [exE, conjE], hyp_subst_tac,
               rtac @{thm set_mp[OF equalityD2[OF trans[OF arg_cong[OF length_Cons]]]]},
-              rtac Lev_Suc, rtac (mk_UnN n i), rtac CollectI, REPEAT_DETERM o rtac exI, rtac conjI,
+              rtac Lev_Suc, rtac (mk_UnIN n i), rtac CollectI, REPEAT_DETERM o rtac exI, rtac conjI,
               rtac refl, etac conjI, REPEAT_DETERM o etac allE, dtac (mk_conjunctN n i),
               etac mp, etac conjI, atac]) ks])
       (Lev_0s ~~ Lev_Sucs)] 1
@@ -753,7 +753,7 @@ fun mk_set_Lev_tac cts Lev_0s Lev_Sucs rv_Nils rv_Conss from_to_sbdss =
             then EVERY' [dtac (mk_InN_inject n i), hyp_subst_tac,
               CONJ_WRAP' (fn (i'', Lev_0'') =>
                 EVERY' [rtac impI, rtac @{thm ssubst_mem[OF append_Nil]},
-                  rtac (Lev_Suc RS equalityD2 RS set_mp), rtac (mk_UnN n i''),
+                  rtac (Lev_Suc RS equalityD2 RS set_mp), rtac (mk_UnIN n i''),
                   rtac CollectI, REPEAT_DETERM o rtac exI, rtac conjI, rtac refl,
                   etac conjI, rtac (Lev_0'' RS equalityD2 RS set_mp),
                   rtac @{thm singletonI}])
@@ -770,7 +770,7 @@ fun mk_set_Lev_tac cts Lev_0s Lev_Sucs rv_Nils rv_Conss from_to_sbdss =
                 CONJ_WRAP' (fn i' => rtac impI THEN'
                   CONJ_WRAP' (fn i'' =>
                     EVERY' [rtac impI, rtac (Lev_Suc RS equalityD2 RS set_mp),
-                      rtac @{thm ssubst_mem[OF append_Cons]}, rtac (mk_UnN n i),
+                      rtac @{thm ssubst_mem[OF append_Cons]}, rtac (mk_UnIN n i),
                       rtac CollectI, REPEAT_DETERM o rtac exI, rtac conjI, rtac refl,
                       rtac conjI, atac, dtac (sym RS trans RS sym),
                       rtac (rv_Cons RS trans), rtac (mk_sum_casesN n i RS trans),
@@ -972,7 +972,7 @@ fun mk_mor_beh_tac m mor_def mor_cong beh_defs carT_defs strT_defs isNode_defs
                 else etac (mk_InN_not_InM i' i'' RS notE)])
             (rev ks),
             rtac @{thm UN_least}, rtac subsetI, rtac CollectI, rtac @{thm UN_I[OF UNIV_I]},
-            rtac (Lev_Suc RS equalityD2 RS set_mp), rtac (mk_UnN n i'), rtac CollectI,
+            rtac (Lev_Suc RS equalityD2 RS set_mp), rtac (mk_UnIN n i'), rtac CollectI,
             REPEAT_DETERM o rtac exI, rtac conjI, rtac refl, etac conjI, atac,
             rtac trans, rtac @{thm shift_def}, rtac ssubst, rtac @{thm fun_eq_iff}, rtac allI,
             rtac @{thm if_cong}, rtac (@{thm length_Cons} RS arg_cong RS trans), rtac iffI,
@@ -986,7 +986,7 @@ fun mk_mor_beh_tac m mor_def mor_cong beh_defs carT_defs strT_defs isNode_defs
                   atac, atac, hyp_subst_tac, atac]
                 else etac (mk_InN_not_InM i' i'' RS notE)])
             (rev ks),
-            rtac (Lev_Suc RS equalityD2 RS set_mp), rtac (mk_UnN n i'), rtac CollectI,
+            rtac (Lev_Suc RS equalityD2 RS set_mp), rtac (mk_UnIN n i'), rtac CollectI,
             REPEAT_DETERM o rtac exI, rtac conjI, rtac refl, etac conjI, atac,
             CONVERSION (Conv.top_conv
               (K (Conv.try_conv (Conv.rewr_conv (rv_Cons RS eq_reflection)))) ctxt),
@@ -1196,7 +1196,7 @@ fun mk_set_le_tac n hset_minimal set_hsets set_hset_hsetss =
     REPEAT_DETERM_N n o rtac @{thm Un_upper1},
     REPEAT_DETERM_N n o
       EVERY' (map3 (fn i => fn set_hset => fn set_hset_hsets =>
-        EVERY' [rtac subsetI, rtac @{thm UnI2}, rtac (mk_UnN n i), etac @{thm UN_I},
+        EVERY' [rtac subsetI, rtac @{thm UnI2}, rtac (mk_UnIN n i), etac @{thm UN_I},
           etac UnE, etac set_hset, REPEAT_DETERM_N (n - 1) o etac UnE,
           EVERY' (map (fn thm => EVERY' [etac @{thm UN_E}, etac thm, atac]) set_hset_hsets)])
       (1 upto n) set_hsets set_hset_hsetss)] 1;
