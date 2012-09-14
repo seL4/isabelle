@@ -41,7 +41,7 @@ and render_tree (XML.Text s) = Buffer.add s
           if null ts then Markup.no_output
           else if name = Isabelle_Markup.stateN then (special "O" ^ "\n", "\n" ^ special "P")
           else if name = Isabelle_Markup.sendbackN then (special "W", special "X")
-          else if name = Isabelle_Markup.hiliteN then (special "0", special "1")
+          else if name = Isabelle_Markup.intensifyN then (special "0", special "1")
           else if name = Isabelle_Markup.tfreeN then (special "C", special "A")
           else if name = Isabelle_Markup.tvarN then (special "D", special "A")
           else if name = Isabelle_Markup.freeN then (special "E", special "A")

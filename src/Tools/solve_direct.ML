@@ -89,7 +89,7 @@ fun do_solve_direct mode state =
                Proof.goal_message
                  (fn () =>
                    Pretty.chunks
-                    [Pretty.str "", Pretty.markup Isabelle_Markup.hilite (message results)])
+                    [Pretty.str "", Pretty.markup Isabelle_Markup.intensify (message results)])
              else
                tap (fn _ =>
                  Output.urgent_message (Pretty.string_of (Pretty.chunks (message results))))))

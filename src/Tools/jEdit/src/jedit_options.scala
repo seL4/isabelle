@@ -9,6 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
+import java.awt.Color
 import javax.swing.{InputVerifier, JComponent, UIManager}
 import javax.swing.text.JTextComponent
 
@@ -26,6 +27,8 @@ trait Option_Component extends Component
 
 class JEdit_Options extends Options_Variable
 {
+  def color_value(s: String): Color = Color_Value(string(s))
+
   def make_color_component(opt: Options.Opt): Option_Component =
   {
     Swing_Thread.require()

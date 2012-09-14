@@ -245,7 +245,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
       if mode = Auto_Try then
         Unsynchronized.change state_ref o Proof.goal_message o K
         o Pretty.chunks o cons (Pretty.str "") o single
-        o Pretty.mark Isabelle_Markup.hilite
+        o Pretty.mark Isabelle_Markup.intensify
       else
         print o Pretty.string_of
     val pprint_a = pprint Output.urgent_message

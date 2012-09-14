@@ -84,7 +84,7 @@ sig
   val stateN: string val state: Markup.T
   val subgoalN: string val subgoal: Markup.T
   val sendbackN: string val sendback: Markup.T
-  val hiliteN: string val hilite: Markup.T
+  val intensifyN: string val intensify: Markup.T
   val taskN: string
   val acceptedN: string val accepted: Markup.T
   val forkedN: string val forked: Markup.T
@@ -264,7 +264,7 @@ val (proof_stateN, proof_state) = markup_int "proof_state" subgoalsN;
 val (stateN, state) = markup_elem "state";
 val (subgoalN, subgoal) = markup_elem "subgoal";
 val (sendbackN, sendback) = markup_elem "sendback";
-val (hiliteN, hilite) = markup_elem "hilite";
+val (intensifyN, intensify) = markup_elem "intensify";
 
 
 (* command status *)

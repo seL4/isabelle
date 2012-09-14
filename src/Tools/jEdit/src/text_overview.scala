@@ -54,6 +54,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
   private var cached_colors: List[(Color, Int, Int)] = Nil
 
   private var last_snapshot = Document.State.init.snapshot()
+  private var last_options = Isabelle.options.value
   private var last_line_count = 0
   private var last_char_count = 0
   private var last_L = 0
@@ -69,7 +70,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
         val snapshot = doc_view.model.snapshot()
 
         if (snapshot.is_outdated) {
-          gfx.setColor(Isabelle_Rendering.color_value("color_outdated"))
+          gfx.setColor(Isabelle.options.color_value("outdated_color"))
           gfx.asInstanceOf[Graphics2D].fill(gfx.getClipBounds)
         }
         else {
@@ -82,9 +83,14 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
           val L = lines()
           val H = getHeight()
 
+          val options = Isabelle.options.value
+
           if (!(line_count == last_line_count && char_count == last_char_count &&
-                L == last_L && H == last_H && (snapshot eq_markup last_snapshot)))
+                L == last_L && H == last_H && (snapshot eq_markup last_snapshot) &&
+                (options eq last_options)))
           {
+            val rendering = Isabelle_Rendering(snapshot, options)
+
             @tailrec def loop(l: Int, h: Int, p: Int, q: Int, colors: List[(Color, Int, Int)])
               : List[(Color, Int, Int)] =
             {
@@ -102,7 +108,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
                 val range = Text.Range(start, end)
 
                 val colors1 =
-                  (Isabelle_Rendering.overview_color(snapshot, range), colors) match {
+                  (rendering.overview_color(range), colors) match {
                     case (Some(color), (old_color, old_h, old_h1) :: rest)
                     if color == old_color && old_h1 == h => (color, old_h, h1) :: rest
                     case (Some(color), _) => (color, h, h1) :: colors
@@ -115,6 +121,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
             cached_colors = loop(0, 0, 0, 0, Nil)
 
             last_snapshot = snapshot
+            last_options = options
             last_line_count = line_count
             last_char_count = char_count
             last_L = L
